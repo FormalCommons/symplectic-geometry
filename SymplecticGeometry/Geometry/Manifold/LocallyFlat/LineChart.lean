@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Convex.Basic
 public import TauCeti.Geometry.Manifold.LocallyFlat.Basic
 import SymplecticGeometry.Data.Set.Image
+import SymplecticGeometry.Topology.OpenPartialHomeomorph.Ball
 import Mathlib.Analysis.Normed.Module.Convex
 import Mathlib.Topology.Order.IntermediateValue
 
@@ -82,16 +83,13 @@ theorem exists_isSliceChart_convex (h : IsLocallyFlat ℝ F' f) (t : ℝ) {W : S
   -- An open set of `M` meeting the curve exactly in `f '' (a, b)`.
   obtain ⟨U, hU, hfU⟩ := h.isEmbedding.isInducing.isOpen_iff.1 (isOpen_Ioo (a := a) (b := b))
   -- Shrink `φ` to a ball whose points come from `U ∩ interior W`.
-  obtain ⟨r, hr, hrV⟩ := Metric.isOpen_iff.1 (φ.isOpen_inter_preimage_symm
-    (hU.inter isOpen_interior)) (φ (f t)) ⟨φ.map_source hφt, by
-      rw [mem_preimage, φ.left_inv hφt]
-      exact ⟨(hfU ▸ hab : t ∈ f ⁻¹' U), mem_interior_iff_mem_nhds.2 hW⟩⟩
-  obtain ⟨ψ, hψφ, hψs, hψt, hψ⟩ :=
-    hφ.exists_target_eq isOpen_ball (hrV.trans inter_subset_left)
+  obtain ⟨r, hr, hrφ, hrUW⟩ := φ.exists_ball_subset_target_mapsTo_symm hφt
+    (Filter.inter_mem (hU.mem_nhds (hfU ▸ hab : t ∈ f ⁻¹' U)) (interior_mem_nhds.2 hW))
+  obtain ⟨ψ, hψφ, hψs, hψt, hψ⟩ := hφ.exists_target_eq isOpen_ball hrφ
   have hsrcUW : ∀ x ∈ ψ.source, x ∈ U ∧ x ∈ W := fun x hx => by
     rw [hψs] at hx
-    have hx' := (hrV hx.2).2
-    rw [mem_preimage, φ.left_inv hx.1] at hx'
+    have hx' := hrUW hx.2
+    rw [φ.left_inv hx.1] at hx'
     exact ⟨hx'.1, interior_subset hx'.2⟩
   have hOab : f ⁻¹' ψ.source ⊆ Ioo a b := fun s hs => hfU ▸ (hsrcUW _ hs).1
   have hO : f ⁻¹' ψ.source = Ioo a b ∩ g ⁻¹' (LinearMap.inl ℝ ℝ F' ⁻¹' ball (φ (f t)) r) := by

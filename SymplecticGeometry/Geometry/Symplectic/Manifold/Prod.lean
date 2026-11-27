@@ -10,7 +10,7 @@ public import Mathlib.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
-# The product form under diagonal actions and on slices
+# Pull-backs of the product form
 
 For two-forms `σ` on `M` and `τ` on `N` and an element `g` of a monoid acting smoothly on both,
 `TauCeti.SmoothTwoForm.mpullback_smul_prod` says that if `g` preserves `σ` and `τ`, it preserves
@@ -20,6 +20,13 @@ the diagonal action of `g`. The proof is the one of the field `mpullback_smul` i
 `TauCeti.SmoothTwoForm.HamiltonianTorusData.prod`
 (`TauCeti/Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/Torus.lean`), for any monoid in
 place of a torus.
+
+Along any smooth map `u : X → M × N`, the product form pulls back to
+`(pr₁ ∘ u)^* σ + (pr₂ ∘ u)^* τ` (`TauCeti.SmoothTwoForm.mpullback_prod`), which generalizes
+`mpullback_prodMap_prod` from product maps to all maps into the product. Its proof takes the
+first rewriting steps of Tau Ceti's `TauCeti.integralTopForm_mpullback_prod`
+(`TauCeti/Geometry/Symplectic/Manifold/Prod/Area.lean`), stated for the forms instead of for
+their integrals.
 
 On a slice `x ↦ (x, c)` of `M × N` the product form restricts to `σ`
 (`TauCeti.SmoothTwoForm.mpullback_prodMk_left_prod`). On two tangent vectors of `M × N`, which
@@ -57,13 +64,24 @@ theorem mpullback_smul_prod {σ : SmoothTwoForm I M} {τ : SmoothTwoForm J N} (g
   -- On `M × N`, `g` acts by definition as the product map of its actions on the factors.
   exact hg
 
+/-- **Pull-back of the product form along a map into a product.** For a smooth map
+`u : X → M × N`, the pull-back of `pr₁^* σ + pr₂^* τ` along `u` is
+`(pr₁ ∘ u)^* σ + (pr₂ ∘ u)^* τ`. -/
+theorem mpullback_prod {E₀ H₀ X : Type*} [NormedAddCommGroup E₀] [NormedSpace ℝ E₀]
+    [TopologicalSpace H₀] {I₀ : ModelWithCorners ℝ E₀ H₀} [TopologicalSpace X]
+    [ChartedSpace H₀ X] [IsManifold I₀ 1 X] {u : X → M × N} (hu : ContMDiff I₀ (I.prod J) ∞ u)
+    (σ : SmoothTwoForm I M) (τ : SmoothTwoForm J N) :
+    SmoothForm.mpullback u hu (σ.prod τ) =
+      SmoothForm.mpullback (Prod.fst ∘ u) (contMDiff_fst.comp hu) σ +
+        SmoothForm.mpullback (Prod.snd ∘ u) (contMDiff_snd.comp hu) τ := by
+  rw [prod_def, map_add, SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback]
+
 /-- The product form `σ ⊕ τ` restricts to `σ` on each slice `x ↦ (x, c)` of `M × N`: the pull-back
 of `pr₂^* τ` along a slice vanishes, since `pr₂` is constant on it. -/
 theorem mpullback_prodMk_left_prod (σ : SmoothTwoForm I M) (τ : SmoothTwoForm J N) (c : N) :
     SmoothForm.mpullback (fun x : M ↦ (x, c)) (contMDiff_id.prodMk contMDiff_const)
       (σ.prod τ) = σ := by
-  rw [prod_def, map_add, SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero,
-    SmoothForm.mpullback_mpullback]
+  simp only [mpullback_prod, Function.comp_def, SmoothForm.mpullback_const, add_zero]
   exact LinearMap.congr_fun SmoothForm.mpullback_id σ
 
 /-- The product form evaluates on two tangent vectors of `M × N`, which are pairs, as the sum of

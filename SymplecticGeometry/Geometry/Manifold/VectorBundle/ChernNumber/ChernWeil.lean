@@ -85,30 +85,24 @@ open scoped VectorBundle.ComplexToReal
 variable [ContMDiffVectorBundle ∞ F V (𝓡 2)] (g : ContMDiffRiemannianMetric (𝓡 2) ∞ F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
 
+open scoped ContMDiffHermitianMetric in
 /-- **The first Chern number as the integral of a curvature.** Let `M` be a closed smooth surface
 with an orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth Hermitian
 metric `g`. For every connection form `α` on the circle bundle of unitary frames of `V`, the
 first Chern number of `V`, for the homological orientation of `o`, is `-(2π)⁻¹` times the
 integral over `M` of the curvature of `α`. -/
 theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
+    letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
+    -- a hint for the search of `IsManifold _ 1` on the total space; #7355 should make it unneeded
+    haveI : ContMDiffFiberBundle 1 Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
+      ContMDiffFiberBundle.of_le (n := ∞) (by simp)
     ∀ {α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1}
       (hα : IsCircleConnectionForm α),
       (chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
           finrank_euclideanSpace_fin F V : ℝ) =
         -(2 * π)⁻¹ * integralTopForm o hα.curvature.val := by
   intro α hα
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
   obtain ⟨ι, _, e, r, hr, hc, he, φ, hφe, hatlas, hdisj, k, σ, σout, hσ, hσout, hrel, hsum⟩ :=
     exists_coordinateDisc_unitSection_eq_phase_zpow_smul g hI o
   obtain rfl : φ = fun i ↦ CoordinateDisc.ofChart (e i) (hr i) (hc i) (he i) := funext hφe
@@ -129,6 +123,7 @@ theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (
   push_cast
   field_simp
 
+open scoped ContMDiffHermitianMetric in
 /-- **The real first Chern class integrates to the Chern number.** Let `M` be a closed smooth
 surface with an orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth
 Hermitian metric `g`. The integral over `M` of the real first Chern class of `V` is the first
@@ -139,16 +134,12 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.integral_realFirstChernClass
       chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
         finrank_euclideanSpace_fin F V := by
   rw [ContMDiffRiemannianMetric.realFirstChernClass_def]
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
   obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (P := Fiber ℂ F V ℂ) (IB := 𝓡 2)
   rw [hα.realFirstChernClass_eq, _root_.map_smul, deRhamCohomology.integral_mk,
     chernNumber_eq_integral_curvature g hI o hα, smul_eq_mul]
 
+open scoped ContMDiffHermitianMetric in
 /-- **Curvatures with a given integral.** Let `M` be a closed connected smooth surface with an
 orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth Hermitian metric `g`.
 Every smooth `2`-form on `M` whose integral is `-2π` times the first Chern number of `V`, for the
@@ -161,17 +152,13 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integra
       (o.toHomologicalOrientation finrank_euclideanSpace_fin) finrank_euclideanSpace_fin F V) :
     g.IsConnectionCurvature hI σ := by
   rw [ContMDiffRiemannianMetric.isConnectionCurvature_def]
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
   obtain ⟨α₀, hα₀⟩ := exists_isCircleConnectionForm (P := Fiber ℂ F V ℂ) (IB := 𝓡 2)
   refine hα₀.isCircleConnectionCurvature_of_integralTopForm_eq o ?_
   rw [hσ, chernNumber_eq_integral_curvature g hI o hα₀]
   field_simp
 
+open scoped ContMDiffHermitianMetric in
 /-- **The Chern–Weil formula for circle bundles over surfaces.** Take `M` a closed smooth
 surface with an orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth
 Hermitian metric `g`, with circle bundle `P` of unitary frames. Write `c` for the first Chern
@@ -186,12 +173,10 @@ Connection forms and curvatures are real forms here: the curvature `F_α` is `-i
 
 Milestone: *Chern–Weil formula for circle bundles over surfaces*. -/
 theorem chernNumber_eq_integral_curvature_and_exists (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
+    letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
+    -- a hint for the search of `IsManifold _ 1` on the total space; #7355 should make it unneeded
+    haveI : ContMDiffFiberBundle 1 Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
+      ContMDiffFiberBundle.of_le (n := ∞) (by simp)
     (∀ {α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1}
       (hα : IsCircleConnectionForm α),
       (chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)

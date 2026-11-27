@@ -137,25 +137,13 @@ variable {E' H' M F : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Finit
 
 open scoped VectorBundle.ComplexToReal
 
+open scoped Bundle.ContMDiffHermitianMetric in
 /-- The unit circle bundle of a smooth Hermitian line bundle over a Hausdorff, σ-compact,
 finite-dimensional manifold has a connection form. -/
-example [ContMDiffVectorBundle ∞ F V I] (g : ContMDiffRiemannianMetric I ∞ F V)
-    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
-      Bundle.contMDiffFiberBundle_circleFiber g hI
+example [ContMDiffVectorBundle ∞ F V I] [Bundle.ContMDiffHermitianMetric I ∞ F V] :
     ∃ α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1,
-      IsCircleConnectionForm α := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
-    Bundle.contMDiffFiberBundle_circleFiber g hI
-  exact exists_isCircleConnectionForm
+      IsCircleConnectionForm α :=
+  exists_isCircleConnectionForm
 
 end CircleBundle
 
