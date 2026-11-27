@@ -18,8 +18,8 @@ and a map `f : E → F`:
 
 * `Module.Basis.contDiffOn_repr`, `Module.Basis.contDiffAt_repr`: the coordinates
   `y ↦ b.repr (f y) j` of `f` are `C^n` on a set, or at a point, where `f` is.
-* `Module.Basis.norm_iteratedFDeriv_le_sum_repr`: at a point where `f` is `Cⁿ`, the norm of its `n`-th
-  derivative is at most `∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖`.
+* `Module.Basis.norm_iteratedFDeriv_le_sum_repr`: at a point where `f` is `Cⁿ`, the norm of its
+  `n`-th derivative is at most `∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖`.
 
 The second is a converse of Mathlib's `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`, applied
 to the coordinate functionals. It is Tau Ceti's `TauCeti.norm_iteratedFDeriv_sum_comp_left_le`
