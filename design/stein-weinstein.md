@@ -833,7 +833,11 @@ containing `ι '' closedBall 0 1`:
       `isConvexShapeAt_of_bounds`, as `isConvexShapeAt_of_cutoff_bounds`,
       with `0 ≤ b ≤ 8`, `0 ≤ c ≤ 128`, `|p| ≤ 1 / 1024` and
       `|r * q| ≤ 1 / 1024` in place of `1 / 8`, `64` and `1 / 64`;
-      `abs_deriv_cutoff_le`, with `1024 * (A + 2 * B + M) ≤ L`; and the
+      `abs_deriv_cutoff_le`, as `Real.smoothTransition.abs_deriv_sub_div_le`
+      in `SmoothTransition/Deriv.lean`, for the cutoff
+      `x ↦ smoothTransition ((x - a) / L)` with `0 ≤ a` and
+      `A + a * B + M ≤ ε * L`, bounding both quantities by `ε` (here
+      `a = 2`, `ε = 1 / 1024`); and the
       first two derivatives of
       `x ↦ b * (1 - H x) + √(64 * x ^ 2 - 64 + c * H x)`, `0 ≤ c`, in
       place of `deriv_sqrtSubLeaf_one` and
