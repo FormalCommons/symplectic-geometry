@@ -96,8 +96,7 @@ theorem map_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer [IsManifold IF 2 F
     deRhamCohomology.map (e.fiberInclusionMap hb) (e.contMDiff_fiberInclusionMap he hb) k a =
       deRhamCohomology.mk IF k ⟨σ, hσ.mem_closedForms⟩ := by
   have hj : ⇑(e.fiberInclusionMap hb) = e'.fiberInclusionMap hb' ∘ φ := by
-    rw [hφe]
-    exact funext fun v ↦ (e.fiberInclusionMap_coordChange e' hb hb' v).symm
+    rw [hφe, e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb']
   -- The induced map depends only on the function, not on the proof of its smoothness.
   have hmap : ∀ {f g : F → M} (hf : ContMDiff IF IM ∞ f) (hg : ContMDiff IF IM ∞ g), f = g →
       deRhamCohomology.map (I := IF) (I' := IM) f hf k = deRhamCohomology.map g hg k := by
