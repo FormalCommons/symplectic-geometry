@@ -821,6 +821,14 @@ containing `ι '' closedBall 0 1`:
       where `h r < 1`, the second where `0 < h r`), and, in
       `Surround/ShapeFamily.lean`,
       `sqrtAddLeaf_zero : sqrtAddLeaf L δ 0 = sqrtSubLeaf L δ 0`.
+      Both leaves are `cutoffLeaf L δ b c r =
+      b * (1 - h r) + √(64 * (r ^ 2 - δ ^ 2) + c * h r)` (in
+      `Surround/CutoffLeaf.lean`): `sqrtAddLeaf` with `b = δ / 8 + ℓ`,
+      `c = 64 * δ ^ 2 + ℓ ^ 2`, and `sqrtSubLeaf` with
+      `b = (ℓ + 8 * δ) / 64`, `c = 64 * δ ^ 2 - ℓ ^ 2`. Their rescaling,
+      `_of_le`, `_of_ge`, `tendsto_deriv_`, convexity, smoothness in
+      `(ℓ, r)` and strict monotonicity in `ℓ`, and the slope bound of
+      `sqrtAddLeaf`, follow from those of `cutoffLeaf`.
     - `exists_isConvexShapeAt_sqrtAddLeaf`: there is `L₀ ≥ 1` such that
       for `L ≥ L₀`, `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
       `IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r` (the range above `7 * δ`
@@ -1329,9 +1337,14 @@ containing `ι '' closedBall 0 1`:
        derivatives of `smoothedMax` are nonnegative with sum `1`; the
        strict upper bound gives `χ ℓ > M N + κ * θ ℓ + δ` near `ℓ₁`, where
        the family is then `χ ℓ`. Last, near `r₂` the family is blended
-       with `χ` by a cutoff in `r`: both are increasing in `ℓ` there and
-       close in value and two `r`-derivatives (step 4), so the blend is
-       increasing and, by step 1, a convex shape.
+       with `χ` by a cutoff `ρ ≥ 0` in `r`: both are increasing in `ℓ` there
+       and close in value and first `r`-derivative (step 4), while their
+       second `r`-derivatives are close only from below: near `ℓ₁` the term of
+       `iteratedDeriv_two_smoothedMax` with `(smoothedAbs δ)''` is
+       nonnegative and may be of order `1 / δ`. So the blend is increasing
+       and, by the one-sided blend lemma
+       `exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two`
+       (`Surround/ConvexShape/Basic.lean`), a convex shape.
     The shapes of `exists_convexShapeFamily_surround` have vertical
     tangents at `r = δ`, where they are not graphs over `r`; there the
     same statement is used with `r` as a function of `R`, the shapes
