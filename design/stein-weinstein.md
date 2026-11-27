@@ -928,7 +928,7 @@ containing `ι '' closedBall 0 1`:
     - What this needs elsewhere: in
       `Analysis/SpecialFunctions/SmoothedMax.lean`,
       `smoothedAbs_eq_mul_smoothedAbs_one`
-      (`smoothedAbs δ t = δ * smoothedAbs 1 (t / δ)` for `0 < δ`: both
+      (`smoothedAbs δ t = δ * smoothedAbs 1 (t / δ)` for `δ ≠ 0`: both
       sides have derivative `smoothedSign δ t`, as
       `smoothedSign δ s = smoothedSign 1 (s / δ)`, and agree at `δ`),
       `smoothedMax_eq_mul_smoothedMax_one`,
@@ -941,7 +941,7 @@ containing `ι '' closedBall 0 1`:
       `|s|` since `f` is convex) and `monotoneOn_smoothedMax_width`; in
       `Surround/SpecialShape.lean`, `struweShape_eq_mul_struweShape_one`
       (`struweShape δ K c = fun r ↦ δ * struweShape 1 K (c / δ) (r / δ)`
-      for `0 < δ`, by the substitution `u = δ * v`).
+      for `δ ≠ 0`, by the substitution `u = δ * v`).
 
     `exists_convexShapeFamily_surround` takes these leaves as its part
     `ℓ ∈ Icc 0 (7 * δ)`, with one `L` at least the `L₀` of
