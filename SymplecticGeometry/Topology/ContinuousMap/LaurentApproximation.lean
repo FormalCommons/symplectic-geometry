@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Complex.Circle
+public import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 public import Mathlib.Topology.ContinuousMap.StoneWeierstrass
 public import Mathlib.Topology.Separation.CompletelyRegular
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
@@ -18,6 +18,8 @@ is a map `(x, u) ↦ u ^ k • g x` with `k : ℤ` and `g : C(X, V)`. This file 
 compact Hausdorff and `V` is finite-dimensional, finite sums of Laurent monomials are uniformly
 dense in `C(X × Circle, V)`: every continuous map on `X × Circle` is a uniform limit of Laurent
 polynomials in the circle variable whose coefficients are continuous functions on `X`.
+The monomials themselves, `ContinuousMap.laurentMonomial`, and their algebra are in
+`SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial`.
 
 For `V = ℂ` the span of the Laurent monomials is a star subalgebra, since the conjugate of a unit
 complex number is its inverse, and it separates points, so the Stone–Weierstrass theorem
@@ -29,8 +31,6 @@ map is a finite sum of scalar maps times the vectors of a basis.
 
 ## Main definitions
 
-* `ContinuousMap.laurentMonomial k`: the linear map `g ↦ ((x, u) ↦ u ^ k • g x)` from `C(X, V)` to
-  `C(X × Circle, V)`.
 * `ContinuousMap.laurentSubmodule X V`: the span of the Laurent monomials.
 * `ContinuousMap.laurentStarSubalgebra X`: the same span for `V = ℂ`, as a star subalgebra.
 
@@ -55,37 +55,6 @@ open Finset
 namespace ContinuousMap
 
 variable {X : Type*} [TopologicalSpace X] {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V]
-
-/-- The Laurent monomial of degree `k` with coefficient `g`: the map `(x, u) ↦ u ^ k • g x` on
-`X × Circle`, as a linear map in `g`. -/
-noncomputable def laurentMonomial (k : ℤ) : C(X, V) →ₗ[ℂ] C(X × Circle, V) where
-  toFun g :=
-    ⟨fun w => (w.2 : ℂ) ^ k • g w.1,
-      ((continuous_subtypeVal.comp continuous_snd).zpow₀ k
-        fun w => Or.inl (Circle.coe_ne_zero w.2)).smul (g.continuous.comp continuous_fst)⟩
-  map_add' g h := by ext w; exact smul_add _ _ _
-  map_smul' a g := by ext w; exact smul_comm _ _ _
-
-@[simp]
-theorem laurentMonomial_apply (k : ℤ) (g : C(X, V)) (w : X × Circle) :
-    laurentMonomial k g w = (w.2 : ℂ) ^ k • g w.1 :=
-  (rfl)
-
-/-- The product of two scalar Laurent monomials is a Laurent monomial. -/
-@[simp]
-theorem laurentMonomial_mul_laurentMonomial (i j : ℤ) (g h : C(X, ℂ)) :
-    laurentMonomial i g * laurentMonomial j h = laurentMonomial (i + j) (g * h) := by
-  ext w
-  simp only [mul_apply, laurentMonomial_apply, smul_eq_mul, zpow_add₀ (Circle.coe_ne_zero w.2)]
-  ring
-
-/-- The conjugate of a scalar Laurent monomial is the Laurent monomial of the opposite degree with
-the conjugate coefficient. -/
-@[simp]
-theorem star_laurentMonomial (k : ℤ) (g : C(X, ℂ)) :
-    star (laurentMonomial k g) = laurentMonomial (-k) (star g) := by
-  ext w
-  simp [zpow_neg, ← Circle.coe_inv_eq_conj]
 
 variable (X V) in
 /-- The submodule of `C(X × Circle, V)` spanned by the Laurent monomials `(x, u) ↦ u ^ k • g x`,
