@@ -6,12 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.LinearCongr
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
+public import TauCeti.CategoryTheory.Linear.Int
 import TauCeti.Algebra.Homology.HomologicalComplex.Basic
 
 /-!
@@ -35,15 +37,13 @@ fundamental class.
   cycles, the change of coefficients `SSet.restrictScalarsCyclesMap` along the same map, which
   `SymplecticGeometry.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
   and `SymplecticGeometry.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
-* `SymplecticGeometry.intCastChainMap_toSSet`: on the singular simplicial set of a space,
-  `intCastChainMap` is Tau Ceti's comparison of chains `TopCat.restrictScalarsChainMap` along
-  the same cast.
-* `TopCat.singularCochainComplexIntLinearIso`: singular cochains with values in abelian groups
-  for the two `ℤ`-linear structures of `ModuleCat ℤ`, Mathlib's `ModuleCat.instLinear`, in which
-  Tau Ceti's comparisons over a general ring land, and `CategoryTheory.Linear.preadditiveIntLinear`,
-  are the same cochains.
-* `TopCat.singularCochainComplexRestrictScalarsUnitIso`: with it, integral cochains with values
-  in `F k` are integral cochains with values in the abelian group `k`.
+* `TopCat.restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap`: for any ring map, Tau Ceti's
+  comparison of chains `TopCat.restrictScalarsChainMap` is the change of coefficients
+  `SSet.restrictScalarsChainMap` on the singular simplicial set of the space.
+* `TopCat.singularCochainComplexRestrictScalarsUnitIso`: integral cochains with values in `F k`,
+  for Mathlib's `ℤ`-linear structure `ModuleCat.instLinear` in which Tau Ceti's comparisons over a
+  general ring land, are integral cochains with values in the abelian group `k`, through the
+  change of linear structure `TopCat.singularCochainComplexLinearCongr`.
 * `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, Tau Ceti's
   `TopCat.restrictScalarsCochainMap` along the cast of integers into `k`, an isomorphism by
   `TopCat.bijective_restrictScalarsCochainMap_f`, followed by the previous identification. It
@@ -201,64 +201,61 @@ end SymplecticGeometry
 
 namespace TopCat
 
+section RestrictScalars
+
+universe w
+
+variable (X : TopCat.{w}) {R k : Type w} [CommRing R] [CommRing k] (f : R →+* k)
+  {T : ModuleCat.{w} R} (c : T ⟶ (ModuleCat.restrictScalars f).obj (𝟙_ (ModuleCat.{w} k)))
+
+/-- Tau Ceti's comparison of singular chains `TopCat.restrictScalarsChainMap f c` is the change of
+coefficients `SSet.restrictScalarsChainMap f c` on the singular simplicial set of `X`. -/
+theorem restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap :
+    X.restrictScalarsChainMap f c = SSet.restrictScalarsChainMap f c (toSSet.obj X) := by
+  ext n : 1
+  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
+  rw [SSet.ιChainComplex_restrictScalarsChainMap_f, ιChainComplex_restrictScalarsChainMap_f]
+
+end RestrictScalars
+
 variable (k : Type) [CommRing k] (X : TopCat.{0})
 
 /-! ### Cochains -/
 
-/-- On the singular simplicial set of a space, the chain map casting integral chains to `k` is
-Tau Ceti's comparison of chains `TopCat.restrictScalarsChainMap` along the cast
-`ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)` of integers into `k`. -/
-theorem _root_.SymplecticGeometry.intCastChainMap_toSSet :
-    SymplecticGeometry.intCastChainMap k (toSSet.obj X) =
-      X.restrictScalarsChainMap (algebraMap ℤ k)
-        (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) := by
-  ext n : 1
-  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
-  rw [SymplecticGeometry.ιChainComplex_intCastChainMap_f, ιChainComplex_restrictScalarsChainMap_f]
-
-/-- Singular cochains with values in abelian groups, for Mathlib's `ℤ`-linear structure
-`ModuleCat.instLinear` of `ModuleCat ℤ`, in which Tau Ceti states its comparisons over a general
-commutative ring, are those for the structure `CategoryTheory.Linear.preadditiveIntLinear` of a
-preadditive category: in each degree, the identity of cochains, which is `ℤ`-linear for both
-structures. -/
-def singularCochainComplexIntLinearIso (R M : ModuleCat.{0} ℤ) :
-    @singularCochainComplex (ModuleCat.{0} ℤ) _ _ _ R ℤ _ ModuleCat.instLinear M X ≅
-      X.singularCochainComplex R ℤ M :=
-  HomologicalComplex.Hom.isoOfComponents
-    (fun p ↦
-      { hom := ConcreteCategory.ofHom (AddEquiv.toIntLinearEquiv
-          (M := (@singularCochainComplex (ModuleCat.{0} ℤ) _ _ _ R ℤ _ ModuleCat.instLinear M
-            X).X p)
-          (M₂ := (X.singularCochainComplex R ℤ M).X p) (AddEquiv.refl _)).toLinearMap
-        inv := ConcreteCategory.ofHom (AddEquiv.toIntLinearEquiv
-          (M := (X.singularCochainComplex R ℤ M).X p)
-          (M₂ := (@singularCochainComplex (ModuleCat.{0} ℤ) _ _ _ R ℤ _ ModuleCat.instLinear M
-            X).X p)
-          (AddEquiv.refl _)).toLinearMap })
-    fun _ _ _ ↦ rfl
-
-/-- The identification of cochains for the two `ℤ`-linear structures of `ModuleCat ℤ` is the
-identity on cochains. -/
-theorem singularCochainComplexIntLinearIso_hom_f_apply (R M : ModuleCat.{0} ℤ) (p : ℕ)
-    (φ : ((toSSet.obj X).chainComplex R).X p ⟶ M) :
-    (X.singularCochainComplexIntLinearIso R M).hom.f p φ = φ :=
-  (rfl)
-
 /-- Integral cochains with values in `k` with its scalars restricted to `ℤ`, the target of Tau
 Ceti's comparison `TopCat.restrictScalarsCochainMap` along the cast of integers into `k`, are the
 integral cochains with values in the abelian group `k`: the change of `ℤ`-linear structure
-`TopCat.singularCochainComplexIntLinearIso`, followed by postcomposition with the identification
-`ModuleCat.restrictScalarsAlgebraMapIso` of the two `ℤ`-modules `k`. -/
+`TopCat.singularCochainComplexLinearCongr` from Mathlib's `ModuleCat.instLinear`, in which Tau
+Ceti states its comparisons over a general ring, to the structure
+`CategoryTheory.Linear.preadditiveIntLinear` of a preadditive category, followed by
+postcomposition with the identification `ModuleCat.restrictScalarsAlgebraMapIso` of the two
+`ℤ`-modules `k`. -/
 def singularCochainComplexRestrictScalarsUnitIso :
     @singularCochainComplex (ModuleCat.{0} ℤ) _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
         ModuleCat.instLinear
         ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj (𝟙_ (ModuleCat.{0} k))) X ≅
       X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ k) :=
-  X.singularCochainComplexIntLinearIso _ _ ≪≫
+  singularCochainComplexLinearCongr (Subsingleton.elim (α := Linear ℤ (ModuleCat.{0} ℤ)) _ _)
+      X _ _ ≪≫
     (((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).linearYonedaObjFunctor
       ℤ).mapIso (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k :
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj (𝟙_ (ModuleCat.{0} k)) ≅
           ModuleCat.of ℤ k)
+
+theorem singularCochainComplexRestrictScalarsUnitIso_def :
+    X.singularCochainComplexRestrictScalarsUnitIso k =
+      Iso.trans
+        (X := @singularCochainComplex (ModuleCat.{0} ℤ) _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
+          ModuleCat.instLinear
+          ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj (𝟙_ (ModuleCat.{0} k))) X)
+        (Z := X.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ k))
+        (singularCochainComplexLinearCongr (Subsingleton.elim (α := Linear ℤ (ModuleCat.{0} ℤ)) _ _)
+          X _ _)
+        ((((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).linearYonedaObjFunctor
+          ℤ).mapIso (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k :
+            (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj (𝟙_ (ModuleCat.{0} k)) ≅
+              ModuleCat.of ℤ k)) :=
+  (rfl)
 
 /-- The identification of the values of integral cochains postcomposes a cochain with the
 identification of `k` with its scalars restricted to `ℤ` with the abelian group `k`. -/
@@ -267,10 +264,14 @@ theorem singularCochainComplexRestrictScalarsUnitIso_hom_f_apply (p : ℕ)
       (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj (𝟙_ (ModuleCat.{0} k))) :
     (X.singularCochainComplexRestrictScalarsUnitIso k).hom.f p φ =
       φ ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom :=
-  -- The first isomorphism is the identity of cochains, so the composite is postcomposition with
-  -- the identification of the values, matched up to unfolding: `rw` cannot split the composite,
-  -- whose middle object changes the `ℤ`-linear structure.
-  ChainComplex.linearYonedaObjMap_f_hom_apply ℤ _ _ p φ
+  -- The isomorphism is a composite whose middle object changes the `ℤ`-linear structure, so that
+  -- `rw` cannot rewrite with `singularCochainComplexRestrictScalarsUnitIso_def`, and the steps are
+  -- pasted as terms.
+  (congrArg (fun i ↦ i.hom.f p φ) (X.singularCochainComplexRestrictScalarsUnitIso_def k)).trans <|
+    (ConcreteCategory.comp_apply
+      ((singularCochainComplexLinearCongr _ X _ _).hom.f p) _ φ).trans <|
+    (congrArg _ (singularCochainComplexLinearCongr_hom_f_apply _ X _ _ p φ)).trans <|
+      ChainComplex.linearYonedaObjMap_f_hom_apply ℤ _ _ p φ
 
 /-- **Cochains over `k` as integral cochains**: the `k`-linear cochains `Hom_k(C(X; k), k)`,
 read as abelian groups, are the integral cochains `Hom_ℤ(C(X; ℤ), k)`. This is Tau Ceti's
@@ -314,7 +315,8 @@ theorem singularCochainComplexIntChainsIso_hom_f_apply (p : ℕ)
     (X.singularCochainComplexRestrictScalarsUnitIso_hom_f_apply k p _).trans <|
     (congrArg (· ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom)
       (X.restrictScalarsCochainMap_f_apply _ _ p ψ)).trans ?_
-  rw [SymplecticGeometry.intCastChainMap_toSSet, Category.assoc]
+  rw [restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap,
+    ← SymplecticGeometry.intCastChainMap_def, Category.assoc]
 
 /-- The comparison of cochains takes a cochain `φ` to the integral cochain sending `a σ` to
 `a φ(σ)`. -/
