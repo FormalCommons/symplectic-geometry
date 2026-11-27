@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.MvPolynomial.Eval
-public import Mathlib.LinearAlgebra.Dual.Defs
+public import Mathlib.LinearAlgebra.Dual.Basis
 public import Mathlib.LinearAlgebra.FreeModule.Finite.Basic
 
 /-!
@@ -35,6 +35,8 @@ entries of an invertible matrix to the coordinates of a basis.
 ## Main results
 
 * `Module.linearMap_mem_polynomialFunctions`: linear functionals are polynomial functions.
+* `Module.comp_linearMap_mem_polynomialFunctions`: the composite of a polynomial function with a
+  linear map is a polynomial function.
 * `Module.Basis.polynomialFunctions_eq_range_aeval`: for a finite basis `b`, the polynomial
   functions are the polynomials in the coordinate functions of `b`.
 * `Module.Basis.mem_polynomialFunctions_iff`: `f` is a polynomial function exactly when
@@ -69,6 +71,20 @@ variable {R M}
 theorem linearMap_mem_polynomialFunctions (ℓ : Dual R M) : ⇑ℓ ∈ polynomialFunctions R M :=
   Algebra.subset_adjoin ⟨ℓ, rfl⟩
 
+/-- The composite `f ∘ L` of a polynomial function `f` on `N` with a linear map
+`L : M →ₗ[R] N` is a polynomial function on `M`. -/
+theorem comp_linearMap_mem_polynomialFunctions {N : Type*} [AddCommMonoid N] [Module R N]
+    (L : M →ₗ[R] N) {f : N → R} (hf : f ∈ polynomialFunctions R N) :
+    f ∘ L ∈ polynomialFunctions R M := by
+  rw [polynomialFunctions_def] at hf
+  induction hf using Algebra.adjoin_induction with
+  | mem f hf =>
+    obtain ⟨ℓ, rfl⟩ := hf
+    exact linearMap_mem_polynomialFunctions (ℓ ∘ₗ L)
+  | algebraMap r => exact Subalgebra.algebraMap_mem _ r
+  | add f g _ _ hf hg => exact Subalgebra.add_mem _ hf hg
+  | mul f g _ _ hf hg => exact Subalgebra.mul_mem _ hf hg
+
 /-- For a bilinear form `β` whose left argument ranges over a finite free module, the function
 `p ↦ β (f p) (g p)` is a polynomial function on `M` if the composites of `f` and of `g` with
 every linear functional are. -/
@@ -82,9 +98,8 @@ theorem bilin_apply_mem_polynomialFunctions {W₁ W₂ : Type*} [AddCommMonoid W
   have hβ : (fun p ↦ β (f p) (g p)) =
       ∑ i, (fun p ↦ c.coord i (f p)) * fun p ↦ β (c i) (g p) := by
     ext p
-    conv_lhs => rw [← c.sum_repr (f p)]
-    simp only [map_sum, map_smul, LinearMap.sum_apply, LinearMap.smul_apply,
-      smul_eq_mul, Finset.sum_apply, Pi.mul_apply, Basis.coord_apply]
+    rw [← LinearMap.flip_apply (f := β), ← c.sum_dual_apply_smul_coord (β.flip (g p))]
+    simp [mul_comm]
   rw [hβ]
   exact Subalgebra.sum_mem _ fun i _ ↦ Subalgebra.mul_mem _ (hf _) (hg _)
 
@@ -100,12 +115,7 @@ theorem polynomialFunctions_eq_range_aeval :
   rw [← Algebra.adjoin_range_eq_range_aeval, polynomialFunctions_def]
   refine le_antisymm (Algebra.adjoin_le (Set.range_subset_iff.2 fun ℓ ↦ ?_))
     (Algebra.adjoin_mono (Set.range_subset_iff.2 fun i ↦ ⟨b.coord i, rfl⟩))
-  have hℓ : ⇑ℓ = ∑ i, ℓ (b i) • ⇑(b.coord i) := by
-    ext p
-    conv_lhs => rw [← b.sum_repr p]
-    simp only [map_sum, map_smul, smul_eq_mul, Finset.sum_apply, Pi.smul_apply,
-      Basis.coord_apply, mul_comm]
-  rw [SetLike.mem_coe, hℓ]
+  rw [SetLike.mem_coe, ← b.sum_dual_apply_smul_coord ℓ, LinearMap.coe_sum]
   exact Subalgebra.sum_mem _ fun i _ ↦
     Subalgebra.smul_mem _ (Algebra.subset_adjoin (Set.mem_range_self i)) _
 

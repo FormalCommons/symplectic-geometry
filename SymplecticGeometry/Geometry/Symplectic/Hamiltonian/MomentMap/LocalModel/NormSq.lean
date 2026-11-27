@@ -105,7 +105,7 @@ theorem apply_covector_mem_polynomialFunctions
     ring
   have hsnd (ℓ' : Module.Dual ℝ V) :
       (fun p ↦ ℓ' (LinearMap.snd ℝ A V p)) ∈ Module.polynomialFunctions ℝ (A × V) :=
-    Module.linearMap_mem_polynomialFunctions (ℓ' ∘ₗ LinearMap.snd ℝ A V)
+    Module.comp_linearMap_mem_polynomialFunctions _ (Module.linearMap_mem_polynomialFunctions ℓ')
   rw [hν]
   exact Subalgebra.add_mem _ (Subalgebra.add_mem _ (Subalgebra.algebraMap_mem _ _)
       (Module.linearMap_mem_polynomialFunctions _))
