@@ -192,9 +192,8 @@ theorem timeExtendSlice_smul (c : ℝ) (s : ℝ) :
 `ℝ × M`. -/
 theorem contMDiff_timeExtendSlice :
     ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : ℝ × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        ((timeExtendSlice Ω p.1).val p.2)) := by
+      (SymplecticGeometry.sliceSection fun s ↦ (timeExtendSlice Ω s).val) := by
+  rw [SymplecticGeometry.sliceSection_def]
   simpa only [coe_timeExtendSlice] using contMDiff_timeExtend_slice Ω
 
 /-- **The time extension of forms.** On a manifold `M`, the linear map that sends a

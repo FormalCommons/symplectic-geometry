@@ -68,9 +68,7 @@ theorem contMDiff_prodFiberIntegrand_const [IsManifold J 1 F] {n : WithTop ℕ�
     {α : RoughForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)} (hα : IsSmoothForm (𝓘(ℝ, E).prod J) n α)
     (u : Fin r → E) :
     ContMDiff (𝓘(ℝ, E).prod J) (J.prod 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)) n
-      (fun q : U × F ↦ TotalSpace.mk' (E' [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2
-        (prodFiberIntegrand α q.1 u q.2)) :=
+      (sliceSection fun b ↦ prodFiberIntegrand α b u) :=
   contMDiff_prodFiberIntegrand (g := id) hα contMDiff_id fun i b ↦
     Manifold.contMDiffAt_tangentBundle_opens_iff.2
       ((contMDiff_tangentBundle_mk_const (u i) (b : E)).comp b contMDiff_subtypeVal.contMDiffAt)

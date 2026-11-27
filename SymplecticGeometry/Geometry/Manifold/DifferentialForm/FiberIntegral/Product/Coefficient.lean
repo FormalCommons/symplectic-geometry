@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Deriv
@@ -68,7 +69,7 @@ public section
 
 noncomputable section
 
-open Bundle MeasureTheory
+open Bundle MeasureTheory SymplecticGeometry
 open scoped ContDiff Manifold
 
 namespace TauCeti
@@ -88,13 +89,12 @@ theorem RoughForm.exists_contMDiff_eq_smul_riemannianVolumeForm {n : WithTop ℕ
     [IsManifold J 1 F] [IsManifold J (n + 1) F] [RiemannianBundle (fun y : F ↦ TangentSpace J y)]
     [IsContMDiffRiemannianBundle J n E (fun y : F ↦ TangentSpace J y)]
     (o : Manifold.Orientation J F (Fin m)) {β : P → RoughForm J F ℝ m}
-    (hβ : ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n
-      (fun q : P × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2))) :
+    (hβ : ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n (sliceSection β)) :
     ∃ c : P × F → ℝ, ContMDiff (K.prod J) 𝓘(ℝ) n c ∧
       ∀ p y, β p y = c (p, y) • riemannianVolumeForm o y := by
   refine ⟨fun q ↦ RoughForm.hodgeStar o (Nat.add_zero m) (β q.1) q.2 0, ?_, fun p y ↦ ?_⟩
-  · have h := (contMDiff_formHodgeStar_totalSpace (n := n) o (Nat.add_zero m)).comp hβ
+  · rw [sliceSection_def] at hβ
+    have h := (contMDiff_formHodgeStar_totalSpace (n := n) o (Nat.add_zero m)).comp hβ
     intro q
     have h2 := ContMDiffAt.continuousAlternatingMap_bundle_apply (v := fun i : Fin 0 ↦ i.elim0)
       (F₁ := E) (E₁ := fun y : F ↦ TangentSpace J y) (F₂ := ℝ) (E₂ := Trivial F ℝ) (h q)
@@ -116,9 +116,7 @@ section of the bundle of `m`-forms along `(p, y) ↦ y`. Then `p ↦ ∫_F β p`
 theorem contMDiff_integralTopForm [IsManifold J ∞ F] [T2Space F] [CompactSpace F]
     [BoundarylessManifold K P] [IsManifold K n P]
     (o : Manifold.Orientation J F (Fin m)) {β : P → RoughForm J F ℝ m}
-    (hβ : ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n
-      (fun q : P × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2))) :
+    (hβ : ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n (sliceSection β)) :
     ContMDiff K 𝓘(ℝ) n fun p ↦ integralTopForm o (β p) := by
   let : MeasurableSpace F := borel F
   have : BorelSpace F := ⟨rfl⟩
@@ -153,9 +151,7 @@ theorem RoughForm.exists_contMDiffOn_opens_eq_smul_riemannianVolumeForm {n : Wit
     [IsManifold J 1 F] [IsManifold J (n + 1) F] [RiemannianBundle (fun y : F ↦ TangentSpace J y)]
     [IsContMDiffRiemannianBundle J n E (fun y : F ↦ TangentSpace J y)]
     (o : Manifold.Orientation J F (Fin m)) {β : U → RoughForm J F ℝ m}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n
-      (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2))) :
+    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n (sliceSection β)) :
     ∃ c : EB → F → ℝ, ContMDiffOn (𝓘(ℝ, EB).prod J) 𝓘(ℝ) n (uncurry c) (U ×ˢ univ) ∧
       ∀ (b : U) (y : F), β b y = c b y • riemannianVolumeForm o y := by
   obtain ⟨c, hc, hβc⟩ := RoughForm.exists_contMDiff_eq_smul_riemannianVolumeForm o hβ
@@ -200,9 +196,7 @@ the direction `a`, of `b' ↦ ∫_F β b'` is the integral over `F` of the `m`-f
 is the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`. -/
 theorem mfderiv_integralTopForm_apply {n : WithTop ℕ∞} (hn : 1 ≤ n)
     (o : Manifold.Orientation J F (Fin m)) {β : U → RoughForm J F ℝ m}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n
-      (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)))
+    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) n (sliceSection β))
     (b : U) (a : EB) :
     mfderiv 𝓘(ℝ, EB) 𝓘(ℝ) (fun b' ↦ integralTopForm o (β b')) b a =
       integralTopForm o (fun y ↦ show E [⋀^Fin m]→L[ℝ] ℝ from

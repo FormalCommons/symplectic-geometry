@@ -362,7 +362,7 @@ Smooth families of forms over a parameter manifold `N` (model
   α t`, with `isSmoothFamily_def`.
 - `TauCeti.SmoothForm.ofSlices` (in Tau Ceti's namespace, as it is about
   Tau Ceti's `SmoothForm`): from a family whose slice section
-  `p ↦ TotalSpace.mk' _ p.2 ((α p.1).val p.2)` is smooth along the projection,
+  `sliceSection fun t ↦ (α t).val` is smooth along the projection,
   the form on `N × M` that vanishes on the parameter directions and has the
   slices `α t` (`mpullback_prodMk_ofSlices`). Hence
   `isSmoothFamily_iff_contMDiff`, the converse direction being Tau Ceti's

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
@@ -16,7 +17,7 @@ the member `σ p` of a family of forms on `M` on the components along `M` of tan
 file is the library's counterpart of Tau Ceti's file
 `TauCeti/Geometry/Manifold/DifferentialForm/Vertical.lean`: it relates vertical forms to pullbacks
 along the projection `Prod.snd : N × M → M`, and characterizes their smoothness by that of the
-slice section `(t, y) ↦ σ t y`.
+slice section `(t, y) ↦ σ t y` (`SymplecticGeometry.sliceSection σ`).
 
 ## Main results
 
@@ -106,16 +107,15 @@ theorem mpullback_prodMap_verticalForm {EX HX X EY HY Y : Type*} [NormedAddCommG
   rfl
 
 /-- **Smoothness of vertical forms.** The vertical form `TauCeti.verticalForm J β` of a family `β`
-of rough forms on `M` over `N` is `C^m` at `p` exactly when the slice section `(t, y) ↦ β t y`,
-along the projection, is. -/
+of rough forms on `M` over `N` is `C^m` at `p` exactly when its slice section
+`SymplecticGeometry.sliceSection β`, the section `(t, y) ↦ β t y` along the projection, is. -/
 theorem contMDiffAt_verticalForm_iff {m : WithTop ℕ∞} (β : N → RoughForm I M F k)
     (p : N × M) :
     ContMDiffAt (J.prod I) ((J.prod I).prod 𝓘(ℝ, (EN × E) [⋀^Fin k]→L[ℝ] F)) m
         (fun q ↦ TotalSpace.mk' ((EN × E) [⋀^Fin k]→L[ℝ] F) q (verticalForm J β q)) p ↔
       ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
-        (fun q : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-          (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) q.2
-          (β q.1 q.2)) p := by
+        (SymplecticGeometry.sliceSection β) p := by
+  rw [SymplecticGeometry.sliceSection_def]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · have := ContMDiffAt.mpullback_form_family (hφ := h) (f := fun q : N × M ↦ Prod.mk q.1)
       (g := Prod.snd) (n := ω) (p₀ := p)

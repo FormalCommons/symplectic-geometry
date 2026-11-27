@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 
 /-!
 # The derivative in the parameter of a smooth family of forms
@@ -61,9 +61,7 @@ that `(b, y) ↦ β b y` is a smooth section of the bundle of `k`-forms along `(
 `b ∈ U` and `a ∈ EB`, the `k`-form on `F` whose value at `y` is the derivative at `b`, in the
 direction `a`, of `b' ↦ β b' y` is smooth. -/
 theorem isSmoothForm_mfderiv_family_apply {β : U → RoughForm J F ℝ k}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ)) ∞
-      (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)))
+    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ)) ∞ (sliceSection β))
     (b : U) (a : EB) :
     IsSmoothForm J ∞ (fun y ↦ show E [⋀^Fin k]→L[ℝ] ℝ from
       mfderiv 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ)
