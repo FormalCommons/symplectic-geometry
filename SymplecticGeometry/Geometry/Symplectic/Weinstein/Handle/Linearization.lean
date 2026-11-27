@@ -198,8 +198,7 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
   obtain ⟨L, hL⟩ := hp'.isInvertible
   replace hL : (L : E →L[ℝ] E →L[ℝ] ℝ) = B := hL
   have hB : HasFDerivAt (fderiv ℝ (f ∘ φ.symm)) B (φ p) :=
-    ((hp'.contDiffAt.fderiv_right (m := 1) (by norm_num)).differentiableAt
-      (by norm_num)).hasFDerivAt
+    hp'.contDiffAt.hasFDerivAt_fderiv le_rfl
   have hY : DifferentiableAt ℝ Y (φ p) := by
     have := mdifferentiableAt_section_iff_differentiableAt_mpullbackWithin_extChartAt_symm.1 hXp
     rwa [𝓘(ℝ, E).range_eq_univ, VectorField.mpullbackWithin_univ] at this
