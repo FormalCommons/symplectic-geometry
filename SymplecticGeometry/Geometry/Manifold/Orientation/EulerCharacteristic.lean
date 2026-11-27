@@ -13,6 +13,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
+import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
@@ -130,10 +131,9 @@ theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative'
     exact hy
   have hA : HasFDerivAt f A (φ z) := by
     have hU := (mdifferentiableAt_of_det_vectorFieldChartDerivative_ne_zero hdet
-      ).differentiableAt_mpullbackWithin_extChartAt_symm
-    rw [I.range_eq_univ, VectorField.mpullbackWithin_univ] at hU
+      ).hasFDerivAt_mpullback_extChartAt_symm
     rw [hφz] at hfeq ⊢
-    exact hU.hasFDerivAt.congr_of_eventuallyEq hfeq
+    exact hU.differentiableAt.hasFDerivAt.congr_of_eventuallyEq hfeq
   rw [VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
     o.toVectorBundleOrientation hE (o.toHomologicalOrientation hE) hX e φ hz hze hzφ
     (o.toVectorBundleOrientation.eventually_mapOrientation_eq o.card_eq e hze)
