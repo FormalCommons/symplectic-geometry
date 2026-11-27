@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
-import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Parametric
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
@@ -34,15 +33,14 @@ before the compression of the cube.
 1. *A slab inside the collar.* `W` contains a product collar `attachingCollar (Fin m) (Fin k) ε`
    (`SymplecticGeometry.exists_attachingCollar_subset`). So for `ε₀ ≤ ε / 4` and `η ≤ ε / 2`, the
    points `(u, v)` with `‖v‖ ≤ 1` and `1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η` lie in `W`.
-2. *The formal primitive, made holonomic near the faces.* Let `χ` be a smooth cutoff on `D` that
-   vanishes near `B ×ˢ {0}`, for `B = {1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η}`, and is `1` off `W`
-   (`exists_contMDiffMap_zero_one_nhds_of_isClosed`), and let `τ' l = dβ l + χ • (τ l - dβ l)`,
-   a smooth family of two-forms. The datum is `f l := β l` with the field
-   `G l = formalPrimitive (τ' l) (β l)`, smooth by `SymplecticGeometry.contMDiff_formalPrimitive`.
-   As `τ' l = dβ l` near `B ×ˢ {0}`, it is holonomic there for every parameter
-   (`SymplecticGeometry.formalPrimitive_eq_fderiv`); for the parameters of `K`, `τ' l = τ l`
-   everywhere (on `W` as `dβ l = τ l` there, off `W` as `χ = 1`), so `G l` is the formal primitive
-   of `τ l`.
+2. *The formal primitive, made holonomic near the faces.* The datum is `f l := β l` with the
+   field `G l = formalPrimitive (τ l) (β l)`, smooth by
+   `SymplecticGeometry.contMDiff_formalPrimitive`. For the parameters of `K` it is holonomic on
+   `W` (`SymplecticGeometry.formalPrimitive_eq_fderiv`), and `W` contains `B ×ˢ {0}`, for
+   `B = {1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η}`. The cutoff in space
+   `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod` replaces `G` by a smooth
+   `G'` that is holonomic on an open set containing `univ ×ˢ (B ×ˢ {0})`, so for every
+   parameter, and equal to `G` over `K`.
 3. *Holonomic approximation.* `SymplecticGeometry.exists_holonomic_approximation_family` with
    `P₀ = ∅`, accuracy `r / 4` and width `η / 2` gives `H` and `β'`. A point that is moved, or at
    which `β'` differs from `β`, lies within `η / 2` of the core and has its core coordinate off
@@ -137,61 +135,32 @@ theorem exists_diffeotopy_norm_mextDerivₗ_sub_lt_near_core (hk : 0 < k) {K : S
     rintro ⟨u, v⟩ ⟨hu, hv⟩
     obtain rfl : v = 0 := hv
     exact hcollar _ (by simp) hu
-  -- Step 2: a cutoff `χ`, zero near `B ×ˢ {0}` and one off `W`.
-  obtain ⟨χ, hχ0, hχ1, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed
-    (I := 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ))) (n := ⊤) (hB.prod isClosed_singleton)
-    hW.isClosed_compl (disjoint_compl_right_iff_subset.mpr hBW)
-  obtain ⟨O, hO, hBO, hOχ⟩ := mem_nhdsSet_iff_exists.mp hχ0
-  have hχW : ∀ x ∉ W, χ x = 1 := fun x hx ↦ hχ1.self_of_nhdsSet x hx
-  -- The forms as maps into fixed spaces of alternating maps.
+  -- Step 2: the datum `f p = β p.1` at `p.2`, with the formal primitive `G` of `τ`, made
+  -- holonomic near `B ×ˢ {0}` for every parameter by a cutoff in space.
   set b : L → (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
     fun l ↦ (β l).val
   set c : L → (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ :=
     fun l ↦ (τ l).val
-  have hbc : ∀ l ∈ K, ∀ x ∈ W, extDeriv (b l) x = c l x := fun l hl x hx ↦ by
-    have := hτβ l hl x hx
-    rwa [mextDerivₗ_apply, mextDeriv_eq_extDeriv] at this
-  -- The two-forms `τ'`, equal to `dβ` near `B ×ˢ {0}` and to `τ` off `W`.
-  set τ' : L → SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) :=
-    fun l ↦ mextDerivₗ _ 1 (β l) + SmoothForm.funSMulₗ χ (τ l - mextDerivₗ _ 1 (β l))
-  have hτ' : IsSmoothFamily 𝓘(ℝ, L) τ' := hβ.mextDeriv.add ((hτ.sub hβ.mextDeriv).funSMul χ)
-  set c' : L → (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 2]→L[ℝ] ℝ :=
-    fun l ↦ (τ' l).val
-  have hτ'v : ∀ l x, c' l x = extDeriv (b l) x + χ x • (c l x - extDeriv (b l) x) :=
-    fun l x ↦ by
-      simp only [c', τ', Submodule.coe_add, Submodule.coe_sub, SmoothForm.coe_funSMulₗ,
-        Pi.add_apply, Pi.sub_apply, mextDerivₗ_apply, mextDeriv_eq_extDeriv, b, c]
-      -- The sides differ only in their instances: the left one reads the alternating maps on
-      -- `TangentSpace 𝓘(ℝ, _) x`, which is the model space by definition.
-      rfl
-  -- The datum: `f p = β p.1` at `p.2`, and `G`, the formal primitive of `τ'`.
   set f : L × (Fin m → ℝ) × (Fin k → ℝ) → ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
     fun p ↦ b p.1 p.2
   set G : L × (Fin m → ℝ) × (Fin k → ℝ) →
       (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
-    fun p ↦ formalPrimitive (c' p.1) (b p.1) p.2 with hG_def
+    fun p ↦ formalPrimitive (c p.1) (b p.1) p.2
   have hf : ContDiff ℝ ∞ f :=
     contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp hβ.contMDiff_val)
   have hG : ContDiff ℝ ∞ G := contMDiff_iff_contDiff.mp
-    (contMDiff_prod_modelWithCornersSelf_iff.mp (contMDiff_formalPrimitive hτ' hβ))
-  -- `G` is holonomic over `O`, and is the formal primitive of `τ` over `K`.
-  have hUf : ∀ p ∈ univ ×ˢ O, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p := by
-    rintro p ⟨-, hp⟩
+    (contMDiff_prod_modelWithCornersSelf_iff.mp (contMDiff_formalPrimitive hτ hβ))
+  have hWf : ∀ l ∈ K, ∀ x ∈ W, fderiv ℝ (fun y ↦ f (l, y)) x = G (l, x) := fun l hl x hx ↦ by
     refine (formalPrimitive_eq_fderiv ?_).symm
-    rw [hτ'v, hOχ hp, zero_smul, add_zero]
-  have hGK : ∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.1 ∈ K →
-      G p = formalPrimitive (c p.1) (b p.1) p.2 := by
-    intro p hp
-    have : c' p.1 p.2 = c p.1 p.2 := by
-      rw [hτ'v]
-      by_cases hpW : p.2 ∈ W
-      · rw [hbc p.1 hp p.2 hpW, sub_self, smul_zero, add_zero]
-      · rw [hχW _ hpW, one_smul, add_sub_cancel]
-    simp only [hG_def, formalPrimitive_def, this]
+    have := hτβ l hl x hx
+    rwa [mextDerivₗ_apply, mextDeriv_eq_extDeriv] at this
+  obtain ⟨G', hG', ⟨U, hU, hBU, hUf⟩, -, hGK⟩ :=
+    exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod hf hG (by simp) le_rfl
+      (hB.prod isClosed_singleton) hW hBW hWf
   -- Step 3: holonomic approximation with accuracy `r / 4` and width `η / 2`.
   obtain ⟨h, f', V, hfst, hf', ⟨C, -, hCQ, hCfix⟩, -, ⟨N, hN, hNfix⟩, -, hV, hQV, happrox⟩ :=
-    exists_holonomic_approximation_family hk hf hG hK isClosed_empty hB hSB
-      (isOpen_univ.prod hO) (prod_mono subset_rfl hBO) (by simp) hUf (ε := r / 4)
+    exists_holonomic_approximation_family hk hf hG' hK isClosed_empty hB hSB hU hBU
+      (by simp) hUf (ε := r / 4)
       (δ := η / 2) (by positivity) (by positivity)
   -- The family `β'` read off `f'`.
   have hf'l : ∀ l, ContDiff ℝ ∞ fun x ↦ f' (l, x) := fun l ↦
@@ -223,9 +192,8 @@ theorem exists_diffeotopy_norm_mextDerivₗ_sub_lt_near_core (hk : 0 < k) {K : S
   · -- The estimate near the moved core.
     intro p hp hpK
     rw [mextDerivₗ_apply, mextDeriv_eq_extDeriv]
-    have h₁ : ‖fderiv ℝ (fun x ↦ f' (p.1, x)) p.2 -
-        formalPrimitive (c p.1) (b p.1) p.2‖ ≤ r / 4 := by
-      rw [← hGK p hpK]
+    have h₁ : ‖fderiv ℝ (fun x ↦ f' (p.1, x)) p.2 - G p‖ ≤ r / 4 := by
+      rw [← hGK p.1 hpK p.2]
       exact (happrox p hp).2.le
     have h₂ := norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le h₁
     exact h₂.trans_lt (by linarith)
