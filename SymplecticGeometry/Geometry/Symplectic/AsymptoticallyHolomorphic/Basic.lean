@@ -240,13 +240,9 @@ theorem connectionReading_neg (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z
 theorem connectionReading_smul (k : ℕ) (x : M) (c : ℂ) (s : Π y, PowerBundle P k y)
     (z : StdSpace ι) :
     D.connectionReading k x (c • s) z = c • D.connectionReading k x s z := by
-  have h := iteratedFDeriv_const_smul_apply_of_field (𝕜 := ℝ) 1 (D.reading k x s) z c
   ext v
-  have hv := congrArg (fun L ↦ L (fun _ ↦ v)) h
-  simp only [iteratedFDeriv_one_apply, smul_apply] at hv
-  simp only [smul_apply, connectionReading_apply, reading_smul, hv,
-    Pi.smul_apply, smul_eq_mul,
-    Complex.real_smul]
+  simp only [connectionReading_apply, reading_smul, fderiv_const_smul_field, Pi.smul_apply,
+    smul_apply, smul_eq_mul, Complex.real_smul]
   ring
 
 @[simp]
