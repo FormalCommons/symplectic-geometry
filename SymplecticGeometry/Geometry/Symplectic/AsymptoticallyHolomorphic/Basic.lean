@@ -13,6 +13,8 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.On
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -80,7 +82,23 @@ for all large `k` and all centres. The smoothness is needed because `iteratedFDe
 where a function is not differentiable, so that the bounds alone would allow sections that are
 nowhere continuous. The bounds are written with explicit constants and `∀ᶠ k in Filter.atTop`.
 The zero sequence is asymptotically holomorphic; so are negatives, complex multiples, sums, and
-products with functions `g k` whose readings are smooth and satisfy the same bounds. A sequence
+products with functions `g k` whose readings are smooth and satisfy the same bounds.
+
+At the centre `x` of the chart, the norm of `J.zeroOnePart (powerConnection α k s x) v` is that
+of the `∂̄` reading at `0` on the image `u` of `v` under the derivative of the chart
+(`SymplecticGeometry.RescaledUnitaryCharts.norm_zeroOnePart_powerConnection_apply`), and
+`‖u‖ ^ 2 = 2π k σ(v, J v)` there
+(`SymplecticGeometry.RescaledUnitaryCharts.eval₂_apply_self_eq_norm_sq`). On a compact manifold
+with a continuous Riemannian metric and `σ` compatible with `J`, `σ(v, J v)` is at most a constant
+times `‖v‖ ^ 2` (`TauCeti.SmoothTwoForm.Compatible.exists_eval₂_apply_le_mul_norm_sq`), so the
+factor `√k` of the chart cancels the factor `k ^ (-1/2)` of the order-`0` bound on `∂̄`: for an
+asymptotically holomorphic sequence, the operator norm of the `(0,1)`-part of
+`powerConnection α k (s k)` for the Riemannian metric is bounded uniformly in `x` for large `k`
+(`SymplecticGeometry.RescaledUnitaryCharts.exists_norm_zeroOnePart_powerConnection_le`), and
+`(2π k)^(-1/2)` times it is `O(k ^ (-1/2))`
+(`SymplecticGeometry.RescaledUnitaryCharts.exists_rpow_mul_norm_zeroOnePart_powerConnection_le`).
+
+A sequence
 is uniformly transverse with constant `η`
 (`SymplecticGeometry.IsUniformlyTransverse`) when, for large `k` and every `x`, either `‖s k x‖`
 or `(2π k)^(-1/2)` times the norm of the `(1,0)`-part of `powerConnection α k (s k) x` is at
@@ -802,6 +820,102 @@ theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle
         ≤ c * (Cg * (Cs * (k : ℝ) ^ (-1 / 2 : ℝ)) + Cs * (Cg * (k : ℝ) ^ (-1 / 2 : ℝ))) := by
           gcongr
       _ = 2 * c * Cg * Cs * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
+
+/-! ### The `(0,1)`-part of the connection at the centre of a chart -/
+
+/-- **`∂̄ s` at the centre of a chart.** For `k₀ ≤ k` with `k ≠ 0` and `ρ₀ > 0`, if the reading of
+`s` in the chart centred at `x` is differentiable at `0`, then the `(0,1)`-part
+`J.zeroOnePart` of `D_k s` at `x`, evaluated on a tangent vector `v`, has the norm of the `∂̄`
+reading at `0` evaluated on the image of `v` under the derivative of the chart. -/
+theorem norm_zeroOnePart_powerConnection_apply [∀ y, Nonempty (P y)]
+    (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {k : ℕ} (hk : k₀ ≤ k) (hk0 : k ≠ 0) {x : M}
+    {s : Π y, PowerBundle P k y} (hs : DifferentiableAt ℝ (D.reading k x s) 0)
+    (v : TangentSpace I x) :
+    ‖J.zeroOnePart (powerConnection α k s x) v‖ =
+      ‖D.dbarReading k x s 0 (mvfderiv I (D.chart k x) x v)‖ := by
+  have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
+    mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+  have h := D.zeroOnePart_powerConnection_chart_symm_apply hα hk hz hs
+    (mvfderiv I (D.chart k x) x v)
+  have hv : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chart k x x)
+      (mvfderiv I (D.chart k x) x v) = v := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact (D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) (D.mem_source hk x) v
+  rw [D.apply_self hk x] at hv
+  rw [hv, D.chart_symm_zero hk x] at h
+  rw [h, ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), LinearIsometryEquiv.norm_map,
+    LinearIsometryEquiv.norm_map]
+
+section Riemannian
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
+
+/-- **The `(0,1)`-part of the connection on an asymptotically holomorphic sequence is bounded.**
+Let `M` be compact, with a continuous Riemannian metric, `σ` compatible with `J`, `α` a
+connection form and `ρ₀ > 0`. For an asymptotically holomorphic sequence `s`, there is a
+constant `C` such that, for `k` large and every point `x`, the `(0,1)`-part
+`J.zeroOnePart (powerConnection α k (s k) x)` has operator norm at most `C`, for the norm of the
+Riemannian metric on the tangent space and the norm of the fibre. -/
+theorem exists_norm_zeroOnePart_powerConnection_le [FiniteDimensional ℝ E] [CompactSpace M]
+    [∀ y, Nonempty (P y)] (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀)
+    {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) :
+    ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M,
+      ‖J.zeroOnePart (powerConnection α k (s k) x)‖ ≤ C := by
+  obtain ⟨C₁, hC₁⟩ := hs.2 0
+  obtain ⟨C₂, hC₂⟩ := hJ.exists_eval₂_apply_le_mul_norm_sq isCompact_univ
+  set A := max C₁ 0
+  set B := max C₂ 0
+  refine ⟨A * √(2 * Real.pi * B), ((hs.1.and hC₁).and (Filter.eventually_ge_atTop (max k₀ 1))).mono
+    fun k ⟨⟨hsk, hk⟩, hkk⟩ x ↦ ?_⟩
+  have hk₀ : k₀ ≤ k := (le_max_left _ _).trans hkk
+  have hk1 : 1 ≤ k := (le_max_right _ _).trans hkk
+  have hkpos : (0 : ℝ) < k := by exact_mod_cast hk1
+  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+  rw [D.norm_zeroOnePart_powerConnection_apply hα hρ₀ hk₀ (by omega)
+    ((hsk x).1.differentiableAt (by simp))]
+  set u := mvfderiv I (D.chart k x) x v
+  set a := ‖D.dbarReading k x (s k) 0‖
+  have ha : a ≤ A * (k : ℝ) ^ (-1 / 2 : ℝ) := by
+    have := (hk x).2
+    rw [dbarJetNorm_def, jetNormAt_zero] at this
+    exact this.trans (by gcongr; exact le_max_left _ _)
+  have hu : ‖u‖ ^ 2 ≤ 2 * Real.pi * k * B * ‖v‖ ^ 2 := by
+    rw [← D.eval₂_apply_self_eq_norm_sq hk₀ x v, mul_assoc _ B]
+    gcongr
+    exact (hC₂ x (Set.mem_univ x) v).trans (by gcongr; exact le_max_left _ _)
+  have hkpow : ((k : ℝ) ^ (-1 / 2 : ℝ)) ^ 2 * k = 1 := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hkpos.le, ← Real.rpow_add_one hkpos.ne']
+    norm_num
+  have : 0 ≤ A := le_max_right _ _
+  have : 0 ≤ B := le_max_right _ _
+  refine (D.dbarReading k x (s k) 0).le_opNorm u |>.trans ?_
+  refine (pow_le_pow_iff_left₀ (by positivity) (by positivity) two_ne_zero).1 ?_
+  rw [mul_pow, mul_pow, mul_pow, Real.sq_sqrt (by positivity)]
+  calc a ^ 2 * ‖u‖ ^ 2 ≤ (A * (k : ℝ) ^ (-1 / 2 : ℝ)) ^ 2 * (2 * Real.pi * k * B * ‖v‖ ^ 2) := by
+        gcongr
+    _ = A ^ 2 * (((k : ℝ) ^ (-1 / 2 : ℝ)) ^ 2 * k) * (2 * Real.pi * B) * ‖v‖ ^ 2 := by ring
+    _ = A ^ 2 * (2 * Real.pi * B) * ‖v‖ ^ 2 := by rw [hkpow, mul_one]
+
+/-- **The rescaled `∂̄` of an asymptotically holomorphic sequence is `O(k ^ (-1/2))`.** Under the
+hypotheses of `exists_norm_zeroOnePart_powerConnection_le`, there is a constant `C` such that,
+for `k` large and every point `x`, `(2π k)^(-1/2)` times the operator norm of the `(0,1)`-part
+`J.zeroOnePart (powerConnection α k (s k) x)` is at most `C * k ^ (-1/2)`. This is the scaling
+of `SymplecticGeometry.IsUniformlyTransverse`. -/
+theorem exists_rpow_mul_norm_zeroOnePart_powerConnection_le [FiniteDimensional ℝ E]
+    [CompactSpace M] [∀ y, Nonempty (P y)] (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α)
+    (hρ₀ : 0 < ρ₀) {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s) :
+    ∃ C, ∀ᶠ k : ℕ in Filter.atTop, ∀ x : M,
+      (2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.zeroOnePart (powerConnection α k (s k) x)‖ ≤
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) := by
+  obtain ⟨C, hC⟩ := D.exists_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
+  refine ⟨(2 * Real.pi) ^ (-1 / 2 : ℝ) * C, hC.mono fun k hk x ↦ ?_⟩
+  rw [Real.mul_rpow (by positivity) (Nat.cast_nonneg k), mul_assoc, mul_assoc,
+    mul_comm C]
+  gcongr
+  exact hk x
+
+end Riemannian
 
 end RescaledUnitaryCharts
 
