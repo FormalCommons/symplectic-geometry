@@ -214,9 +214,9 @@ theorem mextDerivₗ_homotopyOperator_mpullback_prodFiberContraction [FiniteDime
       map_zero]
   have key :=
     SmoothForm.mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ
-    hg (contMDiff_prodFiberContraction E F) (fun p ↦ prodFiberContraction_zero p)
+    hg contMDiff_id (contMDiff_prodFiberContraction E F) (fun p ↦ prodFiberContraction_zero p)
     (fun p ↦ prodFiberContraction_one p) τ
-  rwa [hg₀, sub_zero, ← eq_sub_iff_add_eq] at key
+  rwa [hg₀, sub_zero, SmoothForm.mpullback_id, LinearMap.id_apply, ← eq_sub_iff_add_eq] at key
 
 /-- **A bound for the homotopy operator along the fibre segments.** Let `σ` be a
 `(k + 1)`-form on `E × F` and `p = (u, v)`. If `σ` has norm at most `C` at every point
