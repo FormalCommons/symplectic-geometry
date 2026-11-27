@@ -345,7 +345,6 @@ theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f
   simp only [Pi.sub_apply]
   ring
 
-
 theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoothedMax δ b a := by
   rw [smoothedMax_def, smoothedMax_def, ← neg_sub, smoothedAbs_neg hδ, add_comm a]
 

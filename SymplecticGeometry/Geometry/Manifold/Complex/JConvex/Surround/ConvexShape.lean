@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 
 import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import Mathlib.Analysis.InnerProductSpace.ProdL2
+import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 import TauCeti.Analysis.Calculus.Deriv.Second
@@ -241,21 +242,6 @@ theorem rescale {ℓ : ℝ} (hℓ : 0 < ℓ) (h : IsConvexShapeAt χ r) :
 end IsConvexShapeAt
 
 /-! ### The smoothed maximum of two shapes -/
-
-/-- The cube of a convex combination of two nonnegative numbers falls short of the combination of
-their cubes by at most `2 w (1 - w) (x - y)² (x + y)`. -/
-theorem mul_pow_three_add_mul_pow_three_sub_pow_three_le {w x y : ℝ} (hw₀ : 0 ≤ w) (hw₁ : w ≤ 1)
-    (hx : 0 ≤ x) (hy : 0 ≤ y) :
-    w * x ^ 3 + (1 - w) * y ^ 3 - (w * x + (1 - w) * y) ^ 3 ≤
-      2 * (w * (1 - w)) * ((x - y) ^ 2 * (x + y)) := by
-  have e : w * x ^ 3 + (1 - w) * y ^ 3 - (w * x + (1 - w) * y) ^ 3 =
-      w * (1 - w) * (x - y) ^ 2 * ((1 + w) * x + (2 - w) * y) := by ring
-  rw [e]
-  have h₃ : (1 + w) * x + (2 - w) * y ≤ 2 * (x + y) := by nlinarith
-  have : 0 ≤ w * (1 - w) * (x - y) ^ 2 := by
-    have := sub_nonneg.2 hw₁
-    positivity
-  nlinarith [mul_le_mul_of_nonneg_left h₃ this]
 
 /-- The first inequality of `isConvexShapeAt_iff` for the smoothed maximum of two `i`-convex
 shapes at `r`. -/
