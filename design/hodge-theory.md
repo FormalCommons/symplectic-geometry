@@ -58,7 +58,7 @@ Tau Ceti has, at the pinned version:
   `Analysis/Distribution/WaveFrontSet/Sobolev/Smoothness.lean`), and
   Rellich's theorem with a cutoff,
   `BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM`
-  (`Analysis/Sobolev/BesselPotential/Rellich.lean`).
+  (`Analysis/Sobolev/BesselPotential/Rellich/Basic.lean`).
 - **Abstract Hilbert-space tools.** In
   `Analysis/InnerProductSpace/Variational/Compatibility.lean`, for a bounded
   bilinear form $B$ on a real Hilbert space $V$ and a compact
