@@ -34,7 +34,8 @@ holomorphic, so it is a diffeomorphism of the underlying real manifolds.
 * `SymplecticGeometry.projectiveBlowupOpens n`: the complement of `[0 : ⋯ : 0 : 1]` in
   `ℙ ℂ (Fin (n + 2) → ℂ)`, as an open set: Tau Ceti's `Projectivization.linearProjectionDomain`
   of `Fin.init`. By `SymplecticGeometry.mk_mem_projectiveBlowupOpens`, the line of `v` lies in it
-  exactly when `Fin.init v ≠ 0`.
+  exactly when `Fin.init v ≠ 0`, and `SymplecticGeometry.coe_projectiveBlowupOpens` says that it
+  is the complement of the point.
 * `SymplecticGeometry.projectiveBlowupModelDiffeomorph n`: the smooth diffeomorphism above, for
   the real manifold structures modelled on `𝓘(ℝ, Fin (n + 1) → ℂ)`, with
   `projectiveBlowupModelDiffeomorph_apply` and `projectiveBlowupModelDiffeomorph_symm_apply` on
@@ -63,14 +64,7 @@ variable {n : ℕ}
 /-- `Fin.init`, read as the linear map `LinearMap.funLeft ℂ ℂ Fin.castSucc`. -/
 private theorem funLeft_castSucc_apply (v : Fin (n + 2) → ℂ) :
     LinearMap.funLeft ℂ ℂ Fin.castSucc v = Fin.init v :=
-  funext fun i => (LinearMap.funLeft_apply _ _ _ v i).trans (congrFun Fin.init_def i).symm
-
-/-- `Fin.init` as a continuous linear map, to read its smoothness off. -/
-private noncomputable def initCLM : (Fin (n + 2) → ℂ) →L[ℂ] Fin (n + 1) → ℂ :=
-  ⟨LinearMap.funLeft ℂ ℂ Fin.castSucc, LinearMap.continuous_on_pi _⟩
-
-private theorem initCLM_apply (v : Fin (n + 2) → ℂ) : initCLM v = Fin.init v :=
-  funLeft_castSucc_apply v
+  (rfl)
 
 variable (n) in
 /-- The complement in `ℙ ℂ (Fin (n + 2) → ℂ)` of the point `[0 : ⋯ : 0 : 1]`, the line of the last
@@ -91,6 +85,25 @@ theorem mk_mem_projectiveBlowupOpens {v : Fin (n + 2) → ℂ} (hv : v ≠ 0) :
     mk ℂ v hv ∈ projectiveBlowupOpens n ↔ Fin.init v ≠ 0 := by
   rw [← SetLike.mem_coe, projectiveBlowupOpens_def, mk_mem_linearProjectionDomain_iff,
     funLeft_castSucc_apply]
+
+/-- `projectiveBlowupOpens n` is the complement of the point `[0 : ⋯ : 0 : 1]`. -/
+theorem coe_projectiveBlowupOpens :
+    (projectiveBlowupOpens n : Set (ℙ ℂ (Fin (n + 2) → ℂ))) =
+      {mk ℂ (Pi.single (Fin.last (n + 1)) 1) (by simp)}ᶜ := by
+  ext x
+  induction x using Projectivization.ind with
+  | h v hv =>
+    rw [SetLike.mem_coe, mk_mem_projectiveBlowupOpens, mem_compl_singleton_iff, Ne, Ne,
+      not_iff_not, mk_eq_mk_iff']
+    constructor
+    · intro h
+      refine ⟨v (Fin.last _), funext fun j => ?_⟩
+      induction j using Fin.lastCases with
+      | last => simp
+      | cast j => simpa [Fin.castSucc_ne_last, Fin.init] using (congrFun h j).symm
+    · rintro ⟨a, rfl⟩
+      funext j
+      simp [Fin.init, Fin.castSucc_ne_last]
 
 /-! ### Homogeneous coordinates -/
 
@@ -240,11 +253,8 @@ private theorem toFun_invFun (p : BlowupModel n) : toFun (invFun p) = p := by
 
 private theorem contDiffAt_blowdownCoord {v : Fin (n + 2) → ℂ} (hz : Fin.init v ≠ 0) :
     ContDiffAt ℝ ∞ blowdownCoord v := by
-  have hinit : ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => Fin.init v := by
-    have h := (initCLM (n := n)).restrictScalars ℝ |>.contDiff (n := ∞)
-    rw [ContinuousLinearMap.coe_restrictScalars'] at h
-    convert h using 1
-    exact funext fun v => (initCLM_apply v).symm
+  have hinit : ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => Fin.init v :=
+    (LinearMap.funLeft ℝ ℂ Fin.castSucc).toContinuousLinearMap.contDiff
   have hS : ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => ∑ i, ‖Fin.init v i‖ ^ 2 :=
     ContDiff.sum fun i _ =>
       (contDiff_norm_sq ℝ).comp ((contDiff_apply ℝ (fun _ => ℂ) i).comp hinit)
