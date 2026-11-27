@@ -506,7 +506,7 @@ is a case of it by `maximalAtlas_subset_restrictScalars_of_ne_zero`.
   $Z$ vanishes (that file's vanishing off $Z$), and
   `exceptionalClass_pairing_compl`: in the page's form, its pairing with every
   class of $H_2(\widetilde M\setminus Z;\mathbb Z)$ is zero.
-- `exceptionalClass_restrict_divisor`: for `1 ≤ n`, $\tilde\iota^*e=-h$, from
+- `exceptionalClass_restrict_divisor`: $\tilde\iota^*e=-h$, from
   the restriction of $d_Z$ to the Euler class of the normal bundle,
   `normalSpaceZeroSectionEquiv` through `c.lift`, and
   `complexEulerClass_twistCore_neg_one`.
