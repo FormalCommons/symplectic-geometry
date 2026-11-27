@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Chern classes
@@ -233,7 +234,7 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteD
   obtain ⟨s, hs⟩ := isCompact_univ.elim_finite_subcover
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).baseSet)
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).open_baseSet)
-    (fun b _ ↦ Set.mem_iUnion.2 ⟨b, mem_baseSet_trivializationAt _ _ b⟩)
+    (FiberBundle.iUnion_baseSet_trivializationAt _ _).ge
   have := Projectivization.projective_singularHomology (V := G) (𝟙_ (ModuleCat.{0} ℤ)) hm
   exact TopCat.integralLerayHirsch_bijective s (Set.univ_subset_iff.1 hs) n _
     (fun d _ ↦ TauCeti.finite_singularHomology_of_finiteCWType (ℙ ℂ G) _ d)

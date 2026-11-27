@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import Mathlib.Analysis.CStarAlgebra.Classes
+public import TauCeti.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -392,14 +393,11 @@ theorem inr_mem_exceptionalDivisor_iff {y : modelOpens c} :
 
 /-- Off the exceptional divisor, the blowup is the punctured space. -/
 theorem range_inl : range (inl (gluingHomeomorph c)) = (exceptionalDivisor c)ᶜ := by
+  rw [GluedAlong.range_inl_eq_compl_image_inr]
+  congr 1
   ext z
-  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · simp only [mem_range_self, mem_compl_iff, true_iff, mem_exceptionalDivisor_iff, not_exists,
-      not_and]
-    exact fun y hy hxy ↦ (mem_modelOffDivisorOpens c).1
-      ((GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩) hy
-  · rw [GluedAlong.inr_mem_range_inl_iff, mem_modelOffDivisorOpens, mem_compl_iff,
-      inr_mem_exceptionalDivisor_iff]
+  simp only [mem_image, mem_compl_iff, SetLike.mem_coe, mem_modelOffDivisorOpens, not_not,
+    mem_exceptionalDivisor_iff]
 
 /-- No point of the punctured space is on the exceptional divisor. -/
 @[simp]
@@ -681,6 +679,13 @@ theorem blowdown_lift {z : Blowup c} (hz : blowdown c z ∈ c.source) :
     rw [lift_inl c hz, blowdownDiffeomorph_symm_apply, blowdown_ofNeZero]
   · rw [lift_inr, blowdown_inr, c.right_inv ((mem_modelOpens c).1 y.property)]
 
+/-- The blowdown sends the range of `inr` into the source of `c`. -/
+theorem blowdown_mem_source {z : Blowup c} (hz : z ∈ range (inr (gluingHomeomorph c))) :
+    blowdown c z ∈ c.source := by
+  obtain ⟨y, rfl⟩ := hz
+  rw [blowdown_inr]
+  exact c.map_target ((mem_modelOpens c).1 y.property)
+
 section Smooth
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedSpace 𝕜 (Fin (n + 1) → ℂ)] {r : ℕ∞ω}
@@ -805,6 +810,31 @@ theorem coe_blowdownRealDiffeomorph_apply (z : offDivisorOpens c) :
     (blowdownRealDiffeomorph c z : M) = blowdown c z := by
   conv_rhs => rw [← (blowdownRealDiffeomorph c).symm_apply_apply z]
   rw [coe_blowdownRealDiffeomorph_symm_apply, blowdown_inl]
+
+/-- Off the exceptional divisor, the blowdown `Blowup c → M` is a local diffeomorphism of real
+manifolds. -/
+theorem isLocalDiffeomorphAt_blowdown_real {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (blowdown c) z :=
+  (blowdownRealDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownRealDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
+
+open scoped TauCeti.ComplexManifold in
+/-- The diffeomorphism `GluedAlong.rangeInrDiffeomorph` of the smooth gluing, from the range of
+`inr` onto the part of the model over the target of `c`, is `lift c`. -/
+@[simp]
+theorem coe_rangeInrDiffeomorph_apply (z : GluedAlong.rangeInr (gluingHomeomorph c)) :
+    (GluedAlong.rangeInrDiffeomorph (isCompatible_real c Fact.out) z : BlowupModel n) =
+      lift c z := by
+  conv_rhs => rw [← GluedAlong.inr_rangeInrDiffeomorph_apply (isCompatible_real c Fact.out) z,
+    lift_inr]
+
+open scoped TauCeti.ComplexManifold in
+/-- On the range of `inr`, the map `lift c` to the model is a local diffeomorphism of real
+manifolds. -/
+theorem isLocalDiffeomorphAt_lift {z : Blowup c} (hz : z ∈ range (inr (gluingHomeomorph c))) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (lift c) z :=
+  (GluedAlong.rangeInrDiffeomorph (isCompatible_real c Fact.out)).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_rangeInrDiffeomorph_apply c v).symm) ⟨z, (GluedAlong.mem_rangeInr _).2 hz⟩
 
 end Real
 
