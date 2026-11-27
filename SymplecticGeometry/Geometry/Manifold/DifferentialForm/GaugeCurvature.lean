@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.GaugeCurvature
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
@@ -105,8 +106,8 @@ theorem gaugeCurvature_apply_horizontal (A : SmoothForm I M 𝔨 1)
     (hY : MDifferentiableAt I I.tangent (fun y ↦ (Y y : TangentBundle I M)) x)
     (hXh : ∀ᶠ y in 𝓝 x, A.val y ![X y] = 0) (hYh : ∀ᶠ y in 𝓝 x, A.val y ![Y y] = 0) :
     (gaugeCurvature β A).val x ![X x, Y x] = -A.val x ![mlieBracket I X Y x] := by
-  simp only [gaugeCurvature_def, Submodule.coe_add, Submodule.coe_smul, Pi.add_apply,
-    Pi.smul_apply, ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.smul_apply,
+  simp only [gaugeCurvature_def, SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply,
+    ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.smul_apply,
     mextDerivₗ_apply, SmoothForm.wedgeWith_apply_one_one]
   rw [SmoothForm.mextDeriv_apply_one hX hY, hXh.self_of_nhds, hYh.self_of_nhds, map_zero,
     sub_zero, smul_zero, add_zero,

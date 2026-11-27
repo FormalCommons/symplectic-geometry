@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Leibniz
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
@@ -255,7 +256,7 @@ theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG
     (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
     (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
   simp only [InfinitesimalAction.fundamental_apply, LinearMap.neg_apply] at hc
-  rw [weinsteinForm_def, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+  rw [weinsteinForm_def, SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
     mextDerivₗ_momentPairing_apply,
     gaugeCurvature_val _ (fun a b ↦ by rw [lieL_apply, lieL_apply, lie_skew]), lieL_apply, map_add,
     hμ.toIsMomentMap.mvfderiv_apply_of_neg, hμ.toIsMomentMap.mvfderiv_apply_of_neg,

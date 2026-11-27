@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Coupling.Primitive
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
@@ -266,7 +267,7 @@ theorem prodIccExtension_apply_prodVectorField [IB.Boundaryless] (h : IsCoupling
     rw [mextDerivₗ_apply, hY,
       PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod hA, hAX,
       mextDerivₗ_zero_apply]
-  rw [prodIccExtension_apply, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+  rw [prodIccExtension_apply, SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
     mpullback_bot_apply_prodVectorField_eq_zero h, h₂, zero_add]
 
 /-- **The extended Moser segment restricts to the segment.** For two coupling forms `ω₀` and `ω₁`
@@ -482,8 +483,8 @@ theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply_prodIccMoserField [IB.Bou
     have hY := congrArg (fun c ↦ c ![X])
       (interior_moserField _ (SmoothForm.mpullback Prod.snd contMDiff_snd S) ρ hinv)
     simp only [RoughForm.interior_apply, SmoothForm.mpullback_prodMk_mpullback_snd] at hY
-    rw [hσ, ContinuousAlternatingMap.apply_vecCons_swap, Submodule.coe_add, Pi.add_apply,
-      ContinuousAlternatingMap.add_apply, Submodule.coe_smul, Pi.smul_apply,
+    rw [hσ, ContinuousAlternatingMap.apply_vecCons_swap, SmoothBundleForm.add_apply,
+      ContinuousAlternatingMap.add_apply, SmoothBundleForm.smul_apply,
       ContinuousAlternatingMap.smul_apply, prodIccExtension_apply_prodVectorField h₀,
       mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField h₀ h₁,
       smul_zero, add_zero, ContinuousAlternatingMap.smul_apply,
