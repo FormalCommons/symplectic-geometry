@@ -907,12 +907,8 @@ containing `ι '' closedBall 0 1`:
         `deriv A r = 8 * r / w ≤ 16 / w` and
         `deriv T r = 1 / √(log r) ≤ 2 * √2 / w`; so
         `η * (deriv A r + deriv T r) ≤ 152 / 199 < 2 * r`, and
-        `isConvexShapeAt_smoothedMax` applies to smooth functions equal
-        to `A` and `T` on `Ici b` for some `b ∈ Ioo 1 r`
-        (`ContDiffOn.exists_contDiff_eqOn_Ici`), and
-        `IsConvexShapeAt.congr_of_eventuallyEq` returns to `χ ℓ`. So no
-        version of the smoothed maximum for shapes that are `C²` only
-        near the point is needed.
+        `isConvexShapeAt_smoothedMax` applies to `A` and `T`, which are
+        `C²` at `r > 1`; it asks for `ContDiffAt ℝ 2` only at the point.
       - The far part: `A - T ≥ 2 > η` on `Ici 2`, so `χ ℓ = A` there.
       - The germ: for `ℓ = 7` and `r ≤ 257 / 256`, `w ≤ 1 / 11`, so
         `A r - T r ≤ -3 / 11 < -1 / 200` and `χ 7 r = T r`.
@@ -1113,8 +1109,8 @@ containing `ι '' closedBall 0 1`:
       `7 * δ / 2 ≤ r`, `r ↦ struweLineShape δ r + t` is a convex shape
       at `r` (`isConvexShapeAt_struweShape_of_lt`,
       `isConvexShapeAt_linear`, `isConvexShapeAt_smoothedMax` with
-      `δ / 4 * (1 + 2) ≤ 2 * r`, applied to `C²` functions equal to the
-      two shapes near `r`, `ContDiffOn.exists_contDiff_eqOn_Ici`; on
+      `δ / 4 * (1 + 2) ≤ 2 * r`, applied to the two shapes, which are
+      `C²` at `r`; on
       `Icc (7 * δ / 2) (9 * δ / 2)` the shape is within `9 * δ / 8` of
       each piece, as `|S r - (2 * r - 8 * δ)| ≤ δ` there). Write
       `P t r = struweLineShape δ r + t` and `t₀ = 65 * δ / 8 - S δ`, so
@@ -2060,10 +2056,10 @@ Weinstein theory before Theorem 13.9.
   of a nondegenerate critical point is isotropic and its boundary sphere is
   an isotropic sphere in the contact lower level (from Tau Ceti's
   `Contact/Isotropic.lean`); see *Stable discs* below.
-- `Model.lean` (issue 16): the standard Weinstein handle of index `k` on
-  `ℂⁿ`, and the attachment of a handle along an isotropic sphere with its
-  conformal symplectic normal framing (Tau Ceti's
-  `Contact/ConformalSymplecticNormal.lean`).
+- `Model.lean` (issue 16b) and `Attachment.lean` (issues 16c and 16d):
+  the standard Weinstein handle of index `k` on `ℂᵏ × ℂᵐ`, and the
+  attachment of handles, stated inside one manifold; see *Handles and
+  attachment* below.
 - `Homotopy.lean` (issues 17 and 18): normal forms of Weinstein
   homotopies: two Weinstein structures on an elementary
   cobordism with the same function and isotopic attaching spheres are
@@ -2071,8 +2067,8 @@ Weinstein theory before Theorem 13.9.
   structure is homotopic to one adjusted to a handle decomposition. Issue
   17 is its design issue.
 
-Expected size: 450 lines for each of issues 15 and 16; issue 18 is sized
-by issue 17, and issues 15b–15e by the table.
+Expected size: 450 lines for issue 15; issue 18 is sized by issue 17,
+and issues 15b–15e and 16b–16d by the table.
 
 #### Stable discs
 
@@ -2083,7 +2079,8 @@ with `IsManifoldNondegenerateCriticalPoint` (Tau Ceti), of index
 
 **Birth–death points are left out.** At such a point the zero of `X` is not
 hyperbolic and its stable set is not a disc. Handles are attached only at
-nondegenerate points (issues 16, 19 and 20), and Weinstein homotopies pass
+nondegenerate points (issues 16b, 19 and 20; the isotopy of 16d needs no
+nondegeneracy), and Weinstein homotopies pass
 through birth–death points only in issue 18, which treats them by their
 normal form. So every statement below assumes `p` nondegenerate, and issue
 15e assumes it of every critical point in the cobordism.
@@ -2231,6 +2228,191 @@ the stable discs and their isotropy; this design could not check the
 numbers of their statements against the book, so each building issue
 looks them up and cites them. The stable manifold theorem is the one that
 Tau Ceti proves after Chicone and Coppel.
+
+#### Handles and attachment
+
+Issue 16a, the design issue of `Model.lean`, fixed this subsection. It
+splits issue 16 (#3540) into 16b–16d.
+
+**The model is not a Weinstein structure.** For `k ≥ 1` the standard
+handle's function is unbounded below along its core, so it is neither
+proper nor bounded below, and `IsWeinsteinStructure` fails for it. The
+model is therefore stated field by field: a symplectic form, a smooth
+complete Liouville field, and a Morse function for which the field is
+gradient-like (`IsGradientLike`), with one critical point. No predicate
+for such a "local Weinstein structure" is added. Every statement below
+names the three objects, and only for `k = 0` is the model a Weinstein
+structure.
+
+**The model (issue 16b, `Handle/Model.lean`).** On
+`V = EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)`, with the
+coordinates `p = (x + i y, w)`, `s = |x|²` and `t = |y|² + |w|²` of issue
+14c (`JConvex/Surround/Shape.lean`):
+
+- the form is the constant form of
+  `(imInnerSymplecticForm _).prod (imInnerSymplecticForm _)` (Tau Ceti's
+  `Geometry/Symplectic/Complex/ImInner/Basic.lean` and
+  `SymplecticForm.prod`, `Geometry/Symplectic/Prod/Basic.lean`). It gets
+  no definition of its own;
+- the field is the linear map `handleField k m : V →L[ℝ] V`,
+  $(x+iy,w)\mapsto(-x+2iy,\ w/2)$, with `handleField_apply`;
+- the function is 14c's `modelHandle k m a b` $=bt-as$ with `0 < a` and
+  `0 < b`. The Stein side and the Weinstein side thus share one function.
+  Its Morse data are already proved there (`criticalPoints_modelHandle`,
+  `isMorse_modelHandle`, `manifoldMorseIndex_modelHandle`, through Tau
+  Ceti's `Morse/Examples/Saddle.lean`), and `Model.lean` imports them
+  rather than proving them again.
+
+With $A$ the field, $\omega(Au,v)+\omega(u,Av)=\omega(u,v)$ holds on
+each complex line of the first factor ($A=\operatorname{diag}(-1,2)$,
+trace `1`) and on the second ($A=\tfrac12$). This holds for either sign
+of the area form, so the conventions of *Signs and setting* raise no
+question here. Also $d(bt-as)(Ap)=2as+4b|y|^2+b|w|^2$, a positive
+definite quadratic form in `p`, so the field is gradient-like with a
+constant `δ`. The flow is
+$(x+iy,w)\mapsto(e^{-t}x+ie^{2t}y,\ e^{t/2}w)$, and the stable set of `0`
+is the core `range (modelDisc k m)` (14c's `modelDisc`), on which the form
+vanishes.
+
+Lemma list: `handleField_apply`, `contMDiff_handleField`,
+`isLiouvilleVectorField_handleField` (for the constant form above, by
+the identity, as `isWeinsteinStructure_constSmooth_norm_sq` does for
+the radial field), `handleField_flow_apply` (the explicit value of
+`(handleField k m).flow t p`, for Tau Ceti's linear flow
+`ContinuousLinearMap.flow` of `TauCeti/Analysis/ODE/Linear.lean`, from
+its `flow_apply`), `isCompleteVectorField_handleField` (the curves of
+that flow are integral curves), `mvfderiv_modelHandle_handleField` (the
+formula above), `isGradientLike_modelHandle_handleField`,
+`stableSubspace_handleField`
+(`((handleField k m).stableSubspace : Set V) = range (modelDisc k m)`,
+through Tau Ceti's `coe_stableSubspace` and `mem_stableSubspace`), the
+isotropy
+of the core, `range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
+modelDisc k m '' sphere 0 √(c / a)` for `0 < c` (the attaching sphere of
+the model), and, for `k = 0`, `isWeinsteinStructure_handle_zero`. That
+last lemma is the radial structure of `Weinstein/Basic.lean`, carried by
+`IsWeinsteinStructure.pullback` along the linear equivalence of
+`ℂ⁰ × ℂᵐ` with `ℂᵐ`, and by `.comp` with `t ↦ b t`. No flow is defined
+here: Tau Ceti's `ContinuousLinearMap.flow` and `stableSubspace` give
+the flow of any bounded linear field and the stable set of `0`, as 15c
+already uses them. Searched: neither Tau Ceti nor the library has this
+hyperbolic Liouville field. Tau Ceti's linear Liouville fields are the
+radial one (`Liouville/Radial/`, `isCompleteVectorField_dilation`) and
+`cotangentLiouvilleField` on the linear cotangent space
+(`isLiouvilleVectorField_cotangentLiouvilleField`), which is not
+hyperbolic.
+
+**The Lean form of attachment: route (b).** The converse never builds a
+new manifold. Cieliebak–Eliashberg's proof of Theorem 13.9 works inside
+the given Weinstein manifold, one elementary cobordism after another, and
+Giroux's Section C applies issue 21 to the complement, which is also
+given. So the attachment is stated in the setting of `Cobordism.lean`, as
+regions of one boundaryless `M`. Route (a), a gluing by `GluedAlong`, is
+not taken. It would need a Weinstein structure carried across the glued
+region, a contact neighbourhood theorem for isotropic spheres and a
+framing, and no statement of issues 17–21 would use the glued manifold.
+A gluing construction, if a later part needs one, gets a design issue of
+its own.
+
+The statement is that the upper sublevel of a Weinstein cobordism is the
+lower domain with the stable sets of its critical points attached, in
+the form of an isotopy along the flow. For
+`hW : IsWeinsteinCobordism ω X f a b` (any number of critical levels;
+elementary cobordisms are a case), put
+`K = {x | f x ≤ a} ∪ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b,
+hW.isWeinsteinStructure.flow.stableSet p`.
+
+```lean
+theorem IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq
+    (hW : IsWeinsteinCobordism ω X f a b) {g : M → ℝ}
+    (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g)
+    (hgX : ∀ x, g x = 0 → 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
+    (hK : K ⊆ {x | g x < 0}) (hgb : ∀ x, g x ≤ 0 → f x < b) :
+    ∃ τ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ τ ∧ (∀ x, 0 ≤ τ x) ∧
+      (∀ x, f x ≤ a → τ x = 0) ∧ HasCompactSupport τ ∧
+      ∃ Ψ : M ≃ₘ⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M,
+        (∀ x, Ψ x = hW.isWeinsteinStructure.flow (τ x) x) ∧
+        Ψ '' {x | g x ≤ 0} = {x | f x ≤ b}
+```
+
+So any sublevel `{g ≤ 0}` with `X` pointing out along its boundary, that
+contains `K` in its interior and stays below `b`, is moved onto
+`{f ≤ b}` along the orbits of `X`, without moving `{f ≤ a}`. This is the
+form in which issue 19 can say that the domain a surrounding produces is
+the lower domain with the handles attached (the note of the review of
+#6050). The proof uses `ω` only through the flow and the gradient-like
+condition. Nondegeneracy of the critical points is not needed, so
+birth–death points are allowed.
+
+- **Issue 16c** (`Handle/Attachment.lean`): the orbit facts.
+  (1) Under `hgX`, an orbit meets `g ⁻¹' {0}` at most once, going from
+  `g < 0` to `g > 0`. This is a fact about any flow, as
+  `subsingleton_setOfPred_flow_apply_eq` (15e) is for a regular level of
+  `f`, and it goes with the library's
+  `Geometry/Manifold/Flow/LevelCrossing.lean` if it fits there.
+  (2) The backward orbit of every point of `{f ≤ b}` enters `{g < 0}`:
+  it reaches `{f ≤ a}`, or it stays in the compact region, where its
+  limit set consists of critical points (Tau Ceti's
+  `Dynamics/Flow/OmegaLimit.lean`, and `IsGradientLike.strictMono_comp`),
+  which lie in the open set `{g < 0}`.
+  (3) The forward orbit of every point of `g ⁻¹' {0}` reaches
+  `f ⁻¹' {b}`. Otherwise it would tend to a critical point `q`, of which
+  there are finitely many in the region, and the point would lie in
+  `K ⊆ {g < 0}`.
+  (4) The crossing times of `g ⁻¹' {0}` and of `f ⁻¹' {b}`
+  (`Flow.levelCrossingTime`) are smooth where the crossing exists,
+  through Tau Ceti's `contMDiffOn_flow_levelCrossingTime` as in 15e, and
+  the crossing time of `f ⁻¹' {b}` from `g ⁻¹' {0}` is bounded, as
+  `g ⁻¹' {0}` is compact.
+- **Issue 16d** (`Handle/Attachment.lean`): the theorem. On the open set
+  of points whose orbits cross `g ⁻¹' {0}`, write `x = φ_s y` with
+  `y ∈ g ⁻¹' {0}`. Then put `Ψ (φ_s y) = φ_{s + T y · μ s} y`, where
+  `T y` is the time from `y` to `f ⁻¹' {b}` and `μ` is a fixed smooth
+  bump with these properties: it vanishes for `s ≤ -δ`, where `δ` is
+  less than the time any orbit takes from `{f ≤ a}` to `g ⁻¹' {0}`; it
+  increases to `1` at `0`; and it then decreases back to `0` slowly
+  enough that `1 + T y · μ' s > 0`. Put `Ψ = id` elsewhere. Each orbit
+  is then reparametrized by an increasing diffeomorphism, so `Ψ` is a
+  bijection whose inverse is smooth by the inverse function theorem.
+
+**The local normal form belongs to issue 17.** Cieliebak–Eliashberg also
+make a Weinstein structure standard near a nondegenerate critical point
+`p`: up to a Weinstein homotopy fixed away from `p`, it agrees near `p`,
+through a chart `Φ` with `Φ 0 = p`, with the constant form above,
+`handleField k m` and `f p + modelHandle k m a b`. That is a statement
+about homotopies, so issue 17 designs it with the rest of
+`Handle/Homotopy.lean`, and issue 16b gives it its target.
+
+**The framing.** No statement of issue 16 takes a framing. Inside one
+manifold the handle is already there, and its attaching sphere is the
+one of 15e. A framing of the conformal symplectic normal bundle (Tau
+Ceti's `Geometry/Contact/ConformalSymplecticNormal.lean`) is what tells
+two attachments along the same isotropic sphere apart when the index is
+below half the dimension. So it enters only where two cobordisms are
+compared, in issue 18's statement that structures with the same function
+and isotopic attaching spheres are homotopic; issue 17 decides there
+whether the isotopy must also match the framings. In the model, at each
+point of the attaching sphere the factor `ℂᵐ` lies in the contact
+hyperplane, is `ω`-orthogonal to the sphere, and is symplectic. So it
+represents the conformal symplectic normal space, of real rank `2m`, the
+rank that `IsHorizontalMap.finrank_conformalSymplecticNormal_add`
+gives ($2(k-1)+2m+1=2n-1$), and the model sphere comes with a constant
+framing.
+
+**Index zero.** The model for `k = 0` is a Weinstein structure
+(`isWeinsteinStructure_handle_zero`). The stable set of a minimum is the
+point itself (`IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`,
+15e), so in the attachment theorem `hK` asks only that the minimum lie
+in `{g < 0}`, and a new component of the sublevel is a ball around it.
+No separate statement is needed.
+
+Sources: Cieliebak–Eliashberg [CieliebakEliashberg2012], Chapters 11 and
+12, for the standard handle and for Weinstein cobordisms. As in *Stable
+discs*, this design could not check the numbers of their statements
+against the book, so each building issue looks them up and cites them,
+and records in `ERRATA.md` any error it finds. The attachment theorem is
+the Weinstein form of the handle-attachment theorem of Morse theory
+(Milnor, *Morse Theory*, §3).
 
 ### `Geometry/Symplectic/Weinstein/SteinHandle.lean`
 
@@ -2409,7 +2591,11 @@ In this order; each is blocked by the ones listed. All are parts of
 | 15c | The linearization at a nondegenerate critical point; the index bound | `Handle/Linearization.lean` | 15a | 400 |
 | 15d | Stable discs are isotropic | `Handle/StableDisc.lean` | 15b, 15c | 450 |
 | 15e | The attaching sphere in the lower level | `Handle/AttachingSphere.lean` | 15d | 500 |
-| 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean` | 15, 15e | 450 |
+| 16a | Design: standard Weinstein handles and their attachment | this file | 15, 15e | — |
+| 16b | The standard Weinstein handle | `Handle/Model.lean` | 16a | 400 |
+| 16c | Orbits across a sublevel transverse to the Liouville field | `Handle/Attachment.lean` | 16a | 400 |
+| 16d | The upper sublevel is the lower domain with handles attached | `Handle/Attachment.lean` | 16c | 400 |
+| 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean`, `Handle/Attachment.lean` | 16b, 16d | — |
 | 17 | Design: normal forms of Weinstein homotopies | this file | 16 | — |
 | 18 | Normal forms of Weinstein homotopies | `Handle/Homotopy.lean` | 17 | by 17 |
 | 19 | A Stein structure across one critical level | `SteinHandle.lean` | 9, 14e, 18 | 500 |
@@ -2429,7 +2615,8 @@ issue 21 and the second in issue 28. Issues 13 and 17 are design issues:
 their pull requests extend this file by the lemma lists of issues 14 and
 18 and split them into issues of a few hundred lines; issue 13 has split
 issue 14 (#3538) into 14a–14e. Issue 15a is a design issue too: it split
-the stable discs of issue 15 into 15b–15e. Issues 22–29 wait
+the stable discs of issue 15 into 15b–15e, and issue 16a splits issue 16
+(#3540) into 16b–16d, which are its parts. Issues 22–29 wait
 for the design file of *Asymptotically holomorphic sections*, which fixes
 the hypersurfaces that issue 28 states its result for; issues 22 and 24
 are written after it.

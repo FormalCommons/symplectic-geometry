@@ -44,6 +44,17 @@ component would lie in the removed tube of `M₂`. So `δ < |z| < ε`, and the p
 Gluing along open collars rather than along the circles of a fixed radius is what makes the
 glued space a manifold directly.
 
+When `M₁` and `M₂` are compact, so is the fiber sum (`FiberSum.instCompactSpace`). Put
+`r = √((δ² + ε²) / 2)`, the radius that the annulus map fixes, so that `δ < r < ε`. In each
+`Mᵢ`, the points outside the open tube `fᵢ (Q × B²(r))` form a compact subset of the
+complement of the closed tube (`ProductNeighborhood.isCompact_preimage_compl_image`). A point of
+`M₁` inside that tube but outside the closed tube is `f₁ (q, z)` with `δ < |z| < r`
+(`ProductNeighborhood.exists_collarMap_eq_of_mem_image`), and is glued to `f₂ (q, a z)`, whose
+radius `√(ε² + δ² - |z|²)` is at least `r` (`le_norm_annulusMap`); the same holds with `M₁` and
+`M₂` exchanged (`FiberSum.inr_collarMap`). So the images of the two compact sets cover the fiber
+sum. The argument adapts Tau Ceti's `TauCeti.ConnectedSum.compactSpace`, the compactness of the
+connected sum, to the fiber sum.
+
 When `ι₁` and `ι₂` pull `σ₁` and `σ₂` back to one form `τ` on `Q`, each collar diffeomorphism
 pulls the restriction of `σᵢ` back to the product form `τ ⊕ ω₀` of `Q × A(δ, ε)`
 (`ProductNeighborhood.mpullback_collarDiffeomorph`), and `id_Q × a` preserves that form
@@ -82,11 +93,14 @@ what lets one sum again along a second submanifold of `M₁` that misses the fir
 
 ## Main results
 
-* `SymplecticGeometry.FiberSum.inl_collarMap`: `inl (f₁ (q, z)) = inr (f₂ (q, a z))`, and
+* `SymplecticGeometry.FiberSum.inl_collarMap`: `inl (f₁ (q, z)) = inr (f₂ (q, a z))`, its
+  mirror `SymplecticGeometry.FiberSum.inr_collarMap`, and
   `SymplecticGeometry.FiberSum.inl_eq_inr_iff`: these are the only points that the gluing
   identifies.
 * `SymplecticGeometry.isClosed_graph_fiberSumGluing` and the instance
   `SymplecticGeometry.FiberSum.instT2Space`: the fiber sum is Hausdorff.
+* The instance `SymplecticGeometry.FiberSum.instCompactSpace`: the fiber sum of compact
+  manifolds is compact.
 * `SymplecticGeometry.FiberSum.mpullback_inl_symplecticForm`, `mpullback_inr_symplecticForm`,
   `eq_symplecticForm_iff` and `isSymplectic_symplecticForm`: the form of the fiber sum is the
   unique form that restricts to `σ₁` and `σ₂` on the two pieces, and it is symplectic.
@@ -360,6 +374,40 @@ theorem not_mapClusterPt_of_tendsto (hδε : δ < ε) {α : Type*} {F : Filter �
   exact (f.mem_complTube.1 x.property)
     ⟨w', hw, eq_of_nhds_neBot (h₂.neBot.mono (inf_le_inf_left _ h₃))⟩
 
+/-- For compact `M` and `δ < a`, the points of the complement of the closed tube `Q × B̄²(δ)` that
+lie outside the open tube `f (Q × B²(a))` form a compact set. -/
+theorem isCompact_preimage_compl_image [CompactSpace M] (hδε : δ < ε) {a : ℝ} (ha : δ < a) :
+    IsCompact (((↑) : f.complTube hδε → M) ⁻¹' (f '' {p | ‖(p : Q × ℂ).2‖ < a})ᶜ) := by
+  rw [Subtype.isCompact_iff, image_preimage_eq_of_subset]
+  · refine IsClosed.isCompact (isClosed_compl_iff.2 (f.isOpenEmbedding.isOpenMap _ ?_))
+    exact isOpen_lt (continuous_norm.comp (continuous_snd.comp continuous_subtypeVal))
+      continuous_const
+  · intro x hx
+    rw [Subtype.range_coe, SetLike.mem_coe, mem_complTube]
+    rintro ⟨p, hp, rfl⟩
+    exact hx ⟨p, hp.trans_lt ha, rfl⟩
+
+/-- A point of the complement of the closed tube `Q × B̄²(δ)` that lies in the open tube
+`f (Q × B²(a))` is the image under the collar map of a point `(q, z)` of `Q × A(δ, ε)` with
+`|z| < a`. -/
+theorem exists_collarMap_eq_of_mem_image {hδε : δ < ε} {a : ℝ} {x : f.complTube hδε}
+    (hx : (x : M) ∈ f '' {p | ‖(p : Q × ℂ).2‖ < a}) :
+    ∃ p : Q × annulus ℂ δ ε, ‖(p.2 : ℂ)‖ < a ∧ f.collarMap hδε p = x := by
+  obtain ⟨p, hp, hpx⟩ := hx
+  have hδp : δ < ‖(p : Q × ℂ).2‖ :=
+    lt_of_not_ge fun h ↦ f.mem_complTube.1 x.property ⟨p, h, hpx⟩
+  refine ⟨((p : Q × ℂ).1, ⟨(p : Q × ℂ).2, mem_annulus.2 ⟨hδp, mem_prodBall.1 p.property⟩⟩),
+    hp, Subtype.ext ?_⟩
+  rw [coe_collarMap, annulusToProdBall_mk, hpx]
+
+/-- The image under the collar map of a point `(q, z)` of `Q × A(δ, ε)` with `a ≤ |z|` lies
+outside the open tube `f (Q × B²(a))`. -/
+theorem coe_collarMap_notMem_image (hδε : δ < ε) {a : ℝ} {p : Q × annulus ℂ δ ε}
+    (hp : a ≤ ‖(p.2 : ℂ)‖) :
+    (f.collarMap hδε p : M) ∉ f '' {p | ‖(p : Q × ℂ).2‖ < a} := by
+  rw [coe_collarMap, f.isOpenEmbedding.injective.mem_set_image]
+  exact hp.not_gt
+
 end ProductNeighborhood
 
 /-! ### The fiber sum -/
@@ -412,6 +460,14 @@ theorem inl_collarMap (p : Q × annulus ℂ δ ε) :
         (f₂.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p)) := by
   rw [← f₁.coe_collarDiffeomorph_apply, ← f₂.coe_collarDiffeomorph_apply,
     ← fiberSumGluing_collarDiffeomorph f₁ f₂ hδ hδε, GluedAlong.inr_diffeomorph_apply]
+
+/-- The point `f₂ (q, z)` of the collar of `M₂` is glued to the point `f₁ (q, a z)` of that of
+`M₁`, where `a` is the annulus map. -/
+theorem inr_collarMap (p : Q × annulus ℂ δ ε) :
+    GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph (f₂.collarMap hδε p) =
+      GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
+        (f₁.collarMap hδε (prodAnnulusDiffeomorph (I := J) Q δ ε hδ p)) := by
+  rw [inl_collarMap, prodAnnulusDiffeomorph_apply_apply]
 
 /-- A point `x` of the complement of the tube in `M₁` and a point `y` of that in `M₂` have the
 same image in the fiber sum exactly when they are `f₁ (q, z)` and `f₂ (q, a z)` for a point
@@ -507,6 +563,36 @@ theorem isClosed_graph_fiberSumGluing :
 /-- **The fiber sum is Hausdorff.** -/
 instance FiberSum.instT2Space : T2Space (FiberSum f₁ f₂ hδ hδε) :=
   GluedAlong.t2Space_of_isClosed_graph _ (isClosed_graph_fiberSumGluing f₁ f₂ hδ hδε)
+
+/-- **The fiber sum of compact manifolds is compact.** -/
+instance FiberSum.instCompactSpace [CompactSpace M₁] [CompactSpace M₂] :
+    CompactSpace (FiberSum f₁ f₂ hδ hδε) := by
+  -- Away from the open tubes of radius `r = √((δ² + ε²) / 2)` the two pieces are compact, and
+  -- the annulus map sends the radii in `(δ, r)` to radii at least `r`, so these two sets cover.
+  set φ := (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph
+  set r := √((δ ^ 2 + ε ^ 2) / 2)
+  have hr : δ < r := (Real.lt_sqrt hδ).2 (by nlinarith)
+  have hP : ∀ p : Q × annulus ℂ δ ε, ‖(p.2 : ℂ)‖ < r →
+      r ≤ ‖((prodAnnulusDiffeomorph (I := J) Q δ ε hδ p).2 : ℂ)‖ := fun p hp ↦ by
+    rw [prodAnnulusDiffeomorph_apply, coe_annulusDiffeomorph_apply]
+    exact le_norm_annulusMap δ ε (ne_zero_of_mem_annulus hδ p.2.property) hp
+  have hcover : GluedAlong.inl φ '' (Subtype.val ⁻¹' (f₁ '' {p | ‖(p : Q × ℂ).2‖ < r})ᶜ) ∪
+      GluedAlong.inr φ '' (Subtype.val ⁻¹' (f₂ '' {p | ‖(p : Q × ℂ).2‖ < r})ᶜ) = univ := by
+    refine eq_univ_of_forall fun z ↦ ?_
+    rcases GluedAlong.exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+    · by_cases hx : (x : M₁) ∈ f₁ '' {p | ‖(p : Q × ℂ).2‖ < r}
+      · obtain ⟨p, hp, rfl⟩ := f₁.exists_collarMap_eq_of_mem_image hx
+        exact Or.inr ⟨_, f₂.coe_collarMap_notMem_image hδε (hP p hp),
+          (FiberSum.inl_collarMap f₁ f₂ hδ hδε p).symm⟩
+      · exact Or.inl ⟨x, hx, rfl⟩
+    · by_cases hy : (y : M₂) ∈ f₂ '' {p | ‖(p : Q × ℂ).2‖ < r}
+      · obtain ⟨p, hp, rfl⟩ := f₂.exists_collarMap_eq_of_mem_image hy
+        exact Or.inl ⟨_, f₁.coe_collarMap_notMem_image hδε (hP p hp),
+          (FiberSum.inr_collarMap f₁ f₂ hδ hδε p).symm⟩
+      · exact Or.inr ⟨y, hy, rfl⟩
+  refine ⟨hcover ▸ ?_⟩
+  exact ((f₁.isCompact_preimage_compl_image hδε hr).image (GluedAlong.continuous_inl φ)).union
+    ((f₂.isCompact_preimage_compl_image hδε hr).image (GluedAlong.continuous_inr φ))
 
 /-- If `ι₁` and `ι₂` pull `σ₁` and `σ₂` back to the same form on `Q`, the gluing diffeomorphism
 of the fiber sum pulls the restriction of `σ₂` to the collar of `M₂` back to the restriction of
