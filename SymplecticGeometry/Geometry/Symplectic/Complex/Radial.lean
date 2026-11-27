@@ -261,12 +261,10 @@ theorem radialPotentialForm_congr {g g' : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ 
 theorem radialPotentialForm_apply_eq_zero {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0))
     {z : puncturedSpace (ι → ℂ)} {c : ℝ}
     (h : g =ᶠ[nhds (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)] fun _ ↦ c) :
-    (radialPotentialForm ι g hg).val z = 0 := by
-  refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm]
-  have hv := radialPotentialForm_apply g hg z (v 0) (v 1)
-  rw [h.deriv_eq, h.deriv.deriv_eq] at hv
-  simpa using hv
+    (radialPotentialForm ι g hg).val z = 0 :=
+  SmoothBundleForm.apply_eq_of_eval₂_eq (ψ := 0) fun v w ↦ by
+    rw [radialPotentialForm_apply, h.deriv_eq, h.deriv.deriv_eq]
+    simp
 
 /-- For `g = id` the radial potential form is the standard form `ω₀`, restricted to
 `(ι → ℂ) ∖ 0`. -/
