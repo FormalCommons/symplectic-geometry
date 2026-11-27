@@ -675,10 +675,11 @@ open scoped Manifold ContDiff Topology
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {P : Type*} [TopologicalSpace P]
 
-/-- The final estimate of `exists_holonomic_approximation_continuous_family`, at one point: the
-error of the approximation `d₀ + (A - ∑ i, w i • d i)` of the datum `e₀ + d₀` splits into the
-error `A - ∑ i, w i • (d i + c • e i)` of the smooth version, the variation `c • ∑ i, w i • (e i -
-e₀)` of the errors `e i` of the sampled data, and `-(1 - c) • e₀`. -/
+/-- The final estimate of `exists_holonomic_approximation_continuous_family`, at one point. For
+weights `w i ≥ 0` of sum `1` and `c ∈ [0, 1]`, the approximation `d₀ + (A - ∑ i, w i • d i)`
+of `e₀ + d₀` is `ε`-close to it when `A` is `ε / 2`-close to `∑ i, w i • (d i + c • e i)`,
+`e i` is `ε / 8`-close to `e₀` wherever `w i ≠ 0`, and `‖e₀‖ < ε / 4` if `c < 1`: the
+difference is `(A - ∑ i, w i • (d i + c • e i)) + c • ∑ i, w i • (e i - e₀) - (1 - c) • e₀`. -/
 private theorem norm_add_sub_sum_smul_sub_lt {E : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] {n : ℕ} {w : Fin n → ℝ} (hw₀ : ∀ i, 0 ≤ w i) (hw₁ : ∑ i, w i = 1)
     {c : ℝ} (hc : c ∈ Icc (0 : ℝ) 1) {d e : Fin n → E} {A d₀ e₀ : E} {ε : ℝ}
@@ -722,10 +723,11 @@ open `U ⊆ P × D` that contains every point `(l, (u, 0))` with `u` in a closed
 and every point over a closed `P₀ ⊆ P`. Then for `ε, δ > 0` there are a continuous
 `σ : P → Fin n → ℝ`, a diffeotopy `h` of `(Fin n → ℝ) × D` keeping the first coordinate, a smooth
 `g` and an open `V ⊆ P × D` with the following properties, where the diffeotopy at `l` is the
-slice of `h` at `σ l` (smooth in time and space) and the approximation at `l` is
-`f l + g (σ l, ·)` (smooth, with all space derivatives continuous in `(l, x)`, since `σ` is
-continuous and `g` smooth). Over `σ l`, `h` is the identity and `g` vanishes off a compact
-subset of the `δ`-thickening of the cube `Q = closedBall 0 1 ×ˢ {0}`, over a neighbourhood of
+slice of `h` at `σ l` and the approximation at `l` is `f l + g (σ l, ·)`. Each slice is smooth;
+since `σ` is continuous and `g` smooth, the correction `g (σ l, ·)` has all its space derivatives
+continuous in `(l, x)`, so the approximation is smooth with first space derivative continuous in
+`(l, x)`. Over `σ l`, `h` is the identity and `g` vanishes off a compact subset of the
+`δ`-thickening of the cube `Q = closedBall 0 1 ×ˢ {0}`, over a neighbourhood of
 `B` in the core, and for `l ∈ P₀`; the slices move points by less than `δ`; `V` contains the
 image of `Q` under the slice at time `1`, for every `l`; and on `V`, `g (σ l, ·)` is less than
 `ε` and the space derivative of the approximation is `ε`-close to `G`. -/
