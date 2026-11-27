@@ -96,14 +96,14 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
             TotalSpace P₁ (fun q ↦ (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn))))
     (hΦσ : ∀ q v w,
       0 < f.symplecticNormalForm (hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
-        hσ.isNondegenerate f.contMDiff hl hf) q hn v w →
+        hσ.isNondegenerate f.contMDiff (pow_ne_zero 2 hl) hf) q hn v w →
       0 < (zeroSectionRealEmbedding n).symplecticNormalForm
         (hasSymplecticTangentImages_zeroSectionRealEmbedding hl) q hn (Φ q v) (Φ q w)) :
     ∃ ε > 0, ∃ Ψ : PartialDiffeomorph I 𝓘(ℝ, Fin (n + 1) → ℂ) M (BlowupModel n) ∞,
       Ψ.target = openNbhd n ε ∧ (∀ q, f q ∈ Ψ.source ∧ Ψ (f q) = zeroSection q) ∧
       σ.IsSymplecticMapOn (blowupForm n l) Ψ Ψ.source := by
   have h₀ := hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
-    hσ.isNondegenerate f.contMDiff hl hf
+    hσ.isNondegenerate f.contMDiff (pow_ne_zero 2 hl) hf
   have h₁ := hasSymplecticTangentImages_zeroSectionRealEmbedding (n := n) hl
   -- The normal bundles have rank two, as that of the zero section has.
   have h2 : finrank ℝ P₀ = 2 := by
