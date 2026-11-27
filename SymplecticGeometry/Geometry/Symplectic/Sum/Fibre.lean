@@ -58,6 +58,7 @@ sum, which is symplectic when `σ₁` and `σ₂` are.
   `Q × A(δ, ε)`, as a map into the complement of the tube;
   `SymplecticGeometry.ProductNeighborhood.collar`, its image, and
   `SymplecticGeometry.ProductNeighborhood.collarDiffeomorph`, the diffeomorphism onto it.
+* `SymplecticGeometry.ProductNeighborhood.isPathConnected_collar`: the collar is path connected.
 * `SymplecticGeometry.fiberSumGluing`: the gluing diffeomorphism between the two collars.
 * `SymplecticGeometry.FiberSum`: the fiber sum.
 * `SymplecticGeometry.FiberSum.symplecticForm`: the form of the fiber sum glued from `σ₁` and
@@ -268,6 +269,16 @@ theorem mem_collar_iff {hδε : δ < ε} {x : f.complTube hδε} :
 theorem collarMap_mem_collar (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
     f.collarMap hδε p ∈ f.collar hδε :=
   f.mem_collar_iff.2 (mem_range_self p)
+
+/-- The collar `f (Q × A(δ, ε))` of a product neighbourhood of a path connected `Q`, for
+`0 ≤ δ < ε`, is path connected. -/
+theorem isPathConnected_collar [PathConnectedSpace Q] (hδ : 0 ≤ δ) (hδε : δ < ε) :
+    IsPathConnected (f.collar hδε : Set (f.complTube hδε)) := by
+  have h : (f.collar hδε : Set (f.complTube hδε)) = range (f.collarMap hδε) :=
+    Set.ext fun _ ↦ f.mem_collar_iff
+  rw [Topology.IsInducing.subtypeVal.isPathConnected_iff, h, ← range_comp]
+  convert f.isPathConnected_range_comp_annulusToProdBall hδ hδε using 2
+  exact funext (f.coe_collarMap hδε)
 
 /-- The collar of a product neighbourhood is diffeomorphic to `Q × A(δ, ε)`. -/
 def collarDiffeomorph (hδε : δ < ε) :
