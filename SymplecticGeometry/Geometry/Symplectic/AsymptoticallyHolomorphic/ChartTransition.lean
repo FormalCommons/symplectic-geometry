@@ -36,7 +36,8 @@ for it, for `k ≥ k₀`:
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition`, from
   `PartialDiffeomorph.apply_fderiv_symm_trans_eq_of_mvfderiv`);
 * since its derivative intertwines `J` read in the chart at `y` with `J` read in the chart at
-  `x` (`TauCeti.SmoothAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`), its
+  `x` (`SymplecticGeometry.RescaledUnitaryCharts.isComplexLinear_fderiv_chartTransition`, from
+  `TauCeti.SmoothAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`), its
   derivative at `w` is an isometry from the bilinear form `ω₀(·, J_y(w) ·)` to the
   bilinear form `ω₀(·, J_x(τ w) ·)`, `J_y` and `J_x` being `J` read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition_chartPushforward`);
@@ -227,6 +228,22 @@ theorem stdForm_fderiv_chartTransition {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w 
   exact (D.eval₂_eq hk x _ hw'.2 u v).symm.trans
     (D.eval₂_eq hk y _ ((D.chart k y).map_target hw'.1) u v)
 
+/-- **Transitions are complex linear for `J` read in the charts.** At a point `w` of the source
+of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the derivative of
+`τ` at `w` is complex linear for `J_y(w)` and `J_x(τ w)`, where `J_y` and `J_x` are `J` read in
+the two charts. -/
+theorem isComplexLinear_fderiv_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) :
+    IsComplexLinear
+      (J.chartPushforward (D.chart k y).toOpenPartialHomeomorph w : StdSpace ι →ₗ[ℝ] StdSpace ι)
+      (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chartTransition k x y w) :
+        StdSpace ι →ₗ[ℝ] StdSpace ι)
+      (fderiv ℝ (D.chartTransition k x y) w : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
+  have h := J.chartPushforward_symm_trans_comp_fderiv (D.chart k y) (D.chart k x)
+    (by rwa [chartTransition_def] at hw)
+  rw [← chartTransition_def] at h
+  exact isComplexLinear_of_apply fun v ↦ (DFunLike.congr_fun h v).symm
+
 /-- **Transitions preserve the forms `ω₀(·, J ·)` read in the charts.** For `k ≥ k₀` and `w` in
 the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
 derivative `T` of `τ` at `w` satisfies `ω₀(T u, J_x(τ w) (T v)) = ω₀(u, J_y(w) v)`, where `J_x`
@@ -238,10 +255,9 @@ theorem stdForm_fderiv_chartTransition_chartPushforward {k : ℕ} (hk : k₀ ≤
         (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chartTransition k x y w)
           (fderiv ℝ (D.chartTransition k x y) w v)) =
       stdForm ι u (J.chartPushforward (D.chart k y).toOpenPartialHomeomorph w v) := by
-  have h := DFunLike.congr_fun (J.chartPushforward_symm_trans_comp_fderiv (D.chart k y)
-    (D.chart k x) (by rwa [chartTransition_def] at hw)) v
-  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, ← chartTransition_def] at h
-  rw [h, D.stdForm_fderiv_chartTransition hk hw]
+  have h := (D.isComplexLinear_fderiv_chartTransition hw).apply v
+  simp only [ContinuousLinearMap.coe_coe] at h
+  rw [← h, D.stdForm_fderiv_chartTransition hk hw]
 
 /-! ### The forms `ω₀(·, J ·)` read in the charts -/
 

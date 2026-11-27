@@ -42,7 +42,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 * `SymplecticGeometry.jetNormAt_le_of_norm_iteratedFDeriv_succ_le`: a bound of the `r`-jet norm
   from a common bound of the derivatives of orders `1` to `r`, and its form
   `SymplecticGeometry.jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le`, a constant
-  times `1 + ‖f z‖`.
+  times `1 + ‖f z‖`, and `SymplecticGeometry.jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le`,
+  the bound of the `r`-jet norm of `fderiv 𝕜 f` by those of orders `1` to `r + 1`.
 * `SymplecticGeometry.jetNormAt_continuousLinearMap_le`: the `r`-jet norm of a continuous linear
   map `L` at `z` is at most `‖L z‖ + ‖L‖`.
 * `SymplecticGeometry.jetNormAt_comp_fst`: the jet norm of `f ∘ Prod.fst` at `p` is that of `f`
@@ -194,6 +195,17 @@ theorem jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le {r : ℕ} {
     (h j hj).trans (le_abs_self C)
   nlinarith [mul_nonneg (mul_nonneg (Nat.cast_nonneg r : (0 : ℝ) ≤ r) (abs_nonneg C))
     (norm_nonneg (f z))]
+
+/-- If the derivatives of orders `1` to `r + 1` of `f` at `z` have norm at most `C`, the `r`-jet
+norm of `fderiv 𝕜 f` at `z` is at most `(r + 1) * |C|`. -/
+theorem jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le {r : ℕ} {f : E → F} {z : E} {C : ℝ}
+    (h : ∀ j < r + 1, ‖iteratedFDeriv 𝕜 (j + 1) f z‖ ≤ C) :
+    jetNormAt 𝕜 r (fderiv 𝕜 f) z ≤ (r + 1) * |C| := by
+  have h' := jetNormAt_le_of_norm_iteratedFDeriv_succ_le (C := |C|) fun j hj ↦
+    (h j hj).trans (le_abs_self C)
+  rw [jetNormAt_succ] at h'
+  push_cast at h'
+  linarith [norm_nonneg (f z)]
 
 /-- The `r`-jet norm of a continuous linear map `L` at `z` is at most `‖L z‖ + ‖L‖`: its
 derivatives of order two or more vanish. -/

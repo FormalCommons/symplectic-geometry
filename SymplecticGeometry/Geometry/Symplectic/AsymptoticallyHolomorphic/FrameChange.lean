@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.C
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FirstOrderSystem
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
+import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
 
 /-!
@@ -72,6 +73,10 @@ polynomial in `‖z‖`.
 * `SymplecticGeometry.RescaledUnitaryCharts.connectionReading_eq_frameChange_smul_comp`: the
   connection read in the chart at `y` is the change of frame times the connection read in the
   chart at `x`, composed with the derivative of the transition.
+* `SymplecticGeometry.RescaledUnitaryCharts.dbarReading_eq_frameChange_smul_comp`: the same for
+  the `∂̄` readings, since the derivative of the transition intertwines `J` read in the two charts
+  (`SymplecticGeometry.RescaledUnitaryCharts.isComplexLinear_fderiv_chartTransition` and
+  `TauCeti.IsComplexLinear.complexAntilinearPart_comp_right`).
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: on a
   ball of radius `ρ₁ * √k`, the `r`-jet norm at `0` of the change of frame between the chart
   centred at `(D.chart k x)⁻¹ z` and the chart centred at `x` is at most `C * (1 + ‖z‖) ^ r`.
@@ -126,12 +131,9 @@ private theorem exists_jetNormAt_stdForm_sub_le (r : ℕ) (Cτ : ℝ) :
   have hjτ : jetNormAt ℝ r τ 0 ≤ (1 + r * |Cτ|) * (1 + ‖z‖) :=
     jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
       hCτ (j + 1) (by omega) (by omega)
-  have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) 0 ≤ (r + 1) * |Cτ| := by
-    have := jetNormAt_le_of_norm_iteratedFDeriv_succ_le (r := r + 1) (C := |Cτ|) fun j hj ↦
-      (hCτ (j + 1) (by omega) (by omega)).trans (le_abs_self Cτ)
-    rw [jetNormAt_succ] at this
-    push_cast at this
-    linarith
+  have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) 0 ≤ (r + 1) * |Cτ| :=
+    jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
+      hCτ (j + 1) (by omega) (by omega)
   refine (jetNormAt_add_le (g := -g) hB1 hg.neg).trans ?_
   rw [jetNormAt_neg]
   have h1 : jetNormAt ℝ r (⇑(B 1)) 0 ≤ ‖B 1‖ := by
@@ -397,6 +399,35 @@ theorem connectionReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm
     connectionReading_apply, heq.fderiv_eq,
     fderiv_fun_mul he hfτ, fderiv_fun_comp w hs hτ]
   simp [D.fderiv_frameChange_apply hα hk hw v, D.reading_eq_frameChange_mul hws s]
+  ring
+
+/-- **Covariance of the `∂̄` reading.** Let `α` be a connection form, `k ≥ k₀`, and `τ` the
+transition from the chart centred at `y` to the chart centred at `x`. At a point `w` of
+`D.chartTransitionDomain k x y`, for a section `s` of `PowerBundle P k` whose reading in the chart
+at `x` is differentiable at `τ w`, the `∂̄` reading in the chart at `y` at `w` is the change of
+frame `e(w)` times the `∂̄` reading in the chart at `x` at `τ w`, composed with `dτ_w`. -/
+theorem dbarReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm α) {k : ℕ}
+    (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι} (hw : w ∈ D.chartTransitionDomain k x y)
+    {s : Π y, PowerBundle P k y}
+    (hs : DifferentiableAt ℝ (D.reading k x s) (D.chartTransition k x y w)) :
+    D.dbarReading k y s w = D.frameChange k x y w •
+      (D.dbarReading k x s (D.chartTransition k x y w)).comp
+        (fderiv ℝ (D.chartTransition k x y) w) := by
+  have hT :=
+    D.isComplexLinear_fderiv_chartTransition (D.chartTransitionDomain_subset_source k x y hw)
+  ext v
+  have h := LinearMap.congr_fun (hT.complexAntilinearPart_comp_right
+    (J' := (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap)
+    (D.connectionReading k x s (D.chartTransition k x y w) : StdSpace ι →ₗ[ℝ] ℂ)) v
+  simp only [LinearMap.comp_apply, complexAntilinearPart_apply, ContinuousLinearMap.coe_coe,
+    AlmostComplexStructure.ofComplexModule_apply] at h
+  rw [dbarReading_def, D.connectionReading_eq_frameChange_smul_comp hα hk hw hs, smul_apply,
+    ContinuousLinearMap.comp_apply, dbarReading_def]
+  simp only [LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+    ContinuousLinearMap.coe_coe, smul_apply, ContinuousLinearMap.comp_apply,
+    AlmostComplexStructure.ofComplexModule_apply] at h ⊢
+  rw [← h]
+  simp only [smul_eq_mul, Complex.real_smul]
   ring
 
 /-! ### Jet norms of the change of frame -/

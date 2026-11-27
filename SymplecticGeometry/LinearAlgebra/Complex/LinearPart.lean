@@ -13,12 +13,15 @@ public import TauCeti.LinearAlgebra.Complex.LinearPart
 For linear complex structures `J`, `J'`, `J''` on `V`, `W`, `U` and a map `G : W → U` that is
 complex linear for `J'` and `J''`, taking Tau Ceti's complex-linear part
 (`TauCeti.complexLinearPart`) or complex-antilinear part (`TauCeti.complexAntilinearPart`) of a
-map `F : V → W` commutes with composing on the left by `G`.
+map `F : V → W` commutes with composing on the left by `G`. Likewise, for a map `T : U → V` that
+is complex linear for `J''` and `J`, both parts commute with composing on the right by `T`.
 
 ## Main results
 
 * `TauCeti.IsComplexLinear.complexLinearPart_comp`: `∂(G ∘ F) = G ∘ ∂F`.
 * `TauCeti.IsComplexLinear.complexAntilinearPart_comp`: `∂̄(G ∘ F) = G ∘ ∂̄F`.
+* `TauCeti.IsComplexLinear.complexLinearPart_comp_right`: `∂(F ∘ T) = ∂F ∘ T`.
+* `TauCeti.IsComplexLinear.complexAntilinearPart_comp_right`: `∂̄(F ∘ T) = ∂̄F ∘ T`.
 
 ## References
 
@@ -48,6 +51,22 @@ theorem IsComplexLinear.complexAntilinearPart_comp (hG : IsComplexLinear J' J'' 
     complexAntilinearPart J J'' (G ∘ₗ F) = G ∘ₗ complexAntilinearPart J J' F := by
   ext v
   simp [hG.apply]
+
+/-- Composing on the right with a complex-linear map commutes with taking the complex-linear
+part: `∂(F ∘ T) = ∂F ∘ T`. -/
+theorem IsComplexLinear.complexLinearPart_comp_right {T : U →ₗ[𝕜] V}
+    (hT : IsComplexLinear J'' J T) (F : V →ₗ[𝕜] W) :
+    complexLinearPart J'' J' (F ∘ₗ T) = complexLinearPart J J' F ∘ₗ T := by
+  ext v
+  simp [hT.apply]
+
+/-- Composing on the right with a complex-linear map commutes with taking the complex-antilinear
+part: `∂̄(F ∘ T) = ∂̄F ∘ T`. -/
+theorem IsComplexLinear.complexAntilinearPart_comp_right {T : U →ₗ[𝕜] V}
+    (hT : IsComplexLinear J'' J T) (F : V →ₗ[𝕜] W) :
+    complexAntilinearPart J'' J' (F ∘ₗ T) = complexAntilinearPart J J' F ∘ₗ T := by
+  ext v
+  simp [hT.apply]
 
 end TauCeti
 
