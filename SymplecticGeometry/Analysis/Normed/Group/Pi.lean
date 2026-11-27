@@ -14,7 +14,9 @@ Mathlib bounds the sup norm of a finite product from above by its coordinates
 (`pi_norm_le_iff_of_nonneg`). This file adds a lower bound in the same spirit: if each coordinate
 of `b` has norm at least `min ‖a i‖ c`, then `‖b‖ ≥ min ‖a‖ c`
 (`min_norm_le_pi_norm_of_forall`). It also computes the sup norm over an index type with one
-element (`Pi.norm_eq_norm_default`).
+element (`Pi.norm_eq_norm_default`), and the sup norm of the concatenation of two tuples
+(`Fin.norm_append`) and the sup distance of two concatenations (`Fin.dist_append`), so that
+`Fin.append` is an isometry for the sup norms.
 -/
 
 public section
@@ -40,5 +42,31 @@ coordinate. -/
 theorem Pi.norm_eq_norm_default {ι : Type*} [Fintype ι] [Unique ι] {E : ι → Type*}
     [∀ i, SeminormedAddGroup (E i)] (x : ∀ i, E i) : ‖x‖ = ‖x default‖ := by
   simp [Pi.norm_def, Finset.univ_unique]
+
+/-- The sup norm of the concatenation of two tuples is the larger of their sup norms. -/
+theorem Fin.norm_append {α : Type*} [SeminormedAddGroup α] {m n : ℕ} (x : Fin m → α)
+    (y : Fin n → α) : ‖Fin.append x y‖ = max ‖x‖ ‖y‖ := by
+  refine le_antisymm ((pi_norm_le_iff_of_nonneg (by positivity)).2 fun i ↦ ?_) (max_le ?_ ?_)
+  · induction i using Fin.addCases with
+    | left i => simpa using (norm_le_pi_norm x i).trans (le_max_left _ _)
+    | right i => simpa using (norm_le_pi_norm y i).trans (le_max_right _ _)
+  · exact (pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 fun i ↦ by
+      simpa using norm_le_pi_norm (Fin.append x y) (Fin.castAdd n i)
+  · exact (pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 fun i ↦ by
+      simpa using norm_le_pi_norm (Fin.append x y) (Fin.natAdd m i)
+
+/-- The sup distance of the concatenations of two pairs of tuples is the larger of the sup
+distances of their parts. -/
+theorem Fin.dist_append {α : Type*} [PseudoMetricSpace α] {m n : ℕ} (x x' : Fin m → α)
+    (y y' : Fin n → α) :
+    dist (Fin.append x y) (Fin.append x' y') = max (dist x x') (dist y y') := by
+  refine le_antisymm ((dist_pi_le_iff (by positivity)).2 fun i ↦ ?_) (max_le ?_ ?_)
+  · induction i using Fin.addCases with
+    | left i => simpa using (dist_le_pi_dist x x' i).trans (le_max_left _ _)
+    | right i => simpa using (dist_le_pi_dist y y' i).trans (le_max_right _ _)
+  · exact (dist_pi_le_iff dist_nonneg).2 fun i ↦ by
+      simpa using dist_le_pi_dist (Fin.append x y) (Fin.append x' y') (Fin.castAdd n i)
+  · exact (dist_pi_le_iff dist_nonneg).2 fun i ↦ by
+      simpa using dist_le_pi_dist (Fin.append x y) (Fin.append x' y') (Fin.natAdd m i)
 
 end
