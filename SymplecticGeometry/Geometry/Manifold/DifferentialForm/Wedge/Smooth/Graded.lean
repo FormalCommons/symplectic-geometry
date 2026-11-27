@@ -354,7 +354,7 @@ theorem mul_eq_mul_left_of_forall_or {γ δ δ' : ⨁ k, SmoothForm I M ℝ k}
     (h : ∀ x, (∀ i, (γ i).val x = 0) ∨ ∀ j, (δ j).val x = (δ' j).val x) : γ * δ = γ * δ' := by
   rw [← sub_eq_zero, ← mul_sub]
   refine mul_eq_zero_of_forall_or fun x ↦ (h x).imp_right fun hx j ↦ ?_
-  rw [DirectSum.sub_apply, Submodule.coe_sub, Pi.sub_apply, hx, sub_self]
+  rw [DirectSum.sub_apply, SmoothBundleForm.sub_apply, hx, sub_self]
 
 /-- Right multiplication by a smooth form `γ` of mixed degree is local: `δ * γ = δ' * γ` if at
 every point either all components of `γ` vanish or the components of `δ` and `δ'` agree in
@@ -363,7 +363,7 @@ theorem mul_eq_mul_right_of_forall_or {γ δ δ' : ⨁ k, SmoothForm I M ℝ k}
     (h : ∀ x, (∀ i, (γ i).val x = 0) ∨ ∀ j, (δ j).val x = (δ' j).val x) : δ * γ = δ' * γ := by
   rw [← sub_eq_zero, ← sub_mul]
   refine mul_eq_zero_of_forall_or fun x ↦ (h x).symm.imp_left fun hx j ↦ ?_
-  rw [DirectSum.sub_apply, Submodule.coe_sub, Pi.sub_apply, hx, sub_self]
+  rw [DirectSum.sub_apply, SmoothBundleForm.sub_apply, hx, sub_self]
 
 /-- The smooth functions embed in the algebra of smooth forms as its forms of degree `0`: the ring
 homomorphism sending `g` to its `0`-form. -/

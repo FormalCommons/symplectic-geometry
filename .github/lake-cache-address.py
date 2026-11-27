@@ -11,8 +11,9 @@ content of `lean-toolchain`) on GitHub's runners, to which Lake adds
 The second is what Lake's `s3RevisionUrl` (Lake/Config/Cache.lean) forms for
 a service without package scopes: the service's `revisionEndpoint`, then
 `pt/<platform>`, then `tc/<toolchain>` with `/` as `--` and `:` as `---`.
-The workflow cache-upload writes to these addresses and ci.yml asks the
-bucket at them, and both get them here, so that they cannot drift apart. If
+The workflow cache-upload writes to these addresses, and reads main's
+mappings at them, and ci.yml asks the bucket at them. Both get them here, so
+that they cannot drift apart. If
 Lake changes the form, uploads land where Lake does not look: builds then
 find nothing in the bucket, and nothing fails.
 """
