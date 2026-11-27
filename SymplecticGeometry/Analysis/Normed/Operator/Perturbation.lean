@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Analysis.SpecificLimits.Normed
 public import Mathlib.LinearAlgebra.Orientation
-import Mathlib.Topology.Order.IntermediateValue
+import TauCeti.LinearAlgebra.Matrix.Charpoly.DetSign
 import TauCeti.LinearAlgebra.Orientation.Basic
 
 /-!
@@ -16,8 +16,11 @@ import TauCeti.LinearAlgebra.Orientation.Basic
 
 Let `A : E ≃L[𝕜] F` be an isomorphism of normed spaces, with `E` complete, and `B : E →L[𝕜] F`
 with `‖B‖ * ‖A⁻¹‖ < 1`. Then `A + B = A ∘ (1 + A⁻¹ B)` is again an isomorphism. Over `ℝ`, with a
-finite-dimensional source, it induces the same map on orientations as `A`: for `t ∈ [0, 1]` every
-map `1 + t A⁻¹ B` is invertible, so its determinant never vanishes and stays positive.
+finite-dimensional source, it induces the same map on orientations as `A`, since
+`1 + A⁻¹ B = 1 - C` with `‖C‖ < 1` has positive determinant.
+
+That positivity is a corollary of Tau Ceti's `LinearMap.det_one_sub_pos_of_not_hasEigenvalue`:
+a real eigenvalue `μ` of `C` satisfies `|μ| ≤ ‖C‖ < 1`.
 
 ## Main definitions and results
 
@@ -49,20 +52,13 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- On a finite-dimensional real normed space, a perturbation `1 - C` of the identity with
 `‖C‖ < 1` has positive determinant. -/
 theorem det_one_sub_pos_of_norm_lt_one {C : E →L[ℝ] E} (hC : ‖C‖ < 1) : 0 < (1 - C).det := by
-  set f : ℝ → ℝ := fun t ↦ (1 - t • C).det with hf
-  have hcont : Continuous f := continuous_det.comp (by fun_prop)
-  -- For `t ∈ [0, 1]`, the map `1 - t • C` is invertible, so its determinant does not vanish.
-  have hne : ∀ t ∈ Set.Icc (0 : ℝ) 1, f t ≠ 0 := fun t ht ↦ by
-    have hnorm : ‖t • C‖ < 1 := by
-      rw [norm_smul, Real.norm_of_nonneg ht.1]
-      nlinarith [norm_nonneg C, ht.2]
-    have hu := isUnit_one_sub_of_norm_lt_one hnorm
-    exact (LinearMap.isUnit_det _ (hu.map toLinearMapRingHom)).ne_zero
-  by_contra hneg
-  obtain ⟨t, ht, h0⟩ : (0 : ℝ) ∈ f '' Set.Icc 0 1 :=
-    intermediate_value_Icc' zero_le_one hcont.continuousOn
-      ⟨by simpa [hf] using not_lt.1 hneg, by simp [hf, ContinuousLinearMap.det]⟩
-  exact hne t ht h0
+  refine LinearMap.det_one_sub_pos_of_not_hasEigenvalue fun μ hμ h ↦ ?_
+  obtain ⟨v, hv⟩ := h.exists_hasEigenvector
+  have hCv : C v = μ • v := hv.apply_eq_smul
+  have hn : 0 < ‖v‖ := norm_pos_iff.2 hv.2
+  have : μ * ‖v‖ ≤ ‖C‖ * ‖v‖ := by
+    simpa [hCv, norm_smul, abs_of_pos (by linarith : (0 : ℝ) < μ)] using C.le_opNorm v
+  nlinarith
 
 end ContinuousLinearMap
 
