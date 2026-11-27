@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Dynamics.Flow.OmegaLimit
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Cube
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.PseudoGradient
@@ -124,7 +125,7 @@ theorem mapsTo_globalFlow_preimage_Iic
     (hgY : ∀ x, mvfderiv I g x (Y x) ≤ 0) (b : ℝ) {t : ℝ} (ht : 0 ≤ t) :
     MapsTo (globalFlow Y hY hc t) (g ⁻¹' Iic b) (g ⁻¹' Iic b) := fun x hx ↦ by
   have h : g (globalFlow Y hY hc t x) ≤ g (globalFlow Y hY hc 0 x) :=
-    (isMIntegralCurve_globalFlow hY hc x).antitone_comp (fun _ ↦ hg _) (fun _ ↦ hgY _) ht
+    antitone_comp_globalFlow hY hc hg hgY x ht
   rw [Flow.map_zero_apply] at h
   exact h.trans hx
 
@@ -139,7 +140,7 @@ theorem mvfderiv_eq_zero_of_mapClusterPt_atBot_globalFlow
     (hz : MapClusterPt z atBot (fun t ↦ globalFlow Y hY hc t y)) :
     g y ≤ g z ∧ (∀ t, g (globalFlow Y hY hc t z) = g z) ∧ mvfderiv I g z (Y z) = 0 := by
   have hanti : Antitone fun t ↦ g (globalFlow Y hY hc t y) :=
-    (isMIntegralCurve_globalFlow hY hc y).antitone_comp (fun _ ↦ hg _) fun _ ↦ hgY _
+    antitone_comp_globalFlow hY hc hg hgY y
   have hconst := Flow.apply_flow_eq_of_mapClusterPt_atBot_of_antitone hanti hg.continuous hz
   refine ⟨?_, hconst, ?_⟩
   · simpa only [Flow.map_zero_apply] using
@@ -164,7 +165,7 @@ theorem exists_mapClusterPt_atBot_globalFlow_of_mem_omegaLimit
       MapClusterPt z atBot (fun t ↦ globalFlow Y hY hc t y) ∧ g y ≤ g z ∧
       (∀ t, g (globalFlow Y hY hc t z) = g z) ∧ mvfderiv I g z (Y z) = 0 := by
   have hanti : Antitone fun t ↦ g (globalFlow Y hY hc t y) :=
-    (isMIntegralCurve_globalFlow hY hc y).antitone_comp (fun _ ↦ hg _) fun _ ↦ hgY _
+    antitone_comp_globalFlow hY hc hg hgY y
   obtain ⟨horb, z, hzS, hz, -⟩ :=
     Flow.exists_mapClusterPt_atBot_of_mem_omegaLimit hS hmaps hg.continuous hanti hy
   exact ⟨horb, z, hzS, hz, mvfderiv_eq_zero_of_mapClusterPt_atBot_globalFlow hY hc hg hgY hz⟩
@@ -194,7 +195,7 @@ theorem omegaLimit_globalFlow_subset_union_unstableSet {X : (x : M) → TangentS
   set Φ := globalFlow Y hY hYc
   set Ψ := globalFlow X hX hXc
   have hantiY (x : M) : Antitone fun t ↦ g (Φ t x) :=
-    (isMIntegralCurve_globalFlow hY hYc x).antitone_comp (fun _ ↦ hg _) fun _ ↦ hgY _
+    antitone_comp_globalFlow hY hYc hg hgY x
   intro y hy
   have horb :=
     (exists_mapClusterPt_atBot_globalFlow_of_mem_omegaLimit hY hYc hg hgY hS hmaps hy).1

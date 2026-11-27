@@ -12,7 +12,7 @@ public import TauCeti.Topology.Homotopy.Path
 import Mathlib.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
-import TauCeti.Geometry.Manifold.ConnectedSum.Sphere
+import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Sphere
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Restrict
 import TauCeti.Geometry.Manifold.Connected
 
@@ -243,6 +243,21 @@ theorem puncture_succ_le_tailPuncture : puncture g (n + 1) ≤ tailPuncture g n 
   rw [puncture_succ_eq_tailPuncture_inf]
   exact inf_le_left
 
+/-- The set `puncture g (n + 1)` misses the centre of the ball `0`. -/
+theorem puncture_succ_le_puncture_ball_zero :
+    puncture g (n + 1) ≤ ConnectedSum.puncture (ball g 0) := by
+  rw [puncture_succ_eq_tailPuncture_inf]
+  exact inf_le_right
+
+/-- The neck of the connected sum along the ball `0` lies in `puncture g (n + 1)`. -/
+theorem coe_neckInr_ball_zero_mem_puncture (v : ({0}ᶜ : Set (EuclideanSpace ℝ (Fin 2)))) :
+    (ConnectedSum.neckInr (isOpenEmbedding_ball (g := g) 0) v : ClosedSurface g) ∈
+      puncture g (n + 1) := by
+  rw [puncture_succ_eq_tailPuncture_inf, Opens.mem_inf]
+  refine ⟨?_, (ConnectedSum.neckInr _ v).property⟩
+  rw [ConnectedSum.coe_neckInr_apply]
+  exact ball_zero_mem_tailPuncture _
+
 /-- The base point lies in each `tailPuncture g n`. -/
 @[simp]
 theorem basePoint_mem_tailPuncture : basePoint g ∈ tailPuncture g n :=
@@ -293,6 +308,18 @@ theorem image_succDiffeomorph_puncture :
     refine ⟨j, hj, hinj ?_⟩
     rw [← hyx, succDiffeomorph_ball, ConnectedSum.inrBall_apply]
     exact congrArg _ (Subtype.ext (by rw [hy, ConnectedSum.coe_punctureBall]))
+
+/-- A point of genus `g + 1` lies in `puncture (g + 1) n` when, read in the connected sum, it is
+a point of `tailPuncture g n` in the second summand. -/
+theorem mem_puncture_of_succDiffeomorph_eq_inr {g n : ℕ} {x : ClosedSurface (g + 1)}
+    {y : ConnectedSum.puncture (ball g 0)} (hy : (y : ClosedSurface g) ∈ tailPuncture g n)
+    (hx : succDiffeomorph x = ConnectedSum.inr _ _ y) : x ∈ puncture (g + 1) n := by
+  have h : succDiffeomorph x ∈
+      succDiffeomorph '' (puncture (g + 1) n : Set (ClosedSurface (g + 1))) := by
+    rw [image_succDiffeomorph_puncture, hx]
+    exact Or.inr ⟨_, hy, rfl⟩
+  have hinj : Injective (succDiffeomorph (g := g)) := succDiffeomorph.injective
+  exact hinj.mem_set_image.1 h
 
 /-- **The punctured second summand.** In the connected sum of the torus with `tailPuncture g n`,
 along the ball `0` corestricted to it, the second summand punctured at the centre of that ball
@@ -448,36 +475,6 @@ theorem continuous_sphereCoChart : Continuous sphereCoChart :=
 @[simp] theorem sphereCoChart_zero : sphereCoChart 0 = basePoint 0 := by
   rw [sphereCoChart_def, neg_zero, sphereBall_zero, neg_neg, Diffeomorph.symm_apply_apply]
 
-/-- Away from `0`, the complementary chart is the chart `sphereChart` after the inversion in the
-unit circle. -/
-theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
-    sphereCoChart w = sphereChart (EuclideanGeometry.inversion 0 1 w) := by
-  rw [sphereCoChart_def, sphereChart_def,
-    ← (isComplementaryBall_sphereBall _).apply_eq_inversion w hw]
-
-/-- Away from `0`, the complementary chart after the inversion in the unit circle is the chart
-`sphereChart`. -/
-theorem sphereCoChart_inversion {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
-    sphereCoChart (EuclideanGeometry.inversion 0 1 w) = sphereChart w := by
-  rw [sphereCoChart_of_ne (by simpa [EuclideanGeometry.inversion_eq_center] using hw),
-    EuclideanGeometry.inversion_inversion _ one_ne_zero]
-
-/-- On the unit circle the two charts of the sphere agree. -/
-theorem sphereCoChart_of_norm_eq_one {w : EuclideanSpace ℝ (Fin 2)} (hw : ‖w‖ = 1) :
-    sphereCoChart w = sphereChart w := by
-  rw [sphereCoChart_of_ne (by rintro rfl; simp at hw),
-    EuclideanGeometry.inversion_of_mem_sphere (by simpa using hw)]
-
-/-- The point `(0, -1)` is the same point in both charts of the sphere. -/
-theorem sphereCoChart_zero_neg_one : sphereCoChart !₂[0, -1] = sphereChart !₂[0, -1] :=
-  sphereCoChart_of_norm_eq_one (by simp [EuclideanSpace.norm_eq, Fin.sum_univ_two])
-
-/-- The ball `j` of the sphere, read in the chart `sphereChart`, is the ball of radius `1 / 2`
-about `j • e`, for `e = (1, 0)`. -/
-theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
-    ball 0 j w = sphereChart (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) := by
-  rw [sphereChart_def, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
-
 /-- The two charts of the sphere form a complementary pair of balls: the chart `sphereCoChart` is
 an open embedding that misses only the centre of `sphereChart`, and the two are glued by the
 inversion in the unit circle. -/
@@ -494,7 +491,36 @@ theorem isComplementaryBall_sphereChart : IsComplementaryBall sphereChart sphere
       rw [hc, range_comp, h.range_eq,
         image_compl_eq (f := zeroDiffeomorph.symm) zeroDiffeomorph.symm.toHomeomorph.bijective,
         image_singleton, sphereChart_def]
-    apply_eq_inversion := fun _ hw ↦ sphereCoChart_of_ne hw }
+    apply_eq_inversion := fun w hw ↦ by
+      rw [sphereCoChart_def, sphereChart_def, ← h.apply_eq_inversion w hw] }
+
+/-- Away from `0`, the complementary chart is the chart `sphereChart` after the inversion in the
+unit circle. -/
+theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
+    sphereCoChart w = sphereChart (EuclideanGeometry.inversion 0 1 w) :=
+  isComplementaryBall_sphereChart.apply_eq_inversion w hw
+
+/-- Away from `0`, the complementary chart after the inversion in the unit circle is the chart
+`sphereChart`. -/
+theorem sphereCoChart_inversion {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
+    sphereCoChart (EuclideanGeometry.inversion 0 1 w) = sphereChart w :=
+  (isComplementaryBall_sphereChart.apply_eq_inversion_symm hw).symm
+
+/-- On the unit circle the two charts of the sphere agree. -/
+theorem sphereCoChart_of_norm_eq_one {w : EuclideanSpace ℝ (Fin 2)} (hw : ‖w‖ = 1) :
+    sphereCoChart w = sphereChart w := by
+  rw [sphereCoChart_of_ne (by rintro rfl; simp at hw),
+    EuclideanGeometry.inversion_of_mem_sphere (by simpa using hw)]
+
+/-- The point `(0, -1)` is the same point in both charts of the sphere. -/
+theorem sphereCoChart_zero_neg_one : sphereCoChart !₂[0, -1] = sphereChart !₂[0, -1] :=
+  sphereCoChart_of_norm_eq_one (by simp [EuclideanSpace.norm_eq, Fin.sum_univ_two])
+
+/-- The ball `j` of the sphere, read in the chart `sphereChart`, is the ball of radius `1 / 2`
+about `j • e`, for `e = (1, 0)`. -/
+theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
+    ball 0 j w = sphereChart (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) := by
+  rw [sphereChart_def, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
 
 /-- The complementary chart of the sphere covers everything but the centre of the ball `0`. -/
 theorem range_sphereCoChart : range sphereCoChart = {ball 0 0 0}ᶜ := by
