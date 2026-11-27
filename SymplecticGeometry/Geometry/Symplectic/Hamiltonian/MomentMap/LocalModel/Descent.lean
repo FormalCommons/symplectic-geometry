@@ -164,7 +164,8 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
   have hd (ζ : GroupLieAlgebra I G) (w : TangentSpace 𝓘(ℝ, A × V) (η, v)) :
       _ = fderiv ℝ (fun y ↦ localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 y ζ) (η, v) w :=
     (mvfderiv_toContinuousLinearMap_apply (E := E)
-      (contMDiff_localModelCovector_apply D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥) (by simp) (η, v) w ζ).trans
+      (fun ζ ↦ contMDiff_localModelCovector_apply D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 ζ (η, v)) (by simp) w
+      ζ).trans
       (mvfderiv_eq_fderiv_apply _ _ w)
   -- The derivative of `ν` along `X` is the infinitesimal coadjoint action of `ξ'`.
   have h₁ (ζ : GroupLieAlgebra I G) :
