@@ -68,7 +68,7 @@ private theorem strictMonoOn_shapeFamily
   refine strictMonoOn_of_deriv_pos (convex_Ioo _ _) ?_ fun ℓ hℓ ↦
     hmono ℓ (by rwa [interior_Ioo] at hℓ) r hr
   have h := hχ.continuousOn.comp (continuousOn_id.prodMk continuousOn_const)
-    fun ℓ (hℓ : ℓ ∈ Ioo ℓ₀ ℓ₁) ↦ (⟨hℓ, hr⟩ : (id ℓ, r) ∈ Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂)
+    fun ℓ hℓ ↦ Set.mk_mem_prod hℓ hr
   simpa [Function.comp_def] using h
 
 /-- The leaf map is injective on the product of intervals. -/
@@ -108,8 +108,8 @@ private theorem shapeLevelFun_leafPoint
 /-- At a point `(χ ℓ r ², r ²)` of the swept region, the level function is smooth, with
 differential `(a, b) ↦ -(a / (2 χ) - b ∂χ/∂r / (2 r)) / ∂χ/∂ℓ`. The leaf map
 `(ℓ, r) ↦ (χ ℓ r ², r ²)` has the invertible differential
-`(a, b) ↦ (2 χ (a ∂χ/∂ℓ + b ∂χ/∂r), 2 r b)`,
-and near the point the level function is minus the first component of its local inverse. -/
+`(a, b) ↦ (2 χ (a ∂χ/∂ℓ + b ∂χ/∂r), 2 r b)`, and near the point the level function is minus
+the first component of its local inverse. -/
 private theorem contDiffAt_shapeLevelFun
     (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
     (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
