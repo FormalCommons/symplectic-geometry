@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import Mathlib.Analysis.Normed.Module.Ball.Homeomorph
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Topology.Instances.AddCircle.Real
@@ -20,6 +21,7 @@ import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 import TauCeti.Geometry.Sphere.Connected
+import TauCeti.AlgebraicTopology.Sphere.SimplyConnected
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 
 /-!
@@ -93,12 +95,18 @@ say where they send the base point, the summands and the balls.
   open embedding into it.
 * `SymplecticGeometry.ClosedSurface.zeroDiffeomorph_ball`: the balls of the surface of genus `0`
   are `TauCeti.sphereBall v ∘ univBall (j • e) (1 / 2)` on the sphere.
+* The instance `SimplyConnectedSpace (ClosedSurface 0)`: the surface of genus `0` is simply
+  connected, by Tau Ceti's
+  `ContinuousMap.HomotopyEquiv.simplyConnectedSpace_of_sphere_euclideanSpace` along
+  `zeroDiffeomorph`.
 
 ## References
 
 * [A. A. Kosinski, *Differential Manifolds*][Kosinski1993] (connected sums of manifolds).
 * [R. E. Gompf, *A new construction of symplectic manifolds*][Gompf1995] (the closed
   surfaces of genus `g` used to realize finitely presented fundamental groups).
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Proposition 1.14 (the simple connectivity of the sphere `S²`).
 -/
 
 public section
@@ -564,6 +572,10 @@ identity of its points, as a smooth diffeomorphism. -/
 def zeroDiffeomorph :
     ClosedSurface 0 ≃ₘ^∞⟮𝓡 2, 𝓡 2⟯ Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 :=
   Diffeomorph.refl _ _ _
+
+/-- The sphere, the closed surface of genus `0`, is simply connected. -/
+instance : SimplyConnectedSpace (ClosedSurface 0) :=
+  zeroDiffeomorph.toHomeomorph.toHomotopyEquiv.simplyConnectedSpace_of_sphere_euclideanSpace le_rfl
 
 /-- The base point of the closed surface of genus `0` is the point `(1, 0, 0)` of the sphere. -/
 @[simp]

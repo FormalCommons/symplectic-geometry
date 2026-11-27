@@ -14,6 +14,10 @@ import SymplecticGeometry.Geometry.Euclidean.Inversion
 import TauCeti.Topology.Path.Map
 import TauCeti.Topology.Circle.Degree
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
+public import TauCeti.GroupTheory.SurfaceGroup.Basic
+import TauCeti.GroupTheory.SurfaceGroup.LowGenus
+import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
+import TauCeti.GroupTheory.FreeGroup.Primitive
 
 /-!
 # The punctured sphere as the plane minus real points
@@ -40,6 +44,9 @@ of the plane minus real points.
 * `SymplecticGeometry.ClosedSurface.puncturedSphereHomeomorph n`: the homeomorphism from the plane
   minus the points `puncturedSpherePoint n k` to `puncture 0 (n + 1)`, given by the complementary
   chart.
+* `SymplecticGeometry.ClosedSurface.puncturedSphereFundamentalGroupMulEquiv n`: the isomorphism of
+  the fundamental group of `puncture 0 (n + 1)`, at the base point, with Tau Ceti's orientable
+  surface group `TauCeti.SurfaceGroup.Orientable 0 (n + 1)`.
 
 ## Main results
 
@@ -76,6 +83,12 @@ of the plane minus real points.
 * `SymplecticGeometry.ClosedSurface.map_peripheralLoop_castSucc_homotopic_loop`: the peripheral
   loop `Fin.castSucc k`, carried to the plane minus the points, is homotopic to the loop
   `PlaneMinusRealPoints.loop` about `puncturedSpherePoint n k`, for `δ = 1 / (n + 1) ^ 2`.
+* `SymplecticGeometry.ClosedSurface.puncturedSphereFundamentalGroupMulEquiv_peripheralLoop`: that
+  isomorphism sends the class of each peripheral loop to the peripheral element of the same index.
+* `SymplecticGeometry.ClosedSurface.exists_puncturedFundamentalGroupMulEquiv_zero`: for every `n`,
+  the fundamental group of `puncture 0 n` is isomorphic to `Orientable 0 n`, the peripheral loops
+  going to the peripheral elements; for `n = 0` both groups are trivial, the sphere being simply
+  connected.
 
 ## Implementation notes
 
@@ -100,8 +113,8 @@ loops about a puncture of the thrice-punctured sphere in the same way.
 
 * [A. A. Kosinski, *Differential Manifolds*][Kosinski1993] (the two charts of the sphere).
 * A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
-  Theorem 1.7 and Proposition 1.18 (the fundamental group of the circle, and its use for the
-  degree of a loop).
+  Theorem 1.7, Proposition 1.14 and Proposition 1.18 (the fundamental group of the circle, the
+  simple connectivity of the sphere `S²`, and the use of the circle for the degree of a loop).
 -/
 
 public section
@@ -1014,6 +1027,114 @@ theorem fromPath_map_peripheralLoop_last_eq_inv_prod :
     (fun k ↦ (le_abs_self _).trans_lt (abs_puncturedSpherePoint_lt k))
     (div_pos Real.pi_pos four_pos) (by linarith [Real.pi_pos] : Real.pi / 4 < Real.pi)
     strictMono_puncturedSpherePoint]
+
+/-! ### The fundamental group of the punctured sphere -/
+
+section FundamentalGroup
+
+open TauCeti
+
+variable (n) in
+/-- The **fundamental group of the punctured sphere**: the fundamental group of the sphere
+punctured at the centres of the balls `0, …, n`, at the base point, is Tau Ceti's orientable
+surface group `TauCeti.SurfaceGroup.Orientable 0 (n + 1)`. It is the composite of the map of
+fundamental groups along the inverse of `puncturedSphereHomeomorph n`, of the identification
+`PlaneMinusRealPoints.fundamentalGroupMulEquiv` of the plane minus the points
+`puncturedSpherePoint n k` with the free group on `Fin n`, and of the inverse of Tau Ceti's free
+basis `TauCeti.SurfaceGroup.Orientable.genusZeroBasis n`, whose element `k` is the peripheral
+element `Fin.castSucc k`. -/
+def puncturedSphereFundamentalGroupMulEquiv :
+    FundamentalGroup (puncture 0 (n + 1)) ⟨basePoint 0, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable 0 (n + 1) :=
+  (FundamentalGroup.homeomorphMulEquivOfEq (puncturedSphereHomeomorph n).symm
+      puncturedSphereHomeomorph_symm_basePoint).trans <|
+    (PlaneMinusRealPoints.fundamentalGroupMulEquiv (by positivity : (0 : ℝ) < 1 / ((n : ℝ) + 1) ^ 2)
+      one_div_sq_le_abs_puncturedSpherePoint_sub puncturedSpherePoint_ne_zero).trans
+        (SurfaceGroup.Orientable.genusZeroBasis n).repr.symm
+
+/-- The image of the class of a loop of the punctured sphere under the isomorphism with the surface
+group, read off from the class of that loop carried to the plane minus the points. -/
+private theorem puncturedSphereFundamentalGroupMulEquiv_fromPath (γ : Path
+      (⟨basePoint 0, basePoint_mem_puncture⟩ : puncture 0 (n + 1))
+      ⟨basePoint 0, basePoint_mem_puncture⟩) :
+    puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk γ)) =
+      (SurfaceGroup.Orientable.genusZeroBasis n).repr.symm
+        (PlaneMinusRealPoints.fundamentalGroupMulEquiv (by positivity)
+          one_div_sq_le_abs_puncturedSpherePoint_sub puncturedSpherePoint_ne_zero
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+            ((γ.map (puncturedSphereHomeomorph n).symm.continuous).cast
+              puncturedSphereHomeomorph_symm_basePoint.symm
+              puncturedSphereHomeomorph_symm_basePoint.symm)))) := by
+  rw [puncturedSphereFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
+    FundamentalGroup.homeomorphMulEquivOfEq_apply, FundamentalGroup.mapOfEq_fromPath_mk]
+
+/-- The isomorphism sends the class of the peripheral loop `Fin.castSucc k`, about the ball
+`(Fin.castSucc k).rev`, to the peripheral element `Fin.castSucc k`. -/
+private theorem puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_castSucc (k : Fin n) :
+    puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk (peripheralLoop 0 (n + 1) (Fin.castSucc k)))) =
+      SurfaceGroup.Orientable.peripheral 0 (n + 1) (Fin.castSucc k) := by
+  rw [puncturedSphereFundamentalGroupMulEquiv_fromPath,
+    Path.Homotopic.Quotient.eq.2 (map_peripheralLoop_castSucc_homotopic_loop k),
+    PlaneMinusRealPoints.fundamentalGroupMulEquiv_loop, FreeGroupBasis.repr_symm_apply_of,
+    SurfaceGroup.Orientable.genusZeroBasis_apply]
+
+/-- The isomorphism sends the class of the last peripheral loop, about the ball `0`, to the last
+peripheral element. -/
+private theorem puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_last :
+    puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk (peripheralLoop 0 (n + 1) (Fin.last n)))) =
+      SurfaceGroup.Orientable.peripheral 0 (n + 1) (Fin.last n) := by
+  rw [puncturedSphereFundamentalGroupMulEquiv_fromPath,
+    fromPath_map_peripheralLoop_last_eq_inv_prod, map_inv, map_list_prod, List.map_ofFn,
+    map_inv, map_list_prod, List.map_ofFn, SurfaceGroup.Orientable.peripheral_last]
+  simp [Function.comp_def]
+
+/-- The isomorphism sends the class of each peripheral loop to the peripheral element of the same
+index. -/
+@[simp]
+theorem puncturedSphereFundamentalGroupMulEquiv_peripheralLoop (i : Fin (n + 1)) :
+    puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk (peripheralLoop 0 (n + 1) i))) =
+      SurfaceGroup.Orientable.peripheral 0 (n + 1) i := by
+  induction i using Fin.lastCases with
+  | last => exact puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_last
+  | cast k => exact puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_castSucc k
+
+variable (n) in
+/-- **The base case of the fundamental groups of the punctured closed surfaces**: for every `n`,
+the fundamental group of the sphere punctured at the centres of the balls `0, …, n - 1`, at the
+base point, is isomorphic to Tau Ceti's orientable surface group
+`TauCeti.SurfaceGroup.Orientable 0 n`, by an isomorphism sending the class of each peripheral loop
+`peripheralLoop 0 n i` to the peripheral element `i`. The clauses on the loops
+`puncturedCircleLoop 0 n k i` are those of the statement in every genus, and are empty, since
+there is no `k : Fin 0`. For `n = 0` both groups are trivial; for `n + 1` the isomorphism is
+`puncturedSphereFundamentalGroupMulEquiv n`. -/
+theorem exists_puncturedFundamentalGroupMulEquiv_zero :
+    ∃ e : FundamentalGroup (puncture 0 n) ⟨basePoint 0, basePoint_mem_puncture⟩ ≃*
+        SurfaceGroup.Orientable 0 n,
+      (∀ k : Fin 0, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop 0 n k 0))) = SurfaceGroup.Orientable.a 0 n k) ∧
+      (∀ k : Fin 0, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop 0 n k 1))) = SurfaceGroup.Orientable.b 0 n k) ∧
+      ∀ i, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (peripheralLoop 0 n i))) =
+        SurfaceGroup.Orientable.peripheral 0 n i := by
+  cases n with
+  | zero =>
+    have h : (puncture 0 0 : Set (ClosedSurface 0)) = univ := by
+      rw [puncture_zero, TopologicalSpace.Opens.coe_top]
+    have := ((Homeomorph.setCongr h).trans (Homeomorph.Set.univ _)).toHomotopyEquiv
+      |>.simplyConnectedSpace
+    let := uniqueOfSubsingleton (1 : FundamentalGroup (puncture 0 0)
+      ⟨basePoint 0, basePoint_mem_puncture⟩)
+    let := uniqueOfSubsingleton (1 : SurfaceGroup.Orientable 0 0)
+    exact ⟨MulEquiv.ofUnique, finZeroElim, finZeroElim, finZeroElim⟩
+  | succ n =>
+    exact ⟨puncturedSphereFundamentalGroupMulEquiv n, finZeroElim, finZeroElim,
+      puncturedSphereFundamentalGroupMulEquiv_peripheralLoop⟩
+
+end FundamentalGroup
 
 end SymplecticGeometry.ClosedSurface
 
