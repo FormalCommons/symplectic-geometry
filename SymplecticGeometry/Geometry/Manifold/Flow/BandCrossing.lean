@@ -15,18 +15,20 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 # Integral curves cross a band of descent in bounded time
 
 Let `v` be a vector field, `f : M → ℝ` a function and `a ≤ b`. If `df(v) ≤ -ε` on the band
-`f⁻¹[a, b]`, an integral curve can cross the levels `a` and `b` only downwards, so one that
-starts at or below the level `b` stays in the band until it leaves it through the level `a`. While
-it is in the band it loses at least `ε` of height per unit of time, so it is strictly below the
-level `a` once more than `(b - a) / ε` units of time have passed. Nothing is assumed of `df(v)`
-off the band. When the band is compact, `f` is `C¹` and `v` is continuous, `df(v)` is bounded away
-from zero on the band as soon as it is negative there, so a single time works for every integral
-curve starting at or below `b`. For a complete `C¹` field this says that the flow
-`TauCeti.globalFlow v` carries all of `{f ≤ b}` below the level `a` within a common time.
+`f⁻¹[a, b]` for some `ε > 0`, an integral curve can cross the levels `a` and `b` only
+downwards, so one that starts at or below the level `b` stays in the band until it leaves it
+through the level `a`. While it is in the band it loses at least `ε` of height per unit of time,
+so it is strictly below the level `a` once more than `(b - a) / ε` units of time have passed.
+Nothing is assumed of `df(v)` off the band. When the band is compact, `f` is `C¹` and `v` is
+continuous, `df(v)` is bounded away from zero on the band as soon as it is negative there, so a
+single time works for every integral curve starting at or below `b`. For a complete `C¹` field
+this says that the flow `TauCeti.globalFlow v` carries all of `{f ≤ b}` below the level `a`
+within a common time.
 
-While an integral curve is in the band, `f` decreases strictly along it; this already follows
-from Tau Ceti's `IsMIntegralCurve.lt_of_mvfderiv_apply_lt_zero`. That the curve cannot leave the
-band upwards, or come back into it from below, is Tau Ceti's
+While an integral curve is in the band, `f` decreases strictly along it: on an interval of times
+that the curve spends in the band, this is Tau Ceti's `IsMIntegralCurveOn.strictAntiOn_comp`,
+which asks for `df(v) < 0` only at interior times of the interval. That the curve cannot leave
+the band upwards, or come back into it from below, is Tau Ceti's
 `IsMIntegralCurveOn.lt_apply_of_le_apply` and `IsMIntegralCurveOn.apply_lt_of_apply_le`, applied
 to `-f`.
 
