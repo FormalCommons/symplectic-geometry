@@ -512,15 +512,9 @@ theorem mem_complDivisor_iff {z : WeightBlowup hψ hl hε} :
     z ∈ complDivisor hψ hl hε ↔
       z ∉ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph ''
         {y : openNbhdOpens n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
-  rw [complDivisor, GluedAlong.mem_rangeInl]
-  constructor
-  · rintro ⟨x, rfl⟩ ⟨y, hy, hxy⟩
-    exact mem_modelOverlap_iff.1 ((GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩) hy
-  · intro hz
-    rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, hx⟩ | ⟨y, rfl⟩
-    · exact ⟨x, hx⟩
-    · exact (GluedAlong.inr_mem_range_inl_iff _).2
-        (mem_modelOverlap_iff.2 fun h ↦ hz ⟨y, h, rfl⟩)
+  rw [← SetLike.mem_coe, coe_complDivisor, GluedAlong.range_inl_eq_compl_image_inr, mem_compl_iff]
+  simp only [mem_image, mem_compl_iff, SetLike.mem_coe, mem_modelOverlap_iff, not_not,
+    mem_ofPred_eq]
 
 /-- **The complement of the divisor**: the diffeomorphism from the complement of `inr(Z)` in the
 blowup onto `M ∖ ψ(B(l))`, the inverse of `inl`. It pulls `σ` back to `ω̃_ψ`
@@ -655,7 +649,7 @@ theorem isSymplecticSubmanifoldEmbedding_divisor (hω : (form hψ hl hε).IsNond
     (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) :=
   (hω.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
     (divisor hψ hl hε).isSmoothEmbedding).2 <|
-      hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ hl₀
+      hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ (pow_ne_zero 2 hl₀)
         (mpullback_divisor_form hψ hl hε)
 
 variable (hn : (∞ : ℕ∞ω) ≠ 0)
