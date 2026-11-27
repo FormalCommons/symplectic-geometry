@@ -32,7 +32,10 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   (4.3), `1 / χ r < χ' r / r` (`SymplecticGeometry.IsConvexShapeAt.one_div_lt_deriv_div`), so
   that this one is not a field. `SymplecticGeometry.isConvexShapeAt_iff` says that (4.4) for all
   `σ, u` amounts to (4.3) together with its case `σ = r`, `u = 0`,
-  `1 / χ r < χ'' r + χ' r ³ / r`.
+  `1 / χ r < χ'' r + χ' r ³ / r`. Since its slope is positive
+  (`SymplecticGeometry.IsConvexShapeAt.deriv_pos`), a function that is an `i`-convex shape at
+  every `r > δ` and continuous on `[δ, ∞)` is strictly increasing there
+  (`SymplecticGeometry.strictMonoOn_Ici_of_isConvexShapeAt`).
 * `SymplecticGeometry.isConvexShapeAt_of_iteratedDeriv_two_nonpos`: a sufficient condition for
   a shape with `χ'' ≤ 0`. `SymplecticGeometry.IsConvexShapeAt.add_const` and
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
@@ -173,6 +176,14 @@ theorem one_div_lt_iteratedDeriv_add (h : IsConvexShapeAt χ r) :
   simpa using hl
 
 end IsConvexShapeAt
+
+open Set in
+/-- A function, continuous on `[δ, ∞)`, that is an `i`-convex shape at every `r > δ` is strictly
+increasing on `[δ, ∞)`, since an `i`-convex shape has a positive slope. -/
+theorem strictMonoOn_Ici_of_isConvexShapeAt {δ : ℝ} (hc : ContinuousOn χ (Ici δ))
+    (hχ : ∀ r, δ < r → IsConvexShapeAt χ r) : StrictMonoOn χ (Ici δ) :=
+  strictMonoOn_of_deriv_pos (convex_Ici δ) hc fun r hr ↦
+    (hχ r (by rwa [interior_Ici] at hr)).deriv_pos
 
 /-- `χ` is an `i`-convex shape at `r` if and only if `0 < r`, `0 < χ r`, `1 / χ r < χ' r / r`
 and `1 / χ r < χ'' r + χ' r ³ / r`: the inequality (4.4) for all `σ, u` with `σ² + u² = r²`

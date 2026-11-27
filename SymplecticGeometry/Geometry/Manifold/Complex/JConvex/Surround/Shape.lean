@@ -63,7 +63,9 @@ the strict plurisubharmonicity of `f(s) + g(t)`.
 * `SymplecticGeometry.shape p`: the pair `(s p, t p)`;
 * `SymplecticGeometry.leviForm_shape_fst_apply`, `SymplecticGeometry.leviForm_shape_snd_apply`:
   the Levi forms of `s` and `t` are `⟪v₁, w₁⟫ / 2` and `⟪v₁, w₁⟫ / 2 + ⟪v₂, w₂⟫`. So the Levi form
-  of `t` is positive definite (`SymplecticGeometry.re_leviForm_shape_snd_apply_self`).
+  of `t` is positive definite (`SymplecticGeometry.re_leviForm_shape_snd_apply_self`,
+  `SymplecticGeometry.re_leviForm_shape_snd_pos`), and its differential vanishes only where
+  `t = 0` (`SymplecticGeometry.fderiv_shape_snd_ne_zero`).
 * `SymplecticGeometry.re_leviForm_comp_shape_apply_self`: for `h` of class `C²`, the Levi form of
   `h ∘ shape` on `v` in terms of the partial derivatives of `h` and of
   `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, which are the Wirtinger derivatives
@@ -337,6 +339,16 @@ theorem re_leviForm_shape_snd_apply_self
   rw [leviForm_shape_snd_apply, add_re, div_ofNat_re, ← RCLike.re_to_complex,
     ← RCLike.re_to_complex, inner_self_eq_norm_sq, inner_self_eq_norm_sq]
 
+/-- The Levi form of `t = |y|² + |w|²` is positive definite: its real part on `(v, v)` is
+positive for `v ≠ 0`. -/
+theorem re_leviForm_shape_snd_pos (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+    {v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hv : v ≠ 0) :
+    0 < (leviForm (fun q ↦ (shape q).2) p v v).re := by
+  rw [re_leviForm_shape_snd_apply_self]
+  by_contra hn
+  refine hv (Prod.ext (norm_eq_zero.1 ?_) (norm_eq_zero.1 ?_)) <;>
+    nlinarith [norm_nonneg v.1, norm_nonneg v.2]
+
 /-- The differential of `s = |x|²` at `p = (x + i y, w)` is `v ↦ 2 ∑ⱼ xⱼ Re v₁ⱼ`. -/
 theorem fderiv_shape_fst_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     fderiv ℝ (fun q ↦ (shape q).1) p v = 2 * ∑ j, (p.1 j).re * (v.1 j).re := by
@@ -364,6 +376,17 @@ theorem fderiv_shape_snd_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpa
     simpa using (hasFDerivAt_snd (𝕜 := ℝ) (p := p)).norm_sq
   rw [shape_snd_eq, ((HasFDerivAt.sum fun j _ ↦ h j).add h₂).fderiv]
   simp [coordCLM_apply, PiLp.inner_apply, Complex.re_sum, Finset.mul_sum, mul_add, mul_assoc]
+
+/-- The differential of `t = |y|² + |w|²` at `p` is nonzero where `t p ≠ 0`: it takes the value
+`2 t p` on `p`. -/
+theorem fderiv_shape_snd_ne_zero {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : (shape p).2 ≠ 0) : fderiv ℝ (fun q ↦ (shape q).2) p ≠ 0 := by
+  intro h0
+  have h := fderiv_shape_snd_apply p p
+  rw [h0, zero_apply, ← RCLike.re_to_complex, inner_self_eq_norm_sq] at h
+  have ht := shape_snd p
+  simp only [← sq] at h
+  exact hp (by linarith)
 
 /-- The differential of `shape` at `p` is the pair of the differentials of `s` and of `t`. -/
 theorem fderiv_shape_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :

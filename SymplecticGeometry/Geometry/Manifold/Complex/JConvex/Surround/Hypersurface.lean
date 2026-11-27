@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape
 
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-!
@@ -25,18 +24,21 @@ file proves the three properties of their Theorem 4.1 in terms of the shape:
   standard function.
 * (iii) `SymplecticGeometry.surroundHypersurface_inter_fst_le_one`: if `χ` is an `i`-convex shape
   beyond `δ`, continuous from `δ` on, with `χ δ > 1`, the part of `Σ` in `{s ≤ 1}` is the part
-  there of the cylinder `t = δ²`. Such a `χ` is strictly increasing on `[δ, ∞)`
-  (`SymplecticGeometry.strictMonoOn_Ici_of_isConvexShapeAt`), since an `i`-convex shape has a
-  positive slope.
+  there of the cylinder `t = δ²`, since such a `χ` is strictly increasing on `[δ, ∞)`
+  (`SymplecticGeometry.strictMonoOn_Ici_of_isConvexShapeAt`).
 * (i) `SymplecticGeometry.exists_levelSet_of_mem_surroundHypersurface`: away from the corner
   `s = χ δ², t = δ²`, near each of its points `Σ` is a level of a function `F`, `C²` with a
   nonzero differential there, whose Levi form is positive on the nonzero complex tangent
   vectors of the level. On the curved part `F` is `shapeGraph χ ∘ shape`, and the positivity is
   `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos`; on the cylinder `F` is `t`, whose Levi
-  form is positive definite (`SymplecticGeometry.re_leviForm_shape_snd_apply_self`).
+  form is positive definite (`SymplecticGeometry.fderiv_shape_snd_ne_zero`,
+  `SymplecticGeometry.re_leviForm_shape_snd_pos`).
 
-At the corner the two pieces meet with the same tangent, but `Σ` is not `C²` there; the
-smooth hypersurface that replaces `Σ` near it is built later, with the model handle.
+Nothing here is claimed at the corner. For the `χ` of
+`SymplecticGeometry.exists_convexShape_surround`, whose slope tends to `+∞` as `r` decreases to
+`δ`, the two pieces meet there with the same tangent; for a `χ` of finite slope at `δ` they meet
+at an angle. In either case `Σ` is not `C²` at the corner, and the smooth hypersurface that
+replaces it there is built later, with the model handle.
 
 ## References
 
@@ -75,13 +77,6 @@ theorem mem_surroundHypersurface_iff {δ : ℝ} {χ : ℝ → ℝ}
         δ ^ 2 < (shape p).2 ∧ √(shape p).1 = χ (√(shape p).2) := by
   rw [surroundHypersurface_def, mem_union, mem_ofPred_eq, mem_ofPred_eq]
 
-/-- A function, continuous on `[δ, ∞)`, that is an `i`-convex shape at every `r > δ` is strictly
-increasing on `[δ, ∞)`, since an `i`-convex shape has a positive slope. -/
-theorem strictMonoOn_Ici_of_isConvexShapeAt {χ : ℝ → ℝ} {δ : ℝ} (hc : ContinuousOn χ (Ici δ))
-    (hχ : ∀ r, δ < r → IsConvexShapeAt χ r) : StrictMonoOn χ (Ici δ) :=
-  strictMonoOn_of_deriv_pos (convex_Ici δ) hc fun r hr ↦
-    (hχ r (by rwa [interior_Ici] at hr)).deriv_pos
-
 /-- **Theorem 4.1 (ii)** of Cieliebak–Eliashberg, in terms of the shape. If `0 ≤ δ < γ`,
 `0 ≤ a` and `χ r = √(1 + a r²)` for `r ≥ γ`, then on `{γ² ≤ t}` the hypersurface `Σ` is the level
 `a t - s = -1`. -/
@@ -116,8 +111,7 @@ theorem surroundHypersurface_inter_fst_le_one {δ : ℝ} {χ : ℝ → ℝ} (hc 
   constructor
   · rintro ⟨h | ⟨ht, hs⟩, h₁'⟩
     · exact ⟨h.1, h₁'⟩
-    · have hδt : δ < √(shape p).2 :=
-        (le_abs_self δ).trans_lt ((lt_sqrt (abs_nonneg δ)).2 (by rwa [sq_abs]))
+    · have hδt : δ < √(shape p).2 := lt_sqrt_of_sq_lt ht
       have := strictMonoOn_Ici_of_isConvexShapeAt hc hχ (mem_Ici.2 le_rfl)
         (mem_Ici.2 hδt.le) hδt
       linarith [sqrt_le_one.2 h₁']
@@ -160,16 +154,8 @@ theorem exists_levelSet_of_mem_surroundHypersurface {δ : ℝ} {χ : ℝ → ℝ
       · have := strictMonoOn_Ici_of_isConvexShapeAt hc hχ (mem_Ici.2 le_rfl)
           (mem_Ici.2 (hδ' hqt).le) (hδ' hqt)
         linarith
-    · intro h0
-      have h := fderiv_shape_snd_apply p p
-      rw [h0, zero_apply, ← RCLike.re_to_complex, inner_self_eq_norm_sq] at h
-      have ht' := shape_snd p
-      simp only [← sq] at h
-      nlinarith
-    · rw [re_leviForm_shape_snd_apply_self]
-      by_contra hn
-      refine hv (Prod.ext (norm_eq_zero.1 ?_) (norm_eq_zero.1 ?_)) <;>
-        nlinarith [norm_nonneg v.1, norm_nonneg v.2]
+    · exact fderiv_shape_snd_ne_zero (by rw [ht]; positivity)
+    · exact re_leviForm_shape_snd_pos p hv
   · -- On the curved part, `Σ` is the zero level of `shapeGraph χ ∘ shape` near `p`.
     set r := √(shape p).2
     have hr : δ < r := hδ' ht
