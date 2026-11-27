@@ -52,7 +52,9 @@ monotone for all `a` and `b` (`TauCeti.monotone_smoothLowerTruncation`), with po
 on `(a, ∞)` when `a < b` (`TauCeti.deriv_smoothLowerTruncation_pos`). Conjugating by `x ↦ -x`
 gives, for `c < b`, a smooth monotone map that is the identity up to `c`, equal to `b` from `b`
 on, at most `b`, and with positive derivative on `(-∞, b)`
-(`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`).
+(`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`); composed with a smooth shift, it
+gives one that is equal from `b` on to a given `d ≥ b`
+(`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le`).
 
 It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]`,
 takes its values in the open interval `(a - ε, b + ε)`, and is constant outside it
@@ -287,6 +289,46 @@ theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b : ℝ} (hcb : c
   · exact neg_le.1 (TauCeti.le_smoothLowerTruncation hbc.le _)
   · rw [deriv.fun_neg, deriv_comp_neg, neg_neg]
     exact TauCeti.deriv_smoothLowerTruncation_pos hbc (neg_lt_neg hx)
+
+/-- For `c < b ≤ d` there is a smooth monotone function `φ : ℝ → ℝ` that is the identity on
+`(-∞, c]`, equal to `d` on `[b, ∞)`, at most `d` everywhere, and with positive derivative on
+`(-∞, b)`. For `d = b` this is `Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`. -/
+theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le {c b d : ℝ} (hcb : c < b)
+    (hbd : b ≤ d) :
+    ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ Monotone φ ∧ EqOn φ id (Iic c) ∧
+      EqOn φ (fun _ ↦ d) (Ici b) ∧ (∀ x, φ x ≤ d) ∧ ∀ x < b, 0 < deriv φ x := by
+  obtain ⟨φ, hφ, hφm, hφc, hφd, hφle, hφ'⟩ :=
+    exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici (hcb.trans_le hbd)
+  have hbc : 0 < b - c := sub_pos.2 hcb
+  have hdb : 0 ≤ d - b := sub_nonneg.2 hbd
+  set σ : ℝ → ℝ := fun x ↦ smoothTransition ((x - c) / (b - c)) with hσdef
+  have hσ : ContDiff ℝ ∞ σ := by rw [hσdef]; fun_prop
+  have hσm : Monotone σ := fun x y hxy ↦
+    smoothTransition.monotone (div_le_div_of_nonneg_right (by linarith) hbc.le)
+  set g : ℝ → ℝ := fun x ↦ x + (d - b) * σ x with hgdef
+  have hg : ContDiff ℝ ∞ g := contDiff_id.add (contDiff_const.mul hσ)
+  refine ⟨φ ∘ g, hφ.comp hg, hφm.comp fun x y hxy ↦ add_le_add hxy
+    (mul_le_mul_of_nonneg_left (hσm hxy) hdb), fun x hx ↦ ?_, fun x hx ↦ ?_,
+    fun x ↦ hφle _, fun x hx ↦ ?_⟩
+  · have hσx : σ x = 0 := smoothTransition.zero_of_nonpos
+      (div_nonpos_of_nonpos_of_nonneg (by rw [mem_Iic] at hx; linarith) hbc.le)
+    have hgx : g x = x := by rw [hgdef]; simp [hσx]
+    simpa [hgx] using hφc (show g x ∈ Iic c by rw [hgx]; exact hx)
+  · have hσx : σ x = 1 := smoothTransition.one_of_one_le
+      ((one_le_div hbc).2 (by rw [mem_Ici] at hx; linarith))
+    rw [mem_Ici] at hx
+    exact hφd (show d ≤ g x by rw [hgdef]; simp only [hσx]; linarith)
+  · have hgx : g x < d := by
+      have : (d - b) * σ x ≤ d - b :=
+        mul_le_of_le_one_right hdb (smoothTransition.le_one ((x - c) / (b - c)))
+      rw [hgdef]
+      linarith
+    have hgd : HasDerivAt g (1 + (d - b) * deriv σ x) x :=
+      (hasDerivAt_id x).add (((hσ.differentiable (by simp)) x).hasDerivAt.const_mul (d - b))
+    have hφd' : HasDerivAt φ (deriv φ (g x)) (g x) :=
+      ((hφ.differentiable (by simp)) (g x)).hasDerivAt
+    rw [(hφd'.comp x hgd).deriv]
+    exact mul_pos (hφ' _ hgx) (by nlinarith [hσm.deriv_nonneg (x := x)])
 
 end Real
 

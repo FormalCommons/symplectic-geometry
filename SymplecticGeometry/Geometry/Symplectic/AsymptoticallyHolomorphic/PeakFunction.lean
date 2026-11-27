@@ -522,6 +522,12 @@ theorem modelDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
 theorem modelDbar_zero (z : StdSpace ι) : modelDbar (0 : StdSpace ι → ℂ) z = 0 := by
   simp only [modelDbar_def, modelDbarWith_zero]
 
+/-- Near `z`, the model `∂̄` of `f` depends only on the germ of `f` at `z`. -/
+theorem modelDbar_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[nhds z] g) : modelDbar f =ᶠ[nhds z] modelDbar g := by
+  filter_upwards [h.eventuallyEq_nhds] with w hw
+  rw [modelDbar_def, modelDbar_def, hw.fderiv_eq, hw.eq_of_nhds]
+
 /-- The model `∂̄` of `f` is `C^n` at a point where `f` is `C^(n + 1)`. -/
 theorem contDiffAt_modelDbar {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpace ι}
     (hf : ContDiffAt ℝ (n + 1) f z) : ContDiffAt ℝ n (modelDbar f) z := by
