@@ -13,13 +13,15 @@ import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 /-!
 # Area forms positive for an orientation of a surface
 
-Let `M` be a surface with an orientation `o`. A two-form on `M` that is positive for `o` at a
-point `x` does not vanish at `x`, and on a two-dimensional tangent space an alternating form is
-nondegenerate exactly when it is nonzero
-(`LinearMap.BilinForm.IsAlt.nondegenerate_iff_ne_zero_of_finrank_eq_two`). So its bilinear form at
-`x` is nondegenerate (`TauCeti.Manifold.Orientation.IsPositiveAt.nondegenerate_bilinFormAt`, whose
-proof is the pointwise step of Tau Ceti's
-`TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`), and
+Let `M` be a surface with an orientation `o`. On a two-dimensional tangent space an alternating
+form is nondegenerate exactly when it is nonzero
+(`LinearMap.BilinForm.IsAlt.nondegenerate_iff_ne_zero_of_finrank_eq_two`), so the bilinear form of
+a two-form at `x` is nondegenerate exactly when the form does not vanish at `x`
+(`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_ne_zero_of_finrank_eq_two`, whose proof is
+the pointwise step of Tau Ceti's
+`TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`). A two-form that is
+positive for `o` at `x` does not vanish there, so its bilinear form at `x` is nondegenerate
+(`TauCeti.Manifold.Orientation.IsPositiveAt.nondegenerate_bilinFormAt`), and
 a two-form positive for `o` everywhere is symplectic
 (`TauCeti.Manifold.Orientation.IsPositive.isSymplectic`), closedness being automatic in dimension
 two (`TauCeti.SmoothTwoForm.isSymplectic_iff_forall_ne_zero_of_finrank_eq_two`).
@@ -33,6 +35,8 @@ Moser's argument for area forms along that segment.
 
 ## Main results
 
+* `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_ne_zero_of_finrank_eq_two`: in dimension
+  two, a two-form is nondegenerate at `x` exactly when it does not vanish at `x`.
 * `TauCeti.Manifold.Orientation.IsPositiveAt.nondegenerate_bilinFormAt`: a two-form positive for
   an orientation of a surface at `x` is nondegenerate at `x`.
 * `TauCeti.Manifold.Orientation.IsPositive.isSymplectic`: a two-form positive for an orientation
@@ -54,9 +58,19 @@ open scoped Manifold ContDiff
 
 namespace TauCeti
 
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] {o : Manifold.Orientation I M (Fin 2)}
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+
+/-- On a manifold modelled on a two-dimensional space, the bilinear form of a two-form `σ` at `x`
+is nondegenerate exactly when `σ` does not vanish at `x`. -/
+theorem SmoothTwoForm.nondegenerate_bilinFormAt_iff_ne_zero_of_finrank_eq_two
+    {σ : SmoothTwoForm I M} (hE : Module.finrank ℝ E = 2) (x : M) :
+    (σ.bilinFormAt x).Nondegenerate ↔ σ.val x ≠ 0 := by
+  rw [(SmoothForm.isAlt_bilinFormAt σ x).nondegenerate_iff_ne_zero_of_finrank_eq_two
+    ((finrank_tangentSpace (I := I) x).trans hE), ne_eq, SmoothForm.bilinFormAt_eq_zero_iff]
+
+variable [FiniteDimensional ℝ E] {o : Manifold.Orientation I M (Fin 2)}
 
 namespace Manifold.Orientation
 
@@ -65,12 +79,9 @@ variable {σ : SmoothTwoForm I M}
 /-- On a surface with an orientation `o`, a two-form positive for `o` at `x` is nondegenerate at
 `x`. -/
 theorem IsPositiveAt.nondegenerate_bilinFormAt {x : M} (h : o.IsPositiveAt σ.val x) :
-    (σ.bilinFormAt x).Nondegenerate := by
-  -- `TangentSpace I x` is the model space `E` by definition
-  have hx : Module.finrank ℝ (TangentSpace I x) = 2 := by simpa using o.card_eq.symm
-  rw [(SmoothForm.isAlt_bilinFormAt σ x).nondegenerate_iff_ne_zero_of_finrank_eq_two hx, ne_eq,
-    SmoothForm.bilinFormAt_eq_zero_iff]
-  exact h.ne_zero
+    (σ.bilinFormAt x).Nondegenerate :=
+  (SmoothTwoForm.nondegenerate_bilinFormAt_iff_ne_zero_of_finrank_eq_two
+    (by simpa using o.card_eq.symm) x).2 h.ne_zero
 
 /-- On a surface with an orientation `o`, a two-form positive for `o` is symplectic. -/
 theorem IsPositive.isSymplectic (h : o.IsPositive σ.val) : σ.IsSymplectic :=

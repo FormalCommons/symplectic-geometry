@@ -156,16 +156,8 @@ theorem IsPositive.sum_smul {ι : Type*} {s : Finset ι} {w : ι → ℝ} {φ : 
 
 variable (o x) in
 /-- The top forms positive for `o` at `x` form a convex set. -/
-theorem convex_setOf_isPositiveAt : Convex ℝ {φ : RoughForm I M ℝ k | IsPositiveAt o φ x} := by
-  intro φ hφ ψ hψ a b ha hb hab c hc
-  have hφc := hφ.apply_pos hc
-  have hψc := hψ.apply_pos hc
-  simp only [Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
-    ContinuousAlternatingMap.smul_apply, smul_eq_mul]
-  rcases ha.eq_or_lt with rfl | ha
-  · rw [zero_add] at hab
-    simpa [hab] using hψc
-  · positivity
+theorem convex_setOf_isPositiveAt : Convex ℝ {φ : RoughForm I M ℝ k | IsPositiveAt o φ x} :=
+  convex_iff_forall_pos.2 fun _ hφ _ hψ _ _ ha hb _ ↦ (hφ.smul ha).add (hψ.smul hb)
 
 /-- The segment `φ + s (ψ - φ)`, `s ∈ [0, 1]`, between two top forms positive for `o` at `x` stays
 positive for `o` at `x`. -/
