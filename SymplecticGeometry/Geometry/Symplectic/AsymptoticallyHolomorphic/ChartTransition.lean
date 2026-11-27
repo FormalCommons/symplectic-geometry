@@ -17,6 +17,9 @@ and two points `x` and `y`, the transition `D.chartTransition k x y` is the map
 `D.chart k x ∘ (D.chart k y)⁻¹` from the chart centred at `y` to the chart centred at `x`, as a
 partial homeomorphism of `StdSpace ι`. This file proves what the defining properties of `D` give
 for it, for `k ≥ k₀`:
+* it is differentiable at each point of its source
+  (`SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_chartTransition`, from
+  `PartialDiffeomorph.differentiableAt_symm_trans`), for every `k`;
 * for `y` in the source of `D.chart k x`, its source contains `0` and it sends `0` to
   `D.chart k x y`, which is `z` for `y = (D.chart k x)⁻¹ z`;
 * its derivative preserves `stdForm ι`, since both charts pull `stdForm ι` back to `2π k σ`
@@ -109,6 +112,14 @@ theorem mem_chartTransition_source_iff {k : ℕ} {x y : M} {w : StdSpace ι} :
     w ∈ (D.chartTransition k x y).source ↔
       w ∈ (D.chart k y).target ∧ (D.chart k y).symm w ∈ (D.chart k x).source := by
   simp [chartTransition_def]
+
+/-- The transition from the chart centred at `y` to the chart centred at `x` is differentiable at
+each point of its source. -/
+theorem differentiableAt_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) :
+    DifferentiableAt ℝ (D.chartTransition k x y) w := by
+  rw [chartTransition_def] at hw ⊢
+  exact (D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hw
 
 /-- For `y` in the source of the chart centred at `x`, the centre `0` of the chart at `y` lies in
 the source of the transition from the chart at `y` to the chart at `x`. -/
@@ -377,10 +388,10 @@ theorem mfderiv_chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
   have hτ : D.chartTransition k x y w ∈ (D.chart k x).target := by
     rw [chartTransition_apply]
     exact (D.chart k x).map_source (D.mem_chartTransition_source_iff.1 hw).2
-  rw [chartTransition_def] at hw hτ ⊢
+  have hd := D.differentiableAt_chartTransition hw
+  rw [chartTransition_def] at hw hτ hd ⊢
   have h := OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans hw
-    ((D.chart k x).symm.mdifferentiableAt (by simp) (by simpa using hτ))
-    ((D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hw)
+    ((D.chart k x).symm.mdifferentiableAt (by simp) (by simpa using hτ)) hd
   -- `exact` rather than `rw`: the two sides differ by the identification of `StdSpace ι` with
   -- its tangent spaces, and by `ContinuousLinearMap.comp_apply`.
   exact (DFunLike.congr_fun h v).symm

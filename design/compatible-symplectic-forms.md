@@ -302,7 +302,8 @@ universes as parameters.
 ### `Geometry/Symplectic/Moser/Parameter.lean`
 
 On a closed manifold `N` (compact, boundaryless), with a parameter manifold
-`P` (model `IP`, any):
+`P` (model `IP` complete, Hausdorff and boundaryless, as
+`TauCeti.contMDiff_timeDependentFlowOf_param` needs):
 
 - `TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub`:
   let `ω₀` be a closed two-form on `N`, `σ` a two-form and `β` a one-form on
@@ -351,7 +352,9 @@ For a symplectic atlas `A` of `π` for $(F,\sigma)$, with no compactness:
 - `exists_isClosed_restricts_iff`: the two directions together: a closed
   extension of the fibre forms exists if and only if such a class does.
 
-Statements are in degree 2 with $\sigma$ closed (it is symplectic). About
+`map_eq_of_restricts` and `forall_map_eq_of_map_eq` hold in every degree;
+the other statements are in degree 2 with $\sigma$ closed (it is
+symplectic). About
 450 lines; if it grows, the chart-independence lemma goes first in the same
 issue as a public lemma about fibre embeddings.
 
