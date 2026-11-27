@@ -665,9 +665,8 @@ private theorem mpullback_toDiffeomorphSourceTarget_blowdown :
       simp only [Function.comp_apply, Ψ, IsSymplecticBallEmbedding.coe_complexPartialDiffeomorph]
       rw [show Φ y' = hψ.ballLift ⟨y', hy'⟩ from hψ.ballLiftPartialDiffeomorph_apply ⟨y', hy'⟩,
         blowdown_ballLift]
-  have hΦ := (Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds hΦy)).mdifferentiableAt
-    (by simp)
-  have hΨ := (Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds hg)).mdifferentiableAt (by simp)
+  have hΦ := Φ.mdifferentiableAt (by simp) hΦy
+  have hΨ := Ψ.mdifferentiableAt (by simp) hg
   simp only [SmoothForm.coe_mpullback]
   rw [← mpullback_comp_at hΦ ((Blowup.contMDiff_blowdown_real _).mdifferentiableAt (by simp)),
     hfun.mpullback_eq,
