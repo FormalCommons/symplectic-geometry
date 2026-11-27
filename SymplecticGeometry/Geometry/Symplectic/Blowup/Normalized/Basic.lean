@@ -673,9 +673,8 @@ attribute [local instance high] IsManifold.instOfNatWithTopENat_1
 /-- The closed neighbourhood `closedNbhd n a` of the divisor lies in the source `openNbhd n r` of
 the lift for `a < r`. -/
 private theorem closedNbhd_subset_source {a : ℝ} (ha : a < r) :
-    closedNbhd n a ⊆ hψ.ballLiftPartialDiffeomorph.source := fun _ hy ↦ by
-  rw [ballLiftPartialDiffeomorph_source, mem_openNbhd_iff]
-  exact (mem_closedNbhd_iff.1 hy).trans_lt ha
+    closedNbhd n a ⊆ hψ.ballLiftPartialDiffeomorph.source :=
+  hψ.ballLiftPartialDiffeomorph_source ▸ closedNbhd_subset_openNbhd ha
 
 /-- The source `openNbhd n r` of the lift, as an open subset of the model. -/
 private abbrev sourceOpens : Opens (BlowupModel n) :=
@@ -1003,8 +1002,7 @@ theorem compatible_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile 
   intro x
   by_cases hx : x ∈ Φ '' closedNbhd n (l + ε)
   · obtain ⟨y, hy, rfl⟩ := hx
-    have hyr : y ∈ openNbhd n r := mem_openNbhd_iff.2
-      ((mem_closedNbhd_iff.1 hy).trans_lt hψ.weight_add_width_lt)
+    have hyr : y ∈ openNbhd n r := closedNbhd_subset_openNbhd hψ.weight_add_width_lt hy
     have hΦy : y ∈ Φ.source := by rwa [ballLiftPartialDiffeomorph_source]
     have hhol := hψ.isPseudoholomorphicAt_ballLiftPartialDiffeomorph hyr
       (hJψ _ (mem_closedBall_zero_iff.2 (mem_closedNbhd_iff.1 hy)))
