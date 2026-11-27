@@ -35,7 +35,7 @@ elsewhere: it is continuous, since it is constant near the points of `W` off the
 `[-ε / 2, 0] × ∂W`; its sublevel set `{· ≤ 0}` is the image of `W`; and at its level `0`, the
 boundary `{0} × ∂W`, it is the coordinate `s`, so that its derivative along `Ŷ = ∂_s` is `1`. That
 derivative is computed along an integral curve, as in Tau Ceti's
-`TauCeti.mvfderiv_apply_eq_one_of_eventually_apply_globalFlow_eq_add`.
+`TauCeti.mvfderiv_apply_eq_one_of_eventually_apply_flowOf_eq_add`.
 
 The field `Ŷ` is complete for every strong filling with compact `W`
 (`SymplecticGeometry.IsStrongFilling.isCompleteVectorField_completionField`): on the end its

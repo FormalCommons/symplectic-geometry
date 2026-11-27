@@ -551,11 +551,12 @@ Named like Tau Ceti's file; in `TauCeti`.
 - `IsLocalDiffeomorphAt.congr_of_eventuallyEq`, now Tau Ceti's (in
   `TauCeti/Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`): a map that
   agrees near `x` with a local diffeomorphism at `x` is one too; and
-  `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial
-  diffeomorphism `Θ` between the model vector spaces of `I` and `J` that, on
-  its source, maps exactly the points of `range I` into `range J` gives the
-  local diffeomorphism `J.symm ∘ Θ ∘ I` at each point that `I` sends into its
-  source. Both are used by `Boundary/Collar/Flow/Local.lean` of *Liouville
+  `TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff`, now
+  Tau Ceti's (in `TauCeti/Geometry/Manifold/LocalDiffeomorph/Boundary.lean`):
+  an open partial homeomorphism `Θ` between the model vector spaces of `I` and
+  `J`, `C^n` both ways, that on its source maps exactly the points of
+  `range I` into `range J` gives the partial diffeomorphism `J.symm ∘ Θ ∘ I`.
+  Both are used by `Boundary/Collar/Flow/Local.lean` of *Liouville
   structures*.
 
 ### `Analysis/Calculus/TangentGraphChart.lean`

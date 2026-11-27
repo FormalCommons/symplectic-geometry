@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
+import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
@@ -95,8 +96,8 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 * `SymplecticGeometry.WeightBlowup.range_divisor`: the image of the divisor is the complement of
   `complDivisor`.
 * `SymplecticGeometry.WeightBlowup.mpullback_divisor_form`: `ω̃_ψ` pulls back along the divisor
-  to `l² ω_FS`, by `BlowupModel.mpullback_zeroSection_blowupForm`; so, for `l ≠ 0`, the divisor
-  is a symplectic submanifold
+  to `l² ω_FS`, by `BlowupModel.mpullback_zeroSectionRealEmbedding_blowupForm`; so, for
+  `l ≠ 0`, the divisor is a symplectic submanifold
   (`SymplecticGeometry.WeightBlowup.isSymplecticSubmanifoldEmbedding_divisor`).
 * `SymplecticGeometry.WeightBlowup.normalSpaceDivisorEquiv_normalClass`,
   `normalSpaceDivisorEquiv_symm_apply`: the isomorphism of normal spaces sends the class of the
@@ -692,18 +693,18 @@ theorem mpullback_divisor_form :
       (coe_divisor hψ hl hε),
     ← SmoothForm.mpullback_mpullback _ _ (zeroSectionModelPiece hε).contMDiff hr,
     mpullback_inr_form, SmoothForm.mpullback_mpullback,
-    SmoothForm.mpullback_congr _ ((contMDiff_zeroSection ∞).restrictScalars' ℝ)
-      ((val_comp_zeroSectionModelPiece hε).trans (coe_zeroSectionRealEmbedding n)),
-    mpullback_zeroSection_blowupForm]
+    SmoothForm.mpullback_congr _ (zeroSectionRealEmbedding n).contMDiff
+      (val_comp_zeroSectionModelPiece hε),
+    mpullback_zeroSectionRealEmbedding_blowupForm]
 
 /-- **The divisor is a symplectic submanifold**: for `l ≠ 0` and a nondegenerate form `ω̃_ψ`, as
 for symplectic `σ` (`isSymplectic_form`), the divisor is a symplectic submanifold embedding. -/
 theorem isSymplecticSubmanifoldEmbedding_divisor (hω : (form hψ hl hε).IsNondegenerate)
-    (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) := by
-  rw [hω.isSymplecticSubmanifoldEmbedding_iff_isNondegenerate_mpullback
-    (divisor hψ hl hε).isSmoothEmbedding]
-  convert (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ (pow_ne_zero 2 hl₀)
-  exact mpullback_divisor_form hψ hl hε
+    (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) :=
+  (hω.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
+    (divisor hψ hl hε).isSmoothEmbedding).2 <|
+      hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ hl₀
+        (mpullback_divisor_form hψ hl hε)
 
 variable (hn : (∞ : ℕ∞ω) ≠ 0)
 
