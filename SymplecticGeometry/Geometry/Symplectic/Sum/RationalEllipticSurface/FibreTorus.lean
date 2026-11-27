@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.FermatCubic
-public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
+public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.Basic
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.LinearAlgebra.Alternating.Sign
