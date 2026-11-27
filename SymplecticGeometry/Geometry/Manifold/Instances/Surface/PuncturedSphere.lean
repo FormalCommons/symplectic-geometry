@@ -10,7 +10,8 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.PlaneMinusRealPoints
 import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 import TauCeti.AlgebraicTopology.UniversalCover.Circle.FundamentalGroup
-import TauCeti.Geometry.Euclidean.Inversion
+import SymplecticGeometry.Geometry.Euclidean.Inversion
+import TauCeti.Topology.Path.Map
 import TauCeti.Topology.Circle.Degree
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 
@@ -81,9 +82,11 @@ The comparison of the loops about the finite punctures is made in the chart `sph
 There the reversed circle of the ball `j = (Fin.castSucc k).rev` is a clockwise circle about the
 real point `j`, the path to it runs from `-i` through the lower half-plane, and the loop
 `PlaneMinusRealPoints.loop` becomes a small loop about `j` run clockwise, since the inversion
-reverses orientation. Both lie in the lower half-plane together with the disc of radius `1 / 2`
-about `j`, punctured at `j`, a punctured star-convex set whose direction map from `j` is injective
-on fundamental groups (`StarConvex.fundamentalGroup_map_directionFrom_bijective`). Both inner
+reverses orientation. Both lie in the punctured fan `PlaneMinusRealPoints.fan c 1 k \ {j}` of
+the centres `c i = (Fin.castSucc i).rev`, the lower half-plane together with the strip of
+half-width `1 / 2` about `j`, punctured at `j`. It is star-convex about `j`
+(`PlaneMinusRealPoints.starConvex_fan`), so its direction map from `j` is injective on
+fundamental groups (`StarConvex.fundamentalGroup_map_directionFrom_bijective`). Both inner
 loops have direction of degree `-1`, the inverted one by Tau Ceti's dog-on-a-leash lemma
 `Circle.degree_eq_of_norm_sub_lt`, so Tau Ceti's `Circle.homotopic_trans_of_degree_map_eq` makes
 them conjugate along any path. This follows the proof of Tau Ceti's
@@ -94,8 +97,9 @@ loops about a puncture of the thrice-punctured sphere in the same way.
 ## References
 
 * [A. A. Kosinski, *Differential Manifolds*][Kosinski1993] (the two charts of the sphere).
-* [A. Hatcher, *Algebraic Topology*][Hatcher2017], Theorem 1.7 and Proposition 1.18 (the
-  fundamental group of the circle, and its use for the degree of a loop).
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Theorem 1.7 and Proposition 1.18 (the fundamental group of the circle, and its use for the
+  degree of a loop).
 -/
 
 public section
@@ -273,12 +277,10 @@ in the unit circle carries the plane minus the points `puncturedSpherePoint n i`
 section Loops
 
 open Metric
-open EuclideanGeometry (inversion)
+open Complex (I)
+open EuclideanGeometry (inversion inversion_zero_eq_sq_div_conj)
 open EuclideanTorus (neckIsometry)
-
-private theorem inversion_eq_inv_conj (z : ℂ) : inversion 0 1 z = (starRingEnd ℂ z)⁻¹ := by
-  rw [TauCeti.inversion_eq_conj_reciprocal]
-  simp
+open PlaneMinusRealPoints (fan approach circle)
 
 private theorem sphereCoChart_repr_inversion {u : ℂ} (hu : u ≠ 0) :
     sphereCoChart (Complex.orthonormalBasisOneI.repr (inversion 0 1 u)) =
@@ -307,77 +309,27 @@ theorem ballCircle_zero_apply_eq_sphereChart (j : ℕ) (t : unitInterval) :
     ring
   · simp [circleMap, Complex.exp_re, Complex.exp_im, add_comm (Real.pi / 4)]
 
+/-! ### The punctured fan about a real point of the chart `sphereChart`
 
-/-! ### A punctured neighbourhood of `a` in the chart `sphereChart` -/
+For real points `c i`, any two at least `1` apart, both loops are compared in the punctured fan
+`PlaneMinusRealPoints.fan c 1 k \ {c k}`: the lower half-plane together with the strip of
+half-width `1 / 2` about `c k`, punctured at `c k`. -/
 
-open Complex (I)
+variable {ι : Type*} {c : ι → ℝ} {k : ι} {r : ℝ}
 
-/-- The open lower half-plane together with the disc of radius `1 / 2` about `a`. -/
-private def nbhdV (a : ℝ) : Set ℂ := {z | z.im < 0} ∪ Metric.ball (a : ℂ) (1 / 2)
+/-- For `1 ≤ c k`, the point `0` is not in the fan about `c k`. -/
+private theorem zero_notMem_fan (ha : 1 ≤ c k) : (0 : ℂ) ∉ fan c 1 k := by
+  rw [PlaneMinusRealPoints.mem_fan_iff]
+  rintro (h | h)
+  · simp at h
+  · rw [Complex.zero_re, zero_sub, abs_neg, abs_of_pos (by linarith)] at h
+    linarith
 
-private theorem starConvex_nbhdV (a : ℝ) : StarConvex ℝ (a : ℂ) (nbhdV a) := by
-  intro z hz s t hs ht hst
-  rcases hz with hz | hz
-  · rcases ht.eq_or_lt with rfl | ht'
-    · right
-      rw [add_zero] at hst
-      simp [hst]
-    · left
-      simp only [mem_ofPred_eq, Complex.add_im, Complex.real_smul, Complex.mul_im,
-        Complex.ofReal_re, Complex.ofReal_im, mul_zero, zero_mul, add_zero, zero_add]
-      exact mul_neg_of_pos_of_neg ht' hz
-  · right
-    exact (convex_ball _ _).starConvex (mem_ball_self (by norm_num)) hz hs ht hst
-
-private theorem sphere_subset_nbhdV (a : ℝ) : sphere (a : ℂ) (1 / 4) ⊆ nbhdV a :=
-  fun _ hz ↦ Or.inr (sphere_subset_ball (by norm_num) hz)
-
-private theorem mem_nbhdV_diff_of_im_neg {z : ℂ} (a : ℝ) (hz : z.im < 0) :
-    z ∈ nbhdV a \ {(a : ℂ)} :=
-  ⟨Or.inl hz, fun h ↦ by simp [mem_singleton_iff.1 h] at hz⟩
-
-private theorem inversion_im_neg {z : ℂ} (hz : z.im < 0) : (inversion 0 1 z).im < 0 := by
-  rw [inversion_eq_inv_conj, Complex.inv_im, Complex.conj_im, Complex.normSq_conj, neg_neg]
-  exact div_neg_of_neg_of_pos hz (Complex.normSq_pos.2 (by rintro rfl; simp at hz))
-
-private theorem norm_inversion_sub (z : ℂ) (a : ℝ) :
-    ‖inversion 0 1 z - a‖ = ‖z⁻¹ - a‖ := by
-  rw [inversion_eq_inv_conj, show (starRingEnd ℂ z)⁻¹ - a = starRingEnd ℂ (z⁻¹ - a) by
-    simp [map_sub, map_inv₀], Complex.norm_conj]
-
-
-/-- The image under the inversion in the unit circle of a path that avoids `0`. -/
-private def invPath {x y : ℂ} (γ : Path x y) (h : ∀ t, γ t ≠ 0) :
-    Path (inversion 0 1 x) (inversion 0 1 y) where
-  toFun t := inversion 0 1 (γ t)
-  continuous_toFun := continuous_const.inversion continuous_const γ.continuous h
-  source' := by simp
-  target' := by simp
-
-@[simp] private theorem invPath_apply {x y : ℂ} (γ : Path x y) (h : ∀ t, γ t ≠ 0)
-    (t : unitInterval) :
-    invPath γ h t = inversion 0 1 (γ t) :=
-  rfl
-
-private theorem inversion_neg_I : inversion 0 1 (-I) = -I := by
-  rw [inversion_eq_inv_conj]; simp
-
-private theorem inversion_ofReal (x : ℝ) : inversion 0 1 (x : ℂ) = ((x⁻¹ : ℝ) : ℂ) := by
-  rw [inversion_eq_inv_conj, Complex.conj_ofReal, Complex.ofReal_inv]
-
-private theorem trans_apply_mem {X : Type*} [TopologicalSpace X] {S : Set X} {x y z : X}
-    {p : Path x y} {q : Path y z} (hp : ∀ s, p s ∈ S) (hq : ∀ s, q s ∈ S) (t : unitInterval) :
-    p.trans q t ∈ S := by
-  rw [Path.trans_apply]
-  split_ifs
-  · exact hp _
-  · exact hq _
-
-variable {a r : ℝ}
-
-/-- A point near `a⁻¹` is sent by the inversion into the punctured neighbourhood of `a`. -/
-private theorem inversion_mem_nbhdV_diff (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 2 * r ≤ 1 / 4) {w : ℂ}
-    (hw : ‖w - (a⁻¹ : ℝ)‖ ≤ r) (hw0 : w ≠ (a⁻¹ : ℝ)) : inversion 0 1 w ∈ nbhdV a \ {(a : ℂ)} := by
+/-- A point near `(c k)⁻¹` is sent by the inversion into the punctured fan about `c k`. -/
+private theorem inversion_mem_fan_diff (ha : 1 ≤ c k) (hr : 0 < r) (har : c k ^ 2 * r ≤ 1 / 4)
+    {w : ℂ} (hw : ‖w - ((c k)⁻¹ : ℝ)‖ ≤ r) (hw0 : w ≠ ((c k)⁻¹ : ℝ)) :
+    inversion 0 1 w ∈ fan c 1 k \ {(c k : ℂ)} := by
+  set a := c k
   have ha0 : 0 < a := by linarith
   have hwn : a⁻¹ - r ≤ ‖w‖ := by
     have := norm_sub_norm_le (((a⁻¹ : ℝ)) : ℂ) (w)
@@ -392,8 +344,9 @@ private theorem inversion_mem_nbhdV_diff (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 
     intro h
     rw [h, norm_zero] at hwn
     linarith
-  refine ⟨Or.inr ?_, fun h ↦ hw0 ?_⟩
-  · rw [mem_ball, dist_eq_norm, norm_inversion_sub,
+  refine ⟨PlaneMinusRealPoints.ball_subset_fan k ?_, fun h ↦ hw0 ?_⟩
+  · rw [mem_ball, dist_eq_norm, EuclideanGeometry.norm_inversion_zero_sub_ofReal,
+      Complex.ofReal_one, one_pow, one_div,
       show w⁻¹ - a = a * ((a⁻¹ : ℝ) - w) / w by
         push_cast
         field_simp,
@@ -402,7 +355,8 @@ private theorem inversion_mem_nbhdV_diff (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 
     have : a * a⁻¹ = 1 := mul_inv_cancel₀ ha0.ne'
     nlinarith [norm_nonneg (w - (a⁻¹ : ℝ))]
   · have := congrArg (inversion 0 1) (mem_singleton_iff.1 h)
-    rwa [EuclideanGeometry.inversion_inversion _ one_ne_zero, inversion_ofReal] at this
+    rw [EuclideanGeometry.inversion_inversion _ one_ne_zero] at this
+    simpa using this
 
 /-- The start of the circle of radius `√2 / 4` about `a` at the angle `π / 4`. -/
 private theorem circleMap_pi_div_four (a : ℝ) :
@@ -412,54 +366,53 @@ private theorem circleMap_pi_div_four (a : ℝ) :
     simp [circleMap, Complex.exp_re, Complex.exp_im, Real.cos_pi_div_four,
       Real.sin_pi_div_four] <;> nlinarith
 
-
-variable (a) in
 /-- The path in the chart `sphereChart` from `-i` to the start of the circle about `a`: right to
 `a + 1 / 4 - i`, then up. -/
-private def chartApproach : Path (-I) (circleMap (a : ℂ) (√2 / 4) (Real.pi / 4)) :=
+private def chartApproach (a : ℝ) : Path (-I) (circleMap (a : ℂ) (√2 / 4) (Real.pi / 4)) :=
   (Path.segment (-I) (((a + 1 / 4 : ℝ) : ℂ) - I)).trans
     (Path.segment (((a + 1 / 4 : ℝ) : ℂ) - I) (circleMap (a : ℂ) (√2 / 4) (Real.pi / 4)))
 
-private theorem chartApproach_mem (t : unitInterval) : chartApproach a t ∈ nbhdV a \ {(a : ℂ)} := by
-  refine trans_apply_mem (fun s ↦ ?_) (fun s ↦ ?_) t
-  · refine mem_nbhdV_diff_of_im_neg a ?_
-    simp [Path.segment_apply, AffineMap.lineMap_apply_module]
-  · rw [Path.segment_apply, circleMap_pi_div_four, AffineMap.lineMap_apply_module]
-    have hs0 := s.prop.1
-    have hs1 := s.prop.2
-    set z := (1 - (s : ℝ)) • (((a + 1 / 4 : ℝ) : ℂ) - I) +
-      (s : ℝ) • (((a + 1 / 4 : ℝ) : ℂ) + ((1 / 4 : ℝ) : ℂ) * I) with hz
-    have hre : z.re = a + 1 / 4 := by simp [hz]; ring
-    have him : z.im = -1 + 5 / 4 * s := by simp [hz]; ring
-    rcases lt_or_ge z.im 0 with h | h
-    · exact mem_nbhdV_diff_of_im_neg a h
-    · refine ⟨Or.inr ?_, fun h' ↦ by simp [mem_singleton_iff.1 h'] at hre⟩
-      rw [mem_ball, dist_eq_norm]
-      have hsq : ‖z - a‖ ^ 2 < (1 / 2) ^ 2 := by
-        rw [Complex.sq_norm, Complex.normSq_apply]
-        simp only [Complex.sub_re, Complex.sub_im, Complex.ofReal_re, Complex.ofReal_im, hre,
-          him, sub_zero]
-        nlinarith
-      exact lt_of_pow_lt_pow_left₀ 2 (by norm_num) hsq
+private theorem range_chartApproach_subset :
+    range (chartApproach (c k)) ⊆ fan c 1 k \ {(c k : ℂ)} := by
+  rw [chartApproach, Path.trans_range, union_subset_iff, range_subset_iff, range_subset_iff]
+  refine ⟨fun s ↦ PlaneMinusRealPoints.mem_fan_diff_of_im_neg k ?_, fun s ↦ ?_⟩
+  · simp [Path.segment_apply, AffineMap.lineMap_apply_module]
+  set a := c k
+  rw [Path.segment_apply, circleMap_pi_div_four, AffineMap.lineMap_apply_module]
+  have hs0 := s.prop.1
+  have hs1 := s.prop.2
+  set z := (1 - (s : ℝ)) • (((a + 1 / 4 : ℝ) : ℂ) - I) +
+    (s : ℝ) • (((a + 1 / 4 : ℝ) : ℂ) + ((1 / 4 : ℝ) : ℂ) * I) with hz
+  have hre : z.re = a + 1 / 4 := by simp [hz]; ring
+  have him : z.im = -1 + 5 / 4 * s := by simp [hz]; ring
+  rcases lt_or_ge z.im 0 with h | h
+  · exact PlaneMinusRealPoints.mem_fan_diff_of_im_neg k h
+  -- Above the real axis, the vertical segment stays in the disc of radius `1 / 2` about `a`.
+  refine ⟨PlaneMinusRealPoints.ball_subset_fan k ?_, fun h' ↦ by
+    simp [mem_singleton_iff.1 h'] at hre⟩
+  rw [mem_ball, dist_eq_norm]
+  have hsq : ‖z - a‖ ^ 2 < (1 / 2) ^ 2 := by
+    rw [Complex.sq_norm, Complex.normSq_apply]
+    simp only [Complex.sub_re, Complex.sub_im, Complex.ofReal_re, Complex.ofReal_im, hre,
+      him, sub_zero]
+    nlinarith
+  exact lt_of_pow_lt_pow_left₀ 2 (by norm_num) hsq
 
 private theorem circlePath_mem (t : unitInterval) :
-    circlePath (a : ℂ) (√2 / 4) (Real.pi / 4) t ∈ nbhdV a \ {(a : ℂ)} := by
+    circlePath (c k : ℂ) (√2 / 4) (Real.pi / 4) t ∈ fan c 1 k \ {(c k : ℂ)} := by
   have h2 : √2 < 2 := by
     rw [show (2 : ℝ) = √4 by rw [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.sqrt_sq (by norm_num)]]
     exact Real.sqrt_lt_sqrt (by norm_num) (by norm_num)
   have h0 : 0 < √2 := by positivity
-  refine ⟨Or.inr ?_, fun h ↦ ?_⟩
+  refine ⟨PlaneMinusRealPoints.ball_subset_fan k ?_, fun h ↦ ?_⟩
   · rw [circlePath_apply, mem_ball, dist_eq_norm, circleMap_sub_center, norm_circleMap_zero,
       abs_of_pos (by positivity)]
     linarith
-  · have := congrArg (fun z : ℂ ↦ ‖z - a‖) (Set.eq_of_mem_singleton h)
+  · have := congrArg (fun z : ℂ ↦ ‖z - c k‖) (Set.eq_of_mem_singleton h)
     simp only [circlePath_apply, circleMap_sub_center, norm_circleMap_zero, sub_self,
       norm_zero] at this
     rw [abs_of_pos (by positivity)] at this
     linarith
-
-
-open PlaneMinusRealPoints (approach circle)
 
 private theorem approach_ne_zero {x r : ℝ} (hxr : 0 < x + r) (t : unitInterval) :
     approach x r t ≠ 0 := by
@@ -474,123 +427,137 @@ private theorem approach_ne_zero {x r : ℝ} (hxr : 0 < x + r) (t : unitInterval
     simp [Path.segment_apply, AffineMap.lineMap_apply_module] at this
     linarith
 
-private theorem inversion_approach_mem (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 2 * r ≤ 1 / 4)
-    (t : unitInterval) : inversion 0 1 (approach a⁻¹ r t) ∈ nbhdV a \ {(a : ℂ)} := by
+private theorem inversion_approach_mem (ha : 1 ≤ c k) (hr : 0 < r) (har : c k ^ 2 * r ≤ 1 / 4)
+    (t : unitInterval) : inversion 0 1 (approach (c k)⁻¹ r t) ∈ fan c 1 k \ {(c k : ℂ)} := by
   rw [PlaneMinusRealPoints.approach_def, Path.trans_apply]
   split_ifs
-  · refine mem_nbhdV_diff_of_im_neg a (inversion_im_neg ?_)
+  · refine PlaneMinusRealPoints.mem_fan_diff_of_im_neg k
+      (EuclideanGeometry.inversion_zero_im_neg one_ne_zero ?_)
     simp [Path.segment_apply, AffineMap.lineMap_apply_module]
-  · set z := Path.segment (((a⁻¹ + r : ℝ) : ℂ) - I) ((a⁻¹ + r : ℝ) : ℂ) ⟨2 * t - 1, _⟩
-    have hre : z.re = a⁻¹ + r := by
+  · set z := Path.segment ((((c k)⁻¹ + r : ℝ) : ℂ) - I) (((c k)⁻¹ + r : ℝ) : ℂ) ⟨2 * t - 1, _⟩
+    have hre : z.re = (c k)⁻¹ + r := by
       simp [z, Path.segment_apply, AffineMap.lineMap_apply_module]; ring
     have him : z.im ≤ 0 := by
       simp [z, Path.segment_apply, AffineMap.lineMap_apply_module]
       linarith [t.prop.2]
     rcases him.lt_or_eq with h | h
-    · exact mem_nbhdV_diff_of_im_neg a (inversion_im_neg h)
-    · have hz : z = ((a⁻¹ + r : ℝ) : ℂ) := Complex.ext (by simp [hre]) (by simp [h])
+    · exact PlaneMinusRealPoints.mem_fan_diff_of_im_neg k
+        (EuclideanGeometry.inversion_zero_im_neg one_ne_zero h)
+    · have hz : z = (((c k)⁻¹ + r : ℝ) : ℂ) := Complex.ext (by simp [hre]) (by simp [h])
       rw [hz]
-      refine inversion_mem_nbhdV_diff ha hr har (by simp [abs_of_pos hr]) ?_
+      refine inversion_mem_fan_diff ha hr har (by simp [abs_of_pos hr]) ?_
       intro h'
       have := congrArg Complex.re h'
       simp at this
       linarith
 
-private theorem circle_mem (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 2 * r ≤ 1 / 4) (t : unitInterval) :
-    inversion 0 1 (circle a⁻¹ r t) ∈ nbhdV a \ {(a : ℂ)} := by
+private theorem circle_mem (ha : 1 ≤ c k) (hr : 0 < r) (har : c k ^ 2 * r ≤ 1 / 4)
+    (t : unitInterval) :
+    inversion 0 1 (circle (c k)⁻¹ r t) ∈ fan c 1 k \ {(c k : ℂ)} := by
   rw [PlaneMinusRealPoints.circle_apply]
-  refine inversion_mem_nbhdV_diff ha hr har ?_ ?_
+  refine inversion_mem_fan_diff ha hr har ?_ ?_
   · rw [circleMap_sub_center, norm_circleMap_zero, abs_of_pos hr]
   · intro h
-    have := congrArg (fun z : ℂ ↦ ‖z - (a⁻¹ : ℝ)‖) h
+    have := congrArg (fun z : ℂ ↦ ‖z - ((c k)⁻¹ : ℝ)‖) h
     simp only [circleMap_sub_center, norm_circleMap_zero, sub_self, norm_zero,
       abs_of_pos hr] at this
     linarith
 
-private theorem circle_ne_zero (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 2 * r ≤ 1 / 4)
+private theorem circle_ne_zero (ha : 1 ≤ c k) (hr : 0 < r) (har : c k ^ 2 * r ≤ 1 / 4)
     (t : unitInterval) :
-    circle a⁻¹ r t ≠ 0 := by
+    circle (c k)⁻¹ r t ≠ 0 := by
   intro h
   have := (circle_mem ha hr har t).1
   rw [h, EuclideanGeometry.inversion_self] at this
-  rcases this with h0 | h0
-  · simp at h0
-  · rw [mem_ball, dist_zero_left, Complex.norm_real, Real.norm_of_nonneg (by linarith)] at h0
-    linarith
+  exact zero_notMem_fan ha this
 
-
-/-! ### The comparison in the punctured neighbourhood -/
+/-! ### The comparison in the punctured fan -/
 
 section Compare
 
-variable (ha : 1 ≤ a) (hr : 0 < r) (har : a ^ 2 * r ≤ 1 / 4)
+variable (ha : 1 ≤ c k) (hr : 0 < r) (har : c k ^ 2 * r ≤ 1 / 4)
 
-variable (a) in
-/-- The point `-i` of the punctured neighbourhood. -/
-private def nNegI : ↥(nbhdV a \ {(a : ℂ)}) := ⟨-I, mem_nbhdV_diff_of_im_neg a (by simp)⟩
+variable (c k) in
+/-- The point `-i` of the punctured fan. -/
+private def nNegI : ↥(fan c 1 k \ {(c k : ℂ)}) := ⟨-I, PlaneMinusRealPoints.negI_mem_fan k⟩
 
-variable (a) in
-/-- The start of the circle about `a`, in the punctured neighbourhood. -/
-private def nStart : ↥(nbhdV a \ {(a : ℂ)}) :=
-  ⟨circleMap (a : ℂ) (√2 / 4) (Real.pi / 4), by simpa [circlePath_apply] using circlePath_mem 0⟩
+@[simp] private theorem coe_nNegI : (nNegI c k : ℂ) = -I := (rfl)
+
+variable (c k) in
+/-- The start of the circle about `c k`, in the punctured fan. -/
+private def nStart : ↥(fan c 1 k \ {(c k : ℂ)}) :=
+  ⟨circleMap (c k : ℂ) (√2 / 4) (Real.pi / 4), by simpa [circlePath_apply] using circlePath_mem 0⟩
 
 include ha hr har in
 private theorem inversion_add_mem :
-    inversion 0 1 ((a⁻¹ + r : ℝ) : ℂ) ∈ nbhdV a \ {(a : ℂ)} := by
-  refine inversion_mem_nbhdV_diff ha hr har (by simp [abs_of_pos hr]) ?_
+    inversion 0 1 ((((c k)⁻¹ + r : ℝ)) : ℂ) ∈ fan c 1 k \ {(c k : ℂ)} := by
+  refine inversion_mem_fan_diff ha hr har (by simp [abs_of_pos hr]) ?_
   intro h'
   have := congrArg Complex.re h'
   simp at this
   linarith
 
-/-- The image under the inversion of the start of the circle `circle a⁻¹ r`. -/
-private def nInvStart : ↥(nbhdV a \ {(a : ℂ)}) := ⟨_, inversion_add_mem ha hr har⟩
+/-- The image under the inversion of the start of the circle `circle (c k)⁻¹ r`. -/
+private def nInvStart : ↥(fan c 1 k \ {(c k : ℂ)}) := ⟨_, inversion_add_mem ha hr har⟩
 
-/-- `chartApproach` in the punctured neighbourhood. -/
-private def nApproach : Path (nNegI a) (nStart a) :=
-  (chartApproach a).codRestrict (x := nNegI a) (y := nStart a) (chartApproach_mem (a := a))
+variable (c k) in
+/-- `chartApproach` in the punctured fan. -/
+private def nApproach : Path (nNegI c k) (nStart c k) :=
+  (chartApproach (c k)).codRestrict (x := nNegI c k) (y := nStart c k)
+    fun t ↦ range_chartApproach_subset (mem_range_self t)
 
-/-- The circle about `a` in the punctured neighbourhood. -/
-private def nCircle : Path (nStart a) (nStart a) :=
-  (circlePath (a : ℂ) (√2 / 4) (Real.pi / 4)).codRestrict (x := nStart a) (y := nStart a)
-    (circlePath_mem (a := a))
+variable (c k) in
+/-- The circle about `c k` in the punctured fan. -/
+private def nCircle : Path (nStart c k) (nStart c k) :=
+  (circlePath (c k : ℂ) (√2 / 4) (Real.pi / 4)).codRestrict (x := nStart c k) (y := nStart c k)
+    circlePath_mem
 
 include ha hr in
-private theorem approach_add_pos : 0 < a⁻¹ + r := by
-  have : 0 < a⁻¹ := inv_pos.2 (by linarith)
+private theorem approach_add_pos : 0 < (c k)⁻¹ + r := by
+  have : 0 < (c k)⁻¹ := inv_pos.2 (by linarith)
   linarith
 
-/-- The inverted approach path in the punctured neighbourhood. -/
-private def nInvApproach : Path (nNegI a) (nInvStart ha hr har) :=
-  ((invPath (approach a⁻¹ r) (approach_ne_zero (approach_add_pos ha hr))).codRestrict
-    (x := ⟨inversion 0 1 (-I), by rw [inversion_neg_I]; exact (nNegI a).property⟩)
+/-- The inverted approach path in the punctured fan. -/
+private def nInvApproach : Path (nNegI c k) (nInvStart ha hr har) :=
+  -- The point of `γ.map' h` at `t` is `inversion 0 1 (γ t)` by definition (`Path.map'_coe`); the
+  -- end points given to `codRestrict` keep `rw` from stating that, so the membership is closed
+  -- up to that definition.
+  (((approach (c k)⁻¹ r).map' (continuousOn_const.inversion continuousOn_const continuousOn_id
+    (by rintro _ ⟨t, rfl⟩; exact approach_ne_zero (approach_add_pos ha hr) t))).codRestrict
+    (x := ⟨inversion 0 1 (-I), by
+      rw [show inversion (0 : ℂ) 1 (-I) = -I by simp [inversion_zero_eq_sq_div_conj]]
+      exact PlaneMinusRealPoints.negI_mem_fan k⟩)
     (y := nInvStart ha hr har)
-    (inversion_approach_mem ha hr har)).cast (Subtype.ext inversion_neg_I.symm) rfl
+    fun t ↦ inversion_approach_mem ha hr har t).cast
+    (Subtype.ext (by simp [inversion_zero_eq_sq_div_conj])) rfl
 
-/-- The inverted circle in the punctured neighbourhood. -/
+/-- The inverted circle in the punctured fan. -/
 private def nInvCircle : Path (nInvStart ha hr har) (nInvStart ha hr har) :=
-  (invPath (circle a⁻¹ r) (circle_ne_zero ha hr har)).codRestrict (x := nInvStart ha hr har)
-    (y := nInvStart ha hr har) (circle_mem ha hr har)
+  -- As in `nInvApproach`, the membership is closed up to the definition of `Path.map'`.
+  ((circle (c k)⁻¹ r).map' (continuousOn_const.inversion continuousOn_const continuousOn_id
+    (by rintro _ ⟨t, rfl⟩; exact circle_ne_zero ha hr har t))).codRestrict
+    (x := nInvStart ha hr har) (y := nInvStart ha hr har)
+    fun t ↦ circle_mem ha hr har t
 
 @[simp] private theorem coe_nApproach_apply (t : unitInterval) :
-    (nApproach (a := a) t : ℂ) = chartApproach a t := 
+    (nApproach c k t : ℂ) = chartApproach (c k) t :=
   Path.codRestrict_coe _ _ t
 
 @[simp] private theorem coe_nCircle_apply (t : unitInterval) :
-    (nCircle (a := a) t : ℂ) = circlePath (a : ℂ) (√2 / 4) (Real.pi / 4) t := 
+    (nCircle c k t : ℂ) = circlePath (c k : ℂ) (√2 / 4) (Real.pi / 4) t :=
   Path.codRestrict_coe _ _ t
 
 @[simp] private theorem coe_nInvApproach_apply (t : unitInterval) :
-    (nInvApproach ha hr har t : ℂ) = inversion 0 1 (approach a⁻¹ r t) := by
+    (nInvApproach ha hr har t : ℂ) = inversion 0 1 (approach (c k)⁻¹ r t) := by
   rw [nInvApproach, Path.cast_coe]
-  exact Path.codRestrict_coe _ _ t
+  exact (Path.codRestrict_coe _ _ t).trans (congrFun (Path.map'_coe _ _) t)
 
 @[simp] private theorem coe_nInvCircle_apply (t : unitInterval) :
-    (nInvCircle ha hr har t : ℂ) = inversion 0 1 (circle a⁻¹ r t) := 
-  Path.codRestrict_coe _ _ t
+    (nInvCircle ha hr har t : ℂ) = inversion 0 1 (circle (c k)⁻¹ r t) := by
+  exact (Path.codRestrict_coe _ _ t).trans (congrFun (Path.map'_coe _ _) t)
 
 private theorem degree_nCircle :
-    Circle.degree ((nCircle (a := a)).map (Complex.directionFrom (a : ℂ) (nbhdV a)).continuous) =
+    Circle.degree ((nCircle c k).map (Complex.directionFrom (c k : ℂ) (fan c 1 k)).continuous) =
       1 := by
   have hρ : 0 < √2 / 4 := by positivity
   refine Circle.degree_eq_of_sub_eq _ (θ := fun t ↦ Real.pi / 4 + 2 * Real.pi * t)
@@ -617,15 +584,43 @@ private theorem degree_negExpLoop : Circle.degree negExpLoop = -1 :=
   Circle.degree_eq_of_sub_eq _ (θ := fun t ↦ Real.pi - 2 * Real.pi * t) (by fun_prop)
     (fun _ ↦ rfl) (by simp)
 
+/-- The conjugate of the point of angle `2πt` on the circle `circle x r` is the point of angle
+`-2πt` on the circle of radius `r` about `x`. -/
+private theorem conj_circle_apply (x r : ℝ) (t : unitInterval) :
+    starRingEnd ℂ (circle x r t) = (x : ℂ) + r * Complex.exp (-(2 * Real.pi * t : ℝ) * I) := by
+  simp only [PlaneMinusRealPoints.circle_apply, circleMap, map_add, map_mul, Complex.conj_ofReal,
+    ← Complex.exp_conj, Complex.conj_I]
+  congr 2
+  push_cast
+  ring_nf
+
+/-- The inverted circle about `a⁻¹` differs from the clockwise circle `a - a ^ 2 r e^{-2πit}`
+about `a` by `a ^ 2 r ^ 2 e^{-4πit} / (a⁻¹ + r e^{-2πit})`, where `E = e^{-2πit}`. -/
+private theorem inversion_circle_sub_eq {a r : ℝ} (ha : a ≠ 0) {E : ℂ}
+    (hw0 : ((a⁻¹ : ℝ) : ℂ) + r * E ≠ 0) :
+    (((a⁻¹ : ℝ) : ℂ) + r * E)⁻¹ - a - -((a ^ 2 * r : ℝ) : ℂ) * E =
+      (a ^ 2 * r ^ 2 : ℝ) * E ^ 2 / (((a⁻¹ : ℝ) : ℂ) + r * E) := by
+  rw [eq_div_iff hw0]
+  have hD := inv_mul_cancel₀ hw0
+  have hai : (a : ℂ) * ((a⁻¹ : ℝ) : ℂ) = 1 := by
+    push_cast
+    exact mul_inv_cancel₀ (by exact_mod_cast ha)
+  push_cast at hD hai ⊢
+  linear_combination hD - (1 - (a : ℂ) * r * E) * hai
+
 include ha hr har in
 private theorem degree_nInvCircle :
     Circle.degree ((nInvCircle ha hr har).map
-      (Complex.directionFrom (a : ℂ) (nbhdV a)).continuous) = -1 := by
+      (Complex.directionFrom (c k : ℂ) (fan c 1 k)).continuous) = -1 := by
+  set a := c k
   have ha0 : 0 < a := by linarith
   have hra : r * a ≤ 1 / 4 := by nlinarith
   have hpos : 2 * r < a⁻¹ := by
     have : a⁻¹ * a = 1 := inv_mul_cancel₀ ha0.ne'
     nlinarith
+  -- Compare the direction of the inverted circle with the clockwise loop `t ↦ -e^{-2πit}`, by
+  -- Tau Ceti's dog-on-a-leash lemma: the inverted circle is `a - a ^ 2 r e^{-2πit}` up to an
+  -- error smaller than `a ^ 2 r`.
   rw [← degree_negExpLoop]
   set E : unitInterval → ℂ := fun t ↦ Complex.exp (-(2 * Real.pi * t : ℝ) * I) with hE
   have hEn (t : unitInterval) : ‖E t‖ = 1 := by
@@ -634,8 +629,9 @@ private theorem degree_nInvCircle :
   refine Circle.degree_eq_of_norm_sub_lt _ _
     (z := fun t ↦ inversion 0 1 (circle a⁻¹ r t) - a)
     (w := fun t ↦ -((a ^ 2 * r : ℝ) : ℂ) * E t) (fun t ↦ ?_) (fun t ↦ ?_) (fun t ↦ ?_)
-  · simp [Path.map_coe]
-  · have hn : ‖-((a ^ 2 * r : ℝ) : ℂ) * E t‖ = a ^ 2 * r := by
+  · simp [Path.map_coe, a]
+  · -- The comparison loop is `a ^ 2 r` times `t ↦ -e^{-2πit}`.
+    have hn : ‖-((a ^ 2 * r : ℝ) : ℂ) * E t‖ = a ^ 2 * r := by
       rw [norm_mul, hEn, mul_one, norm_neg, Complex.norm_real, Real.norm_of_nonneg (by positivity)]
     rw [hn]
     simp only [negExpLoop, Path.coe_mk_mk, Circle.coe_exp, hE]
@@ -645,12 +641,7 @@ private theorem degree_nInvCircle :
     have : ((a ^ 2 * r : ℝ) : ℂ) ≠ 0 := by
       exact_mod_cast (by positivity : (0 : ℝ) < a ^ 2 * r).ne'
     field_simp
-  · have hc : starRingEnd ℂ (circle a⁻¹ r t) = ((a⁻¹ : ℝ) : ℂ) + r * E t := by
-      simp only [PlaneMinusRealPoints.circle_apply, circleMap, map_add, map_mul,
-        Complex.conj_ofReal, ← Complex.exp_conj, hE, map_mul, Complex.conj_I]
-      congr 2
-      push_cast
-      ring_nf
+  · -- The error: `|a⁻¹ + r E| ≥ a⁻¹ - r > r`, so its norm is less than `a ^ 2 r`.
     have hw : ‖((a⁻¹ : ℝ) : ℂ) + r * E t‖ ≥ a⁻¹ - r := by
       have := norm_sub_norm_le (((a⁻¹ : ℝ)) : ℂ) (-(r * E t))
       rw [sub_neg_eq_add, Complex.norm_real, Real.norm_of_nonneg (by positivity), norm_neg,
@@ -660,142 +651,135 @@ private theorem degree_nInvCircle :
       intro h
       rw [h, norm_zero] at hw
       linarith
-    have ha' : (a : ℂ) ≠ 0 := by exact_mod_cast ha0.ne'
-    have hid : inversion 0 1 (circle a⁻¹ r t) - a - -((a ^ 2 * r : ℝ) : ℂ) * E t =
-        (a ^ 2 * r ^ 2 : ℝ) * E t ^ 2 / (((a⁻¹ : ℝ) : ℂ) + r * E t) := by
-      rw [inversion_eq_inv_conj, hc, eq_div_iff hw0]
-      have hD := inv_mul_cancel₀ hw0
-      have hai : (a : ℂ) * ((a⁻¹ : ℝ) : ℂ) = 1 := by push_cast; field_simp
-      push_cast at hD hai ⊢
-      linear_combination hD - (1 - (a : ℂ) * r * E t) * hai
-    rw [hid, norm_div, norm_mul, norm_pow, hEn, one_pow, mul_one, Complex.norm_real,
-      Real.norm_of_nonneg (by positivity), norm_mul, hEn, mul_one, norm_neg, Complex.norm_real,
-      Real.norm_of_nonneg (by positivity), div_lt_iff₀ (by linarith)]
+    rw [inversion_zero_eq_sq_div_conj, Complex.ofReal_one, one_pow, one_div, conj_circle_apply,
+      inversion_circle_sub_eq ha0.ne' hw0, norm_div, norm_mul, norm_pow, hEn, one_pow, mul_one,
+      Complex.norm_real, Real.norm_of_nonneg (by positivity), norm_mul, hEn, mul_one, norm_neg,
+      Complex.norm_real, Real.norm_of_nonneg (by positivity), div_lt_iff₀ (by linarith)]
     have : 0 < a ^ 2 * r := by positivity
     nlinarith
 
-private theorem quotient_trans_symm_trans {X : Type*} [TopologicalSpace X]
-    {x y z : X} (p : Path.Homotopic.Quotient x y) (q : Path.Homotopic.Quotient x z) :
-    p.trans (p.symm.trans q) = q := by
-  rw [← Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.trans_symm,
-    Path.Homotopic.Quotient.refl_trans]
-
 include ha hr har in
-/-- In the punctured neighbourhood of `a`, the inverted loop about `a⁻¹` is homotopic to the
-reversed circle about `a`, both reached from `-i`. -/
+/-- In the punctured fan about `c k`, the inverted loop about `(c k)⁻¹` is homotopic to the
+reversed circle about `c k`, both reached from `-i`. -/
 private theorem nInvApproach_homotopic :
     ((nInvApproach ha hr har).trans
         ((nInvCircle ha hr har).trans (nInvApproach ha hr har).symm)).Homotopic
-      ((nApproach (a := a)).trans ((nCircle (a := a)).symm.trans (nApproach (a := a)).symm)) := by
-  have hd := ((starConvex_nbhdV a).fundamentalGroup_map_directionFrom_bijective (r := 1 / 4)
-    (by norm_num) (sphere_subset_nbhdV a) (nInvStart ha hr har)).injective
+      ((nApproach c k).trans ((nCircle c k).symm.trans (nApproach c k).symm)) := by
+  have hd := ((PlaneMinusRealPoints.starConvex_fan one_pos k
+    ).fundamentalGroup_map_directionFrom_bijective
+    (r := 1 / 4) (by norm_num) (PlaneMinusRealPoints.sphere_subset_fan one_pos k)
+    (nInvStart ha hr har)).injective
   have h := Circle.homotopic_trans_of_degree_map_eq hd (γ := nInvCircle ha hr har)
-    (δ := (nCircle (a := a)).symm) (by
+    (δ := (nCircle c k).symm) (by
       rw [degree_nInvCircle ha hr har, ← Path.map_symm, Circle.degree_symm, degree_nCircle])
-    ((nInvApproach ha hr har).symm.trans nApproach)
+    ((nInvApproach ha hr har).symm.trans (nApproach c k))
   have h' := Path.Homotopic.Quotient.eq.2 h
   refine Path.Homotopic.Quotient.exact ?_
   rw [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_trans, h']
   simp only [Path.trans_symm, Path.symm_symm, Path.Homotopic.Quotient.mk_trans,
     Path.Homotopic.Quotient.mk_symm, Path.Homotopic.Quotient.trans_assoc,
-    quotient_trans_symm_trans,
-    Path.Homotopic.Quotient.trans_symm, Path.Homotopic.Quotient.trans_refl]
+    Path.Homotopic.Quotient.trans_symm_trans, Path.Homotopic.Quotient.trans_symm,
+    Path.Homotopic.Quotient.trans_refl]
 
 end Compare
 
-/-! ### The loops about the finite punctures -/
+/-! ### The comparison for the punctured sphere -/
 
 section Small
 
 variable {n : ℕ} (k : Fin n)
 
-private theorem one_le_rev_castSucc : (1 : ℝ) ≤ (((Fin.castSucc k).rev : ℕ) : ℝ) := by
+variable (n) in
+/-- The centre of the ball `(Fin.castSucc k).rev` of the sphere in the chart `sphereChart`: the
+real point `(Fin.castSucc k).rev`. -/
+private def ballCentre (k : Fin n) : ℝ := ((Fin.castSucc k).rev : ℕ)
+
+private theorem inv_ballCentre : (ballCentre n k)⁻¹ = puncturedSpherePoint n k := by
+  rw [ballCentre, puncturedSpherePoint_def]
+
+private theorem one_le_ballCentre : 1 ≤ ballCentre n k := by
   have : 1 ≤ ((Fin.castSucc k).rev : ℕ) := by rw [Fin.val_rev, Fin.val_castSucc]; omega
+  rw [ballCentre]
   exact_mod_cast this
 
-private theorem sq_rev_castSucc_mul_le :
-    (((Fin.castSucc k).rev : ℕ) : ℝ) ^ 2 * (1 / ((n : ℝ) + 1) ^ 2 / 4) ≤ 1 / 4 := by
-  have h1 : (((Fin.castSucc k).rev : ℕ) : ℝ) ≤ n := by
+private theorem ballCentre_sq_mul_le :
+    ballCentre n k ^ 2 * (1 / ((n : ℝ) + 1) ^ 2 / 4) ≤ 1 / 4 := by
+  have h1 : ballCentre n k ≤ n := by
     have : ((Fin.castSucc k).rev : ℕ) ≤ n := by rw [Fin.val_rev, Fin.val_castSucc]; omega
+    rw [ballCentre]
     exact_mod_cast this
+  have h0 : 0 ≤ ballCentre n k := by linarith [one_le_ballCentre k]
   rw [mul_div_assoc', mul_one_div, div_div, div_le_div_iff₀ (by positivity) (by norm_num)]
   nlinarith
 
+/-- The centres of the balls are distinct naturals, so any two are at least `1` apart. -/
+private theorem pairwise_one_le_abs_ballCentre_sub :
+    Pairwise fun i j : Fin n ↦ (1 : ℝ) ≤ |ballCentre n i - ballCentre n j| := by
+  intro i j hij
+  have hne : ((Fin.castSucc i).rev : ℕ) ≠ ((Fin.castSucc j).rev : ℕ) :=
+    fun h ↦ hij (Fin.castSucc_injective _ (Fin.rev_injective (Fin.ext h)))
+  rw [ballCentre, ballCentre]
+  rcases Nat.lt_or_gt_of_ne hne with h | h
+  · have : (((Fin.castSucc i).rev : ℕ) : ℝ) + 1 ≤ ((Fin.castSucc j).rev : ℕ) := by
+      exact_mod_cast h
+    rw [abs_sub_comm, abs_of_pos (by linarith)]
+    linarith
+  · have : (((Fin.castSucc j).rev : ℕ) : ℝ) + 1 ≤ ((Fin.castSucc i).rev : ℕ) := by
+      exact_mod_cast h
+    rw [abs_of_pos (by linarith)]
+    linarith
+
 private theorem inversion_mem_compl_range
-    (u : ↥(nbhdV (((Fin.castSucc k).rev : ℕ) : ℝ) \ {((((Fin.castSucc k).rev : ℕ) : ℝ) : ℂ)})) :
+    (u : ↥(fan (ballCentre n) 1 k \ {(ballCentre n k : ℂ)})) :
     inversion 0 1 (u : ℂ) ∈ (range fun i ↦ (puncturedSpherePoint n i : ℂ))ᶜ := by
   rintro ⟨i, hi⟩
   simp only at hi
   have hu := congrArg (inversion 0 1) hi
-  rw [EuclideanGeometry.inversion_inversion _ one_ne_zero, puncturedSpherePoint_def,
-    inversion_ofReal, inv_inv] at hu
+  rw [EuclideanGeometry.inversion_inversion _ one_ne_zero, ← inv_ballCentre,
+    EuclideanGeometry.inversion_zero_ofReal] at hu
+  have hu' : (u : ℂ) = ballCentre n i := by simpa using hu.symm
   have hV := u.prop.1
-  have hne := u.prop.2
-  rw [← hu] at hV hne
-  rcases hV with hV | hV
-  · simp at hV
-  · rw [mem_ball, dist_eq_norm, ← Complex.ofReal_sub, Complex.norm_real, Real.norm_eq_abs]
-      at hV
-    obtain ⟨h1, h2⟩ := abs_lt.1 hV
-    have hm : ((Fin.castSucc i).rev : ℕ) = ((Fin.castSucc k).rev : ℕ) := by
-      rcases lt_trichotomy ((Fin.castSucc i).rev : ℕ) ((Fin.castSucc k).rev : ℕ) with h | h | h
-      · have : (((Fin.castSucc i).rev : ℕ) : ℝ) + 1 ≤ ((Fin.castSucc k).rev : ℕ) := by
-          exact_mod_cast h
-        linarith
-      · exact h
-      · have : (((Fin.castSucc k).rev : ℕ) : ℝ) + 1 ≤ ((Fin.castSucc i).rev : ℕ) := by
-          exact_mod_cast h
-        linarith
-    exact hne (by rw [hm]; rfl)
+  rw [hu'] at hV
+  obtain rfl := PlaneMinusRealPoints.eq_of_ofReal_mem_fan one_pos
+    pairwise_one_le_abs_ballCentre_sub hV
+  exact u.prop.2 (mem_singleton_iff.2 hu')
 
-/-- The inversion, from the punctured neighbourhood of the centre of the ball
-`(Fin.castSucc k).rev` in the chart `sphereChart` to the plane minus the points. -/
+/-- The inversion, from the punctured fan about the centre of the ball `(Fin.castSucc k).rev` in
+the chart `sphereChart` to the plane minus the points. -/
 private def inversionToCompl :
-    C(↥(nbhdV (((Fin.castSucc k).rev : ℕ) : ℝ) \ {((((Fin.castSucc k).rev : ℕ) : ℝ) : ℂ)}),
+    C(↥(fan (ballCentre n) 1 k \ {(ballCentre n k : ℂ)}),
       ↥(range fun i ↦ (puncturedSpherePoint n i : ℂ))ᶜ) where
   toFun u := ⟨inversion 0 1 u, inversion_mem_compl_range k u⟩
   continuous_toFun := (continuous_const.inversion continuous_const continuous_subtypeVal
-    fun u h ↦ by
-      have := u.prop.1
-      rw [h] at this
-      rcases this with h0 | h0
-      · simp at h0
-      · rw [mem_ball, dist_zero_left, Complex.norm_real, Real.norm_of_nonneg (by positivity)] at h0
-        linarith [one_le_rev_castSucc k]).subtype_mk _
+    fun u h ↦ zero_notMem_fan (one_le_ballCentre k) (by rw [← h]; exact u.prop.1)).subtype_mk _
 
-private theorem segment_zero_negI_mem (t : unitInterval) :
-    Path.segment (0 : ℂ) (-I) t ∈ (range fun i ↦ (puncturedSpherePoint n i : ℂ))ᶜ := by
-  rintro ⟨i, hi⟩
-  have : puncturedSpherePoint n i = 0 := by
-    simpa [Path.segment_apply, AffineMap.lineMap_apply_module] using congrArg Complex.re hi
-  exact puncturedSpherePoint_ne_zero i this
+private theorem coe_inversionToCompl_apply
+    (u : ↥(fan (ballCentre n) 1 k \ {(ballCentre n k : ℂ)})) :
+    (inversionToCompl k u : ℂ) = inversion 0 1 (u : ℂ) :=
+  (rfl)
 
 /-- The segment from `0` to `-i` in the plane minus the points, ending at the image of `-i`
 under `inversionToCompl`. -/
 private def segmentToNegI : Path (⟨0, zero_mem_compl_range_puncturedSpherePoint⟩ :
-      ↥(range fun i ↦ (puncturedSpherePoint n i : ℂ))ᶜ) (inversionToCompl k (nNegI _)) :=
-  ((Path.segment (0 : ℂ) (-I)).cast rfl inversion_neg_I).codRestrict fun t ↦ by
-    exact segment_zero_negI_mem t
+      ↥(range fun i ↦ (puncturedSpherePoint n i : ℂ))ᶜ) (inversionToCompl k (nNegI _ _)) :=
+  ((Path.segment (0 : ℂ) (-I)).cast rfl
+    (by simp [coe_inversionToCompl_apply, inversion_zero_eq_sq_div_conj])).codRestrict
+    (PlaneMinusRealPoints.segment_mem_compl_range puncturedSpherePoint_ne_zero)
 
 @[simp] private theorem coe_segmentToNegI_apply (t : unitInterval) :
-    (segmentToNegI k t : ℂ) = Path.segment (0 : ℂ) (-I) t := 
+    (segmentToNegI k t : ℂ) = Path.segment (0 : ℂ) (-I) t :=
   Path.codRestrict_coe _ _ t
-
-private theorem coe_inversionToCompl_apply
-    (u : ↥(nbhdV (((Fin.castSucc k).rev : ℕ) : ℝ) \ {((((Fin.castSucc k).rev : ℕ) : ℝ) : ℂ)})) :
-    (inversionToCompl k u : ℂ) = inversion 0 1 (u : ℂ) := rfl
 
 private theorem loop_eq_trans :
     PlaneMinusRealPoints.loop (by positivity : (0 : ℝ) < 1 / ((n : ℝ) + 1) ^ 2)
         one_div_sq_le_abs_puncturedSpherePoint_sub puncturedSpherePoint_ne_zero k =
-      (segmentToNegI k).trans ((((nInvApproach (one_le_rev_castSucc k) (by positivity)
-        (sq_rev_castSucc_mul_le k)).trans ((nInvCircle (one_le_rev_castSucc k) (by positivity)
-        (sq_rev_castSucc_mul_le k)).trans (nInvApproach (one_le_rev_castSucc k) (by positivity)
-        (sq_rev_castSucc_mul_le k)).symm)).map (inversionToCompl k).continuous).trans
+      (segmentToNegI k).trans ((((nInvApproach (one_le_ballCentre k) (by positivity)
+        (ballCentre_sq_mul_le k)).trans ((nInvCircle (one_le_ballCentre k) (by positivity)
+        (ballCentre_sq_mul_le k)).trans (nInvApproach (one_le_ballCentre k) (by positivity)
+        (ballCentre_sq_mul_le k)).symm)).map (inversionToCompl k).continuous).trans
           (segmentToNegI k).symm) := by
   refine Path.ext (funext fun t ↦ Subtype.ext ?_)
-  rw [PlaneMinusRealPoints.coe_loop_apply, PlaneMinusRealPoints.loopInPlane_def,
-    puncturedSpherePoint_def]
+  rw [PlaneMinusRealPoints.coe_loop_apply, PlaneMinusRealPoints.loopInPlane_def, ← inv_ballCentre]
   simp only [Path.trans_apply, Path.symm_apply, Path.map_coe, comp_apply, apply_dite Subtype.val]
   split_ifs <;> simp only [coe_segmentToNegI_apply, coe_nInvApproach_apply, coe_nInvCircle_apply,
     coe_inversionToCompl_apply, EuclideanGeometry.inversion_inversion _ one_ne_zero]
@@ -843,33 +827,25 @@ private theorem sphereChart_segment_up {x : ℝ} {m : ℕ} (hx : x = m + 1) (s :
     have : (0 : ℝ) ≤ m := m.cast_nonneg
     nlinarith
 
-private theorem ballCircle_eq_sphereCoChart {x : ℝ} {m : ℕ} (hx : x = m + 1) (s : unitInterval) :
+private theorem ballCircle_eq_sphereCoChart {m : ℕ} (hx : ballCentre n k = m + 1)
+    (s : unitInterval) :
     ballCircle 0 (m + 1) s = sphereCoChart (Complex.orthonormalBasisOneI.repr
-      (inversion 0 1 ((circlePath (x : ℂ) (√2 / 4) (Real.pi / 4)) s))) := by
+      (inversion 0 1 ((circlePath (ballCentre n k : ℂ) (√2 / 4) (Real.pi / 4)) s))) := by
   rw [sphereCoChart_repr_inversion, ballCircle_zero_apply_eq_sphereChart, circlePath_apply,
     hx]
-  · push_cast
-    rfl
-  · have := (circlePath_mem (a := x) s).1
-    intro h
-    rw [h] at this
-    rcases this with h0 | h0
-    · simp at h0
-    · rw [mem_ball, dist_zero_left, Complex.norm_real, Real.norm_of_nonneg (by
-        rw [hx]; positivity)] at h0
-      have : (0 : ℝ) ≤ m := m.cast_nonneg
-      linarith
+  · simp
+  · exact fun h ↦ zero_notMem_fan (one_le_ballCentre k) (h ▸ (circlePath_mem s).1)
 
 private theorem peripheralLoop_eq_trans :
     ((peripheralLoop 0 (n + 1) (Fin.castSucc k)).map
         (puncturedSphereHomeomorph n).symm.continuous).cast
         puncturedSphereHomeomorph_symm_basePoint.symm
         puncturedSphereHomeomorph_symm_basePoint.symm =
-      (((segmentToNegI k).trans ((nApproach (a := (((Fin.castSucc k).rev : ℕ) : ℝ))).map
+      (((segmentToNegI k).trans ((nApproach (ballCentre n) k).map
         (inversionToCompl k).continuous)).trans
-        ((nCircle (a := (((Fin.castSucc k).rev : ℕ) : ℝ))).symm.map
+        ((nCircle (ballCentre n) k).symm.map
           (inversionToCompl k).continuous)).trans
-        ((segmentToNegI k).trans ((nApproach (a := (((Fin.castSucc k).rev : ℕ) : ℝ))).map
+        ((segmentToNegI k).trans ((nApproach (ballCentre n) k).map
           (inversionToCompl k).continuous)).symm := by
   refine Path.ext (funext fun t ↦ ?_)
   rw [Path.cast_coe, Path.map_coe, comp_apply, Homeomorph.symm_apply_eq]
@@ -877,7 +853,7 @@ private theorem peripheralLoop_eq_trans :
   rw [coe_peripheralLoop_apply, coe_puncturedSphereHomeomorph_apply, ballLoop_def]
   obtain ⟨m, hm⟩ : ∃ m, ((Fin.castSucc k).rev : ℕ) = m + 1 :=
     ⟨n - 1 - k, by rw [Fin.val_rev, Fin.val_castSucc]; omega⟩
-  have ha : ((((Fin.castSucc k).rev : ℕ) : ℝ)) = (m : ℝ) + 1 := by rw [hm]; push_cast; ring
+  have ha : ballCentre n k = (m : ℝ) + 1 := by rw [ballCentre, hm]; push_cast; ring
   conv_lhs => rw [hm, ballPath_zero_succ]
   simp only [Path.trans_apply, Path.symm_apply, Path.map_coe, Path.cast_coe, comp_apply,
     apply_dite Subtype.val, coe_segmentToNegI_apply, coe_nApproach_apply, coe_nCircle_apply,
@@ -887,7 +863,7 @@ private theorem peripheralLoop_eq_trans :
   · exact sphereCoChart_segment_negI _
   · exact sphereChart_segment_bottom ha _
   · exact sphereChart_segment_up ha _
-  · exact ballCircle_eq_sphereCoChart ha _
+  · exact ballCircle_eq_sphereCoChart k ha _
   · exact sphereCoChart_segment_negI _
   · exact sphereChart_segment_bottom ha _
   · exact sphereChart_segment_up ha _
@@ -906,8 +882,8 @@ theorem map_peripheralLoop_castSucc_homotopic_loop :
       (PlaneMinusRealPoints.loop (by positivity : (0 : ℝ) < 1 / ((n : ℝ) + 1) ^ 2)
         one_div_sq_le_abs_puncturedSpherePoint_sub puncturedSpherePoint_ne_zero k) := by
   rw [peripheralLoop_eq_trans, loop_eq_trans]
-  have H := (nInvApproach_homotopic (one_le_rev_castSucc k) (by positivity)
-    (sq_rev_castSucc_mul_le k)).map (inversionToCompl k)
+  have H := (nInvApproach_homotopic (one_le_ballCentre k) (by positivity)
+    (ballCentre_sq_mul_le k)).map (inversionToCompl k)
   refine Path.Homotopic.Quotient.exact ?_
   rw [Path.Homotopic.Quotient.mk_trans (segmentToNegI k), Path.Homotopic.Quotient.mk_trans _
     (segmentToNegI k).symm, Path.Homotopic.Quotient.eq.2 H]
