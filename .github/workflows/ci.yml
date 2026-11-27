@@ -260,9 +260,45 @@ jobs:
             echo "this run builds the library from its source"
           fi
       # --wfail fails the build on any warning, including a `sorry`.
+      #
+      # The build keeps its outputs in Lake's cache as well as in
+      # `.lake/build`, and `-o` writes its mappings: for each module, which
+      # archive it builds to. The next two steps hand both to the workflow
+      # cache-upload, which puts them in the bucket that
+      # `.github/lake-config.toml` describes. This job holds no key to the
+      # bucket; see cache-upload for why. Nothing here reads the bucket yet.
       - name: build
         id: build
-        run: lake build --wfail
+        env:
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_RESTORE_ARTIFACTS: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+        run: lake build --wfail -o "$RUNNER_TEMP/lake-mappings.jsonl"
+      # After a build that passed, in a run for a branch of this repository.
+      # If either step fails, the run is as good as before: only the bucket
+      # goes without this run's work.
+      - name: stage the build for the bucket
+        id: stage
+        if: >-
+          steps.build.outcome == 'success' &&
+          (github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository)
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+        run: lake cache stage "$RUNNER_TEMP/lake-mappings.jsonl" "$RUNNER_TEMP/lake-staged"
+      - name: hand the staged build to cache-upload
+        if: steps.stage.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: actions/upload-artifact@v7
+        with:
+          name: lake-cache
+          path: ${{ runner.temp }}/lake-staged
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
       # A run of the merge queue builds the commit that main gets when the
       # pull request merges. When it found no build of main's to start from,
       # as the run of a move of Tau Ceti does, and the runs after it until

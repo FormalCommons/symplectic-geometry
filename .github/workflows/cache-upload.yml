@@ -1,0 +1,98 @@
+name: cache-upload
+
+# Puts what a run of CI built into the bucket of Lake's cache, which
+# `.github/lake-config.toml` describes: the build archives of the modules
+# that the run compiled, and the run's mappings, which say for each module
+# which archive it builds to. Later builds, in CI and elsewhere, fetch from
+# the bucket what they would otherwise compile.
+#
+# Why this is a workflow of its own, and not steps of CI. A build runs the
+# code of its pull request: Lean runs code while it elaborates, and CI's
+# check of the source is a scan of its text. A pull request can also change
+# ci.yml itself. So the bucket's key must be nowhere near a build. Here it is
+# not:
+#
+# - GitHub starts this workflow when a run of CI ends, and always takes this
+#   file from the default branch, whatever the pull request contains. The
+#   scripts it runs come from the default branch too: the checkout below has
+#   no `ref`.
+# - The key is a secret of the environment `lake-cache`, which only the
+#   branch main may use. A run for a pull request cannot name it.
+# - Nothing from the build is run. The build hands over a directory of
+#   archives and mappings, and cache-upload.sh checks every file before it
+#   uploads any: see there.
+#
+# Where the mappings go is decided here, from GitHub's record of the run
+# that ended, and not from anything the build handed over: under `r/queue/`
+# for a run of the merge queue, by the commit that main gets, and under
+# `r/pr/` for a run of a pull request, by its head commit. A build reads
+# `r/queue/` as what main is known to build to. Only a pull request's own
+# later runs, and the merge queue's run for that pull request, read what its
+# runs put under `r/pr/`.
+#
+# Only runs of branches of this repository are taken, not of forks. A run
+# whose build failed staged nothing, and nothing is uploaded for it.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  upload:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'merge_group' || github.event.workflow_run.event == 'pull_request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: lake-cache
+    steps:
+      # The default branch's `.github`, and nothing of the commit that was
+      # built.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github
+          persist-credentials: false
+      # A run that staged nothing has no such artifact, and that is no fault.
+      - name: take the staged build of the run
+        id: staged
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          if gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache --dir "$RUNNER_TEMP/staged"; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run $RUN handed over no staged build"
+          fi
+      # The toolchain is part of the mappings' address, as Lake forms it. It
+      # is read from the commit that was built and must be a release of Lean
+      # by its name, so that it cannot lead the address elsewhere.
+      - name: upload
+        if: steps.staged.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          BUCKET: https://formalcommons-lake-cache.fsn1.your-objectstorage.com
+        run: |
+          set -euo pipefail
+          [[ $SHA =~ ^[0-9a-f]{40}$ ]] || { echo "::error::no commit in GitHub's record of the run"; exit 1; }
+          case $EVENT in
+            merge_group) kind='queue' ;;
+            pull_request) kind='pr' ;;
+            *) echo "::error::a run of CI for the event $EVENT"; exit 1 ;;
+          esac
+          toolchain=$(gh api "repos/$GITHUB_REPOSITORY/contents/lean-toolchain?ref=$SHA" -H "Accept: application/vnd.github.raw" | tr -d '[:space:]')
+          [[ $toolchain =~ ^leanprover/lean4:v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]] ||
+            { echo "::error::lean-toolchain at $SHA does not name a release of Lean"; exit 1; }
+          toolchain=${toolchain/\//--}; toolchain=${toolchain/:/---}
+          [ -n "$LAKE_CACHE_KEY" ] || { echo "::error::the environment lake-cache has no secret LAKE_CACHE_KEY"; exit 1; }
+          printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
+            .github/cache-upload.sh "$RUNNER_TEMP/staged" "$BUCKET/a" \
+              "$BUCKET/r/$kind/pt/x86_64-unknown-linux-gnu/tc/$toolchain/$SHA.jsonl"
