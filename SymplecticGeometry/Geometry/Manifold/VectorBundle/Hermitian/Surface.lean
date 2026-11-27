@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Nonvanishing
 
 /-!
@@ -76,6 +77,7 @@ open scoped VectorBundle.ComplexToReal
 
 variable [ContMDiffVectorBundle ∞ F V (𝓡∂ (n + 2))]
 
+open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric in
 /-- Let `V` be a smooth complex vector bundle of complex rank `k + r` with a smooth Hermitian
 metric `g` over a compact connected manifold `M` of dimension `n + 2 ≤ 2 (r + 1)` whose boundary
 is not empty. Then `V` has `k` smooth sections that are orthonormal at every point. -/
@@ -90,8 +92,7 @@ theorem exists_orthonormal_contMDiffSection_of_boundary_nonempty_of_le
       letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
       letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
       ∀ x, Orthonormal ℂ fun i ↦ s i x := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric (𝓡∂ (n + 2)) ∞ F V := ⟨g, hI⟩
   induction k generalizing r with
   | zero => exact ⟨Fin.elim0, fun i ↦ i.elim0, fun _ ↦ ⟨fun i ↦ i.elim0, fun i ↦ i.elim0⟩⟩
   | succ k ih =>
