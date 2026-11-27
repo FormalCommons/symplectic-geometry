@@ -334,31 +334,6 @@ theorem mem_openNbhd_iff_mem_ball {ε : ℝ} {p : BlowupModel n} :
 theorem openNbhd_subset_closedNbhd (ε : ℝ) : openNbhd n ε ⊆ closedNbhd n ε :=
   fun _ hp ↦ (mem_closedNbhd_iff).2 (mem_openNbhd_iff.1 hp).le
 
-theorem isOpen_openNbhd (ε : ℝ) : IsOpen (openNbhd n ε) :=
-  isOpen_lt
-    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp continuous_blowdown).norm
-    continuous_const
-
-theorem isClosed_closedNbhd (ε : ℝ) : IsClosed (closedNbhd n ε) :=
-  isClosed_le
-    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp continuous_blowdown).norm
-    continuous_const
-
-/-- `L(ε)` is compact: it is the part of the closed incidence set lying over a compact subset of
-`ℙ ℂ E × E`. -/
-theorem isCompact_closedNbhd (ε : ℝ) : IsCompact (closedNbhd n ε) := by
-  have hK : IsCompact {z : Fin (n + 1) → ℂ | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε} := by
-    have := (complexToRealEuclidean (Fin (n + 1))).toHomeomorph.isCompact_preimage.2
-      (isCompact_closedBall (0 : EuclideanSpace ℝ (Fin (n + 1) ⊕ Fin (n + 1))) ε)
-    simpa [Metric.closedBall, Set.preimage] using this
-  have h : closedNbhd n ε = Subtype.val ⁻¹' (univ ×ˢ
-      {z : Fin (n + 1) → ℂ | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε}) := by
-    ext p
-    simp [blowdown_def]
-  rw [h]
-  exact (isClosed_blowupModel n).isClosedEmbedding_subtypeVal.isCompact_preimage
-    (isCompact_univ.prod hK)
-
 /-- For a continuous map `f` into the model and a continuous radius `c`, the points `x` with
 `f x ∈ closedNbhd n (c x)` form a closed set. -/
 theorem isClosed_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
@@ -376,6 +351,27 @@ theorem isOpen_setOf_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → Bl
   simp only [mem_openNbhd_iff]
   exact isOpen_lt ((complexToRealEuclidean (Fin (n + 1))).continuous.comp
     (continuous_blowdown.comp hf)).norm hc
+
+theorem isOpen_openNbhd (ε : ℝ) : IsOpen (openNbhd n ε) :=
+  isOpen_setOf_mem_openNbhd continuous_id continuous_const
+
+theorem isClosed_closedNbhd (ε : ℝ) : IsClosed (closedNbhd n ε) :=
+  isClosed_setOf_mem_closedNbhd continuous_id continuous_const
+
+/-- `L(ε)` is compact: it is the part of the closed incidence set lying over a compact subset of
+`ℙ ℂ E × E`. -/
+theorem isCompact_closedNbhd (ε : ℝ) : IsCompact (closedNbhd n ε) := by
+  have hK : IsCompact {z : Fin (n + 1) → ℂ | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε} := by
+    have := (complexToRealEuclidean (Fin (n + 1))).toHomeomorph.isCompact_preimage.2
+      (isCompact_closedBall (0 : EuclideanSpace ℝ (Fin (n + 1) ⊕ Fin (n + 1))) ε)
+    simpa [Metric.closedBall, Set.preimage] using this
+  have h : closedNbhd n ε = Subtype.val ⁻¹' (univ ×ˢ
+      {z : Fin (n + 1) → ℂ | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε}) := by
+    ext p
+    simp [blowdown_def]
+  rw [h]
+  exact (isClosed_blowupModel n).isClosedEmbedding_subtypeVal.isCompact_preimage
+    (isCompact_univ.prod hK)
 
 /-- Over a compact space `X`, for a continuous radius `c`, the pairs `(x, p)` with
 `p ∈ closedNbhd n (c x)` form a compact subset of `X × BlowupModel n`. -/

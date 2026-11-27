@@ -26,6 +26,8 @@ import TauCeti.Analysis.Calculus.Deriv.Second
   `TauCeti.deriv_deriv_sqrt_quadratic`.
 * `Real.iteratedDeriv_two_comp_sqrt`: the second derivative of `f ∘ √·` at `t > 0`, for `f`
   that is `C²` at `√t`, by the chain rule `iteratedDeriv_comp_two`.
+* `Real.tendsto_deriv_sqrt_sub`: for `0 < a` and `0 < δ`, the slope of `r ↦ √(a r² - a δ²)`
+  tends to `+∞` at `δ`, by `Real.deriv_sqrt_sub`.
 -/
 
 public section
@@ -88,6 +90,25 @@ theorem iteratedDeriv_two_comp_sqrt {f : ℝ → ℝ} {t : ℝ}
   have : 0 < √t := sqrt_pos.2 ht
   field_simp
   linear_combination (-4 * iteratedDeriv 2 f (√t)) * hsq
+
+open Filter Set Topology in
+/-- The slope of `r ↦ √(a r² - a δ²)` tends to `+∞` at `δ`, for `0 < a` and `0 < δ`: the
+shape has a vertical tangent at `δ`. -/
+theorem tendsto_deriv_sqrt_sub {a δ : ℝ} (ha : 0 < a) (hδ : 0 < δ) :
+    Tendsto (deriv fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) (𝓝[>] δ) atTop := by
+  have hpos : ∀ r ∈ Ioi δ, 0 < a * r ^ 2 - a * δ ^ 2 := fun r (hr : δ < r) ↦ by
+    have : δ ^ 2 < r ^ 2 := by gcongr
+    nlinarith
+  have hc : ContinuousAt (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) δ := by fun_prop
+  have h₀ : Tendsto (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) (𝓝[>] δ) (𝓝[>] 0) := by
+    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
+    · simpa using hc.tendsto.mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with r hr using sqrt_pos.2 (hpos r hr)
+  have h₁ : Tendsto (fun r ↦ a * r) (𝓝[>] δ) (𝓝 (a * δ)) :=
+    ((continuous_const.mul continuous_id).tendsto δ).mono_left nhdsWithin_le_nhds
+  refine (h₁.pos_mul_atTop (mul_pos ha hδ) (tendsto_inv_nhdsGT_zero.comp h₀)).congr' ?_
+  filter_upwards [self_mem_nhdsWithin] with r hr
+  rw [deriv_sqrt_sub (hpos r hr).ne', Function.comp_apply, div_eq_mul_inv]
 
 end Real
 

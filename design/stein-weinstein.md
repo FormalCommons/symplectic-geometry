@@ -1266,8 +1266,10 @@ containing `ι '' closedBall 0 1`:
   - `exists_modelChart` (14d13; Proposition 5.55 for integrable `J`):
     for `ι`, `O`, `A` as above and `N : ℕ`, there is `Φ` as in 14d10 (source,
     target, `Φ ∘ modelDisc k m = ι`, `mfderiv _ _ Φ (modelDisc k m x) = A x`
-    for all `x`) such that every point `p₀` of
-    `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source`
+    for all `x`), when `A x (Complex.I • v) = Complex.I • A x v` for all
+    `x` and `v`, such that every point `p₀` of
+    `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source` with
+    `U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source`
     and a constant `C` with, for `e = writtenInExtChartAt 𝓘(ℝ, V)
     𝓘(ℝ, E) p₀ Φ` (the chart of `M` at `Φ p₀`, holomorphic) and all
     `p ∈ U`, `‖∂̄e p‖ ≤ C * √(t p) ^ N` and
@@ -1826,17 +1828,18 @@ are set on compact manifolds. Three pieces are missing:
 - Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
   and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
   (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`
-  (a map `ι : A.stableSubspace → M` with `ι 0 = p`,
-  smooth with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
-  the stable set and contains the points of the stable set near `p` with
+  (`Nonempty (hW.LocalStableDisc p A)`, for the structure
+  `IsWeinsteinStructure.LocalStableDisc` whose fields are a map
+  `ι : A.stableSubspace → M` with `ι 0 = p` and a radius `ρ > 0`, with `ι`
+  smooth with injective `mfderiv` on `ball 0 ρ`, its image there in
+  the stable set and containing the points of the stable set near `p` with
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
-  `e` the extended chart at `p`, with `‖e (ι z) - e p‖ ≤ C * ‖z‖` near `0`,
-  and with the left inverse `x ↦ Q (e x - e p)` of `ι` on `ball 0 ρ`,
-  smooth on the source of `e`, for an idempotent `P` commuting with `A`
-  with range `A.stableSubspace` and its corestriction `Q`, under which
-  the forward orbits of the points of a small ball stay on the disc over
-  any given ball); and the main results
+  `e` the extended chart at `p`; an idempotent `P` commuting with `A`,
+  with range `A.stableSubspace` and kernel `A.unstableSubspace`, with
+  `x ↦ P (e x - e p)` a left inverse of `ι` on `ball 0 ρ`; so its data
+  are `ι`, `ρ` and `P`, and the corestriction `Q` of `P` to
+  `A.stableSubspace` is defined from `P`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
