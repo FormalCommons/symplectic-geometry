@@ -328,8 +328,10 @@ closed or not, admits, for `i = 1, 2`, a smooth family `βᵢ` of two-forms on `
 for `t ∈ [0, 1]`, equal at `t = 0` to the pull-back of `σ` along `inl` (for `i = 1`) or `inr`
 (for `i = 2`) and at `t = 1` to the restriction of `αᵢ`.
 
-The summands need not be closed or connected, and `α₁`, `α₂` need not be closed. The case of a
-symplectic `σ` is `SymplecticGeometry.not_exists_isSymplectic_connectedSum`. -/
+The summands need not be closed or connected, and `α₁`, `α₂` need not be closed. For a
+symplectic `σ` and homotopies over `unitInterval`, this gives
+`SymplecticGeometry.not_exists_isSymplectic_connectedSum`, once each homotopy is extended to a
+family over `ℝ` by `SymplecticGeometry.IsSmoothFamily.exists_extend`. -/
 theorem not_exists_connectedSum (h₀ : n ≠ 0) (h₁ : n ≠ 1) (h₃ : n ≠ 3)
     (d₁ : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin (2 * n))) I ∞ e₁)
     (d₂ : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin (2 * n))) I ∞ e₂)
