@@ -10,7 +10,7 @@ public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
-# The second derivative of a function of one variable composed with a scalar function
+# Derivative bounds for a function of one variable composed with a scalar function
 
 For `f : E → 𝕜` and `φ : 𝕜 → F`, both `C²`, Tau Ceti's second-order chain rule
 `TauCeti.fderiv_fderiv_scalar_comp_apply` writes the second derivative of `φ ∘ f` as

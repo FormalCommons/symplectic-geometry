@@ -31,10 +31,10 @@ Both follow from the chain rule (`SymplecticGeometry.norm_fderiv_comp_le` and
 the left cancel the powers of `r = ρ p` in these bounds. At points with `ρ p = 0` the left sides
 vanish.
 
-These are the bounds on the cutoff `1 - ψ ∘ ρ` with which Cieliebak and Eliashberg interpolate
-between two strictly plurisubharmonic functions near a totally real submanifold in the proof of
-Proposition 3.26 of [CieliebakEliashberg2012], `ρ` being comparable to the squared distance to
-the submanifold. They make the error terms of the interpolation of order `1 / Λ`.
+The library interpolates between two strictly plurisubharmonic functions near a totally real
+submanifold with the cutoff `1 - ψ ∘ ρ`, for Proposition 3.26 of [CieliebakEliashberg2012], with
+`ρ` comparable to the squared distance to the submanifold. These bounds make the error terms of
+that interpolation of order `1 / Λ`.
 
 ## Main results
 
@@ -47,8 +47,6 @@ the submanifold. They make the error terms of the interpolation of order `1 / Λ
 -/
 
 public section
-
-open Real
 
 namespace TauCeti
 
