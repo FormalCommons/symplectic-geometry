@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Produ
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Integrand
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.BoundarylessStokes
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens.ModelSpace
 
 /-!
 # The fibre integral commutes with `d` over an open subset of a normed space
@@ -62,6 +63,16 @@ private def mfderivIntegrand {m : ℕ} (o : Manifold.Orientation J F (Fin m))
     SmoothForm J F ℝ m :=
   ⟨_, (isSmoothForm_mfderiv_prodFiberIntegrand o α u b a).mem_smoothBundleForms⟩
 
+omit [FiniteDimensional ℝ E] [BoundarylessManifold J F] in
+/-- The value of `mfderivIntegrand o α u b a` at `y`. -/
+private theorem mfderivIntegrand_apply {m : ℕ} (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)) (u : Fin r → E) (b : U) (a : E)
+    (y : F) :
+    (mfderivIntegrand o α u b a).val y =
+      show E' [⋀^Fin m]→L[ℝ] ℝ from mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)
+        (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from prodFiberIntegrand α.val b' u y) b a :=
+  rfl
+
 omit [BoundarylessManifold J F] in
 /-- The integral over `F` of `mfderivIntegrand o α u b a` is the derivative at `b`, in the
 direction `a`, of the fibre integral of `α` on `u`. -/
@@ -74,6 +85,34 @@ private theorem integralTopFormₗ_mfderivIntegrand {m : ℕ} (o : Manifold.Orie
     funext fun b' ↦ prodFiberIntegral_apply o α b' u
   rw [SmoothForm.integralTopFormₗ_apply, h]
   exact (mfderiv_integralTopForm_prodFiberIntegrand_apply o α u b a).symm
+
+omit [BoundarylessManifold J F] in
+/-- The alternating sum over `i` of the forms `mfderivIntegrand o α (v without vᵢ) b vᵢ` takes,
+at `y` on `w`, the alternating sum of the values of the base derivatives of the integrands, and
+its integral over `F` is the alternating sum of the base derivatives of the fibre integrals. -/
+private theorem sum_mfderivIntegrand {m : ℕ} (o : Manifold.Orientation J F (Fin m))
+    (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)) (b : U) (v : Fin (r + 1) → E) :
+    (∀ (y : F) (w : Fin m → TangentSpace J y),
+      (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
+        mfderivIntegrand o α (Fin.removeNth i v) b (v i)).val y w =
+      ∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) • (show E' [⋀^Fin m]→L[ℝ] ℝ from
+        mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)
+          (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from
+            prodFiberIntegrand α.val b' (Fin.removeNth i v) y) b (v i)) w) ∧
+    SmoothForm.integralTopFormₗ o (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
+        mfderivIntegrand o α (Fin.removeNth i v) b (v i)) =
+      ∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) • mfderiv 𝓘(ℝ, E) 𝓘(ℝ)
+        (fun b' : U ↦ (prodFiberIntegral o α).val b' (Fin.removeNth i v)) b (v i) := by
+  refine ⟨fun y w ↦ ?_, ?_⟩
+  · rw [Submodule.coe_sum, Finset.sum_apply, ContinuousAlternatingMap.sum_apply]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [Submodule.coe_smul_of_tower, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+      mfderivIntegrand_apply]
+    -- The sides differ only in reading `w` in `TangentSpace J y` or in `E'`, which agree.
+    rfl
+  · rw [map_sum]
+    exact Finset.sum_congr rfl fun i _ ↦
+      (map_zsmul _ _ _).trans (congrArg _ (integralTopFormₗ_mfderivIntegrand o α _ b _))
 
 /-- **The fibre integral commutes with `d` over an open subset of a normed space.** Let `U` be an
 open subset of a finite-dimensional normed space `E`, and `F` a compact, Hausdorff, boundaryless
@@ -91,57 +130,43 @@ theorem prodFiberIntegral_mextDeriv_opens {m : ℕ} (o : Manifold.Orientation J 
   -- Read the tangent vectors at `b` as vectors of `E`, as the pointwise formulas take them.
   revert v
   refine fun (v : Fin (r + 1) → E) ↦ ?_
-  refine Eq.trans ?_
-    (mextDeriv_opens_apply ((prodFiberIntegral o α).isSmoothForm.of_le (by simp)) b v).symm
-  -- Values of sums and integer multiples of smooth forms on `F`.
-  have hS {k : ℕ} (S : Fin (r + 1) → SmoothForm J F ℝ k) (y : F) (w : Fin k → TangentSpace J y) :
-      (∑ i, S i).val y w = ∑ i, (show ℝ from (S i).val y w) := by
-    rw [Submodule.coe_sum, Finset.sum_apply, ContinuousAlternatingMap.sum_apply]
-  have hA {k : ℕ} (S T : SmoothForm J F ℝ k) (y : F) (w : Fin k → TangentSpace J y) :
-      (S + T).val y w = (show ℝ from S.val y w) + (show ℝ from T.val y w) := by
-    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply]
-  have hZ {k : ℕ} (c : ℤ) (S : SmoothForm J F ℝ k) (y : F) (w : Fin k → TangentSpace J y) :
-      (c • S).val y w = c • (show ℝ from S.val y w) := by
-    rw [Submodule.coe_smul_of_tower, Pi.smul_apply, ContinuousAlternatingMap.smul_apply]
+  have hd : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E [⋀^Fin r]→L[ℝ] ℝ)
+      (fun b' : U ↦ show E [⋀^Fin r]→L[ℝ] ℝ from (prodFiberIntegral o α).val b') b := by
+    obtain ⟨ω₀, h₀, hω₀⟩ := (prodFiberIntegral o α).isSmoothForm.exists_contDiffOn_opens
+    rw [show (fun b' : U ↦ show E [⋀^Fin r]→L[ℝ] ℝ from (prodFiberIntegral o α).val b') =
+      ω₀ ∘ Subtype.val from funext hω₀, Manifold.mdifferentiableAt_comp_subtype_val_iff,
+      mdifferentiableAt_iff_differentiableAt]
+    exact (h₀.differentiableOn (by simp)).differentiableAt (U.isOpen.mem_nhds b.property)
+  rw [mextDeriv_opens_apply hd v, ← (sum_mfderivIntegrand o α b v).2,
+    SmoothForm.integralTopFormₗ_apply]
   obtain _ | n := m
-  · have h : prodFiberIntegrand (LinearEquiv.cast (R := ℝ)
-        (M := fun k ↦ SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ k)
-        (by omega : r + 0 + 1 = r + 1 + 0) (mextDerivₗ (𝓘(ℝ, E).prod J) (r + 0) α)).val b v =
-        (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
-          mfderivIntegrand o α (Fin.removeNth i v) b (v i) : SmoothForm J F ℝ 0).val := by
-      funext y
-      refine ContinuousAlternatingMap.ext fun (w : Fin 0 → E') ↦ ?_
-      rw [prodFiberIntegrand_cast_mextDerivₗ_apply_zero]
-      exact Eq.trans (Finset.sum_congr rfl fun i _ ↦
-        (hZ _ (mfderivIntegrand o α (i.removeNth v) b (v i)) y w).symm) (hS _ y w).symm
-    rw [h, ← SmoothForm.integralTopFormₗ_apply, map_sum]
-    exact Finset.sum_congr rfl fun i _ ↦
-      (map_zsmul _ _ _).trans (congrArg _ (integralTopFormₗ_mfderivIntegrand o α _ b _))
-  · have h : prodFiberIntegrand (LinearEquiv.cast (R := ℝ)
+  · congr 1
+    funext y
+    refine ContinuousAlternatingMap.ext fun (w : Fin 0 → TangentSpace J y) ↦ ?_
+    exact (prodFiberIntegrand_cast_mextDerivₗ_apply_zero α b v y w).trans
+      ((sum_mfderivIntegrand o α b v).1 y w).symm
+  · set β : SmoothForm J F ℝ n := ⟨_, (isSmoothForm_prodFiberIntegrand
+      (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ k)
+        (by omega : r + (n + 1) = r + 1 + n) α).isSmoothForm b v).mem_smoothBundleForms⟩
+    have h : prodFiberIntegrand (LinearEquiv.cast (R := ℝ)
         (M := fun k ↦ SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ k)
         (by omega : r + (n + 1) + 1 = r + 1 + (n + 1))
         (mextDerivₗ (𝓘(ℝ, E).prod J) (r + (n + 1)) α)).val b v =
         (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
           mfderivIntegrand o α (Fin.removeNth i v) b (v i) +
-          (-1 : ℤ) ^ (r + 1) • mextDerivₗ J n ⟨_, (isSmoothForm_prodFiberIntegrand
-            (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ k)
-              (by omega : r + (n + 1) = r + 1 + n) α).isSmoothForm b v).mem_smoothBundleForms⟩ :
-          SmoothForm J F ℝ (n + 1)).val := by
+          (-1 : ℤ) ^ (r + 1) • mextDerivₗ J n β : SmoothForm J F ℝ (n + 1)).val := by
       funext y
-      refine ContinuousAlternatingMap.ext fun (w : Fin (n + 1) → E') ↦ ?_
-      rw [prodFiberIntegrand_cast_mextDerivₗ_apply_succ]
-      refine Eq.trans ?_ (hA _ _ y w).symm
-      refine congrArg₂ (· + ·)
-        (Eq.trans (Finset.sum_congr rfl fun i _ ↦
-          (hZ _ (mfderivIntegrand o α (i.removeNth v) b (v i)) y w).symm) (hS _ y w).symm) ?_
-      refine Eq.trans ?_ (hZ _ _ y w).symm
-      rw [mextDerivₗ_apply]
-    rw [h, ← SmoothForm.integralTopFormₗ_apply, map_add, map_sum, map_zsmul,
-      SmoothForm.integralTopFormₗ_apply, mextDerivₗ_apply,
+      refine ContinuousAlternatingMap.ext fun (w : Fin (n + 1) → TangentSpace J y) ↦ ?_
+      refine (prodFiberIntegrand_cast_mextDerivₗ_apply_succ α b v y w).trans ?_
+      simp only [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+        (sum_mfderivIntegrand o α b v).1 y w, Submodule.coe_smul_of_tower, Pi.smul_apply,
+        ContinuousAlternatingMap.smul_apply, mextDerivₗ_apply]
+      -- `β` is, by its definition, the integrand `prodFiberIntegrand (cast α) b v`.
+      rfl
+    rw [h, ← SmoothForm.integralTopFormₗ_apply, ← SmoothForm.integralTopFormₗ_apply, map_add,
+      map_zsmul, SmoothForm.integralTopFormₗ_apply o (mextDerivₗ J n β), mextDerivₗ_apply,
       integralTopForm_mextDeriv_eq_zero o (SmoothForm.isSmoothForm _ |>.of_le (by simp))
         (isClosed_tsupport _).isCompact, smul_zero, add_zero]
-    exact Finset.sum_congr rfl fun i _ ↦
-      (map_zsmul _ _ _).trans (congrArg _ (integralTopFormₗ_mfderivIntegrand o α _ b _))
 
 end SymplecticGeometry
 
