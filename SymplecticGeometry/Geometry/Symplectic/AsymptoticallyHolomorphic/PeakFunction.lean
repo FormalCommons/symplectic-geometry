@@ -403,14 +403,7 @@ theorem dbarFunction_eq_flatDbar_comp (f : StdSpace ι → ℂ) (z : StdSpace ι
     (stdComplexStructure ι).constSmooth.dbarFunction f z =
       flatDbar f z ∘L (NormedSpace.fromTangentSpace (𝕜 := ℝ) z : _ →L[ℝ] StdSpace ι) := by
   ext v
-  rw [SmoothAlmostComplexStructure.dbarFunction_apply, mvfderiv_eq_fderiv_apply,
-    mvfderiv_eq_fderiv_apply, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    NormedSpace.fromTangentSpace_apply]
-  refine Eq.trans ?_ (flatDbar_apply f z v).symm
-  rw [smul_eq_mul Complex.I]
-  -- `rw` cannot use `constSmooth_apply` here: `v` lies in the tangent space, a type synonym.
-  exact congrArg (fun w ↦ (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z w))
-    (AlmostComplexStructure.constSmooth_apply _ z v)
+  simp [SmoothAlmostComplexStructure.dbarFunction_apply, mvfderiv_eq_fderiv, flatDbar_apply]
 
 /-- The flat `∂̄` of `f` at `z`, applied to `v`, is Tau Ceti's `∂̄` on functions for the constant
 structure `J₀`, applied to `v` read as a tangent vector at `z`. -/
@@ -425,56 +418,45 @@ theorem flatDbar_apply_eq_dbarFunction (f : StdSpace ι → ℂ) (z v : StdSpace
 theorem flatDbar_eq_zero_iff (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDbar f z = 0 ↔
       ∀ v, fderiv ℝ f z (stdComplexStructure ι v) = Complex.I * fderiv ℝ f z v := by
-  set e := NormedSpace.fromTangentSpace (𝕜 := ℝ) z
-  have he : flatDbar f z = 0 ↔
-      flatDbar f z ∘L (e : TangentSpace 𝓘(ℝ, StdSpace ι) z →L[ℝ] StdSpace ι) = 0 :=
-    ⟨fun h ↦ by rw [h, ContinuousLinearMap.zero_comp], fun h ↦ ContinuousLinearMap.ext fun v ↦ by
-      rw [← e.apply_symm_apply v, ← ContinuousLinearEquiv.coe_coe,
-        ← ContinuousLinearMap.comp_apply, h, zero_apply, zero_apply]⟩
-  rw [he, ← dbarFunction_eq_flatDbar_comp,
-    SmoothAlmostComplexStructure.dbarFunction_eq_zero_iff]
-  refine forall_congr' fun v ↦ ?_
-  rw [mvfderiv_eq_fderiv_apply, mvfderiv_eq_fderiv_apply, smul_eq_mul]
-  -- As in `dbarFunction_eq_flatDbar_comp`, `v` lies in the tangent space.
-  exact Iff.of_eq (congrArg (fun w ↦ fderiv ℝ f z w = Complex.I * fderiv ℝ f z v)
-    (AlmostComplexStructure.constSmooth_apply _ z v))
+  have h := (stdComplexStructure ι).constSmooth.dbarFunction_eq_zero_iff f z
+  simp only [mvfderiv_eq_fderiv, smul_eq_mul, ContinuousLinearMap.comp_apply,
+    dbarFunction_eq_flatDbar_comp, ContinuousLinearMap.ext_iff] at h
+  rw [ContinuousLinearMap.ext_iff]
+  refine h.trans (forall_congr' fun v ↦ ?_)
+  -- `v` lies in the type synonym `TangentSpace _ z`, so the lemmas take it explicitly.
+  simp only [ContinuousLinearEquiv.coe_coe, NormedSpace.fromTangentSpace_apply,
+    AlmostComplexStructure.constSmooth_apply _ z v,
+    NormedSpace.fromTangentSpace_apply (𝕜 := ℝ) z ((stdComplexStructure ι).toLinearMap v)]
 
 /-- The flat `∂̄` is additive on functions differentiable at `z`. -/
 theorem flatDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) : flatDbar (f + g) z = flatDbar f z + flatDbar g z := by
   ext v
-  rw [add_apply, flatDbar_apply_eq_dbarFunction, flatDbar_apply_eq_dbarFunction,
-    flatDbar_apply_eq_dbarFunction, SmoothAlmostComplexStructure.dbarFunction_add _
-    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg),
-    add_apply]
+  simp [flatDbar_apply_eq_dbarFunction, SmoothAlmostComplexStructure.dbarFunction_add _
+    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)]
 
 /-- The flat `∂̄` commutes with complex scalars. -/
 @[simp]
 theorem flatDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDbar (c • f) z = c • flatDbar f z := by
   ext v
-  rw [smul_apply, flatDbar_apply_eq_dbarFunction, flatDbar_apply_eq_dbarFunction,
-    SmoothAlmostComplexStructure.dbarFunction_const_smul, smul_apply]
+  simp [flatDbar_apply_eq_dbarFunction]
 
 @[simp]
 theorem flatDbar_zero (z : StdSpace ι) : flatDbar (0 : StdSpace ι → ℂ) z = 0 := by
   ext v
-  rw [flatDbar_apply_eq_dbarFunction, SmoothAlmostComplexStructure.dbarFunction_zero, zero_apply,
-    zero_apply]
+  simp [flatDbar_apply_eq_dbarFunction]
 
 /-- The **Leibniz rule** for the flat `∂̄`: for `f` and `g` differentiable at `z`, the flat `∂̄`
 of `f * g` at `z` is `f z` times the flat `∂̄` of `g` plus `g z` times the flat `∂̄` of `f`. -/
 theorem flatDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) :
     flatDbar (fun y ↦ f y * g y) z = f z • flatDbar g z + g z • flatDbar f z := by
-  have h := SmoothAlmostComplexStructure.dbarFunction_smul (stdComplexStructure ι).constSmooth
+  have h := (stdComplexStructure ι).constSmooth.dbarFunction_smul
     (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)
-  rw [show f • g = fun y ↦ f y * g y from funext fun y ↦ smul_eq_mul (f y) (g y)] at h
+  simp only [smul_eq_mul] at h
   ext v
-  rw [flatDbar_apply_eq_dbarFunction, h, add_apply, add_apply, smul_apply, smul_apply,
-    ContinuousLinearMap.smulRight_apply, ← flatDbar_apply_eq_dbarFunction,
-    ← flatDbar_apply_eq_dbarFunction, smul_apply, smul_eq_mul, smul_eq_mul, smul_eq_mul,
-    mul_comm (g z)]
+  simp [flatDbar_apply_eq_dbarFunction, ← Pi.mul_def, h, mul_comm]
 
 /-- The flat `∂̄` of the complex coordinate `z_j` vanishes: it is complex linear for `J₀`. -/
 @[simp]
