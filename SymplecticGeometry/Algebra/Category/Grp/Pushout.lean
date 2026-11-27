@@ -32,7 +32,9 @@ square of `φ false` and `φ true` in `GrpCat` is identified with it.
   G true --inr------>  P
   ```
   in `GrpCat`, the isomorphism `P ≃* Monoid.PushoutI φ`, which sends `inl x` to
-  `Monoid.PushoutI.of false x` and `inr x` to `Monoid.PushoutI.of true x`.
+  `Monoid.PushoutI.of false x` and `inr x` to `Monoid.PushoutI.of true x`. Its `simp` lemmas
+  have two forms: one for legs that are any morphisms of `GrpCat`, and one for legs
+  `GrpCat.ofHom i` and `GrpCat.ofHom j` given by group homomorphisms.
 
 The square is a pushout because `Monoid.PushoutI.lift` gives the map out of it to any cocone, and
 `Monoid.PushoutI.hom_ext_nonempty` its uniqueness; the isomorphism is then
@@ -121,16 +123,26 @@ noncomputable def mulEquivPushoutI
     P ≃* Monoid.PushoutI φ :=
   (hP.isoIsPushout _ _ (Monoid.PushoutI.isPushout φ)).groupIsoToMulEquiv
 
+/-! The left sides of the next lemmas name the types `G false` and `G true` of the argument of
+`inl` and `inr` explicitly, rather than the inferred `GrpCat.of (G false)` and
+`GrpCat.of (G true)`. The `simp` index reduces `GrpCat.of X` to `X` in a goal but not in the
+statement of a lemma, so with the inferred types `simp` would never try these lemmas. The two
+forms are defeq, so the proofs are unchanged. -/
+
 @[simp]
 theorem mulEquivPushoutI_inl
     (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G false) :
-    hP.mulEquivPushoutI (inl x) = Monoid.PushoutI.of false x :=
+    hP.mulEquivPushoutI
+      (@DFunLike.coe (G false →* P) (G false) _ _ (ConcreteCategory.hom inl) x) =
+      Monoid.PushoutI.of false x :=
   ConcreteCategory.congr_hom (hP.inl_isoIsPushout_hom _ _ (Monoid.PushoutI.isPushout φ)) x
 
 @[simp]
 theorem mulEquivPushoutI_inr
     (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G true) :
-    hP.mulEquivPushoutI (inr x) = Monoid.PushoutI.of true x :=
+    hP.mulEquivPushoutI
+      (@DFunLike.coe (G true →* P) (G true) _ _ (ConcreteCategory.hom inr) x) =
+      Monoid.PushoutI.of true x :=
   ConcreteCategory.congr_hom (hP.inr_isoIsPushout_hom _ _ (Monoid.PushoutI.isPushout φ)) x
 
 @[simp]
@@ -144,6 +156,47 @@ theorem mulEquivPushoutI_symm_of_true
     (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G true) :
     hP.mulEquivPushoutI.symm (Monoid.PushoutI.of true x) = inr x := by
   rw [MulEquiv.symm_apply_eq, mulEquivPushoutI_inr]
+
+/-! The same lemmas for a square whose legs are `GrpCat.ofHom i` and `GrpCat.ofHom j`, stated
+with `i x` and `j x`, the form to which `simp` brings `GrpCat.ofHom i x`. For the same reason
+as above, their left sides give the domain of `mulEquivPushoutI` and the codomain of its
+inverse as `Q`, not as the inferred `GrpCat.of Q`. They have low priority: a bundled leg `inl`
+is also `GrpCat.ofHom inl.hom` up to eta, and on such a square the lemmas above are the ones
+wanted. -/
+
+section ofHom
+
+variable {Q : Type u} [Group Q] {i : G false →* Q} {j : G true →* Q}
+
+@[simp low]
+theorem mulEquivPushoutI_ofHom_inl (hP : IsPushout (GrpCat.ofHom (φ false))
+    (GrpCat.ofHom (φ true)) (GrpCat.ofHom i) (GrpCat.ofHom j)) (x : G false) :
+    @DFunLike.coe (Q ≃* Monoid.PushoutI φ) Q _ _ hP.mulEquivPushoutI (i x) =
+      Monoid.PushoutI.of false x := by
+  simpa using hP.mulEquivPushoutI_inl x
+
+@[simp low]
+theorem mulEquivPushoutI_ofHom_inr (hP : IsPushout (GrpCat.ofHom (φ false))
+    (GrpCat.ofHom (φ true)) (GrpCat.ofHom i) (GrpCat.ofHom j)) (x : G true) :
+    @DFunLike.coe (Q ≃* Monoid.PushoutI φ) Q _ _ hP.mulEquivPushoutI (j x) =
+      Monoid.PushoutI.of true x := by
+  simpa using hP.mulEquivPushoutI_inr x
+
+@[simp low]
+theorem mulEquivPushoutI_symm_of_false_ofHom (hP : IsPushout (GrpCat.ofHom (φ false))
+    (GrpCat.ofHom (φ true)) (GrpCat.ofHom i) (GrpCat.ofHom j)) (x : G false) :
+    @DFunLike.coe (Monoid.PushoutI φ ≃* Q) _ _ _ (MulEquiv.symm (M := Q) hP.mulEquivPushoutI)
+      (Monoid.PushoutI.of false x) = i x := by
+  simpa using hP.mulEquivPushoutI_symm_of_false x
+
+@[simp low]
+theorem mulEquivPushoutI_symm_of_true_ofHom (hP : IsPushout (GrpCat.ofHom (φ false))
+    (GrpCat.ofHom (φ true)) (GrpCat.ofHom i) (GrpCat.ofHom j)) (x : G true) :
+    @DFunLike.coe (Monoid.PushoutI φ ≃* Q) _ _ _ (MulEquiv.symm (M := Q) hP.mulEquivPushoutI)
+      (Monoid.PushoutI.of true x) = j x := by
+  simpa using hP.mulEquivPushoutI_symm_of_true x
+
+end ofHom
 
 end PushoutI
 
@@ -199,13 +252,13 @@ noncomputable def quotientNormalClosureMulEquiv (hP : IsPushout f g inl inr)
   (QuotientGroup.quotientMulEquivOfEq (hP.ker_inr_eq_normalClosure hf).symm).trans
     (QuotientGroup.quotientKerEquivOfSurjective inr.hom (hP.surjective_inr_of_surjective hf))
 
-@[simp]
+@[simp low]
 theorem quotientNormalClosureMulEquiv_mk (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (x : G₂) :
     hP.quotientNormalClosureMulEquiv hf (QuotientGroup.mk x) = inr x := by
   simp [quotientNormalClosureMulEquiv, QuotientGroup.quotientKerEquivOfSurjective]
 
-@[simp]
+@[simp low]
 theorem quotientNormalClosureMulEquiv_symm_inr (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (x : G₂) :
     (hP.quotientNormalClosureMulEquiv hf).symm (inr x) = QuotientGroup.mk x := by
@@ -229,13 +282,13 @@ noncomputable def inrMulEquivOfKerLe (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) : G₂ ≃* P :=
   MulEquiv.ofBijective inr.hom (hP.bijective_inr_of_ker_le hf hfg)
 
-@[simp]
+@[simp low]
 theorem inrMulEquivOfKerLe_apply (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : G₂) :
     hP.inrMulEquivOfKerLe hf hfg x = inr x := by
   simp [inrMulEquivOfKerLe]
 
-@[simp]
+@[simp low]
 theorem inrMulEquivOfKerLe_symm_inr (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : G₂) :
     (hP.inrMulEquivOfKerLe hf hfg).symm (inr x) = x := by
