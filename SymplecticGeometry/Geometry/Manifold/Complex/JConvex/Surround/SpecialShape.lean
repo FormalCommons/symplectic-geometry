@@ -312,6 +312,23 @@ theorem isConvexShapeAt_struweShape_of_lt (hδ : 0 < δ) (hK : 1 ≤ K) {c r : �
     rw [e, div_lt_div_iff₀ hχ₀ (by positivity)]
     linarith
 
+/-- Struwe's shape is an `i`-convex shape at every point of `(δ, R]` if its value at `δ` is at
+least `m`, `R √(log (R / δ)) ≤ m` and `2 R √(log (R / δ))³ ≤ m`. -/
+theorem isConvexShapeAt_struweShape_of_le_of_mem_Ioc {c m R r : ℝ} (hδ : 0 < δ)
+    (hK : 1 ≤ K) (h : m ≤ struweShape δ K c δ) (h₁ : R * √(log (R / δ)) ≤ m)
+    (h₂ : 2 * R * √(log (R / δ)) ^ 3 ≤ m) (hr : r ∈ Ioc δ R) :
+    IsConvexShapeAt (struweShape δ K c) r := by
+  have hS : m < struweShape δ K c r := h.trans_lt (strictMonoOn_struweShape hδ hK _
+    (mem_Ici.2 le_rfl) (mem_Ici.2 hr.1.le) hr.1)
+  have hr₀ : 0 < r := hδ.trans hr.1
+  have hR : 0 ≤ R := hr₀.le.trans hr.2
+  have ht₀ : 0 ≤ √(log (r / δ)) := sqrt_nonneg _
+  have ht : √(log (r / δ)) ≤ √(log (R / δ)) :=
+    sqrt_le_sqrt (log_le_log (div_pos hr₀ hδ) (div_le_div_of_nonneg_right hr.2 hδ.le))
+  refine isConvexShapeAt_struweShape_of_lt hδ hK hr.1 ?_ ?_
+  · nlinarith [mul_le_mul hr.2 ht ht₀ hR]
+  · nlinarith [mul_le_mul hr.2 (pow_le_pow_left₀ ht₀ ht 3) (by positivity) hR]
+
 /-- The bounds on `K` that the hypothesis `exp (4 / d²) ≤ K` gives: `1 < K`, `0 < log K` and
 `2 ≤ d √(log K)`. -/
 private theorem struwe_log_bounds {d : ℝ} (hd : 0 < d) (hK : exp (4 / d ^ 2) ≤ K) :
@@ -461,45 +478,32 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
   have hval : 1 + d * δ ≤ χ δ := by
     have := sub_le_struweShape hd hδ hK (1 + d * K * δ)
     linarith
-  refine ⟨fun r hr ↦ ?_, ?_, ⟨hval, by linarith⟩,
-    tendsto_deriv_struweShape hδ hK₁ _⟩
-  · have hr₀ : 0 < r := hδ.trans hr.1
-    have hL : 0 < log (r / δ) := log_pos ((one_lt_div hδ).2 hr.1)
-    have hLK : log (r / δ) ≤ log K :=
-      log_le_log (div_pos hr₀ hδ) ((div_le_iff₀ hδ).2 hr.2)
-    set t := √(log (r / δ))
-    have ht₀ : 0 < t := sqrt_pos.2 hL
-    have hts : t ≤ s := sqrt_le_sqrt hLK
-    have hχr : 1 + d * δ < χ r := hval.trans_lt
-      (strictMonoOn_struweShape hδ hK₁ _ (mem_Ici.2 le_rfl) hr.1.le hr.1)
-    -- `r t < χ r`.
-    have h₁ : r * t < χ r := by
-      have hrt : r * t ≤ K * δ * s := mul_le_mul hr.2 hts ht₀.le (by positivity)
-      refine hrt.trans_lt (lt_of_le_of_lt ?_ hχr)
-      -- `K δ s ≤ 1 + d δ`, multiplied by `s² > 0`.
-      have hdδ : 2 * δ * s ≤ d * δ * s ^ 2 := by
-        have := mul_le_mul_of_nonneg_left hds (by positivity : (0 : ℝ) ≤ δ * s)
-        nlinarith
-      rcases le_total (1 / 4) (s ^ 2) with h | h
-      · nlinarith
-      · -- `K (1 - log K) ≤ 1`, so `K ≤ 4 / 3` and `K s² ≤ 1 / 3`.
-        have he := add_one_le_exp (-log K)
-        rw [exp_neg, exp_log hK₀] at he
-        have hK3 := mul_le_mul_of_nonneg_left he hK₀.le
-        rw [mul_inv_cancel₀ hK₀.ne'] at hK3
-        have hK43 : K ≤ 4 / 3 := by nlinarith
-        have hKs : K * s ^ 2 ≤ 1 / 3 := by
-          nlinarith [mul_le_mul hK43 h (sq_nonneg s) (by norm_num : (0 : ℝ) ≤ 4 / 3)]
-        have : K * δ * s ^ 3 ≤ 1 / 3 * δ * s := by
-          have := mul_le_mul_of_nonneg_right hKs (by positivity : (0 : ℝ) ≤ δ * s)
-          linear_combination this
-        nlinarith
-    -- `2 r t³ < χ r`.
-    have h₂ : 2 * r * t ^ 3 < χ r := by
-      have : r * t ^ 3 ≤ K * δ * s ^ 3 :=
-        mul_le_mul hr.2 (pow_le_pow_left₀ ht₀.le hts 3) (by positivity) (by positivity)
+  have hKδ' : K * δ / δ = K := mul_div_cancel_right₀ K hδ.ne'
+  -- `K δ s ≤ 1 + d δ`.
+  have hB : K * δ * s ≤ 1 + d * δ := by
+    -- `2 δ s ≤ d δ s²`, from `2 ≤ d s`.
+    have hdδ : 2 * δ * s ≤ d * δ * s ^ 2 := by
+      have := mul_le_mul_of_nonneg_left hds (by positivity : (0 : ℝ) ≤ δ * s)
       nlinarith
-    exact isConvexShapeAt_struweShape_of_lt hδ hK₁ hr.1 h₁ h₂
+    rcases le_total (1 / 4) (s ^ 2) with h | h
+    · nlinarith
+    · -- `K (1 - log K) ≤ 1`, so `K ≤ 4 / 3` and `K s² ≤ 1 / 3`.
+      have he := add_one_le_exp (-log K)
+      rw [exp_neg, exp_log hK₀] at he
+      have hK3 := mul_le_mul_of_nonneg_left he hK₀.le
+      rw [mul_inv_cancel₀ hK₀.ne'] at hK3
+      have hK43 : K ≤ 4 / 3 := by nlinarith
+      have hKs : K * s ^ 2 ≤ 1 / 3 := by
+        nlinarith [mul_le_mul hK43 h (sq_nonneg s) (by norm_num : (0 : ℝ) ≤ 4 / 3)]
+      have : K * δ * s ^ 3 ≤ 1 / 3 * δ * s := by
+        have := mul_le_mul_of_nonneg_right hKs (by positivity : (0 : ℝ) ≤ δ * s)
+        linear_combination this
+      nlinarith
+  refine ⟨fun r hr ↦ isConvexShapeAt_struweShape_of_le_of_mem_Ioc hδ hK₁ hval ?_ ?_ hr, ?_,
+    ⟨hval, by linarith⟩, tendsto_deriv_struweShape hδ hK₁ _⟩
+  · rwa [hKδ']
+  · rw [hKδ']
+    nlinarith [mul_pos hd hδ]
   · rw [deriv_struweShape_mul hδ hK₁' _, div_le_iff₀ hs₀]
     linarith
 
@@ -842,23 +846,6 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ 
   refine ⟨d, ⟨lt_trans (by have := sub_pos.2 ha; positivity) hd.1, hd.2⟩, β,
     ⟨hβ.1, hβ.2.trans_le hγγ'⟩, ψ, hψs, hψc, fun r hr ↦ by simpa using hψS r (hγγ'.trans hr),
     hψL⟩
-
-/-- Struwe's shape is an `i`-convex shape at every point of `(δ, R]` if its value at `δ` is at
-least `m`, `R √(log (R / δ)) ≤ m` and `2 R √(log (R / δ))³ ≤ m`. -/
-theorem isConvexShapeAt_struweShape_of_le_of_mem_Ioc {δ K c m R r : ℝ} (hδ : 0 < δ)
-    (hK : 1 ≤ K) (h : m ≤ struweShape δ K c δ) (h₁ : R * √(log (R / δ)) ≤ m)
-    (h₂ : 2 * R * √(log (R / δ)) ^ 3 ≤ m) (hr : r ∈ Ioc δ R) :
-    IsConvexShapeAt (struweShape δ K c) r := by
-  have hS : m < struweShape δ K c r := h.trans_lt (strictMonoOn_struweShape hδ hK _
-    (mem_Ici.2 le_rfl) (mem_Ici.2 hr.1.le) hr.1)
-  have hr₀ : 0 < r := hδ.trans hr.1
-  have hR : 0 ≤ R := hr₀.le.trans hr.2
-  have ht₀ : 0 ≤ √(log (r / δ)) := sqrt_nonneg _
-  have ht : √(log (r / δ)) ≤ √(log (R / δ)) :=
-    sqrt_le_sqrt (log_le_log (div_pos hr₀ hδ) (div_le_div_of_nonneg_right hr.2 hδ.le))
-  refine isConvexShapeAt_struweShape_of_lt hδ hK hr.1 ?_ ?_
-  · nlinarith [mul_le_mul hr.2 ht ht₀ hR]
-  · nlinarith [mul_le_mul hr.2 (pow_le_pow_left₀ ht₀ ht 3) (by positivity) hR]
 
 /-- **The surrounding shape** (Cieliebak–Eliashberg, Proposition 4.21, the part about the shape).
 For `1 < a` and `0 < γ` there are `δ ∈ (0, γ)` and a function `χ`, smooth on `(δ, ∞)` and

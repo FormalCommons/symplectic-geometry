@@ -370,6 +370,12 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
   have hinv (T : ℝ) (x : M) : hW.flow (-T) (hW.flow T x) = x := by simp
   have hQ (x : E) : P x ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) x
   set Q : E →L[ℝ] S := P.codRestrict S hQ with hQdef
+  -- The map `x ↦ Q (e x - e p)` is a left inverse of `ι` on the ball.
+  have hQι (z : S) (hz : z ∈ ball (0 : S) ρ) : Q (e (ι z) - e p) = z := by
+    ext
+    rw [ContinuousLinearMap.coe_codRestrict_apply]
+    simp only [hι]
+    rw [e.right_inv (hq z hz), add_sub_cancel_left, map_add, hPg, add_zero, hPz]
   -- Smoothness spreads from a small ball to the ball of radius `ρ` along the flow: for `T`
   -- large, `ι = φ_{-T} ∘ ι ∘ h` near `z`, with `h` landing where `g` is `C^m`, and `h` has the
   -- `C^m` left inverse `u ↦ P (e (φ_{-T} (ι u)) - e p)`.
@@ -422,12 +428,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
             (h z) hιhz) hback
       exact Q.contDiff.contDiffAt.comp _ ((contMDiffAt_iff_contDiffAt.1 h1).sub contDiffAt_const)
     have hkh : ∀ᶠ w in 𝓝 z, Q (e (hW.flow (-T) (ι (h w))) - e p) = w :=
-      (hιh.and hev).mono fun w ⟨hw, hw', _⟩ ↦ by
-        rw [hw, hinv]
-        ext
-        rw [ContinuousLinearMap.coe_codRestrict_apply]
-        simp only [hι]
-        rw [e.right_inv (hq w hw'), add_sub_cancel_left, map_add, hPg, add_zero, hPz]
+      (hιh.and hev).mono fun w ⟨hw, hw', _⟩ ↦ by rw [hw, hinv, hQι w hw']
     have hhC : ContDiffAt ℝ m h z :=
       ContDiffAt.of_local_left_inverse_of_finrank_eq hk hhd hkh hm0 rfl
     have hcomp : ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m (fun w ↦ hW.flow (-T) (ι (h w))) z :=
@@ -499,17 +500,12 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     rw [heq.fderiv_eq, hD.fderiv]
     exact (ContinuousLinearMap.opNorm_comp_le _ _).trans
       ((mul_le_of_le_one_right (norm_nonneg _) (Submodule.norm_subtypeL_le S)).trans (hC t ht))
-  · -- The left inverse `x ↦ P (e x - e p)` of the disc.
-    have hPS' (w : E) : P w ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) w
-    refine ⟨fun x ↦ P.codRestrict S hPS' (e x - e p), ?_, fun z hz ↦ ?_⟩
-    · have h : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞) (fun x ↦ e x - e p) e.source := by
-        rw [he, extChartAt_source]
-        exact contMDiffOn_extChartAt.sub contMDiffOn_const
-      exact (P.codRestrict S hPS').contDiff.contMDiff.comp_contMDiffOn h
-    · obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
-      have hq : e p + ((z : E) + g z) ∈ e.target := by simpa [hy0] using (horb z hz 0 le_rfl).1
-      ext
-      simp [hι, e.right_inv hq, hPg, hPz]
+  · -- The left inverse `x ↦ Q (e x - e p)` of the disc.
+    refine ⟨fun x ↦ Q (e x - e p), ?_, hQι⟩
+    have h : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞) (fun x ↦ e x - e p) e.source := by
+      rw [he, extChartAt_source]
+      exact contMDiffOn_extChartAt.sub contMDiffOn_const
+    exact Q.contDiff.contMDiff.comp_contMDiffOn h
 
 section Bounded
 
