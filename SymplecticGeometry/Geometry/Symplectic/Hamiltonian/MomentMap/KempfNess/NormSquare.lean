@@ -11,11 +11,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormS
 /-!
 # The norm square of a moment map
 
-Let `-μ` be a moment map for `σ` of the action of `G` on `M` by fundamental vector fields, let
-`J` be an almost complex structure on `M`, and let the metric be `g(u, w) = σ(u, J w)`, as in
-`KempfNess/Basic.lean`. For a nondegenerate symmetric bilinear form `B` on the Lie algebra, this
-file studies the norm square `‖μ‖² = momentNormSq B hB μ`, whose negative gradient flow drives a
-point of `M` towards the zero set of `μ` inside its orbit under the complexified group.
+We work in the setting of `KempfNess/Basic.lean`: `-μ` is a moment map for `σ` of the action of
+`G` on `M` by fundamental vector fields, `J` is an almost complex structure on `M`, and the metric
+is `g(u, w) = σ(u, J w)`. For a nondegenerate symmetric bilinear form `B` on the Lie algebra, this
+file computes the gradient of the norm square `‖μ‖² = momentNormSq B hB μ`.
 
 ## Main results
 
