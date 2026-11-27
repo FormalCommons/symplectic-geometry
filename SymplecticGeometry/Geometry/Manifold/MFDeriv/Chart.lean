@@ -35,6 +35,8 @@ so it is injective where the derivative of `h` is.
   range of `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
 * `ContMDiff.contDiffOn_comp_extChartAt_symm`: a `C^n` map into a normed space is `C^n` in every
   chart.
+* `ContMDiffOn.contDiffOn_extChartAt_comp`: a map from a normed space into a manifold, `C^n` on a
+  set, is `C^n` in every chart where its reading is defined.
 * `SymplecticGeometry.injective_mfderiv_extChartAt_symm_comp`: a map into the chart target with
   injective derivative, composed with the inverse chart, has injective differential.
 -/
@@ -88,5 +90,13 @@ theorem ContMDiff.contDiffOn_comp_extChartAt_symm {n : WithTop ℕ∞} [IsManifo
     (hf : ContMDiff I 𝓘(𝕜, F) n f) (x : M) :
     ContDiffOn 𝕜 n (f ∘ (extChartAt I x).symm) (extChartAt I x).target :=
   contMDiffOn_iff_contDiffOn.mp (hf.comp_contMDiffOn (contMDiffOn_extChartAt_symm x))
+
+/-- A map from a normed space into `M` that is `C^n` on a set `s` is `C^n` in every chart: its
+reading `extChartAt I x ∘ g` is `C^n` on the points of `s` that `g` maps into the source of the
+chart at `x`. -/
+theorem ContMDiffOn.contDiffOn_extChartAt_comp {n : WithTop ℕ∞} [IsManifold I n M] {g : F → M}
+    {s : Set F} (hg : ContMDiffOn 𝓘(𝕜, F) I n g s) (x : M) :
+    ContDiffOn 𝕜 n (extChartAt I x ∘ g) (s ∩ g ⁻¹' (chartAt H x).source) :=
+  (contMDiffOn_extChartAt.comp (hg.mono Set.inter_subset_left) fun _ hy ↦ hy.2).contDiffOn
 
 end
