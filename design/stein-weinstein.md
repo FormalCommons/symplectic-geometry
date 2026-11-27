@@ -1044,7 +1044,8 @@ containing `ι '' closedBall 0 1`:
   write `re z` and `im z` for the real and imaginary parts of
   `z : EuclideanSpace ℂ ι'`, as points of `EuclideanSpace ℝ ι'`, and call
   `z` real when `im z = 0`. Issue 14d13 applies these results to `V`
-  through the complex linear isometry of `V` with
+  through the continuous complex linear equivalence
+  `EuclideanSpace.sumEquivProd.symm` of `V` with
   `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, under which the real points are
   `{Im z = 0, Im w = 0}` and `‖im p‖ ≤ √(t p)`.
   - `taylorExtension N f z = ∑ j ∈ Finset.range (N + 1),
