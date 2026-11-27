@@ -230,6 +230,23 @@ theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj
   exact e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hb
     (TauCeti.RoughForm.isSemibasic_mpullback IB proj β)
 
+/-- **Forms from the base leave the fibres unchanged.** Adding to a smooth form `τ` of positive
+degree a multiple of the pull-back `proj^* β` of a smooth form on the base does not change its
+pull-back to a fibre. -/
+theorem mpullback_fiberInclusionMap_add_smul_mpullback [IsManifold IB ∞ B] [IsManifold IF ∞ F]
+    [IsManifold IM ∞ M] (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet)
+    (hι : ContMDiff IF IM ∞ (e.fiberInclusionMap hb)) (hk : k ≠ 0)
+    (hproj : ContMDiff IM IB ∞ proj) (τ : TauCeti.SmoothForm IM M V k)
+    (β : TauCeti.SmoothForm IB B V k) (c : ℝ) :
+    TauCeti.SmoothForm.mpullback (e.fiberInclusionMap hb) hι
+        (τ + c • TauCeti.SmoothForm.mpullback proj hproj β) =
+      TauCeti.SmoothForm.mpullback (e.fiberInclusionMap hb) hι τ := by
+  apply Subtype.ext
+  rw [TauCeti.SmoothForm.coe_mpullback, TauCeti.SmoothForm.coe_mpullback, Submodule.coe_add,
+    Submodule.coe_smul, TauCeti.SmoothForm.coe_mpullback, TauCeti.mpullback_add,
+    TauCeti.mpullback_smul, e.mpullback_fiberInclusionMap_mpullback_eq_zero hb hk, smul_zero,
+    add_zero]
+
 /-- **Vertical exterior derivative from the fibres.** Let `e` be a trivialization of `proj` that
 is differentiable, with `C²` inverse, and let `α` be a `C¹` form on `M`. If the pull-back of `α`
 to the fibre through `x` is closed, then the exterior derivative of `α` vanishes at `x` on every
