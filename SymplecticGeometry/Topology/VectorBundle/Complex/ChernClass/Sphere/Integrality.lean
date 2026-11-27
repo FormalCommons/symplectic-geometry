@@ -8,10 +8,10 @@ module
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Newton
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.ProjectiveLinePow
-import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Collapse
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.ProjectiveLinePow
 
@@ -27,10 +27,8 @@ class is divisible by `(m - 1)!`. This is
 
 The proof follows Hatcher [Hatcher2017, Chapter 4]:
 
-* The cohomology of `S^{2m}` vanishes in the degrees strictly between `0` and `2m`
-  (`TopCat.isZero_integralCohomology_sphere_of_ne`), so Newton's identity
-  `SymplecticGeometry.Bundle.newtonClass_eq_of_cup_eq_zero` gives
-  `s_m(V) = (-1)^(m-1) m c_m(V)`.
+* On `S^{2m}`, Newton's identity reads `s_m(V) = (-1)^(m-1) m c_m(V)`
+  (`SymplecticGeometry.Bundle.newtonClass_sphere`).
 * Let `κ : (ℂP¹)^m → S^{2m}` be the iterated collapse map and `y_i` the pulled-back first Chern
   classes of the tautological lines. By
   `exists_singularCohomologyMap_projectiveLinePowCollapse_eq_evalFundamentalClass_smul`,
@@ -70,17 +68,6 @@ variable {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDime
   [∀ b, Module ℝ (V b)] [∀ b, IsScalarTower ℝ ℂ (V b)] [∀ b, TopologicalSpace (V b)]
   [TopologicalSpace (TotalSpace G V)] [FiberBundle G V] [VectorBundle ℂ G V]
 
-omit [FiniteDimensional ℝ E] [FiniteDimensional ℂ G] in
-/-- **Newton's identity on an even sphere.** For a complex vector bundle `V` over the unit
-sphere `S^{2m}` of a real inner product space of dimension `2 m + 1`, with `m ≠ 0`,
-`s_m(V) = (-1)^(m-1) m c_m(V)`. -/
-theorem newtonClass_sphere {m : ℕ} (hE : finrank ℝ E = 2 * m + 1) (hm : m ≠ 0) :
-    newtonClass G V m = ((-1) ^ (m - 1) * m : ℤ) • chernClass G V m := by
-  refine newtonClass_eq_of_cup_eq_zero G V hm fun a b hab ha hb x y ↦ ?_
-  have := ModuleCat.subsingleton_of_isZero
-    (TopCat.isZero_integralCohomology_sphere_of_ne hE (q := 2 * a) (by omega) (by omega))
-  rw [Subsingleton.elim x 0, map_zero, LinearMap.zero_apply]
-
 /-- **Bott's integrality theorem on even spheres.** Let `V` be a complex vector bundle over the
 unit sphere `S^{2(r+1)}` of a real inner product space `E` of dimension `2 (r + 1) + 1`, and let
 `o` be an orientation of the sphere. Then `r!` divides the evaluation of the Chern class
@@ -113,13 +100,10 @@ theorem factorial_dvd_evalFundamentalClass_chernClass_sphere {r : ℕ}
     (by omega), map_zsmul, smul_eq_mul, Nat.add_sub_cancel] at hk'
   -- since `Y` has infinite order, the coefficients agree
   have hcoeff : k * ((r + 1)! : ℤ) =
-      ε * ((-1) ^ r * ((r + 1 : ℕ) : ℤ) * e (chernClass G V (r + 1))) := by
-    by_contra hne
-    have hz : (k * ((r + 1)! : ℤ) -
-        ε * ((-1) ^ r * ((r + 1 : ℕ) : ℤ) * e (chernClass G V (r + 1)))) • Y = 0 := by
-      rw [sub_zsmul, ← hk', mul_zsmul, natCast_zsmul, add_neg_cancel]
-    exact Projectivization.not_isOfFinAddOrder_prod_chernClass (r + 1)
-      (isOfFinAddOrder_iff_zsmul_eq_zero.2 ⟨_, sub_ne_zero.2 hne, hz⟩)
+      ε * ((-1) ^ r * ((r + 1 : ℕ) : ℤ) * e (chernClass G V (r + 1))) :=
+    injective_zsmul_iff_not_isOfFinAddOrder.2
+      (Projectivization.not_isOfFinAddOrder_prod_chernClass (r + 1))
+      (by simpa only [mul_zsmul, natCast_zsmul] using hk')
   have hunit : IsUnit (ε * (-1) ^ r : ℤ) := by
     refine IsUnit.mul ?_ (isUnit_neg_one.pow r)
     rcases hε with rfl | rfl <;> simp
