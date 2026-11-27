@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # Extension by zero of a smooth family along a partial diffeomorphism
@@ -96,11 +97,8 @@ theorem extendByZeroAlong {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
       filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
         (hKc.isOpen_compl.mem_nhds hxK)] with q hq s
       rw [hβ]
-      refine RoughForm.extendByZeroAlong_apply_of_notMem_image _ fun ⟨y, hy, hyq⟩ ↦
-        hq ⟨y, ?_, hyq⟩
-      by_contra hyK
-      exact notMem_tsupport_iff_eventuallyEq.mpr ((hK.isClosed.isOpen_compl.eventually_mem hyK).mono
-        fun z hz ↦ haK s z hz) hy
+      exact RoughForm.extendByZeroAlong_apply_of_notMem_image _ fun h ↦ hq (image_mono
+        (tsupport_subset_of_forall_notMem_eq_zero (haK s) hK.isClosed) h)
     refine ((contMDiff_zeroSection ℝ (fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] F)).comp
       contMDiff_snd (t, x)).congr_of_eventuallyEq ?_
     filter_upwards [hev] with q hq
