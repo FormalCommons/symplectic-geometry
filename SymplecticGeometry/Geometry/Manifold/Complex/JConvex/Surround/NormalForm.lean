@@ -22,7 +22,7 @@ import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.InnerProductSpace.NormPow
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import SymplecticGeometry.Analysis.Calculus.FDeriv.Sphere
+import TauCeti.Geometry.Manifold.Morse.Sphere.Restriction
 
 /-!
 # Frames adapted to the attaching sphere of a disc
@@ -79,8 +79,9 @@ diffeomorphism `Φ` with `Φ (modelDisc k m x) = ι x` and `dΦ = A x` there, at
 sphere where the radial derivative of `φ ∘ ι` is `-2` and `dφ` vanishes on `A x (0 × ℂᵐ)`. Both
 values are `0`. For the differentials, write a vector of `ℂᵏ × ℂᵐ` as `(u, 0) + i (u', 0) + (0, w)`
 with `u`, `u'` real. Through `A x`, `dφ` sends it to `dφ (dι x u) = -2 ⟪x, u⟫`: radially this is
-the normalization, and tangentially `dφ ∘ dι x` vanishes because `φ ∘ ι` is `0` on the sphere
-(`HasStrictFDerivAt.apply_eq_zero_of_inner_eq_zero`, by Lagrange multipliers). The other two
+the normalization, and tangentially `dφ ∘ dι x` vanishes because `φ ∘ ι` is `0` on the sphere,
+so that `x` is a critical point of its restriction there (Tau Ceti's
+`TauCeti.fderiv_apply_eq_mul_inner_of_mem_criticalPoints_comp_coe_sphere`). The other two
 terms vanish by J-orthogonality and by the choice of `A x`, and the differential of the model
 level at `modelDisc k m x` (`fderiv_modelLevel_apply`) takes the same values. Since `A x` is
 `dΦ`, which is onto, the two differentials at `ι x` agree. This is the comparison of 1-jets in
@@ -488,16 +489,14 @@ theorem apply_eq_modelLevel_symm_apply (h : IsJOrthogonallyAttached E φ ι)
   norm_num
 
 /-- **The differentials of `φ` and of the model level agree on the attaching sphere.** Let `ι` be
-attached J-orthogonally to `{φ ≤ 0}`, and let `x` be a point of the unit sphere such that `ι` is
-`C¹` at `x`, `φ` is `C¹` at `ι x` and the radial derivative `dφ (dι x x)` is `-2`. Let
-`A : ℂᵏ × ℂᵐ → T_(ι x) M` be a real-linear map that commutes with multiplication by `i`, extends
-`dι x` along the model disc and maps the second factor `ℂᵐ` into the kernel of `dφ`, and let `Φ`
-be a partial diffeomorphism from `ℂᵏ × ℂᵐ` to `M`, defined at `modelDisc k m x`, with
-`Φ (modelDisc k m x) = ι x` and differential `A` there. Then `dφ` at `ι x` is the differential
-of `modelLevel k m ∘ Φ.symm` at `ι x`. -/
+attached J-orthogonally to `{φ ≤ 0}`, and let `x` be a point of the unit sphere at which the
+radial derivative `dφ (dι x x)` is `-2`. Let `A : ℂᵏ × ℂᵐ → T_(ι x) M` be a real-linear map
+that commutes with multiplication by `i`, extends `dι x` along the model disc and maps the second
+factor `ℂᵐ` into the kernel of `dφ`, and let `Φ` be a partial diffeomorphism from `ℂᵏ × ℂᵐ` to
+`M`, defined at `modelDisc k m x`, with `Φ (modelDisc k m x) = ι x` and differential `A` there.
+Then `dφ` at `ι x` is the differential of `modelLevel k m ∘ Φ.symm` at `ι x`. -/
 theorem mvfderiv_eq_mvfderiv_modelLevel_comp_symm (h : IsJOrthogonallyAttached E φ ι)
-    {x : EuclideanSpace ℝ (Fin k)} (hx : ‖x‖ = 1) (hφ : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 1 φ (ι x))
-    (hι : ContMDiffAt 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) 1 ι x)
+    {x : EuclideanSpace ℝ (Fin k)} (hx : ‖x‖ = 1)
     (hrad : mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x x) = -2)
     {A : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
     (hAI : ∀ v, A (Complex.I • v) = Complex.I • (show E from A v))
@@ -516,22 +515,27 @@ theorem mvfderiv_eq_mvfderiv_modelLevel_comp_symm (h : IsJOrthogonallyAttached E
   have hsymm : Φ.symm (ι x) = p := hval ▸ Φ.left_inv hsrc
   -- Along `dι x`, `dφ` is the derivative of `g = φ ∘ ι`, which vanishes on the sphere.
   set g : EuclideanSpace ℝ (Fin k) → ℝ := φ ∘ ι
-  have hg : HasStrictFDerivAt g (fderiv ℝ g x) x := by
-    have hc := contMDiffAt_iff_contDiffAt.1 (hφ.comp x hι)
-    exact hc.hasStrictFDerivAt (hc.differentiableAt one_ne_zero).hasFDerivAt one_ne_zero
   have hdg (u : EuclideanSpace ℝ (Fin k)) : mvfderiv 𝓘(ℝ, E) φ (ι x)
       (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x u) = fderiv ℝ g x u :=
-    (mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) u).symm.trans
-      (TauCeti.mvfderiv_eq_fderiv_apply _ _ _)
-  -- Tangentially `dg x` vanishes, and radially it is `-2`, so `dg x u = -2 ⟪x, u⟫`.
+    (h.fderiv_comp_apply hx u).symm
+  -- The restriction of `g` to the sphere is constant, so `dg x u = dg x x * ⟪x, u⟫ = -2 ⟪x, u⟫`.
   have hreal (u : EuclideanSpace ℝ (Fin k)) : fderiv ℝ g x u = -2 * ⟪x, u⟫_ℝ := by
-    have hx0 : x ≠ 0 := by rintro rfl; simp at hx
-    have ht : fderiv ℝ g x (u - ⟪x, u⟫_ℝ • x) = 0 :=
-      hg.apply_eq_zero_of_inner_eq_zero hx0
-        (fun y hy ↦ (h.eq_zero y (hy.trans hx)).trans (h.eq_zero x hx).symm)
-        (by rw [inner_sub_right, real_inner_smul_right, real_inner_self_eq_norm_sq, hx]; ring)
-    rw [map_sub, map_smul, ← hdg x, hrad, smul_eq_mul] at ht
-    linarith
+    have hgd : DifferentiableAt ℝ g x :=
+      ((h.mdifferentiableAt_apply hx).comp x (h.mdifferentiableAt hx)).differentiableAt
+    obtain ⟨l, rfl⟩ : ∃ l, k = l + 1 :=
+      Nat.exists_eq_succ_of_ne_zero fun hk ↦ by subst hk; simp [Subsingleton.elim x 0] at hx
+    have : Fact (Module.finrank ℝ (EuclideanSpace ℝ (Fin (l + 1))) = l + 1) :=
+      ⟨finrank_euclideanSpace_fin⟩
+    have hxs : x ∈ sphere (0 : EuclideanSpace ℝ (Fin (l + 1))) 1 := by simp [hx]
+    have hcrit : (⟨x, hxs⟩ : sphere (0 : EuclideanSpace ℝ (Fin (l + 1))) 1) ∈
+        TauCeti.criticalPoints (𝓡 l)
+          (g ∘ ((↑) : sphere (0 : EuclideanSpace ℝ (Fin (l + 1))) 1 → _)) := by
+      have hc : g ∘ ((↑) : sphere (0 : EuclideanSpace ℝ (Fin (l + 1))) 1 → _) = fun _ ↦ 0 :=
+        funext fun y ↦ h.eq_zero y (by simp)
+      rw [hc, TauCeti.criticalPoints_const]
+      trivial
+    rw [TauCeti.fderiv_apply_eq_mul_inner_of_mem_criticalPoints_comp_coe_sphere (p := ⟨x, hxs⟩)
+      hgd hcrit u, h.fderiv_comp_apply_self hx, hrad]
   -- On every vector, `dφ ∘ A` is the differential of the model level at `p`.
   have hA (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
       mvfderiv 𝓘(ℝ, E) φ (ι x) (A v) = fderiv ℝ (modelLevel k m) p v := by
