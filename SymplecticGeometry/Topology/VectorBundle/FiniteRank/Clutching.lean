@@ -11,7 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautolog
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.Algebra.Projectivization
-import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
+import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 
 /-!
 # The clutching construction over `X × ℂP¹`
@@ -33,8 +33,6 @@ and the fibres may be over any nontrivially normed field.
 
 * `TauCeti.FiniteRankBundleCore.circlePullback E`: the pullback of `E` to `X × Circle` along
   `Prod.fst`, on whose automorphisms the clutching functions are.
-* `SymplecticGeometry.circleCoord X`: the coordinate `(x, u) ↦ u` of the circle factor,
-  as a continuous complex function on `X × Circle`.
 * `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
   `SymplecticGeometry.ProjectiveLine.clutchingMap`.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
@@ -576,21 +574,6 @@ end TauCeti.FiniteRankBundleCore
 
 /-! ### Multiplying a clutching function by a power of the coordinate -/
 
-namespace SymplecticGeometry
-
-variable {X : Type*} [TopologicalSpace X]
-
-variable (X) in
-/-- The coordinate `u` of the circle factor, as a scalar function on `X × Circle`. -/
-def circleCoord : C(X × Circle, ℂ) :=
-  ⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩
-
-@[simp]
-theorem circleCoord_apply (w : X × Circle) : circleCoord X w = w.2 :=
-  (rfl)
-
-end SymplecticGeometry
-
 namespace TauCeti.FiniteRankBundleCore
 
 variable {X : Type*} [TopologicalSpace X]
@@ -607,13 +590,11 @@ def circleZPowSMul (m : ℤ)
   hom := ContinuousMap.laurentMonomial m (1 : C(X, ℂ)) • f.hom
   inv := ContinuousMap.laurentMonomial (-m) (1 : C(X, ℂ)) • f.inv
   hom_inv_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-      ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_one_apply,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_hom_inv_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel, zpow_zero, one_smul]
   inv_hom_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-      ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_one_apply,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_inv_hom_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), neg_add_cancel, zpow_zero, one_smul]
 
