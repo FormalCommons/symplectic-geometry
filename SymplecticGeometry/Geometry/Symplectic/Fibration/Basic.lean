@@ -102,7 +102,7 @@ theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞
     (TauCeti.SmoothForm.isAlt_bilinFormAt τ _).isRefl.domRestrict _
   let i := mfderivFiberInclusionMapEquiv he hb v
   refine hrefl.nondegenerate_iff_separatingLeft.trans ?_
-  rw [← LinearMap.separatingLeft_congr_iff i.symm i.symm]
+  rw [← LinearMap.separatingLeft_congr_iff i.symm.toLinearEquiv i.symm.toLinearEquiv]
   convert Iff.rfl
   ext u w
   simp [i]
