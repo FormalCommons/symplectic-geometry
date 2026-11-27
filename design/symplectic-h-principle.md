@@ -707,9 +707,7 @@ The hypotheses ask for continuity of the first derivatives only, which is
 all the proof uses. The clauses for `C`, the displacement and `N` hold at
 every point of `(Fin n → ℝ) × D`, not only over the range of `σ`: the
 engine carries `h` and `g` to `M` along a chart, as smooth families over
-all of `Fin n → ℝ`, which needs their supports controlled at every point
-(building issue 8c states them so; the merged theorem states them over the
-range of `σ`).
+all of `Fin n → ℝ`, which needs their supports controlled at every point.
 
 Proof, from the smooth version, by a partition of unity on `P`:
 
@@ -1632,7 +1630,8 @@ The cube charts as coordinates for forms, in the namespace
   slices vanish off a fixed compact set, the forms
   `TauCeti.SmoothForm.extendByZeroAlong (c.chartPartialDiffeomorph i) (a (q, ·))`
   (`DifferentialForm/PartialDiffeomorph.lean`) are an `IsSmoothFamily 𝓘(ℝ, S)`:
-  the new lemma `IsSmoothFamily.extendByZeroAlong`, in that file. Since
+  the new lemma `IsSmoothFamily.extendByZeroAlong`, in
+  `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Since
   `mpullback_symm_extendByZeroAlong` reads the extension back as `a` on the
   chart, the corrected one-forms
   `B' q := B q + ∑ i, extendByZeroAlong (c.chartPartialDiffeomorph i) (a i (q, ·))`
@@ -1719,11 +1718,11 @@ Proof, the same in both forms except in step 4:
    `P₀ ×ˢ univ`; the invariant gives it on `P₀ ×ˢ univ` only. With
    `T := closedBall 0 2`, the set
    `O := {l | ∀ i, ∀ x ∈ T, ‖fderiv ℝ (f i l) x - G i l x‖ < ε₁}` is open
-   and contains `P₀`: the new lemma `isOpen_setOf_forall_norm_sub_lt`, in
-   `HolonomicApproximation/Parametric.lean`, for a jointly continuous
-   `e : Λ × D → F'` and a compact `T`
+   and contains `P₀`: `IsCompact.isOpen_setOf_forall_norm_sub_lt`, in
+   `Topology/Compactness/Normed.lean`, for jointly continuous
+   `f g : Λ × D → F'` and a compact `T`
    (`IsCompact.eventually_forall_of_forall_eventually`); step 1 of the
-   continuous version proves the same inline. Take `χ : Λ → [0, 1]`, `1`
+   continuous version uses it too. Take `χ : Λ → [0, 1]`, `1`
    on an open `O' ⊇ P₀` and `0` off `O` (smooth on `L` by
    `exists_contMDiffMap_zero_one_nhds_of_isClosed`, continuous on `P` by
    `exists_continuous_zero_one_of_isClosed`), and replace `G i` by
@@ -1920,7 +1919,7 @@ The continuity of `H`, term by term in the formula:
   scalar, and, for the fixed function `ρ`, the new lemma
   `continuous_tangentEquiv_symm_smul` in the same file, multiplication by
   a fixed smooth function being continuous for the frame topology
-  (`ContMDiffSection.continuous_fiberwiseMap`, `Section/Topology.lean`).
+  (Tau Ceti's `ContMDiffSection.continuous_smul_function_frameTopology`).
 
 `α' l = e_{l,1}^* α l` is continuous by the first item.
 
@@ -2281,14 +2280,16 @@ Each is a few hundred lines; each issue's blockers come before it.
      `BandCore.isLocalDiffeomorph_chart`, `BandCore.chartPartialDiffeomorph`,
      the readings of the formal datum and `BandCore.exists_relativeSet`;
      and `IsSmoothFamily.extendByZeroAlong` in
-     `DifferentialForm/PartialDiffeomorph.lean`. Blocked by nothing.
+     `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Blocked by
+     nothing.
    - 8b. **Diffeotopies along a chart.** `SmoothIsotopy/Chart.lean`:
      `TauCeti.extendDiffeotopyAlong`. Blocked by nothing.
    - 8c. **The continuous version's clauses at every point.** The `C`, `N`
      and displacement clauses of
      `exists_holonomic_approximation_continuous_family` for every point of
      `(Fin n → ℝ) × D`, as in the statement of its section, and
-     `isOpen_setOf_forall_norm_sub_lt`, in `Parametric.lean`. Blocked by
+     `IsCompact.isOpen_setOf_forall_norm_sub_lt`, in
+     `Topology/Compactness/Normed.lean`. Blocked by
      nothing.
    - 8d. **Approximation over a band core.** `Relative/CoreApproximation.lean`,
      both forms, with
