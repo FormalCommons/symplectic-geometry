@@ -17,6 +17,12 @@ Tau Ceti's `LinearMap.BilinForm.restrict_nondegenerate_iff_disjoint_orthogonal`,
 any commutative semiring. Its proof follows the elementwise step of Tau Ceti's
 `Module.Dual.isContact_iff_of_isRefl`, checking both sides of nondegeneracy directly.
 
+## Block diagonal forms
+
+If `M` is the direct sum of submodules `W` and `H`, and a reflexive form `B` pairs `W` with `H`
+to zero, then `B` is nondegenerate exactly when its restrictions to `W` and `H` both are
+(`LinearMap.BilinForm.IsRefl.nondegenerate_iff_of_isCompl`).
+
 ## Nondegeneracy from a hyperplane with a one-dimensional radical
 
 Let `B` be a reflexive bilinear form on a module `M` over a commutative ring without zero

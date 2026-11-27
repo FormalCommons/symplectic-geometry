@@ -7,11 +7,10 @@ module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 public import Mathlib.Topology.Algebra.Ring.Basic
-public import Mathlib.Order.Filter.AtTopBot.Defs
-public import Mathlib.Basic.Real.Basic
+public import Mathlib.Topology.Order.Basic
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.Topology.Instances.Matrix
-import Mathlib.Analysis.SpecificLimits.Basic
+import Mathlib.Topology.Algebra.Order.Field
 import Mathlib.Tactic.LinearCombination
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 
@@ -42,8 +41,8 @@ the projection.
   Since it depends continuously on `s`, its nondegeneracy at `s = 0` spreads to a neighbourhood
   of `0` (`LinearMap.BilinForm.eventually_nondegenerate_pullbackProd`); this is the form in which
   a bound can be made uniform over a compact family.
-* `LinearMap.BilinForm.exists_forall_ge_nondegenerate_add_smul_comp`: over `ℝ`, there is `c₀`
-  with `τ + c • P` nondegenerate for all `c ≥ c₀`.
+* `LinearMap.BilinForm.exists_forall_ge_nondegenerate_add_smul_comp`: over an ordered field with
+  its order topology, such as `ℝ`, there is `c₀` with `τ + c • P` nondegenerate for all `c ≥ c₀`.
 
 ## References
 
@@ -90,8 +89,9 @@ variable {R V U : Type*} [CommRing R] [AddCommGroup V] [Module R V] [AddCommGrou
   [Module R U]
 
 /-- The bilinear form `((u, a), (v, b)) ↦ τ u v + β (L u) b + β a (L v) - s * β a b` on
-`V × U`. For `s ≠ 0` it is nondegenerate exactly when `τ + s⁻¹ • β.comp L L` is, and at
-`s = 0` exactly when `τ` is nondegenerate on `ker L`. -/
+`V × U`. When `τ` and `β` are alternating and `β` is nondegenerate, for `s ≠ 0` it is
+nondegenerate exactly when `τ + s⁻¹ • β.comp L L` is, and, if moreover `U` is finite-dimensional
+and `L` surjective, at `s = 0` exactly when `τ` is nondegenerate on `ker L`. -/
 noncomputable def pullbackProd (τ : BilinForm R V) (β : BilinForm R U) (L : V →ₗ[R] U) (s : R) :
     BilinForm R (V × U) :=
   τ.comp (LinearMap.fst R V U) (LinearMap.fst R V U) +
@@ -233,25 +233,27 @@ theorem eventually_nondegenerate_pullbackProd [TopologicalSpace 𝕜] [IsTopolog
 
 end Field
 
-section Real
+section Ordered
 
-variable {V U : Type*} [AddCommGroup V] [Module ℝ V] [AddCommGroup U] [Module ℝ U]
-  [FiniteDimensional ℝ V] [FiniteDimensional ℝ U] {τ : BilinForm ℝ V} {β : BilinForm ℝ U}
-  {L : V →ₗ[ℝ] U}
+variable {𝕜 V U : Type*} [Field 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] [TopologicalSpace 𝕜]
+  [OrderTopology 𝕜] [AddCommGroup V] [Module 𝕜 V] [AddCommGroup U] [Module 𝕜 U]
+  [FiniteDimensional 𝕜 V] [FiniteDimensional 𝕜 U] {τ : BilinForm 𝕜 V} {β : BilinForm 𝕜 U}
+  {L : V →ₗ[𝕜] U}
 
-/-- Let `τ` and `β` be alternating forms, `β` nondegenerate, `L` surjective, and `τ`
-nondegenerate on `ker L`. Then `τ + c • β.comp L L` is nondegenerate for all large `c`. -/
+/-- Over an ordered field, let `τ` and `β` be alternating forms on finite-dimensional spaces, `β`
+nondegenerate, `L` surjective, and `τ` nondegenerate on `ker L`. Then `τ + c • β.comp L L` is
+nondegenerate for all large `c`. -/
 theorem exists_forall_ge_nondegenerate_add_smul_comp (hτ : τ.IsAlt) (hβ : β.IsAlt)
     (hβn : β.Nondegenerate) (hL : Function.Surjective L)
     (hτL : (τ.restrict (LinearMap.ker L)).Nondegenerate) :
-    ∃ c₀ : ℝ, ∀ c ≥ c₀, (τ + c • β.comp L L).Nondegenerate := by
+    ∃ c₀ : 𝕜, ∀ c ≥ c₀, (τ + c • β.comp L L).Nondegenerate := by
   have h := eventually_nondegenerate_pullbackProd
     ((nondegenerate_pullbackProd_zero_iff hτ hβ hβn hL).2 hτL)
   refine eventually_atTop.1 ?_
   filter_upwards [tendsto_inv_atTop_zero.eventually h, eventually_gt_atTop 0] with c hc hc₀
   rwa [nondegenerate_pullbackProd_iff_of_ne_zero hτ hβ hβn (inv_ne_zero hc₀.ne'), inv_inv] at hc
 
-end Real
+end Ordered
 
 end LinearMap.BilinForm
 
