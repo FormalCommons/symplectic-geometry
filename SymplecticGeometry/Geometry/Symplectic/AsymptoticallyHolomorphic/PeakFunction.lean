@@ -524,9 +524,8 @@ theorem modelDbar_zero (z : StdSpace ι) : modelDbar (0 : StdSpace ι → ℂ) z
 
 /-- Near `z`, the model `∂̄` of `f` depends only on the germ of `f` at `z`. -/
 theorem modelDbar_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
-    (h : f =ᶠ[nhds z] g) : modelDbar f =ᶠ[nhds z] modelDbar g := by
-  filter_upwards [h.eventuallyEq_nhds] with w hw
-  rw [modelDbar_def, modelDbar_def, hw.fderiv_eq, hw.eq_of_nhds]
+    (h : f =ᶠ[nhds z] g) : modelDbar f =ᶠ[nhds z] modelDbar g :=
+  (modelDbarWith_eventuallyEq h).mono fun w hw ↦ by rw [modelDbar_def, modelDbar_def, hw]
 
 /-- The model `∂̄` of `f` is `C^n` at a point where `f` is `C^(n + 1)`. -/
 theorem contDiffAt_modelDbar {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpace ι}

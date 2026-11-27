@@ -314,14 +314,10 @@ theorem dbarReading_eq_modelDbar_add (k : ℕ) (x : M) (s : Π y, PowerBundle P 
         (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z -
           LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) := by
   ext v
-  rw [modelDbar_def, ← connectionReading_def, dbarReading_def, add_apply,
-    complexAntilinearPartContinuousLinearMap_apply_apply, LinearMap.coe_toContinuousLinearMap',
-    complexAntilinearPart_apply, complexAntilinearPart_apply, ContinuousLinearMap.comp_apply,
-    sub_apply, map_sub,
-    smul_apply]
-  simp only [ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply,
-    LinearMap.coe_toContinuousLinearMap', FunLike.coe_smul, Pi.smul_apply,
-    smul_eq_mul, Complex.real_smul]
+  rw [dbarReading_apply, add_apply, modelDbar_def, modelDbarWith_apply, ← connectionReading_def,
+    ContinuousLinearMap.comp_apply, sub_apply, map_sub, smul_apply,
+    LinearMap.coe_toContinuousLinearMap']
+  simp only [FunLike.coe_smul, Pi.smul_apply, smul_eq_mul, Complex.real_smul]
   push_cast
   ring
 
