@@ -11,6 +11,10 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Sets.Opens.Basic
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Diffeomorphisms of neighbourhoods with a prescribed derivative
@@ -32,10 +36,21 @@ source and target, and the smoothness of `A` is that of a section of the hom bun
 pull-backs, which gives Tau Ceti's smoothness in tangent coordinates through
 `Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`.
 
+Tau Ceti's theorem asks both manifolds to be second countable. Only the source `M` needs to be
+(`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq'`): `Q` embeds in `M`, so it is
+second countable, and the image of `g` has a second countable open neighbourhood `U` in `N`
+(`IsLindelof.exists_opens_secondCountableTopology`). Tau Ceti's theorem applies with `U` as
+target, since `A` read in the tangent coordinates of `U` is `A` read in those of `N`
+(`TauCeti.Manifold.inTangentCoordinates_subtypeVal_comp_eventuallyEq`), and the partial
+diffeomorphism it gives, followed by the inclusion of `U`, is the one sought.
+
 ## Main results
 
 * `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_mfderiv_eq`: the diffeomorphism of open
   neighbourhoods with prescribed derivative along the embedded manifold.
+* `TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq'`: the partial diffeomorphism
+  with prescribed derivative along an embedded manifold, into a target that need not be second
+  countable.
 
 ## References
 
@@ -47,7 +62,7 @@ public section
 
 noncomputable section
 
-open Bundle Manifold Set Function TopologicalSpace
+open Bundle Manifold Set Function TopologicalSpace Topology
 open scoped ContDiff Manifold Bundle
 
 namespace TauCeti.SmoothEmbedding
@@ -111,6 +126,74 @@ theorem exists_diffeomorph_opens_mfderiv_eq [SecondCountableTopology M₀]
       -- The derivative of `ψ` is that of `Ψ`, read through the inclusions.
       rw [Ψ.mfderiv_toDiffeomorphSourceTarget_apply _ v, hΨd]
       exact (ContinuousLinearEquiv.coe_apply (A q) v).symm
+
+section NonSecondCountable
+
+variable {E V F H G H' Q M N : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [TopologicalSpace H] [TopologicalSpace G] [TopologicalSpace H']
+  {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ V G} {K : ModelWithCorners ℝ F H'}
+  [TopologicalSpace Q] [ChartedSpace H Q] [IsManifold I ∞ Q]
+  [TopologicalSpace M] [ChartedSpace G M] [IsManifold J ∞ M]
+  [TopologicalSpace N] [ChartedSpace H' N] [IsManifold K ∞ N]
+
+/-- **Extension with a prescribed ambient differential, into any manifold.** Tau Ceti's
+`exists_partialDiffeomorph_mfderiv_eq` without second countability of the target `N`. Let
+`i : Q → M` be a smooth embedding into a second countable Hausdorff manifold and `g : Q → N` a
+smooth map inducing the topology of `Q` into a Hausdorff manifold, both without boundary and
+finite-dimensional, with `Q` nonempty. Let `A q : T_{i q} M → T_{g q} N` be linear isomorphisms,
+smooth in tangent coordinates, with `A q ∘ d i_q = d g_q`. Then there is a smooth partial
+diffeomorphism `Ψ` from `M` to `N` whose source contains the image of `i` and lies in a given open
+neighbourhood `O` of it, whose target lies in a given open neighbourhood `O'` of the image of
+`g`, with `Ψ (i q) = g q` and `d Ψ_{i q} = A q` for every `q`. -/
+theorem exists_partialDiffeomorph_mfderiv_eq' [I.Boundaryless] [J.Boundaryless]
+    [K.Boundaryless] [T2Space M] [T2Space N] [Nonempty Q] [SecondCountableTopology M]
+    (i : SmoothEmbedding I J ∞ Q M) {g : Q → N}
+    (hg : ContMDiff I K ∞ g) (hgi : IsInducing g)
+    {A : ∀ q, TangentSpace J (i q) →L[ℝ] TangentSpace K (g q)}
+    (hA : ∀ q, ContMDiffAt I 𝓘(ℝ, V →L[ℝ] F) ∞ (inTangentCoordinates J K i g A q) q)
+    (hAinv : ∀ q, (A q).IsInvertible)
+    (hAi : ∀ q, (A q).comp (mfderiv I J i q) = mfderiv I K g q)
+    {O : Set M} (hO : IsOpen O) (hiO : range i ⊆ O)
+    {O' : Set N} (hO' : IsOpen O') (hgO' : range g ⊆ O') :
+    ∃ Ψ : PartialDiffeomorph J K M N ∞, range i ⊆ Ψ.source ∧ Ψ.source ⊆ O ∧
+      Ψ.target ⊆ O' ∧ (∀ q, Ψ (i q) = g q) ∧ ∀ q, mfderiv J K Ψ (i q) = A q := by
+  -- `Q` embeds in `M`, so it is second countable and the image of `g` is Lindelöf: it has a
+  -- second countable open neighbourhood `U ⊆ O'`.
+  have : SecondCountableTopology Q := i.isEmbedding.secondCountableTopology
+  have : SecondCountableTopology H' := K.secondCountableTopology
+  obtain ⟨U, hgU, hUO', hU⟩ :=
+    (isLindelof_range hg.continuous).exists_opens_secondCountableTopology (H := H') hO' hgO'
+  -- The data `g` and `A`, read into the open submanifold `U`.
+  let g' (q : Q) : U := ⟨g q, hgU (mem_range_self q)⟩
+  have hg'c : Continuous g' := hg.continuous.subtype_mk _
+  have hA' (q : Q) : ContMDiffAt I 𝓘(ℝ, V →L[ℝ] F) ∞ (inTangentCoordinates J K i g' A q) q :=
+    (hA q).congr_of_eventuallyEq
+      (TauCeti.Manifold.inTangentCoordinates_subtypeVal_comp_eventuallyEq A hg'c.continuousAt)
+  have hAi' (q : Q) : (A q).comp (mfderiv I J i q) = mfderiv I K g' q :=
+    ContinuousLinearMap.ext fun v ↦ (DFunLike.congr_fun (hAi q) v).trans
+      (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (f := g') v)
+  obtain ⟨Ψ, hsrc, hsO, -, hΨg, hΨd⟩ := i.exists_partialDiffeomorph_mfderiv_eq
+    ((TauCeti.ContMDiff.subtypeVal_comp_iff U g').1 hg)
+    ((IsInducing.of_comp_iff IsInducing.subtypeVal).1 hgi) hA' hAinv hAi' hO hiO isOpen_univ
+    (subset_univ _)
+  -- Follow `Ψ` by the inclusion of `U` into `N`.
+  let ι := PartialDiffeomorph.subtypeVal K ∞ U ⟨g' (Classical.arbitrary Q)⟩
+  have hsrc' : (Ψ.trans ι).source = Ψ.source := by
+    rw [PartialDiffeomorph.trans_source, PartialDiffeomorph.subtypeVal_source, preimage_univ,
+      inter_univ]
+  refine ⟨Ψ.trans ι, hsrc' ▸ hsrc, hsrc' ▸ hsO, ?_, fun q ↦ ?_, fun q ↦ ?_⟩
+  · rw [PartialDiffeomorph.trans_target, PartialDiffeomorph.subtypeVal_target]
+    exact inter_subset_left.trans hUO'
+  · rw [PartialDiffeomorph.coe_trans, comp_apply, PartialDiffeomorph.coe_subtypeVal, hΨg]
+  · refine ContinuousLinearMap.ext fun v ↦ ?_
+    rw [PartialDiffeomorph.coe_trans, PartialDiffeomorph.coe_subtypeVal,
+      TauCeti.Manifold.mfderiv_subtype_val_comp_apply]
+    exact DFunLike.congr_fun (hΨd q) v
+
+end NonSecondCountable
 
 end TauCeti.SmoothEmbedding
 
