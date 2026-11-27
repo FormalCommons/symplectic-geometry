@@ -368,11 +368,8 @@ positive numbers. -/
 theorem sqrtSubLeaf_radicand_pos (L : ℝ) {ℓ r : ℝ} (hr : δ ^ 2 < r ^ 2)
     (hℓ : ℓ ^ 2 < 64 * r ^ 2) :
     0 < 64 * (r ^ 2 - δ ^ 2) +
-      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) := by
-  have hH₀ := smoothTransition.nonneg ((r - 2 * δ) / (L * δ))
-  rcases (smoothTransition.le_one ((r - 2 * δ) / (L * δ))).lt_or_eq with h | h
-  · nlinarith [mul_nonneg hH₀ (sub_nonneg.2 hℓ.le)]
-  · rw [h]; linarith
+      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) :=
+  cutoffLeaf_radicand_pos L hr (by linarith)
 
 /-- **The explicit leaves below the cone are `i`-convex shapes.** There is `L₀ ≥ 1` such that for
 every `L ≥ L₀`, `δ > 0` and `ℓ ∈ [-8 δ, 0]`, the leaf `sqrtSubLeaf L δ ℓ` is an `i`-convex shape
@@ -401,14 +398,10 @@ theorem sqrtAddLeaf_zero (L δ : ℝ) : sqrtAddLeaf L δ 0 = sqrtSubLeaf L δ 0 
 `0 ≤ δ`: there the radicand is positive. -/
 theorem contDiffOn_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) :
     ContDiffOn ℝ ∞ (Function.uncurry (sqrtSubLeaf L δ)) {p | δ < p.2 ∧ |p.1| < 8 * p.2} := by
-  have e : Function.uncurry (sqrtSubLeaf L δ) = fun p : ℝ × ℝ ↦
-      (p.1 + 8 * δ) / 64 * (1 - smoothTransition ((p.2 - 2 * δ) / (L * δ))) +
-        √(64 * (p.2 ^ 2 - δ ^ 2) +
-          (64 * δ ^ 2 - p.1 ^ 2) * smoothTransition ((p.2 - 2 * δ) / (L * δ))) := by
+  have e : Function.uncurry (sqrtSubLeaf L δ) =
+      fun p : ℝ × ℝ ↦ cutoffLeaf L δ ((p.1 + 8 * δ) / 64) (64 * δ ^ 2 - p.1 ^ 2) p.2 := by
     ext ⟨ℓ, r⟩
-    rw [Function.uncurry_apply_pair, sqrtSubLeaf_def]
-  have hH : ContDiff ℝ ∞ fun p : ℝ × ℝ ↦ smoothTransition ((p.2 - 2 * δ) / (L * δ)) :=
-    smoothTransition.contDiff.comp ((contDiff_snd.sub contDiff_const).div_const _)
+    rw [Function.uncurry_apply_pair, sqrtSubLeaf_eq_cutoffLeaf]
   rintro ⟨ℓ, r⟩ ⟨hr, hℓ⟩
   dsimp only at hr hℓ
   have hrδ : δ ^ 2 < r ^ 2 := by gcongr
@@ -418,11 +411,8 @@ theorem contDiffOn_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) :
     linarith
   have hrad := sqrtSubLeaf_radicand_pos L hrδ hℓr
   rw [e]
-  exact (((contDiff_fst.add contDiff_const).div_const 64).mul
-    (contDiff_const.sub hH)).contDiffAt.add
-    (((contDiff_const.mul ((contDiff_snd.pow 2).sub contDiff_const)).add
-      ((contDiff_const.sub (contDiff_fst.pow 2)).mul hH)).contDiffAt.sqrt
-      hrad.ne') |>.contDiffWithinAt
+  exact (((contDiffAt_fst.add contDiffAt_const).div_const 64).cutoffLeaf
+    (contDiffAt_const.sub (contDiffAt_fst.pow 2)) contDiffAt_snd hrad.ne').contDiffWithinAt
 
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtSubLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
@@ -436,17 +426,9 @@ is below `1` and the second where it is positive. -/
 theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ < r) :
     StrictMonoOn (fun ℓ ↦ sqrtSubLeaf L δ ℓ r) (Icc (-8 * δ) 0) := by
   intro ℓ₁ hℓ₁ ℓ₂ hℓ₂ h
-  simp only [sqrtSubLeaf_def]
-  set H := smoothTransition ((r - 2 * δ) / (L * δ))
-  have hH₀ : 0 ≤ H := smoothTransition.nonneg _
-  have hH₁ : H ≤ 1 := smoothTransition.le_one _
-  have hrδ : δ ^ 2 < r ^ 2 := by gcongr
-  have hsq : ℓ₂ ^ 2 < ℓ₁ ^ 2 := by nlinarith [hℓ₂.2]
-  rcases hH₁.lt_or_eq with hH | hH
-  · exact add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_right (by linarith) (by linarith))
-      (sqrt_le_sqrt (by nlinarith))
-  · simp only [hH, sub_self, mul_zero, zero_add, mul_one]
-    exact sqrt_lt_sqrt (by nlinarith [hℓ₁.1, hℓ₁.2]) (by linarith)
+  simp only [sqrtSubLeaf_eq_cutoffLeaf]
+  exact cutoffLeaf_lt_cutoffLeaf (by linarith) (by nlinarith [hℓ₂.2])
+    (by nlinarith [hℓ₁.1, hℓ₁.2]) (by gcongr)
 
 /-- **The leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`**
 (the part `ℓ ≤ 0` of Cieliebak–Eliashberg's family of §4.6). There is `K > 2` such that for
