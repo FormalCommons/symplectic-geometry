@@ -51,7 +51,7 @@ those of `D`; those outside `J` record the parameter.
   unchanged over a neighbourhood of `B` in the core, over `P₀` and off a compact set near the
   cube, with `f'` holonomically `ε`-close to the datum near the moved cube for the parameters in
   a compact `K`. The neighbourhood of `B` comes from the one of the cube theorem by
-  `generalized_tube_lemma`.
+  `SymplecticGeometry.exists_mem_nhdsSet_familyCubeEquiv_fst_mem`.
 * `SymplecticGeometry.familyCubeEquiv_apply`, `SymplecticGeometry.familyCubeEquiv_symm_apply`:
   the values of the equivalence and of its inverse.
 * `SymplecticGeometry.mapsTo_familyCubeEquiv`: for `R > 0` bounding `‖e l‖` on `K`, the
@@ -73,6 +73,12 @@ those of `D`; those outside `J` record the parameter.
   (`SymplecticGeometry.mem_familyRelativeSet_of_abs_eq_one`), and its product with `{0}` lies in
   the image of any `U` that contains `univ ×ˢ (B ×ˢ {0})` and `P₀ ×ˢ univ`
   (`SymplecticGeometry.familyRelativeSet_prod_zero_subset_image`).
+* `SymplecticGeometry.exists_mem_nhdsSet_familyCubeEquiv_fst_mem`: a neighbourhood of
+  `familyRelativeSet L R B P₀` gives, by `generalized_tube_lemma`, a neighbourhood `N` of `B`
+  such that each point over `N` whose image under `familyCubeEquiv` lies within `r` of the cube
+  has the core part of that image in the given neighbourhood. Near the cube, the scaled
+  parameter coordinates and the core part have norm less than `1 + r`
+  (`SymplecticGeometry.norm_lt_of_familyCubeEquiv_mem_thickening`).
 * `SymplecticGeometry.familyFDeriv f G`: for a family of data `(f (l, ·), G (l, ·))` on a space
   `E`, the datum on `L × E` that completes `G` by the derivative of `f` in the parameter. It is
   smooth when `f` and `G` are (`ContDiff.familyFDeriv`).
@@ -255,6 +261,19 @@ theorem mem_thickening_of_familyCubeEquiv_mem_thickening (hR : R ≠ 0) {δ : �
   rw [mem_thickening_iff_infDist_lt ⟨0, by simp⟩] at hp ⊢
   exact (infDist_le_infDist_familyCubeEquiv hR p).trans_lt hp
 
+/-- A point whose image under `familyCubeEquiv` lies within `r > 0` of the cube of
+`(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)` has scaled parameter coordinates
+`R⁻¹ • e p.1` and core part `p.2.1` of norm less than `1 + r`, where
+`e = (Module.finBasis ℝ L).equivFun`. -/
+theorem norm_lt_of_familyCubeEquiv_mem_thickening (hR : R ≠ 0) {r : ℝ} (hr : 0 < r)
+    {p : L × (Fin m → ℝ) × (Fin k → ℝ)}
+    (hp : familyCubeEquiv L m k hR p ∈ thickening r (closedBall 0 1 ×ˢ {0})) :
+    ‖R⁻¹ • (finBasis ℝ L).equivFun p.1‖ < 1 + r ∧ ‖p.2.1‖ < 1 + r := by
+  rw [thickening_prod, thickening_closedBall hr zero_le_one] at hp
+  have hn := hp.1
+  rw [mem_ball, dist_zero_right, familyCubeEquiv_apply, Fin.norm_append, add_comm] at hn
+  exact ⟨(le_max_left _ _).trans_lt hn, (le_max_right _ _).trans_lt hn⟩
+
 variable (L) in
 /-- The relative set, in the core of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`, for
 `B ⊆ Fin m → ℝ` and a set of parameters `P₀ ⊆ L`: the points `Fin.append s u` with `u ∈ B`, or
@@ -331,6 +350,40 @@ theorem familyRelativeSet_prod_zero_subset_image (hR : R ≠ 0) {B : Set (Fin m 
     rw [familyCubeEquiv_symm_apply, ← hlz, smul_smul, mul_inv_cancel₀ hR, one_smul,
       LinearEquiv.symm_apply_apply]
     exact hl
+
+open scoped Topology in
+/-- For a neighbourhood `N''` of `familyRelativeSet L R B P₀` with `B` closed and `0 < r ≤ 1`,
+there is a neighbourhood `N` of `B` such that every point `p` with core part in `N` either has
+the core part of its image under `familyCubeEquiv` in `N''`, or has its image farther than `r`
+from the cube `closedBall 0 1 ×ˢ {0}` of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`. -/
+theorem exists_mem_nhdsSet_familyCubeEquiv_fst_mem (hR : R ≠ 0) {B : Set (Fin m → ℝ)}
+    (hB : IsClosed B) {P₀ : Set L} {N'' : Set (Fin (finrank ℝ L + m) → ℝ)}
+    (hN'' : N'' ∈ 𝓝ˢ (familyRelativeSet L R B P₀)) {r : ℝ} (hr : 0 < r) (hr1 : r ≤ 1) :
+    ∃ N ∈ 𝓝ˢ B, ∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.2.1 ∈ N →
+      (familyCubeEquiv L m k hR p).1 ∈ N'' ∨
+        familyCubeEquiv L m k hR p ∉ thickening r (closedBall 0 1 ×ˢ {0}) := by
+  have hB'N'' : familyRelativeSet L R B P₀ ⊆ interior N'' :=
+    subset_interior_iff_mem_nhdsSet.2 hN''
+  obtain ⟨U₁, N₁, -, hN₁, hU₁, hBN₁, hUN₁⟩ := generalized_tube_lemma
+    (isCompact_closedBall (0 : Fin (finrank ℝ L) → ℝ) 2)
+    ((isCompact_closedBall (0 : Fin m → ℝ) 2).inter_left hB)
+    (isOpen_interior.preimage (splitCoords (𝕜 := ℝ) (finrank ℝ L) m).symm.continuous)
+    (fun su hsu ↦ hB'N'' (mem_familyRelativeSet_iff.2 (Or.inl (by simpa using hsu.2.1))))
+  refine ⟨N₁ ∪ (closedBall 0 (1 + r))ᶜ,
+    (hN₁.union isClosed_closedBall.isOpen_compl).mem_nhdsSet.2 fun u hu ↦ ?_, fun p hp ↦ ?_⟩
+  · by_cases hu2 : u ∈ closedBall 0 (1 + r)
+    · refine Or.inl (hBN₁ ⟨hu, closedBall_subset_closedBall ?_ hu2⟩)
+      linarith
+    · exact Or.inr hu2
+  · by_cases hpC : familyCubeEquiv L m k hR p ∈ thickening r (closedBall 0 1 ×ˢ {0})
+    · obtain ⟨hs, hu⟩ := norm_lt_of_familyCubeEquiv_mem_thickening hR hr hpC
+      rcases hp with hp | hp
+      · have hmem := hUN₁ (show (_, p.2.1) ∈ U₁ ×ˢ N₁ from
+          ⟨hU₁ (mem_closedBall_zero_iff.2 (by linarith)), hp⟩)
+        rw [mem_preimage, splitCoords_symm_apply] at hmem
+        exact Or.inl (interior_subset (by simpa using hmem))
+      · exact absurd (mem_closedBall_zero_iff.2 hu.le) hp
+    · exact Or.inr hpC
 
 section Datum
 
@@ -586,46 +639,18 @@ theorem exists_holonomic_approximation_family (hk : 0 < k)
     · rw [hh, hhC'' t _ hp, ContinuousLinearEquiv.symm_apply_apply]
     · rw [hf', hfC'' _ hp, Function.comp_apply, ContinuousLinearEquiv.symm_apply_apply]
   -- step 6: the neighbourhood of `B`, by the tube lemma
-  have hB'N'' : familyRelativeSet L R B P₀ ⊆ interior N'' :=
-    subset_interior_iff_mem_nhdsSet.2 hN''
-  obtain ⟨U₁, N₁, -, hN₁, hU₁, hBN₁, hUN₁⟩ := generalized_tube_lemma
-    (isCompact_closedBall (0 : Fin (finrank ℝ L) → ℝ) 2)
-    ((isCompact_closedBall (0 : Fin m → ℝ) 2).inter_left hB)
-    (isOpen_interior.preimage (splitCoords (𝕜 := ℝ) (finrank ℝ L) m).symm.continuous)
-    (fun su hsu ↦ hB'N'' (mem_familyRelativeSet_iff.2 (Or.inl (by simpa using hsu.2.1))))
+  obtain ⟨N, hN, hNfix⟩ := exists_mem_nhdsSet_familyCubeEquiv_fst_mem (k := k) hR.ne' hB hN''
+    (lt_min hδ one_pos) (min_le_right δ 1)
   refine ⟨h, f', V, hfst, hf'c,
     ⟨C, hC, fun p hp ↦ thickening_mono (min_le_left δ 1) _ (hCQ p hp), hCfix⟩,
     fun t p ↦ (hdist' t p).trans_le (min_le_left δ 1),
-    ⟨N₁ ∪ (closedBall 0 (1 + min δ 1))ᶜ, (hN₁.union isClosed_closedBall.isOpen_compl).mem_nhdsSet.2
-      fun u hu ↦ ?_, fun p hp ↦ ?_⟩, fun p hp ↦ hfix p (interior_subset (hB'N'' ?_)), hV, hKV,
+    ⟨N, hN, fun p hp ↦ (hNfix p hp).elim (hfix p) fun hpC ↦ hfixC p fun h' ↦ hpC (hC''Q h')⟩,
+    fun p hp ↦ hfix p (interior_subset (subset_interior_iff_mem_nhdsSet.2 hN'' ?_)), hV, hKV,
     fun p hp ↦ ⟨(happrox' p hp).1.trans (half_lt_self hε),
       (happrox' p hp).2.trans_lt (half_lt_self hε)⟩⟩
-  · by_cases hu2 : u ∈ closedBall 0 (1 + min δ 1)
-    · refine Or.inl (hBN₁ ⟨hu, closedBall_subset_closedBall ?_ hu2⟩)
-      linarith [min_le_right δ 1]
-    · exact Or.inr hu2
-  · by_cases hpC : Ψ p ∈ C''
-    · -- a point within `min δ 1` of the cube has core part of norm less than `min δ 1 + 1`
-      have hn := hC''Q hpC
-      rw [thickening_prod, thickening_closedBall (lt_min hδ one_pos) zero_le_one] at hn
-      have hn := hn.1
-      rw [mem_ball, dist_zero_right, familyCubeEquiv_apply, Fin.norm_append] at hn
-      have hs : ‖R⁻¹ • (finBasis ℝ L).equivFun p.1‖ < min δ 1 + 1 :=
-        (le_max_left _ _).trans_lt hn
-      have hu : ‖p.2.1‖ < min δ 1 + 1 := (le_max_right _ _).trans_lt hn
-      rcases hp with hp | hp
-      · have hs' : R⁻¹ • (finBasis ℝ L).equivFun p.1 ∈ closedBall 0 2 := by
-          rw [mem_closedBall, dist_zero_right]
-          linarith [min_le_right δ 1]
-        have hmem := hUN₁ (show (_, p.2.1) ∈ U₁ ×ˢ N₁ from ⟨hU₁ hs', hp⟩)
-        rw [mem_preimage, splitCoords_symm_apply] at hmem
-        refine hfix p (interior_subset ?_)
-        simpa [Ψ] using hmem
-      · exact absurd (by rw [mem_closedBall, dist_zero_right]; linarith) hp
-    · exact hfixC p hpC
-  · refine mem_familyRelativeSet_iff.2 (Or.inr ⟨p.1, hp, ?_⟩)
-    ext i
-    simp [Ψ]
+  refine mem_familyRelativeSet_iff.2 (Or.inr ⟨p.1, hp, ?_⟩)
+  ext i
+  simp [Ψ]
 
 end Conjugation
 
