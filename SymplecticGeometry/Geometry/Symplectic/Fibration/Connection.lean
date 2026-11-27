@@ -37,12 +37,14 @@ symplectomorphism between these fibre forms.
 * `IsSymplectic.parallelTransportInDiffeomorph_mem_diffeomorphStabilizer`, in the namespace
   `TauCeti.IsEhresmannConnection`: the diffeomorphisms of the model fibre given by transport in
   the charts of a smooth atlas lie in the stabilizer of `σ`.
-* `TauCeti.SmoothTwoForm.IsVerticallyClosed.mlieDerivForm_apply_eq_zero`: for a smooth atlas of
-  `proj` and a vertically closed two-form `τ`, the Lie derivative of `τ` along a `C¹` vector
-  field with horizontal values vanishes on pairs of vertical vectors. By Cartan's formula it is
-  `ι_X dτ + d ι_X τ`; the first term vanishes by vertical closedness, and the second because
-  `ι_X τ` is semibasic, so that its derivative pulls back to zero on the fibres
+* `TauCeti.SmoothTwoForm.mlieDerivForm_apply_eq_mextDeriv_apply`: for a smooth atlas of `proj`,
+  a two-form `τ` and a `C¹` vector field `X` with horizontal values, the Lie derivative of `τ`
+  along `X` agrees on pairs of vertical vectors with `dτ` contracted with `X`. By Cartan's formula
+  it is `ι_X dτ + d ι_X τ`, and the second term vanishes there because `ι_X τ` is semibasic, so
+  that its derivative pulls back to zero on the fibres
   (`Bundle.Trivialization.mextDeriv_apply_eq_zero_of_isSemibasic`).
+* `TauCeti.SmoothTwoForm.IsVerticallyClosed.mlieDerivForm_apply_eq_zero`: if moreover `τ` is
+  vertically closed, that Lie derivative vanishes on pairs of vertical vectors.
 * `TauCeti.SmoothTwoForm.IsVerticallyClosed.hasDerivAt_mpullback_comp_zero`: for a jointly `C¹`
   time-dependent field `X` with complete suspension and horizontal values at time `t`, and a map
   `ι` that the flow of `X` from `s` to `t` carries into one fibre, the pull-back of a vertically
@@ -61,6 +63,15 @@ symplectomorphism between these fibre forms.
   that holds between nearby times by the short-interval case, so Mathlib's
   `PreconnectedSpace.induction₂'` gives it for all times, as in
   `TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`.
+* `TauCeti.IsEhresmannConnection.IsSymplectic.mextDeriv_apply_eq_zero`: for a proper map with a
+  smooth atlas `A`, and a two-form `τ` that restricts to `σ` on the fibres of `A` and whose
+  horizontal spaces form a symplectic connection, `dτ(η₁, η₂, v) = 0` at each `x` for vertical
+  `η₁ η₂` and horizontal `v`. The field through `v` of
+  `IsEhresmannConnection.exists_timeDependentField_eqOn_parallelTransport_apply_eq` has a flow
+  that is transport near time `0`, so the pull-backs of `τ` along it to the fibre of `x` stay
+  equal to `σ`. Their velocity at `0`, the pull-back of the Lie derivative of `τ` along the
+  field, is therefore zero, and `mlieDerivForm_apply_eq_mextDeriv_apply` turns this into the
+  claim.
 
 ## Implementation notes
 
@@ -189,16 +200,16 @@ variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM]
   {F : Type*} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
   {proj : M → B} {A : MapFiber.Atlas F proj} {τ : SmoothTwoForm IM M}
 
-/-- **Lie derivatives of a vertically closed form along horizontal fields.** Let `A` be a smooth
-atlas of `proj` and `τ` a two-form on `M` that is vertically closed for `proj`. For a `C¹` vector
-field `X` on `M` whose values lie in the horizontal spaces of `τ`, the Lie derivative of `τ` along
-`X` vanishes at every point on every pair of vertical vectors. -/
-theorem IsVerticallyClosed.mlieDerivForm_apply_eq_zero (hA : A.IsContMDiff ∞ IB IF IM)
-    (h : IsVerticallyClosed IB proj τ) {X : Π x : M, TangentSpace IM x}
+/-- **Lie derivatives along horizontal fields.** Let `A` be a smooth atlas of `proj` and `τ` a
+two-form on `M`. For a `C¹` vector field `X` on `M` whose values lie in the horizontal spaces of
+`τ`, and vertical vectors `η₁ η₂` at `x`, the Lie derivative of `τ` along `X` takes at `x` the
+value `dτ(X x, η₁, η₂)` on `(η₁, η₂)`. -/
+theorem mlieDerivForm_apply_eq_mextDeriv_apply (hA : A.IsContMDiff ∞ IB IF IM)
+    {X : Π x : M, TangentSpace IM x}
     (hX : ContMDiff IM IM.tangent 1 fun y ↦ (X y : TangentBundle IM M))
     (hXh : ∀ x, X x ∈ horizontalDistribution IB proj τ x) {x : M} {η₁ η₂ : TangentSpace IM x}
     (hη₁ : η₁ ∈ (mfderiv IM IB proj x).ker) (hη₂ : η₂ ∈ (mfderiv IM IB proj x).ker) :
-    mlieDerivForm X τ.val x ![η₁, η₂] = 0 := by
+    mlieDerivForm X τ.val x ![η₁, η₂] = mextDeriv τ.val x ![X x, η₁, η₂] := by
   -- The contraction `ι_X τ` vanishes on vertical vectors, as `X` is horizontal.
   have hsb : RoughForm.IsSemibasic IB proj (RoughForm.interior X τ.val) := by
     refine RoughForm.isSemibasic_iff.2 fun y v i hv ↦ ?_
@@ -217,6 +228,18 @@ theorem IsVerticallyClosed.mlieDerivForm_apply_eq_zero (hA : A.IsContMDiff ∞ I
       (hA.mdifferentiable_trivAt (by simp) _) ((hA.contMDiffOn_trivAt_symm _).of_le (by simp))
       hsb hsm (A.mem_baseSet_trivAt _) (Fin.forall_fin_two.2 ⟨hη₁, hη₂⟩), add_zero,
     RoughForm.interior_apply]
+
+/-- **Lie derivatives of a vertically closed form along horizontal fields.** Let `A` be a smooth
+atlas of `proj` and `τ` a two-form on `M` that is vertically closed for `proj`. For a `C¹` vector
+field `X` on `M` whose values lie in the horizontal spaces of `τ`, the Lie derivative of `τ` along
+`X` vanishes at every point on every pair of vertical vectors. -/
+theorem IsVerticallyClosed.mlieDerivForm_apply_eq_zero (hA : A.IsContMDiff ∞ IB IF IM)
+    (h : IsVerticallyClosed IB proj τ) {X : Π x : M, TangentSpace IM x}
+    (hX : ContMDiff IM IM.tangent 1 fun y ↦ (X y : TangentBundle IM M))
+    (hXh : ∀ x, X x ∈ horizontalDistribution IB proj τ x) {x : M} {η₁ η₂ : TangentSpace IM x}
+    (hη₁ : η₁ ∈ (mfderiv IM IB proj x).ker) (hη₂ : η₂ ∈ (mfderiv IM IB proj x).ker) :
+    mlieDerivForm X τ.val x ![η₁, η₂] = 0 := by
+  rw [mlieDerivForm_apply_eq_mextDeriv_apply hA hX hXh hη₁ hη₂]
   -- `(X, η₁, η₂)` is a permutation of `(η₁, η₂, X)`, on which `dτ` vanishes.
   have hσ : ![X x, η₁, η₂] = ![η₁, η₂, X x] ∘ (finRotate 3).symm := by
     ext i
@@ -397,6 +420,86 @@ theorem IsVerticallyClosed.mpullback_parallelTransportIn
     exact ⟨fun _ _ ↦ h.mpullback_parallelTransportIn_of_mapsTo_baseSet hfp hA hD hγ e hmaps hu hv,
       fun _ _ ↦ h.mpullback_parallelTransportIn_of_mapsTo_baseSet hfp hA hD hγ e hmaps hv hu⟩
   exact PreconnectedSpace.induction₂' R hloc htrans s t b₁ b₂ hs₁ ht₂
+
+/-- **A symplectic connection makes `dτ` vanish on two vertical vectors and a horizontal one.**
+Let `A` be a smooth atlas of a proper map `proj`, and `τ` a two-form on `M` that restricts to `σ`
+on the fibres of `A` and whose horizontal spaces form a smooth Ehresmann connection `hD`. If `hD`
+is symplectic for `A` and `σ`, then `dτ(η₁, η₂, v) = 0` at every point `x`, for all vertical `η₁`
+and `η₂` and every horizontal `v` at `x`. -/
+theorem _root_.TauCeti.IsEhresmannConnection.IsSymplectic.mextDeriv_apply_eq_zero
+    {σ : SmoothTwoForm IF F} (hfp : IsProperMap proj) (hA : A.IsContMDiff ∞ IB IF IM)
+    (hτ : A.RestrictsTo σ τ)
+    {hD : IsEhresmannConnection IM IB ∞ proj (horizontalDistribution IB proj τ)}
+    (hS : hD.IsSymplectic A σ) {x : M} {η₁ η₂ v : TangentSpace IM x}
+    (hη₁ : η₁ ∈ (mfderiv IM IB proj x).ker) (hη₂ : η₂ ∈ (mfderiv IM IB proj x).ker)
+    (hv : v ∈ horizontalDistribution IB proj τ x) :
+    mextDeriv τ.val x ![η₁, η₂, v] = 0 := by
+  have hn' : ((⊤ : ℕ∞) : ℕ∞ω) + 1 ≤ ∞ := by exact_mod_cast le_top
+  have hf : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hA.contMDiff_proj.of_le hn'
+  -- A horizontal field through `v` whose flow is transport along a curve `γ` through `proj x`.
+  obtain ⟨γ, hγ, hγ0, -, a, b, hab, X, hc, hX, hXh, htr, hX0⟩ :=
+    hD.exists_timeDependentField_eqOn_parallelTransport_apply_eq le_top hf hfp hv
+  have hγ' : ContMDiff 𝓘(ℝ, ℝ) IB ((⊤ : ℕ∞) + 1) γ := hγ.of_le hn'
+  have hX1 : ContMDiff (𝓘(ℝ, ℝ).prod IM) IM.tangent 1
+      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle IM M)) := hX.of_le (by simp)
+  have hX0' : ContMDiff IM IM.tangent 1 fun y ↦ (⟨y, X 0 y⟩ : TangentBundle IM M) :=
+    hX1.comp ((contMDiff_const (c := (0 : ℝ))).prodMk contMDiff_id)
+  have hφ (u : ℝ) : MDifferentiable IM IM (timeDependentFlowOf X 0 u) :=
+    ((contMDiff_timeDependentFlowOf hc le_rfl hX1).comp
+      ((contMDiff_const (c := ((0 : ℝ), u))).prodMk contMDiff_id)).mdifferentiable one_ne_zero
+  -- On the fibre over `γ 0`, the Lie derivative of `τ` along `X 0` pulls back to zero, since the
+  -- pull-backs of `τ` along the flow of `X` from `0` are `σ` near `0`.
+  have hlie : ∀ (c : B) (hc : c ∈ (A.trivAt (proj x)).baseSet), γ 0 = c →
+      mpullback IF IM ((A.trivAt (proj x)).fiberInclusionMap hc) (mlieDerivForm (X 0) τ.val) =
+        mpullback IF IM ((A.trivAt (proj x)).fiberInclusionMap hc) 0 := by
+    rintro c hc rfl
+    set ι := (A.trivAt (proj x)).fiberInclusionMap hc
+    have hι : MDifferentiable IF IM ι :=
+      ((A.trivAt (proj x)).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm _)
+        hc).mdifferentiable (by simp)
+    rw [mpullback_zero]
+    funext w
+    have hderiv : HasDerivAt (F := EF [⋀^Fin 2]→L[ℝ] ℝ)
+        (fun u ↦ mpullback IF IM (timeDependentFlowOf X 0 u ∘ ι) τ.val w)
+        (mpullback IF IM ι (mlieDerivForm (X 0) τ.val) w) 0 :=
+      hasDerivAt_mpullback_of_eq_comp (χ := timeDependentFlowOf X 0) (g := ι)
+        (Filter.Eventually.of_forall fun _ ↦ Filter.EventuallyEq.rfl) (hι w)
+        (Filter.Eventually.of_forall fun u ↦ hφ u _)
+        (hasDerivAt_mpullback_timeDependentFlowOf_self hX1 0 (ι w)
+          ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _))
+    have hconst : (fun u ↦ mpullback IF IM (timeDependentFlowOf X 0 u ∘ ι) τ.val w) =ᶠ[𝓝 0]
+        fun _ ↦ σ.val w := by
+      filter_upwards [hab] with u hu
+      have h0 : (0 : ℝ) ∈ Set.Icc a b := mem_of_mem_nhds hab
+      have hu' := A.mem_baseSet_trivAt (γ u)
+      -- The flow from `0` to `u` is transport followed by the inclusion of the fibre over `γ u`.
+      have hφu : timeDependentFlowOf X 0 u ∘ ι = (A.trivAt (γ u)).fiberInclusionMap hu' ∘
+          hD.parallelTransportIn (A.trivAt (proj x)) (A.trivAt (γ u)) γ 0 u := funext fun y ↦ by
+        rw [comp_apply, comp_apply,
+          htr 0 h0 u hu ((A.trivAt (proj x)).proj_fiberInclusionMap hc y),
+          hD.fiberInclusionMap_parallelTransportIn le_top hf hfp hγ' hc hu']
+      have hP : MDifferentiable IF IF
+          (hD.parallelTransportIn (A.trivAt (proj x)) (A.trivAt (γ u)) γ 0 u) :=
+        (hD.contMDiff_parallelTransportIn le_top hf hfp hγ' (hA.contMDiffOn_trivAt_symm _)
+          (hA.contMDiffOn_trivAt _) hc hu').mdifferentiable (by simp)
+      have hι' : MDifferentiable IF IM ((A.trivAt (γ u)).fiberInclusionMap hu') :=
+        ((A.trivAt (γ u)).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm _)
+          hu').mdifferentiable (by simp)
+      rw [hφu, mpullback_comp hP hι', MapFiber.Atlas.restrictsTo_iff.1 hτ _ _ hu',
+        hS γ hγ 0 u _ _ hc hu']
+    exact hderiv.unique ((hasDerivAt_const _ _).congr_of_eventuallyEq hconst)
+  have hx := A.mem_baseSet_trivAt (proj x)
+  have hL := (A.trivAt (proj x)).apply_eq_of_mpullback_fiberInclusionMap_eq
+    (hA.mdifferentiable_trivAt (by simp) _) hx (hlie _ hx hγ0)
+    (u := ![η₁, η₂]) (Fin.forall_fin_two.2 ⟨hη₁, hη₂⟩)
+  rw [mlieDerivForm_apply_eq_mextDeriv_apply hA hX0' (hXh 0) hη₁ hη₂, hX0] at hL
+  -- `(η₁, η₂, v)` is a permutation of `(v, η₁, η₂)`, on which `dτ` vanishes.
+  have hσ : ![η₁, η₂, v] = ![v, η₁, η₂] ∘ finRotate 3 := by
+    ext i
+    fin_cases i <;> simp
+  have hperm := (mextDeriv τ.val x).toAlternatingMap.map_perm ![v, η₁, η₂] (finRotate 3)
+  rw [← hσ, ContinuousAlternatingMap.coe_toAlternatingMap, hL] at hperm
+  exact hperm.trans (smul_zero _)
 
 end Transport
 
