@@ -36,7 +36,9 @@ two trivializations, these inclusions differ by the coordinate change.
   `Bundle.Trivialization.fiberInclusionMap_snd_apply`: the fibre coordinate of a trivialization and
   its fibre inclusion are inverse to each other.
 * `Bundle.Trivialization.fiberInclusionMap_coordChange`: the inclusions of a fibre through two
-  trivializations differ by their coordinate change.
+  trivializations differ by their coordinate change;
+  `Bundle.Trivialization.coe_fiberInclusionMap_eq_comp_coordChange` says so as an equality of
+  functions.
 * `Bundle.Trivialization.coe_fiberInclusionMap_transFiberHomeomorph`: changing the fibre of a
   trivialization by a homeomorphism `h` composes its fibre inclusions with the inverse of `h`.
 * `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
@@ -135,6 +137,13 @@ lemma fiberInclusionMap_coordChange (e₁ e₂ : Trivialization F proj) {b : B} 
     e₂.fiberInclusionMap h₂ (e₁.coordChange e₂ b f) = e₁.fiberInclusionMap h₁ f := by
   rw [fiberInclusionMap_apply, fiberInclusionMap_apply, e₁.mk_coordChange e₂ h₁ h₂]
   exact e₂.toOpenPartialHomeomorph.left_inv (e₂.mem_source.2 (by rwa [e₁.proj_symm_apply' h₁]))
+
+/-- The fibre inclusion of `e₁` over `b` is that of `e₂` after the coordinate change from `e₁`
+to `e₂` over `b`. -/
+lemma coe_fiberInclusionMap_eq_comp_coordChange (e₁ e₂ : Trivialization F proj) {b : B}
+    (h₁ : b ∈ e₁.baseSet) (h₂ : b ∈ e₂.baseSet) :
+    ⇑(e₁.fiberInclusionMap h₁) = e₂.fiberInclusionMap h₂ ∘ e₁.coordChange e₂ b :=
+  funext fun f ↦ (e₁.fiberInclusionMap_coordChange e₂ h₁ h₂ f).symm
 
 /-- The fibre inclusion of a trivialization whose fibre is changed by a homeomorphism `h` is the
 fibre inclusion of the original trivialization after the inverse of `h`. -/
