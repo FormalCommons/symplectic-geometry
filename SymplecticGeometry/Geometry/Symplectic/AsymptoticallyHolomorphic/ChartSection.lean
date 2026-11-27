@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.FrameChange
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
+import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 
 /-!
@@ -69,9 +70,6 @@ lower bound on `f k` on the unit ball bounds the section from below near `x`.
   of the jet norms in the rescaled distance from the centre.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_le_norm_sectionOfReading`: the lower bound
   near the centre.
-* `Real.eventually_mul_rpow_one_sixth_lt_mul_sqrt`: `C * k ^ (1 / 6) < ε * √k` for large `k`.
-* `Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le_mul`: a Gaussian bound in `t` gives one in any
-  `d ≥ 0` comparable to `t`.
 
 ## References
 
@@ -83,47 +81,6 @@ public section
 
 open scoped Manifold ContDiff Topology
 open TauCeti Metric Bundle
-
-namespace Real
-
-/-- For every `C` and every `ε > 0`, `C * k ^ (1 / 6) < ε * √k` for all large natural numbers
-`k`. -/
-theorem eventually_mul_rpow_one_sixth_lt_mul_sqrt (C : ℝ) {ε : ℝ} (hε : 0 < ε) :
-    ∀ᶠ k : ℕ in Filter.atTop, C * (k : ℝ) ^ (1 / 6 : ℝ) < ε * √k := by
-  have ht := ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 3)).comp
-    tendsto_natCast_atTop_atTop).eventually_gt_atTop (C / ε)
-  filter_upwards [ht, Filter.eventually_ge_atTop 1] with k hk hk1
-  have hk0 : (0 : ℝ) < k := by exact_mod_cast hk1
-  -- `√k = k ^ (1 / 6) * k ^ (1 / 3)`.
-  have hsq : √(k : ℝ) = (k : ℝ) ^ (1 / 6 : ℝ) * (k : ℝ) ^ (1 / 3 : ℝ) := by
-    rw [sqrt_eq_rpow, ← rpow_add hk0]
-    norm_num
-  rw [Function.comp_apply, div_lt_iff₀ hε] at hk
-  rw [hsq]
-  have h6 : 0 < (k : ℝ) ^ (1 / 6 : ℝ) := rpow_pos_of_pos hk0 _
-  nlinarith
-
-/-- A Gaussian bound in `t` is one in any `d ≥ 0` comparable to `t`: if `t ≤ a * d` and
-`d ≤ b * t` with `b > 0`, then for `c ≥ 0`,
-`(1 + t) ^ N * exp (-c * t ^ 2) ≤ max a 1 ^ N * (1 + d) ^ N * exp (-(c / b ^ 2) * d ^ 2)`. -/
-theorem one_add_pow_mul_exp_neg_mul_sq_le_of_le_mul {t d a b c : ℝ} (N : ℕ) (hd : 0 ≤ d)
-    (hb : 0 < b) (hc : 0 ≤ c) (htd : t ≤ a * d) (hdt : d ≤ b * t) :
-    (1 + t) ^ N * exp (-c * t ^ 2) ≤
-      max a 1 ^ N * (1 + d) ^ N * exp (-(c / b ^ 2) * d ^ 2) := by
-  have ht : 0 ≤ t := by nlinarith
-  have hpoly : (1 + t) ^ N ≤ (max a 1 * (1 + d)) ^ N :=
-    pow_le_pow_left₀ (by linarith)
-      (by nlinarith [mul_le_mul_of_nonneg_right (le_max_left a 1) hd, le_max_right a 1]) N
-  have hexp : exp (-c * t ^ 2) ≤ exp (-(c / b ^ 2) * d ^ 2) := by
-    have h : c / b ^ 2 * d ^ 2 ≤ c * t ^ 2 :=
-      calc c / b ^ 2 * d ^ 2 ≤ c / b ^ 2 * (b * t) ^ 2 := by gcongr
-        _ = c * t ^ 2 := by field_simp
-    exact exp_le_exp.2 (by linarith)
-  calc (1 + t) ^ N * exp (-c * t ^ 2) ≤ (max a 1 * (1 + d)) ^ N * exp (-(c / b ^ 2) * d ^ 2) :=
-        mul_le_mul hpoly hexp (exp_pos _).le (by positivity)
-    _ = max a 1 ^ N * (1 + d) ^ N * exp (-(c / b ^ 2) * d ^ 2) := by rw [mul_pow]
-
-end Real
 
 namespace SymplecticGeometry
 
