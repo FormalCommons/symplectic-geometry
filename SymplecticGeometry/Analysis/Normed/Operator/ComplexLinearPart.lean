@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
 import TauCeti.Analysis.Complex.Wirtinger.Basic
+import TauCeti.Analysis.Normed.Module.RCLike.Basic
 
 /-!
 # Complex-linear and complex-antilinear parts of an operator: bounds, scalars, smoothness
@@ -178,15 +179,9 @@ theorem norm_complexAntilinearPartL_le :
   refine opNorm_le_bound _ zero_le_one fun Ψ ↦ ?_
   rw [one_mul]
   refine opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ ?_
-  -- Multiplication by `I` preserves norms, so each of the two terms is at most `‖Ψ‖ * ‖v‖`.
-  have h : ‖Ψ v + Complex.I • Ψ (Complex.I • v)‖ ≤ 2 * (‖Ψ‖ * ‖v‖) := by
-    refine (norm_add_le _ _).trans ?_
-    rw [norm_smul Complex.I, Complex.norm_I, one_mul, two_mul]
-    gcongr
-    · exact Ψ.le_opNorm v
-    · simpa [norm_smul Complex.I] using Ψ.le_opNorm (Complex.I • v)
-  rw [complexAntilinearPartL_apply_apply, norm_smul, norm_inv, Real.norm_two]
-  linarith
+  rw [complexAntilinearPartL_apply_apply]
+  exact TauCeti.norm_two_inv_smul_add_le (Ψ.le_opNorm v)
+    (by simpa [norm_smul] using Ψ.le_opNorm (Complex.I • v))
 
 end CompatibleReal
 
