@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Manifold.Boundary.Charts
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Lift
 import TauCeti.Geometry.Manifold.RegularValue.Level
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
 # Maps into the boundary of a regular sublevel
@@ -108,9 +107,9 @@ theorem mdifferentiableAt_iff_comp_coe_boundary_scalarRegularSublevel
 
 /-- **The differential of a map into the boundary of a regular sublevel.** Let `a` be a regular
 value of a `C^m` function `f : M → ℝ`, `1 ≤ m`, and `g` a map into the boundary of the sublevel
-`{x | f x ≤ a}`. The differential at `y` of the composite of `g`
-with the inclusion of the boundary into `M` is the differential of `g`, followed by those of the
-inclusion of the boundary into the sublevel and of the inclusion of the sublevel into `M`. -/
+`{x | f x ≤ a}`. The differential at `y` of the composite of `g` with the inclusion of the
+boundary into `M` is the differential of `g`, followed by those of the inclusion of the boundary
+into the sublevel and of the inclusion of the sublevel into `M`. -/
 theorem mfderiv_comp_coe_boundary_scalarRegularSublevel
     {g : N → letI := scalarRegularSublevelChartedSpace (hfm.of_le hm) hreg hn
       (𝓡∂ (n + 1)).boundary {x | f x ≤ a}} {y : N} :
