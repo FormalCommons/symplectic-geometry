@@ -15,6 +15,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Liouville collars of hypersurfaces
@@ -240,7 +241,7 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
   have hιi : (Subtype.val ∘ ι : Q → M) = i := rfl
   have hια : SmoothForm.mpullback ι hι β = -α := by
     refine (SmoothForm.mpullback_eq_iff _).2 (funext fun q ↦ ?_)
-    rw [SmoothForm.neg_toRoughForm, Pi.neg_apply, hα, Pi.neg_apply,
+    rw [SmoothBundleForm.neg_apply, hα, Pi.neg_apply,
       neg_neg, hβ, ← mpullback_comp_at ((hι q).mdifferentiableAt (by simp))
         mdifferentiableAt_subtypeVal, hιi]
   have hcontact : (SmoothForm.mpullback ι hι β).IsContactForm := by

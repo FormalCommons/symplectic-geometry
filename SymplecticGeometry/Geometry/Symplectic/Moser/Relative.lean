@@ -24,6 +24,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The relative Moser theorem with prescribed first derivative
@@ -175,7 +176,7 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
   · rw [IsNondegenerate.interiorEquiv_symm_apply_eq_zero_iff, hαt]
     simp [hx]
   · refine (hσ t).isNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm ?_ ?_
-    · rw [hαt, SmoothForm.smul_toRoughForm, Pi.smul_apply, hx, smul_zero]
+    · rw [hαt, SmoothBundleForm.smul_apply, hx, smul_zero]
     · rw [hαt, SmoothForm.smul_toRoughForm, RoughForm.inChartAt_smul]
       simpa using hjet.const_smul (-deriv c t)
   -- Moser's equation: the rate `∂_t σ_t + L_{X_t} σ_t = c'(t) dβ - c'(t) dβ` vanishes.
@@ -185,7 +186,7 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
     have h₀ := SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁
       Real.smoothTransition.contDiff t
     have h := congrFun ((SmoothForm.mpullback_eq_iff _).1 h₀) y
-    simpa only [SmoothForm.coe_timeDeriv, SetLike.val_smul, Pi.smul_apply] using h
+    simpa only [SmoothForm.coe_timeDeriv, SmoothBundleForm.smul_apply] using h
   have h := (hσ t).mlieDerivForm_interiorEquiv_symm
     (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)
   have hd : mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
@@ -299,7 +300,7 @@ theorem exists_smoothForm_relative_primitive_sub_of_eq_along (f : SmoothEmbeddin
       {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
     rintro _ ⟨q, rfl⟩ s -
     refine nondegenerate_bilinFormAt_add_smul_sub_of_eq ?_ (hnd q) s
-    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
+    rw [SmoothBundleForm.sub_apply, heq q, sub_self]
   have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
     (SmoothForm.mpullback_eq_iff _).2 (funext fun q ↦ by
       rw [SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
