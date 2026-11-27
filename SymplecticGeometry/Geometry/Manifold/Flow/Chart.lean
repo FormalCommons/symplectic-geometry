@@ -22,9 +22,9 @@ stay in the chart with the integral curves of `v` that stay in it:
 
 * `IsIntegralCurveOn.isMIntegralCurveOn_extChartAt_symm`: a solution `z` of `V` on `J` with
   values in the chart target gives the integral curve `t ↦ e.symm (z t)` of `v` on `J`;
-* `IsMIntegralCurve.isIntegralCurveOn_extChartAt_sub`: on a set of times at which an integral
-  curve `γ` of `v` lies in the chart source, `t ↦ e (γ t) - e p` solves the recentred equation
-  `y' = V (e p + y)`.
+* `IsMIntegralCurveOn.isIntegralCurveOn_extChartAt_sub`: if `γ` is an integral curve of `v` on a
+  set of times at which it lies in the chart source, then `t ↦ e (γ t) - e p` solves the
+  recentred equation `y' = V (e p + y)` there.
 
 For a complete `C¹` field on a Hausdorff manifold, with flow `φ = TauCeti.globalFlow v`, these
 give:
@@ -44,7 +44,9 @@ graphs, over to the flow.
 
 The first statement follows Tau Ceti's `TauCeti.isMIntegralCurveOn_chartField`, using that on
 the chart target the chart field of `V` is `v`; the second reads the curve in the chart by Tau
-Ceti's `HasMFDerivAt.hasDerivAt_extChartAt_comp_mpullbackWithin`.
+Ceti's `HasMFDerivWithinAt.hasDerivWithinAt_extChartAt_comp` and
+`VectorField.mpullbackWithin_extChartAt_symm_apply`, as in Tau Ceti's
+`HasMFDerivAt.hasDerivAt_extChartAt_comp_mpullbackWithin`.
 
 ## References
 
@@ -78,22 +80,23 @@ theorem IsIntegralCurveOn.isMIntegralCurveOn_extChartAt_symm {z : ℝ → E}
   rwa [TauCeti.chartField_extChartAt_symm (hmem t ht) rfl, I.range_eq_univ, mfderivWithin_univ,
     mpullback_apply, hinv.self_apply_inverse] at h
 
-/-- **Integral curves in a chart are solutions.** Let `e` be the extended chart at `p`. On a set
-`s` of times at which an integral curve `γ` of `v` lies in the chart source, the curve
-`t ↦ e (γ t) - e p` is an integral curve of the coordinate field
+/-- **Integral curves in a chart are solutions.** Let `e` be the extended chart at `p`. If `γ` is
+an integral curve of `v` on a set `s` of times at which it lies in the chart source, then the
+curve `t ↦ e (γ t) - e p` is an integral curve on `s` of the coordinate field
 `w ↦ mpullback 𝓘(ℝ, E) I e.symm v (e p + w)` of `v`, recentred at `p`. -/
-theorem IsMIntegralCurve.isIntegralCurveOn_extChartAt_sub {γ : ℝ → M} {s : Set ℝ}
-    (hγ : IsMIntegralCurve γ v) (hmem : ∀ t ∈ s, γ t ∈ (extChartAt I p).source) :
+theorem IsMIntegralCurveOn.isIntegralCurveOn_extChartAt_sub {γ : ℝ → M} {s : Set ℝ}
+    (hγ : IsMIntegralCurveOn γ v s) (hmem : ∀ t ∈ s, γ t ∈ (extChartAt I p).source) :
     IsIntegralCurveOn (fun t ↦ extChartAt I p (γ t) - extChartAt I p p)
       (fun _ w ↦ mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v (extChartAt I p p + w)) s := by
   intro t ht
-  have h := ((hγ t).hasDerivAt_extChartAt_comp_mpullbackWithin (hmem t ht)).sub_const
+  have h := ((hγ t ht).hasDerivWithinAt_extChartAt_comp (hmem t ht)).sub_const
     (extChartAt I p p)
-  rw [I.range_eq_univ, mpullbackWithin_univ] at h
-  -- The two derivatives differ only by `e p + (q - e p) = q`, inside a dependent type.
-  exact h.hasDerivWithinAt.congr_deriv
-    (congrArg (fun w : E ↦ (mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v w : E))
-      (add_sub_cancel _ _).symm)
+  have hV := mpullbackWithin_extChartAt_symm_apply v (hmem t ht)
+  rw [I.range_eq_univ, mpullbackWithin_univ] at hV
+  -- The two derivatives differ by `e p + (q - e p) = q`, inside a dependent type.
+  refine h.congr_deriv (Eq.trans ?_ (congrArg
+    (fun w : E ↦ (mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v w : E)) (add_sub_cancel _ _).symm))
+  rw [hV, TangentBundle.trivializationAt_apply, tangentCoordChange_def, extChartAt, extChartAt]
 
 end General
 
@@ -130,7 +133,8 @@ theorem isIntegralCurveOn_extChartAt_globalFlow_sub {p x : M} {s : Set ℝ}
     (hmem : ∀ t ∈ s, globalFlow v hv hcomplete t x ∈ (extChartAt I p).source) :
     IsIntegralCurveOn (fun t ↦ extChartAt I p (globalFlow v hv hcomplete t x) - extChartAt I p p)
       (fun _ w ↦ mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v (extChartAt I p p + w)) s :=
-  (isMIntegralCurve_globalFlow hv hcomplete x).isIntegralCurveOn_extChartAt_sub hmem
+  ((isMIntegralCurve_globalFlow hv hcomplete x).isMIntegralCurveOn s)
+    |>.isIntegralCurveOn_extChartAt_sub hmem
 
 end TauCeti
 
