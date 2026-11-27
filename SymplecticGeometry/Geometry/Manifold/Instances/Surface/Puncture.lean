@@ -243,6 +243,12 @@ theorem puncture_succ_le_tailPuncture : puncture g (n + 1) ≤ tailPuncture g n 
   rw [puncture_succ_eq_tailPuncture_inf]
   exact inf_le_left
 
+/-- The set `puncture g (n + 1)` misses the centre of the ball `0`. -/
+theorem puncture_succ_le_puncture_ball_zero :
+    puncture g (n + 1) ≤ ConnectedSum.puncture (ball g 0) := by
+  rw [puncture_succ_eq_tailPuncture_inf]
+  exact inf_le_right
+
 /-- The base point lies in each `tailPuncture g n`. -/
 @[simp]
 theorem basePoint_mem_tailPuncture : basePoint g ∈ tailPuncture g n :=
@@ -293,6 +299,18 @@ theorem image_succDiffeomorph_puncture :
     refine ⟨j, hj, hinj ?_⟩
     rw [← hyx, succDiffeomorph_ball, ConnectedSum.inrBall_apply]
     exact congrArg _ (Subtype.ext (by rw [hy, ConnectedSum.coe_punctureBall]))
+
+/-- A point of genus `g + 1` lies in `puncture (g + 1) n` when, read in the connected sum, it is
+a point of `tailPuncture g n` in the second summand. -/
+theorem mem_puncture_of_succDiffeomorph_eq_inr {g n : ℕ} {x : ClosedSurface (g + 1)}
+    {y : ConnectedSum.puncture (ball g 0)} (hy : (y : ClosedSurface g) ∈ tailPuncture g n)
+    (hx : succDiffeomorph x = ConnectedSum.inr _ _ y) : x ∈ puncture (g + 1) n := by
+  have h : succDiffeomorph x ∈
+      succDiffeomorph '' (puncture (g + 1) n : Set (ClosedSurface (g + 1))) := by
+    rw [image_succDiffeomorph_puncture, hx]
+    exact Or.inr ⟨_, hy, rfl⟩
+  have hinj : Injective (succDiffeomorph (g := g)) := succDiffeomorph.injective
+  exact hinj.mem_set_image.1 h
 
 /-- **The punctured second summand.** In the connected sum of the torus with `tailPuncture g n`,
 along the ball `0` corestricted to it, the second summand punctured at the centre of that ball
