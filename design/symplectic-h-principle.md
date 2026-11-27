@@ -762,7 +762,7 @@ Proof, from the smooth version, by a partition of unity on `P`:
   It replaces `G` by `G̃ l x := G l x - χ x • J (τ l x - dβ l x)`, with `J`
   the right inverse of its step 3 and a smooth
   cutoff `χ` on `D`, `1` near `B ×ˢ {0}` and supported in `W`
-  (`exists_contMDiffMap_zero_one_nhds_of_isClosed`): this datum is holonomic
+  (`exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod`): this datum is holonomic
   near `B ×ˢ {0}` for every `l`, and equals `G` for `l ∈ K`, since there
   `τ l = dβ l` on `W`. With `δ < min ε₀ η`, the families of step 4 are
   `H l s x := (h (s, (l, x))).2` and `β' := f'`, and every point moved, or
