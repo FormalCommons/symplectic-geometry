@@ -400,10 +400,8 @@ theorem map_zero : ψ 0 = p₀ :=
 /-- A normalized ball embedding of radius `r` sends no nonzero point of the closed ball `B(r)`
 to `p₀`. -/
 theorem apply_ne_center {z : StdSpace (Fin (n + 1))} (hz : z ∈ closedBall 0 r) (hz0 : z ≠ 0) :
-    ψ z ≠ p₀ := fun h ↦
-  hz0 <| hψ.isSymplecticBallEmbedding.injOn hz
-    (mem_closedBall_self (hψ.width_pos.trans hψ.width_lt_radius).le)
-    (h.trans hψ.map_zero.symm)
+    ψ z ≠ p₀ :=
+  hψ.map_zero ▸ hψ.isSymplecticBallEmbedding.apply_ne_apply_zero hz hz0
 
 /-- On the preimage of the open ball of radius `ε`, the blowup chart inverts
 `ψ ∘ complexToRealEuclidean (Fin (n + 1))`. -/
