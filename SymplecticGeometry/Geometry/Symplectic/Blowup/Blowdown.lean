@@ -647,19 +647,9 @@ omit [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] in
 `blowdownBall` of a point of the closed ball of radius `l`. -/
 theorem mem_complBall_iff {z : DivisorBlowdown hΨ hf hl hε} :
     z ∈ complBall hΨ hf hl hε ↔ z ∉ blowdownBall hΨ hf hl hε '' closedBall 0 l := by
-  rw [complBall, GluedAlong.mem_rangeInl, mem_image_blowdownBall_closedBall_iff]
-  constructor
-  · rintro ⟨x, rfl⟩ ⟨w, hw, hxw⟩
-    obtain ⟨h, hxw⟩ := (GluedAlong.inr_eq_inl_iff _).1 hxw
-    have hw' := (gluingDiffeomorph hΨ hf hl hε ⟨x, h⟩).property
-    rw [Diffeomorph.coe_toHomeomorph] at hxw
-    rw [hxw, mem_ballOverlap_iff] at hw'
-    exact hw.not_gt hw'
-  · intro hz
-    rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, hx⟩ | ⟨w, rfl⟩
-    · exact ⟨x, hx⟩
-    · have hw : w ∈ ballOverlap n l ε := mem_ballOverlap_iff.2 (not_le.1 fun hw ↦ hz ⟨w, hw, rfl⟩)
-      exact ⟨_, GluedAlong.inl_symm_apply _ ⟨w, hw⟩⟩
+  rw [← SetLike.mem_coe, coe_complBall, GluedAlong.range_inl_eq_compl_image_inr, mem_compl_iff,
+    mem_image_blowdownBall_closedBall_iff]
+  simp only [mem_image, mem_compl_iff, SetLike.mem_coe, mem_ballOverlap_iff, not_lt]
 
 /-- **The complement of the ball**: the diffeomorphism from the complement in the blowdown of the
 image of the closed ball of radius `l` under `blowdownBall` onto `M ∖ Z`, the inverse of `inl`.
