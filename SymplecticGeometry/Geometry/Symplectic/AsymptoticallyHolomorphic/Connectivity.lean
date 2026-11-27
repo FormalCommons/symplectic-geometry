@@ -27,8 +27,8 @@ rescaled `(0,1)`-part is `O(k ^ (-1/2))` uniformly
 so for `k` large the derivative term of `IsUniformlyTransverse` is below `η`, and the maximum
 there is attained by `‖s k x‖`.
 
-This is the first step of the Morse-theoretic proof that `M` is obtained from the zero set of
-`s k` by attaching cells of dimension at least half that of `M`.
+It is the first step of the Morse theory of `log |s_k|²`: away from the zero set, the index of
+each of its critical points will be bounded below.
 
 ## References
 
