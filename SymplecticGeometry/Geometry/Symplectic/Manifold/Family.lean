@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Family
+public import TauCeti.Geometry.Manifold.VectorBundle.NondegenerateMetric.Basic
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.Pullback
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Topology.Compactness.Compact
@@ -13,8 +14,6 @@ import Mathlib.Topology.Maps.Proper.Basic
 import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
-import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 
 /-!
 # Openness of nondegeneracy for families of two-forms
@@ -33,11 +32,13 @@ open sets on which the Moser fields of Moser's argument are defined
 Openness also holds for the family `τ + K f^* β` of the proof of Thurston's theorem on symplectic
 fibrations ([McDuffSalamon2017], Theorem 6.1.4, step 2), for a `C^1` map `f : M → B` and
 two-forms `τ` on `M` and `β` on `B`, once the parameter `K` is replaced by `s = K⁻¹`, which
-makes sense at `s = 0` too. The forms `LinearMap.BilinForm.pullbackProd τ_x β_{f x} (d_x f) s`
-on `T_x M × T_{f x} B` are nondegenerate on an open set of pairs `(s, x)`: in the
-trivializations of `TM` at `x₀` and of `TB` at `f x₀`, they are carried to a family of forms on
-`E × E_B` whose values are continuous at `x₀`. When `M` is compact, nondegeneracy at `s = 0` at
-every point thus gives one `K₀` such that `τ + K f^* β` is nondegenerate on all of `M` for every
+makes sense at `s = 0` too ([GuilleminLermanSternberg1996], §1.5). The forms
+`LinearMap.BilinForm.pullbackProd τ_x β_{f x} (d_x f) s` on `T_x M × T_{f x} B` are
+nondegenerate on an open set of pairs `(s, x)`: in the trivializations of `TM` at `x₀` and of
+`TB` at `f x₀`, they are carried to the forms `pullbackProd` of the coordinate expressions, on
+`E × E_B` (`TauCeti.SmoothTwoForm.pullbackProd_inCoordinates_flat`), and these depend
+continuously on `(s, x)` at `(s₀, x₀)`. When `M` is compact, nondegeneracy at `s = 0` at every
+point thus gives one `K₀` such that `τ + K f^* β` is nondegenerate on all of `M` for every
 `K ≥ K₀`.
 
 ## Main results
@@ -61,6 +62,9 @@ every point thus gives one `K₀` such that `τ + K f^* β` is nondegenerate on 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk`: for a
   fixed nondegenerate `σ`, the fields `(σ♭)⁻¹ α_t` of a smooth family of one-forms `α_t` depend
   smoothly on `(t, x)`.
+* `TauCeti.SmoothTwoForm.pullbackProd_inCoordinates_flat`: in the trivializations of `TM` and
+  `TB`, the form `pullbackProd` of the coordinate expressions of `τ♭_x`, `β♭_{f x}` and `d_x f`
+  is `pullbackProd τ_x β_{f x} (d_x f) s` carried along the trivializations.
 * `TauCeti.SmoothTwoForm.isOpen_setOfPred_nondegenerate_pullbackProd`: in finite dimensions, for
   a `C^1` map `f`, the set of pairs `(s, x)` at which `pullbackProd τ_x β_{f x} (d_x f) s` is
   nondegenerate is open in `ℝ × M`.
@@ -84,6 +88,8 @@ The passage from the open set to a bound `K₀` follows this library's
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
+* [V. Guillemin, E. Lerman and S. Sternberg, *Symplectic Fibrations and Multiplicity
+  Diagrams*][GuilleminLermanSternberg1996], §1.5
 -/
 
 public section
@@ -244,9 +250,41 @@ theorem IsNondegenerate.contMDiff_interiorEquiv_symm_mpullback_prodMk [FiniteDim
 
 section PullbackProd
 
-variable [FiniteDimensional ℝ E] {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
-  [FiniteDimensional ℝ EB] [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
-  [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B] {f : M → B}
+variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {f : M → B}
+
+/-- Let `x` lie in the base set of the trivialization of `TM` at `x₀`, and `f x` in that of the
+trivialization of `TB` at `f x₀`. Then the form `LinearMap.BilinForm.pullbackProd` of the
+coordinate expressions of `τ♭_x`, `β♭_{f x}` and `d_x f`, a bilinear form on `E × EB`, is
+`pullbackProd τ_x β_{f x} (d_x f) s` carried along the two trivializations. -/
+theorem pullbackProd_inCoordinates_flat (τ : SmoothTwoForm I M) (β : SmoothTwoForm IB B)
+    (s : ℝ) {x₀ x : M} (hx : x ∈ (trivializationAt E (TangentSpace I) x₀).baseSet)
+    (hfx : f x ∈ (trivializationAt EB (TangentSpace IB) (f x₀)).baseSet) :
+    LinearMap.BilinForm.pullbackProd
+        (Manifold.tangentBilinFormInCoordinates x₀ x (τ.flat x)).toBilinForm
+        (Manifold.tangentBilinFormInCoordinates (f x₀) (f x) (β.flat (f x))).toBilinForm
+        (inTangentCoordinates I IB id f (mfderiv I IB f) x₀ x : E →ₗ[ℝ] EB) s =
+      LinearMap.BilinForm.congr
+        (((trivializationAt E (TangentSpace I) x₀).continuousLinearEquivAt ℝ x
+          hx).toLinearEquiv.prodCongr
+          ((trivializationAt EB (TangentSpace IB) (f x₀)).continuousLinearEquivAt ℝ (f x)
+            hfx).toLinearEquiv)
+        (LinearMap.BilinForm.pullbackProd (τ.bilinFormAt x) (β.bilinFormAt (f x))
+          (mfderiv I IB f x : TangentSpace I x →ₗ[ℝ] _) s) := by
+  have hL : (inTangentCoordinates I IB id f (mfderiv I IB f) x₀ x : E →ₗ[ℝ] EB) =
+      ((trivializationAt EB (TangentSpace IB) (f x₀)).continuousLinearEquivAt ℝ (f x)
+        hfx).toLinearEquiv.toLinearMap ∘ₗ (mfderiv I IB f x : TangentSpace I x →ₗ[ℝ] _) ∘ₗ
+        ((trivializationAt E (TangentSpace I) x₀).continuousLinearEquivAt ℝ x
+          hx).toLinearEquiv.symm.toLinearMap := by
+    rw [inTangentCoordinates, ContinuousLinearMap.inCoordinates_eq (x₀ := id x₀) (x := id x) hx hfx]
+    ext; simp
+  rw [← LinearMap.BilinForm.pullbackProd_congr,
+    Manifold.tangentBilinFormInCoordinates_toBilinForm x₀ hx,
+    Manifold.tangentBilinFormInCoordinates_toBilinForm (f x₀) hfx, toBilinForm_flat,
+    toBilinForm_flat, hL]
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EB]
 
 /-- **Nondegeneracy of `pullbackProd` is open jointly in the parameter and the point.** For a
 `C^1` map `f : M → B` between finite-dimensional manifolds and two-forms `τ` on `M` and `β` on
@@ -261,72 +299,40 @@ theorem isOpen_setOfPred_nondegenerate_pullbackProd (hf : ContMDiff I IB 1 f)
   refine isOpen_iff_mem_nhds.2 fun ⟨s₀, x₀⟩ h₀ ↦ ?_
   -- The two forms and the differential of `f`, read in the trivializations of `TM` at `x₀` and
   -- of `TB` at `f x₀`, are continuous at `x₀`.
-  set τc : M → E →L[ℝ] E →L[ℝ] ℝ := fun x ↦ ContinuousLinearMap.inCoordinates E
-    (TangentSpace I) (E →L[ℝ] ℝ) (fun x ↦ TangentSpace I x →L[ℝ] ℝ) x₀ x x₀ x (τ.flat x)
-  set βc : M → EB →L[ℝ] EB →L[ℝ] ℝ := fun x ↦ ContinuousLinearMap.inCoordinates EB
-    (TangentSpace IB) (EB →L[ℝ] ℝ) (fun y ↦ TangentSpace IB y →L[ℝ] ℝ) (f x₀) (f x) (f x₀)
-    (f x) (β.flat (f x))
+  set τc : M → E →L[ℝ] E →L[ℝ] ℝ := fun x ↦
+    Manifold.tangentBilinFormInCoordinates x₀ x (τ.flat x)
+  set βc : M → EB →L[ℝ] EB →L[ℝ] ℝ := fun x ↦
+    Manifold.tangentBilinFormInCoordinates (f x₀) (f x) (β.flat (f x))
   set Lc : M → E →L[ℝ] EB := inTangentCoordinates I IB id f (mfderiv I IB f) x₀
   have hτc : ContinuousAt τc x₀ :=
-    ((continuousAt_hom_bundle _ _).1 τ.contMDiff_flat.continuous.continuousAt).2
-  have hβc : ContinuousAt βc x₀ :=
-    ((continuousAt_hom_bundle _ _).1
-      (β.contMDiff_flat.continuous.comp hf.continuous).continuousAt).2
+    Manifold.continuousAt_tangentBilinFormInCoordinates τ.contMDiff_flat.continuous.continuousAt
+  have hβc : ContinuousAt βc x₀ := Manifold.continuousAt_tangentBilinFormInCoordinates
+    (β.contMDiff_flat.continuous.comp hf.continuous).continuousAt
   have hLc : ContinuousAt Lc x₀ :=
     (ContMDiffAt.mfderiv (fun _ ↦ f) id (hf.comp contMDiff_snd).contMDiffAt
       contMDiffAt_id (m := 0) (by norm_num)).continuousAt
-  -- The form `pullbackProd` of the coordinate expressions, on `E × EB`.
-  set Bc : ℝ × M → LinearMap.BilinForm ℝ (E × EB) := fun p ↦
-    LinearMap.BilinForm.pullbackProd (τc p.2).toBilinForm (βc p.2).toBilinForm
-      (Lc p.2 : E →ₗ[ℝ] EB) p.1
-  -- Over the base sets, it is the form of the statement carried along the trivializations.
-  have key (s : ℝ) (x : M) (hx : x ∈ (trivializationAt E (TangentSpace I) x₀).baseSet)
-      (hfx : f x ∈ (trivializationAt EB (TangentSpace IB) (f x₀)).baseSet) :
-      Bc (s, x) = LinearMap.BilinForm.congr
-        ((((trivializationAt E (TangentSpace I) x₀).continuousLinearEquivAt ℝ x
-          hx).toLinearEquiv.prodCongr
-          ((trivializationAt EB (TangentSpace IB) (f x₀)).continuousLinearEquivAt ℝ (f x)
-            hfx).toLinearEquiv))
-        (LinearMap.BilinForm.pullbackProd (τ.bilinFormAt x) (β.bilinFormAt (f x))
-          (mfderiv I IB f x : TangentSpace I x →ₗ[ℝ] _) s) := by
-    have hL (v : E) : (trivializationAt EB (TangentSpace IB) (f x₀)).symmL ℝ (f x) (Lc x v) =
-        mfderiv I IB f x ((trivializationAt E (TangentSpace I) x₀).symmL ℝ x v) :=
-      Trivialization.symmL_continuousLinearMapAt _ hfx _
-    refine LinearMap.ext₂ fun v w ↦ ?_
-    simp only [Bc, LinearMap.BilinForm.pullbackProd_apply, ContinuousLinearMap.toBilinForm_apply,
-      τc, βc, inCoordinates_flat_apply τ hx, inCoordinates_flat_apply β hfx,
-      LinearMap.BilinForm.congr_apply, LinearEquiv.prodCongr_symm, LinearEquiv.prodCongr_apply]
-    simp only [ContinuousLinearMap.coe_coe, hL, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
-      Trivialization.continuousLinearEquivAt_symm_apply, Trivialization.symmL_apply _ hx,
-      Trivialization.symmL_apply _ hfx]
-  have hB (v w : E × EB) : ContinuousAt (fun p ↦ Bc p v w) (s₀, x₀) := by
-    -- The arguments of `ContinuousAt.comp` are given: unification would otherwise unfold the
-    -- coordinate expressions.
-    have hτ' : ContinuousAt (fun p : ℝ × M ↦ τc p.2) (s₀, x₀) :=
-      ContinuousAt.comp (f := Prod.snd) (x := (s₀, x₀)) hτc continuousAt_snd
-    have hβ' : ContinuousAt (fun p : ℝ × M ↦ βc p.2) (s₀, x₀) :=
-      ContinuousAt.comp (f := Prod.snd) (x := (s₀, x₀)) hβc continuousAt_snd
-    have hL' : ContinuousAt (fun p : ℝ × M ↦ Lc p.2) (s₀, x₀) :=
-      ContinuousAt.comp (f := Prod.snd) (x := (s₀, x₀)) hLc continuousAt_snd
-    simp only [Bc, LinearMap.BilinForm.pullbackProd_apply, ContinuousLinearMap.toBilinForm_apply,
-      ContinuousLinearMap.coe_coe]
-    exact (((hτ'.clm_apply continuousAt_const).clm_apply continuousAt_const).add
-      ((hβ'.clm_apply (hL'.clm_apply continuousAt_const)).clm_apply continuousAt_const)).add
-      ((hβ'.clm_apply continuousAt_const).clm_apply (hL'.clm_apply continuousAt_const)) |>.sub
-      (continuousAt_fst.mul ((hβ'.clm_apply continuousAt_const).clm_apply continuousAt_const))
   have hx₀ := FiberBundle.mem_baseSet_trivializationAt' (F := E) (E := TangentSpace I) x₀
   have hfx₀ := FiberBundle.mem_baseSet_trivializationAt' (F := EB) (E := TangentSpace IB) (f x₀)
-  have h₀' : (Bc (s₀, x₀)).Nondegenerate := by
-    rw [key s₀ x₀ hx₀ hfx₀, LinearMap.BilinForm.nondegenerate_congr_iff]
-    exact h₀
+  -- The form `pullbackProd` of the coordinate expressions, on `E × EB`, is nondegenerate near
+  -- `(s₀, x₀)`. The arguments of `ContinuousAt.comp` are given: unification would otherwise
+  -- unfold the coordinate expressions.
+  have hev := LinearMap.BilinForm.eventually_nondegenerate_pullbackProd_of_continuousAt
+    (ContinuousAt.comp (f := Prod.snd) (x := (s₀, x₀)) hτc continuousAt_snd)
+    (ContinuousAt.comp (f := Prod.snd) (x := (s₀, x₀)) hβc continuousAt_snd)
+    (ContinuousAt.comp (f := Prod.snd) (x := (s₀, x₀)) hLc continuousAt_snd) continuousAt_fst
+    (by simp only [Function.comp_apply, τc, βc, Lc]
+        rwa [pullbackProd_inCoordinates_flat τ β s₀ hx₀ hfx₀,
+          LinearMap.BilinForm.nondegenerate_congr_iff])
   have hW : ∀ᶠ p : ℝ × M in 𝓝 (s₀, x₀), p.2 ∈ (trivializationAt E (TangentSpace I) x₀).baseSet ∧
       f p.2 ∈ (trivializationAt EB (TangentSpace IB) (f x₀)).baseSet :=
     (continuousAt_snd.eventually ((trivializationAt E (TangentSpace I) x₀).open_baseSet.mem_nhds
       hx₀)).and ((hf.continuous.continuousAt.comp continuousAt_snd).eventually
       ((trivializationAt EB (TangentSpace IB) (f x₀)).open_baseSet.mem_nhds hfx₀))
-  filter_upwards [LinearMap.BilinForm.eventually_nondegenerate_of_continuousAt hB h₀', hW] with
-    ⟨s, x⟩ hp ⟨hx, hfx⟩
-  rwa [key s x hx hfx, LinearMap.BilinForm.nondegenerate_congr_iff] at hp
+  -- Over the base sets, it is the form of the statement carried along the trivializations.
+  filter_upwards [hev, hW] with ⟨s, x⟩ hp ⟨hx, hfx⟩
+  simp only [Function.comp_apply, τc, βc, Lc] at hp
+  rwa [pullbackProd_inCoordinates_flat τ β s hx hfx,
+    LinearMap.BilinForm.nondegenerate_congr_iff] at hp
 
 /-- **A uniform bound for adding a large multiple of a pulled-back form.** Let `f : M → B` be a
 `C^1` map between finite-dimensional manifolds with `M` compact, `τ` a two-form on `M` and `β`

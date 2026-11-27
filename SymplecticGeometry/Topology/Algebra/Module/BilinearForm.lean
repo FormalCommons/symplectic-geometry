@@ -16,9 +16,8 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 # Continuous bilinear forms
 
 This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, one about
-the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors, one about
-the continuous inverse of a nondegenerate bilinear form, and one about nondegeneracy in
-continuous families of bilinear forms.
+the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors, and one
+about the continuous inverse of a nondegenerate bilinear form.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
@@ -53,11 +52,6 @@ For a nondegenerate bilinear form `B` on a finite-dimensional space, the map
 `B.toContinuousBilinearMap` to the continuous dual is invertible, by Tau Ceti's
 `TauCeti.isInvertible_toContinuousBilinearMap_iff_separatingLeft`, and its inverse is that of
 `B.toDual hB`, applied to continuous linear forms.
-
-For a family of bilinear forms on a finite free module, parametrized by a topological space, whose
-values `B y v w` are continuous in `y` at one point, nondegeneracy at that point holds at all
-nearby parameters. Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate` gives the global form of
-this, for values continuous everywhere.
 
 ## Main definitions
 
@@ -100,8 +94,6 @@ this, for values continuous everywhere.
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 * `LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply`: for nondegenerate `B` in finite
   dimension, `B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f`.
-* `LinearMap.BilinForm.eventually_nondegenerate_of_continuousAt`: for a family of bilinear forms
-  with values continuous at a point, nondegeneracy at that point persists nearby.
 -/
 
 public section
@@ -396,8 +388,6 @@ end ContinuousAlternatingMap
 
 namespace LinearMap.BilinForm
 
-section Continuous
-
 variable {𝕜 V : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [IsTopologicalAddGroup V]
   [ContinuousSMul 𝕜 V] [T2Space V] [FiniteDimensional 𝕜 V] {B : LinearMap.BilinForm 𝕜 V}
@@ -410,34 +400,6 @@ theorem toContinuousBilinearMap_inverse_apply (hB : B.Nondegenerate) (f : Strong
   refine h.inverse_apply_eq.2 ?_
   ext w
   simp
-
-end Continuous
-
-section Family
-
-variable {𝕜 V X : Type*} [CommRing 𝕜] [IsDomain 𝕜] [TopologicalSpace 𝕜] [IsTopologicalRing 𝕜]
-  [T1Space 𝕜] [AddCommGroup V] [Module 𝕜 V] [Module.Free 𝕜 V] [Module.Finite 𝕜 V]
-  [TopologicalSpace X]
-
-/-- Nondegeneracy persists near a point for a family of bilinear forms on a finite free module
-over a `T₁` topological domain whose values `B y v w` are continuous at that point. This is the
-pointwise form of Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate`. -/
-theorem eventually_nondegenerate_of_continuousAt {B : X → LinearMap.BilinForm 𝕜 V} {x : X}
-    (hB : ∀ v w, ContinuousAt (fun y ↦ B y v w) x) (h : (B x).Nondegenerate) :
-    ∀ᶠ y in nhds x, (B y).Nondegenerate := by
-  -- The matrices whose bilinear form is nondegenerate are open, and the matrix of `B y` in a
-  -- fixed basis is continuous at `x`.
-  let b := Module.Free.chooseBasis 𝕜 V
-  have hO := TauCeti.isOpen_setOf_nondegenerate (B := Matrix.toBilin b) fun v w ↦ by
-    simp only [Matrix.toBilin_apply]
-    fun_prop
-  have hc : ContinuousAt (fun y ↦ (B y).toMatrix b) x :=
-    continuousAt_pi.2 fun i ↦ continuousAt_pi.2 fun j ↦ by
-      simpa only [toMatrix_apply] using hB (b i) (b j)
-  filter_upwards [hc.eventually (hO.mem_nhds (by simpa using h))] with y hy
-  simpa using hy
-
-end Family
 
 end LinearMap.BilinForm
 
