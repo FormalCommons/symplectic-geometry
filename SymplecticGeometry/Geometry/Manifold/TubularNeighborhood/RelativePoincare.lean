@@ -131,7 +131,7 @@ theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedd
       SmoothForm.mpullback (f.codRestrict W hfW) (f.codRestrict W hfW).contMDiff ξ = β := by
   let βM := SmoothForm.mpullback ρ hρ β
   have hfβM : SmoothForm.mpullback f f.contMDiff βM = β := by
-    rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_eq_iff, hρf, mpullback_id]
+    rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_eq_self_of_eq_id _ hρf]
   -- The closed forms `θ` and `d(ρ^* β)` have the same pullback `dβ` along `f`, so on a tube `W`
   -- their difference has a primitive `μ` vanishing along `f`.
   obtain ⟨W, -, hfW, μ, hdμ, hμ0, -⟩ := f.exists_smoothForm_relative_primitive_sub

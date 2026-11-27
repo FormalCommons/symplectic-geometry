@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
+public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Product
 public import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
@@ -21,6 +23,7 @@ import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.FrameAlong
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Pi
@@ -70,6 +73,13 @@ These horizontal vectors give the normal spaces of the graph torus: a tangent ve
 for `v = 0`, and the normal space has dimension `dim Σ`. So `v ↦ [(v, 0)]` is a linear isomorphism
 onto the normal space at `x`.
 
+When `M` is a surface with a nondegenerate `σ`, a frame `e t : ℂ ≃ T_{h t} M` along `h`, smooth in
+`t` and with `σ (e t 1) (e t i) > 0`, followed by `v ↦ [(v, 0)]`, identifies `ℂ` with the normal
+spaces of the graph torus, smoothly in `x`, and the normal symplectic form on these is `σ`, so it
+is positive on `1, i`. Rescaling (`SymplecticGeometry.SymplecticFraming.ofPos`) gives a symplectic
+framing of the graph torus. Such frames exist along every circle in a Hausdorff σ-compact surface
+(`TauCeti.SmoothTwoForm.IsNondegenerate.exists_frame_along`).
+
 On fundamental groups based at `0`, the graph torus sends the class of the straight loop
 `TauCeti.torusLoop p (Pi.single j 1)` around the `j`-th circle, the `j`-th generator of `π₁(T, 0)`
 by `AddCircle.piFundamentalGroupMulEquivZero_torusLoop`, to an element of
@@ -89,6 +99,8 @@ symplectic for the product form.
   as a smooth embedding.
 * `SymplecticGeometry.graphTorusHorizontalNormalEquiv`: the isomorphism `v ↦ [(v, 0)]` from
   `T_{h (x i)} Σ` to the normal space of the graph torus at `x`.
+* `SymplecticGeometry.graphTorusSymplecticFraming`: the symplectic framing of the graph torus of a
+  circle map in a surface given by a positive frame along it.
 
 ## Main results
 
@@ -104,6 +116,8 @@ symplectic for the product form.
   family of horizontal vectors `(v, 0)` form a smooth map into the normal bundle of the graph torus.
 * `SymplecticGeometry.normalClass_graphTorus_horizontal_eq_zero_iff`: a horizontal vector `(v, 0)`
   is tangent to the graph torus only for `v = 0`.
+* `SymplecticGeometry.nonempty_symplecticFraming_graphTorus`: the graph torus of a circle map in a
+  Hausdorff σ-compact symplectic surface has a symplectic framing for the product form.
 * `SymplecticGeometry.fst_prodMulEquiv_mapOfEq_graphTorus`,
   `SymplecticGeometry.snd_prodMulEquiv_mapOfEq_graphTorus`: the two components of the image of a
   class of `π₁(T, 0)`, the image of its `i`-th coordinate under `h` and the class itself.
@@ -415,6 +429,76 @@ theorem graphTorusHorizontalNormalEquiv_apply (hh : ContMDiff 𝓘(ℝ) I ∞ h)
   -- What remains is the value of the composite map, as in `hL` of the definition.
   exact (graphTorus hh).isImmersion.normalClassL_apply x _
     ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm (v, 0))
+
+/-! ### Symplectic framings -/
+
+/-- **The symplectic framing of a graph torus given by a positive frame along `h`.** Let `σ` be a
+nondegenerate two-form on a surface `M`, and let `e t : ℂ ≃L[ℝ] T_{h t} M` be real linear
+isomorphisms, smooth as the map `(t, z) ↦ e t z` into the tangent bundle, with
+`σ (e t 1) (e t i) > 0` for every `t`. Composing `e (x i)` with the horizontal normal equivalence
+`v ↦ [(v, 0)]` gives isomorphisms of `ℂ` with the normal spaces of the graph torus at `x`, on which
+the normal symplectic form is `σ`; `SymplecticFraming.ofPos` turns them into a symplectic framing
+of the graph torus for the product form `pr₁^* σ + pr₂^* ω_T`. -/
+def graphTorusSymplecticFraming {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate)
+    (hh : ContMDiff 𝓘(ℝ) I ∞ h) (hE : finrank ℝ E = 2) {e : ∀ t, ℂ ≃L[ℝ] TangentSpace I (h t)}
+    (he : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, ℂ)) I.tangent ∞
+      fun y : AddCircle (p i) × ℂ ↦ (⟨h y.1, e y.1 y.2⟩ : TangentBundle I M))
+    (hpos : ∀ t, 0 < σ.eval₂ (h t) (e t 1) (e t Complex.I)) :
+    SymplecticFraming (hasSymplecticTangentImages_graphTorus hσ hh)
+      (Complex.finrank_real_eq_finrank_prod_sub hE) :=
+  SymplecticFraming.ofPos (fun x ↦ (e (x i)).trans (graphTorusHorizontalNormalEquiv hh x))
+    (by
+      let := (graphTorus hh).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+        (Complex.finrank_real_eq_finrank_prod_sub hE)
+      -- The frame read at the `i`-th coordinate of a point of the torus.
+      have hu : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, ℂ)) I.tangent ∞
+          fun y : (∀ i, AddCircle (p i)) × ℂ ↦
+            (⟨h (y.1 i), e (y.1 i) y.2⟩ : TangentBundle I M) :=
+        he.comp (f := fun y : (∀ i, AddCircle (p i)) × ℂ ↦ (y.1 i, y.2))
+          ((contMDiff_apply.comp contMDiff_fst).prodMk contMDiff_snd)
+      refine (contMDiff_normalClass_graphTorus_horizontal hh
+        (Complex.finrank_real_eq_finrank_prod_sub hE) (u := fun x z ↦ e (x i) z)
+        hu).congr fun y ↦ ?_
+      rw [ContinuousLinearEquiv.trans_apply, graphTorusHorizontalNormalEquiv_apply,
+        Manifold.tangentSpaceProdEquiv_symm_apply]
+      -- The two sides differ only in the proofs of `∞ ≠ 0` that they pass to `normalClass`.
+      rfl)
+    fun x ↦ by
+      simp only [ContinuousLinearEquiv.trans_apply, graphTorusHorizontalNormalEquiv_apply]
+      exact (symplecticNormalForm_graphTorus_horizontal hσ hh x _ _).trans_gt (hpos (x i))
+
+/-- The framing `graphTorusSymplecticFraming hσ hh hE he hpos` sends a normal vector `v` of the
+zero slice at `x` to the normal class of the horizontal vector `(e (x i) ((√λ)⁻¹ • z), 0)`, where
+`z ∈ ℂ` is the `ℂ`-component of `v` and `λ = σ (e (x i) 1) (e (x i) i)`. -/
+@[simp]
+theorem graphTorusSymplecticFraming_apply {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate)
+    (hh : ContMDiff 𝓘(ℝ) I ∞ h) (hE : finrank ℝ E = 2) {e : ∀ t, ℂ ≃L[ℝ] TangentSpace I (h t)}
+    (he : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, ℂ)) I.tangent ∞
+      fun y : AddCircle (p i) × ℂ ↦ (⟨h y.1, e y.1 y.2⟩ : TangentBundle I M))
+    (hpos : ∀ t, 0 < σ.eval₂ (h t) (e t 1) (e t Complex.I)) (x : ∀ i, AddCircle (p i))
+    (v : (zeroSlice (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
+      (∀ i, AddCircle (p i))).isImmersion.NormalSpace x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    graphTorusSymplecticFraming hσ hh hE he hpos x v =
+      (graphTorus hh).isImmersion.normalClass x (by simp)
+        ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm
+          (e (x i) ((√(σ.eval₂ (h (x i)) (e (x i) 1) (e (x i) Complex.I)))⁻¹ •
+            zeroSliceNormalEquiv _ _ x v), 0)) := by
+  rw [graphTorusSymplecticFraming, SymplecticFraming.ofPos_apply,
+    ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    ContinuousLinearEquiv.trans_apply, graphTorusHorizontalNormalEquiv_apply,
+    graphTorusHorizontalNormalEquiv_apply, graphTorusHorizontalNormalEquiv_apply,
+    symplecticNormalForm_graphTorus_horizontal hσ]
+
+/-- **Graph tori are symplectically framed.** Let `σ` be a nondegenerate two-form on a Hausdorff
+σ-compact surface `M`, and `h : AddCircle (p i) → M` smooth. Then the graph torus of `h` has a
+symplectic framing for the product form `pr₁^* σ + pr₂^* ω_T` of `M × T`. -/
+theorem nonempty_symplecticFraming_graphTorus [T2Space M] [SigmaCompactSpace M]
+    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (hE : finrank ℝ E = 2) :
+    Nonempty (SymplecticFraming (hasSymplecticTangentImages_graphTorus hσ hh)
+      (Complex.finrank_real_eq_finrank_prod_sub hE)) := by
+  obtain ⟨e, he, hpos⟩ := hσ.exists_frame_along hE (by simp) hh
+  exact ⟨graphTorusSymplecticFraming hσ hh hE he hpos⟩
 
 /-! ### Fundamental groups -/
 
