@@ -71,7 +71,7 @@ while read -r hash; do
   printf 'url = "%s/%s.art"\noutput = "/dev/null"\n' "$artifacts" "$hash"
 done < "$work/named" > "$work/head.cfg"
 if [ -s "$work/head.cfg" ]; then
-  curl -q -sS -Z --parallel-max 32 --retry 5 --retry-all-errors --max-time 600 -I \
+  curl -q -sS -Z --parallel-max 32 --retry 5 --retry-all-errors --max-time 300 -I \
     -w '%{http_code} %{url_effective}\n' -K "$work/head.cfg" > "$work/head.out" || fail "could not ask the bucket which archives it has"
 fi
 : >> "$work/head.out"
@@ -90,11 +90,14 @@ while read -r code url; do
 done < "$work/head.out"
 echo "archives named: $(wc -l < "$work/named"), in the bucket: $have, to upload: $send"
 
-# Hetzner answers 503 to many uploads at once; curl tries those again. 412
-# means that the name was taken meanwhile, which is as good as uploaded.
+# Hetzner answers 503 to many uploads at once; curl tries those again, and a
+# broken connection too. An answer such as 403 or 412 is no error to curl
+# without `--fail`, so it is not tried again. 412 means that the name was
+# taken meanwhile, also by this upload's own first try, which is as good as
+# uploaded.
 if [ "$send" -gt 0 ]; then
   { printf '%s\n' "$key"; cat "$work/put.cfg"; } |
-    curl -q -sS -Z --parallel-max 16 --retry 8 --max-time 900 -o /dev/null -w '%{http_code}\n' \
+    curl -q -sS -Z --parallel-max 16 --retry 8 --retry-all-errors --max-time 600 -o /dev/null -w '%{http_code}\n' \
       --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.artifact' \
       -H 'If-None-Match: *' -K - > "$work/put.out" || fail "could not upload the archives"
   if grep -qvE '^(200|412)$' "$work/put.out"; then
@@ -102,7 +105,7 @@ if [ "$send" -gt 0 ]; then
   fi
 fi
 code=$(printf '%s\n' "$key" |
-  curl -q -sS --retry 8 --max-time 300 -o /dev/null -w '%{http_code}' \
+  curl -q -sS --retry 8 --retry-all-errors --max-time 120 -o /dev/null -w '%{http_code}' \
     --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.outputs+json-lines' \
     -H 'If-None-Match: *' -K - -T "$dir/outputs.jsonl" "$mappings") || fail "could not upload the mappings"
 case $code in

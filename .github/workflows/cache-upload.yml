@@ -103,7 +103,7 @@ jobs:
             jq '[.artifacts[] | select(.name == "lake-cache" and (.expired | not))] | length') ||
             { echo "::warning::could not ask GitHub for the staged build of run $RUN"; exit 0; }
           [ "$count" -gt 0 ] || { echo "run $RUN handed over no staged build"; exit 0; }
-          if timeout 600 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache --dir "$RUNNER_TEMP/staged"; then
+          if timeout 300 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache --dir "$RUNNER_TEMP/staged"; then
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::could not download the staged build of run $RUN"
