@@ -279,6 +279,19 @@ theorem fderivTransEquiv_trans (ψ : BlowupChart (n := n) M p₀)
   exact ContinuousLinearEquiv.ext <| funext fun v ↦ by
     simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.symm_apply_apply]
 
+/-- The derivative at `0` of `φ ∘ c⁻¹` sends the line of `ℂⁿ⁺¹` that `directionEquiv c` gives a
+line `ℓ` of the tangent space at the centre to the line that `directionEquiv φ` gives `ℓ`. -/
+@[simp]
+theorem mapProjectivization_fderivTransEquiv_directionEquiv
+    (ℓ : ℙ ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀)) :
+    (fderivTransEquiv c φ).mapProjectivization (Blowup.directionEquiv c ℓ) =
+      Blowup.directionEquiv φ ℓ := by
+  induction ℓ using Projectivization.ind with | h v hv =>
+  rw [Blowup.directionEquiv_def, Blowup.directionEquiv_def, LinearEquiv.mapProjectivization_mk,
+    LinearEquiv.mapProjectivization_mk, ContinuousLinearEquiv.mapProjectivization_mk]
+  congr 1
+  simpa using fderivTransEquiv_mfderiv c φ v
+
 end BlowupChart
 
 namespace Blowup
@@ -383,10 +396,8 @@ theorem liftChart_ofDirection_directionEquiv_mk (v : TangentSpace 𝓘(ℂ, Fin 
       zeroSection (mk ℂ (V := Fin (n + 1) → ℂ)
         (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) φ p₀ v)
         (by simpa using (φ.mfderivCenterEquiv.injective.ne_iff' (map_zero _)).2 hv)) := by
-  rw [liftChart_ofDirection, directionEquiv_def, LinearEquiv.mapProjectivization_mk,
-    ContinuousLinearEquiv.mapProjectivization_mk]
-  congr 2
-  exact BlowupChart.fderivTransEquiv_mfderiv c φ v
+  rw [liftChart_ofDirection, BlowupChart.mapProjectivization_fderivTransEquiv_directionEquiv,
+    directionEquiv_mk]
 
 end Blowup
 
