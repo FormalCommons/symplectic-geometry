@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Stability
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
@@ -31,13 +32,13 @@ rests on Tau Ceti's Morse–Bott theorem for the components of a moment map). Th
 stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limit points.
 
 The Kempf–Ness function `Φ_p` has derivative `-⟨μ (exp (i t ξ) p), ξ⟩` along
-`t ↦ exp (-i t ξ)` (`hasDerivAt_kempfNessFunction_expI_neg_smul`, from
-`hasDerivAt_kempfNessFunction_geodesic`), so this derivative tends to `-w_μ(p, ξ)`
-(`tendsto_deriv_kempfNessFunction`). Since the moment weight is also a lower bound for
-`⟨μ (exp (i t ξ) p), ξ⟩`, a positive weight makes `Φ_p` decrease along that curve at least
-linearly, so `Φ_p` is not bounded below. By `isSemistable_iff_bddBelow_kempfNessFunction`, the
-weights of a semistable point are therefore nonpositive (`IsSemistable.momentWeight_nonpos`),
-which is one half of the numerical criterion for semistability in [GeorgoulasRobbinSalamon2021].
+`t ↦ exp (-i t ξ)` (`hasDerivAt_kempfNessFunction_expI_neg_smul`), so this derivative tends
+to `-w_μ(p, ξ)` (`tendsto_deriv_kempfNessFunction`). Since the moment weight is also a lower
+bound for `⟨μ (exp (i t ξ) p), ξ⟩`, a positive weight bounds that derivative above by
+`-w_μ(p, ξ) < 0`, so `Φ_p` is not bounded below (`nonneg_of_bddBelow_of_hasDerivAt_le`). By
+`isSemistable_iff_bddBelow_kempfNessFunction`, the weights of a semistable point are therefore
+nonpositive (`IsSemistable.momentWeight_nonpos`), which is one half of the
+numerical criterion for semistability in [GeorgoulasRobbinSalamon2021].
 
 ## Main definitions
 
@@ -298,18 +299,6 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 open scoped RealInnerProductSpace
 
-omit [CompactSpace M] in
-/-- The derivative of `t ↦ Φ_p (C.expI (-(t • ξ)))` at `t` is `-μ (C.expI (t • ξ) • p) ξ`, for a
-complexified action, with `-μ` an equivariant moment map for `σ` and the metric
-`g(u, w) = σ(u, J w)`. -/
-theorem hasDerivAt_kempfNessFunction_expI_neg_smul (h : IsComplexifiedAction C J)
-    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
-    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
-    (p : M) (ξ : GroupLieAlgebra I G) (t : ℝ) :
-    HasDerivAt (fun s : ℝ ↦ kempfNessFunction C μ p (C.expI (-(s • ξ))))
-      (-μ (C.expI (t • ξ) • p) ξ) t := by
-  simpa [smul_neg] using hasDerivAt_kempfNessFunction_geodesic C μ p h hμ hg 1 (-ξ) t
-
 /-- **The slope identity.** For a complexified action on a compact manifold, with `-μ` an
 equivariant moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, the derivative of
 `t ↦ Φ_p (C.expI (-(t • ξ)))`, the Kempf–Ness function along `exp (-i t ξ)`, tends to
@@ -322,7 +311,7 @@ theorem tendsto_deriv_kempfNessFunction (h : IsComplexifiedAction C J)
       (𝓝 (-momentWeight C μ p ξ)) := by
   have hd : (deriv fun t : ℝ ↦ kempfNessFunction C μ p (C.expI (-(t • ξ)))) =
       fun t ↦ -μ (C.expI (t • ξ) • p) ξ :=
-    funext fun t ↦ (hasDerivAt_kempfNessFunction_expI_neg_smul h hμ hg p ξ t).deriv
+    funext fun t ↦ (hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ t).deriv
   rw [hd]
   exact (tendsto_momentWeight h hμ.toIsMomentMap hg p ξ).neg
 
@@ -333,26 +322,12 @@ theorem not_bddBelow_kempfNessFunction_of_momentWeight_pos (h : IsComplexifiedAc
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {p : M} {ξ : GroupLieAlgebra I G} (hw : 0 < momentWeight C μ p ξ) :
-    ¬BddBelow (Set.range (kempfNessFunction C μ p)) := by
-  have hle : ∀ t : ℝ, momentWeight C μ p ξ ≤ μ (C.expI (t • ξ) • p) ξ :=
-    momentWeight_le_moment_expI_smul h hμ.toIsMomentMap hg p ξ
-  generalize momentWeight C μ p ξ = w at hw hle
-  set f : ℝ → ℝ := fun t ↦ kempfNessFunction C μ p (C.expI (-(t • ξ)))
-  -- `f t + w t` has derivative `w - μ (C.expI (t • ξ) • p) ξ ≤ 0`, so it is antitone.
-  have hanti : Antitone fun t ↦ f t + w * t := by
-    refine antitone_of_hasDerivAt_nonpos (f' := fun t ↦ -μ (C.expI (t • ξ) • p) ξ + w)
-      (fun t ↦ ?_) fun t ↦ by simp only [Pi.zero_apply]; linarith [hle t]
-    have := (hasDerivAt_kempfNessFunction_expI_neg_smul h hμ hg p ξ t).add
-      ((hasDerivAt_id' t).const_mul w)
-    rwa [mul_one] at this
-  rintro ⟨m, hm⟩
-  -- At `t = |f 0 - m + 1| / w` the bound `f t ≤ f 0 - w t` falls below `m`.
-  set t := |f 0 - m + 1| / w
-  have h0t := hanti (div_nonneg (abs_nonneg (f 0 - m + 1)) hw.le : 0 ≤ t)
-  have hmt : m ≤ f t := hm ⟨_, rfl⟩
-  have hwt : w * t = |f 0 - m + 1| := mul_div_cancel₀ _ hw.ne'
-  simp only [mul_zero, add_zero] at h0t
-  linarith [le_abs_self (f 0 - m + 1)]
+    ¬BddBelow (Set.range (kempfNessFunction C μ p)) :=
+  fun hb ↦ (neg_neg_of_pos hw).not_ge <| nonneg_of_bddBelow_of_hasDerivAt_le (a := 0)
+    (f := fun t : ℝ ↦ kempfNessFunction C μ p (C.expI (-(t • ξ))))
+    (hb.mono (by rintro _ ⟨t, -, rfl⟩; exact ⟨_, rfl⟩))
+    (fun t _ ↦ hasDerivAt_kempfNessFunction_expI_neg_smul C μ p h hμ hg ξ t)
+    fun t _ ↦ neg_le_neg (momentWeight_le_moment_expI_smul h hμ.toIsMomentMap hg p ξ t)
 
 end Slope
 
