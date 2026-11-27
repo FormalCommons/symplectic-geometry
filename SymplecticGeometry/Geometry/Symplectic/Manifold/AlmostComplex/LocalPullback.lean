@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -20,6 +21,12 @@ complex linear for the pullback and the structure of `Y`
 (`TauCeti.SmoothAlmostComplexStructure.mfderiv_apply_localPullback_subtypeVal_comp`). This is how
 a structure defined on an open set by a pullback is compared with maps defined on the whole
 manifold, such as the blowdown and the map to the model in the complex blowup.
+
+Such a pullback is also the pullback along `Ψ`, in the sense of
+`TauCeti.SmoothAlmostComplexStructure.pullback`, of the restriction of the structure of `Y` to `V`
+(`TauCeti.SmoothAlmostComplexStructure.localPullback_subtypeVal_comp_eq_pullback`); this extends
+Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.localPullback_eq_pullback`, the case `V = Y`
+without the inclusion.
 -/
 
 public section
@@ -50,5 +57,15 @@ theorem mfderiv_apply_localPullback_subtypeVal_comp (Ψ : U ≃ₘ^∞⟮I, I'�
     rw [hΨ]
     exact TauCeti.Manifold.mfderiv_comp_subtype_val_apply w
   rw [← hmf, mfderiv_localPullback_apply, hmf, hf x]
+
+/-- The pullback of a structure `K` of `Y` along a diffeomorphism `Ψ` from `U` onto an open set
+`V`, followed by the inclusion of `V`, is the pullback along `Ψ` of the restriction of `K` to
+`V`. -/
+@[simp]
+theorem localPullback_subtypeVal_comp_eq_pullback [FiniteDimensional ℝ E']
+    (Ψ : U ≃ₘ^∞⟮I, I'⟯ V) (K : SmoothAlmostComplexStructure I' Y) :
+    localPullback Ψ.isLocalDiffeomorph_subtypeVal_comp K = pullback Ψ (K.restrictOpen V) :=
+  ((eq_localPullback_iff_isPseudoholomorphic _ _ _).2
+    ((isPseudoholomorphic_subtype_val K V).comp (isPseudoholomorphic_pullback Ψ _))).symm
 
 end TauCeti.SmoothAlmostComplexStructure
