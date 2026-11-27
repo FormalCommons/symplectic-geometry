@@ -59,8 +59,7 @@ vertically closed form of `TauCeti.SmoothTwoForm.exists_restrictsTo_isVertically
 The proof of `map_realFirstChernClass_vertical` adapts that of
 `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_mpullback`: the derivatives of the
 fibre inclusion `j` are isomorphisms from `TF` onto the pull-back `j *ᵖ ker d proj`
-(`Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
-`Bundle.Trivialization.range_mfderiv_fiberInclusionMap`), smooth on total spaces, which carry the
+(`Bundle.Trivialization.mfderivFiberInclusionMapEquiv`), smooth on total spaces, which carry the
 form of `σ = j^* τ` to the pull-back of the vertical restriction of `τ`. So the result follows from
 `realFirstChernClass_pushforward` and `realFirstChernClass_pullback` for forms on bundles.
 
@@ -227,16 +226,19 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := Fin k → ℝ) (E := fun x ↦ V x) hj
   -- The derivative of `j` at `y` is an isomorphism from `T_y F` onto the vertical space at `j y`.
   let Φ (y : F) : TangentSpace IF y ≃L[ℝ] ((j : F → M) *ᵖ (fun x ↦ V x)) y :=
-    ((LinearEquiv.ofInjective _ ((A.trivAt b).injective_mfderiv_fiberInclusionMap hdj hb' y)).trans
-      (LinearEquiv.ofEq _ _
-        ((A.trivAt b).range_mfderiv_fiberInclusionMap hdj hb' y))).toContinuousLinearEquiv
+    (Trivialization.mfderivFiberInclusionMapEquiv hdj hb' y).toContinuousLinearEquiv
+  have hΦv (y : F) (v : TangentSpace IF y) :
+      (Subtype.val (Φ y v) : TangentSpace IM (j y)) = mfderiv IF IM j y v :=
+    Trivialization.coe_mfderivFiberInclusionMapEquiv_apply hdj hb' y v
   have hΦ : ContMDiff (IF.prod 𝓘(ℝ, EF)) (IF.prod 𝓘(ℝ, Fin k → ℝ)) ∞
       (fun p : TangentBundle IF F ↦ TotalSpace.mk' (Fin k → ℝ) p.proj (Φ p.proj p.snd)) := by
     rw [_root_.Bundle.Pullback.contMDiff_iff j hj]
-    exact ⟨contMDiff_proj _, fun p ↦ hD.contMDiffAt_totalSpace_mk
+    refine ⟨contMDiff_proj _, fun p ↦ hD.contMDiffAt_totalSpace_mk
       (b := fun p : TangentBundle IF F ↦ j p.proj)
-      (w := fun p ↦ mfderiv IF IM j p.proj p.snd) (hj.contMDiff_tangentMap (by simp) p)
+      (w := fun p ↦ Subtype.val (Φ p.proj p.snd)) ?_
       fun p ↦ (Φ p.proj p.snd).property⟩
+    simp_rw [hΦv]
+    exact hj.contMDiff_tangentMap (by simp) p
   obtain ⟨hτ, -⟩ := (SmoothTwoForm.exists_restrictsTo_isVerticallyClosed hA hH
     hσ.isClosed).choose_spec
   have hτj := hτ.mpullback_fiberInclusionMap_eq hA hb'
@@ -249,9 +251,11 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   rw [ContMDiffTwoForm.bilinFormAt_pullback, IsContMDiffDistribution.bilinFormAt_restrictTwoForm,
     ContMDiffTwoForm.bilinFormAt_tangentEquiv_symm]
   conv_rhs => rw [← hτj, SmoothForm.bilinFormAt_mpullback]
-  -- The fibre `(j *ᵖ V) y` is `V (j y)` only by definition, so the lemmas on `restrict` do not
-  -- match; both sides are `τ_{j y} (dj v, dj w)`, by the definition of `Φ`.
-  rfl
+  -- The fibre `(j *ᵖ V) y` is `V (j y)` only by definition, so `restrict_apply` does not match
+  -- the left side as it is stated.
+  change SmoothForm.bilinFormAt _ (j y) (Subtype.val (Φ y v))
+    (Subtype.val (Φ y w)) = _
+  rw [hΦv, hΦv, LinearMap.BilinForm.comp_apply, ContinuousLinearMap.coe_coe]
 
 end TauCeti.MapFiber.Atlas
 
