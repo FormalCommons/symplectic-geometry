@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import Mathlib.Analysis.Convex.Topology
 public import TauCeti.Geometry.Manifold.Boundary.Invariance
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.Boundary.Basic
 
@@ -83,7 +84,7 @@ theorem dense_interior [IsManifold I n M] (hn : n ≠ 0) : Dense (I.interior M) 
   intro x
   rw [mem_closure_iff_nhds]
   intro t ht
-  set e := extChartAt I x
+  set e := extChartAt I x with he
   have hS : e.symm ⁻¹' t ∩ e.target ∈ 𝓝[interior (range I)] e x :=
     nhdsWithin_mono _ interior_subset <| inter_mem
       (by rwa [← map_extChartAt_symm_nhdsWithin_range (I := I) x] at ht)
@@ -99,14 +100,14 @@ theorem dense_interior [IsManifold I n M] (hn : n ≠ 0) : Dense (I.interior M) 
 form a preconnected set. This is the local input to `isPreconnected_interior`. -/
 theorem exists_mem_nhds_isPreconnected_inter_interior [NormedSpace ℝ E] [IsManifold I n M]
     (hn : n ≠ 0) (x : M) : ∃ t ∈ 𝓝 x, IsPreconnected (t ∩ I.interior M) := by
-  set e := extChartAt I x
-  obtain ⟨ε, hε, hsub⟩ := Metric.mem_nhdsWithin_iff.mp (extChartAt_target_mem_nhdsWithin (I := I) x)
+  set e := extChartAt I x with he
+  obtain ⟨ε, hε, hsub, -⟩ := SymplecticGeometry.exists_chartBall_subset I (univ_mem (f := 𝓝 x))
   set C := Metric.ball (e x) ε ∩ interior (range I)
   have hCT : C ⊆ e.target := fun w hw ↦ hsub ⟨hw.1, interior_subset hw.2⟩
-  refine ⟨e.source ∩ e ⁻¹' Metric.ball (e x) ε, inter_mem (extChartAt_source_mem_nhds x)
-    ((continuousAt_extChartAt x).preimage_mem_nhds (Metric.ball_mem_nhds _ hε)), ?_⟩
-  have heq : e.source ∩ e ⁻¹' Metric.ball (e x) ε ∩ I.interior M = e.symm '' C := by
+  refine ⟨SymplecticGeometry.chartBall I x ε, SymplecticGeometry.chartBall_mem_nhds I x hε, ?_⟩
+  have heq : (SymplecticGeometry.chartBall I x ε : Set M) ∩ I.interior M = e.symm '' C := by
     ext y
+    simp only [mem_inter_iff, SetLike.mem_coe, SymplecticGeometry.mem_chartBall_iff, ← he]
     constructor
     · rintro ⟨⟨hys, hyb⟩, hyi⟩
       refine ⟨e y, ⟨hyb, ?_⟩, e.left_inv hys⟩
@@ -116,7 +117,7 @@ theorem exists_mem_nhds_isPreconnected_inter_interior [NormedSpace ℝ E] [IsMan
     · rintro ⟨w, hw, rfl⟩
       refine ⟨⟨e.map_target (hCT hw), ?_⟩,
         (TauCeti.ModelWithCorners.isInteriorPoint_extChartAt_symm_iff hn x (hCT hw)).2 hw.2⟩
-      simpa [mem_preimage, e.right_inv (hCT hw)] using hw.1
+      simpa [e.right_inv (hCT hw)] using hw.1
   rw [heq]
   exact ((convex_ball _ _).inter I.convex_range.interior).isPreconnected.image _
     ((continuousOn_extChartAt_symm x).mono hCT)
