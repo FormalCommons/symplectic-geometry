@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
+import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -67,15 +68,15 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   the cylinder itself. `SymplecticGeometry.IsConvexShapeOverRAt.re_leviForm_pos` is its Levi
   theorem, at `R > 0`.
 
-The proof evaluates `SymplecticGeometry.re_leviForm_comp_shape_apply_self`. On a complex tangency
-`v` the Wirtinger derivatives `σ = ∂s v` and `τ = ∂t v` are proportional, `τ = r / (R χ') σ`, and
-the Cauchy–Schwarz bound `SymplecticGeometry.norm_ofReal_mul_add_ofReal_mul_sq_le` for a
-combination of `σ` and `τ` bounds `|σ|²` by `|v|²`; this takes the
+Both Levi theorems rest on
+`SymplecticGeometry.re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero`, which evaluates
+`SymplecticGeometry.re_leviForm_comp_shape_apply_self` on a complex tangency `v`. There the
+Wirtinger derivatives `σ = ∂s v` and `τ = ∂t v` are proportional, `τ = c σ`, with
+`c = r / (R χ')` for a shape and `c = r ρ' / R` over `R` (which allows `ρ' = 0`), and a
+Cauchy–Schwarz bound for a combination of `σ` and `τ` bounds `|σ|²` by `|v|²`. This takes the
 place of the book's splitting of the complex tangency into the two parts on which it computes
 the Levi form separately, and of its passage from `k = n` to `k < n`, where the extra directions
-only need `χ' > 0`. The proof over `R` is the same computation, with the relation
-`τ = (r ρ' / R) σ` from `SymplecticGeometry.ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape`,
-which allows `ρ' = 0`.
+only need `χ' > 0`.
 
 ## References
 
@@ -562,26 +563,6 @@ theorem fderiv_shapeGraph_comp_shape_ne_zero (hχ : DifferentiableAt ℝ χ r) (
   field_simp at h1
   exact hR.ne' (by nlinarith [h1])
 
-/-- On a complex tangency of `shapeGraph χ ∘ shape` at a point with `√s = R`, `√t = r` and
-`χ'(r) = d`, written through `fderiv_shapeGraph_comp_shape_apply`, the Wirtinger derivatives
-`σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ` are proportional: `τ = r / (d R) σ`. -/
-private theorem inner_sub_I_mul_sum_eq_of_tangent {R r d : ℝ} (hR : R ≠ 0) (hr : r ≠ 0)
-    (hd : d ≠ 0) {p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
-    (h₁ : -fderiv ℝ (fun q ↦ (shape q).1) p v / (2 * R) +
-      fderiv ℝ (fun q ↦ (shape q).2) p v * d / (2 * r) = 0)
-    (h₂ : -fderiv ℝ (fun q ↦ (shape q).1) p (I • v) / (2 * R) +
-      fderiv ℝ (fun q ↦ (shape q).2) p (I • v) * d / (2 * r) = 0) :
-    ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j =
-      ((r / (d * R) : ℝ) : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j := by
-  have h := ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape (α := -(1 / (2 * R)))
-    (β := d / (2 * r)) (by linear_combination h₁) (by linear_combination h₂)
-  have hR' : (R : ℂ) ≠ 0 := ofReal_ne_zero.2 hR
-  have hr' : (r : ℂ) ≠ 0 := ofReal_ne_zero.2 hr
-  have hd' : (d : ℂ) ≠ 0 := ofReal_ne_zero.2 hd
-  push_cast at h ⊢
-  field_simp at h ⊢
-  linear_combination h
-
 /-- **The Levi form of an `i`-convex shape.** Let `χ` be `C²` at `r` and an `i`-convex shape
 there, and let `p ∈ ℂᵏ × ℂᵐ` lie on the hypersurface of the shape, `shape p = (χ r ², r ²)`. Then
 the Levi form of `F = shapeGraph χ ∘ shape` at `p` is positive on every nonzero `v` with
@@ -604,59 +585,36 @@ theorem IsConvexShapeAt.re_leviForm_pos (hχ : ContDiffAt ℝ 2 χ r) (h : IsCon
   have hs : 0 < χ r ^ 2 := by positivity
   have ht : 0 < r ^ 2 := by positivity
   have hH : ContDiffAt ℝ 2 (shapeGraph χ) (shape p) := hp ▸ contDiffAt_shapeGraph hχ' hs ht
-  rw [fderiv_shapeGraph_comp_shape_apply_of_shape_eq (hχ.differentiableAt (by norm_num)) hR hr
-    hp] at hv₁ hv₂
-  -- On a complex tangency, `τ = λ σ` with `λ = r / (χ' R)`.
-  have hτσ := inner_sub_I_mul_sum_eq_of_tangent hR.ne' hr.ne' hd.ne' hv₁ hv₂
-  rw [re_leviForm_comp_shape_apply_self hH v, hp,
-    fderiv_shapeGraph_apply (hχ'.differentiableAt (by norm_num)) hs ht,
-    fderiv_shapeGraph_apply (hχ'.differentiableAt (by norm_num)) hs ht,
-    fderiv_fderiv_shapeGraph_apply hχ' hs ht, fderiv_fderiv_shapeGraph_apply hχ' hs ht,
-    fderiv_fderiv_shapeGraph_apply hχ' hs ht, hsR, hsr]
-  set σ := ∑ j, ((p.1 j).re : ℂ) * v.1 j with hσ
-  set τ := ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j with hτ
   set R := χ r
   set d := deriv χ r
   set e := iteratedDeriv 2 χ r
+  have hH₁ (a b : ℝ) : fderiv ℝ (shapeGraph χ) (shape p) (a, b) = -a / (2 * R) + b * d / (2 * r) :=
+    by rw [hp, fderiv_shapeGraph_apply (hχ'.differentiableAt (by norm_num)) hs ht, hsR, hsr]
+  have hH₂ (a b a' b' : ℝ) : fderiv ℝ (fderiv ℝ (shapeGraph χ)) (shape p) (a, b) (a', b') =
+      a * a' / (4 * R ^ 2 * R) + b * b' * (e / (4 * r ^ 2) - d / (4 * r ^ 2 * r)) := by
+    rw [hp, fderiv_fderiv_shapeGraph_apply hχ' hs ht, hsR, hsr]
+  -- On a complex tangency, `τ = l σ` with `l = r / (χ' R)`.
   set l := r / (d * R) with hl
-  have hττ : ‖τ‖ ^ 2 = l ^ 2 * ‖σ‖ ^ 2 := by
-    rw [hτσ, norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs]
-  -- Cauchy–Schwarz for `σ + (R / (χ' r)) τ = (1 + 1 / χ'²) σ`.
-  have hCS := norm_ofReal_mul_add_ofReal_mul_sq_le 1 (R / (d * r)) p v
-  rw [← hσ, ← hτ, hp, hτσ] at hCS
-  have hcl : R / (d * r) * l = 1 / d ^ 2 := by
-    rw [hl]
-    field_simp
-  have hc : (((1 : ℝ) : ℂ) * σ + ((R / (d * r) : ℝ) : ℂ) * ((l : ℂ) * σ)) =
-      ((1 + 1 / d ^ 2 : ℝ) : ℂ) * σ := by
-    rw [← hcl]
-    push_cast
-    ring
-  rw [hc, norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs] at hCS
-  set S := ‖σ‖ ^ 2
-  set a := ‖v.1‖ ^ 2 with ha
-  set b := ‖v.2‖ ^ 2 with hb
+  obtain ⟨-, hL, -, hCS⟩ := re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero hH (c := l)
+    (by rw [hH₁]; positivity) (by rw [hH₁, hH₁, hl]; field_simp; ring) hv₁ hv₂
+  rw [hL, hH₁, hH₁, hH₂, hH₂, hH₂]
+  rw [hp] at hCS
+  dsimp only at hCS
+  set S := ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2
+  set a := ‖v.1‖ ^ 2
+  set b := ‖v.2‖ ^ 2
   have hS : 0 ≤ S := by positivity
-  have ha₀ : 0 ≤ a := by positivity
   have hb₀ : 0 ≤ b := by positivity
-  have hab : 0 < a + b := by
-    by_contra hab
-    refine hv (Prod.ext ?_ ?_)
-    · simpa [ha] using (show a = 0 by linarith)
-    · simpa [hb] using (show b = 0 by linarith)
+  have hab : 0 < a + b := Prod.norm_fst_sq_add_norm_snd_sq_pos hv
   have hX : 0 ≤ d ^ 2 * R ^ 2 * (a + b) - (1 + d ^ 2) * S := by
-    have h1 : 0 < 1 + 1 / d ^ 2 := by positivity
-    have h2 : (1 + 1 / d ^ 2) * S ≤ R ^ 2 * (a + b) := by
-      have : (1 + 1 / d ^ 2) * ((1 + 1 / d ^ 2) * S) ≤ (1 + 1 / d ^ 2) * (R ^ 2 * (a + b)) := by
-        convert hCS using 1
-        · ring
-        · field_simp
-      exact le_of_mul_le_mul_left this h1
-    have : (1 + d ^ 2) * S = d ^ 2 * ((1 + 1 / d ^ 2) * S) := by
+    have e₁ : (1 + d ^ 2) * S = d ^ 2 / r ^ 2 * ((r ^ 2 + l ^ 2 * R ^ 2) * S) := by
+      rw [hl]
       field_simp
       ring
-    rw [this]
-    nlinarith [sq_nonneg d]
+    have e₂ : d ^ 2 * R ^ 2 * (a + b) = d ^ 2 / r ^ 2 * (R ^ 2 * r ^ 2 * (a + b)) := by
+      field_simp
+    rw [e₁, e₂, sub_nonneg]
+    exact mul_le_mul_of_nonneg_left hCS (by positivity)
   have hA : 0 < d / r - 1 / R := by linarith
   have hE : 0 < e + d ^ 3 / r - 1 / R := by linarith
   have hY : 0 < R ^ 2 * d ^ 2 * (d / r + 1 / R) := by positivity
@@ -671,7 +629,6 @@ theorem IsConvexShapeAt.re_leviForm_pos (hχ : ContDiffAt ℝ 2 χ r) (h : IsCon
         rw [mul_zero, sub_zero]
         positivity
       linarith [mul_pos hA hX']
-  rw [hττ]
   convert div_pos hN (by positivity : (0 : ℝ) < 4 * R ^ 2 * d ^ 2) using 1
   rw [hl]
   field_simp
@@ -951,66 +908,32 @@ theorem IsConvexShapeOverRAt.re_leviForm_pos (hρ : ContDiffAt ℝ 2 ρ R)
   have ht : 0 < ρ R ^ 2 := by positivity
   have hH : ContDiffAt ℝ 2 (shapeGraphOverR ρ) (shape p) :=
     hp ▸ contDiffAt_shapeGraphOverR hρ' hs ht
-  have htan (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-      fderiv ℝ (shapeGraphOverR ρ ∘ shape) p u =
-        -(deriv ρ R / (2 * R)) * fderiv ℝ (fun q ↦ (shape q).1) p u +
-          1 / (2 * ρ R) * fderiv ℝ (fun q ↦ (shape q).2) p u := by
-    rw [fderiv_shapeGraphOverR_comp_shape_apply
-      (by rw [hp]; exact hρ'.differentiableAt (by norm_num)) (by rw [hp]; exact hs)
-      (by rw [hp]; exact ht), hp, hsR, hsr]
-    ring
-  rw [htan] at hv₁ hv₂
-  -- On a complex tangency, `τ = λ σ` with `λ = ρ R ρ' R / R`.
-  have hτσ := ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape hv₁ hv₂
-  rw [re_leviForm_comp_shape_apply_self hH v, hp,
-    fderiv_shapeGraphOverR_apply (hρ'.differentiableAt (by norm_num)) hs ht,
-    fderiv_shapeGraphOverR_apply (hρ'.differentiableAt (by norm_num)) hs ht,
-    fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht, fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht,
-    fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht, hsR, hsr]
-  set σ := ∑ j, ((p.1 j).re : ℂ) * v.1 j with hσ
-  set τ := ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j with hτ
   set r := ρ R
   set d := deriv ρ R
   set e := iteratedDeriv 2 ρ R
-  have hR' : (R : ℂ) ≠ 0 := ofReal_ne_zero.2 hR.ne'
-  have hr' : (r : ℂ) ≠ 0 := ofReal_ne_zero.2 hr.ne'
-  have hτσ' : τ = ((r * d / R : ℝ) : ℂ) * σ := by
-    push_cast at hτσ ⊢
-    field_simp at hτσ ⊢
-    linear_combination hτσ
-  have hττ : ‖τ‖ ^ 2 = (r * d / R) ^ 2 * ‖σ‖ ^ 2 := by
-    rw [hτσ', norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs]
-  -- Cauchy–Schwarz for `σ + (R ρ' R / r) τ = (1 + ρ' R ²) σ`.
-  have hCS := norm_ofReal_mul_add_ofReal_mul_sq_le 1 (R * d / r) p v
-  rw [← hσ, ← hτ, hp, hτσ'] at hCS
-  dsimp only at hCS
-  have hc : (((1 : ℝ) : ℂ) * σ + ((R * d / r : ℝ) : ℂ) * (((r * d / R : ℝ) : ℂ) * σ)) =
-      ((1 + d ^ 2 : ℝ) : ℂ) * σ := by
-    push_cast
-    field_simp
-  rw [hc, norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs] at hCS
-  -- Cauchy–Schwarz for `σ` alone.
-  have hSa := norm_sum_re_mul_sq_le p v
-  rw [← hσ, hp] at hSa
-  dsimp only at hSa
-  set S := ‖σ‖ ^ 2
-  set a := ‖v.1‖ ^ 2 with ha
-  set b := ‖v.2‖ ^ 2 with hb
-  have hab : 0 < a + b := by
-    by_contra hab
-    refine hv (Prod.ext ?_ ?_)
-    · simpa [ha] using (show a = 0 by linarith [sq_nonneg ‖v.1‖, sq_nonneg ‖v.2‖])
-    · simpa [hb] using (show b = 0 by linarith [sq_nonneg ‖v.1‖, sq_nonneg ‖v.2‖])
-  have hq : 0 < 1 + d ^ 2 := by positivity
+  have hH₁ (a b : ℝ) :
+      fderiv ℝ (shapeGraphOverR ρ) (shape p) (a, b) = -a * d / (2 * R) + b / (2 * r) := by
+    rw [hp, fderiv_shapeGraphOverR_apply (hρ'.differentiableAt (by norm_num)) hs ht, hsR, hsr]
+  have hH₂ (a b a' b' : ℝ) : fderiv ℝ (fderiv ℝ (shapeGraphOverR ρ)) (shape p) (a, b) (a', b') =
+      a * a' * (d / (4 * R ^ 2 * R) - e / (4 * R ^ 2)) - b * b' / (4 * r ^ 2 * r) := by
+    rw [hp, fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht, hsR, hsr]
+  -- On a complex tangency, `τ = (r d / R) σ`.
+  obtain ⟨-, hL, hSa, hCS⟩ := re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero hH
+    (c := r * d / R) (by rw [hH₁, neg_zero, zero_mul, zero_div, zero_add]; positivity)
+    (by rw [hH₁, hH₁]; field_simp; ring) hv₁ hv₂
+  rw [hL, hH₁, hH₁, hH₂, hH₂, hH₂]
+  rw [hp] at hSa hCS
+  dsimp only at hSa hCS
+  set S := ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2
+  set a := ‖v.1‖ ^ 2
+  set b := ‖v.2‖ ^ 2
+  have hab : 0 < a + b := Prod.norm_fst_sq_add_norm_snd_sq_pos hv
   have hSab : (1 + d ^ 2) * S ≤ R ^ 2 * (a + b) := by
-    have e₁ : 1 ^ 2 * R ^ 2 + (R * d / r) ^ 2 * r ^ 2 = (1 + d ^ 2) * R ^ 2 := by
+    have e₁ : r ^ 2 + (r * d / R) ^ 2 * R ^ 2 = r ^ 2 * (1 + d ^ 2) := by
       field_simp
-    rw [e₁] at hCS
-    have : (1 + d ^ 2) * ((1 + d ^ 2) * S) ≤ (1 + d ^ 2) * (R ^ 2 * (a + b)) := by
-      nlinarith
-    exact le_of_mul_le_mul_left this hq
+    rw [e₁, mul_assoc, mul_comm (R ^ 2) (r ^ 2), mul_assoc] at hCS
+    exact le_of_mul_le_mul_left hCS (by positivity)
   have := hl a b S (by positivity) (by positivity) hab (by positivity) hSa hSab
-  rw [hττ]
   convert div_pos this (by norm_num : (0 : ℝ) < 4) using 1
   field_simp
   ring
