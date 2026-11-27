@@ -1,0 +1,17 @@
+name: env-rule-test
+# TEST ONLY, not to merge: does a pull request's own run get the environment
+# lake-cache? It says only whether a secret is visible, never its value.
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: lake-cache
+    steps:
+      - env:
+          K: ${{ secrets.LAKE_CACHE_KEY }}
+        run: |
+          if [ -n "$K" ]; then echo "THE SECRET IS VISIBLE TO A PULL REQUEST'S RUN"; exit 1; else echo "no secret visible"; fi
