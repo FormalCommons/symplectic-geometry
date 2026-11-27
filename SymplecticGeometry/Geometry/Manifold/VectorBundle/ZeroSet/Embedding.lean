@@ -53,7 +53,8 @@ follows `TauCeti.isImmersionOfComplement_coe_regularLevel`.
   `z` is the kernel of the linearization of `s` at `z`.
 * `TauCeti.SmoothEmbedding.ofTransverseSection`: the inclusion of the zero set as a bundled
   smooth embedding, and `TauCeti.SmoothEmbedding.isClosed_range_ofTransverseSection`: its range
-  is closed.
+  is closed. Off that range the section does not vanish
+  (`TauCeti.SmoothEmbedding.snd_ne_zero_of_notMem_range_ofTransverseSection`).
 
 ## References
 
@@ -262,6 +263,14 @@ theorem range_ofTransverseSection :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     range (ofTransverseSection hm hsm hs hE) = {x | s x = 0} := by
   rw [coe_ofTransverseSection, Subtype.range_coe]
+
+/-- Off the zero set of a transverse section, the section does not vanish. -/
+theorem snd_ne_zero_of_notMem_range_ofTransverseSection (x : X)
+    (hx : letI := transverseZeroSetChartedSpace hm hsm hs hE
+      x ∉ range (ofTransverseSection hm hsm hs hE)) :
+    (TotalSpace.mk' F' x (s x)).snd ≠ 0 := fun h ↦ hx <| by
+  rw [range_ofTransverseSection]
+  exact h
 
 /-- A point of the zero set of a transverse section is a zero of the section. -/
 theorem ofTransverseSection_apply_eq_zero (z : ↥{x : X | s x = 0}) :

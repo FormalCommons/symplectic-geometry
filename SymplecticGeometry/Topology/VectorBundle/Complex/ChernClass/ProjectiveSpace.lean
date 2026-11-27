@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
+public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 import SymplecticGeometry.AlgebraicTopology.Cohomology.ComplSingleton
 import SymplecticGeometry.Topology.VectorBundle.Thom.CupEulerClass
@@ -102,13 +103,11 @@ variable {V} {W : Type} [NormedAddCommGroup W] [NormedSpace ℂ W] [FiniteDimens
 /-- **Naturality of the hyperplane class.** The continuous map `ℙ ℂ V → ℙ ℂ W` induced by an
 injective linear map `f : V →ₗ[ℂ] W` pulls the hyperplane class of `W` back to that of `V`. -/
 theorem hyperplaneClass_map (f : V →ₗ[ℂ] W) (hf : Function.Injective f) :
-    TopCat.singularCohomologyMap
-        (TopCat.ofHom ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩)
-        2 (hyperplaneClass W) = hyperplaneClass V := by
-  have hfc := LinearMap.continuous_of_finiteDimensional f
+    TopCat.singularCohomologyMap (TopCat.ofHom (mapContinuousMap f hf)) 2 (hyperplaneClass W) =
+      hyperplaneClass V := by
   have h := complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
-    (finrank_self ℂ) (g := ⟨map f hf, continuous_map hf hfc⟩)
-    (continuous_tautologicalMapEquiv f hf hfc)
+    (finrank_self ℂ) (g := mapContinuousMap f hf)
+    (continuous_tautologicalMapEquiv f hf (LinearMap.continuous_of_finiteDimensional f))
   rw [hyperplaneClass_def, hyperplaneClass_def, map_neg, h]
   exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
 
