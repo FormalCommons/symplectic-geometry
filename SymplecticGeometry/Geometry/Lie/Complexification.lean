@@ -217,7 +217,8 @@ finite-dimensional: it is the sum of the images of `lieMap` and `cplx ∘ lieMap
 instance, since instance search cannot find `C`; use it as `have := C.finiteDimensional`. -/
 theorem finiteDimensional (C : LieComplexification I G IC Gc) [FiniteDimensional ℝ E] :
     FiniteDimensional ℝ EC := by
-  have : FiniteDimensional ℝ (GroupLieAlgebra I G) := ‹FiniteDimensional ℝ E›
+  -- The Lie algebra of `G` is the model space `E` by definition.
+  have : FiniteDimensional ℝ (GroupLieAlgebra I G) := inferInstanceAs (FiniteDimensional ℝ E)
   have hs : Surjective (C.lieMap.toLinearMap.coprod (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)) :=
     LinearMap.range_eq_top.1 (by rw [LinearMap.range_coprod, C.isCompl_range_lieMap.sup_eq_top])
   exact Module.Finite.of_surjective _ hs
