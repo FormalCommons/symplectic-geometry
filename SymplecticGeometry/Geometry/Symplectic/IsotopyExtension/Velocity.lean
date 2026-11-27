@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
@@ -254,13 +255,9 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
           (G.velocityForm σ)) := by
   refine SmoothBundleForm.ext_fin_one fun x w ↦ ?_
-  have hGt : MDifferentiableAt J I (fun y ↦ G (t, y)) (Opens.inclusion h x) :=
-    (G.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)
   have hcomp : mfderiv J I (fun y ↦ G (t, Opens.inclusion h y)) x w =
       mfderiv J I (fun y ↦ G (t, y)) (Opens.inclusion h x) w :=
-    (mfderiv_comp_apply (g := fun y ↦ G (t, y)) x hGt
-      ((contMDiff_inclusion (n := ∞) h).mdifferentiableAt (by simp)) w).trans
-      (congrArg _ (Manifold.mfderiv_inclusion_apply h x w))
+    Manifold.mfderiv_comp_inclusion_apply (g := fun y ↦ G (t, y)) h x w
   conv_rhs => rw [SmoothForm.mpullback_apply_one, Manifold.mfderiv_inclusion_apply]
   refine (mpullback_prodMk_velocityForm σ (G.restrict h) t x w).trans
     (Eq.trans ?_ (mpullback_prodMk_velocityForm σ G t (Opens.inclusion h x) w).symm)
