@@ -340,7 +340,7 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
   have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff ξ).of_le (by norm_cast)
+    hμ.toIsMomentMap.contMDiff_momentNormSq.of_le (by norm_cast)
   have hL (q : M) := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG q
   -- The forward trajectory stays in the compact space `M`.
   obtain ⟨hx, p, hpc, hconv, hdist⟩ :=
@@ -403,7 +403,7 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   have hμm := hμ.toIsMomentMap
   set γ := maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    (contMDiff_momentNormSq fun ξ ↦ hμm.contMDiff_of_neg ξ).of_le (by norm_cast)
+    hμm.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hv := contMDiff_neg_mgradient_one hf
   -- On the compact manifold `M` the flow is defined for all time, and it is `C¹`.
   have hγ : IsMIntegralCurve γ (-mgradient I' (momentNormSq B hB μ)) :=
@@ -809,14 +809,12 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
       (𝓝 y)) :
     ∃ u : G, u • x = y := by
   -- The limits are critical points of `‖μ‖²`.
-  have hneg : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
-    funext fun _ ↦ momentNormSq_neg
   have hcrit {q z : M}
       (hz : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) q) atTop (𝓝 z)) :
       mgradient I' (momentNormSq B hB μ) z = 0 := by
     obtain ⟨-, z', hz', hconv, -⟩ :=
       tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG q
-    rw [hneg] at hz' hconv
+    rw [momentNormSq_neg'] at hz' hconv
     rwa [tendsto_nhds_unique hz hconv]
   -- The flow curves `g` from `p` and `g'` from `g₀ • p`, and the flow curve `g₁ = g₀⁻¹ * g'`
   -- from `p`, along which `(g₁ t)⁻¹ • p` is the flow from `g₀ • p`.
@@ -883,7 +881,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x)) :
     momentNormSq B hB μ x = ⨅ g : Gc, momentNormSq B hB μ (g • p) := by
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff_of_neg ξ).of_le (by norm_cast)
+    hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
     ⟨0, by
       rintro _ ⟨g, rfl⟩
@@ -892,9 +890,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
   · -- The flow from `g₀ • p` converges to some `y`, defined for all `t ≥ 0`.
     obtain ⟨hI, y, -, hy, -⟩ :=
       tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG (g₀ • p)
-    have hneg : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
-      funext fun _ ↦ momentNormSq_neg
-    rw [hneg] at hI hy
+    rw [momentNormSq_neg'] at hI hy
     obtain ⟨u, rfl⟩ :=
       exists_smul_limit_eq_of_mem_orbit h hσc hσ hσG hμ hgm hBs hBp hBG g₀ hx hy
     have hμG (v : G) (z : M) : μ (v • z) = Lie.coadjointRepresentation ℝ I G v (μ z) := by

@@ -22,7 +22,10 @@ continuous. This file shows that the lifts `ψ̃_t` of the slices to the blowup
 `unitInterval × openNbhd n r` into `unitInterval × Blowup hN.blowupChart`.
 
 From these, the forms `ω̃_{ψ_t, l t, ε t}` of the blowup are a smooth family in `t` when `l`
-and `ε` are smooth (McDuff–Salamon, Theorem 7.1.21 (iii)).
+and `ε` are smooth (McDuff–Salamon, Theorem 7.1.21 (iii)). Shrinking the weight and the width of
+a single normalized ball embedding `ψ` until `B(l + ε)` lies where `ψ = ψ₀` is pseudoholomorphic
+then joins `ω̃_{ψ,l,ε}`, through symplectic forms, to a form compatible with the almost complex
+blowup of `J` (Theorem 7.1.21 (vi)).
 
 ## Main results
 
@@ -36,6 +39,9 @@ and `ε` are smooth (McDuff–Salamon, Theorem 7.1.21 (iii)).
   pull-back of `σ` by the blowdown.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isSmoothFamily_normalizedBlowupForm`: for smooth
   `l` and `ε`, the forms `ω̃_{ψ_t, l t, ε t}` are a smooth family.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.exists_path_compatible`: `ω̃_{ψ,l,ε}` is joined,
+  through a smooth path of symplectic two-forms of the blowup, to a form compatible with the
+  almost complex blowup of `J`.
 
 ## Implementation notes
 
@@ -60,7 +66,7 @@ gluing step with `P t = profileForm n (l t) (ε t)`, smooth by
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
-  Theorem 7.1.21 (iii).
+  Theorem 7.1.21 (iii) and (vi).
 -/
 
 public section
@@ -93,16 +99,14 @@ private theorem ballLift_family_eventuallyEq_of_blowdown_eq_zero
     (fun q : unitInterval × openNbhdOpens n r ↦
         (hψ q.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩) =ᶠ[𝓝 p]
       fun q ↦ (hψ p.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩ := by
-  have hc : Continuous fun q : unitInterval × openNbhdOpens n r ↦
-      ‖complexToRealEuclidean (Fin (n + 1)) (q.2 : BlowupModel n).blowdown‖ :=
-    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp (continuous_blowdown.comp
-      (continuous_subtypeVal.comp continuous_snd))).norm
+  have hq : Continuous fun q : unitInterval × openNbhdOpens n r ↦ (q.2 : BlowupModel n) :=
+    continuous_subtypeVal.comp continuous_snd
   have hp₁ : ∀ t, (p.2 : BlowupModel n) ∈ openNbhd n (ε t) := fun t ↦
     exceptionalDivisor_subset_openNbhd (hψ t).width_pos (mem_exceptionalDivisor_iff.2 hp)
   have hW : IsOpen {q : unitInterval × openNbhdOpens n r |
       (q.2 : BlowupModel n) ∈ openNbhd n (ε q.1) ∧ (q.2 : BlowupModel n) ∈ openNbhd n (ε p.1)} := by
-    simp only [mem_openNbhd_iff]
-    exact (isOpen_lt hc (hε.comp continuous_fst)).inter (isOpen_lt hc continuous_const)
+    exact (isOpen_setOf_mem_openNbhd hq (hε.comp continuous_fst)).inter
+      (isOpen_setOf_mem_openNbhd hq continuous_const)
   filter_upwards [hW.mem_nhds ⟨hp₁ p.1, hp₁ p.1⟩] with q hq
   rw [(hψ q.1).ballLift_of_mem_openNbhd _ hq.1, (hψ p.1).ballLift_of_mem_openNbhd _ hq.2]
 
@@ -196,10 +200,7 @@ private theorem contMDiffAt_of_eq_on_ballLift
     (p : unitInterval × openNbhdOpens n r) :
     ContMDiffAt ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
       (𝓘(ℝ, Fin (n + 1) → ℂ).prod 𝓘(ℝ, (Fin (n + 1) → ℂ) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
-      (fun q : unitInterval × Blowup hN.blowupChart ↦
-        Bundle.TotalSpace.mk' ((Fin (n + 1) → ℂ) [⋀^Fin 2]→L[ℝ] ℝ)
-          (E := fun x : Blowup hN.blowupChart ↦ TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) x
-            [⋀^Fin 2]→L[ℝ] Bundle.Trivial (Blowup hN.blowupChart) ℝ x) q.2 ((β q.1).val q.2))
+      (SymplecticGeometry.sliceSection fun t ↦ (β t).val)
       (p.1, (hψ p.1).ballLift ⟨p.2, mem_openNbhdOpens_iff.1 p.2.property⟩) := by
   refine IsSmoothFamily.contMDiffAt_of_mpullback_family (contMDiff_ballLift_family hψ hψf hε)
     (isLocalDiffeomorph_prodMk_ballLift_family hψ hψf hε p) ?_
@@ -247,7 +248,7 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
   -- `(t₀, x₀)`, since the points `(t, ψ̃_t y)` with `y ∈ closedNbhd n (c t)` form a compact set.
   have hmem {t : unitInterval} {y : BlowupModel n} (hy : y ∈ closedNbhd n (c t)) :
       y ∈ openNbhd n r :=
-    mem_openNbhd_iff.2 ((mem_closedNbhd_iff.1 hy).trans_lt (hcr t))
+    closedNbhd_subset_openNbhd (hcr t) hy
   let S : Set (unitInterval × openNbhdOpens n r) :=
     {q | (q.2 : BlowupModel n) ∈ closedNbhd n (c q.1)}
   have hS : IsCompact S := by
@@ -274,7 +275,7 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
       (Blowup.contMDiff_blowdown_real _) σ))) (t₀, x₀)).congr_of_eventuallyEq ?_
   filter_upwards [hK.isOpen_compl.mem_nhds hnot] with q hq
   obtain ⟨t, x⟩ := q
-  rw [hβσ t x ?_]
+  rw [SymplecticGeometry.sliceSection_apply, SymplecticGeometry.sliceSection_apply, hβσ t x ?_]
   rintro ⟨y, hy, rfl⟩
   exact hq ⟨(t, ⟨y, mem_openNbhdOpens_iff.2 (hmem hy)⟩), hy,
     Prod.ext rfl ((hψ t).ballLiftPartialDiffeomorph_apply ⟨y, hmem hy⟩).symm⟩
@@ -295,6 +296,57 @@ theorem isSmoothFamily_normalizedBlowupForm [T2Space M]
     (fun t ↦ (hψ t).normalizedBlowupForm_eq_on_ballLift
       (isBlowupProfile_blowupProfile (hψ t).weight_pos (hψ t).width_pos))
     fun t ↦ (hψ t).normalizedBlowupForm_eq_on_compl
+
+/-! ### A path to a compatible form -/
+
+/-- **A path of forms of the blowup to a compatible one** (McDuff–Salamon, Theorem 7.1.21 (vi)).
+Let `M` be Hausdorff, `σ` symplectic, and `ψ` a normalized ball embedding of radius `r`, weight
+`l` and width `ε`. Then there are symplectic two-forms `τ t` of the blowup, smooth in
+`t ∈ unitInterval`, with `τ 0 = ω̃_{ψ,l,ε}` (for the profile `blowupProfile l ε`) and `τ 1`
+compatible with the almost complex blowup `J̃` of `J`. The cohomology
+class of `τ t` may change with `t`. -/
+theorem exists_path_compatible [T2Space M] {ψ : StdSpace (Fin (n + 1)) → M} {r l ε : ℝ}
+    (hψ : IsNormalizedBallEmbedding hN ψ r l ε) (hσ : σ.IsSymplectic) :
+    ∃ τ : unitInterval → SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart),
+      IsSmoothFamily (𝓡∂ 1) τ ∧ (∀ t, (τ t).IsSymplectic) ∧ τ 0 = hψ.normalizedBlowupForm ∧
+      (τ 1).Compatible
+        (Blowup.almostComplexStructure hN.blowupChart J hN.blowupChart_isHolomorphic) := by
+  -- Move the weight from `l` to `ε / 3` and the width from `ε` to `ε / 3`, linearly in time.
+  set L : unitInterval → ℝ := fun t ↦ (1 - t) * l + t * (ε / 3)
+  set W : unitInterval → ℝ := fun t ↦ (1 - t) * ε + t * (ε / 3)
+  have hl := hψ.weight_pos
+  have hε := hψ.width_pos
+  have hlr := hψ.weight_add_width_lt
+  have hψt (t : unitInterval) :
+      IsNormalizedBallEmbedding hN (fun z ↦ ψ ((t, z) : unitInterval × _).2) r (L t) (W t) := by
+    have h₀ := unitInterval.nonneg t
+    have h₂ : 0 ≤ (1 - t : ℝ) := sub_nonneg.2 (unitInterval.le_one t)
+    refine hψ.of_width_le ?_ ?_ ?_ ?_
+    · rcases h₀.eq_or_lt with h | h
+      · simp only [L, ← h]
+        linarith
+      · simp only [L]
+        nlinarith [mul_nonneg h₂ hl.le, mul_pos h hε]
+    all_goals simp only [L, W]; nlinarith [mul_nonneg h₂ hε.le, mul_nonneg h₀ hε.le]
+  have hsmooth (a b : ℝ) : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t : unitInterval ↦ (1 - t) * a + t * b :=
+    (((contDiff_const.sub contDiff_id).mul contDiff_const).add
+      (contDiff_id.mul contDiff_const)).contMDiff.comp contMDiff_subtypeVal_Icc
+  refine ⟨fun t ↦ (hψt t).normalizedBlowupForm,
+    isSmoothFamily_normalizedBlowupForm hψt
+      (isSymplecticBallFamily_const hψ.isSymplecticBallEmbedding) (hsmooth l (ε / 3))
+      (hsmooth ε (ε / 3)),
+    fun t ↦ (hψt t).isSymplectic_normalizedBlowupForm
+      (isBlowupProfile_blowupProfile (hψt t).weight_pos (hψt t).width_pos) hσ,
+    by congr! <;> simp [L, W], ?_⟩
+  -- At the end, `B(L 1 + W 1)` lies in the open ball `B°(ε)`, where `ψ = ψ₀` is
+  -- pseudoholomorphic.
+  refine (hψt 1).compatible_normalizedBlowupForm
+    (isBlowupProfile_blowupProfile (hψt 1).weight_pos (hψt 1).width_pos) fun z hz ↦
+      hψ.isPseudoholomorphicAt ?_
+  rw [mem_closedBall_zero_iff] at hz
+  rw [mem_ball_zero_iff]
+  simp only [L, W, Set.Icc.coe_one] at hz
+  linarith
 
 end IsNormalizedBallEmbedding
 

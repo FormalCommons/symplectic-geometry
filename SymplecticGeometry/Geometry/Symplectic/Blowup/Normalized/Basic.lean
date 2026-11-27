@@ -278,14 +278,14 @@ theorem blowupChart_isHolomorphic :
     ⟨Φ.mdifferentiableOn (by simp), Φ.symm.mdifferentiableOn (by simp)⟩
   rw [isPseudoholomorphicOn_iff]
   intro y hy
-  rw [blowupChart_source, ← hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_target,
+  rw [blowupChart_source] at hy
+  have hw : Φ.symm y ∈ complexToRealEuclidean (Fin (n + 1)) ⁻¹' ball 0 δ :=
+    mem_ball_zero_iff.2 (hN.isSymplecticBallEmbedding.norm_complexPartialDiffeomorph_symm_lt hy)
+  rw [← hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_target,
     ← PartialDiffeomorph.toOpenPartialHomeomorph_target] at hy
   refine IsPseudoholomorphicAt.isPseudoholomorphicWithinAt ?_
   rw [blowupChart_toOpenPartialHomeomorph]
   refine hΦ.isPseudoholomorphicAt_symm hy ?_
-  have hw := Φ.toOpenPartialHomeomorph.map_target hy
-  rw [PartialDiffeomorph.toOpenPartialHomeomorph_source,
-    hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_source] at hw
   rw [PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
     hN.isSymplecticBallEmbedding.coe_complexPartialDiffeomorph]
   exact (hN.isPseudoholomorphicOn_comp_complexToRealEuclidean.isPseudoholomorphicWithinAt hw
@@ -386,9 +386,27 @@ theorem width_lt : ε < δ := hψ.2.2.2.2.2.1
 width. -/
 theorem eqOn : EqOn ψ ψ₀ (closedBall 0 ε) := hψ.2.2.2.2.2.2
 
+/-- A normalized ball embedding of width `ε` is pseudoholomorphic, from the constant standard
+complex structure `J₀` to `J`, at every point of the open ball `B°(ε)`. -/
+theorem isPseudoholomorphicAt {z : StdSpace (Fin (n + 1))} (hz : z ∈ ball 0 ε) :
+    IsPseudoholomorphicAt (stdComplexStructure (Fin (n + 1))).constSmooth J ψ z := by
+  have hzδ : z ∈ ball 0 δ := ball_subset_ball hψ.width_lt.le hz
+  refine ((hN.isPseudoholomorphicOn.isPseudoholomorphicWithinAt
+    hzδ).isPseudoholomorphicAt_of_mem_nhds (isOpen_ball.mem_nhds hzδ)).congr_of_eventuallyEq ?_
+  filter_upwards [isOpen_ball.mem_nhds hz] with w hw
+  exact hψ.eqOn (ball_subset_closedBall hw)
+
 /-- The width of a normalized ball embedding is less than its radius. -/
 theorem width_lt_radius : ε < r := by
   linarith [hψ.weight_pos, hψ.weight_add_width_lt]
+
+/-- A normalized ball embedding of width `ε` stays normalized, with the same radius, for any
+positive width `ε' ≤ ε` and any positive weight `l'` with `l' + ε' < r`. -/
+theorem of_width_le {l' ε' : ℝ} (hl' : 0 < l') (hε' : 0 < ε') (hε'ε : ε' ≤ ε)
+    (hr : l' + ε' < r) : IsNormalizedBallEmbedding hN ψ r l' ε' :=
+  isNormalizedBallEmbedding_def.2 ⟨hψ.isSymplecticBallEmbedding, hl', hε',
+    hε'ε.trans_lt hψ.width_lt_one, hr, hε'ε.trans_lt hψ.width_lt,
+    hψ.eqOn.mono (closedBall_subset_closedBall hε'ε)⟩
 
 /-- A normalized ball embedding for a normalization at `p₀` sends the origin to `p₀`. -/
 theorem map_zero : ψ 0 = p₀ :=
@@ -397,10 +415,8 @@ theorem map_zero : ψ 0 = p₀ :=
 /-- A normalized ball embedding of radius `r` sends no nonzero point of the closed ball `B(r)`
 to `p₀`. -/
 theorem apply_ne_center {z : StdSpace (Fin (n + 1))} (hz : z ∈ closedBall 0 r) (hz0 : z ≠ 0) :
-    ψ z ≠ p₀ := fun h ↦
-  hz0 <| hψ.isSymplecticBallEmbedding.injOn hz
-    (mem_closedBall_self (hψ.width_pos.trans hψ.width_lt_radius).le)
-    (h.trans hψ.map_zero.symm)
+    ψ z ≠ p₀ :=
+  hψ.map_zero ▸ hψ.isSymplecticBallEmbedding.apply_ne_apply_zero hz hz0
 
 /-- On the preimage of the open ball of radius `ε`, the blowup chart inverts
 `ψ ∘ complexToRealEuclidean (Fin (n + 1))`. -/
@@ -673,9 +689,8 @@ attribute [local instance high] IsManifold.instOfNatWithTopENat_1
 /-- The closed neighbourhood `closedNbhd n a` of the divisor lies in the source `openNbhd n r` of
 the lift for `a < r`. -/
 private theorem closedNbhd_subset_source {a : ℝ} (ha : a < r) :
-    closedNbhd n a ⊆ hψ.ballLiftPartialDiffeomorph.source := fun _ hy ↦ by
-  rw [ballLiftPartialDiffeomorph_source, mem_openNbhd_iff]
-  exact (mem_closedNbhd_iff.1 hy).trans_lt ha
+    closedNbhd n a ⊆ hψ.ballLiftPartialDiffeomorph.source :=
+  hψ.ballLiftPartialDiffeomorph_source ▸ closedNbhd_subset_openNbhd ha
 
 /-- The source `openNbhd n r` of the lift, as an open subset of the model. -/
 private abbrev sourceOpens : Opens (BlowupModel n) :=
@@ -1003,8 +1018,7 @@ theorem compatible_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile 
   intro x
   by_cases hx : x ∈ Φ '' closedNbhd n (l + ε)
   · obtain ⟨y, hy, rfl⟩ := hx
-    have hyr : y ∈ openNbhd n r := mem_openNbhd_iff.2
-      ((mem_closedNbhd_iff.1 hy).trans_lt hψ.weight_add_width_lt)
+    have hyr : y ∈ openNbhd n r := closedNbhd_subset_openNbhd hψ.weight_add_width_lt hy
     have hΦy : y ∈ Φ.source := by rwa [ballLiftPartialDiffeomorph_source]
     have hhol := hψ.isPseudoholomorphicAt_ballLiftPartialDiffeomorph hyr
       (hJψ _ (mem_closedBall_zero_iff.2 (mem_closedNbhd_iff.1 hy)))

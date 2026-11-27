@@ -26,7 +26,7 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
 import TauCeti.Geometry.Lie.Adjoint.InvariantForm
-import Mathlib.Analysis.Calculus.Deriv.Mul
+import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 
 /-!
@@ -597,12 +597,11 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensio
     rw [← Manifold.curveVelocity_apply, Manifold.curveVelocity_eq_deriv]
   let Bc : E →L[ℝ] E →L[ℝ] ℝ := LinearMap.toContinuousBilinearMap B
   have hξd : HasDerivAt ξ (deriv ξ t) t := (mdifferentiableAt_iff_differentiableAt.1 hξ).hasDerivAt
-  refine (Bc.hasDerivAt_of_bilinear (fun _ ↦ hξd) (fun _ ↦ hξd)).congr_deriv ?_
-  rw [hkey, ← hd]
-  -- `Bc` is `B`, read on the model space `E`.
-  change B (ξ t) _ + B _ (ξ t) = _
-  rw [hη, two_mul]
-  exact congrArg (B η _ + ·) (hBs.eq _ _)
+  -- `Bc` is `B`, read on the model space `E`, so its values are `B`'s by definition.
+  refine (HasDerivAt.clm_apply_self (hasDerivAt_const t Bc) hξd
+    fun v w ↦ hBs.eq v w).congr_deriv ?_
+  rw [zero_apply, zero_apply, zero_add, hkey, ← hd, hη]
+  exact congrArg (2 * ·) (LinearMap.toContinuousBilinearMap_apply B η _)
 
 end LieComplexification
 
