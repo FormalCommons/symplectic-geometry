@@ -11,9 +11,8 @@ public import TauCeti.Geometry.Manifold.Boundary.InwardFlow
 public import TauCeti.Geometry.Manifold.Boundary.Orientation
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-public import TauCeti.Geometry.Manifold.VectorField.Regularity
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Boundary
+import Mathlib.Geometry.Manifold.IntegralCurve.Transform
+import TauCeti.Geometry.Manifold.Boundary.BoundaryFlow.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
@@ -26,35 +25,20 @@ Let `W` be a manifold modelled on the half-space `𝓡∂ (n + 1)` and `Y` a smo
 of `Y` cannot start at a boundary point and go forward, but they can go backward, into the
 interior. This file constructs them near a boundary point `p`.
 
-In the extended chart `φ` at `p`, the field `Y` reads as a smooth map `f` on the chart target, a
-relatively open part of the half-space `{y | 0 ≤ y 0}`, and its zeroth coordinate is negative at
-`φ p`. Tau Ceti's `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`, applied to the inward
-field `-f`, gives a smooth local flow `Ψ` near `φ p`, with `Ψ x 0 = x`, whose zeroth coordinate
-strictly increases in time and whose forward curves from the half-space are integral curves of
-`-f` in the chart target. So a curve `t ↦ Ψ x t` from a point `x` of the boundary hyperplane is in
+Tau Ceti's `TauCeti.exists_contDiffOn_chartFlow_of_isOutwardPointing_neg`, applied to the
+inward field `-Y`, gives the flow of `-Y` read in the extended chart `φ` at `p`: a smooth family
+`Ψ x t` near `φ p`, with `Ψ x 0 = x`, whose zeroth coordinate strictly increases in time, and
+whose forward curves from the half-space stay in the chart target and are, read back by `φ⁻¹`,
+integral curves of `-Y`. So a curve `t ↦ Ψ x t` from a point `x` of the boundary hyperplane is in
 the open half-space exactly at positive times, and `s ↦ φ⁻¹ (Ψ x (-s))` is an integral curve of
-`Y` on `(-η, 0]`, in the interior of `W` at negative times. Tau Ceti's manifold form,
-`TauCeti.exists_contMDiffOn_localFlow_of_isOutwardPointing_neg`, gives these curves too, but not
-their chart expression, which the local diffeomorphism below needs.
+`Y` on `(-η, 0]` (Mathlib's `IsMIntegralCurveOn.comp_mul`), in the interior of `W` at negative
+times.
 
-Written in the charts of `∂W × [0, ∞)` at `(p, 0)` and of `W` at `p`, the flow from the boundary
-`(x, t) ↦ γ (-t, x)` is the map
-`G (z, τ) = Ψ (z inserted as a point with zeroth coordinate 0) (τ 0)` between open subsets of
-`ℝⁿ × ℝ¹` and `ℝⁿ⁺¹`, also defined at negative times. At `(z₀, 0)`, `z₀` the boundary chart
-reading of `p`, its derivative sends `(u, σ)` to `σ 0 • v` plus `u` inserted with zeroth
-coordinate `0`, where `v = -f (φ p)` is the velocity of `t ↦ Ψ (φ p) t` at `0`, since
-`Ψ x 0 = x` (`DifferentiableAt.hasFDerivAt_uncurry_zero`). It is injective since `v` is
-transverse to the boundary hyperplane
-(`TauCeti.injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam`). Near that point `G`
-sends exactly the points of `ℝⁿ × [0, ∞)` into the half-space, by the monotonicity of the zeroth
-coordinate, so Tau Ceti's inverse function theorem at boundary points,
-`TauCeti.isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff`, makes the flow from the
-boundary a local diffeomorphism at `(p, 0)`, hence on a box `B × [0, η)` inside the source of a
-partial diffeomorphism that agrees with it. This follows the proof of Tau Ceti's
-`TauCeti.isLocalDiffeomorphAt_flowOut_boundary`, for a field defined near `p` in the chart rather
-than a flow given on the manifold, which here needs no Hausdorff hypothesis on `W`; see also Lee,
-Theorem 9.20, and Tau Ceti's boundaryless flow-out theorem
-`TauCeti.isLocalDiffeomorph_globalFlow_comp`.
+On a Hausdorff manifold, Tau Ceti's flow-out theorem
+`TauCeti.isLocalDiffeomorphAt_flowOut_boundary`
+makes the flow from the boundary `(x, t) ↦ φ⁻¹ (Ψ (φ x) t)` a local diffeomorphism at `(p, 0)`,
+hence on a box `B × [0, η)` inside the source of a partial diffeomorphism that agrees with it.
+See also Lee, Theorem 9.20.
 
 These curves need no uniqueness result here: Tau Ceti's
 `IsMIntegralCurveOn.eqOn_of_isPreconnected` holds for curves that may meet the boundary, so two
@@ -156,81 +140,14 @@ theorem injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam
   have hz : dz = 0 := euclideanHalfSpaceBoundaryParam_injective n (by simpa [ι] using h)
   simp [hz, hτ]
 
-/-- Let `Ψ` be a smooth family on `U × (-ε, ε)`, `U` a neighbourhood of the chart reading `φ p` of
-a boundary point `p`, with `Ψ x 0 = x`, whose curves from the boundary hyperplane are, at times
-in `(-ε, ε)`, in the half-space exactly at nonnegative times, and whose curve from `φ p` has at
-time `0` a velocity transverse to the hyperplane. Then the flow from the boundary
-`(x, t) ↦ φ⁻¹ (Ψ (φ x) (t 0))` is a local diffeomorphism at `(p, 0)`. -/
-private lemma isLocalDiffeomorphAt_extChartAt_symm_flowOut (p : (𝓡∂ (n + 1)).boundary W)
-    {U : Set (EuclideanSpace ℝ (Fin (n + 1)))} (hU : U ∈ 𝓝 (extChartAt (𝓡∂ (n + 1)) (p : W) p))
-    {ε : ℝ} (hε : 0 < ε)
-    (hΨ : ContDiffOn ℝ ∞ (fun q : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ q.1 q.2)
-      (U ×ˢ Ioo (-ε) ε))
-    (hΨ0 : ∀ x, Ψ x 0 = x) {v : EuclideanSpace ℝ (Fin (n + 1))}
-    (hv : HasDerivAt (Ψ (extChartAt (𝓡∂ (n + 1)) (p : W) p)) v 0) (hv0 : v 0 ≠ 0)
-    (hsign : ∀ x ∈ U, x 0 = 0 → ∀ t ∈ Ioo (-ε) ε, (0 ≤ Ψ x t 0 ↔ 0 ≤ t)) :
-    IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞
-      (fun q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 ↦
-        (extChartAt (𝓡∂ (n + 1)) (p : W)).symm
-          (Ψ (extChartAt (𝓡∂ (n + 1)) (p : W) q.1) (q.2.val 0))) (p, 0) := by
-  set φ := extChartAt (𝓡∂ (n + 1)) (p : W)
-  set ι := euclideanHalfSpaceBoundaryParam n
-  set β := extChartAt 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) p
-  have hz₀ : ι (β p) = φ p := boundaryParam_extChartAt (mem_extChartAt_source _)
-  -- In the charts at `(p, 0)` and at `p`, the flow reads as `g (z, τ) = Ψ (ι z) (τ 0)`, which is
-  -- smooth on the open set `t`.
-  set g : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) → EuclideanSpace ℝ (Fin (n + 1)) :=
-    fun q ↦ Ψ (ι q.1) (q.2 0)
-  set t : Set (EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1)) :=
-    {q | q.2 0 ∈ Ioo (-ε) ε ∧ ι q.1 ∈ interior U}
-  have ht : IsOpen t :=
-    (isOpen_Ioo.preimage (by fun_prop)).inter (isOpen_interior.preimage (by fun_prop))
-  have hg : ContDiffOn ℝ ∞ g t :=
-    hΨ.comp (ι.prodMap (EuclideanSpace.proj (𝕜 := ℝ) (0 : Fin 1))).contDiff.contDiffOn
-      fun q hq ↦ ⟨interior_subset hq.2, hq.1⟩
-  have hval0 : (0 : EuclideanHalfSpace 1).val = 0 := (rfl)
-  have hext (q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1) :
-      extChartAt ((𝓡 n).prod (𝓡∂ 1)) (p, 0) q = (β q.1, q.2.val) := by
-    simp [β]
-  have hF0 : φ.symm (Ψ (φ p) ((0 : EuclideanHalfSpace 1).val 0)) = p := by
-    simp only [EuclideanHalfSpace.val_zero_apply, hΨ0]
-    exact φ.left_inv (mem_extChartAt_source _)
-  -- By the inverse function theorem at boundary points.
-  refine isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff hg ht ?_ (by simp) ?_
-    (by simp) (fun q hq ↦ ?_) ?_ ?_
-  · rw [hext]
-    exact ⟨by simp [EuclideanHalfSpace.val_zero_apply, hε], by
-      rw [hz₀]; exact mem_interior_iff_mem_nhds.2 hU⟩
-  · rw [hext, hval0]
-    refine injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam ?_
-      (Eventually.of_forall hΨ0) ?_ hv0
-    · rw [hz₀]
-      exact (hΨ.contDiffAt (prod_mem_nhds hU (Ioo_mem_nhds (by simpa) hε))).differentiableAt
-        (by simp)
-    · rwa [hz₀]
-  · -- Along a curve from the boundary hyperplane, the zeroth coordinate has the sign of the
-    -- time.
-    rw [ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,
-      range_modelWithCornersEuclideanHalfSpace]
-    simp only [mem_ofPred_eq, mem_prod, modelWithCornersSelf_coe, range_id, mem_univ, true_and]
-    exact hsign _ (interior_subset hq.2) (euclideanHalfSpaceBoundaryParam_apply_zero _) _ hq.1
-  · rw [hF0, hext, hval0]
-    simp only [g, PiLp.zero_apply, hΨ0, hz₀, φ]
-  · rw [hF0]
-    filter_upwards [((isOpen_extChartAt_source p).preimage continuous_fst).mem_nhds
-      (show ((p, 0) : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1).1 ∈ β.source from
-        mem_extChartAt_source p)] with q hq
-    simp only [g, hext]
-    rw [show ι (β q.1) = φ q.1 from boundaryParam_extChartAt hq]
-
 /-- **Integral curves entering from the boundary.** Let `Y` be a smooth vector field pointing out
-of `W` along its boundary, and `p` a boundary point. There are an open set `B ∋ p` of the
-boundary, a time `η > 0` and a map `γ` such that for each `x ∈ B` the curve `s ↦ γ (s, x)` starts
-at `x`, runs in the interior of `W` for `s ∈ (-η, 0)`, and is an integral curve of `Y` on
-`(-η, 0]`. Moreover `(x, t) ↦ γ (-t, x)` is a local diffeomorphism on `B × [0, η)`, the time
-interval being read as part of the one-dimensional half-space. -/
-theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingField Y)
-    (p : (𝓡∂ (n + 1)).boundary W) :
+of a Hausdorff manifold `W` along its boundary, and `p` a boundary point. There are an open set
+`B ∋ p` of the boundary, a time `η > 0` and a map `γ` such that for each `x ∈ B` the curve
+`s ↦ γ (s, x)` starts at `x`, runs in the interior of `W` for `s ∈ (-η, 0)`, and is an integral
+curve of `Y` on `(-η, 0]`. Moreover `(x, t) ↦ γ (-t, x)` is a local diffeomorphism on
+`B × [0, η)`, the time interval being read as part of the one-dimensional half-space. -/
+theorem exists_isMIntegralCurveOn_of_isOutwardPointing [T2Space W]
+    (hY : IsOutwardPointingField Y) (p : (𝓡∂ (n + 1)).boundary W) :
     ∃ (B : Set ((𝓡∂ (n + 1)).boundary W)) (η : ℝ)
       (γ : ℝ × (𝓡∂ (n + 1)).boundary W → W),
       IsOpen B ∧ p ∈ B ∧ 0 < η ∧ (∀ x ∈ B, γ (0, x) = x) ∧
@@ -239,54 +156,38 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
       IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞
         (fun q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 ↦ γ (-q.2.val 0, q.1))
         (B ×ˢ EuclideanHalfSpace.normalIio η) := by
-  obtain ⟨hYs, hYb⟩ := isOutwardPointingField_iff.1 hY
   set φ := extChartAt (𝓡∂ (n + 1)) (p : W)
-  set f : EuclideanSpace ℝ (Fin (n + 1)) → EuclideanSpace ℝ (Fin (n + 1)) :=
-    mpullbackWithin 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) (𝓡∂ (n + 1)) φ.symm Y
-      (range (𝓡∂ (n + 1)))
-  have hrange (y : EuclideanSpace ℝ (Fin (n + 1))) : y ∈ range (𝓡∂ (n + 1)) ↔ 0 ≤ y 0 := by
-    simp [range_modelWithCornersEuclideanHalfSpace]
-  -- The coordinate field `f` of `Y` is smooth on the chart target, which is the part in the
-  -- half-space of an open set `O`; it points out of the half-space at `φ p`.
-  obtain ⟨O, hO, hpO, hOt⟩ :=
-    mem_nhdsWithin.1 (extChartAt_target_mem_nhdsWithin (I := 𝓡∂ (n + 1)) (p : W))
-  have hOt' : O ∩ {y | 0 ≤ y 0} ⊆ φ.target := fun y hy ↦ hOt ⟨hy.1, (hrange y).2 hy.2⟩
-  have hf : ContDiffOn ℝ ∞ (-f) (O ∩ {y | 0 ≤ y 0}) :=
-    ((hYs.contDiffOn_mpullbackWithin_extChartAt_symm (n := ∞) (by simp) (p : W)).mono hOt').neg
-  have hw₀ : f (φ p) 0 < 0 := by
-    have h := (isOutwardPointing_iff_proj p.property).1 (hYb p p.property)
-    rwa [← mpullbackWithin_extChartAt_symm_self Y (p : W)] at h
-  have hp0 : φ p 0 = 0 := extChartAt_self_apply_zero p.property
-  -- Tau Ceti's local flow `Ψ` of the inward field `-f` on the half-space.
-  obtain ⟨Ψ, U, hU, ε, hε, hΨ, hΨ0, -, hmono, hcurve⟩ :=
-    exists_contDiffOn_localFlow_euclideanHalfSpace (k := ⊤) (by simpa using hf)
-      (hO.mem_nhds hpO) hp0.ge
-      (by simp only [Pi.neg_apply, PiLp.neg_apply]; exact neg_pos.2 hw₀)
-  have hcurve' : ∀ x ∈ U, x 0 = 0 → ∀ t ∈ Ico 0 ε,
-      Ψ x t ∈ φ.target ∧ HasDerivAt (Ψ x) (-f (Ψ x t)) t := fun x hx hx0 t ht ↦ by
-    obtain ⟨hs, hd⟩ := hcurve x ⟨hx, hx0.ge⟩ t ht
-    exact ⟨hOt' hs, hd⟩
+  have hYneg : ContMDiff (𝓡∂ (n + 1)) (𝓡∂ (n + 1)).tangent ∞
+      (fun x ↦ (⟨x, (-Y) x⟩ : TangentBundle (𝓡∂ (n + 1)) W)) :=
+    fun x ↦ (hY.contMDiff x).neg_section
+  have hpY : IsOutwardPointing (p : W) (-(-Y) (p : W)) := by
+    simpa using hY.isOutwardPointing p.property
+  -- Tau Ceti's flow `Ψ` of the inward field `-Y`, read in the chart `φ` at `p`.
+  obtain ⟨Ψ, U, hU, ε, hε, -, hΨ0, hmono, hdom, hcurve, -⟩ :=
+    exists_contDiffOn_chartFlow_of_isOutwardPointing_neg (-Y) hYneg.contMDiffOn univ_mem hpY
+  have hφ0 : ∀ x ∈ φ.source, 0 ≤ φ x 0 := fun x hx ↦ by
+    have h := extChartAt_target_subset_range (I := 𝓡∂ (n + 1)) (p : W) (φ.map_source hx)
+    rwa [range_modelWithCornersEuclideanHalfSpace] at h
   -- Along a curve from the boundary hyperplane, the zeroth coordinate has the sign of the time.
-  have hsign : ∀ x ∈ U, x 0 = 0 → ∀ t ∈ Ioo (-ε) ε, (0 ≤ Ψ x t 0 ↔ 0 ≤ t) ∧
-      (0 < Ψ x t 0 ↔ 0 < t) := fun x hx hx0 t ht ↦ by
-    have hm : (0 : ℝ) ∈ Ioo (-ε) ε := ⟨neg_lt_zero.2 hε, hε⟩
-    have h1 := (hmono x hx).le_iff_le hm ht
-    have h2 := (hmono x hx).lt_iff_lt hm ht
-    simp only [hΨ0, hx0] at h1 h2
-    exact ⟨h1, h2⟩
+  have hsign : ∀ x ∈ U, x 0 = 0 → ∀ t ∈ Ioo (-ε) ε, (0 < Ψ x t 0 ↔ 0 < t) := fun x hx hx0 t ht ↦ by
+    have h := (hmono x hx).lt_iff_lt ⟨neg_lt_zero.2 hε, hε⟩ ht
+    simpa only [hΨ0, hx0] using h
+  -- The flow from the boundary `F (x, t) = φ⁻¹ (Ψ (φ x) t)` is a local diffeomorphism at `(p, 0)`,
+  -- by Tau Ceti's flow-out theorem.
+  set F : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 → W :=
+    fun q ↦ φ.symm (Ψ (φ q.1) (q.2.val 0))
+  have hloc : IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞ F (p, 0) :=
+    isLocalDiffeomorphAt_flowOut_boundary (-Y) hYneg hpY
+      (W := (φ.source ∩ φ ⁻¹' U) ×ˢ Iio ε) (Φ := fun x t ↦ φ.symm (Ψ (φ x) t))
+      (prod_mem_nhds (inter_mem (extChartAt_source_mem_nhds _)
+        ((continuousAt_extChartAt _).preimage_mem_nhds hU)) (Iio_mem_nhds hε))
+      fun x _ t ht _ ↦ ⟨by simp only [hΨ0]; exact φ.left_inv ht.1.1,
+        (hcurve _ ht.1.2 (hφ0 x ht.1.1)).mono (Icc_subset_Ico_right ht.2)⟩
   -- The boundary chart `β` at `p`, read in `φ` through the hyperplane parametrization `ι`.
   set ι := euclideanHalfSpaceBoundaryParam n
   set β := extChartAt 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) p
   have hz₀ : ι (β p) = φ p := boundaryParam_extChartAt (mem_extChartAt_source _)
   have hU' : interior U ∈ 𝓝 (φ p) := isOpen_interior.mem_nhds (mem_interior_iff_mem_nhds.2 hU)
-  -- The flow from the boundary `F (x, t) = φ⁻¹ (Ψ (φ x) t)` is a local diffeomorphism at `(p, 0)`.
-  set F : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 → W :=
-    fun q ↦ φ.symm (Ψ (φ q.1) (q.2.val 0))
-  have hloc : IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞ F (p, 0) := by
-    have h := (hcurve' _ (mem_of_mem_nhds hU) hp0 0 ⟨le_rfl, hε⟩).2
-    rw [hΨ0] at h
-    exact isLocalDiffeomorphAt_extChartAt_symm_flowOut p hU hε (by simpa using hΨ) hΨ0 h
-      (by simpa [φ] using hw₀.ne) fun x hx hx0 t ht ↦ (hsign x hx hx0 t ht).1
   -- A partial diffeomorphism `Φ` agreeing with `F`, with source in the chart domain at `p`, and a
   -- product box in its source.
   set B₀ : Set ((𝓡∂ (n + 1)).boundary W) := β.source ∩ β ⁻¹' (ι ⁻¹' interior U)
@@ -312,26 +213,22 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
   have hη (s : ℝ) (hs : s ∈ Ioc (-min ε δ) 0) : -s ∈ Ico 0 ε :=
     ⟨neg_nonneg.2 hs.2, by linarith [hs.1, min_le_left ε δ]⟩
   refine ⟨B, min ε δ, fun q ↦ φ.symm (Ψ (φ q.2) (-q.1)), hB, hpB, lt_min hε hδ, fun x hx ↦ ?_,
-    fun x hx s hs ↦ ?_, fun x hx s hs ↦ ?_, ?_⟩
+    fun x hx s hs ↦ ?_, fun x hx ↦ ?_, ?_⟩
   · -- The curves start on the boundary.
     simp only [neg_zero, hΨ0]
     exact φ.left_inv (hBsrc x hx)
   · -- They run in the interior at negative times.
     have ht := hη s ⟨hs.1, hs.2.le⟩
-    exact extChartAt_symm_mem_interior (hcurve' _ (hBU x hx) (hB0 x hx) _ ht).1
-      ((hsign _ (hBU x hx) (hB0 x hx) _ ⟨by linarith [ht.1, hε], ht.2⟩).2.2 (by linarith [hs.2]))
-  · -- They are integral curves of `Y`: in the chart they solve `y' = f y`, and `f` is the
-    -- coordinate field of `Y`.
-    have hmem : ∀ r ∈ Ioc (-min ε δ) 0, Ψ (φ x) (-r) ∈ φ.target := fun r hr ↦
-      (hcurve' _ (hBU x hx) (hB0 x hx) _ (hη r hr)).1
-    have hd : HasDerivWithinAt (fun r ↦ Ψ (φ x) (-r)) (f (Ψ (φ x) (-s))) (Ioc (-min ε δ) 0) s := by
-      have h := (hcurve' _ (hBU x hx) (hB0 x hx) _ (hη s hs)).2.scomp s (hasDerivAt_neg s)
-      simp only [neg_smul, one_smul, neg_neg] at h
-      exact h.hasDerivWithinAt
-    have h := Manifold.hasMFDerivWithinAt_extChartAt_symm_comp (γ := fun r ↦ Ψ (φ x) (-r))
-      (hmem s hs)
-      (eventually_nhdsWithin_of_forall fun r hr ↦ extChartAt_target_subset_range _ (hmem r hr)) hd
-    rwa [mfderivWithin_extChartAt_symm_mpullbackWithin (hmem s hs)] at h
+    exact extChartAt_symm_mem_interior (hdom _ (hBU x hx) (hB0 x hx).ge _ ht).1
+      ((hsign _ (hBU x hx) (hB0 x hx) _ ⟨by linarith [ht.1, hε], ht.2⟩).2 (by linarith [hs.2]))
+  · -- They are the forward integral curves of `-Y` run backwards.
+    have h := IsMIntegralCurveOn.comp_mul (hcurve _ (hBU x hx) (hB0 x hx).ge) (-1)
+    have hsub : Ioc (-min ε δ) 0 ⊆ {t | t * -1 ∈ Ico 0 ε} := fun s hs ↦ by simpa using hη s hs
+    convert h.mono hsub using 1
+    · ext s
+      simp only [comp_apply, mul_neg_one, φ]
+    · ext y
+      simp
   · -- `(x, t) ↦ γ (-t, x)` is `F`, which agrees with `Φ` on the source of `Φ`.
     simp only [neg_neg]
     rintro ⟨q, hq1, hq2⟩

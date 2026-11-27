@@ -425,7 +425,7 @@ along the boundary), and a boundary point `p`:
 
 - In the extended chart at `p`, the negative of the coordinate expression of
   the field, smooth on a relatively open part of the half-space, has a local
-  flow there (Tau Ceti's `TauCeti.exists_contDiffOn_localFlow_euclideanHalfSpace`).
+  flow there (Tau Ceti's `TauCeti.exists_contDiffOn_chartFlow_of_isOutwardPointing_neg`).
 - `exists_isMIntegralCurveOn_of_isOutwardPointing`: there are an open
   `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W` such that for `x ∈ B`
   the curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
@@ -436,7 +436,7 @@ along the boundary), and a boundary point `p`:
   from the boundary hyperplane, with injective derivative since `Y p` is
   transverse to the boundary, and sending exactly the nonnegative times into
   the half-space (Tau Ceti's
-  `TauCeti.isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff`).
+  `TauCeti.isLocalDiffeomorphAt_flowOut_boundary`).
 
 Expected size: 500 lines.
 
