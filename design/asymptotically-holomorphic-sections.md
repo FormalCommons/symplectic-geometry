@@ -159,8 +159,11 @@ milestone states it.
 
 ### The class of the line bundle: the prerequisites
 
-Three facts are missing from both libraries, and the part plans them as
-prerequisite issues (issues 1–4 below):
+Three facts that neither Tau Ceti nor Mathlib had are prerequisites of the
+part. Issues 1–4 below planned them, and all are merged:
+`TauCeti.injective_deRhamHom`, `exists_hermitianLineBundle_complexEulerClass_eq`
+and `Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files listed under
+*Prerequisites*.
 
 1. **The de Rham theorem in degree two.** `TauCeti.deRhamHom` is injective
    on a compact manifold. Without it, an integral lift of $[\omega]$ says
@@ -219,12 +222,10 @@ prerequisite issues (issues 1–4 below):
    and on $\mathbb CP^1$ the two theorems above give it.
 
    `realFirstChernClass_map`, with `IsCircleConnectionForm.mpullback` and
-   `IsCircleConnectionForm.curvature_mpullback` that it rests on, is planned
-   by `design/compatible-symplectic-forms.md` (part 49) in the merged
-   `FiberBundle/Principal/RealChernClass.lean`. The
-   Chern–Weil issue proves the three there, under those names and with the
-   statements that design gives, unless part 49 has built them by then.
-   Part 49 then uses them, and neither part waits for the other.
+   `IsCircleConnectionForm.curvature_mpullback` that it rests on, is merged
+   in `FiberBundle/Principal/RealChernClass.lean`, with the statements that
+   `design/compatible-symplectic-forms.md` (part 49) gives them. Part 49
+   uses them, and neither part waits for the other.
 
 `LineBundle.lean` then builds the bundle and corrects the curvature. Take
 $L$ from 2 with $b=-a$, and any connection form
@@ -470,11 +471,11 @@ and the prerequisites, placed by topic.
 
 - `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
   `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom` (for manifolds
-  that have a finite good cover), `TauCeti.bijective_deRhamHom` (for a
-  second-countable one through `mayerVietoris_induction`),
-  `TauCeti.injective_deRhamHom`. If Tau Ceti's `deRhamHom` lands in smooth
-  singular cohomology, the file also compares it with continuous singular
-  cohomology, unless `SmoothSingular/Smoothing.lean` already does.
+  that have a finite good cover), `TauCeti.bijective_deRhamHom_of_compactSpace`
+  (for a compact one), `TauCeti.injective_deRhamHom`. If Tau Ceti's
+  `deRhamHom` lands in smooth singular cohomology, the file also compares it
+  with continuous singular cohomology, unless `SmoothSingular/Smoothing.lean`
+  already does.
 - `AlgebraicTopology/Cohomology/ProjectiveSpaceClassifying.lean`: for a
   finite CW complex $X$ of dimension at most $2N$, every class of
   $H^2(X;\mathbb Z)$ is $f^*h$ for some $f:X\to\mathbb CP^N$
@@ -487,7 +488,7 @@ and the prerequisites, placed by topic.
 - `Geometry/Manifold/VectorBundle/Hermitian/ChernWeil.lean`: for line
   bundles pulled back from `twistCore 1` along smooth maps,
   `deRhamHom (realFirstChernClass IB P)` is minus the real image of the
-  Euler class (`deRhamHom_realFirstChernClass_eq_neg`). The same issue adds
+  Euler class (`deRhamHom_realFirstChernClass_eq_neg`). The same issue added
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
   and `realFirstChernClass_map` to `FiberBundle/Principal/RealChernClass.lean`,
   as `design/compatible-symplectic-forms.md` states them.
@@ -651,9 +652,9 @@ and the prerequisites, placed by topic.
 ## Issues
 
 Each issue is a few hundred lines, in an order where each comes after the
-ones it waits for. An issue that adds an existing name of Tau Ceti or
-Mathlib uses it instead; each prerequisite issue first searches both for its
-statement.
+ones it waits for. Issues 1–4 are done. An issue that adds an existing name
+of Tau Ceti or Mathlib uses it instead; each prerequisite issue first
+searches both for its statement.
 
 1. **The de Rham theorem**
    (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`). Waits for
@@ -723,16 +724,17 @@ statement.
 26. **Donaldson's hypersurface theorem** (`Hypersurface.lean`). Waits for
     5, 10, 23 and 25.
 
-Issues 1, 2, 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
+Issues 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
 
 ## Uses
 
 - *Poincaré duals of submanifolds*: `ZeroSet/DualClass.lean` and
   `Orientation/DualClass.lean`, only in issues 10 and 26.
-- *Compatible symplectic forms* (part 49, not built): the statements of
+- *Compatible symplectic forms* (part 49, not built):
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
-  and `realFirstChernClass_map` that its design gives, which issue 4 proves
-  unless part 49 has by then; no issue here waits for part 49.
+  and `realFirstChernClass_map`, with the statements its design gives them,
+  merged in `FiberBundle/Principal/RealChernClass.lean`; no issue here waits
+  for part 49.
 - Merged files of *Principal connections*, *First Chern number* and
   *Minimal coupling*: `IsCircleConnectionForm`, `exists_isCircleConnectionForm`,
   `curvature_add_mpullback`, `realFirstChernClass`,
