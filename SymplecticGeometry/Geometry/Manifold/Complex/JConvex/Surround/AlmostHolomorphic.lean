@@ -15,6 +15,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.VanishingOrder
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
@@ -74,15 +75,11 @@ to `f` on the real points.
   results above together. If `D` is moreover `C^(N + 1)`, then
   `‖D^j D (x + i y)‖ ≤ C' * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` near any compact set of real
   points in `U`;
-* `SymplecticGeometry.norm_conjWirtingerDeriv_le_add_norm_fderiv_sub` and
-  `SymplecticGeometry.norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub`:
-  `∂̄ e₂` and its derivative are bounded by those of `e₁` plus the first and second derivatives
-  of `e₁ - e₂`, since `e₂ = e₁ - (e₁ - e₂)`;
 * `SymplecticGeometry.exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le`: if the
   first two derivatives of `e₁ - e₂` are `O(‖y‖ ^ (N + 1 - j))` on an open set, as
-  `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le` gives them,
-  then the bounds `C₁ * ‖y‖ ^ N` on `∂̄ e₁` and `C₁ * ‖y‖ ^ (N - 1)` on its derivative pass to
-  `e₂`, with another constant.
+  `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le` gives them
+  for `1 ≤ N`, then the bounds `C₁ * ‖y‖ ^ N` on `∂̄ e₁` and `C₁ * ‖y‖ ^ (N - 1)` on its
+  derivative pass to `e₂`, with another constant.
 
 For `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, fix a real point
 `x` of `U`. The iterated derivative `D^j D(x)` vanishes on real arguments, since `D` vanishes on
@@ -522,52 +519,6 @@ theorem exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le {N : ℕ} {C
   exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hU hD hK hKU hKre
     fun _ hxU hx _ hj ↦ iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le hU
       (hD.of_le (by exact_mod_cast N.le_succ)) hD0 hC hxU hx hj
-
-/-- The conjugate Wirtinger derivative of `e₂` at `z` is at most that of `e₁` plus the norm of
-the derivative of `e₁ - e₂`, when both maps are real differentiable at `z`. -/
-theorem norm_conjWirtingerDeriv_le_add_norm_fderiv_sub {V : Type*} [NormedAddCommGroup V]
-    [NormedSpace ℂ V] {e₁ e₂ : V → W} {z : V} (h₁ : DifferentiableAt ℝ e₁ z)
-    (h₂ : DifferentiableAt ℝ e₂ z) :
-    ‖conjWirtingerDeriv e₂ z‖ ≤ ‖conjWirtingerDeriv e₁ z‖ + ‖fderiv ℝ (e₁ - e₂) z‖ := by
-  have hd : conjWirtingerDeriv e₂ z =
-      conjWirtingerDeriv e₁ z - conjWirtingerDeriv (e₁ - e₂) z := by
-    rw [← conjWirtingerDeriv_sub h₁ (h₁.sub h₂), sub_sub_cancel]
-  rw [hd]
-  refine (norm_sub_le _ _).trans (add_le_add le_rfl ?_)
-  exact ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _)
-    (norm_conjWirtingerDeriv_apply_le _ z)
-
-/-- The derivative at `z` of the conjugate Wirtinger derivative of `e₂`, in the bundled
-real-linear form `w ↦ complexAntilinearPartL (fderiv ℝ e₂ w)`, is at most that of `e₁` plus
-`‖complexAntilinearPartL‖` times the norm of the second derivative of `e₁ - e₂` at `z`, when both
-maps are `C²` over `ℝ` near `z`. -/
-theorem norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub
-    {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V] {e₁ e₂ : V → W} {z : V}
-    (h₁ : ContDiffAt ℝ 2 e₁ z) (h₂ : ContDiffAt ℝ 2 e₂ z) :
-    ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₂ w)) z‖ ≤
-      ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₁ w)) z‖ +
-        ‖(ContinuousLinearMap.complexAntilinearPartL : (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W)‖ *
-          ‖iteratedFDeriv ℝ 2 (e₁ - e₂) z‖ := by
-  set P : (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W := ContinuousLinearMap.complexAntilinearPartL
-  have hd (g : V → W) (hg : ContDiffAt ℝ 2 g z) : DifferentiableAt ℝ (fderiv ℝ g) z :=
-    (hg.fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero
-  have h₁₂ : ContDiffAt ℝ 2 (e₁ - e₂) z := h₁.sub h₂
-  have hPd (g : V → W) (hg : ContDiffAt ℝ 2 g z) :
-      DifferentiableAt ℝ (fun w ↦ P (fderiv ℝ g w)) z :=
-    P.differentiableAt.comp z (hd g hg)
-  -- Near `z`, `P ∘ D e₂ = P ∘ D e₁ - P ∘ D (e₁ - e₂)`.
-  have hev : (fun w ↦ P (fderiv ℝ e₂ w)) =ᶠ[𝓝 z]
-      fun w ↦ P (fderiv ℝ e₁ w) - P (fderiv ℝ (e₁ - e₂) w) := by
-    filter_upwards [h₁.eventually (by simp), h₂.eventually (by simp)] with w hw₁ hw₂
-    rw [← map_sub, fderiv_sub (hw₁.differentiableAt (by simp)) (hw₂.differentiableAt (by simp)),
-      sub_sub_cancel]
-  rw [hev.fderiv_eq, fderiv_fun_sub (hPd e₁ h₁) (hPd _ h₁₂)]
-  have hb : ‖fderiv ℝ (fun w ↦ P (fderiv ℝ (e₁ - e₂) w)) z‖ ≤
-      ‖P‖ * ‖iteratedFDeriv ℝ 2 (e₁ - e₂) z‖ := by
-    rw [fderiv_fun_comp z P.differentiableAt (hd _ h₁₂), P.fderiv,
-      ← norm_iteratedFDeriv_fderiv (n := 1), norm_iteratedFDeriv_one]
-    exact P.opNorm_comp_le _
-  exact (norm_sub_le (E := V →L[ℝ] V →L[ℝ] W) _ _).trans (add_le_add le_rfl hb)
 
 /-- **Agreement of order `N + 1` carries the `∂̄` bounds.** Let `e₁ e₂` be `C²` over `ℝ` on an
 open set `U`, with `‖D^j (e₁ - e₂) (x + i y)‖ ≤ C * ‖y‖ ^ (N + 1 - j)` on `U` for `j = 1, 2`.
