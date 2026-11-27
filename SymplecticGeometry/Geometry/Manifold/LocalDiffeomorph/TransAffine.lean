@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # Following a chart into a normed space by an affine map
@@ -131,9 +132,8 @@ theorem transAffine_apply_symm_apply_self (hp : p ∈ φ.target) :
 /-- The derivative of `φ.transSubRight p` is that of `φ`, at every point. -/
 theorem mvfderiv_transSubRight (y : M) :
     mvfderiv I (φ.transSubRight p) y = mvfderiv I φ y := by
-  rw [show ⇑(φ.transSubRight p) = fun y ↦ φ y + -p from
-    funext fun y ↦ by simp [sub_eq_add_neg]]
-  exact TauCeti.mvfderiv_add_const _ _ y
+  rw [show ⇑(φ.transSubRight p) = fun y ↦ φ y - p from funext (φ.transSubRight_apply p),
+    mvfderiv_sub_const]
 
 /-- The derivative of `φ.transAffine p A` is `A` composed with the derivative of `φ`, at
 every point. -/

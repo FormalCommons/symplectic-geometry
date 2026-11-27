@@ -432,7 +432,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     obtain ⟨hyi, hymaps, hy0, -⟩ := hy z (hball z hz)
     have htarget (s : ℝ) (hs : 0 ≤ s) : e p + y z s ∈ e.target := by
       have h := hr₀t (closedBall_subset_closedBall hrr₀ (hymaps (mem_Ici.2 hs)))
-      rwa [centeredExtChartAt_target, mem_preimage, add_comm] at h
+      rwa [mem_centeredExtChartAt_target_iff, add_comm] at h
     refine ⟨htarget t ht, ?_⟩
     have h := TauCeti.extChartAt_symm_add_eq_globalFlow hv hW.isCompleteVectorField hyi htarget ht
     rw [hy0, ← hW.flow_def] at h
