@@ -93,16 +93,14 @@ private theorem ballLift_family_eventuallyEq_of_blowdown_eq_zero
     (fun q : unitInterval × openNbhdOpens n r ↦
         (hψ q.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩) =ᶠ[𝓝 p]
       fun q ↦ (hψ p.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩ := by
-  have hc : Continuous fun q : unitInterval × openNbhdOpens n r ↦
-      ‖complexToRealEuclidean (Fin (n + 1)) (q.2 : BlowupModel n).blowdown‖ :=
-    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp (continuous_blowdown.comp
-      (continuous_subtypeVal.comp continuous_snd))).norm
+  have hq : Continuous fun q : unitInterval × openNbhdOpens n r ↦ (q.2 : BlowupModel n) :=
+    continuous_subtypeVal.comp continuous_snd
   have hp₁ : ∀ t, (p.2 : BlowupModel n) ∈ openNbhd n (ε t) := fun t ↦
     exceptionalDivisor_subset_openNbhd (hψ t).width_pos (mem_exceptionalDivisor_iff.2 hp)
   have hW : IsOpen {q : unitInterval × openNbhdOpens n r |
       (q.2 : BlowupModel n) ∈ openNbhd n (ε q.1) ∧ (q.2 : BlowupModel n) ∈ openNbhd n (ε p.1)} := by
-    simp only [mem_openNbhd_iff]
-    exact (isOpen_lt hc (hε.comp continuous_fst)).inter (isOpen_lt hc continuous_const)
+    exact (isOpen_setOf_mem_openNbhd hq (hε.comp continuous_fst)).inter
+      (isOpen_setOf_mem_openNbhd hq continuous_const)
   filter_upwards [hW.mem_nhds ⟨hp₁ p.1, hp₁ p.1⟩] with q hq
   rw [(hψ q.1).ballLift_of_mem_openNbhd _ hq.1, (hψ p.1).ballLift_of_mem_openNbhd _ hq.2]
 
@@ -247,7 +245,7 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
   -- `(t₀, x₀)`, since the points `(t, ψ̃_t y)` with `y ∈ closedNbhd n (c t)` form a compact set.
   have hmem {t : unitInterval} {y : BlowupModel n} (hy : y ∈ closedNbhd n (c t)) :
       y ∈ openNbhd n r :=
-    mem_openNbhd_iff.2 ((mem_closedNbhd_iff.1 hy).trans_lt (hcr t))
+    closedNbhd_subset_openNbhd (hcr t) hy
   let S : Set (unitInterval × openNbhdOpens n r) :=
     {q | (q.2 : BlowupModel n) ∈ closedNbhd n (c q.1)}
   have hS : IsCompact S := by
