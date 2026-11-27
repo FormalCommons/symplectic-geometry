@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
+public import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -23,6 +24,12 @@ pulled back by the differential of `f` is `det (DF (χ z))` times the form of `�
 this compares the forms of two charts `e` and `χ` directly
 (`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq`).
 
+When the model space is finite-dimensional, the fibres of the canonical bundle are
+finite-dimensional by Tau Ceti's `ContinuousAlternatingMap.instModuleFinite`, whose file this
+one imports so that instance search finds it wherever this file is imported. Over a complete
+field they then carry their module topology (`TauCeti.CanonicalBundle.instIsModuleTopology`),
+as every finite-dimensional Hausdorff topological vector space does.
+
 ## References
 
 * [P. Griffiths, J. Harris, *Principles of Algebraic Geometry*][GriffithsHarris1978], Chapter 1,
@@ -37,7 +44,15 @@ namespace TauCeti.CanonicalBundle
 
 variable {𝕜 E H : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} {M : Type*}
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [TopologicalSpace M] [ChartedSpace H M]
+
+/-- A fibre of the canonical bundle of a manifold modelled on a finite-dimensional space carries
+the module topology. -/
+instance instIsModuleTopology [FiniteDimensional 𝕜 E] (x : M) :
+    IsModuleTopology 𝕜 (CanonicalBundle I M x) :=
+  isModuleTopologyOfFiniteDimensional
+
+variable [IsManifold I 1 M]
 
 /-- On the source of the chart at `x₀`, the coordinate form of that chart is the determinant form
 of `b` pulled back by the differential of the extended chart. -/

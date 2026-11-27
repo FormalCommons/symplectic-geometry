@@ -76,6 +76,9 @@ such as `Bundle.Pullback.instNormedSpace`. Together with `TangentSpace.instIsNor
 `SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, it covers the fibres
 `(f *ᵖ TangentSpace I) q`. `Bundle.Pullback.instContinuousConstSMul` likewise gives the
 continuity of multiplication by a scalar on the fibres, for the action of their module structure.
+`Bundle.Pullback.instT2Space`, `instModuleFinite` and `instIsModuleTopology` carry the Hausdorff
+property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`; each asks for it on
+`E (f y)` alone, so that it applies to tangent spaces, whose instances hold at each point.
 
 `Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
 the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
@@ -371,6 +374,24 @@ instance instContinuousConstSMul {R : Type*} [Semiring R] [∀ b, AddCommMonoid 
     [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, ContinuousConstSMul R (E b)] :
     ContinuousConstSMul R ((f *ᵖ E) y) :=
   inferInstanceAs (ContinuousConstSMul R (E (f y)))
+
+/-- A fibre of the pull-back `f *ᵖ E` is Hausdorff when the fibre of `E` it comes from is. -/
+instance instT2Space [∀ b, TopologicalSpace (E b)] [T2Space (E (f y))] :
+    T2Space ((f *ᵖ E) y) :=
+  inferInstanceAs (T2Space (E (f y)))
+
+/-- A fibre of the pull-back `f *ᵖ E` is a finite module when the fibre of `E` it comes from
+is; over a field, it is finite-dimensional. -/
+instance instModuleFinite {R : Type*} [Semiring R] [∀ b, AddCommMonoid (E b)]
+    [∀ b, Module R (E b)] [Module.Finite R (E (f y))] : Module.Finite R ((f *ᵖ E) y) :=
+  inferInstanceAs (Module.Finite R (E (f y)))
+
+/-- A fibre of the pull-back `f *ᵖ E` carries the module topology when the fibre of `E` it comes
+from does. -/
+instance instIsModuleTopology {R : Type*} [Semiring R] [TopologicalSpace R]
+    [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)]
+    [IsModuleTopology R (E (f y))] : IsModuleTopology R ((f *ᵖ E) y) :=
+  inferInstanceAs (IsModuleTopology R (E (f y)))
 
 section CastEquiv
 
