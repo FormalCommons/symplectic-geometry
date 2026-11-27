@@ -36,8 +36,9 @@ for it, for `k ≥ k₀`:
   (`RescaledUnitaryCharts.associatedBilinFormInChart_chartTransition_bilinearComp`, in the
   namespace `SymplecticGeometry`);
 * the fixed map `A ↦ ω₀(·, A ·)` does not increase norms
-  (`SymplecticGeometry.norm_precompR_stdForm_flip_apply_le`), so for `k ≥ k₀` and `w` in the ball
-  of radius `ρ₀ * √k` the bounds on `J` read in the charts pass to the forms: `‖g_{k,x}(w)‖` is
+  (`SymplecticGeometry.norm_precompR_stdForm_flip_apply_le`, of
+  `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`), so for `k ≥ k₀` and `w` in the
+  ball of radius `ρ₀ * √k` the bounds on `J` read in the charts pass to the forms: `‖g_{k,x}(w)‖` is
   at most `‖J₀‖ + |D.bound 1| * ρ₀`
   (`SymplecticGeometry.RescaledUnitaryCharts.norm_associatedBilinFormInChart_le_of_mem_ball`), and
   its `r`-th derivative for `r ≥ 1` is at most `D.bound r * (√k)⁻¹`
@@ -77,21 +78,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   [IsManifold I ∞ M] {ι : Type*} [Fintype ι]
   {P : M → Type*} [TopologicalSpace (Bundle.TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
   [FiberBundle Circle P] [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
-
-/-- The fixed continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
-bilinear forms on it, does not increase norms. -/
-theorem norm_precompR_stdForm_flip_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
-    ‖(ContinuousLinearMap.precompR (StdSpace ι)
-        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A‖ ≤ ‖A‖ := by
-  refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun u ↦
-    ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
-  simp only [ContinuousLinearMap.flip_apply, ContinuousLinearMap.precompR_apply,
-    ContinuousLinearMap.compL_apply, ContinuousLinearMap.comp_apply,
-    LinearMap.toContinuousBilinearMap_apply,
-    Real.norm_eq_abs]
-  calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
-    _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
-    _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
 
 namespace RescaledUnitaryCharts
 
