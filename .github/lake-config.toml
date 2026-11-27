@@ -5,8 +5,8 @@
 #
 # `fc-queue`: the mappings of the commits of main, as the merge queue built
 # them. `fc-pr`: the mappings of the runs of pull requests, by head commit.
-# The archives are the same for both. The addresses must be the ones that
-# cache-upload writes to.
+# The archives are the same for both. cache-upload takes the addresses it
+# writes to from this file, through lake-cache-address.py.
 
 [[cache.service]]
 name = "fc-queue"

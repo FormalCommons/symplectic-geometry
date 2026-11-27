@@ -338,6 +338,7 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           OWN_REPO: ${{ github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
+          set -o pipefail
           # get NAME ARGS...: `lake cache get` with ARGS, its output in a
           # file, since it has two lines for every archive.
           get() {
@@ -365,7 +366,7 @@ jobs:
             if at=$(python3 -I .github/lake-cache-address.py fc-pr "$(cat lean-toolchain)" | sed -n 2p) && [ -n "$at" ]; then
               for c in $commits; do
                 [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
-                if curl -q -sfI --max-time 20 -o /dev/null "$at/$c.jsonl"; then
+                if curl -q -sfI --connect-timeout 5 --max-time 10 -o /dev/null "$at/$c.jsonl"; then
                   get pull-request --service=fc-pr --rev="$c"
                   break
                 fi
