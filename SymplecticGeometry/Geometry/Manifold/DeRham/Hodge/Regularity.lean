@@ -481,7 +481,7 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form I M k}
   have hK : IsCompact (ψ '' tsupport ρ) := ψ.isCompact_image_of_subset_source hKρ hρ
   have hKV : ψ '' tsupport ρ ⊆ V := by
     rintro _ ⟨x, hx, rfl⟩
-    exact ⟨ψ.map_source (hρ hx), by simpa [ψ.left_inv (hρ hx)] using hρU₁ hx⟩
+    exact ⟨ψ.map_source (hρ hx), by simpa [ψ.toPartialEquiv.left_inv (hρ hx)] using hρU₁ hx⟩
   have hr0 (y : E) (hy : y ∉ V) : r y = 0 :=
     Function.notMem_support.1 fun h ↦ hy (hKV (ψ.support_indicator_comp_symm_subset ρ h))
   set F := fun y ↦ r y • g y
@@ -770,7 +770,7 @@ theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form I M k} {C : ℝ}
     ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ
   have hKV : K ⊆ V := by
     rintro _ ⟨x, hx, rfl⟩
-    exact ⟨ψ.map_source (hχ hx), by simpa [ψ.left_inv (hχ hx)] using hχU₁ hx⟩
+    exact ⟨ψ.map_source (hχ hx), by simpa [ψ.toPartialEquiv.left_inv (hχ hx)] using hχU₁ hx⟩
   -- The cutoff `χ` read in the chart, extended by `0`, is smooth and vanishes off `K`.
   set r : E → ℝ := ψ.target.indicator fun y ↦ χ (ψ.symm y)
   have hrK (y : E) (hy : y ∉ K) : r y = 0 :=
