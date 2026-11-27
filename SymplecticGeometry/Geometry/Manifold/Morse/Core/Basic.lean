@@ -8,8 +8,8 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
-import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.ModelChart
 import SymplecticGeometry.Topology.Order.Sublevel
 
@@ -207,6 +207,20 @@ def cubes (c : BandCore I g a₀ a b) : Set M :=
 theorem cubes_def (c : BandCore I g a₀ a b) :
     c.cubes = ⋃ i, c.chart i '' Metric.closedBall 0 1 ×ˢ {0} := (rfl)
 
+/-- Each cube of a band core lies in its cubes. -/
+theorem image_chart_subset_cubes (c : BandCore I g a₀ a b) (i : c.ι) :
+    c.chart i '' Metric.closedBall 0 1 ×ˢ {0} ⊆ c.cubes := by
+  rw [cubes_def]
+  exact subset_iUnion (fun j ↦ c.chart j '' Metric.closedBall 0 1 ×ˢ {0}) i
+
+/-- Every open set containing `{g ≤ a}` and the cubes of a band core receives `{g ≤ b}` at the
+end of a smooth isotopy from the identity that fixes a neighbourhood of `{g ≤ a}`. -/
+theorem exists_compression_of_subset (c : BandCore I g a₀ a b) {U : Set M} (hU : IsOpen U)
+    (hsub : {x | g x ≤ a} ∪ c.cubes ⊆ U) :
+    ∃ (f : C^∞⟮I, M; I, M⟯) (F : TauCeti.SmoothIsotopy ContMDiffMap.id f),
+      (∃ V ∈ 𝓝ˢ {x | g x ≤ a}, ∀ t, ∀ x ∈ V, F (t, x) = x) ∧ MapsTo f {x | g x ≤ b} U :=
+  c.exists_compression U hU (by rwa [← cubes_def])
+
 /-- A point lies in the cubes when some chart sends a point of the unit cube to it. -/
 theorem mem_cubes_iff (c : BandCore I g a₀ a b) {x : M} :
     x ∈ c.cubes ↔ ∃ i, ∃ v ∈ Metric.closedBall 0 1 ×ˢ {0}, c.chart i v = x := by
@@ -242,13 +256,9 @@ noncomputable def ofNoCriticalPoint (hg : ContMDiff I 𝓘(ℝ) ∞ g)
   exists_compression U hU hsub := by
     obtain ⟨Φ, ⟨V, hV, hΦV⟩, hΦ⟩ := TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset hg
       hcompact hreg hU (subset_union_left.trans hsub)
-    have hid : Manifold.IsSmoothEmbedding I I ∞ (ContMDiffMap.id : C^∞⟮I, M; I, M⟯) := by
-      rw [ContMDiffMap.coe_id]
-      exact Manifold.IsSmoothEmbedding.id
-    refine ⟨_, Φ.smoothIsotopy ContMDiffMap.id hid,
+    refine ⟨_, Φ.smoothIsotopy ContMDiffMap.id Manifold.IsSmoothEmbedding.id,
       ⟨V, hV, fun t x hx ↦ ?_⟩, fun x hx ↦ ?_⟩
-    · rw [Φ.smoothIsotopy_apply, ContMDiffMap.coe_id, id_eq]
-      exact hΦV t x hx
+    · exact (Φ.smoothIsotopy_apply _ _ (t, x)).trans (hΦV t x hx)
     · simpa using hΦ hx
 
 /-- The band core `ofNoCriticalPoint` has no cubes. -/
