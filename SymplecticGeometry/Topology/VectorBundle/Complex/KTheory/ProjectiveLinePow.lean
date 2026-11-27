@@ -8,11 +8,16 @@ module
 public import TauCeti.CategoryTheory.GrothendieckGroup.Monoidal.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
+public import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.Basic
+import SymplecticGeometry.Algebra.BigOperators.SqEqZero
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Core
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.ProductSphere
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 
 /-!
-# The line bundles `L_T` over `(ℂP¹)^m` generate `K`
+# The line bundles `L_T` over `(ℂP¹)^m` and the Newton classes on `K`
 
 Write `P = ℙ ℂ (Fin 2 → ℂ)` for the complex projective line and `H_i` for the pullback of its
 tautological line `Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)` along the evaluation
@@ -29,6 +34,13 @@ homeomorphism `(Fin m → P) × P ≃ (Fin (m + 1) → P)` given by `Fin.snoc`, 
 [Hatcher2017, §2.1]. The subsets `T` here are not the integers `m` of the clutched lines `L m` of
 `KTheory/ProductSphere.lean`.
 
+Let `y_i ∈ H²((ℂP¹)^m; ℤ)` be the first Chern class of the pullback of the tautological line
+`Projectivization.Tautological ℂ (Fin 2 → ℂ)` along the evaluation at the `i`th factor. The
+Newton class `s_m : K((ℂP¹)^m) → H^{2m}((ℂP¹)^m; ℤ)` (`SymplecticGeometry.Bundle.newtonClassHom`)
+takes its values in the multiples of `m! y_1 ⋯ y_m`. Indeed `y_i ^ 2 = 0`, being pulled back from
+`ℂP¹`, and `c₁(L_T) = ∑ i ∈ T, y_i`, so `s_m(L_T) = (∑ i ∈ T, y_i) ^ m` is `m! y_1 ⋯ y_m` for
+`T = univ` and `0` otherwise, by `Finset.sum_pow_of_sq_eq_zero`; the `L_T` generate `K`.
+
 ## Main definitions and results
 
 * `SymplecticGeometry.Bundle.tensorTautological T`: the line `L_T` over `Fin m → P`;
@@ -37,6 +49,10 @@ homeomorphism `(Fin m → P) × P ≃ (Fin (m + 1) → P)` given by `Fin.snoc`, 
   `of_pullback_tensorTautological` gives the class of its pullback along a continuous map.
 * `SymplecticGeometry.Bundle.closure_range_of_tensorTautological_eq_top`: the classes of the
   `L_T` generate `K((ℂP¹)^m)`.
+* `SymplecticGeometry.Bundle.chernClass_one_tensorTautological`: `c₁(L_T) = ∑ i ∈ T, y_i`, and
+  `sq_evenIntegralCohomologyOf_chernClass_eval`: `y_i ^ 2 = 0`.
+* `SymplecticGeometry.Bundle.newtonClassHom_mem_zmultiples`: `s_m` of every class of
+  `K((ℂP¹)^m)` is an integer multiple of the component of degree `2m` of `m! • ∏ i, y_i`.
 
 ## References
 
@@ -48,7 +64,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory MonoidalCategory TauCeti
+open CategoryTheory MonoidalCategory TauCeti Bundle
 
 open scoped LinearAlgebra.Projectivization
 
@@ -215,6 +231,89 @@ theorem closure_range_of_tensorTautological_eq_top (m : ℕ) :
         AddMonoidHom.coe_ofClass, map_mul, hH, Φ, RingHom.comp_apply, SplitK0.mapRingHom_of,
         FiniteRankBundleCore.pullbackFunctor_obj] using h₁ (SplitK0.of A)
 
+
+/-! ### The Newton classes `s_m` on `K((ℂP¹)^m)` -/
+
+open Finset Nat
+
+/-- The first Chern class of `L_T` is `∑ i ∈ T, y_i`, where `y_i` is the first Chern class of the
+pullback of the tautological line of `ℙ ℂ (Fin 2 → ℂ)` along the evaluation at the `i`th
+factor. -/
+theorem chernClass_one_tensorTautological (T : Finset (Fin m)) :
+    chernClass (Fin (tensorTautological T).rank → ℂ) (tensorTautological T).core.Fiber 1 =
+      ∑ i ∈ T, chernClass ℂ (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+        (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1 := by
+  conv_rhs => rw [← Finset.sort_toFinset T (· ≤ ·)]
+  rw [List.sum_toFinset _ (Finset.sort_nodup T (· ≤ ·)), tensorTautological_def]
+  -- Along the list, the folded tensor product has rank one, and `c₁` adds up.
+  let c₁ (A : FiniteRankBundleCore ℂ (Fin m → ℙ ℂ (Fin 2 → ℂ))) :=
+    chernClass (Fin A.rank → ℂ) A.core.Fiber 1
+  suffices ∀ l : List (Fin m), (l.foldr (fun i A ↦
+      (Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback (ContinuousMap.eval i) ⊗ A)
+        (𝟙_ _)).rank = 1 ∧ c₁ (l.foldr (fun i A ↦
+      (Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback (ContinuousMap.eval i) ⊗ A)
+        (𝟙_ _)) = (l.map fun i ↦ chernClass ℂ (ContinuousMap.eval
+          (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+            (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1).sum from (this _).2
+  intro l
+  induction l with
+  | nil => exact ⟨FiniteRankBundleCore.rank_tensorUnit,
+      FiniteRankBundleCore.chernClass_trivial 1 one_ne_zero⟩
+  | cons i l ih =>
+    refine ⟨by rw [List.foldr_cons, FiniteRankBundleCore.rank_tensorObj, ih.1,
+      FiniteRankBundleCore.rank_pullback, Projectivization.rank_tautologicalCore], ?_⟩
+    simp only [c₁] at ih ⊢
+    rw [List.foldr_cons, FiniteRankBundleCore.chernClass_one_tensorObj (by simp) ih.1, ih.2,
+      List.map_cons, List.sum_cons, Projectivization.tautologicalCore_def,
+      FiniteRankBundleCore.pullback_ofBundleOfFinrankEq,
+      FiniteRankBundleCore.chernClass_ofBundleOfFinrankEq]
+
+/-- The class `y_i` vanishes in square: `y_i ^ 2 = 0` in the even integral cohomology ring of
+`(ℂP¹)^m`, since `y_i` is pulled back from `H²(ℂP¹; ℤ)`, where `h ^ 2 = 0`. -/
+theorem sq_evenIntegralCohomologyOf_chernClass_eval (i : Fin m) :
+    (TopCat.of (Fin m → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+      (chernClass ℂ (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+        (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1) ^ 2 = 0 := by
+  rw [chernClass_pullback, Projectivization.chernClass_one_tautological,
+    ← TopCat.evenIntegralCohomologyMap_of, ← map_pow, map_neg, neg_sq,
+    Projectivization.hyperplaneClass_pow_eq_zero (n := 1) (by simp), map_zero]
+
+/-- The Newton class `s_m` of `L_T` is the component of degree `2m` of `(∑ i ∈ T, y_i) ^ m`. -/
+theorem newtonClassHom_of_tensorTautological (T : Finset (Fin m)) :
+    newtonClassHom _ m (SplitK0.of (tensorTautological T)) =
+      ((∑ i ∈ T, (TopCat.of (Fin m → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+        (chernClass ℂ (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+          (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1)) ^ m) m := by
+  rw [newtonClassHom_of, newtonClass_of_finrank_eq_one _ _ (by simp),
+    chernClass_one_tensorTautological, map_sum]
+
+/-- **The Newton classes `s_m` on `K((ℂP¹)^m)` are multiples of `m! y₁ ⋯ y_m`.** For every class
+`x` of the split Grothendieck group of complex finite-rank cores over
+`(ℂP¹)^m = Fin m → ℙ ℂ (Fin 2 → ℂ)`, the Newton class `s_m(x) ∈ H^{2m}((ℂP¹)^m; ℤ)` is an
+integer multiple of the component of degree `2m` of `m! • ∏ i, y_i`, where `y_i` is the first
+Chern class of the pullback of the tautological line along the evaluation at the `i`th factor. -/
+theorem newtonClassHom_mem_zmultiples
+    (x : SplitK0 (FiniteRankBundleCore ℂ (Fin m → ℙ ℂ (Fin 2 → ℂ)))) :
+    newtonClassHom _ m x ∈ AddSubgroup.zmultiples ((m ! • ∏ i : Fin m,
+      (TopCat.of (Fin m → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+        (chernClass ℂ (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+          (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1)) m) := by
+  refine AddSubgroup.mem_comap.1 ((AddSubgroup.closure_le
+    (AddSubgroup.comap (newtonClassHom _ m) _)).2 ?_
+      ((closure_range_of_tensorTautological_eq_top m).symm ▸ AddSubgroup.mem_top x))
+  rintro _ ⟨T, rfl⟩
+  rw [SetLike.mem_coe, AddSubgroup.mem_comap, newtonClassHom_of_tensorTautological,
+    Finset.sum_pow_of_sq_eq_zero fun i _ ↦ sq_evenIntegralCohomologyOf_chernClass_eval i]
+  -- `s_m(L_T)` is `m! • ∏ i, y_i` for `T = univ`, and `0` otherwise, since then `T` has no
+  -- subset with `m` elements.
+  by_cases hT : T = univ
+  · subst hT
+    rw [show (univ : Finset (Fin m)).powersetCard m = {univ} by
+      simpa using powersetCard_self (univ : Finset (Fin m)), sum_singleton]
+    exact AddSubgroup.mem_zmultiples _
+  · rw [powersetCard_eq_empty.2 ((card_lt_iff_ne_univ T).2 hT |>.trans_eq (Finset.card_fin m)),
+      sum_empty, smul_zero, DirectSum.zero_apply]
+    exact zero_mem _
 end SymplecticGeometry.Bundle
 
 end
