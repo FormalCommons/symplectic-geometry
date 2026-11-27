@@ -246,7 +246,7 @@ open TauCeti
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
-variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+variable [FiniteDimensional ℝ E] [ConnectedSpace G]
 
 /-- Along the radial curve `τ ↦ C.polar (τ • ξ, u)` of the polar decomposition, the one-form
 `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` on `Gc` takes on the velocity at `t` the value
@@ -261,6 +261,7 @@ theorem moment_inv_smul_im_mfderiv_inv_mul_curveVelocity_polar_smul
         (C.im (mfderiv IC IC ((C.polar (t • ξ, u))⁻¹ * ·) (C.polar (t • ξ, u))
           (Manifold.curveVelocity IC (fun τ : ℝ ↦ C.polar (τ • ξ, u)) t))) =
       μ (C.expI (-(t • ξ)) • p) ξ := by
+  have := C.finiteDimensional
   rw [funext fun τ : ℝ ↦ C.polar_apply (τ • ξ) u, C.polar_apply,
     C.mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom, C.im_cplx_lieMap, mul_inv_rev, ← map_inv,
     ← C.expI_neg, mul_smul, hμ, Lie.coadjointRepresentation_apply, inv_inv,
@@ -309,7 +310,7 @@ open scoped RealInnerProductSpace GroupLieAlgebra
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
-variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+variable [FiniteDimensional ℝ E] [ConnectedSpace G]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [MulAction G M]

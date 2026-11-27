@@ -139,8 +139,7 @@ theorem stagePath_apply (p : Λ × unitInterval) (x : M) :
 theorem stagePath_zero {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x) :
     stagePath he hρ s τ α B' (l, 0) = τ l := by
   rw [stagePath_def, collaredFirstHalf_zero, collaredSecondHalf_zero, Set.Icc.coe_zero, zero_smul,
-    add_zero, SmoothForm.mpullback_congr _ contMDiff_id (funext he₀),
-    SmoothForm.mpullback_id, LinearMap.id_apply]
+    add_zero, SmoothForm.mpullback_eq_self_of_eq_id _ (funext he₀)]
 
 /-- At time `1`, on a set where `ρ = 1`, the path is `e₁^* α l + d (e₁^* B' (s l))`, for the end
 `e₁ := e ((s l, 1), ·)` of the isotopy. -/
@@ -213,8 +212,7 @@ theorem stagePath_of_mem {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
       (F := fun q : unitInterval × M ↦ e ((s l, q.1), q.2))
       (he.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd))
       (collaredFirstHalf (n := ∞) le_rfl t) hτc
-    rw [SmoothForm.mpullback_congr _ contMDiff_id (funext he₀), SmoothForm.mpullback_id,
-      LinearMap.id_apply] at hex
+    rw [SmoothForm.mpullback_eq_self_of_eq_id _ (funext he₀)] at hex
     have hsplit : stagePath he hρ s τ α B' (l, t) - α l =
         -(τ l - SmoothForm.mpullback (fun x ↦ e ((s l, collaredFirstHalf (n := ∞) le_rfl t), x))
           (he.comp (contMDiff_const.prodMk contMDiff_id)) (τ l)) +

@@ -59,6 +59,8 @@ proof of the handle-core lemma and of Gromov's theorem on symplectic forms on op
   along a smooth map.
 * `SymplecticGeometry.norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le`: a derivative
   within `ε` of it has exterior derivative within `2 * ε` of `τ`.
+* `SymplecticGeometry.continuous_formalPrimitive`: it is continuous in a parameter, for families
+  of forms whose values and first derivatives are continuous in the parameter and the point.
 * `SymplecticGeometry.contMDiff_formalPrimitive`: it is smooth in the parameter and the point
   together, for smooth families of forms.
 * `SymplecticGeometry.contDiff_formalPrimitive`: the same as a `ContDiff` statement, when the
@@ -137,6 +139,19 @@ theorem norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le
     alternatizeUncurryFinCLM_apply, alternatizeUncurryFin_formalPrimitive, ← extDeriv] at this
   norm_num at this
   linarith
+
+/-- **Continuity of the formal primitive in a parameter.** For families `τ` of two-forms and `β`
+of one-forms on `E` over a topological space `X`, if `τ t x` and the derivative
+`fderiv ℝ (β t) x` are continuous in `(t, x)`, then so is `formalPrimitive (τ t) (β t) x`. -/
+theorem continuous_formalPrimitive {X : Type*} [TopologicalSpace X]
+    {τ : X → E → E [⋀^Fin 2]→L[ℝ] F} {β : X → E → E [⋀^Fin 1]→L[ℝ] F}
+    (hτ : Continuous fun p : X × E ↦ τ p.1 p.2)
+    (hβ : Continuous fun p : X × E ↦ fderiv ℝ (β p.1) p.2) :
+    Continuous fun p : X × E ↦ formalPrimitive (τ p.1) (β p.1) p.2 := by
+  simp only [formalPrimitive_def, extDeriv, ← alternatizeUncurryFinCLM_apply]
+  have hJ : Continuous fun a : E [⋀^Fin 2]→L[ℝ] F ↦ curryLeft (n := 1) a :=
+    (curryLeftLI (𝕜 := ℝ) (n := 1)).continuous
+  fun_prop
 
 variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
   [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
