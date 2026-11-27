@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
+import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
@@ -41,6 +42,8 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   `γ` has only a one-sided derivative. The shifted flow line and `γ` are integral curves on the
   preconnected set `[a, ∞)` that agree at `a`, so they agree by Tau Ceti's
   `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
+* `TauCeti.antitone_comp_globalFlow`: if `df(v) ≤ 0` everywhere for a complete field `v`, then
+  `f` is antitone along each orbit of its flow, by Tau Ceti's `IsMIntegralCurve.antitone_comp`.
 * `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`: if the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M`
   are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
@@ -164,6 +167,18 @@ theorem _root_.IsMIntegralCurveOn.globalFlow_sub_eq_Ici [CompleteSpace E] [T2Spa
       (fun s _ ↦ by simp [sub_eq_add_neg])
   exact hφ.eqOn_of_isPreconnected hγ isPreconnected_Ici self_mem_Ici
     (fun s _ ↦ hv.contMDiffAt) (by simp) ht
+
+/-- **A function is antitone along the orbits of a descending flow.** Let `v` be a complete `C¹`
+vector field on a Hausdorff boundaryless manifold, and `f` a differentiable function with
+`df(v) ≤ 0` everywhere. Then `f` is antitone along each orbit `t ↦ Φ t x` of the flow `Φ` of `v`.
+This is Tau Ceti's `IsMIntegralCurve.antitone_comp` for the orbits of `TauCeti.globalFlow`. -/
+theorem antitone_comp_globalFlow [CompleteSpace E] [T2Space M] [IsManifold I 1 M]
+    [BoundarylessManifold I M]
+    (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v) {f : M → ℝ} (hf : MDifferentiable I 𝓘(ℝ) f)
+    (hvf : ∀ x, mvfderiv I f x (v x) ≤ 0) (x : M) :
+    Antitone fun t ↦ f (globalFlow v hv hcomplete t x) :=
+  (isMIntegralCurve_globalFlow hv hcomplete x).antitone_comp (fun _ ↦ hf _) fun _ ↦ hvf _
 
 /-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C¹` field `v` on
 `(a, b)` and `t₀, t ∈ (a, b)`, then near `(t, s)` the map `Φ` is the maximal flow of `v` out of the
