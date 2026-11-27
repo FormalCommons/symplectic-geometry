@@ -515,9 +515,7 @@ def pullbackFiberEquiv (J : ContMDiffComplexStructure I n F V) (f : K)
       ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y :=
   TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt _
     J.toContinuousComplexStructure (b₂ := f y) (ContinuousLinearEquiv.refl ℝ (V (f y)))
-    -- `J.pullback f hf y` is `J (f y)` on `V (f y)`; `coe_pullback` states this only for maps on
-    -- `(f *ᵖ V) y`, where `ContinuousLinearEquiv.refl_apply` does not apply, so `rfl` is used.
-    fun _ ↦ rfl
+    fun v ↦ J.pullback_apply f hf y v
 
 theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : K)
     (hf : ContMDiff I' I n f) (y : N)
@@ -525,8 +523,8 @@ theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : K)
     J.pullbackFiberEquiv f hf y v = (J.toContinuousComplexStructure.fiberEquiv (f y)).symm
       ((J.pullback f hf).toContinuousComplexStructure.fiberEquiv y v) := by
   rw [pullbackFiberEquiv]
-  -- As in `pullbackFiberEquiv`, `ContinuousLinearEquiv.refl_apply` cannot be rewritten at a vector
-  -- of `(f *ᵖ V) y`, so the `exact` reads `refl` as the identity.
+  -- `ContinuousLinearEquiv.refl_apply` cannot be rewritten at a vector of `(f *ᵖ V) y`, so the
+  -- `exact` reads `refl` as the identity.
   exact TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt_apply _ _ _ _ v
 
 /-- `pullbackFiberEquiv` is continuous on total spaces, for any complex model `G`. -/

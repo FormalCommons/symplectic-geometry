@@ -168,16 +168,10 @@ theorem continuous_fiberEquivOfCommuteAt_pullback {X : Type*} [TopologicalSpace 
     Continuous fun p : TotalSpace G₁ ((f : X → B₁) *ᵖ K₁.Fiber) ↦
       TotalSpace.mk' G₂ (E := K₂.Fiber) (g p.proj)
         (K₁.fiberEquivOfCommuteAt K₂ (Ψ p.proj) (hΨ p.proj) p.snd) := by
-  have h₁ : Continuous fun p : TotalSpace G₁ ((f : X → B₁) *ᵖ K₁.Fiber) ↦
-      TotalSpace.mk' F₁ (E := (f : X → B₁) *ᵖ U₁) p.proj (K₁.fiberEquiv (f p.proj) p.snd) :=
-    Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj G₁ _,
-      ((K₁.totalSpaceHomeomorph G₁).continuous.comp (Pullback.continuous_lift G₁ _ _)).congr
-        fun p ↦ by
-          rw [Function.comp_apply, totalSpaceHomeomorph_apply]
-          -- `Pullback.lift f p` is `⟨f p.proj, p.snd⟩`, which `Pullback.lift_mk` states only for
-          -- `p` written as `TotalSpace.mk'`; `p.snd` is dependent on `p.proj`, so `rfl` is used.
-          rfl⟩
-  refine ((K₂.totalSpaceHomeomorph G₂).symm.continuous.comp (hc.comp h₁)).congr fun p ↦ ?_
+  refine ((K₂.totalSpaceHomeomorph G₂).symm.continuous.comp (hc.comp
+    (Pullback.continuous_fiberwise (Φ := fun b ↦ K₁.fiberEquiv b)
+      ((K₁.totalSpaceHomeomorph G₁).continuous.congr (K₁.totalSpaceHomeomorph_apply G₁))
+      f))).congr fun p ↦ ?_
   rw [Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_symm_apply]
   exact congrArg (TotalSpace.mk' G₂ (g p.proj))
     (K₁.fiberEquivOfCommuteAt_apply K₂ (Ψ p.proj) (hΨ p.proj) p.snd).symm
