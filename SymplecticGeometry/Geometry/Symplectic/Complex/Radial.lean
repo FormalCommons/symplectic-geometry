@@ -327,11 +327,8 @@ theorem exists_mextDeriv_eq_radialPotentialForm (g : ℝ → ℝ) (hg : ContDiff
       (SmoothForm.ofFunction (radialPotential (ι := ι) hg))).val z = 0 := by
     rw [mextDerivₗ_apply, SmoothForm.coe_ofFunction, coe_radialPotential,
       mextDeriv_ofFunction_comp_of_hasDerivAt hf hgd, zero_smul]
-  refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  have hv : v = ![v 0] := funext fun i ↦ by fin_cases i; rfl
-  rw [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply, hv,
-    SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec, hd]
-  simp
+  ext v
+  simp [SmoothAlmostComplexStructure.covectorComplexStructure_apply, hd]
 
 /-! ### Radial maps -/
 
