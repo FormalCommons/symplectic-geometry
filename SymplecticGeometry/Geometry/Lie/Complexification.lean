@@ -346,6 +346,11 @@ theorem expI_def (ξ : GroupLieAlgebra I G) : C.expI ξ = mulInvariantExp (C.cpl
 theorem expI_zero : C.expI 0 = 1 := by
   rw [expI_def, map_zero, AlmostComplexStructure.apply_zero, mulInvariantExp_zero (I := IC)]
 
+/-- `expI (t • ξ)` is the exponential of `t • cplx (lieMap ξ)`. -/
+theorem expI_smul (t : ℝ) (ξ : GroupLieAlgebra I G) :
+    C.expI (t • ξ) = mulInvariantExp (t • C.cplx (C.lieMap ξ)) := by
+  rw [expI_def, map_smul, AlmostComplexStructure.apply_smul]
+
 theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
