@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 public import SymplecticGeometry.Geometry.Manifold.Instances.ULift
-public import SymplecticGeometry.Topology.Constructions.ULift
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreTorus
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.AffineCoordinate

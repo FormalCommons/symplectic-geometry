@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
+public import SymplecticGeometry.Topology.Constructions.ULift
 
 /-!
 # The universe lift of a manifold
