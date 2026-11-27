@@ -14,7 +14,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import Mathlib.Analysis.Convex.Segment
-import SymplecticGeometry.Analysis.Calculus.FDeriv.CompactBound
+import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Glaeser
 import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 import SymplecticGeometry.Geometry.Manifold.Immersion.InfDist
@@ -426,11 +426,16 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
   have hχ2 : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) 2 χ := hχs.of_le (by simp)
   have hχB (y : K) : ∃ B, ∀ z ∈ closedBall (e y (ι y)) (r y),
       ‖fderiv ℝ (χ ∘ (e y).symm) z‖ ≤ B ∧ ‖fderiv ℝ (fderiv ℝ (χ ∘ (e y).symm)) z‖ ≤ B := by
-    refine (isCompact_closedBall _ _).exists_forall_norm_fderiv_le_and_norm_fderiv_fderiv_le
-      le_rfl fun z hz ↦ ?_
-    have := hχ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y)
-      ((e y).map_target (hrt y hz))
-    rwa [(e y).right_inv (hrt y hz)] at this
+    have hc (z) (hz : z ∈ closedBall (e y (ι y)) (r y)) :
+        ContDiffAt ℝ 2 (χ ∘ (e y).symm) z := by
+      have := hχ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y)
+        ((e y).map_target (hrt y hz))
+      rwa [(e y).right_inv (hrt y hz)] at this
+    obtain ⟨B₁, hB₁⟩ := (isCompact_closedBall _ _).exists_norm_fderiv_le one_le_two hc
+    obtain ⟨B₂, hB₂⟩ := (isCompact_closedBall _ _).exists_norm_fderiv_le (n := 1) le_rfl
+      fun z hz ↦ (hc z hz).fderiv_right (m := 1) le_rfl
+    exact ⟨max (B₁ : ℝ) B₂, fun z hz ↦
+      ⟨(hB₁ z hz).trans (le_max_left _ _), (hB₂ z hz).trans (le_max_right _ _)⟩⟩
   choose B hB using hχB
   -- The parameters: `δ = η ^ 2` and `log (δ / ε) = 1 / η`, for `η` small.
   obtain ⟨Kc, hKc⟩ := exists_mul_sq_norm_le_re_leviForm_add_logCutoff_mul_sub
