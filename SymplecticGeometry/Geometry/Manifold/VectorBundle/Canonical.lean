@@ -7,7 +7,11 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
+import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Analysis.Normed.Module.Alternating.TopDegree
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
+import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
 
 /-!
 # The coordinate form of a chart as a pull-back
@@ -23,6 +27,18 @@ pulled back by the differential of `f` is `det (DF (χ z))` times the form of `�
 (`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_comp`). When `f` is the identity,
 this compares the forms of two charts `e` and `χ` directly
 (`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq`).
+
+For any map `f : M → E` that is `C^n` at `x`, with `k + 1 ≤ n`, the determinant form pulled back
+by the differential of `f` is a section of the canonical bundle that is `C^k` at `x`
+(`TauCeti.CanonicalBundle.contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv`): in the
+trivialization of the tangent bundle at `x`, it is the determinant of the differential of `f` read
+in tangent coordinates, a `C^k` function by Mathlib's `ContMDiffAt.mfderiv_const`, times the
+constant determinant form. So the coordinate form of a chart `e` of the maximal atlas of an order
+`n ≥ k + 1` is a local frame of the canonical bundle over `e.source`: it is a `C^k` section there,
+holomorphic for a complex manifold
+(`TauCeti.CanonicalBundle.contMDiffOn_continuousDet_compContinuousLinearMap_mfderiv_extend`), and
+it vanishes nowhere there, since the differential of the extended chart is invertible
+(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero`).
 
 When the model space is finite-dimensional, the fibres of the canonical bundle are
 finite-dimensional by Tau Ceti's `ContinuousAlternatingMap.instModuleFinite`, whose file this
@@ -66,6 +82,54 @@ theorem coordForm_eq_compContinuousLinearMap_mfderiv {x₀ x : M}
   exact (ContinuousAlternatingMap.compContinuousLinearMap_apply (M' := TangentSpace I x)
     (M := E) b.continuousDet _ v).symm
 
+/-- **The pull-back of the determinant form by a `C^n` map is `C^k`.** If `f : M → E` is `C^n` at
+`x` and `k + 1 ≤ n`, then the determinant form of `b` pulled back by the differential of `f` is a
+section of the canonical bundle that is `C^k` at `x`. -/
+theorem contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv {f : M → E} {x : M}
+    {k n : WithTop ℕ∞} (hf : ContMDiffAt I 𝓘(𝕜, E) n f x) (hkn : k + 1 ≤ n)
+    (b : Module.Basis (Fin (Module.finrank 𝕜 E)) 𝕜 E) :
+    ContMDiffAt I (I.prod 𝓘(𝕜, E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)) k
+      (fun x ↦ Bundle.TotalSpace.mk' (E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)
+        (E := CanonicalBundle I M) x
+        (b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) f x))) x := by
+  rw [Bundle.contMDiffAt_section_iff x]
+  -- In the trivialization at `x`, the form is `det D • b.continuousDet`, where `D` is the
+  -- differential of `f` in tangent coordinates at `x`, a `C^k` function.
+  have hD := ContMDiffAt.mfderiv_const hf hkn
+  refine (((ContinuousLinearMap.contDiff_det (𝕜 := 𝕜) (E := E)).smul
+    (contDiff_const (c := b.continuousDet))).contMDiff.contMDiffAt.comp x
+    hD).congr_of_eventuallyEq (Filter.Eventually.of_forall fun y ↦ ?_)
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd, Function.comp_apply,
+    inTangentCoordinates, ContinuousLinearMap.inCoordinates,
+    TangentBundle.continuousLinearMapAt_model_space]
+  ext v
+  rw [Pi.smul_apply', ContinuousAlternatingMap.smul_apply, smul_eq_mul]
+  set L := ((1 : E →L[𝕜] E) ∘SL mfderiv I 𝓘(𝕜, E) f y ∘SL
+    (trivializationAt E (TangentSpace I) (id x)).symmL 𝕜 (id y))
+  have h := congrArg (fun ω ↦ ω v) (b.continuousDet.compContinuousLinearMap_eq_det_smul b L)
+  rw [ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h
+  -- The left side of the goal is that of `h` by the definition of `compContinuousLinearMap`;
+  -- its rewriting lemmas do not unify here, where the tangent spaces are `E` only by
+  -- definition, so the goal is closed by `exact`.
+  exact h
+
+/-- **The coordinate form of a chart of the maximal atlas is `C^k`.** For `e` in the maximal atlas
+of an order `n ≥ k + 1`, the determinant form of `b` pulled back by the differential of the
+extended chart `e.extend I` is a `C^k` section of the canonical bundle over `e.source`; for a
+complex manifold and `k = n = ω` it is holomorphic. Together with
+`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero` it is a local frame
+there. -/
+theorem contMDiffOn_continuousDet_compContinuousLinearMap_mfderiv_extend
+    {e : OpenPartialHomeomorph M H} {k n : WithTop ℕ∞} (he : e ∈ IsManifold.maximalAtlas I n M)
+    (hkn : k + 1 ≤ n) (b : Module.Basis (Fin (Module.finrank 𝕜 E)) 𝕜 E) :
+    ContMDiffOn I (I.prod 𝓘(𝕜, E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)) k
+      (fun x ↦ Bundle.TotalSpace.mk' (E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)
+        (E := CanonicalBundle I M) x
+        (b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) (e.extend I) x)))
+      e.source := fun _ hx ↦
+  (contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv (e.contMDiffAt_extend he hx) hkn
+    b).contMDiffWithinAt
+
 end TauCeti.CanonicalBundle
 
 namespace Module.Basis
@@ -74,6 +138,16 @@ variable {𝕜 E H H' : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace �
   [NormedSpace 𝕜 E] [TopologicalSpace H] [TopologicalSpace H'] {I : ModelWithCorners 𝕜 E H}
   {I' : ModelWithCorners 𝕜 E H'} {M N : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [TopologicalSpace N] [ChartedSpace H' N] {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- **The coordinate form of a chart of the maximal atlas does not vanish.** For `e` in the
+maximal atlas of order `n ≥ 1`, the determinant form of `b` pulled back by the differential of the
+extended chart `e.extend I` is nonzero at every point of `e.source`. -/
+theorem continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero (b : Module.Basis ι 𝕜 E)
+    {e : OpenPartialHomeomorph M H} {n : WithTop ℕ∞} (he : e ∈ IsManifold.maximalAtlas I n M)
+    (hn : 1 ≤ n) {x : M} (hx : x ∈ e.source) :
+    b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) (e.extend I) x) ≠ 0 :=
+  b.continuousDet_compContinuousLinearMap_ne_zero
+    (isInvertible_mfderiv_extend (IsManifold.maximalAtlas_subset_of_le hn he) hx)
 
 /-- **The chain rule for coordinate forms.** Let `f : M → N`, `e : N → E` and `χ : M → E` be
 differentiable at the points concerned, and `F : E → E` differentiable at `χ z`, with `e ∘ f`
