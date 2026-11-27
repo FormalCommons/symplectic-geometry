@@ -797,7 +797,7 @@ containing `ι '' closedBall 0 1`:
     `ℓ ∈ Icc 0 (7 * δ)` are `struweSwitchLeaf L δ ℓ` below, those in
     `Icc ℓ₁ 1` come from `exists_convexShapeFamily_struweShape` below,
     and those in `Icc (7 * δ) ℓ₁`, which join the leaf `7 * δ` to the
-    leaf `ℓ₁`, are left to a design issue of their own.
+    leaf `ℓ₁`, are the bridge leaves below (`Surround/BridgeLeaf.lean`).
   - The leaves `ℓ ∈ Icc 0 (7 * δ)`, in `Surround/CutoffLeaf.lean`, which
     `Surround/ShapeFamily.lean` imports (they would take that file past
     the limit of 1500 lines). First the leaf `0` is raised near the
@@ -822,11 +822,12 @@ containing `ι '' closedBall 0 1`:
       `Surround/ShapeFamily.lean`,
       `sqrtAddLeaf_zero : sqrtAddLeaf L δ 0 = sqrtSubLeaf L δ 0`.
     - `exists_isConvexShapeAt_sqrtAddLeaf`: there is `L₀ ≥ 1` such that
-      for `L ≥ L₀`, `δ > 0`, `ℓ ∈ Icc 0 (7 * δ)` and `r > δ`,
-      `IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r`. For `δ = 1` both
+      for `L ≥ L₀`, `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
+      `IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r` (the range above `7 * δ`
+      serves the bridge leaves below). For `δ = 1` both
       families are `b * (1 - H) + S` with `S ^ 2 = 64 * r ^ 2 - 64 + c * H`:
       `b = (ℓ + 8) / 64 ≤ 1 / 8` and `c = 64 - ℓ ^ 2 ≤ 64` for
-      `sqrtSubLeaf`, `b = 1 / 8 + ℓ ≤ 57 / 8` and `c = 64 + ℓ ^ 2 ≤ 113`
+      `sqrtSubLeaf`, `b = 1 / 8 + ℓ ≤ 61 / 8` and `c = 64 + ℓ ^ 2 ≤ 121`
       here. So the private steps of `exists_isConvexShapeAt_sqrtSubLeaf`
       move to `CutoffLeaf.lean` and become public, for both:
       `isConvexShapeAt_of_bounds`, as `isConvexShapeAt_of_cutoff_bounds`,
@@ -994,7 +995,7 @@ containing `ι '' closedBall 0 1`:
     on the members of the square-root family, the construction of
     `exists_convexShape_surround` made uniform in `ℓ`. It takes the
     family `φ` of `exists_convexShapeFamily_sqrt` as hypotheses, so that
-    the leaves `ℓ ∈ Icc 0 ℓ₁` can use the same `φ`: let `0 < d`,
+    the leaves `ℓ ∈ Icc (7 * δ) ℓ₁` can use the same `φ`: let `0 < d`,
     `exp (4 / d ^ 2) ≤ K`, `4 < K`, `0 < β`, and `φ : ℝ → ℝ → ℝ` with
     `ContDiffAt ℝ ∞ (Function.uncurry φ) q` for
     `q ∈ Ici 0 ×ˢ Ioi 0`, `IsConvexShapeAt (φ ℓ) r` for `0 ≤ ℓ` and
@@ -1034,12 +1035,16 @@ containing `ι '' closedBall 0 1`:
     in `ℓ` holds piece by piece, as each piece is used for a fixed `r`.
 
     `exists_convexShapeFamily_surround` applies
-    `exists_convexShapeFamily_sqrt` with `a = 64` and its own `γ`, and
-    this lemma with `K = exp (4 / d ^ 2)` (`4 < K` as `d < 1`), for `δ`
-    with `C * δ ≤ 1`, `3 * K * δ / 2 ≤ γ` and the conditions of the other
-    pieces, and an `ℓ₁ ∈ Icc (C * δ) 1` that the design of the leaves
-    `ℓ ∈ Icc (7 * δ) ℓ₁` fixes. Its leaves `ℓ ∈ Icc ℓ₁ 1` are the `F ℓ`. They
-    are standard for `γ ≤ r`, as `F ℓ = φ ℓ` there and `ℓ * γ ≤ γ`; the
+    `exists_convexShapeFamily_sqrt` with `a = 64` and
+    `γ' = min γ (1 / 16)` (a member standard for `ℓ * γ' ≤ r` is standard
+    for `ℓ * γ ≤ r`), and this lemma with `K = exp (4 / d ^ 2)` (`4 < K`
+    as `d < 1`) at the base point `ℓ₀ = C' * δ` in place of its `ℓ₁`,
+    where `C' = max C (max 24 (3 * K / (2 * γ')))`, for `δ` with
+    `2 * C' * δ ≤ 1`, `3 * K * δ / 2 ≤ γ` and the conditions of the other
+    pieces. It fixes `ℓ₁ = 2 * ℓ₀ ∈ Icc (C * δ) 1`; the `F ℓ` with
+    `ℓ ∈ Icc ℓ₀ ℓ₁` serve the last bridge leaves below. Its leaves
+    `ℓ ∈ Icc ℓ₁ 1` are the `F ℓ`. They
+    are standard for `γ ≤ r`, as `F ℓ = φ ℓ` there and `ℓ * γ' ≤ γ`; the
     joint continuity of `F`, `∂F/∂r` and `∂²F/∂r²` on
     `Icc ℓ₁ 1 ×ˢ Ioi δ` is `ContDiffAt.continuousAt_iteratedDeriv_prod_right`
     applied to the smoothness; `F ℓ` is continuous on `Ici δ` by the
@@ -1055,6 +1060,173 @@ containing `ι '' closedBall 0 1`:
     `exists_convexShape_surround` rewritten through it (about 150
     lines); (2) in `Surround/ShapeFamily.lean`,
     `exists_convexShapeFamily_struweShape` (about 200 lines).
+
+  - The bridge leaves `ℓ ∈ Icc (7 * δ) ℓ₁`, in `Surround/BridgeLeaf.lean`,
+    which `Surround/ShapeFamily.lean` imports; it imports
+    `Surround/CutoffLeaf.lean` and takes the family `F` of
+    `exists_convexShapeFamily_struweShape` as hypotheses. A Struwe shape
+    can only cross a slope-8 shape at radii below about `12 * δ` (at a
+    crossing `r` its value is near `8 * r`, and
+    `isConvexShapeAt_struweShape_of_lt` needs it above
+    `2 * r * √(log (r / δ)) ^ 3`), while the cutoff region of
+    `sqrtAddLeaf` reaches `(2 + L) * δ` and the slope `d` of the leaf
+    `ℓ₁` is small. So the bridge raises one fixed shape `P`, Struwe's
+    near the cylinder and the line of slope `2` from `9 * δ / 2` on,
+    over the far parts: a line `c + 2 * r` meets a slope-8 shape near
+    `r = c / 6`, and is a convex shape for `r < 8 * c`. Then the far
+    part changes from `sqrtAddLeaf` to the standard leaf to `F ℓ` where
+    `P` hides it, and `P` sinks below `F ℓ`.
+    - `struweLineShape δ r`:
+      `smoothedMax (δ / 4) (struweShape δ 4 0 r) (2 * r - 8 * δ)`, the
+      Struwe shape and the line meeting at `4 * δ`. With
+      `S = struweShape δ 4 0`: `S δ ∈ Icc (-√30 * δ) 0` (the bound
+      `1 / √(log u) ≤ √2 * u / √(u ^ 2 - 1)` of the leaves
+      `ℓ ∈ Icc 0 (7 * δ)`), `S - (2 * r - 8 * δ) ≥ δ / 4` on
+      `Ioc δ (7 * δ / 2)` (it rises up to `exp (1 / 4) * δ`, then falls;
+      `0.52 * δ` at `δ` and `0.55 * δ` at `7 * δ / 2`, by `S' ≤ 1 /
+      √(log (7 / 2))` on `Icc (7 * δ / 2) (4 * δ)`), and
+      `2 * r - 8 * δ - S ≥ δ / 4` on `Ici (9 * δ / 2)`. API:
+      `struweLineShape_def`, `struweLineShape_eq_struweShape` (`= S r`
+      on `Ioc δ (7 * δ / 2)`), `struweLineShape_eq_linear`
+      (`= 2 * r - 8 * δ` on `Ici (9 * δ / 2)`),
+      `contDiffOn_struweLineShape` (`Ioi δ`),
+      `struweShape_le_struweLineShape` and `struweLineShape_le`
+      (`≤ max (S r) (2 * r - 8 * δ) + δ / 8`, `smoothedMax_le_max_add`),
+      `deriv_struweLineShape_le` (`≤ 2` on `Ici (7 * δ / 2)`,
+      `deriv_smoothedMax_le_max`), and
+      `isConvexShapeAt_struweLineShape_add`: for `δ < r` and `t` with
+      `2 * r * √(log (r / δ)) ^ 3 + 2 * δ < struweLineShape δ r + t` and
+      `r * √(log (r / δ)) + 2 * δ < struweLineShape δ r + t` when
+      `r ≤ 9 * δ / 2`, and `8 * δ < t`, `r < 8 * (t - 8 * δ)` when
+      `7 * δ / 2 ≤ r`, `r ↦ struweLineShape δ r + t` is a convex shape
+      at `r` (`isConvexShapeAt_struweShape_of_lt`,
+      `isConvexShapeAt_linear`, `isConvexShapeAt_smoothedMax` with
+      `δ / 4 * (1 + 2) ≤ 2 * r`, applied to `C²` functions equal to the
+      two shapes near `r`, `ContDiffOn.exists_contDiff_eqOn_Ici`; on
+      `Icc (7 * δ / 2) (9 * δ / 2)` the shape is within `9 * δ / 8` of
+      each piece, as `|S r - (2 * r - 8 * δ)| ≤ δ` there). Write
+      `P t r = struweLineShape δ r + t` and `t₀ = 65 * δ / 8 - S δ`, so
+      that `P t₀ = struweShape δ 1 (65 * δ / 8)` on
+      `Ioc δ (7 * δ / 2)`.
+    - What this needs in `Surround/SpecialShape.lean`:
+      `struweShape_add` (`struweShape δ K (a + c) r = a +
+      struweShape δ K c r`, by `struweShape_def`) and
+      `struweShape_eq_struweShape` (for `0 < δ`, `1 ≤ K`, `1 ≤ K'` and
+      `δ ≤ r`, `struweShape δ K c r = struweShape δ K'
+      (struweShape δ K c (K' * δ)) r`, by
+      `intervalIntegral.integral_add_adjacent_intervals`): all Struwe
+      shapes at `δ` differ by constants, so near the cylinder every leaf
+      below is a Struwe shape plus a constant.
+    - `isConvexShapeAt_bridgeLeaf_sqrtAddLeaf` (first stage,
+      `ℓ ∈ Icc (7 * δ) (15 * δ / 2)`): with the `L₀` of
+      `exists_isConvexShapeAt_sqrtAddLeaf`, for `L ≥ L₀`, `δ > 0`, such
+      `ℓ`, `t₀ ≤ t` and `δ < r`,
+      `r ↦ smoothedMax (δ / 200) (sqrtAddLeaf L δ ℓ r) (P t r)` is a
+      convex shape at `r`. With `A = sqrtAddLeaf L δ ℓ` and
+      `w = √(r ^ 2 - δ ^ 2)`: `A ≥ 8 * w`, `A ≤ δ / 8 + ℓ + 8 * r + ℓ`,
+      `A = δ / 8 + ℓ + 8 * w` on `Ioc δ (2 * δ)` and
+      `deriv A ≤ 11` on `Ici (2 * δ)` (the bounds in the proof of
+      `exists_isConvexShapeAt_sqrtAddLeaf`, made public). Where
+      `P t ≥ A - δ / 200`, the height conditions of
+      `isConvexShapeAt_struweLineShape_add` hold (`A ≥ 7 * δ` on
+      `Ioc δ (2 * δ)`, `8 * w - 2 * r * √(log (r / δ)) ^ 3 > 3 * δ` on
+      `Icc (2 * δ) (9 * δ / 2)`, and `t - 8 * δ ≥ 8 * w - 2 * r - 2 * δ
+      > r / 8` on `Ici (7 * δ / 2)`). Where `|A - P t| ≤ δ / 200` and
+      `r ≤ 2 * δ`, `P t = struweShape δ 1 (65 * δ / 8) + (t - t₀)` and
+      `A - struweShape δ 1 (65 * δ / 8) ≤ -δ / 2 + 8 * w`, so
+      `w ≥ δ / 17` and, as for `struweSwitchLeaf`,
+      `δ / 200 * (8 * r / w + 2 * √2 * δ / w) ≤ 2 * r`; for
+      `2 * δ ≤ r` the slopes are at most `11` and `2`. Also
+      `bridgeLeaf_sqrtAddLeaf_eq_struweSwitchLeaf`: at `ℓ = 7 * δ` and
+      `t = t₀` the leaf is `struweSwitchLeaf L δ (7 * δ)` on `Ioi δ`
+      (`P t₀` is its Struwe shape `T` on `Ioc δ (7 * δ / 2)`; beyond,
+      `P t₀ ≤ max (T r) (2 * r + 6 * δ) + δ / 8`, and `T` and
+      `2 * r + 6 * δ` are more than `δ / 200 + δ / 8` below `A`, as
+      `A - T ≥ 2 * δ` there), and `bridgeLeaf_sqrtAddLeaf_eq_sqrt`: if
+      `S δ + t ≥ 3 * ℓ' + 8 * (3 + L) * δ` with `ℓ' ≥ ℓ`, `A` may be
+      replaced by `√(64 * r ^ 2 + ℓ ^ 2)` (`P t` is above both by more
+      than `δ / 200` on `Ioc δ ((2 + L) * δ)`, and they agree beyond).
+    - `isConvexShapeAt_bridgeLeaf_sqrt` (second stage): for `δ > 0`,
+      `ℓ ≥ 0`, `η ∈ Ioc 0 (δ / 200)`, `t` with
+      `3 * ℓ + 30 * δ ≤ S δ + t` and `δ < r`,
+      `r ↦ smoothedMax η (√(64 * r ^ 2 + ℓ ^ 2)) (P t r)` is a convex
+      shape at `r` (`isConvexShapeAt_sqrt`; where `P t` is used it is
+      above `8 * r - δ`; the two meet only where
+      `√(64 * r ^ 2 + ℓ ^ 2) ≥ 3 * ℓ + 29 * δ`, so at `r > 7 * δ / 2`,
+      where the slopes are at most `8` and `2`).
+    - `isConvexShapeAt_bridgeLeaf_of_eq_struweShape` (last stage), for a
+      single leaf `G` (one `F ℓ`): let `0 < δ`, `24 * δ ≤ ℓ`, `8 ≤ M`,
+      `c₀ : ℝ`, and `G : ℝ → ℝ` a convex shape at every `r > δ`, `C²` on
+      `Ioi δ`, with `G r = c₀ + S r` on `Ioc δ (9 * δ / 2)`, `ℓ ≤ G r`
+      for `δ < r`, `G r = √(64 * r ^ 2 + ℓ ^ 2)` for `ℓ / 4 ≤ r`, and
+      `|deriv G r| ≤ M` on `Icc (3 * δ) (ℓ / 4)`. Then for
+      `η ∈ Ioc 0 (min (δ / 200) (6 * δ / (2 + M)))`, `8 * δ ≤ t` and
+      `δ < r`, `r ↦ smoothedMax η (G r) (P t r)` is a convex shape at
+      `r`. On `Ioo δ (7 * δ / 2)` it is `G` plus the constant
+      `smoothedMax η 0 (t - c₀)` (`struweShape_add`,
+      `smoothedMax_add_add_right`, `IsConvexShapeAt.add_const`), so no
+      bound on slopes near the cylinder is needed. On
+      `Icc (7 * δ / 2) (9 * δ / 2)`, where `P t ≥ G - η` the height
+      conditions hold as `ℓ ≥ 24 * δ`, and the slopes are at most `1`
+      and `2`. Where the line part is used, `t - 8 * δ > r / 8`: below
+      `ℓ / 4`, from `G ≥ ℓ`; above,
+      from `(t - 8 * δ + δ + 2 * r) ^ 2 ≥ ℓ ^ 2 + 64 * r ^ 2`, which
+      gives `r ≤ (t - 7 * δ) / 6`, while `r ≥ ℓ / 4 ≥ 6 * δ`. Where the
+      two meet beyond `9 * δ / 2`, `η * (2 + M) ≤ 2 * r`. Also
+      `bridgeLeaf_eq_of_eq_struweShape`: for `t = 8 * δ` the leaf is `G`
+      (`P (8 * δ) ≤ G - η`, as `c₀ = G δ - S δ ≥ ℓ` and
+      `9 * δ + δ / 8 + η < ℓ`), and `bridgeLeaf_sqrt_eq`: if
+      `S δ + t ≥ 3 * ℓ + η`, the standard leaf may be replaced by `G`
+      (`G` and the standard leaf are at most `√5 * ℓ` on `Ioc δ (ℓ / 4)`,
+      being increasing, and agree beyond).
+
+    `exists_convexShapeFamily_surround` takes, with `ℓ₀`, `ℓ₁ = 2 * ℓ₀`
+    and the `F` from base point `ℓ₀` as fixed above, `τ =
+    Real.smoothTransition`, `t₁ = 3 * ℓ₁ + 8 * (3 + L) * δ - S δ`,
+    `M ≥ 8` a bound of `|∂F/∂r|` on `Icc ℓ₀ ℓ₁ ×ˢ Icc (3 * δ) (ℓ₁ / 4)`
+    (continuity on a compact set) and
+    `η₁ = min (δ / 200) (6 * δ / (2 + M))`, the bridge leaves
+    - `smoothedMax (δ / 200) (sqrtAddLeaf L δ ℓ r) (P t r)` with
+      `t = t₀ + (t₁ - t₀) * τ ((ℓ - 7 * δ) / (δ / 2))` for
+      `ℓ ∈ Icc (7 * δ) (15 * δ / 2)`;
+    - `smoothedMax η (√(64 * r ^ 2 + ℓ ^ 2)) (P t₁ r)` with
+      `η = δ / 200 - (δ / 200 - η₁) * τ ((ℓ - 15 * δ / 2) /
+      (ℓ₀ - 15 * δ / 2))` for `ℓ ∈ Icc (15 * δ / 2) ℓ₀`;
+    - `smoothedMax η₁ (F ℓ r) (P t r)` with
+      `t = t₁ - (t₁ - 8 * δ) * τ ((ℓ - ℓ₀) / ℓ₀)` for
+      `ℓ ∈ Icc ℓ₀ ℓ₁`.
+
+    Consecutive pieces agree at their common `ℓ` by the equalities
+    above, the first one with `struweSwitchLeaf L δ (7 * δ)` and the
+    last one with `F ℓ₁`. Each formula is smooth in `(ℓ, r)` near every
+    point of its piece times `Ioi δ`
+    (`smoothedMax_eq_mul_smoothedMax_one` for the varying width), so
+    `ContDiffAt.continuousAt_iteratedDeriv_prod_right` on each closed
+    piece gives the joint continuity of `χ`, `∂χ/∂r` and
+    `∂²χ/∂r²` on `Icc (-8 * δ) 1 ×ˢ Ioi δ`. Near the cylinder each
+    bridge leaf is a Struwe shape plus a constant (in the first two
+    stages `P t` exceeds the other shape by at least `δ / 2` at `δ`; in
+    the last one the leaf is `F ℓ` plus a constant there), which gives
+    the vertical tangent (`tendsto_deriv_struweShape`) and the
+    continuity on `Ici δ`.
+    For `r ≥ (t₁ + 2 * δ) / 6`, `P t` is below the standard leaf by more
+    than the width, and `sqrtAddLeaf` and `F ℓ` are standard from
+    `max ((2 + L) * δ) (ℓ₁ * γ')` on, so the bridge leaves are standard
+    for `γ ≤ r` once `δ` is small. Below that radius each is at most
+    `2 * t₁ + 9 * ℓ₁` or equal to `F ℓ ≤ F 1`, and above it each is
+    `F ℓ` or the standard leaf with `ℓ < 1`, which is below `F 1` (the
+    standard leaf `1` from `γ'` on, and at least `1` before); so
+    `χ ℓ ≤ χ 1` once `δ` is small.
+
+    Building issues, in this order, after the leaves
+    `ℓ ∈ Icc 0 (7 * δ)` and `exists_convexShapeFamily_struweShape`:
+    (1) in `Surround/SpecialShape.lean`, `struweShape_add` and
+    `struweShape_eq_struweShape`, and in `Surround/BridgeLeaf.lean`,
+    `struweLineShape` with its API (about 250 lines); (2) the first two
+    stages, with the public bounds on `sqrtAddLeaf` in
+    `Surround/CutoffLeaf.lean` (about 300 lines); (3) the last stage
+    (about 250 lines). The gluing is part of the issue of
+    `exists_convexShapeFamily_surround`.
 
 - `Surround/ShapeFoliation.lean` (issue 14d6): from families of shapes
   to functions.
