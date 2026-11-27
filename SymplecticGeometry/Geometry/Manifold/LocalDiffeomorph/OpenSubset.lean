@@ -32,13 +32,11 @@ of `Φ` (`PartialDiffeomorph.mfderiv_toDiffeomorphSourceTarget_apply`, by Tau Ce
 
 A partial diffeomorphism `Φ : M → N` and an open subset `V` of its target give a diffeomorphism
 from the open set `Φ.source ∩ Φ ⁻¹' V` onto `V` that agrees with `Φ`
-(`PartialDiffeomorph.exists_diffeomorph_of_subset_target`). It restricts `Φ` with Tau Ceti's
-`PartialDiffeomorph.restrOpen`, reads the restriction as a diffeomorphism between its source and
-target (`PartialDiffeomorph.toDiffeomorphSourceTarget`), and identifies that target with `V`
-(`Diffeomorph.subtype`). The proof adapts the restriction step in the proof of Tau Ceti's
-`TauCeti.exists_diffeomorph_opens_of_isInteriorPoint`. Charts adapted to a distribution are
-restricted in this way to a product of balls, where the leaves become slices
-(`PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`).
+(`PartialDiffeomorph.exists_diffeomorph_of_subset_target`): it is the restriction
+`Diffeomorph.restrOpens`, below, of the diffeomorphism
+`PartialDiffeomorph.toDiffeomorphSourceTarget` between the source and the target of `Φ`. Charts
+adapted to a distribution are restricted in this way to a product of balls, where the leaves
+become slices (`PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`).
 
 A diffeomorphism `Φ` between open subsets `U₀` of `M` and `V₀` of `N` restricts to a
 diffeomorphism `Diffeomorph.restrOpens` from `U ≤ U₀` onto `V ≤ V₀`, for open sets that correspond
@@ -170,45 +168,6 @@ theorem restrOpen_target_eq_of_subset (Φ : PartialDiffeomorph I J M N n) {t : S
   rw [Φ.restrOpen_target]
   exact ⟨fun hy ↦ Φ.toPartialEquiv.right_inv hy.1 ▸ hy.2.2,
     fun hy ↦ ⟨ht hy, Φ.map_target (ht hy), by simpa [Φ.toPartialEquiv.right_inv (ht hy)] using hy⟩⟩
-
-/-- A partial diffeomorphism `Φ : M → N` restricts to a `C^n` diffeomorphism `Ψ` from the open set
-`U = Φ.source ∩ Φ ⁻¹' V` onto any open subset `V` of its target, with `Ψ u = Φ u` for `u ∈ U`;
-both open sets carry the charts restricted from `M` and `N`. -/
-theorem exists_diffeomorph_of_subset_target (Φ : PartialDiffeomorph I J M N n) (V : Opens N)
-    (hV : (V : Set N) ⊆ Φ.target) :
-    ∃ (U : Opens M) (Ψ : U ≃ₘ^n⟮I, J⟯ V),
-      (U : Set M) = Φ.source ∩ Φ ⁻¹' V ∧ ∀ u : U, (Ψ u : N) = Φ u := by
-  have hs : IsOpen (Φ.source ∩ Φ ⁻¹' V) :=
-    Φ.toOpenPartialHomeomorph.isOpen_inter_preimage V.isOpen
-  let Φ' := Φ.restrOpen _ hs
-  have htarget (v : N) : v ∈ Φ'.target ↔ v ∈ V := by
-    rw [Φ.restrOpen_target_eq_of_subset hV hs, SetLike.mem_coe]
-  refine ⟨⟨Φ'.source, Φ'.open_source⟩, Φ'.toDiffeomorphSourceTarget.trans
-    (Diffeomorph.subtype (Diffeomorph.refl _ _ n) fun v ↦ htarget v), by simp [Φ'],
-    fun u ↦ ?_⟩
-  rw [Diffeomorph.coe_trans, Function.comp_apply]
-  refine (Diffeomorph.subtype_apply_coe _ _ _).trans ?_
-  rw [Diffeomorph.coe_refl, id, toDiffeomorphSourceTarget_apply_coe, coe_restrOpen]
-
-/-- A partial diffeomorphism `Φ : M → F₁ × F₂` with `Φ x = 0` whose target contains the unit ball
-restricts to a `C^n` diffeomorphism `Ψ` from an open neighbourhood `U` of `x` onto the product
-`ball 0 1 ×ˢ ball 0 1` of the unit balls of `F₁` and `F₂`, with `Ψ x = 0`; every `u ∈ U` lies in
-the source of `Φ`, and `Ψ u = Φ u`. -/
-theorem exists_diffeomorph_ball_prod_ball {F₁ F₂ : Type*} [NormedAddCommGroup F₁]
-    [NormedSpace 𝕜 F₁] [NormedAddCommGroup F₂] [NormedSpace 𝕜 F₂]
-    (Φ : PartialDiffeomorph I 𝓘(𝕜, F₁ × F₂) M (F₁ × F₂) n) {x : M} (hx : x ∈ Φ.source)
-    (h0 : Φ x = 0) (hball : Metric.ball 0 1 ⊆ Φ.target) :
-    ∃ (U : Opens M) (hxU : x ∈ U) (Ψ : U ≃ₘ^n⟮I, 𝓘(𝕜, F₁ × F₂)⟯
-        (⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩ :
-          Opens (F₁ × F₂))),
-      (Ψ ⟨x, hxU⟩ : F₁ × F₂) = 0 ∧ ∀ u : U, (u : M) ∈ Φ.source ∧ (Ψ u : F₁ × F₂) = Φ u := by
-  obtain ⟨U, Ψ, hU, hΨ⟩ := Φ.exists_diffeomorph_of_subset_target
-    ⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩
-    (by rw [Opens.coe_mk, ball_prod_same]; exact hball)
-  have hmem (y : M) : y ∈ U ↔ y ∈ Φ.source ∧ Φ y ∈ Metric.ball 0 1 ×ˢ Metric.ball 0 1 := by
-    rw [← SetLike.mem_coe, hU, Set.mem_inter_iff, Set.mem_preimage, Opens.coe_mk]
-  have hxU : x ∈ U := (hmem x).2 ⟨hx, by simp [h0]⟩
-  exact ⟨U, hxU, Ψ, by rw [hΨ, h0], fun u ↦ ⟨((hmem u).1 u.property).1, hΨ u⟩⟩
 
 section LiftOpens
 
@@ -351,5 +310,53 @@ theorem coe_restrOpens_symm_apply (Φ : U₀ ≃ₘ^n⟮I, J⟯ V₀) (hU : U �
 end RestrOpens
 
 end Diffeomorph
+
+namespace PartialDiffeomorph
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners 𝕜 E H} {n : WithTop ℕ∞}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {G : Type*} [TopologicalSpace G]
+  {J : ModelWithCorners 𝕜 F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+
+/-- A partial diffeomorphism `Φ : M → N` restricts to a `C^n` diffeomorphism `Ψ` from the open set
+`U = Φ.source ∩ Φ ⁻¹' V` onto any open subset `V` of its target, with `Ψ u = Φ u` for `u ∈ U`;
+both open sets carry the charts restricted from `M` and `N`. -/
+theorem exists_diffeomorph_of_subset_target (Φ : PartialDiffeomorph I J M N n) (V : Opens N)
+    (hV : (V : Set N) ⊆ Φ.target) :
+    ∃ (U : Opens M) (Ψ : U ≃ₘ^n⟮I, J⟯ V),
+      (U : Set M) = Φ.source ∩ Φ ⁻¹' V ∧ ∀ u : U, (Ψ u : N) = Φ u := by
+  have hs : IsOpen (Φ.source ∩ Φ ⁻¹' V) :=
+    Φ.toOpenPartialHomeomorph.isOpen_inter_preimage V.isOpen
+  refine ⟨⟨_, hs⟩, Φ.toDiffeomorphSourceTarget.restrOpens (U := ⟨_, hs⟩) (V := V)
+    (SetLike.coe_subset_coe.1 Set.inter_subset_left) (SetLike.coe_subset_coe.1 hV) fun x ↦ ?_,
+    Opens.coe_mk, fun u ↦ ?_⟩
+  · rw [Opens.mem_mk, Set.mem_inter_iff, Set.mem_preimage, toDiffeomorphSourceTarget_apply_coe]
+    exact and_iff_right (Opens.mem_mk.1 x.property)
+  · exact (Diffeomorph.coe_restrOpens_apply _ _ _ _ u).trans
+      (toDiffeomorphSourceTarget_apply_coe _ _)
+
+/-- A partial diffeomorphism `Φ : M → F₁ × F₂` with `Φ x = 0` whose target contains the unit ball
+restricts to a `C^n` diffeomorphism `Ψ` from an open neighbourhood `U` of `x` onto the product
+`ball 0 1 ×ˢ ball 0 1` of the unit balls of `F₁` and `F₂`, with `Ψ x = 0`; every `u ∈ U` lies in
+the source of `Φ`, and `Ψ u = Φ u`. -/
+theorem exists_diffeomorph_ball_prod_ball {F₁ F₂ : Type*} [NormedAddCommGroup F₁]
+    [NormedSpace 𝕜 F₁] [NormedAddCommGroup F₂] [NormedSpace 𝕜 F₂]
+    (Φ : PartialDiffeomorph I 𝓘(𝕜, F₁ × F₂) M (F₁ × F₂) n) {x : M} (hx : x ∈ Φ.source)
+    (h0 : Φ x = 0) (hball : Metric.ball 0 1 ⊆ Φ.target) :
+    ∃ (U : Opens M) (hxU : x ∈ U) (Ψ : U ≃ₘ^n⟮I, 𝓘(𝕜, F₁ × F₂)⟯
+        (⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩ :
+          Opens (F₁ × F₂))),
+      (Ψ ⟨x, hxU⟩ : F₁ × F₂) = 0 ∧ ∀ u : U, (u : M) ∈ Φ.source ∧ (Ψ u : F₁ × F₂) = Φ u := by
+  obtain ⟨U, Ψ, hU, hΨ⟩ := Φ.exists_diffeomorph_of_subset_target
+    ⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩
+    (by rw [Opens.coe_mk, ball_prod_same]; exact hball)
+  have hmem (y : M) : y ∈ U ↔ y ∈ Φ.source ∧ Φ y ∈ Metric.ball 0 1 ×ˢ Metric.ball 0 1 := by
+    rw [← SetLike.mem_coe, hU, Set.mem_inter_iff, Set.mem_preimage, Opens.coe_mk]
+  have hxU : x ∈ U := (hmem x).2 ⟨hx, by simp [h0]⟩
+  exact ⟨U, hxU, Ψ, by rw [hΨ, h0], fun u ↦ ⟨((hmem u).1 u.property).1, hΨ u⟩⟩
+
+end PartialDiffeomorph
 
 end
