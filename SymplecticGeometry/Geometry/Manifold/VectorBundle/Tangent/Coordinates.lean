@@ -26,14 +26,18 @@ tangent coordinate changes, and cancels them with Tau Ceti's
 
 For a family of maps from a model space into the tangent spaces, the coordinates on the source
 play no role: in tangent coordinates the family is its composite with the tangent coordinate
-changes of `M` (`inTangentCoordinates_eq_tangentCoordChange_comp`).
+changes of `M` (`inTangentCoordinates_eq_tangentCoordChange_comp`). Such a family that is
+continuous as a map `X × G → TM` is continuous in tangent coordinates
+(`continuousAt_inTangentCoordinates_of_continuous`), and a fixed map read in one chart and carried
+to the tangent spaces along a `Cⁿ` map by the tangent coordinate changes is `Cⁿ` in tangent
+coordinates (`contMDiffAt_inTangentCoordinates_tangentCoordChange_comp`).
 -/
 
 public section
 
 namespace SymplecticGeometry
 
-open scoped Manifold
+open scoped Manifold Topology
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E H M : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] [TopologicalSpace H] (I : ModelWithCorners 𝕜 E H) [TopologicalSpace M]
@@ -66,6 +70,65 @@ theorem inTangentCoordinates_eq_tangentCoordChange_comp {G X : Type*} [NormedAdd
   -- The identity on the right is that of `TangentSpace 𝓘(𝕜, G) (f x)`, which is `G` only up to
   -- unfolding, so `ContinuousLinearMap.comp_id` does not rewrite it.
   rfl
+
+/-- A family of maps `ϕ x` from a finite-dimensional normed space `G` into the tangent spaces
+`T_(g x) M`, continuous as a map `X × G → TM`, is continuous at `x₀` when read in the tangent
+coordinates at `x₀`. -/
+theorem continuousAt_inTangentCoordinates_of_continuous [CompleteSpace 𝕜] {G X : Type*}
+    [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G] [TopologicalSpace X]
+    {f : X → G} {g : X → M} {ϕ : ∀ x, G →L[𝕜] TangentSpace I (g x)}
+    (hϕ : Continuous fun q : X × G ↦ (⟨g q.1, ϕ q.1 q.2⟩ : TangentBundle I M)) (x₀ : X) :
+    ContinuousAt (inTangentCoordinates 𝓘(𝕜, G) I f g ϕ x₀) x₀ := by
+  have hg : Continuous g :=
+    (FiberBundle.continuous_proj E _).comp (hϕ.comp (Continuous.prodMk_left 0))
+  let e := trivializationAt E (TangentSpace I) (g x₀)
+  let Ω : Set X := g ⁻¹' (chartAt H (g x₀)).source
+  have hΩ : Ω ∈ 𝓝 x₀ :=
+    hg.continuousAt.preimage_mem_nhds ((chartAt H (g x₀)).open_source.mem_nhds
+      (mem_chart_source H (g x₀)))
+  have hbase (x : X) (hx : x ∈ Ω) : g x ∈ e.baseSet := by
+    simpa [e] using show g x ∈ (chartAt H (g x₀)).source from hx
+  refine (continuousOn_clm_apply.2 fun v ↦ ?_).continuousAt hΩ
+  have hc : ContinuousOn (fun x ↦ (e ⟨g x, ϕ x v⟩).2) Ω :=
+    continuous_snd.comp_continuousOn (e.continuousOn.comp
+      (hϕ.comp (continuous_id.prodMk continuous_const)).continuousOn
+      fun x hx ↦ e.mem_source.2 (hbase x hx))
+  refine hc.congr fun x hx ↦ ?_
+  rw [inTangentCoordinates_eq_tangentCoordChange_comp I ϕ hx]
+  -- `ContinuousLinearMap.comp_apply` does not rewrite here, since the target of `ϕ x` is
+  -- `TangentSpace I (g x)` and that of the composite is `E`.
+  change tangentCoordChange I (g x) (g x₀) (g x) (ϕ x v) = (e ⟨g x, ϕ x v⟩).2
+  rw [← e.continuousLinearMapAt_apply_of_mem (R := 𝕜) (hbase x hx),
+    TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hx]
+  -- `tangentCoordChange` is this coordinate change of `tangentBundleCore I M`.
+  rfl
+
+/-- Carry a fixed map `C : G → E`, read in the chart at `ι x₀`, to the tangent spaces along `ι`:
+`y ↦ tangentCoordChange I (ι x₀) (ι y) (ι y) ∘ C`. If `ι` is `Cⁿ` at `y₁` and `ι y₁` lies in the
+source of the chart at `ι x₀`, this family is `Cⁿ` at `y₁` in tangent coordinates. -/
+theorem contMDiffAt_inTangentCoordinates_tangentCoordChange_comp {n : WithTop ℕ∞}
+    [IsManifold I (n + 1) M] {G X EX HX : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+    [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
+    {IX : ModelWithCorners 𝕜 EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+    {f : X → G} {ι : X → M} {x₀ y₁ : X} (hι : ContMDiffAt IX I n ι y₁)
+    (hy₁ : ι y₁ ∈ (chartAt H (ι x₀)).source) (C : G →L[𝕜] E) :
+    ContMDiffAt IX 𝓘(𝕜, G →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G) I f ι
+      (fun y ↦ (tangentCoordChange I (ι x₀) (ι y) (ι y) ∘L C : G →L[𝕜] E)) y₁) y₁ := by
+  have hO : (chartAt H (ι x₀)).source ∩ (chartAt H (ι y₁)).source ∈ 𝓝 (ι y₁) :=
+    ((chartAt H (ι x₀)).open_source.inter (chartAt H (ι y₁)).open_source).mem_nhds
+      ⟨hy₁, mem_chart_source H (ι y₁)⟩
+  -- Near `y₁`, the family read at `y₁` is the coordinate change from `ι x₀` to `ι y₁`, after `C`.
+  have : (tangentBundleCore I M).IsContMDiff I n := tangentBundleCore.isContMDiff
+  have hcc := (((tangentBundleCore I M).contMDiffOn_coordChange I (achart H (ι x₀))
+    (achart H (ι y₁))).contMDiffAt hO).comp y₁ hι
+  refine (hcc.clm_comp (contMDiffAt_const (c := C))).congr_of_eventuallyEq ?_
+  filter_upwards [hι.continuousAt.preimage_mem_nhds hO] with y hy
+  refine (inTangentCoordinates_eq_tangentCoordChange_comp I (f := f)
+    (fun y ↦ (tangentCoordChange I (ι x₀) (ι y) (ι y) ∘L C : G →L[𝕜] E)) hy.2).trans ?_
+  ext v
+  exact tangentCoordChange_comp (w := ι x₀) (x := ι y) (y := ι y₁)
+    ⟨⟨by rw [extChartAt_source]; exact hy.1, mem_extChartAt_source (ι y)⟩,
+      by rw [extChartAt_source]; exact hy.2⟩
 
 end SymplecticGeometry
 

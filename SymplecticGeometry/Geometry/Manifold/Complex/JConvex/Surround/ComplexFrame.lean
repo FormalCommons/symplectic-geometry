@@ -19,8 +19,9 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
-public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordChange
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 import TauCeti.Topology.Algebra.Module.ComplexSmulI
@@ -56,6 +57,19 @@ a continuous family of injective complex-linear maps into the fixed space `E`
 ranges (`Continuous.exists_continuous_isInvertible_coprod`), carried back by `φ y`, gives the
 second factor.
 
+For `ι` smooth, such a complement can be taken smooth in tangent coordinates when `L` is. Near
+each point `x₀`, the frame `B₀ x₀` carried to the nearby tangent spaces by the tangent coordinate
+changes is smooth (`SymplecticGeometry.contMDiffAt_inTangentCoordinates_tangentCoordChange_comp`)
+and complex linear, and it stays close to `B₀` in the sense that
+`(L y, B₀ y)⁻¹ ∘ (B - B₀ y) ∘ snd` has norm less than `1`. That condition is convex in `B`, does
+not depend on charts, and keeps `(L y, B)` invertible
+(`ContinuousLinearMap.IsInvertible.of_norm_inverse_comp_sub_lt_one`). Mathlib's
+`exists_contMDiffSection_forall_mem_convex_of_local` glues these local frames to a smooth section
+of the bundle of maps from the trivial bundle with fibre `G₂` to the pullback of `TM` along `ι`,
+which is smooth in tangent coordinates
+(`Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates`). The gluing follows
+that of Tau Ceti's `Bundle.Pullback.exists_contMDiff_hom_map_I_eq_cast`.
+
 ## Main results
 
 * `SymplecticGeometry.complexExtension_mfderiv_injective`: the complex-linear extension of an
@@ -67,6 +81,13 @@ second factor.
 * `SymplecticGeometry.exists_continuous_isInvertible_coprod_tangentSpace`: a continuous family of
   injective complex-linear maps into the tangent spaces along a map from a contractible space
   extends to a continuous family of complex-linear isomorphisms.
+* `SymplecticGeometry.exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`:
+  along a smooth map, a continuous complex complement of a family smooth in tangent coordinates
+  can be replaced by one smooth in tangent coordinates.
+* `SymplecticGeometry.exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod`: over a
+  contractible manifold, a family of injective complex-linear maps into the tangent spaces, smooth
+  in tangent coordinates, extends to a family of complex-linear isomorphisms smooth in tangent
+  coordinates.
 
 ## References
 
@@ -200,6 +221,97 @@ variable {EX HX X : Type*} [NormedAddCommGroup EX] [NormedSpace ℝ EX] [Topolog
 private local instance instIsManifoldRealSmoothing : IsManifold 𝓘(ℝ, E) ∞ M :=
   IsManifold.restrictScalars ℝ (inferInstance : IsManifold 𝓘(ℂ, E) ∞ M)
 
+/-- Near each point `x₀`, the map `B₀ x₀`, carried to the tangent spaces along `ι` by the
+tangent coordinate changes, is a family of complex-linear maps, smooth in tangent coordinates,
+whose defect `(L y, B₀ y)⁻¹ ∘ (B - B₀ y) ∘ snd` from `B₀ y` has norm less than `1`. This is the
+local step of `exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`, with
+the maps read in the model space `E`. -/
+private theorem exists_mem_nhds_frame_near [IsManifold 𝓘(ℝ, E) 1 M]
+    {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℝ G₁] [FiniteDimensional ℝ G₁]
+    [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {f₁ : X → G₁} {L : X → G₁ →L[ℝ] E}
+    (hL : ∀ x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
+      (inTangentCoordinates 𝓘(ℝ, G₁) 𝓘(ℝ, E) f₁ ι L x₀) x₀)
+    {B₀ : X → G₂ →L[ℝ] E}
+    (hB₀ : Continuous fun q : X × G₂ ↦ (⟨ι q.1, B₀ q.1 q.2⟩ : TangentBundle 𝓘(ℝ, E) M))
+    (hB₀I : ∀ x v, B₀ x (Complex.I • v) = Complex.I • B₀ x v)
+    (hB₀L : ∀ x, ((L x).coprod (B₀ x)).IsInvertible) (x₀ : X) :
+    ∃ U ∈ 𝓝 x₀, ∃ s : X → G₂ →L[ℝ] E,
+      (∀ y ∈ U, ContMDiffAt IX 𝓘(ℝ, G₂ →L[ℝ] E) ∞
+        (inTangentCoordinates 𝓘(ℝ, G₂) 𝓘(ℝ, E) (0 : X → G₂) ι s y) y) ∧
+      ∀ y ∈ U, (∀ v, s y (Complex.I • v) = Complex.I • s y v) ∧
+        ((L y).coprod (B₀ y)).inverse ∘L (s y - B₀ y) ∘L snd ℝ G₁ G₂ ∈ Metric.ball 0 1 := by
+  -- Near `x₀`, read everything in the tangent coordinates at `ι x₀`.
+  let Ω : Set X := ι ⁻¹' (chartAt E (ι x₀)).source
+  have hΩ : IsOpen Ω := (chartAt E (ι x₀)).open_source.preimage hι.continuous
+  have hx₀Ω : x₀ ∈ Ω := mem_chart_source E (ι x₀)
+  let T (y : X) : E →L[ℝ] E := tangentCoordChange 𝓘(ℝ, E) (ι y) (ι x₀) (ι y)
+  let R (y : X) : E →L[ℝ] E := tangentCoordChange 𝓘(ℝ, E) (ι x₀) (ι y) (ι y)
+  have hsrc (y : X) (hy : y ∈ Ω) :
+      ι y ∈ (extChartAt 𝓘(ℝ, E) (ι x₀)).source ∧ ι y ∈ (extChartAt 𝓘(ℝ, E) (ι y)).source :=
+    ⟨by rwa [extChartAt_source], mem_extChartAt_source (ι y)⟩
+  have hRT (y : X) (hy : y ∈ Ω) : R y ∘L T y = .id ℝ E := by
+    ext v
+    exact TauCeti.tangentCoordChange_tangentCoordChange (hsrc y hy).2 (hsrc y hy).1 v
+  have hTR (y : X) (hy : y ∈ Ω) : T y ∘L R y = .id ℝ E := by
+    ext v
+    exact TauCeti.tangentCoordChange_tangentCoordChange (hsrc y hy).1 (hsrc y hy).2 v
+  have hTinv (y : X) (hy : y ∈ Ω) : (T y).IsInvertible := .of_inverse (hTR y hy) (hRT y hy)
+  have hTinverse (y : X) (hy : y ∈ Ω) : (T y).inverse = R y := by
+    calc (T y).inverse = (T y).inverse ∘L (T y ∘L R y) := by
+          rw [hTR y hy, ContinuousLinearMap.comp_id]
+      _ = R y := by
+          rw [← ContinuousLinearMap.comp_assoc, (hTinv y hy).inverse_comp_self,
+            ContinuousLinearMap.id_comp]
+  have hT₀ : T x₀ = .id ℝ E := by
+    ext v
+    exact tangentCoordChange_self (hsrc x₀ hx₀Ω).1
+  -- The coordinates of `L` and `B₀` are continuous at `x₀`.
+  have hLc : ContinuousAt (fun y ↦ T y ∘L L y) x₀ :=
+    (hL x₀).continuousAt.congr (Filter.eventually_of_mem (hΩ.mem_nhds hx₀Ω)
+      fun y hy ↦ inTangentCoordinates_eq_tangentCoordChange_comp _ L hy)
+  have hBc : ContinuousAt (fun y ↦ T y ∘L B₀ y) x₀ :=
+    (continuousAt_inTangentCoordinates_of_continuous 𝓘(ℝ, E) (f := (0 : X → G₂)) hB₀ x₀).congr
+      (Filter.eventually_of_mem (hΩ.mem_nhds hx₀Ω)
+        fun y hy ↦ inTangentCoordinates_eq_tangentCoordChange_comp _ B₀ hy)
+  let A' (y : X) : G₁ × G₂ →L[ℝ] E := (T y ∘L L y).coprod (T y ∘L B₀ y)
+  have hA' (y : X) : A' y = T y ∘L (L y).coprod (B₀ y) := (comp_coprod _ _ _).symm
+  have hA'c : ContinuousAt A' x₀ :=
+    (coprodEquivL (S := ℝ)).continuous.continuousAt.comp (f := fun y ↦ (_, _)) (hLc.prodMk hBc)
+  have hA'₀ : A' x₀ = (L x₀).coprod (B₀ x₀) := by rw [hA', hT₀, ContinuousLinearMap.id_comp]
+  have hinvc : ContinuousAt (fun y ↦ (A' y).inverse) x₀ := by
+    have hinv : ContinuousAt (ContinuousLinearMap.inverse : (G₁ × G₂ →L[ℝ] E) → _) (A' x₀) := by
+      rw [hA'₀]
+      exact ((hB₀L x₀).contDiffAt_map_inverse (n := 0)).continuousAt
+    exact hinv.comp hA'c
+  -- The defect of the local section, in coordinates.
+  let Q (y : X) : G₁ × G₂ →L[ℝ] G₁ × G₂ :=
+    (A' y).inverse ∘L (B₀ x₀ - T y ∘L B₀ y) ∘L snd ℝ G₁ G₂
+  have hQc : ContinuousAt Q x₀ :=
+    hinvc.clm_comp ((continuousAt_const.sub hBc).clm_comp continuousAt_const)
+  have hQ₀ : Q x₀ = 0 := by simp [Q, hT₀]
+  refine ⟨Ω ∩ Q ⁻¹' Metric.ball 0 1, inter_mem (hΩ.mem_nhds hx₀Ω)
+    (hQc.preimage_mem_nhds (Metric.isOpen_ball.mem_nhds (by simp [hQ₀]))),
+    fun y ↦ R y ∘L B₀ x₀, fun y₁ hy₁ ↦
+      contMDiffAt_inTangentCoordinates_tangentCoordChange_comp 𝓘(ℝ, E) (hι y₁) hy₁.1 (B₀ x₀), ?_⟩
+  rintro y ⟨hy, hQy⟩
+  have hy' : ι y ∈ (chartAt E (ι x₀)).source ∩ (chartAt E (ι y)).source :=
+    ⟨hy, mem_chart_source E (ι y)⟩
+  refine ⟨fun v ↦ ?_, ?_⟩
+  · simp only [ContinuousLinearMap.comp_apply]
+    rw [hB₀I,
+      TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
+      TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
+      map_smul]
+  · have hPQ : ((L y).coprod (B₀ y)).inverse ∘L (R y ∘L B₀ x₀ - B₀ y) ∘L snd ℝ G₁ G₂ = Q y := by
+      simp only [Q, hA' y, (hTinv y hy).inverse_comp_of_left, hTinverse y hy,
+        ContinuousLinearMap.comp_assoc]
+      have hRTv (w : E) : R y (T y w) = w := by
+        rw [← ContinuousLinearMap.comp_apply, hRT y hy, ContinuousLinearMap.id_apply]
+      ext p <;> simp [hRTv]
+    rw [hPQ]
+    exact hQy
+
 /-- **Smoothing a complex complement.** Let `ι : X → M` be a smooth map from a σ-compact
 Hausdorff finite-dimensional manifold into a complex manifold, `L x : G₁ → T_(ι x) M` a family of
 real-linear maps smooth in tangent coordinates, and `B₀ x : G₂ → T_(ι x) M` complex-linear maps,
@@ -265,113 +377,11 @@ theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuou
   have hloc (x₀ : X) : ∃ U ∈ 𝓝 x₀, ∃ s : ∀ x, Z x,
       ContMDiffOn IX (IX.prod 𝓘(ℝ, G₂ →L[ℝ] E)) ∞
         (fun x ↦ TotalSpace.mk' (G₂ →L[ℝ] E) x (s x)) U ∧ ∀ y ∈ U, s y ∈ t y := by
-    -- Near `x₀`, read everything in the tangent coordinates at `ι x₀`.
-    let Ω : Set X := ι ⁻¹' (chartAt E (ι x₀)).source
-    have hΩ : IsOpen Ω := (chartAt E (ι x₀)).open_source.preimage hι.continuous
-    have hx₀Ω : x₀ ∈ Ω := mem_chart_source E (ι x₀)
-    let T (y : X) : E →L[ℝ] E := tangentCoordChange 𝓘(ℝ, E) (ι y) (ι x₀) (ι y)
-    let R (y : X) : E →L[ℝ] E := tangentCoordChange 𝓘(ℝ, E) (ι x₀) (ι y) (ι y)
-    have hsrc (y : X) (hy : y ∈ Ω) :
-        ι y ∈ (extChartAt 𝓘(ℝ, E) (ι x₀)).source ∧ ι y ∈ (extChartAt 𝓘(ℝ, E) (ι y)).source :=
-      ⟨by rwa [extChartAt_source], mem_extChartAt_source (ι y)⟩
-    have hRT (y : X) (hy : y ∈ Ω) : R y ∘L T y = .id ℝ E := by
-      ext v
-      exact (tangentCoordChange_comp ⟨⟨(hsrc y hy).2, (hsrc y hy).1⟩, (hsrc y hy).2⟩).trans
-        (tangentCoordChange_self (hsrc y hy).2)
-    have hTR (y : X) (hy : y ∈ Ω) : T y ∘L R y = .id ℝ E := by
-      ext v
-      exact (tangentCoordChange_comp ⟨⟨(hsrc y hy).1, (hsrc y hy).2⟩, (hsrc y hy).1⟩).trans
-        (tangentCoordChange_self (hsrc y hy).1)
-    have hTinv (y : X) (hy : y ∈ Ω) : (T y).IsInvertible := .of_inverse (hTR y hy) (hRT y hy)
-    have hTinverse (y : X) (hy : y ∈ Ω) : (T y).inverse = R y := by
-      calc (T y).inverse = (T y).inverse ∘L (T y ∘L R y) := by
-            rw [hTR y hy, ContinuousLinearMap.comp_id]
-        _ = R y := by
-            rw [← ContinuousLinearMap.comp_assoc, (hTinv y hy).inverse_comp_self,
-              ContinuousLinearMap.id_comp]
-    have hT₀ : T x₀ = .id ℝ E := by
-      ext v
-      exact tangentCoordChange_self (hsrc x₀ hx₀Ω).1
-    -- The coordinates of `L` and `B₀` are continuous at `x₀`.
-    have hLc : ContinuousAt (fun y ↦ T y ∘L L' y) x₀ :=
-      (hL x₀).continuousAt.congr (Filter.eventually_of_mem (hΩ.mem_nhds hx₀Ω)
-        fun y hy ↦ inTangentCoordinates_eq_tangentCoordChange_comp _ L hy)
-    have hBc : ContinuousAt (fun y ↦ T y ∘L B₀' y) x₀ := by
-      let e := trivializationAt E (TangentSpace 𝓘(ℝ, E)) (ι x₀)
-      have hbase (y : X) (hy : y ∈ Ω) : ι y ∈ e.baseSet := by
-        simpa [e] using show ι y ∈ (chartAt E (ι x₀)).source from hy
-      refine (continuousOn_clm_apply.2 fun v ↦ ?_).continuousAt (hΩ.mem_nhds hx₀Ω)
-      have hc : ContinuousOn (fun y ↦ (e ⟨ι y, B₀ y v⟩).2) Ω :=
-        continuous_snd.comp_continuousOn (e.continuousOn.comp
-          (hB₀.comp (continuous_id.prodMk continuous_const)).continuousOn
-          fun y hy ↦ e.mem_source.2 (hbase y hy))
-      refine hc.congr fun y hy ↦ ?_
-      -- Unfold the composition and the family `B₀'`, the family `B₀` read in `E`.
-      change T y (B₀ y v) = (e ⟨ι y, B₀ y v⟩).2
-      rw [← e.continuousLinearMapAt_apply_of_mem (R := ℝ) (hbase y hy),
-        TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hy]
-      rfl
-    let A' (y : X) : G₁ × G₂ →L[ℝ] E := (T y ∘L L' y).coprod (T y ∘L B₀' y)
-    have hA' (y : X) : A' y = T y ∘L (L' y).coprod (B₀' y) := (comp_coprod _ _ _).symm
-    have hA'c : ContinuousAt A' x₀ :=
-      (coprodEquivL (S := ℝ)).continuous.continuousAt.comp (f := fun y ↦ (_, _)) (hLc.prodMk hBc)
-    have hA'₀ : A' x₀ = (L' x₀).coprod (B₀' x₀) := by rw [hA', hT₀, ContinuousLinearMap.id_comp]
-    have hinvc : ContinuousAt (fun y ↦ (A' y).inverse) x₀ := by
-      have hinv : ContinuousAt (ContinuousLinearMap.inverse : (G₁ × G₂ →L[ℝ] E) → _) (A' x₀) := by
-        rw [hA'₀]
-        exact ((hB₀L x₀).contDiffAt_map_inverse (n := 0)).continuousAt
-      exact hinv.comp hA'c
-    -- The defect of the local section, in coordinates.
-    let Q (y : X) : G₁ × G₂ →L[ℝ] G₁ × G₂ :=
-      (A' y).inverse ∘L (B₀' x₀ - T y ∘L B₀' y) ∘L snd ℝ G₁ G₂
-    have hQc : ContinuousAt Q x₀ :=
-      hinvc.clm_comp ((continuousAt_const.sub hBc).clm_comp continuousAt_const)
-    have hQ₀ : Q x₀ = 0 := by simp [Q, hT₀]
-    let s (y : X) : Z y := R y ∘L B₀' x₀
-    refine ⟨Ω ∩ Q ⁻¹' Metric.ball 0 1, inter_mem (hΩ.mem_nhds hx₀Ω)
-      (hQc.preimage_mem_nhds (Metric.isOpen_ball.mem_nhds (by simp [hQ₀]))), s, ?_, ?_⟩
-    · intro y₁ hy₁
-      refine ContMDiffAt.contMDiffWithinAt
-        ((Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates ιc
-        (hι y₁) (0 : X → G₂) s).2 ?_)
-      have hy₁Ω : y₁ ∈ Ω := hy₁.1
-      have hU₁ : ∀ᶠ y in 𝓝 y₁, ι y ∈ (chartAt E (ι x₀)).source ∩ (chartAt E (ι y₁)).source :=
-        hι.continuous.continuousAt.preimage_mem_nhds
-          (((chartAt E (ι x₀)).open_source.inter (chartAt E (ι y₁)).open_source).mem_nhds
-            ⟨hy₁Ω, mem_chart_source E (ι y₁)⟩)
-      have hcc : ContMDiffAt IX 𝓘(ℝ, G₂ →L[ℝ] E) ∞
-          (fun y ↦ tangentCoordChange 𝓘(ℝ, E) (ι x₀) (ι y₁) (ι y) ∘L B₀' x₀) y₁ := by
-        have : (tangentBundleCore 𝓘(ℝ, E) M).IsContMDiff 𝓘(ℝ, E) ∞ := tangentBundleCore.isContMDiff
-        have h := ((tangentBundleCore 𝓘(ℝ, E) M).contMDiffOn_coordChange 𝓘(ℝ, E) (n := ∞)
-          (achart E (ι x₀)) (achart E (ι y₁))).contMDiffAt
-          (((chartAt E (ι x₀)).open_source.inter (chartAt E (ι y₁)).open_source).mem_nhds
-            ⟨hy₁Ω, mem_chart_source E (ι y₁)⟩)
-        exact (h.comp y₁ (hι y₁)).clm_comp contMDiffAt_const
-      refine hcc.congr_of_eventuallyEq ?_
-      filter_upwards [hU₁] with y hy
-      rw [inTangentCoordinates_eq_tangentCoordChange_comp _ s hy.2]
-      ext v
-      exact tangentCoordChange_comp (w := ι x₀) (x := ι y) (y := ι y₁)
-        ⟨⟨by rw [extChartAt_source]; exact hy.1, mem_extChartAt_source (ι y)⟩,
-          by rw [extChartAt_source]; exact hy.2⟩
-    · rintro y ⟨hy, hQy⟩
-      have hy' : ι y ∈ (chartAt E (ι x₀)).source ∩ (chartAt E (ι y)).source :=
-        ⟨hy, mem_chart_source E (ι y)⟩
-      refine ⟨fun v ↦ ?_, ?_⟩
-      · change R y (B₀' x₀ (Complex.I • v)) = Complex.I • R y (B₀' x₀ v)
-        rw [hB₀I,
-          TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
-          TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
-          map_smul]
-      · have hPQ : P y (toE y (s y)) = Q y := by
-          have hs : toE y (s y) = R y ∘L B₀' x₀ := rfl
-          simp only [P, Q, hs, hA' y, (hTinv y hy).inverse_comp_of_left, hTinverse y hy,
-            ContinuousLinearMap.comp_assoc]
-          have hRTv (w : E) : R y (T y w) = w := by
-            rw [← ContinuousLinearMap.comp_apply, hRT y hy, ContinuousLinearMap.id_apply]
-          ext p <;> simp [hRTv]
-        rw [hPQ]
-        exact hQy
+    obtain ⟨U, hU, s, hs, hst⟩ :=
+      exists_mem_nhds_frame_near hι (L := L') hL hB₀ hB₀I hB₀L x₀
+    exact ⟨U, hU, s, fun y hy ↦
+      ((Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates ιc (hι y) 0
+        s).2 (hs y hy)).contMDiffWithinAt, hst⟩
   obtain ⟨σ, hσ⟩ := exists_contMDiffSection_forall_mem_convex_of_local IX Z t hconv hloc
   refine ⟨fun x ↦ σ x, fun f₂ x₀ ↦ ?_,
     fun x v ↦ ((hσ x).1 v).trans (ofComplexManifold_apply _ _).symm, fun x ↦ ?_⟩
