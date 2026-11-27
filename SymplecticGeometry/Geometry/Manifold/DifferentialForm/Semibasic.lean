@@ -15,6 +15,7 @@ import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 
 /-!
 # Forms semibasic for a map
@@ -56,6 +57,9 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   function on `B` pulled back along `f`, is semibasic for `f`, a case of
   `TauCeti.RoughForm.isSemibasicAt_mpullback` (in `Pullback/Descent.lean`); and
   `TauCeti.RoughForm.isSemibasic_mextDeriv_ofFunction_comp`, the same at every point.
+* `TauCeti.RoughForm.mextDeriv_fun_smul_comp_apply_of_mem_ker`: on vectors in the kernel of the
+  differential of `f`, the derivative of `(g ∘ f) • μ` is `g ∘ f` times that of `μ`, since the
+  term `d(g ∘ f) ∧ μ` of the Leibniz rule (`TauCeti.mextDeriv_fun_smul`) vanishes there.
 * `TauCeti.RoughForm.isSemibasicAt_fst_iff`: a form on `M × N` is semibasic for `Prod.fst` at
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
   along `M`; and `TauCeti.RoughForm.IsSemibasic.mpullback_prodMap`: pullback along a product of
@@ -349,6 +353,27 @@ theorem isSemibasic_mextDeriv_ofFunction_comp {g : B → F}
     (hg : MDifferentiable IB 𝓘(ℝ, F) g) (hf : MDifferentiable I IB f) :
     IsSemibasic IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) :=
   fun _ ↦ isSemibasicAt_mextDeriv_ofFunction_comp (hg _) (hf _)
+
+/-- **The Leibniz rule on vertical vectors.** Let `f : M → B` be differentiable at `x`,
+`g : B → ℝ` differentiable at `f x`, and `μ` a real form differentiable at `x`. On tangent vectors
+in the kernel of the differential of `f` at `x`, the exterior derivative of `(g ∘ f) • μ` is
+`g (f x) * dμ`. -/
+theorem mextDeriv_fun_smul_comp_apply_of_mem_ker [IsManifold I 1 M] {g : B → ℝ}
+    {μ : RoughForm I M ℝ k} {x : M}
+    (hg : MDifferentiableAt IB 𝓘(ℝ) g (f x)) (hf : MDifferentiableAt I IB f x)
+    (hμ : MDifferentiableAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ))
+      (fun y ↦ Bundle.TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] ℝ) y (μ y)) x)
+    {v : Fin (k + 1) → TangentSpace I x} (hv : ∀ j, v j ∈ (mfderiv I IB f x).ker) :
+    mextDeriv (fun y ↦ g (f y) • μ y) x v = g (f x) * mextDeriv μ x v := by
+  -- The form is the pointwise product `(g ∘ f) • μ` of the Leibniz rule.
+  have hleib : mextDeriv (fun y ↦ g (f y) • μ y) x v = _ :=
+    mextDeriv_fun_smul (f := g ∘ f) (hg.comp x hf) hμ v
+  -- `d(g ∘ f)` is semibasic for `f`, so the term `d(g ∘ f) ∧ μ` vanishes on `v`.
+  have hdf := isSemibasicAt_mextDeriv_ofFunction_comp hg hf
+  rw [hleib, wedge_apply, Finset.sum_eq_zero fun σ _ ↦ by
+      rw [hdf.apply_eq_zero (fun j ↦ (v ∘ Fin.cast _) (σ (Fin.castAdd k j))) 0 (hv _), zero_mul,
+        smul_zero],
+    smul_zero, zero_add, Function.comp_apply]
 
 end ExtDeriv
 
