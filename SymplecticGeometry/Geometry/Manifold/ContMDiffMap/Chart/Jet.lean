@@ -59,14 +59,13 @@ theorem chartIteratedFDeriv_one_eq_zero_iff (f : C^n⟮I, M; 𝓘(𝕜, F), F⟯
     norm_iteratedFDeriv_one]
 
 /-- On a boundaryless manifold, the second chart jet at a point `z` of the chart target, applied
-to `![v, w]`, is the second derivative of the coordinate expression at `z`, applied to `v` and
-then `w`. -/
+to `m`, is the second derivative of the coordinate expression at `z`, applied to `m 0` and
+then `m 1`. -/
 theorem chartIteratedFDeriv_two_apply (f : C^n⟮I, M; 𝓘(𝕜, F), F⟯) (a : M) (hn : 2 ≤ n)
-    (z : (extChartAt I a).target) (v w : E) :
-    chartIteratedFDeriv f a 2 hn z ![v, w] =
-      fderiv 𝕜 (fderiv 𝕜 (f ∘ (extChartAt I a).symm)) z v w := by
+    (z : (extChartAt I a).target) (m : Fin 2 → E) :
+    chartIteratedFDeriv f a 2 hn z m =
+      fderiv 𝕜 (fderiv 𝕜 (f ∘ (extChartAt I a).symm)) z (m 0) (m 1) := by
   rw [chartIteratedFDeriv_eq_iteratedFDeriv, iteratedFDeriv_two_apply]
-  simp
 
 end ContMDiffMap
 

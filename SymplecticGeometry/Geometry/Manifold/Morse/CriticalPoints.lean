@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Jet
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Jet
 import SymplecticGeometry.Topology.DiscreteSubset
+import TauCeti.Geometry.Manifold.ExtChartAt
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
 /-!
@@ -77,13 +78,10 @@ jet of `g` at `a` vanishes at `z`. -/
 theorem extChartAt_symm_mem_criticalPoints_iff (hn : ((1 : ℕ) : WithTop ℕ∞) ≤ n)
     (g : C^n⟮I, M; 𝓘(ℝ), ℝ⟯) (a : M) (z : (extChartAt I a).target) :
     (extChartAt I a).symm z ∈ criticalPoints I g ↔ chartIteratedFDeriv g a 1 hn z = 0 := by
-  have hz : (z : E) ∈ (extChartAt I a).target := z.property
-  have hxs : (extChartAt I a).symm z ∈ (chartAt H a).source := by
-    rw [← extChartAt_source (I := I)]; exact (extChartAt I a).map_target hz
   rw [mem_criticalPoints, mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero
     (IsManifold.maximalAtlas_subset_of_le (by exact_mod_cast hn)
-      (IsManifold.chart_mem_maximalAtlas a)) hxs,
-    ← extChartAt.eq_1, (extChartAt I a).right_inv hz, chartIteratedFDeriv_one_eq_zero_iff]
+      (IsManifold.chart_mem_maximalAtlas a)) (extChartAt_symm_mem_chart_source z.property),
+    ← extChartAt.eq_1, (extChartAt I a).right_inv z.property, chartIteratedFDeriv_one_eq_zero_iff]
 
 end Chart
 

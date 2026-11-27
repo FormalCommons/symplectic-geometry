@@ -118,8 +118,7 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
   subst hzx
   set x := (extChartAt I a).symm z
   have hz : (z : E) ∈ (extChartAt I a).target := z.property
-  have hxs : x ∈ (chartAt H a).source := by
-    rw [← extChartAt_source (I := I)]; exact (extChartAt I a).map_target hz
+  have hxs : x ∈ (chartAt H a).source := extChartAt_symm_mem_chart_source hz
   have hzx : (chartAt H a).extend I x = z := by
     rw [← extChartAt.eq_1]; exact (extChartAt I a).right_inv hz
   have he : chartAt H a ∈ IsManifold.maximalAtlas I 2 M :=
@@ -137,7 +136,8 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
         criticalHessian I g x v w = chartIteratedFDeriv g a 2 ENat.LEInfty.out z ![T v, T w] := by
       rw [criticalHessian_apply_eq_of_mem_maximalAtlas he hxs
         ((g.contMDiff.of_le ENat.LEInfty.out).contMDiffAt) (mem_criticalPoints.mp hx), hzx,
-        chartIteratedFDeriv_two_apply, ← hT, ContinuousLinearEquiv.coe_coe, ← extChartAt.eq_1]
+        chartIteratedFDeriv_two_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
+        Matrix.cons_val_fin_one, ← hT, ContinuousLinearEquiv.coe_coe, ← extChartAt.eq_1]
     have hJT (v : TangentSpace I x) : T (J x v) = J.inChart a z (T v) := by
       have hT' (u : TangentSpace I x) : T u = mfderiv I 𝓘(ℝ, E) (extChartAt I a) x u := by
         rw [← extChartAt.eq_1] at hT

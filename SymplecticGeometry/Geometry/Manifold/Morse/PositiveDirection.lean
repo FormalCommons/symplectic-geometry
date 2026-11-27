@@ -85,8 +85,7 @@ private theorem mem_posDirJets_iff (hn : 2 ≤ n) (g : C^n⟮I, M; 𝓘(ℝ), �
         ∃ v, 0 < criticalHessian I g ((extChartAt I a).symm z) v v) := by
   set x := (extChartAt I a).symm z
   have hz : (z : E) ∈ (extChartAt I a).target := z.property
-  have hxs : x ∈ (chartAt H a).source := by
-    rw [← extChartAt_source (I := I)]; exact (extChartAt I a).map_target hz
+  have hxs : x ∈ (chartAt H a).source := extChartAt_symm_mem_chart_source hz
   have hzx : (chartAt H a).extend I x = z := by
     rw [← extChartAt.eq_1]; exact (extChartAt I a).right_inv hz
   have hcrit := extChartAt_symm_mem_criticalPoints_iff
@@ -96,7 +95,8 @@ private theorem mem_posDirJets_iff (hn : 2 ≤ n) (g : C^n⟮I, M; 𝓘(ℝ), �
     rw [exists_criticalHessian_pos_iff_of_mem_maximalAtlas
       (IsManifold.maximalAtlas_subset_of_le hn (IsManifold.chart_mem_maximalAtlas a)) hxs
       ((g.contMDiff.of_le hn).contMDiffAt) hx, hzx, ← extChartAt.eq_1]
-    simp only [chartIteratedFDeriv_two_apply]
+    simp only [chartIteratedFDeriv_two_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
+      Matrix.cons_val_fin_one]
   simp only [PosDirJets, mem_ofPred_eq, ne_eq, ← imp_iff_not_or, ← hcrit]
   exact imp_congr_right fun hx ↦ (hhess hx).symm
 
