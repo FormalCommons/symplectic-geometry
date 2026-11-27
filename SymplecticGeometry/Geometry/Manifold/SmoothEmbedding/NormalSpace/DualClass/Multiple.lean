@@ -77,8 +77,7 @@ theorem exists_eq_zsmul_relDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (�
   have : T2Space Z := f.isEmbedding.t2Space
   have : SecondCountableTopology Z := f.isEmbedding.secondCountableTopology
   have : LocallyCompactSpace Z := Manifold.locallyCompact_of_finiteDimensional I
-  have : LocallyPathConnectedSpace Z := I.locallyPathConnectedSpace_of_chartedSpace Z
-  have : PathConnectedSpace Z := pathConnectedSpace_iff_connectedSpace.2 ‹_›
+  have : PathConnectedSpace Z := I.pathConnectedSpace Z
   obtain ⟨u, rfl⟩ := (bijective_relDualClassOf f hn hdim hf _).surjective c
   obtain ⟨m, hm⟩ := (o.isThomClass_intCanonicalThomClass rfl).exists_eq_smul
     ((thomPair P _).uliftIntegralCohomologyEquiv _ u)
