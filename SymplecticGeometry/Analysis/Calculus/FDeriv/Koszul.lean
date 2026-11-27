@@ -24,17 +24,17 @@ first:
 where `Γ_g` and `Γ_h` are the Christoffel symbols of the second kind of `g` and `h`, Tau Ceti's
 `TauCeti.Manifold.christoffelSecondKind`.
 
-Differentiating the identity that `τ` preserves the forms and using the metric compatibility of
-both Christoffel maps (`TauCeti.Manifold.fderiv_apply_eq_christoffelSecondKind_add`) shows that
-the difference `B(u, v)` of the two sides is symmetric in `u, v` and that
-`h(B(z, u), Dτ v) + h(B(z, v), Dτ u) = 0`. The Koszul combination of three such identities gives
-`h(B(u, v), Dτ z) = 0` for all `z`, so `B = 0` by surjectivity of `Dτ(w)` and nondegeneracy
-of `h`. Surjectivity cannot be dropped: for an isometric embedding of a curve into the plane the
-difference is the second fundamental form, normal to the image of `Dτ`.
+Since `g w` is nondegenerate and `τ` carries `g` to `h`, `Dτ(w)` is injective, hence a linear
+equivalence. Pulling `D²τ(w)(u, v) + Γ_h(τ w)(Dτ(w) u, Dτ(w) v)` back along it gives a symmetric
+bilinear map `A` on `E`. Differentiating the identity that `τ` preserves the forms, and using
+the metric compatibility of `Γ_h` (`TauCeti.Manifold.fderiv_apply_eq_christoffelSecondKind_add`),
+shows that `A` is compatible with `Dg(w)`, so `A = Γ_g(w)` by Tau Ceti's uniqueness lemma
+`TauCeti.Manifold.eq_christoffelSecondKind_of_fderiv_apply_eq`. Surjectivity cannot be dropped:
+for an isometric embedding of a curve into the plane the two sides differ by the second
+fundamental form, normal to the image of `Dτ`.
 
 The argument follows Tau Ceti's `TauCeti.smul_fderiv_fderiv_apply_eq_of_inner_fderiv`, which
-proves the case of a conformal map between inner product spaces, and the uniqueness proof
-`TauCeti.Manifold.eq_christoffelSecondKind_of_fderiv_apply_eq`.
+proves the case of a conformal map between inner product spaces.
 
 ## Main results
 
@@ -89,10 +89,6 @@ theorem fderiv_fderiv_apply_eq_sub_christoffelSecondKind (hU : IsOpen U)
   have hg : DifferentiableAt ℝ g w := differentiableAt_clm_apply₂.2 fun a b ↦
     ((hhτ.clm_apply (hDτ a).differentiableAt).clm_apply
       (hDτ b).differentiableAt).congr_of_eventuallyEq (hiso' a b)
-  have hgsymm : ∀ᶠ y in 𝓝 w, (g y).toBilinForm.IsSymm := by
-    filter_upwards [hU.mem_nhds hw, hτd.continuousAt.tendsto.eventually hhsymm] with y hy hsy
-    refine isSymm_toBilinForm_iff.2 fun a b ↦ ?_
-    rw [← hiso y hy, ← hiso y hy, isSymm_toBilinForm_iff.1 hsy]
   have hHs : ∀ a b, h (τ w) a b = h (τ w) b a := isSymm_toBilinForm_iff.1 hhsymm.self_of_nhds
   have hAs : ∀ a b, fderiv ℝ (fderiv ℝ τ) w a b = fderiv ℝ (fderiv ℝ τ) w b a :=
     hτw.isSymmSndFDerivAt (by simp)
@@ -109,39 +105,32 @@ theorem fderiv_fderiv_apply_eq_sub_christoffelSecondKind (hU : IsOpen U)
       fderiv_fun_comp w hh hτd, (hDτ a).fderiv, (hDτ b).fderiv]
     simp
   set L := fderiv ℝ τ w
-  set A := fderiv ℝ (fderiv ℝ τ) w
-  set H := h (τ w)
-  -- The difference of the two sides of the formula, and its two properties.
-  set B : E → E → F := fun a b ↦
-    A a b + christoffelSecondKind h (τ w) (L a) (L b) - L (christoffelSecondKind g w a b)
-    with hB
-  have hBs (a b : E) : B a b = B b a := by
-    simp only [hB, hAs a b, christoffelSecondKind_comm hhsymm (L a),
-      christoffelSecondKind_comm hgsymm a b]
-  have hBskew (z a b : E) : H (B z a) (L b) + H (B z b) (L a) = 0 := by
-    have e := hder z a b
-    rw [fderiv_apply_eq_christoffelSecondKind_add hhsymm hhnd,
-      fderiv_apply_eq_christoffelSecondKind_add hgsymm hgnd, hgH, hgH] at e
-    have s₁ := hHs (L a) (christoffelSecondKind h (τ w) (L z) (L b))
-    have s₂ := hHs (L a) (A z b)
-    have s₃ := hHs (L a) (L (christoffelSecondKind g w z b))
-    simp only [hB, map_add, map_sub, add_apply, sub_apply]
-    linarith
-  -- The Koszul combination: `B u v` is `H`-orthogonal to the image of `L`.
-  have horth (z : E) : H (B u v) (L z) = 0 := by
-    have e₁ := hBskew u v z
-    have e₂ := hBskew v u z
-    have e₃ := hBskew z u v
-    rw [hBs u z] at e₁
-    rw [hBs v z, hBs v u] at e₂
-    linarith
-  have hB0 : B u v = 0 := by
-    refine H.separatingLeft_toBilinForm_iff_injective.1 hhnd.1 ?_
-    ext y
-    obtain ⟨z, rfl⟩ := hsurj y
-    simpa using horth z
-  rw [eq_sub_iff_add_eq, ← sub_eq_zero]
-  exact hB0
+  set D := fderiv ℝ (fderiv ℝ τ) w
+  -- `L` is injective since `g w` is nondegenerate, hence a linear equivalence.
+  have hLinj : Function.Injective L := by
+    refine (injective_iff_map_eq_zero L).2 fun a ha ↦
+      (g w).separatingLeft_toBilinForm_iff_injective.1 hgnd.1 (?_ : g w a = g w 0)
+    ext b
+    simp [hgH, ha]
+  have hbij : Function.Bijective (L : E →ₗ[ℝ] F) := ⟨hLinj, hsurj⟩
+  let e : E ≃L[ℝ] F := (LinearEquiv.ofBijective (L : E →ₗ[ℝ] F) hbij).toContinuousLinearEquiv
+  -- The candidate for `Γ_g(w)`, pulled back from `D²τ(w) + Γ_h(τ w) ∘ (L × L)` by `L`.
+  set A : E →L[ℝ] E →L[ℝ] E := compL ℝ E F E (e.symm : F →L[ℝ] E) ∘L
+    (D + (christoffelSecondKind h (τ w)).bilinearComp L L)
+  have he (x : E) : e x = L x := LinearEquiv.ofBijective_apply _ (hf := hbij) x
+  have hLA (a b : E) : L (A a b) = D a b + christoffelSecondKind h (τ w) (L a) (L b) := by
+    rw [← he]
+    simp [A]
+  have key : A = christoffelSecondKind g w := by
+    refine eq_christoffelSecondKind_of_fderiv_apply_eq
+      (isSymm_toBilinForm_iff.2 fun a b ↦ by rw [hgH, hgH, hHs]) hgnd
+      (fun a b ↦ hLinj ?_) fun z a b ↦ ?_
+    · rw [hLA, hLA, hAs, christoffelSecondKind_comm hhsymm]
+    · rw [← hder, fderiv_apply_eq_christoffelSecondKind_add hhsymm hhnd, hgH, hgH, hLA, hLA]
+      simp only [map_add, add_apply]
+      ring
+  rw [← key, hLA]
+  abel
 
 /-- **The Koszul formula for a map that preserves fields of bilinear forms**, as an equality of
 continuous bilinear maps: under the hypotheses of
