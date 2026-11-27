@@ -518,7 +518,8 @@ as algebra. It uses the matrix dictionary of *Standard model*
 (`LinearAlgebra/Symplectic/Standard/Matrix.lean`, #62):
 `mem_symplecticGroup_iff_forall_stdForm`, which reads membership of a
 matrix in `Matrix.symplecticGroup` as invariance of `stdForm` under
-`toEuclideanLin`, and `TauCeti.conj_complexToRealEuclidean_toLin'`, which
+`toEuclideanLin`, and `TauCeti.conj_complexToRealEuclidean_toLin'`
+(`Analysis/Complex/Euclidean/Matrix.lean`), which
 turns a complex matrix acting on `ι → ℂ` into its realification acting on
 `StdSpace ι`. With Tau Ceti's `TauCeti.GLSymplectic.coe_ofUnitary` (the matrix of
 `TauCeti.GLSymplectic.ofUnitary U` is `(U : Matrix ι ι ℂ).realify`), the second relates the
@@ -596,7 +597,7 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   dimension of `U.realImage ⊓ realSubspace ι`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
   `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
-- Supporting statements placed elsewhere. In `Standard/Matrix.lean`:
+- Supporting statements placed elsewhere. In `Analysis/Complex/Euclidean/Matrix.lean`:
   `TauCeti.complexToRealEuclideanIsometry_toEuclideanCLM` (through
   `complexToRealEuclideanIsometry ι`, a complex matrix acts as its realification). In
   `Frame.lean`: `StdSpace.map_realImage`
@@ -716,9 +717,10 @@ The topology of `ℒ ι` in terms of unitary frames.
 
 - `ℒ.continuous_unitaryFrame`: the projection is $R P_0 R^T$ with
   `R = Matrix.realify U`, by `TauCeti.GLSymplectic.coe_ofUnitary` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (`Action.lean`), with Tau
-  Ceti's `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the
-  projection onto the image of a subspace under a unitary operator.
+  `TauCeti.conj_complexToRealEuclidean_toLin'`
+  (`Analysis/Complex/Euclidean/Matrix.lean`), with Tau Ceti's
+  `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the projection
+  onto the image of a subspace under a unitary operator.
 - `instance : CompactSpace (ℒ ι)`, as the image of a compact space.
 - `ℒ.isQuotientMap_unitaryFrame` and `ℒ.isOpenQuotientMap_unitaryFrame`. The
   map is open because it is the orbit map of a group action up to the
@@ -993,8 +995,9 @@ The manifold structure and the milestone.
   `stdForm`, `stdForm_apply`, `stdForm_compatible`,
   `isSymplectomorphism_sumEquivProd`, `x_complexToRealEuclidean`,
   `y_complexToRealEuclidean` (merged, #41); the matrix dictionary
-  `mem_symplecticGroup_iff_forall_stdForm` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62);
+  `mem_symplecticGroup_iff_forall_stdForm` (merged, #62);
+  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62; now in
+  `Analysis/Complex/Euclidean/Matrix.lean`);
   `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
   lemmas (merged, #232).
 - *Symplectic subspaces* (merged, #64):

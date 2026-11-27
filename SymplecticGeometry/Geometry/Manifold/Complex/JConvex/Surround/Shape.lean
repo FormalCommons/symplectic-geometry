@@ -359,6 +359,18 @@ theorem fderiv_shape_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace �
   rw [fderiv.fst hd, fderiv.snd hd, ContinuousLinearMap.comp_apply,
     ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd']
 
+/-- The chain rule for a function of the shape coordinates: for `H : ℝ × ℝ → ℝ` differentiable
+at `shape p`, the differential of `H ∘ shape` at `p` is `v ↦ dH (ds_p v, dt_p v)`. -/
+theorem fderiv_comp_shape_apply {H : ℝ × ℝ → ℝ}
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hH : DifferentiableAt ℝ H (shape p))
+    (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (H ∘ shape) p v =
+      fderiv ℝ H (shape p) (fderiv ℝ (fun q ↦ (shape q).1) p v,
+        fderiv ℝ (fun q ↦ (shape q).2) p v) := by
+  rw [fderiv_comp p hH ((contDiff_shape (n := 1)).differentiable one_ne_zero p),
+    ContinuousLinearMap.comp_apply, fderiv_shape_apply]
+
 /-- **The Levi form of a function of the shape coordinates.** Let `h : ℝ × ℝ → ℝ` be `C²` at
 `(s, t) = shape p`, with `p = (x + i y, w)`, and write `hₛ`, `hₜ` for its first and `hₛₛ`, `hₛₜ`,
 `hₜₜ` for its second partial derivatives there. For `v = (v₁, v₂)`, put `σ = ∑ⱼ xⱼ v₁ⱼ` and
@@ -408,7 +420,7 @@ theorem re_leviForm_comp_shape_apply_self {h : ℝ × ℝ → ℝ}
   ring_nf
 
 /-- The bound `|σ|² ≤ s |v₁|²` for `σ = ∑ⱼ xⱼ v₁ⱼ`, by Cauchy–Schwarz. -/
-private theorem norm_sum_re_mul_sq_le (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+theorem norm_sum_re_mul_sq_le (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2 ≤ (shape p).1 * ‖v.1‖ ^ 2 := by
   let X : EuclideanSpace ℂ (Fin k) := WithLp.toLp 2 fun j ↦ ((p.1 j).re : ℂ)
   have hX : ⟪X, v.1⟫_ℂ = ∑ j, ((p.1 j).re : ℂ) * v.1 j := by
@@ -457,6 +469,29 @@ theorem norm_ofReal_mul_add_ofReal_mul_sq_le (c₁ c₂ : ℝ)
     simp [u, WithLp.prod_norm_sq_eq_of_L2]
   rw [← hX, ← hXn, ← hun, ← mul_pow]
   exact pow_le_pow_left₀ (norm_nonneg _) (norm_inner_le_norm X u) 2
+
+/-- On the vectors `v` with `α ds_p v + β dt_p v = 0` and `α ds_p (i v) + β dt_p (i v) = 0`, the
+combination `α σ + β τ` vanishes, where `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ` at
+`p = (x + i y, w)`: the two hypotheses are twice its real part and minus twice its imaginary
+part. -/
+theorem ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape {α β : ℝ}
+    {p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (h₁ : α * fderiv ℝ (fun q ↦ (shape q).1) p v + β * fderiv ℝ (fun q ↦ (shape q).2) p v = 0)
+    (h₂ : α * fderiv ℝ (fun q ↦ (shape q).1) p (I • v) +
+      β * fderiv ℝ (fun q ↦ (shape q).2) p (I • v) = 0) :
+    (α : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j +
+      (β : ℂ) * (⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j) = 0 := by
+  rw [fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h₁ h₂
+  simp only [Prod.smul_fst, Prod.smul_snd, PiLp.smul_apply, smul_eq_mul, inner_smul_right,
+    mul_re, mul_im, I_re, I_im, zero_mul, one_mul, zero_sub, mul_neg, Finset.sum_neg_distrib,
+    zero_add] at h₂
+  apply Complex.ext
+  · simp only [add_re, mul_re, ofReal_re, re_sum, ofReal_im, zero_mul, sub_zero, im_sum, mul_im,
+      add_zero, sub_re, I_re, I_im, one_mul, zero_sub, sub_neg_eq_add, sub_im, zero_add, zero_re]
+    linear_combination h₁ / 2
+  · simp only [add_im, mul_im, ofReal_re, im_sum, ofReal_im, zero_mul, add_zero, re_sum, mul_re,
+      sub_zero, sub_im, I_re, I_im, one_mul, zero_add, sub_re, zero_sub, sub_neg_eq_add, zero_im]
+    linear_combination -h₂ / 2
 
 /-- **Strict plurisubharmonicity of `f(s) + g(t)`**, on `ℂᵏ × ℂᵐ`. Let `f` and `g` be `C²` at
 `s = (shape p).1` and at `t = (shape p).2`, and write `u⁻ = min u 0`. If
