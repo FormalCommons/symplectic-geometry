@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Map
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Closed extensions of the fibre forms
@@ -69,8 +68,8 @@ theorem map_eq_of_restricts (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.Restricts
   rw [deRhamCohomology.map_mk]
   congr 1
   ext1
-  rw [closedForms.coe_mpullback, SmoothForm.mpullback_eq_iff]
-  exact restrictsTo_iff.1 hτ b b' hb'
+  rw [closedForms.coe_mpullback]
+  exact hτ.mpullback_fiberInclusionMap_eq hA hb'
 
 end TauCeti.MapFiber.Atlas
 

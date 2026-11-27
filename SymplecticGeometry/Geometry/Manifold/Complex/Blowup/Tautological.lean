@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
@@ -96,11 +97,11 @@ The differential of `blowdown` at `zeroSection ℓ` vanishes on the tangent imag
 section, of dimension `n`, since `blowdown` vanishes on the zero section, and its image contains
 `ℓ`, through the curves `t ↦ (ℓ, t • z)`; by rank–nullity in dimension `n + 1`, both inclusions
 are equalities. Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` then gives the isomorphism
-of the normal space with `ℓ`. Its continuity on total spaces is checked on ambient tangent
-representatives, through Tau Ceti's `SmoothEmbedding.continuous_normalBundle_iff`, since the
-normal bundle has the quotient topology from the pulled-back tangent bundle; there it follows
-from the continuity of the tangent map of `blowdown`. This needs no bundle structure on the
-normal bundle, so it holds for every label of the total space.
+of the normal space with `ℓ`. Its continuity on total spaces follows, by
+`TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer`, from that of the differentials of
+`blowdown` on the pulled-back tangent bundle, since the normal bundle has the quotient topology
+from that bundle; these differentials are continuous as `blowdown` is `C^1`. This needs no
+bundle structure on the normal bundle, so it holds for every label of the total space.
 
 The real embedding is the holomorphic one with scalars restricted
 (`TauCeti.SmoothEmbedding.restrictScalars`), for Tau Ceti's real manifold structure
@@ -494,7 +495,6 @@ theorem continuous_normalSpaceZeroSectionEquiv {K : Type*} :
         (fun ℓ => (zeroSectionEmbedding n).isImmersion.NormalSpace ℓ WithTop.top_ne_zero) =>
       (⟨p.proj, normalSpaceZeroSectionEquiv n p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
-  rw [TauCeti.SmoothEmbedding.continuous_normalBundle_iff]
   -- On the pulled-back tangent bundle, the differentials of `blowdown` along the zero section
   -- form a continuous map, as `blowdown` is `C^1`.
   have hgs : Continuous fun p : TotalSpace (Fin (n + 1) → ℂ)
@@ -512,10 +512,7 @@ theorem continuous_normalSpaceZeroSectionEquiv {K : Type*} :
         (coe_mfderivBlowdownZeroSection_apply p.proj p.snd).symm
   -- On ambient representatives, the isomorphisms are the differentials of `blowdown`.
   unfold normalSpaceZeroSectionEquiv
-  refine hgs.congr fun ⟨x, v⟩ => ?_
-  rw [Function.comp_apply, TauCeti.SmoothEmbedding.normalQuotientMap_apply]
-  exact congrArg (TotalSpace.mk' ℂ x)
-    (Manifold.IsImmersion.normalSpaceEquivOfKer_normalClass _ x WithTop.top_ne_zero _ _ _ v).symm
+  exact TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer _ WithTop.top_ne_zero _ _ _ hgs
 
 /-! ### The real form -/
 
@@ -693,7 +690,6 @@ theorem continuous_normalSpaceZeroSectionRealEquiv {K : Type*} :
         (fun ℓ => (zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceZeroSectionRealEquiv n hn p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
-  rw [TauCeti.SmoothEmbedding.continuous_normalBundle_iff]
   -- On the pulled-back real tangent bundle, the real differentials of `blowdown` along the zero
   -- section form a continuous map, as `blowdown` is `C^1`.
   have hgs : Continuous fun p : TotalSpace (Fin (n + 1) → ℂ)
@@ -715,10 +711,7 @@ theorem continuous_normalSpaceZeroSectionRealEquiv {K : Type*} :
         (coe_mfderivBlowdownZeroSection_apply p.proj p.snd).symm
   -- On ambient representatives, the isomorphisms are the real differentials of `blowdown`.
   unfold normalSpaceZeroSectionRealEquiv
-  refine hgs.congr fun ⟨x, v⟩ => ?_
-  rw [Function.comp_apply, TauCeti.SmoothEmbedding.normalQuotientMap_apply]
-  exact congrArg (TotalSpace.mk' ℂ x)
-    (Manifold.IsImmersion.normalSpaceEquivOfKer_normalClass _ x hn _ _ _ v).symm
+  exact TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer _ hn _ _ _ hgs
 
 end Real
 
