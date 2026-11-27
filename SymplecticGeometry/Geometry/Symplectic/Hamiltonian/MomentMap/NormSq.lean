@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.Structures
+public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.RepresentationTheory.InvariantForm
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The dual of a moment map and its norm square
@@ -41,6 +43,8 @@ equivariance or smoothness.
   is `G`-invariant.
 * `SymplecticGeometry.contMDiff_momentNormSq`: if each component `x ↦ μ x ξ` is `C^n`, so is the
   norm square.
+* `SymplecticGeometry.mvfderiv_momentNormSq`: for a symmetric `B` and differentiable components,
+  the derivative of the norm square at `x` is twice that of `y ↦ μ y (μ♯ x)`.
 
 ## References
 
@@ -170,6 +174,50 @@ theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : Wit
   let b := Module.finBasis ℝ (GroupLieAlgebra I G)
   simp_rw [funext fun x ↦ momentNormSq_eq_sum (hB := hB) (μ := μ) (x := x) b]
   exact ContMDiff.sum fun i _ ↦ (hμ _).mul (hμ _)
+
+/-- For a symmetric form `B`, if each component `y ↦ μ y ξ` of `μ` is differentiable at `x`, the
+derivative of the norm square at `x` is twice that of the component `y ↦ μ y (μ♯ x)`. -/
+theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.IsSymm)
+    (hμ : ∀ ξ, MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x) :
+    mvfderiv I' (momentNormSq B hB μ) x =
+      (2 : ℝ) • mvfderiv I' (fun y ↦ μ y (momentSharp B hB μ x)) x := by
+  let b := Module.finBasis ℝ (GroupLieAlgebra I G)
+  let c : Fin _ → GroupLieAlgebra I G := fun i ↦ (B.toDual hB).symm (b.coord i)
+  ext v
+  -- The derivative at `x` along `v` of the component `y ↦ μ y ξ` is linear in `ξ`; the `show`s
+  -- write the pointwise sum and multiple of components as sums and multiples of functions.
+  let ℓ : GroupLieAlgebra I G →ₗ[ℝ] ℝ :=
+    { toFun ξ := mvfderiv I' (fun y ↦ μ y ξ) x v
+      map_add' ξ η := by
+        simp only [map_add]
+        rw [show (fun y ↦ μ y ξ + μ y η) = (fun y ↦ μ y ξ) + fun y ↦ μ y η from rfl,
+          mvfderiv_add (hμ ξ) (hμ η), add_apply]
+      map_smul' a ξ := by
+        simp only [map_smul, smul_eq_mul, RingHom.id_apply]
+        rw [show (fun y ↦ a * μ y ξ) = a • fun y ↦ μ y ξ from rfl, mvfderiv_const_smul_field,
+          smul_apply, smul_eq_mul] }
+  have hℓ (ξ : GroupLieAlgebra I G) : mvfderiv I' (fun y ↦ μ y ξ) x v = ℓ ξ := rfl
+  have hmul (i) : mvfderiv I' (fun y ↦ μ y (b i) * μ y (c i)) x =
+      μ x (b i) • mvfderiv I' (fun y ↦ μ y (c i)) x +
+        μ x (c i) • mvfderiv I' (fun y ↦ μ y (b i)) x :=
+    mvfderiv_mul (hμ _) (hμ _)
+  have h₁ : momentSharp B hB μ x = ∑ i, μ x (b i) • c i := by
+    rw [momentSharp_def]
+    conv_lhs => rw [← b.sum_dual_apply_smul_coord (μ x)]
+    rw [map_sum]
+    simp only [map_smul, c]
+  have h₂ : momentSharp B hB μ x = ∑ i, μ x (c i) • b i := by
+    conv_lhs => rw [← b.sum_repr (momentSharp B hB μ x)]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [← apply_momentSharp, hBs.eq, LinearMap.BilinForm.apply_toDual_symm_apply,
+      Module.Basis.coord_apply]
+  have hsum : momentNormSq B hB μ = fun y ↦ ∑ i, μ y (b i) * μ y (c i) :=
+    funext fun y ↦ momentNormSq_eq_sum b
+  rw [hsum, mvfderiv_fun_sum (f := fun i y ↦ μ y (b i) * μ y (c i)) fun i _ ↦ (hμ _).mul (hμ _)]
+  simp only [FunLike.coe_sum, Finset.sum_apply, hmul, add_apply, smul_apply, smul_eq_mul, hℓ,
+    Finset.sum_add_distrib]
+  calc _ = ℓ (∑ i, μ x (b i) • c i) + ℓ (∑ i, μ x (c i) • b i) := by simp [map_sum]
+    _ = _ := by rw [← h₁, ← h₂]; ring
 
 end MomentSharp
 
