@@ -22,13 +22,13 @@ operator norm at most `‖Ψ‖` (`ContinuousLinearMap.norm_complexLinearPart_le
 real-linear operator by Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, the
 complex-antilinear part keeps its operator norm
 (`ContinuousLinearMap.norm_complexAntilinearPartL_apply`), so `complexAntilinearPartL` itself has
-operator norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartL_le`). For complex
-normed spaces with the real structure they restrict to, the bound on the
-complex-antilinear part makes it a continuous real-linear map into the complex-antilinear
-operators, `ContinuousLinearMap.complexAntilinearPartCLM`, again of operator norm at most `1`
-(`ContinuousLinearMap.norm_complexAntilinearPartCLM_le`).
+operator norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartL_le`). The bound on
+the complex-antilinear part also makes it a continuous real-linear map into the
+complex-antilinear operators, `ContinuousLinearMap.complexAntilinearPartCLM`, again of operator
+norm at most `1` (`ContinuousLinearMap.norm_complexAntilinearPartCLM_le`).
 
-A continuous complex-antilinear operator is also a continuous real-linear one, by Mathlib's
+For complex normed spaces with the real structure they restrict to, a continuous
+complex-antilinear operator is also a continuous real-linear one, by Mathlib's
 `AddMonoidHom.toRealLinearMap`, with the same operator norm. This gives a real-linear isometry
 `ContinuousLinearMap.restrictScalarsₛₗLI` from the complex-antilinear operators into the
 real-linear ones. Tau Ceti's
@@ -102,11 +102,6 @@ theorem norm_complexAntilinearPartL_le :
     rw [one_mul, norm_complexAntilinearPartL_apply]
     exact norm_complexAntilinearPart_le Ψ
 
-end CompatibleReal
-
-variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F]
-  [NormedSpace ℂ F]
-
 /-- The complex-antilinear part, as a continuous real-linear map from the real-linear operators
 to the complex-antilinear ones. Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` is the
 same map, with values seen as real-linear operators. -/
@@ -127,6 +122,11 @@ operators, has operator norm at most `1`. -/
 theorem norm_complexAntilinearPartCLM_le :
     ‖(complexAntilinearPartCLM : (E →L[ℝ] F) →L[ℝ] E →L⋆[ℂ] F)‖ ≤ 1 :=
   LinearMap.mkContinuous_norm_le _ zero_le_one _
+
+end CompatibleReal
+
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F]
+  [NormedSpace ℂ F]
 
 /-- The inclusion of the continuous complex-antilinear operators into the continuous real-linear
 ones, as a real-linear isometry: a complex-antilinear operator, being additive and continuous, is
