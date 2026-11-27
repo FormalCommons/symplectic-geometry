@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import SymplecticGeometry.Geometry.Contact.Family
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Contact.Hamiltonian
 import SymplecticGeometry.Geometry.Contact.Moser
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
@@ -693,7 +694,7 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
         (contMDiff_const.prodMk contMDiff_id) β.timeDeriv).val y' ![w] +
         mlieDerivForm (ZU u) (mpullback (Prod.mk (Real.smoothTransition u))
           (contMDiff_const.prodMk contMDiff_id) β).val y' ![w] = 0 := h
-    simpa only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+    simpa only [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
       smul_eq_mul] using h
   rw [← hgray (Real.smoothTransition u)
     (unitInterval.coe_smoothTransition u ▸ (unitInterval.smoothTransition u).property) a b hab U y

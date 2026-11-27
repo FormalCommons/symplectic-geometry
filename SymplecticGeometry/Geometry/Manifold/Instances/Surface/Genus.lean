@@ -545,11 +545,12 @@ theorem ball_zero_zero_notMem_range_ball (j : ℕ) : ball g 0 0 ∉ range (ball 
   (closedSurfaceData g).ball_zero_zero_notMem_range_ball j
 
 /-- The base point is not the centre of the ball `0`. -/
-theorem basePoint_mem_puncture : basePoint g ∈ ConnectedSum.puncture (ball g 0) :=
+theorem basePoint_mem_puncture_ball_zero : basePoint g ∈ ConnectedSum.puncture (ball g 0) :=
   (closedSurfaceData g).basePoint_mem_puncture
 
 /-- The punctured torus summands miss the centre of the ball `0`. -/
-theorem summand_mem_puncture (k : Fin g) (x : ConnectedSum.puncture EuclideanTorus.ball) :
+theorem summand_mem_puncture_ball_zero (k : Fin g)
+    (x : ConnectedSum.puncture EuclideanTorus.ball) :
     summand k x ∈ ConnectedSum.puncture (ball g 0) :=
   (closedSurfaceData g).summand_mem_puncture k x
 
@@ -589,7 +590,7 @@ summand. -/
 @[simp]
 theorem succDiffeomorph_basePoint :
     succDiffeomorph (basePoint (g + 1)) =
-      ConnectedSum.inr _ _ ⟨basePoint g, basePoint_mem_puncture⟩ :=
+      ConnectedSum.inr _ _ ⟨basePoint g, basePoint_mem_puncture_ball_zero⟩ :=
   (rfl)
 
 /-- The summand `0` of the closed surface of genus `g + 1` is the punctured torus, the first
@@ -604,7 +605,7 @@ the second summand of the connected sum. -/
 @[simp]
 theorem succDiffeomorph_summand_succ (k : Fin g) (x : ConnectedSum.puncture EuclideanTorus.ball) :
     succDiffeomorph (summand k.succ x) =
-      ConnectedSum.inr _ _ ⟨summand k x, summand_mem_puncture k x⟩ :=
+      ConnectedSum.inr _ _ ⟨summand k x, summand_mem_puncture_ball_zero k x⟩ :=
   (rfl)
 
 /-- The ball `j` of the closed surface of genus `g + 1` is the ball `j + 1` of genus `g`, carried

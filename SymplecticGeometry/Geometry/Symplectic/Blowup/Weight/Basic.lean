@@ -18,7 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Analysis.Real.Sqrt
 import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -111,10 +111,13 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
   `SmoothEmbedding.normalSpaceEquiv`, since `inr` is a local diffeomorphism.
 * `SymplecticGeometry.WeightBlowup.continuous_normalSpaceDivisorEquiv`: these isomorphisms
   form a continuous map from the total space of the normal bundle of the divisor to that of the
-  tautological line. As for `BlowupModel.continuous_normalSpaceZeroSectionRealEquiv`, its values on
-  ambient tangent vectors are differentials along the divisor of a map that is smooth near it,
-  here the blowdown read through a left inverse of `inr`, and these are continuous on the
-  pulled-back tangent bundle.
+  tautological line. A left inverse of `inr` on its open range is smooth near the divisor and
+  carries it onto the zero section of the model, so the map of normal bundles that it induces is
+  continuous by `TauCeti.SmoothEmbedding.continuous_normalBundleMap_of_contMDiffAt`; composed
+  with the model's isomorphisms, continuous by
+  `BlowupModel.continuous_normalSpaceZeroSectionRealEquiv` once the quotient topology is compared
+  with the bundle one through Tau Ceti's `SmoothEmbedding.contMDiff_normalQuotientMap`, it gives
+  these isomorphisms, by the chain rule.
 
 The gluing follows the other uses of `GluedAlong` in the library, the capped surface of
 `Geometry/Manifold/Gluing/CapDiscs/Basic.lean` and the fiber sum of
@@ -745,28 +748,6 @@ theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
           ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩ w) := by
   rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceDivisorEquiv_normalClass]
 
-/-- Near the divisor, `blowdown` read through `inr`: a map on the blowup, smooth on the image of
-`inr`, that `inr` pulls back to `blowdown` on the model piece. -/
-private theorem exists_contMDiffAt_comp_inr_eq_blowdown [Nonempty (openNbhdOpens n ε)] :
-    ∃ g : WeightBlowup hψ hl hε → Fin (n + 1) → ℂ,
-      (∀ y, ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g
-        (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y)) ∧
-      g ∘ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph =
-        blowdown ∘ Subtype.val := by
-  have hi := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
-    (n := ∞)).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ
-    (GluedAlong.inr_injective _).injOn
-  rw [image_univ] at hi
-  refine ⟨blowdown ∘ Subtype.val ∘
-    Function.invFunOn (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) univ,
-    fun y ↦ ?_, ?_⟩
-  · exact (((contMDiff_blowdown ∞).restrictScalars' ℝ).contMDiffAt.comp _
-      contMDiff_subtypeVal.contMDiffAt).comp _
-      (hi.contMDiffAt ((GluedAlong.isOpen_range_inr _).mem_nhds (mem_range_self y)))
-  · funext y
-    simp only [Function.comp_apply,
-      (GluedAlong.inr_injective _).injOn.leftInvOn_invFunOn (mem_univ y)]
-
 open _root_.Bundle in
 variable {hn} in
 /-- The isomorphisms `normalSpaceDivisorEquiv hψ hl hε hn ℓ` form a continuous map from the total
@@ -780,46 +761,71 @@ theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
     Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceDivisorEquiv hψ hl hε hn p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
-  rw [SmoothEmbedding.continuous_normalBundle_iff,
-    Projectivization.continuous_totalSpace_tautological_iff]
-  simp only [Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
-  refine ⟨FiberBundle.continuous_proj _ _, continuous_iff_continuousAt.2 fun q ↦ ?_⟩
-  have : Nonempty (openNbhdOpens n ε) :=
-    ⟨⟨zeroSection q.proj, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε _)⟩⟩
-  -- The values are the differentials, along the divisor, of `blowdown` read through `inr`.
-  obtain ⟨g, hg, hgr⟩ := exists_contMDiffAt_comp_inr_eq_blowdown hψ hl hε
-  refine (_root_.Bundle.Pullback.continuousAt_mfderiv_apply (divisor hψ hl hε)
-    (by rw [divisor_apply]; exact hg _) (by norm_num)).congr
-      (Filter.Eventually.of_forall fun p ↦ ?_)
-  obtain ⟨ℓ, v⟩ := p
-  let x : openNbhdOpens n ε :=
+  -- The left inverse `v` of `inr` on its open range carries the divisor to the zero section of
+  -- the model, and is smooth along the divisor.
+  have : Nonempty (openNbhdOpens n ε) := ⟨⟨zeroSection (Classical.arbitrary _),
+    mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε _)⟩⟩
+  let v : WeightBlowup hψ hl hε → BlowupModel n :=
+    Subtype.val ∘
+      Function.invFunOn (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) univ
+  have hvr : v ∘ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph = Subtype.val := by
+    funext y
+    simp only [v, Function.comp_apply,
+      (GluedAlong.inr_injective _).injOn.leftInvOn_invFunOn (mem_univ y)]
+  have h : v ∘ divisor hψ hl hε = zeroSectionRealEmbedding n ∘ _root_.id := by
+    rw [coe_divisor, ← Function.comp_assoc, hvr, val_comp_zeroSectionOpenNbhd, Function.comp_id]
+  have hi := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
+    (n := ∞)).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ
+    (GluedAlong.inr_injective _).injOn
+  rw [image_univ] at hi
+  have hv : ∀ y, ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ v
+      (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y) := fun y ↦
+    contMDiff_subtypeVal.contMDiffAt.comp _
+      (hi.contMDiffAt ((GluedAlong.isOpen_range_inr _).mem_nhds (mem_range_self _)))
+  -- The isomorphism of the model is continuous for the quotient topology too, since the quotient
+  -- map is continuous for the bundle topology.
+  have hdim : Module.finrank ℝ ℂ =
+      Module.finrank ℝ (Fin (n + 1) → ℂ) - Module.finrank ℝ (Fin n → ℂ) := by
+    simp [Module.finrank_pi_fintype]; omega
+  have hZ : Continuous fun p : TotalSpace ℂ
+      (fun ℓ => (zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn) =>
+      (⟨p.proj, normalSpaceZeroSectionRealEquiv n hn p.proj p.snd⟩ :
+        TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
+    rw [SmoothEmbedding.continuous_normalBundle_iff]
+    let := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hdim
+    exact (continuous_normalSpaceZeroSectionRealEquiv hn hdim).comp
+      ((zeroSectionRealEmbedding n).contMDiff_normalQuotientMap hn (m := 0) (by simp)
+        hdim).continuous
+  -- The isomorphisms of the divisor are those of the model after the normal-bundle map of `v`.
+  convert hZ.comp ((divisor hψ hl hε).continuous_normalBundleMap_of_contMDiffAt (K := K)
+    (K' := ℂ) (zeroSectionRealEmbedding n) hn hn
+    (fun x ↦ by rw [coe_divisor]; exact (hv _).of_le (by simp)) h) using 1
+  funext ⟨ℓ, x⟩
+  let x₀ : openNbhdOpens n ε :=
     ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩
+  obtain ⟨w, rfl⟩ := (divisor hψ hl hε).isImmersion.normalClass_surjective ℓ hn x
   obtain ⟨w, rfl⟩ := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
-    (n := ∞)).isInvertible_mfderiv hn x).bijective.2 v
-  have hb : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
-      (x : BlowupModel n) := (contMDiff_blowdown 1).mdifferentiableAt one_ne_zero
-  have hr : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-      (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x :=
-    (GluedAlong.isLocalDiffeomorph_inr _ (n := ∞)).mdifferentiable hn x
-  -- The differential of `g` at `divisor ℓ`, which is `inr x`, read through `inr`.
-  have key : ∀ z, z = GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph x →
-      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) g z
+    (n := ∞)).isInvertible_mfderiv hn x₀).bijective.2 w
+  -- By the chain rule for `v ∘ inr = Subtype.val`, `v` undoes the differential of `inr`.
+  have key : ∀ z, z = GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph x₀ →
+      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) v z
           (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-            (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x w) =
-        mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (x : BlowupModel n) w := by
+            (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x₀ w) = w := by
     rintro _ rfl
-    refine (mfderiv_comp_apply x ((hg x).mdifferentiableAt (by simp)) hr w).symm.trans ?_
-    rw [hgr]
-    refine (mfderiv_comp_apply x
-      (((contMDiff_blowdown 1).restrictScalars' ℝ).mdifferentiableAt one_ne_zero)
-      (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero) w).trans ?_
-    rw [Manifold.mfderiv_subtype_val_apply]
-    exact hb.mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ w
-  dsimp only
-  rw [SmoothEmbedding.normalQuotientMap_apply]
-  dsimp only
-  exact (key _ (divisor_apply hψ hl hε ℓ)).trans
-    (congrArg Subtype.val (normalSpaceDivisorEquiv_normalClass hψ hl hε hn ℓ w).symm)
+    rw [← mfderiv_comp_apply x₀ ((hv x₀).mdifferentiableAt (by simp))
+      ((GluedAlong.isLocalDiffeomorph_inr _ (n := ∞)).mdifferentiable hn x₀), hvr,
+      Manifold.mfderiv_subtype_val_apply]
+  rw [Function.comp_apply, SmoothEmbedding.normalBundleMap_apply]
+  have e := (congrArg (normalSpaceZeroSectionRealEquiv n hn ℓ)
+    (SmoothEmbedding.normalMap_normalClass (divisor hψ hl hε) (zeroSectionRealEmbedding n) hn hn
+      (Filter.EventuallyEq.of_eq h) (x := ℓ)
+      (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+        (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x₀ w))).trans
+    (normalSpaceZeroSectionRealEquiv_normalClass ℓ _)
+  refine congrArg (TotalSpace.mk ℓ)
+    ((normalSpaceDivisorEquiv_normalClass hψ hl hε hn ℓ w).trans (Eq.trans ?_ e.symm))
+  exact Subtype.ext (congrArg (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+    (zeroSection ℓ)) (key _ (divisor_apply hψ hl hε ℓ)).symm)
 
 end Divisor
 
