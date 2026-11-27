@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
 import Mathlib.Analysis.Normed.Group.Bounded
+import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 
 /-!
 # The derivative of `∂̄ (g ∘ D)` after a holomorphic map
@@ -22,8 +23,6 @@ derivative is a real derivative of a map into `V →L[ℝ] W`.
 
 ## Main results
 
-* `TauCeti.norm_complexAntilinearPartL_fderiv`: the operator norm of
-  `complexAntilinearPartL (fderiv ℝ D z)` is that of `conjWirtingerDeriv D z`.
 * `TauCeti.complexAntilinearPartL_fderiv_comp`: `TauCeti.conjWirtingerDeriv_comp` for
   `complexAntilinearPartL` of the real derivative.
 * `TauCeti.hasFDerivAt_complexAntilinearPartL_fderiv_comp`: for `D` real `C²` at `z` and `g`
@@ -53,17 +52,6 @@ open ContinuousLinearMap Filter Topology
 
 variable {V W X : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V] [NormedAddCommGroup W]
   [NormedSpace ℂ W] [NormedAddCommGroup X] [NormedSpace ℂ X] {g : W → X} {D : V → W} {z : V}
-
-/-- The complex-antilinear part of the real derivative, as a real-linear map, has the operator
-norm of the conjugate Wirtinger derivative. -/
-theorem norm_complexAntilinearPartL_fderiv (D : V → W) (z : V) :
-    ‖complexAntilinearPartL (fderiv ℝ D z)‖ = ‖conjWirtingerDeriv D z‖ := by
-  refine le_antisymm (opNorm_le_bound _ (norm_nonneg _) fun v ↦ ?_)
-    (opNorm_le_bound _ (norm_nonneg _) fun v ↦ ?_)
-  · rw [← conjWirtingerDeriv_apply_eq_complexAntilinearPartL]
-    exact le_opNorm _ v
-  · rw [conjWirtingerDeriv_apply_eq_complexAntilinearPartL]
-    exact le_opNorm _ v
 
 /-- For `g` complex differentiable at `D z` and `D` real differentiable at `z`, the
 complex-antilinear part of the real derivative of `g ∘ D` at `z` is `dg (D z) ∘ ∂̄ D z`: the form
@@ -116,7 +104,7 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_comp_le
       ‖fderiv ℝ (fderiv ℝ g) (D z)‖ * ‖fderiv ℝ D z‖ * ‖conjWirtingerDeriv D z‖ +
         ‖fderiv ℝ g (D z)‖ * ‖fderiv ℝ (fun w ↦ complexAntilinearPartL (fderiv ℝ D w)) z‖ := by
   rw [(hasFDerivAt_complexAntilinearPartL_fderiv_comp hg hg₂ hD).fderiv,
-    ← norm_complexAntilinearPartL_fderiv]
+    conjWirtingerDeriv_eq_complexAntilinearPart, ← (fderiv ℝ D z).norm_complexAntilinearPartL_apply]
   set dg := fderiv ℝ g (D z)
   set d2g := fderiv ℝ (fderiv ℝ g) (D z)
   set dD := fderiv ℝ D z
@@ -150,9 +138,8 @@ theorem exists_norm_fderiv_complexAntilinearPartL_fderiv_comp_le {U : Set V} {O 
     (((hg₂.fderiv_of_isOpen hO (m := 1) (by norm_num)).continuousOn_fderiv_of_isOpen hO
       le_rfl).mono hKO)
   refine ⟨M₂ * |B| + M₁, fun z hz hDz hB ↦ ?_⟩
-  have hgz : ∀ᶠ w in 𝓝 (D z), DifferentiableAt ℂ g w :=
-    eventually_of_mem (hO.mem_nhds (hKO hDz)) fun w hw ↦ hg.differentiableAt (hO.mem_nhds hw)
-  refine (norm_fderiv_complexAntilinearPartL_fderiv_comp_le hgz
+  refine (norm_fderiv_complexAntilinearPartL_fderiv_comp_le
+    (hg.eventually_differentiableAt (hO.mem_nhds (hKO hDz)))
     (hg₂.contDiffAt (hO.mem_nhds (hKO hDz))) (hD.contDiffAt (hU.mem_nhds hz))).trans ?_
   have h₁ := hM₁ _ hDz
   have h₂ := hM₂ _ hDz
