@@ -1251,8 +1251,9 @@ containing `ι '' closedBall 0 1`:
 
 - `Surround/NormalForm.lean` (issues 14d18 and 14d19), with `V`,
   `modelDisc k m` and `finrank ℂ E = k + m` as for issues 14d9–14d15.
-  - `IsJOrthogonallyAttached.exists_comp_radial` (14d18): for `φ`, `ι`
-    smooth, `F` finite-dimensional and `h : IsJOrthogonallyAttached E φ ι`,
+  - `IsJOrthogonallyAttached.exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`
+    (14d18): for `φ`, `ι` smooth, `F` a finite-dimensional real inner
+    product space and `h : IsJOrthogonallyAttached E φ ι`,
     there is a smooth `τ : F → ℝ`, positive, equal to `1` near `0` and
     on the sphere, such that `σ x = τ x • x` is a smooth diffeomorphism
     of `F` (`F ≃ₘ^∞⟮𝓘(ℝ, F), 𝓘(ℝ, F)⟯ F`) with `‖σ x‖ < 1 ↔ ‖x‖ < 1`, and
@@ -1285,7 +1286,8 @@ containing `ι '' closedBall 0 1`:
     `{x | φ x ≤ 0}`, `ι` a disc as in 14d9 with
     `IsJOrthogonallyAttached E φ ι`, `[T2Space M]`, `O ⊇ range ι` and
     `U ⊇ ι '' sphere 0 1` open, and `2 ≤ N`. There are `σ` as in
-    `exists_comp_radial`; `Φ` from `exists_modelChart` for `ι ∘ σ`,
+    `exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`;
+    `Φ` from `exists_modelChart` for `ι ∘ σ`,
     `O`, `N` and the frame of `exists_complexFrame_mfderiv_ker` for
     `ι ∘ σ`; open `V ⊆ W ⊆ U ∩ Φ.target` with `ι '' sphere 0 1 ⊆ V`; and a smooth
     `θ : M → ℝ` with `θ = modelLevel k m ∘ Φ.symm` on `V`,
