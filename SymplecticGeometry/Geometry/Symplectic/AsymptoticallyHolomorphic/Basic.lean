@@ -37,19 +37,20 @@ satisfies the triangle inequality.
 The connection `powerConnection α k` is read in the same chart and frame as
 `D.connectionReading k x s z = df_z + i A₀(z) f(z)`, for `f` the reading of `s` and
 `A₀(z) v = -ω₀(z, v) / 2` the model connection form, `ω₀` being `stdForm ι`.
-`SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply` shows that, on the
-ball of radius `ρ₀ * √k`, this is the coordinate of `D_k s` in the frame, at the image of `z` and
-on the image of a vector under the derivative of the inverse chart. It follows from the local
+`SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply` shows that, at a
+point `z` of the ball of radius `ρ₀ * √k` where the reading of `s` is differentiable, this is the
+coordinate of `D_k s` in the frame, at the image of `z` and on the image of a vector under the
+derivative of the inverse chart. It follows from the local
 formula `SymplecticGeometry.powerConnection_apply_frame`, applied to the frame, which is smooth on
 the image of that ball, and from `SymplecticGeometry.RescaledUnitaryCharts.connectionForm_eq_model`.
 The `∂̄` reading `D.dbarReading k x s z` is Tau Ceti's complex-antilinear part
 `TauCeti.complexAntilinearPart` of `D.connectionReading k x s z`, for the structure `J` pushed
-forward by the chart at `z` and multiplication by `i` on `ℂ`. Both readings are additive on
-sections whose readings are differentiable at `z`. The `r`-jet norm of `∂̄ s`,
-`D.dbarJetNorm k r s x`, is the jet norm of the `∂̄` reading at `0`; it is nonnegative and monotone
-in `r`, vanishes on the zero section, is unchanged by negation, and satisfies the triangle
-inequality for sections whose readings are differentiable near `0` and whose `∂̄` readings are
-`C^r` at `0`.
+forward by the chart at `z` and multiplication by `i` on `ℂ`. Both readings commute with
+multiplication by `c : ℂ`, and are additive on sections whose readings are differentiable at `z`.
+The `r`-jet norm of the `∂̄` reading, `D.dbarJetNorm k r s x`, is its jet norm at `0`; it is
+nonnegative and monotone in `r`, vanishes on the zero section, is unchanged by negation, scales by
+`‖c‖` under multiplication by `c : ℂ`, and satisfies the triangle inequality for sections whose
+readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`.
 
 These are the chart norms by which the estimates on asymptotically holomorphic sequences of
 sections are stated, in the rescaled metrics `k ω(·, J ·)`.
@@ -236,6 +237,19 @@ theorem connectionReading_neg (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z
   abel
 
 @[simp]
+theorem connectionReading_smul (k : ℕ) (x : M) (c : ℂ) (s : Π y, PowerBundle P k y)
+    (z : StdSpace ι) :
+    D.connectionReading k x (c • s) z = c • D.connectionReading k x s z := by
+  have h := iteratedFDeriv_const_smul_apply_of_field (𝕜 := ℝ) 1 (D.reading k x s) z c
+  ext v
+  have hv := congrArg (fun L ↦ L (fun _ ↦ v)) h
+  simp only [iteratedFDeriv_one_apply, smul_apply] at hv
+  simp only [smul_apply, connectionReading_apply, reading_smul, hv,
+    Pi.smul_apply, smul_eq_mul,
+    Complex.real_smul]
+  ring
+
+@[simp]
 theorem connectionReading_zero (k : ℕ) (x : M) (z : StdSpace ι) :
     D.connectionReading k x (0 : Π y, PowerBundle P k y) z = 0 := by
   ext v
@@ -308,9 +322,9 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
 /-- The **`∂̄` reading of a section** `s` of `PowerBundle P k` at `z`: the complex-antilinear part
 (Tau Ceti's `TauCeti.complexAntilinearPart`) of the connection read in the chart,
 `D.connectionReading k x s z`, for the structure `J` pushed forward by the chart at `z` and
-multiplication by `i` on `ℂ`. Since the connection read in the chart is `D_k s` read there
-(`SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply`), this is the
-reading of `∂̄ s`, the complex-antilinear part of `D_k s`. -/
+multiplication by `i` on `ℂ`. Where the reading of `s` is differentiable at `z`, the connection
+read in the chart is `D_k s` read there
+(`SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply`). -/
 noncomputable def dbarReading (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     StdSpace ι →L[ℝ] ℂ :=
   LinearMap.toContinuousLinearMap (complexAntilinearPart
@@ -337,6 +351,15 @@ theorem dbarReading_neg (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : Std
     D.dbarReading k x (-s) z = -D.dbarReading k x s z := by
   rw [dbarReading_def, connectionReading_neg, ContinuousLinearMap.toLinearMap_neg,
     complexAntilinearPart_neg, map_neg, dbarReading_def]
+
+@[simp]
+theorem dbarReading_smul (k : ℕ) (x : M) (c : ℂ) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
+    D.dbarReading k x (c • s) z = c • D.dbarReading k x s z := by
+  ext v
+  simp only [dbarReading_def, connectionReading_smul, LinearMap.coe_toContinuousLinearMap',
+    complexAntilinearPart_apply, ContinuousLinearMap.coe_coe, smul_apply,
+    AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul, Complex.real_smul]
+  ring
 
 @[simp]
 theorem dbarReading_zero (k : ℕ) (x : M) (z : StdSpace ι) :
@@ -375,6 +398,12 @@ theorem dbarJetNorm_neg (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
   rw [dbarJetNorm_def, dbarJetNorm_def, funext (D.dbarReading_neg k x s), ← Pi.neg_def,
     jetNormAt_neg]
 
+@[simp]
+theorem dbarJetNorm_smul (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) (c : ℂ) :
+    D.dbarJetNorm k r (c • s) x = ‖c‖ * D.dbarJetNorm k r s x := by
+  rw [dbarJetNorm_def, dbarJetNorm_def, funext (D.dbarReading_smul k x c s), ← Pi.smul_def,
+    jetNormAt_smul]
+
 /-- The **triangle inequality for jet norms of `∂̄`**, for sections whose readings are
 differentiable near `0` and whose `∂̄` readings are `C^r` at `0`. -/
 theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
@@ -386,6 +415,7 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     (hs.and ht).mono fun z hz ↦ D.dbarReading_add hz.1 hz.2
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r h]
   exact jetNormAt_add_le hs' ht'
+
 end RescaledUnitaryCharts
 
 end SymplecticGeometry
