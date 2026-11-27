@@ -712,6 +712,44 @@ private theorem mpullback_inr_weightBlowupDiffeomorph :
     mpullback_subtype_val_apply, hψ.normalizedBlowupForm_eq_on_ballLift hh _ hyr]
   exact profileForm_eq_blowupForm_on n _
     (openNbhd_subset_closedNbhd ε (openNbhd_mono hε'ε (mem_openNbhdOpens_iff.1 y.property)))
+/-- The first map, followed by the blowdown of `Blowup c`, is `radialContraction`. -/
+private theorem blowdown_outerMap
+    (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
+    Blowup.blowdown hN.blowupChart (hψ.outerMap hh hε' hε'ε x) =
+      hψ.isSymplecticBallEmbedding.radialContraction hh x := by
+  rw [outerMap, Blowup.blowdown_inl]
+
+/-- Off `ψ(B(l + ε))`, the first map pulls `ω̃_{ψ,l,ε}` back to `σ`: there it is the inclusion
+of `M ∖ p₀`, and the form is the pull-back of `σ` by the blowdown. -/
+private theorem mpullback_outerMap_apply_of_notMem
+    (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε))
+    (hx : (x : M) ∉ ψ '' closedBall 0 (l + ε)) :
+    TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (hψ.outerMap hh hε' hε'ε)
+      (hψ.normalizedBlowupForm h).val x = σ.val x := by
+  have hK : IsClosed (ψ '' closedBall 0 (l + ε)) :=
+    (hψ.isSymplecticBallEmbedding.isCompact_image_closedBall
+      hψ.weight_add_width_lt.le).isClosed
+  have hnot : hψ.outerMap hh hε' hε'ε x ∉
+      hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := by
+    rintro ⟨y, hy, hyx⟩
+    have hyr : y ∈ openNbhd n r :=
+      mem_openNbhd_iff.2 ((mem_closedNbhd_iff.1 hy).trans_lt hψ.weight_add_width_lt)
+    have hb := congrArg (Blowup.blowdown hN.blowupChart) hyx
+    rw [hψ.blowdown_outerMap hh hε' hε'ε,
+      hψ.isSymplecticBallEmbedding.radialContraction_of_notMem hh hx,
+      hψ.ballLiftPartialDiffeomorph_apply ⟨y, hyr⟩, blowdown_ballLift] at hb
+    exact hx ⟨_, mem_closedBall_zero_iff.2 (mem_closedNbhd_iff.1 hy), hb⟩
+  have hev : (Blowup.blowdown hN.blowupChart ∘ hψ.outerMap hh hε' hε'ε) =ᶠ[𝓝 x]
+      Subtype.val := by
+    filter_upwards [continuous_subtypeVal.continuousAt.preimage_mem_nhds
+      (hK.isOpen_compl.mem_nhds hx)] with x' hx'
+    rw [Function.comp_apply, hψ.blowdown_outerMap hh hε' hε'ε,
+      hψ.isSymplecticBallEmbedding.radialContraction_of_notMem hh hx']
+  rw [mpullback_apply_congr (hψ.normalizedBlowupForm_eq_on_compl _ hnot),
+    SmoothForm.coe_mpullback,
+    ← mpullback_comp_at ((hψ.isLocalDiffeomorph_outerMap hh hε' hε'ε).contMDiff.mdifferentiableAt
+      (by simp)) ((Blowup.contMDiff_blowdown_real _).mdifferentiableAt (by simp)),
+    hev.mpullback_eq, mpullback_subtype_val_apply]
 
 end IsNormalizedBallEmbedding
 
