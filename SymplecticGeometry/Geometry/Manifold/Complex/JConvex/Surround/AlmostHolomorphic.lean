@@ -44,6 +44,9 @@ to `f` on the real points.
 * `SymplecticGeometry.fderiv_taylorExtension_apply_real`,
   `SymplecticGeometry.fderiv_taylorExtension_apply_imag`: its real derivative at `x + i y` in a
   real direction `u` and in the imaginary direction `i u`, for `f` of class `C^(N + 1)`;
+* `SymplecticGeometry.fderiv_taylorExtension_comp_ofReal`: if `f` is the restriction to the real
+  points of a map `h` whose derivative at a real point `x + i 0` commutes with multiplication by
+  `i`, and `1 ≤ N`, then `taylorExtension N f` and `h` have the same derivative at `x + i 0`;
 * `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real`: in a real direction `u`,
   the conjugate Wirtinger derivative of `taylorExtension N f` at `x + i y` is
   `(2⁻¹ * i ^ N / N!) • D^(N+1) f(x) (u, y, …, y)`, so it vanishes to order `N` on the real
@@ -222,6 +225,48 @@ theorem fderiv_taylorExtension_apply_imag {N : ℕ} {f : EuclideanSpace ℝ ι' 
   congr 1
   push_cast
   field_simp
+
+/-- Let `h : ℂⁿ → W` be real differentiable at a real point `x + i 0`, with a derivative there
+that commutes with multiplication by `i`, and let its restriction `y ↦ h (y + i 0)` to the real
+points be `C^(N + 1)` with `1 ≤ N`. Then the truncated Taylor extension of order `N` of this
+restriction has the same real derivative as `h` at `x + i 0`. (Their values there agree by
+`taylorExtension_ofReal`.) For `N = 0` this fails: the extension is then constant in the
+imaginary directions. -/
+theorem fderiv_taylorExtension_comp_ofReal {N : ℕ} (hN : 1 ≤ N) {h : EuclideanSpace ℂ ι' → W}
+    (hf : ContDiff ℝ (N + 1) fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
+    {x : EuclideanSpace ℝ ι'}
+    (hx : DifferentiableAt ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)))
+    (hI : ∀ v, fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) (Complex.I • v) =
+      Complex.I • fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) v) :
+    fderiv ℝ (taylorExtension N fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
+        ((complexEuclideanEquivRealProd ι').symm (x, 0)) =
+      fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) := by
+  set e := complexEuclideanEquivRealProd ι'
+  set f := fun y ↦ h (e.symm (y, 0))
+  -- At `y = 0`, only the first-order term of each sum survives.
+  have hsum (M : ℕ) (c : ℕ → ℂ) (hM : 0 < M) (u : EuclideanSpace ℝ ι') :
+      ∑ j ∈ Finset.range M, c j • iteratedFDeriv ℝ (j + 1) f x (Fin.cons u fun _ ↦ 0) =
+        c 0 • fderiv ℝ f x u := by
+    rw [Finset.sum_eq_single_of_mem 0 (Finset.mem_range.2 hM)]
+    · simp
+    · intro j _ hj
+      obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hj
+      rw [(iteratedFDeriv ℝ (k + 2) f x).map_coord_zero (1 : Fin (k + 2)) (by simp), smul_zero]
+  -- The derivative of `f` is that of `h` in the real directions.
+  have hfh (u : EuclideanSpace ℝ ι') :
+      fderiv ℝ f x u = fderiv ℝ h (e.symm (x, 0)) (e.symm (u, 0)) := by
+    have hline : HasFDerivAt (fun x' ↦ e.symm (x', 0))
+        (e.symm.toContinuousLinearMap.comp (.inl ℝ _ _)) x :=
+      e.symm.hasFDerivAt.comp x (hasFDerivAt_prodMk_left x 0)
+    rw [HasFDerivAt.fderiv (f := f) (hx.hasFDerivAt.comp x hline)]
+    simp
+  ext z
+  obtain ⟨⟨u, v⟩, rfl⟩ := e.symm.surjective z
+  rw [show e.symm (u, v) = e.symm (u, 0) + e.symm (0, v) by rw [← map_add]; simp, map_add,
+    map_add, fderiv_taylorExtension_apply_real hf, fderiv_taylorExtension_apply_imag hf,
+    hsum _ _ (Nat.succ_pos N), hsum _ _ hN, show e.symm (0, v) = Complex.I • e.symm (v, 0) by
+      rw [I_smul_complexEuclideanEquivRealProd_symm, neg_zero], hI, hfh, hfh]
+  simp
 
 /-- The conjugate Wirtinger derivative of the truncated Taylor extension of a `C^(N + 1)` map
 at `x + i y`, in a real direction `u`: only the term of order `N + 1` survives, and it is
