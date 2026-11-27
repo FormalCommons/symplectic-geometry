@@ -140,7 +140,7 @@ theorem collapseMap_eq_inr_shellPoint {z : puncturedSpace (Fin (n + 1) → ℂ)}
     (hx : ψ (complexToRealEuclidean (Fin (n + 1)) z) ∈ (ψ '' ball 0 l)ᶜ) :
     collapseMap hψ hl hε ⟨ψ (complexToRealEuclidean (Fin (n + 1)) z), hx⟩ =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph
-        ⟨shellPoint l z, mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε hz)⟩ := by
+        ⟨shellPoint l z, mem_openNbhdOpens_iff.2 (shellPoint_mem_openNbhd hε hz)⟩ := by
   have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_sq_add_sq l ε
   rcases hlz.eq_or_lt with hlz | hlz
   · -- On the sphere, both sides are the point of the divisor over the line of `z`.
@@ -158,7 +158,7 @@ theorem collapseMap_eq_inr_shellPoint {z : puncturedSpace (Fin (n + 1) → ℂ)}
       exact (mem_closedBall_zero_iff.1 hu).not_gt (hu' ▸ hlz)
     rw [collapseMap_of_notMem hψ hl hε hx']
     refine (inl_eq_inr_iff hψ hl.le hε).2 ⟨(mem_modelOverlap_iff (p := ⟨shellPoint l z,
-      mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε hz)⟩)).2
+      mem_openNbhdOpens_iff.2 (shellPoint_mem_openNbhd hε hz)⟩)).2
         (shellPoint_notMem_exceptionalDivisor hl.le hlz), Subtype.ext ?_⟩
     rw [coe_gluingDiffeomorph_apply, coe_shellSymplectomorph_apply,
       ← coe_radialBlowdownDiffeomorph_apply, coe_radialBlowdownDiffeomorph_shellPoint hl.le hlz]
@@ -191,7 +191,7 @@ private theorem continuousOn_collapseMap_image_ball :
         (continuous_subtypeVal.comp continuous_subtypeVal) htarget).subtype_mk _, fun _ ↦ rfl⟩
   -- On `W`, the collapse map is `inr ∘ shellPoint l ∘ z`.
   refine ((GluedAlong.continuous_inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph).comp
-    (((continuous_shellPoint l).comp hz).subtype_mk fun y ↦ mem_modelPiece_iff.2
+    (((continuous_shellPoint l).comp hz).subtype_mk fun y ↦ mem_openNbhdOpens_iff.2
       (shellPoint_mem_openNbhd hε ((hzy y).symm ▸ hlt y)))).congr fun y ↦ ?_
   have hx : ψ (complexToRealEuclidean (Fin (n + 1)) (z y)) ∈ (ψ '' ball 0 l)ᶜ := by
     rw [hzy, hψz y]
@@ -402,7 +402,7 @@ theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpa
           e ℓ ((divisor hψ hl.le hε).isImmersion.normalClass ℓ hn
               (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
                 (GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph)
-                ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
+                ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩ w)) =
             ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
               mfderiv_blowdown_zeroSection_mem ℓ w⟩) ∧
       (∃ h : Quotient (Setoid.ker (collapseMap hψ hl hε)) ≃ₜ WeightBlowup hψ hl.le hε,
