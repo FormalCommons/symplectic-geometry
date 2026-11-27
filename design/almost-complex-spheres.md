@@ -348,8 +348,8 @@ $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 
 - `Bundle.factorial_dvd_evalFundamentalClass_chernClass_sphere`: for a
   complex vector bundle `V` over `sphere (0 : E) 1` with
-  `finrank ℝ E = 2 * m + 1`, `m ≠ 0`, and an orientation `o`,
-  `((m - 1)! : ℤ) ∣ ⟨c_m(V), [S^{2m}]_o⟩`.
+  `finrank ℝ E = 2 * (r + 1) + 1` and an orientation `o`,
+  `(r ! : ℤ) ∣ ⟨c_{r+1}(V), [S^{2(r+1)}]_o⟩`.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/Sphere.lean`
 
