@@ -330,8 +330,8 @@ theorem evenIntegralCohomologyOf_chernClass_one_pullback_tautological_pow_eq_zer
     (TopCat.of X).evenIntegralCohomologyOf 1
       (SymplecticGeometry.Bundle.chernClass ℂ (f *ᵖ (Tautological ℂ V)) 1) ^ (n + 1) = 0 := by
   rw [SymplecticGeometry.Bundle.chernClass_pullback, chernClass_one_tautological,
-    ← TopCat.evenIntegralCohomologyMap_of, ← map_pow, map_neg, neg_pow,
-    hyperplaneClass_pow_eq_zero hV, mul_zero, map_zero]
+    ← TopCat.evenIntegralCohomologyMap_of, map_neg, map_neg, neg_pow,
+    evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero hV, mul_zero]
 
 end Projectivization
 
