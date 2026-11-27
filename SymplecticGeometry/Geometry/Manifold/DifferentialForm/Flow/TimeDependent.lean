@@ -37,9 +37,6 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDim
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
   {X : ℝ → (x : M) → TangentSpace I x} {α : RoughForm I M F k}
 
-/-- The flow lemmas are applied at smoothness `1`, read in `ℕ∞`. -/
-local instance : IsManifold I ((1 : ℕ∞) : WithTop ℕ∞) M := IsManifold.of_le (n := 2) (by norm_num)
-
 /-- **Constant pull-backs along a flow have vanishing Lie derivative.** Let `X` be a jointly `C¹`
 time-dependent vector field, `α` a form differentiable at `ι x`, and `ι : N → M` differentiable
 at `x`. If the pull-backs of `α` at `x` along the flow of `X` from `t` to `u`, composed with `ι`,
@@ -62,7 +59,7 @@ theorem mpullback_mlieDerivForm_apply_eq_zero_of_eventuallyEq_const
     have hmem := mem_timeDependentFlowDomain_self hX t (ι x)
     filter_upwards [(by fun_prop : Continuous fun u : ℝ ↦ ((t, u), ι x)).continuousAt
       |>.eventually_mem ((isOpen_timeDependentFlowDomain hX).mem_nhds hmem)] with u hu
-    exact (contMDiffAt_timeDependentFlowOf le_rfl hX hu).mdifferentiableAt one_ne_zero
+    exact mdifferentiableAt_timeDependentFlowOf hX hu
   have hderiv := hasDerivAt_mpullback_of_eq_comp (χ := timeDependentFlowOf X t) (g := ι)
     (Eventually.of_forall fun _ ↦ EventuallyEq.rfl) hι hφ
     (hasDerivAt_mpullback_timeDependentFlowOf_self hX t (ι x) hα)

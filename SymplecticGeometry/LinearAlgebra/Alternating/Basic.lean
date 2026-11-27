@@ -7,6 +7,8 @@ module
 
 public import Mathlib.LinearAlgebra.Alternating.Basic
 public import Mathlib.LinearAlgebra.Dimension.Finite
+import Mathlib.GroupTheory.Perm.Fin
+import Mathlib.Tactic.FinCases
 
 /-!
 # Alternating maps of few vectors, on multiples of one vector, and on small submodules
@@ -19,6 +21,10 @@ instead of families `Fin 1 → M` or `Fin 2 → M`.
 An alternating map vanishes on a family two of whose members are multiples of the same vector
 (`AlternatingMap.map_eq_zero_of_eq_smul`). This generalizes `AlternatingMap.map_eq_zero_of_eq`,
 the case of two equal members, to which the proof reduces by linearity in those two arguments.
+
+An alternating map of three vectors takes the same value on `![a, b, c]` and on its cyclic
+rotation `![b, c, a]` (`AlternatingMap.map_vecCons_rotate`): by `AlternatingMap.map_perm` the two
+values differ by the sign of a cyclic permutation of three elements, which is `1`.
 
 An alternating map vanishes on a family that has more members in a finite submodule `V` than the
 rank of `V` (`AlternatingMap.map_eq_zero_of_finrank_lt`), since those members are linearly
@@ -63,6 +69,16 @@ theorem map_eq_zero_of_eq_smul (f : M [⋀^ι]→ₗ[R] N) {v : ι → M} {i j :
     rw [← hi, ← hj, Function.update_eq_self, Function.update_eq_self]
   rw [hv, f.map_update_smul, ← Function.update_comm hij, f.map_update_smul,
     f.map_eq_zero_of_eq _ (i := i) (j := j) (by simp [hij]) hij, smul_zero, smul_zero]
+
+/-- An alternating map of three vectors takes the same value on `![a, b, c]` and on its cyclic
+rotation `![b, c, a]`, as a cyclic permutation of three arguments is even. -/
+theorem map_vecCons_rotate {N : Type*} [AddCommGroup N] [Module R N] (f : M [⋀^Fin 3]→ₗ[R] N)
+    (a b c : M) : f ![a, b, c] = f ![b, c, a] := by
+  have h : ![a, b, c] = ![b, c, a] ∘ (finRotate 3).symm := by
+    ext i
+    fin_cases i <;> rfl
+  rw [h, map_perm, Equiv.Perm.sign_symm, sign_finRotate]
+  simp
 
 /-- An alternating map vanishes on a family `x` that has more members in a finite submodule `V`
 than the rank of `V`: if `x (e k)` lies in `V` for an injective `e : κ → ι` and
