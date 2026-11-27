@@ -42,7 +42,8 @@ parameter `l` at a time:
   `e_{s l, 1}^* α l + d (e_{s l, 1}^* B' (s l))`.
 
 The time steps are those of `SymplecticGeometry.exists_homotopy_exact_of_isotopy`
-(`HandleCore/Homotopy.lean`), which uses the same isotopy-then-interpolation scheme.
+(`HandleCore/Homotopy.lean`), which uses the same isotopy-then-interpolation scheme. The family
+of two-forms is called `τ` here, as in that file, since `ω` is notation in the scope `ContDiff`.
 
 ## References
 
