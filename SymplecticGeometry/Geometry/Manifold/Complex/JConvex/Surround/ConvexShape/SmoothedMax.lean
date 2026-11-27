@@ -66,7 +66,7 @@ is `SymplecticGeometry.smoothedMax`.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §4.3: Lemma 4.13 (d).
+  §4.3: Lemma 4.13 (d); the margin lemmas serve the foliations of Proposition 3.25.
 -/
 
 public section
