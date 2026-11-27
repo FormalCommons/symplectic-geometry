@@ -238,15 +238,9 @@ theorem contMDiff_pullbackFiberEquiv {EN HN N : Type*} [NormedAddCommGroup EN]
   refine (Pullback.contMDiff_iff f hf).2 ⟨contMDiff_proj _,
     ((J.contMDiff_totalSpaceHomeomorph_symm G).comp ((Pullback.contMDiff_lift f hf).comp
       ((J.pullback f hf).contMDiff_totalSpaceHomeomorph G))).congr fun p ↦ ?_⟩
-  erw [Pullback.lift_mk]
-  rw [Function.comp_apply, Function.comp_apply, Homeomorph.eq_symm_apply,
-    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply,
-    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
-  erw [Pullback.lift_mk]
-  simp only [pullbackFiberEquiv_apply]
-  -- The fibres of `f *ᵖ V` at `p.proj` are those of `V` at `f p.proj`, as which `exact` reads them.
-  exact congrArg (TotalSpace.mk' F (f p.proj))
-    ((J.toContinuousComplexStructure.fiberEquiv (f p.proj)).apply_symm_apply _)
+  simp [pullbackFiberEquiv_apply]
+  -- `rfl` identifies the base point `(Pullback.lift f ⟨p.proj, _⟩).proj` with `f p.proj`.
+  rfl
 
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 
