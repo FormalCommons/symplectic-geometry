@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.FiberBundle.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
+public import TauCeti.Topology.FiberBundle.Trivialization
 public import SymplecticGeometry.Topology.Homeomorph.Prod
 import SymplecticGeometry.Logic.Equiv.Prod
 
@@ -20,9 +21,9 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
 
 ## Main definitions and results
 
-* `Bundle.Trivialization.transFiberHomeomorph_baseSet`, `_source`, `_target`, `_symm_apply`: the
-  base set, source, target and inverse of Mathlib's `Bundle.Trivialization.transFiberHomeomorph`,
-  which composes a trivialization with a homeomorphism of the model fibre.
+* `Bundle.Trivialization.transFiberHomeomorph_source`, `_target`: the source and target of
+  Mathlib's `Bundle.Trivialization.transFiberHomeomorph`, which composes a trivialization with a
+  homeomorphism of the model fibre; Tau Ceti gives its base set and inverse.
 * `Bundle.Trivialization.transFiberwiseHomeomorph`: a trivialization followed, over an open set
   `U` of its base set, by a homeomorphism `Φ` of `U × F` that preserves the `U` coordinate, so
   that the fibre coordinate over each `b ∈ U` is changed by the fibre of `Φ` over `b`; with its
@@ -54,10 +55,6 @@ variable {B F F' Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [Topologic
   [TopologicalSpace Z] {proj : Z → B} (e : Trivialization F proj) (h : F ≃ₜ F')
 
 @[simp]
-theorem transFiberHomeomorph_baseSet : (e.transFiberHomeomorph h).baseSet = e.baseSet :=
-  (rfl)
-
-@[simp]
 theorem transFiberHomeomorph_source : (e.transFiberHomeomorph h).source = e.source :=
   (rfl)
 
@@ -65,14 +62,6 @@ theorem transFiberHomeomorph_source : (e.transFiberHomeomorph h).source = e.sour
 theorem transFiberHomeomorph_target :
     (e.transFiberHomeomorph h).target = e.baseSet ×ˢ Set.univ := by
   rw [target_eq, transFiberHomeomorph_baseSet]
-
-/-- The inverse of `e.transFiberHomeomorph h` sends `q` to the image of `(q.1, h.symm q.2)`
-under the inverse of `e`. -/
-@[simp]
-theorem transFiberHomeomorph_symm_apply (q : B × F') :
-    (e.transFiberHomeomorph h).toOpenPartialHomeomorph.symm q =
-      e.toOpenPartialHomeomorph.symm (q.1, h.symm q.2) :=
-  (rfl)
 
 end transFiberHomeomorph
 

@@ -7,16 +7,15 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.MeasureTheory.Function.L2Space
+public import TauCeti.MeasureTheory.Function.Lp.ContinuousLinearEquiv
 import SymplecticGeometry.Analysis.InnerProductSpace.ContinuousLinearEquiv
-import TauCeti.MeasureTheory.Function.Lp.Basic
 
 /-!
 # `Lᵖ` spaces under a continuous linear equivalence of the values
 
-A continuous linear equivalence `e : E ≃L[𝕜] F` induces, by composition, a continuous linear
-equivalence `e.compLpL p μ : Lp E p μ ≃L[𝕜] Lp F p μ`, whose inverse is induced by `e.symm`. It
-need not be an isometry; for a linear isometry equivalence Tau Ceti has
-`LinearIsometryEquiv.compLpₗᵢ`.
+A continuous linear equivalence `e : E ≃L[𝕜] F` induces, by composition, Tau Ceti's continuous
+linear equivalence `e.compLpL p μ : Lp E p μ ≃L[𝕜] Lp F p μ`, whose inverse is induced by
+`e.symm`. This file states its values through `ContinuousLinearMap.compLp`.
 
 As an application, `L²` with values in a finite-dimensional space is equivalent to `L²` with
 values in a Euclidean space, and hence to a Hilbert space, although the norm of the values need
@@ -24,8 +23,8 @@ not come from an inner product.
 
 ## Main definitions and results
 
-* `ContinuousLinearEquiv.compLpL`: the equivalence of `Lᵖ` spaces induced by an equivalence of
-  the values.
+* `ContinuousLinearEquiv.compLpL_apply_eq_compLp`, `ContinuousLinearEquiv.compLpL_symm_apply`: the
+  values of Tau Ceti's `ContinuousLinearEquiv.compLpL` and of its inverse.
 * `MeasureTheory.Lp.exists_continuousLinearEquiv_innerProductSpace`: `L²` with values in a
   finite-dimensional normed space is continuously linearly equivalent to a Hilbert space.
 -/
@@ -45,32 +44,16 @@ variable {α : Type*} [MeasurableSpace α] {p : ENNReal} [Fact (1 ≤ p)] {μ : 
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
 
-variable (p μ) in
-/-- The continuous linear equivalence `Lp E p μ ≃L[𝕜] Lp F p μ` given by composing with a
-continuous linear equivalence `e : E ≃L[𝕜] F`. Its inverse composes with `e.symm`. -/
-def compLpL (e : E ≃L[𝕜] F) : Lp E p μ ≃L[𝕜] Lp F p μ :=
-  ofContinuousLinearMap ((e : E →L[𝕜] F).compLpL p μ) ((e.symm : F →L[𝕜] E).compLpL p μ)
-    (by rw [ContinuousLinearMap.compLpL_comp_compLpL, coe_comp_coe_symm,
-      ContinuousLinearMap.id_compLpL])
-    (by rw [ContinuousLinearMap.compLpL_comp_compLpL, coe_symm_comp_coe,
-      ContinuousLinearMap.id_compLpL])
-
 /-- `e.compLpL p μ` composes with `e`. -/
-@[simp]
-theorem compLpL_apply (e : E ≃L[𝕜] F) (f : Lp E p μ) :
-    e.compLpL p μ f = (e : E →L[𝕜] F).compLp f :=
-  (rfl)
+theorem compLpL_apply_eq_compLp (e : E ≃L[𝕜] F) (f : Lp E p μ) :
+    e.compLpL p μ f = (e : E →L[𝕜] F).compLp f := by
+  rw [compLpL_apply]
+  rfl
 
 /-- The inverse of `e.compLpL p μ` composes with `e.symm`. -/
-@[simp]
 theorem compLpL_symm_apply (e : E ≃L[𝕜] F) (f : Lp F p μ) :
-    (e.compLpL p μ).symm f = (e.symm : F →L[𝕜] E).compLp f :=
-  (rfl)
-
-/-- Almost everywhere, `e.compLpL p μ f` is `e` applied to the values of `f`. -/
-theorem coeFn_compLpL (e : E ≃L[𝕜] F) (f : Lp E p μ) :
-    e.compLpL p μ f =ᵐ[μ] fun a ↦ e (f a) :=
-  (e : E →L[𝕜] F).coeFn_compLp f
+    (e.compLpL p μ).symm f = (e.symm : F →L[𝕜] E).compLp f := by
+  rw [symm_compLpL, compLpL_apply_eq_compLp]
 
 end ContinuousLinearEquiv
 
