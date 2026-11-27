@@ -162,7 +162,7 @@ merged first, `Weight/Basic.lean` and `Blowdown.lean` use it.
   $\mathbb C^n\setminus0$ is already of this kind
   (`fubiniStudyLift_eq_del_delBar`, `fubiniStudyPotential`).
 - **Normalization (Definition 7.1.17).** A predicate
-  `IsNormalizedAt ω J p₀ δ ψ₀`: `ω.Compatible J`,
+  `IsNormalizedAt ω J p₀ δ ψ₀`: `ω.Compatible J`, `0 < δ`,
   `IsSymplecticBallEmbedding ω δ ψ₀`, `ψ₀ 0 = p₀`, and $d\psi_0$ is
   complex linear from $J_0$ to $J$ on the open ball. From it,
   `IsNormalizedAt.blowupChart` is the `BlowupChart M p₀` of *Complex

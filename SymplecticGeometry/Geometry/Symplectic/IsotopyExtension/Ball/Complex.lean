@@ -7,7 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Space
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
@@ -28,6 +30,8 @@ so the source of the chart is the preimage of a Euclidean ball, not a sup-norm b
 
 ## Main results
 
+* `SymplecticGeometry.isPseudoholomorphic_complexToRealEuclidean`: `complexToRealEuclidean ι` is
+  pseudoholomorphic from the complex structure of `ι → ℂ` to the constant structure `J₀`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isSymplecticMapOn_complexPartialDiffeomorph`:
   on its source, `hψ.complexPartialDiffeomorph` is a symplectic map from the constant form of
   `stdComplexPiSymplecticForm (Fin m)` to `σ`.
@@ -45,6 +49,18 @@ open Set Metric
 open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
+
+open TauCeti TauCeti.SmoothAlmostComplexStructure in
+/-- `complexToRealEuclidean ι : (ι → ℂ) → StdSpace ι` is pseudoholomorphic from the complex
+structure of `ι → ℂ` (multiplication by `I`) to the constant structure `J₀` of `StdSpace ι`. -/
+theorem isPseudoholomorphic_complexToRealEuclidean (ι : Type*) [Fintype ι] :
+    IsPseudoholomorphic (ofComplexManifold (ι → ℂ) (ι → ℂ))
+      (stdComplexStructure ι).constSmooth (complexToRealEuclidean ι) :=
+  isPseudoholomorphic_iff.2 fun _ ↦
+    isPseudoholomorphicAt_of_hasMFDerivAt (complexToRealEuclidean ι).hasMFDerivAt fun v ↦
+      (congrArg (complexToRealEuclidean ι) (ofComplexManifold_apply (E := ι → ℂ) _ v)).trans
+        ((stdComplexStructure_complexToRealEuclidean v).symm.trans
+          (AlmostComplexStructure.constSmooth_apply _ _ _).symm)
 
 namespace IsSymplecticBallEmbedding
 

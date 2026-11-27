@@ -352,7 +352,9 @@ For a symplectic atlas `A` of `π` for $(F,\sigma)$, with no compactness:
 - `exists_isClosed_restricts_iff`: the two directions together: a closed
   extension of the fibre forms exists if and only if such a class does.
 
-Statements are in degree 2 with $\sigma$ closed (it is symplectic). About
+`map_eq_of_restricts` and `forall_map_eq_of_map_eq` hold in every degree;
+the other statements are in degree 2 with $\sigma$ closed (it is
+symplectic). About
 450 lines; if it grows, the chart-independence lemma goes first in the same
 issue as a public lemma about fibre embeddings.
 
@@ -420,7 +422,7 @@ About 350 lines.
 For an oriented atlas `A` of `π` with closed connected surface fibre
 $(F,o)$:
 
-- `exists_restricts_isPositive_area`: a two-form $\tau$ on $M$ whose
+- `TauCeti.MapFiber.Atlas.exists_restricts_isPositive_area`: a two-form $\tau$ on $M$ whose
   restrictions $j_{e,b}^*\tau$ are area forms inducing `o`, of integral
   one. Fix such a form $\sigma_0$ on $F$ (a top form inducing `o`, from Tau
   Ceti's `TauCeti.exists_topForm_of_orientation`, rescaled) and glue $e^*\mathrm{pr}_F^*\sigma_0$ with a partition of unity
