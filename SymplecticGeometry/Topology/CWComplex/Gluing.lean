@@ -41,6 +41,8 @@ The model is the adjunction space `Z ∪ X` obtained by attaching `X` to `Z` alo
 
 * `SymplecticGeometry.exists_homotopyEquiv_relCWAdjunctionSpace_of_isPushout`: replacing `W` by a
   relative CW model of it in the pushout `T ∪_A W` does not change the homotopy type.
+* `TauCeti.hasHomotopyExtensionProperty_base_univ`: the base of a relative CW structure on a
+  whole space has the homotopy extension property in it.
 * `SymplecticGeometry.exists_relCWComplex_homotopyEquiv_of_isPushout`: a relative CW model of
   `Y` over the deformation retract `Z` of `T`, with the cells of the model of `W`.
 
@@ -57,6 +59,22 @@ noncomputable section
 
 open CategoryTheory CategoryTheory.Limits Set Topology TauCeti Topology.RelCWComplex ContinuousMap
 
+namespace TauCeti
+
+/-- **The base of a relative CW structure on a whole space is a cofibration.** If a space `X` is a
+CW complex relative to `D`, then `D` has the homotopy extension property in `X`. This is
+`TauCeti.hasHomotopyExtensionProperty_base` for `C = univ`, read in `X` itself rather than in the
+subtype `univ`. -/
+theorem hasHomotopyExtensionProperty_base_univ {X : Type*} [TopologicalSpace X] [T2Space X]
+    {D : Set X} [RelCWComplex (univ : Set X) D] : HasHomotopyExtensionProperty D := by
+  have := (hasHomotopyExtensionProperty_base (C := (univ : Set X)) (D := D)).image
+    (Homeomorph.Set.univ X)
+  convert this using 1
+  ext x
+  simp
+
+end TauCeti
+
 namespace SymplecticGeometry
 
 universe u
@@ -70,9 +88,16 @@ of `A`, which undoes `j`. It is the attaching map of `X` to `T` in
 def relCWModelAttachingMap (hAT : A ⊆ T) (hj : IsEmbedding j) : C(range j, T) :=
   (ContinuousMap.inclusion hAT).comp (hj.toHomeomorph.symm : C(range j, A))
 
+/-- The definition of `SymplecticGeometry.relCWModelAttachingMap`. -/
+theorem relCWModelAttachingMap_def (hj : IsEmbedding j) :
+    relCWModelAttachingMap hAT hj =
+      (ContinuousMap.inclusion hAT).comp (hj.toHomeomorph.symm : C(range j, A)) := (rfl)
+
+/-- The attaching map `SymplecticGeometry.relCWModelAttachingMap` sends `j a` to `a`. -/
+@[simp]
 theorem relCWModelAttachingMap_apply (hj : IsEmbedding j) (a : A) :
     relCWModelAttachingMap hAT hj ⟨j a, mem_range_self a⟩ = ContinuousMap.inclusion hAT a := by
-  simp [relCWModelAttachingMap]
+  simp [relCWModelAttachingMap_def]
 
 /-- **Gluing a relative CW model into a pushout.** Let `Y` be the pushout of `T` and `W` along
 `A`, given as a pushout square of inclusions, with `A` having the homotopy extension property in
@@ -106,13 +131,8 @@ theorem exists_homotopyEquiv_relCWAdjunctionSpace_of_isPushout
       exact hh a
     obtain ⟨_, a, rfl⟩ := x
     exact key a
-  have hX : HasHomotopyExtensionProperty (range j) := by
-    have := (hasHomotopyExtensionProperty_base (C := (univ : Set X)) (D := range j)).image
-      (Homeomorph.Set.univ X)
-    convert this using 1
-    ext x
-    simp
-  obtain ⟨g, hgA, hgh, hhg⟩ := hX.exists_inverse_homotopicRel hA h eA heA
+  obtain ⟨g, hgA, hgh, hhg⟩ :=
+    hasHomotopyExtensionProperty_base_univ.exists_inverse_homotopicRel hA h eA heA
   have hgj (a : A) : g (ContinuousMap.inclusion hAW a) = j a := by
     rw [hgA ⟨ContinuousMap.inclusion hAW a, mem_range_self a⟩]
     simp only [eA]
@@ -177,6 +197,41 @@ theorem exists_homotopyEquiv_relCWAdjunctionSpace_of_isPushout
         · intro hx
           exact ⟨⟨x, hx⟩, rfl⟩
   exact ⟨⟨F.hom, G.hom, hGF, hFG⟩, hFinr⟩
+
+/-- **A relative CW model of a pushout over a deformation retract.** Let `Y` be the pushout of
+`T` and `W` along `A`, given as a pushout square of inclusions, with `A` having the homotopy
+extension property in `W`, and let `Z ⊆ T` be a Hausdorff deformation retract of `T`, by a
+retraction `r : T → Z` whose composite with the inclusion is homotopic to the identity of `T`.
+Let `X` be a Hausdorff relative CW complex over the image of an embedding `j : A → X`, and
+`h : X ≃ₕ W` a homotopy equivalence which is the inclusion on `A`. Then `Y` is homotopy
+equivalent to a Hausdorff relative CW complex `X'` over the image of a closed embedding
+`j' : Z → X'`, with the cells of `X` in each dimension, by a homotopy equivalence which is the
+inclusion on `Z`. -/
+theorem exists_relCWComplex_homotopyEquiv_of_isPushout
+    (hY : IsPushout (TopCat.ofHom (ContinuousMap.inclusion hAW))
+      (TopCat.ofHom (ContinuousMap.inclusion hAT))
+      (TopCat.ofHom (⟨Subtype.val, continuous_subtypeVal⟩ : C(W, Y)))
+      (TopCat.ofHom (⟨Subtype.val, continuous_subtypeVal⟩ : C(T, Y))))
+    (hA : HasHomotopyExtensionProperty (range (ContinuousMap.inclusion hAW)))
+    {Z : Set Y} [T2Space Z] (hZT : Z ⊆ T) (r : C(T, Z))
+    (hr : ∀ z, r (ContinuousMap.inclusion hZT z) = z)
+    (hr' : ((ContinuousMap.inclusion hZT).comp r).Homotopic (ContinuousMap.id T))
+    [T2Space X] [RelCWComplex (univ : Set X) (range j)] (hj : IsEmbedding j) (h : X ≃ₕ W)
+    (hh : ∀ a, (h (j a) : Y) = a) :
+    ∃ (X' : Type u) (_ : TopologicalSpace X') (_ : T2Space X') (j' : C(Z, X'))
+      (_ : RelCWComplex (univ : Set X') (range j')) (h' : X' ≃ₕ Y),
+      IsClosedEmbedding j' ∧ (∀ z, h' (j' z) = z) ∧
+      Nonempty (∀ m, cell (univ : Set X') m ≃ cell (univ : Set X) m) := by
+  obtain ⟨e, he⟩ := exists_homotopyEquiv_relCWAdjunctionSpace_of_isPushout hY hA hj h hh
+  -- The homotopy equivalence `Z ≃ₕ T` given by the inclusion and the retraction.
+  let eZ : Z ≃ₕ T := .ofDeformationRetraction (ContinuousMap.inclusion hZT) r hr hr'
+  obtain ⟨E, -, hE⟩ := eZ.symm.exists_homotopyEquiv_relCWAdjunctionSpace (univ : Set X)
+    (relCWModelAttachingMap hAT hj)
+  refine ⟨_, inferInstance, inferInstance, _, relativeCWPushout (univ : Set X) _, E.symm.trans e,
+    isClosedEmbedding_pushout_inr_relCWBaseInclusion (C := (univ : Set X)) _, fun z ↦ ?_,
+    ⟨relativeCWPushoutCellEquiv (univ : Set X) _⟩⟩
+  rw [HomotopyEquiv.trans_apply, hE, he]
+  simp [eZ]
 
 end SymplecticGeometry
 
