@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.Submersion
 public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
@@ -67,16 +68,17 @@ equal to the identity on `Set.Icc 0 1` and with values in `(-1, 2)`, chosen with
 
 For `b₀ : B` with chart point `c = extChartAt J b₀ b₀` and a radius `r` such that the ball of
 radius `2 * r` around `c` lies in the chart target, `chartBall J b₀ r` is the open set of points
-of the chart source whose chart point lies in the ball of radius `r` around `c`, and
+of the chart source whose chart point lies in the ball of radius `r` around `c`
+(`Geometry/Manifold/IsManifold/ChartBall.lean`), and
 `chartRay J b₀ (b, u)` is `(extChartAt J b₀).symm (c + rayParam u • (extChartAt J b₀ b - c))`.
 On `chartBall J b₀ r × ℝ` this family is smooth (`contMDiff_chartRay_chartBall`), its curves
 stay in the chart source (`chartRay_mem_source`), where they read as affine rays
 (`extChartAt_chartRay`); they start at `b₀` (`chartRay_zero`), end at `b` (`chartRay_one`) and
 follow the ray on `[0, 1]` (`chartRay_of_mem_Icc`).
 
-`chartBall` and `chartRay` adapt Tau Ceti's `OpenPartialHomeomorph.chartBall` and the straight
-lines of `OpenPartialHomeomorph.chartBallHomotopy`, from an open partial homeomorphism and
-continuous maps to the extended chart `extChartAt J b₀` and smooth maps.
+`chartRay` adapts the straight lines of Tau Ceti's `OpenPartialHomeomorph.chartBallHomotopy`,
+from an open partial homeomorphism and continuous maps to the extended chart `extChartAt J b₀`
+and smooth maps.
 
 ### Trivializations with a given fibre
 
@@ -113,8 +115,6 @@ the Hausdorff `B` is proper (`Continuous.isProperMap`).
 
 * `SymplecticGeometry.rayParam`: a smooth bounded function `ℝ → ℝ` that is the identity on
   `[0, 1]`.
-* `SymplecticGeometry.chartBall`: the preimage, in the chart source at `b₀`, of a ball around
-  the chart point of `b₀`, as an open set of `B`.
 * `SymplecticGeometry.chartRay`: the family of reparametrized rays of the chart at `b₀`.
 
 ## Main results
@@ -190,23 +190,6 @@ theorem abs_rayParam_le (t : ℝ) : |rayParam t| ≤ 2 := by
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {G : Type*} [TopologicalSpace G] (J : ModelWithCorners ℝ F G)
   {B : Type*} [TopologicalSpace B] [ChartedSpace G B]
-
-/-- The points of the chart source at `b₀` whose chart point lies in the ball of radius `r`
-around the chart point of `b₀`, as an open set of `B`. -/
-def chartBall (b₀ : B) (r : ℝ) : TopologicalSpace.Opens B :=
-  ⟨(extChartAt J b₀).source ∩ extChartAt J b₀ ⁻¹' Metric.ball (extChartAt J b₀ b₀) r,
-    isOpen_extChartAt_preimage' b₀ Metric.isOpen_ball⟩
-
-theorem mem_chartBall_iff {b₀ b : B} {r : ℝ} :
-    b ∈ chartBall J b₀ r ↔
-      b ∈ (extChartAt J b₀).source ∧ extChartAt J b₀ b ∈ Metric.ball (extChartAt J b₀ b₀) r :=
-  Iff.rfl
-
-theorem mem_chartBall_self (b₀ : B) {r : ℝ} (hr : 0 < r) : b₀ ∈ chartBall J b₀ r :=
-  (mem_chartBall_iff J).2 ⟨mem_extChartAt_source b₀, Metric.mem_ball_self hr⟩
-
-theorem chartBall_mem_nhds (b₀ : B) {r : ℝ} (hr : 0 < r) : (chartBall J b₀ r : Set B) ∈ 𝓝 b₀ :=
-  (chartBall J b₀ r).isOpen.mem_nhds (mem_chartBall_self J b₀ hr)
 
 /-- The family of rays of the chart at `b₀`, reparametrized by `SymplecticGeometry.rayParam`:
 the curve `u ↦ chartRay J b₀ (b, u)` is `(extChartAt J b₀).symm (c + rayParam u • (y - c))`,
