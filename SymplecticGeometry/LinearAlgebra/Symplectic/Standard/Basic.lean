@@ -62,14 +62,14 @@ The main facts fixing the conventions are `stdForm_apply`
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`), by which the map
-`A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms does not increase norms
-(`norm_precompR_stdForm_flip_apply_le`). Since `ω₀(u, ·) = ⟪J₀ u, ·⟫`, the inverse of `ω₀` as a
+`stdFormCompRightL ι`, `A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms, does not increase
+norms (`norm_stdFormCompRightL_apply_le`). Since `ω₀(u, ·) = ⟪J₀ u, ·⟫`, the inverse of `ω₀` as a
 map to the dual is `φ ↦ -J₀ φ'`, `φ'` the vector dual to `φ` for the inner product
 (`stdForm_flatEquiv_symm_apply`), and it preserves norms (`norm_stdForm_flatEquiv_symm_apply`).
-For `A` with `A² = -1`, the form `ω₀(·, A ·)` is then invertible as a map to the dual
-(`isInvertible_precompR_stdForm_flip_apply`), with inverse `φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, the image of
+For `A` with `A² = -1`, the form `stdFormCompRightL ι A` is then invertible as a map to the dual
+(`isInvertible_stdFormCompRightL_apply`), with inverse `φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, the image of
 `A` under the continuous linear map `stdFormCompRightInverseL ι`
-(`inverse_precompR_stdForm_flip_apply`), which does not increase norms
+(`inverse_stdFormCompRightL_apply`), which does not increase norms
 (`norm_stdFormCompRightInverseL_apply_le`). The rotation
 `stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
 (`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
@@ -486,17 +486,33 @@ theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
 theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
   SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
 
-/-- The fixed continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
-bilinear forms on it, does not increase norms. -/
-theorem norm_precompR_stdForm_flip_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
-    ‖(ContinuousLinearMap.precompR (StdSpace ι)
-        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A‖ ≤ ‖A‖ := by
+variable (ι) in
+/-- The continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
+continuous bilinear forms on it. -/
+noncomputable def stdFormCompRightL :
+    (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+  (ContinuousLinearMap.precompR (StdSpace ι)
+    (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+
+variable (ι) in
+theorem stdFormCompRightL_def :
+    stdFormCompRightL ι =
+      (ContinuousLinearMap.precompR (StdSpace ι)
+        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip :=
+  (rfl)
+
+/-- `stdFormCompRightL ι A u v = ω₀(u, A v)`. -/
+@[simp]
+theorem stdFormCompRightL_apply (A : StdSpace ι →L[ℝ] StdSpace ι) (u v : StdSpace ι) :
+    stdFormCompRightL ι A u v = stdForm ι u (A v) := by
+  simp [stdFormCompRightL_def, LinearMap.toContinuousBilinearMap_apply]
+
+/-- The map `A ↦ ω₀(·, A ·)` does not increase norms: `‖ω₀(·, A ·)‖ ≤ ‖A‖`. -/
+theorem norm_stdFormCompRightL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    ‖stdFormCompRightL ι A‖ ≤ ‖A‖ := by
   refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun u ↦
     ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
-  simp only [ContinuousLinearMap.flip_apply, ContinuousLinearMap.precompR_apply,
-    ContinuousLinearMap.compL_apply, ContinuousLinearMap.comp_apply,
-    LinearMap.toContinuousBilinearMap_apply,
-    Real.norm_eq_abs]
+  rw [stdFormCompRightL_apply, Real.norm_eq_abs]
   calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
     _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
     _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
@@ -521,7 +537,7 @@ theorem norm_stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
 variable (ι) in
 /-- The continuous linear map that sends an endomorphism `A` of `StdSpace ι` to
 `φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, `ω₀♭ : u ↦ ω₀(u, ·)`. When `A² = -1`, `stdFormCompRightInverseL ι A` is the
-inverse of the form `ω₀(·, A ·)` as a map to the dual (`inverse_precompR_stdForm_flip_apply`). -/
+inverse of the form `ω₀(·, A ·)` as a map to the dual (`inverse_stdFormCompRightL_apply`). -/
 noncomputable def stdFormCompRightInverseL :
     (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι :=
   ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
@@ -543,31 +559,27 @@ theorem norm_stdFormCompRightInverseL_apply_le (A : StdSpace ι →L[ℝ] StdSpa
 
 /-- The form `ω₀(·, A ·)`, as a map to the dual, is `ω₀♭ : u ↦ ω₀(u, ·)` followed by
 `φ ↦ φ ∘ A`. -/
-theorem precompR_stdForm_flip_apply_eq_comp (A : StdSpace ι →L[ℝ] StdSpace ι) :
-    (ContinuousLinearMap.precompR (StdSpace ι)
-        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A =
+theorem stdFormCompRightL_apply_eq_comp (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    stdFormCompRightL ι A =
       (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A ∘L
         ((stdForm ι).flatEquiv : StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ) := by
   ext u v
   simp
 
 /-- For `A` with `A² = -1`, the form `ω₀(·, A ·)` is invertible as a map to the dual. -/
-theorem isInvertible_precompR_stdForm_flip_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+theorem isInvertible_stdFormCompRightL_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
     (hA : ∀ v, A (A v) = -v) :
-    ((ContinuousLinearMap.precompR (StdSpace ι)
-      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A).IsInvertible := by
-  rw [precompR_stdForm_flip_apply_eq_comp, ContinuousLinearMap.isInvertible_comp_equiv]
+    (stdFormCompRightL ι A).IsInvertible := by
+  rw [stdFormCompRightL_apply_eq_comp, ContinuousLinearMap.isInvertible_comp_equiv]
   exact .of_inverse (g := -(ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A)
     (by ext φ v; simp [hA]) (by ext φ v; simp [hA])
 
 /-- For `A` with `A² = -1`, the inverse of the form `ω₀(·, A ·)`, as a map to the dual, is
 `φ ↦ -ω₀♭⁻¹ (φ ∘ A)`. -/
-theorem inverse_precompR_stdForm_flip_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+theorem inverse_stdFormCompRightL_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
     (hA : ∀ v, A (A v) = -v) :
-    ((ContinuousLinearMap.precompR (StdSpace ι)
-      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A).inverse =
-      stdFormCompRightInverseL ι A := by
-  rw [precompR_stdForm_flip_apply_eq_comp, ContinuousLinearMap.inverse_comp_equiv,
+    (stdFormCompRightL ι A).inverse = stdFormCompRightInverseL ι A := by
+  rw [stdFormCompRightL_apply_eq_comp, ContinuousLinearMap.inverse_comp_equiv,
     ContinuousLinearMap.inverse_eq
       (g := -(ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A)
       (by ext φ v; simp [hA]) (by ext φ v; simp [hA])]
