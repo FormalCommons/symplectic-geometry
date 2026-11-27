@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 import SymplecticGeometry.Geometry.Manifold.RegularValue.RestrictPreimage
 import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
 import SymplecticGeometry.Topology.FiberBundle.Trivialization
+import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
 # A product neighbourhood of the fibre of `E(1)` adapted to the affine coordinate
@@ -27,15 +28,17 @@ projection to `ℂℙ¹`: an open embedding `f` of the product of the Fermat cub
 ## Proof
 
 This is Ehresmann's fibration theorem for the affine coordinate near the fibre. On the open set
-`M` of points over the affine open `s ≠ 0`, the affine coordinate is the composite of the
-projection to that affine open, which is proper because the surface is compact, with the affine
-chart; so it is a smooth proper map `M → ℂ`. Its critical set is closed, so its image is closed,
-and it misses `0` because the affine coordinate is regular along the fibre
+`M` of points over the affine open `s ≠ 0`, the affine coordinate is a smooth proper map `M → ℂ`:
+the points of `M` with affine coordinate in a compact set `K` are those over the image of `K`
+under the inverse of the affine chart, a closed subset of the compact surface. Its critical set is
+closed, so its image is closed, and it misses `0` because the affine coordinate is regular
+along the fibre
 (`SymplecticGeometry.rationalEllipticSurface.isRegularPoint_restrictScalars_affineCoordinate`).
 Over a disc around `0` free of critical values, the affine coordinate is a smooth proper
 submersion, so it is locally trivial over a neighbourhood of `0`
 (`Manifold.IsSubmersion.exists_trivialization_of_isProperMap`), with the fibre over `0` as model
-fibre, and this fibre is the Fermat cubic (`range_fibreEmbedding`). The inverse of the
+fibre, and this fibre is the Fermat cubic
+(`SymplecticGeometry.rationalEllipticSurface.mem_range_fibreEmbedding_iff`). The inverse of the
 trivialization, over a smaller disc and read through the identification of the fibre over `0`
 with the model fibre (`Bundle.Trivialization.mapFiberHomeomorph`), is the product
 neighbourhood.
@@ -109,14 +112,8 @@ theorem exists_isOpenEmbedding_prod_ball :
         (f p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0 := by
   rcases isEmpty_or_nonempty (SmoothProjectiveHypersurface.fermat 1 3) with hX | ⟨⟨x₀⟩⟩
   · -- Over an empty cubic there is nothing to embed.
-    refine ⟨1, one_pos, fun p ↦ isEmptyElim p.1, ?_, fun x ↦ isEmptyElim x,
+    exact ⟨1, one_pos, fun p ↦ isEmptyElim p.1, .of_isEmpty _, fun x ↦ isEmptyElim x,
       fun p ↦ isEmptyElim p.1⟩
-    refine .of_continuous_injective_isOpenMap (continuous_def.2 fun s _ ↦ ?_)
-      (fun p ↦ isEmptyElim p.1) fun U _ ↦ ?_
-    · rw [eq_empty_of_isEmpty (_ ⁻¹' s)]
-      exact isOpen_empty
-    · rw [eq_empty_of_isEmpty U, image_empty]
-      exact isOpen_empty
   set M := overAffineOpen
   set a : M → ℂ := affineCoordinate ∘ Subtype.val
   have ha : ContMDiff 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) ∞ a := fun p ↦
@@ -182,15 +179,8 @@ theorem exists_isOpenEmbedding_prod_ball :
     (hι.prodMap ψ.isOpenEmbedding).comp (Homeomorph.prodComm _ _).isOpenEmbedding
   have hjt (p) : j p ∈ e.target := e.mem_target.2 (hιe p.2)
   -- The inverse of the trivialization over the small disc.
-  have hs : Topology.IsOpenEmbedding (e.toOpenPartialHomeomorph.symm ∘ j) := by
-    refine .of_continuous_injective_isOpenMap
-      (e.toOpenPartialHomeomorph.continuousOn_symm.comp_continuous hj.continuous hjt)
-      (fun p p' h ↦ hj.injective (e.toOpenPartialHomeomorph.symm.injOn (hjt p) (hjt p') h))
-      fun U hU ↦ ?_
-    rw [image_comp]
-    refine e.toOpenPartialHomeomorph.symm.isOpen_image_of_subset_source (hj.isOpenMap U hU) ?_
-    rintro _ ⟨p, -, rfl⟩
-    exact hjt p
+  have hs : Topology.IsOpenEmbedding (e.toOpenPartialHomeomorph.symm ∘ j) :=
+    e.toOpenPartialHomeomorph.symm.isOpenEmbedding_comp hj (range_subset_iff.2 hjt)
   refine ⟨δ, hδ, fun p ↦ (e.toOpenPartialHomeomorph.symm (j p)).val.val,
     M.isOpen.isOpenEmbedding_subtypeVal.comp (P.isOpen.isOpenEmbedding_subtypeVal.comp hs),
     fun x ↦ ?_, fun p ↦ ⟨congrArg Subtype.val (e.proj_symm_apply' (hιe p.2)),
