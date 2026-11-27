@@ -16,11 +16,11 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Topology.FiberBundle.ModelFiber
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
@@ -72,10 +72,13 @@ is induced from Tau Ceti's along the identity of points (`TauCeti.totalSpaceMode
 The last section adds the smooth structure, for a Hermitian line bundle `(g, hI)` over a manifold:
 a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, whose fibres get
 their norms and Hermitian products from `g` through three local instances (written with `letI` in
-the statements). The class `SymplecticGeometry.Bundle.ContMDiffHermitianMetric` holds `g` and
-`hI`; its scoped instances give these three and the smooth principal bundle structure below,
-so that a proof installs them all with one `let`. Under the class, Tau Ceti's
-`Bundle.ContMDiffRiemannianMetric.inner_eq`, `Bundle.ContMDiffRiemannianMetric.norm_sq` and
+the statements). The class `SymplecticGeometry.Bundle.ContMDiffHermitianMetric` of
+`SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian` holds `g` and `hI`, and
+its scoped instances give these three; this file adds the scoped instance
+`SymplecticGeometry.Bundle.ContMDiffHermitianMetric.contMDiffFiberBundle` for the smooth principal
+bundle structure below, so that a proof installs them all with one `let`. Under the class,
+Tau Ceti's `Bundle.ContMDiffRiemannianMetric.inner_eq`,
+`Bundle.ContMDiffRiemannianMetric.norm_sq` and
 `Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`, applied to `g`, express the
 inner products and norms through `g`.
 The unit vector `σ 1` of a local unitary frame is then a smooth local section
@@ -456,69 +459,6 @@ theorem coe_coordChange_transModelFiber_orthonormalFrameBundleFiber
   exact proj_symm_apply' _ (by simpa using hy)
 
 end Bundle.Trivialization
-
-/-! ### Hermitian metrics as a class -/
-
-section HermitianMetric
-
-open scoped VectorBundle.ComplexToReal
-
-namespace SymplecticGeometry.Bundle
-
-/-- A smooth Hermitian metric on a complex vector bundle `V`: a `C^n` Riemannian metric `metric`
-on the underlying real bundle for which multiplication by `Complex.I` is an isometry of each
-fibre. After `open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric`, its instances give
-the fibres of `V` the norms and real inner products of `metric` and the Hermitian products
-`metric.complexInnerProductSpace inner_I_smul`, so that a proof about a metric `g` with `hI`
-installs them with `let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩`. The model `I`, the
-smoothness `n` and the model fibre `F` are `outParam`s, since the goals of these instances
-mention only `V`. -/
-class ContMDiffHermitianMetric {EB HB : outParam Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
-    [TopologicalSpace HB] (I : outParam (ModelWithCorners ℝ EB HB)) {B : Type*}
-    [TopologicalSpace B] [ChartedSpace HB B] (n : outParam ℕ∞ω) (F : outParam Type*)
-    [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
-    (V : B → Type*) [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
-    [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
-    [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
-    [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V] where
-  /-- The underlying smooth real metric. -/
-  metric : ContMDiffRiemannianMetric I n F V
-  /-- Multiplication by `Complex.I` preserves the metric. -/
-  inner_I_smul (x : B) (v w : V x) :
-    metric.inner x (Complex.I • v) (Complex.I • w) = metric.inner x v w
-
-namespace ContMDiffHermitianMetric
-
-/- The arguments on the model side (`EB`, `HB`, the charts of `B`, `F` and the bundle structure
-of `V`) are implicit here: the class assigns them. As instance arguments they would be searched
-for before the class, since they occur in the goals of the instances below, and that search does
-not end within the default limits. -/
-variable {EB HB : Type*} {iEB : NormedAddCommGroup EB} {iEBℝ : NormedSpace ℝ EB}
-  {iHB : TopologicalSpace HB} {I : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
-  {cB : ChartedSpace HB B} {n : ℕ∞ω} {F : Type*} {iF : NormedAddCommGroup F}
-  {iFℝ : NormedSpace ℝ F} {iFℂ : NormedSpace ℂ F}
-  {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
-  [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
-  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
-  {iTV : TopologicalSpace (TotalSpace F V)} {fV : FiberBundle F V} {vV : VectorBundle ℂ F V}
-  [h : ContMDiffHermitianMetric I n F V]
-
-/-- The fibre metric of a smooth Hermitian metric. -/
-scoped instance riemannianBundle : RiemannianBundle V := ⟨h.metric.toRiemannianMetric⟩
-
-/-- The Hermitian products of a smooth Hermitian metric on the fibres. -/
-scoped instance innerProductSpace (x : B) : InnerProductSpace ℂ (V x) :=
-  h.metric.complexInnerProductSpace h.inner_I_smul x
-
-/-- The fibre metric of a smooth Hermitian metric is continuous. -/
-scoped instance isContinuousRiemannianBundle : IsContinuousRiemannianBundle F V :=
-  instIsContinuousRiemannianBundle h.metric.toContinuousRiemannianMetric
-
-end ContMDiffHermitianMetric
-
-end SymplecticGeometry.Bundle
-
-end HermitianMetric
 
 /-! ### The smooth structure -/
 
