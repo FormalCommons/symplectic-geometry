@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Calculus.SliceLowerBound
 import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
 import SymplecticGeometry.Geometry.Manifold.Immersion.Complement
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
+import TauCeti.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.Immersion.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -167,7 +168,8 @@ private theorem exists_eventually_infDist_le_mul_norm_snd [I'.Boundaryless]
   -- The transition map from the normal-form coordinates to `e` is Lipschitz near `(a₀, 0)`.
   set T : E' × F → E := (e.extend 𝓘(ℝ, E) ∘ ψ.symm) ∘ L
   have hT : ContDiffAt ℝ 1 T (a₀, 0) := by
-    have := (contMDiffAt_iff_contDiffAt_comp_extend_symm hψ hyψ).1 (e.contMDiffAt_extend he hy)
+    have : ContDiffAt ℝ 1 (e.extend 𝓘(ℝ, E) ∘ ψ.symm) (ψ (ι y)) :=
+      (e.contMDiffAt_extend he hy).contDiffAt_comp_symm_of_mem_maximalAtlas hψ hyψ
     rw [← hLu₀] at this
     exact this.comp (a₀, 0) L.contDiff.contDiffAt
   obtain ⟨K, t, ht, hK⟩ := hT.exists_lipschitzOnWith
@@ -249,7 +251,8 @@ theorem exists_eventually_infDist_sq_le_mul [I'.Boundaryless]
     have hga : g (a, 0) = 0 := by simp only [g, comp_apply, ha, hρa]
     exact IsLocalMin.fderiv_eq_zero (ha'.mono fun u hu ↦ hga ▸ hu)
   have hg : ContDiffAt ℝ 2 g (a₀, 0) := by
-    have hf₀ := (contMDiffAt_iff_contDiffAt_comp_extend_symm hψ hyψ).1 hρ
+    have hf₀ : ContDiffAt ℝ 2 (ρ ∘ ψ.symm) (ψ (ι y)) :=
+      hρ.contDiffAt_comp_symm_of_mem_maximalAtlas hψ hyψ
     rw [← hLu₀] at hf₀
     exact hf₀.comp (a₀, 0) L.contDiff.contDiffAt
   have hρy : ρ (ι y) = 0 := hρι.self_of_nhds
@@ -326,10 +329,9 @@ theorem exists_eventually_abs_comp_symm_le_mul_infDist_sq [FiniteDimensional ℝ
   obtain ⟨O, hOsub, hOo, hyO⟩ := mem_nhds_iff.1 (inter_mem hD hO')
   set U := e.target ∩ e.symm ⁻¹' O
   have hz₀U : e (ι y) ∈ U := ⟨e.map_source hy, by simpa [e.left_inv hy] using hyO⟩
-  have hgU : ContDiffOn ℝ 2 (D ∘ e.symm) U := fun z hz ↦ by
-    have := (contMDiffAt_iff_contDiffAt_comp_extend_symm he (e.map_target hz.1)).1 (hOsub hz.2).1
-    rw [hsymm, hext, e.right_inv hz.1] at this
-    exact this.contDiffWithinAt
+  have hgU : ContDiffOn ℝ 2 (D ∘ e.symm) U :=
+    ContMDiffOn.contDiffOn_comp_symm_of_mem_maximalAtlas
+      (fun x hx ↦ (hOsub hx).1.contMDiffWithinAt) he
   have hZU : ∀ z ∈ Z ∩ U, ∃ y', e.symm z = ι y' ∧ ι y' ∈ e.source ∧ z = e (ι y') ∧
       D (ι y') = 0 ∧ mvfderiv 𝓘(ℝ, E) D (ι y') = 0 := by
     rintro z ⟨⟨x, ⟨hxs, y', rfl⟩, rfl⟩, -, hzO⟩

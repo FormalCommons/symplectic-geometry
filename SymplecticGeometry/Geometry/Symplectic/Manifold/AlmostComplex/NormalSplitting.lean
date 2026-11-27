@@ -169,8 +169,6 @@ theorem isCompl_tangentRange_orthogonal
         (f.isImmersion.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     IsCompl (f.isImmersion.tangentRange x hn) (f.orthogonalTangentRange ω x hn) := by
-  have : FiniteDimensional ℝ (((f : M → X) *ᵖ (TangentSpace I)) x) :=
-    inferInstanceAs (FiniteDimensional ℝ E)
   have h := ((hω.isNondegenerate.tames_iff.1 hω x).isSymplectic_of_mem_invtSubmodule
     (L := f.isImmersion.tangentRange x hn) ((Module.End.mem_invtSubmodule _).2 fun v hv ↦
         ?_)).isCompl
@@ -188,8 +186,6 @@ theorem isTopCompl_tangentRange_orthogonal
         (f.isImmersion.tangentRange x hn))
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) (x : M) :
     (f.isImmersion.tangentRange x hn).IsTopCompl (f.orthogonalTangentRange ω x hn) :=
-  have : FiniteDimensional ℝ (((f : M → X) *ᵖ (TangentSpace I)) x) :=
-    inferInstanceAs (FiniteDimensional ℝ E)
   ⟨isCompl_tangentRange_orthogonal hJ hω x, LinearMap.continuous_of_finiteDimensional _⟩
 
 omit [FiniteDimensional ℝ E] in
