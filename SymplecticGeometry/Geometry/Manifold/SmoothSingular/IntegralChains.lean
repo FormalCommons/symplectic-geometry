@@ -31,7 +31,7 @@ Represent `z` by a smooth integral cycle `z'` (smoothing), and `deRhamHom [φ]` 
 `ψ`. Read through integral chains, `ψ` takes on `z'` its value on the real cycle `z'_ℝ` with the
 same simplices and the coefficients cast to `ℝ`
 (`TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f`, with the cycle
-`SymplecticGeometry.intCastCyclesMap`). On a real smooth cycle, `ψ` gives the integral of `φ`
+`SSet.intCastCyclesMap`). On a real smooth cycle, `ψ` gives the integral of `φ`
 (`TauCeti.iCycles_chainComplexMap_ι_eq_integrationCochain`, from Tau Ceti's
 `TauCeti.singularKronecker_deRhamHom_mk_apply` and
 `TauCeti.homologyπ_smoothSingularHomologyIso_hom_singularKronecker_homologyπ`). The integral of
@@ -75,10 +75,10 @@ variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensio
 
 omit [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [IsManifold I ∞ M] in
 /-- Integration of a form `ψ` over smooth chains with coefficients `ULift ℤ` made real, by casting
-their coefficients to `ℝ` (`SymplecticGeometry.intCastChainMap`), is integration over the chains
+their coefficients to `ℝ` (`SSet.intCastChainMap`), is integration over the chains
 read with coefficients `ℤ`. -/
 theorem intCastChainMap_f_integrationCochain {p : ℕ} (ψ : RoughForm I M ℝ p) :
-    (SymplecticGeometry.intCastChainMap ℝ (smoothSingularSubcomplex I M : SSet)).f p ≫
+    (SSet.intCastChainMap ℝ (smoothSingularSubcomplex I M : SSet)).f p ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ ℝ)).map (integrationCochain (R := ℝ) ψ) ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := ℝ) ℝ).hom =
       (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
@@ -86,7 +86,7 @@ theorem intCastChainMap_f_integrationCochain {p : ℕ} (ψ : RoughForm I M ℝ p
   refine SSet.chainComplex_hom_ext fun σ ↦ ?_
   ext a
   refine (ConcreteCategory.comp_apply _ _ a).trans
-    ((SymplecticGeometry.intCastChainMap_f_comp_apply _ σ _ a).trans ?_)
+    ((SSet.intCastChainMap_f_comp_apply _ σ _ a).trans ?_)
   rw [SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc,
     ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, uliftIntIso_hom_apply]
   erw [integrationCochain_ιChainComplex, integrationCochain_ιChainComplex]
@@ -190,11 +190,11 @@ theorem singularKronecker_singularCohomologyIntChainsIso_hom_deRhamHom_mk {p : �
   congr 1
   -- The cycle `z` with its coefficients cast to `ℝ`, a real smooth cycle.
   have h := iCycles_chainComplexMap_ι_eq_integrationCochain φ ψ hψ
-    (SymplecticGeometry.intCastCyclesMap ℝ (smoothSingularSubcomplex I M : SSet) p z)
+    (SSet.intCastCyclesMap ℝ (smoothSingularSubcomplex I M : SSet) p z)
   -- The restricted cycles have the carrier of the real cycles, and the underlying chain of the
   -- cast cycle is read in the restricted complex, whose chains are the real chains only after
   -- unfolding.
-  erw [SymplecticGeometry.intCastCyclesMap_iCycles_apply] at h
+  erw [SSet.intCastCyclesMap_iCycles_apply] at h
   exact h
 
 end TauCeti

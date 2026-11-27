@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LocalPullback
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
@@ -79,19 +78,6 @@ open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexMani
 noncomputable section
 
 namespace SymplecticGeometry
-
-namespace BlowupModel
-
-open TauCeti TauCeti.SmoothAlmostComplexStructure
-
-/-- The blowdown of the model is pseudoholomorphic, from the structure of the complex manifold
-`BlowupModel n` to that of `ℂⁿ⁺¹`. -/
-theorem isPseudoholomorphic_ofComplexManifold_blowdown {n : ℕ} :
-    IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
-      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
-  isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
-
-end BlowupModel
 
 namespace Blowup
 
@@ -200,13 +186,8 @@ private theorem offDivisorStructure_apply_eq
   have hl := isLocalDiffeomorphAt_lift c (hr h₁)
   have hJ' := (hJ.isPseudoholomorphicWithinAt hsrc).isPseudoholomorphicAt_of_mem_nhds
     (c.open_source.mem_nhds hsrc)
-  have hbdℂ : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
-      BlowupModel.blowdown (lift c z) :=
-    (BlowupModel.contMDiff_blowdown (n := n) ω).mdifferentiableAt (by simp)
-  have hbd : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-      BlowupModel.blowdown (lift c z) :=
-    ((BlowupModel.contMDiff_blowdown (n := n) ω).restrictScalars' ℝ).mdifferentiableAt
-      (by simp)
+  have hbd := (isPseudoholomorphic_ofComplexManifold_blowdown (n := n)).isPseudoholomorphicAt
+    (lift c z)
   set A := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) c (blowdown c z)
   set B := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
   set D := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) BlowupModel.blowdown (lift c z)
@@ -215,7 +196,7 @@ private theorem offDivisorStructure_apply_eq
   have hd : ∀ w, A (B w) = D (L w) := fun w ↦
     (mfderiv_comp_apply z (hc'.mdifferentiableAt (by simp)) (hπ.mdifferentiableAt (by simp))
       w).symm.trans ((DFunLike.congr_fun hEq.mfderiv_eq w).trans
-        (mfderiv_comp_apply z hbd (hl.mdifferentiableAt (by simp)) w))
+        (mfderiv_comp_apply z hbd.mdifferentiableAt (hl.mdifferentiableAt (by simp)) w))
   -- Both sides are multiplication by `i` after `A ∘ B`. The vectors live in tangent spaces,
   -- which are `ℂⁿ⁺¹` only by definition; `id` gives them that type.
   have lhs : A (B (offDivisorStructure c J ⟨z, h₀⟩ v)) =
@@ -225,7 +206,7 @@ private theorem offDivisorStructure_apply_eq
   have rhs : A (B (rangeInrStructure c ⟨z, h₁⟩ v)) =
       Complex.I • @id (Fin (n + 1) → ℂ) (A (B v)) :=
     (hd _).trans ((congrArg D (mfderiv_lift_rangeInrStructure c ⟨z, h₁⟩ v)).trans
-      ((hbdℂ.mfderiv_ofComplexManifold_apply _).trans
+      ((hbd.mfderiv_apply_commute _).trans
         ((ofComplexManifold_apply _ _).trans (congrArg _ (hd v).symm))))
   exact ((hc'.isInvertible_mfderiv (by simp)).injective.comp
     (hπ.isInvertible_mfderiv (by simp)).injective) (lhs.trans rhs.symm)
