@@ -100,7 +100,7 @@ theorem exists_pos_forall_nondegenerate_sub_smul [FiniteDimensional ℝ E]
   have key (a b : E [⋀^Fin 2]→L[ℝ] ℝ) : ‖a - s • b - a‖ ≤ ‖b‖ := by
     rw [sub_sub_cancel_left, norm_neg, norm_smul, Real.norm_eq_abs, abs_of_nonneg hs.1]
     exact mul_le_of_le_one_left (norm_nonneg _) hs.2
-  simp only [Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply, Pi.smul_apply]
+  simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.smul_apply]
   -- The values of forms on `E` are alternating maps on `E` itself, so `key` applies to them.
   exact (key _ _).trans_lt hη
 

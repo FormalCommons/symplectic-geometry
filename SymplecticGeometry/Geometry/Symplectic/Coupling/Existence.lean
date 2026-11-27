@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
@@ -178,9 +179,9 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t) := by
   refine SmoothBundleForm.ext_fin_one fun p v ↦ ?_
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
-  simp only [mfderiv_prodMk_left_apply, Submodule.coe_add, SetLike.val_smul,
-    SmoothForm.coe_mpullback, Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
-    ContinuousAlternatingMap.coe_smul, smul_eq_mul, mpullback_apply]
+  simp only [mfderiv_prodMk_left_apply, SmoothBundleForm.add_apply,
+    SmoothBundleForm.smul_apply, SmoothForm.coe_mpullback, ContinuousAlternatingMap.add_apply,
+    ContinuousAlternatingMap.smul_apply, smul_eq_mul, mpullback_apply]
 
 /-! ### The coupling form `pr^* π^* σ + d A` -/
 
