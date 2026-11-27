@@ -737,9 +737,10 @@ containing `ι '' closedBall 0 1`:
     being graphs over `R` near that line, and the building issue states
     that second form with the criterion of 14d1 rewritten for it.
   - `exists_contDiff_shapeLevel` (the function of a foliation): a family
-    as above defines, by the implicit function theorem (Mathlib's
-    `HasStrictFDerivAt.implicitFunction`), a smooth `H : ℝ × ℝ → ℝ` on
-    the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = -ℓ`,
+    as above, on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂` and with `0 < ∂χ/∂ℓ`, defines,
+    by the inverse function theorem for `(ℓ, r) ↦ (χ ℓ r ^ 2, r ^ 2)`
+    (Mathlib's `OpenPartialHomeomorph.contDiffAt_symm`), an `H : ℝ × ℝ → ℝ`
+    smooth at each point of the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = -ℓ`,
     `∂H/∂t > 0` and `∂H/∂s < 0` there (the leaves rise with `ℓ`, so
     `H` falls as `s` grows and rises as `t` grows); `dH` is then a
     positive multiple of the differential of `shapeGraph (χ ℓ) ∘ shape`,

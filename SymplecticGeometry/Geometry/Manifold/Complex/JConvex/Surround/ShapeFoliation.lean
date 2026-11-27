@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
+import TauCeti.Analysis.Calculus.ParametricFDeriv
 
 /-!
 # Foliations by `i`-convex shapes and their level functions
@@ -19,24 +20,24 @@ intervals, each `χ ℓ` an `i`-convex shape (`SymplecticGeometry.IsConvexShapeA
 with `∂χ/∂ℓ > 0`. Its leaves `{(s, t) = (χ ℓ r ², r ²)}` in the quadrant of the shape coordinates
 `(s, t)` are then disjoint, and this file builds the function that is `-ℓ` on the leaf `ℓ`.
 
-* `SymplecticGeometry.exists_contDiff_shapeLevel`: there is `h : ℝ × ℝ → ℝ`, equal to `-ℓ` at
-  `(χ ℓ r ², r ²)` and smooth there, with `∂h/∂s < 0` and `∂h/∂t > 0`, such that the Levi form
-  of `h ∘ shape` is positive on the nonzero complex tangencies of its levels at every point over
+* `SymplecticGeometry.exists_contDiff_shapeLevel`: there is `φ : ℝ × ℝ → ℝ`, equal to `-ℓ` at
+  `(χ ℓ r ², r ²)` and smooth there, with `∂φ/∂s < 0` and `∂φ/∂t > 0`, such that the Levi form
+  of `φ ∘ shape` is positive on the nonzero complex tangencies of its levels at every point over
   the swept region.
 
 The map `(ℓ, r) ↦ (χ ℓ r ², r ²)` has an invertible differential, triangular with diagonal
 `2 χ ∂χ/∂ℓ` and `2 r`, so by the inverse function theorem
-(`OpenPartialHomeomorph.contDiffAt_symm`) its local inverses are smooth, and `h` is minus their
-first component. On the level of `h ∘ shape` through a point of the leaf `ℓ`, the differential of
-`h` is `1 / ∂χ/∂ℓ` times that of `shapeGraph (χ ℓ)`, and the level contains the hypersurface of
+(`OpenPartialHomeomorph.contDiffAt_symm`) its local inverses are smooth, and `φ` is minus their
+first component. On the level of `φ ∘ shape` through a point of the leaf `ℓ`, the differential of
+`φ` is `1 / ∂χ/∂ℓ` times that of `shapeGraph (χ ℓ)`, and the level contains the hypersurface of
 the shape `χ ℓ` near the point; so the positivity of the Levi form passes from
-`SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos` to `h ∘ shape` by
+`SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos` to `φ ∘ shape` by
 `SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`.
 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §3.6 (the function of a foliation in Proposition 3.25) and §4.6 (Corollary 4.29).
+  Proposition 3.25 (the function of a foliation) and Corollary 4.29.
 -/
 
 public section
@@ -57,17 +58,6 @@ private def leafPoint (χ : ℝ → ℝ → ℝ) (x : ℝ × ℝ) : ℝ × ℝ :
 private theorem leafPoint_def (χ : ℝ → ℝ → ℝ) (x : ℝ × ℝ) :
     leafPoint χ x = (χ x.1 x.2 ^ 2, x.2 ^ 2) :=
   (rfl)
-
-/-- The partial derivatives of a function of two variables, through its differential. -/
-private theorem hasDerivAt_partial {f : ℝ → ℝ → ℝ} {x : ℝ × ℝ}
-    (hf : DifferentiableAt ℝ (Function.uncurry f) x) :
-    HasDerivAt (fun ℓ ↦ f ℓ x.2) (fderiv ℝ (Function.uncurry f) x (1, 0)) x.1 ∧
-      HasDerivAt (f x.1) (fderiv ℝ (Function.uncurry f) x (0, 1)) x.2 := by
-  constructor
-  · have h := (hf.hasFDerivAt.comp x.1 (hasFDerivAt_prodMk_left (𝕜 := ℝ) x.1 x.2)).hasDerivAt
-    simpa [Function.comp_def] using h
-  · have h := (hf.hasFDerivAt.comp x.2 (hasFDerivAt_prodMk_right (𝕜 := ℝ) x.1 x.2)).hasDerivAt
-    simpa [Function.comp_def] using h
 
 /-- On a product of open intervals where the family is `C¹` with `∂χ/∂ℓ > 0`, each `χ · r` is
 strictly increasing. -/
@@ -133,7 +123,10 @@ private theorem contDiffAt_shapeLevelFun
   have hχ1 : ContDiffOn ℝ 1 (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂) :=
     hχ.of_le (by simp)
   have hχx : ContDiffAt ℝ ∞ (Function.uncurry χ) x := hχ.contDiffAt (hD.mem_nhds hx)
-  obtain ⟨hA, hB⟩ := hasDerivAt_partial (hχx.differentiableAt (by simp))
+  have hdx : DifferentiableAt ℝ (Function.uncurry χ) (x.1, x.2) := hχx.differentiableAt (by simp)
+  have hA := hasDerivAt_parameterCurve_uncurry hdx
+  have hB := hasDerivAt_timeSlice_uncurry hdx
+  rw [Prod.mk.eta] at hA hB
   rw [hA.deriv, hB.deriv]
   set A := fderiv ℝ (Function.uncurry χ) x (1, 0)
   set B := fderiv ℝ (Function.uncurry χ) x (0, 1)
