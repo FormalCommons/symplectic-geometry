@@ -136,8 +136,8 @@ formulation.
 4. **Parameters.** The engine takes a compact Hausdorff parameter space `P`
    and a closed `P₀ ⊆ P` of parameters where the form is already symplectic
    in the class, and comes in two forms with one proof: for families
-   continuous into the `frameTopology` (needed by homotopy groups) and, when
-   `P` is a manifold and the family is an `IsSmoothFamily`, for smooth
+   continuous into the `frameTopology` (needed by homotopy groups) and, for
+   an `IsSmoothFamily` over a finite-dimensional normed space, for smooth
    families with smooth output (needed by the path statement). The closed
    representative of the class is not fixed but a family $\alpha_\lambda$ in
    the class with
@@ -374,7 +374,8 @@ theorem exists_holonomic_approximation_cube {m k : ℕ} (hk : 0 < k)
 
 The condition `0 < k` is the positive codimension. The relative form that
 the engine needs (end of `Morse/Core/`) is the inductive statement with
-`J = Finset.univ` and its larger `B`, so no subdivision of the cube is
+`J` the core directions of the space, the parameters outside it
+(`Parametric.lean`), and its larger `B`, so no subdivision of the cube is
 needed for it.
 
 **The induction**, by `Finset.induction_on` on `J`.
@@ -529,20 +530,253 @@ with the design of `Parametric.lean`.
 
 ### `Analysis/Calculus/HolonomicApproximation/Parametric.lean`
 
-[EliashbergMishachev2002], Theorem 4.7.4, in coordinates: the same for a
-family $(f_\lambda,G_\lambda)$ over a compact parameter space `P`, continuous
-in `P` with all space derivatives (and, in the smooth version, smooth on
-`P × D` for a parameter manifold `P`), with a diffeotopy and approximation
-depending in the same way on $\lambda$, and with $h_\lambda=\mathrm{id}$,
-$f'_\lambda=f_\lambda$ for $\lambda$ in a closed `P₀` on which
-$(f_\lambda,G_\lambda)$ is holonomic on a neighbourhood of the cube.
-The handle-core lemma (step 4 of `HandleCore.lean`) uses the smooth version
-in this form: parameters in a manifold `L`, the approximation for those in
-a compact `K ⊆ L` and everything smooth over all of `L`; relative to a
-closed part `C` of the cube near which the datum is holonomic for the
-parameters in `K`; and, for every parameter, the diffeotopy the identity
-and $f'_\lambda=f_\lambda$ outside the $\delta$-neighbourhood of the closure
-of the cube minus `C`, the support that subdividing the cube finely gives.
+[EliashbergMishachev2002], Theorem 4.7.4, in coordinates, in two forms with
+one proof: for smooth families over a finite-dimensional normed space, and
+for families over a compact Hausdorff space that are only continuous in the
+parameter. Throughout, `D := (Fin m → ℝ) × (Fin k → ℝ)` with sup norms and
+`Q := closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)}`, as in `Cube.lean`.
+
+**Parameter manifolds are not needed.** The uses are the handle-core lemma,
+whose parameters lie in a finite-dimensional normed space `L` already, and
+the engine, whose smooth version is used only over a point and over
+`unitInterval`. A smooth family over `unitInterval` extends to a smooth
+family over `ℝ` by the time extension of
+`Geometry/Manifold/DifferentialForm/TimeExtension.lean`, and asking for the
+conclusions only on the compact `[0, 1]` makes the values off it irrelevant.
+So the smooth version takes parameters in a finite-dimensional normed space
+with a compact `K` where the approximation is asked for, and the engine's
+smooth version is stated the same way (its section).
+
+**The relative clauses at every transverse height.** Both uses need `h` and
+`f'` unchanged over a whole neighbourhood of `B` in the core, at every
+transverse point, and not only near `B ×ˢ {0}`. In the handle-core lemma,
+the region where the datum is holonomic is a slab of the cube, of every
+transverse height; in the engine, it is a neighbourhood of a sublevel set,
+which also meets the cube charts at every height. Points moved by the
+merged theorem lie within `δ` of `Q`, but `δ` is chosen before the
+neighbourhood of `B ×ˢ {0}` on which they are fixed, so nothing bounds the
+moved points away from `B` at small nonzero heights. The merged proofs give
+more: the cutoff of the base case (`λ ∘ Prod.fst`) and those of the one-direction
+lemma (the profile `ψ` and the gluing cutoff `χ`, zero over a neighbourhood
+of `B` times `univ`) all vanish on a set `N ×ˢ univ` with `N` a neighbourhood
+of `B`, and in the step the final map `Φ` of the first diffeotopy fixes every
+point of such a set, hence maps it onto itself, so the conjugated diffeotopy
+and `f²' ∘ Φ.symm` keep that property on the intersection of the two sets.
+So building issue 3a replaces, in `exists_holonomic_approximation_direction`,
+`exists_holonomic_approximation_cube_empty`,
+`exists_holonomic_approximation_cube_directions_insert`,
+`exists_holonomic_approximation_cube_directions` and
+`exists_holonomic_approximation_cube`, the two clauses
+`∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x` and
+`∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U'` by the single clause
+
+```lean
+∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x
+```
+
+(with `sphere 0 1` for `B` in the last), and corrects the statements of the
+`Cube.lean` section in the same pull request. With it, a point that some
+`h t` moves, or where `f' ≠ f`, has its core coordinate outside `N` and lies
+within `δ` of `Q`; this is the support that subdividing the cube was meant to
+give, so no subdivision is needed.
+
+**The smooth version.**
+
+```lean
+theorem exists_holonomic_approximation_family {L : Type*} [NormedAddCommGroup L]
+    [NormedSpace ℝ L] [FiniteDimensional ℝ L] (hk : 0 < k)
+    {f : L × D → F} {G : L × D → D →L[ℝ] F} (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G)
+    {K P₀ : Set L} (hK : IsCompact K) (hP₀ : IsClosed P₀)
+    {B : Set (Fin m → ℝ)} (hB : IsClosed B) (hSB : sphere 0 1 ⊆ B)
+    {U : Set (L × D)} (hU : IsOpen U) (hBU : univ ×ˢ (B ×ˢ {0}) ⊆ U)
+    (hP₀U : P₀ ×ˢ univ ⊆ U) (hUf : ∀ p ∈ U, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p)
+    {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, L × D) ∞ (L × D)) (f' : L × D → F) (V : Set (L × D)),
+      (∀ t p, (h (t, p)).1 = p.1) ∧ ContDiff ℝ ∞ f' ∧
+      (∃ C, IsCompact C ∧ (∀ p ∈ C, p.2 ∈ thickening δ Q) ∧
+        ∀ p ∉ C, (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      (∀ t p, dist (h (t, p)) p < δ) ∧
+      (∃ N ∈ 𝓝ˢ B, ∀ p : L × D, p.2.1 ∈ N → (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      (∀ p : L × D, p.1 ∈ P₀ → (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      IsOpen V ∧ (∀ l ∈ K, ∀ y ∈ Q, h (1, (l, y)) ∈ V) ∧
+      ∀ p ∈ V, ‖f' p - f p‖ < ε ∧ ‖fderiv ℝ (fun x ↦ f' (p.1, x)) p.2 - G p‖ < ε
+```
+
+A diffeotopy of `L × D` that keeps the `L` coordinate is a family of
+diffeotopies of `D`, smooth in `(l, t, x)`; `G` is the space part of the
+datum only. The datum is holonomic near `B ×ˢ {0}` for every parameter and
+everywhere for the parameters in `P₀`; the approximation is asked only for
+the parameters in `K`, and nothing moves for parameters far from `K`. A use
+whose datum is holonomic near `B` only for `l ∈ K` first makes it holonomic
+there for every `l` by a cutoff in space, as the handle-core lemma does
+below.
+
+Proof, from the strengthened `exists_holonomic_approximation_cube_directions`:
+
+1. *Coordinates.* With `p := Module.finrank ℝ L`, a continuous linear
+   equivalence `e : L ≃L[ℝ] (Fin p → ℝ)`
+   (`(Module.finBasis ℝ L).equivFun.toContinuousLinearEquiv`) and `R > 0`
+   with `‖e l‖ < R` on `K` (`IsCompact.exists_bound_of_continuousOn`). Let
+   `Ψ : L × D ≃L[ℝ] D'`, `D' := (Fin (p + m) → ℝ) × (Fin k → ℝ)`, send
+   `(l, (u, v))` to `(A (R⁻¹ • e l, u), v)`, where
+   `A : (Fin p → ℝ) × (Fin m → ℝ) ≃L[ℝ] (Fin (p + m) → ℝ)` comes from
+   `LinearEquiv.sumArrowLequivProdArrow` and `LinearEquiv.funCongrLeft`
+   along `finSumFinEquiv`, and is an isometry for the sup norms
+   (`IsometryEquiv.sumArrowIsometryEquivProdArrow`, `IsometryEquiv.piCongrLeft`). The
+   core directions of the space are `J := Finset.univ.map (Fin.natAddEmb p m)`;
+   the parameters are the core coordinates outside `J`, and `Ψ` sends
+   `K ×ˢ Q` into the cube `Q'` of `D'`. On the vectors `(0, w)` it is an
+   isometry onto the vectors in the directions `J`.
+2. *The parameter component of `G`.* On `L × D`, put
+   `Ĝ p := fderiv ℝ (fun l' ↦ f (l', p.2)) p.1 ∘L ContinuousLinearMap.fst ℝ L D
+   + G p ∘L ContinuousLinearMap.snd ℝ L D`, smooth by `ContDiff.fderiv`; the
+   datum on `D'` is `f ∘ Ψ.symm` with `q ↦ Ĝ (Ψ.symm q) ∘L Ψ.symm`. By the
+   chain rule along `hasFDerivAt_prodMk_left` and `hasFDerivAt_prodMk_right`,
+   `fderiv ℝ f p` is the sum of the two partial derivatives, so this datum is
+   holonomic at `Ψ p` exactly when `fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p`,
+   in particular on `Ψ '' U`. This is the definition by the parameter
+   derivative of `f` that putting holonomic parameters into `B` needs.
+3. *The relative set.* `B' := A '' (univ ×ˢ B ∪ (R⁻¹ • e '' P₀) ×ˢ univ)`,
+   closed. It contains the faces of the cube of `D'` in the directions `J`,
+   since `sphere 0 1 ⊆ B` and the sup norm of `A (s, u)` bounds `‖u‖`, and
+   `B' ×ˢ {0} ⊆ Ψ '' U` by `hBU` and `hP₀U`.
+4. *Approximation.* `exists_holonomic_approximation_cube_directions` with
+   `J`, `B'`, `ε / 2` and `min δ 1` gives `h''`, `f''`, `V''`, `C''` and
+   `N''`.
+5. *Back to `L × D`.* `h := TauCeti.Diffeotopy.transDiffeomorph
+   Ψ.symm.toDiffeomorph h''` (`ContinuousLinearEquiv.toDiffeomorph`),
+   `f' := f'' ∘ Ψ`, `V := Ψ ⁻¹' V''` and `C := Ψ.symm '' C''`. The `L`
+   coordinate is kept because `h''` keeps the coordinates outside `J`;
+   displacements and the distance to `Q` are measured in the space part,
+   where `Ψ` is isometric and the projection is `1`-Lipschitz; and for a
+   space vector `w`, `(fderiv ℝ (fun x ↦ f' (l, x)) x - G (l, x)) w` is
+   `(fderiv ℝ f'' q - G'' q) (Ψ (0, w))` at `q = Ψ (l, x)`, so it is at most
+   `ε / 2 * ‖w‖`.
+6. *The neighbourhood `N`.* By `generalized_tube_lemma` for the compact
+   `closedBall 0 2 ×ˢ (B ∩ closedBall 0 2)` inside the open interior of
+   `A ⁻¹' N''`, there is `N₁ ∈ 𝓝ˢ (B ∩ closedBall 0 2)` with
+   `closedBall 0 2 ×ˢ N₁ ⊆ A ⁻¹' N''`. Take
+   `N := N₁ ∪ (closedBall 0 (1 + min δ 1))ᶜ`: a point over it is either over
+   `N''` or farther than `min δ 1` from `Q'`, hence outside `C''`. The
+   clause for `P₀` holds because `B'` contains every core point over a
+   parameter of `P₀`.
+
+**The continuous version.**
+
+```lean
+theorem exists_holonomic_approximation_continuous_family {P : Type*} [TopologicalSpace P]
+    [CompactSpace P] [T2Space P] (hk : 0 < k) {f : P → D → F} {G : P → D → D →L[ℝ] F}
+    (hf : ∀ l, ContDiff ℝ ∞ (f l)) (hG : ∀ l, ContDiff ℝ ∞ (G l))
+    (hdf : Continuous fun p : P × D ↦ fderiv ℝ (f p.1) p.2)
+    (hcG : Continuous fun p : P × D ↦ G p.1 p.2)
+    {P₀ : Set P} (hP₀ : IsClosed P₀) {B : Set (Fin m → ℝ)} (hB : IsClosed B)
+    (hSB : sphere 0 1 ⊆ B) {U : Set (P × D)} (hU : IsOpen U)
+    (hBU : univ ×ˢ (B ×ˢ {0}) ⊆ U) (hP₀U : P₀ ×ˢ univ ⊆ U)
+    (hUf : ∀ p ∈ U, fderiv ℝ (f p.1) p.2 = G p.1 p.2) {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (n : ℕ) (σ : P → Fin n → ℝ)
+      (h : TauCeti.Diffeotopy 𝓘(ℝ, (Fin n → ℝ) × D) ∞ ((Fin n → ℝ) × D))
+      (g : (Fin n → ℝ) × D → F) (V : Set (P × D)),
+      Continuous σ ∧ (∀ t q, (h (t, q)).1 = q.1) ∧ ContDiff ℝ ∞ g ∧
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧ ∀ l, ∀ x ∉ C,
+        (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      (∀ l t x, dist (h (t, (σ l, x))).2 x < δ) ∧
+      (∃ N ∈ 𝓝ˢ B, ∀ l x, x.1 ∈ N →
+        (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      (∀ l ∈ P₀, ∀ x, (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      IsOpen V ∧ (∀ l, ∀ y ∈ Q, (l, (h (1, (σ l, y))).2) ∈ V) ∧
+      ∀ p ∈ V, ‖g (σ p.1, p.2)‖ < ε ∧
+        ‖fderiv ℝ (fun x ↦ f p.1 x + g (σ p.1, x)) p.2 - G p.1 p.2‖ < ε
+```
+
+The approximation at `l` is `f l + g (σ l, ·)` and its diffeotopy is the
+slice of `h` at `σ l`. The conclusion is stated through the continuous map
+`σ` into a finite-dimensional space and the smooth `g` and `h` on it, so it
+asks for no new definition: every continuity in `l` that a use needs, such
+as that of all space derivatives for the frame topology of the engine,
+follows from continuity of `σ`, smoothness of `g` and `h`, and that of `f`.
+The hypotheses ask for continuity of the first derivatives only, which is
+all the proof uses.
+
+Proof, from the smooth version, by a partition of unity on `P`:
+
+1. *Uniform control on a compact set.* Let `K_D := cthickening 1 Q` and
+   `e l x := G l x - fderiv ℝ (f l) x`, jointly continuous. By the tube
+   lemma for the compact `P` (`generalized_tube_lemma`), there is an open
+   `O ⊆ D` with `B ×ˢ {0} ⊆ O` and `univ ×ˢ O ⊆ U`, so every `e l` vanishes
+   on `O`; and for the compact `K_D`, an open `O₀ ⊇ P₀` with
+   `‖e l x‖ < ε / 4` for `l ∈ O₀`, `x ∈ K_D`, since `e` vanishes on
+   `P₀ ×ˢ univ`.
+2. *A fine partition of unity.* A finite cover of `P` by open sets `W i`,
+   `i : Fin n'`, with points `l i` such that `‖e l x - e (l i) x‖ < ε / 8`
+   for `l ∈ W i` and `x ∈ K_D` (the tube lemma at each point,
+   `isCompact_univ.elim_finite_subcover`), and a partition of unity `ρ`
+   subordinate to it (`PartitionOfUnity.exists_isSubordinate`; a compact
+   Hausdorff space is normal and paracompact).
+3. *The extra coordinate.* A continuous `τ : P → [0, 1]`, `0` on `P₀` and
+   `1` off `O₀` (`exists_continuous_zero_one_of_isClosed`), and a smooth
+   `χ : ℝ → [0, 1]`, `0` on `(-∞, 1/2]` and `1` on `[1, ∞)` (from
+   `Real.smoothTransition`).
+4. *The finite-dimensional datum.* With `n := n' + 1`,
+   `σ l := Fin.snoc (fun i ↦ ρ i l) (τ l)`, and for `s : Fin n → ℝ`,
+   `F (s, x) := ∑ i, s i • f (l i) x` and
+   `G' (s, x) := ∑ i, s i • (fderiv ℝ (f (l i)) x + χ (s (Fin.last n')) • e (l i) x)`:
+   smooth, and holonomic on the open set where `s (Fin.last n') < 1/2` or
+   `x ∈ O`. Apply the smooth version with `L := Fin n → ℝ`,
+   `K := closedBall 0 1` (it contains the range of `σ`),
+   `P₀' := {s | s (Fin.last n') ≤ 1/4}`, `B`, `ε / 2` and `min δ 1`; it
+   gives `h`, `f''` and `V''`. Put `g := f'' - F`, and
+   `V := {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ interior K_D`, open as `σ` is
+   continuous; it contains the images of `Q`, since they lie within `1` of
+   `Q`. The clauses for `C` (its image under `Prod.snd`), `N` and `P₀` (where
+   `σ l ∈ P₀'`) are those of the smooth version.
+5. *The estimate.* At `p = (l, x) ∈ V`, with `c := χ (τ l)` and since
+   `∑ i, ρ i l = 1`, the error
+   `fderiv ℝ (fun x ↦ f l x + g (σ l, x)) x - G l x` is
+   `(fderiv ℝ (fun y ↦ f'' (σ l, y)) x - G' (σ l, x))
+   + c • ∑ i, ρ i l • (e (l i) x - e l x) - (1 - c) • e l x`. The first term
+   is less than `ε / 2`; the second less than `ε / 8`, since `ρ i l ≠ 0`
+   only for `l ∈ W i`; the third less than `ε / 4`, since `c < 1` only where
+   `τ l < 1`, that is on `O₀`.
+
+**The uses.**
+
+- *The handle-core lemma* (step 4 of `HandleCore.lean`) uses the smooth
+  version with its `L` and `K`, `P₀ := ∅`, and
+  `B := {u | 1 - 2ε₀ ≤ ‖u‖ ∧ ‖u‖ ≤ 1 + η}`, where `η > 0` is such that
+  `B ×ˢ {0} ⊆ W`: the part of norm at most `1` lies in the slab of step 1,
+  the rest near the compact `A` (`IsCompact.exists_thickening_subset_open`).
+  It replaces `G` by `G̃ l x := G l x - χ x • J (τ l x - dβ l x)`, with `J`
+  the right inverse of its step 3 and a smooth
+  cutoff `χ` on `D`, `1` near `B ×ˢ {0}` and supported in `W`
+  (`exists_contMDiffMap_zero_one_nhds_of_isClosed`): this datum is holonomic
+  near `B ×ˢ {0}` for every `l`, and equals `G` for `l ∈ K`, since there
+  `τ l = dβ l` on `W`. With `δ < min ε₀ η`, the families of step 4 are
+  `H l s x := (h (s, (l, x))).2` and `β' := f'`, and every point moved, or
+  where `β' l ≠ β l`, has `‖u‖ < 1 - 2ε₀` and `‖v‖ < δ`: its core
+  coordinate is off `N ⊇ B`, and it lies within `δ < η` of the core cube.
+- *The engine* (`HPrinciple/Engine.lean`) uses, over each cube of a band core
+  in its chart, the continuous version for its continuous form and the
+  smooth version for its smooth form, with the parameters of the engine
+  and its `P₀`; `B` is a closed set of core points containing the sphere,
+  over which the chart stays in a closed neighbourhood of
+  $\{g\le e_k\}$ inside $N_k$, chosen with a margin so that, for `δ` small
+  (by uniform continuity, before the theorem is applied), no point within
+  `δ` of the cube over a core point outside `B` lies in $\{g\le e_k\}$. The
+  clause for `N` then keeps $\beta^k_\lambda$ unchanged near
+  $\{g\le e_k\}$ at every transverse height, and the clause for `P₀` keeps
+  the parameters of `P₀` unchanged. Making the formal primitive a datum on
+  the chart, and moving the result back to `M`, is the engine's work.
+
+**Building issues of issue 3**, in this order:
+
+- 3a. *The relative clauses at every transverse height*: the single clause
+  above in `exists_holonomic_approximation_direction` (`Direction.lean`)
+  and in the four theorems of `Cube.lean` that carry it, with the
+  statements of the `Cube.lean` section. Blocked by nothing.
+- 3b. *Smooth families*: `exists_holonomic_approximation_family`, steps 1 to
+  6, in `Parametric.lean`. Blocked by 3a.
+- 3c. *Continuous families*: `exists_holonomic_approximation_continuous_family`,
+  steps 1 to 5, in `Parametric.lean`; this is issue 3 itself. Blocked by 3b.
 
 ### `Geometry/Manifold/Morse/OpenManifold.lean`
 
@@ -988,7 +1222,9 @@ which has interior in the cube, and not only a neighbourhood of the boundary
 sphere, to which the sketch of `exists_holonomic_approximation_cube` is
 relative. Eliashberg–Mishachev's relative form, relative to a closed set near
 which the datum is holonomic, is what the engine uses; it is
-`exists_holonomic_approximation_cube_directions` with `J = Finset.univ`.
+`exists_holonomic_approximation_cube_directions`, applied through
+`HolonomicApproximation/Parametric.lean` with the parameters as the core
+coordinates outside `J`.
 
 ### `Geometry/Symplectic/HPrinciple/HandleCore.lean`
 
@@ -1121,14 +1357,17 @@ this order.
    of `G l x`, then `d f'` is within `2ε` of `τ l` at `x`.
 4. *Holonomic approximation.* Parametric relative holonomic approximation
    (`HolonomicApproximation/Parametric.lean`, in the form given there for
-   this use) over the cube `closedBall 0 1 ×ˢ {0}`, relative to its closed
-   part `C := {‖u‖ ≥ 1 - 2ε₀}` near which the datum is holonomic for
-   `l ∈ K`, with accuracy `r / 4` and a width `δ < ε₀`. It gives a smooth
+   this use: `exists_holonomic_approximation_family`) over the cube
+   `closedBall 0 1 ×ˢ {0}`, relative to the closed
+   `B := {1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η}` with `B ×ˢ {0} ⊆ W`, after a cutoff in
+   space makes the datum holonomic near `B ×ˢ {0}` for every `l`, with
+   accuracy `r / 4` and a width `δ < min ε₀ η`. It gives a smooth
    family of diffeotopies `H l`, smooth in `(l, s, x)`, and a smooth family
    `β' l` of one-forms, such that for every `l` and `s`, `H l s` is the
    identity and `β' l = β l` outside the `δ`-neighbourhood of
    `{‖u‖ ≤ 1 - 2ε₀} ×ˢ {0}`, and an open `V ⊆ L × D` containing
-   `(l, H l 1 y)` for `l ∈ K` and `y` in the core, on which `fderiv` of `β' l` is within `r / 4` of `G l`. That
+   `(l, H l 1 y)` for `l ∈ K` and `y` in the core, at whose points over `K`
+   the derivative of `β' l` is within `r / 4` of `G l`. That
    support lies in a compact subset of the interior of `Q` and misses the
    slab `S := {‖u‖ > 1 - ε₀}`, so every `H l s` maps `Q` onto `Q` and is the
    identity on `S`, and `β' l = β l` on `S`.
@@ -1201,10 +1440,15 @@ dimension $2n$:
   there is `H : C(P × unitInterval, X)` with `H (λ, 0) = τ λ`, `H (λ, t)`
   symplectic in the class for `λ ∈ P₀` and all `t`, and `H (λ, 1)`
   symplectic in the class for all `λ`.
-- *Smooth version.* The same for `τ : P → SmoothTwoForm I M` an
-  `IsSmoothFamily` over a compact parameter manifold `P` (the uses are a
-  point and `unitInterval`), with `H` an `IsSmoothFamily` over
-  `P × unitInterval`.
+- *Smooth version.* The same for `τ : L → SmoothTwoForm I M` an
+  `IsSmoothFamily` over a finite-dimensional normed space `L`, with a
+  compact `K ⊆ L` and a closed `P₀ ⊆ L`, the conditions on `τ` and the
+  conclusions asked only for `λ ∈ K`, and `H` an `IsSmoothFamily` over
+  `L × unitInterval`. The uses are a point and `unitInterval`, a family over
+  which is first extended to `ℝ` by the time extension of
+  `DifferentialForm/TimeExtension.lean`, with `K = [0, 1]` (the
+  `Parametric.lean` section of holonomic approximation says why no
+  parameter manifold is needed).
 
 Proof, one band core of `TauCeti.exists_isMorse_bandCore_seq` at a time
 (`Morse/Core/`), with the family $\alpha_\lambda$ of Decision 4. Stage $k$
@@ -1499,6 +1743,8 @@ Each is a few hundred lines; each issue's blockers come before it.
    building issues 2a to 2e that the file's section gives, in that order.
 3. **Parametric relative holonomic approximation.**
    `Analysis/Calculus/HolonomicApproximation/Parametric.lean`. Blocked by 2.
+   In the three building issues 3a to 3c that the file's section gives, in
+   that order; the last, the continuous version, is issue 3 itself.
 4. **Morse functions without top-index critical points**, in six building
    issues, in this order:
    - 4a. **Rays.** `Geometry/Manifold/ProperRay.lean`: `exists_rays`.
