@@ -92,6 +92,7 @@ theorem of_tensorTautological (T : Finset (Fin m)) :
   conv_rhs => rw [← Finset.sort_toFinset T (· ≤ ·)]
   rw [List.prod_toFinset _ (Finset.sort_nodup T (· ≤ ·)), tensorTautological_def]
   induction T.sort (· ≤ ·) with
+  -- The unit `𝟙_` of the monoidal category of cores is the trivial line by definition.
   | nil => exact SplitK0.one_def.symm
   | cons i l ih => rw [List.foldr_cons, ← SplitK0.of_mul_of, ih, List.map_cons, List.prod_cons]
 
@@ -118,6 +119,7 @@ private theorem closure_range_of_tensorTautological_eq_top_zero :
       SplitK0 (FiniteRankBundleCore ℂ (Fin 0 → ℙ ℂ (Fin 2 → ℂ)))) = SplitK0.of
         (tensorTautological ∅) := by
     rw [of_tensorTautological, Finset.prod_empty]
+    -- The unit `𝟙_` of the monoidal category of cores is the trivial line by definition.
     exact SplitK0.one_def.symm
   have hA := FiniteRankBundleCore.pullback_const A (X := Fin 0 → ℙ ℂ (Fin 2 → ℂ)) default
   rw [show ContinuousMap.const _ default = ContinuousMap.id _ from
@@ -136,7 +138,8 @@ theorem closure_range_of_tensorTautological_eq_top (m : ℕ) :
   induction m with
   | zero => exact closure_range_of_tensorTautological_eq_top_zero
   | succ m ih =>
-    -- The homeomorphism `(Fin m → P) × P ≃ (Fin (m + 1) → P)` given by `Fin.snoc`.
+    -- `φ` and `ψ` are the homeomorphism `(Fin m → P) × P ≃ (Fin (m + 1) → P)` given by
+    -- `Fin.snoc` and its inverse.
     let φ : C((Fin m → ℙ ℂ (Fin 2 → ℂ)) × ℙ ℂ (Fin 2 → ℂ), Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ)) :=
       ⟨fun z ↦ Fin.snoc z.1 z.2, by fun_prop⟩
     let ψ : C(Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ), (Fin m → ℙ ℂ (Fin 2 → ℂ)) × ℙ ℂ (Fin 2 → ℂ)) :=
