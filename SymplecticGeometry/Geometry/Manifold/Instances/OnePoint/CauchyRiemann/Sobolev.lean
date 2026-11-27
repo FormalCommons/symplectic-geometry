@@ -420,9 +420,7 @@ theorem contDiffOn_coord_zeroOnePart_twistOneDelBar
   have hD := (𝒊.contMDiff_totalSpace_zeroOnePart hn).comp_contMDiffOn
     ((contMDiffCovariantDerivativeOn_twistOneDelBar J n).contMDiff
       ((hs.of_le (by exact_mod_cast le_top)).contMDiffOn (s := univ)))
-  refine (A.tangentHom.contDiffOn_coord (k := n) (contMDiffOn_univ.1 hD) i).mono ?_
-  rw [← A.image_tangentHom i]
-  exact A.tangentHom.image_subset_target_inter_preimage_baseSet i
+  exact A.image_tangentHom i ▸ A.tangentHom.contDiffOn_coord_image (contMDiffOn_univ.1 hD) i
 
 /-! ### The estimate of order `k` in one chart -/
 
@@ -615,13 +613,10 @@ theorem exists_eLpNormWkp_coord_smul_le
   refine ⟨C, fun s hs ↦ ?_⟩
   have hk : ((k : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hu : ContDiffOn ℝ ∞ (A.coord i s) (A.image i) :=
-    ((contDiffOn_trivialization_comp_chart_symm_of_contMDiff hs
-      (IsManifold.chart_mem_maximalAtlas _) (A.triv i)).congr fun y _ ↦ A.coord_def i s y).mono
-        (A.image_subset_target_inter_preimage_baseSet i)
+    contDiffOn_infty.2 fun n ↦ A.contDiffOn_coord_image (hs.of_le (by exact_mod_cast le_top)) i
   have hk' : ((k + 1 : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hg : ContDiffOn ℝ (k + 1 : ℕ) (A.coord i fun x ↦ χ x • s x) (A.image i) :=
-    (A.contDiffOn_coord ((hχ.smul_section hs).of_le hk') i).mono
-      (A.image_subset_target_inter_preimage_baseSet i)
+    A.contDiffOn_coord_image ((hχ.smul_section hs).of_le hk') i
   have hθs := contDiffOn_coord_zeroOnePart_twistOneDelBar J A i hs
   -- For smooth readings, the `W^{k,2}` norms are the sums of the `L²` norms of the derivatives.
   rw [eLpNormWkp_eq_sum_eLpNorm_iteratedFDeriv hW (k + 1) hg,
@@ -660,8 +655,7 @@ private theorem exists_eLpNormWkp_coord_le (i : Fin (twistCoreAtlas 1).n) :
   set Y := ‖(twistCoreAtlas 1).sectionChartData.lowerOrderL volume 2 k w‖
   have hk : ((k : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hu₀ : ContDiffOn ℝ k ((twistCoreAtlas 1).coord i s) ((twistCoreAtlas 1).image i) :=
-    ((twistCoreAtlas 1).contDiffOn_coord (hs.of_le hk) i).mono
-      ((twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i)
+    (twistCoreAtlas 1).contDiffOn_coord_image (hs.of_le hk) i
   have hθs := (contDiffOn_coord_zeroOnePart_twistOneDelBar J (twistCoreAtlas 1) i hs).of_le hk
   -- The chart readings of `D_J w` and of the lower order part of `w`.
   have huw := SobolevSection.chartValueL_ofContMDiffSection_ae _ volume 2 (k + 1) s i
@@ -731,8 +725,7 @@ private theorem exists_norm_contMDiffSMulL_component_le
   set g := (twistCoreAtlas 1).coord i fun x ↦ χ x • s x
   have hk : ((k + 1 : ℕ) : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
   have hg : ContDiffOn ℝ (k + 1 : ℕ) g ((twistCoreAtlas 1).image i) :=
-    ((twistCoreAtlas 1).contDiffOn_coord ((hχ.smul_section hs).of_le hk) i).mono
-      ((twistCoreAtlas 1).image_subset_target_inter_preimage_baseSet i)
+    (twistCoreAtlas 1).contDiffOn_coord_image ((hχ.smul_section hs).of_le hk) i
   have hgv := SobolevSection.chartValueL_contMDiffSMulL_ae_coord hχ
     (SobolevSection.chartValueL_ofContMDiffSection_ae _ volume 2 (k + 1) s) i
   have h₁ := hc₁ (i := i) (by rwa [FiniteBundleAtlas.sectionChartData_image]) hgv

@@ -20,6 +20,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Symplectic.Lagrangian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Subbundle
 
 /-!
 # The symplectic splitting of the tangent bundle along a `J`-invariant submanifold
@@ -86,9 +87,9 @@ The complement `W^ω` comes from Tau Ceti's
 `W^ω` is smooth by
 `TauCeti.HasLocalContMDiffSubbundleFrames.contMDiff_totalSpace_projection_orthogonal`
 (`SymplecticGeometry/Geometry/Manifold/VectorBundle/Orthogonal.lean`), applied to the frames of
-`W` (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`) and the flat maps of `ω`,
-as in `SymplecticGeometry/Geometry/Symplectic/Neighborhood/Frames.lean` for an ambient form. The
-representatives in `W^ω` are then smooth on the normal bundle by Tau Ceti's
+`W` (Tau Ceti's `Manifold.IsImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv`) and the
+flat maps of `ω`, as in `SymplecticGeometry/Geometry/Symplectic/Neighborhood/Frames.lean` for an
+ambient form. The representatives in `W^ω` are then smooth on the normal bundle by Tau Ceti's
 `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff`. The inverse of the splitting,
 `(u, a) ↦ df u + r a`, is smooth on total spaces, and so is the splitting by
 `contMDiff_hom_bundle_symm`.
@@ -280,7 +281,6 @@ theorem volumeOrientation_compMFDeriv (hE' : finrank ℝ E' = 2)
 
 /-! ### The projection onto the tangent image -/
 
-omit [FiniteDimensional ℝ E'] in
 /-- If the tangent images of `f` are `J`-invariant and `ω` tames the pull-back of `J`, the
 projection of `f *ᵖ TX` onto the tangent images along their `ω`-orthogonals is a smooth map of
 the total space of `f *ᵖ TX` to itself. -/
@@ -296,8 +296,8 @@ theorem contMDiff_projection_orthogonalTangentRange
   have hc (x : M) : IsCompl (f.isImmersion.tangentRange x hn)
       (LinearMap.BilinForm.orthogonal (ω.flat x).toLinearMap₁₂ (f.isImmersion.tangentRange x hn)) :=
     (ContMDiffTwoForm.orthogonal_flat ω x _).symm ▸ isCompl_tangentRange_orthogonal hJ hω x
-  have h := (_root_.Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f
-    f.isImmersion).contMDiff_totalSpace_projection_orthogonal ω.contMDiff_flat hc
+  have h := (f.isImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv
+    (by simp) (by simp)).contMDiff_totalSpace_projection_orthogonal ω.contMDiff_flat hc
   refine h.congr fun p ↦ congrArg (TotalSpace.mk p.proj) ?_
   -- The two projections differ only in the name of the complement.
   have key {q q' : Submodule ℝ (TangentSpace I (f p.proj))} (hq : q = q')
