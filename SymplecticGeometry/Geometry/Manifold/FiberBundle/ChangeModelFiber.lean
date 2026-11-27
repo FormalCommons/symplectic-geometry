@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
-public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+public import SymplecticGeometry.Topology.FiberBundle.Trivialization
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 /-!
 # Smoothness after a change of the model fibre
