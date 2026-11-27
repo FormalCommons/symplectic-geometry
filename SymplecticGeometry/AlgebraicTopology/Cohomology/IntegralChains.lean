@@ -244,6 +244,8 @@ def singularCochainComplexRestrictScalarsUnitIso :
 
 theorem singularCochainComplexRestrictScalarsUnitIso_def :
     X.singularCochainComplexRestrictScalarsUnitIso k =
+      -- The ends are given so that the right side is elaborated for the same `ℤ`-linear
+      -- structures as the left side.
       Iso.trans
         (X := @singularCochainComplex (ModuleCat.{0} ℤ) _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
           ModuleCat.instLinear
