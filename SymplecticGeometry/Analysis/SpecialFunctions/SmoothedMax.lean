@@ -12,6 +12,7 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # A smoothed maximum of two real numbers
@@ -30,13 +31,18 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 ## Main declarations
 
 * `SymplecticGeometry.smoothedSign`: the smooth step, with `smoothedSign_of_le`,
-  `smoothedSign_of_le_neg`, `smoothedSign_neg`, `abs_smoothedSign_le_one` and
-  `monotone_smoothedSign`.
+  `smoothedSign_of_le_neg`, `smoothedSign_neg`, `abs_smoothedSign_le_one`,
+  `monotone_smoothedSign` and its derivative `hasDerivAt_smoothedSign`.
 * `SymplecticGeometry.smoothedAbs`: the smoothing of `|t|` on `(-δ, δ)`.
 * `SymplecticGeometry.contDiff_smoothedAbs`, `SymplecticGeometry.deriv_smoothedAbs`,
   `SymplecticGeometry.abs_deriv_smoothedAbs_le_one`,
-  `SymplecticGeometry.iteratedDeriv_two_smoothedAbs_nonneg`: smoothness, derivative, and the
-  bounds on its first two derivatives.
+  `SymplecticGeometry.iteratedDeriv_two_smoothedAbs`,
+  `SymplecticGeometry.iteratedDeriv_two_smoothedAbs_nonneg`: smoothness, the first two
+  derivatives, and bounds on them.
+* `SymplecticGeometry.exists_pos_div_le_iteratedDeriv_two_smoothedAbs`: for each `ε > 0` there is
+  `c > 0` such that `c / δ ≤ (smoothedAbs δ)''(t)` wherever `|smoothedSign δ t| ≤ 1 - ε`. It
+  follows from the positivity of the derivative of `Real.smoothTransition` on `(0, 1)`
+  (`Real.smoothTransition.deriv_pos`) by compactness.
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
@@ -111,6 +117,17 @@ theorem monotone_smoothedSign (hδ : 0 ≤ δ) : Monotone (smoothedSign δ) := b
   rw [smoothedSign_def, smoothedSign_def]
   linarith
 
+/-- The derivative of `smoothedSign δ` at `s` is `ψ'((s + δ) / (2 δ)) / δ`, with
+`ψ = Real.smoothTransition`. For `δ = 0` both sides vanish. -/
+theorem hasDerivAt_smoothedSign (δ s : ℝ) :
+    HasDerivAt (smoothedSign δ) (deriv Real.smoothTransition ((s + δ) / (2 * δ)) / δ) s := by
+  have h := ((((hasDerivAt_id s).add_const δ).div_const (2 * δ)).smoothTransition.const_mul
+    2).sub_const 1
+  convert h using 1
+  · exact funext fun x ↦ smoothedSign_def δ x
+  · simp only [id_eq]
+    field_simp
+
 /-- For `δ > 0`, `smoothedSign δ` is nonnegative on `[0, ∞)`. -/
 theorem smoothedSign_nonneg (hδ : 0 < δ) {s : ℝ} (hs : 0 ≤ s) : 0 ≤ smoothedSign δ s := by
   have := monotone_smoothedSign hδ.le (neg_le_self hs)
@@ -165,6 +182,40 @@ theorem iteratedDeriv_two_smoothedAbs_nonneg (hδ : 0 ≤ δ) (t : ℝ) :
     0 ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
   rw [iteratedDeriv_two, deriv_smoothedAbs]
   exact (monotone_smoothedSign hδ).deriv_nonneg
+
+/-- The second derivative of `smoothedAbs δ` at `t` is `ψ'((t + δ) / (2 δ)) / δ`, with
+`ψ = Real.smoothTransition`. -/
+theorem iteratedDeriv_two_smoothedAbs (δ t : ℝ) :
+    iteratedDeriv 2 (smoothedAbs δ) t =
+      deriv Real.smoothTransition ((t + δ) / (2 * δ)) / δ := by
+  rw [iteratedDeriv_two, deriv_smoothedAbs, (hasDerivAt_smoothedSign δ t).deriv]
+
+/-- Away from the ends `±1` of its slope, `smoothedAbs δ` curves at a rate of order `1 / δ`: for
+each `ε > 0` there is `c > 0` such that `c / δ ≤ (smoothedAbs δ)''(t)` for all `δ > 0` and all
+`t` with `|smoothedSign δ t| ≤ 1 - ε`. -/
+theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε) :
+    ∃ c > 0, ∀ δ > 0, ∀ t, |smoothedSign δ t| ≤ 1 - ε →
+      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
+  -- The points where `ψ = Real.smoothTransition` takes values in `[ε / 2, 1 - ε / 2]` lie in
+  -- `(0, 1)`, where `ψ' > 0`; they form a compact set, on which `ψ'` has a positive lower bound.
+  set K := Icc (0 : ℝ) 1 ∩ Real.smoothTransition ⁻¹' Icc (ε / 2) (1 - ε / 2)
+  have hmem {u : ℝ} (hu : Real.smoothTransition u ∈ Icc (ε / 2) (1 - ε / 2)) :
+      0 < u ∧ u < 1 := by
+    refine ⟨lt_of_not_ge fun h ↦ ?_, lt_of_not_ge fun h ↦ ?_⟩
+    · linarith [hu.1, Real.smoothTransition.zero_of_nonpos h]
+    · linarith [hu.2, Real.smoothTransition.one_of_one_le h]
+  have hK : IsCompact K :=
+    isCompact_Icc.inter_right (isClosed_Icc.preimage Real.smoothTransition.continuous)
+  obtain ⟨c, hc, hcK⟩ := hK.exists_forall_le'
+    Real.smoothTransition.differentiable_deriv.continuous.continuousOn
+    fun u hu ↦ Real.smoothTransition.deriv_pos (hmem hu.2).1 (hmem hu.2).2
+  refine ⟨c, hc, fun δ hδ t ht ↦ ?_⟩
+  rw [iteratedDeriv_two_smoothedAbs]
+  have hu : Real.smoothTransition ((t + δ) / (2 * δ)) ∈ Icc (ε / 2) (1 - ε / 2) := by
+    rw [smoothedSign_def, abs_le] at ht
+    constructor <;> linarith
+  gcongr
+  exact hcK _ ⟨⟨(hmem hu).1.le, (hmem hu).2.le⟩, hu⟩
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
 theorem smoothedAbs_of_le (hδ : 0 < δ) {t : ℝ} (ht : δ ≤ t) : smoothedAbs δ t = t := by
