@@ -15,8 +15,8 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smoot
 public import TauCeti.Geometry.Manifold.ExtChartAt
 public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
-import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Sign
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -58,22 +58,17 @@ open embedding of the source of the chart): it is the local orientation
 of `P × E` selected by the image of the orientation of `X` under the derivative, that is, by the
 exchanged product of the orientation of `Z` and the normal orientation, whatever the dimension
 of `Z`
-(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOrientation`). The chart
-is first followed by a linear identification of `P × E` with a Euclidean space, in which the
-library's
-`TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`
-reads the local orientation of `X` through the derivative, and Tau Ceti's
-`OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart` carries it back to
-`P × E`; this is the argument of the library's
-`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`, for
-a chart that is not a preferred one.
+(`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOrientation`). This is
+the library's
+`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt`,
+which reads the local orientations of a manifold in any chart through its derivative, applied to
+the chart of the tube and `hasFDerivAt_normalTubeChart`.
 
 Three cases follow. If `Z` and the normal fibre have positive dimension, this class is the
 cross product `TauCeti.LocalOrientation.cross` of the local orientation of the normal fibre and
 that of `Z`, normal factor first, with no sign
 (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`), by the library's
-`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
-`TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`. If `Z`
+`TauCeti.LocalOrientation.cross_localOrientation_eq_map_prodComm`. If `Z`
 has dimension zero, the class is the cross product `SymplecticGeometry.localHomologyCross` of the
 local orientation of the normal fibre with the local orientation of `E` at the origin selected by
 the orientation of `Z` at `z` (`Orientation.localOrientationOfZeroDim`)
@@ -502,48 +497,15 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOr
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   have hF : finrank ℝ (P × E) = d + 1 := by rw [Module.finrank_prod, hE]; omega
-  set ψ := normalTubeChart Φ z
-  set D := normalTubeChartDeriv Φ z
-  -- Read `ψ` in a Euclidean space through a linear identification `L`.
-  have hEuc : finrank ℝ (EuclideanSpace ℝ (Fin (d + 1))) = d + 1 := finrank_euclideanSpace_fin
-  let L : (P × E) ≃L[ℝ] EuclideanSpace ℝ (Fin (d + 1)) :=
-    ContinuousLinearEquiv.ofFinrankEq (hF.trans hEuc.symm)
-  let ψ' := ψ.transHomeomorph L.toHomeomorph
-  have hx' : f z ∈ ψ'.source := by
-    rw [OpenPartialHomeomorph.transHomeomorph_source]
-    exact mem_normalTubeChart_source Φ z hΦ
-  have hD' : HasFDerivAt (ψ' ∘ (extChartAt J (f z)).symm) ((D.trans L : V ≃L[ℝ] _) : V →L[ℝ] _)
-      (extChartAt J (f z) (f z)) := by
-    rw [OpenPartialHomeomorph.transHomeomorph_apply, ContinuousLinearEquiv.coe_toHomeomorph,
-      ← ContinuousLinearEquiv.comp_coe, Function.comp_assoc]
-    exact L.hasFDerivAt.comp _ (hasFDerivAt_normalTubeChart Φ z hΦ)
-  have h₁ := Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart
-    hV (oX.reindex (finCongr hd)) hEuc ψ' hx' (D.trans L) hD' rfl
-  have h₂ := ψ'.localHomologyMap_chart_localOrientationOfOrientedChart hx' L.symm
-    (((oX.reindex (finCongr hd)).orientationAt (f z)).map (Fin (d + 1)) (D.trans L).toLinearEquiv)
-    hEuc hF (by
-      rintro x hx
-      exact Subtype.ext (ψ'.injOn x.property hx'
-        (sub_eq_zero.1 (L.symm.map_eq_zero_iff.1 (by simpa using hx)))))
-  rw [← h₁] at h₂
-  refine Eq.trans ?_ (h₂.trans ?_)
+  refine Eq.trans ?_
+    ((Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt
+      hV (oX.reindex (finCongr hd)) hF (normalTubeChart Φ z) (mem_normalTubeChart_source Φ z hΦ)
+      (hasFDerivAt_normalTubeChart Φ z hΦ)).trans ?_)
   · congr 3
-    refine ContinuousMap.ext fun x ↦ ?_
-    -- The sources of `ψ` and `ψ'` are the same set only after unfolding `transHomeomorph`, so
-    -- `rw` does not match the application lemmas.
-    erw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, ψ'.sourceRestrict_apply]
-    simp [ψ', ψ]
-  · have hω (o : Orientation ℝ V (Fin (d + 1))) :
-        (o.map (Fin (d + 1)) (D.trans L).toLinearEquiv).map (Fin (d + 1)) L.symm.toLinearEquiv =
-          o.map _ D.toLinearEquiv := by
-      rw [ContinuousLinearEquiv.trans_toLinearEquiv, Orientation.map_trans]
-      exact Orientation.map_symm_map L.toLinearEquiv _
-    have hO := map_orientationAt_normalTubeChartDeriv Φ z hΦ oX oZ
-    -- The tangent space of `X` at `f z` is `V`, and that of `Z` at `z` is `E`, only by
+  · -- The tangent space of `X` at `f z` is `V`, and that of `Z` at `z` is `E`, only by
     -- definition, so `rw` does not match these lemmas.
-    erw [hω]
     rw [Manifold.Orientation.orientationAt_reindex]
-    erw [Orientation.map_reindex, hO]
+    erw [Orientation.map_reindex, map_orientationAt_normalTubeChartDeriv Φ z hΦ oX oZ]
     rfl
 
 /-- **The local orientation of the ambient manifold through a normalized tube.** Let `oX` and
@@ -584,7 +546,6 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation
   have hd : r + 1 + (m + 1) = d + 1 := by omega
   have hdX : m + 1 + finrank ℝ P = d + 1 := by omega
   have hd' : m + 1 + (r + 1) = d + 1 := by omega
-  have hF : finrank ℝ (P × E) = d + 1 := by rw [Module.finrank_prod, hP, hE]; omega
   rw [localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOrientation Φ z hΦ hE
     hV hdX oX oZ]
   -- The linear algebra, for orientations `o` of `E` and `p` of `P`.
@@ -597,16 +558,10 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation
     rw [Orientation.prod_reindex_finCongr_right, ← Orientation.reindex_trans,
       Orientation.map_reindex, ContinuousLinearEquiv.prodComm_toLinearEquiv]
     congr 1
-  have hcross (o : Orientation ℝ E (Fin (m + 1))) (p : Orientation ℝ P (Fin (r + 1))) :
-      (((Orientation.reindex ℝ (E × P) (finCongr hd') (o.prod p hE hP)).map (Fin (d + 1))
-        (ContinuousLinearEquiv.prodComm ℝ E P).toLinearEquiv).localOrientation hF) =
-        LocalOrientation.cross hP hE hd (p.localOrientation hP) (o.localOrientation hE) := by
-    rw [Orientation.localOrientation_map _ _ (finrank_prod_eq_succ hE hP hd'),
-      ← LocalOrientation.prod_localOrientation,
-      ← LocalOrientation.cross_eq_map_prodComm_prod hP hE hd hd']
   -- The orientation of `Z` at `z` is one of `E` only by definition, so `rw` does not match.
   erw [hlin]
-  exact congrArg Subtype.val (hcross _ _)
+  exact congrArg Subtype.val
+    (LocalOrientation.cross_localOrientation_eq_map_prodComm hP hE hd hd' _ _).symm
 
 /-- **The local orientation of the ambient manifold through a normalized tube, at a point of a
 zero-dimensional submanifold.** Let `oX` and `oZ` orient `X` and `Z`, where `Z` has dimension

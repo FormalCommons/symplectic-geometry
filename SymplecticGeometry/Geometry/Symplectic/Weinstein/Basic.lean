@@ -177,6 +177,12 @@ theorem isWeinsteinStructure_iff :
 
 namespace IsWeinsteinStructure
 
+/-- The vector field of a Weinstein structure, as a section of the tangent bundle, is
+differentiable at every point. -/
+theorem mdifferentiableAt_field (hW : IsWeinsteinStructure ω X f) (p : M) :
+    MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
+  (hW.contMDiff_field p).mdifferentiableAt (by simp)
+
 /-- The one-form `λ = ι_X ω` of a Weinstein structure is a primitive of `ω`: `dλ = ω`. -/
 theorem mextDeriv_interior (hW : IsWeinsteinStructure ω X f) :
     mextDeriv (RoughForm.interior X ω.val) = ω.val :=

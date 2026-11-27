@@ -466,7 +466,8 @@ is not), with its complex orientation carried along.
   identification of the complement with the total space of $L^*=\mathcal O(1)$,
   followed by the conjugate-linear isomorphism $L^*\cong L$ of the
   Hermitian metric; so it reverses the complex orientations
-  (`isOrientationReversing_projectiveBlowupModelDiffeomorph`), and it sends
+  (`isOrientationReversingAt_projectiveBlowupModelDiffeomorph`, in
+  `ConnectedSum/Orientation.lean`), and it sends
   $[u:1]$ to $([u],u/\lvert u\rvert^2)$, the inversion.
 - `Blowup.connectedSumDiffeomorph c`: the diffeomorphism from Tau Ceti's
   `TauCeti.ConnectedSum e₁ e₂` onto `Blowup c`, for
