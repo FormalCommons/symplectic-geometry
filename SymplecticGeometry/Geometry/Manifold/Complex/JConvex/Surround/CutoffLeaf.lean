@@ -48,7 +48,8 @@ case `r ≥ 2` of `SymplecticGeometry.isConvexShapeAt_cutoffLeaf` and
 * `SymplecticGeometry.cutoffLeaf L δ b c`: the leaf above. The leaf for `δ` is the one for
   `δ = 1` with coefficients `b / δ` and `c / δ²`, rescaled
   (`SymplecticGeometry.cutoffLeaf_eq_mul_cutoffLeaf_one`); it is the bottom leaf raised by `b`
-  up to `2 δ` (`SymplecticGeometry.cutoffLeaf_of_le`), so that its slope tends to `+∞` at `δ`
+  up to `2 δ` (`SymplecticGeometry.cutoffLeaf_of_le`), so that its slope there is that of the
+  bottom leaf (`SymplecticGeometry.deriv_cutoffLeaf_of_lt`) and tends to `+∞` at `δ`
   (`SymplecticGeometry.tendsto_deriv_cutoffLeaf`), and `√(64 r² - 64 δ² + c)` from `(2 + L) δ` on
   (`SymplecticGeometry.cutoffLeaf_of_ge`).
 * Where its radicand does not vanish, for instance where `δ² < r²` and `0 < 64 (r² - δ²) + c`
@@ -77,7 +78,9 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   `c ≤ 121 δ²`.
 * The family is smooth in `(ℓ, r)` on `r > δ` (`SymplecticGeometry.contDiffOn_uncurry_sqrtAddLeaf`,
   and each leaf by itself, `SymplecticGeometry.contDiffOn_sqrtAddLeaf`),
-  the slope of each leaf tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_sqrtAddLeaf`),
+  below `2 δ` the slope of each leaf is that of the bottom leaf
+  (`SymplecticGeometry.deriv_sqrtAddLeaf_of_lt`) and tends to `+∞` at `δ`
+  (`SymplecticGeometry.tendsto_deriv_sqrtAddLeaf`),
   and at each `r > δ` the leaves increase strictly with `ℓ ≥ 0`
   (`SymplecticGeometry.strictMonoOn_sqrtAddLeaf`). The bounds
   `8 √(r² - δ²) ≤ sqrtAddLeaf L δ ℓ r ≤ δ / 8 + ℓ + (8 r + ℓ)` and, for large `L`, the slope bound
@@ -331,14 +334,21 @@ theorem cutoffLeaf_of_ge {L b c r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 + 
     smoothTransition.one_of_one_le ((one_le_div (by positivity)).2 (by linarith))]
   ring_nf
 
+/-- Between `δ` and `2 δ`, the slope of the cutoff leaf is that of the bottom leaf,
+`64 r / √(64 r² - 64 δ²)`. -/
+theorem deriv_cutoffLeaf_of_lt {L b c r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : δ < r)
+    (hr₂ : r < 2 * δ) :
+    deriv (cutoffLeaf L δ b c) r = 64 * r / √(64 * r ^ 2 - 64 * δ ^ 2) := by
+  have he : cutoffLeaf L δ b c =ᶠ[𝓝 r] fun x ↦ √(64 * x ^ 2 - 64 * δ ^ 2) + b := by
+    filter_upwards [gt_mem_nhds hr₂] with x hx using cutoffLeaf_of_le hL hδ hx.le
+  rw [he.deriv_eq, deriv_add_const, deriv_sqrt_sub (by nlinarith)]
+
 /-- The slope of every cutoff leaf tends to `+∞` at `δ`, where it meets the cylinder. -/
 theorem tendsto_deriv_cutoffLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (b c : ℝ) :
     Tendsto (deriv (cutoffLeaf L δ b c)) (𝓝[>] δ) atTop := by
   refine (tendsto_deriv_sqrt_sub (a := 64) (by norm_num) hδ).congr' ?_
   filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < 2 * δ)] with r hr
-  have he : cutoffLeaf L δ b c =ᶠ[𝓝 r] fun x ↦ √(64 * x ^ 2 - 64 * δ ^ 2) + b := by
-    filter_upwards [gt_mem_nhds hr.2] with x hx using cutoffLeaf_of_le hL hδ.le hx.le
-  rw [he.deriv_eq, deriv_add_const]
+  rw [deriv_cutoffLeaf_of_lt hL hδ.le hr.1 hr.2, deriv_sqrt_sub (by nlinarith [hr.1])]
 
 /-- The radicand `64 (r² - δ²) + c h r` of the cutoff leaf is positive where `δ² < r²` and
 `0 < 64 (r² - δ²) + c`: it lies between these two values, the cutoff `h r` being in `[0, 1]`. -/
@@ -583,6 +593,14 @@ theorem tendsto_deriv_sqrtAddLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ :
   rw [sqrtAddLeaf_eq_cutoffLeaf]
   exact tendsto_deriv_cutoffLeaf hL hδ _ _
 
+/-- Between `δ` and `2 δ`, the slope of each leaf is that of the bottom leaf,
+`64 r / √(64 r² - 64 δ²)`. -/
+theorem deriv_sqrtAddLeaf_of_lt {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : δ < r)
+    (hr₂ : r < 2 * δ) :
+    deriv (sqrtAddLeaf L δ ℓ) r = 64 * r / √(64 * r ^ 2 - 64 * δ ^ 2) := by
+  rw [sqrtAddLeaf_eq_cutoffLeaf]
+  exact deriv_cutoffLeaf_of_lt hL hδ hr hr₂
+
 /-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ≥ 0` are strictly increasing in `ℓ`: both
 terms of `sqrtAddLeaf` are nondecreasing in `ℓ ≥ 0`, the first strictly where the cutoff is
 below `1` and the second where it is positive. -/
@@ -757,12 +775,8 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
   have h8 : √(64 * r ^ 2 - 64 * 1 ^ 2) = 8 * w := by
     rw [show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_mul (by norm_num),
       sqrt_sq (by norm_num)]
-  have hE : A =ᶠ[𝓝 r] fun x ↦ √(64 * x ^ 2 - 64 * 1 ^ 2) + (1 / 8 + ℓ) := by
-    filter_upwards [gt_mem_nhds hr₂] with x hx
-    exact sqrtAddLeaf_of_le hL zero_le_one (by linarith)
   have hdA : deriv A r = 8 * r / w := by
-    rw [hE.deriv_eq, deriv_add_const,
-      (hasDerivAt_sqrt_sub (a := 64) (c := 64 * 1 ^ 2) (by nlinarith)).deriv, h8]
+    rw [deriv_sqrtAddLeaf_of_lt hL zero_le_one hr (by linarith), h8]
     field_simp
     norm_num
   have hdT : deriv T r ≤ √2 * r / w := by
