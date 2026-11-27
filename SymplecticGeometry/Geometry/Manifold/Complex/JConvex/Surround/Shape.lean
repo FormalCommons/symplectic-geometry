@@ -40,6 +40,9 @@ that is the locus `y = 0`, `w = 0`.
 
 * `SymplecticGeometry.modelDisc k m`: the inclusion `ι₀`, as a real continuous linear map
   (`SymplecticGeometry.modelDisc_apply`);
+* `SymplecticGeometry.modelDiscProj k m`: the projection `π₀ : V → ℝᵏ`, `(x + i y, w) ↦ x`, a
+  real continuous linear left inverse of `ι₀` (`SymplecticGeometry.leftInverse_modelDiscProj`),
+  built from Tau Ceti's `TauCeti.complexEuclideanEquivRealProd`;
 * `SymplecticGeometry.isSmoothEmbedding_modelDisc`: `ι₀` is a smooth embedding, by Tau Ceti's
   `ContinuousLinearMap.isSmoothEmbedding_of_injective`;
 * `SymplecticGeometry.mfderiv_modelDisc`: its differential at every point is `ι₀` itself;
@@ -166,11 +169,36 @@ theorem modelDisc_apply_fst_apply (x : EuclideanSpace ℝ (Fin k)) (j : Fin k) :
 theorem modelDisc_apply_snd (x : EuclideanSpace ℝ (Fin k)) : (modelDisc k m x).2 = 0 := by
   simp [modelDisc_apply]
 
-/-- The model disc is injective: `x` is the real part of the first component of `ι₀ x`. -/
-theorem modelDisc_injective : Function.Injective (modelDisc k m) := by
-  intro x y h
+variable (k m) in
+/-- The projection `π₀ : ℂᵏ × ℂᵐ → ℝᵏ`, `(z, w) ↦ Re z`, onto the core: the real part of the first
+factor, as a real continuous linear map. It is a left inverse of the model disc
+(`SymplecticGeometry.leftInverse_modelDiscProj`). -/
+def modelDiscProj :
+    EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ] EuclideanSpace ℝ (Fin k) :=
+  (ContinuousLinearMap.fst ℝ _ _).comp
+    ((complexEuclideanEquivRealProd (Fin k)).toContinuousLinearMap.comp
+      (ContinuousLinearMap.fst ℝ _ _))
+
+/-- The projection `π₀` sends `(z, w)` to the real parts of the coordinates of `z`. -/
+@[simp]
+theorem modelDiscProj_apply (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    modelDiscProj k m p = WithLp.toLp 2 fun j ↦ (p.1 j).re := by
   ext j
-  simpa using congrArg (fun p ↦ (p.1 j).re) h
+  simp [modelDiscProj]
+
+/-- The projection `π₀` is a left inverse of the model disc: `π₀ (ι₀ x) = x`. -/
+theorem leftInverse_modelDiscProj : Function.LeftInverse (modelDiscProj k m) (modelDisc k m) :=
+  fun x ↦ by ext j; simp
+
+/-- The projection `π₀` composed with the model disc `ι₀` is the identity of `ℝᵏ`. -/
+@[simp]
+theorem modelDiscProj_comp_modelDisc :
+    (modelDiscProj k m).comp (modelDisc k m) = ContinuousLinearMap.id ℝ _ :=
+  ContinuousLinearMap.ext leftInverse_modelDiscProj
+
+/-- The model disc is injective, since `π₀` is a left inverse of it. -/
+theorem modelDisc_injective : Function.Injective (modelDisc k m) :=
+  leftInverse_modelDiscProj.injective
 
 /-- The image of the model disc is the product of the real subspace `ℝᵏ ⊆ ℂᵏ` with `0`. -/
 theorem range_modelDisc :
@@ -184,7 +212,7 @@ theorem range_modelDisc :
     obtain ⟨rfl, rfl⟩ := hx
     simp
   · rintro ⟨hz, rfl⟩
-    refine ⟨WithLp.toLp 2 fun j ↦ (z j).re, ?_⟩
+    refine ⟨modelDiscProj k m (z, 0), ?_⟩
     rw [modelDisc_apply]
     ext j
     · apply Complex.ext <;> simp [hz j]

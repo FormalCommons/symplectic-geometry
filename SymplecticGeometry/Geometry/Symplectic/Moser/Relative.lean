@@ -25,6 +25,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The relative Moser theorem with prescribed first derivative
@@ -153,8 +154,8 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
   have hσ (t : ℝ) : IsSymplectic
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) := by
     rw [SmoothForm.mpullback_prodMk_lineMapFamily]
-    exact ⟨h₀.add (hcl.smul _), isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun x ↦
-      (hnd x _ ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩).ker_eq_bot⟩
+    exact ⟨h₀.add (hcl.smul _), isNondegenerate_def.2 fun x ↦
+      hnd x _ ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩⟩
   -- The Moser field `X_t = (σ_t♭)⁻¹ (-c'(t) β)`, as the inverse of the interior product.
   set α' := SmoothForm.lineMapFamily (0 : SmoothForm I M ℝ 1) β hc'
   have hα't (t : ℝ) : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α' =
