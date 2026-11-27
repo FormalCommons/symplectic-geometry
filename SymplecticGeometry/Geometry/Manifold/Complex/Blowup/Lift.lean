@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Analysis.Analytic.Order
 public import TauCeti.Topology.Codiscrete
 public import TauCeti.Analysis.Analytic.Hadamard
+import SymplecticGeometry.Analysis.Analytic.Order
 import TauCeti.Analysis.Calculus.IteratedDeriv.Leibniz
 import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -86,8 +87,6 @@ defined by this last description, without choosing `g`.
   lift is real differentiable, the differential of the blowdown sends its derivative along `c` to
   the derivative of `u` along `c`, which is `c • u'(t)` where `u` is complex differentiable
   (`mfderiv_blowdown_mfderiv_curveLift`).
-* `SymplecticGeometry.BlowupModel.analyticOrderAt_smul_const_id`: for `v ≠ 0`, the line
-  `t ↦ t • v` has a simple zero at `0`.
 * `SymplecticGeometry.BlowupModel.curveLift_smul_zero`, `pr_curveLift_smul` and
   `contMDiff_curveLift_smul`: for `v ≠ 0`, the lift of the line `t ↦ t • v` is a holomorphic curve
   that stays on the line `ℓ` spanned by `v`, the fibre over `ℓ` of the tautological line, and
@@ -581,18 +580,13 @@ theorem mfderiv_blowdown_mfderiv_curveLift (hu : DifferentiableAt ℂ u t)
 
 variable {v : Fin (n + 1) → ℂ}
 
-/-- The line `t ↦ t • v` through a nonzero `v` has a simple zero at `0`. -/
-theorem analyticOrderAt_smul_const_id (hv : v ≠ 0) :
-    analyticOrderAt (fun t : ℂ ↦ t • v) 0 = (1 : ℕ) := by
-  rw [analyticOrderAt_fun_smul_const (f := fun t : ℂ ↦ t) analyticAt_id, ite_eq_right hv]
-  exact analyticOrderAt_id
-
 /-- The lift of the line `t ↦ t • v` sends `0` to the point `zeroSection ℓ` of the exceptional
 divisor over the line `ℓ` spanned by `v`. -/
 theorem curveLift_smul_zero (hv : v ≠ 0) :
     curveLift (· • v) (0 : ℂ) = zeroSection (mk ℂ v hv) := by
   classical
-  rw [curveLift_apply_self (by fun_prop) (zero_smul ℂ v) (analyticOrderAt_smul_const_id hv)]
+  rw [curveLift_apply_self (by fun_prop) (zero_smul ℂ v) (k := 1)
+    (by simp [hv])]
   congr 1
   rw [mk_eq_mk_iff' ℂ _ _ _ hv]
   exact ⟨1, by simp [iteratedDeriv_one, deriv_smul_const]⟩
