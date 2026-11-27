@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.CleanIntersection
 public import TauCeti.Geometry.Manifold.RegularValue.Rank
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
+import TauCeti.Geometry.Manifold.Immersion.Differential
 import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Reduction
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Tangent
 import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
@@ -121,8 +122,8 @@ theorem two_mul_mfderivRank_leafSpaceMk_comp_add (hc : IsCleanIntersection I J K
       2 * finrank ℝ F := by
   let := Foliation.leafSpaceChartedSpace hR
   obtain ⟨y, hxy⟩ := hc.range_subset ⟨x, rfl⟩
-  have hcx := hc.isSmoothEmbedding.isImmersion.mfderiv_injective (by simp) x
-  have : FiniteDimensional ℝ E₀ := FiniteDimensional.of_injective _ hcx
+  have : FiniteDimensional ℝ E₀ :=
+    hc.isSmoothEmbedding.isImmersion.finiteDimensional_tangentSpace x (by simp)
   have hfc := ((hi.isDiffImmersionAt (by simp) (c x)).comp
     (hc.isSmoothEmbedding.isImmersion.isDiffImmersionAt (by simp) x)).mfderiv_injective
   -- The ranges of the derivatives of `f` at `c x` and of `g` at `y`, as subspaces of the tangent
