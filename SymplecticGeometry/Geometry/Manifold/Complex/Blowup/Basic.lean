@@ -704,6 +704,14 @@ theorem blowdown_mem_source {z : Blowup c} (hz : z ∈ range (inr (gluingHomeomo
   rw [blowdown_inr]
   exact c.map_target ((mem_modelOpens c).1 y.property)
 
+/-- Near each point of the range of `inr`, the chart `c` composed with the blowdown is the
+model blowdown composed with `lift c`. -/
+theorem comp_blowdown_eventuallyEq_blowdown_comp_lift {z : Blowup c}
+    (hz : z ∈ range (inr (gluingHomeomorph c))) :
+    c ∘ blowdown c =ᶠ[𝓝 z] BlowupModel.blowdown ∘ lift c := by
+  filter_upwards [(GluedAlong.isOpen_range_inr _).mem_nhds hz] with w hw
+  exact (blowdown_lift c (blowdown_mem_source c hw)).symm
+
 section Smooth
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedSpace 𝕜 (Fin (n + 1) → ℂ)] {r : ℕ∞ω}
