@@ -111,12 +111,12 @@ variable [Monoid G] [MulAction G M] [CompactSpace G] [ContinuousSMul G M]
 /-- A `C^n` action of a compact group restricts to a `C^n` action on the invariant core of an
 open set. -/
 instance [ContMDiffSMul I I' n G M] : ContMDiffSMul I I' n G (U.invariantCore G) :=
-  contMDiffSMul_of_coe_smul coe_smul_invariantCore
+  contMDiffSMul_of_coe_smul (coe_smul_invariantCore U)
 
 /-- An action of a compact group by `C^n` maps restricts to an action by `C^n` maps on the
 invariant core of an open set. -/
 instance [ContMDiffConstSMul I' n G M] : ContMDiffConstSMul I' n G (U.invariantCore G) :=
-  contMDiffConstSMul_of_coe_smul coe_smul_invariantCore
+  contMDiffConstSMul_of_coe_smul (coe_smul_invariantCore U)
 
 end TopologicalSpace.Opens
 

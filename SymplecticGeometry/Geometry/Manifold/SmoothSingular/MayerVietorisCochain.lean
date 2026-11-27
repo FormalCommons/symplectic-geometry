@@ -73,8 +73,8 @@ def smallSmoothSingularCohomologyIso (n : ℕ) :
     (TopCat.of M).singularCohomology R k Y n ≅
       (((smallSmoothSingularSubcomplex I S : SSet).chainComplex R).linearYonedaObj k Y).homology
         n :=
-  have := quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι (I := I) (R := R) (k := k)
-    (Y := Y) S hS hcov
+  have := quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι (I := I) (M := M) (R := R)
+    (k := k) (Y := Y) (U := S) (hU := hS) (hcov := hcov)
   asIso (HomologicalComplex.homologyMap
     (SSet.cochainComplexMap (smallSmoothSingularSubcomplex I S).ι) n)
 
