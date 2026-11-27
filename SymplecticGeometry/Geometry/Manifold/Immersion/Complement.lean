@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Immersion
+public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
 import Mathlib.LinearAlgebra.Dimension.Constructions
 
 /-!
@@ -15,11 +16,14 @@ An immersion `f : M → N` of a nonempty manifold comes with a linear equivalenc
 between the product of the model space `E` of `M` with the chosen complement `F` and the model
 space `E'` of `N` (`Manifold.IsImmersionAtOfComplement.equiv`). So if `F` were trivial, `E` and
 `E'` would have the same rank: when `E'` has larger rank than `E`, the complement is nontrivial.
+The same equivalence embeds `F` linearly into `E'`, so `F` is finite-dimensional when `E'` is.
 
 ## Main results
 
 * `Manifold.IsImmersion.nontrivial_complement`: the complement of an immersion of a nonempty
   manifold into one whose model space has larger rank is nontrivial.
+* `Manifold.IsImmersionAt.finiteDimensional_complement`: the complement of an immersion at a point
+  into a manifold with finite-dimensional model space is finite-dimensional.
 
 ## References
 
@@ -31,14 +35,14 @@ public section
 
 universe u v
 
-namespace Manifold.IsImmersion
-
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type u} {H M : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H]
   {I : ModelWithCorners 𝕜 E H} [TopologicalSpace M] [ChartedSpace H M]
   {E' : Type v} {H' N : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H']
   {J : ModelWithCorners 𝕜 E' H'} [TopologicalSpace N] [ChartedSpace H' N]
   {n : WithTop ℕ∞} {f : M → N}
+
+namespace Manifold.IsImmersion
 
 /-- If `f : M → N` is an immersion of a nonempty manifold, and the model space `E'` of `N` has
 larger rank than the model space `E` of `M`, then the complement chosen by the immersion is
@@ -55,5 +59,18 @@ theorem nontrivial_complement [Nonempty M] (h : IsImmersion I J n f)
   exact hE.ne (by simpa using this)
 
 end Manifold.IsImmersion
+
+namespace Manifold.IsImmersionAt
+
+/-- If `f : M → N` is an immersion at `x` and the model space `E'` of `N` is finite-dimensional,
+then the complement chosen by the immersion is finite-dimensional. -/
+theorem finiteDimensional_complement [FiniteDimensional 𝕜 E'] {x : M}
+    (h : IsImmersionAt I J n f x) : FiniteDimensional 𝕜 h.complement :=
+  have h' := h.isImmersionAtOfComplement_complement
+  FiniteDimensional.of_injective
+    ((h'.equiv : E × h.complement →L[𝕜] E').comp (ContinuousLinearMap.inr 𝕜 E _)).toLinearMap
+    (h'.equiv.injective.comp (Prod.mk_right_injective (0 : E)))
+
+end Manifold.IsImmersionAt
 
 end
