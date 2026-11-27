@@ -57,7 +57,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `hasDerivAt_smoothedMax_left`, `hasDerivAt_smoothedMax_right`, monotonicity in each argument
   (`monotone_smoothedMax_left`, `monotone_smoothedMax_right`, `smoothedMax_le_smoothedMax`), the
   first and second derivatives `hasDerivAt_smoothedMax`, `deriv_smoothedMax` and
-  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, the bounds
+  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, the first one also
+  as a weighted average (`hasDerivAt_smoothedMax_weighted`, `deriv_smoothedMax_weighted`, with
+  the weight in `[0, 1]` by `one_add_smoothedSign_div_two_mem_Icc`), the bounds
   `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
   `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
@@ -423,29 +425,51 @@ theorem deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt �
       (deriv f x + deriv g x + smoothedSign δ (f x - g x) * (deriv f x - deriv g x)) / 2 :=
   (hasDerivAt_smoothedMax hf.hasDerivAt hg.hasDerivAt).deriv
 
+/-- The weight `(1 + smoothedSign δ t) / 2` of the derivative of the smoothed maximum lies in
+`[0, 1]`. -/
+theorem one_add_smoothedSign_div_two_mem_Icc (δ t : ℝ) :
+    (1 + smoothedSign δ t) / 2 ∈ Icc (0 : ℝ) 1 := by
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ t)
+  constructor <;> linarith
+
+/-- The derivative of the smoothed maximum of two functions, as a weighted average: with
+`w = (1 + smoothedSign δ (f x - g x)) / 2`, which lies in `[0, 1]`
+(`one_add_smoothedSign_div_two_mem_Icc`), it is `w * f' + (1 - w) * g'`. -/
+theorem hasDerivAt_smoothedMax_weighted {f g : ℝ → ℝ} {f' g' x : ℝ} (hf : HasDerivAt f f' x)
+    (hg : HasDerivAt g g' x) :
+    HasDerivAt (fun x ↦ smoothedMax δ (f x) (g x))
+      ((1 + smoothedSign δ (f x - g x)) / 2 * f' +
+        (1 - (1 + smoothedSign δ (f x - g x)) / 2) * g') x := by
+  convert hasDerivAt_smoothedMax hf hg using 1
+  ring
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x`, as a weighted
+average: with `w = (1 + smoothedSign δ (f x - g x)) / 2`, which lies in `[0, 1]`
+(`one_add_smoothedSign_div_two_mem_Icc`), it is `w * f'(x) + (1 - w) * g'(x)`. -/
+theorem deriv_smoothedMax_weighted {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ smoothedMax δ (f x) (g x)) x =
+      (1 + smoothedSign δ (f x - g x)) / 2 * deriv f x +
+        (1 - (1 + smoothedSign δ (f x - g x)) / 2) * deriv g x :=
+  (hasDerivAt_smoothedMax_weighted hf.hasDerivAt hg.hasDerivAt).deriv
+
 /-- The derivative of the smoothed maximum of two functions differentiable at `x` is at least
 the smaller of their derivatives. -/
 theorem min_deriv_le_deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
     (hg : DifferentiableAt ℝ g x) :
     min (deriv f x) (deriv g x) ≤ deriv (fun x ↦ smoothedMax δ (f x) (g x)) x := by
-  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
-  convert Convex.min_le_combo (deriv f x) (deriv g x)
-    (a := (1 + smoothedSign δ (f x - g x)) / 2) (b := (1 - smoothedSign δ (f x - g x)) / 2)
-    (by linarith) (by linarith) (by ring) using 1
-  rw [deriv_smoothedMax hf hg, smul_eq_mul, smul_eq_mul]
-  ring
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  rw [deriv_smoothedMax_weighted hf hg, ← smul_eq_mul, ← smul_eq_mul (1 - _)]
+  exact Convex.min_le_combo _ _ hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
 
 /-- The derivative of the smoothed maximum of two functions differentiable at `x` is at most
 the larger of their derivatives. -/
 theorem deriv_smoothedMax_le_max {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
     (hg : DifferentiableAt ℝ g x) :
     deriv (fun x ↦ smoothedMax δ (f x) (g x)) x ≤ max (deriv f x) (deriv g x) := by
-  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
-  convert Convex.combo_le_max (deriv f x) (deriv g x)
-    (a := (1 + smoothedSign δ (f x - g x)) / 2) (b := (1 - smoothedSign δ (f x - g x)) / 2)
-    (by linarith) (by linarith) (by ring) using 1
-  rw [deriv_smoothedMax hf hg, smul_eq_mul, smul_eq_mul]
-  ring
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  rw [deriv_smoothedMax_weighted hf hg, ← smul_eq_mul, ← smul_eq_mul (1 - _)]
+  exact Convex.combo_le_max _ _ hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
 
 /-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
 `s = smoothedSign δ (f x - g x)`, it is
