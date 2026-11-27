@@ -99,22 +99,21 @@ variable {EQ₀ EQ₁ E₀ E₁ HQ₀ HQ₁ H₀ H₁ Q₀ Q₁ M₀ M₁ : Type
   [TopologicalSpace M₀] [ChartedSpace H₀ M₀] [IsManifold I₀ ∞ M₀] [T2Space M₀]
   [SecondCountableTopology M₀]
   [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁] [T2Space M₁]
-  [SecondCountableTopology M₁]
   {ω₀ : SmoothTwoForm I₀ M₀} {ω₁ : SmoothTwoForm I₁ M₁}
   (hω₀ : ω₀.IsSymplectic) (hω₁ : ω₁.IsSymplectic)
   {f₀ : SmoothEmbedding J₀ I₀ ∞ Q₀ M₀} {f₁ : SmoothEmbedding J₁ I₁ ∞ Q₁ M₁}
 
 /-- **Isotropic neighbourhoods with a prescribed normal map.** Let `f₀ : Q₀ → M₀` and
-`f₁ : Q₁ → M₁` be isotropic smooth embeddings into second countable Hausdorff symplectic
-manifolds `(M₀, ω₀)` and `(M₁, ω₁)` without boundary of the same dimension, let `φ : Q₀ ≃ Q₁` be
-a diffeomorphism, and let `L q : T_{f₀ q} M₀ →L[ℝ] T_{f₁ (φ q)} M₁` be a smooth section over
-`Q₀` of the bundle of linear maps between the pull-backs `f₀ *ᵖ TM₀` and `(f₁ ∘ φ) *ᵖ TM₁` that
-maps the symplectic complement `W₀^ω` of the tangent image `W₀` of `f₀` at `q` into the
-complement `W₁^ω` of the tangent image `W₁` of `f₁` at `φ q`, and preserves the symplectic forms
-on it. Then there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁`
-pulling the restriction of `ω₁` back to that of `ω₀`, such that, for every `q`, `f₀ q ∈ U₀`,
-`ψ (f₀ q) = f₁ (φ q)`, and `dψ v - L q v ∈ W₁` for every `v ∈ W₀^ω`. The two submanifolds may
-be modelled on different spaces `J₀` and `J₁`. -/
+`f₁ : Q₁ → M₁` be isotropic smooth embeddings into Hausdorff symplectic manifolds `(M₀, ω₀)`
+and `(M₁, ω₁)` without boundary of the same dimension, `M₀` second countable, let
+`φ : Q₀ ≃ Q₁` be a diffeomorphism, and let `L q : T_{f₀ q} M₀ →L[ℝ] T_{f₁ (φ q)} M₁` be a smooth
+section over `Q₀` of the bundle of linear maps between the pull-backs `f₀ *ᵖ TM₀` and
+`(f₁ ∘ φ) *ᵖ TM₁` that maps the symplectic complement `W₀^ω` of the tangent image `W₀` of `f₀`
+at `q` into the complement `W₁^ω` of the tangent image `W₁` of `f₁` at `φ q`, and preserves the
+symplectic forms on it. Then there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism
+`ψ : U₀ ≃ U₁` pulling the restriction of `ω₁` back to that of `ω₀`, such that, for every `q`,
+`f₀ q ∈ U₀`, `ψ (f₀ q) = f₁ (φ q)`, and `dψ v - L q v ∈ W₁` for every `v ∈ W₀^ω`. The two
+submanifolds may be modelled on different spaces `J₀` and `J₁`. -/
 theorem IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq
     (h₀ : hω₀.isNondegenerate.IsIsotropicMap J₀ f₀)
     (h₁ : hω₁.isNondegenerate.IsIsotropicMap J₁ f₁) (φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁)
@@ -168,11 +167,11 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq
   exact ⟨u', hu.trans (congrArg (L q v + ·) hu'.symm)⟩
 
 /-- **The isotropic neighbourhood theorem.** Let `f₀ : Q₀ → M₀` and `f₁ : Q₁ → M₁` be isotropic
-smooth embeddings into second countable Hausdorff symplectic manifolds `(M₀, ω₀)` and `(M₁, ω₁)`
-without boundary, and write `Wⱼ` for the tangent image of `fⱼ`. Let `φ : Q₀ ≃ Q₁` be a
-diffeomorphism, covered by linear symplectomorphisms `Φ q` from the symplectic normal space
-`W₀^ω ⧸ W₀` of `f₀` at `q` onto that of `f₁` at `φ q` (the reduced spaces of `W^ω`, with the
-reduced forms). Let `Φ` be smooth in the sense that it is induced by a smooth section
+smooth embeddings into Hausdorff symplectic manifolds `(M₀, ω₀)` and `(M₁, ω₁)` without
+boundary, `M₀` second countable, and write `Wⱼ` for the tangent image of `fⱼ`. Let
+`φ : Q₀ ≃ Q₁` be a diffeomorphism, covered by linear symplectomorphisms `Φ q` from the symplectic
+normal space `W₀^ω ⧸ W₀` of `f₀` at `q` onto that of `f₁` at `φ q` (the reduced spaces of `W^ω`,
+with the reduced forms). Let `Φ` be smooth in the sense that it is induced by a smooth section
 `L q : T_{f₀ q} M₀ →L[ℝ] T_{f₁ (φ q)} M₁` over `Q₀` of the bundle of linear maps between the
 pull-backs `f₀ *ᵖ TM₀` and `(f₁ ∘ φ) *ᵖ TM₁`: `L q` maps `W₀^ω` into `W₁^ω` and
 `Φ q [v] = [L q v]`. Then there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism

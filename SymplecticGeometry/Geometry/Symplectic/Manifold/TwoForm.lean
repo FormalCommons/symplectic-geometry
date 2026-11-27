@@ -36,6 +36,10 @@ a vector space.
 
 ## Main results
 
+* `TauCeti.SmoothTwoForm.isNondegenerate_def`: a smooth two-form is nondegenerate exactly when
+  it is nondegenerate on each tangent space. Tau Ceti does not expose the body of
+  `TauCeti.SmoothTwoForm.IsNondegenerate`, so the converse of its
+  `TauCeti.SmoothTwoForm.IsNondegenerate.nondegenerate_bilinFormAt` needs this lemma.
 * `TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`.
 * `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
@@ -64,6 +68,13 @@ variable {E₀ H₀ M₀ E₁ H₁ M₁ : Type*} [NormedAddCommGroup E₀] [Norm
   [ChartedSpace H₀ M₀] [IsManifold I₀ ∞ M₀] [NormedAddCommGroup E₁] [NormedSpace ℝ E₁]
   [TopologicalSpace H₁] {I₁ : ModelWithCorners ℝ E₁ H₁} [TopologicalSpace M₁]
   [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁]
+
+/-- A smooth two-form is nondegenerate exactly when its bilinear form on the tangent space at
+each point is nondegenerate. -/
+theorem isNondegenerate_def {σ : SmoothTwoForm I₀ M₀} :
+    σ.IsNondegenerate ↔ ∀ x, (σ.bilinFormAt x).Nondegenerate :=
+  ⟨IsNondegenerate.nondegenerate_bilinFormAt,
+    fun h ↦ isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun x ↦ (h x).ker_eq_bot⟩
 
 /-- Let `f : M₀ → M₁` be a smooth map with `f x₀ = x₁` whose differential at `x₀` is a linear
 symplectomorphism `A : T_{x₀} M₀ ≃ T_{x₁} M₁` for the symplectic forms that nondegenerate

@@ -15,7 +15,6 @@ import Mathlib.Analysis.Normed.Operator.Mul
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
-import SymplecticGeometry.Topology.VectorBundle.DetBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
 import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
@@ -73,7 +72,7 @@ manifold, the determinant line of the complex bundle `J.toContinuousComplexStruc
 `Cⁿ` complex line bundle (`TauCeti.DetBundle.contMDiffVectorBundle`), and Tau Ceti's
 `TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I` gives it a `Cⁿ` real metric that
 multiplication by `Complex.I` preserves. The real scalar multiplication on its fibres is
-continuous by `TauCeti.DetBundle.continuousSMul`.
+continuous by the scoped instance `VectorBundle.ComplexToReal.continuousSMul`.
 
 ## Main results
 

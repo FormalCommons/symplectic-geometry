@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Loc
 public import TauCeti.Geometry.Manifold.ConnectedSum.Sphere
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Euclidean.Inversion
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Forms on a manifold covered by two complementary balls
@@ -176,8 +177,7 @@ theorem exists_isNondegenerate_mpullback_eq [IsManifold I ∞ N] (h : IsCompleme
       (∀ w ∈ Metric.ball 0 R'⁻¹, mpullback 𝓘(ℝ, E) I s η.val w = τ.val w) ∧
         ∀ w ∈ Metric.ball 0 R⁻¹, mpullback 𝓘(ℝ, E) I s' η.val w = τ'.val w := by
   obtain ⟨η, h₁, h₂⟩ := h.exists_smoothForm_mpullback_eq hs hs' hR hR' hRR' τ τ' hτ
-  refine ⟨η, SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦
-    LinearMap.separatingLeft_iff_ker_eq_bot.1 (?_ : (η.bilinFormAt z).Nondegenerate).1, h₁, h₂⟩
+  refine ⟨η, SmoothTwoForm.isNondegenerate_def.2 fun z ↦ ?_, h₁, h₂⟩
   by_cases hz : z ∈ s '' Metric.ball 0 R'⁻¹
   · obtain ⟨x, hx, rfl⟩ := hz
     exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
