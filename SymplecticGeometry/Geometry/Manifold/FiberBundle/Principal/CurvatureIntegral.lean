@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
 
 /-!
 # Integrals of the curvature of circle connections

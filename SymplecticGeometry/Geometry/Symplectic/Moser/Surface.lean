@@ -12,7 +12,7 @@ import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
 import TauCeti.Geometry.Symplectic.Manifold.Surface
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
 
 /-!
 # Moser's theorem for area forms on closed surfaces
