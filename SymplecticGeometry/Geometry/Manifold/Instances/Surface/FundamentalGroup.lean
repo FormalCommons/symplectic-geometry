@@ -24,6 +24,8 @@ import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.Topology.Homeomorph.SetCongr
 import TauCeti.GroupTheory.SurfaceGroup.Gluing
+import SymplecticGeometry.Geometry.Manifold.Instances.Surface.PuncturedSphere
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The fundamental groups of the punctured closed surfaces
@@ -35,7 +37,10 @@ the punctured torus `TauCeti.ConnectedSum.puncture EuclideanTorus.ball` and
 `ClosedSurface.puncture g (n + 1)`, glued along the neck `{0}ᶜ` of the plane, and from it proves
 the step of the induction on the genus: an isomorphism of the fundamental group of
 `puncture g (n + 1)` with `TauCeti.SurfaceGroup.Orientable g (n + 1)`, with given values on the
-standard loops, gives one for `puncture (g + 1) n` and `Orientable (g + 1) n`.
+standard loops, gives one for `puncture (g + 1) n` and `Orientable (g + 1) n`. The induction,
+started at the punctured spheres (`ClosedSurface.exists_puncturedFundamentalGroupMulEquiv_zero`),
+then identifies the fundamental group of every `puncture g n` with `Orientable g n`, and, for
+`n = 0`, that of the closed surface of genus `g` with `Orientable g 0`.
 
 ## Main definitions
 
@@ -46,6 +51,11 @@ standard loops, gives one for `puncture (g + 1) n` and `Orientable (g + 1) n`.
 * `SymplecticGeometry.ClosedSurface.puncturedNeckInr g n`: the neck `{0}ᶜ` in
   `puncture g (n + 1)`, by `v ↦ ball g 0 (inversion 0 1 v)`, the map
   `TauCeti.ConnectedSum.neckInr` of the ball `0` read in `puncture g (n + 1)`.
+* `SymplecticGeometry.ClosedSurface.puncturedFundamentalGroupMulEquiv g n`: the isomorphism of
+  the fundamental group of `puncture g n` with `Orientable g n` sending the standard circles to
+  `a` and `b` and the peripheral loops to the peripheral generators.
+* `SymplecticGeometry.ClosedSurface.fundamentalGroupMulEquiv g`: the isomorphism of the
+  fundamental group of `ClosedSurface g` with `Orientable g 0`, its case `n = 0`.
 
 ## Main results
 
@@ -62,6 +72,14 @@ standard loops, gives one for `puncture (g + 1) n` and `Orientable (g + 1) n`.
 * `SymplecticGeometry.ClosedSurface.exists_puncturedFundamentalGroupMulEquiv_succ`: the step from
   genus `g` with `n + 1` punctures to genus `g + 1` with `n` punctures, for an isomorphism with
   `Orientable` sending `puncturedCircleLoop` to `a` and `b` and `peripheralLoop` to `peripheral`.
+* `SymplecticGeometry.ClosedSurface.exists_puncturedFundamentalGroupMulEquiv`: for all `g` and
+  `n`, such an isomorphism exists, by induction on `g` for all `n` at once.
+* `SymplecticGeometry.ClosedSurface.puncturedFundamentalGroup_hom_ext`,
+  `SymplecticGeometry.ClosedSurface.eq_puncturedFundamentalGroupMulEquiv`: the classes of the
+  standard circles and the peripheral loops generate, so the isomorphism is unique.
+* `SymplecticGeometry.ClosedSurface.fundamentalGroupMulEquiv_circleLoop_zero`,
+  `SymplecticGeometry.ClosedSurface.fundamentalGroupMulEquiv_circleLoop_one`: the standard
+  circles of the torus summand `k` go to `a k` and `b k` under `fundamentalGroupMulEquiv g`.
 
 ## Implementation notes
 
@@ -608,6 +626,189 @@ theorem exists_puncturedFundamentalGroupMulEquiv_succ
       simp
   · rw [hinr _ _ (puncturedSuccInr_peripheralLoop_apply i), hp]
     simp
+
+/-! ### The induction on the genus -/
+
+variable (g n) in
+/-- **The fundamental groups of the punctured closed surfaces.** The fundamental group of the
+closed surface of genus `g` with the centres of its balls `0, …, n - 1` removed is isomorphic to
+the surface group `Orientable g n`, by an isomorphism sending the standard circles
+`puncturedCircleLoop g n k 0` and `puncturedCircleLoop g n k 1` to `a k` and `b k` and the
+peripheral loop `i` to the peripheral generator `i`. -/
+theorem exists_puncturedFundamentalGroupMulEquiv :
+    ∃ e : FundamentalGroup (puncture g n) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+        SurfaceGroup.Orientable g n,
+      (∀ k : Fin g, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop g n k 0))) = SurfaceGroup.Orientable.a g n k) ∧
+      (∀ k : Fin g, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop g n k 1))) = SurfaceGroup.Orientable.b g n k) ∧
+      ∀ i, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (peripheralLoop g n i))) =
+        SurfaceGroup.Orientable.peripheral g n i := by
+  induction g generalizing n with
+  | zero => exact exists_puncturedFundamentalGroupMulEquiv_zero n
+  | succ g ih => exact exists_puncturedFundamentalGroupMulEquiv_succ (ih (n + 1))
+
+variable (g n) in
+/-- The isomorphism of the fundamental group of `puncture g n`, at the base point, with the
+surface group `Orientable g n`, sending the standard circles to the generators `a` and `b` and the
+peripheral loops to the peripheral generators. It is the only one with these values
+(`ClosedSurface.eq_puncturedFundamentalGroupMulEquiv`). -/
+def puncturedFundamentalGroupMulEquiv :
+    FundamentalGroup (puncture g n) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g n :=
+  (exists_puncturedFundamentalGroupMulEquiv g n).choose
+
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_puncturedCircleLoop_zero (k : Fin g) :
+    puncturedFundamentalGroupMulEquiv g n (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 0))) =
+        SurfaceGroup.Orientable.a g n k :=
+  (exists_puncturedFundamentalGroupMulEquiv g n).choose_spec.1 k
+
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_puncturedCircleLoop_one (k : Fin g) :
+    puncturedFundamentalGroupMulEquiv g n (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 1))) =
+        SurfaceGroup.Orientable.b g n k :=
+  (exists_puncturedFundamentalGroupMulEquiv g n).choose_spec.2.1 k
+
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_peripheralLoop (i : Fin n) :
+    puncturedFundamentalGroupMulEquiv g n (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (peripheralLoop g n i))) =
+        SurfaceGroup.Orientable.peripheral g n i :=
+  (exists_puncturedFundamentalGroupMulEquiv g n).choose_spec.2.2 i
+
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_symm_a (k : Fin g) :
+    (puncturedFundamentalGroupMulEquiv g n).symm (SurfaceGroup.Orientable.a g n k) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 0)) := by
+  rw [MulEquiv.symm_apply_eq, puncturedFundamentalGroupMulEquiv_puncturedCircleLoop_zero]
+
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_symm_b (k : Fin g) :
+    (puncturedFundamentalGroupMulEquiv g n).symm (SurfaceGroup.Orientable.b g n k) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 1)) := by
+  rw [MulEquiv.symm_apply_eq, puncturedFundamentalGroupMulEquiv_puncturedCircleLoop_one]
+
+@[simp]
+theorem puncturedFundamentalGroupMulEquiv_symm_peripheral (i : Fin n) :
+    (puncturedFundamentalGroupMulEquiv g n).symm (SurfaceGroup.Orientable.peripheral g n i) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (peripheralLoop g n i)) := by
+  rw [MulEquiv.symm_apply_eq, puncturedFundamentalGroupMulEquiv_peripheralLoop]
+
+/-- The classes of the standard circles and of the peripheral loops generate the fundamental group
+of `puncture g n`: two homomorphisms out of it that agree on them are equal. -/
+@[ext]
+theorem puncturedFundamentalGroup_hom_ext {G : Type*} [Group G]
+    {f f' : FundamentalGroup (puncture g n) ⟨basePoint g, basePoint_mem_puncture⟩ →* G}
+    (ha : ∀ k : Fin g, f (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 0))) =
+        f' (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 0))))
+    (hb : ∀ k : Fin g, f (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 1))) =
+        f' (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 1))))
+    (hp : ∀ i : Fin n, f (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (peripheralLoop g n i))) =
+        f' (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (peripheralLoop g n i)))) :
+    f = f' := by
+  have h : f.comp (puncturedFundamentalGroupMulEquiv g n).symm.toMonoidHom =
+      f'.comp (puncturedFundamentalGroupMulEquiv g n).symm.toMonoidHom :=
+    SurfaceGroup.Orientable.hom_ext (by simpa using ha) (by simpa using hb) (by simpa using hp)
+  ext x
+  simpa using DFunLike.congr_fun h (puncturedFundamentalGroupMulEquiv g n x)
+
+/-- An isomorphism of the fundamental group of `puncture g n` with `Orientable g n` sending the
+standard circles to `a` and `b` and the peripheral loops to the peripheral generators is
+`ClosedSurface.puncturedFundamentalGroupMulEquiv g n`. -/
+theorem eq_puncturedFundamentalGroupMulEquiv
+    {e : FundamentalGroup (puncture g n) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g n}
+    (ha : ∀ k : Fin g, e (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 0))) =
+        SurfaceGroup.Orientable.a g n k)
+    (hb : ∀ k : Fin g, e (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (puncturedCircleLoop g n k 1))) =
+        SurfaceGroup.Orientable.b g n k)
+    (hp : ∀ i : Fin n, e (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (peripheralLoop g n i))) =
+        SurfaceGroup.Orientable.peripheral g n i) :
+    e = puncturedFundamentalGroupMulEquiv g n :=
+  MulEquiv.toMonoidHom_injective <| puncturedFundamentalGroup_hom_ext
+    (fun k ↦ by simpa using ha k) (fun k ↦ by simpa using hb k) (fun i ↦ by simpa using hp i)
+
+/-! ### The closed surface -/
+
+variable (g) in
+/-- The inclusion of `puncture g 0`, which is the whole surface (`ClosedSurface.puncture_zero`),
+read on fundamental groups at the base point. -/
+private def punctureZeroMulEquiv :
+    FundamentalGroup (puncture g 0) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      FundamentalGroup (ClosedSurface g) (basePoint g) :=
+  FundamentalGroup.homeomorphMulEquivOfEq
+    (Diffeomorph.ofTop (I := 𝓡 2) (n := 0) _ (puncture_zero g)).toHomeomorph
+    (by simp)
+
+private theorem punctureZeroMulEquiv_fromPath_mk
+    (γ : Path (⟨basePoint g, basePoint_mem_puncture⟩ : puncture g 0)
+      ⟨basePoint g, basePoint_mem_puncture⟩) :
+    punctureZeroMulEquiv g (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk γ)) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (γ.map continuous_subtypeVal)) := by
+  rw [punctureZeroMulEquiv, FundamentalGroup.homeomorphMulEquivOfEq_apply,
+    FundamentalGroup.mapOfEq_fromPath_mk]
+  congr 2
+  ext t
+  rw [Path.cast_coe, Path.map_coe, Function.comp_apply]
+  simp
+
+variable (g) in
+/-- The isomorphism of the fundamental group of the closed surface of genus `g`, at its base
+point, with the surface group `Orientable g 0`, sending the standard circles `circleLoop g k 0`
+and `circleLoop g k 1` of the torus summand `k` to the generators `a k` and `b k`
+(`ClosedSurface.fundamentalGroupMulEquiv_circleLoop_zero`,
+`ClosedSurface.fundamentalGroupMulEquiv_circleLoop_one`). It is
+`ClosedSurface.puncturedFundamentalGroupMulEquiv g 0`, read along `puncture g 0 = ⊤`. -/
+def fundamentalGroupMulEquiv :
+    FundamentalGroup (ClosedSurface g) (basePoint g) ≃* SurfaceGroup.Orientable g 0 :=
+  (punctureZeroMulEquiv g).symm.trans (puncturedFundamentalGroupMulEquiv g 0)
+
+private theorem fundamentalGroupMulEquiv_circleLoop (k : Fin g) (i : Fin 2) :
+    fundamentalGroupMulEquiv g (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (circleLoop g k i))) =
+        puncturedFundamentalGroupMulEquiv g 0 (FundamentalGroup.fromPath
+          (Path.Homotopic.Quotient.mk (puncturedCircleLoop g 0 k i))) := by
+  rw [fundamentalGroupMulEquiv, MulEquiv.trans_apply, ← map_puncturedCircleLoop (n := 0),
+    ← punctureZeroMulEquiv_fromPath_mk, MulEquiv.symm_apply_apply]
+
+/-- The isomorphism `ClosedSurface.fundamentalGroupMulEquiv g` sends the class of the standard
+circle `circleLoop g k 0` to the generator `a k`. -/
+@[simp]
+theorem fundamentalGroupMulEquiv_circleLoop_zero (k : Fin g) :
+    fundamentalGroupMulEquiv g (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (circleLoop g k 0))) = SurfaceGroup.Orientable.a g 0 k := by
+  rw [fundamentalGroupMulEquiv_circleLoop,
+    puncturedFundamentalGroupMulEquiv_puncturedCircleLoop_zero]
+
+/-- The isomorphism `ClosedSurface.fundamentalGroupMulEquiv g` sends the class of the standard
+circle `circleLoop g k 1` to the generator `b k`. -/
+@[simp]
+theorem fundamentalGroupMulEquiv_circleLoop_one (k : Fin g) :
+    fundamentalGroupMulEquiv g (FundamentalGroup.fromPath
+      (Path.Homotopic.Quotient.mk (circleLoop g k 1))) = SurfaceGroup.Orientable.b g 0 k := by
+  rw [fundamentalGroupMulEquiv_circleLoop,
+    puncturedFundamentalGroupMulEquiv_puncturedCircleLoop_one]
+
+@[simp]
+theorem fundamentalGroupMulEquiv_symm_a (k : Fin g) :
+    (fundamentalGroupMulEquiv g).symm (SurfaceGroup.Orientable.a g 0 k) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop g k 0)) := by
+  rw [MulEquiv.symm_apply_eq, fundamentalGroupMulEquiv_circleLoop_zero]
+
+@[simp]
+theorem fundamentalGroupMulEquiv_symm_b (k : Fin g) :
+    (fundamentalGroupMulEquiv g).symm (SurfaceGroup.Orientable.b g 0 k) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop g k 1)) := by
+  rw [MulEquiv.symm_apply_eq, fundamentalGroupMulEquiv_circleLoop_one]
 
 end SymplecticGeometry.ClosedSurface
 
