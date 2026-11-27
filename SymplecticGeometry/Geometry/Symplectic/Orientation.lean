@@ -7,6 +7,11 @@ module
 
 public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
+public import Mathlib.Topology.LocallyConstant.Basic
+public import Mathlib.Topology.MetricSpace.Pseudo.Defs
+import Mathlib.Analysis.Normed.Module.FiniteDimension
+import TauCeti.Geometry.Symplectic.ExistsCompatible
+import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
 # Adapted bases of a transported almost complex structure
@@ -18,6 +23,17 @@ linear equivalence, then every basis `(v₁, J' v₁, …, vₙ, J' vₙ)` of `W
 `TauCeti.SymplecticForm.Tames.orientation_reindex`, applied to the transported form, with the
 naturality `TauCeti.SymplecticForm.IsSymplectomorphism.map_orientation`.
 
+The symplectic orientation is also unchanged along a continuous family of symplectic forms: if
+`x ↦ ω x v w` is continuous for all `v, w`, then `x ↦ (ω x).orientation hk` is locally constant
+(`TauCeti.SymplecticForm.isLocallyConstant_orientation`), hence constant over a preconnected
+parameter space (`TauCeti.SymplecticForm.orientation_eq_of_preconnectedSpace`). Near `x₀`, an
+almost complex structure tamed by `ω x₀` (`TauCeti.SymplecticForm.exists_tames`) is still tamed,
+since taming is an open condition (`TauCeti.isOpen_setOf_forall_bilinear_apply_endomorphism_pos`),
+and forms taming a common structure have the same orientation
+(`TauCeti.SymplecticForm.Tames.orientation_eq`). This adapts the proof of Tau Ceti's private
+`eventually_mapOrientation_orientation_eq` (`TauCeti/Geometry/Symplectic/Manifold/Orientation.lean`)
+from the tangent spaces of a manifold to a family of forms on one vector space.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
@@ -25,7 +41,7 @@ naturality `TauCeti.SymplecticForm.IsSymplectomorphism.map_orientation`.
 
 public section
 
-open Module
+open Module Topology
 
 namespace TauCeti.SymplecticForm
 
@@ -43,6 +59,46 @@ theorem Tames.orientation_reindex_transport (hJ : ω.Tames J) (e : V ≃ₗ[ℝ]
       Orientation.map (Fin k) e (ω.orientation hk) := by
   rw [(hJ.transport e).orientation_reindex hb (e.finrank_eq.symm.trans hk) h,
     (isSymplectomorphism_iff_transport_eq.2 rfl).map_orientation hk]
+
+section Family
+
+variable {X : Type*} [TopologicalSpace X] {ω : X → SymplecticForm V}
+
+/-- Along a family of symplectic forms `ω x` on `V` whose values `ω x v w` depend continuously on
+`x`, the symplectic orientation is locally constant. -/
+theorem isLocallyConstant_orientation (hω : ∀ v w, Continuous fun x ↦ ω x v w)
+    (hk : finrank ℝ V = k) : IsLocallyConstant fun x ↦ (ω x).orientation hk := by
+  refine (IsLocallyConstant.iff_eventually_eq _).2 fun x₀ ↦ ?_
+  obtain ⟨J, hJ⟩ := (ω x₀).exists_tames
+  -- Carry the forms and `J` to a normed space, where taming is an open condition.
+  let e := (Module.finBasis ℝ V).equivFun
+  let B : X → (Fin (finrank ℝ V) → ℝ) →L[ℝ] (Fin (finrank ℝ V) → ℝ) →L[ℝ] ℝ := fun x ↦
+    LinearMap.toContinuousLinearMap
+      (LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ
+        (ω x).toBilinForm.compl₁₂ e.symm.toLinearMap e.symm.toLinearMap)
+  have hB (x u u') : B x u u' = ω x (e.symm u) (e.symm u') := rfl
+  let A := LinearMap.toContinuousLinearMap (e.toLinearMap ∘ₗ J.toLinearMap ∘ₗ e.symm.toLinearMap)
+  have hA (u) : A u = e (J (e.symm u)) := rfl
+  have hc : Continuous fun x ↦ (B x, A) := by
+    refine Continuous.prodMk (continuous_clm_apply.2 fun u ↦ continuous_clm_apply.2 fun u' ↦ ?_)
+      continuous_const
+    simpa only [hB] using hω _ _
+  have htame : ∀ᶠ x in 𝓝 x₀, (ω x).Tames J := by
+    refine (hc.continuousAt.eventually_mem
+      (TauCeti.isOpen_setOf_forall_bilinear_apply_endomorphism_pos.mem_nhds fun u hu ↦ ?_)).mono
+      fun x hx v hv ↦ ?_
+    · simpa [hB, hA] using hJ _ ((LinearEquiv.map_ne_zero_iff _).2 hu)
+    · simpa [hB, hA] using hx (e v) ((LinearEquiv.map_ne_zero_iff _).2 hv)
+  exact htame.mono fun x hx ↦ hx.orientation_eq hJ hk
+
+/-- Along a family of symplectic forms over a preconnected parameter space, whose values
+`ω x v w` depend continuously on `x`, the symplectic orientation is constant. -/
+theorem orientation_eq_of_preconnectedSpace [PreconnectedSpace X]
+    (hω : ∀ v w, Continuous fun x ↦ ω x v w) (hk : finrank ℝ V = k) (x y : X) :
+    (ω x).orientation hk = (ω y).orientation hk :=
+  (isLocallyConstant_orientation hω hk).apply_eq_of_preconnectedSpace x y
+
+end Family
 
 end TauCeti.SymplecticForm
 
