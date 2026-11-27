@@ -11,6 +11,7 @@ public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.Analysis.InnerProductSpace.Normalize
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
@@ -24,6 +25,12 @@ function `θ : F → ℝ` that is constant near `0`, equal to `τ u` at `r • u
 `r > 0` (`SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le`).
 On a finite-dimensional space the bound below holds since the sphere is compact
 (`SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`).
+
+On a real normed space, a positive derivative of `r ↦ θ (r • u) + log r` for every unit vector
+`u` gives one for every vector `u`, by rescaling
+(`SymplecticGeometry.exists_pos_hasDerivAt_smul_add_log`); so that function is strictly monotone
+on `(0, ∞)` (`SymplecticGeometry.strictMonoOn_smul_add_log`), and `0 < 1 + dθ_c(c)` for every `c`
+(`SymplecticGeometry.one_add_fderiv_apply_self_pos`).
 
 Away from `0` the function is `θ x = C + χ (log ‖x‖) * (τ (normalize x) - C)`, with Mathlib's
 `NormedSpace.normalize x = ‖x‖⁻¹ • x` (smooth off `0` by Tau Ceti's
@@ -128,6 +135,65 @@ theorem exists_contDiff_radial_extension_hasDerivAt_add_log_pos [FiniteDimension
   obtain ⟨C, hC⟩ := (isCompact_sphere (0 : F) 1).bddBelow_image hcont
   exact exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le hτ
     (fun u hu ↦ hC ⟨u, mem_sphere_zero_iff_norm.2 hu, rfl⟩) hρ
+
+/-! ### Consequences of a positive derivative along the rays -/
+
+section Rays
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {θ : E → ℝ}
+
+/-- If for every unit vector `u` the function `r ↦ θ (r • u) + log r` has a positive derivative
+at every `r > 0`, then so has it for every vector `u`. -/
+theorem exists_pos_hasDerivAt_smul_add_log
+    (hθ : ∀ u : E, ‖u‖ = 1 → ∀ r, 0 < r →
+      ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r)
+    (u : E) {r : ℝ} (hr : 0 < r) :
+    ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r := by
+  rcases eq_or_ne u 0 with rfl | hu
+  · exact ⟨r⁻¹, inv_pos.2 hr, by simpa using (Real.hasDerivAt_log hr.ne').const_add (θ 0)⟩
+  have hn : 0 < ‖u‖ := norm_pos_iff.2 hu
+  have h1 : ‖‖u‖⁻¹ • u‖ = 1 := norm_smul_inv_norm hu
+  obtain ⟨d, hd, hdd⟩ := hθ _ h1 (‖u‖ * r) (mul_pos hn hr)
+  refine ⟨d * ‖u‖, mul_pos hd hn, ?_⟩
+  have h := (hdd.comp r ((hasDerivAt_id r).const_mul ‖u‖)).sub_const (Real.log ‖u‖)
+  rw [mul_one] at h
+  refine h.congr_of_eventuallyEq ?_
+  filter_upwards [Ioi_mem_nhds hr] with s (hs : 0 < s)
+  simp only [Function.comp_apply, smul_smul, mul_comm ‖u‖ s, mul_assoc,
+    mul_inv_cancel₀ hn.ne', mul_one, Real.log_mul hs.ne' hn.ne']
+  ring
+
+/-- If for every unit vector `u` the function `r ↦ θ (r • u) + log r` has a positive derivative
+at every `r > 0`, then it is strictly monotone on `(0, ∞)` for every vector `u`. -/
+theorem strictMonoOn_smul_add_log
+    (hθ : ∀ u : E, ‖u‖ = 1 → ∀ r, 0 < r →
+      ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r)
+    (u : E) :
+    StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Set.Ioi 0) :=
+  StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0) fun _ hr ↦
+    exists_pos_hasDerivAt_smul_add_log hθ u hr
+
+/-- If for every unit vector `u` the function `r ↦ θ (r • u) + log r` has a positive derivative
+at every `r > 0`, then `0 < 1 + dθ_c(c)` for every `c`.
+For `c ≠ 0`, `1 + dθ_c(c)` is the derivative of `r ↦ θ (r • c) + log r` at `r = 1`. -/
+theorem one_add_fderiv_apply_self_pos
+    (hθ : ∀ u : E, ‖u‖ = 1 → ∀ r, 0 < r →
+      ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r)
+    (c : E) : 0 < 1 + fderiv ℝ θ c c := by
+  by_cases hc : DifferentiableAt ℝ θ c
+  swap
+  · simp [fderiv_zero_of_not_differentiableAt hc]
+  obtain ⟨d, hd, hdd⟩ := exists_pos_hasDerivAt_smul_add_log hθ c one_pos
+  have hc' : HasFDerivAt θ (fderiv ℝ θ c) ((1 : ℝ) • c) := by
+    rw [one_smul]
+    exact hc.hasFDerivAt
+  have h1 := hc'.comp_hasDerivAt (1 : ℝ) ((hasDerivAt_id (1 : ℝ)).smul_const c)
+  simp only [one_smul] at h1
+  have h := h1.add (by simpa using Real.hasDerivAt_log one_ne_zero)
+  rw [add_comm, h.unique hdd]
+  exact hd
+
+end Rays
 
 end SymplecticGeometry
 
