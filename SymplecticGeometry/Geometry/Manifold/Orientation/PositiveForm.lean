@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
+public import Mathlib.Analysis.Convex.Basic
 
 /-!
 # Top forms positive for an orientation
@@ -25,9 +26,13 @@ A positive top form vanishes nowhere (`IsPositiveAt.ne_zero`), and a nowhere-van
 is positive for the orientation it defines (`isPositive_ofTopForm`).
 
 Positivity is kept by positive multiples, sums, and combinations with nonnegative weights of
-which one is positive. It is carried back along maps that preserve orientation: if `f` preserves
-the orientations `o` and `o'` at `x`, and `φ` is positive for `o'` at `f x`, then `f^* φ` is
-positive for `o` at `x`, since the derivative of `f` at `x` carries a positively oriented basis to
+which one is positive. So the top forms positive for `o` at `x` form a convex set
+(`convex_setOf_isPositiveAt`), and the segment `φ + s (ψ - φ)`, `s ∈ [0, 1]`, between two of them
+stays positive (`IsPositiveAt.add_smul_sub`).
+
+Positivity is carried back along maps that preserve orientation: if `f` preserves the
+orientations `o` and `o'` at `x`, and `φ` is positive for `o'` at `f x`, then `f^* φ` is positive
+for `o` at `x`, since the derivative of `f` at `x` carries a positively oriented basis to
 one.
 
 ## Main definitions
@@ -39,6 +44,8 @@ one.
 
 * `TauCeti.Manifold.Orientation.IsPositiveAt.sum_smul`: a combination of positive top forms with
   nonnegative weights, one of them positive, is positive.
+* `TauCeti.Manifold.Orientation.convex_setOf_isPositiveAt`: the top forms positive for `o` at `x`
+  form a convex set.
 * `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.isPositiveAt_mpullback`: pull-backs
   along orientation-preserving maps keep top forms positive.
 
@@ -146,6 +153,31 @@ theorem IsPositive.sum_smul {ι : Type*} {s : Finset ι} {w : ι → ℝ} {φ : 
     (hφ : ∀ i ∈ s, IsPositive o (φ i)) (hw : ∀ i ∈ s, 0 ≤ w i) (hw' : ∃ i ∈ s, 0 < w i) :
     IsPositive o (∑ i ∈ s, w i • φ i) :=
   fun x ↦ IsPositiveAt.sum_smul (fun i hi ↦ hφ i hi x) hw hw'
+
+variable (o x) in
+/-- The top forms positive for `o` at `x` form a convex set. -/
+theorem convex_setOf_isPositiveAt : Convex ℝ {φ : RoughForm I M ℝ k | IsPositiveAt o φ x} := by
+  intro φ hφ ψ hψ a b ha hb hab c hc
+  have hφc := hφ.apply_pos hc
+  have hψc := hψ.apply_pos hc
+  simp only [Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
+    ContinuousAlternatingMap.smul_apply, smul_eq_mul]
+  rcases ha.eq_or_lt with rfl | ha
+  · rw [zero_add] at hab
+    simpa [hab] using hψc
+  · positivity
+
+/-- The segment `φ + s (ψ - φ)`, `s ∈ [0, 1]`, between two top forms positive for `o` at `x` stays
+positive for `o` at `x`. -/
+theorem IsPositiveAt.add_smul_sub (hφ : IsPositiveAt o φ x) (hψ : IsPositiveAt o ψ x) {s : ℝ}
+    (hs : s ∈ Set.Icc 0 1) : IsPositiveAt o (φ + s • (ψ - φ)) x :=
+  (convex_setOf_isPositiveAt o x).add_smul_sub_mem hφ hψ hs
+
+/-- The segment `φ + s (ψ - φ)`, `s ∈ [0, 1]`, between two top forms positive for `o` stays
+positive for `o`. -/
+theorem IsPositive.add_smul_sub (hφ : IsPositive o φ) (hψ : IsPositive o ψ) {s : ℝ}
+    (hs : s ∈ Set.Icc 0 1) : IsPositive o (φ + s • (ψ - φ)) :=
+  fun x ↦ (hφ x).add_smul_sub (hψ x) hs
 
 end Positive
 
