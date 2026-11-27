@@ -1545,12 +1545,12 @@ Two choices make this invariant easy to keep.
   time, by issue 9, which sums them (a locally finite sum, since
   $\gamma^{(k)}$ vanishes near $\{g\le e_k\}$) to show that the limit of
   the $\alpha^{(k)}$ is cohomologous to $\alpha^{(0)}$. The explicit
-  primitive is $\gamma_l=-\,h\bigl(\Psi_l^*\alpha_l\bigr)$ for the homotopy
-  operator `h` and the reversed isotopy $\Psi_l(x,u)=e_{l,1-u}(x)$ from $e_{l,1}$
-  to the identity: by `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`
-  (`DifferentialForm/HomotopyOperator.lean`),
-  $d\,h(\Psi_l^*\alpha_l)=\alpha_l-e_{l,1}^*\alpha_l$, and
-  `eventually_homotopyOperator_mpullback_eq_zero` gives the vanishing where
+  primitive is $\gamma_l=h\bigl(e_l^*\alpha_l\bigr)$ for the homotopy
+  operator `h` and the isotopy $e_l(x,t)=e_{l,t}(x)$ from the identity
+  to $e_{l,1}$:
+  `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy`
+  (`DifferentialForm/HomotopyOperator.lean`) gives
+  $d\,h(e_l^*\alpha_l)=e_{l,1}^*\alpha_l-\alpha_l$ and the vanishing where
   the isotopy is the identity.
 
 **Parameters.** The two forms of Decision 4 share all of the stage except
@@ -1817,7 +1817,7 @@ on `e`, `ρ`, `V` and `N'` that the theorem provides, so that both forms of
   along the isotopy), and `stagePath (l, 1) = α' l + d (β'' (s l))` on all
   of `M`.
 - `exists_mextDerivₗ_eq_endPullback_sub`: for every `l`, the form
-  `γ l := -homotopyOperator (Ψ_l^* α l)` of the invariant, with
+  `γ l := homotopyOperator (e_l^* α l)` of the invariant, with
   `α' l = α l + d (γ l)` and `γ l = 0` on `V`.
 
 
