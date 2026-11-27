@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The inclusion of an open subset, and differentials of maps between open subsets
@@ -32,6 +33,11 @@ differentiable. Since `Opens.inclusion h` is a local diffeomorphism
 (`TauCeti.isLocalDiffeomorph_inclusion`), this is Tau Ceti's chain rule
 `IsLocalDiffeomorphAt.mfderiv_comp` for precomposition with a local diffeomorphism, combined with
 the differential of the inclusion, `TauCeti.Manifold.mfderiv_inclusion_apply`.
+
+On an open subset of a normed space with its model `𝓘(𝕜, E)`, the differential of the restriction
+of a map `f` is the Fréchet derivative of `f`
+(`TauCeti.Manifold.mfderiv_modelSpace_comp_subtype_val_apply`): Tau Ceti's
+`TauCeti.Manifold.mvfderiv_comp_subtype_val` followed by `mvfderiv_eq_fderiv_apply`.
 -/
 
 public section
@@ -53,6 +59,8 @@ theorem mdifferentiable_subtypeVal : MDifferentiable I I (Subtype.val : U → M)
   fun _ ↦ mdifferentiableAt_subtypeVal
 
 end SymplecticGeometry
+
+open scoped Manifold
 
 namespace TauCeti.Manifold
 
@@ -85,6 +93,15 @@ theorem mfderiv_comp_inclusion_apply {U V : Opens M} (h : U ≤ V) {g : V → M'
     mfderiv I I' (g ∘ Opens.inclusion h) x v = mfderiv I I' g (Opens.inclusion h x) v := by
   rw [(TauCeti.isLocalDiffeomorph_inclusion (n := 1) h x).mfderiv_comp one_ne_zero g,
     ContinuousLinearMap.comp_apply, mfderiv_inclusion_apply]
+
+/-- On an open subset `U` of a normed space `E`, read with the model `𝓘(𝕜, E)`, the differential
+at `x : U` of the restriction `f ∘ Subtype.val` of a map `f : E → E'` is the Fréchet derivative of
+`f` at `x` (both are `0` when `f` is not differentiable there). -/
+theorem mfderiv_modelSpace_comp_subtype_val_apply {U : Opens E} {f : E → E'} {x : U}
+    (v : TangentSpace 𝓘(𝕜, E) x) :
+    mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E') (f ∘ Subtype.val) x v = fderiv 𝕜 f x v := by
+  rw [← mvfderiv_apply_eq_mfderiv_apply, mvfderiv_comp_subtype_val]
+  exact mvfderiv_eq_fderiv_apply f x v
 
 end TauCeti.Manifold
 
