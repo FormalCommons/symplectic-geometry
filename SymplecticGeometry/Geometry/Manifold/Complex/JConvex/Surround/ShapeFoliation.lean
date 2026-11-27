@@ -79,9 +79,10 @@ These paths, between consecutive members `M i` and `M (i + 1)` of the chain of s
   germs along a filter on which the joints eventually match
   (`SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxPath`,
   `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`). Its members are then
-  `i`-convex shapes at each `r` where the joints match nearby and the `A i` and `A (i + 1) - η`
-  are (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the mesh, `M N` after
-  it, and a path between smoothed maxima on each of its intervals.
+  `i`-convex shapes at each `r` where the joints match nearby, the `A i` are `C²` and `i`-convex
+  shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, and the `A (i + 1) - η` are `i`-convex
+  shapes at `r` (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the mesh, `M N`
+  after it, and a path between smoothed maxima on each of its intervals.
 
 ## References
 
