@@ -28,7 +28,7 @@ equation are exactly the multiples of `(t, -s)`, the two descriptions agree thro
   `pencilNbhd r ≃ₜ openNbhd 1 r`, `(z, ℓ) ↦ (perpLine ℓ, z)`, with
   `blowdown_pencilNbhdHomeomorph_apply`, `pr_pencilNbhdHomeomorph_apply` and the inverse's
   `coe_pencilNbhdHomeomorph_symm_apply`; and
-  `SymplecticGeometry.BlowupModel.image_pencilNbhdHomeomorph_setOf_fst_eq_zero`: it maps the
+  `SymplecticGeometry.BlowupModel.image_pencilNbhdHomeomorph_setOfPred_fst_eq_zero`: it maps the
   points with `z = 0` onto the exceptional divisor.
 
 ## References
@@ -131,7 +131,7 @@ theorem coe_pencilNbhdHomeomorph_symm_apply (p : openNbhd 1 r) :
 
 /-- The homeomorphism `pencilNbhdHomeomorph r` maps the points of `pencilNbhd r` over `z = 0`
 exactly onto the exceptional divisor. -/
-theorem image_pencilNbhdHomeomorph_setOf_fst_eq_zero :
+theorem image_pencilNbhdHomeomorph_setOfPred_fst_eq_zero :
     pencilNbhdHomeomorph r '' {p | p.val.1 = 0} = Subtype.val ⁻¹' exceptionalDivisor 1 := by
   ext p
   rw [(pencilNbhdHomeomorph r).image_eq_preimage_symm]

@@ -36,13 +36,13 @@ and nothing else, by `TauCeti.mfderiv_flowTransition_apply` and the injectivity 
 of the time-`T` map (`TauCeti.injective_mfderiv_flowOf`).
 
 An orbit along which `g` is antitone, and transverse to the level wherever it meets it, meets the
-level at most once (`IsMIntegralCurve.subsingleton_setOf_apply_eq`): two meetings would make `g`
+level at most once (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`): two meetings would make `g`
 constant between them, so that its derivative along the orbit would vanish on the level, by Tau
 Ceti's `IsMIntegralCurveAt.mfderiv_apply_eq_zero_of_eventuallyEq_const`.
 
 ## Main results
 
-* `IsMIntegralCurve.subsingleton_setOf_apply_eq`: an integral curve along which `f` is antitone
+* `IsMIntegralCurve.subsingleton_setOfPred_apply_eq`: an integral curve along which `f` is antitone
   meets a level transverse to it at most once.
 * `TauCeti.levelCrossingTime_eventuallyEq_flowHittingTime`: near a point whose orbit crosses the
   level transversally, the crossing time is the hitting time of the level.
@@ -67,7 +67,7 @@ open scoped ContDiff Manifold Topology
 /-- **A transverse level is met at most once along an antitone orbit.** Let `γ` be an integral
 curve of `v` along which `f` is differentiable and `f ∘ γ` is antitone. If `df(v) ≠ 0` at each
 point of `γ` on the level `{f = c}`, then `γ` meets that level at most once. -/
-theorem IsMIntegralCurve.subsingleton_setOf_apply_eq {E H M : Type*} [NormedAddCommGroup E]
+theorem IsMIntegralCurve.subsingleton_setOfPred_apply_eq {E H M : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
     [ChartedSpace H M] {v : (x : M) → TangentSpace I x} {γ : ℝ → M} {f : M → ℝ} {c : ℝ}
     (hγ : IsMIntegralCurve γ v) (hf : ∀ t, MDifferentiableAt I 𝓘(ℝ) f (γ t))
