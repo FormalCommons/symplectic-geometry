@@ -22,7 +22,7 @@ finite-dimensional manifolds the points at which the slice is regular form an op
 
 * `TauCeti.isRegularPoint_fst_prodMk_iff`: the map `p ↦ (p.1, F p)` is regular at `p` exactly
   when the slice `q ↦ F (p.1, q)` is regular at `p.2`.
-* `TauCeti.isOpen_setOf_isRegularPoint_slice`: for a `C¹` map `F : P × Q → M`, the points `p`
+* `TauCeti.isOpen_setOfPred_isRegularPoint_slice`: for a `C¹` map `F : P × Q → M`, the points `p`
   where the slice `q ↦ F (p.1, q)` is regular form an open set.
 -/
 
@@ -66,7 +66,7 @@ variable [CompleteSpace 𝕜] [FiniteDimensional 𝕜 EP] [FiniteDimensional �
 
 /-- **Regularity of slices is an open condition.** For a `C¹` map `F : P × Q → M`, the points `p`
 of `P × Q` at which the slice `q ↦ F (p.1, q)` is regular form an open set. -/
-theorem isOpen_setOf_isRegularPoint_slice {n : ℕ∞ω} {F : P × Q → M}
+theorem isOpen_setOfPred_isRegularPoint_slice {n : ℕ∞ω} {F : P × Q → M}
     (hF : ContMDiff (IP.prod IQ) I n F) (hn : 1 ≤ n) :
     IsOpen {p : P × Q | IsRegularPoint IQ I (fun q ↦ F (p.1, q)) p.2} := by
   have hF' : ContMDiff (IP.prod IQ) (IP.prod I) n fun p : P × Q ↦ (p.1, F p) :=

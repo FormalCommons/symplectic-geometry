@@ -52,7 +52,7 @@ the stable set meets it exactly once.
   cobordism between the levels `a` and `b`, the stable set of a nondegenerate critical point of
   index zero does not meet the lower level `f ⁻¹' {a}`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_nonpos_flow_apply_eq`,
-  `.subsingleton_setOf_flow_apply_eq` and `.eq_levelCrossingTime_iff`: the orbit of a point of
+  `.subsingleton_setOfPred_flow_apply_eq` and `.eq_levelCrossingTime_iff`: the orbit of a point of
   `f ⁻¹' Ico a c` meets the level `f ⁻¹' {a}` exactly at the time
   `Flow.levelCrossingTime φ f a x`; `.levelCrossingTime_nonpos`: that time is nonpositive;
   `.mvfderiv_apply_pos_flow_levelCrossingTime`: the crossing is transverse.
@@ -103,7 +103,7 @@ nondegeneracy nor the cobordism is needed. The backward orbit reaches the level 
 band `f ⁻¹' Icc a (f x)` is compact, since `f` is proper, and the reversed field `-X` decreases
 `f` on it, so that `SymplecticGeometry.exists_forall_isMIntegralCurve_apply_lt` applies to the
 reversed orbit. It meets the level at most once by
-`IsMIntegralCurve.subsingleton_setOf_apply_eq`, again on the reversed orbit. The smoothness is
+`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`, again on the reversed orbit. The smoothness is
 the implicit function theorem at the regular level `a`, in the form of Tau Ceti's
 `TauCeti.contMDiffOn_flow_levelCrossingTime`, and not the continuity of
 `Flow.levelCrossingTime` on a connecting set.
@@ -117,7 +117,7 @@ sphere lies below `f p` and off the critical points is
 `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
 `SymplecticGeometry.IsWeinsteinStructure.notMem_criticalPoints_of_mem_stableSet`.
 
-For the crossing, take the left inverse `π x = Q (e x - e p)` of the disc and `L` the isometry
+For the crossing, take the left inverse `π` of the disc and `L` the isometry
 from `EuclideanSpace ℝ (Fin (m + 1))` with the inner product `-H` on the stable subspace, so that
 `-H (π y) (π y) = ‖L⁻¹ (π y)‖ ^ 2`. Two crossings are impossible because `-H ∘ π` decreases
 strictly along the orbits of the disc near `p`
@@ -223,10 +223,10 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
 
 /-- **An orbit meets a regular level at most once.** For a regular value `a` of the function of a
 Weinstein structure, the orbit of every point meets the level `f ⁻¹' {a}` at most once. -/
-theorem subsingleton_setOf_flow_apply_eq (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) (x : M) :
+theorem subsingleton_setOfPred_flow_apply_eq (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) (x : M) :
     {t | f (hW.flow t x) = a}.Subsingleton := by
   -- Run the orbit backwards, so that `f` decreases along it.
-  have h := (hW.isMIntegralCurve_flow x).comp_neg.subsingleton_setOf_apply_eq (f := f) (c := a)
+  have h := (hW.isMIntegralCurve_flow x).comp_neg.subsingleton_setOfPred_apply_eq (f := f) (c := a)
     (fun _ ↦ hW.isGeneralizedMorse.contMDiff.mdifferentiableAt (by simp))
     (fun s t hst ↦ hW.monotone_comp_flow x (neg_le_neg hst)) fun t ht ↦ by
       rw [Pi.neg_apply, map_neg, neg_ne_zero]
@@ -245,7 +245,7 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
       eq_empty_iff_forall_notMem.1 hc y ⟨hy, hya.ge, hya.trans_lt (hx.1.trans_lt hx.2)⟩
   obtain ⟨s, -, hs⟩ := hW.exists_nonpos_flow_apply_eq hc hx
   have hlct := Flow.apply_flow_levelCrossingTime ⟨s, hs⟩
-  exact ⟨fun h ↦ h ▸ hlct, fun h ↦ hW.subsingleton_setOf_flow_apply_eq ha x h hlct⟩
+  exact ⟨fun h ↦ h ▸ hlct, fun h ↦ hW.subsingleton_setOfPred_flow_apply_eq ha x h hlct⟩
 
 /-- **The crossing of the lower level is in the past.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a ≤ f x < c`, the orbit of `x` crosses the level `f ⁻¹' {a}` at a time
@@ -537,13 +537,14 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   have hιs (z : S) (hz : z ∈ ball 0 D.ρ) := And.intro (D.contMDiffAt_ι z hz)
     (D.injective_mfderiv_ι z hz)
   have hst := D.image_ball_subset_stableSet
-  have hπ := D.contMDiffOn_Q_extChartAt_sub
-  have hQι (z : S) (hz : z ∈ ball 0 D.ρ) := D.Q_extChartAt_ι_sub hz
+  have hπ := D.contMDiffOn_π
+  have hπι (z : S) (hz : z ∈ ball 0 D.ρ) := D.π_ι hz
+  have hπp := D.π_self
   -- Only these properties of the disc are used below, so its data become plain variables.
   set ι := D.ι
   set ρ := D.ρ
-  set Q := D.Q
-  clear_value ι ρ Q
+  set π := D.π
+  clear_value ι ρ π
   obtain ⟨L, hL⟩ := hW.isGradientLike.exists_continuousLinearEquiv_stableSubspace hp
     (hW.mdifferentiableAt_field p) hA hm
   set e := extChartAt 𝓘(ℝ, E) p
@@ -555,9 +556,9 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   have hWo : IsOpen W := (isOpen_interior.inter (isOpen_extChartAt_source p)).inter
     (isOpen_lt continuous_const hW.isGeneralizedMorse.contMDiff.continuous)
   have hpW : p ∈ W := ⟨⟨mem_interior_iff_mem_nhds.2 hU, mem_extChartAt_source p⟩, by simp [hε]⟩
-  have hWcov {y : M} (hy : y ∈ hW.flow.stableSet p) (hyW : y ∈ W) : ι (Q (e y - e p)) = y := by
+  have hWcov {y : M} (hy : y ∈ hW.flow.stableSet p) (hyW : y ∈ W) : ι (π y) = y := by
     obtain ⟨z, hz, rfl⟩ := hcov ⟨⟨hy, interior_subset hyW.1.1⟩, hyW.2⟩
-    rw [hQι z hz]
+    rw [hπι z hz]
   obtain ⟨δ, hδ, hδW⟩ := Metric.mem_nhds_iff.1
     ((hιs 0 (mem_ball_self hρ)).1.continuousAt.preimage_mem_nhds (hWo.mem_nhds (hι0 ▸ hpW)))
   -- The scale `s`, so small that `L'` maps the closed ball of radius `s` into the balls of radii
@@ -577,8 +578,8 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     mem_ball_zero_iff.2 ((hLv hv).trans_le (min_le_right _ _))
   have hLW {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W :=
     hδW (mem_ball_zero_iff.2 ((hLv hv).trans_le (min_le_left _ _)))
-  have hπL {v : V} (hv : ‖v‖ ≤ s) : Q (e (ι (L' v)) - e p) = L' v :=
-    hQι _ (ball_subset_ball hρ'ρ (hLρ' hv))
+  have hπL {v : V} (hv : ‖v‖ ≤ s) : π (ι (L' v)) = L' v :=
+    hπι _ (ball_subset_ball hρ'ρ (hLρ' hv))
   have hL0 {v : V} (hv : ‖v‖ = s) : L' v ≠ 0 := fun h ↦ by
     rw [L.map_eq_zero_iff.1 h, norm_zero] at hv
     exact hs.ne hv
@@ -597,10 +598,10 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
       · simp only [hσdef]
         rw [map_smul, smul_smul, mul_inv_cancel₀ hs.ne', one_smul]
   refine ⟨σ, contMDiff_comp_smul_coe_sphere (fun z hz ↦ (hιs z hz).1) hs.le hsLρ,
-    injective_comp_smul_coe_sphere (π := fun y ↦ Q (e y - e p)) hQι hs hsLρ L.injective,
+    injective_comp_smul_coe_sphere hπι hs hsLρ L.injective,
     injective_mfderiv_comp_smul_coe_sphere
       (fun z hz ↦ ⟨(hιs z hz).1.mdifferentiableAt (by simp), (hιs z hz).2⟩) hs hsLρ L.injective,
-    hW.range_comp_smul_coe_sphere_subset hι0 hst (π := fun y ↦ Q (e y - e p)) hQι hs hsLρ
+    hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ
       L.injective, ?_, ?_⟩
   · -- Transversality: `-H ∘ π` is constant on the sphere, but decreases strictly along `X`.
     intro u
@@ -608,7 +609,7 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     have hzeq : z = L' (s • (u : V)) := (map_smul L' s (u : V)).symm
     have hz : z ∈ ball 0 ρ' := hzeq ▸ hLρ' (hus u).le
     obtain ⟨d, hd0, hd⟩ := ((hdec z hz).2 (hzeq ▸ hL0 (hus u))).1 0 le_rfl
-    set h : M → ℝ := fun y ↦ -H (Q (e y - e p)) (Q (e y - e p))
+    set h : M → ℝ := fun y ↦ -H (π y) (π y)
     have hc (u' : sphere (0 : V) 1) : (h ∘ σ) u' = s ^ 2 := by
       simp only [Function.comp_apply, hσdef, h]
       rw [← map_smul, hπL (hus u').le, hHL, hus]
@@ -645,16 +646,16 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
       rw [hπL hv₁.le, hπL hv₂.le, hHL, hHL, hv₁, hv₂] at this
       exact lt_irrefl _ this
     obtain ⟨t, ht⟩ : ∃ t, hW.flow t x ∈ range σ := by
-      have hπc : ContinuousOn (fun y ↦ ‖L.symm (Q (e y - e p))‖) e.source :=
+      have hπc : ContinuousOn (fun y ↦ ‖L.symm (π y)‖) e.source :=
         L.symm.continuous.norm.comp_continuousOn hπ.continuousOn
       -- At a late time `T`, the orbit is in the part `G` of `W` strictly inside the sphere.
-      have hκ : Tendsto (fun t ↦ ‖L.symm (Q (e (hW.flow t x) - e p))‖) atTop (𝓝 0) := by
+      have hκ : Tendsto (fun t ↦ ‖L.symm (π (hW.flow t x))‖) atTop (𝓝 0) := by
         have h := (hπc.continuousAt ((isOpen_extChartAt_source p).mem_nhds
           (mem_extChartAt_source p))).tendsto.comp (Flow.mem_stableSet.1 hx)
-        simpa only [Function.comp_def, sub_self, map_zero, norm_zero] using h
+        simpa only [Function.comp_def, hπp, map_zero, norm_zero] using h
       obtain ⟨T, hTW, hTs⟩ := (((Flow.mem_stableSet.1 hx).eventually (hWo.mem_nhds hpW)).and
         (hκ.eventually (gt_mem_nhds hs))).exists
-      set G := W ∩ (fun y ↦ ‖L.symm (Q (e y - e p))‖) ⁻¹' Iio s
+      set G := W ∩ (fun y ↦ ‖L.symm (π y)‖) ⁻¹' Iio s
       have hGo : IsOpen G :=
         (hπc.mono fun _ hy ↦ hy.1.2 : ContinuousOn _ W).isOpen_inter_preimage hWo isOpen_Iio
       -- The compact cap `K` bounded by the sphere contains the points of the stable set in `G`.
@@ -668,7 +669,7 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
         rintro _ ⟨_, ⟨v, hv, rfl⟩, rfl⟩
         exact hst ⟨_, ball_subset_ball hρ'ρ (hLρ' (mem_closedBall_zero_iff.1 hv)), rfl⟩
       have hGK : hW.flow.stableSet p ∩ G ⊆ K := fun y hy ↦
-        ⟨_, ⟨L.symm (Q (e y - e p)), mem_closedBall_zero_iff.2 (le_of_lt hy.2.2),
+        ⟨_, ⟨L.symm (π y), mem_closedBall_zero_iff.2 (le_of_lt hy.2.2),
           L.apply_symm_apply _⟩, hWcov hy.1 hy.2.1⟩
       -- The orbit meets `K` outside `G`, that is on the sphere.
       obtain ⟨t, ⟨_, ⟨v, hv, rfl⟩, he⟩, htG⟩ :=
