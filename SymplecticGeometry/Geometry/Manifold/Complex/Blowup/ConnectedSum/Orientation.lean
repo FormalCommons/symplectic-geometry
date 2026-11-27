@@ -22,7 +22,7 @@ The model blowup is path-connected, being the image of the complement of a point
 space under `projectiveBlowupModelDiffeomorph n`, so it is enough to check one point, as in the
 proof of `SymplecticGeometry.isOrientationReversing_projectiveBlowupModelDiffeomorph`. At the
 point `(blowupModelChart i).symm 0` of the exceptional divisor, the rescaling reads, in the chart
-`blowupModelChart i` on both sides, as `w ↦ update w i (ρ (w i • update w i 1)) i`, with
+`blowupModelChart i` on both sides, as `w ↦ update w i (ρ (w i • update w i 1) i)`, with
 `ρ = univBall 0 ε` on the Hermitian space. Since `ρ` has derivative `ε • id` at `0`, the real
 derivative of this map at `0` is `ε` times the identity on the coordinate `i` and the identity on
 the others, which has positive determinant.
