@@ -701,8 +701,7 @@ private theorem mpullback_outerMap_apply_of_notMem
   have hnot : hψ.outerMap hh hε' hε'ε x ∉
       hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε) := by
     rintro ⟨y, hy, hyx⟩
-    have hyr : y ∈ openNbhd n r :=
-      mem_openNbhd_iff.2 ((mem_closedNbhd_iff.1 hy).trans_lt hψ.weight_add_width_lt)
+    have hyr : y ∈ openNbhd n r := closedNbhd_subset_openNbhd hψ.weight_add_width_lt hy
     have hb := congrArg (Blowup.blowdown hN.blowupChart) hyx
     rw [hψ.blowdown_outerMap hh hε' hε'ε,
       hψ.isSymplecticBallEmbedding.radialContraction_of_notMem hh hx,

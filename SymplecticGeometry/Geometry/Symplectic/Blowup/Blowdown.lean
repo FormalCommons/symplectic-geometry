@@ -366,7 +366,7 @@ instance instT2Space : T2Space (DivisorBlowdown hΨ hf hl hε) := by
   rw [mem_ballOverlap_iff, not_lt] at hw
   have hδ : 0 < ε / 2 := half_pos hε
   have hK : closedNbhd n (ε / 2) ⊆ Ψ.target :=
-    hΨ ▸ fun p hp ↦ (mem_openNbhd_iff).2 ((mem_closedNbhd_iff.1 hp).trans_lt (half_lt_self hε))
+    hΨ ▸ closedNbhd_subset_openNbhd (half_lt_self hε)
   have hKc : IsCompact (Ψ.symm '' closedNbhd n (ε / 2)) :=
     (isCompact_closedNbhd _).image_of_continuousOn
       (Ψ.toOpenPartialHomeomorph.continuousOn_symm.mono hK)

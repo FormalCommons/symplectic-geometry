@@ -749,18 +749,6 @@ private def punctureZeroMulEquiv :
     (Diffeomorph.ofTop (I := 𝓡 2) (n := 0) _ (puncture_zero g)).toHomeomorph
     (by simp)
 
-private theorem punctureZeroMulEquiv_fromPath_mk
-    (γ : Path (⟨basePoint g, basePoint_mem_puncture⟩ : puncture g 0)
-      ⟨basePoint g, basePoint_mem_puncture⟩) :
-    punctureZeroMulEquiv g (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk γ)) =
-      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (γ.map continuous_subtypeVal)) := by
-  rw [punctureZeroMulEquiv, FundamentalGroup.homeomorphMulEquivOfEq_apply,
-    FundamentalGroup.mapOfEq_fromPath_mk]
-  congr 2
-  ext t
-  rw [Path.cast_coe, Path.map_coe, Function.comp_apply]
-  simp
-
 variable (g) in
 /-- The isomorphism of the fundamental group of the closed surface of genus `g`, at its base
 point, with the surface group `Orientable g 0`, sending the standard circles `circleLoop g k 0`
@@ -777,8 +765,14 @@ private theorem fundamentalGroupMulEquiv_circleLoop (k : Fin g) (i : Fin 2) :
       (Path.Homotopic.Quotient.mk (circleLoop g k i))) =
         puncturedFundamentalGroupMulEquiv g 0 (FundamentalGroup.fromPath
           (Path.Homotopic.Quotient.mk (puncturedCircleLoop g 0 k i))) := by
-  rw [fundamentalGroupMulEquiv, MulEquiv.trans_apply, ← map_puncturedCircleLoop (n := 0),
-    ← punctureZeroMulEquiv_fromPath_mk, MulEquiv.symm_apply_apply]
+  rw [fundamentalGroupMulEquiv, MulEquiv.trans_apply]
+  congr 1
+  rw [MulEquiv.symm_apply_eq, punctureZeroMulEquiv,
+    FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk]
+  congr 2
+  ext t
+  rw [Path.cast_coe, Path.map_coe, Function.comp_apply]
+  simp
 
 /-- The isomorphism `ClosedSurface.fundamentalGroupMulEquiv g` sends the class of the standard
 circle `circleLoop g k 0` to the generator `a k`. -/

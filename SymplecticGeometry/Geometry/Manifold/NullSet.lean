@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Measure
+public import TauCeti.Geometry.Manifold.Instances.AddCircle
 import Mathlib.Topology.DiscreteSubset
 import TauCeti.Geometry.Manifold.Sard.Basic
 
@@ -23,6 +24,8 @@ neither on a discrete set nor on countably many differentiable curves form a den
 * `SymplecticGeometry.dense_compl_union_iUnion_range`: if `1 < finrank ℝ E`, the complement of
   the union of a discrete set and the ranges of countably many differentiable curves `ℝ → M` is
   dense.
+* `SymplecticGeometry.dense_compl_iUnion_range_addCircle`: if `1 < finrank ℝ E`, the complement
+  of the union of the ranges of countably many differentiable loops `AddCircle p → M` is dense.
 
 The curves are null by Tau Ceti's `MDifferentiable.isNullSet_range_of_finrank_lt_finrank`, and
 the complement of a null set is dense by `TauCeti.IsNullSet.dense_compl`.
@@ -65,6 +68,18 @@ theorem dense_compl_union_iUnion_range [IsManifold I 1 M] (hE : 1 < Module.finra
   have : Nontrivial E := Module.nontrivial_of_finrank_pos (zero_lt_one.trans hE)
   refine TauCeti.IsNullSet.dense_compl (I := I) (hs.isNullSet.union (.iUnion fun i ↦ ?_))
   exact (hf i).isNullSet_range_of_finrank_lt_finrank (by simpa using hE)
+
+/-- On a manifold whose model space has finite dimension greater than one, the points that lie
+on none of countably many differentiable loops `g i : AddCircle p → M` form a dense set. -/
+theorem dense_compl_iUnion_range_addCircle [IsManifold I 1 M] (hE : 1 < Module.finrank ℝ E)
+    {p : ℝ} [Fact (0 < p)] {ι : Type*} [Countable ι] {g : ι → AddCircle p → M}
+    (hg : ∀ i, MDifferentiable 𝓘(ℝ) I (g i)) :
+    Dense (⋃ i, range (g i))ᶜ := by
+  have hcoe : MDifferentiable 𝓘(ℝ) 𝓘(ℝ) ((↑) : ℝ → AddCircle p) :=
+    (AddCircle.contMDiff_coe p 1).mdifferentiable one_ne_zero
+  simpa [(QuotientAddGroup.mk_surjective (s := AddSubgroup.zmultiples p)).range_comp] using
+    dense_compl_union_iUnion_range (s := ∅) hE (isDiscrete_iff_discreteTopology.2 inferInstance)
+      (f := fun i ↦ g i ∘ (↑)) fun i ↦ (hg i).comp hcoe
 
 end SymplecticGeometry
 
