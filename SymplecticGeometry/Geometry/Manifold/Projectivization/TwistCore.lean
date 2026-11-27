@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Topology.VectorBundle.Constructions
-public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+public import TauCeti.Geometry.Manifold.Projectivization.LineBundle.Sum
 public import TauCeti.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Topology.VectorBundle.Core.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
@@ -39,27 +39,25 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   `Projectivization.trivializationAt_homogeneousSection_chartAt_symm`: in the manifold chart and
   the preferred trivialization of `𝒪(d)` at a point, the section `homogeneousSection d P` reads
   as the dehomogenization of `P` at the index of that chart.
-* `Projectivization.twistPiCore k ι`: the bundle `𝒪(k) ⊗ 𝕜^ι`, the direct sum of `ι` copies of
-  `𝒪(k)`, as a vector bundle core with model fibre `ι → 𝕜`, with the charts of `𝒪(k)` and
-  transitions `twistTransition k i j • id`. It is analytic
-  (`Projectivization.isContMDiff_twistPiCore`), and a section of it is `C^r` exactly when its
-  coordinates in the standard charts are (`Projectivization.contMDiff_section_twistPiCore_iff`).
-  For `𝕜 = ℂ`, it is also a smooth real vector bundle over the underlying real manifold, by
-  restriction of scalars (the scoped instance `VectorBundle.ComplexToReal.vectorBundle` and Tau
-  Ceti's `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`); files using its real
-  structure `open scoped VectorBundle.ComplexToReal`. The same holds for `𝒪(k)` itself, whose
-  fibres also get the continuity of multiplication by real scalars.
-* `Projectivization.twistPiCoreOptionEquiv k ι x`: the splitting
-  `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
-  continuous on total spaces in both directions, so that, by induction on `r`, `𝒪(k)^{⊕ r}` is
-  an iterated direct sum (for the Whitney formula).
-* `Projectivization.twistPiCoreCongr k ι e x`: the isomorphism `𝒪(k) ⊗ 𝕜^ι ≅ 𝒪(k) ⊗ 𝕜^ι'` that
-  reindexes the coordinates along `e : ι ≃ ι'`, continuous on total spaces, so that
-  `Option (Fin r)` above can be read as `Fin (r + 1)`.
-* `Projectivization.twistPiCoreTrivializationOfIsEmpty`: for empty `ι`, `𝒪(k) ⊗ 𝕜^ι` has rank
+* `Projectivization.twistSumCore_indexAt_eq_twistCore_indexAt`: the preferred chart of Tau
+  Ceti's sum `twistSumCore k` at a point is that of every `𝒪(k')`.
+* `Projectivization.contMDiff_section_twistSumCore_iff`: a section of Tau Ceti's sum
+  `twistSumCore k = ⨁ₗ 𝒪(k l)` is `C^r` exactly when its coordinates in the standard charts are.
+  For `𝕜 = ℂ`, `twistSumCore k` and `𝒪(k)` are also smooth real vector bundles over the
+  underlying real manifold, by restriction of scalars (the scoped instance
+  `VectorBundle.ComplexToReal.vectorBundle` and Tau Ceti's
+  `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`); files using this real structure
+  `open scoped VectorBundle.ComplexToReal`. The fibres of `𝒪(k)` also get the continuity of
+  multiplication by real scalars.
+* `Projectivization.twistSumCoreOptionEquiv k x`: the splitting
+  `⨁_{l : Option κ} 𝒪(k l) ≅ 𝒪(k none) ⊕ ⨁_{l : κ} 𝒪(k (some l))` into Mathlib's direct sum `×ᵇ`
+  of bundles, continuous on total spaces in both directions, so that, by induction on `r`,
+  `𝒪(k)^{⊕ r}` is an iterated direct sum (for the Whitney formula).
+* `Projectivization.twistSumCoreCongr k e x`: the isomorphism
+  `⨁_{a : κ} 𝒪(k (e a)) ≅ ⨁_{b : κ'} 𝒪(k b)` that reindexes the coordinates along `e : κ ≃ κ'`,
+  continuous on total spaces, so that `Option (Fin r)` above can be read as `Fin (r + 1)`.
+* `Projectivization.twistSumCoreTrivializationOfIsEmpty`: for empty `κ`, `⨁ₗ 𝒪(k l)` has rank
   zero and is trivial.
-* `Projectivization.twistCore_indexAt_eq`: the preferred chart of `𝒪(k)` at a point does not
-  depend on `k`.
 * `Projectivization.twistScalarCocycle`: the scalar cocycle of the line bundles `𝒪(k)`, with
   `twistCore k` equal to its line bundle `lineBundleCore k`
   (`Projectivization.twistCore_eq_lineBundleCore`).
@@ -79,17 +77,13 @@ The proof of `HasMFDerivAt.eval_affineChart_dehomogenize` adapts that of Tau Cet
 `TauCeti.fderiv_eval_dehomogenize_transition` from Fréchet derivatives on `Fin n → 𝕜` to
 `mfderiv` on projective space.
 
-The core `twistPiCore`, its base sets and its smoothness instance follow Tau Ceti's
-`Projectivization.twistCore` and `Projectivization.isContMDiff_twistCore`, with the scalar
-multiplication `lsmul` replaced by a scalar multiple of the identity of `ι → 𝕜`, and
-`twistPiCore_trivializationAt_apply_snd` follows Tau Ceti's
-`Projectivization.twistCore_trivializationAt_apply_snd`; `contMDiff_section_twistPiCore_iff` is
-the case of the library's `VectorBundleCore.contMDiff_section_iff` for this core.
+`contMDiff_section_twistSumCore_iff` is the case of the library's
+`VectorBundleCore.contMDiff_section_iff` for Tau Ceti's `twistSumCore`.
 
 The fibres of a vector bundle core are its model fibre under the name `VectorBundleCore.Fiber`,
 and the body of `twistCore` is not visible here. The fibrewise maps are therefore built on the
-model fibres `𝕜` and `𝕜 × (ι → 𝕜)`, and their continuity on total spaces is checked in the
-preferred trivializations of the target bundles; that of the inverse of `twistPiCoreOptionEquiv`
+model fibres `𝕜` and `𝕜 × (κ → 𝕜)`, and their continuity on total spaces is checked in the
+preferred trivializations of the target bundles; that of the inverse of `twistSumCoreOptionEquiv`
 is proved directly, so that it needs no completeness of `𝕜`.
 
 ## References
@@ -133,17 +127,6 @@ standard affine open that contains `[eᵢ]`. -/
 theorem twistCore_indexAt_mk_single (k : ℤ) (i : Fin (n + 1)) :
     (twistCore (𝕜 := 𝕜) k).indexAt (mk 𝕜 (Pi.single i 1) (by simp)) = i :=
   (mk_single_mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt k _)
-
-/-- The preferred chart of `𝒪(k)` at a point does not depend on `k`: it is the chart of the
-manifold structure there (`chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt`). -/
-theorem twistCore_indexAt_eq (k l : ℤ) (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
-    (twistCore k).indexAt x = (twistCore l).indexAt x := by
-  refine affineOpen_injective (K := 𝕜) ?_
-  have h := congrArg (fun e : OpenPartialHomeomorph _ (Fin n → 𝕜) ↦ e.toPartialEquiv.source)
-    ((chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt k x).symm.trans
-      (chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt l x))
-  simpa only [affineOpenPartialHomeomorph_toPartialEquiv,
-    affineChart_source] using h
 
 /-! ### Dehomogenized polynomials in the standard charts -/
 
@@ -219,269 +202,235 @@ theorem contMDiffOn_eval_affineChart (P : MvPolynomial (Fin n) 𝕜) (i : Fin (n
 
 end Dehomogenize
 
-/-! ### The bundles `𝒪(k) ⊗ 𝕜^ι` -/
+/-! ### The sums `⨁ₗ 𝒪(k l)` -/
 
-section Pi
+section Sum
 
-/-- The vector bundle `𝒪(k) ⊗ 𝕜^ι`, that is, the direct sum of `ι` copies of `𝒪(k)`, on
-projective space `ℙ 𝕜 (Fin (n + 1) → 𝕜)`, as a vector bundle core with model fibre `ι → 𝕜`. It
-has the charts of `𝒪(k)`, and its coordinate change from the chart `i` to the chart `j` is
-multiplication of every coordinate by `twistTransition k i j`. -/
-def twistPiCore (k : ℤ) (ι : Type*) [Fintype ι] :
-    VectorBundleCore 𝕜 (ℙ 𝕜 (Fin (n + 1) → 𝕜)) (ι → 𝕜) (Fin (n + 1)) where
-  baseSet i := affineOpen i
-  isOpen_baseSet i := isOpen_affineOpen i
-  indexAt x := (twistCore (𝕜 := 𝕜) k).indexAt x
-  mem_baseSet_at x := mem_affineOpen_twistCore_indexAt k x
-  coordChange i j x := twistTransition k i j x • ContinuousLinearMap.id 𝕜 (ι → 𝕜)
-  coordChange_self i x hx v := by simp [twistTransition_self k hx]
-  continuousOn_coordChange i j :=
-    (contMDiffOn_twistTransition k i j 0).continuousOn.smul continuousOn_const
-  coordChange_comp i j l x hx v := by
-    simp [smul_smul, mul_comm (twistTransition k i j x),
-      twistTransition_mul_twistTransition k i l hx.1.2]
+variable {κ : Type*} [Fintype κ]
 
-variable (k : ℤ) (ι : Type*) [Fintype ι]
+/-- The preferred chart of `⨁ₗ 𝒪(k l)` at a point is that of every `𝒪(k')`: both are the affine
+open chosen by `exists_mem_affineOpen` (Tau Ceti's `twistSumCore_indexAt` and
+`twistCore_indexAt`). -/
+theorem twistSumCore_indexAt_eq_twistCore_indexAt (k : κ → ℤ) (k' : ℤ)
+    (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
+    (twistSumCore k).indexAt x = (twistCore k').indexAt x := by
+  rw [twistSumCore_indexAt, twistCore_indexAt]
 
-/-- The chart `i` of `𝒪(k) ⊗ 𝕜^ι` is defined over the standard affine open `U_i`. -/
-theorem twistPiCore_baseSet (i : Fin (n + 1)) :
-    (twistPiCore (𝕜 := 𝕜) k ι).baseSet i = affineOpen i :=
-  (rfl)
-
-/-- The chart `i` of `𝒪(k) ⊗ 𝕜^ι` is trivial over the standard affine open `U_i`. -/
-@[simp]
-theorem twistPiCore_localTriv_baseSet (i : Fin (n + 1)) :
-    ((twistPiCore (𝕜 := 𝕜) k ι).localTriv i).baseSet = affineOpen i :=
-  (rfl)
-
-/-- The preferred chart of `𝒪(k) ⊗ 𝕜^ι` at a point is that of `𝒪(k)`. -/
-theorem twistPiCore_indexAt (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
-    (twistPiCore k ι).indexAt x = (twistCore k).indexAt x :=
-  (rfl)
-
-/-- The coordinate change of `𝒪(k) ⊗ 𝕜^ι` from the chart `i` to the chart `j` multiplies by the
-transition function of `𝒪(k)`. -/
-@[simp]
-theorem twistPiCore_coordChange_apply (i j : Fin (n + 1)) (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (v : ι → 𝕜) : (twistPiCore k ι).coordChange i j x v = twistTransition k i j x • v :=
-  (rfl)
-
-/-- The chart `j` of `𝒪(k) ⊗ 𝕜^ι` reads a vector given in the preferred chart at its base point
-through the coordinate change to the chart `j`, that is, multiplies each coordinate by
-`twistTransition`. -/
-theorem twistPiCore_localTriv_apply (j : Fin (n + 1))
-    (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
-    ((twistPiCore k ι).localTriv j p).2 =
-      fun a ↦ twistTransition k ((twistCore k).indexAt p.proj) j p.proj * p.snd a :=
-  (rfl)
-
-/-- In the trivialization of `𝒪(k) ⊗ 𝕜^ι` at `x₀`, a vector given in the preferred chart at its
-base point `x` has each coordinate multiplied by
-`twistTransition k ((twistCore k).indexAt x) ((twistCore k).indexAt x₀) x`. -/
-theorem twistPiCore_trivializationAt_apply_snd (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
-    (trivializationAt (ι → 𝕜) (twistPiCore k ι).Fiber x₀ p).2 =
-      fun a ↦ twistTransition k ((twistCore k).indexAt p.proj) ((twistCore k).indexAt x₀) p.proj *
-        p.snd a :=
-  (rfl)
-
-/-- **`𝒪(k) ⊗ 𝕜^ι` is an analytic vector bundle**, as its transition functions are
-analytic. -/
-instance isContMDiff_twistPiCore :
-    (twistPiCore (𝕜 := 𝕜) (n := n) k ι).IsContMDiff 𝓘(𝕜, Fin n → 𝕜) ω where
-  contMDiffOn_coordChange i j :=
-    ContMDiffOn.smul (contMDiffOn_twistTransition k i j ω) contMDiffOn_const
-
-/-- **Sections of `𝒪(k) ⊗ 𝕜^ι` in the standard charts.** A section `s` of `𝒪(k) ⊗ 𝕜^ι` is `C^r`
-exactly when, for every `j`, its coordinates
-`x ↦ fun a ↦ twistTransition k ((twistCore k).indexAt x) j x * s x a` in the frame of the chart
-`j` are `C^r` on the standard affine open `U_j`. -/
-theorem contMDiff_section_twistPiCore_iff {r : ℕ∞ω}
-    (s : ∀ x : ℙ 𝕜 (Fin (n + 1) → 𝕜), (twistPiCore k ι).Fiber x) :
-    ContMDiff 𝓘(𝕜, Fin n → 𝕜) (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, ι → 𝕜)) r
-        (fun x ↦ TotalSpace.mk' (ι → 𝕜) x (s x)) ↔
-      ∀ j, ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, ι → 𝕜) r
-        (fun x a ↦ twistTransition k ((twistCore k).indexAt x) j x * s x a) (affineOpen j) := by
+/-- **Sections of `⨁ₗ 𝒪(k l)` in the standard charts.** A section `s` of Tau Ceti's
+`twistSumCore k` is `C^r` exactly when, for every `j`, its coordinates
+`x ↦ fun l ↦ twistTransition (k l) ((twistSumCore k).indexAt x) j x * s x l` in the frame of the
+chart `j` are `C^r` on the standard affine open `U_j`. -/
+theorem contMDiff_section_twistSumCore_iff (k : κ → ℤ) {r : ℕ∞ω}
+    (s : ∀ x : ℙ 𝕜 (Fin (n + 1) → 𝕜), (twistSumCore k).Fiber x) :
+    ContMDiff 𝓘(𝕜, Fin n → 𝕜) (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, κ → 𝕜)) r
+        (fun x ↦ TotalSpace.mk' (κ → 𝕜) x (s x)) ↔
+      ∀ j, ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, κ → 𝕜) r
+        (fun x l ↦ twistTransition (k l) ((twistSumCore k).indexAt x) j x * s x l)
+        (affineOpen j) := by
   rw [VectorBundleCore.contMDiff_section_iff]
   refine forall_congr' fun j ↦ ?_
-  rw [twistPiCore_baseSet]
-  refine contMDiffOn_congr fun x _ ↦ funext fun a ↦ ?_
-  have h := congrFun (twistPiCore_coordChange_apply k ι ((twistPiCore k ι).indexAt x) j x (s x)) a
-  simp only [twistPiCore_indexAt] at h
-  -- The fibre `(twistPiCore k ι).Fiber x` is `ι → 𝕜` only up to unfolding `VectorBundleCore.Fiber`,
-  -- for which Mathlib states no lemma, so its scalar multiplication is evaluated by `exact`.
-  exact h
+  rw [twistSumCore_baseSet]
+  exact contMDiffOn_congr fun x _ ↦ funext fun l ↦
+    twistSumCore_coordChange_apply k _ j x (s x) l
 
-/-- The fibrewise splitting `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)`, which takes the
-`none` coordinate to the first summand and the others to the second. It is continuous on total
-spaces in both directions (`continuous_twistPiCoreOptionEquiv` and
-`continuous_twistPiCoreOptionEquiv_symm`). -/
-def twistPiCoreOptionEquiv (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
-    (twistPiCore k (Option ι)).Fiber x ≃L[𝕜]
-      ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x :=
+/-- The fibrewise splitting `⨁_{l : Option κ} 𝒪(k l) ≅ 𝒪(k none) ⊕ ⨁_{l : κ} 𝒪(k (some l))`,
+which takes the `none` coordinate to the first summand and the others to the second. It is
+continuous on total spaces in both directions (`continuous_twistSumCoreOptionEquiv` and
+`continuous_twistSumCoreOptionEquiv_symm`). -/
+def twistSumCoreOptionEquiv (k : Option κ → ℤ) (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
+    (twistSumCore k).Fiber x ≃L[𝕜]
+      ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x :=
   ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
 
-/-- `twistPiCoreOptionEquiv` splits off the `none` coordinate. -/
+variable (k : Option κ → ℤ)
+
+/-- `twistSumCoreOptionEquiv` splits off the `none` coordinate. -/
 @[simp]
-theorem twistPiCoreOptionEquiv_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (v : (twistPiCore k (Option ι)).Fiber x) :
-    twistPiCoreOptionEquiv k ι x v = (v none, fun i ↦ v (some i)) :=
+theorem twistSumCoreOptionEquiv_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (v : (twistSumCore k).Fiber x) :
+    twistSumCoreOptionEquiv k x v = (v none, fun l ↦ v (some l)) :=
   ContinuousLinearEquiv.piOptionEquivProd_apply 𝕜 v
 
-/-- The inverse of `twistPiCoreOptionEquiv` has the first summand as its `none` coordinate. -/
+/-- The inverse of `twistSumCoreOptionEquiv` has the first summand as its `none` coordinate. -/
 @[simp]
-theorem twistPiCoreOptionEquiv_symm_apply_none (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (v : ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x) :
-    (twistPiCoreOptionEquiv k ι x).symm v none = v.1 :=
+theorem twistSumCoreOptionEquiv_symm_apply_none (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (v : ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x) :
+    (twistSumCoreOptionEquiv k x).symm v none = v.1 :=
   congrFun (ContinuousLinearEquiv.piOptionEquivProd_symm_apply (M := fun _ ↦ 𝕜) 𝕜 v) none
 
-/-- The inverse of `twistPiCoreOptionEquiv` has the second summand as its `some` coordinates. -/
+/-- The inverse of `twistSumCoreOptionEquiv` has the second summand as its `some`
+coordinates. -/
 @[simp]
-theorem twistPiCoreOptionEquiv_symm_apply_some (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (v : ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x) (i : ι) :
-    (twistPiCoreOptionEquiv k ι x).symm v (some i) = v.2 i :=
-  congrFun (ContinuousLinearEquiv.piOptionEquivProd_symm_apply (M := fun _ ↦ 𝕜) 𝕜 v) (some i)
+theorem twistSumCoreOptionEquiv_symm_apply_some (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (v : ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x) (l : κ) :
+    (twistSumCoreOptionEquiv k x).symm v (some l) = v.2 l :=
+  congrFun (ContinuousLinearEquiv.piOptionEquivProd_symm_apply (M := fun _ ↦ 𝕜) 𝕜 v) (some l)
 
-/-- In the trivializations at `x₀` of all three bundles, `twistPiCoreOptionEquiv` is
+/-- In the trivializations at `x₀` of all three bundles, `twistSumCoreOptionEquiv` is
 `ContinuousLinearEquiv.piOptionEquivProd`. -/
-private theorem prod_trivializationAt_twistPiCoreOptionEquiv (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (p : TotalSpace (Option ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k (Option ι)).Fiber) :
-    (trivializationAt (𝕜 × (ι → 𝕜)) ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x₀
-        (TotalSpace.mk' (𝕜 × (ι → 𝕜)) (E := (twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber)
-          p.proj (twistPiCoreOptionEquiv k ι p.proj p.snd))).2 =
+private theorem prod_trivializationAt_twistSumCoreOptionEquiv (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (p : TotalSpace (Option κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber) :
+    (trivializationAt (𝕜 × (κ → 𝕜))
+        ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀
+        (TotalSpace.mk' (𝕜 × (κ → 𝕜))
+          (E := (twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber)
+          p.proj (twistSumCoreOptionEquiv k p.proj p.snd))).2 =
       ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
-        (trivializationAt (Option ι → 𝕜) (twistPiCore k (Option ι)).Fiber x₀ p).2 := by
-  -- Both sides multiply every coordinate by the same `twistTransition`.
-  ext <;>
-  simp [FiberBundle.prod_trivializationAt', Trivialization.Prod.toFun',
-    twistCore_trivializationAt_apply_snd, twistPiCore_trivializationAt_apply_snd]
+        (trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀ p).2 := by
+  obtain ⟨x, v⟩ := p
+  -- In both, each coordinate is read in the trivialization of its summand `𝒪(k l)`
+  -- (`twistSumCore_trivializationAt_apply_snd_eq_twistCore`).
+  refine Prod.ext ?_ (funext fun l ↦ ?_) <;>
+  simp only [FiberBundle.prod_trivializationAt', Trivialization.prod_apply,
+    Trivialization.Prod.toFun', twistSumCoreOptionEquiv_apply,
+    ContinuousLinearEquiv.piOptionEquivProd_apply]
+  · exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x v none).symm
+  · exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun l ↦ k (some l)) x₀ x _ l).trans
+      (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x v (some l)).symm
 
-/-- `twistPiCoreOptionEquiv` is continuous on total spaces. -/
-theorem continuous_twistPiCoreOptionEquiv :
-    Continuous fun p : TotalSpace (Option ι → 𝕜)
-        (twistPiCore (𝕜 := 𝕜) (n := n) k (Option ι)).Fiber ↦
-      TotalSpace.mk' (𝕜 × (ι → 𝕜)) (E := (twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) p.proj
-        (twistPiCoreOptionEquiv k ι p.proj p.snd) := by
+/-- `twistSumCoreOptionEquiv` is continuous on total spaces. -/
+theorem continuous_twistSumCoreOptionEquiv :
+    Continuous fun p : TotalSpace (Option κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber ↦
+      TotalSpace.mk' (𝕜 × (κ → 𝕜))
+        (E := (twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) p.proj
+        (twistSumCoreOptionEquiv k p.proj p.snd) := by
   refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  simp only [prod_trivializationAt_twistPiCoreOptionEquiv]
+  simp only [prod_trivializationAt_twistSumCoreOptionEquiv]
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
       ((trivializationAt _ _ p₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
 
-/-- In the trivializations at `x₀` of all three bundles, the inverse of `twistPiCoreOptionEquiv`
-is the inverse of `ContinuousLinearEquiv.piOptionEquivProd`. -/
-private theorem trivializationAt_twistPiCoreOptionEquiv_symm (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
-    (q : TotalSpace (𝕜 × (ι → 𝕜))
-      ((twistCore (𝕜 := 𝕜) (n := n) k).Fiber ×ᵇ (twistPiCore k ι).Fiber)) :
-    (trivializationAt (Option ι → 𝕜) (twistPiCore k (Option ι)).Fiber x₀
-        (TotalSpace.mk' (Option ι → 𝕜) (E := (twistPiCore k (Option ι)).Fiber) q.proj
-          ((twistPiCoreOptionEquiv k ι q.proj).symm q.snd))).2 =
+/-- In the trivializations at `x₀` of all three bundles, the inverse of
+`twistSumCoreOptionEquiv` is the inverse of `ContinuousLinearEquiv.piOptionEquivProd`. -/
+private theorem trivializationAt_twistSumCoreOptionEquiv_symm (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜))
+    (q : TotalSpace (𝕜 × (κ → 𝕜))
+      ((twistCore (𝕜 := 𝕜) (n := n) (k none)).Fiber ×ᵇ
+        (twistSumCore fun l ↦ k (some l)).Fiber)) :
+    (trivializationAt (Option κ → 𝕜) (twistSumCore k).Fiber x₀
+        (TotalSpace.mk' (Option κ → 𝕜) (E := (twistSumCore k).Fiber) q.proj
+          ((twistSumCoreOptionEquiv k q.proj).symm q.snd))).2 =
       (ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜).symm
-        (trivializationAt (𝕜 × (ι → 𝕜)) ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x₀
-          q).2 := by
-  -- As in `prod_trivializationAt_twistPiCoreOptionEquiv`, both sides multiply every coordinate
-  -- by the same `twistTransition`.
-  ext j
-  cases j
-  · simp only [FiberBundle.prod_trivializationAt', Trivialization.prod_apply,
-      Trivialization.Prod.toFun', twistPiCore_trivializationAt_apply_snd,
-      ContinuousLinearEquiv.piOptionEquivProd_symm_apply, twistPiCoreOptionEquiv_symm_apply_none]
-    exact (twistCore_trivializationAt_apply_snd k x₀ q.proj q.snd.1).symm
-  · simp [FiberBundle.prod_trivializationAt', Trivialization.Prod.toFun',
-      twistPiCore_trivializationAt_apply_snd]
+        (trivializationAt (𝕜 × (κ → 𝕜))
+          ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x₀ q).2 := by
+  obtain ⟨x, v⟩ := q
+  -- As in `prod_trivializationAt_twistSumCoreOptionEquiv`, each coordinate is read in the
+  -- trivialization of its summand `𝒪(k l)`.
+  funext l
+  simp only [FiberBundle.prod_trivializationAt', Trivialization.prod_apply,
+    Trivialization.Prod.toFun', ContinuousLinearEquiv.piOptionEquivProd_symm_apply]
+  refine (twistSumCore_trivializationAt_apply_snd_eq_twistCore k x₀ x _ l).trans ?_
+  cases l
+  · rw [twistSumCoreOptionEquiv_symm_apply_none]
+  · rw [twistSumCoreOptionEquiv_symm_apply_some]
+    exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun l ↦ k (some l)) x₀ x v.2
+      _).symm
 
-/-- The inverse of `twistPiCoreOptionEquiv` is continuous on total spaces. -/
-theorem continuous_twistPiCoreOptionEquiv_symm :
-    Continuous fun q : TotalSpace (𝕜 × (ι → 𝕜))
-        ((twistCore (𝕜 := 𝕜) (n := n) k).Fiber ×ᵇ (twistPiCore k ι).Fiber) ↦
-      TotalSpace.mk' (Option ι → 𝕜) (E := (twistPiCore k (Option ι)).Fiber) q.proj
-        ((twistPiCoreOptionEquiv k ι q.proj).symm q.snd) := by
+/-- The inverse of `twistSumCoreOptionEquiv` is continuous on total spaces. -/
+theorem continuous_twistSumCoreOptionEquiv_symm :
+    Continuous fun q : TotalSpace (𝕜 × (κ → 𝕜))
+        ((twistCore (𝕜 := 𝕜) (n := n) (k none)).Fiber ×ᵇ
+          (twistSumCore fun l ↦ k (some l)).Fiber) ↦
+      TotalSpace.mk' (Option κ → 𝕜) (E := (twistSumCore k).Fiber) q.proj
+        ((twistSumCoreOptionEquiv k q.proj).symm q.snd) := by
   refine continuous_iff_continuousAt.2 fun q₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  simp only [trivializationAt_twistPiCoreOptionEquiv_symm]
+  simp only [trivializationAt_twistSumCoreOptionEquiv_symm]
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
       ((trivializationAt _ _ q₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
 
-/-- For empty `ι`, the rank-zero bundle `𝒪(k) ⊗ 𝕜^ι` is trivial: its total space is the product
-of the base with the zero-dimensional space `ι → 𝕜`. -/
-def twistPiCoreTrivializationOfIsEmpty [IsEmpty ι] :
-    Trivialization (ι → 𝕜) (π (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :=
-  (twistPiCore k ι).globalTrivializationOfCoordChangeEqId fun _ _ _ _ _ ↦ Subsingleton.elim _ _
+variable (k : κ → ℤ)
 
-/-- The trivialization `twistPiCoreTrivializationOfIsEmpty` is defined over the whole base. -/
+/-- For empty `κ`, the rank-zero bundle `⨁ₗ 𝒪(k l)` is trivial: its total space is the product
+of the base with the zero-dimensional space `κ → 𝕜`. -/
+def twistSumCoreTrivializationOfIsEmpty [IsEmpty κ] :
+    Trivialization (κ → 𝕜) (π (κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber) :=
+  (twistSumCore k).globalTrivializationOfCoordChangeEqId fun _ _ _ _ _ ↦ Subsingleton.elim _ _
+
+/-- The trivialization `twistSumCoreTrivializationOfIsEmpty` is defined over the whole base. -/
 @[simp]
-theorem twistPiCoreTrivializationOfIsEmpty_baseSet [IsEmpty ι] :
-    (twistPiCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k ι).baseSet = univ :=
+theorem twistSumCoreTrivializationOfIsEmpty_baseSet [IsEmpty κ] :
+    (twistSumCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k).baseSet = univ :=
   VectorBundleCore.globalTrivializationOfCoordChangeEqId_baseSet _ _
 
-/-- The trivialization `twistPiCoreTrivializationOfIsEmpty` keeps the base point and the
+/-- The trivialization `twistSumCoreTrivializationOfIsEmpty` keeps the base point and the
 coordinate in the preferred chart. -/
 @[simp]
-theorem twistPiCoreTrivializationOfIsEmpty_apply [IsEmpty ι]
-    (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
-    twistPiCoreTrivializationOfIsEmpty k ι p = (p.proj, p.snd) :=
+theorem twistSumCoreTrivializationOfIsEmpty_apply [IsEmpty κ]
+    (p : TotalSpace (κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber) :
+    twistSumCoreTrivializationOfIsEmpty k p = (p.proj, p.snd) :=
   VectorBundleCore.globalTrivializationOfCoordChangeEqId_apply _ _ p
 
-/-- The trivialization `twistPiCoreTrivializationOfIsEmpty` is linear on fibres. -/
-instance [IsEmpty ι] : (twistPiCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k ι).IsLinear 𝕜 :=
+/-- The trivialization `twistSumCoreTrivializationOfIsEmpty` is linear on fibres. -/
+instance [IsEmpty κ] : (twistSumCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k).IsLinear 𝕜 :=
   VectorBundleCore.globalTrivializationOfCoordChangeEqId_isLinear _ _
 
-/-- The fibrewise isomorphism `𝒪(k) ⊗ 𝕜^ι ≅ 𝒪(k) ⊗ 𝕜^ι'` induced by a bijection `e : ι ≃ ι'`,
-which moves the coordinate at `a` to `e a`. It is continuous on total spaces
-(`continuous_twistPiCoreCongr`). -/
-def twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι') (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
-    (twistPiCore k ι).Fiber x ≃L[𝕜] (twistPiCore k ι').Fiber x :=
+/-- The fibrewise isomorphism `⨁_{a : κ} 𝒪(k (e a)) ≅ ⨁_{b : κ'} 𝒪(k b)` induced by a bijection
+`e : κ ≃ κ'`, which moves the coordinate at `a` to `e a`. It is continuous on total spaces
+(`continuous_twistSumCoreCongr`). -/
+def twistSumCoreCongr {κ' : Type*} [Fintype κ'] (k : κ' → ℤ) (e : κ ≃ κ')
+    (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
+    (twistSumCore fun a ↦ k (e a)).Fiber x ≃L[𝕜] (twistSumCore k).Fiber x :=
   ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e
 
-/-- `twistPiCoreCongr k ι e` moves the coordinate at `a` to `e a`. -/
+/-- `twistSumCoreCongr k e` moves the coordinate at `a` to `e a`. -/
 @[simp]
-theorem twistPiCoreCongr_apply {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
-    (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (v : (twistPiCore k ι).Fiber x) (a : ι) :
-    twistPiCoreCongr k ι e x v (e a) = v a :=
+theorem twistSumCoreCongr_apply {κ' : Type*} [Fintype κ'] (k : κ' → ℤ) (e : κ ≃ κ')
+    (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (v : (twistSumCore fun a ↦ k (e a)).Fiber x) (a : κ) :
+    twistSumCoreCongr k e x v (e a) = v a :=
   ContinuousLinearEquiv.piCongrLeft_apply_apply (R := 𝕜) (φ := fun _ ↦ 𝕜) e v a
 
-/-- `twistPiCoreCongr` is continuous on total spaces: in every standard chart it is the constant
-map `ContinuousLinearEquiv.piCongrLeft`, which commutes with the scalar coordinate changes. -/
-theorem continuous_twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι') :
-    Continuous fun p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber ↦
-      TotalSpace.mk' (ι' → 𝕜) (E := (twistPiCore k ι').Fiber) p.proj
-        (twistPiCoreCongr k ι e p.proj p.snd) := by
+/-- `twistSumCoreCongr` is continuous on total spaces: in every standard chart it is the constant
+map `ContinuousLinearEquiv.piCongrLeft`, which commutes with the diagonal coordinate changes. -/
+theorem continuous_twistSumCoreCongr {κ' : Type*} [Fintype κ'] (k : κ' → ℤ) (e : κ ≃ κ') :
+    Continuous fun p : TotalSpace (κ → 𝕜)
+        (twistSumCore (𝕜 := 𝕜) (n := n) fun a ↦ k (e a)).Fiber ↦
+      TotalSpace.mk' (κ' → 𝕜) (E := (twistSumCore k).Fiber) p.proj
+        (twistSumCoreCongr k e p.proj p.snd) := by
   refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  have h (p : TotalSpace (ι → 𝕜) (twistPiCore (𝕜 := 𝕜) (n := n) k ι).Fiber) :
-      (trivializationAt (ι' → 𝕜) (twistPiCore k ι').Fiber p₀.proj
-          (TotalSpace.mk' (ι' → 𝕜) (E := (twistPiCore k ι').Fiber) p.proj
-            (twistPiCoreCongr k ι e p.proj p.snd))).2 =
+  have h (p : TotalSpace (κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) fun a ↦ k (e a)).Fiber) :
+      (trivializationAt (κ' → 𝕜) (twistSumCore k).Fiber p₀.proj
+          (TotalSpace.mk' (κ' → 𝕜) (E := (twistSumCore k).Fiber) p.proj
+            (twistSumCoreCongr k e p.proj p.snd))).2 =
         ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e
-          (trivializationAt (ι → 𝕜) (twistPiCore k ι).Fiber p₀.proj p).2 := by
-    rw [twistPiCore_trivializationAt_apply_snd, twistPiCore_trivializationAt_apply_snd]
-    exact (map_smul (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) e) _ p.snd).symm
+          (trivializationAt (κ → 𝕜) (twistSumCore fun a ↦ k (e a)).Fiber p₀.proj p).2 := by
+    obtain ⟨x, v⟩ := p
+    funext b
+    obtain ⟨a, rfl⟩ := e.surjective b
+    -- Each coordinate is read in the trivialization of its summand `𝒪(k (e a))`.
+    refine (twistSumCore_trivializationAt_apply_snd_eq_twistCore k p₀.proj x
+      (twistSumCoreCongr k e x v) (e a)).trans ?_
+    rw [ContinuousLinearEquiv.piCongrLeft_apply_apply, twistSumCoreCongr_apply]
+    exact (twistSumCore_trivializationAt_apply_snd_eq_twistCore (fun a ↦ k (e a)) p₀.proj x v
+      a).symm
   refine ContinuousAt.congr ?_ (Filter.Eventually.of_forall fun p ↦ (h p).symm)
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
       ((trivializationAt _ _ p₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
 
-end Pi
+end Sum
 
 section RestrictScalars
 
 open scoped VectorBundle.ComplexToReal
 
-variable (k : ℤ) (ι : Type*) [Fintype ι]
+variable {κ : Type*} [Fintype κ]
 
-/-- `𝒪(k) ⊗ ℂ^ι` on complex projective space is a smooth real vector bundle over the underlying
+/-- `⨁ₗ 𝒪(k l)` on complex projective space is a smooth real vector bundle over the underlying
 real manifold. -/
-instance :
-    ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber 𝓘(ℝ, Fin n → ℂ) :=
-  have : ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber
+instance (k : κ → ℤ) :
+    ContMDiffVectorBundle ∞ (κ → ℂ) (twistSumCore (𝕜 := ℂ) (n := n) k).Fiber 𝓘(ℝ, Fin n → ℂ) :=
+  have : ContMDiffVectorBundle ∞ (κ → ℂ) (twistSumCore (𝕜 := ℂ) (n := n) k).Fiber
       𝓘(ℂ, Fin n → ℂ) :=
     ContMDiffVectorBundle.of_le le_top
   ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
+
+variable (k : ℤ)
 
 /-- `𝒪(k)` on complex projective space is a smooth real vector bundle over the underlying real
 manifold. -/
@@ -497,6 +446,7 @@ instance (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
   IsScalarTower.continuousSMul ℂ
 
 end RestrictScalars
+
 
 /-! ### `𝒪(0)` is trivial -/
 
@@ -566,7 +516,7 @@ theorem twistCore_eq_lineBundleCore (k : ℤ) :
   · rw [twistCore_baseSet, SymplecticGeometry.ScalarCocycle.lineBundleCore_baseSet,
       twistScalarCocycle_U]
   · rw [SymplecticGeometry.ScalarCocycle.lineBundleCore_indexAt, twistScalarCocycle_indexAt,
-      twistCore_indexAt_eq k 0]
+      twistCore_indexAt, twistCore_indexAt]
   · ext
     rw [twistCore_coordChange_apply,
       SymplecticGeometry.ScalarCocycle.lineBundleCore_coordChange_apply,

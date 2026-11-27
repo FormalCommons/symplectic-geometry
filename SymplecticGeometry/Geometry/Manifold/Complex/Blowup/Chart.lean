@@ -309,20 +309,25 @@ theorem liftChart_of_notMem {z : Blowup c} (hc : blowdown c z ∉ c.source)
   · exact absurd h.1 hc
   · rfl
 
+/-- Over the source of `φ`, the lifted chart lies over `φ`: the blowdown of `liftChart c φ z` is
+`φ` of the blowdown of `z`. -/
+theorem blowdown_liftChart {z : Blowup c} (hz : blowdown c z ∈ φ.source) :
+    (liftChart c φ z).blowdown = φ (blowdown c z) := by
+  by_cases hzc : blowdown c z ∈ c.source
+  · rw [liftChart_of_mem ⟨hzc, hz⟩, blowdown_liftMap, blowdown_lift c hzc,
+      OpenPartialHomeomorph.coe_trans, Function.comp_apply, c.left_inv hzc]
+  · rw [liftChart_of_notMem hzc hz, blowdown_ofNeZero]
+
 /-- Off the centre, at a point `x` of the source of `φ`, the lifted chart takes the value
 `(mk (φ x), φ x)`. -/
 theorem liftChart_inl {x : puncturedOpens c} (hx : (x : M) ∈ φ.source) :
     liftChart c φ (inl (gluingHomeomorph c) x) =
       ofNeZero (φ.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)) := by
-  by_cases hxc : (x : M) ∈ c.source
-  · have hne : (c.symm.trans φ.toOpenPartialHomeomorph) (c x) ≠ 0 := by
-      simpa [c.left_inv hxc] using φ.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)
-    rw [liftChart_of_mem (by rw [blowdown_inl]; exact ⟨hxc, hx⟩), lift_inl c hxc,
-      blowdownDiffeomorph_symm_apply]
-    refine eq_of_blowdown_eq (by rwa [blowdown_liftMap, blowdown_ofNeZero]) ?_
-    simp [c.left_inv hxc]
-  · rw [liftChart_of_notMem (by rwa [blowdown_inl]) (by rwa [blowdown_inl])]
-    simp only [blowdown_inl]
+  have h := blowdown_liftChart c φ (z := inl (gluingHomeomorph c) x) (by rwa [blowdown_inl])
+  rw [blowdown_inl] at h
+  refine eq_of_blowdown_eq ?_ (by rw [h, blowdown_ofNeZero])
+  rw [h]
+  exact φ.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)
 
 /-- On the part of the model over the target of `c` whose image in `M` lies in the source of
 `φ`, the lifted chart is the lift of `φ ∘ c⁻¹` by its derivative at `0`. -/
@@ -340,19 +345,6 @@ theorem liftChart_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
       zeroSection ((c.fderivTransEquiv φ).mapProjectivization ℓ) := by
   rw [ofDirection_def, liftChart_inr c φ (by simpa using φ.mem_source),
     liftMap_zeroSection _ (c.symm_trans_apply_zero φ)]
-
-/-- Over the source of `φ`, the lifted chart lies over `φ`: the blowdown of `liftChart c φ z` is
-`φ` of the blowdown of `z`. -/
-theorem blowdown_liftChart {z : Blowup c} (hz : blowdown c z ∈ φ.source) :
-    (liftChart c φ z).blowdown = φ (blowdown c z) := by
-  by_cases hzc : blowdown c z ∈ c.source
-  · rw [liftChart_of_mem ⟨hzc, hz⟩, blowdown_liftMap]
-    rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-    · rw [blowdown_inl] at hzc ⊢
-      rw [lift_inl c hzc, blowdownDiffeomorph_symm_apply, blowdown_ofNeZero,
-        OpenPartialHomeomorph.coe_trans, Function.comp_apply, c.left_inv hzc]
-    · rw [lift_inr, blowdown_inr, OpenPartialHomeomorph.coe_trans, Function.comp_apply]
-  · rw [liftChart_of_notMem hzc hz, blowdown_ofNeZero]
 
 /-- Through `directionEquiv c`, the lifted chart sends the point of the exceptional divisor over
 the line of a tangent vector `v` at the centre to the point of the zero section over the line of

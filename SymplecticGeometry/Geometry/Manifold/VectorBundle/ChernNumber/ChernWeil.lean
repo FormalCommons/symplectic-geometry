@@ -40,7 +40,7 @@ connection form that they give, flat for the outer section, whose curvature read
 `-2π k i` to the integral
 (`SymplecticGeometry.CoordinateDisc.integralTopForm_eq_sum_of_mpullback_ofChart_eq`). The
 converse follows from the statement for one connection form and
-`SymplecticGeometry.IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq`.
+`SymplecticGeometry.IsCircleConnectionForm.isCircleConnectionCurvature_of_integralTopForm_eq`.
 
 ## Main results
 
@@ -145,7 +145,7 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integra
   have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
     contMDiffFiberBundle_circleFiber g hI
   obtain ⟨α₀, hα₀⟩ := exists_isCircleConnectionForm (P := Fiber ℂ F V ℂ) (IB := 𝓡 2)
-  refine hα₀.exists_curvature_eq_of_integralTopForm_eq o ?_
+  refine hα₀.isCircleConnectionCurvature_of_integralTopForm_eq o ?_
   rw [hσ, chernNumber_eq_integral_curvature g hI o hα₀]
   field_simp
 
