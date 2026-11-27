@@ -24,9 +24,10 @@ Near `0`, the reading in the chart at `y` is `e · (f ∘ τ)`, for `f` the read
 `SymplecticGeometry.jetNormAt_comp_le` reduce the jet norm of this product to those of `e` and
 `τ` at `0`. Both are at most polynomials in `‖z‖ = ‖τ 0‖`, by
 `RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le` and
-`RescaledUnitaryCharts.exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`,
-and `‖z‖ / √2 ≤ d_k(x, y)`
-(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`) turns the
+`RescaledUnitaryCharts.exists_forall_norm_iteratedFDeriv_chartTransition_zero_le` with
+`SymplecticGeometry.jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le`, and
+`‖z‖ ≤ √2 * d_k(x, y)`
+(`RescaledUnitaryCharts.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm`) turns the
 bound into a polynomial in `d_k(x, y)`.
 
 ## Main results
@@ -118,21 +119,15 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   have he : jetNormAt ℝ r e 0 ≤ |Ce| * (1 + ‖z‖) ^ r :=
     (hCe hk x z hz₂).trans (by gcongr; exact le_abs_self _)
   have hjτ : max 1 (jetNormAt ℝ r τ 0) ≤ A * (1 + ‖z‖) := by
-    have h := jetNormAt_le_of_norm_iteratedFDeriv_succ_le (r := r) (C := |Cτ|) (f := τ)
-      (z := 0) fun j hj ↦ (hCτ hk x z hz₁ (j + 1) (by omega) (by omega)).trans (le_abs_self _)
+    have h := jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le (r := r) (f := τ)
+      (z := 0) fun j hj ↦ hCτ hk x z hz₁ (j + 1) (by omega) (by omega)
     rw [hτ0] at h
-    have := norm_nonneg z
-    refine max_le (by nlinarith) (h.trans ?_)
-    nlinarith [mul_nonneg (mul_nonneg (Nat.cast_nonneg r : (0 : ℝ) ≤ r) (abs_nonneg Cτ)) this]
+    exact max_le (by nlinarith [norm_nonneg z]) h
   -- The rescaled distance bounds `‖z‖`: `1 + ‖z‖ ≤ √2 * (1 + d)`.
   have hd : 1 + ‖z‖ ≤ √2 * (1 + d) := by
-    obtain ⟨hlo, hhi⟩ := D.ofReal_mul_riemannianEDist_symm_mem_Icc hg hρ₃₀ hk x (hcmp hk x) hz₃
-    have hlo' := (ENNReal.ofReal_le_iff_le_toReal (ne_top_of_le_ne_top ENNReal.ofReal_ne_top
-      hhi)).1 hlo
-    have h2 : (1 : ℝ) ≤ √2 := Real.one_le_sqrt.2 (by norm_num)
-    have h2' : √2 * ((√2)⁻¹ * ‖z‖) = ‖z‖ := by
-      rw [← mul_assoc, mul_inv_cancel₀ (by positivity), one_mul]
-    nlinarith [mul_le_mul_of_nonneg_left hlo' (zero_le_one.trans h2)]
+    have h := D.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm hg hρ₃₀ hk x
+      (hcmp hk x) hz₃
+    nlinarith [Real.one_le_sqrt.2 (by norm_num : (1 : ℝ) ≤ 2)]
   have hjf := jetNormAt_nonneg (𝕜 := ℝ) r f z
   have hz0 : 0 ≤ 1 + ‖z‖ := by positivity
   have hfτ : jetNormAt ℝ r (f ∘ τ) 0 ≤ (r + 1)! * jetNormAt ℝ r f z * (A * (1 + ‖z‖)) ^ r := by
