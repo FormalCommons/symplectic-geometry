@@ -38,7 +38,7 @@ The proof is local on `Z`. By the library's criterion
 fundamental class once its image in `H_m(Z, Z ∖ z)` is the local orientation at each `z`; for a
 push-forward along `π` of a cap product, that image is computed from the local class of `μ_Φ` at
 `0_z`. Read in the centred chart of `Z` at `z` (which detects classes of local homology at `z`,
-`SymplecticGeometry.injective_localHomologyMap_centeredExtChartAt`), this gives the pointwise
+`OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`), this gives the pointwise
 criterion
 `HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`.
 At each `z`, on a small ball about `0` in that chart:
@@ -209,10 +209,9 @@ namespace SymplecticGeometry
 open TauCeti
 
 variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [I.Boundaryless] {M : Type} [TopologicalSpace M] [T1Space M]
+  {I : ModelWithCorners ℝ E H} [I.Boundaryless] {M : Type} [TopologicalSpace M]
   [ChartedSpace H M]
 
-omit [T1Space M] in
 /-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
 target that its inverse carries into any given neighbourhood `T` of `x`. -/
 theorem exists_ball_mapsTo_centeredExtChartAt_symm (x : M) {T : Set M} (hT : IsOpen T)
@@ -227,23 +226,6 @@ theorem exists_ball_mapsTo_centeredExtChartAt_symm (x : M) {T : Set M} (hT : IsO
       by rwa [mem_preimage, c.left_inv (mem_centeredExtChartAt_source I x)]⟩
   obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 hO 0 h0
   exact ⟨ε, hε, fun _ hy ↦ (hball hy).1, fun _ hy ↦ (hball hy).2⟩
-
-/-- Reading local homology at `x` in the centred chart at `x`, by the source of the chart and
-then the chart, is injective. -/
-theorem injective_localHomologyMap_centeredExtChartAt (x : M) (q : ℕ) :
-    Function.Injective fun a ↦ localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-      (centeredExtChartAt I x).sourceRestrict
-      (sourceRestrict_centeredExtChartAt_preimage_zero I x).subset q
-      ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredExtChartAt I x).open_source.isOpenEmbedding_subtypeVal
-        ⟨x, mem_centeredExtChartAt_source I x⟩ q).inv a) := by
-  have hpre := sourceRestrict_centeredExtChartAt_preimage_zero I x
-  have : IsIso (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-      (centeredExtChartAt I x).sourceRestrict hpre.subset q) :=
-    isIso_localHomologyMap _ _ (centeredExtChartAt I x).isOpenEmbedding_sourceRestrict hpre
-      isClosed_singleton (singleton_subset_iff.2 ⟨_, hpre.ge rfl⟩) _
-  exact ((ModuleCat.mono_iff_injective _).1 inferInstance).comp
-    ((ModuleCat.mono_iff_injective _).1 inferInstance)
 
 end SymplecticGeometry
 
@@ -301,7 +283,8 @@ theorem map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt {q : ℕ}
       (((thomPair P V).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h u).hom γ) =
       o.fundamentalClass hq :=
   o.map_singularCap_eq_fundamentalClass ℤ hq _ _ _ (isOpen_zeroSectionCompl P V) r n h u γ
-    fun b ↦ injective_localHomologyMap_centeredExtChartAt b q (by
+    fun b ↦ (centeredExtChartAt I b).injective_localHomologyMap_sourceRestrict _
+      (mem_centeredExtChartAt_source I b) (centeredExtChartAt_self I b) q (by
       rw [← singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction]
       exact hγ b)
 
