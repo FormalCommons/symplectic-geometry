@@ -307,7 +307,7 @@ outside `J` vanish, its transverse part is free. The core coordinates outside
 fixed, and the approximation is only asked for derivatives in the
 directions `J`. No definition is added for this: statements carry the
 condition on `w`. Proofs use the projection
-`P J := (ContinuousLinearMap.pi fun i ↦ if i ∈ J then .proj i else 0).prodMap (.id ℝ _)`
+`P J := (ContinuousLinearMap.coordProj J).prodMap (.id ℝ _)`
 of `D` onto these vectors (of norm at most `1`), as a local notation or a
 `private` definition. With `J = Finset.univ` every `w` lies in the
 directions `J`, and the statement is the cube theorem; with `J` a proper
@@ -363,7 +363,8 @@ theorem exists_holonomic_approximation_cube {m k : ℕ} (hk : 0 < k)
     (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) (hU' : sphere 0 1 ×ˢ {0} ⊆ U)
     {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
     ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, D) ∞ D) (f' : D → F) (V : Set D),
-      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧ ∀ t, ∀ x ∉ C, h (t, x) = x) ∧
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧
+        (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∃ W ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' Q ⊆ V ∧

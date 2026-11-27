@@ -332,8 +332,7 @@ theorem mpullback_apply_smul_eq_of_apply_eq [IsManifold I 1 M] {G : Type*} [Grou
     ContMDiffConstSMul.mdifferentiable_const_smul (I := I') (n := 1) one_ne_zero g (f y)
   have hsurj : Function.Surjective (mfderiv I I (g • ·) y) := by
     rw [← Diffeomorph.coe_constSmul (I := I) (n := 1) g]
-    exact (((Diffeomorph.constSmul I 1 g).isLocalDiffeomorph y).isInvertible_mfderiv
-      one_ne_zero).surjective
+    exact ((Diffeomorph.constSmul I 1 g).isInvertible_mfderiv one_ne_zero).surjective
   refine (mpullback_apply_eq_mpullback_apply_iff hsurj).1 ?_
   -- Both sides at `y`: `(f ∘ (g • ·))^* α = ((g • ·) ∘ f)^* α = f^* α = β = (g • ·)^* β`.
   rw [hβ, ← mpullback_comp_at hgM (hf.at_smul_of_map_smul g hfg),
@@ -500,7 +499,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
       rw [hK₀e z hz, hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)]
     · exact indicator_of_notMem hxW _
   have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
-    e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0
+    e.contMDiff_indicator_image_comp_symm hk hCc hW hCW hWe hk0
   set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
   have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
   refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩

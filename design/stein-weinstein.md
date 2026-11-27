@@ -486,14 +486,25 @@ point of `{x | φ x ≤ 0}`, `0` a regular value of `φ`, `ι` a disc as above
 with `IsJOrthogonallyAttached E φ ι`, `[T2Space M]`, and an open `U`
 containing `ι '' closedBall 0 1`:
 
-- `IsJOrthogonallyAttached.exists_surround`: there is a smooth
-  `ψ : M → ℝ` with `ψ ≤ φ`, `EqOn ψ φ Uᶜ`, `ψ` strictly plurisubharmonic at
+- `IsJOrthogonallyAttached.exists_surround`: there are a smooth
+  `h : ℝ → ℝ` with `h 0 = 0`, `∀ y, 0 < deriv h y` and
+  `∀ y, 0 ≤ iteratedDeriv 2 h y`, and a smooth `ψ : M → ℝ` with
+  `ψ =ᶠ[𝓝 x] h ∘ φ` for every `x ∉ U`, `ψ` strictly plurisubharmonic at
   every point of `{x | ψ x ≤ 0}`, `0` a regular value of `ψ`, and
-  `ι '' closedBall 0 1 ⊆ {x | ψ x < 0}`. So `{ψ ≤ 0}` contains `W` and the
-  disc in its interior, lies in `W ∪ U`, and has a $J$-convex boundary.
+  `ι '' closedBall 0 1 ⊆ {x | ψ x < 0}`. So `{ψ ≤ 0}` agrees with `W`
+  outside `U`, contains the disc in its interior, lies in `W ∪ U`, and
+  has a $J$-convex boundary. Outside `U` the function is a convex
+  reparametrization of `φ`, not `φ` itself: Cieliebak–Eliashberg's
+  Theorem 8.5 asserts only $J$-convex levels for its function, and the
+  junction below needs one reparametrization of everything; `h ∘ φ` is
+  strictly plurisubharmonic wherever `φ` is, and `IsSteinFunction.comp`
+  takes exactly these hypotheses on `h`, so issue 19 can use it. Whether
+  `W ⊆ {ψ ≤ 0}` can also be asked is left to issue 14d; see
+  *The junction near the sphere* below.
 - `IsJOrthogonallyAttached.exists_surround_critical`: moreover, every
   critical point `x ∈ U` of `ψ` with `ψ x ≤ 0` is `ι 0` or a critical point
-  of `φ` near which `ψ = φ`; `ι 0` is a nondegenerate critical point of `ψ`
+  of `φ` near which `ψ = h ∘ φ`, for the `h` of the statement; `ι 0` is
+  a nondegenerate critical point of `ψ`
   (`TauCeti.IsManifoldNondegenerateCriticalPoint`) with
   `manifoldMorseIndex 𝓘(ℝ, E) ψ (ι 0) = finrank ℝ F`; and `ψ ∘ ι` strictly
   decreases along each radius `t ↦ t • x`, `t ∈ [0, 1]`, `‖x‖ = 1`.
@@ -897,7 +908,7 @@ containing `ι '' closedBall 0 1`:
   `Re V`, the error is at most
   `C * √(t p) ^ (N - 1) * max ‖D²u p‖ ‖Du p‖ * ‖v‖ ^ 2` on the handle, and
   the margin `c * γ ^ N₀` of `exists_modelSurround_margin` absorbs it for
-  small `γ` as soon as `N₀ + 2 ≤ N`. Issue 14d chooses `N = N₀ + 2` after
+  small `γ` as soon as `N₀ + 2 ≤ N`. Issue 14d20 chooses `N = N₀ + 2` after
   issue 14d8 has fixed `N₀`.
 
 - `Surround/ComplexFrame.lean` (issue 14d9): complex frames along a
@@ -1029,8 +1040,9 @@ containing `ι '' closedBall 0 1`:
     at most `C * γ ^ (N - 1)` times the maximum, below the margin for
     small `γ`. Read in `M`'s charts with
     `isManifoldStrictlyPlurisubharmonicAt_iff_of_mem_maximalAtlas`.
-    With `u = g ∘ Ψ` of `exists_modelSurround_margin` this is the step
-    of issue 14d that carries the model to `M`; the statement takes the
+    With `u` an affine image of the `g ∘ Ψ` of
+    `exists_modelSurround_margin`, this is the step of issue 14d20 that
+    carries the model to `M`; the statement takes the
     margin as a hypothesis, so it does not depend on issue 14d8.
 
 - **Interpolation and the normal form near the sphere (issues
@@ -1153,7 +1165,7 @@ containing `ι '' closedBall 0 1`:
     `U ⊇ ι '' sphere 0 1` open, and `2 ≤ N`. There are `σ` as in
     `exists_comp_radial`; `Φ` from `exists_modelChart` for `ι ∘ σ`,
     `O`, `N` and the frame of `exists_complexFrame_mfderiv_ker` for
-    `ι ∘ σ`; open `V ⊆ W ⊆ U` with `ι '' sphere 0 1 ⊆ V`; and a smooth
+    `ι ∘ σ`; open `V ⊆ W ⊆ U ∩ Φ.target` with `ι '' sphere 0 1 ⊆ V`; and a smooth
     `θ : M → ℝ` with `θ = modelLevel k m ∘ Φ.symm` on `V`,
     `θ =ᶠ[𝓝 x] φ` for every `x ∉ W`, `θ x` between `φ x` and
     `modelLevel k m (Φ.symm x)` on `W`, `θ` strictly plurisubharmonic at
@@ -1181,19 +1193,139 @@ containing `ι '' closedBall 0 1`:
     `isJOrthogonallyAttached_model` carries over through `Φ`.
 
   `θ` is not below `φ`: near the sphere the two differ at second order,
-  with either sign. Issue 14d, whose `ψ ≤ φ` and
-  `ι '' closedBall 0 1 ⊆ {ψ < 0}` compare `ψ` with `φ`, checks first how
-  the model placed in `{θ ≤ 0}` is kept below `φ` near the sphere.
+  with either sign; see *Comparison with `φ`* below.
+
+- **The junction near the sphere (issue 14d20).** Near the sphere the
+  model of 14d7 and the function `θ` of 14d19 do not fit as they stand:
+  only `g ∘ Ψ` is strictly plurisubharmonic, and `θ` there is
+  `modelLevel k m ∘ Φ.symm = (1 + Ψst) ∘ Φ.symm`. Let
+  `G y = (g (y - 1) - g (-1)) / deriv g (-1)`, so that `G 0 = 0`,
+  `deriv G 0 = 1` and `G ∘ (1 + Ψ)` is an affine image of `g ∘ Ψ`, with the
+  same margin. Joining `G ∘ θ` to `θ` by a cutoff fails: the Levi-form
+  error is of the order of the largest `G''`, where `θ < 0`. That `G''` is
+  large: `g` comes from the lemma of `Hypersurface.lean`, with
+  `C * deriv g ≤ iteratedDeriv 2 g` on the values of `Ψ` where `Ψ ≠ Ψst`.
+  Near the sphere the values of `1 + Ψ` there fill `(-2 * γ - γ ^ 2, 0]`,
+  and `C` grows as `γ` shrinks. So `g` can be neither independent of `γ` nor
+  affine on those values. The smoothed maximum of issue 11 cannot choose
+  between the two either, since `G ∘ θ ≥ θ`. And Cieliebak–Eliashberg's
+  Corollary 4.3 asserts only $J$-convex levels, so `Ψ` itself is not
+  plurisubharmonic there. The design follows Step 5 of the book's proof of
+  Theorem 8.5 instead: the pieces are joined before any reparametrization.
+  The joined function `f` is the level function `(1 + Ψ) ∘ Φ.symm` on the
+  handle and `θ` farther out. Near the sphere the two agree where the
+  handle ends, because `Ψ = Ψst` there. Away from the sphere both are
+  positive where the handle ends, so a convex combination joins them
+  without meeting `{f ≤ 0}`. A single convex `G` then makes `G ∘ f`
+  strictly plurisubharmonic on `{f ≤ 0}`. On the handle this is 14d15.
+  Elsewhere it holds because `θ` is strictly plurisubharmonic and `G` is
+  convex and increasing (Tau Ceti's
+  `IsManifoldStrictlyPlurisubharmonicAt.scalar_comp`). Outside `U`,
+  `G ∘ f` is `G ∘ φ`, which is why `exists_surround` is stated with an
+  `h`. `G` is chosen last, so no neighbourhood depends on it.
+
+- `Surround/Implant.lean` (issue 14d20), with `V`, `s`, `t`,
+  `modelDisc k m` and `finrank ℂ E = k + m` as for issues 14d9–14d15, and
+  `H γ = {p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` the handle of 14d8 and 14d15.
+  - `IsJOrthogonallyAttached.exists_modelSurround_implant`: let `φ` be
+    smooth, strictly plurisubharmonic at every point of `{x | φ x ≤ 0}`,
+    with `0` a regular value; let `ι` be a disc as in 14d9 with
+    `IsJOrthogonallyAttached E φ ι`; let `[T2Space M]` hold; and let `U` be
+    an open set containing `ι '' closedBall 0 1`. There are:
+    - `σ`, `Φ`, `V₀ ⊆ W₀` and `θ` as `exists_normalForm` gives them for
+      `O = univ`, for `U` and for some `N`;
+    - `γ ∈ Ioo 0 1` and `γ' ∈ Ioo γ 1` with `H γ' ⊆ Φ.source` and
+      `Φ '' H γ' ⊆ U`;
+    - `Ψ` and `g` as `exists_modelSurround` gives them for `a = 2` and
+      `γ`;
+    - a smooth `f : M → ℝ`.
+    They satisfy:
+    - `f =ᶠ[𝓝 x] φ` for every `x ∉ W₀ ∪ Φ '' H γ'`;
+    - `f = (1 + Ψ) ∘ Φ.symm` on `Φ '' H γ`;
+    - every `x` with `f x ≤ 0` has `f =ᶠ[𝓝 x] θ` or
+      `f =ᶠ[𝓝 x] (1 + Ψ) ∘ Φ.symm` with `Φ.symm x ∈ H γ`;
+    - with `h = G`: `h 0 = 0`, `0 < deriv h`, `0 ≤ iteratedDeriv 2 h`,
+      and `h ∘ f` strictly plurisubharmonic at every point of
+      `{x | f x ≤ 0}`;
+    - `0` is a regular value of `f`;
+    - `ι '' closedBall 0 1 ⊆ {x | f x < 0}`.
+    `exists_surround` is then `ψ = h ∘ f`, and 14e reads `ψ` near `ι 0`
+    through `Φ`, where `Ψ = e ∘ Ψst`.
+
+    The choices are made in this order, each by the statement named:
+    1. `c` and `N₀` by `exists_modelSurround_margin` for `a = 2`. They
+       depend on `k` and `m` only. Then `N = N₀ + 2`.
+    2. `σ`, the frame, `Φ`, `V₀`, `W₀` and `θ` by `exists_normalForm`
+       for `O = univ`, `U` and `N`. None of these depends on `γ`.
+    3. `γ₀` by `isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm`
+       for `Φ`, `c` and `N₀`.
+    4. `ε ∈ Ioo 0 γ₀` with
+       `Φ '' {p | t p ≤ ε ^ 2 ∧ (1 - ε) ^ 2 ≤ s p ∧ s p ≤ (1 + ε) ^ 2} ⊆ V₀`.
+       These compact sets lie in `Φ.source` and decrease, as `ε → 0`, to
+       `modelDisc k m '' sphere 0 1`. Its image `ι '' sphere 0 1` lies in
+       the open set `V₀`.
+    5. `γ' ∈ Ioo 0 ε` with `Φ '' H γ' ⊆ U` and with `0 < φ (Φ p)` for
+       `p ∈ H γ'` with `s p ≤ (1 - ε) ^ 2`. The first holds because the
+       `H γ'` decrease to `modelDisc k m '' closedBall 0 1`. For the
+       second, `φ ∘ ι ∘ σ` has a positive minimum on `closedBall 0 (1 - ε)`
+       (`pos`), and each point of `H γ'` lies within `γ'` of a core point,
+       so uniform continuity on a compact handle gives it. Then `γ ∈ Ioo 0 γ'`.
+    6. `Ψ` and `g` by `exists_modelSurround_margin` for `γ`. `u = G ∘ (1 + Ψ)`
+       has the margin `c * γ ^ N₀`, since dividing by `deriv g (-1) > 0`
+       and adding a constant scale both sides of it alike. So by step 3,
+       `u ∘ Φ.symm` is strictly plurisubharmonic at the points of
+       `Φ '' H γ`.
+    7. A smooth `β : V → ℝ` with values in `[0, 1]`, equal to `1` on `H γ`
+       and with compact support inside `H γ'`. Then
+       `f = θ + (β ∘ Φ.symm) * ((1 + Ψ) ∘ Φ.symm - θ)` on `Φ.target`, and
+       `f = θ` elsewhere.
+
+    The checks:
+    - On `H γ' \ H γ` we have `Ψ = Ψst`.
+    - Where moreover `(1 - ε) ^ 2 ≤ s`, the point lies in `V₀` by step 4,
+      so `(1 + Ψ) ∘ Φ.symm = θ` there and `f = θ`.
+    - Where `s ≤ (1 - ε) ^ 2`, `φ > 0` by step 5 and
+      `modelLevel k m ≥ 1 - (1 - ε) ^ 2 > 0`. `θ` is `φ` or lies between
+      the two, so `f` is a convex combination of positive numbers.
+    - So `{f ≤ 0}` meets only the parts where `f` is `θ` or the level
+      function of the model. Strict plurisubharmonicity then follows from
+      14d19 and step 6, and the regular value from the regular value `-1`
+      of `Ψ`, from 14d19 (no critical point in `W₀`) and from that of `φ`.
+    - The disc lies in `Φ '' (modelDisc k m '' closedBall 0 1)`, where
+      `Ψ < -1`.
+
+  *Comparison with `φ`.* `f` is `φ` off `W₀ ∪ Φ '' H γ'`. Both sets lie in
+  `U`, and `U` may be taken as small as wished. On the part of
+  `Φ '' H γ'` where `s ≤ (1 - ε) ^ 2` we have `φ > 0`, so no point of
+  `W = {φ ≤ 0}` is lost there. Near the sphere, `φ x ≤ 0 → f x ≤ 0` needs
+  two facts that no statement gives:
+  - (P1) `Ψ ≤ Ψst` on `H γ`. 14d7's construction suggests it (`Ψ = -1` on
+    the cylinder `t = δ ^ 2`, `s ≤ 1`, where `Ψst > -1`), but it does not
+    state it.
+  - (P2) `modelLevel k m (Φ.symm x) ≤ 0` wherever `φ x ≤ 0` near the
+    sphere.
+
+  (P2) does not follow from the statements, and fails for some charts
+  that they allow. Along the sphere the zero sets of `φ ∘ Φ` and of
+  `modelLevel k m` are tangent. Over each point of the sphere both are
+  graphs `s - 1 = q (y, w)`, up to third order, over the transverse
+  directions `y` (along `Complex.I • u`, `u` tangent to the sphere) and
+  `w`. For the model, `q = 2 * t`. (P2) asks that `q` for `φ ∘ Φ` be at
+  least this. $J$-convexity of `∂W` bounds `q` below in the `y` directions,
+  but not necessarily by the model's bound. In the `w` directions it
+  gives only that `q w + q (Complex.I • w)` is positive. So `q` may be negative along some
+  `w`, as it is near the origin for a boundary that is locally
+  `Re z₁ = |z₂| ^ 2 + 2 * Re (z₂ ^ 2)` in `ℂ²`. A complex-linear frame
+  cannot remove that term; a holomorphic change of the chart at second
+  order along the core could. So
+  `W ⊆ {ψ ≤ 0}` cannot be had from the statements above. What does hold
+  is that `{ψ ≤ 0}` and `W` agree outside `W₀ ∪ Φ '' H γ'`, which lies in
+  any given neighbourhood `U` of the disc. Issue 14d decides whether its
+  statement needs `W ⊆ {ψ ≤ 0}` for issue 19, and if so how to obtain it.
 
 - `Surround/Basic.lean` (issues 14d and 14e): issue 14d proves
-  `IsJOrthogonallyAttached.exists_surround`, following
-  Cieliebak–Eliashberg's proof: along the disc, away from the sphere,
-  `ψ` is built from `φ` and the function `ρ` of issue 14a, which is
-  strictly plurisubharmonic near the disc and vanishes on it; near the
-  sphere, $J$-orthogonality lets the shapes of issue 14c, read in
-  coordinates along $\partial\Delta$, replace the corner where $\{\varphi\le0\}$
-  and a thin neighbourhood of the disc meet; the pieces are glued by
-  `exists_isManifoldStrictlyPlurisubharmonicAt_glue` (issue 11). Issue 14e
+  `IsJOrthogonallyAttached.exists_surround` as `ψ = h ∘ f`, for the `f`
+  and `h` of `exists_modelSurround_implant` (issue 14d20). Issue 14e
   proves `IsJOrthogonallyAttached.exists_surround_critical`, making the
   restriction of `ψ` to the disc a function with one critical point, at its
   centre, which the model handle function of issue 14c describes there. If
@@ -1546,6 +1678,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d17 | Interpolation along a totally real submanifold (Proposition 3.26) | `JConvex/Interpolation.lean` | 14a, 14d16 | 400 |
 | 14d18 | Radial reparametrization and frames adapted to the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14b, 14d9 | 300 |
 | 14d19 | The normal form of $\varphi$ near the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14d13, 14d15, 14d17, 14d18 | 300 |
+| 14d20 | The model handle joined to the normal form near the attaching sphere | `JConvex/Surround/Implant.lean` | 14d8, 14d19 | 400 |
 | 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
 | 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
 | 15 | Weinstein cobordisms and elementary cobordisms | `Handle/Cobordism.lean` | 7 | 450 |
