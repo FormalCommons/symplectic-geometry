@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
+public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 
 /-!
 # The zero section of the model blowup as a symplectic submanifold
