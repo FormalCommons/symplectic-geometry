@@ -116,9 +116,9 @@ theorem puncture_antitone : Antitone (puncture g) :=
   fun _ _ hmn _ hx ↦ mem_puncture.2 fun j hj ↦ mem_puncture.1 hx j (hj.trans_le hmn)
 
 /-- The base point lies in each `puncture g n`. For `n = 1` this is
-`ClosedSurface.basePoint_mem_puncture`, read along `ClosedSurface.puncture_one`. -/
+`ClosedSurface.basePoint_mem_puncture_ball_zero`, read along `ClosedSurface.puncture_one`. -/
 @[simp]
-theorem basePoint_mem_puncture' : basePoint g ∈ puncture g n :=
+theorem basePoint_mem_puncture : basePoint g ∈ puncture g n :=
   mem_puncture.2 fun j _ h ↦ basePoint_notMem_range_ball j ⟨0, h.symm⟩
 
 /-- A point `ball g j v` lies in `puncture g n` exactly when it is not a centre, or its ball is
@@ -171,7 +171,7 @@ theorem puncture_succ_le_tailPuncture : puncture g (n + 1) ≤ tailPuncture g n 
 /-- The base point lies in each `tailPuncture g n`. -/
 @[simp]
 theorem basePoint_mem_tailPuncture : basePoint g ∈ tailPuncture g n :=
-  puncture_succ_le_tailPuncture basePoint_mem_puncture'
+  puncture_succ_le_tailPuncture basePoint_mem_puncture
 
 variable (g n)
 
