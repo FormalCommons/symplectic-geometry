@@ -29,10 +29,11 @@ determinant line for that metric. Since the latter does not depend on the metric
 made here.
 
 For a line bundle, Tau Ceti's `TauCeti.DetBundle.lineHomeomorph` identifies the determinant line
-with the bundle, smoothly (`TauCeti.DetBundle.contMDiff_lineHomeomorph`). The unit vectors of the
-unitary frames of the determinant line, carried along this identification, form a smooth
-`Circle`-equivariant map to the nonzero vectors of the bundle, so the two real first Chern classes
-agree (`SymplecticGeometry.Bundle.realFirstChernClass_eq_of_equivariant`).
+with the bundle, smoothly (`TauCeti.DetBundle.contMDiff_lineHomeomorph`), and fibrewise it is the
+`ℂ`-linear isomorphism `TauCeti.DetBundle.lineEquiv`, so the two real first Chern classes agree
+(`Bundle.ContMDiffRiemannianMetric.realFirstChernClass_congr`). Under pull-back, the determinant
+line of the pulled-back structure is, smoothly and `ℂ`-linearly, the pull-back of the determinant
+line, and `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_map_of_equiv` applies.
 
 Over a closed oriented surface, the class is compared with the integral first Chern class: a
 closed representative integrates to the Chern number `chernNumber` of the complex bundle. Under
@@ -142,28 +143,10 @@ theorem realFirstChernClass_eq_of_finrank_eq_one [Fact (finrank ℂ G = 1)]
     realFirstChernClass G J = g.realFirstChernClass hI := by
   have hG : finrank ℂ G = 1 := Fact.out
   obtain ⟨g₀, hI₀⟩ := exists_hermitianMetric_detBundle G J
-  rw [realFirstChernClass_eq_of_metric G J g₀ hI₀,
-    ContMDiffRiemannianMetric.realFirstChernClass_def g₀ hI₀]
-  let : RiemannianBundle (DetBundle ℂ G J.toContinuousComplexStructure.Fiber) :=
-    ⟨g₀.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (DetBundle ℂ G J.toContinuousComplexStructure.Fiber x) :=
-    g₀.complexInnerProductSpace hI₀
-  let : IsContinuousRiemannianBundle ℂ (DetBundle ℂ G J.toContinuousComplexStructure.Fiber) :=
-    instIsContinuousRiemannianBundle g₀.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle
-      (OrthonormalFrameBundle.Fiber ℂ ℂ (DetBundle ℂ G J.toContinuousComplexStructure.Fiber) ℂ)
-      I (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g₀ hI₀
-  -- The unit vector of a unitary frame of the determinant line, carried to the bundle itself.
-  refine realFirstChernClass_eq_of_equivariant g hI
-    (fun x φ ↦ DetBundle.lineEquiv hG x (φ.frame 1)) ?_ (fun _ φ ↦ ?_) fun z _ φ ↦ ?_
-  · exact ((DetBundle.contMDiff_lineHomeomorph hG).comp
-      (contMDiff_circleFiber_frame_one g₀ hI₀)).congr fun _ ↦ by
-        rw [Function.comp_apply, DetBundle.lineHomeomorph_apply]
-  · exact (map_ne_zero_iff _ (DetBundle.lineEquiv hG _).injective).2
-      (φ.frame.map_ne_zero_iff.2 one_ne_zero)
-  · rw [OrthonormalFrameBundle.Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul,
-      ← _root_.map_smul, smul_eq_mul, mul_one]
+  rw [realFirstChernClass_eq_of_metric G J g₀ hI₀]
+  -- The determinant line of a line bundle is the bundle itself, smoothly.
+  exact g₀.realFirstChernClass_congr hI₀ g hI (DetBundle.lineEquiv hG)
+    ((DetBundle.contMDiff_lineHomeomorph hG).congr fun _ ↦ (DetBundle.lineHomeomorph_apply ..).symm)
 
 section Pullback
 
@@ -184,35 +167,23 @@ theorem realFirstChernClass_pullback (J : ContMDiffComplexStructure I ⊤ F V) (
   have := Pullback.contMDiffVectorBundle (F := F) (E := V) hf
   obtain ⟨g', hI'⟩ := exists_hermitianMetric_detBundle G (J.pullback f hf)
   obtain ⟨g, hI⟩ := exists_hermitianMetric_detBundle G J
-  rw [realFirstChernClass_eq_of_metric G _ g' hI', realFirstChernClass_eq_of_metric G J g hI,
-    ContMDiffRiemannianMetric.realFirstChernClass_def g' hI']
+  rw [realFirstChernClass_eq_of_metric G _ g' hI', realFirstChernClass_eq_of_metric G J g hI]
   set L' := DetBundle ℂ G (J.pullback f hf).toContinuousComplexStructure.Fiber
-  let : RiemannianBundle L' := ⟨g'.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (L' x) := g'.complexInnerProductSpace hI'
-  let : IsContinuousRiemannianBundle ℂ L' :=
-    instIsContinuousRiemannianBundle g'.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ ℂ L' ℂ) I' (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g' hI'
   -- The determinant line of `J.pullback f hf` at `y` is that of `J` at `f y`: transport along
   -- `pullbackFiberEquiv`, then the determinant line of a pull-back is the pull-back of the
   -- determinant line.
   let e (y : N) : L' y ≃L[ℂ] DetBundle ℂ G J.toContinuousComplexStructure.Fiber (f y) :=
     (DetBundle.congrModelEquiv (F₁ := G) (F' := G) (J.pullbackFiberEquiv f hf) y).trans
       (DetBundle.pullbackEquiv (f : N → M) y).symm
-  -- A unitary frame `φ` of `L'` goes to the image under `e` of its unit vector `φ 1`.
-  refine Bundle.realFirstChernClass_eq_map_of_equivariant g hI hf (fun y φ ↦ e y (φ.frame 1)) ?_
-    (fun _ φ ↦ (e _).map_ne_zero_iff.2 (φ.frame.map_ne_zero_iff.2 one_ne_zero)) fun z _ φ ↦ ?_
-  · refine ((((Pullback.contMDiff_lift f hf).comp
+  refine g.realFirstChernClass_eq_map_of_equiv hI g' hI' hf e
+    ((((Pullback.contMDiff_lift f hf).comp
       (DetBundle.contMDiff_pullbackHomeomorph_symm (n := ∞) (G := G)
         (E := J.toContinuousComplexStructure.Fiber) f)).comp
       (DetBundle.contMDiff_congrModelHomeomorph _
-        (J.contMDiff_pullbackFiberEquiv G f hf))).comp
-      (contMDiff_circleFiber_frame_one g' hI')).congr fun q ↦ ?_
-    simp only [Function.comp_apply, DetBundle.congrModelHomeomorph_apply,
-      DetBundle.pullbackHomeomorph_symm_apply, e]
-    exact (Pullback.lift_mk (F := ℂ) _ _ _).symm
-  · rw [Fiber.frame_op_circle_smul_apply, mul_one, ← (e _).map_smul]
-    simpa using congrArg (e _) (φ.frame.map_smul (z : ℂ) 1)
+        (J.contMDiff_pullbackFiberEquiv G f hf))).congr fun p ↦ ?_)
+  simp only [Function.comp_apply, DetBundle.congrModelHomeomorph_apply,
+    DetBundle.pullbackHomeomorph_symm_apply, e]
+  exact (Pullback.lift_mk (F := ℂ) _ _ _).symm
 
 end Pullback
 
