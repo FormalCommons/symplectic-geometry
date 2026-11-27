@@ -16,6 +16,10 @@ when each of `s` and `t` is closed relative to `s ∪ t`. Two sets closed in the
 as in Tau Ceti's `HasFTaylorSeriesUpToOn.union_of_isClosed`, are a special case; the proof
 adapts that one, splitting at each point of the union according to whether it lies in the closure
 of each set.
+
+`Set.EqOn.iteratedFDeriv_of_isOpen`: functions that agree on an open set have iterated
+derivatives that agree there, as Mathlib's `Set.EqOn.iteratedDeriv_of_isOpen` says for
+`iteratedDeriv`.
 -/
 
 public section
@@ -50,5 +54,11 @@ theorem HasFTaylorSeriesUpToOn.union (hs : HasFTaylorSeriesUpToOn n f p s)
       exacts [hs.cont m hm x h, continuousWithinAt_of_notMem_closure h]
     · rcases h₂ with h | h
       exacts [ht.cont m hm x h, continuousWithinAt_of_notMem_closure h]
+
+/-- Functions that agree on an open set `s` have iterated derivatives of every order that agree
+on `s`. -/
+theorem Set.EqOn.iteratedFDeriv_of_isOpen {g : E → F} (hfg : Set.EqOn f g s) (hs : IsOpen s)
+    (m : ℕ) : Set.EqOn (iteratedFDeriv 𝕜 m f) (iteratedFDeriv 𝕜 m g) s := fun _ hx ↦
+  ((hfg.eventuallyEq_of_mem (hs.mem_nhds hx)).iteratedFDeriv 𝕜 m).eq_of_nhds
 
 end
