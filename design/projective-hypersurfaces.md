@@ -73,14 +73,14 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   rank of $H_k(X;\mathbb Z)$ as `DESIGN.md` asks.
 - **The intersection form and the signature.** For a
   closed oriented four-manifold, the intersection form over `ℚ`,
-  `TauCeti.HomologicalOrientation.intersectionForm`, is Tau Ceti's
+  `TauCeti.HomologicalOrientation.intersectionForm` with `k = ℚ`, is Tau Ceti's
   cup pairing `TopCat.singularCupPairing ℚ (h : 2 + 2 = 4) μ` on
   $H^2(X;\mathbb Q)$ (`AlgebraicTopology/Cohomology/Cap/Kronecker.lean`),
   with `μ` the rational fundamental class, Tau Ceti's
   `oₕ.fundamentalClassOver _ ℚ`
   (`AlgebraicTopology/Singular/LocalHomology/FundamentalClass.lean`); the
-  library defines `intersectionForm` in
-  `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean`. The numbers
+  library defines `intersectionForm`, over a commutative ring `k`, in
+  `AlgebraicTopology/Cohomology/Cap/PoincareDuality.lean`. The numbers
   $b^\pm$ are the indices of inertia `sigPos` and `sigNeg` of its quadratic
   form `TauCeti.HomologicalOrientation.intersectionQuadraticForm` (Mathlib's
   `LinearAlgebra/QuadraticForm/Signature.lean`, at the pin in the root
@@ -88,7 +88,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   $b^+-b^-$; this is how Tau
   Ceti's `AlgebraicTopology/Cohomology/Sphere/IntersectionForm.lean` reads
   $b_2^+$. Over `ℚ` the indices agree with those over `ℝ` (Sylvester), and
-  `ℚ` is the field over which the library has Poincaré duality.
+  the library takes `k = ℚ`.
 
 ## Decisions
 
@@ -278,7 +278,7 @@ The list is in the order of the paths.
 | File | Contents | Issue |
 |---|---|---|
 | `Algebra/Module/LinearMap/Polynomial.lean` | differentiating the linear forms of `Matrix.toMvPolynomial` | 9 |
-| `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
+| `AlgebraicTopology/Cohomology/Cap/PoincareDuality.lean` (addition) | Poincaré duality for Betti numbers over a field | 13 |
 | `AlgebraicTopology/Singular/HomologyMap.lean` | homology isomorphisms across a commutative square | 12 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
 | `Geometry/Manifold/Instances/Projectivization.lean` | the derivatives of the transition maps of projective space | 3 |
@@ -579,13 +579,13 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
   instance `Projectivization.instSimplyConnectedSpaceComplex`
   (`Topology/ComplexProjectiveSpace/SimplyConnected.lean`).
 
-### `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition)
+### `AlgebraicTopology/Cohomology/Cap/PoincareDuality.lean` (addition)
 
 In the namespace `TauCeti.HomologicalOrientation`:
 
 - `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
-  `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
-  Tau Ceti's
+  `m`-manifold, a field `k` and `p + q = m`,
+  `bettiNumber k M q = bettiNumber k M p`, from Tau Ceti's
   `bijective_singularCapLinearMap_fundamentalClassOver` and Tau Ceti's
   `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`.
 
@@ -650,7 +650,7 @@ For `X : SmoothProjectiveHypersurface 1 d` with `d ≠ 0`:
   `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` and the alternating sum
   (#1045).
 - *First Chern number*'s prerequisites: Poincaré duality (#810), and the
-  library's merged `Cap/RationalCoefficients.lean`.
+  library's merged `Cap/PoincareDuality.lean`.
 - *Complex projective space*: `ContMDiff.restrictScalars'`
   (`Geometry/Manifold/ContMDiff/RestrictScalars.lean`), which
   `SmoothEmbedding/RestrictScalars.lean` imports.
@@ -697,7 +697,7 @@ waits for another part.
 | 10 | The degree $\langle\iota^*h^n,[X]\rangle=d$ | `Hypersurface/Degree.lean` | 6, 8, 9 | 400 |
 | 11 | The Euler characteristic of a hypersurface (part 4) | `Hypersurface/EulerCharacteristic.lean` | 7, 8, 10 | 150 |
 | 12 | The Lefschetz theorems for hypersurfaces | `Hypersurface/Veronese.lean`, `Hypersurface/Lefschetz.lean` | 1 | 500 |
-| 13 | Poincaré duality for rational Betti numbers | `Cap/RationalCoefficients.lean` | #810 | 100 |
+| 13 | Poincaré duality for rational Betti numbers | `Cap/PoincareDuality.lean` | #810 | 100 |
 | 14 | Betti numbers of hypersurfaces | `Hypersurface/BettiNumber.lean` | 11, 12, 13 | 250 |
 | 15 | Surfaces, threefolds and plane curves | `Hypersurface/Surface.lean`, `Threefold.lean`, `PlaneCurve.lean`; the `ERRATA.md` entry for `d = 0` | 11, 12, 14 | 350 |
 

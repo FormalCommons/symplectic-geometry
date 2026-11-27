@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
 import SymplecticGeometry.AlgebraicTopology.Cellular.ComplexProjective.BettiNumber
-import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.PoincareDuality
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Lefschetz
 import TauCeti.Algebra.BigOperators.Finset.Range
 import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Manifold
@@ -98,7 +98,8 @@ theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
         2 * m + 1 + 1 :=
       finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)
     rw [(complexManifoldHomologicalOrientation (Fin (m + 1) → ℂ) X
-        (Module.finrank_fin_fun ℂ)).bettiNumber_eq_bettiNumber hE (p := 2 * (m + 1) - k) (by omega),
+        (Module.finrank_fin_fun ℂ)).bettiNumber_eq_bettiNumber hE ℚ
+        (p := 2 * (m + 1) - k) (by omega),
       X.bettiNumber_of_lt ℚ hd (by omega)]
     simp [hk', Nat.even_sub hk']
   · rw [ite_eq_right_iff.2 fun h ↦ absurd h.2 hk']

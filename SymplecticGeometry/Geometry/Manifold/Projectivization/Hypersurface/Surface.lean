@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.PoincareDuality
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Kronecker
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
@@ -163,7 +163,7 @@ Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem signature_surface (hd : d ≠ 0)
     (hsignature : 3 * (complexManifoldHomologicalOrientation (Fin 2 → ℂ) X
         (Module.finrank_fin_fun ℂ)).signature
-        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
+        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)) ℚ
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
       complexManifoldEvalFundamentalClass (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ)
         ((TopCat.of X).integralCup (2 * 1) (2 * 1) (2 * (1 + 1)) rfl
@@ -175,19 +175,19 @@ theorem signature_surface (hd : d ≠ 0)
           (Module.finrank_fin_fun ℂ) (chernClass (Fin 2 → ℂ)
             (TangentSpace 𝓘(ℂ, Fin 2 → ℂ) : X → Type) 2)) :
     3 * (complexManifoldHomologicalOrientation (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ)).signature
-        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
+        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)) ℚ
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
         (4 - (d : ℤ) ^ 2) * d ∧
       3 * (sigPos
           ((complexManifoldHomologicalOrientation (Fin 2 → ℂ) X
             (Module.finrank_fin_fun ℂ)).intersectionQuadraticForm
-            (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
+            (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)) ℚ
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         (d : ℤ) ^ 3 - 6 * d ^ 2 + 11 * d - 3 ∧
       3 * (sigNeg
           ((complexManifoldHomologicalOrientation (Fin 2 → ℂ) X
             (Module.finrank_fin_fun ℂ)).intersectionQuadraticForm
-            (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
+            (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)) ℚ
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         2 * (d : ℤ) ^ 3 - 6 * d ^ 2 + 7 * d - 3 := by
   rw [evalFundamentalClass_integralCup_chernClass_one_surface,
@@ -197,7 +197,7 @@ theorem signature_surface (hd : d ≠ 0)
   have hb := congrArg (Nat.cast : ℕ → ℤ) <|
     (complexManifoldHomologicalOrientation (Fin 2 → ℂ) X (Module.finrank_fin_fun ℂ))
       |>.sigPos_add_sigNeg_intersectionQuadraticForm
-        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ))
+        (finrank_real_of_finrank_complex_eq_add_one (Module.finrank_fin_fun ℂ)) ℚ
         (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)
         even_two
   push_cast at hb
