@@ -40,6 +40,13 @@ vector. A fibrewise map that is a fixed continuous linear map in these trivializ
 (`TauCeti.contMDiff_bundleMap_of_constant_coordinates`), so both are `C^n`. This needs no
 smoothness of `E`.
 
+For a continuous map `f : B' → B` of manifolds, Tau Ceti identifies the pull-back of the
+determinant line with the determinant line of the pull-back
+(`TauCeti.DetBundle.pullbackHomeomorph`). The preferred trivializations of both are those induced
+by the trivialization of `E` at the image point, and in them the identification keeps the
+coordinate (`TauCeti.DetBundle.snd_trivializationAt_pullbackEquiv`), so it is `C^n` in both
+directions by the same lemma. Neither `f` nor `E` needs to be smooth.
+
 ## Main results
 
 * `TauCeti.DetBundle.contMDiffVectorBundle`: the determinant line of a `C^n` vector bundle is a
@@ -47,6 +54,9 @@ smoothness of `E`.
 * `TauCeti.DetBundle.contMDiff_lineHomeomorph`, `TauCeti.DetBundle.contMDiff_lineHomeomorph_symm`:
   for a line bundle, the identification of its determinant line with itself is `C^n` in both
   directions.
+* `TauCeti.DetBundle.contMDiff_pullbackHomeomorph`,
+  `TauCeti.DetBundle.contMDiff_pullbackHomeomorph_symm`: the identification of the pull-back of
+  the determinant line with the determinant line of the pull-back is `C^n` in both directions.
 
 ## References
 
@@ -139,6 +149,43 @@ theorem contMDiff_lineHomeomorph_symm (hF : finrank 𝕜' G = 1) :
   simp [L]
 
 end Line
+
+section Pullback
+
+variable {EB' HB' B' : Type*} [NormedAddCommGroup EB'] [NormedSpace 𝕜 EB']
+  [TopologicalSpace HB'] {I' : ModelWithCorners 𝕜 EB' HB'} [TopologicalSpace B']
+  [ChartedSpace HB' B'] {K : Type*} [FunLike K B' B] [ContinuousMapClass K B' B] (f : K)
+
+omit [NormedSpace 𝕜 G] [IsScalarTower 𝕜 𝕜' G] in
+/-- **The pull-back of the determinant line is smoothly the determinant line of the pull-back.**
+For a continuous map `f : B' → B` of manifolds, the map `TauCeti.DetBundle.pullbackHomeomorph f`
+from the pull-back of `det E` to `det (f *ᵖ E)` is `C^n`. -/
+theorem contMDiff_pullbackHomeomorph :
+    ContMDiff (I'.prod 𝓘(𝕜, 𝕜')) (I'.prod 𝓘(𝕜, 𝕜')) n
+      (pullbackHomeomorph (𝕜 := 𝕜') (F := G) (E := E) f) :=
+  (TauCeti.contMDiff_bundleMap_of_constant_coordinates (IB := I') (n := n)
+    (E₁ := (f : B' → B) *ᵖ (DetBundle 𝕜' G E)) (E₂ := DetBundle 𝕜' G ((f : B' → B) *ᵖ E))
+    (fun y ↦ pullbackEquiv (f : B' → B) y) (ContinuousLinearMap.id 𝕜 𝕜') fun a y hy v ↦ by
+      rw [ContinuousLinearMap.id_apply]
+      exact snd_trivializationAt_pullbackEquiv f hy.1 v).congr
+    fun p ↦ by simp
+
+omit [NormedSpace 𝕜 G] [IsScalarTower 𝕜 𝕜' G] in
+/-- **The pull-back of the determinant line is smoothly the determinant line of the pull-back.**
+For a continuous map `f : B' → B` of manifolds, the inverse `det (f *ᵖ E) → f *ᵖ det E` of
+`TauCeti.DetBundle.pullbackHomeomorph f` is `C^n`. -/
+theorem contMDiff_pullbackHomeomorph_symm :
+    ContMDiff (I'.prod 𝓘(𝕜, 𝕜')) (I'.prod 𝓘(𝕜, 𝕜')) n
+      (pullbackHomeomorph (𝕜 := 𝕜') (F := G) (E := E) f).symm :=
+  (TauCeti.contMDiff_bundleMap_of_constant_coordinates (IB := I') (n := n)
+    (E₁ := DetBundle 𝕜' G ((f : B' → B) *ᵖ E)) (E₂ := (f : B' → B) *ᵖ (DetBundle 𝕜' G E))
+    (fun y ↦ (pullbackEquiv (f : B' → B) y).symm) (ContinuousLinearMap.id 𝕜 𝕜')
+      fun a y hy u ↦ by
+        rw [ContinuousLinearMap.id_apply, ← snd_trivializationAt_pullbackEquiv f hy.2,
+          ContinuousLinearEquiv.apply_symm_apply]).congr
+    fun p ↦ by simp
+
+end Pullback
 
 end TauCeti.DetBundle
 
