@@ -8,7 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import TauCeti.Geometry.Manifold.Orientation.Sign
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.RestrictScalars
 
 /-!
 # The canonical orientation of a complex manifold, reindexed
@@ -22,6 +25,11 @@ For any reindexing:
   orientation is the complex orientation `TauCeti.complexOrientation E` of the model, reindexed;
 * `TauCeti.map_orientationAt_reindex_complexManifoldOrientation`: a complex-linear isomorphism
   `E ≃L[ℂ] G` carries it to the complex orientation of `G`, reindexed.
+
+For a real-differentiable map `f : M → N` of complex manifolds,
+`TauCeti.orientationSign_complexManifoldOrientation_eq_comp_chart` computes its orientation
+sign for the complex orientations in holomorphic charts `e` at `x` and `e'` at `f x`, as that of
+`e' ∘ f ∘ e.symm` for the complex orientation of the model.
 
 For a complex curve,
 `finrank ℂ E = 1`, statements about real surfaces use the index type `Fin 2` instead. This file
@@ -100,6 +108,32 @@ theorem map_orientationAt_reindex_complexManifoldOrientation
   rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
     LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans]
   exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
+
+/-- The orientation sign of a real-differentiable map `f : M → N` of complex manifolds at `x`, for
+their complex orientations, is that of its expression `e' ∘ f ∘ e.symm` in charts at `e x`, for
+the complex orientation of `E`, when `e` and `e'` are charts of the maximal holomorphic atlases
+of `M` and `N` at `x` and `f x`. -/
+theorem orientationSign_complexManifoldOrientation_eq_comp_chart
+    {N : Type*} [TopologicalSpace N] [ChartedSpace E N] [IsManifold 𝓘(ℂ, E) 1 N]
+    {f : M → N} {x : M} (hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E) f x)
+    {e : OpenPartialHomeomorph M E} (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) 1 M)
+    (hx : x ∈ e.source) {e' : OpenPartialHomeomorph N E}
+    (he' : e' ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) 1 N) (hfx : f x ∈ e'.source) :
+    Manifold.Orientation.orientationSign (complexManifoldOrientation E M)
+        (complexManifoldOrientation E N) f x =
+      Manifold.Orientation.orientationSign (complexManifoldOrientation E E)
+        (complexManifoldOrientation E E) (e' ∘ f ∘ e.symm) (e x) := by
+  -- The charts are local biholomorphisms, so they preserve the complex orientations.
+  have he₁ := e.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas he (e.map_source hx)
+  have he₂ := e'.isLocalDiffeomorphAt_of_mem_maximalAtlas he' hfx
+  rw [← Function.comp_assoc, (he₁.restrictScalars ℝ).orientationSign_comp one_ne_zero _
+      (complexManifoldOrientation E M),
+    Manifold.Orientation.orientationSign_of_isOrientationPreservingAt
+      (he₁.isOrientationPreservingAt_complexManifoldOrientation 1), mul_one, e.left_inv hx,
+    Manifold.Orientation.orientationSign_comp ((he₂.restrictScalars ℝ).mdifferentiableAt
+      one_ne_zero) hf (o' := complexManifoldOrientation E N),
+    Manifold.Orientation.orientationSign_of_isOrientationPreservingAt
+      (he₂.isOrientationPreservingAt_complexManifoldOrientation 1), one_mul]
 
 end TauCeti
 

@@ -12,10 +12,13 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Euclidean
 public import TauCeti.Algebra.Group.Fin.Tuple
 public import TauCeti.LinearAlgebra.Projectivization.Basic
 import Mathlib.LinearAlgebra.Complex.Determinant
+import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
+import TauCeti.Analysis.Calculus.FDeriv.Pi.Basic
 import TauCeti.Geometry.Manifold.Complex.Analytic
+import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Projectivization.Map
 import TauCeti.Topology.Algebra.Projectivization
@@ -91,8 +94,9 @@ holomorphic, so it is a diffeomorphism of the underlying real manifolds.
 * `SymplecticGeometry.isOrientationReversing_projectiveBlowupModelDiffeomorph`: the
   diffeomorphism reverses the complex orientations at every point. In the charts at the last
   coordinate its inverse reads `(ζ, w) ↦ (ζ, w̄ |(ζ, 1)|²)`, whose real derivative at the origin
-  is complex conjugation on the coordinate `w`; the complement of the point is connected (an
-  instance of `PreconnectedSpace`), so the sign is the same everywhere.
+  is complex conjugation on the coordinate `w`; the complement of the point is path-connected
+  (an instance of `PathConnectedSpace`, by Tau Ceti's
+  `TauCeti.isPathConnected_compl_of_finite_of_one_lt_rank`), so the sign is the same everywhere.
 
 ## References
 
@@ -665,31 +669,18 @@ section Orientation
 open Manifold.Orientation BlowupModel
 open scoped TauCeti.ComplexManifold
 
-/-- The complement of `[0 : ⋯ : 0 : 1]` is preconnected: it is the image of the connected set of
-pairs `(z, w)` with `z ≠ 0` under `(z, w) ↦ [z : w]`. -/
-instance instPreconnectedSpaceProjectiveBlowupOpens :
-    PreconnectedSpace (projectiveBlowupOpens n) := by
-  have : PreconnectedSpace (({0}ᶜ : Set (Fin (n + 1) → ℂ)) × ℂ) := by
-    have h1 : IsConnected ({0}ᶜ : Set (Fin (n + 1) → ℂ)) :=
-      isConnected_compl_singleton_of_one_lt_rank (by
-        rw [rank_fun_eq_lift_mul, Complex.rank_real_complex]
-        norm_num
-        exact_mod_cast (show 1 < (n + 1) * 2 by omega)) 0
-    have := isConnected_iff_connectedSpace.1 h1
-    infer_instance
-  refine DenseRange.preconnectedSpace (f := fun p : ({0}ᶜ : Set (Fin (n + 1) → ℂ)) × ℂ ↦
-      (⟨mk ℂ (Fin.snoc (p.1 : Fin (n + 1) → ℂ) p.2 : Fin (n + 2) → ℂ)
-        (Fin.snoc_ne_zero_iff.2 (Or.inl p.1.property)),
-        mk_snoc_mem_projectiveBlowupOpens p.1.property p.2⟩ :
-        projectiveBlowupOpens n)) (Surjective.denseRange ?_) ?_
-  · rintro ⟨x, hx⟩
-    induction x using Projectivization.ind with
-    | h v hv =>
-      have hz : Fin.init v ≠ 0 := (mk_mem_projectiveBlowupOpens hv).1 hx
-      exact ⟨(⟨Fin.init v, hz⟩, v (Fin.last _)), by simp [Fin.snoc_init_self]⟩
-  · refine Continuous.subtype_mk (continuous_mk ?_ _) _
-    exact Continuous.finSnoc (A := fun _ : Fin (n + 2) ↦ ℂ)
-      (continuous_subtypeVal.comp continuous_fst) continuous_snd
+/-- The complement of `[0 : ⋯ : 0 : 1]` is path-connected: removing a point from the connected
+manifold `ℙ ℂ (Fin (n + 2) → ℂ)`, of real dimension `2 n + 2 > 1`, leaves it path-connected. -/
+instance instPathConnectedSpaceProjectiveBlowupOpens :
+    PathConnectedSpace (projectiveBlowupOpens n) := by
+  have h := isPathConnected_compl_of_finite_of_one_lt_rank (E := Fin (n + 1) → ℂ)
+    (X := ℙ ℂ (Fin (n + 2) → ℂ)) (by
+      rw [rank_fun_eq_lift_mul, Complex.rank_real_complex]
+      norm_num
+      exact_mod_cast (show 1 < (n + 1) * 2 by omega))
+    (finite_singleton (mk ℂ (Pi.single (Fin.last (n + 1)) (1 : ℂ)) (by simp)))
+  rw [← coe_projectiveBlowupOpens] at h
+  exact isPathConnected_iff_pathConnectedSpace.1 h
 
 /-- The inverse diffeomorphism read in the chart `blowupModelChart (Fin.last n)` of the blowup and
 the affine chart at the coordinate `Fin.castSucc (Fin.last n)` of projective space:
@@ -730,21 +721,14 @@ private theorem hasFDerivAt_update_conj_mul_zero :
   have hc : HasFDerivAt (𝕜 := ℝ) (fun w : Fin (n + 1) → ℂ ↦ conj (w ℓ))
       (Complex.conjCLE.toContinuousLinearMap.comp (ContinuousLinearMap.proj (R := ℝ) ℓ)) 0 :=
     Complex.conjCLE.hasFDerivAt.comp _ (hasFDerivAt_apply ℓ _)
-  have hm := hc.mul hS.hasFDerivAt
-  rw [hasFDerivAt_pi']
-  intro j
+  have h1 : ∑ x, (‖update (0 : Fin (n + 1) → ℂ) ℓ 1 x‖ : ℂ) ^ 2 = 1 := by
+    simp [update_apply, apply_ite]
+  refine ((hc.fun_mul hS.hasFDerivAt).update_self ℓ).congr_fderiv ?_
+  ext δ j
   by_cases hj : j = ℓ
   · subst hj
-    simp only [update_self]
-    convert hm using 1
-    ext δ
-    have h1 : ∑ x, (‖update (0 : Fin (n + 1) → ℂ) ℓ 1 x‖ : ℂ) ^ 2 = 1 := by
-      simp [update_apply, apply_ite]
     simp [h1]
-  · simp only [update_of_ne hj]
-    convert hasFDerivAt_apply j (0 : Fin (n + 1) → ℂ) using 1
-    ext δ
-    simp [hj]
+  · simp [hj]
 
 /-- The diffeomorphism reverses the complex orientations at the point `[e_ℓ : 0]`, the image under
 its inverse of the origin of the chart `blowupModelChart (Fin.last n)`. -/
@@ -782,30 +766,22 @@ private theorem isOrientationReversingAt_projectiveBlowupModelDiffeomorph_symm_c
     rw [hasFDerivAt_update_conj_mul_zero.fderiv, ContinuousLinearMap.det,
       LinearMap.coe_toContinuousLinearMap, LinearMap.det_pi]
     simp [apply_ite LinearMap.det, Complex.det_conjAe]
-  -- The charts, the inclusion of the open set and the diffeomorphism contribute their signs.
-  have hBs : IsLocalDiffeomorphAt 𝓘(ℂ, E) 𝓘(ℂ, E) ∞ eB.symm 0 :=
-    eB.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas ∞ ℓ)
-      (by simp [eB, blowupModelChart_target])
-  have hPl : IsLocalDiffeomorphAt 𝓘(ℂ, E) 𝓘(ℂ, E) ∞ eP (F p₀) :=
-    eP.isLocalDiffeomorphAt_of_mem_maximalAtlas
-      (affineOpenPartialHomeomorph_mem_maximalAtlas _) hFp₀
-  have hF : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E) F p₀ :=
-    ((isLocalDiffeomorph_subtype_val (n := 1) _).mdifferentiableAt one_ne_zero).comp p₀
-      (Φ.symm.mdifferentiable (by simp) p₀)
-  have h1 := (hBs.restrictScalars ℝ).orientationSign_comp (by simp) oE oB oE (⇑eP ∘ F)
-  rw [orientationSign_of_isOrientationPreservingAt
-    (hBs.isOrientationPreservingAt_complexManifoldOrientation ∞), mul_one] at h1
-  have h2 := orientationSign_comp (o := oB) (o' := oP) (o'' := oE)
-    ((hPl.restrictScalars ℝ).mdifferentiableAt (by simp)) hF
-  rw [orientationSign_of_isOrientationPreservingAt
-    (hPl.isOrientationPreservingAt_complexManifoldOrientation ∞), one_mul] at h2
+  -- Read in these charts, `F` has the same sign, and so has `Φ.symm`, followed by the inclusion
+  -- of the open set, which preserves the complex orientations.
+  have hp₀ : eB p₀ = 0 := eB.right_inv (by simp [eB, blowupModelChart_target])
+  have hF := orientationSign_complexManifoldOrientation_eq_comp_chart
+    (((isLocalDiffeomorph_subtype_val (n := 1) _).mdifferentiableAt one_ne_zero).comp p₀
+      (Φ.symm.mdifferentiable (by simp) p₀))
+    (blowupModelChart_mem_maximalAtlas 1 ℓ) (eB.map_target (by simp [eB, blowupModelChart_target]))
+    (affineOpenPartialHomeomorph_mem_maximalAtlas _) hFp₀
+  rw [hp₀, hsg] at hF
   have h3 := Φ.symm.orientationSign_comp_diffeomorph (by simp) oB oU oP Subtype.val p₀
   rw [orientationSign_of_isOrientationPreservingAt
     (isOrientationPreservingAt_subtype_val_complexManifoldOrientation _), one_mul] at h3
   have h4 := Φ.symm.orientationSign_comp_diffeomorph (by simp) oB oU oB Φ p₀
-  rw [show ⇑Φ ∘ ⇑Φ.symm = id from funext Φ.apply_symm_apply, orientationSign_id] at h4
+  rw [show ⇑Φ ∘ ⇑Φ.symm = id from funext Φ.apply_symm_apply, orientationSign_id,
+    ← h3, hF] at h4
   rw [← orientationSign_eq_neg_one_iff]
-  rw [show orientationSign oB oU Φ.symm p₀ = -1 by rw [← h3, ← h2, ← h1]; exact hsg] at h4
   omega
 
 /-- The diffeomorphism `projectiveBlowupModelDiffeomorph n` reverses orientation at every point,
