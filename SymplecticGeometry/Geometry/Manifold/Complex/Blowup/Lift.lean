@@ -499,20 +499,21 @@ of the inverse of the blowdown off the exceptional divisor, read in the model, a
 theorem mfderiv_curveLift_of_ne_zero (hu : DifferentiableAt ℂ u t) (h0 : u t ≠ 0) (c : ℂ) :
     mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t c =
       mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-        (Subtype.val ∘ (blowdownDiffeomorph n).symm) ⟨u t, h0⟩ (c • deriv u t) := by
+        (Subtype.val ∘ (blowdownDiffeomorph n).symm) ⟨u t, mem_puncturedSpace.2 h0⟩
+        (c • deriv u t) := by
   -- Near `t`, the curve `u` as a curve `ũ` in `E ∖ 0`.
-  set ũ : ℂ → (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) := fun s ↦
-    if h : u s = 0 then ⟨u t, h0⟩ else ⟨u s, h⟩
+  set ũ : ℂ → puncturedSpace (Fin (n + 1) → ℂ) := fun s ↦
+    if h : u s = 0 then ⟨u t, mem_puncturedSpace.2 h0⟩ else ⟨u s, mem_puncturedSpace.2 h⟩
   have hne : ∀ᶠ s in 𝓝 t, u s ≠ 0 := hu.continuousAt.eventually_ne h0
   have hev : Subtype.val ∘ ũ =ᶠ[𝓝 t] u := by
     filter_upwards [hne] with s hs
     simp [ũ, hs]
-  have hũt : ũ t = ⟨u t, h0⟩ := Subtype.ext hev.self_of_nhds
+  have hũt : ũ t = ⟨u t, mem_puncturedSpace.2 h0⟩ := Subtype.ext hev.self_of_nhds
   have hũd : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t :=
     mdifferentiableAt_subtype_val_comp_iff.1
       ((hu.restrictScalars ℝ).mdifferentiableAt.congr_of_eventuallyEq hev)
   -- Near `t`, the lift is `ũ` followed by the inverse of the blowdown off the divisor.
-  set Ψ : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) → BlowupModel n :=
+  set Ψ : puncturedSpace (Fin (n + 1) → ℂ) → BlowupModel n :=
     Subtype.val ∘ (blowdownDiffeomorph n).symm
   have hΨ : ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ω Ψ :=
     (contMDiff_subtypeVal.comp (blowdownDiffeomorph n).symm.contMDiff).restrictScalars' ℝ

@@ -584,12 +584,14 @@ containing `ι '' closedBall 0 1`:
   is not needed here.
 
   *Shapes.* For `χ : ℝ → ℝ` and `r : ℝ`, `IsConvexShapeAt χ r : Prop`
-  is the structure with fields `pos : 0 < r`, `pos_value : 0 < χ r`,
-  `perp : 1 / χ r < deriv χ r / r` (the book's (4.3); it gives
-  `IsConvexShapeAt.deriv_pos : 0 < deriv χ r`) and `levi : ∀ σ u : ℝ, σ ^ 2 + u ^ 2 = r ^ 2 →
+  is the structure with fields `pos : 0 < r`, `pos_value : 0 < χ r`
+  and `levi : ∀ σ u : ℝ, σ ^ 2 + u ^ 2 = r ^ 2 →
   1 / χ r * (1 + deriv χ r ^ 2 * u ^ 2 / r ^ 2) < iteratedDeriv 2 χ r *
   σ ^ 2 / r ^ 2 + deriv χ r * u ^ 2 / r ^ 3 + deriv χ r ^ 3 / r` (the
-  book's (4.4)). The defining function of the shape is
+  book's (4.4)). The book's (4.3) is the case `σ = 0` of (4.4), so it is
+  not a field but the theorem
+  `IsConvexShapeAt.one_div_lt_deriv_div : 1 / χ r < deriv χ r / r`; it gives
+  `IsConvexShapeAt.deriv_pos : 0 < deriv χ r`. The defining function of the shape is
   `shapeGraph χ : ℝ × ℝ → ℝ`, `(s, t) ↦ χ (√t) - √s`, with
   `shapeGraph_def`.
 
@@ -601,10 +603,10 @@ containing `ι '' closedBall 0 1`:
     (which is `C²` near `p`, since `s, t > 0` there), every `v ≠ 0` with
     `fderiv ℝ F p v = 0` and `fderiv ℝ F p (Complex.I • v) = 0` has
     `0 < (leviForm F p v v).re`. The proof evaluates
-    `re_leviForm_comp_shape_apply_self` on the complex tangencies; the
-    book's splitting into $\Lambda^{\mathbb C}_\perp$ and
-    $\Lambda^{\mathbb C}_{xy}$ is the case split of that formula
-    according to the components of `v` along `x`, `y` and `w`.
+    `re_leviForm_comp_shape_apply_self` on the complex tangencies; in
+    place of the book's splitting into $\Lambda^{\mathbb C}_\perp$ and
+    $\Lambda^{\mathbb C}_{xy}$, a Cauchy–Schwarz bound for a combination
+    of `σ` and `τ` (proportional on a complex tangency) bounds `|σ|²` by `|v|²`.
   - `isConvexShapeAt_of_iteratedDeriv_two_nonpos` (14d2; Corollary
     4.11 (a)): `0 < r`, `0 < χ r`, `0 < deriv χ r`,
     `iteratedDeriv 2 χ r ≤ 0` and
@@ -1010,16 +1012,17 @@ containing `ι '' closedBall 0 1`:
     set) makes it a diffeomorphism near the core, and `Φ = Φ₀ ∘ G`.
     `√(t p)` bounds `‖im p‖`, the distance to the real points.
 
-- `Surround/ChartLeviForm.lean` (issues 14d14 and 14d15): the
+- `Surround/ChartLeviForm.lean` (issue 14d15) and
+  `Analysis/Complex/LeviForm/CompSymm.lean` (issue 14d14): the
   comparison.
-  - `re_leviForm_comp_symm_ge` (14d14): for complex normed spaces `V`,
-    `W` of finite dimension and every `K` there is `C` such that for
+  - `TauCeti.le_re_leviForm_comp_symm` (14d14): for complex normed
+    spaces `V`, `W` and every `K` there is `C` such that for
     every `e : OpenPartialHomeomorph V W`, `p ∈ e.source` with `e` `C²` at `p`
     and `e.symm` `C²` at `e p`, `‖fderiv ℝ e p‖ ≤ K`,
     `‖fderiv ℝ e.symm (e p)‖ ≤ K`, `‖fderiv ℝ (fderiv ℝ e) p‖ ≤ K`,
     every `u` `C²` at `p` and every `v`,
-    `(leviForm u p v v).re - C * (‖∂̄e p‖ * ‖fderiv ℝ (fderiv ℝ u) p‖ +
-    (‖∂̄e p‖ + ‖fderiv ℝ (fun q ↦ ∂̄e q) p‖) * ‖fderiv ℝ u p‖) * ‖v‖ ^ 2 ≤
+    `(leviForm u p v v).re - C * (‖conjWirtingerDeriv e p‖ * ‖fderiv ℝ (fderiv ℝ u) p‖ +
+    (‖conjWirtingerDeriv e p‖ + ‖fderiv ℝ (conjWirtingerDeriv e) p‖) * ‖fderiv ℝ u p‖) * ‖v‖ ^ 2 ≤
     (leviForm (u ∘ e.symm) (e p) (fderiv ℝ e p v) (fderiv ℝ e p v)).re`,
     with Tau Ceti's `leviForm` (`Analysis/Complex/LeviForm/Basic.lean`).
     The proof is the computation of *Comparison*; it is the
@@ -1735,7 +1738,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d11 | Almost holomorphic Taylor extensions | `JConvex/Surround/AlmostHolomorphic.lean` | 13 | 350 |
 | 14d12 | Maps with small $\bar\partial$ that vanish on the real points | `JConvex/Surround/AlmostHolomorphic.lean` | 14d11 | 350 |
 | 14d13 | The chart of order $N$ along a disc (Proposition 5.55) | `JConvex/Surround/Chart.lean` | 14d10, 14d12 | 400 |
-| 14d14 | The Levi form through a chart that is not holomorphic | `JConvex/Surround/ChartLeviForm.lean` | 13 | 300 |
+| 14d14 | The Levi form through a chart that is not holomorphic | `Analysis/Complex/LeviForm/CompSymm.lean` | 13 | 300 |
 | 14d15 | Margins carried to the manifold by the chart | `JConvex/Surround/ChartLeviForm.lean` | 14d13, 14d14 | 300 |
 | 14d16 | Logarithmic cutoffs and the Levi form of an interpolation | `Geometry/Manifold/Riemannian/Surface/LogCutoff/SecondDeriv.lean`, `Analysis/Complex/LeviForm/Interpolation.lean` | 13 | 250 |
 | 14d17 | Interpolation along a totally real submanifold (Proposition 3.26) | `JConvex/Interpolation.lean` | 14a, 14d16 | 400 |
