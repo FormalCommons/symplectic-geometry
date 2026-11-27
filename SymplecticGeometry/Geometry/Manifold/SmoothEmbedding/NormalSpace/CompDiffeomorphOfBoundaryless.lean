@@ -56,7 +56,8 @@ Euler classes is Tau Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_
   identifications are continuous on total spaces.
 * `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless` and
   `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff`: the
-  identifications and their inverses are smooth on total spaces.
+  identifications and their inverses are `C^r` on total spaces, when `f` and `e` are `C^n` with
+  `r + 1 ≤ n`.
 * `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff`: `g` has
   symplectic tangent images for a nondegenerate two-form exactly when `f` has.
 * `TauCeti.SmoothEmbedding.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless`:
@@ -229,7 +230,7 @@ section Smooth
 
 variable {n r : ℕ∞ω} [IsManifold I n X] [IsManifold I'' n M'] [FiniteDimensional ℝ E']
   [FiniteDimensional ℝ E''] [IsManifold I (r + 1) X] [IsManifold I' (r + 1) M]
-  [IsManifold I'' (r + 1) M'] [IsManifold I 1 X] [IsManifold I' 1 M] [IsManifold I'' 1 M']
+  [IsManifold I'' (r + 1) M']
   {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
 
 /-- The identifications of the normal spaces of `f.compDiffeomorphOfBoundaryless e h1` with those
@@ -239,6 +240,9 @@ theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless (f : SmoothEmbed
     (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (hr : r + 1 ≤ n)
     (hP : finrank ℝ P = finrank ℝ E - finrank ℝ E')
     (hP' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') :
+    haveI : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
     letI := f.normalSpaceFiberBundle hn hP
     letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
     ContMDiff (I''.prod 𝓘(ℝ, P)) (I'.prod 𝓘(ℝ, P)) r
@@ -246,6 +250,9 @@ theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless (f : SmoothEmbed
           (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) ↦
         TotalSpace.mk' P (E := fun y ↦ f.isImmersion.NormalSpace y hn) (e p.proj)
           (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn p.proj p.snd) := by
+  have : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+  have : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+  have : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
   let := f.normalSpaceFiberBundle hn hP
   let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
   refine ((f.compDiffeomorphOfBoundaryless e h1).contMDiff_normalBundleMap (r := r) f hn hn
@@ -265,6 +272,9 @@ theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff
     (hr : r + 1 ≤ n) (hP : finrank ℝ P = finrank ℝ E - finrank ℝ E')
     (hP' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') {k : ℕ∞ω} (hk : k ≤ r) {u : Y → M'}
     {w : ∀ y, f.isImmersion.NormalSpace (e (u y)) hn} :
+    haveI : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
     letI := f.normalSpaceFiberBundle hn hP
     letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
     ContMDiff L (I''.prod 𝓘(ℝ, P)) k (fun y ↦ TotalSpace.mk' P
@@ -272,6 +282,9 @@ theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff
         ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn (u y)).symm (w y))) ↔
       ContMDiff L (I'.prod 𝓘(ℝ, P)) k (fun y ↦ TotalSpace.mk' P
         (E := fun x ↦ f.isImmersion.NormalSpace x hn) (e (u y)) (w y)) := by
+  have : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+  have : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+  have : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
   let := f.normalSpaceFiberBundle hn hP
   let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
   refine ⟨fun h ↦ (((f.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn hr
