@@ -57,6 +57,9 @@ and `TangentBundle.mem_chart_source_iff`.
   injective derivative, composed with the inverse chart, has injective differential.
 * `ContinuousAt.extChartAt_tangentMap_extChartAt_symm`: the tangent map of a map continuous at a
   point, read in the charts of the tangent bundles.
+* `TangentBundle.extChartAt_target`, `tangentMap_extChartAt_symm_mem_extChartAt_source_iff`: the
+  target of a tangent-bundle chart is the product of the base chart target with the fibre, and
+  the tangent map of `f` meets the source of a tangent-bundle chart where `f` meets the base one.
 
 ## References
 
@@ -176,6 +179,26 @@ theorem ContinuousAt.extChartAt_tangentMap_extChartAt_symm {f : M → M'}
   -- `ContinuousLinearMap.comp_apply`; it is the nested application by definition.
   exact congrArg _ (congrArg _
     (TauCeti.tangentCoordChange_tangentCoordChange (mem_extChartAt_source y) hx u).symm)
+
+/-- The target of the chart of the tangent bundle at `p` is the product of the target of the base
+chart at `p.proj` with the whole fibre. -/
+theorem TangentBundle.extChartAt_target (p : TangentBundle I M) :
+    (extChartAt I.tangent p).target = (extChartAt I p.proj).target ×ˢ Set.univ := by
+  rw [FiberBundle.extChartAt_target, Set.inter_eq_left.mpr (show (extChartAt I p.proj).target ⊆
+    (extChartAt I p.proj).symm ⁻¹' (trivializationAt E (TangentSpace I) p.proj).baseSet from
+      fun z hz ↦ TangentBundle.mem_trivializationAt_baseSet_of_mem_extChartAt_source
+        ((extChartAt I p.proj).map_target hz))]
+
+/-- A point of the target of the tangent-bundle chart at `p` is sent by the tangent map of `f`
+into the source of the tangent-bundle chart at `q` exactly when its base point is sent by `f`
+into the source of the base chart at `q.proj`. -/
+theorem tangentMap_extChartAt_symm_mem_extChartAt_source_iff (f : M → M')
+    {p : TangentBundle I M} {q : TangentBundle I' M'} {w : E × E}
+    (hw : w ∈ (extChartAt I.tangent p).target) :
+    tangentMap I I' f ((extChartAt I.tangent p).symm w) ∈ (extChartAt I'.tangent q).source ↔
+      f ((extChartAt I p.proj).symm w.1) ∈ (extChartAt I' q.proj).source := by
+  rw [extChartAt_source, extChartAt_source, TangentBundle.mem_chart_source_iff, tangentMap_proj,
+    Bundle.proj_extChartAt_symm p hw]
 
 end TangentMap
 
