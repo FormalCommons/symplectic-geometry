@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.Exponential.Derivative.Formula
-public import TauCeti.Geometry.Lie.Tangent.LieEquiv
 import SymplecticGeometry.Geometry.Lie.Tangent.LieEquiv
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 

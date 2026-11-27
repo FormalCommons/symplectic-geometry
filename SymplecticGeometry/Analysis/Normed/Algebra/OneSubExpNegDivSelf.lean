@@ -38,11 +38,9 @@ theorem comp_oneSubExpNegDivSelf_of_comp_eq_zero {f : E →L[𝕂] F} {a : E →
   rw [oneSubExpNegDivSelf_eq_tsum, ← compL_apply,
     (compL 𝕂 E E F f).map_tsum (summable_oneSubExpNegDivSelf (𝕂 := 𝕂) a),
     tsum_eq_single 0 fun n hn ↦ ?_]
-  · simp only [pow_zero, Nat.zero_add, Nat.factorial_one, Nat.cast_one, inv_one, one_smul,
-      compL_apply, one_def, comp_id]
+  · simp [one_def]
   obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hn
-  rw [compL_apply, comp_smul, pow_succ', mul_def, neg_comp, comp_neg, ← comp_assoc, h]
-  simp
+  simp [pow_succ', mul_def, ← comp_assoc, h]
 
 /-- If `f ∘L a = 0`, then `f (oneSubExpNegDivSelf 𝕂 a y) = f y` for every `y`. -/
 theorem apply_oneSubExpNegDivSelf_apply_of_comp_eq_zero {f : E →L[𝕂] F} {a : E →L[𝕂] E}
