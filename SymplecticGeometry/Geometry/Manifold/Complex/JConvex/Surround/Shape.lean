@@ -458,6 +458,27 @@ theorem norm_ofReal_mul_add_ofReal_mul_sq_le (c₁ c₂ : ℝ)
   rw [← hX, ← hXn, ← hun, ← mul_pow]
   exact pow_le_pow_left₀ (norm_nonneg _) (norm_inner_le_norm X u) 2
 
+/-- On the vectors `v` with `α ds_p v + β dt_p v = 0` and `α ds_p (i v) + β dt_p (i v) = 0`, the
+combination `α σ + β τ` vanishes, where `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ` at
+`p = (x + i y, w)`: the two hypotheses are twice its real part and minus twice its imaginary
+part. -/
+theorem ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape {α β : ℝ}
+    {p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (h₁ : α * fderiv ℝ (fun q ↦ (shape q).1) p v + β * fderiv ℝ (fun q ↦ (shape q).2) p v = 0)
+    (h₂ : α * fderiv ℝ (fun q ↦ (shape q).1) p (I • v) +
+      β * fderiv ℝ (fun q ↦ (shape q).2) p (I • v) = 0) :
+    (α : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j +
+      (β : ℂ) * (⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j) = 0 := by
+  rw [fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h₁ h₂
+  simp only [Prod.smul_fst, Prod.smul_snd, PiLp.smul_apply, smul_eq_mul, inner_smul_right,
+    mul_re, mul_im, I_re, I_im, zero_mul, one_mul, zero_sub, mul_neg, Finset.sum_neg_distrib,
+    zero_add] at h₂
+  apply Complex.ext
+  · simp [re_sum, im_sum]
+    linear_combination h₁ / 2
+  · simp [re_sum, im_sum]
+    linear_combination -h₂ / 2
+
 /-- **Strict plurisubharmonicity of `f(s) + g(t)`**, on `ℂᵏ × ℂᵐ`. Let `f` and `g` be `C²` at
 `s = (shape p).1` and at `t = (shape p).2`, and write `u⁻ = min u 0`. If
 `f'(s) + g'(t) + 2 f''(s)⁻ s + 2 g''(t)⁻ t > 0` and, when `m ≠ 0`, `g'(t) + 2 g''(t)⁻ t > 0`,
