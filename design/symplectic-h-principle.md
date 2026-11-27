@@ -706,43 +706,42 @@ all the proof uses.
 
 Proof, from the smooth version, by a partition of unity on `P`:
 
-1. *Uniform control on a compact set.* Let `K_D := cthickening 1 Q` and
-   `e l x := G l x - fderiv ℝ (f l) x`, jointly continuous. By the tube
-   lemma for the compact `P` (`generalized_tube_lemma`), there is an open
+1. *Uniform control on a compact set.* Let `K_D := closedBall 0 2` and
+   `e l x := G l x - fderiv ℝ (f l) x`, jointly continuous. As `P` is compact,
+   the projection to `D` is closed (`isClosedMap_snd_of_compactSpace`), so there is an open
    `O ⊆ D` with `B ×ˢ {0} ⊆ O` and `univ ×ˢ O ⊆ U`, so every `e l` vanishes
    on `O`; and for the compact `K_D`, an open `O₀ ⊇ P₀` with
    `‖e l x‖ < ε / 4` for `l ∈ O₀`, `x ∈ K_D`, since `e` vanishes on
    `P₀ ×ˢ univ`.
-2. *A fine partition of unity.* A finite cover of `P` by open sets `W i`,
-   `i : Fin n'`, with points `l i` such that `‖e l x - e (l i) x‖ < ε / 8`
-   for `l ∈ W i` and `x ∈ K_D` (the tube lemma at each point,
-   `isCompact_univ.elim_finite_subcover`), and a partition of unity `ρ`
-   subordinate to it (`PartitionOfUnity.exists_isSubordinate`; a compact
-   Hausdorff space is normal and paracompact).
+2. *A fine partition of unity.* Curry `e`, restricted to `P × K_D`, into
+   `Φ : C(P, C(K_D, D →L[ℝ] F))` (`ContinuousMap.curry`). Tau Ceti's
+   `ContinuousMap.exists_partitionOfUnity_dist_finsum_smul_le` gives finitely
+   many points `l i`, `i : Fin n'`, and a partition of unity `ρ` indexed by
+   them with `‖∑ i, ρ i l • e (l i) x - e l x‖ ≤ ε / 8` for every `l` and
+   `x ∈ K_D` (`ContinuousMap.dist_apply_le_dist`).
 3. *The extra coordinate.* A continuous `τ : P → [0, 1]`, `0` on `P₀` and
    `1` off `O₀` (`exists_continuous_zero_one_of_isClosed`), and a smooth
    `χ : ℝ → [0, 1]`, `0` on `(-∞, 1/2]` and `1` on `[1, ∞)` (from
    `Real.smoothTransition`).
 4. *The finite-dimensional datum.* With `n := n' + 1`,
-   `σ l := Fin.snoc (fun i ↦ ρ i l) (τ l)`, and for `s : Fin n → ℝ`,
-   `F (s, x) := ∑ i, s i • f (l i) x` and
-   `G' (s, x) := ∑ i, s i • (fderiv ℝ (f (l i)) x + χ (s (Fin.last n')) • e (l i) x)`:
-   smooth, and holonomic on the open set where `s (Fin.last n') < 1/2` or
+   `σ l := Fin.cons (τ l) (fun i ↦ ρ i l)`, and for `s : Fin n → ℝ`,
+   `F (s, x) := ∑ i, s i.succ • f (l i) x` and
+   `G' (s, x) := ∑ i, s i.succ • (fderiv ℝ (f (l i)) x + χ (s 0) • e (l i) x)`:
+   smooth, and holonomic on the open set where `s 0 < 1/2` or
    `x ∈ O`. Apply the smooth version with `L := Fin n → ℝ`,
    `K := closedBall 0 1` (it contains the range of `σ`),
-   `P₀' := {s | s (Fin.last n') ≤ 1/4}`, `B`, `ε / 2` and `min δ 1`; it
+   `P₀' := {s | s 0 ≤ 1/4}`, `B`, `ε / 2` and `min δ 1`; it
    gives `h`, `f''` and `V''`. Put `g := f'' - F`, and
-   `V := {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ interior K_D`, open as `σ` is
+   `V := {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ ball 0 2`, open as `σ` is
    continuous; it contains the images of `Q`, since they lie within `1` of
    `Q`. The clauses for `C` (its image under `Prod.snd`), `N` and `P₀` (where
    `σ l ∈ P₀'`) are those of the smooth version.
-5. *The estimate.* At `p = (l, x) ∈ V`, with `c := χ (τ l)` and since
-   `∑ i, ρ i l = 1`, the error
+5. *The estimate.* At `p = (l, x) ∈ V`, with `c := χ (τ l)`, the error
    `fderiv ℝ (fun x ↦ f l x + g (σ l, x)) x - G l x` is
    `(fderiv ℝ (fun y ↦ f'' (σ l, y)) x - G' (σ l, x))
-   + c • ∑ i, ρ i l • (e (l i) x - e l x) - (1 - c) • e l x`. The first term
-   is less than `ε / 2`; the second less than `ε / 8`, since `ρ i l ≠ 0`
-   only for `l ∈ W i`; the third less than `ε / 4`, since `c < 1` only where
+   + c • (∑ i, ρ i l • e (l i) x - e l x) - (1 - c) • e l x`. The first term
+   is less than `ε / 2`; the second at most `ε / 8`, by step 2;
+   the third at most `ε / 4`, since `c < 1` only where
    `τ l < 1`, that is on `O₀`.
 
 **The uses.**
@@ -1126,7 +1125,7 @@ of the diffeotopy `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`.
 
 #### `Morse/Core/Cube.lean`
 
-The cube at one critical point, in the namespace `TauCeti`. Tau Ceti's flow
+The cube at one critical point, in the namespace `TauCeti.MorseChart`. Tau Ceti's flow
 of an adapted pseudo-gradient (`Morse/PseudoGradient/Flow.lean`) needs
 `[CompactSpace M]`, so this file uses a compactly supported smooth field `X`
 with `dg(X) ≤ 0`, `dg(X) < 0` on the band off the critical points, and equal
@@ -1138,10 +1137,15 @@ near each critical point of the band to the linear field
 critical point `p` of index `m`, with `a₀ < a < g p` and no critical point
 on the support with value in `[a₀, g p)` (points of the level `g p` itself
 are allowed, since no flow line from `p` reaches them),
-`TauCeti.exists_cubeChart_unstableSet` gives a smooth open embedding
+`TauCeti.MorseChart.exists_cubeChart_unstableSet` gives a smooth open embedding
 `φ : D m → M` with `φ 0 = p`, sending the cube into the unstable set of `p`
 for this flow and above `a₀`, and its sphere below `a`, such that every point
 of that unstable set at level at least `a` is in the image of the cube.
+The theorem takes the field in a more general form: any complete smooth `X`
+with `dg(X) ≤ 0`, equal to the linear field on the source of a Morse chart
+at `p`, with `dg(X) < 0` wherever `a₀ < g < g p` and `g⁻¹[a₀, b]` compact
+for `b < g p`. A compactly supported field as above that does not vanish on
+`g⁻¹[a₀, g p)` satisfies these hypotheses.
 
 The chart is built from hitting times, not from one fixed time, since
 different flow lines from `p` can take very different times to descend. Fix
@@ -1181,7 +1185,7 @@ theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
 The cubes are those of `Cube.lean` at the finitely many critical points of
 the level `v` (`TauCeti.IsMorse.finite_criticalPoints_inter`), all for the
 one field `X`: by `hcrit` no critical value lies in `[a₀, v)`, which is the
-hypothesis of `TauCeti.exists_cubeChart_unstableSet` at each of them, the
+hypothesis of `TauCeti.MorseChart.exists_cubeChart_unstableSet` at each of them, the
 other points of the level `v` being allowed. They are disjoint since
 unstable sets of distinct critical points are. The compression is the time-`T`
 map of the flow of `ρ • X`, with `ρ` zero near `{g ≤ a}` and one from just
@@ -1775,7 +1779,7 @@ Each is a few hundred lines; each issue's blockers come before it.
    - 5a. **The structure.** `Morse/Core/Basic.lean`: `BandCore`, its API
      and `BandCore.ofNoCriticalPoint`. Blocked by nothing.
    - 5b. **The cube at a critical point.** `Morse/Core/Cube.lean`:
-     `TauCeti.exists_cubeChart_unstableSet`. Blocked by nothing.
+     `TauCeti.MorseChart.exists_cubeChart_unstableSet`. Blocked by nothing.
    - 5c. **Compression across one critical level.**
      `Morse/Core/Compression.lean`: `TauCeti.IsMorse.exists_bandCore`.
      Blocked by 5a and 5b.
