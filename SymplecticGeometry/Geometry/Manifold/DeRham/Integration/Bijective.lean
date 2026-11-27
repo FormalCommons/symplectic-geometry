@@ -12,7 +12,7 @@ import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 # Exactness of differences of top forms on a closed connected manifold
 
 On a compact, preconnected, boundaryless, Hausdorff oriented manifold of dimension `k`, two
-smooth `k`-forms differ by an exact form if and only if they have the same oriented integral
+smooth `k`-forms differ by an exact form exactly when their oriented integrals agree
 (`TauCeti.sub_mem_exactForms_iff_integralTopForm_eq`). Every form on a compact manifold is
 compactly supported, so this follows from Tau Ceti's top-degree Poincaré lemma
 `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`, together with
