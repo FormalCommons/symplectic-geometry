@@ -585,7 +585,8 @@ private theorem jetNormAt_cutoffDbar_eq_zero (r : ℕ) {s : ℝ} (hs : 0 < s) {z
           fun _ ↦ (c : ℂ) := by
         filter_upwards [hU.mem_nhds hy] with w hw
         rw [hc w hw]
-      rw [cutoffDbar, flatDbar_eq, hconst.fderiv_eq, fderiv_const_apply, map_zero]
+      rw [cutoffDbar, flatDbar_def, flatDbarWith_congr_of_eventuallyEq hconst, flatDbarWith_def,
+        fderiv_const_apply, map_zero]
     rw [jetNormAt_congr_of_eventuallyEq r h, jetNormAt_const, norm_zero]
   rcases hz with hz | hz
   · refine key {y | ‖y‖ < s} (isOpen_lt continuous_norm continuous_const) hz ⟨1, fun y hy ↦ ?_⟩

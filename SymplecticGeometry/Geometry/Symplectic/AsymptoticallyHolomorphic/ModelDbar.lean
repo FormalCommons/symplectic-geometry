@@ -32,9 +32,9 @@ chart, and the model operators of the peak functions are these at the constant s
 ## Main results
 
 * `SymplecticGeometry.modelConnection_add`, `SymplecticGeometry.modelDbarWith_add`,
-  `SymplecticGeometry.flatDbarWith_add` and their companions for negation, complex scalars and
-  zero: the three operators are additive on functions differentiable at `z`, and commute with
-  complex scalars.
+  `SymplecticGeometry.flatDbarWith_add` and their companions `_neg`, `_smul` and `_zero` for
+  negation, complex scalars and zero: the three operators are additive on functions
+  differentiable at `z`, and commute with complex scalars.
 * `SymplecticGeometry.modelConnection_mul`, `SymplecticGeometry.flatDbarWith_mul`,
   `SymplecticGeometry.modelDbarWith_mul`: the Leibniz rules,
   `∂̄ (f g) = f ∂̄ g + g ∂̄_flat f` for the model `∂̄`.
@@ -42,8 +42,11 @@ chart, and the model operators of the peak functions are these at the constant s
   `SymplecticGeometry.contDiffAt_modelDbarWith`: where `f` is `C^(n + 1)` and `J` is `C^n`, all
   three are `C^n`.
 * `SymplecticGeometry.modelConnection_congr_of_eventuallyEq`,
+  `SymplecticGeometry.flatDbarWith_congr_of_eventuallyEq`,
   `SymplecticGeometry.modelDbarWith_congr_of_eventuallyEq`: their values at `z` depend only on the
-  germ of `f` at `z`.
+  germ of `f` at `z`; `SymplecticGeometry.modelConnection_eventuallyEq`,
+  `SymplecticGeometry.flatDbarWith_eventuallyEq` and `SymplecticGeometry.modelDbarWith_eventuallyEq`
+  say the same of their germs.
 
 ## References
 
@@ -126,6 +129,11 @@ theorem modelConnection_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : S
     (h : f =ᶠ[𝓝 z] g) : modelConnection f z = modelConnection g z := by
   rw [modelConnection_def, modelConnection_def, h.fderiv_eq, h.eq_of_nhds]
 
+/-- Functions with the same germ at `z` have model connections with the same germ at `z`. -/
+theorem modelConnection_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : modelConnection f =ᶠ[𝓝 z] modelConnection g :=
+  h.eventually_nhds.mono fun _ hw ↦ modelConnection_congr_of_eventuallyEq hw
+
 /-- The model connection of `f` is `C^n` at a point where `f` is `C^(n + 1)`. -/
 theorem contDiffAt_modelConnection {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpace ι}
     (hf : ContDiffAt ℝ (n + 1) f z) : ContDiffAt ℝ n (modelConnection f) z := by
@@ -169,6 +177,11 @@ theorem flatDbarWith_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Dif
     flatDbarWith J (f + g) z = flatDbarWith J f z + flatDbarWith J g z := by
   simp [flatDbarWith_def, fderiv_add hf hg]
 
+@[simp]
+theorem flatDbarWith_neg (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDbarWith J (-f) z = -flatDbarWith J f z := by
+  rw [flatDbarWith_def, flatDbarWith_def, fderiv_neg, map_neg]
+
 /-- The flat `∂̄` commutes with complex scalars. -/
 @[simp]
 theorem flatDbarWith_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
@@ -192,6 +205,16 @@ theorem flatDbarWith_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Dif
     Complex.real_smul]
   push_cast
   ring
+
+/-- The flat `∂̄` at `z` depends only on the germ of `f` at `z`. -/
+theorem flatDbarWith_congr_of_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : flatDbarWith J f z = flatDbarWith J g z := by
+  rw [flatDbarWith_def, flatDbarWith_def, h.fderiv_eq]
+
+/-- Functions with the same germ at `z` have flat `∂̄` with the same germ at `z`. -/
+theorem flatDbarWith_eventuallyEq {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (h : f =ᶠ[𝓝 z] g) : flatDbarWith J f =ᶠ[𝓝 z] flatDbarWith J g :=
+  h.eventually_nhds.mono fun _ hw ↦ flatDbarWith_congr_of_eventuallyEq hw
 
 /-- The flat `∂̄` of `f` is `C^n` at a point where `f` is `C^(n + 1)` and `J` is `C^n`. -/
 theorem contDiffAt_flatDbarWith {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpace ι}
