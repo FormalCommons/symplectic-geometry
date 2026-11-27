@@ -35,8 +35,8 @@ field on `B` that has that reading at every point of the trivialization's base s
 horizontal lift is a time-dependent field on `P`, jointly `C¹` in time and point
 (`TauCeti.IsEhresmannConnection.contMDiffAt_horizontalLift`), and both curves solve it near `t`.
 Lifted through their clocks
-(`TauCeti.hasMFDerivWithinAt_prodMk_timeDependentSuspensionField`), they are integral curves of
-its suspension on `ℝ × P`, which is `C¹` at that point
+(`TauCeti.isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff`), they are integral
+curves of its suspension on `ℝ × P`, which is `C¹` at that point
 (`TauCeti.contMDiffAt_timeDependentSuspensionField`). Tau Ceti's local uniqueness of integral
 curves on a preconnected set of times,
 `IsMIntegralCurveOn.eventuallyEq_of_isPreconnected`, which allows `t` to be an end of the
@@ -221,7 +221,7 @@ private theorem eventuallyEq_of_isHorizontalMap
       (hh : IsHorizontalMap 𝓘(ℝ, ℝ) D c) (hγc : EqOn (f ∘ c) γ (Icc a b)) :
       IsMIntegralCurveOn (fun r ↦ (r, c r)) (timeDependentSuspensionField X)
         (Icc a b ∩ Metric.ball t ε) := by
-    intro u hu
+    refine isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff.2 fun u hu ↦ ?_
     have hfc : f (c u) = γ u := hγc hu.1
     -- The projection `f ∘ c` has the velocity of `γ`, since they agree on `Set.Icc a b`.
     have hcv : curveVelocity J (f ∘ c) u = curveVelocity J γ u := by
@@ -240,11 +240,8 @@ private theorem eventuallyEq_of_isHorizontalMap
       have hsymm : eB.symm (γ u) (v u) = curveVelocity J γ u :=
         eB.symm_apply_apply_mk (hball hu.2) _
       rw [hcv, ← hsymm, hfc]
-    have hcu : HasMFDerivWithinAt 𝓘(ℝ, ℝ) I c (Icc a b ∩ Metric.ball t ε) u
-        ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u))) := by
-      rw [← hvel]
-      exact (hasMFDerivAt_curveVelocity (hc u)).hasMFDerivWithinAt
-    exact hasMFDerivWithinAt_prodMk_timeDependentSuspensionField hcu
+    rw [← hvel]
+    exact (hasMFDerivAt_curveVelocity (hc u)).hasMFDerivWithinAt
   have heq := (hcurve hc₁ hh₁ hγ₁).eventuallyEq_of_isPreconnected (hcurve hc₂ hh₂ hγ₂) hS htS
     hW (by rw [h])
   rw [← nhdsWithin_inter_of_mem'
