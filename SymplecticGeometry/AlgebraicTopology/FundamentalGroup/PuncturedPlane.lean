@@ -7,7 +7,9 @@ module
 
 public import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 
+import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
+import TauCeti.Topology.Homotopy.Path
 
 /-!
 # The fundamental group of a punctured plane
@@ -21,8 +23,8 @@ computation over to `E`, with the circle `t ↦ φ (r e^{2πit})` as generator. 
 
 * `LinearIsometryEquiv.complSingletonHomeomorph`: a linear isometry restricts to a homeomorphism
   of the complements of the origin.
-* `LinearIsometryEquiv.circleLoop φ hr`: the loop `t ↦ φ (r e^{2πit})` in `E ∖ {0}`, based at
-  `LinearIsometryEquiv.circleBasepoint φ hr = φ r`.
+* `LinearIsometryEquiv.circleLoop φ hr`: the loop `t ↦ φ (r e^{2πit})` in `E ∖ {0}`, the image of
+  `circlePath 0 r 0` under `φ`, based at `LinearIsometryEquiv.circleBasepoint φ hr = φ r`.
 * `LinearIsometryEquiv.fundamentalGroupComplSingletonMulEquivInt`: `π₁(E ∖ {0}, φ r) ≃* ℤ`.
 
 ## Main results
@@ -74,18 +76,18 @@ noncomputable def circleBasepoint : ({0}ᶜ : Set E) :=
 theorem coe_circleBasepoint : (φ.circleBasepoint hr : E) = φ r :=
   (rfl)
 
-/-- The loop `t ↦ φ (r e^{2πit})` in `E ∖ {0}`, going once around the origin, counterclockwise in
-the coordinates `φ`. -/
-noncomputable def circleLoop : Path (φ.circleBasepoint hr) (φ.circleBasepoint hr) where
-  toFun t := ⟨φ (circleMap 0 r (2 * Real.pi * t)), by simpa using hr.ne'⟩
-  continuous_toFun := by unfold circleMap; fun_prop
-  source' := by ext; simp [circleMap]
-  target' := by ext; simp [circleMap]
+/-- The loop `t ↦ φ (r e^{2πit})` in `E ∖ {0}`, the image of `circlePath 0 r 0` under `φ`: it goes
+once around the origin, counterclockwise in the coordinates `φ`. -/
+noncomputable def circleLoop : Path (φ.circleBasepoint hr) (φ.circleBasepoint hr) :=
+  Path.codRestrict (((circlePath 0 r 0).map φ.continuous).cast (by simp [circleMap_zero])
+    (by simp [circleMap_zero]))
+    fun t ↦ by simpa using hr.ne'
 
 @[simp]
 theorem coe_circleLoop_apply (t : unitInterval) :
-    (φ.circleLoop hr t : E) = φ (circleMap 0 r (2 * Real.pi * t)) :=
-  (rfl)
+    (φ.circleLoop hr t : E) = φ (circleMap 0 r (2 * Real.pi * t)) := by
+  rw [circleLoop, Path.codRestrict_coe, Path.cast_coe, Path.map_coe, Function.comp_apply,
+    circlePath_apply, zero_add]
 
 /-- `ℂ ∖ {0}`, written as Tau Ceti's `StarConvex` API writes it, is homeomorphic to `E ∖ {0}` by
 `φ`. -/
