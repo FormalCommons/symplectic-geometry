@@ -5,11 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.ComplexTorus
+public import TauCeti.Analysis.SpecialFunctions.Elliptic.Holomorphic
 public import TauCeti.AlgebraicGeometry.EllipticCurve.Projective.ComplexManifold
 public import TauCeti.AlgebraicGeometry.EllipticCurve.ShortWeierstrass
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.LinearAlgebra.Projectivization.Basic
+import SymplecticGeometry.Algebra.Module.ZLattice.Complex
 
 /-!
 # The Fermat cubic as a Weierstrass curve
@@ -31,7 +36,11 @@ restricts to a biholomorphism of the two curves.
 The Fermat cubic is the fibre of `E(1)` over `[1 : 0]`; to compare that fibre with a standard
 torus, Tau Ceti's uniformization
 `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff` then identifies the
-Weierstrass curve with a complex torus `ℂ / Λ`.
+Weierstrass curve with a complex torus `ℂ / Λ`, where `Λ` is the period lattice of
+`fermatWeierstrassCurve`. A positively oriented `ℤ`-basis of `Λ` then identifies `ℂ / Λ` with
+Tau Ceti's standard torus `∀ i : Unit ⊕ Unit, AddCircle (p i)` by
+`SymplecticGeometry.latticeTorusDiffeomorph`. Forgetting the complex structure, the three maps
+compose to a smooth diffeomorphism of real manifolds from the Fermat cubic onto the standard torus.
 
 ## Main declarations
 
@@ -47,18 +56,30 @@ Weierstrass curve with a complex torus `ℂ / Λ`.
 * `SymplecticGeometry.fermatCubicDiffeomorph`: the biholomorphism from the Fermat cubic to the
   points of `fermatWeierstrassCurve`, with `toProjectivization_fermatCubicDiffeomorph_mk` giving
   its value on a representative and `coe_fermatCubicDiffeomorph_symm_apply` its inverse.
+* `SymplecticGeometry.fermatUniformization`: a biholomorphism from `ℂ / Λ` onto the points of
+  `fermatWeierstrassCurve` that is an additive isomorphism, chosen from Tau Ceti's
+  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`.
+* `SymplecticGeometry.fermatPeriodBasis`: a `ℤ`-basis `b₀, b₁` of `Λ` with
+  `0 < Im (conj b₀ * b₁)` (`SymplecticGeometry.zero_lt_im_conj_mul_fermatPeriodBasis`).
+* `SymplecticGeometry.fermatCubicTorusDiffeomorph p`: the smooth diffeomorphism of real manifolds
+  from the Fermat cubic onto `∀ i, AddCircle (p i)`, the composite of `fermatCubicDiffeomorph`,
+  the inverse of `fermatUniformization` and `latticeTorusDiffeomorph p fermatPeriodBasis`
+  (`SymplecticGeometry.fermatCubicTorusDiffeomorph_def`).
 
 ## References
 
 * J. H. Silverman, *The Arithmetic of Elliptic Curves*, 2nd ed., Graduate Texts in Mathematics
-  106, Springer, 2009, Chapter III, §1 (Weierstrass equations and their discriminant).
+  106, Springer, 2009, Chapter III, §1 (Weierstrass equations and their discriminant), and
+  Proposition VI.3.6 (the uniformization of a complex elliptic curve).
 * [P. Griffiths and J. Harris, *Principles of Algebraic Geometry*][GriffithsHarris1978],
   Chapter 0, §1.
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.2 (the
+  fibre of the rational elliptic surface as a torus).
 -/
 
 public section
 
-open MvPolynomial Projectivization TauCeti WeierstrassCurve
+open ComplexConjugate MvPolynomial Projectivization TauCeti WeierstrassCurve
 open scoped Manifold ContDiff LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
@@ -209,6 +230,80 @@ theorem coe_fermatCubicDiffeomorph_symm_apply (P : fermatWeierstrassCurve.toProj
     (fermatCubicDiffeomorph.symm P : ℙ ℂ (Fin 3 → ℂ)) =
       fermatCubicLinearEquiv.symm.mapProjectivization P.toProjectivization :=
   congrArg (· P.toProjectivization) (LinearEquiv.mapProjectivization_symm fermatCubicLinearEquiv)
+
+/-- **The Weierstrass curve `Y² Z = X³ - 432 Z³` as a complex torus.** A biholomorphism from
+`ℂ / Λ`, for the period lattice `Λ` of `fermatWeierstrassCurve`, onto the points of
+`fermatWeierstrassCurve`, which is also an isomorphism of groups. It is one of those given by Tau
+Ceti's uniformization theorem `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`,
+chosen once and for all. -/
+noncomputable def fermatUniformization :
+    (ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) ≃ₘ^ω⟮𝓘(ℂ), 𝓘(ℂ)⟯
+      fermatWeierstrassCurve.toProjective.Point where
+  toEquiv := (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose
+  contMDiff_toFun :=
+    (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.1
+  contMDiff_invFun :=
+    (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.2
+
+/-- `fermatUniformization` is the isomorphism of groups chosen from
+`WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`. -/
+theorem coe_fermatUniformization :
+    ⇑fermatUniformization =
+      (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose :=
+  (rfl)
+
+/-- `fermatUniformization` is additive: it sends a sum of classes in `ℂ / Λ` to the sum of their
+images in the group of points of `fermatWeierstrassCurve`. -/
+theorem fermatUniformization_add (z w : ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) :
+    fermatUniformization (z + w) = fermatUniformization z + fermatUniformization w := by
+  rw [coe_fermatUniformization]
+  exact map_add _ z w
+
+/-- A positively oriented `ℤ`-basis `b₀, b₁` of the period lattice of `fermatWeierstrassCurve`:
+one with `0 < Im (conj b₀ * b₁)`, chosen by `ZLattice.exists_basis_zero_lt_im_conj_mul`. -/
+noncomputable def fermatPeriodBasis : Module.Basis (Fin 2) ℤ fermatWeierstrassCurve.periodLattice :=
+  (ZLattice.exists_basis_zero_lt_im_conj_mul fermatWeierstrassCurve.periodLattice).choose
+
+/-- The basis `fermatPeriodBasis` is positively oriented. -/
+theorem zero_lt_im_conj_mul_fermatPeriodBasis :
+    0 < (conj (fermatPeriodBasis 0 : ℂ) * fermatPeriodBasis 1).im :=
+  (ZLattice.exists_basis_zero_lt_im_conj_mul fermatWeierstrassCurve.periodLattice).choose_spec
+
+variable (p : Unit ⊕ Unit → ℝ) [∀ i, Fact (0 < p i)]
+
+/-- **The Fermat cubic is diffeomorphic to the standard torus.** The smooth diffeomorphism of real
+manifolds from the Fermat cubic `x³ + y³ + z³ = 0`, with the real structure of its complex charts,
+onto Tau Ceti's standard torus `∀ i : Unit ⊕ Unit, AddCircle (p i)`. It is the composite of the
+biholomorphism `fermatCubicDiffeomorph` onto the Weierstrass curve `Y² Z = X³ - 432 Z³`, the
+inverse of its uniformization `fermatUniformization` by `ℂ / Λ`, and the diffeomorphism
+`latticeTorusDiffeomorph p fermatPeriodBasis` from `ℂ / Λ` onto the standard torus. -/
+noncomputable def fermatCubicTorusDiffeomorph :
+    SmoothProjectiveHypersurface.fermat 1 3 ≃ₘ^∞⟮𝓘(ℝ, Fin 1 → ℂ),
+      ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)⟯ ∀ i, AddCircle (p i) :=
+  (((fermatCubicDiffeomorph.restrictScalars' ℝ).trans
+    (fermatUniformization.symm.restrictScalars' ℝ)).ofLE le_top).trans
+      (latticeTorusDiffeomorph p fermatPeriodBasis)
+
+/-- `fermatCubicTorusDiffeomorph p` is the composite of `fermatCubicDiffeomorph` and the inverse
+of `fermatUniformization`, both with scalars restricted to `ℝ`, and
+`latticeTorusDiffeomorph p fermatPeriodBasis`. -/
+theorem fermatCubicTorusDiffeomorph_def :
+    fermatCubicTorusDiffeomorph p =
+      (((fermatCubicDiffeomorph.restrictScalars' ℝ).trans
+        (fermatUniformization.symm.restrictScalars' ℝ)).ofLE le_top).trans
+          (latticeTorusDiffeomorph p fermatPeriodBasis) :=
+  (rfl)
+
+/-- `fermatCubicTorusDiffeomorph p` sends a point `x` of the Fermat cubic to the image under
+`latticeTorusDiffeomorph p fermatPeriodBasis` of the point of `ℂ / Λ` that `fermatUniformization`
+sends to `fermatCubicDiffeomorph x`. -/
+@[simp]
+theorem fermatCubicTorusDiffeomorph_apply (x : SmoothProjectiveHypersurface.fermat 1 3) :
+    fermatCubicTorusDiffeomorph p x =
+      latticeTorusDiffeomorph p fermatPeriodBasis
+        (fermatUniformization.symm (fermatCubicDiffeomorph x)) := by
+  simp only [fermatCubicTorusDiffeomorph_def, Diffeomorph.coe_trans, Diffeomorph.coe_ofLE,
+    Diffeomorph.coe_restrictScalars', Function.comp_apply]
 
 end SymplecticGeometry
 
