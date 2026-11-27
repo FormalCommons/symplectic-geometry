@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.R
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita.Christoffel.Basic
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Bounds
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Koszul
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FirstOrderSystem
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Christoffel
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -96,7 +98,20 @@ for it, for `k ≥ k₀`:
 * the inverses of the two charts agree at `w` and at `τ w`, and so do their differentials, on
   `v` and on `dτ_w v`
   (`SymplecticGeometry.RescaledUnitaryCharts.mfderiv_chart_symm_chartTransition`, from Tau Ceti's
-  `OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans`).
+  `OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans`);
+* the derivative of a transition is onto at each point of its source
+  (`SymplecticGeometry.RescaledUnitaryCharts.surjective_fderiv_chartTransition`), so, if `σ` is
+  compatible with `J`, the Koszul formula writes its second derivative through its first and the
+  Christoffel symbols of the forms read in the two charts
+  (`SymplecticGeometry.RescaledUnitaryCharts.fderiv_fderiv_chartTransition`); then `(τ, Dτ)`
+  solves a first-order system, and the uniform bounds above on the Christoffel symbols and on
+  `Dτ(0)` bound every derivative of the transition at `0`: there is `ρ₁ > 0` such that for each
+  `r` some `C` bounds the derivatives of order `1` to `r` at `0` of the transitions from the
+  chart at `(D.chart k x)⁻¹ z` to the chart at `x`, for all `k ≥ k₀`, `x` and `z` in the ball of
+  radius `ρ₁ * √k`
+  (in the namespace `SymplecticGeometry.RescaledUnitaryCharts`,
+  `exists_forall_norm_iteratedFDeriv_chartTransition_zero_le`, from
+  `SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq`).
 
 ## References
 
@@ -636,6 +651,149 @@ theorem mfderiv_chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
   -- `exact` rather than `rw`: the two sides differ by the identification of `StdSpace ι` with
   -- its tangent spaces, and by `ContinuousLinearMap.comp_apply`.
   exact (DFunLike.congr_fun h v).symm
+/-! ### Uniform bounds on the derivatives of the transitions at the centre -/
+
+/-- For `k ≥ k₀`, the derivative of the transition from the chart centred at `y` to the chart
+centred at `x`, at a point of its source, is surjective: it preserves the nondegenerate form
+`stdForm ι`, so it is injective, and `StdSpace ι` is finite-dimensional. -/
+theorem surjective_fderiv_chartTransition {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) :
+    Function.Surjective (fderiv ℝ (D.chartTransition k x y) w) := by
+  set T := fderiv ℝ (D.chartTransition k x y) w
+  have hinj : Function.Injective (T : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
+    refine (injective_iff_map_eq_zero _).2 fun a ha ↦ (stdForm ι).eq_of_forall_apply_eq fun b ↦ ?_
+    have ha' : T a = 0 := ha
+    rw [← D.stdForm_fderiv_chartTransition hk hw a b, ← D.stdForm_fderiv_chartTransition hk hw 0 b,
+      ha', map_zero]
+  exact LinearMap.injective_iff_surjective.1 hinj
+
+/-- **The second derivative of a transition.** On a boundaryless manifold, if `σ` is compatible
+with `J`, then for `k ≥ k₀` and `w` in the source of the transition `τ` from the chart centred at
+`y` to the chart centred at `x`, `D²τ(w) = Dτ(w) ∘ Γ_y(w) - Γ_x(τ w) ∘ (Dτ(w) × Dτ(w))`, where
+`Γ_y` and `Γ_x` are the Christoffel symbols of the second kind of the forms `g_{k,y}` and
+`g_{k,x}` read in the two charts. This is the Koszul formula
+`SymplecticGeometry.fderiv_fderiv_eq_sub_christoffelSecondKind`, for the map `τ` that carries
+`g_{k,y}` to `g_{k,x}`; compatibility makes `g_{k,x}` symmetric. -/
+theorem fderiv_fderiv_chartTransition [I.Boundaryless] (hJ : σ.Compatible J) {k : ℕ}
+    (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι} (hw : w ∈ (D.chartTransition k x y).source) :
+    fderiv ℝ (fderiv ℝ (D.chartTransition k x y)) w =
+      ContinuousLinearMap.compL ℝ _ _ _ (fderiv ℝ (D.chartTransition k x y) w) ∘L
+          Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y) w -
+        (Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)
+          (D.chartTransition k x y w)).bilinearComp (fderiv ℝ (D.chartTransition k x y) w)
+          (fderiv ℝ (D.chartTransition k x y) w) := by
+  have hτ : ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source := by
+    rw [chartTransition_def]
+    exact (D.chart k y).contDiffOn_symm_trans (D.chart k x)
+  have hwy : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hw).1
+  have hτx : D.chartTransition k x y w ∈ (D.chart k x).target := by
+    rw [chartTransition_apply]
+    exact (D.chart k x).map_source (D.mem_chartTransition_source_iff.1 hw).2
+  refine fderiv_fderiv_eq_sub_christoffelSecondKind (D.chartTransition k x y).open_source
+    (hτ.of_le (by simp)) (fun w' hw' u v ↦ ?_) hw
+    (D.surjective_fderiv_chartTransition hk hw)
+    (ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm.1
+      (D.isInvertible_associatedBilinFormInChart hwy))
+    ((D.contDiffAt_associatedBilinFormInChart hτx).differentiableAt (by simp)) ?_
+  · exact DFunLike.congr_fun (DFunLike.congr_fun
+      (D.associatedBilinFormInChart_chartTransition_bilinearComp hk hw') u) v
+  · filter_upwards [(D.chart k x).open_target.mem_nhds hτx] with w' hw'
+    exact ContinuousLinearMap.isSymm_toBilinForm_iff.2
+      (D.associatedBilinFormInChart_apply_swap hJ hk x hw')
+
+/-- The right side of the Koszul formula for the transitions, as a function of the Christoffel
+symbols `G` and `G'` of the source and target forms and of the derivative `L`:
+`(G, G', L) ↦ L ∘ G - G' ∘ (L × L)`. -/
+private noncomputable def koszulRHS
+    (q : (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) ×
+      (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) × (StdSpace ι →L[ℝ] StdSpace ι)) :
+    StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι :=
+  ContinuousLinearMap.compL ℝ _ _ _ q.2.2 ∘L q.1 -
+    (ContinuousLinearMap.compL ℝ _ _ _).flip q.2.2 ∘L (q.2.1 ∘L q.2.2)
+
+/-- The map `koszulRHS` is `(G, G', L) ↦ L ∘ G - G'.bilinearComp L L`. -/
+private theorem koszulRHS_apply
+    (q : (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) ×
+      (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) × (StdSpace ι →L[ℝ] StdSpace ι)) :
+    koszulRHS q =
+      ContinuousLinearMap.compL ℝ _ _ _ q.2.2 ∘L q.1 - q.2.1.bilinearComp q.2.2 q.2.2 := by
+  refine ContinuousLinearMap.ext fun u ↦ ContinuousLinearMap.ext fun v ↦ ?_
+  simp [koszulRHS]
+
+/-- The map `koszulRHS` is smooth: it is a polynomial in its arguments. -/
+private theorem contDiff_koszulRHS : ContDiff ℝ ∞ (koszulRHS (ι := ι)) := by
+  unfold koszulRHS
+  fun_prop
+
+/-- **Uniform bounds on the derivatives of the transitions at the centre.** On a boundaryless
+manifold, if `σ` is compatible with `J` and `ρ₀ > 0`, there is a radius `ρ₁` with
+`0 < ρ₁ ≤ ρ₀` such that for every `r` there is a constant `C` with the following property: for
+all `k ≥ k₀`, all points `x`, all `z` in the ball of radius `ρ₁ * √k` and all `1 ≤ j ≤ r`, the
+`j`-th iterated derivative at `0` of the transition from the chart centred at
+`(D.chart k x)⁻¹ z` to the chart centred at `x` has norm at most `C`.
+
+The pair `(τ, Dτ)` solves a first-order system by `fderiv_fderiv_chartTransition`; the
+Christoffel symbols of the forms read in the charts have uniformly bounded derivatives
+(`exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le`) and
+`‖Dτ(0)‖ ≤ √2` (`exists_forall_norm_fderiv_chartTransition_zero_le`), so
+`SymplecticGeometry.exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq` applies. -/
+theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryless]
+    (hJ : σ.Compatible J) (hρ₀ : 0 < ρ₀) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ r : ℕ, ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
+      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k), ∀ j, 1 ≤ j → j ≤ r →
+        ‖iteratedFDeriv ℝ j (D.chartTransition k x ((D.chart k x).symm z)) 0‖ ≤ C := by
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hT⟩ := D.exists_forall_norm_fderiv_chartTransition_zero_le hρ₀
+  refine ⟨ρ₁, hρ₁, hρ₁₀, fun r ↦ ?_⟩
+  obtain ⟨CΓ, hCΓ⟩ :=
+    D.exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le r
+  have : ProperSpace (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι) :=
+    FiniteDimensional.proper_real (StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι)
+  have : ProperSpace (StdSpace ι →L[ℝ] StdSpace ι) :=
+    FiniteDimensional.proper_real (StdSpace ι →L[ℝ] StdSpace ι)
+  obtain ⟨K, hK⟩ := exists_forall_norm_iteratedFDeriv_le_of_fderiv_fderiv_eq (r := r)
+    ((contDiff_koszulRHS (ι := ι)).of_le (by simp)) (max |CΓ| √2)
+  refine ⟨K, fun {k} hk x z hz j hj₁ hj ↦ ?_⟩
+  set y := (D.chart k x).symm z
+  have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
+  have h0 : (0 : StdSpace ι) ∈ ball (0 : StdSpace ι) (ρ₀ * √k) :=
+    mem_ball_self (pos_of_mem_ball hz₀)
+  have hzt : z ∈ (D.chart k x).target := D.ball_subset_target hk x hz₀
+  have h0t : (0 : StdSpace ι) ∈ (D.chart k y).target := D.ball_subset_target hk y h0
+  have h0s : (0 : StdSpace ι) ∈ (D.chartTransition k x y).source :=
+    D.zero_mem_chartTransition_source hk ((D.chart k x).map_target hzt)
+  have hτ0 : D.chartTransition k x y 0 = z := D.chartTransition_symm_zero hk hzt
+  have hk0 : 0 < √k := (Real.sqrt_nonneg _).lt_of_ne fun h ↦ by
+    simpa [← h] using pos_of_mem_ball hz₀
+  have hk1 : (√k)⁻¹ ≤ 1 := by
+    refine inv_le_one_of_one_le₀ (Real.one_le_sqrt.2 ?_)
+    exact_mod_cast Nat.one_le_iff_ne_zero.2 fun h ↦ by simp [h] at hk0
+  have hΓ (x' : M) {w : StdSpace ι} (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) (i : ℕ)
+      (hi : i ≤ r) :
+      ‖iteratedFDeriv ℝ i (Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x'))
+        w‖ ≤ max |CΓ| √2 :=
+    calc _ ≤ CΓ * (√k)⁻¹ := hCΓ i hi k hk x' w hw
+      _ ≤ |CΓ| * 1 := by gcongr; exact le_abs_self _
+      _ ≤ max |CΓ| √2 := by rw [mul_one]; exact le_max_left _ _
+  have hτ : ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source := by
+    rw [chartTransition_def]
+    exact (D.chart k y).contDiffOn_symm_trans (D.chart k x)
+  refine hK (τ := D.chartTransition k x y)
+    (a := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y))
+    (b := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) (w₀ := 0)
+    ((hτ.contDiffAt ((D.chartTransition k x y).open_source.mem_nhds h0s)).of_le
+      (by simp))
+    (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k y).contDiffAt
+      ((D.chart k y).open_target.mem_nhds h0t)).of_le (by simp))
+    ?_ ?_ (fun i hi ↦ hΓ y h0 i hi) (fun i hi ↦ ?_)
+    ((hT hk x z hz).trans (le_max_right _ _)) j hj₁ (by omega)
+  · rw [hτ0]
+    exact ((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k x).contDiffAt
+      ((D.chart k x).open_target.mem_nhds hzt)).of_le (by simp)
+  · filter_upwards [(D.chartTransition k x y).open_source.mem_nhds h0s] with w hw
+    rw [koszulRHS_apply]
+    exact D.fderiv_fderiv_chartTransition hJ hk hw
+  · rw [hτ0]
+    exact hΓ x hz₀ i hi
 
 end RescaledUnitaryCharts
 
