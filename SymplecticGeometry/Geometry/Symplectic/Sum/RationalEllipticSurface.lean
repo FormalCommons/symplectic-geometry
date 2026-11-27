@@ -548,16 +548,6 @@ theorem symplecticForm_def :
       ((fubiniStudyForm 2).prod (fubiniStudyForm 1)) :=
   (rfl)
 
-/-- The symplectic form of the rational elliptic surface is symplectic: closed and
-nondegenerate. -/
-theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
-  rw [symplecticForm_def, realEmbedding_def]
-  exact (SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
-    (compatible_fubiniStudyForm (n := 1)).tames).isSymplectic_mpullback
-      (hn := by simp)
-      (embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top (by simp) _)
-      ((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1))
-
 /-- The symplectic form of the rational elliptic surface tames the complex structure of the
 surface. -/
 theorem tames_symplecticForm :
@@ -569,6 +559,12 @@ theorem tames_symplecticForm :
         (realEmbedding_def ▸
           embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top
             (by simp) _)
+
+/-- The symplectic form of the rational elliptic surface is symplectic: closed, as the pullback
+of a closed form, and nondegenerate, since it tames the complex structure of the surface. -/
+theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic :=
+  ⟨((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1)).isClosed.mpullback _ _,
+    tames_symplecticForm.isNondegenerate⟩
 
 /-! ### The fibre over `[1 : 0]` -/
 
