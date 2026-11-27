@@ -8,6 +8,7 @@ module
 public import TauCeti.Topology.Algebra.Module.ComplexSmulI
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Topology.VectorBundle.Conjugate
+import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
 # Maps of real bundles that intertwine complex structures
@@ -19,7 +20,10 @@ equivalence `K₁.Fiber b ≃ K₂.Fiber (g b)`
 (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong`). At each `b` this is the
 pointwise statement: one real-linear equivalence `U₁ b₁ ≃ U₂ b₂` that intertwines `K₁ b₁` with
 `K₂ b₂` is complex linear (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt`),
-which also serves where such an equivalence is given only at some points.
+which also serves where such an equivalence is given only at some points. Such pointwise
+equivalences `U₁ (f x) ≃ U₂ (g x)` along a continuous map `f : X → B₁` are continuous from the
+total space of `f *ᵖ K₁.Fiber` when they are from that of `f *ᵖ U₁`
+(`TauCeti.Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAt_pullback`).
 
 Now let `J₁` and `J₂` be continuous complex structures on real vector bundles `V₁` and `V₂` over
 the same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres.
@@ -151,6 +155,26 @@ theorem continuous_fiberEquivOfCommuteAlong
     (hc.comp (K₁.totalSpaceHomeomorph G₁).continuous)).congr fun p ↦ ?_
   rw [Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_apply,
     totalSpaceHomeomorph_symm_apply, fiberEquivOfCommuteAlong_apply]
+
+/-- A family of real-linear equivalences `Ψ x : U₁ (f x) ≃ U₂ (g x)`, over a continuous map
+`f : X → B₁` and a map `g : X → B₂`, that intertwines `K₁` with `K₂` and is continuous from the
+total space of the pull-back `f *ᵖ U₁`: then the complex-linear equivalences
+`fiberEquivOfCommuteAt` that it gives are continuous from the total space of `f *ᵖ K₁.Fiber`. -/
+theorem continuous_fiberEquivOfCommuteAt_pullback {X : Type*} [TopologicalSpace X]
+    {Y : Type*} [FunLike Y X B₁] [ContinuousMapClass Y X B₁] (f : Y) (g : X → B₂)
+    (Ψ : ∀ x, U₁ (f x) ≃L[ℝ] U₂ (g x)) (hΨ : ∀ x v, Ψ x (K₁ (f x) v) = K₂ (g x) (Ψ x v))
+    (hc : Continuous fun p : TotalSpace F₁ ((f : X → B₁) *ᵖ U₁) ↦
+      TotalSpace.mk' F₂ (E := U₂) (g p.proj) (Ψ p.proj p.snd)) :
+    Continuous fun p : TotalSpace G₁ ((f : X → B₁) *ᵖ K₁.Fiber) ↦
+      TotalSpace.mk' G₂ (E := K₂.Fiber) (g p.proj)
+        (K₁.fiberEquivOfCommuteAt K₂ (Ψ p.proj) (hΨ p.proj) p.snd) := by
+  refine ((K₂.totalSpaceHomeomorph G₂).symm.continuous.comp (hc.comp
+    (Pullback.continuous_fiberwise (Φ := fun b ↦ K₁.fiberEquiv b)
+      ((K₁.totalSpaceHomeomorph G₁).continuous.congr (K₁.totalSpaceHomeomorph_apply G₁))
+      f))).congr fun p ↦ ?_
+  rw [Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_symm_apply]
+  exact congrArg (TotalSpace.mk' G₂ (g p.proj))
+    (K₁.fiberEquivOfCommuteAt_apply K₂ (Ψ p.proj) (hΨ p.proj) p.snd).symm
 
 end CommuteAlong
 
