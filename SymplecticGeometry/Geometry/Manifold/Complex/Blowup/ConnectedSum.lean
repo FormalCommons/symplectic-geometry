@@ -16,6 +16,7 @@ public import TauCeti.LinearAlgebra.Projectivization.Basic
 import Mathlib.LinearAlgebra.Complex.Determinant
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+import SymplecticGeometry.Geometry.Manifold.ConnectedSum.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -87,7 +88,9 @@ sphere, both go to the point of the blowup over `c.symm (ρ v)`, since the blowd
 `projectiveBlowupModelDiffeomorph n [u : 1]` is the inversion of `u`, that is `v`. Glued with
 Tau Ceti's `TauCeti.ConnectedSum.lift`, they give a bijection from the connected sum onto the
 blowup which is a local diffeomorphism, since the inclusions of the punctured summands into the
-connected sum are local diffeomorphisms; it is therefore a diffeomorphism,
+connected sum are local diffeomorphisms
+(`TauCeti.ConnectedSum.isLocalDiffeomorph_of_comp_inl_of_comp_inr`); it is therefore a
+diffeomorphism,
 `SymplecticGeometry.Blowup.connectedSumDiffeomorph c`. This last step follows the proof of Tau
 Ceti's `TauCeti.ConnectedSum.assocDiffeomorph`, which builds a diffeomorphism out of a connected
 sum in the same way with `IsLocalDiffeomorph.diffeomorphOfBijective`.
@@ -1337,22 +1340,15 @@ private theorem isLocalDiffeomorph_lift_connectedSumInl_connectedSumInr :
   have h₁ := c.isOpenEmbedding_connectedSumBall
   have h₂ := EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n
   let := TauCeti.ConnectedSum.chartedSpace (H := EuclideanSpace ℂ (Fin (n + 1))) h₁ h₂
-  have d₁ := c.isLocalDiffeomorph_connectedSumBall Fact.out
-  have d₂ := EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n
-  intro p
-  obtain ⟨x | y, rfl⟩ := mk_surjective _ _ p
-  · rw [mk_inl]
-    refine IsLocalDiffeomorphAt.of_comp_right ?_
-      (TauCeti.ConnectedSum.isLocalDiffeomorph_inl h₁ h₂ d₁ d₂ x)
-    rw [show _ ∘ ConnectedSum.inl _ _ = connectedSumInl c from
+  refine TauCeti.ConnectedSum.isLocalDiffeomorph_of_comp_inl_of_comp_inr h₁ h₂
+    (c.isLocalDiffeomorph_connectedSumBall Fact.out)
+    (EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n) ?_ ?_
+  · rw [show _ ∘ ConnectedSum.inl _ _ = connectedSumInl c from
       funext (ConnectedSum.lift_inl _ _ _)]
-    exact isLocalDiffeomorph_connectedSumInl c x
-  · rw [mk_inr]
-    refine IsLocalDiffeomorphAt.of_comp_right ?_
-      (TauCeti.ConnectedSum.isLocalDiffeomorph_inr h₁ h₂ d₁ d₂ y)
-    rw [show _ ∘ ConnectedSum.inr _ _ = connectedSumInr c from
+    exact isLocalDiffeomorph_connectedSumInl c
+  · rw [show _ ∘ ConnectedSum.inr _ _ = connectedSumInr c from
       funext (ConnectedSum.lift_inr _ _ _)]
-    exact isLocalDiffeomorph_connectedSumInr c y
+    exact isLocalDiffeomorph_connectedSumInr c
 
 /-- **The blowup as a connected sum.** For a holomorphic chart `c` of `M` centred at `p₀`, the
 connected sum of `M` and the complex projective space of dimension `n + 1` along the balls
