@@ -356,9 +356,7 @@ fundamental vector field of `ξ` for the action of `G` vanishes at `x`. -/
 theorem expI_smul_smul_eq_self_iff [T2Space M] [BoundarylessManifold I' M]
     (h : IsComplexifiedAction C J) {ξ : GroupLieAlgebra I G} {x : M} :
     (∀ t : ℝ, C.expI (t • ξ) • x = x) ↔ fundamentalVectorField I' ξ x = 0 := by
-  have hγ (t : ℝ) : C.expI (t • ξ) = mulInvariantExp (t • C.cplx (C.lieMap ξ)) := by
-    rw [LieComplexification.expI_def, map_smul, AlmostComplexStructure.apply_smul]
-  simp only [hγ]
+  simp only [LieComplexification.expI_smul]
   rw [mulInvariantExp_smul_smul_eq_iff (I' := I'), h.fundamentalVectorField_cplx_lieMap]
   exact ⟨fun h0 ↦ J.injective x (h0.trans (map_zero _).symm), fun h0 ↦ by simp [h0]⟩
 
