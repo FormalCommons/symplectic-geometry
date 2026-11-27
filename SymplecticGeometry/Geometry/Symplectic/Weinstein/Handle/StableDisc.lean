@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Analysis.ODE.LyapunovPerron.ParameterDerivative
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Graph
 import TauCeti.Analysis.ODE.ExponentialDichotomy
 
 /-!
@@ -96,7 +97,7 @@ graph map `g` and the confined forward solutions over `range P`. The disc is
 `TauCeti.extChartAt_symm_add_eq_globalFlow`; the covering statement combines the confinement of
 the stable set with the description of the confined solutions as the graph, and the differential
 is injective since `P ∘ g = 0`, by
-`ContinuousLinearMap.contDiffAt_and_injective_fderiv_const_add_add`.
+`ContinuousLinearMap.injective_fderiv_add_comp_subtype`.
 The covering step, which first confines the orbits of the stable set near `p` and then identifies
 them with the local stable graph, follows the plan of Tau Ceti's
 `TauCeti.IsNondegenerateCriticalPoint.eventually_forall_dist_le_of_mem_stableSet`
@@ -302,8 +303,14 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
     have hq : e p + ((z : E) + g z) ∈ e.target := by simpa [hy0] using (horb z hz 0 le_rfl).1
     have hn0 : (n : WithTop ℕ∞) ≠ 0 := by exact_mod_cast (Nat.one_le_iff_ne_zero.1 hn)
-    obtain ⟨hhd, hinj⟩ := P.contDiffAt_and_injective_fderiv_const_add_add hP hPS.ge hPg hn0
-      (hgn _ (hball z hz).2) (e p)
+    have hgz : ContDiffAt ℝ n g z := hgn _ (hball z hz).2
+    have hhd : ContDiffAt ℝ n (fun w : S ↦ e p + ((w : E) + g w)) z :=
+      contDiffAt_const.add (S.subtypeL.contDiff.contDiffAt.add
+        (hgz.comp (f := S.subtypeL) z S.subtypeL.contDiff.contDiffAt))
+    have hinj : Injective (fderiv ℝ (fun w : S ↦ e p + ((w : E) + g w)) z) := by
+      rw [fderiv_const_add]
+      exact P.injective_fderiv_add_comp_subtype (fun w hw ↦ hPz ⟨w, hw⟩) hPg
+        (hgz.differentiableAt hn0)
     have hsymm : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E) n e.symm (e p + ((z : E) + g z)) :=
       ((contMDiffOn_extChartAt_symm (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) p).of_le
         (by exact_mod_cast le_top)).contMDiffAt

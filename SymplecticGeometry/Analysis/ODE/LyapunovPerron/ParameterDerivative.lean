@@ -37,9 +37,6 @@ bounded curves, for every `t` at once.
   `exists_localStableGraph_of_contDiffAt`, with a confinement radius at most any given bound,
   together with a family of confined forward solutions starting on the graph whose derivatives
   in the starting point are bounded in time.
-* `ContinuousLinearMap.contDiffAt_and_injective_fderiv_const_add_add`: a graph map
-  `w ↦ c + (w + g w)` over a subspace fixed by a projection `P`, with `P ∘ g = 0`, is `C^n` with
-  injective derivative wherever `g` is `C^n`, `n ≠ 0`.
 
 The proof of `exists_localStableGraph_of_contDiffAt_fderiv` follows Tau Ceti's proof of
 `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt`; its choice of the radii follows the
@@ -105,39 +102,6 @@ theorem norm_fderiv_lyapunovPerronSolution_apply_le (hn : 1 ≤ n)
     mul_le_of_le_one_left (norm_nonneg _) (BoundedContinuousFunction.norm_evalCLM_le_one t)
 
 end Solution
-
-section Graph
-
-variable {𝕜 F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-
-/-- **Graph maps over the range of a projection.** Let `P` be an idempotent continuous linear
-map, `S` a subspace contained in its range, and `g` a map with `P ∘ g = 0` that is `C^n` at a
-point `z` of `S`, with `n ≠ 0`. Then for every `c`, the map `w ↦ c + (w + g w)` from `S` is
-`C^n` at `z`, and its derivative at `z` is injective. -/
-theorem contDiffAt_and_injective_fderiv_const_add_add {P : F →L[𝕜] F} (hP : IsIdempotentElem P)
-    {S : Submodule 𝕜 F} (hS : S ≤ (P : F →ₗ[𝕜] F).range) {g : F → F} (hPg : ∀ w, P (g w) = 0)
-    {n : WithTop ℕ∞} (hn : n ≠ 0) {z : S} (hg : ContDiffAt 𝕜 n g z) (c : F) :
-    ContDiffAt 𝕜 n (fun w : S ↦ c + ((w : F) + g w)) z ∧
-      Function.Injective (fderiv 𝕜 (fun w : S ↦ c + ((w : F) + g w)) z) := by
-  have hPz (w : S) : P w = w :=
-    (LinearMap.IsIdempotentElem.mem_range_iff
-      (ContinuousLinearMap.IsIdempotentElem.toLinearMap hP)).1 (hS w.property)
-  have hgd : HasFDerivAt g (fderiv 𝕜 g z) z := (hg.differentiableAt hn).hasFDerivAt
-  have hPdg (u : F) : P (fderiv 𝕜 g z u) = 0 := by
-    have h1 : HasFDerivAt (fun w ↦ P (g w)) (P.comp (fderiv 𝕜 g z)) z :=
-      P.hasFDerivAt.comp _ hgd
-    have h2 : HasFDerivAt (fun w ↦ P (g w)) (0 : F →L[𝕜] F) z := by
-      simpa [hPg] using hasFDerivAt_const (0 : F) (z : F)
-    simpa using congrArg (· u) (h1.unique h2)
-  have hD : HasFDerivAt (fun w : S ↦ c + ((w : F) + g w))
-      (S.subtypeL + (fderiv 𝕜 g z).comp S.subtypeL) z :=
-    (S.subtypeL.hasFDerivAt.add (hgd.comp (f := S.subtypeL) z S.subtypeL.hasFDerivAt)).const_add _
-  refine ⟨contDiffAt_const.add (S.subtypeL.contDiff.contDiffAt.add
-    (hg.comp (f := S.subtypeL) z S.subtypeL.contDiff.contDiffAt)), ?_⟩
-  rw [hD.fderiv]
-  exact fun u v huv ↦ Subtype.ext (by simpa [hPz, hPdg] using congrArg P huv)
-
-end Graph
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {V : E → E} {x : E} {n : ℕ} {A P : E →L[ℝ] E} {K α : ℝ≥0}
