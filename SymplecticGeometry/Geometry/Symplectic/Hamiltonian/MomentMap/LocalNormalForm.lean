@@ -8,6 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.MomentMap
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.OfPoint
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Tube
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Algebra.MvPolynomial.Basic
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.NormSq
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Slice
 public import TauCeti.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -69,6 +74,17 @@ Its invariant complements `𝔪`, `𝔮` come from
 them by `LinearEquiv.ofFinrankEq`, the data are `SymplecticGeometry.LocalModelData.ofPoint`, and
 `T` is that of `SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint`.
 
+As a consequence, for a nondegenerate `Ad`-invariant form `B` on `𝔤`, the norm square
+`SymplecticGeometry.momentNormSq` of `μ` is a real polynomial in suitable coordinates around
+every point, which is what the Łojasiewicz inequality for it needs. Pick a complement `𝔠` of `𝔥`
+in `𝔤`. The map `s (w, p) = [exp w, p]` from `𝔠 × (A × V)` to `Y` is a local diffeomorphism at
+`0` (`SymplecticGeometry.LocalModelData.isLocalDiffeomorphAt_mk_mulInvariantExp_submodule`), and so
+is `Ψ` after it, with value `x` at `0`. On `Ψ (s (w, p))` the moment map is `μ_Y [exp w, p]`,
+whose norm square is `B^∨ (ν p) (ν p)`
+(`SymplecticGeometry.LocalModelData.dualForm_descendedMomentMap_mk`), a polynomial function of
+`p` (`SymplecticGeometry.LocalModelData.dualForm_covector_mem_polynomialFunctions`). A local
+inverse of `Ψ ∘ s`, followed by a linear isomorphism onto a Euclidean space, is the chart.
+
 ## Main results
 
 * `SymplecticGeometry.LocalModelData.exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt`:
@@ -81,6 +97,8 @@ them by `LinearEquiv.ofFinrankEq`, the data are `SymplecticGeometry.LocalModelDa
 * `SymplecticGeometry.LocalModelData.exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
   the local normal form at a point `x` of a Hamiltonian `G`-manifold, for the local model
   `SymplecticGeometry.LocalModelData.ofPoint` at `x`.
+* `SymplecticGeometry.LocalModelData.exists_partialDiffeomorph_momentNormSq_eq_eval`: around every
+  point, a smooth chart into a Euclidean space in which the norm square of `μ` is a polynomial.
 
 ## References
 
@@ -460,6 +478,103 @@ theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ
     exists_linearEquiv_tangentSpace_ofPoint hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA
   exact D.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap hσc hσG hμ
     (ofPoint_τ hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA) T hTσ hTk hTξ
+
+open scoped GroupLieAlgebra in
+/-- **The norm square of a moment map is a polynomial in a chart.** Let a compact Hausdorff Lie
+group `G` act smoothly on `M`, let `σ` be a closed nondegenerate `G`-invariant two-form on `M` with
+coadjoint-equivariant moment map `μ`, and let `B` be a nondegenerate `Ad`-invariant bilinear form
+on `𝔤`. Then every `x : M` lies in the source of a smooth partial diffeomorphism `e` from `M` to
+a Euclidean space `ℝ^d` in which the norm square `y ↦ B^∨ (μ y) (μ y)` (`momentNormSq`) is a real
+polynomial `P` in the coordinates: `momentNormSq B hB μ y = P (e y)` for every `y` in the source
+of `e`. -/
+theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
+    (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap μ) {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : B.Nondegenerate)
+    (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (x : M) :
+    ∃ (d : ℕ) (e : PartialDiffeomorph I' 𝓘(ℝ, EuclideanSpace ℝ (Fin d)) M
+      (EuclideanSpace ℝ (Fin d)) ∞) (P : MvPolynomial (Fin d) ℝ),
+      x ∈ e.source ∧ ∀ y ∈ e.source, momentNormSq B hB μ y = MvPolynomial.eval (e y) P := by
+  have hx : IsClosed (stabilizer G x : Set G) := isClosed_stabilizer
+    (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
+  have : CompactSpace (stabilizer G x) := isCompact_iff_compactSpace.1 hx.isCompact
+  let d := EmbeddedLieSubgroupData.ofIsClosed (I := I) hx
+  let _ := d.chartedSpace
+  let _ := d.lieGroup
+  let _ := d.contMDiffSMul (I'' := I) (M := G)
+  let V := EuclideanSpace ℝ (Fin (Module.finrank ℝ
+    (hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)))
+  let A := EuclideanSpace ℝ (Fin (Module.finrank ℝ
+    (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule -
+    Module.finrank ℝ ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule))
+  obtain ⟨𝔪, 𝔮, h𝔪, h𝔪', h𝔮, eV, eA, h⟩ :=
+    exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap hσc hσ hσG hμ x
+  set D := ofPoint hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
+    𝓘(ℝ, A × V) (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule
+  obtain ⟨N, Ψ, -, hN0, -, -, hΨ0, hΨd, -, hΨμ⟩ := h
+  let Q := ProperSMul.QuotientModelSpace
+    (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule (E × (A × V))
+  obtain ⟨𝔠, h𝔠⟩ := Submodule.exists_isCompl D.𝔥
+  have hs := D.isLocalDiffeomorphAt_mk_mulInvariantExp_submodule h𝔠
+  set s : 𝔠 × (A × V) → _ := fun p ↦ BalancedProduct.mk (stabilizer G x)
+    ((stabilizer G x).toRightTranslation (mulInvariantExp (I := I) (p.1 : GroupLieAlgebra I G)))
+    p.2 with hs_def
+  -- The point `[1, 0]` of `N`, and a local inverse `r` of the inclusion `N → Y` there.
+  have hs0 : s 0 = BalancedProduct.mk (stabilizer G x)
+      ((stabilizer G x).toRightTranslation (1 : G)) ((0 : A), (0 : V)) := by
+    simp [hs_def, Prod.zero_eq_mk]
+  let y₀ : N := ⟨s 0, hs0 ▸ hN0 1⟩
+  have hval : IsLocalDiffeomorphAt 𝓘(ℝ, Q) 𝓘(ℝ, Q) ∞ (Subtype.val : N → _) y₀ :=
+    isLocalDiffeomorph_subtype_val y₀
+  set r := hval.localInverse
+  have hr0 : r (s 0) = y₀ := hval.localInverse_left_inv hval.localInverse_mem_target
+  have hrs := IsLocalDiffeomorphAt.comp (hf := hs) (hg := hval.localInverse_isLocalDiffeomorphAt)
+  have hΦ := IsLocalDiffeomorphAt.comp (hf := hrs) (hg := hΨd (r (s 0)))
+  set e₀ := hΦ.localInverse
+  have hΦ0 : (Ψ ∘ r ∘ s) 0 = x := by
+    simp only [Function.comp_apply, hr0]
+    rw [← one_smul G x, ← hΨ0 1 (hs0 ▸ hN0 1)]
+    exact congrArg Ψ (Subtype.ext hs0)
+  -- Shrink the source of the local inverse `e₀` of `Ψ ∘ r ∘ s` to where `r` inverts the
+  -- inclusion along `s`.
+  set t := interior (s ⁻¹' r.source)
+  have h0t : (0 : 𝔠 × (A × V)) ∈ t := mem_interior_iff_mem_nhds.2
+    (hs.contMDiffAt.continuousAt.preimage_mem_nhds
+      (r.open_source.mem_nhds hval.localInverse_mem_source))
+  have ht : IsOpen (e₀.source ∩ e₀ ⁻¹' t) :=
+    e₀.contMDiffOn.continuousOn.isOpen_inter_preimage e₀.open_source isOpen_interior
+  let L := ContinuousLinearEquiv.ofFinrankEq
+    (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := Module.finrank ℝ (𝔠 × (A × V)))).symm
+  let e := (e₀.restrOpen _ ht).trans (L.toPartialDiffeomorph (n := ∞))
+  have he : ∀ y, y ∈ e.source ↔ y ∈ e₀.source ∧ e₀ y ∈ t := fun y ↦ by
+    rw [PartialDiffeomorph.trans_toPartialDiffeomorph_source, PartialDiffeomorph.restrOpen_source,
+      ← Set.inter_assoc, Set.inter_self, Set.mem_inter_iff, Set.mem_preimage]
+  have he_apply (y : M) : e y = L (e₀ y) := by
+    simp [e]
+  -- The norm square read in the coordinates `z = L w` is a polynomial function of `z`.
+  obtain ⟨P, hP⟩ := (EuclideanSpace.basisFun (Fin _) ℝ).toBasis.mem_polynomialFunctions_iff.1
+    (Module.comp_linearMap_mem_polynomialFunctions
+      (LinearMap.snd ℝ 𝔠 (A × V) ∘ₗ L.symm.toLinearMap)
+      (D.dualForm_covector_mem_polynomialFunctions hB))
+  have hx₀ := hΦ.localInverse_mem_source
+  have hex := hΦ.localInverse_left_inv hΦ.localInverse_mem_target
+  rw [hΦ0] at hx₀ hex
+  refine ⟨_, e, P, (he x).2 ⟨hx₀, hex ▸ h0t⟩, fun y hy ↦ ?_⟩
+  obtain ⟨hy, hyt⟩ := (he y).1 hy
+  have hrsy : (r (s (e₀ y)) : _) = s (e₀ y) :=
+    hval.localInverse_right_inv (interior_subset hyt : e₀ y ∈ s ⁻¹' r.source)
+  have hy' : Ψ (r (s (e₀ y))) = y := hΦ.localInverse_right_inv hy
+  rw [he_apply]
+  conv_lhs => rw [← hy']
+  rw [momentNormSq_def, hΨμ, hrsy, hs_def, D.dualForm_descendedMomentMap_mk hB hBG]
+  have hb : ((EuclideanSpace.basisFun _ ℝ).repr (L (e₀ y))).ofLp = (L (e₀ y)).ofLp :=
+    funext (EuclideanSpace.basisFun_repr _ ℝ _)
+  simpa [hb] using (hP (L (e₀ y))).symm
 
 end LocalModelData
 
