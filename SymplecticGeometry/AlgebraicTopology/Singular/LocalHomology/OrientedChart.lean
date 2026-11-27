@@ -109,9 +109,9 @@ theorem localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt {F : Type}
       (L.hasFDerivAt.comp _ hD) rfl
   -- The chart `χ`, centred and followed by `L⁻¹`, carries this local orientation to `D ν`.
   have h₂ := χ.localHomologyMap_chart_localOrientationOfOrientedChart hzχ L.symm ω hF' hF (by
-      rintro x hx
-      exact Subtype.ext (χ.injOn x.property hzχ
-        (sub_eq_zero.1 (L.symm.map_eq_zero_iff.1 (by simpa using hx)))))
+      intro x hx
+      refine (χ.centeredSourceRestrict_preimage_zero hzχ).subset (Set.mem_singleton_iff.2 ?_)
+      simpa using L.symm.map_eq_zero_iff.1 (by simpa using hx))
   have hν : ω.map (Fin (m + 1)) L.symm.toLinearEquiv = ν.map (Fin (m + 1)) D.toLinearEquiv := by
     simp only [ω, ContinuousLinearEquiv.trans_toLinearEquiv, Orientation.map_trans]
     exact Orientation.map_symm_map L.toLinearEquiv _
