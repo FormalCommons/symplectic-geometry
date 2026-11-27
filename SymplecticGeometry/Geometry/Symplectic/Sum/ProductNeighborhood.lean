@@ -31,6 +31,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
 
@@ -160,12 +161,6 @@ theorem zeroSlice_apply (q : Q) : zeroSlice J Q q = (q, 0) :=
 theorem coe_zeroSlice : ⇑(zeroSlice J Q) = fun q ↦ (q, 0) :=
   funext zeroSlice_apply
 
-/-- The real dimension of `ℂ` is the codimension of `Q` in `Q × ℂ`. This is the hypothesis on the
-model fibre that `TauCeti.SmoothEmbedding.normalSpaceFiberBundle` takes for the zero slice. -/
-theorem finrank_complex_eq_finrank_prod_sub [FiniteDimensional ℝ EQ] :
-    finrank ℝ ℂ = finrank ℝ (EQ × ℂ) - finrank ℝ EQ := by
-  rw [finrank_prod, Nat.add_sub_cancel_left]
-
 /-- The zero slice pulls the product form `τ ⊕ ω₀` back to `τ`. -/
 theorem mpullback_zeroSlice_prod (τ : SmoothTwoForm J Q) :
     SmoothForm.mpullback (zeroSlice J Q) (zeroSlice J Q).contMDiff
@@ -230,7 +225,7 @@ theorem finrank_normalSpace_zeroSlice (q : Q) :
     finrank ℝ ((zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) =
       finrank ℝ ℂ :=
   ((zeroSlice J Q).isImmersion.finrank_normalSpace q _).trans
-      finrank_complex_eq_finrank_prod_sub.symm
+      Complex.finrank_real_eq_finrank_prod_complex_sub.symm
 
 variable (J Q) in
 /-- The identification of the normal space of the zero slice at `q` with `ℂ`, sending the normal
@@ -269,14 +264,14 @@ variable (J Q) in
 is diffeomorphic to `Q × ℂ` over the identity of `Q`, by `zeroSliceNormalEquiv` on each fibre. -/
 def zeroSliceNormalBundleDiffeomorph :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     TotalSpace ℂ (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
         (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
       ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), J.prod 𝓘(ℝ, ℂ)⟯ Q × ℂ :=
   letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   ((zeroSlice J Q).normalBundleDiffeomorphOfKer (m := ∞) _ (by simp)
-    finrank_complex_eq_finrank_prod_sub (E₂ := Trivial Q ℂ) (W := ℂ)
+    Complex.finrank_real_eq_finrank_prod_complex_sub (E₂ := Trivial Q ℂ) (W := ℂ)
     (fun _ ↦ ContinuousLinearMap.snd ℝ EQ ℂ) snd_eq_zero_iff_mem_tangentRange_zeroSlice
     finrank_normalSpace_zeroSlice (by
       -- The `ℂ`-component of an ambient tangent vector is its image by the differential of
@@ -294,10 +289,10 @@ theorem zeroSliceNormalBundleDiffeomorph_apply
       (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
           (WithTop.coe_ne_zero.2 ENat.top_ne_zero))) :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     zeroSliceNormalBundleDiffeomorph J Q p = (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact (congrArg (Trivial.diffeomorphProd J Q ℂ ∞)
     ((zeroSlice J Q).normalBundleDiffeomorphOfKer_apply _ _ _ _ _ _ _ p)).trans
     (Trivial.diffeomorphProd_apply ..)
@@ -307,11 +302,11 @@ theorem zeroSliceNormalBundleDiffeomorph_apply
 @[simp]
 theorem zeroSliceNormalBundleDiffeomorph_symm_apply (x : Q × ℂ) :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     (zeroSliceNormalBundleDiffeomorph J Q).symm x =
       ⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact ((zeroSlice J Q).normalBundleDiffeomorphOfKer_symm_apply (m := ∞) _ (by simp) _ _ _ _ _
     ((Trivial.diffeomorphProd J Q ℂ ∞).symm x)).trans
       (by rw [Trivial.diffeomorphProd_symm_apply, zeroSliceNormalEquiv_def])
@@ -319,27 +314,27 @@ theorem zeroSliceNormalBundleDiffeomorph_symm_apply (x : Q × ℂ) :
 /-- The identification of the normal bundle of the zero slice with `Q × ℂ` is smooth. -/
 theorem contMDiff_zeroSliceNormalEquiv :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
           (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
               (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) ↦
         (p.proj, zeroSliceNormalEquiv J Q p.proj p.snd)) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact (zeroSliceNormalBundleDiffeomorph J Q).contMDiff.congr
     fun p ↦ (zeroSliceNormalBundleDiffeomorph_apply p).symm
 
 /-- The inverse identification of `Q × ℂ` with the normal bundle of the zero slice is smooth. -/
 theorem contMDiff_zeroSliceNormalEquiv_symm :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun x : Q × ℂ ↦ (⟨x.1, (zeroSliceNormalEquiv J Q x.1).symm x.2⟩ : TotalSpace ℂ
           (fun q ↦ (zeroSlice J Q).isImmersion.NormalSpace q
               (WithTop.coe_ne_zero.2 ENat.top_ne_zero)))) := by
   let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-    (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
   exact (zeroSliceNormalBundleDiffeomorph J Q).symm.contMDiff.congr
     fun x ↦ (zeroSliceNormalBundleDiffeomorph_symm_apply x).symm
 
@@ -398,7 +393,7 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
   /-- The framing is smooth as a map of normal bundles. -/
   contMDiff_toFun :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
@@ -441,11 +436,11 @@ end Basic
 /-- The **identity framing** of the zero slice of `(Q × ℂ, τ ⊕ ω₀)`, for a nondegenerate `τ`. -/
 def refl {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) :
     SymplecticFraming (hasSymplecticTangentImages_zeroSlice_prod hτ)
-      finrank_complex_eq_finrank_prod_sub where
+      Complex.finrank_real_eq_finrank_prod_complex_sub where
   toFun _ := .refl ℝ _
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     -- The map of total spaces is the identity, up to the eta rule for `TotalSpace`.
     exact contMDiff_id
   symplecticNormalForm_toFun q v w :=
@@ -480,7 +475,7 @@ def transLocalDiffeomorph (Φ : SymplecticFraming hι hP) : SymplecticFraming h�
     (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q)
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     let := ι'.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
     exact (ι.contMDiff_normalSpaceEquivOfComp (r := ∞) ι' _ _ le_rfl le_rfl hP hP' hk.contMDiff
@@ -513,7 +508,7 @@ def ofTransLocalDiffeomorph (Φ' : SymplecticFraming hι' hP') : SymplecticFrami
     (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q).symm
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     let := ι.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     let := ι'.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
@@ -612,7 +607,7 @@ def ofPos
       (e q Complex.I)))⁻¹ (inv_ne_zero (Real.sqrt_pos.2 (hpos q)).ne'))).trans (e q))
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- The normal form of `ι` on the sections `q ↦ e q 1` and `q ↦ e q i` is smooth.
     have hl : ContMDiff J 𝓘(ℝ) ∞ fun q ↦
@@ -687,9 +682,9 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ q).symm))
   contMDiff_toFun := by
     let := (zeroSlice J' Q').normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ'))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ'))
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Read through the identification of normal spaces, the framing is `Φ` over `χ`, after the
     -- identifications of the normal bundles of the zero slices with `Q' × ℂ` and `Q × ℂ`.
@@ -738,7 +733,7 @@ def smul (Φ : SymplecticFraming hι hP) {c : ℝ} (hc : 0 < c) :
     (Units.mk0 (√c)⁻¹ (inv_ne_zero (Real.sqrt_pos.2 hc).ne'))).trans (Φ q)
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+      (Complex.finrank_real_eq_finrank_prod_complex_sub (F := EQ))
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Rescale the `ℂ`-component of the normal bundle of the zero slice read in `Q × ℂ`.
     refine (Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
@@ -806,7 +801,8 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
       (Diffeomorph.refl J Q ∞) (by
         rw [mpullback_zeroSlice_prod,
           SmoothForm.mpullback_eq_self_of_eq_id _ (Diffeomorph.coe_refl _ _ _)])
-      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) finrank_complex_eq_finrank_prod_sub hP Φ
+      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) Complex.finrank_real_eq_finrank_prod_complex_sub
+      hP Φ
       Φ.contMDiff_toFun Φ.symplecticNormalForm_toFun
   exact ⟨U₀, U₁, ψ, fun q ↦ (hψ q).imp fun _ h ↦ ⟨h.1, h.2.2⟩, hψσ⟩
 
