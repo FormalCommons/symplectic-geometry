@@ -956,6 +956,13 @@ theorem modelLevel_eq : modelLevel k m = fun p ↦ 1 + modelHandle k m 1 2 p := 
   rw [modelLevel_def, modelHandle_def]
   ring
 
+/-- The model level is smooth. -/
+theorem contDiff_modelLevel {n : WithTop ℕ∞} : ContDiff ℝ n (modelLevel k m) := by
+  have h : modelLevel k m = fun p ↦ 1 - (shape p).1 + 2 * (shape p).2 := funext modelLevel_def
+  rw [h]
+  exact (contDiff_const.sub (contDiff_fst.comp contDiff_shape)).add
+    (contDiff_const.mul (contDiff_snd.comp contDiff_shape))
+
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :

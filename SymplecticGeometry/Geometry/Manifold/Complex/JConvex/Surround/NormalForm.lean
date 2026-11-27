@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Atta
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ComplexFrame
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import Mathlib.Geometry.Manifold.Diffeomorph
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Algebra.Order.Ring.Basic
@@ -19,6 +20,9 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Shell
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.InnerProductSpace.NormPow
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Sphere
 
 /-!
 # Frames adapted to the attaching sphere of a disc
@@ -70,6 +74,18 @@ smooth diffeomorphism that keeps the open unit ball, and on the sphere `σ x = x
 `SymplecticGeometry.IsJOrthogonallyAttached.comp_of_mfderiv_apply_self_eq_smul`, the disc
 `ι ∘ σ` is again attached J-orthogonally.
 
+Finally, the file compares `φ` with the model level `modelLevel k m` read through a partial
+diffeomorphism `Φ` with `Φ (modelDisc k m x) = ι x` and `dΦ = A x` there, at a point `x` of the
+sphere where the radial derivative of `φ ∘ ι` is `-2` and `dφ` vanishes on `A x (0 × ℂᵐ)`. Both
+values are `0`. For the differentials, write a vector of `ℂᵏ × ℂᵐ` as `(u, 0) + i (u', 0) + (0, w)`
+with `u`, `u'` real. Through `A x`, `dφ` sends it to `dφ (dι x u) = -2 ⟪x, u⟫`: radially this is
+the normalization, and tangentially `dφ ∘ dι x` vanishes because `φ ∘ ι` is `0` on the sphere
+(`HasStrictFDerivAt.apply_eq_zero_of_inner_eq_zero`, by Lagrange multipliers). The other two
+terms vanish by J-orthogonality and by the choice of `A x`, and the differential of the model
+level at `modelDisc k m x` (`fderiv_modelLevel_apply`) takes the same values. Since `A x` is
+`dΦ`, which is onto, the two differentials at `ι x` agree. This is the comparison of 1-jets in
+Step 3 of the proof of Theorem 8.5 of Cieliebak–Eliashberg.
+
 ## Main results
 
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_complexFrame_mfderiv_ker`: along a disc
@@ -81,6 +97,9 @@ smooth diffeomorphism that keeps the open unit ball, and on the sphere `σ x = x
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`
   gives a radial diffeomorphism `σ x = τ x • x`, keeping the open unit ball, after which
   the radial derivative of `φ` along the attached disc `ι ∘ σ` is `-2` on the sphere.
+* `SymplecticGeometry.IsJOrthogonallyAttached.apply_eq_modelLevel_symm_apply` and
+  `SymplecticGeometry.IsJOrthogonallyAttached.mvfderiv_eq_mvfderiv_modelLevel_comp_symm`: on the
+  sphere, `φ` and `modelLevel k m ∘ Φ.symm` have the same value and the same differential.
 
 ## References
 
@@ -443,6 +462,117 @@ theorem exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two
 end IsJOrthogonallyAttached
 
 end RadialReparametrization
+
+section ModelJet
+
+open scoped InnerProductSpace
+
+variable {k m : ℕ} {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] {n : WithTop ℕ∞}
+  {φ : M → ℝ} {ι : EuclideanSpace ℝ (Fin k) → M}
+
+namespace IsJOrthogonallyAttached
+
+/-- **The values of `φ` and of the model level agree on the attaching sphere.** Let `ι` be
+attached J-orthogonally to `{φ ≤ 0}` and `Φ` a partial diffeomorphism from `ℂᵏ × ℂᵐ` to `M`
+with `Φ (modelDisc k m x) = ι x` for a point `x` of the unit sphere. Then
+`φ (ι x) = modelLevel k m (Φ.symm (ι x))`: both are `0`. -/
+theorem apply_eq_modelLevel_symm_apply (h : IsJOrthogonallyAttached E φ ι)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M n)
+    {x : EuclideanSpace ℝ (Fin k)} (hx : ‖x‖ = 1) (hsrc : modelDisc k m x ∈ Φ.source)
+    (hval : Φ (modelDisc k m x) = ι x) :
+    φ (ι x) = modelLevel k m (Φ.symm (ι x)) := by
+  rw [show Φ.symm (ι x) = modelDisc k m x from hval ▸ Φ.left_inv hsrc, modelLevel_modelDisc, hx,
+    h.eq_zero x hx]
+  norm_num
+
+/-- **The differentials of `φ` and of the model level agree on the attaching sphere.** Let `ι` be
+attached J-orthogonally to `{φ ≤ 0}`, and let `x` be a point of the unit sphere such that `ι` is
+`C¹` at `x`, `φ` is `C¹` at `ι x` and the radial derivative `dφ (dι x x)` is `-2`. Let
+`A : ℂᵏ × ℂᵐ → T_(ι x) M` be a real-linear map that commutes with multiplication by `i`, extends
+`dι x` along the model disc and maps the second factor `ℂᵐ` into the kernel of `dφ`, and let `Φ`
+be a partial diffeomorphism from `ℂᵏ × ℂᵐ` to `M`, defined at `modelDisc k m x`, with
+`Φ (modelDisc k m x) = ι x` and differential `A` there. Then `dφ` at `ι x` is the differential
+of `modelLevel k m ∘ Φ.symm` at `ι x`. -/
+theorem mvfderiv_eq_mvfderiv_modelLevel_comp_symm (h : IsJOrthogonallyAttached E φ ι)
+    {x : EuclideanSpace ℝ (Fin k)} (hx : ‖x‖ = 1) (hφ : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 1 φ (ι x))
+    (hι : ContMDiffAt 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) 1 ι x)
+    (hrad : mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x x) = -2)
+    {A : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hAI : ∀ v, A (Complex.I • v) = Complex.I • (show E from A v))
+    (hAd : A.comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelDisc k m) x) =
+      mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x)
+    (hA0 : ∀ w, mvfderiv 𝓘(ℝ, E) φ (ι x) (A (0, w)) = 0)
+    (hn : n ≠ 0)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M n)
+    (hsrc : modelDisc k m x ∈ Φ.source) (hval : Φ (modelDisc k m x) = ι x)
+    (hd : mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ
+      (modelDisc k m x) = A) :
+    mvfderiv 𝓘(ℝ, E) φ (ι x) = mvfderiv 𝓘(ℝ, E) (modelLevel k m ∘ Φ.symm) (ι x) := by
+  set p := modelDisc k m x
+  have hsymm : Φ.symm (ι x) = p := hval ▸ Φ.left_inv hsrc
+  -- Along `dι x`, `dφ` is the derivative of `g = φ ∘ ι`, which vanishes on the sphere.
+  set g : EuclideanSpace ℝ (Fin k) → ℝ := φ ∘ ι
+  have hg : HasStrictFDerivAt g (fderiv ℝ g x) x := by
+    have hc := contMDiffAt_iff_contDiffAt.1 (hφ.comp x hι)
+    exact hc.hasStrictFDerivAt (hc.differentiableAt one_ne_zero).hasFDerivAt one_ne_zero
+  have hdg (u : EuclideanSpace ℝ (Fin k)) : mvfderiv 𝓘(ℝ, E) φ (ι x)
+      (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x u) = fderiv ℝ g x u :=
+    (mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) u).symm.trans
+      (TauCeti.mvfderiv_eq_fderiv_apply _ _ _)
+  -- Tangentially `dg x` vanishes, and radially it is `-2`, so `dg x u = -2 ⟪x, u⟫`.
+  have hreal (u : EuclideanSpace ℝ (Fin k)) : fderiv ℝ g x u = -2 * ⟪x, u⟫_ℝ := by
+    have hx0 : x ≠ 0 := by rintro rfl; simp at hx
+    have ht : fderiv ℝ g x (u - ⟪x, u⟫_ℝ • x) = 0 :=
+      hg.apply_eq_zero_of_inner_eq_zero hx0
+        (fun y hy ↦ (h.eq_zero y (hy.trans hx)).trans (h.eq_zero x hx).symm)
+        (by rw [inner_sub_right, real_inner_smul_right, real_inner_self_eq_norm_sq, hx]; ring)
+    rw [map_sub, map_smul, ← hdg x, hrad, smul_eq_mul] at ht
+    linarith
+  -- On every vector, `dφ ∘ A` is the differential of the model level at `p`.
+  have hA (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+      mvfderiv 𝓘(ℝ, E) φ (ι x) (A v) = fderiv ℝ (modelLevel k m) p v := by
+    set a := modelDiscProj k m v
+    set b := modelDiscProj k m (-(Complex.I • v))
+    have hv : v = modelDisc k m a + Complex.I • modelDisc k m b + (0, v.2) := by
+      ext j
+      · apply Complex.ext <;> simp [a, b, modelDisc_apply]
+      · simp
+    have hAm (u : EuclideanSpace ℝ (Fin k)) :
+        A (modelDisc k m u) = mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x u := by
+      rw [← hAd, mfderiv_modelDisc]
+      exact (ContinuousLinearMap.comp_apply _ _ _).symm
+    have h1 : mvfderiv 𝓘(ℝ, E) φ (ι x) (A (modelDisc k m a)) = -2 * ⟪x, a⟫_ℝ :=
+      (congrArg _ (hAm a)).trans ((hdg a).trans (hreal a))
+    have h2 : mvfderiv 𝓘(ℝ, E) φ (ι x) (A (Complex.I • modelDisc k m b)) = 0 :=
+      (congrArg _ ((hAI _).trans (congrArg _ (hAm b)))).trans (h.mvfderiv_I_smul_mfderiv x hx b)
+    conv_lhs => rw [hv, map_add A, map_add A, map_add (mvfderiv 𝓘(ℝ, E) φ (ι x)),
+      map_add (mvfderiv 𝓘(ℝ, E) φ (ι x)), h1, h2, hA0]
+    rw [fderiv_modelLevel_apply]
+    simp [p, a, PiLp.inner_apply, mul_comm, Finset.mul_sum]
+  -- The same holds for the model level read through `Φ`, since `dΦ⁻¹ (ι x)` undoes `A`.
+  have hιt : ι x ∈ Φ.target := hval ▸ Φ.map_source hsrc
+  have hB (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+      mvfderiv 𝓘(ℝ, E) (modelLevel k m ∘ Φ.symm) (ι x) (A v) =
+        fderiv ℝ (modelLevel k m) p v := by
+    have hv := Φ.mfderiv_symm_apply_mfderiv_apply hn hsrc v
+    rw [hd, hval] at hv
+    exact (mvfderiv_comp_apply_of_eq (ι x)
+      (((contDiff_modelLevel (n := 1)).differentiable one_ne_zero p).mdifferentiableAt)
+      (Φ.symm.mdifferentiableAt hn hιt) hsymm (A v)).trans
+      ((congrArg _ hv).trans (TauCeti.mvfderiv_eq_fderiv_apply _ _ _))
+  -- Every tangent vector at `ι x` is `A v` for `v = dΦ⁻¹ (ι x) w`.
+  refine ContinuousLinearMap.ext fun w ↦ ?_
+  have hw := Φ.mfderiv_apply_mfderiv_symm_apply hn hιt w
+  rw [hsymm, hd] at hw
+  exact (congrArg _ hw).symm.trans ((hA _).trans ((hB _).symm.trans (congrArg _ hw)))
+
+end IsJOrthogonallyAttached
+
+end ModelJet
 
 end SymplecticGeometry
 
