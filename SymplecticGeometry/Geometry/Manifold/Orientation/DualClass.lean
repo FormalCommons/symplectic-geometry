@@ -14,8 +14,15 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClas
 
 Let `f : Z → X` be a smooth embedding with closed range of an oriented manifold `Z` into a
 compact oriented manifold `X`, and give its normal bundle `ν` the orientation
-`TauCeti.SmoothEmbedding.normalOrientation f hn hdim oX oZ` induced by those of `X` and `Z`
-(normal directions first). This file proves that the dual class
+`TauCeti.SmoothEmbedding.normalOrientation f hn hdim oX oZ` induced by those of `X` and `Z`.
+As a linear orientation, `normalOrientation` puts the tangent directions first: on each fibre it
+is Tau Ceti's cokernel orientation `Orientation.cokerOfExact`, so a positive basis of `T_z Z`
+followed by lifts of a positive basis of `ν_z` is a positive basis of `T_{f z} X`. In local
+homology this is the order with the normal directions first: by
+`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`, the cross product of
+the local orientations of the normal fibre and of `Z`, in this order, is read in a chart as the
+local orientation of `X`, since the sign of that lemma is the sign of exchanging the two blocks of
+a basis. This file proves that the dual class
 `d_Z = TauCeti.SmoothEmbedding.dualClass f hn hdim hf o rfl ∈ Hʳ(X; ℤ)` satisfies
 
 `d_Z ⌢ [X] = f_* [Z]` in `H_{dim Z}(X; ℤ)`,
@@ -31,10 +38,13 @@ with the class of a normalized tube `Φ`
 `DualClass/Cap.lean`), and the projection `π` carries `u ⌢ μ_Φ` to `[Z]`
 (`TauCeti.SmoothEmbedding.map_proj_singularCap_tubeFundamentalClass` and its variants,
 `DualClass/FundamentalClass.lean`); the push-forward along `f ∘ π` is that along `π` followed by
-that along `f`. The order of the factors, normal directions first, enters only in the second
-step: the local orientation of `X` read through the tube is the exchanged product of those of `Z`
-and of the normal fibre, and `TauCeti.LocalOrientation.cross_localOrientation_eq_map_prodComm`
-turns it into the cross product, normal factor first, that the local cap computation takes
+that along `f`, which
+`TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass_of_forall_isNormalizedTube`
+(`DualClass/Cap.lean`) records for the three cases at once. The order of the factors in local
+homology, normal directions first, enters only in the second step: the local orientation of `X`
+read through the tube is the exchanged product of those of `Z` and of the normal fibre, and
+`TauCeti.LocalOrientation.cross_localOrientation_eq_map_prodComm` turns it into the cross
+product, normal factor first, that the local cap computation takes
 (`TubularNeighborhood/LocalOrientation.lean`).
 
 Throughout, `Z` has dimension `m + 1` (or `0`) and the normal orientation is applied to an
@@ -54,9 +64,6 @@ of positive dimension, and both of dimension zero.
 * `TauCeti.SmoothEmbedding.…` named
   `dualClass_cap_fundamentalClass_of_finrank_eq_zero_of_finrank_fiber_eq_zero`: the same for `Z`
   and `X` of dimension zero.
-* `TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass_of_forall_isNormalizedTube`: the step
-  shared by the three cases, `d_Z ⌢ [X] = f_* c` for any class `c` that the projection gives
-  from `u ⌢ μ_Φ` for every normalized tube `Φ`.
 * `TauCeti.SmoothEmbedding.bijective_thomMap_and_dualClass_cap_fundamentalClass`: the Thom
   isomorphism of the normal bundle, the fibre restrictions of its Thom class, the vanishing of
   `d_Z` off `Z`, its restriction to `Z`, and the cap identity, together.
@@ -96,56 +103,18 @@ section Cap
 
 variable [CompactSpace X] [ChartedSpace V X]
 
-/-- **The cap product of a dual class with the fundamental class, through any tube.** Let
-`f : Z → X` be a smooth embedding with closed range into a compact manifold `X` with a homological
-orientation `oX` of dimension `n`, and let `o` be an orientation of the normal bundle `π : ν → Z`,
-of rank `r`. If a class `c ∈ H_q(Z; ℤ)`, `r + q = n`, is the push-forward along `π` of the cap
-product of the canonical Thom class of `o` with the class `tubeFundamentalClass` of every
-normalized tube `Φ`, then the cap product of `dualClass f hn hdim hf o hr` with the fundamental
-class of `X` is the push-forward of `c` along `f`. -/
-theorem dualClass_cap_fundamentalClass_of_forall_isNormalizedTube (f : SmoothEmbedding I J ∞ Z X)
-    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
-    (hf : IsClosed (range f)) {n q r : ℕ} (oX : HomologicalOrientation X V n)
-    (hnX : finrank ℝ V = n)
-    (o : letI := f.normalSpaceFiberBundle hn hdim
-      letI := f.normalSpaceVectorBundle hn hdim
-      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
-    (hr : finrank ℝ P = r) (h : r + q = n)
-    (c : ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).obj
-      (TopCat.of Z))
-    (hc : letI := f.normalSpaceFiberBundle hn hdim
-      letI := f.normalSpaceVectorBundle hn hdim
-      ∀ (W : TopologicalSpace.Opens X)
-        (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
-        (hΦ : f.IsNormalizedTube hn hdim Φ) (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)),
-        ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-            (TopCat.ofHom ⟨π P _, FiberBundle.continuous_proj P _⟩)
-          (((thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv
-              (ρ_ _).hom r q n h (o.canonicalThomClass hr)).hom
-            (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection oX hnX hK)) = c) :
-    ((TopCat.of X).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h
-        (f.dualClass hn hdim hf o hr)).hom (oX.fundamentalClass hnX) =
-      ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-        (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩) c := by
-  let := f.normalSpaceFiberBundle hn hdim
-  let := f.normalSpaceVectorBundle hn hdim
-  obtain ⟨W, Φ, hΦ, hK, hcap⟩ :=
-    f.exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass hn hdim hf oX hnX
-      (ModuleCat.of ℤ (ULift.{0} ℤ))
-  rw [dualClass_def, hcap, ← hc W Φ hΦ hK]
-  -- The push-forward along `f ∘ π` is that along `π` followed by that along `f`; `f ∘ π` is the
-  -- composite `ContinuousMap.comp` of the two maps by definition.
-  exact (ConcreteCategory.congr_hom (Functor.map_comp _
-    (TopCat.ofHom ⟨π P _, FiberBundle.continuous_proj P _⟩)
-    (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩)) _).trans (ConcreteCategory.comp_apply _ _ _)
-
 /-- **The dual class of a submanifold capped with the fundamental class.** Let `f : Z → X` be a
 smooth embedding with closed range of a manifold `Z` of dimension `m + 1` into a compact manifold
 `X` of dimension `d + 1`, with orientations `oX` of `X` and `oZ` of `Z`. For the induced normal
 orientation `normalOrientation f hn hdim oX oZ`, the cap product of the dual class
 `dualClass f hn hdim hf _ rfl ∈ Hʳ(X; ℤ)`, `r = finrank ℝ P`, with the fundamental class of `X`
 (for the homological orientation of `oX`) is the push-forward along `f` of the fundamental class
-of `Z` (for the homological orientation of `oZ`). The codimension `r` may be zero. -/
+of `Z` (for the homological orientation of `oZ`). The codimension `r` may be zero.
+
+As a linear orientation, `normalOrientation` puts the tangent directions of `Z` first and the
+normal directions after them (`Orientation.cokerOfExact`), with no sign. In local homology this is
+the order with the normal directions first, by
+`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`. -/
 theorem dualClass_cap_fundamentalClass [ChartedSpace E Z] (f : SmoothEmbedding I J ∞ Z X)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     (hf : IsClosed (range f)) {m d : ℕ}
@@ -252,6 +221,10 @@ bundle `ν`. Then:
    `dualClass_cap_fundamentalClass_of_finrank_eq_zero` (`dim Z = 0 < dim X`) and
    `dualClass_cap_fundamentalClass_of_finrank_eq_zero_of_finrank_fiber_eq_zero`
    (`dim Z = dim X = 0`).
+   As a linear orientation, the induced normal orientation puts the tangent directions first
+   (`Orientation.cokerOfExact`), with no sign; in local homology this is the order with the
+   normal directions first
+   (`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`).
 
 The cap identity determines `d_Z`
 (`HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`): it says that `d_Z` is
