@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.Orientation.Pullback
 
 /-!
 # Orientation-preserving maps between a manifold and its model space
@@ -17,6 +18,12 @@ determinant preserves every orientation of `E` at `v`
 (`TauCeti.Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos`). This is the
 counterpart of Tau Ceti's `TauCeti.Manifold.Orientation.isOrientationReversingAt_of_det_fderiv_neg`,
 and its proof is that of Tau Ceti's lemma with the sign changed.
+
+A local diffeomorphism out of a preconnected manifold preserves orientation at every point or
+reverses it at every point
+(`IsLocalDiffeomorph.forall_isOrientationPreservingAt_or_forall_isOrientationReversingAt`), since
+the points where it preserves orientation form a clopen set (Tau Ceti's
+`IsPreconnected.isOrientationPreservingAt_iff`).
 
 The inverse of a chart of the maximal `C¹` atlas of a manifold modelled on `E` preserves
 orientation at a point of its target when the chart preserves it at the corresponding point of its
@@ -49,6 +56,29 @@ theorem isOrientationPreservingAt_of_det_fderiv_pos (o : Manifold.Orientation �
     exact (fderiv ℝ f v).coe_toContinuousLinearEquivOfDetNeZero hdet.ne'
   · rw [orientationAt_eq_orientationAt o (f v) v]
     exact (_root_.Orientation.map_eq_iff_det_pos _ _ o.card_eq).mpr hdet
+
+/-- **A local diffeomorphism of a connected manifold preserves or reverses orientation.** A `Cⁿ`
+local diffeomorphism `f : M → M'`, for `n ≠ 0`, out of a preconnected manifold `M` either
+preserves the orientations `o` and `o'` at every point or reverses them at every point. -/
+theorem
+    _root_.IsLocalDiffeomorph.forall_isOrientationPreservingAt_or_forall_isOrientationReversingAt
+    {H E' H' M M' : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+    [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M] [PreconnectedSpace M]
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+    [IsManifold I' 1 M'] {n : WithTop ℕ∞} {f : M → M'} (hf : IsLocalDiffeomorph I I' n f)
+    (hn : n ≠ 0) (o : Manifold.Orientation I M ι) (o' : Manifold.Orientation I' M' ι) :
+    (∀ x, IsOrientationPreservingAt o o' f x) ∨ ∀ x, IsOrientationReversingAt o o' f x := by
+  have hiff (x y : M) :
+      IsOrientationPreservingAt o o' f x ↔ IsOrientationPreservingAt o o' f y :=
+    isPreconnected_univ.isOrientationPreservingAt_iff
+      (fun z _ ↦ (hf z).contMDiffAt.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+      (fun z _ ↦ (hf z).isInvertible_mfderiv hn) o o' (Set.mem_univ x) (Set.mem_univ y)
+  by_cases h : ∀ x, IsOrientationPreservingAt o o' f x
+  · exact .inl h
+  · obtain ⟨x, hx⟩ := not_forall.1 h
+    exact .inr fun y ↦ ((hf y).isOrientationPreservingAt_or_isOrientationReversingAt hn o o'
+      ).resolve_left fun hy ↦ hx ((hiff x y).2 hy)
 
 /-- **The inverse of an oriented smooth chart preserves orientation.** If a chart `e` of the
 maximal `C¹` atlas of a manifold `M` modelled on `E` preserves orientations at `e.symm y`, from
