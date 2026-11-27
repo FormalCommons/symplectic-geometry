@@ -368,7 +368,7 @@ theorem pathMaslovIndex_eq_transverseMaslovIndex {U U' : unitaryGroup ι ℂ} (�
     have h := congrArg toSubmodule (hδ' t)
     simp only [P, Path.coe_mk_mk] at h
     rw [coe_unitaryFrame_eq_map, coe_graphY_eq_map] at h
-    exact Submodule.map_injective_of_injective (StdSpace.complexEuclideanEquiv ι).injective h
+    exact Submodule.map_injective_of_injective (complexToRealEuclideanIsometry ι).injective h
   have hP : TotallyRealPath.ofLagrangianChart (Path.segment S₀ S₁) hS =
       UnitaryGroup.realImagePath δ' :=
     TotallyRealPath.ext fun t ↦ by

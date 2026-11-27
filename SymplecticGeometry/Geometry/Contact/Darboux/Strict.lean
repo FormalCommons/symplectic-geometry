@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Darboux.Strict
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
@@ -106,7 +107,7 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
     have hd : mvfderiv I chart x v = σ (mvfderiv I φ x v) := by
       rw [show ⇑chart = ⇑σ ∘ ⇑φ from funext hcoe, σ.mvfderiv_comp_apply]
     rw [hsrc] at hx
-    rw [hd, hcoe, ← hpb x hx, Submodule.coe_neg, Pi.neg_apply,
+    rw [hd, hcoe, ← hpb x hx, SmoothBundleForm.neg_apply,
       ContinuousAlternatingMap.neg_apply]
     -- The vectors here lie in `V × V × ℝ` rather than in its tangent spaces, which are the same
     -- type by definition, so `hneg` and `neg_neg` are applied by `exact` rather than by `rw`.
