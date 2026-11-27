@@ -59,20 +59,26 @@ sections are stated, in the rescaled metrics `k ω(·, J ·)`.
 For a complex function `f` on the chart, `D.dbarFun k x f z` is the complex-antilinear part of
 `fderiv ℝ f z` for the same structure. The product of a section `s` with a function `g : M → ℂ`
 reads as the product of the readings, and its connection and `∂̄` readings obey the Leibniz rule
-(`SymplecticGeometry.RescaledUnitaryCharts.dbarReading_fun_smul`).
+(`SymplecticGeometry.RescaledUnitaryCharts.dbarReading_fun_smul`). With the Leibniz bound
+`SymplecticGeometry.jetNormAt_fun_smul_le`, this bounds the jet norms of `g • s` and of its `∂̄`
+(`SymplecticGeometry.RescaledUnitaryCharts.jetNorm_fun_smul_le`,
+`SymplecticGeometry.RescaledUnitaryCharts.dbarJetNorm_fun_smul_le`).
 
 A sequence `s`, with `s k` a section of `PowerBundle P k`, is asymptotically holomorphic
-(`SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic`) when, for each order `r`,
-its `r`-jet norms are bounded and those of `∂̄` are `O(k ^ (-1/2))`, with one constant for all
-large `k` and all centres. The bounds are written with explicit constants and
-`∀ᶠ k in Filter.atTop`. The zero sequence is asymptotically holomorphic; so are negatives,
-complex multiples, sums of sequences that are smooth in the charts, and products with functions
-`g k` whose readings satisfy the same bounds, by the Leibniz bound
-`SymplecticGeometry.jetNormAt_smul_le`. A sequence is uniformly transverse with constant `η`
+(`SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic`) when, for large `k`, the
+readings of `s k` and their `∂̄` readings are smooth at the centre of every chart, and, for each
+order `r`, its `r`-jet norms are bounded and those of `∂̄` are `O(k ^ (-1/2))`, with one constant
+for all large `k` and all centres. The smoothness is needed because `iteratedFDeriv` vanishes
+where a function is not differentiable, so that the bounds alone would allow sections that are
+nowhere continuous. The bounds are written with explicit constants and `∀ᶠ k in Filter.atTop`.
+The zero sequence is asymptotically holomorphic; so are negatives, complex multiples, sums, and
+products with functions `g k` whose readings are smooth and satisfy the same bounds. A sequence
+is uniformly transverse with constant `η`
 (`SymplecticGeometry.IsUniformlyTransverse`) when, for large `k` and every `x`, either `‖s k x‖`
 or `(2π k)^(-1/2)` times the norm of the `(1,0)`-part of `powerConnection α k (s k) x` is at
-least `η`, the norm of the tangent space being that of a Riemannian metric on `M`; this is
-monotone in `η`.
+least `η`, the norm of the tangent space being that of a Riemannian metric on `M`. A sequence
+whose norm is at least `η` everywhere is uniformly transverse
+(`SymplecticGeometry.IsUniformlyTransverse.of_le_norm`), and the notion is monotone in `η`.
 
 ## References
 
@@ -450,8 +456,45 @@ theorem dbarFun_def (k : ℕ) (x : M) (f : StdSpace ι → ℂ) (z : StdSpace ι
       (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
   (rfl)
 
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- The `∂̄` of a complex function `f` on the chart, applied to `v`, is
+`½ (df_z v + i df_z (J_z v))`, for `J_z` the structure `J` pushed forward by the chart at `z`. -/
+theorem dbarFun_apply (k : ℕ) (x : M) (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    D.dbarFun k x f z v = (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z
+      ((J.chartPushforward (D.chart k x).toOpenPartialHomeomorph z : StdSpace ι →ₗ[ℝ] StdSpace ι)
+        v)) := by
+  simp only [dbarFun_def, LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+    ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul]
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- `∂̄` is additive on functions that are differentiable at `z`. -/
+theorem dbarFun_add {k : ℕ} {x : M} {f g : StdSpace ι → ℂ} {z : StdSpace ι}
+    (hf : DifferentiableAt ℝ f z) (hg : DifferentiableAt ℝ g z) :
+    D.dbarFun k x (f + g) z = D.dbarFun k x f z + D.dbarFun k x g z := by
+  rw [dbarFun_def, fderiv_add hf hg, ContinuousLinearMap.toLinearMap_add,
+    complexAntilinearPart_add, map_add, dbarFun_def, dbarFun_def]
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+/-- `∂̄` commutes with multiplication by a complex constant, on functions that are
+differentiable at `z`. -/
+theorem dbarFun_const_smul {k : ℕ} {x : M} {f : StdSpace ι → ℂ} {z : StdSpace ι}
+    (hf : DifferentiableAt ℝ f z) (c : ℂ) :
+    D.dbarFun k x (c • f) z = c • D.dbarFun k x f z := by
+  ext v
+  simp only [dbarFun_apply, fderiv_const_smul hf c, smul_apply,
+    smul_eq_mul, Complex.real_smul]
+  ring
+
+omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
+@[simp]
+theorem dbarFun_zero (k : ℕ) (x : M) (z : StdSpace ι) :
+    D.dbarFun k x (0 : StdSpace ι → ℂ) z = 0 := by
+  ext v
+  simp [dbarFun_apply]
+
 /-- The reading of the product of a section `s` with a function `g : M → ℂ` is the product of
 the reading of `s` with `g` read in the chart. -/
+@[simp]
 theorem reading_fun_smul (k : ℕ) (x : M) (g : M → ℂ) (s : Π y, PowerBundle P k y) :
     D.reading k x (fun y ↦ g y • s y) =
       fun z ↦ g ((D.chart k x).symm z) • D.reading k x s z := by
@@ -488,62 +531,125 @@ theorem dbarReading_fun_smul {k : ℕ} {x : M} {g : M → ℂ} {s : Π y, PowerB
     Complex.real_smul, map_add]
   ring
 
+/-- The Leibniz rule for `∂̄` read in the chart, as an equality of germs at `z₀`, where `g` read
+in the chart and the reading of `s` are differentiable near `z₀`. -/
+theorem dbarReading_fun_smul_eventuallyEq {k : ℕ} {x : M} {g : M → ℂ}
+    {s : Π y, PowerBundle P k y} {z₀ : StdSpace ι}
+    (hg : ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (fun w ↦ g ((D.chart k x).symm w)) z)
+    (hs : ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x s) z) :
+    D.dbarReading k x (fun y ↦ g y • s y) =ᶠ[𝓝 z₀]
+      fun z ↦ g ((D.chart k x).symm z) • D.dbarReading k x s z +
+        D.reading k x s z • D.dbarFun k x (fun w ↦ g ((D.chart k x).symm w)) z :=
+  (hg.and hs).mono fun _ hz ↦ D.dbarReading_fun_smul hz.1 hz.2
+
+/-- The **Leibniz bound for jet norms of sections**: for `G` the function `g` read in the chart
+centred at `x`, if `G` and the reading of `s` are `C^r` at `0`, the `r`-jet norm of `g • s` at
+`x` is at most `(r + 1) * 2 ^ r` times the product of the `r`-jet norms of `G` at `0` and of `s`
+at `x`. -/
+theorem jetNorm_fun_smul_le {k r : ℕ} {g : M → ℂ} {s : Π y, PowerBundle P k y} {x : M}
+    (hg : ContDiffAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0)
+    (hs : ContDiffAt ℝ r (D.reading k x s) 0) :
+    D.jetNorm k r (fun y ↦ g y • s y) x ≤
+      (r + 1) * 2 ^ r * jetNormAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0 * D.jetNorm k r s x := by
+  rw [jetNorm_def, reading_fun_smul, jetNorm_def]
+  exact jetNormAt_fun_smul_le hg hs
+
+/-- The **Leibniz bound for jet norms of `∂̄`**: for `G` the function `g` read in the chart
+centred at `x`, if `G` and the reading of `s` are differentiable near `0`, and `G`, the reading
+of `s`, `∂̄ G` and the `∂̄` reading of `s` are `C^r` at `0`, then the `r`-jet norm of
+`∂̄ (g • s)` at `x` is at most `(r + 1) * 2 ^ r` times
+`J(G) * J(∂̄ s) + J(s) * J(∂̄ G)`, each `J` an `r`-jet norm at `0` or at `x`. -/
+theorem dbarJetNorm_fun_smul_le {k r : ℕ} {g : M → ℂ} {s : Π y, PowerBundle P k y} {x : M}
+    (hg : ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (fun w ↦ g ((D.chart k x).symm w)) z)
+    (hs : ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x s) z)
+    (hg' : ContDiffAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0)
+    (hs' : ContDiffAt ℝ r (D.reading k x s) 0)
+    (hdg : ContDiffAt ℝ r (D.dbarFun k x fun z ↦ g ((D.chart k x).symm z)) 0)
+    (hds : ContDiffAt ℝ r (D.dbarReading k x s) 0) :
+    D.dbarJetNorm k r (fun y ↦ g y • s y) x ≤
+      (r + 1) * 2 ^ r * (jetNormAt ℝ r (fun z ↦ g ((D.chart k x).symm z)) 0 *
+          D.dbarJetNorm k r s x +
+        D.jetNorm k r s x * jetNormAt ℝ r (D.dbarFun k x fun z ↦ g ((D.chart k x).symm z)) 0) := by
+  rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r
+    (D.dbarReading_fun_smul_eventuallyEq hg hs)]
+  refine (jetNormAt_add_le (hg'.smul hds) (hs'.smul hdg)).trans ?_
+  refine (add_le_add (jetNormAt_fun_smul_le hg' hds) (jetNormAt_fun_smul_le hs' hdg)).trans ?_
+  rw [← dbarJetNorm_def, ← jetNorm_def]
+  exact le_of_eq (by ring)
+
 /-! ### Asymptotically holomorphic sequences -/
 
 /-- A sequence `s` of sections, `s k` of `PowerBundle P k`, is **asymptotically holomorphic**
-for the rescaled unitary charts `D` when, for every order `r`, there is a constant `C` such that,
-for `k` large and every point `x`, the `r`-jet norm of `s k` at `x` is at most `C` and that of
-`∂̄ (s k)` at most `C * k ^ (-1/2)`. -/
+for the rescaled unitary charts `D` when, for `k` large, the reading of `s k` and its `∂̄`
+reading are smooth at the centre of the chart at every point `x`, and, for every order `r`,
+there is a constant `C` such that, for `k` large and every point `x`, the `r`-jet norm of `s k`
+at `x` is at most `C` and that of `∂̄ (s k)` at most `C * k ^ (-1/2)`. -/
 def IsAsymptoticallyHolomorphic (s : ∀ k : ℕ, Π y, PowerBundle P k y) : Prop :=
+  (∀ᶠ k in Filter.atTop, ∀ x : M,
+    ContDiffAt ℝ ∞ (D.reading k x (s k)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) 0) ∧
   ∀ r : ℕ, ∃ C : ℝ, ∀ᶠ k in Filter.atTop, ∀ x : M,
     D.jetNorm k r (s k) x ≤ C ∧ D.dbarJetNorm k r (s k) x ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ)
 
 theorem isAsymptoticallyHolomorphic_def (s : ∀ k : ℕ, Π y, PowerBundle P k y) :
-    D.IsAsymptoticallyHolomorphic s ↔ ∀ r : ℕ, ∃ C : ℝ, ∀ᶠ k in Filter.atTop, ∀ x : M,
-      D.jetNorm k r (s k) x ≤ C ∧ D.dbarJetNorm k r (s k) x ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ) :=
+    D.IsAsymptoticallyHolomorphic s ↔
+      (∀ᶠ k in Filter.atTop, ∀ x : M,
+        ContDiffAt ℝ ∞ (D.reading k x (s k)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) 0) ∧
+      ∀ r : ℕ, ∃ C : ℝ, ∀ᶠ k in Filter.atTop, ∀ x : M,
+        D.jetNorm k r (s k) x ≤ C ∧ D.dbarJetNorm k r (s k) x ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ) :=
   Iff.rfl
 
 /-- The zero sequence of sections is asymptotically holomorphic. -/
 theorem isAsymptoticallyHolomorphic_zero :
-    D.IsAsymptoticallyHolomorphic fun k ↦ (0 : Π y, PowerBundle P k y) :=
-  fun _ ↦ ⟨0, Filter.Eventually.of_forall fun _ _ ↦ by simp⟩
+    D.IsAsymptoticallyHolomorphic fun k ↦ (0 : Π y, PowerBundle P k y) := by
+  refine ⟨Filter.Eventually.of_forall fun k x ↦ ?_, fun _ ↦
+    ⟨0, Filter.Eventually.of_forall fun _ _ ↦ by simp⟩⟩
+  rw [reading_zero, funext (D.dbarReading_zero k x)]
+  exact ⟨contDiffAt_const, contDiffAt_const⟩
 
 /-- The negative of an asymptotically holomorphic sequence is asymptotically holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.neg {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : D.IsAsymptoticallyHolomorphic s) : D.IsAsymptoticallyHolomorphic fun k ↦ -s k := by
-  intro r
-  obtain ⟨C, hC⟩ := hs r
-  exact ⟨C, hC.mono fun k hk x ↦ by simpa using hk x⟩
+  refine ⟨hs.1.mono fun k hk x ↦ ?_, fun r ↦ ?_⟩
+  · rw [reading_neg, funext (D.dbarReading_neg k x (s k))]
+    exact ⟨(hk x).1.neg, (hk x).2.neg⟩
+  · obtain ⟨C, hC⟩ := hs.2 r
+    exact ⟨C, hC.mono fun k hk x ↦ by simpa using hk x⟩
 
 /-- A complex multiple of an asymptotically holomorphic sequence is asymptotically
 holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.const_smul {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : D.IsAsymptoticallyHolomorphic s) (c : ℂ) :
     D.IsAsymptoticallyHolomorphic fun k ↦ c • s k := by
-  intro r
-  obtain ⟨C, hC⟩ := hs r
-  refine ⟨‖c‖ * C, hC.mono fun k hk x ↦ ?_⟩
-  rw [jetNorm_smul, dbarJetNorm_smul, mul_assoc]
-  exact ⟨by gcongr; exact (hk x).1, by gcongr; exact (hk x).2⟩
+  refine ⟨hs.1.mono fun k hk x ↦ ?_, fun r ↦ ?_⟩
+  · rw [reading_smul, funext (D.dbarReading_smul k x c (s k))]
+    exact ⟨(hk x).1.const_smul c, (hk x).2.const_smul c⟩
+  · obtain ⟨C, hC⟩ := hs.2 r
+    refine ⟨‖c‖ * C, hC.mono fun k hk x ↦ ?_⟩
+    rw [jetNorm_smul, dbarJetNorm_smul, mul_assoc]
+    exact ⟨by gcongr; exact (hk x).1, by gcongr; exact (hk x).2⟩
 
-/-- The **sum of asymptotically holomorphic sequences** is asymptotically holomorphic, for
-sequences whose readings and `∂̄` readings are, for `k` large, smooth at the centre of each
-chart. -/
+/-- The **sum of asymptotically holomorphic sequences** is asymptotically holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.add {s t : ∀ k : ℕ, Π y, PowerBundle P k y}
-    (hs : D.IsAsymptoticallyHolomorphic s) (ht : D.IsAsymptoticallyHolomorphic t)
-    (hs' : ∀ᶠ k in Filter.atTop, ∀ x : M,
-      ContDiffAt ℝ ∞ (D.reading k x (s k)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) 0)
-    (ht' : ∀ᶠ k in Filter.atTop, ∀ x : M,
-      ContDiffAt ℝ ∞ (D.reading k x (t k)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (t k)) 0) :
+    (hs : D.IsAsymptoticallyHolomorphic s) (ht : D.IsAsymptoticallyHolomorphic t) :
     D.IsAsymptoticallyHolomorphic fun k ↦ s k + t k := by
-  intro r
-  obtain ⟨Cs, hCs⟩ := hs r
-  obtain ⟨Ct, hCt⟩ := ht r
-  refine ⟨Cs + Ct, (((hCs.and hCt).and hs').and ht').mono fun k ⟨⟨⟨hks, hkt⟩, hks'⟩, hkt'⟩ x ↦ ?_⟩
+  have h1 : (1 : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
+  refine ⟨(hs.1.and ht.1).mono fun k ⟨hks, hkt⟩ x ↦ ?_, fun r ↦ ?_⟩
+  · obtain ⟨hf, hdf⟩ := hks x
+    obtain ⟨hh, hdh⟩ := hkt x
+    have h : D.dbarReading k x (s k + t k) =ᶠ[𝓝 0]
+        D.dbarReading k x (s k) + D.dbarReading k x (t k) :=
+      (((hf.of_le h1).eventually (by simp)).and ((hh.of_le h1).eventually (by simp))).mono
+        fun z hz ↦ D.dbarReading_add (hz.1.differentiableAt one_ne_zero)
+          (hz.2.differentiableAt one_ne_zero)
+    rw [reading_add]
+    exact ⟨hf.add hh, (hdf.add hdh).congr_of_eventuallyEq h⟩
+  obtain ⟨Cs, hCs⟩ := hs.2 r
+  obtain ⟨Ct, hCt⟩ := ht.2 r
+  refine ⟨Cs + Ct,
+    (((hCs.and hCt).and hs.1).and ht.1).mono fun k ⟨⟨⟨hks, hkt⟩, hks'⟩, hkt'⟩ x ↦ ?_⟩
   obtain ⟨hf, hdf⟩ := hks' x
   obtain ⟨hh, hdh⟩ := hkt' x
   have hr : (r : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
-  have h1 : (1 : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
   constructor
   · exact (D.jetNorm_add_le (hf.of_le hr) (hh.of_le hr)).trans (add_le_add (hks x).1 (hkt x).1)
   · refine (D.dbarJetNorm_add_le ?_ ?_ (hdf.of_le hr) (hdh.of_le hr)).trans ?_
@@ -553,16 +659,13 @@ theorem IsAsymptoticallyHolomorphic.add {s t : ∀ k : ℕ, Π y, PowerBundle P 
       exact add_le_add (hks x).2 (hkt x).2
 
 /-- The **product of an asymptotically holomorphic sequence with a sequence of bounded
-functions**: let `g k : M → ℂ` be functions whose readings `G = g k ∘ (D.chart k x).symm` have,
-for every order `r` and uniformly in `x` for `k` large, `r`-jet norms at `0` at most a constant
-and `∂̄` jet norms at `0` at most a constant times `k ^ (-1/2)`. If `s` is asymptotically
-holomorphic, and for `k` large the readings of `s k` and of `g k` and their `∂̄` readings are
-smooth at the centre of each chart, then `fun k y ↦ g k y • s k y` is asymptotically
-holomorphic. -/
+functions**: let `g k : M → ℂ` be functions whose readings `G = g k ∘ (D.chart k x).symm` and
+their `∂̄` are, for `k` large, smooth at `0` for every `x`, and have, for every order `r` and
+uniformly in `x` for `k` large, `r`-jet norms at `0` at most a constant and `∂̄` jet norms at `0`
+at most a constant times `k ^ (-1/2)`. If `s` is asymptotically holomorphic, then
+`fun k y ↦ g k y • s k y` is asymptotically holomorphic. -/
 theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle P k y}
     {g : ℕ → M → ℂ} (hs : D.IsAsymptoticallyHolomorphic s)
-    (hs' : ∀ᶠ k in Filter.atTop, ∀ x : M,
-      ContDiffAt ℝ ∞ (D.reading k x (s k)) 0 ∧ ContDiffAt ℝ ∞ (D.dbarReading k x (s k)) 0)
     (hg : ∀ r : ℕ, ∃ C : ℝ, ∀ᶠ k in Filter.atTop, ∀ x : M,
       jetNormAt ℝ r (fun z ↦ g k ((D.chart k x).symm z)) 0 ≤ C ∧
         jetNormAt ℝ r (D.dbarFun k x fun z ↦ g k ((D.chart k x).symm z)) 0 ≤
@@ -571,53 +674,49 @@ theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle
       ContDiffAt ℝ ∞ (fun z ↦ g k ((D.chart k x).symm z)) 0 ∧
         ContDiffAt ℝ ∞ (D.dbarFun k x fun z ↦ g k ((D.chart k x).symm z)) 0) :
     D.IsAsymptoticallyHolomorphic fun k y ↦ g k y • s k y := by
-  intro r
-  obtain ⟨Cs, hCs⟩ := hs r
+  have h1 : (1 : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
+  refine ⟨(hs.1.and hg').mono fun k ⟨hks, hkg⟩ x ↦ ?_, fun r ↦ ?_⟩
+  · obtain ⟨hf, hdf⟩ := hks x
+    obtain ⟨hG, hdG⟩ := hkg x
+    rw [reading_fun_smul]
+    refine ⟨hG.smul hf, ((hG.smul hdf).add (hf.smul hdG)).congr_of_eventuallyEq
+      (D.dbarReading_fun_smul_eventuallyEq ?_ ?_)⟩
+    · exact ((hG.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero
+    · exact ((hf.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero
+  obtain ⟨Cs, hCs⟩ := hs.2 r
   obtain ⟨Cg, hCg⟩ := hg r
   set c : ℝ := (r + 1) * 2 ^ r
   have : 0 ≤ c := by positivity
   refine ⟨2 * c * Cg * Cs,
-    (((hCs.and hCg).and hs').and hg').mono fun k ⟨⟨⟨hks, hkg⟩, hks'⟩, hkg'⟩ x ↦ ?_⟩
+    (((hCs.and hCg).and hs.1).and hg').mono fun k ⟨⟨⟨hks, hkg⟩, hks'⟩, hkg'⟩ x ↦ ?_⟩
   obtain ⟨hf, hdf⟩ := hks' x
   obtain ⟨hG, hdG⟩ := hkg' x
   obtain ⟨hJf, hJdf⟩ := hks x
   obtain ⟨hJG, hJdG⟩ := hkg x
-  set G : StdSpace ι → ℂ := fun z ↦ g k ((D.chart k x).symm z)
   have hr : (r : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
-  have h1 : (1 : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
   have : 0 ≤ (k : ℝ) ^ (-1 / 2 : ℝ) := Real.rpow_nonneg (Nat.cast_nonneg k) _
-  have hJf₀ : 0 ≤ D.jetNorm k r (s k) x := D.jetNorm_nonneg k r (s k) x
-  have hJdf₀ : 0 ≤ D.dbarJetNorm k r (s k) x := D.dbarJetNorm_nonneg k r (s k) x
-  have hJG₀ : 0 ≤ jetNormAt ℝ r G 0 := jetNormAt_nonneg r G 0
-  have hJdG₀ : 0 ≤ jetNormAt ℝ r (D.dbarFun k x G) 0 := jetNormAt_nonneg r _ 0
-  have hCs₀ : 0 ≤ Cs := hJf₀.trans hJf
-  have hCg₀ : 0 ≤ Cg := hJG₀.trans hJG
+  have hCs₀ : 0 ≤ Cs := (D.jetNorm_nonneg k r (s k) x).trans hJf
+  have hCg₀ : 0 ≤ Cg := (jetNormAt_nonneg r _ 0).trans hJG
+  have := D.dbarJetNorm_nonneg k r (s k) x
+  have := D.jetNorm_nonneg k r (s k) x
+  have := jetNormAt_nonneg (𝕜 := ℝ) r (D.dbarFun k x fun z ↦ g k ((D.chart k x).symm z)) 0
+  have := jetNormAt_nonneg (𝕜 := ℝ) r (fun z ↦ g k ((D.chart k x).symm z)) 0
   constructor
-  · rw [jetNorm_def, reading_fun_smul]
-    refine (jetNormAt_smul_le (hG.of_le hr) (hf.of_le hr)).trans ?_
-    rw [← jetNorm_def]
-    calc c * jetNormAt ℝ r G 0 * D.jetNorm k r (s k) x ≤ c * Cg * Cs := by gcongr
+  · refine (D.jetNorm_fun_smul_le (hG.of_le hr) (hf.of_le hr)).trans ?_
+    calc c * jetNormAt ℝ r (fun z ↦ g k ((D.chart k x).symm z)) 0 * D.jetNorm k r (s k) x
+        ≤ c * Cg * Cs := by gcongr
       _ ≤ 2 * c * Cg * Cs := by
         have : 0 ≤ c * Cg * Cs := by positivity
         linarith
-  · have hdiff : ∀ᶠ z in 𝓝 0,
-        DifferentiableAt ℝ G z ∧ DifferentiableAt ℝ (D.reading k x (s k)) z :=
-      (((hG.of_le h1).eventually (by simp)).and ((hf.of_le h1).eventually (by simp))).mono
-        fun z hz ↦ ⟨hz.1.differentiableAt one_ne_zero, hz.2.differentiableAt one_ne_zero⟩
-    have h : D.dbarReading k x (fun y ↦ g k y • s k y) =ᶠ[𝓝 0]
-        (fun z ↦ G z • D.dbarReading k x (s k) z) +
-          fun z ↦ D.reading k x (s k) z • D.dbarFun k x G z :=
-      hdiff.mono fun z hz ↦ D.dbarReading_fun_smul hz.1 hz.2
-    rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r h]
-    refine (jetNormAt_add_le ((hG.of_le hr).smul (hdf.of_le hr))
-      ((hf.of_le hr).smul (hdG.of_le hr))).trans ?_
-    refine (add_le_add (jetNormAt_smul_le (hG.of_le hr) (hdf.of_le hr))
-      (jetNormAt_smul_le (hf.of_le hr) (hdG.of_le hr))).trans ?_
-    rw [← dbarJetNorm_def, ← jetNorm_def]
-    calc c * jetNormAt ℝ r G 0 * D.dbarJetNorm k r (s k) x +
-          c * D.jetNorm k r (s k) x * jetNormAt ℝ r (D.dbarFun k x G) 0
-        ≤ c * Cg * (Cs * (k : ℝ) ^ (-1 / 2 : ℝ)) +
-          c * Cs * (Cg * (k : ℝ) ^ (-1 / 2 : ℝ)) := by gcongr
+  · refine (D.dbarJetNorm_fun_smul_le
+      (((hG.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero)
+      (((hf.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero)
+      (hG.of_le hr) (hf.of_le hr) (hdG.of_le hr) (hdf.of_le hr)).trans ?_
+    calc c * (jetNormAt ℝ r (fun z ↦ g k ((D.chart k x).symm z)) 0 * D.dbarJetNorm k r (s k) x +
+          D.jetNorm k r (s k) x *
+            jetNormAt ℝ r (D.dbarFun k x fun z ↦ g k ((D.chart k x).symm z)) 0)
+        ≤ c * (Cg * (Cs * (k : ℝ) ^ (-1 / 2 : ℝ)) + Cs * (Cg * (k : ℝ) ^ (-1 / 2 : ℝ))) := by
+          gcongr
       _ = 2 * c * Cg * Cs * (k : ℝ) ^ (-1 / 2 : ℝ) := by ring
 
 end RescaledUnitaryCharts
@@ -652,6 +751,12 @@ theorem isUniformlyTransverse_def {η : ℝ} {s : ∀ k : ℕ, Π y, PowerBundle
     IsUniformlyTransverse J α η s ↔ ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ max ‖s k x‖
       ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart (powerConnection α k (s k) x)‖) :=
   Iff.rfl
+
+/-- A sequence whose norm is at least `η` everywhere, for `k` large, is uniformly transverse with
+constant `η`. -/
+theorem IsUniformlyTransverse.of_le_norm {η : ℝ} {s : ∀ k : ℕ, Π y, PowerBundle P k y}
+    (hs : ∀ᶠ k in Filter.atTop, ∀ x : M, η ≤ ‖s k x‖) : IsUniformlyTransverse J α η s :=
+  hs.mono fun _ hk x ↦ le_max_of_le_left (hk x)
 
 /-- Uniform transversality with a constant `η` gives it with every smaller constant. -/
 theorem IsUniformlyTransverse.mono {η η' : ℝ} {s : ∀ k : ℕ, Π y, PowerBundle P k y}

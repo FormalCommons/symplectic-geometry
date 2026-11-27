@@ -144,7 +144,9 @@ $d_k(x,y)$. Here $d_k=\sqrt{2\pi k}\,d_{g_J}$, with $d_{g_J}$ Mathlib's
 `Manifold.riemannianEDist` for the metric $g_J$.
 
 With these, a sequence $(s_k)_{k}$ of sections of `L k` is **asymptotically
-holomorphic** (`IsAsymptoticallyHolomorphic`) when for every $r$ there is a
+holomorphic** (`IsAsymptoticallyHolomorphic`) when, for large $k$ and every
+$x$, the reading of $s_k$ and its $\bar\partial$ reading are smooth at the
+centre of the chart at $x$, and for every $r$ there is a
 $C$ with, for large $k$ and every $x$, `jetNorm k r (s k) x ≤ C` and
 `dbarJetNorm k r (s k) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
 transverse** with constant $\eta>0$ (`IsUniformlyTransverse η`) when for

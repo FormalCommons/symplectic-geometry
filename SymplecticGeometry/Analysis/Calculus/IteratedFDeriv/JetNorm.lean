@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
-import TauCeti.Analysis.Calculus.ContDiff.Bounds
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Bilinear
 
 /-!
 # The jet norm of a function at a point
@@ -31,9 +31,10 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
 * `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for every
   `f`.
-* `SymplecticGeometry.jetNormAt_smul_le`: the Leibniz bound on the jet norm of a product
+* `SymplecticGeometry.jetNormAt_fun_smul_le`: the Leibniz bound on the jet norm of a product
   `fun y ↦ f y • g y` of functions that are `C^r` at `z`, from Tau Ceti's
-  `TauCeti.norm_iteratedFDeriv_smul_le_of_isOpen` on an open neighbourhood of `z`.
+  `ContinuousLinearMap.norm_iteratedFDeriv_le_of_bilinear_of_forall_le` applied to
+  `ContinuousLinearMap.lsmul`.
 
 ## References
 
@@ -135,40 +136,31 @@ theorem jetNormAt_smul {R : Type*} [NormedField R] [NormedSpace R F] [SMulCommCl
 /-- The **Leibniz bound for jet norms**: for functions `f` and `g` that are `C^r` at `z`, the
 `r`-jet norm of `fun y ↦ f y • g y` at `z` is at most `(r + 1) * 2 ^ r` times the product of
 the `r`-jet norms of `f` and `g`. -/
-theorem jetNormAt_smul_le {𝕜' : Type*} [NormedField 𝕜'] [NormedAlgebra 𝕜 𝕜'] [NormedSpace 𝕜' F]
-    [IsScalarTower 𝕜 𝕜' F] {r : ℕ} {f : E → 𝕜'} {g : E → F} {z : E} (hf : ContDiffAt 𝕜 r f z)
-    (hg : ContDiffAt 𝕜 r g z) :
+theorem jetNormAt_fun_smul_le {𝕜' : Type*} [NormedField 𝕜'] [NormedAlgebra 𝕜 𝕜']
+    [NormedSpace 𝕜' F] [IsScalarTower 𝕜 𝕜' F] {r : ℕ} {f : E → 𝕜'} {g : E → F} {z : E}
+    (hf : ContDiffAt 𝕜 r f z) (hg : ContDiffAt 𝕜 r g z) :
     jetNormAt 𝕜 r (fun y ↦ f y • g y) z ≤
       (r + 1) * 2 ^ r * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z := by
-  obtain ⟨u, hu, hfu⟩ := hf.contDiffOn le_rfl (by simp)
-  obtain ⟨v, hv, hgv⟩ := hg.contDiffOn le_rfl (by simp)
-  set t := interior (u ∩ v)
-  have ht : IsOpen t := isOpen_interior
-  have hzt : z ∈ t := mem_interior_iff_mem_nhds.2 (Filter.inter_mem hu hv)
-  have hft : ContDiffOn 𝕜 r f t := hfu.mono (interior_subset.trans Set.inter_subset_left)
-  have hgt : ContDiffOn 𝕜 r g t := hgv.mono (interior_subset.trans Set.inter_subset_right)
   have hf₀ := jetNormAt_nonneg (𝕜 := 𝕜) r f z
   have hg₀ := jetNormAt_nonneg (𝕜 := 𝕜) r g z
+  -- Each derivative of order `j ≤ r` is bounded by Tau Ceti's Leibniz bound for the bilinear
+  -- map `lsmul`, whose norm is at most `1`.
   have key (j : ℕ) (hj : j ≤ r) : ‖iteratedFDeriv 𝕜 j (fun y ↦ f y • g y) z‖ ≤
       2 ^ r * (jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z) := by
-    refine (TauCeti.norm_iteratedFDeriv_smul_le_of_isOpen ht hft hgt hzt
-      (by exact_mod_cast hj)).trans ?_
-    calc ∑ i ∈ Finset.range (j + 1), (j.choose i : ℝ) * ‖iteratedFDeriv 𝕜 i f z‖ *
-          ‖iteratedFDeriv 𝕜 (j - i) g z‖
-        ≤ ∑ i ∈ Finset.range (j + 1), (j.choose i : ℝ) *
-          (jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z) := by
-          refine Finset.sum_le_sum fun i hi ↦ ?_
-          have hi' := Finset.mem_range_succ_iff.1 hi
-          rw [mul_assoc]
+    have hjr : (j : WithTop ℕ∞) ≤ r := by exact_mod_cast hj
+    have h := ContinuousLinearMap.norm_iteratedFDeriv_le_of_bilinear_of_forall_le
+      (ContinuousLinearMap.lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F) (hf.of_le hjr) (hg.of_le hjr)
+      (fun i hi ↦ norm_iteratedFDeriv_le_jetNormAt (hi.trans hj) f z)
+      (fun i hi ↦ norm_iteratedFDeriv_le_jetNormAt (hi.trans hj) g z)
+    simp only [ContinuousLinearMap.lsmul_apply] at h
+    refine h.trans ?_
+    have h2 : (2 : ℝ) ^ j ≤ 2 ^ r := pow_le_pow_right₀ (by norm_num) hj
+    calc ‖(ContinuousLinearMap.lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] F →L[𝕜] F)‖ * 2 ^ j *
+          jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z
+        ≤ 1 * 2 ^ r * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z := by
           gcongr
-          · exact norm_iteratedFDeriv_le_jetNormAt (by omega) f z
-          · exact norm_iteratedFDeriv_le_jetNormAt (by omega) g z
-      _ = 2 ^ j * (jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z) := by
-          rw [← Finset.sum_mul, ← Nat.cast_sum, Nat.sum_range_choose, Nat.cast_pow,
-            Nat.cast_ofNat]
-      _ ≤ 2 ^ r * (jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z) := by
-          gcongr
-          norm_num
+          exact ContinuousLinearMap.opNorm_lsmul_le
+      _ = 2 ^ r * (jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z) := by ring
   rw [jetNormAt_def]
   calc ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv 𝕜 j (fun y ↦ f y • g y) z‖
       ≤ ∑ _j ∈ Finset.range (r + 1), 2 ^ r * (jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z) :=
