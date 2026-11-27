@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
+public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
+public import Mathlib.Geometry.Manifold.Diffeomorph
 public import SymplecticGeometry.Topology.FiberBundle.Trivialization
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 /-!
@@ -22,7 +23,8 @@ Given a trivialization `e` of `f` with model fibre a manifold `Z` and `b₀ ∈ 
 `Bundle.Trivialization.transFiberHomeomorph` changes the model fibre of `T` to `Z` along it. This
 file shows that the result is `C^n` with a `C^n` inverse, in the sense of the two fields of Tau
 Ceti's `TauCeti.MapFiber.Atlas.IsContMDiff`, when `T` is `C^n` in the sense above and `e` is `C^n`
-with a `C^n` inverse.
+with a `C^n` inverse. It also shows that changing the model fibre of a `C^n` trivialization with a
+`C^n` inverse by a `C^n` diffeomorphism between manifolds keeps both properties.
 
 ## Main results
 
@@ -30,6 +32,9 @@ with a `C^n` inverse.
   with its fibre changed to `Z` is `C^n` on its source.
 * `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph_symm`: its inverse is
   `C^n` on its target.
+* `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_toHomeomorph`,
+  `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_toHomeomorph_symm`: changing the fibre
+  of a `C^n` trivialization with `C^n` inverse by a `C^n` diffeomorphism keeps both properties.
 
 ## References
 
@@ -94,6 +99,41 @@ theorem contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph_symm {g : B × P →
   refine ((hg.comp hin fun p hp ↦ ⟨hp.1, e.proj_symm_apply' hb₀⟩).congr fun p hp ↦ ?_).mono
     fun p hp ↦ ⟨(mem_target _).1 hp, mem_univ _⟩
   simpa using hTg p.1 hp.1 ⟨_, e.proj_symm_apply' hb₀⟩
+
+section Diffeomorph
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF]
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners 𝕜 EF HF}
+  {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  {EF' : Type*} [NormedAddCommGroup EF'] [NormedSpace 𝕜 EF']
+  {HF' : Type*} [TopologicalSpace HF'] {IF' : ModelWithCorners 𝕜 EF' HF'}
+  {F' : Type*} [TopologicalSpace F'] [ChartedSpace HF' F'] {e : Trivialization F f}
+
+/-- Changing the fibre of a trivialization that is `C^n` on its source by a `C^n` diffeomorphism
+`F ≃ F'` gives a trivialization that is `C^n` on its source. -/
+theorem contMDiffOn_transFiberHomeomorph_toHomeomorph
+    (he : ContMDiffOn I (J.prod IF) n e e.source) (φ : F ≃ₘ^n⟮IF, IF'⟯ F') :
+    ContMDiffOn I (J.prod IF') n (e.transFiberHomeomorph φ.toHomeomorph)
+      (e.transFiberHomeomorph φ.toHomeomorph).source :=
+  ((contMDiff_fst.prodMk (φ.contMDiff.comp contMDiff_snd)).comp_contMDiffOn he).congr
+    fun x _ ↦ by rw [transFiberHomeomorph_apply, Diffeomorph.coe_toHomeomorph]; rfl
+
+/-- Changing the fibre of a trivialization whose inverse is `C^n` on its target by a `C^n`
+diffeomorphism `F ≃ F'` gives a trivialization whose inverse is `C^n` on its target. -/
+theorem contMDiffOn_transFiberHomeomorph_toHomeomorph_symm
+    (he : ContMDiffOn (J.prod IF) I n e.toOpenPartialHomeomorph.symm e.target)
+    (φ : F ≃ₘ^n⟮IF, IF'⟯ F') :
+    ContMDiffOn (J.prod IF') I n
+      (e.transFiberHomeomorph φ.toHomeomorph).toOpenPartialHomeomorph.symm
+      (e.transFiberHomeomorph φ.toHomeomorph).target := by
+  refine (he.comp (contMDiff_fst.prodMk (φ.symm.contMDiff.comp contMDiff_snd)).contMDiffOn
+    fun p hp ↦ ?_).congr fun p _ ↦ ?_
+  · rw [transFiberHomeomorph_target] at hp
+    exact e.mem_target.2 hp.1
+  · rw [transFiberHomeomorph_symm_apply, Diffeomorph.coe_toHomeomorph_symm]
+    rfl
+
+end Diffeomorph
 
 end Bundle.Trivialization
 
