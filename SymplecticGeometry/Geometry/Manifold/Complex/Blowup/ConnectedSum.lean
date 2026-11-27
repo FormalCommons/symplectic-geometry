@@ -96,8 +96,7 @@ theorem euclideanChart_def :
 theorem euclideanChart_symm_apply (v : EuclideanSpace ℂ (Fin (n + 1))) :
     c.euclideanChart.symm v =
       remodelHomeomorph _ M (c.symm (EuclideanSpace.equiv (Fin (n + 1)) ℂ v)) := by
-  rw [euclideanChart_def, remodelChart_symm_apply, ← ContinuousLinearEquiv.symm_toDiffeomorph,
-    ContinuousLinearEquiv.coe_toDiffeomorph_symm, ContinuousLinearEquiv.symm_symm]
+  simp [euclideanChart_def]
 
 theorem zero_mem_euclideanChart_target : 0 ∈ c.euclideanChart.target := by
   simpa [euclideanChart_def] using c.zero_mem_target
@@ -204,9 +203,7 @@ theorem lastAffineChart_def :
 theorem lastAffineChart_symm_apply (u : EuclideanSpace ℂ (Fin (n + 1))) :
     (lastAffineChart n).symm u = remodelHomeomorph _ _
       ((Projectivization.affineChart (Fin.last (n + 1))).symm (EuclideanSpace.equiv _ ℂ u)) := by
-  rw [lastAffineChart_def, remodelChart_symm_apply, ← ContinuousLinearEquiv.symm_toDiffeomorph,
-    ContinuousLinearEquiv.coe_toDiffeomorph_symm, ContinuousLinearEquiv.symm_symm,
-    Projectivization.coe_affineOpenPartialHomeomorph_symm]
+  simp [lastAffineChart_def]
 
 @[simp]
 theorem lastAffineChart_target : (lastAffineChart n).target = univ := by

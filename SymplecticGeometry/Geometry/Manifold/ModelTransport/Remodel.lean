@@ -91,11 +91,9 @@ theorem coe_remodelHomeomorph : ⇑(remodelHomeomorph Φ M) = id := (rfl)
 theorem coe_remodelHomeomorph_symm : ⇑(remodelHomeomorph Φ M).symm = id := (rfl)
 
 /-- The homeomorphism sends a point `x` of `M` to `x`, as a point of the copy. -/
-@[simp]
 theorem remodelHomeomorph_apply (x : M) : remodelHomeomorph Φ M x = (x : Remodel Φ M) := (rfl)
 
 /-- The inverse homeomorphism sends a point `x` of the copy to `x`, as a point of `M`. -/
-@[simp]
 theorem remodelHomeomorph_symm_apply (x : Remodel Φ M) :
     (remodelHomeomorph Φ M).symm x = (x : M) := (rfl)
 
