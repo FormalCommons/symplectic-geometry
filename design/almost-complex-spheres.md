@@ -344,12 +344,12 @@ of $\kappa$ at a point off the wedge. Its iterate
 $(\mathbb CP^1)^m\to S^{2m}$, through Tau Ceti's homeomorphism of
 $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 
-### `Topology/VectorBundle/Complex/ChernClass/SphereIntegrality.lean`
+### `Topology/VectorBundle/Complex/ChernClass/Sphere/Integrality.lean`
 
 - `Bundle.factorial_dvd_evalFundamentalClass_chernClass_sphere`: for a
   complex vector bundle `V` over `sphere (0 : E) 1` with
-  `finrank ℝ E = 2 * m + 1`, `m ≠ 0`, and an orientation `o`,
-  `((m - 1)! : ℤ) ∣ ⟨c_m(V), [S^{2m}]_o⟩`.
+  `finrank ℝ E = 2 * (r + 1) + 1` and an orientation `o`,
+  `(r ! : ℤ) ∣ ⟨c_{r+1}(V), [S^{2(r+1)}]_o⟩`.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/Sphere.lean`
 
@@ -413,7 +413,7 @@ spheres*. Sizes are estimates in lines.
 | 9 | Linear clutching, its splitting, and the surjective product theorem | `KTheory/ProductSphere.lean` | 8 | 500 |
 | 10 | $K((\mathbb CP^1)^m)$ and its Newton classes | `KTheory/ProjectiveLinePow.lean` | 6, 9 | 300 |
 | 11 | The collapse map to $S^{2m}$ in cohomology | `Sphere/Collapse.lean` | — | 400 |
-| 12 | Bott integrality on spheres | `ChernClass/SphereIntegrality.lean` | 10, 11 | 200 |
+| 12 | Bott integrality on spheres | `ChernClass/Sphere/Integrality.lean` | 10, 11 | 200 |
 | 13 | No structure on $S^{4k+2}$, $k\ge2$, and the theorem for $S^{2n}$ | `AlmostComplex/Sphere.lean` | 5, 12 | 150 |
 
 Issues 1 to 4, 7 and 11 can start at once. The $S^{4k}$ case is done with

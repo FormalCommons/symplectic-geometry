@@ -48,6 +48,8 @@ public section
 open MeasureTheory Set
 open scoped ENNReal NNReal ContDiff
 
+namespace SymplecticGeometry
+
 variable {E 𝕜' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E]
   [OpensMeasurableSpace E] [SecondCountableTopology E] [NormedField 𝕜'] [NormedAlgebra ℝ 𝕜']
   [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace 𝕜' F] [IsScalarTower ℝ 𝕜' F]
@@ -69,15 +71,15 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
   obtain ⟨B, -, hB⟩ := TauCeti.exists_norm_iteratedFDeriv_bilinear_le E
     (ContinuousLinearMap.lsmul ℝ 𝕜' : 𝕜' →L[ℝ] F →L[ℝ] F) k
   refine ⟨(B * M).toNNReal, fun f hf j hj ↦ ?_⟩
-  set S : E → ℝ := fun x ↦ SymplecticGeometry.jetNormAt ℝ k f x
+  set S : E → ℝ := fun x ↦ jetNormAt ℝ k f x
   have hpt : ∀ᵐ x ∂μ.restrict s,
       ‖iteratedFDeriv ℝ j (fun x ↦ a x • f x) x‖ ≤ B * M * ‖S x‖ := by
     filter_upwards [ae_restrict_mem hs.measurableSet] with x hx
     have h := hB a f s x hs hx (ha.mono (hsK.trans hKt)) hf M (S x)
       (fun i hi ↦ hM i hi x (hsK hx))
-      (fun i hi ↦ SymplecticGeometry.norm_iteratedFDeriv_le_jetNormAt hi f x) j hj
+      (fun i hi ↦ norm_iteratedFDeriv_le_jetNormAt hi f x) j hj
     simp only [ContinuousLinearMap.lsmul_apply] at h
-    rw [Real.norm_of_nonneg (SymplecticGeometry.jetNormAt_nonneg k f x), mul_assoc]
+    rw [Real.norm_of_nonneg (jetNormAt_nonneg k f x), mul_assoc]
     exact h
   calc _ ≤ ENNReal.ofReal (B * M) * eLpNorm S p (μ.restrict s) :=
         eLpNorm_le_mul_eLpNorm_of_ae_le_mul
@@ -86,7 +88,7 @@ theorem exists_eLpNorm_iteratedFDeriv_smul_le_of_isOpen (μ : Measure E) {p : �
           eLpNorm (fun x ↦ ‖iteratedFDeriv ℝ l f x‖) p (μ.restrict s) := by
         gcongr
         have : S = ∑ l ∈ Finset.range (k + 1), fun x ↦ ‖iteratedFDeriv ℝ l f x‖ := by
-          ext x; simp [S, SymplecticGeometry.jetNormAt_def]
+          ext x; simp [S, jetNormAt_def]
         rw [this]
         exact eLpNorm_sum_le hp
     _ = _ := by
@@ -124,3 +126,5 @@ theorem eLpNorm_iteratedFDeriv_add_restrict_le {G : Type*} [NormedAddCommGroup G
       ((hg.contDiffAt (hs.mem_nhds hx)).of_le hj)
   refine (eLpNorm_congr_ae hfg).trans_le ?_
   exact eLpNorm_add_le (f := iteratedFDeriv ℝ j f) (g := iteratedFDeriv ℝ j g) hp
+
+end SymplecticGeometry

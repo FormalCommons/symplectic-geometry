@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -525,8 +526,8 @@ private def fiberIntegralAt (hA : A.IsContMDiff ∞ I J IM) (b : B) :
     subset_rfl) α)).val ⟨b, A.mem_baseSet_trivAt b⟩
   -- The sums and multiples are taken in the tangent space of the open set `U` at `⟨b, _⟩` and
   -- in that of `B` at `b`; both are the model space `E`, so they agree by `rfl`.
-  map_add' α β := by simp only [map_add, Submodule.coe_add, Pi.add_apply]; rfl
-  map_smul' c α := by simp only [map_smul, Submodule.coe_smul, Pi.smul_apply]; rfl
+  map_add' α β := by simp only [map_add, SmoothBundleForm.add_apply]; rfl
+  map_smul' c α := by simp only [map_smul, SmoothBundleForm.smul_apply]; rfl
 
 private theorem fiberIntegralAt_apply (hA : A.IsContMDiff ∞ I J IM)
     (α : SmoothForm IM M ℝ (r + m)) (b : B) (v : Fin r → TangentSpace I b) :
@@ -587,9 +588,9 @@ def fiberIntegral (hA : A.IsContMDiff ∞ I J IM) {hn : (∞ : ℕ∞ω) ≠ 0}
   toFun α := ⟨fiberIntegralRoughForm o hA α,
     (isSmoothForm_fiberIntegralRoughForm o hA ho α).mem_smoothBundleForms⟩
   map_add' α β := SmoothBundleForm.ext fun b v ↦ by
-    simp only [Submodule.coe_add, Pi.add_apply, fiberIntegralRoughForm, map_add]
+    simp only [SmoothBundleForm.add_apply, fiberIntegralRoughForm, map_add]
   map_smul' c α := SmoothBundleForm.ext fun b v ↦ by
-    simp only [Submodule.coe_smul, Pi.smul_apply, fiberIntegralRoughForm, map_smul,
+    simp only [SmoothBundleForm.smul_apply, fiberIntegralRoughForm, map_smul,
       RingHom.id_apply]
 
 variable (hA : A.IsContMDiff ∞ I J IM) {hn : (∞ : ℕ∞ω) ≠ 0}

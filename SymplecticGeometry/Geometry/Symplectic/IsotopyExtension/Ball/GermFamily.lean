@@ -149,7 +149,8 @@ theorem IsSymplecticBallFamily.exists_symplectomorphism_family_eq_of_map_zero {�
   refine ⟨ε, hε, χ, ?_, fun t ↦ ?_, fun t ↦ ?_, fun t z hz ↦ ?_, fun t ht z ↦ ?_⟩
   · exact hΦs.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk
       ((hU.contMDiff.comp (contMDiff_subtypeVal_Icc.comp contMDiff_fst)).clm_apply contMDiff_snd))
-  · exact ((U t : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)).isSymplecticBallEmbedding (hUs t)
+  · exact (SymplecticForm.IsSymplectomorphism.isSymplecticBallEmbedding
+      (e := (U t).toContinuousLinearEquiv) (SymplecticForm.isSymplectomorphism_iff.2 (hUs t))
       r).diffeotopy_comp ((Diffeotopy.isCompactlySupportedHamiltonian_iff.1 (hΦH t)).1 1)
   · have hχ : (fun z ↦ χ (t, z)) = ((Φ t).timeSlice 1).toEquiv ∘ U t := by
       funext z

@@ -6,12 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.BaseDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Integrand
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.BoundarylessStokes
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
-import TauCeti.Geometry.Manifold.DifferentialForm.Opens.ModelSpace
 
 /-!
 # The fibre integral commutes with `d` over an open subset of a normed space
@@ -104,9 +104,9 @@ private theorem sum_mfderivIntegrand {m : ℕ} (o : Manifold.Orientation J F (Fi
       ∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) • mfderiv 𝓘(ℝ, E) 𝓘(ℝ)
         (fun b' : U ↦ (prodFiberIntegral o α).val b' (Fin.removeNth i v)) b (v i) := by
   refine ⟨fun y w ↦ ?_, ?_⟩
-  · rw [Submodule.coe_sum, Finset.sum_apply, ContinuousAlternatingMap.sum_apply]
+  · rw [SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply]
     refine Finset.sum_congr rfl fun i _ ↦ ?_
-    rw [Submodule.coe_smul_of_tower, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+    rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
       mfderivIntegrand_apply]
     -- The sides differ only in reading `w` in `TangentSpace J y` or in `E'`, which agree.
     rfl
@@ -130,15 +130,9 @@ theorem prodFiberIntegral_mextDeriv_opens {m : ℕ} (o : Manifold.Orientation J 
   -- Read the tangent vectors at `b` as vectors of `E`, as the pointwise formulas take them.
   revert v
   refine fun (v : Fin (r + 1) → E) ↦ ?_
-  have hd : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E [⋀^Fin r]→L[ℝ] ℝ)
-      (fun b' : U ↦ show E [⋀^Fin r]→L[ℝ] ℝ from (prodFiberIntegral o α).val b') b := by
-    obtain ⟨ω₀, h₀, hω₀⟩ := (prodFiberIntegral o α).isSmoothForm.exists_contDiffOn_opens
-    rw [show (fun b' : U ↦ show E [⋀^Fin r]→L[ℝ] ℝ from (prodFiberIntegral o α).val b') =
-      ω₀ ∘ Subtype.val from funext hω₀, Manifold.mdifferentiableAt_comp_subtype_val_iff,
-      mdifferentiableAt_iff_differentiableAt]
-    exact (h₀.differentiableOn (by simp)).differentiableAt (U.isOpen.mem_nhds b.property)
-  rw [mextDeriv_opens_apply hd v, ← (sum_mfderivIntegrand o α b v).2,
-    SmoothForm.integralTopFormₗ_apply]
+  rw [mextDeriv_opens_apply
+      ((prodFiberIntegral o α).isSmoothForm.mdifferentiableAt_opens (by simp) b) v,
+    ← (sum_mfderivIntegrand o α b v).2, SmoothForm.integralTopFormₗ_apply]
   obtain _ | n := m
   · congr 1
     funext y
@@ -158,8 +152,8 @@ theorem prodFiberIntegral_mextDeriv_opens {m : ℕ} (o : Manifold.Orientation J 
       funext y
       refine ContinuousAlternatingMap.ext fun (w : Fin (n + 1) → TangentSpace J y) ↦ ?_
       refine (prodFiberIntegrand_cast_mextDerivₗ_apply_succ α b v y w).trans ?_
-      simp only [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-        (sum_mfderivIntegrand o α b v).1 y w, Submodule.coe_smul_of_tower, Pi.smul_apply,
+      simp only [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
+        (sum_mfderivIntegrand o α b v).1 y w, SmoothBundleForm.smul_apply,
         ContinuousAlternatingMap.smul_apply, mextDerivₗ_apply]
       -- `β` is, by its definition, the integrand `prodFiberIntegrand (cast α) b v`.
       rfl

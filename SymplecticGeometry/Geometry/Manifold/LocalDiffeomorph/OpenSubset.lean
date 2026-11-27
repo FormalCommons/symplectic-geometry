@@ -168,8 +168,8 @@ theorem restrOpen_target_eq_of_subset (Φ : PartialDiffeomorph I J M N n) {t : S
     (Φ.restrOpen _ hs).target = t := by
   ext y
   rw [Φ.restrOpen_target]
-  exact ⟨fun hy ↦ Φ.right_inv hy.1 ▸ hy.2.2,
-    fun hy ↦ ⟨ht hy, Φ.map_target (ht hy), by simpa [Φ.right_inv (ht hy)] using hy⟩⟩
+  exact ⟨fun hy ↦ Φ.toPartialEquiv.right_inv hy.1 ▸ hy.2.2,
+    fun hy ↦ ⟨ht hy, Φ.map_target (ht hy), by simpa [Φ.toPartialEquiv.right_inv (ht hy)] using hy⟩⟩
 
 /-- A partial diffeomorphism `Φ : M → N` restricts to a `C^n` diffeomorphism `Ψ` from the open set
 `U = Φ.source ∩ Φ ⁻¹' V` onto any open subset `V` of its target, with `Ψ u = Φ u` for `u ∈ U`;

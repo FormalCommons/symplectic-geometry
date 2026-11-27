@@ -182,7 +182,7 @@ theorem orthogonalProjectionOnto_comp_fderiv_comp_symm (V : Submodule ℝ F)
   -- Near `u`, projecting `e ∘ Φ⁻¹ - a` onto `V` gives back the identity.
   have hproj : (fun w ↦ V.orthogonalProjectionOnto ((e ∘ Φ.symm) w - a)) =ᶠ[𝓝 u] id :=
     eventually_of_mem (Φ.open_target.mem_nhds hu) fun w hw ↦ by
-      simpa [Φ.right_inv hw] using (hΦ _ (Φ.map_target hw)).symm
+      simpa [Φ.toPartialEquiv.right_inv hw] using (hΦ _ (Φ.map_target hw)).symm
   exact (V.orthogonalProjectionOnto.hasFDerivAt.comp u (hd.hasFDerivAt.sub_const a)).unique
     ((hasFDerivAt_id u).congr_of_eventuallyEq hproj)
 

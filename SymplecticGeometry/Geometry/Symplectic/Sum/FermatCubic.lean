@@ -56,11 +56,13 @@ compose to a smooth diffeomorphism of real manifolds from the Fermat cubic onto 
 * `SymplecticGeometry.fermatCubicDiffeomorph`: the biholomorphism from the Fermat cubic to the
   points of `fermatWeierstrassCurve`, with `toProjectivization_fermatCubicDiffeomorph_mk` giving
   its value on a representative and `coe_fermatCubicDiffeomorph_symm_apply` its inverse.
-* `SymplecticGeometry.fermatUniformization`: a biholomorphism from `ℂ / Λ` onto the points of
-  `fermatWeierstrassCurve` that is an additive isomorphism, chosen from Tau Ceti's
-  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`
-  (`SymplecticGeometry.fermatUniformization_add` and
-  `SymplecticGeometry.fermatUniformization_symm_add`).
+* `SymplecticGeometry.fermatUniformizationAddEquiv`: an isomorphism of topological groups from
+  `ℂ / Λ` onto the points of `fermatWeierstrassCurve`, chosen from Tau Ceti's
+  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`.
+* `SymplecticGeometry.fermatUniformization`: the same map as a biholomorphism. The `simp` lemmas
+  `SymplecticGeometry.coe_fermatUniformization` and
+  `SymplecticGeometry.coe_fermatUniformization_symm` rewrite it and its inverse to
+  `fermatUniformizationAddEquiv` and its inverse, so that the lemmas on additive maps apply.
 * `SymplecticGeometry.fermatPeriodBasis`: a `ℤ`-basis `b₀, b₁` of `Λ` with
   `0 < Im (conj b₀ * b₁)` (`SymplecticGeometry.zero_lt_im_conj_mul_fermatPeriodBasis`).
 * `SymplecticGeometry.fermatCubicTorusDiffeomorph p`: the smooth diffeomorphism of real manifolds
@@ -233,42 +235,50 @@ theorem coe_fermatCubicDiffeomorph_symm_apply (P : fermatWeierstrassCurve.toProj
       fermatCubicLinearEquiv.symm.mapProjectivization P.toProjectivization :=
   congrArg (· P.toProjectivization) (LinearEquiv.mapProjectivization_symm fermatCubicLinearEquiv)
 
-/-- **The Weierstrass curve `Y² Z = X³ - 432 Z³` as a complex torus.** A biholomorphism from
-`ℂ / Λ`, for the period lattice `Λ` of `fermatWeierstrassCurve`, onto the points of
-`fermatWeierstrassCurve`, which is also an isomorphism of groups. It is one of those given by Tau
-Ceti's uniformization theorem `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`,
-chosen once and for all. -/
-noncomputable def fermatUniformization :
-    (ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) ≃ₘ^ω⟮𝓘(ℂ), 𝓘(ℂ)⟯
-      fermatWeierstrassCurve.toProjective.Point where
-  toEquiv := (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose
-  contMDiff_toFun :=
-    (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.1
-  contMDiff_invFun :=
-    (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.2
+/-- The isomorphism of topological groups from `ℂ / Λ`, for the period lattice `Λ` of
+`fermatWeierstrassCurve`, onto the group of points of `fermatWeierstrassCurve` that underlies
+`fermatUniformization`: one of the isomorphisms given by Tau Ceti's uniformization theorem
+`WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`, chosen once and for all.
+As a function it is `fermatUniformization` (`coe_fermatUniformization`). -/
+noncomputable def fermatUniformizationAddEquiv :
+    (ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) ≃ₜ+
+      fermatWeierstrassCurve.toProjective.Point :=
+  (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose
 
-/-- `fermatUniformization` is the isomorphism of groups chosen from
-`WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`. -/
-theorem coe_fermatUniformization :
-    ⇑fermatUniformization =
+theorem fermatUniformizationAddEquiv_def :
+    fermatUniformizationAddEquiv =
       (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose :=
   (rfl)
 
-/-- `fermatUniformization` is additive: it sends a sum of classes in `ℂ / Λ` to the sum of their
-images in the group of points of `fermatWeierstrassCurve`. -/
-@[simp]
-theorem fermatUniformization_add (z w : ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) :
-    fermatUniformization (z + w) = fermatUniformization z + fermatUniformization w := by
-  rw [coe_fermatUniformization]
-  exact map_add _ z w
+/-- **The Weierstrass curve `Y² Z = X³ - 432 Z³` as a complex torus.** A biholomorphism from
+`ℂ / Λ`, for the period lattice `Λ` of `fermatWeierstrassCurve`, onto the points of
+`fermatWeierstrassCurve`, which is also an isomorphism of groups: as a function it is the
+additive equivalence `fermatUniformizationAddEquiv` (`coe_fermatUniformization`). -/
+noncomputable def fermatUniformization :
+    (ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) ≃ₘ^ω⟮𝓘(ℂ), 𝓘(ℂ)⟯
+      fermatWeierstrassCurve.toProjective.Point where
+  toEquiv := fermatUniformizationAddEquiv.toEquiv
+  contMDiff_toFun := by
+    rw [fermatUniformizationAddEquiv_def]
+    exact (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.1
+  contMDiff_invFun := by
+    rw [fermatUniformizationAddEquiv_def]
+    exact (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.2
 
-/-- The inverse of `fermatUniformization` is additive: it sends a sum of points of
-`fermatWeierstrassCurve` to the sum of their classes in `ℂ / Λ`. -/
+/-- The biholomorphism `fermatUniformization` and the additive equivalence
+`fermatUniformizationAddEquiv` are the same function. Read from left to right, this lets the
+lemmas on additive maps, such as `map_zero`, `map_neg` and `map_nsmul`, apply to it. -/
 @[simp]
-theorem fermatUniformization_symm_add (P Q : fermatWeierstrassCurve.toProjective.Point) :
-    fermatUniformization.symm (P + Q) =
-      fermatUniformization.symm P + fermatUniformization.symm Q :=
-  fermatUniformization.injective <| by simp
+theorem coe_fermatUniformization :
+    ⇑fermatUniformization = ⇑fermatUniformizationAddEquiv :=
+  (rfl)
+
+/-- The inverses of the biholomorphism `fermatUniformization` and of the additive equivalence
+`fermatUniformizationAddEquiv` are the same function. -/
+@[simp]
+theorem coe_fermatUniformization_symm :
+    ⇑fermatUniformization.symm = ⇑fermatUniformizationAddEquiv.symm :=
+  (rfl)
 
 /-- A positively oriented `ℤ`-basis `b₀, b₁` of the period lattice of `fermatWeierstrassCurve`:
 one with `0 < Im (conj b₀ * b₁)`, chosen by `ZLattice.exists_basis_zero_lt_im_conj_mul`. -/
@@ -306,24 +316,24 @@ theorem fermatCubicTorusDiffeomorph_def :
   (rfl)
 
 /-- `fermatCubicTorusDiffeomorph p` sends a point `x` of the Fermat cubic to the image under
-`latticeTorusDiffeomorph p fermatPeriodBasis` of the point of `ℂ / Λ` that `fermatUniformization`
-sends to `fermatCubicDiffeomorph x`. -/
+`latticeTorusDiffeomorph p fermatPeriodBasis` of the point of `ℂ / Λ` that
+`fermatUniformizationAddEquiv` sends to `fermatCubicDiffeomorph x`. -/
 @[simp]
 theorem fermatCubicTorusDiffeomorph_apply (x : SmoothProjectiveHypersurface.fermat 1 3) :
     fermatCubicTorusDiffeomorph p x =
       latticeTorusDiffeomorph p fermatPeriodBasis
-        (fermatUniformization.symm (fermatCubicDiffeomorph x)) := by
+        (fermatUniformizationAddEquiv.symm (fermatCubicDiffeomorph x)) := by
   simp only [fermatCubicTorusDiffeomorph_def, Diffeomorph.coe_trans, Diffeomorph.coe_ofLE,
-    Diffeomorph.coe_restrictScalars', Function.comp_apply]
+    Diffeomorph.coe_restrictScalars', Function.comp_apply, coe_fermatUniformization_symm]
 
 /-- The inverse of `fermatCubicTorusDiffeomorph p` sends a point `y` of the standard torus to the
 point of the Fermat cubic whose image under `fermatCubicDiffeomorph` is the image under
-`fermatUniformization` of `(latticeTorusDiffeomorph p fermatPeriodBasis).symm y`. -/
+`fermatUniformizationAddEquiv` of `(latticeTorusDiffeomorph p fermatPeriodBasis).symm y`. -/
 @[simp]
 theorem fermatCubicTorusDiffeomorph_symm_apply (y : ∀ i, AddCircle (p i)) :
     (fermatCubicTorusDiffeomorph p).symm y =
       fermatCubicDiffeomorph.symm
-        (fermatUniformization ((latticeTorusDiffeomorph p fermatPeriodBasis).symm y)) := by
+        (fermatUniformizationAddEquiv ((latticeTorusDiffeomorph p fermatPeriodBasis).symm y)) := by
   simp [fermatCubicTorusDiffeomorph_def]
 
 end SymplecticGeometry

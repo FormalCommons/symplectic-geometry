@@ -952,9 +952,12 @@ containing `ι '' closedBall 0 1`:
     (it restricts to `f` on real points), `contDiff_taylorExtension`
     (`C^r` for `f` of class `C^(r + N)`), and the formula of its defect:
     for real directions `u`,
-    `∂̄ (taylorExtension N f) z u = -(Complex.I ^ (N + 1) / N.factorial) •
-    iteratedFDeriv ℝ (N + 1) f (re z) (Fin.cons u (fun _ ↦ im z))`,
-    the terms of lower order cancelling in pairs, and `∂̄` is
+    `conjWirtingerDeriv (taylorExtension N f) z u =
+    ((2 : ℂ)⁻¹ * Complex.I ^ N / N.factorial) •
+    iteratedFDeriv ℝ (N + 1) f (re z) (Fin.cons u (fun _ ↦ im z))`
+    (`conjWirtingerDeriv_taylorExtension_apply_real`, for `f` of class
+    `C^(N + 1)`),
+    the terms of lower order cancelling in pairs, and it is
     conjugate linear. Hence `norm_dbar_taylorExtension_le`: on
     `{z | re z ∈ K}`, `K` compact, `‖∂̄ (taylorExtension N f) z‖ ≤
     C * ‖im z‖ ^ N` and, for `1 ≤ N`, the same for its derivative with
@@ -1534,8 +1537,8 @@ are set on compact manifolds. Three pieces are missing:
   `IsGradientLike.exists_projection_exponential_bounds` (the dichotomy),
   `IsGradientLike.finrank_range_eq_manifoldMorseIndex` (for the projection
   of any such dichotomy),
-  `IsLiouvilleVectorField.apply_eq_zero_of_mem_range`
-  ($\omega_p$ vanishes on `range P`), and
+  `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace` ($\omega_p$
+  vanishes on `A.stableSubspace`), and
   `IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`
   (`2 * k ≤ finrank ℝ E`), with the dimension bound for isotropic
   subspaces of a nondegenerate form taken from Mathlib, Tau Ceti or the

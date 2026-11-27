@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.MFDeriv.Opens
 public import TauCeti.Geometry.Manifold.Submersion.LocalDiffeomorph
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Geometry.Manifold.Submersion.Basic
