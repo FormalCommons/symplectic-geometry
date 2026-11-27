@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 
 /-!
@@ -227,10 +228,9 @@ theorem realFirstChernClass_map :
     realFirstChernClass IB' Q = deRhamCohomology.map f hf 2 (realFirstChernClass IB P) := by
   have hα := (exists_isCircleConnectionForm (IB := IB) (P := P)).choose_spec
   rw [hα.realFirstChernClass_eq, (hα.mpullback hΦ hΦz).realFirstChernClass_eq, map_smul,
-    deRhamCohomology.map_mk]
-  congr 2
-  exact Subtype.ext ((hα.curvature_mpullback hf hΦ hΦz hΦf).trans
-    (closedForms.coe_mpullback f hf 2 ⟨_, hα.curvature_mem_closedForms⟩).symm)
+    deRhamCohomology.map_mk_eq_mk_of_mpullback_eq hf
+      (β := ⟨_, (hα.mpullback hΦ hΦz).curvature_mem_closedForms⟩)
+      (hα.curvature_mpullback hf hΦ hΦz hΦf).symm]
 
 /-- **Invariance of the real first Chern class under maps over the identity.** If a smooth map `Φ`
 of total spaces of principal `Circle`-bundles over the same base `B` commutes with the action of
