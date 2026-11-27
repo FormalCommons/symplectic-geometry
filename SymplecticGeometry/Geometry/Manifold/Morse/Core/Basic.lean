@@ -7,11 +7,11 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Diffeotopy
+import SymplecticGeometry.Geometry.Manifold.VectorField.Cutoff
 import SymplecticGeometry.Geometry.Manifold.VectorField.ModelChart
 import SymplecticGeometry.Topology.Order.Sublevel
 
@@ -27,11 +27,11 @@ the sublevel `{f ≤ a}`, there is a smooth diffeotopy of `M` that does not move
 The flows of `TauCeti.exists_flow_apply_eq_sub` and `TauCeti.exists_diffeomorph_sublevel` move
 points of `{f ≤ a}` too. Here the descending field is multiplied by a smooth function of `f` that
 vanishes on `{f ≤ a + ε / 3}` and is `1` on `{f ≥ a + 2 ε / 3}`, where `ε ≤ b - a` and
-`{f ≤ a + ε} ⊆ U` (`exists_pos_sublevel_subset_of_isCompact_preimage_Icc`), and the cut-off field
-is run for the time `b - a` by `TauCeti.compactlySupportedFlowDiffeotopy`. On the band
-`f⁻¹[a + 2 ε / 3, b]` the cut-off field descends at unit speed, so every orbit starting in
-`{f ≤ b}` leaves it downwards within the time `b - a`
-(`IsMIntegralCurve.apply_lt_of_mvfderiv_apply_le_neg`).
+`{f ≤ a + ε} ⊆ U` (`exists_pos_sublevel_subset_of_isCompact_preimage_Icc`), and the cut-off
+field (`TauCeti.exists_cutoff_vectorField`, `VectorField/Cutoff.lean`) is run for the time
+`b - a` by `TauCeti.compactlySupportedFlowDiffeotopy`. On the band `f⁻¹[a + 2 ε / 3, b]` the
+cut-off field descends at unit speed, so every orbit starting in `{f ≤ b}` leaves it downwards
+within the time `b - a` (`IsMIntegralCurve.apply_lt_of_mvfderiv_apply_le_neg`).
 The descending field is `TauCeti.exists_vectorField_mvfderiv_eq_neg_one_of_boundaryless`.
 
 A band core `SymplecticGeometry.BandCore I g a₀ a b` of `g : M → ℝ` is a finite family of pairwise
@@ -41,7 +41,9 @@ and with boundary sphere below the level `a`, together with a compression: every
 containing `{g ≤ a}` and the cubes receives `{g ≤ b}` at the end of a smooth isotopy of the
 identity that fixes a neighbourhood of `{g ≤ a}`. A band without critical points has the band
 core without cubes (`SymplecticGeometry.BandCore.ofNoCriticalPoint`), whose compression is
-`TauCeti.Diffeotopy.smoothIsotopy` of the diffeotopy above.
+`TauCeti.Diffeotopy.smoothIsotopy` of the diffeotopy above
+(`TauCeti.Diffeotopy.exists_smoothIsotopy_id_of_mapsTo_final`,
+`SmoothIsotopy/Diffeotopy.lean`).
 
 ## Main declarations
 
@@ -95,31 +97,18 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
   obtain ⟨ε, hε, hεb, hεU⟩ :=
     exists_pos_sublevel_subset_of_isCompact_preimage_Icc hf.continuous hab hcompact
       (hU.mem_nhdsSet.2 hsub)
-  -- The cutoff `ρ ∘ f` vanishes below `c = a + ε / 3` and is `1` above `d = a + 2 ε / 3`.
   set c := a + ε / 3 with hc
   set d := a + 2 * ε / 3 with hd
-  have hcd : c < d := by linarith
-  set ρ : ℝ → ℝ := fun s ↦ Real.smoothTransition ((s - c) / (d - c))
-  have hρC : ContMDiff I 𝓘(ℝ) ∞ (ρ ∘ f) :=
-    (Real.smoothTransition.contDiff.comp
-      ((contDiff_id.sub contDiff_const).div_const _)).contMDiff.comp hf
-  have hρ0 : ∀ s, s ≤ c → ρ s = 0 := fun s hs ↦
-    Real.smoothTransition.zero_of_nonpos (div_nonpos_of_nonpos_of_nonneg (by linarith)
-      (by linarith))
-  have hρ1 : ∀ s, d ≤ s → ρ s = 1 := fun s hs ↦
-    Real.smoothTransition.one_of_one_le ((one_le_div (by linarith)).2 (by linarith))
   obtain ⟨X, hX, -, ⟨W, -, hKW, hXW⟩, C, hC, hXC⟩ :=
     exists_vectorField_mvfderiv_eq_neg_one_of_boundaryless hf hcompact
       fun x hx ↦ hreg x hx.1 hx.2
-  -- The cut-off field `Y = (ρ ∘ f) • X`.
-  set Y : (x : M) → TangentSpace I x := fun x ↦ ρ (f x) • X x with hY
-  have hYC : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, Y x⟩ : TangentBundle I M)) :=
-    hρC.smul_section hX
-  have hYzero : ∀ x ∉ C, Y x = 0 := fun x hx ↦ by simp [hY, hXC x hx]
-  have hdY : ∀ x, mvfderiv I f x (Y x) = ρ (f x) * mvfderiv I f x (X x) := fun x ↦
-    (map_smul (mvfderiv I f x) (ρ (f x)) (X x)).trans (smul_eq_mul _ _)
+  -- The cut-off field `Y`, zero below `c = a + ε / 3` and equal to `X` above `d = a + 2 ε / 3`.
+  obtain ⟨Y, hYC, hY0, hYX, hYr⟩ := exists_cutoff_vectorField hf hX (by linarith : c < d)
+  have hYzero : ∀ x ∉ C, Y x = 0 := fun x hx ↦ by
+    obtain ⟨r, -, hr⟩ := hYr x
+    rw [hr, hXC x hx, smul_zero]
   have hYW : ∀ x ∈ W ∩ {x | d ≤ f x}, mvfderiv I f x (Y x) = -1 := fun x hx ↦ by
-    rw [hdY, hρ1 _ hx.2, hXW x hx.1, one_mul]
+    rw [hYX x hx.2, hXW x hx.1]
   have hY1 : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I M)) :=
     hYC.of_le (by simp)
   have hcomplete := isCompleteVectorField_of_isCompact_of_eq_zero_off hY1 hC hYzero
@@ -127,8 +116,8 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
     ⟨{x | f x < c}, (isOpen_lt hf.continuous continuous_const).mem_nhdsSet.2
       fun x hx ↦ (show f x ≤ a from hx).trans_lt (by linarith), fun t x hx ↦ ?_⟩,
     fun x hx ↦ ?_⟩
-  · refine compactlySupportedFlowDiffeotopy_apply_of_eq_zero _ hYC hC hYzero _ ?_ t
-    simp [hY, hρ0 _ (show f x < c from hx).le]
+  · exact compactlySupportedFlowDiffeotopy_apply_of_eq_zero _ hYC hC hYzero _
+      (hY0 x (show f x < c from hx).le) t
   -- A point of `{f ≤ b}` whose orbit stayed in the band `f⁻¹[d, b]` would descend at unit
   -- speed for the time `b - a`, ending below `a`.
   rw [Diffeotopy.final_apply, compactlySupportedFlowDiffeotopy_apply, Set.Icc.coe_one, mul_one,
@@ -352,12 +341,9 @@ noncomputable def ofNoCriticalPoint (hg : ContMDiff I 𝓘(ℝ) ∞ g)
   mapsTo_sphere i := i.elim
   pairwise_disjoint i := i.elim
   exists_compression U hU hsub := by
-    obtain ⟨Φ, ⟨V, hV, hΦV⟩, hΦ⟩ := TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset hg
-      hcompact hreg hU (subset_union_left.trans hsub)
-    refine ⟨_, Φ.smoothIsotopy ContMDiffMap.id Manifold.IsSmoothEmbedding.id,
-      ⟨V, hV, fun t x hx ↦ ?_⟩, fun x hx ↦ ?_⟩
-    · exact (Φ.smoothIsotopy_apply _ _ (t, x)).trans (hΦV t x hx)
-    · simpa using hΦ hx
+    obtain ⟨Φ, hΦV, hΦ⟩ := TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset hg hcompact
+      hreg hU (subset_union_left.trans hsub)
+    exact Φ.exists_smoothIsotopy_id_of_mapsTo_final hΦV hΦ
 
 /-- The band core `ofNoCriticalPoint` has no cubes. -/
 @[simp]
