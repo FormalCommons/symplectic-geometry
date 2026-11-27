@@ -414,7 +414,7 @@ transport*, including its radial trivializations. About 400 lines.
   `A'` is compatible with `A` through the whole group by
   `coordChangeMem_top`, so it is a reduction of `A` in the page's sense.
 - `TauCeti.MapFiber.Atlas.IsOrientedCompatible.exists_hasStructureGroup_restrictsTo`: the same
-  for a form compatible with an oriented atlas, which parts 49 and 56 use.
+  for a form compatible with an oriented atlas.
 
 ## What other parts use
 
