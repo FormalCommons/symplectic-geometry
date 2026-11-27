@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
 # Symplectic balls read in complex coordinates
@@ -24,6 +25,12 @@ so the source of the chart is the preimage of a Euclidean ball, not a sup-norm b
 * `SymplecticGeometry.IsSymplecticBallEmbedding.complexPartialDiffeomorph hψ`: the map
   `ψ ∘ complexToRealEuclidean (Fin m)` as a partial diffeomorphism from the preimage in
   `Fin m → ℂ` of the open ball of radius `r` onto the image under `ψ` of that ball.
+
+## Main results
+
+* `SymplecticGeometry.IsSymplecticBallEmbedding.isSymplecticMapOn_complexPartialDiffeomorph`:
+  on its source, `hψ.complexPartialDiffeomorph` is a symplectic map from the constant form of
+  `stdComplexPiSymplecticForm (Fin m)` to `σ`.
 
 ## References
 
@@ -82,6 +89,24 @@ radius `r`. -/
 theorem complexPartialDiffeomorph_target (hψ : IsSymplecticBallEmbedding σ r ψ) :
     hψ.complexPartialDiffeomorph.target = ψ '' ball 0 r := by
   simp [complexPartialDiffeomorph]
+
+/-- On its source, `hψ.complexPartialDiffeomorph` is a symplectic map from the constant form of
+`stdComplexPiSymplecticForm (Fin m)` on `Fin m → ℂ` to `σ`. -/
+theorem isSymplecticMapOn_complexPartialDiffeomorph (hψ : IsSymplecticBallEmbedding σ r ψ) :
+    (stdComplexPiSymplecticForm (Fin m)).constSmooth.IsSymplecticMapOn σ
+      hψ.complexPartialDiffeomorph hψ.complexPartialDiffeomorph.source := by
+  rw [complexPartialDiffeomorph_def]
+  refine PartialDiffeomorph.isSymplecticMapOn_trans (σ := (stdForm (Fin m)).constSmooth)
+    _ _ ?_ ?_ (by simp)
+  · have h : (stdComplexPiSymplecticForm (Fin m)).constSmooth.IsSymplecticMap
+        (stdForm (Fin m)).constSmooth (complexToRealEuclidean (Fin m)) := by
+      rw [SmoothTwoForm.isSymplecticMap_iff_mpullback_eq
+        (complexToRealEuclidean (Fin m)).contDiff.contMDiff,
+        ← (isSymplectomorphism_complexToRealEuclidean (Fin m)).mpullback_constSmooth]
+      simp only [ContinuousLinearEquiv.coe_toDiffeomorph]
+    simpa using h
+  · rw [hψ.coe_toPartialDiffeomorph, hψ.toPartialDiffeomorph_source]
+    exact hψ.isSymplecticMapOn
 
 end IsSymplecticBallEmbedding
 
