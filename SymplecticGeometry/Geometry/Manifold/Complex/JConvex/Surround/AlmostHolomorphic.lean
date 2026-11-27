@@ -89,11 +89,8 @@ theorem contDiff_taylorExtension {N : ℕ} {r : WithTop ℕ∞} {f : EuclideanSp
   refine ContDiff.sum fun j hj ↦ ContDiff.const_smul _ ?_
   have hD : ContDiff ℝ r (iteratedFDeriv ℝ j f) :=
     hf.iteratedFDeriv_right (add_le_add_right (by exact_mod_cast Finset.mem_range_succ_iff.1 hj) _)
-  have heval : ContDiff ℝ r fun p : ContinuousMultilinearMap ℝ (fun _ : Fin j ↦
-      EuclideanSpace ℝ ι') W × (Fin j → EuclideanSpace ℝ ι') ↦ p.1 p.2 :=
-    (ContinuousLinearMap.id ℝ (ContinuousMultilinearMap ℝ
-      (fun _ : Fin j ↦ EuclideanSpace ℝ ι') W)).analyticOnNhd_uncurry_of_multilinear.contDiff
-  exact heval.comp ((hD.comp hre).prodMk (contDiff_pi.2 fun _ ↦ him))
+  exact ContinuousMultilinearMap.analyticOnNhd_apply.contDiff.comp
+    ((hD.comp hre).prodMk (contDiff_pi.2 fun _ ↦ him))
 
 end SymplecticGeometry
 
