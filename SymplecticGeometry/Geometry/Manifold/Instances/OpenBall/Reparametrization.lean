@@ -8,8 +8,8 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import Mathlib.Analysis.InnerProductSpace.Calculus
-import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
-import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Instances.OpenBall.Diffeomorph
 
 /-!
@@ -26,8 +26,10 @@ that send `0` to `0`:
   preimage of `K` lies in the unit ball of `V`. For `V = Fin m → ℝ` with the sup norm, the unit
   ball of `V` is the open cube, so the sup-norm sphere of `V` is sent off `K`.
 * `SymplecticGeometry.exists_isSmoothEmbedding_range_eq_ball_pi`: for `δ > 0`, a smooth
-  embedding of `ι → ℝ` onto its sup-norm ball of radius `δ`, the box `(-δ, δ)ᶥ`. It acts on each
-  coordinate by `t ↦ δ t / √(1 + t²)` (Mathlib's `OpenPartialHomeomorph.univUnitBall` on `ℝ`).
+  embedding of `ι → ℝ` onto its sup-norm ball of radius `δ`, the box `(-δ, δ)ᶥ`. It is Mathlib's
+  `OpenPartialHomeomorph.univBall 0 δ` of `ℝ` on each coordinate (`OpenPartialHomeomorph.pi`),
+  made a diffeomorphism onto its target by Tau Ceti's
+  `TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph`.
 * `SymplecticGeometry.exists_isSmoothEmbedding_prod_range_eq_ball_prod_ball`: the product of
   the two, a smooth embedding of `V × (ι → ℝ)` onto (open unit ball of `F`) × (box).
 
@@ -89,59 +91,35 @@ section Box
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The box `(-δ, δ)ᶥ`, the sup-norm ball of radius `δ` in `ι → ℝ`, as an open set. -/
-private def boxOpens (δ : ℝ) : TopologicalSpace.Opens (ι → ℝ) :=
-  ⟨ball 0 δ, isOpen_ball⟩
-
-private theorem coe_boxOpens (δ : ℝ) : (boxOpens (ι := ι) δ : Set (ι → ℝ)) = ball 0 δ := rfl
-
-private theorem mem_boxOpens {δ : ℝ} (hδ : 0 < δ) {y : ι → ℝ} :
-    y ∈ boxOpens δ ↔ ∀ i, δ⁻¹ * y i ∈ ball (0 : ℝ) 1 := by
-  rw [← SetLike.mem_coe, coe_boxOpens]
-  simp only [mem_ball_zero_iff, Real.norm_eq_abs, pi_norm_lt_iff hδ, abs_mul,
-    abs_of_pos (inv_pos.2 hδ), inv_mul_lt_one₀ hδ]
-
-/-- The diffeomorphism of `ι → ℝ` onto the box `(-δ, δ)ᶥ` acting on each coordinate by
-`t ↦ δ t / √(1 + t²)`. -/
-private noncomputable def boxDiffeomorph {δ : ℝ} (hδ : 0 < δ) :
-    (ι → ℝ) ≃ₘ^∞⟮𝓘(ℝ, ι → ℝ), 𝓘(ℝ, ι → ℝ)⟯ boxOpens (ι := ι) δ where
-  toFun x := ⟨fun i ↦ δ * univUnitBall (x i), (mem_boxOpens hδ).2 fun i ↦ by
-    rw [inv_mul_cancel_left₀ hδ.ne', ← univUnitBall_target]
-    exact univUnitBall.map_source (mem_univ _)⟩
-  invFun y := fun i ↦ univUnitBall.symm (δ⁻¹ * (y : ι → ℝ) i)
-  left_inv x := funext fun i ↦ by
-    simp only [inv_mul_cancel_left₀ hδ.ne']
-    exact univUnitBall.left_inv (mem_univ _)
-  right_inv y := Subtype.ext <| funext fun i ↦ by
-    -- `y` is read through the components of `toFun` and `invFun` given above.
-    change δ * univUnitBall (univUnitBall.symm (δ⁻¹ * (y : ι → ℝ) i)) = (y : ι → ℝ) i
-    rw [univUnitBall.right_inv
-        (by rw [univUnitBall_target]; exact (mem_boxOpens hδ).1 y.property i),
-      mul_inv_cancel_left₀ hδ.ne']
-  contMDiff_toFun := by
-    refine (TauCeti.ContMDiff.subtypeVal_comp_iff (boxOpens δ) _).1 ?_
-    refine ContDiff.contMDiff (contDiff_pi.2 fun i ↦ ?_)
-    exact contDiff_const.mul (contDiff_univUnitBall.comp (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i))
-  contMDiff_invFun := by
-    have h : ContDiffOn ℝ ∞ (fun y : ι → ℝ ↦ fun i ↦ univUnitBall.symm (δ⁻¹ * y i))
-        (boxOpens (ι := ι) δ) := contDiffOn_pi.2 fun i ↦ contDiffOn_univUnitBall_symm.comp
-      (contDiff_const.mul (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i)).contDiffOn
-      fun y hy ↦ (mem_boxOpens hδ).1 (SetLike.mem_coe.1 hy) i
-    exact h.contMDiffOn.comp_contMDiff contMDiff_subtypeVal fun y ↦ y.property
-
-private theorem coe_boxDiffeomorph_apply {δ : ℝ} (hδ : 0 < δ) (x : ι → ℝ) :
-    (boxDiffeomorph hδ x : ι → ℝ) = fun i ↦ δ * univUnitBall (x i) := rfl
-
 /-- **A box as the image of a whole vector space.** For `δ > 0` there is a smooth embedding
 `ψ : (ι → ℝ) → (ι → ℝ)` with `ψ 0 = 0` whose range is the sup-norm ball of radius `δ`, that is,
 the box `(-δ, δ)ᶥ`. -/
 theorem exists_isSmoothEmbedding_range_eq_ball_pi {δ : ℝ} (hδ : 0 < δ) :
     ∃ ψ : (ι → ℝ) → (ι → ℝ), IsSmoothEmbedding 𝓘(ℝ, ι → ℝ) 𝓘(ℝ, ι → ℝ) ∞ ψ ∧
       range ψ = ball 0 δ ∧ ψ 0 = 0 := by
-  refine ⟨Subtype.val ∘ boxDiffeomorph (ι := ι) hδ,
-    TauCeti.isSmoothEmbedding_comp_diffeomorph _ (IsSmoothEmbedding.of_opens _), ?_, ?_⟩
-  · rw [EquivLike.range_comp, Subtype.range_coe, coe_boxOpens]
-  · simp [coe_boxDiffeomorph_apply, Pi.zero_def]
+  -- Mathlib's `univBall 0 δ` of `ℝ`, on each coordinate.
+  let Θ : OpenPartialHomeomorph (ι → ℝ) (ι → ℝ) := .pi fun _ ↦ univBall (0 : ℝ) δ
+  have hsource : Θ.source = univ := by simp [Θ, univBall_source]
+  have htarget : Θ.target = ball 0 δ := by simp [Θ, univBall_target _ hδ, ball_pi _ hδ]
+  let Φ : PartialDiffeomorph 𝓘(ℝ, ι → ℝ) 𝓘(ℝ, ι → ℝ) (ι → ℝ) (ι → ℝ) ∞ :=
+    TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph Θ
+      (contDiff_pi.2 fun i ↦ contDiff_univBall.comp (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i)).contDiffOn
+      (htarget ▸ contDiffOn_pi.2 fun i ↦ contDiffOn_univBall_symm.comp
+        (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i).contDiffOn fun y hy ↦
+          mem_ball_zero_iff.2 ((norm_le_pi_norm y i).trans_lt (mem_ball_zero_iff.1 hy)))
+  have hΦ : Φ.toPartialEquiv = Θ.toPartialEquiv :=
+    TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph_toPartialEquiv _ _ _
+  have htop : (⟨Φ.source, Φ.open_source⟩ : TopologicalSpace.Opens (ι → ℝ)) = ⊤ := by
+    rw [← SetLike.coe_set_eq, TopologicalSpace.Opens.coe_mk, TopologicalSpace.Opens.coe_top, hΦ]
+    exact hsource
+  refine ⟨(Subtype.val ∘ Φ.toDiffeomorphSourceTarget) ∘ (Diffeomorph.ofTop _ htop).symm,
+    TauCeti.isSmoothEmbedding_comp_diffeomorph _
+      (TauCeti.isSmoothEmbedding_comp_diffeomorph _ (IsSmoothEmbedding.of_opens _)), ?_, ?_⟩
+  · rw [EquivLike.range_comp, EquivLike.range_comp, Subtype.range_coe,
+      TopologicalSpace.Opens.coe_mk, hΦ]
+    exact htarget
+  · ext i
+    simp [hΦ, Θ, univBall_apply_zero]
 
 end Box
 
