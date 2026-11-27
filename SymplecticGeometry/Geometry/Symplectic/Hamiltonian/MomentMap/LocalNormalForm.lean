@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.MomentMap
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.OfPoint
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Tube
+public import TauCeti.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
@@ -58,6 +60,15 @@ agree is open (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOf_eq`). It is `G`
 both maps are equivariant, and contains the zero section, where both maps are
 `[g, 0] ↦ Ad*_g (μ x)`; restrict `Ψ` to it (`TopologicalSpace.Opens.imageVal`).
 
+Finally, at any point `x` of a Hamiltonian `G`-manifold with closed nondegenerate invariant `σ`,
+all the data are found. The stabilizer `G_x` is closed (`TauCeti.isClosed_stabilizer`), hence
+compact, with the closed-subgroup Lie structure `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`.
+Its invariant complements `𝔪`, `𝔮` come from
+`TauCeti.SmoothTwoForm.IsNondegenerate.exists_subrepresentation_complements`, the spaces `V` and
+`A` are Euclidean spaces of the dimensions of the symplectic slice and of `𝔪*`, identified with
+them by `LinearEquiv.ofFinrankEq`, the data are `SymplecticGeometry.LocalModelData.ofPoint`, and
+`T` is that of `SymplecticGeometry.LocalModelData.exists_linearEquiv_tangentSpace_ofPoint`.
+
 ## Main results
 
 * `SymplecticGeometry.LocalModelData.exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt`:
@@ -67,6 +78,9 @@ both maps are equivariant, and contains the zero section, where both maps are
   model to `M` that pulls `σ` back to the descended form.
 * `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
   the same map, which moreover carries the moment map of `σ` to that of the local model.
+* `SymplecticGeometry.LocalModelData.exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
+  the local normal form at a point `x` of a Hamiltonian `G`-manifold, for the local model
+  `SymplecticGeometry.LocalModelData.ofPoint` at `x`.
 
 ## References
 
@@ -93,7 +107,11 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [T2Space M]
-  [MulAction G M] [ContMDiffSMul I I' ∞ G M] {x : M}
+  [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+
+section Model
+
+variable {x : M}
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [IsClosed (stabilizer G x : Set G)] [CompactSpace (stabilizer G x)]
   [ChartedSpace F (stabilizer G x)] [LieGroup 𝓘(ℝ, F) ∞ (stabilizer G x)]
@@ -347,6 +365,101 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
     rw [hΨ0, hμ.apply_smul, descendedMomentMap_mk_zero, hτ]
   · rw [← SmoothForm.mpullback_mpullback _ _ (contMDiff_inclusion hN'N) hΨ, hΨσ,
       SmoothForm.mpullback_inclusion_mpullback_subtype_val]
+
+end LocalModelData
+
+end Model
+
+namespace LocalModelData
+
+variable {σ : SmoothTwoForm I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **The local normal form at a point of a Hamiltonian `G`-manifold.** Let a compact Hausdorff
+Lie group `G` act smoothly on `M`, let `σ` be a closed nondegenerate `G`-invariant two-form on
+`M` with coadjoint-equivariant moment map `μ`, and let `x : M`. Its stabilizer `H = G_x` is
+closed, and carries the closed-subgroup Lie structure
+`TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`. Then there are `H`-invariant complements
+`𝔤_x ⊕ 𝔪 = 𝔤_{μ x}` and `𝔤_{μ x} ⊕ 𝔮 = 𝔤`, and linear isomorphisms `eV` from `ℝ^n`, `n` the
+dimension of the symplectic slice at `x`, to that slice, and `eA` from `ℝ^m`,
+`m = dim 𝔤_{μ x} - dim 𝔤_x`, to `𝔪*`, such that for the local model
+`D = SymplecticGeometry.LocalModelData.ofPoint` at `x` built from them, whose covector is
+`μ x` (`SymplecticGeometry.LocalModelData.ofPoint_τ`), with `Y = G ×_H (ℝ^m × ℝ^n)` and
+descended form `ω`, there are a `G`-invariant open set `N` of `Y` containing every point
+`[g, 0]` of the zero section and a smooth map `Ψ : N → M`, `G`-equivariant, with
+`Ψ [g, 0] = g • x`, a local diffeomorphism, with `Ψ^* σ = ω` on `N`, and with `μ (Ψ y) = μ_Y y`
+for every `y ∈ N`, where `μ_Y` is the moment map `D.descendedMomentMap` of the local model. -/
+theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ.IsClosed)
+    (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap μ) (x : M) :
+    haveI hx : IsClosed (stabilizer G x : Set G) := isClosed_stabilizer
+      (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
+    haveI : CompactSpace (stabilizer G x) := isCompact_iff_compactSpace.1 hx.isCompact
+    let d := EmbeddedLieSubgroupData.ofIsClosed (I := I) hx
+    let _ := d.chartedSpace
+    let _ := d.lieGroup
+    let _ := d.contMDiffSMul (I'' := I) (M := G)
+    let V := EuclideanSpace ℝ (Fin (Module.finrank ℝ
+      (hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)))
+    let A := EuclideanSpace ℝ (Fin (Module.finrank ℝ
+      (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule -
+      Module.finrank ℝ ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule))
+    ∃ (𝔪 𝔮 : Subrepresentation ((adjointRepresentation ℝ I G).comp (stabilizer G x).subtype))
+      (h𝔪 : Disjoint ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+        𝔪.toSubmodule)
+      (h𝔪' : ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule ⊔
+        𝔪.toSubmodule = (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule)
+      (h𝔮 : IsCompl (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule 𝔮.toSubmodule)
+      (eV : V ≃ₗ[ℝ] hσ.SymplecticSlice (InfinitesimalAction.fundamental I G I' M) x)
+      (eA : A ≃ₗ[ℝ] Module.Dual ℝ 𝔪.toSubmodule),
+      let D := ofPoint hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA
+      letI := D.fiberDistribMulAction
+      haveI := D.contMDiffSMul_fiberDistribMulAction
+      letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
+        𝓘(ℝ, A × V) (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule
+      haveI := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
+        (I := I) (IZ := 𝓘(ℝ, A × V))
+        (F := (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule)
+      ∃ (N : Opens (BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V)))
+        (Ψ : N → M)
+        (hΨ : ContMDiff 𝓘(ℝ, ProperSMul.QuotientModelSpace
+          (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule (E × (A × V)))
+          I' ∞ Ψ),
+        (∀ g : G, BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
+          ((0 : A), (0 : V)) ∈ N) ∧
+        (∀ (g : G) y, y ∈ N → g • y ∈ N) ∧
+        (∀ (g : G) (y : N) (h : g • (y : BalancedProduct _ _ _) ∈ N),
+          Ψ ⟨_, h⟩ = g • Ψ y) ∧
+        (∀ (g : G) (h : BalancedProduct.mk (stabilizer G x)
+            ((stabilizer G x).toRightTranslation g) ((0 : A), (0 : V)) ∈ N),
+          Ψ ⟨_, h⟩ = g • x) ∧
+        IsLocalDiffeomorph 𝓘(ℝ, ProperSMul.QuotientModelSpace
+          (Lie.lieSubalgebraOfSubgroup (I := I) (stabilizer G x)).toSubmodule (E × (A × V)))
+          I' ∞ Ψ ∧
+        SmoothForm.mpullback Ψ hΨ σ =
+          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal D.descendedForm ∧
+        ∀ y : N, μ (Ψ y) = D.descendedMomentMap y := by
+  have hx : IsClosed (stabilizer G x : Set G) := isClosed_stabilizer
+    (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
+  intro d _ _ _ V A
+  obtain ⟨𝔪, 𝔮, h𝔪, h𝔪', h𝔮⟩ := hσ.exists_subrepresentation_complements (fun g _ ↦ hσG g)
+    (hμ.momentCocycle_eq_zero x) hx.isCompact
+  -- `dim 𝔪 = dim 𝔤_{μ x} - dim 𝔤_x`, since `𝔤_x ⊕ 𝔪 = 𝔤_{μ x}`.
+  have hA := Submodule.finrank_sup_add_finrank_inf_eq
+    ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule 𝔪.toSubmodule
+  rw [h𝔪', h𝔪.eq_bot, finrank_bot, add_zero] at hA
+  have hA' : Module.finrank ℝ A = Module.finrank ℝ (Module.Dual ℝ 𝔪.toSubmodule) := by
+    rw [finrank_euclideanSpace_fin, Subspace.dual_finrank_eq]
+    omega
+  let eV : V ≃ₗ[ℝ] _ := LinearEquiv.ofFinrankEq _ _ finrank_euclideanSpace_fin
+  let eA : A ≃ₗ[ℝ] _ := LinearEquiv.ofFinrankEq _ _ hA'
+  refine ⟨𝔪, 𝔮, h𝔪, h𝔪', h𝔮, eV, eA, ?_⟩
+  intro D
+  obtain ⟨T, hTσ, hTk, hTξ⟩ :=
+    exists_linearEquiv_tangentSpace_ofPoint hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA
+  exact D.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap hσc hσG hμ
+    (ofPoint_τ hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA) T hTσ hTk hTξ
 
 end LocalModelData
 
