@@ -23,6 +23,8 @@ along the projection `(p, y) ↦ y` (the form in which Tau Ceti's
   frame `e.symmL y ∘ v` of the tangent trivialization `e` of `F` at `y₀`, for a fixed tuple `v`
   of model vectors, are `C^n` in `(p, y)` at each point over `y₀`. This is the family version of
   one direction of Tau Ceti's `TauCeti.isSmoothForm_iff_forall_contMDiffAt_trivializationAt_apply`.
+* `TauCeti.ContMDiffAt.roughForm_family_apply`: at a fixed `y₀`, the value `β p y₀` is `C^n` in
+  `p`.
 * `TauCeti.isSmoothForm_mfderiv_family_apply`: when `P` is an open subset `U` of a normed space
   `EB`, with the model `𝓘(ℝ, EB)`, and the family is smooth, then for `b ∈ U` and `a ∈ EB` the
   `k`-form whose value at `y` is the derivative at `b`, in the direction `a`, of `b' ↦ β b' y` is
@@ -53,7 +55,7 @@ variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [Topolog
   {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
   {E H F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {J : ModelWithCorners ℝ E H} [TopologicalSpace F] [ChartedSpace H F]
-  {k : ℕ}
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] {k : ℕ}
 
 /-- **A smooth family of forms read in a tangent trivialization.** Let `β p` be a `k`-form on
 `F` for each `p : P`, such that `(p, y) ↦ β p y`, as a section of the bundle of `k`-forms along
@@ -61,12 +63,12 @@ variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [Topolog
 frame `e.symmL y ∘ v`, where `e` is the tangent trivialization of `F` at `q₀.2`, is `C^n` in
 `(p, y)` at `q₀`. -/
 theorem ContMDiffAt.roughForm_family_apply_trivializationAt [IsManifold J 1 F] {n : WithTop ℕ∞}
-    {β : P → RoughForm J F ℝ k} {q₀ : P × F}
-    (hβ : ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ)) n
-      (fun q : P × F ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)) q₀)
+    {β : P → RoughForm J F G k} {q₀ : P × F}
+    (hβ : ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) n
+      (fun q : P × F ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] G)
+        (E := fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y) q.2 (β q.1 q.2)) q₀)
     (v : Fin k → E) :
-    ContMDiffAt (K.prod J) 𝓘(ℝ) n
+    ContMDiffAt (K.prod J) 𝓘(ℝ, G) n
       (fun q : P × F ↦ β q.1 q.2 ((trivializationAt E (TangentSpace J) q₀.2).symmL ℝ q.2 ∘ v))
       q₀ := by
   have h := (contMDiffAt_totalSpace_iff.1 hβ).2
@@ -74,6 +76,29 @@ theorem ContMDiffAt.roughForm_family_apply_trivializationAt [IsManifold J 1 F] {
     contMDiffAt_continuousAlternatingMap_apply,
     ContinuousAlternatingMap.compContinuousLinearMap_apply] at h
   exact h v
+
+/-- **A smooth family of forms at a fixed point.** Let `β p` be a `k`-form on `F` for each
+`p : P`, such that `(p, y) ↦ β p y`, as a section of the bundle of `k`-forms along
+`(p, y) ↦ y`, is `C^n` at `q₀`. Then `p ↦ β p q₀.2`, a map into the alternating maps on the
+model space, is `C^n` at `q₀.1`. -/
+theorem ContMDiffAt.roughForm_family_apply [IsManifold J 1 F] {n : WithTop ℕ∞}
+    {β : P → RoughForm J F G k} {q₀ : P × F}
+    (hβ : ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) n
+      (fun q : P × F ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] G)
+        (E := fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y) q.2 (β q.1 q.2)) q₀) :
+    ContMDiffAt K 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G) n
+      (fun p ↦ show E [⋀^Fin k]→L[ℝ] G from β p q₀.2) q₀.1 := by
+  refine contMDiffAt_continuousAlternatingMap_apply.2 fun w ↦ ?_
+  -- Undo the trivialization at `q₀.2` on the vectors `w`.
+  have hw : (trivializationAt E (TangentSpace J) q₀.2).symmL ℝ q₀.2 ∘
+      ((trivializationAt E (TangentSpace J) q₀.2).continuousLinearMapAt ℝ q₀.2 ∘ w) = w :=
+    funext fun i ↦ Trivialization.symmL_continuousLinearMapAt (R := ℝ)
+      (trivializationAt E (TangentSpace J) q₀.2) (mem_baseSet_trivializationAt E _ q₀.2) (w i)
+  have h := (ContMDiffAt.roughForm_family_apply_trivializationAt hβ
+    ((trivializationAt E (TangentSpace J) q₀.2).continuousLinearMapAt ℝ q₀.2 ∘ w)).comp q₀.1
+      (contMDiffAt_id.prodMk contMDiffAt_const)
+  rw [← hw]
+  exact h
 
 variable [IsManifold J ∞ F] {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   {U : Opens EB}
@@ -103,16 +128,9 @@ theorem isSmoothForm_mfderiv_family_apply {β : U → RoughForm J F ℝ k}
       fun z hz y ↦ congrArg (fun φ : E [⋀^Fin k]→L[ℝ] ℝ ↦ φ _) (hB ⟨z, hz⟩ y)
   -- At each `y`, the extended family is differentiable in the parameter at `b`.
   have hdiff (y : F) : DifferentiableAt ℝ (B · y) b := by
-    have hs : ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ) ∞ (B · y) b := by
-      refine contMDiffAt_continuousAlternatingMap_apply.2 fun w ↦ ?_
-      have hw : (trivializationAt E (TangentSpace J) y).symmL ℝ y ∘
-          ((trivializationAt E (TangentSpace J) y).continuousLinearMapAt ℝ y ∘ w) = w :=
-        funext fun i ↦ Trivialization.symmL_continuousLinearMapAt (R := ℝ)
-          (trivializationAt E (TangentSpace J) y) (mem_baseSet_trivializationAt E _ y) (w i)
-      have h := (hBv y ((trivializationAt E (TangentSpace J) y).continuousLinearMapAt ℝ y ∘ w)).comp
-        (b : EB) (contMDiffAt_id.prodMk contMDiffAt_const)
-      rw [← hw]
-      exact h
+    have hs : ContMDiffAt 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ) ∞ (B · y) b :=
+      contMDiffAt_subtype_iff.1 <| (ContMDiffAt.roughForm_family_apply (q₀ := (b, y))
+        (hβ (b, y))).congr_of_eventuallyEq (Filter.Eventually.of_forall fun b' ↦ hB b' y)
     exact (contMDiffAt_iff_contDiffAt.1 hs).differentiableAt (by simp)
   -- The derivative of the family is that of the extended family on `EB`.
   have hD (y : F) : (show E [⋀^Fin k]→L[ℝ] ℝ from mfderiv 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ)
