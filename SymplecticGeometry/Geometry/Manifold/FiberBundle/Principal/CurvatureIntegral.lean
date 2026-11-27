@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleC
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
 import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
 
 /-!
@@ -90,9 +91,8 @@ theorem IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq [Precon
       (hα.curvature.isSmoothForm.of_le (by simp)), hσ, sub_self]
   have hex := (mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero o
     (compactlySupportedForms_eq_top (I := IB) (M := B) 2 ▸ Submodule.mem_top)).mpr hint
-  rw [exactCompactlySupportedForms_succ, Submodule.mem_map] at hex
-  obtain ⟨a, -, ha⟩ := hex
-  exact ⟨_, hα.add_mpullback a, by rw [hα.curvature_add_mpullback a, ha, add_sub_cancel]⟩
+  exact hα.exists_curvature_eq_of_sub_mem_exactForms
+    (exactCompactlySupportedForms_le_exactForms IB 2 hex)
 
 end SymplecticGeometry
 

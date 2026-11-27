@@ -516,11 +516,12 @@ Bundles from clutching data, and isomorphisms from homotopies.
   `o.toHomologicalOrientation` is $\chi(S^2)=2$ by the Euler-number
   milestone, and the integral side is $2$ by the computation in
   *Conventions*. With the opposite orientation the left side would be $-2$.
-- `exists_isCircleConnectionForm_curvature_eq`: if `M` is connected, every smooth
+- `isConnectionCurvature_of_integralTopForm_eq`: if `M` is connected, every smooth
   real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
   (o.toHomologicalOrientation hn) hn F V` is the curvature of a
-  connection form. Proof: `σ - hα₀.curvature` has integral $0$, so it is
-  exact by `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`
+  connection form, `g.IsConnectionCurvature hI σ`. Proof: `σ - hα₀.curvature`
+  has integral $0$, so it is exact by
+  `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`
   (with `TauCeti.compactlySupportedForms_eq_top`). Then add the pull-back of
   a primitive to `α₀`.
 - **Milestone** `chernNumber_eq_integral_curvature_and_exists`: the
