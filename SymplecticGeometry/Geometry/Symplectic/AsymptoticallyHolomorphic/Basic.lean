@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.P
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -47,8 +48,14 @@ formula `SymplecticGeometry.powerConnection_apply_frame`, applied to the frame, 
 the image of that ball, and from `SymplecticGeometry.RescaledUnitaryCharts.connectionForm_eq_model`.
 The `∂̄` reading `D.dbarReading k x s z` is Tau Ceti's complex-antilinear part
 `TauCeti.complexAntilinearPart` of `D.connectionReading k x s z`, for the structure `J` pushed
-forward by the chart at `z` and multiplication by `i` on `ℂ`. Both readings commute with
-multiplication by `c : ℂ`, and are additive on sections whose readings are differentiable at `z`.
+forward by the chart at `z` and multiplication by `i` on `ℂ`. For `k₀ ≤ k`, at a point `z` of the
+ball of radius `ρ₀ * √k` where the reading of `s` is differentiable, it is the `(0,1)`-part
+`J.zeroOnePart (powerConnection α k s)` read in the chart and the frame
+(`SymplecticGeometry.RescaledUnitaryCharts.zeroOnePart_powerConnection_chart_symm_apply`), since
+the derivative of the inverse chart carries the pushed-forward structure to `J`
+(`TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`). Both readings
+commute with multiplication by `c : ℂ`, and are additive on sections whose readings are
+differentiable at `z`.
 The `r`-jet norm of the `∂̄` reading, `D.dbarJetNorm k r s x`, is its jet norm at `0`; it is
 nonnegative and monotone in `r`, vanishes on the zero section, is unchanged by negation, scales by
 `‖c‖` under multiplication by `c : ℂ`, and satisfies the triangle inequality for sections whose
@@ -344,9 +351,10 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
 /-- The **`∂̄` reading of a section** `s` of `PowerBundle P k` at `z`: the complex-antilinear part
 (Tau Ceti's `TauCeti.complexAntilinearPart`) of the connection read in the chart,
 `D.connectionReading k x s z`, for the structure `J` pushed forward by the chart at `z` and
-multiplication by `i` on `ℂ`. Where the reading of `s` is differentiable at `z`, the connection
-read in the chart is `D_k s` read there
-(`SymplecticGeometry.RescaledUnitaryCharts.powerConnection_chart_symm_apply`). -/
+multiplication by `i` on `ℂ`. For `k₀ ≤ k`, at a point `z` of the ball of radius `ρ₀ * √k` where
+the reading of `s` is differentiable, it is the `(0,1)`-part `J.zeroOnePart` of `D_k s` read in
+the chart and the frame
+(`SymplecticGeometry.RescaledUnitaryCharts.zeroOnePart_powerConnection_chart_symm_apply`). -/
 noncomputable def dbarReading (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     StdSpace ι →L[ℝ] ℂ :=
   LinearMap.toContinuousLinearMap (complexAntilinearPart
@@ -360,6 +368,29 @@ theorem dbarReading_def (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : Std
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
       (D.connectionReading k x s z : StdSpace ι →ₗ[ℝ] ℂ)) :=
   (rfl)
+
+/-- **The `∂̄` reading is `∂̄ s` read in the chart.** For `k₀ ≤ k`, at a point `z` of the ball of
+radius `ρ₀ * √k` where the reading of `s` is differentiable, the `(0,1)`-part `J.zeroOnePart` of
+`D_k s` at `(D.chart k x).symm z`, evaluated on the image of `v` under the derivative of the
+inverse chart, is the class of the frame and of the `∂̄` reading, `D.dbarReading k x s z v`. -/
+theorem zeroOnePart_powerConnection_chart_symm_apply [∀ y, Nonempty (P y)]
+    (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k) {x : M} {s : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (hz : z ∈ ball 0 (ρ₀ * √k)) (hs : DifferentiableAt ℝ (D.reading k x s) z)
+    (v : StdSpace ι) :
+    J.zeroOnePart (powerConnection α k s ((D.chart k x).symm z))
+        (mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm z v) =
+      AssociatedBundle.mk Circle (D.frame k x ((D.chart k x).symm z))
+        (PowerModel.toComplex.symm (D.dbarReading k x s z v)) := by
+  have hJ := J.mfderiv_symm_apply_chartPushforward_apply (D.chart k x)
+    (D.ball_subset_target hk x hz) v
+  rw [J.zeroOnePart_apply, ← hJ, D.powerConnection_chart_symm_apply hα hk hz hs,
+    D.powerConnection_chart_symm_apply hα hk hz hs, dbarReading_def,
+    LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply]
+  simp only [← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ), ContinuousLinearMap.coe_coe,
+    AlmostComplexStructure.ofComplexModule_apply, ← map_smul, ← map_add, smul_eq_mul,
+    Complex.real_smul]
+  rw [algebra_compatible_smul ℂ (2⁻¹ : ℝ), ← map_smul, ← map_smul, smul_eq_mul,
+    Complex.coe_algebraMap]
 
 /-- The `∂̄` reading is additive on sections whose readings are differentiable at `z`. -/
 theorem dbarReading_add {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y} {z : StdSpace ι}
