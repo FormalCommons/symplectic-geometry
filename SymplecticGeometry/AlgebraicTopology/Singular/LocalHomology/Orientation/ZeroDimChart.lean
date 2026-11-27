@@ -9,6 +9,9 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDim.Basic
 public import TauCeti.Topology.Category.TopPair.ContinuousLinearEquiv
 public import Mathlib.LinearAlgebra.Orientation
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 import SymplecticGeometry.Topology.Category.TopPair
 import SymplecticGeometry.LinearAlgebra.Orientation.Basic
 import TauCeti.AlgebraicTopology.Singular.ReducedRelative
@@ -44,6 +47,10 @@ selected here by `o.orientationAt x` by definition. Still, any isomorphism of pa
 (`TauCeti.Manifold.Orientation.localOrientationOfZeroDim_map`). In particular, on the model space
 `P` with the constant orientation `Manifold.Orientation.model ω`, it selects at the origin the
 same class as `ω` does here (`TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`).
+In the same way, a chart `c : M → E` with `c x = 0`, read on its source through
+`TauCeti.localHomologyIsoOfIsOpenEmbedding`, carries the homological orientation
+`o.toHomologicalOrientationOfZeroDim` at `x` to the one selected by `o.orientationAt x`
+(`TauCeti.Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim`).
 
 ## Main definitions
 
@@ -61,6 +68,9 @@ same class as `ω` does here (`TauCeti.Manifold.Orientation.localOrientationOfZe
   manifold at `x` to the one selected by its tangent orientation at `x`.
 * `TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`: the manifold local orientation
   of the constant orientation of the model space, at the origin, is the linear one.
+* `TauCeti.Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim`:
+  a chart of a zero-dimensional oriented manifold at `x`, centred at `x`, carries its local
+  orientation at `x` to the one selected by the tangent orientation at `x`.
 
 ## References
 
@@ -204,6 +214,47 @@ theorem localOrientationOfZeroDim_map (o : Manifold.Orientation I M (Fin 0)) (x 
   -- The condition on the left compares orientations of `TangentSpace I x`, which is `E` by
   -- definition, so the definition of the right side matches it only up to that unfolding.
   exact (_root_.Orientation.localOrientationOfZeroDim_def (P := E) _ _).symm
+
+/-- Let `o` be an orientation of a zero-dimensional manifold `M` modelled on `E`, and `c` a chart
+of `M` with values in `E` sending `x` to the origin. The local orientation of `M` at `x` given by
+`o`, as a homological orientation, carried back to the source of `c` and then forward by `c`, is
+the local orientation of `E` at the origin selected by the tangent orientation `o.orientationAt x`:
+the class of the origin, negated when `o.orientationAt x` is not the positive orientation. -/
+theorem localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim
+    (o : Manifold.Orientation I M (Fin 0)) (c : OpenPartialHomeomorph M E) {x : M}
+    (hx : x ∈ c.source) (hcx : c x = 0) :
+    localHomologyMap (ModuleCat.of ℤ (ULift.{w} ℤ)) c.sourceRestrict
+        (hcx ▸ (c.sourceRestrict_preimage_singleton hx).subset) 0
+        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{w} ℤ))
+          c.open_source.isOpenEmbedding_subtypeVal ⟨x, hx⟩ 0).inv
+          (o.toHomologicalOrientationOfZeroDim x).val) =
+      (_root_.Orientation.localOrientationOfZeroDim (P := E) (o.orientationAt x)
+        o.finrank_eq_zero).val := by
+  -- The inverse identification carries the class of `x` to the class of `x` in the source.
+  have hinv : (localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{w} ℤ))
+      c.open_source.isOpenEmbedding_subtypeVal ⟨x, hx⟩ 0).inv
+        (localHomologyPointClass (ModuleCat.of ℤ (ULift.{w} ℤ)) {x} x 1) =
+      localHomologyPointClass (ModuleCat.of ℤ (ULift.{w} ℤ)) ({⟨x, hx⟩} : Set c.source)
+        ⟨x, hx⟩ 1 := by
+    have h := ConcreteCategory.congr_hom ((Iso.eq_comp_inv _).2
+      (localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom
+        (ModuleCat.of ℤ (ULift.{w} ℤ)) c.open_source.isOpenEmbedding_subtypeVal ⟨x, hx⟩)) 1
+    rw [ConcreteCategory.comp_apply] at h
+    exact h.symm
+  -- The chart carries it to the class of the origin.
+  have hpt : localHomologyMap (ModuleCat.of ℤ (ULift.{w} ℤ)) c.sourceRestrict
+      (hcx ▸ (c.sourceRestrict_preimage_singleton hx).subset) 0
+        (localHomologyPointClass (ModuleCat.of ℤ (ULift.{w} ℤ)) ({⟨x, hx⟩} : Set c.source)
+        ⟨x, hx⟩ 1) =
+      localHomologyPointClass (ModuleCat.of ℤ (ULift.{w} ℤ)) {(0 : E)} 0 1 := by
+    rw [localHomologyPointClass_map_apply, OpenPartialHomeomorph.sourceRestrict_apply, hcx]
+  refine Eq.trans ?_ (_root_.Orientation.coe_localOrientationOfZeroDim (P := E) (o.orientationAt x)
+    o.finrank_eq_zero).symm
+  rw [toHomologicalOrientationOfZeroDim_apply, localOrientationOfZeroDim_coe,
+    apply_ite (DFunLike.coe _), apply_ite (DFunLike.coe _), map_neg, map_neg, hinv, hpt]
+  -- The two conditions compare orientations of `TangentSpace I x` and of `E`, which is the same
+  -- type only by definition, so they agree only up to unfolding it.
+  rfl
 
 end Chart
 
