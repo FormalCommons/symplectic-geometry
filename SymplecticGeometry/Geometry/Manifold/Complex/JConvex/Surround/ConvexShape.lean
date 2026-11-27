@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
 import Mathlib.Analysis.InnerProductSpace.ProdL2
+import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Normed.Group.Prod
@@ -37,6 +38,11 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
   for `ℓ > 0`, are again `i`-convex shapes. The derivatives of the rescaled shape come from
   `iteratedDeriv_comp_div_const`, with no differentiability assumption on `χ`.
+* `SymplecticGeometry.exists_forall_isConvexShapeAt_of_abs_sub_lt`: being an `i`-convex shape
+  is an open condition on `(r, χ r, χ' r, χ'' r)`, so for a compact family of shapes whose
+  values and first two derivatives depend continuously on the point, one `η > 0` works for all:
+  any function within `η` of a member in value and two derivatives at `r` is a shape at `r`.
+  The uniform `η` comes from `IsCompact.exists_thickening_subset_open`.
 * `SymplecticGeometry.exists_isConvexShapeAt_eq_max`: two `i`-convex shapes on `[r₁, r₂]` have
   a common smoothing of their maximum, `r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` for small `δ`, that is
   again an `i`-convex shape and is the maximum away from a given neighbourhood of their crossings.
@@ -229,6 +235,59 @@ theorem isConvexShapeAt_of_iteratedDeriv_two_nonpos (hr : 0 < r) (hχ : 0 < χ r
   · have : 1 / χ r ≤ (1 + d ^ 2) / χ r :=
       div_le_div_of_nonneg_right (by linarith [sq_nonneg d]) hχ.le
     linarith
+
+open Metric in
+/-- **`i`-convex shapes are stable under small `C²` perturbations, uniformly on a compact set.**
+Let `K ⊆ ℝ × ℝ` be compact, with `χ ℓ` an `i`-convex shape at `r` for every `(ℓ, r) ∈ K`, and
+with `(ℓ, r) ↦ iteratedDeriv k (χ ℓ) r` continuous on `K` for `k ≤ 2`. Then there is `η > 0`
+such that every `φ : ℝ → ℝ` whose value and first two derivatives at `r` are within `η` of
+those of `χ ℓ`, for some `(ℓ, r) ∈ K`, is an `i`-convex shape at `r`.
+
+No differentiability of `φ` or of the `χ ℓ` is assumed: only the values of the derivatives at
+`r` enter `isConvexShapeAt_iff`. -/
+theorem exists_forall_isConvexShapeAt_of_abs_sub_lt {χ : ℝ → ℝ → ℝ} {K : Set (ℝ × ℝ)}
+    (hK : IsCompact K) (hc : ∀ x ∈ K, IsConvexShapeAt (χ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (χ x.1) x.2) K) :
+    ∃ η > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K,
+      (∀ k ≤ 2, |iteratedDeriv k φ x.2 - iteratedDeriv k (χ x.1) x.2| < η) →
+        IsConvexShapeAt φ x.2 := by
+  -- The inequalities of `isConvexShapeAt_iff`, as an open set of `(r, χ r, χ' r, χ'' r)`.
+  set U : Set (ℝ × ℝ × ℝ × ℝ) := {p | 0 < p.1 ∧ 0 < p.2.1 ∧ 1 / p.2.1 < p.2.2.1 / p.1 ∧
+    1 / p.2.1 < p.2.2.2 + p.2.2.1 ^ 3 / p.1}
+  have hU : IsOpen U := by
+    refine isOpen_iff_mem_nhds.2 fun p ⟨h₁, h₂, h₃, h₄⟩ ↦ ?_
+    have h₁' := h₁.ne'
+    have h₂' := h₂.ne'
+    have e₁ : ∀ᶠ q in 𝓝 p, 0 < q.1 := continuousAt_const.eventually_lt continuousAt_fst h₁
+    have e₂ : ∀ᶠ q in 𝓝 p, 0 < q.2.1 :=
+      continuousAt_const.eventually_lt (by fun_prop) h₂
+    have e₃ : ∀ᶠ q in 𝓝 p, 1 / q.2.1 < q.2.2.1 / q.1 :=
+      ContinuousAt.eventually_lt (by fun_prop (disch := assumption))
+        (by fun_prop (disch := assumption)) h₃
+    have e₄ : ∀ᶠ q in 𝓝 p, 1 / q.2.1 < q.2.2.2 + q.2.2.1 ^ 3 / q.1 :=
+      ContinuousAt.eventually_lt (by fun_prop (disch := assumption))
+        (by fun_prop (disch := assumption)) h₄
+    filter_upwards [e₁, e₂, e₃, e₄] with q h₁ h₂ h₃ h₄ using ⟨h₁, h₂, h₃, h₄⟩
+  -- The values of `(r, χ ℓ r, (χ ℓ)' r, (χ ℓ)'' r)` on `K` form a compact subset of `U`.
+  set g : ℝ × ℝ → ℝ × ℝ × ℝ × ℝ :=
+    fun x ↦ (x.2, χ x.1 x.2, deriv (χ x.1) x.2, iteratedDeriv 2 (χ x.1) x.2) with hg_def
+  have hg : ContinuousOn g K := by
+    have h₀ := hcont 0 (by norm_num)
+    have h₁ := hcont 1 (by norm_num)
+    simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
+    exact continuousOn_snd.prodMk (h₀.prodMk (h₁.prodMk (hcont 2 le_rfl)))
+  obtain ⟨η, hη, hsub⟩ := (hK.image_of_continuousOn hg).exists_thickening_subset_open hU
+    (by rintro _ ⟨x, hx, rfl⟩; exact isConvexShapeAt_iff.1 (hc x hx))
+  refine ⟨η, hη, fun φ x hx hφ ↦ isConvexShapeAt_iff.2 ?_⟩
+  -- `U` is a set-builder set, so membership in it is the conjunction to be proved.
+  change (x.2, φ x.2, deriv φ x.2, iteratedDeriv 2 φ x.2) ∈ U
+  refine hsub (mem_thickening_iff.2 ⟨g x, Set.mem_image_of_mem g hx, ?_⟩)
+  have h₀ := hφ 0 (by norm_num)
+  have h₁ := hφ 1 (by norm_num)
+  have h₂ := hφ 2 le_rfl
+  simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
+  simp only [hg_def, Prod.dist_eq, Real.dist_eq, sub_self, abs_zero]
+  exact max_lt hη (max_lt h₀ (max_lt h₁ h₂))
 
 namespace IsConvexShapeAt
 
