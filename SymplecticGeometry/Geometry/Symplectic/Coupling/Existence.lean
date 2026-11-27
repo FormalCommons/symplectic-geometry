@@ -316,7 +316,7 @@ theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoF
         fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (x.2 : ℝ)) := by
   funext x
   ext v
-  rw [RoughForm.interior_apply, couplingForm_def, SmoothForm.add_toRoughForm]
+  rw [RoughForm.interior_apply, couplingForm_def, SmoothBundleForm.add_apply]
   have h0 : (SmoothForm.mpullback Prod.fst contMDiff_fst
       (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
         (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff σ)).val x
@@ -344,7 +344,7 @@ theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoF
   have hA : (fun q ↦ (couplingOneForm α β hβ).val q ![couplingField IB P a b q]) =
       fun q ↦ (q.2 : ℝ) - a :=
     funext (hα.couplingOneForm_apply_couplingField hβ)
-  rw [Pi.add_apply, ContinuousAlternatingMap.add_apply, h0, zero_add, Pi.neg_apply,
+  rw [ContinuousAlternatingMap.add_apply, h0, zero_add, Pi.neg_apply,
     ContinuousAlternatingMap.neg_apply, mextDeriv_ofFunction_apply, mextDerivₗ_apply, hC, hA]
   simp only [sub_eq_add_neg, mvfderiv_add_const, mvfderiv_apply_eq_mfderiv_apply]
 

@@ -18,6 +18,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The Fubini–Study form of `ℂPⁿ`
@@ -172,7 +173,7 @@ theorem fubiniStudyPrimitive_eq :
         (puncturedSpace (Fin (n + 1) → ℂ))).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)) := by
   refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
-  rw [SmoothForm.smul_toRoughForm, Pi.smul_apply,
+  rw [SmoothBundleForm.smul_apply,
     ContinuousAlternatingMap.smul_apply,
     SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec,
     mextDerivₗ_fubiniStudyPotential_apply, fubiniStudyPrimitive_apply]

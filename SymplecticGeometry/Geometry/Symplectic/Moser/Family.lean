@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.OneFormCorrectio
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Moser's argument along a family and with a parameter
@@ -258,7 +259,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ').val (f q) =
         0 := by
     have hq := hdφ t q (by rw [hγf t ht, ZeroMemClass.coe_zero, Pi.zero_apply])
-    rw [hslice, AddSubgroupClass.coe_sub, Pi.sub_apply, mextDerivₗ_apply,
+    rw [hslice, SmoothBundleForm.sub_apply, mextDerivₗ_apply,
       SmoothForm.coe_mpullback (Prod.mk t) _ Φ, hΦ, mpullback_ofFunction, ← hq,
       Function.comp_def, sub_self]
   obtain ⟨Ψ, hΨC, hΨf, hΨ⟩ :=

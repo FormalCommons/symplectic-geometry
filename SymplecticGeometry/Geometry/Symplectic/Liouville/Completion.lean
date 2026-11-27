@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The completion of a strong filling: its symplectic form, primitive and Liouville field
@@ -712,8 +713,8 @@ theorem mpullback_toCompletion_completionPrimitive_apply (p : W) :
       -RoughForm.interior Y σ.val p := by
   have := congrFun
     ((SmoothForm.mpullback_eq_iff _).1 h.mpullback_toCompletion_completionPrimitive) p
-  simpa only [NegMemClass.coe_neg, SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk,
-    Pi.neg_apply] using this
+  simpa only [SmoothBundleForm.neg_apply, SmoothTwoForm.coe_interiorₗ,
+    ContMDiffSection.coeFn_mk] using this
 
 private theorem isClosed_completionForm : h.completionForm.IsClosed := by
   rw [SmoothForm.isClosed_def]

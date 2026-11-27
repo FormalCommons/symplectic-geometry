@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.Riemannian.Distance
 import SymplecticGeometry.Geometry.Symplectic.Liouville.RadialPrimitive
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 import Mathlib.Algebra.Order.Star.Real
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Centred Darboux charts with uniform bounds, their rescalings, and rescaled unitary charts
@@ -592,7 +593,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
     rw [← mpullback_mextDeriv_at ((hχs hz').of_le (by simp)) ((hα₀ hz).of_le (by simp)),
       mpullback_apply_congr (hα.curvature_apply_eq_mextDeriv_mpullback (ht₀ hz)).symm, hασ,
       SetLike.val_smul, mpullback_smul, Pi.smul_apply,
-      SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ hz', SetLike.val_smul, Pi.smul_apply]
+      SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ hz', SmoothBundleForm.smul_apply]
   obtain ⟨θ, hθ, hθβ⟩ :=
     exists_contDiffOn_add_mextDeriv_eq_stdConnectionForm hs hso le_top hβ hdβ
   have hθ' : ContDiffOn ℝ ∞ θ s := by simpa using hθ
