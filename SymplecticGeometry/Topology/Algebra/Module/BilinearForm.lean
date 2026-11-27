@@ -99,7 +99,7 @@ applied to a single form, so its sublevel sets `{x | B x x ≤ c}` are compact.
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 * `LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply`: for nondegenerate `B` in finite
   dimension, `B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f`.
-* `LinearMap.BilinForm.isCompact_setOf_apply_self_le`: on a finite-dimensional real normed
+* `LinearMap.BilinForm.isCompact_setOfPred_apply_self_le`: on a finite-dimensional real normed
   space, the sublevel sets of a positive definite form are compact.
 -/
 
@@ -410,7 +410,7 @@ theorem toContinuousBilinearMap_inverse_apply (hB : B.Nondegenerate) (f : Strong
 
 /-- On a finite-dimensional real normed space, the sublevel sets `{x | B x x ≤ c}` of a positive
 definite bilinear form `B` are compact. -/
-theorem isCompact_setOf_apply_self_le {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+theorem isCompact_setOfPred_apply_self_le {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [FiniteDimensional ℝ E] {B : LinearMap.BilinForm ℝ E} (hB : B.toQuadraticMap.PosDef)
     (c : ℝ) : IsCompact {x | B x x ≤ c} := by
   obtain ⟨a, ha, hle⟩ := (isCompact_singleton (x := ())).exists_pos_forall_mul_norm_sq_le
