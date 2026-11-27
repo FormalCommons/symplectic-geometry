@@ -523,7 +523,8 @@ Step 8d first searches Mathlib and Tau Ceti for that comparison.
   `isSymplectic_symplecticForm`.
 - `fibreEmbedding`, the Fermat cubic over $[1:0]$, a symplectic embedding
   with a symplectic framing from the base; `torusDiffeomorph` from Tau
-  Ceti's standard symplectic torus (Decision 8).
+  Ceti's standard symplectic torus (Decision 8), in
+  `Sum/RationalEllipticSurface/FibreTorus.lean`.
 - `simplyConnectedSpace` (Decision 6) and
   `simplyConnectedSpace_compl_fibre` (Decision 7).
 

@@ -5,12 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import Mathlib.Topology.Compactness.Paracompact
 public import Mathlib.Topology.Homotopy.Contractible
 public import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
+import Mathlib.Analysis.Convex.Contractible
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Analysis.Normed.Operator.Perturbation
@@ -19,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
+import TauCeti.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordChange
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
@@ -69,6 +73,15 @@ which is smooth in tangent coordinates
 (`Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates`). The gluing follows
 that of Tau Ceti's `Bundle.Pullback.exists_contMDiff_hom_map_I_eq_cast`.
 
+Together the two factors give the frame along a smooth immersion `ι : ℝᵏ → M`, such as a disc,
+with totally real tangent images, when `dim_ℂ E = k + m`. The differential of an immersion is
+injective, so the extension of `dι x` is injective on `ℂᵏ`. It is smooth in tangent
+coordinates, and hence continuous as a map `ℝᵏ × ℂᵏ → TM`
+(`SymplecticGeometry.continuous_of_continuousAt_inTangentCoordinates`), and `ℝᵏ` is
+contractible, so it has a smooth complex complement `B`. The frame
+`A x = (extension of dι x, B x) : ℂᵏ × ℂᵐ → T_(ι x) M` then agrees with `dι x` on the image
+`ℝᵏ × 0` of the model disc `SymplecticGeometry.modelDisc`.
+
 ## Main results
 
 * `SymplecticGeometry.complexExtension_mfderiv_injective`: the complex-linear extension of an
@@ -87,6 +100,9 @@ that of Tau Ceti's `Bundle.Pullback.exists_contMDiff_hom_map_I_eq_cast`.
   contractible manifold, a family of injective complex-linear maps into the tangent spaces, smooth
   in tangent coordinates, extends to a family of complex-linear isomorphisms smooth in tangent
   coordinates.
+* `SymplecticGeometry.exists_complexFrame_mfderiv`: along a smooth immersion of `ℝᵏ` with totally
+  real tangent images there is a frame `ℂᵏ × ℂᵐ → T_(ι x) M`, invertible, complex linear and
+  smooth in tangent coordinates, that restricts to `dι x` along the model disc.
 
 ## References
 
@@ -389,22 +405,22 @@ theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuou
 /-- **A smooth complex complement along a map from a contractible manifold.** Let `ι : X → M` be
 a smooth map from a contractible σ-compact Hausdorff finite-dimensional manifold into a complex
 manifold modelled on a finite-dimensional space `E`, and `L x : G₁ → T_(ι x) M` injective
-complex-linear maps, continuous as a map `X × G₁ → TM` and smooth in tangent coordinates. If
-`dim G₁ + dim G₂ = dim E`, there are complex-linear maps `B x : G₂ → T_(ι x) M`, smooth in
-tangent coordinates, such that each `(L x, B x) : G₁ × G₂ → T_(ι x) M` is an isomorphism.
+complex-linear maps, smooth in tangent coordinates. If `dim G₁ + dim G₂ = dim E`, there are
+complex-linear maps `B x : G₂ → T_(ι x) M`, smooth in tangent coordinates, such that each
+`(L x, B x) : G₁ × G₂ → T_(ι x) M` is an isomorphism.
 
 This is `exists_continuous_isInvertible_coprod_tangentSpace`, made smooth by
-`exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`. -/
+`exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`. The continuity of
+`L` as a map `X × G₁ → TM` that the former asks for follows from its smoothness in tangent
+coordinates (`continuous_of_continuousAt_inTangentCoordinates`). -/
 theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
     [IsManifold IX ∞ X] [FiniteDimensional ℝ EX] [T2Space X] [SigmaCompactSpace X]
     [ContractibleSpace X] [FiniteDimensional ℂ E] [IsManifold 𝓘(ℝ, E) 1 M]
     {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
     [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
     (hdim : finrank ℂ E = finrank ℂ G₁ + finrank ℂ G₂)
-    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {f₁ : X → G₁}
-    {L : ∀ x, G₁ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
-    (hLc : Continuous fun q : X × G₁ ↦ (⟨ι q.1, L q.1 q.2⟩ : TangentBundle 𝓘(ℝ, E) M))
-    (hL : ∀ x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
+    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {L : ∀ x, G₁ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hL : ∀ (f₁ : X → G₁) x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
       (inTangentCoordinates 𝓘(ℝ, G₁) 𝓘(ℝ, E) f₁ ι L x₀) x₀)
     (hLI : ∀ x v, L x (Complex.I • v) = ofComplexManifold E M (ι x) (L x v))
     (hinj : ∀ x, Injective (L x)) :
@@ -414,11 +430,104 @@ theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
       (∀ x v, B x (Complex.I • v) = ofComplexManifold E M (ι x) (B x v)) ∧
       ∀ x, ((L x).coprod (B x)).IsInvertible := by
   have := Manifold.locallyCompact_of_finiteDimensional IX (M := X)
+  have hLc : Continuous fun q : X × G₁ ↦ (⟨ι q.1, L q.1 q.2⟩ : TangentBundle 𝓘(ℝ, E) M) :=
+    continuous_of_continuousAt_inTangentCoordinates 𝓘(ℝ, E) (f := 0) continuous_const
+      hι.continuous fun x₀ ↦ (hL 0 x₀).continuousAt
   obtain ⟨B₀, hB₀, hB₀I, hB₀L⟩ :=
     exists_continuous_isInvertible_coprod_tangentSpace (G₂ := G₂) hdim hLc hLI hinj
-  exact exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous hι hL hB₀ hB₀I
-    hB₀L
+  exact exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous hι (hL 0) hB₀
+    hB₀I hB₀L
 
 end Smoothing
+
+section Frame
+
+open Function Module TauCeti.SmoothAlmostComplexStructure
+
+variable {m : ℕ} [FiniteDimensional ℂ E]
+
+/-- **Complex frames along a totally real disc.** Let `M` be a complex manifold modelled on `E`,
+with `dim_ℂ E = k + m`, and `ι : ℝᵏ → M` a smooth immersion whose tangent images are totally
+real. There are real-linear maps `A x : ℂᵏ × ℂᵐ → T_(ι x) M`, smooth in tangent coordinates along
+the model disc `modelDisc k m`, each invertible and complex linear, such that `A x` composed
+with the differential of `modelDisc k m` at `x` is the differential of `ι` at `x`.
+
+For an embedding `ι`, these are the data that Tau Ceti's
+`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq` asks for to extend
+`ι ∘ (modelDisc k m)⁻¹` to a partial diffeomorphism with differential `A x` along the disc.
+Complex linearity is stated with `ofComplexManifold E M`, which is multiplication by `i` on each
+tangent space (`ofComplexManifold_apply`). -/
+theorem exists_complexFrame_mfderiv {ι : EuclideanSpace ℝ (Fin k) → M}
+    (hι : IsImmersion 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ∞ ι)
+    (hιR : ∀ x, IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι x)).toLinearMap
+      (LinearMap.range (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x).toLinearMap))
+    (hdim : finrank ℂ E = k + m) :
+    ∃ A : ∀ x, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ]
+        TangentSpace 𝓘(ℝ, E) (ι x),
+      (∀ x₀, ContMDiffAt 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ] E) ∞
+        (inTangentCoordinates 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+          𝓘(ℝ, E) (modelDisc k m) ι A x₀) x₀) ∧
+      (∀ x, (A x).IsInvertible) ∧
+      (∀ x v, A x (Complex.I • v) = ofComplexManifold E M (ι x) (A x v)) ∧
+      ∀ x, (A x).comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
+          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelDisc k m) x) =
+        mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x := by
+  have hιs := hι.contMDiff
+  -- The first factor: the complex-linear extension of the differential of `ι`.
+  let L (x : EuclideanSpace ℝ (Fin k)) : EuclideanSpace ℂ (Fin k) →L[ℝ] E :=
+    complexExtension (Fin k) E (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x)
+  have hL (f₁ : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℂ (Fin k)) x₀ :=
+    contMDiffAt_inTangentCoordinates_complexExtension_mfderiv (hιs x₀) f₁
+  have hLI (x : EuclideanSpace ℝ (Fin k)) (v : EuclideanSpace ℂ (Fin k)) :
+      L x (Complex.I • v) = Complex.I • L x v :=
+    complexExtension_apply_I_smul _ v
+  have hinj (x : EuclideanSpace ℝ (Fin k)) : Injective (L x) :=
+    complexExtension_mfderiv_injective (hι.mfderiv_injective (by simp) x) (hιR x)
+  -- The second factor: a smooth complex complement.
+  obtain ⟨B, hB, hBI, hBL⟩ := exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
+    (G₂ := EuclideanSpace ℂ (Fin m)) (by simp [hdim]) hιs hL
+    (fun x v ↦ (hLI x v).trans (ofComplexManifold_apply _ _).symm) hinj
+  -- Read `B` as a family of maps into the model space `E`, as `L` is.
+  let B' (x : EuclideanSpace ℝ (Fin k)) : EuclideanSpace ℂ (Fin m) →L[ℝ] E := B x
+  have hBI' (x : EuclideanSpace ℝ (Fin k)) (w : EuclideanSpace ℂ (Fin m)) :
+      B' x (Complex.I • w) = Complex.I • B' x w :=
+    (hBI x w).trans (ofComplexManifold_apply _ _)
+  let A (x : EuclideanSpace ℝ (Fin k)) :
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ] E :=
+    (L x).coprod (B' x)
+  have hA (x : EuclideanSpace ℝ (Fin k)) (z : EuclideanSpace ℂ (Fin k))
+      (w : EuclideanSpace ℂ (Fin m)) : A x (z, w) = L x z + B' x w :=
+    coprod_apply _ _ _
+  refine ⟨A, fun x₀ ↦ ?_, hBL, fun x v ↦ ?_, fun x ↦ ?_⟩
+  · have hΩ : ∀ᶠ x in 𝓝 x₀, ι x ∈ (chartAt E (ι x₀)).source :=
+      hιs.continuous.continuousAt.preimage_mem_nhds
+        ((chartAt E (ι x₀)).open_source.mem_nhds (mem_chart_source E (ι x₀)))
+    refine ((hL (fun x ↦ (modelDisc k m x).1) x₀).clm_coprod
+      (hB (fun x ↦ (modelDisc k m x).2) x₀)).congr_of_eventuallyEq ?_
+    filter_upwards [hΩ] with x hx
+    have h₁ := inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E)
+      (f := fun x ↦ (modelDisc k m x).1) L hx
+    have h₂ := inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E)
+      (f := fun x ↦ (modelDisc k m x).2) B hx
+    have h₃ := inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E) (f := modelDisc k m) A hx
+    exact h₃.trans ((comp_coprod _ _ _).trans (congrArg₂ coprod h₁.symm h₂.symm))
+  · -- `A x` takes values in `E`, which the tangent space is only up to unfolding.
+    refine (?_ : A x (Complex.I • v) = Complex.I • A x v).trans (ofComplexManifold_apply _ _).symm
+    obtain ⟨z, w⟩ := v
+    rw [Prod.smul_mk, hA, hA, hLI, hBI', smul_add]
+  · ext x'
+    rw [mfderiv_modelDisc]
+    have hAx : A x (modelDisc k m x') = L x (modelDisc k m x').1 := by
+      rw [show modelDisc k m x' = ((modelDisc k m x').1, 0) from
+        Prod.ext rfl (modelDisc_apply_snd x'), hA, map_zero, add_zero]
+    have hx' : (modelDisc k m x').1 = (complexEuclideanEquivRealProd (Fin k)).symm (x', 0) := by
+      ext j
+      simpa [complexEuclideanEquivRealProd_symm_apply] using modelDisc_apply_fst_apply (m := m) x' j
+    refine (ContinuousLinearMap.comp_apply _ _ _).trans (hAx.trans ?_)
+    rw [hx']
+    exact complexExtension_apply_symm_real _ x'
+
+end Frame
 
 end SymplecticGeometry
