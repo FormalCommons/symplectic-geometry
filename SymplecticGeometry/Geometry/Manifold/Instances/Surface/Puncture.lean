@@ -168,6 +168,11 @@ theorem puncture_succ_le_tailPuncture : puncture g (n + 1) ≤ tailPuncture g n 
   rw [puncture_succ_eq_tailPuncture_inf]
   exact inf_le_left
 
+/-- The base point lies in each `tailPuncture g n`. -/
+@[simp]
+theorem basePoint_mem_tailPuncture : basePoint g ∈ tailPuncture g n :=
+  puncture_succ_le_tailPuncture basePoint_mem_puncture'
+
 variable (g n)
 
 /-- The closed surface of genus `g` with finitely many centres removed is path connected. -/

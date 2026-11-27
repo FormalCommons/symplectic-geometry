@@ -523,6 +523,7 @@ theorem pairwise_disjoint_range_ball : Pairwise (Disjoint on fun j ↦ range (ba
 
 /-- Two points of coordinate balls agree exactly when they are the same point of the same
 ball. -/
+@[simp]
 theorem ball_eq_ball_iff {i j : ℕ} {v w : EuclideanSpace ℝ (Fin 2)} :
     ball g i v = ball g j w ↔ i = j ∧ v = w := by
   refine ⟨fun h ↦ ?_, fun ⟨hij, hvw⟩ ↦ hij ▸ hvw ▸ rfl⟩
