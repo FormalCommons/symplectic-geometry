@@ -128,7 +128,6 @@ theorem firstChernClass_restrict_compl :
   rw [TopPair.ofSubset_map]
   exact IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq G
     (ContinuousMap.subtypeVal _)
-    ((contMDiff_blowdown_real c).of_le (by simp))
     (fun _ ↦ isPseudoholomorphicAt_blowdown c J hJ _)
     (fun z ↦ isLocalDiffeomorphAt_blowdown_real c z.property) (by simp)
 
@@ -255,7 +254,6 @@ private theorem firstChernClass_tangent_of_pos (hn0 : 0 < n) :
       (TopCat.ofHom (ContinuousMap.subtypeVal (exceptionalDivisor c)ᶜ)) 2 a = 0 := by
     have h₁ := IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq G
       (ContinuousMap.subtypeVal (exceptionalDivisor c)ᶜ)
-      ((contMDiff_blowdown_real c).of_le (by simp))
       (fun _ ↦ isPseudoholomorphicAt_blowdown c J hJ _)
       (fun z ↦ isLocalDiffeomorphAt_blowdown_real c z.property) (by simp)
     have h₂ : TopCat.singularCohomologyMap
@@ -305,7 +303,6 @@ theorem firstChernClass_tangent :
   · -- For `n = 0` the blowdown is a local diffeomorphism everywhere, so naturality applies.
     have h := IsPseudoholomorphicAt.singularCohomologyMap_firstChernClass_eq G
       (ContinuousMap.id _)
-      ((contMDiff_blowdown_real c).of_le (by simp))
       (fun _ ↦ isPseudoholomorphicAt_blowdown c J hJ _)
       (fun z ↦ isLocalDiffeomorph_blowdown_real c z) (by simp)
     rw [TopCat.ofHom_id, TopCat.singularCohomologyMap_id] at h

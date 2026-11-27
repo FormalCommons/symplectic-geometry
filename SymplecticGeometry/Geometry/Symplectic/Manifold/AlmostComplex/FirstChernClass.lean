@@ -26,9 +26,9 @@ back to the sum of those of `(TM, j)` and of `ν`
 
 `f^* c₁(TX, J) = c₁(TM, j) + c₁(ν)` in `H²(M; ℤ)`.
 
-The file also proves that the first Chern class is natural along a `C¹` map `f : N → M`,
-pseudoholomorphic from `j` to `J`, at the points where `f` is a local diffeomorphism. There the
-differential of `f` is a complex-linear isomorphism of the complex tangent spaces
+The file also proves that the first Chern class is natural along a map `f : N → M`,
+pseudoholomorphic from `j` to `J`, at the points where `f` is a local diffeomorphism. There
+the differential of `f` is a complex-linear isomorphism of the complex tangent spaces
 (`TauCeti.IsPseudoholomorphicAt.mfderivFiberEquiv`), so for a continuous map `ι : Y → N` into
 that set, `ι^* c₁(TN, j) = ι^* f^* c₁(TM, J)`.
 
@@ -175,6 +175,7 @@ noncomputable def mfderivFiberEquiv {x : N} (hj : IsPseudoholomorphicAt j J f x)
     (hf.mfderivToContinuousLinearEquiv hn) (hj.mfderivToContinuousLinearEquiv_apply_commute hf hn)
 
 /-- On the underlying real tangent spaces, `mfderivFiberEquiv` is the differential of `f`. -/
+@[simp]
 theorem fiberEquiv_mfderivFiberEquiv {x : N} (hj : IsPseudoholomorphicAt j J f x)
     (hf : IsLocalDiffeomorphAt I' I n f x) (hn : n ≠ 0)
     (v : (j.toContMDiff ⊤).toContinuousComplexStructure.Fiber x) :
@@ -190,10 +191,10 @@ variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimension
   [Fact (finrank ℝ E' = 2 * finrank ℂ G)]
   {Y : Type} [TopologicalSpace Y] (ι : C(Y, N))
 
-/-- Along a continuous map `ι : Y → N` into the points where a `C¹` map `f`, pseudoholomorphic
-from `j` to `J` at those points, is a local diffeomorphism, the isomorphisms `mfderivFiberEquiv`
+/-- Along a continuous map `ι : Y → N` into the points where a map `f`, pseudoholomorphic from
+`j` to `J` at those points, is a local diffeomorphism, the isomorphisms `mfderivFiberEquiv`
 are continuous from the total space of the pull-back by `ι` of `(TN, j)` to that of `(TM, J)`. -/
-theorem continuous_mfderivFiberEquiv {f : C(N, M)} (hf : ContMDiff I' I 1 f)
+theorem continuous_mfderivFiberEquiv {f : C(N, M)}
     (hj : ∀ x, IsPseudoholomorphicAt j J f (ι x)) (hι : ∀ x, IsLocalDiffeomorphAt I' I n f (ι x))
     (hn : n ≠ 0) :
     Continuous fun v : TotalSpace G (⇑ι *ᵖ (j.toContMDiff ⊤).toContinuousComplexStructure.Fiber) ↦
@@ -202,7 +203,9 @@ theorem continuous_mfderivFiberEquiv {f : C(N, M)} (hf : ContMDiff I' I 1 f)
   refine _root_.TauCeti.Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAt_pullback
     (G₁ := G) (G₂ := G) _ _ ι (fun x ↦ f (ι x)) _
     (fun x ↦ (hj x).mfderivToContinuousLinearEquiv_apply_commute (hι x) hn)
-    (((hf.continuous_tangentMap le_rfl).comp (Pullback.continuous_lift _ _ _)).congr fun v ↦ ?_)
+    ((continuous_iff_continuousAt.2 fun v ↦ ((hι v.proj).contMDiffAt.continuousAt_tangentMap
+      (ENat.one_le_iff_ne_zero_withTop.2 hn)).comp
+        (Pullback.continuous_lift _ _ _).continuousAt).congr fun v ↦ ?_)
   rw [Function.comp_apply]
   -- The map is `tangentMap f` after `Pullback.lift`. Neither has a lemma that reads it at `v`,
   -- and `IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe` cannot be rewritten at the
@@ -210,10 +213,10 @@ theorem continuous_mfderivFiberEquiv {f : C(N, M)} (hf : ContMDiff I' I 1 f)
   rfl
 
 /-- **Naturality of the first Chern class along a pseudoholomorphic local diffeomorphism.** Let
-`f : N → M` be a `C¹` map and `ι : Y → N` a continuous map such that, at every point `ι x`, `f`
+`f : N → M` be a map and `ι : Y → N` a continuous map such that, at every point `ι x`, `f`
 is pseudoholomorphic from `j` to `J` and a local diffeomorphism. Then the pull-backs by `ι` of
 `c₁(TN, j)` and of `f^* c₁(TM, J)` agree; both are computed with the complex model `G`. -/
-theorem singularCohomologyMap_firstChernClass_eq {f : C(N, M)} (hf : ContMDiff I' I 1 f)
+theorem singularCohomologyMap_firstChernClass_eq {f : C(N, M)}
     (hj : ∀ x, IsPseudoholomorphicAt j J f (ι x)) (hι : ∀ x, IsLocalDiffeomorphAt I' I n f (ι x))
     (hn : n ≠ 0) :
     TopCat.singularCohomologyMap (TopCat.ofHom ι) 2
@@ -225,7 +228,7 @@ theorem singularCohomologyMap_firstChernClass_eq {f : C(N, M)} (hf : ContMDiff I
     (E' := ⇑ι *ᵖ (j.toContMDiff ⊤).toContinuousComplexStructure.Fiber)
     (g := f.comp ι)
     (φ := fun x ↦ (hj x).mfderivFiberEquiv (hι x) hn)
-    (continuous_mfderivFiberEquiv G ι hf hj hι hn)
+    (continuous_mfderivFiberEquiv G ι hj hι hn)
   rw [firstChernClass_pullback, TopCat.ofHom_comp, TopCat.singularCohomologyMap_comp,
     CategoryTheory.ConcreteCategory.comp_apply] at h
   exact h
