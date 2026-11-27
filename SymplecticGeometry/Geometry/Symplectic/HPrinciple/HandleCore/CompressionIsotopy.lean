@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeCompression
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import TauCeti.Data.Set.Function
 
 /-!
 # Pushing the cube into a region of approximation
@@ -27,9 +29,7 @@ preserving `Q`, the identity where `1 - ε₀ / 2 < ‖x.1‖`, and such that, f
 `e (l, 1, ·)` maps `Q` into the union of the slice of `V` over `l` and the slab
 `1 - ε₀ < ‖x.1‖`. First a tube lemma, uniform over `K`, gives `δ' > 0` such that `H (1, ·)` maps
 the points over `K` within `δ'` of the core into `V`; then the compression, with this `δ'`, maps
-`Q` into that tube or into the slab, where `H` is the identity. That every time slice of `H`
-preserves the points with `‖p.2‖ ≤ 1` follows the proof of Tau Ceti's
-`TauCeti.Diffeotopy.mapsTo_final_of_eqOn_compl`, which gives it at time `1` only.
+`Q` into that tube or into the slab, where `H` is the identity.
 
 This is the isotopy of the handle-core lemma, proved for a core of any dimension by holonomic
 approximation and compression (Eliashberg–Mishachev, §10.2) in place of McDuff–Salamon's
@@ -95,19 +95,15 @@ theorem exists_isotopy_mapsTo_of_diffeotopy {ε₀ : ℝ} (hε₀ : 0 < ε₀) (
   set c : I → E × F → E × F := fun s ↦ prodFiberScaling fun u ↦ ψ ((s : ℝ), u) with hc
   have hψs (s : I) : ContDiff ℝ ∞ fun u : E ↦ ψ ((s : ℝ), u) :=
     hψ.comp (contDiff_const.prodMk contDiff_id)
-  -- the parameter is kept by the inverse of `H` too
-  have hHs (t : I) (p : L × E × F) : (H.symm (t, p)).1 = p.1 := by
-    conv_rhs => rw [← H.apply_mk_symm_apply t p]
-    exact (hH t _).symm
   have hHmk (t : I) (l : L) (y : E × F) : (l, (H (t, (l, y))).2) = H (t, (l, y)) :=
     Prod.ext (hH t (l, y)).symm rfl
   -- every time slice of `H` maps the points with `‖p.2‖ ≤ 1` among themselves
   have hHQ (t : I) : MapsTo (fun p ↦ H (t, p)) {p : L × E × F | ‖p.2‖ ≤ 1}
-      {p | ‖p.2‖ ≤ 1} := by
-    have hfix : EqOn (fun p ↦ H (t, p)) id {p : L × E × F | ‖p.2‖ ≤ 1}ᶜ := fun p hp ↦
-      hHid t p (Or.inr (le_of_lt (not_le.1 hp)))
-    simpa only [compl_compl] using ((surjOn_id _).congr hfix.symm).mapsTo_compl
-      (Function.LeftInverse.injective (g := fun p ↦ H.symm (t, p)) (H.symm_apply_mk_apply t))
+      {p | ‖p.2‖ ≤ 1} := fun p hp ↦ by
+    simpa only [Diffeotopy.timeSlice_apply] using
+      (H.timeSlice t).injective.mapsTo_of_eq_self (f := H.timeSlice t)
+        (K := {p : L × E × F | ‖p.2‖ ≤ 1})
+        (fun q hq ↦ (H.timeSlice_apply t q).trans (hHid t q (Or.inr (not_le.1 hq).le))) hp
   refine ⟨fun q ↦ (H (q.1.2, (q.1.1, c q.1.2 q.2))).2, ?_, fun p ↦ ?_, fun l x ↦ ?_,
     fun p x hx ↦ ?_, fun p x hx ↦ ?_, fun l hl x hx ↦ ?_⟩
   · have hcs : ContMDiff ((𝓘(ℝ, L).prod (𝓡∂ 1)).prod 𝓘(ℝ, E × F)) 𝓘(ℝ, E × F) ∞
@@ -118,29 +114,27 @@ theorem exists_isotopy_mapsTo_of_diffeotopy {ε₀ : ℝ} (hε₀ : 0 < ε₀) (
             contMDiff_snd))
     exact contDiff_snd.contMDiff.comp (H.contMDiff.comp ((contMDiff_snd.comp contMDiff_fst).prodMk
       ((contMDiff_fst.comp contMDiff_fst).prodMk_space hcs)))
-  · -- the slice is a fibre scaling followed by a slice of `H`
-    have hinv (y : E × F) : (p.1, (H.symm (p.2, (p.1, y))).2) = H.symm (p.2, (p.1, y)) :=
-      Prod.ext (hHs p.2 (p.1, y)).symm rfl
-    let g : (E × F) ≃ₘ^∞⟮𝓘(ℝ, E × F), 𝓘(ℝ, E × F)⟯ (E × F) :=
-      { toFun := fun y ↦ (H (p.2, (p.1, y))).2
-        invFun := fun y ↦ (H.symm (p.2, (p.1, y))).2
-        left_inv := fun y ↦ (congrArg (fun z ↦ (H.symm (p.2, z)).2) (hHmk p.2 p.1 y)).trans
-          (congrArg Prod.snd (H.symm_apply_mk_apply p.2 (p.1, y)))
-        right_inv := fun y ↦ (congrArg (fun z ↦ (H (p.2, z)).2) (hinv y)).trans
-          (congrArg Prod.snd (H.apply_mk_symm_apply p.2 (p.1, y)))
-        contMDiff_toFun := contDiff_snd.contMDiff.comp (H.contMDiff.comp
-          (contMDiff_const.prodMk (contMDiff_const.prodMk_space contMDiff_id)))
-        contMDiff_invFun := contDiff_snd.contMDiff.comp (H.symm.contMDiff.comp
-          (contMDiff_const.prodMk (contMDiff_const.prodMk_space contMDiff_id))) }
-    refine ⟨(prodFiberScalingDiffeomorph (hψs p.2) fun u ↦ (hψpos _).1.ne').trans g, ?_⟩
-    rw [Diffeomorph.coe_trans, coe_prodFiberScalingDiffeomorph]
-    -- `g` is built from this function, so both sides agree by definition
-    rfl
+  · -- the time slice of `H` as a diffeomorphism for the product model, so that it has slices
+    have hmodel (f : L × E × F → L × E × F) (hf : ContMDiff 𝓘(ℝ, L × E × F) 𝓘(ℝ, L × E × F) ∞ f) :
+        ContMDiff (𝓘(ℝ, L).prod 𝓘(ℝ, E × F)) (𝓘(ℝ, L).prod 𝓘(ℝ, E × F)) ∞ f := by
+      rwa [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hf
+    let Ψ : (L × E × F) ≃ₘ^∞⟮𝓘(ℝ, L).prod 𝓘(ℝ, E × F), 𝓘(ℝ, L).prod 𝓘(ℝ, E × F)⟯
+        (L × E × F) :=
+      { toEquiv := (H.timeSlice p.2).toEquiv
+        contMDiff_toFun := hmodel _ (H.timeSlice p.2).contMDiff
+        contMDiff_invFun := hmodel _ (H.timeSlice p.2).symm.contMDiff }
+    -- `Ψ` has the same underlying equivalence as the time slice of `H`
+    have hΨ (q : L × E × F) : Ψ q = H (p.2, q) := H.timeSlice_apply p.2 q
+    refine ⟨(prodFiberScalingDiffeomorph (hψs p.2) fun u ↦ (hψpos _).1.ne').trans
+      (Ψ.slice (fun q ↦ (congrArg Prod.fst (hΨ q)).trans (hH p.2 q)) p.1), ?_⟩
+    funext x
+    rw [Diffeomorph.coe_trans, Function.comp_apply, coe_prodFiberScalingDiffeomorph,
+      Diffeomorph.slice_apply, hΨ]
   · have hc0 : c 0 x = x := by simpa only [hc, Set.Icc.coe_zero] using hψ0 x
     exact (congrArg (fun y ↦ (H (0, (l, y))).2) hc0).trans (congrArg Prod.snd (H.apply_zero _))
-  · have hy : c p.2 x ∈ closedBall 0 1 := hψQ _ hx
-    rw [mem_closedBall_zero_iff] at hy ⊢
-    exact hHQ p.2 (show (p.1, c p.2 x) ∈ {q : L × E × F | ‖q.2‖ ≤ 1} from hy)
+  · have hy : (p.1, c p.2 x) ∈ {q : L × E × F | ‖q.2‖ ≤ 1} :=
+      mem_closedBall_zero_iff.1 (hψQ _ hx)
+    exact mem_closedBall_zero_iff.2 (hHQ p.2 hy)
   · have hcx : c p.2 x = x := hψA _ x hx
     exact (congrArg (fun y ↦ (H (p.2, (p.1, y))).2) hcx).trans
       (congrArg Prod.snd (hHid _ _ (Or.inl (by linarith))))
