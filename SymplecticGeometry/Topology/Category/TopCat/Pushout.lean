@@ -7,8 +7,8 @@ module
 
 public import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Defs
 public import Mathlib.Topology.Category.TopCat.Basic
-import Mathlib.CategoryTheory.Limits.Types.Pullbacks
-import Mathlib.CategoryTheory.Limits.Types.Pushouts
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
+import Mathlib.CategoryTheory.Limits.Types.Multicoequalizer
 import Mathlib.Topology.Coherent
 import TauCeti.Topology.Category.TopCat.Pushout
 
@@ -26,8 +26,9 @@ subspaces. It applies for instance to a closed set `S` and an open set `U` with
 
 The proof checks the two conditions of Tau Ceti's
 `CategoryTheory.IsPushout.of_isPushout_forget`: the underlying square of sets is a pushout, by
-Mathlib's `CategoryTheory.Limits.Types.isPushout_of_isPullback_of_mono'`, and the topology of `Y`
-is coherent with `S` and `U`, by Mathlib's `Topology.IsCoherentWith.of_nhds`.
+Mathlib's `CategoryTheory.Limits.Types.isPushout_of_bicartSq` for the bicartesian square
+`Lattice.BicartSq A S U univ`, and the topology of `Y` is coherent with `S` and `U`, by Mathlib's
+`Topology.IsCoherentWith.of_nhds`.
 -/
 
 public section
@@ -56,19 +57,11 @@ theorem of_interior_union_interior_eq_univ (hAS : A ⊆ S) (hAU : A ⊆ U) (hSU 
     (fun hx ↦ ⟨U, by simp, mem_interior_iff_mem_nhds.1 hx⟩)
   refine of_isPushout_forget ?_ fun s hS hU ↦ hcoh.isOpen_iff.2 <| by
     simpa only [mem_insert_iff, mem_singleton_iff, forall_eq_or_imp, forall_eq] using ⟨hS, hU⟩
-  have : Mono ((forget TopCat).map (TopCat.ofHom (ContinuousMap.subtypeVal S))) :=
-    (mono_iff_injective _).2 Subtype.val_injective
-  refine Limits.Types.isPushout_of_isPullback_of_mono' ?_ ?_ ?_
-  · refine (Limits.Types.isPullback_iff _ _ _ _).2 ⟨by ext; simp, fun a b h ↦ ?_, fun x y h ↦ ?_⟩
-    · exact Subtype.ext (by simpa using congrArg Subtype.val h.1)
-    · replace h : (x : Y) = y := by simpa using h
-      have hx : (x : Y) ∈ A := hSU ⟨x.property, h ▸ y.property⟩
-      exact ⟨⟨x, hx⟩, by ext; simp, by ext; simpa using h⟩
-  · refine eq_univ_of_forall fun x ↦ ?_
-    rcases hmem x with hx | hx
-    · exact Or.inl ⟨⟨x, interior_subset hx⟩, by simp⟩
-    · exact Or.inr ⟨⟨x, interior_subset hx⟩, by simp⟩
-  · exact fun x y _ _ h ↦ Subtype.val_injective h
+  have hsq : Lattice.BicartSq A S U univ :=
+    ⟨univ_subset_iff.1 fun x _ ↦ (hmem x).imp (interior_subset ·) (interior_subset ·),
+      subset_antisymm hSU (subset_inter hAS hAU)⟩
+  exact IsPushout.of_iso (Limits.Types.isPushout_of_bicartSq hsq) (Iso.refl _) (Iso.refl _)
+    (Iso.refl _) (Equiv.Set.univ Y).toIso rfl rfl rfl rfl
 
 end CategoryTheory.IsPushout
 
