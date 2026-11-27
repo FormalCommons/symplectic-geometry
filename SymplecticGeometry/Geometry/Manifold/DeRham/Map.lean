@@ -23,7 +23,8 @@ the fact that a smooth map pulls closed forms back to closed forms,
 `TauCeti.SmoothForm.mpullback_sub_mem_exactForms_of_homotopy`: smoothly homotopic maps pull a
 closed form back to forms that differ by an exact form, and its case for the slices of a smooth
 isotopy, `TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms`, through the
-homotopy `(x, s) ↦ h (s t, x)`.
+homotopy `(x, s) ↦ h (s t, x)`. Finally, a diffeomorphism in the stabilizer of a closed form
+fixes its class, `TauCeti.deRhamCohomology.map_mk_of_mem_diffeomorphStabilizer`.
 
 ## References
 
@@ -82,5 +83,25 @@ theorem mpullback_sub_mpullback_timeSlice_mem_exactForms [IsManifold I ∞ M]
       contMDiff_fst)) (fun x ↦ by simp) (fun x ↦ by simp) hγ
 
 end TauCeti.SmoothForm
+
+namespace TauCeti.deRhamCohomology
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I 2 M]
+
+/-- **A diffeomorphism that preserves a closed form fixes its class.** If `φ` lies in the
+stabilizer of a closed form `σ`, the map that `φ` induces on de Rham cohomology sends the class
+of `σ` to itself. -/
+theorem map_mk_of_mem_diffeomorphStabilizer {k : ℕ} {σ : closedForms I M k}
+    {φ : M ≃ₘ⟮I, I⟯ M} (hφ : φ ∈ SmoothForm.diffeomorphStabilizer σ.val) :
+    map φ φ.contMDiff k (mk I k σ) = mk I k σ := by
+  rw [map_mk]
+  congr 1
+  ext1
+  rw [closedForms.coe_mpullback]
+  exact SmoothForm.mem_diffeomorphStabilizer.1 hφ
+
+end TauCeti.deRhamCohomology
 
 end
