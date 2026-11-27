@@ -166,7 +166,7 @@ operator is the space `twistOneKernel J` of smooth solutions.
   continuation.
 * `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
   kernel element are isolated.
-* `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: a nonzero smooth kernel
+* `SymplecticGeometry.finite_setOfPred_eq_zero_of_mem_twistOneKernel`: a nonzero smooth kernel
   element has finitely many zeros.
 * `SymplecticGeometry.exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero`:
   the chart data of a Sobolev element of the kernel of `D_J`, read through an isothermal chart,
@@ -495,7 +495,7 @@ theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
 
 /-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
 of `𝒪(1)` with `D_J s = 0`, then the set of zeros of `s` on the sphere is finite. -/
-theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+theorem finite_setOfPred_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {x | s x = 0}.Finite :=
   finite_setOf_eq_zero_of_forall_eventually
     (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs)

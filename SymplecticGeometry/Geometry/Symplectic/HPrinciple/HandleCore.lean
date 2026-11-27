@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CollarPrimitive
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.Approximation
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.Collar
@@ -228,10 +229,8 @@ theorem exists_homotopy_exact_of_forall_exact_near_attaching (hk : 0 < k) {K : S
     contMDiff_subtypeVal_Icc.comp (collaredFirstHalf le_rfl).contMDiff
   have hb' : ContMDiff (𝓡∂ 1) (𝓡∂ 1) ∞ b' := (collaredSecondHalf le_rfl).contMDiff
   have ha₀ (t : unitInterval) : a t ∈ Icc (0 : ℝ) 1 := (collaredFirstHalf le_rfl t).property
-  have hab (t : unitInterval) : b' t = 0 ∨ a t = 1 := by
-    rcases le_total (t : ℝ) (1 / 2) with h | h
-    · exact Or.inl (collaredSecondHalf_eq_zero_of_le le_rfl (by linarith))
-    · exact Or.inr (congrArg Subtype.val (collaredFirstHalf_eq_one_of_ge le_rfl (by linarith)))
+  have hab (t : unitInterval) : b' t = 0 ∨ a t = 1 := or_iff_not_imp_left.2 fun h ↦
+    congrArg Subtype.val (collaredFirstHalf_eq_one_of_collaredSecondHalf_ne_zero le_rfl h)
   set σ : L × unitInterval →
       SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) :=
     fun p ↦ σ' (p.1, b' p.2) + (1 - a p.2) • η p.1 with hσdef

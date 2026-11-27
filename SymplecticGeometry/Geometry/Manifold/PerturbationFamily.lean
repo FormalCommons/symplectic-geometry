@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.RegularValue
 import SymplecticGeometry.Data.List.Pi
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Foldr
 import SymplecticGeometry.Geometry.Manifold.RegularValue.Slice
+import SymplecticGeometry.Topology.MetricSpace.Tube
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.Diffeomorph.Perturbation
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -33,7 +34,7 @@ identity, give a family `d ↦ φ d` of maps of `M`, indexed by `d ∈ E`, with 
 This adapts the proof of Tau Ceti's `TauCeti.exists_contMDiff_family_apply_eq`. Finitely many
 such families cover the compact image of `g`, and `F (x, s)` applies them in turn to `g x`, the
 `i`-th with parameter `s i`. At `s = 0` the derivative is surjective, and the set where it is
-surjective is open (`TauCeti.isOpen_setOf_isRegularPoint_slice`), so by compactness of `N` it
+surjective is open (`TauCeti.isOpen_setOfPred_isRegularPoint_slice`), so by compactness of `N` it
 contains `N × B(0, ε)` for some `ε > 0`.
 
 ## Main results
@@ -116,7 +117,7 @@ theorem exists_contMDiff_family_isRegularPoint (hn : 1 ≤ n) (y : M) :
   have : IsManifold I 1 M := IsManifold.of_le (n := n) (by exact_mod_cast hn)
   have hS' : ContMDiff (I.prod 𝓘(ℝ, E)) I n (fun p : M × E ↦ S p.2 p.1) :=
     hS.comp (contMDiff_snd.prodMk contMDiff_fst)
-  have hO := isOpen_setOf_isRegularPoint_slice hS' (by exact_mod_cast hn)
+  have hO := isOpen_setOfPred_isRegularPoint_slice hS' (by exact_mod_cast hn)
   refine ⟨(fun z : M ↦ (z, (0 : E))) ⁻¹' {p : M × E | IsRegularPoint 𝓘(ℝ, E) I
     (fun d ↦ S d p.1) p.2}, hO.preimage (continuous_id.prodMk continuous_const), hreg,
     fun d ↦ S d, hS, hS0, fun z hz ↦ hz⟩
@@ -173,14 +174,13 @@ theorem _root_.ContMDiff.exists_isRegularPoint_perturbation {g : N → M} (hg : 
       ((hsingle 0).mdifferentiableAt hn0)
     rwa [Pi.single_zero] at h
   -- The regular slices form an open set containing `N × {0}`, hence `N × B(0, ε)`.
-  obtain ⟨u, v, -, hv, hu, h0v, huv⟩ := generalized_tube_lemma isCompact_univ isCompact_singleton
-    (t := {(0 : Fin m → E)}) (isOpen_setOf_isRegularPoint_slice hF hn') fun ⟨x, s⟩ hp ↦ by
+  obtain ⟨ε, hε, hεU⟩ := isCompact_univ.exists_prod_ball_subset (y := (0 : Fin m → E))
+    (isOpen_setOfPred_isRegularPoint_slice hF hn') fun ⟨x, s⟩ hp ↦ by
       obtain ⟨-, rfl⟩ : x ∈ univ ∧ s = 0 := by simpa using hp
       exact hreg0 x
-  obtain ⟨ε, hε, hεv⟩ := Metric.isOpen_iff.1 hv 0 (singleton_subset_iff.1 h0v)
   refine ⟨m, F, ε, hε, hF, hF0, fun x s hs ↦ ?_⟩
   have hslice : IsRegularPoint 𝓘(ℝ, Fin m → E) I (fun s ↦ F (x, s)) s :=
-    huv (show (x, s) ∈ u ×ˢ v from ⟨hu (mem_univ x), hεv hs⟩)
+    hεU (show (x, s) ∈ univ ×ˢ ball 0 ε from ⟨mem_univ x, hs⟩)
   exact ⟨hslice, IsRegularPoint.of_comp (g := fun s : Fin m → E ↦ (x, s)) (p := s) hslice
     ((hF _).mdifferentiableAt hn0)
     ((contMDiff_const.prodMk contMDiff_id).mdifferentiableAt hn0)⟩

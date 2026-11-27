@@ -176,7 +176,7 @@ open scoped TauCeti.ComplexManifold in
 /-- The fibres of a nonconstant holomorphic map from a connected Riemann surface are discrete:
 this is Tau Ceti's `TauCeti.setOf_ne_mem_codiscrete_of_isPseudoholomorphic` for the almost
 complex structures of the two complex manifolds. -/
-private theorem setOf_ne_mem_codiscrete [PreconnectedSpace S]
+private theorem setOfPred_ne_mem_codiscrete [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂) (p : M) :
     {y | u y ≠ p} ∈ codiscrete S :=
   setOf_ne_mem_codiscrete_of_isPseudoholomorphic (J := ofComplexManifold (Fin (n + 1) → ℂ) M)
@@ -188,7 +188,7 @@ and all are mapped by `u` into the source of `c`. -/
 private theorem eventually_eq_or_ne [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂)
     (h : u x = p₀) : ∀ᶠ y in 𝓝 x, (y = x ∨ u y ≠ p₀) ∧ u y ∈ c.source := by
-  have hdisc := mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOf_ne_mem_codiscrete hu hne p₀) x
+  have hdisc := mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOfPred_ne_mem_codiscrete hu hne p₀) x
   have hsrc : ∀ᶠ y in 𝓝 x, u y ∈ c.source :=
     hu.continuous.continuousAt.preimage_mem_nhds (c.open_source.mem_nhds (h ▸ c.mem_source))
   filter_upwards [eventually_nhdsWithin_iff.1 hdisc, hsrc] with y hy hyc
@@ -215,7 +215,7 @@ private theorem analyticOrderAt_coordCurve_ne_top [PreconnectedSpace S]
   have hfalse : ∀ᶠ _ in 𝓝[≠] (chartAt ℂ x x), False := by
     filter_upwards [nhdsWithin_le_nhds (analyticOrderAt_eq_top.1 htop),
       TauCeti.tendsto_chartAt_symm_nhdsNE (H := ℂ) x <|
-        inter_mem (mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOf_ne_mem_codiscrete hu hne p₀) x)
+        inter_mem (mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOfPred_ne_mem_codiscrete hu hne p₀) x)
           (nhdsWithin_le_nhds (hu.continuous.continuousAt.preimage_mem_nhds
             (c.open_source.mem_nhds (h ▸ c.mem_source))))] with t h0 ⟨hne', hct⟩
     exact c.apply_ne_zero hct hne' h0
@@ -288,7 +288,7 @@ theorem curveLift_unique [PreconnectedSpace S]
   refine funext fun x ↦ isOpen_univ.eqOn_of_eventuallyEq_codiscreteWithin hv.continuousOn
     (contMDiff_curveLift (r := 0) hu hne).continuous.continuousOn ?_ (mem_univ x)
   refine eventuallyEq_codiscreteWithin_iff_forall_eventually_nhdsNE.2 fun z _ ↦ ?_
-  filter_upwards [mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOf_ne_mem_codiscrete hu hne p₀) z]
+  filter_upwards [mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOfPred_ne_mem_codiscrete hu hne p₀) z]
     with y hy _
   have hvy : blowdown c (v y) = u y := congrFun hvu y
   refine injOn_blowdown c ?_ ?_ (by rw [hvy, blowdown_curveLift])

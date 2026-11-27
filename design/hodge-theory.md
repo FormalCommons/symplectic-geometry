@@ -300,8 +300,8 @@ finite-dimensional `F`:
 ### `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`
 
 The coordinate expression of a form along a chart `ψ` that is a partial
-diffeomorphism onto an open subset of `E` is Tau Ceti's pullback
-`mpullback 𝓘(ℝ, E) I ψ.symm φ : E → E [⋀^Fin k]→L[ℝ] F`. Tau Ceti already
+diffeomorphism onto an open subset of a normed space $D$ is Tau Ceti's pullback
+`mpullback 𝓘(ℝ, D) I ψ.symm φ : D → D [⋀^Fin k]→L[ℝ] F`. Tau Ceti already
 gives its linearity (`mpullback_add`, `mpullback_smul`), smoothness on
 `ψ.target` (`SmoothForm.contDiffOn_mpullback`), recovery of the form on
 `ψ.source` (`OpenPartialHomeomorph.mpullback_mpullback_symm_apply`),
@@ -321,7 +321,8 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
   not through Tau Ceti's
   `RoughForm.extendByZero` between `Opens`. The regularity issue glues
   local smooth representatives with it.
-- `SmoothForm.localize ψ χ α`: the expression of a smooth form along `ψ`,
+- `SmoothForm.localize ψ χ α`: the expression of a smooth form along `ψ`
+  into any normed space $D$,
   scaled by `χ ∘ ψ.symm` on `ψ.target` and `0` elsewhere, with its value on
   `ψ.target`, its support in `ψ '' tsupport χ` and its continuity.
   `L2.lean` bounds it in `L²`.

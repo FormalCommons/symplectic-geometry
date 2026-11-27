@@ -1544,14 +1544,13 @@ Two choices make this invariant easy to keep.
   the parameter, and the primitives $\gamma_l$ are only needed one `l` at a
   time, by issue 9, which sums them (a locally finite sum, since
   $\gamma^{(k)}$ vanishes near $\{g\le e_k\}$) to show that the limit of
-  the $\alpha^{(k)}$ is cohomologous to $\alpha^{(0)}$. The explicit
-  primitive is $\gamma_l=-\,h\bigl(\Psi_l^*\alpha_l\bigr)$ for the homotopy
-  operator `h` and the reversed isotopy $\Psi_l(x,u)=e_{l,1-u}(x)$ from $e_{l,1}$
-  to the identity: by `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`
-  (`DifferentialForm/HomotopyOperator.lean`),
-  $d\,h(\Psi_l^*\alpha_l)=\alpha_l-e_{l,1}^*\alpha_l$, and
-  `eventually_homotopyOperator_mpullback_eq_zero` gives the vanishing where
-  the isotopy is the identity.
+  the $\alpha^{(k)}$ is cohomologous to $\alpha^{(0)}$. For the isotopy
+  $e_l(x,t)=e_{l,t}(x)$ from the identity to $e_{l,1}$,
+  `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy`
+  (`DifferentialForm/HomotopyOperator.lean`) gives a primitive $\gamma_l$
+  of $e_{l,1}^*\alpha_l-\alpha_l$ that vanishes where the isotopy is the
+  identity; its proof takes $\gamma_l=h\bigl(e_l^*\alpha_l\bigr)$ for the
+  homotopy operator `h`.
 
 **Parameters.** The two forms of Decision 4 share all of the stage except
 the call to holonomic approximation, which differs in its two versions.
@@ -1714,7 +1713,7 @@ Proof, the same in both forms except in step 4:
    `P₀ ×ˢ univ`; the invariant gives it on `P₀ ×ˢ univ` only. With
    `T := closedBall 0 2`, the set
    `O := {l | ∀ i, ∀ x ∈ T, ‖fderiv ℝ (f i l) x - G i l x‖ < ε₁}` is open
-   and contains `P₀`: `IsCompact.isOpen_setOf_forall_norm_sub_lt`, in
+   and contains `P₀`: `IsCompact.isOpen_setOfPred_forall_norm_sub_lt`, in
    `Topology/Compactness/Normed.lean`, for jointly continuous
    `f g : Λ × D → F'` and a compact `T`
    (`IsCompact.eventually_forall_of_forall_eventually`); step 1 of the
@@ -1816,9 +1815,9 @@ on `e`, `ρ`, `V` and `N'` that the theorem provides, so that both forms of
   (`ω l - α l` is exact, and `mpullback_sub_mem_exactForms_of_homotopy`
   along the isotopy), and `stagePath (l, 1) = α' l + d (β'' (s l))` on all
   of `M`.
-- `exists_mextDerivₗ_eq_endPullback_sub`: for every `l`, the form
-  `γ l := -homotopyOperator (Ψ_l^* α l)` of the invariant, with
-  `α' l = α l + d (γ l)` and `γ l = 0` on `V`.
+- `exists_mextDerivₗ_eq_endPullback_sub`: for every `l`, a form `γ l` of
+  the invariant, with `α' l = α l + d (γ l)` and `γ l = 0` on `V` (its
+  proof takes `γ l := homotopyOperator (e_l^* α l)`).
 
 
 Proof of `exists_stagePath`:
@@ -2281,12 +2280,12 @@ Each is a few hundred lines; each issue's blockers come before it.
      and displacement clauses of
      `exists_holonomic_approximation_continuous_family` for every point of
      `(Fin n → ℝ) × D`, as in the statement of its section, and
-     `IsCompact.isOpen_setOf_forall_norm_sub_lt`, in
+     `IsCompact.isOpen_setOfPred_forall_norm_sub_lt`, in
      `Topology/Compactness/Normed.lean`. Blocked by
      nothing.
    - 8d. **Approximation over a band core.** `Relative/CoreApproximation.lean`,
      both forms, with
-     `IsSmoothFamily.exists_pos_forall_nondegenerate_sub_smul_of_continuousOn`.
+     `exists_pos_forall_nondegenerate_sub_smul_of_continuousOn`.
      Blocked by 8a, 8b and 8c. If it exceeds the size limit, the
      continuous form becomes an issue of its own after it.
    - 8e. **The path of a stage.** `Relative/StagePath.lean`. Blocked by

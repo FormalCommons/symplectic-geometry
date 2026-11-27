@@ -25,18 +25,18 @@ coefficients in `k`, read as abelian groups through the restriction of scalars `
 Here integral chains have coefficients `ModuleCat.of ℤ (ULift ℤ)`, as those of Tau Ceti's
 fundamental class.
 
-* `SymplecticGeometry.intCastChainMap k S : C(S; ℤ) ⟶ F (C(S; k))`: the chain map that casts
+* `SSet.intCastChainMap k S : C(S; ℤ) ⟶ F (C(S; k))`: the chain map that casts
   the coefficients of the integral chains of a simplicial set `S` to `k`, the change of
   coefficients `SSet.restrictScalarsChainMap` along the cast of integers
   `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) : ULift ℤ ⟶ F k` of Tau Ceti, which
   serves for `k = ℚ` as well as `k = ℝ`; on simplices it is
-  `SymplecticGeometry.ιChainComplex_intCastChainMap_f`, on an element it is
-  `SymplecticGeometry.intCastChainMap_f_ιChainComplex`, and followed by a cochain it is
-  `SymplecticGeometry.intCastChainMap_f_comp_apply`.
-* `SymplecticGeometry.intCastCyclesMap k S n : Z_n(S; ℤ) ⟶ F (Z_n(S; k))`: the map it induces on
+  `SSet.ιChainComplex_intCastChainMap_f`, on an element it is
+  `SSet.intCastChainMap_f_ιChainComplex`, and followed by a cochain it is
+  `SSet.intCastChainMap_f_comp_apply`.
+* `SSet.intCastCyclesMap k S n : Z_n(S; ℤ) ⟶ F (Z_n(S; k))`: the map it induces on
   cycles, the change of coefficients `SSet.restrictScalarsCyclesMap` along the same map, which
-  `SymplecticGeometry.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
-  and `SymplecticGeometry.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
+  `SSet.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
+  and `SSet.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
 * `TopCat.restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap`: for any ring map, Tau Ceti's
   comparison of chains `TopCat.restrictScalarsChainMap` is the change of coefficients
   `SSet.restrictScalarsChainMap` on the singular simplicial set of the space.
@@ -78,7 +78,7 @@ noncomputable section
 open CategoryTheory Simplicial TauCeti
 open scoped MonoidalCategory
 
-namespace SymplecticGeometry
+namespace SSet
 
 variable (k : Type) [CommRing k]
 
@@ -177,7 +177,7 @@ theorem intCastCyclesMap_def (S : SSet.{0}) (n : ℕ) :
 
 variable {k} in
 /-- The map casting integral cycles to `k` is the map induced on cycles by
-`SymplecticGeometry.intCastChainMap`, followed by the identification of the cycles of the
+`SSet.intCastChainMap`, followed by the identification of the cycles of the
 restricted complex with the restriction of the cycles. -/
 theorem intCastCyclesMap_eq_cyclesMap (S : SSet.{0}) (n : ℕ) :
     intCastCyclesMap k S n =
@@ -197,7 +197,7 @@ theorem intCastCyclesMap_iCycles (S : SSet.{0}) (n : ℕ) :
         (intCastChainMap k S).f n := by
   rw [intCastCyclesMap_def, SSet.restrictScalarsCyclesMap_iCycles, intCastChainMap_def]
 
-end SymplecticGeometry
+end SSet
 
 namespace TopCat
 
@@ -301,11 +301,11 @@ theorem singularCochainComplexIntChainsIso_def :
 
 /-- **Restricting a cochain to integral chains.** Read through integral chains, a `k`-linear
 cochain `ψ` of `X` is `ψ` precomposed with the chain map that casts the coefficients of integral
-chains to `k` (`SymplecticGeometry.intCastChainMap`). -/
+chains to `k` (`SSet.intCastChainMap`). -/
 theorem singularCochainComplexIntChainsIso_hom_f_apply (p : ℕ)
     (ψ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
     (X.singularCochainComplexIntChainsIso k).hom.f p ψ =
-      (SymplecticGeometry.intCastChainMap k (toSSet.obj X)).f p ≫
+      (SSet.intCastChainMap k (toSSet.obj X)).f p ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map ψ ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
   rw [singularCochainComplexIntChainsIso_def, Iso.trans_hom, HomologicalComplex.comp_f, asIso_hom]
@@ -318,7 +318,7 @@ theorem singularCochainComplexIntChainsIso_hom_f_apply (p : ℕ)
     (congrArg (· ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom)
       (X.restrictScalarsCochainMap_f_apply _ _ p ψ)).trans ?_
   rw [restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap,
-    ← SymplecticGeometry.intCastChainMap_def, Category.assoc]
+    ← SSet.intCastChainMap_def, Category.assoc]
 
 /-- The comparison of cochains takes a cochain `φ` to the integral cochain sending `a σ` to
 `a φ(σ)`. -/
@@ -331,7 +331,7 @@ theorem singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex {p : ℕ}
         ((toSSet.obj X).ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
       (a.down : k) * φ ((toSSet.obj X).ιChainComplex (R := ModuleCat.of k k) σ 1) := by
   rw [singularCochainComplexIntChainsIso_hom_f_apply]
-  exact SymplecticGeometry.intCastChainMap_f_comp_apply _ σ φ a
+  exact SSet.intCastChainMap_f_comp_apply _ σ φ a
 
 variable {X} in
 /-- The comparison of cochains commutes with the maps induced by a continuous map. -/
@@ -359,18 +359,18 @@ variable {X} in
 `j : S ⟶ toSSet X` of simplicial sets and a `k`-linear cochain `ψ` of `X`, the cochain `ψ` read
 through integral chains, on the image under `j` of a chain of `S` with coefficients `ULift ℤ`, is
 `ψ` on the image under `j` of that chain with its coefficients cast to `k`
-(`SymplecticGeometry.intCastChainMap`). -/
+(`SSet.intCastChainMap`). -/
 theorem chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f {S : SSet.{0}}
     (j : S ⟶ toSSet.obj X) (p : ℕ)
     (ψ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
     (SSet.chainComplexMap j (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫
         (X.singularCochainComplexIntChainsIso k).hom.f p ψ =
-      (SymplecticGeometry.intCastChainMap k S).f p ≫
+      (SSet.intCastChainMap k S).f p ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
             ((SSet.chainComplexMap j (ModuleCat.of k k)).f p ≫ ψ) ≫
           (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom := by
   rw [singularCochainComplexIntChainsIso_hom_f_apply,
-    SymplecticGeometry.chainComplexMap_f_intCastChainMap_assoc, Functor.map_comp, Category.assoc]
+    SSet.chainComplexMap_f_intCastChainMap_assoc, Functor.map_comp, Category.assoc]
 
 /-! ### Cohomology -/
 

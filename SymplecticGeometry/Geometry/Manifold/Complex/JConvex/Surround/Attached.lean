@@ -7,8 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Analysis.Complex.Basic
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Topology.MetricSpace.Tube
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # Discs attached J-orthogonally to a domain
@@ -56,6 +59,12 @@ separate hypotheses.
   and `‖τ x • x‖ < 1` on the open ball.
 * `SymplecticGeometry.IsJOrthogonallyAttached.comp_linearIsometry`: in particular, it persists
   under precomposition of the disc with a linear isometry.
+* `SymplecticGeometry.IsJOrthogonallyAttached.congr_of_eventuallyEq`: only the germs of `φ` at
+  the points of the sphere and the sign of `φ` on the open disc matter.
+* `SymplecticGeometry.IsJOrthogonallyAttached.map_partialDiffeomorph`: the condition is carried
+  by a partial diffeomorphism `Φ`, defined on the disc and with complex linear differential along
+  the sphere, to the disc `Φ ∘ ι` and the function `φ ∘ Φ.symm`. This is the chain rule, with
+  Tau Ceti's `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply`.
 
 For a diffeomorphism `σ`, Tau Ceti already gives the other properties of `ι ∘ σ` that a
 reparametrization needs: it is a smooth embedding when `ι` is
@@ -144,11 +153,16 @@ theorem mdifferentiableAt_apply (h : IsJOrthogonallyAttached E φ ι) {x : F} (h
   rw [mvfderiv, mfderiv_zero_of_not_mdifferentiableAt hφ] at this
   simp at this
 
+/-- On the unit sphere, the derivative of `φ ∘ ι` at `x` along `u` is `dφ (dι_x u)`. -/
+theorem fderiv_comp_apply (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) (u : F) :
+    fderiv ℝ (φ ∘ ι) x u = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x u) := by
+  have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) u
+  rwa [mvfderiv_eq_fderiv] at h1
+
 /-- On the unit sphere, the radial derivative of `φ ∘ ι` at `x` is `dφ (dι_x x)`. -/
 theorem fderiv_comp_apply_self (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) :
-    fderiv ℝ (φ ∘ ι) x x = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) := by
-  have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) x
-  rwa [mvfderiv_eq_fderiv] at h1
+    fderiv ℝ (φ ∘ ι) x x = mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) :=
+  h.fderiv_comp_apply hx x
 
 /-- On the unit sphere, the radial derivative of `φ ∘ ι` is negative. -/
 theorem fderiv_comp_apply_self_neg (h : IsJOrthogonallyAttached E φ ι) {x : F} (hx : ‖x‖ = 1) :
@@ -260,6 +274,51 @@ theorem comp_linearIsometry (h : IsJOrthogonallyAttached E φ ι) {F' : Type*}
         rw [← e.coe_toContinuousLinearMap, ContinuousLinearMap.mfderiv_eq]
         -- The left side lives in the tangent space `TangentSpace 𝓘(ℝ, F) (e x)`, which is `F`.
         exact (one_smul ℝ _).symm⟩
+
+/-- **Local agreement near the sphere.** If `θ` agrees with `ψ` near each point of the boundary
+sphere and is positive on the open disc, then a disc attached J-orthogonally to `{ψ ≤ 0}` is
+attached J-orthogonally to `{θ ≤ 0}`. -/
+theorem congr_of_eventuallyEq {ψ θ : M → ℝ} (h : IsJOrthogonallyAttached E ψ ι)
+    (hθ : ∀ x : F, ‖x‖ = 1 → θ =ᶠ[𝓝 (ι x)] ψ) (hpos : ∀ x : F, ‖x‖ < 1 → 0 < θ (ι x)) :
+    IsJOrthogonallyAttached E θ ι :=
+  ⟨hpos, fun x hx ↦ (hθ x hx).eq_of_nhds.trans (h.eq_zero x hx),
+    fun x hx ↦ ((hθ x hx).mvfderiv_eq (I := 𝓘(ℝ, E))) ▸ h.mvfderiv_mfderiv_self_neg x hx,
+    fun x hx v ↦ ((hθ x hx).mvfderiv_eq (I := 𝓘(ℝ, E))) ▸ h.mvfderiv_I_smul_mfderiv x hx v⟩
+
+/-- **Carrying an attachment through a chart.** Let `Φ` be a partial diffeomorphism from a
+complex manifold `N` modelled on `E'` to `M`, defined on the disc `ι '' closedBall 0 1`, whose
+differential commutes with multiplication by `i` along the boundary sphere. If the disc `ι` is
+attached J-orthogonally to `{ψ ≤ 0}` in `N`, then `Φ ∘ ι` is attached J-orthogonally to
+`{ψ ∘ Φ.symm ≤ 0}` in `M`. -/
+theorem map_partialDiffeomorph {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℂ E']
+    {N : Type*} [TopologicalSpace N] [ChartedSpace E' N] {ψ : N → ℝ} {ι : F → N}
+    (h : IsJOrthogonallyAttached E' ψ ι) {n : WithTop ℕ∞} (hn : n ≠ 0)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, E') 𝓘(ℝ, E) N M n) (hsrc : ι '' closedBall 0 1 ⊆ Φ.source)
+    (hI : ∀ x : F, ‖x‖ = 1 → ∀ w : E', mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ (ι x) (Complex.I • w) =
+      Complex.I • (show E from mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ (ι x) w)) :
+    IsJOrthogonallyAttached E (ψ ∘ Φ.symm) (Φ ∘ ι) := by
+  have hmem {x : F} (hx : ‖x‖ ≤ 1) : ι x ∈ Φ.source :=
+    hsrc ⟨x, by simpa using hx, rfl⟩
+  have hval {x : F} (hx : ‖x‖ ≤ 1) : (ψ ∘ Φ.symm) ((Φ ∘ ι) x) = ψ (ι x) :=
+    congrArg ψ (Φ.left_inv (hmem hx))
+  -- Along the sphere, `d(ψ ∘ Φ.symm)` at `Φ (ι x)` undoes `dΦ`, and `d(Φ ∘ ι) = dΦ ∘ dι`.
+  have hψ {x : F} (hx : ‖x‖ = 1) (w : TangentSpace 𝓘(ℝ, E') (ι x)) :
+      mvfderiv 𝓘(ℝ, E) (ψ ∘ Φ.symm) (Φ (ι x)) (mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ (ι x) w) =
+        mvfderiv 𝓘(ℝ, E') ψ (ι x) w := by
+    rw [mvfderiv_comp_apply_of_eq _ (h.mdifferentiableAt_apply hx)
+      (Φ.symm.mdifferentiableAt hn (Φ.map_source (hmem hx.le))) (Φ.left_inv (hmem hx.le))]
+    exact congrArg _ (Φ.mfderiv_symm_apply_mfderiv_apply hn (hmem hx.le) w)
+  have hι {x : F} (hx : ‖x‖ = 1) (v : F) :
+      mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (Φ ∘ ι) x v =
+        mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E') ι x v) :=
+    mfderiv_comp_apply x (Φ.mdifferentiableAt hn (hmem hx.le)) (h.mdifferentiableAt hx) v
+  refine ⟨fun x hx ↦ hval hx.le ▸ h.pos x hx, fun x hx ↦ hval hx.le ▸ h.eq_zero x hx,
+    fun x hx ↦ ?_, fun x hx v ↦ ?_⟩
+  · rw [hι hx, Function.comp_apply, hψ hx]
+    exact h.mvfderiv_mfderiv_self_neg x hx
+  · rw [hι hx, Function.comp_apply]
+    refine (congrArg _ (hI x hx _)).symm.trans ?_
+    exact (hψ hx _).trans (h.mvfderiv_I_smul_mfderiv x hx v)
 
 end IsJOrthogonallyAttached
 

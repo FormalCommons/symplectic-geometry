@@ -38,6 +38,11 @@ That identification is the identity map, so the same two facts also hold with th
 These are the forms that `rw` and `simp` can use on the differential of a slice inclusion applied
 to a vector.
 
+The differential of the graph `z ↦ (f z, z)` of a map `f`, with its factors exchanged, has
+second coordinate `v` on each tangent vector `v` at a point where `f` is differentiable
+(`TauCeti.Manifold.mfderiv_graph_swap_snd_apply`). This is the counterpart of Tau Ceti's
+`TauCeti.Manifold.mfderiv_graph_fst_apply` for `z ↦ (z, f z)`, with the same proof.
+
 A tangent vector of `M × M'` is in the kernel of the differential of the first projection exactly
 when its first component is zero (`mem_ker_mfderiv_fst_iff`).
 
@@ -48,6 +53,12 @@ differentials of a map for the two are equal, for a map from `E₁ × E₂`
 (`mfderiv_prod_modelWithCornersSelf_source`) and for a map into it
 (`mfderiv_prod_modelWithCornersSelf_target`). These are the `mfderiv` counterparts of Tau Ceti's
 `contMDiffAt_prod_modelWithCornersSelf_iff`, with the same proof.
+
+For a map `f : M → M'`, the differential of `z ↦ (f z, z)`, the graph of `f` with its factors
+exchanged, has first coordinate `df v` on a tangent vector `v`
+(`TauCeti.Manifold.mfderiv_graph_swap_fst_apply`), whether or not `f` is differentiable at the
+point. This adapts the proof of Tau Ceti's `TauCeti.Manifold.mfderiv_graph_snd_apply`, which
+treats `z ↦ (z, f z)`, with the two factors exchanged.
 -/
 
 public section
@@ -95,6 +106,16 @@ theorem tangentSpaceProdEquiv_mfderiv_prodMk_left (v : TangentSpace I x) :
   rw [mfderiv_prod_left, tangentSpaceProdEquiv_apply]
   exact ContinuousLinearMap.inl_apply ..
 
+/-- The differential of the graph `z ↦ (f z, z)`, with its factors exchanged, of a map `f`
+differentiable at `x` has second coordinate `v` on `v`. -/
+@[simp]
+theorem mfderiv_graph_swap_snd_apply {f : M → M'} (hf : MDifferentiableAt I I' f x)
+    (v : TangentSpace I x) : (mfderiv I (I'.prod I) (fun z ↦ (f z, z)) x v).2 = v := by
+  have hg : MDifferentiableAt I (I'.prod I) (fun z ↦ (f z, z)) x := hf.prodMk mdifferentiableAt_id
+  rw [← hg.mfderiv_snd_apply]
+  -- The second coordinate of `z ↦ (f z, z)` is the identity by definition.
+  exact DFunLike.congr_fun (mfderiv_id (I := I) (x := x)) v
+
 end TauCeti.Manifold
 
 variable {x : M} {y : M'}
@@ -121,6 +142,25 @@ theorem mem_ker_mfderiv_fst_iff {p : M × M'} {v : TangentSpace (I.prod I') p} :
   -- The left side compares `v.1` with the zero of `TangentSpace I p.1`, the right side with the
   -- zero of `E`; the two spaces agree only by definition.
   exact Iff.rfl
+
+namespace TauCeti.Manifold
+
+/-- The differential of the graph `z ↦ (f z, z)` of a map `f`, with its factors exchanged, has
+first coordinate `df v` on each tangent vector `v`. -/
+@[simp]
+theorem mfderiv_graph_swap_fst_apply {f : M → M'} {x : M} (v : TangentSpace I x) :
+    (mfderiv I (I'.prod I) (fun z ↦ (f z, z)) x v).1 = mfderiv I I' f x v := by
+  by_cases hf : MDifferentiableAt I I' f x
+  swap
+  · -- Neither the graph nor `f` is differentiable at `x`, so both differentials are `0`.
+    have hg : ¬ MDifferentiableAt I (I'.prod I) (fun z ↦ (f z, z)) x :=
+      fun hg ↦ hf (mdifferentiableAt_fst.comp x hg)
+    rw [mfderiv_zero_of_not_mdifferentiableAt hg, mfderiv_zero_of_not_mdifferentiableAt hf]
+    rfl
+  have hg : MDifferentiableAt I (I'.prod I) (fun z ↦ (f z, z)) x := hf.prodMk mdifferentiableAt_id
+  exact (hg.mfderiv_fst_apply v).symm
+
+end TauCeti.Manifold
 
 section ModelWithCornersSelf
 

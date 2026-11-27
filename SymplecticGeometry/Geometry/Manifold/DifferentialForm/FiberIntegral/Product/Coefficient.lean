@@ -45,7 +45,7 @@ for the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`.
 * `TauCeti.mfderiv_family_apply_eq_fderiv_smul`: if `β b' y = c b' • ν y` for `b' ∈ U` at a fixed
   `y`, with `c` differentiable at `b`, then `D y = (∂c/∂b)(b) a • ν y`. On `U` the derivative of
   a map is the Fréchet derivative of the same map on `EB`
-  (`TauCeti.Manifold.mfderiv_modelSpace_comp_subtype_val_apply`).
+  (`mfderiv_modelSpace_comp_subtypeVal_apply`).
 * `TauCeti.mfderiv_integralTopForm_apply`: for `F` compact and Hausdorff and a `C^n` family with
   `1 ≤ n`, the derivative of `b' ↦ ∫_F β b'` at `b` in the direction `a` is `∫_F D`; that this
   map is differentiable is `TauCeti.contMDiff_integralTopForm` with `P := U`. As in the proof
@@ -181,7 +181,7 @@ theorem mfderiv_family_apply_eq_fderiv_smul {β : U → RoughForm J F ℝ m} (ν
   have hF : HasFDerivAt (fun z : EB ↦ c z • η) ((fderiv ℝ c b).smulRight η) b :=
     hc.hasFDerivAt.smul_const η
   rw [heq]
-  refine (Manifold.mfderiv_modelSpace_comp_subtype_val_apply (U := U)
+  refine (mfderiv_modelSpace_comp_subtypeVal_apply (U := U)
     (f := fun z : EB ↦ c z • η) (x := b) a).trans ?_
   rw [hF.fderiv]
   exact ContinuousLinearMap.smulRight_apply (M₁ := EB) (M₂ := E [⋀^Fin m]→L[ℝ] ℝ) (x := a)
@@ -226,7 +226,7 @@ theorem mfderiv_integralTopForm_apply {n : WithTop ℕ∞} (hn : 1 ≤ n)
     (continuousOn_fderiv_of_contMDiffOn U.isOpen isOpen_univ hc).comp_continuous
       (continuous_const.prodMk continuous_id) fun y ↦ ⟨b.property, mem_univ y⟩
   rw [hf]
-  refine (Manifold.mfderiv_modelSpace_comp_subtype_val_apply (U := U)
+  refine (mfderiv_modelSpace_comp_subtypeVal_apply (U := U)
     (f := fun z ↦ ∫ y, c z y ∂riemannianVolume J F) (x := b) a).trans ?_
   rw [hG.fderiv]
   refine (ContinuousLinearMap.integral_apply

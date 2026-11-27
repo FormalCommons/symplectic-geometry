@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Rescale
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import Mathlib.Analysis.CStarAlgebra.Classes
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.CompDiffeomorphOfBoundaryless
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
@@ -734,8 +735,7 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
       hτ hσ (hasSymplecticTangentImages_zeroSlice hι) hι
       (Diffeomorph.refl J Q ∞) (by
         rw [mpullback_zeroSlice_prod,
-          SmoothForm.mpullback_congr _ contMDiff_id (Diffeomorph.coe_refl _ _ _)]
-        exact LinearMap.congr_fun SmoothForm.mpullback_id _)
+          SmoothForm.mpullback_eq_self_of_eq_id _ (Diffeomorph.coe_refl _ _ _)])
       (WithTop.coe_ne_zero.2 ENat.top_ne_zero) finrank_complex_eq_finrank_prod_sub hP Φ
       Φ.contMDiff_toFun Φ.symplecticNormalForm_toFun
   exact ⟨U₀, U₁, ψ, fun q ↦ (hψ q).imp fun _ h ↦ ⟨h.1, h.2.2⟩, hψσ⟩
@@ -944,7 +944,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
   mfderiv_symplecticNormalRepresentative' q h v :=
     -- The tangent spaces of `prodBall Q ε`, `U₀` and `Q × ℂ` are all the model space `EQ × ℂ`.
     (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := I) (f := ψ ∘ Opens.inclusion hle)
-      _).trans <| (TauCeti.Manifold.mfderiv_comp_inclusion_apply hle _ _).trans ((hψ q).2.2 v)
+      _).trans <| (mfderiv_comp_inclusion_apply hle _ _).trans ((hψ q).2.2 v)
 
 section Exists
 

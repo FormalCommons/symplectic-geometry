@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.CodimTwo
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
@@ -116,8 +117,7 @@ theorem exists_symplectomorphism_blowupModel [FiniteDimensional ℝ E] {σ : Smo
     h₀.exists_symplectomorphism_opens_of_finrank_eq_two hσ (isSymplectic_blowupForm hl) h₁
       (Diffeomorph.refl _ _ _) (by
         rw [mpullback_zeroSectionRealEmbedding_blowupForm, hf]
-        exact (SmoothForm.mpullback_congr _ contMDiff_id rfl _).trans
-          (LinearMap.congr_fun SmoothForm.mpullback_id _))
+        exact SmoothForm.mpullback_eq_self_of_eq_id _ rfl _)
       hn hP₀ hP₁ h2 Φ hΦ hΦσ
   obtain ⟨q₀⟩ := (inferInstance : Nonempty (ℙ ℂ (Fin (n + 1) → ℂ)))
   have hU₀ : Nonempty U₀ := ⟨⟨f q₀, (hψ q₀).1⟩⟩

@@ -39,7 +39,8 @@ equivariance or smoothness.
 
 * `SymplecticGeometry.momentNormSq_nonneg`, `SymplecticGeometry.momentNormSq_eq_zero_iff`: for a
   nonnegative, respectively anisotropic, `B`, the norm square is nonnegative, and it
-  vanishes exactly where `μ` does.
+  vanishes exactly where `μ` does; `SymplecticGeometry.bddBelow_range_momentNormSq_comp` bounds
+  it below along any family of points.
 * `SymplecticGeometry.abs_apply_le_sqrt_momentNormSq_mul_sqrt`: the Cauchy–Schwarz inequality
   `|μ x ξ| ≤ √(‖μ x‖²) √(B ξ ξ)` for a symmetric nonnegative `B`.
 * `SymplecticGeometry.momentSharp_neg`, `SymplecticGeometry.momentNormSq_neg`: replacing `μ`
@@ -142,6 +143,14 @@ theorem momentNormSq_neg' : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B
 theorem momentNormSq_nonneg (hpos : B.IsNonneg) : 0 ≤ momentNormSq B hB μ x := by
   rw [momentNormSq_eq_momentSharp]
   exact hpos.nonneg _
+
+/-- For a nonnegative form `B`, the norm square of `μ` along any family `f : ι → M` of points is
+bounded below by `0`. -/
+theorem bddBelow_range_momentNormSq_comp {ι : Type*} (hpos : B.IsNonneg) (f : ι → M) :
+    BddBelow (Set.range fun i ↦ momentNormSq B hB μ (f i)) :=
+  ⟨0, by
+    rintro _ ⟨i, rfl⟩
+    exact momentNormSq_nonneg hpos⟩
 
 /-- For an anisotropic form `B`, such as a positive definite one, the norm square of `μ x`
 vanishes exactly when `μ x` does. -/

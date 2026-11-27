@@ -22,9 +22,8 @@ family of forms on `M` (`SymplecticGeometry.IsSmoothFamily.extendByZeroAlong`).
 
 This is the family version of `TauCeti.IsSmoothForm.extendByZeroAlong`, and its proof follows
 that one. Near a point of `ψ.source`, the family is the pullback along `y ↦ (t, ψ y)` of a smooth
-form on `N × D` whose slices are the `a (t, ·)`, and is smooth there by Tau Ceti's
-`ContMDiffAt.mpullback_form_family`, applied as in
-`SymplecticGeometry.IsSmoothFamily.contMDiffAt_of_mpullback_family`. Off the compact set
+form on `N × D` whose slices are the `a (t, ·)`, and is smooth there by
+`SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_mpullback`. Off the compact set
 `ψ.symm '' K`, which is closed since `M` is Hausdorff, every member of the family vanishes.
 -/
 
@@ -68,26 +67,18 @@ theorem extendByZeroAlong {ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞}
   rintro ⟨t, x⟩
   by_cases hx : x ∈ ψ.source
   · -- Near `x`, the family is the pullback of `Ω` along `y ↦ (s, ψ y)`.
-    have key := ContMDiffAt.mpullback_form_family (J := J.prod I) (I := I) (m := ∞) (n := ∞)
-      (φ := Ω.val) (f := fun q y ↦ (q.1, ψ y)) (g := Prod.snd) (p₀ := (t, x))
-      (Ω.contMDiff _)
-      ((contMDiff_fst.comp contMDiff_fst).contMDiffAt.prodMk
-        ((ψ.contMDiffAt hx).comp _ contMDiffAt_snd))
-      contMDiffAt_snd (by simp)
-    refine key.congr_of_eventuallyEq ?_
+    refine contMDiffAt_sliceSection_of_eventually_eq_mpullback (g := fun s y ↦ (s, ψ y))
+      (Ω.contMDiff _) (contMDiffAt_fst.prodMk ((ψ.contMDiffAt hx).comp _ contMDiffAt_snd))
+      (by simp) ?_
     filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
       (ψ.open_source.mem_nhds hx)] with q hq
     obtain ⟨s, y⟩ := q
-    rw [sliceSection_apply]
-    refine congrArg (TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-      (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) y) ?_
     have hψ : MDifferentiableAt I 𝓘(ℝ, D) ψ y := (ψ.contMDiffAt hq).mdifferentiableAt (by simp)
     have hmk : MDifferentiableAt 𝓘(ℝ, D) (J.prod 𝓘(ℝ, D)) (Prod.mk s) (ψ y) :=
       (contMDiff_const.prodMk contMDiff_id (n := ∞)).mdifferentiableAt (by simp)
     have hcomp : (fun y ↦ (s, ψ y)) = Prod.mk s ∘ ψ := rfl
     have hslice := congrArg Subtype.val (hΩ s)
     simp only [SmoothForm.coe_mpullback] at hslice
-    dsimp only
     rw [hβ, RoughForm.extendByZeroAlong_apply_of_mem _ hq, hcomp, mpullback_comp_at hψ hmk,
       hslice]
   · -- Near `x`, every member of the family vanishes.

@@ -29,6 +29,9 @@ public import TauCeti.Analysis.Normed.Operator.Splitting.Basic
 import TauCeti.Analysis.Normed.Operator.Splitting.Family
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 import TauCeti.Topology.Algebra.Module.ComplexSmulI
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContDiffBound
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere
@@ -62,6 +65,9 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
 * `SymplecticGeometry.exists_twistOneKernelFamily`: near a structure `J₀` tamed by `σ`, complex
   linear maps `T J` from `twistOneKernel J₀` onto `twistOneKernel J`, the inclusion at `J₀`, such
   that `J ↦ T J s` is continuous at `J₀` into `W^{k+1,2}` for every order `k`.
+* `SymplecticGeometry.exists_continuousAt_twistOneKernelFamily`: maps as in
+  `exists_twistOneKernelFamily`, with `J ↦ T J s` continuous at `J₀` into the smooth sections of
+  `𝒪(1)` with `ContMDiffSection.frameTopology`, for every frame system.
 
 ## Proof
 
@@ -75,7 +81,7 @@ isomorphism, so this index is `1`
 `Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass` on the sphere.
 
 For the zero count, let `s ≠ 0` lie in `twistOneKernel J`. Its zeros are finite
-(`SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`), and at each of them it is
+(`SymplecticGeometry.finite_setOfPred_eq_zero_of_mem_twistOneKernel`), and at each of them it is
 complex analytic in an isothermal chart `ψ` and a rescaled frame of `L` that reads the orientation
 of the fibres as that of `ℂ`
 (`SymplecticGeometry.exists_trivialization_analyticAt_of_mem_twistOneKernel`);
@@ -124,7 +130,12 @@ near `J₀` (`ContinuousLinearMap.exists_isOpen_isInvertible_prod`). Tau Ceti's
 the complex linear map `SymplecticGeometry.twistOneKernelTransfer`. Its values are the
 `ContinuousLinearMap.kerSection` of the pair, the same smooth section at every order
 (`SymplecticGeometry.kerSection_twistOneDelBarSobolev_toOrderOne`), which depends continuously on
-`J` at each order (`ContinuousAt.kerSection`).
+`J` at each order (`ContinuousAt.kerSection`). For the `C^∞` topology, fix a chart of the atlas
+`twistCoreAtlas 1` and an order `j`. Continuity into `W^{j+2,2}` makes the derivatives of order
+`j` of the chart readings of continuous representatives converge locally uniformly on the chart
+image (`TauCeti.SobolevSection.tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection`), and
+`TauCeti.FiniteBundleAtlas.tendsto_frameTopology_of_tendstoLocallyUniformlyOn` gives convergence
+in the frame topology of every frame system.
 
 The construction of `P` and the proof of `isInvertible_twistOneDelBarSobolev_prod` adapt Tau
 Ceti's `ContinuousLinearMap.exists_isOpen_isInvertible_prod_coprod_of_surjective`, with its
@@ -208,7 +219,7 @@ private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
             c x * ((twistCore (𝕜 := ℂ) 1).localTriv z₀ (TotalSpace.mk' ℂ x v)).2 := by
   -- The zeros, with `s` read as a section of `𝒪(1)`, as Tau Ceti's zero count reads them.
   have hZ : {x | (s x : (twistCore (𝕜 := ℂ) 1).Fiber x) = 0}.Finite :=
-    finite_setOf_eq_zero_of_mem_twistOneKernel hs hs₀
+    finite_setOfPred_eq_zero_of_mem_twistOneKernel hs hs₀
   choose e he ψ hze hzψ hψ hA ho c hc hc₀ hec using
     fun z ↦ exists_trivialization_analyticAt_of_mem_twistOneKernel hs z
   have hφ₀ := fun z ↦ localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi
@@ -761,6 +772,62 @@ theorem exists_twistOneKernelFamily (hcover : ∀ x, ∃ i, x ∈ U i)
       kerSection_twistOneDelBarSobolev_toOrderOne J.property hi hk
         ((hQ 0 _).symm.trans (apply_twistOneKernelSobolev_twistOneKernelEquivOfProd _ hi h₀ _)),
       toSection_twistOneKernelSobolev]
+
+/-- **The kernels of `D_J` near `J₀`, continuous in the `C^∞` topology.** Let a two-form `σ` on
+the sphere tame both `J₀` and the standard structure `i`, and give the structures tamed by `σ`
+the subspace topology of `SmoothAlmostComplexStructure.frameTopology e U hU`, for frames whose
+domains cover the sphere. There are complex linear maps
+`T J : twistOneKernel J₀ → (OnePoint ℂ → ℂ)` such that:
+* for `J` near `J₀`, `T J` is injective with range `twistOneKernel J`;
+* `T J₀` is the inclusion;
+* for every `s`, there is a family `S` of smooth sections of `𝒪(1)` with `S J = T J s` for `J`
+  near `J₀`, continuous at `J₀` for `ContMDiffSection.frameTopology e' U' hU'`, for every frame
+  system `(e', U')` of `𝒪(1)`. -/
+theorem exists_continuousAt_twistOneKernelFamily (hcover : ∀ x, ∃ i, x ∈ U i)
+    {J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ₀ : σ.Tames J₀)
+    (hi : σ.Tames 𝒊) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    ∃ T : {J // σ.Tames J} → twistOneKernel J₀ →ₗ[ℂ] (OnePoint ℂ → ℂ),
+      (∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, Function.Injective (T J) ∧
+        LinearMap.range (T J) = twistOneKernel J.val) ∧
+      (∀ s, T ⟨J₀, hJ₀⟩ s = s) ∧
+      ∀ s : twistOneKernel J₀, ∃ S : {J // σ.Tames J} →
+          Cₛ^∞⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯,
+        (∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, ⇑(S J) = T J s) ∧
+        ∀ {κ : Type*} (e' : κ → Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber))
+          [∀ i, MemTrivializationAtlas (e' i)] (U' : κ → TopologicalSpace.Opens (OnePoint ℂ))
+          (hU' : ∀ i, (U' i : Set (OnePoint ℂ)) ⊆ (e' i).baseSet),
+          letI := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' hU'
+          ContinuousAt S ⟨J₀, hJ₀⟩ := by
+  intro _
+  obtain ⟨T, hT, hT₀, hw⟩ := exists_twistOneKernelFamily e U hU hcover hJ₀ hi
+  refine ⟨T, hT, hT₀, fun s ↦ ?_⟩
+  classical
+  let S (J : {J // σ.Tames J}) : Cₛ^∞⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯ :=
+    if h : T J s ∈ twistOneKernel J.val then ⟨T J s, ((mem_twistOneKernel_iff J.val).1 h).1⟩
+    else 0
+  have hS : ∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, ⇑(S J) = T J s := by
+    filter_upwards [hT] with J hJ
+    have h : T J s ∈ twistOneKernel J.val := hJ.2 ▸ LinearMap.mem_range_self _ s
+    simp only [S, h, ↓reduceDIte]
+    exact ContMDiffSection.coeFn_mk _ _
+  refine ⟨S, hS, fun e' _ U' hU' ↦ ?_⟩
+  let := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' hU'
+  let A := twistCoreAtlas 1
+  refine FiniteBundleAtlas.tendsto_frameTopology_of_tendstoLocallyUniformlyOn A
+    fun i j _ ↦ ?_
+  -- At order `j + 1`, convergence in `W^{j+2,2}` makes the derivatives of order `j` of the chart
+  -- readings converge locally uniformly.
+  have hk : finrank ℝ ℂ + j ≤ j + 1 + 1 := by rw [Complex.finrank_real_complex]; omega
+  obtain ⟨w, hwc, hwS⟩ := hw (j + 1) s
+  have hSw : ∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, ⇑(S J) = SobolevSection.toSection (w J) := by
+    filter_upwards [hS, hwS] with J h₁ h₂
+    rw [h₁, h₂]
+  rw [hSw.self_of_nhds]
+  refine (SobolevSection.tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection hk i
+    hwc).congr_inseparable ?_
+  filter_upwards [hSw] with J hJ y _
+  exact .of_eq (by rw [hJ])
 
 end Family
 

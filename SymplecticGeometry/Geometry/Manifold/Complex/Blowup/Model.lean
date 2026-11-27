@@ -11,6 +11,7 @@ public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
 public import TauCeti.Analysis.Complex.Euclidean.Space
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
@@ -110,6 +111,9 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
 * `SymplecticGeometry.BlowupModel.isLocalDiffeomorphAt_blowdown`: so the blowdown is a local
   biholomorphism at each point off the divisor.
+* `SymplecticGeometry.BlowupModel.isPseudoholomorphic_ofComplexManifold_blowdown`: the blowdown
+  is pseudoholomorphic for the almost complex structures of the complex manifolds `BlowupModel n`
+  and `E`, by Tau Ceti's `TauCeti.isPseudoholomorphic_ofComplexManifold_iff`.
 
 ## Implementation notes
 
@@ -336,7 +340,7 @@ theorem openNbhd_subset_closedNbhd (ε : ℝ) : openNbhd n ε ⊆ closedNbhd n �
 
 /-- For a continuous map `f` into the model and a continuous radius `c`, the points `x` with
 `f x ∈ closedNbhd n (c x)` form a closed set. -/
-theorem isClosed_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
+theorem isClosed_setOfPred_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
     {c : X → ℝ} (hf : Continuous f) (hc : Continuous c) :
     IsClosed {x | f x ∈ closedNbhd n (c x)} := by
   simp only [mem_closedNbhd_iff]
@@ -345,7 +349,7 @@ theorem isClosed_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X �
 
 /-- For a continuous map `f` into the model and a continuous radius `c`, the points `x` with
 `f x ∈ openNbhd n (c x)` form an open set. -/
-theorem isOpen_setOf_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
+theorem isOpen_setOfPred_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
     {c : X → ℝ} (hf : Continuous f) (hc : Continuous c) :
     IsOpen {x | f x ∈ openNbhd n (c x)} := by
   simp only [mem_openNbhd_iff]
@@ -353,10 +357,10 @@ theorem isOpen_setOf_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → Bl
     (continuous_blowdown.comp hf)).norm hc
 
 theorem isOpen_openNbhd (ε : ℝ) : IsOpen (openNbhd n ε) :=
-  isOpen_setOf_mem_openNbhd continuous_id continuous_const
+  isOpen_setOfPred_mem_openNbhd continuous_id continuous_const
 
 theorem isClosed_closedNbhd (ε : ℝ) : IsClosed (closedNbhd n ε) :=
-  isClosed_setOf_mem_closedNbhd continuous_id continuous_const
+  isClosed_setOfPred_mem_closedNbhd continuous_id continuous_const
 
 /-- `L(ε)` is compact: it is the part of the closed incidence set lying over a compact subset of
 `ℙ ℂ E × E`. -/
@@ -375,12 +379,12 @@ theorem isCompact_closedNbhd (ε : ℝ) : IsCompact (closedNbhd n ε) := by
 
 /-- Over a compact space `X`, for a continuous radius `c`, the pairs `(x, p)` with
 `p ∈ closedNbhd n (c x)` form a compact subset of `X × BlowupModel n`. -/
-theorem isCompact_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] [CompactSpace X]
+theorem isCompact_setOfPred_mem_closedNbhd {X : Type*} [TopologicalSpace X] [CompactSpace X]
     {c : X → ℝ} (hc : Continuous c) :
     IsCompact {q : X × BlowupModel n | q.2 ∈ closedNbhd n (c q.1)} := by
   obtain ⟨C, hC⟩ := (isCompact_range hc).bddAbove
   exact (isCompact_univ.prod (isCompact_closedNbhd (n := n) C)).of_isClosed_subset
-    (isClosed_setOf_mem_closedNbhd continuous_snd (hc.comp continuous_fst))
+    (isClosed_setOfPred_mem_closedNbhd continuous_snd (hc.comp continuous_fst))
     fun q hq ↦ ⟨mem_univ _,
       mem_closedNbhd_iff.2 ((mem_closedNbhd_iff.1 hq).trans (hC ⟨q.1, rfl⟩))⟩
 
@@ -1022,6 +1026,14 @@ theorem isLocalDiffeomorphAt_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0
     IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p :=
   (blowdownDiffeomorph n).isLocalDiffeomorphAt_of_coe_eq
     (fun v ↦ (coe_blowdownDiffeomorph v).symm) ⟨p, by simpa using hp⟩
+
+open TauCeti TauCeti.SmoothAlmostComplexStructure TauCeti.ComplexManifold in
+/-- The blowdown of the model is pseudoholomorphic, from the structure of the complex manifold
+`BlowupModel n` to that of `ℂⁿ⁺¹`. -/
+theorem isPseudoholomorphic_ofComplexManifold_blowdown :
+    IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
+  isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
 
 end Blowdown
 

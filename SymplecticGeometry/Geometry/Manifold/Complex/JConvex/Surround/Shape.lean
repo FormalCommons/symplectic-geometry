@@ -94,9 +94,9 @@ bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`; the sec
 
 The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `ι₀ (closedBall 0 1)`.
 
-* `SymplecticGeometry.isCompact_setOf_shape_le`: the sets `{t ≤ a, s ≤ b}` are compact;
-* `SymplecticGeometry.setOf_shape_le_subset_setOf_shape_le`: the handles grow with `γ`;
-* `SymplecticGeometry.iInter_setOf_shape_le_eq`: the intersection of the handles for
+* `SymplecticGeometry.isCompact_setOfPred_shape_le`: the sets `{t ≤ a, s ≤ b}` are compact;
+* `SymplecticGeometry.setOfPred_shape_le_subset_setOfPred_shape_le`: the handles grow with `γ`;
+* `SymplecticGeometry.iInter_setOfPred_shape_le_eq`: the intersection of the handles for
   `0 < γ < 1` is the model disc `ι₀ (closedBall 0 1)`.
 
 ## The model handle function and the model level
@@ -130,6 +130,10 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
   `φ₀ (ι₀ x) = 1 - |x|²` (`SymplecticGeometry.modelLevel_modelDisc`), and the differential of
   `φ₀` there (`SymplecticGeometry.fderiv_modelLevel_apply`) only sees the real parts of the
   first factor, so it vanishes on `i` times the tangent vectors of the disc.
+* `SymplecticGeometry.isJOrthogonallyAttached_modelLevel_comp_symm`: the same through a partial
+  diffeomorphism `Φ` from `V` whose differential is complex linear along the sphere, such as
+  the chart of `SymplecticGeometry.exists_modelChart`: `Φ ∘ ι₀` is attached J-orthogonally to
+  `{φ₀ ∘ Φ.symm ≤ 0}`.
 
 ## References
 
@@ -741,7 +745,7 @@ section Handle
 open Filter Metric Set
 
 /-- The sets `{p | t p ≤ a ∧ s p ≤ b}` of the shape coordinates `(s, t) = shape p` are compact. -/
-theorem isCompact_setOf_shape_le (a b : ℝ) :
+theorem isCompact_setOfPred_shape_le (a b : ℝ) :
     IsCompact {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
       (shape p).2 ≤ a ∧ (shape p).1 ≤ b} := by
   have hc := (contDiff_shape (k := k) (m := m) (n := 0)).continuous
@@ -767,7 +771,7 @@ theorem isCompact_setOf_shape_le (a b : ℝ) :
     linarith [le_abs_self a, le_abs_self b, abs_nonneg a, abs_nonneg b]
 
 /-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` grow with `γ ≥ 0`. -/
-theorem setOf_shape_le_subset_setOf_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
+theorem setOfPred_shape_le_subset_setOfPred_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
       (shape p).2 ≤ a ^ 2 ∧ (shape p).1 ≤ (1 + a) ^ 2} ⊆
       {p | (shape p).2 ≤ b ^ 2 ∧ (shape p).1 ≤ (1 + b) ^ 2} :=
@@ -775,7 +779,7 @@ theorem setOf_shape_le_subset_setOf_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a
 
 /-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` for `0 < γ < 1` have the model disc
 `ι₀ (closedBall 0 1)` as their intersection. -/
-theorem iInter_setOf_shape_le_eq :
+theorem iInter_setOfPred_shape_le_eq :
     ⋂ γ : Ioo (0 : ℝ) 1, {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
       (shape p).2 ≤ (γ : ℝ) ^ 2 ∧ (shape p).1 ≤ (1 + (γ : ℝ)) ^ 2} =
       modelDisc k m '' closedBall 0 1 := by
@@ -956,6 +960,13 @@ theorem modelLevel_eq : modelLevel k m = fun p ↦ 1 + modelHandle k m 1 2 p := 
   rw [modelLevel_def, modelHandle_def]
   ring
 
+/-- The model level is smooth. -/
+theorem contDiff_modelLevel {n : WithTop ℕ∞} : ContDiff ℝ n (modelLevel k m) := by
+  have h : modelLevel k m = fun p ↦ 1 - (shape p).1 + 2 * (shape p).2 := funext modelLevel_def
+  rw [h]
+  exact (contDiff_const.sub (contDiff_fst.comp contDiff_shape)).add
+    (contDiff_const.mul (contDiff_snd.comp contDiff_shape))
+
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
@@ -1039,6 +1050,24 @@ theorem isJOrthogonallyAttached_model :
       simp
     rw [mfderiv_modelDisc]
     exact key
+
+/-- **The model carried through a chart.** Let `Φ` be a partial diffeomorphism from `ℂᵏ × ℂᵐ`
+to a complex manifold `M`, defined on the model disc `ι₀ (closedBall 0 1)`, whose differential
+commutes with multiplication by `i` at the points of the boundary sphere. Then `Φ ∘ ι₀` is
+attached J-orthogonally to the domain `{φ₀ ∘ Φ.symm ≤ 0}` of the model level read through `Φ`. -/
+theorem isJOrthogonallyAttached_modelLevel_comp_symm {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℂ E] {M : Type*} [TopologicalSpace M] [ChartedSpace E M] {n : WithTop ℕ∞}
+    (hn : n ≠ 0) (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M n)
+    (hsrc : modelDisc k m '' Metric.closedBall 0 1 ⊆ Φ.source)
+    (hI : ∀ x : EuclideanSpace ℝ (Fin k), ‖x‖ = 1 →
+      ∀ v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m),
+        mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ
+          (modelDisc k m x) (Complex.I • v) =
+        Complex.I • (show E from mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+          𝓘(ℝ, E) Φ (modelDisc k m x) v)) :
+    IsJOrthogonallyAttached E (modelLevel k m ∘ Φ.symm) (Φ ∘ modelDisc k m) :=
+  isJOrthogonallyAttached_model.map_partialDiffeomorph hn Φ hsrc hI
 
 end Model
 

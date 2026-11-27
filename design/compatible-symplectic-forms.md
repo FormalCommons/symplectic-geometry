@@ -413,7 +413,7 @@ For a symplectic atlas `A` for $(F,\sigma)$:
   `a := λ⁻¹ • A.realFirstChernClass_vertical G hA hH hσ` satisfies
   `map (j e b) _ 2 a = [σ]` for every chart and base point; and
   `exists_isSymplectic_compatible_of_realFirstChernClass_eq`: if moreover
-  `M` is compact and `B` compact, connected and symplectic, a compatible
+  `M` is compact and `B` connected and symplectic, a compatible
   symplectic form exists (`exists_isSymplectic_restricts_mk_eq`). The first
   carries the milestone line *Chern class criterion for compatible
   symplectic forms*; the second's docstring says that it is the
