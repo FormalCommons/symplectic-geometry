@@ -55,7 +55,7 @@ of the derivative of the section read in a trivialization and a chart; its form
 neighbourhood in which `z` is the only zero itself. We take the trivialization
 of the tangent bundle at `z` and the chart at `z` followed by the model embedding, in which `X`
 reads as its coordinate field
-(`VectorField.trivializationAt_snd_eventuallyEq_mpullbackWithin_extChartAt_symm`), so that the
+(`TauCeti.snd_writtenInExtChartAt_eventuallyEq_mpullback_extChartAt_symm`), so that the
 derivative is the chart derivative. The chart hypothesis of that theorem is
 `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`, from
 `SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`. The overall
@@ -121,14 +121,14 @@ theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative'
   -- The section read in `e` and `φ` is the coordinate field near `φ z`.
   set f : E → E := fun y ↦ (e (TotalSpace.mk' E (φ.symm y) (X (φ.symm y)))).2 with hf
   have hfeq : f =ᶠ[𝓝 (φ z)] VectorField.mpullback 𝓘(ℝ, E) I (extChartAt I z).symm X := by
-    have h := VectorField.trivializationAt_snd_eventuallyEq_mpullbackWithin_extChartAt_symm X z
-    rw [I.range_eq_univ, nhdsWithin_univ, VectorField.mpullbackWithin_univ] at h
     rw [hφz]
-    filter_upwards [h] with y hy
-    have hφs : φ.symm y = (extChartAt I z).symm y := by simp [φ, extChartAt]
-    simp only [hf]
-    rw [hφs]
-    exact hy
+    refine EventuallyEq.trans (Eventually.of_forall fun y ↦ ?_)
+      (snd_writtenInExtChartAt_eventuallyEq_mpullback_extChartAt_symm X z)
+    simp only [hf, writtenInExtChartAt, extChartAt_coe, Function.comp_apply,
+      modelWithCorners_prod_coe, Prod.map_snd, modelWithCornersSelf_coe, id_eq]
+    -- `φ.symm` is `(extChartAt I z).symm` by definition, and the fibre coordinate of the
+    -- tangent-bundle chart at `(z, X z)` is that of the trivialization `e` at `z`.
+    rfl
   have hA : HasFDerivAt f A (φ z) := by
     have hU := (mdifferentiableAt_of_det_vectorFieldChartDerivative_ne_zero hdet
       ).hasFDerivAt_mpullback_extChartAt_symm
