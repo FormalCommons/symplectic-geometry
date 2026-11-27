@@ -13,18 +13,20 @@ public import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
 
 On a compact manifold every continuous top form is compactly supported, hence integrable, so
 Tau Ceti's oriented integral `TauCeti.integralTopForm` turns differences of such forms into
-differences of integrals (`TauCeti.integralTopForm_sub_of_compactSpace`).
+differences of integrals (`TauCeti.integralTopForm_sub_of_compactSpace`). Its proof follows Tau
+Ceti's `TauCeti.integralTopForm_add` and `TauCeti.integralTopForm_add_of_compactSpace`, with Tau
+Ceti's `TauCeti.integralTopForm_sub_of_integrable` in place of
+`TauCeti.integralTopForm_add_of_integrable`.
 
-If the manifold is moreover boundaryless, Hausdorff and preconnected, two smooth top forms differ
-by an exact form exactly when they have the same integral
+If the manifold is moreover boundaryless, Hausdorff and preconnected, the difference of two smooth
+top forms is exact exactly when their integrals agree
 (`TauCeti.sub_mem_exactForms_iff_integralTopForm_eq`). This combines Tau Ceti's top-degree
 Poincaré lemma `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero` with
 `TauCeti.exactCompactlySupportedForms_eq_exactForms`.
 
-The proof follows Tau Ceti's `TauCeti.integralTopForm_add` and
-`TauCeti.integralTopForm_add_of_compactSpace`, with Tau Ceti's
-`TauCeti.integralTopForm_sub_of_integrable` in place of
-`TauCeti.integralTopForm_add_of_integrable`.
+## References
+
+* [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §5.
 -/
 
 public section
@@ -55,8 +57,8 @@ theorem integralTopForm_sub_of_compactSpace [CompactSpace M]
 end
 
 /-- On a compact, preconnected, boundaryless, Hausdorff manifold of dimension `k` with an
-orientation `o`, two smooth top forms differ by an exact form if and only if they have the same
-integral. -/
+orientation `o`, the difference `σ - τ` of two smooth top forms is exact exactly when `σ` and `τ`
+have equal integrals over `M`. -/
 theorem sub_mem_exactForms_iff_integralTopForm_eq [IsManifold I ∞ M] [BoundarylessManifold I M]
     [T2Space M] [CompactSpace M] [PreconnectedSpace M]
     (o : Manifold.Orientation I M (Fin k)) {σ τ : SmoothForm I M ℝ k} :
