@@ -548,8 +548,8 @@ private theorem isLocalDiffeomorph_toAnnuli :
   have hmk : IsLocalDiffeomorphAt (𝓡 2) (𝓡 2) ∞
       ((Subtype.val ∘ toAnnuli hγ hinj) ∘ incl) ⟨q.val, hi⟩ := by
     rw [Function.comp_assoc, h]
-    exact ((annulusDiffeomorph hγ hinj i).isLocalDiffeomorph _).comp
-      (hg := (isLocalDiffeomorph_subtype_val _).comp (hg := isLocalDiffeomorph_sigmaMk i _))
+    exact ((annulusDiffeomorph hγ hinj i).isLocalDiffeomorph_subtypeVal_comp _).comp
+      (hg := isLocalDiffeomorph_sigmaMk i _)
   exact isLocalDiffeomorphAt_subtypeVal_comp_iff.1
     (hmk.of_comp_right (isLocalDiffeomorph_inclusion _ _))
 
@@ -708,9 +708,8 @@ theorem disjoint_range_inr {i j : ι} (hij : i ≠ j) :
 theorem inr_mem_range_inl_iff {i : ι} {z : ball} :
     inr c γ hγ hinj i z ∈ range (inl c γ hγ hinj) ↔ 1 < ‖(z : ℂ)‖ := by
   refine ⟨fun ⟨p, hp⟩ ↦ ?_, fun hz ↦ ⟨_, (inr_eq_inl c γ hγ hinj hz).symm⟩⟩
-  obtain ⟨hx, he⟩ := (GluedAlong.inl_eq_inr_diffeomorph_iff _).1 hp
-  have h : (⟨i, remodelDiffeomorph complexDiffeomorph ball z⟩ : DiscsPiece ι) ∈ annuli ι :=
-    he ▸ (annuliDiffeomorph hγ hinj ⟨_, hx⟩).property
+  rw [inl, inr] at hp
+  have h := (GluedAlong.inr_mem_range_inl_iff _).1 ⟨_, hp⟩
   rwa [mem_annuli, mem_annulus, DiscPiece.val_remodelDiffeomorph] at h
 
 /-! ### The Hausdorff property -/

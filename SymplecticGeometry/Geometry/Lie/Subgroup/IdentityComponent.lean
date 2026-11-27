@@ -14,8 +14,8 @@ import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 # The identity component of a subgroup of a Lie group
 
 Let `S` be a subgroup of a finite-dimensional real Lie group `G`, and let
-`K = (Subgroup.connectedComponentOfOne S).map S.subtype` be its identity component, viewed as a
-subgroup of `G`.
+`K = S.ambientConnectedComponentOfOne` be its identity component, viewed as a subgroup of `G`
+(Tau Ceti's `Subgroup.ambientConnectedComponentOfOne`).
 
 * `K` and `S` have the same Lie algebra `TauCeti.Lie.lieSubalgebraOfSubgroup`: a one-parameter
   subgroup lying in `S` is a connected curve through `1`, so it lies in `K`. For `S = ⊤` this is
@@ -39,10 +39,10 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
 
 ## Main results
 
-* `TauCeti.Lie.lieSubalgebraOfSubgroup_map_connectedComponentOfOne`: `Lie(S⁰) = Lie(S)`.
-* `TauCeti.Lie.isTorus_map_connectedComponentOfOne`: the identity component of a compact
+* `TauCeti.Lie.lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne`: `Lie(S⁰) = Lie(S)`.
+* `TauCeti.Lie.isTorus_ambientConnectedComponentOfOne`: the identity component of a compact
   commutative subgroup is a torus.
-* `TauCeti.Lie.lieSubalgebraOfSubgroup_map_connectedComponentOfOne_stabilizer`: `Lie(G_x⁰)` is
+* `TauCeti.Lie.lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne_stabilizer`: `Lie(G_x⁰)` is
   the isotropy algebra.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.injective_groupLieAlgebraMap_subtype` and
   `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype`: the differential of the
@@ -77,10 +77,13 @@ section Topological
 variable {G : Type*} [TopologicalSpace G] [Group G] [IsTopologicalGroup G]
 
 /-- **The identity component of a compact commutative subgroup is a torus.** -/
-theorem isTorus_map_connectedComponentOfOne {S : Subgroup G} (hS : IsCompact (S : Set G))
+theorem isTorus_ambientConnectedComponentOfOne {S : Subgroup G} (hS : IsCompact (S : Set G))
     [IsMulCommutative S] :
-    IsTorus ((Subgroup.connectedComponentOfOne S).map S.subtype) := by
+    IsTorus S.ambientConnectedComponentOfOne := by
   have : CompactSpace S := isCompact_iff_compactSpace.mp hS
+  rw [show S.ambientConnectedComponentOfOne = (Subgroup.connectedComponentOfOne S).map S.subtype
+    from Subgroup.ext fun _ ↦ Subgroup.mem_ambientConnectedComponentOfOne.trans
+      (Subgroup.mem_map (f := S.subtype)).symm]
   refine IsTorus.map ⟨?_, ?_, inferInstance⟩ S.subtype continuous_subtypeVal <;>
     rw [Subgroup.coe_connectedComponentOfOne]
   · exact isClosed_connectedComponent.isCompact
@@ -103,10 +106,10 @@ variable [IsTopologicalGroup G]
 /-- **A subgroup and its identity component have the same Lie algebra**: a one-parameter subgroup
 lying in `S` is a connected curve through `1` in `S`. No closedness of `S` is needed. -/
 @[simp]
-theorem lieSubalgebraOfSubgroup_map_connectedComponentOfOne (S : Subgroup G) :
-    lieSubalgebraOfSubgroup (I := I) ((Subgroup.connectedComponentOfOne S).map S.subtype) =
+theorem lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne (S : Subgroup G) :
+    lieSubalgebraOfSubgroup (I := I) S.ambientConnectedComponentOfOne =
       lieSubalgebraOfSubgroup (I := I) S := by
-  refine le_antisymm (lieSubalgebraOfSubgroup_mono (Subgroup.map_subtype_le _))
+  refine le_antisymm (lieSubalgebraOfSubgroup_mono S.ambientConnectedComponentOfOne_le)
     (lieSubalgebraOfSubgroup_le_iff.mpr fun X hX ↦ mem_lieSubalgebraOfSubgroup_of_forall fun t ↦ ?_)
   -- The one-parameter subgroup of `X`, as a curve in `S`.
   let γ : ℝ → S := fun s ↦ ⟨lieExp (I := I) (s • X), hX s⟩
@@ -114,8 +117,8 @@ theorem lieSubalgebraOfSubgroup_map_connectedComponentOfOne (S : Subgroup G) :
     refine Continuous.subtype_mk ?_ _
     simpa only [oneParameterSubgroup_apply] using
       (contMDiff_oneParameterSubgroup (I := I) X).continuous
-  refine ⟨γ t, ?_, rfl⟩
-  rw [Subgroup.coe_connectedComponentOfOne]
+  refine Subgroup.mem_ambientConnectedComponentOfOne.2 ⟨γ t, ?_, rfl⟩
+  rw [← SetLike.mem_coe, Subgroup.coe_connectedComponentOfOne]
   refine (isPreconnected_range hγ).subset_connectedComponent ⟨0, ?_⟩ ⟨t, rfl⟩
   ext
   simp [γ]
@@ -133,13 +136,12 @@ variable [IsTopologicalGroup G]
 /-- **The Lie algebra of the identity component of a stabilizer is the isotropy algebra.** Under
 the identification of left-invariant derivations with `𝔤` by evaluation at the identity, the Lie
 algebra of the identity component of `G_x` is `𝔤_x = {ξ | ξ_M(x) = 0}`. -/
-theorem lieSubalgebraOfSubgroup_map_connectedComponentOfOne_stabilizer
+theorem lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne_stabilizer
     (h₁ : I.IsInteriorPoint 1) (x : M) :
-    lieSubalgebraOfSubgroup (I := I) ((Subgroup.connectedComponentOfOne
-        (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) =
+    lieSubalgebraOfSubgroup (I := I) (MulAction.stabilizer G x).ambientConnectedComponentOfOne =
       ((InfinitesimalAction.fundamental I G I' M).isotropy x).comap
         (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLieHom := by
-  rw [lieSubalgebraOfSubgroup_map_connectedComponentOfOne,
+  rw [lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne,
     lieSubalgebraOfSubgroup_stabilizer (I' := I') h₁ x]
 
 end Stabilizer
@@ -249,15 +251,15 @@ theorem range_groupLieAlgebraMap_subtype_eq_isotropy {x : M} (d : EmbeddedLieSub
 algebra.** For any embedded Lie subgroup structure on the identity component `K` of `G_x`, the
 differential at `1` of the inclusion `K → G` has range `𝔤_x = {ξ | ξ_M(x) = 0}`. -/
 theorem range_groupLieAlgebraMap_subtype_stabilizer {x : M}
-    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
-      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    (d : EmbeddedLieSubgroupData I
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne F) :
     let _ := d.chartedSpace
-    LinearMap.range ((Subgroup.map (MulAction.stabilizer G x).subtype
-        (Subgroup.connectedComponentOfOne (MulAction.stabilizer G x))).subtype.groupLieAlgebraMap
+    LinearMap.range
+        ((MulAction.stabilizer G x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
           𝓘(ℝ, F) I).toLinearMap =
       ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule :=
   d.range_groupLieAlgebraMap_subtype_eq_isotropy (I' := I')
-    (lieSubalgebraOfSubgroup_map_connectedComponentOfOne _)
+    (lieSubalgebraOfSubgroup_ambientConnectedComponentOfOne _)
 
 omit [IsTopologicalGroup G] in
 /-- **The tangent space at `1` of a stabilizer is the isotropy algebra.** For any embedded Lie
@@ -287,19 +289,18 @@ algebra.** For an embedded Lie subgroup structure on the identity component `K` 
 differential at `1` of the inclusion `K → G`, with its codomain cut down to its range
 `𝔤_x = {ξ | ξ_M(x) = 0}`, as a linear equivalence from `T₁K` onto `𝔤_x`. -/
 def groupLieAlgebraEquivIsotropy {x : M}
-    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
-      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    (d : EmbeddedLieSubgroupData I
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne F) :
     let _ := d.chartedSpace
-    GroupLieAlgebra 𝓘(ℝ, F) ((Subgroup.connectedComponentOfOne
-      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) ≃ₗ[ℝ]
+    GroupLieAlgebra 𝓘(ℝ, F) (MulAction.stabilizer G x).ambientConnectedComponentOfOne ≃ₗ[ℝ]
       ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule :=
   let _ := d.chartedSpace
   (LinearEquiv.ofInjective _ d.injective_groupLieAlgebraMap_subtype).trans
     (LinearEquiv.ofEq _ _ (d.range_groupLieAlgebraMap_subtype_stabilizer (I' := I')))
 
 theorem groupLieAlgebraEquivIsotropy_def {x : M}
-    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
-      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    (d : EmbeddedLieSubgroupData I
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne F) :
     let _ := d.chartedSpace
     d.groupLieAlgebraEquivIsotropy (I' := I') =
       (LinearEquiv.ofInjective _ d.injective_groupLieAlgebraMap_subtype).trans
@@ -310,24 +311,24 @@ theorem groupLieAlgebraEquivIsotropy_def {x : M}
 of the inclusion `K → G`. -/
 @[simp]
 theorem coe_groupLieAlgebraEquivIsotropy {x : M}
-    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
-      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    (d : EmbeddedLieSubgroupData I
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne F) :
     let _ := d.chartedSpace
     ∀ η, (d.groupLieAlgebraEquivIsotropy (I' := I') η : GroupLieAlgebra I G) =
-      ((Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
-        (MulAction.stabilizer G x).subtype).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I η :=
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+        𝓘(ℝ, F) I η :=
   fun _ ↦ rfl
 
 /-- The differential at `1` of the inclusion `K → G` sends the inverse of
 `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy` at `ξ ∈ 𝔤_x` back to `ξ`. -/
 @[simp]
 theorem groupLieAlgebraMap_subtype_groupLieAlgebraEquivIsotropy_symm {x : M}
-    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
-      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    (d : EmbeddedLieSubgroupData I
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne F) :
     let _ := d.chartedSpace
-    ∀ ξ, ((Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
-        (MulAction.stabilizer G x).subtype).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I
-          ((d.groupLieAlgebraEquivIsotropy (I' := I')).symm ξ) = (ξ : GroupLieAlgebra I G) := by
+    ∀ ξ, (MulAction.stabilizer G x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+        𝓘(ℝ, F) I ((d.groupLieAlgebraEquivIsotropy (I' := I')).symm ξ) =
+          (ξ : GroupLieAlgebra I G) := by
   let _ := d.chartedSpace
   dsimp only
   intro ξ

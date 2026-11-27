@@ -295,10 +295,9 @@ The general steps of the proof are public lemmas in files of their own
 topics: `CFC.contDiff_const_rpow`
 (`Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean`),
 `selfAdjoint.contDiff_expUnitary_smul` (`Analysis/CStarAlgebra/Exponential.lean`),
-both files of this part, and `Matrix.realifyCLM` and `SymplecticGroup.inv_mem`, which
-`Connected.lean` imports from `Topology/Algebra/Matrix/Realify.lean` of
-*Lagrangian Grassmannian* and `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
-*Symplectic group*. Both of those files are merged.
+both files of this part, `Matrix.realifyCLM`, which `Connected.lean` imports from
+`Topology/Algebra/Matrix/Realify.lean` of *Lagrangian Grassmannian*, a merged file,
+and Tau Ceti's `SymplecticGroup.nonsing_inv_mem`.
 
 ### `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`
 

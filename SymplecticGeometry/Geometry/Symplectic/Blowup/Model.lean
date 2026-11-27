@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
@@ -22,8 +23,8 @@ import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Topology.Order.Sublevel
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The forms `ω̃_λ` on the model blowup
@@ -63,6 +64,9 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   and `TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_nonneg`); one of them is positive for `v ≠ 0`,
   since the inclusion `(pr, π)` into `ℙ ℂ E × E` is an immersion
   (`mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff`).
+* `SymplecticGeometry.hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm`: a smooth
+  map from `ℙ ℂ E` pulling a nondegenerate form back to `l² ω_FS`, for `l ≠ 0`, has symplectic
+  tangent images, by `TauCeti.SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff`.
 * `SymplecticGeometry.BlowupModel.mpullback_zeroSection_blowupForm`: on the exceptional divisor
   it restricts to `l² ω_FS`, since `π` is constant there; hence
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
@@ -104,6 +108,18 @@ open Set Projectivization TauCeti
 open scoped Topology Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
+
+/-- A smooth map `g` from `ℙ ℂ (Fin (n + 1) → ℂ)` pulling a nondegenerate two-form `σ` back to
+`l² ω_FS`, for `l ≠ 0`, has symplectic tangent images for `σ`. -/
+theorem hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm {n : ℕ}
+    {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+    {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) {g : ℙ ℂ (Fin (n + 1) → ℂ) → M}
+    (hg : ContMDiff 𝓘(ℝ, Fin n → ℂ) I ∞ g) {l : ℝ} (hl : l ≠ 0)
+    (h : SmoothForm.mpullback g hg σ = l ^ 2 • fubiniStudyForm n) :
+    hσ.HasSymplecticTangentImages 𝓘(ℝ, Fin n → ℂ) g :=
+  ((SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff hg).1
+    (h ▸ (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ (pow_ne_zero 2 hl))).1
 
 namespace BlowupModel
 
@@ -389,10 +405,7 @@ theorem mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply
   have hz : Opens.inclusion hle z = ⟨z, mem_puncturedSpace.1 z.property⟩ :=
     Subtype.ext (Set.coe_inclusion hle z)
   exact (congrArg (fun f ↦ mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) f z v) hcomp).trans
-    ((mfderiv_comp_apply_of_eq _ (((contMDiff_subtypeVal.comp
-      (blowdownDiffeomorph n).symm.contMDiff).restrictScalars' ℝ).mdifferentiableAt (by simp))
-      ((contMDiff_inclusion hle).mdifferentiableAt (by simp) (n := ω)) hz v).trans
-      (congrArg _ (Manifold.mfderiv_inclusion_apply hle z v)))
+    ((Manifold.mfderiv_comp_inclusion_apply hle z v).trans (by rw [hz]))
 
 open SmoothAlmostComplexStructure in
 /-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/

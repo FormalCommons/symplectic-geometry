@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Gluing two spaces along open subsets
@@ -69,7 +70,8 @@ are. The form of the completion of a Liouville domain, in the library's
 
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
   `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`,
-  `isClosed_image_inl`: the topology of the glued space.
+  `inl_mem_range_inr_iff`, `inr_mem_range_inl_iff`, `isClosed_image_inl`: the topology of the
+  glued space.
 * `SymplecticGeometry.GluedAlong.isCompatible_glueData_of_contMDiff`: the gluing along a
   homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
@@ -254,6 +256,18 @@ space. -/
 @[simp]
 theorem inl_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂) := by
   rw [← inr_apply, Homeomorph.apply_symm_apply]
+
+/-- The image of a point `x` of `M₁` lies in the image of `M₂` exactly when `x ∈ U₁`. -/
+@[grind =]
+theorem inl_mem_range_inr_iff {x : M₁} : inl φ x ∈ range (inr φ) ↔ x ∈ U₁ :=
+  ⟨fun ⟨_, hy⟩ ↦ ((inr_eq_inl_iff φ).1 hy).1, fun hx ↦ ⟨_, inr_apply φ ⟨x, hx⟩⟩⟩
+
+/-- The image of a point `y` of `M₂` lies in the image of `M₁` exactly when `y ∈ U₂`. -/
+@[grind =]
+theorem inr_mem_range_inl_iff {y : M₂} : inr φ y ∈ range (inl φ) ↔ y ∈ U₂ := by
+  refine ⟨fun ⟨x, hx⟩ ↦ ?_, fun hy ↦ ⟨_, inl_symm_apply φ ⟨y, hy⟩⟩⟩
+  obtain ⟨h, rfl⟩ := (inl_eq_inr_iff φ).1 hx
+  exact (φ ⟨x, h⟩).property
 
 section Desc
 
@@ -578,14 +592,14 @@ variable {σ₁ : SmoothForm I M₁ F k} {σ₂ : SmoothForm I M₂ F k}
 theorem mpullback_inl_gluedForm :
     SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff
       (gluedForm φ σ₁ σ₂ hσ) = σ₁ :=
-  Subtype.ext <| (SmoothForm.coe_mpullback _ _ _).trans (mpullback_inl_glue _ _)
+  (SmoothForm.mpullback_eq_iff _).2 (mpullback_inl_glue _ _)
 
 /-- The glued form pulls back by `inr` to the form on `M₂`. -/
 @[simp]
 theorem mpullback_inr_gluedForm :
     SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff
       (gluedForm φ σ₁ σ₂ hσ) = σ₂ :=
-  Subtype.ext <| (SmoothForm.coe_mpullback _ _ _).trans <| mpullback_inr_glue <| by
+  (SmoothForm.mpullback_eq_iff _).2 <| mpullback_inr_glue <| by
     simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val hσ
 
 /-- The glued form is the only form on `GluedAlong φ.toHomeomorph` whose pull-backs by `inl` and

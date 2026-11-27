@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Orientation.Sign
 import TauCeti.Geometry.Manifold.Orientation.Pullback
+import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
 # More on the orientation sign
@@ -110,7 +111,7 @@ theorem orientationSign_of_apply_eq (o : Manifold.Orientation I M ι) {f : M →
   · rw [hd, sign_zero, SignType.coe_zero, orientationSign_eq_zero_iff]
     rintro ⟨e, he⟩
     rw [← he] at hd
-    exact (LinearEquiv.isUnit_det' (e.toLinearEquiv : E ≃ₗ[ℝ] E)).ne_zero hd
+    exact (e : E ≃L[ℝ] E).det_coe_ne_zero hd
   let e : TangentSpace I x ≃L[ℝ] TangentSpace I (f x) :=
     (mfderiv I I f x : E →L[ℝ] E).toContinuousLinearEquivOfDetNeZero hd
   have he : (e : TangentSpace I x →L[ℝ] TangentSpace I (f x)) = mfderiv I I f x :=

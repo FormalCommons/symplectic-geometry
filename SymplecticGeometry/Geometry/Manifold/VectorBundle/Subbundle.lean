@@ -55,11 +55,7 @@ theorem reindex (hV : HasLocalContMDiffSubbundleFrames IB n F ι V) (e : ι ≃ 
     HasLocalContMDiffSubbundleFrames IB n F ι' V :=
     hasLocalContMDiffSubbundleFrames_iff.mpr fun x ↦ by
   obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hV x
-  refine ⟨U, hU, hx, fun i ↦ X (e.symm i), ⟨fun i ↦ hX.continuousOn _, fun {y} hy ↦ ?_,
-    fun {y} hy ↦ ?_⟩, fun i ↦ hXs _⟩
-  · exact (linearIndependent_equiv' e.symm rfl).mpr (hX.linearIndependent hy)
-  · rw [← hX.span_eq hy, ← e.symm.surjective.range_comp]
-    rfl
+  exact ⟨U, hU, hx, X ∘ e.symm, hX.comp_equiv e.symm, fun i ↦ hXs _⟩
 
 /-- **The sum of two smooth subbundles meeting in `0`.** If the families of subspaces `V` and
 `W` of the fibres of `E` have `C^n` local frames indexed by `ι` and `ι'`, and `V x` and `W x`
