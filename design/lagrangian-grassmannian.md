@@ -518,12 +518,10 @@ as algebra. It uses the matrix dictionary of *Standard model*
 (`LinearAlgebra/Symplectic/Standard/Matrix.lean`, #62):
 `mem_symplecticGroup_iff_forall_stdForm`, which reads membership of a
 matrix in `Matrix.symplecticGroup` as invariance of `stdForm` under
-`toEuclideanLin`, and `TauCeti.conj_complexToRealEuclidean_toLin'`
-(`Analysis/Complex/Euclidean/Matrix.lean`), which
-turns a complex matrix acting on `ι → ℂ` into its realification acting on
-`StdSpace ι`. With Tau Ceti's `TauCeti.GLSymplectic.coe_ofUnitary` (the matrix of
-`TauCeti.GLSymplectic.ofUnitary U` is `(U : Matrix ι ι ℂ).realify`), the second relates the
-unitary action to Tau Ceti's `Matrix.realImage`.
+`toEuclideanLin`. Tau Ceti's `TauCeti.GLSymplectic.coe_ofUnitary` (the matrix of
+`TauCeti.GLSymplectic.ofUnitary U` is `(U : Matrix ι ι ℂ).realify`) makes `U` act on
+`StdSpace ι` by `toEuclideanLin` of its realification, and `StdSpace.map_realImage`
+(`Frame.lean`) relates that action to Tau Ceti's `Matrix.realImage`.
 
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
@@ -561,9 +559,10 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   - `unitaryFrame_def`;
   - `coe_unitaryFrame`: the range of
     `toEuclideanLin (fromRows (U.map re) (U.map im))`, which is the image
-    of `Matrix.realImage U` under `TauCeti.complexToRealEuclideanIsometry ι`. Both come from
-    `TauCeti.GLSymplectic.coe_ofUnitary` and `TauCeti.conj_complexToRealEuclidean_toLin'`: the columns
-    of `realify U` indexed by `inl` are `fromRows (U.map re) (U.map im)`;
+    of `Matrix.realImage U` under `TauCeti.complexToRealEuclideanIsometry ι`. The image
+    (`coe_unitaryFrame_eq_map`) comes from `StdSpace.map_realImage`, the range from it,
+    `Matrix.range_toEuclideanLin_fromRows` and `Matrix.map_re_add_I_smul_map_im`
+    (`LinearAlgebra/Matrix/OfReal.lean`), with `U = Re U + i Im U`;
   - `unitaryFrame_one` and `unitaryFrame_mul` (both `@[simp]`):
     `unitaryFrame (U * U') = U • unitaryFrame U'`.
 - `ℒ.unitaryOfFrame h : unitaryGroup ι ℂ`, for
@@ -716,9 +715,9 @@ finite dimension.
 The topology of `ℒ ι` in terms of unitary frames.
 
 - `ℒ.continuous_unitaryFrame`: the projection is $R P_0 R^T$ with
-  `R = Matrix.realify U`, by `TauCeti.GLSymplectic.coe_ofUnitary` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'`
-  (`Analysis/Complex/Euclidean/Matrix.lean`), with Tau Ceti's
+  `R = Matrix.realify U`, by `coe_unitary_smul`
+  (`Action.lean`, through `TauCeti.GLSymplectic.coe_ofUnitary`), with `toEuclideanCLM R`
+  unitary by Tau Ceti's `Matrix.realify_mem_orthogonalGroup_iff`, and Tau Ceti's
   `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the projection
   onto the image of a subspace under a unitary operator.
 - `instance : CompactSpace (ℒ ι)`, as the image of a compact space.
@@ -996,8 +995,6 @@ The manifold structure and the milestone.
   `isSymplectomorphism_sumEquivProd`, `x_complexToRealEuclidean`,
   `y_complexToRealEuclidean` (merged, #41); the matrix dictionary
   `mem_symplecticGroup_iff_forall_stdForm` (merged, #62);
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62; now in
-  `Analysis/Complex/Euclidean/Matrix.lean`);
   `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
   lemmas (merged, #232).
 - *Symplectic subspaces* (merged, #64):
