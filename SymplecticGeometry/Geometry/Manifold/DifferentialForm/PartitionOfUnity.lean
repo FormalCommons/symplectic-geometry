@@ -89,18 +89,18 @@ theorem isSmoothForm_sum_finsupport_smul [IsManifold IX 1 X] {n : WithTop ℕ∞
   exact (ρ.locallyFinite.preimage_continuous hb).subset fun i x hx ↦ left_ne_zero_of_smul hx
 
 /-- **The exterior derivative of a sum of forms weighted by a partition of unity.** Let `ρ` be a
-smooth partition of unity on `s ⊆ B`, read on `X` through a continuous map `b : X → B`, and
-`θ i` forms on `X`. At `x : X`, if `(ρ i ∘ b) • θ i` is `C^1` for each index `i` with `b x` in
+smooth partition of unity on `s ⊆ B`, read on `X` through a map `b : X → B` continuous at
+`x : X`, and `θ i` forms on `X`. If `(ρ i ∘ b) • θ i` is `C^1` for each index `i` with `b x` in
 the topological support of `ρ i`, then the exterior derivative of
 `y ↦ ∑ i ∈ ρ.finsupport (b y), ρ i (b y) • θ i y` at `x` is the sum of those of the
 `(ρ i ∘ b) • θ i` over these indices. -/
-theorem mextDeriv_sum_finsupport_smul [IsManifold IX 1 X] (hb : Continuous b) {x : X}
+theorem mextDeriv_sum_finsupport_smul [IsManifold IX 1 X] {x : X} (hb : ContinuousAt b x)
     (hθ : ∀ i ∈ ρ.fintsupport (b x), IsSmoothForm IX 1 (fun y ↦ ρ i (b y) • θ i y)) :
     mextDeriv (fun y ↦ ∑ i ∈ ρ.finsupport (b y), ρ i (b y) • θ i y) x =
       ∑ i ∈ ρ.fintsupport (b x), mextDeriv (fun y ↦ ρ i (b y) • θ i y) x := by
   have hgerm : ∀ᶠ y in 𝓝 x, ∑ i ∈ ρ.finsupport (b y), ρ i (b y) • θ i y =
       (∑ i ∈ ρ.fintsupport (b x), fun y ↦ ρ i (b y) • θ i y) y := by
-    filter_upwards [hb.continuousAt.eventually (ρ.eventually_finsupport_subset (b x))] with y hy
+    filter_upwards [hb.eventually (ρ.eventually_finsupport_subset (b x))] with y hy
     rw [Finset.sum_apply]
     refine Finset.sum_subset hy fun i _ hi ↦ ?_
     simp [show ρ i (b y) = 0 by simpa [ρ.mem_finsupport] using hi]
@@ -161,7 +161,7 @@ theorem mextDeriv_glueForms_apply_of_mem_ker [IsManifold IX 1 X]
       ∑ i ∈ (ρ.fintsupport (proj x)).attach, ρ i (proj x) *
         mextDeriv (η i) ⟨x, hW i ((ρ.mem_fintsupport_iff (proj x) i).mp i.property)⟩ v := by
   rw [show ρ.glueForms proj W η = _ from funext (glueForms_apply ρ proj W η),
-    mextDeriv_sum_finsupport_smul hproj.continuous fun i _ ↦
+    mextDeriv_sum_finsupport_smul hproj.continuous.continuousAt fun i _ ↦
       isSmoothForm_smul_extendByZeroOfOpens hproj hW hη i,
     ContinuousAlternatingMap.sum_apply, ← Finset.sum_attach]
   refine Finset.sum_congr rfl fun i _ ↦ ?_

@@ -369,11 +369,10 @@ theorem mextDeriv_fun_smul_comp_apply_of_mem_ker [IsManifold I 1 M] {g : B → �
   have hleib : mextDeriv (fun y ↦ g (f y) • μ y) x v = _ :=
     mextDeriv_fun_smul (f := g ∘ f) (hg.comp x hf) hμ v
   -- `d(g ∘ f)` is semibasic for `f`, so the term `d(g ∘ f) ∧ μ` vanishes on `v`.
-  have hdf := isSemibasicAt_mextDeriv_ofFunction_comp hg hf
-  rw [hleib, wedge_apply, Finset.sum_eq_zero fun σ _ ↦ by
-      rw [hdf.apply_eq_zero (fun j ↦ (v ∘ Fin.cast _) (σ (Fin.castAdd k j))) 0 (hv _), zero_mul,
-        smul_zero],
-    smul_zero, zero_add, Function.comp_apply]
+  rw [hleib, wedge_def, wedgeWith_apply',
+    ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_forall _ _ _ _ (v ∘ Fin.cast (by omega))
+      fun j ↦ (isSemibasicAt_mextDeriv_ofFunction_comp hg hf).apply_eq_zero _ 0 (hv _),
+    zero_add, Function.comp_apply]
 
 end ExtDeriv
 

@@ -76,7 +76,7 @@ theorem mextDeriv_sum_finsupport_smul_mpullback_apply [IsManifold IX 2 X] [IsMan
       ∑ i ∈ ρ.fintsupport (b x),
         (mextDeriv (RoughForm.ofFunction IX (ρ i ∘ b))).wedge (mpullback IX IZ (g i) φ) x
           (v ∘ Fin.cast (show 0 + 1 + k = k + 1 by omega)) := by
-  rw [SmoothPartitionOfUnity.mextDeriv_sum_finsupport_smul hb.continuous fun i _ ↦
+  rw [SmoothPartitionOfUnity.mextDeriv_sum_finsupport_smul hb.continuous.continuousAt fun i _ ↦
       (isSmoothForm_fun_smul_mpullback ((ρ i).contMDiff.comp hb) ((hU i).preimage hb.continuous)
         ((tsupport_comp_subset_preimage _ hb.continuous).trans (preimage_mono (hρ i)))
         (fun y hy ↦ hg i y hy) (by simp) hφs).of_le (by simp),
