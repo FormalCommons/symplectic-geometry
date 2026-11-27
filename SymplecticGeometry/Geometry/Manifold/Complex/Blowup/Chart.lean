@@ -258,6 +258,17 @@ theorem fderivTransEquiv_eq :
     (congrArg (fderivTransEquiv c φ) ((mfderivCenterEquiv c).apply_symm_apply w)).symm.trans
       (fderivTransEquiv_mfderiv c φ ((mfderivCenterEquiv c).symm w))
 
+/-- The inverse of the derivative at `0` of `φ ∘ c⁻¹` is the derivative at `0` of `c ∘ φ⁻¹`. -/
+theorem fderivTransEquiv_symm : (fderivTransEquiv c φ).symm = fderivTransEquiv φ c := by
+  ext v
+  simp [fderivTransEquiv_eq]
+
+/-- The derivative at `0` of `c ∘ c⁻¹` is the identity. -/
+@[simp]
+theorem fderivTransEquiv_self : fderivTransEquiv c c = ContinuousLinearEquiv.refl ℂ _ := by
+  ext v
+  simp [fderivTransEquiv_eq]
+
 end BlowupChart
 
 namespace Blowup

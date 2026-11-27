@@ -176,6 +176,10 @@ def puncturedOpens (_c : BlowupChart (n := n) M p₀) : Opens M :=
 @[simp]
 theorem mem_puncturedOpens {x : M} : x ∈ puncturedOpens c ↔ x ≠ p₀ := Iff.rfl
 
+/-- The first piece of the blowup is the same open set `M \ {p₀}` for every chart. -/
+theorem puncturedOpens_eq (c' : BlowupChart (n := n) M p₀) : puncturedOpens c = puncturedOpens c' :=
+  Opens.ext (Set.ext fun _ ↦ (mem_puncturedOpens c).trans (mem_puncturedOpens c').symm)
+
 /-- The second piece of the blowup: the open set of points of the model blowup whose blowdown
 lies in the target of `c`. -/
 def modelOpens : Opens (BlowupModel n) :=
