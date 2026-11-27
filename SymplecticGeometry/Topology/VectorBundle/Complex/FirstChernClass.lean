@@ -14,7 +14,6 @@ public import TauCeti.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Topology.ContinuousMap.Defs
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.CongrModel
-import SymplecticGeometry.Topology.VectorBundle.DetBundle.LineBundle
 
 /-!
 # The first Chern class and the first Chern number
@@ -40,7 +39,7 @@ number `SymplecticGeometry.Bundle.chernNumber` is the integer `⟨c₁(E), [M]�
   frame, `TauCeti.DetBundle.ofFrame`, is a nowhere vanishing section);
 * `firstChernClass_eq_zero_of_finrank_eq_zero`: so has a bundle of rank zero;
 * `firstChernClass_eq_complexEulerClass`: for a line bundle it is the Euler class of the bundle
-  (a line bundle is its own determinant line, `TauCeti.DetBundle.oneHomeomorph`);
+  (a line bundle is its own determinant line, `TauCeti.DetBundle.lineHomeomorph`);
 * `firstChernClass_conj`: the conjugate bundle has the opposite class
   (from `TauCeti.DetBundle.conjugateHomeomorph`);
 * `chernNumber o hn G E`: the first Chern number over a compact oriented surface, with
@@ -196,9 +195,8 @@ theorem firstChernClass_eq_complexEulerClass
     firstChernClass G E = complexEulerClass G E hG := by
   -- A line bundle is its own determinant line.
   rw [firstChernClass_eq_complexEulerClass_detBundle]
-  exact complexEulerClass_eq_of_fiberwise _ _ (φ := DetBundle.oneEquiv ℂ G E hG)
-    ((DetBundle.oneHomeomorph ℂ G E hG).continuous.congr fun p ↦
-      DetBundle.oneHomeomorph_apply hG p)
+  exact complexEulerClass_eq_of_fiberwise _ _ (φ := DetBundle.lineEquiv hG)
+    (DetBundle.continuous_lineEquiv hG)
 
 /-- **The first Chern class of the conjugate bundle** is the opposite of that of the bundle:
 `c₁(Ē) = -c₁(E)`. -/
