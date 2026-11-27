@@ -75,9 +75,7 @@ theorem IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zer
     (h0 : manifoldMorseIndex 𝓘(ℝ, E) f p = 0) :
     hW.flow.stableSet p = {p} := by
   set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p
-  have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
-      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
-    (hW.contMDiff_field p).mdifferentiableAt (by simp)
+  have hXp := hW.mdifferentiableAt_field p
   have hS : A.stableSubspace = ⊥ := Submodule.finrank_eq_zero.1 <|
     (hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl).trans h0
   have hfix (t : ℝ) : hW.flow t p = p :=
