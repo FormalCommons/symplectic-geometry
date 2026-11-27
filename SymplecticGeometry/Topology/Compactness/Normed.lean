@@ -16,7 +16,7 @@ import SymplecticGeometry.Topology.Compactness.Compact
 For jointly continuous maps `f g : Λ × X → E` into a seminormed group and a compact `T ⊆ X`,
 the parameters `l` with `‖f (l, x) - g (l, x)‖ < ε` for every `x ∈ T` form an open set
 (`IsCompact.isOpen_setOf_forall_norm_sub_lt`). This is the tube lemma
-`IsCompact.isOpen_setOf_forall_prodMk_mem`, applied to the open set of the points `(l, x)` at
+`IsCompact.isOpen_setOfPred_forall_prodMk_mem`, applied to the open set of the points `(l, x)` at
 which the strict inequality holds.
 
 ## Main results
@@ -34,7 +34,7 @@ variable {Λ X E : Type*} [TopologicalSpace Λ] [TopologicalSpace X] [Seminormed
 theorem IsCompact.isOpen_setOf_forall_norm_sub_lt {T : Set X} (hT : IsCompact T)
     {f g : Λ × X → E} (hf : Continuous f) (hg : Continuous g) (ε : ℝ) :
     IsOpen {l | ∀ x ∈ T, ‖f (l, x) - g (l, x)‖ < ε} :=
-  hT.isOpen_setOf_forall_prodMk_mem (W := {p | ‖f p - g p‖ < ε})
+  hT.isOpen_setOfPred_forall_prodMk_mem (W := {p | ‖f p - g p‖ < ε})
     (isOpen_lt (hf.sub hg).norm continuous_const)
 
 end

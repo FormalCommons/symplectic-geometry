@@ -135,7 +135,7 @@ theorem isOpen_setOfPred_forall_mem_nondegenerate [LocallyCompactSpace EB] [Fini
   have hS := (isOpen_setOfPred_nondegenerate (F := F) (V := V)).preimage
     (ContMDiffSection.continuous_totalSpace_eval (I := I) (n := n) e U hU hcover)
   simp_rw [bilinFormAt_def]
-  exact hK.isOpen_setOf_forall_prodMk_mem hS
+  exact hK.isOpen_setOfPred_forall_prodMk_mem hS
 
 end Nondegenerate
 

@@ -172,7 +172,7 @@ variable (R) in
 `b ∈ [0, 1]` form an open set. -/
 theorem isOpen_setOfPred_forall_Icc_mem_cayleyDomain :
     IsOpen {p : R × R | ∀ b ∈ Icc (0 : ℝ) 1, (b, p.1, p.2) ∈ cayleyDomain R} :=
-  isCompact_Icc.isOpen_setOf_forall_prodMk_mem <| (isOpen_cayleyDomain R).preimage
+  isCompact_Icc.isOpen_setOfPred_forall_prodMk_mem <| (isOpen_cayleyDomain R).preimage
     (by fun_prop : Continuous fun z : (R × R) × ℝ ↦ (z.2, z.1.1, z.1.2))
 
 end Normed
