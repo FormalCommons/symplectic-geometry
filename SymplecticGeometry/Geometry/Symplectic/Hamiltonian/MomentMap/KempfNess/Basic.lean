@@ -53,6 +53,8 @@ and the moment weights.
 
 * `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_lieMap`: the fundamental vector
   field of `C.lieMap ξ` for the action of `Gc` is that of `ξ` for the action of `G`.
+* `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_cplx_lieMap`: the fundamental
+  vector field of `C.cplx (C.lieMap ξ)` for the action of `Gc` is `J X_ξ`.
 * `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_eq_re_add_im`: the fundamental
   vector field of any `ζ` for the action of `Gc` is `X_{C.re ζ} + J X_{C.im ζ}`.
 * `SymplecticGeometry.IsComplexifiedAction.isMIntegralCurve_expI_smul`: the curve
@@ -291,6 +293,14 @@ theorem fundamentalVectorField_lieMap (h : IsComplexifiedAction C J) (ξ : Group
   exact C.toHom.toMonoidHom.fundamentalVectorField_groupLieAlgebraMap
     (C.toHom.contMDiff_toFun.mdifferentiableAt (by simp)) (fun u x ↦ (h.toHom_smul u x).symm) ξ
 
+/-- For a complexified action, the fundamental vector field of `C.cplx (C.lieMap ξ)` for the
+action of `Gc` is `J` applied to the fundamental vector field of `ξ` for the action of `G`:
+`X_{iξ} = J X_ξ`. -/
+theorem fundamentalVectorField_cplx_lieMap (h : IsComplexifiedAction C J)
+    (ξ : GroupLieAlgebra I G) (x : M) :
+    fundamentalVectorField I' (C.cplx (C.lieMap ξ)) x = J x (fundamentalVectorField I' ξ x) := by
+  rw [h.fundamentalVectorField_cplx, h.fundamentalVectorField_lieMap]
+
 /-- For a complexified action, the fundamental vector field of any `ζ` in the Lie algebra of `Gc`
 is `X_{C.re ζ} + J X_{C.im ζ}`, where `X_{C.re ζ}` and `X_{C.im ζ}` are fundamental vector fields
 for the action of `G`. -/
@@ -299,8 +309,8 @@ theorem fundamentalVectorField_eq_re_add_im [FiniteDimensional ℝ E] [FiniteDim
     fundamentalVectorField I' ζ x =
       fundamentalVectorField I' (C.re ζ) x + J x (fundamentalVectorField I' (C.im ζ) x) := by
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im ζ]
-  rw [fundamentalVectorField_add, Pi.add_apply, h.fundamentalVectorField_cplx,
-    h.fundamentalVectorField_lieMap, h.fundamentalVectorField_lieMap]
+  rw [fundamentalVectorField_add, Pi.add_apply, h.fundamentalVectorField_cplx_lieMap,
+    h.fundamentalVectorField_lieMap]
 
 /-- **The imaginary one-parameter subgroups move points along `J X_ξ`.** For a complexified
 action, the curve `t ↦ C.expI (t • ξ) • p` is an integral curve of the vector field
@@ -315,7 +325,7 @@ theorem isMIntegralCurve_expI_smul (h : IsComplexifiedAction C J) (ξ : GroupLie
     rw [LieComplexification.expI_def, map_smul, AlmostComplexStructure.apply_smul]
   have hv : fundamentalVectorField I' (C.cplx (C.lieMap ξ)) =
       fun x ↦ J x (fundamentalVectorField I' ξ x) :=
-    funext fun x ↦ by rw [h.fundamentalVectorField_cplx, h.fundamentalVectorField_lieMap]
+    funext (h.fundamentalVectorField_cplx_lieMap ξ)
   rw [hγ, ← hv]
   exact isMIntegralCurve_mulInvariantExp_smul_smul (I' := I') (C.cplx (C.lieMap ξ)) p
 

@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
@@ -35,7 +36,7 @@ the form `exists_partialDiffeomorph_mfderiv_eq'` below, which drops second count
 target, and in the form that `Tubular.lean` uses: the partial diffeomorphism is read as a
 diffeomorphism between its source and target, and the smoothness of `A` is that of a section of
 the hom bundle of the pull-backs, which gives Tau Ceti's smoothness in tangent coordinates through
-`Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`.
+`Bundle.Pullback.contMDiffAt_hom_section_iff_inCoordinates`.
 
 Tau Ceti's theorem asks both manifolds to be second countable. Only the source `M` needs to be
 (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq'`): `Q` embeds in `M`, so it is
@@ -172,20 +173,12 @@ theorem exists_diffeomorph_opens_mfderiv_eq [SecondCountableTopology M₀]
   | inl hQ =>
     exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim⟩
   | inr hQ =>
-    -- The section `A` applied to the vectors of `f₀ *ᵖ TM₀`, as a map into `TM₁`.
-    have hAv : ContMDiff (J.prod 𝓘(ℝ, E₀)) (I₁.prod 𝓘(ℝ, E₁)) ∞
-        (fun p : TotalSpace E₀ ((f₀ : Q → M₀) *ᵖ (TangentSpace I₀)) ↦
-          TotalSpace.mk' E₁ (E := TangentSpace I₁) (f₁ p.proj) (A p.proj p.snd)) :=
-      (Pullback.contMDiff_lift (E := TangentSpace I₁) f₁ f₁.contMDiff).comp
-        (ContMDiff.clm_bundle_apply
-          (hA.comp (contMDiff_proj (F := E₀) ((f₀ : Q → M₀) *ᵖ (TangentSpace I₀))))
-          contMDiff_id)
     obtain ⟨Ψ, hsrc, -, -, hΨf, hΨd⟩ := f₀.exists_partialDiffeomorph_mfderiv_eq'
       f₁.contMDiff f₁.isEmbedding.isInducing
       (A := fun q ↦ (A q : TangentSpace I₀ (f₀ q) →L[ℝ] TangentSpace I₁ (f₁ q)))
       -- `inTangentCoordinates` is by definition the `inCoordinates` of the tangent bundles.
-      (fun q ↦ Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt f₀ f₁
-        f₁.contMDiff.contMDiffAt _ fun _ ↦ hAv _)
+      (fun q ↦ (Bundle.Pullback.contMDiffAt_hom_section_iff_inCoordinates f₀ f₁ _).1
+        (hA q))
       (fun q ↦ ⟨A q, rfl⟩) (fun q ↦ ContinuousLinearMap.ext (hAf q))
       isOpen_univ (subset_univ _) isOpen_univ (subset_univ _)
     refine ⟨⟨Ψ.source, Ψ.open_source⟩, ⟨Ψ.target, Ψ.open_target⟩, Ψ.toDiffeomorphSourceTarget,
