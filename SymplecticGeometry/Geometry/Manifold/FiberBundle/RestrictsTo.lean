@@ -86,8 +86,7 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   the base sets of the charts, the glued form of a smooth form is smooth.
 * `TauCeti.MapFiber.Atlas.mpullback_fiberInclusionMap_glueForm`: along a smooth atlas, the glued
   form pulls back to the fibre over `b'` of a chart as the combination, with the weights at `b'`,
-  of the pull-backs of `σ` along the coordinate changes over `b'`. So when the coordinate changes
-  preserve `σ`, the glued form restricts to `σ`.
+  of the pull-backs of `σ` along the coordinate changes over `b'`.
 * `TauCeti.MapFiber.Atlas.restrictsTo_of_apply_eq_sum`: when the coordinate changes preserve `σ`,
   a form that on vertical vectors is a sum of the pull-backs of `σ` along the fibre coordinates of
   the charts, with the weights of a subordinate partition of unity of the base, restricts to `σ`.
