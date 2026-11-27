@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
+public import SymplecticGeometry.Geometry.Manifold.Instances.ULift
+public import SymplecticGeometry.Topology.Constructions.ULift
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreTorus
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.AffineCoordinate
@@ -20,22 +22,24 @@ the rational elliptic surface `E(1)` along Tau Ceti's standard torus
 the same model. This file moves `E(1)` to the model `𝓘(ℝ, E)` along a real linear isomorphism
 `e : (Fin 2 → ℂ) ≃L[ℝ] E`, and gives on it the data that the sum uses on the side of `E(1)`.
 
-* `rationalEllipticSurface.OnModel e`: the rational elliptic surface with its charts followed by
-  `e`, as `SymplecticGeometry.Remodel` gives it. It is a compact, connected, Hausdorff, second
-  countable smooth manifold over `𝓘(ℝ, E)`, and lives in `Type`, the universe of the surface.
-  Since the fibre sum takes both pieces in one universe, `X` must lie in `Type` too.
+* `rationalEllipticSurface.OnModel e`: the rational elliptic surface, lifted to any universe
+  `Type u` (`Diffeomorph.ulift`), with its charts followed by `e`, as `SymplecticGeometry.Remodel`
+  gives it. It is a compact, connected, Hausdorff, second countable smooth manifold over
+  `𝓘(ℝ, E)`. Since the fibre sum takes both pieces in one universe, it lives in that of `X`.
+* `rationalEllipticSurface.OnModel.diffeomorph e`: the identification of the surface with
+  `OnModel e`, a diffeomorphism from the model `Fin 2 → ℂ` to the model `E`.
 * `rationalEllipticSurface.OnModel.symplecticForm e p`: the form of the surface rescaled by
-  `torusScale p`, moved along the change of model; it is symplectic
+  `torusScale p`, moved along `OnModel.diffeomorph`; it is symplectic
   (`OnModel.isSymplectic_symplecticForm`).
 * `rationalEllipticSurface.OnModel.torusEmbedding e p`: the embedding of `T` given by
-  `fibreEmbedding ∘ torusDiffeomorph p` followed by the change of model. It pulls the form back to
+  `fibreEmbedding ∘ torusDiffeomorph p` followed by `OnModel.diffeomorph`. It pulls the form back to
   `TauCeti.torusSymplecticForm p` (`OnModel.mpullback_torusEmbedding_symplecticForm`, from
   `mpullback_fibreEmbedding_comp_torusDiffeomorph`) and has symplectic tangent images
   (`OnModel.hasSymplecticTangentImages_torusEmbedding`).
 * `rationalEllipticSurface.OnModel.torusFraming e p`: a symplectic framing of that embedding,
   obtained from `fibreFraming` by rescaling the form (`SymplecticFraming.smul`), reparametrising
   the fibre by `torusDiffeomorph p` (`SymplecticFraming.compDiffeomorphOfBoundaryless`) and
-  changing the model (`SymplecticFraming.transDiffeomorph`).
+  moving it along `OnModel.diffeomorph` (`SymplecticFraming.transDiffeomorph`).
 * `rationalEllipticSurface.OnModel.simplyConnectedSpace_compl_range_torusEmbedding`: the
   complement of the image of the torus is simply connected, from
   `simplyConnectedSpace_compl_range_fibreEmbedding`.
@@ -56,23 +60,38 @@ open scoped Manifold ContDiff ComplexManifold
 
 namespace SymplecticGeometry.rationalEllipticSurface
 
+universe u
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   (e : (Fin 2 → ℂ) ≃L[ℝ] E)
 
-/-- The rational elliptic surface charted on the real normed space `E`: its charts, read as real
+/-- The rational elliptic surface in the universe `Type u`, charted on the real normed space `E`:
+its lift `ULift (rationalEllipticSurface)`, whose charts are those of the surface read as real
 charts in `Fin 2 → ℂ`, followed by the real linear isomorphism `e : (Fin 2 → ℂ) ≃L[ℝ] E`
-(`SymplecticGeometry.Remodel`). It has the points and the topology of the surface, and lives in
-`Type`. -/
-abbrev OnModel : Type := Remodel e.toDiffeomorph rationalEllipticSurface
+(`SymplecticGeometry.Remodel`). -/
+abbrev OnModel : Type u := Remodel e.toDiffeomorph (ULift.{u} rationalEllipticSurface)
 
 namespace OnModel
 
 -- The instances that the fibre sum asks of its pieces.
-example : IsManifold 𝓘(ℝ, E) ∞ (OnModel e) := inferInstance
-example : CompactSpace (OnModel e) := inferInstance
-example : ConnectedSpace (OnModel e) := inferInstance
-example : T2Space (OnModel e) := inferInstance
-example : SecondCountableTopology (OnModel e) := inferInstance
+example : IsManifold 𝓘(ℝ, E) ∞ (OnModel.{u} e) := inferInstance
+example : CompactSpace (OnModel.{u} e) := inferInstance
+example : ConnectedSpace (OnModel.{u} e) := inferInstance
+example : T2Space (OnModel.{u} e) := inferInstance
+example : SecondCountableTopology (OnModel.{u} e) := inferInstance
+
+/-- The identification of the rational elliptic surface with `OnModel e`: the lift to `Type u`
+(`Diffeomorph.ulift`) followed by the change of model (`SymplecticGeometry.remodelDiffeomorph`),
+a smooth diffeomorphism from the model `Fin 2 → ℂ` to the model `E`. -/
+def diffeomorph : rationalEllipticSurface ≃ₘ⟮𝓘(ℝ, Fin 2 → ℂ), 𝓘(ℝ, E)⟯ OnModel.{u} e :=
+  (Diffeomorph.ulift 𝓘(ℝ, Fin 2 → ℂ) ∞ rationalEllipticSurface).symm.trans
+    (remodelDiffeomorph e.toDiffeomorph _)
+
+theorem diffeomorph_def :
+    diffeomorph.{u} e =
+      (Diffeomorph.ulift 𝓘(ℝ, Fin 2 → ℂ) ∞ rationalEllipticSurface).symm.trans
+        (remodelDiffeomorph e.toDiffeomorph _) :=
+  (rfl)
 
 end OnModel
 
@@ -92,26 +111,25 @@ theorem hasSymplecticTangentImages_fibreEmbedding_compDiffeomorph_torusDiffeomor
 namespace OnModel
 
 /-- The symplectic form of the rational elliptic surface on the model `E`: `torusScale p` times the
-form of the surface, moved to `OnModel e` along the identity of the surface, read from the model
-`Fin 2 → ℂ` to the model `E` (`SymplecticGeometry.remodelDiffeomorph`). For this form the fibre
+form of the surface, moved to `OnModel e` along `OnModel.diffeomorph`. For this form the fibre
 over `[1 : 0]` has the area `p inl * p inr` of the standard torus. -/
 def symplecticForm : SmoothTwoForm 𝓘(ℝ, E) (OnModel e) :=
-  SmoothForm.mpullback (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).symm
-    (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).symm.contMDiff
+  SmoothForm.mpullback (diffeomorph e).symm
+    (diffeomorph e).symm.contMDiff
     (torusScale p • rationalEllipticSurface.symplecticForm)
 
 theorem symplecticForm_def :
     symplecticForm e p =
-      SmoothForm.mpullback (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).symm
-        (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).symm.contMDiff
+      SmoothForm.mpullback (diffeomorph e).symm
+        (diffeomorph e).symm.contMDiff
         (torusScale p • rationalEllipticSurface.symplecticForm) :=
   (rfl)
 
-/-- Pulled back along the change of model `remodelDiffeomorph`, the form of `OnModel e` is
+/-- Pulled back along `OnModel.diffeomorph`, the form of `OnModel e` is
 `torusScale p` times the form of the rational elliptic surface. -/
-theorem mpullback_remodelDiffeomorph_symplecticForm :
-    SmoothForm.mpullback (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface)
-        (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).contMDiff
+theorem mpullback_diffeomorph_symplecticForm :
+    SmoothForm.mpullback (diffeomorph e)
+        (diffeomorph e).contMDiff
         (symplecticForm e p) =
       torusScale p • rationalEllipticSurface.symplecticForm := by
   rw [symplecticForm_def]
@@ -119,9 +137,9 @@ theorem mpullback_remodelDiffeomorph_symplecticForm :
 
 /-- The form of the rational elliptic surface on the model `E` is symplectic. -/
 theorem isSymplectic_symplecticForm : (symplecticForm e p).IsSymplectic :=
-  ((remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).symm.isLocalDiffeomorph
+  ((diffeomorph e).symm.isLocalDiffeomorph
     |>.isSymplectic_mpullback_iff
-      (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface).symm.surjective).2
+      (diffeomorph e).symm.surjective).2
     (rationalEllipticSurface.isSymplectic_symplecticForm.smul _ (torusScale_pos p).ne')
 
 include e in
@@ -137,24 +155,24 @@ variable [FiniteDimensional ℝ E]
 /-- The standard torus `∀ i : Unit ⊕ Unit, AddCircle (p i)` embedded in the rational elliptic
 surface on the model `E`: the diffeomorphism `torusDiffeomorph p` onto the Fermat cubic, followed
 by the inclusion `fibreEmbedding` of the cubic as the fibre over `[1 : 0]` and by the change of
-model `remodelDiffeomorph`. -/
+model and universe `OnModel.diffeomorph`. -/
 def torusEmbedding :
     SmoothEmbedding (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) 𝓘(ℝ, E) ∞
       (∀ i, AddCircle (p i)) (OnModel e) :=
   (fibreEmbedding.compDiffeomorphOfBoundaryless (torusDiffeomorph p) (by simp)
-    ).transDiffeomorphOfBoundaryless (remodelDiffeomorph e.toDiffeomorph _) (by simp)
+    ).transDiffeomorphOfBoundaryless (diffeomorph e) (by simp)
 
 theorem torusEmbedding_def :
     torusEmbedding e p =
       (fibreEmbedding.compDiffeomorphOfBoundaryless (torusDiffeomorph p) (by simp)
-        ).transDiffeomorphOfBoundaryless (remodelDiffeomorph e.toDiffeomorph _) (by simp) :=
+        ).transDiffeomorphOfBoundaryless (diffeomorph e) (by simp) :=
   (rfl)
 
-/-- The embedded torus is `remodelDiffeomorph ∘ fibreEmbedding ∘ torusDiffeomorph p`. -/
+/-- The embedded torus is `OnModel.diffeomorph ∘ fibreEmbedding ∘ torusDiffeomorph p`. -/
 @[simp]
 theorem coe_torusEmbedding :
     ⇑(torusEmbedding e p) =
-      remodelDiffeomorph e.toDiffeomorph _ ∘ fibreEmbedding ∘ torusDiffeomorph p := by
+      diffeomorph e ∘ fibreEmbedding ∘ torusDiffeomorph p := by
   rw [torusEmbedding_def, SmoothEmbedding.coe_transDiffeomorphOfBoundaryless,
     SmoothEmbedding.coe_compDiffeomorphOfBoundaryless]
 
@@ -162,9 +180,9 @@ theorem coe_torusEmbedding :
 the image of `fibreEmbedding`, as a subset of `OnModel e`. -/
 theorem range_torusEmbedding :
     range (torusEmbedding e p) =
-      remodelHomeomorph e.toDiffeomorph _ '' range fibreEmbedding := by
+      diffeomorph e '' range fibreEmbedding := by
   rw [torusEmbedding_def, SmoothEmbedding.coe_transDiffeomorphOfBoundaryless, range_comp,
-    SmoothEmbedding.range_compDiffeomorphOfBoundaryless, coe_remodelDiffeomorph]
+    SmoothEmbedding.range_compDiffeomorphOfBoundaryless]
 
 /-- The embedded torus pulls the form of `OnModel e` back to the standard symplectic form
 `TauCeti.torusSymplecticForm p` of the torus. -/
@@ -172,7 +190,7 @@ theorem mpullback_torusEmbedding_symplecticForm :
     SmoothForm.mpullback (torusEmbedding e p) (torusEmbedding e p).contMDiff
       (symplecticForm e p) = torusSymplecticForm p := by
   rw [← mpullback_fibreEmbedding_comp_torusDiffeomorph p,
-    ← mpullback_remodelDiffeomorph_symplecticForm e p, SmoothForm.mpullback_mpullback]
+    ← mpullback_diffeomorph_symplecticForm e p, SmoothForm.mpullback_mpullback]
   exact SmoothForm.mpullback_congr _ _ (coe_torusEmbedding e p) _
 
 /-- The embedded torus has symplectic tangent images for the form of `OnModel e`. -/
@@ -181,14 +199,14 @@ theorem hasSymplecticTangentImages_torusEmbedding :
       (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (torusEmbedding e p) := by
   rw [torusEmbedding_def, SmoothEmbedding.coe_transDiffeomorphOfBoundaryless]
   exact (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff
-    (remodelDiffeomorph e.toDiffeomorph rationalEllipticSurface)
-    (mpullback_remodelDiffeomorph_symplecticForm e p)).2
+    (diffeomorph e)
+    (mpullback_diffeomorph_symplecticForm e p)).2
     (hasSymplecticTangentImages_fibreEmbedding_compDiffeomorph_torusDiffeomorph p)
 
 /-- **The symplectic framing of the embedded torus.** The framing `fibreFraming` of the fibre over
 `[1 : 0]`, made a framing for `torusScale p` times the form of the surface
 (`SymplecticFraming.smul`), read along the diffeomorphism `torusDiffeomorph p` of the torus onto
-the fibre (`SymplecticFraming.compDiffeomorphOfBoundaryless`), and moved along the change of model
+the fibre (`SymplecticFraming.compDiffeomorphOfBoundaryless`), and moved along `OnModel.diffeomorph`
 (`SymplecticFraming.transDiffeomorph`). -/
 def torusFraming :
     SymplecticFraming (hasSymplecticTangentImages_torusEmbedding e p)
@@ -196,14 +214,14 @@ def torusFraming :
   ((fibreFraming.smul (torusScale_pos p)).compDiffeomorphOfBoundaryless (torusDiffeomorph p)
     (hasSymplecticTangentImages_fibreEmbedding_compDiffeomorph_torusDiffeomorph p)
     (by simp [Module.finrank_pi_fintype])).transDiffeomorph
-    (remodelDiffeomorph e.toDiffeomorph _) (isSymplectic_symplecticForm e p).isNondegenerate
-    (mpullback_remodelDiffeomorph_symplecticForm e p) (finrank_complex_eq_finrank_sub e)
+    (diffeomorph e) (isSymplectic_symplecticForm e p).isNondegenerate
+    (mpullback_diffeomorph_symplecticForm e p) (finrank_complex_eq_finrank_sub e)
 
 /-- The complement of the embedded torus in `OnModel e` is simply connected. -/
 instance simplyConnectedSpace_compl_range_torusEmbedding :
     SimplyConnectedSpace ↥(range (torusEmbedding e p))ᶜ := by
-  rw [range_torusEmbedding, ← (remodelHomeomorph e.toDiffeomorph _).image_compl]
-  exact (remodelHomeomorph e.toDiffeomorph _).isSimplyConnected_image.2
+  rw [range_torusEmbedding, ← Diffeomorph.coe_toHomeomorph, ← Homeomorph.image_compl]
+  exact (diffeomorph e).toHomeomorph.isSimplyConnected_image.2
     simplyConnectedSpace_compl_range_fibreEmbedding
 
 end OnModel
