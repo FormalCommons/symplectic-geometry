@@ -22,6 +22,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Section
 import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Chart
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
 import SymplecticGeometry.Analysis.Calculus.Jet.LocalInverse
+import SymplecticGeometry.Analysis.Calculus.Jet.Sub
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Comp
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
@@ -342,16 +343,6 @@ section LocalMap
 
 open TauCeti
 
-/-- The identification `L = EuclideanSpace.sumEquivProd.symm` of the model space with
-`ℂ^(k ⊕ m)`, as a real continuous linear equivalence. -/
-private theorem exists_sumEquivProd_symm_restrictScalars :
-    ∃ Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
-      EuclideanSpace ℂ (Fin k ⊕ Fin m), ⇑Lr = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm ∧
-        ⇑Lr.symm = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)) :=
-  ⟨(EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm.restrictScalars' ℝ,
-    ContinuousLinearEquiv.coe_restrictScalars' _ _,
-    (ContinuousLinearEquiv.coe_restrictScalars'_symm _ _).trans (by simp)⟩
-
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   [IsManifold 𝓘(ℝ, E) ∞ M]
@@ -426,7 +417,13 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
         C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^
           (N - 1) := by
   -- `Lr`: the identification `L` of the model space with `ℂ^(k ⊕ m)`, as a real equivalence.
-  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
+  set Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
+      EuclideanSpace ℂ (Fin k ⊕ Fin m) :=
+    (EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm.restrictScalars' ℝ
+  have hLr : ⇑Lr = EuclideanSpace.sumEquivProd.symm :=
+    ContinuousLinearEquiv.coe_restrictScalars' ℝ _
+  have hLrs : ⇑Lr.symm = EuclideanSpace.sumEquivProd := by
+    rw [ContinuousLinearEquiv.coe_restrictScalars'_symm, ContinuousLinearEquiv.symm_symm]
   simp only [← hLr, ← hLrs]
   set κ := extChartAt 𝓘(ℝ, E) (Φ₀ p₀)
   set S₀ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E (Φ₀ p₀)).source
@@ -602,7 +599,13 @@ theorem exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le {N : ℕ
     ∃ C, ∀ᶠ z in 𝓝ˢ K, ∀ j ≤ N + 1, ‖iteratedFDeriv ℝ j (G₁ - G₂) z‖ ≤
       C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^
         (N + 1 - j) := by
-  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
+  set Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
+      EuclideanSpace ℂ (Fin k ⊕ Fin m) :=
+    (EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm.restrictScalars' ℝ
+  have hLr : ⇑Lr = EuclideanSpace.sumEquivProd.symm :=
+    ContinuousLinearEquiv.coe_restrictScalars' ℝ _
+  have hLrs : ⇑Lr.symm = EuclideanSpace.sumEquivProd := by
+    rw [ContinuousLinearEquiv.coe_restrictScalars'_symm, ContinuousLinearEquiv.symm_symm]
   simp only [← hLr, ← hLrs] at hG₁fix hG₂fix hC₁ hC₂ hKre ⊢
   set e := complexEuclideanEquivRealProd (Fin k ⊕ Fin m)
   set S₁ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₁).source
@@ -663,10 +666,8 @@ theorem exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le {N : ℕ
         exact (norm_sub_le _ _).trans (add_le_add h1 (hBwsub hv).1)
     have hc₁ := hd₁.contDiffAt (hBw.mem_nhds hwBw)
     have hc₂ := hd₂.contDiffAt (hBw.mem_nhds hwBw)
-    have hjet' : SameJetAt ℝ N w (h₁ ∘ g₁) (h₁ ∘ g₂) := sameJetAt_iff.2 fun i hi ↦ by
-      have hi' : (i : WithTop ℕ∞) ≤ N + 1 := by exact_mod_cast hi.trans N.le_succ
-      rw [← sub_eq_zero, ← iteratedFDeriv_sub_apply (hc₁.of_le hi') (hc₂.of_le hi')]
-      exact hD0 i hi
+    have hjet' : SameJetAt ℝ N w (h₁ ∘ g₁) (h₁ ∘ g₂) :=
+      (sameJetAt_iff_iteratedFDeriv_sub_eq_zero (hc₁.of_le hNle) (hc₂.of_le hNle)).2 hD0
     -- `h₁` has invertible derivative at `z`, so it cancels from the jets.
     have hinv : (fderiv ℝ h₁ z).IsInvertible :=
       Φ₀.isInvertible_fderiv_extChartAt_comp_comp (by simp) (ContinuousLinearEquiv.refl ℝ _)
@@ -680,9 +681,8 @@ theorem exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le {N : ℕ
       · rw [hz₁]
         exact (hh₁.contDiffAt (hS₁.mem_nhds hzS)).of_le (by exact_mod_cast le_top)
       · rwa [hz₁]
-    have hj' : (j : WithTop ℕ∞) ≤ N + 1 := by exact_mod_cast hj.trans N.le_succ
-    rw [iteratedFDeriv_sub_apply (hgc₁.of_le hj') (hgc₂.of_le hj'), hsame.iteratedFDeriv_eq hj,
-      sub_self]
+    exact (sameJetAt_iff_iteratedFDeriv_sub_eq_zero (hgc₁.of_le hNle) (hgc₂.of_le hNle)).1 hsame
+      j hj
   -- The bound in `ℂ^(k ⊕ m)`, and back on the model space.
   have hK' : IsCompact (Lr.symm ⁻¹' K) := Lr.symm.toHomeomorph.isCompact_preimage.2 hK
   obtain ⟨U', hU', C, hC⟩ := exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hOw
@@ -744,21 +744,18 @@ private theorem exists_norm_iteratedFDeriv_comp_sub_comp_le {F : Type*} [NormedA
     intro w hw hw0 j hj
     set z := Lr.symm w
     have hz0 : (complexEuclideanEquivRealProd _ (Lr z)).2 = 0 := by simpa [z] using hw0
-    have hsame : SameJetAt ℝ N z G₁ G₂ := sameJetAt_iff.2 fun l hl ↦ by
-      have hl' : (l : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
-      rw [← sub_eq_zero, ← iteratedFDeriv_sub_apply ((hc₁ z hw).of_le hl') ((hc₂ z hw).of_le hl')]
-      exact hjet z hw hz0 l hl
     have hN : (N : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
+    have hsame : SameJetAt ℝ N z G₁ G₂ :=
+      (sameJetAt_iff_iteratedFDeriv_sub_eq_zero ((hc₁ z hw).of_le hN) ((hc₂ z hw).of_le hN)).2
+        (hjet z hw hz0)
     have hS₁ := hch _ (hG₁S hw)
     have hS₂ := hch _ (hG₂S hw)
     have hcomp : SameJetAt ℝ N z (h ∘ G₁) (h ∘ G₂) :=
       hsame.comp (SameJetAt.refl h (G₁ z)) ((hc₁ z hw).of_le hN) ((hc₂ z hw).of_le hN)
         (hS₁.of_le hN) (by rw [← hsame.apply_eq]; exact hS₁.of_le hN)
-    have hj' : (j : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
     rw [ContinuousLinearEquiv.iteratedFDeriv_comp_right,
-      iteratedFDeriv_sub_apply ((hS₁.comp z (hc₁ z hw)).of_le hj')
-        ((hS₂.comp z (hc₂ z hw)).of_le hj'),
-      hcomp.iteratedFDeriv_eq hj, sub_self]
+      (sameJetAt_iff_iteratedFDeriv_sub_eq_zero ((hS₁.comp z (hc₁ z hw)).of_le hN)
+        ((hS₂.comp z (hc₂ z hw)).of_le hN)).1 hcomp j hj]
     ext v
     simp
   obtain ⟨U, hU, C, hC⟩ := exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hB' hDc
@@ -797,7 +794,13 @@ private theorem exists_norm_conjWirtingerDeriv_comp_le_of_iteratedFDeriv_sub_eq_
         ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ
           (fun w ↦ h (G₂ (EuclideanSpace.sumEquivProd w))) w)) v‖ ≤
           C₂ * ‖(complexEuclideanEquivRealProd _ v).2‖ ^ N := by
-  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
+  set Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
+      EuclideanSpace ℂ (Fin k ⊕ Fin m) :=
+    (EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm.restrictScalars' ℝ
+  have hLr : ⇑Lr = EuclideanSpace.sumEquivProd.symm :=
+    ContinuousLinearEquiv.coe_restrictScalars' ℝ _
+  have hLrs : ⇑Lr.symm = EuclideanSpace.sumEquivProd := by
+    rw [ContinuousLinearEquiv.coe_restrictScalars'_symm, ContinuousLinearEquiv.symm_symm]
   simp only [← hLr, ← hLrs] at hjet hp₀re hC₁ hC₁' ⊢
   obtain ⟨Ub, hUb, Cb, hCb⟩ :=
     exists_norm_iteratedFDeriv_comp_sub_comp_le Lr hS hh hB hG₁ hG₂ hG₁S hG₂S hjet hp₀ hp₀re

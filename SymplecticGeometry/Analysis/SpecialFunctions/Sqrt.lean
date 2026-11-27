@@ -10,6 +10,7 @@ public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import TauCeti.Analysis.Calculus.Deriv.Second
+import TauCeti.Analysis.Real.Sqrt
 
 /-!
 # Derivatives of the square root
@@ -99,11 +100,11 @@ theorem tendsto_deriv_sqrt_sub {a δ : ℝ} (ha : 0 < a) (hδ : 0 < δ) :
   have hpos : ∀ r ∈ Ioi δ, 0 < a * r ^ 2 - a * δ ^ 2 := fun r (hr : δ < r) ↦ by
     have : δ ^ 2 < r ^ 2 := by gcongr
     nlinarith
-  have hc : ContinuousAt (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) δ := by fun_prop
-  have h₀ : Tendsto (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) (𝓝[>] δ) (𝓝[>] 0) := by
-    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
-    · simpa using hc.tendsto.mono_left nhdsWithin_le_nhds
-    · filter_upwards [self_mem_nhdsWithin] with r hr using sqrt_pos.2 (hpos r hr)
+  have hc : Continuous fun r ↦ a * r ^ 2 - a * δ ^ 2 := by fun_prop
+  have h₀ : Tendsto (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) (𝓝[>] δ) (𝓝[>] 0) :=
+    tendsto_sqrt_nhdsGT_zero.comp <| tendsto_nhdsWithin_iff.2
+      ⟨(hc.tendsto' δ 0 (sub_self _)).mono_left nhdsWithin_le_nhds,
+        eventually_nhdsWithin_of_forall hpos⟩
   have h₁ : Tendsto (fun r ↦ a * r) (𝓝[>] δ) (𝓝 (a * δ)) :=
     ((continuous_const.mul continuous_id).tendsto δ).mono_left nhdsWithin_le_nhds
   refine (h₁.pos_mul_atTop (mul_pos ha hδ) (tendsto_inv_nhdsGT_zero.comp h₀)).congr' ?_

@@ -1630,23 +1630,20 @@ The cube charts as coordinates for forms, in the namespace
   slices vanish off a fixed compact set, the forms
   `TauCeti.SmoothForm.extendByZeroAlong (c.chartPartialDiffeomorph i) (a (q, ·))`
   (`DifferentialForm/PartialDiffeomorph.lean`) are an `IsSmoothFamily 𝓘(ℝ, S)`:
-  the new lemma `IsSmoothFamily.extendByZeroAlong`, in that file. Since
+  the new lemma `IsSmoothFamily.extendByZeroAlong`, in
+  `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Since
   `mpullback_symm_extendByZeroAlong` reads the extension back as `a` on the
   chart, the corrected one-forms
   `B' q := B q + ∑ i, extendByZeroAlong (c.chartPartialDiffeomorph i) (a i (q, ·))`
   read as `f + a i` in the chart of `i`, wherever the other corrections
   vanish.
-- *Diffeotopies back to `M`.* `extendDiffeotopyAlong`: for a smooth open
-  embedding `φ : D → M` of a normed space and a smooth
-  `h : (S × unitInterval) × D → D`, with slices diffeomorphisms, `h ((q, 0), ·) = id`,
-  and `h` the identity off `univ ×ˢ C` for a compact `C ⊆ D`, the map equal
-  to `φ ∘ h ((q, t), ·) ∘ φ⁻¹` on the range of `φ` and to the identity
-  elsewhere is smooth on `(S × unitInterval) × M`, with slices
-  diffeomorphisms (their inverses are built from those of `h`), the
-  identity at `t = 0` and off `φ '' C`. It is a lemma about smooth open
-  embeddings, so it goes in `Geometry/Manifold/SmoothIsotopy/Chart.lean`,
-  in the namespace `TauCeti`, with `Diffeotopy` slices as in
-  `SmoothIsotopy/Diffeotopy.lean`. The cubes' diffeotopies have disjoint
+- *Diffeotopies back to `M`.* `TauCeti.extendDiffeotopyAlong`: for a smooth
+  open embedding `φ : N → M` into a Hausdorff manifold and a diffeotopy `h`
+  of `S × N` that fixes every `(q, z)` with `z` off a compact `C ⊆ N`, the
+  diffeotopy of `S × M` that moves `(q, φ z)` as `h` moves `(q, z)` and
+  fixes every `(q, y)` with `y ∉ φ '' C`; it keeps the parameter when `h`
+  does. It goes in `Geometry/Diffeomorphism/Diffeotopy/Extend.lean`, in the
+  namespace `TauCeti`. The cubes' diffeotopies have disjoint
   supports, so the stage composes their extensions in the order of
   `(Finset.univ : Finset c.ι).toList`, and each point of a cube is moved
   only by the extension of its own cube.
@@ -1918,7 +1915,7 @@ The continuity of `H`, term by term in the formula:
   scalar, and, for the fixed function `ρ`, the new lemma
   `continuous_tangentEquiv_symm_smul` in the same file, multiplication by
   a fixed smooth function being continuous for the frame topology
-  (`ContMDiffSection.continuous_fiberwiseMap`, `Section/Topology.lean`).
+  (Tau Ceti's `ContMDiffSection.continuous_smul_function_frameTopology`).
 
 `α' l = e_{l,1}^* α l` is continuous by the first item.
 
@@ -2279,8 +2276,9 @@ Each is a few hundred lines; each issue's blockers come before it.
      `BandCore.isLocalDiffeomorph_chart`, `BandCore.chartPartialDiffeomorph`,
      the readings of the formal datum and `BandCore.exists_relativeSet`;
      and `IsSmoothFamily.extendByZeroAlong` in
-     `DifferentialForm/PartialDiffeomorph.lean`. Blocked by nothing.
-   - 8b. **Diffeotopies along a chart.** `SmoothIsotopy/Chart.lean`:
+     `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Blocked by
+     nothing.
+   - 8b. **Diffeotopies along a chart.** `Diffeotopy/Extend.lean`:
      `TauCeti.extendDiffeotopyAlong`. Blocked by nothing.
    - 8c. **The continuous version's clauses at every point.** The `C`, `N`
      and displacement clauses of
