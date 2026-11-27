@@ -8,10 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Sign
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.RestrictScalars
+import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
 # The canonical orientation of a complex manifold, reindexed
@@ -55,7 +58,14 @@ dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`, and the real dimen
 * `SymplecticGeometry.map_orientationAt_complexManifoldOrientationOfFinrank`: a complex-linear
   isomorphism `E ≃L[ℂ] G` carries it to the complex orientation of `G`, reindexed;
 * `SymplecticGeometry.complexCurveOrientation_eq_complexManifoldOrientationOfFinrank`: its case
-  `r = 0` is `SymplecticGeometry.complexCurveOrientation`.
+  `r = 0` is `SymplecticGeometry.complexCurveOrientation`;
+* `IsLocalDiffeomorphAt.isOrientationPreservingAt_complexManifoldOrientationOfFinrank`: a local
+  biholomorphism preserves it, also between manifolds modelled on different spaces `E` and `G`
+  of the same dimension, such as `Fin (r + 1) → ℂ` and `EuclideanSpace ℂ (Fin (r + 1))`. Its
+  real derivative is its complex derivative, so the claim is
+  `SymplecticGeometry.map_orientationAt_complexManifoldOrientationOfFinrank`;
+* `SymplecticGeometry.complexManifoldOrientationOfFinrank_opens_eq_restrict`: on an open subset
+  it is the restriction of that of `M`.
 
 Tau Ceti's `TauCeti.complexHomologicalOrientation` (in
 `TauCeti/Geometry/Manifold/Complex/FundamentalClass.lean`) reindexes the same orientation to
@@ -217,6 +227,40 @@ theorem map_orientationAt_complexManifoldOrientationOfFinrank
         (A.restrictScalars' ℝ).toLinearEquiv =
       Orientation.reindex ℝ G (finCongr (by rw [hG]; ring)) (complexOrientation G) :=
   map_orientationAt_reindex_complexManifoldOrientation _ _ A z
+
+/-- A local biholomorphism `f : M → N` at `x`, a `C^n` local diffeomorphism for the complex models
+`𝓘(ℂ, E)` and `𝓘(ℂ, G)` with `n ≠ 0`, preserves the canonical orientations
+`complexManifoldOrientationOfFinrank` at `x`, for `E` and `G` of the same complex dimension
+`r + 1`. -/
+theorem _root_.IsLocalDiffeomorphAt.isOrientationPreservingAt_complexManifoldOrientationOfFinrank
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+    {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [IsManifold 𝓘(ℂ, G) 1 N]
+    {r : ℕ} (hE : finrank ℂ E = r + 1) (hG : finrank ℂ G = r + 1) (n : ℕ∞ω) [NeZero n]
+    {f : M → N} {x : M} (hf : IsLocalDiffeomorphAt 𝓘(ℂ, E) 𝓘(ℂ, G) n f x) :
+    (complexManifoldOrientationOfFinrank E M hE).IsOrientationPreservingAt
+      (complexManifoldOrientationOfFinrank G N hG) f x := by
+  have hn : n ≠ 0 := NeZero.ne n
+  -- The complex derivative of `f` at `x`, a complex-linear isomorphism `E ≃L[ℂ] G`.
+  let A : E ≃L[ℂ] G := hf.mfderivToContinuousLinearEquiv hn
+  refine (Manifold.Orientation.isOrientationPreservingAt_iff_of_coe_eq _ _ _ _
+    (A.restrictScalars' ℝ) ?_).2 ?_
+  · ext v
+    have h : A.restrictScalars' ℝ v = A v := by rw [ContinuousLinearEquiv.coe_restrictScalars']
+    refine h.trans ?_
+    rw [(hf.mdifferentiableAt hn).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ v]
+    exact DFunLike.congr_fun (hf.mfderivToContinuousLinearEquiv_coe hn) v
+  · -- `exact`: the tangent spaces at `x` and `f x` are `E` and `G` by definition.
+    exact (map_orientationAt_complexManifoldOrientationOfFinrank hE hG A x).trans
+      (orientationAt_complexManifoldOrientationOfFinrank hG (f x)).symm
+
+/-- On an open subset `U` of a complex manifold `M` of complex dimension `r + 1`, the canonical
+orientation `complexManifoldOrientationOfFinrank` is the restriction of that of `M`. -/
+theorem complexManifoldOrientationOfFinrank_opens_eq_restrict {r : ℕ} (hE : finrank ℂ E = r + 1)
+    (U : TopologicalSpace.Opens M) :
+    complexManifoldOrientationOfFinrank E U hE =
+      (complexManifoldOrientationOfFinrank E M hE).restrict U :=
+  Manifold.Orientation.eq_restrict_iff.2 fun x ↦ (isLocalDiffeomorph_subtype_val (n := 1) x
+    ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank hE hE 1
 
 /-- `complexCurveOrientation` is the case `r = 0` of `complexManifoldOrientationOfFinrank`. -/
 theorem complexCurveOrientation_eq_complexManifoldOrientationOfFinrank (h : finrank ℂ E = 1) :

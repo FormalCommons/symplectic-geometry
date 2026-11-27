@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Normed.Operator.NormedSpace
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 public import Mathlib.Topology.Algebra.Ring.Basic
 public import Mathlib.Topology.Order.Basic
+import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
 import Mathlib.Topology.Algebra.Order.Field
 import Mathlib.Tactic.LinearCombination
 import TauCeti.LinearAlgebra.BilinearForm.Basic
@@ -43,7 +45,10 @@ the projection.
   when `τ` is nondegenerate on `ker L` (`LinearMap.BilinForm.nondegenerate_pullbackProd_zero_iff`).
   Since it depends continuously on `s`, its nondegeneracy at `s = 0` spreads to a neighbourhood
   of `0` (`LinearMap.BilinForm.eventually_nondegenerate_pullbackProd`); this is the form in which
-  a bound can be made uniform over a compact family.
+  a bound can be made uniform over a compact family. It commutes with carrying `τ`, `β` and `L`
+  along linear equivalences (`LinearMap.BilinForm.pullbackProd_congr`). In finite dimensions,
+  nondegeneracy also persists when `τ`, `β`, `L` and `s` vary continuously together
+  (`LinearMap.BilinForm.eventually_nondegenerate_pullbackProd_of_continuousAt`).
 * `LinearMap.BilinForm.exists_forall_ge_nondegenerate_add_smul_comp`: over an ordered field with
   its order topology, such as `ℝ`, there is `c₀` with `τ + c • P` nondegenerate for all `c ≥ c₀`.
 
@@ -129,6 +134,16 @@ theorem pullbackProd_eq_sub_smul (τ : BilinForm R V) (β : BilinForm R U) (L : 
 theorem IsAlt.pullbackProd (hτ : τ.IsAlt) (hβ : β.IsAlt) (L : V →ₗ[R] U) (s : R) :
     (pullbackProd τ β L s).IsAlt := fun x ↦ by
   simp [hτ.self_eq_zero, hβ.self_eq_zero, ← hβ.neg_eq x.2 (L x.1)]
+
+/-- `pullbackProd` commutes with carrying `τ`, `β` and `L` along linear equivalences
+`e : V ≃ₗ V'` and `e' : U ≃ₗ U'`: the result is `pullbackProd τ β L s` carried along
+`e.prodCongr e'`. -/
+theorem pullbackProd_congr {V' U' : Type*} [AddCommGroup V'] [Module R V'] [AddCommGroup U']
+    [Module R U'] (e : V ≃ₗ[R] V') (e' : U ≃ₗ[R] U') (τ : BilinForm R V) (β : BilinForm R U)
+    (L : V →ₗ[R] U) (s : R) :
+    pullbackProd (congr e τ) (congr e' β) (e'.toLinearMap ∘ₗ L ∘ₗ e.symm.toLinearMap) s =
+      congr (e.prodCongr e') (pullbackProd τ β L s) :=
+  LinearMap.ext₂ fun _ _ ↦ by simp
 
 end CommRing
 
@@ -253,6 +268,34 @@ theorem exists_forall_ge_nondegenerate_add_smul_comp (hτ : τ.IsAlt) (hβ : β.
   rwa [nondegenerate_pullbackProd_iff_of_ne_zero hτ hβ hβn (inv_ne_zero hc₀.ne'), inv_inv] at hc
 
 end Ordered
+
+section Normed
+
+variable {X 𝕜 V U : Type*} [TopologicalSpace X] [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup V] [NormedSpace 𝕜 V] [FiniteDimensional 𝕜 V] [NormedAddCommGroup U]
+  [NormedSpace 𝕜 U] [FiniteDimensional 𝕜 U]
+
+/-- In finite dimensions, let the continuous bilinear forms `τ y` and `β y`, the continuous
+linear map `L y` and the scalar `s y` depend on a point `y` of a topological space, continuously
+at `x`. If `pullbackProd (τ x) (β x) (L x) (s x)` is nondegenerate, then so is
+`pullbackProd (τ y) (β y) (L y) (s y)` for every `y` near `x`. -/
+theorem eventually_nondegenerate_pullbackProd_of_continuousAt {τ : X → V →L[𝕜] V →L[𝕜] 𝕜}
+    {β : X → U →L[𝕜] U →L[𝕜] 𝕜} {L : X → V →L[𝕜] U} {s : X → 𝕜} {x : X}
+    (hτ : ContinuousAt τ x) (hβ : ContinuousAt β x) (hL : ContinuousAt L x)
+    (hs : ContinuousAt s x)
+    (h : (pullbackProd (τ x).toBilinForm (β x).toBilinForm (L x : V →ₗ[𝕜] U) (s x)).Nondegenerate) :
+    ∀ᶠ y in 𝓝 x,
+      (pullbackProd (τ y).toBilinForm (β y).toBilinForm (L y : V →ₗ[𝕜] U) (s y)).Nondegenerate := by
+  -- Nondegeneracy is open in the space of all quadruples `(τ, β, L, s)`.
+  have hO := TauCeti.isOpen_setOf_nondegenerate (B := fun q :
+      (V →L[𝕜] V →L[𝕜] 𝕜) × (U →L[𝕜] U →L[𝕜] 𝕜) × (V →L[𝕜] U) × 𝕜 ↦
+      pullbackProd q.1.toBilinForm q.2.1.toBilinForm (q.2.2.1 : V →ₗ[𝕜] U) q.2.2.2) fun v w ↦ by
+    simp only [pullbackProd_apply, ContinuousLinearMap.toBilinForm_apply,
+      ContinuousLinearMap.coe_coe]
+    fun_prop
+  exact (hτ.prodMk (hβ.prodMk (hL.prodMk hs))).eventually (hO.mem_nhds h)
+
+end Normed
 
 end LinearMap.BilinForm
 
