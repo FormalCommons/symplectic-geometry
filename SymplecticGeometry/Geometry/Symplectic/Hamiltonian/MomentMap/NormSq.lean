@@ -164,13 +164,14 @@ theorem momentNormSq_smul [LieGroup I 1 G] [MulAction G M]
 
 /-- The norm square through continuous linear maps: write `L y` for the linear form `μ y` on the
 model space `E`, read as a continuous linear map, and `Φ` for the continuous inverse
-`(B.toStrongDual hB).symm` of `B.toDual hB`. Then the norm square at `y` is `L y (Φ (L y))`. -/
+`B.toContinuousBilinearMap.inverse` of `B.toDual hB`. Then the norm square at `y` is
+`L y (Φ (L y))`. -/
 theorem momentNormSq_eq_clm_apply :
     momentNormSq B hB μ = fun y ↦ (LinearMap.toContinuousLinearMap (μ y) : E →L[ℝ] ℝ)
-      (((B.toStrongDual hB).symm.toContinuousLinearMap : (E →L[ℝ] ℝ) →L[ℝ] E)
+      ((B.toContinuousBilinearMap.inverse : (E →L[ℝ] ℝ) →L[ℝ] E)
         (LinearMap.toContinuousLinearMap (μ y))) :=
   funext fun y ↦ by
-    rw [ContinuousLinearEquiv.coe_coe, LinearMap.BilinForm.toStrongDual_symm_apply,
+    rw [LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply hB,
       momentNormSq_eq_apply_momentSharp, momentSharp_def, LinearMap.coe_toContinuousLinearMap]
     -- The `show` reads `μ y` as a linear form on the model space `E`, the type that
     -- `LinearMap.toContinuousLinearMap` takes here.
@@ -195,9 +196,9 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
   set L : M → E →L[ℝ] ℝ := fun y ↦ LinearMap.toContinuousLinearMap (μ y)
   have hL : MDifferentiableAt I' 𝓘(ℝ, E →L[ℝ] ℝ) L x := mdifferentiableAt_clm_apply.2 hμ
   -- The Lie algebra carries no normed instances, so `Φ` is taken on the model space `E`.
-  set Φ : (E →L[ℝ] ℝ) →L[ℝ] E := (B.toStrongDual hB).symm.toContinuousLinearMap
+  set Φ : (E →L[ℝ] ℝ) →L[ℝ] E := B.toContinuousBilinearMap.inverse
   have hΦ (f : E →L[ℝ] ℝ) : Φ f = (B.toDual hB).symm (f : E →ₗ[ℝ] ℝ) :=
-    LinearMap.BilinForm.toStrongDual_symm_apply hB _
+    LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply hB _
   have hLx (y : M) : (L y : E →ₗ[ℝ] ℝ) = μ y := LinearMap.coe_toContinuousLinearMap _
   have h₁ : Φ (L x) = momentSharp B hB μ x := by rw [hΦ, hLx, momentSharp_def]
   -- For symmetric `B`, `μ x (Φ f) = B (μ♯ x) (Φ f) = B (Φ f) (μ♯ x) = f (μ♯ x)`.
