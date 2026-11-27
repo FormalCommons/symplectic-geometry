@@ -20,7 +20,11 @@ and the target `N` have no boundary and `N` has a finite-dimensional model: then
 immersion is a condition on the differential alone, and the differential of `f ∘ e` is that of
 `f` after the linear isomorphism `de`. In the same setting, a diffeomorphism between two models
 is itself a smooth embedding, by Tau Ceti's `Diffeomorph.isSmoothEmbedding_comp` applied to the
-identity; Tau Ceti's `TauCeti.isSmoothEmbedding_diffeomorph` covers only one model.
+identity; Tau Ceti's `TauCeti.isSmoothEmbedding_diffeomorph` covers only one model. On the side
+of the target, `TauCeti.SmoothEmbedding.transDiffeomorphOfBoundaryless` bundles Tau Ceti's
+`Diffeomorph.isSmoothEmbedding_comp`, the transport of an embedding by a diffeomorphism of the
+target onto a manifold on another model, as Tau Ceti's `TauCeti.SmoothEmbedding.transDiffeomorph`
+does on one model.
 
 The proof of `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless` follows that of Tau Ceti's
 `Diffeomorph.isImmersion_comp`, which composes on the other side, with Tau Ceti's
@@ -44,6 +48,8 @@ differential come from Tau Ceti's `Diffeomorph.mfderiv_comp_diffeomorph` and
 
 * `TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless`: a bundled smooth embedding
   reparametrised by a diffeomorphism from a manifold on another model.
+* `TauCeti.SmoothEmbedding.transDiffeomorphOfBoundaryless`: a bundled smooth embedding
+  transported by a diffeomorphism onto a manifold on another model.
 
 ## References
 
@@ -168,6 +174,41 @@ theorem compDiffeomorphOfBoundaryless_compDiffeomorphOfBoundaryless
 end SmoothEmbedding
 
 namespace SmoothEmbedding
+
+section TransDiffeomorphOfBoundaryless
+
+variable {𝕜 : Type*} [RCLike 𝕜]
+  {E E' E'' H G G' M N P : Type*}
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] [FiniteDimensional 𝕜 E'']
+  [TopologicalSpace H] [TopologicalSpace G] [TopologicalSpace G']
+  {I : ModelWithCorners 𝕜 E H} {J : ModelWithCorners 𝕜 E' G} {K : ModelWithCorners 𝕜 E'' G'}
+  [I.Boundaryless] [K.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
+  [TopologicalSpace P] [ChartedSpace G' P]
+  {n : ℕ∞ω} [IsManifold I n M] [IsManifold K n P]
+
+/-- **Ambient transport across two models.** A `C^n` diffeomorphism `e : N ≃ P`, `1 ≤ n`, turns a
+bundled smooth embedding `f : M → N` into the bundled smooth embedding `e ∘ f : M → P`, for a
+boundaryless `M` and a boundaryless `P` with a finite-dimensional model that may differ from
+that of `N`. -/
+def transDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N) (e : N ≃ₘ^n⟮J, K⟯ P)
+    (hn : 1 ≤ n) : SmoothEmbedding I K n M P :=
+  SmoothEmbedding.ofIsSmoothEmbedding (e ∘ f) (e.isSmoothEmbedding_comp hn f.isSmoothEmbedding)
+
+@[simp]
+theorem transDiffeomorphOfBoundaryless_apply (f : SmoothEmbedding I J n M N)
+    (e : N ≃ₘ^n⟮J, K⟯ P) (hn : 1 ≤ n) (x : M) :
+    f.transDiffeomorphOfBoundaryless e hn x = e (f x) := by
+  simp only [transDiffeomorphOfBoundaryless, ofIsSmoothEmbedding_apply, Function.comp_apply]
+
+@[simp]
+theorem coe_transDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
+    (e : N ≃ₘ^n⟮J, K⟯ P) (hn : 1 ≤ n) :
+    ⇑(f.transDiffeomorphOfBoundaryless e hn) = e ∘ f :=
+  funext (transDiffeomorphOfBoundaryless_apply f e hn)
+
+end TransDiffeomorphOfBoundaryless
 
 section TransDiffeomorph
 

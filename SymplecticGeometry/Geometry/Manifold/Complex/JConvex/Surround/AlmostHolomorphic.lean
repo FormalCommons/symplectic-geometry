@@ -585,15 +585,11 @@ theorem exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le {N : ℕ
       ‖conjWirtingerDeriv e₂ z‖ ≤ C₂ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N ∧
       ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₂ w)) z‖ ≤
         C₂ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1) := by
-  set P : (EuclideanSpace ℂ ι' →L[ℝ] W) →L[ℝ] EuclideanSpace ℂ ι' →L[ℝ] W :=
-    ContinuousLinearMap.complexAntilinearPartL
   set t := fun z ↦ ‖(complexEuclideanEquivRealProd ι' z).2‖
-  refine ⟨C₁ + max 1 ‖P‖ * max C 0, fun z hz ↦ ?_⟩
+  refine ⟨C₁ + max C 0, fun z hz ↦ ?_⟩
   have h₁ := he₁.contDiffAt (hU.mem_nhds hz)
   have h₂ := he₂.contDiffAt (hU.mem_nhds hz)
   have hC' : C ≤ max C 0 := le_max_left _ _
-  have hP : 1 ≤ max 1 ‖P‖ := le_max_left _ _
-  have hP' : ‖P‖ ≤ max 1 ‖P‖ := le_max_right _ _
   have h1 := hC z hz 1 (by simp)
   rw [norm_iteratedFDeriv_one, Nat.add_sub_cancel] at h1
   have h2 := hC z hz 2 (by simp)
@@ -601,18 +597,17 @@ theorem exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le {N : ℕ
   constructor
   · calc _ ≤ _ := norm_conjWirtingerDeriv_le_add_norm_fderiv_sub
           (h₁.differentiableAt two_ne_zero) (h₂.differentiableAt two_ne_zero)
-      _ ≤ C₁ * t z ^ N + 1 * (max C 0 * t z ^ N) := by
-        rw [one_mul]
+      _ ≤ C₁ * t z ^ N + max C 0 * t z ^ N := by
         gcongr
         · exact hC₁ z hz
         · exact h1.trans (by gcongr)
-      _ ≤ _ := by rw [add_mul, mul_assoc]; gcongr
+      _ = _ := by rw [add_mul]
   · calc _ ≤ _ := norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub h₁ h₂
-      _ ≤ C₁ * t z ^ (N - 1) + ‖P‖ * (max C 0 * t z ^ (N - 1)) := by
+      _ ≤ C₁ * t z ^ (N - 1) + max C 0 * t z ^ (N - 1) := by
         gcongr
         · exact hC₁' z hz
         · exact h2.trans (by gcongr)
-      _ ≤ _ := by rw [add_mul, mul_assoc]; gcongr
+      _ = _ := by rw [add_mul]
 
 end SymplecticGeometry
 

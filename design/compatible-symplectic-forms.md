@@ -353,9 +353,8 @@ For a symplectic atlas `A` of `π` for $(F,\sigma)$, with no compactness:
   extension of the fibre forms exists if and only if such a class does.
 
 `map_eq_of_restricts` and `forall_map_eq_of_map_eq` hold in every degree;
-the other statements are in degree 2 with $\sigma$ closed (it is
-symplectic). About
-450 lines; if it grows, the chart-independence lemma goes first in the same
+the other statements in every positive degree, with $\sigma$ closed (it is
+symplectic). If the file grows, the chart-independence lemma goes first in the same
 issue as a public lemma about fibre embeddings.
 
 ### `Geometry/Symplectic/Fibration/Thurston.lean`

@@ -272,7 +272,7 @@ theorem contMDiffOn_chartRay {b₀ : B} {r : ℝ}
   have hφ : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ) ∞ rayParam := contDiff_rayParam.contMDiff
   have hsrc : MapsTo Prod.fst ((chartBall J b₀ r : Set B) ×ˢ (univ : Set ℝ))
       (chartAt G b₀).source := fun p hp ↦ by
-    rw [← extChartAt_source J]; exact ((mem_chartBall_iff J).1 hp.1).1
+    rw [← extChartAt_source J]; exact chartBall_subset_source J b₀ r hp.1
   have hchart : ContMDiffOn (J.prod 𝓘(ℝ, ℝ)) 𝓘(ℝ, F) ∞ (fun p : B × ℝ ↦ extChartAt J b₀ p.1)
       ((chartBall J b₀ r : Set B) ×ˢ univ) :=
     (contMDiffOn_extChartAt (n := ∞)).comp contMDiff_fst.contMDiffOn hsrc

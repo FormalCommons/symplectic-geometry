@@ -75,7 +75,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 
 * `SymplecticGeometry.GluedAlong φ`: the space glued from `M₁` and `M₂` along `φ`.
 * `SymplecticGeometry.GluedAlong.inl`, `SymplecticGeometry.GluedAlong.inr`: the canonical maps
-  from `M₁` and `M₂`.
+  from `M₁` and `M₂`, and `SymplecticGeometry.GluedAlong.inlContinuousMap`, `inl` as a continuous
+  map.
 * `SymplecticGeometry.GluedAlong.desc`: the continuous map on the glued space given by continuous
   maps on `M₁` and `M₂` that agree on the overlap.
 * `SymplecticGeometry.GluedAlong.descContMDiffMap`: its smooth version, for a gluing along a
@@ -94,7 +95,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
   `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`,
   `inl_mem_range_inr_iff`, `inr_mem_range_inl_iff`, `range_inl_eq_compl_image_inr`,
-  `range_inr_eq_compl_image_inl`, `isClosed_image_inl`: the topology of the glued space.
+  `range_inr_eq_compl_image_inl`, `range_inl_inter_range_inr`, `isClosed_image_inl`: the topology
+  of the glued space.
 * `SymplecticGeometry.GluedAlong.isCompatible_glueData_of_contMDiff`: the gluing along a
   homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
@@ -347,6 +349,21 @@ theorem range_inr_eq_compl_image_inl : range (inr φ) = (inl φ '' (U₁ : Set M
       not_not, SetLike.mem_coe]
   · refine iff_of_true (mem_range_self y) fun ⟨x, hx, h⟩ ↦ hx ?_
     exact (inl_mem_range_inr_iff φ).1 ⟨y, h.symm⟩
+
+/-- The ranges of `inl` and `inr` meet in the image of `U₁`. -/
+theorem range_inl_inter_range_inr : range (inl φ) ∩ range (inr φ) = inl φ '' U₁ := by
+  ext z
+  constructor
+  · rintro ⟨⟨x, rfl⟩, hz⟩
+    exact ⟨x, inl_mem_range_inr_iff φ |>.1 hz, rfl⟩
+  · rintro ⟨x, hx, rfl⟩
+    exact ⟨mem_range_self x, inl_mem_range_inr_iff φ |>.2 hx⟩
+
+/-- The canonical map from `M₁` to the glued space, as a continuous map. -/
+@[expose] def inlContinuousMap : C(M₁, GluedAlong φ) := ⟨inl φ, continuous_inl φ⟩
+
+@[simp]
+theorem coe_inlContinuousMap : ⇑(inlContinuousMap φ) = inl φ := (rfl)
 
 /-- The range of `inl`, an open subset of the glued space: the points that come from `M₁`. -/
 def rangeInl : Opens (GluedAlong φ) := ⟨range (inl φ), isOpen_range_inl φ⟩
