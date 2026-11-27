@@ -354,9 +354,7 @@ symplectic form, and has dimension the Morse index. -/
 theorem IsWeinsteinStructure.two_mul_manifoldMorseIndex_le (hW : IsWeinsteinStructure σ X f)
     {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
     2 * manifoldMorseIndex 𝓘(ℝ, E) f p ≤ finrank ℝ E := by
-  have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
-      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
-    (hW.contMDiff_field p).mdifferentiableAt (by simp)
+  have hXp := hW.mdifferentiableAt_field p
   have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
   rw [← hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl]
   refine LinearMap.BilinForm.two_mul_finrank_le_finrank_of_le_orthogonal
