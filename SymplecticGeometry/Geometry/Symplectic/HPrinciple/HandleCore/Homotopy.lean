@@ -124,11 +124,6 @@ theorem exists_homotopy_exact_of_isotopy {τ : L → SmoothTwoForm 𝓘(ℝ, E) 
         ((mextDerivₗ 𝓘(ℝ, E) 1 (β' p.1)).val x - (τ p.1).val x) := by
     simp only [hνdef, SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply]
     module
-  -- Pullback along a map that is the identity near `x` does not change the value at `x`.
-  have hid (p : L × unitInterval) (θ : SmoothTwoForm 𝓘(ℝ, E) E) {x : E}
-      (hx : (fun y ↦ f (p, y)) =ᶠ[𝓝 x] id) :
-      (SmoothForm.mpullback _ (hfp p) θ).val x = θ.val x := by
-    rw [SmoothForm.coe_mpullback, hx.mpullback_eq, TauCeti.mpullback_id]
   refine ⟨fun p ↦ SmoothForm.mpullback _ (hfp p) (ν p), hν.mpullback_family hf, fun l ↦ ?_,
     fun l hl t x hx ↦ ?_, ⟨U, hU.mem_nhdsSet.2 hAU, fun l hl t x hx ↦ ?_⟩,
     fun l ↦ ?_, fun l ⟨V, hV, γ, hγ⟩ t ↦ ?_⟩
@@ -137,8 +132,9 @@ theorem exists_homotopy_exact_of_isotopy {τ : L → SmoothTwoForm 𝓘(ℝ, E) 
     have ha0 : a 0 = 0 := collaredFirstHalf_zero le_rfl
     have hb0 : b 0 = 0 := by simp only [hbdef, hc0, Set.Icc.coe_zero]
     refine Subtype.ext (funext fun x ↦ ?_)
-    rw [hid (l, 0) _ (Eventually.of_forall fun y ↦ by
-        simp only [hfdef, ha0, he0, id]), hνval, hb0, zero_smul, add_zero]
+    rw [SmoothForm.mpullback_apply_eq_self_of_eventuallyEq_id _
+        (Eventually.of_forall fun y ↦ by simp only [hfdef, ha0, he0, id]), hνval, hb0,
+      zero_smul, add_zero]
   · -- Nondegeneracy on `Q`.
     set y := f ((l, t), x)
     have hyQ : y ∈ Q := heQ (l, a t) hx
@@ -164,7 +160,8 @@ theorem exists_homotopy_exact_of_isotopy {τ : L → SmoothTwoForm 𝓘(ℝ, E) 
   · -- `U` is a fixed neighbourhood of `A`.
     have hnear : (fun y ↦ f ((l, t), y)) =ᶠ[𝓝 x] id :=
       eventually_of_mem (hU.mem_nhds hx) fun y hy ↦ heU _ y hy
-    rw [hid (l, t) _ hnear, hνval, hβ'U l hl x hx, sub_self, smul_zero, add_zero]
+    rw [SmoothForm.mpullback_apply_eq_self_of_eventuallyEq_id _ hnear, hνval, hβ'U l hl x hx,
+      sub_self, smul_zero, add_zero]
   · -- At time `1` the form is exact.
     have hc1 : c 1 = 1 := collaredSecondHalf_one le_rfl
     have hb1 : b 1 = 1 := by simp only [hbdef, hc1, Set.Icc.coe_one]
