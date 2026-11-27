@@ -5,14 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Hypersurface.LineBundle
 public import TauCeti.Analysis.Normed.Module.Alternating.TopDegree
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 
-import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
+import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart.Change
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.TopDegree
 import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
