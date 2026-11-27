@@ -802,8 +802,8 @@ theorem smoothForm_ext {α β : SmoothForm I (GluedAlong φ.toHomeomorph) F k}
       SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff β) :
     α = β := by
   refine Subtype.ext (roughForm_ext φ ?_ ?_)
-  · simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val h₁
-  · simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val h₂
+  · exact (SmoothForm.mpullback_eq_mpullback_iff _ _).1 h₁
+  · exact (SmoothForm.mpullback_eq_mpullback_iff _ _).1 h₂
 
 variable {φ}
 

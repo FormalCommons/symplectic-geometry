@@ -140,7 +140,7 @@ private theorem exists_diffeotopy_mpullback_eq [FiniteDimensional ℝ E']
       have h₁ : B ∘ Prod.mk t = (fun q ↦ e (⟨t, ht⟩, q)) ∘ r :=
         funext fun w ↦ hψe ⟨t, ht⟩ (r w)
       have h₂ : (ρ ∘ Prod.snd) ∘ Prod.mk t = i ∘ r := rfl
-      rw [SmoothForm.mpullback_eq_iff, SmoothForm.coe_mpullback, h₁, h₂,
+      rw [SmoothForm.mpullback_eq_mpullback_iff, h₁, h₂,
         TauCeti.mpullback_comp (f := r) (g := fun q ↦ e (⟨t, ht⟩, q)) (hr.mdifferentiable (by simp))
           ((e.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiable (by simp)),
         TauCeti.mpullback_comp (hr.mdifferentiable (by simp))
@@ -188,7 +188,7 @@ private theorem exists_diffeotopy_mpullback_eq [FiniteDimensional ℝ E']
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ := by
     rw [hslice 0 ⟨le_rfl, zero_le_one⟩]
     have h : (fun w : W ↦ ψ 0 w) = Subtype.val := funext fun w ↦ hψ₀ w
-    rw [SmoothForm.mpullback_eq_iff, SmoothForm.coe_mpullback, h]
+    rw [SmoothForm.mpullback_eq_mpullback_iff, h]
   rw [← h₀, ← hw t, hslice t t.property]
 
 /-- **Neighbourhood extension of isotopies of submanifolds.** Let `σ` be a symplectic form on a
