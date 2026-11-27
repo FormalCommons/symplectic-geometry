@@ -8,6 +8,7 @@ module
 public import TauCeti.Analysis.Complex.LeviForm.Basic
 
 import Mathlib.Analysis.Normed.Module.RCLike.Extend
+import SymplecticGeometry.Analysis.Complex.LeviForm.Basic
 
 /-!
 # The Levi form of an interpolation between two functions
@@ -54,17 +55,14 @@ theorem le_re_leviForm_add_mul_sub_apply_self (hf : ContDiffAt ℝ 2 f p)
           ‖fderiv ℝ β p‖ * ‖fderiv ℝ (g - f) p‖) * ‖v‖ ^ 2 ≤
       (leviForm (f + β * (g - f)) p v v).re := by
   have hD : ContDiffAt ℝ 2 (g - f) p := hg.sub hf
-  have hf' : ContDiffAt ℝ 2 (-f) p := hf.neg
   have hβD : ContDiffAt ℝ 2 (β * (g - f)) p := hβ.mul hD
-  have hLD : leviForm (g - f) p = leviForm g p - leviForm f p := by
-    rw [sub_eq_add_neg, leviForm_add hg hf', leviForm_neg, sub_eq_add_neg]
   set a := StrongDual.extendRCLike (𝕜 := ℂ) (fderiv ℝ β p) v
   set b := StrongDual.extendRCLike (𝕜 := ℂ) (fderiv ℝ (g - f) p) v
   have hθ : (leviForm (f + β * (g - f)) p v v).re =
       (1 - β p) * (leviForm f p v v).re + β p * (leviForm g p v v).re +
         (g - f) p * (leviForm β p v v).re + (conj a * b).re / 2 := by
     rw [leviForm_add hf hβD, LinearMap.add_apply, LinearMap.add_apply,
-      leviForm_mul_apply hβ hD, hLD]
+      leviForm_mul_apply hβ hD, leviForm_sub hg hf]
     simp only [LinearMap.sub_apply, add_re, mul_re, ofReal_re, ofReal_im, sub_re, conj_re,
       conj_im]
     norm_num

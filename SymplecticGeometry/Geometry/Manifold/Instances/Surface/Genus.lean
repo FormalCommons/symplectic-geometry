@@ -14,8 +14,8 @@ public import TauCeti.Geometry.Manifold.Instances.AddCircle
 public import TauCeti.Geometry.Manifold.ConnectedSum.Prime
 public import TauCeti.Geometry.Manifold.ConnectedSum.Topology
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Range
-import SymplecticGeometry.Geometry.Manifold.DisjointCoordinateBalls
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
+import TauCeti.Analysis.Normed.Module.Ball
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
@@ -45,9 +45,13 @@ circles `{x | x i = 0}` of the torus through its base point `0`.
 The closed surface `SymplecticGeometry.ClosedSurface g` is built by recursion on `g`, as
 `SymplecticGeometry.closedSurfaceData g`: a surface together with a sequence of coordinate balls
 with pairwise disjoint ranges, a base point outside them, and the punctured torus summands. For
-`g = 0` it is the unit sphere `S²` in `EuclideanSpace ℝ (Fin 3)`, with the balls of
-`SymplecticGeometry.exists_pairwise_disjoint_range_subset_compl_sphere` and the point `(1, 0, 0)`
-that they miss. The surface of genus `g + 1` is the connected sum of the torus, along its ball,
+`g = 0` it is the unit sphere `S²` in `EuclideanSpace ℝ (Fin 3)`, with the base point
+`v = (1, 0, 0)` and the explicit balls `TauCeti.sphereBall v ∘ univBall (j • e) (1 / 2)`, for
+`e = (1, 0)`: Mathlib's `univBall` maps the plane onto the disc of radius `1 / 2` about `j • e`,
+these discs are pairwise disjoint (Tau Ceti's `TauCeti.pairwise_disjoint_ball_add_natCast_smul`),
+and Tau Ceti's coordinate ball `TauCeti.sphereBall v` is injective with range the complement of
+`v`. Since the balls are given, and not chosen, later files can compare their orientations. The
+surface of genus `g + 1` is the connected sum of the torus, along its ball,
 with the surface of genus `g`, along its ball `0`. The other balls miss the centre of the ball
 `0`, so they pass to the sum by Tau Ceti's `TauCeti.ConnectedSum.inrBall`. So do the base point
 and the earlier summands, since a point of the surface of genus `g` is glued to the torus only if
@@ -87,6 +91,8 @@ say where they send the base point, the summands and the balls.
   the connected sum (`TauCeti.IsIteratedConnectedSum`) of `g` tori.
 * `SymplecticGeometry.ClosedSurface.isOpenEmbedding_summand`: each punctured torus summand is an
   open embedding into it.
+* `SymplecticGeometry.ClosedSurface.zeroDiffeomorph_ball`: the balls of the surface of genus `0`
+  are `TauCeti.sphereBall v ∘ univBall (j • e) (1 / 2)` on the sphere.
 
 ## References
 
@@ -307,29 +313,37 @@ attribute [local instance] topologicalSpace t2Space compactSpace connectedSpace 
 private def spherePoint : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 :=
   ⟨EuclideanSpace.single 0 1, by simp⟩
 
-private theorem exists_sphere_ball :
-    ∃ b : ℕ → EuclideanSpace ℝ (Fin 2) → sphere (0 : EuclideanSpace ℝ (Fin 3)) 1,
-      (∀ j, IsOpenEmbedding (b j)) ∧ (∀ j, IsLocalDiffeomorph (𝓡 2) (𝓡 2) ∞ (b j)) ∧
-      (∀ j, range (b j) ⊆ {spherePoint}ᶜ) ∧ Pairwise (Disjoint on fun j ↦ range (b j)) :=
-  have := Fact.mk (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2 + 1))
-  exists_pairwise_disjoint_range_subset_compl_sphere spherePoint le_rfl
-
-/-- The sphere `S²`, the connected sum of no tori, with infinitely many coordinate balls with
-pairwise disjoint ranges that miss its base point `(1, 0, 0)`. -/
-def sphere : ClosedSurfaceData 0 where
-  carrier := Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1
-  connectedSpace := connectedSpace_euclideanSphere (by simp)
-  ball := exists_sphere_ball.choose
-  isOpenEmbedding_ball := exists_sphere_ball.choose_spec.1
-  isLocalDiffeomorph_ball := exists_sphere_ball.choose_spec.2.1
-  pairwise_disjoint_range_ball := exists_sphere_ball.choose_spec.2.2.2
-  basePoint := spherePoint
-  basePoint_notMem_range_ball j h := exists_sphere_ball.choose_spec.2.2.1 j h rfl
-  summand := Fin.elim0
-  isOpenEmbedding_summand k := k.elim0
-  disjoint_range_summand_ball k := k.elim0
-  basePoint_notMem_range_summand k := k.elim0
-  isIteratedConnectedSum := (isIteratedConnectedSum_zero_iff _).2 ⟨Diffeomorph.refl _ _ _⟩
+/-- The sphere `S²`, the connected sum of no tori, with its base point `v = (1, 0, 0)` and the
+coordinate balls `TauCeti.sphereBall v ∘ OpenPartialHomeomorph.univBall (j • e) (1 / 2)`, for
+`e = (1, 0)`. Mathlib's `univBall` maps the plane onto the disc of radius `1 / 2` about `j • e`;
+these discs are pairwise disjoint, and Tau Ceti's ball `sphereBall v` is injective with range the
+complement of `v`. -/
+def sphere : ClosedSurfaceData 0 :=
+  haveI := Fact.mk (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2 + 1))
+  { carrier := Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1
+    connectedSpace := connectedSpace_euclideanSphere (by simp)
+    ball j := TauCeti.sphereBall spherePoint ∘ univBall (j • EuclideanSpace.single 0 1) (1 / 2)
+    isOpenEmbedding_ball _ := (isOpenEmbedding_sphereBall _).comp
+      ((univBall _ _).isOpenEmbedding (univBall_source _ _))
+    isLocalDiffeomorph_ball _ x :=
+      (isLocalDiffeomorph_univBall le_rfl x).comp (hg := isLocalDiffeomorph_sphereBall _ _ _)
+    pairwise_disjoint_range_ball i j hij := by
+      -- The discs of radius `1 / 2` about the points `j • e` are pairwise disjoint.
+      have h := pairwise_disjoint_ball_add_natCast_smul 0
+        (EuclideanSpace.single (0 : Fin 2) (1 : ℝ)) hij
+      simp only [onFun, range_comp, range_univBall _ (by norm_num : (0 : ℝ) < 1 / 2)]
+      rw [disjoint_image_iff (isOpenEmbedding_sphereBall _).injective]
+      simpa [Nat.cast_smul_eq_nsmul] using h
+    basePoint := spherePoint
+    basePoint_notMem_range_ball j h := by
+      have h' := range_comp_subset_range _ (TauCeti.sphereBall (n := 2) spherePoint) h
+      rw [range_sphereBall] at h'
+      exact h' rfl
+    summand := Fin.elim0
+    isOpenEmbedding_summand k := k.elim0
+    disjoint_range_summand_ball k := k.elim0
+    basePoint_notMem_range_summand k := k.elim0
+    isIteratedConnectedSum := (isIteratedConnectedSum_zero_iff _).2 ⟨Diffeomorph.refl _ _ _⟩ }
 
 variable {g : ℕ} (d : ClosedSurfaceData g)
 
@@ -472,7 +486,8 @@ def basePoint : ClosedSurface g := (closedSurfaceData g).basePoint
 
 /-- The `j`-th coordinate ball of the closed surface of genus `g`, along which a further torus can
 be summed; the surface of genus `g + 1` is summed along the ball `0`
-(`ClosedSurface.succDiffeomorph`). -/
+(`ClosedSurface.succDiffeomorph`). For `g = 0` the balls are explicit
+(`ClosedSurface.zeroDiffeomorph_ball`). -/
 def ball (j : ℕ) : EuclideanSpace ℝ (Fin 2) → ClosedSurface g := (closedSurfaceData g).ball j
 
 variable {g}
@@ -538,6 +553,16 @@ def zeroDiffeomorph :
 @[simp]
 theorem coe_zeroDiffeomorph_basePoint :
     (zeroDiffeomorph (basePoint 0) : EuclideanSpace ℝ (Fin 3)) = EuclideanSpace.single 0 1 :=
+  (rfl)
+
+/-- The ball `j` of the closed surface of genus `0` is, on the sphere,
+`TauCeti.sphereBall v ∘ OpenPartialHomeomorph.univBall (j • e) (1 / 2)`, for its base point
+`v = (1, 0, 0)` and `e = (1, 0)`. -/
+@[simp]
+theorem zeroDiffeomorph_ball (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
+    haveI := Fact.mk (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2 + 1))
+    zeroDiffeomorph (ball 0 j w) = TauCeti.sphereBall (zeroDiffeomorph (basePoint 0))
+      (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) :=
   (rfl)
 
 /-- The closed surface of genus `g + 1` is the connected sum of the torus, along its coordinate

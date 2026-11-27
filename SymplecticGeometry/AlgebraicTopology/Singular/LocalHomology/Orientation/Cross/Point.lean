@@ -52,7 +52,12 @@ product orientation with the positive one is the image under the inclusion of th
   (`Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientation`);
 * the local orientation of `ω` times the local orientation selected by `ω'` on `Q` is the local
   orientation of `ω.prod ω'`
-  (`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim`).
+  (`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim`);
+* when both spaces have dimension zero, the product of the local orientations selected by `ω`
+  and `ω'` is the one selected by `ω.prod ω'`, since the cross product of the classes of two
+  points is the class of the pair and the product orientation is positive exactly when `ω` and
+  `ω'` have the same sign
+  (`Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientationOfZeroDim`).
 
 ## Main results
 
@@ -65,6 +70,8 @@ product orientation with the positive one is the image under the inclusion of th
 * `Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientation`,
   `Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim`: the same
   for the local orientations selected by orientations.
+* `Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientationOfZeroDim`:
+  the cross product of two local orientations selected by orientations in dimension zero.
 
 ## References
 
@@ -374,5 +381,30 @@ theorem localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim
   · rw [localOrientationOfZeroDim_neg, LocalOrientation.coe_neg, TensorProduct.tmul_neg, map_neg,
       hJω, hJ', prod_neg_right, localOrientation_neg, LocalOrientation.coe_neg,
       prod_positiveOrientation_right]
+/-- **The cross product of two zero-dimensional local orientations.** Let `P` and `Q` have
+dimension zero, with orientations `ω` and `ω'`. The cross product of the local orientations
+selected by `ω` and by `ω'` is the local orientation of `P × Q` selected by the product
+orientation `ω.prod ω'`. -/
+theorem localHomologyCross_localOrientationOfZeroDim_tmul_localOrientationOfZeroDim
+    [FiniteDimensional ℝ P] [FiniteDimensional ℝ Q] (hP : finrank ℝ P = 0)
+    (hQ : finrank ℝ Q = 0) (ω : Orientation ℝ P (Fin 0)) (ω' : Orientation ℝ Q (Fin 0)) :
+    (localHomologyCross (0 : P) (0 : Q) 0 0 0 rfl).hom
+        ((ω.localOrientationOfZeroDim hP).val ⊗ₜ (ω'.localOrientationOfZeroDim hQ).val) =
+      ((ω.prod ω' hP hQ).localOrientationOfZeroDim
+        (by rw [Module.finrank_prod, hP, hQ])).val := by
+  have hpt : (localHomologyCross (0 : P) (0 : Q) 0 0 0 rfl).hom
+      (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : P)} 0 1 ⊗ₜ
+        localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : Q)} 0 1) =
+      localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : P × Q)} 0 1 :=
+    (localHomologyCross_tmul_localHomologyPointClass _ _ 0 _).trans
+      (localHomologyPointClass_map_apply _ _ _ _ _)
+  -- The product orientation is indexed by `Fin (0 + 0)`, which instance search does not reduce.
+  have : IsEmpty (Fin (0 + 0)) := inferInstanceAs (IsEmpty (Fin 0))
+  rw [coe_localOrientationOfZeroDim, coe_localOrientationOfZeroDim, coe_localOrientationOfZeroDim,
+    prod_eq_positiveOrientation_iff (m := 0) (n := 0)]
+  by_cases hω : ω = positiveOrientation <;> by_cases hω' : ω' = positiveOrientation <;>
+    simp only [hω, hω', iff_self, iff_true, iff_false,
+      not_true_eq_false, ite_true, ite_false, TensorProduct.neg_tmul, TensorProduct.tmul_neg,
+      map_neg, neg_neg, hpt]
 
 end Orientation

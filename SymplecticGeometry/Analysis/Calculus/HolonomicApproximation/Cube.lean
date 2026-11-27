@@ -121,12 +121,13 @@ cube, and let `(f, G)` be a smooth formal section that is holonomic (`D f = G`) 
 `U` containing `B ×ˢ {0}`, for a closed set `B` of core points. Let `ε, δ > 0`. Then there are a
 diffeotopy `h` of `D`, a smooth map `f'` and an open set `V` such that:
 * `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
-* `h` moves every point by less than `δ`, keeps every core coordinate (the core coordinates
-  outside `∅`), and is the identity at all times near `B ×ˢ {0}`;
+* `h` moves every point by less than `δ` and keeps every core coordinate (the core coordinates
+  outside `∅`);
 * `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f`, and
   `(D f' - G) w` has norm at most `ε ‖w‖` for every vector `w` whose core part lies in the
   directions `∅`, that is, every vector with zero core part;
-* `f'` equals `f` near `B ×ˢ {0}`.
+* there is a neighbourhood `N` of `B` such that at every point `x` with `x.1 ∈ N`, whatever its
+  transverse part `x.2`, `h` is the identity at all times and `f' x = f x`.
 
 This is the case `J = ∅` of the induction over the core directions; in fact `h` is the identity
 diffeotopy. -/
@@ -141,11 +142,10 @@ theorem exists_holonomic_approximation_cube_empty {f : (Fin m → ℝ) × (Fin k
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∀ t x, ∀ i ∉ (∅ : Finset (Fin m)), (h (t, x)).1 i = x.1 i) ∧
-      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧ ContDiff ℝ ∞ f' ∧
       (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ∀ w : (Fin m → ℝ) × (Fin k → ℝ),
         (∀ i ∉ (∅ : Finset (Fin m)), w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
-      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U' := by
+      ∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x := by
   set Q₁ : Set (Fin m → ℝ) := closedBall 0 1
   -- The core points `u` with `(u, 0) ∈ U`: an open set containing `B`.
   set A : Set (Fin m → ℝ) := (fun u ↦ (u, (0 : Fin k → ℝ))) ⁻¹' U
@@ -223,10 +223,10 @@ theorem exists_holonomic_approximation_cube_empty {f : (Fin m → ℝ) × (Fin k
     exact hf.add (((hc.comp contDiff_fst).mul (κ.contDiff.comp contDiff_snd)).smul
       (((hf.comp hι).add ((hG.comp hι).clm_apply (contDiff_const.prodMk contDiff_snd))).sub hf))
   refine ⟨TauCeti.Diffeotopy.refl _ _ _, f', V, ⟨C, ?_, ?_, fun t x _ ↦ by simp, fun x hx ↦ ?_⟩,
-    fun t x ↦ by simpa using hδ, fun t x i _ ↦ by simp, ⟨univ, Filter.univ_mem, by simp⟩,
+    fun t x ↦ by simpa using hδ, fun t x i _ ↦ by simp,
     (hU.union (hO₁.prod isOpen_univ)).inter (isOpen_ball.prod isOpen_ball), ?_, hf',
-    fun x hx ↦ ?_, ⟨Prod.fst ⁻¹' O₀, (hO₀.preimage continuous_fst).mem_nhdsSet.2
-      fun x hx ↦ hBO₀ (Or.inl hx.1), fun x hx ↦ by simp [f', hO₀c _ hx]⟩⟩
+    fun x hx ↦ ?_, ⟨O₀, hO₀.mem_nhdsSet.2 fun u hu ↦ hBO₀ (Or.inl hu),
+      fun x hx ↦ ⟨fun t ↦ by simp, by simp [f', hO₀c _ hx]⟩⟩⟩
   · exact (isCompact_closedBall _ _).cthickening.prod (isCompact_closedBall _ _)
   · rw [hQ, thickening_prod, thickening_singleton]
     exact prod_mono (cthickening_subset_thickening' hδ (by linarith) _)
@@ -342,11 +342,11 @@ holds for `(f, G)` in the directions `J'` (`ih`), then it holds for `(f, G)` in 
 `insert i₀ J'`: there are a diffeotopy `h` of `D`, a smooth map `f'` and an open set `V` such
 that
 * `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
-* `h` moves every point by less than `δ`, keeps the core coordinates outside `insert i₀ J'`,
-  and is the identity at all times near `B ×ˢ {0}`;
+* `h` moves every point by less than `δ` and keeps the core coordinates outside `insert i₀ J'`;
 * `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f`, and
   `(D f' - G) w` has norm at most `ε ‖w‖` for every vector `w` in the directions `insert i₀ J'`;
-* `f'` equals `f` near `B ×ˢ {0}`.
+* there is a neighbourhood `N` of `B` such that at every point `x` with `x.1 ∈ N`, whatever its
+  transverse part `x.2`, `h` is the identity at all times and `f' x = f x`.
 
 The diffeotopy runs the one for the directions `J'`, with final map `Φ`, and then the one of
 `exists_holonomic_approximation_direction` for the section pulled back along `Φ`, conjugated by
@@ -365,11 +365,10 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
           (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
         (∀ t x, dist (h (t, x)) x < δ) ∧
         (∀ t x, ∀ i ∉ J', (h (t, x)).1 i = x.1 i) ∧
-        (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
         IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧ ContDiff ℝ ∞ f' ∧
         (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ∀ w : (Fin m → ℝ) × (Fin k → ℝ),
           (∀ i ∉ J', w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
-        ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U')
+        ∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x)
     {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
     ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ∞ ((Fin m → ℝ) × (Fin k → ℝ)))
       (f' : (Fin m → ℝ) × (Fin k → ℝ) → F) (V : Set ((Fin m → ℝ) × (Fin k → ℝ))),
@@ -377,16 +376,15 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∀ t x, ∀ i ∉ insert i₀ J', (h (t, x)).1 i = x.1 i) ∧
-      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧ ContDiff ℝ ∞ f' ∧
       (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ∀ w : (Fin m → ℝ) × (Fin k → ℝ),
         (∀ i ∉ insert i₀ J', w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
-      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U' := by
+      ∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x := by
   set Q : Set ((Fin m → ℝ) × (Fin k → ℝ)) := closedBall 0 1 ×ˢ {0}
   have hQ : IsCompact Q := (isCompact_closedBall _ _).prod isCompact_singleton
   -- Step 2a: the approximation in the directions `J'`, with final map `Φ`.
-  obtain ⟨h₁, f₁, V₁, ⟨C₁, hC₁, hC₁δ, hh₁C₁, hf₁C₁⟩, hh₁δ, hh₁J', ⟨W₁, hW₁, hh₁W₁⟩, hV₁, hQV₁,
-    hf₁, hf₁V₁, U₁, hU₁, hf₁U₁⟩ := ih (ε / 2) (δ / 2) (half_pos hε) (half_pos hδ)
+  obtain ⟨h₁, f₁, V₁, ⟨C₁, hC₁, hC₁δ, hh₁C₁, hf₁C₁⟩, hh₁δ, hh₁J', hV₁, hQV₁, hf₁, hf₁V₁, N₁,
+    hN₁, hN₁f⟩ := ih (ε / 2) (δ / 2) (half_pos hε) (half_pos hδ)
   set Φ := h₁.final
   have hΦ : ∀ x, Φ x = h₁ (1, x) := h₁.final_apply
   have hΦJ' : ∀ x, ∀ i ∉ J', (Φ x).1 i = x.1 i := fun x i hi ↦ by rw [hΦ, hh₁J' 1 x i hi]
@@ -397,17 +395,20 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
   -- Step 2b: the datum pulled back along `Φ`, holonomic near `B ×ˢ {0}`.
   set f₂ := f₁ ∘ Φ
   set G₂ := fun x ↦ (G₁ (Φ x)).comp (fderiv ℝ Φ x)
-  set U₂ := interior W₁ ∩ interior U₁ ∩ U
-  have hBU₂ : B ×ˢ {0} ⊆ U₂ := fun x hx ↦ ⟨⟨subset_interior_iff_mem_nhdsSet.2 hW₁ hx,
-    subset_interior_iff_mem_nhdsSet.2 hU₁ hx⟩, hBU hx⟩
+  set U₂ := Prod.fst ⁻¹' interior N₁ ∩ U
+  have hU₂ : IsOpen U₂ := (isOpen_interior.preimage continuous_fst).inter hU
+  have hBU₂ : B ×ˢ {0} ⊆ U₂ := fun x hx ↦ ⟨subset_interior_iff_mem_nhdsSet.2 hN₁ hx.1, hBU hx⟩
   have hU₂f : ∀ x ∈ U₂, fderiv ℝ f₂ x = G₂ x := by
     intro x hx
+    have hN₁x : ∀ᶠ y in 𝓝 x, y.1 ∈ N₁ :=
+      Filter.mem_of_superset ((isOpen_interior.preimage continuous_fst).mem_nhds hx.1)
+        fun y hy ↦ interior_subset (s := N₁) hy
     have hΦx : (Φ : _ → _) =ᶠ[𝓝 x] id := by
-      filter_upwards [isOpen_interior.mem_nhds hx.1.1] with y hy
-      rw [hΦ, hh₁W₁ 1 y (interior_subset hy), id]
+      filter_upwards [hN₁x] with y hy
+      rw [hΦ, (hN₁f y hy).1 1, id]
     have hf₁x : f₁ =ᶠ[𝓝 x] f := by
-      filter_upwards [isOpen_interior.mem_nhds hx.1.2] with y hy
-      exact hf₁U₁ (interior_subset hy)
+      filter_upwards [hN₁x] with y hy
+      exact (hN₁f y hy).2
     have hf₂x : f₂ =ᶠ[𝓝 x] f := by
       filter_upwards [hΦx, hf₁x] with y h₁y h₂y
       simp only [f₂, Function.comp_apply, h₁y, id, h₂y]
@@ -424,12 +425,12 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
   have hδ₂δ : δ₂ ≤ δ / 2 :=
     (le_mul_of_one_le_left hδ₂.le (by exact_mod_cast hL1)).trans hLδ₂
   have hε₂ : 0 < ε / (2 * L) := div_pos hε (mul_pos two_pos hL0)
-  obtain ⟨h₂, f₂', V₂, ⟨C₂, hC₂, hC₂δ, hh₂C₂, hf₂'C₂⟩, hh₂δ, hh₂fst, hW₂, hV₂, hQV₂, hf₂',
-    hf₂'V₂, U₂', hU₂', hf₂'U₂'⟩ := exists_holonomic_approximation_direction hk i₀
+  obtain ⟨h₂, f₂', V₂, ⟨C₂, hC₂, hC₂δ, hh₂C₂, hf₂'C₂⟩, hh₂δ, hh₂fst, hV₂, hQV₂, hf₂',
+    hf₂'V₂, N₂, hN₂, hN₂f⟩ := exists_holonomic_approximation_direction hk i₀
       (hf₁.comp Φ.contDiff) (Φ.contDiff_clm_comp_fderiv hG₁ (by simp))
       (fun u _ v hv ↦ fderiv_comp_diffeomorph_apply_eq hΦJ' subset_rfl
         (hf₁.differentiable (by simp) _) (fun w hw ↦ hf₁G₁ _ w hw) hv)
-      hB hJB ((isOpen_interior.inter isOpen_interior).inter hU) hBU₂ hU₂f hε₂ hδ₂
+      hB hJB hU₂ hBU₂ hU₂f hε₂ hδ₂
   -- Step 2d: the assembly.
   refine ⟨h₂.transDiffeomorph Φ * h₁, f₂' ∘ Φ.symm, Φ '' V₂ ∩ V₁,
     ⟨C₁ ∪ Φ '' C₂, hC₁.union (hC₂.image Φ.continuous), union_subset
@@ -441,8 +442,6 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
     fun t x i hi ↦ transDiffeomorph_final_mul_apply_fst_apply
       (fun t x i hi ↦ hh₁J' t x i fun h ↦ hi (Finset.mem_insert_of_mem h))
       (fun t x i _ ↦ by rw [hh₂fst]) t x hi,
-    TauCeti.Diffeotopy.exists_mem_nhdsSet_transDiffeomorph_final_mul_apply_eq_self
-      ⟨W₁, hW₁, hh₁W₁⟩ hW₂,
     (Φ.toHomeomorph.isOpen_image.2 hV₂).inter hV₁, fun y hy ↦ ⟨?_, ?_⟩,
     hf₂'.comp Φ.symm.contDiff, ?_, ?_⟩
   · rintro _ ⟨x, hx, rfl⟩
@@ -465,13 +464,17 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
     obtain ⟨h₁, h₂⟩ := norm_comp_diffeomorph_symm_sub_lt_and_le hΦJ' (Finset.subset_insert i₀ J')
       (hf₂'.differentiable (by simp) z) hε₂.le (hΦsL _) (hG₁sub (Φ z)) (hf₁V₁ _ hy) (hf₂'V₂ z hz)
     exact ⟨h₁.trans_le (by linarith), fun w hw ↦ (h₂ w hw).trans_eq (by rw [hε₂L]; ring)⟩
-  · refine ⟨W₁ ∩ U₁ ∩ U₂', Filter.inter_mem (Filter.inter_mem hW₁ hU₁) hU₂', fun y hy ↦ ?_⟩
-    have hΦy : Φ y = y := by rw [hΦ, hh₁W₁ 1 y hy.1.1]
+  · -- Over `N₁ ∩ N₂`, `h₁` and `h₂` are the identity, hence so are `Φ` and the conjugate.
+    refine ⟨N₁ ∩ N₂, Filter.inter_mem hN₁ hN₂, fun y hy ↦ ⟨fun t ↦
+      TauCeti.Diffeotopy.transDiffeomorph_final_mul_apply_eq_self_of_mem_inter
+        (W₁ := Prod.fst ⁻¹' N₁) (W₂ := Prod.fst ⁻¹' N₂) (fun t x hx ↦ (hN₁f x hx).1 t)
+        (fun t x hx ↦ (hN₂f x hx).1 t) t y hy, ?_⟩⟩
+    have hΦy : Φ y = y := by rw [hΦ, (hN₁f y hy.1).1 1]
     have hΦsy : Φ.symm y = y := by
       calc Φ.symm y = Φ.symm (Φ y) := by rw [hΦy]
         _ = y := Φ.symm_apply_apply y
-    simp only [Function.comp_apply, hΦsy, hf₂'U₂' hy.2, hΦy]
-    exact hf₁U₁ hy.1.2
+    simp only [Function.comp_apply, hΦsy, (hN₂f y hy.2).2, hΦy]
+    exact (hN₁f y hy.1).2
 
 /-- **Holonomic approximation over the cube in the core directions `J`.** On
 `D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms, `0 < k`, let `Q = closedBall 0 1 ×ˢ {0}` be the
@@ -480,12 +483,12 @@ set `U` containing `B ×ˢ {0}`, for a closed set `B` of core points that contai
 the cube with a coordinate of absolute value `1` in a direction of `J`. Let `ε, δ > 0`. Then
 there are a diffeotopy `h` of `D`, a smooth map `f'` and an open set `V` such that:
 * `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
-* `h` moves every point by less than `δ`, keeps the core coordinates outside `J`, and is the
-  identity at all times near `B ×ˢ {0}`;
+* `h` moves every point by less than `δ` and keeps the core coordinates outside `J`;
 * `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f`, and
   `(D f' - G) w` has norm at most `ε ‖w‖` for every vector `w` whose core part vanishes outside
   the directions `J`;
-* `f'` equals `f` near `B ×ˢ {0}`. -/
+* there is a neighbourhood `N` of `B` such that at every point `x` with `x.1 ∈ N`, whatever its
+  transverse part `x.2`, `h` is the identity at all times and `f' x = f x`. -/
 theorem exists_holonomic_approximation_cube_directions (hk : 0 < k) (J : Finset (Fin m))
     {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
     {G : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
@@ -499,11 +502,10 @@ theorem exists_holonomic_approximation_cube_directions (hk : 0 < k) (J : Finset 
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∀ t x, ∀ i ∉ J, (h (t, x)).1 i = x.1 i) ∧
-      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧ ContDiff ℝ ∞ f' ∧
       (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ∀ w : (Fin m → ℝ) × (Fin k → ℝ),
         (∀ i ∉ J, w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
-      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U' := by
+      ∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x := by
   induction J using Finset.induction_on generalizing ε δ with
   | empty => exact exists_holonomic_approximation_cube_empty hf hG hB hU hBU hUf hε hδ
   | insert i₀ J' _ ih =>
@@ -517,11 +519,12 @@ section that is holonomic (`D f = G`) on an open set `U` containing `sphere 0 1 
 boundary of the cube. Let `ε, δ > 0`. Then there are a diffeotopy `h` of `D`, a smooth map `f'`
 and an open set `V` such that:
 * `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
-* `h` moves every point by less than `δ`, and is the identity at all times near the boundary
-  `sphere 0 1 ×ˢ {0}`;
+* `h` moves every point by less than `δ`;
 * `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f` and
   its derivative is `ε`-close to `G`;
-* `f'` equals `f` near the boundary `sphere 0 1 ×ˢ {0}`. -/
+* there is a neighbourhood `N` of the boundary sphere `sphere 0 1` of the core cube such that at
+  every point `x` with `x.1 ∈ N`, whatever its transverse part `x.2`, `h` is the identity at all
+  times and `f' x = f x`. -/
 theorem exists_holonomic_approximation_cube (hk : 0 < k) {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
     {G : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
     (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G) {U : Set ((Fin m → ℝ) × (Fin k → ℝ))}
@@ -532,10 +535,9 @@ theorem exists_holonomic_approximation_cube (hk : 0 < k) {f : (Fin m → ℝ) ×
       (∃ C, IsCompact C ∧ C ⊆ thickening δ (closedBall 0 1 ×ˢ {0}) ∧
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
-      (∃ W ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧
       ContDiff ℝ ∞ f' ∧ (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ‖fderiv ℝ f' x - G x‖ < ε) ∧
-      ∃ U' ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), EqOn f' f U' := by
+      ∃ N ∈ 𝓝ˢ (sphere 0 1), ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x := by
   have hJB : ∀ u ∈ closedBall (0 : Fin m → ℝ) 1, (∃ i ∈ Finset.univ, |u i| = 1) →
       u ∈ sphere 0 1 := by
     rintro u hu ⟨i, -, hui⟩
@@ -544,10 +546,10 @@ theorem exists_holonomic_approximation_cube (hk : 0 < k) {f : (Fin m → ℝ) ×
     refine le_antisymm hu ?_
     rw [← hui, ← Real.norm_eq_abs]
     exact norm_le_pi_norm u i
-  obtain ⟨h, f', V, hC, hhδ, -, hW, hV, hQV, hf', hf'V, hU''⟩ :=
+  obtain ⟨h, f', V, hC, hhδ, -, hV, hQV, hf', hf'V, hN⟩ :=
     exists_holonomic_approximation_cube_directions hk Finset.univ hf hG isClosed_sphere hJB hU hU'
       hUf (half_pos hε) hδ
-  refine ⟨h, f', V, hC, hhδ, hW, hV, hQV, hf', fun x hx ↦ ?_, hU''⟩
+  refine ⟨h, f', V, hC, hhδ, hV, hQV, hf', fun x hx ↦ ?_, hN⟩
   obtain ⟨h₁, h₂⟩ := hf'V x hx
   refine ⟨h₁.trans (half_lt_self hε), ?_⟩
   exact (ContinuousLinearMap.opNorm_le_bound _ (half_pos hε).le
