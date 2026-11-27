@@ -642,7 +642,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
   refine ⟨hxV.2, ?_⟩
   rw [← hwx, hQι w hw]
 
-/-- **The Hessian form decreases along the local stable disc.** Let `p` be a nondegenerate
+/-- **`-H` decreases along the local stable disc.** Let `p` be a nondegenerate
 critical point of the function of a Weinstein structure `(ω, X, f)` with flow `φ`, `A` the
 linearization of `X` at `p`, `e` the extended chart at `p`, and
 `H = fderiv ℝ (fderiv ℝ (f ∘ e.symm)) (e p)` the second derivative of `f` read in `e`. There is a
