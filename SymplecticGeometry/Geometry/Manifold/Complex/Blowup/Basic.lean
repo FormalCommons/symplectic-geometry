@@ -11,9 +11,9 @@ public import Mathlib.Analysis.CStarAlgebra.Classes
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -774,9 +774,7 @@ theorem contMDiffOn_lift :
     ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (lift c)
       (range (inr (gluingHomeomorph c))) := by
   have hinj := (GluedAlong.inr_injective (gluingHomeomorph c)).injOn (s := univ)
-  have h := ((isLocalDiffeomorph_inr c).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn
-    isOpen_univ hinj
-  rw [image_univ] at h
+  have h := (isLocalDiffeomorph_inr c).contMDiffOn_invFunOn (GluedAlong.inr_injective _)
   refine (contMDiff_subtypeVal.comp_contMDiffOn h).congr ?_
   rintro _ ⟨y, rfl⟩
   rw [lift_inr, Function.comp_apply, hinj.leftInvOn_invFunOn (mem_univ y)]
