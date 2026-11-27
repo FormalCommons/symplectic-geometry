@@ -37,6 +37,11 @@ linear map in `f`, and gives its basic properties.
 * `ContinuousLinearMap.complexExtension_injective`: the extension of an injective map whose image
   is totally real (Tau Ceti's `TauCeti.IsTotallyReal`) is injective.
 
+Along the way, `TauCeti.complexEuclideanEquivRealProd_I_smul` and
+`TauCeti.I_smul_complexEuclideanEquivRealProd_symm` say how multiplication by `i` acts on real
+and imaginary parts, and `TauCeti.norm_complexEuclideanEquivRealProd_fst_le`,
+`TauCeti.norm_complexEuclideanEquivRealProd_snd_le` bound their norms by that of the point.
+
 ## References
 
 * D. Huybrechts, *Complex Geometry: An Introduction*, Springer (2005), §1.2 (complexification
@@ -89,6 +94,31 @@ theorem _root_.TauCeti.complexEuclideanEquivRealProd_I_smul (z : EuclideanSpace 
     complexEuclideanEquivRealProd ι (Complex.I • z) =
       (-(complexEuclideanEquivRealProd ι z).2, (complexEuclideanEquivRealProd ι z).1) := by
   ext i <;> simp
+
+/-- Multiplication by `i` on `ℂⁿ` sends `x + i y` to `-y + i x`. -/
+theorem _root_.TauCeti.I_smul_complexEuclideanEquivRealProd_symm
+    (p : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :
+    Complex.I • (complexEuclideanEquivRealProd ι).symm p =
+      (complexEuclideanEquivRealProd ι).symm (-p.2, p.1) := by
+  ext i
+  simp
+  linear_combination (↑(p.2.ofLp i) : ℂ) * Complex.I_sq
+
+/-- The real part of a point of `ℂⁿ` has norm at most the norm of the point. -/
+theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_fst_le (z : EuclideanSpace ℂ ι) :
+    ‖(complexEuclideanEquivRealProd ι z).1‖ ≤ ‖z‖ := by
+  have h := norm_complexEuclideanEquivRealProd_symm_sq (complexEuclideanEquivRealProd ι z)
+  rw [ContinuousLinearEquiv.symm_apply_apply] at h
+  exact (pow_le_pow_iff_left₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1
+    (h ▸ le_add_of_nonneg_right (sq_nonneg _))
+
+/-- The imaginary part of a point of `ℂⁿ` has norm at most the norm of the point. -/
+theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_snd_le (z : EuclideanSpace ℂ ι) :
+    ‖(complexEuclideanEquivRealProd ι z).2‖ ≤ ‖z‖ := by
+  have h := norm_complexEuclideanEquivRealProd_symm_sq (complexEuclideanEquivRealProd ι z)
+  rw [ContinuousLinearEquiv.symm_apply_apply] at h
+  exact (pow_le_pow_iff_left₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1
+    (h ▸ le_add_of_nonneg_left (sq_nonneg _))
 
 /-- The complex-linear extension of `f` commutes with multiplication by `i`. -/
 theorem complexExtension_apply_I_smul (f : EuclideanSpace ℝ ι →L[ℝ] F)

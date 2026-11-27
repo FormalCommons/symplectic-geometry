@@ -22,8 +22,10 @@ The same equivalence embeds `F` linearly into `E'`, so `F` is finite-dimensional
 
 * `Manifold.IsImmersion.nontrivial_complement`: the complement of an immersion of a nonempty
   manifold into one whose model space has larger rank is nontrivial.
-* `Manifold.IsImmersionAt.finiteDimensional_complement`: the complement of an immersion at a point
-  into a manifold with finite-dimensional model space is finite-dimensional.
+* `Manifold.IsImmersionAtOfComplement.finiteDimensional_complement`: the complement `F` of an
+  immersion at a point into a manifold with finite-dimensional model space is finite-dimensional.
+* `Manifold.IsImmersionAt.finiteDimensional_complement`: the same for the complement chosen by
+  `Manifold.IsImmersionAt`.
 
 ## References
 
@@ -60,16 +62,27 @@ theorem nontrivial_complement [Nonempty M] (h : IsImmersion I J n f)
 
 end Manifold.IsImmersion
 
+namespace Manifold.IsImmersionAtOfComplement
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- If `f : M → N` is an immersion at `x` with complement `F`, and the model space `E'` of `N` is
+finite-dimensional, then `F` is finite-dimensional. -/
+theorem finiteDimensional_complement [FiniteDimensional 𝕜 E'] {x : M}
+    (h : IsImmersionAtOfComplement F I J n f x) : FiniteDimensional 𝕜 F :=
+  FiniteDimensional.of_injective
+    ((h.equiv : E × F →L[𝕜] E').comp (ContinuousLinearMap.inr 𝕜 E F)).toLinearMap
+    (h.equiv.injective.comp (Prod.mk_right_injective (0 : E)))
+
+end Manifold.IsImmersionAtOfComplement
+
 namespace Manifold.IsImmersionAt
 
 /-- If `f : M → N` is an immersion at `x` and the model space `E'` of `N` is finite-dimensional,
 then the complement chosen by the immersion is finite-dimensional. -/
 theorem finiteDimensional_complement [FiniteDimensional 𝕜 E'] {x : M}
     (h : IsImmersionAt I J n f x) : FiniteDimensional 𝕜 h.complement :=
-  have h' := h.isImmersionAtOfComplement_complement
-  FiniteDimensional.of_injective
-    ((h'.equiv : E × h.complement →L[𝕜] E').comp (ContinuousLinearMap.inr 𝕜 E _)).toLinearMap
-    (h'.equiv.injective.comp (Prod.mk_right_injective (0 : E)))
+  h.isImmersionAtOfComplement_complement.finiteDimensional_complement
 
 end Manifold.IsImmersionAt
 

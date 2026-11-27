@@ -10,7 +10,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Polar
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 

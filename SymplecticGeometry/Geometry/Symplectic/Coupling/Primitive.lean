@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 
 /-!
@@ -244,7 +245,7 @@ theorem prodIccHomotopyOperator_sub_apply_couplingField (h₀ : IsCouplingForm �
     (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
       (ω₁ - ω₀)).val x ![couplingField IB P a b x] = 0 :=
   prodIccHomotopyOperator_apply_couplingField (fun y v ↦ by
-    simp only [Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
+    simp only [SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
       h₀.apply_couplingField, h₁.apply_couplingField]
     exact sub_self _) x
 

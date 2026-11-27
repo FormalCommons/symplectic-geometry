@@ -1792,7 +1792,7 @@ Hausdorff σ-compact base.
     proof uses `stdComplexStructure_complexToRealEuclidean`
     (`J₀ (c v) = c (i • v)`), which the issue adds to
     `LinearAlgebra/Symplectic/Standard/Basic.lean`, next to
-    `stdComplexStructure_complexEuclideanEquiv`. So
+    `stdComplexStructure_complexToRealEuclideanIsometry`. So
     the sign agrees with *Standard model*, where `stdForm ι z w =
     ⟪J₀ z, w⟫` and `J₀` is multiplication by `Complex.I` moved along
     `complexToRealEuclidean`. Neither Mathlib nor Tau Ceti has a constant

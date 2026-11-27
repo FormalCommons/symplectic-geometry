@@ -835,7 +835,7 @@ forms relative to `V₀`.
   junction both pieces span the same Lagrangian, so a constant change of
   frame on the later piece makes the frame continuous, and a
   reparametrization that is flat at the junctions makes it smooth. The
-  file imports `Analysis/SpecialFunctions/SmoothTransition.lean` (*Smooth
+  file imports `Analysis/SpecialFunctions/SmoothTransition/Basic.lean` (*Smooth
   families*) for `TauCeti.deriv_collaredSmoothTransition_pos` and the
   eventual constancy of `TauCeti.collaredSmoothTransition`, which that
   reparametrization uses, and `Analysis/Calculus/ContDiff/Concat.lean` (*Smooth

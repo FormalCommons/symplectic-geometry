@@ -12,7 +12,7 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 
 /-!
 # A smoothed maximum of two real numbers
