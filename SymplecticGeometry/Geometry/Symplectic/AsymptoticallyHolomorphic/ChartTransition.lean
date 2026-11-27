@@ -35,6 +35,16 @@ for it, for `k ≥ k₀`:
   transitions pull it back from one chart to the other
   (`RescaledUnitaryCharts.associatedBilinFormInChart_chartTransition_bilinearComp`, in the
   namespace `SymplecticGeometry`);
+* the fixed map `A ↦ ω₀(·, A ·)` does not increase norms
+  (`SymplecticGeometry.norm_precompR_stdForm_flip_apply_le`, of
+  `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`), so for `k ≥ k₀` and `w` in the
+  ball of radius `ρ₀ * √k` the bounds on `J` read in the charts pass to the forms: `‖g_{k,x}(w)‖` is
+  at most `‖J₀‖ + |D.bound 1| * ρ₀`
+  (`SymplecticGeometry.RescaledUnitaryCharts.norm_associatedBilinFormInChart_le_of_mem_ball`), and
+  its `r`-th derivative for `r ≥ 1` is at most `D.bound r * (√k)⁻¹`
+  (`SymplecticGeometry.RescaledUnitaryCharts.norm_iteratedFDeriv_associatedBilinFormInChart_le`,
+  from Mathlib's `ContinuousLinearMap.iteratedFDeriv_comp_left`); neither `D.bound r` nor `ρ₀`
+  depends on `k` or `x`;
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
   (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`), there is a radius
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
@@ -59,14 +69,14 @@ for it, for `k ≥ k₀`:
 public section
 
 open scoped Manifold ContDiff
-open TauCeti Metric Bundle MulOpposite
+open TauCeti Metric MulOpposite
 
 namespace SymplecticGeometry
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] {ι : Type*} [Fintype ι]
-  {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
+  {P : M → Type*} [TopologicalSpace (Bundle.TotalSpace Circle P)] [∀ x, TopologicalSpace (P x)]
   [FiberBundle Circle P] [ContMDiffFiberBundle ∞ Circle P I (𝓡 1)]
 
 namespace RescaledUnitaryCharts
@@ -198,6 +208,58 @@ theorem associatedBilinFormInChart_chartTransition_bilinearComp {k : ℕ} (hk : 
       D.associatedBilinFormInChart k y w := by
   ext u v
   simpa using D.stdForm_fderiv_chartTransition_chartPushforward hk hw u v
+
+/-- The norm of the form `g_{k,x}(w)` is at most the norm of `J_x(w)`, `J` read in the chart
+centred at `x`. -/
+theorem norm_associatedBilinFormInChart_le (k : ℕ) (x : M) (w : StdSpace ι) :
+    ‖D.associatedBilinFormInChart k x w‖ ≤
+      ‖J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w‖ := by
+  rw [associatedBilinFormInChart_def]
+  exact norm_precompR_stdForm_flip_apply_le _
+
+/-- **A uniform bound on the forms read in the charts.** For `k ≥ k₀` and `w` in the ball of
+radius `ρ₀ * √k`, the form `g_{k,x}(w)` has norm at most `‖J₀‖ + |D.bound 1| * ρ₀`, a constant
+that depends neither on `k`, nor on `x`, nor on `w`. -/
+theorem norm_associatedBilinFormInChart_le_of_mem_ball {k : ℕ} (hk : k₀ ≤ k) (x : M)
+    {w : StdSpace ι} (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+    ‖D.associatedBilinFormInChart k x w‖ ≤
+      ‖LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap‖ +
+        |D.bound 1| * ρ₀ := by
+  have hk0 : 0 < √k := (Real.sqrt_nonneg _).lt_of_ne fun h ↦ by
+    simpa [← h] using pos_of_mem_ball hw
+  have ht : (√k)⁻¹ * ‖w‖ ≤ ρ₀ :=
+    (inv_mul_le_iff₀ hk0).2 (by linarith [mem_ball_zero_iff.1 hw])
+  refine (D.norm_associatedBilinFormInChart_le k x w).trans
+    ((norm_le_norm_add_norm_sub' _ (LinearMap.toContinuousLinearMap
+      (stdComplexStructure ι).toLinearMap)).trans (add_le_add_right ?_ _))
+  calc _ ≤ D.bound 1 * (√k)⁻¹ * ‖w‖ := D.jStruct_sub_le hk x w hw
+    _ = D.bound 1 * ((√k)⁻¹ * ‖w‖) := mul_assoc _ _ _
+    _ ≤ |D.bound 1| * ((√k)⁻¹ * ‖w‖) := by gcongr; exact le_abs_self _
+    _ ≤ |D.bound 1| * ρ₀ := by gcongr
+
+/-- **Uniform bounds on the derivatives of the forms read in the charts.** On a boundaryless
+manifold, for `k ≥ k₀`, `r ≥ 1` and `w` in the ball of radius `ρ₀ * √k`, the `r`-th iterated
+derivative of the field of forms `g_{k,x}` at `w` has norm at most `D.bound r * (√k)⁻¹`: the
+field is `J` read in the chart followed by a fixed continuous linear map that does not increase
+norms. -/
+theorem norm_iteratedFDeriv_associatedBilinFormInChart_le [I.Boundaryless] {k : ℕ}
+    (hk : k₀ ≤ k) {r : ℕ} (hr : r ≠ 0) (x : M) {w : StdSpace ι}
+    (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+    ‖iteratedFDeriv ℝ r (D.associatedBilinFormInChart k x) w‖ ≤ D.bound r * (√k)⁻¹ := by
+  have hJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w :=
+    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
+      (D.chart k x).symm.contMDiffOn).contDiffAt
+      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
+  have hfun : D.associatedBilinFormInChart k x =
+      (ContinuousLinearMap.precompR (StdSpace ι)
+          (stdForm ι).toBilinForm.toContinuousBilinearMap).flip ∘
+        J.chartPushforward (D.chart k x).toOpenPartialHomeomorph :=
+    funext (D.associatedBilinFormInChart_def k x)
+  rw [hfun, ContinuousLinearMap.iteratedFDeriv_comp_left _ hJ (by exact_mod_cast le_top)]
+  refine (ContinuousMultilinearMap.opNorm_le_bound (norm_nonneg _) fun m ↦ ?_).trans
+    (D.iteratedFDeriv_jStruct_le hk hr x w hw)
+  rw [ContinuousLinearMap.compContinuousMultilinearMap_coe, Function.comp_apply]
+  exact (norm_precompR_stdForm_flip_apply_le _).trans (ContinuousMultilinearMap.le_opNorm _ m)
 
 /-- At the centre `x` of the chart `D.chart k x`, for `k ≥ k₀`, the quadratic form
 `2π k σ(v, J v)` of a tangent vector `v` at `x` is `‖u‖ ^ 2`, for `u` the image of `v` under the
