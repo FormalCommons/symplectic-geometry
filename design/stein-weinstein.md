@@ -1061,7 +1061,7 @@ containing `ι '' closedBall 0 1`:
     `z ↦ complexAntilinearPartL (fderiv ℝ (taylorExtension N f) z)` with
     `‖im z‖ ^ (N - 1)`, where also `‖im z‖ ≤ 1`. This is the almost analytic extension of a
     smooth function, truncated at order `N`.
-  - (14d12) `norm_iteratedFDeriv_le_of_norm_dbar_le`: if
+  - (14d12) `exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`: if
     `D : EuclideanSpace ℂ ι' → W`
     is `C^(N + 1)` on a neighbourhood `U` of a compact set of real points,
     vanishes on the real points of `U`, and
@@ -1105,7 +1105,7 @@ containing `ι '' closedBall 0 1`:
     `chartAt` need not vary continuously. Proof as in *Route* above:
     the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
     `h = κ ∘ Φ₀`, agree pairwise to order `N + 1` by
-    `norm_iteratedFDeriv_le_of_norm_dbar_le`, a smooth partition of
+    `exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`, a smooth partition of
     unity on `V` glues them to a `G` with `G = id` on real points and
     differential the identity on the core, Tau Ceti's
     `exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt`
