@@ -24,8 +24,9 @@ and two points `x` and `y`, the transition `D.chartTransition k x y` is the map
 `D.chart k x ∘ (D.chart k y)⁻¹` from the chart centred at `y` to the chart centred at `x`, as a
 partial homeomorphism of `StdSpace ι`. This file proves what the defining properties of `D` give
 for it, for `k ≥ k₀`:
-* it is differentiable at each point of its source, and smooth on its source
-  (`SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_chartTransition` and
+* it is differentiable and smooth at each point of its source, and smooth on its source
+  (`SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_chartTransition`,
+  `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_chartTransition` and
   `SymplecticGeometry.RescaledUnitaryCharts.contDiffOn_chartTransition`, from
   `PartialDiffeomorph.differentiableAt_symm_trans` and `PartialDiffeomorph.contDiffOn_symm_trans`),
   for every `k`;
@@ -181,6 +182,13 @@ theorem contDiffOn_chartTransition {k : ℕ} {x y : M} :
     ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source := by
   rw [chartTransition_def]
   exact (D.chart k y).contDiffOn_symm_trans (D.chart k x)
+
+/-- The transition from the chart centred at `y` to the chart centred at `x` is smooth at each
+point of its source. -/
+theorem contDiffAt_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) :
+    ContDiffAt ℝ ∞ (D.chartTransition k x y) w :=
+  D.contDiffOn_chartTransition.contDiffAt ((D.chartTransition k x y).open_source.mem_nhds hw)
 
 /-- For `y` in the source of the chart centred at `x`, the centre `0` of the chart at `y` lies in
 the source of the transition from the chart at `y` to the chart at `x`. -/
@@ -789,9 +797,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryles
   refine hK (τ := D.chartTransition k x y)
     (a := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y))
     (b := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) (w₀ := 0)
-    ((D.contDiffOn_chartTransition.contDiffAt
-      ((D.chartTransition k x y).open_source.mem_nhds h0s)).of_le
-      (by simp))
+    ((D.contDiffAt_chartTransition h0s).of_le (by simp))
     (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k y).contDiffAt
       ((D.chart k y).open_target.mem_nhds h0t)).of_le (by simp))
     ?_ ?_ ?_ (fun i _ hi ↦ hΓ y h0 i hi) (fun i _ hi ↦ ?_) j hj₁ (by omega)

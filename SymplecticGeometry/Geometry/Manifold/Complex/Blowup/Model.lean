@@ -368,6 +368,15 @@ theorem isClosed_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X �
   exact isClosed_le ((complexToRealEuclidean (Fin (n + 1))).continuous.comp
     (continuous_blowdown.comp hf)).norm hc
 
+/-- For a continuous map `f` into the model and a continuous radius `c`, the points `x` with
+`f x ∈ openNbhd n (c x)` form an open set. -/
+theorem isOpen_setOf_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
+    {c : X → ℝ} (hf : Continuous f) (hc : Continuous c) :
+    IsOpen {x | f x ∈ openNbhd n (c x)} := by
+  simp only [mem_openNbhd_iff]
+  exact isOpen_lt ((complexToRealEuclidean (Fin (n + 1))).continuous.comp
+    (continuous_blowdown.comp hf)).norm hc
+
 /-- Over a compact space `X`, for a continuous radius `c`, the pairs `(x, p)` with
 `p ∈ closedNbhd n (c x)` form a compact subset of `X × BlowupModel n`. -/
 theorem isCompact_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] [CompactSpace X]
@@ -403,6 +412,10 @@ theorem closedNbhd_mono {ε ε' : ℝ} (h : ε ≤ ε') : closedNbhd n ε ⊆ cl
 @[gcongr]
 theorem openNbhd_mono {ε ε' : ℝ} (h : ε ≤ ε') : openNbhd n ε ⊆ openNbhd n ε' :=
   fun _ hp ↦ (mem_openNbhd_iff).2 ((mem_openNbhd_iff.1 hp).trans_le h)
+
+/-- For `a < b`, the closed neighbourhood of radius `a` lies in the open one of radius `b`. -/
+theorem closedNbhd_subset_openNbhd {a b : ℝ} (h : a < b) : closedNbhd n a ⊆ openNbhd n b :=
+  fun _ hp ↦ (mem_openNbhd_iff).2 ((mem_closedNbhd_iff.1 hp).trans_lt h)
 
 /-- The exceptional divisor is the intersection of the sets `L(ε)` over all `0 < ε`. -/
 theorem biInter_gt_closedNbhd :

@@ -65,7 +65,8 @@ polynomial in `‖z‖`.
   on `D.chartTransitionDomain k x y`, so differentiable at each of its points
   (`SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_frameChange`).
 * `SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`: the readings of a section
-  in the two charts differ by the change of frame.
+  in the two charts differ by the change of frame, and so agree near each point of the source of
+  the transition (`SymplecticGeometry.RescaledUnitaryCharts.reading_eventuallyEq_frameChange_mul`).
 * `SymplecticGeometry.RescaledUnitaryCharts.fderiv_frameChange_apply`: the logarithmic derivative
   of the change of frame.
 * `SymplecticGeometry.RescaledUnitaryCharts.connectionReading_eq_frameChange_smul_comp`: the
@@ -297,6 +298,16 @@ theorem reading_eq_frameChange_mul {k : ℕ} {x y : M} {w : StdSpace ι}
     PowerModel.toComplex_smul, frameChange_def, Circle.coe_pow, zpow_natCast,
     LinearIsometryEquiv.apply_symm_apply]
 
+/-- Near a point `w` of the source of the transition `τ` from the chart centred at `y` to the
+chart centred at `x`, the reading of a section `s` of `PowerBundle P k` in the chart at `y` is the
+change of frame times the reading of `s` in the chart at `x` composed with `τ`. -/
+theorem reading_eventuallyEq_frameChange_mul {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) (s : Π y, PowerBundle P k y) :
+    D.reading k y s =ᶠ[nhds w]
+      fun w' ↦ D.frameChange k x y w' * D.reading k x s (D.chartTransition k x y w') :=
+  Filter.eventually_of_mem ((D.chartTransition k x y).open_source.mem_nhds hw) fun _ hw' ↦
+    D.reading_eq_frameChange_mul hw' s
+
 attribute [local instance] finrank_real_complex_fact' in
 /-- **The logarithmic derivative of the change of frame.** Let `α` be a connection form, `k ≥ k₀`,
 and `τ` the transition from the chart centred at `y` to the chart centred at `x`. At a point `w`
@@ -376,15 +387,11 @@ theorem connectionReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm
         (fderiv ℝ (D.chartTransition k x y) w) := by
   have hws := D.chartTransitionDomain_subset_source k x y hw
   have hτ := D.differentiableAt_chartTransition hws
-  have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds hw
   have he := D.differentiableAt_frameChange hk hw
   have hfτ : DifferentiableAt ℝ (fun w' ↦ D.reading k x s (D.chartTransition k x y w')) w :=
     hs.comp w hτ
-  -- On the open set `W`, the reading at `y` is `e` times the reading at `x` composed with `τ`.
-  have heq : D.reading k y s =ᶠ[nhds w]
-      fun w' ↦ D.frameChange k x y w' * D.reading k x s (D.chartTransition k x y w') :=
-    Filter.eventually_of_mem hW fun w' hw' ↦
-      D.reading_eq_frameChange_mul (D.chartTransitionDomain_subset_source k x y hw') s
+  -- Near `w`, the reading at `y` is `e` times the reading at `x` composed with `τ`.
+  have heq := D.reading_eventuallyEq_frameChange_mul hws s
   ext v
   rw [smul_apply, ContinuousLinearMap.comp_apply, connectionReading_apply,
     connectionReading_apply, heq.fderiv_eq,
@@ -414,9 +421,7 @@ theorem exists_forall_jetNormAt_frameChange_zero_le [I.Boundaryless] (hJ : σ.Co
   have hz₀ : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k) := ball_subset_ball (by gcongr) hz
   have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
   have hW := (D.isOpen_chartTransitionDomain k x _).mem_nhds h0W
-  have h := hK (D.contDiffOn_chartTransition.contDiffAt
-      ((D.chartTransition k x _).open_source.mem_nhds
-        (D.chartTransitionDomain_subset_source k x _ h0W)))
+  have h := hK (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x _ h0W))
     (((D.contDiffOn_frameChange hk x _).contDiffAt hW).of_le (by simp))
     (D.norm_frameChange k x _ 0)
     (Filter.eventually_of_mem hW fun w hw v ↦ D.fderiv_frameChange_apply hα hk hw v)
