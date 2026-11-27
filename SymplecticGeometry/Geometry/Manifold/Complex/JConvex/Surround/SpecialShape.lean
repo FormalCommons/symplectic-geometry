@@ -57,12 +57,15 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   and `r³` are positive, whose sign `SymplecticGeometry.exists_two_roots_cubic_of_neg` gives.
 * `SymplecticGeometry.exists_isConvexShapeAt_eq_linear_eq_sqrt`: for `1 < a` and `0 < γ`, a
   smooth `i`-convex shape on `(0, ∞)` that is `1 + d r`, for some `d ∈ (0, 1)`, near `0` and
-  `√(1 + a r²)` on `[γ, ∞)`. It comes from
+  `√(1 + a r²)` on `[γ, ∞)`, and whose tangents at `r ≥ 0` meet the vertical axis above `0`.
+  It comes from
   `SymplecticGeometry.exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt`, which passes
   from the linear to the quadratic shape and from there to the square-root one, given a point
   `r₀` where the quadratic shape is below the square-root one, and from the constants
   `b = γ (a - 1) / 16`, `c = (1 + a) / 2` of `SymplecticGeometry.quadratic_lt_sqrt_of_mul_sq_le`,
-  for which `r₀ = γ` is such a point once `γ (a + 1)² ≤ a - 1`.
+  for which `r₀ = γ` is such a point once `γ (a + 1)² ≤ a - 1`. The three shapes are convex, and
+  so is each smoothed maximum that joins them, so the shape is convex; hence its tangents meet
+  the axis no lower than those of `√(1 + a r²)` far out, at `1 / √(1 + a r²) > 0`.
 * `SymplecticGeometry.exists_convexShape_surround`: for `1 < a` and `0 < γ`, some `δ ∈ (0, γ)` and
   an `i`-convex shape on `(δ, ∞)`, smooth there and continuous on `[δ, ∞)`, that is `√(1 + a r²)`
   on `[γ, ∞)`, has infinite slope at `δ` and a value in `(1, 1 + γ)` at `δ`. Struwe's shape is
@@ -732,13 +735,13 @@ private theorem exists_slope_linear {ℓ b c r₁ : ℝ} (hℓ : 0 < ℓ) (hb : 
 `0 < b < 1` and `1 < c`, and suppose that the quadratic shape `ℓ + b r + c r² / (2 ℓ)` is below
 `√(ℓ² + a r²)` at some `r₀ > 0`. Then there are a slope `d ∈ (b, 1)`, some `β ∈ (0, r₀)` and a
 smooth `ψ`, an `i`-convex shape at every `r > 0`, with `ψ r = √(ℓ² + a r²)` for `r ≥ r₀` and
-`ψ r = ℓ + d r` for `r ≤ β`. -/
+`ψ r = ℓ + d r` for `r ≤ β`, and `ψ` is convex: its second derivative is nonnegative. -/
 theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀ : ℝ}
     (hℓ : 0 < ℓ) (ha : 1 < a) (hb : 0 < b) (hb₁ : b < 1) (hc : 1 < c) (hr₀ : 0 < r₀)
     (h : ℓ + b * r₀ + c * r₀ ^ 2 / (2 * ℓ) < √(ℓ ^ 2 + a * r₀ ^ 2)) :
     ∃ d ∈ Ioo b 1, ∃ β ∈ Ioo 0 r₀, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧
       (∀ r, 0 < r → IsConvexShapeAt ψ r) ∧ (∀ r, r₀ ≤ r → ψ r = √(ℓ ^ 2 + a * r ^ 2)) ∧
-      ∀ r ≤ β, ψ r = ℓ + d * r := by
+      (∀ r ≤ β, ψ r = ℓ + d * r) ∧ ∀ r, 0 ≤ iteratedDeriv 2 ψ r := by
   have hc₀ : 0 < c := by linarith
   obtain ⟨r₁, ⟨hr₁₀, hr₁r₀⟩, r₂, hr₂, hQS⟩ := exists_crossings_quadratic_sqrt hℓ hb hc₀ hr₀ h
   have hr₂ : r₀ < r₂ := hr₂
@@ -757,10 +760,27 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
   have hQc : ∀ r, 0 < r → IsConvexShapeAt Q r := fun r hr ↦
     isConvexShapeAt_quadratic hℓ hb.le hc hr
   have hSc : ∀ r, 0 < r → IsConvexShapeAt S r := fun r hr ↦ isConvexShapeAt_sqrt ha hr
+  -- The three shapes are convex, and so are the functions that join them.
+  have hL₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 L r := by simp [L, iteratedDeriv_succ]
+  have hQ₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 Q r := by
+    have e : Q = fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2 := by
+      funext r
+      simp only [Q]
+      ring
+    simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
+    positivity
+  have hS₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 S r := by
+    have e : S = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
+      funext r
+      simp [S]
+    have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by nlinarith [sq_nonneg r]
+    simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
+    rw [deriv_deriv_sqrt_quadratic hQ]
+    exact div_nonneg (by nlinarith [sq_nonneg ℓ]) (by positivity)
   -- From the linear to the quadratic shape, across `x`, on `[x / 4, 3 x / 2]`.
-  obtain ⟨φ, hφs, hφc, hφL, hφQ, hφ₁, hφ₂⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (r₁ := x / 4)
-    (u := x / 2) (v := 5 * x / 4) (r₂ := 3 * x / 2) le_top hLs hQs (by linarith) (by linarith)
-    (by linarith) (fun r hr ↦ hLc r ⟨by linarith [hr.1], by linarith [hr.2]⟩)
+  obtain ⟨φ, hφs, hφc, hφL, hφQ, hφ₁, hφ₂, hφcv⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici
+    (r₁ := x / 4) (u := x / 2) (v := 5 * x / 4) (r₂ := 3 * x / 2) le_top hLs hQs (by linarith)
+    (by linarith) (by linarith) (fun r hr ↦ hLc r ⟨by linarith [hr.1], by linarith [hr.2]⟩)
     (fun r hr ↦ hQc r (by linarith [hr.1]))
     (fun r hr ↦ ((quadratic_lt_linear_iff hℓ hc₀ (by linarith [hr.1])).2
       (by linarith [hr.2])).le)
@@ -776,7 +796,7 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
     · exact hφc r ⟨h₁, h₂⟩
     · exact hφ₂ r (by linarith) (hQc r hr)
   -- From the quadratic to the square-root shape, across `r₁`, on `[5 x / 4, r₀]`.
-  obtain ⟨ψ, hψs, hψc, hψφ, hψS, hψ₁, hψ₂⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici
+  obtain ⟨ψ, hψs, hψc, hψφ, hψS, hψ₁, hψ₂, hψcv⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici
     (r₁ := 5 * x / 4) (u := (3 * x / 2 + r₁) / 2) (v := (r₁ + r₀) / 2) (r₂ := r₀) le_top hφs hSs
     (by linarith) (by linarith) (by linarith) (fun r hr ↦ hφc' r (by linarith [hr.1]))
     (fun r hr ↦ hSc r (by linarith [hr.1]))
@@ -793,7 +813,8 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
       · linarith [hr.2])
   refine ⟨d, ⟨hbd, hd₁⟩, x / 2, ⟨by positivity, by linarith⟩, ψ, hψs, fun r hr ↦ ?_,
     fun r hr ↦ hψS (show (r₁ + r₀) / 2 ≤ r by linarith),
-    fun r hr ↦ (hψφ (show r ≤ (3 * x / 2 + r₁) / 2 by linarith)).trans (hφL hr)⟩
+    fun r hr ↦ (hψφ (show r ≤ (3 * x / 2 + r₁) / 2 by linarith)).trans (hφL hr),
+    fun r ↦ hψcv r (hφcv r (hL₂ r) (hQ₂ r)) (hS₂ r)⟩
   rcases lt_or_ge r ((3 * x / 2 + r₁) / 2) with h₁ | h₁
   · exact hψ₁ r h₁ (hφc' r hr)
   rcases le_or_gt r r₀ with h₂ | h₂
@@ -829,23 +850,56 @@ example : ¬ ((1 : ℝ) + 1 / 2 * (100 - 1) / 16 * (1 / 2) + (1 + 100) / 2 * (1 
 
 /-- **From a linear to a square-root shape** (Cieliebak–Eliashberg, Lemma 4.19). For `1 < a` and
 `0 < γ` there are `d ∈ (0, 1)`, `β ∈ (0, γ)` and a smooth `ψ`, an `i`-convex shape at every
-`r > 0`, with `ψ r = √(1 + a r²)` for `r ≥ γ` and `ψ r = 1 + d r` for `r ≤ β`. -/
+`r > 0`, with `ψ r = √(1 + a r²)` for `r ≥ γ` and `ψ r = 1 + d r` for `r ≤ β`. Every tangent
+of `ψ` at a point `r ≥ 0` meets the vertical axis above `0`: `r ψ' r < ψ r`. -/
 theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
     ∃ d ∈ Ioo 0 1, ∃ β ∈ Ioo 0 γ, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧
       (∀ r, 0 < r → IsConvexShapeAt ψ r) ∧ (∀ r, γ ≤ r → ψ r = √(1 + a * r ^ 2)) ∧
-      ∀ r ≤ β, ψ r = 1 + d * r := by
+      (∀ r ≤ β, ψ r = 1 + d * r) ∧ ∀ r, 0 ≤ r → r * deriv ψ r < ψ r := by
   set γ' := min γ ((a - 1) / (a + 1) ^ 2)
   have hγ'₀ : 0 < γ' := lt_min hγ (div_pos (by linarith) (by positivity))
   have h : γ' * (a + 1) ^ 2 ≤ a - 1 := (le_div_iff₀ (by positivity)).1 (min_le_right _ _)
   have hb : γ' * (a - 1) / 16 < 1 := by nlinarith [mul_le_mul_of_nonneg_left h hγ'₀.le]
-  obtain ⟨d, hd, β, hβ, ψ, hψs, hψc, hψS, hψL⟩ :=
+  obtain ⟨d, hd, β, hβ, ψ, hψs, hψc, hψS, hψL, hψ₂⟩ :=
     exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt (ℓ := 1) (b := γ' * (a - 1) / 16)
       (c := (1 + a) / 2) one_pos ha (by have := sub_pos.2 ha; positivity) hb (by linarith) hγ'₀
       (by simpa using quadratic_lt_sqrt_of_mul_sq_le hγ'₀ h)
   have hγγ' : γ' ≤ γ := min_le_left _ _
+  have hψS' (r : ℝ) (hr : γ ≤ r) : ψ r = √(1 + a * r ^ 2) := by simpa using hψS r (hγγ'.trans hr)
   refine ⟨d, ⟨lt_trans (by have := sub_pos.2 ha; positivity) hd.1, hd.2⟩, β,
-    ⟨hβ.1, hβ.2.trans_le hγγ'⟩, ψ, hψs, hψc, fun r hr ↦ by simpa using hψS r (hγγ'.trans hr),
-    hψL⟩
+    ⟨hβ.1, hβ.2.trans_le hγγ'⟩, ψ, hψs, hψc, hψS', hψL, fun r hr₀ ↦ ?_⟩
+  -- Since `ψ` is convex, `r ↦ ψ r - r ψ' r`, whose derivative is `-r ψ'' r`, is antitone
+  -- on `[0, ∞)`.
+  have hψ' : Differentiable ℝ (deriv ψ) := by
+    simpa using hψs.differentiable_iteratedDeriv 1 (by simp)
+  have hanti : AntitoneOn (fun r ↦ ψ r - r * deriv ψ r) (Ici 0) := by
+    have hg (r : ℝ) : HasDerivAt (fun r ↦ ψ r - r * deriv ψ r)
+        (-(r * iteratedDeriv 2 ψ r)) r := by
+      have h := ((hψs.differentiable (by simp)) r).hasDerivAt.fun_sub
+        ((hasDerivAt_id' r).fun_mul (hψ' r).hasDerivAt)
+      convert h using 1
+      simp only [iteratedDeriv_succ, iteratedDeriv_zero]
+      ring
+    refine antitoneOn_of_deriv_nonpos (convex_Ici 0) (HasDerivAt.continuousOn fun r _ ↦ hg r)
+      (fun r _ ↦ (hg r).differentiableAt.differentiableWithinAt) fun r hr ↦ ?_
+    rw [interior_Ici, mem_Ioi] at hr
+    rw [(hg r).deriv]
+    nlinarith [hψ₂ r]
+  -- Beyond `γ`, `ψ - r ψ'` is `1 / √(1 + a r²) > 0`.
+  set t := max r γ + 1
+  have hrt : r ≤ t := by linarith [le_max_left r γ]
+  have ht : γ < t := by linarith [le_max_right r γ]
+  have hQ : 0 < 1 + 0 * t + a * t ^ 2 := by nlinarith
+  have hS : ψ =ᶠ[𝓝 t] fun r ↦ √(1 + 0 * r + a * r ^ 2) := by
+    filter_upwards [lt_mem_nhds ht] with r hr
+    simpa using hψS' r hr.le
+  have hd : deriv ψ t = (0 + 2 * a * t) / (2 * √(1 + 0 * t + a * t ^ 2)) := by
+    rw [hS.deriv_eq, ((hasDerivAt_quadratic _ _ _ t).sqrt hQ.ne').deriv]
+  have hpos : 0 < ψ t - t * deriv ψ t := by
+    have hRR := sq_sqrt hQ.le
+    rw [hd, hS.eq_of_nhds, sub_pos, mul_div_assoc', div_lt_iff₀ (by positivity)]
+    nlinarith
+  linarith [hanti hr₀ (show (0 : ℝ) ≤ t from hr₀.trans hrt) hrt]
 
 /-- **The surrounding shape** (Cieliebak–Eliashberg, Proposition 4.21, the part about the shape).
 For `1 < a` and `0 < γ` there are `δ ∈ (0, γ)` and a function `χ`, smooth on `(δ, ∞)` and
@@ -855,7 +909,8 @@ theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
     ∃ δ ∈ Ioo 0 γ, ∃ χ : ℝ → ℝ, ContDiffOn ℝ ∞ χ (Ioi δ) ∧ ContinuousOn χ (Ici δ) ∧
       (∀ r, δ < r → IsConvexShapeAt χ r) ∧ (∀ r, γ ≤ r → χ r = √(1 + a * r ^ 2)) ∧
       Tendsto (deriv χ) (𝓝[>] δ) atTop ∧ 1 < χ δ ∧ χ δ < 1 + γ := by
-  obtain ⟨d, hd, β, hβ, ψ, hψs, hψc, hψS, hψL⟩ := exists_isConvexShapeAt_eq_linear_eq_sqrt ha hγ
+  obtain ⟨d, hd, β, hβ, ψ, hψs, hψc, hψS, hψL, -⟩ :=
+    exists_isConvexShapeAt_eq_linear_eq_sqrt ha hγ
   obtain ⟨K, hKd⟩ : ∃ K, K = exp (4 / d ^ 2) := ⟨_, rfl⟩
   have hK : 1 < K := hKd ▸ one_lt_exp_iff.2 (by have := hd.1; positivity)
   -- A small `δ`.
@@ -882,7 +937,7 @@ theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
       (show δ < δ + e / 4 by linarith)
   have hψ' : ∀ r ∈ Icc (δ + e / 2) (K * δ + e / 2), S' r = S r ∧ ψ r = 1 + d * r :=
     fun r hr ↦ ⟨hS'S (show δ + e / 4 ≤ r by linarith [hr.1]), hψL r (by linarith [hr.2])⟩
-  obtain ⟨G, hGs, hGc, hG₁, hG₂, -, hG₂'⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (n := ⊤)
+  obtain ⟨G, hGs, hGc, hG₁, hG₂, -, hG₂', -⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (n := ⊤)
     (r₁ := δ + e / 2) (u := δ + 3 * e / 4) (v := K * δ + e / 4) (r₂ := K * δ + e / 2) le_top
     hS's hψs (by linarith) (by linarith) (by linarith)
     (fun r hr ↦ (hSc r ⟨by linarith [hr.1], by linarith [hr.2]⟩).congr_of_eventuallyEq <| by

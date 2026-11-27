@@ -22,7 +22,8 @@ is `SymplecticGeometry.smoothedMax`.
 * `SymplecticGeometry.exists_isConvexShapeAt_eq_max`: two `i`-convex shapes on `[r₁, r₂]` have
   a common smoothing of their maximum, `r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` for small `δ`, that is
   again an `i`-convex shape and is the maximum away from a given neighbourhood of their crossings
-  in `[r₁, r₂]`.
+  in `[r₁, r₂]`. It is convex where both shapes are
+  (`SymplecticGeometry.iteratedDeriv_two_smoothedMax_nonneg`).
   Its slope is a convex combination of theirs, which gives (4.3). For the case `σ = r` of (4.4)
   the cube of that slope falls short of the combination of the cubes by a multiple of
   `(χ₁' - χ₂')²` (`SymplecticGeometry.mul_pow_three_add_mul_pow_three_sub_pow_three_le`);
@@ -327,7 +328,8 @@ theorem exists_forall_isConvexShapeAt_smoothedMax {P : Type*} [TopologicalSpace 
 shapes at every point of `[r₁, r₂]`, and let `O` be a neighbourhood of the points of `[r₁, r₂]`
 where they cross. Then some `χ`, as smooth as `χ₁` and `χ₂` are (so at least `C²`), is an
 `i`-convex shape at every point of `[r₁, r₂]` and equals `max (χ₁ r) (χ₂ r)`
-at the points of `[r₁, r₂]` outside `O`.
+at the points of `[r₁, r₂]` outside `O`. Its second derivative is nonnegative at each `r`
+where those of `χ₁` and `χ₂` are.
 
 The function is `r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` for `δ` small. Unlike the book's, this
 statement does not ask that the shapes cross transversally. -/
@@ -338,7 +340,8 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
     (hO : O ∈ 𝓝ˢ (Set.Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r})) :
     ∃ χ : ℝ → ℝ, (∀ n : ℕ∞, ContDiff ℝ n χ₁ → ContDiff ℝ n χ₂ → ContDiff ℝ n χ) ∧
       (∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt χ r) ∧
-      ∀ r ∈ Set.Icc r₁ r₂ \ O, χ r = max (χ₁ r) (χ₂ r) := by
+      (∀ r ∈ Set.Icc r₁ r₂ \ O, χ r = max (χ₁ r) (χ₂ r)) ∧
+      ∀ r, 0 ≤ iteratedDeriv 2 χ₁ r → 0 ≤ iteratedDeriv 2 χ₂ r → 0 ≤ iteratedDeriv 2 χ r := by
   obtain ⟨δ₀, hδ₀, h⟩ := exists_forall_isConvexShapeAt_smoothedMax isCompact_univ
     (M := fun _ : Unit ↦ χ₁) (A := fun _ ↦ χ₂) (fun _ _ ↦ h₁) (fun _ _ ↦ h₂) (fun _ _ ↦ hc₁)
     (fun _ _ ↦ hc₂)
@@ -353,8 +356,9 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
   have hδ : 0 < δ := lt_min hδ₀ hβ
   refine ⟨fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r), fun n hn₁ hn₂ ↦
     (contDiff_smoothedMax δ).comp (hn₁.prodMk hn₂), fun r hr ↦
-    h δ ⟨hδ, min_le_left _ _⟩ () (Set.mem_univ _) r hr, fun r hr ↦ ?_⟩
-  exact smoothedMax_eq_max hδ ((min_le_right _ _).trans (hβD r hr))
+    h δ ⟨hδ, min_le_left _ _⟩ () (Set.mem_univ _) r hr,
+    fun r hr ↦ smoothedMax_eq_max hδ ((min_le_right _ _).trans (hβD r hr)),
+    fun r ↦ iteratedDeriv_two_smoothedMax_nonneg h₁ h₂ hδ.le⟩
 
 open Set in
 /-- **Passing from one `i`-convex shape to another.** Let `χ₁` and `χ₂` be `Cⁿ`, `n ≥ 2`, and
@@ -362,7 +366,8 @@ open Set in
 at least `χ₂` on `[r₁, u]`, at most `χ₂` on `[v, r₂]`, and that they cross in `[r₁, r₂]` only
 inside `(u, v)`. Then some `Cⁿ` function `χ`, an `i`-convex shape at every point of `[r₁, r₂]`,
 equals `χ₁` on `(-∞, u]` and `χ₂` on `[v, ∞)`. Outside `[r₁, r₂]` it is still an `i`-convex
-shape where `χ₁` is, left of `u`, and where `χ₂` is, right of `v`.
+shape where `χ₁` is, left of `u`, and where `χ₂` is, right of `v`. Its second derivative is
+nonnegative at each `r` where those of `χ₁` and `χ₂` are.
 
 It is the smoothed maximum of `exists_isConvexShapeAt_eq_max` on `[r₁, r₂]`, continued by `χ₁` to
 the left and by `χ₂` to the right. -/
@@ -375,9 +380,10 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
     ∃ χ : ℝ → ℝ, ContDiff ℝ n χ ∧ (∀ r ∈ Icc r₁ r₂, IsConvexShapeAt χ r) ∧
       EqOn χ χ₁ (Iic u) ∧ EqOn χ χ₂ (Ici v) ∧
       (∀ r < u, IsConvexShapeAt χ₁ r → IsConvexShapeAt χ r) ∧
-      (∀ r, v < r → IsConvexShapeAt χ₂ r → IsConvexShapeAt χ r) := by
+      (∀ r, v < r → IsConvexShapeAt χ₂ r → IsConvexShapeAt χ r) ∧
+      ∀ r, 0 ≤ iteratedDeriv 2 χ₁ r → 0 ≤ iteratedDeriv 2 χ₂ r → 0 ≤ iteratedDeriv 2 χ r := by
   have hn' : ((2 : ℕ∞) : WithTop ℕ∞) ≤ n := WithTop.coe_le_coe.2 hn
-  obtain ⟨χ, hχs, hχc, hχ⟩ := exists_isConvexShapeAt_eq_max (O := Ioo u v)
+  obtain ⟨χ, hχs, hχc, hχ, hχcv⟩ := exists_isConvexShapeAt_eq_max (O := Ioo u v)
     (h₁.of_le hn') (h₂.of_le hn') hc₁ hc₂
     (isOpen_Ioo.mem_nhdsSet.2 fun r hr ↦ hcross r hr.1 hr.2)
   replace hχs := hχs n h₁ h₂
@@ -419,7 +425,8 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
     fun r hr h ↦ h.congr_of_eventuallyEq
       ((e₁.mono Iio_subset_Iic_self).eventuallyEq_of_mem (isOpen_Iio.mem_nhds hr)),
     fun r hr h ↦ h.congr_of_eventuallyEq
-      ((e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds hr))⟩
+      ((e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds hr)),
+    fun r hr₁ hr₂ ↦ ?_⟩
   · rcases key r with ⟨he, -⟩ | ⟨he, -⟩ | ⟨he, -⟩
     · exact h₁.contDiffAt.congr_of_eventuallyEq he
     · exact hχs.contDiffAt.congr_of_eventuallyEq he
@@ -428,6 +435,11 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
     · exact (hc₁ r hr).congr_of_eventuallyEq he
     · exact (hχc r (Ioo_subset_Icc_self h)).congr_of_eventuallyEq he
     · exact (hc₂ r hr).congr_of_eventuallyEq he
+  · rcases key r with ⟨he, -⟩ | ⟨he, -⟩ | ⟨he, -⟩
+    · rwa [he.iteratedDeriv_eq]
+    · rw [he.iteratedDeriv_eq]
+      exact hχcv r hr₁ hr₂
+    · rwa [he.iteratedDeriv_eq]
 
 /-! ### The smoothed minimum of two shapes over `R` -/
 
