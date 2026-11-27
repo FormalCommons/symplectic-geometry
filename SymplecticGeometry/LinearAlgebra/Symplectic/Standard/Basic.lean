@@ -60,8 +60,8 @@ The main facts fixing the conventions are `stdForm_apply`
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`), by which the map
-`A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms does not increase norms
-(`norm_precompR_stdForm_flip_apply_le`). The rotation
+`stdFormCompRightL ι`, `A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms, does not increase
+norms (`norm_stdFormCompRightL_apply_le`). The rotation
 `stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
 (`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
 through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
@@ -472,17 +472,33 @@ theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
 theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
   SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
 
-/-- The fixed continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
-bilinear forms on it, does not increase norms. -/
-theorem norm_precompR_stdForm_flip_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
-    ‖(ContinuousLinearMap.precompR (StdSpace ι)
-        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A‖ ≤ ‖A‖ := by
+variable (ι) in
+/-- The continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
+continuous bilinear forms on it. -/
+noncomputable def stdFormCompRightL :
+    (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+  (ContinuousLinearMap.precompR (StdSpace ι)
+    (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+
+variable (ι) in
+theorem stdFormCompRightL_def :
+    stdFormCompRightL ι =
+      (ContinuousLinearMap.precompR (StdSpace ι)
+        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip :=
+  (rfl)
+
+/-- `stdFormCompRightL ι A u v = ω₀(u, A v)`. -/
+@[simp]
+theorem stdFormCompRightL_apply (A : StdSpace ι →L[ℝ] StdSpace ι) (u v : StdSpace ι) :
+    stdFormCompRightL ι A u v = stdForm ι u (A v) := by
+  simp [stdFormCompRightL_def, LinearMap.toContinuousBilinearMap_apply]
+
+/-- The map `A ↦ ω₀(·, A ·)` does not increase norms: `‖ω₀(·, A ·)‖ ≤ ‖A‖`. -/
+theorem norm_stdFormCompRightL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    ‖stdFormCompRightL ι A‖ ≤ ‖A‖ := by
   refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun u ↦
     ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
-  simp only [ContinuousLinearMap.flip_apply, ContinuousLinearMap.precompR_apply,
-    ContinuousLinearMap.compL_apply, ContinuousLinearMap.comp_apply,
-    LinearMap.toContinuousBilinearMap_apply,
-    Real.norm_eq_abs]
+  rw [stdFormCompRightL_apply, Real.norm_eq_abs]
   calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
     _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
     _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
