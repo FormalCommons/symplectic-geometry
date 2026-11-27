@@ -17,7 +17,7 @@ import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
@@ -451,19 +451,17 @@ theorem eq_orientation_iff {o' : Manifold.Orientation (𝓡 2) (capDiscs c γ h�
 in the capped surface. -/
 private def discPartialDiffeomorph (i : ι) :
     PartialDiffeomorph (𝓡 2) (𝓡 2) discOpens (capDiscs c γ hγ hinj) ∞ :=
-  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn
-    (f := fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v))
-    ((isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i).isLocalDiffeomorphOn univ)
-    isOpen_univ (injective_inr_ballDiffeomorph_symm c γ hγ hinj i).injOn
+  (isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i).partialDiffeomorphOfInjective
+    (injective_inr_ballDiffeomorph_symm c γ hγ hinj i)
 
 private theorem coe_discPartialDiffeomorph (i : ι) :
     ⇑(discPartialDiffeomorph c γ hγ hinj i) =
       fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v) :=
-  IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
+  IsLocalDiffeomorph.coe_partialDiffeomorphOfInjective ..
 
 private theorem discPartialDiffeomorph_source (i : ι) :
     (discPartialDiffeomorph c γ hγ hinj i).source = univ :=
-  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source _ _ _
+  IsLocalDiffeomorph.partialDiffeomorphOfInjective_source ..
 
 /-- The chart `(inr i)⁻¹` of the capped surface, read in `ℝ²` through `z ↦ (re z, im z)`. -/
 private def discChart (i : ι) :
