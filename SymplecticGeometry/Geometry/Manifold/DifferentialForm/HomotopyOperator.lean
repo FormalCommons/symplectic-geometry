@@ -39,16 +39,16 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator`: its case of a closed form,
   `d (h φ) = ι₁^* φ - ι₀^* φ`.
 * `SmoothForm.mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ`:
-  for a smooth `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and any form `z` with
-  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`. It is the case of
-  smooth forms and a homotopy ending at the identity of Tau Ceti's
-  `TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv`.
+  for a smooth `Φ : M × [0, 1] → N` from a smooth map `g₀` to a smooth map `g₁` and any form
+  `z` on `N` with values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = g₁^* z - g₀^* z`.
+  It is Tau Ceti's
+  `TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv` on
+  smooth forms.
+* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`: its case of a closed form `z`,
+  `d (h (Φ^* z)) = g₁^* z - g₀^* z`.
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`: for a smooth
   `Φ : M × [0, 1] → M` from a constant map to the identity and a closed form `z` of positive
   degree with values in a Banach space, `h (Φ^* z)` is a primitive of `z`.
-* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`: for a smooth
-  `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and a closed form `z` with values
-  in a Banach space, `d (h (Φ^* z)) = z - g^* z`.
 * `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy`: for a smooth
   `Φ : M × [0, 1] → M` from the identity to a smooth map `f` and a closed form `z` with values in
   a Banach space, `f^* z - z = d γ` for a form `γ`, namely `h (Φ^* z)`, that vanishes at every
@@ -96,6 +96,8 @@ namespace SmoothForm
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
 
 /-- The **homotopy operator** on smooth forms: the linear map taking a smooth `(k + 1)`-form `φ`
 on the cylinder `M × [0, 1]` to the smooth `k`-form `x ↦ ∫₀¹ φ(x, t)(∂ₜ, ·) dt` on `M`, where
@@ -143,34 +145,38 @@ theorem mextDerivₗ_homotopyOperator [CompleteSpace F]
           φ := by
   rw [← mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ, hφ, map_zero, add_zero]
 
-/-- **The homotopy formula along a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a
-smooth homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a
-smooth `(k + 1)`-form `z` with values in a Banach space, closed or not,
-`d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`. -/
+/-- **The homotopy formula along a smooth homotopy.** Let `Φ : M × [0, 1] → N` be a smooth
+homotopy from a smooth map `g₀`, `Φ (x, 0) = g₀ x`, to a smooth map `g₁`, `Φ (x, 1) = g₁ x`. For
+a smooth `(k + 1)`-form `z` on `N` with values in a Banach space, closed or not,
+`d (h (Φ^* z)) + h (Φ^* (d z)) = g₁^* z - g₀^* z`. It is Tau Ceti's
+`TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv` on smooth
+forms. -/
 theorem mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ
-    [CompleteSpace F] {g : M → M} (hg : ContMDiff I I ∞ g) {Φ : M × unitInterval → M}
-    (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ) (h₀ : ∀ x, Φ (x, 0) = g x) (h₁ : ∀ x, Φ (x, 1) = x)
-    (z : SmoothForm I M F (k + 1)) :
+    [CompleteSpace F] {g₀ g₁ : M → N} (hg₀ : ContMDiff I I' ∞ g₀) (hg₁ : ContMDiff I I' ∞ g₁)
+    {Φ : M × unitInterval → N} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I' ∞ Φ)
+    (h₀ : ∀ x, Φ (x, 0) = g₀ x) (h₁ : ∀ x, Φ (x, 1) = g₁ x) (z : SmoothForm I' N F (k + 1)) :
     mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) +
-        homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) z)) = z - mpullback g hg z := by
-  -- The end slices of the homotopy are the identity and `g`.
-  have hid : (fun x : M ↦ Φ (x, 1)) = id := funext h₁
-  have hg' : (fun x : M ↦ Φ (x, 0)) = g := funext h₀
+        homotopyOperator (mpullback Φ hΦ (mextDerivₗ I' (k + 1) z)) =
+      mpullback g₁ hg₁ z - mpullback g₀ hg₀ z := by
   have h := mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv
     (hΦ.of_le (by simp)) (z.isSmoothForm.of_le (by simp))
-  rw [hid, hg', TauCeti.mpullback_id] at h
+  rw [show (fun x : M ↦ Φ (x, 1)) = g₁ from funext h₁,
+    show (fun x : M ↦ Φ (x, 0)) = g₀ from funext h₀] at h
   exact Subtype.ext (by simpa using h)
 
-/-- **The homotopy formula for a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a smooth
-homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a closed
-`(k + 1)`-form `z` with values in a Banach space, `d (h (Φ^* z)) = z - g^* z`. -/
-theorem mextDerivₗ_homotopyOperator_mpullback [CompleteSpace F] {g : M → M}
-    (hg : ContMDiff I I ∞ g) {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ)
-    (h₀ : ∀ x, Φ (x, 0) = g x) (h₁ : ∀ x, Φ (x, 1) = x) {z : SmoothForm I M F (k + 1)}
-    (hz : mextDerivₗ I (k + 1) z = 0) :
-    mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z - mpullback g hg z := by
+/-- **The homotopy formula for closed forms along a smooth homotopy.** Let
+`Φ : M × [0, 1] → N` be a smooth homotopy from a smooth map `g₀`, `Φ (x, 0) = g₀ x`, to a smooth
+map `g₁`, `Φ (x, 1) = g₁ x`. For a closed `(k + 1)`-form `z` on `N` with values in a Banach
+space, `d (h (Φ^* z)) = g₁^* z - g₀^* z`. -/
+theorem mextDerivₗ_homotopyOperator_mpullback [CompleteSpace F] {g₀ g₁ : M → N}
+    (hg₀ : ContMDiff I I' ∞ g₀) (hg₁ : ContMDiff I I' ∞ g₁) {Φ : M × unitInterval → N}
+    (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I' ∞ Φ) (h₀ : ∀ x, Φ (x, 0) = g₀ x)
+    (h₁ : ∀ x, Φ (x, 1) = g₁ x) {z : SmoothForm I' N F (k + 1)}
+    (hz : mextDerivₗ I' (k + 1) z = 0) :
+    mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) =
+      mpullback g₁ hg₁ z - mpullback g₀ hg₀ z := by
   rw [← mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ
-    hg hΦ h₀ h₁, hz, map_zero, map_zero, add_zero]
+    hg₀ hg₁ hΦ h₀ h₁, hz, map_zero, map_zero, add_zero]
 
 /-- Let `Φ : M × [0, 1] → M` be a smooth contraction of `M` to `c`, with `Φ (x, 0) = c` and
 `Φ (x, 1) = x`. For a closed `(k + 1)`-form `z` with values in a Banach space, the form
@@ -179,8 +185,8 @@ theorem mextDerivₗ_homotopyOperator_mpullback_of_contraction [CompleteSpace F]
     {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ) (h₀ : ∀ x, Φ (x, 0) = c)
     (h₁ : ∀ x, Φ (x, 1) = x) {z : SmoothForm I M F (k + 1)} (hz : mextDerivₗ I (k + 1) z = 0) :
     mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z := by
-  rw [mextDerivₗ_homotopyOperator_mpullback contMDiff_const hΦ h₀ h₁ hz, mpullback_const,
-    sub_zero]
+  rw [mextDerivₗ_homotopyOperator_mpullback contMDiff_const contMDiff_id hΦ h₀ h₁ hz,
+    mpullback_const, sub_zero, mpullback_id, LinearMap.id_apply]
 
 /-- **A primitive of `f^* z - z` vanishing where the homotopy is stationary.** Let
 `Φ : M × [0, 1] → M` be a smooth homotopy from the identity, `Φ (x, 0) = x`, to a smooth map `f`,
@@ -194,14 +200,8 @@ theorem exists_mextDerivₗ_eq_mpullback_sub_of_homotopy [CompleteSpace F] {f : 
     ∃ γ : SmoothForm I M F k, mextDerivₗ I k γ = mpullback f hf z - z ∧
       ∀ x, (∀ t, Φ (x, t) = x) → γ.val x = 0 := by
   refine ⟨homotopyOperator (mpullback Φ hΦ z), ?_, fun x hx ↦ ?_⟩
-  · have h := mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv
-      (hΦ.of_le (by simp)) (z.isSmoothForm.of_le (by simp))
-    rw [show (fun x : M ↦ Φ (x, 1)) = f from funext h₁,
-      show (fun x : M ↦ Φ (x, 0)) = id from funext h₀, TauCeti.mpullback_id] at h
-    have h' : mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) +
-        homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) z)) = mpullback f hf z - z :=
-      Subtype.ext (by simpa using h)
-    rwa [hz, map_zero, map_zero, add_zero] at h'
+  · rw [mextDerivₗ_homotopyOperator_mpullback contMDiff_id hf hΦ h₀ h₁ hz, mpullback_id,
+      LinearMap.id_apply]
   · rw [coe_homotopyOperator, coe_mpullback]
     exact TauCeti.homotopyOperator_mpullback_apply_eq_zero hx _
 
@@ -365,8 +365,10 @@ theorem exists_mextDerivₗ_eq_sub_homotopyOperator_mpullback_on [CompleteSpace 
   -- The homotopy formula gives `τ - h (Φ^* dτ) = g^* τ + d (h (Φ^* τ))`, with `g = Φ (·, 0)`.
   have hη : homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) τ)) =
       τ - mpullback _ hg τ - mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ τ)) := by
-    rw [← mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ hg hΦ
-      (fun _ ↦ rfl) h₁ τ]
+    have h := mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ hg
+      contMDiff_id hΦ (fun _ ↦ rfl) h₁ τ
+    rw [mpullback_id, LinearMap.id_apply] at h
+    rw [← h]
     abel
   refine ⟨mpullback _ hg β + homotopyOperator (mpullback Φ hΦ τ), fun x hx ↦ ?_⟩
   -- At a point of `W₀`, the form `g^* dβ = d (g^* β)` agrees with `g^* τ`.

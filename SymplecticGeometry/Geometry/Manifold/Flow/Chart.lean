@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
+public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import TauCeti.Geometry.Manifold.IntegralCurve.Basic
@@ -22,9 +23,10 @@ stay in the chart with the integral curves of `v` that stay in it:
 
 * `IsIntegralCurveOn.isMIntegralCurveOn_extChartAt_symm`: a solution `z` of `V` on `J` with
   values in the chart target gives the integral curve `t ↦ e.symm (z t)` of `v` on `J`;
-* `IsMIntegralCurveOn.isIntegralCurveOn_extChartAt_sub`: if `γ` is an integral curve of `v` on a
-  set of times at which it lies in the chart source, then `t ↦ e (γ t) - e p` solves the
-  recentred equation `y' = V (e p + y)` there.
+* `IsMIntegralCurveOn.isIntegralCurveOn_centeredExtChartAt`: if `γ` is an integral curve of `v`
+  on a set of times at which it lies in the chart source, then `t ↦ c (γ t)` solves the
+  recentred equation `y' = V (e p + y)` there, for `c` the centred chart `y ↦ e y - e p`
+  (`SymplecticGeometry.centeredExtChartAt`).
 
 For a complete `C¹` field on a Hausdorff manifold, with flow `φ = TauCeti.globalFlow v`, these
 give:
@@ -33,8 +35,8 @@ give:
   with `e p + y t` in the chart target for `t ≥ 0`, then
   `e.symm (e p + y t) = φ_t (e.symm (e p + y 0))` for `t ≥ 0`, by
   `IsMIntegralCurveOn.globalFlow_sub_eq_Ici`;
-* `TauCeti.isIntegralCurveOn_extChartAt_globalFlow_sub`: on a set of times at which the orbit of
-  `x` stays in the chart source, `t ↦ e (φ_t x) - e p` solves `y' = V (e p + y)`.
+* `TauCeti.isIntegralCurveOn_centeredExtChartAt_globalFlow`: on a set of times at which the
+  orbit of `x` stays in the chart source, `t ↦ c (φ_t x)` solves `y' = V (e p + y)`.
 
 When `v p = 0`, `V` vanishes at `e p` with derivative the linearization of `v` at `p`
 (`VectorField.mpullback_extChartAt_symm_self`,
@@ -79,18 +81,27 @@ theorem IsIntegralCurveOn.isMIntegralCurveOn_extChartAt_symm {z : ℝ → E}
   rwa [TauCeti.chartField_extChartAt_symm (hmem t ht) rfl, I.range_eq_univ, mfderivWithin_univ,
     mpullback_apply, hinv.self_apply_inverse] at h
 
-/-- **Integral curves in a chart are solutions.** Let `e` be the extended chart at `p`. If `γ` is
-an integral curve of `v` on a set `s` of times at which it lies in the chart source, then the
-curve `t ↦ e (γ t) - e p` is an integral curve on `s` of the coordinate field
+/-- **Integral curves in a chart are solutions.** Let `e` be the extended chart at `p` and `c`
+the centred chart `y ↦ e y - e p` at `p` (`SymplecticGeometry.centeredExtChartAt`). If `γ` is an
+integral curve of `v` on a set `s` of times at which it lies in the source of `c`, then the
+curve `t ↦ c (γ t)` is an integral curve on `s` of the coordinate field
 `w ↦ mpullback 𝓘(ℝ, E) I e.symm v (e p + w)` of `v`, recentred at `p`. -/
-theorem IsMIntegralCurveOn.isIntegralCurveOn_extChartAt_sub {γ : ℝ → M} {s : Set ℝ}
-    (hγ : IsMIntegralCurveOn γ v s) (hmem : ∀ t ∈ s, γ t ∈ (extChartAt I p).source) :
-    IsIntegralCurveOn (fun t ↦ extChartAt I p (γ t) - extChartAt I p p)
+theorem IsMIntegralCurveOn.isIntegralCurveOn_centeredExtChartAt {γ : ℝ → M} {s : Set ℝ}
+    (hγ : IsMIntegralCurveOn γ v s)
+    (hmem : ∀ t ∈ s, γ t ∈ (SymplecticGeometry.centeredExtChartAt I p).source) :
+    IsIntegralCurveOn (fun t ↦ SymplecticGeometry.centeredExtChartAt I p (γ t))
       (fun _ w ↦ mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v (extChartAt I p p + w)) s := by
   intro t ht
-  have h := ((hγ t ht).hasDerivWithinAt_extChartAt_comp_mpullbackWithin (hmem t ht)).sub_const
-    (extChartAt I p p)
+  have hγt : γ t ∈ (extChartAt I p).source := by
+    rw [extChartAt_source, ← SymplecticGeometry.centeredExtChartAt_source I p]
+    exact hmem t ht
+  have h := (hγ t ht).hasDerivWithinAt_extChartAt_comp_mpullbackWithin hγt
+    |>.sub_const (extChartAt I p p)
   rw [I.range_eq_univ, mpullbackWithin_univ] at h
+  have hc : (fun t ↦ SymplecticGeometry.centeredExtChartAt I p (γ t)) =
+      fun t ↦ (extChartAt I p ∘ γ) t - extChartAt I p p :=
+    funext fun _ ↦ SymplecticGeometry.centeredExtChartAt_apply I p _
+  rw [hc]
   -- The two derivatives differ by `e p + (q - e p) = q`, inside a dependent type.
   exact h.congr_deriv (congrArg
     (fun w : E ↦ (mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v w : E)) (add_sub_cancel _ _).symm)
@@ -122,16 +133,19 @@ theorem extChartAt_symm_add_eq_globalFlow {p : M} {y : ℝ → E}
     (fun s hs ↦ hmem s hs)
   simpa using (hγ.globalFlow_sub_eq_Ici hv hcomplete ht).symm
 
-/-- **Orbits in a chart are solutions.** Let `e` be the extended chart at `p`. On a set `s` of
-times at which the orbit of `x` under the flow of a complete `C¹` field `v` lies in the chart
-source, the curve `t ↦ e (φ_t x) - e p` is an integral curve of the coordinate field
+/-- **Orbits in a chart are solutions.** Let `e` be the extended chart at `p` and `c` the
+centred chart `y ↦ e y - e p` at `p` (`SymplecticGeometry.centeredExtChartAt`). On a set `s` of
+times at which the orbit of `x` under the flow of a complete `C¹` field `v` lies in the source
+of `c`, the curve `t ↦ c (φ_t x)` is an integral curve of the coordinate field
 `w ↦ mpullback 𝓘(ℝ, E) I e.symm v (e p + w)` of `v`, recentred at `p`. -/
-theorem isIntegralCurveOn_extChartAt_globalFlow_sub {p x : M} {s : Set ℝ}
-    (hmem : ∀ t ∈ s, globalFlow v hv hcomplete t x ∈ (extChartAt I p).source) :
-    IsIntegralCurveOn (fun t ↦ extChartAt I p (globalFlow v hv hcomplete t x) - extChartAt I p p)
+theorem isIntegralCurveOn_centeredExtChartAt_globalFlow {p x : M} {s : Set ℝ}
+    (hmem : ∀ t ∈ s,
+      globalFlow v hv hcomplete t x ∈ (SymplecticGeometry.centeredExtChartAt I p).source) :
+    IsIntegralCurveOn
+      (fun t ↦ SymplecticGeometry.centeredExtChartAt I p (globalFlow v hv hcomplete t x))
       (fun _ w ↦ mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v (extChartAt I p p + w)) s :=
   ((isMIntegralCurve_globalFlow hv hcomplete x).isMIntegralCurveOn s)
-    |>.isIntegralCurveOn_extChartAt_sub hmem
+    |>.isIntegralCurveOn_centeredExtChartAt hmem
 
 end TauCeti
 

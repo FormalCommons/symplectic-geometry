@@ -23,6 +23,8 @@ so this file states the dimension in the form `2 * r + 1 + 1`.
   Ceti's `TauCeti.finrank_real_eq_two_mul_finrank_complex` in complex dimension `r + 1`.
 * `Complex.finrank_real_eq_finrank_pi_succ_sub`: the real dimension `2` of `ℂ` is the difference
   of the real dimensions of `Fin (n + 1) → ℂ` and `Fin n → ℂ`.
+* `Complex.finrank_real_eq_finrank_prod_sub`: it is also the difference of the real dimensions
+  of `E × F` and `F`, for a real vector space `E` of dimension two.
 -/
 
 public section
@@ -38,6 +40,13 @@ theorem finrank_real_eq_finrank_pi_succ_sub (n : ℕ) :
   simp only [finrank_pi_fintype, Complex.finrank_real_complex, Finset.sum_const,
     Finset.card_univ, Fintype.card_fin, smul_eq_mul]
   omega
+
+/-- If `E` is a real vector space of dimension two, the real dimension `2` of `ℂ` is the difference
+of the real dimensions of `E × F` and `F`, for any finite-dimensional `F`. -/
+theorem finrank_real_eq_finrank_prod_sub {E F : Type*} [AddCommGroup E] [Module ℝ E]
+    [FiniteDimensional ℝ E] [AddCommGroup F] [Module ℝ F] [FiniteDimensional ℝ F]
+    (hE : finrank ℝ E = 2) : finrank ℝ ℂ = finrank ℝ (E × F) - finrank ℝ F := by
+  rw [finrank_prod, Nat.add_sub_cancel, hE, Complex.finrank_real_complex]
 
 end Complex
 

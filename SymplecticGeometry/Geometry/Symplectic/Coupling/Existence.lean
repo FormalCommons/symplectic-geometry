@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
@@ -223,8 +224,7 @@ theorem mpullback_slice_couplingForm (σ : SmoothTwoForm IB B) (t : Set.Icc a b)
   rw [couplingForm_def, map_add, SmoothForm.mpullback_mpullback, ← SmoothForm.mextDerivₗ_mpullback,
     mpullback_slice_couplingOneForm, map_add, map_smul, SmoothForm.mextDerivₗ_mpullback, map_add]
   -- the composite `Prod.fst ∘ (·, t)` is the identity of the total space
-  simp only [show (Prod.fst ∘ fun p : ManifoldTotalSpace Circle P ↦ (p, t)) = id from rfl,
-    SmoothForm.mpullback_id, LinearMap.id_apply]
+  rw [SmoothForm.mpullback_eq_self_of_eq_id _ (by rfl)]
   abel
 
 variable [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
