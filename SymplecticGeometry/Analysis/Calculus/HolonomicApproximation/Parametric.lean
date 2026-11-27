@@ -23,8 +23,8 @@ import Mathlib.Topology.Maps.Proper.Basic
 import Mathlib.Topology.UrysohnsLemma
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube
 import SymplecticGeometry.Analysis.Normed.Group.Pi
-import SymplecticGeometry.Topology.Compactness.Normed
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
+import SymplecticGeometry.Topology.Compactness.Normed
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod

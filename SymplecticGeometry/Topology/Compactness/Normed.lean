@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Group.Continuity
+public import Mathlib.Analysis.Normed.Group.Basic
+public import Mathlib.Topology.Compactness.Compact
 import Mathlib.Analysis.Normed.Group.Uniform
-import Mathlib.Topology.Compactness.Compact
 
 /-!
 # Uniform smallness on a compact set is an open condition
