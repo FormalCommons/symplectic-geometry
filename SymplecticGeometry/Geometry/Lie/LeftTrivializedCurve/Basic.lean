@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.LeftTrivializedDeriv
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 public import TauCeti.Geometry.Lie.IntegralCurve
 import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.LocalExistence
 
