@@ -1170,8 +1170,8 @@ Corollary 2.2. Let `(M, σ)` be a symplectic manifold without boundary, `l > 0`,
 isomorphic to that of the zero section of the model blowup `L` by a smooth fibrewise isomorphism
 `Φ` that sends each pair of positive normal symplectic pairing for `σ` to one of positive pairing
 for `ω̃_l = blowupForm n l`. Then there are `ε > 0` and a partial diffeomorphism `Ψ` from `M`
-onto `L(ε) = openNbhd n ε` whose source contains the image `Z` of `f`, sending `f q` to
-`zeroSection q` and symplectic from `σ` to `ω̃_l` on its source
+to the model with target `L(ε) = openNbhd n ε`, whose source contains the image `Z` of `f`,
+sending `f q` to `zeroSection q` and symplectic from `σ` to `ω̃_l` on its source
 (`BlowupModel.exists_symplectomorphism_blowupModel`), such that the blowdown `DivisorBlowdown`
 of `M` along `f`, `Ψ`, `l` and `ε`, with its form `blowdownForm`:
 * is symplectic;
