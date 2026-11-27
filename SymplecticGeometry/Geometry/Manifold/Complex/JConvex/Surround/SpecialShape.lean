@@ -511,8 +511,8 @@ theorem isConvexShapeAt_linear {ℓ d r : ℝ} (hℓ : 0 < ℓ) (hd : 0 < d) (hr
 /-! ### Crossings of the special shapes
 
 Where the shapes `√(ℓ² + a r²)`, `ℓ + b r + c r² / (2 ℓ)` and `ℓ + d r` meet on `(0, ∞)`, and
-which one is above on each side. Each comparison is reduced to one of the squares, or of the
-differences, which are polynomials in `r`. -/
+which one is above on each side. Each comparison comes down to the sign of a polynomial in `r`:
+the difference of the two shapes, or of their squares. -/
 
 /-- **The square-root shape below the linear one.** For `0 ≤ ℓ`, `0 ≤ d` and `d² < a`, at
 `r > 0`, `√(ℓ² + a r²) < ℓ + d r` exactly when `r < 2 ℓ d / (a - d²)`. -/
