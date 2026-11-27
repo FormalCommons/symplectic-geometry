@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Basic
-import Mathlib.Topology.Connected.Clopen
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
@@ -37,9 +37,10 @@ trivialization of the tangent bundle of `B`
 between them (`TauCeti.IsEhresmannConnection.parallelTransport_parallelTransport`), so it is the
 restriction to the fibre over `γ s` of a composition of such diffeomorphisms
 (`TauCeti.IsEhresmannConnection.exists_diffeomorph_eqOn_parallelTransport`). Rather than choosing
-the subdivision, the proof applies Mathlib's `PreconnectedSpace.induction₂'` to the relation
-between two times that some diffeomorphism of `P` agrees with transport between them on the
-fibre: it is transitive, and holds between nearby times.
+the subdivision, the proof applies `Continuous.induction₂_of_mapsTo_nhds`, a form of Mathlib's
+`PreconnectedSpace.induction₂'`, to the relation between two times that some diffeomorphism of
+`P` agrees with transport between them on the fibre: it is transitive, and holds between any two
+times of an interval that `γ` maps into the base set of one trivialization.
 
 For a `C^(n+1)` family `Γ : N × ℝ → B` of curves, with parameters in a finite-dimensional
 boundaryless Hausdorff manifold `N`, transport along the curves `u ↦ Γ (a, u)` is, for `a` near a
@@ -50,11 +51,11 @@ into the base set of one trivialization, transport is the flow of the lift of a 
 that depends smoothly on the parameter
 (`Bundle.Trivialization.exists_timeDependentField_param_eq_curveVelocity`), and such flows are
 jointly `C^n` in the parameter and the point (`TauCeti.contMDiff_timeDependentFlowOf_param`). The
-relation to which `PreconnectedSpace.induction₂'` is applied now also carries a neighbourhood of
-`a₀`, and its transitivity composes the maps on the intersection of the neighbourhoods. The
-statement is local in the parameter, so no smooth maps need to be glued. For a family that is
-`C^(n+1)` only on `U ×ˢ univ`, for an open set `U` of `N`, the same holds with a map that is
-`C^n` on `U ×ˢ univ`
+relation to which `Continuous.induction₂_of_mapsTo_nhds` is applied now also carries a
+neighbourhood of `a₀`, and its transitivity composes the maps on the intersection of the
+neighbourhoods. The statement is local in the parameter, so no smooth maps need to be glued.
+For a family that is `C^(n+1)` only on `U ×ˢ univ`, for an open set `U` of `N`, the same holds
+with a map that is `C^n` on `U ×ˢ univ`
 (`TauCeti.IsEhresmannConnection.exists_contMDiffOn_parallelTransport_param`): apply the result
 above with the open set `U` as the manifold of parameters, and read the map on `N × P` with
 `ContMDiff.contMDiffOn_opens_prod_of_eq`. Hence transport is `C^n` as a function of the pair
@@ -303,16 +304,14 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
     rw [Diffeomorph.coe_trans, comp_apply, h₁ hx,
       h₂ (hD.parallelTransport_mem_preimage hn hf hfp hγ hx b),
       hD.parallelTransport_parallelTransport hn hf hfp hγ hx]⟩⟩
-  -- It holds between nearby times: near `u`, `γ` stays in the base set of one trivialization.
-  have hloc (u : ℝ) : ∀ᶠ v in 𝓝 u, R u v ∧ R v u := by
-    let e := trivializationAt F (TangentSpace J) (γ u)
-    obtain ⟨a, b, hu, hab, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
-      (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J))
-    filter_upwards [hab] with v hv
-    exact ⟨hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hmaps
-      hu hv, hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ e hmaps
-      hv hu⟩
-  obtain ⟨Ψ, hΨ⟩ := PreconnectedSpace.induction₂' R hloc htrans s t
+  -- It holds between two times of an interval that `γ` maps into the base set of one
+  -- trivialization.
+  obtain ⟨Ψ, hΨ⟩ := hγ.continuous.induction₂_of_mapsTo_nhds
+    (fun b ↦ (trivializationAt F (TangentSpace J) b).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt' b)) R
+    (fun _ _ _ hmaps _ hu _ hv ↦
+      hD.exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet hn hf hfp hγ _ hmaps hu hv)
+    s t
   exact ⟨Ψ, hΨ, hΨ.image_eq.trans (hD.bijOn_parallelTransport hn hf hfp hγ s t).image_eq⟩
 
 include hD in
@@ -362,18 +361,15 @@ theorem exists_contMDiff_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff 
         simp only [h₁ a ha.1 hx,
           h₂ a ha.2 (hD.parallelTransport_mem_preimage hn hf hfp (hΓc a) hx v),
           hD.parallelTransport_parallelTransport hn hf hfp (hΓc a) hx]⟩⟩
-  -- It holds between nearby times: near `u`, the curve at `a₀` stays in the base set of one
-  -- trivialization.
-  have hloc (u : ℝ) : ∀ᶠ v in 𝓝 u, R u v ∧ R v u := by
-    let e := trivializationAt F (TangentSpace J) (Γ (a₀, u))
-    obtain ⟨a, b, hu, hab, hmaps⟩ := exists_Icc_mem_subset_of_mem_nhds
-      ((hΓc a₀).continuous.continuousAt.eventually_mem_baseSet_trivializationAt F
-        (TangentSpace J))
-    obtain ⟨U, hU, hΨ⟩ :=
-      hD.exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet hn hf hfp hΓ e hmaps
-    filter_upwards [hab] with v hv
-    exact ⟨⟨U, hU, hΨ u hu v hv⟩, ⟨U, hU, hΨ v hv u hu⟩⟩
-  exact PreconnectedSpace.induction₂' R hloc htrans s t
+  -- It holds between two times of an interval that the curve at `a₀` maps into the base set of
+  -- one trivialization.
+  refine (hΓc a₀).continuous.induction₂_of_mapsTo_nhds
+    (fun b ↦ (trivializationAt F (TangentSpace J) b).open_baseSet.mem_nhds
+      (FiberBundle.mem_baseSet_trivializationAt' b)) R
+    (fun _ _ _ hmaps u hu v hv ↦ ?_) s t
+  obtain ⟨U, hU, hΨ⟩ :=
+    hD.exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet hn hf hfp hΓ _ hmaps
+  exact ⟨U, hU, hΨ u hu v hv⟩
 
 include hD in
 /-- **Parallel transport depends smoothly on a family of curves, on an open set of parameters.**
