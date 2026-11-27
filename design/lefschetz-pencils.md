@@ -198,7 +198,7 @@ approving review of #3195 asked, uses two facts of other parts: the blowup
 of `Weight/Basic.lean` along $\psi$ is diffeomorphic to the complex blowup of
 *Complex blowup*'s `Basic.lean` for the chart $\psi$, which *Symplectic
 blowup* compares in `Normalized/Weight.lean` (the book's comparison of (7.1.14)
-with Theorem 7.1.21); and *Complex blowup*'s `ConnectedSum.lean` gives an
+with Theorem 7.1.21); and *Complex blowup*'s `ConnectedSum/Basic.lean` gives an
 orientation-preserving diffeomorphism from that blowup to
 $M\#\overline{\mathbb CP}{}^2$. Iterating, the blowup at $N$ points is an iterated
 connected sum, recorded by the predicate `IsReversedProjectiveSum oM oX N`
@@ -462,7 +462,7 @@ a fibre.
   transversality for pairs*.
 - *Symplectic blowup*: `Weight/Basic.lean`, and the comparison with the complex
   blowup in `Normalized/Weight.lean`.
-- *Complex blowup*: `Model.lean` (`pr`), `Basic.lean`, `ConnectedSum.lean`.
+- *Complex blowup*: `Model.lean` (`pr`), `Basic.lean`, `ConnectedSum/Basic.lean`.
 - *Poincaré duals of submanifolds*: `DualClass/Basic.lean`,
   `Orientation/DualClass.lean`.
 - *Parallel transport*: `RadialTrivialization.lean`.
@@ -492,7 +492,7 @@ part Lefschetz pencils*.
 | 6 | Transversality of the derivative of the quotient | `Transversality/Derivative.lean` | 5 | 500 |
 | 7 | Holomorphic models near base and critical points | `Perturbation.lean` | 3, 6 | 500 |
 | 8 | The pencil on $M$ | `FiberClosure.lean` | 7; *Asymptotically holomorphic sections* `ZeroSet.lean`, `Connectivity.lean`; *Poincaré duals of submanifolds* `DualClass/Basic.lean`, `Orientation/DualClass.lean` | 400 |
-| 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight/Basic.lean`, `Normalized/Weight.lean`; *Complex blowup* `Model.lean`, `ConnectedSum.lean` | 400 |
+| 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight/Basic.lean`, `Normalized/Weight.lean`; *Complex blowup* `Model.lean`, `ConnectedSum/Basic.lean` | 400 |
 
 Issues 1, 2 and 3 can start once this design is merged; the issue that splits #3295 names, for each issue
 of another part above, the issue of that part's design that builds it, once
