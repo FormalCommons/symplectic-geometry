@@ -8,13 +8,19 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.DetBundle.CongrModel
 public import TauCeti.Topology.VectorBundle.Determinant
+public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import Mathlib.Analysis.Normed.Operator.Mul
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
 import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
 import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 
 /-!
 # The determinant line of a smooth vector bundle is smooth
@@ -62,6 +68,13 @@ by the trivialization of `E` at the image point, and in them the identification 
 coordinate (`TauCeti.DetBundle.snd_trivializationAt_pullbackEquiv`), so it is `C^n` in both
 directions by the same lemma. Neither `f` nor `E` needs to be smooth.
 
+For a `Cⁿ` complex structure `J` on a `Cⁿ` real vector bundle over a σ-compact Hausdorff
+manifold, the determinant line of the complex bundle `J.toContinuousComplexStructure.Fiber` is a
+`Cⁿ` complex line bundle (`TauCeti.DetBundle.contMDiffVectorBundle`), and Tau Ceti's
+`TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I` gives it a `Cⁿ` real metric that
+multiplication by `Complex.I` preserves. The real scalar multiplication on its fibres is
+continuous by `TauCeti.DetBundle.continuousSMul`.
+
 ## Main results
 
 * `TauCeti.DetBundle.contMDiffVectorBundle`: the determinant line of a `C^n` vector bundle is a
@@ -76,6 +89,8 @@ directions by the same lemma. Neither `f` nor `E` needs to be smooth.
 * `TauCeti.DetBundle.contMDiff_pullbackHomeomorph`,
   `TauCeti.DetBundle.contMDiff_pullbackHomeomorph_symm`: the identification of the pull-back of
   the determinant line with the determinant line of the pull-back is `C^n` in both directions.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.exists_hermitianMetric_detBundle`: the
+  determinant line of a smooth complex structure has a smooth Hermitian metric.
 
 ## References
 
@@ -301,5 +316,35 @@ theorem contMDiff_pullbackHomeomorph_symm :
 end Pullback
 
 end TauCeti.DetBundle
+
+namespace SymplecticGeometry.Bundle.ContMDiffComplexStructure
+
+open scoped ContDiff VectorBundle.ComplexToReal
+
+variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
+  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB} [TopologicalSpace M] [ChartedSpace HB M]
+  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
+  [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞} [ContMDiffVectorBundle n F V I]
+  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+
+/-- **The determinant line of a smooth complex structure has a smooth Hermitian metric.** Let `J`
+be a `Cⁿ` complex structure on a `Cⁿ` real vector bundle `V` with finite-dimensional model `F`,
+over a σ-compact Hausdorff smooth manifold with finite-dimensional model, and let `G` be a complex
+model with `dim_ℝ F = 2 dim_ℂ G`. The determinant line of the complex bundle
+`J.toContinuousComplexStructure.Fiber`, as a real line bundle, carries a `Cⁿ` real metric `g`
+that multiplication by `Complex.I` preserves: a Hermitian metric, in the form that
+`SymplecticGeometry.Bundle.contMDiffFiberBundle_circleFiber` takes. -/
+theorem exists_hermitianMetric_detBundle (J : ContMDiffComplexStructure I n F V) :
+    ∃ g : ContMDiffRiemannianMetric I n ℂ
+        (TauCeti.DetBundle ℂ G J.toContinuousComplexStructure.Fiber),
+      ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w :=
+  TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I
+
+end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 
 end

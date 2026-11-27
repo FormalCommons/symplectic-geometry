@@ -53,8 +53,9 @@ the segment from `ω₀` to `σ_t` with the primitive `β_t`, constant in `s`, g
 are extended to all `t ∈ ℝ` (`TauCeti.SmoothForm.timeExtendSlice`), and the Moser fields
 `X_{t,s}` are those of one family of two-forms over the points `(t, s)` of `ℝ × ℝ`, with one
 cutoff on `(ℝ × ℝ) × N`. They are then jointly smooth in `(t, s, x)`, and so are their flows, by
-`TauCeti.contMDiff_timeDependentFlowOf_param`. The family `t ↦ χ_t` over `ℝ` starts at the
-identity because `β_0 = 0`, and `TauCeti.Diffeotopy.ofReal` restricts it to a diffeotopy.
+`TauCeti.contMDiff_timeDependentFlowOf_param`; for the time-one maps `χ_t` this is
+`TauCeti.contMDiff_timeDependentFlowDiffeomorph_param`. The family `t ↦ χ_t` over `ℝ` starts at
+the identity because `β_0 = 0`, and `TauCeti.Diffeotopy.ofReal` restricts it to a diffeotopy.
 
 ## Main results
 
@@ -360,8 +361,8 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   have hψ (τ : ℝ) (x : N) : ψ τ x = timeDependentFlowOf (Y τ) 0 1 x :=
     timeDependentFlowDiffeomorph_apply _ _ _ _ _ _
   have hψs : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × N ↦ ψ p.1 p.2) :=
-    (hflow.comp ((contMDiff_fst.prodMk (contMDiff_const (c := ((0 : ℝ), (1 : ℝ))))).prodMk
-      contMDiff_snd)).congr fun p ↦ hψ p.1 p.2
+    (contMDiff_timeDependentFlowDiffeomorph_param le_top hY hc 0).comp
+      (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))
   have hψ0 (τ : ℝ) (x : N) (h : ∀ s, Y τ s x = 0) : ψ τ x = x := by
     rw [hψ]
     exact timeDependentFlowOf_eq_self_of_forall_eq_zero ((hYτ τ).of_le (by simp)) h 0 1
@@ -400,10 +401,9 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   -- primitive `β_t` constant in `s`.
   have hYt : Y t = moserField (SmoothForm.lineMapFamily ω₀ (σ' t) contDiff_id)
       (SmoothForm.mpullback Prod.snd contMDiff_snd (β' t)) fun q ↦ ρ ((t, q.1), q.2) := by
-    funext s y
-    rw [moserField_def, SmoothForm.mpullback_prodMk_lineMapFamily, id, ← hΩ ((t : ℝ), s),
-      SmoothForm.mpullback_prodMk_mpullback_snd, ← hB ((t : ℝ), s)]
-    exact moserField_def Ω B ρ _ y
+    funext s
+    exact moserField_congr (by rw [hΩ, SmoothForm.mpullback_prodMk_lineMapFamily, id])
+      (by rw [hB, SmoothForm.mpullback_prodMk_mpullback_snd]) fun _ ↦ rfl
   have hYt' := hYτ t
   have hct := hc t
   rw [hYt] at hYt' hct
