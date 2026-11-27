@@ -171,11 +171,11 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
 
 variable [FiniteDimensional ℝ E] [T2Space M]
 
-/-- Let `J` be a smooth almost complex structure on a boundaryless finite-dimensional manifold, `K`
-a compact set, and `f` a smooth function such that at every critical point `x ∈ K` of `f`,
-`Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v` at `x`. Then every `g`
-close enough to `f` in the weak Whitney topology has the same property at each of its critical
-points in `K`. -/
+/-- Let `J` be a smooth almost complex structure on a Hausdorff boundaryless manifold with a
+finite-dimensional model, `K` a compact set, and `f` a smooth function such that at every critical
+point `x ∈ K` of `f`, `Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v`
+at `x`. Then every `g` close enough to `f` in the weak Whitney topology has the same property at
+each of its critical points in `K`. -/
 theorem SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg
     (J : SmoothAlmostComplexStructure I M) {K : Set M} (hK : IsCompact K)
     {f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯}
