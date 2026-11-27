@@ -1075,7 +1075,7 @@ theorem exists_homeomorph_openNbhd_of_mem_baseLocus {p : ℙ ℂ (Fin 3 → ℂ)
   · have hx' : x.val.1 ∈ φ.source ∩ baseLocus := ⟨hx, hb⟩
     rwa [hbase] at hx'
   rw [show ⇑(h.trans _) = _ ∘ ⇑h from funext (h.trans_apply _), image_comp,
-    ← BlowupModel.image_pencilNbhdHomeomorph_setOf_fst_eq_zero, h.image_eq_preimage_symm]
+    ← BlowupModel.image_pencilNbhdHomeomorph_setOfPred_fst_eq_zero, h.image_eq_preimage_symm]
   congr 1
   ext y
   have ht : y.val.1 ∈ φ.target := hφt ▸ (BlowupModel.mem_pencilNbhd_iff.1 y.property).2
