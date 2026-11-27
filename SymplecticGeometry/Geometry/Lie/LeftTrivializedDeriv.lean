@@ -29,6 +29,8 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   `mulInvariantVectorField`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul`: left translates `t ↦ a * g t` of
   such a curve have the same left-trivialized derivative.
+* `HasMFDerivWithinAt.mul_inv_of_eq_one`: two curves through `1` at `t` with the same derivative
+  there; then `u ↦ φ u * (ψ u)⁻¹` has zero derivative at `t`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.eqOn`: two curves with the same left-trivialized
   derivative on a preconnected set that agree at one of its points agree on it. Neither
   continuity of `ξ` nor completeness of the model is needed.
@@ -127,9 +129,9 @@ private theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_mul [ContMDiffM
     rfl
   exact (mdifferentiableAt_mul_left.hasMFDerivAt.comp_hasMFDerivWithinAt t hgv).congr_mfderiv hder
 
-/-- Two curves through `1` at `t` with the same derivative there: `u ↦ φ u * (ψ u)⁻¹` has zero
-derivative at `t`. -/
-private theorem hasMFDerivWithinAt_mul_inv_zero [LieGroup I 1 G] {φ ψ : ℝ → G} {t : ℝ}
+/-- If two curves `φ`, `ψ` in a Lie group pass through `1` at `t` with the same derivative
+there, then `u ↦ φ u * (ψ u)⁻¹` has zero derivative at `t`. -/
+theorem _root_.HasMFDerivWithinAt.mul_inv_of_eq_one [LieGroup I 1 G] {φ ψ : ℝ → G} {t : ℝ}
     {X : GroupLieAlgebra I G}
     (hφ : HasMFDerivWithinAt 𝓘(ℝ) I φ s t ((1 : ℝ →L[ℝ] ℝ).smulRight X))
     (hψ : HasMFDerivWithinAt 𝓘(ℝ) I ψ s t ((1 : ℝ →L[ℝ] ℝ).smulRight X))
@@ -165,7 +167,7 @@ theorem HasLeftTrivializedDerivOn.eqOn [LieGroup I 1 G] (hg : HasLeftTrivialized
     (h₀ : g t₀ = h t₀) : EqOn g h s := by
   have hk (t : ℝ) (ht : t ∈ s) :
       HasMFDerivWithinAt 𝓘(ℝ) I (fun u ↦ g u * (h u)⁻¹) s t 0 := by
-    have hm := hasMFDerivWithinAt_mul_inv_zero (hg.hasMFDerivWithinAt_inv_mul ht)
+    have hm := (hg.hasMFDerivWithinAt_inv_mul ht).mul_inv_of_eq_one
       (hh.hasMFDerivWithinAt_inv_mul ht) (inv_mul_cancel _) (inv_mul_cancel _)
     have hL := ((contMDiff_mul_left.mul contMDiff_const :
       ContMDiff I I 1 fun x : G ↦ g t * x * (h t)⁻¹).mdifferentiableAt
