@@ -63,8 +63,9 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 namespace IsGradientLike
 
 /-- **An energy barrier for gradient-like fields.** Let `γ` be an integral curve of a field `X`
-gradient-like for `f`, tending to `p`, and `e` the extended chart at `p`, whose target contains
-the closed ball of radius `r` about `e p`. Suppose `c ‖de(X)‖ ≤ df(X)` on the closed annulus
+gradient-like for a differentiable function `f`, tending to `p`, and `e` the extended chart at
+`p`, whose target contains the closed ball of radius `r` about `e p`. Suppose `c ≥ 0` and
+`c ‖de(X)‖ ≤ df(X)` on the closed annulus
 `s ≤ ‖e y - e p‖ ≤ r`. If `γ 0` lies in the chart within `s` of `e p` and
 `f p - c (r - s) < f (γ 0)`, then at every time `t ≥ 0` the curve lies in the chart, within `r`
 of `e p`. -/
