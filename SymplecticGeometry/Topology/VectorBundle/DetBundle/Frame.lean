@@ -5,9 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Topology.VectorBundle.Contractible
 public import TauCeti.Topology.VectorBundle.Determinant
-import SymplecticGeometry.Topology.FiberBundle.Basic
+import TauCeti.Topology.VectorBundle.Contractible
 
 /-!
 # The determinant section of a frame
@@ -29,9 +28,9 @@ A frame `Φ y : G ≃L[𝕜] E (f y)` of `E` along a map `f : X → B` thus give
 section `y ↦ ofFrame (Φ y)` of the determinant line along `f`. Over a complete field, when the
 frame is continuous as a map `X × G → TotalSpace G E`, the map `y ↦ (f y, ofFrame (Φ y))` into the
 total space of the determinant line is continuous
-(`TauCeti.DetBundle.continuous_totalSpaceMk_ofFrame`), since its chart coordinate is the
-determinant of the frame read in a trivialization, which is continuous by Tau Ceti's
-`TauCeti.continuousOn_continuousLinearMapAt_comp`.
+(`TauCeti.DetBundle.continuous_totalSpaceMk_ofFrame`), by Tau Ceti's
+`TauCeti.DetBundle.continuous_totalSpaceMk_ιMulti`: the determinant of the frame is the wedge of
+the values of the frame on the basis vectors, each continuous along `f`.
 
 ## References
 
@@ -41,7 +40,7 @@ determinant of the frame read in a trivialization, which is continuous by Tau Ce
 
 public section
 
-open Bundle Module Topology
+open Bundle Module
 
 namespace TauCeti.DetBundle
 
@@ -106,20 +105,10 @@ theorem continuous_totalSpaceMk_ofFrame {Φ : ∀ y, G ≃L[𝕜] E (f y)}
     (hΦ : Continuous fun q : X × G ↦ TotalSpace.mk' G (f q.1) (Φ q.1 q.2)) :
     Continuous fun y ↦
       TotalSpace.mk' 𝕜 (E := DetBundle 𝕜 G E) (f y) (ofFrame (Φ y : G ≃ₗ[𝕜] E (f y))) := by
-  have hf := continuous_of_continuous_frame hΦ
-  refine continuous_iff_continuousAt.2 fun y₀ ↦ (FiberBundle.continuousAt_totalSpace 𝕜 _).2
-    ⟨hf.continuousAt, ?_⟩
-  set e := trivializationAt G E (f y₀)
-  have hU : ∀ᶠ y in 𝓝 y₀, f y ∈ e.baseSet :=
-    hf.continuousAt.eventually_mem_baseSet_trivializationAt G E
-  have hdet : ContinuousAt (fun y ↦ ((e.continuousLinearMapAt 𝕜 (f y)).comp
-      (Φ y : G →L[𝕜] E (f y))).det) y₀ :=
-    ContinuousLinearMap.continuous_det.continuousAt.comp
-      ((continuousOn_continuousLinearMapAt_comp hΦ e).continuousAt hU)
-  refine hdet.congr (Filter.eventuallyEq_of_mem hU fun y (hy : f y ∈ e.baseSet) ↦ ?_)
-  rw [trivializationAt_eq, trivialization_apply_mk _ hy, chartCoord_ofFrame _ hy]
-  exact congrArg LinearMap.det <| LinearMap.ext fun v ↦ by
-    simp [e.coe_linearMapAt_of_mem hy]
+  -- The determinant of the frame is the wedge of its values on the basis of `G`.
+  simp only [ofFrame_def]
+  exact continuous_totalSpaceMk_ιMulti (continuous_of_continuous_frame hΦ) fun i ↦
+    hΦ.comp (continuous_id.prodMk continuous_const)
 
 end Chart
 
