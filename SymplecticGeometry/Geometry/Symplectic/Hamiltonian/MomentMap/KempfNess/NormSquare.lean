@@ -487,7 +487,7 @@ theorem hasDerivAt_polar_symm_fst_inv_mul (hBs : B.IsSymm)
         (-Lie.tangentAd (I := I) u⁻¹ η, u⁻¹) := by
       rw [← C.polar_symm_inv hηu, mul_inv_rev, inv_inv]
     have hd := C.hasDerivAt_polar_symm_fst_comp hBs hBG hc hinv
-    rw [(hg.const_mul (g' t)⁻¹).mfderiv_inv_mul_mfderiv hs] at hd
+    rw [(hg.const_mul (g' t)⁻¹).mfderiv_inv_mul_curveVelocity hs] at hd
     convert hd using 1
     · funext r
       rw [← C.apply_polar_symm_inv_fst hBG, mul_inv_rev, inv_inv]
@@ -500,7 +500,7 @@ theorem hasDerivAt_polar_symm_fst_inv_mul (hBs : B.IsSymm)
       (C.polar.symm ((g t)⁻¹ * g' r)).1) (-(4 * μ (C.expI (-η) • (g t)⁻¹ • p) η)) t := by
     have hd := C.hasDerivAt_polar_symm_fst_comp hBs hBG
       ((hg'.const_mul (g t)⁻¹).mdifferentiableAt hs) hηu
-    rw [(hg'.const_mul (g t)⁻¹).mfderiv_inv_mul_mfderiv hs] at hd
+    rw [(hg'.const_mul (g t)⁻¹).mfderiv_inv_mul_curveVelocity hs] at hd
     refine hd.congr_deriv ?_
     -- `expI (-η) • (g t)⁻¹ • p = toHom u • (g' t)⁻¹ • p`, from `(g t)⁻¹ * g' t = expI η * toHom u`.
     have hx : C.expI (-η) • (g t)⁻¹ • p = C.toHom u • (g' t)⁻¹ • p := by
