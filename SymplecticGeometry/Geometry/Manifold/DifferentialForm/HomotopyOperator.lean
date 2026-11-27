@@ -49,6 +49,10 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`: for a smooth
   `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and a closed form `z` with values
   in a Banach space, `d (h (Φ^* z)) = z - g^* z`.
+* `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy`: for a smooth
+  `Φ : M × [0, 1] → M` from the identity to a smooth map `f` and a closed form `z` with values in
+  a Banach space, `f^* z - z = d γ` for a form `γ`, namely `h (Φ^* z)`, that vanishes at every
+  point that `Φ` keeps fixed.
 * `TauCeti.SmoothForm.mpullback_homotopyOperator`: naturality, `g^* (h φ) = h ((g × id)^* φ)`;
   it is Tau Ceti's `TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` on smooth
   forms.
@@ -177,6 +181,29 @@ theorem mextDerivₗ_homotopyOperator_mpullback_of_contraction [CompleteSpace F]
     mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z := by
   rw [mextDerivₗ_homotopyOperator_mpullback contMDiff_const hΦ h₀ h₁ hz, mpullback_const,
     sub_zero]
+
+/-- **A primitive of `f^* z - z` vanishing where the homotopy is stationary.** Let
+`Φ : M × [0, 1] → M` be a smooth homotopy from the identity, `Φ (x, 0) = x`, to a smooth map `f`,
+`Φ (x, 1) = f x`. For a closed `(k + 1)`-form `z` with values in a Banach space, there is a smooth
+`k`-form `γ` with `d γ = f^* z - z` that vanishes at every `x` whose path `Φ (x, ·)` stays at `x`.
+One such form is `γ = h (Φ^* z)`. -/
+theorem exists_mextDerivₗ_eq_mpullback_sub_of_homotopy [CompleteSpace F] {f : M → M}
+    (hf : ContMDiff I I ∞ f) {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ)
+    (h₀ : ∀ x, Φ (x, 0) = x) (h₁ : ∀ x, Φ (x, 1) = f x) {z : SmoothForm I M F (k + 1)}
+    (hz : mextDerivₗ I (k + 1) z = 0) :
+    ∃ γ : SmoothForm I M F k, mextDerivₗ I k γ = mpullback f hf z - z ∧
+      ∀ x, (∀ t, Φ (x, t) = x) → γ.val x = 0 := by
+  refine ⟨homotopyOperator (mpullback Φ hΦ z), ?_, fun x hx ↦ ?_⟩
+  · have h := mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv
+      (hΦ.of_le (by simp)) (z.isSmoothForm.of_le (by simp))
+    rw [show (fun x : M ↦ Φ (x, 1)) = f from funext h₁,
+      show (fun x : M ↦ Φ (x, 0)) = id from funext h₀, TauCeti.mpullback_id] at h
+    have h' : mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) +
+        homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) z)) = mpullback f hf z - z :=
+      Subtype.ext (by simpa using h)
+    rwa [hz, map_zero, map_zero, add_zero] at h'
+  · rw [coe_homotopyOperator, coe_mpullback]
+    exact TauCeti.homotopyOperator_mpullback_apply_eq_zero hx _
 
 /-- **Naturality of the homotopy operator.** For a smooth map `g : M' → M` and a smooth form `φ`
 on `M × [0, 1]`, `g^* (h φ) = h ((g × id)^* φ)`. -/

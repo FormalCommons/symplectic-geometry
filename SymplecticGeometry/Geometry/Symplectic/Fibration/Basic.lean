@@ -51,9 +51,9 @@ to the product orientation `oB × oF`.
 
 ## Implementation notes
 
-The results identify the kernel of the derivative of `proj` with the image of the derivative of a
-fibre inclusion by `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`, which holds in
-any dimension.
+The results identify the kernel of the derivative of `proj` with the tangent space of the model
+fibre through the derivative of a fibre inclusion,
+`Bundle.Trivialization.mfderivFiberInclusionMapEquiv`, which holds in any dimension.
 
 The symplectic orientations in `IsOrientedCompatible` are Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.orientation`, which may be indexed by `Fin k` for any `k`
@@ -97,12 +97,10 @@ theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞
         (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker).Nondegenerate ↔
       ((TauCeti.SmoothForm.mpullback (e.fiberInclusionMap hb) hι τ).bilinFormAt
         v).SeparatingLeft := by
-  have hrange := e.range_mfderiv_fiberInclusionMap he hb v
   have hrefl : ((τ.bilinFormAt (e.fiberInclusionMap hb v)).restrict
       (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker).IsRefl :=
     (TauCeti.SmoothForm.isAlt_bilinFormAt τ _).isRefl.domRestrict _
-  let i := (LinearEquiv.ofInjective _ (e.injective_mfderiv_fiberInclusionMap he hb v)).trans
-    (LinearEquiv.ofEq _ _ hrange)
+  let i := mfderivFiberInclusionMapEquiv he hb v
   refine hrefl.nondegenerate_iff_separatingLeft.trans ?_
   rw [← LinearMap.separatingLeft_congr_iff i.symm i.symm]
   convert Iff.rfl
