@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -37,7 +38,12 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   a shape with `χ'' ≤ 0`. `SymplecticGeometry.IsConvexShapeAt.add_const` and
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
   for `ℓ > 0`, are again `i`-convex shapes. The derivatives of the rescaled shape come from
-  `iteratedDeriv_comp_div_const`, with no differentiability assumption on `χ`.
+  `iteratedDeriv_comp_div_const`, with no differentiability assumption on `χ`. Lowering a shape
+  by `c` lowers both margins of `isConvexShapeAt_iff` by `c / (χ (χ - c))`
+  (`SymplecticGeometry.deriv_sub_const_div_sub_one_div_sub_const`,
+  `SymplecticGeometry.iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const`), so
+  `χ - c` is again an `i`-convex shape while that is less than both
+  (`SymplecticGeometry.IsConvexShapeAt.sub_const`).
 * `SymplecticGeometry.exists_forall_isConvexShapeAt_of_abs_sub_lt`: being an `i`-convex shape
   is an open condition on `(r, χ r, χ' r, χ'' r)`, so for a compact family of shapes whose
   values and first two derivatives depend continuously on the point, one `η > 0` works for all:
@@ -275,6 +281,26 @@ theorem exists_forall_isConvexShapeAt_of_abs_sub_lt {χ : ℝ → ℝ → ℝ} {
   simp only [hg_def, Prod.dist_eq, Real.dist_eq, sub_self, abs_zero]
   exact max_lt hη (max_lt h₀ (max_lt h₁ h₂))
 
+/-- Lowering a shape by a constant `c` lowers its margin `χ' / r - 1 / χ` in (4.3) at `r` by
+exactly `c / (χ r (χ r - c))`, since only the term `1 / χ` changes. -/
+theorem deriv_sub_const_div_sub_one_div_sub_const {c : ℝ} (hχ : χ r ≠ 0) (hc : χ r - c ≠ 0) :
+    deriv (fun r ↦ χ r - c) r / r - 1 / (χ r - c) =
+      deriv χ r / r - 1 / χ r - c / (χ r * (χ r - c)) := by
+  rw [deriv_sub_const]
+  field_simp
+  ring
+
+/-- Lowering a shape by a constant `c` lowers its margin `χ'' + χ'³ / r - 1 / χ` in the case
+`σ = r` of (4.4) at `r` by exactly `c / (χ r (χ r - c))`, since only the term `1 / χ`
+changes. -/
+theorem iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const {c : ℝ}
+    (hχ : χ r ≠ 0) (hc : χ r - c ≠ 0) :
+    iteratedDeriv 2 (fun r ↦ χ r - c) r + deriv (fun r ↦ χ r - c) r ^ 3 / r - 1 / (χ r - c) =
+      iteratedDeriv 2 χ r + deriv χ r ^ 3 / r - 1 / χ r - c / (χ r * (χ r - c)) := by
+  rw [iteratedDeriv_sub_const two_pos, deriv_sub_const]
+  field_simp
+  ring
+
 namespace IsConvexShapeAt
 
 /-- Being an `i`-convex shape at `r` only depends on the germ of the shape at `r`. -/
@@ -289,13 +315,24 @@ theorem add_const {c : ℝ} (hc : 0 ≤ c) (h : IsConvexShapeAt χ r) :
     IsConvexShapeAt (fun r ↦ χ r + c) r := by
   have hχ := h.pos_value
   have hle : 1 / (χ r + c) ≤ 1 / χ r := one_div_le_one_div_of_le hχ (by linarith)
-  have h₂ : iteratedDeriv 2 (fun r ↦ χ r + c) r = iteratedDeriv 2 χ r := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero, deriv_add_const']
   refine isConvexShapeAt_iff.2 ⟨h.pos, by linarith, ?_, ?_⟩
   · rw [deriv_add_const]
     exact hle.trans_lt h.one_div_lt_deriv_div
-  · rw [deriv_add_const, h₂]
+  · rw [deriv_add_const, iteratedDeriv_add_const two_pos]
     exact hle.trans_lt h.one_div_lt_iteratedDeriv_add
+
+/-- A shape stays `i`-convex when it is lowered a little: `χ - c` is an `i`-convex shape at `r`
+if `χ` is, `c < χ r`, and `c / (χ r (χ r - c))`, by which the lowering decreases both margins of
+`isConvexShapeAt_iff`, is less than each of them. -/
+theorem sub_const {c : ℝ} (h : IsConvexShapeAt χ r) (hc : c < χ r)
+    (h₃ : c / (χ r * (χ r - c)) < deriv χ r / r - 1 / χ r)
+    (h₄ : c / (χ r * (χ r - c)) < iteratedDeriv 2 χ r + deriv χ r ^ 3 / r - 1 / χ r) :
+    IsConvexShapeAt (fun r ↦ χ r - c) r := by
+  have hχ := h.pos_value.ne'
+  have hc' := (sub_pos.2 hc).ne'
+  have e₃ := deriv_sub_const_div_sub_one_div_sub_const hχ hc'
+  have e₄ := iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const hχ hc'
+  refine isConvexShapeAt_iff.2 ⟨h.pos, sub_pos.2 hc, ?_, ?_⟩ <;> linarith
 
 /-- A shape stays `i`-convex under the rescaling `χ ↦ ℓ χ (· / ℓ)` of the plane of `(r, R)` by
 `ℓ > 0`: if `χ` is an `i`-convex shape at `r`, then `r ↦ ℓ χ (r / ℓ)` is one at `ℓ r`. -/
