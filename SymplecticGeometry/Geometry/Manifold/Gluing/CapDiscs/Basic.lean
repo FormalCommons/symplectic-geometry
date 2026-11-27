@@ -672,9 +672,9 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
       simp only [q, ModelWithCorners.coe_interiorOpensDiffeomorph_apply])
   have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
     Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj])
-  refine ((GluedAlong.inl_eq_inr_iff _).2
+  refine ((GluedAlong.inl_eq_inr_diffeomorph_iff _).2
     ⟨interiorOverlap_le_interiorOverlaps hγ i q.property, ?_⟩).symm
-  rw [Diffeomorph.coe_toHomeomorph, annuliDiffeomorph_apply, toAnnuli_eq hγ hinj q.property]
+  rw [annuliDiffeomorph_apply, toAnnuli_eq hγ hinj q.property]
   have h' : (annulusDiffeomorph hγ hinj i q : DiscPiece) =
       remodelDiffeomorph complexDiffeomorph ball ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ := by
     rw [coe_annulusDiffeomorph, val_toAnnulus, hz]

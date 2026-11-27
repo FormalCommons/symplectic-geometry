@@ -153,7 +153,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
 | `Topology/FiberBundle/Basic.lean` | `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that each trivialization reads as an open condition on the model fibre is open | 3 |
-| `Topology/FiberBundle/ChangeModelFiber.lean` | trivializations read through homeomorphisms of the model fibre or of the total space | 26 |
+| `Topology/FiberBundle/Trivialization.lean` | trivializations read through homeomorphisms of the model fibre or of the total space | 26 |
 | `Topology/FiberBundle/Principal/ChangeGroup.lean` | change of structure group of a principal bundle along `G ≃ₜ* H` | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
 | `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
