@@ -25,7 +25,7 @@ form is at least `c γ ^ N₀ max ‖D²u‖ ‖Du‖ ‖v‖²` has `u ∘ Φ�
 as soon as `N₀ + 2 ≤ N`.
 
 The handles shrink to the compact disc `ι₀ (closedBall 0 1)` as `γ → 0`
-(`SymplecticGeometry.iInter_setOf_shape_le_eq`), so for small `γ` they lie in finitely many
+(`SymplecticGeometry.iInter_setOfPred_shape_le_eq`), so for small `γ` they lie in finitely many
 of the neighbourhoods where the bounds hold, which gives uniform constants there. The comparison
 of Levi forms through a chart that is not holomorphic, `TauCeti.le_re_leviForm_comp_symm` of
 `SymplecticGeometry/Analysis/Complex/LeviForm/CompSymm.lean`, then bounds the loss by a constant
@@ -130,14 +130,15 @@ private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ,
       (shape p).1 ≤ (1 + (γ : ℝ)) ^ 2})
     (fun a b ↦ ⟨⟨min a b, lt_min a.property.1 b.property.1,
         (min_le_left _ _).trans_lt a.property.2⟩,
-      setOf_shape_le_subset_setOf_shape_le (le_min a.property.1.le b.property.1.le)
+      setOfPred_shape_le_subset_setOfPred_shape_le (le_min a.property.1.le b.property.1.le)
         (min_le_left _ _),
-      setOf_shape_le_subset_setOf_shape_le (le_min a.property.1.le b.property.1.le)
+      setOfPred_shape_le_subset_setOfPred_shape_le (le_min a.property.1.le b.property.1.le)
         (min_le_right _ _)⟩)
-    (fun _ ↦ isCompact_setOf_shape_le _ _) (fun _ ↦ (isCompact_setOf_shape_le _ _).isClosed)
+    (fun _ ↦ isCompact_setOfPred_shape_le _ _)
+    (fun _ ↦ (isCompact_setOfPred_shape_le _ _).isClosed)
     (U := ⋃ x ∈ t, ball x (r x))
     (mem_nhdsSet_iff_forall.2 fun p hp ↦ (isOpen_biUnion fun x _ ↦ isOpen_ball).mem_nhds
-      (hKt (iInter_setOf_shape_le_eq.subset hp)))
+      (hKt (iInter_setOfPred_shape_le_eq.subset hp)))
   -- The constants are sums over the finitely many balls.
   have hle {f : V → ℝ} {x : V} (hx : x ∈ t) : f x ≤ ∑ x ∈ t, |f x| :=
     (le_abs_self _).trans (Finset.single_le_sum (f := fun x ↦ |f x|) (fun _ _ ↦ abs_nonneg _) hx)
@@ -191,8 +192,8 @@ theorem isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm [IsManifold �
   have hγγ₁ : γ ≤ γ₁ := hγ.2.le.trans (min_le_left _ _)
   have hγ1 : γ ≤ 1 := hγγ₁.trans hγ₁.2.le
   have hcov' (p) (ht : (shape p).2 ≤ γ ^ 2) (hs : (shape p).1 ≤ (1 + γ) ^ 2) :=
-    hcov p (setOf_shape_le_subset_setOf_shape_le hγ.1.le hγγ₁ ⟨ht, hs⟩).1
-      (setOf_shape_le_subset_setOf_shape_le hγ.1.le hγγ₁ ⟨ht, hs⟩).2
+    hcov p (setOfPred_shape_le_subset_setOfPred_shape_le hγ.1.le hγγ₁ ⟨ht, hs⟩).1
+      (setOfPred_shape_le_subset_setOfPred_shape_le hγ.1.le hγγ₁ ⟨ht, hs⟩).2
   have hmem {y : M} {p} (hp : p ∈ (Φ.toOpenPartialHomeomorph.trans (chartAt E y)).source) :
       p ∈ Φ.source ∧ Φ p ∈ (chartAt E y).source := by
     simpa only [OpenPartialHomeomorph.trans_source, Φ.toOpenPartialHomeomorph_source,

@@ -55,8 +55,8 @@ parameter `l` at a time:
   wherever `ρ x ≠ 0`, then the path is nondegenerate at all times;
 * `SymplecticGeometry.exists_mextDerivₗ_eq_endPullback_sub`: if `α l` is closed, then
   `e_{s l, 1}^* α l - α l = d γ` for a one-form `γ` that vanishes on every set fixed by all slices
-  `e_{s l, t}`, namely `γ = -h (Ψ^* α l)` for the homotopy operator `h` and the reversed isotopy
-  `Ψ (x, u) = e_{s l, 1 - u} x`.
+  `e_{s l, t}`; it is `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy` for
+  the isotopy `(x, t) ↦ e_{s l, t} x`.
 
 `SymplecticGeometry.exists_stagePath` builds the data `e` and `ρ` of a stage from a band core `c`
 and a family `Φ` of isotopies that displaces the cubes of `c` into a region `U` where every
@@ -139,8 +139,7 @@ theorem stagePath_apply (p : Λ × unitInterval) (x : M) :
 theorem stagePath_zero {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x) :
     stagePath he hρ s τ α B' (l, 0) = τ l := by
   rw [stagePath_def, collaredFirstHalf_zero, collaredSecondHalf_zero, Set.Icc.coe_zero, zero_smul,
-    add_zero, SmoothForm.mpullback_congr _ contMDiff_id (funext he₀),
-    SmoothForm.mpullback_id, LinearMap.id_apply]
+    add_zero, SmoothForm.mpullback_eq_self_of_eq_id _ (funext he₀)]
 
 /-- At time `1`, on a set where `ρ = 1`, the path is `e₁^* α l + d (e₁^* B' (s l))`, for the end
 `e₁ := e ((s l, 1), ·)` of the isotopy. -/
@@ -213,8 +212,7 @@ theorem stagePath_of_mem {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
       (F := fun q : unitInterval × M ↦ e ((s l, q.1), q.2))
       (he.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd))
       (collaredFirstHalf (n := ∞) le_rfl t) hτc
-    rw [SmoothForm.mpullback_congr _ contMDiff_id (funext he₀), SmoothForm.mpullback_id,
-      LinearMap.id_apply] at hex
+    rw [SmoothForm.mpullback_eq_self_of_eq_id _ (funext he₀)] at hex
     have hsplit : stagePath he hρ s τ α B' (l, t) - α l =
         -(τ l - SmoothForm.mpullback (fun x ↦ e ((s l, collaredFirstHalf (n := ∞) le_rfl t), x))
           (he.comp (contMDiff_const.prodMk contMDiff_id)) (τ l)) +
@@ -276,25 +274,19 @@ theorem stagePath_isNondegenerate {l : Λ}
 /-- The moved closed form differs from `α l` by an exact form whose primitive vanishes on `V`: for
 an isotopy starting at the identity whose slices `e ((s l, t), ·)` fix a set `V`, and a closed
 form `α l`, there is a one-form `γ` with `d γ = e₁^* α l - α l` and `γ = 0` on `V`, for the end
-`e₁ := e ((s l, 1), ·)` of the isotopy. The form is `γ = -h (Ψ^* α l)`, for the homotopy operator
-`h` and the reversed isotopy `Ψ (x, u) := e ((s l, 1 - u), x)` from `e₁` to the identity. -/
+`e₁ := e ((s l, 1), ·)` of the isotopy. It is the case of the isotopy `(x, t) ↦ e ((s l, t), x)`
+of `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy`. -/
 theorem exists_mextDerivₗ_eq_endPullback_sub {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
     (hα : mextDerivₗ I 2 (α l) = 0) {V : Set M} (heV : ∀ t, ∀ x ∈ V, e ((s l, t), x) = x) :
     ∃ γ : SmoothForm I M ℝ 1,
       mextDerivₗ I 1 γ = SmoothForm.mpullback (fun x ↦ e ((s l, 1), x))
           (he.comp (contMDiff_const.prodMk contMDiff_id)) (α l) - α l ∧
         ∀ x ∈ V, γ.val x = 0 := by
-  have hΨ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ fun p : M × unitInterval ↦
-      e ((s l, unitInterval.symm p.2), p.1) :=
-    he.comp ((contMDiff_const.prodMk (unitInterval.contMDiff_symm.comp contMDiff_snd)).prodMk
-      contMDiff_fst)
-  refine ⟨-SmoothForm.homotopyOperator (SmoothForm.mpullback _ hΨ (α l)), ?_, fun x hx ↦ ?_⟩
-  · rw [map_neg, SmoothForm.mextDerivₗ_homotopyOperator_mpullback (g := fun x ↦ e ((s l, 1), x))
-      (he.comp (contMDiff_const.prodMk contMDiff_id)) hΨ (fun x ↦ by simp) (fun x ↦ by simp [he₀])
-      hα, neg_sub]
-  · rw [SmoothForm.neg_toRoughForm, Pi.neg_apply, SmoothForm.coe_homotopyOperator,
-      SmoothForm.coe_mpullback, homotopyOperator_mpullback_apply_eq_zero (y := x)
-        (fun t ↦ heV _ x hx), neg_zero]
+  obtain ⟨γ, hγ, hγ0⟩ := SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy
+    (f := fun x ↦ e ((s l, 1), x)) (Φ := fun p ↦ e ((s l, p.2), p.1))
+    (he.comp (contMDiff_const.prodMk contMDiff_id))
+    (he.comp ((contMDiff_const.prodMk contMDiff_snd).prodMk contMDiff_fst)) he₀ (fun _ ↦ rfl) hα
+  exact ⟨γ, hγ, fun x hx ↦ hγ0 x fun t ↦ heV t x hx⟩
 
 section Exists
 
