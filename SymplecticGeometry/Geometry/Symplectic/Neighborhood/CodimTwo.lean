@@ -151,7 +151,7 @@ theorem HasSymplecticTangentImages.exists_contMDiff_pos_symplecticNormalForm_eq_
       fun v w hvw ↦ (hB_apply q v w).symm ▸ hΦσ q v w hvw
 
 variable [J₀.Boundaryless] [I₁.Boundaryless] [I₀.Boundaryless] [T2Space M₀] [T2Space M₁]
-  [SecondCountableTopology M₀] [SecondCountableTopology M₁]
+  [SecondCountableTopology M₀]
 
 /-- **The symplectic neighbourhood theorem in codimension two, for orientation-preserving normal
 isomorphisms.** Let `f₀`, `f₁`, `φ` and `Φ` be as in

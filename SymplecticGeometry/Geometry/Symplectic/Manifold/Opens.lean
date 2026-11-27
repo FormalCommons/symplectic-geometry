@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import Mathlib.Topology.Sets.OpenCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Nondegenerate and symplectic two-forms on open subsets and open covers
@@ -29,6 +30,8 @@ to the `U i` is. With the test of closedness on an open cover from
   the set.
 * `TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val`: a closed two-form that is
   nondegenerate at each point of an open set restricts to a symplectic form on it.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mpullback_subtype_val_apply`: at a
+  point of an open set, the restricted form is the ambient one.
 * `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_mpullback_subtype_val`: a two-form is
   nondegenerate exactly when its restriction to each member of an open cover is.
 * `TauCeti.SmoothTwoForm.isSymplectic_iff_forall_mpullback_subtype_val`: a two-form is
@@ -58,9 +61,8 @@ theorem isNondegenerate_mpullback_subtype_val_iff {σ : SmoothTwoForm I M} {U : 
       ∀ x ∈ U, (σ.bilinFormAt x).Nondegenerate :=
   ⟨fun h x hx ↦ (nondegenerate_bilinFormAt_mpullback_subtype_val_iff ⟨x, hx⟩).1
       (h.nondegenerate_bilinFormAt _),
-    fun h ↦ isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun x ↦
-      ((nondegenerate_bilinFormAt_mpullback_subtype_val_iff (σ := σ) x).2
-        (h x x.property)).ker_eq_bot⟩
+    fun h ↦ isNondegenerate_def.2 fun x ↦
+      (nondegenerate_bilinFormAt_mpullback_subtype_val_iff (σ := σ) x).2 (h x x.property)⟩
 
 /-- A closed two-form `σ` that is nondegenerate at every point of an open set `U` restricts to a
 symplectic form on `U`. -/
@@ -70,6 +72,17 @@ theorem _root_.TauCeti.SmoothForm.IsClosed.isSymplectic_mpullback_subtype_val
     IsSymplectic (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) :=
   ⟨hσ.mpullback _ _, isNondegenerate_mpullback_subtype_val_iff.2 h⟩
 
+/-- At a point `x` of an open set `U`, the symplectic form on `T_x U` of the restriction of a
+nondegenerate two-form `σ` to `U` is the symplectic form of `σ` on `T_x M`, the two tangent spaces
+being the same model space. -/
+theorem IsNondegenerate.symplecticFormAt_mpullback_subtype_val_apply {σ : SmoothTwoForm I M}
+    (hσ : σ.IsNondegenerate) {U : Opens M} (x : U) (v w : TangentSpace I x) :
+    (hσ.mpullback_subtype_val U).symplecticFormAt x v w = hσ.symplecticFormAt (x : M) v w :=
+  ((hσ.mpullback_subtype_val U).symplecticFormAt_apply x v w).trans
+    ((SmoothForm.bilinFormAt_apply _ x v w).symm.trans
+      ((congrArg (fun B ↦ B v w) (bilinFormAt_mpullback_subtype_val x)).trans
+        ((SmoothForm.bilinFormAt_apply σ x v w).trans (hσ.symplecticFormAt_apply x v w).symm)))
+
 /-- A two-form is nondegenerate exactly when its restriction to each member of an open cover is
 nondegenerate. -/
 theorem isNondegenerate_iff_forall_mpullback_subtype_val (hcover : IsOpenCover U)
@@ -77,9 +90,9 @@ theorem isNondegenerate_iff_forall_mpullback_subtype_val (hcover : IsOpenCover U
     σ.IsNondegenerate ↔
       ∀ i, IsNondegenerate (SmoothForm.mpullback (Subtype.val : U i → M) contMDiff_subtypeVal σ) :=
   ⟨fun h i ↦ h.mpullback_subtype_val (U i), fun h ↦
-    isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun x ↦
+    isNondegenerate_def.2 fun x ↦
       let ⟨i, hx⟩ := hcover.exists_mem x
-      (isNondegenerate_mpullback_subtype_val_iff.1 (h i) x hx).ker_eq_bot⟩
+      isNondegenerate_mpullback_subtype_val_iff.1 (h i) x hx⟩
 
 /-- A two-form is symplectic exactly when its restriction to each member of an open cover is
 symplectic. -/

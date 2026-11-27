@@ -21,7 +21,11 @@ import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Analysis.ODE.LyapunovPerron.ParameterDerivative
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Graph
+import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import TauCeti.Analysis.ODE.ExponentialDichotomy
+import Mathlib.Analysis.ODE.Transform
+import TauCeti.Geometry.Symplectic.Liouville.Scaling
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Stable
 
 /-!
 # The flow of a Weinstein structure and its stable sets
@@ -35,16 +39,19 @@ the function `f` increases along every orbit; so on the stable set of a point `p
 points whose orbits tend to `p`, the function `f` is at most `f p`. Near a nondegenerate critical
 point `p`, read in the chart at `p`, an orbit of the stable set that starts close to `p`, at a
 value of `f` close to `f p`, never moves far from `p`. From this and the local stable graph of the
-field read in that chart, the stable set of `p` near `p` is the image of a disc in the stable
-subspace of the linearization of `X` at `p`, along which the derivative of the flow, read in the
-chart at `p`, stays bounded for all positive times.
+field read in that chart, the stable set of `p` near `p` is the image of a smooth disc in the
+stable subspace of the linearization of `X` at `p`, along which the derivative of the flow, read
+in the chart at `p`, stays bounded for all positive times.
 
 This prepares the isotropy of the stable discs of the nondegenerate critical
 points. The conformal scaling `φ_t^* ω = e^t ω` and `φ_t^* (ι_X ω) = e^t ι_X ω` of the flow is
 Tau Ceti's `TauCeti.IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul` and
 `TauCeti.mpullback_globalFlow_eq_exp_smul_of_interior_eq`. They are stated for `globalFlow`, and
 apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
-`SymplecticGeometry.IsWeinsteinStructure.flow_def`.
+`SymplecticGeometry.IsWeinsteinStructure.flow_def`. With them,
+`Flow.mpullback_eq_zero_of_mpullback_eq_exp_smul` shows that a map into the stable set along
+which the derivative of the flow, read in the chart at `p`, stays bounded for all large times
+pulls both forms back to zero.
 
 ## Main declarations
 
@@ -72,11 +79,16 @@ apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
   of `p` that start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a
   slightly larger ball.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc`: the local stable disc of a
-  nondegenerate critical point `p`, a `C^n` map from the stable subspace of the linearization
+  nondegenerate critical point `p`, a smooth map from the stable subspace of the linearization
   with injective differential on a ball, whose image there lies in the stable set of `p` and
   contains every point of it near `p` at which `f` is close to `f p`, whose orbits in positive
   time stay in the chart at `p`, and along which the derivative of the flow, read in that chart,
   exists and is bounded in positive time.
+* `SymplecticGeometry.IsWeinsteinStructure.mpullback_interior_eq_zero_of_bounded` and
+  `SymplecticGeometry.IsWeinsteinStructure.mpullback_eq_zero_of_bounded`: a map `γ` with `γ y`
+  in the stable set of `p` pulls `ι_X ω` and `ω` back to zero at `y`, if the derivative at `y`
+  of `γ` followed by the flow, read in the chart at `p`, is bounded for all large times on each
+  tangent vector.
 
 ## Implementation notes
 
@@ -91,14 +103,21 @@ a nondegenerate critical point is isolated by Tau Ceti's
 The disc is built in the extended chart `e` at `p`. The dichotomy for the linearization `A`
 (`TauCeti.IsGradientLike.exists_projection_exponential_bounds`, in
 `SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization`) gives a projection `P`
-onto the stable subspace, and `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_fderiv`,
-applied to the field read in `e` with a confinement radius within the chart target, gives the
-graph map `g` and the confined forward solutions over `range P`. The disc is
+onto the stable subspace, and `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_infty`,
+applied to the smooth field read in `e` with a confinement radius within the chart target, gives
+the graph map `g`, `C^1` on a ball and `C^m` on a smaller ball for each `m`, and the confined
+forward solutions over `range P`. The disc is
 `z ↦ e.symm (e p + z + g z)`. Its orbits are the solutions read back through `e`, by
 `TauCeti.extChartAt_symm_add_eq_globalFlow`; the covering statement combines the confinement of
 the stable set with the description of the confined solutions as the graph, and the differential
 is injective since `P ∘ g = 0`, by
 `ContinuousLinearMap.injective_fderiv_add_comp_subtype`.
+The disc is smooth on the whole ball although `g` is known to be `C^m` only near `0`: the orbit
+of a point `ι z` of the disc enters, at some time `T`, the region where `g` is `C^m`, and the
+confined solutions there lie on the graph, so that `ι = φ_{-T} ∘ ι ∘ h` near `z`, with
+`h w = P (e (φ_T (ι w)) - e p)`. The map `h` is differentiable at `z` and has the `C^m` left
+inverse `u ↦ P (e (φ_{-T} (ι u)) - e p)`, so it is `C^m` at `z` by
+`ContDiffAt.of_local_left_inverse_of_finrank_eq`, and then so is `ι`.
 The covering step, which first confines the orbits of the stable set near `p` and then identifies
 them with the local stable graph, follows the plan of Tau Ceti's
 `TauCeti.IsNondegenerateCriticalPoint.eventually_forall_dist_le_of_mem_stableSet`
@@ -242,9 +261,9 @@ theorem exists_forall_flow_mem_source_and_norm_extChartAt_sub_le {p : M}
 
 /-- **The local stable disc of a nondegenerate critical point.** Let `p` be a nondegenerate
 critical point of the function of a Weinstein structure, `A` the linearization of the Liouville
-field at `p`, and `e` the extended chart at `p`. For every `n ≥ 1` there are a map `ι` from the
-stable subspace of `A` to `M` with `ι 0 = p` and a radius `ρ > 0` such that:
-* on the ball of radius `ρ`, `ι` is `C^n` and its differential is injective;
+field at `p`, and `e` the extended chart at `p`. There are a map `ι` from the stable subspace of
+`A` to `M` with `ι 0 = p` and a radius `ρ > 0` such that:
+* on the ball of radius `ρ`, `ι` is smooth and its differential is injective;
 * `ι` maps that ball into the stable set of `p`;
 * the image of that ball contains every point of the stable set of `p` that lies in some
   neighbourhood `U` of `p` and at which `f` exceeds `f p - ε`, for some `ε > 0`;
@@ -252,11 +271,10 @@ stable subspace of `A` to `M` with `ι 0 = p` and a radius `ρ > 0` such that:
   the point `φ_t (ι z)` lies in the source of `e`, the map `w ↦ e (φ_t (ι w))` is differentiable
   at `z`, and its derivative there is bounded independently of `t`. -/
 theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
-    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) {n : ℕ}
-    (hn : 1 ≤ n) :
+    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
     ∃ ι : A.stableSubspace → M, ∃ ρ > 0, ι 0 = p ∧
       (∀ z ∈ ball (0 : A.stableSubspace) ρ,
-        ContMDiffAt 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) n ι z ∧
+        ContMDiffAt 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) (⊤ : ℕ∞) ι z ∧
           Injective (mfderiv 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) ι z)) ∧
       ι '' ball 0 ρ ⊆ hW.flow.stableSet p ∧
       (∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ) ∧
@@ -276,10 +294,11 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
   have hPS : (P : E →ₗ[ℝ] E).range = A.stableSubspace :=
     ContinuousLinearMap.range_eq_stableSubspace_of_exponential_bounds hα hP hAP hs hu
   obtain ⟨r₀, hr₀, hr₀t, hconf⟩ := hW.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le hp
-  -- The local stable graph of the coordinate field, with confinement radius at most `r₀`.
-  obtain ⟨r, hr, hrr₀, ρ, hρ, g, -, -, hg0, -, hgn, hPg, -, hset, htend, y, hy⟩ :=
-    ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_fderiv (n := n) hs hu hα hP hAP hn
-      ((hW.contMDiff_field p).of_le (by simp)).contDiffAt_mpullback_extChartAt_symm
+  -- The local stable graph of the coordinate field, with confinement radius at most `r₀`; the
+  -- graph map is `C^1` on the ball of radius `ρ`, and `C^m` on a smaller ball for every `m`.
+  obtain ⟨r, hr, hrr₀, ρ, hρ, g, -, -, hg0, -, hg1, hgn, hPg, -, hset, htend, y, hy⟩ :=
+    ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_infty hs hu hα hP hAP
+      (hW.contMDiff_field p).contDiffAt_mpullback_extChartAt_symm
       ((VectorField.mpullback_extChartAt_symm_self X p).trans hp0)
       (hA ▸ hXp.hasFDerivAt_mpullback_extChartAt_symm) hr₀
   set e := extChartAt 𝓘(ℝ, E) p with he
@@ -301,26 +320,115 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have h := TauCeti.extChartAt_symm_add_eq_globalFlow hv hW.isCompleteVectorField hyi htarget ht
     rw [hy0, ← hW.flow_def] at h
     exact h.symm
+  have hq (z : S) (hz : z ∈ ball (0 : S) ρ) : e p + ((z : E) + g z) ∈ e.target := by
+    obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
+    simpa [hy0] using (horb z hz 0 le_rfl).1
+  -- Where `g` is `C^m`, so is `ι`.
+  have hF (m : ℕ) (z : S) (hgz : ContDiffAt ℝ m g z) :
+      ContDiffAt ℝ m (fun w : S ↦ e p + ((w : E) + g w)) z :=
+    contDiffAt_const.add (S.subtypeL.contDiff.contDiffAt.add
+      (hgz.comp (f := S.subtypeL) z S.subtypeL.contDiff.contDiffAt))
+  have hιC (m : ℕ) (z : S) (hz : z ∈ ball (0 : S) ρ) (hgz : ContDiffAt ℝ m g z) :
+      ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m ι z := by
+    have hsymm : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E) m e.symm (e p + ((z : E) + g z)) :=
+      ((contMDiffOn_extChartAt_symm (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) p).of_le
+        (by exact_mod_cast le_top)).contMDiffAt
+        ((isOpen_extChartAt_target p).mem_nhds (hq z hz))
+    exact hsymm.comp z (hF m z hgz).contMDiffAt
+  -- A confined forward solution that starts over the ball starts on the graph of `g`.
+  have hgraph (c : ℝ → E) (hc : IsIntegralCurveOn c
+      (fun _ w ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm X (e p + w)) (Ici 0))
+      (hcr : MapsTo c (Ici 0) (closedBall 0 r)) (hcP : ‖P (c 0)‖ ≤ ρ) :
+      c 0 = P (c 0) + g (P (c 0)) := by
+    have hmem : c 0 ∈ {u : E | (∃ c : ℝ → E, IsIntegralCurveOn c
+        (fun _ w ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm X (e p + w)) (Ici 0) ∧
+          c 0 = u ∧ MapsTo c (Ici 0) (closedBall 0 r)) ∧ ‖P u‖ ≤ ρ} :=
+      ⟨⟨c, hc, rfl, hcr⟩, hcP⟩
+    rw [hset] at hmem
+    obtain ⟨u, ⟨⟨v, hv⟩, -⟩, hu⟩ := hmem
+    simp only at hu
+    have hPu : P (c 0) = u := by
+      rw [← hu, map_add, hPg, add_zero, ← hv, ← mul_apply_eq_comp, hP.eq]
+    rw [hPu, hu]
+  have hinv (T : ℝ) (x : M) : hW.flow (-T) (hW.flow T x) = x := by simp
+  have hQ (x : E) : P x ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) x
+  set Q : E →L[ℝ] S := P.codRestrict S hQ with hQdef
+  -- Smoothness spreads from a small ball to the ball of radius `ρ` along the flow: for `T`
+  -- large, `ι = φ_{-T} ∘ ι ∘ h` near `z`, with `h` landing where `g` is `C^m`, and `h` has the
+  -- `C^m` left inverse `u ↦ P (e (φ_{-T} (ι u)) - e p)`.
+  have hsmooth (m : ℕ) (hm : m ≠ 0) (z : S) (hz : z ∈ ball (0 : S) ρ) :
+      ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m ι z := by
+    have hm0 : (m : WithTop ℕ∞) ≠ 0 := by exact_mod_cast hm
+    obtain ⟨ρm, hρm, hgm⟩ := hgn m
+    obtain ⟨hyi, hymaps, -, hyd, -⟩ := hy z (hball z hz)
+    have hlim : Tendsto (fun t ↦ ‖P (y z t)‖) atTop (𝓝 0) := by
+      simpa using ((P.continuous.tendsto 0).comp (htend _ hyi hymaps)).norm
+    obtain ⟨T, hT0, hTz⟩ :=
+      ((eventually_ge_atTop 0).and (hlim.eventually (gt_mem_nhds (lt_min hρ hρm)))).exists
+    set h : S → S := fun w ↦ Q (y w T) with hh
+    have hhd : DifferentiableAt ℝ h z :=
+      Q.differentiableAt.comp z ((hyd T hT0).comp (f := S.subtypeL) z S.subtypeL.differentiableAt)
+    have hnorm (w : S) : ‖h w‖ = ‖P (y w T)‖ := by
+      rw [← Submodule.norm_coe, ContinuousLinearMap.coe_codRestrict_apply]
+    have hev : ∀ᶠ w in 𝓝 z, w ∈ ball (0 : S) ρ ∧ ‖h w‖ < min ρ ρm :=
+      (isOpen_ball.eventually_mem hz).and
+        ((continuous_norm.continuousAt.comp hhd.continuousAt).eventually
+          (gt_mem_nhds (by rwa [Function.comp_apply, hnorm])))
+    -- Along the flow, `φ_T ∘ ι = ι ∘ h` near `z`.
+    have hιh : ∀ᶠ w in 𝓝 z, ι (h w) = hW.flow T (ι w) := hev.mono fun w ⟨hw, hhw⟩ ↦ by
+      rw [hnorm] at hhw
+      obtain ⟨hwi, hwmaps, -⟩ := hy w (hball w hw)
+      have hgw := hgraph (fun s ↦ y w (s + T))
+        ((hwi.comp_add T).mono fun s hs ↦ by
+          rw [mem_vadd_set_iff_neg_vadd_mem, neg_neg, vadd_eq_add, mem_Ici]
+          exact add_nonneg hT0 hs)
+        (fun s hs ↦ hwmaps (mem_Ici.2 (add_nonneg hs hT0)))
+        (by simpa using hhw.le.trans (min_le_left _ _))
+      simp only [zero_add] at hgw
+      rw [(horb w hw T hT0).2, hgw]
+      simp only [hι, hh, hQdef, ContinuousLinearMap.coe_codRestrict_apply]
+    obtain ⟨-, hhz⟩ := hev.self_of_nhds
+    have hhzρ : h z ∈ ball (0 : S) ρ := mem_ball_zero_iff.2 (hhz.trans_le (min_le_left _ _))
+    have hgh : ContDiffAt ℝ m g (h z) :=
+      hgm _ (by simpa [Submodule.norm_coe] using hhz.le.trans (min_le_right _ _))
+    have hιhz : ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m ι (h z) := hιC m (h z) hhzρ hgh
+    have hback : hW.flow (-T) (ι (h z)) = ι z := by rw [hιh.self_of_nhds, hinv]
+    -- The left inverse of `h`.
+    have hk : ContDiffAt ℝ m (fun u ↦ Q (e (hW.flow (-T) (ι u)) - e p)) (h z) := by
+      have hsrc : ι z ∈ (chartAt E p).source := by
+        rw [← extChartAt_source 𝓘(ℝ, E)]
+        exact e.map_target (hq z hz)
+      have h1 : ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m (fun u ↦ e (hW.flow (-T) (ι u))) (h z) :=
+        ((contMDiffAt_extChartAt' (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) hsrc).of_le
+          (by exact_mod_cast le_top)).comp_of_eq
+          ((((hW.contMDiff_flow_apply (-T)).of_le (by exact_mod_cast le_top)).contMDiffAt).comp
+            (h z) hιhz) hback
+      exact Q.contDiff.contDiffAt.comp _ ((contMDiffAt_iff_contDiffAt.1 h1).sub contDiffAt_const)
+    have hkh : ∀ᶠ w in 𝓝 z, Q (e (hW.flow (-T) (ι (h w))) - e p) = w :=
+      (hιh.and hev).mono fun w ⟨hw, hw', _⟩ ↦ by
+        rw [hw, hinv]
+        ext
+        rw [ContinuousLinearMap.coe_codRestrict_apply]
+        simp only [hι]
+        rw [e.right_inv (hq w hw'), add_sub_cancel_left, map_add, hPg, add_zero, hPz]
+    have hhC : ContDiffAt ℝ m h z :=
+      ContDiffAt.of_local_left_inverse_of_finrank_eq hk hhd hkh hm0 rfl
+    have hcomp : ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m (fun w ↦ hW.flow (-T) (ι (h w))) z :=
+      (((hW.contMDiff_flow_apply (-T)).of_le (by exact_mod_cast le_top)).contMDiffAt).comp z
+        (hιhz.comp z hhC.contMDiffAt)
+    exact hcomp.congr_of_eventuallyEq (hιh.mono fun w hw ↦ by beta_reduce; rw [hw, hinv])
   refine ⟨ι, ρ, hρ, by simpa [hι, hg0] using e.left_inv (mem_extChartAt_source p),
     fun z hz ↦ ?_, ?_, ?_, fun z hz ↦ ?_⟩
   · -- Smoothness and injectivity of the differential.
-    obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
-    have hq : e p + ((z : E) + g z) ∈ e.target := by simpa [hy0] using (horb z hz 0 le_rfl).1
-    have hn0 : (n : WithTop ℕ∞) ≠ 0 := by exact_mod_cast (Nat.one_le_iff_ne_zero.1 hn)
-    have hgz : ContDiffAt ℝ n g z := hgn _ (hball z hz).2
-    have hhd : ContDiffAt ℝ n (fun w : S ↦ e p + ((w : E) + g w)) z :=
-      contDiffAt_const.add (S.subtypeL.contDiff.contDiffAt.add
-        (hgz.comp (f := S.subtypeL) z S.subtypeL.contDiff.contDiffAt))
+    have hgz : ContDiffAt ℝ 1 g z := by exact_mod_cast hg1 _ (hball z hz).2
     have hinj : Injective (fderiv ℝ (fun w : S ↦ e p + ((w : E) + g w)) z) := by
       rw [fderiv_const_add]
       exact P.injective_fderiv_add_comp_subtype (fun w hw ↦ hPz ⟨w, hw⟩) hPg
-        (hgz.differentiableAt hn0)
-    have hsymm : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E) n e.symm (e p + ((z : E) + g z)) :=
-      ((contMDiffOn_extChartAt_symm (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) p).of_le
-        (by exact_mod_cast le_top)).contMDiffAt
-        ((isOpen_extChartAt_target p).mem_nhds hq)
-    exact ⟨hsymm.comp z hhd.contMDiffAt,
-      injective_mfderiv_extChartAt_symm_comp hq (hhd.differentiableAt hn0) hinj⟩
+        (hgz.differentiableAt one_ne_zero)
+    refine ⟨contMDiffAt_infty.2 fun m ↦ ?_,
+      injective_mfderiv_extChartAt_symm_comp (hq z hz)
+        ((hF 1 z hgz).differentiableAt one_ne_zero) hinj⟩
+    exact (hsmooth (m + 1) m.succ_ne_zero z hz).of_le (by exact_mod_cast m.le_succ)
   · -- The image lies in the stable set.
     rintro _ ⟨z, hz, rfl⟩
     obtain ⟨hyi, hymaps, -⟩ := hy z (hball z hz)
@@ -356,19 +464,10 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
           rw [hY0]
           exact mul_le_mul_of_nonneg_left (hxb.le.trans (min_le_right _ _)) (norm_nonneg _)
         _ < ρ := h1
-    have hmem : Y 0 ∈ {z : E | (∃ y : ℝ → E, IsIntegralCurveOn y
-        (fun _ w ↦ VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) e.symm X (e p + w)) (Ici 0) ∧
-          y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} :=
-      ⟨⟨Y, hYi, rfl, fun t ht ↦ by simpa [Y] using (hcx t ht).2⟩, hPY.le⟩
-    rw [hset] at hmem
-    obtain ⟨_, ⟨⟨w, rfl⟩, -⟩, hw⟩ := hmem
-    simp only at hw
-    have hPw : P (Y 0) = P w := by
-      rw [← hw, map_add, hPg, add_zero, ← mul_apply_eq_comp, hP.eq]
-    have hwS : P w ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) w
-    refine ⟨⟨P w, hwS⟩, by simpa [← hPw] using hPY, ?_⟩
+    have hw := hgraph Y hYi (fun t ht ↦ by simpa [Y] using (hcx t ht).2) hPY.le
+    refine ⟨⟨P (Y 0), hQ (Y 0)⟩, by simpa using hPY, ?_⟩
     simp only [hι]
-    rw [hw, hY0, add_sub_cancel, e.left_inv hxs]
+    rw [← hw, hY0, add_sub_cancel, e.left_inv hxs]
   · -- The derivative of `w ↦ e (φ_t (ι w))` is bounded in `t ≥ 0`.
     obtain ⟨-, -, -, hyd, C, hC⟩ := hy z (hball z hz)
     refine ⟨C, fun t ht ↦ ?_⟩
@@ -383,6 +482,49 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     rw [heq.fderiv_eq, hD.fderiv]
     exact (ContinuousLinearMap.opNorm_comp_le _ _).trans
       ((mul_le_of_le_one_right (norm_nonneg _) (Submodule.norm_subtypeL_le S)).trans (hC t ht))
+
+section Bounded
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- **A forward derivative bound makes `ι_X ω` vanish.** Let `(ω, X, f)` be a Weinstein
+structure with flow `φ`, `e` the extended chart at `p`, and `γ : N → M` differentiable at `y`,
+with `γ y` in the stable set of `p`. If for each tangent vector `v` at `y` the derivative of
+`z ↦ e (φ_t (γ z))` at `y` on `v` is bounded for all large `t`, then the pullback of the one-form
+`ι_X ω` by `γ` vanishes at `y`. -/
+theorem mpullback_interior_eq_zero_of_bounded {p : M} {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hy : γ y ∈ hW.flow.stableSet p)
+    (hb : ∀ v : TangentSpace I' y, ∃ C, ∀ᶠ t in atTop,
+      ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C) :
+    mpullback I' 𝓘(ℝ, E) γ (RoughForm.interior X ω.val) y = 0 := by
+  have hα : IsSmoothForm 𝓘(ℝ, E) (⊤ : ℕ∞) (RoughForm.interior X ω.val) :=
+    (ω.isSmoothForm.of_le (by simp)).interior hW.contMDiff_field
+  refine hW.flow.mpullback_eq_zero_of_mpullback_eq_exp_smul
+    (fun t ↦ (hW.contMDiff_flow_apply t).mdifferentiable (by simp)) (hα.of_le (by simp))
+    (fun t ↦ ?_) hγ hy hb
+  rw [flow_def]
+  exact mpullback_globalFlow_eq_exp_smul_of_interior_eq _ _
+    (hα.contMDiff.mdifferentiable (by simp)) hW.mextDeriv_interior rfl t
+
+/-- **A forward derivative bound makes `ω` vanish.** Let `(ω, X, f)` be a Weinstein structure
+with flow `φ`, `e` the extended chart at `p`, and `γ : N → M` differentiable at `y`, with `γ y`
+in the stable set of `p`. If for each tangent vector `v` at `y` the derivative of
+`z ↦ e (φ_t (γ z))` at `y` on `v` is bounded for all large `t`, then the pullback of `ω` by `γ`
+vanishes at `y`. -/
+theorem mpullback_eq_zero_of_bounded {p : M} {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hy : γ y ∈ hW.flow.stableSet p)
+    (hb : ∀ v : TangentSpace I' y, ∃ C, ∀ᶠ t in atTop,
+      ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C) :
+    mpullback I' 𝓘(ℝ, E) γ ω.val y = 0 := by
+  refine hW.flow.mpullback_eq_zero_of_mpullback_eq_exp_smul
+    (fun t ↦ (hW.contMDiff_flow_apply t).mdifferentiable (by simp))
+    (ω.isSmoothForm.of_le (by simp)) (fun t ↦ ?_) hγ hy hb
+  rw [flow_def]
+  exact IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul _ _
+    ω.mdifferentiable hW.isLiouvilleVectorField t
+
+end Bounded
 
 end IsWeinsteinStructure
 

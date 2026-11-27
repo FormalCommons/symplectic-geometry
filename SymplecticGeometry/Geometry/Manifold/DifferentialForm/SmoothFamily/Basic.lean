@@ -67,6 +67,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   on fixed tangent vectors, are smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_val`: the value of a smooth family of forms on a
   normed space is jointly smooth in the parameter and the point.
+* `SymplecticGeometry.IsSmoothFamily.of_contMDiff_val`: conversely, a family of forms on a
+  normed space whose value is jointly smooth in the parameter and the point is smooth.
 * `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value of a smooth family of forms on a
   normed space is jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
@@ -363,6 +365,23 @@ theorem contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFa
   symm
   -- The trivialization at `p₀` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
   -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+
+/-- **Smooth families from jointly smooth values.** A family `α` of `k`-forms on a normed space
+`E` whose value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends smoothly on `(t, x)` is a
+smooth family. This is the converse of `SymplecticGeometry.IsSmoothFamily.contMDiff_val`. -/
+theorem of_contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k}
+    (h : ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
+      fun p : N × E ↦ (α p.1).val p.2) :
+    IsSmoothFamily J α := by
+  refine isSmoothFamily_iff_contMDiff.mpr fun p₀ ↦
+    Bundle.contMDiffAt_totalSpace_iff.mpr ⟨contMDiffAt_snd, ?_⟩
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    TangentBundle.symmL_model_space]
+  refine (h p₀).congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
+  ext v
+  -- As in `SymplecticGeometry.IsSmoothFamily.contMDiff_val`, the trivialization at `p₀` is the
+  -- identity only definitionally.
   exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
 
 /-- **Joint continuity of a smooth family.** For a smooth family `α` of `k`-forms on a normed

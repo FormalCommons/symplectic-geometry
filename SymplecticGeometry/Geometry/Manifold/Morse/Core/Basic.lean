@@ -9,7 +9,9 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.ModelChart
 import SymplecticGeometry.Topology.Order.Sublevel
 
@@ -48,6 +50,9 @@ core without cubes (`SymplecticGeometry.BandCore.ofNoCriticalPoint`), whose comp
 * `SymplecticGeometry.BandCore`: band cores; `SymplecticGeometry.BandCore.cubes`, the union of
   the cubes, compact (`isCompact_cubes`) and above `a₀` (`cubes_subset`).
 * `SymplecticGeometry.BandCore.ofNoCriticalPoint`: the band core without cubes.
+* `SymplecticGeometry.BandCore.ofDiffeomorph`: the pullback of a band core along a
+  diffeomorphism, whose cubes are the old ones moved back (`cubes_ofDiffeomorph`); it may change
+  the model but not its vector space.
 
 ## References
 
@@ -225,6 +230,108 @@ theorem isCompact_cubes (c : BandCore I g a₀ a b) : IsCompact c.cubes :=
 /-- The cubes of a band core lie above the level `a₀`. -/
 theorem cubes_subset (c : BandCore I g a₀ a b) : c.cubes ⊆ {x | a₀ < g x} :=
   iUnion_subset fun i ↦ (c.mapsTo_cube i).image_subset
+
+section ofDiffeomorph
+
+variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M]
+  {H' : Type*} [TopologicalSpace H'] {J : ModelWithCorners ℝ E H'} [J.Boundaryless]
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N] {g : N → ℝ}
+
+/-- The **pullback of a band core along a diffeomorphism** `Φ : M ≃ₘ^∞⟮I, J⟯ N` between
+boundaryless manifolds whose models share the vector space `E`: a band core of `g : N → ℝ` gives
+the band core of `g ∘ Φ` with the same cubes moved by `Φ.symm`. Its charts are `Φ.symm ∘ chart i`,
+and its compression for an open `U ⊆ M` is the compression `F` of `c` for `Φ '' U` conjugated by
+`Φ`, the isotopy `(t, x) ↦ Φ.symm (F (t, Φ x))`. -/
+@[expose] noncomputable def ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) :
+    BandCore I (g ∘ Φ) a₀ a b where
+  ι := c.ι
+  dim := c.dim
+  dim_lt := c.dim_lt
+  chart i := Φ.symm ∘ c.chart i
+  -- A tactic proof, so that the exposed body may use the privately imported lemma.
+  isSmoothEmbedding_chart i := by
+    exact Φ.symm.isSmoothEmbedding_comp (by simp) (c.isSmoothEmbedding_chart i)
+  isOpen_range_chart i := by
+    rw [range_comp, ← Diffeomorph.coe_toHomeomorph]
+    exact Φ.symm.toHomeomorph.isOpenMap _ (c.isOpen_range_chart i)
+  mapsTo_cube i v hv := by simpa using c.mapsTo_cube i hv
+  mapsTo_sphere i v hv := by simpa using c.mapsTo_sphere i hv
+  pairwise_disjoint i j hij := by
+    simp only [image_comp]
+    exact (disjoint_image_iff Φ.symm.injective).2 (c.pairwise_disjoint hij)
+  exists_compression U hU hsub := by
+    have hΦ : Manifold.IsSmoothEmbedding I J ∞ Φ :=
+      Φ.isSmoothEmbedding_comp (f := id) (by simp) Manifold.IsSmoothEmbedding.id
+    have hΦs : Manifold.IsSmoothEmbedding J I ∞ Φ.symm :=
+      Φ.symm.isSmoothEmbedding_comp (f := id) (by simp) Manifold.IsSmoothEmbedding.id
+    have hsub' : {y | g y ≤ a} ∪ ⋃ i, c.chart i '' Metric.closedBall 0 1 ×ˢ {0} ⊆ Φ '' U := by
+      rw [Φ.image_eq_preimage_symm]
+      rintro y (hy | hy)
+      · exact hsub (Or.inl (by simpa using hy))
+      · refine hsub (Or.inr ?_)
+        obtain ⟨i, hi⟩ := mem_iUnion.1 hy
+        exact mem_iUnion.2 ⟨i, by rw [image_comp]; exact mem_image_of_mem _ hi⟩
+    have hU' : IsOpen (Φ '' U) := by
+      rw [← Diffeomorph.coe_toHomeomorph]
+      exact Φ.toHomeomorph.isOpenMap _ hU
+    obtain ⟨f, F, ⟨V, hV, hFV⟩, hf⟩ := c.exists_compression _ hU' hsub'
+    -- The compression of `c` for `Φ '' U`, conjugated by `Φ`.
+    let g₀ : C^∞⟮I, M; J, N⟯ := Φ.toContMDiffMap
+    let g₁ := f.comp Φ.toContMDiffMap
+    let f' := Φ.symm.toContMDiffMap.comp g₁
+    have hg₀ (y : M) : g₀ y = (ContMDiffMap.id : C^∞⟮J, N; J, N⟯) (Φ y) := rfl
+    have hg₁ (y : M) : g₁ y = f (Φ y) := rfl
+    have hid (x : M) : (ContMDiffMap.id : C^∞⟮I, M; I, M⟯) x = Φ.symm (g₀ x) :=
+      (Φ.symm_apply_apply x).symm
+    have hf' (x : M) : f' x = Φ.symm (g₁ x) := rfl
+    refine ⟨f', (F.precompSmoothEmbedding Φ hΦ (by simp) g₀ g₁ hg₀ hg₁).postcompSmoothEmbedding
+      Φ.symm hΦs (by simp) ContMDiffMap.id f' hid hf',
+      ⟨Φ ⁻¹' V, ?_, fun t x hx ↦ ?_⟩, fun x hx ↦ ?_⟩
+    · exact Φ.continuous.tendsto_nhdsSet (fun x hx ↦ hx) hV
+    · rw [TauCeti.SmoothIsotopy.postcompSmoothEmbedding_apply,
+        TauCeti.SmoothIsotopy.precompSmoothEmbedding_apply, hFV t _ hx, Φ.symm_apply_apply]
+    · obtain ⟨y, hy, hxy⟩ := hf (show g (Φ x) ≤ b from hx)
+      rwa [hf', hg₁, ← hxy, Φ.symm_apply_apply]
+
+/-- The cubes of `c.ofDiffeomorph Φ` are indexed by those of `c`. -/
+theorem ofDiffeomorph_ι (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) :
+    (c.ofDiffeomorph Φ).ι = c.ι := (rfl)
+
+/-- The cubes of `c.ofDiffeomorph Φ` have the dimensions of those of `c`. -/
+@[simp]
+theorem ofDiffeomorph_dim (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι) :
+    (c.ofDiffeomorph Φ).dim i = c.dim i := (rfl)
+
+/-- The charts of `c.ofDiffeomorph Φ` are those of `c` followed by `Φ.symm`. -/
+theorem ofDiffeomorph_chart (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι) :
+    (c.ofDiffeomorph Φ).chart i = Φ.symm ∘ c.chart i := (rfl)
+
+/-- At each point, the chart of `c.ofDiffeomorph Φ` is `Φ.symm` of the chart of `c`. -/
+@[simp]
+theorem ofDiffeomorph_chart_apply (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι)
+    (x : (Fin ((c.ofDiffeomorph Φ).dim i) → ℝ) ×
+      (Fin (Module.finrank ℝ E - (c.ofDiffeomorph Φ).dim i) → ℝ)) :
+    (c.ofDiffeomorph Φ).chart i x = Φ.symm (c.chart i x) := (rfl)
+
+/-- The cube `i` of `c.ofDiffeomorph Φ` is the cube `i` of `c` moved by `Φ.symm`. -/
+theorem image_chart_ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι) :
+    (c.ofDiffeomorph Φ).chart i '' (Metric.closedBall 0 1 ×ˢ {0}) =
+      Φ.symm '' (c.chart i '' (Metric.closedBall 0 1 ×ˢ {0})) :=
+  image_comp Φ.symm (c.chart i) _
+
+/-- The cubes of the pullback of a band core along `Φ` are the cubes of the band core moved by
+`Φ.symm`. -/
+@[simp]
+theorem cubes_ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) :
+    (c.ofDiffeomorph Φ).cubes = Φ.symm '' c.cubes := by
+  rw [cubes_def, cubes_def, image_iUnion]
+  exact iUnion_congr (image_chart_ofDiffeomorph Φ c)
+
+end ofDiffeomorph
 
 variable [FiniteDimensional ℝ E] [T2Space M] [I.Boundaryless] [IsManifold I ∞ M]
 

@@ -595,7 +595,7 @@ containing `ι '' closedBall 0 1`:
   `shapeGraph χ : ℝ × ℝ → ℝ`, `(s, t) ↦ χ (√t) - √s`, with
   `shapeGraph_def`.
 
-- `Surround/ConvexShape.lean` (issues 14d1 and 14d2): $i$-convex shapes.
+- `Surround/ConvexShape/Basic.lean` (issues 14d1 and 14d2): $i$-convex shapes.
   - `IsConvexShapeAt.re_leviForm_pos` (14d1; the book's
     Proposition 4.8 (a), (b), Proposition 4.10 and Lemma 4.14 (a)): if
     `χ` is `C²` at `r` and `IsConvexShapeAt χ r`, then at every `p` with
@@ -614,7 +614,8 @@ containing `ι '' closedBall 0 1`:
   - `IsConvexShapeAt.add_const` (14d2; Lemma 4.13 (a)), for `0 ≤ c`, and
     `IsConvexShapeAt.rescale` (Lemma 4.13 (b)): for `0 < ℓ`,
     `IsConvexShapeAt (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r)`.
-  - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
+  - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d); in
+    `Surround/ConvexShape/SmoothedMax.lean`): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
     interval `Icc r₁ r₂`, and let `O` be a
     neighbourhood of `Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
@@ -659,13 +660,13 @@ containing `ι '' closedBall 0 1`:
     (`c = (1 + a) / 2`, `b = γ * (a - 1) / 16`), which §4.7 needs.
   - `exists_convexShape_surround` (14d4; Proposition 4.21, which is
     Theorem 4.1 (i)–(iii) in terms of the shape): for `1 < a` and
-    `γ ∈ Ioo 0 1` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
+    `0 < γ` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
     `Ioi δ` and continuous on `Ici δ`, with `IsConvexShapeAt χ r` for
     all `r > δ`, `χ r = √(1 + a * r ^ 2)` for `γ ≤ r`,
     `Tendsto (deriv χ) (𝓝[>] δ) atTop` and `1 < χ δ < 1 + γ`. The
     hypersurface of Theorem 4.1 is
     $\Sigma=\{t=\delta^2,\ \sqrt s\le\chi(\delta)\}\cup\{t>\delta^2,\ \sqrt s=\chi(\sqrt t)\}$;
-    the statement records (ii) and (iii) as
+    theorems about this `χ` record (ii) and (iii) as
     `Σ ∩ {p | γ ^ 2 ≤ t p} = {p | a * t p - s p = -1} ∩ {p | γ ^ 2 ≤ t p}`
     and `Σ ∩ {p | s p ≤ 1} = {p | t p = δ ^ 2 ∧ s p ≤ 1}`, and (i) by
     `IsConvexShapeAt.re_leviForm_pos` on the curved part and
@@ -752,7 +753,7 @@ containing `ι '' closedBall 0 1`:
 
     The proof is in five steps, each a building issue of 14d6.
     1. `exists_forall_isConvexShapeAt_of_abs_sub_lt`
-       (`Surround/ConvexShape.lean`): for a compact `K ⊆ ℝ × ℝ` with
+       (`Surround/ConvexShape/Basic.lean`): for a compact `K ⊆ ℝ × ℝ` with
        `IsConvexShapeAt (χ ℓ) r` and the joint continuity above on `K`,
        there is `η > 0` such that every `φ : ℝ → ℝ` and `(ℓ, r) ∈ K`
        with `|iteratedDeriv k φ r -
@@ -770,7 +771,7 @@ containing `ι '' closedBall 0 1`:
        `ContDiffBump`, glued by a cutoff). It turns finitely many members
        into smooth convex shapes `A i` (step 1).
     3. `exists_forall_isConvexShapeAt_smoothedMax`
-       (`Surround/ConvexShape.lean`, through the public pointwise step
+       (`Surround/ConvexShape/SmoothedMax.lean`, through the public pointwise step
        `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
        only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
        and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
@@ -1251,8 +1252,9 @@ containing `ι '' closedBall 0 1`:
 
 - `Surround/NormalForm.lean` (issues 14d18 and 14d19), with `V`,
   `modelDisc k m` and `finrank ℂ E = k + m` as for issues 14d9–14d15.
-  - `IsJOrthogonallyAttached.exists_comp_radial` (14d18): for `φ`, `ι`
-    smooth, `F` finite-dimensional and `h : IsJOrthogonallyAttached E φ ι`,
+  - `IsJOrthogonallyAttached.exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`
+    (14d18): for `φ`, `ι` smooth, `F` a finite-dimensional real inner
+    product space and `h : IsJOrthogonallyAttached E φ ι`,
     there is a smooth `τ : F → ℝ`, positive, equal to `1` near `0` and
     on the sphere, such that `σ x = τ x • x` is a smooth diffeomorphism
     of `F` (`F ≃ₘ^∞⟮𝓘(ℝ, F), 𝓘(ℝ, F)⟯ F`) with `‖σ x‖ < 1 ↔ ‖x‖ < 1`, and
@@ -1285,7 +1287,8 @@ containing `ι '' closedBall 0 1`:
     `{x | φ x ≤ 0}`, `ι` a disc as in 14d9 with
     `IsJOrthogonallyAttached E φ ι`, `[T2Space M]`, `O ⊇ range ι` and
     `U ⊇ ι '' sphere 0 1` open, and `2 ≤ N`. There are `σ` as in
-    `exists_comp_radial`; `Φ` from `exists_modelChart` for `ι ∘ σ`,
+    `exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`;
+    `Φ` from `exists_modelChart` for `ι ∘ σ`,
     `O`, `N` and the frame of `exists_complexFrame_mfderiv_ker` for
     `ι ∘ σ`; open `V ⊆ W ⊆ U ∩ Φ.target` with `ι '' sphere 0 1 ⊆ V`; and a smooth
     `θ : M → ℝ` with `θ = modelLevel k m ∘ Φ.symm` on `V`,
@@ -1658,8 +1661,8 @@ are set on compact manifolds. Three pieces are missing:
 - Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
   and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
   (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`
-  (for each `n ≥ 1`, a map `ι : A.stableSubspace → M` with `ι 0 = p`,
-  `C^n` with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
+  (a map `ι : A.stableSubspace → M` with `ι 0 = p`,
+  smooth with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
   the stable set and contains the points of the stable set near `p` with
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
@@ -1676,9 +1679,8 @@ are set on compact manifolds. Three pieces are missing:
   `hW.flow.stableSet p ∩ f ⁻¹' {a}`, horizontal for the contact form of
   that boundary. The sphere is first a small level of $-H$ in the local
   disc, which every orbit of the disc other than `p` crosses once and
-  transversally. That disc must be smooth, while `exists_localStableDisc`
-  gives a `C^n` disc for each finite `n`, on a ball that depends on `n`;
-  the smooth local disc is issue #6754. The sphere is then carried back to the level `a`, which every
+  transversally. That disc must be smooth, as `exists_localStableDisc`
+  gives it. The sphere is then carried back to the level `a`, which every
   backward orbit of the stable set reaches since the cobordism is
   elementary, at a time that Tau Ceti's `Flow.levelCrossingTime`
   (`Dynamics/Flow/LevelCrossing.lean`) gives as a continuous function and
@@ -1841,8 +1843,8 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14a | Squared distance near a compact part of a totally real embedding | `JConvex/TotallyReal.lean` | 13 | 300 |
 | 14b | $J$-orthogonally attached discs | `JConvex/Surround/Attached.lean` | 13 | 300 |
 | 14c | Shape functions and the model handle | `JConvex/Surround/Shape.lean` | 13 | 400 |
-| 14d1 | The Levi form of an $i$-convex shape | `JConvex/Surround/ConvexShape.lean` | 14c | 400 |
-| 14d2 | Sufficient conditions, shifts, rescaling and smoothed maxima of shapes | `JConvex/Surround/ConvexShape.lean` | 14d1 | 400 |
+| 14d1 | The Levi form of an $i$-convex shape | `JConvex/Surround/ConvexShape/Basic.lean` | 14c | 400 |
+| 14d2 | Sufficient conditions, shifts, rescaling and smoothed maxima of shapes | `JConvex/Surround/ConvexShape/Basic.lean`, `JConvex/Surround/ConvexShape/SmoothedMax.lean` | 14d1 | 400 |
 | 14d3 | Struwe’s solutions and the shapes $S$, $Q$, $L$ | `JConvex/Surround/SpecialShape.lean` | 14d2 | 400 |
 | 14d4 | The surrounding shape: Theorem 4.1 (i)–(iii) | `JConvex/Surround/SpecialShape.lean` | 14d3 | 400 |
 | 14d5 | Families of special shapes | `JConvex/Surround/ShapeFamily.lean` | 14d4 | 400 |

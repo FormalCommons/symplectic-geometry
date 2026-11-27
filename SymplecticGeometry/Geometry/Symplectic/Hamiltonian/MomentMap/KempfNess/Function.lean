@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedDeriv
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Algebra.GroupAction.OrbitRelQuotient
@@ -72,6 +73,9 @@ the polystable `Gc`-orbits.
   `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 * `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a curve `c` differentiable at
   `s₀`, the derivative of `Φ_p ∘ c` at `s₀` is the one-form evaluated on the velocity of `c`.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction`: the same, for a
+  curve `c` with left-trivialized derivative `ξ` near `t`: the derivative is
+  `μ ((c t)⁻¹ • p) (C.im (ξ t))`.
 * `SymplecticGeometry.hasDerivAt_kempfNessFunction_geodesic`,
   `SymplecticGeometry.hasDerivAt_deriv_kempfNessFunction_geodesic`: along the curve
   `t ↦ g * C.expI (t • ξ)`, the first derivative of `Φ_p` is `μ (C.expI (-(t • ξ)) • g⁻¹ • p) ξ`
@@ -133,7 +137,7 @@ public section
 
 noncomputable section
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
 
@@ -417,6 +421,20 @@ theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
       (x := c s₀) (by simp)) (hasMFDerivAt_curveVelocity hc)
   rwa [mvfderiv, ContinuousLinearMap.comp_apply, mfderiv_kempfNessFunction C μ p h hμ hg,
     curveVelocity_apply] at hΦ
+
+/-- **The derivative of the Kempf–Ness function along a curve with left-trivialized derivative.**
+Let the action of `Gc` be a complexified action, let `-μ` be an equivariant moment map for `σ`,
+and let the metric be `g(u, w) = σ(u, J w)`. If a curve `c` in `Gc` has left-trivialized
+derivative `ξ` on a neighbourhood `s` of `t`, then `u ↦ Φ_p (c u)` has at `t` the derivative
+`μ ((c t)⁻¹ • p) (C.im (ξ t))`. -/
+theorem HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction {c : ℝ → Gc}
+    {ξ : ℝ → GroupLieAlgebra IC Gc} {s : Set ℝ} (hc : HasLeftTrivializedDerivOn c ξ s)
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {t : ℝ}
+    (hs : s ∈ 𝓝 t) :
+    HasDerivAt (fun u ↦ kempfNessFunction C μ p (c u)) (μ ((c t)⁻¹ • p) (C.im (ξ t))) t := by
+  have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg (hc.mdifferentiableAt hs)
+  rwa [hc.mfderiv_inv_mul_mfderiv hs] at hΦ
 
 /-- **The derivative of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be

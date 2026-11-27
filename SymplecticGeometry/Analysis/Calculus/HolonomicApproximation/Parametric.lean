@@ -483,9 +483,9 @@ theorem norm_fderiv_comp_familyCubeEquiv_sub_le (hR : R ≠ 0)
           (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) →L[ℝ] F)) w‖ ≤ ε * ‖w‖) :
     ‖fderiv ℝ (fun x ↦ f'' (familyCubeEquiv L m k hR (p.1, x))) p.2 - G p‖ ≤ ε := by
   set Ψ := familyCubeEquiv L m k hR
-  have hd : fderiv ℝ (fun x ↦ f'' (Ψ (p.1, x))) p.2 =
-      fderiv ℝ f'' (Ψ p) ∘L (Ψ : _ →L[ℝ] _) ∘L ContinuousLinearMap.inr ℝ L _ :=
-    (hf''.hasFDerivAt.comp p.2 (Ψ.hasFDerivAt.comp p.2 (hasFDerivAt_prodMk_right p.1 p.2))).fderiv
+  have hd := TauCeti.fderiv_slice_right (f := f'' ∘ Ψ) (hf''.comp p Ψ.differentiableAt)
+  rw [Ψ.comp_right_fderiv, ContinuousLinearMap.comp_assoc] at hd
+  simp only [Function.comp_apply] at hd
   rw [hd]
   refine ContinuousLinearMap.opNorm_le_bound _ hε fun w ↦ ?_
   have hw := h (Ψ (0, w)) fun i hi ↦ by

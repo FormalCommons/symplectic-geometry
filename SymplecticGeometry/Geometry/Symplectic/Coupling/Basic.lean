@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Coupling forms
@@ -322,8 +323,7 @@ nondegenerate, then so is a coupling form for `τ`, at every point of `P × [a, 
 boundary levels included. -/
 theorem isNondegenerate (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     σ.IsNondegenerate := by
-  refine SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.mpr fun ⟨p, t⟩ ↦
-    LinearMap.BilinForm.Nondegenerate.ker_eq_bot ?_
+  refine SmoothTwoForm.isNondegenerate_def.2 fun ⟨p, t⟩ ↦ ?_
   -- `ℓ = σ((X, 0), ·)`, which is `-dt`
   set ℓ := σ.bilinFormAt (p, t) (couplingField IB P a b (p, t))
   -- the vector `∂_t`, on which `ℓ` is `-1`
