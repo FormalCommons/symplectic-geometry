@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
+import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 
 /-!
@@ -33,8 +34,8 @@ The stable subspace of the linearization of `X` at `p` has dimension the Morse i
 is trivial, and the local stable disc of
 `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc` is the point `p`. That disc
 contains every point of the stable set in a neighbourhood `U` of `p` at which `f` exceeds
-`f p - ε`. The orbit of a point `x` of the stable set enters this neighbourhood of `p` at some time
-`T` and stays in the stable set, so `φ_T x = p`; since `p` is a rest point of the flow, `x = p`.
+`f p - ε`. So near `p` the only point of the stable set is `p`, and since `p` is a rest point of
+the flow, `Flow.stableSet_eq_singleton_of_eventually` makes the whole stable set `{p}`.
 Tau Ceti's `Flow.stableSet_eq_singleton_of_antitone` does not apply here: it needs `p` to
 be a global extremum of the function. The argument follows Tau Ceti's
 `TauCeti.IsAdaptedPseudoGradient.unstableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`, the
@@ -82,17 +83,15 @@ theorem IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zer
   have hfix (t : ℝ) : hW.flow t p = p :=
     hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp.mem_criticalPoints) t
   obtain ⟨ι, ρ, -, hι0, -, -, ⟨U, hU, ε, hε, hcov⟩, -⟩ := hW.exists_localStableDisc hp rfl
-  refine Subset.antisymm (fun x hx ↦ ?_)
-    (singleton_subset_iff.2 (Flow.self_mem_stableSet_iff.2 hfix))
   have hV : U ∩ {y | f p - ε < f y} ∈ 𝓝 p := inter_mem hU <|
     hW.isGeneralizedMorse.contMDiff.continuous.continuousAt.preimage_mem_nhds
       (Ioi_mem_nhds (by linarith))
-  obtain ⟨T, hT⟩ := (Flow.mem_stableSet.1 hx |>.eventually_mem hV).exists
-  obtain ⟨z, -, hz⟩ := hcov ⟨⟨(Flow.apply_mem_stableSet_iff _ T).2 hx, hT.1⟩, hT.2⟩
+  refine Flow.stableSet_eq_singleton_of_eventually hfix ?_
+  filter_upwards [hV] with y hy hys
+  obtain ⟨z, -, hz⟩ := hcov ⟨⟨hys, hy.1⟩, hy.2⟩
   have hz0 : z = 0 := Subtype.ext ((Submodule.mem_bot ℝ).1 (hS ▸ z.property))
   rw [hz0, hι0] at hz
-  rw [mem_singleton_iff, ← hW.flow.map_zero_apply x, ← neg_add_cancel T, hW.flow.map_add, ← hz,
-    hfix]
+  exact hz.symm
 
 /-- **The stable set of a minimum misses the lower level.** In a Weinstein cobordism between the
 levels `a` and `b`, the stable set of a nondegenerate critical point `p` of Morse index zero does
