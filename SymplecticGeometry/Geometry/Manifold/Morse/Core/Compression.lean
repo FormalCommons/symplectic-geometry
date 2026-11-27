@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Dynamics.OmegaLimit
 public import TauCeti.Dynamics.Flow.Stable
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Dynamics.Flow.OmegaLimit
@@ -25,6 +26,15 @@ time maps of the flow carry `S` into every open neighbourhood of the ω-limit se
 of that set has its whole orbit in `S`, and its backward orbit clusters at a point `z`
 of `S` with `dg(Y) = 0` at `z`, at a level `g z` no lower than its own
 (`TauCeti.exists_mapClusterPt_atBot_globalFlow_of_mem_omegaLimit`).
+
+Running the flow for a late time is a diffeotopy, Tau Ceti's `TauCeti.globalFlowDiffeotopy` (for a
+compactly supported field, `TauCeti.compactlySupportedFlowDiffeotopy`), which fixes the zeros of
+`Y` at all times. So a bound on the ω-limit set gives a diffeotopy fixing the zeros of `Y` whose
+final map carries `S` into the given neighbourhood
+(`TauCeti.exists_diffeotopy_mapsTo_of_omegaLimit_subset`). Its proof follows the end of that of
+`TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`
+(`SymplecticGeometry/Geometry/Manifold/Morse/Core/Basic.lean`), with the ω-limit bound in place
+of a crossing time.
 
 This is the ω-limit argument of the compression across a critical level: there `Y` is a cutoff
 of a gradient-like field, and the zeros of `dg(Y)` are the zero set of the cutoff and the critical
@@ -47,6 +57,9 @@ lies in the unstable set, for the flow of `X`, of a critical point.
   having `dg(X) < 0`, then the ω-limit set under the flow of `Y` of a compact forward invariant set
   `S ⊆ {g ≤ b}` lies in `{g ≤ a}` together with the parts above `a` of the unstable sets of those
   critical points for the flow of `X`.
+* `TauCeti.exists_diffeotopy_mapsTo_of_omegaLimit_subset`: a diffeotopy fixing the zeros of a
+  complete field, whose final map carries a compact forward invariant set into a given open
+  neighbourhood of its ω-limit set.
 
 The topological part is `Flow.exists_mapClusterPt_atBot_of_mem_omegaLimit`
 (`SymplecticGeometry/Dynamics/Flow/OmegaLimit.lean`); the convergence of a backward orbit
@@ -193,5 +206,35 @@ theorem omegaLimit_globalFlow_subset_union_unstableSet {X : (x : M) → TangentS
   obtain ⟨p, hpC, hp⟩ := exists_tendsto_atTop_of_setOf_mapClusterPt_subset hS hu huS hfin hsub
   refine mem_iUnion₂.2 ⟨p, hpC, Flow.mem_unstableSet.2 ?_, hya⟩
   simpa only [Function.comp_def, neg_neg] using hp.comp tendsto_neg_atBot_atTop
+
+section Diffeotopy
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [T2Space M] [BoundarylessManifold I M]
+  {n : ℕ∞} [IsManifold I n M] [IsManifold I 1 M] {Y : (x : M) → TangentSpace I x}
+
+/-- **Compressing a forward invariant set towards its ω-limit set.** Let `Y` be a complete `Cⁿ`
+vector field, `1 ≤ n`, with flow `Φ`, let `S` be a compact set with `Φ t` mapping `S` into itself
+for `t ≥ 0`, and let `U` be an open set containing the ω-limit set `ω atTop Φ S`. Then there is a
+`Cⁿ` diffeotopy that fixes every zero of `Y` at all times and whose final diffeomorphism maps `S`
+into `U`. -/
+theorem exists_diffeotopy_mapsTo_of_omegaLimit_subset (hn : 1 ≤ n)
+    (hY : ContMDiff I I.tangent n (fun x ↦ (⟨x, Y x⟩ : TangentBundle I M)))
+    (hc : IsCompleteVectorField Y) {S : Set M} (hS : IsCompact S)
+    (hmaps : ∀ t, 0 ≤ t → MapsTo (globalFlow Y (hY.of_le (mod_cast hn)) hc t) S S)
+    {U : Set M} (hU : IsOpen U)
+    (hωU : ω atTop (globalFlow Y (hY.of_le (mod_cast hn)) hc) S ⊆ U) :
+    ∃ Φ : Diffeotopy I n M, (∀ t, ∀ x, Y x = 0 → Φ (t, x) = x) ∧ MapsTo Φ.final S U := by
+  -- Late time maps of the flow carry `S` into `U`; take one of them.
+  obtain ⟨T, hT⟩ := (eventually_mapsTo_of_isCompact_absorbing_of_isOpen_of_omegaLimit_subset
+    atTop _ S hS ((eventually_ge_atTop 0).mono hmaps) hU hωU).exists
+  refine ⟨globalFlowDiffeotopy hn hY hc T,
+    fun t x hx ↦ globalFlowDiffeotopy_apply_of_eq_zero hn hY hc T hx t, fun x hx ↦ ?_⟩
+  rw [Diffeotopy.final_apply, globalFlowDiffeotopy_apply, Set.Icc.coe_one, mul_one,
+    ← globalFlow_apply (hY.of_le (mod_cast hn)) hc]
+  exact hT hx
+
+end Diffeotopy
 
 end TauCeti
