@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 
 /-!
 # The local index at a zero with invertible derivative
@@ -56,11 +57,8 @@ theorem sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
     {ω : Orientation ℝ F (Fin (n + 1))}
     (ho : ∀ᶠ x in 𝓝 z, ∀ hx : x ∈ e.baseSet, e.mapOrientation (Fin (n + 1)) hx (o x) = ω)
     (hφ : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : φ.source ↦ φ x - φ z, φ.continuousOn.domRestrict.sub continuous_const⟩ :
-          C(φ.source, F)) (S := {⟨z, hzφ⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (φ.injOn x.property hzφ (sub_eq_zero.1 hx))) (n + 1)
+        (φ.centeredSourceRestrict z) (S := {⟨z, hzφ⟩}) (T := {0})
+        (φ.centeredSourceRestrict_preimage_zero hzφ).subset (n + 1)
         ((φ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv ⟨z, hzφ⟩
           (n + 1)).symm (oM z)).val =
       (ω.localOrientation hF).val)
@@ -90,9 +88,12 @@ theorem sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
       simp only [hf]
       rw [φ.left_inv hxφ]
     rw [hfx, h0, ← Trivialization.linearEquivAt_apply (R := ℝ) _ _ hxe, map_zero]
-  exact sectionIndex_eq_sign_det_of_hasFDerivAt o hF oM hs e φ hUo hzU hUz hsz
-    (fun x hx ↦ (hUsub hx).1) (fun x hx ↦ (hUsub hx).2.1) (fun x hx ↦ (hUsub hx).2.2.1 _) hφ
-    hA hdet
+  refine sectionIndex_eq_sign_det_of_hasFDerivAt o hF oM hs e φ hUo hzU hUz hsz
+    (fun x hx ↦ (hUsub hx).1) (fun x hx ↦ (hUsub hx).2.1) (fun x hx ↦ (hUsub hx).2.2.1 _) ?_ hA
+    hdet
+  -- Tau Ceti's lemma states the centred chart by its body.
+  convert hφ using 4
+  exact (φ.centeredSourceRestrict_def z).symm
 
 end TauCeti.VectorBundleOrientation
 
