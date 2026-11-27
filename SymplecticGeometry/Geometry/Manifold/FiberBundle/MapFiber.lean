@@ -35,7 +35,8 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 ## Main definitions
 
 * `Bundle.Trivialization.mfderivFiberInclusionMapEquiv`: the derivative of a fibre inclusion, as
-  a linear isomorphism from the tangent space of the model fibre onto the vertical space.
+  a continuous linear isomorphism from the tangent space of the model fibre onto the vertical
+  space.
 * `Bundle.Trivialization.coordChangeDiffeomorph`: the coordinate change between two smooth
   trivializations over a point of both base sets, as a diffeomorphism of the model fibre.
 * `Bundle.Trivialization.mapFiberDiffeomorph`: the fibre coordinate of a smooth trivialization,
@@ -198,6 +199,27 @@ theorem injective_mfderiv_fiberInclusionMap
     (mdifferentiableAt_snd.comp _ (he.mdifferentiableAt (e.fiberInclusionMap_mem_source hb v)))
     (mdifferentiable_fiberInclusionMap he hb v) (e.leftInverse_snd_fiberInclusionMap hb)
 
+/-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, a
+tangent vector `u` of `M` at `e.fiberInclusionMap hb v` that the derivative of `proj` sends to
+zero is the image under the derivative of the fibre inclusion over `b` of the fibre component of
+the image of `u` under the derivative of `e`. -/
+theorem mfderiv_fiberInclusionMap_snd_mfderiv_apply
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) {u : TangentSpace IM (e.fiberInclusionMap hb v)}
+    (hu : mfderiv IM IB proj (e.fiberInclusionMap hb v) u = 0) :
+    mfderiv IF IM (e.fiberInclusionMap hb) v
+      (mfderiv IM (IB.prod IF) e (e.fiberInclusionMap hb v) u).2 = u := by
+  have hv := e.fiberInclusionMap_mem_source hb v
+  have hev := e.apply_fiberInclusionMap hb v
+  -- `L` is the derivative of `e`, an equivalence onto the tangent space of `B × F`.
+  let L := he.mfderiv hv
+  rw [mfderiv_proj_apply hv (he.mdifferentiableAt hv)] at hu
+  refine (mfderiv_fiberInclusionMap_apply hb v
+    (he.mdifferentiableAt_symm (e.mem_target.2 hb : (b, v) ∈ e.target)) _).trans ?_
+  conv_rhs => rw [← L.symm_apply_apply u]
+  rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev]
+  exact congrArg _ (Prod.ext hu.symm rfl)
+
 /-- **The tangent spaces of a fibre.** For a trivialization `e` of `proj` that is differentiable
 with differentiable inverse, the derivative of the fibre inclusion over `b` at `v` has as range
 the vertical space at its image, the kernel of the derivative of `proj` there. -/
@@ -205,38 +227,49 @@ theorem range_mfderiv_fiberInclusionMap
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
     (v : F) :
     (mfderiv IF IM (e.fiberInclusionMap hb) v).range =
-      (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
-  have hv := e.fiberInclusionMap_mem_source hb v
-  have hev := e.apply_fiberInclusionMap hb v
-  -- `L` is the derivative of `e`, an equivalence onto the tangent space of `B × F`.
-  let L := he.mfderiv hv
-  refine le_antisymm (TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
-    (.of_forall (e.proj_fiberInclusionMap hb))) fun u hu ↦ ⟨(L u).2, ?_⟩
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
-    mfderiv_proj_apply hv (he.mdifferentiableAt hv)] at hu
-  refine (mfderiv_fiberInclusionMap_apply hb v
-    (he.mdifferentiableAt_symm (e.mem_target.2 hb : (b, v) ∈ e.target)) _).trans ?_
-  conv_rhs => rw [← L.symm_apply_apply u]
-  rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev]
-  exact congrArg _ (Prod.ext hu.symm rfl)
+      (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker :=
+  le_antisymm (TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
+    (.of_forall (e.proj_fiberInclusionMap hb))) fun _ hu ↦
+      ⟨_, mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v hu⟩
 
 /-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
-derivative at `v` of the fibre inclusion over `b`, as a linear isomorphism from the tangent space
-of the model fibre at `v` onto the vertical space at its image, the kernel of the derivative of
-`proj` there. -/
+derivative at `v` of the fibre inclusion over `b`, as a continuous linear isomorphism from the
+tangent space of the model fibre at `v` onto the vertical space at its image, the kernel of the
+derivative of `proj` there. Its inverse is the fibre component of the derivative of `e`
+(`mfderivFiberInclusionMapEquiv_symm_apply`). -/
 noncomputable def mfderivFiberInclusionMapEquiv
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
     (v : F) :
-    TangentSpace IF v ≃ₗ[𝕜] (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker :=
-  (LinearEquiv.ofInjective _ (injective_mfderiv_fiberInclusionMap he hb v)).trans
-    (LinearEquiv.ofEq _ _ (range_mfderiv_fiberInclusionMap he hb v))
+    TangentSpace IF v ≃L[𝕜] (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker :=
+  .ofContinuousLinearMap
+    ((mfderiv IF IM (e.fiberInclusionMap hb) v).codRestrict _ fun w ↦
+      range_mfderiv_fiberInclusionMap he hb v ▸ LinearMap.mem_range_self _ w)
+    ((ContinuousLinearMap.snd 𝕜 (TangentSpace IB b) (TangentSpace IF v)).comp
+      ((mfderiv IM (IB.prod IF) e (e.fiberInclusionMap hb v)).comp (Submodule.subtypeL _)))
+    (ContinuousLinearMap.ext fun u ↦
+      Subtype.ext (mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v u.property))
+    (ContinuousLinearMap.ext fun w ↦ injective_mfderiv_fiberInclusionMap he hb v
+      (mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v
+        ((range_mfderiv_fiberInclusionMap he hb v ▸ LinearMap.mem_range_self _ w :
+          mfderiv IF IM (e.fiberInclusionMap hb) v w ∈
+            (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker))))
 
 theorem mfderivFiberInclusionMapEquiv_def
     (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
     (v : F) :
     mfderivFiberInclusionMapEquiv he hb v =
-      (LinearEquiv.ofInjective _ (injective_mfderiv_fiberInclusionMap he hb v)).trans
-        (LinearEquiv.ofEq _ _ (range_mfderiv_fiberInclusionMap he hb v)) :=
+      .ofContinuousLinearMap
+        ((mfderiv IF IM (e.fiberInclusionMap hb) v).codRestrict _ fun w ↦
+          range_mfderiv_fiberInclusionMap he hb v ▸ LinearMap.mem_range_self _ w)
+        ((ContinuousLinearMap.snd 𝕜 (TangentSpace IB b) (TangentSpace IF v)).comp
+          ((mfderiv IM (IB.prod IF) e (e.fiberInclusionMap hb v)).comp (Submodule.subtypeL _)))
+        (ContinuousLinearMap.ext fun u ↦
+          Subtype.ext (mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v u.property))
+        (ContinuousLinearMap.ext fun w ↦ injective_mfderiv_fiberInclusionMap he hb v
+          (mfderiv_fiberInclusionMap_snd_mfderiv_apply he hb v
+            ((range_mfderiv_fiberInclusionMap he hb v ▸ LinearMap.mem_range_self _ w :
+              mfderiv IF IM (e.fiberInclusionMap hb) v w ∈
+                (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker)))) :=
   (rfl)
 
 /-- `mfderivFiberInclusionMapEquiv he hb v` sends `w` to the image of `w` under the derivative
@@ -247,8 +280,23 @@ theorem coe_mfderivFiberInclusionMapEquiv_apply
     (v : F) (w : TangentSpace IF v) :
     (mfderivFiberInclusionMapEquiv he hb v w : TangentSpace IM (e.fiberInclusionMap hb v)) =
       mfderiv IF IM (e.fiberInclusionMap hb) v w := by
-  rw [mfderivFiberInclusionMapEquiv_def, LinearEquiv.trans_apply, LinearEquiv.coe_ofEq_apply,
-    LinearEquiv.ofInjective_apply, ContinuousLinearMap.coe_coe]
+  rw [mfderivFiberInclusionMapEquiv_def, ContinuousLinearEquiv.coe_ofContinuousLinearMap,
+    ContinuousLinearMap.coe_codRestrict_apply]
+
+/-- The inverse of `mfderivFiberInclusionMapEquiv he hb v` sends a vertical vector `u` to the
+fibre component of its image under the derivative of `e`. -/
+@[simp]
+theorem mfderivFiberInclusionMapEquiv_symm_apply
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) (u : (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker) :
+    (mfderivFiberInclusionMapEquiv he hb v).symm u =
+      (mfderiv IM (IB.prod IF) e (e.fiberInclusionMap hb v) u).2 := by
+  rw [mfderivFiberInclusionMapEquiv_def, ContinuousLinearEquiv.symm_ofContinuousLinearMap,
+    ContinuousLinearEquiv.coe_ofContinuousLinearMap]
+  -- The inverse is `ContinuousLinearMap.snd` after the derivative of `e`, typed with the tangent
+  -- spaces of `B` at `b` and `F` at `v`, which make up that of `B × F` at `e (e.fiberInclusionMap
+  -- hb v)` only by definition, so `ContinuousLinearMap.comp_apply` does not match.
+  rfl
 
 /-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
 derivative of `proj` sends the image of a tangent vector `u` of `B × F` at `(b, v)` under the
