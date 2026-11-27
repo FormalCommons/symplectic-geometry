@@ -11,6 +11,7 @@ import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Mul
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -49,6 +50,10 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   values and first two derivatives depend continuously on the point, one `η > 0` works for all:
   any function within `η` of a member in value and two derivatives at `r` is a shape at `r`.
   The uniform `η` comes from `IsCompact.exists_thickening_subset_open`.
+* `SymplecticGeometry.exists_forall_isConvexShapeAt_mul_add_one_sub_mul`: the same stability for
+  the blend `ρ φ + (1 - ρ) χ ℓ` of a shape `χ ℓ` with a nearby `C²` function `φ` by a fixed `C²`
+  cutoff `ρ`. The blend is `χ ℓ + ρ (φ - χ ℓ)`, and `norm_iteratedDeriv_mul_le_of_forall_norm_le`
+  bounds the derivatives of the second term by those of `ρ` times those of `φ - χ ℓ`.
 * `SymplecticGeometry.IsConvexShapeAt.congr_of_eventuallyEq`: being an `i`-convex shape at `r`
   only depends on the germ of `χ` at `r`.
 * `SymplecticGeometry.shapeGraph χ`: the function `(s, t) ↦ χ (√t) - √s`, whose zero level,
@@ -280,6 +285,63 @@ theorem exists_forall_isConvexShapeAt_of_abs_sub_lt {χ : ℝ → ℝ → ℝ} {
   simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
   simp only [hg_def, Prod.dist_eq, Real.dist_eq, sub_self, abs_zero]
   exact max_lt hη (max_lt h₀ (max_lt h₁ h₂))
+
+/-- **Blending a convex shape with a nearby function by a cutoff.** Let `K ⊆ ℝ × ℝ` be compact,
+with `χ ℓ` an `i`-convex shape at `r` for every `(ℓ, r) ∈ K` and
+`(ℓ, r) ↦ iteratedDeriv k (χ ℓ) r` continuous on `K` for `k ≤ 2`, and let `ρ : ℝ → ℝ` be `C²`.
+Then there is `τ > 0` such that for every `(ℓ, r) ∈ K` and every `φ : ℝ → ℝ` with `φ` and `χ ℓ`
+both `C²` at `r`, whose value and first two derivatives at `r` are within `τ` of those of
+`χ ℓ`, the blend `r ↦ ρ r * φ r + (1 - ρ r) * χ ℓ r` is an `i`-convex shape at `r`.
+
+The cutoff `ρ` need not take values in `[0, 1]`: only its value and first two derivatives over `K`
+enter `τ`. -/
+theorem exists_forall_isConvexShapeAt_mul_add_one_sub_mul {χ : ℝ → ℝ → ℝ} {K : Set (ℝ × ℝ)}
+    (hK : IsCompact K) (hc : ∀ x ∈ K, IsConvexShapeAt (χ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (χ x.1) x.2) K)
+    {ρ : ℝ → ℝ} (hρ : ContDiff ℝ 2 ρ) :
+    ∃ τ > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K, ContDiffAt ℝ 2 φ x.2 → ContDiffAt ℝ 2 (χ x.1) x.2 →
+      (∀ k ≤ 2, |iteratedDeriv k φ x.2 - iteratedDeriv k (χ x.1) x.2| < τ) →
+        IsConvexShapeAt (fun r ↦ ρ r * φ r + (1 - ρ r) * χ x.1 r) x.2 := by
+  obtain ⟨η, hη, hηK⟩ := exists_forall_isConvexShapeAt_of_abs_sub_lt hK hc hcont
+  -- A bound `B ≥ 0` for the first two derivatives of `ρ` over `K`.
+  obtain ⟨C, hC⟩ := hK.exists_bound_of_continuousOn (f := fun x : ℝ × ℝ ↦
+    ∑ j ∈ Finset.range 3, |iteratedDeriv j ρ x.2|) (continuousOn_finsetSum _ fun j hj ↦
+      ((hρ.continuous_iteratedDeriv j (by
+        exact_mod_cast Nat.lt_succ_iff.1 (Finset.mem_range.1 hj))).comp
+          continuous_snd).abs.continuousOn)
+  set B := max C 0
+  have hB : ∀ x ∈ K, ∀ j ≤ 2, ‖iteratedDeriv j ρ x.2‖ ≤ B := fun x hx j hj ↦ by
+    rw [Real.norm_eq_abs]
+    refine le_max_of_le_left (le_trans ?_ ((le_abs_self _).trans (Real.norm_eq_abs _ ▸ hC x hx)))
+    exact Finset.single_le_sum (f := fun j ↦ |iteratedDeriv j ρ x.2|)
+      (fun _ _ ↦ abs_nonneg _) (Finset.mem_range.2 (Nat.lt_succ_iff.2 hj))
+  have hB₀ : 0 ≤ B := le_max_right C 0
+  have hd : 0 < 4 * B + 1 := by linarith
+  refine ⟨η / (4 * B + 1), div_pos hη hd, fun φ x hx hφ hχ hclose ↦ hηK _ x hx fun k hk ↦ ?_⟩
+  have hk' : (k : WithTop ℕ∞) ≤ 2 := by exact_mod_cast hk
+  have hblend : (fun r ↦ ρ r * φ r + (1 - ρ r) * χ x.1 r) = χ x.1 + ρ * (φ - χ x.1) := by
+    ext r
+    simp only [Pi.add_apply, Pi.mul_apply, Pi.sub_apply]
+    ring
+  have hρk : ContDiffAt ℝ k ρ x.2 := (hρ.of_le hk').contDiffAt
+  have hdk : ContDiffAt ℝ k (φ - χ x.1) x.2 := (hφ.sub hχ).of_le hk'
+  have hm : ContDiffAt ℝ k (ρ * (φ - χ x.1)) x.2 := hρk.mul hdk
+  rw [hblend, iteratedDeriv_add (hχ.of_le hk') hm, add_sub_cancel_left,
+    ← Real.norm_eq_abs]
+  have hle := norm_iteratedDeriv_mul_le_of_forall_norm_le hρk hdk
+    (fun i hi ↦ hB x hx i (hi.trans hk)) (τ := η / (4 * B + 1)) fun i hi ↦ by
+      have hi' : (i : WithTop ℕ∞) ≤ 2 := by exact_mod_cast hi.trans hk
+      rw [iteratedDeriv_sub (hφ.of_le hi') (hχ.of_le hi'), Real.norm_eq_abs]
+      exact (hclose i (hi.trans hk)).le
+  have h2k : (2 : ℝ) ^ k ≤ 4 := by
+    calc (2 : ℝ) ^ k ≤ 2 ^ 2 := pow_le_pow_right₀ (by norm_num) hk
+      _ = 4 := by norm_num
+  have hlt : 4 * B * (η / (4 * B + 1)) < η := by
+    rw [mul_div_assoc', div_lt_iff₀ hd]
+    nlinarith
+  calc _ ≤ 2 ^ k * B * (η / (4 * B + 1)) := hle
+    _ ≤ 4 * B * (η / (4 * B + 1)) := by gcongr
+    _ < η := hlt
 
 /-- Lowering a shape by a constant `c` lowers its margin `χ' / r - 1 / χ` in (4.3) at `r` by
 exactly `c / (χ r (χ r - c))`, since only the term `1 / χ` changes. -/
