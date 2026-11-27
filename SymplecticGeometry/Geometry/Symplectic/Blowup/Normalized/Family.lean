@@ -194,10 +194,7 @@ private theorem contMDiffAt_of_eq_on_ballLift
     (p : unitInterval × openNbhdOpens n r) :
     ContMDiffAt ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
       (𝓘(ℝ, Fin (n + 1) → ℂ).prod 𝓘(ℝ, (Fin (n + 1) → ℂ) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
-      (fun q : unitInterval × Blowup hN.blowupChart ↦
-        Bundle.TotalSpace.mk' ((Fin (n + 1) → ℂ) [⋀^Fin 2]→L[ℝ] ℝ)
-          (E := fun x : Blowup hN.blowupChart ↦ TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) x
-            [⋀^Fin 2]→L[ℝ] Bundle.Trivial (Blowup hN.blowupChart) ℝ x) q.2 ((β q.1).val q.2))
+      (SymplecticGeometry.sliceSection fun t ↦ (β t).val)
       (p.1, (hψ p.1).ballLift ⟨p.2, mem_openNbhdOpens_iff.1 p.2.property⟩) := by
   refine IsSmoothFamily.contMDiffAt_of_mpullback_family (contMDiff_ballLift_family hψ hψf hε)
     (isLocalDiffeomorph_prodMk_ballLift_family hψ hψf hε p) ?_
@@ -272,7 +269,7 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
       (Blowup.contMDiff_blowdown_real _) σ))) (t₀, x₀)).congr_of_eventuallyEq ?_
   filter_upwards [hK.isOpen_compl.mem_nhds hnot] with q hq
   obtain ⟨t, x⟩ := q
-  rw [hβσ t x ?_]
+  rw [SymplecticGeometry.sliceSection_apply, SymplecticGeometry.sliceSection_apply, hβσ t x ?_]
   rintro ⟨y, hy, rfl⟩
   exact hq ⟨(t, ⟨y, mem_openNbhdOpens_iff.2 (hmem hy)⟩), hy,
     Prod.ext rfl ((hψ t).ballLiftPartialDiffeomorph_apply ⟨y, hmem hy⟩).symm⟩
