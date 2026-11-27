@@ -17,6 +17,7 @@ import SymplecticGeometry.Analysis.Polynomial.RealCubic
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
+import SymplecticGeometry.Topology.Order.Piecewise
 import TauCeti.Analysis.Calculus.Deriv.Second
 import TauCeti.Analysis.Real.Sqrt
 
@@ -977,18 +978,16 @@ theorem exists_isConvexShapeAt_eq_struweShape_eq_linear {δ K d ℓ : ℝ} (hd :
       · exact ⟨by linarith, by linarith⟩
       · exact absurd hr' (struweShape_lt_linear hδ hK₁ hlow h).ne)
   -- `G` is `S` up to `3 K δ / 4` and `J` from `K δ / 2` on.
-  set G : ℝ → ℝ := fun r ↦ if r < K * δ / 2 then S r else J r
-  have hGS : ∀ r ≤ 3 * K * δ / 4, G r = S r := fun r hr ↦ by
-    simp only [G]
-    split_ifs with h
-    · rfl
-    · rw [hJ₁ (mem_Iic.2 hr), hS' r (not_lt.1 h)]
-  have hGS' : ∀ x, x < 3 * K * δ / 4 → G =ᶠ[𝓝 x] S := fun x hx ↦ by
-    filter_upwards [Iio_mem_nhds hx] with y (hy : y < 3 * K * δ / 4)
-    exact hGS y hy.le
-  have hGJ : ∀ x, K * δ / 2 < x → G =ᶠ[𝓝 x] J := fun x hx ↦ by
-    filter_upwards [Ioi_mem_nhds hx] with y (hy : K * δ / 2 < y)
-    simp [G, not_lt.2 hy.le]
+  have hSJ : EqOn S J (Icc (K * δ / 4) (3 * K * δ / 4)) := fun r hr ↦ by
+    rw [hJ₁ hr.2, hS'S hr.1]
+  set G : ℝ → ℝ := fun r ↦ if r ≤ K * δ / 2 then S r else J r
+  have hGS : ∀ r ≤ 3 * K * δ / 4, G r = S r := fun r hr ↦
+    EqOn.eqOn_ite_le_left (s := Iic (3 * K * δ / 4))
+      (hSJ.mono fun y hy ↦ mem_Icc.2 ⟨by linarith [mem_Ioi.1 hy.2], hy.1⟩) hr
+  have hGS' : ∀ x, x < 3 * K * δ / 4 → G =ᶠ[𝓝 x] S := fun x hx ↦
+    (hSJ.mono Ioo_subset_Icc_self).eventuallyEq_ite_le_left (by linarith) hx
+  have hGJ : ∀ x, K * δ / 4 < x → G =ᶠ[𝓝 x] J := fun x hx ↦
+    (hSJ.mono Ioo_subset_Icc_self).eventuallyEq_ite_le_right (by linarith) hx
   refine ⟨G, fun x (hx : δ < x) ↦ ?_, fun r hr ↦ ?_, hGS, fun r hr ↦ ?_⟩
   · refine ContDiffAt.contDiffWithinAt ?_
     rcases lt_or_ge x (3 * K * δ / 4) with h | h
@@ -1033,19 +1032,13 @@ theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
   obtain ⟨G, hGs, hGc, hGS, hGL⟩ := exists_isConvexShapeAt_eq_struweShape_eq_linear (ℓ := 1)
     hd.1 hδ hKd.ge hK₄ (by linarith) (by linarith) (by linarith)
   -- `χ` is `G` below `β` and `ψ` beyond `3 K δ / 2`.
-  set χ : ℝ → ℝ := fun r ↦ if r < 2 * K * δ then G r else ψ r
-  have hχG : ∀ x, x < β → χ =ᶠ[𝓝 x] G := fun x hx ↦ by
-    filter_upwards [Iio_mem_nhds hx] with y (hy : y < β)
-    simp only [χ]
-    split_ifs with h
-    · rfl
-    · rw [hψL y hy.le, hGL y (by linarith [not_lt.1 h])]
-  have hχψ : ∀ x, 3 * K * δ / 2 < x → χ =ᶠ[𝓝 x] ψ := fun x hx ↦ by
-    filter_upwards [Ioi_mem_nhds hx] with y (hy : 3 * K * δ / 2 < y)
-    simp only [χ]
-    split_ifs with h
-    · rw [hψL y (by linarith), hGL y hy.le]
-    · rfl
+  have hGψ : EqOn G ψ (Ioo (3 * K * δ / 2) β) := fun r hr ↦ by
+    rw [hψL r hr.2.le, hGL r hr.1.le]
+  set χ : ℝ → ℝ := fun r ↦ if r ≤ 2 * K * δ then G r else ψ r
+  have hχG : ∀ x, x < β → χ =ᶠ[𝓝 x] G := fun x hx ↦
+    hGψ.eventuallyEq_ite_le_left (by linarith) hx
+  have hχψ : ∀ x, 3 * K * δ / 2 < x → χ =ᶠ[𝓝 x] ψ := fun x hx ↦
+    hGψ.eventuallyEq_ite_le_right hδβ hx
   have hχS : ∀ x, x < 3 * K * δ / 4 → χ =ᶠ[𝓝 x] S := fun x hx ↦ by
     filter_upwards [hχG x (by nlinarith), Iio_mem_nhds hx] with y hy (hy' : y < 3 * K * δ / 4)
     rw [hy, hGS y hy'.le]

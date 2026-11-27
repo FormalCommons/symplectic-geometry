@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Topology.Order.Compact
+import SymplecticGeometry.Topology.Order.Piecewise
 
 /-!
 # Smoothed maxima and minima of `i`-convex shapes
@@ -426,38 +427,33 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
     (h₁.of_le hn') (h₂.of_le hn') hc₁ hc₂
     (isOpen_Ioo.mem_nhdsSet.2 fun r hr ↦ hcross r hr.1 hr.2)
   replace hχs := hχs n h₁ h₂
-  have hχ₁ : ∀ r ∈ Icc r₁ u, χ r = χ₁ r := fun r hr ↦ by
+  have hχ₁ : EqOn χ χ₁ (Icc r₁ u) := fun r hr ↦ by
     rw [hχ r ⟨⟨hr.1, by linarith [hr.2]⟩, fun h ↦ hr.2.not_gt h.1⟩, max_eq_left (hle₁ r hr)]
-  have hχ₂ : ∀ r ∈ Icc v r₂, χ r = χ₂ r := fun r hr ↦ by
+  have hχ₂ : EqOn χ χ₂ (Icc v r₂) := fun r hr ↦ by
     rw [hχ r ⟨⟨by linarith [hr.1], hr.2⟩, fun h ↦ hr.1.not_gt h.2⟩, max_eq_right (hle₂ r hr)]
   -- Outside `[r₁, r₂]`, replace `χ` by `χ₁` on the left and by `χ₂` on the right.
-  set ψ : ℝ → ℝ := fun r ↦ if r ≤ (r₁ + u) / 2 then χ₁ r else if r ≤ (v + r₂) / 2 then χ r
-    else χ₂ r with hψ
-  have e₁ : EqOn ψ χ₁ (Iic u) := fun r (hr : r ≤ u) ↦ by
-    simp only [hψ]
-    split_ifs with h h'
-    · rfl
-    · exact hχ₁ r ⟨by linarith, hr⟩
-    · exfalso; linarith
-  have e₂ : EqOn ψ χ₂ (Ici v) := fun r (hr : v ≤ r) ↦ by
-    simp only [hψ]
-    split_ifs with h h'
-    · exfalso; linarith
-    · exact hχ₂ r ⟨hr, by linarith⟩
-    · rfl
-  have e : EqOn ψ χ (Ioo r₁ r₂) := fun r hr ↦ by
-    simp only [hψ]
-    split_ifs with h h'
-    · exact (hχ₁ r ⟨hr.1.le, by linarith⟩).symm
-    · rfl
-    · exact (hχ₂ r ⟨by linarith, hr.2.le⟩).symm
+  set φ : ℝ → ℝ := fun r ↦ if r ≤ (v + r₂) / 2 then χ r else χ₂ r
+  set ψ : ℝ → ℝ := fun r ↦ if r ≤ (r₁ + u) / 2 then χ₁ r else φ r
+  have hφχ : EqOn φ χ (Iio r₂) := EqOn.eqOn_ite_le_left
+    (hχ₂.mono fun r hr ↦ mem_Icc.2 ⟨by linarith [mem_Ioi.1 hr.2], (mem_Iio.1 hr.1).le⟩)
+  have hφ₂ : EqOn φ χ₂ (Ici v) := EqOn.eqOn_ite_le_right
+    (hχ₂.mono fun r hr ↦ mem_Icc.2 ⟨hr.1, by linarith [mem_Iic.1 hr.2]⟩)
+  have h₁φ : EqOn χ₁ φ (Icc r₁ u) := fun r hr ↦
+    (hχ₁ hr).symm.trans (hφχ (by linarith [hr.2] : r < r₂)).symm
+  have e₁ : EqOn ψ χ₁ (Iic u) := EqOn.eqOn_ite_le_left
+    (h₁φ.mono fun r hr ↦ mem_Icc.2 ⟨by linarith [mem_Ioi.1 hr.2], hr.1⟩)
+  have e₂ : EqOn ψ χ₂ (Ici v) := fun r hr ↦ (EqOn.eqOn_ite_le_right
+    (h₁φ.mono fun r hr ↦ (by linarith [mem_Ici.1 hr.1, mem_Iic.1 hr.2] : False).elim) hr).trans
+    (hφ₂ hr)
   have key : ∀ r, (ψ =ᶠ[𝓝 r] χ₁ ∧ r < u) ∨ (ψ =ᶠ[𝓝 r] χ ∧ r ∈ Ioo r₁ r₂) ∨
       (ψ =ᶠ[𝓝 r] χ₂ ∧ v < r) := fun r ↦ by
     rcases lt_or_ge r u with h | h
     · exact Or.inl ⟨(e₁.mono Iio_subset_Iic_self).eventuallyEq_of_mem (isOpen_Iio.mem_nhds h), h⟩
     rcases le_or_gt r v with h' | h'
     · have hr : r ∈ Ioo r₁ r₂ := ⟨by linarith, by linarith⟩
-      exact Or.inr (Or.inl ⟨e.eventuallyEq_of_mem (isOpen_Ioo.mem_nhds hr), hr⟩)
+      refine Or.inr (Or.inl ⟨?_, hr⟩)
+      exact ((h₁φ.mono Ioo_subset_Icc_self).eventuallyEq_ite_le_right (by linarith) hr.1).trans
+        ((hχ₂.mono Ioo_subset_Icc_self).eventuallyEq_ite_le_left (by linarith) hr.2)
     · exact Or.inr (Or.inr
         ⟨(e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds h'), h'⟩)
   refine ⟨ψ, contDiff_iff_contDiffAt.2 fun r ↦ ?_, fun r hr ↦ ?_, e₁, e₂,
