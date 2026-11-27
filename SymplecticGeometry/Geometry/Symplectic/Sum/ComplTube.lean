@@ -85,6 +85,9 @@ of `Q` with a simply connected disc (`FundamentalGroup.map_prodMk_const_surjecti
 * `SymplecticGeometry.ProductNeighborhood.basepointChangeSubgroup_radialPath`: the change of base
   point along the radial path carries the normal closure of the image of `ι_*` onto
   `tubeSubgroup`.
+* `SymplecticGeometry.ProductNeighborhood.collarRadialPath`: the radial path from `ι q` to a
+  point `f (q, z)` of the collar, and `basepointChangeSubgroup_collarRadialPath`, the same
+  change of base point along it.
 
 ## References
 
@@ -515,6 +518,39 @@ theorem basepointChangeSubgroup_radialPath (p : prodBall Q ε) :
     ← f.range_map_subtypeVal_eq_range_map_embedding _ h]
   exact congrArg _ (((Subgroup.coe_map _ _).symm.trans (congrArg SetLike.coe key)).trans
     (MonoidHom.coe_range _))
+
+omit [PathConnectedSpace Q] [ConnectedSpace M] in
+/-- The radial path `t ↦ f (q, t • z)` from `ι q` to the collar point `f (q, z)`, for a point
+`p = (q, z)` of `Q × A(δ, ε)`: `ProductNeighborhood.radialPath` with its end points written
+through `p`. -/
+noncomputable def collarRadialPath (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
+    Path (ι p.1) (f.collarMap hδε p : M) :=
+  (f.radialPath (annulusToProdBall p)).cast (by rw [coe_annulusToProdBall])
+    (f.coe_collarMap hδε p)
+
+omit [PathConnectedSpace Q] [ConnectedSpace M] in
+@[simp]
+theorem collarRadialPath_apply (hδε : δ < ε) (p : Q × annulus ℂ δ ε) (t : unitInterval) :
+    f.collarRadialPath hδε p t = f.radialPath (annulusToProdBall p) t :=
+  (rfl)
+
+omit [PathConnectedSpace Q] [ConnectedSpace M] in
+/-- The change of base point along the radial path from `ι q` to the collar point `f (q, z)`
+carries the normal closure of the image of `ι_* : π₁(Q, q) → π₁(M, ι q)` onto
+`f.tubeSubgroup`. -/
+theorem basepointChangeSubgroup_collarRadialPath (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
+    FundamentalGroup.basepointChangeSubgroup (f.collarRadialPath hδε p)
+        (Subgroup.normalClosure (Set.range (FundamentalGroup.map ι.toContinuousMap p.1))) =
+      f.tubeSubgroup (f.collarMap hδε p)
+        (f.mem_collar_iff_coe_mem_range.1 (f.collarMap_mem_collar hδε p)) := by
+  -- the end points of the radial path are those of `collarRadialPath` only propositionally
+  have key : ∀ (pb : prodBall Q ε) (a : Q) (ha : a = (pb : Q × ℂ).1) (y : M) (hy : y = f pb),
+      FundamentalGroup.basepointChangeSubgroup ((f.radialPath pb).cast (congrArg ι ha) hy)
+          (Subgroup.normalClosure (Set.range (FundamentalGroup.map ι.toContinuousMap a))) =
+        f.tubeSubgroup y (hy ▸ mem_range_self pb) := by
+    rintro pb a rfl y rfl
+    exact f.basepointChangeSubgroup_radialPath pb
+  exact key _ _ (by rw [coe_annulusToProdBall]) _ (f.coe_collarMap hδε p)
 
 end SymplecticGeometry.ProductNeighborhood
 

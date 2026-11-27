@@ -1225,7 +1225,8 @@ applied to `g' := g ∘ (BoundarylessModel.homeomorph I M).symm`:
 - `IsProperMap g'` and `BddBelow (Set.range g')` hold since `g'` is `g`
   composed with a homeomorphism; `T2Space` has an instance on
   `BoundarylessModel I M`, and `SigmaCompactSpace`, which the
-  pseudo-gradients need, is a local instance by `inferInstanceAs`;
+  pseudo-gradients need, is the library's
+  `BoundarylessModel.instSigmaCompactSpace`;
 - the band core of `g'` comes back to `M` as
   `BandCore.ofDiffeomorph (BoundarylessModel.diffeomorph I ∞)` of it
   (`Basic.lean`), a band core of `g' ∘ diffeomorph I ∞ = g`, and that
