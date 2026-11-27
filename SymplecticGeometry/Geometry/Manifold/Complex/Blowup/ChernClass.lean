@@ -9,7 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ExceptionalClass
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ChernClass
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
@@ -53,8 +55,13 @@ exceptional divisor with the complex structure induced by `J̃`, with complex mo
   isomorphic to the tautological line, and its first Chern class is `-h`, with `h` the
   hyperplane class (`Projectivization.firstChernClass_tautological`). The complex isomorphisms
   are `TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI`.
+* `SymplecticGeometry.Blowup.firstChernClass_restrict_divisor`: on the exceptional divisor,
+  `c₁(T Blowup c, J̃)` restricts to `n • h`. The divisor is a pseudoholomorphic embedding of
+  `ℙ ℂ (Fin (n + 1) → ℂ)`, so the restriction is `c₁(Tℙ) + c₁(ν)`
+  (`TauCeti.SmoothEmbedding.firstChernClass_pullback_eq_add`), with `c₁(Tℙ) = (n + 1) h`
+  (`Projectivization.firstChernClass_ofComplexManifold`) and `c₁(ν) = -h` by the result above.
 
-The first result is step 1, and the other three are part of step 3, of the proof of the formula
+The first result is step 1, and the other four are part of step 3, of the proof of the formula
 `c₁(T Blowup c) = π^* c₁(TM) - n e`, where `e` is `SymplecticGeometry.Blowup.exceptionalClass`
 and Lean's `n` is the complex dimension of `M` minus one; McDuff–Salamon use this formula,
 (7.1.31), without proving it.
@@ -227,6 +234,31 @@ theorem firstChernClass_normalComplexStructure_divisorRealEmbedding {hn : (∞ :
   rw [SymplecticGeometry.Bundle.firstChernClass_congr _
       (ν.continuous_fiberEquivOfCommuteI _ he ℂ (continuous_divisorNormalEquiv c)),
     Projectivization.firstChernClass_tautological]
+
+/-! ### The tangent bundle of the blowup along the exceptional divisor -/
+
+/-- **The first Chern class of the blowup on the exceptional divisor.** The pull-back along the
+exceptional divisor `divisorRealEmbedding c` of the first Chern class of the complex tangent
+bundle of the blowup, with the almost complex structure `J̃ = almostComplexStructure c J hJ` and
+the complex model `G`, is `n • h` in integral cohomology, with `h` the hyperplane class of
+`ℙ ℂ (Fin (n + 1) → ℂ)`. -/
+theorem firstChernClass_restrict_divisor :
+    ((TopCat.of (ℙ ℂ (Fin (n + 1) → ℂ))).uliftIntegralCohomologyIso 2).hom
+        (TopCat.singularCohomologyMap
+          (TopCat.ofHom ⟨divisorRealEmbedding c, (divisorRealEmbedding c).isEmbedding.continuous⟩)
+          2 (firstChernClass G
+            ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber)) =
+      (n : ℤ) • Projectivization.hyperplaneClass (Fin (n + 1) → ℂ) := by
+  have : Fact (finrank ℝ (Fin n → ℂ) = 2 * finrank ℂ (Fin n → ℂ)) :=
+    ⟨finrank_real_of_complex _⟩
+  have : Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) := ⟨by simp⟩
+  -- `ι^* c₁(T Blowup c) = c₁(Tℙ) + c₁(ν) = (n + 1) h - h`.
+  rw [(divisorRealEmbedding c).firstChernClass_pullback_eq_add (hn := by simp)
+      (Complex.finrank_real_eq_finrank_pi_succ_sub n)
+      (isPseudoholomorphic_divisorRealEmbedding c J hJ) G (Fin n → ℂ) ℂ,
+    map_add, Projectivization.firstChernClass_ofComplexManifold,
+    firstChernClass_normalComplexStructure_divisorRealEmbedding, Nat.cast_succ, add_zsmul,
+    one_zsmul, add_neg_cancel_right]
 
 end Blowup
 
