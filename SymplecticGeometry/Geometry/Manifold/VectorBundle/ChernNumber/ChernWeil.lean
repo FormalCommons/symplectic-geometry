@@ -92,12 +92,10 @@ metric `g`. For every connection form `α` on the circle bundle of unitary frame
 first Chern number of `V`, for the homological orientation of `o`, is `-(2π)⁻¹` times the
 integral over `M` of the curvature of `α`. -/
 theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
+    letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
+    -- a hint for the search of `IsManifold _ 1` on the total space; #7355 should make it unneeded
+    haveI : ContMDiffFiberBundle 1 Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
+      ContMDiffFiberBundle.of_le (n := ∞) (by simp)
     ∀ {α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1}
       (hα : IsCircleConnectionForm α),
       (chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
@@ -160,6 +158,7 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integra
   rw [hσ, chernNumber_eq_integral_curvature g hI o hα₀]
   field_simp
 
+open scoped ContMDiffHermitianMetric in
 /-- **The Chern–Weil formula for circle bundles over surfaces.** Take `M` a closed smooth
 surface with an orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth
 Hermitian metric `g`, with circle bundle `P` of unitary frames. Write `c` for the first Chern
@@ -174,12 +173,10 @@ Connection forms and curvatures are real forms here: the curvature `F_α` is `-i
 
 Milestone: *Chern–Weil formula for circle bundles over surfaces*. -/
 theorem chernNumber_eq_integral_curvature_and_exists (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      contMDiffFiberBundle_circleFiber g hI
+    letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
+    -- a hint for the search of `IsManifold _ 1` on the total space; #7355 should make it unneeded
+    haveI : ContMDiffFiberBundle 1 Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
+      ContMDiffFiberBundle.of_le (n := ∞) (by simp)
     (∀ {α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1}
       (hα : IsCircleConnectionForm α),
       (chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
