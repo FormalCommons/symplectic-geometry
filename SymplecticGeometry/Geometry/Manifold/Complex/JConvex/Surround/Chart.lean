@@ -19,6 +19,9 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Section
+import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Chart
+import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
+import TauCeti.Analysis.Calculus.Jet.Equivalence
 
 /-!
 # The first-order chart along a disc
@@ -69,6 +72,16 @@ core, the reading `h = κ ∘ Φ₀ ∘ L⁻¹` of `Φ₀` in the chart `κ` of 
 `Surround/AlmostHolomorphic.lean` then gives a map `G'` of `ℂ^(k ⊕ m)`, and `G = L⁻¹ ∘ G' ∘ L`
 is the local map.
 
+Two such local maps `G₁` and `G₂`, built in the charts `κ₁` and `κ₂`, agree to order `N + 1`
+near every compact set of real points where both are defined, which is the pairwise hypothesis of
+`SymplecticGeometry.exists_contDiff_glue_modelDisc`. Near a real point, both are read in `κ₁`:
+the change of charts `κ₁ ∘ κ₂⁻¹` is holomorphic, so by Tau Ceti's chain rule
+`TauCeti.conjWirtingerDeriv_comp` the reading of `G₂` in `κ₁` still has `∂̄` of order `N`. The
+difference of the two readings vanishes at the real points, so its jets of order `N` vanish there
+(`SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`); a local inverse of
+`κ₁ ∘ Φ₀` and Tau Ceti's `TauCeti.SameJetAt.comp` carry this to `G₁ - G₂`, and
+`SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero` gives the bound.
+
 ## Main results
 
 * `SymplecticGeometry.exists_partialDiffeomorph_modelDisc`: a partial diffeomorphism from the
@@ -91,6 +104,9 @@ is the local map.
 * `SymplecticGeometry.exists_almostHolomorphic_modelDisc`: near a point of the core, a map `G`
   of the model space, fixing the real points and with differential the identity on the core,
   such that `Φ₀ ∘ G`, read in a chart of `M`, has `∂̄` of order `N` in the imaginary part.
+* `SymplecticGeometry.exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le`: two such
+  maps, built in two charts of `M`, agree to order `N + 1` near every compact set of real points
+  in both domains.
 
 ## References
 
@@ -309,6 +325,16 @@ section LocalMap
 
 open TauCeti
 
+/-- The identification `L = EuclideanSpace.sumEquivProd.symm` of the model space with
+`ℂ^(k ⊕ m)`, as a real continuous linear equivalence. -/
+private theorem exists_sumEquivProd_symm_restrictScalars :
+    ∃ Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
+      EuclideanSpace ℂ (Fin k ⊕ Fin m), ⇑Lr = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm ∧
+        ⇑Lr.symm = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)) :=
+  ⟨(EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm.restrictScalars' ℝ,
+    ContinuousLinearEquiv.coe_restrictScalars' _ _,
+    (ContinuousLinearEquiv.coe_restrictScalars'_symm _ _).trans (by simp)⟩
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   [IsManifold 𝓘(ℝ, E) ∞ M]
@@ -383,12 +409,7 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
         C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^
           (N - 1) := by
   -- `Lr`: the identification `L` of the model space with `ℂ^(k ⊕ m)`, as a real equivalence.
-  obtain ⟨Lr, hLr, hLrs⟩ : ∃ Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
-      EuclideanSpace ℂ (Fin k ⊕ Fin m), ⇑Lr = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm ∧
-        ⇑Lr.symm = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)) :=
-    ⟨(EuclideanSpace.sumEquivProd (𝕜 := ℂ)).symm.restrictScalars' ℝ,
-      ContinuousLinearEquiv.coe_restrictScalars' _ _,
-      (ContinuousLinearEquiv.coe_restrictScalars'_symm _ _).trans (by simp)⟩
+  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
   simp only [← hLr, ← hLrs]
   set κ := extChartAt 𝓘(ℝ, E) (Φ₀ p₀)
   set S₀ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E (Φ₀ p₀)).source
@@ -448,6 +469,311 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
     exact hC₂ _ hp
 
 end LocalMap
+
+section Agreement
+
+/-! ### Two local maps agree to order `N + 1` along the real points -/
+
+open TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
+  [IsManifold 𝓘(ℝ, E) ∞ M]
+
+omit [IsManifold 𝓘(ℂ, E) 1 M] in
+/-- `Φ₀` read in the chart of `M` at `x` is smooth where it lands in the source of that chart. -/
+private theorem contDiffOn_extChartAt_comp
+    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) (x : M) :
+    ContDiffOn ℝ ∞ (extChartAt 𝓘(ℝ, E) x ∘ Φ₀) (Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x).source) :=
+  (contMDiffOn_extChartAt.comp (Φ₀.contMDiffOn.mono inter_subset_left)
+    fun _ hx ↦ hx.2).contDiffOn
+
+/-- Near a point `z₀` where `Φ₀ ∘ G` lands in the source of the chart at `x₁`, the bound
+`C * ‖y‖ ^ N` on `∂̄` of `G` read through `Φ₀` in the chart at `x₂` gives a bound of the same
+order in the chart at `x₁`: the change of charts is holomorphic. -/
+private theorem exists_norm_conjWirtingerDeriv_extChartAt_le {N : ℕ}
+    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) {x₁ x₂ : M}
+    {U : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hU : IsOpen U)
+    {G : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hG : ContDiffOn ℝ 1 G U)
+    (hGS : G '' U ⊆ Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₂).source) {C : ℝ}
+    (hC : ∀ z ∈ U, ‖conjWirtingerDeriv
+        (fun w ↦ extChartAt 𝓘(ℝ, E) x₂ (Φ₀ (G (EuclideanSpace.sumEquivProd w))))
+        (EuclideanSpace.sumEquivProd.symm z)‖ ≤
+      C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^ N)
+    {z₀ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hz₀ : z₀ ∈ U)
+    (hz₀₁ : Φ₀ (G z₀) ∈ (chartAt E x₁).source) :
+    ∃ B ∈ 𝓝 z₀, ∃ C', ∀ z ∈ B, ‖conjWirtingerDeriv
+        (fun w ↦ extChartAt 𝓘(ℝ, E) x₁ (Φ₀ (G (EuclideanSpace.sumEquivProd w))))
+        (EuclideanSpace.sumEquivProd.symm z)‖ ≤
+      C' * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^ N := by
+  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
+  simp only [← hLr, ← hLrs] at hC ⊢
+  set κ₁ := extChartAt 𝓘(ℝ, E) x₁
+  set κ₂ := extChartAt 𝓘(ℝ, E) x₂
+  -- `τ`: the change of charts, holomorphic on the open set `T`.
+  set τ := κ₁ ∘ κ₂.symm
+  set T := κ₂.target ∩ κ₂.symm ⁻¹' κ₁.source
+  have hκ (x : M) : extChartAt 𝓘(ℝ, E) x = extChartAt 𝓘(ℂ, E) x := by
+    rw [← modelWithCornersSelf_restrictScalars (𝕜 := ℝ) (𝕜' := ℂ),
+      ModelWithCorners.extChartAt_restrictScalars]
+  have hT : IsOpen T := (continuousOn_extChartAt_symm x₂).isOpen_inter_preimage
+    (isOpen_extChartAt_target x₂) (isOpen_extChartAt_source x₁)
+  have hτ : ContDiffOn ℂ 1 τ T := by
+    have h := contDiffOn_ext_coord_change (I := 𝓘(ℂ, E)) (n := 1) x₁ x₂
+    simp only [PartialEquiv.trans_source, PartialEquiv.symm_source] at h
+    simpa only [τ, T, κ₁, κ₂, hκ] using h
+  -- `Y z`: the point `G z` read through `Φ₀` in the chart at `x₂`.
+  set Y := fun z ↦ κ₂ (Φ₀ (G z))
+  have hGz₀ := hGS ⟨z₀, hz₀, rfl⟩
+  have hGc : ContinuousAt G z₀ := (hG.continuousOn.continuousAt (hU.mem_nhds hz₀))
+  have hΦG : ContinuousAt (fun z ↦ Φ₀ (G z)) z₀ :=
+    (Φ₀.toOpenPartialHomeomorph.continuousOn.continuousAt (Φ₀.open_source.mem_nhds hGz₀.1)).comp hGc
+  have hY : ContinuousAt Y z₀ :=
+    (continuousAt_extChartAt' (by rw [extChartAt_source]; exact hGz₀.2)).comp hΦG
+  have hYT : Y z₀ ∈ T := by
+    refine ⟨κ₂.map_source (by rw [extChartAt_source]; exact hGz₀.2), ?_⟩
+    rw [mem_preimage, κ₂.left_inv (by rw [extChartAt_source]; exact hGz₀.2), extChartAt_source]
+    exact hz₀₁
+  have hτz₀ : ContDiffAt ℂ 1 τ (Y z₀) := hτ.contDiffAt (hT.mem_nhds hYT)
+  have hτ' : ContinuousAt (fun z ↦ fderiv ℂ τ (Y z)) z₀ :=
+    (hτz₀.continuousAt_fderiv one_ne_zero).comp hY
+  set c := ‖fderiv ℂ τ (Y z₀)‖ + 1
+  refine ⟨{z | z ∈ U ∧ Y z ∈ T ∧ ‖fderiv ℂ τ (Y z)‖ < c}, ?_, c * C, ?_⟩
+  · filter_upwards [hU.mem_nhds hz₀, hY.preimage_mem_nhds (hT.mem_nhds hYT),
+      hτ'.norm.eventually (gt_mem_nhds (lt_add_one _))] with z hz hzT hzc
+    exact ⟨hz, hzT, hzc⟩
+  rintro z ⟨hz, hzT, hzc⟩
+  -- Near `Lr z`, the reading in the chart at `x₁` is `τ` after the reading in the chart at `x₂`.
+  have hev : (fun w ↦ κ₁ (Φ₀ (G (Lr.symm w)))) =ᶠ[𝓝 (Lr z)]
+      τ ∘ fun w ↦ κ₂ (Φ₀ (G (Lr.symm w))) := by
+    filter_upwards [(hU.preimage Lr.symm.continuous).mem_nhds
+      (show Lr.symm (Lr z) ∈ U by rwa [Lr.symm_apply_apply])] with w hw
+    have h := (hGS ⟨_, hw, rfl⟩).2
+    simp only [Function.comp_apply, τ]
+    rw [(extChartAt 𝓘(ℝ, E) x₂).left_inv (by rwa [extChartAt_source])]
+  have he₂ : DifferentiableAt ℝ (fun w ↦ κ₂ (Φ₀ (G (Lr.symm w)))) (Lr z) := by
+    have h₁ : DifferentiableAt ℝ (κ₂ ∘ Φ₀) (G (Lr.symm (Lr z))) := by
+      rw [Lr.symm_apply_apply]
+      exact ((contDiffOn_extChartAt_comp Φ₀ x₂).contDiffAt
+        ((Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage
+          (chartAt E x₂).open_source).mem_nhds (hGS ⟨z, hz, rfl⟩))).differentiableAt (by simp)
+    have h₂ : DifferentiableAt ℝ G (Lr.symm (Lr z)) := by
+      rw [Lr.symm_apply_apply]
+      exact (hG.contDiffAt (hU.mem_nhds hz)).differentiableAt one_ne_zero
+    exact (h₁.comp (Lr z) (h₂.comp (Lr z) Lr.symm.differentiableAt) :)
+  have hτd : DifferentiableAt ℂ τ (κ₂ (Φ₀ (G (Lr.symm (Lr z))))) := by
+    rw [Lr.symm_apply_apply]
+    exact (hτ.contDiffAt (hT.mem_nhds hzT)).differentiableAt one_ne_zero
+  rw [hev.conjWirtingerDeriv_eq,
+    conjWirtingerDeriv_comp (φ := τ) (g := fun w ↦ κ₂ (Φ₀ (G (Lr.symm w)))) hτd he₂,
+    Lr.symm_apply_apply, mul_assoc]
+  refine (ContinuousLinearMap.opNorm_comp_le _ _).trans ?_
+  calc _ ≤ c * ‖conjWirtingerDeriv (fun w ↦ κ₂ (Φ₀ (G (Lr.symm w)))) (Lr z)‖ := by
+        gcongr
+    _ ≤ _ := by gcongr; exact hC z hz
+
+omit [IsManifold 𝓘(ℂ, E) 1 M] in
+/-- The pointwise step of `exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le`, for a
+real continuous linear equivalence `Lr` of the model space with `ℂ^(k ⊕ m)`. Let `w` be a real
+point with `Lr⁻¹ w ∈ U₁ ∩ U₂` at which `Φ₀ ∘ G₂` lands in the source of the chart at `x₁`, and
+suppose that `G₁` and `G₂`, read through `Φ₀` in that chart, have `∂̄` of order `N` near `w`.
+Then the derivatives of order `j ≤ N` of `G₁ ∘ Lr⁻¹ - G₂ ∘ Lr⁻¹` vanish at `w`. -/
+private theorem iteratedFDeriv_sub_comp_eq_zero {N : ℕ}
+    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) {x₁ : M}
+    (Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ≃L[ℝ]
+      EuclideanSpace ℂ (Fin k ⊕ Fin m))
+    {U₁ U₂ : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hU₁ : IsOpen U₁)
+    (hU₂ : IsOpen U₂)
+    {G₁ G₂ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hG₁ : ContDiffOn ℝ (N + 1) G₁ U₁) (hG₂ : ContDiffOn ℝ (N + 1) G₂ U₂)
+    (hG₁S : G₁ '' U₁ ⊆ Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₁).source)
+    (hG₁fix : ∀ z ∈ U₁, (complexEuclideanEquivRealProd _ (Lr z)).2 = 0 → G₁ z = z)
+    (hG₂fix : ∀ z ∈ U₂, (complexEuclideanEquivRealProd _ (Lr z)).2 = 0 → G₂ z = z)
+    {C₁ : ℝ} (hC₁ : ∀ z ∈ U₁,
+      ‖conjWirtingerDeriv (fun v ↦ extChartAt 𝓘(ℝ, E) x₁ (Φ₀ (G₁ (Lr.symm v)))) (Lr z)‖ ≤
+        C₁ * ‖(complexEuclideanEquivRealProd _ (Lr z)).2‖ ^ N)
+    {w : EuclideanSpace ℂ (Fin k ⊕ Fin m)}
+    (hw : Lr.symm w ∈ U₁ ∩ (U₂ ∩ G₂ ⁻¹' (Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₁).source)))
+    (hC₂ : ∃ B ∈ 𝓝 (Lr.symm w), ∃ C', ∀ z ∈ B,
+      ‖conjWirtingerDeriv (fun v ↦ extChartAt 𝓘(ℝ, E) x₁ (Φ₀ (G₂ (Lr.symm v)))) (Lr z)‖ ≤
+        C' * ‖(complexEuclideanEquivRealProd _ (Lr z)).2‖ ^ N)
+    (hw0 : (complexEuclideanEquivRealProd _ w).2 = 0) {j : ℕ} (hj : j ≤ N) :
+    iteratedFDeriv ℝ j (G₁ ∘ Lr.symm - G₂ ∘ Lr.symm) w = 0 := by
+  set S₁ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₁).source
+  have hS₁ : IsOpen S₁ :=
+    Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E x₁).open_source
+  set h₁ := extChartAt 𝓘(ℝ, E) x₁ ∘ Φ₀
+  have hh₁ : ContDiffOn ℝ ∞ h₁ S₁ := contDiffOn_extChartAt_comp Φ₀ x₁
+  set O := U₁ ∩ (U₂ ∩ G₂ ⁻¹' S₁)
+  have hO : IsOpen O := hU₁.inter (hG₂.continuousOn.isOpen_inter_preimage hU₂ hS₁)
+  set g₁ := G₁ ∘ Lr.symm
+  set g₂ := G₂ ∘ Lr.symm
+  have hg₁ : ContDiffOn ℝ (N + 1) g₁ (Lr.symm ⁻¹' U₁) :=
+    hG₁.comp Lr.symm.contDiff.contDiffOn fun _ hw ↦ hw
+  have hg₂ : ContDiffOn ℝ (N + 1) g₂ (Lr.symm ⁻¹' U₂) :=
+    hG₂.comp Lr.symm.contDiff.contDiffOn fun _ hw ↦ hw
+  have hOw : IsOpen (Lr.symm ⁻¹' O) := hO.preimage Lr.symm.continuous
+  have hOU₁ : Lr.symm ⁻¹' O ⊆ Lr.symm ⁻¹' U₁ := fun _ h ↦ h.1
+  have hOU₂ : Lr.symm ⁻¹' O ⊆ Lr.symm ⁻¹' U₂ := fun _ h ↦ h.2.1
+  replace hw : w ∈ Lr.symm ⁻¹' O := hw
+  set z := Lr.symm w
+  have hle : ∀ j ≤ N, (j : WithTop ℕ∞) ≤ N + 1 := fun j hj ↦ by exact_mod_cast hj.trans N.le_succ
+  have hNle : (N : WithTop ℕ∞) ≤ N + 1 := hle N le_rfl
+  have hz₁ : g₁ w = z := hG₁fix z hw.1 (by rwa [Lr.apply_symm_apply])
+  have hz₂ : g₂ w = z := hG₂fix z hw.2.1 (by rwa [Lr.apply_symm_apply])
+  have hz₁' : G₁ (Lr.symm w) = z := hz₁
+  have hz₂' : G₂ (Lr.symm w) = z := hz₂
+  have hzS : z ∈ S₁ := hz₁ ▸ hG₁S ⟨z, hw.1, rfl⟩
+  obtain ⟨B, hB, C', hC'⟩ := hC₂
+  obtain ⟨B', hB'B, hB', hzB'⟩ := mem_nhds_iff.1 (inter_mem hB (hO.mem_nhds hw))
+  set Bw := Lr.symm ⁻¹' B'
+  have hBw : IsOpen Bw := hB'.preimage Lr.symm.continuous
+  have hBwO : Bw ⊆ Lr.symm ⁻¹' O := fun w' hw' ↦ (hB'B hw').2
+  -- `D`: the difference of the two readings in the chart at `x₁`.
+  have hd : ∀ (G : _ → _) (U : Set _), ContDiffOn ℝ (N + 1) (G ∘ Lr.symm) (Lr.symm ⁻¹' U) →
+      Bw ⊆ Lr.symm ⁻¹' U → (∀ w' ∈ Bw, G (Lr.symm w') ∈ S₁) →
+      ContDiffOn ℝ (N + 1) (h₁ ∘ G ∘ Lr.symm) Bw := fun G U hG hBU hGS ↦
+    (hh₁.of_le (by exact_mod_cast le_top)).comp (hG.mono hBU) hGS
+  have hd₁ := hd G₁ U₁ hg₁ (fun w' hw' ↦ (hBwO hw').1)
+    fun w' hw' ↦ hG₁S ⟨_, (hBwO hw').1, rfl⟩
+  have hd₂ := hd G₂ U₂ hg₂ (fun w' hw' ↦ (hBwO hw').2.1) fun w' hw' ↦ (hBwO hw').2.2
+  have hD0 : ∀ j ≤ N, iteratedFDeriv ℝ j (h₁ ∘ G₁ ∘ Lr.symm - h₁ ∘ G₂ ∘ Lr.symm) w = 0 := by
+    refine fun j hj ↦ iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le (C := C₁ + C')
+      (D := h₁ ∘ G₁ ∘ Lr.symm - h₁ ∘ G₂ ∘ Lr.symm) hBw
+      ((hd₁.sub hd₂).of_le (by exact_mod_cast N.le_succ)) (fun w' hw' hw'0 ↦ ?_)
+      (fun w' hw' ↦ ?_) hzB' hw0 hj
+    · have h₁' := hG₁fix _ (hBwO hw').1 (by rwa [Lr.apply_symm_apply])
+      have h₂' := hG₂fix _ (hBwO hw').2.1 (by rwa [Lr.apply_symm_apply])
+      simp [h₁', h₂']
+    · have hw'B := hB'B hw'
+      rw [conjWirtingerDeriv_sub
+        ((hd₁.contDiffAt (hBw.mem_nhds hw')).differentiableAt (by simp))
+        ((hd₂.contDiffAt (hBw.mem_nhds hw')).differentiableAt (by simp)), add_mul]
+      have h1 := hC₁ _ hw'B.2.1
+      have h2 := hC' _ hw'B.1
+      rw [Lr.apply_symm_apply] at h1 h2
+      exact (norm_sub_le _ _).trans (add_le_add h1 h2)
+  -- The local inverse of `h₁` near `z` carries the agreement back to `g₁` and `g₂`.
+  obtain ⟨A, hA⟩ : (fderiv ℝ h₁ z).IsInvertible :=
+    Φ₀.isInvertible_fderiv_extChartAt_comp_comp (by simp) (ContinuousLinearEquiv.refl ℝ _) hzS.1
+      hzS.2
+  obtain ⟨P, hP, hzP, -, hPc⟩ := hh₁.exists_openPartialHomeomorph hS₁ hzS (by simp) hA
+  have hwBw : w ∈ Bw := hzB'
+  have hc₁ := hd₁.contDiffAt (hBw.mem_nhds hwBw)
+  have hc₂ := hd₂.contDiffAt (hBw.mem_nhds hwBw)
+  have hjet' : SameJetAt ℝ N w (h₁ ∘ G₁ ∘ Lr.symm) (h₁ ∘ G₂ ∘ Lr.symm) :=
+      sameJetAt_iff.2 fun j hj ↦ by
+    rw [← sub_eq_zero, ← iteratedFDeriv_sub_apply (hc₁.of_le (hle j hj)) (hc₂.of_le (hle j hj))]
+    exact hD0 j hj
+  have hPz : ContDiffAt ℝ N P.symm (h₁ z) := (hPc.contDiffAt (P.open_target.mem_nhds
+    (hP ▸ P.map_source hzP))).of_le (by exact_mod_cast le_top)
+  have hback : ∀ g : _ → EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m),
+      ContinuousAt g w → g w = z → P.symm ∘ h₁ ∘ g =ᶠ[𝓝 w] g := fun g hg hgw ↦ by
+    have := hg.eventually (hgw ▸ P.eventually_left_inverse hzP)
+    filter_upwards [this] with w' hw'
+    rw [← hP]
+    exact hw'
+  have hsame := (hjet'.comp (SameJetAt.refl P.symm _) (hc₁.of_le hNle)
+    (hc₂.of_le hNle) (by simpa [hz₁'] using hPz)
+    (by simpa [hz₂'] using hPz)).congr
+    (hback g₁ ((hg₁.continuousOn.continuousAt (mem_of_superset (hOw.mem_nhds hw) hOU₁))) hz₁)
+    (hback g₂ ((hg₂.continuousOn.continuousAt (mem_of_superset (hOw.mem_nhds hw) hOU₂))) hz₂)
+  rw [iteratedFDeriv_sub_apply ((hg₁.contDiffAt (mem_of_superset (hOw.mem_nhds hw) hOU₁)).of_le
+    (hle j hj)) ((hg₂.contDiffAt (mem_of_superset (hOw.mem_nhds hw) hOU₂)).of_le (hle j hj)),
+    hsame.iteratedFDeriv_eq hj, sub_self]
+
+/-- **Two local maps agree to order `N + 1` along the real points.** Let `Φ₀` be a smooth partial
+diffeomorphism from `V = ℂᵏ × ℂᵐ` to the complex manifold `M`, and write `L : V → ℂ^(k ⊕ m)` for
+the inverse of `EuclideanSpace.sumEquivProd` and `x + i y` for the point `L z`. For `i = 1, 2`, let
+`G i` be `C^(N + 1)` on an open set `U i`, map `U i` into the source of `Φ₀` and, through `Φ₀`,
+into the source of the chart `κ i` of `M` at a point `x i`, fix the points of `U i` that are real
+in the coordinates of `L`, and be such that `κ i ∘ Φ₀ ∘ G i ∘ L⁻¹` has conjugate Wirtinger
+derivative of norm at most `C i * ‖y‖ ^ N` at `L z` for `z ∈ U i`; for instance two local maps of
+`exists_almostHolomorphic_modelDisc`. Then for every compact set `K ⊆ U 1 ∩ U 2` of real points,
+such as a compact subset of the core, there is a constant `C` such that near `K` the derivatives
+of order `j ≤ N + 1` of `G 1 - G 2` have norm at most `C * ‖y‖ ^ (N + 1 - j)`. -/
+theorem exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le {N : ℕ}
+    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) {x₁ x₂ : M}
+    {U₁ U₂ : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hU₁ : IsOpen U₁)
+    (hU₂ : IsOpen U₂)
+    {G₁ G₂ : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hG₁ : ContDiffOn ℝ (N + 1) G₁ U₁) (hG₂ : ContDiffOn ℝ (N + 1) G₂ U₂)
+    (hG₁S : G₁ '' U₁ ⊆ Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₁).source)
+    (hG₂S : G₂ '' U₂ ⊆ Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₂).source)
+    (hG₁fix : ∀ z ∈ U₁,
+      (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2 = 0 → G₁ z = z)
+    (hG₂fix : ∀ z ∈ U₂,
+      (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2 = 0 → G₂ z = z)
+    {C₁ C₂ : ℝ}
+    (hC₁ : ∀ z ∈ U₁, ‖conjWirtingerDeriv
+        (fun w ↦ extChartAt 𝓘(ℝ, E) x₁ (Φ₀ (G₁ (EuclideanSpace.sumEquivProd w))))
+        (EuclideanSpace.sumEquivProd.symm z)‖ ≤
+      C₁ * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^ N)
+    (hC₂ : ∀ z ∈ U₂, ‖conjWirtingerDeriv
+        (fun w ↦ extChartAt 𝓘(ℝ, E) x₂ (Φ₀ (G₂ (EuclideanSpace.sumEquivProd w))))
+        (EuclideanSpace.sumEquivProd.symm z)‖ ≤
+      C₂ * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^ N)
+    {K : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hK : IsCompact K)
+    (hKU : K ⊆ U₁ ∩ U₂)
+    (hKre : ∀ z ∈ K, (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2 = 0) :
+    ∃ C, ∀ᶠ z in 𝓝ˢ K, ∀ j ≤ N + 1, ‖iteratedFDeriv ℝ j (G₁ - G₂) z‖ ≤
+      C * ‖(complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm z)).2‖ ^
+        (N + 1 - j) := by
+  obtain ⟨Lr, hLr, hLrs⟩ := exists_sumEquivProd_symm_restrictScalars (k := k) (m := m)
+  -- The bound in `ℂ^(k ⊕ m)` that `hC₂` gives in the chart at `x₁`, near each point of `O`.
+  have hC₂₁ := fun z₀ (hz₀ : z₀ ∈ U₂) (hz₀₁ : Φ₀ (G₂ z₀) ∈ (chartAt E x₁).source) ↦
+    exists_norm_conjWirtingerDeriv_extChartAt_le Φ₀ hU₂
+      (hG₂.of_le (by exact_mod_cast Nat.le_add_left 1 N)) hG₂S hC₂ hz₀ hz₀₁
+  simp only [← hLr, ← hLrs] at hG₁fix hG₂fix hC₁ hKre hC₂₁ ⊢
+  set e := complexEuclideanEquivRealProd (Fin k ⊕ Fin m)
+  set S₁ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x₁).source
+  have hS₁ : IsOpen S₁ :=
+    Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E x₁).open_source
+  -- `O`: the open set near `K` where both maps land in `S₁`.
+  set O := U₁ ∩ (U₂ ∩ G₂ ⁻¹' S₁)
+  have hO : IsOpen O := hU₁.inter (hG₂.continuousOn.isOpen_inter_preimage hU₂ hS₁)
+  have hKO : K ⊆ O := fun z hz ↦ ⟨(hKU hz).1, (hKU hz).2, by
+    rw [mem_preimage, hG₂fix z (hKU hz).2 (hKre z hz), ← hG₁fix z (hKU hz).1 (hKre z hz)]
+    exact hG₁S ⟨z, (hKU hz).1, rfl⟩⟩
+  -- `g i`: the map `G i` read in the coordinates of `ℂ^(k ⊕ m)` on the source.
+  set g₁ := G₁ ∘ Lr.symm
+  set g₂ := G₂ ∘ Lr.symm
+  have hg₁ : ContDiffOn ℝ (N + 1) g₁ (Lr.symm ⁻¹' U₁) :=
+    hG₁.comp Lr.symm.contDiff.contDiffOn fun _ hw ↦ hw
+  have hg₂ : ContDiffOn ℝ (N + 1) g₂ (Lr.symm ⁻¹' U₂) :=
+    hG₂.comp Lr.symm.contDiff.contDiffOn fun _ hw ↦ hw
+  have hOw : IsOpen (Lr.symm ⁻¹' O) := hO.preimage Lr.symm.continuous
+  have hOU₁ : Lr.symm ⁻¹' O ⊆ Lr.symm ⁻¹' U₁ := fun _ h ↦ h.1
+  have hOU₂ : Lr.symm ⁻¹' O ⊆ Lr.symm ⁻¹' U₂ := fun _ h ↦ h.2.1
+  -- The jets of order `N` of `g₁ - g₂` vanish at the real points of `L O`.
+  have hjet : ∀ w ∈ Lr.symm ⁻¹' O, (e w).2 = 0 → ∀ j ≤ N, iteratedFDeriv ℝ j (g₁ - g₂) w = 0 :=
+    fun w hw hw0 _ hj ↦ iteratedFDeriv_sub_comp_eq_zero Φ₀ Lr hU₁ hU₂ hG₁ hG₂ hG₁S hG₁fix
+      hG₂fix hC₁ hw (hC₂₁ _ hw.2.1 hw.2.2.2) hw0 hj
+  -- The bound in `ℂ^(k ⊕ m)`, and back on the model space.
+  have hK' : IsCompact (Lr.symm ⁻¹' K) := Lr.symm.toHomeomorph.isCompact_preimage.2 hK
+  obtain ⟨U', hU', C, hC⟩ := exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hOw
+    ((hg₁.mono hOU₁).sub (hg₂.mono hOU₂)) hK' (fun w hw ↦ hKO hw)
+    (fun w hw ↦ by simpa using hKre _ hw) hjet
+  have hmaps : MapsTo Lr K (Lr.symm ⁻¹' K) := fun z hz ↦ by simpa using hz
+  have hGg : G₁ - G₂ = (g₁ - g₂) ∘ Lr := funext fun z ↦ by simp [g₁, g₂]
+  refine ⟨max ‖(Lr : (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) →L[ℝ]
+    EuclideanSpace ℂ (Fin k ⊕ Fin m))‖ 1 ^ (N + 1) * max C 0, ?_⟩
+  filter_upwards [(Lr.continuous.tendsto_nhdsSet hmaps).eventually hU'] with z hz j hj
+  rw [hGg, mul_assoc]
+  refine (Lr.norm_iteratedFDeriv_comp_right_le _ z j).trans ?_
+  gcongr
+  · exact (pow_le_pow_left₀ (norm_nonneg _) (le_max_left _ 1) j).trans
+      (pow_le_pow_right₀ (le_max_right _ _) hj)
+  · exact (hC _ hz j hj).trans (by gcongr; exact le_max_left _ _)
+
+end Agreement
 
 end SymplecticGeometry
 
