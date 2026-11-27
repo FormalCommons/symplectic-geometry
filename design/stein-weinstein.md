@@ -1660,8 +1660,8 @@ are set on compact manifolds. Three pieces are missing:
 - Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
   and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
   (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`
-  (for each `n ≥ 1`, a map `ι : A.stableSubspace → M` with `ι 0 = p`,
-  `C^n` with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
+  (a map `ι : A.stableSubspace → M` with `ι 0 = p`,
+  smooth with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
   the stable set and contains the points of the stable set near `p` with
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
@@ -1678,9 +1678,8 @@ are set on compact manifolds. Three pieces are missing:
   `hW.flow.stableSet p ∩ f ⁻¹' {a}`, horizontal for the contact form of
   that boundary. The sphere is first a small level of $-H$ in the local
   disc, which every orbit of the disc other than `p` crosses once and
-  transversally. That disc must be smooth, while `exists_localStableDisc`
-  gives a `C^n` disc for each finite `n`, on a ball that depends on `n`;
-  the smooth local disc is issue #6754. The sphere is then carried back to the level `a`, which every
+  transversally. That disc must be smooth, as `exists_localStableDisc`
+  gives it. The sphere is then carried back to the level `a`, which every
   backward orbit of the stable set reaches since the cobordism is
   elementary, at a time that Tau Ceti's `Flow.levelCrossingTime`
   (`Dynamics/Flow/LevelCrossing.lean`) gives as a continuous function and
