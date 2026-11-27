@@ -544,11 +544,19 @@ noncomputable def stdFormCompRightInverseL :
       (-((stdForm ι).flatEquiv.symm : (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι)) ∘L
     (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip
 
+variable (ι) in
+theorem stdFormCompRightInverseL_def :
+    stdFormCompRightInverseL ι =
+      ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
+          (-((stdForm ι).flatEquiv.symm : (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι)) ∘L
+        (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip :=
+  (rfl)
+
 @[simp]
 theorem stdFormCompRightInverseL_apply (A : StdSpace ι →L[ℝ] StdSpace ι)
     (φ : StdSpace ι →L[ℝ] ℝ) :
     stdFormCompRightInverseL ι A φ = -(stdForm ι).flatEquiv.symm (φ ∘L A) := by
-  simp [stdFormCompRightInverseL]
+  simp [stdFormCompRightInverseL_def]
 
 /-- The map `φ ↦ -ω₀♭⁻¹ (φ ∘ A)` has norm at most `‖A‖`. -/
 theorem norm_stdFormCompRightInverseL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
