@@ -1834,9 +1834,10 @@ are set on compact manifolds. Three pieces are missing:
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
   `e` the extended chart at `p`; an idempotent `P` commuting with `A`,
-  with range `A.stableSubspace` and kernel `A.unstableSubspace`; and its
-  corestriction `Q`, with `x ↦ Q (e x - e p)` a left inverse of `ι` on
-  `ball 0 ρ`); and the main results
+  with range `A.stableSubspace` and kernel `A.unstableSubspace`, with
+  `x ↦ P (e x - e p)` a left inverse of `ι` on `ball 0 ρ`; so its data
+  are `ι`, `ρ` and `P`, and the corestriction `Q` of `P` to
+  `A.stableSubspace` is defined from `P`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for

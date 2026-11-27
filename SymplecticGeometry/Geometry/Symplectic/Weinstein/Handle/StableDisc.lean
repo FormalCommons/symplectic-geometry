@@ -91,9 +91,10 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   whose image there lies in the stable set of `p` and contains every point of it near `p` at
   which `f` is close to `f p`, whose orbits in positive time stay in the chart at `p`, and along
   which the derivative of the flow, read in that chart, exists and is bounded in positive time;
-  it comes with the projection `P` onto the stable subspace along the unstable one, and the
-  corestriction `Q` of `P`, for which `x ↦ Q (e x - e p)` is a left inverse of the disc on the
-  chart `e` at `p`.
+  it comes with the projection `P` onto the stable subspace along the unstable one, for which
+  `x ↦ P (e x - e p)` is a left inverse of the disc on the chart `e` at `p`.
+* `SymplecticGeometry.IsWeinsteinStructure.LocalStableDisc.Q`: the corestriction of `P` to the
+  stable subspace, with `.coe_Q_apply` and the left inverse `.Q_extChartAt_ι_sub`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc`: a nondegenerate critical
   point `p` has a local stable disc over the stable subspace of the linearization at `p`.
 * `SymplecticGeometry.IsWeinsteinStructure.LocalStableDisc.contMDiffOn_Q_extChartAt_sub`,
@@ -324,8 +325,8 @@ It is a map `ι : S → M` with `ι 0 = p` and a radius `ρ > 0` such that:
   independently of `t`;
 
 together with an idempotent `P : E →L[ℝ] E` commuting with `A`, with range `S` and kernel the
-unstable subspace of `A`, and its corestriction `Q : E →L[ℝ] S`, such that `x ↦ Q (e x - e p)`
-is a left inverse of `ι` on the ball of radius `ρ`.
+unstable subspace of `A`, such that `x ↦ P (e x - e p)` is a left inverse of `ι` on the ball of
+radius `ρ`. The corestriction `Q : E →L[ℝ] S` of `P` is `IsWeinsteinStructure.LocalStableDisc.Q`.
 
 `IsWeinsteinStructure.exists_localStableDisc` gives one at every nondegenerate critical point
 `p`, for `A` the linearization of the Liouville field at `p`. -/
@@ -355,11 +356,10 @@ structure LocalStableDisc (hW : IsWeinsteinStructure ω X f) (p : M) (A : E →L
   commute_P : Commute A P
   range_P : (P : E →ₗ[ℝ] E).range = A.stableSubspace
   ker_P : (P : E →ₗ[ℝ] E).ker = A.unstableSubspace
-  /-- The corestriction of `P` to the stable subspace of `A`. -/
-  Q : E →L[ℝ] A.stableSubspace
-  coe_Q_apply : ∀ v, (Q v : E) = P v
-  Q_extChartAt_ι_sub : ∀ z ∈ ball (0 : A.stableSubspace) ρ,
-    Q (extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p) = z
+  P_extChartAt_ι_sub : ∀ z ∈ ball (0 : A.stableSubspace) ρ,
+    P (extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p) = z
+
+attribute [simp] LocalStableDisc.ι_zero
 
 /-- **The local stable disc of a nondegenerate critical point.** Let `p` be a nondegenerate
 critical point of the function of a Weinstein structure, and `A` the linearization of the
@@ -592,13 +592,30 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     commute_P := hAP
     range_P := hPS
     ker_P := hPU
-    Q := Q
-    coe_Q_apply := hQP
-    Q_extChartAt_ι_sub := hQι }⟩
+    P_extChartAt_ι_sub := fun z hz ↦ by rw [← hQP, hQι z hz] }⟩
 
 namespace LocalStableDisc
 
 variable {hW} {p : M} {A : E →L[ℝ] E} (D : hW.LocalStableDisc p A)
+
+/-- The corestriction `Q : E →L[ℝ] S` of the projection `P` of a local stable disc to its range,
+the stable subspace `S` of `A`. -/
+noncomputable def Q : E →L[ℝ] A.stableSubspace :=
+  D.P.codRestrict A.stableSubspace fun x ↦ D.range_P ▸ LinearMap.mem_range_self _ x
+
+theorem Q_def :
+    D.Q = D.P.codRestrict A.stableSubspace fun x ↦ D.range_P ▸ LinearMap.mem_range_self _ x :=
+  (rfl)
+
+@[simp]
+theorem coe_Q_apply (v : E) : (D.Q v : E) = D.P v := by
+  rw [Q_def, ContinuousLinearMap.coe_codRestrict_apply]
+
+/-- The map `x ↦ Q (e x - e p)`, for `e` the extended chart at `p`, is a left inverse of a local
+stable disc on the ball of radius `ρ`. -/
+theorem Q_extChartAt_ι_sub {z : A.stableSubspace} (hz : z ∈ ball 0 D.ρ) :
+    D.Q (extChartAt 𝓘(ℝ, E) p (D.ι z) - extChartAt 𝓘(ℝ, E) p p) = z :=
+  Subtype.ext <| by rw [coe_Q_apply, D.P_extChartAt_ι_sub z hz]
 
 /-- The left inverse `x ↦ Q (e x - e p)` of a local stable disc, for `e` the extended chart at
 `p`, is smooth on the source of `e`. -/
@@ -622,7 +639,7 @@ theorem exists_norm_extChartAt_sub_le :
     simpa using (hC 0 le_rfl).2.1
   obtain ⟨C, hC⟩ := hd.hasFDerivAt.isBigO_sub.bound
   obtain ⟨δ, hδ, h⟩ := Metric.eventually_nhds_iff_ball.1 hC
-  exact ⟨C, δ, hδ, fun z hz ↦ by simpa [D.ι_zero] using h z hz⟩
+  exact ⟨C, δ, hδ, fun z hz ↦ by simpa using h z hz⟩
 
 /-- **Forward invariance of a local stable disc near `p`.** Let `ι` be a local stable disc of a
 nondegenerate critical point `p`, with radius `ρ` and left inverse `π x = Q (e x - e p)`, for `e`
@@ -675,7 +692,7 @@ theorem exists_forall_Q_flow_mem_ball_and_ι_eq
   obtain ⟨w, hw, hwx⟩ := hcov ⟨⟨(Flow.apply_mem_stableSet_iff _ _).2 hzst, hxV.1⟩,
     ((sub_le_sub_left (min_le_left _ _) _).trans_lt hzf).trans_le hfle⟩
   refine ⟨hxV.2, ?_⟩
-  rw [← hwx, D.Q_extChartAt_ι_sub w hw]
+  rw [← hwx, D.Q_extChartAt_ι_sub hw]
 
 end LocalStableDisc
 
@@ -738,7 +755,7 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
   obtain ⟨π, hπ, hπι⟩ : ∃ π : M → A.stableSubspace,
       ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞) π e.source ∧
         ∀ z ∈ ball (0 : A.stableSubspace) D.ρ, π (D.ι z) = z :=
-    ⟨_, D.contMDiffOn_Q_extChartAt_sub, D.Q_extChartAt_ι_sub⟩
+    ⟨_, D.contMDiffOn_Q_extChartAt_sub, fun _ hz ↦ D.Q_extChartAt_ι_sub hz⟩
   have hfc : Continuous f := hW.isGeneralizedMorse.contMDiff.continuous
   -- The orbit of `γ y` enters, at some time `T`, the part of the stable set that the disc covers;
   -- by continuity, so does the orbit of `γ z` for `z` near `y`.
