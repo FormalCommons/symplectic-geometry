@@ -99,10 +99,10 @@ theorem complexFrameEquiv_I : J.complexFrameEquiv hv hc Complex.I = J c v := by
 /-- `complexFrameEquiv` carries multiplication by `i` to `J`. -/
 theorem complexFrameEquiv_I_smul (z : ℂ) :
     J.complexFrameEquiv hv hc (Complex.I • z) = J c (J.complexFrameEquiv hv hc z) := by
-  simp only [complexFrameEquiv_apply, map_add, map_smul, apply_apply, smul_eq_mul,
-    Complex.mul_re, Complex.mul_im, Complex.I_re, Complex.I_im]
-  simp only [zero_mul, one_mul, zero_sub, neg_smul, smul_neg]
-  abel_nf
+  rw [smul_eq_mul, mul_comm]
+  exact LinearMap.apply_mul_I_eq_of_apply_I_eq
+    (J.complexFrameEquiv hv hc : ℂ →L[ℝ] TangentSpace I c).toLinearMap
+    (A := (J.toEndomorphism c).toLinearMap) (by simp) (J.apply_apply c) z
 
 end complexFrameEquiv
 
