@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.ExtChartAt
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
+import SymplecticGeometry.Topology.OpenPartialHomeomorph.Ball
 
 /-!
 # The extended chart at a point, centred at that point
@@ -21,7 +22,8 @@ built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of
 it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
 `OpenPartialHomeomorph.sourceRestrict_preimage_singleton`). Its inverse carries some ball about
 the origin into any given neighbourhood of `x`
-(`exists_ball_mapsTo_centeredExtChartAt_symm`).
+(`exists_ball_mapsTo_centeredExtChartAt_symm`, a case of
+`OpenPartialHomeomorph.exists_ball_subset_target_mapsTo_symm`).
 
 ## Main definitions
 
@@ -100,16 +102,9 @@ target that its inverse carries into any given neighbourhood `T` of `x`. -/
 theorem exists_ball_mapsTo_centeredExtChartAt_symm {T : Set M} (hT : T ∈ 𝓝 x) :
     ∃ ε > 0, Metric.ball (0 : E) ε ⊆ (centeredExtChartAt I x).target ∧
       MapsTo (centeredExtChartAt I x).symm (Metric.ball 0 ε) T := by
-  have hx := mem_centeredExtChartAt_source I x
-  have h : (centeredExtChartAt I x).target ∩ (centeredExtChartAt I x).symm ⁻¹' T ∈
-      𝓝 (0 : E) := by
-    rw [← centeredExtChartAt_self I x]
-    refine Filter.inter_mem ((centeredExtChartAt I x).open_target.mem_nhds
-      ((centeredExtChartAt I x).map_source hx)) ?_
-    rw [← Filter.mem_map, (centeredExtChartAt I x).symm_map_nhds_eq hx]
-    exact hT
-  obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.1 h
-  exact ⟨ε, hε, fun _ hy ↦ (hball hy).1, fun _ hy ↦ (hball hy).2⟩
+  simpa only [centeredExtChartAt_self] using
+    (centeredExtChartAt I x).exists_ball_subset_target_mapsTo_symm
+      (mem_centeredExtChartAt_source I x) hT
 
 end SymplecticGeometry
 

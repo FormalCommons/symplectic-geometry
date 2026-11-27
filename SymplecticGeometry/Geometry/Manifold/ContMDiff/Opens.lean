@@ -12,7 +12,9 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 # Smooth maps and open subsets
 
 A map `f : M → N` is `C^n` on an open subset `U` of `M` exactly when its restriction to `U`, read
-as a manifold, is `C^n` (`contMDiff_subtype_iff`).
+as a manifold, is `C^n` (`contMDiff_subtype_iff`). A map into `N` that is `C^n` at a point `x`
+and sends `x` into an open subset `W` of `N` lifts, near `x`, to a map into `W` that is `C^n` at
+`x` (`ContMDiffAt.exists_subtypeVal_comp_eventuallyEq`).
 
 Let `U` be an open subset of a manifold `M` and `n` a smoothness order. Let `g : P × U → N`
 be a map that is `C^n` at `(p, x)`, and `f : P × M → N` a map that agrees with it on `P × U`.
@@ -32,6 +34,8 @@ As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → 
 
 * `contMDiff_subtype_iff`: a map is `C^n` on an open subset exactly when its restriction to that
   subset is `C^n`.
+* `ContMDiffAt.exists_subtypeVal_comp_eventuallyEq`: a map that is `C^n` at a point and sends it
+  into an open subset lifts, near that point, to a map into that subset that is `C^n` there.
 * `ContMDiffAt.prod_opens_of_eq`: a map that agrees on `P × U` with a map on `P × U` that is
   `C^n` at a point is `C^n` at that point.
 * `ContMDiffAt.opens_prod_of_eq`: the same on `U × P`.
@@ -43,7 +47,7 @@ As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → 
 
 public section
 
-open Set TopologicalSpace
+open Set TopologicalSpace Filter Topology
 open scoped Manifold
 
 section Restrict
@@ -61,6 +65,20 @@ theorem contMDiff_subtype_iff {n : WithTop ℕ∞} {U : Opens M} {f : M → N} :
   ⟨fun h x hx ↦ (contMDiffAt_subtype_iff (x := ⟨x, hx⟩)).1 (h _) |>.contMDiffWithinAt,
     fun h x ↦ contMDiffAt_subtype_iff.2 <|
       (h x x.property).contMDiffAt (U.isOpen.mem_nhds x.property)⟩
+
+/-- Let `f : M → N` be `C^n` at `x`, with `f x` in an open subset `W` of `N`. Then `f` lifts to
+`W` near `x`: there is a map `g : M → W` that is `C^n` at `x` and agrees with `f`, read in `N`,
+on a neighbourhood of `x`. -/
+theorem ContMDiffAt.exists_subtypeVal_comp_eventuallyEq {n : WithTop ℕ∞} {f : M → N} {x : M}
+    (hf : ContMDiffAt I I' n f x) {W : Opens N} (hx : f x ∈ W) :
+    ∃ g : M → W, ContMDiffAt I I' n g x ∧ Subtype.val ∘ g =ᶠ[𝓝 x] f := by
+  classical
+  -- Take `f y` where it lies in `W`, and `f x` elsewhere.
+  let g : M → W := fun y ↦ if h : f y ∈ W then ⟨f y, h⟩ else ⟨f x, hx⟩
+  have hg : Subtype.val ∘ g =ᶠ[𝓝 x] f :=
+    mem_of_superset (hf.continuousAt.preimage_mem_nhds (W.isOpen.mem_nhds hx)) fun y hy ↦ by
+      simp [g, dite_eq_left (show f y ∈ W from hy)]
+  exact ⟨g, (TauCeti.ContMDiffAt.subtypeVal_comp_iff W g x).1 (hf.congr_of_eventuallyEq hg), hg⟩
 
 end Restrict
 
