@@ -55,7 +55,8 @@ taken for `g_J` and the norm of `L_x`, then
 
 At a zero, `D s(x)` is the intrinsic linearization of `s` for every covariant derivative `D`
 (`CovariantDerivative.apply_eq_sectionLinearization`), so no result asks `D` to be complex
-linear or metric, and the norm of `L_x` need not come from a Hermitian metric. The pointwise
+linear or metric. Each norm on a fibre `L_x` is Hermitian, since `L_x` is a normed complex line,
+but the norms need not vary smoothly or even continuously with `x`. The pointwise
 statements are `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_lt`,
 `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt` and
 `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`, applied on
@@ -79,8 +80,8 @@ transverse section, with the normal orientation carried from the canonical orien
 (`TauCeti.SmoothEmbedding.dualClass_ofTransverseSection_eq_complexEulerClass`), and the cap
 product of a dual class with `[M]` is the push-forward of `[Z]`
 (`TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass` and its zero-dimensional form). These
-results put every class of the zero set and of `M` in the universe `Type`, so the last section
-does too.
+cap product results put every class of the zero set and of `M` in the universe `Type`, so the
+cap identities of the last section do too; the dual class identity does not need this.
 
 ## Main results
 
@@ -311,17 +312,22 @@ open CategoryTheory MonoidalCategory
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
-variable {E H M : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+section DualClass
+
+universe u
+
+variable {E M : Type u} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
   [SecondCountableTopology M]
-  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {F : Type u} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F] [FiniteDimensional ℂ F]
-  {L : M → Type} [TopologicalSpace (TotalSpace F L)] [∀ x, NormedAddCommGroup (L x)]
+  {L : M → Type u} [TopologicalSpace (TotalSpace F L)] [∀ x, NormedAddCommGroup (L x)]
   [∀ x, NormedSpace ℝ (L x)] [∀ x, NormedSpace ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
   [FiberBundle F L] [VectorBundle ℝ F L] [VectorBundle ℂ F L] [ContMDiffVectorBundle ∞ F L I]
   {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} {s : Π x, L x}
-  {E' : Type} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
 
 /-- **The dual class of a symplectic zero set is the Euler class.** In the setting of
 `normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`, orient `M` and the zero
@@ -384,6 +390,19 @@ theorem dualClass_zeroSet_of_norm_dbar_lt (hc : σ.Compatible J) (hF : finrank �
     hk, ← normalOrientationOfSection_reindex, ← VectorBundleOrientation.reindex_trans]
   exact SmoothEmbedding.dualClass_ofTransverseSection_eq_complexEulerClass (by simp) hs hT hE hF
 
+end DualClass
+
+variable {E H M : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  [SecondCountableTopology M]
+  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F] [FiniteDimensional ℂ F]
+  {L : M → Type} [TopologicalSpace (TotalSpace F L)] [∀ x, NormedAddCommGroup (L x)]
+  [∀ x, NormedSpace ℝ (L x)] [∀ x, NormedSpace ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
+  [FiberBundle F L] [VectorBundle ℝ F L] [VectorBundle ℂ F L] [ContMDiffVectorBundle ∞ F L I]
+  {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} {s : Π x, L x}
+  {E' : Type} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
 
 /-- **The fundamental class of a symplectic zero set.** In the setting of
 `dualClass_zeroSet_of_norm_dbar_lt`, let `M` be compact, and let the zero set `Z` of `s` have
@@ -445,7 +464,8 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt [CompactS
       (by rw [← hE, hk, hF2]; ring)).reindex (finCongr (by rw [hF2]; ring)))
     ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc hL D hs hdom
       hE).isNondegenerate_mpullback.volumeOrientation hk)
-  rw [Manifold.Orientation.reindex_finCongr_reindex_finCongr] at h
+  rw [Manifold.Orientation.reindex_finCongr_reindex_finCongr, finCongr_refl,
+    Manifold.Orientation.reindex_refl] at h
   refine h.trans (congrArg _ (ContinuousMap.ext fun z ↦ ?_))
   exact congrFun (SmoothEmbedding.coe_ofTransverseSection hm hs hT hE) z
 
@@ -509,7 +529,8 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finran
       (by rw [← hE, hk, hF2])).reindex (finCongr (by rw [hF2])))
     ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc hL D hs hdom
       hE).isNondegenerate_mpullback.volumeOrientation (n := 0) hk)
-  rw [Manifold.Orientation.reindex_finCongr_reindex_finCongr] at h
+  rw [Manifold.Orientation.reindex_finCongr_reindex_finCongr, finCongr_refl,
+    Manifold.Orientation.reindex_refl] at h
   refine h.trans (congrArg _ (ContinuousMap.ext fun z ↦ ?_))
   exact congrFun (SmoothEmbedding.coe_ofTransverseSection hm hs hT hE) z
 
@@ -534,8 +555,9 @@ Let `s` be a smooth section such that, at each zero `x` of `s`, the complex-anti
    `singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finrank_eq_zero` when `M`
    is a surface.
 
-The covariant derivative need not be complex linear or metric, nor the norms of `L` Hermitian:
-at a zero, `D s(x)` is the linearization of `s` for every `D`.
+Each fibre norm is Hermitian, since `L x` is a normed complex line, but the norms need not vary
+smoothly with `x`, and `D` need not be complex linear or metric: at a zero, `D s(x)` is the
+linearization of `s` for every `D`.
 
 Milestone: *Symplectic zero set criterion for a line bundle section*. -/
 theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
