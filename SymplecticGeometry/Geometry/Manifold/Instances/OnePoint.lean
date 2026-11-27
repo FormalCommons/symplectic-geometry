@@ -262,7 +262,7 @@ theorem mpullback_diffeomorphSphere_symm_fubiniStudyForm :
     rw [smul_smul, inv_mul_cancel₀ (by positivity), one_smul]
   rw [← h₄, map_smul, ← mpullback_diffeomorphSphere_sphereVolumeForm,
     SmoothForm.mpullback_mpullback]
-  simp only [hid, SmoothForm.mpullback_id, LinearMap.id_apply]
+  rw [SmoothForm.mpullback_eq_self_of_eq_id _ hid]
 
 end SymplecticGeometry
 
