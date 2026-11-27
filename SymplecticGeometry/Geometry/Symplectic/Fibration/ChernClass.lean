@@ -156,14 +156,7 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimens
   [SigmaCompactSpace M]
   {proj : M → B} {A : Atlas F proj} {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
   (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
-  [hG : Fact (finrank ℝ EM - finrank ℝ EB = 2 * finrank ℂ G)]
-
-omit [FiniteDimensional ℝ EB] [FiniteDimensional ℝ EM] [FiniteDimensional ℂ G] in
-/-- The rank `dim M - dim B` of the vertical bundle is twice the complex dimension of `G`, read
-as the dimension of the model fibre `Fin (dim M - dim B) → ℝ` of the vertical bundle. -/
-theorem fact_finrank_vertical :
-    Fact (finrank ℝ (Fin (finrank ℝ EM - finrank ℝ EB) → ℝ) = 2 * finrank ℂ G) :=
-  ⟨(finrank_fin_fun ℝ).trans hG.out⟩
+  [Fact (finrank ℝ EM - finrank ℝ EB = 2 * finrank ℂ G)]
 
 /-- The **real first Chern class of the vertical bundle** of a symplectic atlas `A` of
 `proj : M → B` for `(F, σ)`: the real first Chern class, with complex model `G`, of the vertical
@@ -175,7 +168,6 @@ def realFirstChernClass_vertical (A : Atlas F proj) (hA : A.IsContMDiff ∞ IB I
     deRhamCohomology IM M 2 :=
   have hD := hA.isContMDiffDistribution_ker_mfderiv (m := ∞) le_rfl
   letI := hD.fiberBundle; letI := hD.vectorBundle; letI := hD.contMDiffVectorBundle
-  letI := fact_finrank_vertical G (EM := EM) (EB := EB)
   ((SmoothTwoForm.exists_restrictsTo_isVerticallyClosed hA hH
     hσ.isClosed).choose_spec.1.isNondegenerate_restrictTwoForm hA hσ.isNondegenerate
       hD).realFirstChernClass G
@@ -184,7 +176,6 @@ theorem realFirstChernClass_vertical_def (A : Atlas F proj) (hA : A.IsContMDiff 
     (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsSymplectic) :
     have hD := hA.isContMDiffDistribution_ker_mfderiv (m := ∞) le_rfl
     letI := hD.fiberBundle; letI := hD.vectorBundle; letI := hD.contMDiffVectorBundle
-    letI := fact_finrank_vertical G (EM := EM) (EB := EB)
     A.realFirstChernClass_vertical G hA hH hσ =
       ((SmoothTwoForm.exists_restrictsTo_isVerticallyClosed hA hH
         hσ.isClosed).choose_spec.1.isNondegenerate_restrictTwoForm hA hσ.isNondegenerate
@@ -200,11 +191,9 @@ theorem realFirstChernClass_vertical_eq (hA : A.IsContMDiff ∞ IB IF IM)
     (hD : IsContMDiffDistribution IM ∞ (finrank ℝ EM - finrank ℝ EB)
       fun x ↦ (mfderiv IM IB proj x).ker) :
     letI := hD.fiberBundle; letI := hD.vectorBundle; letI := hD.contMDiffVectorBundle
-    letI := fact_finrank_vertical G (EM := EM) (EB := EB)
     A.realFirstChernClass_vertical G hA hH hσ =
       (hτ.isNondegenerate_restrictTwoForm hA hσ.isNondegenerate hD).realFirstChernClass G := by
   let := hD.fiberBundle; let := hD.vectorBundle; let := hD.contMDiffVectorBundle
-  let := fact_finrank_vertical G (EM := EM) (EB := EB)
   have key : ∀ {β β' : ContMDiffTwoForm IM ⊤ (Fin (finrank ℝ EM - finrank ℝ EB) → ℝ)
       (fun x ↦ (mfderiv IM IB proj x).ker)} (_ : β = β') (h : β.IsNondegenerate)
       (h' : β'.IsNondegenerate), h.realFirstChernClass G = h'.realFirstChernClass G := by
@@ -233,7 +222,6 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   have hdj := hA.mdifferentiable_trivAt (by simp) b
   have hD := hA.isContMDiffDistribution_ker_mfderiv (m := ∞) le_rfl
   let := hD.fiberBundle; let := hD.vectorBundle; let := hD.contMDiffVectorBundle
-  let := fact_finrank_vertical G (EM := EM) (EB := EB)
   let k := finrank ℝ EM - finrank ℝ EB
   let V := fun x ↦ (mfderiv IM IB proj x).ker
   have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := Fin k → ℝ) (E := fun x ↦ V x) hj
