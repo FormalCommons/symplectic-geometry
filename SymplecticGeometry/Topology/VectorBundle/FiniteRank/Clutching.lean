@@ -819,27 +819,26 @@ private theorem glueCocycle_smul_discSection (s t : Bool) (b : X × ℙ ℂ (Fin
     (ht : b.2 ∈ bif t then innerDisc else outerDisc) (a : Fin 1 → ℂ) :
     glueCocycle (clutchingAut (trivial ℂ X 1) (circleZPowIso X (-1))) s t b a (0 : Fin 1) •
         discSection t b.2 = a 0 • discSection s b.2 := by
+  -- Name the vector and its coordinate in the fibres of the pullbacks of the trivial line, whose
+  -- ranks are `1` only up to unfolding, so that the lemmas about these fibres apply to them.
+  set v : Fin ((trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).rank → ℂ :=
+    a
+  set i : Fin (trivial ℂ X 1).circlePullback.rank := (0 : Fin 1)
   cases s <;> cases t
   · rw [glueCocycle_self]; rfl
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨ht, hs⟩
-    rw [glueCocycle_false_true _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
-      from hb)]
-    rw [fiberMap_clutchingAut_hom, fiberMap_circleZPowIso_hom, clutchingMap_apply]
-    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
-    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
-    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    have hb' : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨ht, hs⟩
+    simp only [glueCocycle_false_true _ hb', fiberMap_clutchingAut_hom,
+      fiberMap_circleZPowIso_hom, smul_apply, id_apply_coords, Pi.smul_apply, clutchingMap_apply]
     simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul]
     have hu := Circle.coe_ne_zero (annulusToCircle ⟨b.2, hb⟩)
     congr 1
     field_simp
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨hs, ht⟩
-    rw [glueCocycle_true_false _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
-      from hb)]
-    rw [fiberMap_clutchingAut_inv, fiberMap_circleZPowIso_inv, clutchingMap_apply]
-    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
-    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
-    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    have hb' : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hs, ht⟩
+    simp only [glueCocycle_true_false _ hb', fiberMap_clutchingAut_inv,
+      fiberMap_circleZPowIso_inv, smul_apply, id_apply_coords, Pi.smul_apply, clutchingMap_apply]
     simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one, inv_inv]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul, mul_comm]
   · rw [glueCocycle_self]; rfl
