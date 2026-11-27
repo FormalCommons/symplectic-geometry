@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
+public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 import Mathlib.Topology.Homeomorph.Lemmas
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.AddCircle
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
@@ -40,7 +41,8 @@ orientation, and the change of variables formula
 * `TauCeti.contMDiff_addCircleProdHomeomorphTorus`: it is smooth.
 * `TauCeti.torusSymplecticOrientation p`: the orientation of the two-torus on which
   `torusSymplecticForm p` is positive, and
-  `TauCeti.orientation_eq_orientationAt_torusSymplecticOrientation_iff`: its positive tangent bases.
+  `TauCeti.orientation_eq_orientationAt_torusSymplecticOrientation_iff`: its positive tangent bases,
+  and `TauCeti.isPositive_torusSymplecticForm`: the form is positive for it.
 * `TauCeti.integralTopForm_torusSymplecticForm`: the integral of `torusSymplecticForm p` over the
   two-torus, for `torusSymplecticOrientation p`, is `p inl * p inr`.
 -/
@@ -118,6 +120,12 @@ theorem orientation_eq_orientationAt_torusSymplecticOrientation_iff {x : ∀ i, 
     b.orientation = (torusSymplecticOrientation p).orientationAt x ↔
       0 < (torusSymplecticForm p).val x b :=
   Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff _ _ _ b
+
+/-- The standard symplectic form `torusSymplecticForm p` is positive for the standard orientation
+`torusSymplecticOrientation p` of the two-torus. -/
+theorem isPositive_torusSymplecticForm :
+    (torusSymplecticOrientation p).IsPositive (torusSymplecticForm p).val :=
+  Manifold.Orientation.isPositive_ofTopForm _ _ _
 
 /-- **The area of the standard symplectic two-torus.** The integral of the standard symplectic
 form `torusSymplecticForm p` over the torus `∀ i : Unit ⊕ Unit, AddCircle (p i)`, for the
