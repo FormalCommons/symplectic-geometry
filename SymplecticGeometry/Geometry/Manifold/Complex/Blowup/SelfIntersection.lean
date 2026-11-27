@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.SelfIntersection
 import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 import TauCeti.Topology.Algebra.Module.ComplexSmulI
 import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
@@ -32,8 +32,6 @@ to the exceptional divisor of the blowup `Blowup c` of a complex surface at a po
 * `SymplecticGeometry.Blowup.selfIntersectionNumber_exceptionalDivisor`: the same for the
   exceptional divisor `divisorRealEmbedding c` of the blowup of a complex surface, for the
   complex structure of `Blowup c`.
-* `SymplecticGeometry.Blowup.mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding`: that
-  structure preserves the tangent spaces of the exceptional divisor.
 
 ## Proof
 
@@ -125,27 +123,6 @@ theorem selfIntersectionNumber_zeroSection
 end BlowupModel
 
 namespace Blowup
-
-section Divisor
-
-variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
-  [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] {p₀ : M} (c : BlowupChart (n := n) M p₀)
-  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
-  {hn : (∞ : ℕ∞ω) ≠ 0}
-
-/-- The complex structure of the blowup of a complex manifold preserves the tangent spaces of the
-exceptional divisor. -/
-theorem mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    Set.MapsTo
-      (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (Blowup c)
-        (divisorRealEmbedding c ℓ))
-      ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn)
-      ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn) := by
-  rw [divisorRealEmbedding_eq_restrictScalars]
-  exact (divisorEmbedding c).mapsTo_ofComplexManifold_tangentRange_restrictScalars le_top
-    ENat.LEInfty.out hn ℓ
-
-end Divisor
 
 variable {M : Type} [TopologicalSpace M] [ChartedSpace (Fin 2 → ℂ) M]
   [IsManifold 𝓘(ℂ, Fin 2 → ℂ) ω M] {p₀ : M} (c : BlowupChart (n := 1) M p₀)
