@@ -320,7 +320,7 @@ theorem fundamentalVectorField_cplx_lieMap (h : IsComplexifiedAction C J)
 /-- For a complexified action, the fundamental vector field of any `ζ` in the Lie algebra of `Gc`
 is `X_{C.re ζ} + J X_{C.im ζ}`, where `X_{C.re ζ}` and `X_{C.im ζ}` are fundamental vector fields
 for the action of `G`. -/
-theorem fundamentalVectorField_eq_re_add_im [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+theorem fundamentalVectorField_eq_re_add_im [FiniteDimensional ℝ E]
     (h : IsComplexifiedAction C J) (ζ : GroupLieAlgebra IC Gc) (x : M) :
     fundamentalVectorField I' ζ x =
       fundamentalVectorField I' (C.re ζ) x + J x (fundamentalVectorField I' (C.im ζ) x) := by
@@ -488,7 +488,7 @@ section Closed
 open _root_.Bundle
 open scoped RealInnerProductSpace GroupLieAlgebra
 
-variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [CompleteSpace E']
+variable [FiniteDimensional ℝ E] [CompleteSpace E']
   [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
   {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
@@ -506,6 +506,7 @@ theorem differentiable_moment_inv_smul_im_mfderiv
     (hγ : ContMDiff 𝓘(ℝ, F) IC ∞ γ) (v : F) :
     Differentiable ℝ fun z ↦ μ ((γ z)⁻¹ • p)
       (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v))) := by
+  have := C.finiteDimensional
   -- The function pairs a smooth family of covectors with `C.im` of the left-trivialized
   -- derivative of `γ`.
   have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
@@ -531,6 +532,7 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
         (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z w)))) y v =
       fderiv ℝ (fun z ↦ μ ((γ z)⁻¹ • p)
         (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v)))) y w := by
+  have := C.finiteDimensional
   -- The left trivializations of the derivatives of `γ` are the left Maurer–Cartan form along `γ`.
   set θ := leftMaurerCartanForm IC Gc
   set a : F → F → GroupLieAlgebra IC Gc := fun u z ↦ θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z u]
@@ -586,7 +588,7 @@ section Stabilizer
 open _root_.Bundle
 open scoped RealInnerProductSpace
 
-variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [CompleteSpace E']
+variable [FiniteDimensional ℝ E] [CompleteSpace E']
   [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
   {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
@@ -633,6 +635,7 @@ theorem IsComplexifiedAction.discreteTopology_stabilizer_iff_of_moment_eq_zero [
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {q : M} (hq : μ q = 0) :
     DiscreteTopology (MulAction.stabilizer Gc q) ↔
       ∀ ξ : GroupLieAlgebra I G, fundamentalVectorField I' ξ q = 0 → ξ = 0 := by
+  have := C.finiteDimensional
   rw [Lie.discreteTopology_stabilizer_iff_isotropy_eq_bot (I := IC) (I' := I'),
     LieSubalgebra.eq_bot_iff]
   simp only [InfinitesimalAction.mem_isotropy_iff, InfinitesimalAction.fundamental_apply]
