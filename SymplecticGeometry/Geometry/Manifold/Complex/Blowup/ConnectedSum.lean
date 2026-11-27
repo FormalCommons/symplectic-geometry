@@ -12,7 +12,6 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Euclidean
 public import TauCeti.Algebra.Group.Fin.Tuple
 public import TauCeti.LinearAlgebra.Projectivization.Basic
 import Mathlib.LinearAlgebra.Complex.Determinant
-import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
@@ -898,8 +897,7 @@ private theorem radialRescale_radialRescaleInv (hε : 0 < ε) {p : BlowupModel n
   rw [blowdown_radialRescale, radialRescaleInv, blowdown_mk, rescaleCoordInv,
     ContinuousLinearEquiv.symm_apply_apply,
     (univBall 0 ε).right_inv
-      (by rw [univBall_target 0 hε, mem_ball_zero_iff, ← TauCeti.norm_complexToRealEuclidean]
-          exact mem_openNbhd_iff.1 hp),
+      (by rw [univBall_target 0 hε]; exact mem_openNbhd_iff_mem_ball.1 hp),
     ContinuousLinearEquiv.apply_symm_apply]
 
 /-- For `ε > 0`, the blowdown of the rescaled point is `ε z / √(1 + |z|²)`, for the blowdown `z`
@@ -915,9 +913,8 @@ theorem blowdown_radialRescale_of_pos (hε : 0 < ε) (p : BlowupModel n) :
 than `ε`. -/
 theorem radialRescale_mem_openNbhd (hε : 0 < ε) (p : BlowupModel n) :
     radialRescale ε p ∈ openNbhd n ε := by
-  rw [mem_openNbhd_iff, TauCeti.norm_complexToRealEuclidean, blowdown_radialRescale,
-    ContinuousLinearEquiv.symm_apply_apply, ← mem_ball_zero_iff,
-    ← univBall_target 0 hε]
+  rw [mem_openNbhd_iff_mem_ball, blowdown_radialRescale,
+    ContinuousLinearEquiv.symm_apply_apply, ← univBall_target 0 hε]
   exact (univBall 0 ε).map_source (by simp)
 
 variable (ε) in
@@ -936,8 +933,7 @@ theorem range_radialRescale (hε : 0 < ε) :
 `Blowup.modelOpens c`, the points whose blowdown lies in the target of `c`. -/
 theorem radialRescale_ballRadius_mem_modelOpens (c : BlowupChart (n := n) M p₀)
     (p : BlowupModel n) : radialRescale c.ballRadius p ∈ Blowup.modelOpens c := by
-  have hp := mem_openNbhd_iff.1 (radialRescale_mem_openNbhd c.ballRadius_pos p)
-  rw [TauCeti.norm_complexToRealEuclidean, ← mem_ball_zero_iff] at hp
+  have hp := mem_openNbhd_iff_mem_ball.1 (radialRescale_mem_openNbhd c.ballRadius_pos p)
   have h := c.closedBall_ballRadius_subset (ball_subset_closedBall hp)
   rw [BlowupChart.euclideanChart_def, remodelChart_target] at h
   exact (Blowup.mem_modelOpens c).2 h
@@ -972,7 +968,7 @@ private theorem contMDiffOn_radialRescaleInv :
   have hopen : IsOpen ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm ⁻¹' ball 0 ε) :=
     isOpen_ball.preimage (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm.continuous
   intro p hp
-  rw [mem_openNbhd_iff, TauCeti.norm_complexToRealEuclidean, ← mem_ball_zero_iff] at hp
+  rw [mem_openNbhd_iff_mem_ball] at hp
   refine (contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp.2 ⟨?_, ?_⟩).contMDiffWithinAt
   · simpa only [radialRescaleInv, pr_mk] using ((contMDiff_pr ∞).restrictScalars' ℝ).contMDiffAt
   · exact (((hc.contDiffAt (hopen.mem_nhds hp)).contMDiffAt).comp p

@@ -20,6 +20,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
@@ -61,7 +62,9 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   `ℙ ℂ E × E`), the second open, and both contain the exceptional divisor for `0 < ε`. The divisor
   is their intersection (`biInter_gt_closedNbhd`), and since `L(1)` is compact every
   neighbourhood of it contains some `L(ε)` (`exists_closedNbhd_subset`, `exists_openNbhd_subset`,
-  by `TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet`).
+  by `TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet`). In the Hermitian space
+  `EuclideanSpace ℂ (Fin (n + 1))`, `openNbhd n ε` is the preimage of the open ball of radius `ε`
+  (`mem_openNbhd_iff_mem_ball`).
 * `SymplecticGeometry.BlowupModel.openNbhdOpens n ε`: `openNbhd n ε`, as an open subset of the
   model, and `SymplecticGeometry.BlowupModel.openNbhdComplDivisor n ε`: `openNbhd n ε ∖ Z`, as an
   open subset of the model, the meet of the former and `offDivisorOpens n`.
@@ -320,6 +323,13 @@ theorem mem_closedNbhd_iff {ε : ℝ} {p : BlowupModel n} :
 theorem mem_openNbhd_iff {ε : ℝ} {p : BlowupModel n} :
     p ∈ openNbhd n ε ↔ ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ < ε :=
   Iff.rfl
+
+/-- A point lies in `openNbhd n ε` exactly when its blowdown, read in the Hermitian space
+`EuclideanSpace ℂ (Fin (n + 1))`, lies in the open ball of radius `ε` about `0`. -/
+theorem mem_openNbhd_iff_mem_ball {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhd n ε ↔
+      (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown ∈ Metric.ball 0 ε := by
+  rw [mem_openNbhd_iff, norm_complexToRealEuclidean, mem_ball_zero_iff]
 
 theorem openNbhd_subset_closedNbhd (ε : ℝ) : openNbhd n ε ⊆ closedNbhd n ε :=
   fun _ hp ↦ (mem_closedNbhd_iff).2 (mem_openNbhd_iff.1 hp).le
