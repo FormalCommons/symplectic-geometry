@@ -23,8 +23,11 @@ the fact that a smooth map pulls closed forms back to closed forms,
 `TauCeti.SmoothForm.mpullback_sub_mem_exactForms_of_homotopy`: smoothly homotopic maps pull a
 closed form back to forms that differ by an exact form, and its case for the slices of a smooth
 isotopy, `TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms`, through the
-homotopy `(x, s) ↦ h (s t, x)`. Finally, a diffeomorphism in the stabilizer of a closed form
-fixes its class, `TauCeti.deRhamCohomology.map_mk_of_mem_diffeomorphStabilizer`.
+homotopy `(x, s) ↦ h (s t, x)`. Finally, the class-level form of an identity of pull-backs,
+`TauCeti.deRhamCohomology.map_mk_eq_mk_of_mpullback_eq`: a smooth map that pulls a closed form
+`α` back to a closed form `β` sends the class of `α` to that of `β`; in particular, a
+diffeomorphism in the stabilizer of a closed form fixes its class,
+`TauCeti.deRhamCohomology.map_mk_of_mem_diffeomorphStabilizer`.
 
 ## References
 
@@ -90,17 +93,28 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I 2 M]
 
+/-- **Classes of pull-backs.** If a smooth map `f : M → M'` pulls a closed form `α` on `M'`
+back to a closed form `β` on `M`, the map that `f` induces on de Rham cohomology sends the class
+of `α` to that of `β`. -/
+theorem map_mk_eq_mk_of_mpullback_eq {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} {M' : Type*} [TopologicalSpace M']
+    [ChartedSpace H' M'] [IsManifold I' 2 M'] {f : M → M'} (hf : ContMDiff I I' ∞ f) {k : ℕ}
+    {α : closedForms I' M' k} {β : closedForms I M k}
+    (h : SmoothForm.mpullback f hf α.val = β.val) :
+    map f hf k (mk I' k α) = mk I k β := by
+  rw [map_mk]
+  congr 1
+  ext1
+  rw [closedForms.coe_mpullback]
+  exact h
+
 /-- **A diffeomorphism that preserves a closed form fixes its class.** If `φ` lies in the
 stabilizer of a closed form `σ`, the map that `φ` induces on de Rham cohomology sends the class
 of `σ` to itself. -/
 theorem map_mk_of_mem_diffeomorphStabilizer {k : ℕ} {σ : closedForms I M k}
     {φ : M ≃ₘ⟮I, I⟯ M} (hφ : φ ∈ SmoothForm.diffeomorphStabilizer σ.val) :
-    map φ φ.contMDiff k (mk I k σ) = mk I k σ := by
-  rw [map_mk]
-  congr 1
-  ext1
-  rw [closedForms.coe_mpullback]
-  exact SmoothForm.mem_diffeomorphStabilizer.1 hφ
+    map φ φ.contMDiff k (mk I k σ) = mk I k σ :=
+  map_mk_eq_mk_of_mpullback_eq _ (SmoothForm.mem_diffeomorphStabilizer.1 hφ)
 
 end TauCeti.deRhamCohomology
 
