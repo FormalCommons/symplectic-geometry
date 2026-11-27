@@ -17,8 +17,8 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 
 For positive periods `p`, the standard symplectic form `ω_T = dt_inl ∧ dt_inr` of the two-torus
 `T = ∀ i : Unit ⊕ Unit, AddCircle (p i)` (`TauCeti.torusSymplecticForm p`) has area
-`p inl * p inr` for the orientation on which it is positive
-(`TauCeti.integralTopForm_torusSymplecticForm`).
+`p inl * p inr` for the orientation on which it is positive, the standard orientation
+`TauCeti.torusOrientation p` (`TauCeti.integralTopForm_torusSymplecticForm`).
 
 The map `(a, b) ↦ (inl ↦ a, inr ↦ b)` from `AddCircle (p inl) × AddCircle (p inr)` onto `T` is a
 homeomorphism (`TauCeti.addCircleProdHomeomorphTorus`), built from Mathlib's
@@ -36,8 +36,11 @@ orientation, and the change of variables formula
 * `TauCeti.addCircleProdHomeomorphTorus`: the homeomorphism from
   `AddCircle (p inl) × AddCircle (p inr)` onto the two-torus.
 * `TauCeti.contMDiff_addCircleProdHomeomorphTorus`: it is smooth.
+* `TauCeti.torusOrientation p`: the orientation of the two-torus on which
+  `torusSymplecticForm p` is positive, and
+  `TauCeti.orientation_eq_orientationAt_torusOrientation_iff`: its positive tangent bases.
 * `TauCeti.integralTopForm_torusSymplecticForm`: the integral of `torusSymplecticForm p` over the
-  two-torus, for the orientation of that form, is `p inl * p inr`.
+  two-torus, for `torusOrientation p`, is `p inl * p inr`.
 -/
 
 public section
@@ -88,14 +91,36 @@ theorem contMDiff_addCircleProdHomeomorphTorus :
     · simpa only [addCircleProdHomeomorphTorus_apply_inl] using contMDiff_fst
     · simpa only [addCircleProdHomeomorphTorus_apply_inr] using contMDiff_snd
 
+/-- The **standard orientation** of the two-torus `∀ i : Unit ⊕ Unit, AddCircle (p i)`: the
+orientation on which the nowhere-vanishing standard symplectic form `torusSymplecticForm p` is
+positive. -/
+def torusOrientation :
+    Manifold.Orientation (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) (∀ i, AddCircle (p i))
+      (Fin 2) :=
+  Manifold.Orientation.ofTopForm (by simp) (torusSymplecticForm p).val
+    ((torusSymplecticForm p).isSmoothForm.of_le zero_le)
+    (isSymplectic_torusSymplecticForm p).isNondegenerate.apply_ne_zero
+
+theorem torusOrientation_def :
+    torusOrientation p = Manifold.Orientation.ofTopForm (by simp) (torusSymplecticForm p).val
+      ((torusSymplecticForm p).isSmoothForm.of_le zero_le)
+      (isSymplectic_torusSymplecticForm p).isNondegenerate.apply_ne_zero :=
+  (rfl)
+
+/-- A tangent basis of the two-torus is positive for `torusOrientation p` exactly when the
+standard symplectic form `torusSymplecticForm p` is positive on it. -/
+theorem orientation_eq_orientationAt_torusOrientation_iff {x : ∀ i, AddCircle (p i)}
+    (b : Module.Basis (Fin 2) ℝ
+      (TangentSpace (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) x)) :
+    b.orientation = (torusOrientation p).orientationAt x ↔ 0 < (torusSymplecticForm p).val x b :=
+  Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff _ _ _ b
+
 /-- **The area of the standard symplectic two-torus.** The integral of the standard symplectic
 form `torusSymplecticForm p` over the torus `∀ i : Unit ⊕ Unit, AddCircle (p i)`, for the
 orientation on which that form is positive, is the product `p inl * p inr` of the periods. -/
 theorem integralTopForm_torusSymplecticForm :
-    integralTopForm (Manifold.Orientation.ofTopForm (by simp) (torusSymplecticForm p).val
-      ((torusSymplecticForm p).isSmoothForm.of_le zero_le)
-      (isSymplectic_torusSymplecticForm p).isNondegenerate.apply_ne_zero)
-      (torusSymplecticForm p).val = p (.inl ()) * p (.inr ()) := by
+    integralTopForm (torusOrientation p) (torusSymplecticForm p).val =
+      p (.inl ()) * p (.inr ()) := by
   set a := p (.inl ())
   set b := p (.inr ())
   set Φ := addCircleProdHomeomorphTorus p
@@ -122,7 +147,7 @@ theorem integralTopForm_torusSymplecticForm :
     (fun x ↦ ?_) (by rw [Φ.surjective.range_eq]; exact subset_univ _)]
   · rw [← SmoothForm.coe_mpullback _ hΦ, hpull]
     exact AddCircle.integralTopForm_wedge_timeForm a b
-  · rw [AddCircle.orientation_prod_orientation_eq_ofTopForm]
+  · rw [AddCircle.orientation_prod_orientation_eq_ofTopForm, torusOrientation_def]
     refine Manifold.Orientation.isOrientationPreservingAt_ofTopForm_of_mpullback_eq_smul
       _ _ _ _ _ _ one_pos ?_
     rw [one_smul, ← SmoothForm.coe_mpullback _ hΦ, hpull]
