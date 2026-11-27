@@ -565,7 +565,7 @@ def transDiffeomorph (Φ : SymplecticFraming hι hP) (ψ : M ≃ₘ⟮I, I'⟯ M
       (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _ ▸
         (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ).2 hι)
       hP' :=
-  Φ.transLocalDiffeomorph (ψ.isLocalDiffeomorph) hψ
+  Φ.transLocalDiffeomorph ψ.isLocalDiffeomorph hψ
     (SmoothEmbedding.coe_transDiffeomorphOfBoundaryless ι ψ _).symm
 
 /-- The framing `Φ.transDiffeomorph ψ hσ' hψ hP'` sends a normal vector `v` of the zero slice at
