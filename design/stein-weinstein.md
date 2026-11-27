@@ -608,8 +608,7 @@ containing `ι '' closedBall 0 1`:
     $\Lambda^{\mathbb C}_{xy}$, a Cauchy–Schwarz bound for a combination
     of `σ` and `τ` (proportional on a complex tangency) bounds `|σ|²` by `|v|²`.
   - `isConvexShapeAt_of_iteratedDeriv_two_nonpos` (14d2; Corollary
-    4.11 (a)): `0 < r`, `0 < χ r`, `0 < deriv χ r`,
-    `iteratedDeriv 2 χ r ≤ 0` and
+    4.11 (a)): `0 < r`, `0 < χ r`, `iteratedDeriv 2 χ r ≤ 0` and
     `(1 + deriv χ r ^ 2) / χ r < iteratedDeriv 2 χ r + deriv χ r ^ 3 / r`
     give `IsConvexShapeAt χ r`.
   - `IsConvexShapeAt.add_const` (14d2; Lemma 4.13 (a)), for `0 ≤ c`, and

@@ -12,7 +12,6 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 
 /-!

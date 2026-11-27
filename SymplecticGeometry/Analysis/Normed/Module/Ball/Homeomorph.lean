@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Normed.Module.Ball.Homeomorph
 public import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
 public import Mathlib.Topology.Order.IntermediateValue
 public import Mathlib.Topology.Order.MonotoneConvergence
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 
 /-!
 # The map `univBall` onto a ball, and on the real line
@@ -50,8 +51,8 @@ variable {E : Type*} [SeminormedAddCommGroup E] [NormedSpace ℝ E]
 /-- For `0 < r`, Mathlib's map `univBall c r : E → P` has as range the ball `ball c r`. -/
 theorem range_univBall (c : P) {r : ℝ} (hr : 0 < r) :
     range (univBall (E := E) c r) = ball c r := by
-  rw [← univBall_target c hr, ← image_univ, ← univBall_source c r,
-    (univBall c r).image_source_eq_target]
+  rw [← univBall_target c hr, ← coe_toPartialEquiv,
+    (univBall c r).toPartialEquiv.range_eq_target_of_source_eq_univ (univBall_source c r)]
 
 /-- For `r ≤ 0`, Mathlib's map `univBall c r : E → P` is the translation by `c`. -/
 theorem univBall_apply_of_nonpos (c : P) {r : ℝ} (hr : r ≤ 0) (x : E) :

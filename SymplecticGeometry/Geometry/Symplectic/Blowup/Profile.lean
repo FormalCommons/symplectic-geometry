@@ -673,7 +673,7 @@ divisor lies in `openNbhd n ε`: on `openNbhd n ε` the form is `ω̃_l`, which 
 increasing (`isKahler_mpullback_radialMap`), pulled back along the holomorphic map `π`. -/
 theorem isKahler_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
     (profileForm n l ε).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) := by
-  set V : Opens (BlowupModel n) := ⟨openNbhd n ε, isOpen_openNbhd ε⟩
+  set V : Opens (BlowupModel n) := openNbhdOpens n ε
   set U : Opens (BlowupModel n) := offDivisorOpens n
   -- On `V`, the form restricts as `ω̃_l` does.
   have hV : SmoothForm.mpullback (Subtype.val : V → BlowupModel n) contMDiff_subtypeVal
@@ -682,7 +682,8 @@ theorem isKahler_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
         (blowupForm n l) :=
     SmoothBundleForm.ext fun p v ↦ by
       rw [SmoothForm.mpullback_apply, SmoothForm.mpullback_apply,
-        profileForm_eq_blowupForm_on n p (openNbhd_subset_closedNbhd ε p.property)]
+        profileForm_eq_blowupForm_on n p
+          (openNbhd_subset_closedNbhd ε (mem_openNbhdOpens_iff.1 p.property))]
   -- On `U`, it is the pull-back along `π` of a Kähler form on `E ∖ 0`.
   have hU : SmoothTwoForm.Compatible
       (SmoothForm.mpullback (Subtype.val : U → BlowupModel n) contMDiff_subtypeVal
@@ -697,7 +698,7 @@ theorem isKahler_profileForm {l ε : ℝ} (hl : 0 < l) (hε : 0 < ε) :
     SmoothTwoForm.compatible_of_compatible_restrictOpen (fun b : Bool ↦ bif b then V else U)
       (fun p ↦ ?_) (Bool.rec ?_ ?_)⟩
   · by_cases hp : p ∈ openNbhd n ε
-    · exact ⟨true, hp⟩
+    · exact ⟨true, mem_openNbhdOpens_iff.2 hp⟩
     · exact ⟨false, mem_offDivisorOpens.2 fun h ↦
         hp (exceptionalDivisor_subset_openNbhd hε h)⟩
   · dsimp only [Bool.cond_false]
