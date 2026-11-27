@@ -1144,7 +1144,7 @@ for this flow and above `a₀`, and its sphere below `a`, such that every point
 of that unstable set at level at least `a` is in the image of the cube.
 The theorem takes the field in a more general form: any complete smooth `X`
 with `dg(X) ≤ 0`, equal to the linear field on the source of a Morse chart
-at `p`, with `dg(X) < 0` wherever `a₀ ≤ g < g p` and `g⁻¹[a₀, b]` compact
+at `p`, with `dg(X) < 0` wherever `a₀ < g < g p` and `g⁻¹[a₀, b]` compact
 for `b < g p`. A compactly supported field as above that does not vanish on
 `g⁻¹[a₀, g p)` satisfies these hypotheses.
 

@@ -26,7 +26,7 @@ with cube `closedBall 0 1 ×ˢ {0}` and boundary sphere `sphere 0 1 ×ˢ {0}`.
 ## Main results
 
 * `TauCeti.MorseChart.exists_cubeChart_unstableSet`: given levels `a₀ < a < g p` such that
-  `dg(X) < 0` at every point `y` with `a₀ ≤ g y < g p`, and such that the bands `g⁻¹[a₀, b]`
+  `dg(X) < 0` at every point `y` with `a₀ < g y < g p`, and such that the bands `g⁻¹[a₀, b]`
   with `b < g p` are compact, there is a smooth embedding `χ : D m → M` with open range and
   `χ 0 = p` which sends the cube into the unstable set of `p` above the level `a₀`, and its
   boundary sphere below the level `a`, and whose image of the cube contains every point of the
@@ -83,7 +83,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- **The cube chart of the unstable set at a critical point.** Let `X` be a complete smooth
 field with flow `Φ`, `g` a smooth function with `dg(X) ≤ 0`, and `φ` a Morse chart of `g` at `p`
 on whose source `X` is the linear field of the chart. Let `a₀ < a < g p`, let
-`dg(X) < 0` at every point `y` with `a₀ ≤ g y < g p`, and let `g⁻¹[a₀, b]` be compact for every
+`dg(X) < 0` at every point `y` with `a₀ < g y < g p`, and let `g⁻¹[a₀, b]` be compact for every
 `b < g p`. Write `m` for the Morse index of `g` at `p`.
 
 Then there is a smooth embedding `χ : (Fin m → ℝ) × (Fin (dim E - m) → ℝ) → M` (sup norms) with
@@ -96,7 +96,7 @@ theorem exists_cubeChart_unstableSet
     (hg : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ g) (hgX : ∀ y, mvfderiv 𝓘(ℝ, E) g y (X y) ≤ 0)
     {a₀ a : ℝ} (ha₀ : a₀ < a) (ha : a < g p)
     (hcompact : ∀ b < g p, IsCompact (g ⁻¹' Icc a₀ b))
-    (hneg : ∀ y, a₀ ≤ g y → g y < g p → mvfderiv 𝓘(ℝ, E) g y (X y) < 0) :
+    (hneg : ∀ y, a₀ < g y → g y < g p → mvfderiv 𝓘(ℝ, E) g y (X y) < 0) :
     ∃ χ : (Fin (manifoldMorseIndex 𝓘(ℝ, E) g p) → ℝ) ×
         (Fin (Module.finrank ℝ E - manifoldMorseIndex 𝓘(ℝ, E) g p) → ℝ) → M,
       IsSmoothEmbedding 𝓘(ℝ, (Fin (manifoldMorseIndex 𝓘(ℝ, E) g p) → ℝ) ×
@@ -137,7 +137,7 @@ theorem exists_cubeChart_unstableSet
       (ha'.trans ha) (ha'.trans hab).le hb
       ((hcompact b hbp).of_isClosed_subset
         (isClosed_Icc.preimage hg.continuous) fun y hy ↦ ⟨ha₀'.le.trans hy.1, hy.2⟩)
-      fun y hy hy' ↦ hneg y (ha₀'.le.trans hy) (hy'.trans_lt hbp)
+      fun y hy hy' ↦ hneg y (ha₀'.trans_le hy) (hy'.trans_lt hbp)
   set F := fun c : EuclideanSpace ℝ {i // φ.weight i < 0} ↦
     Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) with hF
   -- `F` is injective on the closed ball, and its thickening is an open embedding near it.
@@ -201,10 +201,7 @@ theorem exists_cubeChart_unstableSet
     exact ⟨c, hc, by simp [hF]⟩
   refine ⟨χ, hχ, hχo, ?_, fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx ↦ ?_⟩
   · rw [hχ0]
-    dsimp only
-    rw [Prod.fst_zero, Prod.snd_zero, ZeroMemClass.coe_zero, add_zero, WithLp.ofLp_zero, map_zero,
-      φ.toChart_symm_zero]
-    exact φ.globalFlow_self hX hXc hXφ _
+    simpa using φ.globalFlow_self hX hXc hXφ _
   · obtain ⟨c, hc, hcx⟩ := hΨF (hχc hx)
     rw [← hcx]
     exact ⟨φ.mapsTo_globalFlow_closedBall_unstableSet hX hXc hXφ hρ θ (ball_subset_closedBall hc),
@@ -217,11 +214,8 @@ theorem exists_cubeChart_unstableSet
   · obtain ⟨c, hc, hcx⟩ := hreach x hx.1 (ha'.trans_le hx.2)
     refine hχK ⟨⟨(c, 0), hBV ⟨ball_subset_closedBall hc, rfl⟩⟩,
       ⟨⟨ball_subset_closedBall hc, ?_⟩, rfl⟩, ?_⟩
-    · rw [mem_ofPred_eq, hcx]
-      exact hx.2
-    · dsimp only
-      rw [ZeroMemClass.coe_zero, add_zero]
-      exact hcx
+    · simpa [hcx] using hx.2
+    · simpa [hF, Φ] using hcx
 
 end MorseChart
 
