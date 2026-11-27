@@ -158,22 +158,20 @@ off `ψ '' W`, is `C^n`. -/
 theorem contMDiff_indicator_image_comp_symm {F : Type*} [NormedAddCommGroup F]
     [NormedSpace 𝕜 F] {χ : M → F} {C W : Set M} (hχ : ContMDiffOn I 𝓘(𝕜, F) n χ W)
     (hC : IsClosed (ψ '' C)) (hW : IsOpen W) (hCW : C ⊆ W) (hWs : W ⊆ ψ.source)
-    (hχ0 : ∀ z ∈ W, z ∉ C → χ z = 0) :
+    (hχ0 : W ∩ Function.support χ ⊆ C) :
     ContMDiff I' 𝓘(𝕜, F) n ((ψ '' W).indicator fun y ↦ χ (ψ.symm y)) := by
   have hWo : IsOpen (ψ '' W) := by
     simpa using ψ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWs)
-  refine ContMDiffOn.contMDiff_indicator_of_isClosed ?_ hWo hC (image_mono hCW)
-    fun _ ⟨hxW, hx⟩ ↦ by_contra fun hxC ↦ hx ?_
+  refine ContMDiffOn.contMDiff_indicator_of_isClosed ?_ hWo hC (image_mono hCW) ?_
   · refine hχ.comp (ψ.symm.contMDiffOn.mono ?_) ?_
     · rintro _ ⟨z, hz, rfl⟩
       exact ψ.map_source (hWs hz)
     · rintro _ ⟨z, hz, rfl⟩
       rw [mem_preimage, symm_toPartialEquiv, ψ.left_inv (hWs hz)]
       exact hz
-  · obtain ⟨z, hz, rfl⟩ := hxW
-    dsimp only
-    rw [symm_toPartialEquiv, ψ.left_inv (hWs hz)]
-    exact hχ0 z hz fun hzC ↦ hxC (mem_image_of_mem _ hzC)
+  · rintro _ ⟨⟨z, hz, rfl⟩, hx⟩
+    rw [Function.mem_support, symm_toPartialEquiv, ψ.left_inv (hWs hz)] at hx
+    exact mem_image_of_mem _ (hχ0 ⟨hz, hx⟩)
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function
 `χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is `C^n`. -/
@@ -183,7 +181,7 @@ theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGrou
     ContMDiff I' 𝓘(𝕜, F) n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
   have h := contMDiff_indicator_image_comp_symm hχc.contMDiffOn
     (ψ.isCompact_image_of_subset_source hK hχ).isClosed ψ.open_source hχ subset_rfl
-    fun _ _ hz ↦ image_eq_zero_of_notMem_tsupport hz
+    (inter_subset_right.trans (subset_tsupport χ))
   rwa [ψ.toPartialEquiv.image_source_eq_target] at h
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
