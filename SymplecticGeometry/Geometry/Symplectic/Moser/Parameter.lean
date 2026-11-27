@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
+import TauCeti.Geometry.Manifold.Diffeomorph.Family
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
@@ -32,12 +33,17 @@ The segments are run with the smooth step `Real.smoothTransition` as clock: the 
 these families need no cutoff. They are those of one family of two-forms over the points `(p, s)`
 of `P × ℝ` (`SymplecticGeometry.moserField`), hence jointly smooth in `(p, s, x)`, and so are
 their flows, by `TauCeti.contMDiff_timeDependentFlowOf_param`. The flows are complete because `N`
-is compact, `χ_p` is the time-one map and its inverse the flow from time `1` back to `0`. Moser's
-equation along the trajectories is
+is compact, and `χ_p` is the time-one map; `Diffeomorph.prodCongrRight` turns the jointly smooth
+family `χ` into a diffeomorphism of `P × N`. Moser's equation along the trajectories is
 `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff`
 (`Moser/Field.lean`).
 
-The argument adapts that of
+For each `p`, the construction follows Tau Ceti's
+`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_cutoff`
+(`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`): the `Real.smoothTransition` clock,
+the time-one map of the flow, and the points where the primitive vanishes fixed through
+`TauCeti.timeDependentFlowOf_eq_self_of_forall_eq_zero`. Here it is run with a parameter in `P`,
+and with no cutoff, since `N` is compact. The argument also adapts that of
 `TauCeti.SmoothTwoForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
 (`Moser/Family.lean`), with a parameter in a manifold instead of `[0, 1]` and no cutoff in space,
 and that of `TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq` (`Moser/Stability.lean`),
@@ -99,10 +105,9 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
     SmoothForm.mpullback (Prod.mk p) (contMDiff_const.prodMk contMDiff_id) σ
   set β' : P → SmoothForm I N ℝ 1 := fun p ↦
     SmoothForm.mpullback (Prod.mk p) (contMDiff_const.prodMk contMDiff_id) β
-  -- The clock `c` of the segments, and its derivative.
+  -- The clock `c` of the segments.
   set c : ℝ → ℝ := Real.smoothTransition
   have hc : ContDiff ℝ ∞ c := Real.smoothTransition.contDiff
-  have hc' : ContDiff ℝ ∞ (deriv c) := (contDiff_infty_iff_deriv.mp hc).2
   -- The forms `ω₀ + c(s) (σ_p - ω₀)` and `c'(s) β_p`, as families over the points `(p, s)`.
   obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp <| show IsSmoothFamily (IP.prod 𝓘(ℝ, ℝ))
       (fun q : P × ℝ ↦ ω₀ + c q.2 • (σ' q.1 - ω₀)) from
@@ -111,7 +116,7 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
   obtain ⟨B, hB⟩ := isSmoothFamily_def.mp <| show IsSmoothFamily (IP.prod 𝓘(ℝ, ℝ))
       (fun q : P × ℝ ↦ deriv c q.2 • β' q.1) from
     ((isSmoothFamily_mpullback_prodMk β).comp Prod.fst contMDiff_fst).fun_smul
-      (hc'.contMDiff.comp contMDiff_snd)
+      ((contDiff_infty_iff_deriv.mp hc).2.contMDiff.comp contMDiff_snd)
   -- All of these forms are nondegenerate, since `c` takes values in `[0, 1]`.
   have hinv (q : P × ℝ) (x : N) :
       (SmoothTwoForm.flat (SmoothForm.mpullback (Prod.mk q) (contMDiff_const.prodMk contMDiff_id)
@@ -127,8 +132,8 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
       (fun q : ℝ × N ↦ (⟨q.2, Y p q.1 q.2⟩ : TangentBundle I N)) :=
     hY.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd)
   have hcY (p : P) : IsCompleteVectorField (timeDependentSuspensionField (Y p)) :=
-    isCompleteVectorField_timeDependentSuspensionField ((hYp p).of_le (m := 1) (by simp))
-      isCompact_univ fun _ y hy ↦ absurd (mem_univ y) hy
+    isCompleteVectorField_timeDependentSuspensionField_of_compactSpace
+      ((hYp p).of_le (m := 1) (by simp))
   have hflow := contMDiff_timeDependentFlowOf_param le_top hY hcY
   have hflow' (s t : ℝ) : ContMDiff (IP.prod I) I ∞
       (fun q : P × N ↦ timeDependentFlowOf (Y q.1) s t q.2) :=
@@ -137,20 +142,14 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
   set χ : P → N ≃ₘ⟮I, I⟯ N := fun p ↦ timeDependentFlowDiffeomorph (hcY p) le_top (hYp p) 0 1
   have hχ (p : P) (x : N) : χ p x = timeDependentFlowOf (Y p) 0 1 x :=
     timeDependentFlowDiffeomorph_apply _ _ _ _ _ _
-  have hχs (p : P) (x : N) : (χ p).symm x = timeDependentFlowOf (Y p) 1 0 x :=
-    timeDependentFlowDiffeomorph_symm_apply _ _ _ _ _ _
   let Φ : (P × N) ≃ₘ⟮IP.prod I, IP.prod I⟯ (P × N) :=
-    { toFun := fun q ↦ (q.1, χ q.1 q.2)
-      invFun := fun q ↦ (q.1, (χ q.1).symm q.2)
-      left_inv := fun q ↦ by simp
-      right_inv := fun q ↦ by simp
-      contMDiff_toFun := contMDiff_fst.prodMk ((hflow' 0 1).congr fun q ↦ hχ q.1 q.2)
-      contMDiff_invFun := contMDiff_fst.prodMk ((hflow' 1 0).congr fun q ↦ hχs q.1 q.2) }
-  refine ⟨Φ, χ, fun _ ↦ rfl, fun p ↦ ?_, fun p x hx ↦ ?_⟩
+    Diffeomorph.prodCongrRight χ ((hflow' 0 1).congr fun q ↦ hχ q.1 q.2) (by simp)
+  refine ⟨Φ, χ, fun q ↦ Diffeomorph.prodCongrRight_apply _ _ _ .., fun p ↦ ?_,
+    fun p x hx ↦ ?_⟩
   · -- For this `p`, `Y p` is the Moser field of the family `ω₀ + c(s) (σ_p - ω₀)`, with the
     -- primitives `c'(s) β_p`.
     have hYp' : Y p = moserField (SmoothForm.lineMapFamily ω₀ (σ' p) hc)
-        (SmoothForm.lineMapFamily 0 (β' p) hc') fun _ ↦ 1 := by
+        (SmoothForm.lineMapFamily 0 (β' p) (contDiff_infty_iff_deriv.mp hc).2) fun _ ↦ 1 := by
       funext s y
       rw [moserField_def, SmoothForm.mpullback_prodMk_lineMapFamily, ← hΩ (p, s),
         SmoothForm.mpullback_prodMk_lineMapFamily, sub_zero, zero_add, ← hB (p, s)]
@@ -161,7 +160,7 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
     refine Subtype.ext (funext fun x ↦ ?_)
     rw [SmoothForm.coe_mpullback, funext (hχ p), hYp']
     refine mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff hω₀
-      (Subtype.ext (by rw [mextDerivₗ_apply, hβ p])) hc hc' Real.smoothTransition.zero
+      (Subtype.ext (by rw [mextDerivₗ_apply, hβ p])) hc Real.smoothTransition.zero
       Real.smoothTransition.one (hX.of_le (by simp)) hcp fun s _ ↦
         Filter.Eventually.of_forall fun z ↦ ⟨rfl, ?_⟩
     have h := hinv (p, s) z

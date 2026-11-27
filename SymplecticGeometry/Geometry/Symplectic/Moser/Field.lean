@@ -308,21 +308,24 @@ then the time-one map pulls `α` back to `ω₀` at `x`. -/
 theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff
     {ω₀ α : SmoothTwoForm I N} (hω₀ : ω₀.IsClosed) {γ : SmoothForm I N ℝ 1}
     (hγ : α - ω₀ = mextDerivₗ I 1 γ) {c : ℝ → ℝ} (hc : ContDiff ℝ ∞ c)
-    (hc' : ContDiff ℝ ∞ (deriv c)) (hc0 : c 0 = 0) (hc1 : c 1 = 1) {ρ : ℝ × N → ℝ}
+    (hc0 : c 0 = 0) (hc1 : c 1 = 1) {ρ : ℝ × N → ℝ}
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × N ↦
       (⟨p.2, moserField (SmoothForm.lineMapFamily ω₀ α hc)
-        (SmoothForm.lineMapFamily 0 γ hc') ρ p.1 p.2⟩ : TangentBundle I N)))
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ p.1 p.2⟩ :
+          TangentBundle I N)))
     (hcX : IsCompleteVectorField (timeDependentSuspensionField
-      (moserField (SmoothForm.lineMapFamily ω₀ α hc) (SmoothForm.lineMapFamily 0 γ hc') ρ)))
+      (moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ)))
     {x : N} (hx : ∀ s ∈ Icc (0 : ℝ) 1, ∀ᶠ z in 𝓝 (timeDependentFlowOf
-      (moserField (SmoothForm.lineMapFamily ω₀ α hc) (SmoothForm.lineMapFamily 0 γ hc') ρ)
-        0 s x),
+      (moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ) 0 s x),
       ρ (s, z) = 1 ∧ (SmoothTwoForm.flat (ω₀ + c s • (α - ω₀)) z).IsInvertible) :
     TauCeti.mpullback I I (timeDependentFlowOf
-      (moserField (SmoothForm.lineMapFamily ω₀ α hc) (SmoothForm.lineMapFamily 0 γ hc') ρ)
-        0 1) α.val x = ω₀.val x := by
+      (moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ) 0 1) α.val x =
+      ω₀.val x := by
   set Λ := SmoothForm.lineMapFamily ω₀ α hc
-  set Γ := SmoothForm.lineMapFamily 0 γ hc'
+  set Γ := SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2
   -- Moser's equation holds along the trajectory of `x` up to time `1`.
   have hrate (s : ℝ) (hs : s ∈ uIcc (0 : ℝ) 1) :
       (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s)
@@ -385,6 +388,6 @@ theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
       zero_add]
   rw [hX'] at hX hc hx ⊢
   exact mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff hω₀ hγ
-    contDiff_id hc' rfl rfl hX hc hx
+    contDiff_id rfl rfl hX hc hx
 
 end TauCeti.SmoothTwoForm
