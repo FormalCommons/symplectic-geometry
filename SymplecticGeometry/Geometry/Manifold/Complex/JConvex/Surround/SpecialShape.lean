@@ -38,7 +38,19 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
   `ℓ + b r + c r² / (2 ℓ)` for `c > 1`, and `ℓ + d r` for `r < ℓ d³`.
 
-All of them are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe's shape the two
+* The crossings of these three shapes on `(0, ∞)`. `√(ℓ² + a r²)` and `ℓ + d r` meet only at
+  `2 ℓ d / (a - d²)` (`SymplecticGeometry.sqrt_eq_linear_iff`), and `ℓ + b r + c r² / (2 ℓ)` and
+  `ℓ + d r` only at `2 ℓ (d - b) / c` (`SymplecticGeometry.quadratic_eq_linear_iff`), with the
+  order on either side given by `SymplecticGeometry.sqrt_lt_linear_iff`,
+  `SymplecticGeometry.linear_lt_sqrt_iff`, `SymplecticGeometry.quadratic_lt_linear_iff` and
+  `SymplecticGeometry.linear_lt_quadratic_iff`. If the quadratic shape with `b, c > 0` is below
+  `√(ℓ² + a r²)` somewhere, the two meet at exactly two points, with the quadratic shape below
+  between them and above outside (`SymplecticGeometry.exists_quadratic_lt_sqrt_iff`): there
+  `(ℓ + b r + c r² / (2 ℓ))² - ℓ² - a r²` is `r` times a cubic whose coefficients of `r²` and
+  `r³` are positive, and such a cubic is the product of `(r - r₁) (r - r₂)` with a factor that
+  is positive on `(0, ∞)`.
+
+The shapes are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe's shape the two
 inequalities read `r √L < χ` and `2 r √L³ < χ`, with `L = log (r / δ)`; the second follows from
 `4 K δ √(log K)³ ≤ 1`, and the first also uses the lower bound `1 + d δ` of `χ`. That bound
 amounts to `∫ u in δ..K δ, 1 / √(log (u / δ)) ≤ d (K - 1) δ`, which is proved by comparing
@@ -48,7 +60,7 @@ where the integrand equals `d`, and integrating the latter exactly.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §4.5: Lemma 4.15, Remark 4.16 and Lemma 4.17 (a), (b), (e).
+  §4.5: Lemma 4.15, Remark 4.16, Lemma 4.17 (a), (b), (e) and Lemma 4.18.
 -/
 
 public section
@@ -495,6 +507,159 @@ theorem isConvexShapeAt_linear {ℓ d r : ℝ} (hℓ : 0 < ℓ) (hd : 0 < d) (hr
       nlinarith [mul_pos hd hr₀]
   · rw [h₁, h₂, zero_add, div_lt_div_iff₀ hχ hr₀]
     nlinarith [pow_pos hd 4]
+
+/-! ### Crossings of the special shapes
+
+Where the shapes `√(ℓ² + a r²)`, `ℓ + b r + c r² / (2 ℓ)` and `ℓ + d r` meet on `(0, ∞)`, and
+which one is above on each side. Each comparison is reduced to one of the squares, or of the
+differences, which are polynomials in `r`. -/
+
+/-- **The square-root shape below the linear one.** For `0 ≤ ℓ`, `0 ≤ d` and `d² < a`, at
+`r > 0`, `√(ℓ² + a r²) < ℓ + d r` exactly when `r < 2 ℓ d / (a - d²)`. -/
+theorem sqrt_lt_linear_iff {ℓ a d r : ℝ} (hℓ : 0 ≤ ℓ) (hd : 0 ≤ d) (hda : d ^ 2 < a)
+    (hr : 0 < r) : √(ℓ ^ 2 + a * r ^ 2) < ℓ + d * r ↔ r < 2 * ℓ * d / (a - d ^ 2) := by
+  have ha : 0 < a := (sq_nonneg d).trans_lt hda
+  rw [sqrt_lt (by positivity) (by positivity), lt_div_iff₀ (sub_pos.2 hda)]
+  constructor <;> intro h <;> nlinarith
+
+/-- **The linear shape below the square-root one.** For `0 ≤ ℓ`, `0 ≤ d` and `d² < a`, at
+`r > 0`, `ℓ + d r < √(ℓ² + a r²)` exactly when `2 ℓ d / (a - d²) < r`. -/
+theorem linear_lt_sqrt_iff {ℓ a d r : ℝ} (hℓ : 0 ≤ ℓ) (hd : 0 ≤ d) (hda : d ^ 2 < a)
+    (hr : 0 < r) : ℓ + d * r < √(ℓ ^ 2 + a * r ^ 2) ↔ 2 * ℓ * d / (a - d ^ 2) < r := by
+  rw [lt_sqrt (by positivity), div_lt_iff₀ (sub_pos.2 hda)]
+  constructor <;> intro h <;> nlinarith
+
+/-- **The crossing of the square-root and linear shapes** (Cieliebak–Eliashberg, Lemma 4.18).
+For `0 ≤ ℓ`, `0 ≤ d` and `d² < a`, the only `r > 0` where `√(ℓ² + a r²) = ℓ + d r` is
+`r = 2 ℓ d / (a - d²)`. -/
+theorem sqrt_eq_linear_iff {ℓ a d r : ℝ} (hℓ : 0 ≤ ℓ) (hd : 0 ≤ d) (hda : d ^ 2 < a)
+    (hr : 0 < r) : √(ℓ ^ 2 + a * r ^ 2) = ℓ + d * r ↔ r = 2 * ℓ * d / (a - d ^ 2) := by
+  rw [← not_iff_not, ← ne_eq, ← ne_eq, ne_iff_lt_or_gt, ne_iff_lt_or_gt,
+    sqrt_lt_linear_iff hℓ hd hda hr, linear_lt_sqrt_iff hℓ hd hda hr]
+
+/-- **The quadratic shape below the linear one.** For `0 < ℓ` and `0 < c`, at `r > 0`,
+`ℓ + b r + c r² / (2 ℓ) < ℓ + d r` exactly when `r < 2 ℓ (d - b) / c`. -/
+theorem quadratic_lt_linear_iff {ℓ b c d r : ℝ} (hℓ : 0 < ℓ) (hc : 0 < c) (hr : 0 < r) :
+    ℓ + b * r + c * r ^ 2 / (2 * ℓ) < ℓ + d * r ↔ r < 2 * ℓ * (d - b) / c := by
+  rw [lt_div_iff₀ hc, ← sub_pos, ← sub_pos (b := r * c)]
+  have : ℓ + d * r - (ℓ + b * r + c * r ^ 2 / (2 * ℓ)) =
+      r / (2 * ℓ) * (2 * ℓ * (d - b) - r * c) := by
+    field_simp
+    ring
+  rw [this]
+  exact mul_pos_iff_of_pos_left (by positivity)
+
+/-- **The linear shape below the quadratic one.** For `0 < ℓ` and `0 < c`, at `r > 0`,
+`ℓ + d r < ℓ + b r + c r² / (2 ℓ)` exactly when `2 ℓ (d - b) / c < r`. -/
+theorem linear_lt_quadratic_iff {ℓ b c d r : ℝ} (hℓ : 0 < ℓ) (hc : 0 < c) (hr : 0 < r) :
+    ℓ + d * r < ℓ + b * r + c * r ^ 2 / (2 * ℓ) ↔ 2 * ℓ * (d - b) / c < r := by
+  rw [div_lt_iff₀ hc, ← sub_pos, ← sub_pos (a := r * c)]
+  have : ℓ + b * r + c * r ^ 2 / (2 * ℓ) - (ℓ + d * r) =
+      r / (2 * ℓ) * (r * c - 2 * ℓ * (d - b)) := by
+    field_simp
+    ring
+  rw [this]
+  exact mul_pos_iff_of_pos_left (by positivity)
+
+/-- **The crossing of the quadratic and linear shapes** (Cieliebak–Eliashberg, Lemma 4.18).
+For `0 < ℓ` and `0 < c`, the only `r > 0` where `ℓ + b r + c r² / (2 ℓ) = ℓ + d r` is
+`r = 2 ℓ (d - b) / c`, which is positive when `b < d`. -/
+theorem quadratic_eq_linear_iff {ℓ b c d r : ℝ} (hℓ : 0 < ℓ) (hc : 0 < c) (hr : 0 < r) :
+    ℓ + b * r + c * r ^ 2 / (2 * ℓ) = ℓ + d * r ↔ r = 2 * ℓ * (d - b) / c := by
+  rw [← not_iff_not, ← ne_eq, ← ne_eq, ne_iff_lt_or_gt, ne_iff_lt_or_gt,
+    quadratic_lt_linear_iff hℓ hc hr, linear_lt_quadratic_iff hℓ hc hr]
+
+/-- **The crossings of the quadratic and square-root shapes** (Cieliebak–Eliashberg,
+Lemma 4.18). Let `0 < ℓ`, `0 < b` and `0 < c`, and suppose that the quadratic shape
+`ℓ + b r + c r² / (2 ℓ)` is below `√(ℓ² + a r²)` at some `r₀ > 0`. Then on `(0, ∞)` the two
+meet at exactly two points `r₁ ∈ (0, r₀)` and `r₂ > r₀`: the quadratic shape is below the other
+on `(r₁, r₂)` and above it on `(0, r₁)` and on `(r₂, ∞)`. -/
+theorem exists_quadratic_lt_sqrt_iff {ℓ a b c r₀ : ℝ} (hℓ : 0 < ℓ) (hb : 0 < b) (hc : 0 < c)
+    (hr₀ : 0 < r₀) (h : ℓ + b * r₀ + c * r₀ ^ 2 / (2 * ℓ) < √(ℓ ^ 2 + a * r₀ ^ 2)) :
+    ∃ r₁ ∈ Ioo 0 r₀, ∃ r₂ ∈ Ioi r₀, ∀ r, 0 < r →
+      (ℓ + b * r + c * r ^ 2 / (2 * ℓ) < √(ℓ ^ 2 + a * r ^ 2) ↔ r ∈ Ioo r₁ r₂) ∧
+      (√(ℓ ^ 2 + a * r ^ 2) < ℓ + b * r + c * r ^ 2 / (2 * ℓ) ↔ r < r₁ ∨ r₂ < r) ∧
+      (ℓ + b * r + c * r ^ 2 / (2 * ℓ) = √(ℓ ^ 2 + a * r ^ 2) ↔ r = r₁ ∨ r = r₂) := by
+  -- For `r > 0`, the square of the quadratic minus `ℓ² + a r²` is `r p(r)`, `p` a cubic.
+  set γ := b * c / ℓ
+  set δ := c ^ 2 / (4 * ℓ ^ 2)
+  set p : ℝ → ℝ := fun r ↦ 2 * ℓ * b + (b ^ 2 + c - a) * r + γ * r ^ 2 + δ * r ^ 3 with hp
+  have hγ : 0 < γ := by positivity
+  have hδ : 0 < δ := by positivity
+  have hsq : ∀ r, (ℓ + b * r + c * r ^ 2 / (2 * ℓ)) ^ 2 - (ℓ ^ 2 + a * r ^ 2) = r * p r := by
+    intro r
+    simp only [hp, γ, δ]
+    field_simp
+    ring
+  have hlt : ∀ r, 0 < r → (ℓ + b * r + c * r ^ 2 / (2 * ℓ) < √(ℓ ^ 2 + a * r ^ 2) ↔ p r < 0) :=
+    fun r hr ↦ by
+      rw [lt_sqrt (by positivity), ← sub_neg, hsq]
+      exact ⟨fun h ↦ by nlinarith, fun h ↦ by nlinarith⟩
+  have hgt : ∀ r, 0 < r → (√(ℓ ^ 2 + a * r ^ 2) < ℓ + b * r + c * r ^ 2 / (2 * ℓ) ↔ 0 < p r) :=
+    fun r hr ↦ by
+      rw [sqrt_lt' (by positivity), ← sub_pos, hsq, mul_pos_iff_of_pos_left hr]
+  -- `p` is positive at `0` and at a large `R`, and negative at `r₀`, so it has a zero in
+  -- `(0, r₀)` and one in `(r₀, R)`.
+  have hcont : Continuous p := by fun_prop
+  have hp₀ : 0 < p 0 := by
+    have : p 0 = 2 * ℓ * b := by simp [hp]
+    rw [this]
+    positivity
+  have hpr₀ : p r₀ < 0 := (hlt r₀ hr₀).1 h
+  set R := max (r₀ + 1) ((|b ^ 2 + c - a| + 1) / δ + 1)
+  have hR₁ : 1 ≤ R := le_max_of_le_right (by simp only [le_add_iff_nonneg_left]; positivity)
+  have hr₀R : r₀ < R := (lt_add_one r₀).trans_le (le_max_left _ _)
+  have hpR : 0 < p R := by
+    have hRM : |b ^ 2 + c - a| + 1 ≤ δ * R := by
+      rw [← div_le_iff₀' hδ]
+      linarith [le_max_right (r₀ + 1) ((|b ^ 2 + c - a| + 1) / δ + 1)]
+    have : δ * R ≤ δ * R ^ 2 := mul_le_mul_of_nonneg_left (by nlinarith) hδ.le
+    have := neg_abs_le (b ^ 2 + c - a)
+    simp only [hp]
+    nlinarith [mul_le_mul_of_nonneg_left this (by linarith : (0 : ℝ) ≤ R)]
+  obtain ⟨r₁, hr₁, hpr₁⟩ := intermediate_value_Ioo' hr₀.le hcont.continuousOn ⟨hpr₀, hp₀⟩
+  obtain ⟨r₂, hr₂, hpr₂⟩ := intermediate_value_Ioo hr₀R.le hcont.continuousOn ⟨hpr₀, hpR⟩
+  have hr₁₂ : r₁ < r₂ := hr₁.2.trans hr₂.1
+  -- `p` factors through its two zeros, with a third factor that is positive on `(0, ∞)`.
+  have hfac : ∀ r, p r = (r - r₁) * (r - r₂) * (γ + δ * (r + r₁ + r₂)) := by
+    have hq : (b ^ 2 + c - a) + γ * (r₂ + r₁) + δ * (r₂ ^ 2 + r₂ * r₁ + r₁ ^ 2) = 0 := by
+      refine (mul_eq_zero.1 ?_).resolve_left (sub_ne_zero.2 hr₁₂.ne')
+      simp only [hp] at hpr₁ hpr₂
+      linear_combination hpr₂ - hpr₁
+    intro r
+    simp only [hp] at hpr₁ ⊢
+    linear_combination hpr₁ + (r - r₁) * hq
+  refine ⟨r₁, hr₁, r₂, hr₂.1, fun r hr ↦ ?_⟩
+  have hpos : 0 < γ + δ * (r + r₁ + r₂) := by
+    have := mul_pos hδ (by linarith [hr₁.1, hr₂.1] : 0 < r + r₁ + r₂)
+    linarith
+  have h₁ : ℓ + b * r + c * r ^ 2 / (2 * ℓ) < √(ℓ ^ 2 + a * r ^ 2) ↔ r ∈ Ioo r₁ r₂ := by
+    rw [hlt r hr, hfac]
+    constructor
+    · intro h
+      have h' : (r - r₁) * (r - r₂) < 0 := by nlinarith
+      rcases mul_neg_iff.1 h' with ⟨_, _⟩ | ⟨_, _⟩ <;> constructor <;> linarith
+    · rintro ⟨_, _⟩
+      exact mul_neg_of_neg_of_pos (mul_neg_of_pos_of_neg (by linarith) (by linarith)) hpos
+  have h₂ : √(ℓ ^ 2 + a * r ^ 2) < ℓ + b * r + c * r ^ 2 / (2 * ℓ) ↔ r < r₁ ∨ r₂ < r := by
+    rw [hgt r hr, hfac, mul_pos_iff_of_pos_right hpos, mul_pos_iff]
+    constructor
+    · rintro (⟨_, _⟩ | ⟨_, _⟩)
+      · right; linarith
+      · left; linarith
+    · rintro (_ | _)
+      · right; constructor <;> linarith
+      · left; constructor <;> linarith
+  refine ⟨h₁, h₂, ?_⟩
+  rw [← not_iff_not, ← ne_eq, ne_iff_lt_or_gt, h₁, h₂, mem_Ioo, not_or]
+  constructor
+  · rintro (⟨_, _⟩ | _ | _) <;> constructor <;> rintro rfl <;> linarith
+  · rintro ⟨h₁, h₂⟩
+    rcases lt_or_gt_of_ne h₁ with h₁ | h₁
+    · exact Or.inr (Or.inl h₁)
+    · rcases lt_or_gt_of_ne h₂ with h₂ | h₂
+      · exact Or.inl ⟨h₁, h₂⟩
+      · exact Or.inr (Or.inr h₂)
 
 end SymplecticGeometry
 
