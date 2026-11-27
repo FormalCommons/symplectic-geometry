@@ -219,24 +219,24 @@ theorem isConvexShapeAt_smoothedMax {χ₁ χ₂ : ℝ → ℝ} {δ : ℝ} (h₁
     ((le_max_left _ _).trans (max_le_smoothedMax hδ _ _)),
     one_div_smoothedMax_lt_deriv_div h₁ h₂ hδ hc₁ hc₂, by linarith⟩
 
-/-- **A chain of smoothed maxima of `i`-convex shapes.** Let `δ > 0`, and let `A 0, …, A i` be
+/-- **A chain of smoothed maxima of `i`-convex shapes.** Let `δ > 0`, and let `A 0, …, A n` be
 `C²` and `i`-convex shapes at `r` with slopes at most `G` there, where `δ G ≤ r`. Then the
-`i`-th member of their chain of smoothed maxima is an `i`-convex shape at `r`. -/
-theorem isConvexShapeAt_smoothedMaxChain {A : ℕ → ℝ → ℝ} {δ G : ℝ} {i : ℕ} (hδ : 0 < δ)
-    (hA : ∀ j ≤ i, ContDiff ℝ 2 (A j)) (hc : ∀ j ≤ i, IsConvexShapeAt (A j) r)
-    (hG : ∀ j ≤ i, deriv (A j) r ≤ G) (hδG : δ * G ≤ r) :
-    IsConvexShapeAt (smoothedMaxChain δ A i) r := by
-  induction i with
+`n`-th member of their chain of smoothed maxima is an `i`-convex shape at `r`. -/
+theorem isConvexShapeAt_smoothedMaxChain {A : ℕ → ℝ → ℝ} {δ G : ℝ} {n : ℕ} (hδ : 0 < δ)
+    (hA : ∀ j ≤ n, ContDiff ℝ 2 (A j)) (hc : ∀ j ≤ n, IsConvexShapeAt (A j) r)
+    (hG : ∀ j ≤ n, deriv (A j) r ≤ G) (hδG : δ * G ≤ r) :
+    IsConvexShapeAt (smoothedMaxChain δ A n) r := by
+  induction n with
   | zero => rw [smoothedMaxChain_zero]; exact hc 0 le_rfl
-  | succ i ih =>
-    have hA' : ∀ j ≤ i, ContDiff ℝ 2 (A j) := fun j hj ↦ hA j (Nat.le_succ_of_le hj)
+  | succ n ih =>
+    have hA' : ∀ j ≤ n, ContDiff ℝ 2 (A j) := fun j hj ↦ hA j (Nat.le_succ_of_le hj)
     have hM := deriv_smoothedMaxChain_le δ
       (fun j hj ↦ (hA' j hj).differentiable two_ne_zero r) fun j hj ↦ hG j (Nat.le_succ_of_le hj)
-    have hδr := mul_le_mul_of_nonneg_left (add_le_add hM (hG (i + 1) le_rfl)) hδ.le
+    have hδr := mul_le_mul_of_nonneg_left (add_le_add hM (hG (n + 1) le_rfl)) hδ.le
     rw [smoothedMaxChain_succ]
-    exact isConvexShapeAt_smoothedMax (contDiff_smoothedMaxChain δ hA') (hA (i + 1) le_rfl) hδ
+    exact isConvexShapeAt_smoothedMax (contDiff_smoothedMaxChain δ hA') (hA (n + 1) le_rfl) hδ
       (ih hA' (fun j hj ↦ hc j (Nat.le_succ_of_le hj)) fun j hj ↦ hG j (Nat.le_succ_of_le hj))
-      (hc (i + 1) le_rfl) (by linarith)
+      (hc (n + 1) le_rfl) (by linarith)
 
 /-- The second inequality of `isConvexShapeAt_iff` for the smoothed maximum of two `i`-convex
 shapes at `r`, given a margin `a` in it for both, upper bounds `G` and `Q` for the error made by
