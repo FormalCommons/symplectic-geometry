@@ -11,7 +11,7 @@ import Mathlib.Analysis.Calculus.ContDiff.RCLike
 import Mathlib.Analysis.ODE.ExistUnique
 
 /-!
-# Local solutions on a uniform time interval
+# Local solutions of a time-dependent equation on a uniform time interval
 
 Let `W : E → (E →L[ℝ] E)` be `C¹` at `x₀` and let `ξ : ℝ → E` be continuous. This file shows that
 the time-dependent equation `y' = W y (ξ t)` has, for every initial time `t₀` in a compact
@@ -23,6 +23,8 @@ not depend on `t₀`, and that these solutions stay in any given neighbourhood o
 (`IsPicardLindelof`) on that ball, with constants that do not depend on `t₀`. The proof takes the
 solution as a fixed point of the Picard iteration, as Mathlib's
 `IsPicardLindelof.exists_eq_forall_mem_Icc_hasDerivWithinAt` does, to keep it in the ball.
+Tau Ceti's `ContDiffAt.exists_forall_mem_ball_exists_eq_forall_mem_Ioo_hasDerivAt_and_mem` is the
+autonomous counterpart, for a field `y ↦ g y` that does not depend on time.
 
 ## Main results
 

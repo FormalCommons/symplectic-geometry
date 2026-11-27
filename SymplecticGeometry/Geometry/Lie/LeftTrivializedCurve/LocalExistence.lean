@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
-import SymplecticGeometry.Analysis.ODE.UniformTime
+import SymplecticGeometry.Analysis.ODE.TimeDependentUniformTime
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
 /-!
@@ -54,6 +54,13 @@ coordinate of the product of the points with coordinates `y` and `z`. -/
 private def chartMulLeft (y z : E) : E :=
   extChartAt I (1 : G) ((extChartAt I (1 : G)).symm y * (extChartAt I (1 : G)).symm z)
 
+variable (I G) in
+/-- `chartMulLeft I G y` is left translation by the point with coordinate `y`, read in the chart. -/
+private theorem chartMulLeft_eq (y : E) :
+    chartMulLeft I G y = extChartAt I (1 : G) ∘ ((extChartAt I (1 : G)).symm y * ·) ∘
+      (extChartAt I (1 : G)).symm :=
+  rfl
+
 /-- Multiplication read in the chart at `1` is `C²` near the chart image of `(1, 1)`. -/
 private theorem contDiffAt_uncurry_chartMulLeft [LieGroup I (2 : ℕ∞ω) G] [I.Boundaryless] :
     ContDiffAt ℝ 2 (uncurry (chartMulLeft I G))
@@ -98,15 +105,13 @@ private theorem mfderiv_extChartAt_symm_fderiv_chartMulLeft [LieGroup I (2 : ℕ
     rw [extChartAt_to_inv, mul_one]
     exact (mdifferentiableAt_extChartAt hg).hasMFDerivAt
   have hcomp := hφ.comp c (hL.comp c (TauCeti.hasMFDerivAt_extChartAt_symm_self (1 : G)))
-  -- `chartMulLeft I G y` is this composite by definition
-  have hW : fderiv ℝ (chartMulLeft I G y) c =
-      fderiv ℝ (extChartAt I (1 : G) ∘ (g * ·) ∘ (extChartAt I (1 : G)).symm) c := rfl
   have hW' : fderiv ℝ (extChartAt I (1 : G) ∘ (g * ·) ∘ (extChartAt I (1 : G)).symm) c v =
       mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E)
         (extChartAt I (1 : G) ∘ (g * ·) ∘ (extChartAt I (1 : G)).symm) c v := by
-    -- the casts `NormedSpace.fromTangentSpace` of `mfderiv_eq_fderiv` are identities
-    rw [mfderiv_eq_fderiv]; rfl
-  rw [hW, hW', hcomp.mfderiv]
+    rw [mfderiv_eq_fderiv]
+    -- the casts `NormedSpace.fromTangentSpace` in `mfderiv_eq_fderiv` are identities
+    rfl
+  rw [chartMulLeft_eq, hW', hcomp.mfderiv]
   have h := mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt (I := I) hy
   rw [I.range_eq_univ, mfderivWithin_univ] at h
   -- the two sides agree once the compositions of continuous linear maps are applied
