@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.LocalFrame
 public import Mathlib.Analysis.InnerProductSpace.Basic
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 
 /-!

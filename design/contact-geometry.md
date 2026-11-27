@@ -746,7 +746,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   a smooth form on `unitInterval × M` to `ℝ × M` (for
   `IsContactFamily.exists_local_extension`, with
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
-  `Analysis/SpecialFunctions/SmoothTransition.lean`); and
+  `Analysis/SpecialFunctions/SmoothTransition/Basic.lean`); and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean`, the reading of a
   `Diffeotopy` $\Phi$ over `ℝ` as $\Phi_{s(t)}$, $s=$ `Real.smoothTransition`,
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
