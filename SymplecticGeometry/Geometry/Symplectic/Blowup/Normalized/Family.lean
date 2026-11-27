@@ -99,14 +99,14 @@ private theorem ballLift_family_eventuallyEq_of_blowdown_eq_zero
     (fun q : unitInterval × openNbhdOpens n r ↦
         (hψ q.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩) =ᶠ[𝓝 p]
       fun q ↦ (hψ p.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩ := by
-  have hq : Continuous fun q : unitInterval × openNbhdOpens n r ↦ (q.2 : BlowupModel n) :=
+  have hc : Continuous fun q : unitInterval × openNbhdOpens n r ↦ (q.2 : BlowupModel n) :=
     continuous_subtypeVal.comp continuous_snd
   have hp₁ : ∀ t, (p.2 : BlowupModel n) ∈ openNbhd n (ε t) := fun t ↦
     exceptionalDivisor_subset_openNbhd (hψ t).width_pos (mem_exceptionalDivisor_iff.2 hp)
   have hW : IsOpen {q : unitInterval × openNbhdOpens n r |
-      (q.2 : BlowupModel n) ∈ openNbhd n (ε q.1) ∧ (q.2 : BlowupModel n) ∈ openNbhd n (ε p.1)} := by
-    exact (isOpen_setOf_mem_openNbhd hq (hε.comp continuous_fst)).inter
-      (isOpen_setOf_mem_openNbhd hq continuous_const)
+      (q.2 : BlowupModel n) ∈ openNbhd n (ε q.1) ∧ (q.2 : BlowupModel n) ∈ openNbhd n (ε p.1)} :=
+    (isOpen_setOf_mem_openNbhd hc (hε.comp continuous_fst)).inter
+      (isOpen_setOf_mem_openNbhd hc continuous_const)
   filter_upwards [hW.mem_nhds ⟨hp₁ p.1, hp₁ p.1⟩] with q hq
   rw [(hψ q.1).ballLift_of_mem_openNbhd _ hq.1, (hψ p.1).ballLift_of_mem_openNbhd _ hq.2]
 
