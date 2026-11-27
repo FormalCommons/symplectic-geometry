@@ -6,28 +6,41 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+public import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
+import TauCeti.Geometry.Symplectic.Lagrangian.Opens
 
 /-!
-# Symplectic tangent images under local symplectomorphisms
+# Symplectic submanifolds under local symplectomorphisms
 
 A local diffeomorphism `k : M → M₂` that pulls a nondegenerate two-form `σ₂` back to `σ` is a
 symplectomorphism on every tangent space. So a differentiable map `f : N → M` has symplectic
-tangent images for `σ` exactly when `k ∘ f` has them for `σ₂`
-(`TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_comp_iff_of_isLocalDiffeomorph`).
-This extends Tau Ceti's `hasSymplecticTangentImages_diffeomorph_comp_iff`, for a diffeomorphism
-`k`, to local diffeomorphisms such as the inclusion of an open subset or of a piece of a glued
-manifold, and follows its proof. Unlike there, `f` must be differentiable: a local diffeomorphism
-that is not injective can make a map that is not differentiable smooth.
+tangent images for `σ` exactly when `k ∘ f` has them for `σ₂`. This extends Tau Ceti's
+`hasSymplecticTangentImages_diffeomorph_comp_iff`, for a diffeomorphism `k`, to local
+diffeomorphisms such as the inclusion of an open subset or of a piece of a glued manifold, and
+follows its proof and that of `IsNondegenerate.symplecticFormAt_transport`. Unlike there, `f` must
+be differentiable: a local diffeomorphism that is not injective can make a map that is not
+differentiable smooth.
+
+For embeddings `f' : Z → X'` and `f : Z → X` with symplectic tangent images and a map `v` with
+`v ∘ f' = f` whose derivative is invertible along `f'` and carries one form to the other, the
+identification `TauCeti.SmoothEmbedding.normalSpaceEquivOfComp` of their normal spaces carries one
+normal symplectic form to the other: this is Tau Ceti's `symplecticNormalForm_normalMap` read
+through `normalSpaceEquiv_toContinuousLinearMap`.
 
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mfderiv_of_isLocalDiffeomorph`: the
   differential of such a `k` at a point is a linear symplectomorphism.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_comp_iff_of_isLocalDiffeomorph`:
-  the transport of symplectic tangent images.
+  the transport of symplectic tangent images, and
+  `TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_codRestrict_iff`, the case of
+  an embedding into an open subset.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_normalSpaceEquivOfComp`: the normal symplectic
+  forms of a commuting triangle of embeddings.
 
 ## References
 
@@ -36,7 +49,7 @@ that is not injective can make a map that is not differentiable smooth.
 
 public section
 
-open Manifold
+open Manifold TopologicalSpace
 open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothTwoForm.IsNondegenerate
@@ -86,6 +99,14 @@ theorem hasSymplecticTangentImages_comp_iff_of_isLocalDiffeomorph
   ext v
   rw [LinearEquiv.coe_coe, ContinuousLinearEquiv.coe_toLinearEquiv, ContinuousLinearMap.coe_coe,
     ← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorph.mfderivToContinuousLinearEquiv_coe]
+
+/-- An embedding whose image lies in an open subset `U` has symplectic tangent images, as an
+embedding into `U`, for the restriction of `σ` to `U` exactly when it has them for `σ`. -/
+theorem hasSymplecticTangentImages_codRestrict_iff (f : SmoothEmbedding J I ∞ N M)
+    (U : Opens M) (h : ∀ x, f x ∈ U) :
+    (hσ.mpullback_subtype_val U).HasSymplecticTangentImages J (f.codRestrict U h) ↔
+      hσ.HasSymplecticTangentImages J f := by
+  rw [← hasSymplecticTangentImages_subtype_val_comp_iff, SmoothEmbedding.val_comp_codRestrict]
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
