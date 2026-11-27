@@ -216,8 +216,9 @@ the fixed radius (Decision 2); `Pointwise.lean` works with nondegenerate
 forms rather than tame structures (the two are equivalent by Tau Ceti's
 `exists_compatible`); `E(1)` is shown symplectic rather than Kähler
 (Decision 5); and the realization theorem does not perturb the product
-form (Decision 9). The two files this design adds outside
-`Geometry/Symplectic/Sum/` are planned here only. The building issue #3287
+form (Decision 9). The files this design adds outside
+`Geometry/Symplectic/Sum/` are planned here only, and `DESIGN.md` does not
+name them. The building issue #3287
 is blocked only by #3286, so no blocker of an open issue changes.
 
 ## Files
@@ -314,13 +315,177 @@ About 450 lines.
 ### `Geometry/Manifold/Instances/Surface/Genus.lean`
 
 Prerequisite of Decision 10: `ClosedSurface g`, the iterated connected sum
-of `g` standard tori (the sphere for `g = 0`), a closed oriented surface;
-its standard circles $a_k$, $b_k$ through a base point; and
-`ClosedSurface.fundamentalGroupMulEquiv` onto
-`TauCeti.SurfaceGroup.Orientable g 0`, sending them to its generators.
-The punctured torus retracts onto the wedge of two circles (Tau Ceti's
-`AlgebraicTopology/FundamentalGroup/WedgeSum.lean`), and van Kampen across
-the gluing circle adds the product of commutators.
+of `g` standard tori (the sphere for `g = 0`), a closed oriented surface,
+with its coordinate balls `ClosedSurface.ball g j`, its base point and its
+punctured torus summands. Its standard circles $a_k$, $b_k$ through the base
+point and `ClosedSurface.fundamentalGroupMulEquiv` onto
+`TauCeti.SurfaceGroup.Orientable g 0`, sending them to its generators, are
+in the files of the next subsection, which import this one and
+`Surface/PuncturedTorus.lean` (the punctured torus retracts onto the wedge
+of two circles, and its fundamental group is `Orientable 1 1`).
+
+#### The fundamental group of `ClosedSurface g`
+
+Names were checked against the library and Tau Ceti `994bb2246b86`. Write
+$c_j$ for the centre `ClosedSurface.ball g j 0` and
+$X(g,n)$ for the complement of $c_0,\dots,c_{n-1}$.
+
+- **Why punctures.** `ClosedSurface (g + 1)` is the sum of the torus with
+  `ClosedSurface g` along the ball `0` of the latter, and its ball `j` is
+  the ball `j + 1` of genus `g` (`ClosedSurface.succDiffeomorph_ball`). So
+  van Kampen for $X(g+1,n)$ needs $X(g,n+1)$, and the induction on `g`
+  runs over all `n` at once, against `Orientable g n`.
+- **Statement.** `ClosedSurface.puncture g n :
+  TopologicalSpace.Opens (ClosedSurface g)` is $X(g,n)$; it contains the
+  base point. `ClosedSurface.exists_puncturedFundamentalGroupMulEquiv g n`
+  says that there is an isomorphism
+  `FundamentalGroup (puncture g n) ⟨basePoint g, _⟩ ≃* Orientable g n`
+  sending the class of `circleLoop g k 0` to `a g n k`, that of
+  `circleLoop g k 1` to `b g n k`, for `k : Fin g`, and that of
+  `peripheralLoop g n i` to `peripheral g n i`, for `i : Fin n` (the loops
+  are below). These elements generate `Orientable g n`, so the isomorphism
+  is unique; `ClosedSurface.puncturedFundamentalGroupMulEquiv g n` is
+  chosen from the theorem, with one `@[simp]` lemma for each of the three
+  values, and `ClosedSurface.fundamentalGroupMulEquiv g` is its case
+  `n = 0`, along `puncture g 0 = ⊤`, with the lemmas
+  `fundamentalGroupMulEquiv_circleLoop_zero` and `_one` giving `a g 0 k`
+  and `b g 0 k`.
+- **Indices.** The peripheral index `i : Fin n` belongs to the ball
+  `i.rev`, that is $c_{n-1-i}$. The ball `0`, along which the next torus
+  is summed, is then always the last peripheral element, as
+  `TauCeti.SurfaceGroup.Orientable.equivPushoutI` needs, and the indices
+  agree from one genus to the next: the ball `i.rev` of genus `g + 1` and
+  `n` punctures is the ball `(Fin.castSucc i).rev` of genus `g` and `n + 1`
+  punctures.
+- **Circles of the balls.** `ClosedSurface.ballCircle g j` is the loop
+  `t ↦ ball g j (EuclideanTorus.neckIsometry (exp (2πit)))`, the circle of
+  radius `1` of the ball, counterclockwise in its coordinates: the image of
+  `LinearIsometryEquiv.circleLoop` for `neckIsometry` and `r = 1`. It
+  starts at `ball g j (neckIsometry 1)`. Since the inversion in the unit
+  sphere fixes that point, this circle of the ball `0` is the neck circle
+  of the connected sum read in the second summand
+  (`TauCeti.ConnectedSum.coe_map_neckInr_circleLoop_apply` with `r = 1`),
+  and the neck point is the same on both sides
+  (`TauCeti.ConnectedSum.inl_neckInl_eq_inr_neckInr`).
+- **Connecting paths.** All paths below are paths in `ClosedSurface g`
+  with a lemma that they meet no centre $c_j$, and are carried into each
+  `puncture g n` by restricting their codomain.
+  - `ClosedSurface.ballPath g j`, from the base point to the start of
+    `ballCircle g j`: for `g + 1` the image under `inr` of
+    `ballPath g (j + 1)`; for `g = 0` an explicit path in the sphere,
+    below.
+  - `ClosedSurface.summandPath g k`, from the base point to the point `0`
+    of the torus summand `k`: for genus `g + 1` and `k = 0`, the image
+    under `inr` of `ballPath g 0`, across the neck, then the image under
+    `inl` of the reverse of `EuclideanTorus.peripheralPath`; for `k + 1`,
+    the image under `inr` of `summandPath g k`.
+- **Loops.** `ClosedSurface.circleLoop g k i` is `summandPath g k`, then
+  the image of `EuclideanTorus.circleLoop i` under `summand k`, then
+  `summandPath g k` back: these are the standard circles $a_k$ (`i = 0`)
+  and $b_k$ (`i = 1`). `ClosedSurface.peripheralLoop g n i` is
+  `ballPath g i.rev`, then `ballCircle g i.rev` **reversed**, then
+  `ballPath g i.rev` back. The reversal is forced by the gluing: the neck
+  generator goes to the last peripheral element `q₁` of the torus piece
+  (`EuclideanTorus.puncturedFundamentalGroupMulEquiv_peripheralLoop`, the
+  neck circle seen through `EuclideanTorus.peripheralPath`), and
+  `TauCeti.SurfaceGroup.Orientable.gluingMaps` sends it to `q₂⁻¹` on the
+  side of genus `g`, where it is the unreversed `ballCircle g 0` seen
+  through `ballPath g 0`.
+- **The step.** From the statement for `g` and `n + 1` to `g + 1` and `n`.
+  Let `U` be the complement of $c_1,\dots,c_n$ in `ClosedSurface g`: open,
+  connected, and containing the range of the ball `0`.
+  `TauCeti.ConnectedSum.restrictRightHomeomorph` identifies
+  `puncture (g + 1) n` with the connected sum of the torus with `U`, whose
+  punctured second summand is `puncture g (n + 1)`. Then
+  `TauCeti.ConnectedSum.isPushout_fundamentalGroup` at the neck point
+  `circleBasepoint` of `neckIsometry` and `r = 1`, with the neck group `ℤ`
+  generated by the circle
+  (`LinearIsometryEquiv.fundamentalGroupComplSingletonMulEquivInt_circleLoop`).
+  On the torus side, `EuclideanTorus.puncturedFundamentalGroupMulEquiv`
+  moved to the neck point along `EuclideanTorus.peripheralPath` sends the
+  generator to `peripheral 1 1 0`; on the other side, the isomorphism for
+  `g` and `n + 1` moved along `ballPath g 0` sends it to
+  `(peripheral g (n + 1) (Fin.last n))⁻¹`. These are
+  `gluingMaps 1 0 g n`, so the square is identified with
+  `Monoid.PushoutI (gluingMaps 1 0 g n)`, then by `equivPushoutI 1 0 g n`
+  with `Orientable (1 + g) (0 + n)`, and by renaming the generators along
+  `Fin.cast` with `Orientable (g + 1) n`. Since the torus piece has no
+  other peripheral element, the product `P` of `equivPushoutI_a_natAdd` is
+  empty and nothing is conjugated: the torus gives `a 0` and `b 0`, the
+  generator `a k` of genus `g` gives `a k.succ`, as the summand `k` gives
+  the summand `k.succ` (`ClosedSurface.succDiffeomorph_summand_succ`), and
+  `peripheral (Fin.castSucc i)` gives `peripheral i`. Moving back to the
+  base point along the image of `ballPath g 0` keeps the loops of genus
+  `g` as they are and turns the torus loops into `circleLoop (g + 1) 0 i`,
+  by the definition of `summandPath`. So the step is exact, and the
+  statement holds for every `g` once it holds for `g = 0`.
+- **The sphere needs explicit balls.** `ClosedSurfaceData.sphere` takes
+  its balls from `exists_pairwise_disjoint_range_subset_compl_sphere` by
+  choice, so nothing says whether they all induce the same orientation.
+  If two of them induce opposite ones, then on the sphere minus their two
+  centres, whose fundamental group is `ℤ`, their circles have the same
+  class whatever the connecting paths, while `Orientable 0 2` needs `p`
+  and `p⁻¹`; and two tori summed along such balls sit with opposite
+  orientations, so that their circles do not satisfy the relation of
+  `Orientable g 0`. So a refactor comes first: the balls of the sphere
+  become `TauCeti.sphereBall v ∘ OpenPartialHomeomorph.univBall (j • e)
+  (1 / 2)`, for the base point `v = (1, 0, 0)` and
+  `e = EuclideanSpace.single 0 1` (the choice the existence proof already
+  makes, with its vector fixed), with a lemma giving
+  `ClosedSurface.ball 0 j` in this form.
+- **The base case.** For `n = 0` the sphere is simply connected
+  (`TauCeti.simplyConnectedSpace_sphere`) and `Orientable 0 0` is trivial.
+  For `n ≥ 1` read the sphere in the chart `w ↦ -sphereBall v (-w)`
+  complementary to `sphereBall v` (`TauCeti.isComplementaryBall_sphereBall`),
+  which sends `0` to the base point and agrees with `sphereBall v` after
+  the inversion in the unit circle. In it $c_0$ is the point at infinity
+  and $c_j$, for `1 ≤ j`, is `j⁻¹ • e`, so $X(0,n)$ is the plane minus the
+  points `1, 1/2, …, 1/(n - 1)` of the positive axis, based at `0`. The
+  inversion reverses orientation, so after the reversal in
+  `peripheralLoop` the loops about $c_j$, `j ≥ 1`, are small
+  counterclockwise loops about these points, and the loop about $c_0$ is
+  the circle of radius `2√2` about `0`, run clockwise from the angle
+  `π / 4`. The paths `ballPath 0 j` are fixed for all `n`: for `j ≥ 1`
+  from `0` down into the lower half-plane, along it to below `j⁻¹ • e`,
+  and up to the circle; for `j = 0` the segment from `0` at the angle
+  `π / 4` out to the large circle. Through
+  `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 0 (n - 1)` the statement
+  becomes two facts about the plane minus a finite set `s` of positive
+  reals, based at `0`: the counterclockwise loops about the points of `s`,
+  reached from below the axis, are a free basis of the fundamental group;
+  and a counterclockwise circle about `0` enclosing `s`, reached along a
+  ray in the upper half-plane, is homotopic to these loops run one after
+  the other, from the largest point of `s` to the smallest. In Mathlib's
+  `FundamentalGroup` a product `x * y` runs `y` first, so the relation
+  `p₀ ⋯ p_{n-1} = 1` says that the clockwise large circle followed by the
+  loops about `1, 1/2, …, 1/(n - 1)` is trivial, which is the second fact.
+  Tau Ceti proves both facts for two points
+  (`TauCeti.ThricePuncturedSphere.fundamentalGroupMulEquivFreeGroup`, by
+  `TauCeti.vanKampenEquiv` for two half-planes meeting in a strip, and
+  `TauCeti.ThricePuncturedSphere.αPlus_trans_δ_trans_symm_homotopic_γ0_trans_γ1`);
+  the general case inducts on the number of points with the same cover,
+  cut by a vertical line between the two smallest points. Tau Ceti's
+  `TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup` gives no
+  generators and does not serve. The inverted ball circles are compared
+  with these loops in the punctured discs that the balls cover, since
+  both wind once about the centre, as in
+  `TauCeti/AlgebraicTopology/ThricePuncturedSphere/ZeroOneGenerators.lean`
+  (`Circle.homotopic_trans_of_degree_map_eq`).
+
+The steps, in order (the step of each line can start once those it names
+are merged):
+
+| Step | Content | File | After | Size |
+|---|---|---|---|---|
+| 8a | Explicit balls of the sphere (a refactor) | `Surface/Genus.lean` | — | 100 |
+| 8b | The plane minus finitely many positive reals: free basis of loops | `AlgebraicTopology/FundamentalGroup/PlaneMinusRealPoints.lean` | — | 350 |
+| 8c | The same: the large circle as a product of the loops | `AlgebraicTopology/FundamentalGroup/PlaneMinusRealPoints.lean` | 8b | 250 |
+| 8d | A pushout square in `GrpCat` as `Monoid.PushoutI` over `Bool` | `Algebra/Category/Grp/Pushout.lean` | — | 100 |
+| 8e | `puncture`, the sum with `U`, `ballCircle`, the paths and the loops | `Surface/Puncture.lean` | 8a | 400 |
+| 8f | The base case `g = 0` | `Surface/PuncturedSphere.lean` | 8b, 8c, 8e | 300 |
+| 8g | The step, the induction and `fundamentalGroupMulEquiv` | `Surface/FundamentalGroup.lean` | 8d, 8e, 8f | 350 |
+
+Step 8d first searches Mathlib and Tau Ceti for that comparison.
 
 ### `Geometry/Symplectic/Sum/RationalEllipticSurface.lean`
 
@@ -410,7 +575,7 @@ sums*. Sizes are estimates. "P60" is the issue of *Almost complex spheres*
 | 5 | The Hesse pencil surface and its symplectic form | `RationalEllipticSurface.lean` | — | 350 |
 | 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface.lean` | 5 | 350 |
 | 7 | The fibre as a standard torus | `RationalEllipticSurface.lean` | 5 | 300 |
-| 8 | Closed surfaces of genus $g$ and their fundamental groups | `Surface/Genus.lean` | — | 450 |
+| 8 | Closed surfaces of genus $g$ and their fundamental groups | `Surface/` | — | |
 | 9 | The fundamental group of a sum with $E(1)$ | `FundamentalGroup.lean` | 3, 6, 7 | 500 |
 | 10 | Tori in $F\times T^2$ | `FinitelyPresented.lean` | 3, 8 | 300 |
 | 11 | Realization of finitely presented groups | `FinitelyPresented.lean` | 9, 10 | 250 |

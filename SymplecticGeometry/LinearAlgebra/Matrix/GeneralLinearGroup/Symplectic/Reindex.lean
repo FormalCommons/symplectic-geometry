@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
+import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Reindex
 
 /-!
 # Reindexing the symplectic group
@@ -13,7 +14,9 @@ public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
 An equivalence `e : ι ≃ κ` of index types identifies `Sp(2n, R) = TauCeti.GLSymplectic ι R` with
 `TauCeti.GLSymplectic κ R`: reindexing the rows and columns of a matrix of size `ι ⊕ ι` along
 `e ⊕ e` carries the standard skew-symmetric matrix `Matrix.J ι R` to `Matrix.J κ R`
-(`Matrix.reindex_sumCongr_J`), so it keeps symplectic matrices symplectic. This is the
+(`Matrix.reindex_sumCongr_J`), so it keeps symplectic matrices symplectic. This is the case
+`e ⊕ e` of Tau Ceti's `Matrix.mul_reindex_J_mul_transpose_eq_iff`, which describes the matrices
+that preserve `Matrix.J` reindexed along any equivalence `ι ⊕ ι ≃ p`. The isomorphism is the
 restriction of Mathlib's `Matrix.GeneralLinearGroup.reindex R (e.sumCongr e)`.
 
 It is used to read the direct sum of symplectic matrices of sizes `Fin n ⊕ Fin n` and
@@ -46,10 +49,8 @@ equivalence `e : l ≃ l'`, gives a symplectic matrix of size `l' ⊕ l'`. -/
 theorem reindex_mem_symplecticGroup (e : l ≃ l') {A : Matrix (l ⊕ l) (l ⊕ l) R}
     (hA : A ∈ symplecticGroup l R) :
     reindex (e.sumCongr e) (e.sumCongr e) A ∈ symplecticGroup l' R := by
-  rw [SymplecticGroup.mem_iff] at hA ⊢
-  rw [← reindex_sumCongr_J R e]
-  conv_rhs => rw [← hA]
-  simp only [reindex_apply, transpose_submatrix, submatrix_mul_equiv]
+  rwa [SymplecticGroup.mem_iff, ← reindex_sumCongr_J R e, mul_reindex_J_mul_transpose_eq_iff,
+    ← reindex_symm, Equiv.symm_apply_apply]
 
 end Matrix
 

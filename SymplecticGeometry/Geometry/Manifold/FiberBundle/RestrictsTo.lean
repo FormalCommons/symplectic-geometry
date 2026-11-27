@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -51,6 +52,8 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `TauCeti.MapFiber.Atlas.mpullback_snd_trivAt_apply_eq`: when the coordinate changes preserve
   `σ`, the pull-backs of `σ` along the fibre coordinates of any two charts agree on vertical
   vectors.
+* `TauCeti.MapFiber.Atlas.RestrictsTo.mextDeriv_apply_eq_zero`: a form that restricts to a closed
+  form along a smooth atlas has exterior derivative zero on tuples of vertical vectors.
 * `TauCeti.MapFiber.Atlas.restrictsTo_iff_forall_exists`: for a smooth atlas with structure group
   the stabilizer of `σ`, it suffices that one chart at each point pull `τ` back to `σ`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.of_coordChangeMem`: the predicate passes to an atlas
@@ -61,6 +64,10 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   positive degree on the base vanishes on every fibre, and
   `Bundle.Trivialization.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic`: so does that of a
   form of positive degree semibasic for `proj`.
+* `Bundle.Trivialization.mextDeriv_apply_eq_zero_of_mextDeriv_mpullback`: a `C¹` form whose
+  pull-back to the fibre through `x` is closed has exterior derivative zero at `x` on tuples of
+  vertical vectors. Both vanishing results for the exterior derivative on vertical vectors
+  follow from it.
 * `Bundle.Trivialization.mextDeriv_apply_eq_zero_of_isSemibasic`: the exterior derivative of a
   `C¹` form of positive degree semibasic for `proj` vanishes on tuples of vertical vectors, as
   its pull-back to each fibre is zero.
@@ -194,6 +201,25 @@ theorem mpullback_fiberInclusionMap_mpullback_eq_zero (e : Trivialization F proj
   exact e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hb
     (TauCeti.RoughForm.isSemibasic_mpullback IB proj β)
 
+/-- **Vertical exterior derivative from the fibres.** Let `e` be a trivialization of `proj` that
+is differentiable, with `C²` inverse, and let `α` be a `C¹` form on `M`. If the pull-back of `α`
+to the fibre through `x` is closed, then the exterior derivative of `α` vanishes at `x` on every
+tuple of vertical vectors: its pull-back to the fibre is the derivative of the pull-back of `α`. -/
+theorem mextDeriv_apply_eq_zero_of_mextDeriv_mpullback [IsManifold IF 2 F] [IsManifold IM 2 M]
+    {e : Trivialization F proj} (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF))
+    (he' : ContMDiffOn (IB.prod IF) IM 2 e.toOpenPartialHomeomorph.symm e.target)
+    {α : TauCeti.RoughForm IM M V k}
+    (hα' : TauCeti.IsSmoothBundleForm (I := IM) (F := V) (V := Trivial M V) 1 α) {x : M}
+    (hx : proj x ∈ e.baseSet)
+    (h : TauCeti.mextDeriv (TauCeti.mpullback IF IM (e.fiberInclusionMap hx) α) = 0)
+    {u : Fin (k + 1) → TangentSpace IM x} (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) :
+    TauCeti.mextDeriv α x u = 0 := by
+  have h' : TauCeti.mpullback IF IM (e.fiberInclusionMap hx) (TauCeti.mextDeriv α) =
+      TauCeti.mpullback IF IM (e.fiberInclusionMap hx) 0 := by
+    rw [TauCeti.mpullback_mextDeriv (e.contMDiff_fiberInclusionMap he' hx) hα', h,
+      TauCeti.mpullback_zero]
+  exact e.apply_eq_of_mpullback_fiberInclusionMap_eq he hx h' hu
+
 /-- **The derivative of a semibasic form on vertical vectors.** Let `e` be a trivialization of
 `proj` that is differentiable, with `C²` inverse. The exterior derivative of a `C¹` form of
 positive degree that is semibasic for `proj` vanishes at every point over the base set of `e` on
@@ -205,13 +231,10 @@ theorem mextDeriv_apply_eq_zero_of_isSemibasic [IsManifold IF 2 F] [IsManifold I
     {α : TauCeti.RoughForm IM M V (k + 1)} (hα : TauCeti.RoughForm.IsSemibasic IB proj α)
     (hα' : TauCeti.IsSmoothBundleForm (I := IM) (F := V) (V := Trivial M V) 1 α) {x : M}
     (hx : proj x ∈ e.baseSet) {u : Fin (k + 1 + 1) → TangentSpace IM x}
-    (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) : TauCeti.mextDeriv α x u = 0 := by
-  have h : TauCeti.mpullback IF IM (e.fiberInclusionMap hx) (TauCeti.mextDeriv α) =
-      TauCeti.mpullback IF IM (e.fiberInclusionMap hx) 0 := by
-    rw [TauCeti.mpullback_mextDeriv (e.contMDiff_fiberInclusionMap he' hx) hα',
-      e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hx hα, TauCeti.mextDeriv_zero,
-      TauCeti.mpullback_zero]
-  exact e.apply_eq_of_mpullback_fiberInclusionMap_eq he hx h hu
+    (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) : TauCeti.mextDeriv α x u = 0 :=
+  e.mextDeriv_apply_eq_zero_of_mextDeriv_mpullback he he' hα' hx
+    (by rw [e.mpullback_fiberInclusionMap_eq_zero_of_isSemibasic hx hα, TauCeti.mextDeriv_zero])
+    hu
 
 end Bundle.Trivialization
 
@@ -241,6 +264,19 @@ theorem restrictsTo_iff :
     A.RestrictsTo σ τ ↔ ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
       TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') τ.val = σ.val :=
   Iff.rfl
+
+/-- **Forms restricting to a closed form are closed on vertical vectors.** If `τ` restricts to a
+closed form `σ` along a smooth atlas, then at every point the exterior derivative of `τ` vanishes
+on every tuple of vertical vectors: its pull-back to each fibre is the derivative of `σ`. -/
+theorem RestrictsTo.mextDeriv_apply_eq_zero [IsManifold IF 2 F] [IsManifold IM 2 M]
+    (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) (hσ : σ.IsClosed) {x : M}
+    {u : Fin (k + 1) → TangentSpace IM x} (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) :
+    TauCeti.mextDeriv τ.val x u = 0 :=
+  (A.trivAt (proj x)).mextDeriv_apply_eq_zero_of_mextDeriv_mpullback
+    (hA.mdifferentiable_trivAt (by simp) _) ((hA.contMDiffOn_trivAt_symm _).of_le (by simp))
+    ((isSmoothBundleForm_def 1 _).2 (τ.isSmoothForm.of_le (by simp)).contMDiff)
+    (A.mem_baseSet_trivAt (proj x))
+    (by rw [hτ _ _ (A.mem_baseSet_trivAt (proj x)), (SmoothForm.isClosed_def σ).1 hσ]) hu
 
 /-- **One chart at each point suffices.** For a smooth atlas whose coordinate changes preserve
 `σ`, a form `τ` restricts to `σ` exactly when, for each point `b'` of the base, some chart whose

@@ -441,7 +441,8 @@ Cieliebak–Eliashberg's $J$-convex surrounding: a domain
 $W=\{\varphi\le0\}$ with $J$-convex boundary, together with a totally real
 disc $\Delta$ attached to $\partial W$ along its boundary sphere, has
 arbitrarily small neighbourhoods $\{\psi\le0\}$ with $J$-convex boundary,
-where $\psi$ agrees with $\varphi$ away from $\Delta$ and has one new
+where $\psi$ agrees with a convex reparametrization of $\varphi$ away from
+$\Delta$ and has one new
 critical point, of index $\dim\Delta$, on $\Delta$. It is what issue 19
 needs to extend a Stein function across a handle. The work is more than one
 file of 1000 lines, so it is a folder. Each file is in `SymplecticGeometry`,
@@ -498,9 +499,9 @@ containing `ι '' closedBall 0 1`:
   Theorem 8.5 asserts only $J$-convex levels for its function, and the
   junction below needs one reparametrization of everything; `h ∘ φ` is
   strictly plurisubharmonic wherever `φ` is, and `IsSteinFunction.comp`
-  takes exactly these hypotheses on `h`, so issue 19 can use it. Whether
-  `W ⊆ {ψ ≤ 0}` can also be asked is left to issue 14d; see
-  *The junction near the sphere* below.
+  takes exactly these hypotheses on `h`, so issue 19 can use it. Neither
+  `ψ ≤ h ∘ φ` nor `W ⊆ {ψ ≤ 0}` is asked; see *Comparison with `φ`*
+  below.
 - `IsJOrthogonallyAttached.exists_surround_critical`: moreover, every
   critical point `x ∈ U` of `ψ` with `ψ x ≤ 0` is `ι 0` or a critical point
   of `φ` near which `ψ = h ∘ φ`, for the `h` of the statement; `ι 0` is
@@ -823,7 +824,9 @@ containing `ι '' closedBall 0 1`:
     `{p | t p < δ ^ 2 ∧ s p ≤ 1}` (so the image of `closedBall 0 1`
     under `modelDisc k m` lies in `{Ψ < -1}`), `-1` is a regular value
     of `Ψ`, and near `{p | t p = 0}` the function `Ψ` is `e ∘ Ψst` for
-    a smooth increasing `e` (target equivalent, the book's (iii)). Its
+    a smooth `e` with `0 < deriv e` everywhere (target equivalent, the
+    book's (iii)); issue 14e needs the positive derivative for the
+    nondegeneracy of `ι 0`. Its
     `δ` is the `δ'` of `exists_modelHandle_collar`, and its level `-1`
     is `Σ'`. The
     homotopy `Ψ_t` of the book's Corollary 4.4 is not stated: the
@@ -1060,8 +1063,9 @@ containing `ι '' closedBall 0 1`:
   compact totally real submanifold of dimension `k - 1`, once the two
   1-jets agree on it: the radial derivative of `φ ∘ ι` is fixed by a
   radial reparametrization of the disc, and `dφ ∘ A x` on the second
-  factor by the choice of the frame (14d18). Away from the sphere issue
-  14d keeps `φ` and the function of issue 14a, as below.
+  factor by the choice of the frame (14d18). Away from a neighbourhood of
+  the sphere `θ` is `φ`, and issue 14d20 covers the rest of the disc by
+  the model handle.
 
   *Route for Proposition 3.26.* For a cutoff `β` and `D = ψ - φ`, the
   Levi form of `θ = φ + β D` is `(1 - β) L φ + β L ψ` up to an error at
@@ -1222,7 +1226,7 @@ containing `ι '' closedBall 0 1`:
   convex and increasing (Tau Ceti's
   `IsManifoldStrictlyPlurisubharmonicAt.scalar_comp`). Outside `U`,
   `G ∘ f` is `G ∘ φ`, which is why `exists_surround` is stated with an
-  `h`. `G` is chosen last, so no neighbourhood depends on it.
+  `h`. No neighbourhood depends on `G`.
 
 - `Surround/Implant.lean` (issue 14d20), with `V`, `s`, `t`,
   `modelDisc k m` and `finrank ℂ E = k + m` as for issues 14d9–14d15, and
@@ -1238,15 +1242,15 @@ containing `ι '' closedBall 0 1`:
       `Φ '' H γ' ⊆ U`;
     - `Ψ` and `g` as `exists_modelSurround` gives them for `a = 2` and
       `γ`;
-    - a smooth `f : M → ℝ`.
+    - a smooth `f : M → ℝ` and an `h : ℝ → ℝ` with `ContDiff ℝ ∞ h`.
     They satisfy:
     - `f =ᶠ[𝓝 x] φ` for every `x ∉ W₀ ∪ Φ '' H γ'`;
     - `f = (1 + Ψ) ∘ Φ.symm` on `Φ '' H γ`;
-    - every `x` with `f x ≤ 0` has `f =ᶠ[𝓝 x] θ` or
-      `f =ᶠ[𝓝 x] (1 + Ψ) ∘ Φ.symm` with `Φ.symm x ∈ H γ`;
-    - with `h = G`: `h 0 = 0`, `0 < deriv h`, `0 ≤ iteratedDeriv 2 h`,
+    - every `x` with `f x ≤ 0` has `f =ᶠ[𝓝 x] θ`, or `x ∈ Φ '' H γ` and
+      `f =ᶠ[𝓝 x] (1 + Ψ) ∘ Φ.symm`;
+    - `h 0 = 0`, `∀ y, 0 < deriv h y`, `∀ y, 0 ≤ iteratedDeriv 2 h y`,
       and `h ∘ f` strictly plurisubharmonic at every point of
-      `{x | f x ≤ 0}`;
+      `{x | f x ≤ 0}` (the proof takes `h = G`);
     - `0` is a regular value of `f`;
     - `ι '' closedBall 0 1 ⊆ {x | f x < 0}`.
     `exists_surround` is then `ψ = h ∘ f`, and 14e reads `ψ` near `ι 0`
@@ -1276,7 +1280,11 @@ containing `ι '' closedBall 0 1`:
        `u ∘ Φ.symm` is strictly plurisubharmonic at the points of
        `Φ '' H γ`.
     7. A smooth `β : V → ℝ` with values in `[0, 1]`, equal to `1` on `H γ`
-       and with compact support inside `H γ'`. Then
+       and with compact support inside `H γ'`: Mathlib's
+       `exists_contDiff_support_eq_eq_one_iff` for the closed set `H γ`
+       and the open set `{p | t p < γ'' ^ 2 ∧ s p < (1 + γ'') ^ 2}`,
+       `γ < γ'' < γ'`,
+       whose closure `H γ''` lies in `H γ'`. Then
        `f = θ + (β ∘ Φ.symm) * ((1 + Ψ) ∘ Φ.symm - θ)` on `Φ.target`, and
        `f = θ` elsewhere.
 
@@ -1320,21 +1328,71 @@ containing `ι '' closedBall 0 1`:
   order along the core could. So
   `W ⊆ {ψ ≤ 0}` cannot be had from the statements above. What does hold
   is that `{ψ ≤ 0}` and `W` agree outside `W₀ ∪ Φ '' H γ'`, which lies in
-  any given neighbourhood `U` of the disc. Issue 14d decides whether its
-  statement needs `W ⊆ {ψ ≤ 0}` for issue 19, and if so how to obtain it.
+  any given neighbourhood `U` of the disc.
 
-- `Surround/Basic.lean` (issues 14d and 14e): issue 14d proves
-  `IsJOrthogonallyAttached.exists_surround` as `ψ = h ∘ f`, for the `f`
-  and `h` of `exists_modelSurround_implant` (issue 14d20). Issue 14e
-  proves `IsJOrthogonallyAttached.exists_surround_critical`, making the
-  restriction of `ψ` to the disc a function with one critical point, at its
-  centre, which the model handle function of issue 14c describes there. If
-  issue 14d does not fit in 500 lines, it begins by extending this section
-  with its lemma list. Issue 14d cites the theorem it follows by number.
+  *Decision.* `exists_surround` asks neither `ψ ≤ φ`, nor `ψ ≤ h ∘ φ`,
+  nor `W ⊆ {ψ ≤ 0}`. The construction gives neither of the first two: on the
+  handle `ψ` is `G ∘ (1 + Ψ) ∘ Φ.symm`, and where `θ ≠ φ` near the sphere
+  it differs from `h ∘ φ` at second order with either sign.
+  Cieliebak–Eliashberg's Theorem 8.5 (a) does not give such a bound
+  either: it fixes the function only near `∂₋W` and away from the disc.
+  The third is the weaker form that the review of the design (#4863)
+  suggested, and (P2) shows that the statements of 14d1–14d20 do not give
+  it. Issue 19 uses `exists_surround` as stated: `{ψ ≤ 0}` agrees with `W`
+  outside `U`, contains the disc in its interior, and, by issue 14e, has
+  in `U ∩ {ψ ≤ 0}` no critical point other than `ι 0` and those of `φ`. If issue
+  19 finds that it needs `W ⊆ {ψ ≤ 0}`, it proposes the change in an
+  issue. There are two routes: state (P1) in 14d7, and correct `Φ` along
+  the core at second order by a holomorphic map, so that (P2) holds.
+
+- `Surround/Basic.lean` (issues 14d and 14e). Issue 14d proves
+  `IsJOrthogonallyAttached.exists_surround`, Cieliebak–Eliashberg's
+  Theorem 8.4 (§8.2) in the form of *The statements* above. The book
+  deduces Theorem 8.4 from its Theorem 8.5 through Lemma 8.7 and
+  Corollary 8.9. The design follows the proof of Theorem 8.5 instead,
+  for one disc and the integrable `J` of this section, and states
+  neither Theorem 8.5 nor its homotopies. Proposition 5.55 is issues
+  14d9–14d13; Steps 2–4 of that proof (Corollary 8.1 and
+  Proposition 3.26) are issues 14d16–14d19; and its Step 5, the model of
+  Theorem 4.2 and Corollary 4.4 carried over by (8.1), is issues
+  14d1–14d8, 14d14, 14d15 and 14d20. What is left to 14d is a short
+  assembly. Its hypotheses are those of *The statements*: `φ` smooth,
+  `∀ x, φ x ≤ 0 → IsManifoldStrictlyPlurisubharmonicAt E φ x`,
+  `IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) φ 0`, `[FiniteDimensional ℂ E]`, and `ι`,
+  `IsJOrthogonallyAttached E φ ι`, `[T2Space M]` and `U` as there.
+  1. Put `k = finrank ℝ F`. Then `k ≤ finrank ℂ E`, by Tau Ceti's
+     `IsTotallyReal.two_mul_finrank_le` at `0`, with the injectivity of `J` and
+     of the `mfderiv` of the embedding. Write
+     `finrank ℂ E = k + m`, and let `L` be the linear isometry
+     equivalence `(stdOrthonormalBasis ℝ F).repr.symm` from
+     `EuclideanSpace ℝ (Fin k)` onto `F`. Then `ι ∘ L` is a disc as in
+     14d9: a smooth embedding, as a composite with a diffeomorphism (as
+     `ι ∘ σ` in 14d18), with the same tangent images as `ι`, attached
+     by `IsJOrthogonallyAttached.comp_linearIsometry`, and with the same
+     image of `closedBall 0 1`, since `L` maps that ball onto the ball.
+  2. `exists_modelSurround_implant` (issue 14d20) for `φ`, `ι ∘ L` and
+     `U` gives `f` and `h`. Put `ψ = h ∘ f`.
+  3. The checks. `ψ` is smooth, and `h` has the properties that the
+     statement asks. For `x ∉ U`, `x ∉ W₀ ∪ Φ '' H γ'`, since both sets
+     lie in `U` (`W₀ ⊆ U ∩ Φ.target` by 14d19, `Φ '' H γ' ⊆ U` by
+     14d20); so `f =ᶠ[𝓝 x] φ` and `ψ =ᶠ[𝓝 x] h ∘ φ`. As `h` is strictly
+     increasing with `h 0 = 0`, `ψ x ≤ 0 ↔ f x ≤ 0` and
+     `ψ x < 0 ↔ f x < 0`, which give strict plurisubharmonicity on
+     `{ψ ≤ 0}` and the disc in `{ψ < 0}` from 14d20. `0 = h 0` is a
+     regular value of `ψ` by `TauCeti.IsRegularValue.scalar_comp`
+     (`RegularValue/CriticalSet.lean`).
+  For `F = 0` the sphere is empty; 14d19 and 14d20 cover that case, so
+  the assembly needs no separate argument. Issue 14e proves
+  `IsJOrthogonallyAttached.exists_surround_critical`, making the
+  restriction of `ψ` to the disc a function with one critical point, at
+  its centre, which the model handle function of issue 14c describes
+  there. It reads `ψ` near `ι 0` through `Φ`, where `Ψ` is a
+  reparametrization of `Ψst` (`exists_modelSurround`), so it repeats
+  steps 1–3 with the further data that 14d20 gives.
 
 Expected sizes: 300 lines for each of issues 14a and 14b, 400 for 14c,
 the sizes of the table below for the numbered parts of 14d,
-500 for 14d and 400 for 14e.
+150 for 14d and 400 for 14e.
 
 ### `Geometry/Symplectic/Weinstein/Handle/`
 
@@ -1679,7 +1737,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d18 | Radial reparametrization and frames adapted to the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14b, 14d9 | 300 |
 | 14d19 | The normal form of $\varphi$ near the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14d13, 14d15, 14d17, 14d18 | 300 |
 | 14d20 | The model handle joined to the normal form near the attaching sphere | `JConvex/Surround/Implant.lean` | 14d8, 14d19 | 400 |
-| 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14a, 14b, 14c | 500 |
+| 14d | The $J$-convex surrounding of an attached disc | `JConvex/Surround/Basic.lean` | 14d20 | 150 |
 | 14e | The surrounding with one new critical point | `JConvex/Surround/Basic.lean` | 14d | 400 |
 | 15 | Weinstein cobordisms and elementary cobordisms | `Handle/Cobordism.lean` | 7 | 450 |
 | 15a | Design: stable discs | this file | 15 | — |

@@ -109,8 +109,7 @@ theorem fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero {h : 𝕜 → 𝕜} {
     fderiv 𝕜 (fderiv 𝕜 (fun x : 𝕜 × F ↦ g x.2 * h x.1)) (a, b) (1, 0) (1, 0) =
       g b * deriv (deriv h) a := by
   rw [fderiv_fderiv_comp_snd_mul_comp_fst_apply_mk_zero hg hh,
-    TauCeti.fderiv_fderiv_apply_eq_smul_iteratedDeriv, iteratedDeriv_succ, iteratedDeriv_one]
-  simp
+    TauCeti.fderiv_fderiv_apply_one_one]
 
 section ProdMk
 

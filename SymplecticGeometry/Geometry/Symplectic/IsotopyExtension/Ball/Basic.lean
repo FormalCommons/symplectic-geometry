@@ -62,6 +62,8 @@ constant family), which contains a larger closed ball
 * `SymplecticGeometry.IsSymplecticBallEmbedding.exists_contMDiffOn`, `.injOn`, `.mpullback_eq`,
   `SymplecticGeometry.IsSymplecticBallFamily.exists_contMDiffOn`,
   `.isSymplecticBallEmbedding`: the components of the two definitions.
+* `SymplecticGeometry.IsSymplecticBallFamily.contMDiff_apply_mk`: in such a family, each point
+  of `B(r)` moves along a smooth curve.
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_contDiffOn_timeExtend`: for a family with
   values in a normed space, its extension `timeExtend` to all times `t ∈ ℝ` is smooth on
   `ℝ × U` for an open neighbourhood `U` of `B(r)`.
@@ -279,6 +281,13 @@ theorem exists_contMDiffOn (he : IsSymplecticBallFamily σ r e) :
     ∃ U, IsOpen U ∧ closedBall 0 r ⊆ U ∧
       ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) I ∞ e (univ ×ˢ U) :=
   he.1
+
+/-- In a smooth family `e` of symplectic embeddings of `B(r)`, each point `z` of `B(r)` moves
+along a smooth curve `t ↦ e (t, z)`. -/
+theorem contMDiff_apply_mk (he : IsSymplecticBallFamily σ r e) {z : StdSpace (Fin n)}
+    (hz : z ∈ closedBall 0 r) : ContMDiff (𝓡∂ 1) I ∞ fun t ↦ e (t, z) := by
+  obtain ⟨U, -, hrU, heU⟩ := he.exists_contMDiffOn
+  exact heU.comp_contMDiff (contMDiff_id.prodMk contMDiff_const) fun _ ↦ ⟨mem_univ _, hrU hz⟩
 
 /-- Each slice of a smooth family of symplectic embeddings of `B(r)` is a symplectic embedding
 of `B(r)`. -/

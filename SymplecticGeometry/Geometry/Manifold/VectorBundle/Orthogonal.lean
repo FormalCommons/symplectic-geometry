@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.ComplementarySubbundle
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
+import TauCeti.Geometry.Manifold.ContMDiff.ContinuousLinearEquiv
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
@@ -146,11 +147,9 @@ theorem contMDiff_totalSpace_projection_orthogonal
       (hβ.contMDiffOn.clm_bundle_apply₂_trivial (hDs j) (hDs i)).smul contMDiffOn_const
   obtain ⟨e, he⟩ := exists_gram_eq hD hc hp₀
   have hinv : ContMDiffAt (IB.prod 𝓘(𝕜, F)) 𝓘(𝕜, (Fin r → 𝕜) →L[𝕜] (Fin r → 𝕜)) n
-      (fun p : TotalSpace F E ↦ (gram β D p.proj).inverse) p₀ := by
-    refine ContMDiffAt.comp (g := ContinuousLinearMap.inverse) p₀ ?_
-      ((hG.contMDiffAt hUn).comp p₀ hpr)
-    rw [← he]
-    exact (contDiffAt_map_inverse e).contMDiffAt
+      (fun p : TotalSpace F E ↦ (gram β D p.proj).inverse) p₀ :=
+    contMDiffWithinAt_univ.1 <|
+      ((hG.contMDiffAt hUn).comp p₀ hpr).contMDiffWithinAt.clm_inverse ⟨e, he⟩
   -- The pairings of a vector with the frame.
   have hb : ContMDiffAt (IB.prod 𝓘(𝕜, F)) 𝓘(𝕜, Fin r → 𝕜) n
       (fun p : TotalSpace F E ↦ fun j ↦ β p.proj (D j p.proj) p.snd) p₀ :=

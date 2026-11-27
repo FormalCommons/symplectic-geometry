@@ -357,11 +357,9 @@ theorem continuous_powerOneEquiv :
   rw [(AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk Circle (Fiber ℂ F V ℂ)
     (PowerModel 1)).isQuotientMap.continuous_iff]
   refine (continuous_totalSpace_frame_apply.comp
-    ((TotalSpace.modelFiberHomeomorph
-      Bundle.isInducing_modelFiberEquiv_circleFiber).continuous.prodMap
+    (Bundle.isInducing_totalSpaceMk'_circleFiber.continuous.prodMap
       PowerModel.toComplex.continuous)).congr fun ⟨⟨b, φ⟩, z⟩ ↦ ?_
-  rw [Function.comp_apply, Prod.map_apply, TotalSpace.coe_modelFiberHomeomorph,
-    TotalSpace.modelFiberEquiv_apply]
+  rw [Function.comp_apply, Prod.map_apply]
   simp
 
 /-- The map of total spaces induced by the inverse of `powerOneEquiv` is continuous. -/

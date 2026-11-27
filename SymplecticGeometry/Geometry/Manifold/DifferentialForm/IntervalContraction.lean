@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtensio
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.Riemannian.Interval.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -250,8 +251,8 @@ theorem isSemibasic_fst_prodIccHomotopyOperator [CompleteSpace F]
     intervalIntegral.integral_zero
   dsimp only
   generalize projIcc 0 1 zero_le_one r = u
-  obtain ⟨s, hs⟩ : ∃ s : ℝ,
-      mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) x.2 (v i).2 = s := ⟨_, rfl⟩
+  obtain ⟨s, hs⟩ : ∃ s : ℝ, (v i).2 = s • (1 : TangentSpace (𝓡∂ 1) x.2) :=
+    ⟨_, TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc _ _⟩
   -- both the image of the unit time vector and that of `v i` are multiples of the unit vector
   -- `e` along `[a, b]`
   set e : TangentSpace (I.prod (𝓡∂ 1)) (prodIccContraction M a b (x, u)) :=
@@ -270,7 +271,7 @@ theorem isSemibasic_fst_prodIccHomotopyOperator [CompleteSpace F]
       (x, u) (v i, (0 : EuclideanSpace ℝ (Fin 1))) =
       ((u : ℝ) * s + ((x.2 : ℝ) - a) * 0) • e := by
     have h := mfderiv_prodIccContraction (x, u) (0 : TangentSpace I x.1) s 0
-    rw [zero_smul, ← eq_smul_one_of_mfderiv_subtypeVal_Icc hs, he] at h
+    rw [zero_smul, ← hs, he] at h
     rw [show v i = ((0 : TangentSpace I x.1), (v i).2) from Prod.ext hv rfl]
     -- the model space of the tangent spaces of the unit interval is `EuclideanSpace ℝ (Fin 1)`
     exact h

@@ -11,9 +11,8 @@ public import Mathlib.Geometry.Manifold.VectorField.Pullback
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.RegularValue
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.Topology.LocallyFinite.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.Isometry
 import TauCeti.Geometry.Manifold.Riemannian.Isometry.Pullback
@@ -189,16 +188,14 @@ critical point of `f`, the function `f` is strictly increasing on `s`. -/
 theorem strictMonoOn_comp (hX : IsGradientLike f X) {γ : ℝ → M} {s : Set ℝ} (hs : Convex ℝ s)
     (hγ : IsMIntegralCurveOn γ X s) (hcrit : ∀ t ∈ s, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) :
     StrictMonoOn (f ∘ γ) s := by
-  have hderiv : ∀ t ∈ s,
-      HasDerivWithinAt (f ∘ γ) (mvfderiv 𝓘(ℝ, E) f (γ t) (X (γ t))) s t := fun t ht ↦ by
-    have hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t) := by
-      by_contra hnd
-      exact hcrit t ht (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hnd))
-    exact hasDerivWithinAt_comp_curve hf (hγ t ht)
-  refine strictMonoOn_of_deriv_pos hs (fun t ht ↦ (hderiv t ht).continuousWithinAt) fun t ht ↦ ?_
-  have ht' := interior_subset ht
-  rw [((hderiv t ht').hasDerivAt (mem_interior_iff_mem_nhds.1 ht)).deriv]
-  exact hX.mvfderiv_apply_pos (hcrit t ht')
+  have hf : ∀ t ∈ s, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t) := fun t ht ↦ by
+    by_contra hnd
+    exact hcrit t ht (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hnd))
+  -- Tau Ceti states the decreasing case; apply it to `-f`.
+  have hneg := hγ.strictAntiOn_comp (f := -f) hs (fun t ht ↦ (hf t ht).neg) fun t ht ↦ by
+    rw [mvfderiv_neg, neg_apply, neg_lt_zero]
+    exact hX.mvfderiv_apply_pos (hcrit t (interior_subset ht))
+  exact fun a ha b hb hab ↦ neg_lt_neg_iff.1 (hneg ha hb hab)
 
 /-- Along an integral curve of a gradient-like field that meets no critical point of `f`, the
 function `f` is strictly increasing. -/

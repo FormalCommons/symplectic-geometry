@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
-public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+public import TauCeti.Analysis.SpecialFunctions.SmoothSegmentPath
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
@@ -53,8 +53,9 @@ an inner product.
   complex structures.
 * `SymplecticGeometry.invertibleSegments`: the pairs `(a, b)` of forms whose convex combinations
   are all invertible.
-* `SymplecticGeometry.segmentMoserFlow`: the time-one propagator of the Moser generator of the
-  path `(1 - β t) • a + β t • b`, with `β = Real.smoothTransition`.
+* `SymplecticGeometry.segmentMoserFlow`: the time-one propagator of the Moser generator of
+  Tau Ceti's path `TauCeti.smoothSegmentPath a b`, `t ↦ a + β t • (b - a)` with
+  `β = Real.smoothTransition`.
 
 ## Main results
 
@@ -283,34 +284,26 @@ theorem isOpen_invertibleSegments : IsOpen (invertibleSegments V) := by
   exact hc.continuous.continuousAt.eventually (hp s hs).eventually_nhds
 
 /-- The time-one linear Moser flow from `a` to `b`: the propagator at time `1` of the Moser
-generator of the path `t ↦ (1 - β t) • a + β t • b`, where `β` is `Real.smoothTransition`. For a
-pair of skew forms in `invertibleSegments V` it pulls `b` back to `a`
-(`apply_segmentMoserFlow`). -/
+generator of the path `TauCeti.smoothSegmentPath a b`, that is `t ↦ a + β t • (b - a)`, where `β`
+is `Real.smoothTransition`. For a pair of skew forms in `invertibleSegments V` it pulls `b` back
+to `a` (`apply_segmentMoserFlow`). -/
 def segmentMoserFlow (a b : V →L[ℝ] V →L[ℝ] ℝ) : V →L[ℝ] V :=
-  dysonSeriesLeft (moserGenerator fun t ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b) 1
+  dysonSeriesLeft (moserGenerator (TauCeti.smoothSegmentPath a b)) 1
 
 omit [CompleteSpace V] in
 theorem segmentMoserFlow_def (a b : V →L[ℝ] V →L[ℝ] ℝ) :
-    segmentMoserFlow a b =
-      dysonSeriesLeft
-        (moserGenerator fun t ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b) 1 :=
+    segmentMoserFlow a b = dysonSeriesLeft (moserGenerator (TauCeti.smoothSegmentPath a b)) 1 :=
   (rfl)
 
 variable {a b : V →L[ℝ] V →L[ℝ] ℝ}
 
 omit [CompleteSpace V] in
-/-- The smooth path from `a` to `b` along which `segmentMoserFlow` is taken is smooth. -/
-private theorem contDiff_segmentPath :
-    ContDiff ℝ (⊤ : ℕ∞) fun t : ℝ ↦ (1 - t.smoothTransition) • a + t.smoothTransition • b :=
-  ((contDiff_const.sub Real.smoothTransition.contDiff).smul contDiff_const).add
-    (Real.smoothTransition.contDiff.smul contDiff_const)
-
-omit [CompleteSpace V] in
 /-- Along the path of `segmentMoserFlow`, every form is invertible when the pair is in
-`invertibleSegments V`, since `smoothTransition` takes values in `[0, 1]`. -/
+`invertibleSegments V`, since the path stays on the segment from `a` to `b`. -/
 private theorem isInvertible_segmentPath (hp : (a, b) ∈ invertibleSegments V) (t : ℝ) :
-    ((1 - t.smoothTransition) • a + t.smoothTransition • b).IsInvertible :=
-  hp _ ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
+    (TauCeti.smoothSegmentPath a b t).IsInvertible := by
+  obtain ⟨s, hs, h⟩ := (segment_eq_image ℝ a b).subset (TauCeti.smoothSegmentPath_mem_segment a b t)
+  exact h ▸ hp s hs
 
 /-- **The linear Moser flow of a segment.** For skew forms `a`, `b` all of whose convex
 combinations are invertible, `segmentMoserFlow a b` pulls `b` back to `a`. -/
@@ -318,14 +311,16 @@ theorem apply_segmentMoserFlow (hp : (a, b) ∈ invertibleSegments V)
     (ha : ∀ v w, a v w = -a w v) (hb : ∀ v w, b v w = -b w v) (u v : V) :
     b (segmentMoserFlow a b u) (segmentMoserFlow a b v) = a u v := by
   rw [segmentMoserFlow_def]
-  have h := apply_dysonSeriesLeft_moserGenerator (contDiff_segmentPath.of_le (by simp))
-    (isInvertible_segmentPath hp) (fun t v w ↦ by simp [ha v w, hb v w]; ring) 1 u v
-  simpa [Real.smoothTransition.one, Real.smoothTransition.zero] using h
+  have h := apply_dysonSeriesLeft_moserGenerator (TauCeti.contDiff_smoothSegmentPath a b)
+    (isInvertible_segmentPath hp)
+    (fun t v w ↦ by simp [TauCeti.smoothSegmentPath_def, ha v w, hb v w]; ring) 1 u v
+  rwa [TauCeti.smoothSegmentPath_of_one_le a b le_rfl,
+    TauCeti.smoothSegmentPath_of_nonpos a b le_rfl] at h
 
 /-- The linear Moser flow of a pair in `invertibleSegments V` is invertible. -/
 theorem isUnit_segmentMoserFlow (hp : (a, b) ∈ invertibleSegments V) :
     IsUnit (segmentMoserFlow a b) :=
-  isUnit_dysonSeriesLeft (continuous_moserGenerator (contDiff_segmentPath.of_le (by simp))
+  isUnit_dysonSeriesLeft (continuous_moserGenerator (TauCeti.contDiff_smoothSegmentPath a b)
     (isInvertible_segmentPath hp)) 1
 
 omit [CompleteSpace V] in
@@ -333,10 +328,11 @@ omit [CompleteSpace V] in
 is smooth. -/
 private theorem contDiff_segmentFamily :
     ContDiff ℝ (⊤ : ℕ∞) (Function.uncurry fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ))
-      (t : ℝ) ↦ (1 - t.smoothTransition) • p.1 + t.smoothTransition • p.2) := by
+      (t : ℝ) ↦ TauCeti.smoothSegmentPath p.1 p.2 t) := by
   have hβ : ContDiff ℝ (⊤ : ℕ∞) fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
       q.2.smoothTransition := Real.smoothTransition.contDiff.comp contDiff_snd
-  exact ((contDiff_const.sub hβ).smul contDiff_fst.fst).add (hβ.smul contDiff_fst.snd)
+  simp only [Function.uncurry_def, TauCeti.smoothSegmentPath_def]
+  exact contDiff_fst.fst.add (hβ.smul (contDiff_fst.snd.sub contDiff_fst.fst))
 
 /-- The linear Moser flow of a segment is smooth in the pair of forms, on the open set
 `invertibleSegments V`. -/
@@ -345,7 +341,7 @@ theorem contDiffOn_segmentMoserFlow {n : ℕ∞} :
       (invertibleSegments V) := by
   have hω : ContDiffOn ℝ (((⊤ : ℕ∞) : WithTop ℕ∞) + 1) (Function.uncurry
       fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) (t : ℝ) ↦
-        (1 - t.smoothTransition) • p.1 + t.smoothTransition • p.2)
+        TauCeti.smoothSegmentPath p.1 p.2 t)
       (invertibleSegments V ×ˢ Set.univ) :=
     (contDiff_segmentFamily.of_le (by simp)).contDiffOn
   have h := contDiffOn_parametric_dysonSeriesLeft_moserGenerator (n := ⊤)
@@ -364,10 +360,10 @@ theorem segmentMoserFlow_conj {W : Type*} [NormedAddCommGroup W] [NormedSpace �
     segmentMoserFlow (e.bilinearCongr a) (e.bilinearCongr b) =
       e.conjContinuousAlgEquiv (segmentMoserFlow a b) := by
   rw [segmentMoserFlow_def, segmentMoserFlow_def, ← dysonSeriesLeft_moserGenerator_conj e
-    (contDiff_segmentPath.of_le (by simp)) (isInvertible_segmentPath hp)]
+    (TauCeti.contDiff_smoothSegmentPath a b) (isInvertible_segmentPath hp)]
   congr 2
   ext1 t
-  simp
+  simp [TauCeti.smoothSegmentPath_def]
 
 end Segment
 

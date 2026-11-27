@@ -19,6 +19,7 @@ public import TauCeti.Data.Fin.Sum
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
 import SymplecticGeometry.Topology.ComplexStructure.Orbit
 import TauCeti.Geometry.Sphere.Connected
+import TauCeti.Topology.PathComponent
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
 import Mathlib.RingTheory.PicardGroup
@@ -292,9 +293,8 @@ theorem IsPositivelyOriented.joined_stdComplexStructure {J : AlmostComplexStruct
 theorem pathComponent_stdComplexStructure :
     pathComponent (stdComplexStructure ι) = {J | IsPositivelyOriented J} :=
   Set.Subset.antisymm
-    ((pathComponent_subset_component _).trans
-      (isClopen_setOfPred_isPositivelyOriented.connectedComponent_subset
-        isPositivelyOriented_stdComplexStructure))
+    (isClopen_setOfPred_isPositivelyOriented.pathComponent_subset _
+      isPositivelyOriented_stdComplexStructure)
     fun _ hJ ↦ IsPositivelyOriented.joined_stdComplexStructure hJ
 
 /-- The positively oriented complex structures of `StdSpace ι` form a path-connected set. -/

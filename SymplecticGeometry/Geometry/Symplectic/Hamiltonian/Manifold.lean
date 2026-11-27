@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
+import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # Regularity of Hamiltonian vector fields, and Hamiltonians with zero vector field
@@ -23,8 +22,9 @@ Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorFie
 For any two-form, the zero field is a Hamiltonian vector field of every locally constant function
 (`TauCeti.SmoothTwoForm.isHamiltonianVectorField_zero_of_isLocallyConstant`). This follows from
 Tau Ceti's `TauCeti.SmoothTwoForm.isHamiltonianVectorField_zero_iff`, by which the zero field is a
-Hamiltonian vector field of `f` exactly when `df` vanishes everywhere; for constant functions it is
-Tau Ceti's `TauCeti.SmoothTwoForm.isHamiltonianVectorField_const`.
+Hamiltonian vector field of `f` exactly when `df` vanishes everywhere, and from Tau Ceti's
+`IsLocallyConstant.mvfderiv_eq_zero`, by which it does for a locally constant `f`; for constant
+functions it is Tau Ceti's `TauCeti.SmoothTwoForm.isHamiltonianVectorField_const`.
 
 Adding to `σ` a two-form that pairs a Hamiltonian vector field with every tangent vector to zero
 keeps it a Hamiltonian vector field of the same function
@@ -50,7 +50,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 /-- The zero vector field is a Hamiltonian vector field of every locally constant function. -/
 theorem isHamiltonianVectorField_zero_of_isLocallyConstant (hf : IsLocallyConstant f) :
     σ.IsHamiltonianVectorField f 0 :=
-  isHamiltonianVectorField_zero_iff.2 fun _ ↦ by rw [mvfderiv_eq_zero_iff, hf.mfderiv_eq_zero]
+  isHamiltonianVectorField_zero_iff.2 hf.mvfderiv_eq_zero
 
 /-- If `X` is a Hamiltonian vector field of `f` for `σ` and the two-form `τ` pairs `X` with every
 tangent vector to zero, then `X` is a Hamiltonian vector field of `f` for `σ + τ`. -/
