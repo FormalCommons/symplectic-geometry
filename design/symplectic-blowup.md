@@ -44,8 +44,10 @@ files are under `SymplecticGeometry/`.
   the book's $\omega_0$ is `ω₀E := (TauCeti.stdComplexPiSymplecticForm
   (Fin (n + 1))).constSmooth`, which `stdForm_complexToRealEuclidean`
   identifies with *Standard model*'s `stdForm` read through
-  `complexToRealEuclidean`; `constSmooth_stdComplexPiSymplecticForm_eq`
-  of `Complex/Radial.lean` states this for the constant forms, so that
+  `complexToRealEuclidean`; Tau Ceti's
+  `SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`, applied to
+  `isSymplectomorphism_complexToRealEuclidean`, states this for the
+  constant forms, so that
   ball embeddings (on `StdSpace`) and the model (on `E`) meet. The
   Fubini–Study form is the library's `fubiniStudyForm n` on `ℙ ℂ E`, in
   which a line has area $\pi$
@@ -233,9 +235,6 @@ potential forms, up to `radialPotentialForm_id`, are stated on `ι → ℂ` for
   with $s=|z|^2$, which the computations below read. `radialPotentialForm_id` ($g(s)=s$
   gives $\omega_0$) and `radialPotentialForm_log` ($g=\log$ gives
   `fubiniStudyLift`, by `fubiniStudyPrimitive_eq`).
-- `constSmooth_stdComplexPiSymplecticForm_eq`: the constant form
-  `(stdComplexPiSymplecticForm ι).constSmooth` is the pull-back of
-  `(stdForm ι).constSmooth` along `complexToRealEuclidean ι`.
 - `isKahler_radialPotentialForm`: if $g'>0$ and $(sg')'>0$ on `Ioi 0`, the
   form is Kähler for the complex structure of the open subset, by the Levi
   form above.
