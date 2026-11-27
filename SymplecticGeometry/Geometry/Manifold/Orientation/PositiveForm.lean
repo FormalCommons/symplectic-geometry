@@ -233,7 +233,7 @@ variable {n : ℕ∞ω}
 /-- **Orientation-preserving diffeomorphisms from a positive pull-back.** Let `φ` be a top form
 positive for the orientation `o`. A `Cⁿ` diffeomorphism `f` of `M`, for `n ≠ 0`, preserves `o`
 exactly when the pull-back `f^* φ` is positive for `o`. -/
-theorem _root_.Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback (hn : n ≠ 0)
+theorem _root_.Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback {hn : n ≠ 0}
     {o : TauCeti.Manifold.Orientation I M (Fin k)} {φ : RoughForm I M ℝ k} (hφ : IsPositive o φ)
     {f : TauCeti.Diff I M n} :
     f ∈ Diffeomorph.orientationPreservingSubgroup hn o ↔ IsPositive o (mpullback I I f φ) := by
