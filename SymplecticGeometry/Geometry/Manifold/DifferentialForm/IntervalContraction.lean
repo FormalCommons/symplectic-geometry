@@ -195,9 +195,10 @@ theorem mextDerivₗ_prodIccHomotopyOperator [CompleteSpace F]
     (hη : mextDerivₗ (I.prod (𝓡∂ 1)) (k + 1) η = 0) :
     mextDerivₗ (I.prod (𝓡∂ 1)) k (prodIccHomotopyOperator I M a b F k η) =
       η - SmoothForm.mpullback (fun x : M × Icc a b ↦ (x.1, ⊥))
-        (contMDiff_fst.prodMk contMDiff_const) η :=
-  SmoothForm.mextDerivₗ_homotopyOperator_mpullback _ _ prodIccContraction_zero
-    prodIccContraction_one hη
+        (contMDiff_fst.prodMk contMDiff_const) η := by
+  rw [prodIccHomotopyOperator_apply, SmoothForm.mextDerivₗ_homotopyOperator_mpullback _
+    contMDiff_id (contMDiff_prodIccContraction I M a b) prodIccContraction_zero
+    prodIccContraction_one hη, SmoothForm.mpullback_id, LinearMap.id_apply]
 
 /-- **Naturality of `K`.** For a smooth map `f : N → M`, pulling `K η` back along `f × id` gives
 `K` of the pull-back of `η`. -/
