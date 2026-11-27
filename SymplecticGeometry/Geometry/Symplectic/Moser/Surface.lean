@@ -14,6 +14,9 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Surface
 import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
+import SymplecticGeometry.Geometry.Symplectic.Moser.Parameter
 
 /-!
 # Moser's theorem for area forms on closed surfaces
@@ -25,6 +28,15 @@ identity, with `Ψ_1^* σ = ω₀`
 (`TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_integralTopForm_eq`). In particular
 its time-one map `ψ = Ψ_1` is a diffeomorphism of `M` with `ψ^* σ = ω₀`
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq`).
+
+The same holds with a parameter: a two-form `σ` on `P × M` whose slices `σ_p` are positive for
+`o` with the integral of `ω₀` gives a diffeomorphism `(p, x) ↦ (p, χ_p x)` of `P × M` with
+`χ_p^* σ_p = ω₀`, and each `χ_p` preserves `o`
+(`TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_integralTopForm_eq`). Here the
+differences `σ_p - ω₀` are exact, they have a smooth family of primitives since `M` has a finite
+good cover (`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq`), and Moser's argument with
+a parameter (`TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub`)
+gives `χ`.
 
 The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`, `t ∈ [0, 1]`.
 
@@ -45,12 +57,16 @@ The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`,
   the time-one map of a diffeotopy.
 * `TauCeti.SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq`: the same, with
   only the diffeomorphism.
+* `TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_integralTopForm_eq`: the same
+  for a family of area forms over a parameter manifold, with orientation-preserving
+  diffeomorphisms.
 
 ## References
 
 * J. Moser, *On the volume elements on a manifold*, Transactions of the American Mathematical
   Society 120 (1965), 286–294.
-* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.2.
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.2,
+  and §6.2 (the proof of Theorem 6.2.2) for the parametric form.
 -/
 
 public section
@@ -108,6 +124,49 @@ theorem exists_diffeomorph_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace
     ∃ ψ : M ≃ₘ⟮I, I⟯ M, SmoothForm.mpullback ψ ψ.contMDiff σ = ω₀ :=
   let ⟨Ψ, hΨ⟩ := exists_diffeotopy_mpullback_eq_of_integralTopForm_eq o hω hσ hint
   ⟨Ψ.final, hΨ⟩
+
+variable {EP HP P : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [CompleteSpace EP]
+  [TopologicalSpace HP] {IP : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
+  [IsManifold IP ∞ P] [T2Space P] [BoundarylessManifold IP P]
+
+/-- **Moser's theorem for families of area forms.** Let `M` be a closed surface, connected or
+empty, with an orientation `o`, let `P` be a Hausdorff boundaryless manifold modelled on a complete
+space, `ω₀` a two-form on `M` positive for `o`, and `σ` a two-form on `P × M` whose slices `σ_p`
+are positive for `o` and have the integral of `ω₀`. Then there is a diffeomorphism `Φ` of `P × M`
+of the form `(p, x) ↦ (p, χ_p x)`, for diffeomorphisms `χ_p` of `M` preserving `o`, with
+`χ_p^* σ_p = ω₀` for every `p`. -/
+theorem exists_diffeomorph_prod_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace M]
+    (o : Manifold.Orientation I M (Fin 2)) {ω₀ : SmoothTwoForm I M} (hω : o.IsPositive ω₀.val)
+    (σ : SmoothForm (IP.prod I) (P × M) ℝ 2)
+    (hσ : ∀ p, o.IsPositive
+      (SmoothForm.mpullback (Prod.mk p) (contMDiff_const.prodMk contMDiff_id) σ).val)
+    (hint : ∀ p, integralTopForm o
+      (SmoothForm.mpullback (Prod.mk p) (contMDiff_const.prodMk contMDiff_id) σ).val =
+        integralTopForm o ω₀.val) :
+    ∃ Φ : (P × M) ≃ₘ⟮IP.prod I, IP.prod I⟯ (P × M), ∃ χ : P → M ≃ₘ⟮I, I⟯ M,
+      (∀ q, Φ q = (q.1, χ q.1 q.2)) ∧
+      (∀ p, SmoothForm.mpullback (χ p) (χ p).contMDiff
+          (SmoothForm.mpullback (Prod.mk p) (contMDiff_const.prodMk contMDiff_id) σ) = ω₀) ∧
+      ∀ p, χ p ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o := by
+  have hE : Module.finrank ℝ E = 2 := by simpa using o.card_eq.symm
+  -- The differences `σ_p - ω₀` are exact, with a smooth family of primitives `α p`.
+  obtain ⟨α, hα, hdα⟩ := exists_isSmoothFamily_mextDerivₗ_eq (k := 1)
+    hasFiniteGoodCover_of_compactSpace
+    ((isSmoothFamily_mpullback_prodMk σ).sub (isSmoothFamily_const ω₀))
+    fun p ↦ (sub_mem_exactForms_iff_integralTopForm_eq o).2 (hint p)
+  obtain ⟨β, hβ⟩ := isSmoothFamily_def.mp hα
+  -- Moser's argument with parameters in `P`, along the segments from `ω₀` to `σ_p`.
+  obtain ⟨Φ, χ, hΦ, hχ, -⟩ :=
+    exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
+      (SmoothForm.isClosed_of_finrank_le hE.le ω₀) σ β
+      (fun p ↦ by rw [hβ, ← hdα p, mextDerivₗ_apply])
+      fun p x s hs ↦ nondegenerate_bilinFormAt_add_smul_sub (hω.isPositiveAt x)
+        ((hσ p).isPositiveAt x) hs
+  -- Each `χ p` pulls the positive form `σ_p` back to the positive form `ω₀`, so it preserves `o`.
+  refine ⟨Φ, χ, hΦ, hχ, fun p ↦
+    (Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback (hσ p)).2 ?_⟩
+  rw [← SmoothForm.coe_mpullback _ (χ p).contMDiff, hχ p]
+  exact hω
 
 end TauCeti.SmoothTwoForm
 
