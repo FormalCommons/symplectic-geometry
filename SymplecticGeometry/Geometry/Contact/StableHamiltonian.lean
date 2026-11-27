@@ -730,8 +730,7 @@ theorem zeroSliceOneForm_apply (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).pro
     (x : M) (w : TangentSpace I x) :
     (zeroSliceOneForm hε σ).val x ![w] =
       -σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) x) ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
-  rw [zeroSliceOneForm, smul_toRoughForm]
-  rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+  rw [zeroSliceOneForm, SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
     mpullback_prodMk_zero_timeInterior_apply, smul_eq_mul, ← mul_assoc, neg_mul,
     inv_mul_cancel₀ (by positivity), neg_one_mul]
 

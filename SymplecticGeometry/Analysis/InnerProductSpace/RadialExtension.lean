@@ -10,7 +10,6 @@ public import Mathlib.Analysis.Calculus.Deriv.Basic
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Analysis.InnerProductSpace.Normalize
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
@@ -24,9 +23,7 @@ function `θ : F → ℝ` that is constant near `0`, equal to `τ u` at `r • u
 `u` and every `r ≥ ρ`, and such that `r ↦ θ (r • u) + log r` has a positive derivative at every
 `r > 0` (`SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le`).
 On a finite-dimensional space the bound below holds since the sphere is compact
-(`SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`). Such a positive
-derivative makes `r ↦ θ (r • u) + log r` strictly increasing on `(0, ∞)`, by the mean value
-theorem (`SymplecticGeometry.strictMonoOn_add_log_of_hasDerivAt_pos`).
+(`SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`).
 
 Away from `0` the function is `θ x = C + χ (log ‖x‖) * (τ (normalize x) - C)`, with Mathlib's
 `NormedSpace.normalize x = ‖x‖⁻¹ • x` (smooth off `0` by Tau Ceti's
@@ -131,18 +128,6 @@ theorem exists_contDiff_radial_extension_hasDerivAt_add_log_pos [FiniteDimension
   obtain ⟨C, hC⟩ := (isCompact_sphere (0 : F) 1).bddBelow_image hcont
   exact exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le hτ
     (fun u hu ↦ hC ⟨u, mem_sphere_zero_iff_norm.2 hu, rfl⟩) hρ
-
-/-- If `r ↦ θ (r • u) + log r` has a positive derivative at every `r > 0`, then it is strictly
-increasing on `(0, ∞)`. -/
-theorem strictMonoOn_add_log_of_hasDerivAt_pos {V : Type*} [SMul ℝ V] {θ : V → ℝ} {u : V}
-    (h : ∀ r, 0 < r → ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r) :
-    StrictMonoOn (fun s ↦ θ (s • u) + Real.log s) (Set.Ioi 0) := by
-  refine strictMonoOn_of_deriv_pos (convex_Ioi 0) (fun s hs ↦ ?_) fun s hs ↦ ?_
-  · obtain ⟨d, -, hd⟩ := h s hs
-    exact hd.continuousAt.continuousWithinAt
-  · rw [interior_Ioi] at hs
-    obtain ⟨d, hd0, hd⟩ := h s hs
-    rwa [hd.deriv]
 
 end SymplecticGeometry
 

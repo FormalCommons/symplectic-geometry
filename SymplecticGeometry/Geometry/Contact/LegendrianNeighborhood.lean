@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The Legendrian neighbourhood theorem
@@ -391,7 +392,7 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
   obtain ⟨U, V, Ψ, hΨ, hΨα⟩ := PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq
     σ.isLocalDiffeomorph σ.injective φ
     (τ := -(CotangentBundle.liouvilleForm J L).contactization) fun x hx ↦ by
-      rw [hφα x hx, map_neg, NegMemClass.coe_neg, Pi.neg_apply,
+      rw [hφα x hx, map_neg, SmoothBundleForm.neg_apply,
         ← CotangentBundle.connectionOneJetForm_zero,
         CotangentBundle.mpullback_connectionFrameChange_connectionOneJetForm _ _
           (a := 0) (by simp [hd, Pi.zero_def]), neg_one_smul, neg_neg]
