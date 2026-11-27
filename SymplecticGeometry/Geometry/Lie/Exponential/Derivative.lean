@@ -87,8 +87,8 @@ is `X` at every time `t`. -/
 theorem mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul (g : G) (X : GroupLieAlgebra I G)
     (t : ℝ) :
     mfderiv I I ((g * mulInvariantExp (t • X))⁻¹ * ·) (g * mulInvariantExp (t • X))
-      (mfderiv 𝓘(ℝ) I (fun s : ℝ ↦ g * mulInvariantExp (s • X)) t (1 : ℝ)) = X := by
-  rw [← curveVelocity_apply, curveVelocity_mul_mulInvariantExp_smul,
+      (curveVelocity I (fun s : ℝ ↦ g * mulInvariantExp (s • X)) t) = X := by
+  rw [curveVelocity_mul_mulInvariantExp_smul,
     TauCeti.mfderiv_inv_mul_mulInvariantVectorField]
 
 /-- **The derivative of the exponential at `0`.** Read on the model space `E` of `G`, the
