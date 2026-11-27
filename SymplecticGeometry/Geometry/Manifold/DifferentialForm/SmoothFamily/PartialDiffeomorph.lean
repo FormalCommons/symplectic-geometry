@@ -38,7 +38,7 @@ open TauCeti
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M]
-  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  [ChartedSpace H M] [IsManifold I 1 M] [T2Space M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
   {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
   [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
@@ -76,6 +76,7 @@ theorem extendByZeroAlong {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
     filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
       (ψ.open_source.mem_nhds hx)] with q hq
     obtain ⟨s, y⟩ := q
+    rw [sliceSection_apply]
     refine congrArg (TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
       (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) y) ?_
     have hψ : MDifferentiableAt I 𝓘(ℝ, E) ψ y := (ψ.contMDiffAt hq).mdifferentiableAt (by simp)
@@ -103,7 +104,7 @@ theorem extendByZeroAlong {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
     refine ((contMDiff_zeroSection ℝ (fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] F)).comp
       contMDiff_snd (t, x)).congr_of_eventuallyEq ?_
     filter_upwards [hev] with q hq
-    rw [hq q.1]
+    rw [sliceSection_apply, hq q.1]
     -- The zero section takes the value `0` at every point.
     rfl
 
