@@ -30,6 +30,12 @@ the smoothness of `Φ` as a section of the hom bundle from the trivial bundle wi
 product `M × W` (`contMDiffAt_hom_trivial_iff`, and `contMDiffOn_hom_trivial_iff` over an open
 set), through
 `TauCeti.contMDiffAt_hom_bundle_iff` and `Bundle.Trivial.contMDiffAt_comp_mk_iff` above.
+
+A fibrewise map `φ x : E₁ x → E₂ x` of fibre bundles is `C^n` on total spaces when, near each
+point `a` of the base, it is read in the trivializations at `a` as a family of continuous linear
+maps of the models that is `C^n` at `a` (`Bundle.contMDiff_bundleMap_of_coordinates`). The proof
+is that of Tau Ceti's `TauCeti.contMDiff_bundleMap_of_constant_coordinates`, for a fixed linear
+map, with the family in place of that map.
 -/
 
 public section
@@ -159,5 +165,44 @@ theorem contMDiffOn_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) {U : Set M
 end SymplecticGeometry
 
 end Trivial
+
+
+section Coordinates
+
+variable {𝕜 B EB HB F₁ F₂ : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
+  [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [ChartedSpace HB B]
+  [NormedAddCommGroup F₁] [NormedSpace 𝕜 F₁] [NormedAddCommGroup F₂] [NormedSpace 𝕜 F₂]
+  {E₁ E₂ : B → Type*} [∀ x, TopologicalSpace (E₁ x)] [∀ x, TopologicalSpace (E₂ x)]
+  [TopologicalSpace (TotalSpace F₁ E₁)] [TopologicalSpace (TotalSpace F₂ E₂)]
+  [FiberBundle F₁ E₁] [FiberBundle F₂ E₂] {n : WithTop ℕ∞}
+
+/-- **A fibrewise map with `C^n` coordinates is `C^n`.** Let `φ x : E₁ x → E₂ x` be maps of the
+fibres of two fibre bundles. Suppose that for each point `a` of the base there is a family of
+continuous linear maps `A x : F₁ →L F₂`, `C^n` at `a`, such that, read in the trivializations at
+`a`, the map `φ x` is `A x` at every point `x` of both base sets. Then the map of total spaces
+induced by `φ` is `C^n`. -/
+theorem Bundle.contMDiff_bundleMap_of_coordinates (φ : ∀ x, E₁ x → E₂ x)
+    (hφ : ∀ a, ∃ A : B → F₁ →L[𝕜] F₂, ContMDiffAt IB 𝓘(𝕜, F₁ →L[𝕜] F₂) n A a ∧
+      ∀ x ∈ (trivializationAt F₁ E₁ a).baseSet ∩ (trivializationAt F₂ E₂ a).baseSet, ∀ v,
+        (trivializationAt F₂ E₂ a ⟨x, φ x v⟩).2 = A x (trivializationAt F₁ E₁ a ⟨x, v⟩).2) :
+    ContMDiff (IB.prod 𝓘(𝕜, F₁)) (IB.prod 𝓘(𝕜, F₂)) n
+      (fun p : TotalSpace F₁ E₁ ↦ TotalSpace.mk' F₂ (E := E₂) p.proj (φ p.proj p.snd)) := by
+  intro p
+  obtain ⟨A, hA, hφA⟩ := hφ p.proj
+  rw [contMDiffAt_totalSpace_iff]
+  refine ⟨contMDiffAt_proj _, ?_⟩
+  have hc := (contMDiffAt_totalSpace_iff.mp
+    (contMDiffAt_id (I := IB.prod 𝓘(𝕜, F₁)) (x := p) (n := n))).2
+  refine ((hA.comp p (contMDiffAt_proj E₁)).clm_apply hc).congr_of_eventuallyEq ?_
+  have hb := ((FiberBundle.continuous_proj F₁ E₁).continuousAt).preimage_mem_nhds
+    (((trivializationAt F₁ E₁ p.proj).open_baseSet.inter
+      (trivializationAt F₂ E₂ p.proj).open_baseSet).mem_nhds
+        ⟨mem_baseSet_trivializationAt F₁ E₁ p.proj,
+          mem_baseSet_trivializationAt F₂ E₂ p.proj⟩)
+  filter_upwards [hb] with q hq
+  exact hφA q.proj hq q.snd
+
+end Coordinates
 
 end
