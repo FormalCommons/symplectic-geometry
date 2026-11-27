@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 
 /-!
 # The blowup of weight `λ` along a symplectic ball
@@ -117,9 +118,9 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
   carries it onto the zero section of the model, so the map of normal bundles that it induces is
   continuous by `TauCeti.SmoothEmbedding.continuous_normalBundleMap_of_contMDiffAt`; composed
   with the model's isomorphisms, continuous by
-  `BlowupModel.continuous_normalSpaceZeroSectionRealEquiv` once the quotient topology is compared
-  with the bundle one through Tau Ceti's `SmoothEmbedding.contMDiff_normalQuotientMap`, it gives
-  these isomorphisms, by the chain rule.
+  `BlowupModel.continuous_normalSpaceZeroSectionRealEquiv`, it gives these isomorphisms, by the
+  chain rule. Both normal bundles carry Tau Ceti's quotient topology from the ambient tangent
+  bundle, for which `SmoothEmbedding.normalSpaceFiberBundle` is a bundle structure.
 * `SymplecticGeometry.WeightBlowup.divisor_mem_modelChart_source`,
   `isSymplecticMapOn_modelChart`: the model chart sends the divisor to the zero section and pulls
   `ω̃_l` back to `ω̃_ψ` on its source, so that the divisor of the blowup can be blown down along
@@ -746,8 +747,8 @@ space of the normal bundle of the divisor to the total space of the tautological
 `Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)` over `ℙ ℂ (Fin (n + 1) → ℂ)`. The normal
 bundle carries Tau Ceti's topology, the quotient topology from the ambient tangent bundle. The
 type `K` only labels the total space and does not change its topology, so the theorem holds for
-every `K`. When `K` has real dimension 2, such as `ℂ`, this quotient topology is that of the
-bundle structure `SmoothEmbedding.normalSpaceFiberBundle`. -/
+every `K`; `SmoothEmbedding.normalSpaceFiberBundle` is a fibre bundle structure for this same
+topology. -/
 theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
     Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceDivisorEquiv hψ hl hε hn p.proj p.snd⟩ :
@@ -765,32 +766,17 @@ theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
       (GluedAlong.inr_injective _).injOn.leftInvOn_invFunOn (mem_univ y)]
   have h : v ∘ divisor hψ hl hε = zeroSectionRealEmbedding n ∘ _root_.id := by
     rw [coe_divisor, ← Function.comp_assoc, hvr, val_comp_zeroSectionOpenNbhd, Function.comp_id]
-  have hi := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
-    (n := ∞)).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ
-    (GluedAlong.inr_injective _).injOn
-  rw [image_univ] at hi
+  have hi := (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
+    (n := ∞)).contMDiffOn_invFunOn (GluedAlong.inr_injective _)
   have hv : ∀ y, ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ v
       (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y) := fun y ↦
     contMDiff_subtypeVal.contMDiffAt.comp _
       (hi.contMDiffAt ((GluedAlong.isOpen_range_inr _).mem_nhds (mem_range_self _)))
-  -- The isomorphism of the model is continuous for the quotient topology too, since the quotient
-  -- map is continuous for the bundle topology.
-  have hdim : Module.finrank ℝ ℂ =
-      Module.finrank ℝ (Fin (n + 1) → ℂ) - Module.finrank ℝ (Fin n → ℂ) := by
-    simp [Module.finrank_pi_fintype]; omega
-  have hZ : Continuous fun p : TotalSpace ℂ
-      (fun ℓ => (zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn) =>
-      (⟨p.proj, normalSpaceZeroSectionRealEquiv n hn p.proj p.snd⟩ :
-        TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
-    rw [SmoothEmbedding.continuous_normalBundle_iff]
-    let := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hdim
-    exact (continuous_normalSpaceZeroSectionRealEquiv hn hdim).comp
-      ((zeroSectionRealEmbedding n).contMDiff_normalQuotientMap hn (m := 0) (by simp)
-        hdim).continuous
   -- The isomorphisms of the divisor are those of the model after the normal-bundle map of `v`.
-  convert hZ.comp ((divisor hψ hl hε).continuous_normalBundleMap_of_contMDiffAt (K := K)
-    (K' := ℂ) (zeroSectionRealEmbedding n) hn hn
-    (fun x ↦ by rw [coe_divisor]; exact (hv _).of_le (by simp)) h) using 1
+  convert (continuous_normalSpaceZeroSectionRealEquiv hn (K := ℂ)).comp
+    ((divisor hψ hl hε).continuous_normalBundleMap_of_contMDiffAt (K := K) (K' := ℂ)
+      (zeroSectionRealEmbedding n) hn hn
+      (fun x ↦ by rw [coe_divisor]; exact (hv _).of_le (by simp)) h) using 1
   funext ⟨ℓ, x⟩
   let x₀ : openNbhdOpens n ε :=
     ⟨zeroSection ℓ, mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε ℓ)⟩

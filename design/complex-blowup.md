@@ -393,7 +393,8 @@ For a connected Riemann surface `Σ` (`[ChartedSpace ℂ Σ]
   read through `c.lift` near each point of it; `mdifferentiable_curveLift`,
   `blowdown_curveLift`, and `curveLift_unique`, by density of the
   complement of the discrete set and the Hausdorff property.
-- **Milestone** `Blowup.complexBlowup`, for a complex manifold `M`, `p₀` and
+- **Milestone** `Blowup.contMDiff_blowdown_and_properties`, for
+  a complex manifold `M`, `p₀` and
   `c` in the complex atlas: the conjunction of `contMDiff_blowdown`,
   `blowdownDiffeomorph`, the charts (for every holomorphic chart `φ` with
   `φ p₀ = 0`, `liftChart c φ` is in the maximal atlas of `Blowup c`, with
