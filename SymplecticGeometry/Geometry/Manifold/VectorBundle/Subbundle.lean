@@ -15,7 +15,8 @@ Let `V` be a family of subspaces of the fibres of a vector bundle `E` with `C^n`
 keep such frames:
 
 * reindexing the frames along an equivalence of index types
-  (`TauCeti.HasLocalContMDiffSubbundleFrames.reindex`);
+  (`TauCeti.HasLocalContMDiffSubbundleFrames.of_equiv`, whose proof is that of Tau Ceti's
+  continuous counterpart `TauCeti.HasLocalSubbundleFrames.of_equiv`);
 * taking the image of `V` under a family of fibrewise linear maps `P x : E₁ x → E₂ x` that is a
   `C^n` map of total spaces and injective on each `V x`
   (`TauCeti.HasLocalContMDiffSubbundleFrames.map`): the images of a frame of `V` are a frame of
@@ -38,6 +39,27 @@ open scoped Manifold ContDiff
 
 namespace TauCeti.HasLocalContMDiffSubbundleFrames
 
+section OfEquiv
+
+variable {𝕜 𝕜' : Type*} [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜']
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] {n : ℕ∞ω}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {E : B → Type*}
+  [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜' (E x)] [TopologicalSpace (TotalSpace F E)]
+  [∀ x, TopologicalSpace (E x)] [FiberBundle F E]
+  {ι ι' : Type*} {V : Π x, Submodule 𝕜' (E x)}
+
+/-- `C^n` local frames indexed by `ι` give `C^n` local frames indexed by any type equivalent
+to `ι`. -/
+theorem of_equiv (hV : HasLocalContMDiffSubbundleFrames IB n F ι V) (e : ι ≃ ι') :
+    HasLocalContMDiffSubbundleFrames IB n F ι' V :=
+    hasLocalContMDiffSubbundleFrames_iff.mpr fun x ↦ by
+  obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hV x
+  exact ⟨U, hU, hx, X ∘ e.symm, hX.comp_equiv e.symm, fun i ↦ hXs _⟩
+
+end OfEquiv
+
 section Operations
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -48,14 +70,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜 (E x)] [TopologicalSpace (TotalSpace F E)]
   [∀ x, TopologicalSpace (E x)] [FiberBundle F E]
   {ι ι' : Type*} {V W : Π x, Submodule 𝕜 (E x)}
-
-/-- `C^n` local frames indexed by `ι` give `C^n` local frames indexed by any type equivalent
-to `ι`. -/
-theorem reindex (hV : HasLocalContMDiffSubbundleFrames IB n F ι V) (e : ι ≃ ι') :
-    HasLocalContMDiffSubbundleFrames IB n F ι' V :=
-    hasLocalContMDiffSubbundleFrames_iff.mpr fun x ↦ by
-  obtain ⟨U, hU, hx, X, hX, hXs⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hV x
-  exact ⟨U, hU, hx, X ∘ e.symm, hX.comp_equiv e.symm, fun i ↦ hXs _⟩
 
 /-- **The sum of two smooth subbundles meeting in `0`.** If the families of subspaces `V` and
 `W` of the fibres of `E` have `C^n` local frames indexed by `ι` and `ι'`, and `V x` and `W x`
@@ -91,7 +105,7 @@ every `x`, then `V ⊔ W` has `C^n` local frames of size `r + s`. -/
 theorem sup_fin {r s : ℕ} (hV : HasLocalContMDiffSubbundleFrames IB n F (Fin r) V)
     (hW : HasLocalContMDiffSubbundleFrames IB n F (Fin s) W) (hVW : ∀ x, Disjoint (V x) (W x)) :
     HasLocalContMDiffSubbundleFrames IB n F (Fin (r + s)) fun x ↦ V x ⊔ W x :=
-  (hV.sup hW hVW).reindex finSumFinEquiv
+  (hV.sup hW hVW).of_equiv finSumFinEquiv
 
 variable {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace 𝕜 F₂] {E₂ : B → Type*}
   [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜 (E₂ x)] [TopologicalSpace (TotalSpace F₂ E₂)]
