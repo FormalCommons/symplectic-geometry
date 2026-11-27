@@ -13,9 +13,9 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Regularity
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Boundary
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
 /-!
@@ -50,8 +50,8 @@ proof of Tau Ceti's flow-out theorem `TauCeti.isLocalDiffeomorph_globalFlow_comp
 differential `TauCeti.mfderiv_globalFlow_comp_apply`) at time zero, with the linear inclusion of
 the hyperplane in place of an immersion; see also Lee, Theorem 9.20. Near that point `G` sends
 `ℝⁿ × [0, ∞)` exactly into the half-space, by the monotonicity of the zeroth coordinate, so it
-restricts to a local diffeomorphism of the half-space models
-(`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`), and in the charts of
+restricts to a local diffeomorphism of the half-space models (Tau Ceti's
+`TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff`), and in the charts of
 `∂W × [0, ∞)` and `W` this is the map `(x, t) ↦ γ (-t, x)`.
 
 These curves need no uniqueness result here: Tau Ceti's
@@ -246,8 +246,27 @@ private theorem isLocalDiffeomorphOn_extChartAt_symm_comp {p : (𝓡∂ (n + 1))
     rw [hCapply, hI]
   rintro ⟨q, hq⟩
   obtain ⟨hq1, hsrc, hval, htgt⟩ := hf q hq
-  have hl := Θ.isLocalDiffeomorphAt_symm_comp_comp_model ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1))
-    hΘ (by rw [hCI]; exact hsrc)
+  -- `Θ` read in the half-space models, as a partial diffeomorphism by Tau Ceti.
+  have hl : IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞
+      ((𝓡∂ (n + 1)).symm ∘ Θ ∘ ((𝓡 n).prod (𝓡∂ 1))) (C q) := by
+    have hΘ' : ∀ y ∈ Θ.toOpenPartialHomeomorph.source, Θ.toOpenPartialHomeomorph y ∈
+        range (𝓡∂ (n + 1)) ↔ y ∈ range ((𝓡 n).prod (𝓡∂ 1)) := by
+      simpa only [Θ.toOpenPartialHomeomorph_source,
+        PartialDiffeomorph.toFun'_toOpenPartialHomeomorph] using hΘ
+    have h := (PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff
+      Θ.toOpenPartialHomeomorph
+      (by
+        rw [Θ.toOpenPartialHomeomorph_source, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
+        exact contMDiffOn_iff_contDiffOn.1 Θ.contMDiffOn)
+      (by
+        rw [Θ.toOpenPartialHomeomorph_target, PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm]
+        exact contMDiffOn_iff_contDiffOn.1 Θ.symm.contMDiffOn) hΘ').isLocalDiffeomorphAt _ _ _
+      (by
+        rw [PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff_source, mem_preimage,
+          Θ.toOpenPartialHomeomorph_source, hCI]
+        exact hsrc)
+    rwa [PartialDiffeomorph.coe_ofOpenPartialHomeomorphOfMemRangeIff,
+      PartialDiffeomorph.toFun'_toOpenPartialHomeomorph] at h
   have hχ : (𝓡∂ (n + 1)).symm (Θ (((𝓡 n).prod (𝓡∂ 1)) (C q))) ∈
       (chartAt (EuclideanHalfSpace (n + 1)) (p : W)).target := by
     rw [extChartAt_target] at htgt

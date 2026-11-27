@@ -816,20 +816,8 @@ issues, in an order where each issue's blockers come before it.
    for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
-   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` derives
-   it, for the image of the fundamental class under
-   `TopCat.singularHomologyIntToRat`, from bijectivity of the duality map with
-   values in `ℚ`
-   (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`).
-   It uses a new general file,
-   `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
-   of a simplex along the unitors, and Tau Ceti's
-   `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`
-   (`Algebra/Homology/ShortComplex/PreservesHomology.lean`).
-   Its chain map from integral to rational chains is the change of
-   coefficients `SSet.restrictScalarsChainMap` of
-   `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
-   (`design/pseudoholomorphic-energy.md`), which it imports.
+   one, for the fundamental class over `ℚ`: Tau Ceti's
+   `TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClassOver`.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion
@@ -919,7 +907,7 @@ issues, in an order where each issue's blockers come before it.
    the instances `SymplecticGeometry.Bundle.instFiberBundleCircleFiber` and
    `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
    (Fiber ℂ F L ℂ)`, whose trivializations are those of the frame bundle
-   read through that isomorphism (`Bundle.Trivialization.changeModelFiber`).
+   read through that isomorphism (`Bundle.Trivialization.transModelFiber`).
    That file states them for fibres with their own `InnerProductSpace ℂ`
    instances and `TauCeti.ContinuousFiberNorm F L`, and `Fact (finrank ℂ F
    = 1)`. This issue, and the issues that use `P`, work with a Hermitian

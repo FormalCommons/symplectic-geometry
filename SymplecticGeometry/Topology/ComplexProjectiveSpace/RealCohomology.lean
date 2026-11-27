@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Category.ModuleCat.Algebra
 public import TauCeti.AlgebraicTopology.Cohomology.Basic
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import Mathlib.Analysis.Complex.Basic
+public import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Algebra.Category.ModuleCat.Injective
 import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
@@ -60,8 +61,7 @@ coefficients. For `finrank ℂ V = 2`, restriction to a projective line is injec
 theorem injective_singularCohomologyMap_map_real (f : V →ₗ[ℂ] W) (hf : Function.Injective f)
     (hV : finrank ℂ V = n + 1) (hn : n ≠ 0) :
     Function.Injective (TopCat.singularCohomologyMap (R := ModuleCat.of ℝ ℝ) (k := ℝ)
-      (M := ModuleCat.of ℝ ℝ) (TopCat.ofHom
-        ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩) 2) :=
+      (M := ModuleCat.of ℝ ℝ) (TopCat.ofHom (mapContinuousMap f hf)) 2) :=
   TopCat.injective_singularCohomologyMap_of_surjective ℝ _ 2
     (bijective_singularHomologyMap_map_two f hf hV hn).2
 

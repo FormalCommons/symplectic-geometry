@@ -12,6 +12,7 @@ import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
+import TauCeti.Topology.LocallyConstant.ConnectedComponents
 
 /-!
 # Locally constant maps and vanishing differentials
@@ -19,7 +20,9 @@ import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 A locally constant map between manifolds has zero differential at every point
 (`IsLocallyConstant.mfderiv_eq_zero`). This is the converse of Tau Ceti's
 `MDifferentiable.isLocallyConstant_of_mfderiv_eq_zero`, which needs real manifolds and a
-differentiable map; the converse holds over any nontrivially normed field.
+differentiable map; the converse holds over any nontrivially normed field. Tau Ceti's
+`IsLocallyConstant.mvfderiv_eq_zero` is the case of a map into a normed space, stated for its
+differential `mvfderiv`; the lemma here allows any manifold as target.
 
 The proof is the step that Tau Ceti's
 `CovariantDerivative.hasParallelCurvature_iff_isLocallyConstant_scalarCurvature_of_finrank_eq_two`
@@ -98,13 +101,12 @@ theorem apply_eq_of_hasMFDerivWithinAt_zero (hs : Convex ℝ s)
     rw [zero_mul, norm_le_zero_iff, sub_eq_zero] at h
     exact d.injOn (hball hw') (hball hz') h
   -- A locally constant map on the preconnected set `s` is constant.
-  have : PreconnectedSpace s := isPreconnected_iff_preconnectedSpace.mp hs.isPreconnected
   have hlc : IsLocallyConstant (s.domRestrict g) :=
     (IsLocallyConstant.iff_eventually_eq _).mpr fun z ↦ by
       have h := hloc z z.property
       rw [nhdsWithin_eq_map_subtypeVal z.property, eventually_map] at h
       exact h
-  exact hlc.apply_eq_of_preconnectedSpace ⟨x, hx⟩ ⟨y, hy⟩
+  exact hlc.apply_eq_of_isPreconnected_of_subset hs.isPreconnected subset_rfl hx hy
 
 end Convex
 

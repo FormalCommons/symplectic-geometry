@@ -32,6 +32,8 @@ the product of two standard affine charts, which is a chart of the product manif
   transition map from the chart `i` to the chart `j`, in affine coordinates.
 * `Projectivization.insertNth_fderiv_affineChart_comp_affineChart_symm`: the same derivative at a
   point `x` of `U_i ∩ U_j`, in homogeneous coordinates.
+* `Projectivization.bijective_mfderiv_affineChart`: the differential of the standard affine chart
+  `i` is bijective at every point of `U_i`.
 * `Projectivization.contMDiffAt_affineChart_prodMap`,
   `Projectivization.bijective_mfderiv_affineChart_prodMap` and
   `Projectivization.hasMFDerivAt_comp_affineChart_prodMap`: on a product of two projective
@@ -123,6 +125,16 @@ theorem insertNth_fderiv_affineChart_comp_affineChart_symm (i j : Fin (n + 1))
     simp only [Fin.insertNth_apply_succAbove, Pi.smul_apply, smul_eq_mul, Pi.sub_apply]
     field_simp
 
+/-- The standard affine chart `i` has a bijective differential at every point of the affine open
+`affineOpen i`. -/
+theorem bijective_mfderiv_affineChart {i : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
+    (hx : x ∈ affineOpen i) :
+    Function.Bijective (mfderiv 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, Fin n → 𝕜) (affineChart i) x) := by
+  -- `affineChart i` is a chart of the atlas, whose differential on its source is bijective.
+  have h := (mdifferentiable_of_mem_atlas (I := 𝓘(𝕜, Fin n → 𝕜))
+    (affineOpenPartialHomeomorph_mem_atlas (𝕜 := 𝕜) i)).mfderiv_bijective (by simpa using hx)
+  rwa [coe_affineOpenPartialHomeomorph] at h
+
 section Prod
 
 variable {m : ℕ} {i : Fin (m + 1)} {j : Fin (n + 1)}
@@ -146,19 +158,14 @@ theorem bijective_mfderiv_affineChart_prodMap (hi : x.1 ∈ affineOpen i)
     (hj : x.2 ∈ affineOpen j) :
     Function.Bijective (mfderiv (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜))
       𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) (Prod.map (affineChart i) (affineChart j)) x) := by
-  -- The product of the two affine charts is a chart of the product, whose differential at a
-  -- point of its source is bijective.
-  set e := (affineOpenPartialHomeomorph (K := 𝕜) i).prod (affineOpenPartialHomeomorph (K := 𝕜) j)
-  have he : e ∈ atlas (ModelProd (Fin m → 𝕜) (Fin n → 𝕜))
-      (ℙ 𝕜 (Fin (m + 1) → 𝕜) × ℙ 𝕜 (Fin (n + 1) → 𝕜)) :=
-    Set.mem_image2_of_mem (affineOpenPartialHomeomorph_mem_atlas (𝕜 := 𝕜) i)
-      (affineOpenPartialHomeomorph_mem_atlas (𝕜 := 𝕜) j)
-  have hxe : x ∈ e.source := by simpa [e] using ⟨hi, hj⟩
-  have hfun : ⇑e = Prod.map (affineChart i) (affineChart j) := by
-    ext y <;> simp [e]
-  have h := (mdifferentiable_of_mem_atlas (I := 𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜)) he
-    ).mfderiv_bijective hxe
-  rwa [hfun, ← modelWithCornersSelf_prod] at h
+  -- The differential of the product is the product of the differentials of the two charts.
+  have hdi := ((contMDiffOn_affineChart i 1).contMDiffAt
+    ((isOpen_affineOpen i).mem_nhds hi)).mdifferentiableAt one_ne_zero
+  have hdj := ((contMDiffOn_affineChart j 1).contMDiffAt
+    ((isOpen_affineOpen j).mem_nhds hj)).mdifferentiableAt one_ne_zero
+  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod, mfderiv_prodMap hdi hdj]
+  have h := (bijective_mfderiv_affineChart hi).prodMap (bijective_mfderiv_affineChart hj)
+  rwa [← ContinuousLinearMap.coe_prodMap'] at h
 
 /-- **The chain rule through the product of two affine charts.** If `G` has derivative `G'` at
 the affine coordinates of a point `x` of the product of the affine opens `affineOpen i` and

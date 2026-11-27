@@ -18,7 +18,9 @@ set of points that `e` sends into the range of `ι`
 submanifold along a parametrization is shrunk until the submanifold is a slice of it.
 
 The file also shows that the corestriction of an open embedding to a set containing its range is
-an open embedding (`Topology.IsOpenEmbedding.codRestrict`).
+an open embedding (`Topology.IsOpenEmbedding.codRestrict`), and that an inducing map whose image
+of a set `t` is closed maps each closed subset of `t` onto a closed set
+(`Topology.IsInducing.isClosed_image_of_subset`).
 -/
 
 public section
@@ -37,6 +39,14 @@ namespace Topology.IsInducing
 
 variable {X Y Z W : Type*} [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
   [TopologicalSpace W]
+
+/-- If `e` is an inducing map and `e '' t` is closed, then the image of every closed subset `s` of
+`t` is closed. -/
+theorem isClosed_image_of_subset {e : X → Y} (he : IsInducing e) {s t : Set X} (hst : s ⊆ t)
+    (hs : IsClosed s) (ht : IsClosed (e '' t)) : IsClosed (e '' s) := by
+  obtain ⟨u, hu, rfl⟩ := he.isClosed_iff.1 hs
+  rw [← inter_eq_left.2 hst, inter_comm, image_inter_preimage]
+  exact ht.inter hu
 
 /-- Let `f : X → Y` be an inducing map, `g : Z → X` a map that sends neighbourhoods of `z₀` to
 neighbourhoods of `g z₀`, and `e` a partial homeomorphism of `Y` with `e (f (g z)) = ι z` for `z`

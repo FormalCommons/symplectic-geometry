@@ -52,9 +52,6 @@ target of `Λ`, not only at `x`.
   `Diffeomorph.isLocalDiffeomorphAt_diffeomorph_comp_iff`.
 * `ContinuousLinearEquiv.isLocalDiffeomorph`: a continuous linear equivalence of normed spaces
   is a local diffeomorphism, for every `n`; `isLocalDiffeomorph_neg` is the case of negation.
-* `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
-  model vector spaces that preserves the ranges of two models with corners is a local
-  diffeomorphism between their model spaces.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
 * `PartialDiffeomorph.contMDiffAt`: a partial diffeomorphism is `C^n` at each point of its
@@ -170,50 +167,6 @@ theorem isLocalDiffeomorph_neg : IsLocalDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) 
   (ContinuousLinearEquiv.neg 𝕜 (M := E)).isLocalDiffeomorph
 
 end SymplecticGeometry
-
-/-- A partial diffeomorphism `Θ` between the model vector spaces of `I` and `J` which, on its
-source, sends exactly the points of `range I` into `range J` restricts to a local diffeomorphism
-`J.symm ∘ Θ ∘ I` between the model spaces of `I` and `J`, at every point that `I` sends into the
-source of `Θ`. -/
-theorem PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model
-    (I : ModelWithCorners 𝕜 E H) (J : ModelWithCorners 𝕜 E' H')
-    (Θ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E') E E' n)
-    (hΘ : ∀ y ∈ Θ.source, Θ y ∈ range J ↔ y ∈ range I) {x : H} (hx : I x ∈ Θ.source) :
-    IsLocalDiffeomorphAt I J n (J.symm ∘ Θ ∘ I) x := by
-  have hsrc (y : H) (hy : I y ∈ Θ.source) : Θ (I y) ∈ range J :=
-    (hΘ _ hy).2 (mem_range_self y)
-  -- `PartialDiffeomorph` coerces to functions through its `PartialEquiv`, whose inverse laws are
-  -- stated for that coercion, hence the `show`s below.
-  have htgt (z : H') (hz : J z ∈ Θ.target) : Θ.toPartialEquiv.symm (J z) ∈ range I := by
-    have h := Θ.map_target hz
-    refine (hΘ _ h).1 ?_
-    rw [show Θ (Θ.toPartialEquiv.symm (J z)) = J z from Θ.right_inv hz]
-    exact mem_range_self z
-  let Ψ : PartialDiffeomorph I J H H' n :=
-    { toFun := J.symm ∘ Θ ∘ I
-      invFun := I.symm ∘ Θ.toPartialEquiv.symm ∘ J
-      source := I ⁻¹' Θ.source
-      target := J ⁻¹' Θ.target
-      map_source' := fun y hy ↦ by
-        simp only [mem_preimage, comp_apply, J.right_inv (hsrc y hy)]
-        exact Θ.map_source hy
-      map_target' := fun z hz ↦ by
-        simp only [mem_preimage, comp_apply, I.right_inv (htgt z hz)]
-        exact Θ.map_target hz
-      left_inv' := fun y hy ↦ by
-        simp only [comp_apply, J.right_inv (hsrc y hy)]
-        rw [show Θ.toPartialEquiv.symm (Θ (I y)) = I y from Θ.left_inv hy, I.left_inv]
-      right_inv' := fun z hz ↦ by
-        simp only [comp_apply, I.right_inv (htgt z hz)]
-        rw [show Θ (Θ.toPartialEquiv.symm (J z)) = J z from Θ.right_inv hz, J.left_inv]
-      open_source := Θ.open_source.preimage I.continuous
-      open_target := Θ.open_target.preimage J.continuous
-      contMDiffOn_toFun := J.contMDiffOn_symm.comp
-        (Θ.contMDiffOn.comp I.contMDiff.contMDiffOn fun _ hy ↦ hy) fun y hy ↦ hsrc y hy
-      contMDiffOn_invFun := I.contMDiffOn_symm.comp
-        (Θ.symm.contMDiffOn.comp J.contMDiff.contMDiffOn fun _ hz ↦ hz) fun z hz ↦
-          htgt z hz }
-  exact Ψ.isLocalDiffeomorphAt _ _ _ hx
 
 /-- A model with corners `I` is a `C^n` local diffeomorphism from its model space to the model
 vector space at every point that it sends into the interior of its range. -/

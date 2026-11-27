@@ -548,8 +548,8 @@ private theorem isLocalDiffeomorph_toAnnuli :
   have hmk : IsLocalDiffeomorphAt (𝓡 2) (𝓡 2) ∞
       ((Subtype.val ∘ toAnnuli hγ hinj) ∘ incl) ⟨q.val, hi⟩ := by
     rw [Function.comp_assoc, h]
-    exact ((annulusDiffeomorph hγ hinj i).isLocalDiffeomorph _).comp
-      (hg := (isLocalDiffeomorph_subtype_val _).comp (hg := isLocalDiffeomorph_sigmaMk i _))
+    exact ((annulusDiffeomorph hγ hinj i).isLocalDiffeomorph_subtypeVal_comp _).comp
+      (hg := isLocalDiffeomorph_sigmaMk i _)
   exact isLocalDiffeomorphAt_subtypeVal_comp_iff.1
     (hmk.of_comp_right (isLocalDiffeomorph_inclusion _ _))
 
