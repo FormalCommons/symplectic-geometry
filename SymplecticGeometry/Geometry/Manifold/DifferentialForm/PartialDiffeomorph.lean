@@ -35,10 +35,13 @@ import TauCeti.Topology.Algebra.Support
 
 Let `ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞` be a chart of `M` with values in a real normed
 space `D`. A form `φ` on `M` is read in `ψ` as the flat form `mpullback 𝓘(ℝ, D) I ψ.symm φ` on
-`D`, which is meaningful on `ψ.target`. The results on the atlas chart, on the exterior
-derivative and on the derivation along an almost complex structure take for `D` the model vector
-space `E` of `M`; the extension by zero, the localization and the partial derivatives in a chart
-allow any `D`.
+`D`, which is meaningful on `ψ.target`. The extension by zero `extendByZeroAlong`, the
+localization `localize` with its lemmas, and `contDiffAt_mpullback_symm`,
+`differentiableAt_mpullback_symm` and `contDiffOn_fderiv_mpullback_symm_apply` allow any `D`.
+The other results take for `D` the model vector space `E` of `M`: those on the atlas chart, on
+the exterior derivative and on the derivation along an almost complex structure, and the values
+and derivatives of readings in a chart (`symbolInChart`, the Leibniz rule
+`fderiv_mpullback_symm_wedge_apply` and the rest of `section Readings`).
 
 ## Main declarations
 
