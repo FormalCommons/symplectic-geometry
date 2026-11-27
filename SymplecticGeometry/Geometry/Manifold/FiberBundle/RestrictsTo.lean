@@ -92,8 +92,11 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   exterior derivative of the glued form of `σ` is the glued form of `dσ`.
 * `TauCeti.MapFiber.Atlas.mpullback_fiberInclusionMap_glueForm`: along a smooth atlas, the glued
   form pulls back to the fibre over `b'` of a chart as the combination, with the weights at `b'`,
-  of the pull-backs of `σ` along the coordinate changes over `b'`. So when the coordinate changes
-  preserve `σ`, the glued form restricts to `σ` (`TauCeti.MapFiber.Atlas.restrictsTo_glueForm`).
+  of the pull-backs of `σ` along the coordinate changes over `b'`.
+* `TauCeti.MapFiber.Atlas.restrictsTo_of_apply_eq_sum`: when the coordinate changes preserve `σ`,
+  a form that on vertical vectors is a sum of the pull-backs of `σ` along the fibre coordinates of
+  the charts, with the weights of a subordinate partition of unity of the base, restricts to `σ`.
+  The glued form is one, which gives `TauCeti.MapFiber.Atlas.restrictsTo_glueForm`.
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
   and `TauCeti.MapFiber.Atlas.convex_setOfPred_restrictsTo`: the affine structure of the forms that
   restrict to `σ`.
@@ -501,18 +504,49 @@ theorem mpullback_fiberInclusionMap_glueForm (hA : A.IsContMDiff ∞ IB IF IM)
   refine Finset.sum_congr rfl fun i hi ↦ ?_
   rw [Pi.smul_apply, ← hterm i hi]
 
+/-- **Weighted sums of fibre coordinates restrict to `σ`.** Along a smooth atlas whose coordinate
+changes preserve `σ`, let `ρ` be a partition of unity of the base subordinate to the base sets of
+the charts. A form that at each `x`, on every tuple of vertical vectors, is the sum over `c` of
+`ρ c (proj x)` times the pull-back of `σ` along the fibre coordinate `y ↦ (A.trivAt c y).2`
+restricts to `σ`. Only the values on vertical vectors matter, as they are all that the fibre
+inclusions see. -/
+theorem restrictsTo_of_apply_eq_sum (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
+    {ρ : SmoothPartitionOfUnity B IB B univ} (hρ : ρ.IsSubordinate fun c ↦ (A.trivAt c).baseSet)
+    (hτ : ∀ (x : M) {u : Fin k → TangentSpace IM x},
+      (∀ i, u i ∈ (mfderiv IM IB proj x).ker) → τ.val x u = ∑ c ∈ ρ.fintsupport (proj x),
+        ρ c (proj x) * TauCeti.mpullback IM IF (fun y ↦ (A.trivAt c y).2) σ.val x u) :
+    A.RestrictsTo σ τ := by
+  refine restrictsTo_iff.2 fun b b' hb' ↦ funext fun v ↦ ?_
+  ext w
+  set j := (A.trivAt b).fiberInclusionMap hb'
+  have hp : proj (j v) = b' := (A.trivAt b).proj_fiberInclusionMap hb' v
+  have hu : ∀ i, mfderiv IF IM j v (w i) ∈ (mfderiv IM IB proj (j v)).ker := fun i ↦
+    TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
+      (Filter.Eventually.of_forall ((A.trivAt b).proj_fiberInclusionMap hb')) ⟨w i, rfl⟩
+  -- Each term pulls back to `σ` along `j`, and the weights sum to one.
+  have hterm : ∀ c ∈ ρ.fintsupport b', ρ c b' * TauCeti.mpullback IM IF
+      (fun y ↦ (A.trivAt c y).2) σ.val (j v) (fun i ↦ mfderiv IF IM j v (w i)) =
+        ρ c b' * σ.val v w := fun c hc ↦ by
+    rw [← TauCeti.mpullback_apply, mpullback_fiberInclusionMap_mpullback_snd_trivAt hA hH
+      (hρ c ((ρ.mem_fintsupport_iff b' c).1 hc)) hb']
+  rw [TauCeti.mpullback_apply, hτ _ hu, hp, Finset.sum_congr rfl hterm, ← Finset.sum_mul,
+    ρ.sum_finsupport' _ (mem_univ b') (ρ.finsupport_subset_fintsupport _), one_mul]
+
 /-- **The glued form restricts to `σ`.** Along a smooth atlas whose coordinate changes preserve
 `σ`, for a partition of unity of the base subordinate to the base sets of the charts, a form
 whose values are those of the glued form of `σ` restricts to `σ`. -/
 theorem restrictsTo_glueForm (hA : A.IsContMDiff ∞ IB IF IM)
     (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
     {ρ : SmoothPartitionOfUnity B IB B univ} (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet)
-    (hτ : τ.val = glueForm A ρ σ.val) : A.RestrictsTo σ τ := fun b b' hb' ↦ by
-  rw [hτ, mpullback_fiberInclusionMap_glueForm hA hρ]
-  refine ρ.sum_finsupport_smul_eq_of_forall_eq (mem_univ _) fun i hi ↦ ?_
-  obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b i b' hb' (hρ.mem_of_mem_finsupport hi)
-  rw [← hφe]
-  exact funext (SmoothForm.mem_diffeomorphStabilizer_iff_forall.1 hφ)
+    (hτ : τ.val = glueForm A ρ σ.val) : A.RestrictsTo σ τ :=
+  restrictsTo_of_apply_eq_sum hA hH hρ fun x u _ ↦ by
+    rw [hτ, glueForm_apply, ContinuousAlternatingMap.sum_apply]
+    refine Finset.sum_subset (ρ.finsupport_subset_fintsupport _) (fun c _ hc ↦ ?_)
+      |>.trans (Finset.sum_congr rfl fun c _ ↦ ?_)
+    · rw [ρ.mem_finsupport, mem_support, not_not] at hc
+      simp [hc]
+    · simp
 
 end GlueForm
 

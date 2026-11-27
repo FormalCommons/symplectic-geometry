@@ -55,7 +55,8 @@ the base.
   `A.trivAt b`. Glue the `η b` into `Λ` with the weights `ρ b ∘ proj`
   (`SmoothPartitionOfUnity.glueForms`); then `τ = τ₀ + dΛ` has class `[τ₀]`, and on vertical
   vectors it is the average of the `θ b`
-  (`SmoothPartitionOfUnity.mextDeriv_glueForms_apply_of_mem_ker`), each of which restricts to `σ`.
+  (`SmoothPartitionOfUnity.mextDeriv_glueForms_apply_of_mem_ker`), each of which restricts to `σ`,
+  so that `τ` does (`TauCeti.MapFiber.Atlas.restrictsTo_of_apply_eq_sum`).
 * `TauCeti.MapFiber.Atlas.exists_isClosed_restricts_iff`: under the same hypotheses, a closed
   extension exists if and only if such a class does.
 
@@ -229,33 +230,6 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
   [IsManifold IM ∞ M]
   {proj : M → B} {A : Atlas F proj} {k : ℕ} {σ : SmoothForm IF F ℝ (k + 1)}
-
-/-- A form that, on vertical vectors, is the average of the pull-backs of `σ` along the fibre
-coordinates of the charts `A.trivAt c`, with the weights `ρ c ∘ proj` of a partition of unity of
-the base subordinate to their base sets, restricts to `σ` along `A`. -/
-private theorem restrictsTo_of_apply_eq_sum (hA : A.IsContMDiff ∞ IB IF IM)
-    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
-    {ρ : SmoothPartitionOfUnity B IB B univ} (hρ : ρ.IsSubordinate fun c ↦ (A.trivAt c).baseSet)
-    {τ : SmoothForm IM M ℝ (k + 1)}
-    (hτ : ∀ (x : M) {u : Fin (k + 1) → TangentSpace IM x},
-      (∀ i, u i ∈ (mfderiv IM IB proj x).ker) → τ.val x u = ∑ c ∈ ρ.fintsupport (proj x),
-        ρ c (proj x) * TauCeti.mpullback IM IF (fun y ↦ (A.trivAt c y).2) σ.val x u) :
-    A.RestrictsTo σ τ := by
-  refine restrictsTo_iff.2 fun b b' hb' ↦ funext fun v ↦ ?_
-  ext w
-  set j := (A.trivAt b).fiberInclusionMap hb'
-  have hp : proj (j v) = b' := (A.trivAt b).proj_fiberInclusionMap hb' v
-  have hu : ∀ i, mfderiv IF IM j v (w i) ∈ (mfderiv IM IB proj (j v)).ker := fun i ↦
-    TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
-      (Filter.Eventually.of_forall ((A.trivAt b).proj_fiberInclusionMap hb')) ⟨w i, rfl⟩
-  -- Each term pulls back to `σ` along `j`, and the weights sum to one.
-  have hterm : ∀ c ∈ ρ.fintsupport b', ρ c b' * TauCeti.mpullback IM IF
-      (fun y ↦ (A.trivAt c y).2) σ.val (j v) (fun i ↦ mfderiv IF IM j v (w i)) =
-        ρ c b' * σ.val v w := fun c hc ↦ by
-    rw [← TauCeti.mpullback_apply, mpullback_fiberInclusionMap_mpullback_snd_trivAt hA hH
-      (hρ c ((ρ.mem_fintsupport_iff b' c).1 hc)) hb']
-  rw [TauCeti.mpullback_apply, hτ _ hu, hp, Finset.sum_congr rfl hterm, ← Finset.sum_mul,
-    ρ.sum_finsupport' _ (mem_univ b') (ρ.finsupport_subset_fintsupport _), one_mul]
 
 /-- **Closed extensions with a given class.** Let `A` be a smooth atlas of `proj`, over a
 Hausdorff, σ-compact base modelled on a finite-dimensional space, whose coordinate changes
