@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
-import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
+public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.Surface
@@ -29,6 +29,8 @@ this is the outward-normal orientation.
 
 ## Main results
 
+* `TauCeti.SmoothTwoForm.IsNondegenerate.isPositive_volumeForm`: the volume form `σⁿ / n!` is
+  positive for the symplectic orientation of `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg`: for odd `n`, the symplectic
   orientation of `-σ` is the negative of that of `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_orientation`: in every dimension,
@@ -62,6 +64,14 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] {σ : SmoothTwoForm I M} {n : ℕ}
 
+/-- The volume form `σⁿ / n!` of a fiberwise nondegenerate two-form `σ`, on a manifold modelled
+on a space of dimension `2 * n > 0`, is positive for the symplectic orientation of `σ`. -/
+theorem IsNondegenerate.isPositive_volumeForm [NeZero (2 * n)] (h : σ.IsNondegenerate)
+    (hn : finrank ℝ E = 2 * n) :
+    (h.volumeOrientation hn).IsPositive (σ.volumeForm n).val :=
+  Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun _ c hc ↦
+    (h.orientation_eq_orientationAt_volumeOrientation_iff hn c).1 hc
+
 /-- **The symplectic orientation of a negated two-form.** On a manifold modelled on a space of
 dimension `2 * n` with `n` odd, the symplectic orientation of `-σ` is the opposite of the
 symplectic orientation of a fiberwise nondegenerate two-form `σ`. -/
@@ -74,13 +84,9 @@ theorem IsNondegenerate.volumeOrientation_neg (h : σ.IsNondegenerate) (hodd : O
   have hvol : ((-σ).volumeForm n).val = -(σ.volumeForm n).val := by
     rw [← neg_one_smul ℝ σ, volumeForm_smul, hodd.neg_one_pow, Submodule.coe_smul,
       neg_one_smul]
-  refine Manifold.Orientation.IsPositive.eq
-    (Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun x c hc ↦
-      (h.neg.orientation_eq_orientationAt_volumeOrientation_iff hn c).1 hc) ?_
+  refine (h.neg.isPositive_volumeForm hn).eq ?_
   rw [hvol]
-  exact Manifold.Orientation.IsPositive.neg <|
-    Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun x c hc ↦
-      (h.orientation_eq_orientationAt_volumeOrientation_iff hn c).1 hc
+  exact (h.isPositive_volumeForm hn).neg
 
 /-- Tau Ceti's two symplectic orientations of a fiberwise nondegenerate two-form `σ` agree:
 `IsNondegenerate.volumeOrientation`, on which the volume form `σⁿ / n!` is positive, is
