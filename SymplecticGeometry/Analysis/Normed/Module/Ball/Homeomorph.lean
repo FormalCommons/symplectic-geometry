@@ -28,8 +28,12 @@ precomposed with `univBall c r`, runs through `g` on `(c - r, c + r)` and tends 
 ## Main results
 
 * `OpenPartialHomeomorph.range_univBall`: the range of `univBall c r` is `ball c r`, for `0 < r`.
-* `OpenPartialHomeomorph.univBall_apply_of_nonpos`: for `r ≤ 0`, `univBall c r` is the
-  translation by `c`.
+* `OpenPartialHomeomorph.univBall_apply_of_nonpos`,
+  `OpenPartialHomeomorph.univBall_symm_apply_of_nonpos`: for `r ≤ 0`, `univBall c r` is the
+  translation by `c`, and its inverse subtracts `c`.
+* `OpenPartialHomeomorph.exists_univBall_zero_apply_eq_smul`,
+  `OpenPartialHomeomorph.exists_univBall_zero_symm_apply_eq_smul`: `univBall 0 r` and its
+  inverse send each vector to a real multiple of it.
 * `OpenPartialHomeomorph.strictMono_univBall_real`, `tendsto_univBall_real_atBot` and
   `image_univBall_real_Iic`: on the real line, `univBall c r` is strictly increasing, and for
   `0 < r` it tends to `c - r` at `-∞` and sends `Iic T` onto `Ioc (c - r) (univBall c r T)`.
@@ -58,6 +62,26 @@ theorem range_univBall (c : P) {r : ℝ} (hr : 0 < r) :
 theorem univBall_apply_of_nonpos (c : P) {r : ℝ} (hr : r ≤ 0) (x : E) :
     univBall c r x = x +ᵥ c := by
   simp [univBall, not_lt.2 hr]
+
+/-- For `r ≤ 0`, the inverse of Mathlib's map `univBall c r : E → P` is the subtraction of `c`. -/
+theorem univBall_symm_apply_of_nonpos (c : P) {r : ℝ} (hr : r ≤ 0) (y : P) :
+    (univBall (E := E) c r).symm y = y -ᵥ c := by
+  simp [univBall, not_lt.2 hr]
+
+/-- Mathlib's map `univBall 0 r` of `E` sends each vector to a real multiple of it. -/
+theorem exists_univBall_zero_apply_eq_smul (r : ℝ) (x : E) :
+    ∃ a : ℝ, univBall (0 : E) r x = a • x := by
+  rcases le_or_gt r 0 with hr | hr
+  · exact ⟨1, by rw [univBall_apply_of_nonpos _ hr, vadd_eq_add, add_zero, one_smul]⟩
+  · exact ⟨r / √(1 + ‖x‖ ^ 2), by rw [univBall_apply hr, vadd_eq_add, add_zero]⟩
+
+/-- The inverse of Mathlib's map `univBall 0 r` of `E` sends each vector to a real multiple of
+it. -/
+theorem exists_univBall_zero_symm_apply_eq_smul (r : ℝ) (y : E) :
+    ∃ a : ℝ, (univBall (0 : E) r).symm y = a • y := by
+  rcases le_or_gt r 0 with hr | hr
+  · exact ⟨1, by rw [univBall_symm_apply_of_nonpos _ hr, vsub_eq_sub, sub_zero, one_smul]⟩
+  · exact ⟨(√(r ^ 2 - dist y 0 ^ 2))⁻¹, by rw [univBall_symm_apply hr, vsub_eq_sub, sub_zero]⟩
 
 end Range
 
