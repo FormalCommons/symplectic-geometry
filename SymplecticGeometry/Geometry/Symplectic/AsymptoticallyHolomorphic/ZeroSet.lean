@@ -13,6 +13,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 
 /-!
@@ -316,15 +317,10 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection [I.Boundaryless]
   congr 1
   · refine SymplecticForm.IsSymplectomorphism.map_orientation
       (SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ ?_) hk
-    refine Eq.trans ?_ ((SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply _ z v w).trans
-      ((SmoothBundleForm.eval₂_apply _ z v w).trans
-        (SmoothForm.mpullback_apply _ _ σ z ![v, w]))).symm
-    refine ((SymplecticForm.restrict_apply _ _ _ _ _).trans
-      ((SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply _ _ _ _).trans
-        (SmoothBundleForm.eval₂_apply _ _ _ _))).trans ?_
-    congr 1
-    funext i
-    fin_cases i <;> rfl
+    exact (SymplecticForm.restrict_apply _ _ _ _ _).trans
+      ((hc.tames.isNondegenerate.symplecticFormAt_mfderiv_mfderiv _ z v w).trans
+        ((SmoothForm.bilinFormAt_apply _ z v w).trans
+          (SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply _ z v w).symm))
   · -- The two `finCongr` reindexings compose to the one on the right, by definition.
     exact (Orientation.reindex_trans _ _ _).symm
 
