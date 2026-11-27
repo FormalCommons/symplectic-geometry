@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Connection forms on principal circle bundles
@@ -565,8 +566,8 @@ theorem IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback [IB.Bounda
       (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val) x := by
   rw [← mpullback_mextDeriv_at (hσ.of_le (by simp))
     ((α.isSmoothForm.contMDiff _).of_le (by simp))]
-  have h := congrArg Subtype.val hα.mpullback_curvature
-  rw [SmoothForm.coe_mpullback, mextDerivₗ_apply] at h
+  have h := (SmoothForm.mpullback_eq_iff _).1 hα.mpullback_curvature
+  rw [mextDerivₗ_apply] at h
   rw [← h, ManifoldTotalSpace.mpullback_mpullback_proj_apply _ (hσ.mdifferentiableAt (by simp))]
 
 end SymplecticGeometry

@@ -142,6 +142,8 @@ coordinates `s, t` of the line. A point of the cone `K³ × K²` is written `Sum
   form, a smooth embedding over `ℝ` for the models `𝓘(ℝ, Fin 1 → ℂ)` and `𝓘(ℝ, Fin 2 → ℂ)`,
   with `coe_fibreEmbedding_apply` and `range_fibreEmbedding` (its image is the fibre of the
   projection to `ℂℙ¹`).
+* `SymplecticGeometry.rationalEllipticSurface.mapsTo_ofComplexManifold_tangentRange_fibreEmbedding`:
+  the tangent ranges of the fibre embedding are invariant under the complex structure of `E(1)`.
 * `SymplecticGeometry.rationalEllipticSurface.hasSymplecticTangentImages_fibreEmbedding`: its
   tangent images are symplectic, and
   `SymplecticGeometry.rationalEllipticSurface.isSymplectic_mpullback_fibreEmbedding`: the form
@@ -637,6 +639,17 @@ theorem coe_fibreEmbedding_apply (x : fermat 1 3) :
       ((x : ℙ ℂ (Fin 3 → ℂ)), Projectivization.mk ℂ ![(1 : ℂ), 0] (by simp)) :=
   congrArg Subtype.val (congrFun coe_fibreEmbedding x)
 
+/-- The tangent ranges of the fibre embedding are invariant under the complex structure of the
+rational elliptic surface. -/
+theorem mapsTo_ofComplexManifold_tangentRange_fibreEmbedding
+    (x : SmoothProjectiveHypersurface.fermat 1 3) :
+    MapsTo (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
+        (fibreEmbedding x))
+      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
+      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :=
+  fibreEmbedding_def ▸ SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars
+    analyticFibreEmbedding le_top (by simp) _ x
+
 /-- The image of the fibre embedding is the fibre of the projection to `ℂℙ¹` over `[1 : 0]`. -/
 theorem range_fibreEmbedding :
     range fibreEmbedding = {p : rationalEllipticSurface |
@@ -655,9 +668,7 @@ theorem hasSymplecticTangentImages_fibreEmbedding :
     isSymplectic_symplecticForm.isNondegenerate.HasSymplecticTangentImages 𝓘(ℝ, Fin 1 → ℂ)
       fibreEmbedding :=
   (tames_symplecticForm.isSymplecticSubmanifoldEmbedding
-    (fibreEmbedding_def ▸
-      SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars
-        analyticFibreEmbedding le_top (by simp) (by simp))).hasSymplecticTangentImages
+    mapsTo_ofComplexManifold_tangentRange_fibreEmbedding).hasSymplecticTangentImages
 
 /-- The symplectic form of the rational elliptic surface pulls back along the fibre embedding to a
 symplectic form on the Fermat cubic. -/

@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The model Dehn twist on the cotangent bundle of the sphere
@@ -886,8 +887,8 @@ theorem mpullback_modelTwist_liouvilleForm_apply {R : ℝ → ℝ} {r₀ : ℝ} 
       (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z +
         mextDeriv (RoughForm.ofFunction ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
           (twistPrimitive R)) z := by
-  have h := congrArg Subtype.val (mpullback_modelTwist_liouvilleForm (n := n) hR)
-  simp only [SmoothForm.coe_mpullback, Submodule.coe_add, mextDerivₗ_apply] at h
+  have h := (SmoothForm.mpullback_eq_iff _).1 (mpullback_modelTwist_liouvilleForm (n := n) hR)
+  simp only [Submodule.coe_add, mextDerivₗ_apply] at h
   rw [h, Pi.add_apply,
     SmoothForm.coe_ofFunction (I := (𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
       ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩, ContMDiffMap.coeFn_mk]

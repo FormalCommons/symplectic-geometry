@@ -18,6 +18,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
@@ -215,8 +216,8 @@ theorem ofSlices_apply (p : N × M) (v : Fin k → TangentSpace (J.prod I) p) :
 @[simp]
 theorem mpullback_prodMk_ofSlices (t : N) :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) (ofSlices α hα) = α t :=
-  Subtype.ext <| funext fun x ↦ by
-    rw [coe_mpullback, coe_ofSlices]
+  (mpullback_eq_iff _).2 <| funext fun x ↦ by
+    rw [coe_ofSlices]
     exact congrFun (mpullback_prodMk_verticalForm (fun t ↦ (α t).val) t) x
 
 /-- The pullback of `TauCeti.SmoothForm.ofSlices α hα` along a product `f × g` of smooth maps
@@ -233,8 +234,7 @@ theorem mpullback_prodMap_ofSlices {EN' HN' N' E' H' M' : Type*} [NormedAddCommG
         ((mpullback g hg (α (f p.1))).val p.2))) :
     mpullback (Prod.map f g) (hf.prodMap hg) (ofSlices α hα) =
       ofSlices (fun t ↦ mpullback g hg (α (f t))) hα' := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, coe_ofSlices, coe_ofSlices,
+  rw [mpullback_eq_iff, coe_ofSlices, coe_ofSlices,
     mpullback_prodMap_verticalForm _ (hf.mdifferentiable (by simp))
       (hg.mdifferentiable (by simp))]
   simp only [coe_mpullback]

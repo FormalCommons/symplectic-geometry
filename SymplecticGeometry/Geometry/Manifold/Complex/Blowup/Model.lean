@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
@@ -88,6 +89,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   is a biholomorphism of open subsets onto Tau Ceti's `TauCeti.puncturedSpace E`, with inverse
   `z ↦ ([z], z)`, the point `SymplecticGeometry.BlowupModel.ofNeZero`
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
+* `SymplecticGeometry.BlowupModel.isLocalDiffeomorphAt_blowdown`: so the blowdown is a local
+  biholomorphism at each point off the divisor.
 
 ## Implementation notes
 
@@ -762,6 +765,12 @@ theorem blowdownDiffeomorph_symm_apply (z : TauCeti.puncturedSpace (Fin (n + 1) 
     ((blowdownDiffeomorph n).symm z : BlowupModel n) =
       ofNeZero (TauCeti.mem_puncturedSpace.1 z.property) :=
   (rfl)
+
+/-- Off the exceptional divisor, the blowdown of the model is a local biholomorphism. -/
+theorem isLocalDiffeomorphAt_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p :=
+  (blowdownDiffeomorph n).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownDiffeomorph v).symm) ⟨p, by simpa using hp⟩
 
 end Blowdown
 
