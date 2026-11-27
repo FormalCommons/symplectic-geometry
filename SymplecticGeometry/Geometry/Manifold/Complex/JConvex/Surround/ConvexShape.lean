@@ -48,7 +48,8 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   this route, unlike the book's quadratic bridge, needs no transversality of the crossings.
 * `SymplecticGeometry.exists_isConvexShapeAt_eqOn_Iic_Ici`: the same smoothing, for shapes that
   cross only inside `(u, v) ⊆ [r₁, r₂]`, continued by the first shape to the left of `u` and the
-  second to the right of `v`, which gives an `i`-convex shape that passes from one to the other.
+  second to the right of `v`, which gives an `i`-convex shape that passes from one to the other,
+  and stays one outside `[r₁, r₂]` wherever the shape it equals there is.
   It glues by `SymplecticGeometry.IsConvexShapeAt.congr_of_eventuallyEq`: being an `i`-convex
   shape at `r` only depends on the germ at `r`.
 * `SymplecticGeometry.shapeGraph χ`: the function `(s, t) ↦ χ (√t) - √s`, whose zero level,
@@ -463,7 +464,8 @@ open Set in
 `i`-convex shapes at every point of `[r₁, r₂]`, and let `r₁ < u < v < r₂`. Suppose that `χ₁` is
 at least `χ₂` on `[r₁, u]`, at most `χ₂` on `[v, r₂]`, and that they cross in `[r₁, r₂]` only
 inside `(u, v)`. Then some `Cⁿ` function `χ`, an `i`-convex shape at every point of `[r₁, r₂]`,
-equals `χ₁` on `(-∞, u]` and `χ₂` on `[v, ∞)`.
+equals `χ₁` on `(-∞, u]` and `χ₂` on `[v, ∞)`. Outside `[r₁, r₂]` it is still an `i`-convex
+shape where `χ₁` is, left of `u`, and where `χ₂` is, right of `v`.
 
 It is the smoothed maximum of `exists_isConvexShapeAt_eq_max` on `[r₁, r₂]`, continued by `χ₁` to
 the left and by `χ₂` to the right. -/
@@ -474,7 +476,9 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
     (hle₂ : ∀ r ∈ Icc v r₂, χ₁ r ≤ χ₂ r)
     (hcross : ∀ r ∈ Icc r₁ r₂, χ₁ r = χ₂ r → r ∈ Ioo u v) :
     ∃ χ : ℝ → ℝ, ContDiff ℝ n χ ∧ (∀ r ∈ Icc r₁ r₂, IsConvexShapeAt χ r) ∧
-      EqOn χ χ₁ (Iic u) ∧ EqOn χ χ₂ (Ici v) := by
+      EqOn χ χ₁ (Iic u) ∧ EqOn χ χ₂ (Ici v) ∧
+      (∀ r < u, IsConvexShapeAt χ₁ r → IsConvexShapeAt χ r) ∧
+      (∀ r, v < r → IsConvexShapeAt χ₂ r → IsConvexShapeAt χ r) := by
   have hn' : ((2 : ℕ∞) : WithTop ℕ∞) ≤ n := WithTop.coe_le_coe.2 hn
   obtain ⟨χ, hχs, hχc, hχ⟩ := exists_isConvexShapeAt_eq_max (O := Iio r₁ ∪ Ioo u v ∪ Ioi r₂)
     (h₁.of_le hn') (h₂.of_le hn') hc₁ hc₂
@@ -525,7 +529,11 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
       exact Or.inr (Or.inl ⟨e.eventuallyEq_of_mem (isOpen_Ioo.mem_nhds hr), hr⟩)
     · exact Or.inr (Or.inr
         ⟨(e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds h'), h'⟩)
-  refine ⟨ψ, contDiff_iff_contDiffAt.2 fun r ↦ ?_, fun r hr ↦ ?_, e₁, e₂⟩
+  refine ⟨ψ, contDiff_iff_contDiffAt.2 fun r ↦ ?_, fun r hr ↦ ?_, e₁, e₂,
+    fun r hr h ↦ h.congr_of_eventuallyEq
+      ((e₁.mono Iio_subset_Iic_self).eventuallyEq_of_mem (isOpen_Iio.mem_nhds hr)),
+    fun r hr h ↦ h.congr_of_eventuallyEq
+      ((e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds hr))⟩
   · rcases key r with ⟨he, -⟩ | ⟨he, -⟩ | ⟨he, -⟩
     · exact h₁.contDiffAt.congr_of_eventuallyEq he
     · exact hχs.contDiffAt.congr_of_eventuallyEq he

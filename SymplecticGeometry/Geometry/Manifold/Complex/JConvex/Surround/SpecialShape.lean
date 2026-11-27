@@ -622,7 +622,6 @@ theorem exists_crossings_quadratic_sqrt {ℓ a b c r₀ : ℝ} (hℓ : 0 < ℓ) 
   exact ⟨(hlt r hr).trans h₁, (hgt r hr).trans h₂,
     (eq_iff_eq_of_lt_iff_lt_of_gt_iff_gt (hlt r hr) (hgt r hr)).trans h₃⟩
 
-
 /-! ### From the linear to the square-root shape
 
 Cieliebak and Eliashberg's Lemma 4.19 and Remark 4.20: a smooth `i`-convex shape that is linear
@@ -680,7 +679,7 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
     isConvexShapeAt_quadratic hℓ hb.le hc hr
   have hSc : ∀ r, 0 < r → IsConvexShapeAt S r := fun r hr ↦ isConvexShapeAt_sqrt ha hr
   -- From the linear to the quadratic shape, across `x`, on `[x / 4, 3 x / 2]`.
-  obtain ⟨φ, hφs, hφc, hφL, hφQ⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (r₁ := x / 4)
+  obtain ⟨φ, hφs, hφc, hφL, hφQ, hφ₁, hφ₂⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (r₁ := x / 4)
     (u := x / 2) (v := 5 * x / 4) (r₂ := 3 * x / 2) le_top hLs hQs (by linarith) (by linarith)
     (by linarith) (fun r hr ↦ hLc r ⟨by linarith [hr.1], by linarith [hr.2]⟩)
     (fun r hr ↦ hQc r (by linarith [hr.1]))
@@ -691,16 +690,16 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
     (fun r hr he ↦ by
       have := (quadratic_eq_linear_iff hℓ hc₀ (by linarith [hr.1]) (b := b) (d := d)).1 he.symm
       exact ⟨by linarith, by linarith⟩)
-  have hφc' : ∀ r ∈ Icc (5 * x / 4) r₀, IsConvexShapeAt φ r := fun r hr ↦ by
-    rcases le_or_gt r (3 * x / 2) with h | h
-    · exact hφc r ⟨by linarith [hr.1], h⟩
-    · refine (hQc r (by linarith)).congr_of_eventuallyEq ?_
-      filter_upwards [Ioi_mem_nhds (show 5 * x / 4 < r by linarith)] with s hs
-      exact hφQ (Ioi_subset_Ici_self hs)
+  have hφc' : ∀ r, 0 < r → IsConvexShapeAt φ r := fun r hr ↦ by
+    rcases lt_or_ge r (x / 4) with h₁ | h₁
+    · exact hφ₁ r (by linarith) (hLc r ⟨hr, by linarith⟩)
+    rcases le_or_gt r (3 * x / 2) with h₂ | h₂
+    · exact hφc r ⟨h₁, h₂⟩
+    · exact hφ₂ r (by linarith) (hQc r hr)
   -- From the quadratic to the square-root shape, across `r₁`, on `[5 x / 4, r₀]`.
-  obtain ⟨ψ, hψs, hψc, hψφ, hψS⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (r₁ := 5 * x / 4)
-    (u := (3 * x / 2 + r₁) / 2) (v := (r₁ + r₀) / 2) (r₂ := r₀) le_top hφs hSs (by linarith)
-    (by linarith) (by linarith) hφc'
+  obtain ⟨ψ, hψs, hψc, hψφ, hψS, hψ₁, hψ₂⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici
+    (r₁ := 5 * x / 4) (u := (3 * x / 2 + r₁) / 2) (v := (r₁ + r₀) / 2) (r₂ := r₀) le_top hφs hSs
+    (by linarith) (by linarith) (by linarith) (fun r hr ↦ hφc' r (by linarith [hr.1]))
     (fun r hr ↦ hSc r (by linarith [hr.1]))
     (fun r hr ↦ by
       rw [hφQ (show 5 * x / 4 ≤ r from hr.1)]
@@ -716,28 +715,18 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
   refine ⟨d, ⟨hbd, hd₁⟩, x / 2, ⟨by positivity, by linarith⟩, ψ, hψs, fun r hr ↦ ?_,
     fun r hr ↦ hψS (show (r₁ + r₀) / 2 ≤ r by linarith),
     fun r hr ↦ (hψφ (show r ≤ (3 * x / 2 + r₁) / 2 by linarith)).trans (hφL hr)⟩
-  rcases lt_or_ge r (x / 4) with h₁ | h₁
-  · -- Near `r`, `ψ` is the linear shape.
-    refine (hLc r ⟨hr, by linarith⟩).congr_of_eventuallyEq ?_
-    filter_upwards [Iio_mem_nhds (show r < x / 2 by linarith)] with s hs
-    exact (hψφ (show s ≤ (3 * x / 2 + r₁) / 2 by linarith [mem_Iio.1 hs])).trans
-      (hφL (Iio_subset_Iic_self hs))
-  rcases lt_or_ge r (5 * x / 4) with h₂ | h₂
-  · refine (hφc r ⟨h₁, by linarith⟩).congr_of_eventuallyEq ?_
-    filter_upwards [Iio_mem_nhds (show r < (3 * x / 2 + r₁) / 2 by linarith)] with s hs
-    exact hψφ (Iio_subset_Iic_self hs)
-  rcases le_or_gt r r₀ with h₃ | h₃
-  · exact hψc r ⟨h₂, h₃⟩
-  · refine (hSc r hr).congr_of_eventuallyEq ?_
-    filter_upwards [Ioi_mem_nhds (show (r₁ + r₀) / 2 < r by linarith)] with s hs
-    exact hψS (Ioi_subset_Ici_self hs)
+  rcases lt_or_ge r ((3 * x / 2 + r₁) / 2) with h₁ | h₁
+  · exact hψ₁ r h₁ (hφc' r hr)
+  rcases le_or_gt r r₀ with h₂ | h₂
+  · exact hψc r ⟨by linarith, h₂⟩
+  · exact hψ₂ r (by linarith) (hSc r hr)
 
 /-- **Admissible constants for the quadratic shape** (Cieliebak–Eliashberg, Remark 4.20). For
-`1 < a`, `0 < γ` and `γ (a + 1)² ≤ a - 1`, the quadratic shape with `ℓ = 1`, `b = γ (a - 1) / 16`
-and `c = (1 + a) / 2` is below `√(1 + a r²)` at `r = γ`. -/
-theorem quadratic_lt_sqrt_of_mul_sq_le {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ)
-    (h : γ * (a + 1) ^ 2 ≤ a - 1) :
+`0 < γ` and `γ (a + 1)² ≤ a - 1`, which force `1 < a`, the quadratic shape with `ℓ = 1`,
+`b = γ (a - 1) / 16` and `c = (1 + a) / 2` is below `√(1 + a r²)` at `r = γ`. -/
+theorem quadratic_lt_sqrt_of_mul_sq_le {a γ : ℝ} (hγ : 0 < γ) (h : γ * (a + 1) ^ 2 ≤ a - 1) :
     1 + γ * (a - 1) / 16 * γ + (1 + a) / 2 * γ ^ 2 / 2 < √(1 + a * γ ^ 2) := by
+  have ha : 1 < a := by nlinarith [sq_nonneg (a - 1), mul_pos hγ hγ]
   rw [lt_sqrt (by positivity), ← sub_neg]
   have e : (1 + γ * (a - 1) / 16 * γ + (1 + a) / 2 * γ ^ 2 / 2) ^ 2 - (1 + a * γ ^ 2) =
       γ ^ 2 * (γ ^ 2 * ((a - 1) ^ 2 / 256 + (a + 1) * (3 * a + 1) / 32) - 3 * (a - 1) / 8) := by
@@ -751,6 +740,13 @@ theorem quadratic_lt_sqrt_of_mul_sq_le {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ)
       ≤ γ ^ 2 * ((a + 1) ^ 2 / 8) := by gcongr
     _ ≤ γ * (a - 1) / 8 := by linarith
     _ < 3 * (a - 1) / 8 := by nlinarith
+
+/-- The hypothesis `γ (a + 1)² ≤ a - 1` of `quadratic_lt_sqrt_of_mul_sq_le` cannot be dropped:
+for `a = 100` and `γ = 1 / 2`, Remark 4.20's quadratic shape is above `√(1 + a γ²)` at `γ`. -/
+example : ¬ ((1 : ℝ) + 1 / 2 * (100 - 1) / 16 * (1 / 2) + (1 + 100) / 2 * (1 / 2) ^ 2 / 2 <
+    √(1 + 100 * (1 / 2) ^ 2)) := by
+  rw [not_lt, Real.sqrt_le_left (by norm_num)]
+  norm_num
 
 /-- **From a linear to a square-root shape** (Cieliebak–Eliashberg, Lemma 4.19). For `1 < a` and
 `0 < γ` there are `d ∈ (0, 1)`, `β ∈ (0, γ)` and a smooth `ψ`, an `i`-convex shape at every
@@ -766,7 +762,7 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ 
   obtain ⟨d, hd, β, hβ, ψ, hψs, hψc, hψS, hψL⟩ :=
     exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt (ℓ := 1) (b := γ' * (a - 1) / 16)
       (c := (1 + a) / 2) one_pos ha (by have := sub_pos.2 ha; positivity) hb (by linarith) hγ'₀
-      (by simpa using quadratic_lt_sqrt_of_mul_sq_le ha hγ'₀ h)
+      (by simpa using quadratic_lt_sqrt_of_mul_sq_le hγ'₀ h)
   have hγγ' : γ' ≤ γ := min_le_left _ _
   refine ⟨d, ⟨lt_trans (by have := sub_pos.2 ha; positivity) hd.1, hd.2⟩, β,
     ⟨hβ.1, hβ.2.trans_le hγγ'⟩, ψ, hψs, hψc, fun r hr ↦ by simpa using hψS r (hγγ'.trans hr),
