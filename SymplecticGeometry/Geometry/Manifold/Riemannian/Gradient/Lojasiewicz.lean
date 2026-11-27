@@ -55,7 +55,10 @@ Under the hypotheses of the first theorem, the speed `‖grad f (γ t)‖` of `�
 once `γ` stays where the inequality holds, from a time `T` on, Tau Ceti's scalar bound
 `TauCeti.integral_le_rpow_sub_rpow_of_lojasiewicz`, applied to the excess `e t = f (γ t) - f p`
 with derivative `-‖grad f (γ t)‖ ^ 2`, bounds the integral of the speed over `[T, b]` uniformly
-in `b`. The excess is integrable too
+in `b`. This adapts the proof of Tau Ceti's
+`IsIntegralCurveOn.integrableOn_norm_gradient_Ioi_of_lojasiewicz`, with its private step
+`integral_norm_gradient_le_of_lojasiewicz_of_le`, from integral curves of a gradient on a Hilbert
+space to maximal integral curves of `-grad f` on a manifold. The excess is integrable too
 (`SymplecticGeometry.integrableOn_Ioi_sub_comp_maximalIntegralCurve_of_lojasiewicz`), since `e`
 decreases, so that after `T` we have `c * e = e ^ (1 - θ) * (c * e ^ θ) ≤ e 0 ^ (1 - θ) * ‖grad f‖`.
 For `θ = 1 / 2` the energy identity would do, but for `θ > 1 / 2` the excess is not bounded by a
