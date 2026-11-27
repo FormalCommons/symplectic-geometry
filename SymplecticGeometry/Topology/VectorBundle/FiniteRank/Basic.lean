@@ -16,14 +16,17 @@ Tau Ceti's `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` builds an isomorp
 finite-rank cores from a family of fibrewise continuous linear equivalences that is continuous on
 total spaces. This file gives the converse construction.
 
-It begins with three rules for fibre maps that Tau Ceti's file does not state:
+It begins with four rules for fibre maps that Tau Ceti's files do not state:
 
 * `TauCeti.FiniteRankBundleCore.fiberMap_sub`: the fibre map of a difference of bundle maps is
   the difference of their fibre maps;
 * `TauCeti.FiniteRankBundleCore.fiberMap_comp_apply`: the fibre map of a composite, applied to a
   vector;
 * `TauCeti.FiniteRankBundleCore.fiberMap_fiberMap_of_comp_comm`: the fibre maps of commuting
-  endomorphisms commute, vector by vector.
+  endomorphisms commute, vector by vector;
+* `TauCeti.FiniteRankBundleCore.id_apply_coords`: `ContinuousLinearMap.id_apply` on the
+  coordinates `Fin A.rank → 𝕜` of `A`. As a `simp` lemma it also applies on the coordinates of a
+  pullback of `A`, where `ContinuousLinearMap.id_apply` does not fire.
 
 Then:
 
@@ -105,6 +108,14 @@ the same as applying them in the other order. -/
 theorem fiberMap_fiberMap_of_comp_comm {f g : A ⟶ A} (h : f ≫ g = g ≫ f) (x : B)
     (v : Fin A.rank → 𝕜) : g.fiberMap x (f.fiberMap x v) = f.fiberMap x (g.fiberMap x v) := by
   rw [← fiberMap_comp_apply, h, fiberMap_comp_apply]
+
+/-- `ContinuousLinearMap.id_apply` on the coordinate space `Fin A.rank → 𝕜` of `A`. As a `simp`
+lemma it also rewrites the identity applied to a vector of `Fin (A.pullback f).rank → 𝕜`, the
+coordinates of a pullback of `A`, iterated ones included: `simp` matches the two ranks by
+unfolding `pullback`, which it does not do for `ContinuousLinearMap.id_apply`. -/
+@[simp] theorem id_apply_coords (A : FiniteRankBundleCore 𝕜 B) (v : Fin A.rank → 𝕜) :
+    ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜) v = v :=
+  (rfl)
 
 /-- The fibre map of `e.inv` after that of `e.hom`, for an isomorphism `e : A ≅ D` of finite-rank
 cores, is the identity of the fibre of `A`. -/
