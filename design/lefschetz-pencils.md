@@ -137,7 +137,7 @@ Donaldson's [Donaldson1999].
 What this part needs from *Asymptotically holomorphic sections* is
 therefore: the line bundle and the rescaled metrics (`LineBundle.lean`), the
 asymptotically holomorphic sequences and the transversality predicate
-(`AsymptoticallyHolomorphic.lean`), the peak sections (`PeakSection.lean`),
+(`AsymptoticallyHolomorphic/Basic.lean`), the peak sections (`PeakSection.lean`),
 the avoidance estimate for every target dimension (from the issues in which
 that part's design splits it), the colouring iteration for a general local
 open condition (`GlobalTransversality.lean`), the zero-set criterion with
