@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
+public import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gluing
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
@@ -121,6 +122,9 @@ bounds on `∂̄` from one to the other. The bounds are then read on the model s
 * `SymplecticGeometry.exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le`: two such
   maps, built in two charts of `M`, agree to order `N + 1` near every compact set of real points
   in both domains.
+* `SymplecticGeometry.IsHolomorphicToOrderAlongCore`: a partial diffeomorphism from the model
+  space whose reading in a chart of `M` near each point of the core has `∂̄` of order `N` in
+  `√(t p)`, and the derivative of `∂̄` of order `N - 1`.
 * `SymplecticGeometry.exists_modelChart`: the chart of order `N` along the disc, a partial
   diffeomorphism with the first-order data of `exists_partialDiffeomorph_modelDisc` whose reading
   in a chart of `M` near each point of the core has `∂̄` of order `N` in `√(t p)`, and the
@@ -702,6 +706,51 @@ theorem exists_norm_iteratedFDeriv_sub_le_of_norm_conjWirtingerDeriv_le {N : ℕ
 
 end Agreement
 
+section HolomorphicAlongCore
+
+/-! ### Holomorphy to order `N` along the core -/
+
+open TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
+
+/-- A partial diffeomorphism `Φ` from the model space `ℂᵏ × ℂᵐ` to a manifold `M` modelled on a
+complex space `E` is holomorphic to order `N` along the core `ι₀ (ℝᵏ)`, for
+`ι₀ = modelDisc k m`, if every point `p₀` of the core has a neighbourhood `U` contained in the
+source of `Φ` and mapped by `Φ` into the source of the chart of `M` at `Φ p₀`, and a constant
+`C`, such that the reading `e` of `Φ` in that chart satisfies, at every `p ∈ U`,
+`‖∂̄ e p‖ ≤ C * √(t p) ^ N`, and the derivative of `∂̄ e` at `p` has norm at most
+`C * √(t p) ^ (N - 1)`, where `t p = (shape p).2`. The bounds are asked in one chart near each
+point of the core, since `chartAt` need not vary continuously. -/
+def IsHolomorphicToOrderAlongCore (N : ℕ)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) : Prop :=
+  ∀ p₀ ∈ range (modelDisc k m), ∃ U ∈ 𝓝 p₀,
+    U ⊆ Φ.source ∧ U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source ∧ ∃ C, ∀ p ∈ U,
+      ‖conjWirtingerDeriv (writtenInExtChartAt
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ) p‖ ≤
+        C * √(shape p).2 ^ N ∧
+      ‖fderiv ℝ (conjWirtingerDeriv (writtenInExtChartAt
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ)) p‖ ≤
+        C * √(shape p).2 ^ (N - 1)
+
+theorem isHolomorphicToOrderAlongCore_def (N : ℕ)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) :
+    IsHolomorphicToOrderAlongCore N Φ ↔
+    ∀ p₀ ∈ range (modelDisc k m), ∃ U ∈ 𝓝 p₀,
+      U ⊆ Φ.source ∧ U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source ∧ ∃ C, ∀ p ∈ U,
+        ‖conjWirtingerDeriv (writtenInExtChartAt
+          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ) p‖ ≤
+          C * √(shape p).2 ^ N ∧
+        ‖fderiv ℝ (conjWirtingerDeriv (writtenInExtChartAt
+          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ)) p‖ ≤
+          C * √(shape p).2 ^ (N - 1) :=
+  Iff.rfl
+
+end HolomorphicAlongCore
+
 section ModelChart
 
 /-! ### The chart of order `N` along the disc -/
@@ -878,11 +927,7 @@ isomorphisms, smooth in tangent coordinates along the model disc `ι₀ = modelD
 `A x ∘ dι₀ x = dι x`. Then for every open neighbourhood `O` of the image of `ι` and every `N`
 there is a smooth partial diffeomorphism `Φ` from `ℂᵏ × ℂᵐ` to `M` whose source contains the core
 `ι₀ (ℝᵏ)`, with target in `O`, `Φ (ι₀ x) = ι x` and `dΦ (ι₀ x) = A x` for all `x`, which is
-holomorphic to order `N` along the core: every point `p₀` of the core has a neighbourhood `U` in
-the source of `Φ`, mapped by `Φ` into the source of the chart of `M` at `Φ p₀`, and a constant `C`
-such that the reading `e` of `Φ` in that chart satisfies, at every `p ∈ U`,
-`‖∂̄ e p‖ ≤ C * √(t p) ^ N`, and the derivative of `∂̄ e` at `p` has norm at most
-`C * √(t p) ^ (N - 1)`, where `t p = (shape p).2`. -/
+holomorphic to order `N` along the core, `SymplecticGeometry.IsHolomorphicToOrderAlongCore`. -/
 theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
     (hι : ContMDiff 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ∞ ι)
     (hιi : Topology.IsInducing ι)
@@ -904,14 +949,7 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
         (∀ x, Φ (modelDisc k m x) = ι x) ∧
         (∀ x, mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ
           (modelDisc k m x) = A x) ∧
-        ∀ p₀ ∈ range (modelDisc k m), ∃ U ∈ 𝓝 p₀,
-          U ⊆ Φ.source ∧ U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source ∧ ∃ C, ∀ p ∈ U,
-            ‖conjWirtingerDeriv (writtenInExtChartAt
-              𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ) p‖ ≤
-              C * √(shape p).2 ^ N ∧
-            ‖fderiv ℝ (conjWirtingerDeriv (writtenInExtChartAt
-              𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) p₀ Φ)) p‖ ≤
-              C * √(shape p).2 ^ (N - 1) := by
+        IsHolomorphicToOrderAlongCore N Φ := by
   -- Step 1: the first-order chart `Φ₀`.
   obtain ⟨Φ₀, hsrc, htgt, hval, hd⟩ :=
     exists_partialDiffeomorph_modelDisc hι hιi hA hAinv hAι hO hιO
@@ -947,7 +985,7 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
   obtain ⟨Ψ, hΨ, -, -, hsrc', htgt', hval', hd'⟩ := exists_partialDiffeomorph_trans_modelDisc Φ₀
     hsrc isOpen_univ (subset_univ _) hG'.contDiffOn hG'fix hG'd
   refine ⟨Ψ.trans Φ₀, hsrc', htgt'.trans htgt, fun x ↦ (hval' x).trans (hval x),
-    fun x ↦ (hd' x).trans (hd x), ?_⟩
+    fun x ↦ (hd' x).trans (hd x), (isHolomorphicToOrderAlongCore_def N _).2 ?_⟩
   -- Step 6: the bounds near `p₀ = ι₀ x₀`.
   rintro _ ⟨x₀, rfl⟩
   set p₀ := modelDisc k m x₀
