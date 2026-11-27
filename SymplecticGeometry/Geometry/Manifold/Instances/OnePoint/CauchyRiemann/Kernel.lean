@@ -53,6 +53,11 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
   realization `twistOneDelBarSobolev J k` is Fredholm of real index `4`.
 * `SymplecticGeometry.finrank_twistOneKernel`: `twistOneKernel J` has complex dimension `2`.
 * `SymplecticGeometry.twistOneDelBarSobolev_surjective`: `twistOneDelBarSobolev J k` is onto.
+* `SymplecticGeometry.twistOneKernelEval_bijective`: evaluation at `0` and `∞` identifies
+  `twistOneKernel J` with `ℂ × ℂ`.
+* `SymplecticGeometry.exists_twistOneKernelFamily`: near a structure `J₀` tamed by `σ`, complex
+  linear maps `T J` from `twistOneKernel J₀` onto `twistOneKernel J`, the inclusion at `J₀`, such
+  that `J ↦ T J s` is continuous at `J₀` into `W^{k+1,2}` for every order `k`.
 
 ## Proof
 
@@ -101,6 +106,18 @@ single zero; so this real dimension is at most `4`. As the index is the dimensio
 minus that of the cokernel, the kernel has real dimension exactly `4`, and a Fredholm operator
 whose index is the dimension of its kernel is onto
 (`ContinuousLinearMap.IsFredholm.surjective_of_index_eq_finrank_ker`).
+
+For the family, fix `J₀`. A projection of `W^{1,2}` onto the finite-dimensional kernel of
+`D_{J₀}`, read in `ℂ × ℂ` through `twistOneKernelEval J₀` and averaged with its conjugate by
+multiplication by `i` (`SymplecticGeometry.twistOneSobolevSMulI`), gives a real linear map `P` that
+is complex linear on smooth sections (`SymplecticGeometry.exists_twistOneKernelProjection`). As
+`D_{J₀}` is onto at every order and its kernel is the same at every order, the pair of `D_{J₀}` on
+`W^{k+1,2}` and `P` composed with the inclusion in `W^{1,2}` is invertible
+(`SymplecticGeometry.isInvertible_twistOneDelBarSobolev_prod`), so it stays invertible for `J`
+near `J₀` (`ContinuousLinearMap.exists_isOpen_isInvertible_prod`). Tau Ceti's
+`ContinuousLinearMap.kerSection` of this pair sends `(s 0, s ∞)` to the element of the kernel of
+`D_J` on which `P` takes that value; it is the same smooth section at every order, and depends
+continuously on `J` at each order (`ContinuousAt.kerSection`).
 
 ## References
 
@@ -463,7 +480,8 @@ theorem exists_twistOneKernelProjection {J₀ : SmoothAlmostComplexStructure �
     (twistOneKernelSobolev_injective 0)).trans
       (LinearEquiv.ofEq _ _ (range_twistOneKernelSobolev hJ₀ hi 0))
   have he (s : twistOneKernel J₀) : (e s : SobolevSection (twistCoreAtlas 1) volume 2 (0 + 1)) =
-      twistOneKernelSobolev J₀ 0 s := (rfl)
+      twistOneKernelSobolev J₀ 0 s := by
+    simp [e]
   -- A real projection, read in `ℂ × ℂ`, then averaged with its conjugate by `i`.
   let Q : K →L[ℝ] ℂ × ℂ := ⟨((twistOneKernelEval J₀).restrictScalars ℝ).comp e.symm.toLinearMap,
     LinearMap.continuous_of_finiteDimensional (E := K) _⟩
