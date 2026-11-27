@@ -28,7 +28,8 @@ Hausdorff with an orientation `o`, that
 base passes under the integral over the fibre. This holds for every `r` and `m`.
 
 These are the results on smooth families of forms over `U` of
-`DifferentialForm/SmoothFamily/Deriv.lean` (`TauCeti.isSmoothForm_mfderiv_family_apply`) and of
+`DifferentialForm/SmoothFamily/Deriv.lean`
+(`SymplecticGeometry.isSmoothForm_mfderiv_family_apply`) and of
 `FiberIntegral/Product/Coefficient.lean` (`TauCeti.mfderiv_integralTopForm_apply`,
 `TauCeti.contMDiff_integralTopForm`), applied to the integrands along the constant vectors
 `u`. Those are jointly smooth (`SymplecticGeometry.contMDiff_prodFiberIntegrand_const`) by
