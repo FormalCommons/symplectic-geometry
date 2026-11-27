@@ -256,7 +256,7 @@ private theorem isLocalDiffeomorph_interiorToEndPt :
 
 private theorem isLocalDiffeomorph_interiorToEnd :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEnd := fun q ↦
-  isLocalDiffeomorphAt_subtypeVal_comp_iff.1 (c.isLocalDiffeomorph_interiorToEndPt q)
+  IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 (c.isLocalDiffeomorph_interiorToEndPt q)
 
 private theorem isLocalDiffeomorph_endToInterior :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endToInterior := fun q ↦ by

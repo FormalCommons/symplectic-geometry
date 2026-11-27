@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -68,6 +69,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   on fixed tangent vectors, are smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_val`: the value of a smooth family of forms on a
   normed space is jointly smooth in the parameter and the point.
+* `SymplecticGeometry.IsSmoothFamily.contDiff_val`: the same as a `ContDiff` statement, when the
+  parameter space is a normed space.
 * `SymplecticGeometry.IsSmoothFamily.of_contMDiff_val`: conversely, a family of forms on a
   normed space whose value is jointly smooth in the parameter and the point is smooth.
 * `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value of a smooth family of forms on a
@@ -394,6 +397,14 @@ theorem continuous_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothF
     Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun p : N × E ↦ (α p.1).val p.2 :=
   h.contMDiff_val.continuous
 
+/-- **Joint smoothness of a smooth family over a normed space.** For a smooth family `α` of
+`k`-forms on a normed space `E` over a normed space `L`, the value `(α t) x`, an element of
+`E [⋀^Fin k]→L[ℝ] F`, is a `C^∞` function of `(t, x) ∈ L × E`. -/
+theorem contDiff_val {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+    {α : L → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFamily 𝓘(ℝ, L) α) :
+    ContDiff (F := E [⋀^Fin k]→L[ℝ] F) ℝ ∞ fun p : L × E ↦ (α p.1).val p.2 :=
+  contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp h.contMDiff_val)
+
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/
 theorem continuous_apply_one {α : N → SmoothForm 𝓘(ℝ, ℝ) ℝ F 1} (h : IsSmoothFamily J α) :
@@ -639,7 +650,7 @@ theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.p
   dsimp only
   symm
   rw [hL.mpullback_eq, mpullback_comp_at hs hmk, hslice, ← mpullback_comp_at hs hft,
-    hfs.mpullback_eq, mpullback_id]
+    hfs.mpullback_apply_eq_self]
 
 end Maps
 
@@ -670,18 +681,12 @@ protected theorem extendByZero_smul {U W : Opens M} (h : U ≤ W)
       (fun s y ↦ g (Opens.inclusion h y) • (α s).val y) _).mp ?_
     simpa only [verticalForm_fun_smul] using hgα.contMDiff (t, ⟨x, hx⟩)
   · -- Near `x`, every `β s` vanishes.
-    have hev : ∀ᶠ q : N × W in 𝓝 (t, x), ∀ s, (β s).val q.2 = 0 := by
-      have hy : ∀ᶠ y in 𝓝 x, ∀ s, (β s).val y = 0 := by
-        filter_upwards [(hzero x hx).eventually_nhds] with y hy s
-        rw [hβ]
-        exact (RoughForm.eventually_extendByZero_smul_eq_zero h (α s).val hy).self_of_nhds
-      exact (continuous_snd.tendsto (t, x)).eventually hy
-    refine ((contMDiff_zeroSection ℝ (fun y : W ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] F)).comp
-      contMDiff_snd (t, x)).congr_of_eventuallyEq ?_
-    filter_upwards [hev] with q hq
-    rw [sliceSection_apply, hq q.1]
-    -- The zero section takes the value `0` at every point.
-    rfl
+    refine contMDiffAt_sliceSection_of_eventually_eq_zero ?_
+    have hy : ∀ᶠ y in 𝓝 x, ∀ s, (β s).val y = 0 := by
+      filter_upwards [(hzero x hx).eventually_nhds] with y hy s
+      rw [hβ]
+      exact (RoughForm.eventually_extendByZero_smul_eq_zero h (α s).val hy).self_of_nhds
+    exact ((continuous_snd.tendsto (t, x)).eventually hy).mono fun q hq ↦ hq q.1
 
 end IsSmoothFamily
 

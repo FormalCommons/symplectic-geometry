@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import TauCeti.Topology.Homotopy.Extension.NDRPair
+import TauCeti.Topology.Compactness.Compact
 
 /-!
 # Singular homology near the subset of an NDR pair
@@ -51,12 +52,10 @@ theorem exists_isOpen_range_singularHomologyMap_le (N : NDRPair Q) (hU : IsOpen 
         LinearMap.range
           (ContinuousMap.singularHomologyMap ℤ k (ContinuousMap.inclusion (hQV.trans hVU))) := by
   set V := {x | N.control x < 1} ∩ {x | ∀ t, N.deformation (t, x) ∈ U}
-  -- The tube lemma, in the form of the compact-open topology on `C(I, X)`.
-  have htrack : IsOpen {x | ∀ t, N.deformation (t, x) ∈ U} := by
-    convert (ContinuousMap.isOpen_setOfPred_mapsTo isCompact_univ hU).preimage
-      (N.deformation.comp ContinuousMap.prodSwap).curry.continuous using 1
-    ext x
-    simp [MapsTo]
+  -- The tube lemma, as `unitInterval` is compact.
+  have htrack : IsOpen {x | ∀ t, N.deformation (t, x) ∈ U} :=
+    isOpen_forall_prodMk_mem continuous_id (hU.preimage (N.deformation.continuous.comp
+      continuous_swap))
   have hV : IsOpen V := (isOpen_lt N.control.continuous continuous_const).inter htrack
   have hQV : Q ⊆ V := fun q hq ↦
     ⟨by simp [(N.control_eq_zero_iff q).2 hq], fun t ↦ by

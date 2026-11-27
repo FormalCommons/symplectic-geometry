@@ -122,7 +122,7 @@ theorem isLocalDiffeomorph_interiorCoord [IsManifold (𝓡∂ (n + 1)) 1 W] :
   intro q
   have hg : IsLocalDiffeomorphAt (𝓡 (n + 1)) (𝓡∂ (n + 1)) k
       (fun q : c.interiorRange ↦ (⟨q.val.val, c.val_mem_opensRange q⟩ : c.opensRange)) q := by
-    refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+    refine IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 ?_
     exact (isLocalDiffeomorph_subtype_val q).comp
       (hg := (𝓡∂ (n + 1)).isLocalDiffeomorph_subtypeVal_interior _)
   exact hg.comp (hg := c.diffeomorphOpensRange.symm.isLocalDiffeomorph _)

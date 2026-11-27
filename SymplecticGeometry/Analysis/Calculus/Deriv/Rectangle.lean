@@ -10,6 +10,7 @@ public import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Topology.Order.Compact
+import Mathlib.Topology.UniformSpace.HeineCantor
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 
 /-!
@@ -23,12 +24,15 @@ partial derivatives into estimates that hold uniformly on the rectangle:
   rectangle, then `f` increases in `ℓ` at a uniform rate: there is `m > 0` with
   `m (ℓ' - ℓ) ≤ f ℓ' r - f ℓ r` for `ℓ ≤ ℓ'` in `[a, b]` and `r ∈ K`;
 * `IsCompact.exists_abs_deriv_sub_le_mul`: if `f` is `C²`, then the derivative `∂f/∂r` is
-  Lipschitz in `ℓ`, with one constant for all `r ∈ K`.
+  Lipschitz in `ℓ`, with one constant for all `r ∈ K`;
+* `IsCompact.exists_pos_abs_sub_lt_of_continuousOn`: a function continuous on the rectangle is
+  uniformly continuous in `ℓ`, uniformly in `r ∈ K` (Heine–Cantor,
+  `IsCompact.uniformContinuousOn_of_continuous`).
 
-Both come from the continuity of the partial derivatives `∂f/∂ℓ` and `∂²f/∂ℓ∂r` on `U`, which
-attain a positive minimum, respectively a bound, on the rectangle, and from the mean value theorem
-on the segment from `(ℓ, r)` to `(ℓ', r)`, which stays in the rectangle. The partial derivatives
-are read off the derivative of `Function.uncurry f` with Tau Ceti's slice lemmas
+The first two come from the continuity of the partial derivatives `∂f/∂ℓ` and `∂²f/∂ℓ∂r` on `U`,
+which attain a positive minimum, respectively a bound, on the rectangle, and from the mean value
+theorem on the segment from `(ℓ, r)` to `(ℓ', r)`, which stays in the rectangle. The partial
+derivatives are read off the derivative of `Function.uncurry f` with Tau Ceti's slice lemmas
 `TauCeti.hasDerivAt_slice_left`, `TauCeti.hasDerivAt_slice_right` and
 `TauCeti.hasDerivAt_fderiv_apply_fst`.
 -/
@@ -91,3 +95,18 @@ theorem IsCompact.exists_abs_deriv_sub_le_mul (hK : IsCompact K) (hU : IsOpen U)
       (0, 1)).hasDerivWithinAt) (fun t ht ↦ ?_) hℓ hℓ'
   refine ((fderiv ℝ (fderiv ℝ (Function.uncurry f)) (t, r)).le_opNorm₂ _ _).trans ?_
   simpa using hL (t, r) ⟨ht, hr⟩
+
+/-- A function continuous on the compact rectangle `[a, b] × K` is uniformly continuous in its
+first variable: for every `ε > 0` there is `h > 0` such that moving `ℓ ∈ [a, b]` by at most `h`
+changes its value at `(ℓ, r)` by less than `ε`, for every `r ∈ K`. -/
+theorem IsCompact.exists_pos_abs_sub_lt_of_continuousOn {g : ℝ × ℝ → ℝ} (hK : IsCompact K)
+    (hg : ContinuousOn g (Icc a b ×ˢ K)) {ε : ℝ} (hε : 0 < ε) :
+    ∃ h > 0, ∀ r ∈ K, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b, |ℓ' - ℓ| ≤ h →
+      |g (ℓ', r) - g (ℓ, r)| < ε := by
+  obtain ⟨d, hd, H⟩ := Metric.uniformContinuousOn_iff.1
+    ((isCompact_Icc.prod hK).uniformContinuousOn_of_continuous hg) ε hε
+  refine ⟨d / 2, half_pos hd, fun r hr ℓ hℓ ℓ' hℓ' hl ↦ ?_⟩
+  have h := H (ℓ', r) ⟨hℓ', hr⟩ (ℓ, r) ⟨hℓ, hr⟩ (by
+    rw [Prod.dist_eq, dist_self, Real.dist_eq, max_eq_left (abs_nonneg _)]
+    linarith)
+  rwa [Real.dist_eq] at h
