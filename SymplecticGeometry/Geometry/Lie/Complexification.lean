@@ -594,10 +594,7 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensio
   rw [← hav, C.expI_mul_toHom_polar_symm (a t), hη,
     show v t = u from congrArg Prod.snd h] at hkey
   have hd : mfderiv 𝓘(ℝ) 𝓘(ℝ, E) ξ t (1 : ℝ) = deriv ξ t := by
-    rw [mfderiv_eq_fderiv]
-    -- The two sides differ by the identifications `NormedSpace.fromTangentSpace` of tangent
-    -- spaces of normed spaces with the spaces, which are the identity.
-    exact fderiv_apply_one_eq_deriv (𝕜 := ℝ) (f := ξ) (x := t)
+    rw [← Manifold.curveVelocity_apply, Manifold.curveVelocity_eq_deriv]
   let Bc : E →L[ℝ] E →L[ℝ] ℝ := LinearMap.toContinuousBilinearMap B
   have hξd : HasDerivAt ξ (deriv ξ t) t := (mdifferentiableAt_iff_differentiableAt.1 hξ).hasDerivAt
   refine (Bc.hasDerivAt_of_bilinear (fun _ ↦ hξd) (fun _ ↦ hξd)).congr_deriv ?_
