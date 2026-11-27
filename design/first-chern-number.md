@@ -209,7 +209,7 @@ the determinant line of prerequisite 1:
   vanishing section `TauCeti.DetBundle.ofFrame` of the constant frame.
 - `firstChernClass_eq_complexEulerClass`: for a line bundle,
   `firstChernClass G E = complexEulerClass G E hG`, through
-  `TauCeti.DetBundle.oneHomeomorph`.
+  `TauCeti.DetBundle.lineHomeomorph`.
 - `firstChernClass_conj`: the conjugate bundle (Tau Ceti's
   `Topology/VectorBundle/Conjugate.lean`) has the negated class.
   `TauCeti.DetBundle.conjugateHomeomorph` identifies the determinant line of
@@ -907,7 +907,7 @@ issues, in an order where each issue's blockers come before it.
    the instances `SymplecticGeometry.Bundle.instFiberBundleCircleFiber` and
    `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
    (Fiber ℂ F L ℂ)`, whose trivializations are those of the frame bundle
-   read through that isomorphism (`Bundle.Trivialization.changeModelFiber`).
+   read through that isomorphism (`Bundle.Trivialization.transModelFiber`).
    That file states them for fibres with their own `InnerProductSpace ℂ`
    instances and `TauCeti.ContinuousFiberNorm F L`, and `Fact (finrank ℂ F
    = 1)`. This issue, and the issues that use `P`, work with a Hermitian

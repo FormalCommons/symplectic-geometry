@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Topology.VectorBundle.Pullback
 
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.KerInf
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -436,12 +437,9 @@ private theorem injective_fderiv_chartLift (z : X) :
   have hinj : Function.Injective (mfderiv 𝓘(ℂ, Fin n → ℂ)
       𝓘(ℂ, Fin (n + 1) → ℂ) (affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) z) := by
     rw [mfderiv_comp z h1 h2]
-    have hbij := (mdifferentiable_of_mem_atlas (I := 𝓘(ℂ, Fin (n + 1) → ℂ))
-      (affineOpenPartialHomeomorph_mem_atlas j)).mfderiv_bijective (by simpa using hz)
-    rw [coe_affineOpenPartialHomeomorph] at hbij
     have hi := X.embedding.isImmersion.mfderiv_injective WithTop.top_ne_zero z
     rw [coe_embedding] at hi
-    exact hbij.injective.comp hi
+    exact (bijective_mfderiv_affineChart hz).injective.comp hi
   replace hinj : Function.Injective (fderiv ℂ
       ((affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) ∘
         (chartAt (Fin n → ℂ) z).symm)
