@@ -81,7 +81,6 @@ public section
 noncomputable section
 
 open CategoryTheory Set Topology TopologicalSpace Module Filter Simplicial
-  SymplecticGeometry
 open scoped Manifold ContDiff
 
 namespace TauCeti.Manifold.Orientation
