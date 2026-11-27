@@ -56,6 +56,7 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `|r h''| ≤ 1 / 64`. Then the square root `S` of the radicand lies in `[6 r, 8 r]`, the slope is at
   least `7`, and the second derivative is at least `-21 / r`, so both inequalities of
   `SymplecticGeometry.isConvexShapeAt_iff` hold with a wide margin.
+  From `(2 + L) δ` on, the leaf `ℓ` is `√(64 r² - ℓ²)` (`SymplecticGeometry.sqrtSubLeaf_of_ge`).
 
 ## References
 
@@ -196,7 +197,7 @@ theorem exists_convexShapeFamily_sqrt {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
 with a cutoff of width `L δ` starting at `2 δ`: with `h r = smoothTransition ((r - 2 δ) / (L δ))`,
 `r ↦ (ℓ + 8 δ) / 64 (1 - h r) + √(64 (r² - δ²) + (64 δ² - ℓ²) h r)`. It is the bottom leaf
 `√(64 r² - 64 δ²)` raised by `(ℓ + 8 δ) / 64` for `r ≤ 2 δ` (when `L, δ ≥ 0`), and, when
-`L, δ > 0`, the standard shape `√(64 r² - ℓ²)` for `r ≥ (2 + L) δ`. -/
+`L, δ > 0`, `√(64 r² - ℓ²)` for `r ≥ (2 + L) δ`, the standard shape when `ℓ ≤ 0`. -/
 noncomputable def sqrtSubLeaf (L δ ℓ r : ℝ) : ℝ :=
   (ℓ + 8 * δ) / 64 * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
     √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)))
@@ -226,6 +227,13 @@ theorem sqrtSubLeaf_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : 
     sqrtSubLeaf L δ ℓ r = √(64 * r ^ 2 - 64 * δ ^ 2) + (ℓ + 8 * δ) / 64 := by
   rw [sqrtSubLeaf_def, smoothTransition.zero_of_nonpos
     (div_nonpos_of_nonpos_of_nonneg (by linarith) (by positivity))]
+  ring_nf
+
+/-- From `(2 + L) δ` on, the leaf `ℓ` is `√(64 r² - ℓ²)`, the standard shape when `ℓ ≤ 0`. -/
+theorem sqrtSubLeaf_of_ge {L ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 + L) * δ ≤ r) :
+    sqrtSubLeaf L δ ℓ r = √(64 * r ^ 2 - ℓ ^ 2) := by
+  rw [sqrtSubLeaf_def,
+    smoothTransition.one_of_one_le ((one_le_div (by positivity)).2 (by linarith))]
   ring_nf
 
 /-- The estimate behind `isConvexShapeAt_sqrtSubLeaf_one_of_two_le`, for `δ = 1` and `2 ≤ r`,
@@ -291,6 +299,95 @@ private theorem isConvexShapeAt_of_bounds {χ : ℝ → ℝ} {b c r H p q S : �
     rw [h₂]
     linarith
 
+/-- The leaf `m` for `δ = 1`, with the cutoff `smoothTransition ((x - 2) / L)` written out. -/
+private theorem sqrtSubLeaf_one_eq (L m : ℝ) : sqrtSubLeaf L 1 m = fun x ↦
+    (m + 8) / 64 * (1 - smoothTransition ((x - 2) / L)) +
+      √(64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L)) := by
+  ext x
+  simp only [sqrtSubLeaf_def, one_pow, mul_one]
+  ring_nf
+
+/-- The radicand of the leaf `m` for `δ = 1` is positive at `x > 1`. -/
+private theorem sqrtSubLeaf_one_radicand_pos {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
+    0 < 64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L) := by
+  nlinarith [mul_nonneg (sub_nonneg.2 hm) (smoothTransition.nonneg ((x - 2) / L))]
+
+/-- The slope of the leaf `m` for `δ = 1` at `x > 1`. -/
+private theorem deriv_sqrtSubLeaf_one {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
+    deriv (sqrtSubLeaf L 1 m) x =
+      -((m + 8) / 64) * (deriv smoothTransition ((x - 2) / L) / L) +
+        (128 * x + (64 - m ^ 2) * (deriv smoothTransition ((x - 2) / L) / L)) /
+          (2 * √(64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L))) := by
+  have hH := (((hasDerivAt_id' x).sub_const 2).div_const L).smoothTransition
+  have hF := (((hasDerivAt_pow 2 x).const_mul 64).sub_const 64).add (hH.const_mul (64 - m ^ 2))
+  rw [sqrtSubLeaf_one_eq]
+  refine HasDerivAt.deriv ?_
+  refine (((hH.const_sub 1).const_mul _).add
+    (hF.sqrt (sqrtSubLeaf_one_radicand_pos hm hx).ne')).congr_deriv ?_
+  simp only [Pi.add_apply, Nat.cast_ofNat, Nat.reduceSub, pow_one]
+  ring
+
+/-- The second derivative of the leaf `m` for `δ = 1` at `x > 1`. -/
+private theorem iteratedDeriv_two_sqrtSubLeaf_one {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
+    iteratedDeriv 2 (sqrtSubLeaf L 1 m) x =
+      -((m + 8) / 64) * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2) +
+        (128 + (64 - m ^ 2) * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2)) /
+          (2 * √(64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L))) -
+        (128 * x + (64 - m ^ 2) * (deriv smoothTransition ((x - 2) / L) / L)) ^ 2 /
+          (4 * √(64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L)) ^ 3) := by
+  have hev : deriv (sqrtSubLeaf L 1 m) =ᶠ[𝓝 x] fun y ↦
+      -((m + 8) / 64) * (deriv smoothTransition ((y - 2) / L) / L) +
+        (128 * y + (64 - m ^ 2) * (deriv smoothTransition ((y - 2) / L) / L)) /
+          (2 * √(64 * y ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((y - 2) / L))) := by
+    filter_upwards [lt_mem_nhds hx] with y hy using deriv_sqrtSubLeaf_one hm hy
+  have hu := ((hasDerivAt_id' x).sub_const 2).div_const L
+  have hH₁ := hu.deriv_smoothTransition.div_const L
+  have hF := (((hasDerivAt_pow 2 x).const_mul 64).sub_const 64).add
+    (hu.smoothTransition.const_mul (64 - m ^ 2))
+  have hS := sqrt_pos.2 (sqrtSubLeaf_one_radicand_pos (L := L) hm hx)
+  have hd := (hH₁.const_mul (-((m + 8) / 64))).add
+    ((((hasDerivAt_id' x).const_mul 128).add (hH₁.const_mul (64 - m ^ 2))).div
+      ((hF.sqrt (sqrtSubLeaf_one_radicand_pos hm hx).ne').const_mul 2) (mul_pos two_pos hS).ne')
+  rw [iteratedDeriv_succ, iteratedDeriv_one, hev.deriv_eq]
+  refine HasDerivAt.deriv ?_
+  refine hd.congr_deriv ?_
+  simp only [Pi.add_apply, Nat.cast_ofNat, Nat.reduceSub, pow_one]
+  generalize √(64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L)) = S at hS ⊢
+  have hS₀ := hS.ne'
+  field_simp
+  ring
+
+/-- For `L ≥ 1` large compared with the bounds `A` of `smoothTransition'`, `B` of
+`smoothTransition''` and `M` of `x smoothTransition'' x`, the first derivative of the cutoff
+`x ↦ smoothTransition ((x - 2) / L)` is at most `1 / 64` in absolute value, and so is its second
+derivative times `x`. -/
+private theorem abs_deriv_cutoff_le {A B M L : ℝ} (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
+    (hL₁ : 1 ≤ L) (hL : 64 * (A + 2 * B + M) ≤ L) (x : ℝ) :
+    |deriv smoothTransition ((x - 2) / L) / L| ≤ 1 / 64 ∧
+      |x * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2)| ≤ 1 / 64 := by
+  have hL₀ : 0 < L := by linarith
+  have hA₀ : 0 ≤ A := (abs_nonneg _).trans (hA 0)
+  have hB₀ : 0 ≤ B := (abs_nonneg _).trans (hB 0)
+  have hM₀ : 0 ≤ M := (abs_nonneg _).trans (hM 0)
+  set y := (x - 2) / L with hy
+  have hxy : x = 2 + L * y := by rw [hy]; field_simp; ring
+  refine ⟨?_, ?_⟩
+  · rw [abs_div, abs_of_pos hL₀, div_le_iff₀ hL₀]
+    nlinarith [hA y]
+  · set s := deriv (deriv smoothTransition) y
+    have e : x * (s / L ^ 2) = (2 * s + L * (y * s)) / L ^ 2 := by
+      rw [hxy]
+      field_simp
+    rw [e, abs_div, abs_of_pos (pow_pos hL₀ 2), div_le_iff₀ (pow_pos hL₀ 2)]
+    have h1 := abs_add_le (2 * s) (L * (y * s))
+    rw [abs_mul, abs_mul, abs_of_pos hL₀, abs_two] at h1
+    have h2 := hB y
+    have h3 := hM y
+    refine h1.trans ?_
+    nlinarith
+
 /-- The leaves for `δ = 1` are `i`-convex shapes at `r ≥ 2`, where the cutoff acts, once `L` is
 large compared with the bounds `A` of `smoothTransition'`, `B` of `smoothTransition''` and `M`
 of `x smoothTransition'' x`. -/
@@ -301,80 +398,13 @@ private theorem isConvexShapeAt_sqrtSubLeaf_one_of_two_le {A B M L m r : ℝ}
     (hL₁ : 1 ≤ L) (hL : 64 * (A + 2 * B + M) ≤ L) (hm : m ∈ Icc (-8) 0) (hr : 2 ≤ r) :
     IsConvexShapeAt (sqrtSubLeaf L 1 m) r := by
   obtain ⟨hm₀, hm₁⟩ := hm
-  have hL₀ : 0 < L := by linarith
-  have hA₀ : 0 ≤ A := (abs_nonneg _).trans (hA 0)
-  have hB₀ : 0 ≤ B := (abs_nonneg _).trans (hB 0)
-  have hM₀ : 0 ≤ M := (abs_nonneg _).trans (hM 0)
-  set s₁ := deriv smoothTransition
-  set s₂ := deriv s₁ with hs₂
-  set b := (m + 8) / 64 with hb
-  set c := 64 - m ^ 2 with hc
-  set H : ℝ → ℝ := fun x ↦ smoothTransition ((x - 2) / L) with hH
-  set H₁ : ℝ → ℝ := fun x ↦ s₁ ((x - 2) / L) / L with hH₁
-  set H₂ : ℝ → ℝ := fun x ↦ s₂ ((x - 2) / L) / L ^ 2 with hH₂
-  set F : ℝ → ℝ := fun x ↦ 64 * x ^ 2 - 64 + c * H x with hF
-  have e : sqrtSubLeaf L 1 m = fun x ↦ b * (1 - H x) + √(F x) := by
-    ext x
-    simp only [sqrtSubLeaf_def, hb, hc, hH, hF, one_pow, mul_one]
-    ring_nf
-  have hHd (x : ℝ) : HasDerivAt H (H₁ x) x := by
-    have := ((smoothTransition.contDiff (n := 1)).differentiable (by simp) _).hasDerivAt.comp x
-      (((hasDerivAt_id' x).sub_const 2).div_const L)
-    exact this.congr_deriv (by simp only [hH₁]; ring)
-  have hH₁d (x : ℝ) : HasDerivAt H₁ (H₂ x) x := by
-    have := ((smoothTransition.differentiable_deriv _).hasDerivAt.comp x
-      (((hasDerivAt_id' x).sub_const 2).div_const L)).div_const L
-    exact this.congr_deriv (by simp only [hH₂, hs₂]; ring)
-  have hFd (x : ℝ) : HasDerivAt F (128 * x + c * H₁ x) x :=
-    ((((hasDerivAt_pow 2 x).const_mul 64).sub_const 64).add ((hHd x).const_mul c)).congr_deriv
-      (by ring)
-  have hHnn (x : ℝ) : 0 ≤ H x := smoothTransition.nonneg _
-  have hc₀ : 0 ≤ c := by nlinarith
-  have hFpos {x : ℝ} (hx : 1 < x) : 0 < F x := by
-    have := mul_nonneg hc₀ (hHnn x)
-    simp only [hF]
-    nlinarith
-  set χ₁ : ℝ → ℝ := fun x ↦ -b * H₁ x + (128 * x + c * H₁ x) / (2 * √(F x)) with hχ₁
-  have hχd {x : ℝ} (hx : 1 < x) : HasDerivAt (fun x ↦ b * (1 - H x) + √(F x)) (χ₁ x) x :=
-    ((((hHd x).const_sub 1).const_mul b).add ((hFd x).sqrt (hFpos hx).ne')).congr_deriv
-      (by simp only [hχ₁]; ring)
-  have hF₁d : HasDerivAt (fun x ↦ 128 * x + c * H₁ x) (128 + c * H₂ r) r :=
-    (((hasDerivAt_id' r).const_mul 128).add ((hH₁d r).const_mul c)).congr_deriv (by ring)
+  have hm₂ : m ^ 2 ≤ 64 := by nlinarith
   have hr₁ : 1 < r := by linarith
-  have hS := sqrt_pos.2 (hFpos hr₁)
-  have hχ₁d := ((hH₁d r).const_mul (-b)).add
-    (hF₁d.div (((hFd r).sqrt (hFpos hr₁).ne').const_mul 2) (by positivity))
-  have hχ₁d' : HasDerivAt χ₁ _ r := hχ₁d
-  have hev : deriv (fun x ↦ b * (1 - H x) + √(F x)) =ᶠ[𝓝 r] χ₁ := by
-    filter_upwards [lt_mem_nhds hr₁] with x hx using (hχd hx).deriv
-  -- The bounds on `H'` and `H''` at `r`.
-  set y := (r - 2) / L with hy
-  have hry : r = 2 + L * y := by rw [hy]; field_simp; ring
-  have hp : |H₁ r| ≤ 1 / 64 := by
-    simp only [hH₁]
-    rw [← hy, abs_div, abs_of_pos hL₀, div_le_iff₀ hL₀]
-    nlinarith [hA y]
-  have hq : |r * H₂ r| ≤ 1 / 64 := by
-    have e' : r * H₂ r = (2 * s₂ y + L * (y * s₂ y)) / L ^ 2 := by
-      simp only [hH₂]
-      rw [← hy]
-      nth_rw 1 [hry]
-      field_simp
-    rw [e', abs_div, abs_of_pos (pow_pos hL₀ 2), div_le_iff₀ (pow_pos hL₀ 2)]
-    have h1 := abs_add_le (2 * s₂ y) (L * (y * s₂ y))
-    rw [abs_mul, abs_mul, abs_of_pos hL₀, abs_two] at h1
-    have h2 := hB y
-    have h3 := hM y
-    refine h1.trans ?_
-    nlinarith
-  refine isConvexShapeAt_of_bounds (b := b) (c := c) (H := H r) (p := H₁ r) (q := H₂ r)
-    (S := √(F r))
-    (by rw [hb]; linarith) (by rw [hb]; linarith) hc₀ (by nlinarith) (hHnn r)
-    (smoothTransition.le_one _) hp hq hr (sqrt_nonneg _) (sq_sqrt (hFpos hr₁).le)
-    (by rw [e]) (by rw [e, (hχd hr₁).deriv]) ?_
-  rw [e, iteratedDeriv_succ, iteratedDeriv_one, hev.deriv_eq, hχ₁d'.deriv]
-  field_simp
-  ring
+  obtain ⟨hp, hq⟩ := abs_deriv_cutoff_le hA hB hM hL₁ hL r
+  exact isConvexShapeAt_of_bounds (by linarith) (by linarith) (by linarith) (by nlinarith)
+    (smoothTransition.nonneg _) (smoothTransition.le_one _) hp hq hr (sqrt_nonneg _)
+    (sq_sqrt (sqrtSubLeaf_one_radicand_pos hm₂ hr₁).le) (congrFun (sqrtSubLeaf_one_eq L m) r)
+    (deriv_sqrtSubLeaf_one hm₂ hr₁) (iteratedDeriv_two_sqrtSubLeaf_one hm₂ hr₁)
 
 /-- **The explicit leaves below the cone are `i`-convex shapes.** There is `L₀ ≥ 1` such that for
 every `L ≥ L₀`, `δ > 0` and `ℓ ∈ [-8 δ, 0]`, the leaf `sqrtSubLeaf L δ ℓ` is an `i`-convex shape
@@ -403,7 +433,6 @@ theorem exists_isConvexShapeAt_sqrtSubLeaf :
         ((le_max_right _ _).trans hL) hm h
   have h := h₁.rescale hδ
   rwa [mul_div_cancel₀ r hδ.ne', ← sqrtSubLeaf_eq_mul_sqrtSubLeaf_one hδ] at h
-
 
 end SymplecticGeometry
 
