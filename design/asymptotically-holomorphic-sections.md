@@ -588,7 +588,7 @@ and the prerequisites, placed by topic.
   `exists_rescaledUnitaryCharts`, and
   `exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc` compares $d_k$ with
   chart distances.
-- `AsymptoticallyHolomorphic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
+- `Basic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
   `IsUniformlyTransverse`, closure under sums and under products with
   sequences of bounded functions, and `jetNorm_le_of_chart_change` (a
   polynomial in $d_k(x,y)$ bounds the change between the charts at $x$ and
@@ -679,7 +679,7 @@ statement.
 12. **Rescaled unitary charts** (`RescaledChart.lean`, second half). Waits
     for 7 and 11.
 13. **Jet norms and asymptotically holomorphic sequences**
-    (`AsymptoticallyHolomorphic.lean`). Waits for 12.
+    (`Basic.lean`). Waits for 12.
 14. **Holomorphic approximation on polydiscs**
     (`HolomorphicApproximation.lean`). Waits for nothing.
 15. **Taylor truncation on polydiscs** (`TaylorTruncation.lean`). Waits for
