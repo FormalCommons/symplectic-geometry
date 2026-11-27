@@ -227,7 +227,7 @@ theorem mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
     filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (mk_mem_prod ht (mem_univ s))] with p hp
     exact (hΦ₁ hp.1).symm
   rw [hΦeq.mpullback_eq, mpullback_comp_at ((contMDiffAt_of_isMIntegralCurveOn le_top hY₁ hΦ₁Y ht₀
-      hΦ₁₀ ht s).mdifferentiableAt (by simp)) SymplecticGeometry.mdifferentiableAt_subtypeVal,
+      hΦ₁₀ ht s).mdifferentiableAt (by simp)) mdifferentiableAt_subtypeVal,
     ← hβ₁,
     mpullback_apply_eq_symplectization_of_isMIntegralCurveOn hY₁ hdβ₁ hΦ₁Y ht₀ hΦ₁₀ ht, hια]
 
