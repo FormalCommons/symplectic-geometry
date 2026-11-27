@@ -158,7 +158,8 @@ private theorem mfderiv_lift_rangeInrStructure (z : GluedAlong.rangeInr (gluingH
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z v) :=
   mfderiv_apply_localPullback_subtypeVal_comp
     (GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out))
-    (fun z ↦ (coe_rangeInrDiffeomorph_apply c z).symm) _ z v
+    (fun z ↦ (coe_rangeInrDiffeomorph_apply c (isCompatible_real c hc.out) z).symm)
+    _ z v
 
 variable {c J}
 
