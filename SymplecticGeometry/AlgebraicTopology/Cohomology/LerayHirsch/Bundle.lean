@@ -142,9 +142,8 @@ private theorem fiberInclusionMap_basis_of_trivializationAt
   have hx' : x ∈ t'.baseSet := mem_baseSet_trivializationAt F Z x
   let φ := t.coordChangeHomeomorph t' hx hx'
   have hφ : ofHom (t.fiberInclusionMap hx) =
-      (isoOfHomeo (X := of F) (Y := of F) φ).hom ≫ ofHom (t'.fiberInclusionMap hx') := by
-    refine TopCat.ext fun f ↦ ?_
-    exact (t.fiberInclusionMap_coordChange t' hx hx' f).symm
+      (isoOfHomeo (X := of F) (Y := of F) φ).hom ≫ ofHom (t'.fiberInclusionMap hx') :=
+    TopCat.ext (congrFun (t.coe_fiberInclusionMap_eq_comp_coordChange t' hx hx'))
   let L := LinearEquiv.ofBijective (TopCat.singularCohomologyMap (R := 𝟙_ (ModuleCat.{w} k))
     (k := k) (M := 𝟙_ (ModuleCat.{w} k)) (isoOfHomeo (X := of F) (Y := of F) φ).hom d).hom
     ((TauCeti.singularCohomologyFunctor _ k _ d).mapIso
