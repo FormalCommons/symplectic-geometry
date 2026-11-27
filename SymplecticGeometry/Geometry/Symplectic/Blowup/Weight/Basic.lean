@@ -832,10 +832,10 @@ blowup. -/
 def modelChart :
     PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (WeightBlowup hψ hl hε)
       (BlowupModel n) ∞ :=
-  ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)).diffeomorphOfInjective
-      (GluedAlong.inr_injective _)).symm.toPartialDiffeomorph.liftOpens
-    ⟨(GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)).diffeomorphOfInjective
-      (GluedAlong.inr_injective _) (zeroSectionOpenNbhd hε (Classical.arbitrary _))⟩
+  PartialDiffeomorph.liftOpens
+    (GluedAlong.rangeInrDiffeomorph
+      (GluedAlong.isCompatible_glueData (gluingDiffeomorphSymm hψ hl hε))).toPartialDiffeomorph
+    ⟨⟨_, GluedAlong.inr_mem_rangeInr _ (zeroSectionOpenNbhd hε (Classical.arbitrary _))⟩⟩
     ⟨zeroSectionOpenNbhd hε (Classical.arbitrary _)⟩
 
 /-- The source of the model chart is the image of `inr`. -/
@@ -843,10 +843,8 @@ theorem modelChart_source :
     (modelChart hψ hl hε).source =
       range (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) := by
   simp only [modelChart, PartialDiffeomorph.liftOpens_source,
-    Diffeomorph.toPartialDiffeomorph_toPartialEquiv, Diffeomorph.symm_toEquiv,
-    Equiv.symm_toPartialEquiv, PartialEquiv.symm_source, Equiv.toPartialEquiv_target, image_univ,
-    Subtype.range_coe_subtype, SetLike.setOfPred_mem_eq]
-  rw [← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
+    Diffeomorph.toPartialDiffeomorph_toPartialEquiv, Equiv.toPartialEquiv_source, image_univ,
+    Subtype.range_coe_subtype, SetLike.setOfPred_mem_eq, GluedAlong.coe_rangeInr]
 
 /-- The target of the model chart is `openNbhd n ε`. -/
 theorem modelChart_target : (modelChart hψ hl hε).target = openNbhd n ε := by
@@ -857,9 +855,9 @@ theorem modelChart_target : (modelChart hψ hl hε).target = openNbhd n ε := by
 @[simp]
 theorem modelChart_inr (p : openNbhdOpens n ε) :
     modelChart hψ hl hε (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p) = p := by
-  rw [modelChart, ← IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply
-    (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε))
-    (GluedAlong.inr_injective _) p, PartialDiffeomorph.liftOpens_apply_coe]
+  rw [modelChart, ← GluedAlong.coe_rangeInrDiffeomorph_symm_apply
+    (GluedAlong.isCompatible_glueData (gluingDiffeomorphSymm hψ hl hε)) p,
+    PartialDiffeomorph.liftOpens_apply_coe]
   simp
 
 /-- The inverse of the model chart sends a point `p` of the model piece to `inr p`. -/
@@ -884,9 +882,9 @@ theorem isSymplecticMapOn_modelChart :
       (modelChart hψ hl hε).source := by
   refine Diffeomorph.isSymplecticMapOn_toPartialDiffeomorph_liftOpens _ _ _ ?_
   rw [← SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
+    ← SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
     SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val, mpullback_inr_form]
+    GluedAlong.mpullback_rangeInrDiffeomorph_symm, mpullback_inr_form]
 
 end Divisor
 
