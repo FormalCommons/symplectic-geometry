@@ -41,7 +41,8 @@ fibre, and this fibre is the Fermat cubic
 (`SymplecticGeometry.rationalEllipticSurface.mem_range_fibreEmbedding_iff`). The inverse of the
 trivialization, over a smaller disc and read through the identification of the fibre over `0`
 with the model fibre (`Bundle.Trivialization.mapFiberHomeomorph`), is the product
-neighbourhood.
+neighbourhood. The restriction to a disc of regular values follows the proof of
+`ContMDiff.nonempty_diffeomorph_fiber_of_isProperMap`.
 
 ## References
 
