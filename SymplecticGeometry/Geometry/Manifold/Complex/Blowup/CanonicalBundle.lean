@@ -596,21 +596,17 @@ theorem coordForm_liftChart_trans_blowupModelChart (i k : Fin (n + 1)) {z : Blow
     rw [mem_preimage, hχi, (blowupModelChart i).left_inv (hmem hi)]
     exact hmem hk
   -- Near `z`, the chart `χₖ` is `T ∘ χᵢ`.
-  have heq : χk ∘ id =ᶠ[nhds z] T ∘ χi := by
+  have heq : χk =ᶠ[nhds z] T ∘ χi := by
     filter_upwards [χi.open_source.mem_nhds hi] with z' hz'
-    simp only [comp_apply, id_eq, T, χk, χi, OpenPartialHomeomorph.coe_trans, hL,
+    simp only [comp_apply, T, χk, χi, OpenPartialHomeomorph.coe_trans, hL,
       (blowupModelChart i).left_inv (hmem hz')]
-  have hχd {e : OpenPartialHomeomorph (Blowup c) (Fin (n + 1) → ℂ)}
-      (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c)) (hz : z ∈ e.source) :
-      MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e z :=
-    (contMDiffAt_of_mem_maximalAtlas he hz).mdifferentiableAt (by simp)
+  have hχd : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) χi z :=
+    (contMDiffAt_of_mem_maximalAtlas (liftChart_mem_maximalAtlas c c i) hi).mdifferentiableAt
+      (by simp)
   have hTd : DifferentiableAt ℂ T (χi z) :=
     ((contDiffOn_blowupModelChart_symm_trans i k 1).differentiableOn one_ne_zero).differentiableAt
       (T.open_source.mem_nhds hT)
-  have h := b.continuousDet_compContinuousLinearMap_mfderiv_comp
-    (hχd (liftChart_mem_maximalAtlas c c k) hk) mdifferentiableAt_id
-    (hχd (liftChart_mem_maximalAtlas c c i) hi) hTd heq
-  rw [mfderiv_id] at h
+  have h := b.continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq hχd hTd heq
   -- The factor: `T`'s Jacobian at `χᵢ z`, with `update (χᵢ z) i 1` spanning the line.
   have hsrc : update (χi z) i 1 k ≠ 0 := by
     have := hT
@@ -622,10 +618,7 @@ theorem coordForm_liftChart_trans_blowupModelChart (i k : Fin (n + 1)) {z : Blow
       rw [← liftChart_self c hz0, ← pr_blowupModelChart_symm_apply, hχi,
         (blowupModelChart i).left_inv (hmem hi)]
     rw [hypersurfaceData_g_some_some_eq c k i _ hpr, update_self, div_one]
-  rw [hg, ← det_fderiv_blowupModelChart_symm_trans i k hsrc, ← h]
-  ext v
-  rw [ContinuousAlternatingMap.compContinuousLinearMap_apply]
-  exact congrArg _ (funext fun _ ↦ (ContinuousLinearMap.id_apply _).symm)
+  rw [hg, ← det_fderiv_blowupModelChart_symm_trans i k hsrc, h]
 
 end CoordForm
 
