@@ -14,7 +14,6 @@ import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.Deriv.Prod
-import SymplecticGeometry.Analysis.Normed.Module.RCLike.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Log.Unbounded
 
 /-!
@@ -374,8 +373,8 @@ theorem exists_globalFlow_eq_of_mem_unstableSet (hXφ : ∀ y ∈ φ.toChart.sou
   set n := ‖A‖
   have hn : 0 < n := norm_pos_iff.2 hA
   set c := (ρ / n) • A
-  obtain ⟨hc, hcA⟩ : ‖c‖ = ρ ∧ (n / ρ) • c = A :=
-    norm_div_norm_smul_and_norm_div_smul_div_norm_smul hρ0 hA
+  obtain ⟨hc, hcA⟩ : ‖c‖ = ρ ∧ (n / ρ) • c = A := by
+    simp [c, n, norm_smul, abs_of_pos hρ0, hA, smul_smul, hρ0.ne']
   -- The orbit of `x` meets the sphere of radius `ρ`, at the time `T - log (n / ρ)`.
   have hmeet : Φ T x = Φ (Real.log (n / ρ)) (φ.toChart.symm (φ.negativeExtend c.ofLp)) := by
     rcases le_or_gt n ρ with hnρ | hnρ
@@ -473,8 +472,8 @@ theorem injOn_globalFlow_toChart_symm_negativeExtend
       ‖(ρ / ‖c‖) • c‖ = ρ ∧ (‖c‖ / ρ) • (ρ / ‖c‖) • c = c ∧ 0 < ‖c‖ / ρ ∧ ‖c‖ / ρ ≤ 1 := by
     have hn : 0 < ‖c‖ := norm_pos_iff.2 hc0
     have hρ0 : 0 < ρ := hn.trans_le hc
-    obtain ⟨h1, h2⟩ := norm_div_norm_smul_and_norm_div_smul_div_norm_smul hρ0 hc0
-    exact ⟨h1, h2, div_pos hn hρ0, (div_le_one hρ0).2 hc⟩
+    refine ⟨?_, ?_, div_pos hn hρ0, (div_le_one hρ0).2 hc⟩ <;>
+      simp [norm_smul, abs_of_pos hρ0, hc0, smul_smul, hρ0.ne']
   -- The image of a nonzero point `c` of the ball, through the point of the sphere on its ray.
   have hray {c : EuclideanSpace ℝ {i // φ.weight i < 0}} (hc0 : c ≠ 0) (hc : ‖c‖ ≤ ρ) :
       Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) =
