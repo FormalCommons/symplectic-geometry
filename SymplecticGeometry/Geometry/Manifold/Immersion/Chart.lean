@@ -66,6 +66,12 @@ theorem equiv_symm_codChart_extend_apply {y : M} (hy : y ∈ h.domChart.source) 
   rw [(h.domChart.extend I).left_inv hy'] at this
   rw [this, ContinuousLinearEquiv.symm_apply_apply]
 
+/-- An immersion in its normal-form charts: the point with coordinates `(φ y, 0)` in `E × F`, read
+through `h.equiv`, is the image of `f y` in the codomain chart. -/
+theorem equiv_domChart_extend_apply {y : M} (hy : y ∈ h.domChart.source) :
+    h.equiv (h.domChart.extend I y, 0) = h.codChart.extend J (f y) := by
+  rw [← h.equiv_symm_codChart_extend_apply hy, ContinuousLinearEquiv.apply_symm_apply]
+
 /-- **The derivative of an immersion in its normal-form charts.** On the source of the domain
 chart `φ`, the derivative of `f` followed by the derivative of the codomain chart `ψ` is the
 derivative of `φ` followed by the inclusion `u ↦ L (u, 0)`, where `L = h.equiv`. -/

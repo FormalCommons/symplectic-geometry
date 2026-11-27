@@ -362,19 +362,13 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `blowdown ⁻¹' φ.target` of the model, and followed by `blowupModelChart i`
   a holomorphic chart, by `liftPartialDiffeomorph` near the divisor and
   the two blowdowns off it.
-- `Blowup.chartChange c c'`, the biholomorphism `Blowup c ≃ Blowup c'` for
-  two charts of the same atlas: `descContMDiffMap` of
-  `GluedAlong.inl (gluingHomeomorph c')` on the first
-  piece and, on the second, of `GluedAlong.inr (gluingHomeomorph c')` of
-  `liftMap` of `c' ∘ c.symm` over
-  the source of `c' ∘ c.symm` and `GluedAlong.inl (gluingHomeomorph c')` of
-  `c.symm ∘ blowdown` off $Z$,
-  which agree where both are defined. It is a local biholomorphism by
-  `IsCompatible.isLocalDiffeomorph_iff` and `liftPartialDiffeomorph`, and
-  bijective with inverse the same map for `c'` and `c`, so a biholomorphism
-  by Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`. Tau Ceti's
-  `IsCompatible.gluedDiffeomorph` does not apply, since the lift is defined
-  only over the source of `c' ∘ c.symm` and not on the whole second piece.
+- `Blowup.chartChange c c'` (in `Blowup/ChartChange.lean`), the biholomorphism
+  `Blowup c ≃ Blowup c'` for two charts of the same atlas:
+  `GluedAlong.inr (gluingHomeomorph c')` of `liftChart c c'` where the blowdown
+  lies in the source of `c'`, and `GluedAlong.inl (gluingHomeomorph c')` of the
+  blowdown elsewhere. It is holomorphic by `isLocalDiffeomorphOn_liftChart` near
+  $Z$ and `blowdownDiffeomorph` off it, and its inverse is the same map for `c'`
+  and `c`.
   `chartChange_inl`, `chartChange_inr`, `blowdown_chartChange`.
 - `Blowup.diffeomorphOfEquiv c e hl hr` (uniqueness, in
   `Blowup/Uniqueness.lean`): for `X` charted on `E` and a bijection

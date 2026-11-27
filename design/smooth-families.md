@@ -578,8 +578,7 @@ centred at the point, used by `Immersion/TangentProjection.lean`: the
   field on a `C^n` manifold, `m + 1 ≤ n`, read in an extended chart, is
   `C^m` on the chart's target; and
   `VectorField.mfderivWithin_extChartAt_symm_mpullbackWithin`: the derivative
-  of the inverse chart sends that expression back to the field. Both are used
-  by `Boundary/Collar/Flow/Local.lean` of *Liouville structures*.
+  of the inverse chart sends that expression back to the field.
 
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 

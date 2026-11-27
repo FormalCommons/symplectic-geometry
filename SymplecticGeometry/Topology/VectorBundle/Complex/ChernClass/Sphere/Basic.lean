@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Newton
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 
@@ -18,7 +19,9 @@ cohomology of `S^n` vanishes in the other degrees (`TopCat.isZero_integralCohomo
 This is `SymplecticGeometry.Bundle.chernClass_sphere_eq_zero`. On an even sphere `S^{2m}`, `m ≠ 0`,
 the Whitney sum formula in degree `2 m` therefore reduces to
 `c_m(E₁ ⊕ E₂) = c_m(E₁) + c_m(E₂)` (`SymplecticGeometry.Bundle.chernClass_prod_sphere`), the
-products of classes of intermediate degrees being zero.
+products of classes of intermediate degrees being zero. For the same reason, Newton's identity
+on `S^{2m}` reduces to `s_m(V) = (-1)^(m-1) m c_m(V)`
+(`SymplecticGeometry.Bundle.newtonClass_sphere`).
 
 ## References
 
@@ -46,6 +49,16 @@ theorem chernClass_sphere_eq_zero (hE : finrank ℝ E = n + 1) {k : ℕ} (hk₀ 
   have := ModuleCat.subsingleton_of_isZero
     (TopCat.isZero_integralCohomology_sphere_of_ne hE (q := 2 * k) (by omega) hk)
   Subsingleton.elim _ _
+
+/-- **Newton's identity on an even sphere.** For a real normed space `E` of dimension `2 m + 1`
+with `m ≠ 0` and a complex vector bundle `V` over the unit sphere `S^{2m}` of `E`,
+`s_m(V) = (-1)^(m-1) m c_m(V)`. -/
+theorem newtonClass_sphere {m : ℕ} (hE : finrank ℝ E = 2 * m + 1) (hm : m ≠ 0) :
+    newtonClass G V m = ((-1) ^ (m - 1) * m : ℤ) • chernClass G V m := by
+  refine newtonClass_eq_of_cup_eq_zero G V hm fun a b hab ha hb x y ↦ ?_
+  have := ModuleCat.subsingleton_of_isZero
+    (TopCat.isZero_integralCohomology_sphere_of_ne hE (q := 2 * a) (by omega) (by omega))
+  rw [Subsingleton.elim x 0, map_zero, LinearMap.zero_apply]
 
 section Prod
 

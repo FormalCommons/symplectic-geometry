@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.VectorField.Chart.Derivative
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
@@ -300,7 +301,7 @@ theorem lieDeriv_add_field (X Y : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
     (φ : SmoothForm I M F k) :
     lieDeriv (X + Y) φ = lieDeriv X φ + lieDeriv Y φ :=
   Subtype.ext <| funext fun x ↦ by
-    rw [Submodule.coe_add, Pi.add_apply, coe_lieDeriv, coe_lieDeriv, coe_lieDeriv,
+    rw [SmoothBundleForm.add_apply, coe_lieDeriv, coe_lieDeriv, coe_lieDeriv,
       ContMDiffSection.coe_add]
     exact mlieDerivForm_add_left φ.val (X.contMDiff.mdifferentiableAt (by simp))
       (Y.contMDiff.mdifferentiableAt (by simp))

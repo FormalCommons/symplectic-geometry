@@ -52,7 +52,7 @@ through Tau Ceti's `TauCeti.mulVec_surjective_jacobiMatrixAt_iff_exists_eval_pde
 The section on the underlying real submanifold regards the surface as a real submanifold of
 `ℂℙ² × ℂℙ¹`, the form in which the results on complex submanifolds of almost complex manifolds
 take it (`TauCeti.SmoothAlmostComplexStructure.restrict`,
-`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`). The analytic embedding is a smooth
+`TauCeti.SmoothTwoForm.Tames.restrict`). The analytic embedding is a smooth
 embedding over `ℝ` (`TauCeti.SmoothEmbedding.restrictScalarsProd`), whose tangent images are
 invariant under the product of the complex structures of the two factors, and the structure that
 this product restricts to on the surface is the surface's own complex structure, as for every
@@ -62,12 +62,16 @@ holomorphic embedding into a product
 
 The symplectic form of the surface is the pull-back along this real embedding of the product
 `ω_FS ⊕ ω_FS` of the Fubini–Study forms of `ℂℙ²` and `ℂℙ¹` (`TauCeti.SmoothTwoForm.prod`). The
-product form is symplectic (`TauCeti.SmoothTwoForm.IsSymplectic.prod`) and tames the product of
-the complex structures (`TauCeti.SmoothAlmostComplexStructure.tames_prod`), since each
-Fubini–Study form is compatible with the complex structure of its factor
-(`SymplecticGeometry.compatible_fubiniStudyForm`). A symplectic form that tames an almost complex
-structure pulls back to a symplectic form on a submanifold with invariant tangent spaces
-(`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`). No Kähler condition is used.
+pull-back is closed, as the pull-back of the closed product form
+(`TauCeti.SmoothTwoForm.IsSymplectic.prod`, `TauCeti.SmoothForm.IsClosed.mpullback`). The product
+form tames the product of the complex structures
+(`TauCeti.SmoothAlmostComplexStructure.tames_prod`), since each Fubini–Study form is compatible
+with the complex structure of its factor (`SymplecticGeometry.compatible_fubiniStudyForm`), so
+its pull-back tames the structure it restricts to, the complex structure of the surface
+(`TauCeti.SmoothTwoForm.Tames.restrict`,
+`SymplecticGeometry.rationalEllipticSurface.tames_symplecticForm`). A taming form is
+nondegenerate (`TauCeti.SmoothTwoForm.Tames.isNondegenerate`), so the pull-back is symplectic.
+No Kähler condition is used.
 
 Over the point `[1 : 0]` of `ℂℙ¹` the Hesse pencil is `x³ + y³ + z³`, so the fibre there is the
 Fermat cubic `SymplecticGeometry.SmoothProjectiveHypersurface.fermat 1 3`, and `x ↦ (x, [1 : 0])`
@@ -548,16 +552,6 @@ theorem symplecticForm_def :
       ((fubiniStudyForm 2).prod (fubiniStudyForm 1)) :=
   (rfl)
 
-/-- The symplectic form of the rational elliptic surface is symplectic: closed and
-nondegenerate. -/
-theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic := by
-  rw [symplecticForm_def, realEmbedding_def]
-  exact (SmoothAlmostComplexStructure.tames_prod (compatible_fubiniStudyForm (n := 2)).tames
-    (compatible_fubiniStudyForm (n := 1)).tames).isSymplectic_mpullback
-      (hn := by simp)
-      (embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top (by simp) _)
-      ((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1))
-
 /-- The symplectic form of the rational elliptic surface tames the complex structure of the
 surface. -/
 theorem tames_symplecticForm :
@@ -569,6 +563,12 @@ theorem tames_symplecticForm :
         (realEmbedding_def ▸
           embedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd le_top
             (by simp) _)
+
+/-- The symplectic form of the rational elliptic surface is symplectic: closed, as the pullback
+of a closed form, and nondegenerate, since it tames the complex structure of the surface. -/
+theorem isSymplectic_symplecticForm : symplecticForm.IsSymplectic :=
+  ⟨((isSymplectic_fubiniStudyForm 2).prod (isSymplectic_fubiniStudyForm 1)).isClosed.mpullback _ _,
+    tames_symplecticForm.isNondegenerate⟩
 
 /-! ### The fibre over `[1 : 0]` -/
 
