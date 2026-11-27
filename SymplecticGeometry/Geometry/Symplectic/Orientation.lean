@@ -6,15 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Orientation
+public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import Mathlib.Topology.LocallyConstant.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import Mathlib.Analysis.Normed.Module.FiniteDimension
 import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 import TauCeti.Geometry.Symplectic.ExistsCompatible
 import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
-# Symplectic orientations: transported adapted bases and continuous families
+# Symplectic orientations: transported bases, continuous families and orthogonal splittings
 
 If a symplectic form `ω` on `V` tames an almost complex structure `J`, and `e : V ≃ W` is a
 linear equivalence, then every basis `(v₁, J' v₁, …, vₙ, J' vₙ)` of `W` adapted to the transport
@@ -36,6 +38,18 @@ parameter space (`TauCeti.SymplecticForm.orientation_eq_of_preconnectedSpace`). 
 proof of Tau Ceti's private `eventually_mapOrientation_orientation_eq`
 (`TauCeti/Geometry/Symplectic/Manifold/Orientation.lean`) from the tangent spaces of a manifold
 to a family of forms on one vector space.
+
+If `V = H ⊕ L` is a splitting into `ω`-orthogonal subspaces, then the symplectic orientation of
+`ω` is the image under `H × L ≃ V` of the product of the symplectic orientations of the
+restrictions of `ω` to `H` and to `L`
+(`TauCeti.SymplecticForm.orientation_eq_map_prod_of_isCompl`). The splitting gives `L = H^ω`
+and makes both summands symplectic, by `TauCeti.SymplecticForm.orthogonal_eq_of_isCompl`,
+`TauCeti.SymplecticForm.isSymplectic_left_of_isCompl` and
+`TauCeti.SymplecticForm.isSymplectic_right_of_isCompl` of the library's
+`LinearAlgebra/Symplectic/Subspace.lean`; the proof then combines Tau Ceti's
+`TauCeti.SymplecticForm.isSymplectomorphism_prodEquivOfIsCompl`,
+`TauCeti.SymplecticForm.IsSymplectomorphism.map_orientation` and
+`TauCeti.SymplecticForm.orientation_prod`.
 
 ## References
 
@@ -110,6 +124,27 @@ theorem orientation_eq_of_preconnectedSpace [PreconnectedSpace X]
   (isLocallyConstant_orientation hω hk).apply_eq_of_preconnectedSpace x y
 
 end Family
+
+section Splitting
+
+variable {H L : Submodule ℝ V}
+
+/-- If `V = H ⊕ L` with `H` and `L` orthogonal for `ω`, the symplectic orientation of `ω` is the
+image under `H × L ≃ V` of the product of the symplectic orientations of the restrictions of `ω`
+to `H` and to `L`. -/
+theorem orientation_eq_map_prod_of_isCompl (ω : SymplecticForm V) (hc : IsCompl H L)
+    (hHL : ∀ h ∈ H, ∀ l ∈ L, ω h l = 0) {m n : ℕ} (hm : finrank ℝ H = m)
+    (hn : finrank ℝ L = n) (hV : finrank ℝ V = m + n) :
+    ω.orientation hV = Orientation.map (Fin (m + n)) (Submodule.prodEquivOfIsCompl H L hc)
+      (((ω.restrict H (ω.isSymplectic_left_of_isCompl hc hHL).nondegenerate_restrict).orientation
+          hm).prod
+        ((ω.restrict L (ω.isSymplectic_right_of_isCompl hc hHL).nondegenerate_restrict).orientation
+          hn) hm hn) := by
+  obtain rfl := ω.orthogonal_eq_of_isCompl hc hHL
+  rw [← orientation_prod _ _ hm hn (by rw [finrank_prod, hm, hn]),
+    (ω.isSymplectomorphism_prodEquivOfIsCompl hc).map_orientation]
+
+end Splitting
 
 end TauCeti.SymplecticForm
 

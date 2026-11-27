@@ -7,7 +7,9 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
+public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
 import SymplecticGeometry.Analysis.InnerProductSpace.Basic
@@ -42,6 +44,12 @@ complex-antilinear operator is its own complex-antilinear part
 
 Each value of either part is half the sum of two vectors of norm at most `‖Ψ‖ * ‖v‖`, so the
 pointwise bounds follow from Tau Ceti's `TauCeti.norm_two_inv_smul_add_le`.
+
+For real-linear endomorphisms `J` and `J'` of finite-dimensional real normed spaces, with
+no complex structure, `TauCeti.complexAntilinearPartContinuousLinearMap J J'` is Tau Ceti's
+algebraic complex-antilinear part `TauCeti.complexAntilinearPart J J'`, built from
+`TauCeti.complexAntilinearPartLinearMap`, as a continuous real-linear operator on the continuous
+real-linear maps.
 
 For topological complex modules whose real structure is compatible with the complex one, the
 setting of Tau Ceti's versions for real scalars, both parts commute with complex scalars
@@ -230,6 +238,40 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
   simp only [ContinuousLinearMap.complexAntilinearPart_apply]
   exact ((hf.clm_apply contDiffOn_const).add
     ((hf.clm_apply contDiffOn_const).const_smul Complex.I)).const_smul _
+
+/-! ### The algebraic complex-antilinear part as a continuous operator -/
+
+namespace TauCeti
+
+variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
+
+/-- Tau Ceti's complex-antilinear part `F ↦ ½ (F + J' ∘ F ∘ J)`, for real-linear endomorphisms
+`J` of `V` and `J'` of `W`, as a continuous real-linear operator on the continuous real-linear
+maps `V →L[ℝ] W` between finite-dimensional real normed spaces. Unlike
+`ContinuousLinearMap.complexAntilinearPartL`, it needs no complex structure on `V` or `W`. -/
+noncomputable def complexAntilinearPartContinuousLinearMap (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W) :
+    (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W :=
+  LinearMap.toContinuousLinearMap (LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ
+    complexAntilinearPartLinearMap J J' ∘ₗ ContinuousLinearMap.coeLM ℝ)
+
+/-- `TauCeti.complexAntilinearPartContinuousLinearMap J J'` sends `F` to
+`TauCeti.complexAntilinearPart J J' F`. -/
+theorem complexAntilinearPartContinuousLinearMap_apply (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
+    (F : V →L[ℝ] W) :
+    complexAntilinearPartContinuousLinearMap J J' F =
+      LinearMap.toContinuousLinearMap (complexAntilinearPart J J' (F : V →ₗ[ℝ] W)) := by
+  ext v
+  simp [complexAntilinearPartContinuousLinearMap]
+
+@[simp]
+theorem complexAntilinearPartContinuousLinearMap_apply_apply (J : V →ₗ[ℝ] V) (J' : W →ₗ[ℝ] W)
+    (F : V →L[ℝ] W) (v : V) :
+    complexAntilinearPartContinuousLinearMap J J' F v =
+      complexAntilinearPart J J' (F : V →ₗ[ℝ] W) v := by
+  rw [complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap']
+
+end TauCeti
 
 /-! ### Equal norms of the two parts of a form with values in a complex line -/
 
