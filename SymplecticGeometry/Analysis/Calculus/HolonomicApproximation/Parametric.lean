@@ -23,6 +23,7 @@ import Mathlib.Topology.Maps.Proper.Basic
 import Mathlib.Topology.UrysohnsLemma
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube
 import SymplecticGeometry.Analysis.Normed.Group.Pi
+import SymplecticGeometry.Topology.Compactness.Normed
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
@@ -779,11 +780,13 @@ and every point over a closed `P₀ ⊆ P`. Then for `ε, δ > 0` there are a co
 slice of `h` at `σ l` and the approximation at `l` is `f l + g (σ l, ·)`. Each slice is smooth;
 since `σ` is continuous and `g` smooth, the correction `g (σ l, ·)` has all its space derivatives
 continuous in `(l, x)`, so the approximation is smooth with first space derivative continuous in
-`(l, x)`. Over `σ l`, `h` is the identity and `g` vanishes off a compact subset of the
-`δ`-thickening of the cube `Q = closedBall 0 1 ×ˢ {0}`, over a neighbourhood of
-`B` in the core, and for `l ∈ P₀`; the slices move points by less than `δ`; `V` contains the
-image of `Q` under the slice at time `1`, for every `l`; and on `V`, `g (σ l, ·)` is less than
-`ε` and the space derivative of the approximation is `ε`-close to `G`. -/
+`(l, x)`. At every point `(s, x)` of `(Fin n → ℝ) × D`, not only for `s` in the range of `σ`,
+`h` is the identity and `g` vanishes when `(s, x)` lies off a compact set `C` whose points have
+space part in the `δ`-thickening of the cube `Q = closedBall 0 1 ×ˢ {0}`, or when the core
+coordinate of `x` lies in a neighbourhood `N` of `B`; and `h` moves the space part by less than
+`δ`. Over `σ l` with `l ∈ P₀`, `h` is the identity and `g` vanishes; `V` contains the image of
+`Q` under the slice at time `1`, for every `l`; and on `V`, `g (σ l, ·)` is less than `ε` and
+the space derivative of the approximation is `ε`-close to `G`. -/
 theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Space P]
     (hk : 0 < k) {f : P → (Fin m → ℝ) × (Fin k → ℝ) → F}
     {G : P → (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
@@ -801,11 +804,11 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
       (V : Set (P × (Fin m → ℝ) × (Fin k → ℝ))),
       Continuous σ ∧ (∀ t q, (h (t, q)).1 = q.1) ∧ ContDiff ℝ ∞ g ∧
       (∃ C, IsCompact C ∧
-        C ⊆ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)}) ∧
-        ∀ l, ∀ x ∉ C, (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
-      (∀ l t x, dist (h (t, (σ l, x))).2 x < δ) ∧
-      (∃ N ∈ 𝓝ˢ B, ∀ l, ∀ x : (Fin m → ℝ) × (Fin k → ℝ), x.1 ∈ N →
-        (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+        (∀ q ∈ C, q.2 ∈ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)})) ∧
+        ∀ q ∉ C, (∀ t, h (t, q) = q) ∧ g q = 0) ∧
+      (∀ t q, dist (h (t, q)).2 q.2 < δ) ∧
+      (∃ N ∈ 𝓝ˢ B, ∀ q : (Fin n → ℝ) × (Fin m → ℝ) × (Fin k → ℝ), q.2.1 ∈ N →
+        (∀ t, h (t, q) = q) ∧ g q = 0) ∧
       (∀ l ∈ P₀, ∀ x, (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
       IsOpen V ∧ (∀ l, ∀ y ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)},
         (l, (h (1, (σ l, y))).2) ∈ V) ∧
@@ -823,16 +826,12 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
   have hBO : B ×ˢ {0} ⊆ O := by
     rintro x hx ⟨p, hp, rfl⟩
     exact hp (hBU ⟨mem_univ _, hx⟩)
-  have hnear : ∀ (l₀ : P), ∀ r > 0, ∀ᶠ l in 𝓝 l₀,
-      ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2, ‖e l x - e l₀ x‖ < r :=
-    fun l₀ r hr ↦ (isCompact_closedBall _ _).eventually_forall_of_forall_eventually fun x _ ↦
-      ((hce.sub (hce.comp (continuous_const.prodMk continuous_snd))).norm.tendsto
-        (l₀, x)).eventually (gt_mem_nhds (by simpa using hr))
-  set O₀ : Set P := interior {l | ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
-    ‖e l x‖ < ε / 4}
-  have hP₀O₀ : P₀ ⊆ O₀ := fun l hl ↦ mem_interior_iff_mem_nhds.2 <|
-    (hnear l (ε / 4) (by positivity)).mono fun l' hl' x hx ↦ by
-      simpa [heU l x (hP₀U ⟨hl, mem_univ x⟩)] using hl' x hx
+  set O₀ : Set P := {l | ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
+    ‖G l x - fderiv ℝ (f l) x‖ < ε / 4}
+  have hO₀ : IsOpen O₀ := (isCompact_closedBall _ _).isOpen_setOf_forall_norm_sub_lt
+    (f := fun p : P × (Fin m → ℝ) × (Fin k → ℝ) ↦ G p.1 p.2) hcG hdf _
+  have hP₀O₀ : P₀ ⊆ O₀ := fun l hl x _ ↦ by
+    simpa [hUf (l, x) (hP₀U ⟨hl, mem_univ x⟩)] using hε
   -- step 2: a partition of unity `ρ` on `P`, indexed by finitely many samples `pts i`, whose
   -- combinations of the sampled errors are uniformly `ε / 8`-close to `e` on `closedBall 0 2`
   set Φ : C(P, C(closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
@@ -851,7 +850,7 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
     simpa [Φ, pts] using this
   -- step 3: the extra coordinate `τ` and the cutoff `χ`
   obtain ⟨τ, hτ0, hτ1, hτI⟩ := exists_continuous_zero_one_of_isClosed hP₀
-    isOpen_interior.isClosed_compl (disjoint_compl_right_iff_subset.2 hP₀O₀)
+    hO₀.isClosed_compl (disjoint_compl_right_iff_subset.2 hP₀O₀)
   set χ : ℝ → ℝ := fun r ↦ Real.smoothTransition (2 * r - 1)
   have hχ : ContDiff ℝ ∞ χ := Real.smoothTransition.contDiff.comp (by fun_prop)
   -- step 4: the datum on `(Fin (n' + 1) → ℝ) × D` and the smooth version
@@ -906,13 +905,11 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
       (∀ t, h (t, q) = q) ∧ f'' q - F₀ q = 0 := fun q hq ↦ ⟨hq.1, sub_eq_zero.2 hq.2⟩
   refine ⟨n' + 1, σ, h, fun q ↦ f'' q - F₀ q,
     {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ ball 0 2, hσ, hfst, hf''.sub hF₀,
-    ⟨Prod.snd '' C₁, hC₁.image continuous_snd, ?_, fun l x hx ↦ hfix _ (hC₁fix _ ?_)⟩,
-    fun l t x ↦ ?_, ⟨N, hN, fun l x hx ↦ hfix _ (hNfix _ hx)⟩,
+    ⟨C₁, hC₁, fun q hq ↦ thickening_mono (min_le_left _ _) _ (hC₁Q q hq),
+      fun q hq ↦ hfix _ (hC₁fix q hq)⟩,
+    fun t q ↦ ?_, ⟨N, hN, fun q hq ↦ hfix _ (hNfix q hq)⟩,
     fun l hl x ↦ hfix _ (hP₀fix _ ?_), ?_, fun l y hy ↦ ?_, fun p hp ↦ ?_⟩
-  · rintro _ ⟨p, hp, rfl⟩
-    exact thickening_mono (min_le_left _ _) _ (hC₁Q p hp)
-  · exact fun hc ↦ hx ⟨_, hc, rfl⟩
-  · have := hdist t (σ l, x)
+  · have := hdist t q
     rw [Prod.dist_eq] at this
     exact (le_max_right _ _).trans_lt (this.trans_le (min_le_left _ _))
   · simp [σ, hτ0 hl]
@@ -946,7 +943,7 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
     refine hc.ne (Real.smoothTransition.one_of_one_le ?_)
     rw [hτ1 hl]
     norm_num
-  exact interior_subset hl x hx
+  exact hl x hx
 
 end Continuous
 
