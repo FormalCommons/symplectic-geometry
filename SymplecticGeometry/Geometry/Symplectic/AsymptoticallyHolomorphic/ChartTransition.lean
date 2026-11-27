@@ -27,6 +27,12 @@ for it, for `k ≥ k₀`:
   derivative at `w` is an isometry from the bilinear form `ω₀(·, J_y(w) ·)` to the
   bilinear form `ω₀(·, J_x(τ w) ·)`, `J_y` and `J_x` being `J` read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition_chartPushforward`);
+* the field `D.chartMetric k x` of bilinear forms `ω₀(·, J_x ·)` on the chart centred at `x`,
+  the image of `J_x` under a fixed continuous linear map, is smooth on the target of the chart
+  (`SymplecticGeometry.RescaledUnitaryCharts.contDiffOn_chartMetric`, from
+  `TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward`), and the derivatives of the
+  transitions pull it back from one chart to the other
+  (`SymplecticGeometry.RescaledUnitaryCharts.chartMetric_chartTransition_bilinearComp`);
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
   (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`), there is a radius
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
@@ -140,6 +146,50 @@ theorem stdForm_fderiv_chartTransition_chartPushforward {k : ℕ} (hk : k₀ ≤
     (D.chart k x) (by rwa [chartTransition_def] at hw)) v
   rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, ← chartTransition_def] at h
   rw [h, D.stdForm_fderiv_chartTransition hk hw]
+
+/-! ### The forms `ω₀(·, J ·)` read in the charts -/
+
+/-- The bilinear form `g_{k,x}(w) = ω₀(·, J_x(w) ·)` at a point `w` of the chart centred at `x`
+for the power `k`, where `J_x` is `J` read in that chart: the image of `J_x(w)` under the fixed
+continuous linear map `A ↦ ω₀(·, A ·)`. -/
+noncomputable def chartMetric (k : ℕ) (x : M) (w : StdSpace ι) :
+    StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+  (ContinuousLinearMap.precompR (StdSpace ι)
+      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+    (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w)
+
+/-- The form `g_{k,x}(w)` is `J_x(w)` composed with `A ↦ ω₀(·, A ·)`. -/
+theorem chartMetric_def (k : ℕ) (x : M) (w : StdSpace ι) :
+    D.chartMetric k x w =
+      (ContinuousLinearMap.precompR (StdSpace ι)
+          (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+        (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w) :=
+  (rfl)
+
+/-- `g_{k,x}(w)(u, v) = ω₀(u, J_x(w) v)`. -/
+@[simp]
+theorem chartMetric_apply (k : ℕ) (x : M) (w u v : StdSpace ι) :
+    D.chartMetric k x w u v =
+      stdForm ι u (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w v) := by
+  simp [chartMetric_def, LinearMap.toContinuousBilinearMap_apply]
+
+/-- On a boundaryless manifold, the field of forms `g_{k,x}` is smooth on the target of the chart
+centred at `x`. -/
+theorem contDiffOn_chartMetric [I.Boundaryless] (k : ℕ) (x : M) :
+    ContDiffOn ℝ ∞ (D.chartMetric k x) (D.chart k x).target :=
+  (ContinuousLinearMap.contDiff _).comp_contDiffOn
+    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn (D.chart k x).symm.contMDiffOn)
+
+/-- **Transitions carry the forms read in the charts to each other.** For `k ≥ k₀` and `w` in
+the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
+derivative `T` of `τ` at `w` pulls `g_{k,x}(τ w)` back to `g_{k,y}(w)`. -/
+theorem chartMetric_chartTransition_bilinearComp {k : ℕ} (hk : k₀ ≤ k) {x y : M}
+    {w : StdSpace ι} (hw : w ∈ (D.chartTransition k x y).source) :
+    (D.chartMetric k x (D.chartTransition k x y w)).bilinearComp
+        (fderiv ℝ (D.chartTransition k x y) w) (fderiv ℝ (D.chartTransition k x y) w) =
+      D.chartMetric k y w := by
+  ext u v
+  simpa using D.stdForm_fderiv_chartTransition_chartPushforward hk hw u v
 
 /-- At the centre `x` of the chart `D.chart k x`, for `k ≥ k₀`, the quadratic form
 `2π k σ(v, J v)` of a tangent vector `v` at `x` is `‖u‖ ^ 2`, for `u` the image of `v` under the
