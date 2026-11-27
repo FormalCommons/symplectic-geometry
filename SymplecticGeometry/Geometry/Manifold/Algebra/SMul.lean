@@ -18,13 +18,13 @@ and `Diffeomorph.constSmul_mul` say that `g ↦ Diffeomorph.constSmul I n g` res
 This file bundles it as a group homomorphism `Diffeomorph.constSmulHom I n` from `G` to the group
 `TauCeti.Diff I M n` of `Cⁿ` self-diffeomorphisms of `M`.
 
-It also moves differentiability of equivariant maps along an orbit. Let `G` act on manifolds `M`
-and `M'` by `C¹` maps. If `f : M → M'` commutes with `z ↦ g • z` and is differentiable at `y`,
-then it is differentiable at `g • y` (`MDifferentiableAt.at_smul_of_map_smul`). Indeed `f`
-composed with Tau Ceti's diffeomorphism `Diffeomorph.constSmul g` on the right is
-`Diffeomorph.constSmul g` composed with `f` on the left, and both compositions keep
-differentiability, by Tau Ceti's `Diffeomorph.mdifferentiableAt_comp_diffeomorph_iff` and
-`Diffeomorph.mdifferentiableAt_comp_iff`.
+It also shows that differentiability of an equivariant map spreads along orbits. Let `G` act on
+manifolds `M` and `M'` by `C¹` maps. If `f : M → M'` commutes with `z ↦ g • z` and is
+differentiable at `y`, then it is differentiable at `g • y`
+(`MDifferentiableAt.at_smul_of_map_smul`). Indeed `f` composed with Tau Ceti's diffeomorphism
+`Diffeomorph.constSmul g` on the right is `Diffeomorph.constSmul g` composed with `f` on the left,
+and both compositions keep differentiability, by Tau Ceti's
+`Diffeomorph.mdifferentiableAt_comp_diffeomorph_iff` and `Diffeomorph.mdifferentiableAt_comp_iff`.
 
 ## Main definitions
 
