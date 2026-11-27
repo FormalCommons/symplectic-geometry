@@ -540,6 +540,11 @@ theorem disjoint_range_summand_ball (k : Fin g) (j : ℕ) :
     Disjoint (range (summand k)) (range (ball g j)) :=
   (closedSurfaceData g).disjoint_range_summand_ball k j
 
+/-- No point of a punctured torus summand is the centre of a ball. -/
+theorem summand_ne_ball (k : Fin g) (x : ConnectedSum.puncture EuclideanTorus.ball) (j : ℕ) :
+    summand k x ≠ ball g j 0 := fun h ↦
+  disjoint_left.1 (disjoint_range_summand_ball k j) ⟨x, rfl⟩ ⟨0, h.symm⟩
+
 /-- The centre of the ball `0` lies on no other ball. -/
 theorem ball_zero_zero_notMem_range_ball (j : ℕ) : ball g 0 0 ∉ range (ball g (j + 1)) :=
   (closedSurfaceData g).ball_zero_zero_notMem_range_ball j
