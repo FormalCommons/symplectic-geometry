@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.FrameChange
 import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
-import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 
 /-!
