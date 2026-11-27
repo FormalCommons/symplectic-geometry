@@ -21,6 +21,13 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
 * `Bundle.Trivialization.transFiberHomeomorph_baseSet`, `_source`, `_target`, `_symm_apply`: the
   base set, source, target and inverse of Mathlib's `Bundle.Trivialization.transFiberHomeomorph`,
   which composes a trivialization with a homeomorphism of the model fibre.
+* `Bundle.Trivialization.transFiberwiseHomeomorph`: a trivialization followed, over an open set
+  `U` of its base set, by a homeomorphism `Φ` of `U × F` that preserves the `U` coordinate, so
+  that the fibre coordinate over each `b ∈ U` is changed by the fibre of `Φ` over `b`; with its
+  base set, source, target, value and inverse.
+* `Bundle.Trivialization.coordChange_transFiberwiseHomeomorph_left`, `_right`: its coordinate
+  changes with another trivialization are those of the original trivialization composed with
+  the fibres of `Φ⁻¹` or of `Φ`.
 * `Bundle.Trivialization.mapFiberHomeomorph`: the fibre `TauCeti.MapFiber proj b` over a point `b`
   of the base set of a trivialization, identified with the model fibre.
 * `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
@@ -32,6 +39,13 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
 public section
 
 open Bundle
+
+/-- A homeomorphism of `X × F` that preserves the first coordinate has an inverse that preserves
+it too. -/
+theorem Homeomorph.fst_symm_apply_of_forall_fst_apply {X F : Type*} [TopologicalSpace X]
+    [TopologicalSpace F] {Φ : X × F ≃ₜ X × F} (hΦ : ∀ q, (Φ q).1 = q.1) (q : X × F) :
+    (Φ.symm q).1 = q.1 := by
+  simpa using (hΦ (Φ.symm q)).symm
 
 namespace Bundle.Trivialization
 
@@ -71,11 +85,6 @@ variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalS
   {proj : Z → B} (e : Trivialization F proj) {U : TopologicalSpace.Opens B}
   (hU : (U : Set B) ⊆ e.baseSet) (Φ : U × F ≃ₜ U × F) (hΦ : ∀ q, (Φ q).1 = q.1)
 
-/-- The inverse of a homeomorphism of `U × F` over `U` is over `U`. -/
-private theorem fst_symm_apply_of_fst_apply (hΦ : ∀ q, (Φ q).1 = q.1) (q : U × F) :
-    (Φ.symm q).1 = q.1 := by
-  simpa using (hΦ (Φ.symm q)).symm
-
 /-- A homeomorphism `Φ` of `U × F`, read on `B × F`: on `U ×ˢ univ` it is `Φ` followed by the
 inclusion, elsewhere the identity. -/
 private noncomputable def fiberwiseFun (Φ : U × F ≃ₜ U × F) (q : B × F) : B × F :=
@@ -114,7 +123,8 @@ private noncomputable def fiberwiseOPH : OpenPartialHomeomorph (B × F) (B × F)
   map_target' q h := by rw [fiberwiseFun_of_mem _ h.1]; exact ⟨h.1, mem_univ _⟩
   left_inv' q h := fiberwiseFun_fiberwiseFun Φ hΦ h.1
   right_inv' q h := by
-    simpa using fiberwiseFun_fiberwiseFun Φ.symm (fst_symm_apply_of_fst_apply Φ hΦ) h.1
+    simpa using
+      fiberwiseFun_fiberwiseFun Φ.symm (Homeomorph.fst_symm_apply_of_forall_fst_apply hΦ) h.1
   open_source := U.isOpen.prod isOpen_univ
   open_target := U.isOpen.prod isOpen_univ
   continuousOn_toFun := continuousOn_fiberwiseFun Φ
