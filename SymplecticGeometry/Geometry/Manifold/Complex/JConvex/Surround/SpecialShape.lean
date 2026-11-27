@@ -630,6 +630,26 @@ near `0` and equal to `√(1 + a r²)` beyond a given `γ`. The linear shape giv
 one where the two cross, and the quadratic shape to the square-root one where those cross, each
 time by `exists_isConvexShapeAt_eqOn_Iic_Ici`. -/
 
+/-- The slope of the linear shape in
+`exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt`: some `d ∈ (b, 1)` so close to `b`
+that twice the crossing `x = 2 ℓ (d - b) / c` of the linear and quadratic shapes is below `ℓ d³`,
+where the linear shape stops being convex, and at most a given `r₁ > 0`. -/
+private theorem exists_slope_linear {ℓ b c r₁ : ℝ} (hℓ : 0 < ℓ) (hb : 0 < b) (hb₁ : b < 1)
+    (hc : 0 < c) (hr₁ : 0 < r₁) :
+    ∃ d ∈ Ioo b 1, 2 * (2 * ℓ * (d - b) / c) < ℓ * d ^ 3 ∧ 2 * (2 * ℓ * (d - b) / c) ≤ r₁ := by
+  set ρ := min (ℓ * b ^ 3) r₁
+  set ε := min (c * ρ / (4 * ℓ)) ((1 - b) / 2)
+  have hε₀ : 0 < ε := lt_min (by positivity) (by linarith)
+  have hd₁ : b + ε < 1 := by linarith [min_le_right (c * ρ / (4 * ℓ)) ((1 - b) / 2)]
+  have hx : 2 * (2 * ℓ * (b + ε - b) / c) ≤ ρ := by
+    rw [show b + ε - b = ε by ring, ← mul_div_assoc, div_le_iff₀ hc]
+    have : ε ≤ c * ρ / (4 * ℓ) := min_le_left _ _
+    rw [le_div_iff₀ (by positivity)] at this
+    nlinarith
+  refine ⟨b + ε, ⟨by linarith, hd₁⟩, hx.trans_lt ((min_le_left _ _).trans_lt ?_),
+    hx.trans (min_le_right _ _)⟩
+  exact mul_lt_mul_of_pos_left (pow_lt_pow_left₀ (by linarith) hb.le (by norm_num)) hℓ
+
 /-- **From a linear to a square-root shape, through a quadratic one.** Let `0 < ℓ`, `1 < a`,
 `0 < b < 1` and `1 < c`, and suppose that the quadratic shape `ℓ + b r + c r² / (2 ℓ)` is below
 `√(ℓ² + a r²)` at some `r₀ > 0`. Then there are a slope `d ∈ (b, 1)`, some `β ∈ (0, r₀)` and a
@@ -644,35 +664,18 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
   have hc₀ : 0 < c := by linarith
   obtain ⟨r₁, ⟨hr₁₀, hr₁r₀⟩, r₂, hr₂, hQS⟩ := exists_crossings_quadratic_sqrt hℓ hb hc₀ hr₀ h
   have hr₂ : r₀ < r₂ := hr₂
-  -- The slope `d` is so close to `b` that the linear and quadratic shapes cross at
-  -- `x = 2 ℓ (d - b) / c`, before `ℓ d³`, where the linear shape stops being convex, and
-  -- before `r₁`, where the quadratic shape meets the square-root one.
-  set ρ := min (ℓ * b ^ 3) r₁
-  have hρ₀ : 0 < ρ := lt_min (by positivity) hr₁₀
-  set ε := min (c * ρ / (4 * ℓ)) ((1 - b) / 2)
-  have hε₀ : 0 < ε := lt_min (by positivity) (by linarith)
-  set d := b + ε with hd
-  have hd₁ : d < 1 := by linarith [min_le_right (c * ρ / (4 * ℓ)) ((1 - b) / 2)]
-  have hbd : b < d := by linarith
+  obtain ⟨d, ⟨hbd, hd₁⟩, hxd, hxr₁⟩ := exists_slope_linear hℓ hb hb₁ hc₀ hr₁₀
   set x := 2 * ℓ * (d - b) / c with hx
   have hx₀ : 0 < x := by rw [hx]; have := sub_pos.2 hbd; positivity
-  have hxρ : x ≤ ρ / 2 := by
-    rw [hx, div_le_iff₀ hc₀, show d - b = ε by ring]
-    have : ε ≤ c * ρ / (4 * ℓ) := min_le_left _ _
-    rw [le_div_iff₀ (by positivity)] at this
-    nlinarith
-  have hρd : ρ < ℓ * d ^ 3 := (min_le_left _ _).trans_lt
-    (mul_lt_mul_of_pos_left (pow_lt_pow_left₀ hbd hb.le (by norm_num)) hℓ)
-  have hρr₁ : ρ ≤ r₁ := min_le_right _ _
-  set L : ℝ → ℝ := fun r ↦ ℓ + d * r with hL
+  set L : ℝ → ℝ := fun r ↦ ℓ + d * r
   set Q : ℝ → ℝ := fun r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)
   set S : ℝ → ℝ := fun r ↦ √(ℓ ^ 2 + a * r ^ 2)
   have hLs : ContDiff ℝ ∞ L := by fun_prop
   have hQs : ContDiff ℝ ∞ Q := by fun_prop
   have hSs : ContDiff ℝ ∞ S :=
     ContDiff.sqrt (by fun_prop) fun r ↦ (by positivity : 0 < ℓ ^ 2 + a * r ^ 2).ne'
-  have hLc : ∀ r ∈ Ioo 0 ρ, IsConvexShapeAt L r := fun r hr ↦
-    isConvexShapeAt_linear hℓ (hb.trans hbd) ⟨hr.1, hr.2.trans hρd⟩
+  have hLc : ∀ r ∈ Ioo 0 (2 * x), IsConvexShapeAt L r := fun r hr ↦
+    isConvexShapeAt_linear hℓ (hb.trans hbd) ⟨hr.1, hr.2.trans hxd⟩
   have hQc : ∀ r, 0 < r → IsConvexShapeAt Q r := fun r hr ↦
     isConvexShapeAt_quadratic hℓ hb.le hc hr
   have hSc : ∀ r, 0 < r → IsConvexShapeAt S r := fun r hr ↦ isConvexShapeAt_sqrt ha hr
