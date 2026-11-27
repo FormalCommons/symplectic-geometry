@@ -11,7 +11,7 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import TauCeti.Geometry.Manifold.ContMDiff.Atlas
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Ball
 
 /-!
@@ -26,11 +26,12 @@ built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of
 `extChartAt I x y - extChartAt I x x` (`centeredExtChartAt_apply`), its inverse and target are
 given by `centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, it is smooth on its
 source (`contMDiffOn_centeredExtChartAt`, a case of Tau Ceti's
-`OpenPartialHomeomorph.contMDiffOn_extendTrans`), its derivative is that of the extended chart
-(`mvfderiv_centeredExtChartAt`, from Tau Ceti's `TauCeti.mvfderiv_add_const`), the chart balls
-`chartBall I x r` are the points of its source that it sends into the ball of radius `r` about
-the origin (`mem_chartBall_iff_norm_centeredExtChartAt_lt`), and, restricted to its source,
-it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
+`OpenPartialHomeomorph.contMDiffOn_extendTrans`) and so at each of its points
+(`contMDiffAt_centeredExtChartAt'`, `mdifferentiableAt_centeredExtChartAt`), its derivative is
+that of the extended chart (`mvfderiv_centeredExtChartAt`, from `mvfderiv_sub_const`), the
+chart balls `chartBall I x r` are the points of its source that it sends into the ball of radius
+`r` about the origin (`mem_chartBall_iff_norm_centeredExtChartAt_lt`), and, restricted to
+its source, it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
 `OpenPartialHomeomorph.sourceRestrict_preimage_singleton`). Its inverse carries some ball about
 the origin into any given neighbourhood of `x`
 (`exists_ball_mapsTo_centeredExtChartAt_symm`, a case of
@@ -91,12 +92,11 @@ theorem centeredExtChartAt_apply (y : M) :
 
 /-- The centred chart at `x` differs from the extended chart at `x` by a constant, so their
 derivatives, read in the model space, agree at every point. -/
+@[simp]
 theorem mvfderiv_centeredExtChartAt (y : M) :
     mvfderiv I (centeredExtChartAt I x) y = mvfderiv I (extChartAt I x) y := by
-  have h : ⇑(centeredExtChartAt I x) = fun z ↦ extChartAt I x z + -extChartAt I x x := by
-    ext z
-    simp [sub_eq_add_neg]
-  rw [h, TauCeti.mvfderiv_add_const]
+  rw [show ⇑(centeredExtChartAt I x) = fun z ↦ extChartAt I x z - extChartAt I x x from
+    funext (centeredExtChartAt_apply I x), mvfderiv_sub_const]
 
 /-- A point `y` lies in the chart ball of radius `r` at `x` if and only if it lies in the source
 of the centred chart at `x`, which sends it into the open ball of radius `r` about the origin. -/
@@ -136,6 +136,20 @@ theorem contMDiffOn_centeredExtChartAt {n : WithTop ℕ∞} [IsManifold I n M] :
   rw [centeredExtChartAt_def]
   exact (chartAt H x).contMDiffOn_extendTrans (IsManifold.chart_mem_maximalAtlas x)
     (contDiff_id.sub contDiff_const)
+
+/-- The centred chart at `x` is `C^n` at each point of its source, on a `C^n` manifold. -/
+theorem contMDiffAt_centeredExtChartAt' {n : WithTop ℕ∞} [IsManifold I n M] {y : M}
+    (hy : y ∈ (centeredExtChartAt I x).source) :
+    ContMDiffAt I 𝓘(𝕜, E) n (centeredExtChartAt I x) y :=
+  (contMDiffOn_centeredExtChartAt I x).contMDiffAt
+    ((centeredExtChartAt I x).open_source.mem_nhds hy)
+
+/-- The centred chart at `x` is differentiable at each point of its source, on a `C^1`
+manifold. -/
+theorem mdifferentiableAt_centeredExtChartAt [IsManifold I 1 M] {y : M}
+    (hy : y ∈ (centeredExtChartAt I x).source) :
+    MDifferentiableAt I 𝓘(𝕜, E) (centeredExtChartAt I x) y :=
+  (contMDiffAt_centeredExtChartAt' I x hy).mdifferentiableAt one_ne_zero
 
 /-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
 target that its inverse carries into any given neighbourhood `T` of `x`. -/

@@ -146,8 +146,7 @@ theorem mem_source_and_norm_centeredExtChartAt_le_of_tendsto (hX : IsGradientLik
       mem_closedBall_zero_iff.2 (not_le.1 hh).le⟩)
   -- Between `a` and `b`, `γ` crosses the annulus, and `f` rises by `c` times the displacement.
   have hmv := (hγ.isMIntegralCurveOn _).mul_norm_sub_le_sub (fun τ _ ↦ hf (γ τ)) hc hab.le
-    (fun τ hτ ↦ ((contMDiffOn_centeredExtChartAt (n := 1) 𝓘(ℝ, E) p).contMDiffAt
-      (κ.open_source.mem_nhds (hsrc τ (hafter hτ).1).1)).mdifferentiableAt one_ne_zero)
+    (fun τ hτ ↦ mdifferentiableAt_centeredExtChartAt 𝓘(ℝ, E) p (hsrc τ (hafter hτ).1).1)
     fun τ hτ ↦
       have hτ' := hafter (Ico_subset_Icc_self hτ)
       hann _ (hsrc τ hτ'.1).1 hτ'.2 (hsrc τ hτ'.1).2
