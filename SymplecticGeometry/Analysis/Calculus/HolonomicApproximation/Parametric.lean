@@ -25,9 +25,9 @@ With `p = Module.finrank ℝ L` and the coordinates `e = (Module.finBasis ℝ L)
 continuous linear equivalence `SymplecticGeometry.familyCubeEquiv L m k hR`, for `R ≠ 0`, sends
 `(l, (u, v))` to `(Fin.append (R⁻¹ • e l) u, v)` in
 `D' = (Fin (p + m) → ℝ) × (Fin k → ℝ)`; the concatenation is Tau Ceti's
-`(TauCeti.splitCoords p m).symm`, an isometry for the sup norms by `Fin.dist_append`. The core
-coordinates of `D'` in `J = Finset.univ.map (Fin.natAddEmb p m)` are those of `D`; those outside
-`J` record the parameter.
+`(TauCeti.splitCoords p m).symm`, an isometry for the sup norms by Mathlib's
+`Fin.appendIsometry`. The core coordinates of `D'` in `J = Finset.univ.map (Fin.natAddEmb p)` are
+those of `D`; those outside `J` record the parameter.
 
 ## Main results
 
@@ -75,6 +75,7 @@ variable {L m k}
 
 /-- The value of `familyCubeEquiv`: the scaled coordinates of the parameter are put before the
 core coordinates. -/
+@[simp]
 theorem familyCubeEquiv_apply (hR : R ≠ 0) (p : L × (Fin m → ℝ) × (Fin k → ℝ)) :
     familyCubeEquiv L m k hR p =
       (Fin.append (R⁻¹ • (finBasis ℝ L).equivFun p.1) p.2.1, p.2.2) := by
@@ -84,6 +85,7 @@ theorem familyCubeEquiv_apply (hR : R ≠ 0) (p : L × (Fin m → ℝ) × (Fin k
 /-- The value of the inverse of `familyCubeEquiv`: the first `finrank ℝ L` core coordinates,
 scaled by `R`, are the coordinates of the parameter, and the others are the core coordinates of
 the space part. -/
+@[simp]
 theorem familyCubeEquiv_symm_apply (hR : R ≠ 0)
     (z : (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)) :
     (familyCubeEquiv L m k hR).symm z =
@@ -146,13 +148,12 @@ theorem dist_familyCubeEquiv_of_fst_eq (hR : R ≠ 0) {p p' : L × (Fin m → �
   obtain ⟨l, x⟩ := p
   obtain ⟨l', x'⟩ := p'
   obtain rfl : l = l' := h
-  simp [familyCubeEquiv_apply, Prod.dist_eq, Fin.dist_append]
+  simp [Prod.dist_eq, Fin.dist_append]
 
 /-- On the vectors `(0, w)`, `familyCubeEquiv` preserves the norm. -/
 theorem norm_familyCubeEquiv_zero_fst (hR : R ≠ 0) (w : (Fin m → ℝ) × (Fin k → ℝ)) :
     ‖familyCubeEquiv L m k hR (0, w)‖ = ‖w‖ := by
-  simpa using dist_familyCubeEquiv_of_fst_eq hR (p := (0, w))
-    (p' := (0 : L × (Fin m → ℝ) × (Fin k → ℝ))) rfl
+  simp [Fin.norm_append, Prod.norm_def]
 
 /-- For `R > 0` with `‖e l‖ ≤ R` on `K`, `familyCubeEquiv` maps `K ×ˢ Q` into the cube of
 `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`, where `Q = closedBall 0 1 ×ˢ {0}` is the cube of
@@ -165,7 +166,7 @@ theorem mapsTo_familyCubeEquiv (hR : 0 < R) {K : Set L}
   rintro ⟨l, u, v⟩ ⟨hl, hu, hv⟩
   simp only [mem_singleton_iff, mem_closedBall, dist_zero_right] at hu hv
   subst hv
-  refine ⟨?_, by simp [familyCubeEquiv_apply]⟩
+  refine ⟨?_, by simp⟩
   rw [familyCubeEquiv_apply, mem_closedBall, dist_zero_right, Fin.norm_append, norm_smul,
     norm_inv, Real.norm_of_nonneg hR.le]
   exact max_le ((inv_mul_le_one₀ hR).2 (hK l hl)) hu
@@ -189,9 +190,8 @@ theorem infDist_le_infDist_familyCubeEquiv (hR : R ≠ 0) (p : L × (Fin m → �
   simp only [mem_singleton_iff, mem_closedBall, dist_zero_right] at hy hv
   subst hv
   set u : Fin m → ℝ := fun i ↦ y (Fin.natAdd (finrank ℝ L) i)
-  have hyu : y = Fin.append (fun i ↦ y (Fin.castAdd m i)) u := by
-    ext i
-    induction i using Fin.addCases <;> simp [u]
+  have hyu : y = Fin.append (fun i ↦ y (Fin.castAdd m i)) u :=
+    Fin.append_castAdd_natAdd.symm
   have hu : (u, (0 : Fin k → ℝ)) ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)} := by
     refine ⟨?_, rfl⟩
     rw [mem_closedBall, dist_zero_right]

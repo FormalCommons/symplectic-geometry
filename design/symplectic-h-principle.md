@@ -624,7 +624,7 @@ Proof, from the strengthened `exists_holonomic_approximation_cube_directions`:
    `(l, (u, v))` to `(A (R⁻¹ • e l, u), v)`, where
    `A : (Fin p → ℝ) × (Fin m → ℝ) ≃L[ℝ] (Fin (p + m) → ℝ)` is Tau Ceti's
    `(TauCeti.splitCoords p m).symm`, `Fin.append` on the two blocks, and is
-   an isometry for the sup norms (`Fin.dist_append`). The
+   an isometry for the sup norms (`Fin.appendIsometry`). The
    core directions of the space are `J := Finset.univ.map (Fin.natAddEmb p)`;
    the parameters are the core coordinates outside `J`, and `Ψ` sends
    `K ×ˢ Q` into the cube `Q'` of `D'`. On the vectors `(0, w)` it is an
