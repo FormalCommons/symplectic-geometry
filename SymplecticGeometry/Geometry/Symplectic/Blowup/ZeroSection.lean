@@ -57,7 +57,7 @@ symplectic form `ω̃_l = blowupForm n l`. -/
 theorem hasSymplecticTangentImages_zeroSectionRealEmbedding {l : ℝ} (hl : l ≠ 0) :
     (isSymplectic_blowupForm (n := n) hl).isNondegenerate.HasSymplecticTangentImages
       𝓘(ℝ, Fin n → ℂ) (zeroSectionRealEmbedding n) :=
-  hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm _ _ hl
+  hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm _ _ (pow_ne_zero 2 hl)
     (mpullback_zeroSectionRealEmbedding_blowupForm l)
 
 end BlowupModel

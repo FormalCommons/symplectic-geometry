@@ -655,7 +655,7 @@ theorem isSymplecticSubmanifoldEmbedding_divisor (hω : (form hψ hl hε).IsNond
     (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) :=
   (hω.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
     (divisor hψ hl hε).isSmoothEmbedding).2 <|
-      hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ hl₀
+      hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ (pow_ne_zero 2 hl₀)
         (mpullback_divisor_form hψ hl hε)
 
 variable (hn : (∞ : ℕ∞ω) ≠ 0)
