@@ -17,6 +17,8 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 
 This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, and one
 about the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors.
+It also identifies a finite-dimensional space with its continuous dual through a nondegenerate
+bilinear form.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
@@ -43,6 +45,11 @@ For continuous bilinear forms `β₀` on `V₀` and `β₁` on `V₁` and a cont
 `β₁ (A u) y = β₀ u (T y)`, so `A` and `T` form an adjoint pair. In finite dimensions, for `β₁`
 nondegenerate, it is the linear map `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 
+A nondegenerate bilinear form `B` on a finite-dimensional space identifies the space with its
+dual (`LinearMap.BilinForm.toDual`). Since every linear form is then continuous, this is a
+continuous linear equivalence with the continuous dual, `LinearMap.BilinForm.toStrongDual`, whose
+inverse is a continuous linear map from the continuous dual back to the space.
+
 Finally, a continuous alternating map `A` of two vectors gives the bilinear form
 `(v, w) ↦ A ![v, w]`. On a finite-dimensional normed space, the maps whose form is
 nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate`.
@@ -52,6 +59,8 @@ nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate
 * `ContinuousLinearEquiv.bilinearCongr`: a continuous bilinear map carried along a continuous
   linear equivalence in both arguments.
 * `ContinuousLinearMap.skewSymmetrizeBilinear`: the skew part `b ↦ 2⁻¹ • (b - b.flip)`.
+* `LinearMap.BilinForm.toStrongDual`: for a nondegenerate form `B` in finite dimension, the
+  continuous linear equivalence `v ↦ B v` from the space to its continuous dual.
 * `ContinuousLinearMap.bilinAdjoint`: the adjoint `u ↦ β₁⁻¹ (β₀ u ∘ T)` of `T` for the forms
   `β₀` and `β₁`.
 
@@ -86,6 +95,9 @@ nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate
   `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 * `ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap`: in finite dimension, the
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
+* `LinearMap.BilinForm.toStrongDual_symm_apply`,
+  `LinearMap.BilinForm.apply_toStrongDual_symm_apply`: the inverse of `B.toStrongDual hB` is
+  that of `B.toDual hB`, and `B (B⁻¹ f) w = f w`.
 -/
 
 public section
@@ -377,5 +389,36 @@ theorem isOpen_setOfPred_nondegenerate_toBilinMap {𝕜 E : Type*} [Nontrivially
     simpa using continuous_eval_const ![v, w]
 
 end ContinuousAlternatingMap
+
+namespace LinearMap.BilinForm
+
+variable {𝕜 V : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
+  [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [IsTopologicalAddGroup V]
+  [ContinuousSMul 𝕜 V] [T2Space V] [FiniteDimensional 𝕜 V] {B : LinearMap.BilinForm 𝕜 V}
+
+variable (B) in
+/-- For a nondegenerate bilinear form `B` on a finite-dimensional space `V`, the continuous linear
+equivalence `v ↦ B v` from `V` to its continuous dual; as a linear map it is `B.toDual hB`. Its
+inverse sends a continuous linear form `f` to the unique `v` with `B v w = f w` for all `w`. -/
+noncomputable def toStrongDual (hB : B.Nondegenerate) : V ≃L[𝕜] StrongDual 𝕜 V :=
+  ((B.toDual hB).trans LinearMap.toContinuousLinearMap).toContinuousLinearEquiv
+
+@[simp]
+theorem toStrongDual_apply (hB : B.Nondegenerate) (v w : V) : B.toStrongDual hB v w = B v w := by
+  simp [toStrongDual, toDual_def]
+
+/-- The inverse of `B.toStrongDual hB` is the inverse of `B.toDual hB`, applied to continuous
+linear forms. -/
+theorem toStrongDual_symm_apply (hB : B.Nondegenerate) (f : StrongDual 𝕜 V) :
+    (B.toStrongDual hB).symm f = (B.toDual hB).symm f := by
+  simp [toStrongDual]
+
+/-- The defining identity of the inverse of `B.toStrongDual hB`: `B (B⁻¹ f) w = f w`. -/
+@[simp]
+theorem apply_toStrongDual_symm_apply (hB : B.Nondegenerate) (f : StrongDual 𝕜 V) (w : V) :
+    B ((B.toStrongDual hB).symm f) w = f w := by
+  simp [toStrongDual_symm_apply]
+
+end LinearMap.BilinForm
 
 end
