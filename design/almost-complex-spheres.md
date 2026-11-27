@@ -302,9 +302,12 @@ The surjective half of the product theorem [Hatcher2017, §2.1]:
 - `TauCeti.FiniteRankBundleCore.exists_linear_clutching_iso_of_fiberMap_eq_sum`,
   in `Topology/VectorBundle/FiniteRank/PolynomialClutching.lean`: a
   polynomial clutching function of degree
-  $\le N$ becomes linear on $(N+1)E$ (Hatcher's matrix), and
-  `TauCeti.FiniteRankBundleCore.exists_nonempty_clutching_iso_whitneySum_of_linear`:
-  for a linear one $a(x)z+b(x)$, $E$ splits as
+  $\le N$ becomes linear on $(N+1)E$ (Hatcher's matrix);
+- `TauCeti.FiniteRankBundleCore.exists_nonempty_clutching_iso_whitneySum_of_linear`,
+  in this file: for $X$ compact, Hausdorff and preconnected
+  (`PreconnectedSpace X`, since a core has constant rank while the two
+  pieces below have only locally constant rank) and a linear clutching
+  function $a(x)z+b(x)$, $E$ splits as
   $E_+\oplus E_-$ by the spectral projection
   $\frac1{2\pi i}\oint(w-T)^{-1}dw$ (Mathlib's `circleIntegral`), giving
   $[E_+\otimes H^{\pm1}]+[E_-]$ in $K$;
