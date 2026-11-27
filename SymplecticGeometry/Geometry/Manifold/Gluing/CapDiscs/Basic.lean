@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Deriv
@@ -225,8 +226,7 @@ private theorem angle_apply (i : ι) (θ : AddCircle (1 : ℝ)) : angle γ i (γ
 include hinj hγ in
 private theorem isLocalDiffeomorphAt_angle (i : ι) (θ : AddCircle (1 : ℝ)) :
     IsLocalDiffeomorphAt (𝓡 1) 𝓘(ℝ) ∞ (angle γ i) (γ i θ) := by
-  let Φ := ((hγ i).isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn isOpen_univ
-    (injective_apply hinj i).injOn
+  let Φ := (hγ i).partialDiffeomorphOfInjective (injective_apply hinj i)
   refine isLocalDiffeomorphAt_of_eqOn (Φ := Φ.symm) ?_ fun y _ ↦ ?_
   · simp [Φ]
   · simp [Φ, angle]
