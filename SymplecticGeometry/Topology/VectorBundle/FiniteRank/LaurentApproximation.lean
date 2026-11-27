@@ -62,14 +62,6 @@ namespace TauCeti.FiniteRankBundleCore
 
 variable {X : Type*} [TopologicalSpace X] {E : FiniteRankBundleCore ℂ X}
 
-/-- A point of `X × Circle` over the domain of the chart `k` of `E` lies in the domain of the
-chart `(k, 1)` of the pullback of `E`. -/
-private theorem mem_baseSet_pullback_fst {k : X} {w : X × Circle}
-    (h : w.1 ∈ E.core.baseSet k) : w ∈ E.circlePullback.core.baseSet (k, 1) := by
-  rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, Set.mem_preimage,
-    ← VectorBundleCore.baseSet_at]
-  simpa only [ContinuousMap.fst_apply] using h
-
 /-- The endomorphism `∑ k, ofChart k k (ρ k • c i · k)` of `E`, patched from the coefficient
 fields `c i · k` in the charts `k` of `E`, which `ρ k` cuts off. -/
 private def patchedCoeff {t : Finset X} (ρ : t → C(X, ℝ))
@@ -129,7 +121,7 @@ private theorem continuous_smul_inChartCoordinates_fiberMap
         (Fin E.rank → ℂ) →L[ℂ] (Fin E.rank → ℂ))) ⊆ E.circlePullback.core.baseSet (k, 1) := by
     refine (tsupport_smul_subset_left (fun w : X × Circle ↦ σ w.1) _).trans ?_
     exact (tsupport_comp_subset_preimage σ continuous_fst).trans fun w hw ↦
-      mem_baseSet_pullback_fst (hσ hw)
+      mem_baseSet_pullback.2 (hσ hw)
   refine ContinuousOn.continuous_of_tsupport_subset ?_
     ((E.circlePullback.core.isOpen_baseSet _).inter (E.circlePullback.core.isOpen_baseSet _))
     (Set.subset_inter hs hs)
@@ -164,7 +156,7 @@ private theorem norm_inChartCoordinates_laurentHom_patchedCoeff_sub_le {t : Fins
     rw [← finsum_eq_sum_of_fintype]
     exact ρ.sum_eq_one (Set.mem_univ _)
   have hD0 : 0 ≤ D := (norm_nonneg _).trans (hD j hj).1
-  have hwj : w ∈ E.circlePullback.core.baseSet ((j : X), 1) := mem_baseSet_pullback_fst (hρ j hj)
+  have hwj : w ∈ E.circlePullback.core.baseSet ((j : X), 1) := mem_baseSet_pullback.2 (hρ j hj)
   -- Split `h` along the partition of unity, and compare it with the Laurent family term by term.
   have hsplit (M : (Fin E.circlePullback.rank → ℂ) →L[ℂ] (Fin E.circlePullback.rank → ℂ)) :
       M = ∑ k, ρ k w.1 • M := by
@@ -179,7 +171,7 @@ private theorem norm_inChartCoordinates_laurentHom_patchedCoeff_sub_le {t : Fins
   · simp [hk]
   refine mul_le_mul_of_nonneg_left ?_ (ρ.nonneg k w.1)
   have hxk : w.1 ∈ tsupport (ρ k) := subset_tsupport _ hk
-  have hwk : w ∈ E.circlePullback.core.baseSet ((k : X), 1) := mem_baseSet_pullback_fst (hρ k hxk)
+  have hwk : w ∈ E.circlePullback.core.baseSet ((k : X), 1) := mem_baseSet_pullback.2 (hρ k hxk)
   have hck := hc k
   generalize (∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1 k) = L at hck ⊢
   -- Read `h` in the chart `k`, where the Laurent polynomial `L` approximates it.
@@ -216,7 +208,7 @@ theorem exists_norm_conj_laurentHom_lt_one (f : E.circlePullback ≅ E.circlePul
   obtain ⟨C₂, hC₂⟩ := exists_norm_inChartCoordinates_le f.inv (fun k : t ↦ ((k : X), 1))
     (fun k ↦ ((k : X), 1)) (K := fun k ↦ tsupport (ρ k) ×ˢ Set.univ)
     (fun k ↦ (hK k).prod isCompact_univ) fun k w hw ↦
-      ⟨mem_baseSet_pullback_fst (hρs k hw.1), mem_baseSet_pullback_fst (hρs k hw.1)⟩
+      ⟨mem_baseSet_pullback.2 (hρs k hw.1), mem_baseSet_pullback.2 (hρs k hw.1)⟩
   set D₁ := max C₁ 1
   set D₂ := max C₂ 1
   have hD₁ : 0 < D₁ := lt_max_of_lt_right one_pos
@@ -238,8 +230,8 @@ theorem exists_norm_conj_laurentHom_lt_one (f : E.circlePullback ≅ E.circlePul
   -- The estimate is made in a chart `j` of the cover at the base point of `w`.
   obtain ⟨j, hj⟩ := ρ.exists_pos (Set.mem_univ w.1)
   have hxj : w.1 ∈ tsupport (ρ j) := subset_tsupport _ hj.ne'
-  obtain ⟨U, hU⟩ := E.circlePullback.core.exists_units_inv_mul_mul_eq_inChartCoordinates
-    (mem_baseSet_pullback_fst (hρs j hxj))
+  have hwj : w ∈ E.circlePullback.core.baseSet ((j : X), 1) := mem_baseSet_pullback.2 (hρs j hxj)
+  obtain ⟨U, hU⟩ := E.circlePullback.core.exists_units_inv_mul_mul_eq_inChartCoordinates hwj
   refine ⟨U, ?_⟩
   set Φ :=
     E.circlePullback.core.inChartCoordinates E.circlePullback.core ((j : X), 1) ((j : X), 1) w

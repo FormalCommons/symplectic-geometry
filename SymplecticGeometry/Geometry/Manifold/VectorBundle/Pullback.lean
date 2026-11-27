@@ -6,11 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
-public import TauCeti.Geometry.Manifold.VectorBundle.Subbundle
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -60,11 +58,7 @@ followed by Tau Ceti's `Bundle.Pullback.contMDiff_iff`.
 Finally, for a `C^∞` map `f : Q → M`, the derivative `(q, v) ↦ (q, df_q v)` is a `C^∞` map from
 the tangent bundle of `Q` to the pull-back `f *ᵖ TM`
 (`Bundle.Pullback.contMDiff_totalSpace_mfderiv`), so the maps `df_q` form a `C^∞` section of the
-bundle of linear maps from `TQ` to `f *ᵖ TM` (`Bundle.Pullback.contMDiff_mfderiv_hom`). When `f`
-is moreover an immersion, the tangent
-images `df_q(T_q Q)` have `C^∞` local frames in `f *ᵖ TM`
-(`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`), by Tau Ceti's constant-rank
-criterion `TauCeti.hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range`.
+bundle of linear maps from `TQ` to `f *ᵖ TM` (`Bundle.Pullback.contMDiff_mfderiv_hom`).
 
 For a map `f : N → M` and a map `g : M → G` into a normed space, the differentials of `g` along
 `f` give the map `(x, v) ↦ dg_{f x} v` on the total space of `f *ᵖ TM`. It is the second
@@ -408,7 +402,7 @@ variable {E E' H H' M Q K : Type*}
 
 namespace Bundle.Pullback
 
-open Module TauCeti
+open TauCeti
 
 /-- The derivative of a `C^∞` map `f`, as the map `(q, v) ↦ (q, df_q v)` from the tangent bundle
 of `Q` to the pull-back `f *ᵖ TM`, is `C^∞`. -/
@@ -429,24 +423,6 @@ theorem contMDiff_mfderiv_hom [FiniteDimensional ℝ E'] (f : K) (hf : ContMDiff
         (mfderiv J I f q)) :=
   (contMDiff_hom_bundle_iff (E₁ := TangentSpace J) (E₂ := (f : Q → M) *ᵖ (TangentSpace I))
     fun q ↦ mfderiv J I f q).2 (contMDiff_totalSpace_mfderiv f hf)
-
-/-- **Frames of the tangent image.** For a `C^∞` immersion `f`, the images `df_q(T_q Q)` of the
-tangent spaces of `Q` have `C^∞` local frames of size `dim Q` in the pull-back `f *ᵖ TM`. -/
-theorem hasLocalContMDiffSubbundleFrames_range_mfderiv [FiniteDimensional ℝ E] (f : K)
-    (hi : Manifold.IsImmersion J I ∞ f) :
-    HasLocalContMDiffSubbundleFrames J ∞ E (Fin (finrank ℝ E'))
-      (E := (f : Q → M) *ᵖ (TangentSpace I)) fun q ↦ (mfderiv J I f q).range := by
-  have : ContMDiffVectorBundle ∞ E' (TangentSpace J : Q → Type _) J :=
-    TangentBundle.contMDiffVectorBundle
-  refine hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range
-    (fun q ↦ (mfderiv J I f q : TangentSpace J q →ₗ[ℝ] TangentSpace I (f q)))
-    (contMDiff_totalSpace_mfderiv f hi.contMDiff) (fun q ↦ rfl) fun q ↦ ?_
-  -- The ranges are subspaces of the fibres of the pull-back, which are the tangent spaces of
-  -- `M` under another name.
-  have h : finrank ℝ (LinearMap.range
-      (mfderiv J I f q : TangentSpace J q →ₗ[ℝ] TangentSpace I (f q))) = finrank ℝ E' :=
-    LinearMap.finrank_range_of_inj (hi.mfderiv_injective (by simp) q)
-  exact h
 
 end Bundle.Pullback
 

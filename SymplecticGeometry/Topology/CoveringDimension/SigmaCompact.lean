@@ -6,24 +6,28 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.PartitionOfUnity
-public import SymplecticGeometry.Topology.CoveringDimension.Basic
+public import TauCeti.Topology.Dimension.Covering
+import SymplecticGeometry.Topology.CoveringDimension.Basic
 import TauCeti.Topology.PartitionOfUnity.Basic
 
 /-!
 # Partitions of unity of bounded order on σ-compact spaces
 
-Let `X` be a Hausdorff, locally compact, σ-compact space in which every compact set satisfies
-`CoveringDimLE K n`. Then every open cover of `X` has a refinement with a subordinate partition
-of unity in which at every point at most `3 * (n + 1)` functions do not vanish.
+Let `X` be a Hausdorff, locally compact, σ-compact space in which every compact set has
+covering dimension at most `n` (`TauCeti.HasCoveringDimensionLE`). Then every open cover of `X`
+has a refinement with a subordinate partition of unity in which at every point at most
+`3 * (n + 1)` functions do not vanish. Tau Ceti's
+`TauCeti.HasCoveringDimensionLE.exists_partitionOfUnity` needs a bound on the covering dimension
+of the whole space; here only compact sets are bounded.
 
 The proof goes through the shells of a compact exhaustion `S` with `S 0 = ∅`. The shell
 `S (j + 1) \ interior (S j)` is compact and lies in the open set
 `interior (S (j + 2)) \ S (j - 1)`. Over each shell,
-`CoveringDimLE.exists_finset_card_le` refines the cover by finitely many open subsets of that
-open set, with every point of `X` in at most `n + 1` of them. A point `x` lies only in the open
-sets of the indices `j` with `S.find x - 2 ≤ j ≤ S.find x`, so the union of these families is a
-locally finite cover in which every point lies in at most `3 * (n + 1)` members, and a
-partition of unity subordinate to it has the same bound.
+`TauCeti.HasCoveringDimensionLE.exists_shrinking_of_subset_iUnion` refines the cover by finitely
+many open subsets of that open set, with every point of `X` in at most `n + 1` of them. A point
+`x` lies only in the open sets of the indices `j` with `S.find x - 2 ≤ j ≤ S.find x`, so the
+union of these families is a locally finite cover in which every point lies in at most
+`3 * (n + 1)` members, and a partition of unity subordinate to it has the same bound.
 
 The shells, their finite refinements and the proof of local finiteness follow Mathlib's
 `refinement_of_locallyCompact_sigmaCompact_of_nhds_basis_set`; what is new here is the bound on
@@ -41,7 +45,7 @@ the number of members of the refinement through each point.
 
 public section
 
-open Set
+open Set TauCeti
 
 namespace SymplecticGeometry
 
@@ -55,7 +59,7 @@ refinement over the shell `S (j + 1) \ interior (S j)`: finitely many open subse
 `interior (S (j + 2)) \ S (j - 1)`, each inside some `U i`, covering the shell, such that every
 point of `X` lies in at most `n + 1` of them. -/
 private theorem exists_finset_shell [T2Space X] [NormalSpace X] {n : ℕ}
-    (hX : ∀ K : Set X, IsCompact K → CoveringDimLE K n) {ι : Type*} (U : ι → Set X)
+    (hX : ∀ K : Set X, IsCompact K → HasCoveringDimensionLE K n) {ι : Type*} (U : ι → Set X)
     (hU : ∀ i, IsOpen (U i)) (hcov : ⋃ i, U i = univ) (K : CompactExhaustion X) (j : ℕ) :
     ∃ 𝒲 : Finset (Set X),
       (∀ W ∈ 𝒲, IsOpen W ∧ W ⊆ interior (K.shiftr (j + 2)) \ K.shiftr (j - 1) ∧
@@ -73,21 +77,31 @@ private theorem exists_finset_shell [T2Space X] [NormalSpace X] {n : ℕ}
       simp [S] at this
     · exact hxj (S.subset_interior_succ _ hx')
   obtain ⟨t, ht⟩ := hA.elim_finite_subcover U hU (by simp [hcov])
-  obtain ⟨𝒲, h𝒲, hA𝒲, hcard⟩ := (hX _ hA).exists_finset_card_le hA.isClosed
-    (𝒰 := t.image U) (by simpa using fun i _ => hU i)
-    (fun x hx => by simpa using mem_iUnion₂.1 (ht hx))
-    (isOpen_interior.sdiff (S.isCompact _).isClosed) hAO
-  refine ⟨𝒲, fun W hW => ?_, hA𝒲, hcard⟩
-  obtain ⟨hWo, hWO, _, hU', hWU⟩ := h𝒲 W hW
-  obtain ⟨i, -, rfl⟩ := Finset.mem_image.1 hU'
-  exact ⟨hWo, hWO, i, hWU⟩
+  obtain ⟨V, hVo, hVU, hAV, hVm⟩ := (hX _ hA).exists_shrinking_of_subset_iUnion hA.isClosed
+    (U := fun i : t => U i ∩ (interior (S (j + 2)) \ S (j - 1)))
+    (fun i => (hU i).inter (isOpen_interior.sdiff (S.isCompact _).isClosed))
+    (fun x hx => by
+      obtain ⟨i, hi, hxi⟩ := mem_iUnion₂.1 (ht hx)
+      exact mem_iUnion.2 ⟨⟨i, hi⟩, hxi, hAO hx⟩)
+  refine ⟨Finset.univ.image V, ?_, fun x hx => ?_, fun x => ?_⟩
+  · simp only [Finset.mem_image, Finset.mem_univ, true_and, forall_exists_index,
+      forall_apply_eq_imp_iff]
+    exact fun i => ⟨hVo i, (hVU i).trans inter_subset_right, i, (hVU i).trans inter_subset_left⟩
+  · obtain ⟨i, hi⟩ := mem_iUnion.1 (hAV hx)
+    exact ⟨V i, by simp, hi⟩
+  · rw [Finset.filter_image]
+    refine Finset.card_image_le.trans ?_
+    have h := hVm x
+    rw [show {i | x ∈ V i} = ((Finset.univ.filter fun i => x ∈ V i : Finset t) : Set t) by simp,
+      encard_coe_eq_coe_finsetCard] at h
+    exact_mod_cast h
 
 /-- In a Hausdorff, locally compact, σ-compact space in which every compact set satisfies the
 covering-dimension bound for `n`, every open cover `U` has a refinement `U ∘ c` with a subordinate
 partition of unity `ρ` such that at every point at most `3 * (n + 1)` of the functions of `ρ` do
 not vanish. -/
 theorem exists_isSubordinate_card_finsupport_le [T2Space X] [LocallyCompactSpace X]
-    [SigmaCompactSpace X] {n : ℕ} (hX : ∀ K : Set X, IsCompact K → CoveringDimLE K n)
+    [SigmaCompactSpace X] {n : ℕ} (hX : ∀ K : Set X, IsCompact K → HasCoveringDimensionLE K n)
     {ι : Type*} (U : ι → Set X) (hU : ∀ i, IsOpen (U i)) (hcov : ⋃ i, U i = univ) :
     ∃ (κ : Type u) (c : κ → ι) (ρ : PartitionOfUnity κ X univ),
       ρ.IsSubordinate (U ∘ c) ∧ ∀ x, (ρ.finsupport x).card ≤ 3 * (n + 1) := by
