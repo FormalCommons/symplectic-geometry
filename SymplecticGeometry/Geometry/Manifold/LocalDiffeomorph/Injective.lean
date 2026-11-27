@@ -21,6 +21,12 @@ The same Tau Ceti lemma, on the whole domain, shows that the left inverse
 `Function.invFunOn f univ` of an injective local diffeomorphism `f` is smooth on the range of `f`
 (`IsLocalDiffeomorph.contMDiffOn_invFunOn`).
 
+Tau Ceti's `IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn` on `univ` makes an injective local
+diffeomorphism `f` a partial diffeomorphism from `M` to `N` with source `univ` and target
+`range f` (`IsLocalDiffeomorph.partialDiffeomorphOfInjective`). Tau Ceti's
+`IsLocalDiffeomorph.diffeomorphOfInjective` gives the same map as a diffeomorphism onto the open
+subset `hf.image` instead, which changes the codomain.
+
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
@@ -66,6 +72,37 @@ theorem contMDiffOn_invFunOn [Nonempty M] {f : M → N} (hf : IsLocalDiffeomorph
     (hinj : Injective f) : ContMDiffOn J I n (invFunOn f univ) (range f) := by
   simpa only [image_univ] using
     (hf.isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ hinj.injOn
+
+/-- An injective `C^n` local diffeomorphism `f : M → N`, as a partial diffeomorphism from `M` to
+`N` with source `univ` and target `range f`; its inverse is `Function.invFunOn f univ`. -/
+noncomputable def partialDiffeomorphOfInjective [Nonempty M] {f : M → N}
+    (hf : IsLocalDiffeomorph I J n f) (hinj : Injective f) : PartialDiffeomorph I J M N n :=
+  (hf.isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn isOpen_univ hinj.injOn
+
+variable [Nonempty M] {f : M → N} (hf : IsLocalDiffeomorph I J n f) (hinj : Injective f)
+
+/-- The partial diffeomorphism is `f` itself as a function. -/
+@[simp]
+theorem coe_partialDiffeomorphOfInjective : ⇑(hf.partialDiffeomorphOfInjective hinj) = f :=
+  IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn ..
+
+/-- Its source is all of `M`. -/
+@[simp]
+theorem partialDiffeomorphOfInjective_source :
+    (hf.partialDiffeomorphOfInjective hinj).source = univ :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..
+
+/-- Its target is the range of `f`. -/
+@[simp]
+theorem partialDiffeomorphOfInjective_target :
+    (hf.partialDiffeomorphOfInjective hinj).target = range f :=
+  (IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target ..).trans image_univ
+
+/-- Its inverse is `Function.invFunOn f univ`. -/
+@[simp]
+theorem partialDiffeomorphOfInjective_symm_apply (y : N) :
+    (hf.partialDiffeomorphOfInjective hinj).toPartialEquiv.symm y = invFunOn f univ y :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply ..
 
 end IsLocalDiffeomorph
 
