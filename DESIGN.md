@@ -3921,7 +3921,7 @@ hypersurface theorem.
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
-  file), `AsymptoticallyHolomorphic.lean` (sequences of sections with the
+  file), `AsymptoticallyHolomorphic/Basic.lean` (sequences of sections with the
   rescaled estimates, and the transversality condition
   $\max(|s_k|,|\partial s_k|)\ge\eta$), `PeakSection.lean` (the peak sections
   $p_{k,x}$, $z_jp_{k,x}$, with Gaussian decay), `LocalTransversality.lean`

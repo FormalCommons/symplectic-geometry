@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Basic
+public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 
 /-!
 # Sections read in rescaled unitary charts, and their jet norms
@@ -19,11 +20,14 @@ unitary frame `[D.frame k x _, 1]` of that fibre. This is `D.reading k x s`, and
 `SymplecticGeometry.RescaledUnitaryCharts.apply_chart_symm_eq_mk` recovers `s` from it. The
 reading is complex linear in `s`.
 
-The `r`-jet norm `D.jetNorm k r s x` is the sum, over the orders `j ≤ r`, of the norms of the
-`j`-th derivatives (Mathlib's `iteratedFDeriv`) of the reading at the centre `0` of the chart.
-It is nonnegative and monotone in `r`; for `k₀ ≤ k` its order `0` is the norm of `s x`, since the
-chart sends `x` to `0` and the frame is unitary; and it satisfies the triangle inequality for
-sections whose readings are `C^r` at `0`.
+The `r`-jet norm `D.jetNorm k r s x` is the jet norm `SymplecticGeometry.jetNormAt ℝ r` of the
+reading at the centre `0` of the chart: the sum, over the orders `j ≤ r`, of the norms of the
+`j`-th derivatives (Mathlib's `iteratedFDeriv`) of the reading there. Its lemmas come from those
+of `jetNormAt`. It is nonnegative and monotone in `r`; for `k₀ ≤ k` its order `0` is the norm of
+`s x`, since the chart sends `x` to `0` (`SymplecticGeometry.RescaledUnitaryCharts.chart_symm_zero`)
+and the frame is unitary; it vanishes on the zero section and is unchanged by negation; and for
+sections whose readings are `C^r` at `0` it satisfies the triangle inequality and scales by `‖c‖`
+under multiplication by `c : ℂ`.
 
 These are the chart norms by which the estimates on asymptotically holomorphic sequences of
 sections are stated, in the rescaled metrics `k ω(·, J ·)`.
@@ -92,52 +96,72 @@ theorem reading_smul (k : ℕ) (x : M) (c : ℂ) (s : Π y, PowerBundle P k y) :
 theorem reading_zero (k : ℕ) (x : M) : D.reading k x (0 : Π y, PowerBundle P k y) = 0 := by
   simpa using D.reading_smul k x 0 0
 
+@[simp]
+theorem reading_neg (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) :
+    D.reading k x (-s) = -D.reading k x s := by
+  ext z
+  simp only [reading_def, Pi.neg_apply, map_neg]
+
+@[simp]
+theorem reading_sub (k : ℕ) (x : M) (s t : Π y, PowerBundle P k y) :
+    D.reading k x (s - t) = D.reading k x s - D.reading k x t := by
+  ext z
+  simp only [reading_def, Pi.sub_apply, map_sub]
+
 /-- The reading has the norm of the section: at `z`, it is `‖s ((D.chart k x).symm z)‖`. -/
 @[simp]
 theorem norm_reading (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) (z : StdSpace ι) :
     ‖D.reading k x s z‖ = ‖s ((D.chart k x).symm z)‖ := by
   rw [reading_def, LinearIsometryEquiv.norm_map, LinearIsometryEquiv.norm_map]
 
-/-- The **`r`-jet norm at `x`** of a section `s` of `PowerBundle P k`: the sum, over the orders
-`j ≤ r`, of the norms of the `j`-th derivatives at `0` of the reading of `s` in the chart and the
-frame centred at `x`. -/
+/-- The **`r`-jet norm at `x`** of a section `s` of `PowerBundle P k`: the jet norm
+`SymplecticGeometry.jetNormAt ℝ r` at `0` of the reading of `s` in the chart and the frame
+centred at `x`, that is, the sum over the orders `j ≤ r` of the norms of its `j`-th derivatives
+at `0`. -/
 noncomputable def jetNorm (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) : ℝ :=
-  ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv ℝ j (D.reading k x s) 0‖
+  jetNormAt ℝ r (D.reading k x s) 0
 
 theorem jetNorm_def (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
-    D.jetNorm k r s x = ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv ℝ j (D.reading k x s) 0‖ :=
+    D.jetNorm k r s x = jetNormAt ℝ r (D.reading k x s) 0 :=
   (rfl)
 
 theorem jetNorm_nonneg (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
     0 ≤ D.jetNorm k r s x := by
   rw [jetNorm_def]
-  positivity
+  exact jetNormAt_nonneg _ _ _
 
 /-- The jet norm grows with the order. -/
 theorem jetNorm_mono (k : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
-    Monotone fun r ↦ D.jetNorm k r s x := fun r r' hr ↦ by
-  simp only [jetNorm_def]
-  exact Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_subset_range.2 (by omega))
-    fun _ _ _ ↦ norm_nonneg _
+    Monotone fun r ↦ D.jetNorm k r s x := by
+  simpa only [jetNorm_def] using jetNormAt_mono (D.reading k x s) 0
 
 /-- The jet norm of order `0` is the norm of the section at the centre. -/
 theorem jetNorm_zero {k : ℕ} (hk : k₀ ≤ k) (s : Π y, PowerBundle P k y) (x : M) :
     D.jetNorm k 0 s x = ‖s x‖ := by
-  have hx : (D.chart k x).symm 0 = x := by
-    rw [← D.apply_self hk x]
-    exact (D.chart k x).left_inv (D.mem_source hk x)
-  rw [jetNorm_def, Finset.sum_range_one, norm_iteratedFDeriv_zero, norm_reading, hx]
+  rw [jetNorm_def, jetNormAt_zero, norm_reading, D.chart_symm_zero hk x]
+
+/-- The zero section has jet norm `0`. -/
+@[simp]
+theorem jetNorm_zero_fun (k r : ℕ) (x : M) :
+    D.jetNorm k r (0 : Π y, PowerBundle P k y) x = 0 := by
+  rw [jetNorm_def, reading_zero, jetNormAt_zero_fun]
+
+@[simp]
+theorem jetNorm_neg (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) :
+    D.jetNorm k r (-s) x = D.jetNorm k r s x := by
+  rw [jetNorm_def, jetNorm_def, reading_neg, jetNormAt_neg]
 
 /-- The **triangle inequality for jet norms**, for sections whose readings are `C^r` at `0`. -/
 theorem jetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     (hs : ContDiffAt ℝ r (D.reading k x s) 0) (ht : ContDiffAt ℝ r (D.reading k x t) 0) :
     D.jetNorm k r (s + t) x ≤ D.jetNorm k r s x + D.jetNorm k r t x := by
-  simp only [jetNorm_def, reading_add, ← Finset.sum_add_distrib]
-  refine Finset.sum_le_sum fun j hj ↦ ?_
-  have hjr : (j : ℕ∞ω) ≤ r := by
-    exact_mod_cast Nat.lt_succ_iff.1 (Finset.mem_range.1 hj)
-  rw [iteratedFDeriv_add_apply (hs.of_le hjr) (ht.of_le hjr)]
-  exact norm_add_le _ _
+  simpa only [jetNorm_def, reading_add] using jetNormAt_add_le hs ht
+
+/-- The jet norm of a complex multiple of a section whose reading is `C^r` at `0`. -/
+theorem jetNorm_smul {k r : ℕ} {s : Π y, PowerBundle P k y} {x : M}
+    (hs : ContDiffAt ℝ r (D.reading k x s) 0) (c : ℂ) :
+    D.jetNorm k r (c • s) x = ‖c‖ * D.jetNorm k r s x := by
+  rw [jetNorm_def, jetNorm_def, reading_smul, jetNormAt_smul hs]
 
 end RescaledUnitaryCharts
 

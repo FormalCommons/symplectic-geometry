@@ -797,6 +797,11 @@ variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
   {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1} {k₀ : ℕ} {ρ₀ : ℝ}
   (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀)
 
+/-- The inverse of the chart centred at `x` sends the centre `0` to `x`. -/
+theorem chart_symm_zero {k : ℕ} (hk : k₀ ≤ k) (x : M) : (D.chart k x).symm 0 = x := by
+  rw [← D.apply_self hk x]
+  exact (D.chart k x).left_inv (D.mem_source hk x)
+
 /-- At a point `y` whose image `z` under the chart `D.chart k x` lies in the ball of radius
 `ρ₀ * √k`, the quadratic form `2π k σ(v, J v)` of a tangent vector `v` at `y` differs from
 `‖u‖ ^ 2`, for `u` the image of `v` under the derivative of the chart, by at most
@@ -939,9 +944,7 @@ theorem exists_forall_ofReal_mul_riemannianEDist_symm_le (hρ₀ : 0 < ρ₀)
   -- The straight segment from `0` to `z` lies in the ball, and its image is a path from `x`.
   have hseg : segment ℝ 0 z ⊆ ball (0 : StdSpace ι) (ρ₁ * √k) :=
     (convex_ball _ _).segment_subset (mem_ball_self (by positivity)) hz
-  have h0 : φ.symm 0 = x := by
-    rw [← D.apply_self hk x]
-    exact φ.left_inv (D.mem_source hk x)
+  have h0 : φ.symm 0 = x := D.chart_symm_zero hk x
   have hd := Manifold.riemannianEDist_le_of_norm_mfderiv_le (I := I) (f := φ.symm)
     (C := √(3 / 2) * ‖z‖ / s)
     (fun w hw ↦ (φ.symm.contMDiffAt (by simpa using hball (hseg hw))).of_le (by simp))
