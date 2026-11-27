@@ -6,12 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.MetricSpace.Thickening
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CubeCoordinates
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Topology.Algebra.Support
@@ -224,7 +226,7 @@ theorem exists_oneForm_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
     exact image_mono (hsupp i q) hx'
   have hval (q : S) (x : M) :
       (B q + ∑ i, ext i q).val x = (B q).val x + ∑ i, (ext i q).val x := by
-    rw [Submodule.coe_add, Submodule.coe_sum, Pi.add_apply, Finset.sum_apply]
+    simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sum_apply]
   refine ⟨fun q ↦ B q + ∑ i, ext i q, hB.add (IsSmoothFamily.sum fun i _ ↦ ?_),
     fun q x hx ↦ ?_, fun i q z hz ↦ ?_, fun q hq ↦ ?_⟩
   · have h := contMDiff_iff_contDiff.2 (hcorr i)
@@ -243,8 +245,7 @@ theorem exists_oneForm_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
       TauCeti.mpullback_symm_extendByZeroAlong _ _ (by simp) (htgt i (mem_univ z))]
   · have h0 (i : c.ι) : ext i q = 0 := by
       have hz : (fun z ↦ corr i (q, z)) = 0 := funext (hq i)
-      refine Subtype.ext ?_
-      rw [hext, hz, TauCeti.RoughForm.extendByZeroAlong_zero, Submodule.coe_zero]
+      simp only [ext, hz, TauCeti.SmoothForm.extendByZeroAlong_zero]
     simp only [h0, Finset.sum_const_zero, add_zero]
 
 end BandCore
