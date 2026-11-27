@@ -419,8 +419,9 @@ theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
     {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
     [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
     (hdim : finrank ℂ E = finrank ℂ G₁ + finrank ℂ G₂)
-    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {L : ∀ x, G₁ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
-    (hL : ∀ (f₁ : X → G₁) x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
+    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {f₁ : X → G₁}
+    {L : ∀ x, G₁ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hL : ∀ x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
       (inTangentCoordinates 𝓘(ℝ, G₁) 𝓘(ℝ, E) f₁ ι L x₀) x₀)
     (hLI : ∀ x v, L x (Complex.I • v) = ofComplexManifold E M (ι x) (L x v))
     (hinj : ∀ x, Injective (L x)) :
@@ -431,11 +432,11 @@ theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
       ∀ x, ((L x).coprod (B x)).IsInvertible := by
   have := Manifold.locallyCompact_of_finiteDimensional IX (M := X)
   have hLc : Continuous fun q : X × G₁ ↦ (⟨ι q.1, L q.1 q.2⟩ : TangentBundle 𝓘(ℝ, E) M) :=
-    continuous_of_continuousAt_inTangentCoordinates 𝓘(ℝ, E) (f := 0) continuous_const
-      hι.continuous fun x₀ ↦ (hL 0 x₀).continuousAt
+    continuous_of_continuousAt_inTangentCoordinates 𝓘(ℝ, E) hι.continuous fun x₀ ↦
+      (hL x₀).continuousAt
   obtain ⟨B₀, hB₀, hB₀I, hB₀L⟩ :=
     exists_continuous_isInvertible_coprod_tangentSpace (G₂ := G₂) hdim hLc hLI hinj
-  exact exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous hι (hL 0) hB₀
+  exact exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous hι hL hB₀
     hB₀I hB₀L
 
 end Smoothing
@@ -486,7 +487,7 @@ theorem exists_complexFrame_mfderiv {ι : EuclideanSpace ℝ (Fin k) → M}
     complexExtension_mfderiv_injective (hι.mfderiv_injective (by simp) x) (hιR x)
   -- The second factor: a smooth complex complement.
   obtain ⟨B, hB, hBI, hBL⟩ := exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
-    (G₂ := EuclideanSpace ℂ (Fin m)) (by simp [hdim]) hιs hL
+    (G₂ := EuclideanSpace ℂ (Fin m)) (by simp [hdim]) hιs (hL 0)
     (fun x v ↦ (hLI x v).trans (ofComplexManifold_apply _ _).symm) hinj
   -- Read `B` as a family of maps into the model space `E`, as `L` is.
   let B' (x : EuclideanSpace ℝ (Fin k)) : EuclideanSpace ℂ (Fin m) →L[ℝ] E := B x

@@ -1020,20 +1020,6 @@ private theorem range_subpath_subset_half {ε : ℝ} {a b : ↥(range fun i ↦ 
   rw [Path.range_subpath_of_le _ _ _ hs, image_subset_iff]
   exact fun t ht ↦ h t ht.1 ht.2
 
-/-- Between the angles `0` and `π`, a circle about a real point lies in the closed upper
-half-plane. -/
-private theorem one_mul_im_circleMap_nonneg {x r φ : ℝ} (hr : 0 < r) (h₀ : 0 ≤ φ)
-    (h₁ : φ ≤ Real.pi) : 0 ≤ 1 * (circleMap x r φ).im := by
-  rw [one_mul, ← ofReal_im x]
-  exact (TauCeti.im_le_circleMap_im_iff hr ⟨by linarith [Real.pi_pos], h₁⟩).2 ⟨h₀, h₁⟩
-
-/-- Between the angles `π` and `2π`, a circle about a real point lies in the closed lower
-half-plane. -/
-private theorem neg_one_mul_im_circleMap_nonneg {x r φ : ℝ} (hr : 0 < r) (h₀ : Real.pi ≤ φ)
-    (h₁ : φ ≤ 2 * Real.pi) : 0 ≤ -1 * (circleMap x r φ).im := by
-  rw [neg_one_mul, neg_nonneg, ← ofReal_im x]
-  exact circleMap_im_le_im hr.le ⟨h₀, h₁⟩
-
 /-- The real numbers `x` and `y` lie between the same two consecutive points `c i`. -/
 private theorem notMem_uIcc_of_lt_of_lt {x y a b : ℝ} (hab : ∀ i, c i ≤ a ∨ b ≤ c i)
     (hx : a < x) (hx' : x < b) (hy : a < y) (hy' : y < b) (i : ι) : c i ∉ uIcc x y := by
@@ -1074,14 +1060,14 @@ private theorem exists_ofPath_loop_eq (k : ι) :
     (by rw [← Subtype.coe_le_coe, hh]; norm_num) fun t _ ht ↦ by
       rw [Path.codRestrict_coe, circle_apply]
       rw [hh] at ht
-      exact one_mul_im_circleMap_nonneg hr (mul_nonneg (by positivity) t.property.1)
-        (by nlinarith [Real.pi_pos]))
+      simpa using im_le_circleMap_im (z₀ := (c k : ℂ)) hr.le
+        ⟨mul_nonneg (by positivity) t.property.1, by nlinarith [Real.pi_pos]⟩)
   have hD := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (CX.subpath h 1)
     (range_subpath_subset_half _ (by rw [← Subtype.coe_le_coe, hh]; norm_num) fun t ht _ ↦ by
       rw [Path.codRestrict_coe, circle_apply]
       rw [hh] at ht
-      exact neg_one_mul_im_circleMap_nonneg hr (by nlinarith [Real.pi_pos])
-        (by nlinarith [Real.pi_pos, t.property.2]))
+      simpa using circleMap_im_le_im (z₀ := (c k : ℂ)) hr.le ⟨by nlinarith [Real.pi_pos],
+        by nlinarith [Real.pi_pos, t.property.2]⟩)
   have hL := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (sX.trans αX) (by
     rw [Path.trans_range]
     refine union_subset (range_codRestrict_subset_half _ (range_segment_subset_halfPlane
@@ -1146,22 +1132,23 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
   have h1 := ofPath_eq_V h0 one_ne_zero (CX.subpath 0 t₁) (range_subpath_subset_half _
     (by rw [← Subtype.coe_le_coe, ht₁]; exact t₁.property.1) fun t _ ht ↦ by
       rw [Path.codRestrict_coe, circlePath_apply]
-      exact one_mul_im_circleMap_nonneg hR₀ (by nlinarith [t.property.1])
-        (hle t _ (ht.trans_eq ht₁)))
+      simpa using im_le_circleMap_im (z₀ := 0) hR₀.le ⟨by nlinarith [t.property.1],
+        hle t _ (ht.trans_eq ht₁)⟩)
   have h2 := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (CX.subpath t₁ t₂)
     (range_subpath_subset_half _ (by rw [← Subtype.coe_le_coe, ht₁, ht₂]; gcongr; linarith)
       fun t ht ht' ↦ by
       rw [Path.codRestrict_coe, circlePath_apply]
-      exact neg_one_mul_im_circleMap_nonneg hR₀ (hge t _ (ht₁ ▸ ht))
-        (hle t _ (ht'.trans_eq ht₂)))
+      simpa using circleMap_im_le_im (z₀ := 0) hR₀.le ⟨hge t _ (ht₁ ▸ ht),
+        hle t _ (ht'.trans_eq ht₂)⟩)
   have h3 := ofPath_eq_V h0 one_ne_zero (CX.subpath t₂ 1) (range_subpath_subset_half _
     t₂.property.2 fun t ht _ ↦ by
       rw [Path.codRestrict_coe, circlePath_apply, ← (periodic_circleMap _ _).sub_eq]
       have := hge t _ (ht₂ ▸ ht)
-      exact one_mul_im_circleMap_nonneg hR₀ (by linarith) (by nlinarith [t.property.2]))
+      simpa using im_le_circleMap_im (z₀ := 0) hR₀.le
+        ⟨by linarith, by nlinarith [t.property.2]⟩)
   have hρ := ofPath_eq_V h0 one_ne_zero ρX (range_codRestrict_subset_half _
     (range_segment_subset_halfPlane (by simp) (by
-      simpa using one_mul_im_circleMap_nonneg (x := 0) hR₀ hθ₀.le hθπ.le)))
+      simpa using im_le_circleMap_im (z₀ := 0) hR₀.le ⟨hθ₀.le, hθπ.le⟩)))
   rw [V_zero h0 one_ne_zero, inv_one, mul_one] at hρ
   rw [show V h0 1 (CX 0) = V h0 1 B from congrArg _ CX.source] at h1
   rw [show V h0 1 (CX 1) = V h0 1 B from congrArg _ CX.target] at h3
