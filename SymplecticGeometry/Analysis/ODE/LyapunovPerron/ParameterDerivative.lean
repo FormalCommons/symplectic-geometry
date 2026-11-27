@@ -37,6 +37,11 @@ bounded curves, for every `t` at once.
   `exists_localStableGraph_of_contDiffAt`, with a confinement radius at most any given bound,
   together with a family of confined forward solutions starting on the graph whose derivatives
   in the starting point are bounded in time.
+* `ContinuousLinearMap.localStableGraph_apply_eq_of_le`: two graph maps described by confined
+  forward solutions, with nested confinement radii, agree where both are described.
+* `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_infty`: for a field that is `C^∞`
+  at the zero, one graph map is `C^n` near `0` for every `n`; it is the graph map of order one,
+  which agrees near `0` with the graph map of each order `n` built inside its confinement ball.
 
 The proof of `exists_localStableGraph_of_contDiffAt_fderiv` follows Tau Ceti's proof of
 `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt`; its choice of the radii follows the
@@ -234,6 +239,93 @@ theorem exists_localStableGraph_of_contDiffAt_fderiv
       (hSball _ hz) t.toNNReal).differentiableAt
   · exact norm_fderiv_lyapunovPerronSolution_apply_le hs hu hα hM hsmall hn hMn hδ
       (hSball _ hz) t.toNNReal
+
+/-- Two local stable graph maps agree where both are described. Let `g` and `g'` be graph
+maps over `range P`, with values in `ker P` and constant along the fibres of `P`, such that the
+starting points `z` of forward integral curves of `v` confined to `closedBall 0 r`
+(respectively `closedBall 0 r'`) with `‖P z‖ ≤ ρ` (respectively `ρ'`) form the graph of `g`
+(respectively `g'`) over `range P ∩ closedBall 0 ρ` (respectively `ρ'`). If `r' ≤ r`, then
+`g z = g' z` whenever `‖P z‖ ≤ ρ` and `‖P z‖ ≤ ρ'`. -/
+theorem localStableGraph_apply_eq_of_le {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {P : F →L[ℝ] F} (hP : IsIdempotentElem P) {v : ℝ → F → F} {g g' : F → F}
+    {r r' ρ ρ' : ℝ} (hr : r' ≤ r)
+    (hPg : ∀ z, P (g z) = 0) (hgP : ∀ z, g (P z) = g z)
+    (hPg' : ∀ z, P (g' z) = 0) (hgP' : ∀ z, g' (P z) = g' z)
+    (hset : {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
+        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} =
+        (fun z ↦ z + g z) '' (Set.range P ∩ closedBall 0 ρ))
+    (hset' : {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
+        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r')) ∧ ‖P z‖ ≤ ρ'} =
+        (fun z ↦ z + g' z) '' (Set.range P ∩ closedBall 0 ρ'))
+    {z : F} (hzρ : ‖P z‖ ≤ ρ) (hzρ' : ‖P z‖ ≤ ρ') :
+    g z = g' z := by
+  have hPP (w : F) : P (P w) = P w := by rw [← mul_apply_eq_comp, hP.eq]
+  -- The point of the graph of `g'` over `P z` starts a curve confined to the larger ball, so it
+  -- lies on the graph of `g`.
+  have hmem : P z + g' (P z) ∈ (fun z ↦ z + g' z) '' (Set.range P ∩ closedBall 0 ρ') :=
+    ⟨P z, ⟨⟨z, rfl⟩, mem_closedBall_zero_iff.2 hzρ'⟩, rfl⟩
+  rw [← hset'] at hmem
+  obtain ⟨⟨y, hy, hy0, hymaps⟩, -⟩ := hmem
+  have hmem : P z + g' (P z) ∈ {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
+      y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} :=
+    ⟨⟨y, hy, hy0, hymaps.mono_right (closedBall_subset_closedBall hr)⟩,
+      by rwa [map_add, hPP, hPg', add_zero]⟩
+  rw [hset] at hmem
+  obtain ⟨w, ⟨⟨u, rfl⟩, -⟩, hw⟩ := hmem
+  have hwz : P u = P z := by
+    have := congrArg P hw
+    rwa [map_add, map_add, hPP, hPP, hPg, hPg', add_zero, add_zero] at this
+  rw [hwz, add_right_inj] at hw
+  rw [← hgP, hw, hgP']
+
+/-- **Local stable graph of a smooth field.** Under the hypotheses of
+`ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_fderiv` for a field `V` that is `C^∞`
+at `x`, one graph map `g` has all the conclusions of that theorem at order one, and moreover is
+`C^n` on a closed ball around `0` for every `n`, the radius of the ball depending on `n`. -/
+theorem exists_localStableGraph_of_contDiffAt_infty
+    (hs : ∀ t : ℝ, 0 ≤ t → ∀ z : E,
+      ‖NormedSpace.exp (t • A) (P z)‖ ≤ K * Real.exp (-α * t) * ‖z‖)
+    (hu : ∀ t : ℝ, t ≤ 0 → ∀ z : E,
+      ‖NormedSpace.exp (t • A) (z - P z)‖ ≤ K * Real.exp (α * t) * ‖z‖)
+    (hα : 0 < α) (hP : IsIdempotentElem P) (hAP : Commute A P)
+    (hV : ContDiffAt ℝ (⊤ : ℕ∞) V x) (hx : V x = 0) (hA : HasFDerivAt V A x)
+    {r₀ : ℝ} (hr₀ : 0 < r₀) :
+    ∃ r > 0, r ≤ r₀ ∧ ∃ ρ > 0, ∃ g : E → E, ∃ C : ℝ≥0,
+      LipschitzWith C g ∧ g 0 = 0 ∧ HasFDerivAt g (0 : E →L[ℝ] E) 0 ∧
+      (∀ z ∈ closedBall (0 : E) ρ, ContDiffAt ℝ 1 g z) ∧
+      (∀ n : ℕ, ∃ ρₙ > 0, ∀ z ∈ closedBall (0 : E) ρₙ, ContDiffAt ℝ n g z) ∧
+      (∀ z, P (g z) = 0) ∧ (∀ z, g (P z) = g z) ∧
+      {z : E | (∃ y : ℝ → E, IsIntegralCurveOn y (fun _ w ↦ V (x + w)) (Ici 0) ∧
+        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} =
+        (fun z ↦ z + g z) '' (Set.range P ∩ closedBall 0 ρ) ∧
+      (∀ y : ℝ → E, IsIntegralCurveOn y (fun _ w ↦ V (x + w)) (Ici 0) →
+        MapsTo y (Ici 0) (closedBall 0 r) → Tendsto y atTop (𝓝 0)) ∧
+      ∃ y : E → ℝ → E, ∀ z ∈ Set.range P ∩ closedBall 0 ρ,
+        IsIntegralCurveOn (y z) (fun _ w ↦ V (x + w)) (Ici 0) ∧
+        MapsTo (y z) (Ici 0) (closedBall 0 r) ∧ y z 0 = z + g z ∧
+        (∀ t, 0 ≤ t → DifferentiableAt ℝ (fun w ↦ y w t) z) ∧
+        ∃ C : ℝ, ∀ t, 0 ≤ t → ‖fderiv ℝ (fun w ↦ y w t) z‖ ≤ C := by
+  obtain ⟨r, hr, hrr₀, ρ, hρ, g, C, hgL, hg0, hg', hg1, hPg, hgP, hset, htend, y, hy⟩ :=
+    exists_localStableGraph_of_contDiffAt_fderiv (n := 1) hs hu hα hP hAP le_rfl
+      (contDiffAt_infty.1 hV 1) hx hA hr₀
+  refine ⟨r, hr, hrr₀, ρ, hρ, g, C, hgL, hg0, hg', fun z hz ↦ by simpa using hg1 z hz,
+    fun n ↦ ?_, hPg, hgP, hset, htend, y, hy⟩
+  -- A graph map of order `n + 1` with a smaller confinement radius agrees with `g` near `0`.
+  obtain ⟨r', -, hr', ρ', hρ', g', -, -, -, -, hg'n, hPg', hgP', hset', -⟩ :=
+    exists_localStableGraph_of_contDiffAt_fderiv (n := n + 1) hs hu hα hP hAP (by omega)
+      (contDiffAt_infty.1 hV _) hx hA hr
+  have hU : IsOpen {u : E | ‖P u‖ < min ρ ρ'} :=
+    isOpen_lt (continuous_norm.comp P.continuous) continuous_const
+  obtain ⟨δ, hδ, hδU⟩ := Metric.isOpen_iff.1 hU 0 (by simpa using lt_min hρ hρ')
+  refine ⟨min ρ' (δ / 2), lt_min hρ' (by positivity), fun z hz ↦ ?_⟩
+  have hzU : z ∈ {u : E | ‖P u‖ < min ρ ρ'} :=
+    hδU (closedBall_subset_ball (half_lt_self hδ)
+      (closedBall_subset_closedBall (min_le_right _ _) hz))
+  have hgg : g =ᶠ[𝓝 z] g' := Filter.mem_of_superset (hU.mem_nhds hzU) fun u hu ↦
+    localStableGraph_apply_eq_of_le hP hr' hPg hgP hPg' hgP' hset hset'
+      (le_min_iff.1 (le_of_lt hu)).1 (le_min_iff.1 (le_of_lt hu)).2
+  exact ((hg'n z (closedBall_subset_closedBall (min_le_left _ _) hz)).congr_of_eventuallyEq
+    hgg).of_le (by exact_mod_cast n.le_succ)
 
 end ContinuousLinearMap
 
