@@ -25,8 +25,6 @@ the base.
 
 ## Main results
 
-* `TauCeti.MapFiber.Atlas.RestrictsTo.isClosed`: a form on `F` to which a closed form restricts
-  along a smooth atlas, over a base with a point, is closed.
 * `TauCeti.MapFiber.Atlas.map_eq_of_restricts`: the map on de Rham cohomology induced by each fibre
   inclusion of the atlas sends the class of a closed extension of the fibre forms to the class of
   `σ`.
@@ -56,27 +54,18 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   [IsManifold IM 2 M]
   {proj : M → B} {A : Atlas F proj} {k : ℕ} {σ : SmoothForm IF F ℝ k} {τ : SmoothForm IM M ℝ k}
 
-/-- **The fibre form of a closed extension is closed.** If a closed form `τ` restricts to `σ`
-along a smooth atlas, and some chart `A.trivAt b` has a point `b'` in its base set, then `σ` is
-closed: it is the pull-back of `τ` along a smooth fibre inclusion. Without a point of the base
-there is no fibre inclusion, and `σ` may be any form. -/
-theorem RestrictsTo.isClosed (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ)
-    (hτc : τ.IsClosed) {b b' : B} (hb' : b' ∈ (A.trivAt b).baseSet) : σ.IsClosed := by
-  have hj := (A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb'
-  rw [← (SmoothForm.mpullback_eq_iff hj).2 (restrictsTo_iff.1 hτ b b' hb')]
-  exact hτc.mpullback _ hj
-
 /-- **Classes of closed extensions of the fibre forms.** Let `τ` be a closed form on `M` that
 restricts to `σ` along a smooth atlas `A`. For every chart `A.trivAt b` and every point `b'` of
 its base set, the map on de Rham cohomology induced by the fibre inclusion
 `v ↦ (A.trivAt b)⁻¹ (b', v)` sends the class of `τ` to the class of `σ`, which is closed by
-`RestrictsTo.isClosed`. -/
+`RestrictsTo.isClosed`, since the base has the point `b`. -/
 theorem map_eq_of_restricts (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ)
     (hτc : τ.IsClosed) {b b' : B} (hb' : b' ∈ (A.trivAt b).baseSet) :
     deRhamCohomology.map ((A.trivAt b).fiberInclusionMap hb')
         ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') k
         (deRhamCohomology.mk IM k ⟨τ, hτc.mem_closedForms⟩) =
-      deRhamCohomology.mk IF k ⟨σ, (hτ.isClosed hA hτc hb').mem_closedForms⟩ := by
+      deRhamCohomology.mk IF k
+        ⟨σ, (haveI : Nonempty B := ⟨b⟩; hτ.isClosed hA hτc).mem_closedForms⟩ := by
   rw [deRhamCohomology.map_mk]
   congr 1
   ext1
