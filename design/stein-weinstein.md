@@ -659,13 +659,13 @@ containing `ι '' closedBall 0 1`:
     (`c = (1 + a) / 2`, `b = γ * (a - 1) / 16`), which §4.7 needs.
   - `exists_convexShape_surround` (14d4; Proposition 4.21, which is
     Theorem 4.1 (i)–(iii) in terms of the shape): for `1 < a` and
-    `γ ∈ Ioo 0 1` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
+    `0 < γ` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
     `Ioi δ` and continuous on `Ici δ`, with `IsConvexShapeAt χ r` for
     all `r > δ`, `χ r = √(1 + a * r ^ 2)` for `γ ≤ r`,
     `Tendsto (deriv χ) (𝓝[>] δ) atTop` and `1 < χ δ < 1 + γ`. The
     hypersurface of Theorem 4.1 is
     $\Sigma=\{t=\delta^2,\ \sqrt s\le\chi(\delta)\}\cup\{t>\delta^2,\ \sqrt s=\chi(\sqrt t)\}$;
-    the statement records (ii) and (iii) as
+    theorems about this `χ` record (ii) and (iii) as
     `Σ ∩ {p | γ ^ 2 ≤ t p} = {p | a * t p - s p = -1} ∩ {p | γ ^ 2 ≤ t p}`
     and `Σ ∩ {p | s p ≤ 1} = {p | t p = δ ^ 2 ∧ s p ≤ 1}`, and (i) by
     `IsConvexShapeAt.re_leviForm_pos` on the curved part and
