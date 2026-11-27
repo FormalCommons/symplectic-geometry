@@ -19,7 +19,6 @@ import Mathlib.Analysis.Normed.Module.Ball.Pointwise
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Tactic.Module
 import Mathlib.Topology.Maps.Proper.Basic
-import Mathlib.Topology.PartitionOfUnity
 import Mathlib.Topology.UrysohnsLemma
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube
 import SymplecticGeometry.Analysis.Normed.Group.Pi
@@ -27,9 +26,10 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
+import TauCeti.Analysis.Convex.PartitionOfUnity
 
 /-!
-# Holonomic approximation for families over a finite-dimensional space
+# Holonomic approximation for families of formal sections
 
 A family of data on `D = (Fin m → ℝ) × (Fin k → ℝ)` over a finite-dimensional real normed space
 `L` is a datum on `L × D`. This file proves the holonomic approximation theorem for such
@@ -105,12 +105,14 @@ those of `D`; those outside `J` record the parameter.
   family over a compact Hausdorff space `P`, continuous in the parameter together with the first
   space derivatives. The result is stated through a continuous `σ : P → Fin n → ℝ` and a smooth
   diffeotopy and correction `g` on `(Fin n → ℝ) × D`. It follows from the smooth version over
-  `Fin n → ℝ`: a partition of unity `ρ` on `P`, subordinate to a finite cover on whose members the
-  error `G l - fderiv ℝ (f l)` varies little on `closedBall 0 2`, samples the family at finitely
-  many parameters `l i`, and `σ l = Fin.cons (τ l) (ρ · l)`, where `τ` vanishes on `P₀` and equals
-  `1` where the error is not already small. The datum over `s : Fin n → ℝ` is
-  `∑ i, s i.succ • f (l i)`, with the errors of the samples added back through the cutoff
-  `Real.smoothTransition (2 * s 0 - 1)`, so it is holonomic where `s 0 < 1 / 2`.
+  `Fin n → ℝ`. Tau Ceti's `ContinuousMap.exists_partitionOfUnity_dist_finsum_smul_le`, applied
+  to the error `G l - fderiv ℝ (f l)` curried into a map from `P` to the continuous maps on
+  `closedBall 0 2`, gives finitely many parameters `l i` and a partition of unity `ρ` on `P` such
+  that `∑ i, ρ i l • (G (l i) - fderiv ℝ (f (l i)))` is uniformly close to the error at `l`. Then
+  `σ l = Fin.cons (τ l) (ρ · l)`, where `τ` vanishes on `P₀` and equals `1` where the error is
+  not already small. The datum over `s : Fin n → ℝ` is `∑ i, s i.succ • f (l i)`, with the
+  errors of the samples added back through the cutoff `Real.smoothTransition (2 * s 0 - 1)`, so
+  it is holonomic where `s 0 < 1 / 2`.
 
 ## References
 
@@ -676,34 +678,23 @@ open scoped Manifold ContDiff Topology
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {P : Type*} [TopologicalSpace P]
 
 /-- The final estimate of `exists_holonomic_approximation_continuous_family`, at one point. For
-weights `w i ≥ 0` of sum `1` and `c ∈ [0, 1]`, the approximation `d₀ + (A - ∑ i, w i • d i)`
-of `e₀ + d₀` is `ε`-close to it when `A` is `ε / 2`-close to `∑ i, w i • (d i + c • e i)`,
-`e i` is `ε / 8`-close to `e₀` wherever `w i ≠ 0`, and `‖e₀‖ < ε / 4` if `c < 1`: the
-difference is `(A - ∑ i, w i • (d i + c • e i)) + c • ∑ i, w i • (e i - e₀) - (1 - c) • e₀`. -/
+weights `w i` and `c ∈ [0, 1]`, the approximation `d₀ + (A - ∑ i, w i • d i)` of `e₀ + d₀` is
+`ε`-close to it when `A` is `ε / 2`-close to `∑ i, w i • (d i + c • e i)`, `∑ i, w i • e i` is
+within `ε / 8` of `e₀`, and `‖e₀‖ < ε / 4` if `c < 1`: the difference is
+`(A - ∑ i, w i • (d i + c • e i)) + c • (∑ i, w i • e i - e₀) - (1 - c) • e₀`. -/
 private theorem norm_add_sub_sum_smul_sub_lt {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] {n : ℕ} {w : Fin n → ℝ} (hw₀ : ∀ i, 0 ≤ w i) (hw₁ : ∑ i, w i = 1)
-    {c : ℝ} (hc : c ∈ Icc (0 : ℝ) 1) {d e : Fin n → E} {A d₀ e₀ : E} {ε : ℝ}
-    (hA : ‖A - ∑ i, w i • (d i + c • e i)‖ < ε / 2)
-    (he : ∀ i, w i ≠ 0 → ‖e₀ - e i‖ < ε / 8) (he₀ : c < 1 → ‖e₀‖ < ε / 4) :
+    [NormedSpace ℝ E] {n : ℕ} {w : Fin n → ℝ} {c : ℝ} (hc : c ∈ Icc (0 : ℝ) 1)
+    {d e : Fin n → E} {A d₀ e₀ : E} {ε : ℝ} (hA : ‖A - ∑ i, w i • (d i + c • e i)‖ < ε / 2)
+    (he : ‖∑ i, w i • e i - e₀‖ ≤ ε / 8) (he₀ : c < 1 → ‖e₀‖ < ε / 4) :
     ‖d₀ + (A - ∑ i, w i • d i) - (e₀ + d₀)‖ < ε := by
   have hε : 0 < ε := by linarith [(norm_nonneg _).trans_lt hA]
-  have hsum : ∑ i, w i • (e i - e₀) = ∑ i, w i • e i - e₀ := by
-    simp [smul_sub, Finset.sum_sub_distrib, ← Finset.sum_smul, hw₁]
   have key : d₀ + (A - ∑ i, w i • d i) - (e₀ + d₀) =
-      (A - ∑ i, w i • (d i + c • e i)) + c • ∑ i, w i • (e i - e₀) - (1 - c) • e₀ := by
-    rw [hsum]
+      (A - ∑ i, w i • (d i + c • e i)) + c • (∑ i, w i • e i - e₀) - (1 - c) • e₀ := by
     simp only [smul_add, Finset.sum_add_distrib, smul_comm (w _) c, ← Finset.smul_sum]
     module
-  have h₁ : ‖c • ∑ i, w i • (e i - e₀)‖ ≤ ε / 8 := by
+  have h₁ : ‖c • (∑ i, w i • e i - e₀)‖ ≤ ε / 8 := by
     rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg hc.1]
-    refine (mul_le_of_le_one_left (norm_nonneg _) hc.2).trans ((norm_sum_le _ _).trans ?_)
-    calc ∑ i, ‖w i • (e i - e₀)‖ ≤ ∑ i, w i * (ε / 8) := by
-          refine Finset.sum_le_sum fun i _ ↦ ?_
-          rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (hw₀ i)]
-          by_cases hi : w i = 0
-          · simp [hi]
-          · exact mul_le_mul_of_nonneg_left (by rw [norm_sub_rev]; exact (he i hi).le) (hw₀ i)
-      _ = ε / 8 := by rw [← Finset.sum_mul, hw₁, one_mul]
+    exact (mul_le_of_le_one_left (norm_nonneg _) hc.2).trans he
   have h₂ : ‖(1 - c) • e₀‖ ≤ ε / 4 := by
     rcases eq_or_lt_of_le hc.2 with hc1 | hc1
     · rw [hc1, sub_self, zero_smul, norm_zero]
@@ -711,7 +702,7 @@ private theorem norm_add_sub_sum_smul_sub_lt {E : Type*} [NormedAddCommGroup E]
     rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (by linarith)]
     exact (mul_le_of_le_one_left (norm_nonneg _) (by linarith [hc.1])).trans (he₀ hc1).le
   rw [key]
-  calc _ ≤ ‖A - ∑ i, w i • (d i + c • e i)‖ + ‖c • ∑ i, w i • (e i - e₀)‖ +
+  calc _ ≤ ‖A - ∑ i, w i • (d i + c • e i)‖ + ‖c • (∑ i, w i • e i - e₀)‖ +
         ‖(1 - c) • e₀‖ := (norm_sub_le _ _).trans (by gcongr; exact norm_add_le _ _)
     _ < ε := by linarith
 
@@ -780,42 +771,40 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
   have hP₀O₀ : P₀ ⊆ O₀ := fun l hl ↦ mem_interior_iff_mem_nhds.2 <|
     (hnear l (ε / 4) (by positivity)).mono fun l' hl' x hx ↦ by
       simpa [heU l x (hP₀U ⟨hl, mem_univ x⟩)] using hl' x hx
-  -- step 2: a finite cover of `P` on whose members `e` varies little, and a partition of unity
-  set W : P → Set P := fun l₀ ↦ interior {l | ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
-    ‖e l x - e l₀ x‖ < ε / 8}
-  obtain ⟨t, ht⟩ := isCompact_univ.elim_finite_subcover W (fun _ ↦ isOpen_interior)
-    fun l _ ↦ mem_iUnion.2 ⟨l, mem_interior_iff_mem_nhds.2 (hnear l (ε / 8) (by positivity))⟩
+  -- step 2: a partition of unity `ρ` on `P`, indexed by finitely many samples `pts i`, whose
+  -- combinations of the sampled errors are uniformly `ε / 8`-close to `e` on `closedBall 0 2`
+  set Φ : C(P, C(closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
+      (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F)) :=
+    ContinuousMap.curry ⟨fun p ↦ e p.1 p.2,
+      hce.comp (continuous_fst.prodMk (continuous_subtypeVal.comp continuous_snd))⟩
+  obtain ⟨t, ρ, hρ⟩ := ContinuousMap.exists_partitionOfUnity_dist_finsum_smul_le
+    (E := C(closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2, (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F))
+    Φ (ε := ε / 8) (by positivity)
   set n' := t.card
   set pts : Fin n' → P := fun i ↦ (t.equivFin.symm i : P)
-  have hcover : univ ⊆ ⋃ i, W (pts i) := fun l _ ↦ by
-    obtain ⟨l₀, hl₀, hl⟩ := mem_iUnion₂.1 (ht (mem_univ l))
-    exact mem_iUnion.2 ⟨t.equivFin ⟨l₀, hl₀⟩, by simpa [pts] using hl⟩
-  obtain ⟨ρ, hρ⟩ := PartitionOfUnity.exists_isSubordinate isClosed_univ (fun i ↦ W (pts i))
-    (fun _ ↦ isOpen_interior) hcover
-  have hρsum : ∀ l, ∑ i, ρ i l = 1 := fun l ↦ by
-    rw [← finsum_eq_sum_of_fintype]
-    exact ρ.sum_eq_one (mem_univ l)
-  have hρW : ∀ i l, ρ i l ≠ 0 → ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
-      ‖e l x - e (pts i) x‖ < ε / 8 := fun i l hl ↦
-    interior_subset (hρ i (subset_tsupport _ (Function.mem_support.2 hl)))
+  have hρe : ∀ l, ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
+      ‖∑ i, ρ (t.equivFin.symm i) l • e (pts i) x - e l x‖ ≤ ε / 8 := fun l x hx ↦ by
+    have := (ContinuousMap.dist_apply_le_dist ⟨x, hx⟩).trans (hρ l)
+    rw [finsum_eq_sum_of_fintype, ← t.equivFin.symm.sum_comp, dist_eq_norm] at this
+    simpa [Φ, pts] using this
   -- step 3: the extra coordinate `τ` and the cutoff `χ`
   obtain ⟨τ, hτ0, hτ1, hτI⟩ := exists_continuous_zero_one_of_isClosed hP₀
     isOpen_interior.isClosed_compl (disjoint_compl_right_iff_subset.2 hP₀O₀)
   set χ : ℝ → ℝ := fun r ↦ Real.smoothTransition (2 * r - 1)
   have hχ : ContDiff ℝ ∞ χ := Real.smoothTransition.contDiff.comp (by fun_prop)
   -- step 4: the datum on `(Fin (n' + 1) → ℝ) × D` and the smooth version
-  set σ : P → Fin (n' + 1) → ℝ := fun l ↦ Fin.cons (τ l) fun i ↦ ρ i l
+  set σ : P → Fin (n' + 1) → ℝ := fun l ↦ Fin.cons (τ l) fun i ↦ ρ (t.equivFin.symm i) l
   have hσ : Continuous σ := continuous_pi fun j ↦ by
     refine Fin.cases ?_ (fun i ↦ ?_) j
     · simpa [σ] using τ.continuous
-    · simpa [σ] using (ρ i).continuous
+    · simpa [σ] using (ρ _).continuous
   have hσK : ∀ l, σ l ∈ closedBall 0 1 := fun l ↦ by
     refine mem_closedBall_zero_iff.2 ((pi_norm_le_iff_of_nonneg zero_le_one).2 fun j ↦ ?_)
     refine Fin.cases ?_ (fun i ↦ ?_) j
     · simpa [σ, abs_le, Real.norm_eq_abs] using
         ⟨(neg_nonpos.2 zero_le_one).trans (hτI l).1, (hτI l).2⟩
     · simpa [σ, abs_le, Real.norm_eq_abs] using
-        ⟨(neg_nonpos.2 zero_le_one).trans (ρ.nonneg i l), ρ.le_one i l⟩
+        ⟨(neg_nonpos.2 zero_le_one).trans (ρ.nonneg _ l), ρ.le_one _ l⟩
   have hfd : ∀ l, ContDiff ℝ ∞ (fderiv ℝ (f l)) := fun l ↦ (hf l).fderiv_right (by simp)
   set F₀ : (Fin (n' + 1) → ℝ) × (Fin m → ℝ) × (Fin k → ℝ) → F :=
     fun q ↦ ∑ i, q.1 i.succ • f (pts i) q.2
@@ -888,9 +877,8 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
   rw [(((hf l).differentiable (by simp) x).hasFDerivAt.fun_add
     (hA.fun_sub (hF₀d (σ l) x))).fderiv, show G l x = e l x + fderiv ℝ (f l) x by simp [e]]
   simp only [σ, Fin.cons_succ, Fin.cons_zero, G₀] at h₂ ⊢
-  refine norm_add_sub_sum_smul_sub_lt (ρ.nonneg · l) (hρsum l)
-    ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩ h₂
-    (fun i hi ↦ hρW i l hi x hx) fun hc ↦ ?_
+  refine norm_add_sub_sum_smul_sub_lt
+    ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩ h₂ (hρe l x hx) fun hc ↦ ?_
   have hl : l ∈ O₀ := by
     by_contra hl
     refine hc.ne (Real.smoothTransition.one_of_one_le ?_)
