@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Euclidean
 public import TauCeti.Algebra.Group.Fin.Tuple
 public import TauCeti.LinearAlgebra.Projectivization.Basic
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
@@ -59,6 +60,14 @@ tautological line bundle, followed by the conjugate-linear identification of tha
 tautological bundle by the Hermitian metric, as in McDuff–Salamon, §7.1. The map is not
 holomorphic, so it is a diffeomorphism of the underlying real manifolds.
 
+Finally, for `ε > 0`, the radial rescaling `(ℓ, z) ↦ (ℓ, ε z / √(1 + |z|²))` of the model blowup
+keeps the line and applies Mathlib's map `univBall 0 ε` of the Hermitian space to the blowdown. It
+is injective, its range is the set of points whose blowdown has Hermitian norm less than `ε`, and
+it is a smooth local diffeomorphism of the real manifold `BlowupModel n`, with inverse on its range
+given by `(univBall 0 ε).symm` on the blowdown. For `ε = c.ballRadius` it lands in
+`Blowup.modelOpens c`. This is the map `S` with which the connected sum is identified with the
+blowup on the side of the projective space.
+
 ## Main definitions
 
 * `SymplecticGeometry.BlowupChart.connectedSumBall c`: the ball `e₁` of `M`.
@@ -73,6 +82,10 @@ holomorphic, so it is a diffeomorphism of the underlying real manifolds.
   the real manifold structures modelled on `𝓘(ℝ, Fin (n + 1) → ℂ)`, with
   `projectiveBlowupModelDiffeomorph_apply` and `projectiveBlowupModelDiffeomorph_symm_apply` on
   representatives.
+* `SymplecticGeometry.BlowupModel.radialRescale ε`: the radial rescaling above, with
+  `SymplecticGeometry.BlowupModel.pr_radialRescale`,
+  `SymplecticGeometry.BlowupModel.blowdown_radialRescale` and
+  `SymplecticGeometry.BlowupModel.blowdown_radialRescale_of_pos`.
 
 ## Main results
 
@@ -87,6 +100,11 @@ holomorphic, so it is a diffeomorphism of the underlying real manifolds.
   `SymplecticGeometry.blowdown_projectiveBlowupModelDiffeomorph_snoc_one`:
   read on `EuclideanSpace ℂ (Fin (n + 1))`, its blowdown there is the inversion
   `EuclideanGeometry.inversion 0 1 u` in the unit sphere.
+* `SymplecticGeometry.BlowupModel.radialRescale_injective`,
+  `SymplecticGeometry.BlowupModel.range_radialRescale`,
+  `SymplecticGeometry.BlowupModel.radialRescale_ballRadius_mem_modelOpens`,
+  `SymplecticGeometry.BlowupModel.contMDiff_radialRescale` and
+  `SymplecticGeometry.BlowupModel.isLocalDiffeomorph_radialRescale`.
 
 ## References
 
@@ -653,6 +671,185 @@ theorem blowdown_projectiveBlowupModelDiffeomorph_snoc_one {u : EuclideanSpace �
     add_zero, one_div, inv_pow, EuclideanSpace.norm_sq_eq, WithLp.ofLp_smul]
 
 end ProjectiveBlowupModel
+
+/-! ## The radial rescaling of the model blowup -/
+
+namespace BlowupModel
+
+section RadialRescale
+
+variable (ε : ℝ)
+
+/-- Mathlib's map `univBall 0 ε` of the Hermitian space, read on `Fin (n + 1) → ℂ`. -/
+private def rescaleCoord (z : Fin (n + 1) → ℂ) : Fin (n + 1) → ℂ :=
+  EuclideanSpace.equiv (Fin (n + 1)) ℂ
+    (univBall 0 ε ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm z))
+
+/-- The inverse of `univBall 0 ε`, read on `Fin (n + 1) → ℂ`. -/
+private def rescaleCoordInv (z : Fin (n + 1) → ℂ) : Fin (n + 1) → ℂ :=
+  EuclideanSpace.equiv (Fin (n + 1)) ℂ
+    ((univBall 0 ε).symm ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm z))
+
+private theorem mem_blowupModel_rescaleCoord (p : BlowupModel n) :
+    (p.pr, rescaleCoord ε p.blowdown) ∈ blowupModel n := by
+  obtain ⟨a, ha⟩ := exists_univBall_zero_apply_eq_smul ε
+    ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown)
+  rw [mem_blowupModel_iff, rescaleCoord, ha, LinearMapClass.map_smul_of_tower,
+    ContinuousLinearEquiv.apply_symm_apply]
+  exact Submodule.smul_of_tower_mem _ a p.blowdown_mem_submodule
+
+private theorem mem_blowupModel_rescaleCoordInv (p : BlowupModel n) :
+    (p.pr, rescaleCoordInv ε p.blowdown) ∈ blowupModel n := by
+  obtain ⟨a, ha⟩ := exists_univBall_zero_symm_apply_eq_smul ε
+    ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown)
+  rw [mem_blowupModel_iff, rescaleCoordInv, ha, LinearMapClass.map_smul_of_tower,
+    ContinuousLinearEquiv.apply_symm_apply]
+  exact Submodule.smul_of_tower_mem _ a p.blowdown_mem_submodule
+
+/-- The radial rescaling `(ℓ, z) ↦ (ℓ, ε z / √(1 + |z|²))` of the model blowup, for `ε > 0`, where
+`|z|` is the Hermitian norm: it keeps the line, and on blowdowns it is Mathlib's map
+`univBall 0 ε` of the Hermitian space `EuclideanSpace ℂ (Fin (n + 1))` onto the ball of radius
+`ε`, read on `Fin (n + 1) → ℂ`. For `ε ≤ 0` it is the identity, as `univBall 0 ε` is. -/
+def radialRescale (p : BlowupModel n) : BlowupModel n :=
+  ⟨(p.pr, rescaleCoord ε p.blowdown), mem_blowupModel_rescaleCoord ε p⟩
+
+/-- The inverse of `radialRescale ε` on its range. -/
+private def radialRescaleInv (p : BlowupModel n) : BlowupModel n :=
+  ⟨(p.pr, rescaleCoordInv ε p.blowdown), mem_blowupModel_rescaleCoordInv ε p⟩
+
+@[simp]
+theorem pr_radialRescale (p : BlowupModel n) : (radialRescale ε p).pr = p.pr :=
+  pr_mk _ _ _
+
+@[simp]
+theorem blowdown_radialRescale (p : BlowupModel n) :
+    (radialRescale ε p).blowdown =
+      EuclideanSpace.equiv (Fin (n + 1)) ℂ
+        (univBall 0 ε ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown)) :=
+  blowdown_mk _ _ _
+
+private theorem radialRescaleInv_radialRescale (p : BlowupModel n) :
+    radialRescaleInv ε (radialRescale ε p) = p := by
+  refine ext (by rw [radialRescaleInv, pr_mk, pr_radialRescale]) ?_
+  rw [radialRescaleInv, blowdown_mk, rescaleCoordInv, blowdown_radialRescale,
+    ContinuousLinearEquiv.symm_apply_apply, (univBall 0 ε).left_inv (by simp),
+    ContinuousLinearEquiv.apply_symm_apply]
+
+variable {ε}
+
+private theorem radialRescale_radialRescaleInv (hε : 0 < ε) {p : BlowupModel n}
+    (hp : ‖(EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown‖ < ε) :
+    radialRescale ε (radialRescaleInv ε p) = p := by
+  refine ext (by rw [pr_radialRescale, radialRescaleInv, pr_mk]) ?_
+  rw [blowdown_radialRescale, radialRescaleInv, blowdown_mk, rescaleCoordInv,
+    ContinuousLinearEquiv.symm_apply_apply,
+    (univBall 0 ε).right_inv (by rwa [univBall_target 0 hε, mem_ball_zero_iff]),
+    ContinuousLinearEquiv.apply_symm_apply]
+
+/-- For `ε > 0`, the blowdown of the rescaled point is `ε z / √(1 + |z|²)`, for the blowdown `z`
+of the point and its Hermitian norm `|z|`. -/
+theorem blowdown_radialRescale_of_pos (hε : 0 < ε) (p : BlowupModel n) :
+    (radialRescale ε p).blowdown =
+      (ε / √(1 + ‖(EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown‖ ^ 2)) • p.blowdown := by
+  rw [blowdown_radialRescale, univBall_apply hε, vadd_eq_add, add_zero,
+    LinearMapClass.map_smul_of_tower,
+    ContinuousLinearEquiv.apply_symm_apply]
+
+/-- For `ε > 0`, the blowdown of a rescaled point has Hermitian norm less than `ε`. -/
+theorem norm_blowdown_radialRescale_lt (hε : 0 < ε) (p : BlowupModel n) :
+    ‖(EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm (radialRescale ε p).blowdown‖ < ε := by
+  rw [blowdown_radialRescale, ContinuousLinearEquiv.symm_apply_apply, ← mem_ball_zero_iff,
+    ← univBall_target 0 hε]
+  exact (univBall 0 ε).map_source (by simp)
+
+variable (ε) in
+/-- The radial rescaling is injective. -/
+theorem radialRescale_injective : Function.Injective (radialRescale (n := n) ε) :=
+  Function.LeftInverse.injective (radialRescaleInv_radialRescale ε)
+
+/-- For `ε > 0`, the radial rescaling maps the model blowup onto the points whose blowdown has
+Hermitian norm less than `ε`. -/
+theorem range_radialRescale (hε : 0 < ε) :
+    Set.range (radialRescale (n := n) ε) =
+      {p | ‖(EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown‖ < ε} :=
+  Set.Subset.antisymm (Set.range_subset_iff.2 (norm_blowdown_radialRescale_lt hε))
+    fun _ hp => ⟨_, radialRescale_radialRescaleInv hε hp⟩
+
+/-- For a chart `c : BlowupChart M p₀`, the radial rescaling with `ε = c.ballRadius` lands in
+`Blowup.modelOpens c`, the points whose blowdown lies in the target of `c`. -/
+theorem radialRescale_ballRadius_mem_modelOpens (c : BlowupChart (n := n) M p₀)
+    (p : BlowupModel n) : radialRescale c.ballRadius p ∈ Blowup.modelOpens c := by
+  have h := c.closedBall_ballRadius_subset (ball_subset_closedBall
+    (mem_ball_zero_iff.2 (norm_blowdown_radialRescale_lt c.ballRadius_pos p)))
+  rw [BlowupChart.euclideanChart_def, remodelChart_target] at h
+  exact (Blowup.mem_modelOpens c).2 h
+
+variable (ε) in
+/-- The radial rescaling is smooth for the real structure of the model blowup. -/
+theorem contMDiff_radialRescale :
+    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (radialRescale (n := n) ε) := by
+  intro p
+  refine contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp.2
+    ⟨by simpa only [pr_radialRescale] using ((contMDiff_pr ∞).restrictScalars' ℝ).contMDiffAt, ?_⟩
+  have hc : ContDiff ℝ ∞ fun z : Fin (n + 1) → ℂ => EuclideanSpace.equiv (Fin (n + 1)) ℂ
+      (univBall 0 ε ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm z)) :=
+    ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).contDiff.restrict_scalars ℝ).comp
+      ((contDiff_univBall (n := ⊤)).comp
+        ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm.contDiff.restrict_scalars ℝ))
+  exact (hc.contMDiff.contMDiffAt.comp p
+    ((contMDiff_blowdown ∞).restrictScalars' ℝ).contMDiffAt).congr_of_eventuallyEq
+    (Filter.Eventually.of_forall fun y => blowdown_radialRescale ε y)
+
+/-- The inverse of the radial rescaling is smooth on the points whose blowdown has Hermitian norm
+less than `ε`. -/
+private theorem contMDiffOn_radialRescaleInv :
+    ContMDiffOn 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (radialRescaleInv (n := n) ε)
+      {p | ‖(EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown‖ < ε} := by
+  have hc : ContDiffOn ℝ ∞ (fun z : Fin (n + 1) → ℂ => EuclideanSpace.equiv (Fin (n + 1)) ℂ
+      ((univBall 0 ε).symm ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm z)))
+      ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm ⁻¹' ball 0 ε) :=
+    ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).contDiff.restrict_scalars ℝ).comp_contDiffOn
+      ((contDiffOn_univBall_symm (n := ⊤)).comp
+        ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm.contDiff.restrict_scalars ℝ).contDiffOn
+        fun _ hz => hz)
+  have hopen : IsOpen ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm ⁻¹' ball 0 ε) :=
+    isOpen_ball.preimage (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm.continuous
+  intro p hp
+  refine (contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp.2 ⟨?_, ?_⟩).contMDiffWithinAt
+  · simpa only [radialRescaleInv, pr_mk] using ((contMDiff_pr ∞).restrictScalars' ℝ).contMDiffAt
+  · exact (((hc.contDiffAt (hopen.mem_nhds (mem_ball_zero_iff.2 hp))).contMDiffAt).comp p
+      ((contMDiff_blowdown ∞).restrictScalars' ℝ).contMDiffAt).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall fun y => blowdown_mk _ _ _)
+
+/-- For `ε > 0`, the radial rescaling as a partial diffeomorphism of the model blowup, from all of
+it onto the points whose blowdown has Hermitian norm less than `ε`. -/
+private def radialRescalePartialDiffeomorph (hε : 0 < ε) :
+    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)
+      (BlowupModel n) ∞ where
+  toFun := radialRescale ε
+  invFun := radialRescaleInv ε
+  source := univ
+  target := {p | ‖(EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown‖ < ε}
+  map_source' p _ := norm_blowdown_radialRescale_lt hε p
+  map_target' _ _ := mem_univ _
+  left_inv' p _ := radialRescaleInv_radialRescale ε p
+  right_inv' _ hp := radialRescale_radialRescaleInv hε hp
+  open_source := isOpen_univ
+  open_target := isOpen_lt ((continuous_norm.comp
+    (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm.continuous).comp continuous_blowdown)
+    continuous_const
+  contMDiffOn_toFun := (contMDiff_radialRescale ε).contMDiffOn
+  contMDiffOn_invFun := contMDiffOn_radialRescaleInv
+
+/-- For `ε > 0`, the radial rescaling is a smooth local diffeomorphism of the model blowup, for its
+real structure. -/
+theorem isLocalDiffeomorph_radialRescale (hε : 0 < ε) :
+    IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (radialRescale (n := n) ε) :=
+  fun p => (radialRescalePartialDiffeomorph hε).isLocalDiffeomorphAt _ _ _ (mem_univ p)
+
+end RadialRescale
+
+end BlowupModel
 
 end SymplecticGeometry
 
