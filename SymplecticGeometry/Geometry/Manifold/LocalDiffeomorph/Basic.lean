@@ -51,6 +51,11 @@ target of `Λ`, not only at `x`.
   `Diffeomorph.isLocalDiffeomorphAt_diffeomorph_comp_iff`.
 * `ContinuousLinearEquiv.isLocalDiffeomorph`: a continuous linear equivalence of normed spaces
   is a local diffeomorphism, for every `n`; `isLocalDiffeomorph_neg` is the case of negation.
+* `TauCeti.isLocalDiffeomorphAt_of_bijective_mfderiv`: the inverse function theorem with a
+  bijective differential, for a source modelled on a finite-dimensional space. It applies Tau
+  Ceti's `TauCeti.isLocalDiffeomorphAt_of_mfderiv_eq` to the equivalence that the bijection
+  gives, as Tau Ceti's `TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv` does for an injective
+  one.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
 * `PartialDiffeomorph.contMDiffAt`: a partial diffeomorphism is `C^n` at each point of its
@@ -169,6 +174,31 @@ theorem isLocalDiffeomorph_neg : IsLocalDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) 
   (ContinuousLinearEquiv.neg 𝕜 (M := E)).isLocalDiffeomorph
 
 end SymplecticGeometry
+
+namespace TauCeti
+
+variable {𝕂 : Type*} [RCLike 𝕂]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕂 E]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕂 F]
+  {H : Type*} [TopologicalSpace H] {G : Type*} [TopologicalSpace G]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  {I : ModelWithCorners 𝕂 E H} {J : ModelWithCorners 𝕂 F G} {n : WithTop ℕ∞}
+  [IsManifold I n M] [IsManifold J n N] {f : M → N} {s : Set M} {x : M}
+
+/-- **The inverse function theorem for manifolds**, bijective form: a map from a manifold modelled
+on a finite-dimensional space, `C^n` on an open set `s` with `1 ≤ n`, whose differential at an
+interior point `x` of `s` is bijective, is a `C^n` local diffeomorphism at `x`. -/
+theorem isLocalDiffeomorphAt_of_bijective_mfderiv [FiniteDimensional 𝕂 E]
+    (hf : ContMDiffOn I J n f s) (hs : IsOpen s) (hx : x ∈ s) (hIx : I.IsInteriorPoint x)
+    (hn : 1 ≤ n) (hbij : Bijective (mfderiv I J f x)) :
+    IsLocalDiffeomorphAt I J n f x := by
+  have := FiniteDimensional.completeSpace 𝕂 E
+  exact isLocalDiffeomorphAt_of_mfderiv_eq hf hs hx hIx hn
+    (e := (LinearEquiv.ofBijective (mfderiv I J f x).toLinearMap hbij).toContinuousLinearEquiv)
+    (by ext; simp)
+
+end TauCeti
 
 /-- A model with corners `I` is a `C^n` local diffeomorphism from its model space to the model
 vector space at every point that it sends into the interior of its range. -/
