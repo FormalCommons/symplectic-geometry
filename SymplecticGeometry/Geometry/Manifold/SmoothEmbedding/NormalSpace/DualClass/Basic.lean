@@ -59,6 +59,8 @@ property for every normalized tube.
 
 ## Main results
 
+* `TauCeti.SmoothEmbedding.surjective_relDualClassOf`: every relative class of `X` comes from a
+  class of the Thom pair of the normal bundle.
 * `TauCeti.SmoothEmbedding.dualClassOf_restrict_compl`, `dualClass_restrict_compl`: the classes
   vanish off the submanifold.
 * `TauCeti.SmoothEmbedding.dualClassOf_restrict`, `dualClass_restrict`,
@@ -248,6 +250,28 @@ theorem exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf
           TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).inv n u := by
   obtain ⟨W, Φ, hΦ, h⟩ := exists_relDualClassHom (R := R) (k := k) (M := M) f hn hdim hf
   exact ⟨W, Φ, hΦ, fun n u ↦ by rw [relDualClassOf, ← ConcreteCategory.comp_apply, h]⟩
+
+/-- **Every relative class of `X` comes from the normal bundle**: in every degree `n`, each class
+of `Hⁿ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` for a class `u ∈ Hⁿ(ν, ν ∖ 0)` of the
+Thom pair of the normal bundle. -/
+theorem surjective_relDualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) (n : ℕ) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    Function.Surjective fun u : (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)
+        ).singularCohomology R k M n ↦ f.relDualClassOf hn hdim hf u := by
+  let := f.normalSpaceFiberBundle hn hdim
+  obtain ⟨W, Φ, hΦ, h⟩ :=
+    exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf (R := R) (k := k)
+      (M := M) f hn hdim hf
+  intro c
+  refine ⟨TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom n
+    (TopPair.singularCohomologyMap
+      (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) n c), ?_⟩
+  refine TopPair.injective_singularCohomologyMap_excisionMap_of_isClosed_subset (R := R)
+    (k := k) (M := M) (X := TopCat.of X) W.isOpen hf
+    (range_subset_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection) n ?_
+  rw [h, ← TopPair.singularCohomologyMap_comp_apply, Iso.inv_hom_id,
+    TopPair.singularCohomologyMap_id, CategoryTheory.id_apply]
 
 /-- The relative class of the zero class is zero. -/
 @[simp]
