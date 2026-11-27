@@ -54,13 +54,16 @@ each density being the value of the form on the derivatives of the curve along `
   (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
   `radialPotentialForm_apply_I_smul`. Only the derivative of the lift at `t` enters, so no form
   is pulled back along the lift itself, which is smooth only near `t`.
+* `SymplecticGeometry.BlowupModel.eval₂_mpullback_blowdown_mfderiv_curveLift`: the density of
+  the pull-back of `π^* ω₀` along `curveLift u` is that of `u^* ω₀`, by the chain rule for
+  `blowdown ∘ curveLift u = u`.
 * `SymplecticGeometry.BlowupModel.eval₂_ω₀E_sub_eval₂_profileForm_curveLift`: for `u` analytic
   at `t`, the density of `u^* ω₀` minus that of the lift is `Δ (φ ∘ u) (t) / 4`. The density of
   `u^* ω₀` is `|v|²` (`eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv`), and
   `TauCeti.laplacian_comp_sum_norm_sq_div_four` computes `Δ (ψ |u|²) (t) / 4` as
   `ψ'(s) |v|² + ψ''(s) |star (u t) ⬝ᵥ v|²`, here for `ψ(s) = s - g(s)`.
 
-From these it proves the area identity and the milestone:
+From these it proves the area identity, its value along the lift of a line, and the milestone:
 
 * `SymplecticGeometry.BlowupModel.blowdown_profileForm_area`: for a bounded open `Ω ⊆ ℂ` and a
   curve `u` that is `C¹` near `closure Ω`, holomorphic on `Ω`, with `|u| > l + ε` on
@@ -71,6 +74,11 @@ From these it proves the area identity and the milestone:
   order `k`, so the planar identity `setIntegral_laplacian_eq_of_log_poles` gives
   `∫ Δ(φ ∘ u) = 4π l² m`; the densities of `u^* ω₀` are integrable, as continuous functions on
   the compact `closure Ω` (`integrableOn_eval₂_ω₀E_mfderiv`).
+* `SymplecticGeometry.BlowupModel.setIntegral_ball_eval₂_profileForm_sub_mfderiv_curveLift_smul`:
+  over a disc `ball 0 r` with `l + ε < r |v|`, the density of `ω̃_{l,ε} - π^* ω₀` along the
+  lift of the line `t ↦ t • v` integrates to `-π l²`. This is the area identity for that line,
+  which has one simple zero; its density along the lift is continuous, by Tau Ceti's
+  `IsSmoothForm.continuous_apply_mfderiv`, hence integrable on the disc.
 * `SymplecticGeometry.BlowupModel.kahler_blowupModel`: the conjunction of the Kähler property
   of `ω̃_l` and the area of the lines of the divisor, the Kähler property of pull-backs of `ω₀`
   along radial maps, the identification of `ω̃_l` with `F_l^* ω₀` off the divisor and the shell
@@ -80,7 +88,8 @@ From these it proves the area identity and the milestone:
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], (7.1.7),
-  Lemma 7.1.11, Definition 7.1.12, Proposition 7.1.13 and its proof.
+  Lemma 7.1.11, Definition 7.1.12, Proposition 7.1.13 and its proof; the proof of
+  Theorem 7.1.21 (v).
 -/
 
 public section
@@ -239,6 +248,29 @@ theorem eval₂_ω₀E_sub_eval₂_profileForm_curveLift (hh : IsBlowupProfile l
     deriv_const]
   ring
 
+/-- The density of `(curveLift u)^* π^* ω₀` is that of `u^* ω₀`: where the lift of a curve
+`u : ℂ → ℂⁿ⁺¹` is real differentiable, the value of the pull-back of `ω₀E n` along the blowdown
+on the derivatives of the lift along `c` and `d` is the value of `ω₀E n` on the derivatives of
+`u` along `c` and `d`, since `blowdown ∘ curveLift u = u`. -/
+theorem eval₂_mpullback_blowdown_mfderiv_curveLift {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ}
+    (hlift : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t) (c d : ℂ) :
+    (SmoothForm.mpullback blowdown ((contMDiff_blowdown ∞).restrictScalars' ℝ) (ω₀E n)).eval₂
+        (curveLift u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t c)
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t d) =
+      (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t c)
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t d) := by
+  have hb : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown
+      (curveLift u t) :=
+    ((contMDiff_blowdown (n := n) 1).restrictScalars' ℝ).mdifferentiableAt one_ne_zero
+  have hfun : blowdown ∘ curveLift u = u := funext (blowdown_curveLift u)
+  have hc (e : ℂ) : mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown (curveLift u t)
+      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t e) =
+        mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t e :=
+    (mfderiv_comp_apply t hb hlift e).symm.trans
+      (congrArg (fun g ↦ mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) g t e) hfun)
+  rw [SmoothForm.eval₂_mpullback, hc, hc]
+  exact SmoothForm.eval₂_congr_basePoint _ (blowdown_curveLift u t) _ _
+
 end Density
 
 /-! ### The area identity -/
@@ -362,6 +394,82 @@ theorem blowdown_profileForm_area (hh : IsBlowupProfile l ε h) {Ω : Set ℂ} (
   rw [integral_sub (integrableOn_eval₂_ω₀E_mfderiv hb hu) (hΔi.div_const 4),
     integral_div, hΔ, hsum] at h1
   linear_combination -h1
+
+/-- **The blowup form minus `π^* ω₀` over a disc of the tautological line.** For a profile `h`
+with `IsBlowupProfile l ε h`, a vector `v` and `r` with `l + ε < r |v|` (so `v ≠ 0`), the
+Lebesgue integral over the disc `ball 0 r ⊆ ℂ` of the density of the pull-back of
+`profileForm n l ε h - π^* ω₀E` along the lift `t ↦ curveLift (· • v) t` of the line through
+`v`, read on the derivatives along `1` and `i`, is `-π l²`. For `|v| = 1` the condition is
+`l + ε < r`. -/
+theorem setIntegral_ball_eval₂_profileForm_sub_mfderiv_curveLift_smul
+    (hh : IsBlowupProfile l ε h) {v : Fin (n + 1) → ℂ} {r : ℝ}
+    (hr : l + ε < r * ‖complexToRealEuclidean (Fin (n + 1)) v‖) :
+    ∫ t in Metric.ball (0 : ℂ) r,
+        (profileForm n l ε h - SmoothForm.mpullback blowdown
+          ((contMDiff_blowdown ∞).restrictScalars' ℝ) (ω₀E n)).eval₂ (curveLift (· • v) t)
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) t (1 : ℂ))
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) t Complex.I) =
+      -(Real.pi * l ^ 2) := by
+  classical
+  have hlε : 0 < l + ε := add_pos hh.weight_pos hh.collar_pos
+  have hv : v ≠ 0 := by
+    rintro rfl
+    simp at hr
+    linarith
+  have hr0 : 0 < r := pos_of_mul_pos_left (hlε.trans hr) (norm_nonneg _)
+  set u : ℂ → Fin (n + 1) → ℂ := fun t ↦ t • v
+  have hL : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (curveLift u) :=
+    contMDiff_curveLift_smul_real hv
+  have hLd : ∀ t, MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t :=
+    fun t ↦ hL.mdifferentiableAt (by simp)
+  have hS : {t ∈ Metric.ball (0 : ℂ) r | u t = 0} = ↑({0} : Finset ℂ) := by
+    ext t
+    simp only [mem_ofPred_eq, Metric.mem_ball, dist_zero_right, smul_eq_zero, hv, or_false,
+      Finset.coe_singleton, mem_singleton_iff, u]
+    exact ⟨And.right, fun ht ↦ ⟨by simpa [ht] using hr0, ht⟩⟩
+  have h1 : analyticOrderNatAt u 0 = 1 := by
+    have h : analyticOrderAt u 0 = (1 : ℕ) := by
+      rw [analyticOrderAt_fun_smul_const (f := fun t : ℂ ↦ t) analyticAt_id, ite_eq_right hv]
+      exact analyticOrderAt_id
+    simp [analyticOrderNatAt, h]
+  have harea := blowdown_profileForm_area hh Metric.isOpen_ball Metric.isBounded_ball
+    (u := u) (fun t _ ↦ by fun_prop) (by fun_prop) (fun t ht ↦ by
+      rw [frontier_ball 0 hr0.ne', mem_sphere_zero_iff_norm] at ht
+      rwa [norm_complexToRealEuclidean_smul, ht]) hS
+    (hL.continuous.continuousOn) (fun t _ ↦ blowdown_curveLift u t)
+  rw [Finset.sum_singleton, h1] at harea
+  have hB := integrableOn_eval₂_ω₀E_mfderiv Metric.isBounded_ball (Ω := Metric.ball (0 : ℂ) r)
+    (u := u) (fun t _ ↦ by fun_prop)
+  have hD : Continuous fun t ↦
+      (profileForm n l ε h - SmoothForm.mpullback blowdown
+          ((contMDiff_blowdown ∞).restrictScalars' ℝ) (ω₀E n)).eval₂ (curveLift u t)
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) :=
+    ((SmoothForm.isSmoothForm _).of_le (by simp)).continuous_apply_mfderiv
+      (hL.of_le (by simp)) _ _ |>.congr fun t ↦ (SmoothBundleForm.eval₂_apply _ _ _ _).symm
+  -- The density of the difference is continuous, hence integrable on the disc.
+  have hD' : IntegrableOn _ (Metric.ball (0 : ℂ) r) :=
+    (hD.continuousOn.integrableOn_compact (isCompact_closedBall 0 r)).mono_set
+      Metric.ball_subset_closedBall
+  have hpt : ∀ t, (profileForm n l ε h - SmoothForm.mpullback blowdown
+          ((contMDiff_blowdown ∞).restrictScalars' ℝ) (ω₀E n)).eval₂ (curveLift u t)
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) =
+        (profileForm n l ε h).eval₂ (curveLift u t)
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) -
+        (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) := fun t ↦ by
+    rw [SmoothBundleForm.eval₂_sub, eval₂_mpullback_blowdown_mfderiv_curveLift (hLd t)]
+  have hA : IntegrableOn (fun t ↦ (profileForm n l ε h).eval₂ (curveLift u t)
+      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
+      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I))
+      (Metric.ball (0 : ℂ) r) :=
+    ((hD'.congr_fun (fun t _ ↦ hpt t) measurableSet_ball).add hB).congr_fun
+      (fun t _ ↦ sub_add_cancel _ _) measurableSet_ball
+  rw [integral_congr_ae (Eventually.of_forall hpt), integral_sub hA hB, harea]
+  push_cast
+  ring
 
 end AreaIdentity
 
