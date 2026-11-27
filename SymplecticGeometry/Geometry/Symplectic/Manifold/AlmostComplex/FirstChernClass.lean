@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.NormalSplitting
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FirstChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 
 /-!
 # The first Chern class along a pseudoholomorphic embedding
