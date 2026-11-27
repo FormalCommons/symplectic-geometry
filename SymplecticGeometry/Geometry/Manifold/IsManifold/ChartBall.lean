@@ -56,6 +56,7 @@ theorem coe_chartBall (x : M) (r : ℝ) :
       (extChartAt I x).source ∩ extChartAt I x ⁻¹' Metric.ball (extChartAt I x x) r :=
   (rfl)
 
+@[simp]
 theorem mem_chartBall_iff {x y : M} {r : ℝ} :
     y ∈ chartBall I x r ↔
       y ∈ (extChartAt I x).source ∧ extChartAt I x y ∈ Metric.ball (extChartAt I x x) r :=
@@ -76,13 +77,9 @@ chart target, the chart carries `chartBall I x r` onto them. -/
 theorem extChartAt_image_chartBall {x : M} {r : ℝ}
     (hr : Metric.ball (extChartAt I x x) r ∩ range I ⊆ (extChartAt I x).target) :
     extChartAt I x '' chartBall I x r = Metric.ball (extChartAt I x x) r ∩ range I := by
-  refine Subset.antisymm ?_ fun z hz ↦ ?_
-  · rintro _ ⟨y, hy, rfl⟩
-    exact ⟨hy.2, extChartAt_target_subset_range x ((extChartAt I x).map_source hy.1)⟩
-  · have hz' := hr hz
-    refine ⟨(extChartAt I x).symm z, ⟨(extChartAt I x).map_target hz', ?_⟩,
-      (extChartAt I x).right_inv hz'⟩
-    simpa only [mem_preimage, (extChartAt I x).right_inv hz'] using hz.1
+  rw [coe_chartBall, (PartialEquiv.IsImage.of_preimage_eq rfl).image_eq]
+  exact Subset.antisymm (fun z hz ↦ ⟨hz.2, extChartAt_target_subset_range x hz.1⟩)
+    fun z hz ↦ ⟨hr hz, hz.1⟩
 
 /-- Every neighbourhood `V` of `x` contains the chart ball about `x` of some positive radius `r`
 such that the points of `range I` in the ball of radius `r` about the chart point of `x` lie in
