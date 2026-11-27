@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Differential forms restricted to open subsets
@@ -40,6 +41,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   `M` that is closed there (`TauCeti.exists_isSmoothForm_eq_on_of_closure_subset`): extend the
   form to `M` arbitrarily and cut it off with Tau Ceti's
   `TauCeti.RoughForm.exists_isSmoothForm_eventuallyEq_nhdsSet`.
+* Let `W` be an open set with `W ∪ U = univ`. A smooth form on `M` and a smooth form on `U` that
+  agree on `U ∩ W` glue to a smooth form on `M`, equal to the first on `W`, whose restriction to
+  `U` is the second (`TauCeti.SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq`).
 * At a point of `U`, a form and its restriction have the same regularity
   (`TauCeti.contMDiffAt_mpullback_subtype_val_iff`), since `Subtype.val` is a local
   diffeomorphism.
@@ -168,6 +172,33 @@ theorem isSmoothForm_mpullback_subtype_val_of_contMDiffOn {U : Opens M} {n : Wit
     IsSmoothForm I n (mpullback I I (Subtype.val : U → M) γ) :=
   (isSmoothForm_def n _).mpr fun x ↦ (contMDiffAt_mpullback_subtype_val_iff _ x).2
     (hγ.contMDiffAt (U.isOpen.mem_nhds x.property))
+
+/-- **Gluing a form on an open subset with a global form.** Let `M` be covered by an open set `W`
+and an open subset `V`. A smooth form `η` on `M` and a smooth form `σ` on `V` that agree at the
+points of `V ∩ W` glue to a smooth form on `M` that is `η` at the points of `W` and whose
+restriction to `V` is `σ`. -/
+theorem SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq {V : Opens M} {W : Set M}
+    (hW : IsOpen W) (hWV : W ∪ V = univ) (η : SmoothForm I M F k) (σ : SmoothForm I V F k)
+    (h : ∀ x : V, (x : M) ∈ W → σ.val x = η.val x) :
+    ∃ τ : SmoothForm I M F k, (∀ x ∈ W, τ.val x = η.val x) ∧
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ = σ := by
+  classical
+  let γ : RoughForm I M F k := fun y ↦ if hy : y ∈ V then σ.val ⟨y, hy⟩ else η.val y
+  have hγW : ∀ y ∈ W, γ y = η.val y := fun y hyW ↦ by
+    by_cases hy : y ∈ V
+    · exact (dite_eq_left hy).trans (h ⟨y, hy⟩ hyW)
+    · exact dite_eq_right hy
+  have hγV : TauCeti.mpullback I I (Subtype.val : V → M) γ = σ.val :=
+    funext fun x ↦ (mpullback_subtype_val_apply γ x).trans (dite_eq_left x.property)
+  have hγ : IsSmoothForm I ∞ γ := by
+    refine (isSmoothForm_def _ _).2 fun y ↦ ?_
+    by_cases hy : y ∈ V
+    · exact (contMDiffAt_mpullback_subtype_val_iff γ ⟨y, hy⟩).1 (hγV ▸ σ.contMDiff ⟨y, hy⟩)
+    · have hyW : y ∈ W := (hWV.symm.subset (mem_univ y)).resolve_right hy
+      refine (η.contMDiff y).congr_of_eventuallyEq ?_
+      filter_upwards [hW.mem_nhds hyW] with z hz
+      rw [hγW z hz]
+  exact ⟨⟨γ, hγ.mem_smoothBundleForms⟩, hγW, (SmoothForm.mpullback_eq_iff _).2 hγV⟩
 
 /-- Let `γ` be a form and `Z` a vector field on `M`, both `C^n` on an open subset `U`. Then the
 restriction to `U` of the interior product `ι_Z γ` is a `C^n` form on `U`. -/
@@ -323,7 +354,7 @@ theorem exists_isSmoothForm_eq_on_of_closure_subset [FiniteDimensional ℝ E] [I
   have hdφ := congrFun (mpullback_subtype_val_mextDeriv (U := U) φ) ⟨z, hWU (subset_closure hz)⟩
   rw [mpullback_subtype_val_apply, hφ] at hdφ
   rw [mextDeriv_congr_of_eventuallyEq (hnear z hz), hdφ]
-  rw [← mextDerivₗ_apply, hη, ZeroMemClass.coe_zero, Pi.zero_apply]
+  rw [← mextDerivₗ_apply, hη, SmoothBundleForm.zero_apply]
   -- The two zeros are those of the forms on `U` and on `M` at the same point.
   rfl
 

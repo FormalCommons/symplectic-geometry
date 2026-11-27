@@ -33,6 +33,10 @@ vector (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`), as an alternating ma
 cyclic rotation of the arguments (`ContinuousAlternatingMap.map_vecCons_rotate`), as the
 underlying alternating map does (`AlternatingMap.map_vecCons_rotate`).
 
+Composing a continuous alternating map with the identity gives the same map
+(`ContinuousAlternatingMap.compContinuousLinearMap_id`), as Mathlib's
+`AlternatingMap.compLinearMap_id` says for alternating maps.
+
 Fixing the first `r` arguments of a continuous alternating map `f` of `r + m` arguments to `u`
 gives the continuous alternating map `f.appendLeft u : w ↦ f (Fin.append u w)` of `m` arguments.
 Its algebraic part is Tau Ceti's `AlternatingMap.currySum`, reindexed from `Fin r ⊕ Fin m` to
@@ -94,6 +98,12 @@ theorem map_append_add_of_mem {K W N : Type*} [Ring K] [IsDomain K] [StrongRankC
     {u : Fin r → W} (hu : ∀ i, u i ∈ V) {w : Fin m → W} (hw : ∀ j, w j ∈ V) :
     f (Fin.append (v + u) w) = f (Fin.append v w) :=
   f.toAlternatingMap.map_append_add_of_mem hV v hu hw
+
+/-- Composing a continuous alternating map with the identity gives the same map. -/
+@[simp]
+theorem compContinuousLinearMap_id {ι : Type*} (f : M [⋀^ι]→L[R] N) :
+    f.compContinuousLinearMap (ContinuousLinearMap.id R M) = f :=
+  ext fun _ ↦ rfl
 
 section AppendLeft
 
