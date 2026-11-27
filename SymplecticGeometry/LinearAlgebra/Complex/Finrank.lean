@@ -21,9 +21,11 @@ so this file states the dimension in the form `2 * r + 1 + 1`.
 * `finrank_real_of_finrank_complex_eq_add_one`: from `finrank ℂ V = r + 1`, for any real
   structure on `V` compatible with the complex one, `finrank ℝ V = 2 * r + 1 + 1`. It is Tau
   Ceti's `TauCeti.finrank_real_eq_two_mul_finrank_complex` in complex dimension `r + 1`.
-* `Complex.finrank_real_complex_eq_two_mul_finrank_fact`: the real dimension of `ℂ` is twice its
-  complex dimension, as a `Fact` that files on complex structures with model fibre `ℂ` make a
-  local instance.
+* `Complex.fact_finrank_real_eq_two_mul_finrank`: the real dimension of a complex vector space
+  `E` is twice its complex dimension, Mathlib's `finrank_real_of_complex`, as a `Fact`: the form
+  in which complex structures on vector bundles with model fibre `E` take it.
+* `Complex.finrank_real_complex_eq_two_mul_finrank_fact`: its case `E = ℂ`, which files on
+  complex structures with model fibre `ℂ` make a local instance.
 * `Complex.finrank_real_eq_finrank_pi_succ_sub`: the real dimension `2` of `ℂ` is the difference
   of the real dimensions of `Fin (n + 1) → ℂ` and `Fin n → ℂ`.
 * `Complex.finrank_real_eq_finrank_prod_sub`: it is also the difference of the real dimensions
@@ -43,12 +45,19 @@ namespace Complex
 
 open Module
 
+/-- The real dimension of a complex vector space `E`, as a real vector space by restriction of
+scalars, is twice its complex dimension, as a `Fact`: the dimension convention of complex
+structures on vector bundles with model fibre `E`. -/
+theorem fact_finrank_real_eq_two_mul_finrank (E : Type*) [AddCommGroup E] [Module ℂ E] :
+    Fact (finrank ℝ E = 2 * finrank ℂ E) :=
+  ⟨finrank_real_of_complex E⟩
+
 /-- The real dimension of `ℂ` is twice its complex dimension: the dimension convention of
 complex structures on vector bundles with model fibre `ℂ`, as a `Fact` to enable locally as an
 instance. -/
 theorem finrank_real_complex_eq_two_mul_finrank_fact :
     Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) :=
-  ⟨by simp⟩
+  fact_finrank_real_eq_two_mul_finrank ℂ
 
 /-- The real dimension `2` of `ℂ` is the difference of the real dimensions of `Fin (n + 1) → ℂ`
 and `Fin n → ℂ`. -/

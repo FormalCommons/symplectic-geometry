@@ -40,10 +40,21 @@ level at most once (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`): two mee
 constant between them, so that its derivative along the orbit would vanish on the level, by Tau
 Ceti's `IsMIntegralCurveAt.mfderiv_apply_eq_zero_of_eventuallyEq_const`.
 
+If instead `df(v) > 0` holds at the points of an integral curve on the level, and off it only
+`f ∘ γ` is known to be continuous, the curve still meets the level at most once, from `{f < c}`
+to `{f > c}` (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos`). This follows
+from Tau Ceti's `IsMIntegralCurveOn.lt_apply_of_le_apply` and
+`IsMIntegralCurveOn.apply_lt_of_apply_le`, of which `IsMIntegralCurve.lt_apply_of_le_apply` and
+`IsMIntegralCurve.apply_lt_of_apply_le` are the forms for integral curves defined for all times.
+
 ## Main results
 
 * `IsMIntegralCurve.subsingleton_setOfPred_apply_eq`: an integral curve along which `f` is antitone
   meets a level transverse to it at most once.
+* `IsMIntegralCurve.lt_apply_of_le_apply`, `IsMIntegralCurve.apply_lt_of_apply_le`: an integral
+  curve crosses a level on which `df(v) > 0` only upwards.
+* `IsMIntegralCurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos`: so it meets that level at most
+  once.
 * `TauCeti.levelCrossingTime_eventuallyEq_flowHittingTime`: near a point whose orbit crosses the
   level transversally, the crossing time is the hitting time of the level.
 * `TauCeti.ker_mfderiv_flow_levelCrossingTime`: in finite dimension, the derivative of the map to
@@ -84,6 +95,50 @@ theorem IsMIntegralCurve.subsingleton_setOfPred_apply_eq {E H M : Type*} [Normed
     exact le_antisymm (hs ▸ hanti hu.1.le) (ht ▸ hanti hu.2.le)
   exact hc _ hconst.eq_of_nhds
     ((hγ.isMIntegralCurveAt _).mfderiv_apply_eq_zero_of_eventuallyEq_const (hf _) hconst)
+
+namespace IsMIntegralCurve
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  {v : (x : M) → TangentSpace I x} {γ : ℝ → M} {f : M → ℝ} {c : ℝ}
+
+/-- **An integral curve crosses an upward level only upwards.** Let `γ` be an integral curve of
+`v` with `f ∘ γ` continuous, and let `f` be differentiable with `df(v) > 0` at every point of `γ`
+on the level `{f = c}`. If `c ≤ f (γ s)`, then `c < f (γ t)` for every `t > s`. -/
+theorem lt_apply_of_le_apply (hγ : IsMIntegralCurve γ v) (hf : Continuous (f ∘ γ))
+    (hvf : ∀ t, f (γ t) = c → MDifferentiableAt I 𝓘(ℝ) f (γ t) ∧
+      0 < mvfderiv I f (γ t) (v (γ t)))
+    {s t : ℝ} (hs : c ≤ f (γ s)) (hst : s < t) : c < f (γ t) :=
+  (hγ.isMIntegralCurveOn Set.univ).lt_apply_of_le_apply isOpen_univ (Set.subset_univ _)
+    hf.continuousOn (fun u _ ↦ hvf u) hs ⟨hst, le_rfl⟩
+
+/-- **An integral curve crosses an upward level only upwards, looking backwards.** Let `γ` be an
+integral curve of `v` with `f ∘ γ` continuous, and let `f` be differentiable with `df(v) > 0` at
+every point of `γ` on the level `{f = c}`. If `f (γ t) ≤ c`, then `f (γ s) < c` for every
+`s < t`. -/
+theorem apply_lt_of_apply_le (hγ : IsMIntegralCurve γ v) (hf : Continuous (f ∘ γ))
+    (hvf : ∀ t, f (γ t) = c → MDifferentiableAt I 𝓘(ℝ) f (γ t) ∧
+      0 < mvfderiv I f (γ t) (v (γ t)))
+    {s t : ℝ} (ht : f (γ t) ≤ c) (hst : s < t) : f (γ s) < c :=
+  (hγ.isMIntegralCurveOn Set.univ).apply_lt_of_apply_le isOpen_univ (Set.subset_univ _)
+    hf.continuousOn (fun u _ ↦ hvf u) ht ⟨le_rfl, hst⟩
+
+/-- **An upward level is met at most once.** Let `γ` be an integral curve of `v` with `f ∘ γ`
+continuous, and let `f` be differentiable with `df(v) > 0` at every point of `γ` on the level
+`{f = c}`. Then `γ` meets that level at most once. Off the level, only the continuity of `f ∘ γ`
+is assumed. -/
+theorem subsingleton_setOfPred_apply_eq_of_mvfderiv_pos (hγ : IsMIntegralCurve γ v)
+    (hf : Continuous (f ∘ γ))
+    (hvf : ∀ t, f (γ t) = c → MDifferentiableAt I 𝓘(ℝ) f (γ t) ∧
+      0 < mvfderiv I f (γ t) (v (γ t))) :
+    {t | f (γ t) = c}.Subsingleton := by
+  intro s (hs : f (γ s) = c) t (ht : f (γ t) = c)
+  by_contra hne
+  rcases lt_or_gt_of_ne hne with hst | hts
+  · exact (hγ.lt_apply_of_le_apply hf hvf hs.ge hst).ne' ht
+  · exact (hγ.lt_apply_of_le_apply hf hvf ht.ge hts).ne' hs
+
+end IsMIntegralCurve
 
 namespace TauCeti
 

@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomology
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Kronecker
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+import TauCeti.Geometry.Manifold.Topology
 
 /-!
 # Evaluation on a fundamental class and change of cochain values
@@ -52,6 +53,7 @@ because a connected manifold is path connected.
 public section
 
 open CategoryTheory MonoidalCategory Module
+open scoped Manifold
 
 namespace TauCeti.HomologicalOrientation
 
@@ -106,8 +108,7 @@ connected oriented `n`-manifold `N` and any abelian group `L`, the map `Hⁿ(N; 
 `c ↦ ⟨c, [N]⟩`, is bijective. -/
 theorem evalFundamentalClass_id_bijective' [ConnectedSpace N] (L : ModuleCat.{0} ℤ) :
     Function.Bijective (o.evalFundamentalClass hn L (ContinuousMap.id N)) := by
-  have : LocallyPathConnectedSpace N := ChartedSpace.locallyPathConnectedSpace E N
-  have : PathConnectedSpace N := pathConnectedSpace_iff_connectedSpace.2 ‹_›
+  have : PathConnectedSpace N := 𝓘(ℝ, E).pathConnectedSpace N
   have h := (ConcreteCategory.bijective_of_isIso ((TopCat.of N).singularHomology₀ε L)).comp
     (o.bijective_singularCapAddHom_fundamentalClass hn L n 0 (add_zero n))
   convert h using 1

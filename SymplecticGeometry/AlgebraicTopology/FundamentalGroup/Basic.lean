@@ -8,6 +8,7 @@ module
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 
+import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 
 /-!
@@ -33,6 +34,10 @@ classes.
   along `γ`, read backwards, sends the class of a loop `g` to the class of `γ · g · γ⁻¹`;
   `FundamentalGroup.fundamentalGroupMulEquivOfPath_fromPath_mk`: read forwards, it sends the
   class of `g` to that of `γ⁻¹ · g · γ`.
+* `FundamentalGroup.fundamentalGroupMulEquivOfPath_map_eq_mapOfEq`: moving the image of a class
+  under `map f x` along a path from `f x` is moving its image under `mapOfEq f e` along the same
+  path, read from the new base point.
+* `FundamentalGroup.map_const`: a constant map induces the trivial map on fundamental groups.
 * `FundamentalGroup.fromPath_trans`, `FundamentalGroup.fromPath_symm`: the class of a
   concatenation of loops is the product of their classes, in the reverse order, and the class of
   a reversed loop is the inverse.
@@ -87,6 +92,22 @@ theorem fundamentalGroupMulEquivOfPath_fromPath_mk {x₀ x₁ : X} (γ : Path x�
       fromPath (Path.Homotopic.Quotient.mk (γ.symm.trans (g.trans γ))) := by
   rw [fundamentalGroupMulEquivOfPath_apply, Path.Homotopic.Quotient.mk_trans,
     Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm]
+
+/-- Moving the image of a class `α` under `map f x` along a path `ψ` from `f x` is moving its
+image under `mapOfEq f e`, for `e : f x = v`, along `ψ` read as a path from `v`. -/
+theorem fundamentalGroupMulEquivOfPath_map_eq_mapOfEq (f : C(X, Y)) {v w : Y} (e : f x = v)
+    (ψ : Path (f x) w) (α : FundamentalGroup X x) :
+    fundamentalGroupMulEquivOfPath ψ (map f x α) =
+      fundamentalGroupMulEquivOfPath (ψ.cast e.symm rfl) (mapOfEq f e α) := by
+  subst e
+  rw [Path.cast_rfl_rfl, mapOfEq_rfl]
+
+/-- A constant map induces the trivial map on fundamental groups. -/
+@[simp]
+theorem map_const (z : Y) (x : X) : map (ContinuousMap.const X z) x = 1 :=
+  MonoidHom.range_eq_bot_iff.1 <| (TauCeti.FundamentalGroup.map_range_eq_bot_iff _ x).2 fun q ↦
+    (Path.ext (funext fun _ ↦ rfl) : q.map (ContinuousMap.const X z).continuous =
+      Path.refl z) ▸ .refl _
 
 /-- The concatenation `γ · δ` of two classes of loops is their product in the fundamental group, in
 the reverse order: in Mathlib's `FundamentalGroup`, `g * h` is `h` followed by `g`. -/
