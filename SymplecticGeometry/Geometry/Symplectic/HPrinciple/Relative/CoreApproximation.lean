@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.MetricSpace.Thickening
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.PartialDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
@@ -13,6 +14,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.Relative.CubeCoordinates
 import SymplecticGeometry.Topology.MetricSpace.Thickening
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # Holonomic approximation over all cubes of a band core
@@ -22,7 +24,7 @@ This file is to carry out holonomic approximation over all the cubes of a band c
 band and to a closed set of parameters, by working in the chart of each cube and carrying the
 results back to the manifold.
 
-For now it contains two steps shared by the smooth and the continuous form.
+For now it contains three steps shared by the smooth and the continuous form.
 
 * The cubes are pairwise disjoint compact sets, so, in a Hausdorff manifold, small closed
   thickenings of the unit cubes in the charts still have pairwise disjoint images
@@ -37,6 +39,15 @@ For now it contains two steps shared by the smooth and the continuous form.
   outside the images of the `C i`. Its slice at a parameter and a time is the diffeomorphism of
   `M` that the time slice of the composite, a diffeomorphism of `S × M` keeping the parameter
   (`TauCeti.Diffeotopy.list_prod_map_apply_fst`), induces (`Diffeomorph.slice`).
+* A correction `corr i` of one-forms on `D i`, depending smoothly on `q ∈ S`, for each cube,
+  vanishing off a compact `C i`, gives one smooth family of one-forms on `M`
+  (`BandCore.exists_oneForm_of_cubes`): to a smooth family `B` it adds, for each cube, the
+  extension by zero of `corr i (q, ·)` along the inverse of
+  the chart (`TauCeti.SmoothForm.extendByZeroAlong`, `BandCore.chartPartialDiffeomorph`). It is
+  smooth by `SymplecticGeometry.IsSmoothFamily.extendByZeroAlong`. When the `C i` lie in sets
+  `W i` with pairwise disjoint images, the other corrections vanish on `c.chart i '' W i`, so
+  there the reading of the new family in the chart of cube `i` is that of `B` plus `corr i`
+  (`TauCeti.mpullback_symm_extendByZeroAlong`).
 
 ## Main declarations
 
@@ -45,6 +56,8 @@ For now it contains two steps shared by the smooth and the continuous form.
   unit cubes are pairwise disjoint.
 * `SymplecticGeometry.BandCore.exists_diffeotopy_of_cubes`: the smooth family of diffeotopies of
   `M`, over `S × [0, 1]`, obtained from one diffeotopy of `S × D i` per cube.
+* `SymplecticGeometry.BandCore.exists_oneForm_of_cubes`: the smooth family of one-forms on `M`
+  obtained from a smooth family `B` and one correction on `S × D i` per cube.
 
 ## References
 
@@ -154,6 +167,85 @@ theorem exists_diffeotopy_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
     · obtain ⟨z, -, rfl⟩ := hx
       rw [hΨ, hq]
     · exact hΨC i t q hx
+
+open TauCeti in
+/-- **Carrying cube corrections of one-forms to the manifold.** Let `c` be a band core in a
+Hausdorff manifold `M`, `S` a normed space, `B` a smooth family over `S` of one-forms on `M`, and
+for each cube `i` let `corr i : S × D i → D i [⋀^Fin 1]→L[ℝ] ℝ`, `D i` the domain of `c.chart i`,
+be smooth and vanish at every `(q, z)` with `z` outside a compact set `C i`. Let `C i ⊆ W i`, with
+the images `c.chart i '' W i` pairwise disjoint. Then there is a smooth family `B'` over `S` of
+one-forms on `M` such that
+
+* `B' q` agrees with `B q` outside the union of the `c.chart i '' C i`;
+* for `z ∈ W i`, the pullback of `B' q` along `c.chart i` at `z` minus that of `B q` is
+  `corr i (q, z)`;
+* if every `corr i (q, ·)` vanishes, then `B' q = B q`.
+
+The family is `B q` plus the sum over the cubes of the extensions by zero of `corr i (q, ·)` along
+the inverses of the charts. -/
+theorem exists_oneForm_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
+    [NormedAddCommGroup S] [NormedSpace ℝ S] {B : S → SmoothForm I M ℝ 1}
+    (hB : IsSmoothFamily 𝓘(ℝ, S) B)
+    {corr : ∀ i, S × ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) →
+      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ}
+    (hcorr : ∀ i, ContDiff ℝ ∞ (corr i))
+    {C W : ∀ i, Set ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))}
+    (hC : ∀ i, IsCompact (C i)) (hcorrC : ∀ i q, ∀ z ∉ C i, corr i (q, z) = 0)
+    (hCW : ∀ i, C i ⊆ W i)
+    (hW : Pairwise fun i j ↦ Disjoint (c.chart i '' W i) (c.chart j '' W j)) :
+    ∃ B' : S → SmoothForm I M ℝ 1, IsSmoothFamily 𝓘(ℝ, S) B' ∧
+      (∀ q, ∀ x ∉ ⋃ i, c.chart i '' C i, (B' q).val x = (B q).val x) ∧
+      (∀ i q, ∀ z ∈ W i,
+        (mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+            (c.chart i) (B' q).val z -
+          mpullback 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) I
+            (c.chart i) (B q).val z :
+          ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ) =
+          corr i (q, z)) ∧
+      ∀ q, (∀ i z, corr i (q, z) = 0) → B' q = B q := by
+  have htgt (i : c.ι) {s} : s ⊆ (c.chartPartialDiffeomorph i).target := by
+    rw [chartPartialDiffeomorph_target]
+    exact subset_univ s
+  have hsupp (i : c.ι) (q : S) : tsupport (fun z ↦ corr i (q, z)) ⊆ C i :=
+    TauCeti.tsupport_subset_of_forall_notMem_eq_zero (hcorrC i q) (hC i).isClosed
+  -- The extension by zero of the correction of cube `i`.
+  let ext (i : c.ι) (q : S) : SmoothForm I M ℝ 1 :=
+    TauCeti.SmoothForm.extendByZeroAlong (c.chartPartialDiffeomorph i) (fun z ↦ corr i (q, z))
+      ((hcorr i).comp (contDiff_const.prodMk contDiff_id))
+      ((hC i).of_isClosed_subset (isClosed_tsupport _) (hsupp i q)) (htgt i)
+  have hext (i : c.ι) (q : S) : (ext i q).val =
+      TauCeti.RoughForm.extendByZeroAlong (c.chartPartialDiffeomorph i) fun z ↦ corr i (q, z) :=
+    TauCeti.SmoothForm.coe_extendByZeroAlong _ _ _ _ _
+  -- Off `c.chart i '' C i`, the extension of the correction of cube `i` vanishes.
+  have hext0 (i : c.ι) (q : S) {x : M} (hx : x ∉ c.chart i '' C i) : (ext i q).val x = 0 := by
+    rw [hext]
+    refine TauCeti.RoughForm.extendByZeroAlong_apply_of_notMem_image _ fun hx' ↦ hx ?_
+    rw [chartPartialDiffeomorph_symm_apply] at hx'
+    exact image_mono (hsupp i q) hx'
+  have hval (q : S) (x : M) :
+      (B q + ∑ i, ext i q).val x = (B q).val x + ∑ i, (ext i q).val x := by
+    rw [Submodule.coe_add, Submodule.coe_sum, Pi.add_apply, Finset.sum_apply]
+  refine ⟨fun q ↦ B q + ∑ i, ext i q, hB.add (IsSmoothFamily.sum fun i _ ↦ ?_),
+    fun q x hx ↦ ?_, fun i q z hz ↦ ?_, fun q hq ↦ ?_⟩
+  · have h := contMDiff_iff_contDiff.2 (hcorr i)
+    rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at h
+    exact IsSmoothFamily.extendByZeroAlong h (hC i) (htgt i) (hcorrC i) (hext i)
+  · rw [hval, Finset.sum_eq_zero fun i _ ↦ hext0 i q fun hxi ↦ hx (mem_iUnion.2 ⟨i, hxi⟩),
+      add_zero]
+  · -- At `c.chart i z`, only the correction of cube `i` is left.
+    have hx : (B q + ∑ j, ext j q).val (c.chart i z) =
+        ((B q).val + (ext i q).val) (c.chart i z) := by
+      rw [hval, Pi.add_apply, Finset.sum_eq_single i (fun j _ hji ↦ hext0 j q fun ⟨w, hw, hwz⟩ ↦
+        (hW hji).ne_of_mem ⟨w, hCW j hw, rfl⟩ ⟨z, hz, rfl⟩ hwz)
+        (fun h ↦ (h (Finset.mem_univ i)).elim)]
+    rw [mpullback_apply_congr hx, mpullback_add, Pi.add_apply, add_sub_cancel_left, hext,
+      ← chartPartialDiffeomorph_symm_apply,
+      TauCeti.mpullback_symm_extendByZeroAlong _ _ (by simp) (htgt i (mem_univ z))]
+  · have h0 (i : c.ι) : ext i q = 0 := by
+      have hz : (fun z ↦ corr i (q, z)) = 0 := funext (hq i)
+      refine Subtype.ext ?_
+      rw [hext, hz, TauCeti.RoughForm.extendByZeroAlong_zero, Submodule.coe_zero]
+    simp only [h0, Finset.sum_const_zero, add_zero]
 
 end BandCore
 
