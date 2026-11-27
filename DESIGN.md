@@ -3842,7 +3842,7 @@ For §7.2 of `atlas/constructing-symplectic-manifolds.md`.
   embeddings with trivialized symplectic normal bundles, with the framings
   and collar radii as data, glued along the open collars; the neighbourhoods
   $Q\times B^2(\varepsilon)$ by *Symplectic neighbourhoods*' neighbourhood
-  theorem), `RationalEllipticSurface.lean` ($E(1)$ as the smooth
+  theorem), `RationalEllipticSurface/Basic.lean` ($E(1)$ as the smooth
   hypersurface $\{([x],[s:t]) : sf(x)+tg(x)=0\}$ of
   $\mathbb CP^2\times\mathbb CP^1$ for two cubics meeting in nine points,
   symplectic by *Complex submanifolds* and *Complex projective space*, with
@@ -4324,7 +4324,7 @@ existing inputs.
 | *Ball embeddings give symplectic forms on the blowup* | *Symplectic blowup* (`BallEmbedding.lean`), with *First Chern class of a blowup at a point*. |
 | *Pointwise connected-sum obstruction for symplectic forms* | *Symplectic sums* (`Pointwise.lean`), with *Almost complex spheres*. |
 | *Symplectic fibre connected sum with trivial normal bundles* | *Symplectic sums* (`Fibre.lean`). |
-| *Fundamental group after summing with the rational elliptic surface* | *Symplectic sums* (`RationalEllipticSurface.lean`, `FundamentalGroup.lean`). Existing input: `TauCeti.isPushout_fundamentalGroup`. |
+| *Fundamental group after summing with the rational elliptic surface* | *Symplectic sums* (`RationalEllipticSurface/Basic.lean`, `FundamentalGroup.lean`). Existing input: `TauCeti.isPushout_fundamentalGroup`. |
 | *Gompf's realization of finitely presented groups* | *Symplectic sums* (`FinitelyPresented.lean`). Existing input: `Group.IsFinitelyPresented.exists_mulEquiv_presentedGroup`. |
 | *Gromov's h-principle for symplectic forms on open manifolds* | *Symplectic h-principle* (`OpenManifold.lean`, `Parametric.lean`). Existing input: `TauCeti.exists_isMorse_isProperMap_bddBelow`. |
 | *Relative extension of exact symplectic forms over a handle core* | *Symplectic h-principle* (`HandleCore.lean`). |
