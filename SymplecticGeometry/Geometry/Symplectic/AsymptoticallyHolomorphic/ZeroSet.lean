@@ -6,9 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Embedding
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.NormalSpace
+public import SymplecticGeometry.Geometry.Manifold.Orientation.NormalOrientation
+public import TauCeti.Geometry.Symplectic.Manifold.Volume
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 
 /-!
@@ -28,16 +33,32 @@ taken for `g_J` and the norm of `L_x`, then
 * its zero set, with the atlas of `SymplecticGeometry.transverseZeroSetChartedSpace`, is a
   symplectic submanifold: the inclusion `TauCeti.SmoothEmbedding.ofTransverseSection` is a
   symplectic submanifold embedding for `σ`
-  (`isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`).
+  (`isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`);
+* if `L` is moreover a complex line bundle, the normal orientation of the zero set `Z` induced
+  by the symplectic orientations of `M` and of `Z` (`TauCeti.SmoothEmbedding.normalOrientation`)
+  is the one carried from the canonical orientation of `L` by the linearization of `s`
+  (`SymplecticGeometry.normalOrientationOfSection`)
+  (`normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`).
 
 At a zero, `D s(x)` is the intrinsic linearization of `s` for every covariant derivative `D`
-(`CovariantDerivative.apply_eq_sectionLinearization`), so neither result asks `D` to be complex
+(`CovariantDerivative.apply_eq_sectionLinearization`), so no result asks `D` to be complex
 linear or metric, and the norm of `L_x` need not come from a Hermitian metric. The pointwise
-statements are `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_lt` and
-`TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt`, applied on
+statements are `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_lt`,
+`TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt` and
+`TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`, applied on
 `(T_x M, σ_x, J_x, g_J)`; the tangent space of the zero set at `x` is the kernel of the
-linearization (`SymplecticGeometry.range_mfderiv_coe_transverseZeroSet`). Both results are local:
+linearization (`SymplecticGeometry.range_mfderiv_coe_transverseZeroSet`). The results are local:
 `M` need not be compact, and `σ` need not be closed.
+
+The orientations are compared fibre by fibre, by
+`SymplecticGeometry.normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff`: it
+reduces the claim to the sequence `0 → ker → T_z M → L_z → 0` at each `z ∈ Z`, with `T_z Z`
+carried onto the kernel by the differential of the inclusion
+(`SymplecticGeometry.tangentSpaceEquivKerOfTransverseSection`). That map is a symplectomorphism
+for the pulled-back form, so it carries the symplectic orientation of `Z` to that of the kernel,
+and `TauCeti.SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt` concludes.
+Both normal orientations put the tangent directions of `Z` first, so no sign appears, and `Z` may
+have dimension zero.
 
 ## Main results
 
@@ -45,6 +66,9 @@ linearization (`SymplecticGeometry.range_mfderiv_coe_transverseZeroSet`). Both r
   zeros.
 * `SymplecticGeometry.isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`: the zero set is a
   symplectic submanifold.
+* `SymplecticGeometry.normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`:
+  for a complex line bundle, the normal orientation of the zero set induced by the symplectic
+  orientations is the one carried from the complex orientation of `L`.
 
 ## References
 
@@ -144,5 +168,105 @@ theorem isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt [I.Boundaryless
     (fun v w ↦ by simp [hc.inner_eq_eval₂ z v w]) (hL z) (hdom z z.property)
   rw [SmoothEmbedding.coe_ofTransverseSection]
   exact hrange ▸ hk
+
+section Orientation
+
+/-! ### The normal orientation of the zero set -/
+
+open scoped InnerProductSpace
+
+variable [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F] [FiniteDimensional ℂ F] [VectorBundle ℂ F L]
+
+/-- **The normal orientation of a symplectic zero set.** In the setting of
+`isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`, let `L` moreover be a complex line
+bundle. Orient `M` by the symplectic orientation of `σ` and the zero set `Z` of `s`, of dimension
+`2 k`, by the symplectic orientation of the pull-back of `σ`. The normal orientation of `Z` that
+these induce (`TauCeti.SmoothEmbedding.normalOrientation`, the tangent directions first) is the
+orientation `SymplecticGeometry.normalOrientationOfSection` carried from the canonical
+orientation `TauCeti.VectorBundleOrientation.complex` of `L` by the linearization of `s`. -/
+theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt [I.Boundaryless]
+    {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+    (hc : σ.Compatible J) (hF : finrank ℂ F = 1) (D : CovariantDerivative I F L)
+    (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
+    (hdom : ∀ x, s x = 0 →
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
+        ‖LinearMap.toContinuousLinearMap (complexLinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+    (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
+    letI := transverseZeroSetChartedSpace (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI := isManifold_transverseZeroSet (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceFiberBundle (P := F)
+      (by simp) (Nat.eq_sub_of_add_eq' hE)
+    letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceVectorBundle (P := F)
+      (by simp) (Nat.eq_sub_of_add_eq' hE)
+    (SmoothEmbedding.ofTransverseSection (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalOrientation (by simp)
+        (Nat.eq_sub_of_add_eq' hE)
+        ((hc.tames.isNondegenerate.volumeOrientation (n := k + 1)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)).reindex
+            (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]; ring)))
+        ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+            hE).isNondegenerate_mpullback.volumeOrientation hk) =
+      normalOrientationOfSection (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE (Fintype.card_fin _)
+        (VectorBundleOrientation.reindex
+          (finCongr (finrank_real_eq_two_mul_finrank_complex (V := F)).symm)
+          (VectorBundleOrientation.complex F L)) := by
+  have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
+  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
+    hdom
+  have hm : (∞ : ℕ∞ω) ≠ 0 := by simp
+  let := transverseZeroSetChartedSpace hm hs hT hE
+  have := isManifold_transverseZeroSet hm hs hT hE
+  rw [normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff hm hs hT hE hk]
+  intro z
+  have hv := coe_tangentSpaceEquivKerOfTransverseSection_apply hm hs hT hE z
+  set f := SmoothEmbedding.ofTransverseSection hm hs hT hE
+  have hz0 : s (f z) = 0 := SmoothEmbedding.ofTransverseSection_apply_eq_zero hm hs hT hE z
+  let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+  have hd := hdom (f z) hz0
+  rw [D.apply_eq_sectionLinearization ((hs (f z)).mdifferentiableAt (by simp)) hz0] at hd
+  have hg : ∀ v w, hc.tames.isNondegenerate.symplecticFormAt (f z) v
+      (J.almostComplexStructureAt (f z) w) = ⟪v, w⟫_ℝ := fun v w ↦ by
+    simp [hc.inner_eq_eval₂ (f z) v w]
+  rw [VectorBundleOrientation.reindex_apply, VectorBundleOrientation.complex_apply,
+    Manifold.Orientation.orientationAt_reindex,
+    SmoothTwoForm.IsNondegenerate.orientationAt_volumeOrientation,
+    SmoothTwoForm.IsNondegenerate.orientationAt_volumeOrientation]
+  refine Eq.trans ?_ ((SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPart_lt hg
+    (hL (f z)) hd (by rw [← hk]; exact hE.symm)
+    ((tangentSpaceEquivKerOfTransverseSection hm hs hT hE z).finrank_eq.symm.trans hk)
+    (VectorBundle.finrank_eq ℝ F L _)).trans (SymplecticForm.reindex_orientation _ _ _).symm)
+  congr 1
+  · -- The differential of the inclusion is a symplectomorphism onto the kernel.
+    refine SymplecticForm.IsSymplectomorphism.map_orientation
+      (SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ ?_) hk
+    exact (SymplecticForm.restrict_apply _ _ _ _ _).trans
+      ((congrArg₂ (fun a b ↦ hc.tames.isNondegenerate.symplecticFormAt (f z) a b) (hv v)
+        (hv w)).trans
+      ((hc.tames.isNondegenerate.symplecticFormAt_mfderiv_mfderiv _ z v w).trans
+        ((SmoothForm.bilinFormAt_apply _ z v w).trans
+          (SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply _ z v w).symm)))
+  · -- The two `finCongr` reindexings compose to the one on the right, by definition.
+    exact (Orientation.reindex_trans _ _ _).symm
+
+end Orientation
 
 end SymplecticGeometry

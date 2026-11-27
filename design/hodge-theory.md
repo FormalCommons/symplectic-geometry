@@ -317,7 +317,8 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
   `ψ.source`, whose expression is a given smooth function with compact
   support in `ψ.target`, with `mpullback_symm_extendByZeroAlong`. It is
   `RoughForm.extendByZeroAlong`, defined piecewise from
-  `mpullback I 𝓘(ℝ, E) ψ` on `ψ.source`, not through Tau Ceti's
+  `mpullback I 𝓘(ℝ, D) ψ` on `ψ.source`, for `ψ` into any normed space $D$,
+  not through Tau Ceti's
   `RoughForm.extendByZero` between `Opens`. The regularity issue glues
   local smooth representatives with it.
 - `SmoothForm.localize ψ χ α`: the expression of a smooth form along `ψ`,
