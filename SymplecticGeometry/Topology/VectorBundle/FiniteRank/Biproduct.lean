@@ -38,6 +38,9 @@ the sum of the classes.
 * `TauCeti.SplitK0.of_whitneySum`: in the split Grothendieck group of cores, the class of a
   Whitney sum is the sum of the classes, and `TauCeti.SplitK0.of_whitneySumIter` that of an
   iterated one;
+* `TauCeti.FiniteRankBundleCore.whitneySumTrivialIso a b`: the Whitney sum of the trivial cores
+  of ranks `a` and `b` is the trivial core of rank `a + b`, so that the class of the trivial core
+  of rank `n` is `n` times that of the trivial line (`TauCeti.SplitK0.of_trivial`);
 * `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback e₁ e₂`: the direct sum of isomorphisms
   between two pullbacks, read through Tau Ceti's `pullback_whitneySum` as an isomorphism between
   the pullbacks of the Whitney sums;
@@ -288,6 +291,36 @@ end Pullback
 
 end TauCeti.FiniteRankBundleCore
 
+/-! ### Whitney sums of trivial cores -/
+
+namespace TauCeti.FiniteRankBundleCore
+
+variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
+
+/-- The Whitney sum of the trivial cores of ranks `a` and `b` is isomorphic to the trivial core
+of rank `a + b`, by the identity of `Fin (a + b) → 𝕜` in each fibre. -/
+def whitneySumTrivialIso (a b : ℕ) :
+    whitneySum (trivial 𝕜 B a) (trivial 𝕜 B b) ≅ trivial 𝕜 B (a + b) :=
+  isoTrivialOfCoordChangeEqId (r := a + b) _ (ContinuousLinearEquiv.refl 𝕜 (Fin (a + b) → 𝕜))
+    fun i j x _ _ ↦ by
+      ext v : 1
+      apply (splitCoords (𝕜 := 𝕜) (trivial 𝕜 B a).rank (trivial 𝕜 B b).rank).injective
+      exact (splitCoords_coordChange_whitneySum _ _ i j x v).trans rfl
+
+@[simp]
+theorem fiberMap_whitneySumTrivialIso_hom (a b : ℕ) (x : B) :
+    (whitneySumTrivialIso (𝕜 := 𝕜) (B := B) a b).hom.fiberMap x =
+      ContinuousLinearMap.id 𝕜 (Fin (a + b) → 𝕜) :=
+  fiberMap_isoTrivialOfCoordChangeEqId_hom _ _ _ x
+
+@[simp]
+theorem fiberMap_whitneySumTrivialIso_inv (a b : ℕ) (x : B) :
+    (whitneySumTrivialIso (𝕜 := 𝕜) (B := B) a b).inv.fiberMap x =
+      ContinuousLinearMap.id 𝕜 (Fin (a + b) → 𝕜) :=
+  fiberMap_isoTrivialOfCoordChangeEqId_inv _ _ _ x
+
+end TauCeti.FiniteRankBundleCore
+
 /-! ### The class of a Whitney sum -/
 
 namespace TauCeti.SplitK0
@@ -313,6 +346,19 @@ theorem of_whitneySumIter {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [Topol
   | succ n ih =>
     rw [FiniteRankBundleCore.whitneySumIter_succ, ih, of_whitneySum, succ_nsmul]
     abel
+
+/-- In the split Grothendieck group of finite-rank cores over `B`, the class of the trivial core
+of rank `n` is `n` times the class of the trivial line. -/
+theorem of_trivial {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B] (n : ℕ) :
+    (of (FiniteRankBundleCore.trivial 𝕜 B n) : SplitK0 (FiniteRankBundleCore 𝕜 B)) =
+      n • of (FiniteRankBundleCore.trivial 𝕜 B 1) := by
+  induction n with
+  | zero =>
+    rw [zero_smul,
+      of_eq_zero_of_isZero (FiniteRankBundleCore.isZero_trivial_zero (𝕜 := 𝕜) (B := B))]
+  | succ n ih =>
+    rw [← of_congr (FiniteRankBundleCore.whitneySumTrivialIso (𝕜 := 𝕜) (B := B) n 1),
+      of_whitneySum, ih, succ_nsmul]
 
 end TauCeti.SplitK0
 
