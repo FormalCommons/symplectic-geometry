@@ -99,6 +99,27 @@ variable {H G : Type*} {E V P Z X : Type} [NormedAddCommGroup E] [NormedSpace �
   [TopologicalSpace X] [ChartedSpace G X] [IsManifold J ∞ X] [T2Space X]
   [SecondCountableTopology X]
 
+/-- **Reindexing the normal orientation in a cap product.** Capping with the dual class of a
+normal orientation `o`, indexed by `Fin (finrank ℝ P)`, is capping with the dual class of `o`
+reindexed along `Fin (finrank ℝ P) ≃ Fin r`, in degree `r`. -/
+theorem singularCap_dualClass_reindex_finCongr (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (hf : IsClosed (range f)) {r q n : ℕ}
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin (finrank ℝ P)))
+    (hr : finrank ℝ P = r) (h : r + q = n) (h' : finrank ℝ P + q = n) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    (TopCat.of X).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h
+        (f.dualClass hn hdim hf (VectorBundleOrientation.reindex (finCongr hr) o) hr) =
+      (TopCat.of X).singularCap ℤ (ρ_ _).inv (ρ_ _).hom (finrank ℝ P) q n h'
+        (f.dualClass hn hdim hf o rfl) := by
+  subst hr
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  rw [finCongr_refl, VectorBundleOrientation.reindex_refl, Equiv.refl_apply]
+
 section Cap
 
 variable [CompactSpace X] [ChartedSpace V X]

@@ -136,6 +136,10 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
   `φ₀ (ι₀ x) = 1 - |x|²` (`SymplecticGeometry.modelLevel_modelDisc`), and the differential of
   `φ₀` there (`SymplecticGeometry.fderiv_modelLevel_apply`) only sees the real parts of the
   first factor, so it vanishes on `i` times the tangent vectors of the disc.
+* `SymplecticGeometry.isJOrthogonallyAttached_modelLevel_comp_symm`: the same through a partial
+  diffeomorphism `Φ` from `V` whose differential is complex linear along the sphere, such as
+  the chart of `SymplecticGeometry.exists_modelChart`: `Φ ∘ ι₀` is attached J-orthogonally to
+  `{φ₀ ∘ Φ.symm ≤ 0}`.
 
 ## References
 
@@ -1118,6 +1122,24 @@ theorem isJOrthogonallyAttached_model :
       simp
     rw [mfderiv_modelDisc]
     exact key
+
+/-- **The model carried through a chart.** Let `Φ` be a partial diffeomorphism from `ℂᵏ × ℂᵐ`
+to a complex manifold `M`, defined on the model disc `ι₀ (closedBall 0 1)`, whose differential
+commutes with multiplication by `i` at the points of the boundary sphere. Then `Φ ∘ ι₀` is
+attached J-orthogonally to the domain `{φ₀ ∘ Φ.symm ≤ 0}` of the model level read through `Φ`. -/
+theorem isJOrthogonallyAttached_modelLevel_comp_symm {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℂ E] {M : Type*} [TopologicalSpace M] [ChartedSpace E M] {n : WithTop ℕ∞}
+    (hn : n ≠ 0) (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M n)
+    (hsrc : modelDisc k m '' Metric.closedBall 0 1 ⊆ Φ.source)
+    (hI : ∀ x : EuclideanSpace ℝ (Fin k), ‖x‖ = 1 →
+      ∀ v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m),
+        mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ
+          (modelDisc k m x) (Complex.I • v) =
+        Complex.I • (show E from mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+          𝓘(ℝ, E) Φ (modelDisc k m x) v)) :
+    IsJOrthogonallyAttached E (modelLevel k m ∘ Φ.symm) (Φ ∘ modelDisc k m) :=
+  isJOrthogonallyAttached_model.map_partialDiffeomorph hn Φ hsrc hI
 
 end Model
 
