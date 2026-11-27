@@ -17,8 +17,8 @@ import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Glaeser
 import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 import SymplecticGeometry.Geometry.Manifold.Immersion.InfDist
-import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import TauCeti.Analysis.Calculus.SecondDerivative
+import TauCeti.Topology.OpenPartialHomeomorph.Ball
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
@@ -402,19 +402,17 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
   have heR (y : K) : e y ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 2 M :=
     IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 2 two_ne_zero (he y)
   -- Finitely many open chart balls cover `ι '' K`; `W` is their union.
-  set ball' : K → Set M := fun y ↦ SymplecticGeometry.chartBall 𝓘(ℂ, E) (ι y) (r y)
-  have hball'o (y : K) : IsOpen (ball' y) := (SymplecticGeometry.chartBall _ _ _).isOpen
+  set ball' : K → Set M := fun y ↦ (e y).chartBall (ι y) (r y)
+  have hball'o (y : K) : IsOpen (ball' y) := (e y).isOpen_chartBall _ _
   obtain ⟨t, ht⟩ := (hK.image hι_cont).elim_finite_subcover ball' hball'o (by
     rintro _ ⟨y, hy, rfl⟩
-    exact mem_iUnion.2 ⟨⟨y, hy⟩, SymplecticGeometry.mem_chartBall_self _ _ (hr _)⟩)
+    exact mem_iUnion.2 ⟨⟨y, hy⟩, (e _).mem_chartBall_self (mem_chart_source E _) (hr _)⟩)
   set W := ⋃ y ∈ t, ball' y
   have hWo : IsOpen W := isOpen_biUnion fun y _ ↦ hball'o y
   have hmemW {x : M} (hx : x ∈ W) : ∃ y ∈ t, x ∈ (e y).source ∧
       e y x ∈ closedBall (e y (ι y)) (r y) ∧ (e y).symm (e y x) = x := by
     obtain ⟨y, hy, hxy⟩ := mem_iUnion₂.1 hx
-    obtain ⟨hxs, hxb⟩ := (SymplecticGeometry.mem_chartBall_iff _).1 hxy
-    simp only [extChartAt_source, extChartAt_coe, modelWithCornersSelf_coe, comp_apply,
-      id_eq] at hxs hxb
+    obtain ⟨hxs, hxb⟩ := (e y).mem_chartBall.1 hxy
     exact ⟨y, hy, hxs, ball_subset_closedBall hxb, (e y).left_inv hxs⟩
   have hWUO : W ⊆ U ∩ O := by
     intro x hx
