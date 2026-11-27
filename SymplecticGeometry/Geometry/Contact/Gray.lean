@@ -20,7 +20,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.Opens
 import SymplecticGeometry.Geometry.Manifold.SmoothTransition
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # The Gray vector field, the Gray isotopy and Gray stability
@@ -595,7 +595,7 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
     exact (mfderiv_timeDependentFlowOf_restrict_opens_apply hZ₁ hdom' w).symm
   rw [TauCeti.mpullback_apply_one,
     ← coe_mpullback (Prod.mk u') (contMDiff_const.prodMk contMDiff_id),
-    mpullback_prodMk_mpullback_prodMap_id_right Real.smoothTransition.contDiff.contMDiff,
+    mpullback_prodMk_mpullback_prodMap_id _ Real.smoothTransition.contDiff.contMDiff,
     ← mem_kerDistribution,
     ← unitInterval.coe_smoothTransition u', hβ.mem_kerDistribution_iff
       ⟨(unitInterval.coe_smoothTransition u').symm ▸ hu',
@@ -686,7 +686,7 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
     rw [← coe_timeDeriv, ← coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
       mpullback_prodMk_timeDeriv_mpullback_prodMap' hs id contMDiff_id, SmoothForm.mpullback_id,
       LinearMap.id_apply, ← coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
-      mpullback_prodMk_mpullback_prodMap_id_right hs] at h
+      mpullback_prodMk_mpullback_prodMap_id _ hs] at h
     -- Evaluation on `![w]` of a sum of forms at `y'`; the evaluation map is read in the model
     -- fibre, so `ContinuousAlternatingMap.apply_apply` does not rewrite it.
     replace h : (deriv Real.smoothTransition u • mpullback (Prod.mk (Real.smoothTransition u))
