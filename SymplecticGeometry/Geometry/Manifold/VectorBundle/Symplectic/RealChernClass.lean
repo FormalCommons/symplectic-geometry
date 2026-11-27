@@ -49,6 +49,9 @@ counterpart of the integral class
   `τ` along a smooth map `f` is the pull-back along `f` of the class of `τ`.
 * `ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_pushforward`: an isomorphism of bundles
   that carries one form to another does not change the class.
+* `ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_congr_model` and
+  `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_congr_model`: the class does not
+  depend on the complex model `G`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames`: on a manifold, every
   smooth almost complex structure tamed by `σ` gives the class of `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_mpullback`: a diffeomorphism `φ` with
@@ -178,6 +181,16 @@ theorem IsNondegenerate.realFirstChernClass_pushforward {τ : ContMDiffTwoForm I
   exact (ContMDiffComplexStructure.realFirstChernClass_pushforward G G' J _ Φ hΦ
     fun x v ↦ by simp).symm
 
+/-- **The real first Chern class of a two-form does not depend on the complex model** `G` used to
+compute it. -/
+theorem IsNondegenerate.realFirstChernClass_congr_model
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ F = 2 * finrank ℂ G')] {τ : ContMDiffTwoForm I ⊤ F V}
+    (h : τ.IsNondegenerate) :
+    h.realFirstChernClass G' = h.realFirstChernClass G :=
+  h.realFirstChernClass_pushforward G G' h (fun x ↦ ContinuousLinearEquiv.refl ℝ (V x))
+    contMDiff_id fun _ _ _ ↦ rfl
+
 end SymplecticGeometry.Bundle.ContMDiffTwoForm
 
 /-! ### The tangent bundle -/
@@ -217,6 +230,15 @@ theorem IsNondegenerate.realFirstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
     rw [← ContMDiffTwoForm.tames_tangentEquiv_iff]
     simpa using hJ
   exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames G _ hK
+
+/-- **The real first Chern class of a nondegenerate two-form on a manifold does not depend on the
+complex model** `G` used to compute it. -/
+theorem IsNondegenerate.realFirstChernClass_congr_model
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ E = 2 * finrank ℂ G')] {σ : SmoothTwoForm I M} (h : σ.IsNondegenerate) :
+    h.realFirstChernClass G' = h.realFirstChernClass G := by
+  rw [realFirstChernClass_def, realFirstChernClass_def]
+  exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_congr_model G G' _
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless] [TopologicalSpace M']
