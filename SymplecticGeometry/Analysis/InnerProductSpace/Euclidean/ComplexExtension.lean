@@ -28,11 +28,13 @@ linear map in `f`, and gives its basic properties.
 ## Main results
 
 * `ContinuousLinearMap.complexExtension_apply`: the formula `f x + i f y`.
-* `ContinuousLinearMap.complexExtension_apply_I_smul`: the extension is complex linear.
+* `ContinuousLinearMap.complexExtension_apply_smul`: the extension is complex linear.
+* `ContinuousLinearMap.complexExtension_unique`: it is the only real-linear map that commutes
+  with multiplication by `i` and agrees with `f` on the real points.
 * `ContinuousLinearMap.complexExtension_apply_symm_real`: it restricts to `f` on the real points.
 * `ContinuousLinearMap.comp_complexExtension`: a real-linear map that commutes with
   multiplication by `i` commutes with the extension.
-* `ContinuousLinearMap.injective_complexExtension`: the extension of an injective map whose image
+* `ContinuousLinearMap.complexExtension_injective`: the extension of an injective map whose image
   is totally real (Tau Ceti's `TauCeti.IsTotallyReal`) is injective.
 
 ## References
@@ -88,13 +90,40 @@ theorem _root_.TauCeti.complexEuclideanEquivRealProd_I_smul (z : EuclideanSpace 
       (-(complexEuclideanEquivRealProd ι z).2, (complexEuclideanEquivRealProd ι z).1) := by
   ext i <;> simp
 
-/-- The complex-linear extension of `f` is complex linear. -/
-@[simp]
+/-- The complex-linear extension of `f` commutes with multiplication by `i`. -/
 theorem complexExtension_apply_I_smul (f : EuclideanSpace ℝ ι →L[ℝ] F)
     (z : EuclideanSpace ℂ ι) :
     complexExtension ι F f (Complex.I • z) = Complex.I • complexExtension ι F f z := by
   rw [complexExtension_apply, complexExtension_apply, complexEuclideanEquivRealProd_I_smul,
     map_neg, smul_add, smul_smul, Complex.I_mul_I, neg_one_smul, add_comm]
+
+/-- The complex-linear extension of `f` is complex linear. -/
+@[simp]
+theorem complexExtension_apply_smul (f : EuclideanSpace ℝ ι →L[ℝ] F) (c : ℂ)
+    (z : EuclideanSpace ℂ ι) :
+    complexExtension ι F f (c • z) = c • complexExtension ι F f z := by
+  -- Write `c • w` as `re c • w + im c • (i • w)`, with real scalars, in both spaces.
+  have hE : ∀ w : EuclideanSpace ℂ ι, c • w = c.re • w + c.im • (Complex.I • w) := fun w ↦ by
+    rw [← Complex.coe_smul, ← Complex.coe_smul, smul_smul, ← add_smul, Complex.re_add_im]
+  have hF : ∀ w : F, c • w = c.re • w + c.im • (Complex.I • w) := fun w ↦ by
+    rw [← Complex.coe_smul, ← Complex.coe_smul, smul_smul, ← add_smul, Complex.re_add_im]
+  rw [hE, map_add, map_smul, map_smul, complexExtension_apply_I_smul, ← hF]
+
+/-- The complex-linear extension of `f` is the only real-linear map `ℂⁿ → F` that commutes with
+multiplication by `i` and agrees with `f` on the real points `x + i 0`. -/
+theorem complexExtension_unique (f : EuclideanSpace ℝ ι →L[ℝ] F)
+    {g : EuclideanSpace ℂ ι →L[ℝ] F} (hg : ∀ z, g (Complex.I • z) = Complex.I • g z)
+    (hgf : ∀ x, g ((complexEuclideanEquivRealProd ι).symm (x, 0)) = f x) :
+    g = complexExtension ι F f := by
+  ext z
+  obtain ⟨p, rfl⟩ := (complexEuclideanEquivRealProd ι).symm.surjective z
+  -- Split `x + i y` as `(x + i 0) + i (y + i 0)`.
+  have hp : (complexEuclideanEquivRealProd ι).symm p =
+      (complexEuclideanEquivRealProd ι).symm (p.1, 0) +
+        Complex.I • (complexEuclideanEquivRealProd ι).symm (p.2, 0) := by
+    apply (complexEuclideanEquivRealProd ι).injective
+    simp [complexEuclideanEquivRealProd_I_smul]
+  rw [complexExtension_apply_symm, hp, map_add, hg, hgf, hgf]
 
 /-- A real-linear map `T : F → G` between complex normed spaces that commutes with multiplication
 by `i` commutes with the complex-linear extension: `T ∘ f` extends to `T` composed with the
@@ -107,7 +136,7 @@ theorem comp_complexExtension (T : F →L[ℝ] G) (hT : ∀ v, T (Complex.I • 
 
 /-- The complex-linear extension of an injective real-linear map `f : ℝⁿ → F` whose image is
 totally real, that is meets its image under multiplication by `i` only in `0`, is injective. -/
-theorem injective_complexExtension {f : EuclideanSpace ℝ ι →L[ℝ] F}
+theorem complexExtension_injective {f : EuclideanSpace ℝ ι →L[ℝ] F}
     (hf : Function.Injective f)
     (hfR : IsTotallyReal ((LinearMap.lsmul ℂ F Complex.I).restrictScalars ℝ)
       (LinearMap.range f.toLinearMap)) :
