@@ -357,10 +357,11 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `liftChart_inl`, and `liftChart_ofDirection`:
   on `ℓ` it is `(map (d(φ ∘ c⁻¹)(0)) ℓ, 0)`, which under
   `directionEquiv` is the page's $([d\phi(p_0)v],0)$.
-  `liftChart_mem_maximalAtlas`: it is a holomorphic chart, a biholomorphism
-  from `blowdown ⁻¹' φ.source` onto the open set `blowdown ⁻¹' φ.target` of
-  the model, by `liftPartialDiffeomorph` and
-  `IsCompatible.isLocalDiffeomorph_iff`.
+  `liftChartPartialDiffeomorph` and `liftChart_mem_maximalAtlas`: it is a
+  biholomorphism from `blowdown ⁻¹' φ.source` onto the open set
+  `blowdown ⁻¹' φ.target` of the model, and followed by `blowupModelChart i`
+  a holomorphic chart, by `liftPartialDiffeomorph` near the divisor and
+  the two blowdowns off it.
 - `Blowup.chartChange c c'`, the biholomorphism `Blowup c ≃ Blowup c'` for
   two charts of the same atlas: `descContMDiffMap` of
   `GluedAlong.inl (gluingHomeomorph c')` on the first
