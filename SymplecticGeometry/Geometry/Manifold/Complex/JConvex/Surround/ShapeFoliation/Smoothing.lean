@@ -24,14 +24,16 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
 * `SymplecticGeometry.exists_smoothedMax_shapeFamily`: the piece next to the end `ℓ₁` of the
   parameter interval `[b, ℓ₁]`. A smooth family `χ` of shapes with `∂χ/∂ℓ > 0` is joined to the
   family `M + q ℓ`, a fixed shape `M` raised by a smooth nondecreasing `q` with `q' > 0` on
-  `[b, c]`, by `T ℓ r = smoothedMax δ (M r + q ℓ) (χ (λ ℓ) r)`. Here `λ` is Tau Ceti's smooth
+  `[b, c)`, by `T ℓ r = smoothedMax δ (M r + q ℓ) (χ (λ ℓ) r)`. Here `λ` is Tau Ceti's smooth
   lower truncation `TauCeti.smoothLowerTruncation b b'`, `b < b' < c`, which is `b` up to `b`,
   the identity from `b'` on, and has positive derivative on `(b, ∞)`
-  (`TauCeti.deriv_smoothLowerTruncation_pos`). The `ℓ`-derivative of `T` is a convex combination
-  of `q'` and `∂χ/∂ℓ · λ'` (`SymplecticGeometry.hasDerivAt_smoothedMax_weighted`), positive
-  because on `(b, c]` both terms are, on `(c, ℓ₁]`, where `χ ℓ > M + q ℓ`, the second term has
-  weight at least `1 / 2`, and at `b`, where `M + q b` exceeds `χ b` by more than `δ`, the first
-  term has weight `1`. For small `δ` the members are `i`-convex shapes by
+  (`TauCeti.deriv_smoothLowerTruncation_pos`). The `ℓ`-derivative of `T` is a weighted
+  combination of `q' ≥ 0` and `∂χ/∂ℓ · λ' ≥ 0` in which the larger of the two arguments has
+  weight at least `1 / 2` (`SymplecticGeometry.deriv_smoothedMax_pos_left`,
+  `SymplecticGeometry.deriv_smoothedMax_pos_right`). It is positive: on `[b, c)` because
+  `q' > 0` there, and `χ` is the larger only away from `b` (by the gap `χ b < M + q b`), where
+  `λ' > 0`; on `[c, ℓ₁]` because there `χ ℓ > M + q ℓ` and `λ' > 0`. For small `δ` the members
+  are `i`-convex shapes by
   `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, applied to a globally smooth
   family that agrees with `χ` near the rectangle (Tau Ceti's
   `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact`). The family is `M + q ℓ` near
@@ -57,7 +59,7 @@ open scoped ContDiff
 `χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[b, ℓ₁] × [r₁, r₂]`, with
 `χ ℓ` an `i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the rectangle. Let `M` be a
 smooth function that is an `i`-convex shape on `[r₁, r₂]`, and `q` a smooth nondecreasing
-function with `q b ≥ 0` and `q' > 0` on `[b, c]`, where `b < c ≤ ℓ₁`. Suppose that
+function with `q b ≥ 0` and `q' > 0` on `[b, c)`, where `b < c ≤ ℓ₁`. Suppose that
 `χ b < M + q b` and that `M + q ℓ < χ ℓ` for `ℓ ∈ [c, ℓ₁]`, on `[r₁, r₂]`. Then for each
 `ε > 0` there are `δ ∈ (0, ε]` and `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that on the rectangle
 `T ℓ` is an `i`-convex shape at `r` with `∂T/∂ℓ > 0`; `T` equals `M r + q ℓ` near
@@ -73,7 +75,7 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
     (hχℓ : ∀ x ∈ Icc b ℓ₁ ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1)
     (hM : ContDiff ℝ ∞ M) (hMc : ∀ r ∈ Icc r₁ r₂, IsConvexShapeAt M r)
     (hq : ContDiff ℝ ∞ q) (hqm : Monotone q) (hqb : 0 ≤ q b)
-    (hq' : ∀ ℓ ∈ Icc b c, 0 < deriv q ℓ)
+    (hq' : ∀ ℓ ∈ Ico b c, 0 < deriv q ℓ)
     (hgb : ∀ r ∈ Icc r₁ r₂, χ b r < M r + q b)
     (hgc : ∀ ℓ ∈ Icc c ℓ₁, ∀ r ∈ Icc r₁ r₂, M r + q ℓ < χ ℓ r) (hε : 0 < ε) :
     ∃ δ ∈ Ioc 0 ε, ∃ T : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry T) ∧
@@ -172,85 +174,50 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
       rwa [(hsliceL _ hx₁).deriv_eq] at this
     have hpos : 0 < deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) := hχℓ (L x.1, x.2) ⟨hLmem x.1 ⟨hb, hℓ⟩, hr'⟩
     have hg := hχd.comp x.1 (hLs.differentiable (by simp) x.1).hasDerivAt
-    have hf := ((hq.differentiable (by simp) x.1).hasDerivAt).const_add
-      (M x.2)
-    have hT : HasDerivAt (fun ℓ ↦ smoothedMax δ (M x.2 + q ℓ) (χ' (L ℓ, x.2))) _ x.1 :=
-      hasDerivAt_smoothedMax_weighted (δ := δ) hf hg
+    have hf := ((hq.differentiable (by simp) x.1).hasDerivAt).const_add (M x.2)
     beta_reduce
-    rw [hT.deriv]
-    set w := (1 + smoothedSign δ (M x.2 + q x.1 - χ' (L x.1, x.2))) / 2 with hw
-    have hw01 := one_add_smoothedSign_div_two_mem_Icc δ (M x.2 + q x.1 - χ' (L x.1, x.2))
-    rw [← hw] at hw01
-    have hq0 : 0 ≤ deriv q x.1 := hqm.deriv_nonneg
-    rcases eq_or_lt_of_le hb with hb | hb
-    · -- At `b`, the weight of `M + q ℓ` is `1`.
-      have hxb : x.1 = b := hb.symm
-      have hw1 : w = 1 := by
-        rw [hw, smoothedSign_of_le hδ]
-        · norm_num
-        · rw [hxb, hLb]
-          have := hg₀le x.2 hr'
-          linarith
-      rw [hw1]
-      simpa using hq' x.1 ⟨hb.le, hxb ▸ hbc.le⟩
-    · have hL' : 0 < deriv L x.1 := TauCeti.deriv_smoothLowerTruncation_pos hbb' hb
-      have hgpos : 0 < deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) * deriv L x.1 := mul_pos hpos hL'
-      rcases le_or_gt x.1 c with hc | hc
-      · -- On `(b, c]`, both terms are positive.
-        have := hq' x.1 ⟨hb.le, hc⟩
-        have hm := lt_min this hgpos
-        calc 0 < min (deriv q x.1) (deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) * deriv L x.1) := hm
-          _ = w * min (deriv q x.1) (deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) * deriv L x.1) +
-              (1 - w) * min (deriv q x.1) (deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) * deriv L x.1) := by
-            ring
-          _ ≤ _ := add_le_add (mul_le_mul_of_nonneg_left (min_le_left _ _) hw01.1)
-              (mul_le_mul_of_nonneg_left (min_le_right _ _) (sub_nonneg.2 hw01.2))
-      · -- On `(c, ℓ₁]`, the weight of `χ` is at least `1 / 2`.
-        have hlt : M x.2 + q x.1 - χ' (L x.1, x.2) < 0 := by
-          rw [hLid x.1 (hb'c.le.trans hc.le)] at hx₁ ⊢
-          rw [hval _ hx₁]
-          linarith [hgc x.1 ⟨hc.le, hℓ⟩ x.2 hr']
-        have hs : smoothedSign δ (M x.2 + q x.1 - χ' (L x.1, x.2)) ≤ 0 := by
-          have h0 : smoothedSign δ 0 = 0 := by
-            have := smoothedSign_neg hδ 0
-            rw [neg_zero] at this
-            linarith
-          exact h0 ▸ monotone_smoothedSign hδ.le hlt.le
-        have hw2 : w ≤ 1 / 2 := by rw [hw]; linarith
-        nlinarith [hw01.1, hw2]
+    have hg0 : 0 ≤ deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) * deriv L x.1 :=
+      mul_nonneg hpos.le (TauCeti.monotone_smoothLowerTruncation b b').deriv_nonneg
+    rcases lt_or_ge x.1 c with hc | hc
+    · -- On `[b, c)`, `q' > 0`; the slope of the second term is positive except at `b`, where
+      -- the first term is the larger.
+      rcases le_total (χ' (L x.1, x.2)) (M x.2 + q x.1) with h | h
+      · exact deriv_smoothedMax_pos_left hδ hf hg h (hq' x.1 ⟨hb, hc⟩) hg0
+      · have hbx : b < x.1 := hb.lt_of_ne fun hxb ↦ by
+          rw [← hxb, hLb, hval (b, x.2) (hRO ⟨left_mem_Icc.2 hbℓ, hr'⟩)] at h
+          linarith [hgb x.2 hr']
+        exact deriv_smoothedMax_pos_right hδ hf hg h hqm.deriv_nonneg
+          (mul_pos hpos (TauCeti.deriv_smoothLowerTruncation_pos hbb' hbx))
+    · -- On `[c, ℓ₁]`, the second term is the larger and has positive slope.
+      have hle : M x.2 + q x.1 ≤ χ' (L x.1, x.2) := by
+        rw [hLid x.1 (hb'c.le.trans hc)] at hx₁ ⊢
+        rw [hval _ hx₁]
+        exact (hgc x.1 ⟨hc, hℓ⟩ x.2 hr').le
+      exact deriv_smoothedMax_pos_right hδ hf hg hle hqm.deriv_nonneg
+        (mul_pos hpos (TauCeti.deriv_smoothLowerTruncation_pos hbb' (hbc.trans_le hc)))
   · -- Near `b`, the family is `M + q ℓ`.
-    have hW : IsOpen {x : ℝ × ℝ | χ' (L x.1, x.2) + δ < M x.2 + q x.1} :=
-      isOpen_lt (by fun_prop) (by fun_prop)
-    have hsub : {b} ×ˢ Icc r₁ r₂ ⊆ {x : ℝ × ℝ | χ' (L x.1, x.2) + δ < M x.2 + q x.1} := by
-      rintro x ⟨hx₁, hx₂⟩
-      rw [mem_singleton_iff] at hx₁
-      have := hg₀le x.2 hx₂
-      simp only [mem_ofPred_eq, hx₁, hLb] at this ⊢
-      linarith
-    filter_upwards [hW.mem_nhdsSet.2 hsub] with x hx
-    exact smoothedMax_eq_left hδ hx.le
+    refine smoothedMax_eventuallyEq_left hδ (by fun_prop) (by fun_prop) ?_
+    rintro x ⟨hx₁, hx₂⟩
+    rw [mem_singleton_iff] at hx₁
+    have := hg₀le x.2 hx₂
+    simp only [hx₁, hLb] at this ⊢
+    linarith
   · -- Near `ℓ₁`, the family is `χ`.
-    have hW : IsOpen ({x : ℝ × ℝ | M x.2 + q x.1 + δ < χ' (L x.1, x.2)} ∩
-        (Ioi b' ×ˢ univ ∩ O)) :=
-      (isOpen_lt (by fun_prop) (by fun_prop)).inter ((isOpen_Ioi.prod isOpen_univ).inter hO)
-    have hsub : {ℓ₁} ×ˢ Icc r₁ r₂ ⊆ {x : ℝ × ℝ | M x.2 + q x.1 + δ < χ' (L x.1, x.2)} ∩
-        (Ioi b' ×ˢ univ ∩ O) := by
-      rintro ⟨ℓ, r⟩ ⟨hx₁, hx₂⟩
+    refine (smoothedMax_eventuallyEq_right hδ (by fun_prop) (by fun_prop) ?_).trans ?_
+    · rintro ⟨ℓ, r⟩ ⟨hx₁, hx₂⟩
       rw [mem_singleton_iff] at hx₁
       subst hx₁
-      have hLx : L ℓ = ℓ := hLid ℓ (by linarith)
-      refine ⟨?_, ⟨show b' < ℓ by linarith, mem_univ _⟩,
-        hRO ⟨right_mem_Icc.2 hbℓ, hx₂⟩⟩
       have := hg₁le r hx₂
-      rw [mem_ofPred_eq, hLx]
+      simp only [hLid ℓ (by linarith)] at this ⊢
       linarith
-    filter_upwards [hW.mem_nhdsSet.2 hsub] with x hx
-    obtain ⟨hx₁, hx₂, hx₃⟩ := hx
-    have hLx : L x.1 = x.1 := hLid x.1 (le_of_lt hx₂.1)
-    simp only [mem_ofPred_eq, hLx] at hx₁
-    simp only [Function.uncurry_def]
-    rw [hLx, smoothedMax_eq_right hδ hx₁.le]
-    exact hval x hx₃
+    · have hsub : {ℓ₁} ×ˢ Icc r₁ r₂ ⊆ Ioi b' ×ˢ univ ∩ O := by
+        rintro ⟨ℓ, r⟩ ⟨hx₁, hx₂⟩
+        rw [mem_singleton_iff] at hx₁
+        subst hx₁
+        exact ⟨⟨show b' < ℓ by linarith, mem_univ _⟩, hRO ⟨right_mem_Icc.2 hbℓ, hx₂⟩⟩
+      filter_upwards [((isOpen_Ioi.prod isOpen_univ).inter hO).mem_nhdsSet.2 hsub] with x hx
+      rw [hLid x.1 hx.1.1.le, Function.uncurry_def]
+      exact hval x hx.2
   · -- The pointwise comparison with `M + q ℓ` and `χ (L ℓ)`.
     intro x hx
     have hx₁ : (L x.1, x.2) ∈ O := hRO ⟨hLmem x.1 hx.1, hx.2⟩
