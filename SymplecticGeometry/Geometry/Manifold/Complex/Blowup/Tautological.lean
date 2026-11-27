@@ -111,7 +111,10 @@ under the complex structure of the blowup, as for the real form of every holomor
 (`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply`); so the real form of
 the normal space isomorphism is built from the same differential of `blowdown`, by
 `Manifold.IsImmersion.normalSpaceEquivOfKer` over `ℝ`, and it is complex linear because that
-differential is.
+differential is. Its continuity on total spaces is checked on ambient tangent
+representatives, through Tau Ceti's `SmoothEmbedding.continuous_normalBundle_iff`, since the
+normal bundle has the quotient topology from the pulled-back tangent bundle; this needs no
+bundle structure on the normal bundle, so it holds for every label of the total space.
 
 ## References
 
@@ -685,29 +688,25 @@ theorem normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure {P : Typ
 
 variable (hn) in
 /-- The isomorphisms `normalSpaceZeroSectionRealEquiv n hn ℓ` form a continuous map from the total
-space of the normal bundle of the real zero section, with Tau Ceti's bundle structure
-`SmoothEmbedding.normalSpaceFiberBundle` of model fibre `P` (of dimension `2`, by `hdim`), to the
-total space of the tautological line `Projectivization.Tautological ℂ E` over `ℙ ℂ E`. -/
-theorem continuous_normalSpaceZeroSectionRealEquiv {P : Type*} [NormedAddCommGroup P]
-    [NormedSpace ℝ P] [FiniteDimensional ℝ P]
-    (hdim : Module.finrank ℝ P =
-      Module.finrank ℝ (Fin (n + 1) → ℂ) - Module.finrank ℝ (Fin n → ℂ)) :
-    letI := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hdim
-    Continuous fun p : TotalSpace P
+space of the normal bundle of the real zero section to the total space of the tautological line
+`Projectivization.Tautological ℂ E` over `ℙ ℂ E`. The normal bundle has Tau Ceti's topology
+`SmoothEmbedding.instTopologicalSpaceNormalBundle`, the quotient topology from the pulled-back
+ambient tangent bundle, for which `SmoothEmbedding.normalSpaceFiberBundle` is a fibre bundle
+structure. The label `K` of the total space does not change that topology. -/
+theorem continuous_normalSpaceZeroSectionRealEquiv {K : Type*} :
+    Continuous fun p : TotalSpace K
         (fun ℓ => (zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceZeroSectionRealEquiv n hn p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
-  let := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hdim
+  rw [TauCeti.SmoothEmbedding.continuous_normalBundle_iff]
   -- On the pulled-back real tangent bundle, the real differentials of `blowdown` along the zero
   -- section form a continuous map, as `blowdown` is `C^1`.
-  have hgs : ContMDiff (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, ℂ))
-      0 (fun p : TotalSpace (Fin (n + 1) → ℂ)
-          ((zeroSectionRealEmbedding n : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) *ᵖ
-            (TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ))) =>
-        TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) p.proj
-          (mfderivBlowdownZeroSectionReal p.proj p.snd)) := by
-    refine contMDiff_zero_iff.2
-      (continuous_totalSpace_tautological_iff.2 ⟨FiberBundle.continuous_proj _ _, ?_⟩)
+  have hgs : Continuous fun p : TotalSpace (Fin (n + 1) → ℂ)
+      ((zeroSectionRealEmbedding n : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) *ᵖ
+        (TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ))) =>
+      TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) p.proj
+        (mfderivBlowdownZeroSectionReal p.proj p.snd) := by
+    refine continuous_totalSpace_tautological_iff.2 ⟨FiberBundle.continuous_proj _ _, ?_⟩
     refine (Pullback.continuous_mfderiv_apply (zeroSectionRealEmbedding n)
       ((contMDiff_blowdown 1).restrictScalars' ℝ) le_rfl).congr fun p => ?_
     -- The real differential is taken at `zeroSectionRealEmbedding n p.proj`, and the complex
@@ -719,14 +718,12 @@ theorem continuous_normalSpaceZeroSectionRealEquiv {P : Type*} [NormedAddCommGro
     exact (((contMDiff_blowdown 1).mdifferentiableAt
       one_ne_zero).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ p.snd).trans
         (coe_mfderivBlowdownZeroSection_apply p.proj p.snd).symm
+  -- On ambient representatives, the isomorphisms are the real differentials of `blowdown`.
   unfold normalSpaceZeroSectionRealEquiv
-  exact contMDiff_zero_iff.1 <|
-    (zeroSectionRealEmbedding n).contMDiff_normalSpaceEquivOfKer (m := 0)
-      hn (by simp) hdim mfderivBlowdownZeroSectionReal
-      mfderivBlowdownZeroSectionReal_eq_zero_iff
-      (fun ℓ => (finrank_normalSpace_zeroSectionRealEmbedding n hn ℓ).trans
-        ((Projectivization.finrank_submodule_of_isScalarTower ℓ).trans
-          Complex.finrank_real_complex).symm) hgs
+  refine hgs.congr fun ⟨x, v⟩ => ?_
+  rw [Function.comp_apply, TauCeti.SmoothEmbedding.normalQuotientMap_apply]
+  exact congrArg (TotalSpace.mk' ℂ x)
+    (Manifold.IsImmersion.normalSpaceEquivOfKer_normalClass _ x hn _ _ _ v).symm
 
 end Real
 
