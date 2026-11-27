@@ -178,6 +178,24 @@ theorem fiberMap_clutchingAut_inv (E : FiniteRankBundleCore 𝕜 X)
   ext v i
   simp [clutchingAut]
 
+/-- The gluing cocycle of the clutching by `f`, from the outer to the inner disc, at a point `b`
+of the annulus and on a vector `v`: the fibre map of `f.hom` over `clutchingMap X b`. -/
+theorem glueCocycle_clutchingAut_false_true_apply (E : FiniteRankBundleCore 𝕜 X)
+    (f : E.circlePullback ≅ E.circlePullback) {b : X × ℙ ℂ (Fin 2 → ℂ)}
+    (hb : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)
+    (v : Fin (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).rank → 𝕜) :
+    glueCocycle (clutchingAut E f) false true b v = f.hom.fiberMap (clutchingMap X ⟨b, hb⟩) v := by
+  rw [glueCocycle_false_true _ hb, fiberMap_clutchingAut_hom]
+
+/-- The gluing cocycle of the clutching by `f`, from the inner to the outer disc, at a point `b`
+of the annulus and on a vector `v`: the fibre map of `f.inv` over `clutchingMap X b`. -/
+theorem glueCocycle_clutchingAut_true_false_apply (E : FiniteRankBundleCore 𝕜 X)
+    (f : E.circlePullback ≅ E.circlePullback) {b : X × ℙ ℂ (Fin 2 → ℂ)}
+    (hb : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)
+    (v : Fin (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).rank → 𝕜) :
+    glueCocycle (clutchingAut E f) true false b v = f.inv.fiberMap (clutchingMap X ⟨b, hb⟩) v := by
+  rw [glueCocycle_true_false _ hb, fiberMap_clutchingAut_inv]
+
 /-- **The clutching construction.** For a core `E` over `X` and an automorphism `f` of its pullback
 to `X × Circle`, the core over `X × ℙ ℂ (Fin 2 → ℂ)` that is the pullback of `E` along `Prod.fst`
 over `X × innerDisc` and over `X × outerDisc`, a vector `v` over a point `(x, [z : 1])` of the
@@ -838,27 +856,26 @@ private theorem glueCocycle_smul_discSection (s t : Bool) (b : X × ℙ ℂ (Fin
     (ht : b.2 ∈ bif t then innerDisc else outerDisc) (a : Fin 1 → ℂ) :
     glueCocycle (clutchingAut (trivial ℂ X 1) (circleZPowIso X (-1))) s t b a (0 : Fin 1) •
         discSection t b.2 = a 0 • discSection s b.2 := by
+  -- Name the vector and its coordinate in the fibres of the pullbacks of the trivial line, whose
+  -- ranks are `1` only up to unfolding, so that the lemmas about these fibres apply to them.
+  set v : Fin ((trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).rank → ℂ :=
+    a
+  set i : Fin (trivial ℂ X 1).circlePullback.rank := (0 : Fin 1)
   cases s <;> cases t
   · rw [glueCocycle_self]; rfl
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨ht, hs⟩
-    rw [glueCocycle_false_true _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
-      from hb)]
-    rw [fiberMap_clutchingAut_hom, fiberMap_circleZPowIso_hom, clutchingMap_apply]
-    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
-    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
-    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    have hb' : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨ht, hs⟩
+    simp only [glueCocycle_clutchingAut_false_true_apply _ _ hb', fiberMap_circleZPowIso_hom,
+      smul_apply, id_apply_coords, Pi.smul_apply, clutchingMap_apply]
     simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul]
     have hu := Circle.coe_ne_zero (annulusToCircle ⟨b.2, hb⟩)
     congr 1
     field_simp
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨hs, ht⟩
-    rw [glueCocycle_true_false _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
-      from hb)]
-    rw [fiberMap_clutchingAut_inv, fiberMap_circleZPowIso_inv, clutchingMap_apply]
-    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
-    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
-    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    have hb' : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hs, ht⟩
+    simp only [glueCocycle_clutchingAut_true_false_apply _ _ hb', fiberMap_circleZPowIso_inv,
+      smul_apply, id_apply_coords, Pi.smul_apply, clutchingMap_apply]
     simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one, inv_inv]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul, mul_comm]
   · rw [glueCocycle_self]; rfl
