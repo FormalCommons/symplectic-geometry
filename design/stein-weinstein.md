@@ -821,6 +821,13 @@ containing `ι '' closedBall 0 1`:
       where `h r < 1`, the second where `0 < h r`), and, in
       `Surround/ShapeFamily.lean`,
       `sqrtAddLeaf_zero : sqrtAddLeaf L δ 0 = sqrtSubLeaf L δ 0`.
+      Both leaves are `cutoffLeaf L δ b c r =
+      b * (1 - h r) + √(64 * (r ^ 2 - δ ^ 2) + c * h r)` (in
+      `Surround/CutoffLeaf.lean`): `sqrtAddLeaf` with `b = δ / 8 + ℓ`,
+      `c = 64 * δ ^ 2 + ℓ ^ 2`, and `sqrtSubLeaf` with
+      `b = (ℓ + 8 * δ) / 64`, `c = 64 * δ ^ 2 - ℓ ^ 2`. Their rescaling,
+      `_of_le`, `_of_ge`, `tendsto_deriv_` and convexity, and the slope
+      bound of `sqrtAddLeaf`, follow from those of `cutoffLeaf`.
     - `exists_isConvexShapeAt_sqrtAddLeaf`: there is `L₀ ≥ 1` such that
       for `L ≥ L₀`, `δ > 0`, `ℓ ∈ Icc 0 (15 * δ / 2)` and `r > δ`,
       `IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r` (the range above `7 * δ`
