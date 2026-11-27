@@ -159,7 +159,7 @@ theorem integralCohomologyEquiv_integralSphereGenerator (d : ℕ) :
 section IntegerCoefficients
 
 /- The cup product with coefficients `ℤ` below carries the `ℤ`-linear structure
-`ModuleCat.instLinear`, the one of `TopCat.integralCohomologyEquiv_symm_singularCup`. Instance
+`ModuleCat.instLinear`, the one of `TopCat.integralCohomologyEquiv_integralCup`. Instance
 search would otherwise find `CategoryTheory.Linear.preadditiveIntLinear`, which integral
 cohomology uses; the pull-backs in integral cohomology name that structure. -/
 attribute [local instance high] ModuleCat.instLinear
