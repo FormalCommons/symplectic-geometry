@@ -5,7 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.MomentMap
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Tube
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.WeaklyHamiltonian
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Nondegenerate
 import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
@@ -42,6 +48,16 @@ equivariant Moser correction
 The tube map of `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorphAt`, whose
 differential at `[1, 0]` is `T`, is such a `Ψ₀`.
 
+If moreover `μ : M → 𝔤*` is a coadjoint-equivariant moment map of `σ` with `μ x = D.τ`, then `N`
+can be shrunk so that also `μ ∘ Ψ` is the moment map `μ_Y` of the local model
+(`SymplecticGeometry.LocalModelData.descendedMomentMap`). Give `N` the restricted action of `G`
+(`TopologicalSpace.Opens.mulActionOfForallSMulMem`). Both `μ ∘ Ψ` and `μ_Y` restricted to `N` are
+equivariant moment maps of `Ψ^* σ = ω|_N`
+(`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.mpullback`, from Tau Ceti), so the set where they
+agree is open (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOf_eq`). It is `G`-invariant since
+both maps are equivariant, and contains the zero section, where both maps are
+`[g, 0] ↦ Ad*_g (μ x)`; restrict `Ψ` to it (`TopologicalSpace.Opens.imageVal`).
+
 ## Main results
 
 * `SymplecticGeometry.LocalModelData.exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt`:
@@ -49,6 +65,8 @@ differential at `[1, 0]` is `T`, is such a `Ψ₀`.
 * `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_mpullback_eq_descendedForm`: the
   equivariant local diffeomorphism `Ψ` from a neighbourhood of the zero section of the local
   model to `M` that pulls `σ` back to the descended form.
+* `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
+  the same map, which moreover carries the moment map of `σ` to that of the local model.
 
 ## References
 
@@ -246,6 +264,89 @@ theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
     exact hΨ₀d 1 hZ0
   · rw [hΨ₀T, hΨ₀T]
     exact hTσ u v
+
+/-- **The local normal form near an orbit, with the moment map.** In the setting of
+`SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_mpullback_eq_descendedForm`, let
+moreover `μ : M → 𝔤*` be a coadjoint-equivariant moment map of `σ` whose value at `x` is the
+covector `D.τ` of the local model. Then `N` and `Ψ` can be chosen with all the properties given
+there and moreover `μ (Ψ y) = μ_Y y` for every `y ∈ N`, where `μ_Y` is the moment map
+`D.descendedMomentMap` of the local model. -/
+theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
+      𝓘(ℝ, A × V) F
+    haveI := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
+      (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
+    ∀ {σ : SmoothTwoForm I' M}, σ.IsClosed → (∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+        (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ) →
+    ∀ {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}, σ.IsEquivariantMomentMap μ → D.τ = μ x →
+    ∀ T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+          ((0 : A), (0 : V))) ≃ₗ[ℝ] TangentSpace I' x,
+      (∀ u v, SmoothBundleForm.eval₂ σ x (T u) (T v) =
+        SmoothBundleForm.eval₂ D.descendedForm
+          (BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation (1 : G))
+            ((0 : A), (0 : V))) u v) →
+      (∀ (k : stabilizer G x) u,
+        T (D.tangentRepresentationOneZero k u) =
+          tangentRepresentation (fun (g : G) _ ↦
+            ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x) k
+            (T u)) →
+      (∀ ξ : GroupLieAlgebra I G,
+        T (D.orbitTangentMap ξ) = InfinitesimalAction.fundamental I G I' M ξ x) →
+      ∃ (N : Opens (BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V)))
+        (Ψ : N → M) (hΨ : ContMDiff 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' ∞ Ψ),
+        (∀ g : G, BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation g)
+          ((0 : A), (0 : V)) ∈ N) ∧
+        (∀ (g : G) y, y ∈ N → g • y ∈ N) ∧
+        (∀ (g : G) (y : N) (h : g • (y : BalancedProduct _ _ _) ∈ N),
+          Ψ ⟨g • (y : BalancedProduct _ _ _), h⟩ = g • Ψ y) ∧
+        (∀ (g : G) (h : BalancedProduct.mk (stabilizer G x)
+            ((stabilizer G x).toRightTranslation g) ((0 : A), (0 : V)) ∈ N),
+          Ψ ⟨_, h⟩ = g • x) ∧
+        IsLocalDiffeomorph 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) I' ∞ Ψ ∧
+        SmoothForm.mpullback Ψ hΨ σ =
+          SmoothForm.mpullback (Subtype.val : N → _) contMDiff_subtypeVal D.descendedForm ∧
+        ∀ y : N, μ (Ψ y) = D.descendedMomentMap y := by
+  intro σ hσc hσ μ hμ hτ T hTσ hTk hTξ
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
+    (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
+  have := BalancedProduct.contMDiffSMul_rightTranslation (K := stabilizer G x) (Z := A × V)
+    (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
+  obtain ⟨N, Ψ, hΨ, hN0, hNG, hΨG, hΨ0, hΨd, hΨσ⟩ :=
+    D.exists_isLocalDiffeomorph_mpullback_eq_descendedForm hσc hσ T hTσ hTk hTξ
+  -- On `N`, with the restricted action, `μ ∘ Ψ` and `μ_Y ∘ val` are moment maps of one form.
+  let : MulAction G N := Opens.mulActionOfForallSMulMem hNG
+  have hcN := Opens.coe_smul_mulActionOfForallSMulMem hNG
+  have : ContMDiffSMul I 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))) ∞ G N :=
+    Opens.contMDiffSMul_of_coe_smul hcN
+  have hΨG' (g : G) (y : N) : Ψ (g • y) = g • Ψ y :=
+    (congrArg Ψ (Subtype.ext (hcN g y))).trans (hΨG g y (hNG g y y.property))
+  have h₁ := hμ.mpullback hΨ hΨG'
+  rw [hΨσ] at h₁
+  have h₂ := D.isEquivariantMomentMap_descendedForm.mpullback contMDiff_subtypeVal hcN
+  -- The set where the two agree is open and `G`-invariant; restrict `Ψ` to it.
+  let V : Opens N := ⟨{y | μ (Ψ y) = D.descendedMomentMap y},
+    (h₁.toIsMomentMap.isClopen_setOf_eq h₂.toIsMomentMap).isOpen⟩
+  have hVG (g : G) (y : N) (hy : y ∈ V) : g • y ∈ V := by
+    simp only [V, Opens.mem_mk, Set.mem_ofPred_eq] at hy ⊢
+    rw [hΨG', hμ.apply_smul, hcN, descendedMomentMap_smul, hy]
+  let N' := Opens.imageVal V
+  have hN'N : N' ≤ N := Opens.imageVal_le V
+  refine ⟨N', Ψ ∘ Opens.inclusion hN'N, hΨ.comp (contMDiff_inclusion hN'N),
+    fun g ↦ Opens.mem_imageVal.2 ⟨hN0 g, ?_⟩, fun g y ↦ Opens.smul_mem_imageVal hcN hVG g,
+    fun g y h ↦ hΨG g (Opens.inclusion hN'N y) (hN'N h), fun g h ↦ hΨ0 g (hN'N h),
+    fun y ↦ (TauCeti.isLocalDiffeomorph_inclusion hN'N y).comp (hg := hΨd _), ?_,
+    fun ⟨y, hy⟩ ↦ (Opens.mem_imageVal.1 hy).2⟩
+  · -- The zero section: there both maps are `Ad*_g τ`.
+    simp only [V, Opens.mem_mk, Set.mem_ofPred_eq]
+    rw [hΨ0, hμ.apply_smul, descendedMomentMap_mk_zero, hτ]
+  · rw [← SmoothForm.mpullback_mpullback _ _ (contMDiff_inclusion hN'N) hΨ, hΨσ,
+      SmoothForm.mpullback_inclusion_mpullback_subtype_val]
 
 end LocalModelData
 
