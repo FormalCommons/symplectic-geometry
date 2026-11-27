@@ -128,12 +128,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         0
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 0).hom
@@ -155,12 +151,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
   have hcb : c z = 0 := centeredExtChartAt_self I z
   -- The cross product of the two point classes is carried to the point class of `f z`.
   have key : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         0
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           hb hcb h0 0).hom
@@ -177,7 +169,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
     rw [h1, Trivialization.localHomologyPointClass_comp_localChartLocalHomologyIso_hom_apply]
     exact (localHomologyPointClass_map_apply _ _ _ _ _).trans
       (congrArg (fun y ↦ localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} y 1)
-        (hΦ.apply_zeroSection z))
+        ((f.tubeMap_apply hn hdim Φ _).trans (hΦ.apply_zeroSection z)))
   rw [Manifold.Orientation.toHomologicalOrientationOfZeroDim_apply,
     Manifold.Orientation.localOrientationOfZeroDim_coe,
     orientationAt_reindex_eq_positiveOrientation_iff Φ z hΦ hP oX oZ]

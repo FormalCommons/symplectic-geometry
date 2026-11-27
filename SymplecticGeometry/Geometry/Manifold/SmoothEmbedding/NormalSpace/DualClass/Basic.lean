@@ -166,8 +166,9 @@ theorem tubePairIso_hom_fst_comp_excisionMap_fst (f : SmoothEmbedding I J ∞ Z 
     letI := f.normalSpaceFiberBundle hn hdim
     TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ).hom ≫
         TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) =
-      TopCat.ofHom ⟨fun v ↦ (Φ v : X), continuous_subtypeVal.comp Φ.continuous⟩ :=
-  TopCat.ext fun v ↦ tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ hΦ v
+      TopCat.ofHom (f.tubeMap hn hdim Φ) :=
+  TopCat.ext fun v ↦ (tubePairIso_hom_fst_comp_excisionMap_fst_apply f hn hdim Φ hΦ v).trans
+    (f.tubeMap_apply hn hdim Φ v).symm
 
 end TubePair
 

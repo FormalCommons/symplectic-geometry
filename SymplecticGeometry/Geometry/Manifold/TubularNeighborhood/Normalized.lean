@@ -109,6 +109,8 @@ applied to `h`, which is differentiable since the tube is a local diffeomorphism
   of the total space of the normal bundle given on each fibre by the normal derivative.
 * `TauCeti.SmoothEmbedding.IsNormalizedTube`: a diffeomorphism of the total space of the normal
   bundle onto an open set, equal to `f` on the zero section, with normal derivative the identity.
+* `TauCeti.SmoothEmbedding.tubeMap`: a tube onto an open set, read as a continuous map into `N`
+  (an open embedding, `isOpenEmbedding_tubeMap`).
 
 ## Main results
 
@@ -132,6 +134,9 @@ applied to `h`, which is differentiable since the tube is a local diffeomorphism
   `TauCeti.SmoothEmbedding.symm_apply_eq_zeroSection_of_apply_zeroSection`: a tube equal to `f`
   on the zero section contains the range of `f`, meets it exactly on the zero section, and its
   inverse sends `f x` to `0_x`.
+* `TauCeti.SmoothEmbedding.apply_eq_iff_eq_zeroSection_of_apply_zeroSection`,
+  `TauCeti.SmoothEmbedding.tubeMap_preimage_singleton`: such a tube sends exactly the zero vector
+  over `x` to `f x`.
 * `TauCeti.SmoothEmbedding.mfderiv_zeroSection_apply_horizontal_of_apply_zeroSection`: the
   differential of such a tube at `0_x` sends `(u, 0)` to the differential of `f` at `x` applied
   to `u`.
@@ -529,6 +534,45 @@ variable (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
   (Φ : letI := f.normalSpaceFiberBundle hn hdim
     TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
 
+/-- A tube `Φ` of `f`, a diffeomorphism of the total space of the normal bundle onto an open set
+`W` of `N`, read as the continuous map `v ↦ (Φ v : N)` into `N`. -/
+def tubeMap :
+    letI := f.normalSpaceFiberBundle hn hdim
+    C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), N) :=
+  letI := f.normalSpaceFiberBundle hn hdim
+  ⟨fun v ↦ (Φ v : N), continuous_subtypeVal.comp Φ.continuous⟩
+
+@[simp]
+theorem tubeMap_apply (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
+    f.tubeMap hn hdim Φ v = (Φ v : N) :=
+  (rfl)
+
+/-- A tube onto an open set, read as a map into `N`, is an open embedding. -/
+theorem isOpenEmbedding_tubeMap :
+    letI := f.normalSpaceFiberBundle hn hdim
+    Topology.IsOpenEmbedding (f.tubeMap hn hdim Φ) :=
+  letI := f.normalSpaceFiberBundle hn hdim
+  W.isOpenEmbedding'.comp Φ.toHomeomorph.isOpenEmbedding
+
+/-- A tube that equals `f` on the zero section sends a vector to `f x` exactly when the vector is
+the zero vector over `x`. -/
+theorem apply_eq_iff_eq_zeroSection_of_apply_zeroSection
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x)
+    (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) (x : M) :
+    (Φ v : N) = f x ↔ v = zeroSection P _ x := by
+  refine ⟨fun hv ↦ Φ.injective (Subtype.ext (hv.trans (hΦ x).symm)), ?_⟩
+  rintro rfl
+  exact hΦ x
+
+/-- The preimage of `f x` under a tube that equals `f` on the zero section is the zero vector
+over `x`. -/
+theorem tubeMap_preimage_singleton
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x) (x : M) :
+    f.tubeMap hn hdim Φ ⁻¹' {f x} = {zeroSection P _ x} :=
+  Set.ext fun v ↦ apply_eq_iff_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ v x
+
 /-- The image of a tube that equals `f` on the zero section contains the range of `f`. -/
 theorem range_subset_of_apply_zeroSection
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
@@ -544,7 +588,9 @@ theorem apply_mem_range_iff_of_apply_zeroSection
           (v : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn)) :
     (Φ v : N) ∈ Set.range f ↔ v ∈ Set.range (zeroSection P
         (fun x ↦ f.isImmersion.NormalSpace x hn)) := by
-  refine ⟨fun ⟨x, hx⟩ ↦ ⟨x, Φ.injective (Subtype.ext ((hΦ x).trans hx))⟩, ?_⟩
+  refine ⟨fun ⟨x, hx⟩ ↦
+    ⟨x, ((apply_eq_iff_eq_zeroSection_of_apply_zeroSection f hn hdim Φ hΦ v x).1 hx.symm).symm⟩,
+    ?_⟩
   rintro ⟨x, rfl⟩
   exact ⟨x, (hΦ x).symm⟩
 
@@ -838,7 +884,8 @@ theorem IsNormalizedTube.exists_hasMFDerivAt_apply_mk {f : SmoothEmbedding I J �
     have hs : h w ∈ zeroSectionCompl P (fun x ↦ f.isImmersion.NormalSpace x hn) :=
       mem_zeroSectionCompl.2 (ψ.map_ne_zero_iff.2 hw)
     rw [zeroSectionCompl_eq_compl_range] at hs
-    exact hs ⟨z, Φ.injective (Subtype.ext ((hΦ.apply_zeroSection z).trans hz))⟩
+    exact hs ⟨z, ((apply_eq_iff_eq_zeroSection_of_apply_zeroSection f hn hdim Φ
+      hΦ.apply_zeroSection _ z).1 hz.symm).symm⟩
   -- `h` has derivative `w ↦ (0, ψ' w)` at `0`.
   let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P))
       (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) x) :=
