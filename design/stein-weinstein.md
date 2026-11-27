@@ -643,8 +643,8 @@ containing `ι '' closedBall 0 1`:
     `1 + d * δ ≤ struweShape δ K c δ < 1 + d * K * δ`, and its derivative
     tends to `atTop` along `𝓝[>] δ`. The rescaled forms of the lemma
     follow by `IsConvexShapeAt.rescale`.
-  - `isConvexShapeAt_sqrt` (14d3; Lemma 4.17 (a)): for `1 < a` and
-    `0 ≤ ℓ`, `r ↦ √(ℓ ^ 2 + a * r ^ 2)` is a convex shape at every
+  - `isConvexShapeAt_sqrt` (14d3; Lemma 4.17 (a)): for `1 < a` and any
+    `ℓ`, `r ↦ √(ℓ ^ 2 + a * r ^ 2)` is a convex shape at every
     `r > 0`; `isConvexShapeAt_quadratic` (Lemma 4.17 (b)): for `0 < ℓ`,
     `0 ≤ b`, `1 < c`, `r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)` at every
     `r > 0`; `isConvexShapeAt_linear` (Lemma 4.17 (e)): for `0 < ℓ`,
