@@ -53,6 +53,8 @@ for the pull-back by Tau Ceti's `Bundle.Pullback.contMDiff_lift`, so no comparis
 * `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric`: the real first Chern
   classes of the unitary frame bundles of two smooth Hermitian metrics on a complex line bundle
   are equal.
+* `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_congr`: a smooth `ℂ`-linear isomorphism
+  of smooth Hermitian line bundles, whose models may differ, preserves the real first Chern class.
 * `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_pullback`: the real first Chern class
   of the unitary frame bundle of a Hermitian metric on `f *ᵖ V` is the pull-back along `f` of that
   of `V`, whatever the metrics.
@@ -285,5 +287,39 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric
   · exact contMDiff_circleFiber_frame_one g hI
   · exact φ.frame.map_ne_zero_iff.2 one_ne_zero
   · rw [Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul, smul_eq_mul, mul_one]
+
+/-- **A complex-linear isomorphism of Hermitian line bundles preserves the real first Chern
+class.** Let `g` and `g'` be smooth `i`-invariant metrics on smooth complex line bundles `V` and
+`V'` over `B`, whose models `F` and `F'` may differ. If `ℂ`-linear isomorphisms
+`e x : V x ≃ V' x` are smooth on total spaces, then the real first Chern classes of the unitary
+frame bundles of `(V, g)` and of `(V', g')` are equal. -/
+theorem _root_.Bundle.ContMDiffRiemannianMetric.realFirstChernClass_congr
+    {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℝ F'] [NormedSpace ℂ F']
+    [IsScalarTower ℝ ℂ F'] [Fact (finrank ℂ F' = 1)]
+    {V' : B → Type*} [∀ x, AddCommGroup (V' x)] [∀ x, Module ℝ (V' x)] [∀ x, Module ℂ (V' x)]
+    [∀ x, IsScalarTower ℝ ℂ (V' x)] [∀ x, TopologicalSpace (V' x)]
+    [∀ x, IsTopologicalAddGroup (V' x)] [∀ x, ContinuousSMul ℝ (V' x)]
+    [TopologicalSpace (TotalSpace F' V')] [FiberBundle F' V'] [VectorBundle ℂ F' V']
+    [ContMDiffVectorBundle ∞ F' V' IB]
+    (g' : ContMDiffRiemannianMetric IB ∞ F' V')
+    (hI' : ∀ x (v w : V' x), g'.inner x (Complex.I • v) (Complex.I • w) = g'.inner x v w)
+    (e : ∀ x, V x ≃L[ℂ] V' x)
+    (he : ContMDiff (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F')) ∞
+      fun p : TotalSpace F V ↦ TotalSpace.mk' F' p.proj (e p.proj p.snd)) :
+    g.realFirstChernClass hI = g'.realFirstChernClass hI' := by
+  rw [ContMDiffRiemannianMetric.realFirstChernClass_def g hI]
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  refine realFirstChernClass_eq_of_equivariant g' hI' (Q := Fiber ℂ F V ℂ)
+    (fun x φ ↦ e x (φ.frame 1)) ?_ (fun _ φ ↦ ?_) fun z _ φ ↦ ?_
+  · exact he.comp (contMDiff_circleFiber_frame_one g hI)
+  · rw [Ne, ContinuousLinearEquiv.map_eq_zero_iff]
+    exact φ.frame.map_ne_zero_iff.2 one_ne_zero
+  · rw [Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul, ← _root_.map_smul,
+      smul_eq_mul, mul_one]
 
 end SymplecticGeometry.Bundle
