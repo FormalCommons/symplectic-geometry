@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.PuncturedTorus
-import TauCeti.Topology.Homotopy.Path
+public import TauCeti.Topology.Homotopy.Path
 import Mathlib.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
@@ -49,6 +49,17 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
 `TauCeti.isComplementaryBall_sphereBall`, which the file names `ClosedSurface.sphereChart` and
 `ClosedSurface.sphereCoChart`.
 
+From these the file builds the loops at the base point whose classes the computation of the
+fundamental group uses. The path `ClosedSurface.summandPath g k` joins the base point to the point
+`0` of the torus summand `k`; `ClosedSurface.circleLoop g k i` runs along it, once around the
+circle `i` of that torus, and back. The loop `ClosedSurface.ballLoop g j` runs along
+`ballPath g j`, backwards once around `ballCircle g j`, and back. The loop
+`ClosedSurface.peripheralLoop g n i` of `puncture g n` is `ballLoop g i.rev` restricted to it, so
+that the index `i` of a peripheral loop belongs to the ball `i.rev`: the ball `0`, along which
+the next torus is summed, carries the last one. A path of genus `g` that misses the centre of the
+ball `0` is carried to genus `g + 1` through the second summand by `ClosedSurface.succPath`, and
+the paths and loops of genus `g + 1` are related in this way to those of genus `g`.
+
 ## Main definitions
 
 * `SymplecticGeometry.ClosedSurface.puncture g n`: the closed surface of genus `g` with the
@@ -64,6 +75,18 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
 * `SymplecticGeometry.ClosedSurface.sphereChart`,
   `SymplecticGeometry.ClosedSurface.sphereCoChart`: the two charts of the sphere `ClosedSurface 0`,
   about the point opposite its base point and about the base point.
+* `SymplecticGeometry.ClosedSurface.succPath`: a path of genus `g` missing the centre of the
+  ball `0`, carried to genus `g + 1` through the second summand of the connected sum.
+* `SymplecticGeometry.ClosedSurface.summandPath g k`: a path from the base point to the point `0`
+  of the torus summand `k`.
+* `SymplecticGeometry.ClosedSurface.circleLoop g k i`: the circle `i` of the torus summand `k`,
+  as a loop at the base point.
+* `SymplecticGeometry.ClosedSurface.puncturedSummandPath g n k`,
+  `SymplecticGeometry.ClosedSurface.puncturedCircleLoop g n k i`: the same, in `puncture g n`.
+* `SymplecticGeometry.ClosedSurface.ballLoop g j`: the loop at the base point about the centre
+  of the ball `j`.
+* `SymplecticGeometry.ClosedSurface.peripheralLoop g n i`: the loop of `puncture g n` at the base
+  point about the centre of the ball `i.rev`.
 
 ## Main results
 
@@ -86,6 +109,18 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
 * `SymplecticGeometry.ClosedSurface.ballPath_zero_zero`,
   `SymplecticGeometry.ClosedSurface.ballPath_zero_succ`: the paths to the balls of the sphere, as
   segments in its two charts.
+* `SymplecticGeometry.ClosedSurface.summandPath_ne_ball`,
+  `SymplecticGeometry.ClosedSurface.circleLoop_ne_ball`,
+  `SymplecticGeometry.ClosedSurface.ballLoop_ne_ball`: they meet no centre.
+* `SymplecticGeometry.ClosedSurface.summandPath_succ_zero`: the path to the torus summand `0` of
+  genus `g + 1` crosses the neck from the second summand into the torus.
+* `SymplecticGeometry.ClosedSurface.succDiffeomorph_summandPath_succ_apply`,
+  `SymplecticGeometry.ClosedSurface.succDiffeomorph_circleLoop_succ_apply`,
+  `SymplecticGeometry.ClosedSurface.succDiffeomorph_ballLoop_apply`,
+  `SymplecticGeometry.ClosedSurface.succDiffeomorph_peripheralLoop_apply`: in genus `g + 1`, those
+  of the summand `k + 1`, the loop about the ball `j` and the peripheral loop `i` are those of
+  the summand `k`, the loop about the ball `j + 1` and the peripheral loop `Fin.castSucc i` of
+  genus `g`, in the second summand.
 
 ## References
 
@@ -529,7 +564,72 @@ private theorem zeroBallPath_ne_ball (j : ℕ) (t : unitInterval) (k : ℕ) :
       omega
 
 end Sphere
+
+/-! ### Paths of genus `g` in genus `g + 1` -/
+
+/-- A path `γ` of the closed surface of genus `g` that misses the centre of the ball `0`, as a
+path of the closed surface of genus `g + 1` through the second summand of the connected sum
+(`ClosedSurface.succDiffeomorph_succPath_apply`). Its ends are given as points `x'`, `y'` of
+genus `g + 1` that `succDiffeomorph` sends to the ends of `γ` in the second summand. -/
+def succPath {x y : ConnectedSum.puncture (ball g 0)} {x' y' : ClosedSurface (g + 1)}
+    (γ : Path x.val y.val) (hγ : ∀ t, γ t ∈ ConnectedSum.puncture (ball g 0))
+    (hx : succDiffeomorph x' = ConnectedSum.inr _ _ x)
+    (hy : succDiffeomorph y' = ConnectedSum.inr _ _ y) : Path x' y' :=
+  letI := ConnectedSum.chartedSpace (H := EuclideanSpace ℝ (Fin 2))
+    EuclideanTorus.isOpenEmbedding_ball (isOpenEmbedding_ball (g := g) 0)
+  (((γ.codRestrict hγ).map (ConnectedSum.continuous_inr _ _)).map
+    (succDiffeomorph (g := g)).symm.continuous).cast
+    (by rw [← hx, Diffeomorph.symm_apply_apply])
+    (by rw [← hy, Diffeomorph.symm_apply_apply])
+
+theorem succPath_def {x y : ConnectedSum.puncture (ball g 0)} {x' y' : ClosedSurface (g + 1)}
+    (γ : Path x.val y.val) (hγ : ∀ t, γ t ∈ ConnectedSum.puncture (ball g 0))
+    (hx : succDiffeomorph x' = ConnectedSum.inr _ _ x)
+    (hy : succDiffeomorph y' = ConnectedSum.inr _ _ y) :
+    letI := ConnectedSum.chartedSpace (H := EuclideanSpace ℝ (Fin 2))
+      EuclideanTorus.isOpenEmbedding_ball (isOpenEmbedding_ball (g := g) 0)
+    succPath γ hγ hx hy = (((γ.codRestrict hγ).map (ConnectedSum.continuous_inr _ _)).map
+      (succDiffeomorph (g := g)).symm.continuous).cast
+      (by rw [← hx, Diffeomorph.symm_apply_apply])
+      (by rw [← hy, Diffeomorph.symm_apply_apply]) :=
+  (rfl)
+
+/-- Read in the connected sum, a path of genus `g` carried to genus `g + 1` is the path itself,
+in the second summand. -/
+@[simp]
+theorem succDiffeomorph_succPath_apply {x y : ConnectedSum.puncture (ball g 0)}
+    {x' y' : ClosedSurface (g + 1)} (γ : Path x.val y.val)
+    (hγ : ∀ t, γ t ∈ ConnectedSum.puncture (ball g 0))
+    (hx : succDiffeomorph x' = ConnectedSum.inr _ _ x)
+    (hy : succDiffeomorph y' = ConnectedSum.inr _ _ y) (t : unitInterval) :
+    succDiffeomorph (succPath γ hγ hx hy t) = ConnectedSum.inr _ _ ⟨γ t, hγ t⟩ := by
+  simp only [succPath_def, Path.cast_coe, Path.map_coe, Function.comp_apply,
+    Diffeomorph.apply_symm_apply]
+  exact congrArg _ (Subtype.ext (Path.codRestrict_coe γ hγ t))
+
+/-- A path of genus `g` that misses the centre of the ball `j + 1` misses, carried to genus
+`g + 1`, the centre of the ball `j`. -/
+theorem succPath_ne_ball {x y : ConnectedSum.puncture (ball g 0)}
+    {x' y' : ClosedSurface (g + 1)} (γ : Path x.val y.val)
+    (hγ : ∀ t, γ t ∈ ConnectedSum.puncture (ball g 0))
+    (hx : succDiffeomorph x' = ConnectedSum.inr _ _ x)
+    (hy : succDiffeomorph y' = ConnectedSum.inr _ _ y) {t : unitInterval} {j : ℕ}
+    (h : γ t ≠ ball g (j + 1) 0) : succPath γ hγ hx hy t ≠ ball (g + 1) j 0 := fun h' ↦ h <| by
+  have h'' := congrArg succDiffeomorph h'
+  rw [succDiffeomorph_succPath_apply, succDiffeomorph_ball, ConnectedSum.inrBall_apply] at h''
+  have := congrArg Subtype.val (ConnectedSum.inr_injective EuclideanTorus.ball_injective h'')
+  rwa [ConnectedSum.coe_punctureBall] at this
+
 /-! ### The paths to the balls -/
+
+/-- The start of the circle of the ball `j` of genus `g + 1` is that of the ball `j + 1` of
+genus `g`, in the second summand. -/
+private theorem succDiffeomorph_ball_neckIsometry_one (j : ℕ) :
+    succDiffeomorph (ball (g + 1) j (neckIsometry 1)) =
+      ConnectedSum.inr _ _ ⟨ball g (j + 1) (neckIsometry 1),
+        ConnectedSum.mem_puncture.2 (by simp)⟩ := by
+  rw [succDiffeomorph_ball, ConnectedSum.inrBall_apply]
+  exact congrArg _ (Subtype.ext (ConnectedSum.coe_punctureBall _ _))
 
 /-- The paths to the balls of the closed surface of genus `g`, defined together with the fact
 that they meet no centre, which lets the recursion carry them into the second summand. -/
@@ -537,25 +637,10 @@ private def ballPathAux : (g j : ℕ) →
     {γ : Path (basePoint g) (ball g j (neckIsometry 1)) // ∀ t k, γ t ≠ ball g k 0}
   | 0, j => ⟨zeroBallPath j, zeroBallPath_ne_ball j⟩
   | g + 1, j =>
-    letI := ConnectedSum.chartedSpace (H := EuclideanSpace ℝ (Fin 2))
-      EuclideanTorus.isOpenEmbedding_ball (isOpenEmbedding_ball (g := g) 0)
-    ⟨((((ballPathAux g (j + 1)).val.codRestrict (s := ConnectedSum.puncture (ball g 0))
-        (x := ⟨basePoint g, basePoint_mem_puncture_ball_zero⟩)
-        (y := ⟨ball g (j + 1) (neckIsometry 1), ConnectedSum.mem_puncture.2 (by simp)⟩)
-        fun t ↦ ConnectedSum.mem_puncture.2 ((ballPathAux g (j + 1)).property t 0)).map
-          (ConnectedSum.continuous_inr _ _)).map (succDiffeomorph (g := g)).symm.continuous).cast
-        (by rw [← succDiffeomorph_basePoint, Diffeomorph.symm_apply_apply])
-        (by
-          rw [← succDiffeomorph.symm_apply_apply (ball (g + 1) j _), succDiffeomorph_ball,
-            ConnectedSum.inrBall_apply]
-          exact congrArg _ (congrArg _ (Subtype.ext (ConnectedSum.coe_punctureBall _ _)))),
-      fun t k h ↦ (ballPathAux g (j + 1)).property t (k + 1) <| by
-        have h' := congrArg succDiffeomorph h
-        simp only [Path.cast_coe, Path.map_coe, Function.comp_apply,
-          Diffeomorph.apply_symm_apply, succDiffeomorph_ball, ConnectedSum.inrBall_apply] at h'
-        have h'' :=
-          congrArg Subtype.val (ConnectedSum.inr_injective EuclideanTorus.ball_injective h')
-        rwa [Path.codRestrict_coe, ConnectedSum.coe_punctureBall] at h''⟩
+    ⟨succPath (ballPathAux g (j + 1)).val
+        (fun t ↦ ConnectedSum.mem_puncture.2 ((ballPathAux g (j + 1)).property t 0))
+        succDiffeomorph_basePoint (succDiffeomorph_ball_neckIsometry_one j),
+      fun t k ↦ succPath_ne_ball _ _ _ _ ((ballPathAux g (j + 1)).property t (k + 1))⟩
 
 variable (g) in
 /-- The **path to the ball `j`** of the closed surface of genus `g`: a path from the base point
@@ -607,9 +692,8 @@ theorem succDiffeomorph_ballPath_apply (j : ℕ) (t : unitInterval) :
     succDiffeomorph (ballPath (g + 1) j t) =
       ConnectedSum.inr _ _ ⟨ballPath g (j + 1) t,
         ConnectedSum.mem_puncture.2 (ballPath_ne_ball (j + 1) t 0)⟩ := by
-  simp only [ballPath, ballPathAux, Path.cast_coe, Path.map_coe, Function.comp_apply,
-    Diffeomorph.apply_symm_apply]
-  exact congrArg _ (Subtype.ext (Path.codRestrict_coe _ _ t))
+  simp only [ballPath, ballPathAux]
+  exact succDiffeomorph_succPath_apply _ _ _ _ t
 
 variable (g n) in
 /-- The path to the ball `j`, as a path in `puncture g n`. -/
@@ -627,6 +711,256 @@ theorem coe_puncturedBallPath_apply (j : ℕ) (t : unitInterval) :
 theorem map_puncturedBallPath (j : ℕ) :
     (puncturedBallPath g n j).map continuous_subtypeVal = ballPath g j :=
   Path.map_codRestrict _ _
+
+/-! ### The paths to the torus summands -/
+
+/-- In the closed surface of genus `g + 1`, the image under the summand `0` of the neck point of
+the torus is the start of the circle of the ball `0` of genus `g`, in the second summand. -/
+theorem succDiffeomorph_summand_zero_neckInl :
+    succDiffeomorph (summand (g := g + 1) 0
+        (ConnectedSum.neckInl EuclideanTorus.isOpenEmbedding_ball
+          (neckIsometry.circleBasepoint one_pos))) =
+      ConnectedSum.inr _ _ ⟨ball g 0 (neckIsometry 1), ConnectedSum.mem_puncture.2 (by simp)⟩ :=
+  (succDiffeomorph_summand_zero _).trans inl_neckInl_circleBasepoint
+
+variable (g) in
+/-- The path to the torus summand `0` of genus `g + 1`. -/
+private def summandPathZero :
+    Path (basePoint (g + 1)) (summand 0 ⟨0, EuclideanTorus.zero_mem_puncture⟩) :=
+  (succPath (x := ⟨basePoint g, basePoint_mem_puncture_ball_zero⟩)
+      (y := ⟨ball g 0 (neckIsometry 1), ConnectedSum.mem_puncture.2 (by simp)⟩) (ballPath g 0)
+      (fun t ↦ ConnectedSum.mem_puncture.2 (ballPath_ne_ball 0 t 0))
+      succDiffeomorph_basePoint succDiffeomorph_summand_zero_neckInl).trans
+    (EuclideanTorus.peripheralPath.symm.map (continuous_summand 0))
+
+private theorem summandPathZero_ne_ball (t : unitInterval) (j : ℕ) :
+    summandPathZero g t ≠ ball (g + 1) j 0 := by
+  have ht := mem_range_self (f := ⇑(summandPathZero g)) t
+  rw [summandPathZero, Path.trans_range] at ht
+  rw [summandPathZero]
+  rcases ht with ⟨s, hs⟩ | ⟨s, hs⟩
+  · rw [← hs]
+    exact succPath_ne_ball _ _ _ _ (ballPath_ne_ball 0 s (j + 1))
+  · rw [← hs]
+    exact summand_ne_ball 0 _ j
+
+/-- The paths to the torus summands, defined together with the fact that they meet no centre,
+which lets the recursion carry them into the second summand. -/
+private def summandPathAux : (g : ℕ) → (k : Fin g) →
+    {γ : Path (basePoint g) (summand k ⟨0, EuclideanTorus.zero_mem_puncture⟩) //
+      ∀ t j, γ t ≠ ball g j 0}
+  | g + 1, ⟨0, _⟩ => ⟨summandPathZero g, summandPathZero_ne_ball⟩
+  | g + 1, ⟨k + 1, hk⟩ =>
+    ⟨succPath (summandPathAux g ⟨k, Nat.lt_of_succ_lt_succ hk⟩).val
+        (fun t ↦ ConnectedSum.mem_puncture.2
+          ((summandPathAux g ⟨k, Nat.lt_of_succ_lt_succ hk⟩).property t 0))
+        succDiffeomorph_basePoint (succDiffeomorph_summand_succ ⟨k, _⟩ _),
+      fun t j ↦ succPath_ne_ball _ _ _ _
+        ((summandPathAux g ⟨k, Nat.lt_of_succ_lt_succ hk⟩).property t (j + 1))⟩
+
+variable (g) in
+/-- The **path to the torus summand `k`** of the closed surface of genus `g`: a path from the base
+point to the point `0` of the punctured torus `summand k`, which meets no centre of a ball
+(`ClosedSurface.summandPath_ne_ball`). For genus `g + 1` and `k = 0` it is the path to the ball
+`0` of genus `g`, in the second summand, followed by the reverse of
+`SymplecticGeometry.EuclideanTorus.peripheralPath` in the first summand, from the neck point to
+`0` (`ClosedSurface.summandPath_succ_zero`); for `k + 1` it is the path to the summand `k` of
+genus `g`, in the second summand (`ClosedSurface.succDiffeomorph_summandPath_succ_apply`). -/
+def summandPath (k : Fin g) :
+    Path (basePoint g) (summand k ⟨0, EuclideanTorus.zero_mem_puncture⟩) :=
+  (summandPathAux g k).val
+
+/-- The path to a torus summand meets no centre of a ball. -/
+theorem summandPath_ne_ball (k : Fin g) (t : unitInterval) (j : ℕ) :
+    summandPath g k t ≠ ball g j 0 :=
+  (summandPathAux g k).property t j
+
+/-- The path to the torus summand `0` of genus `g + 1`: the path to the ball `0` of genus `g`, in
+the second summand, then, from the neck point, the reverse of
+`SymplecticGeometry.EuclideanTorus.peripheralPath` in the first summand. -/
+theorem summandPath_succ_zero :
+    summandPath (g + 1) 0 =
+      (succPath (x := ⟨basePoint g, basePoint_mem_puncture_ball_zero⟩)
+        (y := ⟨ball g 0 (neckIsometry 1), ConnectedSum.mem_puncture.2 (by simp)⟩) (ballPath g 0)
+        (fun t ↦ ConnectedSum.mem_puncture.2 (ballPath_ne_ball 0 t 0))
+        succDiffeomorph_basePoint succDiffeomorph_summand_zero_neckInl).trans
+      (EuclideanTorus.peripheralPath.symm.map (continuous_summand 0)) :=
+  (rfl)
+
+/-- The path to the torus summand `k + 1` of genus `g + 1` is the path to the summand `k` of
+genus `g`, in the second summand of the connected sum. -/
+theorem succDiffeomorph_summandPath_succ_apply (k : Fin g) (t : unitInterval) :
+    succDiffeomorph (summandPath (g + 1) k.succ t) =
+      ConnectedSum.inr _ _ ⟨summandPath g k t,
+        ConnectedSum.mem_puncture.2 (summandPath_ne_ball k t 0)⟩ :=
+  succDiffeomorph_succPath_apply _ _ succDiffeomorph_basePoint (succDiffeomorph_summand_succ _ _) t
+
+/-- The path to a torus summand lies in each `puncture g n`. -/
+@[simp]
+theorem summandPath_mem_puncture (k : Fin g) (t : unitInterval) :
+    summandPath g k t ∈ puncture g n :=
+  mem_puncture.2 fun j _ ↦ summandPath_ne_ball k t j
+
+/-- A punctured torus summand lies in each `puncture g n`. -/
+@[simp]
+theorem summand_mem_puncture (k : Fin g) (x : ConnectedSum.puncture EuclideanTorus.ball) :
+    summand k x ∈ puncture g n :=
+  mem_puncture.2 fun j _ ↦ summand_ne_ball k x j
+
+variable (g n) in
+/-- The path to the torus summand `k`, as a path in `puncture g n`. -/
+def puncturedSummandPath (k : Fin g) :
+    Path (⟨basePoint g, basePoint_mem_puncture⟩ : puncture g n)
+      ⟨summand k ⟨0, EuclideanTorus.zero_mem_puncture⟩, summand_mem_puncture k _⟩ :=
+  (summandPath g k).codRestrict fun t ↦ summandPath_mem_puncture k t
+
+@[simp]
+theorem coe_puncturedSummandPath_apply (k : Fin g) (t : unitInterval) :
+    (puncturedSummandPath g n k t : ClosedSurface g) = summandPath g k t :=
+  Path.codRestrict_coe _ _ t
+
+@[simp]
+theorem map_puncturedSummandPath (k : Fin g) :
+    (puncturedSummandPath g n k).map continuous_subtypeVal = summandPath g k :=
+  Path.map_codRestrict _ _
+
+/-! ### The standard loops -/
+
+variable (g) in
+/-- The **standard circle** `i` of the torus summand `k` of the closed surface of genus `g`, as a
+loop at the base point: the path `ClosedSurface.summandPath g k` to the point `0` of the summand,
+then the image under the summand of the circle `SymplecticGeometry.EuclideanTorus.circleLoop i`,
+then `summandPath g k` back: for `i = 0` the circle `a k` and for `i = 1` the circle `b k` of the
+surface. -/
+def circleLoop (k : Fin g) (i : Fin 2) : Path (basePoint g) (basePoint g) :=
+  ((summandPath g k).trans ((EuclideanTorus.circleLoop i).map (continuous_summand k))).trans
+    (summandPath g k).symm
+
+variable (g) in
+theorem circleLoop_def (k : Fin g) (i : Fin 2) :
+    circleLoop g k i =
+      ((summandPath g k).trans ((EuclideanTorus.circleLoop i).map (continuous_summand k))).trans
+        (summandPath g k).symm :=
+  (rfl)
+
+/-- A standard circle of a torus summand meets no centre of a ball. -/
+theorem circleLoop_ne_ball (k : Fin g) (i : Fin 2) (t : unitInterval) (j : ℕ) :
+    circleLoop g k i t ≠ ball g j 0 := by
+  have ht := mem_range_self (f := ⇑(circleLoop g k i)) t
+  rw [circleLoop_def, Path.trans_range, Path.trans_range, Path.symm_range] at ht
+  rcases ht with (⟨s, hs⟩ | ⟨s, hs⟩) | ⟨s, hs⟩
+  · exact hs ▸ summandPath_ne_ball k s j
+  · exact hs ▸ summand_ne_ball k _ j
+  · exact hs ▸ summandPath_ne_ball k s j
+
+/-- A standard circle of a torus summand lies in each `puncture g n`. -/
+@[simp]
+theorem circleLoop_mem_puncture (k : Fin g) (i : Fin 2) (t : unitInterval) :
+    circleLoop g k i t ∈ puncture g n :=
+  mem_puncture.2 fun j _ ↦ circleLoop_ne_ball k i t j
+
+variable (g n) in
+/-- The standard circle `i` of the torus summand `k`, as a loop in `puncture g n`. -/
+def puncturedCircleLoop (k : Fin g) (i : Fin 2) :
+    Path (⟨basePoint g, basePoint_mem_puncture⟩ : puncture g n)
+      ⟨basePoint g, basePoint_mem_puncture⟩ :=
+  (circleLoop g k i).codRestrict fun t ↦ circleLoop_mem_puncture k i t
+
+@[simp]
+theorem coe_puncturedCircleLoop_apply (k : Fin g) (i : Fin 2) (t : unitInterval) :
+    (puncturedCircleLoop g n k i t : ClosedSurface g) = circleLoop g k i t :=
+  Path.codRestrict_coe _ _ t
+
+@[simp]
+theorem map_puncturedCircleLoop (k : Fin g) (i : Fin 2) :
+    (puncturedCircleLoop g n k i).map continuous_subtypeVal = circleLoop g k i :=
+  Path.map_codRestrict _ _
+
+/-- The standard circle `i` of the torus summand `k + 1` of genus `g + 1` is that of the summand
+`k` of genus `g`, in the second summand of the connected sum. -/
+theorem succDiffeomorph_circleLoop_succ_apply (k : Fin g) (i : Fin 2) (t : unitInterval) :
+    succDiffeomorph (circleLoop (g + 1) k.succ i t) =
+      ConnectedSum.inr _ _ ⟨circleLoop g k i t,
+        ConnectedSum.mem_puncture.2 (circleLoop_ne_ball k i t 0)⟩ := by
+  simp only [circleLoop_def, Path.trans_apply, Path.symm_apply]
+  split_ifs <;> simp [succDiffeomorph_summandPath_succ_apply]
+
+variable (g) in
+/-- The **loop about the ball `j`** of the closed surface of genus `g`, at the base point: the
+path `ClosedSurface.ballPath g j` to the ball, then the circle `ClosedSurface.ballCircle g j` of
+the ball run backwards, then `ballPath g j` back. -/
+def ballLoop (j : ℕ) : Path (basePoint g) (basePoint g) :=
+  ((ballPath g j).trans (ballCircle g j).symm).trans (ballPath g j).symm
+
+variable (g) in
+theorem ballLoop_def (j : ℕ) :
+    ballLoop g j = ((ballPath g j).trans (ballCircle g j).symm).trans (ballPath g j).symm :=
+  (rfl)
+
+/-- The loop about a ball meets no centre of a ball. -/
+theorem ballLoop_ne_ball (j : ℕ) (t : unitInterval) (k : ℕ) : ballLoop g j t ≠ ball g k 0 := by
+  have ht := mem_range_self (f := ⇑(ballLoop g j)) t
+  rw [ballLoop_def, Path.trans_range, Path.trans_range, Path.symm_range, Path.symm_range] at ht
+  rcases ht with (⟨s, hs⟩ | ⟨s, hs⟩) | ⟨s, hs⟩
+  · exact hs ▸ ballPath_ne_ball j s k
+  · exact hs ▸ ballCircle_ne_ball j s k
+  · exact hs ▸ ballPath_ne_ball j s k
+
+/-- The loop about a ball lies in each `puncture g n`. -/
+@[simp]
+theorem ballLoop_mem_puncture (j : ℕ) (t : unitInterval) : ballLoop g j t ∈ puncture g n :=
+  mem_puncture.2 fun k _ ↦ ballLoop_ne_ball j t k
+
+/-- The loop about the ball `j` of genus `g + 1` is that about the ball `j + 1` of genus `g`, in
+the second summand of the connected sum. -/
+theorem succDiffeomorph_ballLoop_apply (j : ℕ) (t : unitInterval) :
+    succDiffeomorph (ballLoop (g + 1) j t) =
+      ConnectedSum.inr _ _ ⟨ballLoop g (j + 1) t,
+        ConnectedSum.mem_puncture.2 (ballLoop_ne_ball (j + 1) t 0)⟩ := by
+  simp only [ballLoop_def, Path.trans_apply, Path.symm_apply]
+  split_ifs
+  · exact succDiffeomorph_ballPath_apply _ _
+  · exact succDiffeomorph_ballCircle_apply _ _
+  · exact succDiffeomorph_ballPath_apply _ _
+
+variable (g n) in
+/-- The **peripheral loop** `i` of `puncture g n`, about the centre of the ball `i.rev`, at the
+base point: the loop `ClosedSurface.ballLoop g i.rev` about that ball, as a loop in
+`puncture g n`. -/
+def peripheralLoop (i : Fin n) :
+    Path (⟨basePoint g, basePoint_mem_puncture⟩ : puncture g n)
+      ⟨basePoint g, basePoint_mem_puncture⟩ :=
+  (ballLoop g i.rev).codRestrict fun t ↦ ballLoop_mem_puncture i.rev t
+
+variable (g n) in
+theorem peripheralLoop_def (i : Fin n) :
+    peripheralLoop g n i =
+      (ballLoop g i.rev).codRestrict fun t ↦ ballLoop_mem_puncture i.rev t :=
+  (rfl)
+
+@[simp]
+theorem coe_peripheralLoop_apply (i : Fin n) (t : unitInterval) :
+    (peripheralLoop g n i t : ClosedSurface g) = ballLoop g i.rev t :=
+  Path.codRestrict_coe _ _ t
+
+@[simp]
+theorem map_peripheralLoop (i : Fin n) :
+    (peripheralLoop g n i).map continuous_subtypeVal = ballLoop g i.rev :=
+  Path.map_codRestrict _ _
+
+/-- The peripheral loop `i` of `puncture (g + 1) n` is the peripheral loop `Fin.castSucc i` of
+`puncture g (n + 1)`, in the second summand of the connected sum: both run about the ball `i.rev`
+of genus `g + 1`, which is the ball `(Fin.castSucc i).rev = i.rev.succ` of genus `g`. -/
+theorem succDiffeomorph_peripheralLoop_apply (i : Fin n) (t : unitInterval) :
+    succDiffeomorph (peripheralLoop (g + 1) n i t : ClosedSurface (g + 1)) =
+      ConnectedSum.inr _ _ ⟨(peripheralLoop g (n + 1) (Fin.castSucc i) t : ClosedSurface g),
+        ConnectedSum.mem_puncture.2 fun h ↦
+          mem_puncture.1 (peripheralLoop g (n + 1) (Fin.castSucc i) t).property 0 (Nat.succ_pos n)
+            h⟩ := by
+  have hi : ((Fin.castSucc i).rev : ℕ) = i.rev + 1 := by simp; omega
+  rw [coe_peripheralLoop_apply]
+  refine (succDiffeomorph_ballLoop_apply _ t).trans (congrArg _ (Subtype.ext ?_))
+  rw [coe_peripheralLoop_apply, hi]
 
 end SymplecticGeometry.ClosedSurface
 

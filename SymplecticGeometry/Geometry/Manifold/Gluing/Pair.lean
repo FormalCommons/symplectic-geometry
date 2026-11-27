@@ -83,7 +83,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
   injective local diffeomorphisms from `M₁` and `M₂` cover, meeting only along the overlap.
 * `SymplecticGeometry.GluedAlong.rangeInl`: the range of `inl`, as an open set, and
   `SymplecticGeometry.GluedAlong.rangeInlDiffeomorph`: for a compatible gluing, the
-  diffeomorphism from it onto `M₁` inverse to `inl`.
+  diffeomorphism from it onto `M₁` inverse to `inl`; `rangeInr` and `rangeInrDiffeomorph`, the
+  same for `inr` and `M₂`.
 * `SymplecticGeometry.GluedAlong.gluedForm`: the form glued from forms on `M₁` and `M₂` that
   agree on the overlap.
 
@@ -91,8 +92,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
   `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`,
-  `inl_mem_range_inr_iff`, `inr_mem_range_inl_iff`, `isClosed_image_inl`: the topology of the
-  glued space.
+  `inl_mem_range_inr_iff`, `inr_mem_range_inl_iff`, `range_inl_eq_compl_image_inr`,
+  `isClosed_image_inl`: the topology of the glued space.
 * `SymplecticGeometry.GluedAlong.isCompatible_glueData_of_contMDiff`: the gluing along a
   homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
@@ -327,6 +328,15 @@ theorem inr_mem_range_inl_iff {y : M₂} : inr φ y ∈ range (inl φ) ↔ y ∈
   obtain ⟨h, rfl⟩ := (inl_eq_inr_iff φ).1 hx
   exact (φ ⟨x, h⟩).property
 
+/-- The image of `M₁` in the glued space is the complement of the image of `M₂ \ U₂`. -/
+theorem range_inl_eq_compl_image_inr : range (inl φ) = (inr φ '' (U₂ : Set M₂)ᶜ)ᶜ := by
+  ext z
+  rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · refine iff_of_true (mem_range_self x) fun ⟨y, hy, h⟩ ↦ hy ?_
+    exact (inr_mem_range_inl_iff φ).1 ⟨x, h.symm⟩
+  · rw [inr_mem_range_inl_iff, mem_compl_iff, (inr_injective φ).mem_set_image, mem_compl_iff,
+      not_not, SetLike.mem_coe]
+
 /-- The range of `inl`, an open subset of the glued space: the points that come from `M₁`. -/
 def rangeInl : Opens (GluedAlong φ) := ⟨range (inl φ), isOpen_range_inl φ⟩
 
@@ -340,6 +350,20 @@ theorem mem_rangeInl {z : GluedAlong φ} : z ∈ rangeInl φ ↔ ∃ x, inl φ x
 /-- Every point `inl x` of the glued space lies in `rangeInl φ`. -/
 theorem inl_mem_rangeInl (x : M₁) : inl φ x ∈ rangeInl φ :=
   (mem_rangeInl φ).2 ⟨x, rfl⟩
+
+/-- The range of `inr`, an open subset of the glued space: the points that come from `M₂`. -/
+def rangeInr : Opens (GluedAlong φ) := ⟨range (inr φ), isOpen_range_inr φ⟩
+
+@[simp]
+theorem coe_rangeInr : (rangeInr φ : Set (GluedAlong φ)) = range (inr φ) := (rfl)
+
+/-- A point of the glued space lies in `rangeInr φ` exactly when it is `inr y` for some `y`. -/
+@[simp]
+theorem mem_rangeInr {z : GluedAlong φ} : z ∈ rangeInr φ ↔ ∃ y, inr φ y = z := Iff.rfl
+
+/-- Every point `inr y` of the glued space lies in `rangeInr φ`. -/
+theorem inr_mem_rangeInr (y : M₂) : inr φ y ∈ rangeInr φ :=
+  (mem_rangeInr φ).2 ⟨y, rfl⟩
 
 section Desc
 
@@ -578,6 +602,37 @@ theorem rangeInlDiffeomorph_mk_inl (x : M₁) :
   inl_injective φ (inl_rangeInlDiffeomorph_apply h _)
 
 end RangeInl
+
+/-- For a `C^n` compatible gluing, the `C^n` diffeomorphism from the range of `inr` onto `M₂`,
+the inverse of `inr`. -/
+def rangeInrDiffeomorph [IsManifold I n M₁] [IsManifold I n M₂]
+    (h : (glueData φ).IsCompatible I n) : rangeInr φ ≃ₘ^n⟮I, I⟯ M₂ :=
+  -- `rangeInr φ` is by definition the open set `IsLocalDiffeomorph.image` of `inr φ`.
+  ((isLocalDiffeomorph_inr_of_isCompatible h).diffeomorphOfInjective (inr_injective φ)).symm
+
+section RangeInr
+
+variable [IsManifold I n M₁] [IsManifold I n M₂] (h : (glueData φ).IsCompatible I n)
+
+/-- The inverse of `rangeInrDiffeomorph h` is `inr`. -/
+@[simp]
+theorem coe_rangeInrDiffeomorph_symm_apply (y : M₂) :
+    ((rangeInrDiffeomorph h).symm y : GluedAlong φ) = inr φ y :=
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ y
+
+/-- `inr` undoes `rangeInrDiffeomorph h`. -/
+@[simp]
+theorem inr_rangeInrDiffeomorph_apply (z : rangeInr φ) : inr φ (rangeInrDiffeomorph h z) = z :=
+  IsLocalDiffeomorph.apply_diffeomorphOfInjective_symm (isLocalDiffeomorph_inr_of_isCompatible h)
+    _ z
+
+/-- `rangeInrDiffeomorph h` sends the point `inr y` to `y`. -/
+@[simp]
+theorem rangeInrDiffeomorph_mk_inr (y : M₂) :
+    rangeInrDiffeomorph h ⟨inr φ y, inr_mem_rangeInr φ y⟩ = y :=
+  inr_injective φ (inr_rangeInrDiffeomorph_apply h _)
+
+end RangeInr
 
 /-- For a `C^n` compatible gluing, a map out of the glued space is `C^m`, for `m ≤ n`, exactly
 when its compositions with `inl` and `inr` are. -/

@@ -54,13 +54,6 @@ conditions on that map.
   or is a positive definite matrix (McDuff–Salamon, Lemma 2.5.5).
 * `SymplecticGeometry.neg_J_mul_mem_symplecticGroup_of_invariant`: if `J` preserves `ω₀`, then
   `-J₀ M` is a symplectic matrix.
-* `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
-  a complex matrix `A` by `complexToRealEuclidean ι` gives the map of its realification
-  `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
-  (Tau Ceti's `Matrix.realify_I_smul_one`), this recovers
-  `stdComplexStructure_eq_toEuclideanLin_J`.
-* `TauCeti.complexToRealEuclideanIsometry_toEuclideanCLM`: the same through
-  `complexToRealEuclideanIsometry`, vector by vector.
 * `SymplecticGeometry.posDef_toBlocks₂₁_of_compatible` and
   `SymplecticGeometry.toBlocks₂₂_eq_neg_transpose_of_invariant`: the matrix `M` of an
   `ω₀`-compatible complex structure has positive definite lower left block `M₂₁`, and
@@ -273,38 +266,6 @@ theorem toBlocks₂₂_eq_neg_transpose_of_invariant {J : AlmostComplexStructure
   rw [neg_J_mul_eq_fromBlocks, fromBlocks_transpose, toBlocks_fromBlocks₁₂, toBlocks_fromBlocks₁₂,
     transpose_neg] at h
   exact h.symm
-
-end SymplecticGeometry
-
-namespace TauCeti
-
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-/-- Conjugating the complex-linear map of a complex matrix `A` by `complexToRealEuclidean ι`,
-which splits a vector of `ι → ℂ` into its real and imaginary parts, gives the map of the
-realification `Matrix.realify A` on `EuclideanSpace ℝ (ι ⊕ ι)`. -/
-theorem conj_complexToRealEuclidean_toLin' (A : Matrix ι ι ℂ) :
-    (complexToRealEuclidean ι).toLinearEquiv.conj ((Matrix.toLin' A).restrictScalars ℝ) =
-      Matrix.toEuclideanLin A.realify := by
-  ext1 z
-  simpa using complexToRealEuclidean_mulVec A ((complexToRealEuclidean ι).symm z)
-
-/-- Through `complexToRealEuclideanIsometry ι`, a complex matrix acts on
-`EuclideanSpace ℝ (ι ⊕ ι)` as its realification. -/
-theorem complexToRealEuclideanIsometry_toEuclideanCLM (A : Matrix ι ι ℂ)
-    (v : EuclideanSpace ℂ ι) :
-    complexToRealEuclideanIsometry ι (Matrix.toEuclideanCLM (𝕜 := ℂ) A v) =
-      Matrix.toEuclideanLin A.realify (complexToRealEuclideanIsometry ι v) := by
-  rw [complexToRealEuclideanIsometry_apply, complexToRealEuclideanIsometry_apply]
-  exact complexToRealEuclidean_mulVec A v.ofLp
-
-end TauCeti
-
-namespace SymplecticGeometry
-
-open TauCeti Matrix
-
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 /-- For the matrix `M` of an `ω₀`-compatible complex structure, the product `M₁₁ M₂₁⁻¹` of the
 upper left block and the inverse of the lower left block is symmetric. -/

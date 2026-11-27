@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
+import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 
 /-!
 # The change of frame between rescaled unitary charts
@@ -26,6 +27,16 @@ On the set `D.chartTransitionDomain k x y` of `ChartTransition.lean`, the points
 (`SymplecticGeometry.RescaledUnitaryCharts.contDiffOn_frameChange`), by Tau Ceti's
 `ContMDiffOn.division`. It has norm one everywhere.
 
+Its logarithmic derivative is the difference of the model forms of the two charts
+(`SymplecticGeometry.RescaledUnitaryCharts.fderiv_frameChange_apply`): for a connection form `α`
+and `w ∈ D.chartTransitionDomain k x y`,
+`d e_w(v) = i (λ₀(w)(v) - λ₀(τ w)(dτ_w v)) e(w)`, with `e = D.frameChange k x y` and
+`λ₀ = (stdForm ι).radialPrimitive`, `λ₀(z)(u) = ω₀(z, u) / 2`. Both frames read `k α` as `-λ₀` in
+their charts (`SymplecticGeometry.RescaledUnitaryCharts.connectionForm_eq_model`), and the
+pull-backs of `α` along them differ by the pull-back of the angular form along their division
+(`SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`), whose
+`k`-th power `e` has derivative `i k e` times that pull-back (`mvfderiv_coe_circle_apply`).
+
 ## Main definitions
 
 * `SymplecticGeometry.RescaledUnitaryCharts.frameChange`: the change of frame.
@@ -37,6 +48,8 @@ On the set `D.chartTransitionDomain k x y` of `ChartTransition.lean`, the points
   on `D.chartTransitionDomain k x y`.
 * `SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`: the readings of a section
   in the two charts differ by the change of frame.
+* `SymplecticGeometry.RescaledUnitaryCharts.fderiv_frameChange_apply`: the logarithmic derivative
+  of the change of frame.
 
 ## References
 
@@ -127,6 +140,70 @@ theorem reading_eq_frameChange_mul {k : ℕ} {x y : M} {w : StdSpace ι}
   rw [reading_def, h, AssociatedBundle.mkLinearIsometryEquiv_symm_apply_mk,
     PowerModel.toComplex_smul, frameChange_def, Circle.coe_pow, zpow_natCast,
     LinearIsometryEquiv.apply_symm_apply]
+
+attribute [local instance] finrank_real_complex_fact' in
+/-- **The logarithmic derivative of the change of frame.** Let `α` be a connection form, `k ≥ k₀`,
+and `τ` the transition from the chart centred at `y` to the chart centred at `x`. At a point `w`
+of `D.chartTransitionDomain k x y`, the derivative of the change of frame `e` in the direction
+`v` is `i θ e(w)`, where `θ = λ₀(w)(v) - λ₀(τ w)(dτ_w v)` is the difference of the model forms
+`λ₀ = (stdForm ι).radialPrimitive`, `λ₀(z)(u) = ω₀(z, u) / 2`, read directly and through `τ`. -/
+theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk : k₀ ≤ k)
+    {x y : M} {w : StdSpace ι} (hw : w ∈ D.chartTransitionDomain k x y) (v : StdSpace ι) :
+    fderiv ℝ (D.frameChange k x y) w v =
+      Complex.I * ((2⁻¹ * (stdForm ι w v - stdForm ι (D.chartTransition k x y w)
+        (fderiv ℝ (D.chartTransition k x y) w v)) : ℝ) : ℂ) * D.frameChange k x y w := by
+  obtain ⟨hwB, hws, hτB⟩ := D.mem_chartTransitionDomain_iff.1 hw
+  have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hws).1
+  set τ := D.chartTransition k x y
+  set p := (D.chart k y).symm w
+  have hpx : (D.chart k x).symm (τ w) = p := D.chart_symm_chartTransition hws
+  set g : M → Circle := fun b ↦ PrincipalBundle.division Circle (D.frame k y b) (D.frame k x b)
+  -- Both frames are smooth near `p`, on the images of the balls under the inverse charts.
+  have hU (z : M) : IsOpen ((D.chart k z).symm '' ball 0 (ρ₀ * √k)) :=
+    (D.chart k z).toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target isOpen_ball
+      (D.ball_subset_target hk z)
+  have hpy : p ∈ (D.chart k y).symm '' ball 0 (ρ₀ * √k) := ⟨w, hwB, rfl⟩
+  have hpx' : p ∈ (D.chart k x).symm '' ball 0 (ρ₀ * √k) := ⟨τ w, hτB, hpx⟩
+  have hFy := (D.contMDiffOn_frame hk y).contMDiffAt ((hU y).mem_nhds hpy)
+  have hFx := (D.contMDiffOn_frame hk x).contMDiffAt ((hU x).mem_nhds hpx')
+  have hg : MDifferentiableAt I (𝓡 1) g p := (hFy.division hFx).mdifferentiableAt (by simp)
+  have hsymm : MDifferentiableAt 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w :=
+    (D.chart k y).symm.mdifferentiableAt (by simp) (by simpa using hwt)
+  -- The tangent vector `u` at `p` that the chart at `y` sends to `v`; the chart at `x` sends it
+  -- to `dτ_w v`.
+  set u := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w v
+  have hu : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (τ w) (fderiv ℝ τ w v) = u :=
+    D.mfderiv_chart_symm_chartTransition hws v
+  -- The change of section: `σ_x^* α = g^* dθ + σ_y^* α` at `p`.
+  have hA := congrArg (· ![u]) (hα.mpullback_apply_eq_mpullback_division_add (hU y)
+    (D.contMDiffOn_frame hk y) hpy (hFx.mdifferentiableAt (by simp)))
+  simp only [ContinuousAlternatingMap.add_apply] at hA
+  -- The model forms in the two charts. Here and below, `erw` is needed since the vectors in
+  -- `![v]` are typed in `StdSpace ι`, and in the lemmas in a tangent space of it.
+  have hmy := D.connectionForm_eq_model hk y w hwB v
+  erw [mpullback_apply_one] at hmy
+  have hmx := D.connectionForm_eq_model hk x (τ w) hτB (fderiv ℝ τ w v)
+  erw [mpullback_apply_one, hu, hpx] at hmx
+  erw [SymplecticForm.radialPrimitive_apply] at hmy hmx
+  -- The derivative of `e = (g ∘ (D.chart k y)⁻¹) ^ k` read in `ℂ`.
+  have he : D.frameChange k x y = fun w ↦ (((g ∘ (D.chart k y).symm) ^ k) w : ℂ) :=
+    funext fun w ↦ by rw [frameChange_def, Pi.pow_apply, Function.comp_apply]
+  have hgs : MDifferentiableAt 𝓘(ℝ, StdSpace ι) (𝓡 1) (g ∘ (D.chart k y).symm) w :=
+    hg.comp w hsymm
+  have hgk : MDifferentiableAt 𝓘(ℝ, StdSpace ι) (𝓡 1) ((g ∘ (D.chart k y).symm) ^ k) w :=
+    ((contMDiff_pow (I := 𝓡 1) (G := Circle) (n := 1) k).mdifferentiableAt one_ne_zero).comp w hgs
+  have hd := mvfderiv_coe_circle_apply hgk v
+  rw [mpullback_pow_circleAngularForm_apply hgs, mpullback_comp_at hsymm hg,
+    ContinuousAlternatingMap.smul_apply] at hd
+  erw [mpullback_apply_one] at hd
+  erw [← mvfderiv_eq_fderiv_apply]
+  rw [he, hd, smul_eq_mul]
+  have hkA : (k : ℝ) * mpullback I (𝓡 1) g circleAngularForm p ![u] =
+      2⁻¹ * (stdForm ι w v - stdForm ι (τ w) (fderiv ℝ τ w v)) := by
+    linear_combination hmx - hmy - (k : ℝ) * hA
+  erw [hkA]
+  push_cast
+  ring
 
 end RescaledUnitaryCharts
 
