@@ -242,14 +242,13 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
       refine ⟨?_, ⟨show b' < ℓ by linarith, mem_univ _⟩,
         hRO ⟨right_mem_Icc.2 hbℓ, hx₂⟩⟩
       have := hg₁le r hx₂
-      change M r + q ℓ + δ < χ' (L ℓ, r)
-      rw [hLx]
+      rw [mem_ofPred_eq, hLx]
       linarith
     filter_upwards [hW.mem_nhdsSet.2 hsub] with x hx
     obtain ⟨hx₁, hx₂, hx₃⟩ := hx
     have hLx : L x.1 = x.1 := hLid x.1 (le_of_lt hx₂.1)
     simp only [mem_ofPred_eq, hLx] at hx₁
-    change smoothedMax δ (M x.2 + q x.1) (χ' (L x.1, x.2)) = χ x.1 x.2
+    simp only [Function.uncurry_def]
     rw [hLx, smoothedMax_eq_right hδ hx₁.le]
     exact hval x hx₃
   · -- The pointwise comparison with `M + q ℓ` and `χ (L ℓ)`.
