@@ -12,19 +12,24 @@ public import TauCeti.Topology.VectorBundle.Conjugate
 /-!
 # Maps of real bundles that intertwine complex structures
 
-Let `J₁` and `J₂` be continuous complex structures on real vector bundles `V₁` and `V₂` over the
-same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres.
+Let `K₁` and `K₂` be continuous complex structures on real vector bundles `U₁` over `B₁` and
+`U₂` over `B₂`, `g : B₁ → B₂` a map of bases, and `Ψ b : U₁ b ≃ U₂ (g b)` real-linear
+equivalences of the fibres. If `Ψ` intertwines `K₁` with `K₂`, it is a complex-linear
+equivalence `K₁.Fiber b ≃ K₂.Fiber (g b)`
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong`).
+
+Now let `J₁` and `J₂` be continuous complex structures on real vector bundles `V₁` and `V₂` over
+the same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres.
 
 * If `Φ` intertwines `J₁` with `J₂`, it is a complex-linear equivalence of the complex bundles
-  `J₁.Fiber` and `J₂.Fiber` (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommute`).
+  `J₁.Fiber` and `J₂.Fiber` (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommute`),
+  the case of `fiberEquivOfCommuteAlong` over the identity of the base.
 * If `Φ` intertwines `J₁` with `-J₂`, it is a complex-linear equivalence of `J₁.Fiber` with the
   conjugate bundle of `J₂.Fiber`
   (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivConjOfAnticommute`).
 
 When `Φ` is continuous on total spaces, so are these equivalences, for any complex models of the
-two complex bundles. The complex-linear case also holds over a map `g : B₁ → B₂` of bases, for
-real-linear equivalences `Ψ b : U₁ b ≃ U₂ (g b)`
-(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong`).
+two complex bundles.
 
 In the same way, a frame of `V` along a map `f : X → B` by real-linear equivalences
 `Ψ x : E ≃ V (f x)` from a complex normed space, that carries multiplication by `I` to `J`, is a
@@ -67,90 +72,6 @@ variable {B : Type*} [TopologicalSpace B]
   [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
   (J₁ : ContinuousComplexStructure F₁ V₁) (J₂ : ContinuousComplexStructure F₂ V₂)
   (Φ : ∀ b, V₁ b ≃L[ℝ] V₂ b)
-
-/-! ### Complex-linear maps -/
-
-section Commute
-
-variable (hΦ : ∀ b v, Φ b (J₁ b v) = J₂ b (Φ b v))
-
-/-- A family of real-linear equivalences `Φ` that intertwines `J₁` with `J₂`, as complex-linear
-equivalences `J₁.Fiber b ≃ J₂.Fiber b`. -/
-def fiberEquivOfCommute (b : B) : J₁.Fiber b ≃L[ℂ] J₂.Fiber b :=
-  ((J₁.fiberEquiv b).trans ((Φ b).trans (J₂.fiberEquiv b).symm)).complexOfMapISmul fun v ↦
-    (J₂.fiberEquiv b).injective <| by simp [hΦ]
-
-theorem fiberEquivOfCommute_apply (b : B) (v : J₁.Fiber b) :
-    J₁.fiberEquivOfCommute J₂ Φ hΦ b v = (J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v)) := by
-  simp [fiberEquivOfCommute]
-
-@[simp]
-theorem fiberEquiv_fiberEquivOfCommute (b : B) (v : J₁.Fiber b) :
-    J₂.fiberEquiv b (J₁.fiberEquivOfCommute J₂ Φ hΦ b v) = Φ b (J₁.fiberEquiv b v) := by
-  rw [fiberEquivOfCommute_apply, ContinuousLinearEquiv.apply_symm_apply]
-
-variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  [FiniteDimensional ℝ F₁] [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
-  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  [FiniteDimensional ℝ F₂] [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
-
-/-- If `Φ` is continuous on total spaces, so is `fiberEquivOfCommute`. -/
-theorem continuous_fiberEquivOfCommute
-    (hc : Continuous fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ (E := V₂) p.proj
-      (Φ p.proj p.snd)) :
-    Continuous fun p : TotalSpace G₁ J₁.Fiber ↦ TotalSpace.mk' G₂ (E := J₂.Fiber) p.proj
-      (J₁.fiberEquivOfCommute J₂ Φ hΦ p.proj p.snd) := by
-  refine ((J₂.totalSpaceHomeomorph G₂).symm.continuous.comp
-    (hc.comp (J₁.totalSpaceHomeomorph G₁).continuous)).congr fun p ↦ ?_
-  rw [Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_apply,
-    totalSpaceHomeomorph_symm_apply, fiberEquivOfCommute_apply]
-
-end Commute
-
-/-! ### Maps to the conjugate bundle -/
-
-section Anticommute
-
-variable (hΦ : ∀ b v, Φ b (J₁ b v) = -J₂ b (Φ b v))
-
-/-- A family of real-linear equivalences `Φ` that intertwines `J₁` with `-J₂`, as complex-linear
-equivalences from `J₁.Fiber b` to the conjugate of `J₂.Fiber b`. -/
-def fiberEquivConjOfAnticommute (b : B) : J₁.Fiber b ≃L[ℂ] ConjugateBundle J₂.Fiber b :=
-  ((J₁.fiberEquiv b).trans ((Φ b).trans ((J₂.fiberEquiv b).symm.trans toConjL'))).complexOfMapISmul
-    fun v ↦ ofConj.injective <| (J₂.fiberEquiv b).injective <| by
-      simp [hΦ, Complex.conj_I, neg_smul]
-
-theorem fiberEquivConjOfAnticommute_apply (b : B) (v : J₁.Fiber b) :
-    J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ b v =
-      toConj ((J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v))) := by
-  simp [fiberEquivConjOfAnticommute]
-
-@[simp]
-theorem fiberEquiv_ofConj_fiberEquivConjOfAnticommute (b : B) (v : J₁.Fiber b) :
-    J₂.fiberEquiv b (ofConj (J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ b v)) =
-      Φ b (J₁.fiberEquiv b v) := by
-  rw [fiberEquivConjOfAnticommute_apply, ofConj_toConj, ContinuousLinearEquiv.apply_symm_apply]
-
-variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  [FiniteDimensional ℝ F₁] [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
-  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  [FiniteDimensional ℝ F₂] [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
-
-/-- If `Φ` is continuous on total spaces, so is `fiberEquivConjOfAnticommute`. -/
-theorem continuous_fiberEquivConjOfAnticommute
-    (hc : Continuous fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ (E := V₂) p.proj
-      (Φ p.proj p.snd)) :
-    Continuous fun p : TotalSpace G₁ J₁.Fiber ↦
-      TotalSpace.mk' (Conjugate G₂) (E := ConjugateBundle J₂.Fiber) p.proj
-        (J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ p.proj p.snd) := by
-  refine ((ConjugateBundle.toConjHomeomorph G₂ J₂.Fiber).continuous.comp
-    ((J₂.totalSpaceHomeomorph G₂).symm.continuous.comp
-    (hc.comp (J₁.totalSpaceHomeomorph G₁).continuous))).congr fun p ↦ ?_
-  rw [Function.comp_apply, Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_apply,
-    totalSpaceHomeomorph_symm_apply,
-    ConjugateBundle.toConjHomeomorph_apply, fiberEquivConjOfAnticommute_apply]
-
-end Anticommute
 
 /-! ### Complex-linear maps over a map of bases -/
 
@@ -203,6 +124,94 @@ theorem continuous_fiberEquivOfCommuteAlong
     totalSpaceHomeomorph_symm_apply, fiberEquivOfCommuteAlong_apply]
 
 end CommuteAlong
+
+/-! ### Complex-linear maps -/
+
+section Commute
+
+variable (hΦ : ∀ b v, Φ b (J₁ b v) = J₂ b (Φ b v))
+
+/-- A family of real-linear equivalences `Φ` that intertwines `J₁` with `J₂`, as complex-linear
+equivalences `J₁.Fiber b ≃ J₂.Fiber b`: `fiberEquivOfCommuteAlong` over the identity of `B`. -/
+def fiberEquivOfCommute (b : B) : J₁.Fiber b ≃L[ℂ] J₂.Fiber b :=
+  J₁.fiberEquivOfCommuteAlong J₂ id Φ hΦ b
+
+theorem fiberEquivOfCommute_eq_fiberEquivOfCommuteAlong (b : B) :
+    J₁.fiberEquivOfCommute J₂ Φ hΦ b = J₁.fiberEquivOfCommuteAlong J₂ id Φ hΦ b :=
+  (rfl)
+
+theorem fiberEquivOfCommute_apply (b : B) (v : J₁.Fiber b) :
+    J₁.fiberEquivOfCommute J₂ Φ hΦ b v = (J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v)) := by
+  rw [fiberEquivOfCommute_eq_fiberEquivOfCommuteAlong, fiberEquivOfCommuteAlong_apply]
+  -- The base point `id b` reduces to `b`.
+  rfl
+
+@[simp]
+theorem fiberEquiv_fiberEquivOfCommute (b : B) (v : J₁.Fiber b) :
+    J₂.fiberEquiv b (J₁.fiberEquivOfCommute J₂ Φ hΦ b v) = Φ b (J₁.fiberEquiv b v) := by
+  rw [fiberEquivOfCommute_eq_fiberEquivOfCommuteAlong]
+  exact J₁.fiberEquiv_fiberEquivOfCommuteAlong J₂ id Φ hΦ b v
+
+variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
+  [FiniteDimensional ℝ F₁] [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
+  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+  [FiniteDimensional ℝ F₂] [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
+
+/-- If `Φ` is continuous on total spaces, so is `fiberEquivOfCommute`. -/
+theorem continuous_fiberEquivOfCommute
+    (hc : Continuous fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ (E := V₂) p.proj
+      (Φ p.proj p.snd)) :
+    Continuous fun p : TotalSpace G₁ J₁.Fiber ↦ TotalSpace.mk' G₂ (E := J₂.Fiber) p.proj
+      (J₁.fiberEquivOfCommute J₂ Φ hΦ p.proj p.snd) := by
+  simp_rw [fiberEquivOfCommute_eq_fiberEquivOfCommuteAlong]
+  exact J₁.continuous_fiberEquivOfCommuteAlong J₂ id Φ hΦ hc
+
+end Commute
+
+/-! ### Maps to the conjugate bundle -/
+
+section Anticommute
+
+variable (hΦ : ∀ b v, Φ b (J₁ b v) = -J₂ b (Φ b v))
+
+/-- A family of real-linear equivalences `Φ` that intertwines `J₁` with `-J₂`, as complex-linear
+equivalences from `J₁.Fiber b` to the conjugate of `J₂.Fiber b`. -/
+def fiberEquivConjOfAnticommute (b : B) : J₁.Fiber b ≃L[ℂ] ConjugateBundle J₂.Fiber b :=
+  ((J₁.fiberEquiv b).trans ((Φ b).trans ((J₂.fiberEquiv b).symm.trans toConjL'))).complexOfMapISmul
+    fun v ↦ ofConj.injective <| (J₂.fiberEquiv b).injective <| by
+      simp [hΦ, Complex.conj_I, neg_smul]
+
+theorem fiberEquivConjOfAnticommute_apply (b : B) (v : J₁.Fiber b) :
+    J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ b v =
+      toConj ((J₂.fiberEquiv b).symm (Φ b (J₁.fiberEquiv b v))) := by
+  simp [fiberEquivConjOfAnticommute]
+
+@[simp]
+theorem fiberEquiv_ofConj_fiberEquivConjOfAnticommute (b : B) (v : J₁.Fiber b) :
+    J₂.fiberEquiv b (ofConj (J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ b v)) =
+      Φ b (J₁.fiberEquiv b v) := by
+  rw [fiberEquivConjOfAnticommute_apply, ofConj_toConj, ContinuousLinearEquiv.apply_symm_apply]
+
+variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
+  [FiniteDimensional ℝ F₁] [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
+  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+  [FiniteDimensional ℝ F₂] [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
+
+/-- If `Φ` is continuous on total spaces, so is `fiberEquivConjOfAnticommute`. -/
+theorem continuous_fiberEquivConjOfAnticommute
+    (hc : Continuous fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ (E := V₂) p.proj
+      (Φ p.proj p.snd)) :
+    Continuous fun p : TotalSpace G₁ J₁.Fiber ↦
+      TotalSpace.mk' (Conjugate G₂) (E := ConjugateBundle J₂.Fiber) p.proj
+        (J₁.fiberEquivConjOfAnticommute J₂ Φ hΦ p.proj p.snd) := by
+  refine ((ConjugateBundle.toConjHomeomorph G₂ J₂.Fiber).continuous.comp
+    ((J₂.totalSpaceHomeomorph G₂).symm.continuous.comp
+    (hc.comp (J₁.totalSpaceHomeomorph G₁).continuous))).congr fun p ↦ ?_
+  rw [Function.comp_apply, Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_apply,
+    totalSpaceHomeomorph_symm_apply,
+    ConjugateBundle.toConjHomeomorph_apply, fiberEquivConjOfAnticommute_apply]
+
+end Anticommute
 
 /-! ### Complex frames from real frames -/
 

@@ -34,8 +34,8 @@ Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
 
 ## Main definitions
 
-* `TauCeti.SmoothEmbedding.normalSpaceEquivCompDiffeomorph`: the identification of the normal space
-  of `g` at `x` with that of `f` at `e x`.
+* `TauCeti.SmoothEmbedding.normalSpaceEquivCompDiffeomorphOfBoundaryless`: the identification of
+  the normal space of `g` at `x` with that of `f` at `e x`.
 
 ## Main results
 
@@ -43,8 +43,8 @@ Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
   tangent planes.
 * `TauCeti.SmoothEmbedding.mapsTo_tangentRange_compDiffeomorphOfBoundaryless`: an endomorphism
   field that preserves the tangent planes of `f` preserves those of `g`.
-* `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivCompDiffeomorph`: the identifications are
-  continuous on total spaces.
+* `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless`: the
+  identifications are continuous on total spaces.
 * `TauCeti.SmoothEmbedding.complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless`:
   the Euler class of the complex normal bundle of `g` is the pull-back along `e` of that of `f`.
 
@@ -113,8 +113,8 @@ theorem id_comp_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
 `f.compDiffeomorphOfBoundaryless e h1` with the normal space of `f` at `e x`: both are quotients of
 the tangent space of `X` at `f (e x)` by the same subspace, and a class is sent to the class of
 the same tangent vector. -/
-def normalSpaceEquivCompDiffeomorph (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M)
-    (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M') :
+def normalSpaceEquivCompDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M') :
     (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn ≃L[ℝ]
       f.isImmersion.NormalSpace (e x) hn :=
   (f.compDiffeomorphOfBoundaryless e h1).normalSpaceEquiv f hn hn (u := e) (v := _root_.id)
@@ -125,14 +125,14 @@ def normalSpaceEquivCompDiffeomorph (f : SmoothEmbedding I' I n M X) (e : M' ≃
 /-- The identification of normal spaces sends the class of a tangent vector `w` of `X` at the
 point `f.compDiffeomorphOfBoundaryless e h1 x = f (e x)` to the class of `w`. -/
 @[simp]
-theorem normalSpaceEquivCompDiffeomorph_normalClass (f : SmoothEmbedding I' I n M X)
+theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass (f : SmoothEmbedding I' I n M X)
     (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M')
     (w : TangentSpace I (f.compDiffeomorphOfBoundaryless e h1 x)) :
-    f.normalSpaceEquivCompDiffeomorph e h1 hn x
+    f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x
         ((f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass x hn w) =
       f.isImmersion.normalClass (e x) hn
         (tangentSpaceCast I (f.compDiffeomorphOfBoundaryless e h1 x) (f (e x)) w) := by
-  rw [normalSpaceEquivCompDiffeomorph, normalSpaceEquiv_normalClass, mfderiv_id,
+  rw [normalSpaceEquivCompDiffeomorphOfBoundaryless, normalSpaceEquiv_normalClass, mfderiv_id,
     ContinuousLinearMap.id_apply]
   -- The base point `id (f.compDiffeomorphOfBoundaryless e h1 x)` reduces to
   -- `f.compDiffeomorphOfBoundaryless e h1 x`.
@@ -140,31 +140,33 @@ theorem normalSpaceEquivCompDiffeomorph_normalClass (f : SmoothEmbedding I' I n 
 
 /-- The identification of normal spaces is the normal map of the square
 `id ∘ (f.compDiffeomorphOfBoundaryless e h1) = f ∘ e`. -/
-theorem normalSpaceEquivCompDiffeomorph_toContinuousLinearMap (f : SmoothEmbedding I' I n M X)
+theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap
+    (f : SmoothEmbedding I' I n M X)
     (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M') :
-    (f.normalSpaceEquivCompDiffeomorph e h1 hn x).toContinuousLinearMap =
+    (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x).toContinuousLinearMap =
       (f.compDiffeomorphOfBoundaryless e h1).normalMap f hn hn
         (EventuallyEq.of_eq (id_comp_compDiffeomorphOfBoundaryless f e h1)) := by
-  rw [normalSpaceEquivCompDiffeomorph, normalSpaceEquiv_toContinuousLinearMap]
+  rw [normalSpaceEquivCompDiffeomorphOfBoundaryless, normalSpaceEquiv_toContinuousLinearMap]
 
 /-- The identification of normal spaces is complex linear for the complex structures that an
 almost complex structure `J` preserving the tangent planes of `f` induces on the normal spaces of
 `f` and of the reparametrised embedding. -/
-theorem normalSpaceEquivCompDiffeomorph_normalComplexStructureAt [IsManifold I ∞ X]
+theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_normalComplexStructureAt [IsManifold I ∞ X]
     (f : SmoothEmbedding I' I n M X)
     (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ y, MapsTo (J (f y)) (f.isImmersion.tangentRange y hn)
       (f.isImmersion.tangentRange y hn)) (x : M')
     (ν : (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) :
-    f.normalSpaceEquivCompDiffeomorph e h1 hn x
+    f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x
         ((f.compDiffeomorphOfBoundaryless e h1).normalComplexStructureAt hn J x
           (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 hn (A := (J ·)) hJ x) ν) =
       f.normalComplexStructureAt hn J (e x) (hJ (e x))
-        (f.normalSpaceEquivCompDiffeomorph e h1 hn x ν) := by
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x ν) := by
   obtain ⟨w, rfl⟩ := (f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass_surjective
     x hn ν
-  rw [normalComplexStructureAt_normalClass, normalSpaceEquivCompDiffeomorph_normalClass,
-    normalSpaceEquivCompDiffeomorph_normalClass, normalComplexStructureAt_normalClass]
+  rw [normalComplexStructureAt_normalClass,
+    normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass,
+    normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass, normalComplexStructureAt_normalClass]
   exact apply_eq_of_tangentSpaceCast
     (fun y v ↦ f.isImmersion.normalClass (e x) hn (tangentSpaceCast I y (f (e x)) (J y v)))
     (compDiffeomorphOfBoundaryless_apply f e h1 x) rfl
@@ -178,15 +180,16 @@ variable {n : ℕ∞ω} [IsManifold I 1 X] [IsManifold I n X] [IsManifold I'' n 
 /-- The identifications of the normal spaces of `f.compDiffeomorphOfBoundaryless e h1` with those
 of `f`, over `e`, are continuous on the total spaces of the normal bundles, for any model
 fibres. -/
-theorem continuous_normalSpaceEquivCompDiffeomorph {K K' : Type*} (f : SmoothEmbedding I' I n M X)
+theorem continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless {K K' : Type*}
+    (f : SmoothEmbedding I' I n M X)
     (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) :
     Continuous fun p : TotalSpace K
         (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) ↦
       TotalSpace.mk' K' (E := fun y ↦ f.isImmersion.NormalSpace y hn) (e p.proj)
-        (f.normalSpaceEquivCompDiffeomorph e h1 hn p.proj p.snd) := by
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn p.proj p.snd) := by
   refine ((f.compDiffeomorphOfBoundaryless e h1).continuous_normalBundleMap (K := K) (K' := K')
     f hn hn contMDiff_id (id_comp_compDiffeomorphOfBoundaryless f e h1)).congr fun p ↦ ?_
-  rw [normalBundleMap_apply, ← normalSpaceEquivCompDiffeomorph_toContinuousLinearMap,
+  rw [normalBundleMap_apply, ← normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap,
     ContinuousLinearEquiv.coe_coe]
 
 end Bundle
@@ -232,15 +235,15 @@ theorem complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless
   let Kg := (f.compDiffeomorphOfBoundaryless e h1).normalComplexStructure hn J hν'
     (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless e h1 hn (A := (J ·)) hJ)
   let Kf := f.normalComplexStructure hn J hν hJ
-  have hΦ : ∀ x ν, f.normalSpaceEquivCompDiffeomorph e h1 hn x (Kg x ν) =
-      Kf (e.toHomeomorph x) (f.normalSpaceEquivCompDiffeomorph e h1 hn x ν) := fun x ν ↦
-    (congrArg _ (normalComplexStructure_apply _ hn J hν' _ x ν)).trans
-      ((f.normalSpaceEquivCompDiffeomorph_normalComplexStructureAt e h1 hn J hJ x ν).trans
-        (normalComplexStructure_apply f hn J hν hJ (e x) _).symm)
+  have hΦ : ∀ x ν, f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x (Kg x ν) =
+      Kf (e.toHomeomorph x) (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x ν) :=
+    fun x ν ↦ (congrArg _ (normalComplexStructure_apply _ hn J hν' _ x ν)).trans
+      ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless_normalComplexStructureAt e h1 hn J hJ x
+        ν).trans (normalComplexStructure_apply f hn J hν hJ (e x) _).symm)
   exact complexEulerClass_eq_singularCohomologyMap_of_fiberwise hG hG
     (g := (e.toHomeomorph : C(M', M)))
     (Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAlong Kg Kf _ _ hΦ
-      (f.continuous_normalSpaceEquivCompDiffeomorph e h1 hn))
+      (f.continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn))
 
 end EulerClass
 
