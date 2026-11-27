@@ -10,8 +10,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Comp
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
-import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
+import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 
 /-!
 # Frames adapted to the attaching sphere of a disc
@@ -29,15 +29,18 @@ Write `x₀ = (modelDisc k m x).1` for the point `x` seen in `ℂᵏ`, and `λ x
 complex-linear extensions (`StrongDual.extendRCLike`) of `z ↦ dφ (A x (z, 0))` and
 `w ↦ dφ (A x (0, w))`. On the sphere the real part of `λ x x₀` is `dφ (dι x x)`, which is
 negative by `IsJOrthogonallyAttached.mvfderiv_mfderiv_self_neg`, so `λ x x₀ ≠ 0` on an open set
-`S` containing the sphere. With a smooth function `χ` equal to `1` on the sphere and to `0` near
-the complement of `S` (Mathlib's `exists_contMDiffMap_zero_one_nhds_of_isClosed`), the new frame
-is `A x ∘ U x`, where `U x (z, w) = (z - μ x w • (χ x * (λ x x₀)⁻¹) • x₀, w)`. The map `U x` is
-complex linear and unipotent, so the new frame is still invertible and complex linear; `U x`
-fixes `ℂᵏ × 0`, so the new frame still extends `dι x`; and `U x` depends smoothly on `x`.
+`S` containing the sphere. With a smooth function `χ` equal to `1` near the sphere and with
+topological support in `S` (Tau Ceti's `IsCompact.exists_contDiff_cutoff_eventuallyEq_one`), the
+new frame is `A x ∘ U x`, where `U x (z, w) = (z - μ x w • (χ x • (λ x x₀)⁻¹) • x₀, w)`. The map
+`U x` is complex linear and unipotent, so the new frame is still invertible and complex linear;
+`U x` fixes `ℂᵏ × 0`, so the new frame still extends `dι x`; and `U x` depends smoothly on `x`.
 
 The coefficients `λ x` and `μ x` depend smoothly on `x` because `x ↦ dφ (ι x) ∘ A x` does
-(`SymplecticGeometry.contMDiffAt_mvfderiv_comp_of_inTangentCoordinates`). Unlike a cutoff in
-`‖x‖`, the function `χ` needs neither an annulus around the sphere nor care at the origin.
+(`SymplecticGeometry.contMDiffAt_mvfderiv_comp_of_inTangentCoordinates`) and
+`StrongDual.extendRCLikeL` is a continuous real-linear equivalence; the coefficient
+`χ x • (λ x x₀)⁻¹` is smooth by Tau Ceti's `ContDiffOn.contDiff_smul_of_tsupport_subset`. Unlike
+a cutoff in `‖x‖`, the function `χ` needs neither an annulus around the sphere nor care at the
+origin.
 
 ## Main results
 
@@ -96,6 +99,11 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
           𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelDisc k m) x) =
         mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x) ∧
       ∀ x, ‖x‖ = 1 → ∀ w, mvfderiv 𝓘(ℝ, E) φ (ι x) (A x (0, w)) = 0 := by
+  -- Outline: start from the frame `A` of `exists_complexFrame_mfderiv`; read `dφ` through it as
+  -- a smooth family `D` of real forms, and take their complex-linear extensions `lam`, `μ` on the
+  -- two factors; on an open set `S` around the sphere `lam x x₀ ≠ 0`, and a cutoff `χ` supported
+  -- in `S` gives a smooth coefficient `c`; the frame is `A x ∘ (id - N x)` for the nilpotent,
+  -- complex-linear correction `N x (z, w) = (μ x w • c x • x₀, 0)`.
   obtain ⟨A, hAs, hAinv, hAI, hAd⟩ := exists_complexFrame_mfderiv hι hιR hdim
   -- The differential of `φ` read through the frame, a smooth family of maps `ℂᵏ × ℂᵐ → ℝ`.
   let D (x : EuclideanSpace ℝ (Fin k)) :
@@ -103,41 +111,40 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
     (mvfderiv 𝓘(ℝ, E) φ (ι x)).comp (A x)
   have hD : ContDiff ℝ ∞ D := contMDiff_iff_contDiff.1 fun x₀ ↦
     contMDiffAt_mvfderiv_comp_of_inTangentCoordinates 𝓘(ℝ, E) (hφ _) (hι.contMDiff x₀) (hAs x₀)
+      le_rfl
   -- The point `x` seen in `ℂᵏ`.
   let p (x : EuclideanSpace ℝ (Fin k)) : EuclideanSpace ℂ (Fin k) := (modelDisc k m x).1
   have hp : ContDiff ℝ ∞ p := (ContinuousLinearMap.fst ℝ _ _ ∘L modelDisc k m).contDiff
-  -- The complex-linear extensions of `dφ ∘ A x` on each factor.
+  -- The complex-linear extensions of `dφ ∘ A x` on each factor, smooth in `x` because
+  -- `StrongDual.extendRCLikeL` is a continuous real-linear equivalence.
   let lam (x : EuclideanSpace ℝ (Fin k)) : StrongDual ℂ (EuclideanSpace ℂ (Fin k)) :=
-    StrongDual.extendRCLike ((D x).comp (inl ℝ _ _))
+    StrongDual.extendRCLikeL ((D x).comp (inl ℝ _ _))
   let μ (x : EuclideanSpace ℝ (Fin k)) : StrongDual ℂ (EuclideanSpace ℂ (Fin m)) :=
-    StrongDual.extendRCLike ((D x).comp (inr ℝ _ _))
-  have hlam (x : EuclideanSpace ℝ (Fin k)) (z : EuclideanSpace ℂ (Fin k)) :
-      lam x z = (D x (z, 0) : ℂ) - Complex.I * (D x (Complex.I • z, 0) : ℂ) :=
-    StrongDual.extendRCLike_apply _ _
-  have hμ (x : EuclideanSpace ℝ (Fin k)) (w : EuclideanSpace ℂ (Fin m)) :
-      μ x w = (D x (0, w) : ℂ) - Complex.I * (D x (0, Complex.I • w) : ℂ) :=
-    StrongDual.extendRCLike_apply _ _
-  have hDapply {f : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℂ (Fin k) ×
-      EuclideanSpace ℂ (Fin m)} (hf : ContDiff ℝ ∞ f) :
-      ContDiff ℝ ∞ fun x ↦ ((D x (f x) : ℝ) : ℂ) :=
-    Complex.ofRealCLM.contDiff.comp (hD.clm_apply hf)
+    StrongDual.extendRCLikeL ((D x).comp (inr ℝ _ _))
+  have hlam : ContDiff ℝ ∞ fun x ↦ (lam x).restrictScalars ℝ :=
+    ((restrictScalarsL ℂ _ ℂ ℝ ℝ).comp
+      (StrongDual.extendRCLikeL (𝕜 := ℂ) (F := EuclideanSpace ℂ (Fin k))).toContinuousLinearMap
+      ).contDiff.comp (hD.clm_comp contDiff_const)
+  have hμ : ContDiff ℝ ∞ fun x ↦ (μ x).restrictScalars ℝ :=
+    ((restrictScalarsL ℂ _ ℂ ℝ ℝ).comp
+      (StrongDual.extendRCLikeL (𝕜 := ℂ) (F := EuclideanSpace ℂ (Fin m))).toContinuousLinearMap
+      ).contDiff.comp (hD.clm_comp contDiff_const)
+  have hz (x : EuclideanSpace ℝ (Fin k)) (z : EuclideanSpace ℂ (Fin k)) :
+      D x (z, 0) = (lam x z).re := by
+    rw [show lam x = _ from StrongDual.extendRCLikeL_apply _]
+    exact (StrongDual.re_extendRCLike_apply (𝕜 := ℂ) ((D x).comp (inl ℝ _ _)) _).symm
+  have hw (x : EuclideanSpace ℝ (Fin k)) (w : EuclideanSpace ℂ (Fin m)) :
+      D x (0, w) = (μ x w).re := by
+    rw [show μ x = _ from StrongDual.extendRCLikeL_apply _]
+    exact (StrongDual.re_extendRCLike_apply (𝕜 := ℂ) ((D x).comp (inr ℝ _ _)) _).symm
   -- The number `λ x x₀`, smooth in `x`, with negative real part on the sphere.
   let a (x : EuclideanSpace ℝ (Fin k)) : ℂ := lam x (p x)
-  have ha : ContDiff ℝ ∞ a := by
-    have : a = fun x ↦ (D x (p x, 0) : ℂ) - Complex.I * (D x (Complex.I • p x, 0) : ℂ) :=
-      funext fun x ↦ hlam x (p x)
-    rw [this]
-    exact (hDapply (hp.prodMk contDiff_const)).sub
-      (contDiff_const.mul (hDapply ((hp.const_smul _).prodMk contDiff_const)))
-  have hpm (x : EuclideanSpace ℝ (Fin k)) :
-      (p x, (0 : EuclideanSpace ℂ (Fin m))) = modelDisc k m x :=
-    Prod.ext rfl (modelDisc_apply_snd x).symm
+  have ha : ContDiff ℝ ∞ a := hlam.clm_apply hp
   have ha_re (x : EuclideanSpace ℝ (Fin k)) : (a x).re =
       mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x x) := by
-    have h1 : (a x).re = D x (p x, 0) :=
-      StrongDual.re_extendRCLike_apply (𝕜 := ℂ) ((D x).comp (inl ℝ _ _)) (p x)
-    rw [h1, ← hAd x, mfderiv_modelDisc]
-    exact congrArg (fun v ↦ mvfderiv 𝓘(ℝ, E) φ (ι x) (A x v)) (hpm x)
+    rw [← hz, ← hAd x, mfderiv_modelDisc]
+    exact congrArg (fun v ↦ mvfderiv 𝓘(ℝ, E) φ (ι x) (A x v))
+      (Prod.ext rfl (modelDisc_apply_snd x).symm)
   -- The open set where `λ x x₀` does not vanish contains the sphere.
   let S : Set (EuclideanSpace ℝ (Fin k)) := {x | (a x).re < 0}
   have hS : IsOpen S := isOpen_lt (Complex.continuous_re.comp ha.continuous) continuous_const
@@ -147,28 +154,21 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
     change (a x).re < 0
     rw [ha_re]
     exact h.mvfderiv_mfderiv_self_neg x hx
-  obtain ⟨χ, hχ0, hχ1, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed
-    𝓘(ℝ, EuclideanSpace ℝ (Fin k)) (n := (⊤ : ℕ∞)) hS.isClosed_compl Metric.isClosed_sphere
-    (disjoint_compl_left_iff_subset.2 hsphere)
-  -- The coefficient `χ x * (λ x x₀)⁻¹`, smooth since `χ` vanishes near the zeros of `λ x x₀`.
-  let c (x : EuclideanSpace ℝ (Fin k)) : ℂ := (χ x : ℂ) * (a x)⁻¹
-  have hχ : ContDiff ℝ ∞ fun x ↦ (χ x : ℂ) :=
-    Complex.ofRealCLM.contDiff.comp (contMDiff_iff_contDiff.1 χ.contMDiff)
-  have hc : ContDiff ℝ ∞ c := by
-    refine contDiff_iff_contDiffAt.2 fun x ↦ ?_
-    by_cases hx : x ∈ S
-    · have hax : a x ≠ 0 := fun h0 ↦ by simp [S, h0] at hx
-      exact hχ.contDiffAt.mul (ha.contDiffAt.inv hax)
-    · refine contDiffAt_const (c := (0 : ℂ)).congr_of_eventuallyEq ?_
-      filter_upwards [hχ0.filter_mono (nhds_le_nhdsSet hx)] with y hy
-      simp [c, hy]
+  -- The coefficient `χ x • (λ x x₀)⁻¹`, smooth since `χ` is supported in `S`.
+  obtain ⟨χ, hχs, -, hχ1, -, hχS⟩ :=
+    (isCompact_sphere (0 : EuclideanSpace ℝ (Fin k)) 1).exists_contDiff_cutoff_eventuallyEq_one
+      hS hsphere
+  let c (x : EuclideanSpace ℝ (Fin k)) : ℂ := χ x • (a x)⁻¹
+  have hc : ContDiff ℝ ∞ c :=
+    (ha.contDiffOn.inv fun x hx h0 ↦ by simp [S, h0] at hx).contDiff_smul_of_tsupport_subset hS
+      hχs.contDiffOn hχS
   have hc1 (x : EuclideanSpace ℝ (Fin k)) (hx : ‖x‖ = 1) : c x * a x = 1 := by
     have hxS : x ∈ Metric.sphere (0 : EuclideanSpace ℝ (Fin k)) 1 := by simpa using hx
     have hax : a x ≠ 0 := fun h0 ↦ by
       have := hsphere hxS
       simp [S, h0] at this
     simp only [c]
-    rw [hχ1.self_of_nhdsSet x hxS, Complex.ofReal_one, one_mul, inv_mul_cancel₀ hax]
+    rw [(hχ1 x hxS).self_of_nhds, one_smul, inv_mul_cancel₀ hax]
   -- The correction `N x (z, w) = (μ x w • c x • x₀, 0)`, nilpotent and complex linear.
   let N (x : EuclideanSpace ℝ (Fin k)) :
       EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ]
@@ -177,14 +177,8 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
       ((((μ x).smulRight (c x • p x)).restrictScalars ℝ).comp (ContinuousLinearMap.snd ℝ _ _))
   have hN (x : EuclideanSpace ℝ (Fin k)) (v : EuclideanSpace ℂ (Fin k) ×
       EuclideanSpace ℂ (Fin m)) : N x v = (μ x v.2 • c x • p x, 0) := rfl
-  have hNs : ContDiff ℝ ∞ N := by
-    refine contDiff_clm_apply_iff.2 fun v ↦ ?_
-    have : (fun x ↦ N x v) = fun x ↦ ((((D x (0, v.2) : ℝ) : ℂ) -
-        Complex.I * ((D x (0, Complex.I • v.2) : ℝ) : ℂ)) • c x • p x, 0) :=
-      funext fun x ↦ by rw [hN, hμ]
-    rw [this]
-    exact (((hDapply contDiff_const).sub (contDiff_const.mul (hDapply contDiff_const))).smul
-      (hc.smul hp)).prodMk contDiff_const
+  have hNs : ContDiff ℝ ∞ N := contDiff_clm_apply_iff.2 fun v ↦
+    ((hμ.clm_apply contDiff_const).smul (hc.smul hp)).prodMk contDiff_const
   have hNN (x : EuclideanSpace ℝ (Fin k)) (v : EuclideanSpace ℂ (Fin k) ×
       EuclideanSpace ℂ (Fin m)) : N x (N x v) = 0 := by
     simp [hN]
@@ -221,13 +215,9 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
       simp [U, hN, h2]
     exact congrArg (A x) hUx
   · have hD0 : mvfderiv 𝓘(ℝ, E) φ (ι x) ((A x).comp (U x) (0, w)) = D x (U x (0, w)) := rfl
-    have hz (z : EuclideanSpace ℂ (Fin k)) : D x (z, 0) = (lam x z).re :=
-      (StrongDual.re_extendRCLike_apply (𝕜 := ℂ) ((D x).comp (inl ℝ _ _)) z).symm
-    have hw : D x (0, w) = (μ x w).re :=
-      (StrongDual.re_extendRCLike_apply (𝕜 := ℂ) ((D x).comp (inr ℝ _ _)) w).symm
     have hsplit : U x (0, w) = (0, w) - (μ x w • c x • p x, 0) := by
       simp [U, hN]
-    rw [hD0, hsplit, map_sub, hz, hw, map_smul, map_smul, smul_eq_mul, smul_eq_mul,
+    rw [hD0, hsplit, map_sub, hz x, hw x w, map_smul, map_smul, smul_eq_mul, smul_eq_mul,
       ← mul_assoc, mul_assoc (μ x w), hc1 x hx, mul_one, sub_self]
 
 end IsJOrthogonallyAttached
