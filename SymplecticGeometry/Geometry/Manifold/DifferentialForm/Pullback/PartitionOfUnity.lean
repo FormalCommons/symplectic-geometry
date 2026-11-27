@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUni
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 
 /-!
 # The exterior derivative of pullbacks glued by a partition of unity
@@ -32,9 +33,8 @@ because the weights sum to one near `x`. Each term `(ρᵢ ∘ b) • (g i)^* φ
 * `SmoothPartitionOfUnity.sum_fintsupport_mextDeriv_ofFunction_comp`: the differentials of the
   weights of a partition of unity sum to zero.
 
-The reduction to the fixed finite set `ρ.fintsupport (b x)` near `x` follows the proof of Tau
-Ceti's
-`SmoothPartitionOfUnity.mvfderiv_finsum_smul_pos`.
+The reduction of the locally finite sum to the finite set `ρ.fintsupport (b x)` is
+`SmoothPartitionOfUnity.mextDeriv_sum_finsupport_smul`, in `DifferentialForm/PartitionOfUnity.lean`.
 
 ## References
 
@@ -76,20 +76,10 @@ theorem mextDeriv_sum_finsupport_smul_mpullback_apply [IsManifold IX 2 X] [IsMan
       ∑ i ∈ ρ.fintsupport (b x),
         (mextDeriv (RoughForm.ofFunction IX (ρ i ∘ b))).wedge (mpullback IX IZ (g i) φ) x
           (v ∘ Fin.cast (show 0 + 1 + k = k + 1 by omega)) := by
-  set S := ρ.fintsupport (b x)
-  let θ : ι → RoughForm IX X ℝ k := fun i y ↦ ρ i (b y) • mpullback IX IZ (g i) φ y
-  have hθ : ∀ i ∈ S, IsSmoothForm IX 1 (θ i) := fun i _ ↦
-    (isSmoothForm_fun_smul_mpullback ((ρ i).contMDiff.comp hb) ((hU i).preimage hb.continuous)
-      ((tsupport_comp_subset_preimage _ hb.continuous).trans (preimage_mono (hρ i)))
-      (fun y hy ↦ hg i y hy) (by simp) hφs).of_le (by simp)
-  have hgerm : ∀ᶠ y in 𝓝 x,
-      ∑ i ∈ ρ.finsupport (b y), ρ i (b y) • mpullback IX IZ (g i) φ y = (∑ i ∈ S, θ i) y := by
-    filter_upwards [hb.continuous.continuousAt.eventually
-      (ρ.eventually_finsupport_subset (b x))] with y hy
-    rw [Finset.sum_apply]
-    refine Finset.sum_subset hy fun i _ hi ↦ ?_
-    simp [show ρ i (b y) = 0 by simpa [ρ.mem_finsupport] using hi]
-  rw [mextDeriv_congr_of_eventuallyEq hgerm, mextDeriv_sum θ S hθ, Finset.sum_apply,
+  rw [SmoothPartitionOfUnity.mextDeriv_sum_finsupport_smul hb.continuous.continuousAt fun i _ ↦
+      (isSmoothForm_fun_smul_mpullback ((ρ i).contMDiff.comp hb) ((hU i).preimage hb.continuous)
+        ((tsupport_comp_subset_preimage _ hb.continuous).trans (preimage_mono (hρ i)))
+        (fun y hy ↦ hg i y hy) (by simp) hφs).of_le (by simp),
     ContinuousAlternatingMap.sum_apply]
   refine Finset.sum_congr rfl fun i hi ↦ ?_
   have hxU : b x ∈ U i := hρ i ((ρ.mem_fintsupport_iff (b x) i).mp hi)
@@ -97,9 +87,10 @@ theorem mextDeriv_sum_finsupport_smul_mpullback_apply [IsManifold IX 2 X] [IsMan
   have hclosed : mextDeriv (mpullback IX IZ (g i) φ) x = 0 := by
     rw [← mpullback_mextDeriv_at ((hg i x hxU).of_le (by simp))
       ((hφs.contMDiff (g i x)).of_le (by simp)), hφ, mpullback_zero, Pi.zero_apply]
-  -- `θ i` is the pointwise product `(ρ i ∘ b) • (g i)^* φ` of the Leibniz rule.
-  have hleib : mextDeriv (θ i) x v = _ := mextDeriv_fun_smul (f := ρ i ∘ b)
-    (((ρ i).contMDiff.comp hb).mdifferentiableAt (by simp)) (hpull.mdifferentiableAt (by simp)) v
+  -- The term is the pointwise product `(ρ i ∘ b) • (g i)^* φ` of the Leibniz rule.
+  have hleib : mextDeriv (fun y ↦ ρ i (b y) • mpullback IX IZ (g i) φ y) x v = _ :=
+    mextDeriv_fun_smul (f := ρ i ∘ b)
+      (((ρ i).contMDiff.comp hb).mdifferentiableAt (by simp)) (hpull.mdifferentiableAt (by simp)) v
   rw [hleib, hclosed, ContinuousAlternatingMap.coe_zero, Pi.zero_apply, mul_zero, add_zero]
 
 end TauCeti
