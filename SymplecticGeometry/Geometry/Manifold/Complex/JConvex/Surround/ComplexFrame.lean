@@ -221,11 +221,12 @@ variable {EX HX X : Type*} [NormedAddCommGroup EX] [NormedSpace ℝ EX] [Topolog
 private local instance instIsManifoldRealSmoothing : IsManifold 𝓘(ℝ, E) ∞ M :=
   IsManifold.restrictScalars ℝ (inferInstance : IsManifold 𝓘(ℂ, E) ∞ M)
 
-/-- Near each point `x₀`, the map `B₀ x₀`, carried to the tangent spaces along `ι` by the
-tangent coordinate changes, is a family of complex-linear maps, smooth in tangent coordinates,
-whose defect `(L y, B₀ y)⁻¹ ∘ (B - B₀ y) ∘ snd` from `B₀ y` has norm less than `1`. This is the
-local step of `exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`, with
-the maps read in the model space `E`. -/
+/-- On a neighbourhood `U` of each point `x₀` there is a family `s` of complex-linear maps,
+smooth in tangent coordinates at the points of `U`, whose defect
+`(L y, B₀ y)⁻¹ ∘ (s y - B₀ y) ∘ snd` from `B₀` has norm less than `1`: the map `B₀ x₀`, carried
+to the tangent spaces along `ι` by the tangent coordinate changes. This is the local step of
+`exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`, with the maps read
+in the model space `E`. -/
 private theorem exists_mem_nhds_frame_near [IsManifold 𝓘(ℝ, E) 1 M]
     {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℝ G₁] [FiniteDimensional ℝ G₁]
     [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
@@ -322,7 +323,7 @@ coordinates, such that each `(L x, B x)` is again an isomorphism.
 The family `B` is a smooth section, glued by a partition of unity
 (`exists_contMDiffSection_forall_mem_convex_of_local`), of the bundle of maps from the trivial
 bundle `ι^* G₂` to `ι^* TM`, with values in the convex sets of complex-linear maps `B` for which
-`(L x, B₀ x)⁻¹ ∘ (B - B₀ x)` has norm less than `1`. -/
+`(L x, B₀ x)⁻¹ ∘ (B - B₀ x) ∘ snd` has norm less than `1`. -/
 theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous
     [IsManifold IX ∞ X] [FiniteDimensional ℝ EX] [T2Space X] [SigmaCompactSpace X]
     [IsManifold 𝓘(ℝ, E) 1 M]
