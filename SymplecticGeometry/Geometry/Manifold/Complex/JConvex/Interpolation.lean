@@ -14,6 +14,7 @@ import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Glaeser
 import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 import SymplecticGeometry.Geometry.Manifold.Immersion.InfDist
+import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
@@ -135,8 +136,9 @@ theorem exists_abs_comp_symm_le [I'.Boundaryless] (h : IsSmoothEmbedding I' 𝓘
   -- The second derivative of `ρ ∘ e.symm` is continuous at `z₀`, hence bounded near it.
   have hB : ∀ᶠ z in 𝓝 z₀, ‖fderiv ℝ (fderiv ℝ (ρ ∘ e.symm)) z‖ <
       ‖fderiv ℝ (fderiv ℝ (ρ ∘ e.symm)) z₀‖ + 1 :=
-    ((hf.fderiv_right (m := 1) (by norm_num)).fderiv_right (m := 0)
-      (by norm_num)).continuousAt.norm.eventually_lt continuousAt_const (lt_add_one _)
+    -- Naming the codomain lets `ContinuousAt.norm` match the topology of the Tau Ceti lemma.
+    (hf.continuousAt_fderiv_fderiv le_rfl).norm (E := E →L[ℝ] E →L[ℝ] ℝ) |>.eventually_lt
+      continuousAt_const (lt_add_one _)
   -- `D ∘ e.symm` and its derivative are bounded by the distance to `Z`.
   obtain ⟨A₂, hA₂⟩ := h.isEmbedding.exists_eventually_abs_comp_symm_le_mul_infDist_sq hD hDι he hy
   -- Combine the bounds.

@@ -137,8 +137,8 @@ theorem stdForm_fderiv_chartTransition {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w 
   exact (D.eval₂_eq hk x _ hw'.2 u v).symm.trans
     (D.eval₂_eq hk y _ ((D.chart k y).map_target hw'.1) u v)
 
-/-- **Transitions are isometries of the metrics read in the charts.** For `k ≥ k₀` and `w` in the
-source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
+/-- **Transitions preserve the forms `ω₀(·, J ·)` read in the charts.** For `k ≥ k₀` and `w` in
+the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
 derivative `T` of `τ` at `w` satisfies `ω₀(T u, J_x(τ w) (T v)) = ω₀(u, J_y(w) v)`, where `J_x`
 and `J_y` are `J` read in the two charts: `T` pulls the bilinear form `ω₀(·, J_x(τ w) ·)` back to
 `ω₀(·, J_y(w) ·)`. -/
