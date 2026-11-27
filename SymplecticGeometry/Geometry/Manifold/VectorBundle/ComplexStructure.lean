@@ -17,6 +17,7 @@ public import TauCeti.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Data.Bundle
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
+import SymplecticGeometry.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Finrank
@@ -651,16 +652,18 @@ theorem continuous_prodFiberEquiv (G G₁ G₂ : Type*)
       TotalSpace.mk' (G₁ × G₂)
         (E := J₁.toContinuousComplexStructure.Fiber ×ᵇ J₂.toContinuousComplexStructure.Fiber)
         p.proj (J₁.prodFiberEquiv J₂ p.proj p.snd) := by
-  have hd := (FiberBundle.Prod.isInducing_diag F₁ V₁ F₂ V₂).continuous
-  refine (J₁.prod J₂).toContinuousComplexStructure.continuous_fiberEquivOfCommuteI _ _ G <|
-    (FiberBundle.Prod.isInducing_diag G₁ _ G₂ _).continuous_iff.2 <|
-      (((J₁.toContinuousComplexStructure.totalSpaceHomeomorph G₁).symm.continuous.comp
-        hd.fst).prodMk
-        ((J₂.toContinuousComplexStructure.totalSpaceHomeomorph G₂).symm.continuous.comp
-          hd.snd)).congr fun p ↦ ?_
-  simp only [Function.comp_apply, ContinuousLinearEquiv.prodCongr_apply]
-  rw [TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply,
-    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply]
+  have h₁ : Continuous fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' G₁ p.proj
+      ((J₁.toContinuousComplexStructure.fiberEquiv p.proj).symm p.snd) :=
+    (J₁.toContinuousComplexStructure.totalSpaceHomeomorph G₁).symm.continuous.congr fun p ↦
+      TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply _ _ _
+  have h₂ : Continuous fun p : TotalSpace F₂ V₂ ↦ TotalSpace.mk' G₂ p.proj
+      ((J₂.toContinuousComplexStructure.fiberEquiv p.proj).symm p.snd) :=
+    (J₂.toContinuousComplexStructure.totalSpaceHomeomorph G₂).symm.continuous.congr fun p ↦
+      TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply _ _ _
+  exact (J₁.prod J₂).toContinuousComplexStructure.continuous_fiberEquivOfCommuteI _ _ G
+    (Bundle.Prod.continuous_prodCongr (R := ℝ)
+      (Φ₁ := fun x ↦ (J₁.toContinuousComplexStructure.fiberEquiv x).symm)
+      (Φ₂ := fun x ↦ (J₂.toContinuousComplexStructure.fiberEquiv x).symm) h₁ h₂)
 
 end Prod
 
