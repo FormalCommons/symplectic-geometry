@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Topology.Sets.OpenCover
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 
@@ -57,25 +58,17 @@ def AgreeOnOverlaps : Prop :=
 
 variable {U}
 
-/-- An index of the cover whose open set contains `x`. -/
-private def coverIndex (hU : iSup U = ⊤) (x : M) : ι :=
-  (Opens.mem_iSup.1 (hU ▸ Opens.mem_top x : x ∈ iSup U)).choose
-
-private theorem mem_coverIndex (hU : iSup U = ⊤) (x : M) : x ∈ U (coverIndex hU x) :=
-  (Opens.mem_iSup.1 (hU ▸ Opens.mem_top x : x ∈ iSup U)).choose_spec
-
 /-- The tangent endomorphism field of the glued structure: at `x`, the value of `J i` for the
 chosen index `i` of a set of the cover containing `x`. -/
-private def glueEnd (hU : iSup U = ⊤) (x : M) : TangentSpace I x →L[ℝ] TangentSpace I x :=
-  (Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, mem_coverIndex hU x⟩ : U (coverIndex hU x)))
-      |>.toContinuousLinearMap.comp
-    (((J (coverIndex hU x)).toEndomorphism ⟨x, mem_coverIndex hU x⟩).comp
-      (Manifold.tangentSpaceOpenEquiv (I := I)
-        (⟨x, mem_coverIndex hU x⟩ : U (coverIndex hU x))).symm.toContinuousLinearMap)
+private def glueEnd (hU : IsOpenCover U) (x : M) : TangentSpace I x →L[ℝ] TangentSpace I x :=
+  let y : U (hU.exists_mem x).choose := ⟨x, (hU.exists_mem x).choose_spec⟩
+  (Manifold.tangentSpaceOpenEquiv (I := I) y).toContinuousLinearMap.comp
+    (((J _).toEndomorphism y).comp
+      (Manifold.tangentSpaceOpenEquiv (I := I) y).symm.toContinuousLinearMap)
 
 variable {J}
 
-private theorem glueEnd_apply (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) (i : ι) (x : M)
+private theorem glueEnd_apply (hU : IsOpenCover U) (hJ : AgreeOnOverlaps U J) (i : ι) (x : M)
     (hi : x ∈ U i) (v : TangentSpace I x) :
     glueEnd J hU x v = Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)
       (J i ⟨x, hi⟩ ((Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)).symm v)) := by
@@ -83,7 +76,7 @@ private theorem glueEnd_apply (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) (i 
   exact hJ _ _ x _ hi v
 
 /-- The glued field read on `U i`, through the tangent-space identifications, is `J i`. -/
-private theorem restrictOpenTangentSpaceEnd_glueEnd (hU : iSup U = ⊤)
+private theorem restrictOpenTangentSpaceEnd_glueEnd (hU : IsOpenCover U)
     (hJ : AgreeOnOverlaps U J) (i : ι) (y : U i) :
     (Manifold.tangentSpaceOpenEquiv (I := I) y).symm.toContinuousLinearMap.comp
       ((glueEnd J hU y).comp (Manifold.tangentSpaceOpenEquiv (I := I) y).toContinuousLinearMap) =
@@ -94,28 +87,28 @@ private theorem restrictOpenTangentSpaceEnd_glueEnd (hU : iSup U = ⊤)
     glueEnd_apply hU hJ i y y.property]
   simp only [ContinuousLinearEquiv.symm_apply_apply]
 
-private theorem contMDiff_glueEnd (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) :
+private theorem contMDiff_glueEnd (hU : IsOpenCover U) (hJ : AgreeOnOverlaps U J) :
     ContMDiff I (I.prod 𝓘(ℝ, E →L[ℝ] E)) ∞ fun x : M ↦
       TotalSpace.mk' (E →L[ℝ] E) (E := fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
         x (glueEnd J hU x) := by
   intro x
-  refine (Manifold.contMDiffAt_restrictOpen_tangentEnd_iff (U := U (coverIndex hU x))
-    (x := ⟨x, mem_coverIndex hU x⟩)).1 ?_
+  refine (Manifold.contMDiffAt_restrictOpen_tangentEnd_iff (U := U (hU.exists_mem x).choose)
+    (x := ⟨x, (hU.exists_mem x).choose_spec⟩)).1 ?_
   simpa only [restrictOpenTangentSpaceEnd_glueEnd hU hJ] using (J _).toEndomorphism.contMDiff _
 
 /-- The smooth almost complex structure on `M` glued from smooth almost complex structures `J i`
 on the sets `U i` of an open cover of `M` that agree on the overlaps `U i ⊓ U j`. -/
-def glue (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) : SmoothAlmostComplexStructure I M where
+def glue (hU : IsOpenCover U) (hJ : AgreeOnOverlaps U J) : SmoothAlmostComplexStructure I M where
   toEndomorphism := ⟨glueEnd J hU, contMDiff_glueEnd hU hJ⟩
   square_neg x := by
     ext v
     simp only [ContMDiffSection.coeFn_mk, ContinuousLinearMap.comp_apply,
-      glueEnd_apply hU hJ _ x (mem_coverIndex hU x)]
+      glueEnd_apply hU hJ _ x (hU.exists_mem x).choose_spec]
     simp
 
 /-- At a point `x` of `U i`, the glued structure is `J i`, read on the tangent space of `M` at
 `x` through the canonical identification. -/
-theorem glue_apply (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) (i : ι) (x : M) (hi : x ∈ U i)
+theorem glue_apply (hU : IsOpenCover U) (hJ : AgreeOnOverlaps U J) (i : ι) (x : M) (hi : x ∈ U i)
     (v : TangentSpace I x) :
     glue hU hJ x v = Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)
       (J i ⟨x, hi⟩ ((Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)).symm v)) :=
@@ -123,7 +116,7 @@ theorem glue_apply (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) (i : ι) (x : 
 
 /-- The restriction of the glued structure to `U i` is `J i`. -/
 @[simp]
-theorem restrictOpen_glue (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) (i : ι) :
+theorem restrictOpen_glue (hU : IsOpenCover U) (hJ : AgreeOnOverlaps U J) (i : ι) :
     (glue hU hJ).restrictOpen (U i) = J i := by
   ext x v
   rw [restrictOpen_apply, glue_apply hU hJ i x x.property]
@@ -131,12 +124,12 @@ theorem restrictOpen_glue (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J) (i : ι
 
 /-- A smooth almost complex structure on `M` is the glued one exactly when its restriction to
 each `U i` is `J i`. -/
-theorem eq_glue_iff (hU : iSup U = ⊤) (hJ : AgreeOnOverlaps U J)
+theorem eq_glue_iff (hU : IsOpenCover U) (hJ : AgreeOnOverlaps U J)
     (K : SmoothAlmostComplexStructure I M) :
     K = glue hU hJ ↔ ∀ i, K.restrictOpen (U i) = J i := by
   refine ⟨fun h i ↦ h ▸ restrictOpen_glue hU hJ i, fun h ↦ ?_⟩
   ext x v
-  rw [glue_apply hU hJ _ x (mem_coverIndex hU x), ← h, restrictOpen_apply]
+  rw [glue_apply hU hJ _ x (hU.exists_mem x).choose_spec, ← h, restrictOpen_apply]
   simp
 
 /-- The restrictions of one smooth almost complex structure to a family of open sets agree on
@@ -149,7 +142,7 @@ theorem agreeOnOverlaps_restrictOpen (K : SmoothAlmostComplexStructure I M) :
 /-- A smooth almost complex structure is glued from its restrictions to the sets of an open
 cover. -/
 @[simp]
-theorem glue_restrictOpen (hU : iSup U = ⊤) (K : SmoothAlmostComplexStructure I M) :
+theorem glue_restrictOpen (hU : IsOpenCover U) (K : SmoothAlmostComplexStructure I M) :
     glue hU (agreeOnOverlaps_restrictOpen (U := U) K) = K :=
   ((eq_glue_iff hU _ K).2 fun _ ↦ rfl).symm
 

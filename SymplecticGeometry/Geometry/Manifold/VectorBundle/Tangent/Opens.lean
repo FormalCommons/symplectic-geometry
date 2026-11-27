@@ -39,10 +39,12 @@ here that precomposition is Tau Ceti's
 A field of endomorphisms `A y` of the tangent spaces of `M` is `C^n` at a point `x` of `U`
 exactly when the field it induces on `U` through the same identification is
 (`TauCeti.Manifold.contMDiffAt_restrictOpen_tangentEnd_iff`): near `x`, the two read alike in
-coordinates (`TauCeti.Manifold.eventually_inCoordinates_openTangentSpaceHom_eq`). The direction
-from `M` to `U` is the argument of Tau Ceti's
-`TauCeti.Manifold.contMDiff_restrictOpenTangentSpaceEnd`, at one point and without a parameter;
-the converse lets a field be built from its values on the sets of an open cover.
+coordinates (`TauCeti.Manifold.eventually_inCoordinates_openTangentSpaceHom_eq`). Its proof adapts
+that of Tau Ceti's `TauCeti.Manifold.contMDiffAt_tangentBundle_opens_iff` from tangent vectors to
+fields of endomorphisms: both sides are unfolded into conditions on the total space, the
+continuity parts are matched on the subtype, and the coordinate parts agree near `x`. Tau Ceti's
+`TauCeti.Manifold.contMDiff_restrictOpenTangentSpaceEnd` gives the direction from `M` to `U`
+for a whole field; the converse lets a field be built from its values on an open cover.
 
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
