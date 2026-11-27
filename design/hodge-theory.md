@@ -300,8 +300,8 @@ finite-dimensional `F`:
 ### `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`
 
 The coordinate expression of a form along a chart `ψ` that is a partial
-diffeomorphism onto an open subset of `E` is Tau Ceti's pullback
-`mpullback 𝓘(ℝ, E) I ψ.symm φ : E → E [⋀^Fin k]→L[ℝ] F`. Tau Ceti already
+diffeomorphism onto an open subset of a normed space $D$ is Tau Ceti's pullback
+`mpullback 𝓘(ℝ, D) I ψ.symm φ : D → D [⋀^Fin k]→L[ℝ] F`. Tau Ceti already
 gives its linearity (`mpullback_add`, `mpullback_smul`), smoothness on
 `ψ.target` (`SmoothForm.contDiffOn_mpullback`), recovery of the form on
 `ψ.source` (`OpenPartialHomeomorph.mpullback_mpullback_symm_apply`),
