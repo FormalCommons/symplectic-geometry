@@ -70,11 +70,9 @@ Since the affine coordinate cuts out the fibre near each of its points, its real
 `x` descends to an isomorphism of the normal space at `x` with `ℂ`
 (`TauCeti.SmoothEmbedding.normalSpaceEquivOfLevel`), and the inverses of these isomorphisms are
 smooth in `x` because one function does this at every point
-(`TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfLevel_symm`). The complex structure of the
-normal space sends the class of `v` to the class of `i v`
-(`TauCeti.SmoothEmbedding.normalComplexStructureAt_normalClass`), and the affine coordinate is
-holomorphic, so its real differential sends `i v` to `i` times its value on `v`
-(`MDifferentiableAt.mfderiv_ofComplexManifold_apply`).
+(`TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfLevel_symm`). These inverses are complex
+linear because the affine coordinate is holomorphic
+(`TauCeti.SmoothEmbedding.normalComplexStructureAt_normalSpaceEquivOfLevel_symm`).
 
 ## References
 
@@ -244,18 +242,6 @@ theorem isRegularPoint_restrictScalars_affineCoordinate
 
 open scoped ComplexManifold
 
-
-/-- The tangent ranges of the fibre embedding are invariant under the complex structure of the
-rational elliptic surface. -/
-theorem mapsTo_ofComplexManifold_tangentRange_fibreEmbedding
-    (x : SmoothProjectiveHypersurface.fermat 1 3) :
-    MapsTo (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface
-        (fibreEmbedding x))
-      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero))
-      (fibreEmbedding.isImmersion.tangentRange x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :=
-  fibreEmbedding_def ▸ SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars
-    analyticFibreEmbedding le_top (by simp) _ x
-
 /-- The real dimensions of the fibre and of `ℂ` add up to that of the rational elliptic surface:
 `2 + 2 = 4`. -/
 theorem finrank_add_finrank_eq_fibreEmbedding :
@@ -329,17 +315,10 @@ theorem normalComplexStructureAt_fibreNormalEquiv (x : SmoothProjectiveHypersurf
         (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) rationalEllipticSurface) x
         (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding x) (fibreNormalEquiv x z) =
       fibreNormalEquiv x (Complex.I * z) := by
-  obtain ⟨v, rfl⟩ := (fibreNormalEquiv x).symm.surjective z
-  obtain ⟨v, rfl⟩ := fibreEmbedding.isImmersion.normalClass_surjective x _ v
-  rw [ContinuousLinearEquiv.apply_symm_apply,
-    SmoothEmbedding.normalComplexStructureAt_normalClass, fibreNormalEquiv_symm_normalClass,
-    ← fibreNormalEquiv_mfderiv,
+  rw [fibreNormalEquiv_def, ← smul_eq_mul]
+  exact SmoothEmbedding.normalComplexStructureAt_normalSpaceEquivOfLevel_symm _ _ x _ _ _ _
     ((contMDiffAt_affineCoordinate (snd_fibreEmbedding_mem_affineOpen x) 1).mdifferentiableAt
-      one_ne_zero).mfderiv_ofComplexManifold_apply]
-  -- The structure of `ℂ` as a complex manifold is multiplication by `i`.
-  exact congrArg (fibreNormalEquiv x)
-    ((SmoothAlmostComplexStructure.ofComplexManifold_apply _ _).trans
-      (smul_eq_mul (α := ℂ) _ _))
+      one_ne_zero) z
 
 end SymplecticGeometry.rationalEllipticSurface
 
