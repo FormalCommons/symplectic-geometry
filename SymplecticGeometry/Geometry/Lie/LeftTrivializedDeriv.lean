@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
+import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
 /-!
 # Curves in a Lie group with a prescribed left-trivialized derivative
@@ -32,6 +33,10 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   derivative at each point.
 * `SymplecticGeometry.hasLeftTrivializedDerivOn_iff`: the condition in terms of Mathlib's
   `mulInvariantVectorField`.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.mdifferentiableAt`,
+  `SymplecticGeometry.HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv`: at a time of which `s`
+  is a neighbourhood, the curve is differentiable, and its velocity translated to the identity
+  is `ξ t`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul`: left translates `t ↦ a * g t` of
   such a curve have the same left-trivialized derivative.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.piecewise`: two such curves on open sets with a
@@ -74,7 +79,7 @@ The derivative of the orbit curve is the chain rule along `g`, with the derivati
 public section
 
 open Set TauCeti
-open scoped Manifold
+open scoped Manifold Topology
 
 section MulInv
 
@@ -235,6 +240,23 @@ theorem HasLeftTrivializedDerivOn.congr (hg : HasLeftTrivializedDerivOn g ξ s) 
   -- identity of the model space.
   ext
   rfl
+
+/-- At a time `t` of which `s` is a neighbourhood, a curve with left-trivialized derivative on
+`s` is differentiable. -/
+theorem HasLeftTrivializedDerivOn.mdifferentiableAt (hg : HasLeftTrivializedDerivOn g ξ s)
+    {t : ℝ} (hs : s ∈ 𝓝 t) : MDifferentiableAt 𝓘(ℝ) I g t :=
+  let ⟨_, hgv, _⟩ := hg t (mem_of_mem_nhds hs)
+  (hgv.hasMFDerivAt hs).mdifferentiableAt
+
+/-- At a time `t` of which `s` is a neighbourhood, the velocity `mfderiv 𝓘(ℝ) I g t 1` of a curve
+with left-trivialized derivative `ξ` on `s`, translated to the identity, is `ξ t`. -/
+theorem HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv (hg : HasLeftTrivializedDerivOn g ξ s)
+    {t : ℝ} (hs : s ∈ 𝓝 t) :
+    mfderiv I I ((g t)⁻¹ * ·) (g t) (mfderiv 𝓘(ℝ) I g t (1 : ℝ)) = ξ t := by
+  obtain ⟨v, hgv, hv⟩ := hg t (mem_of_mem_nhds hs)
+  rw [← Manifold.curveVelocity_apply, ← Manifold.curveVelocityWithin_of_mem_nhds hs,
+    Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt hgv (uniqueDiffWithinAt_of_mem_nhds hs),
+    hv]
 
 /-- On a union of two open sets, the condition holds if it holds on each of them. -/
 theorem HasLeftTrivializedDerivOn.union_of_isOpen {s' : Set ℝ}

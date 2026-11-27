@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
+public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -13,7 +14,6 @@ public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Positivity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
-import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
@@ -27,15 +27,16 @@ an orientation `o`, and whose coordinate changes preserve `o`. This file builds 
 integral one (`TauCeti.MapFiber.Atlas.exists_restricts_isPositive_area`).
 
 The construction: a top form on `F` inducing `o`, divided by its integral, is a form `σ₀`
-positive for `o` of integral one (`TauCeti.exists_smoothForm_pos_integralTopForm_eq_one`). Glue
-the pull-backs of `σ₀` along the fibre coordinates of the charts with a partition of unity of the
-base, as in the proof of `TauCeti.SmoothTwoForm.exists_restrictsTo_isVerticallyClosed`. On the
-fibre over `b'`, the glued form is the combination, with the weights at `b'`, of the pull-backs
-of `σ₀` along coordinate changes. These preserve `o`, so each pull-back is positive for `o`
-(`TauCeti.Manifold.Orientation.IsOrientationPreservingAt.mpullback_apply_pos`) and has integral
-one (change of variables,
+positive for `o` of integral one
+(`TauCeti.exists_smoothForm_isPositive_integralTopForm_eq_one`). Glue the pull-backs of `σ₀`
+along the fibre coordinates of the charts with a partition of unity of the base, as in the proof
+of `TauCeti.SmoothTwoForm.exists_restrictsTo_isVerticallyClosed`. On the fibre over `b'`, the
+glued form is the combination, with the weights at `b'`, of the pull-backs of `σ₀` along
+coordinate changes. These preserve `o`, so each pull-back is positive for `o`
+(`TauCeti.Manifold.Orientation.IsPositive.mpullback`) and has integral one (change of variables,
 `Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`); and the
-weights are nonnegative with sum one.
+weights are nonnegative with sum one, so the combination is positive for `o`
+(`TauCeti.Manifold.Orientation.IsPositive.sum_smul`) with integral one.
 
 ## Main results
 
@@ -115,18 +116,17 @@ variable [FiniteDimensional ℝ EB] [IsManifold IB ∞ B]
 σ-compact base modelled on a finite-dimensional space, whose model fibre is a nonempty compact
 Hausdorff surface `F` with an orientation `o`, and whose coordinate changes preserve `o`. Then
 some two-form `τ` on `M` pulls back along each fibre inclusion `v ↦ (A.trivAt b)⁻¹ (b', v)`, for
-`b'` in the base set of `A.trivAt b`, to a form that takes a positive value on every basis with
-the orientation of `o` and has integral one. -/
+`b'` in the base set of `A.trivAt b`, to a form that is positive for `o` and has integral
+one. -/
 theorem exists_restricts_isPositive_area [T2Space B] [SigmaCompactSpace B] [T2Space F]
     [CompactSpace F] [Nonempty F] (hA : A.IsContMDiff ∞ IB IF IM)
     (hH : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o)) :
     ∃ τ : SmoothTwoForm IM M, ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
-      (∀ x (c : Module.Basis (Fin 2) ℝ (TangentSpace IF x)), c.orientation = o.orientationAt x →
-        0 < (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
-          (hA.contMDiffOn_trivAt_symm b) hb') τ).val x c) ∧
+      o.IsPositive (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
+          (hA.contMDiffOn_trivAt_symm b) hb') τ).val ∧
       integralTopForm o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
           (hA.contMDiffOn_trivAt_symm b) hb') τ).val = 1 := by
-  obtain ⟨σ₀, hσ₀, hint⟩ := exists_smoothForm_pos_integralTopForm_eq_one o
+  obtain ⟨σ₀, hσ₀, hint⟩ := exists_smoothForm_isPositive_integralTopForm_eq_one o
   obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
     (fun i ↦ (A.trivAt i).baseSet) (fun i ↦ (A.trivAt i).open_baseSet)
     A.iUnion_baseSet_trivAt.ge
@@ -142,12 +142,10 @@ theorem exists_restricts_isPositive_area [T2Space B] [SigmaCompactSpace B] [T2Sp
   have hop : ∀ i ∈ ρ.finsupport b', ∀ x,
       Manifold.Orientation.IsOrientationPreservingAt o o (φ i) x := fun i hi ↦
     Diffeomorph.mem_orientationPreservingSubgroup_iff.1 (hφ i hi)
-  refine ⟨fun x c hc ↦ ?_, ?_⟩
-  · rw [Finset.sum_apply, ContinuousAlternatingMap.sum_apply]
-    refine Finset.sum_pos (fun i hi ↦ ?_)
-      (Finset.nonempty_of_sum_ne_zero (hsum.trans_ne one_ne_zero))
-    rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul]
-    exact mul_pos (hpos i hi) ((hop i hi x).mpullback_apply_pos (fun c hc ↦ hσ₀ _ c hc) c hc)
+  refine ⟨?_, ?_⟩
+  · obtain ⟨j, hj⟩ := Finset.nonempty_of_sum_ne_zero (hsum.trans_ne one_ne_zero)
+    exact Manifold.Orientation.IsPositive.sum_smul (fun i hi ↦ hσ₀.mpullback (hop i hi))
+      (fun i hi ↦ (hpos i hi).le) ⟨j, hj, hpos j hj⟩
   · have hE : Module.finrank ℝ EF = 2 := by simpa using o.card_eq.symm
     have hone : ∀ i ∈ ρ.finsupport b',
         integralTopForm o (TauCeti.mpullback IF IF (φ i) σ₀.val) = 1 := fun i hi ↦
