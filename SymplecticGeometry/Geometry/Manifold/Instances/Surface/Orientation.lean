@@ -56,7 +56,6 @@ of an orientation from `TauCeti.exists_isSymplectic_orientation_eq_of_finrank_eq
 
 public section
 
-
 open TauCeti TauCeti.Manifold.Orientation
 open scoped Manifold ContDiff
 
