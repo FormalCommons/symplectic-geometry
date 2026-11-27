@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 public import TauCeti.Analysis.Calculus.Morse.Index
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -16,6 +17,7 @@ import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
 # The linearization of a gradient-like field at a nondegenerate critical point
@@ -29,10 +31,17 @@ This is the first step of the analysis of the stable discs of a Weinstein struct
 nondegenerate critical point: it makes `A` hyperbolic and relates its stable dimension to the
 Morse index.
 
+At a zero `p` of a Liouville vector field `Z` of a two-form `σ`, the condition `L_Z σ = σ`, read
+at `p`, says that the linearization `A` of `Z` satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`.
+The Lie derivative at a zero of the field involves only the derivative of the field
+(`TauCeti.mlieDerivForm_apply_of_eq_zero`), so no regularity of `Z` or `σ` is needed.
+
 ## Main results
 
 * `TauCeti.IsGradientLike.exists_pos_mul_norm_sq_le_hessian`: there is `c > 0` with
   `c * ‖v‖ ^ 2 ≤ H v (A v)` for every `v`.
+* `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`: the linearized Liouville
+  identity at a zero of a Liouville field.
 
 ## Implementation notes
 
@@ -164,7 +173,7 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
       (by norm_num)).hasFDerivAt
   have hY : DifferentiableAt ℝ Y (φ p) := by
     have := mdifferentiableAt_section_iff_differentiableAt_mpullbackWithin_extChartAt_symm.1 hXp
-    rwa [𝓘(ℝ, E).range_eq_univ, mpullbackWithin_univ] at this
+    rwa [𝓘(ℝ, E).range_eq_univ, VectorField.mpullbackWithin_univ] at this
   have hY₀ : Y (φ p) = 0 := by
     have hXp0 : X p = 0 := hX.eq_zero_iff.2 (by
       rw [mvfderiv_eq_fderiv_comp_extChartAt_symm]; exact hp'.fderiv_eq_zero)
@@ -206,5 +215,32 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
     _ = κ * (‖B v‖ ^ 2 / 4) := by field_simp
     _ ≤ κ * B v e ^ 2 := by gcongr
     _ ≤ _ := key v e he.le
+
+/-! ### The Liouville identity at a zero -/
+
+section Liouville
+
+variable {H N : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace N] [ChartedSpace H N] [IsManifold I 1 N]
+
+omit [FiniteDimensional ℝ E] in
+/-- **The linearized Liouville identity.** Let `Z` be a Liouville vector field of a two-form `σ`
+(`L_Z σ = σ`) on a boundaryless manifold, and let `p` be a zero of `Z`, with linearization `A`.
+Then `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)` for all tangent vectors `u`, `v` at `p`: the
+Lie derivative at a zero of the field is read off its linearization. -/
+theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I N ℝ 2}
+    {Z : (x : N) → TangentSpace I x} (hZ : IsLiouvilleVectorField σ Z) {p : N} (hp : Z p = 0)
+    (u v : TangentSpace I p) :
+    σ p ![sectionLinearization (F := E) I id Z p u, v] +
+        σ p ![u, sectionLinearization (F := E) I id Z p v] = σ p ![u, v] := by
+  conv_rhs => rw [← isLiouvilleVectorField_iff.1 hZ]
+  rw [mlieDerivForm_apply_of_eq_zero hp, Fin.sum_univ_two,
+    sectionLinearization_apply_eq_vectorFieldChartDerivative,
+    sectionLinearization_apply_eq_vectorFieldChartDerivative]
+  -- Each entry of the updated pairs is computed by `Function.update` on `Fin 2`; the entries are
+  -- tangent vectors at `p`, which `simp` does not match against vectors of `E`.
+  congr 2 <;> funext i <;> fin_cases i <;> rfl
+
+end Liouville
 
 end TauCeti
