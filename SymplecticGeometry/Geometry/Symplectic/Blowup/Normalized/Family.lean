@@ -105,8 +105,8 @@ private theorem ballLift_family_eventuallyEq_of_blowdown_eq_zero
     exceptionalDivisor_subset_openNbhd (hψ t).width_pos (mem_exceptionalDivisor_iff.2 hp)
   have hW : IsOpen {q : unitInterval × openNbhdOpens n r |
       (q.2 : BlowupModel n) ∈ openNbhd n (ε q.1) ∧ (q.2 : BlowupModel n) ∈ openNbhd n (ε p.1)} :=
-    (isOpen_setOf_mem_openNbhd hc (hε.comp continuous_fst)).inter
-      (isOpen_setOf_mem_openNbhd hc continuous_const)
+    (isOpen_setOfPred_mem_openNbhd hc (hε.comp continuous_fst)).inter
+      (isOpen_setOfPred_mem_openNbhd hc continuous_const)
   filter_upwards [hW.mem_nhds ⟨hp₁ p.1, hp₁ p.1⟩] with q hq
   rw [(hψ q.1).ballLift_of_mem_openNbhd _ hq.1, (hψ p.1).ballLift_of_mem_openNbhd _ hq.2]
 
@@ -251,7 +251,7 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
         exact hq
       · exact ⟨(q.1, ⟨q.2, mem_openNbhdOpens_iff.2 (hmem hq)⟩), hq, rfl⟩
     rw [himage]
-    exact isCompact_setOf_mem_closedNbhd hc
+    exact isCompact_setOfPred_mem_closedNbhd hc
   have hK : IsClosed ((fun q ↦ (q.1, (hψ q.1).ballLift
       ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩)) '' S) :=
     (hS.image (continuous_fst.prodMk

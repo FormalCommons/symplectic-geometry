@@ -62,7 +62,7 @@ isomorphism, so this index is `1`
 `Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass` on the sphere.
 
 For the zero count, let `s ≠ 0` lie in `twistOneKernel J`. Its zeros are finite
-(`SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`), and at each of them it is
+(`SymplecticGeometry.finite_setOfPred_eq_zero_of_mem_twistOneKernel`), and at each of them it is
 complex analytic in an isothermal chart `ψ` and a rescaled frame of `L` that reads the orientation
 of the fibres as that of `ℂ`
 (`SymplecticGeometry.exists_trivialization_analyticAt_of_mem_twistOneKernel`);
@@ -170,7 +170,7 @@ private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
             c x * ((twistCore (𝕜 := ℂ) 1).localTriv z₀ (TotalSpace.mk' ℂ x v)).2 := by
   -- The zeros, with `s` read as a section of `𝒪(1)`, as Tau Ceti's zero count reads them.
   have hZ : {x | (s x : (twistCore (𝕜 := ℂ) 1).Fiber x) = 0}.Finite :=
-    finite_setOf_eq_zero_of_mem_twistOneKernel hs hs₀
+    finite_setOfPred_eq_zero_of_mem_twistOneKernel hs hs₀
   choose e he ψ hze hzψ hψ hA ho c hc hc₀ hec using
     fun z ↦ exists_trivialization_analyticAt_of_mem_twistOneKernel hs z
   have hφ₀ := fun z ↦ localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi

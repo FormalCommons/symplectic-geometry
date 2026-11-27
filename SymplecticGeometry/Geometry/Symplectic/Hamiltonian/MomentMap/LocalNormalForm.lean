@@ -62,7 +62,7 @@ can be shrunk so that also `μ ∘ Ψ` is the moment map `μ_Y` of the local mod
 (`TopologicalSpace.Opens.mulActionOfForallSMulMem`). Both `μ ∘ Ψ` and `μ_Y` restricted to `N` are
 equivariant moment maps of `Ψ^* σ = ω|_N`
 (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.mpullback`, from Tau Ceti), so the set where they
-agree is open (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOf_eq`). It is `G`-invariant since
+agree is open (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOfPred_eq`). It is `G`-invariant since
 both maps are equivariant, and contains the zero section, where both maps are
 `[g, 0] ↦ Ad*_g (μ x)`; restrict `Ψ` to it (`TopologicalSpace.Opens.imageVal`).
 
@@ -370,7 +370,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
   have h₂ := D.isEquivariantMomentMap_descendedForm.mpullback contMDiff_subtypeVal hcN
   -- The set where the two agree is open and `G`-invariant; restrict `Ψ` to it.
   let V : Opens N := ⟨{y | μ (Ψ y) = D.descendedMomentMap y},
-    (h₁.toIsMomentMap.isClopen_setOf_eq h₂.toIsMomentMap).isOpen⟩
+    (h₁.toIsMomentMap.isClopen_setOfPred_eq h₂.toIsMomentMap).isOpen⟩
   have hVG (g : G) (y : N) (hy : y ∈ V) : g • y ∈ V := by
     simp only [V, Opens.mem_mk, Set.mem_ofPred_eq] at hy ⊢
     rw [hΨG', hμ.apply_smul, hcN, descendedMomentMap_smul, hy]

@@ -43,7 +43,7 @@ The construction:
 
 * Each flow line from the sphere reaches the level `a`: forwards it goes below `a` by the descent
   lemma `TauCeti.exists_forall_globalFlow_lt`, and backwards it tends to `p`, where `g p > a`.
-* It crosses the level only once (`IsMIntegralCurve.subsingleton_setOf_apply_eq`), since `g` is
+* It crosses the level only once (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`), since `g` is
   antitone along it and `dg(X) < 0` on the level. So the crossing time is smooth near the sphere
   (`TauCeti.contMDiffAt_levelCrossingTime`).
 * Composed with `u ↦ ρ • u` on the unit sphere, it extends radially from the radius `ρ` by
@@ -133,7 +133,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
   have hanti (y : M) : Antitone fun t ↦ g (Φ t y) :=
     antitone_comp_globalFlow hX hXc (hg.mdifferentiable (by simp)) hgX y
   have huniq (y : M) : {t | g (Φ t y) = a}.Subsingleton :=
-    (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOf_apply_eq (fun _ ↦ hgd _) (hanti y)
+    (isMIntegralCurve_globalFlow hX hXc y).subsingleton_setOfPred_apply_eq (fun _ ↦ hgd _) (hanti y)
       fun _ ht ↦ (hneg _ ht.ge (ht.le.trans hab)).ne
   -- Each flow line from the sphere reaches the level `a`.
   obtain ⟨T, hT0, hT⟩ :=
