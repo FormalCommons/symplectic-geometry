@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 public import Mathlib.Topology.LocallyConstant.Basic
 public import Mathlib.Analysis.Convex.Basic
@@ -43,10 +42,6 @@ preconnected sets) does not reach. The proof adapts the chart argument of Tau Ce
 differentiable maps from a preconnected real manifold to a real normed space, with the same
 differential everywhere and the same value at one point, are equal. It applies Tau Ceti's
 `MDifferentiable.apply_eq_of_mfderiv_eq_zero` to their difference.
-
-`MDifferentiableAt.notMem_range_mfderiv_of_mvfderiv_apply_ne_zero`: if a function `h` is constant
-along a differentiable map `σ`, a tangent vector on which the differential of `h` does not vanish
-is not tangent to `σ`. It is the chain rule `mvfderiv_comp_apply` for `h ∘ σ`.
 -/
 
 public section
@@ -133,29 +128,5 @@ theorem eq_of_mfderiv_eq [IsManifold I 1 M] [PreconnectedSpace M] {f g : M → F
   simpa [hx, sub_eq_zero] using h
 
 end MDifferentiable
-
-namespace MDifferentiableAt
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E F V : Type*} [NormedAddCommGroup E]
-  [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup V]
-  [NormedSpace 𝕜 V] {H G : Type*} [TopologicalSpace H] [TopologicalSpace G]
-  {I : ModelWithCorners 𝕜 E H} {J : ModelWithCorners 𝕜 F G}
-  {M N : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [TopologicalSpace N] [ChartedSpace G N]
-
-/-- **A function constant along a map has a differential that vanishes on its tangent vectors.**
-Let `σ : N → M` be differentiable at `u`, and `h : M → V` differentiable at `σ u` and constant on
-the image of `σ`. A tangent vector `w` at `σ u` on which the differential of `h` does not vanish
-is not in the range of the differential of `σ` at `u`. -/
-theorem notMem_range_mfderiv_of_mvfderiv_apply_ne_zero {σ : N → M} {u : N}
-    (hσ : MDifferentiableAt J I σ u) {h : M → V} (hh : MDifferentiableAt I 𝓘(𝕜, V) h (σ u))
-    {c : V} (hc : ∀ u', h (σ u') = c) {w : TangentSpace I (σ u)}
-    (hw : mvfderiv I h (σ u) w ≠ 0) : w ∉ Set.range (mfderiv J I σ u) := by
-  rintro ⟨v, rfl⟩
-  apply hw
-  rw [← mvfderiv_comp_apply u hh hσ v, show h ∘ σ = fun _ ↦ c from funext hc, mvfderiv_const]
-  rfl
-
-end MDifferentiableAt
 
 end

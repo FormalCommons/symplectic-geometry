@@ -12,8 +12,8 @@ public import Mathlib.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
+import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
 # The stable set of a critical point in the lower level of a cobordism
@@ -123,8 +123,8 @@ from `EuclideanSpace ℝ (Fin (m + 1))` with the inner product `-H` on the stabl
 strictly along the orbits of the disc near `p`
 (`SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc_strictAntiOn`). Transversality
 holds for the same reason: `-H ∘ π` is constant on the sphere, so its differential vanishes on the
-tangent vectors of the sphere, while it is negative on `X`
-(`MDifferentiableAt.notMem_range_mfderiv_of_mvfderiv_apply_ne_zero`). For the existence of a
+tangent vectors of the sphere (`TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const`),
+while it is negative on `X`. For the existence of a
 crossing, the orbit of `x` ends in the part of the disc strictly inside the sphere, and its
 backward orbit leaves the compact cap bounded by the sphere: `f` increases at a rate bounded below
 along it on that cap, which has no critical point below `f p`, while `f` is bounded below there.
@@ -448,18 +448,10 @@ theorem exists_le_flow_apply_notMem_of_isCompact {p x : M} {K : Set M} (hK : IsC
     ∃ t ≤ T, hW.flow t x ∉ K := by
   by_contra! h
   have hf := hW.isGeneralizedMorse.contMDiff
-  have hne (t : ℝ) : hW.flow t x ≠ p := fun hpt ↦ hxp <| by
-    have hfix := Flow.fixed_of_mem_stableSet hx (-t)
-    rw [← hpt, ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply] at hfix
-    exact hfix.trans hpt
-  -- No point of the orbit is critical, so `f` increases strictly along it.
-  have hmono : StrictMono fun t ↦ f (hW.flow t x) :=
-    hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) fun t h0 ↦
-      hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx) (hne t)
-        (mem_criticalPoints.2 h0)
+  have hmono := hW.strictMono_comp_flow_of_mem_stableSet hx hxp
   set b := f (hW.flow T x)
   have hbp : b < f p := hW.apply_lt_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ T).2 hx)
-    (hne T)
+    (Flow.apply_ne_of_mem_stableSet hx hxp T)
   -- On the compact part `B` of `K` below `b`, there is no critical point, so `df(X) ≥ c > 0`.
   set B := K ∩ f ⁻¹' Iic b
   have hB : IsCompact B := hK.inter_right (isClosed_Iic.preimage hf.continuous)
@@ -603,19 +595,17 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     have hz : z ∈ ball 0 ρ' := hzeq ▸ hLρ' (hus u).le
     obtain ⟨d, hd0, hd⟩ := ((hdec z hz).2 (hzeq ▸ hL0 (hus u))).1 0 le_rfl
     set h : M → ℝ := fun y ↦ -H (Q (e y - e p)) (Q (e y - e p))
+    have hc (u' : sphere (0 : V) 1) : (h ∘ σ) u' = s ^ 2 := by
+      simp only [Function.comp_apply, hσdef, h]
+      rw [← map_smul, hπL (hus u').le, hHL, hus]
+    -- The derivative of `h` along the orbit of `σ u` at time `0` is `d < 0`.
     have hg : ContDiff ℝ 1 fun ζ : S ↦ -H ζ ζ :=
       ((H.contDiff.comp S.subtypeL.contDiff).clm_apply S.subtypeL.contDiff).neg
     have hhd : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) h (σ u) :=
       ((hg.contMDiff.comp_contMDiffOn (hπ.of_le (by simp))).contMDiffAt
         ((isOpen_extChartAt_source p).mem_nhds (hzeq ▸ hLW (hus u).le).1.2)).mdifferentiableAt
         one_ne_zero
-    have hσd : MDifferentiableAt (𝓡 m) 𝓘(ℝ, E) σ u :=
-      ((contMDiff_comp_smul_coe_sphere (fun z hz ↦ (hιs z hz).1) hs.le hsLρ) u).mdifferentiableAt
-        (by simp)
-    refine hσd.notMem_range_mfderiv_of_mvfderiv_apply_ne_zero hhd (c := s ^ 2) (fun u' ↦ ?_) ?_
-    · simp only [hσdef, h]
-      rw [← map_smul, hπL (hus u').le, hHL, hus]
-    · -- The derivative of `h` along the orbit of `σ u` at time `0` is `d < 0`.
+    have hw : mvfderiv 𝓘(ℝ, E) h (σ u) (X (σ u)) ≠ 0 := by
       have h00 : hW.flow 0 (σ u) = σ u := Flow.map_zero_apply _ _
       have hcurve := Manifold.hasDerivAt_comp_curve (γ := fun t ↦ hW.flow t (σ u))
         (by rwa [h00]) (hW.isMIntegralCurve_flow (σ u) 0)
@@ -623,6 +613,9 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
       beta_reduce at this
       rw [h00] at this
       exact this ▸ hd0.ne
+    rintro ⟨v, hv⟩
+    exact hw (hv ▸ TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (K := 𝓘(ℝ))
+      (.of_forall hc) v)
   · intro x hx hxp
     -- Two crossings would give the same value `s ^ 2` of `-H` at two times along the disc.
     have hle (t₁ t₂ : ℝ) (h₁ : hW.flow t₁ x ∈ range σ) (h₂ : hW.flow t₂ x ∈ range σ) :
