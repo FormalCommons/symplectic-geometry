@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 
 /-!
 # The local index at a zero with invertible derivative
@@ -58,9 +59,7 @@ theorem sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
     (hφ : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (⟨fun x : φ.source ↦ φ x - φ z, φ.continuousOn.domRestrict.sub continuous_const⟩ :
           C(φ.source, F)) (S := {⟨z, hzφ⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (φ.injOn x.property hzφ (sub_eq_zero.1 hx))) (n + 1)
+        (φ.sourceRestrict_sub_preimage_zero hzφ).subset (n + 1)
         ((φ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv ⟨z, hzφ⟩
           (n + 1)).symm (oM z)).val =
       (ω.localOrientation hF).val)

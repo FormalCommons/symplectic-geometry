@@ -563,9 +563,9 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOr
   have h₂ := ψ'.localHomologyMap_chart_localOrientationOfOrientedChart hx' L.symm
     (((oX.reindex (finCongr hd)).orientationAt (f z)).map (Fin (d + 1)) (D.trans L).toLinearEquiv)
     hEuc hF (by
-      rintro x hx
-      exact Subtype.ext (ψ'.injOn x.property hx'
-        (sub_eq_zero.1 (L.symm.map_eq_zero_iff.1 (by simpa using hx)))))
+      intro x hx
+      exact (ψ'.sourceRestrict_sub_preimage_zero hx').subset
+        (Set.mem_singleton_iff.2 (L.symm.map_eq_zero_iff.1 (by simpa using hx))))
   rw [← h₁] at h₂
   refine Eq.trans ?_ (h₂.trans ?_)
   · congr 3

@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -83,9 +84,7 @@ theorem localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt {F : Type}
         (⟨fun x : ψ.source ↦ ψ x - ψ z, ψ.continuousOn.domRestrict.sub continuous_const⟩ :
           C(ψ.source, F))
         (S := {⟨z, hz⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (ψ.injOn x.property hz (sub_eq_zero.1 hx))) (m + 1)
+        (ψ.sourceRestrict_sub_preimage_zero hz).subset (m + 1)
         ((ψ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv ⟨z, hz⟩ (m + 1)).symm
           (o.toHomologicalOrientation hE z)).val =
       (((o.orientationAt z).map (Fin (m + 1)) D.toLinearEquiv).localOrientation hF).val := by
@@ -105,9 +104,9 @@ theorem localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt {F : Type}
       (L.hasFDerivAt.comp _ hD) rfl
   -- The chart `χ`, centred and followed by `L⁻¹`, carries this local orientation to `D ν`.
   have h₂ := χ.localHomologyMap_chart_localOrientationOfOrientedChart hzχ L.symm ω hF' hF (by
-      rintro x hx
-      exact Subtype.ext (χ.injOn x.property hzχ
-        (sub_eq_zero.1 (L.symm.map_eq_zero_iff.1 (by simpa using hx)))))
+      intro x hx
+      exact (χ.sourceRestrict_sub_preimage_zero hzχ).subset
+        (Set.mem_singleton_iff.2 (L.symm.map_eq_zero_iff.1 (by simpa using hx))))
   have hν : ω.map (Fin (m + 1)) L.symm.toLinearEquiv = ν.map (Fin (m + 1)) D.toLinearEquiv := by
     simp only [ω, ContinuousLinearEquiv.trans_toLinearEquiv, Orientation.map_trans]
     exact Orientation.map_symm_map L.toLinearEquiv _
@@ -136,10 +135,8 @@ theorem localHomologyMap_sub_toHomologicalOrientation_transHomeomorph {F : Type}
             continuous_const⟩ :
           C(((chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph)).source, F))
         (S := {⟨z, by simp⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (((chartAt H z).transHomeomorph
-            (I.toHomeomorph.trans D.toHomeomorph)).injOn x.property (by simp) (sub_eq_zero.1 hx)))
+        (((chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph))
+            |>.sourceRestrict_sub_preimage_zero (by simp)).subset
         (m + 1)
         ((((chartAt H z).transHomeomorph
           (I.toHomeomorph.trans D.toHomeomorph)).open_source.isOpenEmbedding_subtypeVal
@@ -164,10 +161,8 @@ theorem localHomologyMap_sub_toHomologicalOrientation (z : M) :
             continuous_const⟩ :
           C(((chartAt H z).transHomeomorph I.toHomeomorph).source, E))
         (S := {⟨z, by simp⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (((chartAt H z).transHomeomorph I.toHomeomorph).injOn x.property
-            (by simp) (sub_eq_zero.1 hx))) (m + 1)
+        (((chartAt H z).transHomeomorph I.toHomeomorph).sourceRestrict_sub_preimage_zero
+            (by simp)).subset (m + 1)
         ((((chartAt H z).transHomeomorph I.toHomeomorph).open_source.isOpenEmbedding_subtypeVal
           |>.localOrientationEquiv ⟨z, by simp⟩ (m + 1)).symm
           (o.toHomologicalOrientation hE z)).val =
