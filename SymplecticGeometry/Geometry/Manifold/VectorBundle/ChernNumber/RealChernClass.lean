@@ -40,6 +40,19 @@ agree (`SymplecticGeometry.Bundle.realFirstChernClass_eq_of_equivariant`).
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_eq_of_finrank_eq_one`:
   for a line bundle, it is the real first Chern class of the unitary frame bundle of the bundle
   itself, for every smooth Hermitian metric on it.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_pushforward`: a smooth
+  isomorphism of real vector bundles that carries one smooth complex structure to another does not
+  change the class, whatever the complex models of the two structures.
+
+## Implementation notes
+
+For `realFirstChernClass_pushforward`, the isomorphism `Φ` is complex-linear from
+`J.toContinuousComplexStructure.Fiber` to `J'.toContinuousComplexStructure.Fiber`
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommute`), and smooth on total spaces
+(`SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_fiberEquivOfCommute`), so it
+induces a smooth map of determinant lines (`TauCeti.DetBundle.contMDiff_congrModelHomeomorph`).
+That map is a smooth `ℂ`-linear isomorphism of determinant lines, so
+`Bundle.ContMDiffRiemannianMetric.realFirstChernClass_congr` applies to it.
 
 ## References
 
@@ -130,6 +143,37 @@ theorem realFirstChernClass_eq_of_finrank_eq_one [Fact (finrank ℂ G = 1)]
       (φ.frame.map_ne_zero_iff.2 one_ne_zero)
   · rw [OrthonormalFrameBundle.Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul,
       ← _root_.map_smul, smul_eq_mul, mul_one]
+
+variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℝ F'] [FiniteDimensional ℝ F']
+  {V' : M → Type*} [∀ x, AddCommGroup (V' x)] [∀ x, Module ℝ (V' x)]
+  [∀ x, TopologicalSpace (V' x)] [∀ x, IsTopologicalAddGroup (V' x)]
+  [∀ x, ContinuousSMul ℝ (V' x)] [TopologicalSpace (TotalSpace F' V')]
+  [FiberBundle F' V'] [VectorBundle ℝ F' V'] [ContMDiffVectorBundle ∞ F' V' I]
+  (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+  [Fact (finrank ℝ F' = 2 * finrank ℂ G')]
+
+/-- **A complex-linear isomorphism does not change the real first Chern class.** Let `J` and `J'`
+be smooth complex structures on smooth real vector bundles `V` and `V'` over the same base, with
+complex models `G` and `G'`. If a family `Φ x : V x ≃ V' x` of real-linear isomorphisms is smooth
+on total spaces and carries `J` to `J'`, that is `Φ x (J x v) = J' x (Φ x v)`, then `J` and `J'`
+have the same real first Chern class. -/
+theorem realFirstChernClass_pushforward (J : ContMDiffComplexStructure I ⊤ F V)
+    (J' : ContMDiffComplexStructure I ⊤ F' V') (Φ : ∀ x, V x ≃L[ℝ] V' x)
+    (hΦ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F')) ∞
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F' p.proj (Φ p.proj p.snd)))
+    (hJ : ∀ x v, Φ x (J x v) = J' x (Φ x v)) :
+    realFirstChernClass G J = realFirstChernClass G' J' := by
+  set K := J.toContinuousComplexStructure
+  have hK : ∀ x v, Φ x (K x v) = J'.toContinuousComplexStructure x (Φ x v) := fun x v ↦ by
+    rw [J.toContinuousComplexStructure_apply, J'.toContinuousComplexStructure_apply, hJ]
+  -- `Φ` as a smooth complex-linear isomorphism of the complex bundles.
+  set e := K.fiberEquivOfCommute J'.toContinuousComplexStructure Φ hK
+  rw [realFirstChernClass_def, realFirstChernClass_def]
+  exact ContMDiffRiemannianMetric.realFirstChernClass_congr _ _ _ _
+    (DetBundle.congrModelEquiv (F₁ := G) (F' := G') e)
+    ((DetBundle.contMDiff_congrModelHomeomorph e
+      (J.contMDiff_fiberEquivOfCommute G J' G' Φ hΦ hK)).congr fun _ ↦
+        (DetBundle.congrModelHomeomorph_apply ..).symm)
 
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 

@@ -3705,7 +3705,7 @@ auxiliary pages, and the symplectic parts wait for it.
   almost complex manifold along a holomorphic chart, with the pull-back of
   $J$ off $Z$), `SelfIntersection.lean` ($Z\cdot Z=-1$ for $n=2$, as the
   Euler number of the normal bundle in the sense of *Adjunction*'s
-  `SelfIntersection.lean`, from $c_1(L)=-h$), `ConnectedSum.lean`
+  `SelfIntersection.lean`, from $c_1(L)=-h$), `ConnectedSum/Basic.lean`
   ($\widetilde M\cong M\#\overline{\mathbb CP}{}^n$ preserving orientation,
   by the normal bundle $L^*$ of $\mathbb CP^{n-1}\subset\mathbb CP^n$, with
   Tau Ceti's `TauCeti.OrientedConnectedSum`), `ExceptionalClass.lean`
@@ -3724,7 +3724,7 @@ auxiliary pages, and the symplectic parts wait for it.
   $K_{\widetilde M}\cong\pi^*K_M\otimes\mathcal O((n-1)E)$ on Tau Ceti's
   `TauCeti.CanonicalBundle`, by the local Jacobian computation of Schnell,
   Lemma 23.5, in the charts $\tilde\phi$).
-- **Builds on:** *Connected sums* (only for `ConnectedSum.lean`);
+- **Builds on:** *Connected sums* (only for `ConnectedSum/Basic.lean`);
   *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and
   `ChernClass.lean`); *Chern classes* (only its extension below, for
   `ChernClass.lean`); the merged files of *Complex projective space*,
@@ -3737,7 +3737,7 @@ auxiliary pages, and the symplectic parts wait for it.
 - **Milestones:** *Tautological line bundle and the exceptional divisor*
   (`Tautological.lean` and `SelfIntersection.lean`, with $c_1(L)=-h$ merged),
   *Complex blowup at a point* (`Basic.lean` and `Curve.lean`), *Blowup as a connected sum
-  with the reversed projective space* (`ConnectedSum.lean` and
+  with the reversed projective space* (`ConnectedSum/Basic.lean` and
   `ExceptionalClass.lean`; its first statement is *Connected sums*'), and
   *First Chern class of a blowup at a point* (`ChernClass.lean` for the
   formula, `CanonicalBundle.lean` for the canonical-bundle identity).
@@ -3996,7 +3996,7 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   blowup* (only `Weight/Basic.lean`, for the blowup at the base points, and
   `Normalized/Weight.lean`, for its comparison with the complex blowup; this is
   the one place where §7.4 needs §7.1); *Complex blowup* (only `Model.lean`
-  and `ConnectedSum.lean`, for $M\#mk^2\overline{\mathbb CP}{}^2$);
+  and `ConnectedSum/Basic.lean`, for $M\#mk^2\overline{\mathbb CP}{}^2$);
   *Poincaré duals of submanifolds* (for the genus); *Parallel transport*
   (only `RadialTrivialization.lean`, for the regular fibres); the merged
   *Adjunction*.
@@ -4058,7 +4058,7 @@ behind.
 | 1 | *Equivariant localization* | *Lie group actions* (only `Circle.lean`), *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
 | 1 | *Diffeomorphisms of the 2-sphere* | *Cauchy–Riemann operators on the sphere*; `ComplexStructure.lean` and `Mobius.lean` can start at once |
 | 1 | *Symplectic fibrations* | *Parallel transport* (only for `Connection.lean` and `SymplecticFibres.lean`; `Basic.lean` and `LocalForm.lean` can start at once) |
-| 1 | *Complex blowup* | *Connected sums* (only for `ConnectedSum.lean`), *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and `ChernClass.lean`), *Chern classes* (only the issues of its extension for `auxiliary/first-chern-class.md`, which wait for no part, for `ChernClass.lean`); `Model.lean`, `Lift.lean`, `Basic.lean` and `SelfIntersection.lean` can start at once |
+| 1 | *Complex blowup* | *Connected sums* (only for `ConnectedSum/Basic.lean`), *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and `ChernClass.lean`), *Chern classes* (only the issues of its extension for `auxiliary/first-chern-class.md`, which wait for no part, for `ChernClass.lean`); `Model.lean`, `Lift.lean`, `Basic.lean` and `SelfIntersection.lean` can start at once |
 | 1 | *Asymptotically holomorphic sections* | *Poincaré duals of submanifolds* (only its zero-set file, for `ZeroSet.lean`); the other files can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
@@ -4074,7 +4074,7 @@ behind.
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
-| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
+| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum/Basic.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
@@ -4314,7 +4314,7 @@ existing inputs.
 |---|---|
 | *Tautological line bundle and the exceptional divisor* | *Complex blowup* (`Tautological.lean`, `SelfIntersection.lean`). Existing input: the merged `complexEulerClass_twistCore_neg_one`, which is $c_1(L)=-h$. |
 | *Complex blowup at a point* | *Complex blowup* (`Basic.lean`, `Curve.lean`). |
-| *Blowup as a connected sum with the reversed projective space* | *Connected sums* (first statement), *Complex blowup* (`ConnectedSum.lean`, `ExceptionalClass.lean`). Existing input: `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`, which does not state that the orientations are preserved. |
+| *Blowup as a connected sum with the reversed projective space* | *Connected sums* (first statement), *Complex blowup* (`ConnectedSum/Basic.lean`, `ExceptionalClass.lean`). Existing input: `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`, which does not state that the orientations are preserved. |
 | *Kähler forms on the blowup of complex space* | *Symplectic blowup* (`Model.lean`, `Profile.lean`, `Area.lean`). Existing input: the merged `isKahler_fubiniStudyForm`. |
 | *Symplectic blowup along a ball* | *Symplectic blowup* (`Weight/`), with *Isotopy extension*'s ball extension for the larger ball. |
 | *Symplectic blowdown* | *Symplectic blowup* (`DivisorNeighborhood.lean`, `Blowdown.lean`), with *Symplectic neighbourhoods*. |

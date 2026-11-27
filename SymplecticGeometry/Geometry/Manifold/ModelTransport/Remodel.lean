@@ -64,6 +64,9 @@ instance [T2Space M] : T2Space (Remodel Φ M) := inferInstanceAs (T2Space M)
 
 instance [CompactSpace M] : CompactSpace (Remodel Φ M) := inferInstanceAs (CompactSpace M)
 
+instance [SecondCountableTopology M] : SecondCountableTopology (Remodel Φ M) :=
+  inferInstanceAs (SecondCountableTopology M)
+
 instance [Nonempty M] : Nonempty (Remodel Φ M) := inferInstanceAs (Nonempty M)
 
 instance [PreconnectedSpace M] : PreconnectedSpace (Remodel Φ M) :=
