@@ -381,17 +381,44 @@ theorem contDiff_flatDbar {n : ℕ∞} {f : StdSpace ι → ℂ} (hf : ContDiff 
     ContDiff ℝ n (flatDbar f) :=
   contDiff_iff_contDiffAt.2 fun _ ↦ contDiffAt_flatDbar hf.contDiffAt
 
+/-- The flat `∂̄` is additive on functions differentiable at `z`. -/
+theorem flatDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) : flatDbar (f + g) z = flatDbar f z + flatDbar g z := by
+  simp [flatDbar_def, fderiv_add hf hg]
+
+/-- The flat `∂̄` commutes with complex scalars. -/
+@[simp]
+theorem flatDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDbar (c • f) z = c • flatDbar f z := by
+  ext v
+  simp only [flatDbar_apply, fderiv_const_smul_field, Pi.smul_apply, smul_apply, smul_eq_mul,
+    Complex.real_smul]
+  ring
+
+@[simp]
+theorem flatDbar_zero (z : StdSpace ι) : flatDbar (0 : StdSpace ι → ℂ) z = 0 := by
+  simp [flatDbar_def]
+
+/-- The **Leibniz rule** for the flat `∂̄`: for `f` and `g` differentiable at `z`, the flat `∂̄`
+of `f * g` at `z` is `f z` times the flat `∂̄` of `g` plus `g z` times the flat `∂̄` of `f`. -/
+theorem flatDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) :
+    flatDbar (fun y ↦ f y * g y) z = f z • flatDbar g z + g z • flatDbar f z := by
+  ext v
+  simp only [add_apply, smul_apply, flatDbar_apply, fderiv_fun_mul hf hg, smul_eq_mul,
+    Complex.real_smul]
+  push_cast
+  ring
+
 /-- The flat `∂̄` of the complex coordinate `z_j` vanishes: it is complex linear for `J₀`. -/
 @[simp]
 theorem flatDbar_complexToRealEuclideanCoord (j : ι) :
     flatDbar (complexToRealEuclideanCoord ι j) = 0 := by
-  have hI : (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap ∘ₗ
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap = -LinearMap.id :=
-    LinearMap.ext fun v ↦ AlmostComplexStructure.apply_apply _ v
   ext z v : 2
   rw [flatDbar_def, (complexToRealEuclideanCoord ι j).fderiv,
     complexAntilinearPartContinuousLinearMap_apply_apply,
-    (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero hI]
+    (isComplexLinear_complexToRealEuclideanCoord j).complexAntilinearPart_eq_zero
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg]
   simp
 
 /-- The **model `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
@@ -413,13 +440,13 @@ theorem modelDbar_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
         ((stdForm ι).toBilinForm z)).smulRight (Complex.I * f z)) :=
   (rfl)
 
-/-- The model `∂̄` of `f` at `z`, applied to `v`, is the flat `∂̄`, `½ (df_z v + i df_z (J₀ v))`,
+/-- The model `∂̄` of `f` at `z`, applied to `v`, is the flat `∂̄` of `f` at `z`, applied to `v`,
 plus `¼ (⟪z, v⟫ - i ω₀(z, v)) f(z)`. -/
 theorem modelDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
     modelDbar f z v =
-      (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z (stdComplexStructure ι v)) +
+      flatDbar f z v +
         (4⁻¹ : ℝ) • ((inner ℝ z v : ℝ) - Complex.I * (stdForm ι z v : ℝ)) * f z := by
-  simp only [modelDbar_def, complexAntilinearPartContinuousLinearMap_apply_apply,
+  simp only [modelDbar_def, flatDbar_apply, complexAntilinearPartContinuousLinearMap_apply_apply,
     complexAntilinearPart_apply,
     AlmostComplexStructure.ofComplexModule_apply, ContinuousLinearMap.coe_coe,
     sub_apply, ContinuousLinearMap.smulRight_apply, LinearMap.coe_toContinuousLinearMap',
@@ -431,7 +458,7 @@ theorem modelDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
 theorem modelDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) : modelDbar (f + g) z = modelDbar f z + modelDbar g z := by
   ext v
-  simp only [modelDbar_apply, add_apply, fderiv_add hf hg, Pi.add_apply, Complex.real_smul]
+  simp only [modelDbar_apply, flatDbar_add hf hg, add_apply, Pi.add_apply, Complex.real_smul]
   ring
 
 /-- The model `∂̄` commutes with complex scalars. -/
@@ -439,7 +466,7 @@ theorem modelDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differ
 theorem modelDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     modelDbar (c • f) z = c • modelDbar f z := by
   ext v
-  simp only [modelDbar_apply, fderiv_const_smul_field, Pi.smul_apply, smul_apply, smul_eq_mul,
+  simp only [modelDbar_apply, flatDbar_smul, Pi.smul_apply, smul_apply, smul_eq_mul,
     Complex.real_smul]
   ring
 
@@ -453,12 +480,8 @@ theorem contDiffAt_modelDbar {n : ℕ∞} {f : StdSpace ι → ℂ} {z : StdSpac
     (hf : ContDiffAt ℝ (n + 1) f z) : ContDiffAt ℝ n (modelDbar f) z := by
   -- The connection term is linear in the point, through `ω₀`, times `i f`.
   have hω : ContDiff ℝ n fun y : StdSpace ι ↦
-      (2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm y) := by
-    have h := (LinearMap.toContinuousLinearMap (LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ
-      (stdForm ι).toBilinForm)).contDiff (n := n)
-    simp only [LinearMap.coe_toContinuousLinearMap', LinearMap.coe_comp, Function.comp_def,
-      LinearEquiv.coe_coe] at h
-    exact h.const_smul (2⁻¹ : ℝ)
+      (2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap ((stdForm ι).toBilinForm y) :=
+    (stdForm ι).toBilinForm.toContinuousBilinearMap.contDiff.const_smul _
   have hf' : ContDiffAt ℝ n f z := hf.of_le (by simp)
   exact (complexAntilinearPartContinuousLinearMap _ _).contDiff.contDiffAt.comp z
     ((hf.fderiv_right le_rfl).sub (hω.contDiffAt.smulRight (contDiffAt_const.mul hf')))
@@ -475,8 +498,7 @@ theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differ
     (hg : DifferentiableAt ℝ g z) :
     modelDbar (fun y ↦ f y * g y) z = f z • modelDbar g z + g z • flatDbar f z := by
   ext v
-  rw [add_apply, smul_apply, smul_apply, modelDbar_apply, modelDbar_apply, flatDbar_apply,
-    fderiv_fun_mul hf hg]
+  rw [add_apply, smul_apply, smul_apply, modelDbar_apply, modelDbar_apply, flatDbar_mul hf hg]
   simp only [add_apply, smul_apply, smul_eq_mul, Complex.real_smul]
   push_cast
   ring
@@ -504,7 +526,8 @@ theorem modelDbar_gaussian :
   have h : inner ℝ z (stdComplexStructure ι v) = -inner ℝ (stdComplexStructure ι z) v := by
     rw [← inner_stdComplexStructure_stdComplexStructure z, AlmostComplexStructure.apply_apply,
       inner_neg_right]
-  rw [modelDbar_apply, fderiv_gaussian_apply, fderiv_gaussian_apply, stdForm_apply_eq_inner, h]
+  rw [modelDbar_apply, flatDbar_apply, fderiv_gaussian_apply, fderiv_gaussian_apply,
+    stdForm_apply_eq_inner, h]
   simp only [Complex.real_smul, zero_apply, Pi.zero_apply]
   push_cast
   ring
