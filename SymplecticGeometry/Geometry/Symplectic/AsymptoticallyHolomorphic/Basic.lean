@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.P
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
+import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
@@ -425,6 +426,14 @@ theorem dbarJetNorm_smul (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) (c : 
   rw [dbarJetNorm_def, dbarJetNorm_def, funext (D.dbarReading_smul k x c s), ← Pi.smul_def,
     jetNormAt_smul]
 
+/-- The `∂̄` reading is additive, as an equality of germs at `z₀`, on sections whose readings are
+differentiable near `z₀`. -/
+theorem dbarReading_add_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
+    {z₀ : StdSpace ι} (hs : ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x s) z)
+    (ht : ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x t) z) :
+    D.dbarReading k x (s + t) =ᶠ[𝓝 z₀] D.dbarReading k x s + D.dbarReading k x t :=
+  (hs.and ht).mono fun _ hz ↦ D.dbarReading_add hz.1 hz.2
+
 /-- The **triangle inequality for jet norms of `∂̄`**, for sections whose readings are
 differentiable near `0` and whose `∂̄` readings are `C^r` at `0`. -/
 theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
@@ -432,9 +441,7 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     (ht : ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x t) z)
     (hs' : ContDiffAt ℝ r (D.dbarReading k x s) 0) (ht' : ContDiffAt ℝ r (D.dbarReading k x t) 0) :
     D.dbarJetNorm k r (s + t) x ≤ D.dbarJetNorm k r s x + D.dbarJetNorm k r t x := by
-  have h : D.dbarReading k x (s + t) =ᶠ[𝓝 0] D.dbarReading k x s + D.dbarReading k x t :=
-    (hs.and ht).mono fun z hz ↦ D.dbarReading_add hz.1 hz.2
-  rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r h]
+  rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_add_eventuallyEq hs ht)]
   exact jetNormAt_add_le hs' ht'
 
 /-! ### Products with complex functions -/
@@ -475,13 +482,12 @@ theorem dbarFun_add {k : ℕ} {x : M} {f g : StdSpace ι → ℂ} {z : StdSpace 
     complexAntilinearPart_add, map_add, dbarFun_def, dbarFun_def]
 
 omit [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P] in
-/-- `∂̄` commutes with multiplication by a complex constant, on functions that are
-differentiable at `z`. -/
-theorem dbarFun_const_smul {k : ℕ} {x : M} {f : StdSpace ι → ℂ} {z : StdSpace ι}
-    (hf : DifferentiableAt ℝ f z) (c : ℂ) :
+/-- `∂̄` commutes with multiplication by a complex constant. -/
+@[simp]
+theorem dbarFun_const_smul (k : ℕ) (x : M) (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     D.dbarFun k x (c • f) z = c • D.dbarFun k x f z := by
   ext v
-  simp only [dbarFun_apply, fderiv_const_smul hf c, smul_apply,
+  simp only [dbarFun_apply, fderiv_const_smul_field c, Pi.smul_apply, smul_apply,
     smul_eq_mul, Complex.real_smul]
   ring
 
@@ -632,17 +638,13 @@ theorem IsAsymptoticallyHolomorphic.const_smul {s : ∀ k : ℕ, Π y, PowerBund
 theorem IsAsymptoticallyHolomorphic.add {s t : ∀ k : ℕ, Π y, PowerBundle P k y}
     (hs : D.IsAsymptoticallyHolomorphic s) (ht : D.IsAsymptoticallyHolomorphic t) :
     D.IsAsymptoticallyHolomorphic fun k ↦ s k + t k := by
-  have h1 : (1 : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
   refine ⟨(hs.1.and ht.1).mono fun k ⟨hks, hkt⟩ x ↦ ?_, fun r ↦ ?_⟩
   · obtain ⟨hf, hdf⟩ := hks x
     obtain ⟨hh, hdh⟩ := hkt x
-    have h : D.dbarReading k x (s k + t k) =ᶠ[𝓝 0]
-        D.dbarReading k x (s k) + D.dbarReading k x (t k) :=
-      (((hf.of_le h1).eventually (by simp)).and ((hh.of_le h1).eventually (by simp))).mono
-        fun z hz ↦ D.dbarReading_add (hz.1.differentiableAt one_ne_zero)
-          (hz.2.differentiableAt one_ne_zero)
     rw [reading_add]
-    exact ⟨hf.add hh, (hdf.add hdh).congr_of_eventuallyEq h⟩
+    exact ⟨hf.add hh, (hdf.add hdh).congr_of_eventuallyEq (D.dbarReading_add_eventuallyEq
+      (hf.eventually_differentiableAt (by exact_mod_cast le_top))
+      (hh.eventually_differentiableAt (by exact_mod_cast le_top)))⟩
   obtain ⟨Cs, hCs⟩ := hs.2 r
   obtain ⟨Ct, hCt⟩ := ht.2 r
   refine ⟨Cs + Ct,
@@ -653,8 +655,8 @@ theorem IsAsymptoticallyHolomorphic.add {s t : ∀ k : ℕ, Π y, PowerBundle P 
   constructor
   · exact (D.jetNorm_add_le (hf.of_le hr) (hh.of_le hr)).trans (add_le_add (hks x).1 (hkt x).1)
   · refine (D.dbarJetNorm_add_le ?_ ?_ (hdf.of_le hr) (hdh.of_le hr)).trans ?_
-    · exact ((hf.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero
-    · exact ((hh.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero
+    · exact hf.eventually_differentiableAt (by exact_mod_cast le_top)
+    · exact hh.eventually_differentiableAt (by exact_mod_cast le_top)
     · rw [add_mul]
       exact add_le_add (hks x).2 (hkt x).2
 
@@ -674,15 +676,14 @@ theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle
       ContDiffAt ℝ ∞ (fun z ↦ g k ((D.chart k x).symm z)) 0 ∧
         ContDiffAt ℝ ∞ (D.dbarFun k x fun z ↦ g k ((D.chart k x).symm z)) 0) :
     D.IsAsymptoticallyHolomorphic fun k y ↦ g k y • s k y := by
-  have h1 : (1 : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
   refine ⟨(hs.1.and hg').mono fun k ⟨hks, hkg⟩ x ↦ ?_, fun r ↦ ?_⟩
   · obtain ⟨hf, hdf⟩ := hks x
     obtain ⟨hG, hdG⟩ := hkg x
     rw [reading_fun_smul]
     refine ⟨hG.smul hf, ((hG.smul hdf).add (hf.smul hdG)).congr_of_eventuallyEq
       (D.dbarReading_fun_smul_eventuallyEq ?_ ?_)⟩
-    · exact ((hG.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero
-    · exact ((hf.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero
+    · exact hG.eventually_differentiableAt (by exact_mod_cast le_top)
+    · exact hf.eventually_differentiableAt (by exact_mod_cast le_top)
   obtain ⟨Cs, hCs⟩ := hs.2 r
   obtain ⟨Cg, hCg⟩ := hg r
   set c : ℝ := (r + 1) * 2 ^ r
@@ -709,8 +710,8 @@ theorem IsAsymptoticallyHolomorphic.fun_smul {s : ∀ k : ℕ, Π y, PowerBundle
         have : 0 ≤ c * Cg * Cs := by positivity
         linarith
   · refine (D.dbarJetNorm_fun_smul_le
-      (((hG.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero)
-      (((hf.of_le h1).eventually (by simp)).mono fun z hz ↦ hz.differentiableAt one_ne_zero)
+      (hG.eventually_differentiableAt (by exact_mod_cast le_top))
+      (hf.eventually_differentiableAt (by exact_mod_cast le_top))
       (hG.of_le hr) (hf.of_le hr) (hdG.of_le hr) (hdf.of_le hr)).trans ?_
     calc c * (jetNormAt ℝ r (fun z ↦ g k ((D.chart k x).symm z)) 0 * D.dbarJetNorm k r (s k) x +
           D.jetNorm k r (s k) x *
