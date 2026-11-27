@@ -72,7 +72,13 @@ is induced from Tau Ceti's along the identity of points (`TauCeti.totalSpaceMode
 The last section adds the smooth structure, for a Hermitian line bundle `(g, hI)` over a manifold:
 a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, whose fibres get
 their norms and Hermitian products from `g` through three local instances (written with `letI` in
-the statements). The unit vector `σ 1` of a local unitary frame is then a smooth local section
+the statements). The class `SymplecticGeometry.Bundle.ContMDiffHermitianMetric` holds `g` and
+`hI`; its scoped instances give these three and the smooth principal bundle structure below,
+so that a proof installs them all with one `let`. Under the class, Tau Ceti's
+`Bundle.ContMDiffRiemannianMetric.inner_eq`, `Bundle.ContMDiffRiemannianMetric.norm_sq` and
+`Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`, applied to `g`, express the
+inner products and norms through `g`.
+The unit vector `σ 1` of a local unitary frame is then a smooth local section
 (`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`, a case of the smoothness of local
 unitary frames in any rank,
 `Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex`), so the transition
@@ -451,6 +457,69 @@ theorem coe_coordChange_transModelFiber_orthonormalFrameBundleFiber
 
 end Bundle.Trivialization
 
+/-! ### Hermitian metrics as a class -/
+
+section HermitianMetric
+
+open scoped VectorBundle.ComplexToReal
+
+namespace SymplecticGeometry.Bundle
+
+/-- A smooth Hermitian metric on a complex vector bundle `V`: a `C^n` Riemannian metric `metric`
+on the underlying real bundle for which multiplication by `Complex.I` is an isometry of each
+fibre. After `open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric`, its instances give
+the fibres of `V` the norms and real inner products of `metric` and the Hermitian products
+`metric.complexInnerProductSpace inner_I_smul`, so that a proof about a metric `g` with `hI`
+installs them with `let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩`. The model `I`, the
+smoothness `n` and the model fibre `F` are `outParam`s, since the goals of these instances
+mention only `V`. -/
+class ContMDiffHermitianMetric {EB HB : outParam Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+    [TopologicalSpace HB] (I : outParam (ModelWithCorners ℝ EB HB)) {B : Type*}
+    [TopologicalSpace B] [ChartedSpace HB B] (n : outParam ℕ∞ω) (F : outParam Type*)
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F]
+    (V : B → Type*) [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
+    [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+    [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+    [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V] where
+  /-- The underlying smooth real metric. -/
+  metric : ContMDiffRiemannianMetric I n F V
+  /-- Multiplication by `Complex.I` preserves the metric. -/
+  inner_I_smul (x : B) (v w : V x) :
+    metric.inner x (Complex.I • v) (Complex.I • w) = metric.inner x v w
+
+namespace ContMDiffHermitianMetric
+
+/- The arguments on the model side (`EB`, `HB`, the charts of `B`, `F` and the bundle structure
+of `V`) are implicit here: the class assigns them. As instance arguments they would be searched
+for before the class, since they occur in the goals of the instances below, and that search does
+not end within the default limits. -/
+variable {EB HB : Type*} {iEB : NormedAddCommGroup EB} {iEBℝ : NormedSpace ℝ EB}
+  {iHB : TopologicalSpace HB} {I : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
+  {cB : ChartedSpace HB B} {n : ℕ∞ω} {F : Type*} {iF : NormedAddCommGroup F}
+  {iFℝ : NormedSpace ℝ F} {iFℂ : NormedSpace ℂ F}
+  {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
+  [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  {iTV : TopologicalSpace (TotalSpace F V)} {fV : FiberBundle F V} {vV : VectorBundle ℂ F V}
+  [h : ContMDiffHermitianMetric I n F V]
+
+/-- The fibre metric of a smooth Hermitian metric. -/
+scoped instance riemannianBundle : RiemannianBundle V := ⟨h.metric.toRiemannianMetric⟩
+
+/-- The Hermitian products of a smooth Hermitian metric on the fibres. -/
+scoped instance innerProductSpace (x : B) : InnerProductSpace ℂ (V x) :=
+  h.metric.complexInnerProductSpace h.inner_I_smul x
+
+/-- The fibre metric of a smooth Hermitian metric is continuous. -/
+scoped instance isContinuousRiemannianBundle : IsContinuousRiemannianBundle F V :=
+  instIsContinuousRiemannianBundle h.metric.toContinuousRiemannianMetric
+
+end ContMDiffHermitianMetric
+
+end SymplecticGeometry.Bundle
+
+end HermitianMetric
+
 /-! ### The smooth structure -/
 
 section Smooth
@@ -488,8 +557,19 @@ theorem Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one
 
 namespace SymplecticGeometry.Bundle
 
+open scoped ContMDiffHermitianMetric in
+/- With the class installed by one `let`, the fibres get their Hermitian products and norms. -/
+example (x : B) (v w : V x) : True := by
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
+  have : ⟪v, w⟫_ℂ = (g.inner x v w : ℂ) + Complex.I * (g.inner x (Complex.I • v) w : ℂ) :=
+    g.complexInnerProductSpace_inner hI x v w
+  have : ⟪v, w⟫_ℝ = g.inner x v w := g.inner_eq x v w
+  have : ‖v‖ ^ 2 = g.inner x v v := g.norm_sq x v
+  trivial
+
 variable [Fact (finrank ℂ F = 1)]
 
+open scoped ContMDiffHermitianMetric in
 /-- **The unitary frames of a smooth Hermitian line bundle form a smooth principal
 `Circle`-bundle.** For a smooth `i`-invariant metric `g` on a smooth complex line bundle `V`, the
 principal `Circle`-bundle `instPrincipalBundleCircleFiber` of its unitary frames is a `C^n` fibre
@@ -502,10 +582,7 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
     letI : IsContinuousRiemannianBundle F V :=
       instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
     ContMDiffFiberBundle n Circle (Fiber ℂ F V ℂ) I (𝓡 1) := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   refine (PrincipalBundle.contMDiffFiberBundle_iff (n := n) (G := Circle)
     (P := Fiber ℂ F V ℂ) (IB := I) (IG := 𝓡 1)).2 fun t₁ t₂ h₁ h₂ ↦ ?_
   obtain ⟨s₁, hs₁, rfl⟩ := (FiberBundle.trivializationAtlas_ofModelFiberHomeomorph
@@ -530,8 +607,19 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
     fun y hy ↦ e₁.coe_coordChange_transModelFiber_orthonormalFrameBundleFiber c₁ b₁ e₂ c₂ b₂
       hy.1 hy.2
 
+namespace ContMDiffHermitianMetric
+
+/-- The unitary frames of a smooth Hermitian line bundle form a smooth principal `Circle`-bundle:
+`contMDiffFiberBundle_circleFiber` as an instance. -/
+scoped instance contMDiffFiberBundle [h : ContMDiffHermitianMetric I n F V] [IsManifold I n B] :
+    ContMDiffFiberBundle n Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
+  contMDiffFiberBundle_circleFiber h.metric h.inner_I_smul
+
+end ContMDiffHermitianMetric
+
 variable [IsManifold I n B]
 
+open scoped ContMDiffHermitianMetric in
 /-- The map sending a unitary frame `φ` of `V x` to its unit vector `⟨x, φ 1⟩` is `C^n`, from the
 total space of the smooth principal `Circle`-bundle of `contMDiffFiberBundle_circleFiber` to the
 total space of `V`. -/
@@ -543,11 +631,7 @@ theorem contMDiff_circleFiber_frame_one :
     ContMDiff (I.prod (𝓡 1)) (I.prod 𝓘(ℝ, F)) n fun x : ManifoldTotalSpace Circle (Fiber ℂ F V ℂ) ↦
       (⟨((ManifoldTotalSpace.homeomorph _ _).symm x).proj,
         ((ManifoldTotalSpace.homeomorph _ _).symm x).snd.frame 1⟩ : TotalSpace F V) := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have := contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   intro x₀
   set h := ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)
   have ht := trivialization_mem_atlas Circle (Fiber ℂ F V ℂ) (h.symm x₀).proj
@@ -590,6 +674,7 @@ section Sections
 variable {EM HM M : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
   {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M]
 
+open scoped ContMDiffHermitianMetric in
 /-- **Smooth families of unitary frames are smooth families of unit vectors.** On an open set `U`,
 a family `σ m` of unitary frames of `V (b m)` is `C^n` as a map into the smooth principal
 `Circle`-bundle of `contMDiffFiberBundle_circleFiber` if and only if its family of unit vectors
@@ -604,11 +689,7 @@ theorem contMDiffOn_circleFiber_iff {b : M → B} {U : Set M} (hU : IsOpen U) :
           (fun m ↦ ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ) ⟨b m, σ m⟩) U ↔
         ContMDiffOn IM (I.prod 𝓘(ℝ, F)) n
           (fun m ↦ (⟨b m, (σ m).frame 1⟩ : TotalSpace F V)) U := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have := contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   intro σ
   refine ⟨fun h ↦ ((contMDiff_circleFiber_frame_one g hI).comp_contMDiffOn h).congr
     fun m _ ↦ ?_, fun h m₀ hm₀ ↦ ?_⟩
@@ -642,6 +723,7 @@ theorem contMDiffOn_circleFiber_iff {b : M → B} {U : Set M} (hU : IsOpen U) :
   rw [← hst] at key
   exact key
 
+open scoped ContMDiffHermitianMetric in
 /-- **The normalization of a smooth nonvanishing section is a smooth section of the circle
 bundle.** If `s` is a `C^n` family of vectors of `V (b m)` with no zero on an open set `U`, the
 family of unitary frames `normalizedFrame (s m)`, with unit vectors `s m / ‖s m‖`, is `C^n` on
@@ -655,17 +737,14 @@ theorem contMDiffOn_normalizedFrame {b : M → B} {s : ∀ m, V (b m)} {U : Set 
       instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
     ContMDiffOn IM (I.prod (𝓡 1)) n (fun m ↦ ManifoldTotalSpace.homeomorph Circle
       (Fiber ℂ F V ℂ) ⟨b m, normalizedFrame (F := F) (s m)⟩) U := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  let : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   have hnorm : ContMDiffOn IM 𝓘(ℝ, ℂ) n (fun m ↦ ((‖s m‖⁻¹ : ℝ) : ℂ)) U :=
     Complex.ofRealCLM.contMDiff.comp_contMDiffOn
       ((hs.norm_bundle h0).inv₀ fun m hm ↦ norm_ne_zero_iff.2 (h0 m hm))
   refine (contMDiffOn_circleFiber_iff g hI hU _).2 ((hnorm.smul_totalSpace hs).congr fun m hm ↦ ?_)
   rw [frame_normalizedFrame_one (h0 m hm), Complex.ofReal_inv]
 
+open scoped ContMDiffHermitianMetric in
 /-- **Every point has a smooth local section of the circle bundle.** Every point `x₀` of the base
 has an open neighbourhood `U` with a family `σ` of unitary frames, `C^n` on `U` as a map into the
 smooth principal `Circle`-bundle of `contMDiffFiberBundle_circleFiber`: the local unitary frame
@@ -678,10 +757,7 @@ theorem exists_contMDiffOn_circleFiber (x₀ : B) :
     ∃ U : Set B, IsOpen U ∧ x₀ ∈ U ∧ ∃ σ : ∀ x, Fiber ℂ F V ℂ x,
       ContMDiffOn I (I.prod (𝓡 1)) n
         (fun x ↦ ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ) ⟨x, σ x⟩) U := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   let e := trivializationAt F V x₀
   let c : Basis (Fin 1) ℂ F := Module.finBasisOfFinrankEq ℂ F Fact.out
   let b := OrthonormalBasis.singleton (Fin 1) ℂ
@@ -694,6 +770,7 @@ end Sections
 
 variable [I.Boundaryless] [FiniteDimensional ℝ EB]
 
+open scoped ContMDiffHermitianMetric in
 /-- The inverse of `circleBundleHomeomorph`, from the unit vectors with the regular-level charts
 of Tau Ceti's `sphereBundleChartedSpace` to the unitary frames, is `C^n`. -/
 private theorem contMDiff_circleBundleHomeomorph_symm (hn : 1 ≤ n) :
@@ -708,11 +785,7 @@ private theorem contMDiff_circleBundleHomeomorph_symm (hn : 1 ≤ n) :
       fun p : {p : TotalSpace F V // ‖p.snd‖ = 1} ↦ ManifoldTotalSpace.homeomorph _ _
         (⟨(circleBundleHomeomorph.symm p).proj, (circleBundleHomeomorph.symm p).snd⟩ :
           TotalSpace Circle (Fiber ℂ F V ℂ)) := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  let : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   let := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
     hn fun _ ↦ one_pos
   have := isManifold_sphereBundle (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
@@ -727,6 +800,7 @@ private theorem contMDiff_circleBundleHomeomorph_symm (hn : 1 ≤ n) :
   rw [one_smul] at h1
   exact h1
 
+open scoped ContMDiffHermitianMetric in
 /-- **The unitary frames of a smooth Hermitian line bundle are diffeomorphic to its unit
 vectors.** For `n ≥ 1`, `circleBundleHomeomorph`, `φ ↦ φ 1`, is a `C^n` diffeomorphism from the
 smooth principal `Circle`-bundle of `contMDiffFiberBundle_circleFiber` onto the unit vectors with
@@ -742,11 +816,7 @@ def circleBundleDiffeomorph (hn : 1 ≤ n) :
       hn fun _ ↦ one_pos
     ManifoldTotalSpace Circle (Fiber ℂ F V ℂ) ≃ₘ^n⟮I.prod (𝓡 1),
       𝓘(ℝ, Fin (finrank ℝ (EB × F) - 1) → ℝ)⟯ {p : TotalSpace F V // ‖p.snd‖ = 1} :=
-  letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  letI : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  letI : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  letI : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   letI := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
     hn fun _ ↦ one_pos
   { toEquiv := (((ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)).symm.trans
@@ -759,6 +829,7 @@ def circleBundleDiffeomorph (hn : 1 ≤ n) :
     contMDiff_invFun := (contMDiff_circleBundleHomeomorph_symm g hI hn).congr fun p ↦ by
       simp [TauCeti.totalSpaceModelFiberHomeomorph_symm_apply] }
 
+open scoped ContMDiffHermitianMetric in
 /-- `circleBundleDiffeomorph` is `circleBundleHomeomorph`, read through the identification of the
 total space of the unitary frame bundle with model fibre `Circle` with
 `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`. -/
@@ -770,10 +841,7 @@ theorem circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
     ∀ p : TotalSpace Circle (Fiber ℂ F V ℂ),
       circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ p) =
         circleBundleHomeomorph ⟨p.proj, p.snd⟩ := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   intro p
   -- `circleBundleDiffeomorph` is defined as `circleBundleHomeomorph` after the change of model
   -- fibre, and this is the statement of that definition.
@@ -782,6 +850,7 @@ theorem circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
     ((ManifoldTotalSpace.homeomorph _ _).symm (ManifoldTotalSpace.homeomorph _ _ p))) = _
   rw [Homeomorph.symm_apply_apply, TauCeti.totalSpaceModelFiberHomeomorph_apply]
 
+open scoped ContMDiffHermitianMetric in
 /-- `circleBundleDiffeomorph` sends a frame `φ` of `V x` to the unit vector `φ 1`. -/
 @[simp]
 theorem coe_circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
@@ -792,13 +861,11 @@ theorem coe_circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
     ∀ p : TotalSpace Circle (Fiber ℂ F V ℂ),
       (circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ p) : TotalSpace F V) =
         ⟨p.proj, p.snd.frame 1⟩ := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   intro p
   rw [circleBundleDiffeomorph_homeomorph, circleBundleHomeomorph_apply]
 
+open scoped ContMDiffHermitianMetric in
 /-- The inverse of `circleBundleDiffeomorph` sends a unit vector `p` to the frame
 `circleBundleHomeomorph.symm p`, read in `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`. -/
 @[simp]
@@ -813,11 +880,7 @@ theorem circleBundleDiffeomorph_symm_apply (hn : 1 ≤ n) :
     ∀ p : {p : TotalSpace F V // ‖p.snd‖ = 1},
       (circleBundleDiffeomorph g hI hn).symm p = ManifoldTotalSpace.homeomorph _ _
         ⟨(circleBundleHomeomorph.symm p).proj, (circleBundleHomeomorph.symm p).snd⟩ := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  let : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   let := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
     hn fun _ ↦ one_pos
   intro p
@@ -825,6 +888,7 @@ theorem circleBundleDiffeomorph_symm_apply (hn : 1 ≤ n) :
     circleBundleDiffeomorph_homeomorph]
   exact congrArg _ (circleBundleHomeomorph.apply_symm_apply p).symm
 
+open scoped ContMDiffHermitianMetric in
 /-- **`circleBundleDiffeomorph` is `Circle`-equivariant**, fibre by fibre: it turns the right action
 of `Circle` on the frames of `V x` into its action on unit vectors. -/
 theorem circleBundleDiffeomorph_op_smul (hn : 1 ≤ n) :
@@ -835,10 +899,7 @@ theorem circleBundleDiffeomorph_op_smul (hn : 1 ≤ n) :
     ∀ (z : Circle) {x : B} (φ : Fiber ℂ F V ℂ x),
       circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ ⟨x, op z • φ⟩) =
         z • circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ ⟨x, φ⟩) := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   intro z x φ
   rw [circleBundleDiffeomorph_homeomorph, circleBundleDiffeomorph_homeomorph]
   exact circleBundleHomeomorph_op_circle_smul z φ
