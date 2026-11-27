@@ -11,7 +11,7 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
 public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import Mathlib.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Group.Pi
