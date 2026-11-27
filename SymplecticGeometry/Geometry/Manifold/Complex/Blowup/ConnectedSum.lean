@@ -86,6 +86,12 @@ theorem mk_mem_projectiveBlowupOpens {v : Fin (n + 2) → ℂ} (hv : v ≠ 0) :
 
 /-! ### Homogeneous coordinates -/
 
+/-- The first `n` entries of a scalar multiple of a tuple are the multiple of its first `n`
+entries. -/
+theorem _root_.Fin.init_smul {M α : Type*} [SMul M α] (a : M) (v : Fin (n + 1) → α) :
+    Fin.init (a • v) = a • Fin.init v :=
+  (rfl)
+
 /-- The squared Hermitian norm of a scalar multiple. -/
 private theorem sum_norm_smul_sq (a : ℂ) (z : Fin (n + 1) → ℂ) :
     ∑ i, ‖(a • z) i‖ ^ 2 = ‖a‖ ^ 2 * ∑ i, ‖z i‖ ^ 2 := by
@@ -111,9 +117,8 @@ private theorem blowdownCoord_smul {a : ℂ} (ha : a ≠ 0) {v : Fin (n + 2) →
   have hS : ((∑ i, ‖Fin.init v i‖ ^ 2 : ℝ) : ℂ) ≠ 0 := by
     exact_mod_cast sum_norm_sq_ne_zero hz
   have ha' : conj a ≠ 0 := (map_ne_zero _).2 ha
-  have hinit : Fin.init (a • v) = a • Fin.init v := rfl
-  rw [blowdownCoord_eq, blowdownCoord_eq, hinit, sum_norm_smul_sq, Pi.smul_apply, smul_eq_mul,
-    map_mul, smul_smul, Complex.ofReal_mul, Complex.ofReal_pow, ← Complex.conj_mul' a]
+  rw [blowdownCoord_eq, blowdownCoord_eq, Fin.init_smul, sum_norm_smul_sq, Pi.smul_apply,
+    smul_eq_mul, map_mul, smul_smul, Complex.ofReal_mul, Complex.ofReal_pow, ← Complex.conj_mul' a]
   congr 1
   field_simp
 
@@ -155,9 +160,8 @@ private theorem toFun_eq {x : projectiveBlowupOpens n} {v : Fin (n + 2) → ℂ}
   have ha0 : a ≠ 0 := by
     rintro rfl
     exact x.val.rep_ne_zero (by rw [← ha, zero_smul])
-  have hinit : Fin.init (a • v) = a • Fin.init v := funext fun _ => rfl
   rw [toFun_val, Prod.mk.injEq]
-  refine ⟨(mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨a, by rw [← hinit, ha]⟩, ?_⟩
+  refine ⟨(mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨a, by rw [← Fin.init_smul, ha]⟩, ?_⟩
   rw [← ha, blowdownCoord_smul ha0 hz]
 
 /-- The coefficient of the blowdown of `p` along the representative of its line. -/
@@ -170,6 +174,12 @@ private noncomputable def invFun (p : BlowupModel n) : projectiveBlowupOpens n :
       ((∑ i, ‖p.pr.rep i‖ ^ 2 : ℝ) : ℂ)) : Fin (n + 2) → ℂ) 
       (Fin.snoc_ne_zero_iff.2 (Or.inl p.pr.rep_ne_zero)),
     mk_snoc_mem_projectiveBlowupOpens p.pr.rep_ne_zero _⟩
+
+private theorem invFun_val (p : BlowupModel n) :
+    (invFun p : ℙ ℂ (Fin (n + 2) → ℂ)) = mk ℂ (Fin.snoc p.pr.rep (conj (exists_smul_rep p).choose *
+      ((∑ i, ‖p.pr.rep i‖ ^ 2 : ℝ) : ℂ)) : Fin (n + 2) → ℂ)
+      (Fin.snoc_ne_zero_iff.2 (Or.inl p.pr.rep_ne_zero)) :=
+  (rfl)
 
 private theorem invFun_eq {p : BlowupModel n} {z : Fin (n + 1) → ℂ} (hz : z ≠ 0)
     (hpr : p.pr = mk ℂ z hz) {c : ℂ} (hbl : p.blowdown = c • z) :
@@ -199,8 +209,8 @@ private theorem invFun_toFun (x : projectiveBlowupOpens n) : invFun (toFun x) = 
   have hS : ((∑ i, ‖Fin.init x.val.rep i‖ ^ 2 : ℝ) : ℂ) ≠ 0 := by
     exact_mod_cast sum_norm_sq_ne_zero hz
   refine Subtype.ext ?_
-  rw [invFun_eq hz (by rw [BlowupModel.pr_def]; rfl)
-    (by rw [BlowupModel.blowdown_def]; exact blowdownCoord_eq _)]
+  rw [invFun_eq hz (by rw [BlowupModel.pr_def, toFun_val])
+    (by rw [BlowupModel.blowdown_def, toFun_val, blowdownCoord_eq])]
   conv_rhs => rw [← mk_rep x.val]
   congr 1
   conv_rhs => rw [← Fin.snoc_init_self x.val.rep]
@@ -212,7 +222,7 @@ private theorem toFun_invFun (p : BlowupModel n) : toFun (invFun p) = p := by
   have hz := p.pr.rep_ne_zero
   have hS : ((∑ i, ‖p.pr.rep i‖ ^ 2 : ℝ) : ℂ) ≠ 0 := by
     exact_mod_cast sum_norm_sq_ne_zero hz
-  have h := toFun_eq (x := invFun p) _ rfl
+  have h := toFun_eq (x := invFun p) _ (invFun_val p)
     (by rw [Fin.init_snoc]; exact hz)
   refine BlowupModel.ext ?_ ?_
   · rw [BlowupModel.pr_def, h]
@@ -258,12 +268,11 @@ private theorem contMDiff_toFun :
   · refine (contMDiffAt_of_eventually_eq_mk (hinit.contMDiff.contMDiffAt.comp x hF) ?_)
       |>.restrictScalars' ℝ
     filter_upwards [hev] with y ⟨_, hz, hy⟩
-    exact ⟨hz, by rw [BlowupModel.pr_def, hy]; rfl⟩
+    exact ⟨hz, (BlowupModel.pr_def _).trans (congrArg Prod.fst hy)⟩
   · refine ((contDiffAt_blowdownCoord hzx).comp_contMDiffAt (hF.restrictScalars' ℝ))
       |>.congr_of_eventuallyEq ?_
     filter_upwards [hev] with y ⟨_, _, hy⟩
-    rw [BlowupModel.blowdown_def, hy]
-    rfl
+    exact (BlowupModel.blowdown_def _).trans (congrArg Prod.snd hy)
 
 /-- The inverse read in the chart `i` of the blowup, in homogeneous coordinates. -/
 private noncomputable def invCoord (i : Fin (n + 1)) (w : Fin (n + 1) → ℂ) : Fin (n + 2) → ℂ :=
@@ -327,6 +336,14 @@ noncomputable def projectiveBlowupModelDiffeomorph :
   contMDiff_toFun := contMDiff_toFun
   contMDiff_invFun := contMDiff_invFun
 
+private theorem coe_projectiveBlowupModelDiffeomorph :
+    ⇑(projectiveBlowupModelDiffeomorph n) = toFun :=
+  (rfl)
+
+private theorem coe_projectiveBlowupModelDiffeomorph_symm :
+    ⇑(projectiveBlowupModelDiffeomorph n).symm = invFun :=
+  (rfl)
+
 /-- The point `([z], w̄ z / |z|²)` of the blowup, for `z = Fin.init v ≠ 0` and `w = v (Fin.last _)`,
 is the image of `[v]`. -/
 theorem projectiveBlowupModelDiffeomorph_apply {v : Fin (n + 2) → ℂ} (hv : v ≠ 0)
@@ -334,8 +351,9 @@ theorem projectiveBlowupModelDiffeomorph_apply {v : Fin (n + 2) → ℂ} (hv : v
     (projectiveBlowupModelDiffeomorph n ⟨mk ℂ v hv, h⟩ :
         ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) =
       (mk ℂ (Fin.init v) ((mk_mem_projectiveBlowupOpens hv).1 h),
-        (∑ i, ‖Fin.init v i‖ ^ 2)⁻¹ • conj (v (Fin.last _)) • Fin.init v) :=
-  toFun_eq hv rfl _
+        (∑ i, ‖Fin.init v i‖ ^ 2)⁻¹ • conj (v (Fin.last _)) • Fin.init v) := by
+    rw [coe_projectiveBlowupModelDiffeomorph]
+    exact toFun_eq hv rfl _
 
 /-- The inverse sends `(ℓ, t • z)`, for a nonzero `z` spanning `ℓ`, to `[z : t̄ |z|²]`. -/
 theorem projectiveBlowupModelDiffeomorph_symm_apply {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) (t : ℂ)
@@ -343,8 +361,9 @@ theorem projectiveBlowupModelDiffeomorph_symm_apply {z : Fin (n + 1) → ℂ} (h
     ((projectiveBlowupModelDiffeomorph n).symm ⟨(mk ℂ z hz, t • z), h⟩ :
         ℙ ℂ (Fin (n + 2) → ℂ)) =
       mk ℂ (Fin.snoc z (conj t * ((∑ i, ‖z i‖ ^ 2 : ℝ) : ℂ)) : Fin (n + 2) → ℂ)
-        (Fin.snoc_ne_zero_iff.2 (Or.inl hz)) :=
-  invFun_eq hz (BlowupModel.pr_mk _ _ h) (BlowupModel.blowdown_mk _ _ h)
+        (Fin.snoc_ne_zero_iff.2 (Or.inl hz)) := by
+    rw [coe_projectiveBlowupModelDiffeomorph_symm]
+    exact invFun_eq hz (BlowupModel.pr_mk _ _ h) (BlowupModel.blowdown_mk _ _ h)
 
 /-- The point `[u : 1]`, for `u ≠ 0`, goes to `([u], u / |u|²)`. -/
 theorem projectiveBlowupModelDiffeomorph_apply_snoc_one {u : Fin (n + 1) → ℂ} (hu : u ≠ 0) :
