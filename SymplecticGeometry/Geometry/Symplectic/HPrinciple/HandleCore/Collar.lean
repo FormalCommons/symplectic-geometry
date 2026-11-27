@@ -6,11 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
-public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeClipping
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeClipping
 
 /-!
 # The collar correction of a form in the handle-core lemma
@@ -25,7 +28,7 @@ the attaching faces by one that is exact on a fixed collar of them.
 Let `A = sphere 0 1 ×ˢ closedBall 0 1` and `Q = closedBall 0 1`. The clipping homotopy of
 `SymplecticGeometry.exists_contMDiff_cubeClipping` maps `A` and `Q` into themselves at every
 time, and its first stage maps each thin product collar
-`{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` with `ε ≤ δ` into `A`. For any such `Φ`, this file
+`attachingCollar ι κ ε` with `ε ≤ δ` into `A`. For any such `Φ`, this file
 proves:
 
 * if `τ = dβ` on a neighbourhood of `A`, then `η` vanishes on a neighbourhood of `A`
@@ -148,7 +151,7 @@ manifold `N`, with a compact set `K` of parameters, such that for every `l ∈ K
 nondegenerate on `Q` and is `dβ` on some neighbourhood of `A`, which may depend on `l`.
 
 Then there are `0 < ε ≤ 1` and a smooth family `η` of two-forms on `D` over `N` such that, for
-every `l ∈ K`, with `W₀ = {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` the product collar of `A`:
+every `l ∈ K`, with `W₀ = attachingCollar ι κ ε` the product collar of `A`:
 * `η l` vanishes on a neighbourhood of `A`;
 * `τ l - s • η l` is nondegenerate on `Q` for every `s ∈ [0, 1]`;
 * `τ l - η l` is `dγ` on `W₀` for a smooth one-form `γ` on `D`;
@@ -168,7 +171,7 @@ theorem exists_isSmoothFamily_collarCorrection
           (∀ s ∈ Icc (0 : ℝ) 1, ∀ x ∈ closedBall (0 : (ι → ℝ) × (κ → ℝ)) 1,
             ((τ l - s • η l).bilinFormAt x).Nondegenerate) ∧
           (∃ γ : SmoothForm 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ((ι → ℝ) × (κ → ℝ)) ℝ 1,
-            ∀ x ∈ {x : (ι → ℝ) × (κ → ℝ) | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε},
+            ∀ x ∈ attachingCollar ι κ ε,
               (mextDerivₗ 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) 1 γ).val x = (τ l - η l).val x) ∧
           ((∃ V ∈ 𝓝ˢ (closedBall (0 : (ι → ℝ) × (κ → ℝ)) 1),
               ∃ γ' : SmoothForm 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ((ι → ℝ) × (κ → ℝ)) ℝ 1,
@@ -211,7 +214,7 @@ theorem exists_isSmoothFamily_collarCorrection
     have h0 := eventually_homotopyOperator_mpullback_mextDerivₗ_eq_zero_closedBall hΦ hQ hV hγ'
     refine ⟨V ∩ {x | (homotopyOperator (mpullback Φ hΦ (mextDerivₗ _ 2 (τ l)))).val x = 0},
       Filter.inter_mem hV h0, γ', fun x hx ↦ ?_⟩
-    simp only [Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply, Pi.smul_apply]
+    simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.smul_apply]
     rw [hx.2, smul_zero, sub_zero, hγ' x hx.1]
 
 end Family

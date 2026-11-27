@@ -6,9 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+public import TauCeti.Topology.VectorBundle.Complex.Structure
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # Sections of a real vector bundle with a complex structure

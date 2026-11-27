@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 public import TauCeti.Topology.VectorBundle.Orientation.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
+public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 
 /-!
 # Local indices of sections of the trivial plane bundle

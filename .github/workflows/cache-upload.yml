@@ -1,0 +1,177 @@
+name: cache-upload
+
+# Puts what a run of CI built into a bucket of Hetzner Object Storage,
+# `formalcommons-lake-cache`, in the form of Lake's own remote cache: under
+# `a/` the build archives of the modules, each named by the hash of its
+# content, and under `r/` mappings, which say for a commit which archive each
+# module builds to. The runs of CI fetch from it what they would otherwise
+# compile; ci.yml says which run reads whose mappings.
+#
+# Why this is a workflow of its own, and not steps of CI. A build runs the
+# code of its pull request: Lean runs code while it elaborates, and CI's
+# check of the source is a scan of its text. A pull request can also change
+# ci.yml itself. So the bucket's key must be nowhere near a build. Here it is
+# not:
+#
+# - GitHub starts this workflow when a run of CI ends, and always takes this
+#   file from the default branch, whatever the pull request contains. The
+#   scripts it runs come from the default branch too: the checkout below has
+#   no `ref`.
+# - The key is a secret of the environment `lake-cache`, which only the
+#   branch main may use. A run for a pull request cannot name it.
+# - Nothing from the build is run. The build hands over a directory of
+#   archives and mappings, and cache-upload.sh checks every file before it
+#   uploads any: see there. That check makes an archive what its name says.
+#   It cannot tell whether a mapping is honest: a build can claim any
+#   archive for a module.
+#
+# So where the mappings go, and for which runs, is decided here, from
+# GitHub's record of the run that ended, and from nothing the build handed
+# over:
+#
+# - Under `r/queue/`, by the commit that main gets: the mappings of a run of
+#   the merge queue. Such a run built a commit whose pull request the
+#   reviewer approved, with that commit's own ci.yml.
+# - Under `r/pr/`, by the head commit: the mappings of a run for a pull
+#   request. They are only as good as that pull request's own commits, and
+#   must never be read as what main builds to. Its own later runs read
+#   them, and the merge queue's run for a pull request with that head
+#   commit.
+#
+# Which runs count. Only a run of the workflow in `.github/workflows/ci.yml`,
+# since `workflows: [ci]` goes by a workflow's name, which any file can
+# take. Only a run for a branch of this repository, not of a fork. And for a
+# pull request, only one that targets main and has never targeted another
+# branch: such a run took its ci.yml from the merge with main, so what it
+# staged comes from the head commit and main alone. A pull request with the
+# same head commit and another base branch would take that branch's ci.yml
+# and could put anything under the head commit's name; and since its base
+# branch is read here, after the run, one that was moved to main meanwhile
+# would pass for one that always targeted it. GitHub records a change of a
+# pull request's base branch in its history, whether a person made it or
+# GitHub did when the old base branch was deleted, and a pull request with
+# such a record never counts.
+# Nothing in the bucket is replaced, so the first mappings under a head
+# commit's name stay: the rule must hold for every upload.
+#
+# A run whose build failed staged nothing, and nothing is uploaded for it.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+
+# `pull-requests: read` is for the record of a pull request's base branch.
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  upload:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.path == '.github/workflows/ci.yml' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'merge_group' || github.event.workflow_run.event == 'pull_request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: lake-cache
+    steps:
+      # The default branch's `.github`, and nothing of the commit that was
+      # built.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github
+          persist-credentials: false
+      # GitHub lists the pull requests of the run's branch in this
+      # repository. All of them must target main, be at the commit that was
+      # built, and have no change of the base branch in their history.
+      - name: see whether the run counts
+        id: counts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -o pipefail
+          if [ "$EVENT" = merge_group ]; then
+            echo "yes=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          numbers=$(jq -r --arg sha "$SHA" '.workflow_run.pull_requests
+            | if length > 0 and all(.[]; .base.ref == "main" and .head.sha == $sha) then .[].number else empty end' "$GITHUB_EVENT_PATH")
+          [ -n "$numbers" ] ||
+            { echo "the run is for a pull request that does not target main, or that has moved on: nothing to upload"; exit 0; }
+          for n in $numbers; do
+            moved=$(timeout 120 gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$n/timeline" \
+              --jq '.[] | select(.event == "base_ref_changed" or ((.event // "") | startswith("automatic_base_change"))) | .event' | wc -l) ||
+              { echo "::warning::could not read the history of pull request $n"; exit 0; }
+            [ "$moved" = 0 ] ||
+              { echo "pull request $n has targeted another branch: nothing to upload"; exit 0; }
+          done
+          echo "yes=true" >> "$GITHUB_OUTPUT"
+      # A run that staged nothing has no such artifact, and that is no fault.
+      # A download that fails is one, and shows as a warning on the run's
+      # page; the bucket then goes without this run's work.
+      - name: take the staged build of the run
+        id: staged
+        if: steps.counts.outputs.yes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          set -o pipefail
+          count=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" -f name=lake-cache |
+            jq '[.artifacts[] | select(.name == "lake-cache" and (.expired | not))] | length') ||
+            { echo "::warning::could not ask GitHub for the staged build of run $RUN"; exit 0; }
+          [ "$count" -gt 0 ] || { echo "run $RUN handed over no staged build"; exit 0; }
+          if timeout 120 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache --dir "$RUNNER_TEMP/staged"; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::could not download the staged build of run $RUN"
+          fi
+      # The addresses come from lake-cache-address.py, which forms them as
+      # Lake does from `.github/lake-config.toml`, the file CI reads with.
+      #
+      # The toolchain is read from the commit in GitHub's record, which for
+      # a pull request is its head commit, and must be a release of Lean by
+      # its name, so that it cannot lead the address elsewhere.
+      - name: upload
+        if: steps.staged.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          [[ $SHA =~ ^[0-9a-f]{40}$ ]] || { echo "::error::no commit in GitHub's record of the run"; exit 1; }
+          case $EVENT in
+            merge_group) kind='queue' ;;
+            pull_request) kind='pr' ;;
+            *) echo "::error::a run of CI for the event $EVENT"; exit 1 ;;
+          esac
+          toolchain=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/contents/lean-toolchain?ref=$SHA" -H "Accept: application/vnd.github.raw")
+          address=$(python3 -I .github/lake-cache-address.py "fc-$kind" "$toolchain") ||
+            { echo "::error::no address for the mappings of $SHA"; exit 1; }
+          [ -n "$LAKE_CACHE_KEY" ] || { echo "::error::the environment lake-cache has no secret LAKE_CACHE_KEY"; exit 1; }
+          # main's latest mappings that the bucket has, for cache-upload.sh to
+          # know which archives are there without asking; see there. Without
+          # them it asks about all. The search looks back 100 commits, as
+          # CI's fetch step does, and gives up after two minutes.
+          known=$RUNNER_TEMP/known.jsonl
+          if queue=$(python3 -I .github/lake-cache-address.py fc-queue "$toolchain" | sed -n 2p) && [ -n "$queue" ] &&
+            commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&per_page=100" --jq '.[].sha'); then
+            SECONDS=0
+            for c in $commits; do
+              [ "$SECONDS" -lt 120 ] || { echo "the search for main's mappings took too long; the upload asks about every archive"; break; }
+              [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
+              if curl -q -sf --connect-timeout 5 --max-time 15 -o "$known" "$queue/$c.jsonl"; then
+                echo "main's mappings at $c name the archives that are taken to be in the bucket"
+                break
+              fi
+              rm -f "$known"
+            done
+          fi
+          printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
+            timeout 8m .github/cache-upload.sh "$RUNNER_TEMP/staged" "$(sed -n 1p <<<"$address")" "$(sed -n 2p <<<"$address")/$SHA.jsonl" "$known"

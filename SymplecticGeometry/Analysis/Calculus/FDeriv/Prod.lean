@@ -8,10 +8,11 @@ module
 public import Mathlib.Analysis.Calculus.FDeriv.Mul
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.Deriv.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Basic
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
-# Derivatives of products of functions of separate variables
+# Derivatives of products of functions of separate variables, and second derivatives of pairs
 
 For `h : E → 𝕜` and `g : F → 𝕜`, the function `x ↦ g x.2 * h x.1` on `E × F`. Its derivative is
 `hasFDerivAt_comp_snd_mul_comp_fst`. Its first and second derivatives along vectors `(v, 0)`
@@ -28,6 +29,10 @@ For `E = 𝕜`, `fderiv_comp_snd_mul_comp_fst_apply_one_zero` and
 The second derivatives restrict to the fibres `x ↦ (x, b)` and `y ↦ (a, y)` with Tau Ceti's
 `TauCeti.fderiv_fderiv_comp_apply` and `TauCeti.fderiv_fderiv_slice_right_apply`, and pull out
 the constant factor with `TauCeti.fderiv_fderiv_const_smul`.
+
+For `f : E → F` and `g : E → G`, `fderiv_fderiv_prodMk_apply` computes the second derivative of
+`y ↦ (f y, g y)` componentwise, in the `fderiv (fderiv ·)` form of Tau Ceti's Levi form API. It
+is the case `i = 2` of Mathlib's `iteratedFDeriv_prodMk`, read through `iteratedFDeriv_two_apply`.
 -/
 
 public section
@@ -104,8 +109,22 @@ theorem fderiv_fderiv_comp_snd_mul_comp_fst_apply_one_zero {h : 𝕜 → 𝕜} {
     fderiv 𝕜 (fderiv 𝕜 (fun x : 𝕜 × F ↦ g x.2 * h x.1)) (a, b) (1, 0) (1, 0) =
       g b * deriv (deriv h) a := by
   rw [fderiv_fderiv_comp_snd_mul_comp_fst_apply_mk_zero hg hh,
-    TauCeti.fderiv_fderiv_apply_eq_smul_iteratedDeriv, iteratedDeriv_succ, iteratedDeriv_one]
-  simp
+    TauCeti.fderiv_fderiv_apply_one_one]
+
+section ProdMk
+
+variable {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] {f : E → F} {g : E → G} {x : E}
+
+/-- The second derivative of `y ↦ (f y, g y)` is the pair of the second derivatives of `f`
+and `g`, when both are `C²` at `x`. -/
+theorem fderiv_fderiv_prodMk_apply (hf : ContDiffAt 𝕜 2 f x) (hg : ContDiffAt 𝕜 2 g x)
+    (u w : E) :
+    fderiv 𝕜 (fderiv 𝕜 fun y ↦ (f y, g y)) x u w =
+      (fderiv 𝕜 (fderiv 𝕜 f) x u w, fderiv 𝕜 (fderiv 𝕜 g) x u w) := by
+  simpa [iteratedFDeriv_two_apply] using
+    congr($(iteratedFDeriv_prodMk hf hg le_rfl) ![u, w])
+
+end ProdMk
 
 end SymplecticGeometry
 

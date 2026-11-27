@@ -9,13 +9,14 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
-import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The Moser isotopy fixing a compact submanifold
@@ -201,9 +202,8 @@ theorem exists_smoothIsotopy_fix_mpullback_eq (f : SmoothEmbedding J I ∞ Q M)
   · have hψ : ⇑(ψ.timeSlice t) = ⇑(Ψ.timeSlice t) ∘ Subtype.val := by
       funext x
       simp [ψ]
-    apply Subtype.ext
-    funext z
-    rw [SmoothForm.coe_mpullback, hψ,
+    refine (SmoothForm.mpullback_eq_iff _).2 (funext fun z ↦ ?_)
+    rw [hψ,
       ← SmoothForm.coe_mpullback _ ((Ψ.timeSlice t).contMDiff.comp contMDiff_subtypeVal),
       ← SmoothForm.mpullback_mpullback _ _ contMDiff_subtypeVal,
       SmoothForm.coe_mpullback_subtype_val_apply,

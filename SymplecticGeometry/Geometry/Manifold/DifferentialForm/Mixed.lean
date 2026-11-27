@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.GradedMonoid
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
 public import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
+import SymplecticGeometry.Algebra.GradedMonoid
 
 /-!
 # Exterior calculus on forms of mixed degree

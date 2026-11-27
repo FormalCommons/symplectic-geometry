@@ -10,8 +10,8 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cayley
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-public import SymplecticGeometry.Topology.Homotopy.Affine
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
+import SymplecticGeometry.Topology.Homotopy.Affine
 
 /-!
 # Tame and compatible structures and forms on a vector bundle: contractibility and the polar map
@@ -272,9 +272,8 @@ theorem Compatible.cayleyPath_of_nonpos {t : ℝ} (ht : t ≤ 0) : h₀.cayleyPa
 @[simp]
 theorem Compatible.cayleyPath_of_one_le {t : ℝ} (ht : 1 ≤ t) : h₀.cayleyPath h t = J := by
   ext x v
-  have hJ₀ : J₀ x * J₀ x = -1 := by
-    rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.one_def]
-    exact J₀.square_neg x
+  have hJ₀ : J₀ x * J₀ x = -1 :=
+    ContinuousLinearMap.mul_self_eq_neg_one_iff_comp_eq_neg_id.2 (J₀.square_neg x)
   rw [h₀.cayleyPath_apply, Real.smoothTransition.one_of_one_le ht, cayleyPathFormula_one hJ₀
     (isUnit_of_mem_cayleyPathDomain (h₀.mem_cayleyPathDomain h x) ⟨zero_le_one, le_rfl⟩).1]
 
@@ -380,7 +379,7 @@ theorem contractibleSpace_tames (J : ContMDiffComplexStructure I n F V) :
   let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I) (n := n) e U hU
   let _ := ContMDiffSection.continuousSMul_frameTopology (I := I) (n := n) e U hU
   obtain ⟨ω, hω⟩ := J.exists_compatible
-  exact (ContMDiffTwoForm.convex_setOf_tames J).contractibleSpace ⟨ω, hω.tames⟩
+  exact (ContMDiffTwoForm.convex_setOfPred_tames J).contractibleSpace ⟨ω, hω.tames⟩
 
 /-- Over a Hausdorff σ-compact base modelled on a finite-dimensional space, the two-forms
 compatible with a complex structure `J` on a vector bundle of finite rank form a contractible
@@ -393,7 +392,7 @@ theorem contractibleSpace_compatible (J : ContMDiffComplexStructure I n F V) :
   let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I) (n := n) e U hU
   let _ := ContMDiffSection.continuousSMul_frameTopology (I := I) (n := n) e U hU
   obtain ⟨ω, hω⟩ := J.exists_compatible
-  exact (ContMDiffTwoForm.convex_setOf_compatible J).contractibleSpace ⟨ω, hω⟩
+  exact (ContMDiffTwoForm.convex_setOfPred_compatible J).contractibleSpace ⟨ω, hω⟩
 
 end ContMDiffComplexStructure
 
@@ -449,7 +448,7 @@ theorem ContMDiffTwoForm.continuous_polarComplexStructure
   -- The fibrewise nondegenerate alternating maps.
   let O := {q : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) |
     LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap q.snd.toMultilinearMap)}
-  have hO : IsOpen O := isOpen_setOf_nondegenerate
+  have hO : IsOpen O := isOpen_setOfPred_nondegenerate
   -- The flat map on the bundle of alternating maps, and the polar formula at it, on `O`.
   have hflat : ContMDiff (I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ)) (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) n
       fun q : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) ↦

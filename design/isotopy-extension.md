@@ -161,7 +161,8 @@ Further choices of this design:
 
 - **Isotopy extension at every time.** Every milestone asks that the
   extension agrees with the given family at each time $t\in[0,1]$, not at a
-  reparametrized one. `Extension.lean` below gives this. It first extends
+  reparametrized one. `SmoothIsotopy/Family.lean` gives this, from the steps
+  in `Extension.lean` below. It first extends
   the family past both ends of $[0,1]$, near a compact set, then makes it
   constant beyond them by a reparametrization that is the identity on
   $[0,1]$, then applies Tau Ceti's `exists_ambientVelocityField` and runs the
@@ -210,7 +211,7 @@ Further choices of this design:
 | `Analysis/Matrix/L2OpNorm.lean` | `ContDiff` of matrix-valued maps under the ℓ² operator norm, entrywise and against the entrywise norm (named like Tau Ceti's `Analysis/Matrix/L2OpNorm.lean`) |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
-| `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
+| `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | velocity forms (`SmoothIsotopy.IsSymplectic` is in `Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean`), their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
@@ -294,10 +295,9 @@ The general steps of the proof are public lemmas in files of their own
 topics: `CFC.contDiff_const_rpow`
 (`Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean`),
 `selfAdjoint.contDiff_expUnitary_smul` (`Analysis/CStarAlgebra/Exponential.lean`),
-both files of this part, and `Matrix.realifyCLM` and `SymplecticGroup.inv_mem`, which
-`Connected.lean` imports from `Topology/Algebra/Matrix/Realify.lean` of
-*Lagrangian Grassmannian* and `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of
-*Symplectic group*. Both of those files are merged.
+both files of this part, `Matrix.realifyCLM`, which `Connected.lean` imports from
+`Topology/Algebra/Matrix/Realify.lean` of *Lagrangian Grassmannian*, a merged file,
+and Tau Ceti's `SymplecticGroup.nonsing_inv_mem`.
 
 ### `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`
 
@@ -325,7 +325,34 @@ proves it for one map. Expected size: 250 lines.
 
 ### `Geometry/Manifold/SmoothIsotopy/Extension.lean`
 
-The main theorem is isotopy extension at every time:
+The file gives steps 1 and 2 of isotopy extension at every time, which
+`SmoothIsotopy/Family.lean` proves below:
+
+1. `ContMDiff.exists_contMDiffOn_extend_unitInterval`. A smooth map on
+   `unitInterval × X` extends near a compact `L ⊆ X`: there are `δ > 0`, an
+   open `U ⊇ L` and a `G : ℝ × X → N`, smooth on `Ioo (-δ) (1 + δ) ×ˢ U`,
+   that agrees with the map on $[0,1]\times U$. Seeley's extension extends
+   maps into a normed
+   space, so the target is moved into one. Tau Ceti's
+   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the
+   map of Mathlib's `SmoothBumpCovering.embeddingPiTangent`, embeds a
+   neighbourhood `W` of the compact track of `L` into a Euclidean space,
+   with a smooth retraction of a
+   neighbourhood of its image onto it
+   (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
+   *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
+   composite with the embedding, followed by the retraction, for times close to $[0,1]$.
+2. `TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`. For `G` smooth
+   on `Ioo (-δ) (1 + δ) ×ˢ V` whose slices at those times are smooth
+   embeddings of `V`, compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the
+   identity on $[0,1]$ and constant near $\pm\infty$. The result is constant
+   beyond two times `a < 0 < 1 < b`, has embedding slices for every real
+   time, and is the original map on $[0,1]$.
+
+### `Geometry/Manifold/SmoothIsotopy/Family.lean`
+
+The file proves isotopy extension at every time as the case of a point as
+parameter manifold of its parametric version:
 
 ```lean
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq
@@ -337,46 +364,41 @@ theorem TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq
 ```
 
 Its statement is Tau Ceti's `exists_diffeotopy_apply_eq` without the change of
-time. The steps:
+time. The file proves it for a smooth family `k : Q × unitInterval × P → N`
+over a boundaryless parameter manifold `Q`, with compact `T ⊆ Q`
+(`ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq`), working
+with the graph `(q, x) ↦ (q, k (q, s, x))` near `T ×ˢ A`:
 
-1. `TauCeti.SmoothIsotopy.exists_contMDiff_extend`. There are `δ > 0`, an
-   open `V ⊇ A` and a `G : ℝ × P → N`, smooth on `Ioo (-δ) (1 + δ) ×ˢ V`,
-   that agrees with `F` on
-   $[0,1]\times V$ and whose slices are smooth embeddings of `V` for
-   $t\in(-\delta,1+\delta)$. Seeley's extension extends maps into a normed
-   space, so the target is moved into one. Tau Ceti's
-   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the
-   map of Mathlib's `SmoothBumpCovering.embeddingPiTangent`, embeds a
-   neighbourhood `W` of the compact track of `A` into a Euclidean space,
-   with a smooth retraction of a
-   neighbourhood of its image onto it
-   (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
-   *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
-   composite with the embedding, followed by the retraction, for times close to $[0,1]$. The
-   embedding property of the slices for those times comes from
-   `SmoothEmbedding/Neighborhood.lean` again.
-2. Compose with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on
-   $[0,1]$ and constant near $\pm\infty$. The result is constant beyond two
-   times `a < 0 < 1 < b`, has embedding slices for every real time, and is
-   `F` on $[0,1]$.
-3. Tau Ceti's `TauCeti.exists_ambientVelocityField` gives a compactly
-   supported smooth field `X` on `ℝ × N` with the velocity of the motion of
-   `A`. Its flow, `TauCeti.timeDependentFlowDiffeotopy` (complete by
-   `TauCeti.isCompleteVectorField_timeDependentSuspensionField`), is `Φ`.
-   Uniqueness of integral curves gives `Φ (t, f₀ x) = F (t, x)`.
+1. The graph slices are smooth embeddings of a neighbourhood of `T ×ˢ A`, by
+   `TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn` of
+   `SmoothEmbedding/Neighborhood.lean`.
+2. Step 1 of `Extension.lean` extends `k` itself in time near `T ×ˢ A`; the
+   graph of the extension keeps the parameter fixed by construction. Its
+   slices stay smooth embeddings for times close to $[0,1]$ by
+   `TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`, and step 2
+   of `Extension.lean` makes it a motion over `ℝ`.
+3. `TauCeti.exists_contMDiff_diffeomorph_family_of_graph` gives the
+   diffeomorphisms for a motion over `ℝ` of a graph. Tau Ceti's
+   `TauCeti.exists_ambientVelocityField` gives a compactly supported field on
+   `Q × N` along the motion; its `N`-components form fields `Y q` on `N`,
+   whose flows `TauCeti.timeDependentFlowDiffeomorph` are jointly smooth in
+   `q` by `TauCeti.contMDiff_timeDependentFlowOf_param`, and carry the motion
+   by `TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`.
 
-The file also has `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
+`TauCeti.SmoothIsotopy.exists_diffeotopy_forall_apply_eq` is then the case
+`Q = EuclideanSpace ℝ (Fin 0)`, a point, and `TauCeti.Diffeotopy.ofReal`
+turns its
+family over `ℝ` into a diffeotopy.
+
+The proof adapts Tau Ceti's
+`TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`, which the module
+docstrings of both files credit.
+
+`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
 for `F` between manifolds of the same dimension and `h` smooth on
 `unitInterval × P`: a smooth `G` on `N × unitInterval`, vanishing off a
 compact set, with `G (F (t, y), t) = h (t, y)` for `y` near `A` (step 2 of
-`Flow.lean`). For it, `Extension.lean` imports Tau Ceti's
-`Geometry/Manifold/LocalDiffeomorph/Injective.lean`, for
-`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`, and *Hamiltonian flows*'
-`Geometry/Diffeomorphism/Diffeotopy/Basic.lean`.
-
-Expected size: 450 lines. The proof adapts Tau Ceti's
-`TauCeti.SmoothIsotopy.exists_diffeotopy_apply_eq`, which the module docstring
-credits.
+`Flow.lean`), is in `Geometry/Manifold/SmoothIsotopy/Transport.lean`.
 
 ### `Geometry/Symplectic/IsotopyExtension/Velocity.lean`
 
@@ -466,14 +488,11 @@ theorem TauCeti.SmoothIsotopy.exists_diffeotopy_mem_diffeomorphStabilizer_forall
 velocity forms `k_t^* β_t + dh_t` with every `β_t` closed and vanishing off a
 compact set: the first with `β = 0`, the second with that set `univ`. Its route:
 
-1. Choose a compact neighbourhood `K'` of `K`. Isotopy extension at every
-   time (`Extension.lean`) gives `Ψ` with `Ψ (t, f₀ x) = k (t, x)` on `K'`.
-2. With a smooth cutoff $\chi$ on `M` that is `1` near $f_0(K)$ and supported in
-   $f_0(K')$, set $G_t=(\chi\cdot h_t\circ f_0^{-1})\circ\Psi_t^{-1}$, and $0$
-   off the image of $f_0$. It is smooth on `M × unitInterval`, because `Ψ⁻¹` is
-   jointly smooth and $f_0$ is a local diffeomorphism, and $G_t\circ k_t=h_t$
-   near `K` (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
-   `Extension.lean`).
+1. A compactly supported smooth `G` on `M × unitInterval` with $G_t\circ k_t=h_t$
+   near `K` comes from `TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`,
+   in `SmoothIsotopy/Transport.lean`.
+2. That lemma is the case of a point parameter of
+   `ContMDiff.exists_contMDiff_family_comp_eventuallyEq`, in the same file.
 3. `Φ` comes from `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`
    of *Hamiltonian flows*' `Flux/CompactSupport.lean`, which applies
    `TauCeti.Diffeotopy.exists_interior_velocity_eq`, which
@@ -682,7 +701,7 @@ The route keeps the times of `e` exactly:
 1. *A smooth family that is right along $B(\lambda)$.* For $\lambda>0$,
    `SmoothEmbedding/Neighborhood.lean` makes `e` a `SmoothIsotopy` of an open
    ball about $B(\lambda)$. For $\lambda=0$ it is the isotopy of a point
-   along the path of centres. `Extension.lean` gives `Ψ` with
+   along the path of centres. `SmoothIsotopy/Family.lean` gives `Ψ` with
    $\Psi_t\circ e_0=e_t$ on $B(\lambda)$. Then $k'_t=\Psi_t\circ j_0\circ P_t$
    is a family of embeddings of a ball $B(\rho_1)$ with $k'_0=j_0$ and
    $k'_t=e_t$ on $B(\lambda)$. Here $P_t$ is a smooth path of linear maps,
@@ -848,7 +867,7 @@ theorem TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq
 
 The start `g₀` of `F` is the inclusion of `U`, given by its equation for the
 same reason as in `Cohomological/Basic.lean`.
-The route is the third decision. `Extension.lean`'s
+The route is the third decision. `SmoothIsotopy/Family.lean`'s
 `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq` gives a
 jointly smooth family $G_t$ of diffeomorphisms over all real times with
 $G_0=\mathrm{id}$ and $G_t\circ i=e_t$ for $t\in[0,1]$. On the open set $W$
@@ -913,7 +932,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Moser/Family.lean`, and by `Flow.lean` through *Hamiltonian flows*'
   `Flux/CompactSupport.lean`); the reparametrization of time
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
-  `Analysis/SpecialFunctions/SmoothTransition.lean` (used by
+  `Analysis/SpecialFunctions/SmoothTransition/Basic.lean` (used by
   `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
@@ -941,7 +960,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
   `Geometry/Manifold/Flow/TimeDependent.lean` for
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
-  there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
+  there. `SmoothIsotopy/Family.lean` imports `Diffeotopy/Real.lean` too, to restrict
   its family over `ℝ` to a `Diffeotopy`.
   `Ball/Interpolation.lean` imports its
   `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` for

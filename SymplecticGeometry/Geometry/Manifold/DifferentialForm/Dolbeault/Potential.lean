@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Dolbeault.DC
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
@@ -12,9 +13,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Complex.DdbarForm.DC
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Real potentials and `∂∂bar`
@@ -38,8 +39,11 @@ function `u` underlying `f`.
 In the namespace `TauCeti.SmoothAlmostComplexStructure`:
 
 * `dC_mapCoeff_ofReal`: `dᶜ f = -df ∘ J`, for every almost complex structure.
+* `potentialForm`: the real two-form `J.potentialForm f = (1/4) d (J.covectorComplexStructure
+  (d f))` of a potential `f`, closed and `ℝ`-linear in `f`; by `four_smul_potentialForm`, four
+  times it is `d (J.covectorComplexStructure (d f))`.
 * `del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar`:
-  `(i/2) ∂∂bar f = (1/4) d (J.covectorComplexStructure (d f))` wherever `d = ∂ + ∂bar` on
+  `(i/2) ∂∂bar f` is the complexification of `J.potentialForm f` wherever `d = ∂ + ∂bar` on
   one-forms.
 * `del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero`,
   `del_delBar_mapCoeff_ofReal_ofComplexManifold`: the same when `N_J = 0`, and on a complex
@@ -49,10 +53,11 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`:
   `ContMDiffSection.realAlternatingDerivation_funSMulₗ`.
 * `covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`,
   `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `λ_{g ∘ f}`
-  and `ω_{g ∘ f}`.
+  and `ω_{g ∘ f}`; `potentialForm_ofFunction_comp_of_hasDerivAt`: the form of the potential
+  `g ∘ f`, which is `ω_{g ∘ f} / 4`.
 * `mpullback_covectorComplexStructure`: `a ↦ -a ∘ J` commutes with pull-back along
-  pseudoholomorphic maps, so a potential `f` of `(1/4) d (J* df)` pulls back to the potential
-  `f ∘ φ` of the pulled-back form.
+  pseudoholomorphic maps, so that (`mpullback_potentialForm`) the pull-back of
+  `J'.potentialForm f` along a pseudoholomorphic `φ` is `J.potentialForm (f ∘ φ)`.
 
 The `∂∂bar` identities follow the pattern of Tau Ceti's `Dolbeault/DC.lean`, whose
 `mextDerivₗ_dC_of_mextDerivₗ_eq_del_add_delBar` (`ddᶜ = 2i ∂∂bar`) they use, with hypotheses
@@ -64,7 +69,9 @@ In the namespace `TauCeti`:
   a complex manifold, the value of `-df ∘ J` on `v` at `x` is `-df_x(i v)`.
 * `coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm`: on a complex manifold,
   `ω_f = 2 • TauCeti.ddbarForm V u`, for the function `u` underlying `f`, from
-  `dC_mapCoeff_ofReal` and Tau Ceti's `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`.
+  `dC_mapCoeff_ofReal` and Tau Ceti's `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`;
+  hence `SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm`: the form of a
+  potential `u` is `(1/2) • TauCeti.ddbarForm V u`.
 
 ## References
 
@@ -99,33 +106,54 @@ theorem dC_mapCoeff_ofReal (f : SmoothForm I M ℝ 0) :
   rw [J.dC_apply_apply, ← mextDerivₗ_zero_apply, SmoothForm.mextDerivₗ_mapCoeff]
   simp
 
+/-- The form `(1/4) d (J* d f)` of a real potential `f`, where `J*` is the almost complex
+structure `a ↦ -a ∘ J` on real one-forms. Wherever `d = ∂ + ∂bar` on one-forms, its
+complexification is `(i/2) ∂∂bar f`
+(`del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar`). It is `ℝ`-linear in `f`. -/
+noncomputable def potentialForm : SmoothForm I M ℝ 0 →ₗ[ℝ] SmoothForm I M ℝ 2 :=
+  (4 : ℝ)⁻¹ • (mextDerivₗ I 1 ∘ₗ J.covectorComplexStructure.toLinearMap ∘ₗ mextDerivₗ I 0)
+
+theorem potentialForm_def (f : SmoothForm I M ℝ 0) :
+    J.potentialForm f =
+      (4 : ℝ)⁻¹ • mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f)) :=
+  (rfl)
+
+/-- Four times the form of a potential `f` is `d (J* d f)`. -/
+theorem four_smul_potentialForm (f : SmoothForm I M ℝ 0) :
+    (4 : ℝ) • J.potentialForm f =
+      mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f)) := by
+  rw [potentialForm_def, smul_inv_smul₀ four_ne_zero]
+
+/-- The form of a potential is closed. -/
+theorem isClosed_potentialForm (f : SmoothForm I M ℝ 0) : (J.potentialForm f).IsClosed := by
+  rw [potentialForm_def]
+  exact (SmoothForm.isClosed_mextDerivₗ _).smul _
+
 variable {J}
 
 /-- For a real function `f`, if `d = ∂ + ∂bar` on complex one-forms, then
 `(i/2) ∂∂bar f = (1/4) d (J.covectorComplexStructure (d f))`: the left side is the
-complexification of the real two-form on the right. -/
+complexification of the real two-form `J.potentialForm f`. -/
 theorem del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar
     (hd : ∀ φ : SmoothForm I M ℂ 1, mextDerivₗ I 1 φ = J.del φ + J.delBar φ)
     (f : SmoothForm I M ℝ 0) :
     (Complex.I / 2) • J.del (J.delBar (SmoothForm.mapCoeff Complex.ofRealCLM f)) =
-      SmoothForm.mapCoeff Complex.ofRealCLM
-        ((4 : ℝ)⁻¹ • mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f))) := by
+      SmoothForm.mapCoeff Complex.ofRealCLM (J.potentialForm f) := by
   have h := mextDerivₗ_dC_of_mextDerivₗ_eq_del_add_delBar
     (fun φ ↦ (J.del_add_delBar_eq_mextDerivₗ φ).symm) hd
     (SmoothForm.mapCoeff Complex.ofRealCLM f)
   rw [dC_mapCoeff_ofReal, SmoothForm.mextDerivₗ_mapCoeff] at h
-  rw [map_smul, h]
+  rw [potentialForm_def, map_smul, h]
   module
 
 /-- For a real function `f`, if the Nijenhuis tensor of `J` vanishes, then
 `(i/2) ∂∂bar f = (1/4) d (J.covectorComplexStructure (d f))`: the left side is the
-complexification of the real two-form on the right. -/
+complexification of the real two-form `J.potentialForm f`. -/
 theorem del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero [FiniteDimensional ℝ E]
     (hJ : J.nijenhuis = 0)
     (f : SmoothForm I M ℝ 0) :
     (Complex.I / 2) • J.del (J.delBar (SmoothForm.mapCoeff Complex.ofRealCLM f)) =
-      SmoothForm.mapCoeff Complex.ofRealCLM
-        ((4 : ℝ)⁻¹ • mextDerivₗ I 1 (J.covectorComplexStructure (mextDerivₗ I 0 f))) :=
+      SmoothForm.mapCoeff Complex.ofRealCLM (J.potentialForm f) :=
   del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar
     (J.mextDerivₗ_eq_del_add_delBar_of_nijenhuis_eq_zero hJ) f
 
@@ -177,6 +205,23 @@ theorem mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_ha
   ext x v
   simp [SmoothForm.coe_funSMulₗ]
 
+/-- **The form of a composite potential.** Let `h = g ∘ f` for a smooth real function `f` and a
+function `g : ℝ → ℝ` whose derivative at `f x` is `g' (f x)`, and the derivative of `g'` at
+`f x` is `g'' (f x)`, for every `x`. If the smooth functions `a` and `b` are `g' ∘ f` and
+`g'' ∘ f`, then the form of the potential `h` is `a` times that of `f` plus
+`(1/4) b (df ∧ (-df ∘ J))`, the wedge being Tau Ceti's `SmoothForm.extDerivWedgeₗ f`. -/
+theorem potentialForm_ofFunction_comp_of_hasDerivAt
+    {g g' g'' : ℝ → ℝ} {f h a b : C^∞⟮I, M; ℝ⟯} (hh : ∀ x, h x = g (f x))
+    (ha : ∀ x, a x = g' (f x)) (hb : ∀ x, b x = g'' (f x))
+    (hg : ∀ x, HasDerivAt g (g' (f x)) (f x)) (hg' : ∀ x, HasDerivAt g' (g'' (f x)) (f x)) :
+    J.potentialForm (SmoothForm.ofFunction h) =
+      SmoothForm.funSMulₗ a (J.potentialForm (SmoothForm.ofFunction f)) +
+        (4 : ℝ)⁻¹ • SmoothForm.funSMulₗ b (SmoothForm.extDerivWedgeₗ f 1
+          (J.covectorComplexStructure (mextDerivₗ I 0 (SmoothForm.ofFunction f)))) := by
+  rw [potentialForm_def, potentialForm_def,
+    mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt hh ha hb hg hg',
+    smul_add, map_smul]
+
 section Pullback
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
@@ -194,6 +239,17 @@ theorem mpullback_covectorComplexStructure {f : M → M'} (hf : ContMDiff I I' �
   rw [SmoothForm.mpullback_apply_one,
     covectorComplexStructure_apply_vec, covectorComplexStructure_apply_vec,
     SmoothForm.mpullback_apply_one, (hJ.isPseudoholomorphicAt x).mfderiv_apply_commute]
+
+/-- The form of a potential is natural for pseudoholomorphic maps: if `f` intertwines `J` and
+`J'`, the pull-back of `J'.potentialForm φ` is `J.potentialForm` of the pulled-back potential
+`φ ∘ f`. -/
+theorem mpullback_potentialForm {f : M → M'} (hf : ContMDiff I I' ∞ f)
+    (hJ : IsPseudoholomorphic J J' f) (φ : SmoothForm I' M' ℝ 0) :
+    SmoothForm.mpullback f hf (J'.potentialForm φ) =
+      J.potentialForm (SmoothForm.mpullback f hf φ) := by
+  rw [potentialForm_def, potentialForm_def, SmoothForm.mpullback_smul,
+    ← SmoothForm.mextDerivₗ_mpullback, mpullback_covectorComplexStructure hf hJ,
+    ← SmoothForm.mextDerivₗ_mpullback]
 
 end Pullback
 end SmoothAlmostComplexStructure
@@ -219,13 +275,12 @@ theorem SmoothAlmostComplexStructure.covectorComplexStructure_ofComplexManifold_
 
 /-- On a complex manifold, for a real function `f`,
 `(i/2) ∂∂bar f = (1/4) d (J.covectorComplexStructure (d f))`: the left side is the
-complexification of the real two-form on the right. -/
+complexification of the real two-form `potentialForm f`. -/
 theorem SmoothAlmostComplexStructure.del_delBar_mapCoeff_ofReal_ofComplexManifold
     (f : SmoothForm 𝓘(ℝ, V) N ℝ 0) :
     (Complex.I / 2) • (ofComplexManifold V N).del
         ((ofComplexManifold V N).delBar (SmoothForm.mapCoeff Complex.ofRealCLM f)) =
-      SmoothForm.mapCoeff Complex.ofRealCLM ((4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, V) 1
-        ((ofComplexManifold V N).covectorComplexStructure (mextDerivₗ 𝓘(ℝ, V) 0 f))) :=
+      SmoothForm.mapCoeff Complex.ofRealCLM ((ofComplexManifold V N).potentialForm f) :=
   del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar
     mextDerivₗ_eq_del_add_delBar_ofComplexManifold f
 
@@ -246,6 +301,15 @@ theorem coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm {u : N �
     RoughForm.mapCoeff_apply] at key
   rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, smul_eq_mul, Complex.ofReal_mul, key]
   simp
+
+/-- On a complex manifold, the form of a real potential `u`, given by the smooth `0`-form `f`,
+is half of Tau Ceti's real (1,1)-form `TauCeti.ddbarForm V u`, that is, `(i/2) ∂∂bar u`. -/
+theorem SmoothAlmostComplexStructure.coe_potentialForm_eq_inv_two_smul_ddbarForm
+    {u : N → ℝ} (f : SmoothForm 𝓘(ℝ, V) N ℝ 0) (hf : ∀ y, f.val y 0 = u y) :
+    ((ofComplexManifold V N).potentialForm f).val = (2 : ℝ)⁻¹ • ddbarForm V u := by
+  rw [potentialForm_def, SmoothForm.smul_toRoughForm,
+    coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm f hf, smul_smul]
+  norm_num
 
 end ComplexManifold
 

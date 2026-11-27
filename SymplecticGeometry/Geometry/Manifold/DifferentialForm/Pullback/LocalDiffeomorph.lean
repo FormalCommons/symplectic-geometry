@@ -6,17 +6,26 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
+public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+public import Mathlib.Analysis.InnerProductSpace.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.Algebra.SMul
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 
 /-!
 # Pulling forms back along local diffeomorphisms
@@ -43,21 +52,31 @@ A `C^n` local diffeomorphism `f` with `2 ≤ n` also pulls a pair with `ι_Y dα
 pair, for the pulled-back field and form
 (`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`). The proof combines Tau
 Ceti's `TauCeti.mpullback_mextDeriv_at` and `TauCeti.mpullback_interior`; that the differential of
-`f` sends the pulled-back field to `Y` comes from Mathlib's
-`IsLocalDiffeomorphAt.isInvertible_mfderiv`.
+`f` sends the pulled-back field to `Y` is `IsLocalDiffeomorphAt.mfderiv_apply_mpullback`, from
+`SymplecticGeometry.Geometry.Manifold.VectorField.Pullback`.
 
 At a single point `x` where `f` is a local diffeomorphism, the same tools transfer pointwise
 identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
 (`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`), `ι_Z ω = ψ` for fields related by the
 differential (`IsLocalDiffeomorphAt.interior_apply_eq_iff`), nondegeneracy of a two-form
 (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`, which needs only
-an invertible differential at `x`; for the action of an element of a group acting smoothly, on a
+an invertible differential at `x`; for an immersion at `x` between manifolds of one finite
+dimension, which has one, the direction from `f x` to `x` is
+`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_of_isImmersionAt`; for the action of an
+element of a group acting by smooth maps, on a
 two-form invariant under it, this is `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`),
 and, for a two-form closed at `f x`, the
 identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
 pointwise Cartan formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior_apply`). They are the
 pointwise forms, for a map that is a local diffeomorphism only near `x`, of Tau Ceti's
 `IsLocalDiffeomorph.isClosed_mpullback_iff` and `IsLocalDiffeomorph.isNondegenerate_mpullback_iff`.
+
+The group action also carries such an identity along an orbit: if a map `f` that commutes with
+`z ↦ g • z`, and is differentiable at `y`, pulls a form `ω` back to `η` at `y`, both forms being
+invariant under `g`, then it does so at `g • y` (`TauCeti.mpullback_apply_smul_eq_of_apply_eq`),
+since the differential of `z ↦ g • z` at `y` is onto. Such an `f` is differentiable at `g • y`
+too (`MDifferentiableAt.at_smul_of_map_smul`, from
+`SymplecticGeometry.Geometry.Manifold.Algebra.SMul`).
 
 For `f : M → M'` and a form `α` on `M`, `TauCeti.RoughForm.pushforwardAt I I' f α x z` is `α x`
 read through the inverse of the differential of `f` at `x`, as an alternating map on the tangent
@@ -83,6 +102,22 @@ fixes every point outside a closed subset of the range of `g` preserves `σ`
 `g^* Ψ^* σ = Λ^* g^* σ = τ = g^* σ`, by Tau Ceti's
 `TauCeti.SmoothForm.mpullback_mpullback_of_comp_eq`, and the differential of `g` at `w` is onto;
 elsewhere `Ψ` is the identity near the point.
+
+The same two cases carry an exactness identity from a chart to the manifold
+(`TauCeti.SmoothForm.exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph`). Let `e` be a
+partial diffeomorphism into `M'`, `C ⊆ W ⊆ e.source` with `e '' C` closed and `W` open, and `Φ` a
+diffeomorphism of `M'` that fixes every point off `e '' C`. If `(Φ ∘ e)^* θ - e^* θ = dk` on `W`
+for a function `k` that vanishes on `W` outside `C`, then `k ∘ e⁻¹` on `e '' W`, extended by zero
+(`PartialDiffeomorph.contMDiff_indicator_image_comp_symm`), is a smooth `K` with
+`Φ^* θ - θ = dK`. At a point of `e '' W` both sides pull back along `e` to the hypothesis
+(`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`); off `e '' C`, `Φ` is the identity and `K` is `0`
+near the point. Seidel uses this to see that the Dehn twist along an exact Lagrangian sphere is
+an exact symplectomorphism.
+
+## References
+
+* [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], the paragraph
+  before Proposition 1.11 (arXiv version 2)
 -/
 
 public section
@@ -248,29 +283,61 @@ theorem nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv [IsManifold I 1 M]
     rw [LinearMap.BilinForm.congr_apply, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
       ContinuousLinearEquiv.symm_symm, SmoothForm.bilinFormAt_apply,
       SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
-      ← h, mpullback_apply]
-    congr 1
-    ext i
-    fin_cases i <;> simp [← he]
+      ← h, mpullback_apply_pair]
+    simp [← he]
   rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
 
 open scoped ContDiff in
-/-- Let a group `G` act smoothly on `M`, and let the two-form `σ` on `M` be invariant under
-`y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
-theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {EG HG G : Type*}
-    [NormedAddCommGroup EG] [NormedSpace ℝ EG] [TopologicalSpace HG]
-    {IG : ModelWithCorners ℝ EG HG} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
-    [MulAction G M] [ContMDiffSMul IG I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
-    (hσ : SmoothForm.mpullback (k • ·) (ContMDiffSMul.contMDiff_const_smul (I := IG) k) σ = σ)
+/-- Let `f : M → M'` be smooth and a `C^n` immersion at `x`, with `n ≠ 0`, where the models of
+`M` and `M'` have the same finite dimension. If the two-form `σ` on `M'` is nondegenerate at
+`f x`, then its pull-back along `f` is nondegenerate at `x`. -/
+theorem nondegenerate_bilinFormAt_mpullback_of_isImmersionAt [FiniteDimensional ℝ E']
+    [IsManifold I 1 M] [IsManifold I' 1 M'] (hf : ContMDiff I I' ∞ f)
+    (hfx : Manifold.IsImmersionAt I I' n f x) (hn : n ≠ 0)
+    (hdim : Module.finrank ℝ E = Module.finrank ℝ E') {σ : SmoothForm I' M' ℝ 2}
+    (hσ : (σ.bilinFormAt (f x)).Nondegenerate) :
+    ((SmoothForm.mpullback f hf σ).bilinFormAt x).Nondegenerate :=
+  (nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    ((isInvertible_mfderiv_iff_injective hdim).2 (hfx.mfderiv_injective hn))
+    (by rw [SmoothForm.coe_mpullback])).1 hσ
+
+open scoped ContDiff in
+/-- Let a group `G` act on `M` by smooth maps, and let the two-form `σ` on `M` be invariant
+under `y ↦ k • y`. Then `σ` is nondegenerate at `k • y` exactly when it is nondegenerate at `y`. -/
+theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {G : Type*} [Group G]
+    [MulAction G M] [ContMDiffConstSMul I ∞ G M] {σ : SmoothForm I M ℝ 2} (k : G)
+    (hσ : SmoothForm.mpullback (k • ·) (ContMDiffConstSMul.contMDiff_const_smul k) σ = σ)
     (y : M) :
     (σ.bilinFormAt (k • y)).Nondegenerate ↔ (σ.bilinFormAt y).Nondegenerate := by
-  refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
-    (((Diffeomorph.smul IG I ∞ k).isLocalDiffeomorph y).isInvertible_mfderiv (by simp)) ?_
-  have h := congrArg Subtype.val hσ
-  rw [SmoothForm.coe_mpullback] at h
-  exact congrFun h y
+  have hk : (mfderiv I I (k • ·) y).IsInvertible := by
+    rw [← Diffeomorph.coe_constSmul (I := I) (n := ∞) k]
+    exact (Diffeomorph.constSmul I ∞ k).isInvertible_mfderiv (by simp)
+  refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hk ?_
+  exact congrFun ((SmoothForm.mpullback_eq_iff _).1 hσ) y
 
 end SmoothTwoForm
+
+/-- Let a group `G` act on `M` and on `M'` by `C¹` maps, and let `f : M → M'` commute with
+`z ↦ g • z`, and be differentiable at `y`. Let the forms `α` on `M'` and `β` on `M` be invariant
+under `z ↦ g • z`. If `f` pulls `α` back to `β` at `y`, then it pulls `α` back to `β` at
+`g • y`. -/
+theorem mpullback_apply_smul_eq_of_apply_eq [IsManifold I 1 M] {G : Type*} [Group G]
+    [MulAction G M] [ContMDiffConstSMul I 1 G M] [MulAction G M'] [ContMDiffConstSMul I' 1 G M']
+    (g : G) (hfg : ∀ z, f (g • z) = g • f z) {α : RoughForm I' M' F k} {β : RoughForm I M F k}
+    (hα : mpullback I' I' (g • ·) α = α) (hβ : mpullback I I (g • ·) β = β) {y : M}
+    (hf : MDifferentiableAt I I' f y) (h : mpullback I I' f α y = β y) :
+    mpullback I I' f α (g • y) = β (g • y) := by
+  have hgM : MDifferentiableAt I I (g • ·) y :=
+    ContMDiffConstSMul.mdifferentiable_const_smul (I := I) (n := 1) one_ne_zero g y
+  have hgM' : MDifferentiableAt I' I' (g • ·) (f y) :=
+    ContMDiffConstSMul.mdifferentiable_const_smul (I := I') (n := 1) one_ne_zero g (f y)
+  have hsurj : Function.Surjective (mfderiv I I (g • ·) y) := by
+    rw [← Diffeomorph.coe_constSmul (I := I) (n := 1) g]
+    exact ((Diffeomorph.constSmul I 1 g).isInvertible_mfderiv one_ne_zero).surjective
+  refine (mpullback_apply_eq_mpullback_apply_iff hsurj).1 ?_
+  -- Both sides at `y`: `(f ∘ (g • ·))^* α = ((g • ·) ∘ f)^* α = f^* α = β = (g • ·)^* β`.
+  rw [hβ, ← mpullback_comp_at hgM (hf.at_smul_of_map_smul g hfg),
+    show f ∘ (g • ·) = (g • ·) ∘ f from funext hfg, mpullback_comp_at hf hgM', hα, h]
 
 end TauCeti
 
@@ -368,9 +435,7 @@ theorem interior_mextDeriv_mpullback_of_interior_mextDeriv (hf : IsLocalDiffeomo
   have hd : mextDeriv (mpullback I I' f α.val) = mpullback I I' f (mextDeriv α.val) :=
     funext fun x ↦ (mpullback_mextDeriv_at ((hf x).contMDiffAt.of_le hn)
       ((α.contMDiff (f x)).of_le (by simp))).symm
-  have hY (x : M) : mfderiv I I' f x (VectorField.mpullback I I' f Y x) = Y (f x) := by
-    rw [VectorField.mpullback_apply]
-    exact ((hf x).isInvertible_mfderiv (lt_of_lt_of_le (by simp) hn).ne').self_apply_inverse _
+  have hY (x : M) := (hf x).mfderiv_apply_mpullback (lt_of_lt_of_le (by simp) hn).ne' Y
   rw [hd, ← mpullback_interior _ _ _ _ hY, hYα]
 
 end IsLocalDiffeomorph
@@ -406,6 +471,58 @@ theorem mem_diffeomorphStabilizer_of_semiconj [IsManifold I 1 M] [IsManifold I' 
     have hid : (Ψ : M' → M') =ᶠ[𝓝 x] id :=
       Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx') hΨ
     rw [hid.mpullback_eq, TauCeti.mpullback_id]
+
+/-- **Carrying an exactness identity from a chart.** Let `e` be a smooth partial diffeomorphism
+from `M` to `M'`, and `C ⊆ W ⊆ e.source` with `e '' C` closed and `W` open. Let
+`Φ` be a diffeomorphism of `M'` that fixes every point outside `e '' C`, `θ` a one-form on `M'`,
+and `k` a function on `M` that is smooth on `W` and vanishes on `W` outside `C`, such that
+`(Φ ∘ e)^* θ - e^* θ = dk` at each point of `W`. Then `Φ^* θ - θ = dK` for a smooth function `K`
+on `M'` that vanishes outside `e '' C` and agrees with `k ∘ e⁻¹` on `e '' W`. -/
+theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I ∞ M]
+    [IsManifold I' ∞ M'] (e : PartialDiffeomorph I I' M M' ∞) {C W : Set M}
+    (hC : _root_.IsClosed (e '' C)) (hW : IsOpen W) (hCW : C ⊆ W) (hWe : W ⊆ e.source)
+    {Φ : M' ≃ₘ⟮I', I'⟯ M'} (hΦ : ∀ x ∉ e '' C, Φ x = x) {θ : SmoothForm I' M' ℝ 1} {k : M → ℝ}
+    (hk : ContMDiffOn I 𝓘(ℝ) ∞ k W) (hk0 : W ∩ Function.support k ⊆ C)
+    (hθk : ∀ z ∈ W, TauCeti.mpullback I I' (Φ ∘ e) θ.val z - TauCeti.mpullback I I' e θ.val z =
+      mextDeriv (RoughForm.ofFunction I k) z) :
+    ∃ K : C^∞⟮I', M'; ℝ⟯, (∀ x ∉ e '' C, K x = 0) ∧ (∀ z ∈ W, K (e z) = k z) ∧
+      mpullback Φ Φ.contMDiff θ - θ = mextDerivₗ I' 0 (ofFunction K) := by
+  -- `K` is `k ∘ e⁻¹` on `e '' W`, extended by `0`.
+  set K₀ : M' → ℝ := (e '' W).indicator fun y ↦ k (e.symm y)
+  have hK₀e : ∀ z ∈ W, K₀ (e z) = k z := fun z hz ↦
+    e.toPartialEquiv.indicator_image_comp_symm_apply_self k hz (hWe hz)
+  have hK₀C : ∀ x ∉ e '' C, K₀ x = 0 := fun x hx ↦ by
+    by_cases hxW : x ∈ e '' W
+    · obtain ⟨z, hz, rfl⟩ := hxW
+      rw [hK₀e z hz]
+      exact Function.notMem_support.1 fun h ↦ hx (mem_image_of_mem _ (hk0 ⟨hz, h⟩))
+    · exact indicator_of_notMem hxW _
+  have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
+    e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0
+  set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
+  have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
+  refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩
+  simp only [mextDerivₗ_apply, coe_ofFunction, hKK, SmoothBundleForm.sub_apply,
+    coe_mpullback]
+  by_cases hx : x ∈ e '' W
+  · -- On `e '' W`, compare the pullbacks along `e`, whose differential is invertible.
+    obtain ⟨z, hz, rfl⟩ := hx
+    refine (((e.isLocalDiffeomorphAt I I' ∞ (hWe hz)).mextDeriv_apply_eq_iff (by simp)
+      (φ := RoughForm.ofFunction I' K₀) (ψ := TauCeti.mpullback I' I' Φ θ.val - θ.val)
+      (contMDiffAt_ofFunction_iff.2 ((hK₀s _).of_le (by simp)))).2 ?_).symm
+    rw [mpullback_ofFunction, mpullback_sub, Pi.sub_apply,
+      ← mpullback_comp_at (e.mdifferentiableAt (by simp) (hWe hz))
+        (Φ.contMDiff.mdifferentiable (by simp) _), hθk z hz]
+    -- Near `z`, `K₀ ∘ e` is `k`.
+    exact mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (c := 0) <|
+      eventually_of_mem (hW.mem_nhds hz) fun y hy ↦ by simp [hK₀e y hy]
+  · -- Off `e '' C`, `Φ` is the identity and `K₀` vanishes near `x`.
+    have hnhds := hC.isOpen_compl.mem_nhds fun h ↦ hx (image_mono hCW h)
+    have hid : (Φ : M' → M') =ᶠ[𝓝 x] id := eventually_of_mem hnhds hΦ
+    rw [hid.mpullback_eq, TauCeti.mpullback_id, sub_self,
+      mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (g := 0) (c := 0)
+        (eventually_of_mem hnhds fun y hy ↦ by simp [hK₀C y hy]),
+      mextDeriv_ofFunction_zero, Pi.zero_apply]
 
 end TauCeti.SmoothForm
 

@@ -7,8 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Orientation.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
 
 /-!
 # The symplectic orientation is the orientation of a tamed complex structure

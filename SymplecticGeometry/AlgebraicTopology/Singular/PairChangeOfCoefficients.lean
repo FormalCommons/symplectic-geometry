@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.Relative
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.Pairing
 import all TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
 /-!
@@ -15,10 +16,10 @@ import all TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 A morphism of coefficients `φ : R ⟶ R'` induces a map of relative singular chains
 `C(X, A; R) ⟶ C(X, A; R')`, the component of the bifunctor `SSetPair.chainComplexFunctor`, and
 hence a map `Hₙ(X, A; R) ⟶ Hₙ(X, A; R')`. This map commutes with the maps induced by maps of
-pairs (`TopPair.singularHomologyMap_coefficient_naturality`). It is the homology counterpart of
-`TopPair.singularCohomologyChainCoefficientMap_naturality`
-(`SymplecticGeometry/AlgebraicTopology/Cohomology/PairChangeOfCoefficients.lean`), and its proof
-is that of the cohomology statement, without the dual.
+pairs (`TopPair.singularHomologyMap_coefficient_naturality`): this is
+`SSetPair.homologyMap_coefficient_naturality` for the pairs of singular simplicial sets. It is the
+homology counterpart of `TopPair.singularCohomologyChainCoefficientMap_naturality`
+(`SymplecticGeometry/AlgebraicTopology/Cohomology/PairChangeOfCoefficients.lean`).
 
 In an abelian category the change of coefficients is a morphism of the short exact sequences of
 singular chains of a pair, so it also commutes with the connecting morphism
@@ -49,9 +50,7 @@ theorem singularHomologyMap_coefficient_naturality {P P' : TopPair.{w}} (f : P �
         TopPair.singularHomologyMap f R' n =
       TopPair.singularHomologyMap f R n ≫
         homologyMap (((SSetPair.chainComplexFunctor C).map φ).app (toSSetPair.obj P')) n :=
-  (homologyMap_comp _ _ n).symm.trans <| (congrArg (homologyMap · n)
-    (((SSetPair.chainComplexFunctor C).map φ).naturality (toSSetPair.map f)).symm).trans
-      (homologyMap_comp _ _ n)
+  SSetPair.homologyMap_coefficient_naturality (toSSetPair.map f) φ n
 
 section Abelian
 

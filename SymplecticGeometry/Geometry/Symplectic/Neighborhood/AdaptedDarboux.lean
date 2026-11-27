@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Darboux.Immersion
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Topology.Maps.Embedding
@@ -187,9 +188,8 @@ private theorem exists_localDiffeomorph_mpullback_eq (hσ : σ.IsNondegenerate) 
   -- `H = G ∘ Φ` is a local diffeomorphism at `0` which pulls `σ` back to `σ₀`.
   refine ⟨G ∘ Φ, (PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ Φ h0Φ).comp (K := I) (P := M)
     (by rw [hΦ0]; exact hG), ?_, ?_⟩
-  · have hO : Φ.source ∩ Φ ⁻¹' W ∈ 𝓝 0 :=
-      (Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source hWo).mem_nhds
-        ⟨h0Φ, by rwa [mem_preimage, hΦ0]⟩
+  · have hWΦ : IsOpen (Φ.source ∩ Φ ⁻¹' W) := Φ.toOpenPartialHomeomorph.isOpen_inter_preimage hWo
+    have hO : Φ.source ∩ Φ ⁻¹' W ∈ 𝓝 0 := hWΦ.mem_nhds ⟨h0Φ, by rwa [mem_preimage, hΦ0]⟩
     filter_upwards [hO] with v ⟨hv, hvW⟩
     rw [mpullback_comp_at (Φ.mdifferentiableAt (by simp) hv)
       ((hGW _ hvW).mdifferentiableAt (by simp)), ← hσ₁_def]
@@ -214,8 +214,8 @@ private theorem exists_partialDiffeomorph_apply_eq_of_mpullback_eq {H : StdSpace
       ∀ᶠ s in 𝓝 0, u s ∈ e₀.source ∧ e₀ (u s) = ι s := by
   set Λ := hH.localInverse
   obtain ⟨O, hOsub, hOo, h0O⟩ := mem_nhds_iff.1 hHpb
-  refine ⟨Λ.restrOpen _ (Λ.contMDiffOn.continuousOn.isOpen_inter_preimage Λ.open_source hOo),
-    fun x hx v w ↦ ?_, ?_⟩
+  have hOΛ : IsOpen (Λ.source ∩ Λ ⁻¹' O) := Λ.toOpenPartialHomeomorph.isOpen_inter_preimage hOo
+  refine ⟨Λ.restrOpen _ hOΛ, fun x hx v w ↦ ?_, ?_⟩
   · -- `Λ` pulls `stdForm` back to `σ` at `x`, since `H^* σ = stdForm` at `Λ x`.
     rw [PartialDiffeomorph.restrOpen_source] at hx
     obtain ⟨hxΛ, -, hxO⟩ := hx
@@ -261,7 +261,7 @@ theorem exists_darbouxChart_inter_range_eq_of_chart (hσ : σ.IsNondegenerate)
   have hu : ∀ᶠ s in 𝓝 0, ContMDiffAt 𝓘(ℝ, E') I ∞ (f ∘ c.symm) s := by
     filter_upwards [c.open_target.mem_nhds h0t] with s hs
     exact f.contMDiff.contMDiffAt.comp s
-      (c.symm.contMDiffOn.contMDiffAt (c.symm.open_source.mem_nhds hs))
+      (c.symm.contMDiffAt hs)
   have hinj : Injective (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) 0) := by
     rw [mfderiv_comp 0 (f.contMDiff.mdifferentiableAt (by simp))
       (c.symm.mdifferentiableAt (by simp) (by simpa using h0t))]

@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 public import SymplecticGeometry.Geometry.Symplectic.JHolomorphic.Energy.Density
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.Energy.Surface
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TopForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
 
 /-!
@@ -153,7 +153,8 @@ theorem Invariant.energy_eq_integralTopForm_add [CompactSpace C] (hinv : form.In
   have hpb : IsSmoothForm I' 0 (mpullback I' I u form.val) :=
     ((SmoothForm.isSmoothForm form).of_le (by simp)).mpullback (by simpa using hu)
   rw [funext (hinv.normSq_complexAntilinearPart_smul_eq h2 hdvol),
-    ← sub_eq_add_neg, integralTopForm_sub_of_compactSpace o (isSmoothForm_energyForm hu) hpb,
+    ← sub_eq_add_neg, integralTopForm_sub_of_compactSpace o
+      (isSmoothForm_energyForm (m := 0) hu (zero_add _).le) hpb,
     sub_add_cancel, energy_def]
 
 /-- **Zero energy.** Under tameness, a `C¹` map from a compact surface, oriented so that the

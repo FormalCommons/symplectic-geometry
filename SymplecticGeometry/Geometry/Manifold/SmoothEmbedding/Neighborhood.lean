@@ -8,10 +8,12 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Data.Set.Prod
+import SymplecticGeometry.Topology.Order.NhdsSet
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Immersion.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.LocalInjectivity
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
@@ -45,6 +47,8 @@ embedding of `V`.
 * `TauCeti.exists_pos_forall_isSmoothEmbedding_of_injOn`: for a family over `ℝ` whose slices at
   times in `[0, 1]` are injective immersions on `K`, the slices at times in `(-δ, 1 + δ)` are
   smooth embeddings of one open `V ⊇ K`, for some `δ > 0`.
+* `TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`: a map that agrees near a compact
+  set with embeddings at times in `[0, 1]` has embedding slices near that set at nearby times.
 * `TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`: a smooth map, injective on a compact set
   with injective differential there, is a smooth embedding of an open neighbourhood of it.
 * `TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`: a family over `unitInterval`, `Cⁿ` on
@@ -97,13 +101,8 @@ theorem exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn [FiniteDimensio
   have hGat : ∀ p ∈ W, ContMDiffAt (IQ.prod J) I ∞ G p := fun p hp ↦
     hG.contMDiffAt (hW.mem_nhds hp)
   -- The track `(q, x) ↦ (q, G (q, x))` is injective near `T ×ˢ K`.
-  have htrack : ∀ {s : Set (Q × P)}, (∀ q, InjOn (fun x ↦ G (q, x)) {x | (q, x) ∈ s}) →
-      InjOn (fun p : Q × P ↦ (p.1, G p)) s := by
-    rintro s hs ⟨q, x⟩ hx ⟨q', y⟩ hy hxy
-    obtain ⟨rfl, hxy⟩ := Prod.ext_iff.1 hxy
-    exact congrArg (Prod.mk q) (hs q hx hy hxy)
   obtain ⟨W₁, hW₁o, hTKW₁, hW₁⟩ := Set.InjOn.exists_isOpen_superset
-    (htrack (s := T ×ˢ K) fun q x hx y hy ↦ hinj q hx.1 hx.2 hy.2) (hT.prod hK)
+    (Set.injOn_fst_prod_iff.2 hinj) (hT.prod hK)
     (fun p hp ↦ continuousAt_fst.prodMk (hGat p (hTK hp)).continuousAt) fun p hp ↦ by
       have h := hGat p (hTK hp)
       exact (contMDiffAt_fst.prodMk h).exists_mem_nhds_injOn (by simp)
@@ -166,17 +165,41 @@ theorem exists_pos_forall_isSmoothEmbedding_of_injOn {G : ℝ × P → M} {W : S
       ∀ t ∈ Ioo (-δ) (1 + δ), Manifold.IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
   obtain ⟨U, hUo, hU, V, hKV, hVW, hV⟩ := exists_isOpen_superset_forall_isSmoothEmbedding_of_injOn
     hW hG isCompact_Icc hK hKW hinj himm
-  obtain ⟨δ, hδ, hδU⟩ := isCompact_Icc.exists_thickening_subset_open hUo hU
-  have hIoo : Ioo (-δ) (1 + δ) ⊆ U := fun t ht ↦ hδU <| Metric.mem_thickening_iff.2
-    ⟨max 0 (min t 1), ⟨le_max_left _ _, max_le zero_le_one (min_le_right _ _)⟩, by
-      rcases le_total t 0 with h0 | h0
-      · rw [min_eq_left (h0.trans zero_le_one), max_eq_left h0, Real.dist_eq, sub_zero, abs_lt]
-        constructor <;> linarith [ht.1]
-      · rcases le_total t 1 with h1 | h1
-        · rwa [min_eq_left h1, max_eq_right h0, dist_self]
-        · rw [min_eq_right h1, max_eq_right zero_le_one, Real.dist_eq, abs_lt]
-          constructor <;> linarith [ht.2]⟩
+  obtain ⟨δ, hδ, hIoo⟩ := hUo.exists_pos_Ioo_subset_of_Icc_subset hU
+  rw [zero_sub] at hIoo
   exact ⟨δ, hδ, V, hKV, (prod_mono hIoo subset_rfl).trans hVW, fun t ht ↦ hV t (hIoo ht)⟩
+
+omit [FiniteDimensional ℝ E'] [T2Space P] in
+/-- **Embedding slices near `[0, 1]`.** Let `G : ℝ × P → M` be smooth on an open set `S`
+containing `[0, 1] ×ˢ A`, with `A` compact, and let `F` be a family over `[0, 1]` of smooth
+embeddings of `P` into `M` such that, at each time `t ∈ [0, 1]`, the slice of `G` agrees with that
+of `F` near `A`. Then there are `δ > 0` and an open `V ⊇ A` with `(-δ, 1 + δ) ×ˢ V ⊆ S` such
+that the slices of `G` at times in `(-δ, 1 + δ)` are smooth embeddings of `V`. -/
+theorem exists_pos_forall_isSmoothEmbedding_of_eventuallyEq {S : Set (ℝ × P)} (hS : IsOpen S)
+    {G : ℝ × P → M} (hG : ContMDiffOn (𝓘(ℝ).prod J) I ∞ G S) {A : Set P} (hA : IsCompact A)
+    (hAS : Icc 0 1 ×ˢ A ⊆ S) {F : unitInterval × P → M}
+    (hF : ∀ t, Manifold.IsSmoothEmbedding J I ∞ fun x ↦ F (t, x))
+    (hGF : ∀ t (ht : t ∈ Icc (0 : ℝ) 1),
+      (fun x ↦ G (t, x)) =ᶠ[𝓝ˢ A] fun x ↦ F (⟨t, ht⟩, x)) :
+    ∃ δ > 0, ∃ V : TopologicalSpace.Opens P, A ⊆ V ∧ Ioo (-δ) (1 + δ) ×ˢ (V : Set P) ⊆ S ∧
+      ∀ t ∈ Ioo (-δ) (1 + δ), Manifold.IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) := by
+  rcases isEmpty_or_nonempty P with _ | ⟨⟨x₀⟩⟩
+  · -- For an empty `P`, the empty open set will do.
+    refine ⟨1, one_pos, ⊥, fun x _ ↦ isEmptyElim x, fun p _ ↦ isEmptyElim p.2, fun t _ ↦ ?_⟩
+    have h : (fun x : (⊥ : TopologicalSpace.Opens P) ↦ G (t, x)) =
+        fun x : (⊥ : TopologicalSpace.Opens P) ↦ F (0, x) :=
+      funext fun x ↦ isEmptyElim (x : P)
+    exact h ▸ (hF 0).comp_subtypeVal ⊥
+  -- `P` is Hausdorff and its model finite-dimensional, since `F` embeds `P` into `M`.
+  have : T2Space P := (hF 0).isEmbedding.t2Space
+  have : FiniteDimensional ℝ E' :=
+    finiteDimensional_of_injective_mfderiv ((hF 0).isImmersion.mfderiv_injective (by simp) x₀)
+  exact exists_pos_forall_isSmoothEmbedding_of_injOn hS hG hA hAS
+    (fun t ht x hx y hy hxy ↦ (hF ⟨t, ht⟩).isEmbedding.injective <| by
+      simpa only [(hGF t ht).self_of_nhdsSet hx, (hGF t ht).self_of_nhdsSet hy] using hxy)
+    fun t ht x hx ↦ by
+      rw [((hGF t ht).filter_mono (nhds_le_nhdsSet hx)).mfderiv_eq]
+      exact (hF ⟨t, ht⟩).isImmersion.mfderiv_injective (by simp) x
 
 /-- **Injective immersions of a compact set.** Let `f : P → M` be smooth on an open `O ⊇ K`, with
 `K` compact, injective on `K` with injective differential at each point of `K`. Then there is an

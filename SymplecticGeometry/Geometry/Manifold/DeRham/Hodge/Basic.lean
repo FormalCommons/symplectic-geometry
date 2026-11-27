@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Sobolev
 public import TauCeti.Geometry.Manifold.DeRham.Harmonic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import TauCeti.Analysis.InnerProductSpace.Variational.Compatibility
+import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
 
 /-!
 # The Hodge theorem

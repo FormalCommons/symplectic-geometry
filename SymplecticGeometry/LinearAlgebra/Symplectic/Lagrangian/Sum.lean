@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
-public import SymplecticGeometry.Analysis.Normed.Lp.PiLp
-public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
-public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Transverse
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Analysis.Normed.Lp.PiLp
+import SymplecticGeometry.Topology.Algebra.Matrix.Realify
+import SymplecticGeometry.LinearAlgebra.Matrix.Realify
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 /-!
 # Direct sums and reindexing of Lagrangian subspaces

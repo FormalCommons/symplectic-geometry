@@ -1,0 +1,23 @@
+# Lake's cache services for CI, which names this file in LAKE_CONFIG. Both
+# are the bucket `formalcommons-lake-cache` of Hetzner Object Storage, which
+# the workflow cache-upload fills; see there for what it holds and who may
+# write to it. Anyone can read it, and Lake reads it without a key.
+#
+# `fc-queue`: the mappings of the commits of main, as the merge queue built
+# them. `fc-pr`: the mappings of the runs of pull requests, by head commit.
+# The archives are the same for both. cache-upload takes the addresses it
+# writes to from this file, through lake-cache-address.py.
+
+[[cache.service]]
+name = "fc-queue"
+kind = "s3"
+artifactEndpoint = "https://formalcommons-lake-cache.fsn1.your-objectstorage.com/a"
+revisionEndpoint = "https://formalcommons-lake-cache.fsn1.your-objectstorage.com/r/queue"
+hasPackageScopes = false
+
+[[cache.service]]
+name = "fc-pr"
+kind = "s3"
+artifactEndpoint = "https://formalcommons-lake-cache.fsn1.your-objectstorage.com/a"
+revisionEndpoint = "https://formalcommons-lake-cache.fsn1.your-objectstorage.com/r/pr"
+hasPackageScopes = false

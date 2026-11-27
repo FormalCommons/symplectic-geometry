@@ -8,8 +8,8 @@ module
 public import TauCeti.Analysis.Distribution.LinearEquiv
 public import TauCeti.Analysis.Distribution.SmulLeft
 public import TauCeti.Analysis.Distribution.TestFunction.LineDeriv
-public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import Mathlib.MeasureTheory.Measure.Haar.Unique
+import SymplecticGeometry.Analysis.Distribution.OfFun
 import SymplecticGeometry.MeasureTheory.Function.LocallyIntegrable
 
 /-!
@@ -61,7 +61,8 @@ variable {V : Opens E} {Ω : Opens E'} {F : Type*} [NormedAddCommGroup F] [Norme
 /-- Transporting a test function along `e` turns its derivative along `v` into the derivative of
 the transported test function along `e v`. -/
 theorem transportTestFunction_lineDerivOp (e : E ≃L[ℝ] E') (h : MapsTo e V Ω) (φ : 𝓓(V, F))
-    (v : E) : e.transportTestFunction h (∂_{v} φ) = ∂_{e v} (e.transportTestFunction h φ) := by
+    (v : E) :
+    e.transportTestFunction ℝ h (∂_{v} φ) = ∂_{e v} (e.transportTestFunction ℝ h φ) := by
   ext y
   simp only [TestFunction.lineDerivOp_apply, transportTestFunction_apply,
     lineDeriv_transportTestFunction, symm_apply_apply]

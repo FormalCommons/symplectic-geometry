@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
+public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
 import TauCeti.Analysis.Matrix.EuclideanLin
 import TauCeti.Data.Fin.VecNotation

@@ -7,7 +7,8 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
-public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 
 /-!
 # Naturality of the Chern classes
@@ -45,6 +46,9 @@ positive degree.
   on total spaces, preserves the Chern classes; the two models may differ.
 * `chernClass_trivial`, `totalChernClass_trivial`: the Chern classes of `Bundle.Trivial B G`
   vanish in positive degree, and its total Chern class is `1`.
+* `Projectivization.evenIntegralCohomologyOf_chernClass_one_pullback_tautological_pow_eq_zero`:
+  for `f : C(X, ℙ ℂ V)` with `finrank ℂ V = n + 1`, `c₁(f *ᵖ 𝒪(-1)) ^ (n + 1) = 0`, since
+  `c₁(𝒪(-1)) = -h` and `h ^ (n + 1) = 0` on `ℙ ℂ V`.
 
 ## References
 
@@ -310,5 +314,25 @@ theorem totalChernClass_trivial : totalChernClass G (Bundle.Trivial B G) = 1 :=
     · rw [chernClass_trivial B G hk, DirectSum.of_eq_of_ne 0 k _ hk]
 
 end SymplecticGeometry.Bundle
+
+namespace Projectivization
+
+open scoped LinearAlgebra.Projectivization
+
+/-- **The first Chern class of a pull-back of the tautological line is nilpotent.** For a
+continuous map `f` from a compact space `X` to `ℙ ℂ V`, with `finrank ℂ V = n + 1`, the first
+Chern class of `f *ᵖ (Tautological ℂ V)` has vanishing `(n + 1)`th power in the even integral
+cohomology ring of `X`. -/
+theorem evenIntegralCohomologyOf_chernClass_one_pullback_tautological_pow_eq_zero
+    {X : Type} [TopologicalSpace X] [CompactSpace X]
+    {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] [FiniteDimensional ℂ V] {n : ℕ}
+    (hV : finrank ℂ V = n + 1) (f : C(X, ℙ ℂ V)) :
+    (TopCat.of X).evenIntegralCohomologyOf 1
+      (SymplecticGeometry.Bundle.chernClass ℂ (f *ᵖ (Tautological ℂ V)) 1) ^ (n + 1) = 0 := by
+  rw [SymplecticGeometry.Bundle.chernClass_pullback, chernClass_one_tautological,
+    ← TopCat.evenIntegralCohomologyMap_of, map_neg, map_neg, neg_pow,
+    evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero hV, mul_zero]
+
+end Projectivization
 
 end

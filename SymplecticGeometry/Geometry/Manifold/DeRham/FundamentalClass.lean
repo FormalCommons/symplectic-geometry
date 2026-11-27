@@ -5,16 +5,20 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
+public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Simplex
+import SymplecticGeometry.Geometry.Manifold.SmoothSingular.IntegralChains
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Orientation.Simplex
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Chains
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.RelativeCycle
-import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Smoothing
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 
 /-!
@@ -62,6 +66,8 @@ The proof is local.
 * `TauCeti.Manifold.Orientation.integralTopForm_eq_closedFormHomologyPeriod`: `∫_C φ = ⟨[φ], [C]⟩`.
 * `TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_closedFormHomologyPeriod`: for a closed
   two-form `φ` on a manifold `M` and a smooth `u : C → M`, `∫_C u^* φ = ⟨[φ], u_* [C]⟩`.
+* `evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk`, in the same namespace:
+  the class `deRhamHom [φ]`, read through integral chains, evaluates on `[C]` to `∫_C φ`.
 
 ## References
 
@@ -176,29 +182,9 @@ theorem integralTopForm_eq_closedFormHomologyPeriod (hE' : finrank ℝ E' = 2)
         (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ 2).hom z) =
       ((-o).toHomologicalOrientation hE').fundamentalClass hE' := by
     rw [hz, Iso.inv_hom_id_apply]
-  -- Read with coefficients `ℤ`, the class of `z` is that of the integral cycle `κ z`, over which
-  -- the period of `φ` is the integral of `φ`.
-  set κ := ((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
-    (smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet)
-  have hκ : (smoothSingularHomologyIso 𝓘(ℝ, E') C (ModuleCat.of ℤ (ULift.{0} ℤ)) 2).hom ≫
-      (uliftIntHomologyIso (TopCat.of C) 2).hom =
-        HomologicalComplex.homologyMap κ 2 ≫
-          (smoothSingularHomologyIso 𝓘(ℝ, E') C (ModuleCat.of ℤ ℤ) 2).hom := by
-    rw [uliftIntHomologyIso_hom]
-    -- The change of coefficients on singular homology is, by definition of
-    -- `singularHomologyFunctor`, the map on homology of the change of coefficients on the chains
-    -- of `TopCat.toSSet`.
-    exact smoothSingularHomologyIso_hom_comp_homologyMap_coefficients _ C uliftIntIso.hom 2
-  have h := ConcreteCategory.congr_hom hκ
-    ((((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ 2).hom z)
-  rw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, hz',
-    ← ConcreteCategory.comp_apply _ (HomologicalComplex.homologyMap κ 2),
-    HomologicalComplex.homologyπ_naturality, ConcreteCategory.comp_apply,
-    smoothSingularHomologyIso_hom _ C (ModuleCat.of ℤ ℤ)] at h
-  rw [h, closedFormHomologyPeriod_homologyMap_ι_homologyπ, ← ConcreteCategory.comp_apply _
-    (((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex (ModuleCat.of ℤ ℤ)).iCycles 2),
-    HomologicalComplex.cyclesMap_i, ConcreteCategory.comp_apply]
+  -- Read with coefficients `ℤ`, the class of `z` is that of an integral cycle, over which the
+  -- period of `φ` is the integral of `φ`.
+  rw [← hz', closedFormHomologyPeriod_uliftIntHomologyIso_smoothSingularHomologyIso]
   -- A finite cover of `C` by images of interiors of positively oriented simplices.
   choose U g hU hgs hg ho hx using
     exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex o
@@ -257,6 +243,22 @@ theorem integralTopForm_mpullback_eq_closedFormHomologyPeriod {E H : Type*}
   -- map on homology is `SSet.homologyMap` of the induced map of simplicial sets.
   exact congrArg (closedFormHomologyPeriod φ) (ConcreteCategory.congr_hom
     (homologyMap_comp_uliftIntHomologyIso_hom (TopCat.ofHom ⟨u, hu.continuous⟩) 2) _).symm
+
+/-- **The real class of a closed two-form on the fundamental class of a surface.** For a closed
+surface `C`, oriented by `o`, and a closed smooth two-form `φ`, the class `deRhamHom [φ]`, read as
+a class with values in `ℝ` on integral chains through `TopCat.singularCohomologyIntChainsIso`,
+evaluates on the fundamental class of the homological orientation of `-o` to `∫_C φ`. -/
+theorem evalFundamentalClass_singularCohomologyIntChainsIso_hom_deRhamHom_mk
+    (hE' : finrank ℝ E' = 2) (o : Manifold.Orientation 𝓘(ℝ, E') C (Fin 2))
+    (φ : closedForms 𝓘(ℝ, E') C 2) :
+    ((-o).toHomologicalOrientation hE').evalFundamentalClass hE' (ModuleCat.of ℤ ℝ)
+        (ContinuousMap.id C) (((TopCat.of C).singularCohomologyIntChainsIso ℝ 2).hom
+          (deRhamHom 𝓘(ℝ, E') C 2 (deRhamCohomology.mk 𝓘(ℝ, E') 2 φ))) =
+      integralTopForm o φ.val.val := by
+  rw [HomologicalOrientation.evalFundamentalClass_apply,
+    HomologicalOrientation.mapFundamentalClass_id]
+  exact (singularKronecker_singularCohomologyIntChainsIso_hom_deRhamHom_mk φ _).trans
+    (integralTopForm_eq_closedFormHomologyPeriod hE' o φ).symm
 
 end TauCeti.Manifold.Orientation
 

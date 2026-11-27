@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.Matrix.Polar.GLSymplectic
 public import TauCeti.Topology.Algebra.SymplecticGroup
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.Matrix.Polar.Deformation
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 
 /-!
 # Continuous families of compatible complex structures on the standard model

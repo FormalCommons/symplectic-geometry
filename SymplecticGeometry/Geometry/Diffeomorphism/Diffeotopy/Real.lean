@@ -7,9 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
-public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.Eulerian
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Instances.Icc
 

@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Sigma
+public import TauCeti.Geometry.Manifold.RegularValue.Rank
+import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.Immersion.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
 import SymplecticGeometry.Topology.Sets.Opens.Basic
@@ -106,8 +108,7 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
     ι, ContMDiff.isImmersion_of_injective_mfderiv (fun ⟨i, u⟩ ↦ contMDiffAt_sigma_iff.2 ?_) hn
       fun ⟨i, u⟩ ↦ ?_, ?_, ?_⟩
   · rw [hι]
-    exact ((hg (e i)).contMDiffAt ((hU (e i)).mem_nhds u.property)).comp u
-      contMDiff_subtypeVal.contMDiffAt
+    exact contMDiff_subtype_iff.2 (hg (e i)) u
   · rw [mfderiv_sigma, hι, mfderiv_comp u (hgd (e i) u.property)
       ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero), mfderiv_subtype_val]
     exact (hgi (e i) u u.property).comp (tangentSpaceOpenEquiv u).injective

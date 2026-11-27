@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
-public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
+import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -76,16 +79,15 @@ variable {EQ E₀ E₁ HQ H₀ H₁ Q M₀ M₁ : Type*}
   [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁] [T2Space M₁]
 
 /-- **Symplectomorphisms of neighbourhoods with a prescribed derivative.** Let `f₀ : Q → M₀` and
-`f₁ : Q → M₁` be smooth embeddings into second countable Hausdorff manifolds without boundary,
-with symplectic forms `ω₀` and `ω₁`, and let `A q : T_{f₀ q} M₀ ≃L[ℝ] T_{f₁ q} M₁` be linear
-symplectomorphisms forming a smooth section over `Q` of the bundle of linear maps between the
-pull-backs `f₀ *ᵖ TM₀` and `f₁ *ᵖ TM₁`, with `A q (df₀ q v) = df₁ q v`. Then there are open sets
-`U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁` such that, for every `q`,
-`f₀ q ∈ U₀`, `ψ (f₀ q) = f₁ q` and the derivative of `ψ` at `f₀ q` is `A q`, and `ψ` pulls the
-restriction of `ω₁` to `U₁` back to the restriction of `ω₀` to `U₀`. Neither compactness of `Q`
-nor closedness of the images is assumed. -/
+`f₁ : Q → M₁` be smooth embeddings into Hausdorff manifolds without boundary, `M₀` second
+countable, with symplectic forms `ω₀` and `ω₁`, and let `A q : T_{f₀ q} M₀ ≃L[ℝ] T_{f₁ q} M₁`
+be linear symplectomorphisms forming a smooth section over `Q` of the bundle of linear maps
+between the pull-backs `f₀ *ᵖ TM₀` and `f₁ *ᵖ TM₁`, with `A q (df₀ q v) = df₁ q v`. Then
+there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁` such that, for
+every `q`, `f₀ q ∈ U₀`, `ψ (f₀ q) = f₁ q` and the derivative of `ψ` at `f₀ q` is `A q`, and `ψ`
+pulls the restriction of `ω₁` to `U₁` back to the restriction of `ω₀` to `U₀`. Neither
+compactness of `Q` nor closedness of the images is assumed. -/
 theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
-    [SecondCountableTopology M₁]
     (f₀ : SmoothEmbedding J I₀ ∞ Q M₀) (f₁ : SmoothEmbedding J I₁ ∞ Q M₁)
     {ω₀ : SmoothTwoForm I₀ M₀} {ω₁ : SmoothTwoForm I₁ M₁}
     (hω₀ : ω₀.IsSymplectic) (hω₁ : ω₁.IsSymplectic)
@@ -139,9 +141,8 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   have hχχ' : Subtype.val ∘ ⇑χ = ⇑χ' ∘ Subtype.val :=
     funext fun w ↦ by simp [χ']
   have hΘ' : ⇑Θ' = ⇑ψ' ∘ ⇑χ' := by simp [Θ']
-  have hχ'source (w : V₀) : (w : U₀) ∈ χ'.source := by
-    rw [PartialDiffeomorph.liftOpens_source]
-    exact ⟨w, by simp, rfl⟩
+  have hχ'source (w : V₀) : (w : U₀) ∈ χ'.source :=
+    (χ.toPartialDiffeomorph_liftOpens_source hV₀ hV₁).symm.subset w.property
   have hΘ'source {y : U₀} (hy : y ∈ χ'.source) : y ∈ Θ'.source := by
     simp [Θ', hy]
   -- At the points of `f₀ (Q)`, `χ'` is the identity, with identity derivative.
@@ -185,8 +186,8 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
     -- that `y` is.
     refine Θ'.mpullback_toDiffeomorphSourceTarget_liftOpens hU₀ hU₁ fun y hy ↦ ?_
     have hyχ : y ∈ χ'.source := by simpa [Θ'] using hy
-    obtain ⟨w, -, hwy⟩ : y ∈ Subtype.val '' χ.toPartialDiffeomorph.source :=
-      χ.toPartialDiffeomorph.liftOpens_source hV₀ hV₁ ▸ hyχ
+    obtain ⟨w, hwy⟩ : ∃ w : V₀, (w : U₀) = y :=
+      ⟨⟨y, (χ.toPartialDiffeomorph_liftOpens_source hV₀ hV₁).subset hyχ⟩, rfl⟩
     have h := congrFun (congrArg Subtype.val hχ) w
     rw [SmoothForm.coe_mpullback_subtype_val_apply, SmoothForm.coe_mpullback_subtype_val_apply] at h
     rw [hΘ', mpullback_comp_at (χ'.mdifferentiableAt (by simp) hyχ)

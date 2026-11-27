@@ -8,10 +8,11 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+public import TauCeti.Geometry.Manifold.Instances.Icc
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
-import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.Riemannian.Interval.Basic
 
 /-!
 # The inclusion and the unit vector field of a closed interval
@@ -34,8 +35,8 @@ ends (`contMDiff_prodVectorField_one_zero`), so it is a smooth section of the ta
 (`unitIntervalTimeField`). In the same way, on `[0, 1]² × P` the unit field `∂ₛ = ((0, 1), 0)`
 of the second time coordinate is a smooth section (`unitIntervalSqSndField`).
 
-Every tangent vector of the interval is a real multiple of `1`: a vector that the inclusion sends
-to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative of a map into the
+Every tangent vector of the interval is a real multiple of `1`, its image under the inclusion
+(Tau Ceti's `TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc`). So the derivative of a map into the
 interval is read off from that of its composite with the inclusion
 (`mfderiv_apply_eq_smul_one_Icc`), and continuous linear maps on a tangent space of the interval
 agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
@@ -55,6 +56,12 @@ the inclusions into `ℝ` are affine.
 
 On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
+
+Tau Ceti's stationary-time gluing `ContMDiff.glue_collaredHalves`, of maps on `M × [0, 1]`, also
+holds for maps on `[0, 1] × M` (`ContMDiff.glue_collaredHalves_left`). The concatenation of two
+families `a b : [0, 1] → α` with these time maps is `SymplecticGeometry.collaredConcat a b`; it
+starts where `a` starts and ends where `b` ends (`collaredConcat_zero`, `collaredConcat_one`), and
+it is `C^n` when `a` and `b` are and meet at the seam (`ContMDiff.collaredConcat`).
 -/
 
 public section
@@ -184,15 +191,6 @@ theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
 
 end Cylinder
 
-/-- A tangent vector `v` of a closed interval `[x, y]`, `x < y`, is `r` times the unit tangent
-vector `1` when the inclusion `Icc x y → ℝ` sends it to `r`. -/
-theorem eq_smul_one_of_mfderiv_subtypeVal_Icc {z : Icc x y} {v : TangentSpace (𝓡∂ 1) z} {r : ℝ}
-    (h : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r) :
-    v = r • (1 : TangentSpace (𝓡∂ 1) z) := by
-  -- The inclusion has invertible derivative, which sends `1` to `1`.
-  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc z).injective ?_
-  rw [mfderiv_subtypeVal_Icc_smul_one, h]
-
 /-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
 at `t`. If the derivative at `t` of `Subtype.val ∘ f : M → ℝ` sends `v` to `r`, then the
 derivative of `f` at `t` sends `v` to `r` times the unit tangent vector `1` at `f t`. -/
@@ -201,8 +199,9 @@ theorem mfderiv_apply_eq_smul_one_Icc {E H M : Type*} [NormedAddCommGroup E] [No
     {f : M → Icc x y} {t : M} (hf : MDifferentiableAt I (𝓡∂ 1) f t) {v : TangentSpace I t}
     {r : ℝ} (h : mfderiv I 𝓘(ℝ) (Subtype.val ∘ f) t v = r) :
     mfderiv I (𝓡∂ 1) f t v = r • (1 : TangentSpace (𝓡∂ 1) (f t)) := by
-  refine eq_smul_one_of_mfderiv_subtypeVal_Icc ?_
-  rw [← mfderiv_comp_apply t (mdifferentiableAt_subtypeVal_Icc _) hf, h]
+  refine (TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc _ _).trans ?_
+  rw [mvfderiv_apply_eq_mfderiv_apply,
+    ← mfderiv_comp_apply t (mdifferentiableAt_subtypeVal_Icc _) hf, h]
 
 /-- Let `Φ : M × [x, y] → F`, with `F` a normed space, be differentiable at `(p, t)` and affine in
 time along the slice through `p`: `Φ (p, s) = a + s • v` for every `s`. Then the derivative of
@@ -237,8 +236,7 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
     [TopologicalSpace F] {z : Icc x y} {f g : TangentSpace (𝓡∂ 1) z →L[ℝ] F} (h : f 1 = g 1) :
     f = g := by
   ext1 v
-  obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
-  rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
+  rw [TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc z v, map_smul, map_smul, h]
 
 /-- Mathlib's affine homeomorphism `iccHomeoI x y h : Icc x y ≃ₜ unitInterval`,
 `z ↦ (z - x) / (y - x)`, is `C^n` for every `n`, up to both ends. -/
@@ -282,8 +280,7 @@ theorem mfderiv_convexComb_one (s t : Icc x y) (u : unitInterval) :
     mfderiv_eq_fderiv, hd.hasFDerivAt.fderiv]
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     ContinuousLinearMap.toSpanSingleton_apply]
-  -- The tangent spaces of `ℝ` are `ℝ` itself, through `NormedSpace.fromTangentSpace`, which is
-  -- the identity; Mathlib has no lemma that evaluates it.
+  rw [NormedSpace.fromTangentSpace_apply, NormedSpace.fromTangentSpace_symm_apply]
   exact one_smul ℝ ((t : ℝ) - s)
 
 end Set.Icc
@@ -304,5 +301,93 @@ theorem mfderiv_mul_left_one (T t : unitInterval) :
     (SymplecticGeometry.mfderiv_subtypeVal_Icc_smul_one t T)
 
 end unitInterval
+
+section Glue
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {α β : Sort*}
+
+/-- The **stationary-time concatenation** of two families `a b : [0, 1] → α`: it runs through `a`
+reparametrized by `TauCeti.collaredFirstHalf` for `t ≤ 1 / 2`, and through `b` reparametrized by
+`TauCeti.collaredSecondHalf` afterwards. -/
+noncomputable def collaredConcat (a b : unitInterval → α) (t : unitInterval) : α :=
+  if (t : ℝ) ≤ 1 / 2 then a (collaredFirstHalf le_rfl t) else b (collaredSecondHalf le_rfl t)
+
+theorem collaredConcat_def (a b : unitInterval → α) (t : unitInterval) :
+    collaredConcat a b t =
+      if (t : ℝ) ≤ 1 / 2 then a (collaredFirstHalf le_rfl t)
+      else b (collaredSecondHalf le_rfl t) :=
+  (rfl)
+
+variable {a b : unitInterval → α} {t : unitInterval}
+
+/-- On the first half, the concatenation runs through the first family. -/
+theorem collaredConcat_of_le (ht : (t : ℝ) ≤ 1 / 2) :
+    collaredConcat a b t = a (collaredFirstHalf le_rfl t) := by
+  rw [collaredConcat_def, ite_eq_left ht]
+
+/-- On the second half, the concatenation runs through the second family. -/
+theorem collaredConcat_of_lt (ht : 1 / 2 < (t : ℝ)) :
+    collaredConcat a b t = b (collaredSecondHalf le_rfl t) := by
+  rw [collaredConcat_def, ite_eq_right ht.not_ge]
+
+/-- The concatenation starts where the first family starts. -/
+@[simp]
+theorem collaredConcat_zero (a b : unitInterval → α) : collaredConcat a b 0 = a 0 := by
+  rw [collaredConcat_of_le (by norm_num [Set.Icc.coe_zero]), collaredFirstHalf_zero]
+
+/-- The concatenation ends where the second family ends. -/
+@[simp]
+theorem collaredConcat_one (a b : unitInterval → α) : collaredConcat a b 1 = b 1 := by
+  rw [collaredConcat_of_lt (by norm_num [Set.Icc.coe_one]), collaredSecondHalf_one]
+
+/-- A function applied to a concatenation is the concatenation of the function applied to the
+two families. -/
+theorem apply_collaredConcat (g : α → β) (a b : unitInterval → α) (t : unitInterval) :
+    g (collaredConcat a b t) = collaredConcat (fun s ↦ g (a s)) (fun s ↦ g (b s)) t := by
+  simp only [collaredConcat_def, apply_ite g]
+
+end SymplecticGeometry
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  {F G N : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace G]
+  {J : ModelWithCorners ℝ F G} [TopologicalSpace N] [ChartedSpace G N]
+
+open SymplecticGeometry TauCeti in
+/-- **Stationary-time gluing, with time as the first factor.** Two `C^n` maps
+`f g : [0, 1] × M → N` with `f (1, x) = g (0, x)` glue to a `C^n` map whose value at `(t, x)` is
+the concatenation `SymplecticGeometry.collaredConcat` of the curves `f (·, x)` and `g (·, x)` at
+`t`. This is Tau Ceti's `ContMDiff.glue_collaredHalves` with the two factors swapped. -/
+theorem ContMDiff.glue_collaredHalves_left {f g : unitInterval × M → N}
+    (hf : ContMDiff ((𝓡∂ 1).prod I) J n f) (hg : ContMDiff ((𝓡∂ 1).prod I) J n g)
+    (hfg : ∀ x, f (1, x) = g (0, x)) (hn : n ≤ ∞) :
+    ContMDiff ((𝓡∂ 1).prod I) J n fun q : unitInterval × M ↦
+      collaredConcat (fun t ↦ f (t, q.2)) (fun t ↦ g (t, q.2)) q.1 :=
+  have hswap : ContMDiff ((𝓡∂ 1).prod I) (I.prod (𝓡∂ 1)) n Prod.swap :=
+    contMDiff_snd.prodMk contMDiff_fst
+  have hswap' : ContMDiff (I.prod (𝓡∂ 1)) ((𝓡∂ 1).prod I) n Prod.swap :=
+    contMDiff_snd.prodMk contMDiff_fst
+  (((hf.comp hswap').glue_collaredHalves (hg.comp hswap') hfg hn).comp hswap).congr fun q ↦ by
+    -- The time maps depend on `hn` only through a proof, so both sides unfold to the same map.
+    simp only [collaredConcat_def, collaredFirstHalf_apply, collaredSecondHalf_apply,
+      Function.comp_apply, Prod.swap_prod_mk, Prod.fst_swap, Prod.snd_swap]
+
+open SymplecticGeometry in
+/-- **Concatenation of curves.** Two `C^n` curves `a b : [0, 1] → N` with `a 1 = b 0`
+concatenate to a `C^n` curve `SymplecticGeometry.collaredConcat a b`. -/
+theorem ContMDiff.collaredConcat {a b : unitInterval → N} (ha : ContMDiff (𝓡∂ 1) J n a)
+    (hb : ContMDiff (𝓡∂ 1) J n b) (hab : a 1 = b 0) (hn : n ≤ ∞) :
+    ContMDiff (𝓡∂ 1) J n (collaredConcat a b) :=
+  -- Glue on `[0, 1] × [0, 1]`, constant along the second factor, and restrict to `t ↦ (t, 0)`.
+  ((ha.comp contMDiff_fst).glue_collaredHalves_left (M := unitInterval) (I := 𝓡∂ 1)
+    (hb.comp contMDiff_fst) (fun _ ↦ hab) hn).comp (contMDiff_id.prodMk contMDiff_const :
+      ContMDiff (𝓡∂ 1) ((𝓡∂ 1).prod (𝓡∂ 1)) n
+        fun t : unitInterval ↦ (t, (0 : unitInterval)))
+
+end Glue
 
 end

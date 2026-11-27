@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.FiberBundle.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Basic
+public import TauCeti.Topology.FiberBundle.MapFiber
+public import Mathlib.Topology.VectorBundle.Basic
+public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # Choosing the preferred trivializations of a vector bundle
@@ -63,6 +66,6 @@ theorem VectorBundle.ofTrivializationAt {𝕜 B F : Type*} [NontriviallyNormedFi
     infer_instance
   · obtain ⟨x, rfl⟩ := mem h
     obtain ⟨y, rfl⟩ := mem h'
-    exact (e x).continuousOn_coordChangeL (e y)
+    exact (e x).continuousOn_coordChangeL 𝕜 (e y)
 
 end

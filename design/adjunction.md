@@ -31,8 +31,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   general files below allow any source model `I' : ModelWithCorners ℝ E' H'`
   in place of `𝓡 2`.
 - **$J$-invariance.** "$J(T\Sigma)=T\Sigma$" is the hypothesis
-  `hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn`,
-  with Tau Ceti's `TauCeti.SmoothEmbedding.tangentRange` and `hn` the proof
+  `hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)`,
+  with Tau Ceti's `Manifold.IsImmersion.tangentRange` and `hn` the proof
   that `∞ ≠ 0` in `ℕ∞ω`. It is the hypothesis `hp` of Tau Ceti's
   `TauCeti.AlmostComplexStructure.quotient` at each point, and no new
   predicate is defined. Inclusion is enough, since $J$ is invertible and the
@@ -62,8 +62,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   shows that this is the orientation the page means: with $X$ and $\Sigma$
   oriented by $J$, the orientations of $\Sigma$ and $\nu$ induce that of
   $X$ through the short exact sequence of the normal bundle.
-- **Characteristic numbers.** $c_1(TX,J)$ is *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass G` of the complex tangent bundle
+- **Characteristic numbers.** $c_1(TX,J)$ is Tau Ceti's
+  `TauCeti.firstChernClass G` of the complex tangent bundle
   `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber` (Tau Ceti's
   `Geometry/Symplectic/Manifold/AlmostComplex/ComplexTangentBundle.lean`),
   for a complex model `G : Type` with `[Fact (finrank ℝ E = 2 * finrank ℂ G)]`.
@@ -81,7 +81,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
 ### How $J$ descends to the normal bundle
 
 The normal space at `x` is Tau Ceti's quotient
-`f.NormalSpace x hn = TangentSpace I (f x) ⧸ f.tangentRange x hn`. Tau Ceti
+`f.isImmersion.NormalSpace x hn = TangentSpace I (f x) ⧸ f.isImmersion.tangentRange x hn`. Tau Ceti
 already has the complex structure on a quotient by an invariant subspace,
 `TauCeti.AlmostComplexStructure.quotient` (`Geometry/Symplectic/AlmostComplex/Quotient.lean`),
 built with `Submodule.mapQ`, with `quotient_mk` and
@@ -89,20 +89,19 @@ built with `Submodule.mapQ`, with `quotient_mk` and
 applied to `J.almostComplexStructureAt (f x)`; nothing new is needed in
 linear algebra and no metric enters.
 
-Smoothness is the new part. With the bundle structure that Tau Ceti installs
+Smoothness is Tau Ceti's too. With the bundle structure that Tau Ceti installs
 locally (`normalSpaceFiberBundle`, `normalSpaceVectorBundle`,
 `normalSpaceContMDiffVectorBundle`, with model `P` and
-`hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E'`), the map of total spaces
-of the descended structure composed with `f.normalQuotientMap` is
-`normalQuotientMap` composed with $J$ on the pull-back `f *ᵖ TangentSpace I`.
-The latter is smooth, so Tau Ceti's `contMDiff_normalBundle_iff`
-(`NormalSpace/VectorBundle/Quotient.lean`) makes the descended map smooth,
-and Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff` (`Geometry/Manifold/VectorBundle/Hom.lean`)
-turns this into a smooth section of the endomorphism bundle. The result is a
+`hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E'`), Tau Ceti's
+`TauCeti.SmoothEmbedding.normalComplexStructureAt`
+(`Geometry/Symplectic/Manifold/AlmostComplex/NormalBundle.lean`), the same
+endomorphism of each normal space, is a smooth section of the endomorphism
+bundle (`contMDiff_normalComplexStructureAt_hom_bundle`). The library bundles
+it as a
 `SymplecticGeometry.Bundle.ContMDiffComplexStructure` on the normal bundle,
-so all of *Symplectic vector bundles*' API, and through
-`toContinuousComplexStructure` Tau Ceti's complex vector bundle
-`.Fiber`, apply to it. `normalBundleMap` (for maps of pairs) does not
+so all of *Symplectic vector bundles*' API applies to it; its
+`toContinuousComplexStructure` is Tau Ceti's `normalComplexStructure`, whose
+`.Fiber` is the complex vector bundle. `normalBundleMap` (for maps of pairs) does not
 apply. As the approving review of #838 asked, the structure is in the
 namespace `TauCeti.SmoothEmbedding`, in a file beside Tau Ceti's
 `NormalSpace/` files. The structure serves this part; *Projective
@@ -145,7 +144,7 @@ additivity, which is stated for symplectic bundles, applies to it directly:
    the library's `ContMDiffComplexStructure.exists_compatible`
    (`Symplectic/ComplexStructure/Basic.lean`).
 2. The tangent image $W$ (frames
-   `Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
+   `Manifold.IsImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
    `Jf`-invariant, so `ω`, which tames `Jf`, is nondegenerate on it, and
    its `ω`-orthogonal
    $W^\omega$ is a complement and is `Jf`-invariant. The library's
@@ -206,20 +205,20 @@ Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I' I ∞ M X`,
 take an embedding of any regularity `n` with `hn : n ≠ 0`.
 
 - `normalAlmostComplexStructureAt f J hJ x : TauCeti.AlmostComplexStructure
-  (f.NormalSpace x hn)`, defined as
-  `(J.almostComplexStructureAt (f x)).quotient (f.tangentRange x hn) _`, whose
+  (f.isImmersion.NormalSpace x hn)`, defined as
+  `(J.almostComplexStructureAt (f x)).quotient (f.isImmersion.tangentRange x hn) _`, whose
   invariance proof is `hJ x` after a rewrite by `almostComplexStructureAt_apply`,
   with `normalAlmostComplexStructureAt_def` by `(rfl)`.
-- `@[simp] normalAlmostComplexStructureAt_normalClass`: on
-  `f.normalClass x hn v` it gives `f.normalClass x hn (J (f x) v)`, from
-  `quotient_mk`; and `@[simp] isComplexLinearMap_normalClass`, from
-  `isComplexLinearMap_mkQ`.
+- `@[simp] normalAlmostComplexStructureAt_apply`: it acts as Tau Ceti's
+  `normalComplexStructureAt`, by `normalComplexStructureAt_toLinearMap`; and
+  `@[simp] isComplexLinearMap_normalClass`, from `isComplexLinearMap_mkQ`.
 - `contMDiffNormalComplexStructure f hdim J hJ`, of type
-  `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.NormalSpace x hn)` under the
+  `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.isImmersion.NormalSpace x hn)` under the
   `letI`s of Tau Ceti's `normalSpaceFiberBundle` and `normalSpaceVectorBundle`,
-  the two that the type needs; its value at `x` is
-  `normalAlmostComplexStructureAt` (`contMDiffNormalComplexStructure_apply`,
-  `@[simp] almostComplexStructureAt_contMDiffNormalComplexStructure`). Smoothness as in
+  the two that the type needs; its value at `x` is Tau Ceti's
+  `normalComplexStructureAt` (`contMDiffNormalComplexStructure_apply`), its
+  structure at `x` is `normalAlmostComplexStructureAt`
+  (`@[simp] almostComplexStructureAt_contMDiffNormalComplexStructure`). Smoothness as in
   *Decisions*.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean`
@@ -297,7 +296,7 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
 - `selfIntersectionNumber f hE J hJ o : ℤ`, the integer under
   `o.toHomologicalOrientation.evalFundamentalClass _ _ (ContinuousMap.id M)`
   of `TauCeti.complexEulerClass ℂ ν_J _`, with `ν_J` the complex line bundle
-  `(f.contMDiffNormalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber` of
+  `(f.normalComplexStructure hn J _ hJ).Fiber`, Tau Ceti's, of
   model `ℂ`; with `selfIntersectionNumber_def` by `(rfl)`. Its docstring
   says that this is $\langle e(\nu_J), [M, o]\rangle$, the Euler number of the
   normal bundle oriented by its complex structure, and that it is the
@@ -362,7 +361,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   2 * (TauCeti.surfaceGenus M : ℤ) - 2 =
     f.selfIntersectionNumber hE J hJ o -
       (o.toHomologicalOrientation.evalFundamentalClass hM _ (f : C(M, X))
-        (SymplecticGeometry.Bundle.firstChernClass G
+        (TauCeti.firstChernClass G
           (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down
   ```
 
@@ -392,7 +391,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 
 ## What the part uses
 
-- Tau Ceti, normal bundles: `SmoothEmbedding.NormalSpace`, `tangentRange`,
+- Tau Ceti, normal bundles: `Manifold.IsImmersion.NormalSpace`, `tangentRange`,
   `normalClass`, `normalQuotientMap`, `normalSpaceFiberBundle`,
   `normalSpaceVectorBundle`, `normalSpaceContMDiffVectorBundle`,
   `contMDiff_normalBundle_iff`, `complementRepresentative` with its
@@ -413,13 +412,12 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   which `Orientation.lean` imports for
   `IsComplexLinearMap.exists_rightInverse_of_surjective`.
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
-  (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
-  `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
+  (`contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
 - *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
   (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
-  and `ChernNumber/Basic.lean` (#784: `firstChernClass`,
-  `firstChernClass_pullback`, `firstChernClass_congr`,
+  and `ChernNumber/Basic.lean` (#784, on Tau Ceti's
+  `TauCeti.firstChernClass`: `firstChernClass_pullback_coe`, `firstChernClass_congr`,
   `firstChernClass_eq_complexEulerClass`, `chernNumber`,
   `chernNumber_neg_orientation`, `symplecticChernNumber`,
   `symplecticChernNumber_eq_chernNumber`, `symplecticChernNumber_congr`; #1922:

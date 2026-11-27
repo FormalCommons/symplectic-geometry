@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.MeasureTheory.Function.LpSpace.ContinuousLinearEquiv
 public import TauCeti.Analysis.Sobolev.Wkp.Basic
+import SymplecticGeometry.MeasureTheory.Function.LpSpace.ContinuousLinearEquiv
+import SymplecticGeometry.Analysis.InnerProductSpace.ContinuousLinearEquiv
 
 /-!
 # `W^{k,2}(Ω)` is isomorphic to a Hilbert space

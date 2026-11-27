@@ -11,11 +11,12 @@ public import TauCeti.Analysis.Complex.Euclidean.Space
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.WeightOneForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
@@ -40,7 +41,7 @@ cut-off model forms, and the glued form.
   this is a case of `PartialDiffeomorph.exists_smul_invariant_cutoff`.
 
 A form on the chart, pulled back to `M` and multiplied by such a cut-off, is a smooth form on `M`
-(`TauCeti.IsSmoothForm.fun_smul_mpullback`), and it is invariant when the form is invariant on
+(`TauCeti.isSmoothForm_fun_smul_mpullback`), and it is invariant when the form is invariant on
 the support of the cut-off (`TauCeti.mpullback_fun_smul_eq_self`). For the model one-form
 `θₖ = SymplecticGeometry.weightOneForm k`, this gives the pieces of the localizing one-form at
 the fixed points:
@@ -150,9 +151,9 @@ smooth function `ρ` whose support lies in the image of `Φ`: the smooth one-for
 `x ↦ ρ x • ((Φ⁻¹)^* θₖ) x`, which is zero where `ρ` is. -/
 def cutoffWeightOneForm : SmoothForm I M ℝ 1 :=
   ⟨fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val x,
-    (TauCeti.IsSmoothForm.fun_smul_mpullback Φ.symm
-      (isSmoothForm_modelSpace_iff.1 (weightOneForm k).isSmoothForm) hρ
-      (by simpa using hs)).mem_smoothBundleForms⟩
+    (isSmoothForm_fun_smul_mpullback hρ Φ.symm.open_source (by simpa using hs)
+      (fun _ hx ↦ Φ.symm.contMDiffAt hx) (by simp)
+      (weightOneForm k).isSmoothForm).mem_smoothBundleForms⟩
 
 theorem cutoffWeightOneForm_val :
     (cutoffWeightOneForm Φ hρ hs k).val =
@@ -177,15 +178,14 @@ theorem mpullback_symm_weightOneForm_apply_weightChart (k' : ι → ℝ)
         (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
     TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val (Φ z) ![X (Φ z)] =
       2 * π * ∑ j, k j * k' j * (z.x j ^ 2 + z.y j ^ 2) := by
-  rw [TauCeti.mpullback_apply]
-  have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (![X (Φ z)] i)) =
-      ![EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))] := by
-    funext i
-    rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hX]
+  rw [TauCeti.mpullback_apply_one]
+  have hv : mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (X (Φ z)) =
+      EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z)) := by
+    rw [← hX]
     exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
-  rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
-  -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
+  rw [hv, Φ.left_inv hz]
+  -- `hv` gives the vector as a point of `StdSpace ι`, the lemmas as a tangent vector at `z`.
   exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
     (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
 
@@ -280,7 +280,8 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
     filter_upwards [Φ.open_target.mem_nhds hx] with y hy
     obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hy)
     rw [Φ.right_inv hy] at h₂
-    rw [Function.comp_apply, Function.comp_apply, ← h₂, Φ.symm_toPartialEquiv, Φ.left_inv h₁]
+    rw [Function.comp_apply, Function.comp_apply, ← h₂, Φ.left_inv h₁,
+      Φ.symm_toPartialEquiv]
   have hφ (x : M) (hx : ρ x ≠ 0) :
       TauCeti.mpullback I I (fun x ↦ g • x)
           (TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm (weightOneForm k).val) x =
@@ -290,16 +291,14 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
       obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hxt)
       rw [Φ.right_inv hxt] at h₂
       exact h₂ ▸ Φ.map_source h₁
-    have hθ := congrArg Subtype.val
+    have hθ := (SmoothForm.mpullback_eq_iff _).1
       (mpullback_weightRotation_weightOneForm k fun j ↦ Complex.arg (χ j g))
-    rw [SmoothForm.coe_mpullback] at hθ
     rw [← TauCeti.mpullback_comp_at (hg.mdifferentiableAt (by simp))
         (Φ.symm.mdifferentiableAt (by simp) (by simpa using hgx)),
       (hcomm hxt).mpullback_eq,
       TauCeti.mpullback_comp_at (Φ.symm.mdifferentiableAt (by simp) (by simpa using hxt))
         (hRsmooth.mdifferentiableAt (by simp)), hθ]
-  refine Subtype.ext ?_
-  rw [SmoothForm.coe_mpullback, cutoffWeightOneForm_val]
+  rw [SmoothForm.mpullback_eq_iff, cutoffWeightOneForm_val]
   exact TauCeti.mpullback_fun_smul_eq_self hρg hφ
 
 /-! ### The exterior derivative where the cut-off is `1` -/
@@ -315,7 +314,7 @@ theorem mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one {x : M}
   have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
   rw [mpullback_apply_eq_compContinuousLinearMap]
   refine mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
-    ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp)) ?_
+    ((Φ.symm.contMDiffAt hxt).of_le (by simp)) ?_
   filter_upwards [hx] with y hy
   simp only [cutoffWeightOneForm_val, hy, Pi.one_apply, one_smul]
 
@@ -383,7 +382,7 @@ private theorem exists_smul_invariant_cutoffs_weightCharts {G : Type*} [Group G]
   · exact (ball_subset_ball (by linarith [hc0 i])).trans (hc i)
   · exact h1 i (mem_image_of_mem _ (ball_subset_closedBall hz))
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M]
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **Gluing model one-forms along weight charts.** Let the circle act smoothly on a σ-compact
@@ -446,7 +445,7 @@ theorem exists_localizingForm_of_weightCharts [SigmaCompactSpace M] {ι : Type*}
       simp [h]
   have hval (x : M) : (∑ i, τ i + SmoothForm.funSMulₗ f β).val x =
       ∑ i, (τ i).val x + (1 - ∑ i, ρ i x) • β.val x := by
-    rw [SmoothForm.add_toRoughForm, SmoothForm.coe_funSMulₗ]
+    rw [SmoothBundleForm.add_apply, SmoothForm.coe_funSMulₗ]
     simp [f]
   have hvalX (x : M) : (∑ i, τ i + SmoothForm.funSMulₗ f β).val x ![X x] =
       ∑ i, (τ i).val x ![X x] + (1 - ∑ i, ρ i x) * β.val x ![X x] := by
@@ -463,13 +462,10 @@ theorem exists_localizingForm_of_weightCharts [SigmaCompactSpace M] {ι : Type*}
     · exact Finset.sum_congr rfl fun i _ ↦
         mpullback_smul_cutoffWeightOneForm (hρ i) (hsupp i) (k i) (χ i) g (hequiv i g) _
           (hinv i g)
-    · refine Subtype.ext ?_
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_funSMulₗ]
+    · rw [SmoothForm.mpullback_eq_iff, SmoothForm.coe_funSMulₗ]
       refine TauCeti.mpullback_fun_smul_eq_self (fun x ↦ ?_) fun x _ ↦ ?_
       · simp [f, hinv]
-      · have h := congrArg Subtype.val (hβinv g)
-        rw [SmoothForm.coe_mpullback] at h
-        exact congrFun h x
+      · exact congrFun ((SmoothForm.mpullback_eq_iff _).1 (hβinv g)) x
   · rw [hvalX]
     exact add_nonneg (Finset.sum_nonneg fun i _ ↦ hτ i x) (hβX x)
   · -- Off the fixed points, `β(X) > 0`; so if `θ(X) = 0`, some cut-off is `1`, and the model
@@ -545,8 +541,7 @@ theorem exists_localizingForm [CompactSpace M] {σ : SmoothTwoForm I M}
           (∀ j, α j circlePeriodOneGenerator ≠ 0) ∧ 0 < s ∧ s ≤ r ∧
           ∀ x ∈ Φ '' ball 0 s, θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm
             (weightOneForm fun j ↦ α j circlePeriodOneGenerator).val x := by
-  have : ContinuousConstSMul Circle M :=
-    ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
+  have : ContinuousSMul Circle M := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) ∞
   have := (finite_fixedPoints hiso).to_subtype
   choose n χ α Φ r hW using fun p : MulAction.fixedPoints Circle M ↦
     exists_weightChart_fundamentalVectorField hμ hσ hG (p := p.val) p.property

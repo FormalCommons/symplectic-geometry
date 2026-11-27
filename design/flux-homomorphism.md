@@ -32,7 +32,7 @@ Below, `σ : TauCeti.closedForms J M 2` is a closed two-form on a manifold
   (`Flux/Eulerian.lean`: the flux is the class of
   $\int_0^1\iota_{X_t}\sigma\,dt$); `flux_globalFlowDiffeotopyAlong`,
   `exists_flux_eq` (`Flux/Flow.lean`); `flux_orderedGlobalFlowDiffeotopy`
-  and `exists_homotopy_orderedGlobalFlowDiffeotopy_mem_diffeomorphStabilizer`
+  and `homotopicWith_orderedGlobalFlowDiffeotopy_refl`
   (`Flux/OrderedFlow.lean`: for symplectic fields $Y_i$ and time functions
   $A_i$ with $A_i(0)=0$, the ordered flow
   $\psi^{Y_0}_{A_0(t)}\circ\dots\circ\psi^{Y_{k-1}}_{A_{k-1}(t)}$ has flux
@@ -142,7 +142,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    zero flux, and $\Psi$ is Hamiltonian by Decision 2. Since every
    $A_i(1)=0$, $\theta$ ends at the identity, so $\Psi$ ends where `Φ`
    does. And $\theta$ is homotopic to the constant diffeotopy relative to
-   both ends (`orderedGlobalFlowDiffeotopy_homotopic_refl`),
+   both ends (`isHomotopy_orderedGlobalFlowDiffeotopy_refl`),
    so `Φ` is homotopic to $\Psi$ (`Homotopic.trans_congr`).
    The homotopy is stated with Tau Ceti's `Diffeotopy.Homotopic`, which
    does not ask that the intermediate maps preserve `σ`. The construction
@@ -167,8 +167,9 @@ These settle the questions that `DESIGN.md` leaves to this file.
    into $P_\sigma^b$, which is countable. The comparison of the swept area
    with a period goes through the torus: a map of $\mathbb R^2$ with period
    1 in both variables descends to $T^2=(\mathbb R/\mathbb Z)^2$, whose
-   integral is a period by
-   `integralTopForm_mpullback_eq_closedFormHomologyPeriod` and equals the
+   integral is a period by Tau Ceti's
+   `TauCeti.closedFormHomologyPeriod_singularHomologyMap_addCircleProdFundamentalClass`
+   and equals the
    rectangle integral by `AddCircle.integralTopForm_prod_eq_setIntegral`.
    This is the content of McDuff–Salamon's description
    of the flux by swept cylinders, equation (10.2.2) with Lemma 10.2.1.
@@ -248,9 +249,9 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   (Theorem 10.2.5): for `σ` nondegenerate and `Φ` preserving `σ` at every
   time with `Φ.flux σ _ = 0`, there is `Ψ` with `Ψ.IsHamiltonian σ.val`
   and `Φ.Homotopic Ψ` (so `Ψ.final = Φ.final`, by `Homotopic.final_eq`).
-- `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero`: the
+- `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero'`: the
   same hypotheses give `Φ.final ∈ SmoothForm.hamiltonianGroup σ.val`.
-- `TauCeti.ker_endpointFlux`: for `σ` nondegenerate,
+- `TauCeti.ker_endpointFlux'`: for `σ` nondegenerate,
   `(endpointFlux σ).ker = (SmoothForm.hamiltonianGroup σ.val).subgroupOf
   (SmoothForm.isotopyStabilizer σ.val)`, from `mem_ker_endpointFlux_iff`
   and `hamiltonianGroup_subgroupOf_le_ker_endpointFlux`.
@@ -311,7 +312,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    Blocked by 1.
 3. **Theorem 10.2.5 and the kernel of the endpoint flux.** In
    `Kernel.lean`: `exists_isHamiltonian_homotopic_of_flux_eq_zero`,
-   `final_mem_hamiltonianGroup_of_flux_eq_zero` and `ker_endpointFlux`.
+   `final_mem_hamiltonianGroup_of_flux_eq_zero'` and `ker_endpointFlux'`.
    About 350 lines. Blocked by 2.
 4. **Rectangle integrals as periods.** `SmoothSingular/Rectangle.lean`,
    all of it. About 350 lines. No blockers.

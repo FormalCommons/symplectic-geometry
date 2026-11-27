@@ -15,6 +15,7 @@ import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
+import TauCeti.Analysis.InnerProductSpace.Orthonormal.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
@@ -293,10 +294,9 @@ theorem exists_unitary_trivialization_of_orthonormal
   have : FiniteDimensional ℂ F := b.finiteDimensional_of_finite
   have := VectorBundle.finiteDimensional ℂ F V
   -- Over `U` the sections form an orthonormal basis of each fibre.
-  let ob (x : B) (hx : x ∈ U) : OrthonormalBasis ι ℂ (V x) := OrthonormalBasis.mk (hon x hx)
-    ((hon x hx).linearIndependent.span_eq_top_of_card_eq_finrank'
-      (by rw [VectorBundle.finrank_eq ℂ F V x, finrank_eq_card_basis b])).ge
-  have hob (x : B) (hx : x ∈ U) (j : ι) : ob x hx j = s j x := by simp [ob]
+  choose ob hob' using fun x (hx : x ∈ U) ↦ (hon x hx).exists_orthonormalBasis_coe_eq
+    (by rw [VectorBundle.finrank_eq ℂ F V x, finrank_eq_card_basis b])
+  have hob (x : B) (hx : x ∈ U) (j : ι) : ob x hx j = s j x := congrFun (hob' x hx) j
   have htx (x : B) (hx : x ∈ U) :
       (complexDoubledFrame s · x) = ⇑(Complex.basisOneI.smulTower (ob x hx).toBasis) := by
     ext ij

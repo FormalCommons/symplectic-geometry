@@ -30,6 +30,9 @@ a chart, on the source.
   `e` written in the coordinates of `e`, and `TauCeti.IsConvexChart.image_homeomorph_iff` the one
   for a homeomorphism.
 
+Both directions of `TauCeti.IsConvexChart.image_iff` are instances of Tau Ceti's
+`TauCeti.IsConvexChart.source_inter_preimage`, applied to `e` and to `e.symm`.
+
 The proof of `TauCeti.IsConvexChart.continuousAffineEquiv_comp` follows that of Tau Ceti's
 `TauCeti.IsConvexChart.continuousLinearEquiv_comp`, with an affine equivalence in place of a linear
 one.
@@ -88,37 +91,17 @@ theorem const_add (hU : IsConvexChart f U) (c : E) : IsConvexChart (fun x ↦ c 
 theorem add_const (hU : IsConvexChart f U) (c : E) : IsConvexChart (fun x ↦ f x + c) U := by
   simpa only [add_comm c] using hU.const_add c
 
-/-- One direction of `TauCeti.IsConvexChart.image_iff`: if `U ⊆ e.source` is a convexity chart of
-`f ∘ e`, then `e '' U` is a convexity chart of `f`. -/
-private theorem image_of_comp {e : OpenPartialHomeomorph X Y} (hUe : U ⊆ e.source) {f : Y → E}
-    (hU : IsConvexChart (f ∘ e) U) : IsConvexChart f (e '' U) where
-  isOpen := e.isOpen_image_of_subset_source hU.isOpen hUe
-  convex_image := by
-    rw [← image_comp]
-    exact hU.convex_image
-  image_mem_nhdsWithin W hW hWo := by
-    -- `W` is the image of the open set `U ∩ e ⁻¹' W` of `U`.
-    have hWU : e '' (U ∩ e ⁻¹' W) = W := by rw [image_inter_preimage, inter_eq_right.2 hW]
-    intro y hy
-    obtain ⟨x, hx, rfl⟩ := hW hy
-    rw [← image_comp, ← hWU, ← image_comp]
-    exact hU.image_mem_nhdsWithin _ inter_subset_left
-      ((e.continuousOn.mono hUe).isOpen_inter_preimage hU.isOpen hWo) x ⟨hx, hy⟩
-  isPreconnected_inter_preimage_singleton v := by
-    rw [← image_inter_preimage, ← preimage_comp]
-    exact (hU.isPreconnected_inter_preimage_singleton v).image _
-      (e.continuousOn.mono (inter_subset_left.trans hUe))
-
 /-- For a partial homeomorphism `e` and `U ⊆ e.source`, the image `e '' U` is a convexity chart of
 `f` if and only if `U` is a convexity chart of `f ∘ e`. -/
 theorem image_iff (e : OpenPartialHomeomorph X Y) (hUe : U ⊆ e.source) {f : Y → E} :
     IsConvexChart f (e '' U) ↔ IsConvexChart (f ∘ e) U := by
-  refine ⟨fun h ↦ ?_, image_of_comp hUe⟩
-  have hVe : e '' U ⊆ e.symm.source :=
-    e.symm_source ▸ (image_mono hUe).trans e.image_source_eq_target.subset
-  rw [← e.symm_image_image_of_subset_source hUe]
-  refine image_of_comp hVe (h.congr fun y hy ↦ ?_)
-  simp [e.right_inv (e.symm_source ▸ hVe hy)]
+  have hUt : e '' U ⊆ e.target := (image_mono hUe).trans e.image_source_eq_target.subset
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · have h' := h.source_inter_preimage hUt (f := f ∘ e) fun _ _ ↦ rfl
+    rwa [inter_comm, e.injOn.preimage_image_inter hUe] at h'
+  · have h' := h.source_inter_preimage (e := e.symm) (by rwa [e.symm_target]) (f := f)
+      fun y hy ↦ by simp [e.right_inv (e.symm_source ▸ hy)]
+    rwa [e.symm_source, ← e.image_eq_target_inter_inv_preimage hUe] at h'
 
 /-- For a partial homeomorphism `e` and `U ⊆ e.source`, the image `e '' U` is a convexity chart of
 `f ∘ e.symm`, the map `f` written in the coordinates given by `e`, if and only if `U` is a

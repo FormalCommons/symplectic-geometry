@@ -312,8 +312,8 @@ units `Matrix.single`.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
 
-In the namespace `TauCeti.GLSymplectic` (Tau Ceti has a folder of that name,
-without such a file).
+In the namespace `TauCeti.GLSymplectic` (Tau Ceti's file of that path reindexes
+along any `ι ⊕ ι ≃ p` into `GL p`, but has no such isomorphism).
 
 - `reindex (R) (e : ι ≃ κ) : GLSymplectic ι R ≃* GLSymplectic κ R`, the
   restriction of Mathlib's `Matrix.GeneralLinearGroup.reindex R
@@ -724,7 +724,7 @@ writes out; the part adds no signature function.
   `maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley`. Neither
   continuity of `Z` nor injectivity of `Z t` is assumed: the second follows
   from the image being Lagrangian, and the proof reads continuity off `γ`.
-  Proof: the crossings are finite (`ℒ.finite_setOf_inf_ne_bot_of_regular`,
+  Proof: the crossings are finite (`ℒ.finite_setOfPred_inf_ne_bot_of_regular`,
   from `ℒ.eventually_not_crossing_of_regular` in a compact interval), and the
   signatures vanish elsewhere (`lagrangianCrossingForm_eq_zero_of_inf_eq_bot`).
   Near each time `t₀` choose a Lagrangian `W` transverse to both
@@ -835,7 +835,7 @@ forms relative to `V₀`.
   junction both pieces span the same Lagrangian, so a constant change of
   frame on the later piece makes the frame continuous, and a
   reparametrization that is flat at the junctions makes it smooth. The
-  file imports `Analysis/SpecialFunctions/SmoothTransition.lean` (*Smooth
+  file imports `Analysis/SpecialFunctions/SmoothTransition/Basic.lean` (*Smooth
   families*) for `TauCeti.deriv_collaredSmoothTransition_pos` and the
   eventual constancy of `TauCeti.collaredSmoothTransition`, which that
   reparametrization uses, and `Analysis/Calculus/ContDiff/Concat.lean` (*Smooth

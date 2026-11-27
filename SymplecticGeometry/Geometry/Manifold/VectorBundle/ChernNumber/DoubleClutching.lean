@@ -7,10 +7,12 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Height
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Orientation
-public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Axioms
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Splitting
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Clutching
+public import TauCeti.Geometry.Manifold.Instances.SymplecticGroup
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Topology
+import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Clutching
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!

@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Strong
-public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
+public import TauCeti.Geometry.Manifold.Morse.Hessian
+import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import TauCeti.Geometry.Manifold.ExtChartAt
 
 /-!

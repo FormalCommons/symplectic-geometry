@@ -6,14 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
-public import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+public import TauCeti.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.Distribution.Horizontal
-public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
+import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Horizontal lifts of curves and parallel transport
@@ -33,8 +35,8 @@ field on `B` that has that reading at every point of the trivialization's base s
 horizontal lift is a time-dependent field on `P`, jointly `C¹` in time and point
 (`TauCeti.IsEhresmannConnection.contMDiffAt_horizontalLift`), and both curves solve it near `t`.
 Lifted through their clocks
-(`TauCeti.hasMFDerivWithinAt_prodMk_timeDependentSuspensionField`), they are integral curves of
-its suspension on `ℝ × P`, which is `C¹` at that point
+(`TauCeti.isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff`), they are integral
+curves of its suspension on `ℝ × P`, which is `C¹` at that point
 (`TauCeti.contMDiffAt_timeDependentSuspensionField`). Tau Ceti's local uniqueness of integral
 curves on a preconnected set of times,
 `IsMIntegralCurveOn.eventuallyEq_of_isPreconnected`, which allows `t` to be an end of the
@@ -210,7 +212,7 @@ private theorem eventuallyEq_of_isHorizontalMap
   have hW := contMDiffAt_timeDependentSuspensionField hX
   -- Near `t`, `γ` stays in the base set of `eB`.
   obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.1
-    (hγ.continuous.continuousAt.preimage_mem_nhds (eB.open_baseSet.mem_nhds hbt))
+    (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J))
   have hS : IsPreconnected (Icc a b ∩ Metric.ball t ε) :=
     ((convex_Icc a b).inter (convex_ball t ε)).isPreconnected
   have htS : t ∈ Icc a b ∩ Metric.ball t ε := ⟨ht, Metric.mem_ball_self hε⟩
@@ -219,7 +221,7 @@ private theorem eventuallyEq_of_isHorizontalMap
       (hh : IsHorizontalMap 𝓘(ℝ, ℝ) D c) (hγc : EqOn (f ∘ c) γ (Icc a b)) :
       IsMIntegralCurveOn (fun r ↦ (r, c r)) (timeDependentSuspensionField X)
         (Icc a b ∩ Metric.ball t ε) := by
-    intro u hu
+    refine isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff.2 fun u hu ↦ ?_
     have hfc : f (c u) = γ u := hγc hu.1
     -- The projection `f ∘ c` has the velocity of `γ`, since they agree on `Set.Icc a b`.
     have hcv : curveVelocity J (f ∘ c) u = curveVelocity J γ u := by
@@ -238,11 +240,8 @@ private theorem eventuallyEq_of_isHorizontalMap
       have hsymm : eB.symm (γ u) (v u) = curveVelocity J γ u :=
         eB.symm_apply_apply_mk (hball hu.2) _
       rw [hcv, ← hsymm, hfc]
-    have hcu : HasMFDerivWithinAt 𝓘(ℝ, ℝ) I c (Icc a b ∩ Metric.ball t ε) u
-        ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u))) := by
-      rw [← hvel]
-      exact (hasMFDerivAt_curveVelocity (hc u)).hasMFDerivWithinAt
-    exact hasMFDerivWithinAt_prodMk_timeDependentSuspensionField hcu
+    rw [← hvel]
+    exact (hasMFDerivAt_curveVelocity (hc u)).hasMFDerivWithinAt
   have heq := (hcurve hc₁ hh₁ hγ₁).eventuallyEq_of_isPreconnected (hcurve hc₂ hh₂ hγ₂) hS htS
     hW (by rw [h])
   rw [← nhdsWithin_inter_of_mem'
@@ -479,8 +478,7 @@ private theorem exists_isHorizontalMap_lift_uIcc (hn : 1 ≤ n)
   have hstep (t : ℝ) : ∃ ε > 0, ∀ t' ∈ S, dist t' t < ε → Metric.ball t ε ⊆ S := by
     let e := trivializationAt F (TangentSpace J) (γ t)
     obtain ⟨ε₀, hε₀, hball⟩ := Metric.mem_nhds_iff.1
-      (hγ.continuous.continuousAt.preimage_mem_nhds
-        (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (γ t))))
+      (hγ.continuous.continuousAt.eventually_mem_baseSet_trivializationAt F (TangentSpace J))
     obtain ⟨ε, hε, hεε⟩ : ∃ ε, 0 < ε ∧ ε < ε₀ := ⟨ε₀ / 2, by positivity, by linarith⟩
     refine ⟨ε, hε, fun t' ⟨c₁, hc₁, hh₁, hγ₁, hs₁⟩ ht' t'' ht'' ↦ ?_⟩
     have hmaps : MapsTo γ (Icc (t - ε) (t + ε)) e.baseSet := fun u hu ↦ hball (by

@@ -5,12 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
-import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
+public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -18,6 +21,8 @@ import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Chern
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Topology.FiberBundle.Countable
 import TauCeti.Topology.FiberBundle.Separation
+import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Neighbourhoods of Lagrangian submanifolds
@@ -90,7 +95,7 @@ assumed.
 
 Milestone: *Lagrangian neighbourhood theorem*. -/
 theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I M}
-    {hσ : σ.IsSymplectic} {f : SmoothEmbedding J I ∞ L M}
+    (hσ : σ.IsSymplectic) {f : SmoothEmbedding J I ∞ L M}
     (hf : hσ.isNondegenerate.IsLagrangianMap J f) :
     ∃ (U : Opens (CotangentBundle J L)) (V : Opens M)
       (ψ : U ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), I⟯ V),
@@ -109,10 +114,11 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
   have := f.isEmbedding.isInducing.secondCountableTopology
   rcases isEmpty_or_nonempty L with hL | ⟨⟨q₀⟩⟩
   · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim, Subsingleton.elim _ _⟩
+  have hn : (1 : WithTop ℕ∞) ≤ ∞ := by simp
   have hcoe := SymplecticGeometry.Bundle.coe_zeroSectionEmbedding J (EL →L[ℝ] ℝ)
-    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)
+    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) hn
   generalize SymplecticGeometry.Bundle.zeroSectionEmbedding J (EL →L[ℝ] ℝ)
-    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) = f₀ at hcoe
+    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) hn = f₀ at hcoe
   have hω₀ := CotangentBundle.isSymplectic_symplecticForm (I := J) (M := L)
   have hf₀ : hω₀.isNondegenerate.IsLagrangianMap J f₀ := by
     rw [hcoe]
@@ -155,40 +161,31 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
 /-- **The Lagrangian neighbourhood theorem, for the form `dλ`.** Let `f : L → M` be a smooth
 Lagrangian embedding into a second countable Hausdorff manifold without boundary with a symplectic
 form `σ`. Then there are open sets `U` of the cotangent bundle `T^*L` and `V ⊆ M` and a
-diffeomorphism `ι : U ≃ V` pulling the restriction of `σ` back to that of
-`-TauCeti.CotangentBundle.symplecticForm`, which is `dλ` for the Liouville form `λ`, such that for
-every `q`, the zero covector at `q` lies in `U` and `ι` maps it to `f q`. -/
+diffeomorphism `ι : U ≃ V` that is a Weinstein chart of `f` for `σ`
+(`SymplecticGeometry.CotangentBundle.IsWeinsteinChart`): it is a symplectomorphism from the
+restriction of `-TauCeti.CotangentBundle.symplecticForm`, which is `dλ` for the Liouville form
+`λ`, to that of `σ`, and for every `q`, the zero covector at `q` lies in `U` and `ι` maps it to
+`f q`. -/
 theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoForm I M}
-    {hσ : σ.IsSymplectic} {f : SmoothEmbedding J I ∞ L M}
+    (hσ : σ.IsSymplectic) {f : SmoothEmbedding J I ∞ L M}
     (hf : hσ.isNondegenerate.IsLagrangianMap J f) :
     ∃ (U : Opens (CotangentBundle J L)) (V : Opens M)
       (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), I⟯ V),
-      SmoothForm.mpullback ι ι.contMDiff
-          (SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ) =
-        SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L) contMDiff_subtypeVal
-          (-CotangentBundle.symplecticForm J L) ∧
-      ∀ q, ∃ h : zeroSection (EL →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) q ∈ U,
-        (ι ⟨_, h⟩ : M) = f q := by
-  obtain ⟨U, V, ψ, hψ0, hψσ⟩ := hf.exists_symplectomorphism_cotangent (hσ := hσ)
+      SymplecticGeometry.CotangentBundle.IsWeinsteinChart σ f ι := by
+  obtain ⟨U, V, ψ, hψ0, hψσ⟩ := hf.exists_symplectomorphism_cotangent hσ
   -- The fibrewise negation `N` of `T^*L`, which fixes the zero section.
   let N := CotangentBundle.fiberNeg J L
   have hN0 (q : L) : N (zeroSection _ _ q) = zeroSection _ _ q := by
-    simp [N, zeroSection]
+    simp [N, zeroSection_def]
   let U' : Opens (CotangentBundle J L) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
   let N' : U' ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), J.prod 𝓘(ℝ, EL →L[ℝ] ℝ)⟯ U :=
     N.subtype fun _ ↦ Iff.rfl
-  refine ⟨U', V, N'.trans ψ, ?_, fun q ↦ ?_⟩
-  · rw [SmoothForm.mpullback_trans, hψσ, SmoothForm.mpullback_mpullback_of_comp_eq _ _
-      contMDiff_subtypeVal N.contMDiff (funext fun z ↦ Diffeomorph.subtype_apply_coe _ _ z),
-      CotangentBundle.mpullback_fiberNeg_symplecticForm]
-  · obtain ⟨h, hq, -⟩ := hψ0 q
-    have h' : zeroSection _ _ q ∈ U' := by
-      rw [Opens.mem_mk, Set.mem_preimage, hN0]
-      exact h
-    refine ⟨h', ?_⟩
-    rw [Diffeomorph.coe_trans, Function.comp_apply, ← hq]
-    congr 2
-    exact Subtype.ext ((Diffeomorph.subtype_apply_coe _ _ _).trans (hN0 q))
+  have hψ : SymplecticGeometry.CotangentBundle.AgreesOnZeroSection f ψ :=
+    ⟨fun q ↦ (hψ0 q).imp fun _ h ↦ h.1⟩
+  refine ⟨U', V, N'.trans ψ, hψ.subtype_trans (a := id) (fun _ ↦ Iff.rfl) hN0, ?_⟩
+  exact ((isSymplectomorphism_iff_mpullback_eq.2
+    (CotangentBundle.mpullback_fiberNeg_symplecticForm (I := J) (M := L))).subtype
+    fun _ ↦ Iff.rfl).trans (isSymplectomorphism_iff_mpullback_eq.2 hψσ) (by simp)
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 

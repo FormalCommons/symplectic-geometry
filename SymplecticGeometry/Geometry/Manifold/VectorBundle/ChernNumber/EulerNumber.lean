@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ComplexStructure
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!
 # The first Chern number as a count of zeros
@@ -136,8 +137,6 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
   [ContMDiffVectorBundle 1 F V 𝓘(ℝ, EM)]
   (J : ContinuousComplexStructure F V) [Fact (finrank ℝ F = 2 * finrank ℂ ℂ)]
-
-local instance (x : M) : ContinuousSMul ℝ (J.Fiber x) := IsScalarTower.continuousSMul ℂ
 
 open scoped VectorBundle.ComplexToReal
 

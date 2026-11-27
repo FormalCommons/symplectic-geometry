@@ -132,7 +132,7 @@ global name.
    `isCompl_iff_disjoint` in `LinearAlgebra/Symplectic/Lagrangian/Basic.lean`,
    since it holds for a general `ω` and `Transverse.lean` is about
    `StdSpace ι`. Declarations about `StdSpace ι` alone
-   (`StdSpace.complexEuclideanEquiv`, `StdSpace.swap`,
+   (the lemmas on `TauCeti.complexToRealEuclideanIsometry`, `StdSpace.swap`,
    `StdSpace.finSumIsometry`, the coordinate lemmas
    `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
    with their API) are added to part 1's `Standard/Basic.lean`; the section
@@ -197,7 +197,7 @@ Three facts about complex frames:
 - `Matrix.range_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ)`: the range of
   `toEuclideanLin (fromRows X Y)` is the image of
   `Matrix.realImage (X.map ofReal + I • Y.map ofReal)` under
-  `TauCeti.complexToRealEuclidean ι`, read through `WithLp.equiv`.
+  `TauCeti.complexToRealEuclideanIsometry ι`.
 - `Matrix.exists_det_sub_smul_ne_zero {X Y : Matrix ι ι ℝ}
   (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) : ∃ t : ℝ, (X - t • Y).det ≠ 0`:
   `t ↦ det (X - t Y)` is a real polynomial, nonzero at `t = -i`, so it is not
@@ -253,21 +253,11 @@ file of that name, in the namespace `Matrix`, over `RCLike 𝕜`:
   `Matrix.coe_toEuclideanCLE`. `Action.lean` uses it for
   `isLagrangian_map_toEuclideanLin` and `ℒ.coe_smul_eq_map_toEuclideanCLE`.
 
-### `Analysis/Complex/Circle.lean`
-
-A general fact about Tau Ceti's `TauCeti.circleEquivUnitary`, beside Tau
-Ceti's file of that name, in the namespace `TauCeti`; it imports only Tau
-Ceti:
-
-- `TauCeti.circleEquivUnitary_smul` (`@[simp]`): for `[MulAction ℂ M]`,
-  `circleEquivUnitary z • x = (z : ℂ) • x`. `Action.lean` uses it to compute
-  the scalar unitary of `rotate`.
-
 ### `Analysis/Normed/Lp/PiLp.lean`
 
 A general fact about Mathlib's `LinearIsometryEquiv.piLpCongrLeft`, in the
 namespace `LinearIsometryEquiv`, beside Tau Ceti's file of that name
-(`TauCeti/Analysis/Normed/Lp/PiLp.lean`, which has `piLpCongrLeft_refl`), its
+(`TauCeti/Analysis/Normed/Lp/PiLp/Basic.lean`, which has `piLpCongrLeft_refl`), its
 natural upstream home:
 
 - `LinearIsometryEquiv.piLpCongrLeft_trans (e : ι ≃ ι') (f : ι' ≃ ι'')`
@@ -308,21 +298,23 @@ of that name, in the namespace `TauCeti.finiteGrassmannian`, for any
 
 ### Additions to *Standard model*'s `LinearAlgebra/Symplectic/Standard/Basic.lean`
 
-Three declarations about the standard model alone, which this part needs and
+Declarations about the standard model alone, which this part needs and
 part 1 lacks, in the namespace `SymplecticGeometry.StdSpace`, so that other parts
 find them there.
 
-- `StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`,
-  defined as `(PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans
-  (TauCeti.complexToRealEuclidean ι)`. It is how this part compares its
-  subspaces of `StdSpace ι` with Tau Ceti's subspaces of
-  `EuclideanSpace ℂ ι`. API:
-  `complexEuclideanEquiv_def`, and the `@[simp]` lemmas
-  `x_complexEuclideanEquiv : (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re`
-  and `y_complexEuclideanEquiv : (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im`,
-  from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. The `@[simp]` lemma
-  `stdComplexStructure_complexEuclideanEquiv` says that it carries
-  multiplication by `I` to `J₀`. Building issue 3 adds it.
+- Lemmas on the isometry `TauCeti.complexToRealEuclideanIsometry ι :
+  EuclideanSpace ℂ ι ≃ₗᵢ[ℝ] StdSpace ι` of `Analysis/Complex/Euclidean/Space.lean`,
+  `TauCeti.complexToRealEuclidean ι` read on `EuclideanSpace ℂ ι`. It is how this
+  part compares its subspaces of `StdSpace ι` with Tau Ceti's subspaces of
+  `EuclideanSpace ℂ ι`. The lemmas
+  `x_complexToRealEuclideanIsometry : x (complexToRealEuclideanIsometry ι v) = fun i ↦ (v i).re`
+  and `y_complexToRealEuclideanIsometry : y (complexToRealEuclideanIsometry ι v) = fun i ↦ (v i).im`
+  follow from `x_complexToRealEuclidean` and `y_complexToRealEuclidean`. The lemma
+  `stdComplexStructure_complexToRealEuclideanIsometry` says that it carries
+  multiplication by `I` to `J₀`, and
+  `SymplecticGeometry.stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
+  stdForm ι (complexToRealEuclideanIsometry ι v) (complexToRealEuclideanIsometry ι w) =
+  (inner ℂ v w).im` that it carries `ω₀` to `Im ⟪·, ·⟫`. Building issue 3 adds them.
 - `StdSpace.swap ι : StdSpace ι ≃ₗ[ℝ] StdSpace ι`, the coordinate swap
   `(x, y) ↦ (y, x)`, the composite of `equivProd`, `LinearEquiv.prodComm` and
   `equivProd.symm`. It goes beside `equivProd`, before the file's
@@ -415,16 +407,13 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `Submodule.orderIsoMapComap`; for the last, `swap` is an involution, by
   `symm_swap`).
 - The comparison with Tau Ceti's complex picture, through
-  `StdSpace.complexEuclideanEquiv ι` (written `ε` here). Then
+  `TauCeti.complexToRealEuclideanIsometry ι` (written `ε` here). Then
   `StdSpace.map_realSubspace :
   (TauCeti.realSubspace ι).map ε = LinearMap.ker StdSpace.y` and
   `StdSpace.map_lagrangianChart (S : Matrix ι ι ℝ) :
   (Matrix.lagrangianChart S).map ε = StdSpace.graphY S`, both from
-  `x_complexEuclideanEquiv`, `y_complexEuclideanEquiv` and Tau Ceti's
-  `Matrix.mem_lagrangianChart`. Also
-  `stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
-  stdForm ι (ε v) (ε w) = (inner ℂ v w).im`, from `stdForm_apply` and
-  `PiLp.inner_apply`.
+  `x_complexToRealEuclideanIsometry`, `y_complexToRealEuclideanIsometry` and Tau Ceti's
+  `Matrix.mem_lagrangianChart`.
 - `isLagrangian_range_fromRows_iff (X Y : Matrix ι ι ℝ) :
   (stdForm ι).IsLagrangian (LinearMap.range (Matrix.toEuclideanLin (Matrix.fromRows X Y)))
   ↔ (Matrix.fromRows X Y).rank = Fintype.card ι ∧ Xᵀ * Y = Yᵀ * X`.
@@ -481,9 +470,9 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
   Lagrangian frame is invertible. The Lagrangian range is maximal totally
   real for `J₀` (`TauCeti.SymplecticForm.IsLagrangian.isMaximalTotallyReal_of_compatible` with
-  `stdForm_compatible`). By `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`
-  it is the image under `complexEuclideanEquiv`, which intertwines multiplication by
-  `I` with `J₀` (`stdComplexStructure_complexEuclideanEquiv`), of `(X + i Y).realImage`;
+  `stdForm_compatible`). By `Matrix.range_toEuclideanLin_fromRows`
+  it is the image under `complexToRealEuclideanIsometry`, which intertwines multiplication by
+  `I` with `J₀` (`stdComplexStructure_complexToRealEuclideanIsometry`), of `(X + i Y).realImage`;
   so that real image is maximal totally real (`LinearEquiv.isMaximalTotallyReal_map_iff`), and Tau Ceti's
   `isMaximalTotallyReal_realImage_iff` gives `det (X + i Y) ≠ 0`. With
   `Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`
@@ -529,11 +518,10 @@ as algebra. It uses the matrix dictionary of *Standard model*
 (`LinearAlgebra/Symplectic/Standard/Matrix.lean`, #62):
 `mem_symplecticGroup_iff_forall_stdForm`, which reads membership of a
 matrix in `Matrix.symplecticGroup` as invariance of `stdForm` under
-`toEuclideanLin`, and `TauCeti.conj_complexToRealEuclidean_toLin'`, which
-turns a complex matrix acting on `ι → ℂ` into its realification acting on
-`StdSpace ι`. With Tau Ceti's `TauCeti.GLSymplectic.coe_ofUnitary` (the matrix of
-`TauCeti.GLSymplectic.ofUnitary U` is `(U : Matrix ι ι ℂ).realify`), the second relates the
-unitary action to Tau Ceti's `Matrix.realImage`.
+`toEuclideanLin`. Tau Ceti's `TauCeti.GLSymplectic.coe_ofUnitary` (the matrix of
+`TauCeti.GLSymplectic.ofUnitary U` is `(U : Matrix ι ι ℂ).realify`) makes `U` act on
+`StdSpace ι` by `toEuclideanLin` of its realification, and `StdSpace.map_realImage`
+(`Frame.lean`) relates that action to Tau Ceti's `Matrix.realImage`.
 
 - `instance : MulAction (GLSymplectic ι ℝ) (ℒ ι)`, with
   `coe_smul : ((g • Λ : ℒ ι) : Submodule ℝ (StdSpace ι)) = Λ.map (Matrix.toEuclideanLin g)`
@@ -571,9 +559,10 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   - `unitaryFrame_def`;
   - `coe_unitaryFrame`: the range of
     `toEuclideanLin (fromRows (U.map re) (U.map im))`, which is the image
-    of `Matrix.realImage U` under `StdSpace.complexEuclideanEquiv ι`. Both come from
-    `TauCeti.GLSymplectic.coe_ofUnitary` and `TauCeti.conj_complexToRealEuclidean_toLin'`: the columns
-    of `realify U` indexed by `inl` are `fromRows (U.map re) (U.map im)`;
+    of `Matrix.realImage U` under `TauCeti.complexToRealEuclideanIsometry ι`. The image
+    (`coe_unitaryFrame_eq_map`) comes from `StdSpace.map_realImage`, the range from it,
+    `Matrix.range_toEuclideanLin_fromRows` and `Matrix.map_re_add_I_smul_map_im`
+    (`LinearAlgebra/Matrix/OfReal.lean`), with `U = Re U + i Im U`;
   - `unitaryFrame_one` and `unitaryFrame_mul` (both `@[simp]`):
     `unitaryFrame (U * U') = U • unitaryFrame U'`.
 - `ℒ.unitaryOfFrame h : unitaryGroup ι ℂ`, for
@@ -607,14 +596,12 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   dimension of `U.realImage ⊓ realSubspace ι`) and
   `unitaryFrame_eq_horizontal_iff`, from which both
   `unitaryFrame_eq_unitaryFrame_iff` and `stabilizer_horizontal` follow.
-- Supporting statements placed elsewhere. In `Standard/Matrix.lean`:
-  `StdSpace.complexEuclideanEquiv_toEuclideanCLM` (through
-  `complexEuclideanEquiv ι`, a complex matrix acts as its realification). In
+- Supporting statements placed elsewhere. In `Analysis/Complex/Euclidean/Matrix.lean`:
+  `TauCeti.complexToRealEuclideanIsometry_toEuclideanCLM` (through
+  `complexToRealEuclideanIsometry ι`, a complex matrix acts as its realification). In
   `Frame.lean`: `StdSpace.map_realImage`
   (`A.realImage.map ε = (LinearMap.ker y).map (toEuclideanLin A.realify)`),
-  `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage` (the span of
-  `fromRows X Y` is `(X + i Y).realImage` carried by `ε`), `StdSpace.graph_zero`
-  and `StdSpace.graphY_zero`. In `Matrix/UnitaryGroup/Real.lean`:
+  `StdSpace.graph_zero` and `StdSpace.graphY_zero`. In `Matrix/UnitaryGroup/Real.lean`:
   `Matrix.UnitaryGroup.map_re_conjTranspose_mul_self` (`Re (Uᴴ U) = 1`).
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean`
@@ -624,7 +611,7 @@ Chart points and transverse pairs, as algebra: G7–G9.
 - `ℒ.graphY (S : selfAdjoint (Matrix ι ι ℝ)) : ℒ ι`, whose submodule is
   `StdSpace.graphY S` (`coe_graphY`): the points of the basic chart. API:
   `mem_graphY_iff` (`@[simp]`); `coe_graphY_eq_map`, the image of Tau
-  Ceti's `Matrix.lagrangianChart S` under `complexEuclideanEquiv ι`, which
+  Ceti's `Matrix.lagrangianChart S` under `complexToRealEuclideanIsometry ι`, which
   is `StdSpace.map_lagrangianChart`; `graphY_injective`; `graphY_zero`,
   which is the vertical subspace; `graphY_eq_ofFrame`, saying
   `graphY S = ofFrame S 1 (isLagrangian_range_fromRows_one hS)`, `hS` the
@@ -694,10 +681,10 @@ and `Matrix.lagrangianChart_inf_realSubspace`, in Tau Ceti's terms. Write
   (hiso : ∀ v ∈ V, ∀ w ∈ V, (inner ℂ v w).im = 0)
   (hreal : V ⊓ TauCeti.realSubspace n = ⊥) :
   ∃ S : Matrix n n ℝ, S.IsSymm ∧ V = S.lagrangianChart`.
-  Its image `V.map (StdSpace.complexEuclideanEquiv n)` is isotropic for `stdForm` by
+  Its image `V.map (TauCeti.complexToRealEuclideanIsometry n)` is isotropic for `stdForm` by
   `stdForm_apply_eq_im_inner`, and has dimension `n` by Tau Ceti's
   `TauCeti.IsMaximalTotallyReal.two_mul_finrank_eq` (`J` is injective), so it is
-  Lagrangian. It meets `LinearMap.ker StdSpace.y = (realSubspace n).map (complexEuclideanEquiv n)`
+  Lagrangian. It meets `LinearMap.ker StdSpace.y = (realSubspace n).map (complexToRealEuclideanIsometry n)`
   (`StdSpace.map_realSubspace`) only in zero, so the two are complementary
   by dimension. Then `exists_eq_graphY_of_isCompl` gives `S`, and
   `StdSpace.map_lagrangianChart` with the injectivity of this map
@@ -728,10 +715,11 @@ finite dimension.
 The topology of `ℒ ι` in terms of unitary frames.
 
 - `ℒ.continuous_unitaryFrame`: the projection is $R P_0 R^T$ with
-  `R = Matrix.realify U`, by `TauCeti.GLSymplectic.coe_ofUnitary` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (`Action.lean`), with Tau
-  Ceti's `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the
-  projection onto the image of a subspace under a unitary operator.
+  `R = Matrix.realify U`, by `coe_unitary_smul`
+  (`Action.lean`, through `TauCeti.GLSymplectic.coe_ofUnitary`), with `toEuclideanCLM R`
+  unitary by Tau Ceti's `Matrix.realify_mem_orthogonalGroup_iff`, and Tau Ceti's
+  `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the projection
+  onto the image of a subspace under a unitary operator.
 - `instance : CompactSpace (ℒ ι)`, as the image of a compact space.
 - `ℒ.isQuotientMap_unitaryFrame` and `ℒ.isOpenQuotientMap_unitaryFrame`. The
   map is open because it is the orbit map of a group action up to the
@@ -809,7 +797,7 @@ is Tau Ceti's `Topology/Grassmannian/Graph.lean`, which does the same for
 - `ℒ.isOpenEmbedding_graphY`: `graphY` is an open embedding. The preimage
   under the open quotient map `unitaryFrame` of the image of an open set is
   open, by the previous item.
-- `ℒ.isOpen_setOf_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
+- `ℒ.isOpen_setOfPred_isCompl (Λ₀ : ℒ ι) : IsOpen {Λ : ℒ ι | IsCompl (Λ : Submodule ℝ _) Λ₀}`.
   For `Λ₀` horizontal, it is the range of `graphY`. Translate for general
   `Λ₀` by the symplectic action (`isCompl_smul_iff`).
 - `ℒ.graphYChart : OpenPartialHomeomorph (ℒ ι) (selfAdjoint (Matrix ι ι ℝ))`,
@@ -1006,8 +994,7 @@ The manifold structure and the milestone.
   `stdForm`, `stdForm_apply`, `stdForm_compatible`,
   `isSymplectomorphism_sumEquivProd`, `x_complexToRealEuclidean`,
   `y_complexToRealEuclidean` (merged, #41); the matrix dictionary
-  `mem_symplecticGroup_iff_forall_stdForm` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (merged, #62);
+  `mem_symplecticGroup_iff_forall_stdForm` (merged, #62);
   `isSymplectomorphism_piLpCongrLeft_sumCongr`; `StdSpace.sumEquiv` with its two
   lemmas (merged, #232).
 - *Symplectic subspaces* (merged, #64):
@@ -1085,8 +1072,7 @@ The manifold structure and the milestone.
 Nothing here redefines a Mathlib or Tau Ceti notion. The new definitions are
 `LagrangianGrassmannian` with its topology, `realSubgroup` (Tau Ceti's
 $\mathrm{O}(n)\subset\mathrm{U}(n)$ carried from `GL ι ℂ` to
-`unitaryGroup ι ℂ`), `StdSpace.graph`, `StdSpace.graphY`,
-`StdSpace.complexEuclideanEquiv` (in part 1's file), the unitary action, and
+`unitaryGroup ι ℂ`), `StdSpace.graph`, `StdSpace.graphY`, the unitary action, and
 the maps `ofFrame`, `unitaryFrame`, `graphY`, `graph`, `graphYChart`,
 `graphChart`, `sum`, `reindex`, `reindexHomeomorph` and
 `toFiniteGrassmannian`
@@ -1121,7 +1107,7 @@ merged.
    About 150 lines. No blockers.
 3. **Lagrangian frames.** `LinearAlgebra/Matrix/OfReal.lean` and
    `LinearAlgebra/Symplectic/Lagrangian/Frame.lean`, with
-   `StdSpace.complexEuclideanEquiv` in `Standard/Basic.lean`: the complex frame facts,
+   the lemmas on `TauCeti.complexToRealEuclideanIsometry` in `Standard/Basic.lean`: the complex frame facts,
    `StdSpace.graph` and `StdSpace.graphY` with `isCompl_graph_ker_x` and
    `isCompl_graphY_ker_y`, the comparison `map_realSubspace`,
    `map_lagrangianChart` and `stdForm_apply_eq_im_inner`, the frame and

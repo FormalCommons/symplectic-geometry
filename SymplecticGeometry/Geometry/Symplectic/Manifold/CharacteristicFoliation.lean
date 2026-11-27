@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
@@ -21,6 +22,7 @@ import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Topology.LocallyConstant.ConnectedComponents
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -283,17 +285,16 @@ theorem isBasic (hp : IsCharacteristicSubmersion IB σ p) (hσ : σ.IsClosed) :
   -- `fibreForm` is locally constant along each fibre, which is preconnected.
   have hconst (b : B) (y : M) (hy : p y = b) (y' : M) (hy' : p y' = b) :
       hp.fibreForm y = hp.fibreForm y' := by
-    have := isPreconnected_iff_preconnectedSpace.1 (hp.isPreconnected_preimage_singleton b)
-    have hlc : IsLocallyConstant fun z : p ⁻¹' {b} ↦ hp.fibreForm z := by
+    have hlc : IsLocallyConstant ((p ⁻¹' {b}).domRestrict hp.fibreForm) := by
       refine (IsLocallyConstant.iff_eventually_eq _).2 fun z ↦ ?_
       filter_upwards [(continuous_subtypeVal.tendsto z).eventually
         (hp.eventually_fibreForm_eq hσ z)] with z' hz'
       exact hz' (z'.prop.trans z.prop.symm)
-    exact hlc.apply_eq_of_preconnectedSpace ⟨y, hy⟩ ⟨y', hy'⟩
+    exact hlc.apply_eq_of_isPreconnected_of_subset (hp.isPreconnected_preimage_singleton b)
+      subset_rfl hy hy'
   refine RoughForm.isBasic_iff.2 fun x y hxy v w hvw ↦ ?_
   rw [← hp.fibreForm_mfderiv x v, ← hp.fibreForm_mfderiv y w, hconst (p y) x hxy y rfl]
-  -- `tangentSpaceCast` is the identity of the model space `EB` of `B`.
-  exact congrArg _ (funext hvw)
+  simp only [hvw, tangentSpaceCast_apply]
 
 omit [BoundarylessManifold I M] in
 /-- **Descent along a characteristic submersion.** A closed two-form `σ` on a manifold modelled
@@ -594,19 +595,14 @@ theorem exists_partialDiffeomorph_eval₂_eq_stdForm (σ : SmoothForm I M ℝ 2)
       τ.eval₂ (p u) (mfderiv I _ p u v) (mfderiv I _ p u w) := by
     rw [← SmoothForm.eval₂_mpullback Subtype.val contMDiff_subtypeVal, ← hτ,
       SmoothForm.eval₂_mpullback]
-  -- `Filter.EventuallyEq.mfderiv_eq` reads the derivative through `tangentSpaceCast`.
-  have hcast (y z : M) (hyz : y = z) (v w : TangentSpace I y) :
-      SmoothBundleForm.eval₂ σ z (tangentSpaceCast I y z v) (tangentSpaceCast I y z w) =
-        SmoothBundleForm.eval₂ σ y v w := by
-    subst hyz
-    simp
   have hρ (v : E) : ρ v = (L v).2 := by simp [ρ]
   filter_upwards [c.open_target.mem_nhds h0] with s hs a b
   -- Near `s`, `c⁻¹` is `Subtype.val ∘ c₀⁻¹`.
   have heq : (c.symm : E → M) =ᶠ[𝓝 s] Subtype.val ∘ c₀.symm :=
     Filter.eventually_of_mem (c.open_target.mem_nhds hs) fun z hz ↦ hcs z hz
   rw [heq.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
-  refine (hcast _ _ (hcs s hs).symm _ _).trans ?_
+  -- `Filter.EventuallyEq.mfderiv_eq` reads the derivative through `tangentSpaceCast`.
+  refine (SmoothForm.eval₂_tangentSpaceCast σ (hcs s hs).symm _ _).trans ?_
   refine (eval₂_mfderiv_comp_symm_eq_of_darbouxChart mdifferentiable_subtypeVal
     (fun u ↦ hp.isSubmersion.contMDiff.mdifferentiableAt (by simp)) hgp hd
     (fun u hu ↦ (hc₀s u).1 hu) hdp (hct hs) a b).trans ?_

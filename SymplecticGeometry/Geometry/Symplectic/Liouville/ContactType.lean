@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Symplectic.Manifold.StronglyNondegenerate
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Contact type through local Liouville fields
@@ -203,18 +204,11 @@ theorem SmoothForm.IsContactForm.notMem_range_mfderiv_of_interior_eq_neg [IsMani
   have hβZ (u : TangentSpace I (i s)) : β (i s) ![u] = -σ.val (i s) ![Z (i s), u] := by
     rw [← RoughForm.interior_apply, hZσ, ContinuousAlternatingMap.neg_apply, neg_neg]
   have hαβ (w : TangentSpace J s) : α.val s ![w] = β (i s) ![mfderiv J I i s w] := by
-    rw [← hiβ, TauCeti.mpullback_apply]
-    congr 1
-    ext k
-    fin_cases k
-    simp
+    rw [← hiβ, TauCeti.mpullback_apply_one]
   have hdαv (w : TangentSpace J s) :
       mextDeriv α.val s ![v, w] = -σ.val (i s) ![mfderiv J I i s v, mfderiv J I i s w] := by
-    rw [← mextDerivₗ_apply, hdα, SmoothForm.neg_toRoughForm, Pi.neg_apply,
-      ContinuousAlternatingMap.neg_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply]
-    congr 2
-    ext k
-    fin_cases k <;> simp
+    rw [← mextDerivₗ_apply, hdα, SmoothBundleForm.neg_apply,
+      ContinuousAlternatingMap.neg_apply, SmoothForm.coe_mpullback, TauCeti.mpullback_apply_pair]
   have hαv : α.val s ![v] = 0 := by
     rw [hαβ, hv, hβZ, (σ.val (i s)).map_eq_zero_of_eq _ (i := 0) (j := 1) rfl (by simp),
       neg_zero]
@@ -263,7 +257,7 @@ theorem SmoothEmbedding.exists_liouville_of_isContactForm [FiniteDimensional ℝ
     rw [mlieDerivForm_eq_mextDeriv_interior_apply
       (σ.isSmoothForm.contMDiff.mdifferentiable (by simp) x)
       ((hZ.contMDiffAt (hU.mem_nhds hx)).mdifferentiableAt (by simp)) (congrFun hdσ x), hZσ,
-      mextDeriv_neg, Pi.neg_apply, hdβ x hx, SmoothForm.neg_toRoughForm, Pi.neg_apply, neg_neg]
+      mextDeriv_neg, Pi.neg_apply, hdβ x hx, SmoothBundleForm.neg_apply, neg_neg]
   · exact hα.notMem_range_mfderiv_of_interior_eq_neg i.contMDiff hdα hiβ
       ((congrFun hZσ (i s)).trans (Pi.neg_apply β (i s)))
   · rw [hZσ, ← hiβ, neg_eq_iff_eq_neg]

@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Polynomial.Puiseux.RealBranch
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.RootBranch
+public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Function
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import SymplecticGeometry.Analysis.Polynomial.Puiseux.RealBranch
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.RootBranch
 
 /-!
 # Growth of a one-variable semialgebraic function near `0⁺`

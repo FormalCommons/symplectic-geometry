@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
-public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Frame
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
@@ -21,8 +20,9 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
-public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
@@ -52,8 +52,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   pairing `C^n` sections with `ω` gives a `C^n` function.
 * `ContMDiffTwoForm.IsNondegenerate`, with `isNondegenerate_iff_separatingLeft` and
   `IsNondegenerate.symplecticFormAt`, the Tau Ceti symplectic form on each fibre.
-* `isOpen_setOf_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps are
-  open in the total space of the bundle of alternating maps.
+* `isOpen_setOfPred_nondegenerate`: for finite rank, the fibrewise nondegenerate alternating maps
+  are open in the total space of the bundle of alternating maps.
 * `ContMDiffTwoForm.ofBilinearSection`: for finite rank, the two-form of a `C^n` bilinear section
   that vanishes on the diagonal.
 * `ContMDiffTwoForm.const`: the constant form of a symplectic form on the fibre of a trivial
@@ -65,7 +65,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
 * `ContMDiffTwoForm.compContinuousLinearMap`: the pull-back `ω ↦ ω(L ·, L ·)` along a `C^n`
   family of linear maps `L` between bundles, which need not be invertible.
 * `ContMDiffTwoForm.tangentEquiv`: on the tangent bundle, smooth two-forms are Tau Ceti's
-  `TauCeti.SmoothTwoForm`, with the same nondegenerate ones.
+  `TauCeti.SmoothTwoForm`, with the same bilinear forms on each tangent space
+  (`bilinFormAt_tangentEquiv`) and the same nondegenerate ones.
 * `ContMDiffTwoForm.pushforward_eq_iff`: an isomorphism `Φ` of bundles transports `ω₁` to `ω₂`
   exactly when `ω₂(Φ v, Φ w) = ω₁(v, w)` on every fibre. Symplectic isomorphisms are stated in
   this unbundled form.
@@ -346,14 +347,11 @@ end ContMDiffTwoForm
 omit [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] in
 /-- On a bundle of finite rank, the alternating maps of two vectors on a fibre whose bilinear form
 is nondegenerate form an open subset of the total space of the bundle of alternating maps. -/
-theorem isOpen_setOf_nondegenerate [FiniteDimensional ℝ F] :
+theorem isOpen_setOfPred_nondegenerate [FiniteDimensional ℝ F] :
     IsOpen {p : TotalSpace (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x) |
       LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap p.snd.toMultilinearMap)} := by
-  have hT : IsOpen {A : F [⋀^Fin 2]→L[ℝ] ℝ |
-      LinearMap.BilinForm.Nondegenerate (MultilinearMap.toBilinMap A.toMultilinearMap)} :=
-    TauCeti.isOpen_setOf_nondegenerate fun v w ↦ by
-      simpa using continuous_eval_const ![v, w]
-  refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem hT fun b q hq ↦ ?_
+  refine FiberBundle.isOpen_of_forall_mem_iff_snd_mem
+    ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap fun b q hq ↦ ?_
   -- In the fibre coordinates of the trivialization, a form becomes its pull-back by a linear
   -- equivalence.
   have hy : q.proj ∈ (trivializationAt F V b).baseSet := by
@@ -637,6 +635,22 @@ theorem tangentEquiv_apply (ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M :=
 theorem tangentEquiv_symm_apply (φ : TauCeti.SmoothTwoForm I M) (x : M) :
     tangentEquiv.symm φ x = φ.val x :=
   TauCeti.SmoothForm.toContMDiffSection_apply φ x
+
+/-- At each point, the bilinear form of the Tau Ceti form of a two-form `ω` on the tangent bundle
+is the bilinear form of `ω`. -/
+@[simp]
+theorem bilinFormAt_tangentEquiv (ω : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) (x : M) :
+    (tangentEquiv ω).bilinFormAt x = ω.bilinFormAt x := by
+  ext v w
+  simp [bilinFormAt_apply, TauCeti.SmoothBundleForm.eval₂_apply]
+
+/-- At each point, the bilinear form of the two-form of a Tau Ceti smooth two-form `φ` is the
+bilinear form of `φ`. -/
+@[simp]
+theorem bilinFormAt_tangentEquiv_symm (φ : TauCeti.SmoothTwoForm I M) (x : M) :
+    (tangentEquiv.symm φ).bilinFormAt x = φ.bilinFormAt x := by
+  ext v w
+  simp [bilinFormAt_apply, TauCeti.SmoothBundleForm.eval₂_apply]
 
 /-- A two-form on the tangent bundle is nondegenerate exactly when the corresponding Tau Ceti
 two-form is. -/

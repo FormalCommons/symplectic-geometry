@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Symplectic.Rescale
 public import TauCeti.LinearAlgebra.BilinearForm.Isotropic
 public import TauCeti.LinearAlgebra.BilinearForm.LagrangianBasis
 public import TauCeti.LinearAlgebra.Dimension.Basis
-public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
+import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
 # Symplectic complements and Lagrangian extension

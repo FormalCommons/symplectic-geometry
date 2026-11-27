@@ -8,8 +8,11 @@ module
 public import TauCeti.Topology.VectorBundle.Complexification
 public import TauCeti.Topology.VectorBundle.Hom
 public import SymplecticGeometry.Topology.Algebra.Module.Complexification
-public import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Topology.VectorBundle.ModelEquiv
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 
 /-!
 # Complexification of sums and trivial bundles

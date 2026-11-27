@@ -6,18 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
-public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
-public import SymplecticGeometry.Geometry.Contact.Levi
-public import SymplecticGeometry.Geometry.Contact.Moser
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 public import TauCeti.Geometry.Contact.Distribution
-public import TauCeti.Geometry.Contact.Flat
+import TauCeti.Geometry.Contact.Family
 public import TauCeti.Geometry.Contact.Gray
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
-public import TauCeti.Topology.VectorBundle.Hom
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import SymplecticGeometry.Geometry.Contact.Levi
+import SymplecticGeometry.Geometry.Contact.Moser
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Smooth families of contact structures
@@ -47,14 +47,12 @@ A local defining family restricts to smaller open sets
 `TauCeti.IsLocalContactFormFamily.mpullback_inclusion`, in the same Tau Ceti file at commit
 034344347f0ca1144bf5ae35c82e3edaf848fca5.
 
-On a manifold without boundary, a family over `[0, 1]` has local defining families over `ℝ` near
+On any manifold, a family over `[0, 1]` has local defining families over `ℝ` near
 every point (`SymplecticGeometry.IsContactFamily.exists_local_extension`). Near a point
 `(t₀, x₀)`, a local defining form on the cylinder is extended in time by Seeley's operator
 (`TauCeti.SmoothForm.timeExtend`). Its slices are contact on an open subset of `ℝ × M`
-(`TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`, read off the invertibility
-of the contact flat map, as in the proof of Tau Ceti's
-`TauCeti.SmoothForm.exists_isOpen_forall_isContactFormAt_add_smul_sub`), hence on a product of
-an interval around `t₀` and an open `U ∋ x₀`.
+(Tau Ceti's `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`), hence on a
+product of an interval around `t₀` and an open `U ∋ x₀`.
 Composing in time with a smooth map into that interval which is the identity near `t₀` in
 `[0, 1]` (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`) and restricting to `U` gives
 a form on `ℝ × U` all of whose slices are contact, and whose kernels are those of `ξ` at the
@@ -87,8 +85,6 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   smooth family of contact structures has a local defining family over `ℝ`.
 * `SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`: a local defining family
   restricts to smaller open sets.
-* `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
-  which the slices of a one-form are contact form an open set.
 * `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
   subset keeps its kernels; that it keeps its contact points is Tau Ceti's
   `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`.
@@ -154,12 +150,12 @@ theorem isContactFamily_iff : IsContactFamily ξ ↔
     eventually_congr (.of_forall fun q ↦ and_congr_right' ?_)
   rw [SetLike.ext_iff]
   refine forall_congr' fun v ↦ ?_
-  rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply]
   -- The slice inclusion `Prod.mk t` sends `v` to the vertical vector `(0, v)`.
-  congr! 3
-  ext i : 1
-  fin_cases i
-  exact mfderiv_prodMk_right_apply v
+  rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply_one,
+    mfderiv_prodMk_right_apply v, Prod.mk.eta]
+  -- The two sides differ only in implicit fibre types and instances, such as those of the trivial
+  -- bundles over `M` at `q.2` and over the cylinder at `q`, which agree by definition.
+  rfl
 
 namespace IsContactFamily
 
@@ -237,32 +233,6 @@ theorem grayVectorField_eq_of_eventuallyEq_smul [I.Boundaryless]
   rw [grayVectorField_def, grayVectorField_def]
   exact hc.contactMoserVectorField_apply_of_eventuallyEq_smul hc' hfy hf₀ hy hβ
 
-/-- **The contact condition is open in families.** For a one-form `α` on a product `N × M`, the
-points `(t, y)` at which the slice `α_t = ι_t^* α` is a contact form form an open set. Near a
-contact point the model space is odd-dimensional, and there contactness of `α_t` at `y` is the
-invertibility of its contact flat map, which depends continuously on `(t, y)`. -/
-theorem isOpen_setOf_isContactFormAt_mpullback_prodMk {EN HN N : Type*} [NormedAddCommGroup EN]
-    [NormedSpace ℝ EN] [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
-    [ChartedSpace HN N] [IsManifold J ∞ N] (α : SmoothForm (J.prod I) (N × M) ℝ 1) :
-    IsOpen {q : N × M | IsContactFormAt
-      (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).val q.2} := by
-  refine isOpen_iff_mem_nhds.2 fun q₀ hq₀ ↦ ?_
-  have hodd : Odd (finrank ℝ E) :=
-    (isContactFormAt_iff_isContact.1 hq₀).odd_finrank (isAlt_bilinFormAt _ q₀.2)
-  -- The contact flat maps of the slices are invertible on an open set. The bundles and the base
-  -- map are given explicitly: unification would otherwise read the section along the identity.
-  have hO : IsOpen {q : N × M | ((mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id)
-      α).contactFlat q.2).IsInvertible} :=
-    Continuous.isOpen_setOf_clm_bundle_isInvertible (𝕜 := ℝ) (F₁ := E)
-      (F₂ := E →L[ℝ] ℝ) (E₁ := TangentSpace I) (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ)
-      (b := Prod.snd) (ϕ := fun q : N × M ↦ (mpullback (Prod.mk q.1)
-        (contMDiff_const.prodMk contMDiff_id) α).contactFlat q.2)
-      (ContMDiff.continuous (n := ∞) fun q ↦ contMDiffAt_sectionAlong_contactFlat (b := Prod.snd)
-        (α := fun q : N × M ↦ mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α)
-        (contMDiff_mpullback_prodMk α q) (contMDiff_mextDeriv_mpullback_prodMk α q))
-  filter_upwards [hO.mem_nhds (isInvertible_contactFlat_of_isContactFormAt hq₀)] with q hq
-  exact isContactFormAt_of_isInvertible_contactFlat hodd hq
-
 omit [FiniteDimensional ℝ E] in
 /-- **Kernels restrict to open subsets.** Under the canonical identification of tangent spaces,
 the kernel at `x ∈ U` of the restriction of a one-form `α` to an open subset `U ⊆ M` is the kernel
@@ -334,12 +304,13 @@ theorem mpullback_inclusion (hα : IsLocalDefiningFamily ξ U α a b) {V : Opens
     IsLocalDefiningFamily ξ V (mpullback (Prod.map id (Opens.inclusion hV))
       (contMDiff_id.prodMap (contMDiff_inclusion hV)) α) a b := by
   refine ⟨fun t ↦ ?_, fun t ht x ↦ ?_⟩
-  · rw [mpullback_prodMk_mpullback_prodMap]
+  · rw [SmoothForm.mpullback_prodMk_mpullback_prodMap]
     exact (hα.isContactForm t).mpullback _ (contMDiff_inclusion hV) fun y ↦
       TauCeti.bijective_mfderiv_inclusion hV y
   · ext v
     rw [Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
-      mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV), kerDistribution_mpullback,
+      SmoothForm.mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV),
+      kerDistribution_mpullback,
       Submodule.mem_comap, ContinuousLinearMap.coe_coe, hα.mem_kerDistribution_iff ht,
       Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply,
       ContinuousLinearEquiv.apply_symm_apply]
@@ -348,10 +319,10 @@ end IsLocalDefiningFamily
 
 namespace IsContactFamily
 
-variable [FiniteDimensional ℝ E] [BoundarylessManifold I M]
+variable [FiniteDimensional ℝ E]
 
 /-- **Local defining families over `ℝ`.** Let `ξ` be a smooth family of contact structures over
-`[0, 1]` on a manifold without boundary. Near every point `(t₀, x₀)` of the cylinder there are an
+`[0, 1]` on a manifold. Near every point `(t₀, x₀)` of the cylinder there are an
 open interval `(a, b) ∋ t₀`, an open set `U ∋ x₀` and a local defining family `α` of `ξ` on `U`
 and `(a, b)`: a one-form on `ℝ × U` such that every slice `α_t`, for all real `t`, is a contact
 form on `U`, and for `t ∈ (a, b) ∩ [0, 1]` its kernel at each `x ∈ U` is `ξ t x`, under the

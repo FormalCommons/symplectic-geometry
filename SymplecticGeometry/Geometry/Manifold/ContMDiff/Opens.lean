@@ -11,11 +11,17 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 /-!
 # Smooth maps and open subsets
 
-Let `U` be an open subset of a manifold `M` and `n` a smoothness order. A map `f : P × M → N` that
-agrees on `P × U` with a `C^n` map `g : P × U → N` is `C^n` on `P × U`
-(`ContMDiff.contMDiffOn_prod_opens_of_eq`): on the open subset `P × U` of `P × M`, read as a
-manifold, `f` is `g` composed with `(p, x) ↦ (p, ⟨x, _⟩)`. The same holds with the factors
-swapped, on `U × P` (`ContMDiff.contMDiffOn_opens_prod_of_eq`).
+A map `f : M → N` is `C^n` on an open subset `U` of `M` exactly when its restriction to `U`, read
+as a manifold, is `C^n` (`contMDiff_subtype_iff`).
+
+Let `U` be an open subset of a manifold `M` and `n` a smoothness order. Let `g : P × U → N`
+be a map that is `C^n` at `(p, x)`, and `f : P × M → N` a map that agrees with it on `P × U`.
+Then `f` is `C^n` at `(p, x)` (`ContMDiffAt.prod_opens_of_eq`): on the open subset `P × U` of
+`P × M`, read as a manifold, `f` is `g` composed with `(p', x') ↦ (p', ⟨x', _⟩)`. The same holds
+with the factors swapped, on `U × P` (`ContMDiffAt.opens_prod_of_eq`). So a map that agrees on
+`P × U` with a `C^n` map on `P × U` is `C^n` on `P × U`
+(`ContMDiff.contMDiffOn_prod_opens_of_eq`), and likewise on `U × P`
+(`ContMDiff.contMDiffOn_opens_prod_of_eq`).
 
 As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → N` that is `C^n` on
 `P × U`, the map equal to `(p, x) ↦ k (p, Φ (p, x))` on `P × U` and to `k` elsewhere is `C^n` on
@@ -24,6 +30,11 @@ As a consequence, for a `C^n` map `Φ : P × U → U` and a map `k : P × M → 
 
 ## Main results
 
+* `contMDiff_subtype_iff`: a map is `C^n` on an open subset exactly when its restriction to that
+  subset is `C^n`.
+* `ContMDiffAt.prod_opens_of_eq`: a map that agrees on `P × U` with a map on `P × U` that is
+  `C^n` at a point is `C^n` at that point.
+* `ContMDiffAt.opens_prod_of_eq`: the same on `U × P`.
 * `ContMDiff.contMDiffOn_prod_opens_of_eq`: a map that agrees on `P × U` with a `C^n` map on
   `P × U` is `C^n` on `P × U`.
 * `ContMDiff.contMDiffOn_opens_prod_of_eq`: the same on `U × P`.
@@ -35,6 +46,24 @@ public section
 open Set TopologicalSpace
 open scoped Manifold
 
+section Restrict
+
+variable {𝕜 E H M E' H' N : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  [TopologicalSpace M] [ChartedSpace H M]
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- Let `U` be an open subset of `M`. The restriction to `U` of a map `f : M → N`, as a map on the
+manifold `U`, is `C^n` if and only if `f` is `C^n` on `U`. -/
+theorem contMDiff_subtype_iff {n : WithTop ℕ∞} {U : Opens M} {f : M → N} :
+    ContMDiff I I' n (fun x : U ↦ f x) ↔ ContMDiffOn I I' n f U :=
+  ⟨fun h x hx ↦ (contMDiffAt_subtype_iff (x := ⟨x, hx⟩)).1 (h _) |>.contMDiffWithinAt,
+    fun h x ↦ contMDiffAt_subtype_iff.2 <|
+      (h x x.property).contMDiffAt (U.isOpen.mem_nhds x.property)⟩
+
+end Restrict
+
 variable {EP HP P E H M E' H' N : Type*}
   [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP] {IP : ModelWithCorners ℝ EP HP}
   [TopologicalSpace P] [ChartedSpace HP P]
@@ -43,32 +72,51 @@ variable {EP HP P E H M E' H' N : Type*}
   [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   [TopologicalSpace N] [ChartedSpace H' N]
 
+/-- Let `U` be an open subset of `M` and `g : P × U → N` a map that is `C^n` at `(p, x)`. A map
+`f : P × M → N` with `f (p', x') = g (p', ⟨x', _⟩)` for every `p'` and every `x' ∈ U` is `C^n`
+at `(p, x)`. -/
+theorem ContMDiffAt.prod_opens_of_eq {n : WithTop ℕ∞} {U : Opens M} {g : P × U → N} {p : P}
+    {x : U} (hg : ContMDiffAt (IP.prod J) I' n g (p, x)) {f : P × M → N}
+    (hfg : ∀ (p' : P) (x' : M) (hx : x' ∈ U), f (p', x') = g (p', ⟨x', hx⟩)) :
+    ContMDiffAt (IP.prod J) I' n f (p, (x : M)) := by
+  -- On the open set `W = P × U`, `f` is `g` composed with `(p', x') ↦ (p', ⟨x', _⟩)`.
+  let W : Opens (P × M) := ⟨univ ×ˢ U, isOpen_univ.prod U.isOpen⟩
+  have hψ : ContMDiff (IP.prod J) J n (fun q : W ↦ (⟨q.val.2, q.property.2⟩ : U)) :=
+    (TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_snd.comp contMDiff_subtypeVal)
+  let w : W := ⟨(p, (x : M)), mem_univ p, x.property⟩
+  refine (contMDiffAt_subtype_iff (U := W) (x := w)).1 ?_
+  exact (ContMDiffAt.comp w hg ((contMDiff_fst.comp contMDiff_subtypeVal w).prodMk (hψ w)))
+    |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ hfg _ _ q.property.2)
+
+/-- Let `U` be an open subset of `M` and `g : U × P → N` a map that is `C^n` at `(x, p)`. A map
+`f : M × P → N` with `f (x', p') = g (⟨x', _⟩, p')` for every `x' ∈ U` and every `p'` is `C^n`
+at `(x, p)`. -/
+theorem ContMDiffAt.opens_prod_of_eq {n : WithTop ℕ∞} {U : Opens M} {g : U × P → N} {x : U}
+    {p : P} (hg : ContMDiffAt (J.prod IP) I' n g (x, p)) {f : M × P → N}
+    (hfg : ∀ (x' : M) (hx : x' ∈ U) (p' : P), f (x', p') = g (⟨x', hx⟩, p')) :
+    ContMDiffAt (J.prod IP) I' n f ((x : M), p) := by
+  -- Swap the factors, and apply `ContMDiffAt.prod_opens_of_eq`.
+  have h := ContMDiffAt.prod_opens_of_eq (g := fun q ↦ g (q.2, q.1))
+    (f := fun q ↦ f (q.2, q.1)) (ContMDiffAt.comp (p, x) hg
+      (contMDiff_snd.prodMk contMDiff_fst (p, x))) fun p' x' hx ↦ hfg x' hx p'
+  exact ContMDiffAt.comp (f := fun q : M × P ↦ (q.2, q.1)) ((x : M), p) h
+    (contMDiff_snd.prodMk contMDiff_fst _)
+
 /-- Let `U` be an open subset of `M` and `g : P × U → N` a `C^n` map. A map `f : P × M → N` with
 `f (p, x) = g (p, ⟨x, _⟩)` for every `p` and every `x ∈ U` is `C^n` on `P × U`. -/
 theorem ContMDiff.contMDiffOn_prod_opens_of_eq {n : WithTop ℕ∞} {U : Opens M} {g : P × U → N}
     (hg : ContMDiff (IP.prod J) I' n g) {f : P × M → N}
     (hfg : ∀ (p : P) (x : M) (hx : x ∈ U), f (p, x) = g (p, ⟨x, hx⟩)) :
-    ContMDiffOn (IP.prod J) I' n f (univ ×ˢ U) := by
-  -- On the open set `W = P × U`, `f` is `g` composed with `(p, x) ↦ (p, ⟨x, _⟩)`.
-  let W : Opens (P × M) := ⟨univ ×ˢ U, isOpen_univ.prod U.isOpen⟩
-  have hψ : ContMDiff (IP.prod J) J n (fun p : W ↦ (⟨p.val.2, p.property.2⟩ : U)) :=
-    (TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_snd.comp contMDiff_subtypeVal)
-  intro p hp
-  refine (contMDiffAt_subtype_iff (U := W) (x := ⟨p, hp⟩)).1 ?_ |>.contMDiffWithinAt
-  exact ((hg.comp ((contMDiff_fst.comp contMDiff_subtypeVal).prodMk hψ)) ⟨p, hp⟩
-    ).congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ hfg (q : P × M).1 _ q.property.2)
+    ContMDiffOn (IP.prod J) I' n f (univ ×ˢ U) := fun q hq ↦
+  ((hg (q.1, ⟨q.2, hq.2⟩)).prod_opens_of_eq hfg).contMDiffWithinAt
 
 /-- Let `U` be an open subset of `M` and `g : U × P → N` a `C^n` map. A map `f : M × P → N` with
 `f (x, p) = g (⟨x, _⟩, p)` for every `x ∈ U` and every `p` is `C^n` on `U × P`. -/
 theorem ContMDiff.contMDiffOn_opens_prod_of_eq {n : WithTop ℕ∞} {U : Opens M} {g : U × P → N}
     (hg : ContMDiff (J.prod IP) I' n g) {f : M × P → N}
     (hfg : ∀ (x : M) (hx : x ∈ U) (p : P), f (x, p) = g (⟨x, hx⟩, p)) :
-    ContMDiffOn (J.prod IP) I' n f (U ×ˢ univ) := by
-  -- Swap the factors, and apply `ContMDiff.contMDiffOn_prod_opens_of_eq`.
-  have h := ContMDiff.contMDiffOn_prod_opens_of_eq (g := fun q ↦ g (q.2, q.1))
-    (f := fun q ↦ f (q.2, q.1)) (hg.comp (contMDiff_snd.prodMk contMDiff_fst))
-    fun p x hx ↦ hfg x hx p
-  exact h.comp (contMDiff_snd.prodMk contMDiff_fst).contMDiffOn fun q hq ↦ ⟨mem_univ _, hq.1⟩
+    ContMDiffOn (J.prod IP) I' n f (U ×ˢ univ) := fun q hq ↦
+  ((hg (⟨q.1, hq.1⟩, q.2)).opens_prod_of_eq hfg).contMDiffWithinAt
 
 open Classical in
 /-- Let `U` be an open subset of `M`, `Φ : P × U → U` a `C^n` map, and `k : P × M → N` a map that

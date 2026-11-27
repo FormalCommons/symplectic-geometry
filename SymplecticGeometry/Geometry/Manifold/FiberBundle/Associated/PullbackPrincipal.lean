@@ -13,9 +13,9 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorF
 public import TauCeti.Geometry.Manifold.FiberBundle.Pullback.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.Submersion.Split
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-public import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The product `P × F` as the pull-back of `P` to `P ×_G F`
@@ -526,7 +526,7 @@ theorem isSubmersion_chartedMk (hn : 1 ≤ n) :
     (hπ.contMDiff.comp Φ.contMDiff) hn fun x ↦ ?_).isSubmersion
   rw [mfderiv_comp x (hπ.contMDiff.mdifferentiableAt hn₀) (Φ.mdifferentiable hn₀ x)]
   exact (hπ.surjective_mfderiv hn₀ _).comp
-    ((Φ.isLocalDiffeomorph x).isInvertible_mfderiv hn₀).surjective
+    (Φ.isInvertible_mfderiv hn₀).surjective
 
 omit [FiniteDimensional 𝕜 EB] [IB.Boundaryless] [FiniteDimensional 𝕜 EG] [IG.Boundaryless]
   [FiniteDimensional 𝕜 EF] [IF.Boundaryless] in
@@ -564,7 +564,7 @@ theorem mfderiv_chartedMk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P
       rw [hker, LinearMap.mem_ker]
       exact h0.symm.trans hw
     obtain ⟨ξ, hξ⟩ := hk
-    refine ⟨ξ, ((Φ.isLocalDiffeomorph x).isInvertible_mfderiv hn₀).injective ?_⟩
+    refine ⟨ξ, (Φ.isInvertible_mfderiv hn₀).injective ?_⟩
     rw [PrincipalBundle.rightFundamentalLinearMap_apply] at hξ
     exact (mfderiv_pullbackProjDiffeomorph_fundamental hn ξ x).trans hξ
   · rintro ⟨ξ, rfl⟩

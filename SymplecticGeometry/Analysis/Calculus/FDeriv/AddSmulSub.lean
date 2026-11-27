@@ -29,6 +29,8 @@ maps glue two local solutions by a cutoff, as in the proof of holonomic approxim
 * `SymplecticGeometry.norm_fderiv_add_smul_sub_sub_le`: where `0 ≤ c x ≤ 1` and
   `‖fderiv ℝ c x‖ ≤ L`, the derivative of the interpolated map is as close to a given `A` as the
   farther of the derivatives of `s₁` and `s₂`, up to `L * ‖s₂ x - s₁ x‖`.
+* `SymplecticGeometry.norm_fderiv_add_smul_sub_sub_apply_le`: the same bound on each vector `w`,
+  with the error `L * ‖w‖ * ‖s₂ x - s₁ x‖`.
 * `SymplecticGeometry.norm_fderiv_add_comp_smul_sub_sub_le`: the case `c = χ ∘ ℓ` of a cutoff
   `χ : ℝ → ℝ` in a linear coordinate `ℓ`, with the error `L * ‖ℓ‖ * ‖s₂ x - s₁ x‖`.
 
@@ -76,6 +78,24 @@ theorem norm_fderiv_add_smul_sub_sub_le {s₁ s₂ : E → F} {c : E → ℝ} (A
   · exact norm_add_smul_sub_sub_le_max _ _ _ hc₀ hc₁
   · rw [ContinuousLinearMap.norm_smulRight_apply]
     gcongr
+
+/-- The value on a vector `w` of `norm_fderiv_add_smul_sub_sub_le`: if `0 ≤ c x ≤ 1` and
+`‖fderiv ℝ c x‖ ≤ L`, then the derivative at `x` of `y ↦ s₁ y + c y • (s₂ y - s₁ y)`, minus `A`,
+has norm on `w` at most the larger of the norms on `w` of `fderiv ℝ s₁ x - A` and
+`fderiv ℝ s₂ x - A`, plus `L * ‖w‖ * ‖s₂ x - s₁ x‖`. -/
+theorem norm_fderiv_add_smul_sub_sub_apply_le {s₁ s₂ : E → F} {c : E → ℝ} (A : E →L[ℝ] F)
+    {x : E} {L : ℝ} (h₁ : DifferentiableAt ℝ s₁ x) (h₂ : DifferentiableAt ℝ s₂ x)
+    (hc : DifferentiableAt ℝ c x) (hc₀ : 0 ≤ c x) (hc₁ : c x ≤ 1) (hL : ‖fderiv ℝ c x‖ ≤ L)
+    (w : E) :
+    ‖(fderiv ℝ (fun y ↦ s₁ y + c y • (s₂ y - s₁ y)) x - A) w‖ ≤
+      max ‖(fderiv ℝ s₁ x - A) w‖ ‖(fderiv ℝ s₂ x - A) w‖ + L * ‖w‖ * ‖s₂ x - s₁ x‖ := by
+  rw [(h₁.hasFDerivAt.add_smul_sub h₂.hasFDerivAt hc.hasFDerivAt).fderiv]
+  simp only [sub_apply, add_apply, smul_apply, ContinuousLinearMap.smulRight_apply]
+  rw [add_sub_right_comm]
+  refine (norm_add_le _ _).trans (add_le_add (norm_add_smul_sub_sub_le_max _ _ _ hc₀ hc₁) ?_)
+  rw [norm_smul]
+  gcongr
+  exact ((fderiv ℝ c x).le_opNorm w).trans (by gcongr)
 
 /-- The case of `norm_fderiv_add_smul_sub_sub_le` where the scalar function is a cutoff `χ` in a
 linear coordinate `ℓ`: if `0 ≤ χ (ℓ x) ≤ 1` and `|deriv χ (ℓ x)| ≤ L`, then the derivative at `x`

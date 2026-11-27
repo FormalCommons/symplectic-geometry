@@ -5,13 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Connecting
-public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Sheets
-public import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Basic
-public import SymplecticGeometry.Algebra.Category.ModuleCat.ULiftTensor
+import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Connecting
+import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
+import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 
 /-!
 # The sign of the cross product of local orientations with the real line
@@ -39,7 +38,7 @@ map to the homology of `(F × ℝ) ∖ {0}` relative to `(F ∖ {0}) × ℝ`, wh
   boundary `δι` is `[-1] - [1]` in `H₀(ℝ ∖ {0})` (`TauCeti.singularHomologyδ_localOrientation_real`,
   from Tau Ceti's generator `[-b 0] - [b 0]` of the reduced homology of the zero-sphere), and the
   relative cross product with the class of a point `t` is the map induced by `jₜ`
-  (`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
+  (`TopCat.singularHomologyCrossRel_singularHomology₀Section_one_uliftTensorSelfIso`).
 
 A local orientation of `F × ℝ` has infinite order
 (`TauCeti.IsLocalOrientation.linearEquiv`), so the sign is `(-1) ^ (m + 1)`.
@@ -228,52 +227,20 @@ private theorem homologyMap_singularHomologyCrossRel_singularHomology₀Section
               (X := TopCat.of ({0}ᶜ : Set ℝ)) ⟨t, ht⟩ 1)))) =
       TopPair.singularHomologyMap (prodSheetPairMap (F := F) ht)
         (ModuleCat.of ℤ (ULift.{0} ℤ)) p a := by
-  have hpt := TopCat.singularHomology₀Section_singularHomologyCrossRel_apply (TopCat.of F)
-    (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ({0}ᶜ : Set (TopCat.of F))
-    (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p
-    (⟨t, ht⟩ : ({0}ᶜ : Set ℝ))
-    (ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap) a
-  have hpt' : TopCat.singularHomologyCrossRel (TopCat.of F)
-      (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ({0}ᶜ : Set (TopCat.of F))
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) p 0 p rfl
-      (a ⊗ₜ singularHomology₀Section (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (X := TopCat.of ({0}ᶜ : Set ℝ)) ⟨t, ht⟩ 1) =
-      TopPair.singularHomologyMap
-        (TopPair.ofSubsetMap (lift (𝟙 (TopCat.of F))
-          (TopCat.ofHom (ContinuousMap.const F (⟨t, ht⟩ : ({0}ᶜ : Set ℝ)))))
-          (B := ({0}ᶜ : Set (TopCat.of F)))
-          (B' := fst (TopCat.of F) (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ⁻¹'
-            ({0}ᶜ : Set (TopCat.of F))) (fun _ h ↦ h))
-        (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) p
-        (HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat ℤ)).map
-          ((ρ_ (ModuleCat.of ℤ (ULift.{0} ℤ))).inv ≫ ModuleCat.of ℤ (ULift.{0} ℤ) ◁
-            ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap)).app
-          (TopPair.toSSetPair.obj (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of F))))) p a) := by
-    rw [Functor.map_comp, NatTrans.comp_app]
-    -- `ρ⁻¹` and the whiskering act on `a ⊗ 1` by definition, and `ULift.up 1 = 1`
-    exact (Eq.trans rfl hpt).trans rfl
-  have hj := (congrArg (_ ≫ ·) (TopPair.singularHomologyMap_comp _ _ _ _).symm).trans
-    ((TopPair.singularHomologyMap_comp _ _ _ _).symm.trans
-      (congrArg (TopPair.singularHomologyMap ·
-        (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) p)
-      (ofSubsetMap_lift_comp_prodExcisionFst_comp_prodComplZeroInnerPairMap (F := F) ht)))
-  have hc := TopPair.singularHomologyMap_coefficient_naturality (prodSheetPairMap (F := F) ht)
-    (ModuleCat.uliftTensorSelfIso ℤ).hom p
-  rw [← hj] at hc
-  have hc' := ConcreteCategory.congr_hom hc
-    (HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat ℤ)).map
-      ((ρ_ (ModuleCat.of ℤ (ULift.{0} ℤ))).inv ≫ ModuleCat.of ℤ (ULift.{0} ℤ) ◁
-        ModuleCat.ofHom (ULift.moduleEquiv.symm : ℤ ≃ₗ[ℤ] ULift.{0} ℤ).toLinearMap)).app
-      (TopPair.toSSetPair.obj (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of F))))) p a)
-  simp only [ConcreteCategory.comp_apply] at hc'
-  -- As above, `erw` sees through the two forms of `ℝ ∖ {0}`.
-  erw [hpt']
-  refine hc'.symm.trans (congrArg _ ?_)
-  rw [← ConcreteCategory.comp_apply, ← HomologicalComplex.homologyMap_comp, ← NatTrans.comp_app,
-    ← Functor.map_comp, ModuleCat.rightUnitor_inv_whiskerLeft_uliftTensorSelfIso_hom ℤ,
-    CategoryTheory.Functor.map_id, NatTrans.id_app, HomologicalComplex.homologyMap_id]
-  -- the identity applied to `a`
-  rfl
+  rw [← ConcreteCategory.comp_apply (TopPair.singularHomologyMap
+      (TopPair.prodExcisionFst ({0}ᶜ : Set (TopCat.of F)) ({0}ᶜ : Set (TopCat.of ℝ))) _ p),
+    ← TopPair.singularHomologyMap_comp, ← ConcreteCategory.comp_apply,
+    ← TopPair.singularHomologyMap_coefficient_naturality, ConcreteCategory.comp_apply]
+  have h := TopCat.singularHomologyCrossRel_singularHomology₀Section_one_uliftTensorSelfIso
+    (TopCat.of F) (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℝ))).snd ({0}ᶜ : Set (TopCat.of F)) p
+    (⟨t, ht⟩ : ({0}ᶜ : Set ℝ)) a
+  -- The point `t` lives in `TopCat.of (ℝ ∖ {0})` and in the subspace of the pair
+  -- `(ℝ, ℝ ∖ {0})`, which agree only up to unfolding: hence `erw`.
+  erw [h]
+  rw [← ConcreteCategory.comp_apply, ← TopPair.singularHomologyMap_comp]
+  exact congrArg (fun φ ↦ TopPair.singularHomologyMap φ (ModuleCat.of ℤ (ULift.{0} ℤ)) p a)
+    ((Category.assoc _ _ _).trans
+      (ofSubsetMap_lift_comp_prodExcisionFst_comp_prodComplZeroInnerPairMap ht))
 
 omit [NormedSpace ℝ F] in
 /-- The first steps of `TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_cross`: the

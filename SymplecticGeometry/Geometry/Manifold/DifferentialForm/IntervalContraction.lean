@@ -7,9 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.Riemannian.Interval.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -35,7 +36,7 @@ on `M × [a, b]` with
   and an alternating form vanishes when two of its arguments lie on one line
   (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`).
 
-For a boundaryless `M`, a closed form `η` on `M × [a, b]` is therefore `pr^* η + d (K η)`.
+A closed form `η` on `M × [a, b]` is therefore `pr^* η + d (K η)`.
 Since `K η` has no component along the interval, it is the restriction to
 `M × [a, b]` of its time extension to `M × ℝ` (`TauCeti.SmoothForm.timeExtendIcc`,
 `SymplecticGeometry.mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator`).
@@ -250,8 +251,8 @@ theorem isSemibasic_fst_prodIccHomotopyOperator [CompleteSpace F]
     intervalIntegral.integral_zero
   dsimp only
   generalize projIcc 0 1 zero_le_one r = u
-  obtain ⟨s, hs⟩ : ∃ s : ℝ,
-      mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) x.2 (v i).2 = s := ⟨_, rfl⟩
+  obtain ⟨s, hs⟩ : ∃ s : ℝ, (v i).2 = s • (1 : TangentSpace (𝓡∂ 1) x.2) :=
+    ⟨_, TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc _ _⟩
   -- both the image of the unit time vector and that of `v i` are multiples of the unit vector
   -- `e` along `[a, b]`
   set e : TangentSpace (I.prod (𝓡∂ 1)) (prodIccContraction M a b (x, u)) :=
@@ -270,7 +271,7 @@ theorem isSemibasic_fst_prodIccHomotopyOperator [CompleteSpace F]
       (x, u) (v i, (0 : EuclideanSpace ℝ (Fin 1))) =
       ((u : ℝ) * s + ((x.2 : ℝ) - a) * 0) • e := by
     have h := mfderiv_prodIccContraction (x, u) (0 : TangentSpace I x.1) s 0
-    rw [zero_smul, ← eq_smul_one_of_mfderiv_subtypeVal_Icc hs, he] at h
+    rw [zero_smul, ← hs, he] at h
     rw [show v i = ((0 : TangentSpace I x.1), (v i).2) from Prod.ext hv rfl]
     -- the model space of the tangent spaces of the unit interval is `EuclideanSpace ℝ (Fin 1)`
     exact h
@@ -321,11 +322,11 @@ end Height
 
 section Extension
 
-variable [IsManifold I ∞ M] [BoundarylessManifold I M] {F : Type*} [NormedAddCommGroup F]
+variable [IsManifold I ∞ M] {F : Type*} [NormedAddCommGroup F]
   [NormedSpace ℝ F] {k : ℕ}
 
 variable (I M a b F k) in
-/-- **The extension of a form on `M × [a, b]` to `M × ℝ`.** For a boundaryless manifold `M`, it
+/-- **The extension of a form on `M × [a, b]` to `M × ℝ`.** For a manifold `M`, it
 sends a `(k + 1)`-form `η` on `M × Icc a b` to `pr^* ι_a^* η + d (ext (K η))` on `M × ℝ`, where
 `pr^* ι_a^*` is the pull-back along `(x, t) ↦ (x, a)`, `K` is
 `SymplecticGeometry.prodIccHomotopyOperator` and `ext` is the time extension
@@ -354,12 +355,12 @@ theorem isClosed_prodIccExtension {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Ic
   rw [prodIccExtension_apply]
   exact (hη.mpullback _ _).add (SmoothForm.isClosed_mextDerivₗ _)
 
-/-- **Naturality of the extension to `M × ℝ`.** For a smooth map `f : N → M` of boundaryless
+/-- **Naturality of the extension to `M × ℝ`.** For a smooth map `f : N → M` of
 manifolds, pulling the extension of `η` back along `f × id` gives the extension of the pull-back
 of `η` along `f × id`. -/
 theorem mpullback_prodMap_prodIccExtension [CompleteSpace F] {E' H' N : Type*}
     [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
-    [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N] [BoundarylessManifold I' N]
+    [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
     {f : N → M} (hf : ContMDiff I' I ∞ f) (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
     SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id)
         (prodIccExtension I M a b F k η) =

@@ -7,8 +7,13 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
+import SymplecticGeometry.Geometry.Manifold.RegularValue.DefiningFunction
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.RegularValue.NormSq
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import TauCeti.Topology.Compactness.Compact
 
 /-!
 # J-convex hypersurfaces and their contact structure
@@ -37,7 +42,25 @@ contact structure of its complex tangencies:
 On the complex tangencies `ker ∂f` of `{f = 0}` at a point `x` with `f x = 0`, the Levi form of
 `a * f` is `a x` times that of `f`
 (`SymplecticGeometry.manifoldLeviForm_apply_of_eventuallyEq_mul`), by Tau Ceti's pointwise
-product rule `TauCeti.manifoldLeviForm_mul_apply`.
+product rule `TauCeti.manifoldLeviForm_mul_apply`. Hence the Levi form on these tangencies does
+not depend on the defining function, up to a positive factor: if `g` is `C³` and vanishes near
+`x` where `f` does, `f` is `C³` with `df_x ≠ 0`, and `dg_x = c • df_x`, then the Levi form of `g`
+there is `c` times that of `f` (`SymplecticGeometry.manifoldLeviForm_apply_of_mvfderiv_eq_smul`),
+since `g = a * f` near `x` with `a x = c`, by
+`ContMDiffAt.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul`. For `c > 0`, the Levi form
+of `f` is positive on the complex tangencies of `{f = 0}` at `x` iff that of `g` is positive on
+those of `{g = 0}` (`SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`).
+
+If `f` is `C²` at each point of a compact set `K`, and at each of them the Levi form of `f` is
+positive on the nonzero vectors `v` with `df(v) = df(i v) = 0`, then a convex enough
+reparametrization of `f` is strictly plurisubharmonic on `K`
+(`SymplecticGeometry.exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`): there is
+`C ≥ 0` such that `g ∘ f` is strictly plurisubharmonic on `K` whenever `g` is `C²` at the points
+of `f '' K`, with `0 < g'` and `C g' ≤ g''` there. The real part of the Levi form of `g ∘ f` on
+`(v, v)` is `g' Re L_f(v, v) + g'' (df(v)² + df(i v)²) / 4`. At one point,
+`TauCeti.eventually_forall_re_manifoldLeviForm_add_mul_pos` gives the constant; since
+`exp (4 c f)` is then strictly plurisubharmonic there, the same constant works nearby, and Tau
+Ceti's `IsCompact.exists_forall_of_forall_exists_eventually` gives one constant for all of `K`.
 
 Examples: the regular levels of a Stein function
 (`SymplecticGeometry.IsSteinFunction.isJConvexLevel`) and the spheres `‖z‖² = c`, `c > 0`, of a
@@ -47,7 +70,8 @@ complex inner product space
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 2, on J-convex functions and hypersurfaces.
+  Chapter 2, on J-convex functions and hypersurfaces, and Lemma 2.7 for
+  `SymplecticGeometry.exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`.
 -/
 
 public section
@@ -114,6 +138,115 @@ theorem manifoldLeviForm_apply_of_eventuallyEq_mul {f g a : M → ℝ} {x : M}
   rw [manifoldLeviForm_congr_of_eventuallyEq hg, manifoldLeviForm_mul_apply ha hf v w, hfx,
     hdel hv hIv, hdel hw hIw]
   simp
+
+/-- **The Levi form of a level does not depend on the defining function.** Let `f` and `g` be
+`C³` at `x`, with `f x = 0`, `df_x ≠ 0`, `dg_x = c • df_x`, and `g = 0` near `x` wherever
+`f = 0`. On vectors `v`, `w` in the complex tangent space of `{f = 0}` at `x`, that is with
+`df(v) = df(i v) = df(w) = df(i w) = 0`, the Levi form of `g` at `x` is `c` times that of `f`. -/
+theorem manifoldLeviForm_apply_of_mvfderiv_eq_smul [CompleteSpace E] {f g : M → ℝ} {x : M}
+    (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 f x) (hg : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 g x)
+    (hfx : f x = 0) (hf' : mvfderiv 𝓘(ℝ, E) f x ≠ 0) {c : ℝ}
+    (hgf : mvfderiv 𝓘(ℝ, E) g x = c • mvfderiv 𝓘(ℝ, E) f x)
+    (hfg : ∀ᶠ y in 𝓝 x, f y = 0 → g y = 0) {v w : E}
+    (hv : mvfderiv 𝓘(ℝ, E) f x v = 0) (hIv : mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) = 0)
+    (hw : mvfderiv 𝓘(ℝ, E) f x w = 0) (hIw : mvfderiv 𝓘(ℝ, E) f x (Complex.I • w) = 0) :
+    manifoldLeviForm E g x v w = c * manifoldLeviForm E f x v w := by
+  obtain ⟨a, ha, hga, hax⟩ :=
+    hf.exists_contMDiffAt_eventuallyEq_mul_of_mvfderiv_eq_smul (n := 2) hg hfx hf' hgf hfg
+  rw [manifoldLeviForm_apply_of_eventuallyEq_mul (hf.of_le (by norm_num)) ha hfx hga hv hIv hw
+    hIw, hax]
+
+/-- **Positivity of the Levi form on the complex tangencies of a level does not depend on the
+defining function.** Let `f` and `g` be `C³` at `x`, with `f x = 0`, `df_x ≠ 0`,
+`dg_x = c • df_x` for some `c > 0`, and `g = 0` near `x` wherever `f = 0`. Then the Levi form of
+`g` at `x` has positive real part on the nonzero vectors `v` with `dg(v) = dg(i v) = 0` iff the
+Levi form of `f` has positive real part on the nonzero vectors `v` with `df(v) = df(i v) = 0`. -/
+theorem forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul [CompleteSpace E] {f g : M → ℝ}
+    {x : M} (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 f x) (hg : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 3 g x)
+    (hfx : f x = 0) (hf' : mvfderiv 𝓘(ℝ, E) f x ≠ 0) {c : ℝ} (hc : 0 < c)
+    (hgf : mvfderiv 𝓘(ℝ, E) g x = c • mvfderiv 𝓘(ℝ, E) f x)
+    (hfg : ∀ᶠ y in 𝓝 x, f y = 0 → g y = 0) :
+    (∀ v : E, mvfderiv 𝓘(ℝ, E) g x v = 0 → mvfderiv 𝓘(ℝ, E) g x (Complex.I • v) = 0 →
+        v ≠ 0 → 0 < (manifoldLeviForm E g x v v).re) ↔
+      ∀ v : E, mvfderiv 𝓘(ℝ, E) f x v = 0 → mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) = 0 →
+        v ≠ 0 → 0 < (manifoldLeviForm E f x v v).re := by
+  have hdg (u : TangentSpace 𝓘(ℝ, E) x) :
+      mvfderiv 𝓘(ℝ, E) g x u = 0 ↔ mvfderiv 𝓘(ℝ, E) f x u = 0 := by
+    rw [hgf, smul_apply, smul_eq_zero, or_iff_right hc.ne']
+  refine forall_congr' fun v ↦ ?_
+  refine imp_congr_ctx (hdg v) fun hv ↦ imp_congr_ctx (hdg _) fun hIv ↦ imp_congr_right fun _ ↦ ?_
+  rw [manifoldLeviForm_apply_of_mvfderiv_eq_smul hf hg hfx hf' hgf hfg hv hIv hv hIv,
+    Complex.re_ofReal_mul, mul_pos_iff_of_pos_left hc]
+
+/-! ### Convex reparametrizations of a defining function -/
+
+/-- **Convex reparametrizations of a function with positive Levi form on its complex tangencies,
+on a compact set.** Let `K` be compact and `f` be `C²` at each point of `K`, such that at each
+point `x` of `K` the Levi form of `f` has positive real part on the nonzero vectors `v` with
+`df(v) = df(i v) = 0`. Then there is `C ≥ 0` such that `g ∘ f` is strictly plurisubharmonic at
+every point of `K`, for every function `g : ℝ → ℝ` that is `C²` at each point of `f '' K`, with
+`0 < g'` and `C g' ≤ g''` there. -/
+theorem exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact [FiniteDimensional ℂ E]
+    [IsManifold 𝓘(ℂ, E) 2 M] {f : M → ℝ} {K : Set M} (hK : IsCompact K)
+    (hf : ∀ x ∈ K, ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x)
+    (hL : ∀ x ∈ K, ∀ v : E, mvfderiv 𝓘(ℝ, E) f x v = 0 →
+      mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) = 0 → v ≠ 0 → 0 < (manifoldLeviForm E f x v v).re) :
+    ∃ C, 0 ≤ C ∧ ∀ g : ℝ → ℝ, (∀ t ∈ f '' K, ContDiffAt ℝ 2 g t) →
+      (∀ t ∈ f '' K, 0 < deriv g t) → (∀ t ∈ f '' K, C * deriv g t ≤ iteratedDeriv 2 g t) →
+      ∀ x ∈ K, IsManifoldStrictlyPlurisubharmonicAt E (g ∘ f) x := by
+  -- `Q x v = df(v)² + df(i v)²`, and `P x c` says that `Re L_f(v, v) + c Q(v) > 0` at `x` for
+  -- `v ≠ 0`.
+  set Q : M → E → ℝ := fun x v ↦
+    mvfderiv 𝓘(ℝ, E) f x v ^ 2 + mvfderiv 𝓘(ℝ, E) f x (Complex.I • v) ^ 2
+  have hQ0 (x : M) (v : E) : 0 ≤ Q x v := by positivity
+  set P : M → ℝ → Prop := fun x c ↦
+    ∀ v : E, v ≠ 0 → 0 < (manifoldLeviForm E f x v v).re + c * Q x v
+  have hPmono {x : M} {c c' : ℝ} (hc : c ≤ c') (h : P x c) : P x c' := fun v hv ↦ by
+    have := h v hv
+    have := hQ0 x v
+    nlinarith
+  -- If `P x c` with `c > 0`, then `P y c` for `y` near `x`: `exp (4 c f)` is strictly
+  -- plurisubharmonic at `x`, hence near `x`.
+  have hφc (c : ℝ) : ContDiff ℝ 2 fun t : ℝ ↦ Real.exp (4 * c * t) := by fun_prop
+  have hnhds (x : M) (hx : x ∈ K) (c : ℝ) (hc : 0 < c) (h : P x c) : ∀ᶠ y in 𝓝 x, P y c := by
+    have hfx : ∀ᶠ y in 𝓝 x, ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f y :=
+      (contMDiffAt_iff_contMDiffAt_nhds (by simp)).1 (hf x hx)
+    have hexp (y : M) (hy : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f y) (v : E) :
+        (manifoldLeviForm E ((fun t ↦ Real.exp (4 * c * t)) ∘ f) y v v).re =
+          4 * c * Real.exp (4 * c * f y) * ((manifoldLeviForm E f y v v).re + c * Q y v) := by
+      rw [re_manifoldLeviForm_scalar_comp_apply_self (hφc c).contDiffAt hy v,
+        iteratedDeriv_exp_const_mul, ← iteratedDeriv_one, iteratedDeriv_exp_const_mul]
+      ring
+    have hx' : IsManifoldStrictlyPlurisubharmonicAt E ((fun t ↦ Real.exp (4 * c * t)) ∘ f) x := by
+      rw [isManifoldStrictlyPlurisubharmonicAt_iff]
+      intro v hv
+      rw [hexp x (hf x hx)]
+      exact mul_pos (by positivity) (h v hv)
+    filter_upwards [hx'.eventually ((hφc c).contDiffAt.comp_contMDiffAt (hf x hx)), hfx]
+      with y hy hyf v hv
+    have := (isManifoldStrictlyPlurisubharmonicAt_iff.1 hy) v hv
+    rw [hexp y hyf] at this
+    exact pos_of_mul_pos_right this (by positivity)
+  -- At each point some `n` gives `P x n`, and then `P y (n + 1)` near `x`; by compactness, a
+  -- single `n` serves all of `K`.
+  obtain ⟨n, hn⟩ := hK.exists_forall_of_forall_exists_eventually (r := (· ≤ ·))
+    (p := fun (n : ℕ) y ↦ P y n) (fun _ _ h _ hy ↦ hPmono (by exact_mod_cast h) hy)
+    fun x hx ↦ by
+      obtain ⟨n, hn⟩ := (tendsto_natCast_atTop_atTop.eventually
+        (eventually_forall_re_manifoldLeviForm_add_mul_pos (hL x hx))).exists
+      exact ⟨n + 1, nhdsWithin_le_nhds <| by
+        exact_mod_cast hnhds x hx (n + 1) (by positivity) (hPmono (by simp) hn)⟩
+  -- With `g' > 0` and `4 n g' ≤ g''`, the Levi form of `g ∘ f` is at least `g'` times
+  -- `Re L_f(v, v) + n Q(v)`.
+  refine ⟨4 * n, by positivity, fun g hg hg' hg'' x hx ↦ ?_⟩
+  rw [isManifoldStrictlyPlurisubharmonicAt_iff]
+  intro v hv
+  rw [re_manifoldLeviForm_scalar_comp_apply_self (hg _ (mem_image_of_mem f hx)) (hf x hx) v]
+  have h1 := hn x hx v hv
+  have h2 := hg' _ (mem_image_of_mem f hx)
+  have h3 := hg'' _ (mem_image_of_mem f hx)
+  have h4 := hQ0 x v
+  nlinarith [mul_pos h2 h1, mul_le_mul_of_nonneg_right h3 h4]
 
 /-! ### The contact structure of a J-convex level -/
 

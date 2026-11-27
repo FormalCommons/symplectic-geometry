@@ -112,13 +112,14 @@ parametrix glued from charts.
   order on a manifold, neither of which Tau Ceti has. The route here needs
   neither: the Euclidean statements it needs exist, and the abstract
   Fredholm theory exists.
-- **The Hilbert spaces.** `L2Form I M k` is the closure of the smooth
-  `k`-forms in Tau Ceti's `TauCeti.L2Form I M k`, the square-integrable
-  `k`-forms for the Borel structure of the compact `M`, through
-  `compactlySupportedForms.toL2Form`; its inner product is
+- **The Hilbert spaces.** `L2Form I M k` is Tau Ceti's
+  `TauCeti.L2Form I M k`, the square-integrable `k`-forms for the Borel
+  structure of the compact `M`; smooth forms enter it through
+  `compactlySupportedForms.toL2Form`, densely by Tau Ceti's
+  `compactlySupportedForms.denseRange_toL2Form`; its inner product is
   $\int_M\langle\alpha,\beta\rangle\,\mathrm{vol}$ on smooth forms, by
   Tau Ceti's
-  `integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form`.
+  `compactlySupportedForms.inner_toL2Form`.
   `H1Form o hkl` is the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, which is an
   inner product by Tau Ceti's Green's formulas: Tau Ceti's
@@ -454,8 +455,8 @@ Named like Tau Ceti's file; used by `L2.lean`.
   in Tau Ceti's `Codifferential.lean`, with `l2Inner_def`, symmetry,
   additivity and `l2Inner_self_eq_zero_iff`, the last two read off the
   inner product of `L2Form I M k` through `inner_ofSmooth`.
-- `L2Form I M k`, the closed subspace of `TauCeti.L2Form I M k` described
-  above, with
+- `L2Form I M k`, Tau Ceti's `TauCeti.L2Form I M k` as described above,
+  with
   `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k`,
   `inner_ofSmooth`, `ofSmooth_injective` and `denseRange_ofSmooth`.
 - `L2Form.localize ψ χ hχ : L2Form I M k →L[ℝ] Lp Λ 2 volume`, with
@@ -574,27 +575,19 @@ complexification:
 
 - `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
   for a basis `b`, `alternatizeUncurryFin f` is the sum of the
-  alternatizations of `b.coord i • f (b i)`.
+  alternatizations of `b.coord i • f (b i)`, by Tau Ceti's
+  `Module.Basis.sum_coord_smulRight`.
 - `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`
   and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
   $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
   degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
 
-### `Topology/Algebra/Module/FiniteDimension.lean`
-
-- `Module.Basis.sum_coord_smulRight`: for a basis `b` of a
-  finite-dimensional space, a continuous linear map `f` is
-  `∑ i, (b.coord i).smulRight (f (b i))`. The file above uses it.
-
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
 - `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
   on $\Lambda^k V$ is minus the derivation of `A` on forms.
-- `TauCeti.alternatingFormEquiv_wedgeLeft`: the form of `u ∧ x` is
-  `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
-- `Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar`: the
-  symbol of $d^*$ with Tau Ceti's sign,
-  $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$.
+- `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`: Tau Ceti's
+  `wedgeCovector u` is `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
 
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
@@ -603,22 +596,22 @@ Linear algebra for `V` a real inner product space of finite dimension, with
 on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
 `Kahler/Basic.lean`:
 
-- `TauCeti.AlmostComplexStructure.lefschetz J : (V [⋀^Fin k]→L[ℝ] ℝ)
+- `TauCeti.AlmostComplexStructure.formLefschetz J : (V [⋀^Fin k]→L[ℝ] ℝ)
   →L[ℝ] (V [⋀^Fin (k + 2)]→L[ℝ] ℝ)`, wedge with $\omega$, with
-  `lefschetz_apply`. Its use is the theorem below; the smooth version is in
+  `formLefschetz_apply`. Its use is the theorem below; the smooth version is in
   `Kahler/Identities.lean`.
 - `Orientation.formHodgeStar_fderivCompContinuousLinearMap`: the star commutes
   with the derivation of a skew-adjoint `A`, such as `J`, from
   Tau Ceti's `Orientation.hodgeStar_lieMap` through `alternatingFormEquiv`.
-- `TauCeti.AlmostComplexStructure.lefschetz_curryLeft_sub`: for every
+- `TauCeti.AlmostComplexStructure.formLefschetz_curryLeft_sub`: for every
   vector $u$, with $\varepsilon_u$ the wedge with $\langle u,\cdot\rangle$
   (`alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`) and $\iota_u$ the
   interior product `curryLeft`,
   $L\iota_u-\iota_u L=\mathcal J\varepsilon_u-\varepsilon_u\mathcal J$.
   The symbol of $d^*$ with Tau Ceti's sign is
   $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$
-  (`Orientation.smul_formHodgeStar_alternatizeUncurryFin_formHodgeStar` of
-  `HodgeStar/AlternatingForm.lean`), so
+  (Tau Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`
+  with `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`), so
   this is
   $L\delta_u-\delta_u L=-(\mathcal J\varepsilon_u-\varepsilon_u\mathcal J)$,
   the constant-coefficient Kähler identity. It is proved from the Leibniz

@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
-public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import TauCeti.Analysis.Calculus.DifferentialForm.Relative.Basic
+public import Mathlib.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Topology.UnitInterval
 
 /-!
@@ -150,9 +152,9 @@ theorem mfderiv_prodFiberContraction (x : (E × F) × unitInterval) (w : E × F)
   refine (mfderiv_comp_apply x hs
     ((contMDiff_prodMap_id_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero x) _).trans ?_
   have h := mfderiv_prodMap_id_subtypeVal_Icc (I := 𝓘(ℝ, E × F)) x w r
-  -- The model `𝓘(ℝ, E × F).prod 𝓘(ℝ, ℝ)` and its charted space are those of `(E × F) × ℝ`.
-  rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod] at h
-  rw [h, mfderiv_eq_fderiv]
+  rw [mfderiv_prod_modelWithCornersSelf_target] at h
+  refine (congrArg (mfderiv 𝓘(ℝ, (E × F) × ℝ) 𝓘(ℝ, E × F) fiberScaling _) h).trans ?_
+  rw [mfderiv_eq_fderiv]
   -- The identifications `NormedSpace.fromTangentSpace` around `fderiv` are the identity.
   exact fderiv_fiberScaling_apply _ _
 

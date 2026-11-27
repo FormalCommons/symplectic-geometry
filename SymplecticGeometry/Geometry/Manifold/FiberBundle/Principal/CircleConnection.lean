@@ -7,19 +7,23 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Connection forms on principal circle bundles
@@ -50,6 +54,8 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 
 * `SymplecticGeometry.IsCircleConnectionForm α`: `α` is a connection form.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature`: the curvature of a connection form.
+* `SymplecticGeometry.IsCircleConnectionCurvature P σ`: the `2`-form `σ` on `B` is the curvature
+  of some connection form on `P`.
 
 ## Main results
 
@@ -69,15 +75,17 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
   the trivialization of a local section.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`: a change
   of local section `τ = σ • g` adds `g^* dθ` to the pull-back of a connection form.
+* `SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add`:
+  for a real phase, `τ = σ • exp (f i)`, it adds `df`.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback`: near a
   point where a section `σ` is smooth, the curvature is `d (σ^* α)`.
 
 ## Implementation notes
 
 That `d α` vanishes on vertical vectors is the case `G = Circle` of
-`SymplecticGeometry.IsConnectionForm.isSemibasic_connectionCurvature`, applied to
+`SymplecticGeometry.IsConnectionForm.isSemibasic_gaugeCurvature`, applied to
 `α ξ₀` through `SymplecticGeometry.isConnectionForm_mapCoeff_iff` and
-`SymplecticGeometry.connectionCurvature_mapCoeff_toSpanSingleton`.
+`TauCeti.gaugeCurvature_mapCoeff_toSpanSingleton`.
 
 The two local lemmas over a trivialization are short rewrites with
 `Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
@@ -202,8 +210,9 @@ theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionFor
     (fun z ↦ by rw [← SmoothForm.mextDerivₗ_mpullback, hα.mpullback_op_smul])
     (SmoothForm.isSemibasic_iff.mpr fun x v j hv ↦ by
       have h := SmoothForm.isSemibasic_iff.mp
-        (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_connectionCurvature x v j hv
-      rw [connectionCurvature_mapCoeff_toSpanSingleton, SmoothForm.coe_mapCoeff,
+        (isConnectionForm_mapCoeff_iff.mpr hα).isSemibasic_gaugeCurvature x v j hv
+      rw [gaugeCurvature_mapCoeff_toSpanSingleton _ ((lieL_apply _ _).trans (lie_self _)),
+        SmoothForm.coe_mapCoeff,
         RoughForm.mapCoeff_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_zero] at h
       exact h.resolve_right circleLieGenerator_ne_zero)
 
@@ -260,7 +269,7 @@ theorem IsCircleConnectionForm.add_mpullback (hα : IsCircleConnectionForm α)
   mpullback_op_smul z := by
     rw [map_add, hα.mpullback_op_smul, PrincipalBundle.mpullback_op_smul_mpullback_proj]
   apply_rightFundamentalVectorField x := by
-    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+    rw [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
       hα.apply_rightFundamentalVectorField, SmoothForm.mpullback_apply_one,
       -- Tau Ceti states the vanishing of `dπ` on fundamental fields with the projection written
       -- out.
@@ -295,7 +304,7 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
         exact hc.trans (zero_add _).symm
       rw [hv0, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
         ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
-        Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
+        SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
         hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
         smul_zero, add_zero])
   refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
@@ -312,6 +321,25 @@ theorem IsCircleConnectionForm.curvature_add_mpullback (hα : IsCircleConnection
     (hα.add_mpullback a).curvature = hα.curvature + mextDerivₗ IB 1 a := by
   rw [curvature_eq_iff, map_add, mpullback_curvature, map_add,
     SmoothForm.mextDerivₗ_mpullback]
+
+variable (P) in
+/-- A `2`-form `σ` on `B` is the curvature of a connection form on the principal `Circle`-bundle
+`P`: some connection form `β` on `P` has `hβ.curvature = σ`. -/
+def IsCircleConnectionCurvature (σ : SmoothForm IB B ℝ 2) : Prop :=
+  ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+    (hβ : IsCircleConnectionForm β), hβ.curvature = σ
+
+variable (P) in
+theorem isCircleConnectionCurvature_def (σ : SmoothForm IB B ℝ 2) :
+    IsCircleConnectionCurvature P σ ↔
+      ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+        (hβ : IsCircleConnectionForm β), hβ.curvature = σ :=
+  Iff.rfl
+
+/-- The curvature of a connection form `α` on `P` satisfies `IsCircleConnectionCurvature P`. -/
+theorem IsCircleConnectionForm.isCircleConnectionCurvature (hα : IsCircleConnectionForm α) :
+    IsCircleConnectionCurvature P hα.curvature :=
+  (isCircleConnectionCurvature_def P _).2 ⟨α, hα, rfl⟩
 
 omit [IB.Boundaryless]
 
@@ -350,15 +378,13 @@ theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
   set θ := e.manifoldSnd
   have hL := DFunLike.congr_fun (congrFun (mpullback_mul_left_circleAngularForm (θ x)) 1)
     ![circleLieGenerator]
-  rw [mpullback_apply, mul_one] at hL
-  have hvec : (fun i ↦ mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ x
-      (![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] i)) =
-      fun i ↦ mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 (![circleLieGenerator] i) := by
-    funext i
-    fin_cases i
-    exact (e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
+  rw [mpullback_apply_one, mul_one] at hL
+  have hv : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ x
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x) =
+      mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 circleLieGenerator :=
+    (e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
       (GroupLieAlgebra.mulInvariantVectorField_apply _ _)
-  rw [mpullback_apply, hvec]
+  rw [mpullback_apply_one, hv]
   exact hL.trans circleAngularForm_one_circleLieGenerator
 
 /-- Over the base set of an equivariant trivialization with fibre coordinate `θ`, the difference
@@ -405,11 +431,7 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
     simpa only [SmoothForm.mpullback_apply_one] using h
   have hℓu : ℓ (op g • y) ![u] = ℓ y ![w] := by
     have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd hθ hy g) ![w]
-    rw [mpullback_apply] at h
-    refine Eq.trans ?_ h
-    congr 1
-    -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-    exact Eq.symm (FinVec.etaExpand_eq _).symm
+    rwa [mpullback_apply_one] at h
   rw [hvu, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
     ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul, hαu, hℓu,
     hα.apply_rightFundamentalVectorField,
@@ -475,13 +497,11 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     rw [← hpx, ← hpx, hps]
   have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθd hxU hxy u w hdps
   have hℓ : TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm (s (p x)) ![w] = 0 := by
-    rw [mpullback_apply]
+    rw [mpullback_apply_one]
     exact (circleAngularForm (θ (s (p x)))).map_coord_zero (0 : Fin 1) hdθs
   have hpull : TauCeti.mpullback (IB.prod (𝓡 1)) IB p
       (TauCeti.mpullback IB (IB.prod (𝓡 1)) s α.val) x ![u] = α.val (s (p x)) ![w] := by
-    rw [mpullback_apply, mpullback_apply]
-    congr 1
-    exact (FinVec.etaExpand_eq _).symm
+    rw [mpullback_apply_one, mpullback_apply_one]
   rw [hℓ, sub_zero] at hkey
   rw [ContinuousAlternatingMap.add_apply, hpull, ← hkey]
   ring
@@ -529,6 +549,34 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
   rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt]
   exact congrArg (_ + ·) (ManifoldTotalSpace.mpullback_mpullback_proj_apply (n := ∞) _ hτ)
 
+/-- **Change of local section by a real phase.** Let `σ` be a section of `P` that is smooth on an
+open set `U` of the base, read as a map into the charted total space, and `f : B → ℝ` a function
+that is `C¹` at `x ∈ U`. At `x`, the pull-back of a connection form `α` along the section
+`τ = σ • exp (f i)` is its pull-back along `σ` plus `df`: `τ^* α = df + σ^* α`.
+
+The section `τ` is smooth wherever `σ` and `f` are (`ContMDiffOn.totalSpaceMk_smul`), and the
+transition from `σ` to `τ` is `exp (f i)` (`TauCeti.PrincipalBundle.division_eq_iff`). -/
+theorem IsCircleConnectionForm.mpullback_apply_op_circleExp_smul_eq_mextDeriv_add
+    (hα : IsCircleConnectionForm α) {σ : ∀ b, P b} {U : Set B} (hU : IsOpen U)
+    (hσ : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) U)
+    {f : B → ℝ} {x : B} (hx : x ∈ U) (hf : ContMDiffAt IB 𝓘(ℝ) 1 f x) :
+    TauCeti.mpullback IB (IB.prod (𝓡 1))
+        (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, op (Circle.exp (f b)) • σ b⟩) α.val
+          x =
+      mextDeriv (RoughForm.ofFunction IB f) x +
+        TauCeti.mpullback IB (IB.prod (𝓡 1))
+          (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val x := by
+  have hτ : ContMDiffAt IB (IB.prod (𝓡 1)) 1
+      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, op (Circle.exp (f b)) • σ b⟩) x :=
+    ((hσ.contMDiffAt (hU.mem_nhds hx)).of_le (by simp)).totalSpaceMk_smul
+      (contMDiff_circleExp.contMDiffAt.comp x hf)
+  have hdiv : (fun b ↦ PrincipalBundle.division Circle (σ b) (op (Circle.exp (f b)) • σ b)) =
+      fun b ↦ Circle.exp (f b) :=
+    funext fun _ ↦ PrincipalBundle.division_eq_iff.mpr rfl
+  rw [hα.mpullback_apply_eq_mpullback_division_add hU hσ hx (hτ.mdifferentiableAt one_ne_zero),
+    hdiv, mpullback_circleExp_comp_circleAngularForm_apply (hf.mdifferentiableAt one_ne_zero)]
+
 /-- **The curvature in a local section.** At a point `x` near which a section `σ` of `P` is
 smooth, read as a map into the charted total space, the curvature of a connection form `α` is the
 exterior derivative of `σ^* α`. -/
@@ -540,8 +588,8 @@ theorem IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback [IB.Bounda
       (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val) x := by
   rw [← mpullback_mextDeriv_at (hσ.of_le (by simp))
     ((α.isSmoothForm.contMDiff _).of_le (by simp))]
-  have h := congrArg Subtype.val hα.mpullback_curvature
-  rw [SmoothForm.coe_mpullback, mextDerivₗ_apply] at h
+  have h := (SmoothForm.mpullback_eq_iff _).1 hα.mpullback_curvature
+  rw [mextDerivₗ_apply] at h
   rw [← h, ManifoldTotalSpace.mpullback_mpullback_proj_apply _ (hσ.mdifferentiableAt (by simp))]
 
 end SymplecticGeometry

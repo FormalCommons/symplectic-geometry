@@ -8,7 +8,8 @@ module
 public import Mathlib.Topology.Constructions.SumProd
 public import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
 public import Mathlib.Topology.Sets.Opens
-import Mathlib.Topology.Compactness.Compact
+import Mathlib.Analysis.Normed.Group.Real
+import TauCeti.Topology.Compactness.Normed
 
 /-!
 # Symmetric strips in a product with the real line
@@ -91,11 +92,10 @@ theorem zero_mk_mem_symmStrip {ε : ℝ} (hε : 0 < ε) (x : X) : ((0 : ℝ), x)
 slice `{0} × X` contains the symmetric strip of some positive width. -/
 theorem exists_symmStrip_le [CompactSpace X] {U : Opens (ℝ × X)}
     (hU : ∀ x : X, ((0 : ℝ), x) ∈ U) : ∃ ε > 0, symmStrip X ε ≤ U := by
-  obtain ⟨u, v, hu, -, h0u, hv, huU⟩ := generalized_tube_lemma isCompact_singleton isCompact_univ
-    U.isOpen (by rintro ⟨r, x⟩ ⟨rfl : r = 0, -⟩; exact hU x)
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 hu 0 (h0u rfl)
-  refine ⟨ε, hε, fun p hp ↦ huU (mk_mem_prod (hball ?_) (hv (mem_univ p.2)))⟩
-  rw [Metric.mem_ball, Real.dist_0_eq_abs]
+  obtain ⟨ε, hε, hball⟩ := isCompact_univ.exists_pos_forall_norm_lt (H := ℝ)
+    (Q := fun r x ↦ (r, x) ∈ U) fun x _ ↦ U.isOpen.mem_nhds (hU x)
+  refine ⟨ε, hε, fun p hp ↦ hball ?_ p.2 (mem_univ _)⟩
+  rw [Real.norm_eq_abs]
   exact mem_symmStrip_iff.1 hp
 
 end SymplecticGeometry

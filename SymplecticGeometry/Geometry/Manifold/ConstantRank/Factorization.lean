@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ConstantRank.Basic
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import TauCeti.Geometry.Manifold.RegularValue.Rank
+import SymplecticGeometry.Geometry.Manifold.ConstantRank.Basic
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace

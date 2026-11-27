@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.Lie.Quotient
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import TauCeti.Geometry.Symplectic.Hamiltonian.CommutingFlow
 public import TauCeti.Geometry.Symplectic.Hamiltonian.ExtendedPhaseSpace.Manifold
 public import TauCeti.Geometry.Symplectic.Hamiltonian.LieAlgebra
+public import Mathlib.Algebra.Lie.Quotient
+import SymplecticGeometry.Algebra.Lie.Quotient
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 
 /-!
 # Hamiltonian flows and the Poisson algebra of a symplectic manifold
@@ -206,7 +207,8 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
       (hf.mdifferentiable (by simp)) (mem_flowDomain.1 hx)
   · exact mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField
       (fun u _ ↦ hnd.isHamiltonianVectorField_hamiltonianVectorField (H u)) hσ.isClosed
-      (fun u _ ↦ (hH.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) (hv hH) hx
+      (fun u _ ↦ (hH.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp))
+      ((hv hH).of_le (by simp)) hx
   · exact IsHamiltonianVectorField.hasDerivAt_apply_self_of_hasMFDerivAt
       (X := fun u ↦ σ.hamiltonianVectorField (H u))
       (hnd.isHamiltonianVectorField_hamiltonianVectorField (H t)) (hH.mdifferentiableAt (by simp))

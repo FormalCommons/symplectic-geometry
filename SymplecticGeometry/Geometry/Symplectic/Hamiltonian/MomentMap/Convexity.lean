@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalConvexity
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.FixedComponent
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ConvexHull
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.FixedPoints
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalConvexity
+import SymplecticGeometry.Geometry.Symplectic.Manifold.FixedComponent
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 
 /-!

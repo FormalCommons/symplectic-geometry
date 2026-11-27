@@ -5,10 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Tensor
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
+public import Mathlib.Topology.Compactness.Paracompact
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import TauCeti.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 
 /-!
 # Gluing a finite-rank core over two open sets by an automorphism
@@ -45,12 +48,33 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
   (`fiberMap_glueRestrictIso_true_hom`); over `V` it is `g.inv` on `U ∩ V`, with inverse `g.hom`
   (`fiberMap_glueRestrictIso_false_hom`, `fiberMap_glueRestrictIso_false_inv`).
 * `TauCeti.FiniteRankBundleCore.glueReflIso`: gluing by the identity gives back `A`.
-* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIso` and
-  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIso`: the gluing of `A ⊕ D` by the direct
-  sum of two automorphisms has the transitions of the Whitney sum of the two gluings, and the
-  gluing of `A ⊗ D` by their tensor product those of the tensor product of the two gluings, since
-  the gluing cocycle of a direct sum or tensor product of automorphisms is the block-diagonal or
-  Kronecker product of their cocycles (`glueCocycle_whitneyMapIso`, `glueCocycle_tensorIso`).
+* `TauCeti.FiniteRankBundleCore.isoGlue`: conversely, a core `F` whose restrictions to `U` and `V`
+  are isomorphic to those of `A`, by `φ` and `ψ`, is isomorphic to the gluing of `A` by their
+  transition `glueTransition φ ψ`, which is `φ_b ∘ ψ_b⁻¹` at `b` (`fiberMap_glueTransition_hom`).
+  The isomorphism is `φ` over `U` and `ψ` off `U` (`fiberMap_isoGlue_hom_of_mem`,
+  `fiberMap_isoGlue_hom_of_notMem`), and the gluing cocycle carries it to the given isomorphism
+  on either side (`glueCocycle_comp_fiberMap_isoGlue_hom`); followed by `glueRestrictIso`, its
+  restriction to either side is the given isomorphism there
+  (`pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso`).
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_fiberMap_comp_eq_comp`: isomorphisms
+  between the restrictions of `A` and `A'` to `U` and to `V` that relate `g` to `g'` fibre by
+  fibre give an isomorphism of the gluings, by `isoGlue`. In particular an isomorphism `A ≅ A'`
+  that carries `g` to `g'` does (`nonempty_iso_glue_of_fiberMap_comp_eq`).
+* `TauCeti.FiniteRankBundleCore.glue_eqToIso_trans_trans_eqToIso`: a gluing by an automorphism
+  `k` of a core `P`, read through an equality between `P` and the restriction of the glued core,
+  depends only on `k` and on the glued core, not on that equality.
+* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIsoPullback` and
+  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIsoPullback`: the gluing of `A ⊕ D` by
+  the direct sum of two automorphisms has the transitions of the Whitney sum of the two gluings,
+  and the gluing of `A ⊗ D` by their tensor product those of the tensor product of the two
+  gluings, since the gluing cocycle of a direct sum or tensor product of automorphisms is the
+  block-diagonal or Kronecker product of their cocycles (`glueCocycle_whitneyMapIsoPullback`,
+  `glueCocycle_tensorIsoPullback`).
+  The direct sum and the tensor product of the automorphisms act on the Whitney sum and the
+  tensor product of the restrictions of `A` and `D`, so they are read through Tau Ceti's
+  `pullback_whitneySum` and `pullback_tensorObj` by `eqToIso`: they are
+  `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback` and
+  `TauCeti.FiniteRankBundleCore.tensorIsoPullback`.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_homotopic`: over a paracompact R₁
   base, gluings by two automorphisms joined by an automorphism of the pullback of `A` to the
   part `(U ∩ V) × I` of `B × I` are isomorphic. The gluing over `B × I` by that automorphism
@@ -61,14 +85,17 @@ The construction follows the pattern of Tau Ceti's `TauCeti.FiniteRankBundleCore
 point-indexed core whose transitions are given piecewise, and of
 `SymplecticGeometry.Bundle.twoChartCore`, two charts glued along a transition. The isomorphism
 `glueReflIso` is built, as Tau Ceti's `TauCeti.FiniteRankBundleCore.doubleAlongInlIso` is, with
-`TauCeti.FiniteRankBundleCore.constIso`. The proof of `nonempty_iso_glue_of_homotopic` is that of
-`TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic` (`FiniteRank/Clutching.lean`)
-for a gluing over any two open sets, with homotopy invariance of pullbacks
-(`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`).
+`TauCeti.FiniteRankBundleCore.constIso`. The isomorphism `isoGlue` is built from its fibre maps
+with Tau Ceti's `VectorBundleCore.CoordinateHom.ofContinuous`, as
+`TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` is, and inverted with Tau Ceti's
+`VectorBundleCore.CoordinateHom.invOfIsInvertible`. The proof of `nonempty_iso_glue_of_homotopic`
+rests on homotopy invariance of pullbacks
+(Tau Ceti's `TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_pullback_of_homotopic`).
 
 ## References
 
-* [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §1.2 (clutching functions).
+* [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §1.2 (clutching functions) and
+  §2.1 (a bundle over a product with a sphere as a clutching).
 -/
 
 public section
@@ -100,6 +127,13 @@ open Classical in
 theorem glueIndex_def (U : Set B) (x : B) : glueIndex U x = decide (x ∈ U) :=
   (rfl)
 
+/-- The side of the chart at `x` of a gluing over the preimage `f ⁻¹' U` is that of the chart at
+`f x` of a gluing over `U`. -/
+@[simp]
+theorem glueIndex_preimage {X : Type*} (f : X → B) (U : Set B) (x : X) :
+    glueIndex (f ⁻¹' U) x = glueIndex U (f x) :=
+  (rfl)
+
 @[simp]
 theorem glueIndex_eq_true_iff {x : B} : glueIndex U x = true ↔ x ∈ U := by
   classical
@@ -125,6 +159,11 @@ theorem mem_glueSide_glueIndex (hUV : U ∪ V = univ) (x : B) :
   · simp [hx]
   · simpa [hx] using
       (hUV.symm ▸ mem_univ x : x ∈ U ∪ V).resolve_left hx
+
+/-- The two sides of a gluing over open sets are open. -/
+theorem isOpen_glueSide [TopologicalSpace B] (hU : IsOpen U) (hV : IsOpen V) (s : Bool) :
+    IsOpen (glueSide U V s) := by
+  cases s <;> assumption
 
 end Side
 
@@ -173,6 +212,25 @@ theorem continuousOn_inChartCoordinates_fiberMap_pullback_subtypeVal
   rw [D.core.coordChange_comp _ _ _ _ ⟨⟨D.mem_baseSet_self _, hw.1.2⟩, hw.2.2⟩,
     A.core.coordChange_comp _ _ _ _ ⟨⟨hw.2.1, hw.1.1⟩, A.mem_baseSet_self _⟩]
 
+/-- The chart expression, in any two charts of `A` and `D`, of a family of fibre maps that agrees
+over an open set `W` with a morphism between the restrictions of `A` and `D` to `W` is continuous
+where both charts are defined and on `W`. -/
+theorem continuousOn_inChartCoordinates_of_eq_fiberMap_pullback_subtypeVal (hW : IsOpen W)
+    (a : A.pullback (ContinuousMap.subtypeVal W) ⟶ D.pullback (ContinuousMap.subtypeVal W))
+    {f : B → (Fin A.rank → 𝕜) →L[𝕜] (Fin D.rank → 𝕜)} (hf : ∀ w : W, f w = a.fiberMap w)
+    (x y : B) :
+    ContinuousOn (fun b ↦ A.core.inChartCoordinates D.core x y b (f b))
+      (A.core.baseSet x ∩ D.core.baseSet y ∩ W) := by
+  intro b hb
+  have hopen : IsOpen (A.core.baseSet x ∩ D.core.baseSet y) :=
+    (A.core.isOpen_baseSet x).inter (D.core.isOpen_baseSet y)
+  refine ContinuousAt.continuousWithinAt ?_
+  rw [← hW.isOpenEmbedding_subtypeVal.continuousAt_iff (x := ⟨b, hb.2⟩)]
+  refine ((continuousOn_inChartCoordinates_fiberMap_pullback_subtypeVal a x y ⟨b, hb.2⟩
+    hb.1).continuousAt ((hopen.preimage continuous_subtypeVal).mem_nhds hb.1)).congr
+    (Eventually.of_forall fun w ↦ ?_)
+  simp only [Function.comp_apply, hf]
+
 end ChartExpression
 
 /-! ### The cocycle of the gluing -/
@@ -209,10 +267,6 @@ theorem glueCocycle_true_false {b : B} (hb : b ∈ U ∩ V) :
 theorem glueCocycle_comp (s t r : Bool) {b : B}
     (hb : b ∈ glueSide U V s ∩ glueSide U V t ∩ glueSide U V r) :
     (glueCocycle g t r b).comp (glueCocycle g s t b) = glueCocycle g s r b := by
-  have hhi : ∀ h : b ∈ U ∩ V, (g.inv.fiberMap ⟨b, h⟩).comp (g.hom.fiberMap ⟨b, h⟩) = .id 𝕜 _ :=
-    fun h ↦ by rw [← fiberMap_comp, g.hom_inv_id, fiberMap_id]
-  have hih : ∀ h : b ∈ U ∩ V, (g.hom.fiberMap ⟨b, h⟩).comp (g.inv.fiberMap ⟨b, h⟩) = .id 𝕜 _ :=
-    fun h ↦ by rw [← fiberMap_comp, g.inv_hom_id, fiberMap_id]
   rcases hb with ⟨⟨hs, ht⟩, hr⟩
   cases s <;> cases t <;> cases r <;>
     simp only [glueSide, Bool.cond_true, Bool.cond_false] at hs ht hr
@@ -220,11 +274,13 @@ theorem glueCocycle_comp (s t r : Bool) {b : B}
     | (simp only [glueCocycle_self, ContinuousLinearMap.id_comp]; done)
     | (simp only [glueCocycle_self, ContinuousLinearMap.comp_id]; done)
   · have h : b ∈ U ∩ V := ⟨ht, hs⟩
-    rw [glueCocycle_false_true g h, glueCocycle_true_false g h, hhi, glueCocycle_self]
+    rw [glueCocycle_false_true g h, glueCocycle_true_false g h, fiberMap_hom_inv_id,
+      glueCocycle_self]
     -- Both sides agree once the ranks of the fibre models are unfolded.
     rfl
   · have h : b ∈ U ∩ V := ⟨hs, ht⟩
-    rw [glueCocycle_true_false g h, glueCocycle_false_true g h, hih, glueCocycle_self]
+    rw [glueCocycle_true_false g h, glueCocycle_false_true g h, fiberMap_inv_hom_id,
+      glueCocycle_self]
     -- Both sides agree once the ranks of the fibre models are unfolded.
     rfl
 
@@ -259,17 +315,8 @@ theorem continuousOn_inChartCoordinates_glueCocycle (hU : IsOpen U) (hV : IsOpen
     intro w
     cases s <;> cases t <;> simp_all [glueCocycle_false_true g w.property,
       glueCocycle_true_false g w.property, a]
-  have hc := continuousOn_inChartCoordinates_fiberMap_pullback_subtypeVal a x y
-  intro b hb
-  have hbUV : b ∈ U ∩ V := hsub ⟨hb.1.2, hb.2⟩
-  have hopen : IsOpen (A.core.baseSet x ∩ A.core.baseSet y) :=
-    (A.core.isOpen_baseSet x).inter (A.core.isOpen_baseSet y)
-  refine ContinuousAt.continuousWithinAt ?_
-  rw [← hUV.isOpenEmbedding_subtypeVal.continuousAt_iff (x := ⟨b, hbUV⟩)]
-  refine ((hc ⟨b, hbUV⟩ hb.1.1).continuousAt
-    ((hopen.preimage continuous_subtypeVal).mem_nhds hb.1.1)).congr
-    (Eventually.of_forall fun w ↦ ?_)
-  simp only [Function.comp_apply, ha]
+  exact (continuousOn_inChartCoordinates_of_eq_fiberMap_pullback_subtypeVal hUV a ha x y).mono
+    fun b hb ↦ ⟨hb.1.1, hsub ⟨hb.1.2, hb.2⟩⟩
 
 end Cocycle
 
@@ -291,8 +338,7 @@ def glue : FiniteRankBundleCore 𝕜 B where
   rank := A.rank
   core :=
     { baseSet := fun x ↦ A.core.baseSet x ∩ glueSide U V (glueIndex U x)
-      isOpen_baseSet := fun x ↦ (A.core.isOpen_baseSet x).inter <| by
-        cases glueIndex U x <;> assumption
+      isOpen_baseSet := fun x ↦ (A.core.isOpen_baseSet x).inter (isOpen_glueSide hU hV _)
       indexAt := id
       mem_baseSet_at := fun x ↦ ⟨A.mem_baseSet_self x, mem_glueSide_glueIndex hUV x⟩
       coordChange := fun x y b ↦
@@ -354,6 +400,18 @@ theorem coordChange_glue_of_mem_of_notMem {x y b : B} (hx : x ∈ U) (hy : y ∉
         ((g.inv.fiberMap ⟨b, hb⟩).comp (A.core.coordChange x b b)) := by
   rw [coordChange_glue, glueIndex_of_mem hx, glueIndex_of_notMem hy,
     glueCocycle_true_false g hb, inChartCoordinates_core]
+
+/-- A fibre map into the glued core, read in a chart of the glued core, is the same map followed
+by the gluing cocycle from the side of the point to that of the chart, read in the chart of `A`. -/
+theorem inChartCoordinates_glue_right (D : FiniteRankBundleCore 𝕜 B) (i j b : B)
+    (ϕ : (Fin D.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜)) :
+    D.core.inChartCoordinates (A.glue hU hV hUV g).core i j b ϕ =
+      D.core.inChartCoordinates A.core i j b
+        ((glueCocycle g (glueIndex U b) (glueIndex U j) b).comp ϕ) := by
+  rw [inChartCoordinates_core, inChartCoordinates_core, coordChange_glue, inChartCoordinates_core,
+    coordChange_self]
+  -- Composition with the identity, once the ranks of the fibre models are unfolded.
+  rfl
 
 /-! ### The glued core over each side -/
 
@@ -540,6 +598,296 @@ theorem fiberMap_glueReflIso_inv (x : B) :
 
 end Glue
 
+/-! ### A core with isomorphic restrictions to two open sets is a gluing -/
+
+section OfIso
+
+variable {F A : FiniteRankBundleCore 𝕜 B} {U V : Set B}
+  (φ : F.pullback (ContinuousMap.subtypeVal U) ≅ A.pullback (ContinuousMap.subtypeVal U))
+  (ψ : F.pullback (ContinuousMap.subtypeVal V) ≅ A.pullback (ContinuousMap.subtypeVal V))
+
+/-- The transition of two isomorphisms `φ`, over `U`, and `ψ`, over `V`, from the restrictions of
+`F` to those of `A`: the automorphism of the restriction of `A` to `U ∩ V` that is `φ_b ∘ ψ_b⁻¹`
+at `b`, from the copy of `A` over `V` to that over `U` (`fiberMap_glueTransition_hom`). -/
+def glueTransition :
+    A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V)) :=
+  ((pullbackFunctor (ContinuousMap.inclusion inter_subset_right)).mapIso ψ).symm ≪≫
+    (pullbackFunctor (ContinuousMap.inclusion inter_subset_left)).mapIso φ
+
+/- In the next two proofs, the restriction of the pullback to `U` (or `V`) along the inclusion of
+`U ∩ V` is the pullback to `U ∩ V` by `pullback_comp`, which holds by `rfl`; the fibre maps of the
+composite are read through `fiberMap_comp` and `fiberMap_pullbackMap` at that type. -/
+
+@[simp]
+theorem fiberMap_glueTransition_hom (x : ↥(U ∩ V)) :
+    (glueTransition φ ψ).hom.fiberMap x =
+      (φ.hom.fiberMap ⟨x, x.property.1⟩).comp (ψ.inv.fiberMap ⟨x, x.property.2⟩) :=
+  (fiberMap_comp (pullbackMap ψ.inv (ContinuousMap.inclusion inter_subset_right))
+    (pullbackMap φ.hom (ContinuousMap.inclusion inter_subset_left)) x).trans
+      (congrArg₂ ContinuousLinearMap.comp
+        (fiberMap_pullbackMap _ _ x) (fiberMap_pullbackMap _ _ x))
+
+@[simp]
+theorem fiberMap_glueTransition_inv (x : ↥(U ∩ V)) :
+    (glueTransition φ ψ).inv.fiberMap x =
+      (ψ.hom.fiberMap ⟨x, x.property.2⟩).comp (φ.inv.fiberMap ⟨x, x.property.1⟩) :=
+  (fiberMap_comp (pullbackMap φ.inv (ContinuousMap.inclusion inter_subset_left))
+    (pullbackMap ψ.hom (ContinuousMap.inclusion inter_subset_right)) x).trans
+      (congrArg₂ ContinuousLinearMap.comp
+        (fiberMap_pullbackMap _ _ x) (fiberMap_pullbackMap _ _ x))
+
+/-- The given isomorphism on the side `s`: `φ` over `U` (`s = true`) and `ψ` over `V`
+(`s = false`). -/
+def glueSideIso : (s : Bool) →
+    (F.pullback (ContinuousMap.subtypeVal (glueSide U V s)) ≅
+      A.pullback (ContinuousMap.subtypeVal (glueSide U V s)))
+  | true => φ
+  | false => ψ
+
+@[simp]
+theorem glueSideIso_true : glueSideIso φ ψ true = φ :=
+  (rfl)
+
+@[simp]
+theorem glueSideIso_false : glueSideIso φ ψ false = ψ :=
+  (rfl)
+
+/-- The gluing cocycle of `glueTransition φ ψ` carries the isomorphism on one side to that on the
+other, at a point of both sides. -/
+theorem glueCocycle_comp_fiberMap_glueSideIso_hom (s t : Bool) {b : B}
+    (hs : b ∈ glueSide U V s) (ht : b ∈ glueSide U V t) :
+    (glueCocycle (glueTransition φ ψ) s t b).comp ((glueSideIso φ ψ s).hom.fiberMap ⟨b, hs⟩) =
+      (glueSideIso φ ψ t).hom.fiberMap ⟨b, ht⟩ := by
+  cases s <;> cases t
+  · rw [glueCocycle_self, ContinuousLinearMap.id_comp]
+  · rw [glueCocycle_false_true _ ⟨ht, hs⟩, fiberMap_glueTransition_hom, glueSideIso_false,
+      glueSideIso_true, ContinuousLinearMap.comp_assoc, fiberMap_hom_inv_id]
+    -- Composition with the identity, once the ranks of the fibre models are unfolded.
+    rfl
+  · rw [glueCocycle_true_false _ ⟨hs, ht⟩, fiberMap_glueTransition_inv, glueSideIso_false,
+      glueSideIso_true, ContinuousLinearMap.comp_assoc, fiberMap_hom_inv_id]
+    -- Composition with the identity, once the ranks of the fibre models are unfolded.
+    rfl
+  · rw [glueCocycle_self, ContinuousLinearMap.id_comp]
+
+/-- The inverse of the isomorphism on one side, after the gluing cocycle of `glueTransition φ ψ`
+from the other side, is the inverse of the isomorphism on the other side, at a point of both
+sides. -/
+theorem fiberMap_glueSideIso_inv_comp_glueCocycle (s t : Bool) {b : B}
+    (hs : b ∈ glueSide U V s) (ht : b ∈ glueSide U V t) :
+    ((glueSideIso φ ψ t).inv.fiberMap ⟨b, ht⟩).comp
+        (glueCocycle (glueTransition φ ψ) s t b : (Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜)) =
+      (glueSideIso φ ψ s).inv.fiberMap ⟨b, hs⟩ := by
+  cases s <;> cases t
+  · rw [glueCocycle_self, ContinuousLinearMap.comp_id]
+  · rw [glueCocycle_false_true _ ⟨ht, hs⟩, fiberMap_glueTransition_hom, glueSideIso_false,
+      glueSideIso_true, ← ContinuousLinearMap.comp_assoc, fiberMap_hom_inv_id]
+    -- Composition with the identity, once the ranks of the fibre models are unfolded.
+    rfl
+  · rw [glueCocycle_true_false _ ⟨hs, ht⟩, fiberMap_glueTransition_inv, glueSideIso_false,
+      glueSideIso_true, ← ContinuousLinearMap.comp_assoc, fiberMap_hom_inv_id]
+    -- Composition with the identity, once the ranks of the fibre models are unfolded.
+    rfl
+  · rw [glueCocycle_self, ContinuousLinearMap.comp_id]
+
+variable (hU : IsOpen U) (hV : IsOpen V) (hUV : U ∪ V = univ)
+
+/-- The forward map of `isoGlue`: at `b`, the given isomorphism on the side of `b`. -/
+private def isoGlueHom : F ⟶ A.glue hU hV hUV (glueTransition φ ψ) :=
+  VectorBundleCore.CoordinateHom.ofContinuous
+    (fun b ↦ (glueSideIso φ ψ (glueIndex U b)).hom.fiberMap ⟨b, mem_glueSide_glueIndex hUV b⟩) <|
+    VectorBundleCore.continuous_hom_bundle_iff_forall_continuousOn.2 fun i j ↦ by
+      -- In the chart at `j`, on its side `glueIndex U j`, this is the isomorphism on that side.
+      refine ((continuousOn_inChartCoordinates_of_eq_fiberMap_pullback_subtypeVal
+        (isOpen_glueSide hU hV (glueIndex U j)) (glueSideIso φ ψ (glueIndex U j)).hom
+        (f := fun b ↦ (glueCocycle (glueTransition φ ψ) (glueIndex U b) (glueIndex U j) b).comp
+          ((glueSideIso φ ψ (glueIndex U b)).hom.fiberMap ⟨b, mem_glueSide_glueIndex hUV b⟩))
+        (fun w ↦ glueCocycle_comp_fiberMap_glueSideIso_hom φ ψ _ _ _ w.property) i j).mono
+        ?_).congr fun b _ ↦ ?_
+      · exact fun b hb ↦ ⟨⟨hb.1, hb.2.1⟩, hb.2.2⟩
+      exact inChartCoordinates_glue_right A hU hV hUV _ F i j b _
+
+private theorem fiberMap_isoGlueHom (b : B) :
+    (isoGlueHom φ ψ hU hV hUV).fiberMap b =
+      (glueSideIso φ ψ (glueIndex U b)).hom.fiberMap ⟨b, mem_glueSide_glueIndex hUV b⟩ := by
+  rw [isoGlueHom, VectorBundleCore.CoordinateHom.fiberMap_ofContinuous]
+
+private theorem isInvertible_fiberMap_isoGlueHom (b : B) :
+    ((isoGlueHom φ ψ hU hV hUV).fiberMap b).IsInvertible := by
+  rw [fiberMap_isoGlueHom]
+  exact isInvertible_fiberMap_hom _ _
+
+/-- **A core with isomorphic restrictions to two open sets is a gluing.** If `U` and `V` are open
+and cover `B`, and the restrictions of `F` to `U` and to `V` are isomorphic to those of `A` by `φ`
+and `ψ`, then `F` is isomorphic to the gluing of `A` by their transition `glueTransition φ ψ`. At
+`b` the isomorphism is `φ_b` if `b ∈ U` and `ψ_b` otherwise (`fiberMap_isoGlue_hom`). -/
+def isoGlue : F ≅ A.glue hU hV hUV (glueTransition φ ψ) where
+  hom := isoGlueHom φ ψ hU hV hUV
+  inv := (isoGlueHom φ ψ hU hV hUV).invOfIsInvertible
+    (isInvertible_fiberMap_isoGlueHom φ ψ hU hV hUV)
+  hom_inv_id := VectorBundleCore.CoordinateHom.invOfIsInvertible_comp _ _
+  inv_hom_id := VectorBundleCore.CoordinateHom.comp_invOfIsInvertible _ _
+
+theorem fiberMap_isoGlue_hom (b : B) :
+    (isoGlue φ ψ hU hV hUV).hom.fiberMap b =
+      (glueSideIso φ ψ (glueIndex U b)).hom.fiberMap ⟨b, mem_glueSide_glueIndex hUV b⟩ :=
+  fiberMap_isoGlueHom φ ψ hU hV hUV b
+
+theorem fiberMap_isoGlue_inv (b : B) :
+    (isoGlue φ ψ hU hV hUV).inv.fiberMap b =
+      (glueSideIso φ ψ (glueIndex U b)).inv.fiberMap ⟨b, mem_glueSide_glueIndex hUV b⟩ := by
+  rw [← inverse_fiberMap_hom (isoGlue φ ψ hU hV hUV), fiberMap_isoGlue_hom, inverse_fiberMap_hom]
+
+/-- On the side `s`, the isomorphism `isoGlue φ ψ hU hV hUV` followed by the gluing cocycle from
+the side of the point to `s` is the given isomorphism on `s`: `φ` over `U` and `ψ` over `V`. -/
+theorem glueCocycle_comp_fiberMap_isoGlue_hom (s : Bool) {b : B} (hb : b ∈ glueSide U V s) :
+    (glueCocycle (glueTransition φ ψ) (glueIndex U b) s b).comp
+        ((isoGlue φ ψ hU hV hUV).hom.fiberMap b) =
+      (glueSideIso φ ψ s).hom.fiberMap ⟨b, hb⟩ := by
+  rw [fiberMap_isoGlue_hom, glueCocycle_comp_fiberMap_glueSideIso_hom]
+
+/-- On the side `s`, the gluing cocycle from `s` to the side of the point followed by the inverse
+of `isoGlue φ ψ hU hV hUV` is the inverse of the given isomorphism on `s`. -/
+theorem fiberMap_isoGlue_inv_comp_glueCocycle (s : Bool) {b : B} (hb : b ∈ glueSide U V s) :
+    ((isoGlue φ ψ hU hV hUV).inv.fiberMap b).comp
+        (glueCocycle (glueTransition φ ψ) s (glueIndex U b) b :
+          (Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜)) =
+      (glueSideIso φ ψ s).inv.fiberMap ⟨b, hb⟩ := by
+  rw [fiberMap_isoGlue_inv, fiberMap_glueSideIso_inv_comp_glueCocycle]
+
+/-- On the side `s`, the restriction of `isoGlue φ ψ hU hV hUV` followed by the isomorphism of the
+glued core with `A` there (`glueRestrictIso`) is the given isomorphism on `s`. -/
+theorem pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso (s : Bool) :
+    (pullbackFunctor (ContinuousMap.subtypeVal (glueSide U V s))).mapIso
+        (isoGlue φ ψ hU hV hUV) ≪≫
+      A.glueRestrictIso hU hV hUV (glueTransition φ ψ) s = glueSideIso φ ψ s := by
+  refine Iso.ext (hom_ext fun x ↦ ?_)
+  rw [Iso.trans_hom, Functor.mapIso_hom, pullbackFunctor_map, fiberMap_comp, fiberMap_pullbackMap,
+    fiberMap_glueRestrictIso_hom]
+  exact glueCocycle_comp_fiberMap_isoGlue_hom φ ψ hU hV hUV s x.property
+
+/-- Over `U`, the restriction of `isoGlue φ ψ hU hV hUV` followed by `glueRestrictIso` is `φ`. -/
+theorem pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso_true :
+    (pullbackFunctor (ContinuousMap.subtypeVal U)).mapIso (isoGlue φ ψ hU hV hUV) ≪≫
+      A.glueRestrictIso hU hV hUV (glueTransition φ ψ) true = φ :=
+  pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso φ ψ hU hV hUV true
+
+/-- Over `V`, the restriction of `isoGlue φ ψ hU hV hUV` followed by `glueRestrictIso` is `ψ`. -/
+theorem pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso_false :
+    (pullbackFunctor (ContinuousMap.subtypeVal V)).mapIso (isoGlue φ ψ hU hV hUV) ≪≫
+      A.glueRestrictIso hU hV hUV (glueTransition φ ψ) false = ψ :=
+  pullbackFunctor_mapIso_isoGlue_trans_glueRestrictIso φ ψ hU hV hUV false
+
+/-- Over `U`, the isomorphism of `F` with the gluing is `φ`. -/
+theorem fiberMap_isoGlue_hom_of_mem {b : B} (hb : b ∈ U) :
+    (isoGlue φ ψ hU hV hUV).hom.fiberMap b = φ.hom.fiberMap ⟨b, hb⟩ := by
+  have h := glueCocycle_comp_fiberMap_isoGlue_hom φ ψ hU hV hUV true hb
+  rwa [glueIndex_of_mem hb, glueCocycle_self, ContinuousLinearMap.id_comp] at h
+
+/-- Over `U`, the inverse isomorphism, from the gluing to `F`, is the inverse of `φ`. -/
+theorem fiberMap_isoGlue_inv_of_mem {b : B} (hb : b ∈ U) :
+    (isoGlue φ ψ hU hV hUV).inv.fiberMap b = φ.inv.fiberMap ⟨b, hb⟩ := by
+  have h := fiberMap_isoGlue_inv_comp_glueCocycle φ ψ hU hV hUV true hb
+  rwa [glueIndex_of_mem hb, glueCocycle_self, ContinuousLinearMap.comp_id] at h
+
+/-- Over `V`, outside `U`, the isomorphism of `F` with the gluing is `ψ`. -/
+theorem fiberMap_isoGlue_hom_of_notMem {b : B} (hb : b ∉ U) (hbV : b ∈ V) :
+    (isoGlue φ ψ hU hV hUV).hom.fiberMap b = ψ.hom.fiberMap ⟨b, hbV⟩ := by
+  have h := glueCocycle_comp_fiberMap_isoGlue_hom φ ψ hU hV hUV false hbV
+  rwa [glueIndex_of_notMem hb, glueCocycle_self, ContinuousLinearMap.id_comp] at h
+
+/-- Over `V`, outside `U`, the inverse isomorphism, from the gluing to `F`, is the inverse of
+`ψ`. -/
+theorem fiberMap_isoGlue_inv_of_notMem {b : B} (hb : b ∉ U) (hbV : b ∈ V) :
+    (isoGlue φ ψ hU hV hUV).inv.fiberMap b = ψ.inv.fiberMap ⟨b, hbV⟩ := by
+  have h := fiberMap_isoGlue_inv_comp_glueCocycle φ ψ hU hV hUV false hbV
+  rwa [glueIndex_of_notMem hb, glueCocycle_self, ContinuousLinearMap.comp_id] at h
+
+end OfIso
+
+/-! ### Gluings by automorphisms related over each side -/
+
+section Conj
+
+variable {A A' : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
+  (hUV : U ∪ V = univ)
+
+/-- **Gluings by automorphisms related by isomorphisms over each side are isomorphic.** If
+`kU` and `kV` are isomorphisms between the restrictions of `A` and `A'` to `U` and to `V`, and
+the automorphisms `g` of the restriction of `A` to `U ∩ V` and `g'` of that of `A'` satisfy
+`kU_b ∘ g_b = g'_b ∘ kV_b` at each point `b` of `U ∩ V`, then the gluing of `A` by `g` is
+isomorphic to that of `A'` by `g'`. -/
+theorem nonempty_iso_glue_of_fiberMap_comp_eq_comp
+    (kU : A.pullback (ContinuousMap.subtypeVal U) ≅ A'.pullback (ContinuousMap.subtypeVal U))
+    (kV : A.pullback (ContinuousMap.subtypeVal V) ≅ A'.pullback (ContinuousMap.subtypeVal V))
+    {g : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    {g' : A'.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A'.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (h : ∀ b : ↥(U ∩ V), (kU.hom.fiberMap ⟨b, b.property.1⟩).comp (g.hom.fiberMap b) =
+      (g'.hom.fiberMap b).comp (kV.hom.fiberMap ⟨b, b.property.2⟩)) :
+    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') := by
+  -- The glued core has the restrictions of `A'` to both sides, through `kU` and `kV`; their
+  -- transition is `g'`, so `isoGlue` gives the isomorphism.
+  let φ := A.glueRestrictIso hU hV hUV g true ≪≫ kU
+  let ψ := A.glueRestrictIso hU hV hUV g false ≪≫ kV
+  have ht : glueTransition φ ψ = g' := by
+    refine Iso.ext (hom_ext fun b ↦ ?_)
+    have hb : glueIndex U (b : B) = true := glueIndex_of_mem b.property.1
+    have hφ : φ.hom.fiberMap ⟨b, b.property.1⟩ = kU.hom.fiberMap ⟨b, b.property.1⟩ := by
+      simp only [φ, Iso.trans_hom, fiberMap_comp, fiberMap_glueRestrictIso_true_hom]
+      exact ContinuousLinearMap.comp_id _
+    have hψ : ψ.inv.fiberMap ⟨b, b.property.2⟩ =
+        (g.hom.fiberMap b).comp (kV.inv.fiberMap ⟨b, b.property.2⟩) := by
+      simp only [ψ, Iso.trans_inv, fiberMap_comp, fiberMap_glueRestrictIso_inv,
+        hb, glueCocycle_false_true _ b.property]
+    rw [fiberMap_glueTransition_hom, hφ, hψ, ← ContinuousLinearMap.comp_assoc, h,
+      ContinuousLinearMap.comp_assoc, fiberMap_inv_hom_id]
+    exact ContinuousLinearMap.comp_id _
+  rw [← ht]
+  exact ⟨isoGlue φ ψ hU hV hUV⟩
+
+/-- **Gluings by conjugate automorphisms are isomorphic.** If an isomorphism `Φ : A ≅ A'`
+carries the automorphism `g` of the restriction of `A` to `U ∩ V` to the automorphism `g'` of
+that of `A'`, fibre by fibre, then the gluing of `A` by `g` is isomorphic to that of `A'` by
+`g'`. -/
+theorem nonempty_iso_glue_of_fiberMap_comp_eq (Φ : A ≅ A')
+    {g : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    {g' : A'.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A'.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (h : ∀ b : ↥(U ∩ V), (Φ.hom.fiberMap b).comp (g.hom.fiberMap b) =
+      (g'.hom.fiberMap b).comp (Φ.hom.fiberMap b)) :
+    Nonempty (A.glue hU hV hUV g ≅ A'.glue hU hV hUV g') :=
+  nonempty_iso_glue_of_fiberMap_comp_eq_comp hU hV hUV
+    ((pullbackFunctor (ContinuousMap.subtypeVal U)).mapIso Φ)
+    ((pullbackFunctor (ContinuousMap.subtypeVal V)).mapIso Φ) fun b ↦ by
+      simpa only [Functor.mapIso_hom, fiberMap_pullbackMap, ContinuousMap.subtypeVal_apply] using
+        h b
+
+end Conj
+
+/-! ### Gluing by automorphisms read through an equality of cores -/
+
+section EqToIso
+
+variable {A A' : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
+  (hUV : U ∪ V = univ) {P : FiniteRankBundleCore 𝕜 ↥(U ∩ V)}
+
+/-- Let `k` be an automorphism of a core `P` over `U ∩ V`. For equal cores `A = A'` whose
+restrictions to `U ∩ V` equal `P`, the gluing of `A` by `k`, read through `A|_{U ∩ V} = P`, is
+the gluing of `A'` by `k`, read through `A'|_{U ∩ V} = P`. -/
+theorem glue_eqToIso_trans_trans_eqToIso (h : A = A')
+    (hA : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) = P)
+    (hA' : A'.pullback (ContinuousMap.subtypeVal (U ∩ V)) = P) (k : P ≅ P) :
+    A.glue hU hV hUV (eqToIso hA ≪≫ k ≪≫ eqToIso hA.symm) =
+      A'.glue hU hV hUV (eqToIso hA' ≪≫ k ≪≫ eqToIso hA'.symm) := by
+  subst h
+  rfl
+
+end EqToIso
+
 /-! ### Gluing Whitney sums and tensor products -/
 
 section Operations
@@ -553,10 +901,11 @@ variable {A D : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV :
   (g₂ : D.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
     D.pullback (ContinuousMap.subtypeVal (U ∩ V)))
 
-/-- The gluing cocycle of the direct sum of two automorphisms is block diagonal, with the gluing
-cocycles of the two automorphisms as blocks. -/
-theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
-    glueCocycle (A := whitneySum A D) (whitneyMapIso g₁ g₂) s t b =
+/-- The gluing cocycle of the direct sum of two automorphisms, as an automorphism of the
+restriction of `A ⊕ D` through `pullback_whitneySum`, is block diagonal, with the gluing cocycles
+of the two automorphisms as blocks. -/
+theorem glueCocycle_whitneyMapIsoPullback (s t : Bool) (b : B) :
+    glueCocycle (A := whitneySum A D) (whitneyMapIsoPullback g₁ g₂) s t b =
       (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
         (((glueCocycle g₁ s t b).prodMap (glueCocycle g₂ s t b)).comp
           (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
@@ -564,34 +913,38 @@ theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
       (((ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜)).prodMap (.id 𝕜 (Fin D.rank → 𝕜))).comp
         (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) = .id 𝕜 _ :=
     ContinuousLinearMap.ext (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm_apply_apply
-  cases s <;> cases t <;> simp only [glueCocycle, whitneyMapIso_hom, whitneyMapIso_inv] <;>
-    (try split_ifs) <;> first | exact hid.symm | exact fiberMap_whitneyMap _ _ _
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_whitneyMapIsoPullback_hom,
+    fiberMap_whitneyMapIsoPullback_inv] <;> by_cases h : b ∈ U ∩ V <;>
+    (try simp only [h, ↓reduceDIte]) <;> first | exact hid.symm | rfl
 
-/-- The gluing cocycle of the tensor product of two automorphisms is the Kronecker product of
-their gluing cocycles. -/
-theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
-    glueCocycle (A := tensor A D) (g₁ ⊗ᵢ g₂) s t b =
+/-- The gluing cocycle of the tensor product of two automorphisms, as an automorphism of the
+restriction of `A ⊗ D` through `pullback_tensorObj`, is the Kronecker product of their gluing
+cocycles. -/
+theorem glueCocycle_tensorIsoPullback (s t : Bool) (b : B) :
+    glueCocycle (A := A ⊗ D) (tensorIsoPullback g₁ g₂) s t b =
       (glueCocycle g₁ s t b).kronecker (glueCocycle g₂ s t b) := by
-  cases s <;> cases t <;> simp only [glueCocycle, tensorIso_hom, tensorIso_inv] <;>
-    (try split_ifs) <;>
-    first | exact ContinuousLinearMap.id_kronecker_id.symm | exact fiberMap_tensorHom_monoidal _ _ _
+  cases s <;> cases t <;> simp only [glueCocycle, fiberMap_tensorIsoPullback_hom,
+    fiberMap_tensorIsoPullback_inv] <;> by_cases h : b ∈ U ∩ V <;>
+    (try simp only [h, ↓reduceDIte]) <;>
+    first | exact ContinuousLinearMap.id_kronecker_id.symm | rfl
 
 /-- The transitions of the gluing of `A ⊕ D` by the direct sum of `g₁` and `g₂` are those of the
 Whitney sum of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
-theorem coordChange_glue_whitneyMapIso (i j b : B) :
-    ((whitneySum A D).glue hU hV hUV (whitneyMapIso g₁ g₂)).core.coordChange i j b =
+theorem coordChange_glue_whitneyMapIsoPullback (i j b : B) :
+    ((whitneySum A D).glue hU hV hUV (whitneyMapIsoPullback g₁ g₂)).core.coordChange i j b =
       (whitneySum (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
-  refine (coordChange_glue _ _ _ _ _ i j b).trans ?_
-  rw [glueCocycle_whitneyMapIso]
+  rw [coordChange_glue, glueCocycle_whitneyMapIsoPullback]
   exact inChartCoordinates_whitneySum_prodMap A A D D _ _ i j b
 
 /-- The transitions of the gluing of `A ⊗ D` by the tensor product of `g₁` and `g₂` are those of
 the tensor product of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
-theorem coordChange_glue_tensorIso (i j b : B) :
-    ((tensor A D).glue hU hV hUV (g₁ ⊗ᵢ g₂)).core.coordChange i j b =
-      (tensor (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
-  refine (coordChange_glue _ _ _ _ _ i j b).trans ?_
-  rw [glueCocycle_tensorIso]
+theorem coordChange_glue_tensorIsoPullback (i j b : B) :
+    ((A ⊗ D).glue hU hV hUV (tensorIsoPullback g₁ g₂)).core.coordChange i j b =
+      (A.glue hU hV hUV g₁ ⊗ D.glue hU hV hUV g₂).core.coordChange i j b := by
+  rw [coordChange_glue, glueCocycle_tensorIsoPullback]
+  -- The monoidal product `A ⊗ D` is Tau Ceti's `tensor A D` by the definition of its
+  -- `MonoidalCategoryStruct` instance. Tau Ceti states neither that equality nor
+  -- `inChartCoordinates_tensor_kronecker` for `⊗`, so this step unfolds the instance.
   exact inChartCoordinates_tensor_kronecker A A D D _ _ i j b
 
 end Operations
@@ -610,12 +963,6 @@ variable {T : Type*} [TopologicalSpace T] (A : FiniteRankBundleCore 𝕜 B) {U V
       (ContinuousMap.subtypeVal (Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V)))
   (t : T)
 
-/-- The side of the chart at `(x, t)` of a gluing over `U × T` and `V × T` is that of the chart
-at `x` of a gluing over `U` and `V`. -/
-private theorem glueIndex_prodMk_const (x : B) :
-    glueIndex (Prod.fst ⁻¹' U) (((ContinuousMap.id B).prodMk (.const B t)) x) = glueIndex U x := by
-  simp [glueIndex_def]
-
 /-- The chart at `i` of the pullback of a gluing over `B × T` along `x ↦ (x, t)` lies in the chart
 at `i` of a gluing over `B`. -/
 private theorem baseSet_pullback_glue_subset (i : B) :
@@ -624,8 +971,8 @@ private theorem baseSet_pullback_glue_subset (i : B) :
         ((ContinuousMap.id B).prodMk (.const B t))).core.baseSet i ⊆
       (A.glue hU hV hUV g).core.baseSet i := by
   intro b hb
-  rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, ← VectorBundleCore.baseSet_at,
-    Set.mem_preimage, baseSet_glue, glueIndex_prodMk_const] at hb
+  rw [mem_baseSet_pullback, baseSet_glue, glueIndex_preimage, ContinuousMap.prod_eval,
+    ContinuousMap.id_apply] at hb
   rw [baseSet_glue]
   generalize glueIndex U i = s at hb ⊢
   cases s <;> exact ⟨hb.1, hb.2⟩
@@ -638,15 +985,7 @@ private theorem fiberMap_inv_prodMk
     (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x)
     (x : ↥(U ∩ V)) :
     H.inv.fiberMap ⟨(x.val, t), x.property⟩ = g.inv.fiberMap x := by
-  -- A left inverse of `g.hom.fiberMap x` is its right inverse, in the monoid of endomorphisms.
-  refine left_inv_eq_right_inv (M := (Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜))
-    (a := g.hom.fiberMap x) ?_ ?_
-  · rw [← hg, ContinuousLinearMap.mul_def, ← fiberMap_comp, H.hom_inv_id, fiberMap_id]
-    -- The identity is `1` once the rank of the pullback is unfolded to `A.rank`.
-    rfl
-  · rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, g.inv_hom_id, fiberMap_id]
-    -- The identity is `1` once the rank of the pullback is unfolded to `A.rank`.
-    rfl
+  rw [← inverse_fiberMap_hom, hg, inverse_fiberMap_hom]
 
 /-- The transitions of the pullback of a gluing over `B × T` along `x ↦ (x, t)` are those of the
 gluing by the slice of `H` at `t`. -/
@@ -667,7 +1006,8 @@ private theorem coordChange_pullback_glue
     (baseSet_pullback_glue_subset A hU hV hUV g H t i hi)).2
   have hr := ((baseSet_glue A hU hV hUV g k).le
     (baseSet_pullback_glue_subset A hU hV hUV g H t k hk)).2
-  simp only [coordChange_pullback, coordChange_glue, glueIndex_prodMk_const,
+  simp only [coordChange_pullback, coordChange_glue, glueIndex_preimage,
+    ContinuousMap.prod_eval _ _ i, ContinuousMap.prod_eval _ _ k, ContinuousMap.id_apply,
     inChartCoordinates_pullback]
   congr 1
   generalize glueIndex U i = s at hs ⊢
@@ -751,7 +1091,7 @@ theorem nonempty_iso_glue_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSpace �
     ⟨⟨⟨fun p ↦ (p.2, p.1), by fun_prop⟩, fun _ ↦ rfl, fun _ ↦ rfl⟩⟩
   obtain ⟨e⟩ := ((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
     (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H)
-    |>.nonempty_pullback_iso_of_homotopic hJ
+    |>.nonempty_pullback_iso_pullback_of_homotopic hJ
   exact ⟨(A.pullbackGlueIso hU hV hUV g₀ H 0 h₀).symm ≪≫ e ≪≫
     A.pullbackGlueIso hU hV hUV g₁ H 1 h₁⟩
 

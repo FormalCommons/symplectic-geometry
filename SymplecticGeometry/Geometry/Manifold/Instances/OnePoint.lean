@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Analysis.InnerProductSpace.Euclidean.CoordinateHyperplane
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
@@ -240,8 +241,7 @@ theorem mpullback_diffeomorphSphere_sphereVolumeForm :
     rw [Orientation.volumeForm_robust _ (EuclideanSpace.basisFun (Fin 3) ℝ) rfl,
       Module.Basis.det_apply, Matrix.det_fin_three]
     simp [Module.Basis.toMatrix_apply]
-  refine Subtype.ext ?_
-  rw [SmoothForm.coe_mpullback,
+  rw [SmoothForm.mpullback_eq_iff,
     OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm _ sphereCoordsIsometry o₃, hvol,
     SetLike.val_smul, mul_neg_one, neg_neg]
 

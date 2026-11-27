@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Topology.Algebra.Module.InnerProducts
 public import TauCeti.Geometry.Symplectic.PolarCompatible
+import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 
 /-!
 # The complex structure `J_{g,ω}` of an inner product and a symplectic form
@@ -75,9 +76,7 @@ theorem polarComplexStructure_eq_iff :
     · simp only [LinearMap.neg_apply, LinearMap.comp_apply]
       rw [hQ, real_inner_comm, hQ, hc.associatedBilinForm_apply_swap]
     · simp only [LinearMap.neg_apply, LinearMap.comp_apply, RCLike.re_to_real, hQ]
-      rcases eq_or_ne u 0 with rfl | hu
-      · simp
-      · exact (hc.tames u hu).le
+      exact hc.symplecticForm_apply_apply_self_nonneg u
   have h := LinearMap.eq_polarIsometry_of_comp_eq ω.innerOperator_injective hpos
     (J.toLinearMap.isometryOfInner hJ) (by ext u; simp)
   refine AlmostComplexStructure.toLinearMap_injective ?_

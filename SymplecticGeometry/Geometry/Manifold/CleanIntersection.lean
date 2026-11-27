@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
-public import SymplecticGeometry.Data.Set.Image
-public import SymplecticGeometry.Topology.Connected.Clopen
+import SymplecticGeometry.Data.Set.Image
+import SymplecticGeometry.Topology.Connected.Clopen
 
 /-!
 # Clean intersections of maps

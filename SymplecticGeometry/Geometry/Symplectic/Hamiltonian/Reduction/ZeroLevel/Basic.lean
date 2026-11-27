@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.ReducedSpace
-public import SymplecticGeometry.Topology.Algebra.ProperAction.Basic
 public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
+import SymplecticGeometry.Topology.Algebra.ProperAction.Basic
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField

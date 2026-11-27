@@ -8,9 +8,9 @@ module
 public import TauCeti.Geometry.Symplectic.Coadjoint
 public import TauCeti.Geometry.Symplectic.Cotangent.Basic
 public import TauCeti.LinearAlgebra.Submodule.Compl
-public import SymplecticGeometry.Algebra.Lie.Coadjoint
-public import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
+import SymplecticGeometry.Algebra.Lie.Coadjoint
+import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 
 /-!
 # The two-form of the local model at `(1, 0, 0)` and the linear normal form

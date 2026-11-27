@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.ContDiff.Comp
 public import Mathlib.Analysis.Convex.Deriv
 public import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Analysis.InnerProductSpace.Calculus
+import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
 # Convexity and derivatives
@@ -104,8 +105,8 @@ theorem ContDiffOn.strictConvexOn_norm_sub_sq {T F : Type*} [NormedAddCommGroup 
     (((hψ.contDiffAt (hso.mem_nhds ht)).differentiableAt (by norm_num)).hasFDerivAt.comp_hasDerivAt
       t (hℓ t)).sub_const c
   have hD : ∀ t, x + t • v ∈ s → HasDerivAt D (D' t) t := fun t ht ↦ by
-    have h := (((hψ.contDiffAt (hso.mem_nhds ht)).fderiv_right (m := 1) (by norm_num)
-      ).differentiableAt one_ne_zero).hasFDerivAt.comp_hasDerivAt t (hℓ t)
+    have h := ((hψ.contDiffAt (hso.mem_nhds ht)).hasFDerivAt_fderiv le_rfl).comp_hasDerivAt t
+      (hℓ t)
     simpa using h.clm_apply (hasDerivAt_const t v)
   have hsq : (fun t : ℝ ↦ ‖ψ (x + t • v) - c‖ ^ 2) = fun t ↦ ⟪γ t, γ t⟫ := by
     ext t

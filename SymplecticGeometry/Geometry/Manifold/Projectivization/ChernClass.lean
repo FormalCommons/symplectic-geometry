@@ -5,9 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.EulerSequence
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Tensor
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Geometry.Manifold.Projectivization.EulerSequence
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Tensor
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Geometry.Manifold.Projectivization.Tautological
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # Chern classes on complex projective space
@@ -23,8 +30,8 @@ class, this file computes the Chern classes of the line bundles `𝒪(k)` (Tau C
   `SymplecticGeometry.Bundle.chernClass_one_tensorProduct`.
 * `Projectivization.chernClass_one_twistCore`: `c₁(𝒪(k)) = k h` for every `k : ℤ`, and
   `Projectivization.totalChernClass_twistCore`: `c(𝒪(k)) = 1 + k h`.
-* `Projectivization.totalChernClass_twistPiCore`: `c(𝒪(k)^{⊕ r}) = (1 + k h) ^ r`, by the Whitney
-  sum formula.
+* `Projectivization.totalChernClass_twistSumCore`: `c(⨁ᵢ 𝒪(k i)) = ∏ᵢ (1 + k i h)` for a family
+  `k : Fin r → ℤ`, by the Whitney sum formula.
 * `Projectivization.totalChernClass_tangentSpace`: `c(TℂPᵐ) = (1 + h) ^ (m + 1)`, from the
   splitting `TℂPᵐ ⊕ ℂ ≅ 𝒪(1)^{⊕ (m + 1)}` of the Euler sequence.
 * `Projectivization.firstChernClass_tangentSpace`: `c₁(TℂPᵐ) = (m + 1) h`, the degree-two part
@@ -85,19 +92,23 @@ theorem totalChernClass_twistCore (k : ℤ) :
   rw [totalChernClass_eq_one_add_of_finrank_eq_one _ _ (finrank_self ℂ),
     chernClass_one_twistCore, map_zsmul]
 
-/-- **The total Chern class of `𝒪(k)^{⊕ r}`.** On `ℂℙᵐ`, the direct sum of `r` copies of `𝒪(k)`
-has total Chern class `(1 + k h) ^ r`, where `h` is the hyperplane class. -/
-theorem totalChernClass_twistPiCore (k : ℤ) (r : ℕ) :
-    totalChernClass (Fin r → ℂ) (twistPiCore (𝕜 := ℂ) (n := m) k (Fin r)).Fiber =
-      (1 + k • (TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ))).evenIntegralCohomologyOf 1
-        (hyperplaneClass (Fin (m + 1) → ℂ))) ^ r := by
+/-- **The Whitney formula for a sum of the line bundles `𝒪(k i)`.** On `ℂℙᵐ`, the direct sum
+`⨁ᵢ 𝒪(k i)` of a family `k : Fin r → ℤ` has total Chern class `∏ᵢ (1 + k i h)`, where `h` is the
+hyperplane class. -/
+theorem totalChernClass_twistSumCore {r : ℕ} (k : Fin r → ℤ) :
+    totalChernClass (Fin r → ℂ) (twistSumCore (𝕜 := ℂ) (n := m) k).Fiber =
+      ∏ i, (1 + k i • (TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ))).evenIntegralCohomologyOf 1
+        (hyperplaneClass (Fin (m + 1) → ℂ))) := by
   induction r with
-  | zero => rw [totalChernClass_eq_one_of_finrank_eq_zero _ _ (by simp), pow_zero]
+  | zero => rw [totalChernClass_eq_one_of_finrank_eq_zero _ _ (by simp), Fin.prod_univ_zero]
   | succ r hr =>
-    rw [totalChernClass_congr _ (continuous_twistPiCoreCongr (𝕜 := ℂ) (n := m) k (Fin (r + 1))
+    obtain ⟨k, rfl⟩ : ∃ k' : Option (Fin r) → ℤ, k = fun a ↦ k' (finSuccEquiv r a) :=
+      ⟨fun a ↦ k ((finSuccEquiv r).symm a), by simp⟩
+    rw [totalChernClass_congr _ (continuous_twistSumCoreCongr (𝕜 := ℂ) (n := m) k
         (finSuccEquiv r)),
-      totalChernClass_congr _ (continuous_twistPiCoreOptionEquiv (𝕜 := ℂ) (n := m) k (Fin r)),
-      totalChernClass_prod, totalChernClass_twistCore, hr, pow_succ', mul_comm]
+      totalChernClass_congr _ (continuous_twistSumCoreOptionEquiv (𝕜 := ℂ) (n := m) k),
+      totalChernClass_prod, totalChernClass_twistCore, hr, Fin.prod_univ_succ]
+    simp only [finSuccEquiv_zero, finSuccEquiv_succ]
 
 /-- **The total Chern class of complex projective space.** The tangent bundle of `ℂℙᵐ` has total
 Chern class `(1 + h) ^ (m + 1)`, where `h` is the hyperplane class: by the Euler sequence,
@@ -110,8 +121,8 @@ theorem totalChernClass_tangentSpace :
       (1 + (TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ))).evenIntegralCohomologyOf 1
         (hyperplaneClass (Fin (m + 1) → ℂ))) ^ (m + 1) := by
   have h := totalChernClass_congr _ (continuous_eulerSequenceEquiv (m := m))
-  rw [totalChernClass_prod, totalChernClass_trivial, mul_one, totalChernClass_twistPiCore,
-    one_smul] at h
+  rw [totalChernClass_prod, totalChernClass_trivial, mul_one, totalChernClass_twistSumCore,
+    Fin.prod_const, one_smul] at h
   exact h
 
 /-- **The first Chern class of complex projective space.** The tangent bundle of `ℂℙᵐ` has first
@@ -121,7 +132,7 @@ holds for every `m`, `m = 0` included.
 Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_tangentSpace :
     ((TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ))).uliftIntegralCohomologyIso 2).hom
-        (firstChernClass (Fin m → ℂ)
+        (TauCeti.firstChernClass (Fin m → ℂ)
           (TangentSpace 𝓘(ℂ, Fin m → ℂ) : ℙ ℂ (Fin (m + 1) → ℂ) → Type)) =
       ((m + 1 : ℕ) : ℤ) • hyperplaneClass (Fin (m + 1) → ℂ) := by
   rw [← chernClass_one_eq_firstChernClass, ← totalChernClass_apply, totalChernClass_tangentSpace,

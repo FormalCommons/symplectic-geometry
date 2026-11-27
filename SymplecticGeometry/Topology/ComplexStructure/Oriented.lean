@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.ComplexStructure.Orbit
 public import SymplecticGeometry.Topology.ComplexStructure.Orthogonal
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.Topology.Algebra.GroupAction.Transitive
@@ -17,9 +16,14 @@ public import SymplecticGeometry.Analysis.Quaternion
 public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Topology.Homeomorph.Lemmas
 public import TauCeti.Data.Fin.Sum
+public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
+import SymplecticGeometry.Topology.ComplexStructure.Orbit
 import TauCeti.Geometry.Sphere.Connected
+import TauCeti.Topology.PathComponent
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
+import Mathlib.RingTheory.PicardGroup
+import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
 # The components of the space of complex structures, SO(2n)/U(n), and the case of ℝ⁴
@@ -68,7 +72,7 @@ The file ends with the classification theorem, which collects these results.
   of `J₀` in `SO(2n)` is the realified unitary group `U(n)`.
 * `SymplecticGeometry.exists_specialOrthogonalGroup_smul_stdComplexStructure_eq`: every orthogonal
   positively oriented structure is `g • J₀` for some `g ∈ SO(2n)`.
-* `SymplecticGeometry.isPathConnected_setOf_isPositivelyOriented`,
+* `SymplecticGeometry.isPathConnected_setOfPred_isPositivelyOriented`,
   `SymplecticGeometry.connectedComponent_stdComplexStructure`: the positively oriented structures
   form the path-connected component of `J₀`;
   `SymplecticGeometry.pathComponent_stdComplexStructure` is its path-component form.
@@ -254,7 +258,7 @@ theorem isPositivelyOriented_complexStructurePolarHomotopy
     IsPositivelyOriented (complexStructurePolarHomotopy (ι ⊕ ι) (t, J)) := by
   have hc : IsClopen ((fun s : I ↦ complexStructurePolarHomotopy (ι ⊕ ι) (s, J)) ⁻¹'
       {J | IsPositivelyOriented J}) :=
-    isClopen_setOf_isPositivelyOriented.preimage
+    isClopen_setOfPred_isPositivelyOriented.preimage
       ((complexStructurePolarHomotopy (ι ⊕ ι)).continuous.comp
         (continuous_id.prodMk continuous_const))
   have h0 : (0 : I) ∈ (fun s : I ↦ complexStructurePolarHomotopy (ι ⊕ ι) (s, J)) ⁻¹'
@@ -289,13 +293,12 @@ theorem IsPositivelyOriented.joined_stdComplexStructure {J : AlmostComplexStruct
 theorem pathComponent_stdComplexStructure :
     pathComponent (stdComplexStructure ι) = {J | IsPositivelyOriented J} :=
   Set.Subset.antisymm
-    ((pathComponent_subset_component _).trans
-      (isClopen_setOf_isPositivelyOriented.connectedComponent_subset
-        isPositivelyOriented_stdComplexStructure))
+    (isClopen_setOfPred_isPositivelyOriented.pathComponent_subset _
+      isPositivelyOriented_stdComplexStructure)
     fun _ hJ ↦ IsPositivelyOriented.joined_stdComplexStructure hJ
 
 /-- The positively oriented complex structures of `StdSpace ι` form a path-connected set. -/
-theorem isPathConnected_setOf_isPositivelyOriented :
+theorem isPathConnected_setOfPred_isPositivelyOriented :
     IsPathConnected {J : AlmostComplexStructure (StdSpace ι) | IsPositivelyOriented J} := by
   rw [← pathComponent_stdComplexStructure]
   exact isPathConnected_pathComponent
@@ -304,10 +307,10 @@ theorem isPathConnected_setOf_isPositivelyOriented :
 theorem connectedComponent_stdComplexStructure :
     connectedComponent (stdComplexStructure ι) = {J | IsPositivelyOriented J} :=
   Set.Subset.antisymm
-    ((isClopen_setOf_isPositivelyOriented (ι := ι)).connectedComponent_subset
+    ((isClopen_setOfPred_isPositivelyOriented (ι := ι)).connectedComponent_subset
       isPositivelyOriented_stdComplexStructure)
     (IsPreconnected.subset_connectedComponent
-      (isPathConnected_setOf_isPositivelyOriented (ι := ι)).isConnected.isPreconnected
+      (isPathConnected_setOfPred_isPositivelyOriented (ι := ι)).isConnected.isPreconnected
       isPositivelyOriented_stdComplexStructure)
 
 omit [DecidableEq ι] in
@@ -510,7 +513,7 @@ theorem isPositivelyOriented_quaternionComplexStructure
     (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
     IsPositivelyOriented (quaternionComplexStructure u) := by
   have := TauCeti.connectedSpace_euclideanSphere (ι := Fin 3) (by simp)
-  have hc := (isClopen_setOf_isPositivelyOriented (ι := Fin 2)).preimage
+  have hc := (isClopen_setOfPred_isPositivelyOriented (ι := Fin 2)).preimage
     continuous_quaternionComplexStructure
   have hu := hc.eq_univ ⟨_, by
     rw [Set.mem_preimage, quaternionComplexStructure_single_zero]

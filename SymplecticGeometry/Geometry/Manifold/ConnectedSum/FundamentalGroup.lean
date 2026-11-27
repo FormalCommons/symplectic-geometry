@@ -170,6 +170,12 @@ theorem coe_map_neckInr_circleLoop_apply (h₂ : IsOpenEmbedding e₂) (t : unit
       e₂ (φ (circleMap 0 r⁻¹ (2 * Real.pi * t))) := by
   simp [← φ.map_inversion_zero, inversion_circleMap]
 
+/-- In the second punctured summand the base point `φ r` of the circle `φ.circleLoop hr` is
+`e₂ (φ r⁻¹)`. -/
+theorem coe_neckInr_circleBasepoint (h₂ : IsOpenEmbedding e₂) :
+    (neckInr h₂ (φ.circleBasepoint hr) : N) = e₂ (φ (r⁻¹ : ℝ)) := by
+  simpa [circleMap] using coe_map_neckInr_circleLoop_apply (φ := φ) (hr := hr) h₂ 0
+
 end Summands
 
 end TauCeti.ConnectedSum

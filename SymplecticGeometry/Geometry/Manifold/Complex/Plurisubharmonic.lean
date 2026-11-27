@@ -10,9 +10,12 @@ public import TauCeti.Geometry.Manifold.Complex.Pseudoconvex.Morse
 public import TauCeti.Geometry.Manifold.Complex.SquaredDistance
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Topology.Maps.Proper.Metric
-public import SymplecticGeometry.Analysis.Convex.Deriv
+public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
-public import SymplecticGeometry.Topology.Maps.Proper
+import SymplecticGeometry.Analysis.Convex.Deriv
+import SymplecticGeometry.Topology.Maps.Proper
+import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 
 /-!
 # Stein functions and their Kähler forms
@@ -32,11 +35,15 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos`: a smooth `f` is
   strictly plurisubharmonic at `x` iff `0 < ω_f(v, i v)` at `x` for every `v ≠ 0`.
 * `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
-  when `f` is strictly plurisubharmonic at every point.
+  when `f` is strictly plurisubharmonic at every point; `SymplecticGeometry.isKahler_potentialForm`:
+  so is its quarter, the form `potentialForm` of the potential `f`.
+* `TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp`: `exp ∘ f` is strictly
+  plurisubharmonic at `x` when `f` is.
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
   `h : ℝ → ℝ` with `h' > 0` and `h'' ≥ 0`.
+* `SymplecticGeometry.IsSteinFunction.exp_comp`: `exp ∘ φ` is a Stein function when `φ` is.
 * `SymplecticGeometry.IsSteinFunction.exists_isMorse`: a Stein function on a Hausdorff manifold
   is `C⁰`-close to a Stein Morse function, by Tau Ceti's
   `exists_isMorse_isProperMap_bddBelow_isManifoldStrictlyPlurisubharmonicAt`.
@@ -118,6 +125,26 @@ theorem isKahler_mextDerivₗ_covectorComplexStructure [FiniteDimensional ℂ E]
     rw [hJ]
     exact (isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos f x).1 (hf x) v hv
 
+/-- **The form of a strictly plurisubharmonic potential is Kähler.** If a smooth real function
+`f` on a complex manifold is strictly plurisubharmonic at every point, then its form
+`(1/4) d(-df ∘ J)` is a Kähler form for the complex structure of `M`. -/
+theorem isKahler_potentialForm [FiniteDimensional ℂ E]
+    {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} (hf : ∀ x, IsManifoldStrictlyPlurisubharmonicAt E f x) :
+    SmoothTwoForm.IsKahler ((ofComplexManifold E M).potentialForm (SmoothForm.ofFunction f))
+      (ofComplexManifold E M) := by
+  rw [potentialForm_def]
+  exact (isKahler_mextDerivₗ_covectorComplexStructure hf).smul _ (by norm_num)
+
+/-! ### Composition with the exponential -/
+
+omit [IsManifold 𝓘(ℂ, E) ∞ M] in
+/-- If `f` is strictly plurisubharmonic at `x`, so is `exp ∘ f`. -/
+theorem _root_.TauCeti.IsManifoldStrictlyPlurisubharmonicAt.exp_comp {f : M → ℝ} {x : M}
+    (h : IsManifoldStrictlyPlurisubharmonicAt E f x) (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x) :
+    IsManifoldStrictlyPlurisubharmonicAt E (Real.exp ∘ f) x :=
+  h.scalar_comp Real.contDiff_exp.contDiffAt hf (by simp [Real.exp_pos])
+    (by simp [(Real.exp_pos _).le])
+
 /-! ### Stein functions -/
 
 variable (E) in
@@ -168,6 +195,12 @@ theorem comp (hφ : IsSteinFunction E φ) {h : ℝ → ℝ} (hh : ContDiff ℝ �
   isStrictlyPlurisubharmonic x :=
     (hφ.isStrictlyPlurisubharmonic x).scalar_comp (hh.contDiffAt.of_le (by simp))
       (hφ.contMDiff.contMDiffAt.of_le (by simp)) (hh₁ _) (hh₂ _)
+
+omit [IsManifold 𝓘(ℂ, E) ∞ M] in
+/-- If `φ` is a Stein function, so is `exp ∘ φ`. -/
+theorem exp_comp (hφ : IsSteinFunction E φ) : IsSteinFunction E (Real.exp ∘ φ) :=
+  hφ.comp Real.contDiff_exp (fun t ↦ by simp [Real.exp_pos]) fun t ↦ by
+    simp [(Real.exp_pos t).le]
 
 /-- **Morse perturbation of a Stein function.** On a Hausdorff complex manifold, every Stein
 function `φ` is within `C⁰` distance `1` of a Stein Morse function whose critical points have

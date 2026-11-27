@@ -64,13 +64,19 @@ open scoped Manifold ContDiff Topology
 
 /-- If `g : G × E → F` is `C^n` on an open set containing `p`, with `1 ≤ n`, and its partial
 derivative `fderiv ℝ g p ∘L inr` in the second variable is invertible, then
-`(s, u) ↦ (s, g (s, u))` is a `C^n` local diffeomorphism of `G × E → G × F` at `p`. -/
+`(s, u) ↦ (s, g (s, u))` is a `C^n` local diffeomorphism of `G × E → G × F` at `p`, for the
+products of the self-models of the factors. -/
 theorem ContDiffOn.isLocalDiffeomorphAt_fst_prodMk {G E F : Type*} [NormedAddCommGroup G]
     [NormedSpace ℝ G] [CompleteSpace G] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] {n : WithTop ℕ∞} {g : G × E → F} {t : Set (G × E)}
     {p : G × E} (hg : ContDiffOn ℝ n g t) (ht : IsOpen t) (hp : p ∈ t) (hn : 1 ≤ n)
     (hinv : (fderiv ℝ g p ∘L ContinuousLinearMap.inr ℝ G E).IsInvertible) :
-    IsLocalDiffeomorphAt 𝓘(ℝ, G × E) 𝓘(ℝ, G × F) n (fun q ↦ (q.1, g q)) p := by
+    IsLocalDiffeomorphAt (𝓘(ℝ, G).prod 𝓘(ℝ, E)) (𝓘(ℝ, G).prod 𝓘(ℝ, F)) n
+      (fun q ↦ (q.1, g q)) p := by
+  -- Read the statement with the self-models of `G × E` and `G × F`, those of Tau Ceti's
+  -- `TauCeti.isLocalDiffeomorphAt_of_fderiv_eq`.
+  rw [← modelWithCornersSelf_prod, ← modelWithCornersSelf_prod, chartedSpaceSelf_prod,
+    chartedSpaceSelf_prod]
   have hgd := ((hg.contDiffAt (ht.mem_nhds hp)).differentiableAt
     (ne_of_gt (lt_of_lt_of_le zero_lt_one hn))).hasFDerivAt
   -- The derivative of `(s, u) ↦ (s, g (s, u))` is block triangular, with invertible diagonal
@@ -141,7 +147,7 @@ theorem IsLocalDiffeomorphAt.restrict_unitInterval {n : WithTop ℕ∞} {g : ℝ
       contMDiffOn_invFun := contMDiff_fst.contMDiffOn.prodMk <|
         ((contMDiff_snd.contMDiffOn (s := univ)).comp Φ.contMDiffOn_invFun
           (fun _ _ ↦ mem_univ _)).comp hιN.contMDiffOn (fun _ hp ↦ hp) }
-  exact TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Ψ) hΦ fun _ _ ↦ rfl
+  exact Ψ.isLocalDiffeomorphAt _ _ _ hΦ
 
 variable [CompleteSpace E] [IsManifold I ∞ M] [IsManifold J ∞ N] [BoundarylessManifold I M]
   [BoundarylessManifold J N]
@@ -187,13 +193,10 @@ theorem ContMDiff.isLocalDiffeomorphAt_prodMk_unitInterval {f : unitInterval × 
       mfderiv I J (fun x ↦ f (t₀, x)) x₀ :=
     (hgd.comp u₀ (hasFDerivAt_prodMk_right (t₀ : ℝ) u₀)).congr_of_eventuallyEq hgt₀.symm
       |>.unique hfd
-  have hK : IsLocalDiffeomorphAt 𝓘(ℝ, ℝ × E) 𝓘(ℝ, ℝ × E') ∞ (fun q ↦ (q.1, g q))
-      ((t₀ : ℝ), u₀) :=
+  have hK : IsLocalDiffeomorphAt (𝓘(ℝ).prod 𝓘(ℝ, E)) (𝓘(ℝ).prod 𝓘(ℝ, E')) ∞
+      (fun q ↦ (q.1, g q)) ((t₀ : ℝ), u₀) :=
     hg.isLocalDiffeomorphAt_fst_prodMk (isOpen_univ.prod hU) ⟨mem_univ _, hu₀⟩ (by simp)
       (hpartial ▸ hd.isInvertible_mfderiv (by simp))
-  -- Read `hK` with the product models of `ℝ × E` and `ℝ × E'`.
-  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod, modelWithCornersSelf_prod,
-    ← chartedSpaceSelf_prod] at hK
   have hint : u₀ ∈ interior e.target :=
     (ModelWithCorners.isInteriorPoint_iff (I := I)).mp BoundarylessManifold.isInteriorPoint
   have hint' : g ((t₀ : ℝ), u₀) ∈ interior e'.target :=

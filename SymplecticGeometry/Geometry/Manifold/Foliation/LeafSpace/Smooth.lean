@@ -13,6 +13,8 @@ import TauCeti.Geometry.Manifold.RegularValue
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.Geometry.Manifold.Foliation.Transport
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The smooth leaf space of a regular foliation
@@ -281,13 +283,8 @@ theorem isRegular_ofSubmodule : (ofSubmodule S (n := ∞) ENat.LEInfty.out).IsRe
   have hm (u : (⊤ : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S)))))
       (v : TangentSpace 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) u) :
       mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) 𝓘(ℝ, E)
-        (f ∘ Subtype.val) u v = L v :=
-    (mfderiv_comp_subtype_val_apply v).trans
-      (by
-        have hd : mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - finrank ℝ S))) 𝓘(ℝ, E) f u =
-            L :=
-          (L.hasFDerivAt.const_add x).hasMFDerivAt.mfderiv
-        exact congrArg (fun A ↦ A v) hd)
+        (f ∘ Subtype.val) u v = L v := by
+    rw [mfderiv_modelSpace_comp_subtype_val_apply, (L.hasFDerivAt.const_add x).fderiv]
   refine ⟨⊤, f ∘ Subtype.val, ⟨hf.contMDiff.comp contMDiff_subtypeVal, fun u ↦ ?_, ?_⟩,
     ⟨⟨0, trivial⟩, by simp [f]⟩⟩
   · rw [ofSubmodule_distribution]

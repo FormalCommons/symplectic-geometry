@@ -7,8 +7,8 @@ module
 
 public import Mathlib.Analysis.Calculus.Deriv.Basic
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import TauCeti.Analysis.Calculus.Deriv.MeanValue
 
 /-!
 # Functions whose derivative is at least `k / t` near `0⁺`
@@ -22,6 +22,10 @@ As a consequence, if `g` is bounded and differentiable on some `(0, ε)` and
 `deriv g t / t ^ r` has a nonzero limit as `t → 0⁺`, then `r > -1`
 (`Real.neg_one_lt_of_tendsto_deriv_div_rpow`): for `r ≤ -1`, the function `a * g`, where `a`
 is the limit, would have derivative at least `(a ^ 2 / 2) / t` near `0⁺`.
+
+Finally, if `f` is continuous on `[0, 1]` and `s ≤ f 1`, then `f r + log r = s` for some
+`r ∈ (0, 1]` (`Real.exists_mem_Ioc_add_log_eq`), by the intermediate value theorem, since the left
+side tends to `-∞` as `r → 0⁺`.
 -/
 
 public section
@@ -40,9 +44,7 @@ theorem tendsto_atBot_nhdsGT_zero_of_div_le_deriv {g : ℝ → ℝ} {k δ : ℝ}
     fun t ht ↦ ((hd t ht).differentiableAt (Ioo_mem_nhds ht.1 ht.2)).hasDerivAt.sub
       ((hasDerivAt_log ht.1.ne').const_mul k)
   have hmono : MonotoneOn (fun u ↦ g u - k * log u) (Ioo 0 δ) := by
-    refine monotoneOn_of_hasDerivWithinAt_nonneg (convex_Ioo 0 δ)
-      (fun t ht ↦ (hφ t ht).continuousAt.continuousWithinAt)
-      (fun t ht ↦ (hφ t (interior_subset ht)).hasDerivWithinAt) fun t ht ↦ ?_
+    refine TauCeti.monotoneOn_of_hasDerivAt_nonneg (convex_Ioo 0 δ) hφ fun t ht ↦ ?_
     rw [interior_Ioo] at ht
     have := hD t ht
     rw [div_eq_mul_inv] at this
@@ -94,6 +96,20 @@ theorem neg_one_lt_of_tendsto_deriv_div_rpow {g : ℝ → ℝ} {ε r a M : ℝ} 
   have h2 : |a * g t| ≤ |a| * M := by
     rw [abs_mul]; exact mul_le_mul_of_nonneg_left (hM t ht) (abs_nonneg a)
   linarith [neg_abs_le (a * g t)]
+
+/-- If `f` is continuous on `[0, 1]` and `s ≤ f 1`, then `f r + log r = s` for some `r ∈ (0, 1]`:
+the left side tends to `-∞` as `r → 0⁺`. -/
+theorem exists_mem_Ioc_add_log_eq {f : ℝ → ℝ} (hf : ContinuousOn f (Icc 0 1))
+    {s : ℝ} (hs : s ≤ f 1) : ∃ r ∈ Ioc (0 : ℝ) 1, f r + log r = s := by
+  have hcont : ContinuousOn (fun r ↦ f r + log r) (Ioc 0 1) :=
+    (hf.mono Ioc_subset_Icc_self).add (continuousOn_log.mono fun _ hr ↦ hr.1.ne')
+  have htend : Tendsto (fun r ↦ f r + log r) (𝓝[Ioc 0 1] 0) atBot :=
+    ((hf.continuousWithinAt (left_mem_Icc.2 zero_le_one)).mono
+      Ioc_subset_Icc_self).tendsto.add_atBot
+      (tendsto_log_nhdsGT_zero.mono_left (nhdsWithin_mono _ fun _ h ↦ h.1))
+  have : (𝓝[Ioc (0 : ℝ) 1] 0).NeBot := left_nhdsWithin_Ioc_neBot one_pos
+  exact isPreconnected_Ioc.intermediate_value_Iic (l := 𝓝[Ioc 0 1] 0) (right_mem_Ioc.2 one_pos)
+    inf_le_right hcont htend (by simpa using hs)
 
 end Real
 

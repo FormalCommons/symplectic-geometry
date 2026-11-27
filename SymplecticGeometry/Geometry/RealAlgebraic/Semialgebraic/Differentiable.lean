@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Calculus.Deriv.FinOne
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.RootBranch
-public import SymplecticGeometry.Geometry.RealAlgebraic.Nash.Root
-public import SymplecticGeometry.Topology.Constructions.FinOne
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Derivative
+import SymplecticGeometry.Analysis.Calculus.Deriv.FinOne
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.RootBranch
+import SymplecticGeometry.Geometry.RealAlgebraic.Nash.Root
+import SymplecticGeometry.Topology.Constructions.FinOne
 
 /-!
 # A one-variable semialgebraic function is analytic near a point

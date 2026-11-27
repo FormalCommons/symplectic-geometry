@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.Dual
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
@@ -13,10 +14,13 @@ public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
 public import TauCeti.Geometry.Symplectic.Complex.ImInner.Basic
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
+public import TauCeti.Geometry.Symplectic.Duality
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.LinearAlgebra.Symplectic.InnerProductSpace
 
 /-!
 # The standard model `(ℝ²ⁿ, ω₀, J₀)`
@@ -30,14 +34,19 @@ structures.
   it through `Matrix.toEuclideanLin` without reindexing.
 * `SymplecticGeometry.stdForm ι` is `ω₀ = ∑ᵢ dxᵢ ∧ dyᵢ`, defined by transporting Tau Ceti's
   `TauCeti.stdComplexPiSymplecticForm ι` along `TauCeti.complexToRealEuclidean ι`, which sends
-  `u : ι → ℂ` to its real parts (`x`) and imaginary parts (`y`).
+  `u : ι → ℂ` to its real parts (`x`) and imaginary parts (`y`), so that
+  `complexToRealEuclidean ι` is a symplectomorphism onto `(StdSpace ι, ω₀)`
+  (`isSymplectomorphism_complexToRealEuclidean`).
 * `SymplecticGeometry.stdComplexStructure ι` is `J₀`, the transport of multiplication by `I`,
   so that `x (J₀ z) = -y z` and `y (J₀ z) = x z`; it is the map of `Matrix.J ι ℝ`.
-* `SymplecticGeometry.StdSpace.complexEuclideanEquiv ι` identifies `EuclideanSpace ℂ ι` with
-  `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
+* The isometry `TauCeti.complexToRealEuclideanIsometry ι` (of
+  `SymplecticGeometry.Analysis.Complex.Euclidean.Space`) identifies `EuclideanSpace ℂ ι`
+  with `StdSpace ι` by real and imaginary parts (`x_complexToRealEuclideanIsometry`,
+  `y_complexToRealEuclideanIsometry`), so that subspaces of `ℂⁿ` can be compared with
   subspaces of the model; it carries multiplication by `I` to `J₀`
-  (`stdComplexStructure_complexEuclideanEquiv`), as `complexToRealEuclidean ι` does
-  (`stdComplexStructure_complexToRealEuclidean`).
+  (`stdComplexStructure_complexToRealEuclideanIsometry`), as `complexToRealEuclidean ι` does
+  (`stdComplexStructure_complexToRealEuclidean`), and `ω₀` to `Im ⟪·, ·⟫`
+  (`stdForm_apply_eq_im_inner`).
 * `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`, which reverses
   the sign of `ω₀` (`stdForm_swap`).
 * `SymplecticGeometry.StdSpace.finSumIsometry n` relabels the coordinates of `StdSpace (Fin n)`
@@ -53,7 +62,16 @@ The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
-Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`). The rotation
+Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`), by which the map
+`stdFormCompRightL ι`, `A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms, does not increase
+norms (`norm_stdFormCompRightL_apply_le`). Since `ω₀(u, ·) = ⟪J₀ u, ·⟫`, the inverse of `ω₀` as a
+map to the dual is `φ ↦ -J₀ φ'`, `φ'` the vector dual to `φ` for the inner product
+(`stdForm_flatEquiv_symm_apply`), and it preserves norms (`norm_stdForm_flatEquiv_symm_apply`).
+For `A` with `A² = -1`, the form `stdFormCompRightL ι A` is then invertible as a map to the dual
+(`isInvertible_stdFormCompRightL_apply`), with inverse `φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, the image of
+`A` under the continuous linear map `stdFormCompRightInverseL ι`
+(`inverse_stdFormCompRightL_apply`), which does not increase norms
+(`norm_stdFormCompRightInverseL_apply_le`). The rotation
 `stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
 (`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
 through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
@@ -225,29 +243,16 @@ theorem y_complexToRealEuclidean (u : ι → ℂ) :
   ext i
   simp [complexToRealEuclidean_apply]
 
-variable (ι) in
-/-- The real-linear identification of `ℂⁿ = EuclideanSpace ℂ ι` with the standard model
-`ℝ²ⁿ = StdSpace ι`, sending `v` to `(Re v, Im v)`. It is how subspaces of `ℂⁿ` (as in Tau Ceti's
-totally real geometry) are compared with subspaces of `StdSpace ι`. -/
-noncomputable def complexEuclideanEquiv : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι :=
-  (PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans (complexToRealEuclidean ι)
+/-- The `x`-coordinates of `complexToRealEuclideanIsometry ι v` are the real parts of `v`. -/
+theorem x_complexToRealEuclideanIsometry (v : EuclideanSpace ℂ ι) :
+    x (complexToRealEuclideanIsometry ι v) = fun i ↦ (v i).re := by
+  simp
 
-theorem complexEuclideanEquiv_def :
-    complexEuclideanEquiv ι =
-      (PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans (complexToRealEuclidean ι) :=
-  (rfl)
-
-/-- The `x`-coordinates of `complexEuclideanEquiv ι v` are the real parts of `v`. -/
-@[simp]
-theorem x_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
-    (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re := by
-  simp [complexEuclideanEquiv_def]
-
-/-- The `y`-coordinates of `complexEuclideanEquiv ι v` are the imaginary parts of `v`. -/
-@[simp]
-theorem y_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
-    (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im := by
-  simp [complexEuclideanEquiv_def]
+/-- The `y`-coordinates of `complexToRealEuclideanIsometry ι v` are the imaginary parts of
+`v`. -/
+theorem y_complexToRealEuclideanIsometry (v : EuclideanSpace ℂ ι) :
+    y (complexToRealEuclideanIsometry ι v) = fun i ↦ (v i).im := by
+  simp
 
 /-- The inner product of the standard model in coordinates. -/
 theorem inner_eq_sum (z w : StdSpace ι) :
@@ -331,6 +336,22 @@ theorem stdForm_complexToRealEuclidean (u v : ι → ℂ) :
       stdComplexPiSymplecticForm ι u v :=
   SymplecticForm.transport_apply_apply _ _ u v
 
+/-- Through `complexToRealEuclideanIsometry ι`, the standard symplectic form is the imaginary
+part of the Hermitian inner product of `ℂⁿ`: `ω₀(v, w) = Im ⟪v, w⟫`. -/
+theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
+    stdForm ι (complexToRealEuclideanIsometry ι v) (complexToRealEuclideanIsometry ι w) =
+      (inner ℂ v w).im := by
+  rw [← imInnerSymplecticForm_apply, imInnerSymplecticForm_euclideanSpace_apply]
+  simp
+
+variable (ι) in
+/-- `complexToRealEuclidean ι` is a symplectomorphism from `(ι → ℂ, stdComplexPiSymplecticForm ι)`
+to the standard model `(StdSpace ι, ω₀)`. -/
+theorem isSymplectomorphism_complexToRealEuclidean :
+    (stdComplexPiSymplecticForm ι).IsSymplectomorphism (stdForm ι)
+      (complexToRealEuclidean ι).toLinearEquiv :=
+  SymplecticForm.isSymplectomorphism_iff.2 stdForm_complexToRealEuclidean
+
 /-- The coordinate swap `(x, y) ↦ (y, x)` reverses the sign of the standard form:
 `ω₀(swap z, swap w) = -ω₀(z, w)`. -/
 theorem stdForm_swap (z w : StdSpace ι) : stdForm ι (swap ι z) (swap ι w) = -stdForm ι z w := by
@@ -375,10 +396,10 @@ theorem stdComplexStructure_apply_inr (z : StdSpace ι) (i : ι) :
   rw [← y_apply, stdComplexStructure_y]
   rfl
 
-/-- `complexEuclideanEquiv ι` carries multiplication by `I` on `ℂⁿ` to `J₀`. -/
-@[simp]
-theorem stdComplexStructure_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
-    stdComplexStructure ι (complexEuclideanEquiv ι v) = complexEuclideanEquiv ι (Complex.I • v) :=
+/-- `complexToRealEuclideanIsometry ι` carries multiplication by `I` on `ℂⁿ` to `J₀`. -/
+theorem stdComplexStructure_complexToRealEuclideanIsometry (v : EuclideanSpace ℂ ι) :
+    stdComplexStructure ι (complexToRealEuclideanIsometry ι v) =
+      complexToRealEuclideanIsometry ι (Complex.I • v) :=
   StdSpace.ext (by simp [Pi.neg_def]) (by simp)
 
 /-- `complexToRealEuclidean ι` carries multiplication by `I` on `ι → ℂ` to `J₀`. -/
@@ -424,6 +445,11 @@ theorem inner_stdComplexStructure_stdComplexStructure (z w : StdSpace ι) :
     inner ℝ (stdComplexStructure ι z) (stdComplexStructure ι w) = inner ℝ z w := by
   rw [← stdForm_apply_eq_inner, stdForm_apply_stdComplexStructure]
 
+/-- `J₀` preserves norms: `‖J₀ z‖ = ‖z‖`. -/
+@[simp]
+theorem norm_stdComplexStructure (z : StdSpace ι) : ‖stdComplexStructure ι z‖ = ‖z‖ :=
+  AlmostComplexStructure.norm_apply inner_stdComplexStructure_stdComplexStructure z
+
 /-- `ω₀(z, w) = (⟪J₀ z, w⟫ - ⟪z, J₀ w⟫) / 2`: the form of the Euclidean inner product and `J₀`
 is `ω₀`. -/
 theorem stdForm_apply_eq_inner_sub_inner (z w : StdSpace ι) :
@@ -460,6 +486,110 @@ theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
 /-- Cauchy–Schwarz for `ω₀`: `|ω₀(z, w)| ≤ ‖z‖ ‖w‖`. -/
 theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
   SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
+
+variable (ι) in
+/-- The continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
+continuous bilinear forms on it. -/
+noncomputable def stdFormCompRightL :
+    (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+  (ContinuousLinearMap.precompR (StdSpace ι)
+    (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+
+variable (ι) in
+theorem stdFormCompRightL_def :
+    stdFormCompRightL ι =
+      (ContinuousLinearMap.precompR (StdSpace ι)
+        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip :=
+  (rfl)
+
+/-- `stdFormCompRightL ι A u v = ω₀(u, A v)`. -/
+@[simp]
+theorem stdFormCompRightL_apply (A : StdSpace ι →L[ℝ] StdSpace ι) (u v : StdSpace ι) :
+    stdFormCompRightL ι A u v = stdForm ι u (A v) := by
+  simp [stdFormCompRightL_def, LinearMap.toContinuousBilinearMap_apply]
+
+/-- The map `A ↦ ω₀(·, A ·)` does not increase norms: `‖ω₀(·, A ·)‖ ≤ ‖A‖`. -/
+theorem norm_stdFormCompRightL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    ‖stdFormCompRightL ι A‖ ≤ ‖A‖ := by
+  refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun u ↦
+    ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+  rw [stdFormCompRightL_apply, Real.norm_eq_abs]
+  calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
+    _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
+    _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
+
+/-- The inverse of `ω₀` as a map to the dual sends `φ` to `-J₀ φ'`, `φ'` the vector that the
+inner product makes dual to `φ`. -/
+theorem stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
+    (stdForm ι).flatEquiv.symm φ =
+      -stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm φ) :=
+  SymplecticForm.flatEquiv_symm_apply_of_apply_eq_inner stdForm_apply_eq_inner φ
+
+/-- The inverse of `ω₀` as a map to the dual preserves norms. -/
+@[simp]
+theorem norm_stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
+    ‖(stdForm ι).flatEquiv.symm φ‖ = ‖φ‖ :=
+  SymplecticForm.norm_flatEquiv_symm_apply_of_apply_eq_inner stdForm_apply_eq_inner φ
+
+variable (ι) in
+/-- The continuous linear map that sends an endomorphism `A` of `StdSpace ι` to
+`φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, `ω₀♭ : u ↦ ω₀(u, ·)`. When `A² = -1`, `stdFormCompRightInverseL ι A` is the
+inverse of the form `ω₀(·, A ·)` as a map to the dual (`inverse_stdFormCompRightL_apply`). -/
+noncomputable def stdFormCompRightInverseL :
+    (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι :=
+  ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
+      (-((stdForm ι).flatEquiv.symm : (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι)) ∘L
+    (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip
+
+variable (ι) in
+theorem stdFormCompRightInverseL_def :
+    stdFormCompRightInverseL ι =
+      ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
+          (-((stdForm ι).flatEquiv.symm : (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι)) ∘L
+        (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip :=
+  (rfl)
+
+@[simp]
+theorem stdFormCompRightInverseL_apply (A : StdSpace ι →L[ℝ] StdSpace ι)
+    (φ : StdSpace ι →L[ℝ] ℝ) :
+    stdFormCompRightInverseL ι A φ = -(stdForm ι).flatEquiv.symm (φ ∘L A) := by
+  simp [stdFormCompRightInverseL_def]
+
+/-- The map `φ ↦ -ω₀♭⁻¹ (φ ∘ A)` has norm at most `‖A‖`. -/
+theorem norm_stdFormCompRightInverseL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    ‖stdFormCompRightInverseL ι A‖ ≤ ‖A‖ :=
+  ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun φ ↦ by
+    rw [stdFormCompRightInverseL_apply, norm_neg, norm_stdForm_flatEquiv_symm_apply, mul_comm]
+    exact φ.opNorm_comp_le A
+
+/-- The form `ω₀(·, A ·)`, as a map to the dual, is `ω₀♭ : u ↦ ω₀(u, ·)` followed by
+`φ ↦ φ ∘ A`. -/
+theorem stdFormCompRightL_apply_eq_comp (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    stdFormCompRightL ι A =
+      (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A ∘L
+        ((stdForm ι).flatEquiv : StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ) := by
+  ext u v
+  simp
+
+/-- For `A` with `A² = -1`, the form `ω₀(·, A ·)` is invertible as a map to the dual. -/
+theorem isInvertible_stdFormCompRightL_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    (stdFormCompRightL ι A).IsInvertible := by
+  rw [stdFormCompRightL_apply_eq_comp, ContinuousLinearMap.isInvertible_comp_equiv]
+  exact .of_inverse (g := -(ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A)
+    (by ext φ v; simp [hA]) (by ext φ v; simp [hA])
+
+/-- For `A` with `A² = -1`, the inverse of the form `ω₀(·, A ·)`, as a map to the dual, is
+`φ ↦ -ω₀♭⁻¹ (φ ∘ A)`. -/
+theorem inverse_stdFormCompRightL_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    (stdFormCompRightL ι A).inverse = stdFormCompRightInverseL ι A := by
+  rw [stdFormCompRightL_apply_eq_comp, ContinuousLinearMap.inverse_comp_equiv,
+    ContinuousLinearMap.inverse_eq
+      (g := -(ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A)
+      (by ext φ v; simp [hA]) (by ext φ v; simp [hA])]
+  ext φ : 1
+  simp
 
 variable (ι) in
 /-- The rotation `z ↦ cos t • z + sin t • J₀ z` of `StdSpace ι`, a linear isometry: through
@@ -996,7 +1126,7 @@ along the bijection `Fin m × Fin 2 ≃ ι ⊕ ι` that sends `(k, 0)` to `Sum.i
 to `Sum.inr (τ k)`. -/
 theorem stdDarbouxBasisOf_eq_reindex {m : ℕ} (τ : Fin m ≃ ι) :
     stdDarbouxBasisOf τ = (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex
-      ((SymplecticForm.darbouxIndexEquiv m).trans
+      ((SymplecticForm.darbouxIndexEquiv (Fin m)).trans
         ((Equiv.sumComm _ _).trans (τ.sumCongr τ))).symm := by
   classical
   exact Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by fin_cases i <;> simp

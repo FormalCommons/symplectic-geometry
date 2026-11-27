@@ -10,20 +10,19 @@ public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Manifold.Submersion.Split
+public import TauCeti.Geometry.Sphere.LinearIsometry
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+public import SymplecticGeometry.Geometry.Manifold.Instances.ComplexProjectiveSpace.Projectivization
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Inv
-import TauCeti.Analysis.Calculus.ContDiff.FinInsertNth
-import TauCeti.Analysis.InnerProductSpace.RadialRescale
+import TauCeti.Analysis.InnerProductSpace.Radial.Rescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # The Hopf maps
@@ -65,9 +64,13 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   (`mvfderiv_radialProjection`).
 * Two points of the sphere have the same image exactly when they lie on one orbit of the circle
   action of the rotations `stdRotation _ t`, `x ↦ cos t • x + sin t • J₀ x`
-  (`sphereHopf_eq_sphereHopf_iff`), and the kernel of the derivative of the Hopf map at `x`, read
-  in `StdSpace (Fin (n + 1))`, is the tangent line `ℝ ∙ J₀ x` of that orbit
-  (`ker_mfderiv_sphereHopf`).
+  (`sphereHopf_eq_sphereHopf_iff`).
+* Identifying the unit sphere of `StdSpace (Fin (n + 1))` with that of
+  `EuclideanSpace ℂ (Fin (n + 1))` by the inverse of the isometry
+  `TauCeti.complexToRealEuclideanIsometry`, the Hopf map is Tau Ceti's Hopf projection
+  `TauCeti.ComplexProjectiveSpace.mk n` followed by the diffeomorphism
+  `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`
+  (`sphereHopf_eq_diffeomorphProjectivization_mk`).
 
 Mathlib's charts on the sphere need its dimension in the form
 `finrank ℝ (StdSpace (Fin (n + 1))) = 2 * n + 1 + 1`, which the scoped instance
@@ -435,9 +438,7 @@ theorem mvfderiv_radialProjection (z : puncturedSpace (Fin (n + 1) → ℂ))
     funext fun y ↦ (radialProjection_apply y).trans (TauCeti.radialRescale_apply _ _).symm
   rw [← mvfderiv_comp_apply _ ((contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero)
       ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero), hfun,
-    TauCeti.Manifold.mvfderiv_comp_subtype_val]
-  refine (TauCeti.mvfderiv_eq_fderiv_apply _ (z : Fin (n + 1) → ℂ) v).trans ?_
-  rw [hd.fderiv]
+    TauCeti.Manifold.mvfderiv_modelSpace_comp_subtype_val_apply, hd.fderiv]
   -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
   -- maps apply to it.
   revert v
@@ -502,65 +503,17 @@ theorem sphereHopf_eq_sphereHopf_iff (x y : sphere (0 : StdSpace (Fin (n + 1))) 
         ContinuousLinearEquiv.apply_symm_apply,
         ht])⟩
 
-/-- The kernel of the derivative of the Hopf map at `x`, read in `StdSpace (Fin (n + 1))` through
-the derivative of the inclusion of the sphere, is the line `ℝ ∙ J₀ x` tangent to the circle
-orbit `t ↦ stdRotation _ t x = cos t • x + sin t • J₀ x` through `x`. -/
-theorem ker_mfderiv_sphereHopf (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
-    (LinearMap.ker (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) x).toLinearMap).map
-        (mvfderiv (𝓡 (2 * n + 1))
-          (Subtype.val : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1)))
-            x).toLinearMap =
-      ℝ ∙ stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) := by
-  set e := complexToRealEuclidean (Fin (n + 1))
-  let L : EuclideanSpace ℝ (Fin (2 * n + 1)) →ₗ[ℝ] (Fin n → ℂ) :=
-    (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) x).toLinearMap
-  let D : EuclideanSpace ℝ (Fin (2 * n + 1)) →ₗ[ℝ] StdSpace (Fin (n + 1)) :=
-    (mvfderiv (𝓡 (2 * n + 1))
-      (Subtype.val : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) x).toLinearMap
-  -- The tangent spaces are the model spaces; reading both derivatives as linear maps between
-  -- these makes their finite-dimensionality instances available.
-  change (LinearMap.ker L).map D = _
-  have hJ : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) =
-      e (Complex.I • e.symm x) := by
-    rw [← stdComplexStructure_complexToRealEuclidean, ContinuousLinearEquiv.apply_symm_apply]
-  have hJx : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) ≠ 0 := by
-    rw [hJ]
-    simpa using ne_zero_of_mem_unit_sphere x
-  have hmem : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) ∈
-      (LinearMap.ker L).map D := by
-    -- The tangent vector is read in the model space, the domain of `D`.
-    obtain ⟨w, hw⟩ : ∃ w : EuclideanSpace ℝ (Fin (2 * n + 1)),
-        D w = stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) :=
-      exists_mvfderiv_coe_sphere_eq x (AlmostComplexStructure.inner_self_apply
-        (inner_stdComplexStructure_stdComplexStructure (ι := Fin (n + 1))) _)
-    refine ⟨w, ?_, hw⟩
-    let w' : TangentSpace (𝓡 (2 * n + 1)) x := w
-    have hι : mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin (n + 1) → ℂ) (sphereToPuncturedSpace n) x w' =
-        Complex.I • e.symm x := by
-      have h₁ := TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := 𝓘(ℝ, Fin (n + 1) → ℂ))
-        (J := 𝓡 (2 * n + 1)) (f := sphereToPuncturedSpace n) (x := x) w'
-      have h₂ := mfderiv_comp_apply x
-        ((e.symm : StdSpace (Fin (n + 1)) →L[ℝ] (Fin (n + 1) → ℂ)).mdifferentiableAt)
-        ((contMDiff_coe_sphere x).mdifferentiableAt one_ne_zero) w'
-      rw [ContinuousLinearMap.mfderiv_eq] at h₂
-      have h₃ : e.symm (D w) = Complex.I • e.symm x := by
-        rw [hw, hJ, ContinuousLinearEquiv.symm_apply_apply]
-      exact h₁.symm.trans (h₂.trans h₃)
-    -- `w'` is `w` read as a tangent vector of the sphere at `x`.
-    change mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) x w' = 0
-    rw [← mkNonzero_comp_sphereToPuncturedSpace, mfderiv_comp_apply x
-      ((contMDiff_mkNonzero ℂ n 1 _).mdifferentiableAt one_ne_zero)
-      ((contMDiff_sphereToPuncturedSpace n 1 x).mdifferentiableAt one_ne_zero), hι]
-    exact mfderiv_mkNonzero_smul_self _ Complex.I
-  symm
-  refine Submodule.eq_of_le_of_finrank_eq ((Submodule.span_singleton_le_iff_mem _ _).2 hmem) ?_
-  rw [finrank_span_singleton hJx, ← LinearEquiv.finrank_eq
-    (Submodule.equivMapOfInjective D (injective_mvfderiv_subtypeVal_sphere x) _)]
-  have h := LinearMap.finrank_range_add_finrank_ker L
-  rw [show LinearMap.range L = ⊤ from LinearMap.range_eq_top.2
-    ((isSubmersion_sphereHopf n).surjective_mfderiv (by simp) x), finrank_top] at h
-  simp only [Module.finrank_pi_fintype, Complex.finrank_real_complex, Finset.sum_const,
-    Finset.card_univ, Fintype.card_fin, smul_eq_mul, finrank_euclideanSpace] at h
-  omega
 
+/-- The Hopf map is Tau Ceti's Hopf projection `TauCeti.ComplexProjectiveSpace.mk n`, after the
+identification of the unit sphere of `StdSpace (Fin (n + 1))` with that of
+`EuclideanSpace ℂ (Fin (n + 1))` by the inverse of the isometry `complexToRealEuclideanIsometry`,
+followed by the diffeomorphism `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n` onto
+`ℙ ℂ (Fin (n + 1) → ℂ)`. -/
+theorem sphereHopf_eq_diffeomorphProjectivization_mk (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
+    sphereHopf n x = ComplexProjectiveSpace.diffeomorphProjectivization n
+      (ComplexProjectiveSpace.mk n
+        ((complexToRealEuclideanIsometry (Fin (n + 1))).symm.unitSphereEquiv x)) := by
+  rw [ComplexProjectiveSpace.diffeomorphProjectivization_mk, sphereHopf_apply]
+  simp only [LinearIsometryEquiv.coe_unitSphereEquiv_apply,
+    complexToRealEuclideanIsometry_symm_apply, WithLp.ofLp_toLp]
 end SymplecticGeometry

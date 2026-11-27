@@ -29,9 +29,10 @@ smooth embedding (`Manifold.IsSmoothEmbedding.of_opens`). Tau Ceti's
 `ContRepresentation.contMDiffConstSMul_mulActionOpens` is the case of a linear representation on
 an invariant open subset of its space.
 
-Pulling back along an equivariant smooth map keeps invariance of forms: if `f : N → M` is smooth
-and equivariant and a form on `M` is invariant under every `g • ·`, its pullback to `N` is
-invariant under every `g • ·` on `N`. Restricting to `U` is the case of the inclusion.
+Pulling back along a smooth map keeps invariance of forms, one element at a time: if
+`f : N → M` is smooth with `f (g • x) = g • f x` for some `g`, and a form on `M` is invariant
+under `g • ·`, then its pullback to `N` is invariant under `g • ·` on `N`. Restricting to `U` is
+the case of the inclusion.
 
 Equivariance passes to Tau Ceti's `PartialDiffeomorph.liftOpens`: if `G` acts on open subsets
 `U` and `V` with equivariant inclusions, the lift of a partial diffeomorphism from `U` to `V`
@@ -47,8 +48,6 @@ when the source of the partial diffeomorphism is.
 * `TopologicalSpace.Opens.contMDiffConstSMul_of_coe_smul`: the same for actions by `C^n` maps.
 * `TauCeti.SmoothForm.mpullback_smul_mpullback`: the pullback of an invariant form along an
   equivariant smooth map is invariant.
-* `TauCeti.SmoothForm.mpullback_smul_mpullback_subtypeVal`: the restriction of an invariant form
-  to `U` is invariant.
 * `PartialDiffeomorph.liftOpens_smul`, `PartialDiffeomorph.smul_mem_liftOpens_source`: the
   lift of a partial diffeomorphism between open subsets that is equivariant on its source is
   equivariant on its source, with invariant source.
@@ -167,31 +166,16 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
   {G : Type*} [SMul G M] [ContMDiffConstSMul I ∞ G M]
 
-/-- Let `f : N → M` be a smooth map with `f (g • x) = g • f x`, where every `g • ·` is smooth on
-`M` and on `N`. If a smooth form `α` on `M` is invariant under pullback along every `g • ·`,
+/-- Let `f : N → M` be a smooth map with `f (g • x) = g • f x` for one `g`, where every `g • ·`
+is smooth on `M` and on `N`. If a smooth form `α` on `M` is invariant under pullback along `g • ·`,
 then so is its pullback to `N` along `f`. -/
 theorem mpullback_smul_mpullback [SMul G N] [ContMDiffConstSMul I' ∞ G N] {f : N → M}
-    (hf : ContMDiff I' I ∞ f) (h : ∀ (g : G) (x : N), f (g • x) = g • f x)
-    {α : SmoothForm I M F k} (hα : ∀ g : G, TauCeti.mpullback (F := F) I I (g • ·) α.val = α.val)
-    (g : G) :
-    TauCeti.mpullback (F := F) I' I' (g • ·) (mpullback f hf α).val = (mpullback f hf α).val := by
-  have hαg : mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) α = α :=
-    Subtype.ext ((coe_mpullback _ _ _).trans (hα g))
-  rw [← coe_mpullback _ (contMDiff_const_smul g),
-    mpullback_mpullback_of_comp_eq (contMDiff_const_smul g) hf hf
-      (contMDiff_const_smul g) (funext (h g)) α, hαg]
-
-/-- If `G` acts on an open set `U` so that the inclusion `U → M` is equivariant, and every
-`g • ·` is smooth on `M`, then the restriction to `U` of a smooth form `α` on `M` invariant under
-every `g • ·` is invariant under every `g • ·` on `U`. -/
-theorem mpullback_smul_mpullback_subtypeVal {U : TopologicalSpace.Opens M} [SMul G U]
-    (h : ∀ (g : G) (x : U), ((g • x : U) : M) = g • (x : M)) {α : SmoothForm I M F k}
-    (hα : ∀ g : G, TauCeti.mpullback (F := F) I I (g • ·) α.val = α.val) (g : G) :
-    TauCeti.mpullback (F := F) I I (g • ·)
-        (mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).val =
-      (mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).val :=
-  have := TopologicalSpace.Opens.contMDiffConstSMul_of_coe_smul (I' := I) (n := ∞) h
-  mpullback_smul_mpullback contMDiff_subtypeVal h hα g
+    (hf : ContMDiff I' I ∞ f) {g : G} (h : ∀ x : N, f (g • x) = g • f x)
+    {α : SmoothForm I M F k}
+    (hα : mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) α = α) :
+    mpullback (fun x : N ↦ g • x) (contMDiff_const_smul g) (mpullback f hf α) =
+      mpullback f hf α := by
+  rw [mpullback_mpullback_of_comp_eq _ _ hf (contMDiff_const_smul g) (funext h), hα]
 
 end TauCeti.SmoothForm
 

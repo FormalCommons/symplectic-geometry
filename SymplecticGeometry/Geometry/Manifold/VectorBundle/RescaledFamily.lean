@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Sets.Opens
-public import SymplecticGeometry.Topology.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Topology.VectorBundle.Radial
@@ -19,6 +18,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Topology.FiberBundle.Separation
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The rescaled family of a map near the zero section of a vector bundle
@@ -176,7 +176,7 @@ theorem vectorBundleRescaledFamily_zeroSection [T2Space (TotalSpace F V)]
       rwa [vectorBundleFiberScaling_zeroSection]
     have hzx : (⟨_, hz⟩ : U) = ⟨_, hx⟩ := Subtype.ext (vectorBundleFiberScaling_zeroSection x t)
     rw [vectorBundleRescaledFamily_of_ne_zero ψ ht _ hz, hzx, hψ0]
-    simp only [zeroSection]
+    rw [zeroSection_def]
     exact congrArg _ (smul_zero _)
   rcases eq_or_ne (t : ℝ) 0 with ht | ht
   · obtain rfl : t = 0 := Subtype.ext ht
@@ -211,7 +211,7 @@ theorem tendsto_vectorBundleRescaledFamily_zero (e : Trivialization F (π F V)) 
   have hGc : ∀ v, ContinuousAt G (x, v) := fun v ↦
     e.continuousOn_symm.continuousAt (prod_mem_nhds (e.open_baseSet.mem_nhds hz) univ_mem)
   have hG0 : G (x, 0) = zeroSection F V x := by
-    simp [hG, zeroSection, ← Trivialization.symmₗ_apply (R := ℝ) _ hz]
+    simp [hG, zeroSection_def, ← Trivialization.symmₗ_apply (R := ℝ) _ hz]
   have hcoe : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ)) (𝓝[>] 0) (𝓝[>] 0) :=
     continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun _ ↦ id
   have hsmall : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ) • w₀) (𝓝[>] 0) (𝓝 0) := by
@@ -553,29 +553,18 @@ private theorem contMDiffAt_fiberRescale_chartFiber [IsManifold IB ∞ B]
     mem_baseSet_trivializationAt F V z₀.proj
   have hs₀ : z₀.proj ∈ (chartAt HB z₀.proj).source := mem_chart_source HB z₀.proj
   set W := chartDomain U IB ψ' z₀
-  set S : Set ((EB × F) × ℝ) := {q | ∀ s : unitInterval, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ W}
-    with hS_def
-  have hS : IsOpen S := by
-    have : S = (fun q : (EB × F) × ℝ ↦ (q.2, q.1)) ⁻¹' TauCeti.normalSegmentDomain W := by
-      ext q
-      simp [hS_def, Subtype.forall, unitInterval]
-    rw [this]
-    exact (TauCeti.isOpen_normalSegmentDomain (isOpen_chartDomain hψ')).preimage (by fun_prop)
-  have hfr : ContDiffOn ℝ ∞ (fiberRescale (chartFiber IB ψ' z₀)) S :=
-    contDiffOn_fiberRescale (n := ⊤) (isOpen_chartDomain hψ')
-      (by simpa using contDiffOn_chartFiber hψ') fun p hp ↦ chartFiber_zero hψ0 hψψ' hp
   have hκ : ContMDiffAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) 𝓘(ℝ, (EB × F) × ℝ) ∞
       (fun p : TotalSpace F V × Icc (0 : ℝ) 1 ↦
         (extChartAt (IB.prod 𝓘(ℝ, F)) z₀ p.1, (p.2 : ℝ))) (z₀, 0) :=
     ((contMDiffAt_extChartAt (I := IB.prod 𝓘(ℝ, F)) (x := z₀) (n := ∞)).comp
       (z₀, (0 : Icc (0 : ℝ) 1)) contMDiffAt_fst).prodMk_space
       (contMDiff_subtypeVal_Icc.comp contMDiff_snd).contMDiffAt
-  have hκS : (extChartAt (IB.prod 𝓘(ℝ, F)) z₀ z₀, ((0 : Icc (0 : ℝ) 1) : ℝ)) ∈ S := by
-    intro s
-    rw [Bundle.extChartAt_apply_of_mem_baseSet (IB := IB) z₀ hb₀, Icc.coe_zero, zero_smul,
-      smul_zero]
+  have hW : ((extChartAt (IB.prod 𝓘(ℝ, F)) z₀ z₀).1, (0 : F)) ∈ W := by
+    rw [Bundle.extChartAt_apply_of_mem_baseSet (IB := IB) z₀ hb₀]
     exact extChartAt_mk_zero_mem_chartDomain (IB := IB) (z₀ := z₀) hstar hψ0 hψψ' hz₀ hb₀ hs₀
-  exact (hfr.contDiffAt (hS.mem_nhds hκS)).contMDiffAt.comp (z₀, 0) hκ
+  exact ((contDiffAt_fiberRescale_zero (n := ⊤) (isOpen_chartDomain hψ')
+    (by simpa using contDiffOn_chartFiber hψ') (fun p hp ↦ chartFiber_zero hψ0 hψψ' hp)
+    hW).contMDiffAt.comp (z₀, 0) hκ)
 
 /-- Near `t = 0` the rescaled family is smooth: read in the preferred chart at `z₀`, it is the
 rescaling `fiberRescale` of the fibre coordinate of `ψ`. -/

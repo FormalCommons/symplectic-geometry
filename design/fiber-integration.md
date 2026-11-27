@@ -63,13 +63,19 @@ to forms on manifolds):
 
 From Mathlib the part uses `AlternatingMap.map_linearDependent` and
 `Fin.append`. From part 48, *Symplectic fibrations*, it uses only
-`Geometry/Symplectic/Fibration/Basic.lean`: the structure
-`FiberAtlas`, its charts (trivializations smooth with smooth inverses),
-that they cover `B`, and oriented atlases, whose coordinate changes lie in
-`Diffeomorph.orientationPreservingSubgroup` of `o` at each base point. The
-statements below write these as `e ∈ A`, `b ∈ e.baseSet` and `A.IsOriented o`;
-the building issues use the names that `design/symplectic-fibrations.md` and
-the merged `Basic.lean` give them.
+`Geometry/Manifold/FiberBundle/MapFiber.lean` and
+`Geometry/Manifold/FiberBundle/StructureGroup.lean`: Tau Ceti's atlas
+`A : TauCeti.MapFiber.Atlas F π`, whose chart `A.trivAt b` at each `b` has
+`b` in its base set, smooth atlases `A.IsContMDiff ∞ I J IM` (charts smooth
+with smooth inverses), and oriented atlases,
+`A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup o)`. The
+statements below write these as `e ∈ A` (`e` is some `A.trivAt b'`),
+`b ∈ e.baseSet` and `A.IsOriented o`, the last standing for both
+`A.IsContMDiff ∞ I J IM` and
+`A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup o)`, since
+the structure group constrains only the coordinate changes and not the
+charts themselves; the building issues use the names that
+`design/symplectic-fibrations.md` and those two files give them.
 
 ## Decisions
 
@@ -120,13 +126,16 @@ the merged `Basic.lean` give them.
 
 The fibre integral on `B × F`.
 
-- `AlternatingMap.map_append_add_of_mem`: for a field `K`,
-  `f : W [⋀^Fin (r + m)]→ₗ[K] N`, a finite-dimensional submodule `V` of `W`
-  (`[FiniteDimensional K V]`) with `finrank K V ≤ m`, and `u : Fin r → W`, `w : Fin m → W` with all `u i` and
+- `AlternatingMap.map_append_add_of_mem`, in
+  `LinearAlgebra/Alternating/Basic.lean`: for a ring `K` with
+  `[IsDomain K] [StrongRankCondition K]`, `[Module.IsTorsionFree K N]`,
+  `f : W [⋀^Fin (r + m)]→ₗ[K] N`, a finite submodule `V` of `W`
+  (`[Module.Finite K V]`) with `finrank K V ≤ m`, and `u : Fin r → W`, `w : Fin m → W` with all `u i` and
   `w j` in `V`, `f (Fin.append (v + u) w) = f (Fin.append v w)`. (Each term of
   the multilinear expansion with some `u i` has $m+1$ vectors in `V`, so
   `AlternatingMap.map_linearDependent` applies.) A
-  `ContinuousAlternatingMap` corollary of the same name in its namespace.
+  `ContinuousAlternatingMap` corollary of the same name in its namespace, in
+  `Topology/Algebra/Module/Alternating/Basic.lean`.
 - `prodFiberIntegrand α b v : RoughForm J F ℝ m`, for
   `α : RoughForm (I.prod J) (B × F) ℝ (r + m)`, `b : B`,
   `v : Fin r → TangentSpace I b`: at `y` the alternating map
@@ -135,7 +144,7 @@ The fibre integral on `B × F`.
   `TauCeti.RoughForm.inChartAt_prod_apply_append`; `prodFiberIntegrand_apply`
   (`@[simp]`), linearity in `α`, multilinearity and alternation in `v`, and
   `isSmoothForm_prodFiberIntegrand` for smooth `α`. For `r = 0` it is the
-  slice `mpullback J (I.prod J) (Prod.mk b) α` (`prodFiberIntegrand_zero`,
+  slice `mpullback J (I.prod J) (Prod.mk b) α` (`prodFiberIntegrand_degree_zero`,
   through the degree cast `0 + m = m`).
 - `prodFiberIntegral o : SmoothForm (I.prod J) (B × F) ℝ (r + m) →ₗ[ℝ] SmoothForm I B ℝ r`,
   with `prodFiberIntegral_apply`:
@@ -143,7 +152,7 @@ The fibre integral on `B × F`.
   The value at `b` is a continuous alternating map because integration is
   linear on smooth forms of the compact `F` and `TangentSpace I b` is
   finite-dimensional; smoothness in `b` by the volume-form decision.
-- `prodFiberIntegral_apply_zero` (the integral over each fibre, `r = 0`):
+- `prodFiberIntegral_degree_zero_apply` (the integral over each fibre, `r = 0`):
   `(prodFiberIntegral o α).val b ![] = integralTopForm o (mpullback J (I.prod J) (Prod.mk b) (cast α).val)`.
 
 Uses: Tau Ceti's `integralTopForm` and its linearity, `riemannianVolumeForm`,
@@ -159,7 +168,7 @@ fibrewise diffeomorphisms.
   `prodFiberIntegral o (mpullback (Prod.map f id) α) = mpullback f (prodFiberIntegral o α)`.
   With `f` the inclusion of an open subset this is restriction to an open
   subset of the base.
-- `prodFiberIntegral_wedge` (projection formula): for `β : SmoothForm I B ℝ p`
+- `prodFiberIntegral_wedge_mpullback_fst` (projection formula): for `β : SmoothForm I B ℝ p`
   and `α` of degree `q + m`,
   `prodFiberIntegral o (cast (wedge (mpullback Prod.fst β) α)) = wedge β (prodFiberIntegral o α)`,
   the cast along `p + (q + m) = (p + q) + m`. Pointwise: in the shuffle sum of
@@ -178,7 +187,7 @@ fibrewise diffeomorphisms.
 
 About 300 lines.
 
-### `Geometry/Manifold/DifferentialForm/FiberIntegral/Product/ExtDeriv.lean`
+### `Geometry/Manifold/DifferentialForm/FiberIntegral/Product/ExtDeriv/Basic.lean`
 
 - `prodFiberIntegral_mextDeriv`:
   `prodFiberIntegral o (cast (mextDerivₗ (I.prod J) (r + m) α)) = mextDerivₗ I r (prodFiberIntegral o α)`,
@@ -201,12 +210,11 @@ About 400 lines.
 
 The operator of an oriented fibration.
 
-- `FiberAtlas.fiberIntegrand A α b v : RoughForm J F ℝ m` for a chart
+- `TauCeti.MapFiber.Atlas.fiberIntegrand A α b v : RoughForm J F ℝ m` for a chart
   `e ∈ A` at `b`, the integrand read through `Ψ_e`: the pull-back along
   `y ↦ e.symm (b, y)` of `α (ṽ_1, …, ṽ_r, ·)`, with `ṽ_i` the derivative of
-  `e.symm` at `(b, y)` on `(v i, 0)`. The chart is part 48's chosen chart at
-  `b` (or `Classical.choose` of the cover).
-- `FiberAtlas.fiberIntegral (A : FiberAtlas …) (hA : A.IsOriented o) :
+  `e.symm` at `(b, y)` on `(v i, 0)`. The chart is `A.trivAt b`.
+- `TauCeti.MapFiber.Atlas.fiberIntegral (A : TauCeti.MapFiber.Atlas F π) (hA : A.IsOriented o) :
   SmoothForm IM M ℝ (r + m) →ₗ[ℝ] SmoothForm I B ℝ r`, with
   `fiberIntegral_apply`: the value at `b` on `v` is
   `integralTopForm o (A.fiberIntegrand α b v)`.
@@ -224,17 +232,17 @@ The operator of an oriented fibration.
 - `fiberIntegral_apply_zero` (the integral over each fibre): in degree `m`,
   the value at `b` is `integralTopForm o` of the pull-back of `α` along
   `y ↦ e.symm (b, y)`, for every chart `e` at `b`.
-- `fiberIntegral_restrict` (value in a trivialization): on `e.baseSet`, the
+- `mpullback_subtype_val_fiberIntegral` (value in a trivialization): on `e.baseSet`, the
   restriction of `A.fiberIntegral hA α` is
   `prodFiberIntegral o (mpullback Ψ_e α)`, with
   `Ψ_e : e.baseSet × F → M`. Smoothness of `fiberIntegral` comes from it and
-  `TauCeti.IsSmoothForm.of_mpullback_inclusion`.
+  `TauCeti.contMDiffAt_mpullback_subtype_val_iff`.
 
 About 400 lines.
 
 ### `Geometry/Manifold/DifferentialForm/FiberIntegral/Calculus.lean`
 
-Reduced to the product files through `fiberIntegral_restrict` and the
+Reduced to the product files through `mpullback_subtype_val_fiberIntegral` and the
 locality of forms on open subsets.
 
 - `fiberIntegral_mextDeriv`: `A.fiberIntegral hA (cast (mextDerivₗ IM (r + m) α)) = mextDerivₗ I r (A.fiberIntegral hA α)`;
@@ -258,9 +266,11 @@ About 250 lines.
 - From Mathlib: `AlternatingMap.map_linearDependent`, `Fin.append`,
   `LinearEquiv.cast`.
 - From Tau Ceti: the declarations listed under *What exists*.
-- From other parts: *Symplectic fibrations*, only `Geometry/Symplectic/Fibration/Basic.lean`
-  (`FiberAtlas`, charts, cover, oriented atlases). The three product files use
-  no part of the library.
+- From other parts: *Symplectic fibrations*, only
+  `Geometry/Manifold/FiberBundle/MapFiber.lean` and `StructureGroup.lean`
+  (atlases `TauCeti.MapFiber.Atlas` with `IsContMDiff`, their charts
+  `A.trivAt b`, and oriented atlases as `HasStructureGroup`). The three
+  product files use no part of the library.
 
 ## Issues
 
@@ -269,16 +279,16 @@ order; each waits only for those it names.
 
 1. **`FiberIntegral/Product/Basic.lean`**: `AlternatingMap.map_append_add_of_mem`,
    `prodFiberIntegrand`, `prodFiberIntegral` with its smoothness and
-   `prodFiberIntegral_apply_zero`. Waits for nothing.
+   `prodFiberIntegral_degree_zero_apply`. Waits for nothing.
 2. **`FiberIntegral/Product/Naturality.lean`**: base pull-back, projection
    formula, invariance under fibrewise orientation-preserving
    diffeomorphisms. Waits for issue 1.
-3. **`FiberIntegral/Product/ExtDeriv.lean`**: `prodFiberIntegral_mextDeriv`.
+3. **`FiberIntegral/Product/ExtDeriv/Basic.lean`**: `prodFiberIntegral_mextDeriv`.
    Waits for issues 1 and 2.
-4. **`FiberIntegral/Basic.lean`**: `FiberAtlas.fiberIntegral`, independence of
-   the chart and of the lifts, the integral over each fibre, the value in a
-   trivialization. Waits for issue 2 and for the issue of *Symplectic
-   fibrations* that adds `Geometry/Symplectic/Fibration/Basic.lean`.
+4. **`FiberIntegral/Basic.lean`**: `TauCeti.MapFiber.Atlas.fiberIntegral`,
+   independence of the chart and of the lifts, the integral over each fibre,
+   the value in a trivialization. Waits for issue 2 and for building issues 1
+   and 2 of *Symplectic fibrations* (`MapFiber.lean`, `StructureGroup.lean`).
 5. **`FiberIntegral/Calculus.lean`**: $d$, the projection formula and
    naturality for fibrations. Waits for issues 3 and 4.
 

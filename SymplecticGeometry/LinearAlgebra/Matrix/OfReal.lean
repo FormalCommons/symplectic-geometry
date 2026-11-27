@@ -9,9 +9,10 @@ public import Mathlib.Algebra.Polynomial.Roots
 public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Data.Matrix.ColumnRowPartitioned
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
-public import TauCeti.Analysis.Complex.Euclidean.Space
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 public import TauCeti.LinearAlgebra.Matrix.OfReal
 public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
+import TauCeti.LinearAlgebra.Matrix.Determinant.Pencil
 
 /-!
 # Real matrices read as complex matrices
@@ -40,7 +41,7 @@ frames in `ℂⁿ` (§2.3).
   (`Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`).
 * `Matrix.range_toEuclideanLin_fromRows`: the column space of `fromRows X Y` in `ℝ²ⁿ` is the
   real image `(X + i Y) ℝⁿ` (Tau Ceti's `Matrix.realImage`), read in real coordinates through
-  `TauCeti.complexToRealEuclidean`.
+  `TauCeti.complexToRealEuclideanIsometry`.
 * `Matrix.exists_det_sub_smul_ne_zero`: if `det (X + i Y) ≠ 0`, then `det (X - t Y) ≠ 0` for
   some real `t`.
 
@@ -105,12 +106,11 @@ theorem map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq [Fintype m]
 
 /-- The column space of the real `2n × n` matrix `fromRows X Y`, as a subspace of
 `EuclideanSpace ℝ (n ⊕ n)`, is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` written in the real
-coordinates `(Re, Im)` of `TauCeti.complexToRealEuclidean`. -/
+coordinates `(Re, Im)` of `TauCeti.complexToRealEuclideanIsometry`. -/
 theorem range_toEuclideanLin_fromRows [Fintype n] [DecidableEq n] (X Y : Matrix n n ℝ) :
     LinearMap.range (toEuclideanLin (fromRows X Y)) =
       (X.map ofReal + I • Y.map ofReal).realImage.map
-        ((TauCeti.complexToRealEuclidean n).toLinearMap ∘ₗ
-          (PiLp.continuousLinearEquiv 2 ℝ (fun _ : n ↦ ℂ)).toLinearMap) := by
+        (TauCeti.complexToRealEuclideanIsometry n).toLinearEquiv.toLinearMap := by
   ext w
   simp only [LinearMap.mem_range, Submodule.mem_map, mem_realImage_iff_exists_mulVec]
   constructor
@@ -128,19 +128,15 @@ open Polynomial in
 theorem exists_det_sub_smul_ne_zero [Fintype n] [DecidableEq n] {X Y : Matrix n n ℝ}
     (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) :
     ∃ t : ℝ, (X - t • Y).det ≠ 0 := by
-  set p : ℝ[X] := (X.map C - (Polynomial.X : ℝ[X]) • Y.map C).det
+  set p : ℝ[X] := ((Polynomial.X : ℝ[X]) • (-Y).map C + X.map C).det
   have heval (t : ℝ) : p.eval t = (X - t • Y).det := by
-    rw [← coe_evalRingHom, RingHom.map_det]
-    congr 1
-    ext i j
-    simp only [RingHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.smul_apply,
-      smul_eq_mul, map_sub, coe_evalRingHom, eval_C, eval_mul, eval_X]
+    rw [eval_det_X_add_C, smul_neg, neg_add_eq_sub]
   have haeval : aeval (-I) p = (X.map ofReal + I • Y.map ofReal).det := by
     rw [AlgHom.map_det]
     congr 1
     ext i j
-    simp only [AlgHom.mapMatrix_apply, map_apply, Matrix.sub_apply, Matrix.add_apply,
-      Matrix.smul_apply, smul_eq_mul, map_sub, map_mul, aeval_C, aeval_X,
+    simp only [AlgHom.mapMatrix_apply, map_apply, Matrix.add_apply, Matrix.neg_apply,
+      Matrix.smul_apply, smul_eq_mul, map_add, map_mul, map_neg, aeval_C, aeval_X,
       Complex.coe_algebraMap]
     ring
   have hp : p ≠ 0 := fun hp ↦ h (by rw [← haeval, hp, map_zero])

@@ -7,8 +7,8 @@ module
 
 public import Mathlib.Analysis.Normed.Operator.Completeness
 public import Mathlib.Topology.VectorBundle.Basic
-public import SymplecticGeometry.Algebra.GroupWithZero.Units.Lemmas
-public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import SymplecticGeometry.Algebra.GroupWithZero.Units.Lemmas
+import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 
 /-!

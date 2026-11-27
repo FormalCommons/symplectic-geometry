@@ -5,11 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Calculus.Gradient.MvPolynomial
+public import Mathlib.Analysis.Calculus.Gradient.Basic
+import SymplecticGeometry.Analysis.Calculus.Gradient.MvPolynomial
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Choice
 import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.DerivGrowth
+import SymplecticGeometry.Topology.Algebra.MvPolynomial
 import TauCeti.Analysis.MvPolynomial.Jacobian
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Differentiable
 
 /-!
 # The Łojasiewicz gradient inequality for real polynomials
@@ -101,8 +104,7 @@ private theorem exists_sumElim_mem_minSet (P : MvPolynomial ι ℝ) (a y : ι �
     ∃ x, Sum.elim ![t] x ∈ minSet P a := by
   -- A point of the level set on the segment from `a` to `y`.
   have hc : Continuous fun s : ℝ ↦ eval (a + s • (y - a)) P - eval a P :=
-    ((continuous_eval P).comp (continuous_const.add (continuous_id.smul continuous_const))).sub
-      continuous_const
+    by fun_prop
   obtain ⟨s, hs, hst⟩ := intermediate_value_Icc zero_le_one hc.continuousOn (by simpa using ht)
   set K := {w : ι → ℝ | eval w P - eval a P = t} ∩ Metric.closedBall a 1
   have hK : IsCompact K := (isCompact_closedBall a 1).inter_left
@@ -236,7 +238,7 @@ theorem exists_lojasiewicz_gradient (P : MvPolynomial ι ℝ) (x₀ : EuclideanS
   refine ⟨θ, ⟨le_max_left _ _, max_lt (by norm_num) (max_lt (by linarith) (by linarith))⟩,
     max K₁ K₂, lt_max_of_lt_left hK₁, ?_⟩
   have hc : Continuous fun y : EuclideanSpace ℝ ι ↦ eval y P - eval x₀ P :=
-    ((continuous_eval P).comp (PiLp.continuous_ofLp 2 _)).sub continuous_const
+    by fun_prop
   filter_upwards [(PiLp.continuous_ofLp 2 _).continuousAt.preimage_mem_nhds
       (Metric.closedBall_mem_nhds _ one_pos),
     (hc.abs.continuousAt (x := x₀)).eventually_lt (continuousAt_const (y := min ε₁ ε₂))

@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!

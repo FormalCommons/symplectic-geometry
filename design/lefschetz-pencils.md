@@ -36,7 +36,7 @@ under `SymplecticGeometry/`.
   theorem.
 - **The canonical class.** $K=-c_1(TM,J)$, where $J$ is any structure
   compatible with $\omega$,
-  with $c_1$ *First Chern number*'s `SymplecticGeometry.Bundle.firstChernClass`
+  with $c_1$ Tau Ceti's `TauCeti.firstChernClass`
   of the complex tangent bundle, exactly as in `design/adjunction.md`. Only
   this $J$ enters $K$; the pencil carries its own tame structure.
 - **Euler characteristic and genus.** $\chi(M)$ is Tau Ceti's
@@ -137,7 +137,7 @@ Donaldson's [Donaldson1999].
 What this part needs from *Asymptotically holomorphic sections* is
 therefore: the line bundle and the rescaled metrics (`LineBundle.lean`), the
 asymptotically holomorphic sequences and the transversality predicate
-(`AsymptoticallyHolomorphic.lean`), the peak sections (`PeakSection.lean`),
+(`AsymptoticallyHolomorphic/Basic.lean`), the peak sections (`PeakSection.lean`),
 the avoidance estimate for every target dimension (from the issues in which
 that part's design splits it), the colouring iteration for a general local
 open condition (`GlobalTransversality.lean`), the zero-set criterion with
@@ -198,7 +198,7 @@ approving review of #3195 asked, uses two facts of other parts: the blowup
 of `Weight/Basic.lean` along $\psi$ is diffeomorphic to the complex blowup of
 *Complex blowup*'s `Basic.lean` for the chart $\psi$, which *Symplectic
 blowup* compares in `Normalized/Weight.lean` (the book's comparison of (7.1.14)
-with Theorem 7.1.21); and *Complex blowup*'s `ConnectedSum.lean` gives an
+with Theorem 7.1.21); and *Complex blowup*'s `ConnectedSum/Basic.lean` gives an
 orientation-preserving diffeomorphism from that blowup to
 $M\#\overline{\mathbb CP}{}^2$. Iterating, the blowup at $N$ points is an iterated
 connected sum, recorded by the predicate `IsReversedProjectiveSum oM oX N`
@@ -228,7 +228,7 @@ for Morse–Bott functions, so the first equation is proved with one:
    and $2$ (`isMorse_projectiveMomentFunction`);
 3. $\mu\circ\pi$ is Morse–Bott: along the two fibres over the critical
    points of $\mu$ by Tau Ceti's
-   `TauCeti.SmoothEmbedding.isNondegenerateCriticalSubmanifold_comp_regularFiber`,
+   `TauCeti.isNondegenerateCriticalSubmanifold_comp_regularFiber`,
    of index $0$ and $2$; at each critical point of $\pi$ it is
    $\mathrm{Re}(\lambda(z_1^2+z_2^2))$ plus a constant in the model, with
    $\lambda\neq0$ since $\mu$ is regular at the critical value, so a
@@ -408,7 +408,7 @@ $g_k$).
   `shortExact_orientationAt_normalSpace`, and with $\Sigma\cdot\Sigma=\langle d_\Sigma\smile
   d_\Sigma,[M]\rangle=k^2m$ and $\langle c_1,i_*[\Sigma]\rangle=k\langle
   c_1\smile a,[M]\rangle$ from *Poincaré duals of submanifolds*
-  (`DualClass.lean`: $d_\Sigma$ restricts to the Euler class of the normal
+  (`DualClass/Basic.lean`: $d_\Sigma$ restricts to the Euler class of the normal
   bundle; `Orientation/DualClass.lean`), and the invariance of $c_1$ along
   the path of compatible structures.
 
@@ -462,13 +462,13 @@ a fibre.
   transversality for pairs*.
 - *Symplectic blowup*: `Weight/Basic.lean`, and the comparison with the complex
   blowup in `Normalized/Weight.lean`.
-- *Complex blowup*: `Model.lean` (`pr`), `Basic.lean`, `ConnectedSum.lean`.
-- *Poincaré duals of submanifolds*: `DualClass.lean`,
+- *Complex blowup*: `Model.lean` (`pr`), `Basic.lean`, `ConnectedSum/Basic.lean`.
+- *Poincaré duals of submanifolds*: `DualClass/Basic.lean`,
   `Orientation/DualClass.lean`.
 - *Parallel transport*: `RadialTrivialization.lean`.
 - Merged: *Adjunction* (`adjunction_formula`), *First Chern number*
-  (`firstChernClass`), *First Chern class of nondegenerate forms* (invariance
-  of $c_1$), *Complex projective space* (`fubiniStudyForm`), the library's
+  (`chernNumber`, on Tau Ceti's `TauCeti.firstChernClass`), *First Chern
+  class of nondegenerate forms* (invariance of $c_1$), *Complex projective space* (`fubiniStudyForm`), the library's
   `Topology/VectorBundle/Orientation/Whitney.lean`.
 
 Mathlib, Tau Ceti and this library were searched at the pinned versions for
@@ -491,8 +491,8 @@ part Lefschetz pencils*.
 | 5 | Transversality of pairs | `Transversality/Pair.lean` | 1; *Asymptotically holomorphic sections* up to `GlobalTransversality.lean` | 500 |
 | 6 | Transversality of the derivative of the quotient | `Transversality/Derivative.lean` | 5 | 500 |
 | 7 | Holomorphic models near base and critical points | `Perturbation.lean` | 3, 6 | 500 |
-| 8 | The pencil on $M$ | `FiberClosure.lean` | 7; *Asymptotically holomorphic sections* `ZeroSet.lean`, `Connectivity.lean`; *Poincaré duals of submanifolds* `DualClass.lean`, `Orientation/DualClass.lean` | 400 |
-| 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight/Basic.lean`, `Normalized/Weight.lean`; *Complex blowup* `Model.lean`, `ConnectedSum.lean` | 400 |
+| 8 | The pencil on $M$ | `FiberClosure.lean` | 7; *Asymptotically holomorphic sections* `ZeroSet.lean`, `Connectivity.lean`; *Poincaré duals of submanifolds* `DualClass/Basic.lean`, `Orientation/DualClass.lean` | 400 |
+| 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight/Basic.lean`, `Normalized/Weight.lean`; *Complex blowup* `Model.lean`, `ConnectedSum/Basic.lean` | 400 |
 
 Issues 1, 2 and 3 can start once this design is merged; the issue that splits #3295 names, for each issue
 of another part above, the issue of that part's design that builds it, once

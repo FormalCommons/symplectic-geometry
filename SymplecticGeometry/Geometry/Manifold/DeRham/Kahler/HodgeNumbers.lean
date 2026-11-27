@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Kahler.Decomposition
-public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import TauCeti.Geometry.Symplectic.Manifold.Volume

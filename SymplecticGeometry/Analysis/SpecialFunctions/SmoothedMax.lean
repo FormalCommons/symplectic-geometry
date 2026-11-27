@@ -9,8 +9,11 @@ public import Mathlib.Analysis.Convex.Deriv
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 
 /-!
 # A smoothed maximum of two real numbers
@@ -29,19 +32,45 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 ## Main declarations
 
 * `SymplecticGeometry.smoothedSign`: the smooth step, with `smoothedSign_of_le`,
-  `smoothedSign_of_le_neg`, `smoothedSign_neg`, `abs_smoothedSign_le_one` and
-  `monotone_smoothedSign`.
+  `smoothedSign_of_le_neg`, `smoothedSign_neg`, `abs_smoothedSign_le_one`,
+  `monotone_smoothedSign`, and its derivative `hasDerivAt_smoothedSign`,
+  `deriv_smoothedSign`.
 * `SymplecticGeometry.smoothedAbs`: the smoothing of `|t|` on `(-δ, δ)`.
 * `SymplecticGeometry.contDiff_smoothedAbs`, `SymplecticGeometry.deriv_smoothedAbs`,
   `SymplecticGeometry.abs_deriv_smoothedAbs_le_one`,
-  `SymplecticGeometry.iteratedDeriv_two_smoothedAbs_nonneg`: smoothness, derivative, and the
-  bounds on its first two derivatives.
+  `SymplecticGeometry.iteratedDeriv_two_smoothedAbs`,
+  `SymplecticGeometry.iteratedDeriv_two_smoothedAbs_nonneg`: smoothness, the first two
+  derivatives, and bounds on them.
+* `SymplecticGeometry.exists_pos_div_le_iteratedDeriv_two_smoothedAbs`: for each `ε > 0` there is
+  `c > 0` such that `c / δ ≤ (smoothedAbs δ)''(t)` wherever `|smoothedSign δ t| ≤ 1 - ε`; it is
+  a consequence of the lower bound of the next item, with `c = 2 min ε 1`.
+  `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
+  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
+  `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
+  below which that bound holds for given margins and bounds.
+* `SymplecticGeometry.two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs` and
+  `SymplecticGeometry.exists_forall_iteratedDeriv_two_smoothedAbs_le`: the curvature of
+  `smoothedAbs δ` lies between `2 (1 - s²) / δ`, with `s = smoothedSign δ t`, and `C / δ` for a
+  constant `C`. The lower bound follows from `8 ψ (1 - ψ) ≤ ψ'` for `ψ = Real.smoothTransition`
+  (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`).
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
 * `SymplecticGeometry.smoothedMax`: the smoothed maximum, with `contDiff_smoothedMax`,
-  `smoothedMax_eq_max`, `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`
-  and `smoothedMax_le_max_add`.
+  `hasDerivAt_smoothedMax_left`, `hasDerivAt_smoothedMax_right`, monotonicity in each argument
+  (`monotone_smoothedMax_left`, `monotone_smoothedMax_right`, `smoothedMax_le_smoothedMax`), the
+  first and second derivatives `hasDerivAt_smoothedMax`, `deriv_smoothedMax` and
+  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, the first one also
+  as a weighted average (`hasDerivAt_smoothedMax_weighted`, `deriv_smoothedMax_weighted`, with
+  the weight in `[0, 1]` by `one_add_smoothedSign_div_two_mem_Icc`), the bounds
+  `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
+  `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
+  and `one_div_smoothedMax_le`.
+* `SymplecticGeometry.abs_smoothedMax_sub_le`, `SymplecticGeometry.abs_deriv_smoothedMax_sub_le`
+  and `SymplecticGeometry.abs_iteratedDeriv_two_smoothedMax_sub_le`: the value and the first two
+  derivatives of the smoothed maximum of two functions are as close to any target as the farther
+  of the two functions is, up to `δ / 2` for the value and `C (f' - g')² / (2 δ)` for the second
+  derivative, where `C / δ` bounds the curvature of `smoothedAbs δ`.
 
 ## References
 
@@ -110,6 +139,24 @@ theorem monotone_smoothedSign (hδ : 0 ≤ δ) : Monotone (smoothedSign δ) := b
   rw [smoothedSign_def, smoothedSign_def]
   linarith
 
+/-- The derivative of `smoothedSign δ` at `s` is `ψ'((s + δ) / (2 δ)) / δ`, with
+`ψ = Real.smoothTransition`. For `δ = 0` both sides vanish. -/
+theorem hasDerivAt_smoothedSign (δ s : ℝ) :
+    HasDerivAt (smoothedSign δ) (deriv Real.smoothTransition ((s + δ) / (2 * δ)) / δ) s := by
+  have h := ((((hasDerivAt_id s).add_const δ).div_const (2 * δ)).smoothTransition.const_mul
+    2).sub_const 1
+  convert h using 1
+  · exact funext fun x ↦ smoothedSign_def δ x
+  · simp only [id_eq]
+    field_simp
+
+/-- The derivative of `smoothedSign δ` is `s ↦ ψ'((s + δ) / (2 δ)) / δ`, with
+`ψ = Real.smoothTransition`. -/
+@[simp]
+theorem deriv_smoothedSign (δ : ℝ) :
+    deriv (smoothedSign δ) = fun s ↦ deriv Real.smoothTransition ((s + δ) / (2 * δ)) / δ :=
+  funext fun s ↦ (hasDerivAt_smoothedSign δ s).deriv
+
 /-- For `δ > 0`, `smoothedSign δ` is nonnegative on `[0, ∞)`. -/
 theorem smoothedSign_nonneg (hδ : 0 < δ) {s : ℝ} (hs : 0 ≤ s) : 0 ≤ smoothedSign δ s := by
   have := monotone_smoothedSign hδ.le (neg_le_self hs)
@@ -162,8 +209,111 @@ theorem convexOn_smoothedAbs (hδ : 0 ≤ δ) : ConvexOn ℝ univ (smoothedAbs �
 /-- For `δ ≥ 0`, the second derivative of `smoothedAbs δ` is nonnegative. -/
 theorem iteratedDeriv_two_smoothedAbs_nonneg (hδ : 0 ≤ δ) (t : ℝ) :
     0 ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
-  rw [iteratedDeriv_succ, iteratedDeriv_one, deriv_smoothedAbs]
+  rw [iteratedDeriv_two, deriv_smoothedAbs]
   exact (monotone_smoothedSign hδ).deriv_nonneg
+
+/-- The second derivative of `smoothedAbs δ` at `t` is `ψ'((t + δ) / (2 δ)) / δ`, with
+`ψ = Real.smoothTransition`. -/
+theorem iteratedDeriv_two_smoothedAbs (δ t : ℝ) :
+    iteratedDeriv 2 (smoothedAbs δ) t =
+      deriv Real.smoothTransition ((t + δ) / (2 * δ)) / δ := by
+  rw [iteratedDeriv_two, deriv_smoothedAbs, deriv_smoothedSign]
+
+/-- The curvature of `smoothedAbs δ` is at least `2 (1 - s²) / δ`, where `s = smoothedSign δ t` is
+its slope: a lower bound of order `1 / δ` that degrades only as fast as `1 - s²` where the slope
+nears `±1`. -/
+theorem two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs (hδ : 0 < δ)
+    (t : ℝ) : 2 * (1 - smoothedSign δ t ^ 2) / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
+  rw [iteratedDeriv_two_smoothedAbs, smoothedSign_def]
+  gcongr
+  linarith [Real.smoothTransition.eight_mul_mul_one_sub_le_deriv ((t + δ) / (2 * δ))]
+
+/-- Away from the ends `±1` of its slope, `smoothedAbs δ` curves at a rate of order `1 / δ`: for
+each `ε > 0` there is `c > 0`, for instance `c = 2 min ε 1`, such that
+`c / δ ≤ (smoothedAbs δ)''(t)` for all `δ > 0` and all `t` with `|smoothedSign δ t| ≤ 1 - ε`. -/
+theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε) :
+    ∃ c > 0, ∀ δ > 0, ∀ t, |smoothedSign δ t| ≤ 1 - ε →
+      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
+  refine ⟨2 * min ε 1, by positivity, fun δ hδ t ht ↦ ?_⟩
+  refine le_trans ?_ (two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs hδ t)
+  -- With `e = min ε 1 ∈ (0, 1]`, `|s| ≤ 1 - e` gives `1 - s² ≥ e (2 - e) ≥ e`.
+  have he₀ : 0 < min ε 1 := lt_min hε one_pos
+  have he₁ : min ε 1 ≤ 1 := min_le_right ε 1
+  have hs : |smoothedSign δ t| ≤ 1 - min ε 1 := ht.trans (by linarith [min_le_left ε 1])
+  have hsq : smoothedSign δ t ^ 2 ≤ (1 - min ε 1) ^ 2 := by
+    rw [← sq_abs]
+    exact pow_le_pow_left₀ (abs_nonneg _) hs 2
+  gcongr
+  nlinarith
+
+/-- The curvature of `smoothedAbs δ` is at most of order `1 / δ`: there is `C` with
+`(smoothedAbs δ)''(t) ≤ C / δ` for all `δ > 0` and all `t`. -/
+theorem exists_forall_iteratedDeriv_two_smoothedAbs_le :
+    ∃ C, ∀ δ > 0, ∀ t, iteratedDeriv 2 (smoothedAbs δ) t ≤ C / δ := by
+  obtain ⟨L, hL⟩ := Real.smoothTransition.exists_forall_norm_deriv_le
+  refine ⟨L, fun δ hδ t ↦ ?_⟩
+  rw [iteratedDeriv_two_smoothedAbs]
+  gcongr
+  exact (le_abs_self _).trans (hL _)
+
+/-- **The error of a smoothing by `smoothedAbs δ`.** Let `s = smoothedSign δ t` and
+`p = (smoothedAbs δ)'' t`. If `0 ≤ g`, `0 ≤ T ≤ Q`, `g T ≤ G` and `ε G < a`, and if `c / δ ≤ p`
+wherever `|s| ≤ 1 - ε`, with `δ Q ≤ c`, then `(1 - s²) / 2 · g T < a + p g / 2`: where `|s|` is
+near `1` the weight `(1 - s²) / 2` is below `ε`, and elsewhere the curvature `p ≥ Q` makes up for
+the error. -/
+theorem one_sub_smoothedSign_sq_div_two_mul_lt {δ ε a c g T Q G t : ℝ} (hδ : 0 < δ) (hε : 0 < ε)
+    (hg : 0 ≤ g) (hT : 0 ≤ T) (hTQ : T ≤ Q) (hG : g * T ≤ G) (hεG : ε * G < a)
+    (hc : |smoothedSign δ t| ≤ 1 - ε → c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t)
+    (hδQ : δ * Q ≤ c) :
+    (1 - smoothedSign δ t ^ 2) / 2 * (g * T) < a + iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  have hp := iteratedDeriv_two_smoothedAbs_nonneg hδ.le t
+  set s := smoothedSign δ t
+  set p := iteratedDeriv 2 (smoothedAbs δ) t
+  have hgT : 0 ≤ g * T := mul_nonneg hg hT
+  by_cases hsε : |s| ≤ 1 - ε
+  · have ha : 0 < a := lt_of_le_of_lt (mul_nonneg hε.le (hgT.trans hG)) hεG
+    have hpQ : Q ≤ p := le_trans ((le_div_iff₀ hδ).2 (by linarith)) (hc hsε)
+    calc (1 - s ^ 2) / 2 * (g * T) ≤ 1 / 2 * (g * p) := by
+          gcongr
+          · linarith [sq_nonneg s]
+          · exact hTQ.trans hpQ
+      _ < a + p * g / 2 := by linarith
+  · have hs₃ : (1 - s ^ 2) / 2 < ε := by
+      rw [not_le] at hsε
+      rcases le_or_gt 0 (1 - ε) with h | h
+      · have : (1 - ε) ^ 2 < s ^ 2 := by
+          rw [← sq_abs s]
+          exact pow_lt_pow_left₀ hsε h two_ne_zero
+        linarith [sq_nonneg ε]
+      · linarith [sq_nonneg s]
+    calc (1 - s ^ 2) / 2 * (g * T) ≤ ε * (g * T) := by gcongr
+      _ ≤ ε * G := by gcongr
+      _ < a := hεG
+      _ ≤ a + p * g / 2 := by linarith [mul_nonneg hp hg]
+
+/-- **A uniform choice of the smoothing parameter.** For `a > 0` and bounds `G` and `Q` there is
+`δ₀ > 0` such that for every `δ ∈ (0, δ₀]`, all `g ≥ 0` and `T ∈ [0, Q]` with `g T ≤ G`, and
+all `t`, `(1 - s²) / 2 · g T < a + p g / 2`, where `s = smoothedSign δ t` and
+`p = (smoothedAbs δ)'' t`. -/
+theorem exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt {a : ℝ} (ha : 0 < a) (G Q : ℝ) :
+    ∃ δ₀ > 0, ∀ δ, 0 < δ → δ ≤ δ₀ → ∀ {g T : ℝ}, 0 ≤ g → 0 ≤ T → T ≤ Q → g * T ≤ G → ∀ t,
+      (1 - smoothedSign δ t ^ 2) / 2 * (g * T) <
+        a + iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  set ε := a / (2 * (|G| + 1))
+  have hε : 0 < ε := by positivity
+  have hεG : ε * G < a := by
+    calc ε * G ≤ ε * |G| := by gcongr; exact le_abs_self G
+      _ < a := by
+        rw [div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
+        nlinarith [abs_nonneg G]
+  obtain ⟨c, hc, hcδ⟩ := exists_pos_div_le_iteratedDeriv_two_smoothedAbs hε
+  refine ⟨c / (|Q| + 1), by positivity, fun δ hδ hδ₀ g T hg hT hTQ hG t ↦
+    one_sub_smoothedSign_sq_div_two_mul_lt hδ hε hg hT hTQ hG hεG (hcδ δ hδ t) ?_⟩
+  calc δ * Q ≤ δ * |Q| := by gcongr; exact le_abs_self Q
+    _ ≤ c / (|Q| + 1) * |Q| := by gcongr
+    _ ≤ c := by
+      rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
+      nlinarith [abs_nonneg Q]
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
 theorem smoothedAbs_of_le (hδ : 0 < δ) {t : ℝ} (ht : δ ≤ t) : smoothedAbs δ t = t := by
@@ -251,6 +401,130 @@ theorem contDiff_smoothedMax {n : ℕ∞} (δ : ℝ) :
   exact ((contDiff_fst.add contDiff_snd).add
     ((contDiff_smoothedAbs δ).comp (contDiff_fst.sub contDiff_snd))).div_const _
 
+/-- The derivative of the smoothed maximum of two functions: at `x`, it is the convex combination
+`(f' + g' + smoothedSign δ (f x - g x) * (f' - g')) / 2` of their derivatives. -/
+theorem hasDerivAt_smoothedMax {f g : ℝ → ℝ} {f' g' x : ℝ} (hf : HasDerivAt f f' x)
+    (hg : HasDerivAt g g' x) :
+    HasDerivAt (fun x ↦ smoothedMax δ (f x) (g x))
+      ((f' + g' + smoothedSign δ (f x - g x) * (f' - g')) / 2) x := by
+  have h := ((hf.add hg).add ((hasDerivAt_smoothedAbs δ (f x - g x)).comp x
+    (hf.sub hg))).div_const 2
+  convert h using 1
+  funext y
+  simp only [smoothedMax_def, Pi.add_apply, Pi.sub_apply, Function.comp_apply]
+
+/-- The derivative of the smoothed maximum in its first argument: at `a`, it is
+`(1 + smoothedSign δ (a - b)) / 2`. -/
+theorem hasDerivAt_smoothedMax_left (δ b a : ℝ) :
+    HasDerivAt (fun a ↦ smoothedMax δ a b) ((1 + smoothedSign δ (a - b)) / 2) a := by
+  simpa using hasDerivAt_smoothedMax (δ := δ) (hasDerivAt_id a) (hasDerivAt_const a b)
+
+/-- The derivative of the smoothed maximum in its second argument: at `b`, it is
+`(1 - smoothedSign δ (a - b)) / 2`. -/
+theorem hasDerivAt_smoothedMax_right (δ a b : ℝ) :
+    HasDerivAt (fun b ↦ smoothedMax δ a b) ((1 - smoothedSign δ (a - b)) / 2) b := by
+  convert hasDerivAt_smoothedMax (δ := δ) (hasDerivAt_const b a) (hasDerivAt_id' b) using 1
+  ring
+
+/-- The smoothed maximum is monotone in its first argument, since its partial derivative
+`(1 + smoothedSign δ (a - b)) / 2` is nonnegative. -/
+theorem monotone_smoothedMax_left (δ b : ℝ) : Monotone fun a ↦ smoothedMax δ a b :=
+  monotone_of_deriv_nonneg (fun a ↦ (hasDerivAt_smoothedMax_left δ b a).differentiableAt)
+    fun a ↦ by
+      rw [(hasDerivAt_smoothedMax_left δ b a).deriv]
+      linarith [(abs_le.1 (abs_smoothedSign_le_one δ (a - b))).1]
+
+/-- The smoothed maximum is monotone in its second argument, since its partial derivative
+`(1 - smoothedSign δ (a - b)) / 2` is nonnegative. -/
+theorem monotone_smoothedMax_right (δ a : ℝ) : Monotone fun b ↦ smoothedMax δ a b :=
+  monotone_of_deriv_nonneg (fun b ↦ (hasDerivAt_smoothedMax_right δ a b).differentiableAt)
+    fun b ↦ by
+      rw [(hasDerivAt_smoothedMax_right δ a b).deriv]
+      linarith [(abs_le.1 (abs_smoothedSign_le_one δ (a - b))).2]
+
+/-- The smoothed maximum is monotone in both arguments together. -/
+@[gcongr]
+theorem smoothedMax_le_smoothedMax {a a' b b' : ℝ} (ha : a ≤ a') (hb : b ≤ b') :
+    smoothedMax δ a b ≤ smoothedMax δ a' b' :=
+  (monotone_smoothedMax_left δ b ha).trans (monotone_smoothedMax_right δ a' hb)
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x`. -/
+theorem deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ smoothedMax δ (f x) (g x)) x =
+      (deriv f x + deriv g x + smoothedSign δ (f x - g x) * (deriv f x - deriv g x)) / 2 :=
+  (hasDerivAt_smoothedMax hf.hasDerivAt hg.hasDerivAt).deriv
+
+/-- The weight `(1 + smoothedSign δ t) / 2` of the derivative of the smoothed maximum lies in
+`[0, 1]`. -/
+theorem one_add_smoothedSign_div_two_mem_Icc (δ t : ℝ) :
+    (1 + smoothedSign δ t) / 2 ∈ Icc (0 : ℝ) 1 := by
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ t)
+  constructor <;> linarith
+
+/-- The derivative of the smoothed maximum of two functions, as a weighted average: with
+`w = (1 + smoothedSign δ (f x - g x)) / 2`, which lies in `[0, 1]`
+(`one_add_smoothedSign_div_two_mem_Icc`), it is `w * f' + (1 - w) * g'`. -/
+theorem hasDerivAt_smoothedMax_weighted {f g : ℝ → ℝ} {f' g' x : ℝ} (hf : HasDerivAt f f' x)
+    (hg : HasDerivAt g g' x) :
+    HasDerivAt (fun x ↦ smoothedMax δ (f x) (g x))
+      ((1 + smoothedSign δ (f x - g x)) / 2 * f' +
+        (1 - (1 + smoothedSign δ (f x - g x)) / 2) * g') x := by
+  convert hasDerivAt_smoothedMax hf hg using 1
+  ring
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x`, as a weighted
+average: with `w = (1 + smoothedSign δ (f x - g x)) / 2`, which lies in `[0, 1]`
+(`one_add_smoothedSign_div_two_mem_Icc`), it is `w * f'(x) + (1 - w) * g'(x)`. -/
+theorem deriv_smoothedMax_weighted {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ smoothedMax δ (f x) (g x)) x =
+      (1 + smoothedSign δ (f x - g x)) / 2 * deriv f x +
+        (1 - (1 + smoothedSign δ (f x - g x)) / 2) * deriv g x :=
+  (hasDerivAt_smoothedMax_weighted hf.hasDerivAt hg.hasDerivAt).deriv
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x` is at least
+the smaller of their derivatives. -/
+theorem min_deriv_le_deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    min (deriv f x) (deriv g x) ≤ deriv (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  rw [deriv_smoothedMax_weighted hf hg, ← smul_eq_mul, ← smul_eq_mul (1 - _)]
+  exact Convex.min_le_combo _ _ hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x` is at most
+the larger of their derivatives. -/
+theorem deriv_smoothedMax_le_max {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ smoothedMax δ (f x) (g x)) x ≤ max (deriv f x) (deriv g x) := by
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  rw [deriv_smoothedMax_weighted hf hg, ← smul_eq_mul, ← smul_eq_mul (1 - _)]
+  exact Convex.combo_le_max _ _ hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
+
+/-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
+`s = smoothedSign δ (f x - g x)`, it is
+`(f'' + g'' + s (f'' - g'') + (smoothedAbs δ)'' (f x - g x) (f' - g')²) / 2`. -/
+theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f) (hg : ContDiff ℝ 2 g)
+    (x : ℝ) :
+    iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x =
+      (iteratedDeriv 2 f x + iteratedDeriv 2 g x +
+        smoothedSign δ (f x - g x) * (iteratedDeriv 2 f x - iteratedDeriv 2 g x) +
+        iteratedDeriv 2 (smoothedAbs δ) (f x - g x) * (deriv f x - deriv g x) ^ 2) / 2 := by
+  have h : (fun x ↦ smoothedMax δ (f x) (g x)) =
+      fun x ↦ (f x + g x + (smoothedAbs δ ∘ (f - g)) x) / 2 := by
+    funext y
+    simp only [smoothedMax_def, Function.comp_apply, Pi.sub_apply]
+  have hh := (contDiff_smoothedAbs (n := 2) δ).contDiffAt (x := (f - g) x)
+  have hfg := (hf.sub hg).contDiffAt (x := x)
+  have hf₂ := hf.contDiffAt (x := x)
+  have hg₂ := hg.contDiffAt (x := x)
+  rw [h, iteratedDeriv_div_const, iteratedDeriv_fun_add (hf₂.add hg₂) ((hh.comp x hfg)),
+    iteratedDeriv_fun_add hf₂ hg₂, iteratedDeriv_comp_two hh hfg, iteratedDeriv_sub hf₂ hg₂,
+    deriv_smoothedAbs, deriv_sub (hf.differentiable two_ne_zero x)
+      (hg.differentiable two_ne_zero x)]
+  simp only [Pi.sub_apply]
+  ring
+
 theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoothedMax δ b a := by
   rw [smoothedMax_def, smoothedMax_def, ← neg_sub, smoothedAbs_neg hδ, add_comm a]
 
@@ -279,5 +553,65 @@ theorem smoothedMax_le_max_add (hδ : 0 < δ) (a b : ℝ) :
     smoothedMax δ a b ≤ max a b + δ / 2 := by
   rw [smoothedMax_def]
   linarith [smoothedAbs_le_abs_add hδ (a - b), max_sub_min_eq_abs' a b, min_add_max a b]
+
+/-- For `δ > 0`, the smoothed maximum of `a` and `b` is as close to any `c` as the farther of `a`
+and `b`, up to `δ / 2`. -/
+theorem abs_smoothedMax_sub_le (hδ : 0 < δ) (a b c : ℝ) :
+    |smoothedMax δ a b - c| ≤ max |a - c| |b - c| + δ / 2 := by
+  have h := abs_max_sub_max_le_max a b c c
+  rw [max_self] at h
+  rw [abs_le] at h ⊢
+  constructor <;>
+    linarith [max_le_smoothedMax hδ a b, smoothedMax_le_max_add hδ a b, h.1, h.2]
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x` is as close to
+any `φ` as the farther of their derivatives. -/
+theorem abs_deriv_smoothedMax_sub_le {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) (φ : ℝ) :
+    |deriv (fun x ↦ smoothedMax δ (f x) (g x)) x - φ| ≤
+      max |deriv f x - φ| |deriv g x - φ| := by
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  rw [deriv_smoothedMax_weighted hf hg]
+  simpa [Real.dist_eq] using (convexOn_univ_dist φ).le_on_segment' (Set.mem_univ _)
+    (Set.mem_univ _) hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
+
+/-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g` is as close to
+any `φ` as the farther of their second derivatives, up to `C (f' - g')² / (2 δ)` where
+`C / δ` bounds the curvature of `smoothedAbs δ` at `f x - g x`
+(`exists_forall_iteratedDeriv_two_smoothedAbs_le` gives such a `C` for all `δ > 0`). -/
+theorem abs_iteratedDeriv_two_smoothedMax_sub_le {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f)
+    (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) {C x : ℝ}
+    (hC : iteratedDeriv 2 (smoothedAbs δ) (f x - g x) ≤ C / δ) (φ : ℝ) :
+    |iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x - φ| ≤
+      max |iteratedDeriv 2 f x - φ| |iteratedDeriv 2 g x - φ| +
+        C * (deriv f x - deriv g x) ^ 2 / (2 * δ) := by
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  have h := (convexOn_univ_dist φ).le_on_segment' (Set.mem_univ (iteratedDeriv 2 f x))
+    (Set.mem_univ (iteratedDeriv 2 g x)) hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
+  simp only [smul_eq_mul, Real.dist_eq] at h
+  replace h := abs_le.1 h
+  have hp := iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x)
+  have hsq := sq_nonneg (deriv f x - deriv g x)
+  have hB : iteratedDeriv 2 (smoothedAbs δ) (f x - g x) * (deriv f x - deriv g x) ^ 2 / 2 ≤
+      C * (deriv f x - deriv g x) ^ 2 / (2 * δ) := by
+    rw [mul_comm (2 : ℝ), ← div_div, mul_div_right_comm C]
+    gcongr
+  rw [iteratedDeriv_two_smoothedMax hf hg, abs_le]
+  constructor <;> linarith [mul_nonneg hp hsq]
+
+/-- For `δ > 0` and `a, b > 0`, the reciprocal of the smoothed maximum of `a` and `b` is at most
+the convex combination of `1 / a` and `1 / b` with the weights `(1 ± smoothedSign δ (a - b)) / 2`
+of the derivative of `smoothedMax δ`. -/
+theorem one_div_smoothedMax_le (hδ : 0 < δ) {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
+    1 / smoothedMax δ a b ≤
+      (1 + smoothedSign δ (a - b)) / 2 * (1 / a) + (1 - smoothedSign δ (a - b)) / 2 * (1 / b) := by
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ (a - b))
+  have hm := max_le_smoothedMax hδ a b
+  have h₁ : 1 / smoothedMax δ a b ≤ 1 / a :=
+    one_div_le_one_div_of_le ha ((le_max_left _ _).trans hm)
+  have h₂ : 1 / smoothedMax δ a b ≤ 1 / b :=
+    one_div_le_one_div_of_le hb ((le_max_right _ _).trans hm)
+  nlinarith [mul_le_mul_of_nonneg_left h₁ (by linarith : 0 ≤ (1 + smoothedSign δ (a - b)) / 2),
+    mul_le_mul_of_nonneg_left h₂ (by linarith : 0 ≤ (1 - smoothedSign δ (a - b)) / 2)]
 
 end SymplecticGeometry

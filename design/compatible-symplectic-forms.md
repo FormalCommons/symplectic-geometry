@@ -29,16 +29,17 @@ against the versions pinned when this file was written (Tau Ceti
   describe them. In `Geometry/Manifold/FiberBundle/MapFiber.lean`: an
   atlas `A` of `π` with fibre $F$ (`TauCeti.MapFiber.Atlas`), smooth in
   the sense of `A.IsContMDiff`, and for a chart `e` of `A` and
-  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusion hb`, written
+  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusionMap hb`, written
   $j_{e,b}:F\to M$, $v\mapsto e^{-1}(b,v)$. In
   `Geometry/Manifold/FiberBundle/StructureGroup.lean`: structure groups,
   so that symplectic atlases for $(F,\sigma)$ are those with structure
   group `TauCeti.SmoothForm.diffeomorphStabilizer σ`, and oriented atlases
   for an orientation of $F$ those with structure group
   `Diffeomorph.orientationPreservingSubgroup`. In
-  `Geometry/Symplectic/Fibration/Basic.lean`: the predicate that a
+  `Geometry/Manifold/FiberBundle/RestrictsTo.lean`: the predicate that a
   two-form $\tau$ on $M$ *restricts to the fibre forms*, $j_{e,b}^*\tau=\sigma$
-  for every chart and base point; compatible symplectic forms; and
+  for every chart and base point. In
+  `Geometry/Symplectic/Fibration/Basic.lean`: compatible symplectic forms; and
   compatibility of a symplectic form with an oriented atlas and an
   orientation of $B$. This file uses these
   notions under the names that *Symplectic fibrations*' design gives them,
@@ -82,15 +83,15 @@ The paragraph *The design file decides* of part 49 asks for two things.
      and, on the tangent bundle, `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass`,
      beside the integral `TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`.
 
-  The determinant line is the library's
-  `SymplecticGeometry.Bundle.detCore` (`Topology/VectorBundle/Determinant.lean`),
+  The determinant line is Tau Ceti's `TauCeti.DetBundle`
+  (`Topology/VectorBundle/Determinant.lean` of Tau Ceti),
   which is only a topological bundle today; this part makes it a smooth
   one. The vertical bundle $\mathrm{Ver}=\ker d\pi$ gets the symplectic
   structure $\tau|_{\mathrm{Ver}}$ of any form $\tau$ that restricts to
   the fibre forms; it does not depend on $\tau$.
 
   **Comparison with the integral class.** The class is compared with the
-  library's integral `SymplecticGeometry.Bundle.firstChernClass` over a
+  integral `TauCeti.firstChernClass` over a
   closed oriented surface, where both give numbers: the integral of the de
   Rham class is the Chern number (`chernNumber_eq_integral_curvature`,
   merged). Over a general base the comparison would say that Tau Ceti's
@@ -184,25 +185,26 @@ About 150 lines.
 
 For a smooth real vector bundle `V` over `M` with finite-dimensional model
 and a smooth complex structure `J` (so that `J.toContinuousComplexStructure.Fiber`
-is a complex bundle), the determinant line `Bundle.detCore ℂ G _`:
+is a complex bundle), the determinant line `TauCeti.DetBundle ℂ G _`:
 
 - an instance `ContMDiffVectorBundle ∞` on it: its coordinate changes are
   determinants of the smooth coordinate changes of `V`, smooth since `det`
   is polynomial;
-- `contMDiff_detCoreMap`: a smooth fibrewise complex-linear isomorphism of
-  such bundles (for instance `Tames.exists_complex_bundleEquiv`) induces a
-  smooth isomorphism of determinant lines, and the pull-back isomorphism
-  `detCore_pullback` is smooth;
-- `exists_hermitianMetric_detCore`: the determinant line has a smooth
+- the smoothness of `TauCeti.DetBundle.congrModelHomeomorph`: a smooth
+  fibrewise complex-linear isomorphism of such bundles (for instance
+  `Tames.exists_complex_bundleEquiv`) induces a smooth isomorphism of
+  determinant lines, and the pull-back isomorphism
+  `TauCeti.DetBundle.pullbackHomeomorph` is smooth;
+- `exists_hermitianMetric_detBundle`: the determinant line has a smooth
   Hermitian metric in the form taken by `Hermitian/CircleBundle.lean`
   (`circleBundleDiffeomorph`, `contMDiffFiberBundle_circleFiber`): a smooth
-  real metric that multiplication by `Complex.I` preserves, by a partition
-  of unity and averaging over `i`, unless Tau Ceti's Riemannian bundles
-  already give one;
-- `detCoreIsoOfFinrankEqOne` is smooth for a line bundle.
+  real metric that multiplication by `Complex.I` preserves, from Tau Ceti's
+  `TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I`;
+- `TauCeti.DetBundle.lineHomeomorph` is smooth for a line bundle.
 
-About 300 lines. The smoothness of the coordinate changes is checked in
-the trivializations of Tau Ceti's `TauCeti.FiniteRankBundleCore.det`.
+About 300 lines. The coordinate changes of `TauCeti.DetBundle` are the
+determinants of those of `V` (`TauCeti.DetBundle.coordChangeL_trivialization`),
+so their smoothness follows from that of `V`'s.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/RealChernClass.lean`
 
@@ -210,7 +212,7 @@ Over a base `M` as in *Setting*, for `J : ContMDiffComplexStructure I ∞ F V`:
 
 - `ContMDiffComplexStructure.realFirstChernClass J : TauCeti.deRhamCohomology I M 2`,
   `realFirstChernClass` of the unit circle bundle of the determinant line
-  for the metric that `exists_hermitianMetric_detCore` chooses; with
+  for the metric that `exists_hermitianMetric_detBundle` chooses; with
   `realFirstChernClass_def`.
 - `realFirstChernClass_eq_of_metric`: any smooth Hermitian metric on the
   determinant line gives the same class. Normalization $v\mapsto v/|v|_{g'}$
@@ -224,12 +226,11 @@ Over a base `M` as in *Setting*, for `J : ContMDiffComplexStructure I ∞ F V`:
   bundle map over `f`).
 - `realFirstChernClass_eq_of_finrank_eq_one`: for a line bundle with a
   smooth Hermitian metric, the class is `realFirstChernClass` of its own
-  unit circle bundle (through the smooth `detCoreIsoOfFinrankEqOne`).
+  unit circle bundle (through the smooth `TauCeti.DetBundle.lineHomeomorph`).
 - `integralTopForm_realFirstChernClass`: over a closed surface with
   orientation `o`, the integral of any closed representative of the class
   of `J` is the Chern number `chernNumber` of `J.toContinuousComplexStructure.Fiber`
-  (by `realFirstChernClass_eq_of_finrank_eq_one` in rank one, through the
-  determinant line in general, and `chernNumber_eq_integral_curvature`).
+  (through the determinant line and `chernNumber_eq_integral_curvature`).
   This is the comparison with the integral class.
 
 About 400 lines.
@@ -300,7 +301,8 @@ universes as parameters.
 ### `Geometry/Symplectic/Moser/Parameter.lean`
 
 On a closed manifold `N` (compact, boundaryless), with a parameter manifold
-`P` (model `IP`, any):
+`P` (model `IP` complete, Hausdorff and boundaryless, as
+`TauCeti.contMDiff_timeDependentFlowOf_param` needs):
 
 - `TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub`:
   let `ω₀` be a closed two-form on `N`, `σ` a two-form and `β` a one-form on
@@ -349,8 +351,9 @@ For a symplectic atlas `A` of `π` for $(F,\sigma)$, with no compactness:
 - `exists_isClosed_restricts_iff`: the two directions together: a closed
   extension of the fibre forms exists if and only if such a class does.
 
-Statements are in degree 2 with $\sigma$ closed (it is symplectic). About
-450 lines; if it grows, the chart-independence lemma goes first in the same
+`map_eq_of_restricts` and `forall_map_eq_of_map_eq` hold in every degree;
+the other statements in every positive degree, with $\sigma$ closed (it is
+symplectic). If the file grows, the chart-independence lemma goes first in the same
 issue as a public lemma about fibre embeddings.
 
 ### `Geometry/Symplectic/Fibration/Thurston.lean`
@@ -417,7 +420,7 @@ About 350 lines.
 For an oriented atlas `A` of `π` with closed connected surface fibre
 $(F,o)$:
 
-- `exists_restricts_isPositive_area`: a two-form $\tau$ on $M$ whose
+- `TauCeti.MapFiber.Atlas.exists_restricts_isPositive_area`: a two-form $\tau$ on $M$ whose
   restrictions $j_{e,b}^*\tau$ are area forms inducing `o`, of integral
   one. Fix such a form $\sigma_0$ on $F$ (a top form inducing `o`, from Tau
   Ceti's `TauCeti.exists_topForm_of_orientation`, rescaled) and glue $e^*\mathrm{pr}_F^*\sigma_0$ with a partition of unity
@@ -500,8 +503,8 @@ Issues 1, 2, 5 and 9 can start at once.
 
 - *Symplectic fibrations*: `MapFiber.lean` (smooth atlases, fibre
   inclusions), `StructureGroup.lean` (symplectic and oriented atlases),
-  `Basic.lean` (the restriction predicate, compatibility, compatibility
-  with an orientation) and
+  `RestrictsTo.lean` (the restriction predicate), `Basic.lean`
+  (compatibility, compatibility with an orientation) and
   `HorizontalDistribution.lean` (existence of connection two-forms).
 - *Minimal coupling*: `realFirstChernClass` (#2348).
 - Merged files of *First Chern number*: circle connection forms and their
@@ -510,7 +513,7 @@ Issues 1, 2, 5 and 9 can start at once.
   (`Hermitian/CircleBundle.lean`), top-degree Poincaré duality.
 - Merged files of *Symplectic vector bundles*: two-forms and complex
   structures on bundles, `polarComplexStructure`,
-  `Tames.exists_complex_bundleEquiv`, pull-backs, `detCore`.
+  `Tames.exists_complex_bundleEquiv`, pull-backs; Tau Ceti's `TauCeti.DetBundle`.
 - Merged files of *Moser isotopy* and *Smooth families*: `moserField`,
   the time extensions, and `PreservesSmoothFamilies` and
   `exists_isSmoothFamily_mextDerivₗ_eq` as issue 9 generalizes them.

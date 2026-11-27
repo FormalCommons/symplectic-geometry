@@ -10,6 +10,8 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Existence of connection forms
@@ -94,8 +96,9 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
         RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x =
       RoughForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
         (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val) x := by
-  have hR := congrArg Subtype.val (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
-  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mapCoeff] at hR
+  have hR :=
+    (SmoothForm.mpullback_eq_iff _).1 (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
+  rw [SmoothForm.coe_mapCoeff] at hR
   rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in
@@ -109,13 +112,8 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
     (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val :
         RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x
       ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ := by
-  have hvec : (fun i ↦ mfderiv (IB.prod IG) IG e.manifoldSnd x
-      (![rightFundamentalVectorField (IB.prod IG) ξ x] i)) =
-      ![mulInvariantVectorField ξ (e.manifoldSnd x)] := by
-    funext i
-    fin_cases i
-    exact e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ
-  rw [mpullback_apply, hvec, leftMaurerCartanForm_apply_mulInvariantVectorField]
+  rw [mpullback_apply_one, e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ,
+    leftMaurerCartanForm_apply_mulInvariantVectorField]
 
 end Local
 
@@ -131,7 +129,7 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
   obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
     (fun b : B ↦ (trivializationAt G P b).baseSet)
     (fun b ↦ (trivializationAt G P b).open_baseSet)
-    (fun b _ ↦ Set.mem_iUnion.2 ⟨b, FiberBundle.mem_baseSet_trivializationAt' b⟩)
+    (FiberBundle.iUnion_baseSet_trivializationAt G P).ge
   set p := ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG with hp
   have hpc : ContMDiff (IB.prod IG) IB ∞ p := p.contMDiff
   have hθd (b : B) (x : ManifoldTotalSpace G P) (hx : p x ∈ (trivializationAt G P b).baseSet) :
@@ -152,8 +150,7 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
       A.val x v = ∑ b ∈ ρ.finsupport (p x), ρ b (p x) • ℓ b x v := by
     simp only [A, ContinuousAlternatingMap.sum_apply, ContinuousAlternatingMap.smul_apply]
   refine ⟨A, fun g ↦ ?_, fun x ξ ↦ ?_⟩
-  · refine Subtype.ext (funext fun x ↦ ?_)
-    ext v
+  · refine SmoothBundleForm.ext fun x v ↦ ?_
     have hpg : p (op g • x) = p x := by simp [hp, ManifoldTotalSpace.homeomorph_symm_smul]
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
       RoughForm.mapCoeff_apply, hA, hA, map_sum, hpg]

@@ -34,7 +34,8 @@ may adjust implicit arguments and instance arguments to what elaborates.
   metric is $g_J(v,w)=\sigma(v,Jw)$, installed as a local
   `RiemannianBundle` instance through Tau Ceti's `Compatible.metric`, as
   `DESIGN.md` says under *Almost complex structures, Kähler manifolds and
-  characteristic classes*.
+  characteristic classes*. `tendsto_limitPoint` takes `I' = 𝓘(ℝ, E')`, the
+  model of Tau Ceti's Morse–Bott theorems on components of a moment map.
 - `G` acts smoothly (`[MulAction G M] [ContMDiffSMul I I' ∞ G M]`) and each
   `g • ·` preserves `σ` and `J`; these are hypotheses, not a predicate, as
   `DESIGN.md` says for symplectic actions.
@@ -163,13 +164,33 @@ may adjust implicit arguments and instance arguments to what elaborates.
    `Geometry/Symplectic/Hamiltonian/MomentMap/`, under `KempfNess/` and
    `HilbertMumford.lean`. This replaces the folder `Geometry/Symplectic/Kahler/`
    that `DESIGN.md` first gave, and `DESIGN.md` now names these files.
+7. **The moment limit theorem uses no moment-weight inequality.** The
+   proof of [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 6.4)
+   compares two flow lines $g,\tilde g$ of $\Phi_p$ in $G^{\mathbb C}$, from
+   $1$ and from any $g_0$. It uses that their distance in $G^{\mathbb C}/G$
+   does not increase (Lemma A.2), and Ness's uniqueness theorem for
+   critical points of $\|\mu\|^2$ in one $G^{\mathbb C}$-orbit (Theorem 6.3),
+   by the second proof given there, due to Calabi–Chen, which uses the
+   same lemma. Neither step uses weights,
+   so the moment-weight inequality stays in issue 12 and the build order
+   does not change. With no metric on $G^{\mathbb C}/G$, the distance is
+   replaced by the polar radius: for $a=\exp(i\eta)u$ (`C.polar.symm a`),
+   the number $B(\eta,\eta)$. Its derivative along a curve is a Gauss
+   lemma for the polar decomposition, proved from Tau Ceti's derivative of
+   the exponential (`LeftInvariantDerivation.hasMFDerivAt_lieExp`,
+   `Geometry/Lie/Exponential/Derivative/Formula.lean`) and the
+   $\operatorname{ad}$-invariance of $B$
+   (`TauCeti.Lie.lieInvariant_iff_adjoint_invariant`). The geodesic from
+   $g$ to $\tilde g$ is $s\mapsto g\exp(is\eta)$, and its two end slopes are
+   given by `hasDerivAt_kempfNessFunction_geodesic`, so the monotonicity
+   is `antitone_moment_expI` and needs no second variation.
 
 ## Files
 
 - `Geometry/Lie/Complexification.lean`: `LieComplexification`, its API
   (`expI`, `im`, `re`, `lieMap_re_add_cplx_lieMap_im`, `polar_apply`,
   `connectedSpace` from connectedness of `G`, `toHom` a closed embedding),
-  and the circle example.
+  the circle example, and the Gauss lemma of decision 7.
 - `Geometry/RealAlgebraic/Semialgebraic/CurveSelection.lean`: decision 4 (a).
 - `Analysis/Calculus/Lojasiewicz/Polynomial.lean`: decision 4 (b), in Tau
   Ceti's folder `Analysis/Calculus/Lojasiewicz/`.
@@ -183,10 +204,11 @@ may adjust implicit arguments and instance arguments to what elaborates.
   gradient of $\langle\mu,\xi\rangle$ and the
   derivative along $\exp(it\xi)$), `Function.lean` ($\Phi_p$ and the
   first half of the milestone), `NormSquare.lean` (the gradient flow of
-  $f$, its Łojasiewicz inequality, convergence and the moment limit), and
+  $f$, its Łojasiewicz inequality, convergence, Ness's uniqueness theorem
+  and the moment limit), and
   `Stability.lean` (the boundedness and properness criteria and the
   milestone).
-- `Geometry/Symplectic/Hamiltonian/MomentMap/HilbertMumford.lean`: $\Lambda$,
+- `Geometry/Symplectic/Hamiltonian/MomentMap/HilbertMumford.lean`:
   weights, limit points, the slope identity, the moment-weight inequality
   and the criteria.
 
@@ -217,12 +239,33 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   with `kempfNessFunction_polar` as its defining lemma.
 - `momentWeight C μ p ξ : ℝ`, the limit of `μ (C.expI (t • ξ) • p) ξ` as
   `t → ∞` (`limUnder atTop`), with `tendsto_momentWeight`, and
-  `limitPoint C p ξ : M`, with `tendsto_limitPoint` for `ξ ∈ Λ`.
+  `limitPoint C p ξ : M`, with `tendsto_limitPoint` for every `ξ`.
 - `nonzeroPeriods I G : Set 𝔤 := {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}`,
   written $\Lambda$, invariant under `Ad` and under positive integer
-  multiples.
+  multiples, in `Geometry/Lie/Exponential/Periods.lean`.
 
 ## Main results
+
+### `Geometry/Lie/Complexification.lean` (the polar radius)
+
+For connected `G` and a symmetric `Ad`-invariant `B`, so that `B` is also
+`ad`-invariant (`TauCeti.Lie.lieInvariant_iff_adjoint_invariant`):
+
+- `polar_symm_inv`: if `C.polar.symm a = (η, u)` then
+  `C.polar.symm a⁻¹ = (-Ad u⁻¹ η, u⁻¹)`, from `toHom_mul_expI_mul_inv`.
+- `hasDerivAt_polar_symm_fst_comp` (the Gauss lemma): for a curve
+  `a : ℝ → Gc` differentiable at `t`, with `(η, u) = C.polar.symm (a t)`,
+  `s ↦ B (C.polar.symm (a s)).1 (C.polar.symm (a s)).1` has at `t` the
+  derivative `2 * B (Ad u⁻¹ η) (C.im (a⁻¹ ȧ))`, where `a⁻¹ ȧ` is
+  `mfderiv IC IC ((a t)⁻¹ * ·) (a t) (mfderiv 𝓘(ℝ) IC a t 1)`. Proof:
+  differentiate `a = expI η * toHom u`, with `η` and `u` differentiable at `t`
+  because `polar` is a diffeomorphism. By
+  `LeftInvariantDerivation.hasMFDerivAt_lieExp` (with
+  `lieExp_eq_mulInvariantExp`), the imaginary part of
+  $a^{-1}\dot a$ is $\operatorname{Ad}_{u^{-1}}S\dot\eta$, where $S$ is the
+  even part of the series $(1-e^{-z})/z$ at $z=\operatorname{ad}_{i\eta}$,
+  a power series in $\operatorname{ad}_\eta^2$. It is $B$-symmetric and
+  fixes $\eta$, so $B(\eta,S\dot\eta)=B(\eta,\dot\eta)$.
 
 ### `KempfNess/Basic.lean`
 
@@ -256,17 +299,74 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 
 ### `KempfNess/NormSquare.lean`
 
-- `mgradient_momentNormSq`: $\operatorname{grad}f(x)=-JX_{\mu^\sharp(x)}(x)$.
+- `mgradient_momentNormSq`: $\operatorname{grad}\|\mu\|^2(x)=-2JX_{\mu^\sharp(x)}(x)$.
 - `exists_mem_orbit_maximalIntegralCurve`: the negative gradient flow of
-  $f$ stays in the $G^{\mathbb C}$-orbit of its start, as $g(t)^{-1}p$ for
-  the solution of $g^{-1}\dot g=-i\mu^\sharp(g^{-1}p)$ in `Gc`, and
-  $\frac{d}{dt}\Phi_p(g(t))=-\|\mu(g(t)^{-1}p)\|^2$.
+  `momentNormSq` stays in the $G^{\mathbb C}$-orbit of its start, as $g(t)^{-1}p$ for
+  the solution of $g^{-1}\dot g=-2i\mu^\sharp(g^{-1}p)$ in `Gc` with $g(0)=1$, at
+  every time, and $\frac{d}{dt}\Phi_p(g(t))=-2\|\mu(g(t)^{-1}p)\|^2$.
 - `exists_lojasiewicz_momentNormSq`: decision 4 (d), for any Hamiltonian
   action of a compact group with an equivariant moment map (not only
   Kähler).
-- `tendsto_maximalIntegralCurve_momentNormSq` and
-  `momentNormSq_limit_eq_iInf` (the moment limit theorem): the flow
-  converges, and $\|\mu(x_\infty)\|=\inf_{g\in G^{\mathbb C}}\|\mu(gp)\|$.
+- `tendsto_maximalIntegralCurve_momentNormSq`: the flow converges to a
+  critical point of $\|\mu\|^2$.
+
+The moment limit theorem follows, by decision 7, in this order. A *flow
+curve* from `p` is a `g : ℝ → Gc` that is differentiable at each `t ≥ 0`,
+with left-trivialized derivative
+`-2 • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))` there, as
+`exists_mem_orbit_maximalIntegralCurve` gives it; the flow there is that
+of `momentNormSq`, which is $\|\mu\|^2$ and not $f$, hence the factor 2.
+This is a hypothesis of the statements below, not a definition.
+
+- `hasDerivAt_polar_symm_fst_inv_mul`: for flow curves `g` and `g̃` from
+  `p`, with `(η t, u t) = C.polar.symm ((g t)⁻¹ * g̃ t)` and
+  `x t = (g t)⁻¹ • p`, the function `t ↦ B (η t) (η t)` has at each
+  `t ≥ 0` the derivative
+  `4 * (μ (x t) (η t) - μ (C.expI (-η t) • x t) (η t))`. Proof:
+  `hasDerivAt_polar_symm_fst_comp`, applied to `g̃ t` as a right factor
+  and, through `polar_symm_inv`, to `g t` as a left factor, together with
+  `apply_momentSharp` and the equivariance `moment_toHom_smul`, using
+  `C.expI (-η t) • x t = C.toHom (u t) • (g̃ t)⁻¹ • p`. The two terms are
+  the end slopes at `s = 0` and `s = 1` of
+  `s ↦ Φ_p (g t * C.expI (s • η t))`.
+- `antitoneOn_polar_symm_fst_inv_mul`: so `t ↦ B (η t) (η t)` is
+  antitone on `Set.Ici 0`, by `antitone_moment_expI`.
+- `exists_smul_eq_of_mgradient_momentNormSq_eq_zero` (Ness's uniqueness
+  theorem): if `y = g₀⁻¹ • x` and `mgradient I' (momentNormSq B hB μ)`
+  vanishes at `x` and at `y`, then `y = u • x` for some `u : G`. Proof (the
+  Calabi–Chen proof of [GeorgoulasRobbinSalamon2021], Theorem 6.3): a
+  critical point `x` has $X_{\mu^\sharp(x)}(x)=0$ (`mgradient_momentNormSq`),
+  hence $X_{i\mu^\sharp(x)}(x)=JX_{\mu^\sharp(x)}(x)=0$, so `C.expI (s • momentSharp B hB μ x)`
+  fixes `x` (`mulInvariantExp_smul_smul_eq_iff`, for the action of `Gc`).
+  So `g t = C.expI (-(2 * t) • momentSharp B hB μ x)` and
+  `g̃ t = g₀ * C.expI (-(2 * t) • momentSharp B hB μ y)` are flow curves
+  from `x`, with `(g t)⁻¹ • x = x` and `(g̃ t)⁻¹ • x = y`, and
+  `y = C.toHom (u t)⁻¹ • C.expI (-η t) • x`. The function `N t = B (η t) (η t)` is
+  antitone and nonnegative, so `N (t + 1) - N t → 0`, and by the mean
+  value theorem the derivative of `N` tends to `0` along some `tₙ → ∞`.
+  Passing to a subsequence, `η tₙ → η∞` (`B` is positive definite on a
+  finite-dimensional space) and `u tₙ → u∞` (`G` is compact). Then
+  `μ x η∞ = μ (C.expI (-η∞) • x) η∞`, so `C.expI (-η∞)` fixes `x`
+  (`expI_smul_eq_self_of_moment_apply_le`, applied to `-η∞`), and
+  `y = C.toHom u∞⁻¹ • x`. This generalizes `exists_smul_eq_of_moment_eq_zero`.
+- `momentNormSq_limit_eq_iInf` (the moment limit theorem): for the limit
+  `x∞` of the flow from `p`,
+  `momentNormSq B hB μ x∞ = ⨅ g : Gc, momentNormSq B hB μ (g • p)`. Both
+  norms are those of `B`. Proof: `≥`, because the flow stays in the orbit
+  (`exists_mem_orbit_maximalIntegralCurve`) and `momentNormSq` is
+  continuous. `≤`: fix `g₀`. Let `g` be the flow curve from `p` and `g'`
+  the one from `g₀⁻¹ • p`, and put `g̃ = g₀ * g'`, a flow curve from `p`
+  with `(g̃ t)⁻¹ • p = x̃ t`, the flow from `g₀⁻¹ • p`. By
+  `antitoneOn_polar_symm_fst_inv_mul`, `η` is bounded, so along a sequence
+  `η tₙ → η∞` and `u tₙ → u∞`. Then
+  `x̃∞ = C.toHom u∞⁻¹ • C.expI (-η∞) • x∞`. The two limits are critical points
+  in one `Gc`-orbit, so by Ness's theorem and `momentNormSq_smul`,
+  `momentNormSq x∞ = momentNormSq x̃∞`. This is at most
+  `momentNormSq (g₀⁻¹ • p)`, because `momentNormSq` decreases along its
+  negative gradient flow (`TauCeti.antitoneOn_comp_maximalIntegralCurve_neg_mgradient`).
+- `exists_smul_limit_eq_of_mem_orbit`: the same argument shows that the
+  `G`-orbit of `x∞` depends only on the `Gc`-orbit of `p`: the limit of the
+  flow from `g₀ • p` is `u • x∞` for some `u : G`.
 
 ### `KempfNess/Stability.lean`
 
@@ -280,11 +380,12 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 ### `HilbertMumford.lean`
 
 - `momentWeight_le`: $w_\mu(p,\xi)\le\langle\mu(p),\xi\rangle$, and
-  `tendsto_limitPoint` for `ξ ∈ nonzeroPeriods I G`.
+  `tendsto_limitPoint` for every `ξ`.
 - `tendsto_deriv_kempfNessFunction`: the slope identity, the limit of the
   derivative of $t\mapsto\Phi_p(\exp(-it\xi))$ is $-w_\mu(p,\xi)$.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,
-  $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for $\xi\in\Lambda$ and $g\in G^{\mathbb C}$.
+  $w_\mu(p,\xi)\le\|\xi\|\,\|\mu(gp)\|$ for $\xi\in\Lambda$ and $g\in G^{\mathbb C}$,
+  with both norms those of `B`: `√(B ξ ξ)` and `√(momentNormSq B hB μ (g • p))`.
 - `exists_momentWeight_pos_of_not_isSemistable`: a destabilizing
   $\xi\in\Lambda$ (the limit of the flow of $f$, and continuity of
   weights for torus actions).
@@ -333,8 +434,11 @@ Each is a few hundred lines; each is blocked by the issues it names.
    No blockers. If it exceeds a thousand lines, its issue splits the
    equivariant tubular neighbourhood of an orbit from the moment map in
    the model.
-9. **The gradient flow of $\|\mu\|^2$.** `KempfNess/NormSquare.lean`.
-   Blocked by 3, 6, 7 and 8.
+9. **The gradient flow of $\|\mu\|^2$.** `KempfNess/NormSquare.lean`, and
+   the Gauss lemma of decision 7 in `Geometry/Lie/Complexification.lean`.
+   Blocked by 3, 6, 7 and 8. The moment limit theorem comes last, after
+   the steps that *Main results* lists before it, in that order; it does
+   not use the moment-weight inequality of issue 12.
 10. **The criteria, and the Kempf–Ness milestone.**
     `KempfNess/Stability.lean`. Blocked by 4 and 9.
 11. **Weights and limit points.** The first two items of

@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.BoundaryClass
 public import TauCeti.Topology.Circle.Normalize
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
+public import TauCeti.Topology.Circle.Degree
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.BoundaryClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 
 /-!
 # The argument principle for coordinate discs

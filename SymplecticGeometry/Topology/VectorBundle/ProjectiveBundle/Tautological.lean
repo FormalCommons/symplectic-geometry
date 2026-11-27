@@ -8,8 +8,10 @@ module
 public import TauCeti.Topology.VectorBundle.Subbundle
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Submodule
-public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Basic
+public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+import SymplecticGeometry.Topology.Algebra.Projectivization
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Tautological lines
@@ -65,6 +67,9 @@ fibre `ι → 𝕜` rather than `𝕜`.
   homeomorphic to the nonzero vectors of `V`.
 * `Projectivization.tautologicalMapEquiv`: the restriction of an injective linear map to the
   lines, a fibrewise isomorphism over `Projectivization.map`.
+* `Projectivization.tautologicalMapProjectivizationEquiv`: the restriction of a continuous
+  linear equivalence to the lines, a fibrewise isomorphism over
+  `ContinuousLinearEquiv.mapProjectivization`.
 * `SymplecticGeometry.Bundle.ProjectiveBundle.Tautological 𝕜 G E`: the tautological line over the
   projective bundle, with its trivializations `ProjectiveBundle.tautologicalTrivialization` and
   its `FiberBundle` and `VectorBundle` instances.
@@ -335,6 +340,29 @@ theorem rank_tautologicalCore : (tautologicalCore 𝕜 V).rank = 1 :=
   (rfl)
 
 end Tautological
+
+/-! ### Restriction of a continuous linear equivalence -/
+
+section MapProjectivizationEquiv
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {V : Type*} [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V]
+  {W : Type*} [AddCommGroup W] [Module 𝕜 W] [TopologicalSpace W]
+
+/-- A continuous linear equivalence `e : V ≃L[𝕜] W` restricts to an isomorphism of the line `ℓ`
+onto the line `e.mapProjectivization ℓ`: the fibrewise isomorphism of the tautological line of
+`ℙ 𝕜 V` with the pull-back of that of `ℙ 𝕜 W` along the homeomorphism `e.mapProjectivization`. -/
+def tautologicalMapProjectivizationEquiv (e : V ≃L[𝕜] W) (ℓ : ℙ 𝕜 V) :
+    Tautological 𝕜 V ℓ ≃L[𝕜] Tautological 𝕜 W (e.mapProjectivization ℓ) :=
+  e.ofSubmodules ℓ.submodule (e.mapProjectivization ℓ).submodule
+    (e.submodule_mapProjectivization ℓ).symm
+
+@[simp]
+theorem coe_tautologicalMapProjectivizationEquiv_apply (e : V ≃L[𝕜] W) (ℓ : ℙ 𝕜 V)
+    (v : Tautological 𝕜 V ℓ) : (tautologicalMapProjectivizationEquiv e ℓ v : W) = e v :=
+  (rfl)
+
+end MapProjectivizationEquiv
 
 /-! ### Pull-backs along maps of projective spaces -/
 
@@ -677,9 +705,7 @@ a fibrewise isomorphism `φ` is the tautological line of `E`: on the fibre over 
 isomorphism is the restriction of `φ` to `p`. -/
 def tautologicalMapEquiv (p : ProjectiveBundle 𝕜 G E) :
     Tautological 𝕜 G E p ≃L[𝕜] (map φ hφ *ᵖ (Tautological 𝕜 G' E')) p :=
-  ContinuousLinearEquiv.ofSubmodules (φ p.proj) p.snd.submodule
-    ((φ p.proj).mapProjectivization p.snd).submodule
-    (by rw [ContinuousLinearEquiv.coe_mapProjectivization, submodule_map])
+  tautologicalMapProjectivizationEquiv (φ p.proj) p.snd
 
 @[simp]
 theorem coe_tautologicalMapEquiv_apply (p : ProjectiveBundle 𝕜 G E) (v : Tautological 𝕜 G E p) :
@@ -772,7 +798,7 @@ theorem continuous_tautologicalInlEquiv :
             ((FiberBundle.continuous_proj G₁ E₁).comp
               (continuous_toTotalSpace_tautological 𝕜 G₁ E₁)))).congr fun v ↦ by
           -- `simp` leaves `HEq` goals whose types agree only by unfolding `inl` or `inr`.
-          ext <;> simp [Pullback.lift, zeroSection] <;> rfl⟩⟩
+          ext <;> simp [Pullback.lift, zeroSection_def] <;> rfl⟩⟩
 
 variable (G₁ E₁) in
 /-- The pull-back of the tautological line of `E₁ ×ᵇ E₂` along `ProjectiveBundle.inr` is the
@@ -804,7 +830,7 @@ theorem continuous_tautologicalInrEquiv :
               (continuous_toTotalSpace_tautological 𝕜 G₂ E₂))).prodMk
           (continuous_toTotalSpace_tautological 𝕜 G₂ E₂)).congr fun v ↦ by
           -- `simp` leaves `HEq` goals whose types agree only by unfolding `inl` or `inr`.
-          ext <;> simp [Pullback.lift, zeroSection] <;> rfl⟩⟩
+          ext <;> simp [Pullback.lift, zeroSection_def] <;> rfl⟩⟩
 
 end Prod
 

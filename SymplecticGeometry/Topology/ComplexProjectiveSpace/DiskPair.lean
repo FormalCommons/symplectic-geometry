@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.SubsetSingleton
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
 public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.Absolute
 public import TauCeti.AlgebraicTopology.Singular.DiskSphere
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.SubsetSingleton
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
 
 /-!
 # Maps of the disk pair into complex projective space
@@ -35,7 +36,7 @@ takes the value `⟨h, hurewicz [γ]⟩` on the generator
 (`GenLoop.singularKronecker_singularCohomologyMap_toCubeBoundaryPairHom`). The Hurewicz map
 `π₂(ℙ, p) → H₂(ℙ; ℤ)` is bijective, `ℙ` being simply connected
 (`HomotopyGroup.bijective_hurewiczIntHom_of_simplyConnectedSpace`), and so is `x ↦ ⟨h, x⟩` on
-`H₂(ℙ; ℤ)` (`Projectivization.bijective_singularKronecker_hyperplaneClass`), so every value is
+`H₂(ℙ; ℤ)` (`Projectivization.bijective_integralKronecker_hyperplaneClass`), so every value is
 attained.
 
 ## References
@@ -85,7 +86,7 @@ theorem exists_hom_diskBoundaryPair_singularCohomologyMap_eq (hN : N ≠ 0)
     ((cubeBoundaryPair.{0} 2).singularKronecker_bijective_of_projective_homology_lt _ _ 2
       fun j hj ↦ (isZero_singularHomology_cubeBoundaryPair_of_ne _ 2 (by omega)).projective).1
   -- A class `a ∈ π₂(ℙ, p)` with `⟨h, hurewicz a⟩` the value of `c'` on the generator.
-  obtain ⟨a, ha⟩ := ((bijective_singularKronecker_hyperplaneClass (V := Fin (N + 1) → ℂ)
+  obtain ⟨a, ha⟩ := ((bijective_integralKronecker_hyperplaneClass (V := Fin (N + 1) → ℂ)
     (by simp) hN).comp (HomotopyGroup.bijective_hurewiczIntHom_of_simplyConnectedSpace p)).2
       ((E.inv ≫ κ c').hom 1)
   obtain ⟨γ, hγ⟩ := Quotient.exists_rep a.toMul
@@ -96,7 +97,7 @@ theorem exists_hom_diskBoundaryPair_singularCohomologyMap_eq (hN : N ≠ 0)
   refine hκ ((cancel_epi E.inv).1 (ModuleCat.hom_ext (LinearMap.ext_ring ?_)))
   rw [← ha, GenLoop.singularKronecker_singularCohomologyMap_toCubeBoundaryPairHom, hhp,
     Function.comp_apply, HomotopyGroup.hurewiczIntHom_apply, ← hγ,
-    HomotopyGroup.hurewicz_mk, ModuleCat.comp_apply]
+    HomotopyGroup.hurewicz_mk, ModuleCat.comp_apply, TopCat.integralKronecker_apply]
   -- The unit object `𝟙_ (ModuleCat ℤ)` is `ModuleCat.of ℤ ℤ`, the coefficients of
   -- `HomotopyGroup.hurewiczIntHom`, by definition.
   rfl

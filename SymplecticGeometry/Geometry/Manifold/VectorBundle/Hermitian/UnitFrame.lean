@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-public import SymplecticGeometry.Analysis.Complex.NormalizedDeterminant
+public import TauCeti.Analysis.Complex.NormalizedDeterminant
+import SymplecticGeometry.Analysis.Complex.NormalizedDeterminant
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 
 /-!
@@ -113,10 +114,8 @@ theorem continuous_unitFrame {S : Set B} {σ : ∀ x, Fiber ℂ F E ℂ x}
     Continuous fun q : S × F ↦ TotalSpace.mk' F (q.1 : B) (unitFrame e (σ q.1) q.2) := by
   -- `σ` read in the frame bundle with model fibre `unitary (ℂ →L[ℂ] ℂ)`.
   have hσ' : Continuous fun q : S × F ↦ TotalSpace.mk' (unitary (ℂ →L[ℂ] ℂ)) (q.1 : B) (σ q.1) :=
-    (((TotalSpace.modelFiberHomeomorph isInducing_modelFiberEquiv_circleFiber).continuous
-      |>.comp_continuousOn hσ).comp_continuous
-      (continuous_subtypeVal.comp continuous_fst) fun q ↦ q.1.property).congr fun q ↦ by
-        simp [TotalSpace.coe_modelFiberHomeomorph, TotalSpace.modelFiberEquiv_apply]
+    (isInducing_totalSpaceMk'_circleFiber.continuous.comp_continuousOn hσ).comp_continuous
+      (continuous_subtypeVal.comp continuous_fst) fun q ↦ q.1.property
   exact continuous_totalSpace_frame_apply.comp (hσ'.prodMk (e.continuous.comp continuous_snd))
 
 end Frame

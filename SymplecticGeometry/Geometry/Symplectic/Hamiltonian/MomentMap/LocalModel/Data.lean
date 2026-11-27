@@ -326,6 +326,11 @@ theorem momentMap_apply (v : V) (ξ : D.𝔥) :
     D.momentMap v ξ = D.σ ((D.ρ ξ : Module.End ℝ V) v) v / 2 := by
   rw [momentMap_def, SymplecticForm.linearMomentMapComp_apply]
 
+/-- The moment map `μ_V` vanishes at the origin of `V`. -/
+@[simp]
+theorem momentMap_zero : D.momentMap 0 = 0 := by
+  rw [momentMap_def, SymplecticForm.linearMomentMapComp_zero]
+
 /-- The covectors `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` of the local model, on `A × V`. -/
 def covector (p : A × V) : Module.Dual ℝ (GroupLieAlgebra I G) :=
   localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 p
@@ -338,6 +343,13 @@ theorem covector_def (p : A × V) :
 theorem covector_apply (η : A) (v : V) (ξ : GroupLieAlgebra I G) :
     D.covector (η, v) ξ = D.τ ξ + D.ι𝔪 η ξ + D.ι𝔥 (D.momentMap v) ξ := by
   rw [covector_def, localModelCovector_apply, momentMap_def]
+
+/-- At the origin of `A × V`, the covector of the local model is `τ`. -/
+@[simp]
+theorem covector_zero : D.covector 0 = D.τ := by
+  ext ξ
+  rw [Prod.zero_eq_mk, covector_apply, map_zero, momentMap_zero, map_zero,
+    LinearMap.zero_apply, add_zero, add_zero]
 
 /-- The components `p ↦ ν p ξ` of the covectors of the local model are smooth on `A × V`. -/
 theorem contMDiff_covector_apply (ξ : GroupLieAlgebra I G) :

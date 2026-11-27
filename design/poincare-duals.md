@@ -36,7 +36,7 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   with `hf : IsClosed (Set.range f)`. Tau Ceti has no subset-based notion of
   submanifold, and its normal bundles and tubes are stated for embeddings.
 - The normal bundle is Tau Ceti's intrinsic quotient
-  `f.NormalSpace x hn` (`Geometry/Manifold/SmoothEmbedding/NormalSpace/Basic.lean`),
+  `f.isImmersion.NormalSpace x hn` (`Geometry/Manifold/Immersion/NormalSpace/Basic.lean`),
   with model fibre a space `P` of dimension
   `hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E`, and its bundle structure
   installed by `letI` from `instTopologicalSpaceNormalBundle`,
@@ -46,7 +46,7 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   `r = 0` is allowed throughout (then $Z$ is open and closed, $\nu$ is the
   zero bundle and $d_Z$ is the indicator class of $Z$ in degree $0$).
 - A normal orientation is
-  `o : TauCeti.VectorBundleOrientation P (f.NormalSpace · hn) (Fin r)`.
+  `o : TauCeti.VectorBundleOrientation P (f.isImmersion.NormalSpace · hn) (Fin r)`.
 
 Declarations about `TauCeti.SmoothEmbedding` are in the namespace
 `TauCeti.SmoothEmbedding`, as `AGENTS.md` asks for declarations that dot
@@ -101,9 +101,9 @@ the neighbouring Tau Ceti lemmas.
   `TopCat.singularCap` with Hatcher's convention (the cochain is evaluated on
   the front face, `Cap/Basic.lean`), its naturality, relative caps
   (`Cap/Relative.lean`, `Cap/AbsoluteRelative.lean`) and the cross product
-  with caps (`Cap/CrossRel.lean`). The library has Poincaré duality for
-  closed manifolds, `HomologicalOrientation.bijective_singularCap_fundamentalClass`
-  (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
+  with caps (`Cap/CrossRel.lean`). Tau Ceti has Poincaré duality for
+  closed manifolds, `HomologicalOrientation.bijective_singularCapAddHom_fundamentalClass`
+  (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
 - **Orientations of exact sequences**: `Orientation.cokerOfExact`
   (`LinearAlgebra/Orientation/Exact/Basic.lean`) and `Orientation.ofExact`,
   both with the subspace first.
@@ -127,8 +127,9 @@ the only `dualClass` is a private helper of local orientations.
   and the fundamental classes take `ULift ℤ`. The library converts Thom
   classes between them (`IsThomClass.singularCohomologyChainCoefficientMap`,
   `IsThomClass.singularCohomologyValueMap` and
-  `eulerClass_comp_singularCohomologyChainCoefficientMap`, in
-  `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`). So the
+  `IsThomClass.uliftIntegralCohomologyEquiv`) and Euler classes
+  (`eulerClass_uliftIntegralCohomologyEquiv`), in
+  `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`. So the
   constructions are generic in the coefficients
   `(R : ModuleCat k) k (M : ModuleCat k)`, as `TauCeti.eulerClass` is, and
   start from any relative class `u` of the Thom pair. The class $d_Z$
@@ -225,7 +226,8 @@ the only `dualClass` is a private helper of local orientations.
   of sections, and building $g^{-1}(Z)$ as an embedded submanifold with
   normal bundle $g^*\nu$ for a general transverse $g$ is a part of its own;
   the zero-set file treats the case that the users need, and naturality is
-  stated under diffeomorphisms and open embeddings.
+  stated under diffeomorphisms only, since no later step uses it under open
+  embeddings.
 - **Zero-dimensional $Z$ and $X$.** Tau Ceti converts smooth orientations
   to homological ones in dimension `n + 1`
   (`toHomologicalOrientation`) and in dimension `0`
@@ -311,8 +313,8 @@ in a trivialization since the fibres carry no norm, are
   of the total space of the normal bundle onto an open set of `X`, equal to
   `f` on the zero section, which is normalized: for each `x`, read in the
   trivialization at `x`, the derivative of `Φ` at the zero of the fibre on
-  vertical vectors `(0, w)`, `w : P`, followed by `f.normalClassL x`, is the
-  trivialization's identification of `P` with `f.NormalSpace x hn` (the
+  vertical vectors `(0, w)`, `w : P`, followed by `f.isImmersion.normalClassL x`, is the
+  trivialization's identification of `P` with `f.isImmersion.NormalSpace x hn` (the
   fibres carry no norm, so the condition is read through the
   trivialization; it does not depend on which linear trivialization).
 - `TauCeti.SmoothEmbedding.exists_isNormalizedTube_subset`: inside every
@@ -320,7 +322,7 @@ in a trivialization since the fibres carry no norm, are
   and the inverse of the fibrewise derivative, a smooth bundle
   automorphism (`isNormalizedTube_comp_bundleEquiv` is the step).
 
-### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass.lean`
+### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Basic.lean`
 
 With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 `W ⊇ range f`:
@@ -351,11 +353,11 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Slice.lean`
 
-- `eq_relDualClassOf_iff_forall_slice`: for a Thom class `u` of the
-  normal bundle in degree `r = finrank ℝ P` (in particular
+- `eq_relDualClassOf_iff_forall_slice`: for a class `u` of the
+  normal bundle in degree `r = finrank ℝ P` (for instance
   `o.canonicalThomClass rfl`), a class of
   $H^r(X,X\setminus Z)$ is `relDualClassOf f hn hdim hf u` exactly when its
-  restriction along each normal slice of a normalized tube is the fibre
+  restriction along each normal slice of any normalized tube is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
   restrictions, `TauCeti.singularCohomology_thomPair_ext`. (A class of another degree
   is not determined by its fibre restrictions.)
@@ -363,11 +365,10 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   of *Decisions*.
 - `relDualClassOf_eq_of_isNormalizedTube`: every normalized tube defines
   the same class (independence of the tube).
-- `dualClass_comp_diffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
+- `dualClass_transDiffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
   class of `φ⁻¹ ∘ f` with the normal orientation carried by `dφ` (Tau
   Ceti's `normalSpaceEquiv` of `NormalSpace/Map.lean` and
-  `VectorBundleOrientation.comap`) is `φ^* dualClass f hn hdim hf o hr`; the same for
-  an open embedding of an open set containing the range.
+  `VectorBundleOrientation.comap`) is `φ^* dualClass f hn hdim hf o hr`.
 
 ### `Geometry/Manifold/Orientation/NormalOrientation.lean`
 
@@ -393,11 +394,12 @@ $(P,P\setminus0)$ of dimension `r` and a vector space `Q` of dimension
 `TauCeti.LocalOrientation.cross` of the local orientations of `ω` and of an
 orientation `ω'` of `Q`, normal factor first, pushed forward along the
 second projection, is the local orientation of `ω'`; from
-`TopCat.singularCap_singularHomologyCrossRel` (`Cap/CrossRel.lean`). The
-form used below reads the cross product, by
-`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`,
-as the local orientation of the linear orientation of $P\times Q$ that
-puts `ω'` first, the order `normalOrientation` produces. This is where the
+`TopCat.singularRelativeCap_singularHomologyCrossRelPair_ulift`
+(`Cap/CrossRelPair.lean`). The form used below reads the cross product, by
+`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
+`TauCeti.LocalOrientation.prod_localOrientation`, as the local orientation
+of the linear orientation of $P\times Q$ that puts `ω'` first, the order
+`normalOrientation` produces. This is where the
 order of *Decisions* enters. For `r = 0` or `m = 0` the statement
 degenerates to the unit and needs no product orientation.
 
@@ -434,7 +436,7 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   Poincaré dual of a submanifold*. The plan's identity
   $d_Z=\mathrm{PD}(i_*[Z])$ is this cap identity, as `DESIGN.md`'s
   convention *Poincaré duals* says; by
-  `bijective_singularCap_fundamentalClass` it determines $d_Z$.
+  `bijective_singularCapAddHom_fundamentalClass` it determines $d_Z$.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/Embedding.lean`
 
@@ -486,7 +488,7 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 None. The part uses Tau Ceti as listed above, and from the library the
 merged change-of-coefficient lemmas of
 `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean` and
-`bijective_singularCap_fundamentalClass`, for the remark that the cap
+`bijective_singularCapAddHom_fundamentalClass`, for the remark that the cap
 identity determines $d_Z$.
 
 ## Issues
@@ -505,7 +507,7 @@ be done, each with what it waits for.
    nothing.
 4. **Normal Thom class and the Thom isomorphism of the normal bundle.**
    `NormalSpace/ThomClass.lean`. Waits for 2.
-5. **The dual class.** `NormalSpace/DualClass.lean`: the definitions, the
+5. **The dual class.** `NormalSpace/DualClass/Basic.lean`: the definitions, the
    vanishing off $Z$ and the restriction to $Z$. Waits for 3 and 4.
 6. **Slices, independence and naturality.** `NormalSpace/DualClass/Slice.lean`.
    Waits for 5.

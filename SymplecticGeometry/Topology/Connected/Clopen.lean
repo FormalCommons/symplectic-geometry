@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Connected.Clopen
+public import Mathlib.Topology.Connected.LocallyPathConnected
+public import Mathlib.Topology.Order.Basic
 
 /-!
 # Preconnected sets and clopen sets
@@ -28,6 +30,16 @@ with boundary, this shows that the interior of a connected manifold is connected
   preconnected set `A` is preconnected if near each point of `A` the complement of `A` has at most
   two preconnected pieces, each with all of `A` nearby in its closure, and near one point of `A`
   it has only one.
+* `IsPreconnected.sdiff_of_forall_exists_mem_nhds`: the same inside a preconnected set `U`, with
+  the neighbourhoods taken inside `U`.
+* `IsPreconnected.of_isOpen_of_union_eq_univ`: in a preconnected space covered by open sets `s`
+  and `t` that meet in a nonempty preconnected set, `s` is preconnected.
+* `IsPathConnected.of_isOpen_of_union_eq_univ`: the same for path connectedness, in a locally
+  path connected space.
+* `Continuous.induction₂_of_mapsTo_nhds`: for a continuous map `γ` from a preconnected linearly
+  ordered space, and a neighbourhood `U b` of each point `b` of the target, a transitive relation
+  that holds between any two points of each closed interval that `γ` maps into some `U b` holds
+  between any two points.
 
 `PreconnectedSpace.eq_zero_of_eventually_eq_zero` abstracts the open-and-closed argument of
 Tau Ceti's `TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
@@ -35,7 +47,9 @@ Tau Ceti's `TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mu
 The proof of `isPreconnected_compl_of_forall_exists_mem_nhds` adapts that of Tau Ceti's
 `TauCeti.isPreconnected_compl_of_isDiscrete`: given a separation of the complement, each point of
 `A` joins the side that contains its neighbourhood outside `A`, and the points of `A` that join
-neither side form a set that is open in `A`.
+neither side form a set that is open in `A`. Its relative form
+`IsPreconnected.sdiff_of_forall_exists_mem_nhds` passes to the subspace `U`, as the proof of
+Tau Ceti's `TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank` does.
 -/
 
 public section
@@ -212,5 +226,110 @@ theorem isPreconnected_compl_of_forall_exists_mem_nhds [PreconnectedSpace X] {A 
     (eq_empty_iff_forall_notMem.2 fun x ⟨_, hxu, hxv⟩ ↦ hUV x hxu hxv)).imp
     (fun hU x hx ↦ ?_) fun hV x hx ↦ ?_
   exacts [(hU (mem_univ x)).self_of_nhds hx, (hV (mem_univ x)).self_of_nhds hx]
+
+/-- **Removing a set that separates at most two ways locally, inside a preconnected set.**
+Let `U` be a preconnected set and `A ⊆ U` a preconnected set such that each `a ∈ A` has a
+neighbourhood `V ⊆ U` within `U` whose part outside `A` is the union of two preconnected sets
+`P` and `Q` whose closures both contain `V ∩ A`. If one point `b ∈ A` has a neighbourhood
+`V ⊆ U` within `U` with `V \ A` preconnected, then `U \ A` is preconnected.
+
+This is `isPreconnected_compl_of_forall_exists_mem_nhds` in the subspace `U`, so the
+neighbourhoods are taken in `U` and `U` need not be open. -/
+theorem IsPreconnected.sdiff_of_forall_exists_mem_nhds {U A : Set X} (hUc : IsPreconnected U)
+    (hA : IsPreconnected A) (hAU : A ⊆ U) {b : X} (hb : b ∈ A)
+    (hbV : ∃ V ∈ 𝓝[U] b, V ⊆ U ∧ IsPreconnected (V \ A))
+    (h : ∀ a ∈ A, ∃ V ∈ 𝓝[U] a, V ⊆ U ∧ ∃ P Q : Set X, V \ A = P ∪ Q ∧ IsPreconnected P ∧
+      IsPreconnected Q ∧ V ∩ A ⊆ closure P ∩ closure Q) :
+    IsPreconnected (U \ A) := by
+  have : PreconnectedSpace U := isPreconnected_iff_preconnectedSpace.mp hUc
+  -- Preconnectedness and closures of subsets of `U` read the same in `U` as in `X`.
+  have hpre {S : Set X} (hS : S ⊆ U) :
+      IsPreconnected ((↑) ⁻¹' S : Set U) ↔ IsPreconnected S := by
+    rw [← IsInducing.subtypeVal.isPreconnected_image, Subtype.image_preimage_coe,
+      inter_eq_right.2 hS]
+  have hcl {S : Set X} (hS : S ⊆ U) : closure ((↑) ⁻¹' S : Set U) = (↑) ⁻¹' closure S := by
+    rw [IsInducing.subtypeVal.closure_eq_preimage_closure_image, Subtype.image_preimage_coe,
+      inter_eq_right.2 hS]
+  have hnhds {x : U} {V : Set X} (hV : V ∈ 𝓝[U] (x : X)) : (↑) ⁻¹' V ∈ 𝓝 x :=
+    preimage_coe_mem_nhds_subtype.2 hV
+  have hc := isPreconnected_compl_of_forall_exists_mem_nhds (X := U)
+    (A := ((↑) : U → X) ⁻¹' A) ((hpre hAU).2 hA) (b := ⟨b, hAU hb⟩) hb ?_ ?_
+  · have himage : ((↑) : U → X) '' ((↑) ⁻¹' A)ᶜ = U \ A := by
+      rw [image_compl_preimage, Subtype.range_coe]
+    exact himage ▸ hc.image _ continuous_subtypeVal.continuousOn
+  · obtain ⟨V, hV, hVU, hVc⟩ := hbV
+    exact ⟨_, hnhds hV, by rw [← preimage_sdiff]; exact (hpre (sdiff_subset.trans hVU)).2 hVc⟩
+  · intro a ha
+    obtain ⟨V, hV, hVU, P, Q, hPQ, hP, hQ, hPQcl⟩ := h a ha
+    have hPU : P ⊆ U := (hPQ ▸ subset_union_left : P ⊆ V \ A).trans (sdiff_subset.trans hVU)
+    have hQU : Q ⊆ U := (hPQ ▸ subset_union_right : Q ⊆ V \ A).trans (sdiff_subset.trans hVU)
+    refine ⟨_, hnhds hV, (↑) ⁻¹' P, (↑) ⁻¹' Q, by rw [← preimage_sdiff, hPQ, preimage_union],
+      (hpre hPU).2 hP, (hpre hQU).2 hQ, ?_⟩
+    rw [hcl hPU, hcl hQU]
+    exact fun y hy ↦ hPQcl hy
+
+
+/-- In a preconnected space covered by two open sets `s` and `t` whose intersection is
+preconnected and nonempty, `s` is preconnected. A piece of a separation of `s` that misses
+`s ∩ t` misses `t`, so it is open and closed in the whole space. -/
+theorem IsPreconnected.of_isOpen_of_union_eq_univ [PreconnectedSpace X] {s t : Set X}
+    (hst : IsPreconnected (s ∩ t)) (hne : (s ∩ t).Nonempty) (hs : IsOpen s) (ht : IsOpen t)
+    (hunion : s ∪ t = univ) : IsPreconnected s := by
+  have key : ∀ u v : Set X, IsOpen u → IsOpen v → s ⊆ u ∪ v → s ∩ (u ∩ v) = ∅ →
+      s ∩ t ⊆ u → s ⊆ u := by
+    intro u v hu hv hsuv hdisj hstu
+    have hnot : ∀ y, y ∈ s → y ∈ u → y ∈ v → False := fun y h₁ h₂ h₃ ↦
+      (eq_empty_iff_forall_notMem.1 hdisj) y ⟨h₁, h₂, h₃⟩
+    have hcompl : (s ∩ v)ᶜ = t ∪ s ∩ u := by
+      ext y
+      simp only [mem_compl_iff, mem_inter_iff, mem_union, not_and]
+      refine ⟨fun h ↦ ?_, ?_⟩
+      · by_cases hyt : y ∈ t
+        · exact Or.inl hyt
+        · have hys : y ∈ s := (hunion.symm ▸ mem_univ y : y ∈ s ∪ t).resolve_right hyt
+          exact Or.inr ⟨hys, (hsuv hys).resolve_right (h hys)⟩
+      · rintro (hyt | ⟨hys, hyu⟩) hys' hyv
+        exacts [hnot y hys' (hstu ⟨hys', hyt⟩) hyv, hnot y hys hyu hyv]
+    have hclopen : IsClopen (s ∩ v) :=
+      ⟨by rw [← isOpen_compl_iff, hcompl]; exact ht.union (hs.inter hu), hs.inter hv⟩
+    rcases isClopen_iff.1 hclopen with h | h
+    · exact fun y hy ↦ (hsuv hy).resolve_right fun hyv ↦ (h ▸ ⟨hy, hyv⟩ : y ∈ (∅ : Set X))
+    · obtain ⟨y, hy⟩ := hne
+      exact (hnot y hy.1 (hstu hy) (h ▸ mem_univ y : y ∈ s ∩ v).2).elim
+  rw [isPreconnected_iff_subset_of_disjoint]
+  intro u v hu hv hsuv hdisj
+  have hdisj' : s ∩ t ∩ (u ∩ v) = ∅ :=
+    subset_empty_iff.1 (hdisj ▸ inter_subset_inter_left _ inter_subset_left)
+  rcases isPreconnected_iff_subset_of_disjoint.1 hst u v hu hv (inter_subset_left.trans hsuv)
+    hdisj' with h | h
+  · exact Or.inl (key u v hu hv hsuv hdisj h)
+  · exact Or.inr (key v u hv hu (union_comm u v ▸ hsuv) (inter_comm u v ▸ hdisj) h)
+
+/-- In a preconnected, locally path connected space covered by two open sets `s` and `t` whose
+intersection is path connected, `s` is path connected. -/
+theorem IsPathConnected.of_isOpen_of_union_eq_univ [PreconnectedSpace X]
+    [LocallyPathConnectedSpace X] {s t : Set X} (hst : IsPathConnected (s ∩ t)) (hs : IsOpen s)
+    (ht : IsOpen t) (hunion : s ∪ t = univ) : IsPathConnected s :=
+  hs.isConnected_iff_isPathConnected.1 ⟨hst.nonempty.mono inter_subset_left,
+    hst.isConnected.isPreconnected.of_isOpen_of_union_eq_univ hst.nonempty hs ht hunion⟩
+
+open Set Filter Topology in
+/-- **Local-to-global along a continuous map out of an ordered space.** Let `γ` be a continuous
+map from a preconnected linearly ordered space `X`, such as `ℝ`, to a space `B`, let `U b` be a
+neighbourhood of each `b : B`, and let `R` be a transitive relation on `X`. If `R s t` holds for
+all `s` and `t` in each closed interval `Icc a c` that `γ` maps into some `U b`, then `R s t`
+holds for all `s` and `t`. -/
+theorem Continuous.induction₂_of_mapsTo_nhds [LinearOrder X] [OrderTopology X]
+    [PreconnectedSpace X] {B : Type*} [TopologicalSpace B] {γ : X → B} (hγ : Continuous γ)
+    {U : B → Set B} (hU : ∀ b, U b ∈ 𝓝 b) (R : X → X → Prop) [IsTrans X R]
+    (h : ∀ (b : B) (a c : X), MapsTo γ (Icc a c) (U b) → ∀ s ∈ Icc a c, ∀ t ∈ Icc a c, R s t)
+    (s t : X) : R s t := by
+  refine PreconnectedSpace.induction₂' R (fun u ↦ ?_) ‹_› s t
+  -- Near `u`, `γ` stays in `U (γ u)`.
+  obtain ⟨a, c, hu, hac, hmaps⟩ :=
+    exists_Icc_mem_subset_of_mem_nhds (hγ.continuousAt.preimage_mem_nhds (hU (γ u)))
+  have hmaps' : MapsTo γ (Icc a c) (U (γ u)) := mapsTo_iff_subset_preimage.2 hmaps
+  filter_upwards [hac] with v hv
+  exact ⟨h _ a c hmaps' u hu v hv, h _ a c hmaps' v hv u hu⟩
 
 end

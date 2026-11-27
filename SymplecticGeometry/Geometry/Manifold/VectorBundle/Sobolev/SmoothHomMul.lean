@@ -6,12 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
-public import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
+import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
@@ -410,8 +411,7 @@ def contMDiffHomMulL
     (A.ofBaseSet h).isCompact_closure_image
     (fun i ↦ (closure_mono fun _ hy ↦
       (image_hom (𝕜 := ℝ) (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy)).trans
-      (((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
-        ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i)))
+      ((A.hom (𝕜 := ℝ) h).closure_image_subset_target_inter_preimage_baseSet i))
     (fun i ↦ contDiffOn_infty.2 fun _ ↦
       (A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΦ.of_le (by exact_mod_cast le_top)) i) fun s ↦
       ⟨fun x ↦ Φ x (s x), fun i y hy ↦ by
@@ -438,8 +438,7 @@ theorem contMDiffHomMulL_apply (w : SobolevSection A μ p k) (i : Fin A.n)
         ((A.ofBaseSet h).isCompact_closure_image i)
         ((closure_mono fun _ hy ↦
           (image_hom (𝕜 := ℝ) (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy)).trans
-          (((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
-            ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i))) k
+          ((A.hom (𝕜 := ℝ) h).closure_image_subset_target_inter_preimage_baseSet i)) k
         (finBasis ℝ F₁) (finBasis ℝ F₂)
         (contDiffOn_infty.2 fun _ ↦
           (A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΦ.of_le (by exact_mod_cast le_top)) i)
@@ -626,7 +625,8 @@ theorem exists_norm_contMDiffHomMulL_le :
   have hy' : y ∈ A.image i := (image_ofBaseSet (A := A) (h := h) i).le hy
   rw [iteratedFDerivWithin_of_isOpen j (((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet)
-    ((A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_symm i ((image_hom (h := h) i).ge hy'))]
+    ((A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_baseSet i
+      ((image_hom (h := h) i).ge hy'))]
   exact hM i j hj y hy'
 
 variable (A h k) in
@@ -654,7 +654,8 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
   have hU := ((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet
   have hyU :=
-    (A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_symm i ((image_hom (h := h) i).ge hy)
+    (A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_baseSet i
+      ((image_hom (h := h) i).ge hy)
   have hcd {Θ : ∀ x, V₁ x →L[ℝ] V₂ x}
       (hΘ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
         fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Θ x)) :

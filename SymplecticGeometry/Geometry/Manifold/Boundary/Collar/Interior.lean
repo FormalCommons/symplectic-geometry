@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
+public import TauCeti.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!

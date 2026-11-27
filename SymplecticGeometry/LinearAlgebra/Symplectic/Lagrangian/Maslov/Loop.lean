@@ -5,11 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
-public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.FundamentalGroup
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
 public import TauCeti.Topology.Algebra.OrthogonalGroup
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Basic
+public import TauCeti.Analysis.Matrix.SymplecticGroup.Maslov
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
+import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.FundamentalGroup
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
 import TauCeti.LinearAlgebra.Matrix.OfReal
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
+import SymplecticGeometry.Topology.Homotopy.Path
 
 /-!
 # The Maslov index of loops of Lagrangian subspaces: classification and uniqueness

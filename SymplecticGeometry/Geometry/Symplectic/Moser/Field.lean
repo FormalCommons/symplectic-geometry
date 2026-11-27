@@ -9,9 +9,10 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The cut-off Moser field of a family of two-forms
@@ -33,6 +34,8 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
 ## Main definitions and results
 
 * `SymplecticGeometry.moserField`: the cut-off Moser field of a family of two-forms.
+* `SymplecticGeometry.moserField_congr`: the field at time `t` depends only on the slices of
+  `σ` and `β` at `t` and on `ρ (t, ·)`.
 * `SymplecticGeometry.interior_moserField`, `SymplecticGeometry.interior_moserField_eq`:
   the identity `ι_{X_t} σ_t = -ρ(t, ·) β_t`.
 * `SymplecticGeometry.exists_isCompact_moserField_eq_zero`: for a cutoff with compact support,
@@ -47,6 +50,11 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
   of `ρ`.
 * `SymplecticGeometry.moserField_rate_eq_zero`: Moser's equation at a point `y` near which
   `ρ(t, ·) = 1` and `σ_t` is nondegenerate, where `σ_t` is closed and `∂_t σ_t = dβ_t`.
+* `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff`:
+  Moser's argument at one point along a segment run with a smooth clock `c`, with the primitives
+  `c'(s) γ`.
+* `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply`: its case
+  `c = id`, with a primitive constant in the Moser time.
 
 The definition and the proofs adapt Tau Ceti's private `moserField`, `moserField_eq_zero`,
 `interior_moserField`, `interior_moserField_eq`, `contMDiff_moserField` and `moserRate_eq_zero`
@@ -54,7 +62,13 @@ The definition and the proofs adapt Tau Ceti's private `moserField`, `moserField
 reparametrized by `Real.smoothTransition`, a fixed primitive and a cutoff on `M` to a general
 family, a primitive depending on the parameter and a cutoff on `N × M`. The proof of joint
 smoothness follows Tau Ceti's
-`TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`.
+`TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`. The proof of
+`TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff`
+adapts the trajectory argument of Tau Ceti's
+`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
+(`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`) from a segment reparametrized by
+`Real.smoothTransition` and a cutoff on `N` to a segment run with any smooth clock and a cutoff on
+`ℝ × N`.
 
 ## References
 
@@ -102,14 +116,30 @@ theorem moserField_def (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
             (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β) x) :=
   (rfl)
 
+/-- The Moser field at time `t` depends only on the slices of `σ` and `β` at `t` and on
+`ρ (t, ·)`: families over two parameter manifolds `N` and `N'` whose slices at `t` and `t'`
+agree, with cutoffs that agree there, have the same Moser fields at `t` and `t'`. -/
+theorem moserField_congr {EN' HN' N' : Type*} [NormedAddCommGroup EN'] [NormedSpace ℝ EN']
+    [TopologicalSpace HN'] {J' : ModelWithCorners ℝ EN' HN'} [TopologicalSpace N']
+    [ChartedSpace HN' N'] [IsManifold J' ∞ N']
+    {σ' : SmoothForm (J'.prod I) (N' × M) ℝ 2} {β' : SmoothForm (J'.prod I) (N' × M) ℝ 1}
+    {ρ' : N' × M → ℝ} {t : N} {t' : N'}
+    (hσ : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ =
+      SmoothForm.mpullback (Prod.mk t') (contMDiff_const.prodMk contMDiff_id) σ')
+    (hβ : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
+      SmoothForm.mpullback (Prod.mk t') (contMDiff_const.prodMk contMDiff_id) β')
+    (hρ : ∀ x, ρ (t, x) = ρ' (t', x)) :
+    moserField σ β ρ t = moserField σ' β' ρ' t' := by
+  funext x
+  rw [moserField_def, moserField_def, hσ, hβ, hρ]
+
 /-- The Moser field vanishes where the slice of the one-form `β` does. -/
 theorem moserField_eq_zero_of_apply_eq_zero {t : N} {x : M}
     (hx : (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val x = 0) :
     moserField σ β ρ t x = 0 := by
   have h : SmoothForm.degreeOneEquiv
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β) x = 0 :=
-    (ContinuousLinearMap.coe_injective.eq_iff' ContinuousLinearMap.toLinearMap_zero).1
-      (SmoothForm.degreeOneEquiv_coe_eq_zero_iff.2 hx)
+    SmoothForm.degreeOneEquiv_apply_eq_zero_iff.2 hx
   rw [moserField_def, h, neg_zero, map_zero, smul_zero]
 
 /-- The Moser field vanishes outside the support of the cutoff `ρ`. -/
@@ -199,9 +229,7 @@ theorem contMDiffAt_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
     refine ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd).contMDiffAt
       |>.congr_of_eventuallyEq ?_
     filter_upwards [notMem_tsupport_iff_eventuallyEq.1 hp₀] with p hp
-    rw [Function.comp_apply, moserField_def, hp, Pi.zero_apply, zero_smul]
-    -- The zero section at `p.2` is the pair `⟨p.2, 0⟩` by definition.
-    rfl
+    rw [Function.comp_apply, moserField_def, hp, Pi.zero_apply, zero_smul, zeroSection_def]
 
 /-- The cut-off Moser field `(t, x) ↦ X_t(x)` is jointly smooth on `N × M` when `ρ` is smooth and
 the flat map of the slice `σ_t` at `x` is invertible at every point `(t, x)` of the support of
@@ -280,3 +308,106 @@ theorem moserField_rate_eq_zero {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ ×
     ← SmoothForm.coe_mpullback _ hs, hL, add_neg_cancel]
 
 end SymplecticGeometry
+
+namespace TauCeti.SmoothTwoForm
+
+open SymplecticGeometry
+
+variable {E H N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace N] [ChartedSpace H N] [IsManifold I ∞ N] [T2Space N]
+
+/-- **Moser's argument along a reparametrized segment, at one point.** Let `ω₀` be a closed
+two-form and `α` a two-form on `N` with `α - ω₀ = dγ`, and let `c : ℝ → ℝ` be smooth with
+`c 0 = 0` and `c 1 = 1`. Let `X` be the Moser field of the family `ω₀ + c(s) (α - ω₀)` with the
+primitives `c'(s) γ`, cut off by `ρ`, and suppose it is jointly `C²` with complete suspension. If,
+for every `s ∈ [0, 1]`, the point reached at time `s` by the trajectory of `x` from time `0` has a
+neighbourhood on which `ρ (s, ·) = 1` and the flat map of `ω₀ + c(s) (α - ω₀)` is invertible,
+then the time-one map pulls `α` back to `ω₀` at `x`. -/
+theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff
+    {ω₀ α : SmoothTwoForm I N} (hω₀ : ω₀.IsClosed) {γ : SmoothForm I N ℝ 1}
+    (hγ : α - ω₀ = mextDerivₗ I 1 γ) {c : ℝ → ℝ} (hc : ContDiff ℝ ∞ c)
+    (hc0 : c 0 = 0) (hc1 : c 1 = 1) {ρ : ℝ × N → ℝ}
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × N ↦
+      (⟨p.2, moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ p.1 p.2⟩ :
+          TangentBundle I N)))
+    (hcX : IsCompleteVectorField (timeDependentSuspensionField
+      (moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ)))
+    {x : N} (hx : ∀ s ∈ Icc (0 : ℝ) 1, ∀ᶠ z in 𝓝 (timeDependentFlowOf
+      (moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ) 0 s x),
+      ρ (s, z) = 1 ∧ (SmoothTwoForm.flat (ω₀ + c s • (α - ω₀)) z).IsInvertible) :
+    TauCeti.mpullback I I (timeDependentFlowOf
+      (moserField (SmoothForm.lineMapFamily ω₀ α hc)
+        (SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2) ρ) 0 1) α.val x =
+      ω₀.val x := by
+  set Λ := SmoothForm.lineMapFamily ω₀ α hc
+  set Γ := SmoothForm.lineMapFamily 0 γ (contDiff_infty_iff_deriv.mp hc).2
+  -- Moser's equation holds along the trajectory of `x` up to time `1`.
+  have hrate (s : ℝ) (hs : s ∈ uIcc (0 : ℝ) 1) :
+      (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s)
+          (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) Λ.val) +
+        mlieDerivForm (moserField Λ Γ ρ s)
+          (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) Λ.val))
+        (timeDependentFlowOf (moserField Λ Γ ρ) 0 s x) = 0 := by
+    have hcl : (SmoothForm.mpullback (Prod.mk s) (contMDiff_const.prodMk contMDiff_id)
+        Λ).IsClosed := by
+      rw [SmoothForm.mpullback_prodMk_lineMapFamily, hγ]
+      exact hω₀.add ((SmoothForm.isClosed_mextDerivₗ _).smul _)
+    refine moserField_rate_eq_zero (congrFun ((SmoothForm.isClosed_def _).1 hcl) _)
+      (by simpa only [Λ, SmoothForm.mpullback_prodMk_lineMapFamily] using
+        hx s (uIcc_of_le (zero_le_one (α := ℝ)) ▸ hs)) ?_
+    rw [SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily,
+      SmoothForm.mpullback_prodMk_lineMapFamily, sub_zero, zero_add, hγ, ← map_smul,
+      mextDerivₗ_apply]
+  have h := mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc
+    hX hcX (fun _ _ ↦ (Λ.contMDiff.of_le (by simp)).contMDiffAt)
+    (s := 0) (t := 1) (x := x) hrate
+  have h1 : SmoothForm.mpullback (Prod.mk 1) (contMDiff_const.prodMk contMDiff_id) Λ = α := by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, hc1, one_smul, add_sub_cancel]
+  have h0 : SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) Λ = ω₀ := by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, hc0, zero_smul, add_zero]
+  rw [← h1, SmoothForm.coe_mpullback, ← h0, SmoothForm.coe_mpullback]
+  exact h
+
+/-- **Moser's argument at one point along a segment.** Let `ω₀` be a closed two-form and `α` a
+two-form on `N` with `α - ω₀ = dγ`, and let the cut-off Moser field of the segment
+`s ↦ ω₀ + s (α - ω₀)`, with the primitive `γ` constant in `s` and a cutoff `ρ` on `ℝ × N`, be
+jointly `C²` with complete suspension. If, for every `s ∈ [0, 1]`, the point reached at time `s`
+by the trajectory of `x` from time `0` has a neighbourhood on which `ρ (s, ·) = 1` and the flat
+map of `ω₀ + s (α - ω₀)` is invertible, then the time-one map pulls `α` back to `ω₀` at `x`. -/
+theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
+    {ω₀ α : SmoothTwoForm I N} (hω₀ : ω₀.IsClosed) {γ : SmoothForm I N ℝ 1}
+    (hγ : α - ω₀ = mextDerivₗ I 1 γ) {ρ : ℝ × N → ℝ}
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × N ↦
+      (⟨p.2, moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
+        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ p.1 p.2⟩ : TangentBundle I N)))
+    (hc : IsCompleteVectorField (timeDependentSuspensionField
+      (moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
+        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ)))
+    {x : N} (hx : ∀ s ∈ Icc (0 : ℝ) 1, ∀ᶠ z in 𝓝 (timeDependentFlowOf
+      (moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
+        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ) 0 s x),
+      ρ (s, z) = 1 ∧ (SmoothTwoForm.flat (ω₀ + s • (α - ω₀)) z).IsInvertible) :
+    TauCeti.mpullback I I (timeDependentFlowOf
+      (moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
+        (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ) 0 1) α.val x = ω₀.val x := by
+  -- The primitive `γ`, constant in `s`, is the family `0 + id'(s) (γ - 0)`.
+  have hc' : ContDiff ℝ ∞ (deriv (id : ℝ → ℝ)) :=
+    (contDiff_infty_iff_deriv.mp contDiff_id).2
+  have hX' : moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
+      (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ =
+      moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
+        (SmoothForm.lineMapFamily 0 γ hc') ρ := by
+    funext s
+    exact moserField_congr rfl (by
+      rw [SmoothForm.mpullback_prodMk_mpullback_snd,
+        SmoothForm.mpullback_prodMk_lineMapFamily 0 γ hc', deriv_id, one_smul, sub_zero,
+        zero_add]) fun _ ↦ rfl
+  rw [hX'] at hX hc hx ⊢
+  exact mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff hω₀ hγ
+    contDiff_id rfl rfl hX hc hx
+
+end TauCeti.SmoothTwoForm

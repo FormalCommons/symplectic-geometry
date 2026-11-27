@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.LinearAlgebra.BilinearForm.SkewAdjoint
 public import TauCeti.LinearAlgebra.Trace.Complex
-public import SymplecticGeometry.LinearAlgebra.BilinearForm.SelfAdjoint
+import SymplecticGeometry.LinearAlgebra.BilinearForm.SelfAdjoint
 
 /-!
 # Tangent spaces to the space of compatible complex structures, as algebra

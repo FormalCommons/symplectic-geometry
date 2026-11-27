@@ -6,11 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Geometry.Manifold.DeRham.PoincarePairing.Nondegenerate
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Wedge
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
+import SymplecticGeometry.Geometry.Manifold.DeRham.PoincarePairing.Nondegenerate
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
@@ -40,7 +41,8 @@ that `ι_X σ` is closed, and let `M` have dimension `2 n + 2`.
 * For every closed one-form `γ`, the integral of `γ ∧ ι_X σ ∧ σ ^ n` vanishes when the action has
   a fixed point `p`. The integral depends only on the class of `γ`, and averaging `γ` over the
   compact connected group gives a cohomologous invariant form `γ'`
-  (`TauCeti.SmoothForm.measureAverage_sub_mem_exactForms_one`). By Cartan's formula the function
+  (`TauCeti.SmoothForm.exists_invariant_sub_mem_exactForms_one`, stated for a boundaryless
+  manifold whose model may have boundary). By Cartan's formula the function
   `γ'(X)` is constant (`TauCeti.apply_fundamentalVectorField_eq_of_preconnectedSpace`), and it
   vanishes at `p`, where `X` does. A top-degree computation
   (`TauCeti.SmoothForm.wedge_interior_wedge_wedgePow_apply_eq_zero`) then makes the integrand
@@ -96,8 +98,8 @@ connected boundaryless manifold `M` of dimension `2 n + 2`, preserving a closed 
 let the action have a fixed point. Then for every closed one-form `γ` and every `ξ` in the Lie
 algebra of `G`, with fundamental vector field `X_ξ`, the integral of `γ ∧ ι_{X_ξ} σ ∧ σ ^ n` over
 `M` vanishes, for any orientation of `M`. -/
-theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [I.Boundaryless] [T2Space M]
-    [CompactSpace M] [ConnectedSpace M] {n : ℕ}
+theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [BoundarylessManifold I M]
+    [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
     (o : Manifold.Orientation I M (Fin (1 + (1 + 2 * n))))
     {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
     (hinv : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
@@ -113,17 +115,11 @@ theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [I.Boundaryless] [
     omega
   borelize G
   have := topologicalGroup_of_lieGroup J ∞ (G := G)
-  -- The average `γ'` of `γ` over `G` is closed, invariant and cohomologous to `γ`.
-  set γ' := SmoothForm.measureAverage J (haarProb G) γ
-  have hγc : γ.IsClosed := (SmoothForm.isClosed_def γ).2 ((mem_closedForms I γ).1 hγ)
-  have hγ'c : mextDeriv γ'.val = 0 :=
-    (SmoothForm.isClosed_def _).1 (SmoothForm.IsClosed.measureAverage J (haarProb G) hγc)
-  have hγ'inv (g : G) : SmoothForm.mpullback (fun x : M ↦ g • x)
-      (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) γ' = γ' :=
-    Subtype.ext <| by
-      rw [SmoothForm.coe_mpullback, SmoothForm.mpullback_smul_measureAverage J (haarProb G) γ g]
-  have hγγ' : γ - γ' ∈ exactForms I M 1 := by
-    simpa using neg_mem (SmoothForm.measureAverage_sub_mem_exactForms_one J (haarProb G) hγ)
+  -- Averaging gives a closed invariant `γ'` cohomologous to `γ`.
+  obtain ⟨γ', hγ'cl, hγ'inv, hγ'γ⟩ :=
+    SmoothForm.exists_invariant_sub_mem_exactForms_one J (haarProb G) hγ
+  have hγ'c : mextDeriv γ'.val = 0 := (mem_closedForms I γ').1 hγ'cl
+  have hγγ' : γ - γ' ∈ exactForms I M 1 := by simpa using neg_mem hγ'γ
   -- The form `ι_{X_ξ} σ ∧ σ ^ n` is closed, as `X_ξ` is a symplectic vector field.
   set X := (InfinitesimalAction.fundamental J G I M).toSectionLinearMap ξ
   have hη : SmoothForm.wedge (σ.interiorₗ X) (σ.wedgePow n) ∈ closedForms I M (1 + 2 * n) :=
@@ -153,8 +149,8 @@ theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [I.Boundaryless] [
 group `G` act on a compact connected boundaryless symplectic manifold `(M, σ)` of dimension `2 n`,
 `n ≥ 1`, preserving `σ`, and suppose that the wedge product with `[σ ^ (n - 1)]` is injective on
 `H¹(M)`. If the action has a fixed point, then it has a moment map. -/
-theorem exists_isMomentMap_of_mem_fixedPoints [I.Boundaryless] [T2Space M] [CompactSpace M]
-    [ConnectedSpace M] {n : ℕ} (hn : 1 ≤ n) (hE : Module.finrank ℝ E = 2 * n)
+theorem exists_isMomentMap_of_mem_fixedPoints [BoundarylessManifold I M] [T2Space M]
+    [CompactSpace M] [ConnectedSpace M] {n : ℕ} (hn : 1 ≤ n) (hE : Module.finrank ℝ E = 2 * n)
     {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
     (hinv : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
       (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) σ = σ)
@@ -212,8 +208,9 @@ action is Hamiltonian, `ι_{X_ξ} σ = -d⟨μ, ξ⟩` for a map `μ : M → �
 point.
 
 Milestone: *Frankel–Ono Hamiltonianity criterion*. -/
-theorem exists_isMomentMap_iff_exists_mem_fixedPoints [I.Boundaryless] [T2Space M]
-    [CompactSpace M] [ConnectedSpace M] {n : ℕ} (hn : 1 ≤ n) (hE : Module.finrank ℝ E = 2 * n)
+theorem exists_isMomentMap_iff_exists_mem_fixedPoints [BoundarylessManifold I M]
+    [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ} (hn : 1 ≤ n)
+    (hE : Module.finrank ℝ E = 2 * n)
     {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
     [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
     (hinv : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)

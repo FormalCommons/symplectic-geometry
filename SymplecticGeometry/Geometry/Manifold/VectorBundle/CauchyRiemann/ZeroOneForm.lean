@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The `(0,1)`-projection as a smooth section of a hom bundle
@@ -178,11 +179,8 @@ theorem contMDiff_totalSpace_zeroOnePartOfEnd :
   have hp : ContinuousAt (fun p : TotalSpace (E →L[ℝ] E)
       (fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x) ↦ p.proj) p₀ :=
     ((Bundle.contMDiff_proj (IB := I) (n := ∞) _) p₀).continuousAt
-  filter_upwards [hp.preimage_mem_nhds
-      ((trivializationAt E (TangentSpace I) p₀.proj).open_baseSet.mem_nhds
-        (mem_baseSet_trivializationAt E (TangentSpace I) p₀.proj)),
-    hp.preimage_mem_nhds ((trivializationAt F V p₀.proj).open_baseSet.mem_nhds
-      (mem_baseSet_trivializationAt F V p₀.proj))] with p hT hV
+  filter_upwards [hp.eventually_mem_baseSet_trivializationAt E (TangentSpace I),
+    hp.eventually_mem_baseSet_trivializationAt F V] with p hT hV
   exact inCoordinates_zeroOnePartOfEnd hT hV p.snd
 
 /-! ### The `(0,1)`-projection as a smooth section -/

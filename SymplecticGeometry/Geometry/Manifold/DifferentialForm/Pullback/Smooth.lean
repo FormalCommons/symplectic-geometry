@@ -8,11 +8,11 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
-import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
-# Pullback of forms: its value at a point, negation and constant maps
+# Pullback of forms: values, `d`, cut-offs, smoothness, negation, exactness, constant maps, slices
 
 At a point `x`, the pullback of a form `φ` along `f` is the value of `φ` at `f x` composed with
 the differential of `f` at `x` (`TauCeti.mpullback_apply_eq_compContinuousLinearMap`). The
@@ -33,9 +33,21 @@ If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` a
 (`TauCeti.mpullback_fun_smul_eq_self`): a form cut off by an invariant function is invariant as
 soon as it is so on the support of the cut-off.
 
+Let `g : M → M'` be `C^n` on an open set `u`, and `f : M → ℝ` a `C^m` function with
+`tsupport f ⊆ u`, where `m + 1 ≤ n`. Then for a `C^m` form `φ` on `M'`, the form `f • g^* φ` on
+`M` is `C^m`, although `g` need not be smooth off `u`
+(`TauCeti.isSmoothForm_fun_smul_mpullback`, a step of the proof of Tau Ceti's
+`TauCeti.isSmoothForm_sum_finsupport_smul_mpullback` stated on its own, at any order).
+
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
 preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
+
+By Tau Ceti's naturality `TauCeti.mpullback_mextDeriv_ofFunction_apply`, and
+`TauCeti.mextDeriv_ofFunction_sub_apply` of `DifferentialForm/ExtDeriv.lean`, if `α = β + dg` at
+`x` and at `f x` for a self-map `f` differentiable at `x`, and `g` is differentiable at both
+points, then `f^* α - α` and `f^* β - β` differ at `x` by the exact form
+`d(g ∘ f - g)` (`TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`).
 
 Pulling a smooth form of positive degree back along a constant map gives the zero form
 (`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
@@ -63,9 +75,16 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   back along a map from `s` into `t` to a form exact near `s`.
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
+* `TauCeti.isSmoothForm_fun_smul_mpullback`: a `C^m` function times the pullback of a `C^m` form
+  along a map that is `C^(m+1)` on an open set containing the function's support is a `C^m` form.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
+* `TauCeti.SmoothForm.mpullback_eq_iff`: an equation `f^* φ = ψ` of smooth forms is the same
+  equation of their underlying rough forms; `TauCeti.SmoothForm.mpullback_eq_mpullback_iff` does
+  the same for an equation `f^* φ = g^* ψ` of two pullbacks.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
+* `TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`: if `α = β + dg` at `x` and at `f x`,
+  then `(f^* α - α) x = (f^* β - β) x + d(g ∘ f - g) x`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
 * `TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`: the slice `x ↦ (x, p)` of the
@@ -134,6 +153,18 @@ theorem mpullback_fun_smul_eq_self {f : M → M} {ρ : M → ℝ} {φ : RoughFor
   · simp [hx]
   · rw [hφ x hx]
 
+/-- Let `f` be a `C^m` function on `M` whose topological support lies in an open set `u`, and
+let `g : M → M'` be `C^n` at every point of `u`, with `m + 1 ≤ n`. Then for every `C^m` form `φ`
+on `M'`, the form `f • g^* φ`, which vanishes off the support of `f`, is a `C^m` form on `M`. -/
+theorem isSmoothForm_fun_smul_mpullback [IsManifold I 1 M] [IsManifold I' 1 M']
+    {m n : WithTop ℕ∞} {f : M → ℝ} (hf : ContMDiff I 𝓘(ℝ) m f) {u : Set M} (hu : IsOpen u)
+    (hfu : tsupport f ⊆ u) {g : M → M'} (hg : ∀ x ∈ u, ContMDiffAt I I' n g x) (hmn : m + 1 ≤ n)
+    {φ : RoughForm I' M' F k} (hφ : IsSmoothForm I' m φ) :
+    IsSmoothForm I m (fun x ↦ f x • mpullback (F := F) I I' g φ x) := by
+  rw [isSmoothForm_def]
+  exact ContMDiffOn.smul_section_of_tsupport hf.contMDiffOn hu hfu fun x hx ↦
+    ((hφ.contMDiff (g x)).mpullback_form (hg x hx) hmn).contMDiffWithinAt
+
 /-- Pullback commutes with negation. -/
 @[simp]
 theorem mpullback_neg (f : M → M') (φ : RoughForm I' M' F k) :
@@ -141,6 +172,21 @@ theorem mpullback_neg (f : M → M') (φ : RoughForm I' M' F k) :
   funext x
   ext v
   simp [mpullback_apply]
+
+/-- Let `f : M → M` be differentiable at `x`, and `g : M → F` at `x` and at `f x`, and let the
+one-forms `α` and `β` satisfy `α = β + dg` at `x` and at `f x`. Then at `x`,
+`f^* α - α = (f^* β - β) + d(g ∘ f - g)`. -/
+theorem mpullback_apply_sub_eq_of_eq_add_mextDeriv {f : M → M} {g : M → F} {x : M}
+    (hf : MDifferentiableAt I I f x) (hgx : MDifferentiableAt I 𝓘(ℝ, F) g x)
+    (hgfx : MDifferentiableAt I 𝓘(ℝ, F) g (f x)) {α β : RoughForm I M F 1}
+    (hx : α x = β x + mextDeriv (RoughForm.ofFunction I g) x)
+    (hfx : α (f x) = β (f x) + mextDeriv (RoughForm.ofFunction I g) (f x)) :
+    mpullback I I f α x - α x =
+      mpullback I I f β x - β x + mextDeriv (RoughForm.ofFunction I (g ∘ f - g)) x := by
+  rw [mpullback_apply_congr (η := β + mextDeriv (RoughForm.ofFunction I g)) hfx, hx,
+    mpullback_add, Pi.add_apply, mpullback_mextDeriv_ofFunction_apply hf hgfx,
+    mextDeriv_ofFunction_sub_apply (hgfx.comp x hf) hgx]
+  abel
 
 /-- Let `f : M × M₂ → M'` be differentiable at `(s, z)`. The pullback of `φ` along the slice
 `z ↦ f (s, z)`, at `z` on vectors `m i`, is the pullback of `φ` along `f`, at `(s, z)` on the
@@ -174,6 +220,24 @@ namespace SmoothForm
 
 variable [IsManifold I 1 M] [IsManifold I' 1 M']
 
+/-- The smooth pullback of `φ` along `f` is the smooth form `ψ` exactly when the rough pullback
+of the rough form underlying `φ` is the rough form underlying `ψ`. -/
+theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : SmoothForm I' M' F k}
+    {ψ : SmoothForm I M F k} :
+    mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
+  rw [← coe_mpullback _ hf, Subtype.ext_iff]
+
+/-- The smooth pullbacks of `φ` along `f` and of `ψ` along `g` agree exactly when the rough
+pullbacks of the underlying rough forms agree. -/
+theorem mpullback_eq_mpullback_iff {E'' H'' M'' : Type*} [NormedAddCommGroup E'']
+    [NormedSpace ℝ E''] [TopologicalSpace H''] [TopologicalSpace M''] [ChartedSpace H'' M'']
+    {I'' : ModelWithCorners ℝ E'' H''} [IsManifold I'' 1 M''] {f : M → M'}
+    (hf : ContMDiff I I' ∞ f) {g : M → M''} (hg : ContMDiff I I'' ∞ g)
+    {φ : SmoothForm I' M' F k} {ψ : SmoothForm I'' M'' F k} :
+    mpullback f hf φ = mpullback g hg ψ ↔
+      TauCeti.mpullback (F := F) I I' f φ.val = TauCeti.mpullback I I'' g ψ.val := by
+  rw [mpullback_eq_iff, coe_mpullback]
+
 /-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
 @[simp]
 theorem diffeomorphStabilizer_neg (σ : SmoothForm I M F k) :
@@ -185,8 +249,7 @@ theorem diffeomorphStabilizer_neg (σ : SmoothForm I M F k) :
 @[simp]
 theorem mpullback_const (c : M') (hc : ContMDiff I I' ∞ fun _ : M ↦ c)
     (φ : SmoothForm I' M' F (k + 1)) : mpullback (fun _ : M ↦ c) hc φ = 0 := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, TauCeti.mpullback_const k.succ_ne_zero, ZeroMemClass.coe_zero]
+  rw [mpullback_eq_iff, TauCeti.mpullback_const k.succ_ne_zero, ZeroMemClass.coe_zero]
 
 /-- The slice `x ↦ (x, p)` of the pullback of a smooth `(k + 1)`-form `β` on `M'` along the
 projection `M × M' → M'` is zero, since the projection is constant on the slice. -/
@@ -211,10 +274,9 @@ theorem contDiff_apply_mfderiv (η : SmoothForm I' M' F k) {γ : E → M'}
 theorem contDiff_apply_one_mfderiv (η : SmoothForm I' M' F 1) {γ : E → M'}
     (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (w : E) :
     ContDiff ℝ ∞ fun y ↦ η.val (γ y) ![mfderiv 𝓘(ℝ, E) I' γ y w] := by
-  convert contDiff_apply_mfderiv η hγ ![w] using 3 with y
-  ext i
-  fin_cases i
-  rfl
+  convert contDiff_apply_mfderiv η hγ ![w] using 2 with y
+  -- `w` is a vector of `E` rather than of a tangent space, so the lemmas are applied by `exact`.
+  exact (mpullback_apply_one γ hγ η y w).symm.trans (mpullback_apply γ hγ η y ![w])
 
 /-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth one-form `η` at
 `γ y` on `dγ_y w`, for a fixed vector `w`, gives a differentiable function of `y`. -/

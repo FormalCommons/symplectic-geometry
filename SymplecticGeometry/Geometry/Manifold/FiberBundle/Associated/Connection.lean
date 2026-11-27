@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.Pullba
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Hom
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.Prod
 import SymplecticGeometry.Geometry.Manifold.Distribution.Pushforward
 
@@ -318,9 +319,7 @@ theorem mfderiv_chartedMk_horizontalLift [FiniteDimensional ℝ EB] [IB.Boundary
             (chartedMk G F P (x, v))) w) := by
   rw [(hA.isEhresmannConnectionHom_chartedMk v).mfderiv_horizontalLift
     hA.isEhresmannConnection_horizontal hA.isEhresmannConnection_associatedHorizontal x w,
-    mfderiv_id]
-  -- `tangentSpaceCast` is the identity map by definition; Mathlib has no lemma for its value.
-  rfl
+    mfderiv_id, ContinuousLinearMap.id_apply, tangentSpaceCast_apply]
 
 end IsConnectionForm
 

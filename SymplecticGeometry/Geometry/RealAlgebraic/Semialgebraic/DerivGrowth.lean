@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Differentiable
-public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Growth
+public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Function
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Differentiable
+import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Growth
 import Mathlib.Analysis.Asymptotics.Lemmas
 import SymplecticGeometry.Analysis.SpecialFunctions.Log.Unbounded
 

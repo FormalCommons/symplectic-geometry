@@ -7,9 +7,9 @@ module
 
 public import SymplecticGeometry.Analysis.Distribution.Coordinates
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.LocalLaplacian
 public import TauCeti.Analysis.Calculus.CoordinateDeriv
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
+import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.LocalLaplacian
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Analysis.Calculus.LineDeriv.Transpose
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Calculus.FDeriv.Const
 import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
 /-!
@@ -210,14 +211,11 @@ private theorem localize_hodgeLaplacian_extendByZeroAlong (o : Manifold.Orientat
   -- Off the support of `a`, the operator vanishes.
   have hP : Function.support P ⊆ tsupport a := fun y hPy ↦ by
     by_contra hy
-    have h0 : a =ᶠ[𝓝 y] 0 := notMem_tsupport_iff_eventuallyEq.1 hy
-    have h1 : ∀ᶠ z in 𝓝 y, fderiv ℝ a z = 0 := h0.eventually_nhds.mono fun z (hz : a =ᶠ[𝓝 z] 0) ↦ by
-      rw [hz.fderiv_eq, fderiv_zero, Pi.zero_apply]
-    have h2 (i : Fin m) : fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y = 0 := by
-      have h3 : (fun z ↦ fderiv ℝ a z (b i)) =ᶠ[𝓝 y] fun _ ↦ 0 :=
-        Filter.Eventually.mono h1 fun z hz ↦ by simp [hz]
-      rw [Filter.EventuallyEq.fderiv_eq h3, fderiv_const_apply]
-    exact hPy (by simp [P, h2, h1.self_of_nhds, h0.self_of_nhds])
+    have hU : IsOpen (tsupport a)ᶜ := (isClosed_tsupport a).isOpen_compl
+    have h0 : Set.EqOn a (fun _ ↦ 0) (tsupport a)ᶜ := fun _ hz ↦
+      image_eq_zero_of_notMem_tsupport hz
+    exact hPy (by simp [P, TauCeti.fderiv_fderiv_apply_eq_zero_of_eqOn_const ℝ hU h0 hy,
+      TauCeti.fderiv_eq_zero_of_eqOn_const ℝ hU h0 hy, image_eq_zero_of_notMem_tsupport hy])
   -- On the target, the reading of `φ` agrees with `a` near every point.
   have hφa (y : E) (hy : y ∈ ψ.target) :
       (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] ℝ) =ᶠ[𝓝 y] a :=
@@ -475,7 +473,7 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form I M k}
   have hρθ (x : M) (hx : x ∈ tsupport ρ) : θ x = 1 := hθ1 x (hρU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`.
   set V := ψ.target ∩ ψ.symm ⁻¹' U₁
-  have hV : IsOpen V := ψ.contMDiffOn_invFun.continuousOn.isOpen_inter_preimage ψ.open_target hU₁
+  have hV : IsOpen V := ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm hU₁
   obtain ⟨g, hg, hug⟩ := hu.exists_contDiffOn_ae_eq_localize ψ θ hθ hV Set.inter_subset_left
     fun y hy ↦ hθ1 _ hy.2
   set r : E → ℝ := ψ.target.indicator fun y ↦ ρ (ψ.symm y)
@@ -483,7 +481,7 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form I M k}
   have hK : IsCompact (ψ '' tsupport ρ) := ψ.isCompact_image_of_subset_source hKρ hρ
   have hKV : ψ '' tsupport ρ ⊆ V := by
     rintro _ ⟨x, hx, rfl⟩
-    exact ⟨ψ.map_source (hρ hx), by simpa [ψ.left_inv (hρ hx)] using hρU₁ hx⟩
+    exact ⟨ψ.map_source (hρ hx), by simpa [ψ.toPartialEquiv.left_inv (hρ hx)] using hρU₁ hx⟩
   have hr0 (y : E) (hy : y ∉ V) : r y = 0 :=
     Function.notMem_support.1 fun h ↦ hy (hKV (ψ.support_indicator_comp_symm_subset ρ h))
   set F := fun y ↦ r y • g y
@@ -766,13 +764,13 @@ theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form I M k} {C : ℝ}
   have hχθ (x : M) (hx : x ∈ tsupport χ) : θ x = 1 := hθ1 x (hχU₁ hx)
   -- The open set of the chart where `θ ∘ ψ.symm = 1`, and the compact image of `tsupport χ`.
   set V : TopologicalSpace.Opens E := ⟨ψ.target ∩ ψ.symm ⁻¹' U₁,
-    ψ.contMDiffOn_invFun.continuousOn.isOpen_inter_preimage ψ.open_target hU₁⟩
+    ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm hU₁⟩
   set K := ψ '' tsupport χ
   have hK : IsCompact K :=
     ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ
   have hKV : K ⊆ V := by
     rintro _ ⟨x, hx, rfl⟩
-    exact ⟨ψ.map_source (hχ hx), by simpa [ψ.left_inv (hχ hx)] using hχU₁ hx⟩
+    exact ⟨ψ.map_source (hχ hx), by simpa [ψ.toPartialEquiv.left_inv (hχ hx)] using hχU₁ hx⟩
   -- The cutoff `χ` read in the chart, extended by `0`, is smooth and vanishes off `K`.
   set r : E → ℝ := ψ.target.indicator fun y ↦ χ (ψ.symm y)
   have hrK (y : E) (hy : y ∉ K) : r y = 0 :=

@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Category.TopCat.Basic
-public import SymplecticGeometry.Topology.ContinuousMap.Basic
+public import TauCeti.Topology.ContinuousMap.CodRestrict
+import SymplecticGeometry.Topology.ContinuousMap.Basic
 
 /-!
 # Corestriction of morphisms of `TopCat`

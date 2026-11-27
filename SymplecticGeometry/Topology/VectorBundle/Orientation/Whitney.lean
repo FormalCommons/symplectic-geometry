@@ -6,7 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Whitney
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.CrossOrientation
+public import TauCeti.LinearAlgebra.Dimension.Prod
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.CrossOrientation
 
 /-!
 # Integral Thom and Euler classes of a direct sum of oriented bundles

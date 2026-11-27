@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.CoadjointOrbit.Level
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.Naturality
-public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
+import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 
 /-!
 # Reduction at a coadjoint orbit

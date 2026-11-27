@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Manifold.Rescale
+import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
@@ -57,6 +58,13 @@ tangent space of `f₁` being symplectic, the difference vanishes.
   the symplectic neighbourhood theorem.
 * `TauCeti.SmoothEmbedding.symplecticNormalForm_congr`: the normal symplectic form depends only
   on the ambient form.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_smul`: rescaling the ambient form by a nonzero
+  constant `c` rescales the normal symplectic form by `c`, the symplectic representatives being
+  unchanged (`TauCeti.SmoothEmbedding.symplecticNormalRepresentative_smul`).
+* `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`: the normal symplectic form,
+  evaluated on two maps into the normal bundle that are smooth at a point, is smooth there. As in
+  the proof of Tau Ceti's `TauCeti.SmoothEmbedding.contMDiff_symplecticNormalFlat`, it is the
+  ambient form evaluated on the symplectic representatives.
 
 ## References
 
@@ -84,6 +92,71 @@ theorem symplecticNormalForm_congr {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup
     f.symplecticNormalForm h₁ q hn = f.symplecticNormalForm h₂ q hn := by
   subst h
   rfl
+
+section Rescale
+
+variable {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ]
+  [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
+  [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN] [TopologicalSpace HN]
+  {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold K ∞ N]
+  {σ : SmoothTwoForm K N} {hσ : σ.IsNondegenerate} {n : ℕ∞ω} {f : SmoothEmbedding J K n Q N}
+
+/-- Rescaling the ambient form by a nonzero constant does not change the symplectic
+representatives of the normal classes, since the symplectic complements stay the same. -/
+theorem symplecticNormalRepresentative_smul (h : hσ.HasSymplecticTangentImages J f) {c : ℝ}
+    (hc : c ≠ 0) (h' : (hσ.smul c hc).HasSymplecticTangentImages J f) (q : Q) (hn : n ≠ 0) :
+    f.symplecticNormalRepresentative h' q hn = f.symplecticNormalRepresentative h q hn := by
+  ext v
+  refine (f.symplecticNormalRepresentative_eq_iff h' q hn v _).2 ⟨?_, ?_⟩
+  · rw [hσ.symplecticFormAt_smul c hc, SymplecticForm.orthogonal_rescale c hc]
+    exact f.symplecticNormalRepresentative_mem_orthogonal h q hn v
+  · exact f.normalClass_symplecticNormalRepresentative h q hn v
+
+/-- Rescaling the ambient form by a nonzero constant `c` rescales the normal symplectic form of
+an embedding by `c`. -/
+theorem symplecticNormalForm_smul (h : hσ.HasSymplecticTangentImages J f) {c : ℝ} (hc : c ≠ 0)
+    (h' : (hσ.smul c hc).HasSymplecticTangentImages J f) (q : Q) (hn : n ≠ 0) :
+    f.symplecticNormalForm h' q hn = (f.symplecticNormalForm h q hn).rescale c hc := by
+  apply SymplecticForm.toBilinForm_injective
+  ext v w
+  simp only [symplecticNormalForm_apply, symplecticNormalRepresentative_smul h hc h',
+    SmoothForm.eval₂_smul, SymplecticForm.rescale_apply, smul_eq_mul]
+
+end Rescale
+
+section
+
+variable {EQ HQ Q EN HN N EX HX X P : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ]
+  [FiniteDimensional ℝ EQ] [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ}
+  [TopologicalSpace Q] [ChartedSpace HQ Q] [IsManifold J ∞ Q]
+  [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+  [IsManifold K ∞ N] [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX]
+  {L : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+  {σ : SmoothTwoForm K N} {hσ : σ.IsNondegenerate}
+
+/-- The normal symplectic form of a symplectic submanifold, evaluated on two maps into its normal
+bundle over the same base map that are smooth at a point, is smooth at that point. -/
+theorem contMDiffAt_symplecticNormalForm {f : SmoothEmbedding J K ∞ Q N}
+    (h : hσ.HasSymplecticTangentImages J f) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hP : finrank ℝ P = finrank ℝ EN - finrank ℝ EQ) {u : X → Q}
+    {v w : ∀ x, f.isImmersion.NormalSpace (u x) hn} {x₀ : X}
+    (hv : letI := f.normalSpaceFiberBundle hn hP
+      ContMDiffAt L (J.prod 𝓘(ℝ, P)) ∞
+        (fun x ↦ TotalSpace.mk' P (E := fun q ↦ f.isImmersion.NormalSpace q hn) (u x) (v x)) x₀)
+    (hw : letI := f.normalSpaceFiberBundle hn hP
+      ContMDiffAt L (J.prod 𝓘(ℝ, P)) ∞
+        (fun x ↦ TotalSpace.mk' P (E := fun q ↦ f.isImmersion.NormalSpace q hn) (u x) (w x)) x₀) :
+    ContMDiffAt L 𝓘(ℝ) ∞ (fun x ↦ f.symplecticNormalForm h (u x) hn (v x) (w x)) x₀ := by
+  let := f.normalSpaceFiberBundle hn hP
+  have hrep := f.contMDiff_symplecticNormalRepresentative h hn (m := ∞) (by simp) (by simp) hP
+  have hpair := σ.contMDiffAt_eval₂ (b := fun x ↦ f (u x)) ((hrep _).comp x₀ hv)
+    ((hrep _).comp x₀ hw)
+  rw [Bundle.contMDiffAt_totalSpace_iff] at hpair
+  simpa [Trivial.fiberBundle_trivializationAt'] using hpair.2
+
+end
 
 end TauCeti.SmoothEmbedding
 
@@ -113,21 +186,22 @@ private theorem contMDiff_symplecticNormalRepresentative_comp_normalClassL
     {hσ₁ : σ₁.IsNondegenerate} (h₁ : hσ₁.HasSymplecticTangentImages J₁ f₁)
     (φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁) (hn : (∞ : ℕ∞ω) ≠ 0) (hP₀ : finrank ℝ P₀ = finrank ℝ E₀ - finrank ℝ EQ₀)
     (hP₁ : finrank ℝ P₁ = finrank ℝ E₁ - finrank ℝ EQ₁)
-    (Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ] f₁.NormalSpace (φ q) hn)
+    (Φ : ∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)
     (hΦ : letI := f₀.normalSpaceFiberBundle hn hP₀
       letI := f₁.normalSpaceFiberBundle hn hP₁
       ContMDiff (J₀.prod 𝓘(ℝ, P₀)) (J₁.prod 𝓘(ℝ, P₁)) ∞
-        (fun p : TotalSpace P₀ (fun q ↦ f₀.NormalSpace q hn) ↦
-          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.NormalSpace q hn)))) :
+        (fun p : TotalSpace P₀ (fun q ↦ f₀.isImmersion.NormalSpace q hn) ↦
+          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.isImmersion.NormalSpace q hn)))) :
     ContMDiff J₀ (J₀.prod 𝓘(ℝ, E₀ →L[ℝ] E₁)) ∞ (fun q ↦ TotalSpace.mk' (E₀ →L[ℝ] E₁)
       (E := fun q ↦ ((f₀ : Q₀ → M₀) *ᵖ (TangentSpace I₀)) q →L[ℝ]
         ((f₁.compDiffeomorphOfBoundaryless φ (by simp) : Q₀ → M₁) *ᵖ (TangentSpace I₁)) q) q
       ((f₁.symplecticNormalRepresentative h₁ (φ q) hn).comp
-        ((Φ q : _ →L[ℝ] _).comp (f₀.normalClassL q hn)))) := by
+        ((Φ q : _ →L[ℝ] _).comp (f₀.isImmersion.normalClassL q hn)))) := by
   let := f₀.normalSpaceFiberBundle hn hP₀
   let := f₁.normalSpaceFiberBundle hn hP₁
   have hG := f₀.contMDiff_symplecticNormalRepresentative_comp_normalClass f₁ h₁ (f := φ) hn
-    (fun q ↦ (Φ q : f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace (φ q) hn)) hP₀ hP₁ hΦ
+    (fun q ↦ (Φ q : f₀.isImmersion.NormalSpace q hn →L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)) hP₀
+        hP₁ hΦ
   refine (contMDiff_hom_bundle_iff (F₁ := E₀) (F₂ := E₁)
     (E₁ := (f₀ : Q₀ → M₀) *ᵖ (TangentSpace I₀))
     (E₂ := (f₁.compDiffeomorphOfBoundaryless φ (by simp) : Q₀ → M₁) *ᵖ (TangentSpace I₁)) _).2 ?_
@@ -136,7 +210,7 @@ private theorem contMDiff_symplecticNormalRepresentative_comp_normalClassL
   refine TotalSpace.ext (f₁.compDiffeomorphOfBoundaryless_apply φ (by simp) p.proj) (heq_of_eq ?_)
   -- `L` applied to a vector is the composite applied to it, by the definition of composition.
   exact congrArg (f₁.symplecticNormalRepresentative h₁ (φ p.proj) hn)
-    (congrArg (Φ p.proj) (f₀.normalClassL_apply p.proj hn p.snd))
+    (congrArg (Φ p.proj) (f₀.isImmersion.normalClassL_apply p.proj hn p.snd))
 
 omit [FiniteDimensional ℝ EQ₀] [FiniteDimensional ℝ EQ₁] [J₀.Boundaryless] [I₁.Boundaryless]
   [IsManifold J₀ ∞ Q₀] [IsManifold J₁ ∞ Q₁] in
@@ -154,7 +228,8 @@ private theorem mfderiv_symplecticNormalRepresentative_eq {hσ₀ : σ₀.IsNond
     {q : Q₀} (h : f₀ q ∈ U₀) (hψq : (ψ ⟨f₀ q, h⟩ : M₁) = f₁ (φ q))
     (hdψ : ∀ v, mfderiv I₀ I₁ ψ ⟨f₀ q, h⟩ (mfderiv J₀ I₀ f₀ q v) =
       mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q v))
-    (v : f₀.NormalSpace q hn) (w : f₁.NormalSpace (φ q) hn) (u : TangentSpace J₀ q)
+    (v : f₀.isImmersion.NormalSpace q hn) (w : f₁.isImmersion.NormalSpace (φ q) hn)
+        (u : TangentSpace J₀ q)
     (hu : mfderiv I₀ I₁ ψ ⟨f₀ q, h⟩ (f₀.symplecticNormalRepresentative h₀ q hn v) =
       f₁.symplecticNormalRepresentative h₁ (φ q) hn w +
         mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q u)) :
@@ -175,14 +250,15 @@ private theorem mfderiv_symplecticNormalRepresentative_eq {hσ₀ : σ₀.IsNond
     (f₁.eval₂_symplecticNormalRepresentative_mfderiv h₁ (φ q) hn _ _)).trans (sub_zero 0))
 
 variable [I₀.Boundaryless] [T2Space M₀] [T2Space M₁]
-  [SecondCountableTopology M₀] [SecondCountableTopology M₁]
+  [SecondCountableTopology M₀]
 
 /-- **The symplectic neighbourhood theorem.** Let `f₀ : Q₀ → M₀` and `f₁ : Q₁ → M₁` be smooth
-embeddings with symplectic tangent images into second countable Hausdorff manifolds without
-boundary with symplectic forms `σ₀` and `σ₁`. Let `φ : Q₀ → Q₁` be a diffeomorphism with
-`φ^* (f₁^* σ₁) = f₀^* σ₀`, and let `Φ q` be linear isomorphisms from the normal spaces of `f₀` at
-`q` to those of `f₁` at `φ q` which preserve the normal symplectic forms and form a smooth map of
-normal bundles, the normal bundles having model fibres `P₀` and `P₁` of the right dimensions.
+embeddings with symplectic tangent images into Hausdorff manifolds without boundary, `M₀`
+second countable, with symplectic forms `σ₀` and `σ₁`. Let `φ : Q₀ → Q₁` be a diffeomorphism
+with `φ^* (f₁^* σ₁) = f₀^* σ₀`, and let `Φ q` be linear isomorphisms from the normal spaces of
+`f₀` at `q` to those of `f₁` at `φ q` which preserve the normal symplectic forms and form a
+smooth map of normal bundles, the normal bundles having model fibres `P₀` and `P₁` of the right
+dimensions.
 Then there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁` pulling the
 restriction of `σ₁` back to that of `σ₀`, such that for every `q`, `f₀ q ∈ U₀`,
 `ψ (f₀ q) = f₁ (φ q)`, `dψ ∘ df₀ = df₁ ∘ dφ` at `q`, and `dψ` maps the symplectic
@@ -191,19 +267,19 @@ representative of each normal vector `v` of `f₀` at `q` to the symplectic repr
 submanifolds may be modelled on different spaces `J₀` and `J₁`, and `Q₀` has no boundary.
 
 Milestone: *Symplectic neighbourhood theorem*. -/
-theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ₀.IsSymplectic}
-    {hσ₁ : σ₁.IsSymplectic} (h₀ : hσ₀.isNondegenerate.HasSymplecticTangentImages J₀ f₀)
+theorem HasSymplecticTangentImages.exists_symplectomorphism_opens (hσ₀ : σ₀.IsSymplectic)
+    (hσ₁ : σ₁.IsSymplectic) (h₀ : hσ₀.isNondegenerate.HasSymplecticTangentImages J₀ f₀)
     (h₁ : hσ₁.isNondegenerate.HasSymplecticTangentImages J₁ f₁) (φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁)
     (hφ : SmoothForm.mpullback φ φ.contMDiff (SmoothForm.mpullback f₁ f₁.contMDiff σ₁) =
       SmoothForm.mpullback f₀ f₀.contMDiff σ₀)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hP₀ : finrank ℝ P₀ = finrank ℝ E₀ - finrank ℝ EQ₀)
     (hP₁ : finrank ℝ P₁ = finrank ℝ E₁ - finrank ℝ EQ₁)
-    (Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ] f₁.NormalSpace (φ q) hn)
+    (Φ : ∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn)
     (hΦ : letI := f₀.normalSpaceFiberBundle hn hP₀
       letI := f₁.normalSpaceFiberBundle hn hP₁
       ContMDiff (J₀.prod 𝓘(ℝ, P₀)) (J₁.prod 𝓘(ℝ, P₁)) ∞
-        (fun p : TotalSpace P₀ (fun q ↦ f₀.NormalSpace q hn) ↦
-          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.NormalSpace q hn))))
+        (fun p : TotalSpace P₀ (fun q ↦ f₀.isImmersion.NormalSpace q hn) ↦
+          (⟨φ p.proj, Φ p.proj p.snd⟩ : TotalSpace P₁ (fun q ↦ f₁.isImmersion.NormalSpace q hn))))
     (hΦσ : ∀ q v w, f₁.symplecticNormalForm h₁ (φ q) hn (Φ q v) (Φ q w) =
       f₀.symplecticNormalForm h₀ q hn v w) :
     ∃ (U₀ : Opens M₀) (U₁ : Opens M₁) (ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁),
@@ -234,8 +310,8 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ�
       ⟨h₀, f₀.isImmersion.mfderiv_injective hn⟩).nondegenerate_bilinFormAt q |>.ker_eq_bot,
       finrank_bot]
   have hdim : finrank ℝ E₀ = finrank ℝ E₁ := by
-    have h₀ := f₀.finrank_normalSpace_add_finrank q₀ hn
-    have h₁ := f₁.finrank_normalSpace_add_finrank (φ q₀) hn
+    have h₀ := f₀.isImmersion.finrank_normalSpace_add_finrank q₀ hn
+    have h₁ := f₁.isImmersion.finrank_normalSpace_add_finrank (φ q₀) hn
     have hΦ := (Φ q₀).toLinearEquiv.finrank_eq
     -- The diffeomorphism `φ` forces `Q₀` and `Q₁` to have models of equal dimension.
     have hQ := (φ.isLocalDiffeomorph q₀).finrank_eq (by simp)
@@ -244,11 +320,12 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ�
   have hgq (q : Q₀) : g q = f₁ (φ q) := f₁.compDiffeomorphOfBoundaryless_apply φ (by simp) q
   let L (q : Q₀) : TangentSpace I₀ (f₀ q) →L[ℝ] TangentSpace I₁ (f₁ (φ q)) :=
     (f₁.symplecticNormalRepresentative h₁ (φ q) hn).comp
-      ((Φ q : _ →L[ℝ] _).comp (f₀.normalClassL q hn))
+      ((Φ q : _ →L[ℝ] _).comp (f₀.isImmersion.normalClassL q hn))
   have hLapply (q : Q₀) (v : TangentSpace I₀ (f₀ q)) :
-      L q v = f₁.symplecticNormalRepresentative h₁ (φ q) hn (Φ q (f₀.normalClass q hn v)) := by
+      L q v = f₁.symplecticNormalRepresentative h₁ (φ q) hn
+          (Φ q (f₀.isImmersion.normalClass q hn v)) := by
     simp only [L, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      SmoothEmbedding.normalClassL_apply]
+      Manifold.IsImmersion.normalClassL_apply]
   have hL (q : Q₀) : ∀ v ∈ (hσ₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J₀ I₀ f₀ q).range,
       L q v ∈ (hσ₁.isNondegenerate.symplecticFormAt (g q)).orthogonal

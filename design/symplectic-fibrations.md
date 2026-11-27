@@ -38,7 +38,7 @@ gives (`design/parallel-transport.md`).
   diffeomorphism groups*.
 - **Fibre inclusions.** The fibre over `b'` read through a chart `e` with
   `hb' : b' ∈ e.baseSet` is the library's
-  `Bundle.Trivialization.fiberInclusion e hb' : C(F, M)`,
+  `Bundle.Trivialization.fiberInclusionMap e hb' : C(F, M)`,
   `v ↦ e.symm (b', v)` (`Topology/FiberBundle/Basic.lean`), as the note of
   the review of #2280 asked.
 - **Forms.** Forms are Tau Ceti's `SmoothForm` and `SmoothTwoForm`. A
@@ -84,7 +84,7 @@ These settle the points that `DESIGN.md` leaves to this file.
   the review of #2280 suggested. The files under
   `Geometry/Symplectic/Fibration/` keep what concerns forms.
 - **Fibres as manifolds.** No fibre is given a manifold structure of its
-  own: fibres are read through `fiberInclusion`. Tau Ceti's
+  own: fibres are read through `fiberInclusionMap`. Tau Ceti's
   `TauCeti.ManifoldTotalSpace.fiberChartedSpace` and
   `TauCeti.chartedSpaceOfExistsTrivialization` are not used (`M` is already
   a manifold), nor is `TauCeti.fiberBundleCoreOfGroupCocycle` (the bundle
@@ -117,13 +117,13 @@ These settle the points that `DESIGN.md` leaves to this file.
 The library's counterpart of Tau Ceti's file of that name: smooth atlases
 of a map, read pointwise. About 300 lines.
 
-- `Bundle.Trivialization.contMDiff_fiberInclusion`: if `e.symm` is smooth
-  on `e.target`, then `e.fiberInclusion hb` is smooth.
-- `Bundle.Trivialization.injective_mfderiv_fiberInclusion` and
-  `range_mfderiv_fiberInclusion`: for a trivialization smooth with smooth
-  inverse, the derivative of `e.fiberInclusion hb` at `v` is injective, and
+- `Bundle.Trivialization.contMDiff_fiberInclusionMap`: if `e.symm` is smooth
+  on `e.target`, then `e.fiberInclusionMap hb` is smooth.
+- `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
+  `range_mfderiv_fiberInclusionMap`: for a trivialization smooth with smooth
+  inverse, the derivative of `e.fiberInclusionMap hb` at `v` is injective, and
   its range is the vertical space `(mfderiv IM IB π x).ker` at
-  `x = e.fiberInclusion hb v`. This links pull-backs along fibre inclusions
+  `x = e.fiberInclusionMap hb v`. This links pull-backs along fibre inclusions
   to pointwise conditions on vertical vectors.
 - `Bundle.Trivialization.coordChangeDiffeomorph`: for two such
   trivializations and `b` in both base sets, the diffeomorphism
@@ -169,21 +169,21 @@ Structure groups of atlases and their reductions. About 250 lines.
   orientation-preserving actions and symplectic atlases from symplectic
   actions.
 
-### `Geometry/Symplectic/Fibration/Basic.lean`
+### `Geometry/Manifold/FiberBundle/RestrictsTo.lean`
 
-Forms that restrict to the fibre forms, and compatible symplectic forms.
-About 350 lines.
+Forms that restrict to the fibre forms. Nothing in it needs `σ` to be
+symplectic.
 
 - `TauCeti.MapFiber.Atlas.RestrictsTo A σ τ`, for
   `σ : SmoothForm IF F ℝ k` and `τ : SmoothForm IM M ℝ k`: for every `b`,
   every `b'` and every `hb' : b' ∈ (A.trivAt b).baseSet`,
-  `TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusion hb') τ.val = σ.val`.
+  `TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') τ.val = σ.val`.
   This is the predicate of *Fibre forms* in `DESIGN.md`, $\iota_b^*\tau=\sigma_b$.
   With `restrictsTo_iff`.
 - Independence of the chart: `restrictsTo_iff_forall_exists`, for an
   atlas with structure group `diffeomorphStabilizer σ`: it is enough that
   one chart at each point pull `τ` back to `σ` (by
-  `fiberInclusion_coordChange`). `RestrictsTo.of_coordChangeMem`: the
+  `fiberInclusionMap_coordChange`). `RestrictsTo.of_coordChangeMem`: the
   predicate passes to an atlas compatible with `A` through
   `diffeomorphStabilizer σ`, so it depends only on the fibre forms, as the
   page's note on the definition says.
@@ -191,34 +191,42 @@ About 350 lines.
   restricts to `σ` has structure group `diffeomorphStabilizer σ`, since
   each coordinate change pulls $\sigma$ back to itself. This is how
   `SymplecticFibres.lean` produces its symplectic atlas.
-- Affine structure: `Bundle.Trivialization.mpullback_fiberInclusion_mpullback_eq_zero` (for
+- Affine structure: `Bundle.Trivialization.mpullback_fiberInclusionMap_mpullback_eq_zero` (for
   `k ≥ 1`, `π^*β` pulls back to zero along fibre inclusions, since
-  `π ∘ fiberInclusion` is constant), `restrictsTo_add_iff` (if `τ`
+  `π ∘ fiberInclusionMap` is constant), `restrictsTo_add_iff` (if `τ`
   restricts to `σ`, then `τ + β` does exactly when `β` pulls back to zero
   on every fibre), `RestrictsTo.add_mpullback` (Thurston's $\tau+K\pi^*\beta$,
-  for part 49), and `convex_setOf_restrictsTo`.
-- `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate π τ`: for every `x`,
+  for part 49), and `convex_setOfPred_restrictsTo`.
+
+### `Geometry/Symplectic/Fibration/Basic.lean`
+
+Vertically nondegenerate forms and compatible symplectic forms. It imports
+`FiberBundle/RestrictsTo.lean`.
+
+- `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate IB π τ`: for every `x`,
   `((τ.bilinFormAt x).restrict (mfderiv IM IB π x).ker).Nondegenerate`. It
   says that every fibre is a symplectic submanifold when `τ` is closed.
   `RestrictsTo.isVerticallyNondegenerate`: under `hA`, a form that
   restricts to a nondegenerate `σ` is vertically nondegenerate (by
-  `range_mfderiv_fiberInclusion`); and the converse
-  `IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusion`.
+  `range_mfderiv_fiberInclusionMap`); and the converse
+  `IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusionMap`.
 - Compatible symplectic forms for a symplectic atlas are written
   `ω.IsSymplectic ∧ A.RestrictsTo σ ω`, with no definition: Definition
   6.1.2 of [McDuffSalamon2017].
 - Compatible forms for an oriented atlas (Definition 6.2.1),
   `TauCeti.MapFiber.Atlas.IsOrientedCompatible hA oB oF ω`, for
-  `oB : Manifold.Orientation IB B (Fin m)`,
-  `oF : Manifold.Orientation IF F (Fin (2 * k))` and `dim M = 2 * n`, a
-  structure with three fields: `ω.IsSymplectic`; on each fibre, the smooth
-  pull-back of `ω` along `fiberInclusion` (smooth by `hA`) is nondegenerate
-  and its `IsNondegenerate.volumeOrientation` is `oF`; and each chart
+  `oB : TauCeti.Manifold.Orientation IB B (Fin m)` and
+  `oF : TauCeti.Manifold.Orientation IF F (Fin k)`, a
+  structure with four fields: `ω.IsSymplectic`; on each fibre, the smooth
+  pull-back of `ω` along `fiberInclusionMap` (smooth by `hA`) is nondegenerate,
+  and its `IsNondegenerate.orientation` is `oF`; and each chart
   `A.trivAt b` preserves orientation at every point of its source, Tau
   Ceti's `IsOrientationPreservingAt`, from the symplectic orientation
-  `hω.isNondegenerate.volumeOrientation` of `M` to
-  `oB.prod oF` (Tau Ceti's product orientation, reindexed along
-  `2 * n = m + 2 * k`). The fibre has even dimension, so the order of the
+  `hω.isNondegenerate.orientation hM` of `M` to
+  `oB.prod oF` (Tau Ceti's product orientation), for some
+  `hM : finrank ℝ EM = m + k`. Tau Ceti's `IsNondegenerate.orientation`
+  takes any index `Fin k` of the right size, so no reindexing is needed. The
+  fibre has even dimension, so the order of the
   factors in the product does not matter. It takes `hA` because the
   fibre forms must be smooth forms to have a symplectic orientation. Used
   by `IsOrientedCompatible.isVerticallyNondegenerate` here and by the
@@ -229,8 +237,10 @@ About 350 lines.
 The connection $\Gamma_\tau$ of a two-form, and connection two-forms; no
 parallel transport. About 550 lines.
 
-- `TauCeti.SmoothTwoForm.IsVerticallyClosed π τ`: for every `x`, all
-  vertical `η₁ η₂` and every `v`, `mextDeriv τ.val x ![η₁, η₂, v] = 0`; with
+- `TauCeti.SmoothTwoForm.IsVerticallyClosed π τ :=
+  RoughForm.IsVerticallyClosedOn π τ.val univ`, where
+  `RoughForm.IsVerticallyClosedOn π θ s` asks, for every `x ∈ s`, all
+  vertical `η₁ η₂` and every `v`, that `mextDeriv θ x ![η₁, η₂, v] = 0`; with
   `isVerticallyClosed_iff`, `IsClosed.isVerticallyClosed`,
   `IsVerticallyClosed.add`, `IsVerticallyClosed.smul`, and
   `isVerticallyClosed_add_mpullback_iff` (adding `π^*β` changes nothing,
@@ -245,16 +255,14 @@ parallel transport. About 550 lines.
   nondegenerate `τ`, `TauCeti.IsEhresmannConnection IM IB ∞ π
   (τ.horizontalDistribution π)`. The complement condition is Mathlib's
   `LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate`
-  (an alternating form is reflexive). For smoothness and rank, take near a
-  point a frame of the vertical spaces (Tau Ceti's
-  `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`) and smooth
-  lifts of a frame of the base. Subtracting from each lift its projection
-  onto the vertical spaces along the orthogonal (the library's
-  `LinearAlgebra/BilinearForm/Orthogonal.lean`) gives a frame of the
-  horizontal spaces. The coefficients of that projection solve a linear
-  system whose matrix, the values of `τ` on the vertical frame, is
-  invertible and smooth.
-- `horizontalDistribution_eq_iff`: two vertically nondegenerate forms that
+  (an alternating form is reflexive). For smoothness and rank, the vertical
+  spaces form a smooth distribution (Tau Ceti's
+  `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), and the
+  library's `TauCeti.IsContMDiffDistribution.bilinFormOrthogonal`
+  (`Geometry/Manifold/Distribution/Orthogonal.lean`), applied to Tau Ceti's
+  smooth flat map `SmoothTwoForm.contMDiff_flat`, shows that so do their
+  `τ`-orthogonals.
+- `horizontalDistribution_eq_iff`: two forms, the first vertically nondegenerate, that
   agree on pairs of vertical vectors define the same connection exactly
   when their difference vanishes on `(η, v)` for every vertical `η`. The
   pointwise statement is a new lemma `LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`
@@ -292,7 +300,7 @@ parallel transport. About 550 lines.
   vertical pair, the value of the fibre form, and
   `Σ_i d(ρ i ∘ π) = d(Σ_i ρ i ∘ π) = d 1 = 0`, so the sum vanishes. This is
   where the structure-group hypothesis is used. Also
-  `convex_setOf_restrictsTo_isVerticallyClosed`.
+  `convex_setOfPred_restrictsTo_isVerticallyClosed`.
 
 ### `Geometry/Symplectic/Fibration/Connection.lean`
 
@@ -310,11 +318,13 @@ About 450 lines.
   `isSymplectic_iff_forall_exists`: for a symplectic atlas one pair of
   charts per curve suffices, by `parallelTransportIn_coordChange`.
 - `IsVerticallyClosed.mpullback_parallelTransportIn`: for `π` proper, `hA`,
-  and `τ` vertically closed and vertically nondegenerate, transport by
+  `τ` vertically closed, and `hD`, the proof that its horizontal spaces form
+  an Ehresmann connection (`IsVerticallyNondegenerate.isEhresmannConnection`
+  gives it for vertically nondegenerate `τ`), transport by
   `τ.horizontalDistribution π` along `γ` from `s` to `t`, read in charts
   `e e'` of `A`, pulls the pull-back of `τ` along
-  `e'.fiberInclusion (γ t)` back to its pull-back along
-  `e.fiberInclusion (γ s)`. No structure group is assumed. The transport is
+  `e'.fiberInclusionMap (γ t)` back to its pull-back along
+  `e.fiberInclusionMap (γ s)`. No structure group is assumed. The transport is
   the flow of the horizontal lift of a compactly supported time-dependent
   field (`parallelTransport_eq_timeDependentFlowOf`). The derivative in
   time of the pulled-back form is the pull-back of the Lie derivative
@@ -326,7 +336,7 @@ About 450 lines.
   derivative of a form that vanishes on vertical vectors, since
   $v^\sharp$ is horizontal, so its pull-back to a fibre is zero.
 - The milestone, `IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed`:
-  for `[CompactSpace F]`, `hA`, `A.HasStructureGroup (diffeomorphStabilizer σ)`,
+  for `[CompactSpace F]`, `hA`,
   `σ.IsSymplectic` and `hτ : A.RestrictsTo σ τ`, the connection
   `(hτ.isVerticallyNondegenerate hA _).isEhresmannConnection
   (hA.isSubmersion ENat.LEInfty.out)`
@@ -353,11 +363,11 @@ form on `M` along `A.trivAt b`'s inverse composed with a chart of `B`. A
 basis `bs : Basis ι ℝ EB` gives coordinates `x i := bs.coord i` and
 constant fields `∂ i := bs i`.
 
-- The components, as families indexed by `x ∈ U` and read through
+- The components, as families indexed by the points `x` of `EB` and read through
   `TauCeti.verticalForm`: the slices $\sigma(x)=\iota_x^*\tau$, the
   one-forms $\alpha_i(x)$ (the slices of $\iota(\partial_i,0)\tau$), and the
   functions $f_{ij}=\tau((\partial_i,0),(\partial_j,0))$. Then
-  `eq_verticalForm_add_sum`: on `U ×ˢ univ`,
+  `eq_verticalForm_add_sum`: at every point of `EB × F`,
   $\tau=\sigma+\sum_i\alpha_i\wedge dx_i+\sum_{i<j}f_{ij}\,dx_i\wedge dx_j$,
   with the forms on `EB` and `F` pulled back along the projections and the
   sign of $\alpha_i$ fixed by this formula, as on the page.
@@ -370,20 +380,20 @@ constant fields `∂ i := bs i`.
   of `∂ i` for `τ.horizontalDistribution Prod.fst` at `(x, v)` is
   `(∂ i, X i x v)`, where `X i x` is the vector field on `F` with
   $\iota(X_i)\sigma(x)=\alpha_i(x)$. It is smooth in `(x, v)`, by
-  inverting $\sigma(x)$ (Tau Ceti's `IsNondegenerate.symplecticFormAt`).
+  inverting $\sigma(x)$ (Tau Ceti's `contMDiff_interiorEquiv_symm_mpullback_prodMk`).
 
 ### `Geometry/Symplectic/Fibration/SymplecticFibres.lean`
 
 The first milestone, by the page's second route. Waits for *Parallel
 transport*, including its radial trivializations. About 400 lines.
 
-- `exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed`: let `M` be
+- `TauCeti.SmoothTwoForm.exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed`: let `M` be
   compact and connected, `hA` hold, and let `τ` be vertically closed and
   vertically nondegenerate. Then there are `σ : SmoothTwoForm IF F` with
   `σ.IsSymplectic` and a smooth atlas `A'` of `π` with
   `A'.HasStructureGroup (diffeomorphStabilizer σ)` and `A'.RestrictsTo σ τ`.
   `π` is proper since `M` is compact. Fix `b₀` and let `σ` be the pull-back
-  of `τ` along `(A.trivAt b₀).fiberInclusion`; it is closed by vertical
+  of `τ` along `(A.trivAt b₀).fiberInclusionMap`; it is closed by vertical
   closedness and nondegenerate by `IsVerticallyNondegenerate`. Near any
   `b`, *Parallel transport*'s
   `IsEhresmannConnection.exists_trivialization_parallelTransport` for
@@ -397,14 +407,14 @@ transport*, including its radial trivializations. About 400 lines.
   `Bundle.Trivialization.transFiberHomeomorph`, smooth with smooth
   inverse), is the chart of `A'` at `b`. `RestrictsTo.hasStructureGroup`
   gives the structure group.
-- The milestone, `exists_hasStructureGroup_restrictsTo`: the case of a
-  symplectic `ω` with `ω.IsVerticallyNondegenerate π`, that is, every fibre
+- The milestone, `TauCeti.SmoothTwoForm.exists_hasStructureGroup_restrictsTo`: the case of a
+  symplectic `ω` with `ω.IsVerticallyNondegenerate IB π`, that is, every fibre
   a symplectic submanifold. Its docstring ends with "Milestone:
   *Fibrations with symplectic fibres are symplectic fibrations*." The atlas
   `A'` is compatible with `A` through the whole group by
   `coordChangeMem_top`, so it is a reduction of `A` in the page's sense.
-- `IsOrientedCompatible.exists_hasStructureGroup_restrictsTo`: the same
-  for a form compatible with an oriented atlas, which parts 49 and 56 use.
+- `TauCeti.MapFiber.Atlas.IsOrientedCompatible.exists_hasStructureGroup_restrictsTo`: the same
+  for a form compatible with an oriented atlas.
 
 ## What other parts use
 
@@ -439,8 +449,9 @@ lines.
    Waits for nothing.
 2. **Structure groups.** `Geometry/Manifold/FiberBundle/StructureGroup.lean`.
    Waits for 1.
-3. **Forms restricting to the fibre forms.** `Fibration/Basic.lean`. Waits
-   for 2.
+3. **Forms restricting to the fibre forms.**
+   `Geometry/Manifold/FiberBundle/RestrictsTo.lean` and
+   `Fibration/Basic.lean`. Waits for 2.
 4. **The connection of a two-form.** The lemma
    `LinearMap.BilinForm.orthogonal_eq_orthogonal_iff` and the first four
    items of `Fibration/HorizontalDistribution.lean`. Waits for 3.

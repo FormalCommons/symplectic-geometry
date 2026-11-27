@@ -8,8 +8,8 @@ extension for `auxiliary/first-chern-class.md`*, below) proves *First Chern
 class of a complex vector bundle*. It gives *Projective
 hypersurfaces* (part 34) what the page's milestone *Chern classes of projective
 hypersurfaces* needs: Chern classes $c_k$ of complex vector bundles in integral
-cohomology, with the Whitney sum formula, $c_1$ equal to *First Chern number*'s
-`SymplecticGeometry.Bundle.firstChernClass`, the top class equal to Tau Ceti's
+cohomology, with the Whitney sum formula, $c_1$ equal to Tau Ceti's
+`TauCeti.firstChernClass`, the top class equal to Tau Ceti's
 `TauCeti.complexEulerClass`, the cohomology ring of $\mathbb CP^n$, and the
 value of the Euler class of the tangent bundle of a closed oriented manifold
 on its fundamental class.
@@ -56,7 +56,7 @@ $$\sum_{i=0}^{n}\pi^*c_i(E)\,x^{n-i}=0,$$
 
 and $c_k(E)=0$ for $k>n$. For a line bundle $L$, $P(L)=B$ and $S=L$, so the
 relation reads $c_1(L)=-x=e(L_{\mathbb R})$: the normalization agrees with
-Tau Ceti's Euler class and with *First Chern number*'s class on lines.
+Tau Ceti's Euler class and with `TauCeti.firstChernClass` on lines.
 
 The reasons for this choice, against a recursive definition through the
 Gysin sequence (Milnor–Stasheff, §14) or a classifying space:
@@ -181,8 +181,12 @@ need Leray–Hirsch over the same covers, which the plan does not ask for.
 
 *First Chern number*'s `Topology/VectorBundle/Complex/FirstChernClass.lean`
 (#784) does not move into `ChernClass/`. Parts 13, 31 and 32 import it, and
-it needs no projective bundle. The file `ChernClass/FirstChernClass.lean`
-proves that $c_1$ equals it, and so the two stay one notion.
+what it adds to Tau Ceti's `TauCeti.firstChernClass` (invariance under
+isomorphisms between bundles with different models, naturality along any
+`ContinuousMapClass`, the conjugate bundle, the first Chern number) needs no
+projective bundle. The file `ChernClass/FirstChernClass.lean` proves that
+$c_1$ equals `TauCeti.firstChernClass` (`chernClass_one_eq_firstChernClass`),
+and so the two stay one notion.
 
 ### The extension for `auxiliary/first-chern-class.md`
 
@@ -190,7 +194,7 @@ Most of *First Chern class of a complex vector bundle* is merged. What is
 missing is the Whitney formula over a base that is not compact, the value
 of $c_1(T\mathbb CP^{n-1})$, $c_1$ of the tautological line in the form of
 `firstChernClass`, and the page's normalization of $h$ by its value on a
-projective line. The class is *First Chern number*'s `firstChernClass`,
+projective line. The class is Tau Ceti's `TauCeti.firstChernClass`,
 with values in `H²(B; ULift ℤ)` as everywhere in the library; statements
 that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
 `chernClass_one_eq_firstChernClass` does.
@@ -199,9 +203,9 @@ that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
 *Milestone: First Chern class of a complex vector bundle*; together they are
 the page's statement.
 
-- The class: `SymplecticGeometry.Bundle.firstChernClass G E`, defined for a
-  complex vector bundle over any `B : Type` (merged).
-- Naturality: `firstChernClass_pullback` (merged), for every continuous map,
+- The class: Tau Ceti's `TauCeti.firstChernClass G E`, defined for a
+  complex vector bundle over any `B : Type`.
+- Naturality: `firstChernClass_pullback_coe` (merged), for every continuous map,
   so for smooth maps in particular.
 - The Whitney formula: `firstChernClass_prod_of_chartedSpace`, for `B`
   Hausdorff and σ-compact with `[ChartedSpace H B]` and a model
@@ -279,15 +283,16 @@ space, whose cohomology neither library has; a class on a non-compact base
 is not determined by its restrictions to compact subsets, so finite
 projective spaces on compact pieces would not do either.
 
-**Covering dimension.** `SymplecticGeometry.CoveringDimLE K n`, for a set
-`K` of a topological space `X`, says that every finite set of open sets of
-`X` covering `K` has a refinement by a finite set of open sets covering `K`
-in which every point of `K` lies in at most `n + 1` members. It is relative
-to the ambient space, so that it can be checked in a chart and in a closed
-piece without passing to subspaces. Mathlib has only the small
+**Covering dimension.** Tau Ceti's `TauCeti.HasCoveringDimensionLE K n`, for
+the subspace `K` of a topological space `X`: every open cover of `K` has an
+open refinement in which every point lies in at most `n + 1` members. For
+the compact sets on which the library uses it, this agrees with the form for
+finite covers. Mathlib has only the small
 inductive dimension (`HasSmallInductiveDimensionLT`, in
 `Topology/InductiveDimension/`), with no link to covers and no result on
-Euclidean space, and Tau Ceti adds none. The
+Euclidean space; Tau Ceti's `TauCeti/Topology/Dimension/` has the predicate,
+closed subspaces, invariance under homeomorphisms and the finite sum
+theorem, and in dimension `n > 1` no Euclidean bound. The
 proof that a compact subset of a manifold of dimension `n` satisfies it
 follows Munkres, §50, for finite unions; the Euclidean case is proved by an
 explicit colouring of cubes.
@@ -302,14 +307,13 @@ explicit colouring of cubes.
   and $n+1$ colours every point lies in a cube. So each point lies in at
   most $n+1$ cubes. A linear equivalence carries this to any real normed
   space of dimension $n$.
-- **Finite unions.** If `K₁` and `K₂` are closed and satisfy the bound, so
-  does `K₁ ∪ K₂` (Munkres, Theorem 50.2): first refine so that the order is
-  bounded at the points of `K₁`, by adding the sets `U \ K₁`, then refine
-  again over `K₂` and merge the new sets along a choice of the old set that
-  contains each, which keeps the bound at the points of `K₁`.
-- **Charts.** The bound passes from `f '' K` to `K` along a topological
-  embedding `f`, and between an open subspace and the whole space. A chart
-  followed by `I` embeds its open source into `E`, and a compact subset of a
+- **Finite unions.** If finitely many closed sets satisfy the bound, so
+  does their union (Munkres, Theorem 50.2): Tau Ceti's sum theorem
+  `hasCoveringDimensionLE_of_iUnion_eq_univ`, applied in the union.
+- **Charts.** The bound passes along closed embeddings (Tau Ceti's
+  `IsClosedEmbedding.hasCoveringDimensionLE`). A chart followed by `I` maps
+  a compact subset of its source homeomorphically onto a compact subset of
+  `E`, and a compact subset of a
   manifold is a finite union of compact subsets of chart sources.
 - **σ-compact spaces.** Let `X` be Hausdorff, locally compact and σ-compact,
   with every compact set satisfying the bound for `n`. For a compact
@@ -402,8 +406,9 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
 - the inverse of Tau Ceti's `TopCat.integralCohomologyEquiv X n`, from
   cohomology with chain coefficients and values `ℤ`, in the form
   `TopCat.lerayHirsch` takes for `k = ℤ`, to `X.integralCohomology n`,
-  with `integralCohomologyEquiv_symm_naturality` and
-  `integralCohomologyEquiv_symm_singularCup`.
+  with `integralCohomologyEquiv_symm_naturality`,
+  its compatibility with cup products being Tau Ceti's
+  `TopCat.integralCohomologyEquiv_integralCup`.
 
 ### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
 
@@ -425,9 +430,10 @@ The change of cochain values in singular cohomology, in the namespace
 The change of linear structure in singular cohomology, in the namespace
 `TopCat`, for any abelian `C` and two equal structures `L₁ L₂ : Linear k C`:
 `singularCohomologyLinearCongr e X R M n` for `e : L₁ = L₂`, the linear
-equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm`, `_trans`,
-`_naturality` (it commutes with `singularCohomologyMap f`) and `_singularCup`
-(it carries cup products to cup products). `IntegralCohomologyULift.lean` uses it to pass
+equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm` and `_trans`;
+maps induced by continuous maps go through Tau Ceti's
+`TopCat.singularCohomologyMap_comp_eqToHom`, and cup products through
+Tau Ceti's `TopCat.singularCup_eqToHom`. `IntegralCohomologyULift.lean` uses it to pass
 from `ModuleCat.instLinear` to `CategoryTheory.Linear.preadditiveIntLinear`.
 
 ### `Algebra/Homology/Monoidal/CupChangeOfValues.lean`
@@ -492,9 +498,9 @@ homology projective in every degree and finitely generated in degrees
   section): if the restrictions of the classes
   `c p i` to the fibre over every point, read through the trivialization at
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
-  `n`. Over one trivializing set it is `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
-  through the trivialization; the finite cover is handled by induction with
-  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusion`
+  `n`. It is Tau Ceti's `TopCat.lerayHirsch_bijective_of_trivializations`
+  (`AlgebraicTopology/Cohomology/LerayHirsch/FiniteCover.lean`) for the
+  trivializations of the atlas. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
   comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
   summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
@@ -641,7 +647,10 @@ their compatibility with `TopPair.singularCohomologyπ`.
 
 The three changes of `PairChangeOfCoefficients.lean` carry Thom classes to
 Thom classes (`TauCeti.IsThomClass.singularCohomologyChainCoefficientMap`,
-`…ValueMap`, `…LinearCongr`) and commute with `TauCeti.eulerClass`. Imports
+`…ValueMap`, `…LinearCongr`, and their combination
+`TauCeti.IsThomClass.uliftIntegralCohomologyEquiv`); that combination
+commutes with `TauCeti.eulerClass`
+(`TauCeti.eulerClass_uliftIntegralCohomologyEquiv`). Imports
 `PairChangeOfCoefficients.lean`.
 
 ### `Topology/VectorBundle/Thom/CupEulerClass.lean`
@@ -780,7 +789,7 @@ The homology cross product of two pairs, for the Whitney file below:
 from Tau Ceti's shuffle map `TopCat.shufflePair`, with `_def`,
 `singularHomologyCrossRelPair_naturality`, and its compatibility with
 `TopCat.singularHomologyCrossRel`
-(`whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`) and with
+(Tau Ceti's `singularHomologyCrossRel_comp_singularHomologyMap`) and with
 `TopCat.singularHomologyCross`
 (`singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`).
 It uses these Tau Ceti files, of which the library had copies until the
@@ -959,26 +968,13 @@ model fibres:
 
 ### `Topology/VectorBundle/FiniteRank/Tensor.lean`
 
-Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
-`Determinant.lean` imports it.
+Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only.
 
 - `TauCeti.FiniteRankBundleCore.tensorFiberEquiv` and
   `continuous_tensorFiberEquiv`: the fibres of `FiniteRankBundleCore.tensor A D`
   are the tensor products of the fibres of `A` and `D`, through
   `TauCeti.piTensorEquiv`, continuously into Tau Ceti's tensor product
   bundle.
-- `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of
-  `whitneySum A D` is `tensor A.det D.det`, by a constant change of
-  coordinates (`det_coordChange_whitneySum`, in `FiniteRank/Biproduct.lean`).
-
-### `Topology/VectorBundle/Determinant.lean` (addition)
-
-- `SymplecticGeometry.Bundle.detCoreProdIso`: the determinant line of
-  `E₁ ×ᵇ E₂` is the tensor product of the determinant lines, from the
-  exterior powers of Tau Ceti's biproduct of finite-rank cores
-  (`Topology/VectorBundle/FiniteRank/Biproduct.lean`, `Tensor.lean`); and,
-  read on bundles, the complex-linear fibrewise isomorphism continuous on
-  total spaces that `firstChernClass` takes.
 
 ### `Topology/VectorBundle/Complex/ChernClass/EulerClass.lean`
 
@@ -997,20 +993,19 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
   `chernClass G E 1 = (uliftIntegralCohomologyIso _ 2).hom
   (firstChernClass G E)`. By induction on the rank with
   the splitting principle: both sides are additive on `L ×ᵇ Q`, the first
-  by `chernClass_prod`, the second by `detCoreProdIso`,
+  by `chernClass_prod`, the second by Tau Ceti's `TauCeti.DetBundle.prodEquiv`,
   `TauCeti.complexEulerClass_tensorProduct` and `firstChernClass_congr`; on
   lines both are `complexEulerClass` (`firstChernClass_eq_complexEulerClass`).
-  Rank zero: both vanish (`chernClass_eq_zero_of_finrank_lt`, and
-  `firstChernClass_congr` with a fibrewise isomorphism to the trivial
-  bundle, then `firstChernClass_trivial`).
+  Rank zero: both vanish (`chernClass_eq_zero_of_finrank_lt`, and Tau Ceti's
+  `TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`).
 
 ### `Geometry/Manifold/Orientation/EulerCharacteristic.lean`
 
 For a compact Hausdorff boundaryless smooth manifold `M` modelled on `E`
 with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m + 1))`:
 
-- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative`:
-  for a continuous vector field `X`, differentiable at a zero `z` at which
+- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative'`:
+  for a continuous vector field `X` and a zero `z` at which
   `vectorFieldChartDerivative I X z` is invertible, the local index of `X`
   for `o.toVectorBundleOrientation` and `o.toHomologicalOrientation` is the
   sign of its determinant;
@@ -1018,7 +1013,7 @@ with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m +
   the Euler class of `o.toVectorBundleOrientation` evaluated on the
   fundamental class of `o.toHomologicalOrientation` is
   $\sum_{i\le m+1}(-1)^i\dim_k H_i(M;k)$ for any division ring `k`; and
-  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`,
+  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`,
   the same with `TauCeti.eulerChar M` under a finite CW type instance
   argument, which `TauCeti.FiniteCWType.of_isManifold` supplies. Both come
   from a Morse function, a Riemannian metric and the three Tau Ceti results
@@ -1034,35 +1029,25 @@ Neither Mathlib nor Tau Ceti has a file or folder at these paths.
 
 #### `Topology/CoveringDimension/Basic.lean`
 
-In the namespace `SymplecticGeometry`, for a topological space `X`:
+In the namespace `TauCeti`, for a topological space `X`:
 
-- `CoveringDimLE (K : Set X) (n : ℕ) : Prop`: for every
-  `𝒰 : Finset (Set X)` of open sets with `K ⊆ ⋃₀ 𝒰` there is a
-  `𝒱 : Finset (Set X)` of open sets with `K ⊆ ⋃₀ 𝒱`, each member inside a
-  member of `𝒰`, and `(𝒱.filter (x ∈ ·)).card ≤ n + 1` for every `x ∈ K`;
-  with `coveringDimLE_def`.
-- `CoveringDimLE.mono` (in `n`), `coveringDimLE_empty`,
-  `CoveringDimLE.subset` (to a closed subset), `CoveringDimLE.of_isInducing`
-  (from `f '' K` to `K` for an inducing map `f`) and
-  `Topology.IsInducing.coveringDimLE_image_iff` (for an inducing map `f`,
-  the bound for `K` and for `f '' K` agree).
-- `CoveringDimLE.exists_finset_card_le`: in a normal space, for `K` closed
-  with `CoveringDimLE K n`, a finite cover `𝒰` of `K` by open sets and an
-  open `O ⊇ K`, there is a finite set of open subsets of `O`, each inside a
-  member of `𝒰`, covering `K`, with every point of `X` in at most `n + 1`
-  of them (the shrinking step above, with Mathlib's
+- `HasCoveringDimensionLE.exists_shrinking_of_subset_iUnion`: in a normal
+  space, for `K` closed with `HasCoveringDimensionLE K n` and a finite
+  family `U` of open sets covering `K`, there are open `V i ⊆ U i`
+  covering `K` with every point of `X` in at most `n + 1` of them (the
+  shrinking step above, with Mathlib's
   `exists_subset_iUnion_closure_subset`).
 
 #### `Topology/CoveringDimension/Union.lean`
 
-`CoveringDimLE.union`: for closed `K₁` and `K₂` with the bound for `n`, so
-has `K₁ ∪ K₂`; and `CoveringDimLE.biUnion` for a finite family of closed
-sets. Munkres, Theorem 50.2.
+`TauCeti.hasCoveringDimensionLE_iUnion`: for a finite family of closed
+sets with the bound for `n`, so has their union. Munkres, Theorem 50.2.
 
 #### `Topology/CoveringDimension/Euclidean.lean`
 
-`IsCompact.coveringDimLE_finrank`: in a finite-dimensional real normed
-space `E`, every compact set satisfies `CoveringDimLE K (finrank ℝ E)`, by
+`IsCompact.hasCoveringDimensionLE_finrank`: in a finite-dimensional real
+normed space `E`, every compact set `K` has
+`HasCoveringDimensionLE K (finrank ℝ E)`, by
 the colouring of cubes above, in `Fin n → ℝ` with the sup norm and then
 through a linear equivalence. The colouring and its properties (open
 pieces, disjoint within a colour, of diameter at most the scale, every point
@@ -1079,12 +1064,12 @@ Mathlib's `CompactExhaustion` and the shells above.
 
 #### `Geometry/Manifold/CoveringDimension.lean`
 
-`IsCompact.coveringDimLE_finrank_of_chartedSpace`: for a charted space
+`IsCompact.hasCoveringDimensionLE_finrank_of_chartedSpace`: for a charted space
 `[ChartedSpace H M]` with a model `I : ModelWithCorners ℝ E H` and
 `[FiniteDimensional ℝ E]`, in a Hausdorff `M`, every compact set satisfies
-`CoveringDimLE K (finrank ℝ E)`: finitely many compact subsets of chart
+`HasCoveringDimensionLE K (finrank ℝ E)`: finitely many compact subsets of chart
 sources cover it, each satisfies the bound through the embedding of the
-source into `E` by `I ∘ chartAt`, and `CoveringDimLE.biUnion` puts them
+source into `E` by `I ∘ chartAt`, and `hasCoveringDimensionLE_iUnion` puts them
 together.
 
 #### `Topology/VectorBundle/FiniteTrivializingCover.lean`
@@ -1115,7 +1100,7 @@ In the namespace `SymplecticGeometry.Bundle`, for a vector bundle `E` over
 Hausdorff σ-compact charted space with a finite-dimensional model `I` has a
 finite trivializing cover, from `exists_isSubordinate_card_finsupport_le`
 (applied to the base sets of the `trivializationAt`), the previous file
-and `IsCompact.coveringDimLE_finrank_of_chartedSpace`. Mathlib's instances
+and `IsCompact.hasCoveringDimensionLE_finrank_of_chartedSpace`. Mathlib's instances
 make such a space locally compact, paracompact and normal.
 
 #### The tensor formula over a finite trivializing cover
@@ -1137,10 +1122,11 @@ pass `HasFiniteTrivializingCover.of_compactSpace`.
 `SymplecticGeometry.Bundle.firstChernClass_prod_of_chartedSpace`, the
 Whitney formula of the milestone, as stated above: the determinant lines of
 `E₁` and `E₂` have finite trivializing covers by
-`HasFiniteTrivializingCover.of_chartedSpace`, so the proof of
-`firstChernClass_prod` (`detCoreProdFiberEquiv` and the tensor formula)
+`HasFiniteTrivializingCover.of_chartedSpace` and
+`HasFiniteTrivializingCover.detBundle`, so the proof of
+`firstChernClass_prod` (`TauCeti.DetBundle.prodEquiv` and the tensor formula)
 applies. The issue of this file also adds the milestone line to the
-docstrings of `firstChernClass_pullback` and
+docstrings of `firstChernClass_pullback_coe` and
 `firstChernClass_eq_complexEulerClass`.
 
 #### `Geometry/Manifold/Projectivization/HyperplaneClass.lean`
@@ -1162,15 +1148,15 @@ then imports `ChernClass/FirstChernClass.lean`.
 
 ## What the part uses
 
-- From *First Chern number*: `firstChernClass` with `firstChernClass_congr`,
-  `firstChernClass_trivial` and `firstChernClass_eq_complexEulerClass`
-  (#784), only in `ChernClass/FirstChernClass.lean`; `detCore` from the merged
-  `Topology/VectorBundle/Determinant.lean`.
+- From *First Chern number*: `firstChernClass_congr` and
+  `firstChernClass_eq_complexEulerClass` (#784), only in
+  `ChernClass/FirstChernClass.lean`; the class `TauCeti.firstChernClass` and
+  the determinant line `TauCeti.DetBundle` are Tau Ceti's.
 - From *First Chern number*: its file
   `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
   `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
   `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`.
-- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusion`
+- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusionMap`
   (`Topology/FiberBundle/Basic.lean`), only in `LerayHirsch/Bundle.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
@@ -1201,13 +1187,13 @@ then imports `ChernClass/FirstChernClass.lean`.
 `totalChernClass_prod`, `totalChernClass_pullback` and `chernClass_congr`,
 and gets $\chi(M)=\langle c_n(TM),[M]\rangle$ from
 `chernClass_finrank_eq_complexEulerClass` and
-`evalFundamentalClass_eulerClass_eq_eulerChar`. Comparing the complex orientation
+`evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`. Comparing the complex orientation
 of $TM$ (`TauCeti.VectorBundleOrientation.complex`) with the manifold
 orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.
 
 *Complex blowup* computes $c_1$ of a blowup with
-`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback`,
+`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback_coe`,
 `firstChernClass_tautological` and `firstChernClass_tangentSpace`.
 
 ## Issues
@@ -1239,9 +1225,8 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
 12. **Euler class of a tensor product of lines, and $\mathcal O(1)$.**
     `Topology/VectorBundle/Orientation/Complex/Tensor.lean`. Waits for 2
     and 7.
-13. **Determinant of a direct sum.** Addition to
-    `Topology/VectorBundle/Determinant.lean`, with
-    `Topology/VectorBundle/FiniteRank/Tensor.lean`.
+13. **Determinant of a direct sum.** Tau Ceti's `TauCeti.DetBundle.prodEquiv`
+    compares the determinant lines.
 14. **Splitting principle.**
     `Topology/VectorBundle/ProjectiveBundle/Splitting.lean`. Waits for 8.
 15. **Top class and first class.** `ChernClass/EulerClass.lean` and

@@ -36,7 +36,7 @@ whose sublevel set `{f ≤ 0}` is connected and whose level set `{f = 0}` is non
 `CoordinateDisc.exists_isRegularValue_discComplement_subset_ofChart`). The sublevel set is
 compact: around the disc, the first of these lemmas says so, on any surface; around the
 complement, it is closed in the compact surface `M`. Then
-`ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_setOf_lt` gives a frame over
+`ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_setOfPred_lt` gives a frame over
 `{f < 0}`.
 
 ## References
@@ -82,7 +82,7 @@ theorem IsNondegenerate.exists_isSymplecticFrameOn_disc_ofChart
   obtain ⟨f, hf, hreg, hD, hcpt, hconn, hne⟩ :=
     CoordinateDisc.exists_isRegularValue_disc_subset_ofChart hea hr hc he
   exact ⟨_, isOpen_lt hf.continuous continuous_const, hD,
-    hω.exists_isSymplecticFrameOn_setOf_lt finrank_euclideanSpace_fin hf hreg hcpt hconn hne hκ⟩
+    hω.exists_isSymplecticFrameOn_setOfPred_lt finrank_euclideanSpace_fin hf hreg hcpt hconn hne hκ⟩
 
 /-- **Symplectic frames near the complement of a coordinate disc.** Let `ω` be a nondegenerate
 smooth two-form on a smooth real vector bundle `V` of rank `2 |κ|` over a closed connected smooth
@@ -103,7 +103,7 @@ theorem IsNondegenerate.exists_isSymplecticFrameOn_discComplement_ofChart [Compa
   obtain ⟨g, hg, hreg, hD, hconn, hne⟩ :=
     CoordinateDisc.exists_isRegularValue_discComplement_subset_ofChart hea hr hc he
   exact ⟨_, isOpen_lt hg.continuous continuous_const, hD,
-    hω.exists_isSymplecticFrameOn_setOf_lt finrank_euclideanSpace_fin hg hreg
+    hω.exists_isSymplecticFrameOn_setOfPred_lt finrank_euclideanSpace_fin hg hreg
       (isClosed_le hg.continuous continuous_const).isCompact hconn hne hκ⟩
 
 end SymplecticGeometry.Bundle.ContMDiffTwoForm

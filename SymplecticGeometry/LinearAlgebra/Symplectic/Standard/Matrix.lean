@@ -5,16 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Analysis.Complex.Euclidean.Matrix
 public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Sum
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 import SymplecticGeometry.LinearAlgebra.Matrix.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+import TauCeti.LinearAlgebra.Matrix.SesquilinearForm
 
 /-!
 # The matrix dictionary for the standard model
@@ -28,7 +30,9 @@ conditions on that map.
   `ω₀(A u, B v) = uᵀ (Aᵀ (-J₀) B) v` for matrices `A`, `B` with `2n` rows.
 * `SymplecticGeometry.mem_symplecticGroup_iff_forall_stdForm`: `A` lies in
   `Matrix.symplecticGroup ι ℝ` (that is, `Aᵀ J A = J`) if and only if its map preserves `ω₀`,
-  `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`.
+  `ω₀(A v, A w) = ω₀(v, w)` for all `v, w`;
+  `SymplecticGeometry.mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM` is the same for
+  `Matrix.toEuclideanCLM A`.
 * `SymplecticGeometry.mem_symplecticGroup_iff_isSymplectomorphism`: the same in terms of Tau Ceti's
   `SymplecticForm.IsSymplectomorphism`, for a linear automorphism `e` of `StdSpace ι` and its
   matrix `Matrix.toEuclideanLin.symm e`.
@@ -50,13 +54,6 @@ conditions on that map.
   or is a positive definite matrix (McDuff–Salamon, Lemma 2.5.5).
 * `SymplecticGeometry.neg_J_mul_mem_symplecticGroup_of_invariant`: if `J` preserves `ω₀`, then
   `-J₀ M` is a symplectic matrix.
-* `TauCeti.conj_complexToRealEuclidean_toLin'`: conjugating the complex-linear map of
-  a complex matrix `A` by `complexToRealEuclidean ι` gives the map of its realification
-  `Matrix.realify A`. With `A = I • 1`, whose realification is `Matrix.J ι ℝ`
-  (Tau Ceti's `Matrix.realify_I_smul_one`), this recovers
-  `stdComplexStructure_eq_toEuclideanLin_J`.
-* `SymplecticGeometry.StdSpace.complexEuclideanEquiv_toEuclideanCLM`: the same through
-  `StdSpace.complexEuclideanEquiv`, vector by vector.
 * `SymplecticGeometry.posDef_toBlocks₂₁_of_compatible` and
   `SymplecticGeometry.toBlocks₂₂_eq_neg_transpose_of_invariant`: the matrix `M` of an
   `ω₀`-compatible complex structure has positive definite lower left block `M₂₁`, and
@@ -113,24 +110,24 @@ theorem stdForm_toEuclideanLin_toEuclideanLin {κ μ : Type*} [Fintype κ] [Deci
 theorem mem_symplecticGroup_iff_forall_stdForm {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
     A ∈ symplecticGroup ι ℝ ↔
       ∀ v w, stdForm ι (A.toEuclideanLin v) (A.toEuclideanLin w) = stdForm ι v w := by
-  have key : ∀ (B : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v w : StdSpace ι),
-      stdForm ι (B.toEuclideanLin v) (B.toEuclideanLin w) =
-        toBilin' (Bᵀ * (-J ι ℝ * B)) v.ofLp w.ofLp := fun B v w ↦ by
-    rw [stdForm_apply_toEuclideanLin, Matrix.toBilin'_apply', ← Matrix.mulVec_mulVec _ Bᵀ,
-      Matrix.dotProduct_mulVec v.ofLp Bᵀ, Matrix.vecMul_transpose]
-    simp
-  have base : ∀ v w : StdSpace ι, stdForm ι v w = toBilin' (-J ι ℝ) v.ofLp w.ofLp :=
-    fun v w ↦ by simpa using key 1 v w
-  have hA : Aᵀ * (-J ι ℝ * A) = -J ι ℝ ↔ Aᵀ * J ι ℝ * A = J ι ℝ := by
-    rw [Matrix.neg_mul, Matrix.mul_neg, neg_inj, Matrix.mul_assoc]
-  rw [SymplecticGroup.mem_iff', ← hA]
-  constructor
-  · intro h v w
-    rw [key, base, h]
-  · intro h
-    refine (Matrix.toBilin' (R₁ := ℝ)).injective (LinearMap.ext₂ fun v w ↦ ?_)
-    have := h (WithLp.toLp 2 v) (WithLp.toLp 2 w)
-    rwa [key, base] at this
+  have h := transpose_map_mul_mul_eq_self_iff (σ := RingHom.id ℝ) (Q := -J ι ℝ) (g := A)
+  rw [RingHom.coe_id, map_id, Matrix.mul_neg, Matrix.neg_mul, neg_inj] at h
+  rw [SymplecticGroup.mem_iff', h, (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).symm.forall_congr_left]
+  refine forall_congr' fun v ↦ (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).symm.forall_congr_left.trans
+    (forall_congr' fun w ↦ ?_)
+  have base (v w : StdSpace ι) : stdForm ι v w = v.ofLp ⬝ᵥ (-J ι ℝ *ᵥ w.ofLp) := by
+    simpa using stdForm_apply_toEuclideanLin 1 v w
+  simp [base, toLpLin_apply]
+
+/-- A real matrix `A` indexed by `ι ⊕ ι` is symplectic if and only if its continuous linear map
+`Matrix.toEuclideanCLM A` preserves the standard symplectic form: `ω₀(A v, A w) = ω₀(v, w)` for
+all `v, w`. This is `mem_symplecticGroup_iff_forall_stdForm` for `Matrix.toEuclideanCLM`. -/
+theorem mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
+    A ∈ symplecticGroup ι ℝ ↔
+      ∀ v w, stdForm ι (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) A v)
+        (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ) A w) = stdForm ι v w := by
+  simp only [← coe_toEuclideanCLM_eq_toEuclideanLin, ContinuousLinearMap.coe_coe,
+    mem_symplecticGroup_iff_forall_stdForm]
 
 /-- A linear automorphism `e` of `StdSpace ι` is a symplectomorphism of `ω₀` if and only if its
 matrix `Matrix.toEuclideanLin.symm e` lies in `Matrix.symplecticGroup ι ℝ`. -/
@@ -269,45 +266,6 @@ theorem toBlocks₂₂_eq_neg_transpose_of_invariant {J : AlmostComplexStructure
   rw [neg_J_mul_eq_fromBlocks, fromBlocks_transpose, toBlocks_fromBlocks₁₂, toBlocks_fromBlocks₁₂,
     transpose_neg] at h
   exact h.symm
-
-end SymplecticGeometry
-
-namespace TauCeti
-
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-/-- Conjugating the complex-linear map of a complex matrix `A` by `complexToRealEuclidean ι`,
-which splits a vector of `ι → ℂ` into its real and imaginary parts, gives the map of the
-realification `Matrix.realify A` on `EuclideanSpace ℝ (ι ⊕ ι)`. -/
-theorem conj_complexToRealEuclidean_toLin' (A : Matrix ι ι ℂ) :
-    (complexToRealEuclidean ι).toLinearEquiv.conj ((Matrix.toLin' A).restrictScalars ℝ) =
-      Matrix.toEuclideanLin A.realify := by
-  ext1 z
-  simpa using complexToRealEuclidean_mulVec A ((complexToRealEuclidean ι).symm z)
-
-end TauCeti
-
-namespace SymplecticGeometry
-
-namespace StdSpace
-
-open Matrix TauCeti
-
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
-
-/-- Through `StdSpace.complexEuclideanEquiv`, a complex matrix acts on `StdSpace ι` as its
-realification. -/
-theorem complexEuclideanEquiv_toEuclideanCLM (A : Matrix ι ι ℂ) (v : EuclideanSpace ℂ ι) :
-    complexEuclideanEquiv ι (toEuclideanCLM (𝕜 := ℂ) A v) =
-      toEuclideanLin A.realify (complexEuclideanEquiv ι v) := by
-  rw [complexEuclideanEquiv_def]
-  exact complexToRealEuclidean_mulVec A v.ofLp
-
-end StdSpace
-
-open TauCeti Matrix
-
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 /-- For the matrix `M` of an `ω₀`-compatible complex structure, the product `M₁₁ M₂₁⁻¹` of the
 upper left block and the inverse of the lower left block is symmetric. -/

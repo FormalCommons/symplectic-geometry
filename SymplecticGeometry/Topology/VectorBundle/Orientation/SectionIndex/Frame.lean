@@ -12,6 +12,9 @@ public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.
 public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.Geometry.Manifold.ModelTransport.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 
 /-!
 # Local indices of sections of a complex line bundle read in a frame over a coordinate disc

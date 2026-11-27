@@ -5,10 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
-public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Connected
-public import SymplecticGeometry.Geometry.Symplectic.LinearMoser
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
+import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
+import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Connected
+import SymplecticGeometry.Geometry.Symplectic.LinearMoser
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Basic
 
 /-!
 # Smooth paths of symplectic frames
@@ -56,7 +59,7 @@ theorem exists_contDiff_path_apply_eq_stdForm {n : ℕ∞}
   obtain ⟨u, hu⟩ := hΨu 1
   set L : StdSpace ι →L[ℝ] StdSpace ι := ↑u⁻¹ * B
   have hΨL (v : StdSpace ι) : Ψ 1 (L v) = B v := by
-    rw [← hu, ← mul_apply_eq_comp, ← mul_assoc, Units.mul_inv, one_mul]
+    rw [← hu, mul_apply_eq_comp, ContinuousLinearMap.units_apply_inv_apply]
   have hL : Matrix.toEuclideanLin.symm L.toLinearMap ∈ Matrix.symplecticGroup ι ℝ := by
     rw [mem_symplecticGroup_iff_forall_stdForm, LinearEquiv.apply_symm_apply]
     intro v w
@@ -74,9 +77,8 @@ theorem exists_contDiff_path_apply_eq_stdForm {n : ℕ∞}
   · ext1 v
     rw [mul_apply_eq_comp, hγ1, Matrix.toEuclideanCLM_apply, LinearEquiv.apply_symm_apply,
       ContinuousLinearMap.coe_coe, hΨL]
-  · rw [mul_apply_eq_comp, mul_apply_eq_comp, hΨω, h₀, Matrix.toEuclideanCLM_apply,
-      Matrix.toEuclideanCLM_apply]
-    exact (mem_symplecticGroup_iff_forall_stdForm.1 (hγs t)) v w
+  · rw [mul_apply_eq_comp, mul_apply_eq_comp, hΨω, h₀]
+    exact mem_symplecticGroup_iff_forall_stdForm_toEuclideanCLM.1 (hγs t) v w
 
 end SymplecticGeometry
 

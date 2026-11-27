@@ -8,9 +8,14 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+public import TauCeti.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
+import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
+import TauCeti.Analysis.InnerProductSpace.Calculus
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
 # Smooth embeddings precomposed with `univBall`
@@ -26,11 +31,24 @@ The first proof is that of the local diffeomorphism step inside Tau Ceti's
 `TauCeti.exists_isOpenEmbedding_isLocalDiffeomorph`, stated on its own; that step assumes
 `0 < ρ`, and the case `ρ ≤ 0`, where `univBall c ρ` is a translation, is added here.
 
+For a chart `φ` of a manifold modelled on `E` whose target contains `ball c r`, the map
+`φ.symm ∘ univBall c r` is an open embedding of `E` and a local diffeomorphism
+(`OpenPartialHomeomorph.isOpenEmbedding_symm_comp_univBall`,
+`OpenPartialHomeomorph.isLocalDiffeomorph_symm_comp_univBall`): a coordinate ball. This is the
+rest of the proof of Tau Ceti's `TauCeti.exists_isOpenEmbedding_isLocalDiffeomorph`, for any chart
+of the maximal atlas instead of `chartAt`. At `0`, the map `univBall c ρ` has derivative
+`ρ • id`, so for `0 < ρ` it preserves every orientation of `E` there
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`).
+
 ## Main results
 
-* `OpenPartialHomeomorph.range_univBall`: the range of `univBall c r` is `ball c r`, for `0 < r`.
 * `OpenPartialHomeomorph.isLocalDiffeomorph_univBall`: `univBall c ρ` is a `C^n` local
   diffeomorphism, for `n ≤ ∞`.
+* `OpenPartialHomeomorph.isOpenEmbedding_symm_comp_univBall`,
+  `OpenPartialHomeomorph.isLocalDiffeomorph_symm_comp_univBall`: a chart inverse after
+  `univBall c r` is a coordinate ball.
+* `OpenPartialHomeomorph.isOrientationPreservingAt_univBall`: `univBall c ρ` preserves
+  orientations at `0`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
   `ball c ρ`, precomposed with `univBall c ρ`, is a smooth embedding of `E`.
 -/
@@ -43,18 +61,6 @@ open scoped Manifold ContDiff
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : ℕ∞ω} {c : E} {ρ : ℝ}
 
 namespace OpenPartialHomeomorph
-
-section Range
-
-variable {P : Type*} [PseudoMetricSpace P] [NormedAddTorsor E P]
-
-/-- For `0 < r`, Mathlib's map `univBall c r : E → P` has as range the ball `ball c r`. -/
-theorem range_univBall (c : P) {r : ℝ} (hr : 0 < r) :
-    range (univBall (E := E) c r) = ball c r := by
-  rw [← univBall_target c hr, ← image_univ, ← univBall_source c r,
-    (univBall c r).image_source_eq_target]
-
-end Range
 
 /-- For `n ≤ ∞`, Mathlib's map `univBall c ρ` is a `C^n` local diffeomorphism of `E`. It maps
 `E` onto the ball `ball c ρ` if `0 < ρ`, and is the translation by `c` otherwise. -/
@@ -73,6 +79,44 @@ theorem isLocalDiffeomorph_univBall (hn : n ≤ ∞) :
       ((contDiff_univBall (n := ⊤)).of_le hn).contDiffOn hsymm
   exact fun x ↦
     isLocalDiffeomorphAt_of_eqOn (Φ := Φ) (by simp [Φ, univBall_source]) fun _ _ ↦ by simp [Φ]
+
+section Chart
+
+variable {N : Type*} [TopologicalSpace N] {φ : OpenPartialHomeomorph N E} {r : ℝ}
+
+/-- A homeomorphism `φ` from an open subset of `N` onto an open subset of `E` whose target
+contains the ball `ball c r`, with `0 < r`, gives an open embedding of `E` into `N`: `φ.symm`
+after Mathlib's map `univBall c r` of `E` onto that ball. -/
+theorem isOpenEmbedding_symm_comp_univBall (hr : 0 < r) (h : ball c r ⊆ φ.target) :
+    Topology.IsOpenEmbedding (φ.symm ∘ univBall c r) := by
+  have hb (v : E) : univBall c r v ∈ φ.target :=
+    h (univBall_target c hr ▸ (univBall c r).map_source (by simp))
+  have hψ : ((univBall c r).trans φ.symm).source = univ := by
+    rw [trans_source, univBall_source, symm_source, univ_inter]
+    exact eq_univ_of_forall hb
+  rw [← coe_trans]
+  exact ((univBall c r).trans φ.symm).isOpenEmbedding hψ
+
+/-- For a chart `φ` of the maximal `C^n` atlas of a manifold `N` modelled on `E`, with `n ≤ ∞`,
+whose target contains the ball `ball c r`, with `0 < r`, the map `φ.symm ∘ univBall c r : E → N`
+is a `C^n` local diffeomorphism. -/
+theorem isLocalDiffeomorph_symm_comp_univBall [ChartedSpace E N] [IsManifold 𝓘(ℝ, E) n N]
+    (hn : n ≤ ∞) (hφ : φ ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) n N) (hr : 0 < r)
+    (h : ball c r ⊆ φ.target) :
+    IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n (φ.symm ∘ univBall c r) := fun v ↦
+  (isLocalDiffeomorph_univBall hn v).comp (hg := φ.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas hφ
+    (h (univBall_target c hr ▸ (univBall c r).map_source (by simp))))
+
+end Chart
+
+/-- For `0 < ρ`, Mathlib's map `univBall c ρ` of a finite-dimensional `E` onto the ball
+`ball c ρ` preserves every orientation of `E` at `0`: its derivative there is `ρ • id`. -/
+theorem isOrientationPreservingAt_univBall [FiniteDimensional ℝ E] {ι : Type*} [Fintype ι]
+    (hρ : 0 < ρ) (o : Manifold.Orientation 𝓘(ℝ, E) E ι) :
+    o.IsOrientationPreservingAt o (univBall c ρ) 0 := by
+  refine Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos o ?_
+  rw [(hasFDerivAt_univBall hρ c 0).fderiv]
+  simpa using pow_pos hρ (Module.finrank ℝ E)
 
 end OpenPartialHomeomorph
 

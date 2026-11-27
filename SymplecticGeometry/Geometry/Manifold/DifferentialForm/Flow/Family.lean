@@ -7,11 +7,13 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Moser's principle along local flows, and slices of families of forms
@@ -230,8 +232,7 @@ theorem mpullback_prodMap_timeInterior (f : M → N) (hf : ContMDiff I J ∞ f)
     (σ : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F (k + 1)) :
     mpullback (Prod.map id f) (contMDiff_id.prodMap hf) σ.timeInterior =
       (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) σ).timeInterior := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, coe_timeInterior, coe_timeInterior, coe_mpullback]
+  rw [mpullback_eq_iff, coe_timeInterior, coe_timeInterior, coe_mpullback]
   refine mpullback_interior (F := F) _ _ _ _ fun p ↦ ?_
   rw [mfderiv_prodMap mdifferentiableAt_id (hf.mdifferentiableAt (by simp)), mfderiv_id]
   exact Prod.ext rfl (mfderiv I J f p.2).map_zero
@@ -281,7 +282,7 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
         (mfderiv I J f x : E →L[ℝ] E') (γ.val (f x)) := by
     rw [coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM]
   have hs (u : ℝ) := congrArg (fun γ ↦ γ.val x) (mpullback_prodMk_mpullback_prodMap' hc f hf α u)
-  simp only [hs, hx, Submodule.coe_smul, Pi.smul_apply] at h₁ h₂ ⊢
+  simp only [hs, hx, SmoothBundleForm.smul_apply] at h₁ h₂ ⊢
   refine h₁.unique ?_
   convert h₂ using 1
   · rw [map_smul, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
@@ -323,7 +324,7 @@ theorem mpullback_prodMk_mlieDerivForm_mpullback_prodMap_subtypeVal
   -- Near `t`, the slices of the restriction at the times `g v` are the slices of `β` at `v`.
   filter_upwards [hu] with v hv
   have hs := congrArg (fun γ ↦ γ.val x)
-    (SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right contMDiff_subtypeVal β (g v))
+    (SmoothForm.mpullback_prodMk_mpullback_prodMap_id β contMDiff_subtypeVal (g v))
   simp only [SmoothForm.coe_mpullback, hv, id] at hs
   rw [SmoothForm.coe_mpullback]
   -- `hs` reads the forms in the tangent spaces of `M`, the goal in the model `E`.

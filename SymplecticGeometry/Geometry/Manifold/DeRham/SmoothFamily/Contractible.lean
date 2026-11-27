@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.DegreeZero
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
+import SymplecticGeometry.Geometry.Manifold.DeRham.DegreeZero
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
 
 /-!
 # Smooth cohomology splittings of smoothly contractible manifolds

@@ -5,10 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.StdSimplex
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.SmoothSingular.Basic
+public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
+public import TauCeti.Geometry.Manifold.Orientation.Euclidean
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.StdSimplex
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!
 # The class of a positively oriented simplex in local homology

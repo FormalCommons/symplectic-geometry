@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Algebra.MvPolynomial.Polynomial
 public import TauCeti.Geometry.RealAlgebraic.Nash.Implicit
+import SymplecticGeometry.Algebra.MvPolynomial.Polynomial
 
 /-!
 # Simple roots of polynomials with Nash coefficients

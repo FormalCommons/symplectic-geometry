@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Normed.Operator.LinearIsometry
 public import Mathlib.Topology.Sets.Opens
+public import TauCeti.Analysis.Complex.ClosedAnnulus
 
 /-!
 # Open annuli in a normed group
@@ -19,9 +20,14 @@ symplectic fibre sums are diffeomorphisms of such annuli, in a vector space or i
 
 * `SymplecticGeometry.annulus E a b`: the open annulus `{x | a < ‖x‖ ∧ ‖x‖ < b}` of `E`, with
   `coe_annulus` and `mem_annulus`.
+* `SymplecticGeometry.annulus_mono`: the annulus is monotone in its outer radius and antitone in
+  its inner radius.
 * `SymplecticGeometry.map_mem_annulus_iff`: a semilinear isometry preserves membership in the
   annulus of given radii.
 * `SymplecticGeometry.ne_zero_of_mem_annulus`: for `0 ≤ a`, the annulus misses `0`.
+* `Complex.closedAnnulus_subset_closedAnnulus`, `Complex.closedAnnulus_subset_annulus` and
+  `Complex.annulus_subset_closedAnnulus`: inclusions between Tau Ceti's closed annuli
+  `Complex.closedAnnulus a b` of `ℂ` and the open annuli `annulus ℂ a b`.
 -/
 
 public section
@@ -51,6 +57,12 @@ theorem coe_annulus (a b : ℝ) : (annulus E a b : Set E) = {x | a < ‖x‖ ∧
 theorem mem_annulus {a b : ℝ} {x : E} : x ∈ annulus E a b ↔ a < ‖x‖ ∧ ‖x‖ < b :=
   Iff.rfl
 
+/-- The open annulus grows as its inner radius decreases and its outer radius increases. -/
+@[gcongr]
+theorem annulus_mono {a a' b b' : ℝ} (ha : a ≤ a') (hb : b' ≤ b) :
+    annulus E a' b' ≤ annulus E a b :=
+  fun _ hx ↦ mem_annulus.2 ⟨ha.trans_lt (mem_annulus.1 hx).1, (mem_annulus.1 hx).2.trans_le hb⟩
+
 end Seminormed
 
 variable {E}
@@ -71,5 +83,30 @@ theorem ne_zero_of_mem_annulus {a b : ℝ} (ha : 0 ≤ a) {x : E} (hx : x ∈ an
   norm_pos_iff.1 (ha.trans_lt hx.1)
 
 end SymplecticGeometry
+
+namespace Complex
+
+open SymplecticGeometry
+
+variable {a a' b b' : ℝ}
+
+/-- The closed annulus `a ≤ ‖z‖ ≤ b` of `ℂ` grows as its inner radius decreases and its outer
+radius increases. -/
+@[gcongr]
+theorem closedAnnulus_subset_closedAnnulus (ha : a ≤ a') (hb : b' ≤ b) :
+    closedAnnulus a' b' ⊆ closedAnnulus a b := fun _ hz ↦
+  mem_closedAnnulus.2 ⟨ha.trans (mem_closedAnnulus.1 hz).1, (mem_closedAnnulus.1 hz).2.trans hb⟩
+
+/-- For `a < a'` and `b' < b`, the closed annulus `a' ≤ ‖z‖ ≤ b'` of `ℂ` lies in the open annulus
+`a < ‖z‖ < b`. -/
+theorem closedAnnulus_subset_annulus (ha : a < a') (hb : b' < b) :
+    closedAnnulus a' b' ⊆ annulus ℂ a b := fun _ hz ↦
+  mem_annulus.2 ⟨ha.trans_le (mem_closedAnnulus.1 hz).1, (mem_closedAnnulus.1 hz).2.trans_lt hb⟩
+
+/-- The open annulus `a < ‖z‖ < b` of `ℂ` lies in the closed annulus `a ≤ ‖z‖ ≤ b`. -/
+theorem annulus_subset_closedAnnulus : (annulus ℂ a b : Set ℂ) ⊆ closedAnnulus a b :=
+  fun _ hz ↦ mem_closedAnnulus.2 ⟨(mem_annulus.1 hz).1.le, (mem_annulus.1 hz).2.le⟩
+
+end Complex
 
 end

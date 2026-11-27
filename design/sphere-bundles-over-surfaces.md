@@ -8,8 +8,9 @@ McDuff–Salamon [McDuffSalamon2017], §6.2: Lemma 6.2.3 and Exercise 6.2.4
 for the first, Theorem 6.2.5 with Exercises 6.2.6, 6.2.8 and 6.2.9 for the
 second. The input from differential topology is Smale's theorem
 [Smale1959], from part 46. The handle induction follows Milnor's *Morse
-theory* (1963), §3, and the de Rham Leray–Hirsch theorem follows Bott–Tu
-[BottTu1982], §5.
+theory* (1963), §3, and the de Rham Leray–Hirsch theorem is read off the
+singular one, as in Hatcher, *Algebraic Topology*, Theorem 4D.1, and
+Bott–Tu [BottTu1982], §14.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
 written with another one. Paths of new files are under `SymplecticGeometry/`.
@@ -185,28 +186,34 @@ notes of the reviews of #2280 and #2445.
    it needs `ruledCoefficients S` to be injective, with
    $\langle a^2,[X_B]\rangle=\mu_+^2-\mu_-^2$ and
    $\langle a,[F]\rangle=\mu_+-\mu_-$.
-7. **Leray–Hirsch in de Rham form, proved directly.** The singular
-   Leray–Hirsch theorem of `AlgebraicTopology/Cohomology/LerayHirsch/`
-   is not brought to de Rham classes: Tau Ceti's
-   `deRhamCohomology.integration` lands in smooth singular cohomology, and
-   neither library has the de Rham theorem in degree two, so the bridge
-   would be longer than a direct proof. Instead, for an oriented
-   $S^2$-bundle over `S` and a closed 2-form $\Theta$ with
-   $\int_F\Theta=1$ on every fibre, every closed 2-form is cohomologous to
-   $c\,\Theta+\pi^*\beta$, with $c=\int_F\alpha$, and $\pi^*\beta$ is exact
-   exactly when $\int_S\beta=0$. The proof is the Mayer–Vietoris induction
-   over a finite good cover of `S` subordinate to the base sets of the
-   atlas (the library's `hasFiniteGoodCover_of_compactSpace`, with the
-   induction pattern of `DeRham/SmoothFamily/GoodCover.lean`, on Tau Ceti's
-   `DeRham/MayerVietoris.lean`), with the five lemma at each step. On a
-   contractible `U` in a base set, $U\times S^2$ has the cohomology of
-   $S^2$ by `TauCeti.deRhamCohomology.map_eq_of_homotopy` and
+7. **Leray–Hirsch in de Rham form, through the singular theorem.** For an
+   oriented $S^2$-bundle over `S` and a closed 2-form $\Theta$ with
+   $\int_F\Theta=1$ on every fibre, every closed 2-form $\alpha$ is
+   cohomologous to $c\,\Theta+\pi^*\beta$, with $c=\int_F\alpha$, and
+   $\pi^*\beta$ is exact exactly when $\int_S\beta=0$. Both are read off
+   the singular Leray–Hirsch theorem with real coefficients, Tau Ceti's
+   `TopCat.lerayHirsch_bijective_of_trivializations` for the finitely many
+   trivializations of the atlas that cover the compact `S`, in degree two,
+   with the classes $1$ in degree zero and `TauCeti.deRhamHom` of
+   $[\Theta]$ in degree two, and are carried to de Rham classes by the
+   library's de Rham theorem on the total space and on `S`, both compact
+   (`TauCeti.bijective_deRhamHom_of_compactSpace`), and by its naturality
+   (`TauCeti.deRhamHom_map`). The hypotheses on the fibre come from the
+   fibre being $\mathbb CP^1$ (`OnePoint.diffeomorphProjectivization`):
+   its real homology is finite by Tau Ceti's
+   `TauCeti.finite_singularHomology_of_finiteCWType` and
+   `TauCeti.finiteCWType_projectivization_complex`, and its real
+   cohomology is that of the de Rham theorem on it, with
    `TauCeti.finrank_deRhamCohomology_sphere_self` (through
-   `OnePoint.diffeomorphSphere`). On `S`, a top form with integral zero
-   is exact by Tau Ceti's
-   `mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`. So the
-   merged singular Leray–Hirsch files are not used, which corrects
-   `DESIGN.md`.
+   `OnePoint.diffeomorphSphere`), so that the restriction of
+   $[\Theta]$, whose integral is $1$, spans degree two. The pull-back
+   $\pi^*$ is injective by
+   `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`, and
+   on `S` a top form with integral zero is exact by Tau Ceti's
+   `mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`. This is
+   shorter than a Mayer–Vietoris induction over a finite good cover of
+   `S`, which would repeat the induction behind
+   `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`.
 8. **The form of Exercise 6.2.6 is Weinstein's form.** On
    $P\times_{S^1}S^2$ with a circle connection $A$ whose curvature is a
    constant multiple of an area form $\omega_S$ of `S` (the existence half
@@ -230,10 +237,10 @@ notes of the reviews of #2280 and #2445.
    `TauCeti.circlePeriodHom_surjective` gives smooth maps
    $u,v\colon S\to U(1)$ whose period homomorphisms reduce mod 2 to classes
    $a,b\in H^1(S;\mathbb Z/2)$ with $a\cup b\neq0$, from two integral classes
-   whose cup product is one on $[S]$. They exist in positive genus by the
-   library's Poincaré duality for compact oriented manifolds
-   (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`,
-   #810), over `ℤ` or over `ZMod 2`, whichever form it has. The real
+   whose cup product is one on $[S]$. They exist in positive genus by
+   Tau Ceti's Poincaré duality for compact oriented manifolds
+   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`),
+   over `ℤ` or over `ZMod 2`, whichever form it has. The real
    lines $\ell_u(x)=\mathbb R\sqrt{u(x)}\subset\mathbb C$ are flat line
    bundles, and the unit sphere bundle of $\ell_u\oplus\ell_v\oplus\ell_{uv}$
    is an $S^2$-bundle with locally constant transition functions in the
@@ -265,17 +272,17 @@ notes of the reviews of #2280 and #2445.
 
 ## Departures from `DESIGN.md`
 
-`DESIGN.md` is corrected in the same pull request, in two places. In part
-56, `RuledSurface.lean` reaches $H^2(X_B;\mathbb R)$ through the de Rham
-Leray–Hirsch theorem of Decision 7, not through the merged singular
-Leray–Hirsch files. *Builds on* and the build-order row gain part 50,
+`DESIGN.md` is corrected in the same pull request, in one place: in part
+56, *Builds on* and the build-order row gain part 50,
 *Principal connections*, only for `Fibration/Associated.lean`, which
 `RuledSurface.lean` uses (Decision 8), and they name the files of part 46
 before `Smale.lean` that `diffPlus`, `mobiusSubgroup` and
 `mobiusSubgroup_le_diffPlus` come from. Part 50 is at level 0, so part 56
 stays at level 2. Of part 48 the part uses `MapFiber.lean`,
 `StructureGroup.lean` and `Basic.lean`, which `DESIGN.md` already allows.
-The new blocker of the building issue is proposed in an issue.
+The new blocker of the building issue is proposed in an issue. In bringing
+the singular Leray–Hirsch theorem to de Rham classes, the part now follows
+`DESIGN.md`.
 
 ## Files
 
@@ -373,7 +380,7 @@ About 500 lines.
   The issue proves that splitting for Tau Ceti's `integralTopForm` if it
   is missing.
 
-About 450 lines; the induction is one issue.
+The bridge is one issue.
 
 ### `Geometry/Symplectic/RuledSurface.lean`
 
@@ -429,7 +436,9 @@ estimate, and `RuledSurface.lean` becomes `RuledSurface/Basic.lean`.
   `symplecticChernNumber_pullback` and `symplecticChernNumber_tangent`,
   `clutchingLineBundle`, `chernNumber_eq_sum_degree_clutching`,
   `unitFrame`, and `chernNumber_eq_integral_curvature_and_exists`.
-- The library's finite good covers (`DeRham/GoodCover/Compact.lean`).
+- The library's de Rham theorem
+  (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`) and singular
+  Leray–Hirsch theorem (`AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`).
 - Tau Ceti: Morse functions and sublevel deformations
   (`Geometry/Manifold/Morse/`), Ehresmann connections, associated bundles,
   de Rham cohomology (Mayer–Vietoris, homotopy invariance, spheres, top
@@ -472,7 +481,8 @@ milestones are proved in issues 7 and 11.
   Theorem 6.2.5, Exercises 6.2.6, 6.2.8 and 6.2.9.
 * [S. Smale, *Diffeomorphisms of the 2-sphere*][Smale1959].
 * [R. Bott, L. W. Tu, *Differential Forms in Algebraic
-  Topology*][BottTu1982], §5 (the Mayer–Vietoris argument) and §14
-  (Leray–Hirsch).
+  Topology*][BottTu1982], §14 (Leray–Hirsch).
+* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002,
+  Theorem 4D.1 (Leray–Hirsch).
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton
   University Press, 1963, §3 (handles).

@@ -10,8 +10,12 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.RelativePoincare
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Relative primitives near an embedded submanifold
@@ -103,15 +107,16 @@ theorem exists_smoothForm_relative_primitive_sub (f : SmoothEmbedding J I ∞ Q 
           (0 : E →L[ℝ] E [⋀^Fin k]→L[ℝ] F)
           (extChartAt I (⟨f q, hfW (mem_range_self q)⟩ : W) ⟨f q, hfW (mem_range_self q)⟩) := by
   have hf0 : mpullback (F := F) J I f (η₁ - η₀).val = 0 := by
-    have h := congrArg Subtype.val (sub_eq_zero.2 hf)
-    rwa [← map_sub, SmoothForm.coe_mpullback] at h
+    have h := (SmoothForm.mpullback_eq_iff f.contMDiff (φ := η₁ - η₀) (ψ := 0)).1 <| by
+      rw [map_sub, sub_eq_zero.2 hf]
+    rwa [ZeroMemClass.coe_zero] at h
   obtain ⟨W, hWO, hfW, hprim⟩ := f.exists_isSmoothForm_relative_primitive (F := F) hO hfO
   obtain ⟨β, hβ, hdβ, hβ0, hβ1⟩ := hprim (r := ⊤) le_top (η₁ - η₀).isSmoothForm
     ((SmoothForm.isClosed_def _).1 (h₁.sub h₀)) hf0
   refine ⟨W, hWO, hfW, ⟨β, hβ.mem_smoothBundleForms⟩, ?_, hβ0, fun q hq ↦ hβ1 q ?_⟩
   · rw [hdβ, ← map_sub]
     exact (SmoothForm.coe_mpullback _ _ _).symm
-  · rw [AddSubgroupClass.coe_sub, Pi.sub_apply, hq, sub_self]
+  · rw [SmoothBundleForm.sub_apply, hq, sub_self]
 
 /-- **Primitives with prescribed pullback, given a smooth retraction.** Let `f : Q → M` be a
 smooth embedding with a smooth left inverse `ρ : M → Q`, `θ` a closed smooth `(k + 1)`-form on `M`
@@ -126,8 +131,7 @@ theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedd
       SmoothForm.mpullback (f.codRestrict W hfW) (f.codRestrict W hfW).contMDiff ξ = β := by
   let βM := SmoothForm.mpullback ρ hρ β
   have hfβM : SmoothForm.mpullback f f.contMDiff βM = β := by
-    refine Subtype.ext ?_
-    rw [SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback, hρf, mpullback_id]
+    rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_eq_iff, hρf, mpullback_id]
   -- The closed forms `θ` and `d(ρ^* β)` have the same pullback `dβ` along `f`, so on a tube `W`
   -- their difference has a primitive `μ` vanishing along `f`.
   obtain ⟨W, -, hfW, μ, hdμ, hμ0, -⟩ := f.exists_smoothForm_relative_primitive_sub
@@ -143,9 +147,7 @@ theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedd
   · rw [map_add, SmoothForm.mpullback_mpullback]
     simp only [f.val_comp_codRestrict W hf']
     rw [hfβM, add_eq_left]
-    refine Subtype.ext (funext fun x ↦ ?_)
-    rw [SmoothForm.coe_mpullback]
-    refine mpullback_apply_eq_zero ?_
+    refine (SmoothForm.mpullback_eq_iff _).2 (funext fun x ↦ mpullback_apply_eq_zero ?_)
     rw [show f.codRestrict W hf' x = ⟨f x, hf' x⟩ from Subtype.ext (f.val_codRestrict_apply ..),
       hμ0]
 
@@ -167,8 +169,7 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
   -- On the open submanifold `T = W`, the map `r` is a smooth retraction.
   let T : TopologicalSpace.Opens M := ⟨W, hW⟩
   have hval : ContMDiff I I ∞ (Subtype.val : T → M) := contMDiff_subtypeVal
-  have hρ : ContMDiff I J ∞ (fun y : T ↦ r y) := fun y ↦
-    ((hr _ y.property).contMDiffAt (hW.mem_nhds y.property)).comp y hval.contMDiffAt
+  have hρ : ContMDiff I J ∞ (fun y : T ↦ r y) := contMDiff_subtype_iff.2 hr
   have hfT : ∀ x, f x ∈ T := fun x ↦ hfW (mem_range_self x)
   let j := f.codRestrict T hfT
   have hvj : Subtype.val ∘ j = f := f.val_comp_codRestrict T hfT
@@ -185,8 +186,10 @@ theorem exists_mextDeriv_eq_and_mpullback_eq (f : SmoothEmbedding J I ∞ Q M) {
         (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) ((w : T) : M) := by
     have h₁ := (contMDiffAt_mpullback_subtype_val_iff γ' w).1 (hγ' ▸ ξ.contMDiff w)
     exact ⟨h₁, (contMDiffAt_mpullback_subtype_val_iff γ (w : T)).1 (hγ ▸ h₁)⟩
-  refine ⟨Subtype.val '' (W' : Set T), hW.isOpenMap_subtypeVal _ W'.isOpen,
-    fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
+  refine ⟨TopologicalSpace.Opens.imageVal W',
+    (TopologicalSpace.Opens.imageVal W').isOpen, ?_⟩
+  rw [TopologicalSpace.Opens.coe_imageVal]
+  refine ⟨fun _ ⟨x, hx⟩ ↦ ⟨j x, hjW' x, hx ▸ congrFun hvj x⟩, γ,
     fun _ ⟨t, ht, h⟩ ↦ h ▸ (hγs ⟨t, ht⟩).2, ?_, ?_⟩
   · rintro _ ⟨t, ht, rfl⟩
     have e := congrFun (mpullback_subtype_val_mextDeriv (U := W') γ') ⟨t, ht⟩

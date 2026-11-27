@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
 # Lagrangian subspaces of `ℂⁿ` transverse to `ℝⁿ`
@@ -48,7 +49,7 @@ theorem exists_isSymm_eq_lagrangianChart {V : Submodule ℝ (EuclideanSpace ℂ 
     (hiso : ∀ v ∈ V, ∀ w ∈ V, (inner ℂ v w).im = 0)
     (hreal : V ⊓ realSubspace n = ⊥) :
     ∃ S : Matrix n n ℝ, S.IsSymm ∧ V = S.lagrangianChart := by
-  let ε := (complexEuclideanEquiv n).toLinearEquiv
+  let ε := (complexToRealEuclideanIsometry n).toLinearEquiv
   have hdimV := hV.finrank_eq_finrank_complex
   have hdimR := (isMaximalTotallyReal_realSubspace (n := n)).finrank_eq_finrank_complex
   -- The image of `V` in `StdSpace n` is Lagrangian.

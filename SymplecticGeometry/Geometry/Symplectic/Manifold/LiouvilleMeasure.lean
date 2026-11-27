@@ -5,13 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Measure
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Measure
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
+import TauCeti.Geometry.Manifold.Measure.Atlas
 
 /-!
 # Integrating the symplectic volume form
@@ -33,11 +35,13 @@ dimension, including dimension `0`.
 It also computes Liouville integrals in symplectic coordinates. A partial diffeomorphism
 `Φ : N → M` that pulls `σ` back to a two-form `τ` on its source carries the Liouville measure of
 `τ` on the source to that of `σ` on the target
-(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.map_restrict_liouvilleMeasure`), so that
+(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.map_restrict_liouvilleMeasure`). So it sends each
+subset of the source onto a set of the same Liouville measure
+(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.liouvilleMeasure_image`), and
 `∫ f dλ_σ = ∫_{Φ.source} f ∘ Φ dλ_τ` for every `f` vanishing outside the target
 (`TauCeti.SmoothTwoForm.IsSymplecticMapOn.integral_liouvilleMeasure`). The manifolds `N` and `M`
 may be modelled on different spaces of the same dimension; the proof restricts `Φ` to its open
-source and applies `MeasurableEmbedding.map_measure_mpullback` there. On the standard
+source and applies `MeasurableEmbedding.map_liouvilleMeasure` there. On the standard
 space `StdSpace ι` with the constant form `ω₀ = stdForm ι`, the Liouville measure is Lebesgue
 measure (`SymplecticGeometry.liouvilleMeasure_constSmooth_stdForm`), so a symplectic chart from
 `StdSpace (Fin n)` turns a Liouville integral into a Lebesgue integral over the chart's source
@@ -55,6 +59,14 @@ with compact support, `m` the number of elements of `ι`,
 `MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq` read through
 `EuclideanSpace.sumEquivProd`, which preserves Lebesgue measure
 (`EuclideanSpace.volume_preserving_sumEquivProd`).
+
+Null sets can be read off in charts. On a Lindelöf manifold, every chartwise null set in the sense
+of `TauCeti.IsNullSet` is null for the Liouville measure of every two-form
+(`TauCeti.IsNullSet.liouvilleMeasure_eq_zero`), the case of the volume form of
+`TauCeti.RoughForm.measure_eq_zero_of_isNullSet`. In particular so is a subset of the source of
+an extended chart whose image is null for an additive Haar measure on the model
+(`TauCeti.SmoothTwoForm.liouvilleMeasure_eq_zero_of_subset`), by
+`TauCeti.isNullSet_of_measure_extend_image_eq_zero`.
 
 ## References
 
@@ -93,6 +105,25 @@ theorem IsNondegenerate.integralTopForm_smul_volumeForm (h : σ.IsNondegenerate)
     (signBasis_orientationAt_mul_nonneg_of_iff _
       fun _ c ↦ h.orientation_eq_orientationAt_volumeOrientation_iff hn.out c) hf hc
 
+/-! ### Null sets in charts -/
+
+/-- **A set that is null in a chart is null for the Liouville measure.** A subset of the source
+of the extended chart at `α` whose image in the chart is null for an additive Haar measure on the
+model has Liouville measure zero. The set need not be measurable. -/
+theorem liouvilleMeasure_eq_zero_of_subset [MeasurableSpace E] [BorelSpace E] {α : M}
+    {s : Set M} (hsub : s ⊆ (extChartAt I α).source) (μ : Measure E) [μ.IsAddHaarMeasure]
+    (hs : μ (extChartAt I α '' s) = 0) : σ.liouvilleMeasure n s = 0 := by
+  rw [liouvilleMeasure_def]
+  exact RoughForm.measure_eq_zero_of_isNullSet _ (isNullSet_of_measure_extend_image_eq_zero
+    (by simpa using hsub) (IsManifold.chart_mem_maximalAtlas α) μ (by simpa using hs))
+
+/-- **A chartwise null set is null for the Liouville measure.** On a Lindelöf manifold, a set
+whose images in all extended charts are null for the additive Haar measures on the model has
+Liouville measure zero for every two-form. -/
+theorem _root_.TauCeti.IsNullSet.liouvilleMeasure_eq_zero [MeasurableSpace E] [BorelSpace E]
+    {s : Set M} (hs : IsNullSet I s) (σ : SmoothTwoForm I M) : σ.liouvilleMeasure n s = 0 := by
+  rw [liouvilleMeasure_def]
+  exact RoughForm.measure_eq_zero_of_isNullSet _ hs
 
 /-! ### Change of variables along a symplectic partial diffeomorphism -/
 
@@ -118,9 +149,7 @@ theorem IsSymplecticMapOn.map_comap_subtypeVal_liouvilleMeasure
   set g : U → M := U.carrier.domRestrict Φ
   have hg : MeasurableEmbedding g :=
     Φ.toOpenPartialHomeomorph.isOpenEmbedding_restrict.measurableEmbedding
-  have hgs : ContMDiff J I ∞ g := fun x ↦
-    (Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds x.property)).comp x
-      contMDiff_subtypeVal.contMDiffAt
+  have hgs : ContMDiff J I ∞ g := contMDiff_subtype_iff.2 Φ.contMDiffOn
   -- `g` pulls `σ` back to the restriction of `τ` to the source.
   have hpull : SmoothForm.mpullback g hgs σ =
       SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal τ :=
@@ -131,9 +160,8 @@ theorem IsSymplecticMapOn.map_comap_subtypeVal_liouvilleMeasure
   have h : mpullback J I g σ.val =
       (SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal τ).val := by
     rw [← hpull, SmoothForm.coe_mpullback]
-  have hmap := hg.map_measure_mpullback (hgs.mdifferentiable (by simp)) (σ.volumeForm n).val
-  rw [mpullback_volumeForm h, ← liouvilleMeasure_def, liouvilleMeasure_mpullback_subtypeVal,
-    ← liouvilleMeasure_def] at hmap
+  have hmap := hg.map_liouvilleMeasure (n := n) (hgs.mdifferentiable (by simp)) h
+  rw [liouvilleMeasure_mpullback_subtypeVal] at hmap
   rwa [show range g = Φ.target from
     (range_domRestrict _ _).trans Φ.toPartialEquiv.image_source_eq_target] at hmap
 
@@ -150,6 +178,24 @@ theorem IsSymplecticMapOn.map_restrict_liouvilleMeasure (hΦ : τ.IsSymplecticMa
   rw [← map_comap_subtypeVal hs] at hΦm ⊢
   rw [AEMeasurable.map_map_of_aemeasurable hΦm (measurable_subtypeVal.aemeasurable)]
   exact hΦ.map_comap_subtypeVal_liouvilleMeasure
+
+/-- **Liouville measure of an image under a symplectic partial diffeomorphism.** If a partial
+diffeomorphism `Φ : N → M` pulls `σ` back to `τ` on its source, then it sends each
+subset `s` of its source onto a set whose Liouville measure for `σ` is that of `s` for `τ`. -/
+theorem IsSymplecticMapOn.liouvilleMeasure_image (hΦ : τ.IsSymplecticMapOn σ Φ Φ.source)
+    {s : Set N} (hsub : s ⊆ Φ.source) :
+    σ.liouvilleMeasure n (Φ '' s) = τ.liouvilleMeasure n s := by
+  have hg : MeasurableEmbedding (Φ.source.domRestrict Φ) :=
+    Φ.toOpenPartialHomeomorph.isOpenEmbedding_restrict.measurableEmbedding
+  have himg : Φ '' s = Φ.source.domRestrict Φ '' (Subtype.val ⁻¹' s) := by
+    rw [image_domRestrict, inter_eq_left.2 hsub]
+  have hval : (Subtype.val : Φ.source → N) '' (Subtype.val ⁻¹' s) = s := by
+    rw [image_preimage_eq_inter_range, Subtype.range_coe, inter_eq_left.2 hsub]
+  have ht : Φ '' s ⊆ Φ.target :=
+    (image_mono hsub).trans Φ.toPartialEquiv.image_source_eq_target.le
+  rw [← Measure.restrict_eq_self _ ht, ← hΦ.map_comap_subtypeVal_liouvilleMeasure, himg,
+    hg.map_apply, preimage_image_eq _ hg.injective,
+    (MeasurableEmbedding.subtypeVal Φ.open_source.measurableSet).comap_apply, hval]
 
 /-- **Integrals against the Liouville measure through a symplectic partial diffeomorphism.** If a
 partial diffeomorphism `Φ : N → M` pulls `σ` back to `τ` on its source, then a function `f` that

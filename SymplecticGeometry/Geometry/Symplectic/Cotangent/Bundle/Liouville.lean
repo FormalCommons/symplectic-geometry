@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Extension
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Extension
 
 /-!
 # Uniqueness of the Liouville form

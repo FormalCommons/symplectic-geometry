@@ -25,6 +25,9 @@ The statement is Tau Ceti's
 isolation of each critical point as the hypothesis in place of its nondegeneracy. The proof applies
 `IsClosed.finite_inter_of_forall_eventually_notMem`, which holds for every closed set, to the
 critical set.
+
+The same isolation makes the critical set of a Morse function discrete
+(`TauCeti.IsMorse.isDiscrete_criticalPoints`).
 -/
 
 public section
@@ -46,6 +49,12 @@ theorem finite_criticalPoints_inter_of_forall_eventually_notMem (hf : ContMDiff 
     (h : ∀ x ∈ criticalPoints I f ∩ K, ∀ᶠ y in 𝓝[≠] x, y ∉ criticalPoints I f) :
     (criticalPoints I f ∩ K).Finite :=
   (isClosed_criticalPoints hf).finite_inter_of_forall_eventually_notMem hK h
+
+/-- The critical points of a Morse function form a discrete set. -/
+theorem IsMorse.isDiscrete_criticalPoints (hf : IsMorse I f) : IsDiscrete (criticalPoints I f) :=
+  isDiscrete_iff_nhdsNE.2 fun _ hx ↦ inf_principal_eq_bot.2
+    (hf.isManifoldNondegenerateCriticalPoint_of_mem_criticalPoints
+      hx).eventually_notMem_criticalPoints
 
 end TauCeti
 

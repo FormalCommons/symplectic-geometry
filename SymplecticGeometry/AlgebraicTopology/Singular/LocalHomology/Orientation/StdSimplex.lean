@@ -6,13 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
-public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Convex.FullSimplex
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import Mathlib.Topology.GDelta.MetrizableSpace
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Plane
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
+import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 
 /-!
 # The local class of the standard 2-simplex in the plane

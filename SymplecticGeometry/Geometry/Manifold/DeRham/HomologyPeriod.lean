@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
-public import SymplecticGeometry.AlgebraicTopology.Singular.ChainsDesc
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
+import SymplecticGeometry.AlgebraicTopology.Singular.ChainsDesc
 import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 
 /-!

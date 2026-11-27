@@ -9,14 +9,22 @@ public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
-public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
+public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
+public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
+public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+import TauCeti.Topology.Order.Sublevel
 
 /-!
 # The model blowup of `ℂⁿ⁺¹` at the origin
@@ -43,8 +51,23 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
 * `SymplecticGeometry.BlowupModel.exceptionalDivisor n`: the fibre of the blowdown over `0`,
   which is the range of the zero section `SymplecticGeometry.BlowupModel.zeroSection`
   (`SymplecticGeometry.BlowupModel.exceptionalDivisor_eq_range`).
+* `SymplecticGeometry.BlowupModel.offDivisorOpens n`: the complement of the exceptional divisor,
+  as an open set.
 * `SymplecticGeometry.BlowupModel.dense_exceptionalDivisor_compl`: the complement of the
   exceptional divisor is dense, since `(ℓ, t • v)` tends to `(ℓ, 0)` as `t → 0`.
+* `SymplecticGeometry.BlowupModel.closedNbhd n ε` (`L(ε)`) and
+  `SymplecticGeometry.BlowupModel.openNbhd n ε`: the points whose blowdown `z` has Euclidean norm
+  `‖complexToRealEuclidean _ z‖ ≤ ε`, resp. `< ε` (the norm of `E` itself is the sup norm). The
+  first is compact (`isCompact_closedNbhd`, since `ℙ ℂ E` is compact and the model is closed in
+  `ℙ ℂ E × E`), the second open, and both contain the exceptional divisor for `0 < ε`. The divisor
+  is their intersection (`biInter_gt_closedNbhd`), and since `L(1)` is compact every
+  neighbourhood of it contains some `L(ε)` (`exists_closedNbhd_subset`, `exists_openNbhd_subset`,
+  by `TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet`). In the Hermitian space
+  `EuclideanSpace ℂ (Fin (n + 1))`, `openNbhd n ε` is the preimage of the open ball of radius `ε`
+  (`mem_openNbhd_iff_mem_ball`).
+* `SymplecticGeometry.BlowupModel.openNbhdOpens n ε`: `openNbhd n ε`, as an open subset of the
+  model, and `SymplecticGeometry.BlowupModel.openNbhdComplDivisor n ε`: `openNbhd n ε ∖ Z`, as an
+  open subset of the model, the meet of the former and `offDivisorOpens n`.
 * `SymplecticGeometry.BlowupModel.blowupModelChart i`, for `i : Fin (n + 1)`: the chart of the
   blowup over Tau Ceti's affine open `Projectivization.affineOpen i`, onto all of `E`. At the place
   `i` it records `z i`, and at the others the affine coordinates `Projectivization.affineChart i ℓ`
@@ -60,18 +83,33 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   manifold for every `r`). The chart at `p` is taken at the index Tau Ceti's atlas of `ℙ ℂ E` uses
   at `p.pr`. Instance search finds `T2Space` and `SecondCountableTopology` from the subspace.
 * `SymplecticGeometry.BlowupModel.contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm`: a
-  map out of the blowup is `C^r` exactly when it is `C^r` read in each chart.
+  map out of the blowup is `C^r` exactly when it is `C^r` read in each chart, and
+  `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm`: the
+  same at one point of the source of a chart.
+* `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp`: a map
+  into the blowup is `C^r` at a point, for `r ≥ 1`, exactly when its two projections are.
+* `SymplecticGeometry.BlowupModel.contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp`:
+  the same for the real structures, for maps out of a real manifold and every `r`.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
+* `SymplecticGeometry.BlowupModel.contMDiff_zeroSection`: the zero section is holomorphic, since
+  composed with the inclusion into `ℙ ℂ E × E` it is `ℓ ↦ (ℓ, 0)`.
 * `SymplecticGeometry.BlowupModel.isSmoothEmbedding_blowupModel_val`: the inclusion into
   `ℙ ℂ E × E` is a holomorphic embedding (`Manifold.IsSmoothEmbedding`), and
   `SymplecticGeometry.BlowupModel.isMAnalyticSubmanifold_blowupModel`: so the incidence set is a
   complex submanifold of `ℙ ℂ E × E` of dimension `n + 1` (Tau Ceti's
   `TauCeti.IsMAnalyticSubmanifold`).
+* `SymplecticGeometry.BlowupModel.mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff`: a real
+  tangent vector of the blowup on which the real differentials of `pr` and of the blowdown both
+  vanish is zero, since the real differential of the inclusion is injective (Tau Ceti's
+  `TauCeti.injective_mfderiv_restrictScalars`).
 * `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
-  is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`
+  is a biholomorphism of open subsets onto Tau Ceti's `TauCeti.puncturedSpace E`, with inverse
+  `z ↦ ([z], z)`, the point `SymplecticGeometry.BlowupModel.ofNeZero`
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
+* `SymplecticGeometry.BlowupModel.isLocalDiffeomorphAt_blowdown`: so the blowdown is a local
+  biholomorphism at each point off the divisor.
 
 ## Implementation notes
 
@@ -179,6 +217,30 @@ theorem mem_exceptionalDivisor_iff {p : BlowupModel n} :
 theorem isClosed_exceptionalDivisor : IsClosed (exceptionalDivisor n) :=
   isClosed_eq continuous_blowdown continuous_const
 
+variable (n) in
+/-- The complement of the exceptional divisor, as an open set of the blowup. -/
+def offDivisorOpens : TopologicalSpace.Opens (BlowupModel n) :=
+  ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩
+
+theorem offDivisorOpens_def :
+    offDivisorOpens n = ⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ :=
+  (rfl)
+
+@[simp]
+theorem coe_offDivisorOpens :
+    (offDivisorOpens n : Set (BlowupModel n)) = (exceptionalDivisor n)ᶜ := by
+  rw [offDivisorOpens_def, TopologicalSpace.Opens.coe_mk]
+
+@[simp]
+theorem mem_offDivisorOpens {p : BlowupModel n} :
+    p ∈ offDivisorOpens n ↔ p ∉ exceptionalDivisor n := by
+  rw [← SetLike.mem_coe, coe_offDivisorOpens, Set.mem_compl_iff]
+
+/-- A point of the blowup is off the exceptional divisor exactly when its blowdown is nonzero. -/
+theorem mem_offDivisorOpens_iff_blowdown_ne_zero {p : BlowupModel n} :
+    p ∈ offDivisorOpens n ↔ p.blowdown ≠ 0 := by
+  rw [mem_offDivisorOpens, mem_exceptionalDivisor_iff]
+
 /-- The zero section of the blowup over the projective space: `ℓ ↦ (ℓ, 0)`. -/
 def zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : BlowupModel n :=
   ⟨(ℓ, 0), ℓ.submodule.zero_mem⟩
@@ -205,6 +267,12 @@ theorem continuous_zeroSection :
     Continuous (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
   (continuous_id.prodMk continuous_const).subtype_mk _
 
+/-- The zero section is a topological embedding of `ℙ ℂ (Fin (n + 1) → ℂ)` into the blowup, since
+`pr` is a continuous left inverse of it. -/
+theorem isEmbedding_zeroSection :
+    Topology.IsEmbedding (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) :=
+  Function.LeftInverse.isEmbedding (f := pr) pr_zeroSection continuous_pr continuous_zeroSection
+
 /-- The exceptional divisor is the image of the zero section. -/
 theorem exceptionalDivisor_eq_range : exceptionalDivisor n = Set.range zeroSection := by
   ext p
@@ -229,6 +297,170 @@ theorem dense_exceptionalDivisor_compl : Dense (exceptionalDivisor n)ᶜ := by
     exact fun h => smul_ne_zero ht p.pr.rep_ne_zero
       ((blowdown_mk _ _ _).symm.trans (mem_exceptionalDivisor_iff.1 h))
   · exact subset_closure hp
+
+/-! ### The neighbourhoods `L(ε)` of the exceptional divisor -/
+
+section Nbhd
+
+open Set TauCeti
+
+variable (n) in
+/-- `L(ε)`: the points of the model blowup whose blowdown has Euclidean norm at most `ε`. -/
+def closedNbhd (ε : ℝ) : Set (BlowupModel n) :=
+  blowdown ⁻¹' {z | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε}
+
+variable (n) in
+/-- The points of the model blowup whose blowdown has Euclidean norm less than `ε`. -/
+def openNbhd (ε : ℝ) : Set (BlowupModel n) :=
+  blowdown ⁻¹' {z | ‖complexToRealEuclidean (Fin (n + 1)) z‖ < ε}
+
+@[simp]
+theorem mem_closedNbhd_iff {ε : ℝ} {p : BlowupModel n} :
+    p ∈ closedNbhd n ε ↔ ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ ≤ ε :=
+  Iff.rfl
+
+@[simp]
+theorem mem_openNbhd_iff {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhd n ε ↔ ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ < ε :=
+  Iff.rfl
+
+/-- A point lies in `openNbhd n ε` exactly when its blowdown, read in the Hermitian space
+`EuclideanSpace ℂ (Fin (n + 1))`, lies in the open ball of radius `ε` about `0`. -/
+theorem mem_openNbhd_iff_mem_ball {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhd n ε ↔
+      (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm p.blowdown ∈ Metric.ball 0 ε := by
+  rw [mem_openNbhd_iff, norm_complexToRealEuclidean, mem_ball_zero_iff]
+
+theorem openNbhd_subset_closedNbhd (ε : ℝ) : openNbhd n ε ⊆ closedNbhd n ε :=
+  fun _ hp ↦ (mem_closedNbhd_iff).2 (mem_openNbhd_iff.1 hp).le
+
+theorem isOpen_openNbhd (ε : ℝ) : IsOpen (openNbhd n ε) :=
+  isOpen_lt
+    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp continuous_blowdown).norm
+    continuous_const
+
+theorem isClosed_closedNbhd (ε : ℝ) : IsClosed (closedNbhd n ε) :=
+  isClosed_le
+    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp continuous_blowdown).norm
+    continuous_const
+
+/-- `L(ε)` is compact: it is the part of the closed incidence set lying over a compact subset of
+`ℙ ℂ E × E`. -/
+theorem isCompact_closedNbhd (ε : ℝ) : IsCompact (closedNbhd n ε) := by
+  have hK : IsCompact {z : Fin (n + 1) → ℂ | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε} := by
+    have := (complexToRealEuclidean (Fin (n + 1))).toHomeomorph.isCompact_preimage.2
+      (isCompact_closedBall (0 : EuclideanSpace ℝ (Fin (n + 1) ⊕ Fin (n + 1))) ε)
+    simpa [Metric.closedBall, Set.preimage] using this
+  have h : closedNbhd n ε = Subtype.val ⁻¹' (univ ×ˢ
+      {z : Fin (n + 1) → ℂ | ‖complexToRealEuclidean (Fin (n + 1)) z‖ ≤ ε}) := by
+    ext p
+    simp [blowdown_def]
+  rw [h]
+  exact (isClosed_blowupModel n).isClosedEmbedding_subtypeVal.isCompact_preimage
+    (isCompact_univ.prod hK)
+
+/-- For `0 < ε`, the exceptional divisor lies in the open neighbourhood of radius `ε`. -/
+theorem exceptionalDivisor_subset_openNbhd {ε : ℝ} (hε : 0 < ε) :
+    exceptionalDivisor n ⊆ openNbhd n ε := fun p hp ↦ by
+  rw [mem_exceptionalDivisor_iff] at hp
+  simpa [hp] using hε
+
+/-- For `0 < ε`, the point `zeroSection ℓ` of the exceptional divisor lies in the open
+neighbourhood of radius `ε`. -/
+theorem zeroSection_mem_openNbhd {ε : ℝ} (hε : 0 < ε) (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    zeroSection ℓ ∈ openNbhd n ε :=
+  exceptionalDivisor_subset_openNbhd hε (exceptionalDivisor_eq_range ▸ ⟨ℓ, rfl⟩)
+
+/-- For `0 < ε`, the exceptional divisor lies in `L(ε)`. -/
+theorem exceptionalDivisor_subset_closedNbhd {ε : ℝ} (hε : 0 < ε) :
+    exceptionalDivisor n ⊆ closedNbhd n ε :=
+  (exceptionalDivisor_subset_openNbhd hε).trans (openNbhd_subset_closedNbhd ε)
+
+@[gcongr]
+theorem closedNbhd_mono {ε ε' : ℝ} (h : ε ≤ ε') : closedNbhd n ε ⊆ closedNbhd n ε' :=
+  fun _ hp ↦ (mem_closedNbhd_iff).2 ((mem_closedNbhd_iff.1 hp).trans h)
+
+@[gcongr]
+theorem openNbhd_mono {ε ε' : ℝ} (h : ε ≤ ε') : openNbhd n ε ⊆ openNbhd n ε' :=
+  fun _ hp ↦ (mem_openNbhd_iff).2 ((mem_openNbhd_iff.1 hp).trans_le h)
+
+/-- The exceptional divisor is the intersection of the sets `L(ε)` over all `0 < ε`. -/
+theorem biInter_gt_closedNbhd :
+    ⋂ ε > (0 : ℝ), closedNbhd n ε = exceptionalDivisor n := by
+  ext p
+  simp only [mem_iInter, mem_closedNbhd_iff, mem_exceptionalDivisor_iff]
+  refine ⟨fun h ↦ ?_, fun h ε hε ↦ by simpa [h] using hε.le⟩
+  have h0 : ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ = 0 :=
+    le_antisymm (le_of_forall_pos_le_add fun ε hε ↦ by simpa using h ε hε) (norm_nonneg _)
+  simpa using h0
+
+/-- The sets `L(ε)` shrink to the exceptional divisor: every neighbourhood of the divisor
+contains `L(ε)` for some `0 < ε`. -/
+theorem exists_closedNbhd_subset {U : Set (BlowupModel n)}
+    (hU : U ∈ 𝓝ˢ (exceptionalDivisor n)) : ∃ ε, 0 < ε ∧ closedNbhd n ε ⊆ U :=
+  TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet zero_lt_one
+    (isCompact_closedNbhd (n := n) 1)
+    ((complexToRealEuclidean (Fin (n + 1))).continuous.comp
+      continuous_blowdown).norm.continuousOn
+    (fun p hp ↦ norm_pos_iff.2 (by simpa [mem_exceptionalDivisor_iff] using hp)) hU
+
+/-- Every neighbourhood of the exceptional divisor contains `openNbhd n ε` for some `0 < ε`. -/
+theorem exists_openNbhd_subset {U : Set (BlowupModel n)}
+    (hU : U ∈ 𝓝ˢ (exceptionalDivisor n)) : ∃ ε, 0 < ε ∧ openNbhd n ε ⊆ U :=
+  (exists_closedNbhd_subset hU).imp fun _ h ↦ ⟨h.1, (openNbhd_subset_closedNbhd _).trans h.2⟩
+
+variable (n) in
+/-- `openNbhd n ε`: the points of the model blowup whose blowdown has Euclidean norm less than
+`ε`, as an open subset. -/
+def openNbhdOpens (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
+  ⟨openNbhd n ε, isOpen_openNbhd ε⟩
+
+@[simp]
+theorem coe_openNbhdOpens (ε : ℝ) : (openNbhdOpens n ε : Set (BlowupModel n)) = openNbhd n ε :=
+  (rfl)
+
+@[simp]
+theorem mem_openNbhdOpens_iff {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhdOpens n ε ↔ p ∈ openNbhd n ε :=
+  Iff.rfl
+
+variable (n) in
+/-- `openNbhd n ε ∖ Z`: the points of the model blowup off the exceptional divisor whose
+blowdown has Euclidean norm less than `ε`, as an open subset: the intersection of
+`openNbhdOpens n ε` with `offDivisorOpens n`. -/
+noncomputable def openNbhdComplDivisor (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
+  openNbhdOpens n ε ⊓ offDivisorOpens n
+
+theorem openNbhdComplDivisor_def (ε : ℝ) :
+    openNbhdComplDivisor n ε = openNbhdOpens n ε ⊓ offDivisorOpens n :=
+  (rfl)
+
+@[simp]
+theorem coe_openNbhdComplDivisor (ε : ℝ) :
+    (openNbhdComplDivisor n ε : Set (BlowupModel n)) = openNbhd n ε \ exceptionalDivisor n := by
+  rw [openNbhdComplDivisor_def, TopologicalSpace.Opens.coe_inf, coe_openNbhdOpens,
+    coe_offDivisorOpens, Set.sdiff_eq]
+
+@[simp]
+theorem mem_openNbhdComplDivisor_iff {ε : ℝ} {p : BlowupModel n} :
+    p ∈ openNbhdComplDivisor n ε ↔ p ∈ openNbhd n ε ∧ p ∉ exceptionalDivisor n := by
+  rw [← SetLike.mem_coe, coe_openNbhdComplDivisor, Set.mem_sdiff]
+
+/-- `openNbhdComplDivisor n ε` lies in the complement `offDivisorOpens n` of the divisor. -/
+theorem openNbhdComplDivisor_le_offDivisorOpens (ε : ℝ) :
+    openNbhdComplDivisor n ε ≤ offDivisorOpens n := by
+  rw [openNbhdComplDivisor_def]
+  exact inf_le_right
+
+variable (n) in
+/-- `openNbhd n ε ∖ Z` lies in `openNbhd n ε`. -/
+theorem openNbhdComplDivisor_le_openNbhdOpens (ε : ℝ) :
+    openNbhdComplDivisor n ε ≤ openNbhdOpens n ε := by
+  rw [openNbhdComplDivisor_def]
+  exact inf_le_left
+
+
+end Nbhd
 
 /-! ### The charts -/
 
@@ -339,6 +571,14 @@ theorem blowupModelChart_source : (blowupModelChart i).source = pr ⁻¹' affine
 @[simp]
 theorem blowupModelChart_target : (blowupModelChart (n := n) i).target = Set.univ :=
   (rfl)
+
+/-- On the source of the chart `i`, the point of `E` under a point of the model is `0` exactly
+when its coordinate `i`, which is the coordinate `i` of the chart, vanishes. -/
+theorem blowdown_apply_eq_zero_iff {p : BlowupModel n} (hp : p ∈ (blowupModelChart i).source) :
+    p.blowdown i = 0 ↔ p.blowdown = 0 := by
+  refine ⟨fun h ↦ ?_, fun h ↦ by rw [h, Pi.zero_apply]⟩
+  rw [← (blowupModelChart i).left_inv hp, blowdown_blowupModelChart_symm_apply,
+    blowupModelChart_apply_self, h, zero_smul]
 
 /-! ### Transitions between the charts -/
 
@@ -460,6 +700,19 @@ theorem contMDiff_blowupModelChart_symm (i : Fin (n + 1)) (r : ℕ∞ω) :
   rw [← contMDiffOn_univ]
   simpa using contMDiffOn_symm_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas r i)
 
+/-- A map out of the blowup is `C^r` at a point `p` of the source of the chart `i` if and only if
+it is `C^r` read in that chart, at the image of `p`. -/
+theorem contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : BlowupModel n → M} {r : ℕ∞ω} {p : BlowupModel n}
+    {i : Fin (n + 1)} (hp : p ∈ (blowupModelChart i).source) :
+    ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r f p ↔
+      ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm)
+        (blowupModelChart i p) := by
+  rw [← contMDiffWithinAt_univ, contMDiffWithinAt_iff_source_of_mem_maximalAtlas
+    (blowupModelChart_mem_maximalAtlas r i) hp]
+  simp [contMDiffWithinAt_univ]
+
 /-- A map out of the blowup is `C^r` if and only if it is `C^r` read in each chart
 `blowupModelChart i`, that is, composed with the inverse of each chart, a map defined on all of
 `E`. -/
@@ -470,11 +723,8 @@ theorem contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm {F H M : Type*
       ∀ i, ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm) := by
   refine ⟨fun hf i => hf.comp (contMDiff_blowupModelChart_symm i r), fun hf p => ?_⟩
   obtain ⟨i, hi⟩ := exists_mem_affineOpen p.pr
-  have hsrc : (blowupModelChart i).source ∈ 𝓝 p :=
-    (blowupModelChart i).open_source.mem_nhds (by rw [blowupModelChart_source]; exact hi)
-  refine (((hf i).comp_contMDiffOn (contMDiffOn_blowupModelChart i r)).congr fun q hq => ?_)
-    |>.contMDiffAt hsrc
-  rw [comp_apply, comp_apply, (blowupModelChart i).left_inv hq]
+  exact (contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm
+    (by rwa [blowupModelChart_source])).2 (hf i _)
 
 /-- The projection of the blowup to `ℙ ℂ E` is `C^r` for every `r`; for `r = ω` it is
 holomorphic. -/
@@ -549,6 +799,44 @@ theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
     (((contMDiff_blowupModelChart_symm i r).contMDiffAt.comp _ hφ).mdifferentiableAt
       (by rintro rfl; simp at hr)) hleft
 
+/-- A real tangent vector of the blowup is zero exactly when the real differentials of the
+projection to `ℙ ℂ E` and of the blowdown both vanish on it: the real differential of the
+inclusion into `ℙ ℂ E × E` is injective, since the inclusion is a holomorphic immersion. -/
+theorem mfderiv_pr_eq_zero_and_mfderiv_blowdown_eq_zero_iff {p : BlowupModel n}
+    {v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) p} :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) pr p v = 0 ∧
+        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown p v = 0 ↔ v = 0 := by
+  refine ⟨fun ⟨h₁, h₂⟩ => ?_, fun h => by simp [h]⟩
+  have hinj := TauCeti.injective_mfderiv_restrictScalars ℝ
+    ((TauCeti.isImmersion_iff_forall_isImmersionAt.1
+      (isSmoothEmbedding_blowupModel_val (n := n) (r := ∞) (by simp)).isImmersion
+        p).mfderiv_injective
+      (by simp))
+  rw [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars,
+    modelWithCornersSelf_restrictScalars] at hinj
+  have hd : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
+      (Subtype.val : BlowupModel n → ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) p := by
+    simpa only [ModelWithCorners.restrictScalars_prod, modelWithCornersSelf_restrictScalars] using
+      (((contMDiff_blowupModel_val (n := n) ∞).mdifferentiable (by simp)) p).restrictScalars ℝ
+  -- The two differentials are the components of the differential of the inclusion.
+  refine hinj ((Prod.ext ?_ ?_).trans (map_zero _).symm)
+  · rw [show (pr : BlowupModel n → _) = Prod.fst ∘ Subtype.val from funext pr_def,
+      mfderiv_comp p mdifferentiableAt_fst hd, mfderiv_fst] at h₁
+    exact h₁
+  · rw [show (blowdown : BlowupModel n → _) = Prod.snd ∘ Subtype.val from funext blowdown_def,
+      mfderiv_comp p mdifferentiableAt_snd hd, mfderiv_snd] at h₂
+    exact h₂
+
+/-- The zero section `ℓ ↦ (ℓ, 0)` of the blowup is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_zeroSection (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r
+      (zeroSection : ℙ ℂ (Fin (n + 1) → ℂ) → BlowupModel n) := by
+  -- Composed with the inclusion into `ℙ ℂ E × E`, it is `ℓ ↦ (ℓ, 0)`.
+  refine ContMDiff.of_le ?_ le_top
+  exact ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2
+    (contMDiff_id.prodMk contMDiff_const)
+
 /-- The incidence set `blowupModel n` is a complex submanifold of `ℙ ℂ E × E` of dimension
 `n + 1`: Tau Ceti's `TauCeti.IsMAnalyticSubmanifold` for the product model, with any continuous
 linear identification `e` of the model space `(Fin n → ℂ) × E` with some `Fin m → ℂ`. -/
@@ -559,6 +847,44 @@ theorem isMAnalyticSubmanifold_blowupModel {m : ℕ}
   have := (isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).isMAnalyticSubmanifold_range
     (ContinuousLinearEquiv.refl ℂ (Fin (n + 1) → ℂ)) e
   rwa [Subtype.range_coe] at this
+
+/-- A map into the blowup is `C^r` at a point, for `r ≥ 1`, if and only if its composites with the
+projection to `ℙ ℂ E` and with the blowdown are. -/
+theorem contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : M → BlowupModel n} {x : M} {r : ℕ∞ω}
+    (hr : 1 ≤ r) :
+    ContMDiffAt I 𝓘(ℂ, Fin (n + 1) → ℂ) r f x ↔
+      ContMDiffAt I 𝓘(ℂ, Fin n → ℂ) r (fun y => (f y).pr) x ∧
+        ContMDiffAt I 𝓘(ℂ, Fin (n + 1) → ℂ) r (fun y => (f y).blowdown) x := by
+  rw [(isSmoothEmbedding_blowupModel_val hr).contMDiffAt_iff_comp, contMDiffAt_prod_iff]
+  simp only [comp_def, ← pr_def, ← blowdown_def]
+
+/-- A map from a real manifold into the blowup is `C^r` at a point, for the real structure of the
+blowup, if and only if its composites with the projection to `ℙ ℂ E` and with the blowdown are,
+for the real structures of `ℙ ℂ E` and `E`. -/
+theorem contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H] {I : ModelWithCorners ℝ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : M → BlowupModel n} {x : M} {r : ℕ∞ω} :
+    ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → ℂ) r f x ↔
+      ContMDiffAt I 𝓘(ℝ, Fin n → ℂ) r (fun y => (f y).pr) x ∧
+        ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → ℂ) r (fun y => (f y).blowdown) x := by
+  refine ⟨fun hf => ⟨((contMDiff_pr r).restrictScalars' ℝ).contMDiffAt.comp x hf,
+    ((contMDiff_blowdown r).restrictScalars' ℝ).contMDiffAt.comp x hf⟩, fun ⟨hpr, hbl⟩ => ?_⟩
+  obtain ⟨i, hi⟩ := exists_mem_affineOpen (f x).pr
+  have hU := (isOpen_affineOpen (K := ℂ) i).mem_nhds hi
+  -- Near `x`, `f` is the inverse of the chart `i` applied to the chart `i` read on `f`.
+  have hL : ContDiff ℝ r fun q : (Fin n → ℂ) × (Fin (n + 1) → ℂ) =>
+      Fin.insertNth (α := fun _ => ℂ) i (q.2 i) q.1 :=
+    ((contDiff_apply ℝ (fun _ => ℂ) i).comp contDiff_snd).finInsertNth (F := fun _ => ℂ) i
+      contDiff_fst
+  have hc : ContMDiffAt I 𝓘(ℝ, Fin n → ℂ) r (fun y => affineChart i (f y).pr) x :=
+    (((contMDiffOn_affineChart i r).restrictScalars' ℝ).contMDiffAt hU).comp x hpr
+  refine ((((contMDiff_blowupModelChart_symm i r).restrictScalars' ℝ).contMDiffAt).comp x
+    (hL.contMDiff.contMDiffAt.comp x (hc.prodMk_space hbl))).congr_of_eventuallyEq ?_
+  filter_upwards [hpr.continuousAt.preimage_mem_nhds hU] with y hy
+  rw [comp_apply, comp_apply, ← blowupModelChart_apply,
+    (blowupModelChart i).left_inv (by rwa [blowupModelChart_source])]
 
 -- Instance search finds the subspace instances of `ℙ ℂ E × E`.
 example : T2Space (BlowupModel n) := inferInstance
@@ -580,22 +906,67 @@ theorem mk_self_mem_blowupModel {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
   rw [mem_blowupModel_iff, submodule_mk]
   exact Submodule.mem_span_singleton_self z
 
+/-- The point `([z], z)` of the blowup over a nonzero vector `z`: the line spanned by `z`,
+together with `z`. -/
+noncomputable def ofNeZero {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) : BlowupModel n :=
+  ⟨(mk ℂ z hz, z), mk_self_mem_blowupModel hz⟩
+
+theorem ofNeZero_def {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
+    ofNeZero hz = ⟨(mk ℂ z hz, z), mk_self_mem_blowupModel hz⟩ :=
+  (rfl)
+
+@[simp]
+theorem pr_ofNeZero {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) : (ofNeZero hz).pr = mk ℂ z hz := by
+  rw [ofNeZero_def, pr_mk]
+
+@[simp]
+theorem blowdown_ofNeZero {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) : (ofNeZero hz).blowdown = z := by
+  rw [ofNeZero_def, blowdown_mk]
+
+/-- The point `([z], z)` over a nonzero `z` is off the exceptional divisor. -/
+theorem ofNeZero_notMem_exceptionalDivisor {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
+    ofNeZero hz ∉ exceptionalDivisor n := by
+  simpa using hz
+
 /-- Off the exceptional divisor, the line of a point of the blowup is spanned by its blowdown. -/
 theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowdown hp = p.pr :=
   mem_submodule_iff.1 p.blowdown_mem_submodule hp
 
+/-- A point of the blowup over `0` is the point of the exceptional divisor on its own line. -/
+theorem eq_zeroSection_pr {p : BlowupModel n} (h : p.blowdown = 0) : p = zeroSection p.pr :=
+  ext (pr_zeroSection _).symm (by rw [h, blowdown_zeroSection])
+
+/-- Off the exceptional divisor, a point of the blowup is determined by its blowdown. -/
+theorem eq_of_blowdown_eq {p q : BlowupModel n} (hp : p.blowdown ≠ 0)
+    (h : p.blowdown = q.blowdown) : p = q :=
+  ext (by rw [← mk_blowdown hp, ← mk_blowdown (h ▸ hp)]; simp only [h]) h
+
+/-- Off the exceptional divisor, a point of the blowup is the point `([z], z)` over its
+blowdown `z`. -/
+@[simp]
+theorem ofNeZero_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : ofNeZero hp = p :=
+  ext (by rw [pr_ofNeZero, mk_blowdown]) (blowdown_ofNeZero hp)
+
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
-the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
-`(mk z, z)`. -/
+the divisor onto the punctured space `TauCeti.puncturedSpace E` of nonzero vectors. Its inverse
+sends `z ≠ 0` to the point `(mk z, z)`.
+
+Of the milestone below, this states that the blowdown is a biholomorphism off the exceptional
+divisor; `blowupModelTotalSpaceDiffeomorph` (in `Blowup/Tautological.lean`) states that `pr` is
+the tautological line bundle, with the divisor as its zero section.
+
+Milestone: *Tautological line bundle and the exceptional divisor*. -/
 noncomputable def blowdownDiffeomorph :
-    (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
-      ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
-      (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) where
-  toFun p := ⟨p.val.blowdown, p.property⟩
-  invFun z := ⟨⟨_, mk_self_mem_blowupModel z.property⟩, z.property⟩
-  left_inv p := Subtype.ext <| ext (mk_blowdown p.property) rfl
-  right_inv _ := rfl
+    offDivisorOpens n ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
+      TauCeti.puncturedSpace (Fin (n + 1) → ℂ) where
+  toFun p := ⟨p.val.blowdown, TauCeti.mem_puncturedSpace.2 <|
+    mem_offDivisorOpens_iff_blowdown_ne_zero.1 p.property⟩
+  invFun z := ⟨ofNeZero (TauCeti.mem_puncturedSpace.1 z.property),
+    mem_offDivisorOpens.2 (ofNeZero_notMem_exceptionalDivisor _)⟩
+  left_inv p := Subtype.ext <| ofNeZero_blowdown <|
+    mem_offDivisorOpens_iff_blowdown_ne_zero.1 p.property
+  right_inv z := Subtype.ext <| blowdown_ofNeZero (TauCeti.mem_puncturedSpace.1 z.property)
   contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
     ((contMDiff_blowdown ω).comp contMDiff_subtypeVal)
   contMDiff_invFun := by
@@ -603,19 +974,25 @@ noncomputable def blowdownDiffeomorph :
     refine ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2
       fun z => ?_
     exact (contMDiffAt_of_eventually_eq_mk contMDiff_subtypeVal.contMDiffAt
-      (Eventually.of_forall fun y => ⟨y.property, rfl⟩)).prodMk contMDiff_subtypeVal.contMDiffAt
+      (Eventually.of_forall fun y => ⟨TauCeti.mem_puncturedSpace.1 y.property, rfl⟩)).prodMk
+      contMDiff_subtypeVal.contMDiffAt
 
 @[simp]
-theorem coe_blowdownDiffeomorph (p : (⟨(exceptionalDivisor n)ᶜ, _⟩ : Opens (BlowupModel n))) :
+theorem coe_blowdownDiffeomorph (p : offDivisorOpens n) :
     (blowdownDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown :=
   (rfl)
 
 @[simp]
-theorem blowdownDiffeomorph_symm_apply
-    (z : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ))) :
+theorem blowdownDiffeomorph_symm_apply (z : TauCeti.puncturedSpace (Fin (n + 1) → ℂ)) :
     ((blowdownDiffeomorph n).symm z : BlowupModel n) =
-      ⟨(mk ℂ z z.property, z), mk_self_mem_blowupModel z.property⟩ :=
+      ofNeZero (TauCeti.mem_puncturedSpace.1 z.property) :=
   (rfl)
+
+/-- Off the exceptional divisor, the blowdown of the model is a local biholomorphism. -/
+theorem isLocalDiffeomorphAt_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p :=
+  (blowdownDiffeomorph n).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownDiffeomorph v).symm) ⟨p, by simpa using hp⟩
 
 end Blowdown
 

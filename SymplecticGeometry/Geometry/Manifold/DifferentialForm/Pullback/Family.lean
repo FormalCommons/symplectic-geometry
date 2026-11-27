@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Slices of families of forms, and pullbacks of families along families of maps
@@ -32,9 +34,9 @@ coefficients of the family in place of those of the fixed form.
 * `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
   `TauCeti.SmoothForm.lineMapFamily`, stated for the underlying rough forms.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
-  for a smooth map `c` of parameter manifolds, with its case `f = id`,
-  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`; the case `c = id` is Tau
-  Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
+  for a smooth map `c` of parameter manifolds. Its case `f = id` is Tau Ceti's
+  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id`, and its case `c = id` is Tau Ceti's
+  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
 * `ContMDiffAt.mpullback_form_family_of_family`: the pullbacks `(f p)^* (φ p)` of a smooth
   family of forms along a smooth family of maps form a smooth section.
 -/
@@ -57,8 +59,7 @@ theorem coe_mpullback_prodMk_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c
     (hc : ContDiff ℝ ∞ c) (t : ℝ) :
     TauCeti.mpullback (F := F) I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) (lineMapFamily α₀ α₁ hc).val =
       (α₀ + c t • (α₁ - α₀)).val :=
-  (coe_mpullback _ _ _).symm.trans
-    (congrArg Subtype.val (mpullback_prodMk_lineMapFamily α₀ α₁ hc t))
+  (mpullback_eq_iff _).1 (mpullback_prodMk_lineMapFamily α₀ α₁ hc t)
 
 /-! ### Slices of pullbacks along `c × f` -/
 
@@ -83,21 +84,6 @@ theorem mpullback_prodMk_mpullback_prodMap' {EP HP P EP' HP' P' : Type*}
   -- The square `Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f` commutes by definition.
   mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id) (hc.prodMap hf) hf
     (contMDiff_const.prodMk contMDiff_id) rfl α
-
-/-- The slice at `t` of the pullback of a form `α` on `P × M` along `c × id`, for a smooth map
-`c : P' → P` of parameter manifolds, is the slice of `α` at `c t`. -/
-theorem mpullback_prodMk_mpullback_prodMap_id_right {EP HP P EP' HP' P' : Type*}
-    [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
-    {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P] [IsManifold K 1 P]
-    [NormedAddCommGroup EP'] [NormedSpace ℝ EP'] [TopologicalSpace HP']
-    {K' : ModelWithCorners ℝ EP' HP'} [TopologicalSpace P'] [ChartedSpace HP' P']
-    [IsManifold K' 1 P'] {c : P' → P} (hc : ContMDiff K' K ∞ c)
-    (α : SmoothForm (K.prod I) (P × M) F k) (t : P') :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map c id) (hc.prodMap contMDiff_id) α) =
-      mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α := by
-  rw [mpullback_prodMk_mpullback_prodMap' hc id contMDiff_id]
-  exact LinearMap.congr_fun SmoothForm.mpullback_id _
 
 end prodMap
 
@@ -138,12 +124,8 @@ theorem _root_.ContMDiffAt.mpullback_form_family_of_family {φ : N → RoughForm
   have hp := (hpre.comp_contMDiffAt hd).clm_apply hc
   apply (contMDiffAt_continuousAlternatingMap_bundle _).mpr
   refine ⟨hg, hp.congr_of_eventuallyEq ?_⟩
-  have hmem : (fun p ↦ f p (g p)) ⁻¹'
-      (trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).baseSet ∈ 𝓝 p₀ :=
-    hfg.continuousAt.preimage_mem_nhds
-      ((trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).open_baseSet.mem_nhds
-        (FiberBundle.mem_baseSet_trivializationAt' (f p₀ (g p₀))))
-  filter_upwards [hmem] with p hp
+  filter_upwards [hfg.continuousAt.eventually_mem_baseSet_trivializationAt E' (TangentSpace I')]
+    with p hp
   simpa only [Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
     using inCoordinates_mpullback_family (I := I) (φ p) f g p₀ p hp
 

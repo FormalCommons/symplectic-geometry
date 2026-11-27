@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Polydisc.PowerSeries
-public import SymplecticGeometry.RingTheory.MvPowerSeries.Trunc
 public import TauCeti.Analysis.Analytic.MultiIndex.TaylorCoeff
 public import TauCeti.Analysis.Complex.PowerSeries.TaylorRemainder
+public import Mathlib.RingTheory.MvPowerSeries.Trunc
+import SymplecticGeometry.Analysis.Complex.Polydisc.PowerSeries
+import SymplecticGeometry.RingTheory.MvPowerSeries.Trunc
 
 /-!
 # Taylor truncation on polydiscs
@@ -24,8 +25,8 @@ the degree.
   coefficients are Tau Ceti's Taylor coefficients `TauCeti.mvTaylorCoeff f c`.
 * `SymplecticGeometry.taylorPolynomial f c d`: its truncation `MvPowerSeries.truncTotal d` to
   the terms of total degree less than `d`, a multivariate polynomial in the variables `z - c`.
-  By Mathlib's `MvPowerSeries.totalDegree_truncTotal_lt` it has total degree less than `d` when
-  `0 < d`, and its value is the partial sum of any power series of `f` at `c`
+  It has total degree at most `d - 1` (`SymplecticGeometry.totalDegree_taylorPolynomial_le`),
+  and its value is the partial sum of any power series of `f` at `c`
   (`SymplecticGeometry.eval_taylorPolynomial`).
 * `SymplecticGeometry.norm_sub_taylorPolynomial_le_of_mem_ball`: if `‖f‖ ≤ M` on `ball c R`, then
   `‖f z - P (z - c)‖ ≤ (1 + d) * M * (‖z - c‖ / R) ^ d` on `ball c R`, for `P` the Taylor
@@ -78,6 +79,14 @@ theorem taylorPolynomial_def (f : (ι → 𝕜) → 𝕜) (c : ι → 𝕜) (d :
 theorem taylorPolynomial_zero (f : (ι → 𝕜) → 𝕜) (c : ι → 𝕜) : taylorPolynomial f c 0 = 0 := by
   rw [taylorPolynomial_def, MvPowerSeries.truncTotal_zero]
 
+/-- The Taylor polynomial with the terms of total degree less than `d` has total degree at most
+`d - 1`. -/
+theorem totalDegree_taylorPolynomial_le (f : (ι → 𝕜) → 𝕜) (c : ι → 𝕜) (d : ℕ) :
+    (taylorPolynomial f c d).totalDegree ≤ d - 1 := by
+  rcases d.eq_zero_or_pos with rfl | hd
+  · simp
+  · exact Nat.le_sub_one_of_lt (MvPowerSeries.totalDegree_truncTotal_lt _ hd.ne')
+
 /-- The value of the Taylor polynomial of degree less than `d` at `y` is the partial sum of
 order `d` at `y` of every power series of `f` at `c`. -/
 theorem eval_taylorPolynomial {f : (ι → 𝕜) → 𝕜} {c : ι → 𝕜}
@@ -124,8 +133,8 @@ theorem norm_sub_taylorPolynomial_le_of_mem_ball {f : (ι → ℂ) → ℂ} {c :
 /-- **Taylor truncation on a polydisc**, on the polydisc of half the radius. If `f` is
 holomorphic on the polydisc `ball c R` of `ι → ℂ`, a ball for the sup norm, and `‖f‖ ≤ M` there,
 then on `closedBall c (R / 2)` it differs from its Taylor polynomial at `c` with the terms of
-degree less than `d` (of total degree less than `d` when `0 < d`, by
-`MvPowerSeries.totalDegree_truncTotal_lt`), by at most `(1 + d) * M / 2 ^ d`. -/
+degree less than `d` (of total degree at most `d - 1`, by
+`SymplecticGeometry.totalDegree_taylorPolynomial_le`), by at most `(1 + d) * M / 2 ^ d`. -/
 theorem norm_sub_taylorPolynomial_le {f : (ι → ℂ) → ℂ} {c : ι → ℂ} {R M : ℝ} (hR : 0 < R)
     (hf : DifferentiableOn ℂ f (ball c R)) (hM : ∀ z ∈ ball c R, ‖f z‖ ≤ M) (d : ℕ)
     {z : ι → ℂ} (hz : z ∈ closedBall c (R / 2)) :

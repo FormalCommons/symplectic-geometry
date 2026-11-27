@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import TauCeti.Topology.FiberBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
 # The normal bundle of a smooth projective hypersurface
@@ -71,20 +72,20 @@ variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 /-- The normal bundle of a hypersurface is a fibre bundle with model `ℂ`, through Tau Ceti's
 complementary normal charts. -/
 noncomputable instance instFiberBundleNormalSpace :
-    FiberBundle ℂ fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero :=
-  X.embedding.normalSpaceFiberBundle WithTop.top_ne_zero (by rw [finrank_model]; simp)
+    FiberBundle ℂ fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero :=
+  X.embedding.normalSpaceFiberBundle WithTop.top_ne_zero (by rw [Module.finrank_fin_fun]; simp)
 
 /-- The normal bundle of a hypersurface is a complex vector bundle, of rank one. -/
 instance instVectorBundleNormalSpace :
-    VectorBundle ℂ ℂ fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero :=
-  X.embedding.normalSpaceVectorBundle WithTop.top_ne_zero (by rw [finrank_model]; simp)
+    VectorBundle ℂ ℂ fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero :=
+  X.embedding.normalSpaceVectorBundle WithTop.top_ne_zero (by rw [Module.finrank_fin_fun]; simp)
 
 /-- **The normal bundle of a hypersurface is `ι^* 𝒪(d)`, fibrewise.** At a point `x` of the
 hypersurface, the isomorphism of its normal space with the fibre `ℂ` of `𝒪(d)` at `x` induced by
 the differential of the polynomial dehomogenized at the preferred chart `(twistCore d).indexAt x`
 (`normalSpaceEquiv_normalClass`). -/
 noncomputable def normalSpaceEquiv (x : X) :
-    X.embedding.NormalSpace x WithTop.top_ne_zero ≃L[ℂ]
+    X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero ≃L[ℂ]
       (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber (x : ℙ ℂ (Fin (n + 2) → ℂ)) :=
   (complexProjectiveZeroLocusNormalSpaceEquiv (fun _ ↦ X.isHomogeneous) isOpen_univ
       X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt (r := ω) WithTop.top_ne_zero x
@@ -93,7 +94,8 @@ noncomputable def normalSpaceEquiv (x : X) :
 
 /-- `normalSpaceEquiv` is Tau Ceti's identification of the normal space with the space
 `Unit → ℂ` of values of the equation, in the preferred chart of `𝒪(d)` at `x`. -/
-theorem normalSpaceEquiv_apply (x : X) (a : X.embedding.NormalSpace x WithTop.top_ne_zero) :
+theorem normalSpaceEquiv_apply (x : X) (a : X.embedding.isImmersion.NormalSpace x
+    WithTop.top_ne_zero) :
     X.normalSpaceEquiv x a = ContinuousLinearEquiv.funUnique Unit ℂ ℂ
       (complexProjectiveZeroLocusNormalSpaceEquiv (fun _ ↦ X.isHomogeneous) isOpen_univ
         X.carrier_eq_inter_univ X.surjective_jacobiMatrixAt (r := ω) WithTop.top_ne_zero x
@@ -104,7 +106,7 @@ theorem normalSpaceEquiv_apply (x : X) (a : X.embedding.NormalSpace x WithTop.to
 differential at `x` of the polynomial dehomogenized at the preferred chart of `𝒪(d)` at `x`. -/
 theorem normalSpaceEquiv_normalClass (x : X)
     (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (x : ℙ ℂ (Fin (n + 2) → ℂ))) :
-    X.normalSpaceEquiv x (X.embedding.normalClass x WithTop.top_ne_zero v) =
+    X.normalSpaceEquiv x (X.embedding.isImmersion.normalClass x WithTop.top_ne_zero v) =
       mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ)
         (fun y ↦ eval (affineChart ((twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt x) y)
           (dehomogenize ((twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt x) X.poly)) x v := by
@@ -141,7 +143,7 @@ theorem twistTransition_smul_normalSpaceEquiv_normalClass (x : X) {i : Fin (n + 
     (v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (x : ℙ ℂ (Fin (n + 2) → ℂ))) :
     twistTransition (d : ℤ) ((twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt x) i
         (x : ℙ ℂ (Fin (n + 2) → ℂ)) •
-        X.normalSpaceEquiv x (X.embedding.normalClass x WithTop.top_ne_zero v) =
+        X.normalSpaceEquiv x (X.embedding.isImmersion.normalClass x WithTop.top_ne_zero v) =
       mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ)
         (fun y ↦ eval (affineChart i y) (dehomogenize i X.poly)) x v := by
   set k := (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).indexAt (x : ℙ ℂ (Fin (n + 2) → ℂ))
@@ -164,7 +166,8 @@ theorem twistTransition_smul_normalSpaceEquiv_normalClass (x : X) {i : Fin (n + 
 /-- **The normal bundle of a hypersurface is `ι^* 𝒪(d)`.** `normalSpaceEquiv` is continuous on
 total spaces, from the normal bundle of `X` to the pull-back of `𝒪(d)` by the inclusion. -/
 theorem continuous_normalSpaceEquiv :
-    Continuous fun p : TotalSpace ℂ (fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero) ↦
+    Continuous fun p : TotalSpace ℂ (fun x : X ↦ X.embedding.isImmersion.NormalSpace x
+        WithTop.top_ne_zero) ↦
       TotalSpace.mk' ℂ (E := (X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) p.proj
         (X.normalSpaceEquiv p.proj p.snd) := by
@@ -175,7 +178,8 @@ theorem continuous_normalSpaceEquiv :
       TotalSpace.mk' ℂ
       (E := (X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) q.proj
-        (X.normalSpaceEquiv q.proj (X.embedding.normalClass q.proj WithTop.top_ne_zero q.snd)))
+        (X.normalSpaceEquiv q.proj (X.embedding.isImmersion.normalClass q.proj WithTop.top_ne_zero
+            q.snd)))
     ?_ fun q ↦ ?_
   swap
   · rw [Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
@@ -192,20 +196,17 @@ theorem continuous_normalSpaceEquiv :
       ((isOpen_affineOpen i).mem_nhds hi)
   -- Near `q₀`, the coordinate in the chart `i` is the differential of the equation at `i`,
   -- which is continuous on the tangent bundle.
-  have ht := ContMDiffAt.continuousAt_tangentMap (x₀ := Pullback.lift X.embedding q₀)
-    ((contMDiffOn_eval_affineChart (dehomogenize i X.poly) i 1).contMDiffAt
-      ((isOpen_affineOpen i).mem_nhds hi)) le_rfl
   have hc : ContinuousAt (fun q : TotalSpace (Fin (n + 1) → ℂ)
       ((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ))) ↦
         (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ) (fun y ↦ eval (affineChart i y) (dehomogenize i X.poly))
           (X.embedding q.proj) q.snd : ℂ)) q₀ :=
-    (contMDiff_snd_tangentBundle_modelSpace ℂ 𝓘(ℂ) (n := 0)).continuous.continuousAt.comp
-      (ht.comp (Pullback.continuous_lift _ _ _).continuousAt)
+    Pullback.continuousAt_mfderiv_apply _
+      ((contMDiffOn_eval_affineChart (dehomogenize i X.poly) i 1).contMDiffAt
+        ((isOpen_affineOpen i).mem_nhds hi)) le_rfl
   have hr (b : ℙ ℂ (Fin (n + 2) → ℂ)) (a : ℂ) :
       (trivializationAt ℂ (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber (X.embedding q₀.proj)
-        ⟨b, a⟩).2 = twistTransition (d : ℤ) ((twistCore (d : ℤ)).indexAt b) i b * a := by
-    rw [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-      VectorBundleCore.localTriv_apply, twistCore_coordChange_apply]
+        ⟨b, a⟩).2 = twistTransition (d : ℤ) ((twistCore (d : ℤ)).indexAt b) i b * a :=
+    twistCore_trivializationAt_apply_snd _ _ b a
   refine hc.congr ?_
   filter_upwards [hU] with q hq
   have he : X.embedding q.proj = q.proj := congrFun X.coe_embedding q.proj
@@ -218,7 +219,8 @@ by the inclusion to the normal bundle of `X`. -/
 theorem continuous_normalSpaceEquiv_symm :
     Continuous fun q : TotalSpace ℂ ((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ
         (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber) ↦
-      TotalSpace.mk' ℂ (E := fun x : X ↦ X.embedding.NormalSpace x WithTop.top_ne_zero) q.proj
+      TotalSpace.mk' ℂ (E := fun x : X ↦ X.embedding.isImmersion.NormalSpace x WithTop.top_ne_zero)
+          q.proj
         ((X.normalSpaceEquiv q.proj).symm q.snd) := by
   -- The fibres of the pull-back are `ℂ`, so they are groups, as `continuous_bundle_symm` asks.
   let _ : ∀ x : X, AddCommGroup (((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ

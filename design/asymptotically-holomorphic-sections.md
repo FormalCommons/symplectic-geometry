@@ -144,9 +144,11 @@ $d_k(x,y)$. Here $d_k=\sqrt{2\pi k}\,d_{g_J}$, with $d_{g_J}$ Mathlib's
 `Manifold.riemannianEDist` for the metric $g_J$.
 
 With these, a sequence $(s_k)_{k}$ of sections of `L k` is **asymptotically
-holomorphic** (`IsAsymptoticallyHolomorphic`) when for every $r$ there is a
+holomorphic** (`IsAsymptoticallyHolomorphic`) when, for large $k$ and every
+$x$, the reading of $s_k$ and its $\bar\partial$ reading are smooth at the
+centre of the chart at $x$, and for every $r$ there is a
 $C$ with, for large $k$ and every $x$, `jetNorm k r (s k) x ≤ C` and
-`jetNorm k r (∂̄ (s k)) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
+`dbarJetNorm k r (s k) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
 transverse** with constant $\eta>0$ (`IsUniformlyTransverse η`) when for
 large $k$ and every $x$,
 $\max(|s_k(x)|,(2\pi k)^{-1/2}\|\partial s_k(x)\|)\ge\eta$. These pointwise
@@ -159,8 +161,12 @@ milestone states it.
 
 ### The class of the line bundle: the prerequisites
 
-Three facts are missing from both libraries, and the part plans them as
-prerequisite issues (issues 1–4 below):
+Three facts that neither Tau Ceti nor Mathlib had are prerequisites of the
+part. Issues 1–4 below planned them, and all are merged:
+`TauCeti.injective_deRhamHom`,
+`SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq` and
+`SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files
+listed under *Prerequisites*.
 
 1. **The de Rham theorem in degree two.** `TauCeti.deRhamHom` is injective
    on a compact manifold. Without it, an integral lift of $[\omega]$ says
@@ -176,30 +182,25 @@ prerequisite issues (issues 1–4 below):
    neighbouring degrees.
 2. **Integral classes of degree two are Euler classes.** For a compact
    manifold $M$ and $b\in H^2(M;\mathbb Z)$ there is a smooth Hermitian line
-   bundle $L$ with `complexEulerClass L = b`. The route goes through
-   classifying maps. $M$ has finite CW type (Tau Ceti's
-   `TauCeti.FiniteCWType.of_isManifold`). The homotopy groups of
-   $\mathbb CP^N$ in low degrees are Tau Ceti's, from the long exact
-   sequence of the Hopf fibration (`Topology/ComplexProjectiveSpace/Hopf/Basic.lean`
-   and `Hopf/Exact.lean`): `TauCeti.ComplexProjectiveSpace.mk_mem_serreFibrations`,
-   `instSimplyConnectedSpace` ($\pi_1=0$), `pi2MulEquivInt`
-   ($\pi_2\cong\mathbb Z$) and `subsingleton_homotopyGroup` ($\pi_j=0$ for
-   $3\le j\le 2N$). They are carried to `ℙ ℂ (Fin (N + 1) → ℂ)`, the base
-   of `twistCore`, by
-   `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization`. So for
-   $2N\ge\dim M$ obstruction theory over the skeleta gives a map
-   $f:M\to\mathbb CP^N$ with $f^*h=b$.
-   It is made smooth up to homotopy by Tau Ceti's
-   `ContinuousMap.exists_contMDiff_homotopicRel_of_isCompact_closure_range`
-   (`Geometry/Manifold/SmoothApprox/`), and $L$ is the pull-back of Tau
+   bundle $L$ with `complexEulerClass L = b`. The merged route goes through
+   classifying maps. $M$ is homotopy equivalent to a finite CW complex
+   whose cells have dimension at most $\dim M$
+   (`SymplecticGeometry.exists_finite_cwComplex_homotopyEquiv_of_isManifold`,
+   from a Morse function). On such a complex with $2N\ge\dim M$, a map to
+   `ℙ ℂ (Fin (N + 1) → ℂ)` pulling the hyperplane class $h$ back to a given
+   class is built skeleton by skeleton
+   (`Projectivization.exists_continuousMap_projectivization_pullback_eq`,
+   in `ProjectiveSpaceClassifying.lean`): cell by cell on the 2-skeleton,
+   then over the higher cells, whose attaching maps become null-homotopic
+   by the low homotopy groups of $\mathbb CP^N$ that Tau Ceti computes from
+   the Hopf fibration. Through the homotopy equivalence this gives a
+   continuous $f:M\to\mathbb CP^N$ with $f^*h=b$
+   (`Projectivization.exists_continuousMap_projectivization_pullback_eq_of_isManifold`).
+   Tau Ceti's Whitney approximation `ContinuousMap.exists_contMDiff_homotopic`
+   replaces $f$ by a homotopic smooth map, and $L$ is the pull-back of Tau
    Ceti's `twistCore 1`, whose Euler class is $h$ by the library's
    `Projectivization.complexEulerClass_twistCore_one`, with
-   `TauCeti.complexEulerClass_pullback` and homotopy invariance. Tau Ceti's
-   cellular tools for Eilenberg–Mac Lane spaces
-   (`AlgebraicTopology/EilenbergMacLane/Extension.lean`, `Uniqueness.lean`)
-   and the relative skeleton lemmas
-   (`AlgebraicTopology/Homotopy/Relative/Skeleton.lean`) are searched first
-   for the extension step.
+   `TauCeti.complexEulerClass_pullback` and homotopy invariance.
 3. **Chern–Weil in degree two.** For this $L$, with unitary frame bundle
    $P$, `deRhamHom (realFirstChernClass P)` is **minus** the real image of
    `complexEulerClass L`. Two merged theorems fix the sign. On a closed
@@ -219,20 +220,18 @@ prerequisite issues (issues 1–4 below):
    and on $\mathbb CP^1$ the two theorems above give it.
 
    `realFirstChernClass_map`, with `IsCircleConnectionForm.mpullback` and
-   `IsCircleConnectionForm.curvature_mpullback` that it rests on, is planned
-   by `design/compatible-symplectic-forms.md` (part 49) in the merged
-   `FiberBundle/Principal/RealChernClass.lean`, and is not built yet. The
-   Chern–Weil issue proves the three there, under those names and with the
-   statements that design gives, unless part 49 has built them by then.
-   Part 49 then uses them, and neither part waits for the other.
+   `IsCircleConnectionForm.curvature_mpullback` that it rests on, is merged
+   in `FiberBundle/Principal/RealChernClass.lean`, with the statements that
+   `design/compatible-symplectic-forms.md` (part 49) gives them. Part 49
+   uses them, and neither part waits for the other.
 
 `LineBundle.lean` then builds the bundle and corrects the curvature. Take
 $L$ from 2 with $b=-a$, and any connection form
 (`SymplecticGeometry.exists_isCircleConnectionForm`). By 3 its real class
 maps to the image of $a$, which is `deRhamHom` of $[\omega]$, so by 1 the
-real class is $[\omega]$. By
-`IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff` the
-difference of the curvature from $-2\pi\omega$ is exact. Adding the
+real class is $[\omega]$. So the
+difference of the curvature from $-2\pi\omega$ is exact
+(`isCircleConnectionCurvature_iff`). Adding the
 pull-back of a primitive (`IsCircleConnectionForm.add_mpullback`,
 `curvature_add_mpullback`) makes the curvature exactly $-2\pi\omega$.
 
@@ -244,9 +243,8 @@ sections need $L$ positive for $J$, which is a condition on the curvature.
 The sign is carried to the class of the zero sets in `ZeroSet.lean` and
 `Hypersurface.lean` below.
 
-*Minimal coupling* (#2265) is still open, but this part uses only its merged
-`RealChernClass.lean` and the merged `CircleConnection.lean` and
-`Connection/Circle.lean`. So no issue here waits for #2265.
+Of *Minimal coupling* (#2265, closed) this part uses only the merged
+`RealChernClass.lean`, `CircleConnection.lean` and `Connection/Circle.lean`.
 
 ### Auroux's avoidance estimate, split
 
@@ -422,10 +420,10 @@ behind Lelong numbers and Crofton's formula.
 transverse and that its zero set is a symplectic submanifold. It waits for
 no other part. The second proves the class of the zero set, and with it the
 milestone. It waits for the issue that `design/poincare-duals.md` assigns to
-`Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`. That design is
-#3278 and is not merged, so the issue does not exist yet. Until it does, the
-second issue is blocked by #3278. The agent who splits #3291 marks it as
-blocked by the issue that #3278's design creates for `ZeroSet/DualClass.lean`.
+`Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`, and for the one
+it assigns to `Geometry/Manifold/Orientation/DualClass.lean`. These are
+#3396, closed with the file merged, and #3391, still open; #3505 is blocked
+by both.
 
 ### Connectivity by Tau Ceti's Morse–Bott theory
 
@@ -468,17 +466,18 @@ and the prerequisites, placed by topic.
 
 ### Prerequisites
 
-- `Geometry/Manifold/SmoothSingular/DeRham/MayerVietorisInduction.lean`:
-  `TauCeti.bijective_deRhamHom` (for manifolds that have a finite good cover, or
-  a second-countable one through `mayerVietoris_induction`),
-  `TauCeti.injective_deRhamHom`. If Tau Ceti's `deRhamHom` lands in smooth
-  singular cohomology, the file also compares it with continuous singular
-  cohomology, unless `SmoothSingular/Smoothing.lean` already does.
+- `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
+  `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom` (for manifolds
+  that have a finite good cover), `TauCeti.bijective_deRhamHom_of_compactSpace`
+  (for a compact one), `TauCeti.injective_deRhamHom`. Tau Ceti's
+  `deRhamHom` already takes values in singular cohomology, through its
+  smoothing isomorphism `TauCeti.smoothSingularCohomologyIso`
+  (`SmoothSingular/Smoothing.lean`), so the file needs no comparison.
 - `AlgebraicTopology/Cohomology/ProjectiveSpaceClassifying.lean`: for a
   finite CW complex $X$ of dimension at most $2N$, every class of
   $H^2(X;\mathbb Z)$ is $f^*h$ for some $f:X\to\mathbb CP^N$
   (`exists_continuousMap_projectivization_pullback_eq`), from Tau Ceti's
-  homotopy groups of $\mathbb CP^N$ named above.
+  homotopy groups of $\mathbb CP^N$.
 - `Geometry/Manifold/VectorBundle/Hermitian/Realization.lean`: on a compact
   manifold every integral class of degree two is the Euler class of a smooth
   Hermitian line bundle pulled back from `twistCore 1` along a smooth map
@@ -486,7 +485,7 @@ and the prerequisites, placed by topic.
 - `Geometry/Manifold/VectorBundle/Hermitian/ChernWeil.lean`: for line
   bundles pulled back from `twistCore 1` along smooth maps,
   `deRhamHom (realFirstChernClass IB P)` is minus the real image of the
-  Euler class (`deRhamHom_realFirstChernClass_eq_neg`). The same issue adds
+  Euler class (`deRhamHom_realFirstChernClass_eq_neg`). The same issue added
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
   and `realFirstChernClass_map` to `FiberBundle/Principal/RealChernClass.lean`,
   as `design/compatible-symplectic-forms.md` states them.
@@ -500,7 +499,8 @@ and the prerequisites, placed by topic.
   `orientation_ker_eq_of_norm_lt`.
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph
   of maximal degree at most $\Delta$ is $(\Delta+1)$-colourable
-  (`SimpleGraph.colorable_of_maxDegree_le`). Mathlib has no such bound.
+  (`SimpleGraph.colorable_of_forall_degree_le`), from Tau Ceti's
+  `SimpleGraph.colorable_succ_of_forall_exists_card_le`.
 - `Topology/MetricSpace/SeparatedSum.lean`: for a $1$-separated set $S$ in
   a space with the doubling bound $\#(S\cap B(y,r))\le C(1+r)^{2n}$, sums
   $\sum_{x\in S}P(d(x,y))e^{-c\,d(x,y)^2}$ are bounded uniformly in $y$,
@@ -532,10 +532,10 @@ and the prerequisites, placed by topic.
   `setAverage_log_norm_eval_sub_le` and
   `log_div_le_setAverage_log_norm_eval_sub`),
   `MeasureTheory/Measure/Lebesgue/LineSlice.lean` (step 5,
-  `volume_setOf_exists_add_smul_mem_le`), and in `AlgebraicTube.lean`, before
+  `volume_setOfPred_exists_add_smul_mem_le`), and in `AlgebraicTube.lean`, before
   `volume_thickening_zeroLocus_le`, step 4
   (`MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` and
-  `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`) and the bound
+  `MvPolynomial.volume_ball_le_mul_volume_setOfPred_exists_root`) and the bound
   `MvPolynomial.volume_thickening_zeroLocus_le_pow_four_mul_sq`
   ($C_mD^4t^2$), from which `volume_thickening_zeroLocus_le` follows.
 
@@ -544,13 +544,14 @@ and the prerequisites, placed by topic.
 - `LineBundle.lean`: `exists_prequantumLineBundle`: for compact $M$ and an
   integral lift $a$ of $[\omega]$, there is a Hermitian line bundle $L$ with
   `complexEulerClass L = -a` and a connection form $\alpha$ on its unitary
-  frame bundle with `hα.curvature = -(2 * π) • ω`; the sign of the Euler
-  class is that of prerequisite 3.
+  frame bundle with `hα.curvature = -(2 * π) • ω`
+  (`g.IsConnectionCurvature hI (-(2 * π) • ω)`, for any closed $\omega$);
+  the sign of the Euler class is that of prerequisite 3.
 - `Power/Basic.lean`: `L k`, the associated bundle for $g\cdot z=g^kz$; its
   Hermitian metric; `powerOneEquiv : L 1 ≃ L`, `powerAddEquiv` with Tau
   Ceti's tensor product; `complexEulerClass_power` (`k •` the class of
   `L`, so $-k\,a$ for the bundle of `LineBundle.lean`).
-- `PowerConnection.lean`: the connection $D_k$ on `L k` as a Mathlib
+- `Power/Connection.lean`: the connection $D_k$ on `L k` as a Mathlib
   `CovariantDerivative`. It is complex linear and metric, has the local
   formula $d+ik\,\sigma^*\alpha$ in a unitary frame
   (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. For a section
@@ -583,9 +584,10 @@ and the prerequisites, placed by topic.
   by compactness. `RescaledUnitaryCharts k₀ ρ₀` adds the rescaling and the
   frames in which the connection form is the model, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
   `connectionForm_eq_model`. The existence theorem is
-  `exists_rescaledUnitaryCharts`, and `dist_comparison` compares $d_k$ with
+  `exists_rescaledUnitaryCharts`, and
+  `ofReal_mul_riemannianEDist_symm_mem_Icc` compares $d_k$ with
   chart distances.
-- `AsymptoticallyHolomorphic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
+- `Basic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
   `IsUniformlyTransverse`, closure under sums and under products with
   sequences of bounded functions, and `jetNorm_le_of_chart_change` (a
   polynomial in $d_k(x,y)$ bounds the change between the charts at $x$ and
@@ -647,12 +649,12 @@ and the prerequisites, placed by topic.
 ## Issues
 
 Each issue is a few hundred lines, in an order where each comes after the
-ones it waits for. An issue that adds an existing name of Tau Ceti or
-Mathlib uses it instead; each prerequisite issue first searches both for its
-statement.
+ones it waits for. Issues 1–9, 11, 12, 14–19, 17a–17f and 21 are done. An
+issue that adds an existing name of Tau Ceti or Mathlib uses it instead;
+each prerequisite issue first searches both for its statement.
 
 1. **The de Rham theorem**
-   (`SmoothSingular/DeRham/MayerVietorisInduction.lean`). Waits for
+   (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`). Waits for
    nothing. Its agent may split it in two: the Mayer–Vietoris square of
    `deRhamHom` with its connecting maps, then the induction.
 2. **Classifying maps for $H^2$** (`ProjectiveSpaceClassifying.lean`).
@@ -663,20 +665,21 @@ statement.
    pull-back lemmas in `Principal/RealChernClass.lean`). Waits for 3.
 5. **The prequantum line bundle** (`LineBundle.lean`). Waits for 1, 3 and 4.
 6. **Powers of a Hermitian line bundle** (`Power/Basic.lean`). Waits for nothing.
-7. **The connection on the powers** (`PowerConnection.lean`). Waits for 6.
+7. **The connection on the powers** (`Power/Connection.lean`). Waits for 6.
 8. **Real-linear forms with dominant complex-linear part**
    (`DominantLinearPart.lean`). Waits for nothing.
 9. **Transverse symplectic zero sets** (`ZeroSet.lean`, without the
    class). Waits for 8.
 10. **The class of the zero set** (`ZeroSet.lean`, the milestone). Waits for
-    9 and for the issue of *Poincaré duals of submanifolds* for
-    `ZeroSet/DualClass.lean`; until #3278 creates it, for #3278.
+    9 and for the issues of *Poincaré duals of submanifolds* for
+    `ZeroSet/DualClass.lean`, #3396 (done), and for
+    `Orientation/DualClass.lean`, #3391.
 11. **Centred Darboux charts with uniform bounds** (`RescaledChart.lean`,
     first half). Waits for nothing.
 12. **Rescaled unitary charts** (`RescaledChart.lean`, second half). Waits
     for 7 and 11.
 13. **Jet norms and asymptotically holomorphic sequences**
-    (`AsymptoticallyHolomorphic.lean`). Waits for 12.
+    (`Basic.lean`). Waits for 12.
 14. **Holomorphic approximation on polydiscs**
     (`HolomorphicApproximation.lean`). Waits for nothing.
 15. **Taylor truncation on polydiscs** (`TaylorTruncation.lean`). Waits for
@@ -719,16 +722,18 @@ statement.
 26. **Donaldson's hypersurface theorem** (`Hypersurface.lean`). Waits for
     5, 10, 23 and 25.
 
-Issues 1, 2, 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
+Every issue that waits for nothing is done. Of the others, issue 13 waits
+only for issues that are done, and issue 10 waits only for #3391.
 
 ## Uses
 
 - *Poincaré duals of submanifolds*: `ZeroSet/DualClass.lean` and
   `Orientation/DualClass.lean`, only in issues 10 and 26.
-- *Compatible symplectic forms* (part 49, not built): the statements of
+- *Compatible symplectic forms* (part 49, not built):
   `IsCircleConnectionForm.mpullback`, `IsCircleConnectionForm.curvature_mpullback`
-  and `realFirstChernClass_map` that its design gives, which issue 4 proves
-  unless part 49 has by then; no issue here waits for part 49.
+  and `realFirstChernClass_map`, with the statements its design gives them,
+  merged in `FiberBundle/Principal/RealChernClass.lean`; no issue here waits
+  for part 49.
 - Merged files of *Principal connections*, *First Chern number* and
   *Minimal coupling*: `IsCircleConnectionForm`, `exists_isCircleConnectionForm`,
   `curvature_add_mpullback`, `realFirstChernClass`,

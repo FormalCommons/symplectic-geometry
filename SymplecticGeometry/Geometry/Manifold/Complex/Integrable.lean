@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Complex.Isothermal
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
@@ -35,9 +36,9 @@ modelled on a space of odd dimension would not be integrable, although its Nijen
 vanishes.
 
 The structure of a complex manifold is integrable, through its holomorphic charts. Integrability
-is preserved by pulling back along diffeomorphisms, and it forces the Nijenhuis tensor to vanish:
-the pullbacks along a chart of the constant vector fields of `E` span every tangent space, `J`
-carries them to one another, and their Lie brackets vanish, as in Tau Ceti's
+is preserved by pulling back along local diffeomorphisms, and it forces the Nijenhuis tensor to
+vanish: the pullbacks along a chart of the constant vector fields of `E` span every tangent space,
+`J` carries them to one another, and their Lie brackets vanish, as in Tau Ceti's
 `SmoothAlmostComplexStructure.nijenhuis_const`, by Mathlib's `VectorField.mpullback_mlieBracket`.
 On a surface modelled on `𝓘(ℝ, ℂ)`, isothermal charts of the smooth maximal atlas around every
 point give integrability. Every smooth almost complex structure there has such charts, by Tau
@@ -62,6 +63,9 @@ itself it is integrable.
   diffeomorphism at the point.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
+* `TauCeti.isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas`: every chart of the
+  maximal complex atlas of a complex manifold is pseudoholomorphic on its source, from the
+  structure of the manifold to that of the model.
 * `TauCeti.SmoothAlmostComplexStructure.ofTangentCoordChange` and
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofTangentCoordChange`: the constant structure
   of a complex structure of the model that commutes with the changes of coordinates, and its
@@ -69,8 +73,9 @@ itself it is integrable.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_restrictOpen_source`: `J` is integrable on
   the source of a partial diffeomorphism onto an open subset of a normed space whose derivative
   carries `J` to a fixed linear complex structure.
-* `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.pullback`: integrability is invariant under
-  pullback along a diffeomorphism.
+* `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.localPullback` and
+  `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.pullback`: integrability is invariant under
+  pullback along a local diffeomorphism (Tau Ceti's `localPullback`), so along a diffeomorphism.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.nijenhuis_eq_zero`: the Nijenhuis tensor of
   an integrable structure vanishes.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_iff_forall_exists_isIsothermalChart`: on a
@@ -133,8 +138,7 @@ theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
   funext x
   obtain ⟨ψ, J₀, hx, hψ⟩ := hJ x
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have hψx : ContMDiffAt I 𝓘(ℝ, E) ∞ ψ x :=
-    ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)
+  have hψx : ContMDiffAt I 𝓘(ℝ, E) ∞ ψ x := ψ.contMDiffAt hx
   -- The pullbacks along `ψ` of the constant vector fields of `E`.
   let X : E → Π y : M, TangentSpace I y := fun u ↦
     VectorField.mpullback I 𝓘(ℝ, E) ψ (constVectorField u)
@@ -273,6 +277,27 @@ theorem isIntegrable_restrictOpen_source {G : Type*} [NormedAddCommGroup G] [Nor
   refine ⟨ψ, J₀, by simp [ψ], fun y _ v ↦ ?_⟩
   rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]
 
+/-- **Integrability is invariant under pullback along local diffeomorphisms.** The pullback of an
+integrable almost complex structure along a smooth local diffeomorphism is integrable. -/
+theorem IsIntegrable.localPullback [FiniteDimensional ℝ E] {E' H' N : Type*}
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+    {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+    [IsManifold I' ∞ N] {q : M → N} (hq : IsLocalDiffeomorph I I' ∞ q)
+    {K : SmoothAlmostComplexStructure I' N} (hK : K.IsIntegrable) :
+    (localPullback hq K).IsIntegrable := by
+  rw [isIntegrable_iff_mfderiv] at hK
+  refine isIntegrable_of_forall_exists_isLocalDiffeomorphAt _ (G := E') fun x ↦ ?_
+  obtain ⟨ψ, J₀, hx, hψ⟩ := hK (q x)
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  -- The chart `ψ` of `N` at `q x`, read through `q`, carries the pullback to `J₀` near `x`.
+  refine ⟨ψ ∘ q, q ⁻¹' ψ.source, J₀,
+    hq.contMDiff.continuous.continuousAt.preimage_mem_nhds (ψ.open_source.mem_nhds hx),
+    IsLocalDiffeomorphAt.comp (hf := hq x) (hg := ψ.isLocalDiffeomorphAt _ _ _ hx),
+    fun y hy v ↦ ?_⟩
+  have hqy : MDifferentiableAt I I' q y := (hq y).mdifferentiableAt hn
+  rw [mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy) hqy,
+    mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy) hqy, mfderiv_localPullback_apply, hψ _ hy]
+
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
 theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [NormedAddCommGroup E']
@@ -280,20 +305,8 @@ theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [Norme
     {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
     [IsManifold I' ∞ N] (h : M ≃ₘ⟮I, I'⟯ N) {J : SmoothAlmostComplexStructure I' N}
     (hJ : J.IsIntegrable) : (pullback h J).IsIntegrable := by
-  rw [isIntegrable_iff_mfderiv] at hJ
-  refine isIntegrable_of_forall_exists_partialDiffeomorph _ (G := E') fun x ↦ ?_
-  obtain ⟨ψ, J₀, hx, hψ⟩ := hJ (h x)
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  -- The chart `ψ` read through `h` takes values in `E'`, and carries `pullback h J` to `J₀`.
-  let Ψ : PartialDiffeomorph I 𝓘(ℝ, E') M E' ∞ := h.toPartialDiffeomorph.trans ψ
-  have hc : (Ψ : M → E') = ψ ∘ h := by
-    ext z
-    simp [Ψ]
-  refine ⟨Ψ, J₀, by simpa [Ψ] using hx, fun y hy v ↦ ?_⟩
-  have hy' : h y ∈ ψ.source := by simpa [Ψ] using hy
-  rw [hc, mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
-    mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
-    mfderiv_pullback_apply, hψ _ hy']
+  rw [← localPullback_eq_pullback]
+  exact hJ.localPullback h.isLocalDiffeomorph
 
 end Chart
 
@@ -434,5 +447,25 @@ theorem isIntegrable_iff_forall_exists_isIsothermalChart :
 end Surface
 
 end SmoothAlmostComplexStructure
+
+section ComplexManifold
+
+open scoped TauCeti.ComplexManifold
+
+variable {E M : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [TopologicalSpace M]
+  [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
+
+/-- Every chart `e` of the maximal `Cⁿ` atlas of a complex manifold `M`, for `n ≠ 0`, is
+pseudoholomorphic on its source, from the almost complex structure of `M` to that of the model
+`E`. -/
+theorem isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas {n : WithTop ℕ∞}
+    [IsManifold 𝓘(ℂ, E) n M] {e : OpenPartialHomeomorph M E}
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) n M) (hn : n ≠ 0) :
+    IsPseudoholomorphicOn (SmoothAlmostComplexStructure.ofComplexManifold E M)
+      (SmoothAlmostComplexStructure.ofComplexManifold E E) e e.source :=
+  isPseudoholomorphicOn_ofComplexManifold_iff.2
+    ((contMDiffOn_of_mem_maximalAtlas he).mdifferentiableOn hn)
+
+end ComplexManifold
 
 end TauCeti

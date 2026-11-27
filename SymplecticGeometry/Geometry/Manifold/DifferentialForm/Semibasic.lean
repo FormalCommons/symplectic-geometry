@@ -5,11 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-public import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
+public import TauCeti.LinearAlgebra.Alternating.Conormal
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
+import SymplecticGeometry.LinearAlgebra.Alternating.Conormal
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 
 /-!
 # Forms semibasic for a map
@@ -43,6 +49,17 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
 * `TauCeti.RoughForm.IsSemibasicAt.mpullback_of_comp_eq`: for differentiable maps with
   `f ∘ g = h ∘ f'`, the pullback along `g` of a form semibasic for `f` is semibasic for `f'`; in
   particular (`TauCeti.RoughForm.IsSemibasicAt.mpullback_comp`) it is semibasic for `f ∘ g`.
+* `TauCeti.RoughForm.IsSemibasicAt.wedge_apply_eq_zero`: at `x`, the wedge `φ ∧ ψ` of a one-form
+  `φ` semibasic for `f` with a two-form `ψ` that vanishes on pairs of vectors of the kernel of the
+  differential of `f` vanishes on every triple whose first two vectors lie in that kernel. It is
+  the case `K = ker (mfderiv f x)` of `ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem`.
+* `TauCeti.RoughForm.isSemibasicAt_mextDeriv_ofFunction_comp`: the differential of `g ∘ f`, a
+  function on `B` pulled back along `f`, is semibasic for `f`, a case of
+  `TauCeti.RoughForm.isSemibasicAt_mpullback` (in `Pullback/Descent.lean`); and
+  `TauCeti.RoughForm.isSemibasic_mextDeriv_ofFunction_comp`, the same at every point.
+* `TauCeti.RoughForm.mextDeriv_fun_smul_comp_apply_of_mem_ker`: on vectors in the kernel of the
+  differential of `f`, the derivative of `(g ∘ f) • μ` is `g ∘ f` times that of `μ`, since the
+  term `d(g ∘ f) ∧ μ` of the Leibniz rule (`TauCeti.mextDeriv_fun_smul`) vanishes there.
 * `TauCeti.RoughForm.isSemibasicAt_fst_iff`: a form on `M × N` is semibasic for `Prod.fst` at
   `p` exactly when it vanishes at `p` on every tuple one of whose vectors has zero component
   along `M`; and `TauCeti.RoughForm.IsSemibasic.mpullback_prodMap`: pullback along a product of
@@ -291,6 +308,74 @@ theorem IsSemibasic.mpullback_comp {α : RoughForm I M F k} (hα : IsSemibasic I
 
 end Pullback
 
+section Wedge
+
+/-- **Wedge with a semibasic one-form.** Let `φ` be a one-form semibasic for `f` at `x`, and `ψ`
+a two-form whose value at `x` vanishes on every pair of vectors of the kernel `K` of the
+differential of `f` at `x`. Then `(φ ∧ ψ)_x (η₁, η₂, v) = 0` for `η₁ η₂ ∈ K` and every `v`. -/
+theorem IsSemibasicAt.wedge_apply_eq_zero {φ : RoughForm I M ℝ 1} {ψ : RoughForm I M ℝ 2}
+    {x : M} (hφ : IsSemibasicAt IB f φ x)
+    (hψ : ∀ u w : TangentSpace I x, mfderiv I IB f x u = 0 → mfderiv I IB f x w = 0 →
+      ψ x ![u, w] = 0)
+    {η₁ η₂ : TangentSpace I x} (h₁ : mfderiv I IB f x η₁ = 0) (h₂ : mfderiv I IB f x η₂ = 0)
+    (v : TangentSpace I x) : φ.wedge ψ x ![η₁, η₂, v] = 0 := by
+  rw [wedge_def, wedgeWith_apply']
+  exact ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_mem _ _
+    (K := (mfderiv I IB f x).ker) (fun u hu ↦ hφ.apply_eq_zero _ 0 hu)
+    (fun u hu w hw ↦ hψ u w hu hw) h₁ h₂ v
+
+end Wedge
+
+section ExtDeriv
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- **Differentials of functions on the base are semibasic.** For `f : M → B` differentiable at
+`x` and `g : B → F` differentiable at `f x`, the differential `d (g ∘ f)` is semibasic for `f` at
+`x`. Its value at `x` is that of the pullback of `d g` along `f`
+(`TauCeti.mpullback_mextDeriv_ofFunction_apply`), so this is the case `ω = d g` of
+`TauCeti.RoughForm.isSemibasicAt_mpullback`, in `Pullback/Descent.lean`. -/
+theorem isSemibasicAt_mextDeriv_ofFunction_comp {g : B → F} {x : M}
+    (hg : MDifferentiableAt IB 𝓘(ℝ, F) g (f x)) (hf : MDifferentiableAt I IB f x) :
+    IsSemibasicAt IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) x := by
+  refine isSemibasicAt_iff.mpr fun v i hv ↦ ?_
+  obtain rfl : i = 0 := Subsingleton.elim (α := Fin 1) _ _
+  have hv' : v = ![v 0] := by
+    ext j
+    fin_cases j
+    rfl
+  rw [hv', mextDeriv_ofFunction_apply, mfderiv_comp_apply x hg hf, hv]
+  exact map_zero _
+
+/-- **Differentials of functions on the base are semibasic.** For differentiable `f : M → B` and
+`g : B → F`, the differential `d (g ∘ f)` is semibasic for `f`. -/
+theorem isSemibasic_mextDeriv_ofFunction_comp {g : B → F}
+    (hg : MDifferentiable IB 𝓘(ℝ, F) g) (hf : MDifferentiable I IB f) :
+    IsSemibasic IB f (mextDeriv (RoughForm.ofFunction I (g ∘ f))) :=
+  fun _ ↦ isSemibasicAt_mextDeriv_ofFunction_comp (hg _) (hf _)
+
+/-- **The Leibniz rule on vertical vectors.** Let `f : M → B` be differentiable at `x`,
+`g : B → ℝ` differentiable at `f x`, and `μ` a real form differentiable at `x`. On tangent vectors
+in the kernel of the differential of `f` at `x`, the exterior derivative of `(g ∘ f) • μ` is
+`g (f x) * dμ`. -/
+theorem mextDeriv_fun_smul_comp_apply_of_mem_ker [IsManifold I 1 M] {g : B → ℝ}
+    {μ : RoughForm I M ℝ k} {x : M}
+    (hg : MDifferentiableAt IB 𝓘(ℝ) g (f x)) (hf : MDifferentiableAt I IB f x)
+    (hμ : MDifferentiableAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] ℝ))
+      (fun y ↦ Bundle.TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] ℝ) y (μ y)) x)
+    {v : Fin (k + 1) → TangentSpace I x} (hv : ∀ j, v j ∈ (mfderiv I IB f x).ker) :
+    mextDeriv (fun y ↦ g (f y) • μ y) x v = g (f x) * mextDeriv μ x v := by
+  -- The form is the pointwise product `(g ∘ f) • μ` of the Leibniz rule.
+  have hleib : mextDeriv (fun y ↦ g (f y) • μ y) x v = _ :=
+    mextDeriv_fun_smul (f := g ∘ f) (hg.comp x hf) hμ v
+  -- `d(g ∘ f)` is semibasic for `f`, so the term `d(g ∘ f) ∧ μ` vanishes on `v`.
+  rw [hleib, wedge_def, wedgeWith_apply',
+    ContinuousAlternatingMap.pairedWedge_apply_eq_zero_of_forall _ _ _ _ (v ∘ Fin.cast (by omega))
+      fun j ↦ (isSemibasicAt_mextDeriv_ofFunction_comp hg hf).apply_eq_zero _ 0 (hv _),
+    zero_add, Function.comp_apply]
+
+end ExtDeriv
+
 section Prod
 
 variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
@@ -385,9 +470,7 @@ vector in the kernel of the differential of `f` at `x` lies in the kernel of the
 theorem isSemibasicAt_iff_ker_mfderiv_le {σ : SmoothForm I M ℝ 2} {x : M} :
     RoughForm.IsSemibasicAt IB f σ.val x ↔
       (mfderiv I IB f x).ker ≤ LinearMap.ker (σ.bilinFormAt x) := by
-  have h : σ.bilinFormAt x = (σ.val x).toAlternatingMap.toMultilinearMap.toBilinMap :=
-    LinearMap.ext₂ fun u w ↦ by simp [SmoothBundleForm.eval₂_apply]
-  rw [RoughForm.isSemibasicAt_def, h, Submodule.mem_conormalForms_fin_two_iff_le_ker]
+  rw [RoughForm.isSemibasicAt_def, bilinFormAt_def, Submodule.mem_conormalForms_fin_two_iff_le_ker]
 
 /-- A smooth two-form `σ` is semibasic for `f` exactly when, at every point `x`, every vector in
 the kernel of the differential of `f` at `x` lies in the kernel of the bilinear form `σ_x`. -/

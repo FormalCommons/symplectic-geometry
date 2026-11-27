@@ -5,16 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # First Chern classes of complex structures on vector bundles
 
 A complex structure `J` on a real vector bundle `V` makes `V` a complex vector bundle
 `J.toContinuousComplexStructure.Fiber`, which has a first Chern class
-`SymplecticGeometry.Bundle.firstChernClass` (the Euler class of its determinant line). This file
+`TauCeti.firstChernClass` (the Euler class of its determinant line). This file
 relates these classes to the operations on complex structures and to tameness:
 
 * `ContMDiffComplexStructure.firstChernClass_pullback`: the class of the pull-back
@@ -38,6 +39,7 @@ relates these classes to the operations on complex structures and to tameness:
 public section
 
 open _root_.Bundle Module TauCeti.Bundle.ContinuousComplexStructure
+open TauCeti (firstChernClass)
 open scoped Manifold
 
 namespace SymplecticGeometry.Bundle
@@ -46,7 +48,7 @@ variable {EB HB : Type*} {M : Type} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
   [TopologicalSpace M] [ChartedSpace HB M]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  {V : M → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V]
@@ -66,7 +68,7 @@ theorem firstChernClass_pullback {EN HN : Type*} {N : Type} [NormedAddCommGroup 
     firstChernClass G (J.pullback f hf).toContinuousComplexStructure.Fiber =
       TopCat.singularCohomologyMap (TopCat.ofHom (f : C(N, M))) 2
         (firstChernClass G J.toContinuousComplexStructure.Fiber) := by
-  rw [← SymplecticGeometry.Bundle.firstChernClass_pullback]
+  rw [← SymplecticGeometry.Bundle.firstChernClass_pullback_coe]
   exact firstChernClass_congr (J.pullbackFiberEquiv f hf)
     (continuous_pullbackFiberEquiv G J f hf)
 
@@ -75,7 +77,7 @@ structure `J` along an isomorphism `Φ : V ≃ V₂` of vector bundles, whose ma
 `Cⁿ`, gives a complex bundle with the same first Chern class as `J`. -/
 theorem firstChernClass_pushforward
     {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
-    {V₂ : M → Type*}
+    {V₂ : M → Type}
     [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)] [∀ x, TopologicalSpace (V₂ x)]
     [∀ x, IsTopologicalAddGroup (V₂ x)] [∀ x, ContinuousSMul ℝ (V₂ x)]
     [TopologicalSpace (TotalSpace F₂ V₂)] [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]

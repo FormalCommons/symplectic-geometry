@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.ChernClass
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.LinearSection
@@ -19,6 +18,9 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.LinearAlgebra.Matrix.Rank.Closed
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The degree of a smooth projective hypersurface
@@ -28,10 +30,10 @@ with inclusion `ι = X.embedding`, and let `h` be the hyperplane class of `ℂ�
 `⟨(ι^* h) ^ n, [X]⟩ = d`, the fundamental class being that of the complex orientation of `X`
 (`SymplecticGeometry.complexManifoldEvalFundamentalClass`).
 
-The class `(ι^* h) ^ n` is the top Chern class of `ι^* 𝒪(1)^{⊕n}`, by the Whitney sum formula
-for `𝒪(1)^{⊕n}` (`Projectivization.totalChernClass_twistPiCore`) and naturality, hence its Euler
-class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). Pairing the Euler class
-with `[X]` adds up, over the zeros of a section with finitely many zeros, its index at each
+The class `(ι^* h) ^ n` is the top Chern class of `ι^* 𝒪(1)^{⊕n}`, by the Whitney sum formula for
+`𝒪(1)^{⊕n}` (`Projectivization.totalChernClass_twistSumCore`) and naturality, hence its
+Euler class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). Pairing the Euler
+class with `[X]` adds up, over the zeros of a section with finitely many zeros, its index at each
 (`SymplecticGeometry.complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex`,
 a form of Tau Ceti's
 `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
@@ -51,12 +53,12 @@ of parameters, being dense, meets the nonempty open set of surjective tuples. Fo
 
 The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
 
-* `complexEulerClass_twistPiCore_pullback`: the Euler class of `ι^* 𝒪(1)^{⊕(r+1)}` is
+* `complexEulerClass_twistSumCore_const_one_pullback`: the Euler class of `ι^* 𝒪(1)^{⊕(r+1)}` is
   `(ι^* h) ^ (r + 1)`.
 * `exists_surjective_linearSection_regular`: some surjective `ℓ : ℂⁿ⁺² → ℂⁿ` gives a section
   of `ι^* 𝒪(1)^{⊕n}` that is transverse to zero, with finitely many zeros.
-* `card_setOf_linearSection_eq_zero`: for surjective `ℓ` whose section is transverse to zero, that
-  section has exactly `d` zeros.
+* `card_setOfPred_linearSection_eq_zero`: for surjective `ℓ` whose section is transverse to zero,
+  that section has exactly `d` zeros.
 * `evalFundamentalClass_hyperplaneClass_pow`: `⟨(ι^* h) ^ n, [X]⟩ = d` for `n ≠ 0`, written for a
   hypersurface of dimension `n + 1`. The case `n = 0`, where the pairing is read as a count of
   points, is `SmoothProjectiveHypersurface.card_eq`.
@@ -86,18 +88,18 @@ variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 /-- **The Euler class of `ι^* 𝒪(1)^{⊕(r+1)}`.** On a smooth projective hypersurface `X`, the Euler
 class of the pull-back of `𝒪(1) ⊗ ℂ^{r+1}` by the inclusion, read in integral cohomology, is
 `(ι^* h) ^ (r + 1)`. -/
-theorem complexEulerClass_twistPiCore_pullback (r : ℕ) :
+theorem complexEulerClass_twistSumCore_const_one_pullback (r : ℕ) :
     ((TopCat.of X).uliftIntegralCohomologyIso (2 * r + 2)).hom
         (complexEulerClass (Fin (r + 1) → ℂ)
-          (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin (r + 1))).Fiber)
+          (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : Fin (r + 1) ↦ 1).Fiber)
           (finrank_fin_fun ℂ)) =
       ((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (r + 1)) (r + 1) := by
   rw [← chernClass_finrank_eq_complexEulerClass, ← totalChernClass_apply]
   refine (congrArg (· (r + 1)) (totalChernClass_pullback (G := Fin (r + 1) → ℂ)
-    (E := (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin (r + 1))).Fiber)
+    (E := (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : Fin (r + 1) ↦ 1).Fiber)
     X.embedding.toContinuousMap)).trans ?_
   dsimp only
-  rw [totalChernClass_twistPiCore, one_smul, map_pow, map_add, map_one,
+  rw [totalChernClass_twistSumCore, Fin.prod_const, one_smul, map_pow, map_add, map_one,
     evenIntegralCohomologyMap_hyperplaneClass]
   -- The component of degree `r + 1` of `(1 + ι^* h) ^ (r + 1)` is that of `(ι^* h) ^ (r + 1)`.
   rw [TopCat.one_add_evenIntegralCohomologyOf_pow_apply, Nat.choose_self, Nat.cast_one, one_smul]
@@ -109,7 +111,7 @@ each of its zeros, and which has finitely many zeros. -/
 theorem exists_surjective_linearSection_regular :
     ∃ ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ, Function.Surjective ℓ ∧
       (∀ z, X.linearSection ℓ z = 0 → Function.Surjective
-        (sectionLinearization 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (F := Fin n → ℂ) id
+        (sectionLinearization 𝓘(ℝ, Fin n → ℂ) (F := Fin n → ℂ) id
           (X.linearSection ℓ) z)) ∧ {x | X.linearSection ℓ x = 0}.Finite := by
   -- The real family of the forms `x_j c e_k`, for `c ∈ {1, i}`, whose sections span every fibre.
   set f : Fin (n + 2) × Fin n × Fin 2 → (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ := fun p ↦
@@ -120,10 +122,8 @@ theorem exists_surjective_linearSection_regular :
   have hℓ (a) (v : Fin (n + 2) → ℂ) (k : Fin n) : ℓ a v k =
       ∑ p, a p • (v p.1 * Pi.single (M := fun _ ↦ ℂ) p.2.1 (Complex.basisOneI p.2.2) k) := by
     simp [ℓ, f, LinearMap.sum_apply, Finset.sum_apply]
-  have hdim : finrank ℝ (Fin (n + 1 - Fintype.card Unit) → ℂ) = finrank ℝ (Fin n → ℂ) := by
-    rw [finrank_real_of_complex, finrank_model, finrank_real_of_complex, finrank_fin_fun]
   have hres := ContMDiffSection.mem_residual_setOf_regular_and_finite_zero_affineFamily 0
-    (fun p ↦ X.linearSection (f p)) X.span_range_linearSection_smulRight hdim
+    (fun p ↦ X.linearSection (f p)) X.span_range_linearSection_smulRight rfl
   have haff (a) : ContMDiffSection.affineFamily 0 (fun p ↦ X.linearSection (f p)) a =
       X.linearSection (ℓ a) := by
     ext x
@@ -160,10 +160,10 @@ surjective, and suppose that the section of `ι^* 𝒪(1)^{⊕n}` that it gives 
 underlying real manifold of `X`, a surjective linearization at each of its zeros. Then that
 section has exactly `d` zeros: they are the points of `X` on the line `{ℓ = 0}`, which is
 transverse to `X`. -/
-theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ}
+theorem card_setOfPred_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ}
     (hℓ : Function.Surjective ℓ)
     (htr : ∀ z, X.linearSection ℓ z = 0 → Function.Surjective
-      (sectionLinearization 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (F := Fin n → ℂ) id
+      (sectionLinearization 𝓘(ℝ, Fin n → ℂ) (F := Fin n → ℂ) id
         (X.linearSection ℓ) z)) :
     Nat.card {x : X | X.linearSection ℓ x = 0} = d := by
   -- The line `{ℓ = 0}` is the image of an injective `L : ℂ² → ℂⁿ⁺²` with range `ker ℓ`.
@@ -197,25 +197,25 @@ theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurface (n + 1) d) :
-    complexManifoldEvalFundamentalClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X finrank_model
+    complexManifoldEvalFundamentalClass (Fin (n + 1) → ℂ) X (Module.finrank_fin_fun ℂ)
       (((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 1)) (n + 1)) = d := by
   obtain ⟨ℓ, hℓ, hreg, hfin⟩ := X.exists_surjective_linearSection_regular
   have hs : Continuous fun x ↦ TotalSpace.mk' (Fin (n + 1) → ℂ) x (X.linearSection ℓ x) :=
     (X.linearSection ℓ).contMDiff.continuous
   -- The pairing is that of the Euler class of `ι^* 𝒪(1)^{⊕(n+1)}`, the sum of the local indices
   -- of the section given by `ℓ`.
-  rw [← X.complexEulerClass_twistPiCore_pullback n,
+  rw [← X.complexEulerClass_twistSumCore_const_one_pullback n,
     complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex _ _ hs hfin]
   calc _ = ∑ _z ∈ hfin.toFinset, (1 : ℤ) := Finset.sum_congr rfl ?_
     _ = d := by
       rw [Finset.sum_const, nsmul_one, ← Set.ncard_eq_toFinset_card _ hfin, ← Nat.card_coe_set_eq,
-        X.card_setOf_linearSection_eq_zero hℓ hreg]
+        X.card_setOfPred_linearSection_eq_zero hℓ hreg]
   -- Each zero is transverse, with a complex-linear derivative, so its index is `1`.
   intro z hz
   have hz0 : X.linearSection ℓ z = 0 := hfin.mem_toFinset.1 hz
   obtain ⟨A, hA⟩ := X.exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection hℓ
     hz0 ((X.surjective_sectionLinearization_linearSection_iff hℓ hz0).1 (hreg z hz0))
-  exact sectionIndex_eq_one_of_complexLinear finrank_model hs hz0 _
+  exact sectionIndex_eq_one_of_complexLinear (Module.finrank_fin_fun ℂ) hs hz0 _
     (mem_baseSet_trivializationAt _ _ z) A hA
 
 end SmoothProjectiveHypersurface

@@ -12,9 +12,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.DeRham.Harmonic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 import SymplecticGeometry.Geometry.Manifold.Complex.KahlerCoordinates
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
@@ -32,7 +33,7 @@ When the manifold carries a metric with `⟪v, w⟫ = σ(v, J w)` for a smooth a
 structure `J`, then `σ` is at each point the Kähler form of `J`
 (`TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`, in
 `SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric`), and so `L` is, at each
-point, the Lefschetz operator `TauCeti.AlmostComplexStructure.lefschetz` of `J x` on the tangent
+point, the Lefschetz operator `TauCeti.AlmostComplexStructure.formLefschetz` of `J x` on the tangent
 space. When `σ` is closed, `L` commutes with the exterior derivative. Finally, on an oriented
 manifold with a smooth metric, the Hodge star commutes with the derivation
 `ContMDiffSection.realAlternatingDerivation` of every fibrewise skew-adjoint endomorphism field, in
@@ -49,7 +50,7 @@ zero at `ψ x₀` too, so at `x₀` every term is a constant-coefficient operato
 derivative there of `α` read in the chart. That derivative, carried to the tangent space at `x₀`
 along the differential of `ψ`, is a linear map `B` from the tangent space to forms, and the
 identity becomes the linear Kähler identity for `B`,
-`TauCeti.AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub`.
+`TauCeti.AlmostComplexStructure.formLefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub`.
 
 From this identity, the Hodge Laplacian `Δ = d^* d + d d^*` commutes with `𝒥`. With
 `P = [𝒥, d]` and `Q = [𝒥, d^*]`, the commutator `[𝒥, Δ]` is `(P d^* + d^* P) + (Q d + d Q)`. The
@@ -136,15 +137,15 @@ variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] [FiniteDimensional 
   {J : SmoothAlmostComplexStructure I M}
 
 /-- If the metric is `⟪v, w⟫ = σ(v, J w)`, then the value at `x` of the Lefschetz operator of `σ`
-is the Lefschetz operator `TauCeti.AlmostComplexStructure.lefschetz` of `J x` on the tangent
+is the Lefschetz operator `TauCeti.AlmostComplexStructure.formLefschetz` of `J x` on the tangent
 space, applied to the value of `α`. -/
 theorem val_lefschetz (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.eval₂ x v (J x w))
     (α : SmoothForm I M ℝ k) (x : M) :
     (σ.lefschetz α).val x =
       (letI : FiniteDimensional ℝ (TangentSpace I x) :=
         VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
-       (J.almostComplexStructureAt x).lefschetz (α.val x)) := by
-  rw [lefschetz_apply, SmoothForm.coe_wedge_apply, AlmostComplexStructure.lefschetz_apply,
+       (J.almostComplexStructureAt x).formLefschetz (α.val x)) := by
+  rw [lefschetz_apply, SmoothForm.coe_wedge_apply, AlmostComplexStructure.formLefschetz_apply,
     val_eq_alternatingFormEquiv_kahlerForm hg x]
 
 end SmoothTwoForm
@@ -247,10 +248,10 @@ theorem symbolInChart_lefschetz
     ψ.symbolInChart (σ.lefschetz β).val y =
       (letI : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
         VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
-       (J.almostComplexStructureAt (ψ.symm y)).lefschetz ∘L ψ.symbolInChart β.val y) := by
+       (J.almostComplexStructureAt (ψ.symm y)).formLefschetz ∘L ψ.symbolInChart β.val y) := by
   ext1 v
   rw [symbolInChart_lefschetz_apply ψ σ β hy hσ v, ContinuousLinearMap.comp_apply,
-    AlmostComplexStructure.lefschetz_apply, val_eq_alternatingFormEquiv_kahlerForm hg]
+    AlmostComplexStructure.formLefschetz_apply, val_eq_alternatingFormEquiv_kahlerForm hg]
 
 /-- To prove that two smooth forms agree, it suffices to compare them at the points of osculating
 holomorphic charts at which the metric in the chart has derivative zero. -/
@@ -291,7 +292,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
-  simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
+  simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.neg_apply]
   rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
       α hy hgr,
     ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl' (by omega) (σ.lefschetz α) hy
@@ -302,7 +303,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
     ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart _ hy,
     symbolInChart_lefschetz hg ψ α hy
       (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
-  convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
+  convert AlmostComplexStructure.formLefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
     (J := J.almostComplexStructureAt (ψ.symm y)) (fun u v ↦ by
       simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
         SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg _ u v)
@@ -335,14 +336,14 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
-  simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
+  simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.neg_apply]
   rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
       α hy hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
   rw [ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart α hy,
     ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart _ hy]
-  convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt
+  convert AlmostComplexStructure.formLefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt
     (J := J.almostComplexStructureAt (ψ.symm y)) (fun u v ↦ by
       simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
         SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg _ u v)
@@ -379,7 +380,7 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
   rw [ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart f hy,
     symbolInChart_lefschetz hg ψ f hy
       (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
-  convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero
+  convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_formLefschetz_fin_zero
     (J := J.almostComplexStructureAt (ψ.symm y)) (fun u v ↦ by
       simpa only [SmoothAlmostComplexStructure.almostComplexStructureAt_apply] using
         SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg _ u v)

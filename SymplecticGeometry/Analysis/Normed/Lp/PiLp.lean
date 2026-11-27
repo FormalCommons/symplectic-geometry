@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Normed.Lp.PiLp
+public import TauCeti.Analysis.Normed.Lp.PiLp.Basic
 
 /-!
-# Composing reindexings of `Lᵖ` products
+# `Lᵖ` products
 
 Mathlib's `LinearIsometryEquiv.piLpCongrLeft p 𝕜 E e` moves the coordinates of `Lᵖ(ι, E)` along an
 equivalence `e : ι ≃ ι'`. Tau Ceti shows that the identity of `ι` gives the identity

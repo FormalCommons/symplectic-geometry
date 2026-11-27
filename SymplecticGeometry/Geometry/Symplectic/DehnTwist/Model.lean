@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Geodesic
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
@@ -18,6 +19,8 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The model Dehn twist on the cotangent bundle of the sphere
@@ -52,13 +55,16 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   vanishes on `[r₀, ∞)`.
 * `SymplecticGeometry.IsTwistProfile.lineMap`: twist profiles of the same radius form an affine
   subspace; `SymplecticGeometry.exists_isTwistProfile`: there is one for every `r₀ > 0`;
-  `SymplecticGeometry.IsTwistProfile.mono`: a profile of radius `r₀` has every larger radius too.
+  `SymplecticGeometry.IsTwistProfile.mono`: a profile of radius `r₀` has every larger radius too;
+  `SymplecticGeometry.exists_isTwistProfile_setOfPred_cotangentNorm_le_subset`: every
+  neighbourhood of the zero section contains `{z | ‖p‖ ≤ r₀}` for a profile of some radius `r₀`.
 * `SymplecticGeometry.contMDiff_geodesicTwist`: the geodesic twist of `θ` is smooth when `θ` is,
   `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`.
 * `SymplecticGeometry.coe_modelTwist_symm`: the inverse of the model twist of `R` is the model
   twist of `-R`.
 * `SymplecticGeometry.modelTwist_of_cotangentNorm_ne_zero`: off the zero section the model twist
   of `z` is `σ_{2π R'(μ z)} z`.
+* `SymplecticGeometry.modelTwist_of_cotangentNorm_eq_zero`: where `μ z = 0` it is `antipodal z`.
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
 * `SymplecticGeometry.modelTwist_zeroSection`: on the zero section it is the antipodal map
   `0_q ↦ 0_{-q}`; `SymplecticGeometry.modelTwist_mem_iff`: it maps every set containing
@@ -72,7 +78,9 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 * `SymplecticGeometry.contMDiff_twistPrimitive`, `SymplecticGeometry.twistPrimitive_of_le`: the
   primitive of the model twist of a twist profile is smooth, and vanishes where `μ ≥ r₀`.
 * `SymplecticGeometry.mpullback_modelTwist_liouvilleForm`: the model twist pulls the Liouville
-  form `λ` back to `λ + dK` with `K = twistPrimitive R`, so it is exact;
+  form `λ` back to `λ + dK` with `K = twistPrimitive R`, so it is exact, and
+  `SymplecticGeometry.mpullback_modelTwist_liouvilleForm_apply` says the same at each point, on
+  rough forms;
   `SymplecticGeometry.mpullback_modelTwist_symplecticForm`: it preserves `ω = -dλ`.
 * `Function.Even.mvfderiv_comp_cotangentNorm_eq_zero`: for an even `g` differentiable at `0`, the
   differential of `g ∘ μ` vanishes on the zero section.
@@ -141,7 +149,7 @@ noncomputable section
 namespace SymplecticGeometry
 
 open Bundle Metric Set TauCeti Real
-open scoped Manifold ContDiff InnerProductSpace
+open scoped Manifold ContDiff InnerProductSpace Topology
 
 variable {n : ℕ}
 
@@ -257,6 +265,17 @@ theorem exists_isTwistProfile {r₀ : ℝ} (hr : 0 < r₀) : ∃ R, IsTwistProfi
     dsimp only
     rw [h1, h0]
     ring
+
+/-- Every neighbourhood of the zero section of `T*Sⁿ` contains `{z | ‖p‖ ≤ r₀}` for a twist
+profile of some radius `r₀`. -/
+theorem exists_isTwistProfile_setOfPred_cotangentNorm_le_subset
+    {W : Set (CotangentBundle (𝓡 n) (𝕊 n))}
+    (hW : W ∈ 𝓝ˢ (range (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)))) :
+    ∃ R r₀, IsTwistProfile R r₀ ∧ {z | cotangentNorm z ≤ r₀} ⊆ W := by
+  obtain ⟨r₀, hr, hrW⟩ := exists_pos_setOfPred_cotangentNorm_le_subset hW
+  obtain ⟨R, hR⟩ := exists_isTwistProfile hr
+  exact ⟨R, r₀, hR, hrW⟩
 
 /-! ### Twisting along the geodesic flow by an angle function -/
 
@@ -553,6 +572,12 @@ theorem modelTwist_of_cotangentNorm_ne_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR :
     modelTwist hR z = geodesicFlow (2 * π * deriv R (cotangentNorm z)) z := by
   rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]
 
+/-- On the zero section, the model twist is the antipodal map. -/
+theorem modelTwist_of_cotangentNorm_eq_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z = 0) :
+    modelTwist hR z = antipodal z := by
+  rw [coe_modelTwist, modelTwistFun_def, ite_eq_left hz]
+
 /-- The model twist sends the zero covector at `q` to the zero covector at `-q`. -/
 @[simp]
 theorem modelTwist_zeroSection {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) (q : 𝕊 n) :
@@ -560,8 +585,7 @@ theorem modelTwist_zeroSection {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfi
       (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) =
       zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
         (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (-q) := by
-  rw [coe_modelTwist, modelTwistFun_def, ite_eq_left (cotangentNorm_zeroSection q),
-    antipodal_zeroSection]
+  rw [modelTwist_of_cotangentNorm_eq_zero hR (cotangentNorm_zeroSection q), antipodal_zeroSection]
 
 /-- The model twist of radius `r₀` maps every set containing `{z | μ z ≤ r₀}` onto itself. -/
 theorem modelTwist_mem_iff {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
@@ -821,40 +845,54 @@ theorem mpullback_modelTwist_liouvilleForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : 
         cotangentCoord_geodesicTwist hC hS (by rw [hR.two_pi_mul_deriv_zero, cos_pi])]
   have hK : twistPrimitive (n := n) R = fun z ↦ k (cotangentNorm z ^ 2) :=
     funext fun z ↦ by rw [twistPrimitive_def, hk]
-  apply Subtype.ext
-  funext z
-  ext v
+  refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
   have hdq : mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-      (cotangentCoord ∘ modelTwist hR) z (v 0) =
+      (cotangentCoord ∘ modelTwist hR) z v =
       fderiv ℝ (twistCoord C S) (cotangentCoord z)
         (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-          cotangentCoord z (v 0)) := by
+          cotangentCoord z v) := by
     rw [hτ, (differentiable_twistCoord hC1 hS1 _).hasFDerivAt.mfderiv_comp_cotangentCoord_apply]
   have hdK : (mextDerivₗ ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 0
-      (SmoothForm.ofFunction ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩)).val z v =
+      (SmoothForm.ofFunction ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩)).val z ![v] =
       mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (twistPrimitive R) z
-        (v 0) := by
-    rw [show v = ![v 0] from funext fun i ↦ by rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero],
-      mextDerivₗ_zero_apply]
-    exact congrArg (fun g ↦ mvfderiv _ g z (v 0)) (SmoothForm.ofFunction_apply_zero _)
+        v := by
+    rw [mextDerivₗ_zero_apply]
+    exact congrArg (fun g ↦ mvfderiv _ g z v) (SmoothForm.ofFunction_apply_zero _)
   -- The constraints on the coordinates and their differentials.
   have hqq : ⟪(cotangentCoord z).1, (cotangentCoord z).1⟫_ℝ = 1 := by
     rw [real_inner_self_eq_norm_sq, cotangentCoord_fst, norm_eq_of_mem_sphere, one_pow]
   have hqp : ⟪(cotangentCoord z).1, (cotangentCoord z).2⟫_ℝ = 0 := by
     rw [cotangentCoord_fst]
     exact inner_proj_cotangentCoord_snd z
-  have hqdq := inner_fst_mfderiv_cotangentCoord z (v 0)
-  have hd := inner_fst_mfderiv_cotangentCoord_add_inner_snd z (v 0)
+  have hqdq := inner_fst_mfderiv_cotangentCoord z v
+  have hd := inner_fst_mfderiv_cotangentCoord_add_inner_snd z v
   have hτz : cotangentCoord (modelTwist hR z) = twistCoord C S (cotangentCoord z) :=
     congrFun hτ z
   rw [SmoothForm.coe_mpullback, mpullback_liouvilleForm_apply_eq_inner_cotangentCoord
-    ((modelTwist hR).contMDiff.mdifferentiableAt (by simp)), AddMemClass.coe_add, Pi.add_apply,
+    ((modelTwist hR).contMDiff.mdifferentiableAt (by simp)), SmoothBundleForm.add_apply,
     ContinuousAlternatingMap.add_apply, liouvilleForm_apply_eq_inner_cotangentCoord, hdK, hK,
-    mvfderiv_comp_cotangentNorm_sq (hkd.of_le (by simp)), hdq, hτz, cotangentNorm_def]
+    mvfderiv_comp_cotangentNorm_sq (hkd.of_le (by simp)), Matrix.cons_val_zero, hdq, hτz,
+    cotangentNorm_def]
   generalize (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-    cotangentCoord z (v 0) : (𝔼 n) × 𝔼 n) = u at hqdq hd ⊢
+    cotangentCoord z v : (𝔼 n) × 𝔼 n) = u at hqdq hd ⊢
   exact inner_twistCoord_snd_fderiv_twistCoord_fst hC1 hS1 hqq hqp hqdq hd (h1 _ (sq_nonneg _))
     (h2 _ (sq_nonneg _))
+
+/-- At each point `z` of `T*Sⁿ`, the model twist of a twist profile `R` pulls the Liouville form
+`λ` back to `λ + dK` with `K = twistPrimitive R`, as rough forms. -/
+theorem mpullback_modelTwist_liouvilleForm_apply {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    mpullback ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+        ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (modelTwist hR)
+        (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z =
+      (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val z +
+        mextDeriv (RoughForm.ofFunction ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+          (twistPrimitive R)) z := by
+  have h := (SmoothForm.mpullback_eq_iff _).1 (mpullback_modelTwist_liouvilleForm (n := n) hR)
+  simp only [Submodule.coe_add, mextDerivₗ_apply] at h
+  rw [h, Pi.add_apply,
+    SmoothForm.coe_ofFunction (I := (𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      ⟨twistPrimitive R, contMDiff_twistPrimitive hR⟩, ContMDiffMap.coeFn_mk]
 
 /-- The model twist of a twist profile preserves the canonical symplectic form `ω = -dλ` of
 `T*Sⁿ`. -/
@@ -902,7 +940,7 @@ theorem apply_modelTwist_eq_modelTwist_lineMap {R₀ R₁ : ℝ → ℝ} {r₀ :
     have hc : γ = fun _ ↦ antipodal z := by
       rw [hγ]
       funext s
-      rw [coe_modelTwist, modelTwistFun_def, ite_eq_left hz]
+      exact modelTwist_of_cotangentNorm_eq_zero _ hz
     refine Φ.apply_eq_of_mfderiv_eq_velocity (hc ▸ mdifferentiable_const) (fun s ↦ ?_) t
     rw [hc, mfderiv_const, hX s, (hσ.isNondegenerate.hamiltonianVectorField_eq_zero_iff).2
       (hge.mvfderiv_comp_cotangentNorm_eq_zero (hgd 0).differentiableAt
@@ -952,7 +990,7 @@ theorem exists_isCompactlySupportedHamiltonian_modelTwist {R₀ R₁ : ℝ → �
       contMDiff_fst
   -- `g ∘ μ` vanishes off the compact set `{μ ≤ r₀}`.
   obtain ⟨Φ, hgen, hΦ, -⟩ := Diffeotopy.exists_isCompactlySupportedHamiltonian hσ hG
-    (isCompact_setOf_cotangentNorm_le (n := n) r₀) fun p hp ↦ by
+    (isCompact_setOfPred_cotangentNorm_le (n := n) r₀) fun p hp ↦ by
       have hr : r₀ ≤ cotangentNorm p.1 := (not_le.1 hp).le
       simp only [hg, h₀.apply_of_le hr, h₁.apply_of_le hr, sub_zero, mul_zero]
   have key := apply_modelTwist_eq_modelTwist_lineMap h₀ h₁ fun t ↦

@@ -11,8 +11,8 @@ public import TauCeti.LinearAlgebra.BilinearForm.Isometry
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.LinearAlgebra.Dimension.Basis
 public import TauCeti.RepresentationTheory.ClassicalGroups.Symplectic
-public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
 # The linear Darboux theorem

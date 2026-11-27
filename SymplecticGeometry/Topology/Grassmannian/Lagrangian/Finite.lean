@@ -7,10 +7,11 @@ module
 
 public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
-public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
-public import SymplecticGeometry.Topology.Grassmannian.Tautological
+public import TauCeti.Topology.Grassmannian.Tautological
+import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
+import SymplecticGeometry.Topology.Grassmannian.Tautological
 
 /-!
 # The Lagrangian Grassmannian inside Tau Ceti's finite Grassmannian

@@ -5,18 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
-public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Topology
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 public import TauCeti.Geometry.Manifold.Orientation.Glue
 public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
+public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Basic
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
+import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Topology
+import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
 import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 
 /-!
 # The orientation of a surface capped with discs
@@ -161,11 +165,9 @@ private theorem isLocalDiffeomorph_pieceMap :
 
 private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c γ hγ hinj k) = univ := by
   refine eq_univ_of_forall fun p ↦ ?_
-  rcases (range_inl_union_iUnion_range_inr c γ hγ hinj ▸ mem_univ p :
-    p ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i)) with ⟨q, rfl⟩ | hp
+  rcases exists_inl_or_exists_inr c γ hγ hinj p with ⟨q, rfl⟩ | ⟨i, z, rfl⟩
   · exact mem_iUnion.2 ⟨none, ((𝓡∂ 2).interiorOpensDiffeomorph S ∞) q, by simp [pieceMap]⟩
-  · obtain ⟨i, z, rfl⟩ := mem_iUnion.1 hp
-    exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
+  · exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
 
 /-- The standard orientation of `ℝ²` on the ball of radius `2`. -/
 private def discOrientation : Manifold.Orientation (𝓡 2) discOpens (Fin 2) :=
@@ -449,19 +451,17 @@ theorem eq_orientation_iff {o' : Manifold.Orientation (𝓡 2) (capDiscs c γ h�
 in the capped surface. -/
 private def discPartialDiffeomorph (i : ι) :
     PartialDiffeomorph (𝓡 2) (𝓡 2) discOpens (capDiscs c γ hγ hinj) ∞ :=
-  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn
-    (f := fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v))
-    ((isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i).isLocalDiffeomorphOn univ)
-    isOpen_univ (injective_inr_ballDiffeomorph_symm c γ hγ hinj i).injOn
+  (isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i).partialDiffeomorphOfInjective
+    (injective_inr_ballDiffeomorph_symm c γ hγ hinj i)
 
 private theorem coe_discPartialDiffeomorph (i : ι) :
     ⇑(discPartialDiffeomorph c γ hγ hinj i) =
       fun v : discOpens ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v) :=
-  IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
+  IsLocalDiffeomorph.coe_partialDiffeomorphOfInjective ..
 
 private theorem discPartialDiffeomorph_source (i : ι) :
     (discPartialDiffeomorph c γ hγ hinj i).source = univ :=
-  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source _ _ _
+  IsLocalDiffeomorph.partialDiffeomorphOfInjective_source ..
 
 /-- The chart `(inr i)⁻¹` of the capped surface, read in `ℝ²` through `z ↦ (re z, im z)`. -/
 private def discChart (i : ι) :

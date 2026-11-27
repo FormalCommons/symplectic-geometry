@@ -30,7 +30,9 @@ freedom in the choice.
   moment map `μ`, the moment maps of `a` are exactly the maps `x ↦ μ x + c(·) x` for a linear map
   `c : 𝔤 → LocallyConstant M ℝ`. On a preconnected manifold the locally constant functions are the
   constants, and this is Tau Ceti's
-  `TauCeti.SmoothTwoForm.IsMomentMap.isMomentMap_iff_exists_eq_add`.
+  `TauCeti.SmoothTwoForm.IsMomentMap.isMomentMap_iff_exists_eq_add`. For a finite-dimensional
+  `𝔤`, it follows that two moment maps of `a` agree on a clopen set
+  (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOf_eq`).
 
 Both results are stated in Tau Ceti's convention `ι_{Z_M} σ = d⟨μ, Z⟩`. They hold unchanged in the
 opposite convention `ι_{Z_M} σ = -d⟨μ, Z⟩`, since passing from one convention to the other replaces
@@ -126,6 +128,23 @@ theorem isMomentMap_iff_exists_eq_add_locallyConstant (h : σ.IsMomentMap a μ) 
     have hμ' : μ' = fun x ↦ μ x + LocallyConstant.evalₗ ℝ x ∘ₗ c :=
       funext fun x ↦ LinearMap.ext fun Z ↦ hc x Z
     exact hμ' ▸ h.add_locallyConstant c
+
+/-- Two moment maps of the same infinitesimal action of a finite-dimensional Lie algebra agree on
+a clopen set. -/
+theorem isClopen_setOf_eq [FiniteDimensional ℝ 𝔤] (h : σ.IsMomentMap a μ)
+    (h' : σ.IsMomentMap a μ') : IsClopen {x | μ x = μ' x} := by
+  obtain ⟨c, hc⟩ := h.isMomentMap_iff_exists_eq_add_locallyConstant.1 h'
+  let b := Module.finBasis ℝ 𝔤
+  have : {x | μ x = μ' x} = ⋂ i, {x | c (b i) x = 0} := by
+    ext x
+    simp only [Set.mem_ofPred_eq, Set.mem_iInter]
+    refine ⟨fun hx i ↦ ?_, fun hx ↦ b.ext fun i ↦ ?_⟩
+    · have := hc x (b i)
+      rw [← hx] at this
+      linarith
+    · rw [hc, hx i, add_zero]
+  rw [this]
+  exact isClopen_iInter_of_finite fun i ↦ (c (b i)).isLocallyConstant.isClopen_fiber 0
 
 end IsMomentMap
 

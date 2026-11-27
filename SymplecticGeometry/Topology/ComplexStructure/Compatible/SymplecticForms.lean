@@ -6,12 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
-public import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
 public import SymplecticGeometry.Topology.ComplexStructure.Orthogonal
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import Mathlib.Topology.Homotopy.Affine
 public import Mathlib.Topology.Homotopy.Equiv
 public import TauCeti.Topology.Homotopy.DeformationRetract
+public import TauCeti.Geometry.Symplectic.Cayley.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Cayley.Domain
+import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
+import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
 
 /-!
 # Symplectic forms and complex structures for a fixed inner product

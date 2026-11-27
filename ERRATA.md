@@ -164,4 +164,41 @@ Each entry has this form:
   `Geometry/Symplectic/HPrinciple/Parametric.lean`).
 - **Issue:** #3898.
 
+### The pointwise connected-sum obstruction in dimension zero
+
+- **Where:** `atlas/constructing-symplectic-manifolds.md`, *Pointwise
+  connected-sum obstruction for symplectic forms*.
+- **Error:** the milestone excludes only the dimensions $2n=2$ and $2n=6$,
+  and the page's conventions allow manifolds of dimension zero. For $n=0$
+  the claim is false. Take $M_1=M_2$ a point: removing the centre of the
+  ball leaves nothing, so the connected sum is empty, the zero form on it
+  is symplectic, and the required homotopies on the empty punctured
+  summands exist trivially. More generally, on a manifold of dimension
+  zero every two-form is zero and nondegenerate, so the conclusion fails
+  for any summands.
+- **Fix:** the milestone `not_exists_isSymplectic_connectedSum` assumes
+  $n\ne0$ along with $n\ne1$, $n\ne3$, and
+  `exists_isSymplectic_connectedSum_of_eq_zero` proves that for $n=0$ the
+  symplectic form and both homotopies always exist (both in
+  `Geometry/Symplectic/Sum/Pointwise.lean`).
+- **Issue:** #3447.
+
 ## Other sources
+
+### Constants of the quadratic shape need a small γ
+
+- **Where:** K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*,
+  §4.5, Remark 4.20.
+- **Error:** the remark offers `c = (1 + a)/2` and `b = γ(a - 1)/16` for the
+  quadratic shape `1 + b r + c r²/2` in the proof of Lemma 4.19, which needs
+  that shape to pass below `√(1 + a r²)` before `γ` and needs `b < 1`, with no
+  bound on `γ` in terms of `a`. For `a = 100` and `γ = 1/2`, the quadratic
+  shape at `γ` is about `8.86` while `√(1 + a γ²)` is about `5.10`, and
+  `b ≈ 3.09 > 1`. Lemma 4.19 itself is not affected, since a smaller `γ` gives
+  a stronger conclusion.
+- **Fix:** `quadratic_lt_sqrt_of_mul_sq_le` proves the remark's claim under
+  `γ (a + 1)² ≤ a - 1`, which also gives `b < 1`, with the counterexample above
+  as an `example` next to it; `exists_isConvexShapeAt_eq_linear_eq_sqrt` uses
+  the constants for `min γ ((a - 1)/(a + 1)²)` (both in
+  `Geometry/Manifold/Complex/JConvex/Surround/SpecialShape.lean`).
+- **Issue:** #6628.

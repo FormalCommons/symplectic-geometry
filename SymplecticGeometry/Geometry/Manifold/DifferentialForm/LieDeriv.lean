@@ -5,17 +5,21 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
+public import TauCeti.Geometry.Manifold.VectorField.Chart.Derivative
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
-# Lie derivatives of forms on a manifold: linearity in the field, horizontal fields
+# Lie derivatives of forms on a manifold: linearity, horizontal fields, naturality
 
 Tau Ceti's `TauCeti.mlieDerivFormWithin` and `TauCeti.mlieDerivForm` are additive in the vector
 field (`TauCeti.mlieDerivFormWithin_add_left`, `TauCeti.mlieDerivForm_add_left`). This file adds
@@ -25,6 +29,11 @@ field or of the form. Both are read in charts from the flat statements
 `TauCeti.lieDerivFormWithin_zero_left` and `TauCeti.lieDerivFormWithin_const_smul_left` of
 `SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv`. The proofs follow Tau Ceti's
 `VectorField.mlieBracket_const_smul_left_field`.
+
+At a zero `x` of the field, on a boundaryless manifold, the Lie derivative only sees the chart
+derivative `A` of the field at `x`: `(L_V φ)_x (v₀, …, vₖ₋₁) = ∑ i, φ_x (v₀, …, A vᵢ, …, vₖ₋₁)`
+(`TauCeti.mlieDerivForm_apply_of_eq_zero`), read off Tau Ceti's flat formula
+`TauCeti.lieDerivFormWithin_apply` in the chart at `x`.
 
 For a smooth vector field `X`, given as a smooth section of the tangent bundle,
 `TauCeti.SmoothForm.lieDeriv X` is the Lie derivative `φ ↦ L_X φ` as a real-linear map from smooth
@@ -45,12 +54,20 @@ them vertically, and evaluates the Lie derivative by the bracket formula
 lifts commute (`Manifold.mlieBracket_prodVectorField_horizontal_vertical`), and the remaining
 term differentiates a function of `P` alone along `(X, 0)`. No boundarylessness is needed.
 
+The Lie derivative is natural along related vector fields: if `Φ : M' → M` is `C²` and
+`dΦ_x (Y x) = X (Φ x)` for every `x`, then `Φ^* (L_X σ) = L_Y (Φ^* σ)` for every `C¹` form `σ`,
+in every degree, with no invertibility of `dΦ` asked. Both sides are expanded by Cartan's
+formula (on functions `L_X f = ι_X df`, `TauCeti.mlieDerivForm_eq_interior_mextDeriv`), and the
+pullback commutes with interior products of related fields (`TauCeti.mpullback_interior`) and with
+the exterior derivative (`TauCeti.mpullback_mextDeriv`).
+
 ## Main declarations
 
 * `TauCeti.mlieDerivFormWithin_zero_left`, `TauCeti.mlieDerivForm_zero_left`: the Lie derivative
   along the zero field.
 * `TauCeti.mlieDerivFormWithin_const_smul_left`, `TauCeti.mlieDerivForm_const_smul_left`:
   homogeneity in the field.
+* `TauCeti.mlieDerivForm_apply_of_eq_zero`: the Lie derivative at a zero of the field.
 * `TauCeti.SmoothForm.lieDeriv`: the Lie derivative of smooth forms along a smooth vector field,
   as a linear map.
 * `TauCeti.SmoothForm.lieDeriv_eq_interiorProduct_add`,
@@ -58,6 +75,8 @@ term differentiates a function of `P` alone along `(X, 0)`. No boundarylessness 
   `L_X = ι_X d + d ι_X` for it, and `L_X f = ι_X df` on functions.
 * `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`: the slices of the Lie
   derivative of a form with constant slices along a horizontal field vanish.
+* `TauCeti.mpullback_mlieDerivForm_of_related`: the Lie derivative commutes with pullback along
+  related vector fields.
 
 ## References
 
@@ -110,6 +129,30 @@ theorem mlieDerivForm_const_smul_left (c : ℝ) (V : (x : M) → TangentSpace I 
     mlieDerivForm (c • V) φ = c • mlieDerivForm V φ := by
   rw [← mlieDerivFormWithin_univ, ← mlieDerivFormWithin_univ]
   exact funext fun _ ↦ mlieDerivFormWithin_const_smul_left c V φ (uniqueMDiffWithinAt_univ I)
+
+/-! ### The Lie derivative at a zero of the field -/
+
+/-- **The Lie derivative at a zero of the field.** On a boundaryless manifold, at a zero `x` of a
+vector field `V`, the Lie derivative of a form `φ` along `V` depends only on the chart derivative
+`A` of `V` at `x`: `(L_V φ)_x (v₀, …, vₖ₋₁) = ∑ i, φ_x (v₀, …, A vᵢ, …, vₖ₋₁)`. No
+differentiability of `V` or of `φ` is needed. -/
+theorem mlieDerivForm_apply_of_eq_zero [I.Boundaryless] [IsManifold I 1 M]
+    {V : (x : M) → TangentSpace I x} {x : M} (hV : V x = 0) (φ : RoughForm I M F k)
+    (v : Fin k → TangentSpace I x) :
+    mlieDerivForm V φ x v =
+      ∑ i, φ x (Function.update v i (vectorFieldChartDerivative I V x (v i))) := by
+  set Y : E → E := VectorField.mpullbackWithin 𝓘(ℝ, E) I (extChartAt I x).symm V (range I)
+  have hY : Y (extChartAt I x x) = 0 := (mpullbackWithin_extChartAt_symm_self V x).trans hV
+  have hA : fderivWithin ℝ Y (range I) (extChartAt I x x) =
+      (vectorFieldChartDerivative I V x : E →ₗ[ℝ] E) := by
+    rw [vectorFieldChartDerivative_def, I.range_eq_univ, fderivWithin_univ]
+    simp only [Y, I.range_eq_univ, VectorField.mpullbackWithin_univ]
+  rw [mlieDerivForm_def]
+  refine (lieDerivFormWithin_apply (V := Y) (φ.inChartAt x) v).trans ?_
+  rw [hY, map_zero, RoughForm.inChartAt_extChartAt_self, ← hA]
+  -- The zero form is applied to tangent vectors at `x`, which are vectors of `E` only up to
+  -- unfolding `TangentSpace`, so `ContinuousAlternatingMap.coe_zero` does not rewrite it.
+  exact zero_add _
 
 /-! ### Lie derivatives along horizontal fields of a product -/
 
@@ -174,8 +217,44 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
   rw [hg, mvfderiv_comp_snd_apply, Manifold.prodVectorField_snd, Pi.zero_apply, map_zero,
     ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
-
 end Horizontal
+
+/-! ### Naturality along related fields -/
+
+section Related
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+  [IsManifold I 2 M] [IsManifold I' 2 M']
+
+/-- **Naturality of the Lie derivative along related fields.** Let `Φ : M' → M` be a `C²` map,
+`X` a `C¹` vector field on `M` and `Y` a differentiable vector field on `M'` with
+`dΦ_x (Y x) = X (Φ x)` for every `x`. Then for every `C¹` form `σ` on `M`, of any degree,
+`Φ^* (L_X σ) = L_Y (Φ^* σ)`. The differential of `Φ` need not be invertible. -/
+theorem mpullback_mlieDerivForm_of_related {Φ : M' → M} (hΦ : ContMDiff I' I 2 Φ)
+    {σ : RoughForm I M F k} (hσ : IsSmoothForm I 1 σ) {X : (x : M) → TangentSpace I x}
+    (hX : ContMDiff I I.tangent 1 (fun y ↦ (X y : TangentBundle I M)))
+    {Y : (x : M') → TangentSpace I' x}
+    (hY : MDifferentiable I' I'.tangent (fun y ↦ (Y y : TangentBundle I' M')))
+    (hXY : ∀ x, mfderiv I' I Φ x (Y x) = X (Φ x)) :
+    mpullback I' I Φ (mlieDerivForm X σ) = mlieDerivForm Y (mpullback I' I Φ σ) := by
+  cases k with
+  | zero =>
+    -- On functions Cartan's formula reads `L_X f = ι_X df`.
+    rw [mlieDerivForm_eq_interior_mextDeriv, mlieDerivForm_eq_interior_mextDeriv,
+      mpullback_interior Φ Y X _ hXY,
+      mpullback_mextDeriv hΦ ((isSmoothBundleForm_def 1 _).mpr hσ.contMDiff)]
+  | succ k =>
+    rw [mlieDerivForm_eq_interior_mextDeriv_add (hσ.contMDiff.mdifferentiable one_ne_zero)
+        (hX.mdifferentiable one_ne_zero),
+      mlieDerivForm_eq_interior_mextDeriv_add
+        ((hσ.mpullback hΦ).contMDiff.mdifferentiable one_ne_zero) hY,
+      mpullback_add, mpullback_interior Φ Y X _ hXY,
+      mpullback_mextDeriv hΦ ((isSmoothBundleForm_def 1 _).mpr (hσ.interior hX).contMDiff),
+      mpullback_interior Φ Y X _ hXY,
+      mpullback_mextDeriv hΦ ((isSmoothBundleForm_def 1 _).mpr hσ.contMDiff)]
+
+end Related
 
 /-! ### The bundled Lie derivative of smooth forms -/
 
@@ -222,7 +301,7 @@ theorem lieDeriv_add_field (X Y : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
     (φ : SmoothForm I M F k) :
     lieDeriv (X + Y) φ = lieDeriv X φ + lieDeriv Y φ :=
   Subtype.ext <| funext fun x ↦ by
-    rw [Submodule.coe_add, Pi.add_apply, coe_lieDeriv, coe_lieDeriv, coe_lieDeriv,
+    rw [SmoothBundleForm.add_apply, coe_lieDeriv, coe_lieDeriv, coe_lieDeriv,
       ContMDiffSection.coe_add]
     exact mlieDerivForm_add_left φ.val (X.contMDiff.mdifferentiableAt (by simp))
       (Y.contMDiff.mdifferentiableAt (by simp))

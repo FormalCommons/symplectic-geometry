@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Flux.Kernel
+public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
+import SymplecticGeometry.Geometry.Symplectic.Flux.Kernel
 import Mathlib.Topology.Separation.CompletelyRegular
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Period
 import SymplecticGeometry.Geometry.Symplectic.Flux.Countable

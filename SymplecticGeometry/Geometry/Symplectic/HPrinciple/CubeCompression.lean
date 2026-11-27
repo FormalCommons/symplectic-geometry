@@ -6,15 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.FiberScaling
-import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
+public import Mathlib.Analysis.Calculus.BumpFunction.Basic
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
-# Compressing a cube onto a thin tube around a one-dimensional core
+# Compressing a cube onto a thin tube around its core
 
-On `D = (Fin 1 → ℝ) × F`, with the cube `Q = closedBall 0 1` and the attaching faces
-`A = sphere 0 1 ×ˢ closedBall 0 1`, `SymplecticGeometry.exists_cubeCompression` gives, for
-`0 < ε < 1` and `0 < δ`, a smooth `ψ : ℝ × (Fin 1 → ℝ) → ℝ` with positive values at most `1`
+Let the core `E` be any real normed space with smooth bump functions (`HasContDiffBump E`), such
+as `ι → ℝ` for a finite type `ι`, so that the core may have any dimension. On `D = E × F`, with
+the max of the two norms, the cube is `Q = closedBall 0 1` and the attaching faces are
+`A = sphere 0 1 ×ˢ closedBall 0 1`. `SymplecticGeometry.exists_cubeCompression` gives, for
+`0 < ε < 1` and `0 < δ`, a smooth `ψ : ℝ × E → ℝ` with positive values at most `1`
 such that the fibre scalings `c s = prodFiberScaling (ψ (s, ·))` are the identity at `s = 0` and
 near `A` (where `1 - ε / 2 < ‖u‖`) for every `s`, preserve `Q`, and such that `c 1` maps `Q` into
 the union of the thin tube `‖v‖ < δ` around the core `closedBall 0 1 ×ˢ {0}` and the slab
@@ -58,14 +60,15 @@ namespace SymplecticGeometry
 
 section Cube
 
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [HasContDiffBump E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 /-- The profile of the compression: a smooth `ψ` with values in `(0, 1]`,
 equal to `1` at time `0` and where `1 - ε / 2 < ‖u‖`, and below `δ` at time `1` where
 `‖u‖ ≤ 1 - ε`. -/
 private theorem exists_cubeCompression_profile {ε δ : ℝ} (hε : 0 < ε) (hε₁ : ε < 1)
     (hδ : 0 < δ) :
-    ∃ ψ : ℝ × (Fin 1 → ℝ) → ℝ, ContDiff ℝ ∞ ψ ∧ (∀ p, 0 < ψ p) ∧ (∀ p, ψ p ≤ 1) ∧
+    ∃ ψ : ℝ × E → ℝ, ContDiff ℝ ∞ ψ ∧ (∀ p, 0 < ψ p) ∧ (∀ p, ψ p ≤ 1) ∧
       (∀ u, ψ (0, u) = 1) ∧ (∀ s u, 1 - ε / 2 < ‖u‖ → ψ (s, u) = 1) ∧
       ∀ u, ‖u‖ ≤ 1 - ε → ψ (1, u) < δ := by
   set a := min (δ / 2) (1 / 2)
@@ -73,9 +76,9 @@ private theorem exists_cubeCompression_profile {ε δ : ℝ} (hε : 0 < ε) (hε
   have haδ : a < δ := (min_le_left _ _).trans_lt (half_lt_self hδ)
   have ha₁ : a ≤ 1 / 2 := min_le_right _ _
   -- `χ u` is `1` where `‖u‖ ≤ 1 - ε` and `0` where `1 - ε / 2 ≤ ‖u‖`.
-  let χ : ContDiffBump (0 : Fin 1 → ℝ) := ⟨1 - ε, 1 - ε / 2, by linarith, by linarith⟩
-  let ψ : ℝ × (Fin 1 → ℝ) → ℝ := fun p ↦ 1 - Real.smoothTransition p.1 * χ p.2 * (1 - a)
-  have hθχ (p : ℝ × (Fin 1 → ℝ)) :
+  let χ : ContDiffBump (0 : E) := ⟨1 - ε, 1 - ε / 2, by linarith, by linarith⟩
+  let ψ : ℝ × E → ℝ := fun p ↦ 1 - Real.smoothTransition p.1 * χ p.2 * (1 - a)
+  have hθχ (p : ℝ × E) :
       0 ≤ Real.smoothTransition p.1 * χ p.2 ∧ Real.smoothTransition p.1 * χ p.2 ≤ 1 :=
     ⟨mul_nonneg (Real.smoothTransition.nonneg _) (χ.nonneg),
       (mul_le_of_le_one_left (χ.nonneg) (Real.smoothTransition.le_one _)).trans χ.le_one⟩
@@ -95,9 +98,10 @@ private theorem exists_cubeCompression_profile {ε δ : ℝ} (hε : 0 < ε) (hε
     simp only [ψ, this, Real.smoothTransition.one_of_one_le le_rfl]
     linarith
 
-/-- **Compression of the cube onto a thin tube around a one-dimensional core.** On
-`D = (Fin 1 → ℝ) × F` with the sup norm, let `0 < ε < 1` and `0 < δ`. There is a smooth
-`ψ : ℝ × (Fin 1 → ℝ) → ℝ` with values in `(0, 1]` such that the fibre scalings
+/-- **Compression of the cube onto a thin tube around its core.** Let `E` be a real normed
+space with smooth bump functions, such as `ι → ℝ` for a finite type `ι`. On `D = E × F`, with the
+max of the two norms, let `0 < ε < 1` and `0 < δ`. There is a smooth
+`ψ : ℝ × E → ℝ` with values in `(0, 1]` such that the fibre scalings
 `c s := prodFiberScaling (ψ (s, ·))`, `(u, v) ↦ (u, ψ (s, u) • v)`, which are diffeomorphisms of
 `D` by `prodFiberScalingDiffeomorph`, satisfy:
 
@@ -106,15 +110,15 @@ private theorem exists_cubeCompression_profile {ε δ : ℝ} (hε : 0 < ε) (hε
 * every `c s` maps the cube `closedBall 0 1` into itself;
 * `c 1` maps the cube into the union of the tube `‖v‖ < δ` and the slab `1 - ε < ‖u‖`. -/
 theorem exists_cubeCompression {ε δ : ℝ} (hε : 0 < ε) (hε₁ : ε < 1) (hδ : 0 < δ) :
-    ∃ ψ : ℝ × (Fin 1 → ℝ) → ℝ, ContDiff ℝ ∞ ψ ∧ (∀ p, 0 < ψ p ∧ ψ p ≤ 1) ∧
-      (∀ x : (Fin 1 → ℝ) × F, prodFiberScaling (fun u ↦ ψ (0, u)) x = x) ∧
-      (∀ s, ∀ x : (Fin 1 → ℝ) × F, 1 - ε / 2 < ‖x.1‖ →
+    ∃ ψ : ℝ × E → ℝ, ContDiff ℝ ∞ ψ ∧ (∀ p, 0 < ψ p ∧ ψ p ≤ 1) ∧
+      (∀ x : E × F, prodFiberScaling (fun u ↦ ψ (0, u)) x = x) ∧
+      (∀ s, ∀ x : E × F, 1 - ε / 2 < ‖x.1‖ →
         prodFiberScaling (fun u ↦ ψ (s, u)) x = x) ∧
       (∀ s, MapsTo (prodFiberScaling (fun u ↦ ψ (s, u)))
-        (closedBall (0 : (Fin 1 → ℝ) × F) 1) (closedBall 0 1)) ∧
-      MapsTo (prodFiberScaling (fun u ↦ ψ (1, u))) (closedBall (0 : (Fin 1 → ℝ) × F) 1)
+        (closedBall (0 : E × F) 1) (closedBall 0 1)) ∧
+      MapsTo (prodFiberScaling (fun u ↦ ψ (1, u))) (closedBall (0 : E × F) 1)
         ({x | ‖x.2‖ < δ} ∪ {x | 1 - ε < ‖x.1‖}) := by
-  obtain ⟨ψ, hψ, hpos, hle, h0, hA, h1⟩ := exists_cubeCompression_profile hε hε₁ hδ
+  obtain ⟨ψ, hψ, hpos, hle, h0, hA, h1⟩ := exists_cubeCompression_profile (E := E) hε hε₁ hδ
   have habs (p) : |ψ p| ≤ 1 := by rw [abs_of_pos (hpos p)]; exact hle p
   refine ⟨ψ, hψ, fun p ↦ ⟨hpos p, hle p⟩, fun x ↦ prodFiberScaling_of_eq_one (h0 x.1),
     fun s x hx ↦ prodFiberScaling_of_eq_one (hA s x.1 hx),

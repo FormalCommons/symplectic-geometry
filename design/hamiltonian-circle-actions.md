@@ -96,9 +96,9 @@ fundamental vector field of `ξ` is Tau Ceti's `fundamentalVectorField I ξ`
 `DESIGN.md` leaves two questions to this file, and the issue a third.
 
 1. **Nondegeneracy of the pairing, through the Hodge theorem.** Of the two
-   routes `DESIGN.md` offers, singular duality would need the comparison of
-   the wedge and integration with the cup and cap products under Tau
-   Ceti's de Rham–singular isomorphism, which neither library has; periods
+   routes `DESIGN.md` offers, singular duality would need the wedge
+   product and integration to match the cup and cap products under
+   `TauCeti.deRhamHom`, a comparison that neither library proves; periods
    of closed one-forms describe $H^1$ but say nothing directly about
    $H^{m-1}$. The Hodge theorem gives it in a few steps: choose a metric;
    a closed $(m-1)$-form $\beta$ is $h+d\theta$ with $h$ harmonic; $\star h$
@@ -215,7 +215,7 @@ For a closed one-form `γ` invariant under every `g • ·`, and every `ξ`,
 the function `fun x ↦ γ.val x ![fundamentalVectorField I ξ x]` has zero
 differential, and on a preconnected `M` it is constant. Proved by
 Cartan's formula `mlieDerivForm_apply_eq_mextDeriv_add` with
-`mlieDerivForm_fundamentalVectorField_eq_zero`, as in the proof of Tau
+`mlieDerivForm_fundamentalVectorField_eq_zero_of_boundarylessManifold`, as in the proof of Tau
 Ceti's `mextDerivₗ_apply_fundamentalVectorField_eq_zero`, which it credits.
 Names in Tau Ceti's style:
 `TauCeti.mvfderiv_apply_fundamentalVectorField_eq_zero` and
@@ -240,7 +240,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero
-       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
+       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
        (o : Manifold.Orientation I M (Fin (1 + (1 + 2 * n))))
        {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) (hinv : …)
        {p : M} (hp : p ∈ MulAction.fixedPoints G M) (ξ : GroupLieAlgebra J G)
@@ -264,7 +264,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_of_mem_fixedPoints
-       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic) (hinv : …)
        (hL : Function.Injective (deRhamCohomology.wedge I M (2 * (n - 1)) 1
@@ -289,7 +289,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_iff_exists_mem_fixedPoints
-       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
        [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]

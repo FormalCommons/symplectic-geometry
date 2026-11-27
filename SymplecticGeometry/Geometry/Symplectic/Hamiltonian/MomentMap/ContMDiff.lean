@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 
 /-!
 # Smoothness of a moment map with values in a normed space

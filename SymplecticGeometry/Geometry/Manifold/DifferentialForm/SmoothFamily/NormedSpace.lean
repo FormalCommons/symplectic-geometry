@@ -8,7 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Topology.MetricSpace.Thickening
-import TauCeti.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 
 /-!
 # Smooth families of forms on a normed space
@@ -34,9 +35,9 @@ survives every perturbation of the value that is small enough, with one bound fo
   works along segments: `τ t - s • η` is nondegenerate at `x ∈ S` for `t ∈ K`, `s ∈ [0, 1]`
   and every two-form `η` with `‖η x‖ < r`.
 
-The second one combines the openness of nondegenerate alternating maps (Tau Ceti's
-`TauCeti.isOpen_setOf_nondegenerate`) with Mathlib's `IsCompact.exists_thickening_subset_open`,
-applied to the compact image of `K × S`.
+The second one combines the openness of nondegenerate alternating maps
+(`ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap`) with
+Mathlib's `IsCompact.exists_thickening_subset_open`, applied to the compact image of `K × S`.
 -/
 
 public section
@@ -71,25 +72,15 @@ theorem exists_pos_forall_nondegenerate [FiniteDimensional ℝ E]
     ∃ r > 0, ∀ t ∈ K, ∀ x ∈ S, ∀ σ : SmoothTwoForm 𝓘(ℝ, E) E,
       @norm (E [⋀^Fin 2]→L[ℝ] ℝ) _ (σ.val x - (τ t).val x) < r →
         (σ.bilinFormAt x).Nondegenerate := by
-  -- The bilinear form of a two-form at `x` is that of its value at `x`.
-  have hB (σ : SmoothTwoForm 𝓘(ℝ, E) E) (x : E) : σ.bilinFormAt x =
-      MultilinearMap.toBilinMap (show E [⋀^Fin 2]→L[ℝ] ℝ from σ.val x).toMultilinearMap := by
-    ext v w
-    rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply]
-    exact (MultilinearMap.toBilinMap_apply _ v w).symm
-  have hU : IsOpen {A : E [⋀^Fin 2]→L[ℝ] ℝ |
-      (MultilinearMap.toBilinMap A.toMultilinearMap).Nondegenerate} :=
-    TauCeti.isOpen_setOf_nondegenerate fun v w ↦ by
-      simpa using continuous_eval_const ![v, w]
-  obtain ⟨r, hr, hrU⟩ := ((hK.prod hS).image h.continuous_val).exists_thickening_subset_open hU
-    (by
+  obtain ⟨r, hr, hrU⟩ := ((hK.prod hS).image h.continuous_val).exists_thickening_subset_open
+    ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap (by
       rintro _ ⟨p, hp, rfl⟩
       have := hτ p.1 hp.1 p.2 hp.2
-      rwa [hB] at this)
+      rwa [SmoothForm.bilinFormAt_def] at this)
   refine ⟨r, hr, fun t ht x hx σ hσ ↦ ?_⟩
   have := hrU (Metric.mem_thickening_iff.2 ⟨_, mem_image_of_mem _ (mk_mem_prod ht hx),
     (dist_eq_norm _ _).trans_lt hσ⟩)
-  rwa [hB]
+  rwa [SmoothForm.bilinFormAt_def]
 
 /-- **Uniform nondegeneracy along segments.** Let `τ` be a smooth family of two-forms on a
 finite-dimensional normed space `E`, nondegenerate at every point of a compact set `S` for every
@@ -109,7 +100,7 @@ theorem exists_pos_forall_nondegenerate_sub_smul [FiniteDimensional ℝ E]
   have key (a b : E [⋀^Fin 2]→L[ℝ] ℝ) : ‖a - s • b - a‖ ≤ ‖b‖ := by
     rw [sub_sub_cancel_left, norm_neg, norm_smul, Real.norm_eq_abs, abs_of_nonneg hs.1]
     exact mul_le_of_le_one_left (norm_nonneg _) hs.2
-  simp only [Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply, Pi.smul_apply]
+  simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.smul_apply]
   -- The values of forms on `E` are alternating maps on `E` itself, so `key` applies to them.
   exact (key _ _).trans_lt hη
 

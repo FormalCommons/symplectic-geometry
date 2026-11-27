@@ -180,41 +180,39 @@ bundles that `Basic.lean` needs, go in
 `Topology/VectorBundle/Complex/`, because they use no smooth structure (a
 folder here beside Tau Ceti's folder of the same name; no Tau Ceti file has
 the name `FirstChernClass.lean` at that place, and `Structure.lean` is
-named after Tau Ceti's file there so that the two can merge). Two general
-lemmas on Euler classes of finite-rank cores go in
-`Topology/VectorBundle/FiniteRank/EulerClass.lean`; the complex-linear
+named after Tau Ceti's file there so that the two can merge). The complex-linear
 equivalence of a real one that commutes with `I` is Tau Ceti's. The
 prerequisites have files of their own, listed with their issues.
 
 ### `Topology/VectorBundle/Complex/FirstChernClass.lean`
 
 In the namespace `SymplecticGeometry.Bundle`, for a complex vector bundle
-`E` with model `G` over `B : Type`, with `D := detCore ℂ G E` the determinant
-core of prerequisite 1:
+`E : B → Type` with model `G` over `B : Type` (Tau Ceti's Euler classes take
+the fibres in the universe of the base), with `D := TauCeti.DetBundle ℂ G E`
+the determinant line of prerequisite 1.
 
-- `firstChernClass G E`, the Euler class
-  `TauCeti.complexEulerClass (Fin D.rank → ℂ) D.core.Fiber h`, where
-  `h : finrank ℂ (Fin D.rank → ℂ) = 0 + 1` comes from
-  `FiniteRankBundleCore.rank_det` (`D.rank` is `1` only through that
-  lemma, not by definition); and `firstChernClass_def` by `(rfl)`.
-- `firstChernClass_pullback (f : K)`, for any `[ContinuousMapClass K B' B]`:
-  the class of `f *ᵖ E` is the pull-back of the class of `E`, from the
-  pull-back equality of prerequisite 1 and
-  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, and
-  `firstChernClass_congr` along the identity of each fibre, since the
-  instances on `f *ᵖ E` depend on the type of `f`.
+The class is Tau Ceti's `TauCeti.firstChernClass G E`, that of the line
+`D`, with `TauCeti.firstChernClass_def`, `TauCeti.firstChernClass_pullback`
+along `f : C(B', B)`, `TauCeti.firstChernClass_trivial` and
+`TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`. The file adds:
+
+- `firstChernClass_pullback_coe (f : K)`, for any
+  `[ContinuousMapClass K B' B]`: the class of `f *ᵖ E` is the pull-back of
+  the class of `E`, from `TauCeti.firstChernClass_pullback` and
+  `TauCeti.firstChernClass_eq_of_fiberwise` along the identity of each
+  fibre, since the instances on `f *ᵖ E` depend on the type of `f`.
 - `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
-  on total spaces, preserves the class. Prerequisite 1 turns it into one of
-  the determinants, and `TauCeti.complexEulerClass_eq_of_fiberwise` applies.
-- `firstChernClass_trivial`: zero for `Bundle.Trivial B G`, from
-  `TauCeti.complexEulerClass_trivial`.
+  on total spaces, preserves the class, even between different models.
+  `TauCeti.DetBundle.congrModelHomeomorph` turns it into one of the
+  determinant lines, and `TauCeti.complexEulerClass_eq_of_fiberwise` applies.
 - `firstChernClass_eq_complexEulerClass`: for a line bundle,
-  `firstChernClass G E = complexEulerClass G E hG`.
+  `firstChernClass G E = complexEulerClass G E hG`, through
+  `TauCeti.firstChernClass_eq_lineFirstChernClass`.
 - `firstChernClass_conj`: the conjugate bundle (Tau Ceti's
-  `Topology/VectorBundle/Conjugate.lean`) has the negated class. Prerequisite
-  1 gives a conjugate-linear fibrewise isomorphism between the two
-  determinants, and
-  `TauCeti.complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
+  `Topology/VectorBundle/Conjugate.lean`) has the negated class.
+  `TauCeti.DetBundle.conjugateHomeomorph` identifies the determinant line of
+  the conjugate bundle with the conjugate of the determinant line, and
+  `TauCeti.complexEulerClass_conjugateBundle_eq_neg_of_finrank_eq_one`
   applies.
 - `chernNumber o hn G E : ℤ`, for `o : TauCeti.HomologicalOrientation M E' 2`
   of a compact topological surface `M` and `hn : finrank ℝ E' = 2`: the
@@ -226,7 +224,7 @@ core of prerequisite 1:
 - `chernNumber_pullback (f : K)`, for any `[ContinuousMapClass K M' M]`, with
   `[PreconnectedSpace M]`:
   `chernNumber o' hn' G (f *ᵖ E) = o'.degree o hn' (f : C(M', M)) * chernNumber o hn G E`, from
-  `firstChernClass_pullback` and
+  `firstChernClass_pullback_coe` and
   `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
   the target compact and preconnected.
 
@@ -239,24 +237,11 @@ In the namespace `ContinuousMap`, importing only Mathlib:
 
 - `ofClass_eq_self`, `@[simp]`: `ContinuousMap.ofClass f = f` for
   `f : C(X, Y)`, as Mathlib's `OrderHom.coe_eq` for monotone maps. With it,
-  `simp` turns the right side of `firstChernClass_pullback`, used with a
+  `simp` turns the right side of `firstChernClass_pullback_coe`, used with a
   bundled `f : C(X, B)`, into the same term stated with `f`.
 
 `FirstChernClass.lean` imports this file, so the lemma is available to
-`simp` wherever `firstChernClass_pullback` and `chernNumber_pullback` are.
-
-### `Topology/VectorBundle/FiniteRank/EulerClass.lean`
-
-In the namespace `TauCeti.FiniteRankBundleCore`, for complex finite-rank
-cores, used by `FirstChernClass.lean`:
-
-- `complexEulerClass_eq_of_iso`: isomorphic cores have the same
-  `TauCeti.complexEulerClass`, from
-  `TauCeti.complexEulerClass_eq_of_fiberwise` applied to `isoFiberEquiv e`
-  of `FiniteRank/Basic.lean`, which this file imports;
-- `complexEulerClass_pullback`: the class of `A.pullback f` is the
-  pull-back of the class of `A`, from
-  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+`simp` wherever `firstChernClass_pullback_coe` and `chernNumber_pullback` are.
 
 ### `Topology/VectorBundle/Complex/Structure.lean`
 
@@ -529,11 +514,12 @@ Bundles from clutching data, and isomorphisms from homotopies.
   `o.toHomologicalOrientation` is $\chi(S^2)=2$ by the Euler-number
   milestone, and the integral side is $2$ by the computation in
   *Conventions*. With the opposite orientation the left side would be $-2$.
-- `exists_isCircleConnectionForm_curvature_eq`: if `M` is connected, every smooth
-  real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
+- `Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integralTopForm_eq`: if `M`
+  is connected, every smooth real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
   (o.toHomologicalOrientation hn) hn F V` is the curvature of a
-  connection form. Proof: `σ - hα₀.curvature` has integral $0$, so it is
-  exact by `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`
+  connection form, `g.IsConnectionCurvature hI σ`. Proof: `σ - hα₀.curvature`
+  has integral $0$, so it is exact by
+  `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`
   (with `TauCeti.compactlySupportedForms_eq_top`). Then add the pull-back of
   a primitive to `α₀`.
 - **Milestone** `chernNumber_eq_integral_curvature_and_exists`: the
@@ -779,13 +765,12 @@ issues, in an order where each issue's blockers come before it.
 
 ### Prerequisites
 
-1. **Determinant line of a vector bundle.** Most of what is needed exists in
-   Tau Ceti: `FiniteRankBundleCore.ofBundle` (`FiniteRank/Basic.lean`),
-   `ofBundleIso`, `pullback_ofBundle` (`FiniteRank/Pullback.lean`),
-   `CoordinateFunctor.mapCoreTrivialIso` (`FiniteRank/CoordinateFunctor.lean`),
-   `exteriorPowerOneNatIso` and `rank_det` (`FiniteRank/ExteriorPower.lean`),
-   and `FiniteRankBundleCore.conjugate` with `conjugatePullbackIso`
-   (`FiniteRank/Conjugate.lean`). The issue adds only:
+1. **Determinant line of a vector bundle.** The determinant line is Tau
+   Ceti's `TauCeti.DetBundle ℂ G E` (`Topology/VectorBundle/Determinant.lean`,
+   with `Determinant/Prod.lean` and `Determinant/Conjugate.lean`); the library
+   adds no determinant core of its own. Tau Ceti also has
+   `FiniteRankBundleCore.ofBundle` (`FiniteRank/Basic.lean`), `ofBundleIso`
+   and `pullback_ofBundle` (`FiniteRank/Pullback.lean`). The issue adds only:
    - in `Topology/VectorBundle/FiniteRank/OfBundle.lean`,
      `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq 𝕜 G E (h :
      finrank 𝕜 G = n)`, the generalization of `ofBundle` to a bundle with any
@@ -803,48 +788,8 @@ issues, in an order where each issue's blockers come before it.
      bundles, continuous on total spaces); and
      `TauCeti.FiniteRankBundleCore.pullback_ofBundleOfFinrankEq`, the analogue
      of `pullback_ofBundle`;
-   - in `Topology/VectorBundle/Determinant.lean`,
-     `SymplecticGeometry.Bundle.detCore 𝕜 G E :=
-     (ofBundleOfFinrankEq 𝕜 G E rfl).det`, over any `𝕜`, with `detCore_def`,
-     `SymplecticGeometry.Bundle.detCoreMap` (the isomorphism of determinant
-     cores induced by a fibrewise isomorphism of bundles),
-     `SymplecticGeometry.Bundle.detCore_pullback` (compatibility with
-     pull-back, an equality, through
-     `CoordinateFunctor.functor_comp_pullbackFunctor`),
-     `SymplecticGeometry.Bundle.detCoreTrivialIso` (the trivial bundle has a
-     trivial determinant), and
-     `SymplecticGeometry.Bundle.detCoreIsoOfFinrankEqOne` (the identification
-     with `E` in rank one, from `exteriorPowerOneNatIso`);
-   - the one step specific to `ℂ`, in
-     `Topology/VectorBundle/FiniteRank/ConjugateExteriorPower.lean` beside
-     Tau Ceti's `FiniteRank/Conjugate.lean`, in Tau Ceti's terms only.
-     `FiniteRankBundleCore.det` is a function on objects, not a functor, so
-     the natural statement is at a fixed degree. Following Tau Ceti's
-     naming in `FiniteRank/` (`doubleConjugateIso` and
-     `doubleConjugateNatIso`, `exteriorPowerOneIso` and
-     `exteriorPowerOneNatIso`): the isomorphism at one object
-     `TauCeti.FiniteRankBundleCore.exteriorPowerConjugateIso k A :
-     (exteriorPower ℂ B k).obj ((conjugate B).obj A) ≅
-     (conjugate B).obj ((exteriorPower ℂ B k).obj A)`, the natural one
-     `TauCeti.FiniteRankBundleCore.exteriorPowerConjugateNatIso k : conjugate B
-     ⋙ exteriorPower ℂ B k ≅ exteriorPower ℂ B k ⋙ conjugate B` with
-     `@[simp] exteriorPowerConjugateNatIso_app`, and from them, objectwise,
-     `TauCeti.FiniteRankBundleCore.detConjugateIso A :
-     ((conjugate B).obj A).det ≅ (conjugate B).obj A.det`, using that
-     conjugation keeps the rank (`rank_conjugate_obj`);
-   - two supporting files: `Topology/VectorBundle/Core/Basic.lean`, with
-     `VectorBundleCore.ext`, which `FiniteRank/OfBundle.lean` imports; and
-     `Analysis/Normed/Operator/ExteriorPowerCoords.lean` beside Tau Ceti's
-     file of that name, with
-     `ContinuousLinearMap.exteriorPowerCoords_intrinsicStar` (compound
-     matrices commute with entrywise conjugation), which
-     `FiniteRank/ConjugateExteriorPower.lean` imports;
-   - two steps that the conjugate case also needs, in
-     `Topology/VectorBundle/FiniteRank/Conjugate.lean`:
-     `TauCeti.FiniteRankBundleCore.continuous_star_conjugate` (conjugating
-     coordinates is continuous from the conjugate core to the core) and
-     `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the
-     core of `ConjugateBundle E` is the conjugate of the core of `E`);
+   - a supporting file, `Topology/VectorBundle/Core/Basic.lean`, with
+     `VectorBundleCore.ext`, which `FiniteRank/OfBundle.lean` imports;
    - a shared step, added after this issue, in
      `Topology/VectorBundle/FiniteRank/Basic.lean` beside Tau Ceti's file of
      that name, importing only it:
@@ -852,18 +797,7 @@ issues, in an order where each issue's blockers come before it.
      continuous linear equivalence on coordinates of an isomorphism
      `e : A ≅ D` of cores, the converse of Tau Ceti's `isoOfContinuousEquiv`,
      with `isoFiberEquiv_apply` and `continuous_isoFiberEquiv` (continuity on
-     total spaces); `detCoreConjugateFiberwise` is built from it;
-   - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
-     library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
-     a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
-     conjugate bundle and `detCore ℂ G E`, from `detConjugateIso` and the
-     steps above, in the
-     form that
-     `complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
-     takes. So the Tau Ceti-namespaced files under `FiniteRank/` import, of
-     this library, only each other and the two supporting files, which are
-     stated in Mathlib's and Tau Ceti's terms, so that they can move
-     upstream together.
+     total spaces).
 
    Done when these are proved and build.
 2. **Evenness of the first Betti number of a closed orientable surface.**
@@ -881,20 +815,8 @@ issues, in an order where each issue's blockers come before it.
    for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
-   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` derives
-   it, for the image of the fundamental class under
-   `TopCat.singularHomologyIntToRat`, from bijectivity of the duality map with
-   values in `ℚ`
-   (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`).
-   It uses two new general files:
-   `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
-   of a simplex along the unitors, and
-   `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
-   `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
-   Its chain map from integral to rational chains is the change of
-   coefficients `SSet.restrictScalarsChainMap` of
-   `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
-   (`design/pseudoholomorphic-energy.md`), which it imports.
+   one, for the fundamental class over `ℚ`: Tau Ceti's
+   `TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClassOver`.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion
@@ -905,8 +827,9 @@ issues, in an order where each issue's blockers come before it.
    (`Duality/MayerVietoris.lean` and
    `AlgebraicTopology/Cohomology/Cap/MayerVietoris/Basic.lean`) and
    duality for convex and star-convex open subsets of a vector space
-   (`Euclidean/Duality.lean`), but not duality for a manifold, which the
-   library proves (below). Done when the evenness theorem is proved.
+   (`Euclidean/Duality.lean`), but not duality for a manifold, which Tau
+   Ceti has since `522d48f5cf3a`, in `Duality/Manifold.lean` (below). Done
+   when the evenness theorem is proved.
    Before the move to `c9d170eed5a8`, the library had copied from Tau
    Ceti's main branch, under Tau Ceti's names and namespaces so that a
    move of Tau Ceti past them would delete the files, the duality maps on
@@ -936,73 +859,32 @@ issues, in an order where each issue's blockers come before it.
    The move to `c9d170eed5a8` (#2025) deleted all these copies: their
    declarations are Tau Ceti's now, in the files of the same paths under
    `TauCeti/`.
-   The Mayer–Vietoris step of duality is the library's own
-   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
-   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
+   The Mayer–Vietoris step of duality is Tau Ceti's
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/MayerVietoris.lean`:
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
    for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
-   open sets of `M`. Both assume only duality in every degree for `U`, `V`
-   and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
-   needs in the top degree, holds for every open set of `M`
-   (`TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in the
-   library's `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`,
-   applied to the open set as a manifold).
-   `TopCat.isZero_compactSupportCohomology_sup`, in the
-   library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
+   open sets of `M`. Besides duality in every degree for `U`, `V` and
+   `U ∩ V`, they take as a hypothesis the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`,
+   which injectivity needs in the top degree. It holds for every open set
+   of a Hausdorff manifold: `Hᵐ_c(M) = 0` above the dimension is Tau Ceti's
+   `TopCat.isZero_compactSupportCohomology_of_finrank_lt`, in
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`.
+   `TopCat.isZero_compactSupportCohomology_sup`, in Tau Ceti's
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
    passes such a vanishing on to `U ∪ V`, and
    `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
-   file, to a directed union of open sets. The vanishing starts from
-   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
+   file, to a directed union of open sets. The vanishing starts from Tau
+   Ceti's `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
    `TopCat.isZero_compactSupportCohomology_of_starConvex` and
    `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
    `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
-   image. The step uses
-   `Topology/Sets/Opens/Comap.lean`,
-   `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
-   `M` as one of `U ∪ V`, and `comap_val_sup_comap_val_eq_top`, for the
-   cover of `U ∪ V` by `U` and `V` so read, and
-   `Algebra/Category/ModuleCat/Basic.lean`,
-   `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
-   Duality for every open subset of a finite-dimensional real normed space
-   `F` is the library's
-   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Duality.lean`:
-   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`,
-   for an open embedding `j : U → F` and any orientation of `U`. It uses
-   `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`, in
-   `Euclidean/Basic.lean`, `Hᵐ_c(U) = 0` for `m > dim F`, which the step to
-   compact manifolds needs too, for the intersections. Both run
-   Mayer–Vietoris over finite unions of open sets of `U` with convex images,
-   starting from `isZero_compactSupportCohomology_of_convex` and Tau Ceti's
-   `bijective_dualityMap_of_convex`. Those open sets come from
-   `Analysis/Convex/Opens.lean`:
-   `TopologicalSpace.Opens.infClosed_setOf_convex_image` and
-   `Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`. The
-   induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
-   Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
-   of the family. It is run once for each theory, over any inf-closed
-   family of open sets that covers the space:
-   `TopCat.isZero_compactSupportCohomology_of_infClosed`, in
-   `CompactSupport/Vanishing.lean`, and
-   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
-   `CompactSupport/Duality/Union.lean`, which imports
-   `CompactSupport/Manifold.lean` for `Hⁿ⁺¹_c(W; L) = 0` on every open
-   set `W`. Their case of the empty
-   union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
-   `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
-   imports.
-   Duality for a manifold is the library's
-   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
+   image.
+   Duality for a manifold is Tau Ceti's
+   `TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
    homologically oriented manifold, compact or not, and for compact `M` its
    form for capping with the fundamental class,
-   `bijective_singularCap_fundamentalClass`. It uses
-   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`, which proves
-   `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
-   above the dimension, which the Mayer–Vietoris step needs for the
-   intersections. Both run the induction above over the open sets lying in
-   one chart instead of those with convex image; that family comes from
-   `Geometry/Manifold/ChartedSpace.lean`:
-   `TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source` and
-   `TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`.
+   `bijective_singularCapAddHom_fundamentalClass`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
@@ -1024,7 +906,7 @@ issues, in an order where each issue's blockers come before it.
    the instances `SymplecticGeometry.Bundle.instFiberBundleCircleFiber` and
    `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
    (Fiber ℂ F L ℂ)`, whose trivializations are those of the frame bundle
-   read through that isomorphism (`Bundle.Trivialization.changeModelFiber`).
+   read through that isomorphism (`Bundle.Trivialization.transModelFiber`).
    That file states them for fibres with their own `InnerProductSpace ℂ`
    instances and `TauCeti.ContinuousFiberNorm F L`, and `Fact (finrank ℂ F
    = 1)`. This issue, and the issues that use `P`, work with a Hermitian
@@ -1487,7 +1369,7 @@ issues, in an order where each issue's blockers come before it.
 ### The part's own issues
 
 10. **Chern classes and numbers.** `FirstChernClass.lean` and `Basic.lean`,
-    with `FiniteRank/EulerClass.lean` and `Complex/Structure.lean`.
+    with `Complex/Structure.lean`.
     Blocked by 1, by *Symplectic vector bundles*' issues for symplectic
     bundles and complex structures, by its classification issue for
     `symplecticChernNumber_eq_chernNumber`, and by the issues from #57 for

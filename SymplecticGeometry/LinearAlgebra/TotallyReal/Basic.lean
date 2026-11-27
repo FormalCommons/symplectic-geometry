@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Normed.Operator.Bilinear
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
+import SymplecticGeometry.Analysis.Normed.Operator.Bilinear
 
 /-!
 # Quadratic forms positive off a totally real subspace

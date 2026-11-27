@@ -22,6 +22,12 @@ map on `M` that is `C^n` on both is `C^n`
 shared by the extensions by zero of the library. It applies to sections of a vector bundle too,
 such as differential forms, through their maps to the total space.
 
+The same cover, without a chart: a function that is `C^n` on an open set `U` and vanishes on `U`
+outside a closed subset `K` of `U` is `C^n` once extended by `0` off `U`
+(`ContMDiffOn.contMDiff_indicator_of_isClosed`), since `U` and the complement of `K` are open and
+cover `M`. This is the manifold form of Tau Ceti's `ContDiffOn.contDiff_indicator_of_isClosed`,
+with the same hypotheses.
+
 The extension by zero to `M` of a function on the model vector space read through an extended
 chart is Tau Ceti's `OpenPartialHomeomorph.contMDiff_indicator_comp_extend`. This file goes the
 other way:
@@ -35,12 +41,36 @@ other way:
   Hausdorff manifold `N`, transported to `χ ∘ ψ.symm` and extended by zero off `ψ.target`, is
   supported in `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ`
   is. When `N` is a normed space, the last gives `PartialDiffeomorph.contDiff_indicator_comp_symm`.
+* `PartialDiffeomorph.contMDiff_indicator_image_comp_symm`: the same for a function that is only
+  `C^n` on an open `W ⊆ ψ.source` and vanishes on `W` outside a subset `C` whose image `ψ '' C`
+  is closed, transported to `ψ '' W` and extended by zero off it. Here `N` need not be
+  Hausdorff.
 -/
 
 public section
 
 open Set Topology
 open scoped Manifold
+
+section Indicator
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {n : WithTop ℕ∞}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- A function that is `C^n` on an open set `U` and vanishes on `U` outside a closed set `K ⊆ U`,
+extended by `0` off `U`, is `C^n`. -/
+theorem ContMDiffOn.contMDiff_indicator_of_isClosed {f : M → F} {U K : Set M}
+    (hf : ContMDiffOn I 𝓘(𝕜, F) n f U) (hU : IsOpen U) (hK : IsClosed K) (hKU : K ⊆ U)
+    (hfK : U ∩ Function.support f ⊆ K) : ContMDiff I 𝓘(𝕜, F) n (U.indicator f) :=
+  contMDiff_of_contMDiffOn_union_of_isOpen (hf.congr fun _ hx ↦ indicator_of_mem hx f)
+    (contMDiffOn_const.congr fun _ hx ↦ indicator_apply_eq_zero.2 fun hxU ↦
+      Function.notMem_support.1 fun h ↦ absurd (hfK ⟨hxU, h⟩) hx)
+    (eq_univ_of_forall fun _ ↦ or_iff_not_imp_right.2 fun hx ↦ hKU (not_not.1 hx))
+    hU hK.isOpen_compl
+
+end Indicator
 
 namespace OpenPartialHomeomorph
 
@@ -122,17 +152,37 @@ theorem continuous_indicator_comp_symm [TopologicalSpace F] (hχc : Continuous �
 
 end Zero
 
+/-- Let `W ⊆ ψ.source` be open and `C ⊆ W` a set whose image `ψ '' C` is closed. If `χ` is `C^n`
+on `W` and vanishes on `W` outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0`
+off `ψ '' W`, is `C^n`. -/
+theorem contMDiff_indicator_image_comp_symm {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {χ : M → F} {C W : Set M} (hχ : ContMDiffOn I 𝓘(𝕜, F) n χ W)
+    (hC : IsClosed (ψ '' C)) (hW : IsOpen W) (hCW : C ⊆ W) (hWs : W ⊆ ψ.source)
+    (hχ0 : W ∩ Function.support χ ⊆ C) :
+    ContMDiff I' 𝓘(𝕜, F) n ((ψ '' W).indicator fun y ↦ χ (ψ.symm y)) := by
+  have hWo : IsOpen (ψ '' W) := by
+    simpa using ψ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWs)
+  refine ContMDiffOn.contMDiff_indicator_of_isClosed ?_ hWo hC (image_mono hCW) ?_
+  · refine hχ.comp (ψ.symm.contMDiffOn.mono ?_) ?_
+    · rintro _ ⟨z, hz, rfl⟩
+      exact ψ.map_source (hWs hz)
+    · rintro _ ⟨z, hz, rfl⟩
+      rw [mem_preimage, ψ.left_inv (hWs hz)]
+      exact hz
+  · rintro _ ⟨⟨z, hz, rfl⟩, hx⟩
+    rw [Function.mem_support, ψ.left_inv (hWs hz)] at hx
+    exact mem_image_of_mem _ (hχ0 ⟨hz, hx⟩)
+
 /-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function
 `χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is `C^n`. -/
 theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
     [NormedSpace 𝕜 F] {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     ContMDiff I' 𝓘(𝕜, F) n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
-  refine contMDiff_of_tsupport fun y hy ↦ ?_
-  have hyt : y ∈ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
-    (tsupport_indicator_comp_symm_subset hK hχ hy)
-  exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ indicator_of_mem hy _)
-    |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
+  have h := contMDiff_indicator_image_comp_symm hχc.contMDiffOn
+    (ψ.isCompact_image_of_subset_source hK hχ).isClosed ψ.open_source hχ subset_rfl
+    (inter_subset_right.trans (subset_tsupport χ))
+  rwa [ψ.toPartialEquiv.image_source_eq_target] at h
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
 diffeomorphism `ψ` onto an open subset of a normed space, the function `χ ∘ ψ.symm`, extended

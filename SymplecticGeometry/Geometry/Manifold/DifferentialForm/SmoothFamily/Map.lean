@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.LocallyConvex.SeparatingDual
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 
 /-!
 # Linear maps preserving smooth families of forms

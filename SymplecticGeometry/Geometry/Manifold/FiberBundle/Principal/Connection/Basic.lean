@@ -6,14 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
+public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
-import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -188,9 +192,9 @@ theorem isConnectionForm_sum_smul {ι : Type*} (s : Finset ι)
     simp only [map_sum, map_smul]
     exact Finset.sum_congr rfl fun i hi ↦ by rw [(hA i hi).mpullback_op_smul]
   apply_rightFundamentalVectorField x ξ := by
-    rw [Submodule.coe_sum, Finset.sum_apply, ContinuousAlternatingMap.sum_apply,
+    rw [SmoothBundleForm.sum_apply, ContinuousAlternatingMap.sum_apply,
       Finset.sum_congr rfl fun i hi ↦ by
-        rw [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+        rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
           (hA i hi).apply_rightFundamentalVectorField],
       ← Finset.sum_smul, hc, one_smul]
 
@@ -296,7 +300,7 @@ theorem add_isTensorialForm (hA : IsConnectionForm A)
       ha.isSemibasic.apply_eq_zero x _ 0 (by
         rw [ManifoldTotalSpace.coe_projContMDiffMap]
         exact PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ)
-    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+    rw [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
       hA.apply_rightFundamentalVectorField, ha0, add_zero]
 
 /-- The difference of two connection forms is a tensorial one-form. -/
@@ -314,7 +318,7 @@ theorem isTensorialForm_sub (hA : IsConnectionForm A)
       funext i
       rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
         PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
-    rw [hv, Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
+    rw [hv, SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
       hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField, sub_self]
 
 /-- **The connection forms are an affine space over the tensorial one-forms.** Any connection
@@ -344,8 +348,7 @@ theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ
       (ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff.mp h.isSemibasic),
     fun h ↦ ⟨fun g ↦ ?_, ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff.mp h.isSemibasic⟩⟩
   rw [hAd]
-  apply Subtype.ext
-  rw [SmoothForm.coe_mpullback]
+  rw [SmoothForm.mpullback_eq_iff]
   exact h.mpullback_eq ManifoldTotalSpace.mdifferentiable_projContMDiffMap
     ((contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
     (PrincipalBundle.proj_comp_op_smul g)

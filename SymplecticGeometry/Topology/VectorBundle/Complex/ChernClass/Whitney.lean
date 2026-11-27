@@ -7,9 +7,10 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.HomotopyInvariance
 public import TauCeti.RingTheory.PowerSeries.ChernCharacter
-public import SymplecticGeometry.Algebra.BigOperators.Homogenization
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.OpenCover
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Algebra.BigOperators.Homogenization
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.OpenCover
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The Whitney sum formula for Chern classes

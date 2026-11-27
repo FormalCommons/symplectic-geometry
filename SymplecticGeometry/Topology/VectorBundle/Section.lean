@@ -9,6 +9,7 @@ public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 public import Mathlib.Topology.FiberBundle.Constructions
 public import TauCeti.Topology.VectorBundle.Section
 public import TauCeti.Topology.VectorBundle.Smul
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Pointwise continuity of fibrewise operations on maps into a vector bundle
@@ -67,8 +68,7 @@ theorem ContinuousAt.sum_totalSpace {ι : Type*} (T : Finset ι) {b : X → B}
   classical
   induction T using Finset.induction_on with
   | empty =>
-    simp only [Finset.sum_empty]
-    -- `zeroSection F E (b x)` is `TotalSpace.mk' F (b x) 0` by definition.
+    simp only [Finset.sum_empty, ← zeroSection_def F E]
     exact (Trivialization.continuous_zeroSection 𝕜 (F := F) (E := E)).continuousAt.comp hb
   | insert i T hi ih =>
     simp only [Finset.sum_insert hi]

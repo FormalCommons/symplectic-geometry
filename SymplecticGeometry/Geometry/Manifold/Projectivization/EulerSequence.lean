@@ -7,9 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
-public import SymplecticGeometry.LinearAlgebra.Projectivization.HermitianProjector
 
 import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
+import SymplecticGeometry.LinearAlgebra.Projectivization.HermitianProjector
+public import TauCeti.LinearAlgebra.Projectivization.HermitianProjector
+import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
 # The Euler sequence on complex projective space
@@ -17,10 +19,10 @@ import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 On `ℂℙᵐ = ℙ ℂ (Fin (m + 1) → ℂ)`, the Euler sequence
 `0 → ℂ → Hom(ℓ, ℂ^{m+1}) → TℂPᵐ → 0` identifies the tangent bundle with
 `Hom(ℓ, ℂ^{m+1} / ℓ)`, where `ℓ` is the tautological line. The bundle `Hom(ℓ, ℂ^{m+1})` is
-`𝒪(1)^{⊕(m+1)}`, which is `Projectivization.twistPiCore 1 (Fin (m + 1))`: in the chart `i`, a
-homomorphism `φ` is read through its value at the representative `v` of the line with `v i = 1`,
-and these values change from chart to chart by `twistTransition 1`. The standard Hermitian product
-splits the sequence, so that `TℂPᵐ ⊕ ℂ ≅ 𝒪(1)^{⊕(m+1)}`.
+`𝒪(1)^{⊕(m+1)}`, which is Tau Ceti's `Projectivization.twistSumCore fun _ : Fin (m + 1) ↦ 1`:
+in the chart `i`, a homomorphism `φ` is read through its value at the representative `v` of the
+line with `v i = 1`, and these values change from chart to chart by `twistTransition 1`. The
+standard Hermitian product splits the sequence, so that `TℂPᵐ ⊕ ℂ ≅ 𝒪(1)^{⊕(m+1)}`.
 
 ## Main declarations
 
@@ -210,7 +212,8 @@ with a zero inserted at `i` and `P` is the orthogonal projection onto the line `
 (`continuous_eulerSequenceEquiv` and `continuous_eulerSequenceEquiv_symm`). -/
 def eulerSequenceEquiv (x : ℙ ℂ (Fin (m + 1) → ℂ)) :
     ((TangentSpace 𝓘(ℂ, Fin m → ℂ) : ℙ ℂ (Fin (m + 1) → ℂ) → Type) ×ᵇ
-      Bundle.Trivial (ℙ ℂ (Fin (m + 1) → ℂ)) ℂ) x ≃L[ℂ] (twistPiCore 1 (Fin (m + 1))).Fiber x :=
+      Bundle.Trivial (ℙ ℂ (Fin (m + 1) → ℂ)) ℂ) x ≃L[ℂ]
+        (twistSumCore fun _ : Fin (m + 1) ↦ 1).Fiber x :=
   -- The fibres of both bundles are their model fibres `(Fin m → ℂ) × ℂ` and `Fin (m + 1) → ℂ`.
   ContinuousLinearEquiv.ofContinuousLinearMap (eulerModel ((twistCore 1).indexAt x) x)
     (eulerModelInv ((twistCore 1).indexAt x) x)
@@ -234,7 +237,7 @@ theorem eulerSequenceEquiv_apply (x : ℙ ℂ (Fin (m + 1) → ℂ))
 tangent vector `ξ` with `ξ̃ = w - w i • v` and the scalar `c` with `c v` the orthogonal projection
 of `w` onto the line `x`, where `v` is the representative of `x` with `v i = 1`. -/
 theorem eulerSequenceEquiv_symm_apply (x : ℙ ℂ (Fin (m + 1) → ℂ))
-    (w : (twistPiCore 1 (Fin (m + 1))).Fiber x) :
+    (w : (twistSumCore fun _ : Fin (m + 1) ↦ 1).Fiber x) :
     (eulerSequenceEquiv m x).symm w =
       ((fun k ↦ w (((twistCore 1).indexAt x).succAbove k) - w ((twistCore 1).indexAt x) *
           Fin.insertNth (α := fun _ ↦ ℂ) ((twistCore 1).indexAt x) 1
@@ -253,7 +256,7 @@ theorem continuous_eulerSequenceEquiv :
     Continuous fun p : TotalSpace ((Fin m → ℂ) × ℂ)
         ((TangentSpace 𝓘(ℂ, Fin m → ℂ) : ℙ ℂ (Fin (m + 1) → ℂ) → Type) ×ᵇ
           Bundle.Trivial (ℙ ℂ (Fin (m + 1) → ℂ)) ℂ) ↦
-      TotalSpace.mk' (Fin (m + 1) → ℂ) (E := (twistPiCore 1 (Fin (m + 1))).Fiber) p.proj
+      TotalSpace.mk' (Fin (m + 1) → ℂ) (E := (twistSumCore fun _ : Fin (m + 1) ↦ 1).Fiber) p.proj
         (eulerSequenceEquiv m p.proj p.snd) := by
   refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
   rw [FiberBundle.continuousAt_totalSpace]
@@ -276,10 +279,21 @@ theorem continuous_eulerSequenceEquiv :
         FiberBundle.mem_trivializationAt_proj_source))
   · set c := (twistCore (𝕜 := ℂ) (n := m) 1).indexAt p.proj
     have hc : p.proj ∈ affineOpen c := mem_affineOpen_twistCore_indexAt 1 p.proj
-    simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-      twistPiCore_indexAt, FiberBundle.prod_trivializationAt']
-    rw [twistPiCore_localTriv_apply]
-    refine Eq.trans ?_ (smul_eulerModel c c₀ hc hp p.snd).symm
+    -- In the trivialization at `p₀.proj`, each coordinate is multiplied by `twistTransition 1`.
+    have hs : twistTransition 1 c c₀ p.proj • eulerModel c p.proj p.snd =
+        (trivializationAt (Fin (m + 1) → ℂ)
+          (twistSumCore (𝕜 := ℂ) (n := m) fun _ : Fin (m + 1) ↦ 1).Fiber p₀.proj
+          ⟨p.proj, eulerSequenceEquiv m p.proj p.snd⟩).2 := by
+      funext a
+      refine Eq.trans ?_ (twistSumCore_trivializationAt_apply_snd (fun _ ↦ 1) p₀.proj p.proj
+        (eulerSequenceEquiv m p.proj p.snd) a).symm
+      rw [twistSumCore_indexAt_eq_twistCore_indexAt _ 1,
+        twistSumCore_indexAt_eq_twistCore_indexAt _ 1]
+      -- The fibre of `twistSumCore` is `Fin (m + 1) → ℂ`, and `eulerSequenceEquiv` is
+      -- `eulerModel c` in it, both by definition.
+      rfl
+    simp only [FiberBundle.prod_trivializationAt']
+    refine Eq.trans ?_ ((smul_eulerModel c c₀ hc hp p.snd).symm.trans hs)
     -- The tangent coordinate change is the derivative of the transition map between the charts
     -- at `p.proj` and at `p₀.proj`.
     simp [Trivialization.prod_apply, Trivialization.Prod.toFun',
@@ -289,8 +303,8 @@ theorem continuous_eulerSequenceEquiv :
 
 /-- The inverse of `eulerSequenceEquiv` is continuous on total spaces. -/
 theorem continuous_eulerSequenceEquiv_symm :
-    Continuous fun q : TotalSpace (Fin (m + 1) → ℂ) (twistPiCore (𝕜 := ℂ) (n := m) 1
-        (Fin (m + 1))).Fiber ↦
+    Continuous fun q : TotalSpace (Fin (m + 1) → ℂ)
+        (twistSumCore (𝕜 := ℂ) (n := m) fun _ : Fin (m + 1) ↦ 1).Fiber ↦
       TotalSpace.mk' ((Fin m → ℂ) × ℂ)
         (E := (TangentSpace 𝓘(ℂ, Fin m → ℂ) : ℙ ℂ (Fin (m + 1) → ℂ) → Type) ×ᵇ
           Bundle.Trivial (ℙ ℂ (Fin (m + 1) → ℂ)) ℂ) q.proj

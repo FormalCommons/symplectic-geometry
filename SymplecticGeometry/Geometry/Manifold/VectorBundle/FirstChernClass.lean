@@ -5,20 +5,21 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteTrivializingCover
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteTrivializingCover
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 
 /-!
 # The Whitney formula for the first Chern class over manifolds
 
 Over a Hausdorff, σ-compact space `B` charted on `H`, with a model with corners
 `I : ModelWithCorners ℝ EB H` and `EB` finite-dimensional, the first Chern class
-`SymplecticGeometry.Bundle.firstChernClass` is additive on direct sums of complex vector bundles
+`TauCeti.firstChernClass` is additive on direct sums of complex vector bundles
 (`SymplecticGeometry.Bundle.firstChernClass_prod_of_chartedSpace`). Neither smoothness nor
 compactness is assumed, and the model may have corners.
 
 It is a case of `SymplecticGeometry.Bundle.firstChernClass_prod_of_hasFiniteTrivializingCover`:
-the determinant lines have finite trivializing covers by
+the bundles have finite trivializing covers by
 `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_chartedSpace`, and the base is normal
 since it is locally compact, σ-compact and Hausdorff, hence paracompact.
 
@@ -37,6 +38,7 @@ since it is locally compact, σ-compact and Hausdorff, hence paracompact.
 public section
 
 open Bundle
+open TauCeti (firstChernClass)
 
 namespace SymplecticGeometry.Bundle
 
@@ -44,11 +46,11 @@ variable {B : Type} [TopologicalSpace B]
   {EB H : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
   [TopologicalSpace H]
   {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  {E₁ : B → Type*} [∀ b, AddCommMonoid (E₁ b)] [∀ b, Module ℂ (E₁ b)]
+  {E₁ : B → Type} [∀ b, AddCommGroup (E₁ b)] [∀ b, Module ℂ (E₁ b)]
   [∀ b, TopologicalSpace (E₁ b)] [TopologicalSpace (TotalSpace G₁ E₁)]
   [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
   {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  {E₂ : B → Type*} [∀ b, AddCommMonoid (E₂ b)] [∀ b, Module ℂ (E₂ b)]
+  {E₂ : B → Type} [∀ b, AddCommGroup (E₂ b)] [∀ b, Module ℂ (E₂ b)]
   [∀ b, TopologicalSpace (E₂ b)] [TopologicalSpace (TotalSpace G₂ E₂)]
   [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
 

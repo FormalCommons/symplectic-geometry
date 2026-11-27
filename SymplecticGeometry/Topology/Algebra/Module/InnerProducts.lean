@@ -7,13 +7,13 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
-public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Basic
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
+import SymplecticGeometry.Analysis.InnerProductSpace.LinearMap
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 
 /-!
 # The space of inner products

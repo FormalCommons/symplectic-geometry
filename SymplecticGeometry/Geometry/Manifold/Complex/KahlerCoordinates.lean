@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 public import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
@@ -91,10 +92,9 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
       mfderiv 𝓘(ℝ, E) I φ.symm z (J₀ v) := by
     rw [← hφ z hz v, J.mfderiv_symm_apply_chartPushforward_apply φ hz]
   rw [gramInChart_apply, hg, SmoothBundleForm.eval₂_apply, hJ]
-  refine Eq.trans ?_ (TauCeti.mpullback_apply _ _ _ _).symm
-  congr 1
-  -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-  exact Eq.symm (FinVec.etaExpand_eq _).symm
+  -- `u` and `J₀ v` are vectors of `E` rather than of a tangent space, so the evaluation lemma is
+  -- applied by unification rather than by `rw`.
+  exact (TauCeti.mpullback_apply_pair _ _ _ u (J₀ v)).symm
 
 variable [FiniteDimensional ℝ E]
 
@@ -189,7 +189,7 @@ private theorem fderiv_gramInChart_symmetries {form : SmoothTwoForm I M} (hform 
   · -- The closedness of `form`, read in the chart, as a cyclic identity for `A`.
     have hΩd : DifferentiableAt ℝ Ω z₀ := form.differentiableAt_mpullback_symm φ hz₀
     have hcl : extDeriv Ω z₀ = 0 := SmoothForm.IsClosed.extDeriv_mpullback_eq_zero hform
-      ((φ.symm.contMDiffOn.contMDiffAt (φ.open_target.mem_nhds hz₀)).of_le (by simp))
+      ((φ.symm.contMDiffAt hz₀).of_le (by simp))
     have hΩe (a b k : E) : fderiv ℝ (fun z ↦ Ω z ![a, b]) z₀ k = - A k a (J₀ b) := by
       have he : (fun z ↦ Ω z ![a, b]) =ᶠ[𝓝 z₀] fun z ↦ - G z a (J₀ b) :=
         eventually_of_mem (φ.open_target.mem_nhds hz₀) fun z hz ↦ by

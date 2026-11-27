@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
-public import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.AffineSymplectic
+import SymplecticGeometry.Analysis.InnerProductSpace.Adjoint
+import SymplecticGeometry.Analysis.InnerProductSpace.Basic
+import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import Mathlib.Algebra.Order.Star.Real
 
 /-!
 # Affine nonsqueezing

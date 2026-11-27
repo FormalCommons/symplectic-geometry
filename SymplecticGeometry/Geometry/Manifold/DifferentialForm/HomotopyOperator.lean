@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 
 /-!
@@ -39,7 +40,9 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
   `d (h φ) = ι₁^* φ - ι₀^* φ`.
 * `SmoothForm.mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ`:
   for a smooth `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and any form `z` with
-  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`.
+  values in a Banach space, `d (h (Φ^* z)) + h (Φ^* (d z)) = z - g^* z`. It is the case of
+  smooth forms and a homotopy ending at the identity of Tau Ceti's
+  `TauCeti.mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv`.
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`: for a smooth
   `Φ : M × [0, 1] → M` from a constant map to the identity and a closed form `z` of positive
   degree with values in a Banach space, `h (Φ^* z)` is a primitive of `z`.
@@ -119,10 +122,10 @@ theorem mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ [Complet
         mpullback (fun x : M ↦ (x, (0 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const)
           φ := by
   refine Subtype.ext (funext fun x ↦ ?_)
-  rw [Submodule.coe_add, Pi.add_apply, mextDerivₗ_apply, coe_homotopyOperator,
+  rw [SmoothBundleForm.add_apply, mextDerivₗ_apply, coe_homotopyOperator,
     coe_homotopyOperator, mextDerivₗ_apply,
     mextDeriv_homotopyOperator_add_homotopyOperator_mextDeriv (φ.isSmoothForm.of_le (by simp)) x,
-    Submodule.coe_sub, Pi.sub_apply, coe_mpullback, coe_mpullback]
+    SmoothBundleForm.sub_apply, coe_mpullback, coe_mpullback]
 
 /-- **The homotopy formula for closed forms.** For a closed smooth form `φ` on `M × [0, 1]` with
 values in a Banach space, the exterior derivative of `h φ` is the difference `ι₁^* φ - ι₀^* φ`
@@ -146,12 +149,13 @@ theorem mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_m
     (z : SmoothForm I M F (k + 1)) :
     mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) +
         homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) z)) = z - mpullback g hg z := by
-  rw [← mextDerivₗ_mpullback, mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ,
-    mpullback_mpullback, mpullback_mpullback]
   -- The end slices of the homotopy are the identity and `g`.
-  have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
-  have hg' : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = g := funext h₀
-  simp_rw [hid, hg', mpullback_id, LinearMap.id_apply]
+  have hid : (fun x : M ↦ Φ (x, 1)) = id := funext h₁
+  have hg' : (fun x : M ↦ Φ (x, 0)) = g := funext h₀
+  have h := mextDeriv_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDeriv
+    (hΦ.of_le (by simp)) (z.isSmoothForm.of_le (by simp))
+  rw [hid, hg', TauCeti.mpullback_id] at h
+  exact Subtype.ext (by simpa using h)
 
 /-- **The homotopy formula for a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a smooth
 homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a closed
@@ -182,8 +186,8 @@ theorem mpullback_homotopyOperator {E' H' M' : Type*} [NormedAddCommGroup E'] [N
     (hg : ContMDiff I' I ∞ g) (φ : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc (0 : ℝ) 1) F (k + 1)) :
     mpullback g hg (homotopyOperator φ) =
       homotopyOperator (mpullback (Prod.map g id) (hg.prodMap contMDiff_id) φ) :=
-  Subtype.ext <| by
-    rw [coe_mpullback, coe_homotopyOperator, coe_homotopyOperator, coe_mpullback,
+  (mpullback_eq_iff _).2 <| by
+    rw [coe_homotopyOperator, coe_homotopyOperator, coe_mpullback,
       homotopyOperator_mpullback_prodMap_id_of_isSmoothForm (hg.mdifferentiable (by simp))
         (φ.isSmoothForm.of_le (by simp))]
 
@@ -343,7 +347,7 @@ theorem exists_mextDerivₗ_eq_sub_homotopyOperator_mpullback_on [CompleteSpace 
     rw [coe_mpullback, coe_mpullback]
     exact mpullback_apply_congr (hβ _ (hW₀ x hx))
   rw [hη, map_add, mextDerivₗ_mpullback]
-  simp only [Submodule.coe_add, Submodule.coe_sub, Pi.add_apply, Pi.sub_apply, hgx]
+  simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply, hgx]
   abel
 
 end Exact

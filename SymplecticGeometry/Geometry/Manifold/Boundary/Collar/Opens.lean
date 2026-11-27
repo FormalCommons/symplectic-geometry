@@ -7,7 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.SmoothMap
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Collars of an open neighbourhood of the boundary
@@ -65,10 +66,9 @@ noncomputable def diffeomorphBoundaryOpens [IsManifold (𝓡∂ (n + 1)) k W] (V
     exact contMDiff_subtypeVal.comp (isSmoothEmbedding_subtypeVal_boundary (k := k) V).contMDiff
   contMDiff_invFun := by
     rw [contMDiff_iff_comp_subtypeVal_boundary]
-    intro x
     -- A map into the open subset `V` is smooth when its composite with `V → W` is.
-    refine (ChartedSpace.liftPropWithinAt_subtypeVal_comp_iff (U := V) _ _ _).1 ?_
-    exact (isSmoothEmbedding_subtypeVal_boundary (k := k) W).contMDiff x
+    exact (TauCeti.ContMDiff.subtypeVal_comp_iff V _).1
+      (isSmoothEmbedding_subtypeVal_boundary (k := k) W).contMDiff
 
 section
 

@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Topology.VectorBundle.Complex.Orientation
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 
 /-!
 # The orientation of a manifold given by a complex structure on its tangent bundle
@@ -86,12 +87,8 @@ theorem orientation_eq_tangentOrientation (J : SmoothAlmostComplexStructure I M)
   rw [orientationAt_orientation, ← Manifold.Orientation.toVectorBundleOrientation_apply,
     Bundle.ContinuousComplexStructure.toVectorBundleOrientation_tangentOrientation,
     Bundle.ContinuousComplexStructure.orientation_apply,
-    ContMDiffAlmostComplexStructure.toContinuousComplexStructure_almostComplexStructureAt]
-  -- The pointwise structures of `J` do not depend on the regularity it is viewed with.
-  congr 1
-  ext v
-  rw [ContMDiffAlmostComplexStructure.almostComplexStructureAt_apply, toContMDiff_apply,
-    almostComplexStructureAt_apply]
+    ContMDiffAlmostComplexStructure.toContinuousComplexStructure_almostComplexStructureAt,
+    almostComplexStructureAt_toContMDiff]
 
 end TauCeti.SmoothAlmostComplexStructure
 

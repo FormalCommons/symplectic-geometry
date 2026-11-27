@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.CategoryTheory.Linear.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
@@ -17,7 +18,11 @@ fibre map at `x` is `c x • a x` (`VectorBundleCore.CoordinateHom.fiberMap_smul
 for the morphisms of Tau Ceti's finite-rank cores (`TauCeti.FiniteRankBundleCore.fiberMap_smul`),
 which are coordinate morphisms. With Tau Ceti's addition, both form modules over `C(B, 𝕜)`
 (`VectorBundleCore.CoordinateHom.instModuleContinuousMap`,
-`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`).
+`TauCeti.FiniteRankBundleCore.instModuleContinuousMapHom`). The composition of morphisms of
+finite-rank cores is `C(B, 𝕜)`-linear in each argument, so that their category is `C(B, 𝕜)`-linear
+in Mathlib's sense (`TauCeti.FiniteRankBundleCore.instLinearContinuousMap`), and Mathlib's API for
+linear categories, such as `CategoryTheory.Linear.smul_comp` and
+`CategoryTheory.Linear.comp_smul`, applies.
 
 With the addition of morphisms, this gives convex combinations of morphisms with coefficients
 depending on the point of the base, such as the segment between two clutching functions.
@@ -81,6 +86,13 @@ instance instModuleContinuousMapHom : Module C(B, 𝕜) (A ⟶ D) :=
 theorem fiberMap_smul (c : C(B, 𝕜)) (a : A ⟶ D) (x : B) :
     (c • a).fiberMap x = c x • a.fiberMap x :=
   VectorBundleCore.CoordinateHom.fiberMap_smul c a x
+
+/-- The category of finite-rank cores over `B` is `C(B, 𝕜)`-linear: composition of morphisms is
+`C(B, 𝕜)`-linear in each argument. -/
+instance instLinearContinuousMap : Linear C(B, 𝕜) (FiniteRankBundleCore 𝕜 B) where
+  homModule _ _ := instModuleContinuousMapHom
+  smul_comp _ _ _ _ _ _ := hom_ext fun x ↦ by simp [fiberMap_comp]
+  comp_smul _ _ _ _ _ _ := hom_ext fun x ↦ by simp [fiberMap_comp]
 
 end TauCeti.FiniteRankBundleCore
 

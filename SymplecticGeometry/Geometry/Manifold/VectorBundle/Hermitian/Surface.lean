@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Nonvanishing
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Nonvanishing
 
 /-!
 # Unitary frames over manifolds with boundary

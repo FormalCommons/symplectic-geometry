@@ -10,7 +10,7 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 public import TauCeti.Analysis.Matrix.Normed
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
-public import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
+import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import Mathlib.Analysis.LocallyConvex.HahnBanach
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule

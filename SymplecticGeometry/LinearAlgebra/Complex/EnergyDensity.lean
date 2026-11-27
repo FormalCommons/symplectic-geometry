@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.Complex.TopForm
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.LinearAlgebra.Complex.LinearPart
+public import TauCeti.Geometry.Symplectic.AlmostComplex
+import SymplecticGeometry.LinearAlgebra.Complex.TopForm
 import SymplecticGeometry.LinearAlgebra.Alternating.Basic
 
 /-!

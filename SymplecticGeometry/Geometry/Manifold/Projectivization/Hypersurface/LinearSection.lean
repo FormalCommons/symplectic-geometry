@@ -14,12 +14,13 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Topology.VectorBundle.Pullback
 
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.KerInf
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.LinearAlgebra.Dimension.Submodule
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 
 /-!
 # The section of `X.embedding^* 𝒪(1)^{⊕ι}` given by linear forms
@@ -27,10 +28,12 @@ import TauCeti.LinearAlgebra.Dimension.Submodule
 A linear map `ℓ : 𝕜^{m+1} → 𝕜^ι` is a tuple of `ι` linear forms on `𝕜^{m+1}`, and each of them
 is a section of `𝒪(1)` on `ℙ 𝕜 (Fin (m + 1) → 𝕜)`, by Tau Ceti's `homogeneousSection 1`. Together
 they form a section `Projectivization.linearSection ℓ` of `𝒪(1) ⊗ 𝕜^ι`, the bundle
-`Projectivization.twistPiCore 1 ι`, whose zeros are the lines on which all the forms vanish.
+Tau Ceti's `Projectivization.twistSumCore fun _ : ι ↦ 1`, whose zeros are the lines on which all
+the forms vanish.
 
 On a smooth projective hypersurface `X` of dimension `n`, a tuple of `ι` linear forms on
-`ℂ^{n+2}` so gives a section of the pull-back `X.embedding *ᵖ (twistPiCore 1 ι).Fiber` of
+`ℂ^{n+2}` so gives a section of the pull-back
+`X.embedding *ᵖ (twistSumCore fun _ : ι ↦ 1).Fiber` of
 `𝒪(1) ⊗ ℂ^ι` to `X`. For `ι = Fin n`, the rank of that bundle is the dimension of `X`, and the
 degree of `X` can be computed by counting the zeros of a generic such section, with Tau Ceti's
 `ContMDiffSection.mem_residual_setOf_regular_and_finite_zero_affineFamily`; this file provides
@@ -109,7 +112,7 @@ Ceti's section `homogeneousSection 1` of `𝒪(1)` given by the form `v ↦ ℓ 
 frame of the chart `j`, at the line spanned by a vector `v` with `v j = 1`, it is `ℓ v`
 (`Projectivization.twistTransition_mul_linearSection_mk`). -/
 def linearSection (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι → 𝕜) (x : ℙ 𝕜 (Fin (m + 1) → 𝕜)) :
-    (twistPiCore 1 ι).Fiber x :=
+    (twistSumCore fun _ : ι ↦ 1).Fiber x :=
   (fun k ↦ homogeneousSection 1 ((LinearMap.toMatrix' ℓ).toMvPolynomial k) x : ι → 𝕜)
 
 /-- The coordinate `k` of the section given by `ℓ` is the section of `𝒪(1)` given by the form
@@ -153,11 +156,12 @@ the line `x`. -/
 @[simp]
 theorem linearSection_eq_zero_iff (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι → 𝕜)
     (x : ℙ 𝕜 (Fin (m + 1) → 𝕜)) : linearSection ℓ x = 0 ↔ ℓ x.rep = 0 := by
-  have hi := (mem_affineOpen_iff _ x).1 (mem_affineOpen_twistCore_indexAt (n := m) 1 x)
+  have hi := rep_indexAt_twistCore_ne_zero (n := m) 1 x
   constructor
   · intro h
     funext k
-    have hk : linearSection ℓ x k = 0 := congrArg (fun s : (twistPiCore 1 ι).Fiber x ↦ s k) h
+    have hk : linearSection ℓ x k = 0 :=
+      congrArg (fun s : (twistSumCore fun _ : ι ↦ 1).Fiber x ↦ s k) h
     rwa [linearSection_apply, div_eq_zero_iff, or_iff_left hi] at hk
   · intro h
     funext k
@@ -189,9 +193,9 @@ theorem linearSection_smul (c : 𝕜) (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜]
 theorem contMDiff_linearSection (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι → 𝕜) (r : ℕ∞ω) :
     ContMDiff 𝓘(𝕜, Fin m → 𝕜) (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, ι → 𝕜)) r
       (fun x ↦ TotalSpace.mk' (ι → 𝕜) x (linearSection ℓ x)) := by
-  rw [contMDiff_section_twistPiCore_iff]
+  rw [contMDiff_section_twistSumCore_iff]
   refine fun j ↦ contMDiffOn_pi_module_iff.2 fun k ↦ ?_
-  simpa only [Nat.cast_one, linearSection_def] using
+  simpa only [Nat.cast_one, linearSection_def, twistSumCore_indexAt_eq_twistCore_indexAt _ 1] using
     (contMDiff_section_twistCore_iff _ _).1 (contMDiff_homogeneousSection
       (Matrix.toMvPolynomial_isHomogeneous (LinearMap.toMatrix' ℓ) k) r) j
 
@@ -203,15 +207,15 @@ namespace SmoothProjectiveHypersurface
 
 variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 
-/-- The pull-back of `𝒪(k) ⊗ ℂ^ι` to a smooth projective hypersurface is a smooth real vector
+/-- The pull-back of `⨁ₗ 𝒪(k l)` to a smooth projective hypersurface is a smooth real vector
 bundle over the underlying real manifold. Its real structure is Mathlib's pull-back of that of
-`𝒪(k) ⊗ ℂ^ι`. -/
-instance (k : ℤ) (ι : Type*) [Fintype ι] :
-    ContMDiffVectorBundle ∞ (ι → ℂ) (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber)
-      𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) :=
-  have : ContMDiffVectorBundle ∞ (ι → ℂ)
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber)
-      𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) :=
+`⨁ₗ 𝒪(k l)`. -/
+instance {κ : Type*} [Fintype κ] (k : κ → ℤ) :
+    ContMDiffVectorBundle ∞ (κ → ℂ) (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) k).Fiber)
+      𝓘(ℝ, Fin n → ℂ) :=
+  have : ContMDiffVectorBundle ∞ (κ → ℂ)
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) k).Fiber)
+      𝓘(ℂ, Fin n → ℂ) :=
     Bundle.Pullback.contMDiffVectorBundle (X.embedding.contMDiff.of_le le_top)
   ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
 
@@ -221,10 +225,10 @@ variable {ι : Type*} [Fintype ι]
 `x ↦ Projectivization.linearSection ℓ (X.embedding x)` of the pull-back of `𝒪(1) ⊗ ℂ^ι` to `X` is
 analytic. -/
 theorem contMDiff_linearSection_embedding (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) :
-    ContMDiff 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ)
-      (𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ).prod 𝓘(ℂ, ι → ℂ)) ω
+    ContMDiff 𝓘(ℂ, Fin n → ℂ)
+      (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ι → ℂ)) ω
       (fun x : X ↦ TotalSpace.mk' (ι → ℂ)
-        (E := X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) x
+        (E := X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) x
         (Projectivization.linearSection ℓ (X.embedding x))) :=
   (Bundle.Pullback.contMDiff_iff X.embedding X.embedding.contMDiff).2
     ⟨contMDiff_id, (contMDiff_linearSection ℓ ω).comp X.embedding.contMDiff⟩
@@ -234,8 +238,8 @@ theorem contMDiff_linearSection_embedding (ℓ : (Fin (n + 2) → ℂ) →ₗ[�
 `x` is that of `Projectivization.linearSection ℓ` at `x`, as a section of the underlying real
 vector bundle over the underlying real manifold. It is `ℝ`-linear in `ℓ`. -/
 def linearSection : ((Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) →ₗ[ℝ]
-    ContMDiffSection 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (ι → ℂ) ∞
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) where
+    ContMDiffSection 𝓘(ℝ, Fin n → ℂ) (ι → ℂ) ∞
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) where
   toFun ℓ := ContMDiffSection.restrictScalars' ℝ
     { toFun x := Projectivization.linearSection ℓ (X.embedding x)
       contMDiff_toFun := (X.contMDiff_linearSection_embedding ℓ).of_le le_top }
@@ -277,12 +281,11 @@ theorem span_range_linearSection_smulRight [DecidableEq ι] (x : X) :
     Submodule.span ℝ (range fun p : Fin (n + 2) × ι × Fin 2 ↦
       X.linearSection ((LinearMap.proj (R := ℂ) (φ := fun _ ↦ ℂ) p.1).smulRight
         (Pi.single p.2.1 (Complex.basisOneI p.2.2))) x) = ⊤ := by
-  have hi := (mem_affineOpen_iff _ _).1
-    (mem_affineOpen_twistCore_indexAt (𝕜 := ℂ) 1 (X.embedding x))
+  have hi := rep_indexAt_twistCore_ne_zero (𝕜 := ℂ) 1 (X.embedding x)
   -- The fibre is `ι → ℂ` by the definitions of `Bundle.Pullback` and
   -- `VectorBundleCore.Fiber`, so the real basis of `ι → ℂ` is one of the fibre.
   let e : Module.Basis (Σ _ : ι, Fin 2) ℝ
-      ((X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) x) :=
+      ((X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) x) :=
     Pi.basis fun _ ↦ Complex.basisOneI
   rw [eq_top_iff, ← e.span_eq]
   refine Submodule.span_mono ?_
@@ -308,34 +311,37 @@ coordinates `Fin.insertNth j 1 (affineChart j y)` of `y`, whose coordinate `j` i
 theorem trivializationAt_linearSection_snd (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) {z y : X}
     (hy : (y : ℙ ℂ (Fin (n + 2) → ℂ)) ∈
       affineOpen ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))) :
-    (trivializationAt (ι → ℂ) (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
+    (trivializationAt (ι → ℂ)
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
       ⟨y, X.linearSection ℓ y⟩).2 =
       ℓ (Fin.insertNth (α := fun _ ↦ ℂ) ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)) 1
         (affineChart ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)) (y : ℙ ℂ _))) := by
   rw [linearSection_apply, trivializationAt, FiberBundle.pullback_trivializationAt',
-    Trivialization.pullback_apply, Pullback.lift_mk, VectorBundleCore.trivializationAt,
-    ← VectorBundleCore.localTrivAt_def, twistPiCore_localTriv_apply, twistPiCore_indexAt,
-    coe_embedding]
+    Trivialization.pullback_apply, Pullback.lift_mk, coe_embedding]
   funext k
-  rw [twistTransition_mul_linearSection, insertNth_one_affineChart_eq_normalizedRep _ hy,
-    normalizedRep_def, LinearMap.proj_apply, map_smul, Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
+  refine (twistSumCore_trivializationAt_apply_snd (fun _ ↦ 1) _ _
+    (Projectivization.linearSection ℓ _) k).trans ?_
+  rw [twistSumCore_indexAt_eq_twistCore_indexAt _ 1, twistSumCore_indexAt_eq_twistCore_indexAt _ 1,
+    twistTransition_mul_linearSection,
+    insertNth_one_affineChart_eq_normalizedRep _ hy, normalizedRep_def, LinearMap.proj_apply,
+    map_smul, Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
 
 /-- The normalized homogeneous coordinates of points of `X` near `z`, read in the chart of `X`
 at `z`: the representative of the image in projective space whose coordinate of the preferred
 chart at `z` is `1`. -/
-private noncomputable def chartLift (z : X) (y : Fin (n + 1 - Fintype.card Unit) → ℂ) :
+private noncomputable def chartLift (z : X) (y : Fin n → ℂ) :
     Fin (n + 2) → ℂ :=
   Fin.insertNth (α := fun _ ↦ ℂ) ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))) 1
     (affineChart ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))
-      (((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y : X) : ℙ ℂ (Fin (n + 2) → ℂ)))
+      (((chartAt (Fin n → ℂ) z).symm y : X) : ℙ ℂ (Fin (n + 2) → ℂ)))
 
 /-- Near the image of `z`, the chart inverse lands in the affine open of the preferred chart. -/
 private theorem eventually_mem_affineOpen (z : X) :
-    ∀ᶠ y in 𝓝 (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z),
-      (((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y : X) : ℙ ℂ (Fin (n + 2) → ℂ)) ∈
+    ∀ᶠ y in 𝓝 (chartAt (Fin n → ℂ) z z),
+      (((chartAt (Fin n → ℂ) z).symm y : X) : ℙ ℂ (Fin (n + 2) → ℂ)) ∈
         affineOpen ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))) := by
-  have hc : ContinuousAt (fun y ↦ (((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y :
-      X) : ℙ ℂ (Fin (n + 2) → ℂ))) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z) :=
+  have hc : ContinuousAt (fun y ↦ (((chartAt (Fin n → ℂ) z).symm y :
+      X) : ℙ ℂ (Fin (n + 2) → ℂ))) (chartAt (Fin n → ℂ) z z) :=
     continuous_subtypeVal.continuousAt.comp
       ((chartAt _ z).continuousAt_symm ((chartAt _ z).map_source (mem_chart_source _ z)))
   refine hc.preimage_mem_nhds ((isOpen_affineOpen _).mem_nhds ?_)
@@ -345,7 +351,7 @@ private theorem eventually_mem_affineOpen (z : X) :
 /-- The normalized homogeneous coordinates of the points of `X`, for the preferred chart at `z`,
 are holomorphic at `z`. -/
 private theorem mdifferentiableAt_insertNth_affineChart (z : X) :
-    MDifferentiableAt 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin (n + 2) → ℂ)
+    MDifferentiableAt 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 2) → ℂ)
       (fun y : X ↦ Fin.insertNth (α := fun _ ↦ ℂ)
         ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))) 1
         (affineChart ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))
@@ -360,7 +366,7 @@ private theorem mdifferentiableAt_insertNth_affineChart (z : X) :
 /-- The normalized homogeneous coordinates, read in the chart of `X` at `z`, are complex
 differentiable at the image of `z`. -/
 private theorem differentiableAt_chartLift (z : X) : DifferentiableAt ℂ (chartLift X z)
-    (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z) := by
+    (chartAt (Fin n → ℂ) z z) := by
   have := (mdifferentiableWithinAt_univ.2
     (X.mdifferentiableAt_insertNth_affineChart z)).differentiableWithinAt_comp_extChartAt_symm
   simp only [extChartAt_coe, extChartAt_coe_symm, modelWithCornersSelf_coe,
@@ -373,10 +379,10 @@ trivialization of the pull-back at `z`, is `ℓ` applied to the normalized homog
 coordinates. -/
 private theorem chartLift_eventuallyEq (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) (z : X) :
     (fun y ↦ (trivializationAt (ι → ℂ)
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
-      ⟨(chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y,
-        X.linearSection ℓ ((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y)⟩).2) =ᶠ[𝓝
-      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)] fun y ↦ ℓ (chartLift X z y) := by
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
+      ⟨(chartAt (Fin n → ℂ) z).symm y,
+        X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2) =ᶠ[𝓝
+      (chartAt (Fin n → ℂ) z z)] fun y ↦ ℓ (chartLift X z y) := by
   filter_upwards [X.eventually_mem_affineOpen z] with y hy
   exact X.trivializationAt_linearSection_snd ℓ hy
 
@@ -385,12 +391,12 @@ private theorem chartLift_eventuallyEq (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] 
 the derivative of the normalized homogeneous coordinates. -/
 private theorem hasFDerivAt_trivializationAt_linearSection (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ)
     (z : X) : HasFDerivAt (fun y ↦ (trivializationAt (ι → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
-        ⟨(chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y,
-          X.linearSection ℓ ((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y)⟩).2)
+        (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
+        ⟨(chartAt (Fin n → ℂ) z).symm y,
+          X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2)
       (((LinearMap.toContinuousLinearMap ℓ).comp (fderiv ℂ (chartLift X z)
-        (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))).restrictScalars ℝ)
-      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z) :=
+        (chartAt (Fin n → ℂ) z z))).restrictScalars ℝ)
+      (chartAt (Fin n → ℂ) z z) :=
   (((LinearMap.toContinuousLinearMap ℓ).hasFDerivAt.comp _
     (X.differentiableAt_chartLift z).hasFDerivAt).restrictScalars ℝ).congr_of_eventuallyEq
     (X.chartLift_eventuallyEq ℓ z)
@@ -400,17 +406,17 @@ private theorem hasFDerivAt_trivializationAt_linearSection (ℓ : (Fin (n + 2) �
 `𝒪(1) ⊗ ℂ^ι`, the section given by `ℓ` has, at the image of `z`, a real derivative that is the
 restriction of scalars of a `ℂ`-linear map. -/
 theorem exists_hasFDerivAt_trivializationAt_linearSection (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ)
-    (z : X) : ∃ A : (Fin (n + 1 - Fintype.card Unit) → ℂ) →L[ℂ] ι → ℂ,
+    (z : X) : ∃ A : (Fin n → ℂ) →L[ℂ] ι → ℂ,
       HasFDerivAt (fun y ↦ (trivializationAt (ι → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
-        ⟨(chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y,
-          X.linearSection ℓ ((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y)⟩).2)
-        (A.restrictScalars ℝ) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z) :=
+        (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
+        ⟨(chartAt (Fin n → ℂ) z).symm y,
+          X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2)
+        (A.restrictScalars ℝ) (chartAt (Fin n → ℂ) z z) :=
   ⟨_, X.hasFDerivAt_trivializationAt_linearSection ℓ z⟩
 
 /-- At the image of `z`, the normalized homogeneous coordinates are those of `z`. -/
 private theorem chartLift_chartAt (z : X) :
-    chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z) =
+    chartLift X z (chartAt (Fin n → ℂ) z z) =
       ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)))⁻¹ •
         (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep := by
   rw [chartLift, (chartAt _ z).left_inv (mem_chart_source _ z),
@@ -421,33 +427,29 @@ private theorem chartLift_chartAt (z : X) :
 since `X` is immersed in projective space. -/
 private theorem injective_fderiv_chartLift (z : X) :
     Function.Injective
-      (fderiv ℂ (chartLift X z) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) := by
+      (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z)) := by
   set j := (twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))
   have hz := mem_affineOpen_twistCore_indexAt (𝕜 := ℂ) 1 (z : ℙ ℂ (Fin (n + 2) → ℂ))
   have h1 : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (affineChart j)
       (z : ℙ ℂ (Fin (n + 2) → ℂ)) :=
-    ((contMDiffOn_affineChart (𝕜 := ℂ) (n := n + 1) j 1).contMDiffAt
-      ((isOpen_affineOpen j).mem_nhds hz)).mdifferentiableAt one_ne_zero
-  have h2 : MDifferentiableAt 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+    mdifferentiableAt_affineChart hz
+  have h2 : MDifferentiableAt 𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
       (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ)) z := by
     have := (X.embedding.contMDiff.of_le (show (1 : ℕ∞ω) ≤ ω from le_top)).mdifferentiableAt
       one_ne_zero (x := z)
     rwa [coe_embedding] at this
   -- The differential of `affineChart j` restricted to `X` is injective: that of the chart is
   -- bijective, and that of the inclusion is injective since `X` is immersed.
-  have hinj : Function.Injective (mfderiv 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ)
+  have hinj : Function.Injective (mfderiv 𝓘(ℂ, Fin n → ℂ)
       𝓘(ℂ, Fin (n + 1) → ℂ) (affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) z) := by
     rw [mfderiv_comp z h1 h2]
-    have hbij := (mdifferentiable_of_mem_atlas (I := 𝓘(ℂ, Fin (n + 1) → ℂ))
-      (affineOpenPartialHomeomorph_mem_atlas j)).mfderiv_bijective (by simpa using hz)
-    rw [coe_affineOpenPartialHomeomorph] at hbij
     have hi := X.embedding.isImmersion.mfderiv_injective WithTop.top_ne_zero z
     rw [coe_embedding] at hi
-    exact hbij.injective.comp hi
+    exact (bijective_mfderiv_affineChart hz).injective.comp hi
   replace hinj : Function.Injective (fderiv ℂ
       ((affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) ∘
-        (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm)
-      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) := by
+        (chartAt (Fin n → ℂ) z).symm)
+      (chartAt (Fin n → ℂ) z z)) := by
     rw [TauCeti.fderiv_comp_chartAt_symm]
     -- `mvfderiv` is `mfderiv` followed by `NormedSpace.fromTangentSpace`; the goal reads it on
     -- the model space, which is the tangent space of `X` at `z` by definition.
@@ -456,7 +458,7 @@ private theorem injective_fderiv_chartLift (z : X) :
   set R : (Fin (n + 2) → ℂ) →L[ℂ] Fin (n + 1) → ℂ :=
     ContinuousLinearMap.pi fun k ↦ ContinuousLinearMap.proj (j.succAbove k)
   have hR : (affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) ∘
-      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm = R ∘ chartLift X z := by
+      (chartAt (Fin n → ℂ) z).symm = R ∘ chartLift X z := by
     funext y k
     simp only [Function.comp_apply, R, ContinuousLinearMap.pi_apply, ContinuousLinearMap.proj_apply,
       chartLift]
@@ -477,8 +479,8 @@ private theorem polyDeriv_apply (v w : Fin (n + 2) → ℂ) :
 /-- The derivative of the normalized homogeneous coordinates takes values in the kernel of the
 differential of the polynomial of `X`, since the polynomial vanishes on `X`. -/
 private theorem polyDeriv_comp_fderiv_chartLift (z : X) :
-    (X.polyDeriv (chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))).comp
-      (fderiv ℂ (chartLift X z) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) = 0 := by
+    (X.polyDeriv (chartLift X z (chartAt (Fin n → ℂ) z z))).comp
+      (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z)) = 0 := by
   have h := (X.poly.hasFDerivAt_eval _).comp _ (X.differentiableAt_chartLift z).hasFDerivAt
   refine h.unique ((hasFDerivAt_const (0 : ℂ) _).congr_of_eventuallyEq ?_)
   filter_upwards [X.eventually_mem_affineOpen z] with y hy
@@ -491,7 +493,7 @@ where the coordinate `j` of the preferred chart vanishes, since that coordinate 
 private theorem proj_comp_fderiv_chartLift (z : X) :
     (ContinuousLinearMap.proj (R := ℂ) (φ := fun _ : Fin (n + 2) ↦ ℂ)
       ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))).comp
-      (fderiv ℂ (chartLift X z) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) = 0 := by
+      (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z)) = 0 := by
   have h := (ContinuousLinearMap.proj (R := ℂ) (φ := fun _ : Fin (n + 2) ↦ ℂ)
       ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))).hasFDerivAt.comp _
     (X.differentiableAt_chartLift z).hasFDerivAt
@@ -533,15 +535,15 @@ private theorem polyDeriv_ne_zero (x : X) {c : ℂ} (hc : c ≠ 0) :
   exact mul_ne_zero (pow_ne_zero _ hc) hi this
 
 /-- The coordinate `j` of the normalized homogeneous coordinates is `1`. -/
-private theorem chartLift_apply_indexAt (z : X) (y : Fin (n + 1 - Fintype.card Unit) → ℂ) :
+private theorem chartLift_apply_indexAt (z : X) (y : Fin n → ℂ) :
     chartLift X z y ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))) = 1 :=
   Fin.insertNth_apply_same (α := fun _ ↦ ℂ) _ _ _
 
 /-- The differential of the polynomial of `X` at the normalized homogeneous coordinates `v` of `z`
 vanishes on `v`. -/
 private theorem polyDeriv_chartLift_chartAt (z : X) :
-    X.polyDeriv (chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))
-      (chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) = 0 := by
+    X.polyDeriv (chartLift X z (chartAt (Fin n → ℂ) z z))
+      (chartLift X z (chartAt (Fin n → ℂ) z z)) = 0 := by
   refine X.polyDeriv_self_eq_zero ?_
   rw [X.chartLift_chartAt z, X.isHomogeneous.eval_smul, X.mem_carrier_iff.1 z.property, mul_zero]
 
@@ -552,18 +554,18 @@ distinct since the second contains `v`, and the derivative is injective on the `
 model. -/
 private theorem range_fderiv_chartLift (z : X) :
     LinearMap.range (fderiv ℂ (chartLift X z)
-      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)).toLinearMap =
+      (chartAt (Fin n → ℂ) z z)).toLinearMap =
       LinearMap.ker (ContinuousLinearMap.proj (R := ℂ) (φ := fun _ : Fin (n + 2) ↦ ℂ)
         ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))).toLinearMap ⊓
       LinearMap.ker (X.polyDeriv
-        (chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))).toLinearMap := by
+        (chartLift X z (chartAt (Fin n → ℂ) z z))).toLinearMap := by
   set j := (twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))
-  set v := chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)
+  set v := chartLift X z (chartAt (Fin n → ℂ) z z)
   set f : (Fin (n + 2) → ℂ) →ₗ[ℂ] ℂ :=
     (ContinuousLinearMap.proj (R := ℂ) (φ := fun _ ↦ ℂ) j).toLinearMap
   set g : (Fin (n + 2) → ℂ) →ₗ[ℂ] ℂ := (X.polyDeriv v).toLinearMap
   have hc : ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep j)⁻¹ ≠ 0 :=
-    inv_ne_zero ((mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt 1 _))
+    inv_ne_zero (rep_indexAt_twistCore_ne_zero 1 _)
   have hv : v = ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep j)⁻¹ • (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep :=
     X.chartLift_chartAt z
   have hfv : f v = 1 := X.chartLift_apply_indexAt z _
@@ -581,7 +583,7 @@ private theorem range_fderiv_chartLift (z : X) :
   · rintro _ ⟨u, rfl⟩
     exact ⟨congrArg (fun L : _ →L[ℂ] ℂ ↦ L u) (X.proj_comp_fderiv_chartLift z),
       congrArg (fun L : _ →L[ℂ] ℂ ↦ L u) (X.polyDeriv_comp_fderiv_chartLift z)⟩
-  · rw [LinearMap.finrank_range_of_inj (X.injective_fderiv_chartLift z), finrank_model]
+  · rw [LinearMap.finrank_range_of_inj (X.injective_fderiv_chartLift z), Module.finrank_fin_fun]
     omega
 
 /-- The derivative `ℓ ∘ D` of the section given by `ℓ` at a zero `z` is surjective exactly when
@@ -589,19 +591,18 @@ private theorem range_fderiv_chartLift (z : X) :
 private theorem surjective_comp_fderiv_chartLift_iff {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ}
     (hℓ : Function.Surjective ℓ) {z : X} (hz : ℓ (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep = 0) :
     Function.Surjective ((LinearMap.toContinuousLinearMap ℓ).comp
-      (fderiv ℂ (chartLift X z) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))) ↔
+      (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z))) ↔
       ∃ w, ℓ w = 0 ∧ ∑ i, w i * eval (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep (pderiv i X.poly) ≠ 0 := by
   set j := (twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ))
-  set D := fderiv ℂ (chartLift X z) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)
-  set v := chartLift X z (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)
+  set D := fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z)
+  set v := chartLift X z (chartAt (Fin n → ℂ) z z)
   set c := ((z : ℙ ℂ (Fin (n + 2) → ℂ)).rep j)⁻¹
   have hc : c ≠ 0 :=
-    inv_ne_zero ((mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt 1 _))
+    inv_ne_zero (rep_indexAt_twistCore_ne_zero 1 _)
   have hv : v = c • (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep := X.chartLift_chartAt z
   have hD := X.injective_fderiv_chartLift z
   -- Surjectivity is injectivity, as source and target both have dimension `n`.
-  rw [← ContinuousLinearMap.coe_coe, ← LinearMap.injective_iff_surjective_of_finrank_eq_finrank
-    (by rw [finrank_model, Module.finrank_fin_fun])]
+  rw [← ContinuousLinearMap.coe_coe, ← LinearMap.injective_iff_surjective_of_finrank_eq_finrank rfl]
   have hinj : Function.Injective ((LinearMap.toContinuousLinearMap ℓ).comp D).toLinearMap ↔
       LinearMap.ker ℓ ⊓ LinearMap.range D.toLinearMap = ⊥ := by
     rw [← LinearMap.ker_eq_bot, ContinuousLinearMap.toLinearMap_comp, LinearMap.ker_comp, inf_comm,
@@ -629,7 +630,7 @@ polynomial of `X`: the line `{ℓ = 0}` is transverse to `X` at `z`. -/
 theorem surjective_sectionLinearization_linearSection_iff
     {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ} (hℓ : Function.Surjective ℓ) {z : X}
     (hz : X.linearSection ℓ z = 0) :
-    Function.Surjective (TauCeti.sectionLinearization 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ)
+    Function.Surjective (TauCeti.sectionLinearization 𝓘(ℝ, Fin n → ℂ)
       (F := Fin n → ℂ) id (X.linearSection ℓ) z) ↔
       ∃ w, ℓ w = 0 ∧ ∑ i, w i * eval (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep (pderiv i X.poly) ≠ 0 := by
   have hc := contMDiffAt_totalSpace_iff.1 ((X.linearSection ℓ).contMDiff z)
@@ -653,20 +654,19 @@ theorem exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection
     {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] Fin n → ℂ} (hℓ : Function.Surjective ℓ) {z : X}
     (hz : X.linearSection ℓ z = 0)
     (htr : ∃ w, ℓ w = 0 ∧ ∑ i, w i * eval (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep (pderiv i X.poly) ≠ 0) :
-    ∃ A : (Fin (n + 1 - Fintype.card Unit) → ℂ) ≃L[ℂ] Fin n → ℂ,
+    ∃ A : (Fin n → ℂ) ≃L[ℂ] Fin n → ℂ,
       HasFDerivAt (fun y ↦ (trivializationAt (Fin n → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin n)).Fiber) z
-        ⟨(chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y,
-          X.linearSection ℓ ((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y)⟩).2)
-        ((A : (Fin (n + 1 - Fintype.card Unit) → ℂ) →L[ℂ] Fin n → ℂ).restrictScalars ℝ)
-        (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z) := by
+        (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : Fin n ↦ 1).Fiber) z
+        ⟨(chartAt (Fin n → ℂ) z).symm y,
+          X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2)
+        ((A : (Fin n → ℂ) →L[ℂ] Fin n → ℂ).restrictScalars ℝ)
+        (chartAt (Fin n → ℂ) z z) := by
   set B := (LinearMap.toContinuousLinearMap ℓ).comp
-    (fderiv ℂ (chartLift X z) (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))
+    (fderiv ℂ (chartLift X z) (chartAt (Fin n → ℂ) z z))
   have hsurj : Function.Surjective B :=
     (X.surjective_comp_fderiv_chartLift_iff hℓ ((X.linearSection_eq_zero_iff ℓ z).1 hz)).2 htr
   have hinj : Function.Injective B.toLinearMap :=
-    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
-      (by rw [finrank_model, Module.finrank_fin_fun])).2 hsurj
+    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank rfl).2 hsurj
   refine ⟨ContinuousLinearEquiv.ofBijective B (LinearMap.ker_eq_bot.2 hinj)
     (LinearMap.range_eq_top.2 hsurj), ?_⟩
   rw [ContinuousLinearEquiv.coe_ofBijective]

@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import TauCeti.Analysis.Normed.Module.Orientation
+public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Orientation.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
@@ -18,7 +19,7 @@ import SymplecticGeometry.Algebra.Exact.Basic
 # The normal orientation induced by orientations of a submanifold and its ambient manifold
 
 Let `f : Z → X` be a smooth embedding with intrinsic normal bundle `ν` (Tau Ceti's
-`TauCeti.SmoothEmbedding.NormalSpace`, with model fibre `P`). At each `z : Z` the differential and
+`Manifold.IsImmersion.NormalSpace`, with model fibre `P`). At each `z : Z` the differential and
 the normal class map form the short exact sequence `0 → T_z Z → T_{f z} X → ν_z → 0`
 (`TauCeti.SmoothEmbedding.exact_mfderiv_normalClass`). Orientations `oZ` of `Z` and `oX` of `X`
 therefore orient each normal space `ν_z` by Tau Ceti's cokernel orientation
@@ -95,10 +96,11 @@ of `0 → T_z Z → T_{f z} X → ν_z → 0`. -/
 private def normalOrientationAt (f : SmoothEmbedding I J n Z X) (hn : n ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     (oX : Manifold.Orientation J X (Fin (m + finrank ℝ P))) (oZ : Manifold.Orientation I Z (Fin m))
-    (z : Z) : Orientation ℝ (f.NormalSpace z hn) (Fin (finrank ℝ P)) :=
-  haveI := f.finiteDimensional_tangentSpace z hn
+    (z : Z) : Orientation ℝ (f.isImmersion.NormalSpace z hn) (Fin (finrank ℝ P)) :=
+  haveI := f.isImmersion.finiteDimensional_tangentSpace z hn
   Orientation.cokerOfExact (f.isImmersion.mfderiv_injective hn z)
-    (f.exact_mfderiv_normalClass z hn) (f.normalClass_surjective z hn) (oZ.orientationAt z)
+    (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+        (oZ.orientationAt z)
     (oX.orientationAt (f z)) (by simpa using oZ.finrank_tangentSpace_eq z)
     (f.finrank_normalSpace_eq hn hdim z)
 
@@ -117,7 +119,7 @@ variable (f : SmoothEmbedding I J n Z X) (hn : n ≠ 0)
   (hzS : z ∈ (trivializationAt E (TangentSpace I) z₀).baseSet)
   (hzT : f z ∈ (trivializationAt V (TangentSpace J) (f z₀)).baseSet)
   (hsymm : ∀ w, (f.normalSpaceTrivialization hn hdim z₀).symm z w =
-    f.normalClass z hn ((trivializationAt V (TangentSpace J) (f z₀)).symm (f z) (B w)))
+    f.isImmersion.normalClass z hn ((trivializationAt V (TangentSpace J) (f z₀)).symm (f z) (B w)))
 
 /-- The splitting `(u, w) ↦ D f(z) u + B w` of the tangent sequence at `z`, read in the charts
 `S`, `T` and `N`: Mathlib's `Function.Exact.splitSurjectiveEquiv` for the section
@@ -150,7 +152,7 @@ private theorem chartSplitting_apply (p : E × P) :
 
 /-- The normal class of the splitting of `(u, w)` is `N⁻¹ w`. -/
 private theorem normalClass_chartSplitting (p : E × P) :
-    f.normalClass z hn (chartSplitting f hn hdim B hz hzS hzT hsymm p) =
+    f.isImmersion.normalClass z hn (chartSplitting f hn hdim B hz hzS hzT hsymm p) =
       ((f.normalSpaceTrivialization hn hdim z₀).linearEquivAt ℝ z hz).symm p.2 := by
   simp [chartSplitting_apply, hsymm]
 
@@ -185,7 +187,7 @@ private theorem mapOrientation_normalOrientationAt
         (normalOrientationAt f hn hdim oX oZ z) =
       Orientation.cokerOfExact LinearMap.inl_injective Function.Exact.inl_snd
         LinearMap.snd_surjective a b hmE rfl := by
-  have := f.finiteDimensional_tangentSpace z hn
+  have := f.isImmersion.finiteDimensional_tangentSpace z hn
   have ha' : Orientation.map (Fin m)
       ((trivializationAt E (TangentSpace I) z₀).linearEquivAt ℝ z hzS).symm a =
         oZ.orientationAt z := by
@@ -199,7 +201,7 @@ private theorem mapOrientation_normalOrientationAt
   rw [Trivialization.mapOrientation_apply, ← Equiv.eq_symm_apply,
     Orientation.map_symm, Orientation.map_cokerOfExact _ _ _
       (f.isImmersion.mfderiv_injective hn z) (f.exact_mfderiv_normalClass z hn)
-      (f.normalClass_surjective z hn)
+      (f.isImmersion.normalClass_surjective z hn)
       ((trivializationAt E (TangentSpace I) z₀).linearEquivAt ℝ z hzS).symm
       (chartSplitting f hn hdim B hz hzS hzT hsymm)
       ((f.normalSpaceTrivialization hn hdim z₀).linearEquivAt ℝ z hz).symm
@@ -280,7 +282,7 @@ def normalOrientation (f : SmoothEmbedding I J n Z X) (hn : n ≠ 0)
     (oZ : Manifold.Orientation I Z (Fin m)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    VectorBundleOrientation P (f.NormalSpace · hn) (Fin (finrank ℝ P)) :=
+    VectorBundleOrientation P (f.isImmersion.NormalSpace · hn) (Fin (finrank ℝ P)) :=
   letI := f.normalSpaceFiberBundle hn hdim
   letI := f.normalSpaceVectorBundle hn hdim
   haveI (z : Z) : MemTrivializationAtlas (f.normalSpaceTrivialization hn hdim z) :=
@@ -305,12 +307,13 @@ product of the local orientations of two linear orientations `ω` and `ω'` is
 basis costs the same sign, so the cross product with the normal factor first is the local
 orientation of the linear orientation with the tangent factor first, which is this one. -/
 theorem normalOrientation_apply (z : Z) (hm : finrank ℝ (TangentSpace I z) = m)
-    (hr : finrank ℝ (f.NormalSpace z hn) = finrank ℝ P) :
+    (hr : finrank ℝ (f.isImmersion.NormalSpace z hn) = finrank ℝ P) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     normalOrientation f hn hdim oX oZ z =
       Orientation.cokerOfExact (f.isImmersion.mfderiv_injective hn z)
-        (f.exact_mfderiv_normalClass z hn) (f.normalClass_surjective z hn) (oZ.orientationAt z)
+        (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+            (oZ.orientationAt z)
         (oX.orientationAt (f z)) hm hr := by
   simp only [normalOrientation, VectorBundleOrientation.coe_ofEventually, normalOrientationAt]
 
@@ -318,11 +321,11 @@ theorem normalOrientation_apply (z : Z) (hm : finrank ℝ (TangentSpace I z) = m
 orientation of `T_{f z} X`. -/
 @[simp]
 theorem ofExact_normalOrientation (z : Z) (hm : finrank ℝ (TangentSpace I z) = m)
-    (hr : finrank ℝ (f.NormalSpace z hn) = finrank ℝ P) :
+    (hr : finrank ℝ (f.isImmersion.NormalSpace z hn) = finrank ℝ P) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     Orientation.ofExact (f.isImmersion.mfderiv_injective hn z) (f.exact_mfderiv_normalClass z hn)
-        (f.normalClass_surjective z hn) (oZ.orientationAt z)
+        (f.isImmersion.normalClass_surjective z hn) (oZ.orientationAt z)
         (normalOrientation f hn hdim oX oZ z) hm hr =
       oX.orientationAt (f z) := by
   rw [normalOrientation_apply f hn hdim oX oZ z hm hr]
@@ -333,13 +336,15 @@ induced normal orientation exactly when the orientation of `T_z Z` followed by `
 orientation of `T_{f z} X`: a positive basis of `T_z Z` followed by lifts of a positive basis
 for `p` is a positive basis of `T_{f z} X` (`Orientation.ofExact_orientation`). -/
 theorem normalOrientation_eq_iff (z : Z)
-    (p : Orientation ℝ (f.NormalSpace z hn) (Fin (finrank ℝ P)))
-    (hm : finrank ℝ (TangentSpace I z) = m) (hr : finrank ℝ (f.NormalSpace z hn) = finrank ℝ P) :
+    (p : Orientation ℝ (f.isImmersion.NormalSpace z hn) (Fin (finrank ℝ P)))
+    (hm : finrank ℝ (TangentSpace I z) = m) (hr : finrank ℝ (f.isImmersion.NormalSpace z hn) =
+        finrank ℝ P) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     normalOrientation f hn hdim oX oZ z = p ↔
       Orientation.ofExact (f.isImmersion.mfderiv_injective hn z)
-        (f.exact_mfderiv_normalClass z hn) (f.normalClass_surjective z hn) (oZ.orientationAt z) p
+        (f.exact_mfderiv_normalClass z hn) (f.isImmersion.normalClass_surjective z hn)
+            (oZ.orientationAt z) p
         hm hr = oX.orientationAt (f z) := by
   rw [normalOrientation_apply f hn hdim oX oZ z hm hr]
   exact Orientation.cokerOfExact_eq_iff _ _ _ _ _ _ hm hr

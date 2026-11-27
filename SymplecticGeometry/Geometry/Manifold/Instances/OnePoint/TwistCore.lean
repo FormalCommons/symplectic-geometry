@@ -8,6 +8,10 @@ module
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
 public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+public import Mathlib.Geometry.Manifold.VectorBundle.Hom
+public import TauCeti.Geometry.Manifold.Complex.Orientation
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The line bundles `𝒪(k)` on the Riemann sphere as real vector bundles
@@ -23,15 +27,18 @@ degree `k`:
   `MemTrivializationAtlas` for its local trivializations `(twistCore k).localTriv y`;
 * `OnePoint.twistCore_localTriv_symmL_apply`: over the chart at `y`, the real frame of the
   trivialization at `y` is multiplication by a transition function;
-* `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars.
+* `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars;
+* `OnePoint.contMDiff_div_smul_twistCore_hom`: multiplying a `C^n` one-form with values in `𝒪(k)`
+  by `χ / σ`, for a `C^n` real function `χ` and a `C^n` section `σ` of `𝒪(k)` that does not
+  vanish on the closed support of `χ`, gives a `C^n` complex valued one-form.
 
 Files using the real structure `open scoped VectorBundle.ComplexToReal`.
 -/
 
 public section
 
-open Bundle Set
-open scoped Manifold ContDiff VectorBundle.ComplexToReal
+open Bundle Filter Set
+open scoped Manifold ContDiff Topology VectorBundle.ComplexToReal
 
 noncomputable section
 
@@ -75,6 +82,75 @@ theorem twistCore_localTriv_symmL_smul (y x : OnePoint ℂ) (c w : ℂ) :
       ← Trivialization.symmL_apply (R := ℂ) _ hb, ← Trivialization.symmL_apply (R := ℂ) _ hb,
       map_smul]
   · simp [Trivialization.symmL_apply_of_notMem _ hb]
+
+open scoped TauCeti.ComplexManifold in
+/-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section
+of `𝒪(k)` and `χ` a `C^n` real function such that `σ` does not vanish on the closed support of
+`χ`. Then the complex valued one-form `(χ / σ) α`, which reads `α x` in `ℂ` through the
+identification `VectorBundleCore.fiberEquiv` of the fibre with `ℂ` and is zero off the support
+of `χ`, is `C^n`. -/
+theorem contMDiff_div_smul_twistCore_hom {k : ℤ} {n : ℕ∞ω}
+    (α : ContMDiffSection 𝓘(ℝ, ℂ) (ℂ →L[ℝ] ℂ) n
+      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) k).Fiber x))
+    {σ : OnePoint ℂ → ℂ}
+    (hσ : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) n
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (σ p)))
+    {χ : OnePoint ℂ → ℝ} (hχ : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ) n χ)
+    (hχσ : ∀ x ∈ tsupport χ, σ x ≠ 0) :
+    ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ →L[ℝ] ℂ)) n
+      (fun x ↦ TotalSpace.mk' (ℂ →L[ℝ] ℂ)
+        (E := fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) x
+        (((χ x : ℂ) / σ x) • (((twistCore (𝕜 := ℂ) k).fiberEquiv x :
+          (twistCore (𝕜 := ℂ) k).Fiber x →L[ℂ] ℂ).restrictScalars ℝ).comp (α x))) := by
+  intro x₀
+  by_cases hx₀ : x₀ ∈ tsupport χ
+  swap
+  · have h0 : χ =ᶠ[𝓝 x₀] 0 := notMem_tsupport_iff_eventuallyEq.1 hx₀
+    refine (contMDiff_zeroSection ℝ
+      (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] ℂ) x₀).congr_of_eventuallyEq ?_
+    filter_upwards [h0] with p hp
+    simp [hp, zeroSection_def]
+  rw [contMDiffAt_hom_bundle]
+  refine ⟨contMDiffAt_id, ?_⟩
+  have hα := ((contMDiffAt_hom_bundle _).1 (α.contMDiff x₀)).2
+  have hσ' := (contMDiffAt_section_iff x₀).1 (hσ x₀)
+  set e := trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x₀ with he
+  have he' : e = (twistCore (𝕜 := ℂ) k).localTriv x₀ := by
+    rw [he, VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
+      OnePoint.twistCore_indexAt]
+  have hr : ContMDiffAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) n (fun p ↦ χ p • ((e ⟨p, σ p⟩).2)⁻¹) x₀ := by
+    have hne : (e ⟨x₀, σ x₀⟩).2 ≠ 0 := by
+      rw [he', twistCore_localTriv_apply, twistTransition_self, one_mul]
+      exact hχσ x₀ hx₀
+    exact (hχ x₀).smul (((contDiffAt_inv ℂ hne).restrict_scalars ℝ).contMDiffAt.comp x₀ hσ')
+  refine ((contDiff_smul (𝕜 := ℝ) (𝕜' := ℂ) (F := ℂ →L[ℝ] ℂ)).contMDiff.contMDiffAt.comp x₀
+    (hr.prodMk_space hα)).congr_of_eventuallyEq ?_
+  have hU : ∀ᶠ p in 𝓝 x₀, p ∈ (chartAt ℂ x₀).source :=
+    (chartAt ℂ x₀).open_source.mem_nhds (mem_chart_source ℂ x₀)
+  filter_upwards [hU] with p hp
+  have hb : p ∈ (trivializationAt ℂ (twistCore (𝕜 := ℂ) k).Fiber x₀).baseSet := by
+    rw [← he, he', twistCore_localTriv_baseSet]; exact hp
+  -- The transition function does not vanish on the chart; `field_simp` uses this below.
+  have ht : twistTransition k p x₀ p ≠ 0 := fun h ↦ by
+    have := twistTransition_mul_twistTransition k (mem_chart_source ℂ p) hp
+      (mem_chart_source ℂ p) (x := p) (y := x₀) (z := p)
+    simp [h] at this
+  ext v
+  simp only [ContinuousLinearMap.inCoordinates, Function.comp_apply, ContinuousLinearMap.comp_apply,
+    smul_apply, ContinuousLinearMap.coe_restrictScalars', ContinuousLinearEquiv.coe_coe]
+  generalize Trivialization.symmL ℝ (trivializationAt ℂ (TangentSpace 𝓘(ℝ, ℂ)) x₀) p v = w
+  rw [Trivialization.continuousLinearMapAt_apply_of_mem (R := ℝ) (hb := hb),
+    Trivialization.continuousLinearMapAt_apply_of_mem (R := ℝ) (hb := mem_univ p), ← he, he',
+    twistCore_localTriv_apply k x₀ (fun _ ↦ α p w) p,
+    twistCore_localTriv_apply k x₀ σ p, VectorBundleCore.fiberEquiv_def]
+  -- The fibres of `𝒪(k)` are `ℂ`; `id` reads the values of `α` in `ℂ`.
+  change ((χ p : ℂ) / σ p) * (@id ℂ (α p w)) = (χ p • (twistTransition k p x₀ p * σ p)⁻¹) •
+    (twistTransition k p x₀ p * (@id ℂ (α p w)))
+  generalize @id ℂ (α p w) = a
+  rw [Complex.real_smul, smul_eq_mul]
+  rcases eq_or_ne (σ p) 0 with h | h
+  · simp [h]
+  · field_simp
 
 end OnePoint
 

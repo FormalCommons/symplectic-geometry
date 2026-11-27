@@ -6,14 +6,22 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.Analysis.Normed.Module.Conjugate
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Sphere
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.EulerCharacteristic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere
-public import SymplecticGeometry.Topology.VectorBundle.Complexification.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complexification.ComplexStructure
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Sphere
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Conjugate
+public import SymplecticGeometry.Geometry.Manifold.Orientation.ComplexStructure
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.Analysis.Normed.Module.Conjugate
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Sphere
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.EulerCharacteristic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere.Integrality
+import SymplecticGeometry.Topology.VectorBundle.Complexification.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complexification.ComplexStructure
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # Complex structures on the tangent bundles of spheres
@@ -39,14 +47,31 @@ theorems assume that `n = 2 r + 2` is even and positive; `J` then orients the sp
   the sphere vanishes in the degrees between `0` and `n`
   (`SymplecticGeometry.Bundle.chernClass_prod_sphere`). Both classes are Euler classes, and
   `e(conj J.Fiber) = (-1)^j e(J.Fiber) = e(J.Fiber)` (`TauCeti.complexEulerClass_conjugateBundle`).
+* `TauCeti.Bundle.ContinuousComplexStructure.odd_of_sphere`: if `n = 2 j` with `j ≠ 0`, then `j`
+  is odd, since for even `j` evaluating `2 c_j(J.Fiber) = 0` on the fundamental class would give
+  `4 = 0`.
+* `TauCeti.Bundle.ContinuousComplexStructure.factorial_dvd_two_of_sphere`: if `n = 2 r + 2`, then
+  `r!` divides `2`, since the top Chern number `2` is a multiple of `r!` by Bott's integrality
+  theorem (`SymplecticGeometry.Bundle.factorial_dvd_evalFundamentalClass_chernClass_sphere`).
+* `TauCeti.Bundle.ContinuousComplexStructure.eq_one_or_eq_three_of_sphere`: if `n = 2 j` with
+  `j ≠ 0`, then `j = 1` or `j = 3`: `j = 2 k + 1` is odd, and `(2k)!` divides `2`, so
+  `2 k ≤ 2`.
 * `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul`: for `k ≠ 0`, the
-  tangent bundle of `S^{4k}` has no continuous complex structure, since evaluating
-  `2 c_{2k}(J.Fiber) = 0` on the fundamental class would give `4 = 0`.
+  tangent bundle of `S^{4k}` has no continuous complex structure.
+* `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul_add_two`: the same for
+  `S^{4k+2}` with `k ≥ 2`, since `(2k)!` does not divide `2`.
+* `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere`: the tangent bundle of `S^{2n}`
+  has no continuous complex structure for `n ∉ {0, 1, 3}`, and
+  `SymplecticGeometry.isEmpty_smoothAlmostComplexStructure_sphere`: hence `S^{2n}` has no smooth
+  almost complex structure, through Tau Ceti's
+  `TauCeti.ContMDiffAlmostComplexStructure.toContinuousComplexStructure`.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   Exercise 4.1.9.
+* [A. Hatcher, *Vector Bundles and K-Theory*, version 2.2 (2017)][Hatcher2017], Chapter 4
+  (Bott's integrality theorem and the almost complex spheres).
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
   Princeton (1974), §11, §14 and §15.
 -/
@@ -128,6 +153,54 @@ theorem two_nsmul_chernClass_sphere_eq_zero
   convert h₄.symm
   exact Conjugate.complexToReal_eq_instNormedSpaceReal G
 
+/-- **On `TS^{2j}`, a complex structure forces `j` to be odd.** Let `J` be a continuous complex
+structure on the tangent bundle of the unit sphere `S^n` of `E`, with `finrank ℝ E = n + 1` and
+`n = 2 j`, `j ≠ 0`. Then `j` is odd. -/
+theorem odd_of_sphere
+    (J : ContinuousComplexStructure (EuclideanSpace ℝ (Fin n))
+      (TangentSpace (𝓡 n) : sphere (0 : E) 1 → Type)) {j : ℕ} (hj₀ : j ≠ 0) (hn : n = 2 * j) :
+    Odd j := by
+  rw [← Nat.not_even_iff_odd]
+  intro hj
+  obtain ⟨r, hr⟩ : ∃ r, j = r + 1 := ⟨j - 1, by omega⟩
+  have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin n)) =
+      2 * finrank ℂ (EuclideanSpace ℂ (Fin (r + 1)))) := ⟨by simp; omega⟩
+  have hn' : finrank ℝ (EuclideanSpace ℝ (Fin n)) = 2 * r + 2 := by simp; omega
+  subst hr
+  -- The top Chern number is `2`, but twice the top Chern class vanishes.
+  have h₂ := J.two_nsmul_chernClass_sphere_eq_zero (G := EuclideanSpace ℂ (Fin (r + 1))) hj₀ hj hn
+  have h := congrArg (((J.tangentOrientation hn').toHomologicalOrientation hn').evalFundamentalClass
+      hn' (ModuleCat.of ℤ ℤ) (ContinuousMap.id _)) h₂
+  rw [map_nsmul, J.evalFundamentalClass_chernClass_sphere hn', map_zero] at h
+  norm_num at h
+
+/-- **Bott integrality bounds the dimension of an almost complex sphere.** Let `J` be a
+continuous complex structure on the tangent bundle of the unit sphere `S^n` of `E`, with
+`finrank ℝ E = n + 1` and `n = 2 r + 2`. Then `r!` divides `2`. -/
+theorem factorial_dvd_two_of_sphere
+    (J : ContinuousComplexStructure (EuclideanSpace ℝ (Fin n))
+      (TangentSpace (𝓡 n) : sphere (0 : E) 1 → Type)) {r : ℕ}
+    (hn : finrank ℝ (EuclideanSpace ℝ (Fin n)) = 2 * r + 2) :
+    r.factorial ∣ 2 := by
+  have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin n)) =
+      2 * finrank ℂ (EuclideanSpace ℂ (Fin (r + 1)))) := ⟨by simp [hn]; ring⟩
+  have h := SymplecticGeometry.Bundle.factorial_dvd_evalFundamentalClass_chernClass_sphere
+    (EuclideanSpace ℂ (Fin (r + 1))) J.Fiber hn (J.tangentOrientation hn)
+  rw [J.evalFundamentalClass_chernClass_sphere hn] at h
+  exact Int.natCast_dvd_natCast.1 h
+
+/-- **On `TS^{2j}`, a complex structure forces `j = 1` or `j = 3`.** Let `J` be a continuous
+complex structure on the tangent bundle of the unit sphere `S^n` of `E`, with
+`finrank ℝ E = n + 1` and `n = 2 j`, `j ≠ 0`. Then `j = 1` or `j = 3`. -/
+theorem eq_one_or_eq_three_of_sphere
+    (J : ContinuousComplexStructure (EuclideanSpace ℝ (Fin n))
+      (TangentSpace (𝓡 n) : sphere (0 : E) 1 → Type)) {j : ℕ} (hj₀ : j ≠ 0) (hn : n = 2 * j) :
+    j = 1 ∨ j = 3 := by
+  obtain ⟨k, hk⟩ := J.odd_of_sphere hj₀ hn
+  have h := Nat.le_of_dvd two_pos (J.factorial_dvd_two_of_sphere (r := 2 * k) (by simp; omega))
+  have := (2 * k).self_le_factorial
+  omega
+
 end TauCeti.Bundle.ContinuousComplexStructure
 
 namespace SymplecticGeometry
@@ -142,19 +215,36 @@ continuous complex structure. -/
 theorem isEmpty_continuousComplexStructure_sphere_four_mul {k : ℕ} (hk : k ≠ 0)
     [Fact (finrank ℝ E = 4 * k + 1)] :
     IsEmpty (ContinuousComplexStructure (EuclideanSpace ℝ (Fin (4 * k)))
-      (TangentSpace (𝓡 (4 * k)) : sphere (0 : E) 1 → Type)) := by
-  refine ⟨fun J ↦ ?_⟩
-  have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin (4 * k))) =
-      2 * finrank ℂ (EuclideanSpace ℂ (Fin (2 * k)))) := ⟨by simp; ring⟩
-  obtain ⟨r, hr⟩ : ∃ r, 2 * k = r + 1 := ⟨2 * k - 1, by omega⟩
-  have hn : finrank ℝ (EuclideanSpace ℝ (Fin (4 * k))) = 2 * r + 2 := by simp; omega
-  -- The top Chern number is `2`, but twice the top Chern class vanishes.
-  have h := congrArg (((J.tangentOrientation hn).toHomologicalOrientation hn).evalFundamentalClass
-      hn (ModuleCat.of ℤ ℤ) (ContinuousMap.id _))
-    (J.two_nsmul_chernClass_sphere_eq_zero (G := EuclideanSpace ℂ (Fin (2 * k))) (j := r + 1)
-      (by omega) (hr ▸ even_two_mul k) (by omega))
-  rw [map_nsmul, J.evalFundamentalClass_chernClass_sphere hn, map_zero] at h
-  norm_num at h
+      (TangentSpace (𝓡 (4 * k)) : sphere (0 : E) 1 → Type)) :=
+  ⟨fun J ↦ Nat.not_odd_iff_even.2 (even_two_mul k)
+    (J.odd_of_sphere (j := 2 * k) (by omega) (by ring))⟩
+
+/-- **The sphere `S^{4k+2}` has no almost complex structure for `k ≥ 2`.** For a real inner
+product space `E` of dimension `4 k + 3` with `2 ≤ k`, the tangent bundle of the unit sphere
+`S^{4k+2}` of `E` carries no continuous complex structure. -/
+theorem isEmpty_continuousComplexStructure_sphere_four_mul_add_two {k : ℕ} (hk : 2 ≤ k)
+    [Fact (finrank ℝ E = 4 * k + 3)] :
+    IsEmpty (ContinuousComplexStructure (EuclideanSpace ℝ (Fin (4 * k + 2)))
+      (TangentSpace (𝓡 (4 * k + 2)) : sphere (0 : E) 1 → Type)) :=
+  ⟨fun J ↦ by have := J.eq_one_or_eq_three_of_sphere (j := 2 * k + 1) (by omega) (by ring); omega⟩
+
+/-- **The sphere `S^{2n}` has no almost complex structure for `n ∉ {0, 1, 3}`.**
+For `n ∉ {0, 1, 3}` and a real inner product space `E` of dimension `2 n + 1`, the tangent bundle
+of the unit sphere `S^{2n}` of `E` carries no continuous complex structure. -/
+theorem isEmpty_continuousComplexStructure_sphere {n : ℕ} (h₀ : n ≠ 0) (h₁ : n ≠ 1)
+    (h₃ : n ≠ 3) [Fact (finrank ℝ E = 2 * n + 1)] :
+    IsEmpty (ContinuousComplexStructure (EuclideanSpace ℝ (Fin (2 * n)))
+      (TangentSpace (𝓡 (2 * n)) : sphere (0 : E) 1 → Type)) :=
+  ⟨fun J ↦ by have := J.eq_one_or_eq_three_of_sphere h₀ rfl; omega⟩
+
+/-- **The sphere `S^{2n}` has no smooth almost complex structure for `n ∉ {0, 1, 3}`.** For a
+real inner product space `E` of dimension `2 n + 1`, the unit sphere `S^{2n}` of `E` carries no
+smooth almost complex structure. -/
+theorem isEmpty_smoothAlmostComplexStructure_sphere {n : ℕ} (h₀ : n ≠ 0) (h₁ : n ≠ 1)
+    (h₃ : n ≠ 3) [Fact (finrank ℝ E = 2 * n + 1)] :
+    IsEmpty (SmoothAlmostComplexStructure (𝓡 (2 * n)) (sphere (0 : E) 1)) :=
+  ⟨fun J ↦ (isEmpty_continuousComplexStructure_sphere h₀ h₁ h₃).false
+    (J.toContMDiff ⊤).toContinuousComplexStructure⟩
 
 end SymplecticGeometry
 

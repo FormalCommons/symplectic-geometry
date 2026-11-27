@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 
 /-!
 # Biholomorphisms of the projective line in affine coordinates
@@ -52,8 +53,7 @@ theorem contDiffAt_affineChart_comp_affineParam {f : ℙ ℂ (Fin 2 → ℂ) →
         (contMDiff_affineParam i).contMDiffAt
     refine ContMDiffAt.comp _ ?_ hp
     rw [Function.comp_apply, affineParam_affineChart hy]
-    exact (contMDiffOn_affineChart (𝕜 := ℂ) (n := 1) j r).contMDiffAt
-      ((isOpen_affineOpen j).mem_nhds hfy)
+    exact contMDiffAt_affineChart hfy r
   have hT' : ContDiffAt ℂ r (affineChart j ∘ f ∘ affineParam i) (affineChart i y 0) :=
     contMDiffAt_iff_contDiffAt.1 hT
   exact (contDiff_apply (𝕜 := ℂ) (F' := fun _ : Fin 1 ↦ ℂ) 0).comp_contDiffAt _ hT'

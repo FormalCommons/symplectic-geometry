@@ -11,19 +11,24 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
+import TauCeti.Geometry.Manifold.VectorBundle.TotalSpace.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # The zero section of a vector bundle as a smooth embedding
 
-For a smooth vector bundle `V` with finite-dimensional model fibre `F` over a manifold `B`
-without boundary, with finite-dimensional model, the zero section `B → TotalSpace F V` is a smooth
-embedding: the bundle projection is a smooth left inverse of it. This file bundles it as
+For a `C^n` vector bundle `V`, with `1 ≤ n` (`n = ω` included), with finite-dimensional model
+fibre `F` over a manifold `B` without boundary, with finite-dimensional model, the zero section
+`B → TotalSpace F V` is a `C^n` embedding: the bundle projection is a smooth left inverse of it.
+This file bundles it as
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
 section in the preferred charts of the total space, and computes the differential of a map along
@@ -43,12 +48,17 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
 `bundleDiffeomorph_symm_zeroSection`, about Tau Ceti's `bundleDiffeomorph`, are in its namespace
 `TauCeti`, and
 `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space,
-`contMDiff_totalSpaceMk_comp`, about linear maps into one fibre, and
+`contMDiff_totalSpaceMk_comp`, about linear maps into one fibre,
+`hasMFDerivAt_totalSpaceMk_trivializationAt_symm`, about the inclusion of one fibre,
+`contMDiff_subtypeMk_zeroSection` and `subtypeVal_comp_subtypeMk_zeroSection`, about the zero
+section as a map into a set that contains it, `contMDiff_of_apply_zeroSection`, about maps
+that factor through it, and
 `contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
 
 ## Main definitions
 
-* `SymplecticGeometry.Bundle.zeroSectionEmbedding`: the zero section, as a smooth embedding.
+* `SymplecticGeometry.Bundle.zeroSectionEmbedding`: the zero section, as a `C^n` embedding for
+  every `n` with `1 ≤ n`, `n = ω` included.
 
 ## Main results
 
@@ -64,6 +74,12 @@ namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
   fibre, followed by the inclusion of that fibre into the total space, is `C^n` for every `n`.
   Its proof follows that of Tau Ceti's `TauCeti.Manifold.contMDiff_totalSpaceMk`, the case of
   the identity of a normed fibre.
+* `Bundle.hasMFDerivAt_totalSpaceMk_trivializationAt_symm`: the inclusion of a fibre into the
+  total space, read through the preferred trivialization, has derivative `w ↦ (0, w)`.
+* `Bundle.contMDiff_subtypeMk_zeroSection`: the zero section, as a map into an open set of the
+  total space that contains it, is `C^n` for every `n`.
+* `Bundle.contMDiff_of_apply_zeroSection`: a map on the base that agrees on the zero section
+  with a `C^n` map from an open set of the total space is `C^n`.
 * `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
   the horizontal vector `(u, 0)` at `b` to the image of `u` under the differential of the zero
   section.
@@ -108,25 +124,27 @@ open TauCeti
 variable {𝕜 EB HB : Type*} [RCLike 𝕜]
   [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [FiniteDimensional 𝕜 EB]
   [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB} [IB.Boundaryless]
-  [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {n : WithTop ℕ∞} [ChartedSpace HB B] [IsManifold IB n B]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F]
   {V : B → Type*} [∀ b, AddCommMonoid (V b)] [∀ b, Module 𝕜 (V b)]
   [∀ b, TopologicalSpace (V b)] [TopologicalSpace (TotalSpace F V)]
-  [FiberBundle F V] [VectorBundle 𝕜 F V] [ContMDiffVectorBundle ∞ F V IB]
+  [FiberBundle F V] [VectorBundle 𝕜 F V] [ContMDiffVectorBundle n F V IB]
 
 variable (IB F V) in
-/-- The zero section of a smooth vector bundle with finite-dimensional model fibre over a
-manifold without boundary with finite-dimensional model, as a smooth embedding of the base into
-the total space. -/
-def zeroSectionEmbedding : SmoothEmbedding IB (IB.prod 𝓘(𝕜, F)) ∞ B (TotalSpace F V) :=
+/-- The zero section of a `C^n` vector bundle, `1 ≤ n`, with finite-dimensional model fibre over
+a manifold without boundary with finite-dimensional model, as a `C^n` embedding of the base into
+the total space. For `n = ω` it is an analytic embedding. -/
+def zeroSectionEmbedding (hn : 1 ≤ n) :
+    SmoothEmbedding IB (IB.prod 𝓘(𝕜, F)) n B (TotalSpace F V) :=
   SmoothEmbedding.ofIsSmoothEmbedding (zeroSection F V)
-    ((contMDiff_zeroSection 𝕜 V).isSmoothEmbedding_of_leftInverse (by simp)
+    ((contMDiff_zeroSection 𝕜 V).isSmoothEmbedding_of_leftInverse hn
       (contMDiff_proj V) (zeroSection_proj F V))
 
 variable (IB F V) in
 /-- The underlying map of `zeroSectionEmbedding` is the zero section. -/
 @[simp]
-theorem coe_zeroSectionEmbedding : ⇑(zeroSectionEmbedding IB F V) = zeroSection F V :=
+theorem coe_zeroSectionEmbedding (hn : 1 ≤ n) :
+    ⇑(zeroSectionEmbedding IB F V hn) = zeroSection F V :=
   SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
 
 end SymplecticGeometry.Bundle
@@ -179,7 +197,7 @@ theorem extChartAt_symm_apply_zero_of_mem_baseSet (p : TotalSpace F V) {y : EB}
     (extChartAt (IB.prod 𝓘(𝕜, F)) p).symm (y, 0) =
       zeroSection F V ((extChartAt IB p.proj).symm y) := by
   rw [extChartAt_symm_apply_of_mem_baseSet p hy, ← Trivialization.symmₗ_apply (R := 𝕜) _ hy,
-    map_zero, zeroSection]
+    map_zero, zeroSection_def]
 
 /-- A continuous linear map `L` from a normed space into the fibre over `b`, followed by the
 inclusion of that fibre into the total space, is `C^n` for every `n`. -/
@@ -192,6 +210,55 @@ theorem contMDiff_totalSpaceMk_comp {Q : Type*} [NormedAddCommGroup Q] [NormedSp
   exact ((trivializationAt F V b).continuousLinearMapAt 𝕜 b ∘L L).contMDiff.contMDiffAt
     |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w' ↦
       ((trivializationAt F V b).continuousLinearMapAt_apply_of_mem 𝕜 hb (L w')).symm)
+
+omit [∀ x, Module 𝕜 (V x)] [VectorBundle 𝕜 F V] in
+/-- The inclusion of the fibre over `b` into the total space, read through the preferred
+trivialization at `b`, `w ↦ (b, e⁻¹ w)`, has at every `w₀` the derivative `w ↦ (0, w)`. -/
+theorem hasMFDerivAt_totalSpaceMk_trivializationAt_symm (b : B) (w₀ : F) :
+    HasMFDerivAt 𝓘(𝕜, F) (IB.prod 𝓘(𝕜, F))
+      (fun w ↦ TotalSpace.mk' F b ((trivializationAt F V b).symm b w)) w₀
+      (ContinuousLinearMap.inr 𝕜 EB F) := by
+  have hb := FiberBundle.mem_baseSet_trivializationAt F V b
+  refine TauCeti.Manifold.hasMFDerivAt_totalSpace_iff.2 ⟨?_, ?_⟩
+  · -- The base point is constant; the tangent space of the base is `EB` only up to unfolding
+    -- `TangentSpace`, so the first component of `inr` is computed by `rfl`.
+    convert hasMFDerivAt_const (I := 𝓘(𝕜, F)) (I' := IB) b w₀ using 1
+    ext w
+    rfl
+  · refine hasMFDerivAt_iff_hasFDerivAt.2 <| ((hasFDerivAt_id w₀).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall fun w ↦
+        congrArg Prod.snd ((trivializationAt F V b).apply_mk_symm hb w))).congr_fderiv ?_
+    -- As above, the second component of `inr` is the identity only up to unfolding.
+    ext w
+    rfl
+
+/-- The zero section, as a map into an open set `U` of the total space that contains it, is
+`C^n`. -/
+theorem contMDiff_subtypeMk_zeroSection {n : WithTop ℕ∞}
+    {U : TopologicalSpace.Opens (TotalSpace F V)} (hU : ∀ b, zeroSection F V b ∈ U) :
+    ContMDiff IB (IB.prod 𝓘(𝕜, F)) n (fun b ↦ (⟨zeroSection F V b, hU b⟩ : U)) :=
+  (TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 (contMDiff_zeroSection 𝕜 V)
+
+omit [TopologicalSpace B] [NormedAddCommGroup F] [TopologicalSpace (TotalSpace F V)]
+  [∀ x, TopologicalSpace (V x)] [FiberBundle F V] in
+/-- The zero section, as a map into a set `U` of the total space that contains it, followed by
+the inclusion of `U`, is the zero section. -/
+theorem subtypeVal_comp_subtypeMk_zeroSection {U : Set (TotalSpace F V)}
+    (hU : ∀ b, zeroSection F V b ∈ U) :
+    Subtype.val ∘ (fun b ↦ (⟨zeroSection F V b, hU b⟩ : U)) = zeroSection F V :=
+  (rfl)
+
+/-- Let `ι : U → W` be a `C^n` map from an open set `U` of the total space to an open set `W` of
+a manifold `M`. If the zero vector over each `b` lies in `U` and `ι` sends it to `f b`, then
+`f : B → M` is `C^n`, being `ι` composed with the zero section. -/
+theorem contMDiff_of_apply_zeroSection {EM HM M : Type*} [NormedAddCommGroup EM]
+    [NormedSpace 𝕜 EM] [TopologicalSpace HM] {IM : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M]
+    [ChartedSpace HM M] {n : WithTop ℕ∞} {U : TopologicalSpace.Opens (TotalSpace F V)}
+    {W : TopologicalSpace.Opens M} {ι : U → W} (hι : ContMDiff (IB.prod 𝓘(𝕜, F)) IM n ι)
+    {f : B → M} (hιf : ∀ b, ∃ h : zeroSection F V b ∈ U, (ι ⟨_, h⟩ : M) = f b) :
+    ContMDiff IB IM n f :=
+  (contMDiff_subtypeVal.comp (hι.comp (contMDiff_subtypeMk_zeroSection fun b ↦ (hιf b).1))).congr
+    fun b ↦ (hιf b).2.symm
 
 end Bundle
 
@@ -239,7 +306,7 @@ theorem mfderiv_zeroSectionTangentEquiv_symm_inr {f : TotalSpace F V → M} {b :
   have hl := (TotalSpace.hasMFDerivAt_smul_curve (IB := IB) (⟨b, v⟩ : TotalSpace F V)
     (hasDerivAt_id' (0 : 𝕜))).mdifferentiableAt
   rw [zeroSectionTangentEquiv_symm_inr]
-  exact (mfderiv_comp_apply_of_eq (0 : 𝕜) hf hl (by simp [zeroSection]) (1 : 𝕜)).symm
+  exact (mfderiv_comp_apply_of_eq (0 : 𝕜) hf hl (by simp [zeroSection_def]) (1 : 𝕜)).symm
 
 end TauCeti.Bundle
 
@@ -278,13 +345,13 @@ theorem contMDiff_mfderiv_smul_curve {Φ : TotalSpace F V → N} {f : C^∞⟮IB
   have hF : ContMDiffAt ((IB.prod 𝓘(𝕜, F)).prod 𝓘(𝕜)) J ∞
       (Function.uncurry fun (p : TotalSpace F V) (t : 𝕜) ↦ Φ ⟨p.proj, t • p.snd⟩) (p₀, 0) :=
     (hΦ p₀.proj).comp_of_eq (contMDiffAt_snd.smul_totalSpace contMDiffAt_fst)
-      (by simp [zeroSection])
+      (by simp [zeroSection_def])
   refine ((ContMDiffAt.mfderiv _ (fun _ ↦ (0 : 𝕜)) hF (m := ∞) contMDiffAt_const
     (by simp)).clm_apply (contMDiffAt_const (c := (1 : 𝕜)))).congr_of_eventuallyEq ?_
   let e := trivializationAt EN (TangentSpace J) (f p₀.proj)
   have hb : ∀ᶠ p in 𝓝 p₀, f p.proj ∈ e.baseSet :=
-    (f.contMDiff.continuous.comp (FiberBundle.continuous_proj F V)).continuousAt.preimage_mem_nhds
-      (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt EN (TangentSpace J) (f p₀.proj)))
+    (f.contMDiff.continuous.comp (FiberBundle.continuous_proj F V)).continuousAt
+      |>.eventually_mem_baseSet_trivializationAt EN (TangentSpace J)
   filter_upwards [hb] with p hp
   -- The base point of the coordinate change is `Φ 0_b`, which is `f b`.
   have key (b : N) (w : EN) (hb : b = f p.proj) :

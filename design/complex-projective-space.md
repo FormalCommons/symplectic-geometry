@@ -82,7 +82,10 @@ Tau Ceti already has:
   `ι → AddCircle p` with its charts (`Geometry/Manifold/Instances/AddCircle.lean`,
   `AddCircle/Torus.lean`).
 
-Tau Ceti has no Fubini–Study form for $n\ge2$, no $\rho_{\mathrm{FS}}$, no
+Tau Ceti's Fubini–Study form for $n\ge2$,
+`TauCeti.ComplexProjectiveSpace.fubiniStudyForm`, lives on its own quotient
+of the sphere and carries a factor $\pi^{-1}$; this part carries it to
+`ℙ ℂ (Fin (n + 1) → ℂ)`, times $\pi$. Tau Ceti has no $\rho_{\mathrm{FS}}$, no
 smooth Hopf map, no integral of a form over $\mathbb CP^1$, and none of the
 Darboux charts or Lagrangian examples (the correspondence list of
 `atlas/almost-complex-structures-lean.md`, rows 4.3.3–4.3.5, says the same).
@@ -113,13 +116,17 @@ This part adds them.
   `sphereContactForm` applies to it with no transport, and the Darboux
   charts land in the model of the linear theory, so that "symplectomorphic
   to the ball in $(\mathbb R^{2n},\omega_0)$" uses `stdForm` itself. The
-  model `EuclideanSpace ℂ` of Tau Ceti's sphere quotient is not used; the
-  part needs neither that quotient nor its homeomorphism with
-  `ℙ ℂ (Fin (n + 1) → ℂ)`.
+  sphere of `EuclideanSpace ℂ (Fin (n + 1))`, the model of Tau Ceti's sphere
+  quotient, enters only to carry Tau Ceti's form over: the inverse of
+  `complexToRealEuclideanIsometry`, restricted by `unitSphereEquiv`,
+  identifies the two spheres, and Tau Ceti's
+  `ComplexProjectiveSpace.diffeomorphProjectivization` identifies the
+  quotient with `ℙ ℂ (Fin (n + 1) → ℂ)`.
 
 ### The route
 
-The page's advice is followed: the form is built on the sphere and descends.
+The forms upstairs are built on the sphere and on $\mathbb C^{n+1}\setminus0$;
+the form on $\mathbb CP^n$ is carried over from Tau Ceti's.
 
 1. On $\mathbb C^{n+1}\setminus0$, $\alpha_{\mathrm{FS}}$ is defined as the
    pull-back of Tau Ceti's `sphereContactForm` along the radial projection
@@ -133,21 +140,26 @@ The page's advice is followed: the form is built on the sphere and descends.
    the $\partial\bar\partial$ form, and $\rho_{\mathrm{FS}}=\varphi^*\sigma$
    for the radial projection $\varphi$.
 2. On the sphere, $\sigma$ is the pull-back of `(stdForm _).constSmooth`
-   along the inclusion. It is closed, being $d$ of `sphereContactForm`. It
-   is invariant under the circle, kills the generator $J_0x$, and its kernel
-   at $x$ is exactly $\mathbb R J_0x$, the kernel of the derivative of the
-   Hopf map. So it is basic
-   (`isBasic_of_mpullback_eq_of_ker_mfderiv_le`, with the circle acting by
-   $x\mapsto\cos t\,x+\sin t\,J_0x$), and `fubiniStudyForm` is
-   defined as `SmoothForm.descendedForm` along the sphere Hopf map. It is
-   symplectic by `isSymplectic_descendedForm_iff`.
+   along the inclusion. It is closed, being $d$ of `sphereContactForm`.
+   Identifying the unit sphere of `StdSpace (Fin (n + 1))` with that of
+   `EuclideanSpace ℂ (Fin (n + 1))` by a real linear isometry, $\sigma$ is
+   the restriction of $\operatorname{Im}\langle\cdot,\cdot\rangle_{\mathbb C}$
+   that Tau Ceti's `ComplexProjectiveSpace.fubiniStudyForm n` pulls back to,
+   up to the factor $\pi^{-1}$. So `fubiniStudyForm n` is defined as
+   `Real.pi •` the pull-back of Tau Ceti's form along the inverse of
+   `ComplexProjectiveSpace.diffeomorphProjectivization n`, and the Hopf map
+   is Tau Ceti's Hopf projection read through these identifications. Its
+   pull-back along the sphere Hopf map is $\sigma$, by Tau Ceti's
+   `mpullback_mk_fubiniStudyForm`, and it is symplectic by Tau Ceti's
+   `isSymplectic_fubiniStudyForm`.
 3. The projection from $\mathbb C^{n+1}\setminus0$ is the sphere Hopf map
    after $\varphi$, so its pull-back of `fubiniStudyForm` is
    $\varphi^*\sigma=\rho_{\mathrm{FS}}$; uniqueness holds because pull-back
-   along a surjective submersion is injective (`eq_descendedForm_iff`).
+   along a surjective submersion is injective
+   (`mpullback_injective_of_surjective`).
 4. Invariance, compatibility, the normalization, the Darboux charts and the
    Lagrangian examples are all checked upstairs, on $\rho_{\mathrm{FS}}$ or
-   $\sigma$, and read downstairs through the eval lemma of the descent.
+   $\sigma$, and read downstairs through the pull-backs of `fubiniStudyForm`.
 
 ### Unitary invariance, in a form that also gives lines
 
@@ -297,7 +309,7 @@ real `0`-form, complexified by `SmoothForm.mapCoeff Complex.ofRealCLM`):
   `delBar_apply_apply`, with no hypothesis on `J`.
 - `del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero (hJ : J.nijenhuis = 0)`:
   `(Complex.I / 2) • J.del (J.delBar f)` is the complexification of
-  `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f))`; through
+  `J.potentialForm f = (4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f))`; through
   `mextDerivₗ_eq_del_add_delBar_of_nijenhuis_eq_zero` and
   `mextDerivₗ_dC_of_mextDerivₗ_eq_del_add_delBar`.
 
@@ -392,10 +404,8 @@ In namespace `SymplecticGeometry`:
 - `sphereHopf n : sphere (0 : StdSpace (Fin (n + 1))) 1 → ℙ ℂ (Fin (n + 1) → ℂ)`,
   $x\mapsto[(\texttt{complexToRealEuclidean})^{-1}x]$, with
   `sphereHopf_apply`, `contMDiff_sphereHopf`, `surjective_sphereHopf`,
-  `isSubmersion_sphereHopf`, `sphereHopf_eq_sphereHopf_iff` (two points have
-  the same image exactly when `y = stdRotation _ t x` for some $t$), and
-  `ker_mfderiv_sphereHopf`: read in `StdSpace` through the derivative of the
-  inclusion, the kernel at $x$ is `ℝ ∙ stdComplexStructure _ x`.
+  `isSubmersion_sphereHopf` and `sphereHopf_eq_sphereHopf_iff` (two points have
+  the same image exactly when `y = stdRotation _ t x` for some $t$).
 - `radialProjection n : TauCeti.puncturedSpace (Fin (n + 1) → ℂ) → sphere (0 :
   StdSpace (Fin (n + 1))) 1`, $z\mapsto\hat z/\lVert\hat z\rVert$ with
   $\hat z=$ `complexToRealEuclidean _ z`, with `radialProjection_apply`,
@@ -435,14 +445,11 @@ $\omega_0=$ `stdComplexPiSymplecticForm (Fin (n + 1))`:
 - the rotation `stdRotation ι t : StdSpace ι ≃ₗᵢ[ℝ] StdSpace ι`,
   $z\mapsto\cos t\,z+\sin t\,J_0z$, with `stdRotation_apply` and
   `stdForm_stdRotation`, is placed with `stdForm` in
-  `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*; this
-  file acts on the sphere by its restriction, Tau Ceti's
-  `LinearIsometryEquiv.unitSphereEquiv`.
-- `isBasic_sphereStdForm` and `ker_sphereStdForm`: $\sigma$ is basic for
-  `sphereHopf n`, and its kernel at every point is that of the derivative
-  of `sphereHopf n`.
+  `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*.
 - `fubiniStudyForm n : TauCeti.SmoothTwoForm 𝓘(ℝ, Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))`,
-  the descent of `sphereStdForm n` along `sphereHopf n`, with
+  `Real.pi •` the pull-back of Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` along the inverse of the
+  diffeomorphism `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`, with
   `mpullback_sphereHopf_fubiniStudyForm`, `isSymplectic_fubiniStudyForm`,
   `mpullback_mkNonzero_fubiniStudyForm : mpullback (mkNonzero ℂ n) _
   (fubiniStudyForm n) = fubiniStudyLift n`,
@@ -491,7 +498,8 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
   `nijenhuis_ofComplexManifold` (part 3, first two sentences).
 - `mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1))`: along the
   inverse affine chart $w\mapsto[\texttt{Fin.insertNth } j\ 1\ w]$, the
-  pull-back is `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f_j))` with
+  pull-back is `J.potentialForm f_j`, that is,
+  `(4 : ℝ)⁻¹ • d (J.covectorComplexStructure (d f_j))`, with
   $f_j(w)=\log(1+\sum_k\lVert w_k\rVert^2)$ (`fubiniStudyAffinePotential n`,
   the same for every $j$), which is
   $\log(\lvert z\rvert^2/\lvert z_j\rvert^2)$ in homogeneous coordinates;
@@ -639,7 +647,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | P | Kähler potentials: $\tfrac i2\partial\bar\partial f=\tfrac14 d(J^*df)$ for $N_J=0$ | `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean` | — | 150 |
 | H | The Hopf maps as smooth submersions | `Geometry/Manifold/Projectivization/Hopf.lean` | — | 350 |
 | B1 | $\alpha_{\mathrm{FS}}$, $\rho_{\mathrm{FS}}$ and the restricted form on the sphere | `FubiniStudy/Basic.lean` (up to `mpullback_radialProjection_sphereStdForm`) | P, H | 300 |
-| B2 | The descended form and its uniqueness | `FubiniStudy/Basic.lean` (from `isBasic_sphereStdForm`) | B1 | 250 |
+| B2 | The form carried over from Tau Ceti and its uniqueness | `FubiniStudy/Basic.lean` (from `fubiniStudyForm`) | B1 | 250 |
 | K1 | Unitary invariance, compatibility, the Kähler property and the local potentials | `FubiniStudy/Kahler.lean` (all but `isKahler_mpullback_fubiniStudyForm`) | B2 | 350 |
 | K2 | Complex submanifolds of $\mathbb CP^n$ | `FubiniStudy/Kahler.lean` (`isKahler_mpullback_fubiniStudyForm`) | K1, #864 | 80 |
 | N1 | The affine formula, the comparison with `OnePoint.fubiniStudyForm`, and the stereographic map as a composite of Tau Ceti's diffeomorphisms, with its two formulas and its pull-back of the form | `FubiniStudy/Normalization.lean` (up to `mpullback_sphereToProjectiveLine_fubiniStudyForm`) | B2 | 300 |

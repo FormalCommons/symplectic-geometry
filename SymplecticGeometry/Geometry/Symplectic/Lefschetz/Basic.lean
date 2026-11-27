@@ -13,17 +13,19 @@ public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
 public import TauCeti.Geometry.Manifold.RegularValue.Open
+public import TauCeti.Geometry.Manifold.Algebra.SMul
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.Geometry.Manifold.Projectivization.ProjectiveLineBiholomorphism
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
-import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
@@ -230,8 +232,8 @@ theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → 
     contDiff_pi.2 fun _ ↦ contDiff_const.add LefschetzModel.contDiff_quadric
   have heq : π ∘ φ.symm =ᶠ[𝓝 z] (affineChart i).symm ∘ g := by
     filter_upwards [φ.open_target.mem_nhds hz] with w hw
-    have hx : φ.symm w ∈ φ.source := φ.toPartialEquiv.map_target hw
-    have hw' : φ (φ.symm w) = w := φ.toPartialEquiv.right_inv hw
+    have hx : φ.symm w ∈ φ.source := φ.map_target hw
+    have hw' : φ (φ.symm w) = w := φ.right_inv hw
     simp only [Function.comp_apply]
     rw [h.eqOn_source hx, Function.comp_apply, Function.comp_apply, hw']
   exact ((contMDiff_affineChart_symm i ∞).contMDiffAt.comp z hg.contMDiff.contMDiffAt
@@ -290,7 +292,7 @@ theorem exists_isLefschetzChart_comp (h : IsLefschetzChart J π p φ i)
   have h0t : (0 : Fin 2 → ℂ) ∈ φ.target :=
     h.apply_eq_zero ▸ φ.toPartialEquiv.map_source h.mem_source
   have hU : φ.target ∩ (fun w ↦ Ψ (π (φ.symm w))) ⁻¹' affineOpen j ∈ 𝓝 (0 : Fin 2 → ℂ) := by
-    have hp0 : φ.symm 0 = p := h.apply_eq_zero ▸ φ.toPartialEquiv.left_inv h.mem_source
+    have hp0 : φ.symm 0 = p := h.apply_eq_zero ▸ φ.left_inv h.mem_source
     refine inter_mem (φ.open_target.mem_nhds h0t) (ContinuousAt.preimage_mem_nhds
       (Ψ.continuous.continuousAt.comp (h.contMDiffAt_comp_symm h0t).continuousAt) ?_)
     rw [hp0]
@@ -310,7 +312,7 @@ theorem exists_isLefschetzChart_comp (h : IsLefschetzChart J π p φ i)
     exact ⟨h.mem_source, by rw [mem_preimage, h.apply_eq_zero]; exact h0e⟩
   · rw [PartialDiffeomorph.coe_trans, he', Function.comp_apply, h.apply_eq_zero, he0]
   · rw [PartialDiffeomorph.trans_source, he's] at hx
-    have hxx : φ.symm (φ x) = x := φ.toPartialEquiv.left_inv hx.1
+    have hxx : φ.symm (φ x) = x := φ.left_inv hx.1
     have hx' : Ψ (π (φ.symm (φ x))) ∈ affineOpen j := (heU hx.2).2
     rwa [hxx] at hx'
   · rw [PartialDiffeomorph.trans_source, he's] at hy
@@ -378,17 +380,16 @@ theorem comp_diffeomorph (h : IsLefschetzFibration ω J π)
     IsLefschetzFibration ω J (Ψ ∘ π) := by
   -- `Ψ` as a diffeomorphism of the underlying real manifold, with the same underlying map.
   have hΦ := Diffeomorph.coe_restrictScalars' ℝ Ψ
-  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π := by
-    rw [← hΦ, Diffeomorph.criticalSet_comp _ (by simp)]
+  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π :=
+    Ψ.criticalSet_comp_restrictScalars' (by simp) π
   refine ⟨hΦ ▸ ((Ψ.restrictScalars' ℝ).contMDiff.of_le le_top).comp h.contMDiff, h.tames,
     hcrit ▸ Ψ.injective.comp_injOn h.injOn_criticalPoints, hcrit ▸ fun p hp ↦ ?_,
     fun x hx ↦ ?_⟩
   · obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
     exact hφ.exists_isLefschetzChart_comp Ψ
-  · rw [← hΦ] at hx ⊢
-    rw [((Ψ.restrictScalars' ℝ).isLocalDiffeomorph _).ker_mfderiv_comp (by simp)
+  · rw [← hΦ, ((Ψ.restrictScalars' ℝ).isLocalDiffeomorph _).ker_mfderiv_comp (by simp)
       ((h.contMDiff x).mdifferentiableAt (by simp))]
-    exact h.isNondegenerate_ker x ((Diffeomorph.comp_isRegularPoint_iff _ (by simp)).1 hx)
+    exact h.isNondegenerate_ker x ((Ψ.comp_isRegularPoint_iff_restrictScalars' (by simp)).1 hx)
 
 /-- **Composing with a projective transformation.** If `π` is a Lefschetz fibration for `ω` and
 `J`, so is `x ↦ g • π x` for every `g : GL (Fin 2) ℂ`, acting on `ℂℙ¹` through its linear action
@@ -413,9 +414,9 @@ theorem manifoldMorseIndex_comp [I.Boundaryless]
   have hpe : π p ∈ (affineOpenPartialHomeomorph (K := ℂ) (n := 1) i).source := by
     simpa using hφ.source_subset hφ.mem_source
   have hμe : ContDiffAt ℝ 2 (μ ∘ (affineChart i).symm) a := by
-    simpa [a, affineOpenPartialHomeomorph_extend_apply] using
-      (contMDiffAt_iff_contDiffAt_comp_extend_symm
-        (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe).1 hμ
+    simpa only [coe_affineOpenPartialHomeomorph, coe_affineOpenPartialHomeomorph_symm] using
+      hμ.contDiffAt_comp_symm_of_mem_maximalAtlas
+        (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe
   have hdμe : fderiv ℝ (μ ∘ (affineChart i).symm) a ≠ 0 := by
     have := mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero (I := 𝓘(ℝ, Fin 1 → ℂ))
       (f := μ) (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe

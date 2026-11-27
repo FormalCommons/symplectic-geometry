@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Darboux.Strict
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
@@ -105,7 +107,7 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
     have hd : mvfderiv I chart x v = σ (mvfderiv I φ x v) := by
       rw [show ⇑chart = ⇑σ ∘ ⇑φ from funext hcoe, σ.mvfderiv_comp_apply]
     rw [hsrc] at hx
-    rw [hd, hcoe, ← hpb x hx, Submodule.coe_neg, Pi.neg_apply,
+    rw [hd, hcoe, ← hpb x hx, SmoothBundleForm.neg_apply,
       ContinuousAlternatingMap.neg_apply]
     -- The vectors here lie in `V × V × ℝ` rather than in its tangent spaces, which are the same
     -- type by definition, so `hneg` and `neg_neg` are applied by `exact` rather than by `rw`.
@@ -116,13 +118,10 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
         (-innerProductContactForm V).val y := by
       filter_upwards [chart.open_source.mem_nhds hx] with y hy
       refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
-      rw [← hform y hy, mvfderiv_apply_eq_mfderiv_apply, TauCeti.mpullback_apply]
-      congr 1
-      -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-      exact Eq.symm (FinVec.etaExpand_eq _).symm
+      rw [← hform y hy, mvfderiv_apply_eq_mfderiv_apply, TauCeti.mpullback_apply_one]
     have hR := hα.mfderiv_reebVectorField_of_eventuallyEq_mpullback
       (SmoothForm.isContactForm_neg_iff.2 (isContactForm_innerProductContactForm V))
-      (((chart.contMDiffOn x hx).contMDiffAt (chart.open_source.mem_nhds hx)).of_le (by simp))
+      ((chart.contMDiffAt hx).of_le (by simp))
       (chart.isInvertible_mfderiv (by simp) hx).surjective hpb'
     rw [mvfderiv_apply_eq_mfderiv_apply, hR,
       (isContactForm_innerProductContactForm V).reebVectorField_neg,

@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
+import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
+import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!

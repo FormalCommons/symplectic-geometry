@@ -10,14 +10,18 @@ public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Continuity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Scaling
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Strong fillings, their boundary contact form and their Liouville collar
@@ -219,9 +223,10 @@ private theorem exists_eq_fillingContactForm (h : IsStrongFilling σ U Y) :
     h.isSymplectic (.ofIsSmoothEmbedding _ (isSmoothEmbedding_subtypeVal_boundary W)) (by simp)
     h.isOpen (by simpa [hι] using h.boundary_subset) h.isOutwardPointingField.contMDiff.contMDiffOn
     h.mlieDerivForm_eq (by rw [hι]; exact h.isOutwardPointingField.isTransverseAlong_subtypeVal)
-  refine ⟨α, Subtype.ext ?_, hc, hd.trans (congrArg _ (Subtype.ext ?_))⟩
+  refine ⟨α, Subtype.ext ?_, hc,
+    hd.trans (congrArg _ ((SmoothForm.mpullback_eq_mpullback_iff _ _).2 ?_))⟩
   · rw [coe_fillingContactForm, hα, hι, ContMDiffSection.coeFn_mk]
-  · rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, hι]
+  · rw [hι]
 
 /-- **The contact form of a strong filling.** For a strong filling, `-ι^*(ι_Y σ)` is a contact
 form on the boundary. -/
@@ -381,8 +386,9 @@ theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).
   refine ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, hcU, fun p hp ↦ ?_, fun p hp ↦ ?_⟩
   · ext w
     have hw := congrArg (fun φ ↦ φ ![w]) (hβα p hp)
-    simp only [SmoothForm.symplectization_apply, NegMemClass.coe_neg] at hw ⊢
-    simp only [mpullback_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hw ⊢
+    simp only [SmoothForm.symplectization_apply] at hw ⊢
+    simp only [mpullback_apply, SmoothBundleForm.neg_apply,
+      ContinuousAlternatingMap.neg_apply] at hw ⊢
     rw [hw]
     simp
   · obtain ⟨t, x⟩ := p

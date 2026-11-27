@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Whitney
-public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Whitney
+import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The top Chern class is the Euler class

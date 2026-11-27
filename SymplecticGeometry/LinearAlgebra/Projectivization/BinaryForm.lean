@@ -22,7 +22,7 @@ which vanishes at exactly one point of the line.
 
 ## Main results
 
-* `MvPolynomial.IsHomogeneous.ncard_setOf_eval_rep_eq_zero`: the zeros of such a form on
+* `MvPolynomial.IsHomogeneous.ncard_setOfPred_eval_rep_eq_zero`: the zeros of such a form on
   `ℙ K (Fin 2 → K)` are `d` in number.
 
 The factorization into linear forms is Tau Ceti's
@@ -44,7 +44,7 @@ variable [IsAlgClosed K]
 /-- A binary form of degree `d` over an algebraically closed field, some partial derivative of
 which is nonzero at a representative of each of its zeros on the projective line, has exactly
 `d` such zeros. -/
-theorem ncard_setOf_eval_rep_eq_zero {F : MvPolynomial (Fin 2) K} {d : ℕ}
+theorem ncard_setOfPred_eval_rep_eq_zero {F : MvPolynomial (Fin 2) K} {d : ℕ}
     (hF : F.IsHomogeneous d)
     (hsing : ∀ p : ℙ K (Fin 2 → K), eval p.rep F = 0 → ∃ i, eval p.rep (pderiv i F) ≠ 0) :
     {p : ℙ K (Fin 2 → K) | eval p.rep F = 0}.ncard = d := by

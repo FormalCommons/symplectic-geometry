@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.MetricSpace.SeparatedBalls
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Moser's correction of a family of balls
@@ -116,7 +117,7 @@ private theorem exists_mextDeriv_eq_mpullback_sub (hσ : σ.IsClosed) {r₀ : �
   have hα {t : unitInterval} {x : B}
       (h : mpullback 𝓘(ℝ, StdSpace (Fin n)) I (fun x ↦ κ (t, x)) σ.val x =
         (stdForm (Fin n)).constSmooth.val x) : (α t).val x = 0 := by
-    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, sub_eq_zero,
+    rw [SmoothBundleForm.sub_apply, sub_eq_zero,
       SmoothForm.coe_mpullback_subtype_val_apply]
     simp only [τ, SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback]
     exact h

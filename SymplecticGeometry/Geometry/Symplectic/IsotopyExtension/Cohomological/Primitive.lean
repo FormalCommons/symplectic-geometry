@@ -5,12 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.NDRPair
-public import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
-public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+public import TauCeti.Topology.Homotopy.Extension.NDRPair
+import SymplecticGeometry.AlgebraicTopology.Singular.NDRPair
+import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 
 /-!
 # Closed forms with prescribed periods, and primitives near a subset

@@ -6,16 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Truncate
-public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Manifold.DeRham.FiniteDimensional
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
+public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
+import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 import TauCeti.Geometry.Manifold.Flow.Complete
 import TauCeti.Geometry.Symplectic.Flux.Eulerian
 import TauCeti.Geometry.Symplectic.Flux.OrderedFlow
 import TauCeti.Geometry.Symplectic.Flux.Reparam
 import TauCeti.Geometry.Symplectic.Flux.Trans
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
+import TauCeti.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Reparam
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
@@ -73,7 +74,7 @@ complete since `M` is compact. Let `ψ_t` be the ordered flow of the `Y i` along
 `TauCeti.Diffeotopy.flux_orderedGlobalFlowDiffeotopy`), so every truncation of
 `t ↦ ψ_t⁻¹ ∘ φ_t` has zero flux, and this diffeotopy is Hamiltonian by the criterion above. Since
 the flux of `φ` is zero, every `A i 1` vanishes, so `ψ` is a loop, homotopic to the constant
-diffeotopy (`TauCeti.Diffeotopy.orderedGlobalFlowDiffeotopy_homotopic_refl`),
+diffeotopy (`TauCeti.Diffeotopy.isHomotopy_orderedGlobalFlowDiffeotopy_refl`),
 and `φ` is homotopic to `t ↦ ψ_t⁻¹ ∘ φ_t`. This homotopy is a `TauCeti.Diffeotopy.Homotopic`
 one, whose intermediate maps need not preserve `σ`; McDuff–Salamon's homotopy runs through
 symplectic isotopies, so the result here is weaker than theirs. With Tau Ceti's
@@ -99,8 +100,12 @@ this identifies the kernel of the endpoint flux with the Hamiltonian group.
   homotopic with fixed ends, as a `TauCeti.Diffeotopy.Homotopic` homotopy whose intermediate
   maps need not preserve `σ`, to a Hamiltonian one. This is weaker than the book's homotopy
   through symplectic isotopies.
-* `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero`: its final map is Hamiltonian.
-* `TauCeti.ker_endpointFlux`: the kernel of the endpoint flux is the Hamiltonian group.
+* `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero'`: its final map is Hamiltonian.
+* `TauCeti.ker_endpointFlux'`: the kernel of the endpoint flux is the Hamiltonian group.
+
+Tau Ceti proves the last two results for a connected manifold, as
+`TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero` and `TauCeti.ker_endpointFlux`; the
+primed versions here do not assume `M` connected.
 
 ## References
 
@@ -334,15 +339,15 @@ theorem exists_isHamiltonian_homotopic_of_flux_eq_zero (hσ : SmoothTwoForm.IsNo
         SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer]
   · -- `θ` is homotopic to the constant diffeotopy, so `Φ' = (Φ' θ⁻¹) θ` is homotopic to `Φ' θ⁻¹`.
     have key := (Homotopic.refl (Φ'.trans θ.symm)).trans_congr
-      (orderedGlobalFlowDiffeotopy_homotopic_refl le_top (fun i ↦ (Y i).val.contMDiff) hc hA hA₀
-        hA₁)
+      (isHomotopy_orderedGlobalFlowDiffeotopy_refl le_top _ (fun i ↦ (Y i).val.contMDiff) hc _ hA
+        hA₀ hA₁).homotopic
     rw [trans_assoc, symm_trans_self, trans_refl, trans_refl] at key
     exact hhom.trans key le_rfl
 
 /-- **Symplectic isotopies with zero flux end at Hamiltonian diffeomorphisms.** Let `σ` be a
 symplectic form on a closed manifold `M`, and let every map of the diffeotopy `φ_t` preserve `σ`.
 If `φ_t` has zero flux, then its final map `φ_1` lies in the Hamiltonian group of `σ`. -/
-theorem final_mem_hamiltonianGroup_of_flux_eq_zero (hσ : SmoothTwoForm.IsNondegenerate σ.val)
+theorem final_mem_hamiltonianGroup_of_flux_eq_zero' (hσ : SmoothTwoForm.IsNondegenerate σ.val)
     (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val)
     (h : Φ.flux σ (SmoothForm.final_mem_diffeomorphStabilizer hΦ) = 0) :
     Φ.final ∈ SmoothForm.hamiltonianGroup σ.val := by
@@ -363,13 +368,13 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 /-- **The kernel of the endpoint flux is the Hamiltonian group.** For a symplectic form `σ` on a
 closed manifold `M`, an element of the isotopy stabilizer of `σ` has trivial endpoint flux exactly
 when it lies in the Hamiltonian group of `σ`. -/
-theorem ker_endpointFlux {σ : closedForms J M 2} (hσ : SmoothTwoForm.IsNondegenerate σ.val) :
+theorem ker_endpointFlux' {σ : closedForms J M 2} (hσ : SmoothTwoForm.IsNondegenerate σ.val) :
     (endpointFlux σ).ker =
       (SmoothForm.hamiltonianGroup σ.val).subgroupOf (SmoothForm.isotopyStabilizer σ.val) := by
   refine le_antisymm (fun φ hφ ↦ ?_) (hamiltonianGroup_subgroupOf_le_ker_endpointFlux σ)
   obtain ⟨Φ, hΦ, hfin, h⟩ := mem_ker_endpointFlux_iff.1 hφ
   rw [Subgroup.mem_subgroupOf, ← hfin]
-  exact Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero hσ hΦ h
+  exact Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero' hσ hΦ h
 
 end TauCeti
 

@@ -44,10 +44,13 @@ files are under `SymplecticGeometry/`.
   the book's $\omega_0$ is `ω₀E := (TauCeti.stdComplexPiSymplecticForm
   (Fin (n + 1))).constSmooth`, which `stdForm_complexToRealEuclidean`
   identifies with *Standard model*'s `stdForm` read through
-  `complexToRealEuclidean`; a small lemma of `Model.lean` states this for
-  the constant forms, so that ball embeddings (on `StdSpace`) and the model
-  (on `E`) meet. The Fubini–Study form is the library's `fubiniStudyForm n`
-  on `ℙ ℂ E`, in which a line has area $\pi$
+  `complexToRealEuclidean`; Tau Ceti's
+  `SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`, applied to
+  `isSymplectomorphism_complexToRealEuclidean`, states this for the
+  constant forms, so that
+  ball embeddings (on `StdSpace`) and the model (on `E`) meet. The
+  Fubini–Study form is the library's `fubiniStudyForm n` on `ℙ ℂ E`, in
+  which a line has area $\pi$
   (`integralTopForm_mpullback_map_fubiniStudyForm`, for every line). The
   note of the review of #3195 asked for a restriction lemma for that area:
   this theorem is it, and it is merged.
@@ -56,7 +59,8 @@ files are under `SymplecticGeometry/`.
   `‖complexToRealEuclidean _ z‖`, written $|z|$ below. In the model,
   `BlowupModel.closedNbhd n ε` ($L(\varepsilon)$) and
   `BlowupModel.openNbhd n ε` are the preimages under `blowdown` of
-  $\{|z|\le\varepsilon\}$ and $\{|z|<\varepsilon\}$.
+  $\{|z|\le\varepsilon\}$ and $\{|z|<\varepsilon\}$, from the complex
+  part's `Blowup/Model.lean` (`design/complex-blowup.md`).
 - **Ball embeddings.** A symplectic embedding of $B(r)$ is *Isotopy
   extension*'s `IsSymplecticBallEmbedding ω r ψ`, for
   `ψ : StdSpace (Fin (n + 1)) → M`, and a family of them is
@@ -154,19 +158,19 @@ merged first, `Weight/Basic.lean` and `Blowdown.lean` use it.
   `Dolbeault/Potential.lean` identifies with $\frac i2\partial\bar\partial\phi$
   (`del_delBar_mapCoeff_ofReal_ofComplexManifold`). Its pull-back along a
   holomorphic map is the form of the pulled-back potential
-  (`mpullback_covectorComplexStructure`). The Fubini–Study lift on
+  (`mpullback_potentialForm`). The Fubini–Study lift on
   $\mathbb C^n\setminus0$ is already of this kind
   (`fubiniStudyLift_eq_del_delBar`, `fubiniStudyPotential`).
 - **Normalization (Definition 7.1.17).** A predicate
-  `IsNormalizedAt ω J p₀ δ ψ₀`: `ω.Compatible J`,
+  `IsNormalizedAt ω J p₀ δ ψ₀`: `ω.Compatible J`, `0 < δ`,
   `IsSymplecticBallEmbedding ω δ ψ₀`, `ψ₀ 0 = p₀`, and $d\psi_0$ is
   complex linear from $J_0$ to $J$ on the open ball. From it,
   `IsNormalizedAt.blowupChart` is the `BlowupChart M p₀` of *Complex
   blowup*, $\psi_0^{-1}$ on $\psi_0(B^\circ(\delta))$ read on `E`, which is
   in the real maximal atlas and $J$-holomorphic, the hypothesis `hJ` of
   *Complex blowup*'s `AlmostComplex.lean`. Every symplectic manifold is
-  normalized at every point (Remark 7.1.18 (i)), by Tau Ceti's
-  `IsSymplectic.exists_standardDarbouxChart_of_isInteriorPoint` and
+  normalized at every point (Remark 7.1.18 (i)), by the library's
+  `IsSymplectic.exists_darbouxChart_stdForm` and Tau Ceti's
   `SmoothTwoForm.Compatible.exists_compatible_eqOn`, with ω unchanged.
 - **Hamiltonian maps and isotopic forms.** A Hamiltonian
   symplectomorphism is `Φ.final` for a `TauCeti.Diffeotopy` with *Isotopy
@@ -206,7 +210,7 @@ they are split here so that each issue is a few hundred lines, and
 | `Blowup/Profile.lean` | the profiles and the forms $\tilde\omega_{\lambda,\varepsilon}$ | 3 |
 | `Blowup/Area.lean` | the area identity; the first milestone | 4 |
 | `Blowup/Weight/Basic.lean` | the blowup $\widetilde M_\psi$ of weight $\lambda$ and its divisor | 5 |
-| `Blowup/Weight/Collapse.lean` | the Hopf collapse, the volume, the second milestone | 6 |
+| `Blowup/Weight/Collapse.lean` | the Hopf collapse, the second milestone | 6 |
 | `Blowup/DivisorNeighborhood.lean` | a neighbourhood of a divisor is $L(\varepsilon)$ | 7 |
 | `Blowup/Blowdown.lean` | the blowdown; the third milestone | 8 |
 | `Blowup/Normalized/Basic.lean` | normalizations, lifts, the forms $\tilde\omega_{\psi,\lambda,\varepsilon}$ | 9 |
@@ -250,12 +254,7 @@ potential forms, up to `radialPotentialForm_id`, are stated on `ι → ℂ` for
 
 Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
 
-- `ω₀E` as in *Setting*, with `constSmooth_stdComplexPiSymplecticForm_eq`:
-  its pull-back along `complexToRealEuclidean` is `stdForm` as a constant
-  form.
-- `closedNbhd n ε`, `openNbhd n ε` as in *Setting*, with
-  `isCompact_closedNbhd`, `isOpen_openNbhd`, and `exceptionalDivisor_subset`
-  for `0 < ε`.
+- `ω₀E` as in *Setting*.
 - `blowupForm n λ` ($\tilde\omega_\lambda$):
   `blowdown^* ω₀E + λ ^ 2 • pr^* fubiniStudyForm n`, with
   `blowupForm_def`; `isKahler_blowupForm` for `λ ≠ 0`, for the complex
@@ -293,11 +292,14 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
   $\lambda/(\lambda+\varepsilon)$, chosen smoothly in the parameters with
   Tau Ceti's `collaredSmoothTransition`. The issue fixes the formula.
   `ε < 1` is not needed.
-- `blowupCorrection λ ε` ($q$), smooth on `ℝ`, zero on `Iic (ε ^ 2)`,
-  with `λ ^ 2 * log s + q s` constant on `Ici ((λ + ε) ^ 2)`.
-- `profileForm n λ ε` ($\tilde\omega_{\lambda,\varepsilon}$),
+- `profileCorrection λ h` ($q$) of a profile `h` with the properties of
+  `blowupProfile λ ε` (`IsBlowupProfile λ ε h`), smooth on `ℝ`, zero on
+  `Iic (ε ^ 2)`, with `λ ^ 2 * log s + q s` constant on `Ici ((λ + ε) ^ 2)`.
+- `profileForm n λ ε h` ($\tilde\omega_{\lambda,\varepsilon}$), with `h`
+  defaulting to `blowupProfile λ ε`,
   `blowupForm n λ + blowdown^* (form of the potential q(|z|²))`, with
-  `profileForm_def`; `profileForm_eq_blowupForm_on` (on `closedNbhd n ε`),
+  `profileForm_def`; for every `h` with `IsBlowupProfile λ ε h`,
+  `profileForm_eq_blowupForm_on` (on `closedNbhd n ε`),
   `profileForm_eq_on_compl` (equal to `blowdown^* ω₀E` off
   `closedNbhd n (λ + ε)`), `mpullback_radialMap_profileForm` (off $Z$ it is
   $\pi^*F_{\lambda,\varepsilon}^*\omega_0$), and `isKahler_profileForm`,
@@ -309,25 +311,22 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
 ### `Blowup/Area.lean`
 
 - `blowdown_profileForm_area`: for `Ω : Set ℂ` bounded open, `u : ℂ → E`
-  smooth on a neighbourhood of `closure Ω` and holomorphic on `Ω`, with
+  `C¹` near every point of `closure Ω` and holomorphic on `Ω`, with
   $|u|>\lambda+\varepsilon$ on `frontier Ω`, finitely many zeros in `Ω` of
-  total order `m` (Mathlib's `analyticOrderAt`), and `ũ : Ω → BlowupModel n`
-  continuous with `blowdown ∘ ũ = u`, the integral over `Ω` of $u^*\omega_0$
-  is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
+  total order `m` (Mathlib's `analyticOrderNatAt`), and
+  `ũ : ℂ → BlowupModel n` continuous on `Ω` with `blowdown ∘ ũ = u` there,
+  the integral over `Ω` of $u^*\omega_0$ is that of $\tilde u^*\tilde\omega_{\lambda,\varepsilon}$ plus
   $m\pi\lambda^2$. The integrals are Lebesgue integrals over `Ω` of the
-  densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is holomorphic by
-  *Complex blowup*'s `eqOn_liftMap_of_blowdown_comp` argument and
-  `curveLift` (`Lift.lean`), which also gives its existence
-  (`exists_lift_of_finite_zeros`).
-- Proof, the page's route: off the zeros the difference of the densities is
+  densities $\sigma(\partial_xu,\partial_yu)$. `ũ` is `curveLift u` on `Ω`,
+  so holomorphic, by *Complex blowup*'s `eqOn_curveLift_of_blowdown_comp`
+  (`Lift.lean`), and `continuousOn_curveLift` with `blowdown_curveLift`
+  gives its existence.
+- Proof: off the zeros the difference of the densities is
   $\tfrac14\Delta(\phi\circ u)$ with $\phi(s)=s-g(s)$, constant near
-  `frontier Ω`; Stokes on `Ω` minus small discs about the zeros (Tau Ceti's
-  `integralTopForm_mextDeriv_eq_zero` for the compactly supported part, and
-  the library's `integralTopForm_mextDeriv_radialAngularForm` or polar
-  coordinates on the discs), and the limit $m_j\pi\lambda^2$ of the
-  boundary terms at a zero of order $m_j$, where
-  $\phi\circ u=-\lambda^2m_j\log|t-t_j|^2+$ smooth; this is the limit of
-  $\int u^*\alpha_{\mathrm{FS}}$ with `fubiniStudyPrimitive`.
+  `frontier Ω`, and $\phi\circ u=-\lambda^2m_j\log|t-t_j|^2+$ smooth at a
+  zero of order $m_j$; the planar identity
+  `setIntegral_laplacian_eq_of_log_poles` (`LogarithmicPole.lean`) then gives
+  $\int_\Omega\Delta(\phi\circ u)=4\pi\lambda^2m$.
 - **Milestone** `kahler_blowupModel`: the conjunction of
   `isKahler_blowupForm` with the line area, `isKahler_mpullback_radialMap_of_profile`,
   `mpullback_radialMap_blowdown` with `shellSymplectomorph`, the
@@ -344,17 +343,19 @@ $\psi$ to the larger ball is this hypothesis, and *Isotopy extension*'s
 `exists_lt_isSymplecticBallEmbedding_eqOn` provides it from an embedding of
 $B(\lambda)$.
 
-- `IsSymplecticBallEmbedding.openEmbedding`: on the open ball a symplectic
+- `IsSymplecticBallEmbedding.toPartialDiffeomorph`: on the open ball a symplectic
   ball embedding is an open smooth embedding, a `PartialDiffeomorph`
   (injective, with injective differential by `injective_mfderiv`, in equal
   dimension). It goes in *Isotopy extension*'s `Ball/Basic.lean` if that
   file has no such lemma when the issue starts; the issue searches first.
-- `glueData ψ λ ε`: two pieces, the open set `(ψ '' closedBall 0 λ)ᶜ` of `M`
+- `gluingDiffeomorph hψ hλ hε`, for `hλ : 0 ≤ λ` and `hε : 0 < ε`: two
+  pieces, the open set `(ψ '' closedBall 0 λ)ᶜ` of `M`
   and `openNbhd n ε`, glued along `openNbhd n ε \ Z` and
   $\psi(\{\lambda<|w|<\sqrt{\lambda^2+\varepsilon^2}\})$ by
   $(\ell,z)\mapsto\psi(F_\lambda(z))$, the page's
   $\psi(\sqrt{1+\lambda^2/|z|^2}\,z)$, that is
-  `ψ ∘ shellSymplectomorph`; `WeightBlowup ψ λ ε`, the glued space, with
+  `ψ ∘ shellSymplectomorph`; `WeightBlowup hψ hλ hε`, the `GluedAlong` of
+  its inverse, with
   `inl`, `inr`, `inl_eq_inr_iff`, the charted space and
   `IsManifold 𝓘(ℝ, E) ∞` by Tau Ceti's `IsCompatible.isManifold`;
   `T2Space` (a point of $Z$ and a point $x\notin\psi(B(\lambda))$ are
@@ -363,11 +364,8 @@ $B(\lambda)$.
   $\psi(B(\sqrt{\lambda^2+\delta^2}))$), `SecondCountableTopology`.
 - `form ψ λ ε` ($\tilde\omega_\psi$): $\omega$ on the first piece and
   `blowupForm n λ` on the second, which agree on the overlap by
-  `shellSymplectomorph`; `form_inl`, `form_inr`, `isSymplectic_form`.
-  The gluing of a form from two pieces is stated through
-  `IsCompatible.partialDiffeomorphι` and Tau Ceti's locality of forms; if
-  neither library has the two-piece gluing of forms, the issue adds it in
-  a general file under `Geometry/Manifold/Gluing/`.
+  `shellSymplectomorph`; `mpullback_inl_form`, `mpullback_inr_form`,
+  `isSymplectic_form`. The form is glued by `GluedAlong.gluedForm`.
 - `divisor ψ λ ε`: `inr ∘ zeroSection`, a `TauCeti.SmoothEmbedding` with
   `mpullback_divisor_form` ($\lambda^2\omega_{\mathrm{FS}}$), so a
   symplectic submanifold (`IsSymplecticSubmanifoldEmbedding`), and
@@ -380,7 +378,7 @@ $B(\lambda)$.
 
 ### `Blowup/Weight/Collapse.lean`
 
-- `collapseMap ψ λ ε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup ψ λ ε`:
+- `collapseMap hψ hλ hε : ((ψ '' ball 0 λ)ᶜ : Set M) → WeightBlowup hψ hλ.le hε`, for `0 < λ`:
   `inl` off $\psi(B(\lambda))$, and $\psi(w)\mapsto$ `divisor [w]` for
   $|w|=\lambda$; continuous, surjective, closed (proper, from a closed
   subset of `M`), so a quotient map; its fibres are the points off the
@@ -388,13 +386,16 @@ $B(\lambda)$.
   `sphereHopf_eq_sphereHopf_iff` (Hopf circles of the sphere of radius
   $\lambda$, after scaling).
 - `collapseHomeomorph`: the homeomorphism from the quotient of
-  `(ψ '' ball 0 λ)ᶜ` by the relation "equal, or both on the sphere with
-  the same `sphereHopf`" onto `WeightBlowup ψ λ ε`.
+  `(ψ '' ball 0 λ)ᶜ` by `Setoid.ker (collapseMap hψ hλ hε)`, the relation
+  "equal, or both on the sphere with the same `sphereHopf`",
+  onto `WeightBlowup hψ hλ.le hε`.
 - `liouvilleMeasure_form_add`: the Liouville measure of the blowup plus
-  that of $B(\lambda)$ for $\omega_0$ is that of `M`, in `ℝ≥0∞`: $Z$ is
-  null, `complDivisorSymplectomorph` preserves the Liouville measure, and
-  $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of $\omega$
-  (`measurePreserving_liouvilleMeasure`).
+  the Lebesgue measure of $B(\lambda)$, its Liouville measure for
+  $\omega_0$, is that of `M`, in `ℝ≥0∞`, for any `σ` and `0 ≤ λ`; it is in
+  `Blowup/Weight/Volume.lean`. $Z$ is null in the charts of the model,
+  `inl` carries the Liouville measure of $M\setminus\psi(B(\lambda))$ onto the
+  complement of $Z$, and $\psi$ carries that of $\omega_0$ on $B(\lambda)$ to that of
+  $\omega$ (`IsSymplecticBallEmbedding.liouvilleMeasure_image`).
 - **Milestone** `WeightBlowup.isSymplectic_form_and_divisor`: the conjunction
   of `isSymplectic_form`, the divisor statements, `collapseHomeomorph` and
   `liouvilleMeasure_form_add`. Its docstring ends with the line Milestone:
@@ -407,21 +408,25 @@ For `f : SmoothEmbedding (ℙ ℂ E) M` and the normal bundle isomorphism of
 
 - `exists_symplectomorphism_blowupModel`: there are `0 < ε` and a
   symplectomorphism of an open neighbourhood of `range f` onto
-  `openNbhd n ε` with `blowupForm n λ`, sending `f` to `zeroSection`. By
-  Tau Ceti's `IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens`
-  (`Geometry/Symplectic/Neighborhood/Symplectic.lean`) applied to `f` and
-  `zeroSectionEmbedding n` with $\tilde\omega_\lambda$, after rescaling the
-  normal isomorphism to a symplectic one; then shrink to `openNbhd n ε`
+  `openNbhd n ε` with `blowupForm n λ`, sending `f` to `zeroSection`, stated
+  as a `PartialDiffeomorph` with target `openNbhd n ε` that is symplectic on its
+  source. By
+  `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
+  (`Geometry/Symplectic/Neighborhood/CodimTwo.lean`), which rescales the normal
+  isomorphism to a symplectic one, applied to `f` and
+  `zeroSectionRealEmbedding n` with $\tilde\omega_\lambda$; then shrink to `openNbhd n ε`
   inside the image, by compactness of $Z$ (McDuff, Lemma 2.1 and
   Corollary 2.2). For `n = 0`, $Z$ is a point and this is Darboux's
   theorem, with $\lambda$ as data, as the page notes.
 
 ### `Blowup/Blowdown.lean`
 
-- `blowdown f λ ε`: the manifold glued from `(range f)ᶜ` and the open ball
-  $B^\circ(\sqrt{\lambda^2+\varepsilon^2})$ of `StdSpace`, along the
-  neighbourhood minus $Z$ and the open shell, through
-  `exists_symplectomorphism_blowupModel` and `shellSymplectomorph`; its form
+- `DivisorBlowdown hΨ hf hl hε`, for a partial diffeomorphism `Ψ` from `M` to
+  the model with target `openNbhd n ε` (`hΨ`) and `Ψ (f q) = zeroSection q`
+  (`hf`), taken as data (`exists_symplectomorphism_blowupModel` gives one):
+  the manifold glued from `(range f)ᶜ` and the open ball
+  $B^\circ(\sqrt{\lambda^2+\varepsilon^2})$ of `E` (Euclidean norm), along
+  `Ψ.source ∖ Z` and the open shell, through `Ψ` and `shellSymplectomorph`; its form
   ($\omega$ and $\omega_0$), `isSymplectic_blowdownForm`, and the ball
   embedding `blowdownBall`, an `IsSymplecticBallEmbedding` of radius
   $\lambda$ (indeed of any radius below $\sqrt{\lambda^2+\varepsilon^2}$),
@@ -430,7 +435,7 @@ For `f : SmoothEmbedding (ℙ ℂ E) M` and the normal bundle isomorphism of
 - `weightBlowup_blowdown`: blowing up the blowdown along `blowdownBall`
   with weight $\lambda$ gives a manifold symplectomorphic to `M`, sending
   its divisor to `f`; and `blowdown_weightBlowup`: blowing down the
-  divisor of `WeightBlowup ψ λ ε` gives `M` back, symplectomorphic off
+  divisor of `WeightBlowup hψ hλ hε` gives `M` back, symplectomorphic off
   $\psi(B(\lambda))$ and carrying `blowdownBall` to `ψ` near $B(\lambda)$.
 - **Milestone** `exists_blowdown`: the conjunction of
   `exists_symplectomorphism_blowupModel` and the two statements above. Its
@@ -477,7 +482,7 @@ Namespace `SymplecticGeometry`, for `M` as in *Setting*, `ω`, `J`, `p₀`,
 
 - (ii) `normalizedBlowupSymplectomorph hψ`: a symplectomorphism from
   `(Blowup c, normalizedBlowupForm hψ)` onto
-  `(WeightBlowup ψ λ ε', WeightBlowup.form)`, for `0 < ε' ≤ ε` with
+  `(WeightBlowup hψ' hλ hε', WeightBlowup.form)`, for `0 < ε' ≤ ε` with
   $\sqrt{\lambda^2+\varepsilon'^2}<r$, built as in *Decisions*, with
   `F_{λ,ε} = radialMap (blowupProfile λ ε)`. It is a bijective local
   symplectomorphism, so a diffeomorphism by

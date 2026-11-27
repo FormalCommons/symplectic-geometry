@@ -5,13 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 public import TauCeti.Geometry.Manifold.Degree.Homological
+public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 
 /-!
 # First Chern numbers of symplectic bundles on surfaces
@@ -80,7 +81,7 @@ variable {M M' EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDi
   [IsManifold 𝓘(ℝ, EM) 1 M'] (hn : finrank ℝ EM = 2)
   (o : Manifold.Orientation 𝓘(ℝ, EM) M (Fin 2)) (o' : Manifold.Orientation 𝓘(ℝ, EM) M' (Fin 2))
   (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
-  (E : M → Type*) [∀ x, AddCommMonoid (E x)] [∀ x, Module ℂ (E x)]
+  (E : M → Type) [∀ x, AddCommGroup (E x)] [∀ x, Module ℂ (E x)]
   [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
   [FiberBundle G E] [VectorBundle ℂ G E]
 
@@ -109,7 +110,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   {EB HB : Type*} {B : Type} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   {I : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  {V : B → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V]
@@ -141,7 +142,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
   [ChartedSpace EM M] (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  {V : M → Type} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V]
@@ -227,7 +228,7 @@ variable [IsManifold 𝓘(ℝ, EM) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [ContMDi
 complex model. -/
 theorem symplecticChernNumber_congr
     {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
-    {V₂ : M → Type*} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+    {V₂ : M → Type} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
     [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
     [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
     [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
@@ -265,7 +266,7 @@ theorem symplecticChernNumber_pullback [PreconnectedSpace M]
     symplecticChernNumber_eq_chernNumber o hn G hJ.tames,
     ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' f,
     chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f hf,
-    SymplecticGeometry.Bundle.firstChernClass_pullback]
+    SymplecticGeometry.Bundle.firstChernClass_pullback_coe]
 
 /-- **Symplectic frames on every fibre.** Over a nonempty base, suppose that every fibre of `V`
 carries a symplectic frame from the standard space: a linear isomorphism
@@ -303,12 +304,12 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   [ChartedSpace EM M] [IsManifold 𝓘(ℝ, EM) ((⊤ : ℕ∞) : WithTop ℕ∞) M]
   (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2) {n : ℕ∞}
   {F₁ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
-  {V₁ : M → Type*} [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)]
+  {V₁ : M → Type} [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)]
   [∀ x, TopologicalSpace (V₁ x)] [∀ x, IsTopologicalAddGroup (V₁ x)]
   [∀ x, ContinuousSMul ℝ (V₁ x)] [TopologicalSpace (TotalSpace F₁ V₁)]
   [FiberBundle F₁ V₁] [VectorBundle ℝ F₁ V₁] [ContMDiffVectorBundle n F₁ V₁ 𝓘(ℝ, EM)]
   {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
-  {V₂ : M → Type*} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+  {V₂ : M → Type} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
   [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
   [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
   [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂] [ContMDiffVectorBundle n F₂ V₂ 𝓘(ℝ, EM)]

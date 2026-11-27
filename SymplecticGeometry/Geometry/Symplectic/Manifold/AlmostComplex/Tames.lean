@@ -5,12 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
-public import SymplecticGeometry.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Dual
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
+import SymplecticGeometry.Geometry.Symplectic.AlmostComplex
 
 /-!
 # Two almost complex structures tamed by a common form

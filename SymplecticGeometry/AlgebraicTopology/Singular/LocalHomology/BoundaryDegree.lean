@@ -5,10 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscBoundaryClass
+public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import TauCeti.AlgebraicTopology.Singular.Circle
+public import TauCeti.Topology.Circle.Loop
+public import TauCeti.Topology.Circle.Degree
+import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
 
 /-!
 # The boundary degree of a circle-valued map

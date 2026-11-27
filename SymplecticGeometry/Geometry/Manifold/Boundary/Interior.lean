@@ -8,8 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.Geometry.Manifold.Boundary.Interior
-public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Maps into the charted interior, and its identification with the open interior
@@ -49,6 +49,12 @@ across it by `TauCeti.Manifold.Orientation.map`.
   `I.interiorOpens M ≃ I.interior M` and its inverse fix the underlying points of `M`.
 * `ModelWithCorners.isLocalDiffeomorph_subtypeVal_interior`: the inclusion `I.interior M → M` is
   a `C^n` local diffeomorphism.
+* `ModelWithCorners.hasMFDerivAt_subtypeVal_interior`,
+  `ModelWithCorners.mfderiv_subtypeVal_interior`: its differential at each point is the identity
+  of `E`. The proof of `hasMFDerivAt_subtypeVal_interior` adapts that of Tau Ceti's
+  `ModelWithCorners.contMDiff_subtypeVal_interior`, with a derivative in place of smoothness.
+* `ModelWithCorners.mfderiv_comp_subtypeVal_interior`: so precomposing a map on `M` with the
+  inclusion does not change its differential at a point of the interior.
 * `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorOpensDiffeomorph`,
   `TauCeti.Manifold.Orientation.isOrientationPreservingAt_interiorOpensDiffeomorph_symm`: the
   diffeomorphism `I.interiorOpens M ≃ I.interior M` and its inverse preserve orientation;
@@ -139,11 +145,50 @@ every regularity `n`. -/
 theorem isLocalDiffeomorph_subtypeVal_interior :
     IsLocalDiffeomorph 𝓘(𝕜, E) I n (Subtype.val : I.interior M → M) := by
   intro x
-  have h := ((interiorOpensDiffeomorph I M n).symm.isLocalDiffeomorph x).comp
-    (hg := isLocalDiffeomorph_subtype_val _)
+  have h := (interiorOpensDiffeomorph I M n).symm.isLocalDiffeomorph_subtypeVal_comp x
   convert h using 1
   ext y
-  simp only [Function.comp_apply, coe_interiorOpensDiffeomorph_symm_apply]
+  simp only [coe_interiorOpensDiffeomorph_symm_apply]
+
+omit [IsManifold I 1 M] in
+/-- The inclusion of Tau Ceti's charted interior `I.interior M` into `M` has derivative the
+identity of `E` at every point: read in the chart of the interior at `x` and the extended chart of
+`M` at `x`, it is the identity near the image of `x`. -/
+theorem hasMFDerivAt_subtypeVal_interior (x : I.interior M) :
+    HasMFDerivAt 𝓘(𝕜, E) I (Subtype.val : I.interior M → M) x
+      (ContinuousLinearMap.id 𝕜 (TangentSpace 𝓘(𝕜, E) x)) := by
+  refine ⟨continuous_subtypeVal.continuousAt, ?_⟩
+  rw [modelWithCornersSelf_coe, Set.range_id, hasFDerivWithinAt_univ]
+  refine (hasFDerivAt_id _).congr_of_eventuallyEq ?_
+  filter_upwards [(chartAt E x).open_target.mem_nhds
+    ((chartAt E x).map_source (mem_chart_source E x))] with v hv
+  have hv' := hv
+  rw [chartAt_interior_target] at hv'
+  simp only [writtenInExtChartAt, extChartAt, OpenPartialHomeomorph.extend_coe,
+    OpenPartialHomeomorph.extend_coe_symm, modelWithCornersSelf_coe_symm, Function.comp_apply,
+    CompTriple.comp_eq, id_eq]
+  rw [coe_chartAt_interior_symm_apply I x hv, (chartAt H (x : M)).right_inv hv'.1,
+    I.right_inv (interior_subset hv'.2)]
+
+omit [IsManifold I 1 M] in
+/-- The differential of the inclusion of Tau Ceti's charted interior `I.interior M` into `M` is
+the identity of `E` at every point. -/
+theorem mfderiv_subtypeVal_interior (x : I.interior M) :
+    mfderiv 𝓘(𝕜, E) I (Subtype.val : I.interior M → M) x =
+      ContinuousLinearMap.id 𝕜 (TangentSpace 𝓘(𝕜, E) x) :=
+  (hasMFDerivAt_subtypeVal_interior x).mfderiv
+
+omit [IsManifold I 1 M] in
+/-- Precomposing a map `g : M → N`, differentiable at an interior point `x`, with the inclusion of
+Tau Ceti's charted interior `I.interior M` does not change its differential at `x`. -/
+theorem mfderiv_comp_subtypeVal_interior {g : M → N} (x : I.interior M)
+    (hg : MDifferentiableAt I J g x) :
+    mfderiv 𝓘(𝕜, E) J (g ∘ Subtype.val) x = mfderiv I J g x := by
+  rw [mfderiv_comp x hg (hasMFDerivAt_subtypeVal_interior x).mdifferentiableAt,
+    mfderiv_subtypeVal_interior]
+  -- The identity is that of `TangentSpace 𝓘(𝕜, E) x`, and the differential of `g` starts at
+  -- `TangentSpace I x`: both are `E`, but `rw [comp_id]` does not see it.
+  exact ContinuousLinearMap.comp_id _
 
 end ModelWithCorners
 

@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Surface
-public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel
+public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Sublevel.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Surface
 import SymplecticGeometry.Geometry.Manifold.RegularValue.StrictSublevel
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 
@@ -21,7 +22,7 @@ open set `{f < a}`.
 
 ## Main results
 
-* `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_setOf_lt`: the frame over
+* `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_setOfPred_lt`: the frame over
   `{f < a}`.
 
 ## Implementation notes
@@ -69,7 +70,7 @@ two-form on a smooth real vector bundle `V` of rank `2 |κ|` over a boundaryless
 `M`. Let `a` be a regular value of a smooth function `f : M → ℝ` such that the sublevel set
 `{f ≤ a}` is compact and connected and the level set `{f = a}` is nonempty. Then `ω` has a
 smooth symplectic frame for `stdForm κ` over the open set `{f < a}`. -/
-theorem IsNondegenerate.exists_isSymplecticFrameOn_setOf_lt (hω : ω.IsNondegenerate)
+theorem IsNondegenerate.exists_isSymplecticFrameOn_setOfPred_lt (hω : ω.IsNondegenerate)
     (hE : finrank ℝ E = 2) {f : M → ℝ} {a : ℝ} (hf : ContMDiff I 𝓘(ℝ) ((⊤ : ℕ∞) : WithTop ℕ∞) f)
     (hreg : TauCeti.IsRegularValue I 𝓘(ℝ) f a) (hc : IsCompact {x | f x ≤ a})
     (hconn : IsConnected {x | f x ≤ a}) (hne : {x | f x = a}.Nonempty)

@@ -7,8 +7,9 @@ module
 
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Analysis.SpecificLimits.Normed
+public import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.Invertible
 public import Mathlib.LinearAlgebra.Orientation
-import Mathlib.Topology.Order.IntermediateValue
+import TauCeti.LinearAlgebra.Matrix.Charpoly.DetSign
 import TauCeti.LinearAlgebra.Orientation.Basic
 
 /-!
@@ -16,8 +17,11 @@ import TauCeti.LinearAlgebra.Orientation.Basic
 
 Let `A : E ≃L[𝕜] F` be an isomorphism of normed spaces, with `E` complete, and `B : E →L[𝕜] F`
 with `‖B‖ * ‖A⁻¹‖ < 1`. Then `A + B = A ∘ (1 + A⁻¹ B)` is again an isomorphism. Over `ℝ`, with a
-finite-dimensional source, it induces the same map on orientations as `A`: for `t ∈ [0, 1]` every
-map `1 + t A⁻¹ B` is invertible, so its determinant never vanishes and stays positive.
+finite-dimensional source, it induces the same map on orientations as `A`, since
+`1 + A⁻¹ B = 1 - C` with `‖C‖ < 1` has positive determinant.
+
+That positivity is a corollary of Tau Ceti's `LinearMap.det_one_sub_pos_of_not_hasEigenvalue`:
+a real eigenvalue `μ` of `C` satisfies `|μ| ≤ ‖C‖ < 1`.
 
 ## Main definitions and results
 
@@ -25,6 +29,8 @@ map `1 + t A⁻¹ B` is invertible, so its determinant never vanishes and stays 
   space, `‖C‖ < 1` gives `0 < det (1 - C)`.
 * `ContinuousLinearEquiv.addOfNormLt`: the isomorphism `A + B`, for `‖B‖ * ‖A⁻¹‖ < 1`.
 * `Orientation.map_addOfNormLt`: `A + B` and `A` carry each orientation to the same one.
+* `ContinuousLinearMap.IsInvertible.of_norm_inverse_comp_sub_lt_one`: a map `A` with
+  `‖A₀⁻¹ ∘ (A - A₀)‖ < 1`, for an invertible `A₀`, is invertible.
 
 The invertibility of `A + B` is Mathlib's `Units.oneSub` applied to `-A⁻¹ B`; the two orientations
 are compared with Tau Ceti's `Orientation.map_eq_map_iff_det_pos`. Tau Ceti's
@@ -49,20 +55,13 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- On a finite-dimensional real normed space, a perturbation `1 - C` of the identity with
 `‖C‖ < 1` has positive determinant. -/
 theorem det_one_sub_pos_of_norm_lt_one {C : E →L[ℝ] E} (hC : ‖C‖ < 1) : 0 < (1 - C).det := by
-  set f : ℝ → ℝ := fun t ↦ (1 - t • C).det with hf
-  have hcont : Continuous f := continuous_det.comp (by fun_prop)
-  -- For `t ∈ [0, 1]`, the map `1 - t • C` is invertible, so its determinant does not vanish.
-  have hne : ∀ t ∈ Set.Icc (0 : ℝ) 1, f t ≠ 0 := fun t ht ↦ by
-    have hnorm : ‖t • C‖ < 1 := by
-      rw [norm_smul, Real.norm_of_nonneg ht.1]
-      nlinarith [norm_nonneg C, ht.2]
-    have hu := isUnit_one_sub_of_norm_lt_one hnorm
-    exact (LinearMap.isUnit_det _ (hu.map toLinearMapRingHom)).ne_zero
-  by_contra hneg
-  obtain ⟨t, ht, h0⟩ : (0 : ℝ) ∈ f '' Set.Icc 0 1 :=
-    intermediate_value_Icc' zero_le_one hcont.continuousOn
-      ⟨by simpa [hf] using not_lt.1 hneg, by simp [hf, ContinuousLinearMap.det]⟩
-  exact hne t ht h0
+  refine LinearMap.det_one_sub_pos_of_not_hasEigenvalue fun μ hμ h ↦ ?_
+  obtain ⟨v, hv⟩ := h.exists_hasEigenvector
+  have hCv : C v = μ • v := hv.apply_eq_smul
+  have hn : 0 < ‖v‖ := norm_pos_iff.2 hv.2
+  have : μ * ‖v‖ ≤ ‖C‖ * ‖v‖ := by
+    simpa [hCv, norm_smul, abs_of_pos (by linarith : (0 : ℝ) < μ)] using C.le_opNorm v
+  nlinarith
 
 end ContinuousLinearMap
 
@@ -105,6 +104,26 @@ theorem coe_addOfNormLt : (A.addOfNormLt B h : E →L[𝕜] F) = A + B := by
   simp
 
 end ContinuousLinearEquiv
+
+namespace ContinuousLinearMap.IsInvertible
+
+variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  [CompleteSpace E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- **A perturbation that is small relative to an isomorphism is an isomorphism.** If `A₀` is
+invertible and `‖A₀⁻¹ ∘ (A - A₀)‖ < 1`, then `A` is invertible. -/
+theorem of_norm_inverse_comp_sub_lt_one {A₀ A : E →L[𝕜] F} (h : A₀.IsInvertible)
+    (hA : ‖A₀.inverse ∘L (A - A₀)‖ < 1) : A.IsInvertible := by
+  have hP : A = A₀ ∘L (1 + A₀.inverse ∘L (A - A₀)) := by
+    ext x
+    simp [h.self_apply_inverse]
+  rw [hP]
+  exact h.comp ⟨ContinuousLinearEquiv.unitsEquiv 𝕜 E (Units.oneSub _ (by rwa [norm_neg])),
+    ContinuousLinearMap.ext fun x ↦ by
+      rw [ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.unitsEquiv_apply, Units.val_oneSub,
+        sub_neg_eq_add]⟩
+
+end ContinuousLinearMap.IsInvertible
 
 namespace Orientation
 

@@ -23,10 +23,10 @@ be used at every order.
 
 The definition and the first lemma generalize the private `toOrderOne` and
 `chartValueL_toOrderOne` of Tau Ceti's
-`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder.lean` from the Sobolev sections
-of a finite bundle atlas to those of any chart data. The last lemma is the order-`k` counterpart
-of `TauCeti.SectionChartData.sum_value_chartDerivDataL_zero_ae_eq_chartDerivL`, and is proved in
-the same way, by uniqueness of weak derivatives.
+`Geometry/Manifold/VectorBundle/Sobolev/CauchyRiemann/HigherOrder/Basic.lean` from the Sobolev
+sections of a finite bundle atlas to those of any chart data. The last lemma is the order-`k`
+counterpart of `TauCeti.SectionChartData.sum_value_chartDerivDataL_zero_ae_eq_chartDerivL`, and is
+proved in the same way, by uniqueness of weak derivatives.
 
 ## Main definitions
 

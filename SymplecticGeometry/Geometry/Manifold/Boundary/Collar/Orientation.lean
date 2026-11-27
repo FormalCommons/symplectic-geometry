@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.Orientation.Sign
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
+import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
 import Mathlib.GroupTheory.Perm.Fin
 
 /-!

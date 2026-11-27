@@ -10,9 +10,10 @@ public import Mathlib.LinearAlgebra.Matrix.PosDef
 public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.LinearAlgebra.Matrix.Symmetric
 public import Mathlib.Topology.Instances.Matrix
+public import Mathlib.Analysis.CStarAlgebra.Classes
 import TauCeti.Analysis.Matrix.PosDef
-public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
-public import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Basic
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
+import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Basic
 
 /-!
 # The Siegel upper half space
@@ -35,7 +36,7 @@ positive definite. For `ι = Fin n` it is the space `𝒮ₙ` on which the real 
 ## Main results
 
 * `SiegelUpperHalfSpace.coe_eq_re_add_I_smul_im`: `Z = X + i Y`.
-* `SiegelUpperHalfSpace.isOpen_setOf_posDef_im`: the condition `Y > 0` cuts out an open subset
+* `SiegelUpperHalfSpace.isOpen_setOfPred_posDef_im`: the condition `Y > 0` cuts out an open subset
   of the complex symmetric matrices, and `SiegelUpperHalfSpace.isOpenEmbedding_toSymm`: the
   Siegel upper half space is homeomorphic to this open subset.
 
@@ -243,7 +244,7 @@ theorem range_toSymm :
 
 /-- Among the complex symmetric matrices, those with positive definite imaginary part form an
 open set. -/
-theorem isOpen_setOf_posDef_im [Finite ι] :
+theorem isOpen_setOfPred_posDef_im [Finite ι] :
     IsOpen {Z : {Z : Matrix ι ι ℂ // Z.IsSymm} | ((Z : Matrix ι ι ℂ).map Complex.im).PosDef} := by
   let f : {Z : Matrix ι ι ℂ // Z.IsSymm} → selfAdjoint (Matrix ι ι ℝ) := fun Z ↦
     ⟨(Z : Matrix ι ι ℂ).map Complex.im,
@@ -259,7 +260,7 @@ theorem isEmbedding_toSymm : IsEmbedding (toSymm : SiegelUpperHalfSpace ι → _
 complex symmetric matrices. -/
 theorem isOpenEmbedding_toSymm [Finite ι] :
     IsOpenEmbedding (toSymm : SiegelUpperHalfSpace ι → _) :=
-  ⟨isEmbedding_toSymm, range_toSymm.symm ▸ isOpen_setOf_posDef_im⟩
+  ⟨isEmbedding_toSymm, range_toSymm.symm ▸ isOpen_setOfPred_posDef_im⟩
 
 /-! ### Index one: the upper half plane -/
 

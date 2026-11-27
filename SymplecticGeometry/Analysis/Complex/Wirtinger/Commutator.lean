@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.IteratedFDeriv
 public import TauCeti.Analysis.Calculus.IteratedFDeriv.Lp
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivApply
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 
@@ -28,13 +29,10 @@ derivatives of `v` with those of its partials `∂₁v` and `∂_I v` is general
   `ContDiffAt.fderiv_comp_fderiv_apply`.
 * `TauCeti.conjWirtingerDeriv_add_smul_wirtingerDeriv_congr`: `P v` depends on `μ` only on the
   topological support of `v`, since `∂v` vanishes off it
-  (`TauCeti.wirtingerDeriv_of_notMem_tsupport`, proved as Tau Ceti's
-  `TauCeti.conjWirtingerDeriv_of_notMem_tsupport`); for the same reason the topological support
-  of `P v` lies in that of `v`
+  (`TauCeti.wirtingerDeriv_of_notMem_tsupport`, in
+  `SymplecticGeometry.Analysis.Complex.Wirtinger.Basic`); for the same reason the topological
+  support of `P v` lies in that of `v`
   (`TauCeti.tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset`).
-* `ContDiff.conjWirtingerDeriv_apply` and `ContDiff.wirtingerDeriv_apply`: the Wirtinger
-  derivatives of a `C^(m+1)` map, evaluated on a fixed vector, are `C^m`; the global forms of
-  Tau Ceti's `ContDiffAt.conjWirtingerDeriv_apply` and `ContDiffAt.wirtingerDeriv_apply`.
 * `TauCeti.eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le`: the `Lᵖ` norm of `Dᵐ(∂v(·) 1)` is at
   most that of `D^{m+1} v`, from Tau Ceti's `TauCeti.iteratedFDeriv_wirtingerDeriv_one`.
 * `TauCeti.exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le`: for `μ` of class
@@ -100,11 +98,6 @@ theorem conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv {μ : V → ℂ}
     fderiv_wirtingerDeriv_apply hv]
   abel
 
-/-- The Wirtinger derivative vanishes off the topological support. -/
-theorem wirtingerDeriv_of_notMem_tsupport (hz : z ∉ tsupport v) : wirtingerDeriv v z = 0 := by
-  ext b
-  simp [wirtingerDeriv_apply, fderiv_of_notMem_tsupport ℝ hz]
-
 /-- The operator `∂̄ + μ ∂` does not enlarge the topological support: the topological support
 of `∂̄v(·) b + μ ∂v(·) b` lies in that of `v`. -/
 theorem tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset (μ : V → ℂ) (b : V) :
@@ -123,23 +116,6 @@ theorem conjWirtingerDeriv_add_smul_wirtingerDeriv_congr {ρ μ : V → ℂ}
   by_cases hz : z ∈ tsupport v
   · rw [h hz]
   · simp [wirtingerDeriv_of_notMem_tsupport hz]
-
-section ContDiff
-
-variable {g : V → W} {m n : WithTop ℕ∞}
-
-/-- The conjugate Wirtinger derivative of a `C^(m+1)` map, evaluated on a fixed vector, is
-`C^m`. -/
-theorem _root_.ContDiff.conjWirtingerDeriv_apply (hg : ContDiff ℝ n g) (hmn : m + 1 ≤ n)
-    (v : V) : ContDiff ℝ m (fun z ↦ conjWirtingerDeriv g z v) :=
-  contDiff_iff_contDiffAt.2 fun _ ↦ hg.contDiffAt.conjWirtingerDeriv_apply hmn v
-
-/-- The Wirtinger derivative of a `C^(m+1)` map, evaluated on a fixed vector, is `C^m`. -/
-theorem _root_.ContDiff.wirtingerDeriv_apply (hg : ContDiff ℝ n g) (hmn : m + 1 ≤ n) (v : V) :
-    ContDiff ℝ m (fun z ↦ wirtingerDeriv g z v) :=
-  contDiff_iff_contDiffAt.2 fun _ ↦ hg.contDiffAt.wirtingerDeriv_apply hmn v
-
-end ContDiff
 
 end Commutator
 

@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
 # Time-dependent flows: joint smoothness, uniqueness on intervals, naturality
@@ -43,7 +44,9 @@ follows Tau Ceti's: both curves are lifted through their clocks to integral curv
 suspension, and these agree by Tau Ceti's uniqueness theorem for integral curves on preconnected
 sets, `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
 The lift of a solution through its clock is
-`TauCeti.hasMFDerivWithinAt_prodMk_timeDependentSuspensionField`, and
+`TauCeti.hasMFDerivWithinAt_prodMk_timeDependentSuspensionField`, at one time, and
+`TauCeti.isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff`, on a set of times, where
+the lift is an integral curve exactly when the curve is a solution; and
 `TauCeti.contMDiffAt_timeDependentSuspensionField` is the pointwise form of Tau Ceti's
 `TauCeti.contMDiff_timeDependentSuspensionField`, whose proof, through
 `TauCeti.contMDiff_const_prod_field`, it follows.
@@ -85,9 +88,14 @@ neighbourhood of `a₀` with the interval.
 * `TauCeti.contMDiff_timeDependentFlowOf_param`: the time-dependent flows of a jointly `C^n`
   family of fields with complete suspensions are `C^n` in the parameter, both times and the
   initial point.
+* `TauCeti.contMDiff_timeDependentFlowDiffeomorph_param`: for a fixed initial time, the flow
+  diffeomorphisms of such a family are jointly `C^n` in the parameter, the final time and the
+  point.
 * `TauCeti.hasMFDerivWithinAt_prodMk_timeDependentSuspensionField` and
   `TauCeti.contMDiffAt_timeDependentSuspensionField`: a solution lifted through its clock is an
   integral curve of the suspension, and the suspension of a field `C^n` at a point is `C^n` there.
+* `TauCeti.isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff`: a curve solves the
+  equation on a set of times if and only if its lift is an integral curve of the suspension there.
 * `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`: uniqueness of solutions on a
   preconnected set of times.
 * `TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`: a flow tangent to a level
@@ -110,6 +118,11 @@ namespace TauCeti
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- The suspension of `X` at `(t, x)` is `(1, X t x)`. -/
+theorem timeDependentSuspensionField_apply (X : ℝ → (x : M) → TangentSpace I x) (p : ℝ × M) :
+    timeDependentSuspensionField X p = ((1 : ℝ), X p.1 p.2) :=
+  Prod.ext (timeDependentSuspensionField_fst X p) (timeDependentSuspensionField_snd X p)
 
 /-- The time-dependent flow from a fixed time `s` of a `C^n` time-dependent vector field, `1 ≤ n`,
 with complete suspension is jointly `C^n` in the final time and the initial point. -/
@@ -147,13 +160,10 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
     ContMDiff ((J.prod (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))).prod I) I n
       (fun p : (N × ℝ × ℝ) × M ↦ timeDependentFlowOf (X p.1.1) p.1.2.1 p.1.2.2 p.2) := by
   -- The suspensions `(t, x) ↦ (1, X a t x)` form a jointly `C^n` family over `N`.
-  have hS (z : N × ℝ × M) :
-      timeDependentSuspensionField (X z.1) z.2 = ((1 : ℝ), X z.1 z.2.1 z.2.2) :=
-    Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _)
   have hv : ContMDiff (J.prod (𝓘(ℝ, ℝ).prod I)) (𝓘(ℝ, ℝ).prod I).tangent n
       (fun z : N × ℝ × M ↦ (⟨z.2, timeDependentSuspensionField (X z.1) z.2⟩ :
         TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) := by
-    simp only [hS]
+    simp only [timeDependentSuspensionField_apply]
     exact (contMDiff_equivTangentBundleProd_symm (I := 𝓘(ℝ, ℝ)) (M := ℝ) (I' := I)
       (M' := M)).comp (((contMDiff_tangentBundle_mk_const (1 : ℝ)).comp contMDiff_snd.fst).prodMk
         (hX.comp ((contMDiff_fst.prodMk contMDiff_snd.fst).prodMk contMDiff_snd.snd)))
@@ -172,6 +182,25 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
   rw [flowOf_timeDependentSuspensionField
     (mem_timeDependentFlowDomain.2 ((hc q.1.1).mem_flowDomain _ _))]
 
+/-- **The flow diffeomorphisms of a family are jointly smooth.** For a family `X a` of
+time-dependent vector fields as in `TauCeti.contMDiff_timeDependentFlowOf_param`, jointly `C^n`
+in `(a, t, x)`, `1 ≤ n`, with complete suspensions, and an initial time `s`, the map
+`(a, t, x) ↦ timeDependentFlowDiffeomorph … s t x`, the flow of `X a` from `s` to `t` applied
+to `x`, is `C^n`. -/
+theorem contMDiff_timeDependentFlowDiffeomorph_param [FiniteDimensional ℝ E] [T2Space M]
+    [BoundarylessManifold I M] [IsManifold I 1 M] [IsManifold J 1 N] {n : ℕ∞} (hn : 1 ≤ n)
+    [IsManifold I n M] [IsManifold J n N] {X : N → ℝ → (x : M) → TangentSpace I x}
+    (hX : ContMDiff ((J.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
+      (fun p : (N × ℝ) × M ↦ (⟨p.2, X p.1.1 p.1.2 p.2⟩ : TangentBundle I M)))
+    (hc : ∀ a, IsCompleteVectorField (timeDependentSuspensionField (X a))) (s : ℝ) :
+    ContMDiff (J.prod (𝓘(ℝ, ℝ).prod I)) I n (fun p : N × ℝ × M ↦
+      timeDependentFlowDiffeomorph (hc p.1) hn
+        (hX.comp ((contMDiff_const (c := p.1).prodMk contMDiff_fst).prodMk contMDiff_snd))
+        s p.2.1 p.2.2) :=
+  (contMDiff_timeDependentFlowOf_param hn hX hc).comp
+    ((contMDiff_fst.prodMk ((contMDiff_const (c := s)).prodMk contMDiff_snd.fst)).prodMk
+      contMDiff_snd.snd) |>.congr fun _ ↦ timeDependentFlowDiffeomorph_apply ..
+
 end Param
 
 /-! ### The suspension at a point -/
@@ -187,13 +216,23 @@ theorem hasMFDerivWithinAt_prodMk_timeDependentSuspensionField {c : ℝ → M} {
     (h : HasMFDerivWithinAt 𝓘(ℝ, ℝ) I c S u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u)))) :
     HasMFDerivWithinAt 𝓘(ℝ, ℝ) (𝓘(ℝ, ℝ).prod I) (fun r ↦ (r, c r)) S u
       ((1 : ℝ →L[ℝ] ℝ).smulRight (timeDependentSuspensionField X (u, c u))) := by
-  have hs : timeDependentSuspensionField X (u, c u) = ((1 : ℝ), X u (c u)) :=
-    Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _)
-  rw [hs]
+  rw [timeDependentSuspensionField_apply]
   -- Both derivatives send `r` to `(r, r • X u (c u))`; the clock component on the right is
   -- `r • 1 = r * 1`.
   exact ((hasMFDerivWithinAt_id S u).prodMk h).congr_mfderiv
     (ContinuousLinearMap.ext fun r ↦ Prod.ext (mul_one (M := ℝ) r).symm rfl)
+
+/-- **Solutions on a set are integral curves of the suspension.** A curve `c` solves
+`c' u = X u (c u)` at every `u ∈ S`, with derivatives within `S`, if and only if
+`r ↦ (r, c r)` is an integral curve on `S` of the suspension of `X`. -/
+theorem isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff {c : ℝ → M} {S : Set ℝ} :
+    IsMIntegralCurveOn (fun r ↦ (r, c r)) (timeDependentSuspensionField X) S ↔
+      ∀ u ∈ S, HasMFDerivWithinAt 𝓘(ℝ, ℝ) I c S u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u))) := by
+  refine ⟨fun h u hu ↦ ?_, fun h u hu ↦
+    hasMFDerivWithinAt_prodMk_timeDependentSuspensionField (h u hu)⟩
+  -- The second component of the lift is `c`, and that of the suspension is `X`.
+  exact ((hasMFDerivAt_snd (u, c u)).comp_hasMFDerivWithinAt u (h u hu)).congr_mfderiv
+    (ContinuousLinearMap.ext fun r : ℝ ↦ congrArg (r • ·) (timeDependentSuspensionField_snd X _))
 
 /-- The suspension of a time-dependent vector field that is jointly `C^n` at a point `p` of
 `ℝ × M` is a vector field on `ℝ × M` that is `C^n` at `p`. -/
@@ -207,7 +246,7 @@ theorem contMDiffAt_timeDependentSuspensionField [IsManifold I 1 M] {n : ℕ∞�
         TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) =
       fun p ↦ ⟨p, ((1 : ℝ), X p.1 p.2)⟩ :=
     funext fun p ↦ congrArg (Bundle.TotalSpace.mk p)
-      (Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _))
+      (timeDependentSuspensionField_apply X p)
   rw [hs]
   exact (contMDiff_equivTangentBundleProd_symm (I := 𝓘(ℝ, ℝ)) (M := ℝ) (I' := I)
     (M' := M)).contMDiffAt.comp p
@@ -239,7 +278,7 @@ theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
     timeDependentFlowOf X s t (γ s) = γ t := by
   -- A solution, lifted through its clock, is an integral curve of the suspension.
   have h₁ : IsMIntegralCurveOn (fun r ↦ (r, γ r)) (timeDependentSuspensionField X) S :=
-    fun u hu ↦ hasMFDerivWithinAt_prodMk_timeDependentSuspensionField (hγ u hu)
+    isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff.2 hγ
   have h₂ : IsMIntegralCurveOn (fun r ↦ (r, timeDependentFlowOf X s r (γ s)))
       (timeDependentSuspensionField X) S := fun u _ ↦
     hasMFDerivWithinAt_prodMk_timeDependentSuspensionField (hasMFDerivAt_timeDependentFlowOf hX
@@ -327,10 +366,8 @@ theorem _root_.TauCeti.mfderiv_prodMap_id_timeDependentSuspensionField {ψ : M �
     mdifferentiableAt_id (hψ y) ((1 : ℝ), X u y)
   rw [Manifold.tangentSpaceProdEquiv_symm_apply, Manifold.tangentSpaceProdEquiv_symm_apply,
     mfderiv_id, hXY] at h
-  exact (congrArg _ (Prod.ext (timeDependentSuspensionField_fst X (u, y))
-    (timeDependentSuspensionField_snd X (u, y)))).trans (h.trans (Prod.ext
-      (timeDependentSuspensionField_fst Y _).symm
-      (timeDependentSuspensionField_snd Y (u, ψ y)).symm))
+  exact (congrArg _ (timeDependentSuspensionField_apply X (u, y))).trans
+    (h.trans (timeDependentSuspensionField_apply Y (u, ψ y)).symm)
 
 /-- A diffeomorphism `ψ` that carries the time-dependent vector field `X` to `Y` at every time
 carries the domain of the time-dependent flow of `X` onto that of `Y`: the flow of `Y` from `s`
@@ -454,7 +491,7 @@ theorem exists_timeDependentField_param_eq_curveVelocity {n : ℕ∞} {Γ : N ×
         contMDiffAt_snd).congr_of_eventuallyEq ?_
       filter_upwards [continuousAt_snd.preimage_mem_nhds
         ((isClosed_tsupport ψ).isOpen_compl.mem_nhds hy)] with p hp
-      simp [zeroSection, hV0 hp]
+      simp [zeroSection_def, hV0 hp]
   · obtain ⟨hχ1, hψ1⟩ := hUT (mk_mem_prod hc (subset_of_mem_nhdsSet hT hu))
     have hb : Γ (c, u) ∈ e.baseSet :=
       hχO (subset_tsupport _ (by simp [hχ1] : χ (c, u) ≠ 0))

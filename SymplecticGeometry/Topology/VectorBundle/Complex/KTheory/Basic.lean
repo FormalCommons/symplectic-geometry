@@ -9,7 +9,9 @@ public import TauCeti.CategoryTheory.GrothendieckGroup.Monoidal.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Newton
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 
 /-!
 # Newton classes on the K-group of complex bundle cores
@@ -34,6 +36,8 @@ additive on Whitney sums, so it descends to an additive map `K(X) → H^{2j}(X; 
   `newtonClass_pullback`: the Newton classes of cores are invariant under isomorphism, additive
   on Whitney sums and natural under pullback; by `newtonClass_trivial`, those of a trivial core
   vanish in positive degree.
+* `newtonClass_ofBundleOfFinrankEq`: the core `ofBundleOfFinrankEq ℂ G E h` of a complex vector
+  bundle `E` has the Newton classes of `E`.
 * `newtonClassHom_of`: on the class of a core, `newtonClassHom` is the Newton class of its
   bundle.
 * `newtonClassHom_pullback`: `newtonClassHom` commutes with pullback along a continuous map,
@@ -111,6 +115,20 @@ theorem newtonClass_trivial (n : ℕ) {j : ℕ} (hj : j ≠ 0) :
     ((Bundle.Trivial.isInducing_toProd X (Fin n → ℂ)).continuous_iff.2
       ((trivial ℂ X n).core.continuous_proj.prodMk continuous_trivial_snd)) j
 
+/-- The core `ofBundleOfFinrankEq ℂ G E h` of a complex vector bundle `E` has the Newton classes
+of `E`. -/
+@[simp]
+theorem newtonClass_ofBundleOfFinrankEq
+    {G : Type} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+    (E : X → Type) [∀ b, AddCommGroup (E b)] [∀ b, Module ℂ (E b)] [∀ b, Module ℝ (E b)]
+    [∀ b, IsScalarTower ℝ ℂ (E b)] [∀ b, TopologicalSpace (E b)]
+    [TopologicalSpace (Bundle.TotalSpace G E)] [FiberBundle G E] [VectorBundle ℂ G E]
+    {n : ℕ} (h : Module.finrank ℂ G = n) (j : ℕ) :
+    newtonClass (Fin (ofBundleOfFinrankEq ℂ G E h).rank → ℂ)
+        (ofBundleOfFinrankEq ℂ G E h).core.Fiber j = newtonClass G E j :=
+  newtonClass_congr _ ((ofBundleOfFinrankEqHomeomorph ℂ G E h).continuous.congr fun p ↦
+    ofBundleOfFinrankEqHomeomorph_apply ℂ G E h p) j
+
 end TauCeti.FiniteRankBundleCore
 
 /-! ### The Newton classes on `K(X)` -/
@@ -181,7 +199,7 @@ line bundle. -/
 @[simp]
 theorem newtonClassHom_one {j : ℕ} (hj : j ≠ 0) :
     newtonClassHom X j (1 : SplitK0 (FiniteRankBundleCore ℂ X)) = 0 := by
-  rw [SplitK0.one_def]
+  rw [← SplitK0.of_trivial_one]
   exact newtonClassHom_trivial 1 hj
 
 end SymplecticGeometry.Bundle

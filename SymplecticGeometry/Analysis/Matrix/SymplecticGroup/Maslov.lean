@@ -5,16 +5,19 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.GLSymplectic
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.FundamentalGroup
-public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
-public import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 public import SymplecticGeometry.Topology.Algebra.SymplecticGroup
-public import SymplecticGeometry.Topology.Circle.Loop
-public import SymplecticGeometry.Topology.Homotopy.Path
 public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Topology.Homotopy.Path
+public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
+public import TauCeti.Analysis.Complex.Euclidean.Space
+public import TauCeti.Topology.Algebra.Group.Basic
+import SymplecticGeometry.Analysis.Matrix.Polar.GLSymplectic
+import SymplecticGeometry.LinearAlgebra.Matrix.Realify
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+import SymplecticGeometry.Topology.Algebra.Matrix.Realify
+import SymplecticGeometry.Topology.Circle.Loop
+import SymplecticGeometry.Topology.Homotopy.Path
 
 /-!
 # The Maslov index of loops of symplectic matrices: classification and uniqueness

@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
@@ -25,6 +26,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.DifferentialForm.Wedge
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Chart
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Topology.Algebra.Support
 
@@ -59,9 +61,6 @@ which is meaningful on `ψ.target`.
   (`PartialDiffeomorph.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart`), and in a
   chart in which `J` is constant it carries `𝒥 φ` to the derivation of `J (ψ.symm y)`
   (`PartialDiffeomorph.symbolInChart_realAlternatingDerivation_apply`).
-* `TauCeti.IsSmoothForm.fun_smul_mpullback`: for a chart `ψ` onto any normed space `V`, a smooth
-  function with support in the source of `ψ` times the pullback along `ψ` of a smooth flat form
-  on `V` is a smooth form on `M`.
 * `TauCeti.RoughForm.extendByZeroAlong ψ a`: the form on `M` that is the pullback along `ψ` of a
   flat form `a` on the source of `ψ`, and zero elsewhere; `TauCeti.mpullback_symm_extendByZeroAlong`
   recovers `a` on `ψ.target`. When `a` is smooth with compact support in `ψ.target`, the
@@ -85,11 +84,11 @@ which is meaningful on `ψ.target`.
 * `TauCeti.SmoothForm.contDiffOn_fderiv_mpullback_symm_apply`: the partial derivatives of the
   reading of a smooth form in `ψ` are smooth on `ψ.target`.
 
-The proof of `TauCeti.mpullback_symm_eq_inChartAt` is the pointwise form of the argument of Tau
-Ceti's `TauCeti.RoughForm.inChartAt_ae_eq_mpullback`, which proves the same equality almost
-everywhere on the target of the extended chart. The statements and docstrings of
-`TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau Ceti's
-`TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
+`TauCeti.mpullback_symm_eq_inChartAt` applies Tau Ceti's
+`TauCeti.RoughForm.mpullback_extChartAt_symm_eq_inChartAt`, which asks for a point of the interior
+of `range I`; every point of the target of the restricted chart is one. The statements and
+docstrings of `TauCeti.RoughForm.extendByZeroAlong_zero`, `_add` and `_smul` follow those of Tau
+Ceti's `TauCeti.RoughForm.extendByZero_zero`, `extendByZero_add` and `extendByZero_smul`.
 
 ## References
 
@@ -121,14 +120,9 @@ theorem mpullback_symm_eq_inChartAt {n : WithTop ℕ∞} [IsManifold I n M] (φ 
   have hsymm : ⇑(extChartPartialDiffeomorph I n x).symm = (extChartAt I x).symm :=
     funext (extChartPartialDiffeomorph_symm_apply I n x)
   rw [extChartPartialDiffeomorph_target] at hy
-  have hI : range I ∈ 𝓝 y := mem_interior_iff_mem_nhds.mp
-    (interior_mono (extChartAt_target_subset_range x) hy)
-  have hd := mfderivWithin_of_mem_nhds (I := 𝓘(ℝ, E)) (I' := I) (f := (extChartAt I x).symm) hI
-  ext v
   rw [hsymm]
-  exact (mpullback_apply _ φ y v).trans ((congrArg (fun L : TangentSpace 𝓘(ℝ, E) y →L[ℝ]
-    TangentSpace I ((extChartAt I x).symm y) ↦ φ _ fun i ↦ L (v i)) hd.symm).trans
-      (RoughForm.inChartAt_apply φ x y v).symm)
+  exact RoughForm.mpullback_extChartAt_symm_eq_inChartAt φ x
+    (interior_mono (extChartAt_target_subset_range x) hy)
 
 /-! ### The exterior derivative -/
 
@@ -139,7 +133,7 @@ theorem mpullback_symm_mextDerivₗ [IsManifold I ∞ M] (ψ : PartialDiffeomorp
     (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k φ).val y : E [⋀^Fin (k + 1)]→L[ℝ] F) =
       extDeriv (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] F) y := by
   rw [mextDerivₗ_apply, mpullback_mextDeriv_at
-    ((ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy)).of_le (by simp))
+    ((ψ.symm.contMDiffAt hy).of_le (by simp))
     ((φ.contMDiff _).of_le (by simp)), mextDeriv_eq_extDeriv]
 
 /-! ### The derivation along an almost complex structure -/
@@ -455,7 +449,7 @@ theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
     (fun x hx ↦ ?_) (fun x hx ↦ ?_)
   · refine ContMDiffAt.contMDiffWithinAt <| ContMDiffAt.congr_of_eventuallyEq
       (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
-        (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)) ?_
+        (ψ.contMDiffAt hx) (by simp)) ?_
     filter_upwards [ψ.open_source.mem_nhds hx] with z hz
     rw [RoughForm.extendByZeroAlong_apply_of_mem a hz]
   · refine ((isSmoothForm_def _ _).mp (IsSmoothForm.zero (I := I) (M := M) (F := F) (k := k) ∞)
@@ -528,30 +522,6 @@ theorem SmoothForm.extendByZeroAlong_sub (ha : ContDiff ℝ ∞ a) (hac : HasCom
 end SmoothForm
 
 end ExtendByZero
-
-/-! ### A cut-off times a pulled-back form -/
-
-section CutoffSMul
-
-variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [IsManifold I ∞ M]
-
-/-- Let `ψ` be a smooth partial diffeomorphism from `M` to a normed space `V`, `a` a smooth flat
-form on `V`, and `ρ` a smooth function on `M` whose support lies in the source of `ψ`. Then
-`ρ` times the pullback of `a` along `ψ`, which is zero off the support of `ρ`, is a smooth form
-on `M`. Unlike `TauCeti.IsSmoothForm.extendByZeroAlong`, `V` need not be the model space of `M`.
--/
-theorem IsSmoothForm.fun_smul_mpullback (ψ : PartialDiffeomorph I 𝓘(ℝ, V) M V ∞)
-    {a : V → V [⋀^Fin k]→L[ℝ] F} (ha : ContDiff ℝ ∞ a) {ρ : M → ℝ}
-    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) (hs : tsupport ρ ⊆ ψ.source) :
-    IsSmoothForm I ∞ (fun x ↦ ρ x • TauCeti.mpullback I 𝓘(ℝ, V) ψ a x) := by
-  have ha' : IsSmoothForm 𝓘(ℝ, V) ∞ (a : RoughForm 𝓘(ℝ, V) V F k) :=
-    isSmoothForm_modelSpace_iff.mpr ha
-  rw [isSmoothForm_def]
-  refine ContMDiffOn.smul_section_of_tsupport hρ.contMDiffOn ψ.open_source hs fun x hx ↦ ?_
-  exact (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
-    (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)).contMDiffWithinAt
-
-end CutoffSMul
 
 /-! ### Localization of a smooth form to a chart -/
 
@@ -750,7 +720,7 @@ theorem sum_extendByZeroAlong_localize [T2Space M] {ι : Type*} [Fintype ι]
       ((α.tsupport_localize_subset (ψ i) (hK i) (hρ i)).trans
         ((ψ i).mapsTo.mono_left (hρ i)).image_subset) = α := by
   refine Subtype.ext (funext fun x ↦ ?_)
-  rw [Submodule.coe_sum, Finset.sum_apply]
+  rw [SmoothBundleForm.sum_apply]
   simp only [SmoothForm.coe_extendByZeroAlong]
   rw [Finset.sum_congr rfl fun i _ ↦ extendByZeroAlong_localize_apply (ψ i) α (hρ i) x,
     ← Finset.sum_smul, ← finsum_eq_sum_of_fintype, ρ.sum_eq_one (mem_univ x), one_smul]

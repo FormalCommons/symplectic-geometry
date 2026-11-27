@@ -222,23 +222,26 @@ review of #420 raise four more.
   equation is an ODE along the Reeb flow that Tau Ceti takes as a
   hypothesis; and the first-order agreement itself needs a diffeomorphism
   with prescribed derivative along $L$. The page's route needs neither and
-  gives equality at once, so the design follows it:
+  gives equality at once, so the design followed it. Tau Ceti has since
+  proved the theorem itself
+  (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mpullback_eq_contactization`),
+  and the milestone is deduced from it; of the route, the library keeps
+  step 1:
   1. *A hypersurface through `L` tangent to `ξ`, parametrized by `T*L`.* The
      map $[w]\mapsto\bigl(d\alpha(df\,\cdot,w),\ \alpha(w)\bigr)$,
      $\nu_q\to T_q^*L\times\mathbb R$, on the normal space
      $\nu_q=T_{f(q)}M/df(T_qL)$, is well defined and injective (its kernel
      consists of the classes of $w\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
      because $L$ is Legendrian), hence bijective by dimension; these maps
-     form a smooth bundle isomorphism, Tau Ceti's
-     `TauCeti.SmoothEmbedding.normalSpaceEquivOfKer`, smooth by
-     `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfKer` and
-     `TauCeti.contMDiff_bundle_symm`, and
+     form Tau Ceti's diffeomorphism
+     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLegendrianImmersion`
+     of $\nu$ with $T^*L\times\mathbb R$, and
      its inverse restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise
      linear, injective bundle map $j:T^*L\to\nu$. The tubular map is not the
      diffeomorphism of `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
      whose derivative along the zero section Tau Ceti does not state: it is
      the normal exponential of an auxiliary metric
-     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_subset`,
+     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_norm_lt_subset`,
      with derivative from `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`),
      precomposed with a radial compression
      `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` into its domain,
@@ -422,10 +425,11 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   `RoughForm.ker (TauCeti.mpullback I I (flowOf X t) α.val) x = α.kerDistribution x`,
   that is, the local flow maps the contact hyperplanes to contact hyperplanes.
   Forward: `IsContactHamiltonianVectorField.mpullback_flowOf_apply` for the
-  Hamiltonian `α(X)`, whose multiplier is positive. Backward: the pullback at
-  `x` is $c(t)\,\alpha_x$ with $c(t)$ its value on $R_x$; differentiate at
-  `t = 0` with `TauCeti.hasDerivAt_mpullback_flowOf_zero`, so
-  $(\mathcal L_X\alpha)_x=c'(0)\alpha_x$.
+  Hamiltonian `α(X)`, whose multiplier is positive. Backward: the equality
+  gives `dφ_t (ker α_x) ⊆ ker α_(φ_t x)`, so Tau Ceti's
+  `preservesDistribution_kerDistribution_of_mfderiv_flowOf_mem` and
+  `IsContactForm.preservesDistribution_kerDistribution_iff` make `X` the
+  contact Hamiltonian vector field of `α(X)`.
 - `IsContactForm.contactHamiltonianEquiv (hα) : α.contactVectorFields ≃ₗ[ℝ] C^∞⟮I, M; ℝ⟯`,
   $X\mapsto\alpha(X)$, with inverse $H\mapsto X_H$
   (`contactHamiltonianVectorField`, smooth by
@@ -440,8 +444,9 @@ Named like Tau Ceti's file, in `TauCeti.SmoothForm`.
   for `H` nowhere zero and `C¹` (`ContMDiff I 𝓘(ℝ) 1 H`) and `β` with
   `∀ x, β.val x = (H x)⁻¹ • α.val x`, `β.IsContactForm` and
   `β.reebVectorField = α.contactHamiltonianVectorField H`; from
-  `isContactForm_iff_of_eq_smul`, `contactHamiltonianVectorField_of_eq_smul`
-  with $u=H^{-1}$, $f=H$, and `contactHamiltonianVectorField_one` for `β`.
+  `isContactForm_iff_of_eq_smul`, and Tau Ceti's
+  `IsContactForm.mfderiv_contactHamiltonianVectorField_inv` for `β` with
+  `f = id`, `u = H⁻¹`.
 - `Diffeomorph.preservesCoorientation_refl_iff_pos` for the same `β`, with
   `α` only nowhere zero (`∀ x, α.val x ≠ 0`):
   `(Diffeomorph.refl I M ∞).PreservesCoorientation α β ↔ ∀ x, 0 < H x`, Tau
@@ -577,7 +582,7 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   by `ℝ`, with the
   kernels prescribed at all real times near a given time, so it does not
   cover the ends of `[0, 1]`.
-- `IsContactFamily.exists_local_extension (hξ) (p)` (`[BoundarylessManifold I M]`): step 1
+- `IsContactFamily.exists_local_extension (hξ) (p)`: step 1
   of the extension in *Decisions*. For every `p : unitInterval × M` there
   are an open interval `J = Ioo a b ∋ p.1`, an open `U ∋ p.2`, and `α` with
   `IsLocalDefiningFamily ξ U α a b`. Uses `DifferentialForm/TimeExtension.lean` of
@@ -682,11 +687,9 @@ lemmas of N.
 
 ### `Geometry/Contact/Contactization.lean`
 
-Named like Tau Ceti's file, in `TauCeti.SmoothForm`: `coe_contactization`,
-the contactization form of `θ` as `dz - pr₁^* θ`, and
+Named like Tau Ceti's file, in `TauCeti.SmoothForm`:
 `mpullback_prodMap_contactization`, by which `Prod.map ι id` pulls the
-contactization form of `θ` back to that of `ι^* θ`. `LegendrianNeighborhood.lean`
-uses them.
+contactization form of `θ` back to that of `ι^* θ`.
 
 ### `Geometry/Contact/LegendrianNeighborhood.lean`
 
@@ -728,7 +731,10 @@ boundaryless and Hausdorff, and both are second countable.
 
   in the form of the neighbourhood germs of *Manifolds, families and signs*
   (that of `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`),
-  by steps 2–4 of the route. No properness hypothesis (see *Decisions*).
+  deduced from Tau Ceti's
+  `TauCeti.SmoothEmbedding.exists_partialDiffeomorph_mpullback_eq_contactization`
+  by the involution $(q,p,z)\mapsto(q,-p,-z)$ of `T*L × ℝ`, which pulls
+  $dz-\lambda_{\mathrm{can}}$ back to its negative. No properness hypothesis (see *Decisions*).
   Milestone: *Legendrian neighbourhood theorem*.
 
 Expected size: 650 lines, in two issues (L1 and L2).
@@ -740,7 +746,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   a smooth form on `unitInterval × M` to `ℝ × M` (for
   `IsContactFamily.exists_local_extension`, with
   `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
-  `Analysis/SpecialFunctions/SmoothTransition.lean`); and
+  `Analysis/SpecialFunctions/SmoothTransition/Basic.lean`); and
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean`, the reading of a
   `Diffeotopy` $\Phi$ over `ℝ` as $\Phi_{s(t)}$, $s=$ `Real.smoothTransition`,
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
@@ -751,12 +757,8 @@ Expected size: 650 lines, in two issues (L1 and L2).
   for the velocity (in `Gray.lean`); Tau Ceti's
   `Diffeotopy.velocity_timeDependentFlowDiffeotopy` and
   `Diffeotopy.apply_mk_symm_apply` are used there too.
-- *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
-  theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
-  Lagrangian embedding into a symplectic manifold, with model
-  $-d\lambda_{\mathrm{can}}$ on `T*L` and a map fixing the zero section; it
-  is applied on an open submanifold of `T*L`. `LegendrianNeighborhood.lean` also
-  uses `Geometry/Manifold/VectorBundle/ZeroSection.lean`, for the zero section as
+- `LegendrianNeighborhood.lean` uses
+  `Geometry/Manifold/VectorBundle/ZeroSection.lean`, for the zero section as
   a smooth embedding, and `Geometry/Manifold/Diffeomorph/Basic.lean` and
   `Topology/Sets/Opens/Basic.lean`, for an empty `L`.
 - *Moser isotopy*: `SmoothForm.mpullback_prodMk_mpullback_prodMap'` and its variants of
@@ -765,10 +767,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq` of
   `Geometry/Manifold/DifferentialForm/Opens.lean` (for
   `LegendrianNeighborhood.lean`).
-- *Liouville structures*: `mdifferentiableAt_subtypeVal` and
-  `mdifferentiable_subtypeVal` of `Geometry/Manifold/MFDeriv/Opens.lean`,
-  already merged (for `LegendrianNeighborhood.lean`), and
-  `TauCeti.Manifold.prodVectorField_apply` of
+- *Liouville structures*: `TauCeti.Manifold.prodVectorField_apply` of
   `Geometry/Manifold/VectorField/Prod.lean`, which imports only Tau Ceti
   (for `Geometry/Manifold/DifferentialForm/LieDeriv.lean`).
 - *Isotopy extension*: `ContMDiff.contMDiffOn_prod_opens_of_eq` of

@@ -5,7 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.BoundaryDegree
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.Basic
+public import TauCeti.AlgebraicTopology.Singular.Circle
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscComplement.BoundaryDegree
+import SymplecticGeometry.AlgebraicTopology.Singular.DisjointCircles
+import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
 
 /-!
 # The boundary class of the complement of coordinate discs

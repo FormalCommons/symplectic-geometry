@@ -8,10 +8,13 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.LieGroup
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.Algebra.SMul
-public import TauCeti.Geometry.Manifold.ContMDiff.Prod
 public import TauCeti.Geometry.Manifold.Flow.Basic
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
+public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
+import TauCeti.Geometry.Manifold.Flow.NormedSpace
+import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
+import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
 # Maximal flows: time-map differentials, integral curves, equivariance, translation
@@ -29,15 +32,18 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
 
 * `TauCeti.mfderiv_flowOf_neg_apply_mfderiv_flowOf`: `(dφ_{-t})_{φ_t x} ∘ (dφ_t)_x = id`.
 * `TauCeti.mfderiv_flowOf_apply_mfderiv_flowOf_neg`: `(dφ_t)_x ∘ (dφ_{-t})_{φ_t x} = id`.
-* `TauCeti.contDiffOn_flowOf_uncurry`, `TauCeti.hasFDerivAt_flowOf_uncurry_zero`: for a `C^n`
-  field, `1 ≤ n`, on a complete normed space, the flow is `C^n` on its domain, and for a `C¹`
-  field its derivative at time zero is `(r, u) ↦ r • v y + u`. They read Tau Ceti's
-  `TauCeti.contMDiffOn_flowOf` and `TauCeti.mfderiv_flowOf_zero_apply` in the model space.
 * `IsMIntegralCurveOn.comp_add_Ioo`, `IsMIntegralCurveOn.sub_mem_flowDomain`,
   `IsMIntegralCurveOn.flowOf_sub_eq`: an integral curve `γ` on `(a, b)` shifted in time stays an
   integral curve, and for `t₀, t ∈ (a, b)` the maximal flow takes `γ t₀` to `γ t` in time
   `t - t₀`, from Tau Ceti's `IsMIntegralCurveOn.subset_maximalIntegralCurveInterval` and
   `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
+* `IsMIntegralCurveOn.globalFlow_sub_eq_Ici`: for a complete field, an integral curve `γ` on the
+  closed ray `[a, ∞)` satisfies `γ t = φ_{t - a} (γ a)` for `t ≥ a`, including the endpoint where
+  `γ` has only a one-sided derivative. The shifted flow line and `γ` are integral curves on the
+  preconnected set `[a, ∞)` that agree at `a`, so they agree by Tau Ceti's
+  `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
+* `TauCeti.antitone_comp_globalFlow`: if `df(v) ≤ 0` everywhere for a complete field `v`, then
+  `f` is antitone along each orbit of its flow, by Tau Ceti's `IsMIntegralCurve.antitone_comp`.
 * `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`: if the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M`
   are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
@@ -63,6 +69,17 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   version of Tau Ceti's `Flow.zeroLevelProductDiffeomorph`, where `f` grows like time along the
   whole flow. Tau Ceti's `Flow.bandHomeomorph`, `Flow.apply_eq_sub_of_mem_Icc` and
   `TauCeti.apply_globalFlow_eq_sub` are close relatives under stronger hypotheses.
+* `TauCeti.isIntegralCurve_maximalIntegralCurve_of_isCompact`: on a complete real normed space,
+  the maximal integral curve of a compactly supported `C¹` field is a global integral curve, by
+  Tau Ceti's `TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off`.
+* `maximalIntegralCurve_zero_of_vectorSpace`: Tau Ceti's `maximalIntegralCurve_zero` for a field
+  given as a map `E → E`, as a `simp` lemma.
+* `maximalIntegralCurve_eqOn_add_smul`: if a `C¹` field `v : E → E` equals the constant `c`
+  along the line `s ↦ x + s • c` for `s` in an open interval around `0`, then the maximal integral
+  curve of `v` through `x` is that line on the interval. The proof adapts Tau Ceti's
+  `TauCeti.maximalIntegralCurve_bumpChartField_extChartAt_symm`: the line is an integral curve
+  of the constant field `c` (`TauCeti.isMIntegralCurve_translation`), hence of `v` on the
+  interval, so it agrees with the maximal one by `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
 -/
 
 public section
@@ -105,42 +122,6 @@ theorem mfderiv_flowOf_apply_mfderiv_flowOf_neg
 
 end FlowInverse
 
-section NormedSpace
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {v : E → E}
-
-/-- The flow of a `C^n` vector field on a normed space, `1 ≤ n`, is `C^n` on its domain. -/
-theorem contDiffOn_flowOf_uncurry {n : ℕ∞} (hn : 1 ≤ n) (hv : ContDiff ℝ n v) :
-    ContDiffOn ℝ n (fun p : ℝ × E ↦ flowOf (I := 𝓘(ℝ, E)) v p.1 p.2)
-      (flowDomain (I := 𝓘(ℝ, E)) v) := by
-  have h := contMDiffOn_flowOf (I := 𝓘(ℝ, E)) hn (contMDiff_vectorSpace_iff_contDiff.2 hv)
-  rw [contMDiffOn_prod_modelWithCornersSelf_iff] at h
-  exact contMDiffOn_iff_contDiffOn.1 h
-
-/-- The derivative at time zero of the flow of a `C¹` vector field `v` on a normed space, as a
-function of time and initial point, is `(r, u) ↦ r • v y + u`. -/
-theorem hasFDerivAt_flowOf_uncurry_zero (hv : ContDiff ℝ 1 v) (y : E) :
-    HasFDerivAt (fun p : ℝ × E ↦ flowOf (I := 𝓘(ℝ, E)) v p.1 p.2)
-      ((ContinuousLinearMap.fst ℝ ℝ E).smulRight (v y) + ContinuousLinearMap.snd ℝ ℝ E)
-      (0, y) := by
-  have hv1 : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)) :=
-    contMDiff_vectorSpace_iff_contDiff.2 hv
-  have hD := ((contDiffOn_flowOf_uncurry le_rfl hv).contDiffAt ((isOpen_flowDomain hv1).mem_nhds
-    (mem_flowDomain_zero hv1 y))).differentiableAt one_ne_zero
-  have h := mfderiv_flowOf_zero_apply hv1 y
-  -- Name the flow map, so that the model of its source can be rewritten without retyping `v`.
-  generalize (fun p : ℝ × E ↦ flowOf (I := 𝓘(ℝ, E)) v p.1 p.2) = G at h hD ⊢
-  rw [← modelWithCornersSelf_prod, chartedSpaceSelf_prod] at h
-  have hM := (mdifferentiableAt_iff_differentiableAt.2 hD).hasMFDerivAt
-  rw [hasMFDerivAt_iff_hasFDerivAt] at hM
-  refine hM.congr_fderiv (ContinuousLinearMap.ext fun ⟨a, u⟩ ↦ ?_)
-  -- `h` is an equation in `E`, the goal one in the tangent space at `G (0, y)`, which is `E`.
-  refine (h a u).trans ?_
-  exact (show ((ContinuousLinearMap.fst ℝ ℝ E).smulRight (v y) + ContinuousLinearMap.snd ℝ ℝ E)
-    (a, u) = a • v y + u by simp).symm
-
-end NormedSpace
-
 section IntegralCurve
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
@@ -171,6 +152,33 @@ theorem _root_.IsMIntegralCurveOn.flowOf_sub_eq [T2Space M] [IsManifold I 1 M]
   rw [flowOf_apply, (hγ.comp_add_Ioo t₀).eqOn_maximalIntegralCurve hv
     ⟨by linarith [ht₀.1], by linarith [ht₀.2]⟩ (by simp) ⟨by linarith [ht.1], by linarith [ht.2]⟩]
   simp
+
+/-- **An integral curve on a closed forward ray is a trajectory of the flow.** On a Hausdorff
+boundaryless manifold, if `γ` is an integral curve of a complete `C¹` vector field `v` on
+`[a, ∞)`, then for every `t ≥ a` the flow of `v` takes `γ a` to `γ t` in time `t - a`. At the
+endpoint `a` the curve has only a one-sided derivative. -/
+theorem _root_.IsMIntegralCurveOn.globalFlow_sub_eq_Ici [CompleteSpace E] [T2Space M]
+    [IsManifold I 1 M] [BoundarylessManifold I M]
+    (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v) (hγ : IsMIntegralCurveOn γ v (Ici a)) (ht : a ≤ t) :
+    globalFlow v hv hcomplete (t - a) (γ a) = γ t := by
+  have hφ : IsMIntegralCurveOn (fun s ↦ globalFlow v hv hcomplete (s - a) (γ a)) v (Ici a) :=
+    (((isMIntegralCurve_globalFlow hv hcomplete (γ a)).comp_add (-a)).isMIntegralCurveOn _).congr
+      (fun s _ ↦ by simp [sub_eq_add_neg])
+  exact hφ.eqOn_of_isPreconnected hγ isPreconnected_Ici self_mem_Ici
+    (fun s _ ↦ hv.contMDiffAt) (by simp) ht
+
+/-- **A function is antitone along the orbits of a descending flow.** Let `v` be a complete `C¹`
+vector field on a Hausdorff boundaryless manifold, and `f` a differentiable function with
+`df(v) ≤ 0` everywhere. Then `f` is antitone along each orbit `t ↦ Φ t x` of the flow `Φ` of `v`.
+This is Tau Ceti's `IsMIntegralCurve.antitone_comp` for the orbits of `TauCeti.globalFlow`. -/
+theorem antitone_comp_globalFlow [CompleteSpace E] [T2Space M] [IsManifold I 1 M]
+    [BoundarylessManifold I M]
+    (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v) {f : M → ℝ} (hf : MDifferentiable I 𝓘(ℝ) f)
+    (hvf : ∀ x, mvfderiv I f x (v x) ≤ 0) (x : M) :
+    Antitone fun t ↦ f (globalFlow v hv hcomplete t x) :=
+  (isMIntegralCurve_globalFlow hv hcomplete x).antitone_comp (fun _ ↦ hf _) fun _ ↦ hvf _
 
 /-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C¹` field `v` on
 `(a, b)` and `t₀, t ∈ (a, b)`, then near `(t, s)` the map `Φ` is the maximal flow of `v` out of the
@@ -375,6 +383,50 @@ end Band
 
 end Translation
 
+section CompactSupport
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+
+/-- The maximal integral curve of a compactly supported `C¹` vector field on a complete real
+normed space is a global integral curve. -/
+theorem isIntegralCurve_maximalIntegralCurve_of_isCompact {v : E → E} {K : Set E}
+    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1
+      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
+    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) (x : E) :
+    IsIntegralCurve (maximalIntegralCurve (I := 𝓘(ℝ, E)) v x) (fun _ ↦ v) :=
+  isIntegralCurveOn_univ.1 <| isMIntegralCurveOn_iff_isIntegralCurveOn.1 <|
+    (isMIntegralCurve_maximalIntegralCurve_of_eq_univ hv
+      ((isCompleteVectorField_of_isCompact_of_eq_zero_off hv hK hzero)
+        |>.maximalIntegralCurveInterval_eq_univ x)).isMIntegralCurveOn univ
+
+end CompactSupport
+
 end TauCeti
+
+section VectorSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- The maximal integral curve of a vector field `v : E → E` on a real normed space starts at its
+initial point. This is `maximalIntegralCurve_zero`, stated for a field valued in the tangent
+spaces of `E`; `simp` does not find that one for an `E`-valued field, nor does `rw` unless
+`v` is named. -/
+@[simp]
+theorem maximalIntegralCurve_zero_of_vectorSpace (v : E → E) (x : E) :
+    maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x :=
+  maximalIntegralCurve_zero
+
+/-- If a `C¹` vector field `v` on a real normed space equals the constant `c` at the points
+`x + s • c` for `s ∈ (a, b)`, an interval containing `0`, then the maximal integral curve of `v`
+through `x` is `s ↦ x + s • c` on `(a, b)`. -/
+theorem maximalIntegralCurve_eqOn_add_smul {v : E → E}
+    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
+    {x c : E} {a b : ℝ} (h0 : (0 : ℝ) ∈ Ioo a b) (hvc : ∀ s ∈ Ioo a b, v (x + s • c) = c) :
+    EqOn (maximalIntegralCurve (I := 𝓘(ℝ, E)) v x) (fun s ↦ x + s • c) (Ioo a b) := by
+  have hline : IsMIntegralCurveOn (I := 𝓘(ℝ, E)) (fun s : ℝ ↦ x + s • c) v (Ioo a b) :=
+    fun s hs ↦ (hvc s hs).symm ▸ (TauCeti.isMIntegralCurve_translation c x s).hasMFDerivWithinAt
+  exact hline.eqOn_maximalIntegralCurve hv h0 (by simp)
+
+end VectorSpace
 
 end

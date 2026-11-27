@@ -5,14 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Circle
-public import SymplecticGeometry.Analysis.Matrix.EuclideanLin
 public import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Real
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
+public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
+public import TauCeti.LinearAlgebra.Matrix.UnitaryGroup.Projective
+import SymplecticGeometry.Analysis.Matrix.EuclideanLin
+import SymplecticGeometry.LinearAlgebra.Matrix.UnitaryGroup.Projective
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 
 /-!
 # The symplectic and unitary actions on the Lagrangian Grassmannian
@@ -33,8 +36,9 @@ Write `ℒ ι` for the Lagrangian Grassmannian of the standard model `(StdSpace 
   `fromRows X Y` with Lagrangian range, the real orthonormalization of `X + i Y`; it frames that
   range (`unitaryFrame_unitaryOfFrame`).
 * `SymplecticGeometry.LagrangianGrassmannian.rotate θ Λ`: the image of `Λ` under the scalar
-  unitary matrix `e^{iθ} 1`, that is, under `e^{θ J₀}`, with `rotate_rotate` for composition
-  and period `π` (`periodic_rotate`, `rotate_int_mul_pi`).
+  unitary matrix `e^{iθ} 1` (Tau Ceti's `Matrix.UnitaryGroup.scalarHom`), that is, under
+  `e^{θ J₀}`, with `rotate_rotate` for composition and period `π` (`periodic_rotate`,
+  `rotate_int_mul_pi`).
 
 ## Main results
 
@@ -67,7 +71,7 @@ public section
 
 namespace SymplecticGeometry
 
-open Matrix TauCeti
+open Matrix Matrix.UnitaryGroup TauCeti
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
@@ -212,7 +216,7 @@ theorem unitaryFrame_def (U : unitaryGroup ι ℂ) : unitaryFrame U = U • hori
 theorem coe_unitaryFrame_eq_map (U : unitaryGroup ι ℂ) :
     (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
       (U : Matrix ι ι ℂ).realImage.map
-        (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
+        (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap := by
   rw [unitaryFrame_def, coe_unitary_smul, coe_horizontal, map_realImage]
 
 /-- The intersection of the Lagrangian framed by `U` with `{y = 0}` has the dimension of the
@@ -221,7 +225,7 @@ theorem finrank_unitaryFrame_inf_horizontal (U : unitaryGroup ι ℂ) :
     Module.finrank ℝ ↥((unitaryFrame U : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) =
       Module.finrank ℝ ↥((U : Matrix ι ι ℂ).realImage ⊓ TauCeti.realSubspace ι) := by
   rw [coe_unitaryFrame_eq_map, coe_horizontal, ← StdSpace.map_realSubspace,
-    ← Submodule.map_inf _ (StdSpace.complexEuclideanEquiv ι).injective,
+    ← Submodule.map_inf _ (complexToRealEuclideanIsometry ι).injective,
     LinearEquiv.finrank_map_eq]
 
 /-- The Lagrangian framed by `U` is spanned by the columns of the real `2n × n` matrix
@@ -230,7 +234,7 @@ theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :
     (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin
         (fromRows ((U : Matrix ι ι ℂ).map Complex.re) ((U : Matrix ι ι ℂ).map Complex.im))) := by
-  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage,
+  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows,
     map_re_add_I_smul_map_im]
 
 @[simp]
@@ -244,28 +248,22 @@ theorem unitaryFrame_mul (U U' : unitaryGroup ι ℂ) :
 
 /-! ### Rotations -/
 
-/-- The rotation of a Lagrangian `Λ` by the scalar unitary matrix `e^{iθ} 1`, that is, by
-`e^{θ J₀}`. -/
+/-- The rotation of a Lagrangian `Λ` by the scalar unitary matrix `e^{iθ} 1`, the image of
+`e^{iθ}` under `Matrix.UnitaryGroup.scalarHom`, that is, by `e^{θ J₀}`. -/
 noncomputable def rotate (θ : ℝ) (Λ : ℒ ι) : ℒ ι :=
-  (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ
+  scalarHom ι ℂ (circleEquivUnitary (Circle.exp θ)) • Λ
 
 theorem rotate_def (θ : ℝ) (Λ : ℒ ι) :
-    rotate θ Λ = (circleEquivUnitary (Circle.exp θ) • (1 : unitaryGroup ι ℂ)) • Λ :=
+    rotate θ Λ = scalarHom ι ℂ (circleEquivUnitary (Circle.exp θ)) • Λ :=
   (rfl)
 
 @[simp]
 theorem rotate_zero (Λ : ℒ ι) : rotate 0 Λ = Λ := by
-  have h : circleEquivUnitary (Circle.exp 0) • (1 : unitaryGroup ι ℂ) = 1 :=
-    Subtype.ext (by simp)
-  rw [rotate_def, h, one_smul]
+  rw [rotate_def, Circle.exp_zero, map_one, map_one, one_smul]
 
 /-- Rotating by `φ` and then by `θ` is rotating by `θ + φ`. -/
 theorem rotate_rotate (θ φ : ℝ) (Λ : ℒ ι) : rotate θ (rotate φ Λ) = rotate (θ + φ) Λ := by
-  rw [rotate_def, rotate_def, rotate_def, smul_smul]
-  congr 1
-  refine Subtype.ext ?_
-  simp only [Submonoid.coe_mul, Unitary.coe_smul, OneMemClass.coe_one, circleEquivUnitary_smul,
-    Circle.exp_add, Circle.coe_mul, smul_mul_smul_comm, mul_one]
+  rw [rotate_def, rotate_def, rotate_def, smul_smul, Circle.exp_add, map_mul, map_mul]
 
 /-- The scalar unitary matrix `-1` fixes every Lagrangian subspace. -/
 @[simp]
@@ -275,8 +273,10 @@ theorem unitary_neg_one_smul (Λ : ℒ ι) : (-1 : unitaryGroup ι ℂ) • Λ =
 /-- Rotating by `π` fixes every Lagrangian subspace, since `e^{iπ} = -1`. -/
 @[simp]
 theorem rotate_pi (Λ : ℒ ι) : rotate Real.pi Λ = Λ := by
-  have h : circleEquivUnitary (Circle.exp Real.pi) • (1 : unitaryGroup ι ℂ) = -1 :=
-    Subtype.ext (by simp [Unitary.coe_neg, Circle.coe_exp, Complex.exp_pi_mul_I])
+  have h : scalarHom ι ℂ (circleEquivUnitary (Circle.exp Real.pi)) = -1 :=
+    Subtype.ext <| by
+      rw [coe_scalarHom_eq_smul_one, coe_circleEquivUnitary, Circle.coe_exp, Complex.exp_pi_mul_I,
+        neg_one_smul, Unitary.coe_neg, OneMemClass.coe_one]
   rw [rotate_def, h, unitary_neg_one_smul]
 
 /-- Rotating by `θ + π` is rotating by `θ`: rotations have period `π`. -/
@@ -298,8 +298,8 @@ theorem rotate_pi_div_two_horizontal : rotate (Real.pi / 2) (horizontal ι) = ve
   rw [← symJ_smul_horizontal, rotate_def, unitary_smul_def]
   congr 1
   refine Subtype.ext (Units.ext ?_)
-  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one, Unitary.coe_smul,
-    OneMemClass.coe_one, circleEquivUnitary_smul]
+  rw [GLSymplectic.coe_ofUnitary, GLSymplectic.coe_symJ, ← realify_I_smul_one,
+    coe_scalarHom_eq_smul_one, coe_circleEquivUnitary]
   simp [Circle.coe_exp, Complex.exp_mul_I]
 
 /-- The unitary matrix of a Lagrangian frame `fromRows X Y`: the real orthonormalization of its
@@ -329,7 +329,7 @@ theorem unitaryFrame_unitaryOfFrame {X Y : Matrix ι ι ℝ}
   toSubmodule_injective <| by
     rw [coe_ofFrame, coe_unitaryFrame_eq_map, coe_unitaryOfFrame,
       GeneralLinearGroup.realImage_realOrthonormalize, GeneralLinearGroup.val_mkOfDetNeZero,
-      ← range_toEuclideanLin_fromRows_eq_map_realImage]
+      ← range_toEuclideanLin_fromRows]
 
 /-- **Transitivity of `U(n)`.** Every Lagrangian subspace of `StdSpace ι` is framed by a unitary
 matrix. -/
@@ -360,7 +360,7 @@ instance : MulAction.IsPretransitive (GLSymplectic ι ℝ) (ℒ ι) :=
 theorem unitaryFrame_eq_horizontal_iff {U : unitaryGroup ι ℂ} :
     unitaryFrame U = horizontal ι ↔ U ∈ UnitaryGroup.realSubgroup ι := by
   rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, coe_horizontal, ← map_realSubspace,
-    (Submodule.map_injective_of_injective (complexEuclideanEquiv ι).injective).eq_iff,
+    (Submodule.map_injective_of_injective (complexToRealEuclideanIsometry ι).injective).eq_iff,
     UnitaryGroup.mem_realSubgroup_iff_exists]
   constructor
   · intro h

@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Isotopy
+public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Isotopy
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homogeneity
 
 /-!

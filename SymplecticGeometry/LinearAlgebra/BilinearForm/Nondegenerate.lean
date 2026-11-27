@@ -8,7 +8,22 @@ module
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 
 /-!
-# Nondegeneracy from a hyperplane with a one-dimensional radical
+# Nondegeneracy of reflexive bilinear forms and of their restrictions
+
+For a reflexive bilinear form `B` and a submodule `W`, the restriction of `B` to `W` is
+nondegenerate exactly when the only vector of `W` that pairs to zero under `B` with all of `W`
+is zero (`LinearMap.BilinForm.IsRefl.nondegenerate_restrict_iff`). This is the vector form of
+Tau Ceti's `LinearMap.BilinForm.restrict_nondegenerate_iff_disjoint_orthogonal`, and holds over
+any commutative semiring. Its proof follows the elementwise step of Tau Ceti's
+`Module.Dual.isContact_iff_of_isRefl`, checking both sides of nondegeneracy directly.
+
+## Block diagonal forms
+
+If `M` is the direct sum of submodules `W` and `H`, and a reflexive form `B` pairs `W` with `H`
+to zero, then `B` is nondegenerate exactly when its restrictions to `W` and `H` both are
+(`LinearMap.BilinForm.IsRefl.nondegenerate_iff_of_isCompl`).
+
+## Nondegeneracy from a hyperplane with a one-dimensional radical
 
 Let `B` be a reflexive bilinear form on a module `M` over a commutative ring without zero
 divisors, and let `W` be a submodule that, together with one vector `e`, spans `M`. Suppose that
@@ -32,6 +47,48 @@ action.
 public section
 
 namespace LinearMap.BilinForm
+
+section Restrict
+
+variable {R M : Type*} [CommSemiring R] [AddCommMonoid M] [Module R M]
+
+/-- For a reflexive bilinear form `B`, the restriction of `B` to a submodule `W` is
+nondegenerate if and only if every `u ∈ W` with `B u w = 0` for all `w ∈ W` is zero. -/
+theorem IsRefl.nondegenerate_restrict_iff {B : LinearMap.BilinForm R M} (hB : B.IsRefl)
+    {W : Submodule R M} :
+    (B.restrict W).Nondegenerate ↔ ∀ u ∈ W, (∀ w ∈ W, B u w = 0) → u = 0 :=
+  ⟨fun h u hu hw ↦ congrArg Subtype.val (h.1 ⟨u, hu⟩ fun w ↦ hw w w.property),
+    fun h ↦ ⟨fun u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hu ⟨w, hw⟩),
+      fun u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hB _ _ (hu ⟨w, hw⟩))⟩⟩
+
+end Restrict
+
+section IsCompl
+
+variable {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
+
+/-- Let `W` and `H` be complementary submodules for which the reflexive bilinear form `B` is block
+diagonal: `B w h = 0` for `w ∈ W` and `h ∈ H`. Then `B` is nondegenerate if and only if its
+restrictions to `W` and to `H` both are. -/
+theorem IsRefl.nondegenerate_iff_of_isCompl {B : LinearMap.BilinForm R M} (hB : B.IsRefl)
+    {W H : Submodule R M} (hWH : IsCompl W H) (hB₀ : ∀ w ∈ W, ∀ h ∈ H, B w h = 0) :
+    B.Nondegenerate ↔ (B.restrict W).Nondegenerate ∧ (B.restrict H).Nondegenerate := by
+  have hB₁ : ∀ h ∈ H, ∀ w ∈ W, B h w = 0 := fun h hh w hw ↦ hB _ _ (hB₀ w hw h hh)
+  rw [Nondegenerate, LinearMap.IsRefl.nondegenerate_iff_separatingLeft hB,
+    hB.nondegenerate_restrict_iff, hB.nondegenerate_restrict_iff]
+  constructor
+  · intro h
+    refine ⟨fun u hu hW ↦ h u fun v ↦ ?_, fun u hu hH ↦ h u fun v ↦ ?_⟩ <;>
+      obtain ⟨w, k, hw, hk, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hWH.codisjoint v
+    · rw [map_add, hW w hw, hB₀ u hu k hk, add_zero]
+    · rw [map_add, hB₁ u hu w hw, hH k hk, add_zero]
+  · rintro ⟨hW, hH⟩ v hv
+    obtain ⟨w, k, hw, hk, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hWH.codisjoint v
+    have hw0 : w = 0 := hW w hw fun w' hw' ↦ by simpa [hB₁ k hk w' hw'] using hv w'
+    have hk0 : k = 0 := hH k hk fun k' hk' ↦ by simpa [hB₀ w hw k' hk'] using hv k'
+    rw [hw0, hk0, add_zero]
+
+end IsCompl
 
 variable {R M : Type*} [CommRing R] [NoZeroDivisors R] [AddCommGroup M] [Module R M]
 

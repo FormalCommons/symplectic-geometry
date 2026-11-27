@@ -7,6 +7,9 @@ module
 
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.RegularValue
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
+import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 import TauCeti.Geometry.Manifold.RegularValue.Open
 
 /-!
@@ -22,14 +25,27 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
 
 * `SymplecticGeometry.mem_criticalSet_iff` and `SymplecticGeometry.compl_criticalSet`: the
   critical set is the complement of the regular points.
+* `TauCeti.IsRegularValue.notMem_criticalSet` and
+  `TauCeti.IsRegularValue.apply_ne_of_mem_criticalSet`: no point of the critical set lies over a
+  regular value, one direction of Tau Ceti's `TauCeti.isRegularValue_iff_notMem_image`.
 * `SymplecticGeometry.isClosed_criticalSet`: the critical set of a `C¹` map into a
   finite-dimensional manifold is closed, by Tau Ceti's `TauCeti.isOpen_setOf_isRegularPoint`.
-* `Diffeomorph.comp_isRegularPoint_iff` and `Diffeomorph.criticalSet_comp`: postcomposing with a
-  diffeomorphism changes neither the regular points nor the critical set. This is the
+* `Diffeomorph.comp_isRegularPoint_iff`, `Diffeomorph.comp_isRegularValue_iff` and
+  `Diffeomorph.criticalSet_comp`: postcomposing with a diffeomorphism changes neither the regular
+  points, nor the regular values (moved by the diffeomorphism), nor the critical set. This is the
   counterpart, for the target, of Tau Ceti's `Diffeomorph.isRegularPoint_comp_iff`.
+* `Diffeomorph.comp_isRegularPoint_iff_restrictScalars'`,
+  `Diffeomorph.comp_isRegularValue_iff_restrictScalars'` and
+  `Diffeomorph.criticalSet_comp_restrictScalars'`: the same for a diffeomorphism over a larger
+  field, such as a biholomorphism, seen over the smaller field by `Diffeomorph.restrictScalars'`.
+* `TauCeti.IsRegularPoint.restrictScalars'`: a map differentiable over a larger field and regular
+  for its self models is regular for the self models over the smaller field.
 * `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
   set is Tau Ceti's `TauCeti.criticalPoints`, by
   `TauCeti.isRegularPoint_iff_notMem_criticalPoints`.
+* `TauCeti.IsRegularValue.scalar_comp`: postcomposing a real-valued function with an injective
+  `φ : ℝ → ℝ` whose derivative does not vanish at its values moves its regular values by `φ`,
+  since it keeps its critical points (`TauCeti.mem_criticalPoints_scalar_comp_iff`).
 -/
 
 public section
@@ -69,6 +85,16 @@ theorem compl_criticalSet (f : M → N) :
   ext x
   simp
 
+/-- A point of the fibre of `f` over a regular value is not in the critical set of `f`. -/
+theorem _root_.TauCeti.IsRegularValue.notMem_criticalSet {f : M → N} {x : M} {y : N}
+    (hy : IsRegularValue I I' f y) (hx : f x = y) : x ∉ criticalSet I I' f :=
+  fun hc ↦ mem_criticalSet_iff.1 hc (hy.isRegularPoint hx)
+
+/-- A critical point of `f` is never mapped to a regular value of `f`. -/
+theorem _root_.TauCeti.IsRegularValue.apply_ne_of_mem_criticalSet {f : M → N} {x : M} {y : N}
+    (hy : IsRegularValue I I' f y) (hx : x ∈ criticalSet I I' f) : f x ≠ y :=
+  fun h ↦ hy.notMem_criticalSet h hx
+
 /-- The critical set of a `C¹` map into a finite-dimensional manifold is closed. -/
 theorem isClosed_criticalSet [CompleteSpace 𝕜] [FiniteDimensional 𝕜 E'] [IsManifold I 1 M]
     [IsManifold I' 1 N] {f : M → N} {n : WithTop ℕ∞} (hf : ContMDiff I I' n f) (hn : 1 ≤ n) :
@@ -87,6 +113,16 @@ theorem _root_.Diffeomorph.comp_isRegularPoint_iff {n : WithTop ℕ∞}
   rwa [← Function.comp_assoc, ← Diffeomorph.coe_trans, Diffeomorph.self_trans_symm,
     Diffeomorph.coe_refl, Function.id_comp] at this
 
+/-- Postcomposing a map with a `C^n` diffeomorphism `Φ` (`n ≠ 0`) preserves regular values:
+`Φ y` is a regular value of `Φ ∘ f` exactly when `y` is one of `f`. -/
+theorem _root_.Diffeomorph.comp_isRegularValue_iff {n : WithTop ℕ∞}
+    {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] {H'' : Type*} [TopologicalSpace H'']
+    {I'' : ModelWithCorners 𝕜 E'' H''} {N' : Type*} [TopologicalSpace N'] [ChartedSpace H'' N']
+    (Φ : N ≃ₘ^n⟮I', I''⟯ N') (hn : n ≠ 0) {f : M → N} {y : N} :
+    IsRegularValue I I'' (Φ ∘ f) (Φ y) ↔ IsRegularValue I I' f y := by
+  simp only [isRegularValue_iff, Function.comp_apply, EmbeddingLike.apply_eq_iff_eq,
+    Φ.comp_isRegularPoint_iff hn]
+
 /-- Postcomposing a map with a `C^n` diffeomorphism (`n ≠ 0`) does not change its critical set. -/
 theorem _root_.Diffeomorph.criticalSet_comp {n : WithTop ℕ∞}
     {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] {H'' : Type*} [TopologicalSpace H'']
@@ -96,6 +132,47 @@ theorem _root_.Diffeomorph.criticalSet_comp {n : WithTop ℕ∞}
   ext x
   simp [Φ.comp_isRegularPoint_iff hn]
 
+section RestrictScalars
+
+variable {𝕜' : Type*} [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜 𝕜']
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedSpace 𝕜' F] [IsScalarTower 𝕜 𝕜' F]
+  {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] [NormedSpace 𝕜' F']
+  [IsScalarTower 𝕜 𝕜' F'] {P : Type*} [TopologicalSpace P] [ChartedSpace F P]
+  {P' : Type*} [TopologicalSpace P'] [ChartedSpace F' P'] {n : WithTop ℕ∞}
+
+/-- Postcomposing a map with a `C^n` diffeomorphism over a larger field `𝕜'` (`n ≠ 0`), such as a
+biholomorphism, does not change its regular points over `𝕜`. -/
+theorem _root_.Diffeomorph.comp_isRegularPoint_iff_restrictScalars'
+    (Ψ : P ≃ₘ^n⟮𝓘(𝕜', F), 𝓘(𝕜', F')⟯ P') (hn : n ≠ 0) {f : M → P} {x : M} :
+    IsRegularPoint I 𝓘(𝕜, F') (Ψ ∘ f) x ↔ IsRegularPoint I 𝓘(𝕜, F) f x := by
+  rw [← Diffeomorph.coe_restrictScalars' 𝕜 Ψ, Diffeomorph.comp_isRegularPoint_iff _ hn]
+
+/-- Postcomposing a map with a `C^n` diffeomorphism `Ψ` over a larger field `𝕜'` (`n ≠ 0`), such
+as a biholomorphism, moves its regular values over `𝕜` by `Ψ`: `Ψ y` is a regular value of `Ψ ∘ f`
+exactly when `y` is one of `f`. -/
+theorem _root_.Diffeomorph.comp_isRegularValue_iff_restrictScalars'
+    (Ψ : P ≃ₘ^n⟮𝓘(𝕜', F), 𝓘(𝕜', F')⟯ P') (hn : n ≠ 0) {f : M → P} {y : P} :
+    IsRegularValue I 𝓘(𝕜, F') (Ψ ∘ f) (Ψ y) ↔ IsRegularValue I 𝓘(𝕜, F) f y := by
+  rw [← Diffeomorph.coe_restrictScalars' 𝕜 Ψ, Diffeomorph.comp_isRegularValue_iff _ hn]
+
+/-- Postcomposing a map with a `C^n` diffeomorphism over a larger field `𝕜'` (`n ≠ 0`), such as a
+biholomorphism, does not change its critical set over `𝕜`. -/
+theorem _root_.Diffeomorph.criticalSet_comp_restrictScalars'
+    (Ψ : P ≃ₘ^n⟮𝓘(𝕜', F), 𝓘(𝕜', F')⟯ P') (hn : n ≠ 0) (f : M → P) :
+    criticalSet I 𝓘(𝕜, F') (Ψ ∘ f) = criticalSet I 𝓘(𝕜, F) f := by
+  rw [← Diffeomorph.coe_restrictScalars' 𝕜 Ψ, Diffeomorph.criticalSet_comp _ hn]
+
+/-- A map that is differentiable over a larger field `𝕜'` at `x`, such as a holomorphic map, and
+regular at `x` for the self models over `𝕜'`, is regular at `x` for the self models over `𝕜`. -/
+theorem _root_.TauCeti.IsRegularPoint.restrictScalars' {f : P → P'} {x : P}
+    (h : IsRegularPoint 𝓘(𝕜', F) 𝓘(𝕜', F') f x) (hf : MDifferentiableAt 𝓘(𝕜', F) 𝓘(𝕜', F') f x) :
+    IsRegularPoint 𝓘(𝕜, F) 𝓘(𝕜, F') f x := by
+  refine isRegularPoint_iff.2 fun c ↦ ?_
+  obtain ⟨u, hu⟩ := isRegularPoint_iff.1 h c
+  exact ⟨u, (hf.mfderiv_modelWithCornersSelf_restrictScalars_apply 𝕜 u).trans hu⟩
+
+end RestrictScalars
+
 /-- For a real-valued function, the critical set is Tau Ceti's `criticalPoints`, the set of points
 where the manifold derivative vanishes. -/
 theorem criticalSet_eq_criticalPoints {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -104,6 +181,19 @@ theorem criticalSet_eq_criticalPoints {E : Type*} [NormedAddCommGroup E] [Normed
     criticalSet I 𝓘(ℝ) f = criticalPoints I f := by
   ext x
   rw [mem_criticalSet_iff, isRegularPoint_iff_notMem_criticalPoints, not_not]
+
+/-- Post-composing with an injective `φ : ℝ → ℝ` whose derivative does not vanish at the values of
+a differentiable `f` keeps regular values: if `c` is a regular value of `f`, then `φ c` is one of
+`φ ∘ f`. -/
+theorem _root_.TauCeti.IsRegularValue.scalar_comp {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*}
+    [TopologicalSpace M] [ChartedSpace H M] {f : M → ℝ} {φ : ℝ → ℝ}
+    (hf : MDifferentiable I 𝓘(ℝ) f) (hinj : Function.Injective φ) (hφ : ∀ x, deriv φ (f x) ≠ 0)
+    {c : ℝ} (hc : IsRegularValue I 𝓘(ℝ) f c) : IsRegularValue I 𝓘(ℝ) (φ ∘ f) (φ c) := by
+  rw [isRegularValue_iff_notMem_image_criticalPoints] at hc ⊢
+  rintro ⟨x, hx, hxc⟩
+  rw [mem_criticalPoints_scalar_comp_iff (hf x) (hφ x)] at hx
+  exact hc ⟨x, hx, hinj hxc⟩
 
 end SymplecticGeometry
 

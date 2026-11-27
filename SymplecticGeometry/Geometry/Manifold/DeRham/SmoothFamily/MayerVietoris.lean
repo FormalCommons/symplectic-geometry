@@ -7,7 +7,8 @@ module
 
 public import Mathlib.LinearAlgebra.Projection
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Basic
-public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Cutoff
+public import SymplecticGeometry.Geometry.Manifold.DeRham.MayerVietoris
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Cutoff
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 
 /-!

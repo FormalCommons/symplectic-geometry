@@ -7,9 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
-import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
-import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
+import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
 
 /-!
 # Integrals of the curvature of circle connections
@@ -27,8 +26,9 @@ form `α + π^* a`.
 
 * `SymplecticGeometry.IsCircleConnectionForm.integralTopForm_curvature_eq`: all connection forms
   have curvatures with the same integral.
-* `SymplecticGeometry.IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq`: over a
-  preconnected base, every top form with that integral is the curvature of a connection form.
+* `SymplecticGeometry.IsCircleConnectionForm.isCircleConnectionCurvature_of_integralTopForm_eq`:
+  over a preconnected base, every top form with that integral is the curvature of a connection
+  form.
 
 ## References
 
@@ -77,22 +77,13 @@ theorem IsCircleConnectionForm.integralTopForm_curvature_eq (hα : IsCircleConne
 /-- Over a compact, preconnected, boundaryless, oriented base, every smooth `2`-form whose
 integral is that of the curvature of a connection form `α` is the curvature of a connection
 form. -/
-theorem IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq [PreconnectedSpace B]
-    (hα : IsCircleConnectionForm α) (o : Manifold.Orientation IB B (Fin 2))
+theorem IsCircleConnectionForm.isCircleConnectionCurvature_of_integralTopForm_eq
+    [PreconnectedSpace B] (hα : IsCircleConnectionForm α) (o : Manifold.Orientation IB B (Fin 2))
     {σ : SmoothForm IB B ℝ 2}
     (hσ : integralTopForm o σ.val = integralTopForm o hα.curvature.val) :
-    ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
-      (hβ : IsCircleConnectionForm β), hβ.curvature = σ := by
-  let : MeasurableSpace EB := borel EB
-  have : BorelSpace EB := ⟨rfl⟩
-  have hint : integralTopForm o (σ - hα.curvature).val = 0 := by
-    rw [Submodule.coe_sub, integralTopForm_sub_of_compactSpace o (σ.isSmoothForm.of_le (by simp))
-      (hα.curvature.isSmoothForm.of_le (by simp)), hσ, sub_self]
-  have hex := (mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero o
-    (compactlySupportedForms_eq_top (I := IB) (M := B) 2 ▸ Submodule.mem_top)).mpr hint
-  rw [exactCompactlySupportedForms_succ, Submodule.mem_map] at hex
-  obtain ⟨a, -, ha⟩ := hex
-  exact ⟨_, hα.add_mpullback a, by rw [hα.curvature_add_mpullback a, ha, add_sub_cancel]⟩
+    IsCircleConnectionCurvature P σ :=
+  hα.isCircleConnectionCurvature_iff_sub_mem_exactForms.2
+    ((sub_mem_exactForms_iff_integralTopForm_eq o).2 hσ)
 
 end SymplecticGeometry
 

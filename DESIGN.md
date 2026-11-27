@@ -306,8 +306,8 @@ page's conventions through them.
   surfaces this loses nothing.
 - **Characteristic classes and Betti numbers.** Chern classes are integral
   singular cohomology classes (`TauCeti` singular cohomology with chain
-  coefficients `ULift ℤ`), $c_1$ being *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass`, with values in `ULift ℤ`.
+  coefficients `ULift ℤ`), $c_1$ being Tau Ceti's
+  `TauCeti.firstChernClass`, with values in `ULift ℤ`.
   *Chern classes* takes values in `ℤ` (`TopCat.integralCohomology`, whose
   cup product has the ring laws) and compares with classes valued in
   `ULift ℤ` through an isomorphism, as `design/chern-classes.md` says.
@@ -439,11 +439,18 @@ bracket is negated.
   cohomology is de Rham cohomology (`TauCeti.deRhamCohomology`), as on the
   page. Integral classes ($H_1(B;\mathbb Z)$, the Euler number of a circle
   bundle) are singular, and are compared with de Rham classes by Tau Ceti's
-  integration map (`Geometry/Manifold/SmoothSingular/DeRham.lean`). The
+  integration map (`Geometry/Manifold/SmoothSingular/DeRham/Basic.lean`). The
   real first Chern class of the vertical bundle is a de Rham class, built
   by Chern–Weil in *Compatible symplectic forms*, and compared with the
-  library's integral `SymplecticGeometry.Bundle.firstChernClass` there
-  over closed oriented surfaces, through Chern numbers.
+  integral `TauCeti.firstChernClass` there
+  over closed oriented surfaces, through Chern numbers. With the merged
+  orientation and integration signs, `deRhamHom` of the real class of a
+  Hermitian line bundle is **minus** the real image of Tau Ceti's
+  `TauCeti.complexEulerClass` of the bundle
+  (`SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`, for
+  pull-backs of `Projectivization.twistCore 1` along smooth maps). Parts
+  that pass between the two classes, such as the blowup, Lefschetz and
+  Stein–Weinstein parts, rewrite with it rather than recompute the sign.
 - **Diffeomorphism groups.** $\mathrm{Diff}(M)$ is Tau Ceti's `TauCeti.Diff`
   with the weak Whitney topology (`Diffeomorph.weakWhitneyTopology`,
   `Geometry/Diffeomorphism/Topology.lean`), which for a compact source is
@@ -548,8 +555,7 @@ the library.
 These notions are used by several parts. All are reused from Tau Ceti or
 Mathlib, except the three definitions of *Standard model* and the bundle
 complex structures of *Symplectic vector bundles*, which *First Chern number*
-also uses, the first Chern class of *First Chern number*, the
-integrability predicate of *Nijenhuis tensor*, and the fibrations,
+also uses, the integrability predicate of *Nijenhuis tensor*, and the fibrations,
 parallel transport, principal connections and fibre integrals of parts
 47, 48, 50 and 51.
 
@@ -584,7 +590,7 @@ parallel transport, principal connections and fibre integrals of parts
 | Almost complex structure on $M$, $\mathcal J(M,\omega)$, $\mathcal J_\tau(M,\omega)$ | `TauCeti.SmoothAlmostComplexStructure I M` with `frameTopology`; subtypes for `TauCeti.SmoothTwoForm.Compatible`, `Tames` | Tau Ceti |
 | Nijenhuis tensor, Kähler pair | `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `TauCeti.SmoothTwoForm.IsKahler` | Tau Ceti |
 | Integrable almost complex structure | `TauCeti.SmoothAlmostComplexStructure.IsIntegrable` | *Nijenhuis tensor* |
-| First Chern class of a complex bundle | `SymplecticGeometry.Bundle.firstChernClass` | *First Chern number* |
+| First Chern class of a complex bundle | `TauCeti.firstChernClass` | Tau Ceti |
 | Lie group action, fundamental vector fields $X_\xi$ | `[LieGroup I ∞ G] [ContMDiffSMul I I' ∞ G M]`; `TauCeti.fundamentalVectorField`, `TauCeti.InfinitesimalAction.fundamental` (see *Group actions, moment maps and periods*) | Mathlib, Tau Ceti |
 | Moment map, equivariant moment map, its cocycle | `TauCeti.SmoothTwoForm.IsMomentMap`, `IsEquivariantMomentMap`, `momentCocycle`, applied to $-\mu$ | Tau Ceti |
 | Average of a form over a compact group | `TauCeti.SmoothForm.measureAverage` with `TauCeti.haarProb` (`Geometry/Manifold/DifferentialForm/Average.lean`) | Tau Ceti |
@@ -594,7 +600,7 @@ parallel transport, principal connections and fibre integrals of parts
 | Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `TauCeti.MapFiber.Atlas` with `IsContMDiff`; structure groups `TauCeti.MapFiber.Atlas.HasStructureGroup`, symplectic atlases, `TauCeti.MapFiber.Atlas.RestrictsTo` (see *Fibrations, connections and diffeomorphism groups*) | Tau Ceti, *Symplectic fibrations* |
 | Connection on a fibration, horizontal lift | `TauCeti.IsEhresmannConnection`, `horizontalLift` | Tau Ceti |
 | Parallel transport, holonomy, curvature of a connection | `TauCeti.IsEhresmannConnection.parallelTransport`, `curvature` | *Parallel transport* |
-| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `SymplecticGeometry.connectionCurvature` | *Principal connections* |
+| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `TauCeti.gaugeCurvature` | *Principal connections* |
 | Flux, flux group, endpoint flux | `TauCeti.Diffeotopy.flux`, `TauCeti.fluxGroup`, `TauCeti.endpointFlux` | Tau Ceti |
 | Integration over the fibre | `TauCeti.MapFiber.Atlas.fiberIntegral` | *Integration over the fibre* |
 | Diffeomorphism group with the $C^\infty$ topology | `TauCeti.Diff` with `Diffeomorph.weakWhitneyTopology` | Tau Ceti |
@@ -650,17 +656,17 @@ parallel transport, principal connections and fibre integrals of parts
   built by *Lagrangian Grassmannian*'s issue on direct sums (#126), which came
   before that part's first issue on direct sums, not by *Standard model*'s
   issues.
-- The complex coordinates: `StdSpace.complexEuclideanEquiv ι :
-  EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`, the composite of
-  `PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)` with
-  `TauCeti.complexToRealEuclidean ι`, with `complexEuclideanEquiv_def` and the
-  `@[simp]` lemmas `x_complexEuclideanEquiv` and `y_complexEuclideanEquiv`
-  (the real and imaginary parts of each coordinate), and
-  `stdComplexStructure_complexEuclideanEquiv` (it carries multiplication by
-  `I` to `J₀`). *Lagrangian
+- The complex coordinates: the isometry `TauCeti.complexToRealEuclideanIsometry ι :
+  EuclideanSpace ℂ ι ≃ₗᵢ[ℝ] StdSpace ι` of `Analysis/Complex/Euclidean/Space.lean`,
+  `TauCeti.complexToRealEuclidean ι` read on `EuclideanSpace ℂ ι`, with the
+  lemmas `x_complexToRealEuclideanIsometry` and
+  `y_complexToRealEuclideanIsometry` (the real and imaginary parts of each
+  coordinate), and `stdComplexStructure_complexToRealEuclideanIsometry` (it
+  carries multiplication by `I` to `J₀`). *Lagrangian
   Grassmannian* uses it to compare its subspaces of `StdSpace ι` with Tau
-  Ceti's subspaces of `EuclideanSpace ℂ ι`. It is built by that part's issue
-  on Lagrangian frames (#118), not by *Standard model*'s issues.
+  Ceti's subspaces of `EuclideanSpace ℂ ι`. Its lemmas in `Standard/Basic.lean`
+  are built by that part's issue on Lagrangian frames (#118), not by
+  *Standard model*'s issues.
 - The matrix dictionary: `mem_symplecticGroup_iff_isSymplectomorphism`
   (`A ∈ Matrix.symplecticGroup ι ℝ` if and only if `Matrix.toEuclideanLin A`
   preserves `stdForm ι`), and `mem_GLSymplectic_iff_isSymplectomorphism`, its
@@ -688,7 +694,8 @@ table may fall behind.
   `isSymplectomorphism_piLpCongrLeft_sumCongr` with its coordinates
   `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
   `stdDarbouxBasisOf` with its lemmas, `StdSpace.sumEquiv`, and the additions
-  of *Lagrangian Grassmannian*: `StdSpace.complexEuclideanEquiv`, `StdSpace.swap`,
+  of *Lagrangian Grassmannian*: the coordinates of
+  `complexToRealEuclideanIsometry`, `StdSpace.swap`,
   `StdSpace.finSumIsometry`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
@@ -743,7 +750,7 @@ table may fall behind.
   even multiplicity at $\pm1$, $\omega_0$-orthogonality of eigenvectors for
   $\lambda\lambda'\neq1$ with the bilinear extension; from Tau Ceti's
   `SymplecticGroup.charpoly_inv`, `SymplecticGroup.reflect_charpolyRev` and
-  `LinearMap.IsAdjointPair.apply_eq_zero_of_mem_genEigenspace`),
+  `LinearMap.apply_eq_zero_of_mem_maxGenEigenspace_of_compl₁₂_eq_smul`),
   `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` (algebraic facts beside
   Mathlib's `SymplecticGroup.transpose_mem`: the `simp` lemmas
   `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl` and
@@ -832,7 +839,7 @@ table may fall behind.
   For $n=0$ the group is a point. The two counterexamples for $n=0$, for
   $\mathrm{U}(0)$ and $\mathrm{Sp}(0)$, both apply the general
   `FundamentalGroup.not_surjective_map_circle_of_subsingleton`
-  (`AlgebraicTopology/FundamentalGroup.lean`), which also holds
+  (`AlgebraicTopology/FundamentalGroup/Circle.lean`), which also holds
   `Circle.homotopic_iff_angleChange_map_eq`: for `d : X → S¹` injective on
   $\pi_1$, two paths with the same ends are homotopic iff their images have
   the same angle change. The retraction and the facts about `detCircle`
@@ -1006,8 +1013,8 @@ it into issues; the overview fixes its folders and its dependencies.
   for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
   map to orthogonal projections is a closed embedding; `Finite.lean` uses
   it). The part also adds declarations about `StdSpace ι` alone to
-  *Standard model*'s `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`,
-  the map from `EuclideanSpace ℂ ι`; the coordinate swap `StdSpace.swap`;
+  *Standard model*'s `Standard/Basic.lean`: the coordinates and `J₀` of
+  `TauCeti.complexToRealEuclideanIsometry`, the map from `EuclideanSpace ℂ ι`; the coordinate swap `StdSpace.swap`;
   the isometry `StdSpace.finSumIsometry` onto `EuclideanSpace ℝ (Fin (n + n))`;
   and the coordinates `StdSpace.x_piLpCongrLeft_sumCongr` and
   `StdSpace.y_piLpCongrLeft_sumCongr` of the coordinate permutation; the
@@ -1055,7 +1062,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `lagrangianChart S` is maximal totally real and transverse to
   `realSubspace (Fin 2)`, but by `Matrix.lagrangianChart_injective` it is
   the chart of no symmetric matrix. The statement follows from the second
-  graph statement, transferred along `StdSpace.complexEuclideanEquiv n`,
+  graph statement, transferred along `complexToRealEuclideanIsometry n`,
   which carries `TauCeti.realSubspace n` to $V_0$ and
   `lagrangianChart S` to $\{x=Sy\}$.
 - **Graph charts** (`Graph.lean`). For the projection topology (**The
@@ -1312,7 +1319,7 @@ it into issues; the overview fixes its folders and its dependencies.
   and $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the
   two units that `contDiffAt_cayleyPathFormula`
   (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
-  since $[0,1]$ is compact (`SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  since $[0,1]$ is compact (`SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`
   in `Cayley/Domain.lean`, stated for the pairs $(J_0,A)$). It
   does not contain every complex structure ($A=-J_0$ gives $1-J_0A=0$), but
   for an $\omega$-compatible $J_0$ it contains the $\omega$-tame structures,
@@ -1330,7 +1337,7 @@ it into issues; the overview fixes its folders and its dependencies.
   on its endomorphism bundle both come from that one reading. So its
   existence issue waits for the two issues of this part that write
   `PolarComplexStructure/`. It uses the same set $U_{J_0}$ at each point, and
-  takes its openness from `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  takes its openness from `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`
   and the membership of the tame structures from
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so its
   contractibility issue waits for the issue of this part that writes
@@ -1394,17 +1401,16 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
   real matrix is positive definite exactly when its image over an `RCLike`
   field is, through Tau Ceti's realification),
-  `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
-  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$, and
-  `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
+  `LinearAlgebra/Matrix/Symmetric.lean`
+  (`Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
   when $A^{T}B=B^{T}A$),
   `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
   of $M$ that the first block column of $M^2=-1$ gives), and
-  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOf_isUnit_det`:
+  `Topology/Instances/Matrix.lean` (`Continuous.isOpen_setOfPred_isUnit_det`:
   for a continuous family $f$ of square matrices over a topological field
   with closed points, the parameters $x$ where $f(x)$ is invertible form an
-  open set; and its two consequences `Matrix.isOpen_setOf_isUnit_det_map_im`
-  and `Matrix.isOpen_setOf_isUnit_det_toBlocks₂₁`: the complex matrices
+  open set; and its two consequences `Matrix.isOpen_setOfPred_isUnit_det_map_im`
+  and `Matrix.isOpen_setOfPred_isUnit_det_toBlocks₂₁`: the complex matrices
   with invertible imaginary part, and the block matrices over such a field
   whose square lower left block is invertible, are open). They import only Mathlib, Tau Ceti and each other.
 - **Builds on:** *Standard model*; compatibility is Tau Ceti's `Compatible`.
@@ -1502,9 +1508,9 @@ it into issues; the overview fixes its folders and its dependencies.
   upstream),
   `Topology/FiberBundle/Basic.lean` (a fibrewise open condition on a fibre
   bundle gives an open set of the total space, in Mathlib's namespace),
-  `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
-  another model fibre along a homeomorphism, in Mathlib's namespaces and at
-  Mathlib's fibre-bundle level, since it involves no group),
+  `Topology/FiberBundle/Trivialization.lean` (trivializations read through
+  homeomorphisms of the model fibre or of the total space, in Mathlib's
+  namespaces),
   `Topology/FiberBundle/Principal/ChangeGroup.lean` (the change of structure group
   of a Tau Ceti principal bundle along an isomorphism of topological groups,
   in the namespaces of the Tau Ceti and Mathlib types it is about; it sits
@@ -1625,7 +1631,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `SymplecticGeometry.cayleyDomain` for every $b\in[0,1]$. Its intersection with an
   open set on which the reference is continuous is open
   (`Bundle.isOpen_cayleyPathDomain`, from part 9's
-  `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`), and it contains
+  `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain`), and it contains
   every structure on a fibre that is tame for a form there when the
   reference is compatible with that form
   (`TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`, from
@@ -1690,7 +1696,7 @@ it into issues; the overview fixes its folders and its dependencies.
   last milestone; for the constructions, the pieces listed under
   *Constructions*. From *Compatible complex structures* it uses the file
   `Geometry/Symplectic/Cayley/Domain.lean` (`SymplecticGeometry.cayleyDomain`, its
-  openness lemma `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  openness lemma `SymplecticGeometry.isOpen_setOfPred_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`), and the two files of
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
   (`SymplecticGeometry.metricPolarFormula` on `SymplecticGeometry.polarDomain`, with its smoothness
@@ -1937,9 +1943,9 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 13. First Chern number (needs `design/first-chern-number.md`)
 
-- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (the
-  first Chern class of a complex bundle, as `TauCeti.complexEulerClass` of
-  its determinant line, and the first Chern number over a compact oriented
+- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (what
+  the library adds to Tau Ceti's first Chern class `TauCeti.firstChernClass`
+  of a complex bundle, and the first Chern number over a compact oriented
   surface), and in `Geometry/Manifold/VectorBundle/ChernNumber/`:
   `Basic.lean` (the number of a symplectic bundle, through a compatible
   complex structure), `Clutching.lean` (the disc clutching formula, by
@@ -2015,7 +2021,7 @@ complete target and a function on the whole half-space.
   `Geometry/Manifold/Flow/TimeDependent.lean`; and the
   reading of a `Diffeotopy` $\Phi$ over `ℝ` as $t\mapsto\Phi_{s(t)}$,
   $s=$ `Real.smoothTransition`, with its `TauCeti.eulerianField`
-  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition.lean`
+  $s'(t)X_{s(t)}$, with `Analysis/SpecialFunctions/SmoothTransition/Deriv.lean`
   and `Geometry/Manifold/SmoothTransition.lean`)
   and `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean` (the
   constructor of a `TauCeti.Diffeotopy I ∞ M` from a jointly smooth map on
@@ -2234,7 +2240,7 @@ complete target and a function on the whole half-space.
   `Geometry/Symplectic/Moser/Family.lean` (Moser's argument near a compact
   set along a family and with a parameter, beside *Moser isotopy*'s files),
   `Geometry/Manifold/SmoothIsotopy/Extension.lean` (named like Tau Ceti's
-  file: isotopy extension at every time, without Tau Ceti's change of time),
+  file: time extension of an isotopy past the ends of $[0,1]$),
   `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`,
   `AlgebraicTopology/Singular/NDRPair.lean` (singular homology near the
   subset of Tau Ceti's NDR pairs) and
@@ -2438,7 +2444,8 @@ complete target and a function on the whole half-space.
   `Topology/Sets/Strip.lean` (the open strip
   $(-\varepsilon,\varepsilon)\times X$ of $\mathbb R\times X$ and the tube
   lemma for it),
-  `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` and
+  `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` (integral curves of
+  an outward field in the interior) and
   `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` (the smooth collar of
   a compact boundary whose normal lines are the integral curves of a given
   outward field),
@@ -2466,10 +2473,8 @@ complete target and a function on the whole half-space.
   nondegeneracy, for `StableHamiltonian.lean`), which is merged,
   `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
   `StableHamiltonian.lean`), and *Smooth families*: its
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
-  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
-  `Geometry/Manifold/MFDeriv/Chart.lean`, which are merged, for
-  `Collar/Flow/Local.lean`, which extends a field across the boundary, and its
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which is merged, for
+  `Collar/Flow/Basic.lean`, and its
   `DifferentialForm/SmoothFamily/Basic.lean`, which is merged, for
   `StableHamiltonian.lean`. `Completion.lean` uses
   `Filling.lean` and `End.lean`.
@@ -2660,10 +2665,10 @@ complete target and a function on the whole half-space.
   `Geometry/Manifold/Projectivization/FubiniStudy/`, beside
   Tau Ceti's files on projective space: `Basic.lean`
   ($\rho_{\mathrm{FS}}$ and $\alpha_{\mathrm{FS}}$ on $\mathbb C^{n+1}\setminus0$, their
-  relation to $\omega_0$ through the radial projection, and the descended
-  form $\omega_{\mathrm{FS}}$, by Tau Ceti's
-  `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq` along the
-  Hopf map), `Kahler.lean` (closedness, nondegeneracy, the local potentials
+  relation to $\omega_0$ through the radial projection, and the form
+  $\omega_{\mathrm{FS}}$, carried over from Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.fubiniStudyForm` by
+  `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization`), `Kahler.lean` (closedness, nondegeneracy, the local potentials
   on the affine charts, compatibility with `ofComplexManifold`, `IsKahler`,
   invariance under $\mathrm U(n+1)$, and with *Complex submanifolds* the
   Kähler structure of every complex submanifold), `Normalization.lean` (the
@@ -2769,8 +2774,8 @@ complete target and a function on the whole half-space.
 ### 31. First Chern class of nondegenerate forms
 
 - **Files:** `Geometry/Symplectic/Manifold/FirstChernClass.lean`
-  (`TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`, *First Chern
-  number*'s `firstChernClass` of the complex tangent bundle of a compatible
+  (`TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`, Tau Ceti's
+  `TauCeti.firstChernClass` of the complex tangent bundle of a compatible
   $J$, chosen by Tau Ceti's `IsNondegenerate.exists_compatible`; it equals
   the class of every compatible and every taming $J$, since two structures
   taming one form give isomorphic complex bundles, by the merged
@@ -2792,15 +2797,14 @@ complete target and a function on the whole half-space.
   isotopy*.
 - **Milestones:** *First Chern class of a nondegenerate two-form*, on a
   Hausdorff σ-compact manifold (for the existence of a compatible $J$). The
-  integral class is *First Chern number*'s, the Euler class of the
-  determinant line, as `design/first-chern-number.md` plans it for this
-  page. No design file is needed.
+  integral class is Tau Ceti's `TauCeti.firstChernClass`, the Euler class
+  of the determinant line. No design file is needed.
 
 ### 32. Adjunction (needs `design/adjunction.md`)
 
 - **Files:** `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
   (since $T\Sigma$ is $J$-invariant, $J$ descends to the fibres of Tau
-  Ceti's intrinsic normal bundle `TauCeti.SmoothEmbedding.NormalSpace` and
+  Ceti's intrinsic normal bundle `Manifold.IsImmersion.NormalSpace` and
   makes it a smooth complex bundle, with no metric), and in
   `Geometry/Symplectic/Manifold/AlmostComplex/`: `NormalSplitting.lean`
   (the splitting of $TX|_\Sigma$ as a direct sum of symplectic bundles, over
@@ -2828,7 +2832,7 @@ complete target and a function on the whole half-space.
   classes $c_k$ and the total class of a complex vector bundle in integral
   singular cohomology, by the projective bundle and Tau Ceti's Leray–Hirsch
   files (`AlgebraicTopology/Cohomology/LerayHirsch/`), with $c_1$ equal to
-  *First Chern number*'s `firstChernClass`; naturality, the Whitney sum
+  Tau Ceti's `TauCeti.firstChernClass`; naturality, the Whitney sum
   formula, the top class as Tau Ceti's `TauCeti.complexEulerClass`; the
   cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively.
   The evaluation of the Euler class of the tangent bundle of a closed
@@ -2847,8 +2851,10 @@ complete target and a function on the whole half-space.
   formula (Poincaré–Hopf for the gradient of a Morse function) and the
   issues.
 - **Extension for `auxiliary/first-chern-class.md`** (needs an update of
-  `design/chern-classes.md`): the merged files give `firstChernClass`,
-  its naturality `firstChernClass_pullback`, its equality with the Euler
+  `design/chern-classes.md`): Tau Ceti gives `TauCeti.firstChernClass`
+  with its naturality `TauCeti.firstChernClass_pullback` along `C(X, B)`;
+  the merged files give its naturality along any `ContinuousMapClass`
+  (`firstChernClass_pullback_coe`), its equality with the Euler
   class for a line (`firstChernClass_eq_complexEulerClass`), the Whitney
   formula `firstChernClass_prod` over a compact normal base,
   $c_1(L)=-h$ (`complexEulerClass_twistCore_neg_one`) and
@@ -2873,7 +2879,7 @@ complete target and a function on the whole half-space.
   complex submanifold): the tangent bundle of $\mathbb CP^{n+1}$ plus a
   trivial line as $H^{\oplus(n+2)}$, with $H$ Tau Ceti's
   `Projectivization.twistCore 1`; the normal bundle of a hypersurface of
-  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle over
+  degree $d$, Tau Ceti's `Manifold.IsImmersion.NormalSpace` bundle over
   `ℂ`, as the restriction of $H^{\otimes d}$, through the derivative
   of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; then the total Chern class
   and $c_1$ of $M$; the Euler characteristic; the numbers for surfaces in
@@ -2997,10 +3003,16 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   (`Geometry/Manifold/DeRham/Hodge/Basic.lean`).
 - **Milestones:** *Frankel–Ono Hamiltonianity criterion*.
 - **The design file decides:** the route to the nondegeneracy of the
-  pairing in degrees $(1,m-1)$: through the library's singular duality
-  (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`)
+  pairing in degrees $(1,m-1)$: through Tau Ceti's singular duality
+  (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`)
   and Tau Ceti's comparison of de Rham and singular cohomology
-  (`Geometry/Manifold/SmoothSingular/DeRham.lean`), or directly from
+  (`TauCeti.deRhamHom` in
+  `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the base
+  cases of the de Rham theorem in
+  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the compact case
+  is the merged `TauCeti.bijective_deRhamHom_of_compactSpace` of
+  *Asymptotically holomorphic sections*, in
+  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
   page's route through the Poincaré dual of an orbit is replaced by the
@@ -3023,10 +3035,10 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   form; the band is a manifold with boundary $H^{-1}(a)\cup H^{-1}(b)$);
   `Geometry/Symplectic/Moser/Equivariant.lean` (a Moser isotopy built from
   invariant primitives of a family of invariant forms is equivariant);
-  `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean` (the real
-  first Chern class $-(2\pi)^{-1}[F_\alpha]$ of a circle bundle); and
-  `Geometry/Manifold/GroupAction/PrincipalBundle.lean` (a free action of a
-  compact Lie group makes a principal bundle over the quotient manifold).
+  and `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean` (the real
+  first Chern class $-(2\pi)^{-1}[F_\alpha]$ of a circle bundle). The
+  principal bundle of a free action of a compact Lie group over the quotient
+  manifold is Tau Ceti's (`FiberBundle/Principal/Quotient.lean`).
 - **Builds on:** *Lie group actions* (only `Circle.lean`); the merged circle
   connection forms of *First Chern number*
   (`Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`,
@@ -3311,10 +3323,10 @@ Differential topology and complex analysis only; it waits for no part of
   Tau Ceti's `TauCeti.MapFiber.Atlas` with `IsContMDiff`, with structure
   group $H\le\mathrm{Diff}(F)$ and its reductions; oriented and symplectic
   atlases; the bridge from Tau Ceti's `ContMDiffFiberBundle` and
-  `AssociatedBundle`); in `Geometry/Symplectic/Fibration/`: `Basic.lean`
-  (the predicate that a
-  form restricts to the fibre forms, with its independence of the chart;
-  compatible symplectic forms, for a symplectic atlas and, with an
+  `AssociatedBundle`), and `RestrictsTo.lean` (the predicate that a
+  form restricts to the fibre forms, with its independence of the chart);
+  in `Geometry/Symplectic/Fibration/`: `Basic.lean`
+  (compatible symplectic forms, for a symplectic atlas and, with an
   orientation, for an oriented one), `HorizontalDistribution.lean` (a
   two-form that
   restricts to the fibre forms defines the Ehresmann connection
@@ -3361,7 +3373,7 @@ Differential topology and complex analysis only; it waits for no part of
   `Surface.lean` (the surface milestone, with compatibility with the
   orientation). The real first Chern class, built by Chern–Weil for the
   determinant line, natural under pull-back, and compared with the
-  library's `SymplecticGeometry.Bundle.firstChernClass` only over closed
+  `TauCeti.firstChernClass` only over closed
   oriented surfaces, through Chern numbers; the formula
   $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$; and the family of area
   forms made symplectic by Moser's argument with a parameter in the base
@@ -3628,13 +3640,13 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
 
 - **Files:** in `Geometry/Manifold/SmoothEmbedding/NormalSpace/`, beside
   Tau Ceti's files on the intrinsic normal bundle
-  `TauCeti.SmoothEmbedding.NormalSpace`: `ThomClass.lean` (for an
+  `Manifold.IsImmersion.NormalSpace`: `ThomClass.lean` (for an
   orientation of the normal bundle of a closed embedded submanifold $Z$ of
   codimension $r$, its Thom class, the canonical class
   `TauCeti.VectorBundleOrientation.canonicalThomClass`, and
   the Thom isomorphism $H^k(Z)\cong H^{k+r}(\nu,\nu\setminus Z)$ by cup
   product, from a Thom isomorphism over second-countable bases in
-  `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass.lean`
+  `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass/Basic.lean`
   (the class $d_Z$ of degree $r$ on $X$: the Thom class carried to
   $H^r(X,X\setminus Z)$ by a tubular neighbourhood, from Tau Ceti's
   `exists_diffeomorph_normalBundle_subset`, and excision, then made absolute;
@@ -3693,7 +3705,7 @@ auxiliary pages, and the symplectic parts wait for it.
   almost complex manifold along a holomorphic chart, with the pull-back of
   $J$ off $Z$), `SelfIntersection.lean` ($Z\cdot Z=-1$ for $n=2$, as the
   Euler number of the normal bundle in the sense of *Adjunction*'s
-  `SelfIntersection.lean`, from $c_1(L)=-h$), `ConnectedSum.lean`
+  `SelfIntersection.lean`, from $c_1(L)=-h$), `ConnectedSum/Basic.lean`
   ($\widetilde M\cong M\#\overline{\mathbb CP}{}^n$ preserving orientation,
   by the normal bundle $L^*$ of $\mathbb CP^{n-1}\subset\mathbb CP^n$, with
   Tau Ceti's `TauCeti.OrientedConnectedSum`), `ExceptionalClass.lean`
@@ -3712,7 +3724,7 @@ auxiliary pages, and the symplectic parts wait for it.
   $K_{\widetilde M}\cong\pi^*K_M\otimes\mathcal O((n-1)E)$ on Tau Ceti's
   `TauCeti.CanonicalBundle`, by the local Jacobian computation of Schnell,
   Lemma 23.5, in the charts $\tilde\phi$).
-- **Builds on:** *Connected sums* (only for `ConnectedSum.lean`);
+- **Builds on:** *Connected sums* (only for `ConnectedSum/Basic.lean`);
   *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and
   `ChernClass.lean`); *Chern classes* (only its extension below, for
   `ChernClass.lean`); the merged files of *Complex projective space*,
@@ -3725,7 +3737,7 @@ auxiliary pages, and the symplectic parts wait for it.
 - **Milestones:** *Tautological line bundle and the exceptional divisor*
   (`Tautological.lean` and `SelfIntersection.lean`, with $c_1(L)=-h$ merged),
   *Complex blowup at a point* (`Basic.lean` and `Curve.lean`), *Blowup as a connected sum
-  with the reversed projective space* (`ConnectedSum.lean` and
+  with the reversed projective space* (`ConnectedSum/Basic.lean` and
   `ExceptionalClass.lean`; its first statement is *Connected sums*'), and
   *First Chern class of a blowup at a point* (`ChernClass.lean` for the
   formula, `CanonicalBundle.lean` for the canonical-bundle identity).
@@ -3830,7 +3842,7 @@ For §7.2 of `atlas/constructing-symplectic-manifolds.md`.
   embeddings with trivialized symplectic normal bundles, with the framings
   and collar radii as data, glued along the open collars; the neighbourhoods
   $Q\times B^2(\varepsilon)$ by *Symplectic neighbourhoods*' neighbourhood
-  theorem), `RationalEllipticSurface.lean` ($E(1)$ as the smooth
+  theorem), `RationalEllipticSurface/Basic.lean` ($E(1)$ as the smooth
   hypersurface $\{([x],[s:t]) : sf(x)+tg(x)=0\}$ of
   $\mathbb CP^2\times\mathbb CP^1$ for two cubics meeting in nine points,
   symplectic by *Complex submanifolds* and *Complex projective space*, with
@@ -3902,14 +3914,19 @@ hypersurface theorem.
   Hermitian line bundle with real Chern class $a$ and a unitary connection of curvature
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
-  *Minimal coupling*, corrected by an imaginary one-form; the de Rham
-  theorem, that every integral class of degree two is $c_1$ of some line
-  bundle, and the comparison of that class with the Chern–Weil one are not
-  in either library, and the design file plans them as prerequisite issues), `ZeroSet.lean`
+  *Minimal coupling*, corrected by an imaginary one-form; it uses the merged
+  prerequisites `TauCeti.injective_deRhamHom` (the de Rham theorem, in
+  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`),
+  `SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq`
+  (every integral class of degree two is the Euler class of a line bundle, in
+  `VectorBundle/Hermitian/Realization.lean`) and
+  `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg` (its
+  comparison with the Chern–Weil class, in
+  `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
-  file), `AsymptoticallyHolomorphic.lean` (sequences of sections with the
+  file), `AsymptoticallyHolomorphic/Basic.lean` (sequences of sections with the
   rescaled estimates, and the transversality condition
   $\max(|s_k|,|\partial s_k|)\ge\eta$), `PeakSection.lean` (the peak sections
   $p_{k,x}$, $z_jp_{k,x}$, with Gaussian decay), `LocalTransversality.lean`
@@ -3943,12 +3960,13 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   structures*' collars and Tau Ceti's `TauCeti.IsLiouvilleDomain`),
   `Geometry/Manifold/Complex/Plurisubharmonic.lean` (Stein structures,
   on Tau Ceti's `TauCeti.IsManifoldStrictlyPlurisubharmonicAt`, and the
-  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say), `Stein.lean`
-  (the passage in both directions: the gradient of a strictly
-  plurisubharmonic exhaustion, reparametrized to be complete, and the
-  converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
-  theorem) and `Complement/` (Giroux's theorem: a Stein structure on
-  the complement of a suitable Donaldson hypersurface, and a Weinstein
+  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say),
+  `OfStein.lean` (from Stein to Weinstein: the gradient of a strictly
+  plurisubharmonic exhaustion, reparametrized to be complete), `Stein.lean`
+  (the converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
+  theorem, and the passage in both directions) and `Complement/` (Giroux's
+  theorem: a Stein structure on the complement of a suitable Donaldson
+  hypersurface, and a Weinstein
   domain whose interior is that complement, with his Remark 3 and
   Corollary 4).
 - **Builds on:** *Asymptotically holomorphic sections* (only for
@@ -3978,7 +3996,7 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   blowup* (only `Weight/Basic.lean`, for the blowup at the base points, and
   `Normalized/Weight.lean`, for its comparison with the complex blowup; this is
   the one place where §7.4 needs §7.1); *Complex blowup* (only `Model.lean`
-  and `ConnectedSum.lean`, for $M\#mk^2\overline{\mathbb CP}{}^2$);
+  and `ConnectedSum/Basic.lean`, for $M\#mk^2\overline{\mathbb CP}{}^2$);
   *Poincaré duals of submanifolds* (for the genus); *Parallel transport*
   (only `RadialTrivialization.lean`, for the regular fibres); the merged
   *Adjunction*.
@@ -4001,7 +4019,7 @@ behind.
 | 0 | *Linear Moser* | — (it imports `Topology/Algebra/Module/BilinearForm.lean` of *Compatible complex structures*, which imports only Mathlib and Tau Ceti and is merged) |
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
-| 0 | *Liouville structures* | — (it imports `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
+| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`, which is merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
 | 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 0 | *Lie group actions* | — |
@@ -4040,7 +4058,7 @@ behind.
 | 1 | *Equivariant localization* | *Lie group actions* (only `Circle.lean`), *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
 | 1 | *Diffeomorphisms of the 2-sphere* | *Cauchy–Riemann operators on the sphere*; `ComplexStructure.lean` and `Mobius.lean` can start at once |
 | 1 | *Symplectic fibrations* | *Parallel transport* (only for `Connection.lean` and `SymplecticFibres.lean`; `Basic.lean` and `LocalForm.lean` can start at once) |
-| 1 | *Complex blowup* | *Connected sums* (only for `ConnectedSum.lean`), *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and `ChernClass.lean`), *Chern classes* (only the issues of its extension for `auxiliary/first-chern-class.md`, which wait for no part, for `ChernClass.lean`); `Model.lean`, `Lift.lean`, `Basic.lean` and `SelfIntersection.lean` can start at once |
+| 1 | *Complex blowup* | *Connected sums* (only for `ConnectedSum/Basic.lean`), *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and `ChernClass.lean`), *Chern classes* (only the issues of its extension for `auxiliary/first-chern-class.md`, which wait for no part, for `ChernClass.lean`); `Model.lean`, `Lift.lean`, `Basic.lean` and `SelfIntersection.lean` can start at once |
 | 1 | *Asymptotically holomorphic sections* | *Poincaré duals of submanifolds* (only its zero-set file, for `ZeroSet.lean`); the other files can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
@@ -4056,7 +4074,7 @@ behind.
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
-| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
+| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum/Basic.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
@@ -4168,7 +4186,7 @@ manifolds and characteristic classes*).
 | Milestone | Where |
 |---|---|
 | *Compatible and tame almost complex structures on manifolds* | *Almost complex manifolds*. Existing: the bundle statement `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames` of *Symplectic vector bundles*, and Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`. |
-| *First Chern class of a nondegenerate two-form* | *First Chern class of nondegenerate forms*, with the integral class of *First Chern number*. |
+| *First Chern class of a nondegenerate two-form* | *First Chern class of nondegenerate forms*, with Tau Ceti's integral class `TauCeti.firstChernClass`. |
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
@@ -4182,9 +4200,9 @@ manifolds and characteristic classes*).
 | *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing input: `TauCeti.integralTopForm_mpullback_nonneg`. |
 
 The results that the page quotes rather than proves are handled as follows.
-The integral first Chern class is *First Chern number*'s, the Euler class of
-the determinant line. Higher Chern classes, the cohomology ring of
-$\mathbb CP^n$ and the Euler characteristic formula are built by *Chern
+The integral first Chern class is Tau Ceti's `TauCeti.firstChernClass`, the
+Euler class of the determinant line. Higher Chern classes, the cohomology
+ring of $\mathbb CP^n$ and the Euler characteristic formula are built by *Chern
 classes*, Poincaré duality by *First Chern number*'s prerequisites
 (#806–#810). The Hodge theorem is built by *Hodge theory*, on Tau Ceti's
 elliptic regularity. *Energy of pseudoholomorphic curves* identifies
@@ -4296,7 +4314,7 @@ existing inputs.
 |---|---|
 | *Tautological line bundle and the exceptional divisor* | *Complex blowup* (`Tautological.lean`, `SelfIntersection.lean`). Existing input: the merged `complexEulerClass_twistCore_neg_one`, which is $c_1(L)=-h$. |
 | *Complex blowup at a point* | *Complex blowup* (`Basic.lean`, `Curve.lean`). |
-| *Blowup as a connected sum with the reversed projective space* | *Connected sums* (first statement), *Complex blowup* (`ConnectedSum.lean`, `ExceptionalClass.lean`). Existing input: `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`, which does not state that the orientations are preserved. |
+| *Blowup as a connected sum with the reversed projective space* | *Connected sums* (first statement), *Complex blowup* (`ConnectedSum/Basic.lean`, `ExceptionalClass.lean`). Existing input: `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`, which does not state that the orientations are preserved. |
 | *Kähler forms on the blowup of complex space* | *Symplectic blowup* (`Model.lean`, `Profile.lean`, `Area.lean`). Existing input: the merged `isKahler_fubiniStudyForm`. |
 | *Symplectic blowup along a ball* | *Symplectic blowup* (`Weight/`), with *Isotopy extension*'s ball extension for the larger ball. |
 | *Symplectic blowdown* | *Symplectic blowup* (`DivisorNeighborhood.lean`, `Blowdown.lean`), with *Symplectic neighbourhoods*. |
@@ -4306,7 +4324,7 @@ existing inputs.
 | *Ball embeddings give symplectic forms on the blowup* | *Symplectic blowup* (`BallEmbedding.lean`), with *First Chern class of a blowup at a point*. |
 | *Pointwise connected-sum obstruction for symplectic forms* | *Symplectic sums* (`Pointwise.lean`), with *Almost complex spheres*. |
 | *Symplectic fibre connected sum with trivial normal bundles* | *Symplectic sums* (`Fibre.lean`). |
-| *Fundamental group after summing with the rational elliptic surface* | *Symplectic sums* (`RationalEllipticSurface.lean`, `FundamentalGroup.lean`). Existing input: `TauCeti.isPushout_fundamentalGroup`. |
+| *Fundamental group after summing with the rational elliptic surface* | *Symplectic sums* (`RationalEllipticSurface/Basic.lean`, `FundamentalGroup.lean`). Existing input: `TauCeti.isPushout_fundamentalGroup`. |
 | *Gompf's realization of finitely presented groups* | *Symplectic sums* (`FinitelyPresented.lean`). Existing input: `Group.IsFinitelyPresented.exists_mulEquiv_presentedGroup`. |
 | *Gromov's h-principle for symplectic forms on open manifolds* | *Symplectic h-principle* (`OpenManifold.lean`, `Parametric.lean`). Existing input: `TauCeti.exists_isMorse_isProperMap_bddBelow`. |
 | *Relative extension of exact symplectic forms over a handle core* | *Symplectic h-principle* (`HandleCore.lean`). |
@@ -4327,7 +4345,7 @@ Both milestones, proved in full. Their parts wait for no part of
 
 | Milestone | Where |
 |---|---|
-| *First Chern class of a complex vector bundle* | *Chern classes* (its extension). Existing inputs, merged: `firstChernClass`, `firstChernClass_pullback`, `firstChernClass_prod` (compact normal base), `firstChernClass_eq_complexEulerClass`, `complexEulerClass_twistCore_neg_one`, `totalChernClass_tangentSpace`. |
+| *First Chern class of a complex vector bundle* | *Chern classes* (its extension). Existing inputs: from Tau Ceti, `TauCeti.firstChernClass` and `TauCeti.firstChernClass_pullback`; merged, `firstChernClass_pullback_coe`, `firstChernClass_prod` (compact normal base), `firstChernClass_eq_complexEulerClass`, `complexEulerClass_twistCore_neg_one`, `totalChernClass_tangentSpace`. |
 | *Thom class and Poincaré dual of a submanifold* | *Poincaré duals of submanifolds*. Existing inputs: `TauCeti.VectorBundleOrientation.thomClassOfModel`, `TauCeti.VectorBundleOrientation.eulerClass`, `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`. |
 
 ### `auxiliary/connected-sums-and-blowups.md`
@@ -4435,9 +4453,12 @@ Both milestones, proved in full. Their parts wait for no part of
   hypothesis; building the signature theorem would need cobordism or index
   theory, far beyond this page.
 - **Betti numbers.** In the Hodge milestone they are dimensions of de Rham
-  cohomology, since Tau Ceti has no de Rham theorem with singular
-  cohomology; the book's use of the result, the first Betti number of the
-  Kodaira–Thurston manifold, is computed in de Rham cohomology by Tau Ceti.
+  cohomology, since the decomposition is one of de Rham classes by
+  harmonic forms; on a closed manifold these are the dimensions of real
+  singular cohomology by the library's de Rham theorem
+  (`TauCeti.bijective_deRhamHom_of_compactSpace`), so nothing is lost. The
+  book's use of the result, the first Betti number of the Kodaira–Thurston
+  manifold, is computed in de Rham cohomology by Tau Ceti.
 - **Signs on `atlas/symplectic-group-actions.md`.** This page uses the
   Hamiltonian sign of `auxiliary/02-signs.md` and the usual bracket, unlike
   `atlas/symplectic-manifolds.md`, and its circles have period one, unlike
@@ -4475,14 +4496,20 @@ Both milestones, proved in full. Their parts wait for no part of
   $\mathrm{Symp}(F,\sigma)$, which the page calls motivation only, is not
   built.
 - **Real Chern classes.** The page uses only the image of $c_1(\mathrm{Ver})$
-  in real cohomology, which it identifies with de Rham cohomology. Tau
-  Ceti maps de Rham classes to singular ones but has no de Rham theorem
-  back, so the library builds the real class directly as a de Rham class by
-  Chern–Weil, instead of taking the image of the integral class, and
-  compares the two over closed oriented surfaces, through Chern numbers.
-  *Asymptotically holomorphic sections* also compares them for Hermitian
-  line bundles over compact manifolds, which it needs to build its line
-  bundle from an integral lift.
+  in real cohomology, which it identifies with de Rham cohomology. The
+  library builds the real class directly as a de Rham class by Chern–Weil,
+  instead of carrying the integral class back through the de Rham theorem,
+  which the library proves only on manifolds with a finite good cover
+  (`SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`, compact
+  ones among them): the Chern–Weil class is
+  defined over every Hausdorff $\sigma$-compact base and comes with the
+  curvature form that represents it, which the constructions use. The two
+  are compared over closed oriented surfaces, through Chern numbers.
+  *Asymptotically holomorphic sections* also compares them for the
+  Hermitian line bundles pulled back from `Projectivization.twistCore 1`
+  along smooth maps, which on a compact manifold realize every integral
+  class of degree two; that is what it needs to build its line bundle from
+  an integral lift.
 - **Diffeomorphisms of the 2-sphere.** The library takes the proof through
   the bundle over complex structures that the auxiliary page proposes, with
   the page's variant of step 1 that uses only the standard sphere, the

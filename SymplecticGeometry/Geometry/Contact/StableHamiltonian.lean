@@ -5,14 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Geometry.Manifold.Strip
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Contact.Symplectization.Basic
+public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
@@ -27,10 +29,13 @@ import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Stable Hamiltonian structures: wedge criterion, invariance and the model
@@ -350,8 +355,8 @@ theorem mpullback_globalFlowDiffeomorph_characteristicVectorField_twoForm
     mpullback (globalFlowDiffeomorph hc le_top (contMDiff_characteristicVectorField h.isContact) t)
       (globalFlowDiffeomorph hc le_top
         (contMDiff_characteristicVectorField h.isContact) t).contMDiff σ = σ := by
-  refine Subtype.ext (funext fun x ↦ ?_)
-  rw [coe_mpullback, coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
+  refine (mpullback_eq_iff _).2 (funext fun x ↦ ?_)
+  rw [coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
   exact h.mpullback_flowOf_characteristicVectorField_twoForm (hc.mem_flowDomain t x)
 
 /-- **The global flow of the characteristic vector field preserves the one-form.** If the
@@ -362,8 +367,8 @@ theorem mpullback_globalFlowDiffeomorph_characteristicVectorField_oneForm
     mpullback (globalFlowDiffeomorph hc le_top (contMDiff_characteristicVectorField h.isContact) t)
       (globalFlowDiffeomorph hc le_top
         (contMDiff_characteristicVectorField h.isContact) t).contMDiff α = α := by
-  refine Subtype.ext (funext fun x ↦ ?_)
-  rw [coe_mpullback, coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
+  refine (mpullback_eq_iff _).2 (funext fun x ↦ ?_)
+  rw [coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
   exact h.mpullback_flowOf_characteristicVectorField_oneForm (hc.mem_flowDomain t x)
 
 end IsStableHamiltonian
@@ -428,7 +433,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
     rw [Manifold.tangentSpaceProdEquiv_apply, ← mul_one (NormedSpace.fromTangentSpace _ _),
       ← smul_eq_mul]
     exact (hasDerivAt_id p.1).mvfderiv_comp_fst_apply u
-  rw [stableHamiltonianModel_def, SmoothBundleForm.eval₂_apply, Submodule.coe_sub, Pi.sub_apply,
+  rw [stableHamiltonianModel_def, SmoothBundleForm.eval₂_apply, SmoothBundleForm.sub_apply,
     ContinuousAlternatingMap.sub_apply, ← SmoothBundleForm.eval₂_apply, eval₂_mpullback_snd,
     mextDerivₗ_apply, coe_funSMulₗ g β,
     mextDeriv_fun_smul_apply ((g.contMDiff p).mdifferentiableAt (by simp))
@@ -480,8 +485,8 @@ private theorem bilinFormAt_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
     ContinuousLinearEquiv.symm_symm, ContinuousLinearEquiv.prodCongr_symm,
     ContinuousLinearEquiv.prodCongr_apply, ContinuousLinearEquiv.refl_symm,
     ContinuousLinearEquiv.coe_refl', id_eq, LinearMap.neg_apply, degreeOneEquiv_coe_apply,
-    SmoothBundleForm.eval₂_apply, Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply,
-    Pi.smul_apply, ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
+    SmoothBundleForm.eval₂_apply, SmoothBundleForm.sub_apply, SmoothBundleForm.smul_apply,
+    ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
     bilinFormAt_apply, smul_eq_mul]
   ring
 
@@ -516,7 +521,8 @@ theorem exists_isSymplectic_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
       (mpullback (Subtype.val : SymplecticGeometry.symmStrip M ε → ℝ × M) contMDiff_subtypeVal
         (stableHamiltonianModel α σ)) := by
   obtain ⟨ε, hε, hle⟩ := SymplecticGeometry.exists_symmStrip_le
-    (U := ⟨_, SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
+    (U := ⟨_,
+      SmoothTwoForm.isOpen_setOfPred_nondegenerate_bilinFormAt (stableHamiltonianModel α σ)⟩)
     h.nondegenerate_bilinFormAt_stableHamiltonianModel_zero
   exact ⟨ε, hε, (isClosed_stableHamiltonianModel h.isClosed).isSymplectic_mpullback_subtype_val
     fun _ hp ↦ hle hp⟩
@@ -689,23 +695,22 @@ private theorem mpullback_prodMk_zero_timeInterior_apply (hε : 0 < ε)
       (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).timeInterior).val y ![w] =
       2 * ε / Real.pi * σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) y)
         ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
-  rw [mpullback_apply, coe_timeInterior]
+  rw [mpullback_apply_one, coe_timeInterior]
   refine (RoughForm.interior_apply _ _ _ _).trans ?_
-  rw [mpullback_apply]
-  have hv : (fun i ↦ mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
-      (Matrix.vecCons ((1 : ℝ), (0 : E))
-        (fun i ↦ mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y (![w] i)) i)) =
-      ![(2 * ε / Real.pi) • ((1 : ℝ), (0 : E)), ((0 : ℝ), w)] := by
-    -- The closing `rfl`s identify the tangent vectors of the strip with elements of `ℝ × E`.
-    funext i
-    fin_cases i
-    · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, Prod.smul_mk, smul_eq_mul,
-        smul_zero]
-      exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
-    · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-        mfderiv_prodMk_right_apply]
-      exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero]; rfl)
-  rw [hv, stripChart_zero]
+  have h₁ : mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
+      ((1 : ℝ), (0 : E)) = (2 * ε / Real.pi) • ((1 : ℝ), (0 : E)) := by
+    rw [Prod.smul_mk, smul_eq_mul, smul_zero]
+    -- The closing `rfl` identifies a tangent vector of the strip with an element of `ℝ × E`.
+    exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
+  have h₂ : mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
+      (mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w) = ((0 : ℝ), w) := by
+    rw [mfderiv_prodMk_right_apply]
+    exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero])
+  -- `(1, 0)` is a vector of `ℝ × E` rather than of a tangent space, so the evaluation lemma is
+  -- applied by unification rather than by `rw`.
+  rw [coe_mpullback]
+  refine (TauCeti.mpullback_apply_pair _ _ _ ((1 : ℝ), (0 : E)) _).trans ?_
+  rw [h₁, h₂, stripChart_zero]
   have h := (σ.bilinFormAt_apply (symmStripMk (abs_zero.trans_lt hε) y)
     ((2 * ε / Real.pi) • ((1 : ℝ), (0 : E))) ((0 : ℝ), w)).trans
     (SmoothBundleForm.eval₂_apply _ _ _ _)
@@ -725,8 +730,7 @@ theorem zeroSliceOneForm_apply (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).pro
     (x : M) (w : TangentSpace I x) :
     (zeroSliceOneForm hε σ).val x ![w] =
       -σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) x) ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
-  rw [zeroSliceOneForm, smul_toRoughForm]
-  rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+  rw [zeroSliceOneForm, SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
     mpullback_prodMk_zero_timeInterior_apply, smul_eq_mul, ← mul_assoc, neg_mul,
     inv_mul_cancel₀ (by positivity), neg_one_mul]
 
@@ -738,15 +742,13 @@ theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod 
   funext x
   refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
   rw [zeroSliceOneForm_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply,
-    TauCeti.mpullback_apply]
+    TauCeti.mpullback_apply_one]
   refine congrArg Neg.neg (((σ.bilinFormAt_apply _ _ _).trans
     (SmoothBundleForm.eval₂_apply _ _ _ _)).trans
       (Eq.trans ?_ (RoughForm.interior_apply _ _ _ _).symm))
-  congr 1
-  funext i
-  fin_cases i
-  · rfl
-  · exact (mfderiv_symmStripMk_apply _ _ _).symm
+  rw [mfderiv_symmStripMk_apply]
+  -- The two sides list the same vectors, once as elements of `ℝ × E` and once as tangent vectors.
+  rfl
 
 /-- **Along the zero slice, a two-form on the strip agrees with the stable Hamiltonian model** of
 its zero slice `Ω₀` and of `λ₀ = -ι₀^*(ι_{∂_r} σ)`: at every point `(0, x)`, on the whole tangent
@@ -889,22 +891,21 @@ theorem exists_mpullback_eq_stableHamiltonianModel [FiniteDimensional ℝ E] [Co
     (fun x ↦ by rw [hf]; exact val_symmStripMk_zero_eq_stableHamiltonianModel hε σ x)
   -- The tube lemma gives a strip of width `δ ≤ ε` inside `U₀`.
   obtain ⟨δ, hδ, hδU⟩ := exists_symmStrip_le (X := M)
-    (U := ⟨Subtype.val '' (U₀ : Set (symmStrip M ε)),
-      (symmStrip M ε).isOpen.isOpenMap_subtypeVal _ U₀.isOpen⟩)
-    fun x ↦ ⟨f x, (hφf x).1, by rw [hf, coe_symmStripMk]⟩
+    (U := TopologicalSpace.Opens.imageVal U₀) fun x ↦ by
+      simpa only [hf, ι₀, coe_symmStripMk] using
+        TopologicalSpace.Opens.coe_mem_imageVal U₀ ⟨f x, (hφf x).1⟩
   have hle : min δ ε ≤ ε := min_le_right δ ε
   have hU₀ (p : symmStrip M (min δ ε)) :
       (⟨p.val, symmStrip_mono hle p.property⟩ : symmStrip M ε) ∈ U₀ := by
-    obtain ⟨q, hq, hqp⟩ := hδU (symmStrip_mono (min_le_left δ ε) p.property)
-    rwa [show q = ⟨p.val, symmStrip_mono hle p.property⟩ from Subtype.ext hqp] at hq
+    exact (TopologicalSpace.Opens.mem_imageVal.1
+      (hδU (symmStrip_mono (min_le_left δ ε) p.property))).2
   let j (p : symmStrip M (min δ ε)) : U₀ := ⟨⟨p.val, symmStrip_mono hle p.property⟩, hU₀ p⟩
   have hjval : (Subtype.val ∘ Subtype.val) ∘ j = Subtype.val := rfl
   have hjd : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ j :=
     TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1
       (TauCeti.isLocalDiffeomorph_inclusion (symmStrip_mono hle))
   have hΦ : IsLocalDiffeomorph (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ ((Subtype.val ∘ φ) ∘ j) := fun p ↦
-    (hjd p).comp (hg := (φ.isLocalDiffeomorph (j p)).comp
-      (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+    (hjd p).comp (hg := φ.isLocalDiffeomorph_subtypeVal_comp (j p))
   refine ⟨min δ ε, lt_min hδ hε, hle, (Subtype.val ∘ φ) ∘ j, hΦ, ?_, fun x ↦ ?_, ?_⟩
   · exact Subtype.val_injective.comp (φ.injective.comp fun p q h ↦
       Subtype.ext (congrArg (fun u : U₀ ↦ (u.val : ℝ × M)) h))

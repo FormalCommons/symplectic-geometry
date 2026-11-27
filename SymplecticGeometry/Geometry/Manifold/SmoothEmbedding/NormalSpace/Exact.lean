@@ -15,7 +15,7 @@ For a smooth embedding `f : M → N` and a point `x` of `M`, the differential
 `T_x M → T_{f x} N` and Tau Ceti's normal class map `T_{f x} N → ν_x` form an exact sequence.
 With the injectivity of the differential (Mathlib's
 `Manifold.IsImmersion.mfderiv_injective`) and the surjectivity of the normal class map
-(`TauCeti.SmoothEmbedding.normalClass_surjective`), it is the short exact sequence
+(`Manifold.IsImmersion.normalClass_surjective`), it is the short exact sequence
 `0 → T_x M → T_{f x} N → ν_x → 0`.
 
 ## Main results
@@ -42,16 +42,16 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E F H G M N : Type*}
 /-- The differential of a smooth embedding at `x` and its normal class map form an exact
 sequence `T_x M → T_{f x} N → ν_x`. -/
 theorem exact_mfderiv_normalClass (f : SmoothEmbedding I J n M N) (x : M) (hn : n ≠ 0) :
-    Function.Exact (mfderiv I J f x).toLinearMap (f.normalClass x hn) :=
-  LinearMap.exact_iff.2 (f.normalClass_ker x hn)
+    Function.Exact (mfderiv I J f x).toLinearMap (f.isImmersion.normalClass x hn) :=
+  LinearMap.exact_iff.2 (f.isImmersion.normalClass_ker x hn)
 
 /-- If a space `P` has dimension `dim F - dim E`, as the model fibre of Tau Ceti's normal bundle
 charts does, then each normal space of a smooth embedding has the dimension of `P`. -/
 theorem finrank_normalSpace_eq {P : Type*} [AddCommGroup P] [Module 𝕜 P] [FiniteDimensional 𝕜 F]
     (f : SmoothEmbedding I J n M N) (hn : n ≠ 0)
     (hdim : Module.finrank 𝕜 P = Module.finrank 𝕜 F - Module.finrank 𝕜 E) (x : M) :
-    Module.finrank 𝕜 (f.NormalSpace x hn) = Module.finrank 𝕜 P := by
-  rw [f.finrank_normalSpace x hn, hdim, TauCeti.finrank_tangentSpace,
+    Module.finrank 𝕜 (f.isImmersion.NormalSpace x hn) = Module.finrank 𝕜 P := by
+  rw [f.isImmersion.finrank_normalSpace x hn, hdim, TauCeti.finrank_tangentSpace,
     TauCeti.finrank_tangentSpace]
 
 end TauCeti.SmoothEmbedding

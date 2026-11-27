@@ -11,6 +11,7 @@ public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
+import TauCeti.Analysis.Calculus.IteratedDeriv.Basic
 
 /-!
 # Improper integrals of iterated derivatives on a half-line
@@ -52,8 +53,8 @@ theorem integral_Ioi_pow_div_factorial_mul_iteratedDeriv_neg {k : ℕ} (hF : Con
       hF.continuous_iteratedDeriv _ (by norm_cast; omega)
     have hc' : Continuous (iteratedDeriv (k + 2) F) :=
       hF.continuous_iteratedDeriv _ (by norm_cast)
-    have hd : Differentiable ℝ (iteratedDeriv (k + 1) F) :=
-      hF.differentiable_iteratedDeriv _ (by norm_cast; omega)
+    have hd (s : ℝ) : HasDerivAt (iteratedDeriv (k + 1) F) (iteratedDeriv (k + 2) F s) s :=
+      hF.hasDerivAt_iteratedDeriv (by norm_cast; omega) s
     let u : ℝ → ℝ := fun s ↦ s ^ (k + 1) / (k + 1).factorial
     let v : ℝ → ℝ := fun s ↦ -iteratedDeriv (k + 1) F (-s)
     have hu : ∀ s, HasDerivAt u (s ^ k / k.factorial) s := by
@@ -64,10 +65,10 @@ theorem integral_Ioi_pow_div_factorial_mul_iteratedDeriv_neg {k : ℕ} (hF : Con
       field_simp
     have hv : ∀ s, HasDerivAt v (iteratedDeriv (k + 2) F (-s)) s := by
       intro s
-      convert ((hd (-s)).hasDerivAt.comp s (hasDerivAt_neg s)).neg using 1
+      convert ((hd (-s)).comp s (hasDerivAt_neg s)).neg using 1
       · -- `v` is `-(F⁽ᵏ⁺¹⁾ ∘ Neg.neg)` by its definition.
         rfl
-      · rw [iteratedDeriv_succ]; ring
+      · ring
     have hcpt (m : ℕ) : HasCompactSupport fun s ↦ iteratedDeriv m F (-s) :=
       (hFc.iteratedDeriv m).comp_isClosedEmbedding (Homeomorph.neg ℝ).isClosedEmbedding
     have huc : Continuous u := by fun_prop

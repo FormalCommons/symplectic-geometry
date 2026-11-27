@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.LeftInvariantForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -48,7 +49,9 @@ extension `TauCeti.leftInvariantSmoothForm` of the identity of `𝔤`.
 
 Smoothness and left-invariance come from Tau Ceti's `TauCeti.leftInvariantSmoothForm` and
 `TauCeti.mpullback_mul_left_leftInvariantSmoothForm`. The proof of
-`mpullback_mul_right_leftMaurerCartanForm` follows that of Tau Ceti's
+`mpullback_mul_right_leftMaurerCartanForm` uses `TauCeti.Lie.mfderiv_inv_mul_mfderiv_mul_right`
+from `SymplecticGeometry.Geometry.Lie.Adjoint.Differential`, the file of the product rule for maps
+into a Lie group, and follows that of Tau Ceti's
 `Module.Dual.mpullback_mul_right_leftInvariantForm`.
 
 The Maurer–Cartan equation is Tau Ceti's `TauCeti.mextDeriv_leftInvariantForm`, which computes
@@ -128,14 +131,10 @@ adjoint action of `h⁻¹`: `R_h^* θ = Ad(h⁻¹) θ`. -/
 theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     SmoothForm.mpullback (· * h) contMDiff_mul_right (leftMaurerCartanForm I G) =
       SmoothForm.mapCoeff (adjointContinuousLinearMap h⁻¹) (leftMaurerCartanForm I G) := by
-  apply Subtype.ext
-  funext g
-  ext v
-  obtain ⟨ξ, hξ⟩ := exists_mulInvariantVectorField_eq (v 0)
+  refine SmoothBundleForm.ext fun g v ↦ ?_
   rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, SmoothForm.coe_mapCoeff,
-    RoughForm.mapCoeff_apply, leftMaurerCartanForm_apply, leftMaurerCartanForm_apply, ← hξ,
-    mfderiv_mul_right_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField,
-    mfderiv_inv_mul_mulInvariantVectorField]
+    RoughForm.mapCoeff_apply, leftMaurerCartanForm_apply, leftMaurerCartanForm_apply,
+    mfderiv_inv_mul_mfderiv_mul_right]
 
 section LeftTrivialization
 

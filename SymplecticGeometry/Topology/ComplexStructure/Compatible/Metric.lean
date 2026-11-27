@@ -5,11 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
-public import SymplecticGeometry.Topology.ComplexStructure.Compatible.Matrix
 public import TauCeti.Geometry.Symplectic.Cayley.Contractible
-public import SymplecticGeometry.Topology.Homotopy.Affine
 public import Mathlib.Topology.Homotopy.Equiv
+public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Basic
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComplexStructure.Smooth
+import SymplecticGeometry.Topology.ComplexStructure.Compatible.Matrix
+import SymplecticGeometry.Topology.Homotopy.Affine
 
 /-!
 # Compatible complex structures and inner products

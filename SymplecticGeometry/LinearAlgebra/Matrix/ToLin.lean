@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Matrix.ToLin
-public import SymplecticGeometry.Data.Matrix.Mul
+import SymplecticGeometry.Data.Matrix.Mul
 
 /-!
 # The linear map of a matrix with a left inverse is injective

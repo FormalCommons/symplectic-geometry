@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Descent
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.LinearNormalForm
+public import TauCeti.LinearAlgebra.LinearMap.Comp
 
 /-!
 # The tangent space of `G ×_K (A × V)` at `[1, 0]` and the linear normal form
@@ -17,29 +18,62 @@ identifies the tangent space of `Y` at `[1, 0]`, with `ω` and the action of `K`
 normal form model `(𝔪 × 𝔪*) × (𝔮 × V)` of Tau Ceti's `MomentMap/LinearNormalForm.lean`.
 
 The identification is `dπ_(1, 0, 0) ∘ D.linearModelMap`, with the tangent space of `G × (A × V)` at
-`(1, 0, 0)` read as `𝔤 × A × V`. It is injective because the kernel of `dπ` at `(1, 0, 0)` is
-`𝔥 × 0` (`SymplecticGeometry.LocalModelData.mem_ker_mfderiv_mk_one_zero_iff`), which meets the
-range of `linearModelMap` only in `0`; it is surjective because `dπ` is, and that range is a
-complement of `𝔥 × 0`. The form `ω` at `[1, 0]` evaluates on images under `dπ` as `D.form` at
-`(1, 0, 0)`, which on the range of `linearModelMap` is the model's form. Finally,
-`k ∈ K` fixes `[1, 0]`, and `(k • ·) ∘ π = π ∘ c_k` with `c_k (g, p) = (k g k⁻¹, k • p)`, whose
-differential at `(1, 0, 0)` `linearModelMap` intertwines with the representation of `K` on the
+`(1, 0, 0)` read as `𝔤 × A × V`; the file defines this reading of `dπ_(1, 0, 0)` once, as the
+linear map `SymplecticGeometry.LocalModelData.mkTangentMap`. Its kernel is `𝔥 × 0`
+(`SymplecticGeometry.LocalModelData.mem_ker_mfderiv_mk_one_zero_iff`) and it is onto, since `π`
+is a submersion. The range of `linearModelMap` is a complement of `𝔥 × 0`, so the composite is
+bijective (Tau Ceti's `LinearMap.bijective_comp_iff`). The form `ω` at `[1, 0]` evaluates on images
+under `dπ` as `D.form` at `(1, 0, 0)`, which on the range of `linearModelMap` is the model's form.
+Finally, `k ∈ K` fixes `[1, 0]`, so `K` acts on the tangent space there by the differentials
+of `y ↦ k • y`: Tau Ceti's `TauCeti.tangentRepresentationOfMemFixedPoints`, for the action of
+`K` at its fixed point `[1, 0]`. Since `(k • ·) ∘ π = π ∘ c_k` with
+`c_k (g, p) = (k g k⁻¹, k • p)`, it sends `dπ_(1, 0, 0) (ξ, p)` to `dπ_(1, 0, 0) (Ad_k ξ, k • p)`,
+and `linearModelMap` intertwines `dc_k` at `(1, 0, 0)` with the representation of `K` on the
 model.
+
+The file also splits the tangent space at `[1, 0]` into the directions `dπ_(1, 0, 0) (ξ, 0)`,
+`ξ ∈ 𝔤`, tangent to the orbit of `[1, 0]`, and the fibre directions `dπ_(1, 0, 0) (0, p)`,
+`p ∈ A × V`. The two kinds of direction span complementary subspaces, and `p ↦ dπ_(1, 0, 0) (0, p)`
+is injective; both facts again come from the kernel and the surjectivity of `mkTangentMap`, composed
+with `LinearMap.inl` and `LinearMap.inr`. The fibre map is `K`-equivariant because `dc_k` sends
+`(0, p)` to `(0, k • p)`.
 
 ## Main definitions
 
+* `SymplecticGeometry.LocalModelData.mkTangentMap`: the linear map `y ↦ dπ_(1, 0, 0) y` from
+  `𝔤 × (A × V)` to the tangent space of `G ×_K (A × V)` at `[1, 0]`.
+* `SymplecticGeometry.LocalModelData.tangentRepresentationOneZero`: the representation
+  `k ↦ d(k • ·)_[1, 0]` of `K` on the tangent space of `G ×_K (A × V)` at `[1, 0]`.
 * `SymplecticGeometry.LocalModelData.linearModelEquiv`: the linear equivalence from the linear
   normal form model `(𝔪 × 𝔪*) × (𝔮 × V)` to the tangent space of `G ×_K (A × V)` at `[1, 0]`.
+* `SymplecticGeometry.LocalModelData.fiberTangentMap`,
+  `SymplecticGeometry.LocalModelData.orbitTangentMap`: the linear maps `p ↦ dπ_(1, 0, 0) (0, p)`
+  and `ξ ↦ dπ_(1, 0, 0) (ξ, 0)` into the tangent space at `[1, 0]`.
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.bijective_mfderiv_mk_linearModelMap`:
+* `SymplecticGeometry.LocalModelData.ker_mkTangentMap`,
+  `SymplecticGeometry.LocalModelData.surjective_mkTangentMap`: `mkTangentMap` has kernel `𝔥 × 0`
+  and is onto.
+* `SymplecticGeometry.LocalModelData.bijective_mkTangentMap_comp_linearModelMap`:
   `x ↦ dπ_(1, 0, 0) (linearModelMap x)` is bijective.
 * `SymplecticGeometry.LocalModelData.eval₂_descendedForm_linearModelEquiv`: through
   `linearModelEquiv`, the descended form at `[1, 0]` is the form of the linear normal form model.
+* `SymplecticGeometry.LocalModelData.tangentRepresentationOneZero_mkTangentMap`: `d(k • ·)_[1, 0]`
+  sends `dπ_(1, 0, 0) (ξ, p)` to `dπ_(1, 0, 0) (Ad_k ξ, k • p)`.
 * `SymplecticGeometry.LocalModelData.linearModelEquiv_linearModelRepresentation`:
-  `linearModelEquiv` takes the representation of `K` on the model to the differential at `[1, 0]`
-  of the action of `K` on `G ×_K (A × V)`.
+  `linearModelEquiv` takes the representation of `K` on the model to
+  `tangentRepresentationOneZero`.
+* `SymplecticGeometry.LocalModelData.linearModelEquiv_mk_zero_mk_zero`: `linearModelEquiv` sends
+  `((m, 0), (q, 0))` to `orbitTangentMap ξ = dπ_(1, 0, 0) (ξ, 0)` whenever `ξ - (m + q) ∈ 𝔥`.
+* `SymplecticGeometry.LocalModelData.fiberTangentMap_smul`,
+  `SymplecticGeometry.LocalModelData.injective_fiberTangentMap`,
+  `SymplecticGeometry.LocalModelData.isCompl_range_orbitTangentMap_range_fiberTangentMap`: the
+  fibre directions are `K`-equivariant, injective, and complementary to the orbit directions.
+* `SymplecticGeometry.LocalModelData.map_fiberTangentMap_smul`,
+  `SymplecticGeometry.LocalModelData.isCompl_range_range_comp_fiberTangentMap`: the same after a
+  linear map `T` to a module `W`: equivariance when `T` takes `tangentRepresentationOneZero` to
+  given endomorphisms of `W`, and the complement when `T` is an isomorphism.
 
 ## References
 
@@ -72,49 +106,70 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
   (D : LocalModelData (I := I) K (F := F) V A)
 
-/-- **The linear normal form model spans the tangent space at `[1, 0]`.** The map
-`x ↦ dπ_(1, 0, 0) (linearModelMap x)` from the linear normal form model `(𝔪 × 𝔪*) × (𝔮 × V)` to
-the tangent space of `G ×_K (A × V)` at `[1, 0]`, where `π (g, p) = [g, p]`, is bijective. -/
-theorem bijective_mfderiv_mk_linearModelMap :
+/-- **The differential of the projection at `(1, 0, 0)`.** The linear map
+`y ↦ dπ_(1, 0, 0) y` from `𝔤 × (A × V)`, read as the tangent space of `G × (A × V)` at
+`(1, 0, 0)`, to the tangent space of `G ×_K (A × V)` at `[1, 0]`, where `π (g, p) = [g, p]`. -/
+def mkTangentMap :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    Function.Bijective fun x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V) ↦
-      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-        ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x)) := by
+    (GroupLieAlgebra I G × (A × V)) →ₗ[ℝ]
+      TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) :=
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  let e : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V))) ≃L[ℝ]
-      GroupLieAlgebra I G × (A × V) := tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))
-  set dπ := mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+  (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
       (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-      ((1 : G), ((0 : A), (0 : V)))
-  have hc := D.isCompl_range_linearModelMap (I := I)
-  have hker (u) : dπ u = 0 ↔ e u ∈ D.𝔥.prod ⊥ := D.mem_ker_mfderiv_mk_one_zero_iff u
-  have he (y : GroupLieAlgebra I G × (A × V)) :
-      e ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) = y :=
-    e.apply_symm_apply y
-  refine ⟨fun x y hxy ↦ D.injective_linearModelMap ?_, fun w ↦ ?_⟩
-  · -- `linearModelMap (x - y)` lies in the range of `linearModelMap` and in the kernel `𝔥 × 0`
-    -- of `dπ`, so it vanishes.
-    have hxy : dπ ((tangentSpaceProdEquiv _).symm (D.linearModelMap (x - y))) = 0 := by
-      rw [map_sub]
-      exact (congrArg _ (map_sub _ _ _)).trans ((map_sub _ _ _).trans (sub_eq_zero.2 hxy))
-    rw [hker, he] at hxy
-    exact sub_eq_zero.1 ((map_sub ..).symm.trans
-      (Submodule.disjoint_def.1 hc.disjoint _ ⟨x - y, rfl⟩ hxy))
-  · -- Write a preimage `u` of `w` as `linearModelMap x + h` with `h ∈ 𝔥 × 0`.
-    obtain ⟨u, rfl⟩ := (BalancedProduct.isSubmersion_mk_toRightTranslation (K := K)
-      (Z := A × V) (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)).surjective_mfderiv
-      (x := ((1 : G), ((0 : A), (0 : V)))) (by simp) w
-    obtain ⟨_, ⟨x, rfl⟩, h, hh, hu⟩ :=
-      Submodule.mem_sup.1 (hc.sup_eq_top ▸ Submodule.mem_top (x := e u))
-    refine ⟨x, ?_⟩
-    rw [← sub_eq_zero, ← map_sub, hker, map_sub, he, ← hu, sub_add_cancel_left]
-    exact neg_mem hh
+      ((1 : G), ((0 : A), (0 : V)))).toLinearMap ∘ₗ
+    (tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm.toLinearMap
+
+theorem mkTangentMap_apply (y : GroupLieAlgebra I G × (A × V)) :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    D.mkTangentMap y =
+      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
+        ((1 : G), ((0 : A), (0 : V)))
+        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) :=
+  (rfl)
+
+/-- **The kernel of `dπ` at `(1, 0, 0)`.** The kernel of `mkTangentMap` is `𝔥 × 0`. -/
+theorem ker_mkTangentMap : LinearMap.ker D.mkTangentMap = D.𝔥.prod ⊥ := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  ext y
+  have hs : tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))
+      ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) = y :=
+    ContinuousLinearEquiv.apply_symm_apply _ y
+  rw [LinearMap.mem_ker, mkTangentMap_apply, ← ContinuousLinearMap.coe_coe, ← LinearMap.mem_ker,
+    D.mem_ker_mfderiv_mk_one_zero_iff, hs]
+  -- `mem_ker_mfderiv_mk_one_zero_iff` states membership in `𝔥 × 0` read in the product of the
+  -- tangent spaces of `G` and `A × V`, type synonyms of `𝔤` and `A × V`.
+  exact Iff.rfl
+
+/-- **`dπ` at `(1, 0, 0)` is onto.** `mkTangentMap` is surjective, since `π` is a
+submersion. -/
+theorem surjective_mkTangentMap : Function.Surjective D.mkTangentMap := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  exact ((BalancedProduct.isSubmersion_mk_toRightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)).surjective_mfderiv
+    (x := ((1 : G), ((0 : A), (0 : V)))) (by simp)).comp
+    (tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm.surjective
+
+/-- **The linear normal form model spans the tangent space at `[1, 0]`.** The map
+`x ↦ dπ_(1, 0, 0) (linearModelMap x)` from the linear normal form model `(𝔪 × 𝔪*) × (𝔮 × V)` to
+the tangent space of `G ×_K (A × V)` at `[1, 0]`, where `π (g, p) = [g, p]`, is bijective. -/
+theorem bijective_mkTangentMap_comp_linearModelMap :
+    Function.Bijective (D.mkTangentMap ∘ₗ D.linearModelMap) :=
+  -- The range of `linearModelMap` is a complement of the kernel `𝔥 × 0` of the surjective map
+  -- `mkTangentMap`.
+  LinearMap.bijective_comp_iff.2 ⟨D.injective_linearModelMap,
+    D.ker_mkTangentMap ▸ D.isCompl_range_linearModelMap, D.surjective_mkTangentMap⟩
 
 /-- **The linear normal form model is the tangent space at `[1, 0]`.** The linear equivalence
 `x ↦ dπ_(1, 0, 0) (linearModelMap x)` from the linear normal form model `(𝔪 × 𝔪*) × (𝔮 × V)` to
@@ -126,25 +181,11 @@ def linearModelEquiv :
     ((D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) ≃ₗ[ℝ]
       TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
         (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) :=
-  let := D.fiberDistribMulAction
-  have := D.contMDiffSMul_fiberDistribMulAction
-  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-  LinearEquiv.ofBijective
-    ((mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-      (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-      ((1 : G), ((0 : A), (0 : V)))).toLinearMap ∘ₗ
-      (tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm.toLinearMap ∘ₗ D.linearModelMap)
-    D.bijective_mfderiv_mk_linearModelMap
+  LinearEquiv.ofBijective (D.mkTangentMap ∘ₗ D.linearModelMap)
+    D.bijective_mkTangentMap_comp_linearModelMap
 
 theorem linearModelEquiv_apply (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
-    letI := D.fiberDistribMulAction
-    haveI := D.contMDiffSMul_fiberDistribMulAction
-    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    D.linearModelEquiv x =
-      mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
-        (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
-        ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x)) :=
+    D.linearModelEquiv x = D.mkTangentMap (D.linearModelMap x) :=
   (rfl)
 
 /-- **The descended form at `[1, 0]` is the linear normal form.** Through `linearModelEquiv`, the
@@ -166,25 +207,60 @@ theorem eval₂_descendedForm_linearModelEquiv (x₁ x₂ : (D.𝔪 × Module.Du
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  rw [linearModelEquiv_apply, linearModelEquiv_apply]
+  rw [linearModelEquiv_apply, linearModelEquiv_apply, mkTangentMap_apply, mkTangentMap_apply]
   exact (D.eval₂_descendedForm_mfderiv ((1 : G), ((0 : A), (0 : V))) _ _).trans
     (D.eval₂_form_one_zero_linearModelMap ((tangentSpaceProdEquiv _).apply_symm_apply _)
       ((tangentSpaceProdEquiv _).apply_symm_apply _))
 
-/-- **`linearModelEquiv` is equivariant.** Each `k ∈ K` fixes `[1, 0]`, and `linearModelEquiv`
-takes the action of `k` on the linear normal form model to the differential at `[1, 0]` of the
-map `y ↦ k • y` of `G ×_K (A × V)`. -/
-theorem linearModelEquiv_linearModelRepresentation (k : K)
-    (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
+/-- **The tangent representation of `K` at `[1, 0]`.** Each `k ∈ K` fixes `[1, 0]`, and acts on
+the tangent space of `G ×_K (A × V)` at `[1, 0]` by the differential there of `y ↦ k • y`: Tau
+Ceti's `TauCeti.tangentRepresentationOfMemFixedPoints` for the action of `K` at its fixed point
+`[1, 0]`. -/
+def tangentRepresentationOneZero :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
-    D.linearModelEquiv (D.linearModelRepresentation k x) =
+    Representation ℝ K (TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V)))) :=
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  have := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
+    (IZ := 𝓘(ℝ, A × V)) (F := F)
+  tangentRepresentationOfMemFixedPoints (G := K)
+    (BalancedProduct.smul_mk_toRightTranslation_one (smul_zero (A := A × V))) fun k ↦
+      ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) (k : G) _
+
+theorem tangentRepresentationOneZero_apply (k : K)
+    (u : letI := D.fiberDistribMulAction
+      haveI := D.contMDiffSMul_fiberDistribMulAction
+      letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+      TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V)))) :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    D.tangentRepresentationOneZero k u =
       mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
         𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
         (fun y : BalancedProduct K K.RightTranslation (A × V) ↦ (k : G) • y)
-        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V)))
-        (D.linearModelEquiv x) := by
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) u := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  exact tangentRepresentationOfMemFixedPoints_apply _ _ _ u
+
+/-- **The action of `K` at `[1, 0]`, read on `𝔤 × (A × V)`.** For `k ∈ K`, the tangent
+representation of `k` at `[1, 0]`, the differential there of `y ↦ k • y`, sends `dπ_(1, 0, 0) y`
+to `dπ_(1, 0, 0) (Ad_k y.1, k • y.2)`, where `π (g, p) = [g, p]`. The vector
+`(Ad_k y.1, k • y.2)` is the image of `y` under the differential at `(1, 0, 0)` of
+`c_k (g, p) = (k g k⁻¹, k • p)`, and `k • π = π ∘ c_k`. -/
+theorem tangentRepresentationOneZero_mkTangentMap (k : K) (y : GroupLieAlgebra I G × (A × V)) :
+    letI := D.fiberDistribMulAction
+    D.tangentRepresentationOneZero k (D.mkTangentMap y) =
+      D.mkTangentMap (adjointRepresentation ℝ I G k y.1, k • y.2) := by
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
@@ -213,18 +289,158 @@ theorem linearModelEquiv_linearModelRepresentation (k : K)
   have hfix : (fun x : G × (A × V) ↦ ((k : G) * x.1 * (k : G)⁻¹, k • x.2))
       ((1 : G), ((0 : A), (0 : V))) = ((1 : G), ((0 : A), (0 : V))) :=
     Prod.ext (by simp) (smul_zero (A := A × V) k)
-  -- By `linearModelMap_linearModelRepresentation`, `linearModelMap` takes the action of `k` to the
-  -- differential of `(g, p) ↦ (k g k⁻¹, k • p)` at `(1, 0, 0)`.
-  have h : (tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm
-        (D.linearModelMap (D.linearModelRepresentation k x)) =
+  -- The differential of `(g, p) ↦ (k g k⁻¹, k • p)` at `(1, 0, 0)` sends `y` to
+  -- `(Ad_k y.1, k • y.2)`.
+  have hy : (tangentSpaceProdEquiv (I := I) (J := 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))).symm
+        (adjointRepresentation ℝ I G k y.1, k • y.2) =
       mfderiv (I.prod 𝓘(ℝ, A × V)) (I.prod 𝓘(ℝ, A × V))
         (fun x : G × (A × V) ↦ ((k : G) * x.1 * (k : G)⁻¹, k • x.2))
         ((1 : G), ((0 : A), (0 : V)))
-        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x)) :=
-    (tangentSpaceProdEquiv_symm_apply (I := I) (J := 𝓘(ℝ, A × V)) _ _).trans
-      ((D.linearModelMap_linearModelRepresentation k x).trans (tangentSpaceProdEquiv_apply _ _))
-  rw [linearModelEquiv_apply, linearModelEquiv_apply, h,
-    ← mfderiv_comp_apply_of_eq _ (hπ _) (hc _) hfix, ← hcomp, mfderiv_comp_apply _ (hk _) (hπ _)]
+        ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm y) := by
+    rw [D.fiberDistribMulAction_smul]
+    exact (tangentSpaceProdEquiv_symm_apply _ _).trans
+      ((D.tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero k
+        ((tangentSpaceProdEquiv _).apply_symm_apply y)).symm.trans
+        (tangentSpaceProdEquiv_apply _ _))
+  rw [tangentRepresentationOneZero_apply, mkTangentMap_apply, mkTangentMap_apply,
+    ← mfderiv_comp_apply_of_eq (x := ((1 : G), ((0 : A), (0 : V))))
+      (y := BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) (hk _) (hπ _)
+      rfl, hcomp,
+    mfderiv_comp_apply_of_eq _ (hπ _) (hc _) hfix]
+  exact congrArg _ hy.symm
+
+/-- **`linearModelEquiv` is equivariant.** `linearModelEquiv` takes the action of `k ∈ K` on the
+linear normal form model to the tangent representation of `K` at `[1, 0]`, the differential at
+`[1, 0]` of `y ↦ k • y`. -/
+theorem linearModelEquiv_linearModelRepresentation (k : K)
+    (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
+    D.linearModelEquiv (D.linearModelRepresentation k x) =
+      D.tangentRepresentationOneZero k (D.linearModelEquiv x) := by
+  let := D.fiberDistribMulAction
+  rw [linearModelEquiv_apply, linearModelEquiv_apply, tangentRepresentationOneZero_mkTangentMap,
+    linearModelMap_linearModelRepresentation, D.tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero k
+      ((tangentSpaceProdEquiv _).apply_symm_apply _), D.fiberDistribMulAction_smul]
+
+/-! ### The fibre directions and the orbit directions at `[1, 0]` -/
+
+/-- **The fibre directions at `[1, 0]`.** The linear map `p ↦ dπ_(1, 0, 0) (0, p)` from `A × V`
+to the tangent space of `G ×_K (A × V)` at `[1, 0]`, where `π (g, p) = [g, p]`. -/
+def fiberTangentMap :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    (A × V) →ₗ[ℝ] TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) :=
+  D.mkTangentMap ∘ₗ LinearMap.inr ℝ (GroupLieAlgebra I G) (A × V)
+
+theorem fiberTangentMap_def :
+    D.fiberTangentMap = D.mkTangentMap ∘ₗ LinearMap.inr ℝ (GroupLieAlgebra I G) (A × V) :=
+  (rfl)
+
+theorem fiberTangentMap_apply (p : A × V) :
+    D.fiberTangentMap p = D.mkTangentMap (0, p) :=
+  (rfl)
+
+/-- **The orbit directions at `[1, 0]`.** The linear map `ξ ↦ dπ_(1, 0, 0) (ξ, 0)` from `𝔤` to
+the tangent space of `G ×_K (A × V)` at `[1, 0]`, where `π (g, p) = [g, p]`: the differential at
+`1` of `g ↦ [g, 0] = g • [1, 0]`. -/
+def orbitTangentMap :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    GroupLieAlgebra I G →ₗ[ℝ] TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) :=
+  D.mkTangentMap ∘ₗ LinearMap.inl ℝ (GroupLieAlgebra I G) (A × V)
+
+theorem orbitTangentMap_def :
+    D.orbitTangentMap = D.mkTangentMap ∘ₗ LinearMap.inl ℝ (GroupLieAlgebra I G) (A × V) :=
+  (rfl)
+
+theorem orbitTangentMap_apply (ξ : GroupLieAlgebra I G) :
+    D.orbitTangentMap ξ = D.mkTangentMap (ξ, 0) :=
+  (rfl)
+
+/-- **Directions of `𝔤` in the image of `linearModelEquiv`.** For `m ∈ 𝔪` and `q ∈ 𝔮`,
+`linearModelEquiv ((m, 0), (q, 0))` is `orbitTangentMap ξ = dπ_(1, 0, 0) (ξ, 0)` for each `ξ ∈ 𝔤`
+with `ξ - (m + q) ∈ 𝔥`, where `π (g, p) = [g, p]`. -/
+theorem linearModelEquiv_mk_zero_mk_zero {ξ : GroupLieAlgebra I G} (m : D.𝔪) (q : D.𝔮)
+    (hξ : ξ - (m + q) ∈ D.𝔥) :
+    D.linearModelEquiv ((m, 0), (q, 0)) = D.orbitTangentMap ξ := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  rw [linearModelEquiv_apply, orbitTangentMap_apply]
+  -- The difference of the two directions is `(m + q - ξ, 0)`, in the kernel `𝔥 × 0` of `dπ`.
+  refine (LinearMap.sub_mem_ker_iff (f := D.mkTangentMap)
+    (x := D.linearModelMap ((m, 0), (q, 0))) (y := (ξ, 0))).1 ?_
+  rw [ker_mkTangentMap, linearModelMap_apply, map_zero]
+  exact ⟨(congrArg (· ∈ D.𝔥) (neg_sub ξ _)).mp (neg_mem hξ), sub_eq_zero.2 rfl⟩
+
+/-- **The fibre directions are equivariant.** For `k ∈ K`, the tangent representation of `K` at
+`[1, 0]`, the differential at `[1, 0]` of `y ↦ k • y`, sends `dπ_(1, 0, 0) (0, p)` to
+`dπ_(1, 0, 0) (0, k • p)`. -/
+theorem fiberTangentMap_smul (k : K) (p : A × V) :
+    letI := D.fiberDistribMulAction
+    D.fiberTangentMap (k • p) = D.tangentRepresentationOneZero k (D.fiberTangentMap p) := by
+  let := D.fiberDistribMulAction
+  rw [fiberTangentMap_apply, fiberTangentMap_apply, tangentRepresentationOneZero_mkTangentMap,
+    map_zero]
+
+/-- **The fibre directions are independent.** `p ↦ dπ_(1, 0, 0) (0, p)` is injective, since the
+kernel of `dπ` at `(1, 0, 0)` is `𝔥 × 0`. -/
+theorem injective_fiberTangentMap : Function.Injective D.fiberTangentMap := by
+  rw [← LinearMap.ker_eq_bot, fiberTangentMap_def, LinearMap.ker_comp, ker_mkTangentMap,
+    eq_bot_iff]
+  exact fun p hp ↦ (Submodule.mem_prod.1 (Submodule.mem_comap.1 hp)).2
+
+/-- **The fibre directions are a complement of the orbit directions.** In the tangent space of
+`G ×_K (A × V)` at `[1, 0]`, the directions `dπ_(1, 0, 0) (ξ, 0)`, `ξ ∈ 𝔤`, and the directions
+`dπ_(1, 0, 0) (0, p)`, `p ∈ A × V`, span complementary subspaces. -/
+theorem isCompl_range_orbitTangentMap_range_fiberTangentMap :
+    IsCompl (LinearMap.range D.orbitTangentMap) (LinearMap.range D.fiberTangentMap) := by
+  -- The kernel `𝔥 × 0` of the surjective map `mkTangentMap` lies in `𝔤 × 0`.
+  have hker : LinearMap.ker D.mkTangentMap ≤
+      LinearMap.range (LinearMap.inl ℝ (GroupLieAlgebra I G) (A × V)) := by
+    rw [ker_mkTangentMap, LinearMap.range_inl]
+    exact fun y hy ↦ (Submodule.mem_bot ℝ).1 (Submodule.mem_prod.1 hy).2
+  have hc := LinearMap.isCompl_range_inl_inr (R := ℝ) (M := GroupLieAlgebra I G) (M₂ := A × V)
+  rw [orbitTangentMap_def, fiberTangentMap_def, LinearMap.range_comp, LinearMap.range_comp]
+  exact ⟨Submodule.disjoint_map_of_ker_le_left hc.disjoint hker,
+    Submodule.codisjoint_map D.surjective_mkTangentMap hc.codisjoint⟩
+
+/-- **Equivariance of the fibre directions, after a linear map.** Let `T` be a linear map from the
+tangent space of `G ×_K (A × V)` at `[1, 0]` to a real module `W`, and for each `k ∈ K` let `R k`
+be a linear endomorphism of `W`, such that `T` takes the tangent representation of `k` at
+`[1, 0]` to `R k`. Then `T (dπ_(1, 0, 0) (0, k • p)) = R k (T (dπ_(1, 0, 0) (0, p)))`. -/
+theorem map_fiberTangentMap_smul {W : Type*} [AddCommGroup W] [Module ℝ W] :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    ∀ (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) →ₗ[ℝ] W)
+      (R : K → W →ₗ[ℝ] W),
+      (∀ (k : K) u, T (D.tangentRepresentationOneZero k u) = R k (T u)) →
+      ∀ (k : K) (p : A × V), T (D.fiberTangentMap (k • p)) = R k (T (D.fiberTangentMap p)) := by
+  intro T R hT k p
+  rw [fiberTangentMap_smul, hT]
+
+/-- **The fibre directions are a complement of the orbit directions, after a linear
+isomorphism.** Let `T` be a linear isomorphism from the tangent space of `G ×_K (A × V)` at
+`[1, 0]` to a real module `W`, and let `f : 𝔤 →ₗ[ℝ] W` be the composite of
+`ξ ↦ dπ_(1, 0, 0) (ξ, 0)` with `T`. Then the range of `f` and the range of
+`p ↦ T (dπ_(1, 0, 0) (0, p))` are complements in `W`. -/
+theorem isCompl_range_range_comp_fiberTangentMap {W : Type*} [AddCommGroup W] [Module ℝ W] :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    ∀ (T : TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+        (BalancedProduct.mk K (K.toRightTranslation (1 : G)) ((0 : A), (0 : V))) ≃ₗ[ℝ] W)
+      (f : GroupLieAlgebra I G →ₗ[ℝ] W),
+      T.toLinearMap ∘ₗ D.orbitTangentMap = f →
+      IsCompl (LinearMap.range f) (LinearMap.range (T.toLinearMap ∘ₗ D.fiberTangentMap)) := by
+  intro T f hT
+  rw [← hT, LinearMap.range_comp, LinearMap.range_comp]
+  exact Submodule.isCompl_map T D.isCompl_range_orbitTangentMap_range_fiberTangentMap
 
 end LocalModelData
 

@@ -5,11 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 public import SymplecticGeometry.Geometry.Manifold.Orientation.ComplexStructure
-public import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.FiniteCWType
+public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
+import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
 
 /-!
 # The top Chern class of an almost complex manifold and its Euler characteristic
@@ -33,7 +37,8 @@ cohomology through `TopCat.uliftIntegralCohomologyIso`, which does not change it
 Euler class of the tangent bundle oriented by `J`
 (`TauCeti.Bundle.ContinuousComplexStructure.complexEulerClass_eq_eulerClass`), whose evaluation on
 the fundamental class is the Euler characteristic
-(`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`). The argument is
+(`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`).
+The argument is
 that of `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`
 (`SymplecticGeometry/Geometry/Manifold/Complex/EulerCharacteristic.lean`) for complex manifolds,
 with the complex structure on the tangent bundle in place of complex charts.
@@ -80,7 +85,7 @@ theorem evalFundamentalClass_chernClass_eq_eulerChar
   rw [SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass hG,
     HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
     J.complexEulerClass_eq_eulerClass G hE, ← toVectorBundleOrientation_tangentOrientation J hE,
-    Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar]
+    Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType]
 
 end TauCeti.Bundle.ContinuousComplexStructure
 

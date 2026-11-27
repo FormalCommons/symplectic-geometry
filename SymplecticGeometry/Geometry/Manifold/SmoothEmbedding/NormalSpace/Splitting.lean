@@ -9,32 +9,28 @@ public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Topology.Compactness.Paracompact
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Pullback
-import Mathlib.Topology.PartitionOfUnity
-import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Complement
+import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 import SymplecticGeometry.Algebra.Exact.Basic
-import TauCeti.Topology.VectorBundle.Hom
-import TauCeti.Topology.VectorBundle.Section
-import TauCeti.Topology.PartitionOfUnity.Basic
-import SymplecticGeometry.Topology.FiberBundle.Pullback
-import SymplecticGeometry.Topology.VectorBundle.Section
+import TauCeti.Topology.VectorBundle.Splitting
+import TauCeti.Topology.FiberBundle.Pullback
 
 /-!
 # Splitting the tangent bundle along an embedding
 
 Let `f : M → N` be an embedding of positive regularity into a finite-dimensional manifold
 over `𝕜`, and `ν` its normal bundle, with fibres `ν_x = T_{f x} N ⧸ df_x (T_x M)` (Tau Ceti's
-`TauCeti.SmoothEmbedding.NormalSpace`). This file splits the short exact sequence
+`Manifold.IsImmersion.NormalSpace`). This file splits the short exact sequence
 `0 → TM → f^* TN → ν → 0` of bundles over `M`.
 
 * A fibrewise linear right inverse `r` of the normal class map, whose map of total spaces is
   continuous, exists when `M` is normal and paracompact and `𝕜` is `ℝ` or `ℂ`:
-  `TauCeti.SmoothEmbedding.normalRightInverse`. Near each point, a fixed complement of the image
-  of the differential in a tangent chart of `N` gives such a right inverse
-  (Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceEquivOfComplement`); a partition of unity
-  glues these, since a combination of right inverses with real coefficients of sum one is again
-  one.
+  `TauCeti.SmoothEmbedding.normalRightInverse`. With the normal bundle given its vector bundle
+  structure of rank `dim V - dim E` (Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceFiberBundle`),
+  the normal class map is a continuous, fibrewise surjective section of the Hom bundle from
+  `f^* TN` to `ν`, and Tau Ceti's `Continuous.exists_continuous_clm_bundle_rightInverse` gives
+  it a continuous right inverse.
 * For any fibrewise linear right inverse `r`, the maps `(u, a) ↦ df u + r a` form an isomorphism
   `TM ×ᵇ ν ≃ f^* TN`: `TauCeti.SmoothEmbedding.tangentNormalEquiv`, the inverse of the
   splitting that Mathlib's `Function.Exact.splitSurjectiveEquiv` gives in each fibre. Its map of
@@ -58,11 +54,13 @@ over `𝕜`, and `ν` its normal bundle, with fibres `ν_x = T_{f x} N ⧸ df_x 
 
 ## Implementation notes
 
-The gluing follows the proof of Tau Ceti's
-`TauCeti.exists_continuous_section_forall_mem_convex_of_local`, with the sum taken over the finite
-support of the partition of unity at each point. It is carried out on the total space of
-`f^* TN`, through the normal class map, which is a quotient map onto the total space of `ν`
-(`TauCeti.SmoothEmbedding.continuous_normalBundle_iff`).
+Continuity of a section of the Hom bundle is turned into continuity of its map of total spaces,
+and back, by Tau Ceti's `TauCeti.continuous_hom_bundle_iff`; the normal class map is a quotient
+map from the total space of `f^* TN` onto that of `ν`
+(`TauCeti.SmoothEmbedding.isQuotientMap_normalQuotientMap`). The finite dimension of the model
+space of `M`, which the vector bundle structure on `ν` needs, comes from the injectivity of the
+differential at a point (Tau Ceti's `Manifold.IsImmersion.finiteDimensional_tangentSpace`); over
+an empty `M` there is nothing to prove.
 
 ## References
 
@@ -94,26 +92,24 @@ variable {𝕜 E V H G M N : Type*} [NontriviallyNormedField 𝕜] [CompleteSpac
 section Equiv
 
 variable (f : SmoothEmbedding I J n M N) (hn : n ≠ 0)
-  (r : ∀ x, f.NormalSpace x hn →L[𝕜] TangentSpace J (f x))
-  (hr : ∀ x a, f.normalClass x hn (r x a) = a)
+  (r : ∀ x, f.isImmersion.NormalSpace x hn →L[𝕜] TangentSpace J (f x))
+  (hr : ∀ x a, f.isImmersion.normalClass x hn (r x a) = a)
 
 /-- The isomorphism `T_x M × ν_x ≃ T_{f x} N`, `(u, a) ↦ df u + r a`, given by a fibrewise right
 inverse `r` of the normal class map. -/
 def tangentNormalEquiv (x : M) :
-    (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x ≃L[𝕜]
+    (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x ≃L[𝕜]
       ((f : M → N) *ᵖ (TangentSpace J)) x :=
-  haveI : T2Space (((f : M → N) *ᵖ (TangentSpace J)) x) := inferInstanceAs (T2Space V)
-  haveI : FiniteDimensional 𝕜 (((f : M → N) *ᵖ (TangentSpace J)) x) :=
-    inferInstanceAs (FiniteDimensional 𝕜 V)
-  haveI : T2Space ((TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x) :=
-    inferInstanceAs (T2Space (E × f.NormalSpace x hn))
+  haveI : T2Space ((TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :=
+    inferInstanceAs (T2Space (E × f.isImmersion.NormalSpace x hn))
   ((exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv
       (f.isImmersion.mfderiv_injective hn x) ⟨(r x).toLinearMap, LinearMap.ext (hr x)⟩).val
     |>.toContinuousLinearEquiv.symm
 
 /-- The isomorphism given by a right inverse `r` sends `(u, a)` to `df u + r a`. -/
 @[simp]
-theorem tangentNormalEquiv_apply (x : M) (p : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x) :
+theorem tangentNormalEquiv_apply (x : M) (p :
+    (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :
     f.tangentNormalEquiv hn r hr x p = mfderiv I J f x p.1 + r x p.2 :=
   (exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv_symm_apply
     (f.isImmersion.mfderiv_injective hn x) ⟨(r x).toLinearMap, LinearMap.ext (hr x)⟩ p
@@ -121,16 +117,16 @@ theorem tangentNormalEquiv_apply (x : M) (p : (TangentSpace I ×ᵇ fun x ↦ f.
 /-- The normal component of the inverse of the isomorphism is the normal class. -/
 @[simp]
 theorem snd_tangentNormalEquiv_symm_apply (x : M) (v : TangentSpace J (f x)) :
-    ((f.tangentNormalEquiv hn r hr x).symm v).2 = f.normalClass x hn v := by
+    ((f.tangentNormalEquiv hn r hr x).symm v).2 = f.isImmersion.normalClass x hn v := by
   conv_rhs => rw [← (f.tangentNormalEquiv hn r hr x).apply_symm_apply v]
-  rw [tangentNormalEquiv_apply, map_add, normalClass_mfderiv, zero_add, hr]
+  rw [tangentNormalEquiv_apply, map_add, Manifold.IsImmersion.normalClass_mfderiv, zero_add, hr]
 
 /-- The tangential component of the inverse of the isomorphism is carried by `df` to
 `v - r [v]`. -/
 theorem mfderiv_fst_tangentNormalEquiv_symm_apply (x : M)
     (v : TangentSpace J (f x)) :
     mfderiv I J f x ((f.tangentNormalEquiv hn r hr x).symm v).1 =
-      v - r x (f.normalClass x hn v) := by
+      v - r x (f.isImmersion.normalClass x hn v) := by
   have h := (f.tangentNormalEquiv hn r hr x).apply_symm_apply v
   rw [tangentNormalEquiv_apply, snd_tangentNormalEquiv_symm_apply] at h
   exact eq_sub_of_add_eq h
@@ -140,13 +136,14 @@ variable [IsManifold I 1 M] [IsManifold J 1 N] {P : Type*}
 /-- If the map of total spaces of a right inverse `r` is continuous, so is that of the
 isomorphism `TM ×ᵇ ν ≃ f^* TN` it gives. -/
 theorem continuous_tangentNormalEquiv
-    (hrc : Continuous fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦
+    (hrc : Continuous fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj (r p.proj p.snd)) :
-    Continuous fun p : TotalSpace (E × P) (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) ↦
+    Continuous fun p : TotalSpace (E × P) (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x
+        hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
         (f.tangentNormalEquiv hn r hr p.proj p.snd) := by
   have hd := (FiberBundle.Prod.isInducing_diag E (TangentSpace I) P
-    (fun x ↦ f.NormalSpace x hn)).continuous
+    (fun x ↦ f.isImmersion.NormalSpace x hn)).continuous
   -- The differential, as a map from the total space of `TM` to that of `f^* TN`.
   have hdf : Continuous fun p : TangentBundle I M ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
@@ -162,10 +159,10 @@ of the isomorphism `TM ×ᵇ ν ≃ f^* TN` it gives. -/
 theorem continuous_tangentNormalEquiv_symm [FiniteDimensional 𝕜 E] [NormedAddCommGroup P]
     [NormedSpace 𝕜 P] [FiniteDimensional 𝕜 P]
     (hdim : Module.finrank 𝕜 P = Module.finrank 𝕜 V - Module.finrank 𝕜 E)
-    (hrc : Continuous fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦
+    (hrc : Continuous fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj (r p.proj p.snd)) :
     Continuous fun p : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) ↦
-      TotalSpace.mk' (E × P) (E := TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) p.proj
+      TotalSpace.mk' (E × P) (E := TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) p.proj
         ((f.tangentNormalEquiv hn r hr p.proj).symm p.snd) := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
@@ -179,131 +176,70 @@ section RightInverse
 
 variable [IsManifold I 1 M] [IsManifold J 1 N] (f : SmoothEmbedding I J n M N) (hn : n ≠ 0)
 
-/-- Near each point `x₀`, a complement of the image of the differential at `x₀`, fixed in the
-tangent chart of `N` at `f x₀`, gives over a neighbourhood `U` of `x₀` a right inverse of the
-normal class map whose composite with the normal class map is continuous on total spaces. -/
-private theorem exists_local_rightInverse_normalClass (x₀ : M) :
-    ∃ U : Set M, IsOpen U ∧ x₀ ∈ U ∧
-      ∃ s : ∀ x, f.NormalSpace x hn →L[𝕜] TangentSpace J (f x),
-        (∀ x ∈ U, ∀ a, f.normalClass x hn (s x a) = a) ∧
-        ∀ v : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)), v.proj ∈ U →
-          ContinuousAt (fun v : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) ↦
-            TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) v.proj
-              (s v.proj (f.normalClass v.proj hn v.snd))) v := by
-  have : CompleteSpace V := FiniteDimensional.completeSpace 𝕜 V
-  obtain ⟨Q, -, U, hU, hxU, hsub, hInv, hcont⟩ :=
-    f.exists_contMDiffOn_inTangentCoordinates_quotientRangeCoordinate (m := 0)
-      (by simpa using ENat.one_le_iff_ne_zero_withTop.mpr hn) (by simp) x₀
-  set e := trivializationAt V (TangentSpace J) (f x₀)
-  have he {x : M} (hx : x ∈ U) : f x ∈ e.baseSet := by
-    rw [TangentBundle.trivializationAt_baseSet]
-    exact (hsub hx).2
-  classical
-  let s : ∀ x, f.NormalSpace x hn →L[𝕜] TangentSpace J (f x) := fun x ↦
-    if h : x ∈ U then (e.symmL 𝕜 (f x)).comp (Q.subtypeL.comp
-      (f.normalSpaceEquivOfComplement hn (hsub h).1 (hsub h).2 Q.subtypeL (hInv x h) :
-        f.NormalSpace x hn →L[𝕜] Q)) else 0
-  -- On a normal class, `s` is the fixed complementary component in the chart.
-  have hs {x : M} (h : x ∈ U) (v : TangentSpace J (f x)) :
-      s x (f.normalClass x hn v) = e.symm (f x) (Q.subtypeL
-        ((inTangentCoordinates I J _root_.id (f : M → N) (mfderiv I J (f : M → N)) x₀ x
-          ).quotientRangeCoordinate Q.subtypeL (e ⟨f x, v⟩).2)) := by
-    simp only [s, h, ↓reduceDIte, e, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      normalSpaceEquivOfComplement_normalClass, e.symmL_apply (he h)]
-  refine ⟨U, hU, hxU, s, fun x h a ↦ ?_, fun v hv ↦ ?_⟩
-  · obtain ⟨w, rfl⟩ := (f.normalSpaceEquivOfComplement hn (hsub h).1 (hsub h).2 Q.subtypeL
-      (hInv x h)).symm.surjective a
-    simp only [s, h, ↓reduceDIte, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      ContinuousLinearEquiv.apply_symm_apply]
-    rw [e.symmL_apply (he h), normalSpaceEquivOfComplement_symm_apply]
-  -- The coordinate of the complementary component is continuous near `v`.
-  have hb : f v.proj ∈ e.baseSet := he hv
-  have hproj := (FiberBundle.continuous_proj V ((f : M → N) *ᵖ (TangentSpace J))).continuousAt
-    (x := v)
-  have hcoord : ContinuousAt (fun w : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) ↦
-      Q.subtypeL ((inTangentCoordinates I J _root_.id (f : M → N) (mfderiv I J (f : M → N)) x₀
-        w.proj).quotientRangeCoordinate Q.subtypeL (e (Pullback.lift f w)).2)) v :=
-    Q.subtypeL.continuous.continuousAt.comp
-      (((hcont.continuousOn.continuousAt (hU.mem_nhds hv)).comp hproj).clm_apply
-        (continuous_snd.continuousAt.comp ((e.continuousOn.continuousAt
-          (e.open_source.mem_nhds (e.mem_source.2 hb))).comp
-            (Pullback.continuous_lift V (TangentSpace J) (f : M → N)).continuousAt)))
-  have hf : ContinuousAt (fun w : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) ↦
-      f w.proj) v := f.contMDiff.continuous.continuousAt.comp hproj
-  have hsymm := (e.continuousOn_symm.continuousAt (e.open_target.mem_nhds
-    (e.mem_target.2 hb))).comp (hf.prodMk hcoord)
-  have hg : ContinuousAt (fun w : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) ↦
-      TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) w.proj (e.symm (f w.proj)
-        (Q.subtypeL ((inTangentCoordinates I J _root_.id (f : M → N) (mfderiv I J (f : M → N)) x₀
-          w.proj).quotientRangeCoordinate Q.subtypeL (e (Pullback.lift f w)).2)))) v := by
-    exact Pullback.continuousAt_iff.2 ⟨hproj, hsymm⟩
-  refine hg.congr ?_
-  filter_upwards [hproj.preimage_mem_nhds (hU.mem_nhds hv)] with w hw
-  exact congrArg (TotalSpace.mk w.proj) (hs hw w.snd).symm
-
 variable [IsRCLikeNormedField 𝕜] [_root_.NormalSpace M] [ParacompactSpace M]
 
 /-- Over a normal paracompact manifold, the normal class map of an embedding over `ℝ` or `ℂ`
 has a fibrewise linear right inverse whose composite with the normal class map is continuous on
 total spaces. -/
 theorem exists_rightInverse_normalClass :
-    ∃ r : ∀ x, f.NormalSpace x hn →L[𝕜] TangentSpace J (f x),
-      (∀ x a, f.normalClass x hn (r x a) = a) ∧
+    ∃ r : ∀ x, f.isImmersion.NormalSpace x hn →L[𝕜] TangentSpace J (f x),
+      (∀ x a, f.isImmersion.normalClass x hn (r x a) = a) ∧
       Continuous fun v : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) ↦
         TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) v.proj
-          (r v.proj (f.normalClass v.proj hn v.snd)) := by
+          (r v.proj (f.isImmersion.normalClass v.proj hn v.snd)) := by
+  rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
+  · exact ⟨fun _ ↦ 0, fun x ↦ isEmptyElim x,
+      continuous_iff_continuousAt.2 fun v ↦ isEmptyElim v.proj⟩
+  -- The differential at `x₀` embeds the model space of `M` in `V`, so it is finite-dimensional
+  -- and the normal spaces, of rank `finrank V - finrank E`, form a vector bundle.
+  have : FiniteDimensional 𝕜 (TangentSpace I x₀) :=
+    f.isImmersion.finiteDimensional_tangentSpace x₀ hn
+  have : FiniteDimensional 𝕜 E := this
   let := IsRCLikeNormedField.rclike 𝕜
-  choose U hU hxU s hs hsc using f.exists_local_rightInverse_normalClass hn
-  obtain ⟨ρ, hρ⟩ := PartitionOfUnity.exists_isSubordinate isClosed_univ U hU
-    fun x _ ↦ mem_iUnion.2 ⟨x, hxU x⟩
-  refine ⟨fun x ↦ ∑ i ∈ ρ.finsupport x, (ρ i x : 𝕜) • s i x, fun x a ↦ ?_, ?_⟩
-  · -- A combination of right inverses with coefficients of sum one is a right inverse.
-    -- The weights are real: view the normal space as a real vector space to use them as such.
-    let : Module ℝ (f.NormalSpace x hn) := Module.compHom _ (algebraMap ℝ 𝕜)
-    have : IsScalarTower ℝ 𝕜 (f.NormalSpace x hn) := IsScalarTower.of_compHom _ _ _
-    rw [_root_.sum_apply, map_sum]
-    simp_rw [_root_.smul_apply, map_smul, ← RCLike.real_smul_eq_coe_smul (K := 𝕜)]
-    exact ρ.sum_finsupport_smul_eq_of_forall_eq (mem_univ x)
-      fun i hi ↦ hs i x (hρ.mem_of_mem_finsupport hi) a
-  refine continuous_iff_continuousAt.2 fun v ↦ ?_
-  have hproj := (FiberBundle.continuous_proj V ((f : M → N) *ᵖ (TangentSpace J))).continuousAt
-    (x := v)
-  -- The normal class of a vector of `f^* TN`, named so that rewriting sees no fibre cast.
-  let a (w : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J))) : f.NormalSpace w.proj hn :=
-    f.normalClass w.proj hn w.snd
-  -- Near `v`, only the finitely many `i` with `v.proj` in the closed support of `ρ i` contribute,
-  -- and each of their terms is continuous at `v`.
-  have key := ContinuousAt.sum_totalSpace 𝕜 (F := V) (E := (f : M → N) *ᵖ (TangentSpace J))
-    (ρ.fintsupport v.proj) hproj
-    (s := fun i (w : TotalSpace V ((f : M → N) *ᵖ (TangentSpace J))) ↦
-      (ρ i w.proj : 𝕜) • s i w.proj (a w))
-    fun i hi ↦ (RCLike.continuous_ofReal.continuousAt.comp
-      ((ρ i).continuous.continuousAt.comp hproj)).smul_totalSpace
-        (hsc i v (hρ i ((ρ.mem_fintsupport_iff v.proj i).1 hi)))
-  refine key.congr ?_
-  filter_upwards [hproj.preimage_mem_nhds (ρ.eventually_finsupport_subset v.proj)] with w hw
-  refine congrArg (TotalSpace.mk w.proj) ?_
-  rw [_root_.sum_apply]
-  exact (Finset.sum_subset (f := fun j ↦ ((ρ j w.proj : 𝕜) • s j w.proj) (a w)) hw
-    fun i _ hi ↦ by rw [Function.notMem_support.1 ((ρ.mem_finsupport w.proj).not.1 hi),
-      RCLike.ofReal_zero, zero_smul, _root_.zero_apply]).symm
+  let P := Fin (Module.finrank 𝕜 V - Module.finrank 𝕜 E) → 𝕜
+  have hdim : Module.finrank 𝕜 P = Module.finrank 𝕜 V - Module.finrank 𝕜 E := by simp [P]
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  have hquot := (f.isQuotientMap_normalQuotientMap (K := P) hn).continuous
+  -- The normal class map is a continuous section of the Hom bundle from `f^* TN` to `ν`, and
+  -- it is fibrewise surjective, so it has a continuous right inverse.
+  have hq : Continuous fun x ↦ TotalSpace.mk' (V →L[𝕜] P)
+      (E := fun x ↦ ((f : M → N) *ᵖ (TangentSpace J)) x →L[𝕜] f.isImmersion.NormalSpace x hn) x
+      (f.isImmersion.normalClassL x hn) :=
+    (continuous_hom_bundle_iff (E₁ := (f : M → N) *ᵖ (TangentSpace J)) _).2 <|
+      hquot.congr fun v ↦ by
+        rw [normalQuotientMap_apply]
+        exact congrArg (TotalSpace.mk v.proj)
+            (f.isImmersion.normalClassL_apply v.proj hn v.snd).symm
+  obtain ⟨r, hr, hqr⟩ := Continuous.exists_continuous_clm_bundle_rightInverse
+    (E₁ := (f : M → N) *ᵖ (TangentSpace J)) (E₂ := fun x ↦ f.isImmersion.NormalSpace x hn) hq fun
+        x ↦
+      .of_surjective_of_finiteDimensional fun w ↦
+        (f.isImmersion.normalClass_surjective x hn w).imp fun v hv ↦
+            (f.isImmersion.normalClassL_apply x hn v).trans hv
+  refine ⟨r, fun x a ↦ ?_, ?_⟩
+  · exact (f.isImmersion.normalClassL_apply x hn (r x a)).symm.trans (DFunLike.congr_fun (hqr x) a)
+  refine ((continuous_hom_bundle_iff r).1 hr).comp hquot |>.congr fun v ↦ ?_
+  rw [Function.comp_apply, normalQuotientMap_apply]
+  -- What is left are the projections of a pair, which reduce to its components.
+  rfl
 
 /-- A fibrewise linear right inverse of the normal class map `T_{f x} N → ν_x` of an embedding,
 over a normal paracompact manifold and over `ℝ` or `ℂ`, whose map of total spaces is
 continuous (`TauCeti.SmoothEmbedding.continuous_normalRightInverse`). -/
-def normalRightInverse (x : M) : f.NormalSpace x hn →L[𝕜] TangentSpace J (f x) :=
+def normalRightInverse (x : M) : f.isImmersion.NormalSpace x hn →L[𝕜] TangentSpace J (f x) :=
   (f.exists_rightInverse_normalClass hn).choose x
 
 /-- `normalRightInverse` is a right inverse of the normal class map. -/
 @[simp]
-theorem normalClass_normalRightInverse (x : M) (a : f.NormalSpace x hn) :
-    f.normalClass x hn (f.normalRightInverse hn x a) = a :=
+theorem normalClass_normalRightInverse (x : M) (a : f.isImmersion.NormalSpace x hn) :
+    f.isImmersion.normalClass x hn (f.normalRightInverse hn x a) = a :=
   (f.exists_rightInverse_normalClass hn).choose_spec.1 x a
 
 /-- The map of total spaces of `normalRightInverse`, from the normal bundle to `f^* TN`, is
 continuous. -/
 theorem continuous_normalRightInverse {P : Type*} :
-    Continuous fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦
+    Continuous fun p : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
         (f.normalRightInverse hn p.proj p.snd) :=
   (f.continuous_normalBundle_iff hn).2 <|

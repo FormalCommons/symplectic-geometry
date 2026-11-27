@@ -7,13 +7,13 @@ module
 
 public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import Mathlib.Tactic.TFAE
-public import SymplecticGeometry.Geometry.Symplectic.Darboux.EuclideanBasis
-public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
-public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 public import TauCeti.Geometry.Symplectic.Hermitian
 public import TauCeti.Geometry.Symplectic.WeightDecomposition
+import SymplecticGeometry.Geometry.Symplectic.Darboux.EuclideanBasis
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
 # Characterizations of compatible complex structures

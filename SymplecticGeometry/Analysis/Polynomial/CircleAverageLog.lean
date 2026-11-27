@@ -6,7 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Polynomial.MahlerMeasure
+public import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.Analysis.Complex.Polynomial.Basic
+import Mathlib.Analysis.SpecialFunctions.Integrability.Log
+import SymplecticGeometry.MeasureTheory.Integral.CircleAverage
+import TauCeti.Analysis.Complex.JensenFormula
 
 /-!
 # Circle averages of `log ‖p‖` for complex polynomials
@@ -29,7 +33,10 @@ average, and so the maximum of `‖p‖` on the disc of radius `t * r` is at mos
 
 The sub-mean-value inequality `log ‖p.eval 0‖ ≤ circleAverage (fun z ↦ log ‖p.eval z‖) 0 r` for
 `p.eval 0 ≠ 0` is not restated here: it is Tau Ceti's
-`AnalyticOnNhd.log_norm_le_circleAverage_log_norm`.
+`AnalyticOnNhd.log_norm_le_circleAverage_log_norm`. What is proved here is its consequence for the
+lower average of `ofReal (log M - log ‖p‖)` when `‖p‖ ≤ M` on the circle: since `p` has
+finitely many roots, `log M - log ‖p‖` is nonnegative at almost every point of the circle, and it
+is circle-integrable, so that lower average is `ofReal` of its Bochner average.
 
 ## Main results
 
@@ -41,6 +48,10 @@ The sub-mean-value inequality `log ‖p.eval 0‖ ≤ circleAverage (fun z ↦ l
 * `Polynomial.exp_circleAverage_log_norm_eval_le`: a bound for `‖p‖` on a circle bounds the
   exponential of the average.
 * `Polynomial.exists_norm_eval_le_add_one_pow_mul`: growth of `‖p‖` from a circle to a disc.
+* `Polynomial.setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le`: the sub-mean value
+  inequality in the form of a lower average.
+* `Polynomial.setLAverage_ofReal_log_sub_log_norm_eval_circleMap`: when `log ‖p‖ ≤ log M` on the
+  whole circle, that lower average is `ofReal` of `log M` minus the circle average.
 
 ## References
 
@@ -204,6 +215,48 @@ theorem exists_norm_eval_le_add_one_pow_mul (p : ℂ[X]) {r t : ℝ} (hr : 0 < r
   calc ‖z - a‖ ≤ t * r + ‖a‖ := (norm_sub_le _ _).trans (by gcongr)
     _ ≤ (t + 1) * max r ‖a‖ := by
       nlinarith [le_max_left r ‖a‖, le_max_right r ‖a‖, norm_nonneg a]
+
+open MeasureTheory Set in
+open scoped ENNReal in
+/-- If `log ‖p‖ ≤ log M` at every point of the circle of radius `r` about `0`, then the lower
+average of `ofReal (log M - log ‖p‖)` over that circle is `ofReal` of
+`log M - circleAverage (fun z ↦ log ‖p.eval z‖) 0 r`. -/
+theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap (p : ℂ[X]) {r M : ℝ}
+    (hM : ∀ θ, Real.log ‖p.eval (circleMap 0 r θ)‖ ≤ Real.log M) :
+    ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) =
+      ENNReal.ofReal (Real.log M - circleAverage (fun z => Real.log ‖p.eval z‖) 0 r) := by
+  have han : AnalyticOnNhd ℂ (fun z => p.eval z) univ := fun z _ =>
+    p.differentiable.analyticAt z
+  exact Real.setLAverage_ofReal_sub_circleMap
+    ((han.mono (subset_univ _)).meromorphicOn.circleIntegrable_log_norm) (ae_of_all _ hM)
+
+open MeasureTheory Set in
+open scoped ENNReal in
+/-- **Sub-mean value inequality on a circle, lower-average form.** If `p.eval 0 ≠ 0` and
+`‖p‖ ≤ M` on the circle of radius `r` about `0`, then the lower average of
+`ofReal (log M - log ‖p‖)` over that circle is at most `ofReal (log M - log ‖p.eval 0‖)`. -/
+theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le {p : ℂ[X]}
+    (hp : p.eval 0 ≠ 0) {r M : ℝ} (hM : ∀ θ, ‖p.eval (circleMap 0 r θ)‖ ≤ M) :
+    ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) ≤
+      ENNReal.ofReal (Real.log M - Real.log ‖p.eval 0‖) := by
+  rcases eq_or_ne r 0 with rfl | hr
+  · simp only [circleMap_zero_radius, Function.const_apply]
+    exact (setLAverage_const (by simp [Real.pi_pos]) measure_Ioc_lt_top.ne _).le
+  have hp0 : p ≠ 0 := fun h => hp (by simp [h])
+  have han : AnalyticOnNhd ℂ (fun z => p.eval z) univ := fun z _ =>
+    p.differentiable.analyticAt z
+  have hnull : ∀ᵐ θ ∂(volume.restrict (Ioc 0 (2 * π))), p.eval (circleMap 0 r θ) ≠ 0 := by
+    refine ae_restrict_of_ae (measure_mono_null (fun θ hθ => ?_)
+      ((p.roots.toFinset.countable_toSet.preimage_circleMap 0 hr).measure_zero _))
+    simpa [mem_roots hp0] using hθ
+  have hL : ∀ᵐ θ ∂(volume.restrict (Ioc 0 (2 * π))),
+      Real.log ‖p.eval (circleMap 0 r θ)‖ ≤ Real.log M := by
+    filter_upwards [hnull] with θ hθ
+    exact Real.log_le_log (norm_pos_iff.2 hθ) (hM θ)
+  rw [Real.setLAverage_ofReal_sub_circleMap
+    ((han.mono (subset_univ _)).meromorphicOn.circleIntegrable_log_norm) hL]
+  gcongr
+  exact (han.mono (subset_univ _)).log_norm_le_circleAverage_log_norm hp
 
 end Polynomial
 

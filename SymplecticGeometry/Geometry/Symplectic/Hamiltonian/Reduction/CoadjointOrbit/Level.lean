@@ -6,12 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Homeomorph.Lemmas
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
 public import TauCeti.Geometry.Symplectic.Coadjoint.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Prod
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Prod
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Prod
 
 /-!
 # The preimage of an embedded coadjoint orbit under a moment map

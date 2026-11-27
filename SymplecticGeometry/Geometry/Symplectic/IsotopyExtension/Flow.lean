@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
-import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Extension of isotopies by symplectic and Hamiltonian flows
@@ -29,7 +30,7 @@ The construction (`TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_
 
 1. A function `G` on `M × [0, 1]` vanishing off a compact set with `G_t ∘ k_t = h_t` near `K`
    (`TauCeti.SmoothIsotopy.exists_contMDiff_comp_eventuallyEq`, in
-   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension`).
+   `SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Transport`).
 2. The diffeotopy `φ_t` whose velocity `X_t` satisfies `ι_{X_t} σ = β_t + dG_t`, which preserves
    `σ` and fixes every point off a compact set
    (`TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv`, in
@@ -90,7 +91,7 @@ omit [T2Space M] [SigmaCompactSpace M] in
 /-- Along an isotopy `k` of embeddings between manifolds of the same dimension whose velocity form
 at time `t` is `k_t^* β_t + dh_t`, a field `Y` with `ι_Y σ = β_t + dG_t`, where `σ` is
 nondegenerate and `G_t ∘ k_t = h_t` near `x`, is the velocity of `k` at `k_t x`. -/
-private theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : SmoothIsotopy f₀ f₁)
+theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : SmoothIsotopy f₀ f₁)
     (hd : Module.finrank ℝ E' = Module.finrank ℝ E)
     {β : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) ℝ 1} {h : unitInterval × P → ℝ}
     {t : unitInterval}
@@ -121,11 +122,8 @@ private theorem apply_eq_mfderiv_of_interior_eq (hσ : σ.IsNondegenerate) (k : 
     -- The cast between the tangent spaces `TangentSpace 𝓘(ℝ) _` is the identity of `ℝ`.
     rfl
   rw [← RoughForm.interior_apply, hY, hα, Pi.add_apply, Pi.add_apply,
-    ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.add_apply, mpullback_apply,
+    ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.add_apply, mpullback_apply_one,
     mextDeriv_ofFunction_apply, mextDeriv_ofFunction_apply, ← hcomp, hmf]
-  congr 2
-  -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
-  exact Eq.symm (FinVec.etaExpand_eq _).symm
 
 /-- **Extension by a symplectic flow.** Let `σ` be a symplectic form on `M`, `k` a smooth isotopy
 of embeddings of `P` into `M` of the same dimension, and `K ⊆ P` compact. Suppose that the
@@ -188,7 +186,7 @@ theorem exists_hasHamiltonian_forall_apply_eq (hσ : σ.IsSymplectic) (k : Smoot
   obtain ⟨Φ, G, L, hL, hG, hGL, hint, hpres, hfix, happly⟩ :=
     k.exists_diffeotopy_interior_velocity_eq_forall_apply_eq hσ hd hK
       (β := 0) (fun t ↦ by rw [h0, ZeroMemClass.coe_zero, mextDeriv_zero]) isCompact_empty
-      (fun t y _ ↦ by rw [h0, ZeroMemClass.coe_zero, Pi.zero_apply]) hh
+      (fun t y _ ↦ by rw [h0, SmoothBundleForm.zero_apply]) hh
       (fun t ↦ by rw [hα t, h0, ZeroMemClass.coe_zero, mpullback_zero, zero_add])
   have hgen : Φ.IsGeneratedBy σ G := Diffeotopy.isGeneratedBy_iff.2 ⟨hG, fun t ↦
     SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq.2 (by

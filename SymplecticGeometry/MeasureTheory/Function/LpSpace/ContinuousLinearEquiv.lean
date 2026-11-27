@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.MeasureTheory.Function.L2Space
-public import SymplecticGeometry.Analysis.InnerProductSpace.ContinuousLinearEquiv
+import SymplecticGeometry.Analysis.InnerProductSpace.ContinuousLinearEquiv
 import TauCeti.MeasureTheory.Function.Lp.Basic
 
 /-!

@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Sobolev.Wkp.Hilbert
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm.Basic
+import SymplecticGeometry.Analysis.Sobolev.Wkp.Hilbert
 import TauCeti.Geometry.Manifold.Complex.Analytic
+import SymplecticGeometry.Analysis.InnerProductSpace.ContinuousLinearEquiv
 
 /-!
 # Sobolev sections of exponent two are Hilbert spaces up to isomorphism
@@ -34,13 +35,6 @@ continuously linearly equivalent to a real Hilbert space, and so is its subspace
   `W^{k,2}(V)` of Sobolev sections of a vector bundle.
 * `TauCeti.exists_continuousLinearEquiv_innerProductSpace_zeroOneSobolevSections`: so is its
   subspace of `(0,1)`-forms.
-
-The file also names the normed group and real normed space structures of
-`TauCeti.zeroOneSobolevSections A μ p k` as instances
-(`TauCeti.zeroOneSobolevSections.instNormedAddCommGroup`,
-`TauCeti.zeroOneSobolevSections.instNormedSpace`): instance search finds them for a concrete
-atlas only within a larger budget than it has when nested in another search, such as that for the
-operator norm on maps into these spaces.
 
 ## References
 
@@ -114,20 +108,6 @@ variable {M : Type*} [TopologicalSpace M] [ChartedSpace ℂ M] [IsManifold 𝓘(
 `TauCeti.zeroOneSobolevSections`. -/
 local instance instVectorBundleRealHilbert : VectorBundle ℝ F V :=
   VectorBundle.restrictScalars ℝ ℂ F V
-
-/-- The normed group structure of the Sobolev `(0,1)`-forms, that of a subspace of
-`TauCeti.SobolevSection A.tangentHom μ p k`. -/
-instance zeroOneSobolevSections.instNormedAddCommGroup (A : FiniteBundleAtlas ℂ M F V)
-    (μ : Measure ℂ) [μ.IsAddHaarMeasure] (p : ℝ≥0∞) [Fact (1 ≤ p)] (k : ℕ) :
-    NormedAddCommGroup (zeroOneSobolevSections A μ p k) :=
-  inferInstance
-
-/-- The real normed space structure of the Sobolev `(0,1)`-forms, that of a subspace of
-`TauCeti.SobolevSection A.tangentHom μ p k`. -/
-instance zeroOneSobolevSections.instNormedSpace (A : FiniteBundleAtlas ℂ M F V)
-    (μ : Measure ℂ) [μ.IsAddHaarMeasure] (p : ℝ≥0∞) [Fact (1 ≤ p)] (k : ℕ) :
-    NormedSpace ℝ (zeroOneSobolevSections A μ p k) :=
-  inferInstance
 
 /-- **The Sobolev `(0,1)`-forms at exponent two are a Hilbert space up to isomorphism.** For a
 finite bundle atlas `A` of a complex vector bundle `V` over a complex curve, a Haar measure `μ` on

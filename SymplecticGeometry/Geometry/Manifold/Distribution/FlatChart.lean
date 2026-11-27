@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Distribution.FlatChart
-import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
+public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 

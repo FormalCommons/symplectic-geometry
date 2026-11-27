@@ -12,8 +12,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
@@ -363,12 +364,10 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
     simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero] at hC
     rw [eq_neg_iff_add_eq_zero]
     exact hC.symm
-  · rw [SmoothForm.mpullback_apply]
-    simp only [Function.comp_apply]
-    congr 1
-    ext i
-    fin_cases i
-    exact mfderiv_prodMk_left_apply _
+  · rw [Function.comp_apply, SmoothForm.mpullback_apply_one, mfderiv_prodMk_left_apply]
+    dsimp only
+    -- The two sides differ only in implicit types and instances, which agree by definition.
+    rfl
 
 omit [IB.Boundaryless] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:
@@ -401,10 +400,8 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
       (fun s ↦ (⟨s, constVectorField (1 : ℝ) s⟩ : TangentBundle 𝓘(ℝ) ℝ)) 0 :=
     (contMDiff_constVectorField (1 : ℝ) (n := 1)).mdifferentiableAt one_ne_zero
   have hV := mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (t := 0) (x := n)
-    ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦ by
-      have h := congrArg Subtype.val ((hslice s).trans (hslice 0).symm)
-      rwa [SmoothForm.coe_mpullback (Prod.mk s : N → ℝ × N),
-        SmoothForm.coe_mpullback (Prod.mk (0 : ℝ) : N → ℝ × N)] at h
+    ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦
+      (SmoothForm.mpullback_eq_mpullback_iff _ _).1 ((hslice s).trans (hslice 0).symm)
   -- The derivative of `(s, m) ↦ (γ s, m)`, from the integral curves `γ` of `ξ_P`.
   have hφ' (q : ℝ × N) : HasMFDerivAt (𝓘(ℝ).prod IN) ((IB.prod IG).prod IN)
       (fun q : ℝ × N ↦ (γ q.1, q.2)) q
@@ -434,35 +431,26 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
     have hV2 : mlieDerivForm (Manifold.prodVectorField (constVectorField (1 : ℝ))
         (0 : Π y : N, TangentSpace IN y)) (SmoothForm.mpullback _ hφ A).val (0, n)
           ![mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v] = 0 := by
-      have h := mpullback_apply (I := IN) (I' := 𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ))
+      have h := mpullback_apply_one (I := IN) (I' := 𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ))
         (mlieDerivForm (Manifold.prodVectorField (constVectorField (1 : ℝ))
-          (0 : Π y : N, TangentSpace IN y)) (SmoothForm.mpullback _ hφ A).val) n
-        ![v]
+          (0 : Π y : N, TangentSpace IN y)) (SmoothForm.mpullback _ hφ A).val) n v
       rw [hV, ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at h
-      rw [h]
-      congr 1
-      funext i
-      fin_cases i
-      exact congrArg _ (Matrix.cons_val_zero v ![]).symm
+      exact h.symm
     -- Its right side is the identity, pushed forward along `(s, m) ↦ (γ s, m)`.
     rw [hC, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
-      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply,
+      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply_pair,
       mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
         (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv,
         mfderiv_prodMk_right_apply (I := 𝓘(ℝ)) (x := (0 : ℝ)) v] at hV2
     have hγ0 : γ 0 = x := by simp [hγdef, mulInvariantExp_zero]
     rw [← hγ0, eq_neg_iff_add_eq_zero, ← hV2]
     congr 2
-    · funext i
-      fin_cases i
-      · rw [hW]
-        exact Prod.ext (one_smul ℝ _).symm rfl
-      · exact Prod.ext (zero_smul ℝ _).symm rfl
+    · rw [hW]
+      exact congrArg₂ (fun a b ↦ ![a, b]) (Prod.ext (one_smul ℝ _).symm rfl)
+        (Prod.ext (zero_smul ℝ _).symm rfl)
     · exact Prod.ext (zero_smul ℝ _).symm rfl
-  · rw [SmoothForm.mpullback_apply, (hφ' q).mfderiv]
-    congr 1
-    funext i
-    fin_cases i
+  · rw [SmoothForm.mpullback_apply_one, (hφ' q).mfderiv]
+    congr 2
     rw [hW]
     exact Prod.ext (one_smul ℝ _) rfl
 

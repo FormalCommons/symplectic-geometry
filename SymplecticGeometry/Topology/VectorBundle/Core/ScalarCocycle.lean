@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
+import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
+import SymplecticGeometry.Topology.VectorBundle.Coordinates
 
 /-!
 # The line bundles of a scalar cocycle
@@ -43,7 +44,10 @@ for `k + l`, `k` and `l` share their charts and their preferred chart at each po
 tensor isomorphism needs no scalar factor. The tensor section adapts the proofs that the
 library first gave for `Projectivization.twistCoreTensorEquiv`, which
 `SymplecticGeometry/Geometry/Manifold/Projectivization/TwistCore.lean` now derives from
-`lineBundleCoreTensorEquiv`.
+`lineBundleCoreTensorEquiv`. Its continuity on total spaces is Tau Ceti's
+`TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const` with Mathlib's
+`Continuous.clm_bundle_apply`, since in the trivializations at every point it is the same map
+`a ↦ a ⊗ 1` (by the library's `ContinuousLinearMap.inCoordinates_eq_of_forall_apply`).
 
 ## References
 
@@ -53,7 +57,7 @@ library first gave for `Projectivization.twistCoreTensorEquiv`, which
 
 public noncomputable section
 
-open Bundle Set Topology
+open Bundle Set
 open scoped TensorProduct TauCeti.ModuleTopology
 
 namespace SymplecticGeometry
@@ -184,20 +188,25 @@ theorem tensorProduct_localTriv_lineBundleCoreTensorEquiv {i : ι} {x : X} (hi :
 
 variable [CompleteSpace 𝕜]
 
-/-- In the trivialization of the tensor product at `x₀`, `lineBundleCoreTensorEquiv` sends a
-vector to its coordinate in the preferred chart at `x₀` of the line bundle of `k + l`, tensored
-with `1`. -/
-private theorem trivializationAt_lineBundleCoreTensorEquiv (x₀ : X)
-    {x : X} (hx : x ∈ c.U (c.indexAt x₀)) (v : 𝕜) :
-    (trivializationAt (TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜)
-        (fun x ↦ (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x) x₀
-        ⟨x, c.lineBundleCoreTensorEquiv k l x v⟩).2 =
-      TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜
-        ((c.lineBundleCore (k + l)).localTriv (c.indexAt x₀) ⟨x, v⟩).2 1 := by
-  rw [TauCeti.tensorProduct_trivializationAt, Bundle.Trivialization.tensorProduct_apply]
-  simp only [lineBundleCore_trivializationAt]
-  rw [← c.tensorProduct_localTriv_lineBundleCoreTensorEquiv k l hx v,
-    Pretrivialization.tensorProduct_apply]
+/-- In the trivializations at `x₀`, `lineBundleCoreTensorEquiv` is `a ↦ a ⊗ 1`. -/
+private theorem inCoordinates_lineBundleCoreTensorEquiv (x₀ x : X)
+    (hx : x ∈ (trivializationAt 𝕜 (c.lineBundleCore (k + l)).Fiber x₀).baseSet)
+    (hx' : x ∈ (trivializationAt (TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜)
+      (fun x ↦ (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x) x₀).baseSet) :
+    ContinuousLinearMap.inCoordinates 𝕜 (c.lineBundleCore (k + l)).Fiber
+        (TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜)
+        (fun x ↦ (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x) x₀ x x₀ x
+        (c.lineBundleCoreTensorEquiv k l x : _ →L[𝕜] _) =
+      (TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜).flip 1 := by
+  refine ContinuousLinearMap.inCoordinates_eq_of_forall_apply hx hx' fun v ↦ ?_
+  simp only [ContinuousLinearEquiv.coe_coe, ContinuousLinearMap.flip_apply]
+  -- All three trivializations at `x₀` are the charts `c.indexAt x₀`, where the map is
+  -- `tensorProduct_localTriv_lineBundleCoreTensorEquiv`.
+  rw [lineBundleCore_trivializationAt, lineBundleCore_localTriv_baseSet] at hx
+  simp only [TauCeti.tensorProduct_trivializationAt, Bundle.Trivialization.tensorProduct_apply,
+    lineBundleCore_trivializationAt]
+  refine Eq.trans ?_ (c.tensorProduct_localTriv_lineBundleCoreTensorEquiv k l hx _)
+  rw [Pretrivialization.tensorProduct_apply]
 
 /-- `lineBundleCoreTensorEquiv` is continuous on total spaces. -/
 theorem continuous_lineBundleCoreTensorEquiv :
@@ -205,22 +214,18 @@ theorem continuous_lineBundleCoreTensorEquiv :
       TotalSpace.mk' (TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜)
         (E := fun x ↦ (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x)
         p.proj (c.lineBundleCoreTensorEquiv k l p.proj p.snd) := by
-  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-  rw [FiberBundle.continuousAt_totalSpace]
-  refine ⟨(FiberBundle.continuous_proj _ _).continuousAt, ?_⟩
-  set i := c.indexAt p₀.proj
-  have hi₀ : p₀.proj ∈ c.U i := c.mem_U_indexAt p₀.proj
-  have hU : ∀ᶠ p in 𝓝 p₀, p.proj ∈ c.U i :=
-    (FiberBundle.continuous_proj _ _).continuousAt.preimage_mem_nhds
-      ((c.isOpen_U i).mem_nhds hi₀)
-  have h₁ : ContinuousAt (fun p ↦ ((c.lineBundleCore (k + l)).localTriv i p).2) p₀ :=
-    continuous_snd.continuousAt.comp (((c.lineBundleCore (k + l)).localTriv i).continuousAt
-      (((c.lineBundleCore (k + l)).mem_localTriv_source (i := i) p₀).2 hi₀))
-  refine ContinuousAt.congr
-    (((TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜).continuous.continuousAt.comp h₁).clm_apply
-      (continuousAt_const : ContinuousAt (fun _ ↦ (1 : 𝕜)) p₀))
-    (hU.mono fun p hp ↦ ?_)
-  exact (c.trivializationAt_lineBundleCoreTensorEquiv k l p₀.proj hp p.snd).symm
+  have h : Continuous fun x : X ↦
+      TotalSpace.mk' (𝕜 →L[𝕜] TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜)
+        (E := fun x ↦ (c.lineBundleCore (k + l)).Fiber x →L[𝕜]
+          (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x) x
+        (c.lineBundleCoreTensorEquiv k l x : _ →L[𝕜] _) := by
+    refine TauCeti.continuous_hom_bundle_of_inCoordinates_eq_const
+      (c := fun _ ↦ (TauCeti.ProjectiveTensor.tmulL 𝕜 𝕜 𝕜).flip 1) ?_
+    exact c.inCoordinates_lineBundleCoreTensorEquiv k l
+  exact Continuous.clm_bundle_apply (F₁ := 𝕜) (E₁ := (c.lineBundleCore (k + l)).Fiber)
+    (F₂ := TauCeti.ProjectiveTensor 𝕜 𝕜 𝕜)
+    (E₂ := fun x ↦ (c.lineBundleCore k).Fiber x ⊗[𝕜] (c.lineBundleCore l).Fiber x)
+    (h.comp (FiberBundle.continuous_proj _ _)) continuous_id
 
 /-- The inverse of `lineBundleCoreTensorEquiv` is continuous on total spaces. -/
 theorem continuous_lineBundleCoreTensorEquiv_symm :

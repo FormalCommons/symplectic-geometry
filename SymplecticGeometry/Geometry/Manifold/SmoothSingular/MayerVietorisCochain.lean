@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.MayerVietoris.SmallSubcomplex
 public import TauCeti.Geometry.Manifold.SmoothSingular.MayerVietoris
 public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
+public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Basic
+import SymplecticGeometry.AlgebraicTopology.Cohomology.MayerVietoris.SmallSubcomplex
 
 /-!
 # Small smooth singular cochains and the Mayer–Vietoris connecting map

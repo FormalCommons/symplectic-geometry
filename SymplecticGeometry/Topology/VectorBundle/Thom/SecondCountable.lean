@@ -9,7 +9,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.PullbackCup
 public import TauCeti.Topology.MayerVietoris
 public import TauCeti.Topology.VectorBundle.Thom.Isomorphism
 public import TauCeti.Topology.VectorBundle.MayerVietoris.Basic
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.PullbackCup
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.PullbackCup
 
 /-!
 # The Thom isomorphism over a second-countable base

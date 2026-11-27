@@ -13,21 +13,20 @@ public import TauCeti.Geometry.Contact.Sphere
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
-public import TauCeti.Geometry.Symplectic.Manifold.Descent
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.MFDeriv.Opens
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+public import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
+import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The Fubini–Study form of `ℂPⁿ`
 
 Write `Z = TauCeti.puncturedSpace (Fin (n + 1) → ℂ)` for `ℂⁿ⁺¹ ∖ 0`, `|z|² = ∑ᵢ ‖zᵢ‖²`,
 `⟨z, v⟩ = Re ∑ᵢ conj zᵢ vᵢ`, and `ω₀ = stdComplexPiSymplecticForm (Fin (n + 1))`. This file
-builds the forms upstairs, and the Fubini–Study form of `ℂPⁿ` as the descent of one of them.
+builds the forms upstairs, and carries Tau Ceti's Fubini–Study form over to
+`ℙ ℂ (Fin (n + 1) → ℂ)`.
 
 * `SymplecticGeometry.fubiniStudyPrimitive n` is the one-form `α` on `Z` with
   `α_z(v) = ω₀(z, v) / (2 |z|²)` (`fubiniStudyPrimitive_apply`). It is defined as the pull-back
@@ -43,25 +42,30 @@ builds the forms upstairs, and the Fubini–Study form of `ℂPⁿ` as the desce
   has the value
   `ρ_z(v, w) = ω₀(v, w) / |z|² - (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v)) / |z|⁴`
   (`fubiniStudyLift_apply`), and its complexification is `(i/2) ∂∂bar log |z|²`
-  (`fubiniStudyLift_eq_del_delBar`), by `Dolbeault/Potential.lean`.
+  (`fubiniStudyLift_eq_del_delBar`), by `Dolbeault/Potential.lean`, since `ρ` is the form
+  `potentialForm` of `log |z|²` (`fubiniStudyLift_eq_potentialForm`).
 * `SymplecticGeometry.sphereStdForm n` is the restriction `σ` of `ω₀ = stdForm (Fin (n + 1))` to
   the unit sphere of `StdSpace (Fin (n + 1))` (`sphereStdForm_apply`). It is the exterior
   derivative of `sphereContactForm` (`sphereStdForm_eq_mextDeriv`), hence closed
   (`isClosed_sphereStdForm`), and its pull-back along the radial projection is `ρ`
   (`mpullback_radialProjection_sphereStdForm`), by naturality of `d`.
-* `σ` is basic for the Hopf map `sphereHopf n` (`isBasic_sphereStdForm`): it is invariant under
-  the circle action `x ↦ cos t • x + sin t • J₀ x`, whose orbits are the fibres of the Hopf map,
-  and at every point its kernel is the kernel of the derivative of the Hopf map
-  (`ker_sphereStdForm`), the line `ℝ ∙ J₀ x`. These are the hypotheses of Tau Ceti's
-  `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`.
-* `SymplecticGeometry.fubiniStudyForm n` is the Fubini–Study form `ω_FS` of `ℂPⁿ`, defined as
-  Tau Ceti's descent `TauCeti.SmoothForm.descendedForm` of `σ` along the Hopf map. It pulls back
-  to `σ` (`mpullback_sphereHopf_fubiniStudyForm`) and, since the projection
+* Under the identification of the unit sphere of `StdSpace (Fin (n + 1))` with that of
+  `EuclideanSpace ℂ (Fin (n + 1))` by the inverse of the isometry
+  `TauCeti.complexToRealEuclideanIsometry`, `σ` is the pull-back of the restriction of Tau Ceti's
+  `Im ⟪·, ·⟫_ℂ` (`mpullback_unitSphereEquiv_imInnerSymplecticForm`), since that isometry
+  carries `stdForm (Fin (n + 1))` to `Im ⟪·, ·⟫_ℂ` (`stdForm_apply_eq_im_inner`).
+* `SymplecticGeometry.fubiniStudyForm n` is the Fubini–Study form `ω_FS` of `ℂPⁿ`, defined as `π`
+  times the pull-back of Tau Ceti's `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` along the
+  inverse of the diffeomorphism `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`.
+  Since the Hopf map is Tau Ceti's Hopf projection read through these identifications
+  (`sphereHopf_eq_diffeomorphProjectivization_mk`), Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.mpullback_mk_fubiniStudyForm` gives that `ω_FS` pulls back to
+  `σ` (`mpullback_sphereHopf_fubiniStudyForm`) and, since the projection
   `Projectivization.mkNonzero ℂ n` is the Hopf map after the radial projection, to `ρ` on `Z`
   (`mpullback_mkNonzero_fubiniStudyForm`, `eval₂_fubiniStudyForm_mfderiv_mkNonzero`). It is
-  symplectic (`isSymplectic_fubiniStudyForm`), by
-  `TauCeti.SmoothTwoForm.isSymplectic_descendedForm_iff`, and it is the only two-form with either
-  pull-back (`existsUnique_mpullback_mkNonzero_eq`,
+  symplectic (`isSymplectic_fubiniStudyForm`), by Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.isSymplectic_fubiniStudyForm`, and it is the only two-form with
+  either pull-back (`existsUnique_mpullback_mkNonzero_eq`,
   `existsUnique_mpullback_sphereHopf_eq`), since both projections are surjective submersions.
 
 ## References
@@ -150,9 +154,7 @@ theorem mextDerivₗ_fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1)
       (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) ∘ Subtype.val :=
     funext fun y ↦ by
       rw [fubiniStudyPotential_apply, Function.comp_apply, norm_sq_complexToRealEuclidean]
-  rw [mextDerivₗ_zero_apply, hf, Manifold.mvfderiv_comp_subtype_val]
-  refine (mvfderiv_eq_fderiv_apply _ (z : Fin (n + 1) → ℂ) v).trans ?_
-  rw [hd.fderiv]
+  rw [mextDerivₗ_zero_apply, hf, Manifold.mvfderiv_modelSpace_comp_subtype_val_apply, hd.fderiv]
   -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
   -- maps apply to it.
   revert v
@@ -171,7 +173,7 @@ theorem fubiniStudyPrimitive_eq :
         (puncturedSpace (Fin (n + 1) → ℂ))).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)) := by
   refine SmoothBundleForm.ext_fin_one fun z v ↦ ?_
-  rw [SmoothForm.smul_toRoughForm, Pi.smul_apply,
+  rw [SmoothBundleForm.smul_apply,
     ContinuousAlternatingMap.smul_apply,
     SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec,
     mextDerivₗ_fubiniStudyPotential_apply, fubiniStudyPrimitive_apply]
@@ -197,6 +199,15 @@ theorem fubiniStudyLift_def :
     fubiniStudyLift n = mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (fubiniStudyPrimitive n) :=
   (rfl)
 
+open TauCeti.ComplexManifold in
+/-- The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0` is the form `(1/4) d (J* d log |z|²)` of the potential
+`log |z|²`, for the complex structure `J` of `ℂⁿ⁺¹ ∖ 0`. -/
+theorem fubiniStudyLift_eq_potentialForm :
+    fubiniStudyLift n = (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ)
+      (puncturedSpace (Fin (n + 1) → ℂ))).potentialForm (fubiniStudyPotential n) := by
+  rw [fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul,
+    SmoothAlmostComplexStructure.potentialForm_def]
+
 /-- The two-form `ρ` on `ℂⁿ⁺¹ ∖ 0` is closed. -/
 theorem isClosed_fubiniStudyLift : (fubiniStudyLift n).IsClosed :=
   SmoothForm.isClosed_mextDerivₗ _
@@ -212,7 +223,7 @@ theorem fubiniStudyLift_eq_del_delBar :
             (puncturedSpace (Fin (n + 1) → ℂ))).delBar
               (SmoothForm.mapCoeff Complex.ofRealCLM (fubiniStudyPotential n))) := by
   rw [SmoothAlmostComplexStructure.del_delBar_mapCoeff_ofReal_ofComplexManifold,
-    fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul]
+    fubiniStudyLift_eq_potentialForm]
 
 /-- The restriction `σ` of the standard form `ω₀ = stdForm (Fin (n + 1))` to the unit sphere of
 `StdSpace (Fin (n + 1))`: the pull-back of the constant form along the inclusion. -/
@@ -285,78 +296,50 @@ theorem fubiniStudyLift_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
   field_simp
   ring
 
-/-! ### The Fubini–Study form as a descended form -/
+/-! ### The Fubini–Study form from Tau Ceti's sphere-quotient model -/
 
-/-- The kernel of `σ` at every point of the sphere is the kernel of the derivative of the Hopf
-map there: read in `StdSpace (Fin (n + 1))`, both are the line `ℝ ∙ J₀ x`. -/
-theorem ker_sphereStdForm (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
-    LinearMap.ker ((sphereStdForm n).bilinFormAt x) =
-      (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) x).ker := by
-  set J := stdComplexStructure (Fin (n + 1))
-  set D := mvfderiv (𝓡 (2 * n + 1))
-    ((↑) : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) x
-  ext v
-  have h₁ : v ∈ (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) x).ker ↔
-      D v ∈ ℝ ∙ J (x : StdSpace (Fin (n + 1))) := by
-    rw [← ker_mfderiv_sphereHopf n x, Submodule.mem_map]
-    refine ⟨fun hv ↦ ⟨v, hv, rfl⟩, fun ⟨u, hu, huv⟩ ↦ ?_⟩
-    rwa [← injective_mvfderiv_subtypeVal_sphere (n := 2 * n + 1) x huv]
-  -- `v` is in the kernel of `σ_x` exactly when `J₀ (D v)` is orthogonal to the tangent space
-  -- `(ℝ ∙ x)ᗮ`, the range of `D`.
-  have h₂ : v ∈ LinearMap.ker ((sphereStdForm n).bilinFormAt x) ↔
-      J (D v) ∈ (ℝ ∙ (x : StdSpace (Fin (n + 1))))ᗮᗮ := by
-    rw [LinearMap.mem_ker, LinearMap.ext_iff, ← range_mvfderiv_subtypeVal (n := 2 * n + 1) x,
-      Submodule.mem_orthogonal']
-    simp only [LinearMap.mem_range, forall_exists_index, forall_apply_eq_imp_iff,
-      LinearMap.zero_apply, SmoothForm.bilinFormAt_apply, sphereStdForm_apply,
-      stdForm_apply_eq_inner, ContinuousLinearMap.coe_coe, J, D]
-  rw [h₁, h₂, Submodule.orthogonal_orthogonal, Submodule.mem_span_singleton,
-    Submodule.mem_span_singleton]
-  refine ⟨fun ⟨a, ha⟩ ↦ ⟨-a, ?_⟩, fun ⟨a, ha⟩ ↦ ⟨-a, ?_⟩⟩
-  · rw [neg_smul, ← map_smul, ha, AlmostComplexStructure.apply_apply, neg_neg]
-  · rw [← ha, map_smul, AlmostComplexStructure.apply_apply, smul_neg, neg_smul]
-
-/-- The restriction `σ` of `ω₀` to the sphere is basic for the Hopf map: its value only depends on
-the images of tangent vectors under the derivative of `sphereHopf n`. It is invariant under the
-circle action `x ↦ cos t • x + sin t • J₀ x`, whose orbits are the fibres, and its kernel contains
-the vertical vectors by `ker_sphereStdForm`. These are the hypotheses of Tau Ceti's
-`TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`. -/
-theorem isBasic_sphereStdForm :
-    RoughForm.IsBasic (V := ℝ) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) (sphereStdForm n).val := by
-  refine SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le
-    (τ := fun t ↦ (stdRotation (Fin (n + 1)) t).unitSphereEquiv)
-    ((contMDiff_sphereHopf n 1).mdifferentiable one_ne_zero)
-    (fun t ↦ ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1)
-      (k := 2 * n + 1)).mdifferentiable one_ne_zero)
-    (fun t ↦ funext fun x ↦ ((sphereHopf_eq_sphereHopf_iff n x _).2
-      ⟨t, LinearIsometryEquiv.coe_unitSphereEquiv_apply _ _⟩).symm)
-    (fun x y h ↦ .inr <|
-      let ⟨t, ht⟩ := (sphereHopf_eq_sphereHopf_iff n x y).1 h
-      ⟨t, Subtype.ext <| (LinearIsometryEquiv.coe_unitSphereEquiv_apply _ _).trans ht.symm⟩)
-    (fun x ↦ (ker_sphereStdForm n x).ge) fun t ↦ ?_
-  rw [← SmoothForm.coe_mpullback _
-    ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1))]
-  refine congrArg Subtype.val (SmoothBundleForm.ext_eval₂ fun x v w ↦ ?_)
-  rw [SmoothForm.eval₂_mpullback, sphereStdForm_apply, sphereStdForm_apply,
+/-- Under the identification of the unit spheres of `StdSpace (Fin (n + 1))` and
+`EuclideanSpace ℂ (Fin (n + 1))` by the inverse of `complexToRealEuclideanIsometry`, the
+restriction of Tau Ceti's form `imInnerSymplecticForm`, `Im ⟪·, ·⟫_ℂ`, to the unit sphere of
+`EuclideanSpace ℂ (Fin (n + 1))` pulls back to `σ`. -/
+theorem mpullback_unitSphereEquiv_imInnerSymplecticForm :
+    SmoothForm.mpullback (complexToRealEuclideanIsometry (Fin (n + 1))).symm.unitSphereEquiv
+      (LinearIsometryEquiv.contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1) _)
+      (SmoothForm.mpullback
+        ((↑) : sphere (0 : EuclideanSpace ℂ (Fin (n + 1))) 1 → EuclideanSpace ℂ (Fin (n + 1)))
+        contMDiff_coe_sphere
+        (imInnerSymplecticForm (EuclideanSpace ℂ (Fin (n + 1)))).constSmooth) =
+      sphereStdForm n := by
+  refine SmoothBundleForm.ext_eval₂ fun x v w ↦ ?_
+  rw [SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback,
+    SymplecticForm.eval₂_constSmooth_mfderiv_eq,
     LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv,
-    LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, stdForm_stdRotation]
+    LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, sphereStdForm_apply,
+    imInnerSymplecticForm_apply, ← stdForm_apply_eq_im_inner, LinearIsometryEquiv.apply_symm_apply,
+    LinearIsometryEquiv.apply_symm_apply]
 
-/-- The Fubini–Study form `ω_FS` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`: the descent of the restriction
-`σ` of `ω₀` to the unit sphere along the Hopf map, that is, the unique two-form whose pull-back
-along `sphereHopf n` is `σ` (`existsUnique_mpullback_sphereHopf_eq`). Its pull-back to
-`ℂⁿ⁺¹ ∖ 0` is `ρ`, whose complexification is `(i/2) ∂∂bar log |z|²`
-(`mpullback_mkNonzero_fubiniStudyForm`).
+/-- The Fubini–Study form `ω_FS` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`: `π` times Tau Ceti's
+Fubini–Study form `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` of the quotient of the unit
+sphere by the circle, carried to `ℙ ℂ (Fin (n + 1) → ℂ)` by the diffeomorphism
+`TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`. Its pull-back along the Hopf map
+`sphereHopf n` is the restriction `σ` of `ω₀` to the unit sphere
+(`mpullback_sphereHopf_fubiniStudyForm`), and it is the only two-form with that pull-back
+(`existsUnique_mpullback_sphereHopf_eq`). Its pull-back to `ℂⁿ⁺¹ ∖ 0` is `ρ`, whose
+complexification is `(i/2) ∂∂bar log |z|²` (`mpullback_mkNonzero_fubiniStudyForm`).
 
 This is McDuff–Salamon's normalization, in which every projective line has area `π`. On `ℂP¹` it
 is `π` times Tau Ceti's `OnePoint.fubiniStudyForm`, which has total area `1`. -/
 noncomputable def fubiniStudyForm :
     SmoothTwoForm 𝓘(ℝ, Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) :=
-  SmoothForm.descendedForm (isSubmersion_sphereHopf n) (surjective_sphereHopf n) (sphereStdForm n)
-    (isBasic_sphereStdForm n)
+  Real.pi • SmoothForm.mpullback (ComplexProjectiveSpace.diffeomorphProjectivization n).symm
+    ((ComplexProjectiveSpace.diffeomorphProjectivization n).symm.contMDiff.of_le le_top)
+    (ComplexProjectiveSpace.fubiniStudyForm n)
 
 theorem fubiniStudyForm_def :
-    fubiniStudyForm n = SmoothForm.descendedForm (isSubmersion_sphereHopf n)
-      (surjective_sphereHopf n) (sphereStdForm n) (isBasic_sphereStdForm n) :=
+    fubiniStudyForm n =
+      Real.pi • SmoothForm.mpullback (ComplexProjectiveSpace.diffeomorphProjectivization n).symm
+        ((ComplexProjectiveSpace.diffeomorphProjectivization n).symm.contMDiff.of_le le_top)
+        (ComplexProjectiveSpace.fubiniStudyForm n) :=
   (rfl)
 
 /-- The pull-back of the Fubini–Study form along the Hopf map is the restriction `σ` of `ω₀` to
@@ -365,15 +348,27 @@ the sphere. -/
 theorem mpullback_sphereHopf_fubiniStudyForm :
     SmoothForm.mpullback (sphereHopf n) (contMDiff_sphereHopf n ∞) (fubiniStudyForm n) =
       sphereStdForm n := by
-  rw [fubiniStudyForm_def]
-  exact SmoothForm.mpullback_descendedForm
+  have hcomp : (ComplexProjectiveSpace.diffeomorphProjectivization n).symm ∘ sphereHopf n =
+      ComplexProjectiveSpace.mk n ∘
+        (complexToRealEuclideanIsometry (Fin (n + 1))).symm.unitSphereEquiv :=
+    funext fun x ↦ by
+      rw [Function.comp_apply, sphereHopf_eq_diffeomorphProjectivization_mk,
+        Diffeomorph.symm_apply_apply, Function.comp_apply]
+  rw [fubiniStudyForm_def, SmoothForm.mpullback_smul,
+    SmoothForm.mpullback_mpullback_of_comp_eq _ _
+      (LinearIsometryEquiv.contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1) _)
+      (ComplexProjectiveSpace.contMDiff_mk ∞) hcomp,
+    ComplexProjectiveSpace.mpullback_mk_fubiniStudyForm, SmoothForm.mpullback_smul, smul_smul,
+    mul_inv_cancel₀ Real.pi_ne_zero, one_smul, mpullback_unitSphereEquiv_imInnerSymplecticForm]
 
-/-- The Fubini–Study form is symplectic: it is closed because `σ` is, and nondegenerate because
-the kernel of `σ` is that of the derivative of the Hopf map. -/
+/-- The Fubini–Study form is symplectic: it is a nonzero multiple of the pull-back of Tau Ceti's
+symplectic form `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` along a diffeomorphism. -/
 theorem isSymplectic_fubiniStudyForm : (fubiniStudyForm n).IsSymplectic := by
   rw [fubiniStudyForm_def]
-  exact SmoothTwoForm.isSymplectic_descendedForm_iff.2
-    ⟨isClosed_sphereStdForm n, ker_sphereStdForm n⟩
+  exact ((((ComplexProjectiveSpace.diffeomorphProjectivization n).symm.isLocalDiffeomorph.of_le
+    le_top).isSymplectic_mpullback_iff
+    (ComplexProjectiveSpace.diffeomorphProjectivization n).symm.surjective).2
+    ComplexProjectiveSpace.isSymplectic_fubiniStudyForm).smul _ Real.pi_ne_zero
 
 /-- The pull-back of the Fubini–Study form along the projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is `ρ`. -/
 @[simp]
@@ -412,7 +407,9 @@ theorem existsUnique_mpullback_sphereHopf_eq :
     ∃! η : SmoothTwoForm 𝓘(ℝ, Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)),
       SmoothForm.mpullback (sphereHopf n) (contMDiff_sphereHopf n ∞) η = sphereStdForm n :=
   ⟨fubiniStudyForm n, mpullback_sphereHopf_fubiniStudyForm n, fun _ h ↦
-    SmoothForm.eq_descendedForm_iff.2 h⟩
+    SmoothForm.mpullback_injective_of_surjective _ (surjective_sphereHopf n)
+      ((isSubmersion_sphereHopf n).surjective_mfderiv (by simp))
+      (h.trans (mpullback_sphereHopf_fubiniStudyForm n).symm)⟩
 
 end SymplecticGeometry
 

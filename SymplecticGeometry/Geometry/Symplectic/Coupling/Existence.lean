@@ -7,10 +7,15 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Existence of coupling forms
@@ -172,11 +177,11 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
       ((2 * Real.pi)⁻¹ * ((t : ℝ) - a)) • α +
         SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (β t) := by
-  refine Subtype.ext <| funext fun p ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  refine SmoothBundleForm.ext_fin_one fun p v ↦ ?_
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
-  simp only [mfderiv_prodMk_left_apply, Submodule.coe_add, SetLike.val_smul,
-    SmoothForm.coe_mpullback, Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
-    ContinuousAlternatingMap.coe_smul, smul_eq_mul, mpullback_apply]
+  simp only [mfderiv_prodMk_left_apply, SmoothBundleForm.add_apply,
+    SmoothBundleForm.smul_apply, SmoothForm.coe_mpullback, ContinuousAlternatingMap.add_apply,
+    ContinuousAlternatingMap.smul_apply, smul_eq_mul, mpullback_apply]
 
 /-! ### The coupling form `pr^* π^* σ + d A` -/
 
@@ -233,7 +238,7 @@ theorem mpullback_smul_couplingOneForm (hα : IsCircleConnectionForm α) (z : Ci
         (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
         (couplingOneForm α β hβ) =
       couplingOneForm α β hβ := by
-  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  refine SmoothBundleForm.ext fun x v ↦ ?_
   have hz : ContMDiff (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞
       (fun y : ManifoldTotalSpace Circle P ↦ op z • y) := contMDiff_const_smul (op z)
   have hD : mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
@@ -311,7 +316,7 @@ theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoF
         fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (x.2 : ℝ)) := by
   funext x
   ext v
-  rw [RoughForm.interior_apply, couplingForm_def, SmoothForm.add_toRoughForm]
+  rw [RoughForm.interior_apply, couplingForm_def, SmoothBundleForm.add_apply]
   have h0 : (SmoothForm.mpullback Prod.fst contMDiff_fst
       (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
         (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff σ)).val x
@@ -339,7 +344,7 @@ theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoF
   have hA : (fun q ↦ (couplingOneForm α β hβ).val q ![couplingField IB P a b q]) =
       fun q ↦ (q.2 : ℝ) - a :=
     funext (hα.couplingOneForm_apply_couplingField hβ)
-  rw [Pi.add_apply, ContinuousAlternatingMap.add_apply, h0, zero_add, Pi.neg_apply,
+  rw [ContinuousAlternatingMap.add_apply, h0, zero_add, Pi.neg_apply,
     ContinuousAlternatingMap.neg_apply, mextDeriv_ofFunction_apply, mextDerivₗ_apply, hC, hA]
   simp only [sub_eq_add_neg, mvfderiv_add_const, mvfderiv_apply_eq_mfderiv_apply]
 

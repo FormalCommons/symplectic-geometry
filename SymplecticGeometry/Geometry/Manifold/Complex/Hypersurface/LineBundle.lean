@@ -7,8 +7,10 @@ module
 
 public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.ScalarCocycle
+public import SymplecticGeometry.Topology.VectorBundle.Core.ScalarCocycle
+public import Mathlib.Geometry.Manifold.VectorBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.ScalarCocycle
 
 /-!
 # The line bundle of a divisor given by local equations

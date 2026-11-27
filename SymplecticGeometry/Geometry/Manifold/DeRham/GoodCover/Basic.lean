@@ -8,8 +8,9 @@ module
 public import Mathlib.Analysis.Convex.Star
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Icc
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
-public import SymplecticGeometry.Topology.Sets.Opens.Comap
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
+import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
 # Smoothly contractible manifolds and finite good covers
@@ -38,8 +39,10 @@ has one.
   and its ends `StarConvex.lineContraction_zero` and `StarConvex.lineContraction_one`. Its
   smoothness, and that of the lines in `of_starConvex_image`, comes from `ContMDiff.lineMap`
   (`Geometry/Manifold/ContMDiff/LineMap.lean`).
-* `SymplecticGeometry.exists_mem_isSmoothlyContractible`: every point has a smoothly contractible
-  open neighbourhood, and `SymplecticGeometry.IsSmoothlyContractible.connectedSpace`: a smoothly
+* `SymplecticGeometry.exists_mem_subset_isSmoothlyContractible`: every neighbourhood of a point
+  contains a smoothly contractible open neighbourhood of it;
+  `SymplecticGeometry.exists_mem_isSmoothlyContractible`: every point has a smoothly contractible
+  open neighbourhood; and `SymplecticGeometry.IsSmoothlyContractible.connectedSpace`: a smoothly
   contractible manifold is connected.
 * `SymplecticGeometry.IsFiniteGoodCover.hasFiniteGoodCover` and
   `SymplecticGeometry.IsSmoothlyContractible.hasFiniteGoodCover`.
@@ -64,7 +67,7 @@ extended chart.
 public section
 
 open Set TopologicalSpace
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
 
@@ -161,25 +164,24 @@ theorem IsSmoothlyContractible.of_starConvex_image_extChartAt [IsManifold I ∞ 
     ((contMDiffOn_extChartAt_symm x).mono ((extChartAt I x).mapsTo.mono_left hU).image_subset)
     (fun _ hy ↦ (extChartAt I x).left_inv (hU hy)) hc hne
 
-/-- Every point of a manifold has a smoothly contractible open neighbourhood. -/
-theorem exists_mem_isSmoothlyContractible [IsManifold I ∞ M] (x : M) :
-    ∃ U : Opens M, x ∈ U ∧ IsSmoothlyContractible I U := by
-  set e := extChartAt I x
-  obtain ⟨ε, hε, hsub⟩ := Metric.mem_nhdsWithin_iff.1 (extChartAt_target_mem_nhdsWithin (I := I) x)
-  let U : Opens M := ⟨e.source ∩ e ⁻¹' Metric.ball (e x) ε,
-    isOpen_extChartAt_preimage' x Metric.isOpen_ball⟩
-  have hxU : x ∈ U := ⟨mem_extChartAt_source x, Metric.mem_ball_self hε⟩
-  have himage : e '' U = Metric.ball (e x) ε ∩ range I := by
-    refine Subset.antisymm ?_ fun z hz ↦ ?_
-    · rintro _ ⟨y, hy, rfl⟩
-      exact ⟨hy.2, extChartAt_target_subset_range x (e.map_source hy.1)⟩
-    · have hz' := hsub hz
-      refine ⟨e.symm z, ⟨e.map_target hz', ?_⟩, e.right_inv hz'⟩
-      simpa only [mem_preimage, e.right_inv hz'] using hz.1
-  refine ⟨U, hxU, .of_starConvex_image_extChartAt (fun y hy ↦ hy.1) (c := e x) ?_ ⟨x, hxU⟩⟩
-  rw [himage]
+/-- Every neighbourhood `V` of a point `x` of a manifold contains a smoothly contractible open
+neighbourhood of `x`. -/
+theorem exists_mem_subset_isSmoothlyContractible [IsManifold I ∞ M] {x : M} {V : Set M}
+    (hV : V ∈ 𝓝 x) : ∃ U : Opens M, x ∈ U ∧ (U : Set M) ⊆ V ∧ IsSmoothlyContractible I U := by
+  obtain ⟨ε, hε, htarget, hUV⟩ := exists_chartBall_subset I hV
+  refine ⟨chartBall I x ε, mem_chartBall_self I x hε, hUV,
+    .of_starConvex_image_extChartAt (chartBall_subset_source I x ε) (c := extChartAt I x x) ?_
+      ⟨x, mem_chartBall_self I x hε⟩⟩
+  rw [extChartAt_image_chartBall I htarget]
   exact ((convex_ball _ _).inter I.convex_range).starConvex
     ⟨Metric.mem_ball_self hε, mem_range_self _⟩
+
+/-- Every point of a manifold has a smoothly contractible open neighbourhood. -/
+theorem exists_mem_isSmoothlyContractible [IsManifold I ∞ M] (x : M) :
+    ∃ U : Opens M, x ∈ U ∧ IsSmoothlyContractible I U :=
+  let ⟨U, hxU, _, hU⟩ :=
+    exists_mem_subset_isSmoothlyContractible (I := I) (Filter.univ_mem (f := 𝓝 x))
+  ⟨U, hxU, hU⟩
 
 end Contractible
 

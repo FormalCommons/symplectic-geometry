@@ -14,9 +14,13 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
+public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
@@ -39,8 +43,8 @@ smooth exactly when its slice section is (`SymplecticGeometry.isSmoothFamily_iff
 This makes smoothness of a family a local property in `M`, and gives the closure properties of
 smooth families: under the linear operations, multiplication by smooth functions of the parameter
 or of the point, pullback along smooth maps, the exterior derivative, cut-off and extension by
-zero from an open subset, and reparametrization; and smoothness on `U ⊔ V` is smoothness on `U`
-and on `V`.
+zero from an open subset, reparametrization, and concatenation over `[0, 1]`; and smoothness on
+`U ⊔ V` is smoothness on `U` and on `V`.
 
 Families live on `N × M`, the parameter first. A form on `M × N` is turned around by Mathlib's
 `Diffeomorph.prodComm`, and its slices are then its pullbacks along `x ↦ (x, t)`
@@ -61,6 +65,10 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   point is smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
+* `SymplecticGeometry.IsSmoothFamily.contMDiff_val`: the value of a smooth family of forms on a
+  normed space is jointly smooth in the parameter and the point.
+* `SymplecticGeometry.IsSmoothFamily.of_contMDiff_val`: conversely, a family of forms on a
+  normed space whose value is jointly smooth in the parameter and the point is smooth.
 * `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value of a smooth family of forms on a
   normed space is jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
@@ -70,8 +78,10 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 * `SymplecticGeometry.isSmoothFamily_mpullback_prodMk`: the slices of a form on `N × M` are a
   smooth family.
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
-  `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mpullback_family`,
-  `.mextDeriv`, `.extendByZero_smul` and `.comp`.
+  `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.funSMul_family`, `.sum`, `.mpullback`,
+  `.mpullback_family`, `.mextDeriv`, `.extendByZero_smul`, `.comp` and `.glue_collaredHalves`
+  (concatenation of two families over `[0, 1]` that agree at the seam, by Tau Ceti's
+  `ContMDiff.glue_collaredHalves`).
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback`: a family is smooth when its pullbacks along a
   smooth map with smooth local sections over an open cover of its target form a smooth family.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq`: in particular, a family is smooth
@@ -209,8 +219,8 @@ theorem ofSlices_apply (p : N × M) (v : Fin k → TangentSpace (J.prod I) p) :
 @[simp]
 theorem mpullback_prodMk_ofSlices (t : N) :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) (ofSlices α hα) = α t :=
-  Subtype.ext <| funext fun x ↦ by
-    rw [coe_mpullback, coe_ofSlices]
+  (mpullback_eq_iff _).2 <| funext fun x ↦ by
+    rw [coe_ofSlices]
     exact congrFun (mpullback_prodMk_verticalForm (fun t ↦ (α t).val) t) x
 
 /-- The pullback of `TauCeti.SmoothForm.ofSlices α hα` along a product `f × g` of smooth maps
@@ -227,8 +237,7 @@ theorem mpullback_prodMap_ofSlices {EN' HN' N' E' H' M' : Type*} [NormedAddCommG
         ((mpullback g hg (α (f p.1))).val p.2))) :
     mpullback (Prod.map f g) (hf.prodMap hg) (ofSlices α hα) =
       ofSlices (fun t ↦ mpullback g hg (α (f t))) hα' := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, coe_ofSlices, coe_ofSlices,
+  rw [mpullback_eq_iff, coe_ofSlices, coe_ofSlices,
     mpullback_prodMap_verticalForm _ (hf.mdifferentiable (by simp))
       (hg.mdifferentiable (by simp))]
   simp only [coe_mpullback]
@@ -332,28 +341,8 @@ variable {α β : N → SmoothForm I M F k}
 /-- The value of a smooth family at a point, as an alternating map on the tangent space there,
 depends smoothly on the parameter. -/
 theorem contMDiff_val_apply (h : IsSmoothFamily J α) (x : M) :
-    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) J 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞ fun t ↦ (α t).val x := by
-  have hS := (isSmoothFamily_iff_contMDiff.mp h).comp
-    (contMDiff_id.prodMk contMDiff_const : ContMDiff J (J.prod I) ∞ fun t ↦ (t, x))
-  intro t
-  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (hS t)).2
-  simp only [Function.comp_apply, id_eq,
-    FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd] at hc
-  have hx : x ∈ (trivializationAt E (TangentSpace I) x).baseSet :=
-    FiberBundle.mem_baseSet_trivializationAt' x
-  -- Undo the trivialization at `x` by precomposing with its inverse on the fibre.
-  let L : (E [⋀^Fin k]→L[ℝ] F) →L[ℝ] E [⋀^Fin k]→L[ℝ] F :=
-    ContinuousAlternatingMap.compContinuousLinearMapCLM
-      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x)
-  have hL (φ : E [⋀^Fin k]→L[ℝ] F) : L φ = φ.compContinuousLinearMap
-      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x) :=
-    ContinuousAlternatingMap.compContinuousLinearMapCLM_apply _ φ
-  refine (L.contMDiff.contMDiffAt.comp t hc).congr_of_eventuallyEq
-    (Filter.Eventually.of_forall fun s ↦ ?_)
-  rw [Function.comp_apply, hL]
-  ext v
-  simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
-    Trivialization.symmL_continuousLinearMapAt _ hx]
+    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) J 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞ fun t ↦ (α t).val x :=
+  fun t ↦ ContMDiffAt.roughForm_family_apply (q₀ := (t, x)) (isSmoothFamily_iff_contMDiff.mp h _)
 
 /-- The values of a smooth family at a point `x` on fixed tangent vectors depend smoothly on the
 parameter. -/
@@ -361,20 +350,46 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
     ContMDiff J 𝓘(ℝ, F) ∞ (fun t ↦ (α t).val x v) :=
   (ContinuousAlternatingMap.apply ℝ E F v).contMDiff.comp (h.contMDiff_val_apply x)
 
+/-- **Joint smoothness of a smooth family.** For a smooth family `α` of `k`-forms on a normed
+space `E`, the value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends smoothly on
+`(t, x)`. -/
+theorem contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFamily J α) :
+    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
+      fun p : N × E ↦ (α p.1).val p.2 := by
+  intro p₀
+  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (isSmoothFamily_iff_contMDiff.mp h p₀)).2
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    TangentBundle.symmL_model_space] at hc
+  refine hc.congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
+  ext v
+  symm
+  -- The trivialization at `p₀` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
+  -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+
+/-- **Smooth families from jointly smooth values.** A family `α` of `k`-forms on a normed space
+`E` whose value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends smoothly on `(t, x)` is a
+smooth family. This is the converse of `SymplecticGeometry.IsSmoothFamily.contMDiff_val`. -/
+theorem of_contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k}
+    (h : ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
+      fun p : N × E ↦ (α p.1).val p.2) :
+    IsSmoothFamily J α := by
+  refine isSmoothFamily_iff_contMDiff.mpr fun p₀ ↦
+    Bundle.contMDiffAt_totalSpace_iff.mpr ⟨contMDiffAt_snd, ?_⟩
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    TangentBundle.symmL_model_space]
+  refine (h p₀).congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
+  ext v
+  -- As in `SymplecticGeometry.IsSmoothFamily.contMDiff_val`, the trivialization at `p₀` is the
+  -- identity only definitionally.
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+
 /-- **Joint continuity of a smooth family.** For a smooth family `α` of `k`-forms on a normed
 space `E`, the value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends continuously on
 `(t, x)`. -/
 theorem continuous_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFamily J α) :
-    Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun p : N × E ↦ (α p.1).val p.2 := by
-  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (isSmoothFamily_iff_contMDiff.mp h p₀)).2
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
-    TangentBundle.symmL_model_space] at hc
-  refine hc.continuousAt.congr (Filter.Eventually.of_forall fun p ↦ ?_)
-  ext v
-  -- The trivialization at `p₀` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
-  -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
-  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+    Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun p : N × E ↦ (α p.1).val p.2 :=
+  h.contMDiff_val.continuous
 
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/
@@ -423,12 +438,21 @@ protected theorem fun_smul (hα : IsSmoothFamily J α) {c : N → ℝ}
   simp only [Submodule.coe_smul, verticalForm_fun_smul_fst]
   exact hα.fun_smul (hc.comp contMDiff_fst)
 
+/-- The product of a smooth family with a family `g` of smooth functions on `M` is smooth when
+`g` is jointly smooth, as a function of the parameter and the point. -/
+protected theorem funSMul_family (hα : IsSmoothFamily J α) (g : N → C^∞⟮I, M; ℝ⟯)
+    (hg : ContMDiff (J.prod I) 𝓘(ℝ) ∞ fun p : N × M ↦ g p.1 p.2) :
+    IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ (g t) (α t)) := by
+  obtain ⟨Ω, hΩ⟩ := hα
+  let G : C^∞⟮J.prod I, N × M; ℝ⟯ := ⟨_, hg⟩
+  refine ⟨SmoothForm.funSMulₗ G Ω, fun t ↦ ?_⟩
+  rw [SmoothForm.mpullback_funSMulₗ, hΩ]
+  congr 1
+
 /-- The product of a smooth family with a fixed smooth function on `M` is smooth. -/
 protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯) :
-    IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ g (α t)) := by
-  rw [isSmoothFamily_iff_isSmoothForm] at hα ⊢
-  simp only [SmoothForm.coe_funSMulₗ, verticalForm_fun_smul]
-  exact hα.fun_smul (g.contMDiff.comp contMDiff_snd)
+    IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ g (α t)) :=
+  hα.funSMul_family (fun _ ↦ g) (g.contMDiff.comp contMDiff_snd)
 
 end IsSmoothFamily
 
@@ -464,6 +488,17 @@ protected theorem mextDeriv [IsManifold I 2 M] [IsManifold J 2 N] {α : N → Sm
   exact ⟨mextDerivₗ (J.prod I) k Ω, fun t ↦ by
     dsimp only
     rw [← SmoothForm.mextDerivₗ_mpullback, hΩ]⟩
+
+/-- **Concatenation of smooth families.** Two smooth families `α` and `β` over `[0, 1]` with
+`α 1 = β 0` concatenate to a smooth family `SymplecticGeometry.collaredConcat α β`. -/
+protected theorem glue_collaredHalves {α β : unitInterval → SmoothForm I M F k}
+    (hα : IsSmoothFamily (𝓡∂ 1) α) (hβ : IsSmoothFamily (𝓡∂ 1) β) (hαβ : α 1 = β 0) :
+    IsSmoothFamily (𝓡∂ 1) (collaredConcat α β) := by
+  rw [isSmoothFamily_iff_contMDiff] at hα hβ ⊢
+  refine (hα.glue_collaredHalves_left hβ (fun x ↦ by rw [hαβ]) le_rfl).congr fun p ↦ ?_
+  exact apply_collaredConcat (fun γ : SmoothForm I M F k ↦ TotalSpace.mk'
+    (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) _ p.2 (γ.val p.2))
+    α β p.1
 
 section Maps
 

@@ -5,10 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DoubleClutching
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Splitting
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DoubleClutching
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
 import SymplecticGeometry.Topology.Homotopy.Extension.Collar
 import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup.SmoothApprox
+import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 
 /-!
 # Extending maps from the boundary of a surface into the symplectic group

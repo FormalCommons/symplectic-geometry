@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.TripleAcyclicModels
+public import TauCeti.AlgebraicTopology.SimplicialSet.Shuffle
+public import Mathlib.Algebra.Homology.Homotopy
+import SymplecticGeometry.AlgebraicTopology.SimplicialSet.TripleAcyclicModels
 
 /-!
 # Associativity of the shuffle map up to a natural homotopy

@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.LinearAlgebra.Complex.Orientation
 public import TauCeti.LinearAlgebra.Exact
 public import TauCeti.LinearAlgebra.Orientation.ShortExact
+import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import SymplecticGeometry.Algebra.Exact.Basic
 
 /-!

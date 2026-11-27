@@ -6,16 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
-public import SymplecticGeometry.Data.Matrix.Mul
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
-public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 public import SymplecticGeometry.LinearAlgebra.Matrix.ToLin
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import SymplecticGeometry.Data.Matrix.Mul
+import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 
 /-!
 # The Fubini–Study form is Kähler
@@ -49,15 +50,19 @@ potentials in the affine charts. Each statement is proved on `ℂⁿ⁺¹ ∖ 0`
   `SymplecticGeometry/Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`
   (`TauCeti.SmoothTwoForm.Tames.isSymplectic_mpullback`, `TauCeti.SmoothTwoForm.IsKahler.restrict`
   and `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.restrict`).
+* `SymplecticGeometry.hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm`: a smooth
+  map from `ℂPⁿ` pulling a nondegenerate form back to `c • ω_FS`, for `c ≠ 0`, has
+  symplectic tangent images, by
+  `TauCeti.SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff`.
 * `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm` and
   `SymplecticGeometry.mpullback_affineChart_symm_fubiniStudyForm_eq_del_delBar`: along the inverse
   `w ↦ [Fin.insertNth j 1 w]` of each affine chart, the Fubini–Study form is
   `(1/4) d (J* d f) = (i/2) ∂∂bar f` for the potential `f(w) = log (1 + ∑ₖ ‖wₖ‖²)`
   (`SymplecticGeometry.fubiniStudyAffinePotential`). The inverse chart is the projection after the
   holomorphic section `Projectivization.affineLift ℂ j`, `w ↦ Fin.insertNth j 1 w`, along which
-  `log |z|²` pulls back to `f`; the potential identity on `ℂⁿ⁺¹ ∖ 0` (`fubiniStudyPrimitive_eq`)
-  pulls back by naturality of `d` and of `J*`
-  (`TauCeti.SmoothAlmostComplexStructure.mpullback_covectorComplexStructure`).
+  `log |z|²` pulls back to `f`; the potential identity on `ℂⁿ⁺¹ ∖ 0`
+  (`fubiniStudyLift_eq_potentialForm`) pulls back by naturality of the form of a potential
+  (`TauCeti.SmoothAlmostComplexStructure.mpullback_potentialForm`).
 
 ## References
 
@@ -270,8 +275,8 @@ Nijenhuis tensor), and if `N` has no boundary, then `J|_N` is integrable.
 Milestone: *Complex submanifolds of Kähler manifolds*. -/
 theorem isKahler_mpullback_fubiniStudyForm
     {f : SmoothEmbedding I' 𝓘(ℝ, Fin n → ℂ) ∞ N (ℙ ℂ (Fin (n + 1) → ℂ))}
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn,
-      ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (f x) v ∈ f.tangentRange x hn) :
+    (hJ : ∀ x, Set.MapsTo (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)) (f x))
+      (f.isImmersion.tangentRange x hn) (f.isImmersion.tangentRange x hn)) :
     SmoothTwoForm.IsSymplectic (SmoothForm.mpullback f f.contMDiff (fubiniStudyForm n)) ∧
       SmoothTwoForm.IsKahler (SmoothForm.mpullback f f.contMDiff (fubiniStudyForm n))
         ((ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))).restrict f hJ) ∧
@@ -281,6 +286,20 @@ theorem isKahler_mpullback_fubiniStudyForm
     isKahler_fubiniStudyForm.restrict hJ, fun _ ↦ isIntegrable_ofComplexManifold.restrict hJ⟩
 
 end Submanifold
+
+/-! ### Maps pulling a nondegenerate form back to a multiple of `ω_FS` -/
+
+/-- A smooth map `g` from `ℙ ℂ (Fin (n + 1) → ℂ)` pulling a nondegenerate two-form `σ` back to
+`c • ω_FS`, for a real `c ≠ 0`, has symplectic tangent images for `σ`. -/
+theorem hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
+    {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+    {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) {g : ℙ ℂ (Fin (n + 1) → ℂ) → M}
+    (hg : ContMDiff 𝓘(ℝ, Fin n → ℂ) I ∞ g) {c : ℝ} (hc : c ≠ 0)
+    (h : SmoothForm.mpullback g hg σ = c • fubiniStudyForm n) :
+    hσ.HasSymplecticTangentImages 𝓘(ℝ, Fin n → ℂ) g :=
+  ((SmoothTwoForm.IsNondegenerate.isNondegenerate_mpullback_iff hg).1
+    (h ▸ (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ hc)).1
 
 end Kahler
 
@@ -323,7 +342,7 @@ theorem fubiniStudyAffinePotential_apply (w : Fin n → ℂ)
 private theorem mpullback_affineLift_fubiniStudyPotential (j : Fin (n + 1)) :
     SmoothForm.mpullback (affineLift ℂ j) (contMDiff_affineLift ℂ j ∞) (fubiniStudyPotential n) =
       fubiniStudyAffinePotential n := by
-  refine Subtype.ext <| funext fun w ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+  refine SmoothBundleForm.ext fun w v ↦ ?_
   rw [SmoothForm.mpullback_apply, fubiniStudyPotential_apply, fubiniStudyAffinePotential_apply]
   simp [Fin.sum_univ_succAbove _ j]
 
@@ -334,9 +353,7 @@ of the affine chart of `j`, the Fubini–Study form pulls back to `(1/4) d (J* d
 theorem mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1)) :
     SmoothForm.mpullback (affineChart (K := ℂ) j).symm
         (contMDiff_affineChart_symm_restrictScalars j ∞) (fubiniStudyForm n) =
-      (4 : ℝ)⁻¹ • mextDerivₗ 𝓘(ℝ, Fin n → ℂ) 1
-        ((ofComplexManifold (Fin n → ℂ) (Fin n → ℂ)).covectorComplexStructure
-          (mextDerivₗ 𝓘(ℝ, Fin n → ℂ) 0 (fubiniStudyAffinePotential n))) := by
+      (ofComplexManifold (Fin n → ℂ) (Fin n → ℂ)).potentialForm (fubiniStudyAffinePotential n) := by
   have hJ : IsPseudoholomorphic (ofComplexManifold (Fin n → ℂ) (Fin n → ℂ))
       (ofComplexManifold (Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ))) (affineLift ℂ j) :=
     isPseudoholomorphic_ofComplexManifold_iff.2
@@ -348,10 +365,8 @@ theorem mpullback_affineChart_symm_fubiniStudyForm (j : Fin (n + 1)) :
             (fubiniStudyForm n)) := by
     rw [SmoothForm.mpullback_mpullback]
     simp only [mkNonzero_comp_affineLift ℂ]
-  rw [h, mpullback_mkNonzero_fubiniStudyForm, fubiniStudyLift_def,
-    ← SmoothForm.mextDerivₗ_mpullback, fubiniStudyPrimitive_eq, SmoothForm.mpullback_smul,
-    mpullback_covectorComplexStructure _ hJ, ← SmoothForm.mextDerivₗ_mpullback,
-    mpullback_affineLift_fubiniStudyPotential, map_smul]
+  rw [h, mpullback_mkNonzero_fubiniStudyForm, fubiniStudyLift_eq_potentialForm,
+    mpullback_potentialForm _ hJ, mpullback_affineLift_fubiniStudyPotential]
 
 /-- The local potentials in Dolbeault form: along the inverse of the affine chart of `j`, the
 complexified Fubini–Study form is `(i/2) ∂∂bar f` for `f = fubiniStudyAffinePotential n`, the

@@ -34,6 +34,8 @@ all of `ℝ`, without matching charts where successive arcs meet.
 * `TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact`: the limit of smooth embeddings of
   `ℝ` that agree on increasing initial half-lines, and whose new arcs leave a compact
   exhaustion, is a smooth embedding tending to infinity.
+* `TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact_of_ge`: the same for a sequence
+  given only from a stage `j₀` on.
 
 ## References
 
@@ -105,6 +107,51 @@ theorem exists_eqOn_Iic_tendsto_cocompact (hT : Monotone T) (hT' : Tendsto T atT
   refine hasBasis_cocompact.tendsto_right_iff.2 fun C hC ↦ ?_
   obtain ⟨i, hi⟩ := K.exists_superset_of_isCompact hC
   exact (eventually_ge_atTop (T i)).mono fun t ht hCt ↦ hfK ht (hi hCt)
+
+/-- **A proper smooth ray as a limit, from a later stage on.** Let `g k : ℝ → M` be smooth
+embeddings for `k ≥ j₀`, and `τ` a sequence of reals tending to `+∞` that is monotone from `j₀`
+on. Let `K` be a compact exhaustion of `M`. Suppose that, for `k ≥ j₀`, `g (k + 1)` agrees with
+`g k` on `(-∞, τ k]` and maps `[τ k, τ (k + 1)]` outside `K k`, and that `g j₀ (τ j₀)` lies
+outside `K j₀`. Then there is a smooth embedding `δ` of `ℝ` in `M` that agrees with each `g k`,
+`k ≥ j₀`, on `(-∞, τ k]`, maps `[τ k, ∞)` outside `K k` for `k ≥ j₀`, and tends to infinity as
+`t → ∞`. -/
+theorem exists_eqOn_Iic_tendsto_cocompact_of_ge {g : ℕ → ℝ → M} {τ : ℕ → ℝ} {j₀ : ℕ}
+    (hg : ∀ k, j₀ ≤ k → Manifold.IsSmoothEmbedding 𝓘(ℝ) I n (g k))
+    (hτ : ∀ k, j₀ ≤ k → τ k ≤ τ (k + 1)) (hτ' : Tendsto τ atTop atTop)
+    (K : CompactExhaustion M) (heq : ∀ k, j₀ ≤ k → EqOn (g (k + 1)) (g k) (Iic (τ k)))
+    (hK : ∀ k, j₀ ≤ k → MapsTo (g (k + 1)) (Icc (τ k) (τ (k + 1))) (K k)ᶜ)
+    (hK₀ : g j₀ (τ j₀) ∉ K j₀) :
+    ∃ δ : SmoothEmbedding 𝓘(ℝ) I n ℝ M, (∀ k, j₀ ≤ k → EqOn δ (g k) (Iic (τ k))) ∧
+      (∀ k, j₀ ≤ k → MapsTo δ (Ici (τ k)) (K k)ᶜ) ∧ Tendsto δ atTop (cocompact M) := by
+  -- Before stage `j₀` the sequence stays at stage `j₀`.
+  have hm {k : ℕ} (hk : k < j₀) : max (k + 1) j₀ = max k j₀ := by omega
+  have hm' {k : ℕ} (hk : j₀ ≤ k) : max (k + 1) j₀ = max k j₀ + 1 := by omega
+  let γ (k : ℕ) : SmoothEmbedding 𝓘(ℝ) I n ℝ M :=
+    ofIsSmoothEmbedding (g (max k j₀)) (hg _ (le_max_right _ _))
+  have hγ (k : ℕ) : ⇑(γ k) = g (max k j₀) := coe_ofIsSmoothEmbedding _ _
+  have hT : Monotone fun k ↦ τ (max k j₀) := monotone_nat_of_le_succ fun k ↦ by
+    rcases lt_or_ge k j₀ with hk | hk
+    · rw [hm hk]
+    · rw [hm' hk]
+      exact hτ _ (le_max_right k j₀)
+  have hT' : Tendsto (fun k ↦ τ (max k j₀)) atTop atTop :=
+    hτ'.comp (tendsto_atTop_mono (le_max_left · j₀) tendsto_id)
+  obtain ⟨δ, hδ, hδK, hδt⟩ := exists_eqOn_Iic_tendsto_cocompact (γ := γ) hT hT' K
+    (fun k ↦ by
+      rw [hγ, hγ]
+      rcases lt_or_ge k j₀ with hk | hk
+      · rw [hm hk]; exact eqOn_refl _ _
+      · rw [hm' hk]; exact heq _ (le_max_right k j₀))
+    (fun k ↦ by
+      rw [hγ]
+      rcases lt_or_ge k j₀ with hk | hk
+      · rw [hm hk, max_eq_right hk.le, Icc_self]
+        rintro t rfl hKk
+        exact hK₀ (K.subset hk.le hKk)
+      · rw [hm' hk, max_eq_left hk]; exact hK k hk)
+  refine ⟨δ, fun k hk ↦ ?_, fun k hk ↦ ?_, hδt⟩
+  · simpa [hγ, max_eq_left hk] using hδ k
+  · simpa [max_eq_left hk] using hδK k
 
 end TauCeti.SmoothEmbedding
 

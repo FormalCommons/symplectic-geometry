@@ -5,11 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.LDL
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.UnitSphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
@@ -17,7 +14,12 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+import SymplecticGeometry.Analysis.Matrix.LDL
+import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
+import SymplecticGeometry.Data.Matrix.Mul
 
 /-!
 # The Fubini–Study form of `ℂP¹`: affine formula, stereographic coordinates, area of lines
@@ -304,9 +306,8 @@ theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³)
       (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))) sphereToProjectiveLine p := by
   rw [coe_sphereToProjectiveLine]
   refine (OnePoint.isOrientationPreservingAt_equivProjectivization _).comp ?_
-  have h := congrArg (fun φ : SmoothForm (𝓡 2) (sphere (0 : ℝ³) 1) ℝ 2 ↦ φ.val p)
-    mpullback_diffeomorphSphere_symm_fubiniStudyForm
-  simp only [SmoothForm.coe_mpullback] at h
+  have h := congrFun
+    ((SmoothForm.mpullback_eq_iff _).1 mpullback_diffeomorphSphere_symm_fubiniStudyForm) p
   rw [Orientation.sphereOrientation_eq_ofTopForm, ← OnePoint.ofTopForm_fubiniStudyForm]
   exact Manifold.Orientation.isOrientationPreservingAt_ofTopForm_of_mpullback_eq_smul _ _ _ _ _ _
     (by positivity) h

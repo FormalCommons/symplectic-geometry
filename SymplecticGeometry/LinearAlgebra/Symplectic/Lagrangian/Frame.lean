@@ -7,16 +7,21 @@ module
 
 public import Mathlib.LinearAlgebra.Matrix.Rank
 public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
-public import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
-public import SymplecticGeometry.LinearAlgebra.Matrix.Rank
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Lagrangian.TotallyReal
 public import TauCeti.LinearAlgebra.Matrix.Rank
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.LinearAlgebra.Prod
+public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
+public import Mathlib.Data.Matrix.ColumnRowPartitioned
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
+import SymplecticGeometry.LinearAlgebra.Matrix.Rank
+import SymplecticGeometry.Analysis.Complex.Euclidean.Matrix
+import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
+import TauCeti.LinearAlgebra.Matrix.Range
+import Mathlib.RingTheory.Flat.TorsionFree
 
 /-!
 # Lagrangian frames and graphs in the standard model
@@ -37,10 +42,10 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 
 ## Main results
 
-* `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`: the span of
-  `fromRows X Y` is the real image of its complex frame `X + i Y`, carried to `StdSpace ι`;
-  `map_realImage`: the real image of a complex matrix `A` is the image of `{y = 0}` under the
-  realification of `A`.
+* `SymplecticGeometry.StdSpace.map_realImage`: carried to `StdSpace ι`, the real image of a
+  complex matrix `A` is the image of `{y = 0}` under the realification of `A`. With
+  `Matrix.range_toEuclideanLin_fromRows`, the span of `fromRows X Y` is the image of the real
+  image of its complex frame `X + i Y`.
 * `SymplecticGeometry.StdSpace.graph_zero`, `graphY_zero`: the graphs of `0` are the coordinate
   subspaces `{y = 0}` and `{x = 0}`.
 * `SymplecticGeometry.StdSpace.isCompl_graph_ker_x`, `isCompl_graphY_ker_y`: each graph is
@@ -48,10 +53,9 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `exists_eq_graph_of_isCompl_ker_x`, `exists_eq_graphY_of_isCompl_ker_y`.
 * `SymplecticGeometry.StdSpace.map_symJ_graph`: the matrix `J` of `TauCeti.GLSymplectic.symJ`
   sends `graph A` to `graphY (-A)`.
-* `SymplecticGeometry.StdSpace.map_realSubspace`, `map_lagrangianChart`,
-  `SymplecticGeometry.stdForm_apply_eq_im_inner`: through `StdSpace.complexEuclideanEquiv`,
-  Tau Ceti's `ℝⁿ ⊆ ℂⁿ` is the horizontal subspace `{y = 0}`, its chart subspace
-  `Matrix.lagrangianChart S` is `graphY S`, and `ω₀` is `Im ⟪·, ·⟫`.
+* `SymplecticGeometry.StdSpace.map_realSubspace`, `map_lagrangianChart`: through
+  `complexToRealEuclideanIsometry`, Tau Ceti's `ℝⁿ ⊆ ℂⁿ` is the horizontal subspace `{y = 0}`,
+  and its chart subspace `Matrix.lagrangianChart S` is `graphY S`.
 * `SymplecticGeometry.isLagrangian_range_fromRows_iff`: `fromRows X Y` spans a Lagrangian
   subspace iff it has rank `n` and `Xᵀ Y = Yᵀ X`.
 * `SymplecticGeometry.isLagrangian_map_swap_iff`: the coordinate swap preserves and reflects
@@ -212,9 +216,9 @@ theorem map_symJ_graph [DecidableEq ι] (A : Matrix ι ι ℝ) :
 
 /-- The real subspace `ℝⁿ ⊆ ℂⁿ` is the horizontal subspace `{y = 0}` of `StdSpace ι`. -/
 theorem map_realSubspace :
-    (realSubspace ι).map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
+    (realSubspace ι).map (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap =
       LinearMap.ker y :=
-  (Submodule.map_symm_eq_iff (complexEuclideanEquiv ι).toLinearEquiv).1 (by
+  (Submodule.map_symm_eq_iff (complexToRealEuclideanIsometry ι).toLinearEquiv).1 (by
     rw [← Submodule.comap_equiv_eq_map_symm]
     ext v
     simp [funext_iff])
@@ -222,46 +226,30 @@ theorem map_realSubspace :
 /-- Tau Ceti's chart subspace `{S y + i y}` of `ℂⁿ` is the graph `{(S y, y)}` in
 `StdSpace ι`. -/
 theorem map_lagrangianChart [DecidableEq ι] (S : Matrix ι ι ℝ) :
-    S.lagrangianChart.map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
+    S.lagrangianChart.map (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap =
       graphY S :=
-  (Submodule.map_symm_eq_iff (complexEuclideanEquiv ι).toLinearEquiv).1 (by
+  (Submodule.map_symm_eq_iff (complexToRealEuclideanIsometry ι).toLinearEquiv).1 (by
     rw [← Submodule.comap_equiv_eq_map_symm]
     ext v
     simp [funext_iff, mem_lagrangianChart, mulVec, dotProduct])
 
-/-- The column space of a frame `fromRows X Y` is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` of its
-complex frame, carried to `StdSpace ι` by `StdSpace.complexEuclideanEquiv`. -/
-theorem range_toEuclideanLin_fromRows_eq_map_realImage [DecidableEq ι] (X Y : Matrix ι ι ℝ) :
-    LinearMap.range (toEuclideanLin (fromRows X Y)) =
-      (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map
-        (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
-  rw [range_toEuclideanLin_fromRows, complexEuclideanEquiv_def,
-    ContinuousLinearEquiv.trans_toLinearEquiv, LinearEquiv.coe_trans]
-
-/-- Through `StdSpace.complexEuclideanEquiv`, the real image `A ℝⁿ` of a complex matrix is the
+/-- Through `complexToRealEuclideanIsometry`, the real image `A ℝⁿ` of a complex matrix is the
 image of the horizontal subspace `{y = 0}` under its realification. -/
 theorem map_realImage [DecidableEq ι] (A : Matrix ι ι ℂ) :
-    A.realImage.map (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) =
+    A.realImage.map (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap =
       (LinearMap.ker y).map (toEuclideanLin A.realify) := by
   ext z
   simp only [Submodule.mem_map, mem_realImage, ← map_realSubspace]
   constructor
   · rintro ⟨_, ⟨w, hw, rfl⟩, rfl⟩
-    exact ⟨_, ⟨w, hw, rfl⟩, (complexEuclideanEquiv_toEuclideanCLM A w).symm⟩
+    exact ⟨_, ⟨w, hw, rfl⟩, (complexToRealEuclideanIsometry_toEuclideanCLM A w).symm⟩
   · rintro ⟨_, ⟨w, hw, rfl⟩, rfl⟩
-    exact ⟨_, ⟨w, hw, rfl⟩, complexEuclideanEquiv_toEuclideanCLM A w⟩
+    exact ⟨_, ⟨w, hw, rfl⟩, complexToRealEuclideanIsometry_toEuclideanCLM A w⟩
 
 
 end StdSpace
 
 open StdSpace
-
-/-- Through `StdSpace.complexEuclideanEquiv`, the standard symplectic form is the imaginary part
-of the Hermitian inner product of `ℂⁿ`: `ω₀(v, w) = Im ⟪v, w⟫`. -/
-theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
-    stdForm ι (complexEuclideanEquiv ι v) (complexEuclideanEquiv ι w) = (inner ℂ v w).im := by
-  rw [← imInnerSymplecticForm_apply, imInnerSymplecticForm_euclideanSpace_apply]
-  simp [complexEuclideanEquiv_def]
 
 /-! ### Graphs are Lagrangian exactly for symmetric matrices -/
 
@@ -350,15 +338,11 @@ theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
     {Λ : LagrangianGrassmannian (stdForm ι)} {Z₁ Z₂ : Matrix (ι ⊕ ι) ι ℝ}
     (h₁ : LinearMap.range (toEuclideanLin Z₁) = Λ) (h₂ : LinearMap.range (toEuclideanLin Z₂) = Λ) :
     ∃ g : GL ι ℝ, Z₂ * (g : Matrix ι ι ℝ) = Z₁ := by
-  obtain ⟨L, hL⟩ := (toEuclideanLin Z₂).exists_leftInverse_of_injective
-    (LinearMap.ker_eq_bot.2 (injective_toEuclideanLin_of_range_eq h₂))
-  set g : Matrix ι ι ℝ := toEuclideanLin.symm (L ∘ₗ toEuclideanLin Z₁)
-  have hg : Z₂ * g = Z₁ := by
-    refine toEuclideanLin.injective (LinearMap.ext fun u ↦ ?_)
-    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ u ∈ LinearMap.range (toEuclideanLin Z₂) := by
-      rw [h₂, ← h₁]; exact ⟨u, rfl⟩
-    rw [toLpLin_mul_same, LinearMap.comp_apply, LinearEquiv.apply_symm_apply,
-      LinearMap.comp_apply, ← hv, ← LinearMap.comp_apply L, hL, LinearMap.id_apply]
+  obtain ⟨g, hg⟩ := exists_mul_eq_of_range_le (L := Z₂) (L' := Z₁) fun j ↦ by
+    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ (WithLp.toLp 2 (Pi.single j 1)) ∈
+        LinearMap.range (toEuclideanLin Z₂) := by
+      rw [h₂, ← h₁]; exact ⟨_, rfl⟩
+    exact ⟨WithLp.ofLp v, by simpa [toLpLin_apply] using congrArg WithLp.ofLp hv⟩
   exact ⟨(isUnit_of_range_mul_eq (Z := Z₂) (hg ▸ h₁)).unit, hg⟩
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
@@ -529,12 +513,12 @@ theorem LagrangianGrassmannian.mem_ofFrame_iff {X Y : Matrix ι ι ℝ}
 theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
     (h : (stdForm ι).IsLagrangian (LinearMap.range (toEuclideanLin (fromRows X Y)))) :
     (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).det ≠ 0 := by
-  set e := (complexEuclideanEquiv ι).toLinearEquiv
+  set e := (complexToRealEuclideanIsometry ι).toLinearEquiv
   have he : (stdComplexStructure ι).toLinearMap ∘ₗ e.toLinearMap =
       e.toLinearMap ∘ₗ (LinearMap.lsmul ℂ (EuclideanSpace ℂ ι) Complex.I).restrictScalars ℝ :=
-    LinearMap.ext fun v ↦ stdComplexStructure_complexEuclideanEquiv v
+    LinearMap.ext fun v ↦ stdComplexStructure_complexToRealEuclideanIsometry v
   have hJ := h.isMaximalTotallyReal_of_compatible stdForm_compatible
-  rw [range_toEuclideanLin_fromRows_eq_map_realImage] at hJ
+  rw [range_toEuclideanLin_fromRows] at hJ
   exact isMaximalTotallyReal_realImage_iff.1 ((e.isMaximalTotallyReal_map_iff he).1 hJ)
 
 end Frame

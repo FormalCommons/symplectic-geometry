@@ -14,11 +14,13 @@ public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Topology.Circle.Loop
-public import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ChangeOfModel
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ChangeOfModel
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Shell
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.CoordinateBall
@@ -483,22 +485,15 @@ theorem exists_image_annulus_subset {O : Set M} (hO : IsOpen O)
   have hsph : Metric.sphere (0 : ℂ) 1 ⊆ Subtype.val '' (φ ⁻¹' O) := fun z hz ↦
     ⟨⟨z, mem_ball_of_norm_le_one (mem_sphere_zero_iff_norm.1 hz).le⟩,
       by have h := hφO (show Circle from ⟨z, hz⟩); rwa [boundaryCircle_apply] at h, rfl⟩
-  obtain ⟨δ, hδ, hδS⟩ := (isCompact_sphere (0 : ℂ) 1).exists_thickening_subset_open hS hsph
-  refine ⟨min δ (1 / 2), lt_min hδ one_half_pos, min_le_right _ _, fun z h₁ h₂ ↦ ?_⟩
-  have hn : 0 < ‖(z : ℂ)‖ := by linarith [min_le_right δ (1 / 2)]
-  -- `z` is within `δ` of the point `z / ‖z‖` of the circle.
-  have hd : dist (z : ℂ) (z / ‖(z : ℂ)‖) < δ := by
-    have he : (z : ℂ) - z / ‖(z : ℂ)‖ = (((‖(z : ℂ)‖ - 1) / ‖(z : ℂ)‖ : ℝ) : ℂ) * z := by
-      have : (‖(z : ℂ)‖ : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hn.ne'
-      push_cast
-      field_simp
-    rw [dist_eq_norm, he, norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_div,
-      abs_of_pos hn, div_mul_cancel₀ _ hn.ne']
-    have := min_le_left δ (1 / 2)
-    exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
-  obtain ⟨w, hw, hwz⟩ := hδS (Metric.mem_thickening_iff.2
-    ⟨(z : ℂ) / ‖(z : ℂ)‖, by simp [hn.ne'], hd⟩)
-  rwa [Subtype.val_injective hwz] at hw
+  obtain ⟨w, hw, -, hwS⟩ :=
+    Metric.exists_abs_norm_sub_le_subset_of_sphere_subset one_pos hS hsph
+  refine ⟨min w (1 / 2), lt_min hw one_half_pos, min_le_right _ _, fun z h₁ h₂ ↦ ?_⟩
+  have := min_le_left w (1 / 2)
+  have hz : (z : ℂ) ∈ {y : ℂ | |‖y‖ - 1| ≤ w} := by
+    rw [Set.mem_ofPred_eq, abs_sub_le_iff]
+    constructor <;> linarith
+  obtain ⟨y, hy, hyz⟩ := hwS hz
+  rwa [Subtype.val_injective hyz] at hy
 
 /-- A map that is continuous on the image of the half-open annulus `ρ < ‖z‖ ≤ 1`, for `ρ < 1`,
 and constant on the points of the open annulus `ρ < ‖z‖ < 1` with angular coordinate `ζ`, takes

@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 public import SymplecticGeometry.Analysis.Complex.RadialProjection
+public import TauCeti.AlgebraicTopology.Singular.Circle
+public import Mathlib.LinearAlgebra.Complex.Orientation
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
+import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 
 /-!
 # The local homology of an oriented plane, read in `Circle`

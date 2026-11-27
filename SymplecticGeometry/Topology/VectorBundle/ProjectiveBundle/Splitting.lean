@@ -7,10 +7,11 @@ module
 
 public import TauCeti.Analysis.InnerProductSpace.RangeProjection
 public import TauCeti.Topology.VectorBundle.Trivialization
-public import SymplecticGeometry.Analysis.InnerProductSpace.Projection.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complement
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
 public import SymplecticGeometry.Topology.VectorBundle.TrivialEmbedding
+public import TauCeti.Topology.VectorBundle.IdempotentRange
+import SymplecticGeometry.Analysis.InnerProductSpace.Projection.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complement
 
 /-!
 # The splitting of the pull-back of a vector bundle to its projective bundle

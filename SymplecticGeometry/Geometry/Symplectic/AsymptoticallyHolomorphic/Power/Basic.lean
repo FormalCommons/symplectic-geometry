@@ -11,7 +11,8 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Associated.Metric
 public import SymplecticGeometry.Topology.VectorBundle.Associated.Basic
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
 
 /-!
 # Powers of a principal circle bundle
@@ -193,6 +194,10 @@ theorem toComplex_smul (g : Circle) (w : PowerModel k) :
     toComplex (g • w) = (g : ℂ) ^ k * toComplex w := by
   rw [smul_def, map_smul, smul_eq_mul]
 
+/-- The real inner product of the model fibre is the real part of its Hermitian inner product. -/
+theorem real_inner_eq_re_inner (u w : PowerModel k) : inner ℝ u w = (inner ℂ u w).re :=
+  _root_.real_inner_eq_re_inner ℂ u w
+
 instance instSMulCommClass : SMulCommClass Circle ℂ (PowerModel k) where
   smul_comm g c w := smul_comm ((g : ℂ) ^ k) c w
 
@@ -266,8 +271,7 @@ theorem mk_eq_smul_mk {b : B} (p₀ p : P b) (x : PowerModel k) :
 variable (P k) in
 /-- The fibres of `PowerBundle P k` are complex lines. -/
 theorem finrank_eq_one (b : B) : finrank ℂ (PowerBundle P k b) = 1 := by
-  obtain ⟨p, -, -⟩ := AssociatedBundle.exists_mk (0 : PowerBundle P k b)
-  rw [AssociatedBundle.finrank_eq ℂ Circle p, PowerModel.finrank_eq_one]
+  rw [AssociatedBundle.finrank_eq ℂ Circle _ P b, PowerModel.finrank_eq_one]
 
 /-! The vector bundle and metric structures of Tau Ceti apply. -/
 
@@ -353,11 +357,9 @@ theorem continuous_powerOneEquiv :
   rw [(AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk Circle (Fiber ℂ F V ℂ)
     (PowerModel 1)).isQuotientMap.continuous_iff]
   refine (continuous_totalSpace_frame_apply.comp
-    ((TotalSpace.modelFiberHomeomorph
-      Bundle.isInducing_modelFiberEquiv_circleFiber).continuous.prodMap
+    (Bundle.isInducing_totalSpaceMk'_circleFiber.continuous.prodMap
       PowerModel.toComplex.continuous)).congr fun ⟨⟨b, φ⟩, z⟩ ↦ ?_
-  rw [Function.comp_apply, Prod.map_apply, TotalSpace.coe_modelFiberHomeomorph,
-    TotalSpace.modelFiberEquiv_apply]
+  rw [Function.comp_apply, Prod.map_apply]
   simp
 
 /-- The map of total spaces induced by the inverse of `powerOneEquiv` is continuous. -/

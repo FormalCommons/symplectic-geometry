@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
+import SymplecticGeometry.LinearAlgebra.SesquilinearForm
 
 /-!
 # The space of linear symplectic forms

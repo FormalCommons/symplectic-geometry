@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
@@ -14,12 +13,15 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 import Mathlib.Tactic.Module
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Coupling forms
@@ -321,8 +323,7 @@ nondegenerate, then so is a coupling form for `τ`, at every point of `P × [a, 
 boundary levels included. -/
 theorem isNondegenerate (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     σ.IsNondegenerate := by
-  refine SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.mpr fun ⟨p, t⟩ ↦
-    LinearMap.BilinForm.Nondegenerate.ker_eq_bot ?_
+  refine SmoothTwoForm.isNondegenerate_def.2 fun ⟨p, t⟩ ↦ ?_
   -- `ℓ = σ((X, 0), ·)`, which is `-dt`
   set ℓ := σ.bilinFormAt (p, t) (couplingField IB P a b (p, t))
   -- the vector `∂_t`, on which `ℓ` is `-1`
@@ -470,8 +471,8 @@ theorem mk_sub_mk_eq_neg_smul_realFirstChernClass (h : IsCouplingForm σ τ) (t 
   have hα' : IsCircleConnectionForm (α + (β - c • α)) := by
     refine ⟨fun z ↦ ?_, fun x ↦ ?_⟩
     · rw [map_add, map_sub, map_smul, hα.mpullback_op_smul, mpullback_smul_primitive h]
-    · simp only [Submodule.coe_add, Submodule.coe_sub, Submodule.coe_smul, Pi.add_apply,
-        Pi.sub_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
+    · simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply,
+        SmoothBundleForm.smul_apply, ContinuousAlternatingMap.add_apply,
         ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
         hα.apply_rightFundamentalVectorField]
       simp [β, c, primitive_apply_rightFundamentalVectorField h]

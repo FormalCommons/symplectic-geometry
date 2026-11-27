@@ -6,16 +6,18 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.LocallyConvex.HahnBanach
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 public import TauCeti.Geometry.Manifold.GroupAction.EquivariantSlice
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.Slice
+public import TauCeti.LinearAlgebra.Prod
+public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # The tube map of an orbit
@@ -47,11 +49,11 @@ an open subset `U` of `V` inside the target of `e` that is invariant under every
   structure `TauCeti.BalancedProduct.rightTranslationChartedSpace`, is `G`-equivariant and
   sends `[1, 0]` to `x`;
 * composed with the differential at `(1, 0)` of the projection `π : G × U → G ×_H U`, a
-  submersion, the differential of the tube map at `[1, 0]` is `(ξ, v) ↦ ξ_M(x) + v`. This is
-  the differential at `(1, 0)` of `(g, v) ↦ g • e.symm v` on `G × V`, so Tau Ceti's
-  `TauCeti.surjective_mfderiv_smul_slice` and `TauCeti.mfderiv_smul_slice_eq_zero_iff` give that
-  it is onto `T_x M` when `V + 𝔤 · x = T_x M`, and that it vanishes exactly on `𝔤_x × 0` when
-  `V ∩ 𝔤 · x = 0`.
+  submersion, the differential of the tube map at `[1, 0]` is `(ξ, v) ↦ ξ_M(x) + v`, the
+  differential at `(1, 0)` of `(g, v) ↦ g • e.symm v` on `G × V`. By Tau Ceti's
+  `LinearMap.surjective_coprod_iff` and `TauCeti.InfinitesimalAction.apply_add_eq_zero_iff`,
+  applied to the inclusion of `V`, it is onto `T_x M` when `V + 𝔤 · x = T_x M`, and it vanishes
+  exactly on `𝔤_x × 0` when `V ∩ 𝔤 · x = 0`.
 
 The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
 (`SymplecticGeometry.LinearizingChart.symm_mfderiv_smul`) and the derivative of `e.symm` at `0`
@@ -60,8 +62,9 @@ The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
 
 When `V` is a complement of `𝔤 · x`, the tube map is a local diffeomorphism at `[1, 0]`: its
 differential there is onto by the above, and injective because `dπ` is onto and kills `𝔤_x × 0`,
-along which `t ↦ (exp (t ξ), 0)` stays in the class `[1, 0]`. The inverse function theorem
-(Tau Ceti's `TauCeti.isLocalDiffeomorphAt_iff_exists_mfderiv_eq`) applies. Local diffeomorphy of
+along which `t ↦ (exp (t ξ), 0)` stays in the class `[1, 0]`. The inverse function theorem for a
+bijective differential (`TauCeti.isLocalDiffeomorphAt_of_bijective_mfderiv`, in
+`SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic`) applies. Local diffeomorphy of
 the equivariant tube map is `G`-invariant (`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`),
 so it holds at every `[g, v]` with `v` in a smaller slice domain `U'` around `0`; `U` itself
 need not be small.
@@ -416,19 +419,10 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk (hz : (z : V) = 0) (ξ : GroupLieAlge
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
       HAdd.hAdd (α := TangentSpace I' x) (β := TangentSpace I' x)
         (fundamentalVectorField I' ξ x) (v : E') := by
-  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
-    (Z := U) (I := I) (IZ := 𝓘(ℝ, V)) (F := F)).contMDiff.mdifferentiableAt
-      (x := ((stabilizer G x).toRightTranslation 1, z)) (by simp)
-  have hΦ := (U.contMDiff_tubeMap (I := I) (F := F)).mdifferentiableAt
-    (x := Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z)) (by simp)
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := U.hasMFDerivAt_sliceMap hz
-  refine (mfderiv_comp_apply _ hΦ hπ _).symm.trans ?_
-  rw [U.tubeMap_def, BalancedProduct.liftRightTranslation_comp_quotientMk]
-  -- `(stabilizer G x).RightTranslation` is `G` with the same charts, and `toRightTranslation` is
-  -- the identity, so this is the differential of `(g, v) ↦ g • e.symm v` on `G × U` at `(1, z)`.
-  refine (mfderiv_smul_slice_apply (σ := U.sliceMap) hσ.mdifferentiableAt ξ v).trans ?_
+  rw [U.tubeMap_def]
+  refine (BalancedProduct.mfderiv_liftRightTranslation_mfderiv_quotientMk hσ.mdifferentiableAt
+    ξ v).trans ?_
   rw [hσ.mfderiv, sliceMap_apply, hz, ZeroMemClass.coe_zero, e.symm_zero]
   exact congrArg (fundamentalVectorField I' ξ x + ·) (V.subtypeL_apply v)
 
@@ -446,7 +440,6 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm (hz : (z : V) = 
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
       mfderiv (I.prod 𝓘(ℝ, V)) I' (fun p : G × V ↦ p.1 • e.chart.symm (p.2 : E')) (1, 0)
         (ξ, v) := by
-  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := e.hasMFDerivAt_symm_comp_subtype V
   refine (U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v).trans
     (Eq.trans ?_ (mfderiv_smul_slice_apply hσ.mdifferentiableAt ξ v).symm)
@@ -467,12 +460,16 @@ theorem surjective_mfderiv_tubeMap_mfderiv_quotientMk [CompleteSpace E'] [IsMani
         (mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
           (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
           ((stabilizer G x).toRightTranslation 1, z) p) := by
-  have hσ := e.hasMFDerivAt_symm_comp_subtype V
-  intro w
-  obtain ⟨p, hp⟩ := surjective_mfderiv_smul_slice hV hσ.mdifferentiableAt
-    (by rw [ZeroMemClass.coe_zero, e.symm_zero])
-    (fun v ↦ (DFunLike.congr_fun hσ.mfderiv v).trans (V.subtypeL_apply v)) w
-  exact ⟨p, (U.mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm F hz p.1 p.2).trans hp⟩
+  -- The inclusion of `V`, read as a map into `T_x M`, a type synonym of `E'`.
+  let ι : V →ₗ[ℝ] TangentSpace I' x := V.subtype
+  have hι : LinearMap.range ι = V := Submodule.range_subtype V
+  intro (w : TangentSpace I' x)
+  obtain ⟨⟨ξ, v⟩, hv⟩ :=
+    (LinearMap.surjective_coprod_iff ((InfinitesimalAction.fundamental I G I' M).eval x) ι).2
+      (by rw [← InfinitesimalAction.orbitTangent_eq_range, hι]; exact hV) w
+  refine ⟨(ξ, v), (U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v).trans ?_⟩
+  rwa [LinearMap.coprod_apply, InfinitesimalAction.eval_apply,
+    InfinitesimalAction.fundamental_apply] at hv
 
 variable (F) in
 /-- For a subspace `V` that meets the orbit tangent space `𝔤 · x` only in `0`, the composite of
@@ -488,95 +485,39 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_zero_iff [CompleteSpace E'] [IsMan
           (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
           ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) = 0 ↔
       ξ ∈ (InfinitesimalAction.fundamental I G I' M).isotropy x ∧ v = 0 := by
-  have hσ := e.hasMFDerivAt_symm_comp_subtype V
-  rw [U.mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm F hz ξ v]
-  exact mfderiv_smul_slice_eq_zero_iff hV hσ.mdifferentiableAt
-    (by rw [ZeroMemClass.coe_zero, e.symm_zero])
-    (fun v ↦ (DFunLike.congr_fun hσ.mfderiv v).trans (V.subtypeL_apply v)) ξ v
-
-variable (F) in
-/-- **The projection is constant along the isotropy directions.** For `ξ` in the isotropy algebra
-`𝔤_x`, the differential at `(1, 0)` of the projection `G × U → G ×_H U` vanishes on `(ξ, 0)`: the
-curve `t ↦ (exp (t ξ), 0)` stays in the class `[1, 0]`, since `exp (t ξ)` lies in the stabilizer
-of `x`, whose differentials fix `0`. -/
-theorem mfderiv_quotientMk_apply_eq_zero_of_mem_isotropy [CompleteSpace E'] [IsManifold I' ∞ M]
-    [T2Space M] [I'.Boundaryless] (hz : (z : V) = 0)
-    {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ (InfinitesimalAction.fundamental I G I' M).isotropy x) :
-    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-    mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
-      (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
-      ((stabilizer G x).toRightTranslation 1, z) (ξ, 0) = 0 := by
-  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-  have : T2Space G := I.t2Space_of_lieGroup ∞
-  -- The curve `γ t = (exp (t ξ), z)` in `G × U`, with velocity `(ξ, 0)` at `0`.
-  let γ : ℝ → (stabilizer G x).RightTranslation × U :=
-    fun t ↦ ((stabilizer G x).toRightTranslation (mulInvariantExp (I := I) (t • ξ)), z)
-  have hγ : HasMFDerivAt 𝓘(ℝ, ℝ) (I.prod 𝓘(ℝ, V)) γ 0
-      (((1 : ℝ →L[ℝ] ℝ).smulRight ξ).prod 0) :=
-    (hasMFDerivAt_mulInvariantExp_smul_zero (I := I) (G := G) ξ).prodMk
-      (hasMFDerivAt_const (I := 𝓘(ℝ, ℝ)) (I' := 𝓘(ℝ, V)) z 0)
-  -- It stays in the class `[1, z]`.
-  have hconst : Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)) ∘
-      γ = fun _ ↦ Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z) := by
-    funext t
-    have hk : mulInvariantExp (I := I) (t • ξ) ∈ stabilizer G x :=
-      (TauCeti.Lie.mem_isotropy_fundamental_iff.1 hξ) t
-    have hkz : (⟨_, hk⟩ : stabilizer G x) • z = z := by
-      refine Subtype.ext (Subtype.ext ?_)
-      rw [coe_smul, hz, ZeroMemClass.coe_zero]
-      exact (mfderiv I' I' (fun y : M ↦ mulInvariantExp (I := I) (t • ξ) • y) x).map_zero
-    simp only [comp_apply, γ]
-    rw [BalancedProduct.quotientMk_eq_mk_toRightTranslation,
-      BalancedProduct.quotientMk_eq_mk_toRightTranslation, Equiv.symm_apply_apply,
-      Equiv.symm_apply_apply, ← one_mul (mulInvariantExp (t • ξ))]
-    exact (BalancedProduct.mk_toRightTranslation_mul 1 ⟨_, hk⟩ z).trans (congrArg _ hkz)
-  have hγ0 : γ 0 = ((stabilizer G x).toRightTranslation 1, z) := by
-    simp only [γ, zero_smul, mulInvariantExp_zero]
-  have h := TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (J := 𝓘(ℝ, ℝ))
-    (I := I.prod 𝓘(ℝ, V)) (K := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)))
-    (s := 0) (.of_eq hconst) (1 : ℝ)
-  rw [hγ.mfderiv, hγ0] at h
-  -- The velocity of `γ` applied to `1` is `(ξ, 0)`.
-  convert h using 1
-  exact congrArg _ (Prod.ext (one_smul ℝ ξ).symm rfl)
+  rw [U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v, ← InfinitesimalAction.fundamental_apply]
+  -- The inclusion of `V`, read as a map into `T_x M`, a type synonym of `E'`.
+  let ι : V →ₗ[ℝ] TangentSpace I' x := V.subtype
+  have hι : LinearMap.range ι = V := Submodule.range_subtype V
+  exact (InfinitesimalAction.fundamental I G I' M).apply_add_eq_zero_iff (L := ι)
+    V.injective_subtype (by rw [hι]; exact hV)
 
 variable (F) in
 /-- **The tube map is a local diffeomorphism at `[1, 0]`** when `V` is a complement of the orbit
 tangent space `𝔤 · x` in `T_x M`. Its differential there is onto, since its composite with the
 differential of the projection `π : G × U → G ×_H U` is; and it is injective, since `dπ` is onto
-and the composite vanishes only on `𝔤_x × 0`, which `dπ` kills. The inverse function theorem then
-applies. Here `0` is any point `z` of `U` that is `0` in `V`. -/
+and the composite vanishes only on `𝔤_x × 0`, which `dπ` kills
+(`TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one`). Here `0` is any
+point `z` of `U` that is `0` in `V`. -/
 theorem isLocalDiffeomorphAt_tubeMap_mk_one [CompleteSpace E'] [IsManifold I' ∞ M] [T2Space M]
     [I'.Boundaryless] (hV : IsCompl ((InfinitesimalAction.fundamental I G I' M).orbitTangent x) V)
     (hz : (z : V) = 0) :
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
     IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' ∞ U.tubeMap
       (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z)) := by
-  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-  have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := U) (I := I)
-    (IZ := 𝓘(ℝ, V)) (F := F)
-  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
-    (Z := U) (I := I) (IZ := 𝓘(ℝ, V)) (F := F)).surjective_mfderiv (by simp)
-      ((stabilizer G x).toRightTranslation 1, z)
-  set L := mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' U.tubeMap
-    (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z))
-  have hsurj : Surjective L := fun w ↦ by
-    obtain ⟨p, hp⟩ := U.surjective_mfderiv_tubeMap_mfderiv_quotientMk F hV.codisjoint.eq_top hz w
-    exact ⟨_, hp⟩
-  have hinj : Injective L := by
-    refine (injective_iff_map_eq_zero L).2 fun w hw ↦ ?_
-    obtain ⟨⟨ξ, v⟩, rfl⟩ := hπ w
-    obtain ⟨hξ, rfl⟩ :=
-      (U.mfderiv_tubeMap_mfderiv_quotientMk_eq_zero_iff F hV.disjoint hz ξ v).1 hw
-    exact U.mfderiv_quotientMk_apply_eq_zero_of_mem_isotropy F hz hξ
-  refine (isLocalDiffeomorphAt_iff_exists_mfderiv_eq
-    (U.contMDiff_tubeMap (I := I) (F := F)).contMDiffOn isOpen_univ (mem_univ _)
-    BoundarylessManifold.isInteriorPoint (by simp)).2
-    ⟨(LinearEquiv.ofBijective L.toLinearMap ⟨hinj, hsurj⟩).toContinuousLinearEquiv, ?_⟩
-  ext w
-  -- `LinearEquiv.ofBijective_apply` does not match here, as the tangent spaces are type synonyms
-  -- of the model spaces; the equivalence applies `L` by definition.
-  rfl
+  have : T2Space G := I.t2Space_of_lieGroup ∞
+  -- The stabilizer fixes `z`, since its differentials fix `0`.
+  have hfix : ∀ k : stabilizer G x, k • z = z := fun k ↦ by
+    refine Subtype.ext (Subtype.ext ?_)
+    rw [coe_smul, hz, ZeroMemClass.coe_zero]
+    exact (mfderiv I' I' (fun y : M ↦ (k : G) • y) x).map_zero
+  rw [tubeMap_def]
+  refine BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one F isOpen_univ
+    (mem_univ z) U.contMDiff_sliceMap.contMDiffOn hfix
+    (U.surjective_mfderiv_tubeMap_mfderiv_quotientMk F hV.codisjoint.eq_top hz)
+    fun ξ v hv ↦ ?_
+  obtain ⟨hξ, rfl⟩ := (U.mfderiv_tubeMap_mfderiv_quotientMk_eq_zero_iff F hV.disjoint hz ξ v).1 hv
+  exact ⟨TauCeti.Lie.mem_isotropy_fundamental_iff.1 hξ, rfl⟩
 
 variable (F) in
 /-- **The tube map is a local diffeomorphism near the orbit.** For a complement `V` of the orbit
@@ -597,26 +538,12 @@ theorem exists_sliceDomain_isLocalDiffeomorphAt_tubeMap [CompleteSpace E'] [IsMa
         IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' ∞ U.tubeMap
           (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation g) z) := by
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
-  have := BalancedProduct.contMDiffSMul_rightTranslation (K := stabilizer G x) (Z := U) (I := I)
-    (IZ := 𝓘(ℝ, V)) (F := F)
-  have : ContMDiffConstSMul 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) ∞ G
-      (BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation U) :=
-    ContMDiffSMul.contMDiffConstSMul I
-  have : ContMDiffConstSMul I' ∞ G M := ContMDiffSMul.contMDiffConstSMul I
   -- The points `z` of `U` at whose class `[1, z]` the tube map is a local diffeomorphism.
   let W : Set U := {z | IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' ∞
     U.tubeMap (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation 1) z)}
   have hW : IsOpen W := by
-    refine isOpen_iff_mem_nhds.2 fun z hz ↦ ?_
-    have hc : Continuous fun z : U ↦
-        BalancedProduct.mk (stabilizer G x) ((stabilizer G x).toRightTranslation 1) z :=
-      continuous_quotient_mk'.comp (continuous_const.prodMk continuous_id)
-    exact hc.continuousAt.preimage_mem_nhds (IsLocalDiffeomorphAt.eventually hz)
-  have hmem : ∀ {g : G} {z : U}, z ∈ W →
-      IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' ∞ U.tubeMap
-        (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation g) z) := fun {g z} hz ↦ by
-    have h := (isLocalDiffeomorphAt_smul_iff U.tubeMap_smul g).2 hz
-    rwa [BalancedProduct.smul_mk_toRightTranslation, mul_one] at h
+    simp only [W, tubeMap_def]
+    exact BalancedProduct.isOpen_setOfPred_isLocalDiffeomorphAt_liftRightTranslation_mk_one F
   have hinj : Injective fun z : U ↦ ((z : V) : E') :=
     Subtype.val_injective.comp Subtype.val_injective
   refine ⟨⟨(fun z : U ↦ ((z : V) : E')) '' W, ?_, ?_, ?_, ?_⟩, ?_, ?_, ?_⟩
@@ -633,11 +560,10 @@ theorem exists_sliceDomain_isLocalDiffeomorphAt_tubeMap [CompleteSpace E'] [IsMa
   · rintro _ ⟨z, -, rfl⟩
     exact U.coe_mem_target z
   · rintro g hg _ ⟨z, hz, rfl⟩
-    have h := (isLocalDiffeomorphAt_smul_iff U.tubeMap_smul g).2 hz
-    rw [← Subgroup.coe_mk (stabilizer G x) g hg,
-      ← BalancedProduct.mk_toRightTranslation_one_smul] at h
-    -- Membership in `W` is local diffeomorphy at the class `[1, z]`.
-    have h' := mem_image_of_mem (fun z : U ↦ ((z : V) : E')) (show _ ∈ W from h)
+    have h : (⟨g, hg⟩ : stabilizer G x) • z ∈ W := by
+      simp only [W, mem_ofPred_eq, tubeMap_def] at hz ⊢
+      exact (BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff F _ z).2 hz
+    have h' := mem_image_of_mem (fun z : U ↦ ((z : V) : E')) h
     rwa [U.coe_smul ⟨g, hg⟩ z] at h'
   · rintro _ ⟨z, -, rfl⟩
     exact U.coe_mem z
@@ -645,7 +571,8 @@ theorem exists_sliceDomain_isLocalDiffeomorphAt_tubeMap [CompleteSpace E'] [IsMa
     exact U.isLocalDiffeomorphAt_tubeMap_mk_one F hV rfl
   · rintro g z ⟨w, hw, hwz⟩
     obtain rfl := hinj hwz
-    exact hmem hw
+    rw [tubeMap_def, BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_iff F g]
+    exact hw
 
 end Differential
 

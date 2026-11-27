@@ -11,6 +11,7 @@ public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 
 /-!
 # Smoothness of the values of linear functionals
@@ -32,9 +33,10 @@ functionals on `E` whose values are `C^n` is `C^n` as a family of continuous lin
 `E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
 Evaluated along a `C^n` map between manifolds on a `C^n` family of vectors, such a family then
 gives a `C^n` function, by Mathlib's `ContMDiffAt.clm_apply`.
-A family whose values are differentiable is likewise differentiable as such a family, by Tau
-Ceti's `TauCeti.differentiableAt_clm_apply`, and through it the derivative of the values of `ν`
-on a varying vector comes from Mathlib's `fderiv_clm_apply`.
+A family whose values are differentiable is likewise differentiable as such a family
+(`mdifferentiableAt_clm_apply`, from Tau Ceti's `TauCeti.differentiableWithinAt_clm_apply`), and
+through it the derivative of the values of `ν` on a varying vector comes from Mathlib's
+`fderiv_clm_apply`.
 
 ## Main results
 
@@ -47,6 +49,13 @@ on a varying vector comes from Mathlib's `fderiv_clm_apply`.
   normed space.
 * `contMDiff_toContinuousLinearMap_of_contMDiff_apply`: for a finite-dimensional normed space `E`,
   if `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν` is `C^n` as a map into `E →L[𝕜] 𝕜`.
+* `mdifferentiableWithinAt_clm_apply`, `mdifferentiableAt_clm_apply`: for a finite-dimensional
+  normed space `E`, a family `f` of continuous linear maps `E →L[𝕜] F` indexed by a manifold is
+  differentiable exactly when every `t ↦ f t ξ` is; the differentiable analogue of Tau Ceti's
+  `TauCeti.contMDiffAt_clm_apply`, from Tau Ceti's `TauCeti.differentiableWithinAt_clm_apply`.
+* `mvfderiv_toContinuousLinearMap_apply`: if every `t ↦ ν t ξ` is differentiable at `p`, the
+  derivative at `p` of `ν` as such a map, applied to `ξ`, is that of `t ↦ ν t ξ`, by Tau Ceti's
+  `TauCeti.mvfderiv_clm_apply_const`.
 * `contMDiffAt_dual_comp_apply`, `contMDiff_dual_comp_apply`: for a family `ν` of functionals on a
   finite-dimensional normed space `X`, with `C^n` values, a `C^n` map `x : M → N` between
   manifolds and a `C^n` map `c : M → X`, `z ↦ ν (x z) (c z)` is `C^n`.
@@ -128,6 +137,45 @@ theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply [CompleteSpace 𝕜]
     ContMDiff J 𝓘(𝕜, E →L[𝕜] 𝕜) n fun t ↦ LinearMap.toContinuousLinearMap (ν t) :=
   fun t ↦ TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ t
 
+/-- **Differentiability of a family of continuous linear maps within a set, by components.** A
+family `f` of continuous linear maps `E →L[𝕜] F` on a finite-dimensional normed space `E` over a
+complete nontrivially normed field, indexed by a manifold `N`, is differentiable within `s` at `p`
+exactly when `t ↦ f t ξ` is, for every `ξ : E`. -/
+theorem mdifferentiableWithinAt_clm_apply [CompleteSpace 𝕜]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {f : N → E →L[𝕜] F} {s : Set N} {p : N} :
+    MDifferentiableWithinAt J 𝓘(𝕜, E →L[𝕜] F) f s p ↔
+      ∀ ξ, MDifferentiableWithinAt J 𝓘(𝕜, F) (fun t ↦ f t ξ) s p := by
+  simp only [mdifferentiableWithinAt_iff, continuousWithinAt_clm_apply,
+    TauCeti.differentiableWithinAt_clm_apply, extChartAt_model_space_eq_id,
+    PartialEquiv.refl_coe, Function.comp_def, id_eq, forall_and]
+
+/-- **Differentiability of a family of continuous linear maps, by components.** A family `f` of
+continuous linear maps `E →L[𝕜] F` on a finite-dimensional normed space `E` over a complete
+nontrivially normed field, indexed by a manifold `N`, is differentiable at `p` exactly when
+`t ↦ f t ξ` is, for every `ξ : E`. -/
+theorem mdifferentiableAt_clm_apply [CompleteSpace 𝕜]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {f : N → E →L[𝕜] F} {p : N} :
+    MDifferentiableAt J 𝓘(𝕜, E →L[𝕜] F) f p ↔
+      ∀ ξ, MDifferentiableAt J 𝓘(𝕜, F) (fun t ↦ f t ξ) p := by
+  simpa only [← mdifferentiableWithinAt_univ] using mdifferentiableWithinAt_clm_apply
+
+/-- **The derivative of a family of covectors, by components.** Let `ν` be a family of linear
+functionals on a finite-dimensional normed space `E` over a complete nontrivially normed field `𝕜`,
+indexed by a manifold `N`, whose values `t ↦ ν t ξ` are differentiable at `p`. Then the derivative
+at `p` of `ν`, read as a family of continuous linear maps `E →L[𝕜] 𝕜`, applied to `ξ`, is the
+derivative at `p` of the component `t ↦ ν t ξ`. -/
+theorem mvfderiv_toContinuousLinearMap_apply [CompleteSpace 𝕜]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+    {ν : N → Module.Dual 𝕜 E} {p : N} (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) p)
+    (w : TangentSpace J p) (ξ : E) :
+    mvfderiv J (fun t ↦ LinearMap.toContinuousLinearMap (ν t)) p w ξ =
+      mvfderiv J (fun t ↦ ν t ξ) p w :=
+  (TauCeti.mvfderiv_clm_apply_const (mdifferentiableAt_clm_apply.2 hν) ξ w).symm
+
 section ContMDiffPairing
 
 variable [CompleteSpace 𝕜] {X : Type*} [NormedAddCommGroup X] [NormedSpace 𝕜 X]
@@ -175,8 +223,8 @@ theorem differentiableAt_toContinuousLinearMap_comp
     (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) (x y))
     (hx : MDifferentiableAt 𝓘(𝕜, F) J x y) :
     DifferentiableAt 𝕜 (fun z ↦ LinearMap.toContinuousLinearMap (ν (x z))) y :=
-  TauCeti.differentiableAt_clm_apply.2 fun ξ ↦ by
-    simpa [Function.comp_def] using ((hν ξ).comp y hx).differentiableAt
+  ((mdifferentiableAt_clm_apply (f := fun t ↦ LinearMap.toContinuousLinearMap (ν t))).2 hν
+    |>.comp y hx).differentiableAt
 
 /-- **Differentiability of a family of functionals evaluated on a family of vectors.** Let
 `ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,

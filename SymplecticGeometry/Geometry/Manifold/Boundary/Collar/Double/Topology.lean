@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Basic
-public import SymplecticGeometry.Topology.Constructions.DoubleAlong.Connected
+import SymplecticGeometry.Topology.Constructions.DoubleAlong.Connected
 
 /-!
 # The double along a collar is Hausdorff, compact and connected

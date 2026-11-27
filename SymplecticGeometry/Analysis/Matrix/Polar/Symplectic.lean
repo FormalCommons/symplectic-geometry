@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Matrix.Polar.Basic
-public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import TauCeti.Analysis.Matrix.Polar.Symplectic
+import SymplecticGeometry.Analysis.Matrix.Polar.Basic
+import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
 /-!
 # The right polar decomposition of a symplectic matrix

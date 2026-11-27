@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Topology.FiberBundle.Proper
+public import TauCeti.Topology.FiberBundle.Separation
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 
 /-!
@@ -52,6 +53,9 @@ of a principal bundle given by a local section.
   along a section is the pull-back of `α` plus `a`.
 * `TauCeti.ManifoldTotalSpace.compactSpace`: the charted total space is compact when the base and
   the model fibre are, as Tau Ceti's `FiberBundle.compactSpace_totalSpace` says of
+  `Bundle.TotalSpace F E`.
+* `TauCeti.ManifoldTotalSpace.t2Space`: the charted total space is Hausdorff when the base and
+  the model fibre are, as Tau Ceti's `TauCeti.FiberBundle.t2Space_totalSpace` says of
   `Bundle.TotalSpace F E`.
 * `Bundle.Trivialization.manifoldSnd`: the fibre coordinate of a trivialization, as a map on the
   charted total space; `Bundle.Trivialization.contMDiffOn_manifoldSnd`: it is `C^n` over the base
@@ -227,6 +231,14 @@ instance compactSpace {B F : Type*} {E : B → Type*} [TopologicalSpace B] [Topo
     [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
     [CompactSpace B] [CompactSpace F] : CompactSpace (ManifoldTotalSpace F E) :=
   (homeomorph F E).compactSpace
+
+/-- The charted total space of a fibre bundle with Hausdorff base and Hausdorff model fibre is
+Hausdorff: it carries the topology of `Bundle.TotalSpace F E`, which is Hausdorff by
+`TauCeti.FiberBundle.t2Space_totalSpace`. -/
+instance t2Space {B F : Type*} {E : B → Type*} [TopologicalSpace B] [TopologicalSpace F]
+    [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+    [T2Space B] [T2Space F] : T2Space (ManifoldTotalSpace F E) :=
+  (homeomorph F E).t2Space
 
 end TauCeti.ManifoldTotalSpace
 

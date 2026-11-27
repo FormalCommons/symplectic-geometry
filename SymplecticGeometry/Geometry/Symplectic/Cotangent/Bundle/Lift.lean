@@ -5,10 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
-public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Liouville
-public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import TauCeti.Geometry.Manifold.Flow.Related
@@ -18,6 +14,12 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Classification
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 public import TauCeti.Topology.FiberBundle.Separation
+public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Manifold.Flow.Basic
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Liouville
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Cotangent lifts of local flows
@@ -358,11 +360,10 @@ theorem flowOf_eq_liftFlow_of_isHamiltonianVectorField {t : ℝ} {z : CotangentB
       (flowOf X t z).snd (mfderiv I I (flowOf Y t) z.proj u) = z.snd u := by
     obtain ⟨v, rfl⟩ := Bundle.mfderiv_proj_surjective z u
     have h := congrArg (fun α ↦ α ![v]) hpres
-    simp only [mpullback_apply, liouvilleForm_apply, Matrix.cons_val_zero] at h
+    simp only [mpullback_apply_one, liouvilleForm_apply, Matrix.cons_val_zero] at h
     rw [← mfderiv_comp_apply z (hπ _) hΦ, hev.mfderiv_eq, ContinuousLinearMap.comp_apply,
       mfderiv_comp_apply z hφ (hπ z)] at h
-    -- `tangentSpaceCast` is the identity of the model space.
-    exact h
+    rwa [ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply] at h
   refine CotangentBundle.ext (hev.self_of_nhds) fun w ↦ ?_
   exact (congrArg (flowOf X t z).snd (mfderiv_flowOf_apply_mfderiv_flowOf_neg hY1 htY w)).symm.trans
     (hkey _)

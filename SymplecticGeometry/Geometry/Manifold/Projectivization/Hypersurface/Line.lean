@@ -11,6 +11,7 @@ import Mathlib.Analysis.Complex.Polynomial.Basic
 import SymplecticGeometry.Algebra.Module.LinearMap.Polynomial
 import SymplecticGeometry.LinearAlgebra.Projectivization.BinaryForm
 import TauCeti.Algebra.MvPolynomial.PDeriv
+import TauCeti.RingTheory.MvPolynomial.LinearSubst
 
 /-!
 # Lines meeting a smooth projective hypersurface
@@ -102,7 +103,7 @@ theorem card_inter_line {ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 2) → ℂ)}
     exact hmem p
   rw [Nat.card_coe_set_eq, hset,
     ncard_image_of_injective _ (Projectivization.map_injective ι hι),
-    IsHomogeneous.ncard_setOf_eval_rep_eq_zero hF hsing]
+    IsHomogeneous.ncard_setOfPred_eval_rep_eq_zero hF hsing]
 
 /-- **A zero-dimensional hypersurface has `d` points.** A smooth projective hypersurface of degree
 `d` in `ℂℙ¹` consists of exactly `d` points.
@@ -118,9 +119,7 @@ theorem card_eq (X : SmoothProjectiveHypersurface 0 d) : Nat.card X = d := by
 /-- A zero-dimensional smooth projective hypersurface is discrete, as every manifold modelled on
 a point is. -/
 instance instDiscreteTopology (X : SmoothProjectiveHypersurface 0 d) : DiscreteTopology X :=
-  have : Subsingleton (Fin (0 + 1 - Fintype.card Unit) → ℂ) :=
-    inferInstanceAs (Subsingleton (Fin 0 → ℂ))
-  ChartedSpace.discreteTopology (Fin (0 + 1 - Fintype.card Unit) → ℂ) X.carrier
+  ChartedSpace.discreteTopology (Fin 0 → ℂ) X.carrier
 
 /-- A zero-dimensional smooth projective hypersurface is finite, being compact and discrete. -/
 instance instFinite (X : SmoothProjectiveHypersurface 0 d) : Finite X :=

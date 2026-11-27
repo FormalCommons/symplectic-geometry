@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Pullback
+public import TauCeti.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # Tensor products of pulled-back vector bundles

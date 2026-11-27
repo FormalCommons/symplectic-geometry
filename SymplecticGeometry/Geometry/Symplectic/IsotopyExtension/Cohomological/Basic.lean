@@ -5,8 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Cohomological.Primitive
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
+public import SymplecticGeometry.Geometry.Symplectic.Flux.CompactSupport
+public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
+public import TauCeti.Topology.Homotopy.Extension.NDRPair
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Cohomological.Primitive
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
 
 /-!
 # The symplectic isotopy extension theorem

@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.RegularValue.Fibre
 public import TauCeti.Geometry.Manifold.Sard.EqualDimension
+import TauCeti.Topology.MetricSpace.HausdorffDistance
 
 /-!
 # Maps with finitely many zeros off a level set
@@ -18,12 +19,14 @@ vanish on the level set `g⁻¹(0)` can be changed off that level set into a con
 finitely many zeros, none of them on `g⁻¹(0)`
 (`SymplecticGeometry.exists_eq_on_levelSet_finite_zeros`).
 
-The proof: by compactness, `‖h₀‖ ≥ c` wherever `|g| < c`, for some `c > 0`. Take a smooth map `h₁`
-within `c / 2` of `h₀` (Mathlib's `exists_contMDiffMap_forall_mem_convex_of_local_const`), and a
-regular value `w` of `h₁` with `‖w‖ < c / 2` (Sard's theorem, `TauCeti.dense_isRegularValue`),
-whose fibre is finite (`TauCeti.IsRegularValue.finite_preimage`). Interpolating between `h₀` on
-the level set and `h₁ - w` where `|g| ≥ c`, with weight `min 1 (|g| / c)`, gives a map whose zeros
-are zeros of `h₁ - w` in `{|g| ≥ c}`.
+The proof: by compactness, `‖h₀‖ ≥ c` wherever `|g| < c`, for some `c > 0` (Tau Ceti's
+`IsCompact.exists_pos_forall_mem_of_norm_le`, for the open set of nonzero vectors). Take a smooth
+map `h₁` within `c / 2` of `h₀` (Mathlib's
+`exists_contMDiffMap_forall_mem_convex_of_local_const`), and a regular value `w` of `h₁` with
+`‖w‖ < c / 2` (Sard's theorem, `TauCeti.dense_isRegularValue`), whose fibre is finite
+(`TauCeti.IsRegularValue.finite_preimage`). Interpolating between `h₀` on the level set and
+`h₁ - w` where `|g| ≥ c`, with weight `min 1 (|g| / c)`, gives a map whose zeros are zeros of
+`h₁ - w` in `{|g| ≥ c}`.
 
 ## References
 
@@ -53,10 +56,11 @@ theorem exists_eq_on_levelSet_finite_zeros (hdim : finrank ℝ E = finrank ℝ V
       ∀ x, h x = 0 → g x ≠ 0 := by
   -- A margin `c > 0` such that `‖h₀‖ ≥ c` wherever `|g| < c`.
   obtain ⟨c, hc, hcg⟩ : ∃ c > 0, ∀ x, |g x| < c → c ≤ ‖h₀ x‖ := by
-    obtain ⟨c, hc, hmin⟩ := isCompact_univ.exists_forall_le' (a := 0)
-      ((continuous_norm.comp h₀.continuous).max hg.abs).continuousOn fun x _ ↦
-        lt_max_iff.2 ((eq_or_ne (g x) 0).imp (fun h ↦ norm_pos_iff.2 (hh₀ x h)) abs_pos.2)
-    exact ⟨c, hc, fun x hx ↦ (le_max_iff.1 (hmin x (mem_univ x))).resolve_right hx.not_ge⟩
+    obtain ⟨c, hc, hcO⟩ := isCompact_univ.exists_pos_forall_mem_of_norm_le hg.continuousOn
+      h₀.continuous.continuousOn (isOpen_ne (x := (0 : V))) fun x _ ↦ hh₀ x
+    refine ⟨c, hc, fun x hx ↦ le_of_not_gt fun hlt ↦ hcO x (mem_univ x) 0 ?_ ?_ rfl⟩
+    · simpa using hx.le
+    · simpa using hlt.le
   -- A smooth approximation `h₁` within `c / 2` of `h₀`.
   obtain ⟨h₁, hh₁⟩ := exists_contMDiffMap_forall_mem_convex_of_local_const 𝓘(ℝ, E) (n := ⊤)
     (t := fun x ↦ ball (h₀ x) (c / 2)) (fun x ↦ convex_ball _ _) fun x ↦

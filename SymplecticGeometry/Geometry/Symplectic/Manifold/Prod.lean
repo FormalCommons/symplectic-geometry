@@ -22,7 +22,9 @@ the diagonal action of `g`. The proof is the one of the field `mpullback_smul` i
 place of a torus.
 
 On a slice `x ↦ (x, c)` of `M × N` the product form restricts to `σ`
-(`TauCeti.SmoothTwoForm.mpullback_prodMk_left_prod`).
+(`TauCeti.SmoothTwoForm.mpullback_prodMk_left_prod`). On two tangent vectors of `M × N`, which
+are pairs, the product form is the sum of the factor forms on their components
+(`TauCeti.SmoothTwoForm.eval₂_prod_eq_add`).
 -/
 
 public section
@@ -63,6 +65,13 @@ theorem mpullback_prodMk_left_prod (σ : SmoothTwoForm I M) (τ : SmoothTwoForm 
   rw [prod_def, map_add, SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero,
     SmoothForm.mpullback_mpullback]
   exact LinearMap.congr_fun SmoothForm.mpullback_id σ
+
+/-- The product form evaluates on two tangent vectors of `M × N`, which are pairs, as the sum of
+the factor forms on their components. -/
+theorem eval₂_prod_eq_add (σ : SmoothTwoForm I M) (τ : SmoothTwoForm J N) (p : M × N)
+    (v w : TangentSpace (I.prod J) p) :
+    (σ.prod τ).eval₂ p v w = σ.eval₂ p.1 v.1 w.1 + τ.eval₂ p.2 v.2 w.2 := by
+  rw [eval₂_prod, Manifold.tangentSpaceProdEquiv_apply, Manifold.tangentSpaceProdEquiv_apply]
 
 end TauCeti.SmoothTwoForm
 

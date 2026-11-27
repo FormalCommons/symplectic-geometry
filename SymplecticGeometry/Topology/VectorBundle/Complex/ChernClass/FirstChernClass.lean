@@ -5,17 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
-public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
+public import TauCeti.Topology.VectorBundle.Determinant.Prod
+public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
+import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Splitting
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 /-!
 # The first Chern class `c₁` is the class of the determinant line
 
 There are two first Chern classes of a complex vector bundle `E → B` in the library: the Chern
 class `chernClass G E 1`, from the projective bundle of `E`, and
-`SymplecticGeometry.Bundle.firstChernClass G E`, the Euler class of the determinant line of `E`,
+`TauCeti.firstChernClass G E`, the Euler class of the determinant line of `E`,
 with values in `ULift ℤ`. This file shows that over a compact Hausdorff base they agree, through
 `TopCat.uliftIntegralCohomologyIso` (`chernClass_one_eq_firstChernClass`), so that they are one
 notion.
@@ -23,12 +28,14 @@ notion.
 Both are additive on direct sums. For the Chern class this is the Whitney sum formula in degree
 two (`chernClass_one_prod`, in `ChernClass/Whitney.lean`). For `firstChernClass` it is
 `firstChernClass_prod_of_hasFiniteTrivializingCover`: the determinant line of `E₁ ⊕ E₂` is the
-tensor product of the determinant lines (`SymplecticGeometry.Bundle.detCoreProdIso`), and the
-Euler class of a tensor product of complex lines with finite trivializing covers over a normal
-base is the sum of their Euler classes
-(`TauCeti.complexEulerClass_tensorProduct`). On lines both are the Euler class of the bundle
-(`chernClass_one_eq_complexEulerClass`, `firstChernClass_eq_complexEulerClass`), and in rank zero
-both vanish (`chernClass_eq_zero_of_finrank_lt`, `firstChernClass_eq_zero_of_finrank_eq_zero`).
+tensor product of the determinant lines (Tau Ceti's `TauCeti.DetBundle.prodEquiv`), which
+have finite trivializing covers when `E₁` and `E₂` do
+(`SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detBundle`), and the Euler class of a tensor
+product of complex lines with finite trivializing covers over a normal base is the sum of their
+Euler classes (`TauCeti.complexEulerClass_tensorProduct`). On lines both are the Euler class
+of the bundle (`chernClass_one_eq_complexEulerClass`, `firstChernClass_eq_complexEulerClass`),
+and in rank zero both vanish (`chernClass_eq_zero_of_finrank_lt`,
+`TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`).
 The comparison then goes by induction on the rank with the splitting principle: the
 pull-back of `E` to its projective bundle `π : P(E) → B` splits as the tautological line plus a
 bundle of smaller rank (`ProjectiveBundle.pullbackEquivTautologicalProdComplement`), `P(E)` is
@@ -37,7 +44,7 @@ again compact Hausdorff, and `π^*` is injective on cohomology (`injective_proje
 ## Main results
 
 * `firstChernClass_prod_of_hasFiniteTrivializingCover`: `firstChernClass` is additive on direct
-  sums, over a normal base on which both determinant lines have finite trivializing covers;
+  sums of bundles with finite trivializing covers over a normal base;
 * `firstChernClass_prod`: its case over a compact normal base;
   hence `chernNumber_prod`, the additivity of the first Chern number over a compact oriented
   surface.
@@ -70,31 +77,30 @@ section FirstChernClass
 
 variable [NormalSpace B]
   {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  {E₁ : B → Type*} [∀ b, AddCommMonoid (E₁ b)] [∀ b, Module ℂ (E₁ b)]
+  {E₁ : B → Type} [∀ b, AddCommGroup (E₁ b)] [∀ b, Module ℂ (E₁ b)]
   [∀ b, TopologicalSpace (E₁ b)] [TopologicalSpace (TotalSpace G₁ E₁)]
   [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
   {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  {E₂ : B → Type*} [∀ b, AddCommMonoid (E₂ b)] [∀ b, Module ℂ (E₂ b)]
+  {E₂ : B → Type} [∀ b, AddCommGroup (E₂ b)] [∀ b, Module ℂ (E₂ b)]
   [∀ b, TopologicalSpace (E₂ b)] [TopologicalSpace (TotalSpace G₂ E₂)]
   [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
 
-/-- **The first Chern class is additive on direct sums.** Over a normal base on which the
-determinant lines of `E₁` and `E₂` each have a finite trivializing cover, `firstChernClass` of
-`E₁ ⊕ E₂` is the sum of those of `E₁` and `E₂`: the determinant line of the sum is the tensor
-product of the determinant lines, whose Euler class is the sum of their Euler classes. -/
+/-- **The first Chern class is additive on direct sums.** Over a normal base, if `E₁` and `E₂`
+each have a finite trivializing cover, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those of `E₁`
+and `E₂`: the determinant line of the sum is the tensor product of the determinant lines, which
+have finite trivializing covers too, and whose Euler class is the sum of their Euler classes. -/
 theorem firstChernClass_prod_of_hasFiniteTrivializingCover
-    (h₁ : HasFiniteTrivializingCover ℂ (Fin (detCore ℂ G₁ E₁).rank → ℂ)
-      (detCore ℂ G₁ E₁).core.Fiber)
-    (h₂ : HasFiniteTrivializingCover ℂ (Fin (detCore ℂ G₂ E₂).rank → ℂ)
-      (detCore ℂ G₂ E₂).core.Fiber) :
+    (h₁ : HasFiniteTrivializingCover ℂ G₁ E₁) (h₂ : HasFiniteTrivializingCover ℂ G₂ E₂) :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ := by
-  rw [firstChernClass_def, firstChernClass_def, firstChernClass_def,
-    complexEulerClass_eq_of_fiberwise _ _ (continuous_detCoreProdFiberEquiv ℂ E₁ E₂)]
-  exact complexEulerClass_tensorProduct (by simp) (by simp) h₁ h₂
+  simp only [firstChernClass_def, lineFirstChernClass_def]
+  rw [← complexEulerClass_eq_of_fiberwise _ _ (φ := DetBundle.prodEquiv ℂ G₁ E₁ G₂ E₂)
+      DetBundle.continuous_prodEquiv]
+  exact complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ) h₁.detBundle
+    h₂.detBundle
 
-/-- **The first Chern class of the determinant line is additive.** Over a compact normal base,
-such as a compact Hausdorff one, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those of `E₁` and
-`E₂`. -/
+/-- **The first Chern class is additive on direct sums over a compact base.** Over a compact
+normal base, such as a compact Hausdorff one, `firstChernClass` of `E₁ ⊕ E₂` is the sum of those
+of `E₁` and `E₂`. -/
 theorem firstChernClass_prod [CompactSpace B] :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ :=
   firstChernClass_prod_of_hasFiniteTrivializingCover .of_compactSpace .of_compactSpace
@@ -107,11 +113,11 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
   [ChartedSpace EM M] (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
   {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
-  {E₁ : M → Type*} [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module ℂ (E₁ x)]
+  {E₁ : M → Type} [∀ x, AddCommGroup (E₁ x)] [∀ x, Module ℂ (E₁ x)]
   [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
   [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
   {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
-  {E₂ : M → Type*} [∀ x, AddCommMonoid (E₂ x)] [∀ x, Module ℂ (E₂ x)]
+  {E₂ : M → Type} [∀ x, AddCommGroup (E₂ x)] [∀ x, Module ℂ (E₂ x)]
   [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace G₂ E₂)]
   [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
 
@@ -140,7 +146,7 @@ theorem chernClass_one_eq_firstChernClass :
   induction n generalizing B G E with
   | zero =>
     rw [chernClass_eq_zero_of_finrank_lt G E (by omega),
-      firstChernClass_eq_zero_of_finrank_eq_zero G E hn, map_zero]
+      firstChernClass_eq_zero_of_finrank_eq_zero hn, map_zero]
   | succ n ih =>
     have hS : finrank ℂ ℂ = 0 + 1 := finrank_self ℂ
     -- Pull back to the projective bundle, where `E` splits as `S ⊕ Q` with `Q` of rank `n`.
@@ -171,7 +177,7 @@ hyperplane class.
 Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V] :
     ((TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2).hom
-        (firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
+        (TauCeti.firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
   rw [hyperplaneClass_def, neg_neg, firstChernClass_eq_complexEulerClass _ (finrank_self ℂ)]
 
 end Projectivization

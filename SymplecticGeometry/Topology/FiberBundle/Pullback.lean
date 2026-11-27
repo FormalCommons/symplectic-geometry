@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.FiberBundle.Pullback
+public import Mathlib.Topology.Algebra.Module.ModuleTopology
+public import Mathlib.Topology.VectorBundle.Constructions
 
 /-!
 # Maps into a pull-back bundle
@@ -28,6 +30,21 @@ lift to the total space of `V` are. The proof is that of `Bundle.Pullback.contin
 * `Bundle.Pullback.continuous_totalSpaceMk_trivial`: a family of maps from the model fibre `F` to
   the fibres of `V` along `f : X → B`, continuous on `X × F`, is continuous from the trivial
   bundle `Bundle.Trivial X F` to the pull-back `f *ᵖ V`.
+* `Bundle.Pullback.instIsModuleTopologySMul`: a fibre of `f *ᵖ E` carries the module topology
+  for Tau Ceti's scalar action `Bundle.Pullback.instSMul` when the fibre of `E` it comes from
+  does.
+* `Bundle.Pullback.instContinuousConstSMulSMul`: multiplication by each scalar is continuous on a
+  fibre of `f *ᵖ E`, for Tau Ceti's scalar action `Bundle.Pullback.instSMul`, when it is on the
+  fibre of `E` it comes from.
+
+Tau Ceti's `Bundle.Pullback.instSMul` gives the fibres of `f *ᵖ E` a scalar action of their own,
+which agrees with the action of their module structure only once instances are unfolded. Which of
+the two `IsModuleTopology R ((f *ᵖ E) y)` is elaborated with depends on the instances of the
+fibres of `E` and on what is imported. `Bundle.Pullback.instIsModuleTopologySMul` is for Tau
+Ceti's action, and `Bundle.Pullback.instIsModuleTopology` of
+`SymplecticGeometry/Topology/VectorBundle/Pullback.lean`, which imports this file, for the other;
+together they cover both. Likewise `Bundle.Pullback.instContinuousConstSMulSMul` is for Tau Ceti's
+action, and `Bundle.Pullback.instContinuousConstSMul` of that file for the other.
 -/
 
 public section
@@ -58,6 +75,24 @@ theorem continuous_totalSpaceMk_trivial {f : X → B} {φ : ∀ y, F → V (f y)
       TotalSpace.mk' F (E := f *ᵖ V) p.proj (φ p.proj p.snd) :=
   Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj F _,
     hφ.comp (Trivial.homeomorphProd X F).continuous⟩
+
+/-- A fibre of the pull-back `f *ᵖ E` carries the module topology, for Tau Ceti's scalar action
+`Bundle.Pullback.instSMul`, when the fibre of `E` it comes from does. The instance for the action
+of the fibre's module structure is `Bundle.Pullback.instIsModuleTopology`. -/
+instance instIsModuleTopologySMul {R : Type*} [Semiring R] [TopologicalSpace R] {E : B → Type*}
+    [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)]
+    (f : X → B) (y : X) [IsModuleTopology R (E (f y))] :
+    @IsModuleTopology R _ ((f *ᵖ E) y) _ (Bundle.Pullback.instSMul f y) _ :=
+  inferInstanceAs (IsModuleTopology R (E (f y)))
+
+/-- Multiplication by each scalar on a fibre of the pull-back `f *ᵖ E` is continuous, for Tau
+Ceti's scalar action `Bundle.Pullback.instSMul`, when it is on the fibre of `E` it comes from.
+The instance for the action of the fibre's module structure is
+`Bundle.Pullback.instContinuousConstSMul`. -/
+instance instContinuousConstSMulSMul {R : Type*} {E : B → Type*} [∀ b, SMul R (E b)]
+    [∀ b, TopologicalSpace (E b)] (f : X → B) (y : X) [ContinuousConstSMul R (E (f y))] :
+    ContinuousConstSMul R ((f *ᵖ E) y) :=
+  inferInstanceAs (ContinuousConstSMul R (E (f y)))
 
 end Bundle.Pullback
 

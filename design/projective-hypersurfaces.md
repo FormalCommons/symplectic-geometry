@@ -39,8 +39,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   `TauCeti.isManifold_complexProjectiveZeroLocus` takes. The carrier `X` is
   that zero locus, with Tau Ceti's atlas
   `TauCeti.complexProjectiveZeroLocusChartedSpace` for `V = univ`, modelled
-  on `𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ)` as Tau Ceti gives it (its
-  dimension is `n`, `finrank_model`). The inclusion is Tau Ceti's bundled
+  on `𝓘(ℂ, Fin n → ℂ)`, the same type as the `Fin (n + 1 - Fintype.card Unit) → ℂ`
+  that Tau Ceti gives, written in `simp` normal form. The inclusion is Tau Ceti's bundled
   embedding `TauCeti.complexProjectiveZeroLocusEmbedding`, written $\iota$.
   A structure, rather than three hypotheses on every statement, lets the
   atlas, the manifold structure and compactness be instances.
@@ -50,7 +50,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   Tau Ceti's `Projectivization.twistCore k` for $\mathcal O(k)$ (so the page's
   hyperplane bundle $H$, with fibre $\ell^*$, is `twistCore 1`, and
   `twistCore (-1)` is the tautological line), pull-backs `f *ᵖ E`, and Tau
-  Ceti's normal bundle `f.NormalSpace` of the embedding $\iota$ over the
+  Ceti's normal bundle `f.isImmersion.NormalSpace` of the embedding $\iota$ over the
   field `ℂ` (`normalSpaceFiberBundle`, `normalSpaceVectorBundle` with
   `𝕜 = ℂ`, model `ℂ`).
 - **Cohomology and $h$.** Chern classes are *Chern classes*' `chernClass` and
@@ -73,12 +73,14 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   rank of $H_k(X;\mathbb Z)$ as `DESIGN.md` asks.
 - **The intersection form and the signature.** For a
   closed oriented four-manifold, the intersection form over `ℚ`,
-  `TauCeti.HomologicalOrientation.intersectionForm`, is Tau Ceti's
+  `TauCeti.HomologicalOrientation.intersectionForm` with `k = ℚ`, is Tau Ceti's
   cup pairing `TopCat.singularCupPairing ℚ (h : 2 + 2 = 4) μ` on
   $H^2(X;\mathbb Q)$ (`AlgebraicTopology/Cohomology/Cap/Kronecker.lean`),
-  with `μ` the rational fundamental class, the library's
-  `TopCat.singularHomologyIntToRat 4 (oₕ.fundamentalClass _)`
-  (`AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean`). The numbers
+  with `μ` the rational fundamental class, Tau Ceti's
+  `oₕ.fundamentalClassOver _ ℚ`
+  (`AlgebraicTopology/Singular/LocalHomology/FundamentalClass.lean`); the
+  library defines `intersectionForm`, over a commutative ring `k`, in
+  `AlgebraicTopology/Cohomology/Cap/PoincareDuality.lean`. The numbers
   $b^\pm$ are the indices of inertia `sigPos` and `sigNeg` of its quadratic
   form `TauCeti.HomologicalOrientation.intersectionQuadraticForm` (Mathlib's
   `LinearAlgebra/QuadraticForm/Signature.lean`, at the pin in the root
@@ -86,7 +88,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   $b^+-b^-$; this is how Tau
   Ceti's `AlgebraicTopology/Cohomology/Sphere/IntersectionForm.lean` reads
   $b_2^+$. Over `ℚ` the indices agree with those over `ℝ` (Sylvester), and
-  `ℚ` is the field over which the library has Poincaré duality.
+  the library takes `k = ℚ`.
 
 ## Decisions
 
@@ -128,7 +130,7 @@ applied through the Veronese embedding, as the book does:
   (`Geometry/Manifold/TubularNeighborhood/Existence.lean`) gives an open
   neighbourhood of $\iota(X)$ in $\mathbb CP^{n+1}$ onto which $\iota$ is a
   homotopy equivalence. It is stated for real models, so $\iota$ is read as a
-  real embedding by `Manifold.IsSmoothEmbedding.restrictScalars`
+  real embedding by `TauCeti.SmoothEmbedding.restrictScalars`
   (`Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean`).
   Its image under $v$ is the $W$ wanted: a homotopy equivalence is a weak
   homotopy equivalence (`ContinuousMap.HomotopyEquiv.isWeakHomotopyEquivalence`)
@@ -239,9 +241,8 @@ $3\sigma=\langle c_1^2-2c_2,[X]\rangle$, written with `signature`,
 `integralCup` and `evalFundamentalClass`. From it and the Chern numbers,
 $3\sigma=(4-d^2)d$. The relation $b^++b^-=b_2$ is proved, not assumed: the
 cup pairing is nondegenerate, by Tau Ceti's
-`TopCat.nondegenerate_singularCupPairing_iff` and the library's
-`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`
-(from Poincaré duality, #810), so Tau Ceti's
+`TauCeti.HomologicalOrientation.nondegenerate_singularCupPairing_fundamentalClassOver`,
+so Tau Ceti's
 `QuadraticForm.sigPos_add_sigNeg_of_nondegenerate` applies, and
 $\dim H^2(X;\mathbb Q)=b_2$ by Tau Ceti's
 `TopCat.finrank_singularCohomology`.
@@ -268,16 +269,16 @@ is general and sits beside Tau Ceti's `NormalSpace/` files, as *Adjunction*'s
 complex manifold sits beside Tau Ceti's
 `Geometry/Manifold/Complex/Orientation.lean`; Poincaré duality for
 Betti numbers is an addition to the library's file of rational coefficients.
-The pointwise continuity of fibrewise operations that the gluing of the
-splitting uses is general too: `Topology/VectorBundle/Section.lean`
+The pointwise continuity of fibrewise operations is general too:
+`Topology/VectorBundle/Section.lean`
 complements Tau Ceti's file of that path, as the library's `Pullback.lean`
 there does. None of the other names is taken by Tau Ceti at the same place.
 The list is in the order of the paths.
 
 | File | Contents | Issue |
 |---|---|---|
-| `Algebra/Module/LinearMap/Polynomial.lean` | evaluating and differentiating pullbacks along `Matrix.toMvPolynomial` | 9 |
-| `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
+| `Algebra/Module/LinearMap/Polynomial.lean` | differentiating the linear forms of `Matrix.toMvPolynomial` | 9 |
+| `AlgebraicTopology/Cohomology/Cap/PoincareDuality.lean` (addition) | Poincaré duality for Betti numbers over a field | 13 |
 | `AlgebraicTopology/Singular/HomologyMap.lean` | homology isomorphisms across a commutative square | 12 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
 | `Geometry/Manifold/Instances/Projectivization.lean` | the derivatives of the transition maps of projective space | 3 |
@@ -321,8 +322,9 @@ Namespace `SymplecticGeometry`.
 - `X.surjective_jacobiMatrixAt`, the cone-Jacobian form of `smooth`;
   `X.embedding`, Tau Ceti's `complexProjectiveZeroLocusEmbedding` for
   regularity `ω`, `@[expose]` so that Tau Ceti's lemmas about that embedding apply
-  to it, with `coe_embedding : ⇑X.embedding = Subtype.val`;
-  `finrank_model : finrank ℂ (Fin (n + 1 - Fintype.card Unit) → ℂ) = n`.
+  to it by definitional unfolding (`exact`, `erw`; not `rw` or `simp`, since
+  they are stated on the general model), with
+  `coe_embedding : ⇑X.embedding = Subtype.val`.
 - `X.poly_ne_zero`, and `X.nonempty` for `d ≠ 0` (a homogeneous polynomial
   of positive degree in at least two variables has a nonzero zero over `ℂ`).
 - `fermat n d`, the hypersurface $\sum_j z_j^d=0$ of the book,
@@ -335,17 +337,16 @@ Namespace `Projectivization`, over a field `𝕜` as Tau Ceti's `twistCore`
 where nothing else is needed, and over a complete one for the continuity of
 the tensor products on total spaces.
 
-- `twistPiCore k ι`, the vector bundle core of $\mathcal O(k)\otimes\mathbb
-  C^\iota$, with model `ι → 𝕜` and coordinate change
-  `twistTransition k i j x • id`, with `twistPiCore_coordChange_apply`, and
-  its `IsContMDiff` instance, as for `twistCore`.
-- `twistPiCoreOptionEquiv k ι x`: the fibrewise linear equivalence
-  `(twistPiCore k (Option ι)).Fiber x ≃L[𝕜] ((twistCore k).Fiber ×ᵇ
-  (twistPiCore k ι).Fiber) x` (by `ContinuousLinearEquiv.piOptionEquivProd`
+- The bundle $\mathcal O(k)\otimes\mathbb C^\iota$ is
+  `twistSumCore fun _ : ι ↦ k`: Tau Ceti's core of the sum of the `𝒪(k l)`
+  for a family `k : κ → ℤ`, with model `κ → 𝕜`, which has its coordinate
+  changes and its `IsContMDiff` instance there.
+- `twistSumCoreOptionEquiv k x`, for `k : Option κ → ℤ`: the fibrewise
+  linear equivalence `(twistSumCore k).Fiber x ≃L[𝕜]
+  ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x`
+  (by `ContinuousLinearEquiv.piOptionEquivProd`
   of Tau Ceti's `Topology/Algebra/Module/Equiv/Pi.lean`), continuous on
-  total spaces in both directions; and, for `IsEmpty ι`,
-  `twistPiCoreTrivializationOfIsEmpty`, a global trivialization of the
-  rank-zero `twistPiCore k ι`. These make $\mathcal O(k)^{\oplus r}$ an
+  total spaces in both directions. It makes $\mathcal O(k)^{\oplus r}$ an
   iterated direct sum for the Whitney formula.
 - `twistCoreTensorEquiv k l x`: the fibrewise equivalence
   `(twistCore (k + l)).Fiber x ≃L[𝕜] (twistCore k).Fiber x ⊗[𝕜]
@@ -368,14 +369,14 @@ the tensor products on total spaces.
 Namespace `Projectivization`, on `ℙ ℂ (Fin (m + 1) → ℂ)`.
 
 - `eulerSequenceEquiv m x : (TangentSpace 𝓘(ℂ, Fin m → ℂ) ×ᵇ
-  Bundle.Trivial _ ℂ) x ≃L[ℂ] (twistPiCore 1 (Fin (m + 1))).Fiber x`, the
-  splitting of the Euler sequence
+  Bundle.Trivial _ ℂ) x ≃L[ℂ] (twistSumCore fun _ : Fin (m + 1) ↦ 1).Fiber x`,
+  the splitting of the Euler sequence
   $0\to\mathbb C\to\operatorname{Hom}(\ell,\mathbb C^{m+1})\to T\mathbb
   CP^m\to0$ by the standard Hermitian product: in chart `i`, at the point
   $v$ with $v_i=1$, $(\xi,c)\mapsto P_{v^\perp}\tilde\xi+c\,v$, where
   $\tilde\xi$ is $\xi$ with a zero inserted at `i` and $P_{v^\perp}$ the
   orthogonal projection onto $v^\perp$. The fibre `ℂ^{m+1}` of
-  `twistPiCore 1` in chart `i` is $\operatorname{Hom}(\ell,\mathbb C^{m+1})$
+  `twistSumCore fun _ ↦ 1` in chart `i` is $\operatorname{Hom}(\ell,\mathbb C^{m+1})$
   evaluated at $v$, which is why its transitions are those of `twistCore 1`.
   With `eulerSequenceEquiv_apply` and the continuity of its map of total
   spaces and of its inverse, checked in the charts of both bundles (the
@@ -396,9 +397,9 @@ Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
   and `complexEulerClass_twistCore_one` (#1040), read through
   `chernClass_one_eq_complexEulerClass`; `totalChernClass_twistCore`:
   $c(\mathcal O(k))=1+k\,h$.
-- `totalChernClass_twistPiCore (k : ℤ) (r : ℕ)`: $c(\mathcal O(k)^{\oplus
-  r})=(1+k\,h)^r$, for `ι = Fin r`, by induction with
-  `twistPiCoreOptionEquiv`, `totalChernClass_prod` and `totalChernClass_congr`.
+- `totalChernClass_twistSumCore (k : Fin r → ℤ)`: $c(\bigoplus_i\mathcal O(k_i))
+  =\prod_i(1+k_i\,h)$, by induction with
+  `twistSumCoreOptionEquiv`, `totalChernClass_prod` and `totalChernClass_congr`.
 - **Milestone, part 1** `totalChernClass_tangentSpace`:
   `totalChernClass _ (TangentSpace 𝓘(ℂ, Fin m → ℂ)) = (1 + h) ^ (m + 1)` in
   `EvenIntegralCohomology`, from `eulerSequenceEquiv`, `totalChernClass_prod`
@@ -411,7 +412,7 @@ Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
 Namespace `TauCeti.SmoothEmbedding`, for `f : SmoothEmbedding I J n M N`
 with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
 
-- `tangentNormalEquiv f hn r hr x : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x
+- `tangentNormalEquiv f hn r hr x : (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x
   ≃L[𝕜] (f *ᵖ TangentSpace J) x`, `(u, a) ↦ df u + r a`, for any fibrewise
   linear right inverse `r` of `normalClass` (`hr`), with
   `tangentNormalEquiv_apply` and the continuity of its map of total spaces
@@ -420,22 +421,19 @@ with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
   `normalClass` (Tau Ceti's `NormalSpace` is that quotient). *Adjunction*'s
   `normalSplitting` is its inverse for the representatives in the
   `ω`-orthogonal.
-- `normalRightInverse f hn x : f.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
+- `normalRightInverse f hn x : f.isImmersion.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
   with `[IsRCLikeNormedField 𝕜]` and `[NormalSpace M] [ParacompactSpace M]` (for
   a partition of unity), with `normalClass_normalRightInverse` (a right inverse
-  of `normalClass`) and the continuity of its map of total spaces; glued from
-  local linear right inverses, built from a fixed complement in a tangent
-  chart (`normalSpaceEquivOfComplement`), by a `PartitionOfUnity`, since a
-  combination with real coefficients summing to one of right inverses is one.
-  The continuity of the glued map uses `ContinuousAt.smul_totalSpace` and
-  `ContinuousAt.sum_totalSpace` from the library's
-  `Topology/VectorBundle/Section.lean`, which it imports.
+  of `normalClass`) and the continuity of its map of total spaces; the right
+  inverse that Tau Ceti's `Continuous.exists_continuous_clm_bundle_rightInverse`
+  gives to `normalClass`, a continuous section of the Hom bundle from
+  `f *ᵖ TangentSpace J` to the normal bundle.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/NormalBundle.lean`
 
 Namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
 
-- `normalSpaceEquiv X x : X.embedding.NormalSpace x _ ≃L[ℂ]
+- `normalSpaceEquiv X x : X.embedding.isImmersion.NormalSpace x _ ≃L[ℂ]
   (twistCore d).Fiber (x : ℙ ℂ (Fin (n + 2) → ℂ))`, in the chart
   `(twistCore d).indexAt x`, Tau Ceti's
   `complexProjectiveZeroLocusNormalSpaceEquiv`; with
@@ -452,7 +450,7 @@ Namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
   `hyperplaneClass` by the inclusion, with `hyperplaneClass_def`; and its
   image in `EvenIntegralCohomology`.
 - **Milestone, part 2 (first half)** `chernClass_one_normalSpace`:
-  `chernClass ℂ (X.embedding.NormalSpace · _) 1 = d • X.hyperplaneClass`, from
+  `chernClass ℂ (X.embedding.isImmersion.NormalSpace · _) 1 = d • X.hyperplaneClass`, from
   `normalSpaceEquiv`, `chernClass_congr`, `chernClass_pullback` and
   `chernClass_one_twistCore`.
 - **Milestone, part 3** `totalChernClass_tangentSpace_mul`:
@@ -476,15 +474,15 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   `(TangentBundle.restrictScalarsHomeomorph ℝ M).symm`
   (`Geometry/Manifold/VectorBundle/Tangent/RestrictScalars.lean`) is the
   identity of total spaces from the real tangent bundle to the complex one,
-  linear on fibres by its `_apply` and `_symm_apply` lemmas. The new
-  statement is that it carries the complex orientation
-  `VectorBundleOrientation.complex` to
-  `(complexManifoldOrientation E M).toVectorBundleOrientation`, pointwise by
-  Tau Ceti's `orientationAt_complexManifoldOrientation_eq_complexOrientation`.
+  linear on fibres by its `_apply` and `_symm_apply` lemmas. With it, Tau
+  Ceti's `TauCeti.complexEulerClass_tangentSpace_eq_eulerClass`
+  (`Geometry/Manifold/Complex/EulerClass.lean`) identifies the complex Euler
+  class of the tangent bundle with the Euler class of the real one, oriented
+  by `complexManifoldOrientation E M`.
 - `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`:
   $\langle c_{r+1}(TM),[M]\rangle=\chi(M)$, from
   `chernClass_finrank_eq_complexEulerClass` (#1043), the previous item, and
-  `evalFundamentalClass_eulerClass_eq_eulerChar` (#1045). The evaluation
+  `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` (#1045). The evaluation
   must commute with `uliftIntegralCohomologyIso`, as the review of #896
   noted; if #1029 does not prove it, this issue does.
 
@@ -509,9 +507,9 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 
 For `n ≠ 0`.
 
-- `complexEulerClass_twistPiCore_pullback`: the Euler class of
+- `complexEulerClass_twistSumCore_const_one_pullback`: the Euler class of
   $\iota^*\mathcal O(1)^{\oplus n}$ is $(\iota^*h)^n$, from
-  `totalChernClass_twistPiCore`, `totalChernClass_pullback` and
+  `totalChernClass_twistSumCore`, `totalChernClass_pullback` and
   `chernClass_finrank_eq_complexEulerClass`.
 - `sectionIndex_eq_one_of_complexLinear` (in
   `Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean`, in the namespace
@@ -556,7 +554,7 @@ setting of Tau Ceti's Lefschetz theorems.
   (`LinearAlgebra/Pi/LinearForm.lean`) and
   `MvPolynomial.IsHomogeneous.veroneseLinearForm_coeff_ne_zero`
   (`LinearAlgebra/Projectivization/VeroneseLinearForm.lean`) for `veroneseEquiv`;
-  `Manifold.IsSmoothEmbedding.restrictScalars`
+  `TauCeti.SmoothEmbedding.restrictScalars`
   (`Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean`) for the tubular
   neighbourhood.
 
@@ -580,17 +578,14 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
   instance `Projectivization.instSimplyConnectedSpaceComplex`
   (`Topology/ComplexProjectiveSpace/SimplyConnected.lean`).
 
-### `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition)
+### `AlgebraicTopology/Cohomology/Cap/PoincareDuality.lean` (addition)
 
 In the namespace `TauCeti.HomologicalOrientation`:
 
-- `bijective_singularCapLinearMap_fundamentalClass`: for a compact
-  homologically oriented `m`-manifold and `p + q = m`, capping with the image
-  of the fundamental class is a bijection `Hᵖ(M; ℚ) → H_q(M; ℚ)`, with no
-  hypothesis on the duality map, by #810's bijectivity of the duality map;
 - `bettiNumber_eq_bettiNumber`: for a compact homologically oriented
-  `m`-manifold and `p + q = m`, `bettiNumber ℚ M q = bettiNumber ℚ M p`, from
-  #810's bijectivity of the duality map and Tau Ceti's
+  `m`-manifold, a field `k` and `p + q = m`,
+  `bettiNumber k M q = bettiNumber k M p`, from Tau Ceti's
+  `bijective_singularCapLinearMap_fundamentalClassOver` and Tau Ceti's
   `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/BettiNumber.lean`
@@ -651,10 +646,10 @@ For `X : SmoothProjectiveHypersurface 1 d` with `d ≠ 0`:
   `chernClass_trivial` (#1037); `totalChernClass_prod` (#1038);
   `complexEulerClass_tensorProduct`, `complexEulerClass_twistCore_one`
   (#1040); `chernClass_finrank_eq_complexEulerClass` (#1043);
-  `evalFundamentalClass_eulerClass_eq_eulerChar` and the alternating sum
+  `evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType` and the alternating sum
   (#1045).
 - *First Chern number*'s prerequisites: Poincaré duality (#810), and the
-  library's merged `Cap/RationalCoefficients.lean`.
+  library's merged `Cap/PoincareDuality.lean`.
 - *Complex projective space*: `ContMDiff.restrictScalars'`
   (`Geometry/Manifold/ContMDiff/RestrictScalars.lean`), which
   `SmoothEmbedding/RestrictScalars.lean` imports.
@@ -701,7 +696,7 @@ waits for another part.
 | 10 | The degree $\langle\iota^*h^n,[X]\rangle=d$ | `Hypersurface/Degree.lean` | 6, 8, 9 | 400 |
 | 11 | The Euler characteristic of a hypersurface (part 4) | `Hypersurface/EulerCharacteristic.lean` | 7, 8, 10 | 150 |
 | 12 | The Lefschetz theorems for hypersurfaces | `Hypersurface/Veronese.lean`, `Hypersurface/Lefschetz.lean` | 1 | 500 |
-| 13 | Poincaré duality for rational Betti numbers | `Cap/RationalCoefficients.lean` | #810 | 100 |
+| 13 | Poincaré duality for rational Betti numbers | `Cap/PoincareDuality.lean` | #810 | 100 |
 | 14 | Betti numbers of hypersurfaces | `Hypersurface/BettiNumber.lean` | 11, 12, 13 | 250 |
 | 15 | Surfaces, threefolds and plane curves | `Hypersurface/Surface.lean`, `Threefold.lean`, `PlaneCurve.lean`; the `ERRATA.md` entry for `d = 0` | 11, 12, 14 | 350 |
 

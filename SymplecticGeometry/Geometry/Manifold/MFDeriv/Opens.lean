@@ -7,7 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The inclusion of an open subset, and differentials of maps between open subsets
@@ -22,6 +26,19 @@ differential of `A` there (`TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_e
 generalizes Tau Ceti's `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`, which asks for the
 maps to agree everywhere, and its proof is that of Tau Ceti's lemma with
 `Filter.EventuallyEq.mfderiv_eq` in place of a rewrite.
+
+Restricting a map `g` on an open subset `V` to a smaller open subset `U` does not change its
+differential (`TauCeti.Manifold.mfderiv_comp_inclusion_apply`), whether or not `g` is
+differentiable. Since `Opens.inclusion h` is a local diffeomorphism
+(`TauCeti.isLocalDiffeomorph_inclusion`), this is Tau Ceti's chain rule
+`IsLocalDiffeomorphAt.mfderiv_comp` for precomposition with a local diffeomorphism, combined with
+the differential of the inclusion, `TauCeti.Manifold.mfderiv_inclusion_apply`.
+
+On an open subset of a normed space with its model `𝓘(𝕜, E)`, the derivative of the restriction
+of a map `f`, read with `mvfderiv` or with `mfderiv`, is the Fréchet derivative of `f`
+(`TauCeti.Manifold.mvfderiv_modelSpace_comp_subtype_val_apply`,
+`TauCeti.Manifold.mfderiv_modelSpace_comp_subtype_val_apply`): Tau Ceti's
+`TauCeti.Manifold.mvfderiv_comp_subtype_val` followed by `TauCeti.mvfderiv_eq_fderiv_apply`.
 -/
 
 public section
@@ -44,6 +61,8 @@ theorem mdifferentiable_subtypeVal : MDifferentiable I I (Subtype.val : U → M)
 
 end SymplecticGeometry
 
+open scoped Manifold
+
 namespace TauCeti.Manifold
 
 open TopologicalSpace
@@ -62,9 +81,37 @@ theorem mfderiv_apply_of_subtype_val_comp_eventuallyEq {U : Opens M} {V : Opens 
     {A : M → M'} {x : U} (hcomp : Subtype.val ∘ f =ᶠ[𝓝 x] A ∘ Subtype.val)
     (v : TangentSpace I x) :
     mfderiv I I' f x v = mfderiv I I' A x v := by
-  rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq]
-  -- `tangentSpaceCast` is the identity of the model space, and Mathlib states no lemma for it.
+  rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply]
   exact mfderiv_comp_subtype_val_apply v
+
+/-- Restricting a map `g` on an open subset `V` to an open subset `U ≤ V` does not change its
+differential: at `x : U`, the differential of `g ∘ Opens.inclusion h` is that of `g` at
+`Opens.inclusion h x`, on the common model space of the tangent spaces (both are `0` when `g` is
+not differentiable there). -/
+theorem mfderiv_comp_inclusion_apply {U V : Opens M} (h : U ≤ V) {g : V → M'} (x : U)
+    (v : TangentSpace I x) :
+    mfderiv I I' (g ∘ Opens.inclusion h) x v = mfderiv I I' g (Opens.inclusion h x) v := by
+  rw [(TauCeti.isLocalDiffeomorph_inclusion (n := 1) h x).mfderiv_comp one_ne_zero g,
+    ContinuousLinearMap.comp_apply, mfderiv_inclusion_apply]
+
+/-- On an open subset `U` of a normed space `E`, read with the model `𝓘(𝕜, E)`, the derivative
+`mvfderiv` at `x : U` of the restriction `f ∘ Subtype.val` of a map `f : E → E'` is the Fréchet
+derivative of `f` at `x` (both are `0` when `f` is not differentiable there). -/
+theorem mvfderiv_modelSpace_comp_subtype_val_apply {U : Opens E} {f : E → E'} {x : U}
+    (v : TangentSpace 𝓘(𝕜, E) x) :
+    mvfderiv 𝓘(𝕜, E) (f ∘ Subtype.val) x v = fderiv 𝕜 f x v := by
+  rw [mvfderiv_comp_subtype_val]
+  exact mvfderiv_eq_fderiv_apply f x v
+
+/-- On an open subset `U` of a normed space `E`, read with the model `𝓘(𝕜, E)`, the differential
+at `x : U` of the restriction `f ∘ Subtype.val` of a map `f : E → E'` is the Fréchet derivative of
+`f` at `x` (both are `0` when `f` is not differentiable there). -/
+theorem mfderiv_modelSpace_comp_subtype_val_apply {U : Opens E} {f : E → E'} {x : U}
+    (v : TangentSpace 𝓘(𝕜, E) x) :
+    mfderiv 𝓘(𝕜, E) 𝓘(𝕜, E') (f ∘ Subtype.val) x v = fderiv 𝕜 f x v := by
+  rw [← mvfderiv_apply_eq_mfderiv_apply]
+  exact mvfderiv_modelSpace_comp_subtype_val_apply (f := f) v
 
 end TauCeti.Manifold
 

@@ -5,13 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.ComplSingleton
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
-public import SymplecticGeometry.Topology.VectorBundle.Thom.CupEulerClass
-public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
+public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
+import SymplecticGeometry.AlgebraicTopology.Cohomology.ComplSingleton
+import SymplecticGeometry.Topology.VectorBundle.Thom.CupEulerClass
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # The hyperplane class and the cohomology ring of a complex projective space
@@ -31,8 +33,6 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   isomorphisms `Projectivization.tautologicalMapEquiv`, so this is the naturality of the Euler
   class, `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, together with that of
   `TopCat.uliftIntegralCohomologyIso`.
-* `Projectivization.projective_singularHomology`: the singular homology of `ℙ ℂ V` is projective
-  in every degree, as the Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
   bijection `ℤ → H^{2k}(ℙ ℂ V; ℤ)`.
 * `Projectivization.bijective_zsmul_hyperplaneClass` and
@@ -40,7 +40,9 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   `ℤ → H²(ℙ ℂ V; ℤ)` for `n ≥ 1`, and for every `n` each class of `H²(ℙ ℂ V; ℤ)` is a multiple
   of `h`.
 * `Projectivization.free_integralCohomology`: `Hᵐ(ℙ ℂ V; ℤ)` is a free `ℤ`-module for every `m`.
-* `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`.
+* `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`, and
+  `Projectivization.evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero`: so
+  `(f^* h) ^ (n + 1) = 0` for every continuous map `f : X → ℙ ℂ V`.
 * `Projectivization.aeval_hyperplaneClass_eq_zero_iff` and
   `Projectivization.surjective_aeval_hyperplaneClass`: a polynomial `p ∈ ℤ[X]` has `p(h) = 0`
   exactly when `X ^ (n + 1)` divides it, and every even class is some `p(h)`.
@@ -66,7 +68,8 @@ the cohomology vanishes (`Projectivization.isZero_integralCohomology_of_lt`).
 ## Implementation notes
 
 The Euler class is that of a line, `r = 0`, of degree `2 * 0 + 2`, which is `2` by computation;
-as in `SymplecticGeometry.Bundle.firstChernClass`, `r := 0` is given explicitly.
+`r := 0` is given explicitly, since otherwise elaborating against the expected degree `2` must
+solve `2 * ?r + 2 = 2`, which does not terminate quickly.
 
 ## References
 
@@ -103,13 +106,11 @@ variable {V} {W : Type} [NormedAddCommGroup W] [NormedSpace ℂ W] [FiniteDimens
 /-- **Naturality of the hyperplane class.** The continuous map `ℙ ℂ V → ℙ ℂ W` induced by an
 injective linear map `f : V →ₗ[ℂ] W` pulls the hyperplane class of `W` back to that of `V`. -/
 theorem hyperplaneClass_map (f : V →ₗ[ℂ] W) (hf : Function.Injective f) :
-    TopCat.singularCohomologyMap
-        (TopCat.ofHom ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩)
-        2 (hyperplaneClass W) = hyperplaneClass V := by
-  have hfc := LinearMap.continuous_of_finiteDimensional f
+    TopCat.singularCohomologyMap (TopCat.ofHom (mapContinuousMap f hf)) 2 (hyperplaneClass W) =
+      hyperplaneClass V := by
   have h := complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
-    (finrank_self ℂ) (g := ⟨map f hf, continuous_map hf hfc⟩)
-    (continuous_tautologicalMapEquiv f hf hfc)
+    (finrank_self ℂ) (g := mapContinuousMap f hf)
+    (continuous_tautologicalMapEquiv f hf (LinearMap.continuous_of_finiteDimensional f))
   rw [hyperplaneClass_def, hyperplaneClass_def, map_neg, h]
   exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
 
@@ -120,22 +121,6 @@ section Ring
 open CategoryTheory Limits Polynomial
 
 variable {V : Type} [NormedAddCommGroup V] [NormedSpace ℂ V] {n : ℕ}
-
-section Homology
-
-open AlgebraicTopology
-
-variable {k : Type} [CommRing k] (R : ModuleCat.{0} k)
-
-/-- The singular homology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is projective in every degree,
-with projective coefficients `R`. -/
-theorem projective_singularHomology (hV : finrank ℂ V = n + 1) [Module.Projective k R] (m : ℕ) :
-    Projective (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj (TopCat.of (ℙ ℂ V))) :=
-  Projective.of_iso (((singularHomologyFunctor _ m).obj R).mapIso
-    (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
-      (complexProjectiveSpaceHomeomorph hV))) inferInstance
-
-end Homology
 
 /-- The integral cohomology of the nonzero vectors of the tautological line of `ℙ ℂ V`, for
 `finrank ℂ V = n + 1`, vanishes in the degrees `m ≠ 0` with `m + 1 ≠ 2n + 2`. -/
@@ -224,6 +209,15 @@ theorem hyperplaneClass_pow_eq_zero (hV : finrank ℂ V = n + 1) :
   rw [TopCat.evenIntegralCohomologyOf_pow_eq_of, Subsingleton.elim
     (((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V) ^ (n + 1)) (n + 1)) 0,
     map_zero]
+
+/-- The pull-back of the hyperplane class of `ℙ ℂ V` along a continuous map `f : X → ℙ ℂ V` is
+nilpotent: `(f^* h) ^ (n + 1) = 0` in the even integral cohomology ring of `X`, for
+`finrank ℂ V = n + 1`. -/
+theorem evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero {X : Type} [TopologicalSpace X]
+    (hV : finrank ℂ V = n + 1) (f : C(X, ℙ ℂ V)) :
+    TopCat.evenIntegralCohomologyMap (TopCat.ofHom f)
+        ((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V)) ^ (n + 1) = 0 := by
+  rw [← map_pow, hyperplaneClass_pow_eq_zero hV, map_zero]
 
 /-- A polynomial with integer coefficients vanishes at the hyperplane class exactly when it is a
 multiple of `X ^ (n + 1)`. -/

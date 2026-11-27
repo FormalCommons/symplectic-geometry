@@ -8,16 +8,20 @@ module
 public import TauCeti.Geometry.Contact.Gray
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import SymplecticGeometry.Geometry.Contact.Family
-public import SymplecticGeometry.Geometry.Contact.Hamiltonian
-public import SymplecticGeometry.Geometry.Contact.Moser
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
-public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
-public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Contact.Hamiltonian
+import SymplecticGeometry.Geometry.Contact.Moser
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.Opens
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # The Gray vector field, the Gray isotopy and Gray stability
@@ -536,10 +540,7 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
         v ∈ (mpullback (Prod.mk (t₀ : ℝ)) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution
           y₀' := by
     have hk := congrArg (fun A ↦ A ![v]) key
-    have hv : (fun i ↦ mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' (![v] i)) =
-        ![mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' v] :=
-      (FinVec.etaExpand_eq _).symm
-    simp only [TauCeti.mpullback_apply (f := timeDependentFlowOf XU t₀ t), hv,
+    simp only [TauCeti.mpullback_apply_one (f := timeDependentFlowOf XU t₀ t),
       ContinuousAlternatingMap.smul_apply, smul_eq_mul] at hk
     rw [mem_kerDistribution, mem_kerDistribution, coe_mpullback, coe_mpullback, hk,
       mul_eq_zero_iff_left (Real.exp_pos _).ne']
@@ -593,12 +594,9 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
         mfderiv I I (timeDependentFlowOf Z u u') _ (Manifold.tangentSpaceOpenEquiv _ w) := by
     rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply]
     exact (mfderiv_timeDependentFlowOf_restrict_opens_apply hZ₁ hdom' w).symm
-  have hvec : (fun i ↦ mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ (![w] i)) =
-      ![mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ w] :=
-    (FinVec.etaExpand_eq _).symm
-  rw [TauCeti.mpullback_apply, hvec,
+  rw [TauCeti.mpullback_apply_one,
     ← coe_mpullback (Prod.mk u') (contMDiff_const.prodMk contMDiff_id),
-    mpullback_prodMk_mpullback_prodMap_id_right Real.smoothTransition.contDiff.contMDiff,
+    mpullback_prodMk_mpullback_prodMap_id _ Real.smoothTransition.contDiff.contMDiff,
     ← mem_kerDistribution,
     ← unitInterval.coe_smoothTransition u', hβ.mem_kerDistribution_iff
       ⟨(unitInterval.coe_smoothTransition u').symm ▸ hu',
@@ -689,14 +687,14 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
     rw [← coe_timeDeriv, ← coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
       mpullback_prodMk_timeDeriv_mpullback_prodMap' hs id contMDiff_id, SmoothForm.mpullback_id,
       LinearMap.id_apply, ← coe_mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id),
-      mpullback_prodMk_mpullback_prodMap_id_right hs] at h
+      mpullback_prodMk_mpullback_prodMap_id _ hs] at h
     -- Evaluation on `![w]` of a sum of forms at `y'`; the evaluation map is read in the model
     -- fibre, so `ContinuousAlternatingMap.apply_apply` does not rewrite it.
     replace h : (deriv Real.smoothTransition u • mpullback (Prod.mk (Real.smoothTransition u))
         (contMDiff_const.prodMk contMDiff_id) β.timeDeriv).val y' ![w] +
         mlieDerivForm (ZU u) (mpullback (Prod.mk (Real.smoothTransition u))
           (contMDiff_const.prodMk contMDiff_id) β).val y' ![w] = 0 := h
-    simpa only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+    simpa only [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
       smul_eq_mul] using h
   rw [← hgray (Real.smoothTransition u)
     (unitInterval.coe_smoothTransition u ▸ (unitInterval.smoothTransition u).property) a b hab U y

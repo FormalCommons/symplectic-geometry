@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.Cohomology
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Chern classes
@@ -35,7 +37,7 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
 
 ## Main results
 
-* `singularCohomologyMap_fiberInclusion_projectiveBundleClass`: `x` restricts on each fibre,
+* `singularCohomologyMap_fiberInclusionMap_projectiveBundleClass`: `x` restricts on each fibre,
   read through the trivialization there, to `Projectivization.hyperplaneClass G`.
 * `bijective_integralLerayHirsch_projectiveBundle`: the Leray–Hirsch theorem for `P(E)` over a
   compact base, for `E` of finite rank.
@@ -49,6 +51,8 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
   `chernClass_one_eq_complexEulerClass`: `c₀(E) = 1`, `c_k(E) = 0` for `k > n`, and `c₁` of a
   line bundle over a compact base is its Euler class `TauCeti.complexEulerClass`, read in
   integral cohomology through `TopCat.uliftIntegralCohomologyIso`.
+* `Projectivization.chernClass_one_tautological`: on a finite-dimensional complex projective
+  space, `c₁(𝒪(-1)) = -h`, with `h` the hyperplane class.
 
 ## Implementation notes
 
@@ -57,8 +61,11 @@ the even integral cohomology ring `TopCat.EvenIntegralCohomology`, where `x` has
 definition of `chernClass` needs no hypothesis on `B`: where the Leray–Hirsch map in degree `2n`
 is not bijective, the classes of positive degree are `0`. The restriction of `x` to a fibre is
 computed by the naturality of the Euler class
-(`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`), with the fibrewise
-isomorphisms `Projectivization.tautologicalMapEquiv`, as in `Projectivization.hyperplaneClass_map`.
+(`TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`), as in
+`Projectivization.hyperplaneClass_map`: the fibre inclusion acts on lines by Tau Ceti's
+`ContinuousLinearEquiv.mapProjectivization` of the trivialization, and the fibrewise isomorphisms
+of tautological lines are its restrictions
+`Projectivization.tautologicalMapProjectivizationEquiv`.
 
 ## References
 
@@ -99,9 +106,9 @@ theorem projectiveBundleClass_def :
 
 /-- The inclusion of the fibre over `b` of the projective bundle, read through the trivialization
 at `b`, pulls the tautological class back to the hyperplane class of `ℙ ℂ G`. -/
-theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
+theorem singularCohomologyMap_fiberInclusionMap_projectiveBundleClass (b : B) :
     TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b)))
         2 (projectiveBundleClass G E) = Projectivization.hyperplaneClass G := by
   set e := trivializationAt G E b
@@ -111,24 +118,22 @@ theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
   let := VectorBundle.continuousSMul ℂ G E b
   let := FiberBundle.t2Space G E b
   have hcont : Continuous fun ℓ : ℙ ℂ G ↦
-      (⟨b, Projectivization.map (L : G →ₗ[ℂ] E b) L.injective ℓ⟩ : ProjectiveBundle ℂ G E) := by
-    refine ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+      (⟨b, L.mapProjectivization ℓ⟩ : ProjectiveBundle ℂ G E) := by
+    refine ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
       (mem_baseSet_trivializationAt _ _ b)).continuous.congr fun ℓ ↦ ?_
-    rw [Trivialization.fiberInclusion_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
-      ContinuousLinearEquiv.coe_mapProjectivization]
+    rw [Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb]
   let g : C(ℙ ℂ G, ProjectiveBundle ℂ G E) := ⟨_, hcont⟩
-  have hg : TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+  have hg : TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
       (mem_baseSet_trivializationAt _ _ b)) = TopCat.ofHom g := by
     refine TopCat.ext fun ℓ ↦ ?_
-    rw [ConcreteCategory.hom_ofHom, ConcreteCategory.hom_ofHom, Trivialization.fiberInclusion_apply,
-      ProjectiveBundle.trivializationAt_symm_apply hb,
-      ContinuousLinearEquiv.coe_mapProjectivization]
-    -- The two sides differ only in the coercion of `L` to a linear map.
-    rfl
+    rw [ConcreteCategory.hom_ofHom, ConcreteCategory.hom_ofHom,
+      Trivialization.fiberInclusionMap_apply, ProjectiveBundle.trivializationAt_symm_apply hb,
+      ContinuousMap.coe_mk]
   have h := complexEulerClass_eq_singularCohomologyMap_of_fiberwise (r := 0) (finrank_self ℂ)
     (finrank_self ℂ) (g := g) (E := ProjectiveBundle.Tautological ℂ G E)
     (E' := Projectivization.Tautological ℂ G)
-    (φ := Projectivization.tautologicalMapEquiv (L : G →ₗ[ℂ] E b) L.injective) ?_
+    (φ := Projectivization.tautologicalMapProjectivizationEquiv L)
+    ?_
   · rw [hg, projectiveBundleClass_def, Projectivization.hyperplaneClass_def, map_neg, h]
     exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
   · refine ProjectiveBundle.continuous_totalSpace_tautological_iff.2
@@ -139,7 +144,7 @@ theorem singularCohomologyMap_fiberInclusion_projectiveBundleClass (b : B) :
     refine hs.congr fun v ↦ ?_
     have hL (w : G) : L w = e.symm b w := congrFun (e.continuousLinearEquivAt_symm_apply ℂ b hb) w
     exact congrArg (TotalSpace.mk' G b) ((hL _).symm.trans
-      (Projectivization.coe_tautologicalMapEquiv_apply _ L.injective v.proj v.snd).symm)
+      (Projectivization.coe_tautologicalMapProjectivizationEquiv_apply L _ v.snd).symm)
 
 /-! ### The Leray–Hirsch classes -/
 
@@ -159,13 +164,13 @@ theorem projectiveBundleClassPow_mk (i : Fin (finrank ℂ G)) :
 
 /-- On the fibre over each point, read through the trivialization there, the powers of the
 tautological class form a basis of the integral cohomology of `ℙ ℂ G` in every degree. -/
-private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
+private theorem basis_fiberInclusionMap_projectiveBundleClassPow {m : ℕ}
     (hm : finrank ℂ G = m + 1) (b : B) (d : ℕ) :
     LinearIndependent ℤ (fun i ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) d (projectiveBundleClassPow G E d i)) ∧
       ⊤ ≤ Submodule.span ℤ (Set.range fun i ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) d (projectiveBundleClassPow G E d i)) := by
   by_cases hd : ∃ i : Fin (finrank ℂ G), 2 * (i : ℕ) = d
   · obtain ⟨i, rfl⟩ := hd
@@ -175,7 +180,7 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
     set v := ((TopCat.of (ℙ ℂ G)).evenIntegralCohomologyOf 1
       (Projectivization.hyperplaneClass G) ^ (i : ℕ)) i
     have hv (j) : TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) (2 * i) (projectiveBundleClassPow G E _ j) =
         v := by
       rw [Unique.eq_default j]
@@ -183,7 +188,7 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
       change TopCat.singularCohomologyMap _ (2 * i) (projectiveBundleClassPow G E _ ⟨i, rfl⟩) = v
       rw [projectiveBundleClassPow_mk, ← TopCat.evenIntegralCohomologyMap_apply, map_pow,
         TopCat.evenIntegralCohomologyMap_of,
-        singularCohomologyMap_fiberInclusion_projectiveBundleClass]
+        singularCohomologyMap_fiberInclusionMap_projectiveBundleClass]
     have hbij := Projectivization.bijective_zsmul_hyperplaneClass_pow hm (k := i) (by omega)
     have hbij' : Function.Bijective (LinearMap.toSpanSingleton ℤ _ v) := by
       convert hbij using 1
@@ -193,7 +198,7 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
     let e := LinearEquiv.ofBijective (LinearMap.toSpanSingleton ℤ _ v) hbij'
     let c := (Module.Basis.singleton {j : Fin (finrank ℂ G) // 2 * (j : ℕ) = 2 * i} ℤ).map e
     have hc : ⇑c = fun j ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusion
+        (TopCat.ofHom ((trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).fiberInclusionMap
           (mem_baseSet_trivializationAt _ _ b))) (2 * i) (projectiveBundleClassPow G E _ j) := by
       funext j
       rw [hv, Module.Basis.map_apply, Module.Basis.singleton_apply, LinearEquiv.ofBijective_apply,
@@ -229,11 +234,11 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteD
   obtain ⟨s, hs⟩ := isCompact_univ.elim_finite_subcover
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).baseSet)
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).open_baseSet)
-    (fun b _ ↦ Set.mem_iUnion.2 ⟨b, mem_baseSet_trivializationAt _ _ b⟩)
+    (FiberBundle.iUnion_baseSet_trivializationAt _ _).ge
   have := Projectivization.projective_singularHomology (V := G) (𝟙_ (ModuleCat.{0} ℤ)) hm
   exact TopCat.integralLerayHirsch_bijective s (Set.univ_subset_iff.1 hs) n _
     (fun d _ ↦ TauCeti.finite_singularHomology_of_finiteCWType (ℙ ℂ G) _ d)
-    fun y d _ ↦ basis_fiberInclusion_projectiveBundleClassPow G E hm y d
+    fun y d _ ↦ basis_fiberInclusionMap_projectiveBundleClassPow G E hm y d
 
 /-! ### The Chern classes -/
 
@@ -526,5 +531,17 @@ theorem chernClass_one_eq_complexEulerClass (hG : finrank ℂ G = 1) :
   exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _
 
 end SymplecticGeometry.Bundle
+
+namespace Projectivization
+
+/-- The first Chern class of the tautological line `𝒪(-1)` of a finite-dimensional complex
+projective space `ℙ ℂ V` is minus the hyperplane class: `c₁(𝒪(-1)) = -h`. -/
+theorem chernClass_one_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V]
+    [FiniteDimensional ℂ V] :
+    SymplecticGeometry.Bundle.chernClass ℂ (Tautological ℂ V) 1 = -hyperplaneClass V := by
+  rw [SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass _ _ (Module.finrank_self ℂ),
+    hyperplaneClass_def, neg_neg]
+
+end Projectivization
 
 end

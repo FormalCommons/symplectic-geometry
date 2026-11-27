@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
-public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.LinearAlgebra.QuadraticForm.Signature
 import SymplecticGeometry.Geometry.Manifold.GroupAction.FixedPoints
@@ -254,7 +254,7 @@ theorem IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero {p : M} {k : Fin n 
 `M` without boundary, modelled on a complete space, and let `p` be a fixed point that is isolated
 among the fixed points. Then every family of weights `k` at `p`, realized by some `L` as in
 `IsTangentWeights`, has `k j ≠ 0` for every `j`. -/
-theorem weights_ne_zero_of_isolated [CompleteSpace E] [I.Boundaryless]
+theorem weights_ne_zero_of_isolated [CompleteSpace E] [BoundarylessManifold I M]
     [ContMDiffSMul (𝓡 1) I ∞ Circle M] {p : M} (hp : p ∈ MulAction.fixedPoints Circle M)
     (hiso : ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
     {k : Fin n → ℤ} {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L)
@@ -429,7 +429,7 @@ theorem exists_weights [Fact (Module.finrank ℝ E = 2 * n)] (hσ : σ.IsNondege
   have hω (g : Circle) (u v : E) :
       hσ.symplecticFormAt p (ρ g u) (ρ g v) = hσ.symplecticFormAt p u v :=
     -- The invariance lemma is stated for actions by individually smooth maps.
-    have : ContMDiffConstSMul I ∞ Circle M := ⟨ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1)⟩
+    have : ContMDiffConstSMul I ∞ Circle M := ContMDiffSMul.contMDiffConstSMul (𝓡 1)
     hσ.symplecticFormAt_tangentRepresentation (fun g _ ↦ hinv g) hd ⟨g, hp g⟩ u v
   -- `σ_p`, as a symplectic form on the model space `E = T_p M`.
   let ωₚ : SymplecticForm E := hσ.symplecticFormAt p

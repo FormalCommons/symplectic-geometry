@@ -5,10 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Sum
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Loop
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Multiplicity
+public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Quotient
+import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 
 /-!
 # The Maslov phase and the Maslov index of loops of Lagrangian subspaces
@@ -97,7 +98,7 @@ namespace LagrangianGrassmannian
 theorem unitaryFrame_eq_unitaryFrame_iff_souriau_eq {U V : unitaryGroup ι ℂ} :
     unitaryFrame U = unitaryFrame V ↔ UnitaryGroup.souriau U = UnitaryGroup.souriau V := by
   rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, coe_unitaryFrame_eq_map,
-    (Submodule.map_injective_of_injective (StdSpace.complexEuclideanEquiv ι).injective).eq_iff,
+    (Submodule.map_injective_of_injective (complexToRealEuclideanIsometry ι).injective).eq_iff,
     UnitaryGroup.realImage_eq_realImage_iff_souriau_eq]
 
 /-- The **Souriau map** `Λ ↦ U Uᵀ` of the Lagrangian Grassmannian into the unitary group, where

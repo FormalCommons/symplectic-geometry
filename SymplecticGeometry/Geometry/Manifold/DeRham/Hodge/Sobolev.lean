@@ -8,16 +8,19 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
-public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Tempered
 public import TauCeti.Analysis.Sobolev.BesselPotential.Distribution
 public import TauCeti.MeasureTheory.Function.Lp.Precomposition
 public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
 public import TauCeti.Analysis.InnerProductSpace.LinearPMap.Friedrichs.Basic
+public import TauCeti.Analysis.Calculus.CoordinateDeriv
+public import SymplecticGeometry.Analysis.Distribution.Coordinates
+import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Regularity
 import SymplecticGeometry.Analysis.InnerProductSpace.LinearPMap.Friedrichs
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
+import TauCeti.Analysis.Normed.Operator.Banach
 import TauCeti.Analysis.Normed.Operator.Compact.Domination
 import TauCeti.Analysis.Distribution.SchwartzSpace.Cutoff
 import TauCeti.Analysis.Distribution.TemperedDistribution.Lp
@@ -25,6 +28,7 @@ import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
 import TauCeti.Analysis.Sobolev.BesselPotential.Rellich
 import TauCeti.MeasureTheory.Function.Lp.FiniteDimensional
 import TauCeti.MeasureTheory.Measure.Haar.Unique
+import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 
 /-!
 # The Hodge `H¹` space of differential forms
@@ -59,9 +63,9 @@ the compact image of the support of `χ`. So, for `u` the image in `L2Form I M k
 `H1Form o hkl`, Tau Ceti's
 `TemperedDistribution.memSobolev_of_isCompact_dsupport_of_forall_isLocallySobolevAt` puts
 it in the Bessel-potential space `H^1` of `CoordinateSpace n`. This defines a linear map
-`H1Form.localizeSobolev` from `H1Form o hkl` to `H^1`. Its graph is closed, because `H1Form o hkl`
-and `H^1` both map continuously into the tempered distributions, the second one injectively, so
-the map is bounded by the closed graph theorem `LinearMap.continuous_of_isClosed_graph`.
+`H1Form.localizeSobolev` from `H1Form o hkl` to `H^1`. It is continuous by Tau Ceti's
+`LinearMap.continuous_of_injective_comp_eq`, a form of the closed graph theorem: `H1Form o hkl`
+and `H^1` both map continuously into the tempered distributions, the second one injectively.
 
 The inclusion of `H1Form o hkl` into `L2Form I M k` is a compact operator
 (`H1Form.isCompactOperator_friedrichsInclusion`). In a chart, take a Schwartz function `φ` equal
@@ -479,7 +483,7 @@ theorem L2Form.coeFn_localizeCoord (u : L2Form I M k) :
   rw [Function.comp_apply, h]
   simp
 
-omit [BoundarylessManifold I M] [T2Space M] in
+omit [BoundarylessManifold I M] in
 /-- `L2Form.localizeCoord ψ χ hχ bΛ p e u` vanishes almost everywhere outside the image under `e`
 of the image under `ψ` of the support of `χ`. -/
 theorem L2Form.localizeCoord_ae_eq_zero_of_notMem (u : L2Form I M k) :
@@ -599,26 +603,7 @@ private def localizeSobolevₗ : H1Form o hkl →ₗ[ℝ] H^{1}(CoordinateSpace 
   toFun u :=
     (memSobolev_localizeCoord_friedrichsInclusion ψ χ hχ bΛ p e u).toBesselPotentialSpace
   map_add' u v := BesselPotentialSpace.ext (by simp [← Lp.toTemperedDistributionCLM_apply])
-  map_smul' r u := BesselPotentialSpace.ext (by
-    rw [RingHom.id_apply, ← Complex.coe_smul, BesselPotentialSpace.toDistr_smul]
-    simp [← Lp.toTemperedDistributionCLM_apply, ← Complex.coe_smul])
-
-/-- The graph of the localization is closed: both `H1Form o hkl` and `H^1` map continuously to
-the tempered distributions, and `H^1` injectively. -/
-private theorem isClosed_graph_localizeSobolevₗ :
-    IsClosed ((localizeSobolevₗ (o := o) (hkl := hkl) ψ χ hχ bΛ p e).graph :
-      Set (H1Form o hkl × H^{1}(CoordinateSpace n))) := by
-  have h : ((localizeSobolevₗ (o := o) (hkl := hkl) ψ χ hχ bΛ p e).graph :
-      Set (H1Form o hkl × H^{1}(CoordinateSpace n))) =
-      {x | BesselPotentialSpace.toDistrCLM _ ℂ 1 2 x.2 =
-        Lp.toTemperedDistributionCLM ℂ volume 2
-          (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ x.1))} := by
-    ext x
-    rw [SetLike.mem_coe, LinearMap.mem_graph_iff, Set.mem_ofPred_eq,
-      ← (BesselPotentialSpace.toDistrCLM_injective (E := CoordinateSpace n) (F := ℂ)).eq_iff]
-    simp [localizeSobolevₗ]
-  rw [h]
-  exact isClosed_eq (by fun_prop) (by fun_prop)
+  map_smul' r u := BesselPotentialSpace.ext (by simp [← Lp.toTemperedDistributionCLM_apply])
 
 /-- **The localization of `H1Form o hkl` to `H^1` of a chart.** For a chart `ψ`, a smooth cutoff
 `χ` supported in its source, a basis `bΛ` of the forms on `E`, an index `p` and coordinates
@@ -627,8 +612,13 @@ private theorem isClosed_graph_localizeSobolevₗ :
 localization of the image of `u` in `L2Form I M k`, read through `e⁻¹`
 (`H1Form.toDistr_localizeSobolev`). It is everywhere defined by
 `memSobolev_localizeCoord_friedrichsInclusion`, and continuous by the closed graph theorem. -/
-def localizeSobolev : H1Form o hkl →L[ℝ] H^{1}(CoordinateSpace n) :=
-  .ofIsClosedGraph (isClosed_graph_localizeSobolevₗ ψ χ hχ bΛ p e)
+def localizeSobolev : H1Form o hkl →L[ℝ] H^{1}(CoordinateSpace n) where
+  toLinearMap := localizeSobolevₗ ψ χ hχ bΛ p e
+  cont := (localizeSobolevₗ ψ χ hχ bΛ p e).continuous_of_injective_comp_eq
+    (f := fun u ↦ Lp.toTemperedDistributionCLM ℂ volume 2
+      (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ u))) (by fun_prop)
+    (BesselPotentialSpace.toDistrCLM _ ℂ 1 2).continuous BesselPotentialSpace.toDistrCLM_injective
+    fun u ↦ by simp [localizeSobolevₗ]
 
 /-- The tempered distribution of `localizeSobolev ψ χ hχ bΛ p e u` is that of the `L²` function
 `L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion _ u)`, the complexified `p`-th coordinate
@@ -639,7 +629,7 @@ theorem toDistr_localizeSobolev (u : H1Form o hkl) :
     (localizeSobolev (o := o) (hkl := hkl) ψ χ hχ bΛ p e u).toDistr =
       (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ u) :
         𝓢'(CoordinateSpace n, ℂ)) := by
-  rw [localizeSobolev, ContinuousLinearMap.coeFn_ofIsClosedGraph, localizeSobolevₗ,
+  rw [localizeSobolev, ContinuousLinearMap.coe_mk', localizeSobolevₗ,
     LinearMap.coe_mk, AddHom.coe_mk, MemSobolev.toBesselPotentialSpace_toDistr]
 
 /-- **Rellich's theorem in a chart.** The map sending `u` in `H1Form o hkl` to the `p`-th

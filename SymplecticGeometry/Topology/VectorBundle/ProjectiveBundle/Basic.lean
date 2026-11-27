@@ -16,7 +16,11 @@ public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Smul
 public import TauCeti.Topology.VectorBundle.ZeroSection
-public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
+
+import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.Algebra.Projectivization
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
+import TauCeti.Topology.FiberBundle.Trivialization
 
 /-!
 # The projective bundle of a vector bundle
@@ -320,8 +324,7 @@ theorem symmL_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E} {w : G}
     (hw : w ∈ (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule) :
     (trivializationAt G E b₀).symmL 𝕜 p.proj w ∈ p.snd.submodule := by
   by_cases hp : p.proj ∈ (trivializationAt G E b₀).baseSet
-  · rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
-      Projectivization.submodule_map] at hw
+  · rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.submodule_mapProjectivization] at hw
     obtain ⟨u, hu, rfl⟩ := hw
     rw [← Trivialization.symm_continuousLinearEquivAt_eq' _ hp, ContinuousLinearEquiv.coe_coe]
     simpa [Trivialization.symm_apply_apply_mk _ hp] using hu
@@ -334,8 +337,7 @@ theorem trivializationAt_mem_submodule {b₀ : B} {p : ProjectiveBundle 𝕜 G E
     (hp : p.proj ∈ (trivializationAt G E b₀).baseSet) {v : E p.proj} (hv : v ∈ p.snd.submodule) :
     (trivializationAt G E b₀ ⟨p.proj, v⟩).2 ∈
       (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) b₀ p).2.submodule := by
-  rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.coe_mapProjectivization,
-    Projectivization.submodule_map,
+  rw [trivializationAt_apply _ hp, ContinuousLinearEquiv.submodule_mapProjectivization,
     (trivializationAt G E b₀).apply_eq_prod_continuousLinearEquivAt 𝕜 _ hp]
   exact Submodule.mem_map_of_mem hv
 
@@ -406,8 +408,8 @@ theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
     have h1 : (σ q).val.proj = q.val.1 := e.proj_symm_apply' q.property
     have h2 : e (σ q).val = (q.val.1, q.val.2.val) := e.apply_symm_apply' q.property
     have h3 : (σ q).val.proj ∈ e.baseSet := h1 ▸ q.property
-    refine ⟨σ q, hqU, eP.injOn ((eP.mem_source (x := mk' 𝕜 G E (σ q))).2 h3) hp ?_⟩
-    rw [Trivialization.coe_coe, ← hpq, mk'_eq_mk, trivializationAt_mk _ _ h3]
+    refine ⟨σ q, hqU, eP.eq_of_apply_eq (a := mk' 𝕜 G E (σ q)) h3 (eP.mem_source.1 hp) ?_⟩
+    rw [← hpq, mk'_eq_mk, trivializationAt_mk _ _ h3]
     refine Prod.ext h1 ?_
     simp only [Prod.map_snd, Projectivization.mk'_eq_mk]
     congr 1
@@ -553,9 +555,10 @@ def pullbackHomeomorph :
     refine ⟨(Pullback.continuous_proj _ _ _).continuousAt, ?_⟩
     let e := trivializationAt G E (f z.proj)
     let eP := trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 (E b)) (f z.proj)
-    have hN : {y : TotalSpace (ℙ 𝕜 G) (f *ᵖ fun b ↦ ℙ 𝕜 (E b)) | f y.proj ∈ e.baseSet} ∈ 𝓝 z :=
-      (e.open_baseSet.preimage (f.continuous.comp (Pullback.continuous_proj _ _ _))).mem_nhds
-        (mem_baseSet_trivializationAt G E _)
+    have hN : ∀ᶠ y : TotalSpace (ℙ 𝕜 G) (f *ᵖ fun b ↦ ℙ 𝕜 (E b)) in 𝓝 z,
+        f y.proj ∈ e.baseSet :=
+      (f.continuous.comp (Pullback.continuous_proj _ _ _)).continuousAt
+        |>.eventually_mem_baseSet_trivializationAt G E
     refine ContinuousAt.congr (f := fun y ↦ (eP (Pullback.lift f y)).2) ?_ ?_
     · exact (eP.continuousAt (eP.mem_source.2 (mem_baseSet_trivializationAt G E _))).snd.comp
         (Pullback.continuous_lift _ _ f).continuousAt
@@ -783,7 +786,7 @@ theorem isOpen_compl_range_inl :
       TotalSpace.mk' G₂ v.val.proj v.val.snd.2 :=
     (continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
       continuous_subtypeVal
-  convert (VectorBundle.isClosed_setOf_eq_zero 𝕜 hs).isOpen_compl using 1
+  convert (VectorBundle.isClosed_setOfPred_eq_zero 𝕜 hs).isOpen_compl using 1
   ext v
   simp only [mem_preimage, mem_compl_iff, mem_ofPred_eq, mk'_eq_mk, mk_mem_range_inl_iff]
 

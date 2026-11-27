@@ -27,6 +27,9 @@ manifold over `ℝⁿ`, or an open subset of `ℂ`, can so be modelled on a Eucl
   `Remodel Φ M`.
 * `SymplecticGeometry.remodelDiffeomorph Φ M`: the identity of `M`, as a `C^n` diffeomorphism
   from the model `I` to the model `I'`.
+* `SymplecticGeometry.remodelChart Φ c`: a chart `c` of `M` followed by `Φ`, as a chart of
+  `Remodel Φ M`, in its maximal atlas when `c` is in that of `M`
+  (`SymplecticGeometry.remodelChart_mem_maximalAtlas`).
 
 ## References
 
@@ -61,7 +64,13 @@ instance [T2Space M] : T2Space (Remodel Φ M) := inferInstanceAs (T2Space M)
 
 instance [CompactSpace M] : CompactSpace (Remodel Φ M) := inferInstanceAs (CompactSpace M)
 
+instance [SecondCountableTopology M] : SecondCountableTopology (Remodel Φ M) :=
+  inferInstanceAs (SecondCountableTopology M)
+
 instance [Nonempty M] : Nonempty (Remodel Φ M) := inferInstanceAs (Nonempty M)
+
+instance [PreconnectedSpace M] : PreconnectedSpace (Remodel Φ M) :=
+  inferInstanceAs (PreconnectedSpace M)
 
 instance [ConnectedSpace M] : ConnectedSpace (Remodel Φ M) := inferInstanceAs (ConnectedSpace M)
 
@@ -85,15 +94,77 @@ theorem coe_remodelHomeomorph : ⇑(remodelHomeomorph Φ M) = id := (rfl)
 theorem coe_remodelHomeomorph_symm : ⇑(remodelHomeomorph Φ M).symm = id := (rfl)
 
 /-- The homeomorphism sends a point `x` of `M` to `x`, as a point of the copy. -/
-@[simp]
 theorem remodelHomeomorph_apply (x : M) : remodelHomeomorph Φ M x = (x : Remodel Φ M) := (rfl)
 
 /-- The inverse homeomorphism sends a point `x` of the copy to `x`, as a point of `M`. -/
-@[simp]
 theorem remodelHomeomorph_symm_apply (x : Remodel Φ M) :
     (remodelHomeomorph Φ M).symm x = (x : M) := (rfl)
 
+variable {M} in
+/-- A chart `c` of `M`, carried to `Remodel Φ M`: `c` followed by `Φ`. -/
+def remodelChart (c : OpenPartialHomeomorph M H) : OpenPartialHomeomorph (Remodel Φ M) H' :=
+  c.trans Φ.toHomeomorph.toOpenPartialHomeomorph
+
+section RemodelChart
+
+variable {Φ M} (c : OpenPartialHomeomorph M H)
+
+theorem remodelChart_def :
+    remodelChart Φ c =
+      (c.trans Φ.toHomeomorph.toOpenPartialHomeomorph : OpenPartialHomeomorph (Remodel Φ M) H') :=
+  (rfl)
+
+@[simp]
+theorem remodelChart_apply (x : Remodel Φ M) :
+    remodelChart Φ c x = Φ (c ((remodelHomeomorph Φ M).symm x)) :=
+  (rfl)
+
+@[simp]
+theorem remodelChart_symm_apply (y : H') :
+    (remodelChart Φ c).symm y = remodelHomeomorph Φ M (c.symm (Φ.symm y)) :=
+  (rfl)
+
+@[simp]
+theorem remodelChart_source :
+    (remodelChart Φ c).source = (remodelHomeomorph Φ M).symm ⁻¹' c.source := by
+  rw [remodelChart_def, OpenPartialHomeomorph.trans_source,
+    Homeomorph.toOpenPartialHomeomorph_source, Set.preimage_univ, Set.inter_univ]
+  rfl
+
+@[simp]
+theorem remodelChart_target : (remodelChart Φ c).target = Φ.symm ⁻¹' c.target := by
+  rw [remodelChart_def, OpenPartialHomeomorph.trans_target,
+    Homeomorph.toOpenPartialHomeomorph_target, Set.univ_inter]
+  rfl
+
+end RemodelChart
+
 variable [ChartedSpace H M]
+
+variable {Φ M} in
+/-- A chart `c` of the maximal `C^n` atlas of `M`, carried to `Remodel Φ M`, is a chart of the
+maximal `C^n` atlas of `Remodel Φ M`. The proof follows that of Tau Ceti's
+`Diffeomorph.isManifold_chartedSpaceComp`. -/
+theorem remodelChart_mem_maximalAtlas {c : OpenPartialHomeomorph M H}
+    (hc : c ∈ IsManifold.maximalAtlas I n M) :
+    remodelChart Φ c ∈ IsManifold.maximalAtlas I' n (Remodel Φ M) := by
+  -- The same statement on `M` itself, carrying the charts of `Remodel Φ M`, as Tau Ceti states
+  -- its lemmas on `Φ.toHomeomorph.chartedSpaceComp M`.
+  rw [remodelChart_def]
+  let := Φ.toHomeomorph.chartedSpaceComp M
+  suffices c.trans Φ.toHomeomorph.toOpenPartialHomeomorph ∈
+      (contDiffGroupoid n I').maximalAtlas M from this
+  rw [IsManifold.maximalAtlas, mem_maximalAtlas_iff] at hc
+  rw [mem_maximalAtlas_iff, Φ.toHomeomorph.atlas_chartedSpaceComp M]
+  rintro _ ⟨d, hd, rfl⟩
+  obtain ⟨h₁, h₂⟩ := hc d hd
+  constructor
+  · rw [OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm, OpenPartialHomeomorph.trans_assoc,
+      ← OpenPartialHomeomorph.trans_assoc c.symm]
+    exact Φ.symm_trans_trans_mem_contDiffGroupoid h₁
+  · rw [OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm, OpenPartialHomeomorph.trans_assoc,
+      ← OpenPartialHomeomorph.trans_assoc d.symm]
+    exact Φ.symm_trans_trans_mem_contDiffGroupoid h₂
 
 /-- The identity of `M`, as a `C^n` diffeomorphism from `M`, modelled on `I`, to `Remodel Φ M`,
 modelled on `I'`. -/

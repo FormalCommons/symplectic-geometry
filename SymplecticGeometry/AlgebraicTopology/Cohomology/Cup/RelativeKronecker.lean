@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import TauCeti.AlgebraicTopology.Cohomology.Local.Cross
+import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 import TauCeti.CategoryTheory.Linear.Int
 
 /-!

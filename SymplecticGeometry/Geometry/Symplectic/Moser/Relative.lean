@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import Mathlib.Geometry.Manifold.Algebra.Structures
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
@@ -20,6 +23,9 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The relative Moser theorem with prescribed first derivative
@@ -44,7 +50,7 @@ The proof is Moser's argument along a flow that is only partially defined.
    expressions of `β` also have zero derivative there.
 2. The tube is chosen inside the open set of points at which every form `σ₀ + s (σ₁ - σ₀)` with
    `s ∈ [0, 1]` is nondegenerate
-   (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`).
+   (`TauCeti.SmoothTwoForm.isOpen_setOfPred_forall_mem_Icc_nondegenerate`).
    This set contains `f(Q)`, where all these forms equal `σ₀`.
 3. On `W`, the slices of `σ₀ + c(t) (σ₁ - σ₀)`, `c = Real.smoothTransition`, are symplectic, and
    the field `X_t = (σ_t♭)⁻¹ (-c'(t) β)` (`SymplecticGeometry.moserField`, without cutoff) is
@@ -148,8 +154,8 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
   have hσ (t : ℝ) : IsSymplectic
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) := by
     rw [SmoothForm.mpullback_prodMk_lineMapFamily]
-    exact ⟨h₀.add (hcl.smul _), isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun x ↦
-      (hnd x _ ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩).ker_eq_bot⟩
+    exact ⟨h₀.add (hcl.smul _), isNondegenerate_def.2 fun x ↦
+      hnd x _ ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩⟩
   -- The Moser field `X_t = (σ_t♭)⁻¹ (-c'(t) β)`, as the inverse of the interior product.
   set α' := SmoothForm.lineMapFamily (0 : SmoothForm I M ℝ 1) β hc'
   have hα't (t : ℝ) : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α' =
@@ -171,17 +177,17 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
   · rw [IsNondegenerate.interiorEquiv_symm_apply_eq_zero_iff, hαt]
     simp [hx]
   · refine (hσ t).isNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm ?_ ?_
-    · rw [hαt, SmoothForm.smul_toRoughForm, Pi.smul_apply, hx, smul_zero]
+    · rw [hαt, SmoothBundleForm.smul_apply, hx, smul_zero]
     · rw [hαt, SmoothForm.smul_toRoughForm, RoughForm.inChartAt_smul]
       simpa using hjet.const_smul (-deriv c t)
   -- Moser's equation: the rate `∂_t σ_t + L_{X_t} σ_t = c'(t) dβ - c'(t) dβ` vanishes.
   funext y
   have hvel : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
       (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) y = deriv c t • (σ₁ - σ₀).val y := by
-    have h := congrArg (fun α : SmoothTwoForm I M ↦ α.val y)
-      (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff t)
-    simpa only [SmoothForm.coe_mpullback, SmoothForm.coe_timeDeriv, SetLike.val_smul,
-      Pi.smul_apply] using h
+    have h₀ := SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁
+      Real.smoothTransition.contDiff t
+    have h := congrFun ((SmoothForm.mpullback_eq_iff _).1 h₀) y
+    simpa only [SmoothForm.coe_timeDeriv, SmoothBundleForm.smul_apply] using h
   have h := (hσ t).mlieDerivForm_interiorEquiv_symm
     (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)
   have hd : mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
@@ -295,12 +301,12 @@ theorem exists_smoothForm_relative_primitive_sub_of_eq_along (f : SmoothEmbeddin
       {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
     rintro _ ⟨q, rfl⟩ s -
     refine nondegenerate_bilinFormAt_add_smul_sub_of_eq ?_ (hnd q) s
-    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
+    rw [SmoothBundleForm.sub_apply, heq q, sub_self]
   have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
-    Subtype.ext (funext fun q ↦ by
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
+    (SmoothForm.mpullback_eq_iff _).2 (funext fun q ↦ by
+      rw [SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
   obtain ⟨W, hWO, hfW, β, hdβ, hβ0, hβ1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
-    hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
+    hf (isOpen_setOfPred_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
   exact ⟨W, hWO, hfW, β, hdβ, hβ0, fun q ↦ hβ1 q (heq q)⟩
 
 open TopologicalSpace SmoothTwoForm in

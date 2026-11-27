@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
-public import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
 public import TauCeti.Geometry.Manifold.VectorField.Immersion
+import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
 
 /-!
 # Extending tangent vectors of an immersion to related vector fields

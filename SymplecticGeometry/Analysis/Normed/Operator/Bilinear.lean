@@ -11,8 +11,6 @@ public import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
 /-!
 # Continuous bilinear maps
 
-* `ContinuousLinearMap.opNorm_apply_apply_le`: evaluation at `v`, the continuous linear map
-  `ContinuousLinearMap.apply 𝕜 F v` on `E →L[𝕜] F`, has operator norm at most `‖v‖`.
 * `ContinuousLinearMap.nonneg_of_forall_notMem_nonneg`: a continuous bilinear form `B` on a real
   normed space with `B v v ≥ 0` for every `v` outside a proper subspace has `B u u ≥ 0` for
   every `u`, since the complement of a proper subspace is dense.
@@ -21,20 +19,6 @@ public import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
 public section
 
 namespace ContinuousLinearMap
-
-section Apply
-
-variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-
-/-- Evaluation at `v`, as a continuous linear map on `E →L[𝕜] F`, has operator norm at most
-`‖v‖`. -/
-theorem opNorm_apply_apply_le (v : E) : ‖apply 𝕜 F v‖ ≤ ‖v‖ :=
-  opNorm_le_bound _ (norm_nonneg v) fun A => by
-    rw [apply_apply, mul_comm]
-    exact A.le_opNorm v
-
-end Apply
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 

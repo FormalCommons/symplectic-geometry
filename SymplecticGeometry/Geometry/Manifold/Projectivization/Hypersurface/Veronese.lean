@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
+import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.Pi.LinearForm
@@ -181,15 +182,12 @@ theorem exists_isOpen_homotopyEquiv :
     ∃ W : Set (ℙ ℂ (Fin (n + 2) → ℂ)), IsOpen W ∧
       ∃ e : ContinuousMap.HomotopyEquiv X W, ∀ x, (e.toFun x : ℙ ℂ (Fin (n + 2) → ℂ)) = x := by
   -- The inclusion of `X` is a holomorphic embedding, so a smooth embedding over `ℝ`.
-  let _ : IsManifold 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) ∞ X :=
+  let _ : IsManifold 𝓘(ℝ, Fin n → ℂ) ∞ X :=
     ((X.instIsManifold).of_le (m := ∞) (by simp)).restrictScalars ℝ
-  have h := (X.embedding.isSmoothEmbedding.of_le (n := ∞) (by simp)).restrictScalars ℝ (by simp)
-  rw [coe_embedding] at h
-  let f : SmoothEmbedding 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ X
-      (ℙ ℂ (Fin (n + 2) → ℂ)) :=
-    .ofIsSmoothEmbedding _ h
-  obtain ⟨W, hW, -, e, he⟩ := f.exists_homotopyEquiv_subset isOpen_univ (subset_univ _)
-  exact ⟨W, hW, e, fun x ↦ (he x).trans (SmoothEmbedding.ofIsSmoothEmbedding_apply _ _ x)⟩
+  obtain ⟨W, hW, -, e, he⟩ :=
+    (X.embedding.restrictScalars ℝ (n := ∞) le_top (by simp)).exists_homotopyEquiv_subset
+      isOpen_univ (subset_univ _)
+  exact ⟨W, hW, e, fun x ↦ by rw [he, SmoothEmbedding.restrictScalars_apply, coe_embedding]⟩
 
 section Degree
 
@@ -318,11 +316,7 @@ theorem isImmersion_coe_veroneseAffine {r : ℕ∞ω} (hr : 1 ≤ r) :
   rw [coe_veroneseAffine_eq_comp]
   refine X.veroneseAffineHomeomorph.symm.isImmersion_comp_pullbackChartedSpace_iff.2 ?_
   refine isImmersion_isLocalDiffeomorphAt_comp (fun x ↦ ?_) ?_
-  · rw [← coe_affineOpenPartialHomeomorph]
-    exact (affineOpenPartialHomeomorph 0).isLocalDiffeomorphAt_of_mem_maximalAtlas
-      (IsManifold.subset_maximalAtlas (I := 𝓘(ℂ, Fin (veroneseDim (n + 2) d - 1) → ℂ)) (n := r)
-        (affineOpenPartialHomeomorph_mem_atlas 0))
-      (by simpa using X.veroneseMap_mem_affineOpen_iff.2 x.property)
+  · exact isLocalDiffeomorphAt_affineChart (X.veroneseMap_mem_affineOpen_iff.2 x.property) r
   · exact isImmersion_comp_isLocalDiffeomorph isLocalDiffeomorph_subtype_val
       (X.isImmersion_veroneseMap hr)
 

@@ -6,15 +6,17 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.CompatibleSpace.ComplexStructure
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.Riemannian.Isometry.Action
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Topology.Algebra.Module.Trace
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import Mathlib.Tactic.NoncommRing
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Basic
 
 /-!
 # The Kähler form and the metric of the space of compatible complex structures

@@ -18,7 +18,12 @@ Tau Ceti paths are relative to `.lake/packages/TauCeti/TauCeti/`, as in
 `DESIGN.md`. Manifolds, forms, embeddings and neighbourhood germs follow
 *Manifolds, families and signs* of `DESIGN.md`. Every manifold here is
 boundaryless, finite-dimensional, Hausdorff and second countable, as Tau
-Ceti's tubular neighbourhoods and Moser theorems need it to be.
+Ceti's tubular neighbourhoods and Moser theorems need it to be, except the
+targets `M₁` of `exists_diffeomorph_opens_mfderiv_eq`,
+`exists_symplectomorphism_opens_mfderiv_eq`,
+`exists_symplectomorphism_opens_of_mpullback_eq` and the isotropic,
+coisotropic, symplectic and codimension-two neighbourhood theorems, which
+need not be second countable.
 
 ## What exists, and what the part adds
 
@@ -47,7 +52,7 @@ theorems about a neighbourhood of a whole submanifold.
   `RoughForm.IsBasic`. Tau Ceti's only criterion for `IsBasic`,
   `isBasic_of_mpullback_eq`, needs fibre-preserving self-maps that act
   transitively on the fibres. It has no criterion from connected fibres.
-- **Normal bundles.** `TauCeti.SmoothEmbedding.NormalSpace` with its bundle
+- **Normal bundles.** `Manifold.IsImmersion.NormalSpace` with its bundle
   structure `normalSpaceFiberBundle`; the symplectic normal form
   `TauCeti.SmoothEmbedding.symplecticNormalForm` with
   `symplecticNormalRepresentative` and `contMDiff_symplecticNormalRepresentative`
@@ -141,7 +146,7 @@ following choices.
   bundle itself can build it and its comparison with this form. The
   symplectic theorem is stated with Tau Ceti's normal bundle, as `DESIGN.md`
   says: $\Phi$ is a family
-  `∀ q, f₀.NormalSpace q hn ≃L[ℝ] f₁.NormalSpace (φ q) hn`, smooth on total
+  `∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ] f₁.isImmersion.NormalSpace (φ q) hn`, smooth on total
   spaces, that preserves `symplecticNormalForm`.
 - **The linear extension comes from compatible complex structures.**
   Smoothly in $q$, the comparison theorem needs a linear symplectomorphism
@@ -482,8 +487,10 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
   `(ψ ⟨f₀ q, _⟩ : M₁) = f₁ q` and `mfderiv I₀ I₁ ψ ⟨f₀ q, _⟩ = A q`. Route:
   Tau Ceti's `exists_partialDiffeomorph_mfderiv_eq`
   (`Geometry/Manifold/TubularNeighborhood/PrescribedDifferential.lean`),
+  through `exists_partialDiffeomorph_mfderiv_eq'`, so that only `M₀` is
+  second countable,
   with `hA` read in tangent coordinates through
-  `Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`, and its
+  `Bundle.Pullback.contMDiffAt_hom_section_iff_inCoordinates`, and its
   partial diffeomorphism restricted to its source and target. It needs no
   compactness and no closed image.
 
@@ -528,8 +535,10 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
   and `mfderiv ψ v = L q v + mfderiv J I₁ f₁ q u` for some `u`, for
   `v ∈ ω₀`-orthogonal of the tangent range. Route: Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible` gives compatible
-  `J₀`, `J₁`, read pointwise by `Compatible.compatibleAt`. Then `smoothExtendAlong` is an `A` for
-  `exists_symplectomorphism_opens_mfderiv_eq`.
+  `J₀` on `M₀` and `J₁` on a second countable open neighbourhood of the
+  image of `f₁`, read pointwise by `Compatible.compatibleAt`. Then
+  `smoothExtendAlong`, for `f₁` with image restricted to that
+  neighbourhood, is an `A` for `exists_symplectomorphism_opens_mfderiv_eq`.
 
 ### `Geometry/Symplectic/Neighborhood/Symplectic.lean`
 
@@ -537,8 +546,8 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
 the milestone. Two symplectic manifolds with symplectic submanifolds
 `f₀ : SmoothEmbedding J₀ I₀ ∞ Q₀ M₀` and
 `f₁ : SmoothEmbedding J₁ I₁ ∞ Q₁ M₁`, a diffeomorphism `φ : Q₀ ≃ₘ⟮J₀, J₁⟯ Q₁`
-pulling `f₁^*ω₁` back to `f₀^*ω₀`, and `Φ : ∀ q, f₀.NormalSpace q hn ≃L[ℝ]
-f₁.NormalSpace (φ q) hn`, smooth on total spaces under the bundle
+pulling `f₁^*ω₁` back to `f₀^*ω₀`, and `Φ : ∀ q, f₀.isImmersion.NormalSpace q hn ≃L[ℝ]
+f₁.isImmersion.NormalSpace (φ q) hn`, smooth on total spaces under the bundle
 structures `normalSpaceFiberBundle`, that preserves `symplecticNormalForm`.
 Conclusion: `U₀`, `U₁` and a symplectomorphism `ψ` with
 `ψ ⟨f₀ q, _⟩ = ⟨f₁ (φ q), _⟩` and
@@ -556,9 +565,9 @@ $K=0$, the comparison theorem's conclusion is the equality. Milestone:
 
 At Tau Ceti's path, which has `zeroSectionTangentEquiv`. The embedding is the
 library's own definition, so it is in `SymplecticGeometry.Bundle`:
-`SymplecticGeometry.Bundle.zeroSectionEmbedding F V :
-TauCeti.SmoothEmbedding IB (IB.prod 𝓘(ℝ, F)) ∞ B (TotalSpace F V)` for a
-smooth vector bundle with finite-dimensional fibre over a boundaryless base.
+`SymplecticGeometry.Bundle.zeroSectionEmbedding F V hn :
+TauCeti.SmoothEmbedding IB (IB.prod 𝓘(ℝ, F)) n B (TotalSpace F V)` for a
+`C^n` vector bundle (`hn : 1 ≤ n`) with finite-dimensional fibre over a boundaryless base.
 It comes from Tau Ceti's `ContMDiff.isSmoothEmbedding_of_leftInverse` with
 the projection. API: `coe_zeroSectionEmbedding` (it is `zeroSection F V`),
 and `TauCeti.Bundle.isClosed_range_zeroSection`, about Mathlib's zero section.

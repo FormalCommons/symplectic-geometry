@@ -6,13 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 
 /-!
-# Differentials of maps into normed spaces, read in a chart
+# Differentials read in a chart
+
+This file reads differentials in an extended chart, in both directions: for maps from a manifold
+into a normed space, and for maps from a normed space into a manifold through the inverse chart.
 
 For a map `f : M → F` into a normed space and a point `y` of the source of the extended chart at
 `x`, which need not be centred at `y`, the range of `mvfderiv I f y` is the range of the Fréchet
@@ -21,24 +24,23 @@ This is the off-centre form of Tau Ceti's
 `TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`, and its proof reads `mvfderiv I f y`
 in the chart by Tau Ceti's `TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt`.
 
+For a map `h` from a normed space into the target of the extended chart at `x`, the differential
+of `(extChartAt I x).symm ∘ h` is the derivative of `h` followed by the differential of the
+inverse chart, which is invertible by Tau Ceti's `TauCeti.isInvertible_mfderiv_extChartAt_symm`;
+so it is injective where the derivative of `h` is.
+
 ## Main results
 
 * `SymplecticGeometry.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source`: the
   range of `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
 * `ContMDiff.contDiffOn_comp_extChartAt_symm`: a `C^n` map into a normed space is `C^n` in every
   chart.
-* `ContMDiff.contDiffOn_mpullbackWithin_extChartAt_symm`: a `C^m` vector field on a `C^n`
-  manifold, `m + 1 ≤ n`, is `C^m` in every chart: its coordinate expression
-  `mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I)` is `C^m` on the target of the
-  extended chart. This is the `mpullbackWithin` form of Tau Ceti's
-  `ContMDiffOn.contDiffOn_mpullback_extChartAt_symm`.
-* `VectorField.mfderivWithin_extChartAt_symm_mpullbackWithin`: the differential of the inverse
-  chart sends the coordinate expression of a vector field back to the field.
+* `SymplecticGeometry.injective_mfderiv_extChartAt_symm_comp`: a map into the chart target with
+  injective derivative, composed with the inverse chart, has injective differential.
 -/
 
 public section
 
-open Set Function
 open scoped Manifold ContDiff
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -63,6 +65,21 @@ theorem range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source [IsMan
     TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt hy hf, ← hL]
   exact LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.mpr L.surjective)
 
+/-- On a boundaryless model, let `h` map a normed space `F` into the target of the extended chart
+at `x`. If `h` is differentiable at `z` with injective derivative, then the map
+`w ↦ (extChartAt I x).symm (h w)` into `M` has injective differential at `z`. -/
+theorem injective_mfderiv_extChartAt_symm_comp [I.Boundaryless] [IsManifold I 1 M] {h : F → E}
+    {z : F} (hz : h z ∈ (extChartAt I x).target) (hh : DifferentiableAt 𝕜 h z)
+    (hinj : Function.Injective (fderiv 𝕜 h z)) :
+    Function.Injective (mfderiv 𝓘(𝕜, F) I (fun w ↦ (extChartAt I x).symm (h w)) z) := by
+  obtain ⟨L, hL⟩ := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) hz
+  -- `show` puts the map in the form `(extChartAt I x).symm ∘ h`, the composite for which
+  -- `mfderiv_comp` is stated.
+  rw [show (fun w ↦ (extChartAt I x).symm (h w)) = (extChartAt I x).symm ∘ h from rfl,
+    mfderiv_comp z (mdifferentiableAt_of_isInvertible_mfderiv ⟨L, hL⟩) hh.mdifferentiableAt,
+    mfderiv_eq_fderiv, ← hL]
+  exact L.injective.comp hinj
+
 end SymplecticGeometry
 
 /-- A `C^n` map into a normed space is `C^n` in every chart: its coordinate expression
@@ -71,42 +88,5 @@ theorem ContMDiff.contDiffOn_comp_extChartAt_symm {n : WithTop ℕ∞} [IsManifo
     (hf : ContMDiff I 𝓘(𝕜, F) n f) (x : M) :
     ContDiffOn 𝕜 n (f ∘ (extChartAt I x).symm) (extChartAt I x).target :=
   contMDiffOn_iff_contDiffOn.mp (hf.comp_contMDiffOn (contMDiffOn_extChartAt_symm x))
-
-section VectorField
-
-open VectorField
-
-variable {V : (x : M) → TangentSpace I x}
-
-/-- A `C^m` vector field on a `C^n` manifold, with `m + 1 ≤ n`, read in an extended chart, is
-`C^m` on the chart target. -/
-theorem ContMDiff.contDiffOn_mpullbackWithin_extChartAt_symm {m n : WithTop ℕ∞} [CompleteSpace E]
-    [IsManifold I 1 M] [IsManifold I n M]
-    (hV : ContMDiff I I.tangent m (fun y ↦ (⟨y, V y⟩ : TangentBundle I M))) (hmn : m + 1 ≤ n)
-    (x : M) :
-    ContDiffOn 𝕜 m (mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I))
-      (extChartAt I x).target := fun y hy ↦
-  contMDiffWithinAt_vectorSpace_iff_contDiffWithinAt.1 <|
-    ContMDiffWithinAt.mpullbackWithin_vectorField_of_eq' (t := univ)
-      (hV _).contMDiffWithinAt (contMDiffWithinAt_extChartAt_symm_range x hy)
-      (isInvertible_mfderivWithin_extChartAt_symm hy) hy
-      (uniqueMDiffOn_iff_uniqueDiffOn.2 (uniqueDiffOn_extChartAt_target x)) hmn (by simp)
-      (extChartAt_target_subset_range x) rfl
-
-namespace VectorField
-
-/-- The derivative of the inverse chart sends the coordinate expression of a vector field back to
-the field. -/
-theorem mfderivWithin_extChartAt_symm_mpullbackWithin [IsManifold I 1 M] {y : E}
-    (hy : y ∈ (extChartAt I x).target) :
-    mfderivWithin 𝓘(𝕜, E) I (extChartAt I x).symm (range I) y
-      (mpullbackWithin 𝓘(𝕜, E) I (extChartAt I x).symm V (range I) y) =
-        V ((extChartAt I x).symm y) := by
-  rw [mpullbackWithin_apply]
-  exact ((isInvertible_mfderivWithin_extChartAt_symm hy).inverse_apply_eq.1 rfl).symm
-
-end VectorField
-
-end VectorField
 
 end
