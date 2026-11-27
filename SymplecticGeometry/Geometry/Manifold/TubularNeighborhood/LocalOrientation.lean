@@ -684,9 +684,8 @@ theorem normalTubeChart_apply_tube_localChart
   let := f.normalSpaceFiberBundle hn hdim
   set e := trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z
   have hq : y.val.2 ∈ S := y.property.2
-  have hqt : y.val.2 + extChartAt I z z ∈ (extChartAt I z).target := by
-    have h := hSc hq
-    rwa [centeredExtChartAt_target] at h
+  have hqt : y.val.2 + extChartAt I z z ∈ (extChartAt I z).target :=
+    (mem_centeredExtChartAt_target_iff I z).1 (hSc hq)
   rw [normalTubeChart_apply_eq Φ z (Φ _).property, Diffeomorph.symm_apply_apply,
     Trivialization.localChart_def, e.apply_symm_apply (e.mk_mem_target.2 (hSe hq)),
     centeredExtChartAt_symm_apply, (extChartAt I z).right_inv hqt]
