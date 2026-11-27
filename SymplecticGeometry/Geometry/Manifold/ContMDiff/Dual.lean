@@ -11,6 +11,7 @@ public import Mathlib.LinearAlgebra.Dual.Lemmas
 public import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 
 /-!
 # Smoothness of the values of linear functionals
@@ -47,6 +48,9 @@ on a varying vector comes from Mathlib's `fderiv_clm_apply`.
   normed space.
 * `contMDiff_toContinuousLinearMap_of_contMDiff_apply`: for a finite-dimensional normed space `E`,
   if `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν` is `C^n` as a map into `E →L[𝕜] 𝕜`.
+* `mvfderiv_toContinuousLinearMap_apply`: for such a `ν`, with `n ≠ 0`, the derivative of `ν` as
+  such a map, applied to `ξ`, is the derivative of `t ↦ ν t ξ`, by Tau Ceti's
+  `TauCeti.mvfderiv_clm_apply_const`.
 * `contMDiffAt_dual_comp_apply`, `contMDiff_dual_comp_apply`: for a family `ν` of functionals on a
   finite-dimensional normed space `X`, with `C^n` values, a `C^n` map `x : M → N` between
   manifolds and a `C^n` map `c : M → X`, `z ↦ ν (x z) (c z)` is `C^n`.
@@ -127,6 +131,20 @@ theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply [CompleteSpace 𝕜]
     {ν : N → Module.Dual 𝕜 E} (hν : ∀ ξ, ContMDiff J 𝓘(𝕜) n fun t ↦ ν t ξ) :
     ContMDiff J 𝓘(𝕜, E →L[𝕜] 𝕜) n fun t ↦ LinearMap.toContinuousLinearMap (ν t) :=
   fun t ↦ TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ t
+
+/-- **The derivative of a family of covectors, by components.** Let `ν` be a family of linear
+functionals on a finite-dimensional normed space `E` over a complete nontrivially normed field `𝕜`,
+indexed by a manifold `N`, with `C^n` values `t ↦ ν t ξ` for some `n ≠ 0`. Then the derivative of
+`ν`, read as a family of continuous linear maps `E →L[𝕜] 𝕜`, applied to `ξ`, is the derivative of
+the component `t ↦ ν t ξ`. -/
+theorem mvfderiv_toContinuousLinearMap_apply [CompleteSpace 𝕜]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+    {ν : N → Module.Dual 𝕜 E} (hν : ∀ ξ, ContMDiff J 𝓘(𝕜) n fun t ↦ ν t ξ) (hn : n ≠ 0) (p : N)
+    (w : TangentSpace J p) (ξ : E) :
+    mvfderiv J (fun t ↦ LinearMap.toContinuousLinearMap (ν t)) p w ξ =
+      mvfderiv J (fun t ↦ ν t ξ) p w :=
+  (TauCeti.mvfderiv_clm_apply_const
+    ((contMDiff_toContinuousLinearMap_of_contMDiff_apply hν p).mdifferentiableAt hn) ξ w).symm
 
 section ContMDiffPairing
 

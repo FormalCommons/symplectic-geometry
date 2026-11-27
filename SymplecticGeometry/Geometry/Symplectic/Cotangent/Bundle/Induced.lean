@@ -9,7 +9,6 @@ public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Induced
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
-import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 import SymplecticGeometry.Geometry.Lie.ProdFstMulAction
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
@@ -118,7 +117,7 @@ theorem eval₂_inducedForm_of_contMDiff_apply
   have hd (ξ : GroupLieAlgebra I G) (w : TangentSpace J p) :
       mvfderiv J (fun y ↦ ν y ξ) p w =
         mvfderiv J (fun y ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν y)) p w ξ :=
-    mvfderiv_clm_apply_const ((hf p).mdifferentiableAt (by simp)) ξ w
+    (mvfderiv_toContinuousLinearMap_apply (E := E) hν (by simp) p w ξ).symm
   have hk : Module.Dual.kirillovForm (L := GroupLieAlgebra I G)
       (LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) : E →ₗ[ℝ] ℝ) =
       (ν p).kirillovForm :=
