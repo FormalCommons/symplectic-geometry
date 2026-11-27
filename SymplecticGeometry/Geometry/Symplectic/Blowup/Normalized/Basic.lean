@@ -12,6 +12,11 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.RestrictScalars
 
 /-!
 # Normalized ball embeddings and their blowup charts
@@ -30,12 +35,25 @@ it is pseudoholomorphic from `J` to the complex structure of `E`. These are the 
 under which `Blowup.almostComplexStructure` puts an almost complex structure on the blowup
 `Blowup c` of `M` at `p₀` along the chart.
 
+A normalized ball embedding (McDuff–Salamon, Definition 7.1.20) is a symplectic embedding `ψ` of
+a closed ball `B(r)` that agrees with `ψ₀` on a smaller ball `B(ε)`, with a weight `l` such
+that `l + ε < r`. It lifts to the blowup: the lift `ψ̃` of the neighbourhood `openNbhd n r` of the
+exceptional divisor of the model is the inclusion of the model piece over `B(ε)`, where `ψ = ψ₀`,
+and `inl ∘ ψ ∘ π` off the divisor, the two agreeing where both are defined. It is injective and a
+local diffeomorphism at every point, so an open embedding and a partial diffeomorphism, and it
+lies over `ψ`.
+
 ## Main definitions
 
 * `SymplecticGeometry.IsNormalizedAt σ J p₀ δ ψ₀`: `ψ₀` normalizes `(σ, J)` at `p₀` on the ball
   of radius `δ`.
 * `SymplecticGeometry.IsNormalizedAt.blowupChart hN`: the blowup chart at `p₀` given by the
   inverse of `ψ₀`, read on `Fin (n + 1) → ℂ`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding hN ψ r l ε`: `ψ` is a normalized ball embedding
+  of radius `r`, weight `l` and width `ε` for the normalization `hN`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift hψ`: the lift `ψ̃` of `ψ`, from
+  `openNbhd n r` to the blowup, and `IsNormalizedBallEmbedding.ballLiftPartialDiffeomorph hψ`,
+  the same map as a partial diffeomorphism of the model blowup with source `openNbhd n r`.
 
 ## Main results
 
@@ -46,6 +64,12 @@ under which `Blowup.almostComplexStructure` puts an almost complex structure on 
   smooth maximal atlas of `M`.
 * `SymplecticGeometry.IsNormalizedAt.blowupChart_isHolomorphic`: the blowup chart is
   pseudoholomorphic on its source from `J` to the complex structure of `Fin (n + 1) → ℂ`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift_of_mem_openNbhd`,
+  `SymplecticGeometry.IsNormalizedBallEmbedding.ballLift_of_blowdown_ne_zero`: the two
+  descriptions of the lift.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.blowdown_ballLift`: the lift lies over `ψ`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.isOpenEmbedding_ballLift`: the lift is an open
+  embedding.
 
 ## Implementation notes
 
@@ -62,7 +86,7 @@ public section
 
 noncomputable section
 
-open Set Metric
+open Set Metric Topology
 open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
@@ -212,6 +236,13 @@ theorem blowupChart_isHolomorphic :
     ).isPseudoholomorphicAt_of_mem_nhds
     ((isOpen_ball.preimage (complexToRealEuclidean _).continuous).mem_nhds hw)
 
+/-- The blowup chart of a normalization is in the smooth maximal atlas of `M`, as an instance,
+so that the blowup along it is a smooth manifold. -/
+instance fact_blowupChart_mem_maximalAtlas :
+    Fact (hN.blowupChart.toOpenPartialHomeomorph ∈
+      IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M) :=
+  ⟨hN.blowupChart_mem_maximalAtlas⟩
+
 end IsNormalizedAt
 
 /-! ### Normalized ball embeddings and their lifts -/
@@ -320,11 +351,9 @@ theorem apply_blowdown_mem_puncturedOpens {y : BlowupModel n} (hy : y ∈ openNb
   refine hψ.apply_ne_center (mem_closedBall_zero_iff.2 (mem_openNbhd_iff.1 hy).le) ?_
   rwa [Ne, map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective]
 
-/-- A point outside `openNbhd n ε` is off the exceptional divisor. -/
-theorem blowdown_ne_zero_of_notMem {y : BlowupModel n} (hy : y ∉ openNbhd n ε) :
-    y.blowdown ≠ 0 := fun h ↦ hy <| by
-  rw [mem_openNbhd_iff, h, _root_.map_zero, norm_zero]
-  exact hψ.width_pos
+private theorem blowdown_ne_zero_of_notMem {y : BlowupModel n} (hy : y ∉ openNbhd n ε) :
+    y.blowdown ≠ 0 := fun h ↦
+  hy (exceptionalDivisor_subset_openNbhd hψ.width_pos (mem_exceptionalDivisor_iff.2 h))
 
 open scoped Classical in
 /-- The lift `ψ̃` of a normalized ball embedding, from the neighbourhood `openNbhd n r` of the
@@ -388,6 +417,132 @@ theorem injective_ballLift : Function.Injective hψ.ballLift := by
     rw [Subtype.mk.injEq] at h2
     exact Subtype.ext h2
   · exact Subtype.ext (eq_of_blowdown_eq h0 hb)
+
+/-! #### The lift as a partial diffeomorphism -/
+
+open scoped TauCeti.ComplexManifold
+
+open scoped Classical in
+/-- The lift, extended to the whole model by an arbitrary value off `openNbhd n r`. -/
+private def ballLiftExt (y : BlowupModel n) : Blowup hN.blowupChart :=
+  if h : y ∈ openNbhd n r then hψ.ballLift ⟨y, h⟩ else Classical.arbitrary _
+
+private theorem ballLiftExt_of_mem {y : BlowupModel n} (h : y ∈ openNbhd n r) :
+    hψ.ballLiftExt y = hψ.ballLift ⟨y, h⟩ :=
+  dite_eq_left h
+
+private theorem mem_openNbhd_radius {y : BlowupModel n} (h : y ∈ openNbhd n ε) :
+    y ∈ openNbhd n r :=
+  mem_openNbhd_iff.2 ((mem_openNbhd_iff.1 h).trans hψ.width_lt_radius)
+
+/-- Near a point of `openNbhd n ε`, the lift is `inr` composed with the inclusion. -/
+private theorem isLocalDiffeomorphAt_ballLiftExt_of_mem {y : BlowupModel n}
+    (hy : y ∈ openNbhd n ε) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt y := by
+  classical
+  let g : BlowupModel n → Blowup.modelOpens hN.blowupChart := fun y' ↦
+    if h : y' ∈ openNbhd n ε then ⟨y', hψ.mem_modelOpens h⟩ else ⟨y, hψ.mem_modelOpens hy⟩
+  have hev : ∀ᶠ y' in 𝓝 y, y' ∈ openNbhd n ε := (isOpen_openNbhd ε).mem_nhds hy
+  have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g y := by
+    rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
+    refine ((Diffeomorph.refl 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ∞).isLocalDiffeomorph
+      y).congr_of_eventuallyEq ?_
+    filter_upwards [hev] with y' hy'
+    simp only [g, dite_eq_left hy', Function.comp_apply, Diffeomorph.coe_refl, id]
+  refine (IsLocalDiffeomorphAt.comp (hf := hg)
+    (hg := Blowup.isLocalDiffeomorph_inr_real _ (g y))).congr_of_eventuallyEq ?_
+  filter_upwards [hev] with y' hy'
+  rw [hψ.ballLiftExt_of_mem (hψ.mem_openNbhd_radius hy'),
+    hψ.ballLift_of_mem_openNbhd _ hy', Function.comp_apply]
+  simp only [g, dite_eq_left hy']
+
+/-- Near a point of `openNbhd n r` off the exceptional divisor, the lift is `inl ∘ ψ ∘ π`. -/
+private theorem isLocalDiffeomorphAt_ballLiftExt_of_blowdown_ne_zero {y : BlowupModel n}
+    (hy : y ∈ openNbhd n r) (hy0 : y.blowdown ≠ 0) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt y := by
+  classical
+  set e := complexToRealEuclidean (Fin (n + 1))
+  let U : Set (BlowupModel n) := openNbhd n r ∩ {y' | y'.blowdown ≠ 0}
+  have hU : IsOpen U := (isOpen_openNbhd r).inter (isOpen_ne_fun continuous_blowdown
+    continuous_const)
+  have hev : ∀ᶠ y' in 𝓝 y, y' ∈ U := hU.mem_nhds ⟨hy, hy0⟩
+  let g : BlowupModel n → Blowup.puncturedOpens hN.blowupChart := fun y' ↦
+    if h : y' ∈ U then ⟨ψ (e y'.blowdown), hψ.apply_blowdown_mem_puncturedOpens h.1 h.2⟩
+    else ⟨ψ (e y.blowdown), hψ.apply_blowdown_mem_puncturedOpens hy hy0⟩
+  have hφ : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      (ψ ∘ e ∘ BlowupModel.blowdown) y := by
+    have hb := ((BlowupModel.isLocalDiffeomorphAt_blowdown hy0).restrictScalars ℝ).of_le
+      (m := ∞) le_top
+    have hΦ := hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph.isLocalDiffeomorphAt
+      (hx := by simpa [e] using hy)
+    rw [IsSymplecticBallEmbedding.coe_complexPartialDiffeomorph] at hΦ
+    exact IsLocalDiffeomorphAt.comp (hf := hb) (hg := hΦ)
+  have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g y := by
+    rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
+    refine hφ.congr_of_eventuallyEq ?_
+    filter_upwards [hev] with y' hy'
+    simp only [g, dite_eq_left hy', Function.comp_apply]
+  refine (IsLocalDiffeomorphAt.comp (hf := hg)
+    (hg := Blowup.isLocalDiffeomorph_inl_real _ (g y))).congr_of_eventuallyEq ?_
+  filter_upwards [hev] with y' hy'
+  rw [hψ.ballLiftExt_of_mem hy'.1, hψ.ballLift_of_blowdown_ne_zero _ hy'.2, Function.comp_apply]
+  simp only [g, dite_eq_left hy']
+  rfl
+
+private theorem isLocalDiffeomorphOn_ballLiftExt :
+    IsLocalDiffeomorphOn 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt
+      (openNbhd n r) := fun y ↦ by
+  by_cases h : (y : BlowupModel n) ∈ openNbhd n ε
+  · exact hψ.isLocalDiffeomorphAt_ballLiftExt_of_mem h
+  · exact hψ.isLocalDiffeomorphAt_ballLiftExt_of_blowdown_ne_zero y.property
+      (hψ.blowdown_ne_zero_of_notMem h)
+
+private theorem injOn_ballLiftExt : InjOn hψ.ballLiftExt (openNbhd n r) := fun y hy y' hy' h ↦ by
+  rw [hψ.ballLiftExt_of_mem hy, hψ.ballLiftExt_of_mem hy'] at h
+  exact congrArg Subtype.val (hψ.injective_ballLift h)
+
+/-- The lift `ψ̃` of a normalized ball embedding as a smooth partial diffeomorphism from the
+model blowup to `Blowup hN.blowupChart`, with source `openNbhd n r` and target the range of
+`ballLift`, which it agrees with on `openNbhd n r` (`ballLiftPartialDiffeomorph_apply`). -/
+def ballLiftPartialDiffeomorph :
+    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)
+      (Blowup hN.blowupChart) ∞ :=
+  hψ.isLocalDiffeomorphOn_ballLiftExt.partialDiffeomorphOfInjOn (isOpen_openNbhd r)
+    hψ.injOn_ballLiftExt
+
+@[simp]
+theorem ballLiftPartialDiffeomorph_source :
+    hψ.ballLiftPartialDiffeomorph.source = openNbhd n r :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..
+
+/-- On `openNbhd n r`, the partial diffeomorphism is the lift. -/
+@[simp]
+theorem ballLiftPartialDiffeomorph_apply (y : openNbhd n r) :
+    hψ.ballLiftPartialDiffeomorph y = hψ.ballLift y := by
+  rw [ballLiftPartialDiffeomorph, IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn,
+    hψ.ballLiftExt_of_mem y.property]
+
+@[simp]
+theorem ballLiftPartialDiffeomorph_target :
+    hψ.ballLiftPartialDiffeomorph.target = range hψ.ballLift := by
+  rw [ballLiftPartialDiffeomorph, IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target]
+  ext x
+  constructor
+  · rintro ⟨y, hy, rfl⟩
+    exact ⟨⟨y, hy⟩, (hψ.ballLiftExt_of_mem hy).symm⟩
+  · rintro ⟨y, rfl⟩
+    exact ⟨y, y.property, hψ.ballLiftExt_of_mem y.property⟩
+
+/-- The lift of a normalized ball embedding is an open embedding of `openNbhd n r` into the
+blowup. -/
+theorem isOpenEmbedding_ballLift : IsOpenEmbedding hψ.ballLift := by
+  have h := hψ.ballLiftPartialDiffeomorph.toOpenPartialHomeomorph.isOpenEmbedding_restrict
+  have hs : hψ.ballLiftPartialDiffeomorph.toOpenPartialHomeomorph.source = openNbhd n r :=
+    hψ.ballLiftPartialDiffeomorph_source
+  rw [hs] at h
+  convert h using 1
+  ext y
+  exact (hψ.ballLiftPartialDiffeomorph_apply y).symm
 
 end IsNormalizedBallEmbedding
 
