@@ -9,6 +9,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.Stable.Manifold
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.InnerProductSpace.RadialExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
@@ -45,7 +46,7 @@ The construction:
   `SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`.
 * For `‖u‖ = ρ` and `0 < r ≤ 1`, `F (r • u) = Φ (θ (r • u) + log r) y_u`
   (`TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_smul`), with a time at most `θ u`
-  since that time increases with `r` (`SymplecticGeometry.strictMonoOn_add_log_of_hasDerivAt_pos`),
+  since that time increases with `r` (`StrictMonoOn.of_forall_hasDerivAt_pos`),
   so `g ≥ a` there; and the description of the unstable set from the sphere
   (`TauCeti.MorseChart.exists_globalFlow_eq_of_mem_unstableSet`) with
   `TauCeti.MorseChart.globalFlow_mem_image_ball` gives the last property.
@@ -149,9 +150,8 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     fun c ↦ Flow.levelCrossingTime Φ g a (ι c)
   have hιs : ContDiff ℝ ∞ fun c : EuclideanSpace ℝ {i // φ.weight i < 0} ↦
       φ.negativeExtend c.ofLp := by
-    have := φ.finiteDimensional
-    exact (LinearMap.toContinuousLinearMap
-      (φ.negativeExtend ∘ₗ (WithLp.linearEquiv 2 ℝ _).toLinearMap)).contDiff
+    simp_rw [← negativeExtendL_apply]
+    exact φ.negativeExtendL.contDiff
   have hτs (c : EuclideanSpace ℝ {i // φ.weight i < 0}) (hc : ‖c‖ = ρ) :
       ContDiffAt ℝ ∞ τ c := by
     have hlev : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) ∞ (Flow.levelCrossingTime Φ g a) (ι c) :=
@@ -218,7 +218,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     -- The time `θ (r • u) + log r` is at most `θ u`, by monotonicity along the ray.
     have hle : θ (r • u) + Real.log r ≤ θ u := by
       have hu0 : u ≠ 0 := norm_pos_iff.1 (hu ▸ hρ0)
-      simpa using (SymplecticGeometry.strictMonoOn_add_log_of_hasDerivAt_pos
+      simpa using (StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0)
         (hθd u hu0)).monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
     simp only [mem_ofPred_eq]
     rw [← hru, φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu.le hr0 hr1]

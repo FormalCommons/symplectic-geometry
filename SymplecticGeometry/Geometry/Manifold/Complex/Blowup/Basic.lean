@@ -427,20 +427,11 @@ the punctured source of `c`. -/
 theorem range_inr :
     range (inr (gluingHomeomorph c)) =
       exceptionalDivisor c ∪ inl (gluingHomeomorph c) '' {x | (x : M) ∈ c.source} := by
-  ext z
-  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · rw [GluedAlong.inl_mem_range_inr_iff, mem_puncturedSourceOpens]
-    refine ⟨fun hx ↦ .inr ⟨x, hx, rfl⟩, ?_⟩
-    rintro (h | ⟨x', hx', h⟩)
-    · exact (inl_notMem_exceptionalDivisor c x h).elim
-    · rwa [← GluedAlong.inl_injective (gluingHomeomorph c) h]
-  · simp only [mem_range_self, true_iff, mem_union, inr_mem_exceptionalDivisor_iff]
-    by_cases hy : (y : BlowupModel n).blowdown = 0
-    · exact .inl hy
-    · have hy' : y ∈ modelOffDivisorOpens c := (mem_modelOffDivisorOpens c).2 hy
-      obtain ⟨x, hx⟩ := (GluedAlong.inr_mem_range_inl_iff (gluingHomeomorph c)).2 hy'
-      exact .inr ⟨x, (mem_puncturedSourceOpens c).1 ((GluedAlong.inl_mem_range_inr_iff _).1
-        ⟨y, hx.symm⟩), hx⟩
+  have h : (puncturedSourceOpens c : Set (puncturedOpens c)) =
+      {x : puncturedOpens c | (x : M) ∈ c.source} := by
+    ext; simp only [SetLike.mem_coe, mem_puncturedSourceOpens, mem_ofPred_eq]
+  rw [GluedAlong.range_inr_eq_compl_image_inl, (GluedAlong.inl_injective _).compl_image_eq,
+    compl_compl, range_inl, compl_compl, union_comm, h]
 
 theorem isClosed_exceptionalDivisor : IsClosed (exceptionalDivisor c) := by
   rw [← isOpen_compl_iff, ← range_inl]

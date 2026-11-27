@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # The change of frame between rescaled unitary charts
@@ -37,6 +38,14 @@ pull-backs of `α` along them differ by the pull-back of the angular form along 
 (`SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`), whose
 `k`-th power `e` has derivative `i k e` times that pull-back (`mvfderiv_coe_circle_apply`).
 
+So the connection read in the charts is covariant
+(`SymplecticGeometry.RescaledUnitaryCharts.connectionReading_eq_frameChange_smul_comp`): for `w`
+in `D.chartTransitionDomain k x y` and a section `s` whose reading `f_x` in the chart at `x` is
+differentiable at `τ w`,
+`D.connectionReading k y s w = e(w) • (D.connectionReading k x s (τ w)) ∘ dτ_w`. The product and
+chain rules give the derivative of `e · (f_x ∘ τ)` at `w`, and the logarithmic derivative of `e`
+turns the model term of the chart at `y` into that of the chart at `x`.
+
 ## Main definitions
 
 * `SymplecticGeometry.RescaledUnitaryCharts.frameChange`: the change of frame.
@@ -50,6 +59,9 @@ pull-backs of `α` along them differ by the pull-back of the angular form along 
   in the two charts differ by the change of frame.
 * `SymplecticGeometry.RescaledUnitaryCharts.fderiv_frameChange_apply`: the logarithmic derivative
   of the change of frame.
+* `SymplecticGeometry.RescaledUnitaryCharts.connectionReading_eq_frameChange_smul_comp`: the
+  connection read in the chart at `y` is the change of frame times the connection read in the
+  chart at `x`, composed with the derivative of the transition.
 
 ## References
 
@@ -203,6 +215,40 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
     linear_combination hmx - hmy - (k : ℝ) * hA
   erw [hkA]
   push_cast
+  ring
+
+/-- **Covariance of the connection read in the charts.** Let `α` be a connection form, `k ≥ k₀`,
+and `τ` the transition from the chart centred at `y` to the chart centred at `x`. At a point `w`
+of `D.chartTransitionDomain k x y`, for a section `s` of `PowerBundle P k` whose reading in the
+chart at `x` is differentiable at `τ w`, the connection read in the chart at `y` at `w` is the
+change of frame `e(w)` times the connection read in the chart at `x` at `τ w`, composed with
+`dτ_w`. -/
+theorem connectionReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm α) {k : ℕ}
+    (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι} (hw : w ∈ D.chartTransitionDomain k x y)
+    {s : Π y, PowerBundle P k y}
+    (hs : DifferentiableAt ℝ (D.reading k x s) (D.chartTransition k x y w)) :
+    D.connectionReading k y s w = D.frameChange k x y w •
+      (D.connectionReading k x s (D.chartTransition k x y w)).comp
+        (fderiv ℝ (D.chartTransition k x y) w) := by
+  have hws := D.chartTransitionDomain_subset_source k x y hw
+  have hτ : DifferentiableAt ℝ (D.chartTransition k x y) w := by
+    rw [chartTransition_def] at hws ⊢
+    exact (D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hws
+  have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds hw
+  have he : DifferentiableAt ℝ (D.frameChange k x y) w :=
+    ((D.contDiffOn_frameChange hk x y).differentiableOn (by simp) w hw).differentiableAt hW
+  have hfτ : DifferentiableAt ℝ (fun w' ↦ D.reading k x s (D.chartTransition k x y w')) w :=
+    hs.comp w hτ
+  -- On the open set `W`, the reading at `y` is `e` times the reading at `x` composed with `τ`.
+  have heq : D.reading k y s =ᶠ[nhds w]
+      fun w' ↦ D.frameChange k x y w' * D.reading k x s (D.chartTransition k x y w') :=
+    Filter.eventually_of_mem hW fun w' hw' ↦
+      D.reading_eq_frameChange_mul (D.chartTransitionDomain_subset_source k x y hw') s
+  ext v
+  rw [smul_apply, ContinuousLinearMap.comp_apply, connectionReading_apply,
+    connectionReading_apply, heq.fderiv_eq,
+    fderiv_fun_mul he hfτ, fderiv_fun_comp w hs hτ]
+  simp [D.fderiv_frameChange_apply hα hk hw v, D.reading_eq_frameChange_mul hws s]
   ring
 
 end RescaledUnitaryCharts

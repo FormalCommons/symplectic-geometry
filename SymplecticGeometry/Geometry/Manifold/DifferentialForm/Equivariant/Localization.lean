@@ -210,7 +210,7 @@ theorem integralTopForm_mul_formCalculus_exp_of_forall_or [FiniteDimensional ℝ
   -- Where `γ` does not vanish, `exp(f + τ) = e ^ c exp(d_ħ θ)`.
   have hη : γ * formCalculus Real.exp Real.contDiff_exp f τ = γ * (Real.exp c • η) := by
     refine SmoothForm.mul_eq_mul_left_of_forall_or fun x ↦ (h x).imp_right fun ⟨hf, hτ⟩ j ↦ ?_
-    rw [DirectSum.smul_apply, SmoothForm.smul_toRoughForm, Pi.smul_apply]
+    rw [DirectSum.smul_apply, SmoothBundleForm.smul_apply]
     exact formCalculus_exp_val_of_eq_add _ _ (by simp [hf]) hτ j
   -- The even form `exp(d_ħ θ)` commutes with `γ`.
   rw [hη, mul_smul_comm, ← (commute_formCalculus _ _ _ _ γ).eq, DirectSum.smul_apply,
