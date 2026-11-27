@@ -9,8 +9,8 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
-import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 import Mathlib.Topology.Instances.RealVectorSpace
+import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 import TauCeti.Analysis.Normed.Module.RCLike.Basic
 
 /-!
@@ -51,13 +51,11 @@ the first paragraph, their values at a fixed vector are as smooth as the operato
 (`ContDiffOn.complexLinearPart_apply`, `ContDiffOn.complexAntilinearPart_apply`).
 
 The last section is about forms with values in a complex line `L` whose norm comes from a real
-inner product, such as a fibre of a Hermitian line bundle. Multiplication by `i` is an isometry,
-so `i • u` is orthogonal to `u` (`real_inner_I_smul_self_eq_zero`), and the vectors orthogonal to
-a nonzero `u` are the real multiples of `i • u`. For two of them, `a + i • b` and `a - i • b` have
-the same norm (`norm_add_I_smul_eq_norm_sub_I_smul`). So if every value of a real-linear map `η`
+inner product, such as a fibre of a Hermitian line bundle. If every value of a real-linear map `η`
 is orthogonal to a nonzero `u`, its complex-linear and complex-antilinear parts have values of
-equal norms: for Tau Ceti's algebraic parts `TauCeti.complexLinearPart` and
-`TauCeti.complexAntilinearPart`, for any endomorphism `J` of the source
+equal norms, by `SymplecticGeometry.norm_add_I_smul_eq_norm_sub_I_smul`: for Tau Ceti's
+algebraic parts `TauCeti.complexLinearPart` and `TauCeti.complexAntilinearPart`, for any
+endomorphism `J` of the source
 (`TauCeti.norm_complexLinearPart_apply_eq_norm_complexAntilinearPart_apply`), and for the
 continuous parts of an operator on a complex normed space, with equal operator norms
 (`ContinuousLinearMap.norm_complexLinearPart_eq_norm_complexAntilinearPart`). This is the
@@ -238,49 +236,10 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
 section ComplexLine
 
 open scoped RealInnerProductSpace
+open SymplecticGeometry
 
 variable {L : Type*} [NormedAddCommGroup L] [InnerProductSpace ℝ L] [NormedSpace ℂ L]
-
-/-- In a complex normed space whose norm comes from a real inner product, `i • u` is orthogonal
-to `u`: multiplication by `i` is an isometry, so `‖i • u + u‖ = ‖i • u - u‖`. -/
-theorem real_inner_I_smul_self_eq_zero (u : L) : ⟪Complex.I • u, u⟫ = 0 := by
-  have h : ‖Complex.I • u + u‖ = ‖Complex.I • u - u‖ := by
-    rw [show Complex.I • u + u = (Complex.I + 1) • u by rw [add_smul, one_smul],
-      show Complex.I • u - u = (Complex.I - 1) • u by rw [sub_smul, one_smul], norm_smul,
-      norm_smul, ← Complex.norm_conj (Complex.I + 1), map_add, Complex.conj_I, map_one, ← norm_neg]
-    ring_nf
-  have h₁ := real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two
-    (Complex.I • u) u
-  have h₂ := real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two
-    (Complex.I • u) u
-  rw [h] at h₁
-  linarith
-
-variable [IsScalarTower ℝ ℂ L]
-
-/-- In a complex normed space whose norm comes from a real inner product, the real inner product
-of `c • u` with `u` is `re c * ‖u‖ ^ 2`. -/
-theorem real_inner_complex_smul_self (c : ℂ) (u : L) : ⟪c • u, u⟫ = c.re * ‖u‖ ^ 2 := by
-  have hr (r : ℝ) (w : L) : (r : ℂ) • w = r • w := by simpa using algebraMap_smul ℂ r w
-  conv_lhs => rw [← Complex.re_add_im c, add_smul, mul_comm, ← smul_smul, smul_comm, hr, hr,
-    inner_add_left, real_inner_smul_left, real_inner_smul_left, real_inner_I_smul_self_eq_zero,
-    real_inner_self_eq_norm_sq]
-  simp
-
-/-- Let `L` be a complex line whose norm comes from a real inner product. If `a` and `b` are both
-orthogonal to a nonzero `u`, then `‖a + i • b‖ = ‖a - i • b‖`: both are imaginary multiples of
-`u`, `a = i α • u` and `b = i β • u` with `α`, `β` real, and `|i α - β| = |i α + β|`. -/
-theorem norm_add_I_smul_eq_norm_sub_I_smul (hL : Module.finrank ℂ L = 1) {u a b : L}
-    (hu : u ≠ 0) (ha : ⟪a, u⟫ = 0) (hb : ⟪b, u⟫ = 0) :
-    ‖a + Complex.I • b‖ = ‖a - Complex.I • b‖ := by
-  obtain ⟨c, rfl⟩ := (finrank_eq_one_iff_of_ne_zero' u hu).1 hL a
-  obtain ⟨d, rfl⟩ := (finrank_eq_one_iff_of_ne_zero' u hu).1 hL b
-  have hu2 : ‖u‖ ^ 2 ≠ 0 := by positivity
-  rw [real_inner_complex_smul_self, mul_eq_zero, or_iff_left hu2] at ha hb
-  rw [smul_smul, ← add_smul, ← sub_smul, norm_smul, norm_smul, ← Complex.norm_conj,
-    ← norm_neg (c - _)]
-  congr 2
-  apply Complex.ext <;> simp [ha, hb]
+  [IsScalarTower ℝ ℂ L]
 
 /-- Let `η` be a real-linear map from a real vector space `T` with an endomorphism `J` (in
 practice a complex structure) to a complex line `L` whose norm comes from a real inner product.

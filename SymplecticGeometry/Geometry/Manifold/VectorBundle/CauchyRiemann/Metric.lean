@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Riemannian.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
-import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
+import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Log
 import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric.Norm
 
@@ -20,8 +20,9 @@ Hermitian metric, and `∇` a connection on `V` compatible with it (Mathlib's
 `CovariantDerivative.IsMetricCompatible`). For a section `σ`, Tau Ceti's
 `CovariantDerivative.IsMetricCompatible.mvfderiv_norm_sq` gives `d|σ|²(v) = 2 ⟪∇_v σ, σ⟫`. So at a
 critical point `x` of `|σ|²` every value of `∇σ(x)` is orthogonal to `σ x`, and if `σ x ≠ 0`,
-`norm_add_I_smul_eq_norm_sub_I_smul` shows that, for an almost complex structure `j` on the base,
-the `(1,0)`-part and the `(0,1)`-part of `∇σ(x)` have values of equal norms
+`SymplecticGeometry.norm_add_I_smul_eq_norm_sub_I_smul` shows that, for an almost complex
+structure `j` on the base, the `(1,0)`-part and the `(0,1)`-part of `∇σ(x)` have values of equal
+norms
 (`CovariantDerivative.IsMetricCompatible.norm_oneZeroPart_apply_eq_norm_zeroOnePart_apply`), and
 equal operator norms for any metric on the tangent bundle
 (`CovariantDerivative.IsMetricCompatible.norm_oneZeroPart_eq_norm_zeroOnePart`). Away from the
@@ -66,7 +67,7 @@ theorem norm_oneZeroPart_apply_eq_norm_zeroOnePart_apply (hcov : cov.IsMetricCom
     rw [hcrit, zero_apply] at this
     linarith
   rw [j.oneZeroPart_apply, j.zeroOnePart_apply, norm_smul, norm_smul,
-    norm_add_I_smul_eq_norm_sub_I_smul hV hσx (h v) (h _)]
+    SymplecticGeometry.norm_add_I_smul_eq_norm_sub_I_smul hV hσx (h v) (h _)]
 
 /-- For a metric connection on a bundle of complex lines, at a critical point `x` of `|σ|²` where
 `σ x ≠ 0`, the `(1,0)`-part and the `(0,1)`-part of `∇σ(x)` have equal operator norms, for any
