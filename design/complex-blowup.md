@@ -414,8 +414,8 @@ atlas and `hJ` as in *Decisions*.
   `almostComplexStructure_apply_inl` (through `localPullback_apply`) and
   `almostComplexStructure_lift` (on the domain of `c.lift`);
   `mfderiv_blowdown_comp_almostComplexStructure`: $d\pi_M\tilde J=J\,d\pi_M$
-  off $Z$; `isIntegrable_on`: the charts `blowupModelChart i ∘ c.lift` are
-  $\tilde J$-holomorphic; and
+  off $Z$; `isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
+  `blowupModelChart i ∘ c.lift` are $\tilde J$-holomorphic; and
   `almostComplexStructure_eq_ofComplexManifold` for a complex `M`.
 
 ### `Blowup/SelfIntersection.lean`
