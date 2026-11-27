@@ -164,6 +164,25 @@ Each entry has this form:
   `Geometry/Symplectic/HPrinciple/Parametric.lean`).
 - **Issue:** #3898.
 
+### The pointwise connected-sum obstruction in dimension zero
+
+- **Where:** `atlas/constructing-symplectic-manifolds.md`, *Pointwise
+  connected-sum obstruction for symplectic forms*.
+- **Error:** the milestone excludes only the dimensions $2n=2$ and $2n=6$,
+  and the page's conventions allow manifolds of dimension zero. For $n=0$
+  the claim is false. Take $M_1=M_2$ a point: removing the centre of the
+  ball leaves nothing, so the connected sum is empty, the zero form on it
+  is symplectic, and the required homotopies on the empty punctured
+  summands exist trivially. More generally, on a manifold of dimension
+  zero every two-form is zero and nondegenerate, so the conclusion fails
+  for any summands.
+- **Fix:** the milestone `not_exists_isSymplectic_connectedSum` assumes
+  $n\ne0$ along with $n\ne1$, $n\ne3$, and
+  `exists_isSymplectic_connectedSum_of_eq_zero` proves that for $n=0$ the
+  symplectic form and both homotopies always exist (both in
+  `Geometry/Symplectic/Sum/Pointwise.lean`).
+- **Issue:** #3447.
+
 ## Other sources
 
 ### Constants of the quadratic shape need a small γ

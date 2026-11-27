@@ -54,8 +54,8 @@ of the derivative of the section read in a trivialization and a chart; its form
 `SymplecticGeometry/Topology/VectorBundle/Orientation/SectionIndex/Derivative.lean`, finds the
 neighbourhood in which `z` is the only zero itself. We take the trivialization
 of the tangent bundle at `z` and the chart at `z` followed by the model embedding, in which `X`
-reads as its coordinate field
-(`VectorField.trivializationAt_snd_eventuallyEq_mpullbackWithin_extChartAt_symm`), so that the
+reads as in the tangent-bundle chart at `(z, X z)`, that is, as its coordinate field
+(`TauCeti.snd_writtenInExtChartAt_eventuallyEq_mpullback_extChartAt_symm`), so that the
 derivative is the chart derivative. The chart hypothesis of that theorem is
 `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`, from
 `SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`. The overall
@@ -119,16 +119,12 @@ theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative'
   have hdetA : A.det = LinearMap.det (vectorFieldChartDerivative I X z) := by
     rw [vectorFieldChartDerivative_def]
   -- The section read in `e` and `φ` is the coordinate field near `φ z`.
-  set f : E → E := fun y ↦ (e (TotalSpace.mk' E (φ.symm y) (X (φ.symm y)))).2 with hf
-  have hfeq : f =ᶠ[𝓝 (φ z)] VectorField.mpullback 𝓘(ℝ, E) I (extChartAt I z).symm X := by
-    have h := VectorField.trivializationAt_snd_eventuallyEq_mpullbackWithin_extChartAt_symm X z
-    rw [I.range_eq_univ, nhdsWithin_univ, VectorField.mpullbackWithin_univ] at h
-    rw [hφz]
-    filter_upwards [h] with y hy
-    have hφs : φ.symm y = (extChartAt I z).symm y := by simp [φ, extChartAt]
-    simp only [hf]
-    rw [hφs]
-    exact hy
+  set f : E → E := fun y ↦ (e (TotalSpace.mk' E (φ.symm y) (X (φ.symm y)))).2
+  -- Tau Ceti's lemma reads `X` in the tangent-bundle chart; it applies to `f` by unfolding:
+  -- `φ.symm` is `(extChartAt I z).symm`, and the fibre coordinate of the tangent-bundle chart
+  -- at `(z, X z)` is that of `e`.
+  have hfeq : f =ᶠ[𝓝 (φ z)] VectorField.mpullback 𝓘(ℝ, E) I (extChartAt I z).symm X :=
+    snd_writtenInExtChartAt_eventuallyEq_mpullback_extChartAt_symm X z
   have hA : HasFDerivAt f A (φ z) := by
     have hU := (mdifferentiableAt_of_det_vectorFieldChartDerivative_ne_zero hdet
       ).hasFDerivAt_mpullback_extChartAt_symm

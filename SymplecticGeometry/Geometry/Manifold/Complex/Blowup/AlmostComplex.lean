@@ -335,18 +335,13 @@ the range of `inr`, an open set that contains the exceptional divisor, is integr
 theorem isIntegrable_restrictOpen_rangeInr :
     ((almostComplexStructure c J hJ).restrictOpen
       (GluedAlong.rangeInr (gluingHomeomorph c))).IsIntegrable := by
-  set D := GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out)
-  -- There the structure is the pullback, along the diffeomorphism `D` onto the part of the
-  -- model over the target of `c`, of the structure of that complex manifold.
-  have h : coverStructure c J true =
-      pullback D (ofComplexManifold (Fin (n + 1) → ℂ) (modelOpens c)) :=
-    ((eq_localPullback_iff_isPseudoholomorphic _ _ _).2
-      ((isPseudoholomorphic_ofComplexManifold_subtype_val (modelOpens c)).comp
-        (isPseudoholomorphic_pullback D _))).symm
   -- The open set `cover c true` of the gluing is the range of `inr` by definition.
   rw [show GluedAlong.rangeInr (gluingHomeomorph c) = cover c true from rfl, almostComplexStructure,
-    restrictOpen_glue, h]
-  exact isIntegrable_ofComplexManifold.pullback D
+    restrictOpen_glue]
+  -- There the structure is `rangeInrStructure c`, the pullback along the local diffeomorphism
+  -- `lift c` of the structure of the complex manifold `BlowupModel n`.
+  unfold coverStructure rangeInrStructure
+  exact isIntegrable_ofComplexManifold.localPullback (isLocalDiffeomorph_rangeInr c)
 
 end Smooth
 

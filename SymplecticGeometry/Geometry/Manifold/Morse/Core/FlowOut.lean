@@ -283,8 +283,8 @@ theorem exists_isSmoothEmbedding_globalFlow_toChart_symm [IsManifold 𝓘(ℝ, E
       ((hθ.differentiable (by simp)) _) (hρ _ h1) (hθρ _ h1)
   have hdim : Module.finrank ℝ (EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) =
       Module.finrank ℝ E := by
-    rw [Module.finrank_prod, finrank_euclideanSpace, ← Module.finrank_fintype_fun_eq_card (R := ℝ),
-      φ.finrank_negativeWeight_fun, add_comm, φ.finrank_stableSubspace_add_manifoldMorseIndex]
+    rw [Module.finrank_prod, φ.finrank_euclideanSpace_negativeWeight, add_comm,
+      φ.finrank_stableSubspace_add_manifoldMorseIndex]
   have hKL : K ⊆ L := fun q hq ↦ isLocalDiffeomorphAt_of_injective_mfderiv hΨ hO (hKO hq)
     BoundarylessManifold.isInteriorPoint (by simp) (himm q hq) hdim
   have hinjK : InjOn Ψ K := fun q hq q' hq' h ↦ by
