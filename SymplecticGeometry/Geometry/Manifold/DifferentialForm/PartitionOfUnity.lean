@@ -111,6 +111,7 @@ private theorem glueForms_apply_eq_sum_extendOpen (η : ∀ i, RoughForm IX (W i
     ρ.glueForms proj W η x = ∑ i ∈ ρ.finsupport (proj x), ρ i (proj x) • extendOpen (η i) x := by
   classical
   rw [glueForms_apply]
+  -- Each summand is `extendOpen (η i) x`, the same dependent `if` on `x ∈ W i`.
   rfl
 
 variable {ρ proj W}
