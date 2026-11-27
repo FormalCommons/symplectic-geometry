@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
@@ -73,10 +74,7 @@ diffeotopy `Ψ` of `M`, which starts at the identity, whose time-one map `Ψ.fin
 to `ω₀`. -/
 theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace M]
     (o : Manifold.Orientation I M (Fin 2)) {ω₀ σ : SmoothTwoForm I M}
-    (hω : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
-      b.orientation = o.orientationAt x → 0 < ω₀.val x b)
-    (hσ : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
-      b.orientation = o.orientationAt x → 0 < σ.val x b)
+    (hω : o.IsPositive ω₀.val) (hσ : o.IsPositive σ.val)
     (hint : integralTopForm o σ.val = integralTopForm o ω₀.val) :
     ∃ Ψ : Diffeotopy I ∞ M, SmoothForm.mpullback Ψ.final Ψ.final.contMDiff σ = ω₀ := by
   have hE : Module.finrank ℝ E = 2 := by simpa using o.card_eq.symm
@@ -84,17 +82,15 @@ theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace 
   set α : unitInterval → SmoothTwoForm I M := fun t ↦ ω₀ + (t : ℝ) • (σ - ω₀) with hα
   -- Step 1: every form of the segment is symplectic.
   have hsymp (t : unitInterval) : IsSymplectic (α t) := by
-    refine (isSymplectic_iff_forall_ne_zero_of_finrank_eq_two hE).2 fun x h0 ↦ ?_
-    -- `TangentSpace I x` is the model space `E` by definition
-    have hx : Module.finrank ℝ (TangentSpace I x) = 2 := hE
-    let b := (Module.finBasisOfFinrankEq ℝ (TangentSpace I x) hx).adjustToOrientation
-      (o.orientationAt x)
-    have hb : b.orientation = o.orientationAt x := Module.Basis.orientation_adjustToOrientation _ _
+    refine (isSymplectic_iff_forall_ne_zero_of_finrank_eq_two hE).2 fun x ↦
+      Manifold.Orientation.IsPositiveAt.ne_zero (o := o) <|
+        Manifold.Orientation.isPositiveAt_iff.2 fun b hb ↦ ?_
     have hval : (α t).val x b = ω₀.val x b + (t : ℝ) * (σ.val x b - ω₀.val x b) := by
       simp [hα]
-    rw [h0, ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at hval
-    nlinarith [hω x b hb, hσ x b hb, mul_nonneg (unitInterval.nonneg t) (hσ x b hb).le,
-      mul_nonneg (unitInterval.one_sub_nonneg t) (hω x b hb).le]
+    have hωb := hω.apply_pos hb
+    have hσb := hσ.apply_pos hb
+    nlinarith [mul_nonneg (unitInterval.nonneg t) hσb.le,
+      mul_nonneg (unitInterval.one_sub_nonneg t) hωb.le]
   -- Step 2: `σ` and `ω₀` have the same integral, so `σ - ω₀` is exact.
   have hexact : σ - ω₀ ∈ exactForms I M 2 := (sub_mem_exactForms_iff_integralTopForm_eq o).2 hint
   -- Step 3: Moser stability along the segment.
@@ -116,10 +112,7 @@ on every positively oriented tangent basis. If `σ` and `ω₀` have the same in
 there is a diffeomorphism `ψ` of `M` with `ψ^* σ = ω₀`. -/
 theorem exists_diffeomorph_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace M]
     (o : Manifold.Orientation I M (Fin 2)) {ω₀ σ : SmoothTwoForm I M}
-    (hω : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
-      b.orientation = o.orientationAt x → 0 < ω₀.val x b)
-    (hσ : ∀ x (b : Module.Basis (Fin 2) ℝ (TangentSpace I x)),
-      b.orientation = o.orientationAt x → 0 < σ.val x b)
+    (hω : o.IsPositive ω₀.val) (hσ : o.IsPositive σ.val)
     (hint : integralTopForm o σ.val = integralTopForm o ω₀.val) :
     ∃ ψ : M ≃ₘ⟮I, I⟯ M, SmoothForm.mpullback ψ ψ.contMDiff σ = ω₀ :=
   let ⟨Ψ, hΨ⟩ := exists_diffeotopy_mpullback_eq_of_integralTopForm_eq o hω hσ hint
