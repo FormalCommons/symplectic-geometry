@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Logic.Equiv.PartialEquiv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -311,9 +312,7 @@ theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {G : Type*} [Group
     rw [← Diffeomorph.coe_constSmul (I := I) (n := ∞) k]
     exact (Diffeomorph.constSmul I ∞ k).isInvertible_mfderiv (by simp)
   refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hk ?_
-  have h := congrArg Subtype.val hσ
-  rw [SmoothForm.coe_mpullback] at h
-  exact congrFun h y
+  exact congrFun ((SmoothForm.mpullback_eq_iff _).1 hσ) y
 
 end SmoothTwoForm
 

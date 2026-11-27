@@ -136,11 +136,10 @@ private theorem exists_diffeotopy_mpullback_eq [FiniteDimensional ℝ E']
         σ = SmoothForm.mpullback ((ρ ∘ Prod.snd) ∘ Prod.mk t)
           (hρ.comp ((contMDiff_snd (I := 𝓘(ℝ, ℝ))).comp
             (contMDiff_const.prodMk contMDiff_id))) σ := by
-      apply Subtype.ext
       have h₁ : B ∘ Prod.mk t = (fun q ↦ e (⟨t, ht⟩, q)) ∘ r :=
         funext fun w ↦ hψe ⟨t, ht⟩ (r w)
       have h₂ : (ρ ∘ Prod.snd) ∘ Prod.mk t = i ∘ r := rfl
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, h₁, h₂,
+      rw [SmoothForm.mpullback_eq_iff, SmoothForm.coe_mpullback, h₁, h₂,
         TauCeti.mpullback_comp (f := r) (g := fun q ↦ e (⟨t, ht⟩, q)) (hr.mdifferentiable (by simp))
           ((e.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiable (by simp)),
         TauCeti.mpullback_comp (hr.mdifferentiable (by simp))

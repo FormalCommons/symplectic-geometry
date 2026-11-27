@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Moser's principle along local flows, and slices of families of forms
@@ -230,8 +231,7 @@ theorem mpullback_prodMap_timeInterior (f : M → N) (hf : ContMDiff I J ∞ f)
     (σ : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F (k + 1)) :
     mpullback (Prod.map id f) (contMDiff_id.prodMap hf) σ.timeInterior =
       (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) σ).timeInterior := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, coe_timeInterior, coe_timeInterior, coe_mpullback]
+  rw [mpullback_eq_iff, coe_timeInterior, coe_timeInterior, coe_mpullback]
   refine mpullback_interior (F := F) _ _ _ _ fun p ↦ ?_
   rw [mfderiv_prodMap mdifferentiableAt_id (hf.mdifferentiableAt (by simp)), mfderiv_id]
   exact Prod.ext rfl (mfderiv I J f p.2).map_zero

@@ -26,6 +26,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Topology.Compactness.Compact
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -341,9 +342,8 @@ theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundar
         (hemb t).isEmbedding⟩ },
     SmoothIsotopy.isSymplectic_def.2 fun t ↦ ?_, fun t x ↦ ?_, fun t ↦ hemb t⟩
   · -- the slices of the isotopy are those of the rescaled family, by construction
-    have h := congrArg Subtype.val ((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).1
-      (hsymp t))
-    rwa [SmoothForm.coe_mpullback] at h
+    exact (SmoothForm.mpullback_eq_iff _).1
+      ((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).1 (hsymp t))
   · exact vectorBundleRescaledFamily_zeroSection _ (hψ0 x) t
 
 section TwoEmbeddings
@@ -541,16 +541,15 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
     have hval : SmoothForm.mpullback (Subtype.val ∘ fun z ↦ q (t, z))
         (contMDiff_subtypeVal.comp hqt) (symplecticForm J L) =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L) := by
-      refine Subtype.ext ?_
       have hq : (Subtype.val ∘ fun z ↦ q (t, z)) = fun z ↦ F.symm.restrict hUU' (t, z) :=
         funext fun z ↦ SmoothIsotopy.coe_codRestrict_apply _ _ _ _
-      rw [SmoothForm.coe_mpullback, hq,
+      rw [SmoothForm.mpullback_eq_iff, hq,
         SmoothIsotopy.isSymplectic_def.1 (hFs.symm.restrict hUU') t,
         SmoothForm.mpullback_mpullback]
       exact congrArg Subtype.val (SmoothForm.mpullback_congr _ _ rfl _)
     rw [hval, ← map_smul] at key
     simp only [SmoothIsotopy.postcompSmoothEmbedding_apply]
-    exact (SmoothForm.coe_mpullback _ _ _).symm.trans (congrArg Subtype.val key)
+    exact (SmoothForm.mpullback_eq_iff _).1 key
   · -- `F` fixes the zero section, and `ι₁ = ι₀` there
     have hqx : q (t, ⟨_, hzero (mem_range_self x)⟩) = ⟨_, hU₁ (mem_range_self x)⟩ := by
       refine Subtype.ext ?_

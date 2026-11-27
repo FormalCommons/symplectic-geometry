@@ -10,6 +10,7 @@ import SymplecticGeometry.Geometry.Manifold.GroupAction.LinearTube
 
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # An equivariant local diffeomorphism from a local model at a point to `M`
@@ -238,9 +239,8 @@ theorem mpullback_apply_mk_zero_eq_descendedForm :
   have hk := ContMDiffSMul.contMDiff_const_smul (I := I) (n := ∞)
     (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
     (M := BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation (A × V)) g
-  have hω := congrArg Subtype.val (D.mpullback_smul_descendedForm g hk)
-  have hσg := congrArg Subtype.val (hσ g)
-  rw [SmoothForm.coe_mpullback] at hω hσg
+  have hω := (SmoothForm.mpullback_eq_iff _).1 (D.mpullback_smul_descendedForm g hk)
+  have hσg := (SmoothForm.mpullback_eq_iff _).1 (hσ g)
   rw [← hmk]
   have := ContMDiffSMul.contMDiffConstSMul I (n := 1) (G := G)
     (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))

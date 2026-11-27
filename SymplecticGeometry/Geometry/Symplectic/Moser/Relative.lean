@@ -23,6 +23,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The relative Moser theorem with prescribed first derivative
@@ -300,8 +301,8 @@ theorem exists_smoothForm_relative_primitive_sub_of_eq_along (f : SmoothEmbeddin
     refine nondegenerate_bilinFormAt_add_smul_sub_of_eq ?_ (hnd q) s
     rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
   have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
-    Subtype.ext (funext fun q ↦ by
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
+    (SmoothForm.mpullback_eq_iff _).2 (funext fun q ↦ by
+      rw [SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
   obtain ⟨W, hWO, hfW, β, hdβ, hβ0, hβ1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
     hf (isOpen_setOfPred_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
   exact ⟨W, hWO, hfW, β, hdβ, hβ0, fun q ↦ hβ1 q (heq q)⟩
