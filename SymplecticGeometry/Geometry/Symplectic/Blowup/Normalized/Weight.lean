@@ -332,6 +332,56 @@ theorem radialExpansion_radialContraction (hr : l + ε < r) {p : M}
   · have hpb : p ∉ ψ '' ball 0 r := fun hpb ↦ hp' ⟨hpb, hp⟩
     rw [hψ.radialContraction_of_not hh hp', hψ.radialExpansion_of_not hh fun h ↦ hpb h.1]
 
+/-- `radialExpansion` sends `ψ z` to `ψ(F_h z)`, for `0 < |z| < r`. -/
+theorem radialExpansion_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
+    (hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r) :
+    hψ.radialExpansion hh (ψ (complexToRealEuclidean (Fin (n + 1)) z)) =
+      ψ (complexToRealEuclidean (Fin (n + 1))
+        (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)) := by
+  have hzs : (z : Fin (n + 1) → ℂ) ∈ hψ.complexPartialDiffeomorph.source := by
+    rw [mem_complexPartialDiffeomorph_source_iff]; exact hz
+  have hΨ : hψ.complexPartialDiffeomorph z = ψ (complexToRealEuclidean (Fin (n + 1)) z) := by
+    rw [coe_complexPartialDiffeomorph, Function.comp_apply]
+  have hq : ψ (complexToRealEuclidean (Fin (n + 1)) z) ∈ ψ '' ball 0 r ∧
+      ψ (complexToRealEuclidean (Fin (n + 1)) z) ≠ ψ 0 := by
+    refine ⟨⟨_, mem_ball_zero_iff.2 hz, rfl⟩, fun h0 ↦ mem_puncturedSpace.1 z.property ?_⟩
+    have hr0 : (0 : ℝ) ≤ r := (norm_nonneg _).trans hz.le
+    have := hψ.injOn (mem_closedBall_zero_iff.2 hz.le) (mem_closedBall_self hr0) h0
+    rwa [map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective] at this
+  have hz' : (⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace hq⟩ :
+      puncturedSpace (Fin (n + 1) → ℂ)) = z := by
+    refine Subtype.ext ?_
+    rw [Subtype.coe_mk, ← hΨ]
+    exact hψ.complexPartialDiffeomorph.left_inv hzs
+  rw [hψ.radialExpansion_of_mem hh hq, hz', coe_complexPartialDiffeomorph, Function.comp_apply]
+
+/-- For `l + ε < r`, `radialExpansion` sends every point other than `ψ 0` off `ψ(B(l))`. -/
+theorem radialExpansion_notMem (hr : l + ε < r) {q : M} (hq : q ≠ ψ 0) :
+    hψ.radialExpansion hh q ∉ ψ '' closedBall 0 l := by
+  by_cases hqb : q ∈ ψ '' ball 0 r
+  · set z : puncturedSpace (Fin (n + 1) → ℂ) :=
+      ⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace ⟨hqb, hq⟩⟩
+    have hzr : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
+      rw [← hψ.mem_complexPartialDiffeomorph_source_iff]
+      exact hψ.complexPartialDiffeomorph.map_target
+        (by rw [complexPartialDiffeomorph_target]; exact hqb)
+    set w := radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z
+    have hw : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < r := hh.norm_radialMap_lt hr hzr
+    have hlw : l < ‖complexToRealEuclidean (Fin (n + 1)) w‖ := by
+      have := (hh.radialDiffeomorph n z).property
+      rwa [coe_radialMapDiffeomorph_apply, hh.mem_radialShell_iff] at this
+    rw [hψ.radialExpansion_of_mem hh ⟨hqb, hq⟩, coe_complexPartialDiffeomorph,
+      Function.comp_apply]
+    rintro ⟨v, hv, hvw⟩
+    have hvr : v ∈ closedBall 0 r := closedBall_subset_closedBall
+      (by linarith [hh.weight_pos, hh.collar_pos]) hv
+    rw [hψ.injOn hvr (mem_closedBall_zero_iff.2 hw.le) hvw, mem_closedBall_zero_iff] at hv
+    exact hv.not_gt hlw
+  · rw [hψ.radialExpansion_of_not hh fun h ↦ hqb h.1]
+    rintro ⟨v, hv, rfl⟩
+    refine hqb ⟨v, mem_ball_zero_iff.2 ((mem_closedBall_zero_iff.1 hv).trans_lt ?_), rfl⟩
+    linarith [hh.collar_pos]
+
 variable [T2Space M]
 
 /-- `radialContraction` is a local diffeomorphism at each point off `ψ(B(l))`, for `l + ε < r`. -/
@@ -393,6 +443,105 @@ theorem isLocalDiffeomorphAt_radialContraction (hr : l + ε < r) {p : M}
     rw [hψ.radialContraction_of_notMem hh hq, Diffeomorph.coe_refl, id]
 
 end IsSymplecticBallEmbedding
+namespace IsNormalizedBallEmbedding
+
+open BlowupModel
+open GluedAlong (inl inr)
+open Blowup (gluingHomeomorph)
+
+variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
+  [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+  {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M}
+  {J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) M} {p₀ : M} {δ : ℝ}
+  {ψ₀ ψ : StdSpace (Fin (n + 1)) → M} {hN : IsNormalizedAt σ J p₀ δ ψ₀} {r l ε ε' : ℝ}
+  {h : ℝ → ℝ}
+
+variable (hψ : IsNormalizedBallEmbedding hN ψ r l ε)
+include hψ
+
+/-- For `ε' ≤ ε`, the radius `√(l² + ε'²)` of the blowup of weight `l` with collar `ε'` is at
+most the radius `r` of a normalized ball embedding of weight `l` and width `ε`. -/
+theorem sqrt_le_radius (hε' : 0 ≤ ε') (hε'ε : ε' ≤ ε) : √(l ^ 2 + ε' ^ 2) ≤ r := by
+  have hl := hψ.weight_pos
+  have hlε := hψ.weight_add_width_lt
+  refine (Real.sqrt_le_iff.2 ⟨by linarith, by nlinarith⟩).trans hlε.le
+
+/-- For `ε' ≤ ε`, a normalized ball embedding of weight `l` and width `ε` is a symplectic
+embedding of the closed ball of radius `√(l² + ε'²)`, along which the blowup of weight `l` with
+collar `ε'` is defined. -/
+theorem isSymplecticBallEmbedding_sqrt (hε' : 0 < ε') (hε'ε : ε' ≤ ε) :
+    IsSymplecticBallEmbedding σ √(l ^ 2 + ε' ^ 2) ψ :=
+  hψ.isSymplecticBallEmbedding.mono (hψ.sqrt_le_radius hε'.le hε'ε)
+
+variable [T2Space M]
+
+variable (hh : IsBlowupProfile l ε h) (hε' : 0 < ε') (hε'ε : ε' ≤ ε)
+
+/-- A point of `M ∖ ψ(B(l))` is sent by `radialContraction` to a point other than `p₀`. -/
+private theorem radialContraction_mem_puncturedOpens
+    (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
+    hψ.isSymplecticBallEmbedding.radialContraction hh x ∈
+      Blowup.puncturedOpens hN.blowupChart := by
+  rw [Blowup.mem_puncturedOpens]
+  intro h0
+  exact hψ.isSymplecticBallEmbedding.radialContraction_ne hh hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x.property)
+    (h0.trans hψ.map_zero.symm)
+
+/-- The map from the outer piece `M ∖ ψ(B(l))` of the blowup of weight `l` to `Blowup c`:
+`radialContraction`, followed by the inclusion of `M ∖ p₀`. -/
+private def outerMap (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
+    Blowup hN.blowupChart :=
+  inl (gluingHomeomorph hN.blowupChart)
+    ⟨_, hψ.radialContraction_mem_puncturedOpens hh hε' hε'ε x⟩
+
+/-- The map from the model piece `openNbhd n ε'` of the blowup of weight `l` to `Blowup c`: the
+lift of `ψ`. -/
+private def modelMap (y : openNbhdOpens n ε') : Blowup hN.blowupChart :=
+  hψ.ballLift ⟨y, openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le) (mem_openNbhdOpens_iff.1 y.property)⟩
+
+private theorem isLocalDiffeomorph_outerMap :
+    IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      (hψ.outerMap hh hε' hε'ε) := fun x ↦ by
+  let k : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) →
+      Blowup.puncturedOpens hN.blowupChart :=
+    fun x ↦ ⟨_, hψ.radialContraction_mem_puncturedOpens hh hε' hε'ε x⟩
+  have hk : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ k x :=
+    isLocalDiffeomorphAt_subtypeVal_comp_iff.1 <| IsLocalDiffeomorphAt.comp
+      (hf := isLocalDiffeomorph_subtype_val x)
+      (hg := hψ.isSymplecticBallEmbedding.isLocalDiffeomorphAt_radialContraction hh
+        hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x.property))
+  exact IsLocalDiffeomorphAt.comp (hf := hk)
+    (hg := Blowup.isLocalDiffeomorph_inl_real hN.blowupChart (k x))
+
+omit [T2Space M] in
+private theorem isLocalDiffeomorph_modelMap :
+    IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      (hψ.modelMap hε'ε) := fun y ↦ by
+  have hy : (y : BlowupModel n) ∈ hψ.ballLiftPartialDiffeomorph.source := by
+    rw [ballLiftPartialDiffeomorph_source]
+    exact openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le) (mem_openNbhdOpens_iff.1 y.property)
+  refine (IsLocalDiffeomorphAt.comp (hf := isLocalDiffeomorph_subtype_val y)
+    (hg := hψ.ballLiftPartialDiffeomorph.isLocalDiffeomorphAt _ _ _ hy)).congr_of_eventuallyEq
+    (Filter.Eventually.of_forall fun y' ↦ ?_)
+  rw [Function.comp_apply, modelMap,
+    ← hψ.ballLiftPartialDiffeomorph_apply ⟨y', openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le)
+      (mem_openNbhdOpens_iff.1 y'.property)⟩]
+
+private theorem injective_outerMap : Function.Injective (hψ.outerMap hh hε' hε'ε) := by
+  intro x x' hxx'
+  have h₁ := congrArg Subtype.val (GluedAlong.inl_injective _ hxx')
+  refine Subtype.ext ?_
+  rw [← hψ.isSymplecticBallEmbedding.radialExpansion_radialContraction hh
+      hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x.property),
+    ← hψ.isSymplecticBallEmbedding.radialExpansion_radialContraction hh
+      hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x'.property)]
+  exact congrArg _ h₁
+
+omit [T2Space M] in
+private theorem injective_modelMap : Function.Injective (hψ.modelMap hε'ε) := fun y y' hyy' ↦
+  Subtype.ext (by simpa using congrArg Subtype.val (hψ.injective_ballLift hyy'))
+
+end IsNormalizedBallEmbedding
 
 end SymplecticGeometry
 
