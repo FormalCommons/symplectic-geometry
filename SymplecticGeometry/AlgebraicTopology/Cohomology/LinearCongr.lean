@@ -24,6 +24,8 @@ give its compatibility with changes of chain coefficients and with cup products.
 
 ## Main definitions
 
+* `TopCat.singularCochainComplexLinearCongr`: the identification of singular cochains for two
+  equal linear structures of the category of coefficients, the identity in each degree.
 * `TopCat.singularCohomologyLinearCongr`: the identification of singular cohomology for two
   equal linear structures of the category of coefficients.
 
@@ -51,6 +53,56 @@ universe w v u
 namespace TopCat
 
 variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] {k : Type*} [Ring k]
+
+/-- The singular cochain complex `C^•(X; R, M)` for two equal structures `L₁ = L₂` of `C` as a
+`k`-linear category: in each degree, the identity of cochains, which is `k`-linear for both
+structures. -/
+def singularCochainComplexLinearCongr {L₁ L₂ : Linear k C} (e : L₁ = L₂) (X : TopCat.{w})
+    (R M : C) :
+    @singularCochainComplex C _ _ _ R k _ L₁ M X ≅ @singularCochainComplex C _ _ _ R k _ L₂ M X :=
+  HomologicalComplex.Hom.isoOfComponents
+    (C₁ := @singularCochainComplex C _ _ _ R k _ L₁ M X)
+    (C₂ := @singularCochainComplex C _ _ _ R k _ L₂ M X)
+    (fun _ ↦
+      { hom := ModuleCat.homEquiv.symm
+          { toFun := id
+            map_add' := fun _ _ ↦ rfl
+            map_smul' := by subst e; exact fun _ _ ↦ rfl }
+        inv := ModuleCat.homEquiv.symm
+          { toFun := id
+            map_add' := fun _ _ ↦ rfl
+            map_smul' := by subst e; exact fun _ _ ↦ rfl } })
+    fun _ _ _ ↦ rfl
+
+theorem singularCochainComplexLinearCongr_def {L₁ L₂ : Linear k C} (e : L₁ = L₂)
+    (X : TopCat.{w}) (R M : C) :
+    singularCochainComplexLinearCongr e X R M =
+      HomologicalComplex.Hom.isoOfComponents
+        (C₁ := @singularCochainComplex C _ _ _ R k _ L₁ M X)
+        (C₂ := @singularCochainComplex C _ _ _ R k _ L₂ M X)
+        (fun _ ↦
+          { hom := ModuleCat.homEquiv.symm
+              { toFun := id
+                map_add' := fun _ _ ↦ rfl
+                map_smul' := by subst e; exact fun _ _ ↦ rfl }
+            inv := ModuleCat.homEquiv.symm
+              { toFun := id
+                map_add' := fun _ _ ↦ rfl
+                map_smul' := by subst e; exact fun _ _ ↦ rfl } })
+        fun _ _ _ ↦ rfl :=
+  (rfl)
+
+/-- The change of linear structure on cochains is the identity on each cochain. -/
+theorem singularCochainComplexLinearCongr_hom_f_apply {L₁ L₂ : Linear k C} (e : L₁ = L₂)
+    (X : TopCat.{w}) (R M : C) (p : ℕ) (φ : ((toSSet.obj X).chainComplex R).X p ⟶ M) :
+    (singularCochainComplexLinearCongr e X R M).hom.f p φ = φ :=
+  (rfl)
+
+/-- The inverse change of linear structure on cochains is the identity on each cochain. -/
+theorem singularCochainComplexLinearCongr_inv_f_apply {L₁ L₂ : Linear k C} (e : L₁ = L₂)
+    (X : TopCat.{w}) (R M : C) (p : ℕ) (φ : ((toSSet.obj X).chainComplex R).X p ⟶ M) :
+    (singularCochainComplexLinearCongr e X R M).inv.f p φ = φ :=
+  (rfl)
 
 /-- The identification of singular cohomology `Hⁿ(X; R, M)` for two equal structures
 `L₁ = L₂` of `C` as a `k`-linear category: Mathlib's `LinearEquiv.cast` along `e`, for cohomology
