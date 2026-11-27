@@ -1120,7 +1120,8 @@ containing `ι '' closedBall 0 1`:
        smooth family that is only weakly increasing. Take
        `ℓ₀ < a < b < ℓ₁` with `Icc ℓ₀ a ×ˢ Icc r₁ r₂` and
        `Icc b ℓ₁ ×ˢ Icc r₁ r₂` in `U`, points `a = t 0 < … < t N = b` of a
-       small mesh `h`, `A 0 = χ a`, `A i` smooth and close to `χ (t i)`
+       small mesh `h`, `A 0 = χ a` near `Icc r₁ r₂`, `A i` smooth and close
+       to `χ (t i)`
        (step 2), and `M 0 = A 0`,
        `M (i + 1) = smoothedMax δᵢ (M i) (A (i + 1))`. By uniform continuity
        `A (i + 1) - η' < M i - δᵢ` once `h` is small, so the path
@@ -1129,14 +1130,15 @@ containing `ι '' closedBall 0 1`:
        `M (i + 1)`, is smooth in `(σ, r)`, weakly increasing in `σ`
        (`smoothedMax` is monotone in its second argument), and consists of
        convex shapes (step 3). The paths glue, being flat at the joints, to
-       a smooth `C` on `Icc a b`, weakly increasing in `ℓ`, with `C a = χ a`
+       a smooth `C` on `Icc a b`, weakly increasing in `ℓ`, with `C a`
+       equal to `χ a` near `Icc r₁ r₂`
        and `C b = M N ≤ max over Icc a b of χ ℓ + ∑ δᵢ + ε`. Near `r₂`,
        where `∂χ/∂ℓ ≥ m > 0` and `χ` is smooth, `M i = A i = χ (t i)` once
        `δᵢ < m * h / 2`, and `C ℓ` is within any given tolerance of `χ ℓ`
        in value and two `r`-derivatives once `h` is small, since there
        `∂χ/∂r` is Lipschitz in `ℓ` and the second derivative of
        `smoothedAbs δᵢ` is of order `1 / δᵢ`. The order of choice is
-       tolerance, `η'`, `h`, `ε`, `δᵢ`.
+       tolerance and `ε`, `η'`, then `δᵢ = c * h` with `c` fixed, last `h`.
     5. `exists_shapeFoliation` itself (`Surround/ShapeFoliation.lean`):
        with `κ > 0` small and a smooth `θ`, nondecreasing, `0` near `ℓ₀`,
        constant near `ℓ₁` and with `θ' > 0` in between, the family is
