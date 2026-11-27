@@ -86,6 +86,9 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   smooth map with smooth local sections over an open cover of its target form a smooth family.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq`: in particular, a family is smooth
   when its pullbacks along such a map are the slices of a smooth form.
+* `SymplecticGeometry.IsSmoothFamily.contMDiffAt_of_mpullback_family`: the slice section of a
+  family is smooth at `(p.1, f p)` when its pullbacks along the maps `f (t, ·)` form a smooth
+  family and `q ↦ (q.1, f q)` is a local diffeomorphism at `p`.
 * `SymplecticGeometry.isSmoothFamily_interiorₗ`: the contractions of a two-form with a jointly
   smooth family of vector fields form a smooth family of one-forms.
 * `SymplecticGeometry.isSmoothFamily_iff_mpullback_inclusion_sup`: smoothness of a family on
@@ -116,6 +119,14 @@ the map `id × f`, with the local sections `id × s`: near each point, a form is
 its pullback along `f`, by Tau Ceti's `TauCeti.contMDiffAt_mpullback_form_iff_of_section`. Unlike
 that lemma, it needs no boundaryless source, so `N × M'` may have boundary, as for
 `N = Set.Icc a b`.
+
+For a family of maps `f (t, ·)`
+(`SymplecticGeometry.IsSmoothFamily.contMDiffAt_of_mpullback_family`) the vertical forms do not
+fit this pattern, since pulling back along `q ↦ (q.1, f q)` adds the derivative of `f` in `t`.
+Instead, let `Ω` be a smooth form on `N × M'` whose slices are the pulled-back forms, and `L` a
+local inverse of `q ↦ (q.1, f q)` near `(p.1, f p)`. Since `L` keeps the first coordinate, the
+pullbacks of `Ω` along the maps `L (t, ·)` are the `α t` near `(p.1, f p)`, and they are jointly
+smooth there by Tau Ceti's `ContMDiffAt.mpullback_form_family`.
 
 The value of a form with no component along `N` is computed from its slices by
 `TauCeti.RoughForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`, for the projection `Prod.fst`
@@ -577,6 +588,67 @@ theorem of_mpullback_prodMk_eq {f : M' → M} (hf : ContMDiff I' I ∞ f)
   refine of_mpullback hf hsec ?_
   simp_rw [← h, ← SmoothForm.mpullback_prodMk_mpullback_prodComm]
   exact isSmoothFamily_mpullback_prodMk _
+
+/-- **Smoothness through a smooth family of local diffeomorphisms.** Let `f : N × M' → M` be
+smooth, and `p` a point of `N × M'` at which `q ↦ (q.1, f q)` is a local diffeomorphism. If the
+pullbacks of the `α t` along the maps `f (t, ·)` form a smooth family, then the slice section
+`(t, y) ↦ (α t) y` of `α` is smooth at `(p.1, f p)`. -/
+theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.prod I') I ∞ f)
+    {p : N × M'} (hΦ : IsLocalDiffeomorphAt (J.prod I') (J.prod I) ∞ (fun q ↦ (q.1, f q)) p)
+    (h : IsSmoothFamily J (fun t ↦ SmoothForm.mpullback (fun x ↦ f (t, x))
+      (hf.comp (contMDiff_const.prodMk contMDiff_id)) (α t))) :
+    ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
+      (fun q : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
+        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) q.2
+        ((α q.1).val q.2)) (p.1, f p) := by
+  obtain ⟨Ω, hΩ⟩ := h
+  -- A local inverse `L` of `q ↦ (q.1, f q)` near `(p.1, f p)`; it keeps the first coordinate.
+  set L := hΦ.localInverse
+  have hsrc : L.source ∈ 𝓝 (p.1, f p) :=
+    hΦ.localInverse_open_source.mem_nhds hΦ.localInverse_mem_source
+  have hLd : ∀ z ∈ L.source, ContMDiffAt (J.prod I) (J.prod I') ∞ L z := fun z hz ↦
+    hΦ.contMDiffOn_localInverse.contMDiffAt (hΦ.localInverse_open_source.mem_nhds hz)
+  -- The slices of the pullback of `Ω` along `L` are smooth at `(p.1, f p)`.
+  have key := ContMDiffAt.mpullback_form_family (J := J.prod I) (I := I) (m := ∞) (n := ∞)
+    (φ := Ω.val) (f := fun q y ↦ L (q.1, y)) (g := Prod.snd) (p₀ := (p.1, f p))
+    (Ω.contMDiff _)
+    ((hLd _ (mem_of_mem_nhds hsrc)).comp (f := fun r : (N × M) × M ↦ (r.1.1, r.2))
+      ((p.1, f p), f p) ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd).contMDiffAt)
+    contMDiffAt_snd (by simp)
+  refine key.congr_of_eventuallyEq ?_
+  -- Near `(p.1, f p)`, these slices are the `α t`.
+  filter_upwards [hsrc] with q hq
+  obtain ⟨t, y⟩ := q
+  have hy : {y' | (t, y') ∈ L.source} ∈ 𝓝 y :=
+    (continuous_const.prodMk continuous_id).continuousAt.preimage_mem_nhds
+      (hΦ.localInverse_open_source.mem_nhds hq)
+  obtain ⟨s, hs_def⟩ : ∃ s : M → M', s = fun y' ↦ (L (t, y')).2 := ⟨_, rfl⟩
+  have hLs : ∀ y' ∈ {y' | (t, y') ∈ L.source}, L (t, y') = (t, s y') := fun y' hy' ↦
+    Prod.ext (congrArg Prod.fst (hΦ.localInverse_right_inv hy') :) (by rw [hs_def])
+  have hs : MDifferentiableAt I I' s y := by
+    rw [hs_def]
+    exact (contMDiffAt_snd.comp _ ((hLd _ hq).comp _
+      (contMDiffAt_const.prodMk contMDiffAt_id))).mdifferentiableAt (by simp)
+  have hft : MDifferentiableAt I' I (fun x ↦ f (t, x)) (s y) :=
+    (hf.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)
+  have hL : (fun y' ↦ L (t, y')) =ᶠ[𝓝 y] Prod.mk t ∘ s := by
+    filter_upwards [hy] with y' hy'
+    exact hLs y' hy'
+  have hfs : (fun x ↦ f (t, x)) ∘ s =ᶠ[𝓝 y] id := by
+    filter_upwards [hy] with y' hy'
+    have h1 := congrArg Prod.snd (hΦ.localInverse_right_inv hy')
+    rw [hLs y' hy'] at h1
+    exact h1
+  have hslice := congrArg Subtype.val (hΩ t)
+  simp only [SmoothForm.coe_mpullback] at hslice
+  refine congrArg (TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
+    (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) y) ?_
+  have hmk : MDifferentiableAt I' (J.prod I') (Prod.mk t) (s y) :=
+    (contMDiff_const.prodMk contMDiff_id (n := ∞)).mdifferentiableAt (by simp)
+  dsimp only
+  symm
+  rw [hL.mpullback_eq, mpullback_comp_at hs hmk, hslice, ← mpullback_comp_at hs hft,
+    hfs.mpullback_eq, mpullback_id]
 
 end Maps
 

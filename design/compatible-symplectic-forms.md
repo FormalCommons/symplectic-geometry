@@ -254,13 +254,14 @@ About 400 lines.
   to the other.
 - `realFirstChernClass_tangent_eq_of_surface`: on a closed connected
   surface, for a symplectic form `σ` inducing the orientation `o`
-  (`hσ.volumeOrientation … = o`),
-  `hσ.realFirstChernClass = ((2 - 2 * surfaceGenus F) / integralTopForm o σ) • [σ]`.
+  (`hσ.isNondegenerate.volumeOrientation … = o`),
+  `hσ.isNondegenerate.realFirstChernClass G =
+  ((2 - 2 * surfaceGenus F : ℝ) / integralTopForm o σ) • [σ]`.
   Proof: top-degree de Rham cohomology of a closed connected oriented
   surface is detected by the integral
-  (`mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`, merged),
+  (`TauCeti.deRhamCohomology.injective_integral`),
   the integral of the left side is the symplectic Chern number
-  (`integralTopForm_realFirstChernClass`), and that is $2-2g$
+  (`integral_realFirstChernClass`), and that is $2-2g$
   (`Bundle.symplecticChernNumber_tangent`, merged). The integral of `σ` is
   positive.
 

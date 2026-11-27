@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.LevelTrivialization
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The affine coordinate of the rational elliptic surface over `ℂℙ¹`
@@ -205,11 +206,10 @@ theorem isProperMap_affineCoordinate_comp_subtypeVal :
     (hT.isClosedEmbedding_subtypeVal.isProperMap.comp (φ.toHomeomorphSourceTarget.isProperMap.comp
       ((hF.restrictPreimage φ.source).comp (Homeomorph.setCongr hS).isProperMap))) using 1
   funext p
-  simp only [φ, affineCoordinate_def, Homeomorph.setCongr, Function.comp_apply,
+  simp only [φ, affineCoordinate_def, Homeomorph.setCongr_apply, Function.comp_apply,
     Homeomorph.funUnique_apply, Fin.default_eq_zero,
     OpenPartialHomeomorph.toHomeomorphSourceTarget_apply_coe, restrictPreimage_coe,
-    Homeomorph.homeomorph_mk_coe, coe_affineOpenPartialHomeomorph]
-  rw [Set.equivOfEq_apply]
+    coe_affineOpenPartialHomeomorph]
 
 /-- The Fermat cubic is homeomorphic, through `fibreEmbedding`, to the fibre over `0` of the affine
 coordinate on the points over the affine open `s ≠ 0`. -/
