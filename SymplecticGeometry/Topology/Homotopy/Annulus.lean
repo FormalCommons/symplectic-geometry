@@ -9,6 +9,8 @@ public import Mathlib.LinearAlgebra.Dimension.Basic
 public import Mathlib.Topology.Homotopy.Equiv
 public import SymplecticGeometry.Topology.Sets.Annulus
 import Mathlib.Analysis.Normed.Module.Connected
+import TauCeti.Analysis.Normed.Module.Ball.Radial.PuncturedBall
+import TauCeti.Topology.Homotopy.DeformationRetract
 
 /-!
 # Open annuli up to homotopy
@@ -16,9 +18,12 @@ import Mathlib.Analysis.Normed.Module.Connected
 For a real normed space `E`, this file shows that the open annulus `a < ‖x‖ < b` is path
 connected when `0 ≤ a < b` and `E` has dimension at least two, and that for `0 ≤ a' ≤ a < b`
 the inclusion of the annulus `a < ‖x‖ < b` into the annulus `a' < ‖x‖ < b` is a homotopy
-equivalence. A homotopy inverse pushes each point radially out to norm at least `m = (a + b) / 2`,
-`x ↦ max 1 (m / ‖x‖) • x`, and both composites are homotopic to the identity by the straight-line
-homotopy, which moves each point along its ray between norms `‖x‖` and `max ‖x‖ m`.
+equivalence. For the latter, Tau Ceti's radial push `TauCeti.puncturedBallPush` with
+radius `m = (a + b) / 2` moves each point of the larger annulus along its ray, never inward and
+never past norm `max ‖x‖ m`, and ends with norm at least `m`. So it is a deformation of the
+larger annulus into the smaller one that keeps the smaller one in itself, and
+`ContinuousMap.HomotopyEquiv.ofWeakDeformationRetraction` makes the inclusion a homotopy
+equivalence.
 
 ## Main results
 
@@ -34,7 +39,7 @@ homotopy, which moves each point along its ray between norms `‖x‖` and `max 
 
 public section
 
-open Set unitInterval
+open Set unitInterval TauCeti
 
 namespace SymplecticGeometry
 
@@ -60,87 +65,39 @@ theorem isPathConnected_annulus (h : 1 < Module.rank ℝ E) {a b : ℝ} (ha : 0 
 
 section HomotopyEquiv
 
-variable {a a' b c m : ℝ}
-
-/-- The scalar `1 - t + t max 1 (m / ‖x‖)` of the straight-line homotopy from `x` to the point
-`max 1 (m / ‖x‖) • x` of norm `max ‖x‖ m` on its ray. -/
-private noncomputable def pushScalar (m : ℝ) (t : I) (x : E) : ℝ :=
-  1 - t + t * max 1 (m / ‖x‖)
-
-omit [NormedSpace ℝ E] in
-private theorem one_le_pushScalar (m : ℝ) (t : I) (x : E) : 1 ≤ pushScalar m t x := by
-  have := le_max_left 1 (m / ‖x‖)
-  have := t.property.1
-  unfold pushScalar
-  nlinarith
-
-private theorem norm_pushScalar_smul (m : ℝ) (t : I) {x : E} (hx : x ≠ 0) :
-    ‖pushScalar m t x • x‖ = (1 - t) * ‖x‖ + t * max ‖x‖ m := by
-  have hx' : 0 < ‖x‖ := norm_pos_iff.2 hx
-  rw [norm_smul, Real.norm_of_nonneg ((zero_le_one).trans (one_le_pushScalar m t x)),
-    pushScalar, add_mul, mul_assoc, max_mul_of_nonneg _ _ hx'.le, one_mul,
-    div_mul_cancel₀ _ hx'.ne']
-
-/-- For `0 ≤ c` and `m < b`, `x ↦ pushScalar m t x • x` keeps the annulus `c < ‖x‖ < b`. -/
-private theorem pushScalar_smul_mem (hc : 0 ≤ c) (hm : m < b) (t : I) {x : E}
-    (hx : x ∈ annulus E c b) : pushScalar m t x • x ∈ annulus E c b := by
-  have hx0 := ne_zero_of_mem_annulus hc hx
-  rw [mem_annulus, norm_pushScalar_smul m t hx0]
-  obtain ⟨h₁, h₂⟩ := mem_annulus.1 hx
-  have ht₀ := t.property.1
-  have ht₁ := t.property.2
-  have hmax₁ := le_max_left ‖x‖ m
-  have hmax₂ : max ‖x‖ m < b := max_lt h₂ hm
-  constructor <;> nlinarith
-
-/-- The straight-line motion `(t, x) ↦ pushScalar m t x • x` on the annulus `c < ‖x‖ < b`, for
-`0 ≤ c` and `m < b`. -/
-private noncomputable def pushMotion (hc : 0 ≤ c) (hm : m < b) :
-    C(I × annulus E c b, annulus E c b) where
-  toFun p := ⟨pushScalar m p.1 (p.2 : E) • (p.2 : E), pushScalar_smul_mem hc hm p.1 p.2.property⟩
-  continuous_toFun := by
-    have h0 : ∀ p : I × annulus E c b, ‖(p.2 : E)‖ ≠ 0 := fun p ↦
-      norm_ne_zero_iff.2 (ne_zero_of_mem_annulus hc p.2.property)
-    refine Continuous.subtype_mk ?_ _
-    unfold pushScalar
-    fun_prop (disch := exact h0 _)
-
-/-- The straight-line homotopy on the annulus `c < ‖x‖ < b` from the identity to the radial push
-`x ↦ max 1 (m / ‖x‖) • x`, for `0 ≤ c` and `m < b`. -/
-private noncomputable def pushHomotopy (hc : 0 ≤ c) (hm : m < b) :
-    (ContinuousMap.id (annulus E c b)).Homotopy
-      ((pushMotion hc hm).comp ((ContinuousMap.const _ 1).prodMk (ContinuousMap.id _))) where
-  toFun := pushMotion hc hm
-  continuous_toFun := (pushMotion hc hm).continuous
-  map_zero_left x := Subtype.ext (by simp [pushMotion, pushScalar])
-  map_one_left _ := rfl
+variable {a a' b : ℝ}
 
 /-- For `0 ≤ a' ≤ a < b`, the inclusion of the annulus `a < ‖x‖ < b` into the annulus
 `a' < ‖x‖ < b`, as a homotopy equivalence. -/
 noncomputable def annulusHomotopyEquiv (ha' : 0 ≤ a') (h : a' ≤ a) (hab : a < b) :
-    ContinuousMap.HomotopyEquiv (annulus E a b) (annulus E a' b) where
-  toFun := ContinuousMap.inclusion (annulus_mono h le_rfl)
-  invFun :=
-    { toFun x := ⟨pushScalar ((a + b) / 2) 1 (x : E) • (x : E), by
-        have hx0 := ne_zero_of_mem_annulus ha' x.property
-        rw [mem_annulus, norm_pushScalar_smul _ 1 hx0]
-        simp only [Icc.coe_one, sub_self, zero_mul, one_mul, zero_add]
-        exact ⟨(by linarith : a < (a + b) / 2).trans_le (le_max_right _ _),
-          max_lt (mem_annulus.1 x.property).2 (by linarith)⟩⟩
-      continuous_toFun := by
-        refine Continuous.subtype_mk ?_ _
-        exact continuous_subtypeVal.comp ((pushMotion ha' (by linarith : (a + b) / 2 < b)).comp
-          ((ContinuousMap.const _ 1).prodMk (ContinuousMap.id _))).continuous }
-  left_inv := ⟨(pushHomotopy (ha'.trans h) (by linarith : (a + b) / 2 < b)).symm.cast
-    (by ext; rfl) rfl⟩
-  right_inv := ⟨(pushHomotopy ha' (by linarith : (a + b) / 2 < b)).symm.cast
-    (by ext; rfl) rfl⟩
+    ContinuousMap.HomotopyEquiv (annulus E a b) (annulus E a' b) :=
+  have hm : (a + b) / 2 < b := by linarith
+  -- the push never decreases the norm
+  have hge : ∀ (t : I) (y : E), ‖y‖ ≤ ‖puncturedBallPush ((a + b) / 2) t y‖ := fun t y ↦
+    (norm_puncturedBallPush _ t y).symm ▸ le_mul_of_one_le_left (norm_nonneg _) (le_max_left _ _)
+  have hlt : ∀ (t : I) (x : annulus E a' b),
+      ‖puncturedBallPush ((a + b) / 2) t (x : E)‖ < b := fun t x ↦
+    (norm_puncturedBallPush_le _ _ _).trans_lt (max_lt (mem_annulus.1 x.property).2 hm)
+  .ofWeakDeformationRetraction (annulus_mono h le_rfl)
+    (fun p ↦ puncturedBallPush ((a + b) / 2) p.1 (p.2 : E))
+    (continuous_iff_continuousAt.2 fun p ↦
+      (continuousAt_puncturedBallPush (t := p.1) _ (ne_zero_of_mem_annulus ha' p.2.property)).comp
+        (f := fun q : I × annulus E a' b ↦ (q.1, (q.2 : E)))
+        (by fun_prop : Continuous _).continuousAt)
+    (fun p ↦ mem_annulus.2 ⟨(mem_annulus.1 p.2.property).1.trans_le
+      (hge _ _), hlt p.1 p.2⟩)
+    (fun _ ↦ puncturedBallPush_zero _ _)
+    (fun x ↦ mem_annulus.2 ⟨(by linarith : a < (a + b) / 2).trans_le
+      (le_norm_puncturedBallPush_one _ (ne_zero_of_mem_annulus ha' x.property)), hlt 1 x⟩)
+    (fun t x hx ↦ mem_annulus.2 ⟨(mem_annulus.1 hx).1.trans_le
+      (hge _ _), hlt t x⟩)
 
 @[simp]
 theorem annulusHomotopyEquiv_toFun (ha' : 0 ≤ a') (h : a' ≤ a) (hab : a < b) :
     (annulusHomotopyEquiv (E := E) ha' h hab).toFun =
       ContinuousMap.inclusion (annulus_mono (E := E) h (le_refl b)) :=
-  (rfl)
+  ContinuousMap.ext fun _ ↦
+    Subtype.ext (ContinuousMap.HomotopyEquiv.coe_ofWeakDeformationRetraction_apply ..)
 
 end HomotopyEquiv
 

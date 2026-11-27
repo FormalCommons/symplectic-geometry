@@ -7,7 +7,6 @@ module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Fibre
-import Mathlib.Algebra.Category.Grp.EpiMono
 import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Topology.Homotopy.Annulus
 import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
@@ -75,46 +74,6 @@ variable {EQ HQ E H : Type*}
   {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
   {Φ : SymplecticFraming hι hP} {ε δ : ℝ} (f : ProductNeighborhood Φ ε)
 
-
-/-- A product neighbourhood restricted to the product of `Q` with the annulus `a < |z| < ε` is an
-open embedding. -/
-theorem isOpenEmbedding_comp_annulusToProdBall (a : ℝ) :
-    IsOpenEmbedding (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M) := by
-  have h : IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) I ∞ (f ∘ annulusToProdBall :
-      Q × annulus ℂ a ε → M) := fun p ↦
-    (isLocalDiffeomorph_annulusToProdBall p).comp (hg := f.isLocalDiffeomorph _)
-  exact .of_continuous_injective_isOpenMap h.contMDiff.continuous
-    (f.isOpenEmbedding.injective.comp annulusToProdBall_injective) h.isOpenMap
-
-/-- The range of a product neighbourhood on `Q × A(a, ε)` is path connected, for path connected
-`Q` and `0 ≤ a < ε`. -/
-theorem isPathConnected_range_comp_annulusToProdBall [PathConnectedSpace Q] {a : ℝ} (ha : 0 ≤ a)
-    (haε : a < ε) :
-    IsPathConnected (range (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M)) := by
-  have : PathConnectedSpace (annulus ℂ a ε) := isPathConnected_iff_pathConnectedSpace.1
-    (isPathConnected_annulus (by simp [Complex.rank_real_complex]) ha haε)
-  exact isPathConnected_range (f.isOpenEmbedding_comp_annulusToProdBall a).continuous
-
-/-- A point `f p` lies on `ι (Q)` exactly when the disc coordinate of `p` vanishes. -/
-theorem apply_mem_range_iff {p : prodBall Q ε} : f p ∈ range ι ↔ (p : Q × ℂ).2 = 0 := by
-  refine ⟨?_, fun h ↦ ⟨(p : Q × ℂ).1, ?_⟩⟩
-  · rintro ⟨q, hq⟩
-    have hq0 : (q, (0 : ℂ)) ∈ prodBall Q ε := mem_prodBall.2 (by
-      simpa using (norm_nonneg _).trans_lt (mem_prodBall.1 p.property))
-    rw [← f.apply_mk_zero q hq0] at hq
-    rw [← f.isOpenEmbedding.injective hq]
-  · have hp : p = ⟨((p : Q × ℂ).1, 0), h ▸ p.property⟩ := Subtype.ext (Prod.ext rfl h)
-    rw [hp, f.apply_mk_zero]
-
-/-- A point `f p` lies in `f (Q × A(a, ε))` exactly when `a < |p.2|`. -/
-theorem apply_mem_range_comp_annulusToProdBall_iff {a : ℝ} {p : prodBall Q ε} :
-    f p ∈ range (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M) ↔ a < ‖(p : Q × ℂ).2‖ := by
-  refine ⟨?_, fun h ↦ ⟨_, congrArg f (annulusToProdBall_mk p
-    (mem_annulus.2 ⟨h, mem_prodBall.1 p.property⟩))⟩⟩
-  rintro ⟨w, hw⟩
-  rw [← f.isOpenEmbedding.injective hw]
-  simpa using (mem_annulus.1 w.2.property).1
-
 variable [CompactSpace Q] [T2Space M]
 
 /-- A point `f p` of the range of a product neighbourhood lies outside the closed tube of radius
@@ -157,7 +116,7 @@ theorem compl_range_eq_complTube_union (hδ : 0 ≤ δ) (hδε : δ < ε) :
   ext x
   by_cases hx : x ∈ range f
   · obtain ⟨p, rfl⟩ := hx
-    rw [mem_compl_iff, mem_union, SetLike.mem_coe, f.apply_mem_range_iff,
+    rw [mem_compl_iff, mem_union, SetLike.mem_coe, f.apply_mem_range_embedding_iff,
       f.apply_mem_complTube_iff, f.apply_mem_range_comp_annulusToProdBall_iff, norm_pos_iff]
     exact ⟨fun h ↦ .inr h, fun h ↦ h.elim (fun h' ↦ norm_pos_iff.1 (hδ.trans_lt h')) id⟩
   · refine iff_of_true (fun ⟨q, hq⟩ ↦ hx ?_) (.inl (f.mem_complTube.2 fun ⟨p, _, hp⟩ ↦ hx ⟨p, hp⟩))
