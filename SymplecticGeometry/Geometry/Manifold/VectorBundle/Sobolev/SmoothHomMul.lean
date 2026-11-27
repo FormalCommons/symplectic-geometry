@@ -651,23 +651,13 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
   have hΦΨ := hΦ.sub_section hΨ
   rw [← contMDiffHomMulL_sub hΦ hΨ hΦΨ]
   refine hc hΦΨ hM0 fun i j hj y hy ↦ ?_
-  have hU := ((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
-    ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet
-  have hyU :=
-    (A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_baseSet i
-      ((image_hom (h := h) i).ge hy)
   have hcd {Θ : ∀ x, V₁ x →L[ℝ] V₂ x}
       (hΘ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
         fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Θ x)) :
-      ContDiffAt ℝ j ((A.hom (𝕜 := ℝ) h).coord i Θ) y :=
-    ((A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΘ.of_le (by exact_mod_cast le_top)) i).contDiffAt
-      (hU.mem_nhds hyU)
-  have hsub : (A.hom (𝕜 := ℝ) h).coord i (Φ - Ψ) =ᶠ[nhds y]
-      (A.hom (𝕜 := ℝ) h).coord i Φ - (A.hom (𝕜 := ℝ) h).coord i Ψ := by
-    filter_upwards [(A.image i).isOpen.mem_nhds hy] with z hz
-    rw [Pi.sub_apply]
-    exact (A.hom (𝕜 := ℝ) h).coord_sub i Φ Ψ ((image_hom (h := h) i).ge hz)
-  rw [(hsub.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hcd hΦ) (hcd hΨ)]
+      ContDiffOn ℝ j ((A.hom (𝕜 := ℝ) h).coord i Θ) ((A.hom (𝕜 := ℝ) h).image i) :=
+    (A.hom (𝕜 := ℝ) h).contDiffOn_coord_image (hΘ.of_le (by exact_mod_cast le_top)) i
+  rw [(A.hom (𝕜 := ℝ) h).iteratedFDeriv_coord_sub i (hcd hΦ) (hcd hΨ)
+    ((image_hom (h := h) i).ge hy)]
   exact hM i j hj y hy
 
 /-- **Continuity in the hom section.** If the derivatives of order at most `k` of the chart
