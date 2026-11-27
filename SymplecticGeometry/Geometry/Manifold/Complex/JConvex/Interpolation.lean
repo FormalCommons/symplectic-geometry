@@ -27,14 +27,20 @@ import SymplecticGeometry.Geometry.Manifold.Riemannian.Surface.LogCutoff.Interpo
 /-!
 # Interpolation along a totally real submanifold
 
-This file is meant to hold the interpolation of two strictly plurisubharmonic functions with the
-same 1-jet along a compact part of a totally real submanifold (Proposition 3.26 of
-Cieliebak–Eliashberg). For now it contains the Taylor bounds that the proof uses near a point of
-the submanifold, and the uniform local data, on a closed ball of a holomorphic chart, from which
-the proof chooses its constants.
+This file proves the interpolation of two strictly plurisubharmonic functions with the same 1-jet
+along a compact part of a totally real submanifold (Proposition 3.26 of Cieliebak–Eliashberg),
+together with the Taylor bounds that the proof uses near a point of the submanifold and the
+uniform local data, on a closed ball of a holomorphic chart, from which it chooses its constants.
 
 ## Main results
 
+* `Manifold.IsSmoothEmbedding.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate`: for a
+  smooth embedding `ι` of a boundaryless manifold into a Hausdorff complex manifold, a compact
+  `K` at whose points the tangent images of `ι` are totally real, and `φ`, `ψ` smooth on an open
+  `O ⊇ ι '' K`, strictly plurisubharmonic on `ι '' K` and with the same 1-jet along `ι` near `K`,
+  there are open `V ⊆ W ⊆ U ∩ O` about `ι '' K`, for any open `U ⊇ ι '' K`, and `θ` smooth on
+  `O`, equal to `ψ` on `V` and to `φ` near each point off `W`, strictly plurisubharmonic on `W`,
+  between `φ` and `ψ`, and without critical points in `W` if `φ` has none on `ι '' K`.
 * `Manifold.IsSmoothEmbedding.exists_abs_comp_symm_le`: let `ι : N → M` be a `C^n` embedding,
   `n ≥ 2`, of a boundaryless manifold into a manifold modelled on a finite-dimensional real
   normed space `E`, let `ρ : M → ℝ` be `C²` at `ι y`, nonnegative near `ι y`, zero on the image
@@ -81,6 +87,19 @@ The uniform local data come from shrinking a ball about `e (ι y)`: the coordina
 `SymplecticGeometry.Analysis.Complex.Pseudoconvex`), and the bound on the differential of
 `φ ∘ e.symm` is the continuity of that differential at `e (ι y)`
 (`TauCeti.mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero`).
+
+The interpolation is `θ = φ + β (ψ - φ)` with `β = χ (1 - logCutoffProfile ε δ ∘ ρ)`, where `ρ`
+is the function of
+`Manifold.IsSmoothEmbedding.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact`
+and `χ` is a cutoff equal to `1` near `ι '' K` and supported in the union `W` of finitely many
+of the chart balls given by the uniform local data (Tau Ceti's
+`IsCompact.exists_contMDiff_one_nhds_tsupport_subset`, which needs no σ-compactness). In each of
+these charts the Levi form of `θ` is bounded below by
+`TauCeti.exists_le_re_leviForm_add_logCutoff_mul_sub`, and its differential by
+`TauCeti.sub_le_norm_fderiv_add_logCutoff_mul_sub`; both errors are small once `δ = η ^ 2` and
+`log (δ / ε) = 1 / η` with `η` small, uniformly over the finitely many charts. This is the
+logarithmic cutoff route of the library's design for Proposition 3.26, and we do not claim that
+it follows the lemmas of Cieliebak–Eliashberg's proof step by step.
 
 ## References
 
@@ -301,6 +320,21 @@ namespace Manifold.IsSmoothEmbedding
 open TauCeti.SmoothAlmostComplexStructure
 open scoped TauCeti.ComplexManifold
 
+/-- The parameters of the logarithmic cutoff, from one small `η`: for `0 < η ≤ 1 / 3`, the
+numbers `δ = η ^ 2` and `ε = δ / exp (1 / η)` satisfy `0 < 4ε ≤ δ ≤ 1`, `√δ = η` and
+`log (δ / ε) = 1 / η`. -/
+private theorem logCutoff_params {η : ℝ} (hη0 : 0 < η) (hη3 : η ≤ 1 / 3) :
+    0 < η ^ 2 / Real.exp (1 / η) ∧ 4 * (η ^ 2 / Real.exp (1 / η)) ≤ η ^ 2 ∧ η ^ 2 ≤ 1 ∧
+      √(η ^ 2) = η ∧ Real.log (η ^ 2 / (η ^ 2 / Real.exp (1 / η))) = 1 / η := by
+  have h4 : 4 ≤ Real.exp (1 / η) := by
+    have := Real.add_one_le_exp (1 / η)
+    have : 3 ≤ 1 / η := by rw [le_div_iff₀ hη0]; linarith
+    linarith
+  refine ⟨by positivity, ?_, by nlinarith, Real.sqrt_sq hη0.le, ?_⟩
+  · rw [mul_div_assoc', div_le_iff₀ (Real.exp_pos _)]
+    nlinarith [sq_nonneg η]
+  · rw [div_div_cancel₀ (by positivity), Real.log_exp]
+
 variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   {N : Type*} [TopologicalSpace N] [ChartedSpace H' N]
@@ -345,19 +379,23 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
       ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x :=
     (hf.contMDiffAt (hO.mem_nhds hx)).of_le (by simp)
   -- The uniform local data at each point of `K`, in a holomorphic chart.
-  have hloc (y : K) := h.exists_closedBall_abs_sub_le_and_le_re_leviForm (n := ∞) (y := (y : N)) (by simp)
+  have hloc (y : K) :=
+    h.exists_closedBall_abs_sub_le_and_le_re_leviForm (n := ∞) (y := (y : N)) (by simp)
     (hρs.of_le (by simp)).contMDiffAt (Eventually.of_forall hρ0)
     (eventually_of_mem (hι_cont.continuousAt.preimage_mem_nhds
-      (hV₀.mem_nhds (hKV₀ ⟨y, y.2, rfl⟩))) fun y' hy' ↦ (hρV₀ _ hy').2 ⟨y', rfl⟩) (hpos y y.2)
-    (eventually_of_mem (hO.mem_nhds (hKO ⟨y, y.2, rfl⟩)) fun _ hx ↦ hC2 hφ hx)
-    (eventually_of_mem (hO.mem_nhds (hKO ⟨y, y.2, rfl⟩)) fun _ hx ↦ hC2 hψ hx)
-    (hφs _ ⟨y, y.2, rfl⟩) (hψs _ ⟨y, y.2, rfl⟩) (hφψ.filter_mono (nhds_le_nhdsSet y.2))
+      (hV₀.mem_nhds (hKV₀ ⟨y, y.property, rfl⟩))) fun y' hy' ↦ (hρV₀ _ hy').2 ⟨y', rfl⟩)
+    (hpos y y.property)
+    (eventually_of_mem (hO.mem_nhds (hKO ⟨y, y.property, rfl⟩)) fun _ hx ↦ hC2 hφ hx)
+    (eventually_of_mem (hO.mem_nhds (hKO ⟨y, y.property, rfl⟩)) fun _ hx ↦ hC2 hψ hx)
+    (hφs _ ⟨y, y.property, rfl⟩) (hψs _ ⟨y, y.property, rfl⟩)
+    (hφψ.filter_mono (nhds_le_nhdsSet y.property))
     (((hU.inter hO).inter hV₀).mem_nhds
-      ⟨⟨hKU ⟨y, y.2, rfl⟩, hKO ⟨y, y.2, rfl⟩⟩, hKV₀ ⟨y, y.2, rfl⟩⟩)
+      ⟨⟨hKU ⟨y, y.property, rfl⟩, hKO ⟨y, y.property, rfl⟩⟩, hKV₀ ⟨y, y.property, rfl⟩⟩)
     (IsManifold.chart_mem_maximalAtlas (ι y)) (mem_chart_source E (ι y))
   choose r hr hrt hrS A m hm hdata using hloc
   set e : K → OpenPartialHomeomorph M E := fun y ↦ chartAt E (ι y)
-  have he (y : K) : e y ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) 2 M := IsManifold.chart_mem_maximalAtlas _
+  have he (y : K) : e y ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) 2 M :=
+    IsManifold.chart_mem_maximalAtlas _
   have heR (y : K) : e y ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 2 M :=
     IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 2 two_ne_zero (he y)
   have hcd {f : M → ℝ} (y : K) {z : E} (hz : z ∈ (e y).target)
@@ -410,22 +448,11 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
       (ContinuousAt.eventually_lt (by fun_prop) continuousAt_const (by simpa using hm y))
   obtain ⟨η, ⟨hη3, hηt⟩, hη0⟩ :=
     ((hev.filter_mono nhdsWithin_le_nhds).and (self_mem_nhdsWithin (s := Ioi 0))).exists
-  set δ := η ^ 2 with hδ
-  set ε := δ / Real.exp (1 / η) with hε
+  set δ := η ^ 2
+  set ε := δ / Real.exp (1 / η)
+  obtain ⟨hε0, h4, hδ1, hsδ, hΛ⟩ := logCutoff_params hη0 hη3
   have hδ0 : 0 < δ := by positivity
-  have hε0 : 0 < ε := by positivity
-  have hδ1 : δ ≤ 1 := by rw [hδ]; nlinarith
-  have h4 : 4 * ε ≤ δ := by
-    have : 4 ≤ Real.exp (1 / η) := by
-      have := Real.add_one_le_exp (1 / η)
-      have : 3 ≤ 1 / η := by rw [le_div_iff₀ hη0]; linarith
-      linarith
-    rw [hε, mul_div_assoc', div_le_iff₀ (Real.exp_pos _)]
-    nlinarith
   have hεδ : 2 * ε ≤ δ := by linarith
-  have hΛ : Real.log (δ / ε) = 1 / η := by
-    rw [hε, div_div_cancel₀ hδ0.ne', Real.log_exp]
-  have hsδ : √δ = η := by rw [hδ, Real.sqrt_sq hη0.le]
   -- The interpolation.
   set β : M → ℝ := χ * (1 - logCutoffProfile ε δ ∘ ρ) with hβ
   set θ : M → ℝ := φ + β * (ψ - φ) with hθ
@@ -453,7 +480,7 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
   refine ⟨V, W, hVo, hWo, fun x hx ↦ ⟨⟨ht hx, subset_interior_iff_mem_nhdsSet.2 hχ1 hx⟩, ?_⟩,
     fun x hx ↦ hx.1.1, hWUO, θ, hθs, ?_, ?_, ?_, ?_, ?_⟩
   · obtain ⟨y, hy, rfl⟩ := hx
-    show ρ (ι y) < ε
+    rw [mem_preimage, mem_Iio]
     rw [(hρV₀ _ (hKV₀ ⟨y, hy, rfl⟩)).2 ⟨y, rfl⟩]
     exact hε0
   · intro x hx
@@ -472,7 +499,6 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
     set z := e y x
     have hzt := hrt y hz
     obtain ⟨hD, hDD, hDρ, hD2ρ, hLφ, hLψ, -⟩ := hdata y z hz
-    have hA0 : 0 ≤ A y := (norm_nonneg (E := E →L[ℝ] E →L[ℝ] ℝ) _).trans hD2ρ
     have hL := hKc (f := φ ∘ (e y).symm) (g := ψ ∘ (e y).symm) (ρ := ρ ∘ (e y).symm)
       (χ := χ ∘ (e y).symm) hε0 h4 hδ1 (hcd y hzt (by rw [hzx]; exact hC2 hφ hxO))
       (hcd y hzt (by rw [hzx]; exact hC2 hψ hxO)) (hcd y hzt (hρs.of_le (by simp)).contMDiffAt)
@@ -517,19 +543,20 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
     have hk := sub_le_norm_fderiv_add_logCutoff_mul_sub hε0 h4 (hf.differentiableAt (by simp))
       (hg.differentiableAt (by simp)) (hρz.differentiableAt (by simp))
       (hχz.differentiableAt (by simp)) (hχI _).1 (hχI _).2 (hB y z hz).1 (hρ0 _) hA0 hDρ hD hDD
-      (hDφ (hcrit _ ⟨y, y.2, rfl⟩))
+      (hDφ (hcrit _ ⟨y, y.property, rfl⟩))
     rw [hΛ, hsδ, ← hθe] at hk
     have hc : logCutoffConst * A y ^ 2 * η / (1 / η) = logCutoffConst * A y ^ 2 * η * η := by
       field_simp
     have hpos : 0 < ‖fderiv ℝ (θ ∘ (e y).symm) z‖ := by
       have := (hηt y hy).2
-      rw [hc, hδ] at hk
+      rw [hc] at hk
       linarith
     intro h0
     have h0' := (mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero
       (IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 1 two_ne_zero (he y)) hxs).1 h0
-    simp only [OpenPartialHomeomorph.extend, modelWithCornersSelf_partialEquiv, PartialEquiv.trans_refl,
-      OpenPartialHomeomorph.toFun_eq_coe, OpenPartialHomeomorph.coe_toPartialEquiv_symm] at h0'
+    simp only [OpenPartialHomeomorph.extend, modelWithCornersSelf_partialEquiv,
+      PartialEquiv.trans_refl, OpenPartialHomeomorph.toFun_eq_coe,
+      OpenPartialHomeomorph.coe_toPartialEquiv_symm] at h0'
     rw [h0', norm_zero] at hpos
     exact lt_irrefl _ hpos
 
