@@ -1087,7 +1087,7 @@ manifolds. -/
 theorem isLocalDiffeomorph_connectedSumInrModel :
     IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
       (connectedSumInrModel c) :=
-  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <| val_comp_connectedSumInrModel c ▸ fun y ↦
+  IsLocalDiffeomorph.subtypeVal_comp_iff.1 <| val_comp_connectedSumInrModel c ▸ fun y ↦
     (((isLocalDiffeomorph_connectedSumInrOpens y).restrictScalars ℝ).comp
       (hg := (projectiveBlowupModelDiffeomorph n).isLocalDiffeomorph _)).comp
       (hg := BlowupModel.isLocalDiffeomorph_radialRescale c.ballRadius_pos _)

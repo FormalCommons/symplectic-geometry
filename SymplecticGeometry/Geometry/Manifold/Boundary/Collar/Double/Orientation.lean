@@ -144,7 +144,7 @@ private def bandCollar (p : BandParam n W) : (𝓡∂ (n + 1)).interiorOpens W :
 
 private theorem isLocalDiffeomorph_bandCollar :
     IsLocalDiffeomorph (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) ∞ (bandCollar c) := fun p ↦ by
-  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  refine IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 ?_
   have h : IsLocalDiffeomorphAt (𝓘(ℝ).prod (𝓡 n)) ((𝓡 n).prod (𝓡∂ 1)) ∞
       (fun p : BandParam n W ↦ (p.2, bandDepth p.1)) p :=
     ((isLocalDiffeomorph_bandDepth p.1).prodMap (isLocalDiffeomorph_id p.2)).comp
@@ -216,7 +216,7 @@ private theorem isLocalDiffeomorphAt_bandAffine {a b : ℝ} (hb : b ≠ 0) {s₀
   have hA : IsLocalDiffeomorph 𝓘(ℝ) 𝓘(ℝ) ∞ fun r : ℝ ↦ a + b * r := by
     rw [he]
     exact (Diffeomorph.smulAdd ∞ b a hb).isLocalDiffeomorph
-  exact isLocalDiffeomorphAt_subtypeVal_comp_iff.1
+  exact IsLocalDiffeomorphAt.subtypeVal_comp_iff.1
     (((isLocalDiffeomorph_subtype_val s₀).comp (hg := hA _)).congr_of_eventuallyEq
       (eventuallyEq_bandAffine h))
 
