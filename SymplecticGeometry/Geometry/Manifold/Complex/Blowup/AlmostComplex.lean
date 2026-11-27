@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Loca
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 
 /-!
@@ -49,6 +50,10 @@ is injective.
 * `SymplecticGeometry.Blowup.isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
   `blowupModelChart i ∘ lift c` near the exceptional divisor are pseudoholomorphic from `J̃` to
   the standard structure of `ℂⁿ⁺¹`.
+* `SymplecticGeometry.Blowup.isPseudoholomorphic_divisorRealEmbedding`: the exceptional divisor
+  is a pseudoholomorphic embedding of `ℙ ℂ (Fin (n + 1) → ℂ)` for `J̃`; so `J̃` preserves its
+  tangent spaces
+  (`SymplecticGeometry.Blowup.mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding`).
 * `SymplecticGeometry.Blowup.isIntegrable_restrictOpen_rangeInr`: `J̃` is integrable on the range
   of `inr`, an open neighbourhood of the exceptional divisor.
 * `SymplecticGeometry.Blowup.almostComplexStructure_eq_ofComplexManifold`: for a complex manifold
@@ -317,6 +322,38 @@ theorem isPseudoholomorphicOn_lift :
       (range (inr (gluingHomeomorph c))) :=
   isPseudoholomorphicOn_iff.2 fun _ hz ↦
     (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
+
+/-- **The exceptional divisor is a `J̃`-holomorphic curve.** The real embedding
+`divisorRealEmbedding c` of `ℙ ℂ (Fin (n + 1) → ℂ)` as the exceptional divisor is
+pseudoholomorphic, from the structure of the complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)` to the
+almost complex blowup. -/
+theorem isPseudoholomorphic_divisorRealEmbedding :
+    IsPseudoholomorphic (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)))
+      (almostComplexStructure c J hJ) (divisorRealEmbedding c) := by
+  refine isPseudoholomorphic_iff.2 fun ℓ ↦ ?_
+  have hmem : divisorRealEmbedding c ℓ ∈ range (inr (gluingHomeomorph c)) := by
+    rw [coe_divisorRealEmbedding, ofDirection_def]
+    exact mem_range_self _
+  -- After `lift c`, which is pseudoholomorphic with invertible differential there, the divisor
+  -- is the holomorphic zero section of the model.
+  have hcomp : lift c ∘ divisorRealEmbedding c = zeroSection := by
+    funext ℓ
+    rw [comp_apply, coe_divisorRealEmbedding, lift_ofDirection]
+  refine IsPseudoholomorphicAt.of_comp ?_ (isPseudoholomorphicAt_lift c J hJ hmem)
+    ((isLocalDiffeomorphAt_lift c hmem).isInvertible_mfderiv (by simp)).injective
+    ((divisorRealEmbedding c).contMDiff.mdifferentiableAt (by simp))
+  rw [hcomp, isPseudoholomorphicAt_ofComplexManifold_iff]
+  exact (contMDiff_zeroSection ω).mdifferentiableAt (by simp)
+
+/-- The almost complex blowup preserves the tangent spaces of the exceptional divisor
+`divisorRealEmbedding c`. -/
+theorem mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Set.MapsTo (almostComplexStructure c J hJ (divisorRealEmbedding c ℓ))
+      ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn)
+      ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn) :=
+  SmoothEmbedding.mapsTo_tangentRange_of_isPseudoholomorphicAt hn
+    (isPseudoholomorphic_iff.1 (isPseudoholomorphic_divisorRealEmbedding c J hJ) ℓ)
 
 /-- **The charts of the blowup near the exceptional divisor are holomorphic.** The chart
 `blowupModelChart i ∘ lift c` is pseudoholomorphic, from the almost complex blowup to the

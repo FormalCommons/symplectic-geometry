@@ -436,9 +436,14 @@ For `n = 1` (the page's complex dimension two).
   isomorphism, `hyperplaneClass_def` ($c_1(L)=-h$), and the value $1$ of
   $h$ on the fundamental class of $\mathbb CP^1$
   (`complexManifoldEvalFundamentalClass_hyperplaneClass`).
+- `Blowup.selfIntersectionNumber_exceptionalDivisor_almostComplexStructure`:
+  the same for the exceptional divisor `divisorRealEmbedding c` of the
+  almost complex blowup `Blowup.almostComplexStructure c J hJ` of an almost
+  complex four-manifold, through `c.lift`, which is pseudoholomorphic with
+  invertible differential near $Z$ (`Blowup.isPseudoholomorphicAt_lift`).
 - `Blowup.selfIntersectionNumber_exceptionalDivisor`: the same for the
-  blowup of a complex surface, through `c.lift`, which is a biholomorphism
-  near $Z$.
+  blowup of a complex surface, from the previous one by
+  `Blowup.almostComplexStructure_eq_ofComplexManifold`.
 - With `Tautological.lean`, this completes the milestone *Tautological line
   bundle and the exceptional divisor*; the docstring of
   `selfIntersectionNumber_zeroSection` ends with its milestone line.
