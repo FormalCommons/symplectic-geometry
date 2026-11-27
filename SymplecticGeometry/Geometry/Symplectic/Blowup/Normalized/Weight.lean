@@ -679,6 +679,39 @@ theorem normalizedBlowupSymplectomorph_inl
       inl (WeightBlowup.gluingDiffeomorphSymm (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)
         hψ.weight_pos.le hε').toHomeomorph x :=
   GluedAlong.descDiffeomorph_symm_apply_left _ _ _ _ _ _ _ x
+attribute [local instance high] IsManifold.instOfNatWithTopENat_1
+
+/-- On the model piece `openNbhd n ε'`, the diffeomorphism onto `Blowup c` pulls the form
+`ω̃_{ψ,l,ε}` of `Blowup c` back to `ω̃_l`: there it is the lift `ψ̃`, which pulls the form back
+to `ω̃_{l,ε}`, equal to `ω̃_l` on `L(ε)`. -/
+private theorem mpullback_inr_weightBlowupDiffeomorph :
+    SmoothForm.mpullback (inr (WeightBlowup.gluingDiffeomorphSymm
+        (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε').toHomeomorph)
+        (GluedAlong.isLocalDiffeomorph_inr _).contMDiff
+        (SmoothForm.mpullback (hψ.weightBlowupDiffeomorph hh hε' hε'ε)
+          (hψ.weightBlowupDiffeomorph hh hε' hε'ε).contMDiff (hψ.normalizedBlowupForm h)) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l) := by
+  rw [SmoothForm.mpullback_mpullback]
+  refine Subtype.ext (funext fun y ↦ ?_)
+  have hyr : (y : BlowupModel n) ∈ openNbhd n r :=
+    openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le) (mem_openNbhdOpens_iff.1 y.property)
+  have hfun : ⇑(hψ.weightBlowupDiffeomorph hh hε' hε'ε) ∘
+      inr (WeightBlowup.gluingDiffeomorphSymm (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)
+        hψ.weight_pos.le hε').toHomeomorph =
+      hψ.ballLiftPartialDiffeomorph ∘ (Subtype.val : openNbhdOpens n ε' → BlowupModel n) := by
+    funext y'
+    rw [Function.comp_apply, weightBlowupDiffeomorph, GluedAlong.descDiffeomorph_inr,
+      Function.comp_apply, modelMap]
+    exact (hψ.ballLiftPartialDiffeomorph_apply _).symm
+  have hΦ : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      hψ.ballLiftPartialDiffeomorph (y : BlowupModel n) :=
+    hψ.ballLiftPartialDiffeomorph.mdifferentiableAt (by simp)
+      (by rw [ballLiftPartialDiffeomorph_source]; exact hyr)
+  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback_subtype_val_apply, hfun,
+    mpullback_comp_at ((contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)) hΦ,
+    mpullback_subtype_val_apply, hψ.normalizedBlowupForm_eq_on_ballLift hh _ hyr]
+  exact profileForm_eq_blowupForm_on n _
+    (openNbhd_subset_closedNbhd ε (openNbhd_mono hε'ε (mem_openNbhdOpens_iff.1 y.property)))
 
 end IsNormalizedBallEmbedding
 
