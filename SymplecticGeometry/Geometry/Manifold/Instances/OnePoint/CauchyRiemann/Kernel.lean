@@ -10,7 +10,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
-import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev
 public import Mathlib.Analysis.Normed.Operator.Fredholm.Basic
 public import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Index
@@ -24,6 +25,9 @@ import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
+import TauCeti.Analysis.Normed.Operator.Splitting.Family
+import TauCeti.Geometry.Manifold.VectorBundle.Complexification
+import TauCeti.Topology.Algebra.Module.ComplexSmulI
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere
@@ -324,23 +328,34 @@ theorem index_twistOneDelBarSobolev (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : 
     (fun J ↦ isFredholm_twistOneDelBarSobolev J.property hi k) ⟨J, hJ⟩ ⟨𝒊, hi⟩]
   exact (isFredholm_twistOneDelBarSobolev_ofComplexManifold k).2
 
+/-- Evaluation at `0` and at `∞` on `twistOneKernel J`, as a complex linear map to `ℂ × ℂ`. -/
+noncomputable def twistOneKernelEval (J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)) :
+    twistOneKernel J →ₗ[ℂ] ℂ × ℂ :=
+  ((LinearMap.proj ((0 : ℂ) : OnePoint ℂ)).prod
+    (LinearMap.proj (OnePoint.infty : OnePoint ℂ))).comp (twistOneKernel J).subtype
+
+@[simp]
+theorem twistOneKernelEval_apply (s : twistOneKernel J) :
+    twistOneKernelEval J s = (s.val ((0 : ℂ) : OnePoint ℂ), s.val OnePoint.infty) :=
+  (rfl)
+
 /-- Evaluation at `0` and at `∞` is injective on `twistOneKernel J`, when a two-form tames `J`
-and `i`, since a nonzero element has only one zero; so its complex dimension is at most two. -/
+and `i`, since a nonzero element has only one zero. -/
+theorem twistOneKernelEval_injective (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    Function.Injective (twistOneKernelEval J) := by
+  refine (injective_iff_map_eq_zero _).2 fun s hs ↦ ?_
+  by_contra hs₀
+  have h0 : s.val ((0 : ℂ) : OnePoint ℂ) = 0 := congrArg Prod.fst hs
+  have hinf : s.val OnePoint.infty = 0 := congrArg Prod.snd hs
+  obtain ⟨z, -, hz⟩ := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi s.property
+    (fun h ↦ hs₀ (Subtype.ext h))
+  exact OnePoint.coe_ne_infty _ ((hz _ h0).trans (hz _ hinf).symm)
+
+/-- The complex dimension of `twistOneKernel J` is at most two, by
+`twistOneKernelEval_injective`. -/
 private theorem finrank_twistOneKernel_le (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
     finrank ℂ (twistOneKernel J) ≤ 2 := by
-  let ev : twistOneKernel J →ₗ[ℂ] ℂ × ℂ :=
-    ((LinearMap.proj ((0 : ℂ) : OnePoint ℂ)).prod
-      (LinearMap.proj (OnePoint.infty : OnePoint ℂ))).comp
-      (twistOneKernel J).subtype
-  have hev : Function.Injective ev := by
-    refine (injective_iff_map_eq_zero ev).2 fun s hs ↦ ?_
-    by_contra hs₀
-    have h0 : s.val ((0 : ℂ) : OnePoint ℂ) = 0 := congrArg Prod.fst hs
-    have hinf : s.val OnePoint.infty = 0 := congrArg Prod.snd hs
-    obtain ⟨z, -, hz⟩ := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi s.property
-      (fun h ↦ hs₀ (Subtype.ext h))
-    exact OnePoint.coe_ne_infty _ ((hz _ h0).trans (hz _ hinf).symm)
-  simpa using LinearMap.finrank_le_finrank_of_injective hev
+  simpa using LinearMap.finrank_le_finrank_of_injective (twistOneKernelEval_injective hJ hi)
 
 /-- **The kernel of `D_J` is a complex plane.** Let a two-form `σ` on the sphere tame both `J` and
 the standard structure `i`. Then the space `twistOneKernel J` of smooth sections `s` of `𝒪(1)`
@@ -363,7 +378,262 @@ theorem twistOneDelBarSobolev_surjective (hJ : σ.Tames J) (hi : σ.Tames 𝒊) 
     finrank_real_of_complex, finrank_twistOneKernel hJ hi]
   norm_num
 
+/-- **Evaluation at `0` and `∞` identifies the kernel with `ℂ²`.** Let a two-form `σ` on the
+sphere tame both `J` and the standard structure `i`. Then `s ↦ (s 0, s ∞)` is a bijection from
+`twistOneKernel J` onto `ℂ × ℂ`. -/
+theorem twistOneKernelEval_bijective (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    Function.Bijective (twistOneKernelEval J) := by
+  have : FiniteDimensional ℂ (twistOneKernel J) :=
+    Module.finite_of_finrank_pos (by rw [finrank_twistOneKernel hJ hi]; norm_num)
+  exact ⟨twistOneKernelEval_injective hJ hi,
+    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
+      (by simp [finrank_twistOneKernel hJ hi])).1 (twistOneKernelEval_injective hJ hi)⟩
+
 end Index
+
+/-! ### The kernels near a given structure -/
+
+section Family
+
+variable {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+
+/-- Multiplication by `i` on the `W^{k,2}` sections of `𝒪(1)`: the action of the smooth section
+`x ↦ i` of the endomorphism bundle (`TauCeti.contMDiff_smulIEquiv_bundle`). -/
+noncomputable def twistOneSobolevSMulI (k : ℕ) :
+    SobolevSection (twistCoreAtlas 1) volume 2 k →L[ℝ]
+      SobolevSection (twistCoreAtlas 1) volume 2 k :=
+  SobolevSection.contMDiffHomMulL (twistCoreAtlas 1) (twistCoreAtlas 1).closure_dom_subset_baseSet
+    volume 2 k (TauCeti.contMDiff_smulIEquiv_bundle (n := ∞))
+
+/-- On the Sobolev section of an element `s` of `twistOneKernel J`, multiplication by `i` gives
+the Sobolev section of `i • s`. -/
+theorem twistOneSobolevSMulI_twistOneKernelSobolev (k : ℕ) (s : twistOneKernel J) :
+    twistOneSobolevSMulI (k + 1) (twistOneKernelSobolev J k s) =
+      twistOneKernelSobolev J k (Complex.I • s) := by
+  rw [twistOneSobolevSMulI, twistOneKernelSobolev_apply, twistOneKernelSobolev_apply]
+  refine SectionChartData.eq_of_chartValueL_ae_eq fun i ↦
+    (SobolevSection.chartValueL_contMDiffHomMulL_ae_coord_self _
+      (SobolevSection.chartValueL_ofContMDiffSection_ae _ volume 2 (k + 1) _) i).trans ?_
+  refine Filter.EventuallyEq.trans ?_ (SobolevSection.chartValueL_ofContMDiffSection_ae
+    (twistCoreAtlas 1) volume 2 (k + 1) (twistOneKernelToContMDiffSection J k (Complex.I • s))
+      i).symm
+  refine Filter.Eventually.of_forall fun y ↦ congrArg (fun t ↦ (twistCoreAtlas 1).coord i t y)
+    (funext fun x ↦ ?_)
+  simp only [coe_twistOneKernelToContMDiffSection, Submodule.coe_smul, Pi.smul_apply]
+  exact Complex.smulIEquiv_apply (s.val x)
+
+/-- Lowering the order of the Sobolev section of an element of `twistOneKernel J` gives its Sobolev
+section of order one. -/
+theorem toOrderOneL_twistOneKernelSobolev (k : ℕ) (s : twistOneKernel J) :
+    (twistCoreAtlas 1).sectionChartData.toOrderOneL volume 2 k (twistOneKernelSobolev J k s) =
+      twistOneKernelSobolev J 0 s := by
+  refine SectionChartData.eq_of_chartValueL_ae_eq fun i ↦ ?_
+  rw [SectionChartData.toOrderOneL_apply, SectionChartData.chartValueL_toOrderOne,
+    twistOneKernelSobolev_apply, twistOneKernelSobolev_apply]
+  have h₁ := SobolevSection.chartValueL_ofContMDiffSection_ae (twistCoreAtlas 1) volume 2 (k + 1)
+    (twistOneKernelToContMDiffSection J k s) i
+  have h₀ := SobolevSection.chartValueL_ofContMDiffSection_ae (twistCoreAtlas 1) volume 2 (0 + 1)
+    (twistOneKernelToContMDiffSection J 0 s) i
+  rw [coe_twistOneKernelToContMDiffSection] at h₁ h₀
+  exact h₁.trans h₀.symm
+
+/-- Multiplication by `i` twice is `-1` on the Sobolev sections of elements of `twistOneKernel J`.
+-/
+private theorem twistOneSobolevSMulI_twistOneSobolevSMulI (s : twistOneKernel J) :
+    twistOneSobolevSMulI 1 (twistOneSobolevSMulI 1 (twistOneKernelSobolev J 0 s)) =
+      -twistOneKernelSobolev J 0 s := by
+  rw [twistOneSobolevSMulI_twistOneKernelSobolev, twistOneSobolevSMulI_twistOneKernelSobolev,
+    smul_smul, Complex.I_mul_I, neg_one_smul, map_neg]
+
+/-- **A complex projection onto the kernel at `J₀`.** Let a two-form `σ` tame both `J₀` and the
+standard structure `i`. There is a continuous real linear map `P` from `W^{1,2}(𝒪(1))` to `ℂ × ℂ`
+that is evaluation at `0` and `∞` on the elements of `twistOneKernel J₀`, and that commutes with
+multiplication by `i` on the elements of `twistOneKernel J` for every `J`. -/
+theorem exists_twistOneKernelProjection {J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ₀ : σ.Tames J₀) (hi : σ.Tames 𝒊) :
+    ∃ P : SobolevSection (twistCoreAtlas 1) volume 2 (0 + 1) →L[ℝ] ℂ × ℂ,
+      (∀ s : twistOneKernel J₀, P (twistOneKernelSobolev J₀ 0 s) = twistOneKernelEval J₀ s) ∧
+      ∀ (J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)) (s : twistOneKernel J),
+        P (twistOneSobolevSMulI 1 (twistOneKernelSobolev J 0 s)) =
+          Complex.I • P (twistOneKernelSobolev J 0 s) := by
+  set K := (twistOneDelBarSobolev J₀ 0).ker
+  have : FiniteDimensional ℝ K := finiteDimensional_ker_twistOneDelBarSobolev J₀ 0 hJ₀ hi
+  obtain ⟨P₁, hP₁⟩ := Submodule.ClosedComplemented.of_finiteDimensional K
+  let e : twistOneKernel J₀ ≃ₗ[ℝ] K := (LinearEquiv.ofInjective _
+    (twistOneKernelSobolev_injective 0)).trans
+      (LinearEquiv.ofEq _ _ (range_twistOneKernelSobolev hJ₀ hi 0))
+  have he (s : twistOneKernel J₀) : (e s : SobolevSection (twistCoreAtlas 1) volume 2 (0 + 1)) =
+      twistOneKernelSobolev J₀ 0 s := (rfl)
+  -- A real projection, read in `ℂ × ℂ`, then averaged with its conjugate by `i`.
+  let Q : K →L[ℝ] ℂ × ℂ := ⟨((twistOneKernelEval J₀).restrictScalars ℝ).comp e.symm.toLinearMap,
+    LinearMap.continuous_of_finiteDimensional (E := K) _⟩
+  let P₂ := Q.comp P₁
+  have hP₂ (s : twistOneKernel J₀) :
+      P₂ (twistOneKernelSobolev J₀ 0 s) = twistOneKernelEval J₀ s := by
+    have : P₁ (twistOneKernelSobolev J₀ 0 s) = e s := by rw [← he]; exact hP₁ (e s)
+    simp [P₂, Q, this]
+  refine ⟨(2⁻¹ : ℝ) • (P₂ - (Complex.I • ContinuousLinearMap.id ℝ (ℂ × ℂ)).comp
+    (P₂.comp (twistOneSobolevSMulI 1))), fun s ↦ ?_, fun J s ↦ ?_⟩
+  · have h₁ := twistOneSobolevSMulI_twistOneKernelSobolev 0 s
+    simp only [FunLike.coe_smul, FunLike.coe_sub, Pi.smul_apply,
+      Pi.sub_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.id_apply, h₁, hP₂, map_smul]
+    match_scalars
+    simp [Complex.ext_iff]
+    norm_num
+  · have h₂ := twistOneSobolevSMulI_twistOneSobolevSMulI s
+    simp only [FunLike.coe_smul, FunLike.coe_sub, Pi.smul_apply,
+      Pi.sub_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.id_apply, h₂, map_neg]
+    match_scalars <;> simp [Complex.ext_iff]
+
+/-- **The stabilized operator is invertible at `J₀`.** Let a two-form `σ` tame both `J₀` and the
+standard structure `i`, and let `P` from `W^{1,2}(𝒪(1))` to `ℂ × ℂ` be evaluation at `0` and `∞`
+on the elements of `twistOneKernel J₀`. For every order `k`, the pair of `D_{J₀}` on `W^{k+1,2}`
+and `P` composed with the inclusion of `W^{k+1,2}` in `W^{1,2}` is invertible. -/
+theorem isInvertible_twistOneDelBarSobolev_prod
+    {J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ₀ : σ.Tames J₀) (hi : σ.Tames 𝒊)
+    {P : SobolevSection (twistCoreAtlas 1) volume 2 (0 + 1) →L[ℝ] ℂ × ℂ}
+    (hP : ∀ s : twistOneKernel J₀, P (twistOneKernelSobolev J₀ 0 s) = twistOneKernelEval J₀ s)
+    (k : ℕ) :
+    ((twistOneDelBarSobolev J₀ k).prod
+      (P.comp ((twistCoreAtlas 1).sectionChartData.toOrderOneL volume 2 k))).IsInvertible := by
+  set Q := P.comp ((twistCoreAtlas 1).sectionChartData.toOrderOneL volume 2 k)
+  have hQ (s : twistOneKernel J₀) : Q (twistOneKernelSobolev J₀ k s) = twistOneKernelEval J₀ s := by
+    rw [ContinuousLinearMap.comp_apply, toOrderOneL_twistOneKernelSobolev, hP]
+  have hker := range_twistOneKernelSobolev hJ₀ hi k
+  have hinj : ((twistOneDelBarSobolev J₀ k).prod Q).ker = ⊥ := by
+    refine (Submodule.eq_bot_iff _).2 fun x hx ↦ ?_
+    have hx₁ : x ∈ (twistOneDelBarSobolev J₀ k).ker := congrArg Prod.fst hx
+    rw [← hker] at hx₁
+    obtain ⟨s, rfl⟩ := hx₁
+    have hs : twistOneKernelEval J₀ s = 0 := (hQ s).symm.trans (congrArg Prod.snd hx)
+    rw [(twistOneKernelEval_injective hJ₀ hi) (hs.trans (map_zero _).symm), map_zero]
+  have hsurj : ((twistOneDelBarSobolev J₀ k).prod Q).range = ⊤ := by
+    refine Submodule.eq_top_iff'.2 fun ⟨y, v⟩ ↦ ?_
+    obtain ⟨x, rfl⟩ := twistOneDelBarSobolev_surjective hJ₀ hi k y
+    obtain ⟨s, hs⟩ := (twistOneKernelEval_bijective hJ₀ hi).2 (v - Q x)
+    have hDs : twistOneDelBarSobolev J₀ k (twistOneKernelSobolev J₀ k s) = 0 := by
+      have : twistOneKernelSobolev J₀ k s ∈ (twistOneDelBarSobolev J₀ k).ker :=
+        hker ▸ LinearMap.mem_range_self _ s
+      exact this
+    refine ⟨x + twistOneKernelSobolev J₀ k s, ?_⟩
+    simp [hDs, hQ, hs]
+  exact ⟨ContinuousLinearEquiv.ofBijective _ hinj hsurj, rfl⟩
+
+variable {ι : Type*}
+  (e : ι → Trivialization (ℂ →L[ℝ] ℂ) (π (ℂ →L[ℝ] ℂ) (fun x : OnePoint ℂ ↦
+    TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x)))
+  [∀ i, MemTrivializationAtlas (e i)] (U : ι → TopologicalSpace.Opens (OnePoint ℂ))
+  (hU : ∀ i, (U i : Set (OnePoint ℂ)) ⊆ (e i).baseSet)
+
+/-- **The kernels of `D_J` near `J₀`.** Let a two-form `σ` on the sphere tame both `J₀` and the
+standard structure `i`, and give the structures tamed by `σ` the subspace topology of
+`SmoothAlmostComplexStructure.frameTopology e U hU`, for frames whose domains cover the sphere.
+There are complex linear maps `T J : twistOneKernel J₀ → (OnePoint ℂ → ℂ)` such that:
+* for `J` near `J₀`, `T J` is injective with range `twistOneKernel J`;
+* `T J₀` is the inclusion;
+* for every order `k` and every `s`, there is a family of `W^{k+1,2}` sections of `𝒪(1)`,
+  continuous at `J₀`, whose continuous representatives are `T J s` for `J` near `J₀`.
+
+`T J s` is read off the inverse of the operator `D_J` stabilized by a projection onto the kernel
+at `J₀` (Tau Ceti's `ContinuousLinearMap.kerSection`). -/
+theorem exists_twistOneKernelFamily (hcover : ∀ x, ∃ i, x ∈ U i)
+    {J₀ : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ₀ : σ.Tames J₀)
+    (hi : σ.Tames 𝒊) :
+    let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+    ∃ T : {J // σ.Tames J} → twistOneKernel J₀ →ₗ[ℂ] (OnePoint ℂ → ℂ),
+      (∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, Function.Injective (T J) ∧
+        LinearMap.range (T J) = twistOneKernel J.val) ∧
+      (∀ s, T ⟨J₀, hJ₀⟩ s = s) ∧
+      ∀ (k : ℕ) (s : twistOneKernel J₀), ∃ w : {J // σ.Tames J} →
+          SobolevSection (twistCoreAtlas 1) volume 2 (k + 1),
+        ContinuousAt w ⟨J₀, hJ₀⟩ ∧
+          ∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, SobolevSection.toSection (w J) = T J s := by
+  intro _
+  obtain ⟨P, hP₀, hPI⟩ := exists_twistOneKernelProjection hJ₀ hi
+  -- The projection at order `k`, through the inclusion of `W^{k+1,2}` in `W^{1,2}`.
+  let Q (k : ℕ) := P.comp ((twistCoreAtlas 1).sectionChartData.toOrderOneL volume 2 k)
+  have hQ (k : ℕ) {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+      (t : twistOneKernel J) :
+      Q k (twistOneKernelSobolev J k t) = P (twistOneKernelSobolev J 0 t) := by
+    rw [ContinuousLinearMap.comp_apply, toOrderOneL_twistOneKernelSobolev]
+  have hD (k : ℕ) : Continuous fun J : {J // σ.Tames J} ↦ twistOneDelBarSobolev J.val k :=
+    continuous_twistOneDelBarSobolev_tames e U hU hcover σ k
+  have hinv₀ (k : ℕ) : ((twistOneDelBarSobolev (⟨J₀, hJ₀⟩ : {J // σ.Tames J}).val k).prod
+      (Q k)).IsInvertible :=
+    isInvertible_twistOneDelBarSobolev_prod hJ₀ hi hP₀ k
+  have hev (k : ℕ) : ∀ᶠ J in 𝓝 (⟨J₀, hJ₀⟩ : {J // σ.Tames J}),
+      ((twistOneDelBarSobolev J.val k).prod (Q k)).IsInvertible := by
+    obtain ⟨V, hV, hJV, hVinv⟩ :=
+      ContinuousLinearMap.exists_isOpen_isInvertible_prod (hD k).continuousAt (hinv₀ k)
+    exact Filter.mem_of_superset (hV.mem_nhds hJV) hVinv
+  -- The element of the kernel at `J` with prescribed values of the projection.
+  have hmem {J : {J // σ.Tames J}} (k : ℕ) (v : ℂ × ℂ) : ∃ t : twistOneKernel J.val,
+      twistOneKernelSobolev J.val k t = (twistOneDelBarSobolev J.val k).kerSection (Q k) v := by
+    rw [← LinearMap.mem_range, range_twistOneKernelSobolev J.property hi k]
+    exact ContinuousLinearMap.kerSection_mem_ker v
+  have hchar {J : {J // σ.Tames J}} {k : ℕ}
+      (h : ((twistOneDelBarSobolev J.val k).prod (Q k)).IsInvertible) (v : ℂ × ℂ)
+      (t : twistOneKernel J.val) (ht : P (twistOneKernelSobolev J.val 0 t) = v) :
+      (twistOneDelBarSobolev J.val k).kerSection (Q k) v = twistOneKernelSobolev J.val k t := by
+    rw [← ht, ← hQ k t]
+    refine ContinuousLinearMap.kerSection_apply_of_mem_ker h ?_
+    rw [← range_twistOneKernelSobolev J.property hi k]
+    exact LinearMap.mem_range_self _ t
+  choose R hR using fun (J : {J // σ.Tames J}) (s : twistOneKernel J₀) ↦
+    hmem (J := J) 0 (twistOneKernelEval J₀ s)
+  -- `R J s` is the element of the kernel at `J` on which `P` is `(s 0, s ∞)`.
+  have hRP {J : {J // σ.Tames J}} (h : ((twistOneDelBarSobolev J.val 0).prod (Q 0)).IsInvertible)
+      (s : twistOneKernel J₀) :
+      P (twistOneKernelSobolev J.val 0 (R J s)) = twistOneKernelEval J₀ s := by
+    rw [← hQ 0, hR, ContinuousLinearMap.apply_kerSection_right h]
+  have hReq {J : {J // σ.Tames J}} (h : ((twistOneDelBarSobolev J.val 0).prod (Q 0)).IsInvertible)
+      (s : twistOneKernel J₀) (t : twistOneKernel J.val)
+      (ht : P (twistOneKernelSobolev J.val 0 t) = twistOneKernelEval J₀ s) : R J s = t :=
+    twistOneKernelSobolev_injective 0 ((hR J s).trans (hchar h _ t ht))
+  let Rℝ (J : {J // σ.Tames J}) (h : ((twistOneDelBarSobolev J.val 0).prod (Q 0)).IsInvertible) :
+      twistOneKernel J₀ →ₗ[ℝ] (OnePoint ℂ → ℂ) :=
+    { toFun s := (R J s).val
+      map_add' s s' := congrArg Subtype.val (hReq h (s + s') (R J s + R J s')
+        (by rw [map_add, map_add, hRP h, hRP h, map_add]))
+      map_smul' c s := congrArg Subtype.val (hReq h (c • s) (c • R J s)
+        (by rw [map_smul, map_smul, hRP h, LinearMap.map_smul_of_tower])) }
+  have hRI (J : {J // σ.Tames J}) (h : ((twistOneDelBarSobolev J.val 0).prod (Q 0)).IsInvertible)
+      (s : twistOneKernel J₀) : Rℝ J h (Complex.I • s) = Complex.I • Rℝ J h s := by
+    exact congrArg Subtype.val (hReq h (Complex.I • s) (Complex.I • R J s)
+      (by rw [← twistOneSobolevSMulI_twistOneKernelSobolev, hPI, hRP h, map_smul]))
+  classical
+  refine ⟨fun J ↦ if h : ((twistOneDelBarSobolev J.val 0).prod (Q 0)).IsInvertible then
+    (Rℝ J h).complexOfMapISmul (hRI J h) else 0, ?_, fun s ↦ ?_, fun k s ↦ ?_⟩
+  · filter_upwards [hev 0] with J h
+    simp only [h, ↓reduceDIte]
+    refine ⟨fun s s' hs ↦ ?_, ?_⟩
+    · have hs' : R J s = R J s' := Subtype.ext (by simpa [Rℝ] using hs)
+      exact twistOneKernelEval_injective hJ₀ hi ((hRP h s).symm.trans (hs' ▸ hRP h s'))
+    · refine le_antisymm ?_ fun t ht ↦ ?_
+      · rintro _ ⟨s, rfl⟩
+        simp [Rℝ]
+      · obtain ⟨s, hs⟩ := (twistOneKernelEval_bijective hJ₀ hi).2
+          (P (twistOneKernelSobolev J.val 0 ⟨t, ht⟩))
+        exact ⟨s, by simpa [Rℝ] using congrArg Subtype.val (hReq h s ⟨t, ht⟩ hs.symm)⟩
+  · have h := hinv₀ 0
+    simp only [h, ↓reduceDIte]
+    simp [Rℝ, hReq (J := ⟨J₀, hJ₀⟩) h s s (hP₀ s)]
+  · refine ⟨fun J ↦ (twistOneDelBarSobolev J.val k).kerSection (Q k) (twistOneKernelEval J₀ s),
+      (((hD k).continuousAt.kerSection continuousAt_const (hinv₀ k)).clm_apply
+        continuousAt_const), ?_⟩
+    filter_upwards [hev 0, hev k] with J h₀ hk
+    obtain ⟨t, ht⟩ := hmem (J := J) k (twistOneKernelEval J₀ s)
+    have htP : P (twistOneKernelSobolev J.val 0 t) = twistOneKernelEval J₀ s := by
+      rw [← hQ k, ht, ContinuousLinearMap.apply_kerSection_right hk]
+    simp only [h₀, ↓reduceDIte, ← ht, toSection_twistOneKernelSobolev]
+    simp only [Rℝ, hReq h₀ s t htP, LinearMap.coe_complexOfMapISmul, LinearMap.coe_mk,
+      AddHom.coe_mk]
+    -- The fibres of `𝒪(1)` are `ℂ`: the two sides are the same function, at different types.
+    rfl
+
+end Family
 
 end SymplecticGeometry
 
