@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -40,7 +41,11 @@ parameter `l` at a time:
   `e_{s l, 1}^* α l` and `e_{s l, 1}^* B' (s l)` are `α l` and `B (s l)`;
 * `SymplecticGeometry.stagePath_of_mem`: if `α l` is closed and `τ l = α l + d (B' (s l))` on all
   of `M`, then the path runs through closed forms cohomologous to `α l` and ends at
-  `e_{s l, 1}^* α l + d (e_{s l, 1}^* B' (s l))`.
+  `e_{s l, 1}^* α l + d (e_{s l, 1}^* B' (s l))`;
+* `SymplecticGeometry.exists_mextDerivₗ_eq_endPullback_sub`: if `α l` is closed, then
+  `e_{s l, 1}^* α l - α l = d γ` for a one-form `γ` that vanishes on every set fixed by all slices
+  `e_{s l, t}`, namely `γ = -h (Ψ^* α l)` for the homotopy operator `h` and the reversed isotopy
+  `Ψ (x, u) = e_{s l, 1 - u} x`.
 
 The time steps are those of `SymplecticGeometry.exists_homotopy_exact_of_isotopy`
 (`HandleCore/Homotopy.lean`), which uses the same isotopy-then-interpolation scheme. The family
@@ -201,6 +206,29 @@ theorem stagePath_of_mem {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
     rw [exactForms_succ]
     exact LinearMap.mem_range_self _ _
   · rw [hpath, collaredFirstHalf_one, hτ, map_add, SmoothForm.mextDerivₗ_mpullback]
+
+/-- The moved closed form differs from `α l` by an exact form whose primitive vanishes on `V`: for
+an isotopy starting at the identity whose slices `e ((s l, t), ·)` fix a set `V`, and a closed
+form `α l`, there is a one-form `γ` with `d γ = e₁^* α l - α l` and `γ = 0` on `V`, for the end
+`e₁ := e ((s l, 1), ·)` of the isotopy. The form is `γ = -h (Ψ^* α l)`, for the homotopy operator
+`h` and the reversed isotopy `Ψ (x, u) := e ((s l, 1 - u), x)` from `e₁` to the identity. -/
+theorem exists_mextDerivₗ_eq_endPullback_sub {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
+    (hα : mextDerivₗ I 2 (α l) = 0) {V : Set M} (heV : ∀ t, ∀ x ∈ V, e ((s l, t), x) = x) :
+    ∃ γ : SmoothForm I M ℝ 1,
+      mextDerivₗ I 1 γ = SmoothForm.mpullback (fun x ↦ e ((s l, 1), x))
+          (he.comp (contMDiff_const.prodMk contMDiff_id)) (α l) - α l ∧
+        ∀ x ∈ V, γ.val x = 0 := by
+  have hΨ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ fun p : M × unitInterval ↦
+      e ((s l, unitInterval.symm p.2), p.1) :=
+    he.comp ((contMDiff_const.prodMk (unitInterval.contMDiff_symm.comp contMDiff_snd)).prodMk
+      contMDiff_fst)
+  refine ⟨-SmoothForm.homotopyOperator (SmoothForm.mpullback _ hΨ (α l)), ?_, fun x hx ↦ ?_⟩
+  · rw [map_neg, SmoothForm.mextDerivₗ_homotopyOperator_mpullback (g := fun x ↦ e ((s l, 1), x))
+      (he.comp (contMDiff_const.prodMk contMDiff_id)) hΨ (fun x ↦ by simp) (fun x ↦ by simp [he₀])
+      hα, neg_sub]
+  · rw [SmoothForm.neg_toRoughForm, Pi.neg_apply, SmoothForm.coe_homotopyOperator,
+      SmoothForm.coe_mpullback, homotopyOperator_mpullback_apply_eq_zero (y := x)
+        (fun t ↦ heV _ x hx), neg_zero]
 
 end SymplecticGeometry
 

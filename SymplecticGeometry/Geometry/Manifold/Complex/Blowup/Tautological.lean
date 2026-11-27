@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
@@ -586,8 +587,7 @@ theorem finrank_normalSpace_zeroSectionRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1)
     Module.finrank ℝ ((zeroSectionRealEmbedding n).isImmersion.NormalSpace ℓ hn) = 2 := by
   rw [Manifold.IsImmersion.finrank_normalSpace]
   -- The tangent spaces are `Fin (n + 1) → ℂ` and `Fin n → ℂ`.
-  exact (by simp [Module.finrank_pi_fintype]; omega :
-    Module.finrank ℝ (Fin (n + 1) → ℂ) - Module.finrank ℝ (Fin n → ℂ) = 2)
+  exact (Complex.finrank_real_eq_finrank_pi_succ_sub n).symm.trans Complex.finrank_real_complex
 
 variable (n hn) in
 /-- **The real normal bundle of the exceptional divisor is the tautological line.** The real
