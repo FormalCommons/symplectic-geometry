@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormS
 public import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
+import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
@@ -98,6 +99,22 @@ solutions, `TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`. The derivati
 Kempf–Ness function along `g` is
 `SymplecticGeometry.HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction`.
 
+## The polar radius between two flow curves
+
+Following the proof of Theorem 6.4 of [GeorgoulasRobbinSalamon2021], with the distance of
+Lemma A.2 there in `Gc ⧸ G` replaced by the polar radius, compare two curves `g`, `g'` in `Gc`
+with left-trivialized derivatives `-2 i μ♯((g t)⁻¹ • p)` and `-2 i μ♯((g' t)⁻¹ • p)`, as
+`exists_mem_orbit_maximalIntegralCurve` gives them. With
+`C.polar.symm ((g t)⁻¹ * g' t) = (η, u)` and `x = (g t)⁻¹ • p`, the polar radius `B η η` has
+derivative `4 * (μ x η - μ (C.expI (-η) • x) η)`
+(`SymplecticGeometry.hasDerivAt_polar_symm_fst_inv_mul`). The derivative is the sum of those in
+`g` and in `g'` alone (`hasDerivAt_comp_mul_of_hasDerivAt`), and each is a case of the Gauss lemma
+`SymplecticGeometry.LieComplexification.hasDerivAt_polar_symm_fst_comp`: for `g'`, directly; for
+`g`, after passing to the inverse `(g' t)⁻¹ * g r`, which has the same polar radius
+(`SymplecticGeometry.LieComplexification.apply_polar_symm_inv_fst`). Since `⟨μ, η⟩` decreases
+along `C.expI (r • η)` (`SymplecticGeometry.antitone_moment_expI`), the derivative is at most `0`,
+so the polar radius is antitone (`SymplecticGeometry.antitoneOn_polar_symm_fst_inv_mul`).
+
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
@@ -112,6 +129,9 @@ Kempf–Ness function along `g` is
 * `SymplecticGeometry.exists_mem_orbit_maximalIntegralCurve`: for a complexified action, that
   flow stays in the `Gc`-orbit of its start, along a curve in `Gc` on which the Kempf–Ness
   function has derivative `-2 ‖μ‖²`.
+* `SymplecticGeometry.hasDerivAt_polar_symm_fst_inv_mul`,
+  `SymplecticGeometry.antitoneOn_polar_symm_fst_inv_mul`: the derivative of the polar radius of
+  `(g t)⁻¹ * g' t` for two such curves in `Gc`, and its monotonicity.
 
 ## References
 
@@ -385,6 +405,163 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_eq_apply_momentSharp]
 
 end Flow
+
+section PolarRadius
+
+/-! ### The polar radius between two flow curves -/
+
+open Topology
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  [FiniteDimensional ℝ EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc]
+  {M : Type*} [MulAction Gc M]
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **The derivative of the polar radius between two flow curves.** Let `B` be a symmetric
+`Ad`-invariant form on the Lie algebra of the connected group `G`, nondegenerate so that `μ♯`
+is defined, and let `μ` be equivariant along `C.toHom`. Let `g` and `g'` be curves in `Gc` with
+left-trivialized derivatives `-2 i μ♯((g t)⁻¹ • p)` and `-2 i μ♯((g' t)⁻¹ • p)` on `s`, where
+`i = C.cplx`, as the flow of `‖μ‖²` from `p` gives them. At a time `t` of which `s` is a
+neighbourhood, write `C.polar.symm ((g t)⁻¹ * g' t) = (η, u)` and `x = (g t)⁻¹ • p`. Then the
+polar radius `r ↦ B η(r) η(r)` of `(g r)⁻¹ * g' r` has derivative
+`4 * (μ x η - μ (C.expI (-η) • x) η)` at `t`. -/
+theorem hasDerivAt_polar_symm_fst_inv_mul (hBs : B.IsSymm)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    (hμ : ∀ (u : G) (x : M), μ (C.toHom u • x) = Lie.coadjointRepresentation ℝ I G u (μ x))
+    {p : M} {g g' : ℝ → Gc} {s : Set ℝ}
+    (hg : HasLeftTrivializedDerivOn g
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))) s)
+    (hg' : HasLeftTrivializedDerivOn g'
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g' t)⁻¹ • p)))) s)
+    {t : ℝ} (hs : s ∈ 𝓝 t) :
+    HasDerivAt (fun r ↦ B (C.polar.symm ((g r)⁻¹ * g' r)).1 (C.polar.symm ((g r)⁻¹ * g' r)).1)
+      (4 * (μ ((g t)⁻¹ • p) (C.polar.symm ((g t)⁻¹ * g' t)).1 -
+        μ (C.expI (-(C.polar.symm ((g t)⁻¹ * g' t)).1) • (g t)⁻¹ • p)
+          (C.polar.symm ((g t)⁻¹ * g' t)).1)) t := by
+  have := C.connectedSpace
+  obtain ⟨η, u, hηu⟩ : ∃ (η : GroupLieAlgebra I G) (u : G),
+      C.polar.symm ((g t)⁻¹ * g' t) = (η, u) := ⟨_, _, rfl⟩
+  rw [hηu]
+  dsimp only
+  have hgt := hg.mdifferentiableAt hs
+  have hgt' := hg'.mdifferentiableAt hs
+  -- The left factor: the polar radius of `a` is that of `a⁻¹`, and `(g' t)⁻¹ * g r` has the
+  -- left-trivialized derivative of `g` at `t`.
+  have h₁ : HasDerivAt (fun r ↦ B (C.polar.symm ((g r)⁻¹ * g' t)).1
+      (C.polar.symm ((g r)⁻¹ * g' t)).1) (4 * μ ((g t)⁻¹ • p) η) t := by
+    have hc := (hg.const_mul (g' t)⁻¹).mdifferentiableAt hs
+    have hinv : C.polar.symm ((g' t)⁻¹ * g t) =
+        (-Lie.tangentAd (I := I) u⁻¹ η, u⁻¹) := by
+      rw [← C.polar_symm_inv hηu, mul_inv_rev, inv_inv]
+    have hd := C.hasDerivAt_polar_symm_fst_comp hBs hBG hc hinv
+    -- `erw`: the unit vector `1` is typed in `ℝ` here and in the tangent space of `ℝ` there.
+    erw [(hg.const_mul (g' t)⁻¹).mfderiv_inv_mul_mfderiv hs] at hd
+    convert hd using 1
+    · funext r
+      rw [← C.apply_polar_symm_inv_fst hBG, mul_inv_rev, inv_inv]
+    · rw [map_smul, C.im_cplx_lieMap, inv_inv, map_neg, Lie.tangentAd_inv,
+        LieEquiv.apply_symm_apply, map_smul, hBs.eq (-η), apply_momentSharp,
+        map_neg, smul_eq_mul]
+      ring
+  -- The right factor: `(g t)⁻¹ * g' r` has the left-trivialized derivative of `g'` at `t`.
+  have h₂ : HasDerivAt (fun r ↦ B (C.polar.symm ((g t)⁻¹ * g' r)).1
+      (C.polar.symm ((g t)⁻¹ * g' r)).1) (-(4 * μ (C.expI (-η) • (g t)⁻¹ • p) η)) t := by
+    have hd := C.hasDerivAt_polar_symm_fst_comp hBs hBG
+      ((hg'.const_mul (g t)⁻¹).mdifferentiableAt hs) hηu
+    -- `erw`: the unit vector `1` is typed in `ℝ` here and in the tangent space of `ℝ` there.
+    erw [(hg'.const_mul (g t)⁻¹).mfderiv_inv_mul_mfderiv hs] at hd
+    refine hd.congr_deriv ?_
+    -- `expI (-η) • (g t)⁻¹ • p = toHom u • (g' t)⁻¹ • p`, from `(g t)⁻¹ * g' t = expI η * toHom u`.
+    have hx : C.expI (-η) • (g t)⁻¹ • p = C.toHom u • (g' t)⁻¹ • p := by
+      have ha := C.expI_mul_toHom_polar_symm ((g t)⁻¹ * g' t)
+      rw [hηu] at ha
+      have hg't : g' t = g t * (C.expI η * C.toHom u) := by
+        rw [ha]
+        group
+      rw [smul_smul, smul_smul, C.expI_neg, hg't]
+      group
+    rw [hx, hμ, Lie.coadjointRepresentation_apply, map_smul, C.im_cplx_lieMap, map_smul,
+      hBs.eq, apply_momentSharp, Lie.tangentAd_apply, smul_eq_mul]
+    ring
+  have hf := (C.contMDiff_polar_symm_fst_apply B).mdifferentiableAt (x := (g t)⁻¹ * g' t)
+    (by simp)
+  refine (hasDerivAt_comp_mul_of_hasDerivAt hf
+    (((contMDiff_inv IC 1).mdifferentiableAt one_ne_zero).comp t hgt) hgt' h₁ h₂).congr_deriv ?_
+  -- The two sides differ in the type in which `-η` is negated, `E` or the Lie algebra.
+  exact (by intros; ring : ∀ a b : ℝ, 4 * a + -(4 * b) = 4 * (a - b)) _ _
+
+end PolarRadius
+
+section PolarRadiusAntitone
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  [FiniteDimensional ℝ EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **The polar radius between two flow curves does not increase.** For a complexified action,
+an equivariant moment map `-μ`, the metric `σ(·, J ·)`, and a symmetric `Ad`-invariant
+nondegenerate form `B`, let `g` and `g'` be curves in `Gc` with left-trivialized derivatives
+`-2 i μ♯((g t)⁻¹ • p)` and `-2 i μ♯((g' t)⁻¹ • p)` on a convex set `s` of times. Then the polar
+radius `B η η` of `(g t)⁻¹ * g' t = C.expI η * C.toHom u` is antitone on `s`. -/
+theorem antitoneOn_polar_symm_fst_inv_mul (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {p : M} {g g' : ℝ → Gc} {s : Set ℝ}
+    (hg : HasLeftTrivializedDerivOn g
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))) s)
+    (hg' : HasLeftTrivializedDerivOn g'
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g' t)⁻¹ • p)))) s)
+    (hs : Convex ℝ s) :
+    AntitoneOn (fun r ↦ B (C.polar.symm ((g r)⁻¹ * g' r)).1 (C.polar.symm ((g r)⁻¹ * g' r)).1)
+      s := by
+  have hd {t : ℝ} (ht : t ∈ interior s) :=
+    hasDerivAt_polar_symm_fst_inv_mul hBs hBG (h.moment_toHom_smul hμ) hg hg'
+      (mem_interior_iff_mem_nhds.mp ht)
+  refine antitoneOn_of_deriv_nonpos hs
+    ((C.contMDiff_polar_symm_fst_apply B).continuous.comp_continuousOn
+      ((contMDiff_mul IC 1).continuous.comp_continuousOn
+        (((contMDiff_inv IC 1).continuous.comp_continuousOn hg.continuousOn).prodMk
+          hg'.continuousOn)))
+    (fun t ht ↦ (hd ht).differentiableAt.differentiableWithinAt) fun t ht ↦ ?_
+  rw [(hd ht).deriv]
+  -- `⟨μ, η⟩` decreases along `expI (r • η)`, from `r = -1` to `r = 0`.
+  set η : GroupLieAlgebra I G := (C.polar.symm ((g t)⁻¹ * g' t)).1
+  have hη := antitone_moment_expI h hμ.toIsMomentMap hgm η
+    ((g t)⁻¹ • p) (neg_nonpos.mpr zero_le_one)
+  dsimp only at hη
+  rw [zero_smul, C.expI_zero, one_smul, neg_one_smul] at hη
+  -- `exact` sees through the two negations of `η`, in `E` and in the Lie algebra.
+  exact mul_nonpos_of_nonneg_of_nonpos (by norm_num) (sub_nonpos.mpr hη)
+
+end PolarRadiusAntitone
 
 end SymplecticGeometry
 
