@@ -22,8 +22,8 @@ the identity.
   value of the left-invariant vector field of `X` at `g * exp (t • X)`.
 * `mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul`: translated back to the identity by
   `(g * exp (t • X))⁻¹`, that velocity is `X`.
-* `hasMFDerivAt_mulInvariantExp_zero`: read on the model space, the exponential has derivative
-  the identity at `0`.
+* `hasMFDerivAt_mulInvariantExp_modelSpace_zero`: read on the model space, the exponential has
+  derivative the identity at `0`.
 
 The first is Tau Ceti's `hasMFDerivAt_mulInvariantExp_smul` (the case `g = 1`) pushed forward by
 left translation by `g`, which preserves left-invariant fields
@@ -71,7 +71,7 @@ theorem mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul (g : G) (X : GroupLieAl
 
 /-- **The derivative of the exponential at `0`.** Read on the model space `E` of `G`, the
 exponential `v ↦ exp v` has derivative the identity at `0`. -/
-theorem hasMFDerivAt_mulInvariantExp_zero [FiniteDimensional ℝ E] :
+theorem hasMFDerivAt_mulInvariantExp_modelSpace_zero [FiniteDimensional ℝ E] :
     HasMFDerivAt 𝓘(ℝ, E) I
       (fun v : E ↦ mulInvariantExp (I := I) (G := G) (v : GroupLieAlgebra I G)) 0
       (ContinuousLinearMap.id ℝ E) := by

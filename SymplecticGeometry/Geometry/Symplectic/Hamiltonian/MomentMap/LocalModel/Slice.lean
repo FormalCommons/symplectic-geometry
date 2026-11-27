@@ -29,6 +29,8 @@ linear action of `K`, and `𝔥` is the image of the Lie algebra of `K`.
 
 * `SymplecticGeometry.LocalModelData.isLocalDiffeomorphAt_mk_mulInvariantExp`: the map
   `(w, p) ↦ [exp (j w), p]` is a local diffeomorphism at `0`.
+* `SymplecticGeometry.LocalModelData.isLocalDiffeomorphAt_mk_mulInvariantExp_submodule`: the
+  same for a complement `𝔠` of `𝔥` in `𝔤`, with `j` the inclusion of `𝔠`.
 
 ## References
 
@@ -58,7 +60,7 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
   (D : LocalModelData (I := I) K (F := F) V A)
-  {C : Type*} [NormedAddCommGroup C] [NormedSpace ℝ C] [FiniteDimensional ℝ C]
+  {C : Type*} [NormedAddCommGroup C] [NormedSpace ℝ C]
 
 /-- **Exponential coordinates on the local model near `[1, 0]`.** For an injective linear map
 `j : C → 𝔤` whose image is a complement of `𝔥`, the map `(w, p) ↦ [exp (j w), p]` from
@@ -79,12 +81,11 @@ theorem isLocalDiffeomorphAt_mk_mulInvariantExp {j : C →L[ℝ] E} (hj : Inject
   exact BalancedProduct.isLocalDiffeomorphAt_mk_mulInvariantExp F hj
     (D.range_groupLieAlgebraMap_subtype ▸ hcompl) (z := ((0 : A), (0 : V))) fun k ↦ smul_zero k
 
-
 /-- **Exponential coordinates on the local model near `[1, 0]`, for a complement of `𝔥`.** For a
 complement `𝔠` of `𝔥` in `𝔤`, such as `𝔪 ⊕ 𝔮` (`SymplecticGeometry.LocalModelData.isCompl_𝔥_sup`),
 with the norm of `𝔤` (`GroupLieAlgebra.instNormedAddCommGroup`), the map
 `(w, p) ↦ [exp w, p]` from `𝔠 × (A × V)` to `G ×_K (A × V)` is a local diffeomorphism at `0`. -/
-theorem isLocalDiffeomorphAt_mk_mulInvariantExp_of_isCompl
+theorem isLocalDiffeomorphAt_mk_mulInvariantExp_submodule
     {𝔠 : Submodule ℝ (GroupLieAlgebra I G)} (h𝔠 : IsCompl D.𝔥 𝔠) :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
