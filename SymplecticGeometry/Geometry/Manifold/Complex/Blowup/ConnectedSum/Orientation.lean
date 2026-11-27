@@ -206,7 +206,6 @@ theorem isOrientationReversingAt_projectiveBlowupModelDiffeomorph (x : projectiv
     (fun y _ ↦ ⟨_, (Φ.isLocalDiffeomorph y).mfderivToContinuousLinearEquiv_coe (by simp)⟩)
     _ _ (mem_univ _) (mem_univ _)).1 h₀
 
-
 end ProjectiveBlowupModel
 
 namespace BlowupModel
