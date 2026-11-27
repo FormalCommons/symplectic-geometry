@@ -20,7 +20,6 @@ import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
-import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
@@ -387,24 +386,6 @@ attribute [local instance high] IsManifold.instOfNatWithTopENat_1
 
 /-! ### The form of the blowup -/
 
-omit [T2Space M] in
-/-- `ψ ∘ complexToRealEuclidean` is a symplectic map from `ω₀` on `E` to `σ` on its source. -/
-private theorem isSymplecticMapOn_complexPartialDiffeomorph
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    (ω₀E n).IsSymplecticMapOn σ hψ.complexPartialDiffeomorph
-      hψ.complexPartialDiffeomorph.source := by
-  rw [hψ.complexPartialDiffeomorph_def]
-  refine PartialDiffeomorph.isSymplecticMapOn_trans (σ := (stdForm (Fin (n + 1))).constSmooth)
-    _ _ ?_ ?_ (by simp)
-  · have h : (ω₀E n).IsSymplecticMap (stdForm (Fin (n + 1))).constSmooth
-        (complexToRealEuclidean (Fin (n + 1))) := by
-      rw [SmoothTwoForm.isSymplecticMap_iff_mpullback_eq
-        (complexToRealEuclidean (Fin (n + 1))).contDiff.contMDiff, ω₀E_def,
-        constSmooth_stdComplexPiSymplecticForm_eq]
-    simpa using h
-  · rw [hψ.coe_toPartialDiffeomorph, hψ.toPartialDiffeomorph_source]
-    exact hψ.isSymplecticMapOn
-
 /-- `shellDiffeomorph hψ` pulls the restriction of `σ` to `shellImage hψ` back to the restriction
 of `ω₀` to the open shell. -/
 theorem isSymplectomorphism_shellDiffeomorph
@@ -418,7 +399,7 @@ theorem isSymplectomorphism_shellDiffeomorph
       hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget := by
     rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
     exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hw ↦
-      (isSymplecticMapOn_complexPartialDiffeomorph hψ).mpullback_apply hw
+      (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph).mpullback_apply hw
   rw [shellDiffeomorph]
   exact h.subtype_nestedOpen _ _ _
 
@@ -529,12 +510,12 @@ theorem mem_complDivisor_iff {z : WeightBlowup hψ hl hε} :
   rw [← SetLike.mem_coe, coe_complDivisor]
   constructor
   · rintro ⟨x, rfl⟩ ⟨y, hy, hxy⟩
-    obtain ⟨h, -⟩ := (inl_eq_inr_iff hψ hl hε).1 hxy.symm
-    exact mem_modelOverlap_iff.1 h hy
+    exact mem_modelOverlap_iff.1 ((GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩) hy
   · intro hz
     rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, hx⟩ | ⟨y, rfl⟩
     · exact ⟨x, hx⟩
-    · exact ⟨_, inl_gluingDiffeomorph hψ hl hε ⟨y, mem_modelOverlap_iff.2 fun h ↦ hz ⟨y, h, rfl⟩⟩⟩
+    · exact (GluedAlong.inr_mem_range_inl_iff _).2
+        (mem_modelOverlap_iff.2 fun h ↦ hz ⟨y, h, rfl⟩)
 
 /-- **The complement of the divisor**: the diffeomorphism from the complement of `inr(Z)` in the
 blowup onto `M ∖ ψ(B(l))`, the inverse of `inl`. It pulls `σ` back to `ω̃_ψ`

@@ -9,7 +9,7 @@ public import SymplecticGeometry.Topology.Sets.Annulus
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Symplectic.Complex.Line
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
