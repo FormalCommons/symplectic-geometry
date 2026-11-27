@@ -27,8 +27,10 @@ both in the centred chart of `B` at `b`.
 It is the general criterion
 `TauCeti.HomologicalOrientation.map_singularCap_eq_fundamentalClass`
 (`Cohomology/Cap/FundamentalClass.lean`), with the excisive couple `(V ∖ 0, V ∖ V_b)`, whose
-union is the complement of `0_b`
-(`TauCeti.singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction`), and with the
+union is the complement of `0_b` (`Bundle.zeroSectionCompl_union_compl_preimage_singleton`), so
+that the local class of `γ` at `0_b` factors through the restriction of the Thom pair
+(`SymplecticGeometry.thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap`),
+and with the
 comparison made after the centred chart, which detects classes of local homology at `b`
 (`OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`).
 
@@ -113,7 +115,9 @@ theorem map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt {q : ℕ}
   o.map_singularCap_eq_fundamentalClass ℤ hq _ _ _ (isOpen_zeroSectionCompl P V) r n h u γ
     fun b ↦ (centeredExtChartAt I b).injective_localHomologyMap_sourceRestrict _
       (mem_centeredExtChartAt_source I b) (centeredExtChartAt_self I b) q (by
-      rw [← singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction]
+      rw [← thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap _ _ _ b n
+        fun _ hv ↦ (zeroSectionCompl_union_compl_preimage_singleton b).superset hv,
+        ConcreteCategory.comp_apply]
       exact hγ b)
 
 /-- **The pointwise criterion for a fundamental class, on small sets of the centred charts.**
