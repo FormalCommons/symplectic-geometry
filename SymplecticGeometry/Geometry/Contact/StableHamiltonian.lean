@@ -29,7 +29,6 @@ import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser

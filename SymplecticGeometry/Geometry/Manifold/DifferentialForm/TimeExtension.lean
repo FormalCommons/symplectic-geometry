@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
@@ -169,7 +170,7 @@ theorem timeExtendSlice_coe (t : unitInterval) :
 theorem timeExtendSlice_add (s : ℝ) :
     timeExtendSlice (Ω + Θ) s = timeExtendSlice Ω s + timeExtendSlice Θ s := by
   refine Subtype.ext <| funext fun x ↦ ?_
-  rw [Submodule.coe_add, Pi.add_apply, timeExtendSlice_apply, timeExtendSlice_apply,
+  rw [SmoothBundleForm.add_apply, timeExtendSlice_apply, timeExtendSlice_apply,
     timeExtendSlice_apply]
   refine (SymplecticGeometry.timeExtend_congr (F := E [⋀^Fin k]→L[ℝ] F) (fun t ↦ ?_) s).trans
     (congrFun (SymplecticGeometry.timeExtend_add _ _) (s, x))
@@ -181,7 +182,7 @@ theorem timeExtendSlice_add (s : ℝ) :
 theorem timeExtendSlice_smul (c : ℝ) (s : ℝ) :
     timeExtendSlice (c • Ω) s = c • timeExtendSlice Ω s := by
   refine Subtype.ext <| funext fun x ↦ ?_
-  rw [Submodule.coe_smul, Pi.smul_apply, timeExtendSlice_apply, timeExtendSlice_apply]
+  rw [SmoothBundleForm.smul_apply, timeExtendSlice_apply, timeExtendSlice_apply]
   refine (SymplecticGeometry.timeExtend_congr (F := E [⋀^Fin k]→L[ℝ] F) (fun t ↦ ?_) s).trans
     (congrFun (SymplecticGeometry.timeExtend_smul c _) (s, x))
   -- The slice at `t` of `c • Ω` is `c` times that of `Ω`.
@@ -206,11 +207,11 @@ def timeExtend :
   toFun Ω := ofSlices (timeExtendSlice Ω) (contMDiff_timeExtendSlice Ω)
   map_add' Ω Θ := by
     ext p v
-    simp only [ofSlices_apply, timeExtendSlice_add, Submodule.coe_add, Pi.add_apply,
+    simp only [ofSlices_apply, timeExtendSlice_add, SmoothBundleForm.add_apply,
       ContinuousAlternatingMap.add_apply]
   map_smul' c Ω := by
     ext p v
-    simp only [ofSlices_apply, timeExtendSlice_smul, Submodule.coe_smul, Pi.smul_apply,
+    simp only [ofSlices_apply, timeExtendSlice_smul, SmoothBundleForm.smul_apply,
       ContinuousAlternatingMap.smul_apply, RingHom.id_apply]
 
 /-- `TauCeti.SmoothForm.timeExtend Ω` is the form on `ℝ × M` with the slices

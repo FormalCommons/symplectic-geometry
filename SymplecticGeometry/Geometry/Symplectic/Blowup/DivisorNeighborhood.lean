@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.CodimTwo
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm

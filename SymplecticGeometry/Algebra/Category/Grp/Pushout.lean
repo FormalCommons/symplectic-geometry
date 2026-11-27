@@ -64,6 +64,11 @@ image under `g` of the kernel of `f`.
   `CategoryTheory.IsPushout.inrMulEquivOfKerLe`: if moreover `g` kills the kernel of `f`, then
   `inr` is an isomorphism.
 
+The `simp` lemmas for these two isomorphisms apply to squares with any objects, whether
+`GrpCat.of` objects or not, with a leg `inr` that is any morphism or `GrpCat.ofHom j`. `simp`
+does not use the lemma for the inverse of `quotientNormalClosureMulEquiv` when `f` or `g` is
+`GrpCat.ofHom`.
+
 The surjectivity of `inr` is Mathlib's `CategoryTheory.IsPushout.epi_inr_of_epi` together with
 `GrpCat.epi_iff_surjective`. For the kernel, the quotient map `G₂ → G₂ ⧸ N` and the map
 `G₁ → G₂ ⧸ N` that it induces through `f` (by `MonoidHom.liftOfSurjective`) form a cocone on the
@@ -249,18 +254,6 @@ noncomputable def quotientNormalClosureMulEquiv (hP : IsPushout f g inl inr)
   (QuotientGroup.quotientMulEquivOfEq (hP.ker_inr_eq_normalClosure hf).symm).trans
     (QuotientGroup.quotientKerEquivOfSurjective inr.hom (hP.surjective_inr_of_surjective hf))
 
-@[simp]
-theorem quotientNormalClosureMulEquiv_mk (hP : IsPushout f g inl inr)
-    (hf : Function.Surjective f) (x : G₂) :
-    hP.quotientNormalClosureMulEquiv hf (QuotientGroup.mk x) = inr x := by
-  simp [quotientNormalClosureMulEquiv, QuotientGroup.quotientKerEquivOfSurjective]
-
-@[simp]
-theorem quotientNormalClosureMulEquiv_symm_inr (hP : IsPushout f g inl inr)
-    (hf : Function.Surjective f) (x : G₂) :
-    (hP.quotientNormalClosureMulEquiv hf).symm (inr x) = QuotientGroup.mk x := by
-  rw [MulEquiv.symm_apply_eq, quotientNormalClosureMulEquiv_mk]
-
 /-- In a pushout square of groups with `f` surjective, if `g` kills the kernel of `f`, then
 `inr` is bijective. -/
 theorem bijective_inr_of_ker_le (hP : IsPushout f g inl inr)
@@ -279,17 +272,83 @@ noncomputable def inrMulEquivOfKerLe (hP : IsPushout f g inl inr)
     (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) : G₂ ≃* P :=
   MulEquiv.ofBijective inr.hom (hP.bijective_inr_of_ker_le hf hfg)
 
+/-! The next lemmas are stated for a square whose objects are `GrpCat.of A`, `GrpCat.of B`,
+`GrpCat.of C` and `GrpCat.of D`, and their left sides name these types explicitly, down to the
+subgroup in the quotient, for the reason given before `mulEquivPushoutI_inl`. They still apply to
+a square with any objects, since an object `G` is `GrpCat.of G` up to eta.
+
+`quotientNormalClosureMulEquiv_mk` is moreover stated for legs `GrpCat.ofHom φ` and
+`GrpCat.ofHom ψ`, so that its subgroup reads `normalClosure (ψ '' φ.ker)`. The `simp` index
+reduces a leg `GrpCat.ofHom φ` of a goal to `φ`, and a leg `f` of a lemma does not match that.
+A bundled leg `f` still matches the lemma, as `GrpCat.ofHom f.hom'` up to eta. The lemma about
+the inverse of `quotientNormalClosureMulEquiv` cannot take this form: its right side lies in the
+quotient, which would then name `f.hom'` in place of the goal's `f.hom`, and `simp` could not
+close the result. So it is stated for bundled legs `f` and `g`, and `simp` does not use it when
+`f` or `g` is `GrpCat.ofHom`. The lemmas about `inrMulEquivOfKerLe` and its inverse have no
+quotient on either side, and `simp` uses them for bundled and for `GrpCat.ofHom` legs alike. For
+a leg `inr = GrpCat.ofHom j`, `simp` brings `inr x` to `j x`, so the lemmas
+about the inverses have companions stated with `j x`. -/
+
+section ofTypes
+
+variable {A B C D : Type u} [Group A] [Group B] [Group C] [Group D]
+  {inl : GrpCat.of B ⟶ GrpCat.of D}
+
 @[simp]
-theorem inrMulEquivOfKerLe_apply (hP : IsPushout f g inl inr)
-    (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : G₂) :
-    hP.inrMulEquivOfKerLe hf hfg x = inr x := by
+theorem quotientNormalClosureMulEquiv_mk {φ : A →* B} {ψ : A →* C}
+    {inr : GrpCat.of C ⟶ GrpCat.of D} (hP : IsPushout (GrpCat.ofHom φ) (GrpCat.ofHom ψ) inl inr)
+    (hf : Function.Surjective (GrpCat.ofHom φ)) (x : C) :
+    @DFunLike.coe (C ⧸ normalClosure (ψ '' φ.ker) ≃* D) _ _ _
+      (hP.quotientNormalClosureMulEquiv hf) (QuotientGroup.mk x) =
+      @DFunLike.coe (C →* D) C _ _ (ConcreteCategory.hom inr) x := by
+  simp [quotientNormalClosureMulEquiv, QuotientGroup.quotientKerEquivOfSurjective]
+
+variable {f : GrpCat.of A ⟶ GrpCat.of B} {g : GrpCat.of A ⟶ GrpCat.of C}
+
+@[simp]
+theorem quotientNormalClosureMulEquiv_symm_inr {inr : GrpCat.of C ⟶ GrpCat.of D}
+    (hP : IsPushout f g inl inr) (hf : Function.Surjective f) (x : C) :
+    @DFunLike.coe (D ≃* C ⧸ @normalClosure C _ (@Set.image A C
+        (@DFunLike.coe (A →* C) A _ _ (ConcreteCategory.hom g))
+        (@SetLike.coe (Subgroup A) A _ (@MonoidHom.ker A _ B _ (ConcreteCategory.hom f))))) _ _ _
+      (MulEquiv.symm (M := C ⧸ _) (N := D) (hP.quotientNormalClosureMulEquiv hf))
+      (@DFunLike.coe (C →* D) C _ _ (ConcreteCategory.hom inr) x) = QuotientGroup.mk x := by
+  rw [MulEquiv.symm_apply_eq, quotientNormalClosureMulEquiv_mk]
+
+@[simp]
+theorem quotientNormalClosureMulEquiv_symm_ofHom_inr {j : C →* D}
+    (hP : IsPushout f g inl (GrpCat.ofHom j)) (hf : Function.Surjective f) (x : C) :
+    @DFunLike.coe (D ≃* C ⧸ @normalClosure C _ (@Set.image A C
+        (@DFunLike.coe (A →* C) A _ _ (ConcreteCategory.hom g))
+        (@SetLike.coe (Subgroup A) A _ (@MonoidHom.ker A _ B _ (ConcreteCategory.hom f))))) _ _ _
+      (MulEquiv.symm (M := C ⧸ _) (N := D) (hP.quotientNormalClosureMulEquiv hf)) (j x) =
+      QuotientGroup.mk x := by
+  simpa using hP.quotientNormalClosureMulEquiv_symm_inr hf x
+
+@[simp]
+theorem inrMulEquivOfKerLe_apply {inr : GrpCat.of C ⟶ GrpCat.of D} (hP : IsPushout f g inl inr)
+    (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : C) :
+    @DFunLike.coe (C ≃* D) C _ _ (hP.inrMulEquivOfKerLe hf hfg) x =
+      @DFunLike.coe (C →* D) C _ _ (ConcreteCategory.hom inr) x := by
   simp [inrMulEquivOfKerLe]
 
 @[simp]
-theorem inrMulEquivOfKerLe_symm_inr (hP : IsPushout f g inl inr)
-    (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker) (x : G₂) :
-    (hP.inrMulEquivOfKerLe hf hfg).symm (inr x) = x := by
+theorem inrMulEquivOfKerLe_symm_inr {inr : GrpCat.of C ⟶ GrpCat.of D}
+    (hP : IsPushout f g inl inr) (hf : Function.Surjective f) (hfg : f.hom.ker ≤ g.hom.ker)
+    (x : C) :
+    @DFunLike.coe (D ≃* C) D _ _ (MulEquiv.symm (M := C) (N := D) (hP.inrMulEquivOfKerLe hf hfg))
+      (@DFunLike.coe (C →* D) C _ _ (ConcreteCategory.hom inr) x) = x := by
   rw [MulEquiv.symm_apply_eq, inrMulEquivOfKerLe_apply]
+
+@[simp]
+theorem inrMulEquivOfKerLe_symm_ofHom_inr {j : C →* D}
+    (hP : IsPushout f g inl (GrpCat.ofHom j)) (hf : Function.Surjective f)
+    (hfg : f.hom.ker ≤ g.hom.ker) (x : C) :
+    @DFunLike.coe (D ≃* C) D _ _ (MulEquiv.symm (M := C) (N := D) (hP.inrMulEquivOfKerLe hf hfg))
+      (j x) = x := by
+  simpa using hP.inrMulEquivOfKerLe_symm_inr hf hfg x
+
+end ofTypes
 
 end CategoryTheory.IsPushout
 
