@@ -316,9 +316,9 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
 `Φ₀` a smooth partial diffeomorphism from the model space `V = ℂᵏ × ℂᵐ` to `M` whose differential
 commutes with multiplication by `i` at each point of the core `ι₀ (ℝᵏ)` in its source, `p₀` a
 point of the core in the source of `Φ₀`, and `1 ≤ N`. Write `L : V → ℂ^(k ⊕ m)` for the inverse
-of `EuclideanSpace.sumEquivProd`. Then there are an open
-neighbourhood `U` of `p₀` on which `Φ₀` lands in the source of the chart `κ` of `M` at `Φ₀ p₀`, a
-map `G : V → V` and a constant `C` such that, with `x + i y` for the point `L z`:
+of `EuclideanSpace.sumEquivProd`. Then there are an open neighbourhood `U` of `p₀`, inside the
+source of `Φ₀`, on which `Φ₀` lands in the source of the chart `κ` of `M` at `Φ₀ p₀`, a map
+`G : V → V` and a constant `C` such that, with `x + i y` for the point `L z`:
 * `G` is smooth on `U` and maps `U` into the source of `Φ₀` and the preimage of the source of
   `κ`;
 * `G` fixes the points of `U` that are real in the coordinates of `L`;
