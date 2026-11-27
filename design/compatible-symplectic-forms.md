@@ -386,22 +386,23 @@ About 300 lines.
 For a symplectic atlas `A` for $(F,\sigma)$:
 
 - the vertical bundle `fun x ↦ LinearMap.ker (mfderiv IM IB π x)` as a
-  smooth subbundle of `TM`, by Tau Ceti's
-  `TauCeti.HasLocalContMDiffSubbundleFrames.contMDiffVectorBundle`: images
-  of coordinate frames of `TF` under $d(e^{-1})$ are local frames, unless
-  *Symplectic fibrations* builds it first;
-- `verticalForm A`, the restriction to $\mathrm{Ver}$ of a connection
-  two-form of `A` (*Symplectic fibrations*' existence of connection
-  two-forms), with `isNondegenerate_verticalForm`, and
-  `verticalForm_eq`: every form that restricts to the fibre forms has this
-  restriction to $\mathrm{Ver}$;
+  smooth subbundle of `TM`: the kernel distribution of the submersion `π`
+  (`IsContMDiff.isContMDiffDistribution_ker_mfderiv`, from Tau Ceti's
+  `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), with
+  `IsContMDiff.contMDiffVectorBundle_ker_mfderiv`;
+- `hD.restrictTwoForm τ` (`TauCeti.IsContMDiffDistribution.restrictTwoForm`),
+  the restriction to $\mathrm{Ver}$ of a connection two-form `τ` of `A`
+  (*Symplectic fibrations*' existence of connection two-forms), with
+  `RestrictsTo.isNondegenerate_restrictTwoForm`, and
+  `RestrictsTo.restrictTwoForm_eq`: every form that restricts to the fibre
+  forms has this restriction to $\mathrm{Ver}$;
 - `realFirstChernClass_vertical A : deRhamCohomology IM M 2`, the class of
-  `isNondegenerate_verticalForm` (layer 3 above), with `_def`;
+  `RestrictsTo.isNondegenerate_restrictTwoForm` (layer 3 above), with `_def`;
 - `map_realFirstChernClass_vertical`: for a chart `e` and `b ∈ e.baseSet`,
   `map (j e b) _ 2 (realFirstChernClass_vertical A) = hσ.realFirstChernClass`.
   The differential of $j_{e,b}$ is an isomorphism from `TF` onto the
   pull-back of $\mathrm{Ver}$ that carries $\sigma$ to the pull-back of
-  `verticalForm A`; then `realFirstChernClass_pullback` and
+  `hD.restrictTwoForm τ`; then `realFirstChernClass_pullback` and
   `realFirstChernClass_pushforward` for forms;
 - `map_inv_smul_realFirstChernClass_vertical` (milestone): if
   `hσ.isNondegenerate.realFirstChernClass = λ • [σ]` with `λ ≠ 0`, then
