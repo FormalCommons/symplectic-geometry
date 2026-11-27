@@ -209,7 +209,7 @@ the determinant line of prerequisite 1:
   vanishing section `TauCeti.DetBundle.ofFrame` of the constant frame.
 - `firstChernClass_eq_complexEulerClass`: for a line bundle,
   `firstChernClass G E = complexEulerClass G E hG`, through
-  `TauCeti.DetBundle.oneHomeomorph`.
+  `TauCeti.DetBundle.lineHomeomorph`.
 - `firstChernClass_conj`: the conjugate bundle (Tau Ceti's
   `Topology/VectorBundle/Conjugate.lean`) has the negated class.
   `TauCeti.DetBundle.conjugateHomeomorph` identifies the determinant line of

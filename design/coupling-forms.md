@@ -56,7 +56,7 @@ differ.
   forms of degree `r + m` on `M` to forms of degree `r` on `B`, with
   `fiberIntegral_apply_of_lift` (the value at `b` computed from any lifts of
   the base vectors), `fiberIntegral_mextDeriv`, and the product operator
-  `prodFiberIntegral` with `fiberIntegral_restrict`.
+  `prodFiberIntegral` with `mpullback_subtype_val_fiberIntegral`.
 - *Flux homomorphism*: `Family.lean`,
   `TauCeti.Diffeotopy.isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup`
   (McDuff–Salamon, Proposition 10.2.12).
