@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Conv
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Topology.Order.Compact
 import SymplecticGeometry.Topology.Order.Piecewise
+import TauCeti.Order.Interval.Set.Piecewise
 
 /-!
 # Smoothed maxima and minima of `i`-convex shapes
@@ -442,9 +443,8 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
     (hχ₁ hr).symm.trans (hφχ (by linarith [hr.2] : r < r₂)).symm
   have e₁ : EqOn ψ χ₁ (Iic u) := EqOn.eqOn_ite_le_left
     (h₁φ.mono fun r hr ↦ mem_Icc.2 ⟨by linarith [mem_Ioi.1 hr.2], hr.1⟩)
-  have e₂ : EqOn ψ χ₂ (Ici v) := fun r hr ↦ (EqOn.eqOn_ite_le_right
-    (h₁φ.mono fun r hr ↦ (by linarith [mem_Ici.1 hr.1, mem_Iic.1 hr.2] : False).elim) hr).trans
-    (hφ₂ hr)
+  have e₂ : EqOn ψ χ₂ (Ici v) := fun r hr ↦ (eqOn_ite_le_Ici (h₁φ ⟨by linarith, by linarith⟩)
+    (by linarith [mem_Ici.1 hr] : (r₁ + u) / 2 ≤ r)).trans (hφ₂ hr)
   have key : ∀ r, (ψ =ᶠ[𝓝 r] χ₁ ∧ r < u) ∨ (ψ =ᶠ[𝓝 r] χ ∧ r ∈ Ioo r₁ r₂) ∨
       (ψ =ᶠ[𝓝 r] χ₂ ∧ v < r) := fun r ↦ by
     rcases lt_or_ge r u with h | h
