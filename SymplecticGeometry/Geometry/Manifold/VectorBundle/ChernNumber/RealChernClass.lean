@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Determinant
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
 
