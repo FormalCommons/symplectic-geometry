@@ -2281,20 +2281,30 @@ vanishes.
 Lemma list: `handleField_apply`, `contMDiff_handleField`,
 `isLiouvilleVectorField_handleField` (for the constant form above, by
 the identity, as `isWeinsteinStructure_constSmooth_norm_sq` does for
-the radial field), `handleFlow k m : Flow ℝ V` with `handleFlow_apply`
-and `isCompleteVectorField_handleField` (its curves are integral
-curves), `mvfderiv_modelHandle_handleField` (the formula above),
-`isGradientLike_modelHandle_handleField`, `stableSet_handleFlow`
-(`(handleFlow k m).stableSet 0 = range (modelDisc k m)`), the isotropy
+the radial field), `handleField_flow_apply` (the explicit value of
+`(handleField k m).flow t p`, for Tau Ceti's linear flow
+`ContinuousLinearMap.flow` of `TauCeti/Analysis/ODE/Linear.lean`, from
+its `flow_apply`), `isCompleteVectorField_handleField` (the curves of
+that flow are integral curves), `mvfderiv_modelHandle_handleField` (the
+formula above), `isGradientLike_modelHandle_handleField`,
+`stableSubspace_handleField`
+(`((handleField k m).stableSubspace : Set V) = range (modelDisc k m)`,
+through Tau Ceti's `coe_stableSubspace` and `mem_stableSubspace`), the
+isotropy
 of the core, `range (modelDisc k m) ∩ modelHandle k m a b ⁻¹' {-c} =
 modelDisc k m '' sphere 0 √(c / a)` for `0 < c` (the attaching sphere of
 the model), and, for `k = 0`, `isWeinsteinStructure_handle_zero`. That
 last lemma is the radial structure of `Weinstein/Basic.lean`, carried by
 `IsWeinsteinStructure.pullback` along the linear equivalence of
-`ℂ⁰ × ℂᵐ` with `ℂᵐ`, and by `.comp` with `t ↦ b t`. Searched: neither
-Tau Ceti nor the library has a hyperbolic linear Liouville field or its
-flow. Tau Ceti's `Liouville/Radial/` and `isCompleteVectorField_dilation`
-cover only the radial field.
+`ℂ⁰ × ℂᵐ` with `ℂᵐ`, and by `.comp` with `t ↦ b t`. No flow is defined
+here: Tau Ceti's `ContinuousLinearMap.flow` and `stableSubspace` give
+the flow of any bounded linear field and the stable set of `0`, as 15c
+already uses them. Searched: neither Tau Ceti nor the library has this
+hyperbolic Liouville field. Tau Ceti's linear Liouville fields are the
+radial one (`Liouville/Radial/`, `isCompleteVectorField_dilation`) and
+`cotangentLiouvilleField` on the linear cotangent space
+(`isLiouvilleVectorField_cotangentLiouvilleField`), which is not
+hyperbolic.
 
 **The Lean form of attachment: route (b).** The converse never builds a
 new manifold. Cieliebak–Eliashberg's proof of Theorem 13.9 works inside
