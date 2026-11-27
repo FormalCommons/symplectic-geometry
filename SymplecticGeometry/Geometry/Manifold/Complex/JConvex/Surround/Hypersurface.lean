@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
 
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 
