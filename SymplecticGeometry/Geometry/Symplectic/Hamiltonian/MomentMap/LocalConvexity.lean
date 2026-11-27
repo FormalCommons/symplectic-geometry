@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.ConvexChart
 import SymplecticGeometry.LinearAlgebra.Projection
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
 
