@@ -1259,7 +1259,7 @@ public lemma of its own in this file.
 The band cores of an open manifold, from issue 4:
 
 ```lean
-theorem TauCeti.exists_isMorse_bandCore_seq (hE : Module.finrank ℝ E ≠ 1)
+theorem SymplecticGeometry.exists_isMorse_bandCore_seq (hE : Module.finrank ℝ E ≠ 1)
     (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
     ∃ (g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) (d e : ℕ → ℝ), IsMorse I g ∧ IsProperMap g ∧
       (∀ x, e 0 < g x) ∧ (∀ k, d k < e k ∧ e k < d (k + 1)) ∧
@@ -1272,8 +1272,8 @@ supplies `hE` as that theorem's section explains.
 Its critical values form a discrete set, so the levels can be chosen with all
 critical values in the intervals `(e k, d (k + 1))`, at most one in each;
 `exists_bandCore` then applies to `(d k, e k, e (k + 1))`, with `hbdd`
-from `BddBelow (Set.range g)` in that theorem, or
-`BandCore.ofNoCriticalPoint` where the interval holds none.
+from `BddBelow (Set.range g)` in that theorem, also where the interval
+holds none, since its hypothesis on critical points then holds vacuously.
 
 **What the engine needs beyond the sketch of `Cube.lean`.** The engine
 approximates over each cube of a band core relative to the open set where
@@ -1511,7 +1511,7 @@ dimension $2n$:
   `Parametric.lean` section of holonomic approximation says why no
   parameter manifold is needed).
 
-Proof, one band core of `TauCeti.exists_isMorse_bandCore_seq` at a time
+Proof, one band core of `SymplecticGeometry.exists_isMorse_bandCore_seq` at a time
 (`Morse/Core/`), with the family $\alpha_\lambda$ of Decision 4. Stage $k$
 starts from nondegenerate $\omega^k_\lambda$ ($\omega^0=\tau$) and one-forms
 $\beta^k_\lambda$ with $\omega^k_\lambda=\alpha_\lambda+d\beta^k_\lambda$ on a
@@ -1837,7 +1837,7 @@ Each is a few hundred lines; each issue's blockers come before it.
      `Morse/Core/Compression.lean`: `TauCeti.IsMorse.exists_bandCore`.
      Blocked by 5a, 5a′ and 5b.
    - 5d. **The band cores of an open manifold.** `Morse/Core/Exhaustion.lean`:
-     `TauCeti.exists_isMorse_bandCore_seq`. Blocked by 4 and 5c.
+     `SymplecticGeometry.exists_isMorse_bandCore_seq`. Blocked by 4 and 5c.
 6. **Smooth families of primitives over a manifold parameter**
    (`DifferentialForm/SmoothFamily/Map.lean`, `DeRham/SmoothFamily/`).
    This is the refactor that `design/compatible-symplectic-forms.md` plans

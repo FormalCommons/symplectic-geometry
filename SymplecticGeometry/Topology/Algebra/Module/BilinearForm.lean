@@ -15,9 +15,10 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 /-!
 # Continuous bilinear forms
 
-This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, one about
-the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors, and one
-about the continuous inverse of a nondegenerate bilinear form.
+This file collects facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, about the
+bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors, about the
+continuous inverse of a nondegenerate bilinear form, and about the sublevel sets of a positive
+definite form.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
@@ -52,6 +53,10 @@ For a nondegenerate bilinear form `B` on a finite-dimensional space, the map
 `B.toContinuousBilinearMap` to the continuous dual is invertible, by Tau Ceti's
 `TauCeti.isInvertible_toContinuousBilinearMap_iff_separatingLeft`, and its inverse is that of
 `B.toDual hB`, applied to continuous linear forms.
+
+On a finite-dimensional real normed space, a positive definite form `B` controls the norm,
+`c ‖x‖² ≤ B x x` for some `c > 0`, by Tau Ceti's `IsCompact.exists_pos_forall_mul_norm_sq_le`
+applied to a single form, so its sublevel sets `{x | B x x ≤ c}` are compact.
 
 ## Main definitions
 
@@ -94,6 +99,8 @@ For a nondegenerate bilinear form `B` on a finite-dimensional space, the map
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
 * `LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply`: for nondegenerate `B` in finite
   dimension, `B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f`.
+* `LinearMap.BilinForm.isCompact_setOf_apply_self_le`: on a finite-dimensional real normed
+  space, the sublevel sets of a positive definite form are compact.
 -/
 
 public section
@@ -400,6 +407,22 @@ theorem toContinuousBilinearMap_inverse_apply (hB : B.Nondegenerate) (f : Strong
   refine h.inverse_apply_eq.2 ?_
   ext w
   simp
+
+/-- On a finite-dimensional real normed space, the sublevel sets `{x | B x x ≤ c}` of a positive
+definite bilinear form `B` are compact. -/
+theorem isCompact_setOf_apply_self_le {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [FiniteDimensional ℝ E] {B : LinearMap.BilinForm ℝ E} (hB : B.toQuadraticMap.PosDef)
+    (c : ℝ) : IsCompact {x | B x x ≤ c} := by
+  obtain ⟨a, ha, hle⟩ := (isCompact_singleton (x := ())).exists_pos_forall_mul_norm_sq_le
+    (b := fun _ ↦ B.toContinuousBilinearMap) continuousOn_const fun _ _ v hv ↦ by
+      simpa using hB v hv
+  refine (isCompact_closedBall (0 : E) √(c / a)).of_isClosed_subset
+    (isClosed_le (LinearMap.continuous_apply_self B) continuous_const)
+    fun x (hx : B x x ≤ c) ↦ ?_
+  rw [mem_closedBall_zero_iff]
+  refine Real.le_sqrt_of_sq_le ?_
+  rw [le_div_iff₀ ha, mul_comm]
+  simpa using (hle () rfl x).trans hx
 
 end LinearMap.BilinForm
 

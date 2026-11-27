@@ -170,6 +170,10 @@ theorem flow_def :
     hW.flow = globalFlow X (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField :=
   (rfl)
 
+/-- The flow of a Weinstein structure is the maximal flow `flowOf X` of its Liouville field. -/
+theorem flowOf_eq_flow : flowOf X = ⇑hW.flow :=
+  (flowOf_eq_globalFlow _ _).trans (congrArg _ hW.flow_def.symm)
+
 /-- The flow at time `t` is the maximal integral curve of the Liouville field at time `t`. -/
 theorem flow_apply (t : ℝ) (y : M) : hW.flow t y = maximalIntegralCurve X y t := by
   rw [flow_def, globalFlow_apply]
