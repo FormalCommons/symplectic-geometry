@@ -14,7 +14,6 @@ import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Glaeser
 import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 import SymplecticGeometry.Geometry.Manifold.Immersion.InfDist
-import TauCeti.Analysis.Complex.LeviForm.Basic
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
@@ -71,8 +70,9 @@ The uniform local data come from shrinking a ball about `e (ι y)`: the coordina
 `φ` and `ψ` are strictly plurisubharmonic near `e (ι y)` by
 `TauCeti.isManifoldStrictlyPlurisubharmonicAt_iff_of_mem_maximalAtlas` and
 `TauCeti.IsStrictlyPlurisubharmonicAt.eventually`, the lower bound `m` on the closed ball is
-Tau Ceti's `IsCompact.exists_pos_mul_sq_norm_le_re_leviForm`, and the bound on the differential
-of `φ ∘ e.symm` is the continuity of that differential at `e (ι y)`
+`IsCompact.exists_pos_mul_sq_norm_le_re_leviForm_of_isStrictlyPlurisubharmonicAt` (in
+`SymplecticGeometry.Analysis.Complex.Pseudoconvex`), and the bound on the differential of
+`φ ∘ e.symm` is the continuity of that differential at `e (ι y)`
 (`TauCeti.mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero`).
 
 ## References
@@ -256,25 +256,25 @@ theorem exists_closedBall_abs_sub_le_and_le_re_leviForm [I'.Boundaryless]
         (IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 1 two_ne_zero he) hy).not.1 h0
     refine ⟨‖fderiv ℝ (φ ∘ e.symm) z₀‖ / 2, by positivity, ?_⟩
     filter_upwards [continuousAt_const.eventually_lt
-      ((hcd hφ).self_of_nhds.fderiv_right (m := 1) (by norm_num)).continuousAt.norm
+      ((hcd hφ).self_of_nhds.continuousAt_fderiv two_ne_zero).norm
       (half_lt_self hne)] with z hz _ using hz.le
   -- Collect the conditions and take a closed ball on which they all hold.
   have hall := htarget.and <| (hsymm.eventually hS).and <| hA.and <| (hcd hφ).and <|
     (hcd hψ).and <| (hsp hφ hφs).and <| (hsp hψ hψs).and hdφ
   obtain ⟨r, hr, hrP⟩ := nhds_basis_closedBall.mem_iff.1 hall
   -- Uniform Levi positivity on the compact closed ball.
-  have hlevi {f : M → ℝ} (hf : ∀ z ∈ closedBall z₀ r, ContDiffAt ℝ 2 (f ∘ e.symm) z)
-      (hfs : ∀ z ∈ closedBall z₀ r, IsStrictlyPlurisubharmonicAt (f ∘ e.symm) z) :
-      ∃ c > 0, ∀ z ∈ closedBall z₀ r, ∀ v, c * ‖v‖ ^ 2 ≤ (leviForm (f ∘ e.symm) z v v).re := by
-    simp only [leviForm_def]
-    refine (isCompact_closedBall z₀ r).exists_pos_mul_sq_norm_le_re_leviForm
-      (fun z hz ↦ (((hf z hz).fderiv_right (m := 1) (by norm_num)).fderiv_right (m := 0)
-        (by norm_num)).continuousAt.continuousWithinAt) fun z hz v hv ↦ ?_
-    rw [← leviForm_def]
-    exact isStrictlyPlurisubharmonicAt_iff.1 (hfs z hz) v hv
-  obtain ⟨mφ, hmφ, hLφ⟩ := hlevi (fun z hz ↦ (hrP hz).2.2.2.1) fun z hz ↦ (hrP hz).2.2.2.2.2.1
-  obtain ⟨mψ, hmψ, hLψ⟩ := hlevi (fun z hz ↦ (hrP hz).2.2.2.2.1) fun z hz ↦
-    (hrP hz).2.2.2.2.2.2.1
+  have hreg : ∀ z ∈ closedBall z₀ r,
+      (ContDiffAt ℝ 2 (φ ∘ e.symm) z ∧ IsStrictlyPlurisubharmonicAt (φ ∘ e.symm) z) ∧
+      (ContDiffAt ℝ 2 (ψ ∘ e.symm) z ∧ IsStrictlyPlurisubharmonicAt (ψ ∘ e.symm) z) := by
+    intro z hz
+    obtain ⟨-, -, -, h₁, h₂, h₃, h₄, -⟩ := hrP hz
+    exact ⟨⟨h₁, h₃⟩, h₂, h₄⟩
+  obtain ⟨mφ, hmφ, hLφ⟩ := (isCompact_closedBall z₀ r)
+    |>.exists_pos_mul_sq_norm_le_re_leviForm_of_isStrictlyPlurisubharmonicAt
+      (fun z hz ↦ (hreg z hz).1.1) fun z hz ↦ (hreg z hz).1.2
+  obtain ⟨mψ, hmψ, hLψ⟩ := (isCompact_closedBall z₀ r)
+    |>.exists_pos_mul_sq_norm_le_re_leviForm_of_isStrictlyPlurisubharmonicAt
+      (fun z hz ↦ (hreg z hz).2.1) fun z hz ↦ (hreg z hz).2.2
   refine ⟨r, hr, fun z hz ↦ (hrP hz).1, ?_, A, min (min mφ mψ) d, by positivity, fun z hz ↦ ?_⟩
   · rintro _ ⟨z, hz, rfl⟩
     exact (hrP hz).2.1
