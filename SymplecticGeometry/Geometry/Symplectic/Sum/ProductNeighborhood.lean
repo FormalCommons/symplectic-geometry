@@ -80,7 +80,7 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   normal spaces by `dk`, `TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`, which is smooth by
   `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfComp` and carries one normal form to the
   other by `TauCeti.SmoothEmbedding.symplecticNormalForm_normalSpaceEquivOfComp`;
-  `SymplecticGeometry.SymplecticFraming.ofTransLocalDiffeomorph`, the converse, from a framing of
+  `SymplecticGeometry.SymplecticFraming.ofTransLocalDiffeomorph`, its inverse, from a framing of
   `ι'` to one of `ι`, by the inverse identification, which is smooth by Tau Ceti's
   `TauCeti.contMDiff_bundle_symm`; and `SymplecticGeometry.SymplecticFraming.transDiffeomorph`,
   the first along a diffeomorphism `ψ : M ≃ M'`, for the embedding `ψ ∘ ι`, whose tangent images
@@ -483,7 +483,6 @@ def transLocalDiffeomorph (Φ : SymplecticFraming hι hP) : SymplecticFraming h�
   symplecticNormalForm_toFun q v w := by
     rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
       ι.symplecticNormalForm_normalSpaceEquivOfComp ι' hι hι' _ _ _ hkι q
-        ((hk (ι q)).mdifferentiableAt (by simp))
         (fun a b ↦ by rw [← hkσ, SmoothForm.eval₂_mpullback]),
       Φ.symplecticNormalForm_toFun, symplecticNormalForm_zeroSlice, symplecticNormalForm_zeroSlice]
 
@@ -521,7 +520,6 @@ def ofTransLocalDiffeomorph (Φ' : SymplecticFraming hι' hP') : SymplecticFrami
     rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
       ← ι.symplecticNormalForm_normalSpaceEquivOfComp ι' hι hι' (by simp) (by simp)
         (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q
-        ((hk (ι q)).mdifferentiableAt (by simp))
         (fun a b ↦ by rw [← hkσ, SmoothForm.eval₂_mpullback]),
       ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
       Φ'.symplecticNormalForm_toFun, symplecticNormalForm_zeroSlice, symplecticNormalForm_zeroSlice]
@@ -536,6 +534,22 @@ theorem ofTransLocalDiffeomorph_apply (Φ' : SymplecticFraming hι' hP') (q : Q)
       (ι.normalSpaceEquivOfComp ι' _ _ (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι
         q).symm (Φ' q v) :=
   (rfl)
+
+/-- Pulling back a framing along `k` after moving it along `k` gives the framing back. -/
+@[simp]
+theorem ofTransLocalDiffeomorph_transLocalDiffeomorph (Φ : SymplecticFraming hι hP) :
+    (Φ.transLocalDiffeomorph (hι' := hι') (hP' := hP') hk hkσ hkι).ofTransLocalDiffeomorph hk hkσ
+      hkι = Φ := by
+  ext q v
+  simp
+
+/-- Moving a framing along `k` after pulling it back along `k` gives the framing back. -/
+@[simp]
+theorem transLocalDiffeomorph_ofTransLocalDiffeomorph (Φ' : SymplecticFraming hι' hP') :
+    (Φ'.ofTransLocalDiffeomorph (hι := hι) (hP := hP) hk hkσ hkι).transLocalDiffeomorph hk hkσ
+      hkι = Φ' := by
+  ext q v
+  simp
 
 end TransLocalDiffeomorph
 

@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Symplectic.Manifold.Opens
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
-import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 import TauCeti.Geometry.Symplectic.Lagrangian.Opens
 
 /-!
@@ -124,15 +123,14 @@ variable {E V V' H G G' Z X X' : Type*} [NormedAddCommGroup E] [NormedSpace ℝ 
   {hσ' : σ'.IsNondegenerate} {v : X' → X}
 
 /-- **Normal symplectic forms of a commuting triangle.** Let `f' : Z → X'` and `f : Z → X` be
-embeddings with symplectic tangent images and `v : X' → X` a map with `v ∘ f' = f`, differentiable
-with invertible derivative at each point `f' x`, whose derivative at `f' x` carries `σ` to `σ'`.
+embeddings with symplectic tangent images and `v : X' → X` a map with `v ∘ f' = f`, with
+invertible derivative at each point `f' x`, whose derivative at `f' x` carries `σ` to `σ'`.
 Then the identification `normalSpaceEquivOfComp` of the normal spaces of `f'` and `f` at `x`
 carries the normal symplectic form of `f'` to that of `f`. -/
 theorem symplecticNormalForm_normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n Z X')
     (f : SmoothEmbedding I J m Z X) (hf' : hσ'.HasSymplecticTangentImages I f')
     (hf : hσ.HasSymplecticTangentImages I f) (hn : n ≠ 0) (hm : m ≠ 0)
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) (x : Z)
-    (hvx : MDifferentiableAt J' J v (f' x))
     (hvσ : ∀ a b, SmoothBundleForm.eval₂ σ (v (f' x)) (mfderiv J' J v (f' x) a)
       (mfderiv J' J v (f' x) b) = SmoothBundleForm.eval₂ σ' (f' x) a b)
     (a b : f'.isImmersion.NormalSpace x hn) :
@@ -141,7 +139,8 @@ theorem symplecticNormalForm_normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n
       f'.symplecticNormalForm hf' x hn a b := by
   rw [normalSpaceEquivOfComp_def, ← ContinuousLinearEquiv.coe_coe,
     normalSpaceEquiv_toContinuousLinearMap]
-  exact f'.symplecticNormalForm_normalMap f hf' hf hn hm _ hvx hvσ
+  exact f'.symplecticNormalForm_normalMap f hf' hf hn hm _
+    (mdifferentiableAt_of_isInvertible_mfderiv (hv x)) hvσ
     (by rw [mfderiv_id]; exact Function.surjective_id) a b
 
 end TauCeti.SmoothEmbedding
