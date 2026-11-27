@@ -31,10 +31,10 @@ The segments are run with the smooth step `Real.smoothTransition` as clock: the 
 `Ω_{p,s} = ω₀ + c(s) (σ_p - ω₀)`, `c = Real.smoothTransition`, are nondegenerate for every real
 `s`, since `c(s) ∈ [0, 1]`, and `∂_s Ω_{p,s} = d(c'(s) β_p)`. So the Moser fields `X_{p,s}` of
 these families need no cutoff. They are those of one family of two-forms over the points `(p, s)`
-of `P × ℝ` (`SymplecticGeometry.moserField`), hence jointly smooth in `(p, s, x)`, and so are
-their flows, by `TauCeti.contMDiff_timeDependentFlowOf_param`. The flows are complete because `N`
-is compact, and `χ_p` is the time-one map; `Diffeomorph.prodCongrRight` turns the jointly smooth
-family `χ` into a diffeomorphism of `P × N`. Moser's equation along the trajectories is
+of `P × ℝ` (`SymplecticGeometry.moserField`), hence jointly smooth in `(p, s, x)`. Their flows
+are complete because `N` is compact, and `χ_p` is the time-one map, jointly smooth in `(p, x)`
+by `TauCeti.contMDiff_timeDependentFlowDiffeomorph_param`; `Diffeomorph.prodCongrRight` turns
+the family `χ` into a diffeomorphism of `P × N`. Moser's equation along the trajectories is
 `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff`
 (`Moser/Field.lean`).
 
@@ -134,16 +134,13 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
   have hcY (p : P) : IsCompleteVectorField (timeDependentSuspensionField (Y p)) :=
     isCompleteVectorField_timeDependentSuspensionField_of_compactSpace
       ((hYp p).of_le (m := 1) (by simp))
-  have hflow := contMDiff_timeDependentFlowOf_param le_top hY hcY
-  have hflow' (s t : ℝ) : ContMDiff (IP.prod I) I ∞
-      (fun q : P × N ↦ timeDependentFlowOf (Y q.1) s t q.2) :=
-    hflow.comp ((contMDiff_fst.prodMk (contMDiff_const (c := (s, t)))).prodMk contMDiff_snd)
   -- `χ_p` is the time-one map of the flow of `Y p`.
   set χ : P → N ≃ₘ⟮I, I⟯ N := fun p ↦ timeDependentFlowDiffeomorph (hcY p) le_top (hYp p) 0 1
   have hχ (p : P) (x : N) : χ p x = timeDependentFlowOf (Y p) 0 1 x :=
     timeDependentFlowDiffeomorph_apply _ _ _ _ _ _
   let Φ : (P × N) ≃ₘ⟮IP.prod I, IP.prod I⟯ (P × N) :=
-    Diffeomorph.prodCongrRight χ ((hflow' 0 1).congr fun q ↦ hχ q.1 q.2) (by simp)
+    Diffeomorph.prodCongrRight χ ((contMDiff_timeDependentFlowDiffeomorph_param le_top hY hcY
+      0).comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))) (by simp)
   refine ⟨Φ, χ, fun q ↦ Diffeomorph.prodCongrRight_apply _ _ _ .., fun p ↦ ?_,
     fun p x hx ↦ ?_⟩
   · -- For this `p`, `Y p` is the Moser field of the family `ω₀ + c(s) (σ_p - ω₀)`, with the
