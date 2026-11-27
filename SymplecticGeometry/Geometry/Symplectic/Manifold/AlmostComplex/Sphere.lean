@@ -53,6 +53,9 @@ theorems assume that `n = 2 r + 2` is even and positive; `J` then orients the sp
 * `TauCeti.Bundle.ContinuousComplexStructure.factorial_dvd_two_of_sphere`: if `n = 2 r + 2`, then
   `r!` divides `2`, since the top Chern number `2` is a multiple of `r!` by Bott's integrality
   theorem (`SymplecticGeometry.Bundle.factorial_dvd_evalFundamentalClass_chernClass_sphere`).
+* `TauCeti.Bundle.ContinuousComplexStructure.eq_one_or_eq_three_of_sphere`: if `n = 2 j` with
+  `j ≠ 0`, then `j = 1` or `j = 3`: `j = 2 k + 1` is odd, and `(2k)!` divides `2`, so
+  `2 k ≤ 2`.
 * `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul`: for `k ≠ 0`, the
   tangent bundle of `S^{4k}` has no continuous complex structure.
 * `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul_add_two`: the same for
@@ -186,6 +189,18 @@ theorem factorial_dvd_two_of_sphere
   rw [J.evalFundamentalClass_chernClass_sphere hn] at h
   exact Int.natCast_dvd_natCast.1 h
 
+/-- **On `TS^{2j}`, a complex structure forces `j = 1` or `j = 3`.** Let `J` be a continuous
+complex structure on the tangent bundle of the unit sphere `S^n` of `E`, with
+`finrank ℝ E = n + 1` and `n = 2 j`, `j ≠ 0`. Then `j = 1` or `j = 3`. -/
+theorem eq_one_or_eq_three_of_sphere
+    (J : ContinuousComplexStructure (EuclideanSpace ℝ (Fin n))
+      (TangentSpace (𝓡 n) : sphere (0 : E) 1 → Type)) {j : ℕ} (hj₀ : j ≠ 0) (hn : n = 2 * j) :
+    j = 1 ∨ j = 3 := by
+  obtain ⟨k, hk⟩ := J.odd_of_sphere hj₀ hn
+  have h := Nat.le_of_dvd two_pos (J.factorial_dvd_two_of_sphere (r := 2 * k) (by simp; omega))
+  have := (2 * k).self_le_factorial
+  omega
+
 end TauCeti.Bundle.ContinuousComplexStructure
 
 namespace SymplecticGeometry
@@ -210,12 +225,8 @@ product space `E` of dimension `4 k + 3` with `2 ≤ k`, the tangent bundle of t
 theorem isEmpty_continuousComplexStructure_sphere_four_mul_add_two {k : ℕ} (hk : 2 ≤ k)
     [Fact (finrank ℝ E = 4 * k + 3)] :
     IsEmpty (ContinuousComplexStructure (EuclideanSpace ℝ (Fin (4 * k + 2)))
-      (TangentSpace (𝓡 (4 * k + 2)) : sphere (0 : E) 1 → Type)) := by
-  refine ⟨fun J ↦ ?_⟩
-  have h := Nat.le_of_dvd two_pos (J.factorial_dvd_two_of_sphere (r := 2 * k) (by simp; ring))
-  have := Nat.factorial_le (show 4 ≤ 2 * k by omega)
-  simp [Nat.factorial] at this
-  omega
+      (TangentSpace (𝓡 (4 * k + 2)) : sphere (0 : E) 1 → Type)) :=
+  ⟨fun J ↦ by have := J.eq_one_or_eq_three_of_sphere (j := 2 * k + 1) (by omega) (by ring); omega⟩
 
 /-- **The sphere `S^{2n}` has no almost complex structure for `n ∉ {0, 1, 3}`.**
 For `n ∉ {0, 1, 3}` and a real inner product space `E` of dimension `2 n + 1`, the tangent bundle
@@ -223,13 +234,8 @@ of the unit sphere `S^{2n}` of `E` carries no continuous complex structure. -/
 theorem isEmpty_continuousComplexStructure_sphere {n : ℕ} (h₀ : n ≠ 0) (h₁ : n ≠ 1)
     (h₃ : n ≠ 3) [Fact (finrank ℝ E = 2 * n + 1)] :
     IsEmpty (ContinuousComplexStructure (EuclideanSpace ℝ (Fin (2 * n)))
-      (TangentSpace (𝓡 (2 * n)) : sphere (0 : E) 1 → Type)) := by
-  refine ⟨fun J ↦ ?_⟩
-  obtain ⟨k, hk⟩ := J.odd_of_sphere h₀ rfl
-  have h := Nat.le_of_dvd two_pos (J.factorial_dvd_two_of_sphere (r := 2 * k) (by simp; omega))
-  have := Nat.factorial_le (show 4 ≤ 2 * k by omega)
-  simp [Nat.factorial] at this
-  omega
+      (TangentSpace (𝓡 (2 * n)) : sphere (0 : E) 1 → Type)) :=
+  ⟨fun J ↦ by have := J.eq_one_or_eq_three_of_sphere h₀ rfl; omega⟩
 
 /-- **The sphere `S^{2n}` has no smooth almost complex structure for `n ∉ {0, 1, 3}`.** For a
 real inner product space `E` of dimension `2 n + 1`, the unit sphere `S^{2n}` of `E` carries no
