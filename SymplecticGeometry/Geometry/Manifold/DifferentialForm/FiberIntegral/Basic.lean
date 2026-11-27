@@ -52,18 +52,8 @@ see such changes (`ContinuousAlternatingMap.map_append_add_of_mem`).
 In degree `m` (`r = 0`) the integrand is the pull-back of `α` along the fibre inclusion
 (`Bundle.Trivialization.fiberIntegrand_degree_zero`).
 
-Two trivializations over a common point `b` give integrands that differ by the pull-back along
-the coordinate change between them over `b`
-(`Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`): the coordinate change on
-`B × F` covers the identity of `B`, so `SymplecticGeometry.prodFiberIntegrand_mpullback_of_fst_eq`
-applies to it. For an atlas whose coordinate changes preserve an orientation `o` of `F`, change
-of variables along these diffeomorphisms of `F`
-(`Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`) shows that
-the integral over `F` of the integrand does not depend on the chart that reads it
-(`TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`).
-
-The argument for a change of trivialization also gives the integrand of a pull-back along a map
-of fibrations (`Bundle.Trivialization.fiberIntegrand_mpullback`). Let `g : M₁ → M` cover
+The integrand of a pull-back along a map of fibrations is computed by
+`Bundle.Trivialization.fiberIntegrand_mpullback`. Let `g : M₁ → M` cover
 `f : B₁ → B`, and let `e₁` and `e` be trivializations at `b₁` and at `f b₁`. Near the fibre over
 `b₁`, the map `g ∘ e₁⁻¹` agrees with `e⁻¹ ∘ Prod.map f id ∘ Φ`, where
 `Φ (b, y) = (b, (e (g (e₁⁻¹ (b, y)))).2)` covers the identity of `B₁`. So
@@ -71,6 +61,16 @@ of fibrations (`Bundle.Trivialization.fiberIntegrand_mpullback`). Let `g : M₁ 
 `SymplecticGeometry.prodFiberIntegrand_mpullback_prodMap` make the integrand of `g^* α` over
 `b₁`, read through `e₁`, the pull-back along the fibre map `y ↦ (e (g (e₁⁻¹ (b₁, y)))).2` of the
 integrand of `α` over `f b₁`, read through `e`.
+
+Two trivializations over a common point `b` give integrands that differ by the pull-back along
+the coordinate change between them over `b`
+(`Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`): this is the case `g = id`,
+`f = id` of `Bundle.Trivialization.fiberIntegrand_mpullback`, whose fibre map is then
+`e'.coordChange e b`. For an atlas whose coordinate changes preserve an orientation `o` of `F`,
+change of variables along these diffeomorphisms of `F`
+(`Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`) shows that
+the integral over `F` of the integrand does not depend on the chart that reads it
+(`TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`).
 
 For a smooth atlas whose coordinate changes preserve `o`, with `F` compact and Hausdorff and `B`
 boundaryless, the fibre integral `TauCeti.MapFiber.Atlas.fiberIntegral A hA ho` sends a smooth
@@ -104,10 +104,10 @@ smooth, smoothness of a form being local (`TauCeti.contMDiffAt_mpullback_subtype
   `TauCeti.MapFiber.Atlas.fiberIntegrand_apply_of_lift`: independence of the lifts.
 * `Bundle.Trivialization.fiberIntegrand_degree_zero`,
   `TauCeti.MapFiber.Atlas.fiberIntegrand_degree_zero`: the integrand in degree `m`.
-* `Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`: the integrands read through
-  two trivializations differ by the coordinate change.
 * `Bundle.Trivialization.fiberIntegrand_mpullback`: the integrand of a pull-back along a map of
   fibrations.
+* `Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`: the integrands read through
+  two trivializations differ by the coordinate change.
 * `TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`: for an oriented atlas, the
   integral of the integrand does not depend on the chart.
 * `TauCeti.MapFiber.Atlas.isSmoothForm_fiberIntegrand`: the integrand of a smooth form is smooth.
@@ -325,40 +325,6 @@ theorem fiberIntegrand_degree_zero
   exact hsymm.mfderiv_uncurry_apply_zero_mk (f := fun b y ↦ e.toOpenPartialHomeomorph.symm (b, y))
     (w j)
 
-/-- **Changing the trivialization.** Let `e` be differentiable with differentiable inverse, let the
-inverse of `e'` be differentiable on its target, let `b` lie in both base sets, and let the model
-space of `F` have dimension at most `m`. The integrand read through `e'` is the pull-back of the
-integrand read through `e` along the coordinate change `e'.coordChange e b` from `e'` to `e` over
-`b`. -/
-theorem fiberIntegrand_eq_mpullback_coordChange [FiniteDimensional ℝ E']
-    {e e' : Trivialization F proj} (he : e.toOpenPartialHomeomorph.MDifferentiable IM (I.prod J))
-    (he' : MDifferentiableOn (I.prod J) IM e'.toOpenPartialHomeomorph.symm e'.target) {b : B}
-    (hb : b ∈ e.baseSet) (hb' : b ∈ e'.baseSet) (hm : Module.finrank ℝ E' ≤ m)
-    (α : RoughForm IM M ℝ (r + m)) (v : Fin r → TangentSpace I b) :
-    e'.fiberIntegrand α b v = mpullback J J (e'.coordChange e b) (e.fiberIntegrand α b v) := by
-  -- The coordinate change, extended to all of `B × F` so that it covers the identity of `B`.
-  let Φ : B × F → B × F := fun p ↦ (p.1, e'.coordChange e p.1 p.2)
-  have hd (y : F) : MDifferentiableAt (I.prod J) (I.prod J) Φ (b, y) := by
-    have hy : ((b, y) : B × F) ∈ e'.target := e'.mem_target.2 hb'
-    have hs : e'.toOpenPartialHomeomorph.symm (b, y) ∈ e.source :=
-      e.mem_source.2 (by rwa [e'.proj_symm_apply' hb'])
-    -- By definition, `e'.coordChange e p.1 p.2` is `(e (e'⁻¹ p)).2`.
-    exact mdifferentiableAt_fst.prodMk ((he.mdifferentiableAt hs).comp _
-      ((he' _ hy).mdifferentiableAt (e'.open_target.mem_nhds hy))).snd
-  -- Over both base sets, `e⁻¹ ∘ Φ` is `e'⁻¹`.
-  have hev (y : F) : (e.toOpenPartialHomeomorph.symm ∘ Φ) =ᶠ[nhds (b, y)]
-      e'.toOpenPartialHomeomorph.symm := by
-    filter_upwards [((e.open_baseSet.inter e'.open_baseSet).preimage continuous_fst).mem_nhds
-      ⟨hb, hb'⟩] with p hp
-    simpa [fiberInclusionMap_apply] using e'.fiberInclusionMap_coordChange e hp.2 hp.1 p.2
-  funext y
-  rw [fiberIntegrand_def, fiberIntegrand_def,
-    ← prodFiberIntegrand_mpullback_of_fst_eq (Φ := Φ) rfl hd hm]
-  ext w
-  rw [prodFiberIntegrand_apply, prodFiberIntegrand_apply, ← mpullback_comp_at (hd y)
-    (he.mdifferentiableAt_symm (e.mem_target.2 hb)),
-    mpullback_apply_eq_of_mfderiv_eq (hev y).eq_of_nhds (hev y).mfderiv_eq]
-
 variable {E₁ H₁ EM₁ HM₁ B₁ M₁ : Type*} [NormedAddCommGroup E₁] [NormedSpace ℝ E₁]
   [TopologicalSpace H₁] {I₁ : ModelWithCorners ℝ E₁ H₁} [TopologicalSpace B₁]
   [ChartedSpace H₁ B₁] [NormedAddCommGroup EM₁] [NormedSpace ℝ EM₁] [TopologicalSpace HM₁]
@@ -427,6 +393,25 @@ theorem fiberIntegrand_mpullback [FiniteDimensional ℝ E'] {e₁ : Trivializati
     rw [prodFiberIntegrand_def, prodFiberIntegrand_def, mpullback_comp_at (hd y) (hsymm y)]
   rw [h1, prodFiberIntegrand_mpullback_of_fst_eq (Φ := Φ) rfl hΦ hm, h2,
     prodFiberIntegrand_mpullback_prodMap hf, ← fiberIntegrand_def]
+
+/-- **Changing the trivialization.** Let `e` be differentiable with differentiable inverse, let the
+inverse of `e'` be differentiable on its target, let `b` lie in both base sets, and let the model
+space of `F` have dimension at most `m`. The integrand read through `e'` is the pull-back of the
+integrand read through `e` along the coordinate change `e'.coordChange e b` from `e'` to `e` over
+`b`. -/
+theorem fiberIntegrand_eq_mpullback_coordChange [FiniteDimensional ℝ E']
+    {e e' : Trivialization F proj} (he : e.toOpenPartialHomeomorph.MDifferentiable IM (I.prod J))
+    (he' : MDifferentiableOn (I.prod J) IM e'.toOpenPartialHomeomorph.symm e'.target) {b : B}
+    (hb : b ∈ e.baseSet) (hb' : b ∈ e'.baseSet) (hm : Module.finrank ℝ E' ≤ m)
+    (α : RoughForm IM M ℝ (r + m)) (v : Fin r → TangentSpace I b) :
+    e'.fiberIntegrand α b v = mpullback J J (e'.coordChange e b) (e.fiberIntegrand α b v) := by
+  have h := fiberIntegrand_mpullback he' he mdifferentiable_id rfl mdifferentiableAt_id hb' hb hm
+    α v
+  simp only [mpullback_id, mfderiv_id, id_eq, ContinuousLinearMap.id_apply] at h
+  rw [h]
+  -- By definition, `e'.coordChange e b y` is `(e (e'⁻¹ (b, y))).2`.
+  unfold coordChange
+  rfl
 
 end Bundle.Trivialization
 
