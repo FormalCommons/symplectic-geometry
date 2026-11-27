@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
@@ -40,6 +42,11 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.eqOn`: two curves with the same left-trivialized
   derivative on a preconnected set that agree at one of its points agree on it. Neither
   continuity of `ξ` nor completeness of the model is needed.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul`,
+  `SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul_of_contMDiffSMul`:
+  for an action of `G` on `M` and `p : M`, the orbit curve `t ↦ (g t)⁻¹ • p` has derivative
+  `-ξ_M((g t)⁻¹ • p)`: in matrix notation, if `g⁻¹ g' = ξ`, then `y = g⁻¹ p` solves
+  `y' = -X_ξ(y)`.
 
 ## Implementation notes
 
@@ -59,6 +66,9 @@ Ceti's derivatives of multiplication and inversion at the identity (`mfderiv_mul
 `GroupLieAlgebra.mfderiv_inv_one_apply`), `u ↦ φ u * (ψ u)⁻¹` has derivative `ξ t - ξ t = 0`
 at `t`, and so has its translate `u ↦ g u * (h u)⁻¹`. A curve whose derivative vanishes on a
 preconnected subset of `ℝ` is constant on it (`Convex.apply_eq_of_hasMFDerivWithinAt_zero`).
+
+The derivative of the orbit curve is the chain rule along `g`, with the derivative of
+`h ↦ h⁻¹ • p` from `TauCeti.mfderiv_inv_smul_apply`.
 -/
 
 public section
@@ -251,6 +261,42 @@ theorem HasLeftTrivializedDerivOn.piecewise [LieGroup I 1 G] {s' : Set ℝ}
   · rw [piecewise_eq_of_mem _ _ _ hts]
     exact hgh ⟨hts, ht⟩
   · exact piecewise_eq_of_notMem _ _ _ hts
+
+section InvSMul
+
+variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+  [MulAction G M] {p : M}
+
+/-- **The orbit curve.** If `g` has left-trivialized derivative `ξ` on `s` and `h ↦ h⁻¹ • p` is
+differentiable at `g t`, for `t ∈ s`, then the curve `u ↦ (g u)⁻¹ • p` has derivative within `s`
+at `t` equal to `-ξ_M((g t)⁻¹ • p)`, minus the fundamental vector field of `ξ t`. -/
+theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul [LieGroup I 1 G]
+    (hg : HasLeftTrivializedDerivOn g ξ s) {t : ℝ} (ht : t ∈ s)
+    (hp : MDifferentiableAt I I' (fun h : G ↦ h⁻¹ • p) (g t)) :
+    HasMFDerivWithinAt 𝓘(ℝ) I' (fun u ↦ (g u)⁻¹ • p) s t
+      ((1 : ℝ →L[ℝ] ℝ).smulRight
+        (-fundamentalVectorField (I := I) (G := G) I' (ξ t) ((g t)⁻¹ • p))) := by
+  obtain ⟨v, hgv, hv⟩ := hg t ht
+  refine (hp.hasMFDerivAt.comp_hasMFDerivWithinAt t hgv).congr_mfderiv ?_
+  rw [ContinuousLinearMap.smulRight_one_eq_toSpanSingleton,
+    ContinuousLinearMap.smulRight_one_eq_toSpanSingleton]
+  exact (ContinuousLinearMap.comp_toSpanSingleton (R₁ := ℝ)
+    (mfderiv I I' (fun h : G ↦ h⁻¹ • p) (g t)) v).trans (by rw [mfderiv_inv_smul_apply, hv])
+
+/-- **The orbit curve, for a smooth action.** If `g` has left-trivialized derivative `ξ` on `s`
+and `G` acts smoothly on `M`, then for `t ∈ s` the curve `u ↦ (g u)⁻¹ • p` has derivative within
+`s` at `t` equal to `-ξ_M((g t)⁻¹ • p)`. -/
+theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul_of_contMDiffSMul [LieGroup I 1 G]
+    [ContMDiffSMul I I' 1 G M] (hg : HasLeftTrivializedDerivOn g ξ s) {t : ℝ} (ht : t ∈ s) :
+    HasMFDerivWithinAt 𝓘(ℝ) I' (fun u ↦ (g u)⁻¹ • p) s t
+      ((1 : ℝ →L[ℝ] ℝ).smulRight
+        (-fundamentalVectorField (I := I) (G := G) I' (ξ t) ((g t)⁻¹ • p))) :=
+  hg.hasMFDerivWithinAt_inv_smul ht <|
+    ((ContMDiffSMul.contMDiff_smul_const p).comp (contMDiff_inv I 1)).mdifferentiableAt
+      one_ne_zero
+
+end InvSMul
 
 end SymplecticGeometry
 
