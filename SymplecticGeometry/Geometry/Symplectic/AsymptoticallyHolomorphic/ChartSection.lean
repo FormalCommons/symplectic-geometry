@@ -20,9 +20,11 @@ Gaussians.
 When `f` has compact support in `B`, the section vanishes outside the image `K` of that support
 under the inverse of the chart, a compact and so, in a Hausdorff `M`, closed set. So at a point
 `y ∉ K` its readings and `∂̄` readings in the chart at `y` vanish near `0`, and so do all its jet
-norms at `y`. At a point `y ∈ K`, the chart at `y` meets the chart at `x` near `0`, and there the
-reading at `y` is the change of frame times `f` composed with the transition
-(`SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`); both are smooth. So, when
+norms at `y`. At a point `y ∈ K`, the transition from the chart at `y` to the chart at `x` is
+defined near `0` with values in `B`, and there the reading at `y` is the change of frame times `f`
+composed with the transition
+(`SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`); the change of frame and
+the transition are smooth. So, when
 `f` is moreover smooth on `B`, the readings at every point are smooth at `0`, and so are, on a
 boundaryless manifold, the `∂̄` readings
 (`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_dbarReading`): this is the smoothness that
@@ -40,9 +42,10 @@ boundaryless manifold, the `∂̄` readings
   `SymplecticGeometry.RescaledUnitaryCharts.dbarJetNorm_sectionOfReading_eq_zero`: its jet norms
   vanish away from the image of the support of `f`.
 * `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_sectionOfReading` and
-  `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_dbarReading_sectionOfReading`: for smooth
-  `f` with compact support in `B`, its readings and `∂̄` readings at every point are smooth at the
-  centre.
+  `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_dbarReading_sectionOfReading`: for `f`
+  with compact support in `B` and `C^n` there (`C^(n + 1)` for `∂̄`), its readings (`∂̄`
+  readings) at every point are `C^n` at the centre; for smooth `f`, both are smooth
+  (`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_and_dbarReading_sectionOfReading`).
 
 ## References
 
@@ -209,40 +212,52 @@ theorem dbarJetNorm_sectionOfReading_eq_zero [T2Space M] {k : ℕ} (hk : k₀ �
 
 /-! ### Smoothness -/
 
-/-- Let `k₀ ≤ k` and let `f` be smooth on the ball of radius `ρ₀ * √k`, with compact support in
-it. Then at every point `y`, the reading in the chart at `y` of the section extended by zero from
-`f` is smooth at `0`. -/
-theorem contDiffAt_reading_sectionOfReading [T2Space M] {k : ℕ} (hk : k₀ ≤ k) (x : M)
+/-- Let `k₀ ≤ k` and let `f` be `C^n` on the ball of radius `ρ₀ * √k`, with compact support in it.
+Then at every point `y`, the reading in the chart at `y` of the section extended by zero from `f`
+is `C^n` at `0`. -/
+theorem contDiffAt_reading_sectionOfReading [T2Space M] {n : ℕ∞} {k : ℕ} (hk : k₀ ≤ k) (x : M)
     {f : StdSpace ι → ℂ} (hf : HasCompactSupport f) (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
-    (hfs : ContDiffOn ℝ ∞ f (ball 0 (ρ₀ * √k))) (y : M) :
-    ContDiffAt ℝ ∞ (D.reading k y (D.sectionOfReading k x f)) 0 := by
+    (hfs : ContDiffOn ℝ n f (ball 0 (ρ₀ * √k))) (y : M) :
+    ContDiffAt ℝ n (D.reading k y (D.sectionOfReading k x f)) 0 := by
   by_cases hy : y ∈ (D.chart k x).symm '' tsupport f
   · obtain ⟨z, hz, rfl⟩ := hy
     have h0W := D.zero_mem_chartTransitionDomain hk x (hfb hz)
-    have hW := (D.isOpen_chartTransitionDomain k x _).mem_nhds h0W
     -- In the chart at `y`, the section is the change of frame times `f` composed with the
     -- transition `τ` to the chart at `x`.
-    have hτ := D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x _ h0W)
-    have hfτ : ContDiffAt ℝ ∞ f (D.chartTransition k x ((D.chart k x).symm z) 0) :=
+    have hτ := D.contDiffAt_chartTransition (n := n)
+      (D.chartTransitionDomain_subset_source k x _ h0W)
+    have hfτ : ContDiffAt ℝ n f (D.chartTransition k x ((D.chart k x).symm z) 0) :=
       hfs.contDiffAt (isOpen_ball.mem_nhds (D.mem_chartTransitionDomain_iff.1 h0W).2.2)
-    have he := (D.contDiffOn_frameChange hk x _).contDiffAt hW
-    refine (he.mul (hfτ.comp 0 hτ)).congr_of_eventuallyEq ?_
-    filter_upwards [hW] with w hw
+    refine ((D.contDiffAt_frameChange hk h0W).mul (hfτ.comp 0 hτ)).congr_of_eventuallyEq ?_
+    filter_upwards [(D.isOpen_chartTransitionDomain k x _).mem_nhds h0W] with w hw
     rw [D.reading_eq_frameChange_mul (D.chartTransitionDomain_subset_source k x _ hw),
       D.reading_sectionOfReading hk x f (D.mem_chartTransitionDomain_iff.1 hw).2.2,
       Function.comp_apply]
   · exact contDiffAt_const.congr_of_eventuallyEq
       (D.reading_sectionOfReading_eventuallyEq_zero hk hf hfb hy)
 
-/-- On a boundaryless manifold, under the hypotheses of
-`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_sectionOfReading`, the `∂̄` reading
-in the chart at every point `y` of the section extended by zero from `f` is smooth at `0`. -/
-theorem contDiffAt_dbarReading_sectionOfReading [T2Space M] [I.Boundaryless] {k : ℕ}
+/-- On a boundaryless manifold, let `k₀ ≤ k` and let `f` be `C^(n + 1)` on the ball of radius
+`ρ₀ * √k`, with compact support in it. Then at every point `y`, the `∂̄` reading in the chart at
+`y` of the section extended by zero from `f` is `C^n` at `0`. -/
+theorem contDiffAt_dbarReading_sectionOfReading [T2Space M] [I.Boundaryless] {n : ℕ∞} {k : ℕ}
     (hk : k₀ ≤ k) (x : M) {f : StdSpace ι → ℂ} (hf : HasCompactSupport f)
+    (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k)) (hfs : ContDiffOn ℝ (n + 1) f (ball 0 (ρ₀ * √k)))
+    (y : M) :
+    ContDiffAt ℝ n (D.dbarReading k y (D.sectionOfReading k x f)) 0 := by
+  have h := D.contDiffAt_reading_sectionOfReading (n := n + 1) hk x hf hfb (by exact_mod_cast hfs) y
+  exact D.contDiffAt_dbarReading (D.zero_mem_chart_target hk y) (by exact_mod_cast h)
+
+/-- On a boundaryless manifold, let `k₀ ≤ k` and let `f` be smooth on the ball of radius
+`ρ₀ * √k`, with compact support in it. Then at every point `y`, the reading and the `∂̄` reading
+in the chart at `y` of the section extended by zero from `f` are smooth at `0`, as
+`SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic` asks. -/
+theorem contDiffAt_reading_and_dbarReading_sectionOfReading [T2Space M] [I.Boundaryless]
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) {f : StdSpace ι → ℂ} (hf : HasCompactSupport f)
     (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k)) (hfs : ContDiffOn ℝ ∞ f (ball 0 (ρ₀ * √k))) (y : M) :
-    ContDiffAt ℝ ∞ (D.dbarReading k y (D.sectionOfReading k x f)) 0 :=
-  D.contDiffAt_dbarReading (n := ⊤) (D.zero_mem_chart_target hk y)
-    ((D.contDiffAt_reading_sectionOfReading hk x hf hfb hfs y).of_le (by simp))
+    ContDiffAt ℝ ∞ (D.reading k y (D.sectionOfReading k x f)) 0 ∧
+      ContDiffAt ℝ ∞ (D.dbarReading k y (D.sectionOfReading k x f)) 0 :=
+  ⟨D.contDiffAt_reading_sectionOfReading hk x hf hfb hfs y,
+    D.contDiffAt_dbarReading_sectionOfReading (n := ⊤) hk x hf hfb (hfs.of_le (by simp)) y⟩
 
 end RescaledUnitaryCharts
 
