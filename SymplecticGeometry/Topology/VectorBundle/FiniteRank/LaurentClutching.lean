@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.Complex.Circle
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
-public import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
+public import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 
 /-!
@@ -83,7 +83,7 @@ theorem fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X × Circle) 
     (laurentHom N a).fiberMap w =
       ∑ i ∈ Finset.Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
   simp only [laurentHom_def, fiberMap_sum, fiberMap_smul,
-    ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    ContinuousMap.laurentMonomial_one_apply,
     fiberMap_pullbackMap, ContinuousMap.fst_apply]
 
 /-- The Laurent family `∑_{|i| ≤ N} a_i(x) u^i`, multiplied by `u ^ N`, is the polynomial family
