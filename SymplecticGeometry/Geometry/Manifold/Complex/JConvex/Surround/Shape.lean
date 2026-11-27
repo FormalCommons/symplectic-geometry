@@ -62,7 +62,8 @@ the strict plurisubharmonicity of `f(s) + g(t)`.
 
 * `SymplecticGeometry.shape p`: the pair `(s p, t p)`;
 * `SymplecticGeometry.leviForm_shape_fst_apply`, `SymplecticGeometry.leviForm_shape_snd_apply`:
-  the Levi forms of `s` and `t` are `⟪v₁, w₁⟫ / 2` and `⟪v₁, w₁⟫ / 2 + ⟪v₂, w₂⟫`.
+  the Levi forms of `s` and `t` are `⟪v₁, w₁⟫ / 2` and `⟪v₁, w₁⟫ / 2 + ⟪v₂, w₂⟫`. So the Levi form
+  of `t` is positive definite (`SymplecticGeometry.re_leviForm_shape_snd_apply_self`).
 * `SymplecticGeometry.re_leviForm_comp_shape_apply_self`: for `h` of class `C²`, the Levi form of
   `h ∘ shape` on `v` in terms of the partial derivatives of `h` and of
   `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, which are the Wirtinger derivatives
@@ -328,6 +329,13 @@ theorem leviForm_shape_snd_apply (p v w : EuclideanSpace ℂ (Fin k) × Euclidea
   refine Finset.sum_congr rfl fun j _ ↦ ?_
   simp only [RCLike.inner_apply, map_mul, map_neg, conj_I]
   linear_combination (-(w.1 j * conj (v.1 j)) / 2) * I_sq
+
+/-- The real part of the Levi form of `t = |y|² + |w|²` on `(v, v)` is `|v₁|² / 2 + |v₂|²`. -/
+theorem re_leviForm_shape_snd_apply_self
+    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    (leviForm (fun q ↦ (shape q).2) p v v).re = ‖v.1‖ ^ 2 / 2 + ‖v.2‖ ^ 2 := by
+  rw [leviForm_shape_snd_apply, add_re, div_ofNat_re, ← RCLike.re_to_complex,
+    ← RCLike.re_to_complex, inner_self_eq_norm_sq, inner_self_eq_norm_sq]
 
 /-- The differential of `s = |x|²` at `p = (x + i y, w)` is `v ↦ 2 ∑ⱼ xⱼ Re v₁ⱼ`. -/
 theorem fderiv_shape_fst_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
