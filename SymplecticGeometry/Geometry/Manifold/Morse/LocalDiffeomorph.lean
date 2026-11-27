@@ -8,7 +8,9 @@ module
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Hessian
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Analysis.Normed.Operator.Bilinear
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.Morse.Submersion
 
@@ -36,8 +38,8 @@ The converse applies this to the local inverse of `φ`, after which `f` is recov
   `f` in its source, the critical Hessian of `f` is the second derivative of `f ∘ Φ.symm` at `Φ x`
   on the images of the vectors under `dΦ`, by the same chain rule. It is the form for partial
   diffeomorphisms of Tau Ceti's `TauCeti.criticalHessian_apply_eq_of_mem_maximalAtlas`, and
-  `PartialDiffeomorph.contMDiffAt_of_contDiffAt_comp_symm` gives the `C²` hypothesis on `f`
-  that it needs.
+  `PartialDiffeomorph.contMDiffAt_of_contDiffAt_comp_symm`, from Tau Ceti's
+  `IsLocalDiffeomorphAt.contMDiffAt_comp_iff`, gives the `C²` hypothesis on `f` that it needs.
 
 ## References
 
@@ -113,16 +115,14 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {n : WithTop ℕ∞} {f : M → ℝ} {x : M}
 
 /-- If `Φ` is a `C^n` partial diffeomorphism from `M` onto an open subset of a normed space `G`,
-with `2 ≤ n`, and `f ∘ Φ.symm` is `C²` at `Φ x` for a point `x` of the source, then `f` is `C²`
+`m ≤ n`, and `g ∘ Φ.symm` is `C^m` at `Φ x` for a point `x` of the source, then `g` is `C^m`
 at `x`. -/
-theorem contMDiffAt_of_contDiffAt_comp_symm (Φ : PartialDiffeomorph I 𝓘(ℝ, G) M G n)
-    (hn : 2 ≤ n) (hx : x ∈ Φ.source) (hf : ContDiffAt ℝ 2 (f ∘ Φ.symm) (Φ x)) :
-    ContMDiffAt I 𝓘(ℝ) 2 f x := by
-  have hΦ : ContMDiffAt I 𝓘(ℝ, G) 2 Φ x :=
-    (Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds hx)).of_le hn
-  refine (hf.contMDiffAt.comp x hΦ).congr_of_eventuallyEq ?_
-  filter_upwards [Φ.open_source.mem_nhds hx] with y hy
-  exact congrArg f (Φ.left_inv hy).symm
+theorem contMDiffAt_of_contDiffAt_comp_symm {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {m : WithTop ℕ∞} {g : M → F} (Φ : PartialDiffeomorph I 𝓘(ℝ, G) M G n) (hm : m ≤ n)
+    (hx : x ∈ Φ.source) (hg : ContDiffAt ℝ m (g ∘ Φ.symm) (Φ x)) :
+    ContMDiffAt I 𝓘(ℝ, F) m g x :=
+  Φ.left_inv hx ▸ ((Φ.symm.isLocalDiffeomorphAt _ _ _ (Φ.map_source hx)).contMDiffAt_comp_iff
+    hm).1 hg.contMDiffAt
 
 variable [I.Boundaryless]
 
@@ -141,8 +141,7 @@ theorem criticalHessian_apply_eq_fderiv_fderiv (Φ : PartialDiffeomorph I 𝓘(�
     rintro rfl
     simp at hn
   have hΦs : ContMDiffAt 𝓘(ℝ, G) I 2 Φ.symm (Φ x) :=
-    (Φ.symm.contMDiffOn.contMDiffAt
-      (Φ.open_target.mem_nhds (Φ.map_source hx))).of_le hn
+    (Φ.symm.contMDiffAt (Φ.map_source hx)).of_le hn
   have hΦx : Φ.symm (Φ x) = x := Φ.left_inv hx
   have h := criticalHessian_comp_apply hΦx
     (Φ.contMDiffAt_of_contDiffAt_comp_symm hn hx hf) hΦs hcrit
