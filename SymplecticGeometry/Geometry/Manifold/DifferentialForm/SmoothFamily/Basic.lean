@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -68,6 +69,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   on fixed tangent vectors, are smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_val`: the value of a smooth family of forms on a
   normed space is jointly smooth in the parameter and the point.
+* `SymplecticGeometry.IsSmoothFamily.contDiff_val`: the same as a `ContDiff` statement, when the
+  parameter space is a normed space.
 * `SymplecticGeometry.IsSmoothFamily.of_contMDiff_val`: conversely, a family of forms on a
   normed space whose value is jointly smooth in the parameter and the point is smooth.
 * `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value of a smooth family of forms on a
@@ -393,6 +396,14 @@ space `E`, the value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depen
 theorem continuous_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFamily J α) :
     Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun p : N × E ↦ (α p.1).val p.2 :=
   h.contMDiff_val.continuous
+
+/-- **Joint smoothness of a smooth family over a normed space.** For a smooth family `α` of
+`k`-forms on a normed space `E` over a normed space `L`, the value `(α t) x`, an element of
+`E [⋀^Fin k]→L[ℝ] F`, is a `C^∞` function of `(t, x) ∈ L × E`. -/
+theorem contDiff_val {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+    {α : L → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFamily 𝓘(ℝ, L) α) :
+    ContDiff (F := E [⋀^Fin k]→L[ℝ] F) ℝ ∞ fun p : L × E ↦ (α p.1).val p.2 :=
+  contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp h.contMDiff_val)
 
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/

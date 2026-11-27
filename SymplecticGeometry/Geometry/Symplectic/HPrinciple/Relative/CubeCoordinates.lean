@@ -11,7 +11,6 @@ public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.ContMDiff.Prod
 
 /-!
 # The charts of a band core as coordinates, and the relative set of a cube
@@ -259,8 +258,7 @@ theorem contDiff_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι) {k : ℕ
       fun p : L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
         (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff
           (β p.1)).val p.2 :=
-  contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp
-    (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff).contMDiff_val)
+  (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff).contDiff_val
 
 /-- **The formal primitive of the reading of smooth families is smooth.** For smooth families
 `σ`, `α` of two-forms and `β` of one-forms on `M` over a normed space `L`, the formal primitive of
@@ -274,9 +272,8 @@ theorem contDiff_formalPrimitive_mpullback_chart (c : BandCore I g a₀ a b) (i 
           (c.isSmoothEmbedding_chart i).contMDiff (σ p.1 - α p.1)).val
         (SmoothForm.mpullback (c.chart i)
           (c.isSmoothEmbedding_chart i).contMDiff (β p.1)).val p.2 :=
-  contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp
-    (contMDiff_formalPrimitive ((hσ.sub hα).mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)
-      (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)))
+  contDiff_formalPrimitive ((hσ.sub hα).mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)
+    (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)
 
 end Readings
 

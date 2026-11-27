@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.DifferentialForm.Basic
 public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
+import TauCeti.Geometry.Manifold.ContMDiff.Prod
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -60,6 +61,8 @@ proof of the handle-core lemma and of Gromov's theorem on symplectic forms on op
   within `ε` of it has exterior derivative within `2 * ε` of `τ`.
 * `SymplecticGeometry.contMDiff_formalPrimitive`: it is smooth in the parameter and the point
   together, for smooth families of forms.
+* `SymplecticGeometry.contDiff_formalPrimitive`: the same as a `ContDiff` statement, when the
+  parameter space is a normed space.
 
 ## References
 
@@ -120,8 +123,7 @@ theorem formalPrimitive_mpullback_eq_fderiv {EM H M : Type*} [NormedAddCommGroup
   refine formalPrimitive_eq_fderiv ?_
   rw [← mextDeriv_eq_extDeriv, ← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback,
     SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
-  refine mpullback_apply_congr ?_
-  rw [Submodule.coe_sub, Pi.sub_apply, hx, Submodule.coe_add, Pi.add_apply, add_sub_cancel_left]
+  exact mpullback_apply_congr (by simp [hx])
 
 /-- **Approximating the formal primitive.** If the derivative of a one-form `f` at `x` is within
 `ε` of the formal primitive of `τ`, then the exterior derivative of `f` at `x` is within `2 * ε`
@@ -166,6 +168,16 @@ theorem contMDiff_formalPrimitive {τ : N → SmoothForm 𝓘(ℝ, E) E F 2}
       (F := E →L[ℝ] E [⋀^Fin 1]→L[ℝ] F) (n := ∞)
       ((2 : ℝ)⁻¹ • (curryLeftLI (n := 1)).toContinuousLinearMap)
   exact hD.add (hJ.comp (hc.sub ((alternatizeUncurryFinCLM ℝ E F).contMDiff.comp hD)))
+
+/-- **Smoothness of the formal primitive in a parameter from a normed space.** For smooth families
+`τ` of two-forms and `β` of one-forms on `E` over a normed space `L`, the formal primitive
+`formalPrimitive (τ t) (β t) x` is a `C^∞` function of `(t, x) ∈ L × E`. -/
+theorem contDiff_formalPrimitive {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+    {τ : L → SmoothForm 𝓘(ℝ, E) E F 2} {β : L → SmoothForm 𝓘(ℝ, E) E F 1}
+    (hτ : IsSmoothFamily 𝓘(ℝ, L) τ) (hβ : IsSmoothFamily 𝓘(ℝ, L) β) :
+    ContDiff ℝ ∞ fun p : L × E ↦ formalPrimitive (τ p.1).val (β p.1).val p.2 :=
+  contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp
+    (contMDiff_formalPrimitive hτ hβ))
 
 end SymplecticGeometry
 
