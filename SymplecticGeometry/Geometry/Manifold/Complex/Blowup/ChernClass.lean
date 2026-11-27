@@ -33,6 +33,11 @@ This is the first of three steps towards the formula `c₁(T Blowup c) = π^* c�
 `e` is `SymplecticGeometry.Blowup.exceptionalClass` and Lean's `n` is the complex dimension of
 `M` minus one; McDuff–Salamon use this formula, (7.1.31), without proving it.
 
+The private steps of the proof adapt Tau Ceti's `mfderivFiberEquiv` and
+`continuous_mfderivFiberRealEquiv` (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Chern.lean`)
+from a diffeomorphism to the blowdown, a local diffeomorphism off the divisor, and from the
+tangent bundle of the target to its pull-back.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
@@ -132,8 +137,7 @@ theorem firstChernClass_restrict_compl :
     (continuous_mfderivBlowdownEquiv c J hJ G)
   rw [firstChernClass_pullback, TopCat.ofHom_comp, TopCat.singularCohomologyMap_comp,
     CategoryTheory.ConcreteCategory.comp_apply] at h
-  -- The embedding of the pair is `ContinuousMap.subtypeVal` (`TopPair.ofSubset_map`), which
-  -- cannot be rewritten, as the types of its source and target depend on the pair.
+  rw [TopPair.ofSubset_map]
   exact h
 
 end Blowup
