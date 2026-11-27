@@ -168,8 +168,8 @@ merged first, `Weight/Basic.lean` and `Blowdown.lean` use it.
   blowup*, $\psi_0^{-1}$ on $\psi_0(B^\circ(\delta))$ read on `E`, which is
   in the real maximal atlas and $J$-holomorphic, the hypothesis `hJ` of
   *Complex blowup*'s `AlmostComplex.lean`. Every symplectic manifold is
-  normalized at every point (Remark 7.1.18 (i)), by Tau Ceti's
-  `IsSymplectic.exists_standardDarbouxChart_of_isInteriorPoint` and
+  normalized at every point (Remark 7.1.18 (i)), by the library's
+  `IsSymplectic.exists_darbouxChart_stdForm` and Tau Ceti's
   `SmoothTwoForm.Compatible.exists_compatible_eqOn`, with ω unchanged.
 - **Hamiltonian maps and isotopic forms.** A Hamiltonian
   symplectomorphism is `Φ.final` for a `TauCeti.Diffeotopy` with *Isotopy
