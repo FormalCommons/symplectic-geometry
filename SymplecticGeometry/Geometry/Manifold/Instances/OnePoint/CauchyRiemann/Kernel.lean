@@ -11,6 +11,14 @@ import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Complex
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev
+public import Mathlib.Analysis.Normed.Operator.Fredholm.Basic
+public import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Index
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Standard
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.Hilbert
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Contractible
+import SymplecticGeometry.Analysis.Normed.Operator.Fredholm
+import TauCeti.Analysis.Fredholm.ContinuousFamily
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HomologicalOrientation
 import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
@@ -36,6 +44,11 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
   exactly one point of the sphere.
 * `SymplecticGeometry.surjective_sectionLinearization_of_mem_twistOneKernel`: that zero is
   simple: the linearization `TauCeti.sectionLinearization` of the section there is onto.
+* `SymplecticGeometry.isFredholm_twistOneDelBarSobolev` and
+  `SymplecticGeometry.index_twistOneDelBarSobolev`: for such `J` and every order `k`, the Sobolev
+  realization `twistOneDelBarSobolev J k` is Fredholm of real index `4`.
+* `SymplecticGeometry.finrank_twistOneKernel`: `twistOneKernel J` has complex dimension `2`.
+* `SymplecticGeometry.twistOneDelBarSobolev_surjective`: `twistOneDelBarSobolev J k` is onto.
 
 ## Proof
 
@@ -66,6 +79,25 @@ the derivative and nothing more (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_a
 derivative of the coordinate is invertible, and so is the linearization
 (`TauCeti.surjective_sectionLinearization_iff`).
 
+For the index, give the structures tamed by `σ` the `C^∞` topology in the preferred frames of the
+endomorphism bundle of the tangent bundle. There they form a contractible space
+(`TauCeti.SmoothTwoForm.IsNondegenerate.contractibleSpace_tames`), on which `J ↦ D_J` is
+continuous into the operator norm (`SymplecticGeometry.continuous_twistOneDelBarSobolev_tames`).
+Every `D_J` has closed range and finite-dimensional kernel
+(`SymplecticGeometry.isClosed_range_twistOneDelBarSobolev`,
+`SymplecticGeometry.finiteDimensional_ker_twistOneDelBarSobolev`), and `D_i` is Fredholm of index
+`4` (`SymplecticGeometry.isFredholm_twistOneDelBarSobolev_ofComplexManifold`). The target is
+isomorphic to a Hilbert space
+(`TauCeti.exists_continuousLinearEquiv_innerProductSpace_zeroOneSobolevSections`), so
+`ContinuousOn.isFredholm_of_isPreconnected_of_continuousLinearEquiv` makes every `D_J` Fredholm,
+and `Continuous.index_eq_of_preconnectedSpace` gives them all index `4`. The kernel of `D_J` has
+the real dimension of `twistOneKernel J` (`SymplecticGeometry.finrank_ker_twistOneDelBarSobolev`),
+and evaluation at `0` and `∞` is injective on `twistOneKernel J`, since a nonzero element has a
+single zero; so this real dimension is at most `4`. As the index is the dimension of the kernel
+minus that of the cokernel, the kernel has real dimension exactly `4`, and a Fredholm operator
+whose index is the dimension of its kernel is onto
+(`ContinuousLinearMap.IsFredholm.surjective_of_index_eq_finrank_ker`).
+
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
@@ -77,7 +109,7 @@ derivative of the coordinate is invertible, and so is the linearization
 
 public section
 
-open Bundle Module TauCeti
+open Bundle Module TauCeti MeasureTheory
 open OnePoint (twistCore identitySection)
 open scoped Manifold VectorBundle.ComplexToReal ContDiff Topology TauCeti.ComplexManifold
 
@@ -245,6 +277,93 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
     fun y ↦ ⟨y / deriv h (ψ.toOpenPartialHomeomorph z), by simpa using div_mul_cancel₀ y hd⟩
   simp only [ContinuousLinearMap.coe_comp]
   exact hCs.comp ((hds.comp (NormedSpace.fromTangentSpace _).surjective).comp hDs)
+
+/-! ### Index, dimension of the kernel and surjectivity -/
+
+section Index
+
+variable {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+
+/-- **A connected family.** Let a two-form `σ` on the sphere tame the standard structure `i`. For
+every order `k`, the almost complex structures tamed by `σ` carry a topology in which they form a
+preconnected space and on which `J ↦ D_J` is continuous into the operator norm topology. -/
+private theorem exists_preconnectedSpace_continuous_twistOneDelBarSobolev (hi : σ.Tames 𝒊)
+    (k : ℕ) : ∃ _ : TopologicalSpace {J // σ.Tames J}, PreconnectedSpace {J // σ.Tames J} ∧
+      Continuous fun J : {J // σ.Tames J} ↦ twistOneDelBarSobolev J.val k := by
+  let e (x : OnePoint ℂ) := trivializationAt (ℂ →L[ℝ] ℂ)
+    (fun x : OnePoint ℂ ↦ TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] TangentSpace 𝓘(ℝ, ℂ) x) x
+  let U (x : OnePoint ℂ) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e x).open_baseSet⟩
+  have hU : ∀ x, (U x : Set (OnePoint ℂ)) ⊆ (e x).baseSet := fun _ ↦ subset_rfl
+  have hcover : ∀ x, ∃ y, x ∈ U y := fun x ↦ ⟨x, mem_baseSet_trivializationAt _ _ x⟩
+  let _ := SmoothAlmostComplexStructure.frameTopology e U hU
+  have := hi.isNondegenerate.contractibleSpace_tames e U hU hcover
+  exact ⟨_, inferInstance, continuous_twistOneDelBarSobolev_tames e U hU hcover σ k⟩
+
+/-- **`D_J` is Fredholm.** Let a two-form `σ` on the sphere tame both `J` and the standard
+structure `i`. For every order `k`, the operator
+`D_J : W^{k+1,2}(𝒪(1)) → W^{k,2}(Λ^{0,1} ⊗ 𝒪(1))` is Fredholm. -/
+theorem isFredholm_twistOneDelBarSobolev (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
+    (twistOneDelBarSobolev J k).IsFredholm := by
+  obtain ⟨_, _, hD⟩ := exists_preconnectedSpace_continuous_twistOneDelBarSobolev hi k
+  obtain ⟨H, _, _, _, ⟨φ⟩⟩ :=
+    exists_continuousLinearEquiv_innerProductSpace_zeroOneSobolevSections (twistCoreAtlas 1)
+      volume k
+  exact hD.continuousOn.isFredholm_of_isPreconnected_of_continuousLinearEquiv φ (s := Set.univ)
+    (fun J _ ↦ finiteDimensional_ker_twistOneDelBarSobolev J.val k J.property hi)
+    (fun J _ ↦ isClosed_range_twistOneDelBarSobolev J.val k J.property hi)
+    isPreconnected_univ (x₀ := ⟨𝒊, hi⟩) (Set.mem_univ _)
+    (isFredholm_twistOneDelBarSobolev_ofComplexManifold k).1 (x := ⟨J, hJ⟩) (Set.mem_univ _)
+
+/-- **`D_J` has index four.** Let a two-form `σ` on the sphere tame both `J` and the standard
+structure `i`. For every order `k`, the real index of
+`D_J : W^{k+1,2}(𝒪(1)) → W^{k,2}(Λ^{0,1} ⊗ 𝒪(1))` is `4`. -/
+theorem index_twistOneDelBarSobolev (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
+    (twistOneDelBarSobolev J k).index = 4 := by
+  obtain ⟨_, _, hD⟩ := exists_preconnectedSpace_continuous_twistOneDelBarSobolev hi k
+  rw [Continuous.index_eq_of_preconnectedSpace hD
+    (fun J ↦ isFredholm_twistOneDelBarSobolev J.property hi k) ⟨J, hJ⟩ ⟨𝒊, hi⟩]
+  exact (isFredholm_twistOneDelBarSobolev_ofComplexManifold k).2
+
+/-- Evaluation at `0` and at `∞` is injective on `twistOneKernel J`, when a two-form tames `J`
+and `i`, since a nonzero element has only one zero; so its complex dimension is at most two. -/
+private theorem finrank_twistOneKernel_le (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    finrank ℂ (twistOneKernel J) ≤ 2 := by
+  let ev : twistOneKernel J →ₗ[ℂ] ℂ × ℂ :=
+    ((LinearMap.proj ((0 : ℂ) : OnePoint ℂ)).prod
+      (LinearMap.proj (OnePoint.infty : OnePoint ℂ))).comp
+      (twistOneKernel J).subtype
+  have hev : Function.Injective ev := by
+    refine (injective_iff_map_eq_zero ev).2 fun s hs ↦ ?_
+    by_contra hs₀
+    have h0 : s.val ((0 : ℂ) : OnePoint ℂ) = 0 := congrArg Prod.fst hs
+    have hinf : s.val OnePoint.infty = 0 := congrArg Prod.snd hs
+    obtain ⟨z, -, hz⟩ := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi s.property
+      (fun h ↦ hs₀ (Subtype.ext h))
+    exact OnePoint.coe_ne_infty _ ((hz _ h0).trans (hz _ hinf).symm)
+  simpa using LinearMap.finrank_le_finrank_of_injective hev
+
+/-- **The kernel of `D_J` is a complex plane.** Let a two-form `σ` on the sphere tame both `J` and
+the standard structure `i`. Then the space `twistOneKernel J` of smooth sections `s` of `𝒪(1)`
+with `D_J s = 0` has complex dimension two. -/
+theorem finrank_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
+    finrank ℂ (twistOneKernel J) = 2 := by
+  have hind := index_twistOneDelBarSobolev hJ hi 0
+  rw [ContinuousLinearMap.index_eq_finrank_sub, finrank_ker_twistOneDelBarSobolev hJ hi 0,
+    finrank_real_of_complex] at hind
+  have := finrank_twistOneKernel_le hJ hi
+  omega
+
+/-- **`D_J` is onto.** Let a two-form `σ` on the sphere tame both `J` and the standard structure
+`i`. For every order `k`, every `W^{k,2}` `(0,1)`-form with values in `𝒪(1)` on the sphere is
+`D_J w` for a `W^{k+1,2}` section `w` of `𝒪(1)`. -/
+theorem twistOneDelBarSobolev_surjective (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (k : ℕ) :
+    Function.Surjective (twistOneDelBarSobolev J k) := by
+  refine (isFredholm_twistOneDelBarSobolev hJ hi k).surjective_of_index_eq_finrank_ker ?_
+  rw [index_twistOneDelBarSobolev hJ hi k, finrank_ker_twistOneDelBarSobolev hJ hi k,
+    finrank_real_of_complex, finrank_twistOneKernel hJ hi]
+  norm_num
+
+end Index
 
 end SymplecticGeometry
 
