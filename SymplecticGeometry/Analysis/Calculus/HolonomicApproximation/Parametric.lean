@@ -102,9 +102,9 @@ those of `D`; those outside `J` record the parameter.
   `TauCeti.Diffeotopy.ofContMDiff`, since Tau Ceti's `TauCeti.Diffeotopy.transDiffeomorph` keeps
   the model and `familyCubeEquiv` changes it. It keeps the parameter, and the bound on the space
   derivative is `SymplecticGeometry.norm_fderiv_comp_familyCubeEquiv_sub_le`.
-* `SymplecticGeometry.exists_contDiff_fderiv_eq_of_prod_subset`: a datum on `L × E` that is
-  holonomic on `K ×ˢ W`, for a set `K` of parameters and an open `W` containing a closed `S`,
-  becomes holonomic on an open set containing `univ ×ˢ S` when `G` is replaced by
+* `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod`: a datum on `L × E`
+  that is holonomic on `K ×ˢ W`, for a set `K` of parameters and an open `W` containing a
+  closed `S`, becomes holonomic on an open set containing `univ ×ˢ S` when `G` is replaced by
   `G + χ • (∂ₓf - G)`, with `χ` a smooth cutoff on `E` equal to `1` near `S` and to `0` near the
   complement of `W` (Mathlib's `exists_contMDiffMap_zero_one_nhds_of_isClosed`). Nothing changes
   where the datum is already holonomic or over `K`, so the output meets the hypotheses of
@@ -698,9 +698,10 @@ in the space variable is `G`, and `G' (l, x) = G (l, x)` for every `l ∈ K` and
 With `S := B ×ˢ {0}` and `P₀ := ∅`, the output fits the hypotheses `hBU`, `hP₀U` and `hUf` of
 `exists_holonomic_approximation_family`, and its approximation bounds over `K` are then bounds
 against `G`. -/
-theorem exists_contDiff_fderiv_eq_of_prod_subset {m n : WithTop ℕ∞} {f : L × E → F}
-    {G : L × E → E →L[ℝ] F} (hf : ContDiff ℝ m f) (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m)
-    (hn : n ≤ ∞) {K : Set L} {S W : Set E} (hS : IsClosed S) (hW : IsOpen W) (hSW : S ⊆ W)
+theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod {m n : WithTop ℕ∞}
+    {f : L × E → F} {G : L × E → E →L[ℝ] F} (hf : ContDiff ℝ m f)
+    (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m) (hn : n ≤ ∞) {K : Set L} {S W : Set E}
+    (hS : IsClosed S) (hW : IsOpen W) (hSW : S ⊆ W)
     (hWf : ∀ l ∈ K, ∀ x ∈ W, fderiv ℝ (fun y ↦ f (l, y)) x = G (l, x)) :
     ∃ G' : L × E → E →L[ℝ] F, ContDiff ℝ n G' ∧
       (∃ U' : Set (L × E), IsOpen U' ∧ univ ×ˢ S ⊆ U' ∧

@@ -38,9 +38,9 @@ before the compression of the cube.
    `SymplecticGeometry.contMDiff_formalPrimitive`. For the parameters of `K` it is holonomic on
    `W` (`SymplecticGeometry.formalPrimitive_eq_fderiv`), and `W` contains `B ×ˢ {0}`, for
    `B = {1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η}`. The cutoff in space
-   `SymplecticGeometry.exists_contDiff_fderiv_eq_of_prod_subset` replaces `G` by a smooth `G'`
-   that is holonomic on an open set containing `univ ×ˢ (B ×ˢ {0})`, so for every parameter, and
-   equal to `G` over `K`.
+   `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod` replaces `G` by a smooth
+   `G'` that is holonomic on an open set containing `univ ×ˢ (B ×ˢ {0})`, so for every
+   parameter, and equal to `G` over `K`.
 3. *Holonomic approximation.* `SymplecticGeometry.exists_holonomic_approximation_family` with
    `P₀ = ∅`, accuracy `r / 4` and width `η / 2` gives `H` and `β'`. A point that is moved, or at
    which `β'` differs from `β`, lies within `η / 2` of the core and has its core coordinate off
@@ -154,8 +154,9 @@ theorem exists_diffeotopy_norm_mextDerivₗ_sub_lt_near_core (hk : 0 < k) {K : S
     refine (formalPrimitive_eq_fderiv ?_).symm
     have := hτβ l hl x hx
     rwa [mextDerivₗ_apply, mextDeriv_eq_extDeriv] at this
-  obtain ⟨G', hG', ⟨U, hU, hBU, hUf⟩, -, hGK⟩ := exists_contDiff_fderiv_eq_of_prod_subset hf hG
-    (by simp) le_rfl (hB.prod isClosed_singleton) hW hBW hWf
+  obtain ⟨G', hG', ⟨U, hU, hBU, hUf⟩, -, hGK⟩ :=
+    exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod hf hG (by simp) le_rfl
+      (hB.prod isClosed_singleton) hW hBW hWf
   -- Step 3: holonomic approximation with accuracy `r / 4` and width `η / 2`.
   obtain ⟨h, f', V, hfst, hf', ⟨C, -, hCQ, hCfix⟩, -, ⟨N, hN, hNfix⟩, -, hV, hQV, happrox⟩ :=
     exists_holonomic_approximation_family hk hf hG' hK isClosed_empty hB hSB hU hBU
