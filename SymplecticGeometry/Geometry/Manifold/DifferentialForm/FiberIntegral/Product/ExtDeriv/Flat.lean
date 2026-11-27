@@ -58,27 +58,27 @@ variable {E E' H' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteD
 
 /-- The derivative at `b`, in the direction `a`, of the integrands
 `b' ↦ prodFiberIntegrand α b' u`, as a smooth form on `F`. -/
-private def mfderivIntegrand {m : ℕ} (o : Manifold.Orientation J F (Fin m))
+private def mfderivIntegrand {m : ℕ}
     (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)) (u : Fin r → E) (b : U) (a : E) :
     SmoothForm J F ℝ m :=
-  ⟨_, (isSmoothForm_mfderiv_prodFiberIntegrand o α u b a).mem_smoothBundleForms⟩
+  ⟨_, (isSmoothForm_mfderiv_prodFiberIntegrand α u b a).mem_smoothBundleForms⟩
 
-omit [FiniteDimensional ℝ E] [BoundarylessManifold J F] in
-/-- The value of `mfderivIntegrand o α u b a` at `y`. -/
-private theorem mfderivIntegrand_apply {m : ℕ} (o : Manifold.Orientation J F (Fin m))
+omit [FiniteDimensional ℝ E] [BoundarylessManifold J F] [T2Space F] [CompactSpace F] in
+/-- The value of `mfderivIntegrand α u b a` at `y`. -/
+private theorem mfderivIntegrand_apply {m : ℕ}
     (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)) (u : Fin r → E) (b : U) (a : E)
     (y : F) :
-    (mfderivIntegrand o α u b a).val y =
+    (mfderivIntegrand α u b a).val y =
       show E' [⋀^Fin m]→L[ℝ] ℝ from mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)
         (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from prodFiberIntegrand α.val b' u y) b a :=
   rfl
 
 omit [BoundarylessManifold J F] in
-/-- The integral over `F` of `mfderivIntegrand o α u b a` is the derivative at `b`, in the
+/-- The integral over `F` of `mfderivIntegrand α u b a` is the derivative at `b`, in the
 direction `a`, of the fibre integral of `α` on `u`. -/
 private theorem integralTopFormₗ_mfderivIntegrand {m : ℕ} (o : Manifold.Orientation J F (Fin m))
     (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)) (u : Fin r → E) (b : U) (a : E) :
-    SmoothForm.integralTopFormₗ o (mfderivIntegrand o α u b a) =
+    SmoothForm.integralTopFormₗ o (mfderivIntegrand α u b a) =
       mfderiv 𝓘(ℝ, E) 𝓘(ℝ) (fun b' : U ↦ (prodFiberIntegral o α).val b' u) b a := by
   have h : (fun b' : U ↦ (prodFiberIntegral o α).val b' u) =
       fun b' ↦ integralTopForm o (prodFiberIntegrand α.val b' u) :=
@@ -87,20 +87,20 @@ private theorem integralTopFormₗ_mfderivIntegrand {m : ℕ} (o : Manifold.Orie
   exact (mfderiv_integralTopForm_prodFiberIntegrand_apply o α u b a).symm
 
 omit [BoundarylessManifold J F] in
-/-- The alternating sum over `i` of the forms `mfderivIntegrand o α (v without vᵢ) b vᵢ` takes,
+/-- The alternating sum over `i` of the forms `mfderivIntegrand α (v without vᵢ) b vᵢ` takes,
 at `y` on `w`, the alternating sum of the values of the base derivatives of the integrands, and
 its integral over `F` is the alternating sum of the base derivatives of the fibre integrals. -/
 private theorem sum_mfderivIntegrand {m : ℕ} (o : Manifold.Orientation J F (Fin m))
     (α : SmoothForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)) (b : U) (v : Fin (r + 1) → E) :
     (∀ (y : F) (w : Fin m → TangentSpace J y),
       (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
-        mfderivIntegrand o α (Fin.removeNth i v) b (v i)).val y w =
+        mfderivIntegrand α (Fin.removeNth i v) b (v i)).val y w =
       ∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) • (show E' [⋀^Fin m]→L[ℝ] ℝ from
         mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)
           (fun b' : U ↦ show E' [⋀^Fin m]→L[ℝ] ℝ from
             prodFiberIntegrand α.val b' (Fin.removeNth i v) y) b (v i)) w) ∧
     SmoothForm.integralTopFormₗ o (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
-        mfderivIntegrand o α (Fin.removeNth i v) b (v i)) =
+        mfderivIntegrand α (Fin.removeNth i v) b (v i)) =
       ∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) • mfderiv 𝓘(ℝ, E) 𝓘(ℝ)
         (fun b' : U ↦ (prodFiberIntegral o α).val b' (Fin.removeNth i v)) b (v i) := by
   refine ⟨fun y w ↦ ?_, ?_⟩
@@ -147,7 +147,7 @@ theorem prodFiberIntegral_mextDeriv_opens {m : ℕ} (o : Manifold.Orientation J 
         (by omega : r + (n + 1) + 1 = r + 1 + (n + 1))
         (mextDerivₗ (𝓘(ℝ, E).prod J) (r + (n + 1)) α)).val b v =
         (∑ i : Fin (r + 1), (-1 : ℤ) ^ (i : ℕ) •
-          mfderivIntegrand o α (Fin.removeNth i v) b (v i) +
+          mfderivIntegrand α (Fin.removeNth i v) b (v i) +
           (-1 : ℤ) ^ (r + 1) • mextDerivₗ J n β : SmoothForm J F ℝ (n + 1)).val := by
       funext y
       refine ContinuousAlternatingMap.ext fun (w : Fin (n + 1) → TangentSpace J y) ↦ ?_

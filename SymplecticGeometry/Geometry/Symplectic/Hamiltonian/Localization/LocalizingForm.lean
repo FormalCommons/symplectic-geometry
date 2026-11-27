@@ -290,9 +290,8 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
       obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hxt)
       rw [Φ.right_inv hxt] at h₂
       exact h₂ ▸ Φ.map_source h₁
-    have hθ := congrArg Subtype.val
+    have hθ := (SmoothForm.mpullback_eq_iff _).1
       (mpullback_weightRotation_weightOneForm k fun j ↦ Complex.arg (χ j g))
-    rw [SmoothForm.coe_mpullback] at hθ
     rw [← TauCeti.mpullback_comp_at (hg.mdifferentiableAt (by simp))
         (Φ.symm.mdifferentiableAt (by simp) (by simpa using hgx)),
       (hcomm hxt).mpullback_eq,

@@ -2,14 +2,26 @@
 # Uploads a staged build to the bucket of Lake's cache. Only the workflow
 # cache-upload runs this, from main's copy, with the bucket's key.
 #
-#   cache-upload.sh DIR ARTIFACTS MAPPINGS
+#   cache-upload.sh DIR ARTIFACTS MAPPINGS [KNOWN]
 #
 # DIR is what a run of CI staged with `lake cache stage`: the build archives,
 # each named `<hash>.ltar`, and `outputs.jsonl`, the mappings. ARTIFACTS is
 # the address under which the archives go, as `<hash>.art`. MAPPINGS is the
-# whole address of the mappings file. The key comes on standard input, as the
+# whole address of the mappings file. KNOWN, if given, is a mappings file that
+# the bucket holds under `r/queue/`. The key comes on standard input, as the
 # line `user = "<access key>:<secret>"` of a curl config, so that it is in no
 # argument list.
+#
+# The bucket is asked only about the archives that KNOWN does not name: a
+# mappings file is uploaded after its archives, and nothing in the bucket is
+# deleted, so the archives it names are there. Without KNOWN the bucket is
+# asked about every archive, some 1,500 requests, and several such uploads
+# at once were more than Hetzner answers: it sent 503, curl tried again, and
+# uploads stood for 20 minutes on runners that builds were waiting for. If
+# the bucket should ever lose an archive that KNOWN names, a commit's
+# mappings name an archive that is not there, and a build compiles that
+# module. If objects are ever made to expire, this must be thought through
+# again.
 #
 # DIR comes from a build, which ran the code of a pull request, so nothing in
 # it is trusted and nothing from it is run:
@@ -35,6 +47,7 @@
 set -euo pipefail
 
 dir=${1:?the staged directory} artifacts=${2:?the address of the archives} mappings=${3:?the address of the mappings}
+known=${4:-}
 here=$(cd "$(dirname "$0")" && pwd)
 key=$(cat)
 work=$(mktemp -d)
@@ -66,10 +79,18 @@ jq -e -s '
   fail "the mappings file is not of the form that Lake writes for packed archives"
 jq -r -s '.[1:][] | .[1] | sub("\\.ltar$"; "")' "$dir/outputs.jsonl" | sort -u > "$work/named"
 
-# Which of the named archives the bucket has: requests without a key.
+# The archives that KNOWN names are in the bucket. A KNOWN that is not of
+# the form of a mappings file counts for nothing.
+: > "$work/known"
+if [ -n "$known" ] && [ -f "$known" ]; then
+  jq -r -s 'if (.[0] | type == "string") and all(.[1:][]; type == "array" and length == 2 and (.[1] | type == "string" and test("^[0-9a-f]{16}\\.ltar$")))
+    then .[1:][] | .[1] | sub("\\.ltar$"; "") else empty end' "$known" 2>/dev/null | sort -u > "$work/known" || : > "$work/known"
+fi
+comm -23 "$work/named" "$work/known" > "$work/ask"
+# Which of the others the bucket has: requests without a key.
 while read -r hash; do
   printf 'url = "%s/%s.art"\noutput = "/dev/null"\n' "$artifacts" "$hash"
-done < "$work/named" > "$work/head.cfg"
+done < "$work/ask" > "$work/head.cfg"
 if [ -s "$work/head.cfg" ]; then
   curl -q -sS -Z --parallel-max 32 --retry 3 --retry-all-errors --retry-max-time 60 --max-time 30 -I \
     -w '%{http_code} %{url_effective}\n' -K "$work/head.cfg" > "$work/head.out" || fail "could not ask the bucket which archives it has"
@@ -88,7 +109,7 @@ while read -r code url; do
     *) fail "the bucket answered $code for an archive" ;;
   esac
 done < "$work/head.out"
-echo "archives named: $(wc -l < "$work/named"), in the bucket: $have, to upload: $send"
+echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(comm -12 "$work/named" "$work/known" | wc -l), asked about: $(wc -l < "$work/ask"), of which there: $have, to upload: $send"
 
 # Hetzner answers 503 to many uploads at once; curl tries those again, and a
 # broken connection too. An answer such as 403 or 412 is no error to curl
