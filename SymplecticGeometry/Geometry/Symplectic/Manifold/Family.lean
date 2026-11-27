@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Manifold.VectorBundle.NondegenerateMetric.Basic
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.Pullback
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Topology.Compactness.Compact
-import Mathlib.Topology.Maps.Proper.Basic
 import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -148,19 +147,9 @@ theorem isOpen_setOfPred_forall_isInvertible_flat_mpullback_prodMk [CompleteSpac
     IsOpen {t : N | ∀ x : M,
       (flat (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ)
         x).IsInvertible} := by
-  -- Its complement is the projection of the closed set of points `(t, x)` with a non-invertible
-  -- flat map, and the projection `N × M → N` is closed since `M` is compact.
-  have h : {t : N | ∀ x : M,
-      (flat (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ)
-        x).IsInvertible} =
-      (Prod.fst '' {p : N × M |
-        (flat (SmoothForm.mpullback (Prod.mk p.1) (contMDiff_const.prodMk contMDiff_id) σ)
-          p.2).IsInvertible}ᶜ)ᶜ := by
-    ext t
-    simp
-  rw [h]
-  exact (isClosedMap_fst_of_compactSpace _
-    (isOpen_setOfPred_isInvertible_flat_mpullback_prodMk σ).isClosed_compl).isOpen_compl
+  -- the tube lemma for the compact factor `M`
+  exact isOpen_forall_prodMk_mem continuous_id
+    (isOpen_setOfPred_isInvertible_flat_mpullback_prodMk σ)
 
 /-- **Invertibility of the flat maps along a segment is an open condition.** For two-forms `σ₀`,
 `σ₁` on `M`, the set of points `(s, x)` of `ℝ × M` at which `σ₀ + s (σ₁ - σ₀)` has an invertible

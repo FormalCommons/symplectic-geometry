@@ -495,7 +495,7 @@ private theorem val_radialMapShell (z : puncturedSpace (ι → ℂ)) :
 
 private theorem isLocalDiffeomorph_radialMapShell :
     IsLocalDiffeomorph 𝓘(ℝ, ι → ℂ) 𝓘(ℝ, ι → ℂ) ∞ (radialMapShell (ι := ι) hs hh hd) := by
-  refine isLocalDiffeomorph_subtypeVal_comp_iff.1 fun z ↦ ?_
+  refine IsLocalDiffeomorph.subtypeVal_comp_iff.1 fun z ↦ ?_
   have hz := norm_sq_complexToRealEuclidean_pos z
   have hg : IsLocalDiffeomorphAt 𝓘(ℝ, ι → ℂ) 𝓘(ℝ, ι → ℂ) ∞ (radialScale h) (z : ι → ℂ) :=
     isLocalDiffeomorphAt_of_injective_mfderiv
