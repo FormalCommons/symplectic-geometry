@@ -18,7 +18,7 @@ import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Analysis.Calculus.Deriv.Rectangle
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ShapeFoliation.Chain
-import SymplecticGeometry.Topology.Constructions.Prod
+import SymplecticGeometry.Topology.Constructions.SumProd
 
 /-!
 # Smooth, strictly increasing families of `i`-convex shapes
@@ -462,6 +462,86 @@ theorem exists_blend_shapeFamily {χ : ℝ → ℝ → ℝ} {V : Set (ℝ × ℝ
     · exact deriv_mul_add_one_sub_mul_pos (hψ₀ℓ x hx) (hχℓ x ⟨hx.1, h, hx.2.2⟩) (hρI x.2).1
         (hρI x.2).2
 
+/-- **Gluing three smooth families along `ℓ = a` and `ℓ = b`.** Let `T₀`, `T` and `T₁` be
+smooth on `ℝ²`, with `T₀` equal to `T` near each point of `{a} × [r₁, r₂]` and `T₁` equal to
+`T` near each point of `{b} × [r₁, r₂]`, where `ℓ₀ ≤ a < b ≤ ℓ₁`. Then there is a family `ψ`,
+smooth on `ℝ²`, that near each point `x` of `[ℓ₀, ℓ₁] × [r₁, r₂]` equals `T₀` with
+`x.1 ∈ [ℓ₀, a]`, or `T` with `x.1 ∈ [a, b]`, or `T₁` with `x.1 ∈ [b, ℓ₁]`. -/
+theorem exists_contDiff_eventuallyEq_of_eventuallyEq_Icc {T₀ T T₁ : ℝ → ℝ → ℝ}
+    {ℓ₀ a b ℓ₁ r₁ r₂ : ℝ} (hℓa : ℓ₀ ≤ a) (hab : a < b) (hbℓ : b ≤ ℓ₁)
+    (hT₀s : ContDiff ℝ ∞ (Function.uncurry T₀)) (hTs : ContDiff ℝ ∞ (Function.uncurry T))
+    (hT₁s : ContDiff ℝ ∞ (Function.uncurry T₁))
+    (hTa : ∀ r ∈ Icc r₁ r₂, Function.uncurry T₀ =ᶠ[𝓝 (a, r)] Function.uncurry T)
+    (hTb : ∀ r ∈ Icc r₁ r₂, Function.uncurry T₁ =ᶠ[𝓝 (b, r)] Function.uncurry T) :
+    ∃ ψ : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry ψ) ∧ ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂,
+      (x.1 ∈ Icc ℓ₀ a ∧ Function.uncurry ψ =ᶠ[𝓝 x] Function.uncurry T₀) ∨
+      (x.1 ∈ Icc a b ∧ Function.uncurry ψ =ᶠ[𝓝 x] Function.uncurry T) ∨
+      (x.1 ∈ Icc b ℓ₁ ∧ Function.uncurry ψ =ᶠ[𝓝 x] Function.uncurry T₁) := by
+  -- The glued family `P`, which near each point of the rectangle is one of the three.
+  set P : ℝ → ℝ → ℝ := fun ℓ r ↦ if ℓ ≤ a then T₀ ℓ r else if ℓ ≤ b then T ℓ r else T₁ ℓ r
+    with hP
+  have hloc : ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂,
+      (x.1 ∈ Icc ℓ₀ a ∧ Function.uncurry P =ᶠ[𝓝 x] Function.uncurry T₀) ∨
+      (x.1 ∈ Icc a b ∧ Function.uncurry P =ᶠ[𝓝 x] Function.uncurry T) ∨
+      (x.1 ∈ Icc b ℓ₁ ∧ Function.uncurry P =ᶠ[𝓝 x] Function.uncurry T₁) := by
+    rintro ⟨ℓ, r⟩ ⟨hℓ', hr'⟩
+    simp only at hℓ' hr' ⊢
+    rcases lt_trichotomy ℓ a with h | h | h
+    · refine Or.inl ⟨⟨hℓ'.1, h.le⟩, ?_⟩
+      filter_upwards [(isOpen_Iio.prod isOpen_univ).mem_nhds (show (ℓ, r) ∈ Iio a ×ˢ univ
+        from ⟨h, mem_univ r⟩)] with y hy
+      simp [hP, Function.uncurry_def, (mem_Iio.1 hy.1).le]
+    · rw [h]
+      refine Or.inl ⟨⟨hℓa, le_rfl⟩, ?_⟩
+      filter_upwards [hTa r hr', (continuous_fst.tendsto (a, r)).eventually (Iio_mem_nhds hab)]
+        with y hy hyb
+      by_cases h' : y.1 ≤ a
+      · simp [hP, Function.uncurry_def, h']
+      · simp only [Function.uncurry_def] at hy ⊢
+        simp [hP, h', (mem_Iio.1 hyb).le, hy]
+    · rcases lt_trichotomy ℓ b with h' | h' | h'
+      · refine Or.inr (Or.inl ⟨⟨h.le, h'.le⟩, ?_⟩)
+        filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (show (ℓ, r) ∈ Ioo a b ×ˢ univ
+          from ⟨⟨h, h'⟩, mem_univ r⟩)] with y hy
+        simp [hP, Function.uncurry_def, not_le.2 hy.1.1, hy.1.2.le]
+      · rw [h']
+        refine Or.inr (Or.inr ⟨⟨le_rfl, hbℓ⟩, ?_⟩)
+        filter_upwards [hTb r hr', (continuous_fst.tendsto (b, r)).eventually (Ioi_mem_nhds hab)]
+          with y hy hya
+        simp only [Function.uncurry_def] at hy ⊢
+        by_cases h'' : y.1 ≤ b
+        · simp [hP, h'', not_le.2 (mem_Ioi.1 hya), hy]
+        · simp [hP, h'', not_le.2 (mem_Ioi.1 hya)]
+      · refine Or.inr (Or.inr ⟨⟨h'.le, hℓ'.2⟩, ?_⟩)
+        filter_upwards [(isOpen_Ioi.prod isOpen_univ).mem_nhds (show (ℓ, r) ∈ Ioi b ×ˢ univ
+          from ⟨h', mem_univ r⟩)] with y hy
+        simp [hP, Function.uncurry_def, not_le.2 (mem_Ioi.1 hy.1),
+          not_le.2 (hab.trans (mem_Ioi.1 hy.1))]
+  -- A globally smooth `ψ'` that agrees with the glued family near `Q`.
+  set W := {y | Function.uncurry P =ᶠ[𝓝 y] Function.uncurry T₀} ∪
+    {y | Function.uncurry P =ᶠ[𝓝 y] Function.uncurry T} ∪
+    {y | Function.uncurry P =ᶠ[𝓝 y] Function.uncurry T₁}
+  have hWo : IsOpen W :=
+    (isOpen_setOfPred_eventually_nhds.union isOpen_setOfPred_eventually_nhds).union
+      isOpen_setOfPred_eventually_nhds
+  have hQW : Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂ ⊆ W := fun x hx ↦ by
+    rcases hloc x hx with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩
+    exacts [Or.inl (Or.inl h), Or.inl (Or.inr h), Or.inr h]
+  have hPW : ContDiffOn ℝ ∞ (Function.uncurry P) W := fun y hy ↦ by
+    rcases hy with (h | h) | h
+    exacts [(hT₀s.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt,
+      (hTs.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt,
+      (hT₁s.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt]
+  obtain ⟨ψ₀, hψ₀s, -, -, -, hψ₀eq⟩ := hPW.exists_contDiff_eventuallyEq_on_isCompact
+    (isCompact_Icc.prod isCompact_Icc) hWo hQW
+  set ψ' := Function.curry ψ₀
+  have hψ'u : Function.uncurry ψ' = ψ₀ := Function.uncurry_curry ψ₀
+  refine ⟨ψ', by rw [hψ'u]; exact hψ₀s, fun x hx ↦ ?_⟩
+  rw [hψ'u]
+  rcases hloc x hx with ⟨h1, h2⟩ | ⟨h1, h2⟩ | ⟨h1, h2⟩
+  exacts [Or.inl ⟨h1, (hψ₀eq x hx).trans h2⟩, Or.inr (Or.inl ⟨h1, (hψ₀eq x hx).trans h2⟩),
+    Or.inr (Or.inr ⟨h1, (hψ₀eq x hx).trans h2⟩)]
+
 /-- **A strictly increasing smooth family of `i`-convex shapes with prescribed ends.** Let
 `Q = [ℓ₀, ℓ₁] × [r₁, r₂]`, `0 < r₁`, and let `E` be the part `{ℓ₀, ℓ₁} × [r₁, r₂] ∪
 [ℓ₀, ℓ₁] × {r₂}` of its boundary. Let `χ : ℝ → ℝ → ℝ` be a family of functions such that at
@@ -498,7 +578,6 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
     fun x y hy h₁ h₂ ↦ hdU (Metric.mem_cthickening_of_dist_le x y d E hy (by
       rw [Prod.dist_eq, Real.dist_eq, Real.dist_eq]
       exact max_le h₁ h₂))
-  have hK : IsCompact Q := isCompact_Icc.prod isCompact_Icc
   -- The band `[ℓ₀, ℓ₁] × [r₃, r₂]` inside `U'`, and the cutoff `ρ` and tolerance `τ` of the
   -- blend there.
   set r₃ := max r₁ (r₂ - d)
@@ -657,72 +736,8 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
         from ⟨rfl, hr'⟩)), (continuous_fst.tendsto (b, r)).eventually hCb] with y hy1 hy2
     simp only [Function.uncurry_def, hCq] at hy1 ⊢
     rw [hy1, hy2]
-  set P : ℝ → ℝ → ℝ := fun ℓ r ↦ if ℓ ≤ a then T₀ ℓ r else if ℓ ≤ b then Cq ℓ r else T₁ ℓ r
-    with hP
-  have hloc : ∀ x ∈ Q,
-      (x.1 ∈ Icc ℓ₀ a ∧ Function.uncurry P =ᶠ[𝓝 x] Function.uncurry T₀) ∨
-      (x.1 ∈ Icc a b ∧ Function.uncurry P =ᶠ[𝓝 x] Function.uncurry Cq) ∨
-      (x.1 ∈ Icc b ℓ₁ ∧ Function.uncurry P =ᶠ[𝓝 x] Function.uncurry T₁) := by
-    rintro ⟨ℓ, r⟩ ⟨hℓ', hr'⟩
-    simp only at hℓ' hr' ⊢
-    rcases lt_trichotomy ℓ a with h | h | h
-    · refine Or.inl ⟨⟨hℓ'.1, h.le⟩, ?_⟩
-      filter_upwards [(isOpen_Iio.prod isOpen_univ).mem_nhds (show (ℓ, r) ∈ Iio a ×ˢ univ
-        from ⟨h, mem_univ r⟩)] with y hy
-      simp [hP, Function.uncurry_def, (mem_Iio.1 hy.1).le]
-    · rw [h]
-      refine Or.inl ⟨⟨hℓa.le, le_rfl⟩, ?_⟩
-      filter_upwards [hTa r hr', (continuous_fst.tendsto (a, r)).eventually (Iio_mem_nhds hab)]
-        with y hy hyb
-      by_cases h' : y.1 ≤ a
-      · simp [hP, Function.uncurry_def, h']
-      · simp only [Function.uncurry_def] at hy ⊢
-        simp [hP, h', (mem_Iio.1 hyb).le, hy]
-    · rcases lt_trichotomy ℓ b with h' | h' | h'
-      · refine Or.inr (Or.inl ⟨⟨h.le, h'.le⟩, ?_⟩)
-        filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (show (ℓ, r) ∈ Ioo a b ×ˢ univ
-          from ⟨⟨h, h'⟩, mem_univ r⟩)] with y hy
-        simp [hP, Function.uncurry_def, not_le.2 hy.1.1, hy.1.2.le]
-      · rw [h']
-        refine Or.inr (Or.inr ⟨⟨le_rfl, hbℓ.le⟩, ?_⟩)
-        filter_upwards [hTb r hr', (continuous_fst.tendsto (b, r)).eventually (Ioi_mem_nhds hab)]
-          with y hy hya
-        simp only [Function.uncurry_def] at hy ⊢
-        by_cases h'' : y.1 ≤ b
-        · simp [hP, h'', not_le.2 (mem_Ioi.1 hya), hy]
-        · simp [hP, h'', not_le.2 (mem_Ioi.1 hya)]
-      · refine Or.inr (Or.inr ⟨⟨h'.le, hℓ'.2⟩, ?_⟩)
-        filter_upwards [(isOpen_Ioi.prod isOpen_univ).mem_nhds (show (ℓ, r) ∈ Ioi b ×ˢ univ
-          from ⟨h', mem_univ r⟩)] with y hy
-        simp [hP, Function.uncurry_def, not_le.2 (mem_Ioi.1 hy.1),
-          not_le.2 (hab.trans (mem_Ioi.1 hy.1))]
-  -- A globally smooth `ψ'` that agrees with the glued family near `Q`.
-  set W := {y | Function.uncurry P =ᶠ[𝓝 y] Function.uncurry T₀} ∪
-    {y | Function.uncurry P =ᶠ[𝓝 y] Function.uncurry Cq} ∪
-    {y | Function.uncurry P =ᶠ[𝓝 y] Function.uncurry T₁}
-  have hWo : IsOpen W :=
-    (isOpen_setOfPred_eventually_nhds.union isOpen_setOfPred_eventually_nhds).union
-      isOpen_setOfPred_eventually_nhds
-  have hQW : Q ⊆ W := fun x hx ↦ by
-    rcases hloc x hx with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩
-    exacts [Or.inl (Or.inl h), Or.inl (Or.inr h), Or.inr h]
-  have hPW : ContDiffOn ℝ ∞ (Function.uncurry P) W := fun y hy ↦ by
-    rcases hy with (h | h) | h
-    exacts [(hT₀s.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt,
-      (hCqs.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt,
-      (hT₁s.contDiffAt.congr_of_eventuallyEq h).contDiffWithinAt]
-  obtain ⟨ψ₀, hψ₀s, -, -, -, hψ₀eq⟩ := hPW.exists_contDiff_eventuallyEq_on_isCompact hK hWo hQW
-  set ψ' := Function.curry ψ₀
-  have hψ'u : Function.uncurry ψ' = ψ₀ := Function.uncurry_curry ψ₀
-  have hloc' : ∀ x ∈ Q,
-      (x.1 ∈ Icc ℓ₀ a ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry T₀) ∨
-      (x.1 ∈ Icc a b ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry Cq) ∨
-      (x.1 ∈ Icc b ℓ₁ ∧ Function.uncurry ψ' =ᶠ[𝓝 x] Function.uncurry T₁) := by
-    intro x hx
-    rw [hψ'u]
-    rcases hloc x hx with ⟨h1, h2⟩ | ⟨h1, h2⟩ | ⟨h1, h2⟩
-    exacts [Or.inl ⟨h1, (hψ₀eq x hx).trans h2⟩, Or.inr (Or.inl ⟨h1, (hψ₀eq x hx).trans h2⟩),
-      Or.inr (Or.inr ⟨h1, (hψ₀eq x hx).trans h2⟩)]
+  obtain ⟨ψ', hψ's, hloc'⟩ := exists_contDiff_eventuallyEq_of_eventuallyEq_Icc (ℓ₀ := ℓ₀) (ℓ₁ := ℓ₁)
+    hℓa.le hab hbℓ.le hT₀s hCqs hT₁s hTa hTb
   -- The members of `ψ'` are convex shapes with positive `ℓ`-derivative.
   have hψ'c : ∀ x ∈ Q, IsConvexShapeAt (ψ' x.1) x.2 := by
     intro x hx
@@ -822,7 +837,7 @@ theorem exists_shapeFoliation {χ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ r₁ r�
           lt_min (by linarith) (by linarith)
         exact ⟨by linarith, fun h ↦ absurd h (lt_irrefl 2)⟩
   -- The blend with `χ` near `r₂`.
-  obtain ⟨hψs, hψc, hψℓ⟩ := hblend ψ' (by rw [hψ'u]; exact hψ₀s) hψ'c hψ'ℓ hclose
+  obtain ⟨hψs, hψc, hψℓ⟩ := hblend ψ' hψ's hψ'c hψ'ℓ hclose
   refine ⟨fun ℓ r ↦ ρ r * ψ' ℓ r + (1 - ρ r) * χ ℓ r, hψs.mono fun x hx ↦ ?_, hψc, hψℓ, ?_⟩
   · rcases lt_or_ge x.2 r₃ with h | h
     · exact Or.inl ⟨mem_univ _, h⟩
