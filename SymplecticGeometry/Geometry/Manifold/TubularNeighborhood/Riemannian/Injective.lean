@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Differential
+import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
