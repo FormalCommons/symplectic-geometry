@@ -33,7 +33,9 @@ The computation is an induction on `n`, starting from `crossSign m 0 = (-1) ^ (m
 The sign is that of Tau Ceti's exchange `E × F ≃ F × E` on ordered products
 (`TauCeti.LocalOrientation.coe_map_prodComm_prod`), so the cross product `z × z'` is the ordered
 product `z' × z` transported along `F × E ≃ E × F`
-(`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod`).
+(`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod`); for the local orientations selected by
+orientations `ω` and `ω'`, it is the one selected by `ω'.prod ω`, carried along the exchange
+(`TauCeti.LocalOrientation.cross_localOrientation_eq_map_prodComm`).
 
 ## Main results
 
@@ -177,6 +179,22 @@ theorem cross_eq_map_prodComm_prod (hE : finrank ℝ E = m + 1) (hF : finrank �
     cross hE hF hd z z' =
       (prod hF hE hd' z' z).map (ContinuousLinearEquiv.prodComm ℝ F E).complZeroPairIso :=
   Subtype.ext (by rw [coe_map_prodComm_prod hF hE hd' hd, coe_cross_eq_neg_one_pow_smul, mul_comm])
+
+/-- For orientations `ω` of `E` and `ω'` of `F`, of dimensions `m + 1` and `n + 1`, the cross
+product of the local orientations they select, `E` first, is the local orientation of `E × F`
+selected by the product orientation `ω'.prod ω` of `F × E`, reindexed by
+`Fin (n + 1 + (m + 1)) ≃ Fin (d + 1)` and carried to `E × F` by the exchange of factors. -/
+theorem cross_localOrientation_eq_map_prodComm (hE : finrank ℝ E = m + 1)
+    (hF : finrank ℝ F = n + 1) (hd : m + 1 + (n + 1) = d + 1) (hd' : n + 1 + (m + 1) = d + 1)
+    (ω : Orientation ℝ E (Fin (m + 1))) (ω' : Orientation ℝ F (Fin (n + 1))) :
+    cross hE hF hd (ω.localOrientation hE) (ω'.localOrientation hF) =
+      haveI := FiniteDimensional.of_finrank_eq_succ hE
+      haveI := FiniteDimensional.of_finrank_eq_succ hF
+      ((Orientation.reindex ℝ (F × E) (finCongr hd') (ω'.prod ω hF hE)).map (Fin (d + 1))
+        (ContinuousLinearEquiv.prodComm ℝ F E).toLinearEquiv).localOrientation
+          (finrank_prod_eq_succ hE hF hd) := by
+  rw [Orientation.localOrientation_map _ _ (finrank_prod_eq_succ hF hE hd'),
+    ← prod_localOrientation, cross_eq_map_prodComm_prod hE hF hd hd']
 
 end LocalOrientation
 
