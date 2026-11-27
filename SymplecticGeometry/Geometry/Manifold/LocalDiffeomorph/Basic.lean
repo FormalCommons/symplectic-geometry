@@ -52,10 +52,10 @@ target of `Λ`, not only at `x`.
 * `ContinuousLinearEquiv.isLocalDiffeomorph`: a continuous linear equivalence of normed spaces
   is a local diffeomorphism, for every `n`; `isLocalDiffeomorph_neg` is the case of negation.
 * `TauCeti.isLocalDiffeomorphAt_of_bijective_mfderiv`: the inverse function theorem with a
-  bijective differential, for a source modelled on a finite-dimensional space. It applies Tau
-  Ceti's `TauCeti.isLocalDiffeomorphAt_of_mfderiv_eq` to the equivalence that the bijection
-  gives, as Tau Ceti's `TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv` does for an injective
-  one.
+  bijective differential, for a source modelled on a finite-dimensional space. It adapts Tau
+  Ceti's holomorphic `MDifferentiableOn.isLocalDiffeomorphAt_of_bijective_mfderiv` to real `C^n`
+  maps, applying Tau Ceti's `TauCeti.isLocalDiffeomorphAt_of_mfderiv_eq` to the equivalence that
+  the bijection gives.
 * `ModelWithCorners.isLocalDiffeomorphAt_coe`: a model with corners is a local diffeomorphism at
   every point that it sends into the interior of its range.
 * `PartialDiffeomorph.contMDiffAt`: a partial diffeomorphism is `C^n` at each point of its

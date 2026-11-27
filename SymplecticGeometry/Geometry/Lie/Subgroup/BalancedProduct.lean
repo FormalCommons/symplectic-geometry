@@ -53,8 +53,9 @@ differential at `[1, z]` sends `(ξ, v)` to `ξ_M(ι z) + dι v`, by Tau Ceti's
 At a point `z` fixed by `K`, `dπ` at `(1, z)` kills `(ξ, 0)` for every `ξ` whose one-parameter
 subgroup lies in `K`, since the curve `t ↦ (exp (t ξ), z)` stays in the class `[1, z]`. So the
 lift is a local diffeomorphism at `[1, z]` when its differential composed with `dπ` is onto and
-vanishes only on such vectors `(ξ, 0)`: its own differential is then bijective, and Tau Ceti's
-inverse function theorem `TauCeti.isLocalDiffeomorphAt_iff_exists_mfderiv_eq` applies. Since the
+vanishes only on such vectors `(ξ, 0)`: its own differential is then bijective, and the inverse
+function theorem `TauCeti.isLocalDiffeomorphAt_of_bijective_mfderiv`
+(`Geometry/Manifold/LocalDiffeomorph/Basic.lean`) applies. Since the
 lift is `G`-equivariant, the points where it is a local diffeomorphism are `G`-invariant
 (`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`); so it is one at `[g, z]` exactly when it is
 one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
