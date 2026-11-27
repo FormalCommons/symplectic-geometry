@@ -46,6 +46,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   follows from the positive lower bound, by compactness, on the derivative of
   `Real.smoothTransition` where its values stay away from `0` and `1`
   (`Real.smoothTransition.exists_pos_le_deriv`).
+  `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
+  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use.
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
@@ -216,6 +218,41 @@ theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε
     constructor <;> linarith
   gcongr
   exact hcK _ hu
+
+/-- **The error of a smoothing by `smoothedAbs δ`.** Let `s = smoothedSign δ t` and
+`p = (smoothedAbs δ)'' t`. If `0 ≤ g`, `0 ≤ T ≤ Q`, `g T ≤ G` and `ε G < a`, and if `c / δ ≤ p`
+wherever `|s| ≤ 1 - ε`, with `δ Q ≤ c`, then `(1 - s²) / 2 · g T < a + p g / 2`: where `|s|` is
+near `1` the weight `(1 - s²) / 2` is below `ε`, and elsewhere the curvature `p ≥ Q` makes up for
+the error. -/
+theorem one_sub_smoothedSign_sq_div_two_mul_lt {δ ε a c g T Q G t : ℝ} (hδ : 0 < δ) (hε : 0 < ε)
+    (hg : 0 ≤ g) (hT : 0 ≤ T) (hTQ : T ≤ Q) (hG : g * T ≤ G) (hεG : ε * G < a)
+    (hc : |smoothedSign δ t| ≤ 1 - ε → c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t)
+    (hδQ : δ * Q ≤ c) :
+    (1 - smoothedSign δ t ^ 2) / 2 * (g * T) < a + iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  have hp := iteratedDeriv_two_smoothedAbs_nonneg hδ.le t
+  set s := smoothedSign δ t
+  set p := iteratedDeriv 2 (smoothedAbs δ) t
+  have hgT : 0 ≤ g * T := mul_nonneg hg hT
+  by_cases hsε : |s| ≤ 1 - ε
+  · have ha : 0 < a := lt_of_le_of_lt (mul_nonneg hε.le (hgT.trans hG)) hεG
+    have hpQ : Q ≤ p := le_trans ((le_div_iff₀ hδ).2 (by linarith)) (hc hsε)
+    calc (1 - s ^ 2) / 2 * (g * T) ≤ 1 / 2 * (g * p) := by
+          gcongr
+          · linarith [sq_nonneg s]
+          · exact hTQ.trans hpQ
+      _ < a + p * g / 2 := by linarith
+  · have hs₃ : (1 - s ^ 2) / 2 < ε := by
+      rw [not_le] at hsε
+      rcases le_or_gt 0 (1 - ε) with h | h
+      · have : (1 - ε) ^ 2 < s ^ 2 := by
+          rw [← sq_abs s]
+          exact pow_lt_pow_left₀ hsε h two_ne_zero
+        linarith [sq_nonneg ε]
+      · linarith [sq_nonneg s]
+    calc (1 - s ^ 2) / 2 * (g * T) ≤ ε * (g * T) := by gcongr
+      _ ≤ ε * G := by gcongr
+      _ < a := hεG
+      _ ≤ a + p * g / 2 := by linarith [mul_nonneg hp hg]
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
 theorem smoothedAbs_of_le (hδ : 0 < δ) {t : ℝ} (ht : δ ≤ t) : smoothedAbs δ t = t := by
