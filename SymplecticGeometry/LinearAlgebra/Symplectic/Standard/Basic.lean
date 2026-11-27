@@ -59,7 +59,9 @@ The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
 `stdForm_apply_eq_inner` (`ω₀(z, w) = ⟪J₀ z, w⟫`), `stdForm_toBilinForm`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
-Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`). The rotation
+Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`), by which the map
+`A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms does not increase norms
+(`norm_precompR_stdForm_flip_apply_le`). The rotation
 `stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
 (`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
 through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
@@ -469,6 +471,21 @@ theorem stdForm_compatible : (stdForm ι).Compatible (stdComplexStructure ι) :=
 /-- Cauchy–Schwarz for `ω₀`: `|ω₀(z, w)| ≤ ‖z‖ ‖w‖`. -/
 theorem abs_stdForm_apply_le (z w : StdSpace ι) : |stdForm ι z w| ≤ ‖z‖ * ‖w‖ :=
   SymplecticForm.abs_apply_le_norm_mul_norm stdForm_apply_stdComplexStructure z w
+
+/-- The fixed continuous linear map `A ↦ ω₀(·, A ·)`, from endomorphisms of `StdSpace ι` to
+bilinear forms on it, does not increase norms. -/
+theorem norm_precompR_stdForm_flip_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    ‖(ContinuousLinearMap.precompR (StdSpace ι)
+        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A‖ ≤ ‖A‖ := by
+  refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun u ↦
+    ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
+  simp only [ContinuousLinearMap.flip_apply, ContinuousLinearMap.precompR_apply,
+    ContinuousLinearMap.compL_apply, ContinuousLinearMap.comp_apply,
+    LinearMap.toContinuousBilinearMap_apply,
+    Real.norm_eq_abs]
+  calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
+    _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
+    _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
 
 variable (ι) in
 /-- The rotation `z ↦ cos t • z + sin t • J₀ z` of `StdSpace ι`, a linear isometry: through
