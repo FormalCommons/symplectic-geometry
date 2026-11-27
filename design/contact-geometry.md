@@ -241,7 +241,7 @@ review of #420 raise four more.
      diffeomorphism of `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
      whose derivative along the zero section Tau Ceti does not state: it is
      the normal exponential of an auxiliary metric
-     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_subset`,
+     (`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_norm_lt_subset`,
      with derivative from `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`),
      precomposed with a radial compression
      `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` into its domain,
