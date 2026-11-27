@@ -189,7 +189,6 @@ private def puncturedSummandHomeomorph :
   continuous_toFun := ((continuous_subtypeVal).subtype_mk _).subtype_mk _
   continuous_invFun := (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _
 
-@[simp]
 private theorem coe_coe_puncturedSummandHomeomorph_apply (y : puncture g (n + 1)) :
     ((puncturedSummandHomeomorph y : (tailPuncture g n : Set (ClosedSurface g))) :
       ClosedSurface g) = y :=
