@@ -448,6 +448,7 @@ namespace IsNormalizedBallEmbedding
 open BlowupModel
 open GluedAlong (inl inr)
 open Blowup (gluingHomeomorph)
+open scoped TauCeti.ComplexManifold
 
 variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
@@ -478,7 +479,7 @@ variable [T2Space M]
 variable (hh : IsBlowupProfile l ε h) (hε' : 0 < ε') (hε'ε : ε' ≤ ε)
 
 /-- A point of `M ∖ ψ(B(l))` is sent by `radialContraction` to a point other than `p₀`. -/
-private theorem radialContraction_mem_puncturedOpens
+theorem radialContraction_mem_puncturedOpens
     (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
     hψ.isSymplecticBallEmbedding.radialContraction hh x ∈
       Blowup.puncturedOpens hN.blowupChart := by
@@ -637,6 +638,47 @@ private theorem mem_outerOverlap_of_outerMap_eq
       norm_radialMap]
     have := pow_lt_pow_left₀ hwε' (norm_nonneg _) two_ne_zero
     linarith
+/-- The diffeomorphism from the blowup of weight `l` with collar `ε'` onto `Blowup c` that is
+`radialContraction` on the outer piece and the lift `ψ̃` on the model piece. -/
+private def weightBlowupDiffeomorph :
+    WeightBlowup (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε'
+      ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ Blowup hN.blowupChart :=
+  GluedAlong.descDiffeomorph (hψ.isLocalDiffeomorph_outerMap hh hε' hε'ε)
+    (hψ.isLocalDiffeomorph_modelMap hε'ε) (hψ.modelMap_gluingDiffeomorphSymm hh hε' hε'ε)
+    (hψ.injective_outerMap hh hε' hε'ε) (hψ.injective_modelMap hε'ε)
+    (hψ.range_outerMap_union_range_modelMap hh hε' hε'ε)
+    (hψ.mem_outerOverlap_of_outerMap_eq hh hε' hε'ε)
+
+/-- **The blowup form and the blowup of weight `l`** (McDuff–Salamon, Theorem 7.1.21 (ii)): the
+diffeomorphism from the blowup `Blowup c` of `M` at `p₀` onto the blowup of weight `l` with
+collar `ε'` along `ψ`, for `0 < ε' ≤ ε`. It is the identity of the model on the image under the
+lift `ψ̃` of `openNbhd n ε'`, and `ψ ∘ F_h ∘ ψ⁻¹ ∘ π` elsewhere, for the blowdown `π` of
+`Blowup c` and the radial map `F_h` of the profile `h`. -/
+def normalizedBlowupSymplectomorph :
+    Blowup hN.blowupChart ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
+      WeightBlowup (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε' :=
+  (hψ.weightBlowupDiffeomorph hh hε' hε'ε).symm
+
+/-- `normalizedBlowupSymplectomorph` sends the lift `ψ̃ y` of a point `y` of `openNbhd n ε'` to
+the point `y` of the model piece. -/
+theorem normalizedBlowupSymplectomorph_ballLift (y : openNbhdOpens n ε') :
+    hψ.normalizedBlowupSymplectomorph hh hε' hε'ε
+        (hψ.ballLift ⟨y, openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le)
+          (mem_openNbhdOpens_iff.1 y.property)⟩) =
+      inr (WeightBlowup.gluingDiffeomorphSymm (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)
+        hψ.weight_pos.le hε').toHomeomorph y :=
+  GluedAlong.descDiffeomorph_symm_apply_right _ _ _ _ _ _ _ y
+
+/-- `normalizedBlowupSymplectomorph` sends the point `radialContraction x` of `M ∖ p₀` to the point
+`x` of the outer piece `M ∖ ψ(B(l))`. -/
+theorem normalizedBlowupSymplectomorph_inl
+    (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
+    hψ.normalizedBlowupSymplectomorph hh hε' hε'ε
+        (inl (gluingHomeomorph hN.blowupChart)
+          ⟨_, hψ.radialContraction_mem_puncturedOpens hh hε' hε'ε x⟩) =
+      inl (WeightBlowup.gluingDiffeomorphSymm (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)
+        hψ.weight_pos.le hε').toHomeomorph x :=
+  GluedAlong.descDiffeomorph_symm_apply_left _ _ _ _ _ _ _ x
 
 end IsNormalizedBallEmbedding
 
