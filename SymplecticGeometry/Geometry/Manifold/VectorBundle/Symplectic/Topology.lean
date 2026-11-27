@@ -54,7 +54,8 @@ multiplication by a fixed smooth function is continuous.
   each point `x` of `U`, the frame coordinates of a two-form on `M` in the trivialization at `x`
   are those of its restriction to `U` in the trivialization of the two-forms on `U` at `x`.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_smul`: for any frame system, the map
-  `σ ↦ tangentEquiv.symm (ρ • tangentEquiv σ)` is continuous, for a fixed smooth function `ρ`.
+  `σ ↦ tangentEquiv.symm (funSMulₗ ρ (tangentEquiv σ))` is continuous, for a fixed smooth
+  function `ρ`.
 * `SymplecticGeometry.IsSmoothFamily.continuous_tangentEquiv_symm`: a smooth family `τ` of
   two-forms on `M` over a manifold `N`, both with finite-dimensional models, gives a continuous
   map `t ↦ tangentEquiv.symm (τ t)` into the frame topology of any frame system.
@@ -79,7 +80,7 @@ slice at `0` of the constant family `(p, x) ↦ g x : ℝ × M → N`, and restr
 a smooth form `Ω` on `N × M`, that is, of its pull-backs along the slices of the identity of
 `N × M`, so its continuity is the case of that family with `Ω` fixed. Multiplication by a
 smooth function is Tau Ceti's `ContMDiffSection.continuous_smul_function_frameTopology`, read
-through `tangentEquiv`.
+through `tangentEquiv` by `tangentEquiv_symm_funSMulₗ`.
 
 The comparison of frame coordinates on `M` and on `U` is not definitional: it rests on the
 agreement of the charts that `U` inherits with those of `M` near `x`. It takes `D` to be the
@@ -358,16 +359,15 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   (W : ι → Opens M) (hW : ∀ i, (W i : Set M) ⊆ (e i).baseSet)
 
 /-- Multiplication of smooth two-forms on the tangent bundle by a fixed smooth function `ρ`,
-`σ ↦ tangentEquiv.symm (ρ • tangentEquiv σ)`, is continuous for the frame topology of any frame
-system. -/
+`σ ↦ tangentEquiv.symm (funSMulₗ ρ (tangentEquiv σ))`, is continuous for the frame topology of
+any frame system. -/
 theorem continuous_tangentEquiv_symm_smul (ρ : C^∞⟮I, M; ℝ⟯) :
     let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
     Continuous fun σ : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M)) ↦
       tangentEquiv.symm (TauCeti.SmoothForm.funSMulₗ ρ (tangentEquiv σ)) := by
   let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
-  refine (ContMDiffSection.continuous_smul_function_frameTopology e W hW ρ).congr fun σ ↦ ?_
-  ext x v
-  simp [tangentEquiv_symm_apply, tangentEquiv_apply]
+  simpa only [tangentEquiv_symm_funSMulₗ, LinearEquiv.symm_apply_apply] using
+    ContMDiffSection.continuous_smul_function_frameTopology e W hW ρ
 
 end FunSMul
 
