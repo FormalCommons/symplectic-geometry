@@ -384,13 +384,11 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 For a connected Riemann surface `Σ` (`[ChartedSpace ℂ Σ]
 [IsManifold 𝓘(ℂ) ω Σ] [ConnectedSpace Σ] [T2Space Σ]`) and `[T2Space M]`.
 
-- `MDifferentiable.isClosed_discrete_preimage` (in a general file of
-  `Geometry/Manifold/Complex/`, unless either library has it): the preimage
-  of a point under a nonconstant holomorphic map from a connected Riemann
-  surface is discrete, from Mathlib's
-  `AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq` in charts and
-  connectedness.
-- `Blowup.curveLift c u hu`: the lift of a nonconstant holomorphic
+- The fibres of a nonconstant holomorphic map from a connected Riemann
+  surface are discrete: Tau Ceti's
+  `TauCeti.setOf_ne_mem_codiscrete_of_isPseudoholomorphic`, through
+  `isPseudoholomorphic_ofComplexManifold_iff`.
+- `Blowup.curveLift c u`: the lift of a nonconstant holomorphic
   `u : Σ → M`, equal to `inl ∘ u` off `u ⁻¹' {p₀}` and to `BlowupModel.curveLift`
   read through `c.lift` near each point of it; `mdifferentiable_curveLift`,
   `blowdown_curveLift`, and `curveLift_unique`, by density of the
