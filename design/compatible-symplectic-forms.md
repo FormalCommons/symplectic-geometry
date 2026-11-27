@@ -389,8 +389,10 @@ For a symplectic atlas `A` for $(F,\sigma)$:
   smooth subbundle of `TM`: the kernel distribution of the submersion `π`
   (`IsContMDiff.isContMDiffDistribution_ker_mfderiv`, from Tau Ceti's
   `Manifold.IsSubmersion.isContMDiffDistribution_ker_mfderiv`), with
-  `IsContMDiff.contMDiffVectorBundle_ker_mfderiv`;
-- `hD.restrictTwoForm τ` (`TauCeti.IsContMDiffDistribution.restrictTwoForm`),
+  `IsContMDiff.contMDiffVectorBundle_ker_mfderiv`, both in
+  `Geometry/Manifold/FiberBundle/MapFiber.lean`;
+- `hD.restrictTwoForm τ` (`TauCeti.IsContMDiffDistribution.restrictTwoForm`,
+  from `Geometry/Manifold/Distribution/TwoForm.lean`),
   the restriction to $\mathrm{Ver}$ of a connection two-form `τ` of `A`
   (*Symplectic fibrations*' existence of connection two-forms), with
   `RestrictsTo.isNondegenerate_restrictTwoForm`, and
