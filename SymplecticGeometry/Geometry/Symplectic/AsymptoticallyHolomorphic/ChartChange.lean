@@ -130,12 +130,10 @@ theorem exists_forall_jetNormAt_chartChange_le [T2Space M] [I.Boundaryless]
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
   have hτ0 : τ 0 = z := D.chartTransition_symm_zero hk (D.ball_subset_target hk x hz₀)
   have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
-  have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds h0W
   have hτr : ContDiffAt ℝ r τ 0 :=
-    (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y h0W)).of_le
-      (by simp)
+    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y h0W)
   have hz0 : 0 ≤ 1 + ‖z‖ := by positivity
-  refine ⟨h0W, hτ0, ((D.contDiffOn_frameChange hk x y).contDiffAt hW).of_le (by simp), ?_, ?_,
+  refine ⟨h0W, hτ0, D.contDiffAt_frameChange hk h0W, ?_, ?_,
     fun {F} _ _ {g} hgz ↦ ?_, ?_⟩
   · -- The change of frame.
     refine (hCe hk x z hz₂).trans (mul_le_mul_of_nonneg_right ?_ (by positivity))
@@ -203,7 +201,7 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   set f := D.reading k x s
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
   have h0s := D.chartTransitionDomain_subset_source k x y h0W
-  have hτr : ContDiffAt ℝ r τ 0 := (D.contDiffAt_chartTransition h0s).of_le (by simp)
+  have hτr : ContDiffAt ℝ r τ 0 := D.contDiffAt_chartTransition h0s
   have hs' : ContDiffAt ℝ r f (τ 0) := by rwa [hτ0]
   -- Near `0`, the reading at `y` is `e • (f ∘ τ)`.
   have heq : D.reading k y s =ᶠ[𝓝 0] fun w ↦ e w • (f ∘ τ) w := by
@@ -257,9 +255,10 @@ theorem dbarJetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   set d := (ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y).toReal
   have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds h0W
   -- The transition is smooth at `0`, and `g ∘ τ` and `dτ` are `C^r` there.
-  have hτ := D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y h0W)
+  have hτ : ContDiffAt ℝ (r + 1) τ 0 :=
+    D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x y h0W)
   have hτr : ContDiffAt ℝ r τ 0 := hτ.of_le (by simp)
-  have hdτ : ContDiffAt ℝ r (fderiv ℝ τ) 0 := hτ.fderiv_right (by simp)
+  have hdτ : ContDiffAt ℝ r (fderiv ℝ τ) 0 := hτ.fderiv_right le_rfl
   have hg' : ContDiffAt ℝ r g (τ 0) := by rwa [hτ0]
   -- Near `0`, the `∂̄` reading at `y` is `e • ((g ∘ τ) ∘L dτ)`.
   have hsτ : ∀ᶠ w in 𝓝 0, DifferentiableAt ℝ (D.reading k x s) (τ w) :=
