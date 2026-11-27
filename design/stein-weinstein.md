@@ -907,12 +907,8 @@ containing `ι '' closedBall 0 1`:
         `deriv A r = 8 * r / w ≤ 16 / w` and
         `deriv T r = 1 / √(log r) ≤ 2 * √2 / w`; so
         `η * (deriv A r + deriv T r) ≤ 152 / 199 < 2 * r`, and
-        `isConvexShapeAt_smoothedMax` applies to smooth functions equal
-        to `A` and `T` on `Ici b` for some `b ∈ Ioo 1 r`
-        (`ContDiffOn.exists_contDiff_eqOn_Ici`), and
-        `IsConvexShapeAt.congr_of_eventuallyEq` returns to `χ ℓ`. So no
-        version of the smoothed maximum for shapes that are `C²` only
-        near the point is needed.
+        `isConvexShapeAt_smoothedMax` applies to `A` and `T`, which are
+        `C²` at `r > 1`; it asks for `ContDiffAt ℝ 2` only at the point.
       - The far part: `A - T ≥ 2 > η` on `Ici 2`, so `χ ℓ = A` there.
       - The germ: for `ℓ = 7` and `r ≤ 257 / 256`, `w ≤ 1 / 11`, so
         `A r - T r ≤ -3 / 11 < -1 / 200` and `χ 7 r = T r`.
@@ -1113,8 +1109,8 @@ containing `ι '' closedBall 0 1`:
       `7 * δ / 2 ≤ r`, `r ↦ struweLineShape δ r + t` is a convex shape
       at `r` (`isConvexShapeAt_struweShape_of_lt`,
       `isConvexShapeAt_linear`, `isConvexShapeAt_smoothedMax` with
-      `δ / 4 * (1 + 2) ≤ 2 * r`, applied to `C²` functions equal to the
-      two shapes near `r`, `ContDiffOn.exists_contDiff_eqOn_Ici`; on
+      `δ / 4 * (1 + 2) ≤ 2 * r`, applied to the two shapes, which are
+      `C²` at `r`; on
       `Icc (7 * δ / 2) (9 * δ / 2)` the shape is within `9 * δ / 8` of
       each piece, as `|S r - (2 * r - 8 * δ)| ≤ δ` there). Write
       `P t r = struweLineShape δ r + t` and `t₀ = 65 * δ / 8 - S δ`, so
