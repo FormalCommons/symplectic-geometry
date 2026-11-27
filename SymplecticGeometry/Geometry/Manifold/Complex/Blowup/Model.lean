@@ -110,6 +110,10 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
 * `SymplecticGeometry.BlowupModel.isLocalDiffeomorphAt_blowdown`: so the blowdown is a local
   biholomorphism at each point off the divisor.
+* `SymplecticGeometry.BlowupModel.blowdownDiffeomorphDimOne`: for `n = 0`, where `ℙ ℂ E` is a
+  point, the blowdown is a biholomorphism of `BlowupModel 0` onto `E = Fin 1 → ℂ`, since it is
+  the chart `blowupModelChart 0` (`blowupModelChart_zero_eq_blowdown`), whose source and target
+  are the whole spaces.
 
 ## Implementation notes
 
@@ -1022,6 +1026,42 @@ theorem isLocalDiffeomorphAt_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0
     IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p :=
   (blowdownDiffeomorph n).isLocalDiffeomorphAt_of_coe_eq
     (fun v ↦ (coe_blowdownDiffeomorph v).symm) ⟨p, by simpa using hp⟩
+
+/-! ### Complex dimension one -/
+
+/-- For `n = 0` the chart `0` of the model is the blowdown: a line of `Fin 1 → ℂ` has no affine
+coordinate, and the chart records the blowdown at the only place. -/
+theorem blowupModelChart_zero_eq_blowdown :
+    ⇑(blowupModelChart (n := 0) 0) = blowdown := by
+  funext p j
+  obtain rfl := Fin.fin_one_eq_zero j
+  exact blowupModelChart_apply_self 0 p
+
+/-- **The blowdown in complex dimension one.** For `n = 0`, the blowdown of the model is a
+biholomorphism of `BlowupModel 0` onto `Fin 1 → ℂ`, with inverse the inverse of the chart
+`blowupModelChart 0`. Here `ℙ ℂ (Fin 1 → ℂ)` is a point, so the exceptional divisor is a single
+point. -/
+noncomputable def blowdownDiffeomorphDimOne :
+    BlowupModel 0 ≃ₘ^ω⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ (Fin 1 → ℂ) where
+  toFun := blowdown
+  invFun := (blowupModelChart 0).symm
+  left_inv p := by
+    rw [← blowupModelChart_zero_eq_blowdown]
+    exact (blowupModelChart 0).left_inv (by simp)
+  right_inv w := by
+    rw [← blowupModelChart_zero_eq_blowdown]
+    exact (blowupModelChart 0).right_inv (by simp [blowupModelChart_target])
+  contMDiff_toFun := contMDiff_blowdown ω
+  contMDiff_invFun := contMDiff_blowupModelChart_symm 0 ω
+
+@[simp]
+theorem coe_blowdownDiffeomorphDimOne : ⇑blowdownDiffeomorphDimOne = blowdown :=
+  (rfl)
+
+@[simp]
+theorem coe_blowdownDiffeomorphDimOne_symm :
+    ⇑blowdownDiffeomorphDimOne.symm = (blowupModelChart (n := 0) 0).symm :=
+  (rfl)
 
 end Blowdown
 
