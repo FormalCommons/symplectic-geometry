@@ -11,9 +11,10 @@ public import Mathlib.Analysis.CStarAlgebra.Classes
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -589,6 +590,14 @@ instance instIsManifoldComplex [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
     IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c) :=
   (isCompatible_complex c hc.out).isManifold
 
+/-- A chart of the holomorphic maximal atlas of `M` is a chart of its smooth real maximal atlas.
+As an instance, it makes the smooth constructions on the blowup available along a holomorphic
+chart. -/
+instance instFactMemMaximalAtlasReal [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M) :=
+  ⟨IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero ∞ (by simp) hc.out⟩
+
 open scoped TauCeti.ComplexManifold in
 /-- The blowup along a smooth chart is a smooth manifold. -/
 instance instIsManifoldReal [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
@@ -765,9 +774,7 @@ theorem contMDiffOn_lift :
     ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (lift c)
       (range (inr (gluingHomeomorph c))) := by
   have hinj := (GluedAlong.inr_injective (gluingHomeomorph c)).injOn (s := univ)
-  have h := ((isLocalDiffeomorph_inr c).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn
-    isOpen_univ hinj
-  rw [image_univ] at h
+  have h := (isLocalDiffeomorph_inr c).contMDiffOn_invFunOn (GluedAlong.inr_injective _)
   refine (contMDiff_subtypeVal.comp_contMDiffOn h).congr ?_
   rintro _ ⟨y, rfl⟩
   rw [lift_inr, Function.comp_apply, hinj.leftInvOn_invFunOn (mem_univ y)]
