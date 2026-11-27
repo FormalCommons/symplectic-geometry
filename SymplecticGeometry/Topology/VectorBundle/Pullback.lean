@@ -76,7 +76,9 @@ Since `Bundle.Pullback` is not reducible, instance search also does not find an
 such as `Bundle.Pullback.instNormedSpace`. Together with `TangentSpace.instIsNormableSpace` of
 `SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, it covers the fibres
 `(f *ᵖ TangentSpace I) q`. `Bundle.Pullback.instContinuousConstSMul` likewise gives the
-continuity of multiplication by a scalar on the fibres, for the action of their module structure.
+continuity of multiplication by a scalar on the fibres, for the action of their module structure;
+the instance for Tau Ceti's action is `Bundle.Pullback.instContinuousConstSMulSMul`, which sits
+with `instIsModuleTopologySMul` (see below).
 `Bundle.Pullback.instT2Space`, `instModuleFinite` and `instIsModuleTopology` carry the Hausdorff
 property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`; each asks for it on
 `E (f y)` alone, so that it applies to tangent spaces, whose instances hold at each point.
@@ -88,7 +90,8 @@ The instance for Tau Ceti's action is `Bundle.Pullback.instIsModuleTopologySMul`
 `import`, so that a file that imports this one is not given Tau Ceti's action. A file that is not
 a module then sees both instances, but a `module` file in which Tau Ceti's
 `Bundle.Pullback.instSMul` is in scope must import
-`SymplecticGeometry.Topology.FiberBundle.Pullback` itself to get `instIsModuleTopologySMul`.
+`SymplecticGeometry.Topology.FiberBundle.Pullback` itself to get `instIsModuleTopologySMul` and
+`instContinuousConstSMulSMul`.
 
 `Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
 the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
@@ -379,7 +382,8 @@ instance instIsNormableSpace {𝕜 : Type*} [NormedField 𝕜] [∀ b, AddCommGr
   inferInstanceAs (IsNormableSpace 𝕜 (E (f y)))
 
 /-- Multiplication by each scalar on a fibre of the pull-back `f *ᵖ E` is continuous when it is
-on the fibres of `E`. The action is that of the module structure of the fibre. -/
+on the fibres of `E`. The action is that of the module structure of the fibre; the instance for
+Tau Ceti's action `Bundle.Pullback.instSMul` is `Bundle.Pullback.instContinuousConstSMulSMul`. -/
 instance instContinuousConstSMul {R : Type*} [Semiring R] [∀ b, AddCommMonoid (E b)]
     [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, ContinuousConstSMul R (E b)] :
     ContinuousConstSMul R ((f *ᵖ E) y) :=

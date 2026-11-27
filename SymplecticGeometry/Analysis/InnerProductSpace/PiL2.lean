@@ -17,7 +17,9 @@ It proves Cauchy–Schwarz for the Hermitian product `star z ⬝ᵥ v` on `ι �
 Hermitian square `star z ⬝ᵥ z` as the squared Euclidean norm. It also places
 the standard basis vectors of `EuclideanSpace 𝕜 ι` on the unit sphere, and shows
 that splitting `EuclideanSpace 𝕜 (ι ⊕ κ)` into two blocks by `EuclideanSpace.sumEquivProd`
-preserves the squared norm.
+preserves the squared norm, and gives the coordinates of the inverse map. Tau Ceti's
+`EuclideanSpace.sumEquivProd_apply_fst` and `EuclideanSpace.sumEquivProd_apply_snd` give those
+of the two blocks.
 
 ## Main results
 
@@ -29,6 +31,9 @@ preserves the squared norm.
 * `EuclideanSpace.single_one_mem_sphere`: each standard basis vector has norm one.
 * `EuclideanSpace.norm_sq_sumEquivProd`: the squared norms of the two blocks of
   `sumEquivProd x` add up to `‖x‖²`.
+* `EuclideanSpace.sumEquivProd_symm_apply_inl`, `EuclideanSpace.sumEquivProd_symm_apply_inr`:
+  the coordinates of `sumEquivProd.symm p`. `simp` proves them by unfolding `sumEquivProd`, so
+  they are stated for rewriting and are not `@[simp]`.
 -/
 
 public section
@@ -85,6 +90,24 @@ theorem norm_sq_sumEquivProd {𝕜 : Type*} [RCLike 𝕜] {ι κ : Type*} [Finty
   rw [EuclideanSpace.norm_sq_eq x, Fintype.sum_sum_type, EuclideanSpace.norm_sq_eq,
     EuclideanSpace.norm_sq_eq]
   simp
+
+section sumEquivProd
+
+variable {𝕜 : Type*} [RCLike 𝕜] {ι κ : Type*} [Fintype ι] [Fintype κ]
+
+/-- The coordinate `Sum.inl i` of the point of `EuclideanSpace 𝕜 (ι ⊕ κ)` that corresponds to
+`p` is the coordinate `i` of `p.1`. -/
+theorem sumEquivProd_symm_apply_inl (p : EuclideanSpace 𝕜 ι × EuclideanSpace 𝕜 κ) (i : ι) :
+    sumEquivProd.symm p (Sum.inl i) = p.1 i := by
+  simp
+
+/-- The coordinate `Sum.inr j` of the point of `EuclideanSpace 𝕜 (ι ⊕ κ)` that corresponds to
+`p` is the coordinate `j` of `p.2`. -/
+theorem sumEquivProd_symm_apply_inr (p : EuclideanSpace 𝕜 ι × EuclideanSpace 𝕜 κ) (j : κ) :
+    sumEquivProd.symm p (Sum.inr j) = p.2 j := by
+  simp
+
+end sumEquivProd
 
 end EuclideanSpace
 

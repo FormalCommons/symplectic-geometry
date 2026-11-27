@@ -18,6 +18,7 @@ public import TauCeti.GroupTheory.SurfaceGroup.Basic
 import TauCeti.GroupTheory.SurfaceGroup.LowGenus
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.GroupTheory.FreeGroup.Primitive
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The punctured sphere as the plane minus real points
@@ -1030,6 +1031,7 @@ theorem fromPath_map_peripheralLoop_last_eq_inv_prod :
 section FundamentalGroup
 
 open TauCeti
+open scoped Manifold
 
 variable (n) in
 /-- The **fundamental group of the punctured sphere**: the fundamental group of the sphere
@@ -1119,10 +1121,8 @@ theorem exists_puncturedFundamentalGroupMulEquiv_zero :
         SurfaceGroup.Orientable.peripheral 0 n i := by
   cases n with
   | zero =>
-    have h : (puncture 0 0 : Set (ClosedSurface 0)) = univ := by
-      rw [puncture_zero, TopologicalSpace.Opens.coe_top]
-    have := ((Homeomorph.setCongr h).trans (Homeomorph.Set.univ _)).toHomotopyEquiv
-      |>.simplyConnectedSpace
+    have := (Diffeomorph.ofTop (I := 𝓡 2) (n := 0) _ (puncture_zero 0)).toHomeomorph
+      |>.toHomotopyEquiv.simplyConnectedSpace
     let := uniqueOfSubsingleton (1 : FundamentalGroup (puncture 0 0)
       ⟨basePoint 0, basePoint_mem_puncture⟩)
     let := uniqueOfSubsingleton (1 : SurfaceGroup.Orientable 0 0)
