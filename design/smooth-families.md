@@ -556,8 +556,6 @@ Named like Tau Ceti's file; in `TauCeti`.
   an open partial homeomorphism `Θ` between the model vector spaces of `I` and
   `J`, `C^n` both ways, that on its source maps exactly the points of
   `range I` into `range J` gives the partial diffeomorphism `J.symm ∘ Θ ∘ I`.
-  Both are used by `Boundary/Collar/Flow/Local.lean` of *Liouville
-  structures*.
 
 ### `Analysis/Calculus/TangentGraphChart.lean`
 

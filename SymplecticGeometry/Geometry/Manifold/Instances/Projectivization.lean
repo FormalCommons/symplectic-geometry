@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 
@@ -16,6 +17,7 @@ import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # The derivatives of the charts and transition maps of projective space
@@ -33,6 +35,9 @@ the product of two standard affine charts, which is a chart of the product manif
   transition map from the chart `i` to the chart `j`, in affine coordinates.
 * `Projectivization.insertNth_fderiv_affineChart_comp_affineChart_symm`: the same derivative at a
   point `x` of `U_i ∩ U_j`, in homogeneous coordinates.
+* `Projectivization.contMDiffAt_affineChart`, `Projectivization.mdifferentiableAt_affineChart`
+  and `Projectivization.isLocalDiffeomorphAt_affineChart`: the standard affine chart `i` is
+  `C^r`, differentiable, and a local `C^r` diffeomorphism at every point of `U_i`.
 * `Projectivization.bijective_mfderiv_affineChart`: the differential of the standard affine chart
   `i` is bijective at every point of `U_i`.
 * `Projectivization.contMDiffAt_affineChart_prodMap`,
@@ -126,6 +131,28 @@ theorem insertNth_fderiv_affineChart_comp_affineChart_symm (i j : Fin (n + 1))
     simp only [Fin.insertNth_apply_succAbove, Pi.smul_apply, smul_eq_mul, Pi.sub_apply]
     field_simp
 
+/-- The standard affine chart `i` is `C^r` at every point of the affine open `affineOpen i`. -/
+theorem contMDiffAt_affineChart {i : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
+    (hx : x ∈ affineOpen i) (r : ℕ∞ω) :
+    ContMDiffAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, Fin n → 𝕜) r (affineChart i) x :=
+  (contMDiffOn_affineChart i r).contMDiffAt ((isOpen_affineOpen i).mem_nhds hx)
+
+/-- The standard affine chart `i` is differentiable at every point of the affine open
+`affineOpen i`. -/
+theorem mdifferentiableAt_affineChart {i : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
+    (hx : x ∈ affineOpen i) :
+    MDifferentiableAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, Fin n → 𝕜) (affineChart i) x :=
+  (contMDiffAt_affineChart hx 1).mdifferentiableAt one_ne_zero
+
+/-- The standard affine chart `i` is a local `C^r` diffeomorphism at every point of the affine
+open `affineOpen i`. -/
+theorem isLocalDiffeomorphAt_affineChart {i : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
+    (hx : x ∈ affineOpen i) (r : ℕ∞ω) :
+    IsLocalDiffeomorphAt 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, Fin n → 𝕜) r (affineChart i) x := by
+  rw [← coe_affineOpenPartialHomeomorph]
+  exact (affineOpenPartialHomeomorph i).isLocalDiffeomorphAt_of_mem_maximalAtlas
+    (affineOpenPartialHomeomorph_mem_maximalAtlas i) (by simpa using hx)
+
 /-- The standard affine chart `i` has a bijective differential at every point of the affine open
 `affineOpen i`. -/
 theorem bijective_mfderiv_affineChart {i : Fin (n + 1)} {x : ℙ 𝕜 (Fin (n + 1) → 𝕜)}
@@ -148,10 +175,8 @@ theorem contMDiffAt_affineChart_prodMap (hi : x.1 ∈ affineOpen i) (hj : x.2 �
     ContMDiffAt (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜)) 𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) r
       (Prod.map (affineChart i) (affineChart j)) x := by
   rw [Prod.map_def]
-  exact (((contMDiffOn_affineChart i r).contMDiffAt ((isOpen_affineOpen i).mem_nhds hi)).comp x
-    contMDiffAt_fst).prodMk_space
-    (((contMDiffOn_affineChart j r).contMDiffAt ((isOpen_affineOpen j).mem_nhds hj)).comp x
-      contMDiffAt_snd)
+  exact ((contMDiffAt_affineChart hi r).comp x contMDiffAt_fst).prodMk_space
+    ((contMDiffAt_affineChart hj r).comp x contMDiffAt_snd)
 
 /-- The product of the standard affine charts `i` and `j` has a bijective differential at every
 point of the product of the affine opens `affineOpen i` and `affineOpen j`. -/
@@ -160,11 +185,8 @@ theorem bijective_mfderiv_affineChart_prodMap (hi : x.1 ∈ affineOpen i)
     Function.Bijective (mfderiv (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜))
       𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) (Prod.map (affineChart i) (affineChart j)) x) := by
   -- The differential of the product is the product of the differentials of the two charts.
-  have hdi := ((contMDiffOn_affineChart i 1).contMDiffAt
-    ((isOpen_affineOpen i).mem_nhds hi)).mdifferentiableAt one_ne_zero
-  have hdj := ((contMDiffOn_affineChart j 1).contMDiffAt
-    ((isOpen_affineOpen j).mem_nhds hj)).mdifferentiableAt one_ne_zero
-  rw [← mfderiv_prod_modelWithCornersSelf_target, mfderiv_prodMap hdi hdj]
+  rw [← mfderiv_prod_modelWithCornersSelf_target,
+    mfderiv_prodMap (mdifferentiableAt_affineChart hi) (mdifferentiableAt_affineChart hj)]
   have h := (bijective_mfderiv_affineChart hi).prodMap (bijective_mfderiv_affineChart hj)
   rwa [← ContinuousLinearMap.coe_prodMap'] at h
 

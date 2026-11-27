@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Analysis.Complex.QuadraticLeviForm
 public import TauCeti.Geometry.Manifold.Instances.Cylinder
 public import Mathlib.Analysis.InnerProductSpace.Laplacian
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import TauCeti.Analysis.Complex.LeviForm.Laplacian
@@ -103,15 +104,13 @@ theorem laplacian_comp_sum_norm_sq_div_four {ψ : ℝ → ℝ} {u : ℂ → ι �
   have hs : N (u t) = ∑ i, ‖u t i‖ ^ 2 := norm_sq_complexToRealEuclidean _
   have hcomp : (fun s ↦ ψ (∑ i, ‖u s i‖ ^ 2)) = (ψ ∘ N) ∘ u :=
     funext fun s ↦ by simp only [Function.comp_apply, N, norm_sq_complexToRealEuclidean]
-  have h2 : iteratedDeriv 2 ψ = deriv (deriv ψ) := by
-    rw [iteratedDeriv_succ, iteratedDeriv_one]
   rw [← hs] at hψ
   -- `{1}` is an orthonormal basis of `ℂ`, so the Laplacian is four times the Levi form on `1`.
   rw [← sum_re_leviForm_apply_self (OrthonormalBasis.singleton (Fin 1) ℂ), hcomp]
   simp only [Finset.univ_unique, Finset.sum_singleton, OrthonormalBasis.singleton_apply]
   rw [leviForm_comp_apply (hψ.comp _ hN) hu, leviForm_scalar_comp_apply hψ hN,
     leviForm_norm_sq_complexToRealEuclidean, extendRCLike_fderiv_norm_sq_complexToRealEuclidean,
-    h2, hs]
+    iteratedDeriv_two, hs]
   simp only [fderiv_apply_one_eq_deriv]
   have h4 : conj (2 * star (u t) ⬝ᵥ deriv u t) * (2 * star (u t) ⬝ᵥ deriv u t) =
       4 * (Complex.normSq (star (u t) ⬝ᵥ deriv u t) : ℂ) := by
