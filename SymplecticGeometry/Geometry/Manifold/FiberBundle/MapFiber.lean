@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Split
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Smooth atlases of a map, read pointwise
@@ -33,6 +34,8 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 
 ## Main definitions
 
+* `Bundle.Trivialization.mfderivFiberInclusionMapEquiv`: the derivative of a fibre inclusion, as
+  a linear isomorphism from the tangent space of the model fibre onto the vertical space.
 * `Bundle.Trivialization.coordChangeDiffeomorph`: the coordinate change between two smooth
   trivializations over a point of both base sets, as a diffeomorphism of the model fibre.
 * `Bundle.Trivialization.mapFiberDiffeomorph`: the fibre coordinate of a smooth trivialization,
@@ -63,6 +66,8 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
   derivative everywhere, and is a submersion.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`: for nonempty finite-dimensional
+  `M`, the model fibre of a smooth atlas has dimension `dim M - dim B`.
 * `TauCeti.MapFiber.Atlas.IsContMDiff.isContMDiffDistribution_ker_mfderiv` and
   `TauCeti.MapFiber.Atlas.IsContMDiff.contMDiffVectorBundle_ker_mfderiv`: the vertical spaces of
   a `C^n` atlas form a `C^m` distribution and vector bundle of rank `dim M - dim B` when
@@ -216,6 +221,36 @@ theorem range_mfderiv_fiberInclusionMap
   exact congrArg _ (Prod.ext hu.symm rfl)
 
 /-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
+derivative at `v` of the fibre inclusion over `b`, as a linear isomorphism from the tangent space
+of the model fibre at `v` onto the vertical space at its image, the kernel of the derivative of
+`proj` there. -/
+noncomputable def mfderivFiberInclusionMapEquiv
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) :
+    TangentSpace IF v ≃ₗ[𝕜] (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker :=
+  (LinearEquiv.ofInjective _ (injective_mfderiv_fiberInclusionMap he hb v)).trans
+    (LinearEquiv.ofEq _ _ (range_mfderiv_fiberInclusionMap he hb v))
+
+theorem mfderivFiberInclusionMapEquiv_def
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) :
+    mfderivFiberInclusionMapEquiv he hb v =
+      (LinearEquiv.ofInjective _ (injective_mfderiv_fiberInclusionMap he hb v)).trans
+        (LinearEquiv.ofEq _ _ (range_mfderiv_fiberInclusionMap he hb v)) :=
+  (rfl)
+
+/-- `mfderivFiberInclusionMapEquiv he hb v` sends `w` to the image of `w` under the derivative
+of the fibre inclusion over `b` at `v`. -/
+@[simp]
+theorem coe_mfderivFiberInclusionMapEquiv_apply
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) (w : TangentSpace IF v) :
+    (mfderivFiberInclusionMapEquiv he hb v w : TangentSpace IM (e.fiberInclusionMap hb v)) =
+      mfderiv IF IM (e.fiberInclusionMap hb) v w := by
+  rw [mfderivFiberInclusionMapEquiv_def, LinearEquiv.trans_apply, LinearEquiv.coe_ofEq_apply,
+    LinearEquiv.ofInjective_apply, ContinuousLinearMap.coe_coe]
+
+/-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
 derivative of `proj` sends the image of a tangent vector `u` of `B × F` at `(b, v)` under the
 derivative of the inverse of `e` to the base component of `u`. -/
 theorem mfderiv_proj_mfderiv_symm_apply
@@ -353,6 +388,23 @@ theorem IsContMDiff.surjective_mfderiv (hA : A.IsContMDiff n IB IF IM) (hn : n �
   TauCeti.isRegularPoint_iff.1 <| (A.trivAt (proj x)).isRegularPoint_proj
     (hA.mdifferentiable_trivAt hn (proj x))
     ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))
+
+/-- **The dimension of the fibre.** If `proj : M → B` has a `C^n` atlas with model fibre `F`,
+`n ≠ 0`, and `M` is nonempty and finite-dimensional, then `dim M - dim B = dim F`: the derivative
+of `proj` is onto, and its kernel is the image of the injective derivative of a fibre inclusion. -/
+theorem IsContMDiff.finrank_sub_finrank_eq [FiniteDimensional 𝕜 EM] [Nonempty M]
+    (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) :
+    Module.finrank 𝕜 EM - Module.finrank 𝕜 EB = Module.finrank 𝕜 EF := by
+  obtain ⟨x⟩ := ‹Nonempty M›
+  have hb := A.mem_baseSet_trivAt (proj x)
+  have he := hA.mdifferentiable_trivAt hn (proj x)
+  set e := A.trivAt (proj x)
+  set v := (e x).2
+  have hM := (e.isRegularPoint_proj he
+    (e.fiberInclusionMap_mem_source hb v)).finrank_ker_mfderiv_add_finrank
+  have hF := LinearMap.finrank_range_of_inj (e.injective_mfderiv_fiberInclusionMap he hb v)
+  rw [e.range_mfderiv_fiberInclusionMap he hb v, TauCeti.finrank_tangentSpace] at hF
+  omega
 
 /-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` on the
 source of the chart. -/

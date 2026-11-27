@@ -833,7 +833,11 @@ containing `ι '' closedBall 0 1`:
       `isConvexShapeAt_of_bounds`, as `isConvexShapeAt_of_cutoff_bounds`,
       with `0 ≤ b ≤ 8`, `0 ≤ c ≤ 128`, `|p| ≤ 1 / 1024` and
       `|r * q| ≤ 1 / 1024` in place of `1 / 8`, `64` and `1 / 64`;
-      `abs_deriv_cutoff_le`, with `1024 * (A + 2 * B + M) ≤ L`; and the
+      `abs_deriv_cutoff_le`, as `Real.smoothTransition.abs_deriv_sub_div_le`
+      in `SmoothTransition/Deriv.lean`, for the cutoff
+      `x ↦ smoothTransition ((x - a) / L)` with `0 ≤ a` and
+      `A + a * B + M ≤ ε * L`, bounding both quantities by `ε` (here
+      `a = 2`, `ε = 1 / 1024`); and the
       first two derivatives of
       `x ↦ b * (1 - H x) + √(64 * x ^ 2 - 64 + c * H x)`, `0 ≤ c`, in
       place of `deriv_sqrtSubLeaf_one` and
@@ -928,7 +932,7 @@ containing `ι '' closedBall 0 1`:
     - What this needs elsewhere: in
       `Analysis/SpecialFunctions/SmoothedMax.lean`,
       `smoothedAbs_eq_mul_smoothedAbs_one`
-      (`smoothedAbs δ t = δ * smoothedAbs 1 (t / δ)` for `0 < δ`: both
+      (`smoothedAbs δ t = δ * smoothedAbs 1 (t / δ)` for `δ ≠ 0`: both
       sides have derivative `smoothedSign δ t`, as
       `smoothedSign δ s = smoothedSign 1 (s / δ)`, and agree at `δ`),
       `smoothedMax_eq_mul_smoothedMax_one`,
@@ -941,7 +945,7 @@ containing `ι '' closedBall 0 1`:
       `|s|` since `f` is convex) and `monotoneOn_smoothedMax_width`; in
       `Surround/SpecialShape.lean`, `struweShape_eq_mul_struweShape_one`
       (`struweShape δ K c = fun r ↦ δ * struweShape 1 K (c / δ) (r / δ)`
-      for `0 < δ`, by the substitution `u = δ * v`).
+      for `δ ≠ 0`, by the substitution `u = δ * v`).
 
     `exists_convexShapeFamily_surround` takes these leaves as its part
     `ℓ ∈ Icc 0 (7 * δ)`, with one `L` at least the `L₀` of
@@ -1228,7 +1232,7 @@ containing `ι '' closedBall 0 1`:
     (about 250 lines). The gluing is part of the issue of
     `exists_convexShapeFamily_surround`.
 
-- `Surround/ShapeFoliation.lean` (issue 14d6): from families of shapes
+- `Surround/ShapeFoliation/` (issue 14d6): from families of shapes
   to functions.
   - `exists_shapeFoliation` (Proposition 3.25 within shapes, Corollary
     4.29). Write `Q = Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂` and `E` for the part of
@@ -1288,7 +1292,7 @@ containing `ι '' closedBall 0 1`:
        `exists_isConvexShapeAt_eq_max`, which is its case of one point, are
        uniform over the compact set. Step 4 takes `A p = A - p`,
        `p ∈ Icc 0 η'`.
-    4. `exists_monotone_shapeChain` (`Surround/ShapeFoliation.lean`): a
+    4. `exists_monotone_shapeChain` (`Surround/ShapeFoliation/Chain.lean`): a
        smooth family that is only weakly increasing. Take
        `ℓ₀ < a < b < ℓ₁` with `Icc ℓ₀ a ×ˢ Icc r₁ r₂` and
        `Icc b ℓ₁ ×ˢ Icc r₁ r₂` in `U`, points `a = t 0 < … < t N = b` of a
@@ -1311,7 +1315,7 @@ containing `ι '' closedBall 0 1`:
        `∂χ/∂r` is Lipschitz in `ℓ` and the second derivative of
        `smoothedAbs δᵢ` is of order `1 / δᵢ`. The order of choice is
        tolerance and `ε`, `η'`, then `δᵢ = c * h` with `c` fixed, last `h`.
-    5. `exists_shapeFoliation` itself (`Surround/ShapeFoliation.lean`):
+    5. `exists_shapeFoliation` itself (`Surround/ShapeFoliation/Smoothing.lean`):
        with `κ > 0` small and a smooth `θ`, nondecreasing, `0` near `ℓ₀`,
        constant near `ℓ₁` and with `θ' > 0` in between, the family is
        `χ (λ₀ ℓ) + κ * θ ℓ` near `ℓ₀` (`λ₀` a smooth reparametrization onto
@@ -1332,8 +1336,10 @@ containing `ι '' closedBall 0 1`:
     tangents at `r = δ`, where they are not graphs over `r`; there the
     same statement is used with `r` as a function of `R`, the shapes
     being graphs over `R` near that line, and the building issue states
-    that second form with the criterion of 14d1 rewritten for it.
-  - `exists_contDiff_shapeLevel` (the function of a foliation): a family
+    that second form (`Surround/ShapeFoliation/OverR.lean`) with the
+    criterion of 14d1 rewritten for it.
+  - `exists_contDiff_shapeLevel` (`Surround/ShapeFoliation/Level.lean`,
+    the function of a foliation): a family
     as above, on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂` and with `0 < ∂χ/∂ℓ`, defines,
     by the inverse function theorem for `(ℓ, r) ↦ (χ ℓ r ^ 2, r ^ 2)`
     (Mathlib's `ContDiffAt.to_localInverse`), an `H : ℝ × ℝ → ℝ`
@@ -2367,7 +2373,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d3 | Struwe’s solutions and the shapes $S$, $Q$, $L$ | `JConvex/Surround/SpecialShape.lean` | 14d2 | 400 |
 | 14d4 | The surrounding shape: Theorem 4.1 (i)–(iii) | `JConvex/Surround/SpecialShape.lean` | 14d3 | 400 |
 | 14d5 | Families of special shapes | `JConvex/Surround/ShapeFamily.lean` | 14d4 | 400 |
-| 14d6 | Foliations by shapes and their level functions | `JConvex/Surround/ShapeFoliation.lean`, `JConvex/Hypersurface.lean` | 14d2 | 400 |
+| 14d6 | Foliations by shapes and their level functions | `JConvex/Surround/ShapeFoliation/`, `JConvex/Hypersurface.lean` | 14d2 | 400 |
 | 14d7 | The model handle: Theorem 4.2 (i)–(iii), Corollaries 4.3 and 4.4 | `JConvex/Surround/ModelHandle.lean` | 14d5, 14d6 | 400 |
 | 14d8 | The margin of the model handle (§4.7) | `JConvex/Surround/ModelMargin.lean` | 14d7 | 400 |
 | 14d9 | Complex frames along a totally real disc | `JConvex/Surround/ComplexFrame.lean` | 14c | 300 |

@@ -8,6 +8,9 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Basic
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
+import SymplecticGeometry.Geometry.Manifold.Complex.HolomorphicTangent
 import SymplecticGeometry.Geometry.Manifold.Projectivization.EulerSequence
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Tensor
@@ -36,6 +39,9 @@ class, this file computes the Chern classes of the line bundles `𝒪(k)` (Tau C
   splitting `TℂPᵐ ⊕ ℂ ≅ 𝒪(1)^{⊕ (m + 1)}` of the Euler sequence.
 * `Projectivization.firstChernClass_tangentSpace`: `c₁(TℂPᵐ) = (m + 1) h`, the degree-two part
   of `totalChernClass_tangentSpace`, through `chernClass_one_eq_firstChernClass`.
+* `Projectivization.firstChernClass_ofComplexManifold`: the same class for the real tangent bundle
+  made complex by multiplication by `i`, through
+  `TauCeti.SmoothAlmostComplexStructure.firstChernClass_ofComplexManifold`.
 
 ## References
 
@@ -137,5 +143,20 @@ theorem firstChernClass_tangentSpace :
       ((m + 1 : ℕ) : ℤ) • hyperplaneClass (Fin (m + 1) → ℂ) := by
   rw [← chernClass_one_eq_firstChernClass, ← totalChernClass_apply, totalChernClass_tangentSpace,
     TopCat.one_add_evenIntegralCohomologyOf_pow_apply_one]
+
+/-- **The first Chern class of complex projective space, with multiplication by `i`.** The real
+tangent bundle of `ℂℙᵐ` made complex by its complex structure `ofComplexManifold`, with any
+complex model fibre `G`, has first Chern class `(m + 1) h`, read in integral cohomology, where `h`
+is the hyperplane class. -/
+theorem firstChernClass_ofComplexManifold
+    (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+    [Fact (finrank ℝ (Fin m → ℂ) = 2 * finrank ℂ G)] :
+    ((TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ))).uliftIntegralCohomologyIso 2).hom
+        (TauCeti.firstChernClass G
+          ((TauCeti.SmoothAlmostComplexStructure.ofComplexManifold (Fin m → ℂ)
+            (ℙ ℂ (Fin (m + 1) → ℂ))).toContMDiff ⊤).toContinuousComplexStructure.Fiber) =
+      ((m + 1 : ℕ) : ℤ) • hyperplaneClass (Fin (m + 1) → ℂ) := by
+  rw [TauCeti.SmoothAlmostComplexStructure.firstChernClass_ofComplexManifold,
+    firstChernClass_tangentSpace]
 
 end Projectivization

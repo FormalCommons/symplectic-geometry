@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
+public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
 public import TauCeti.Analysis.Normed.Module.Alternating.Curry
@@ -15,6 +16,7 @@ public import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Topology.FiberBundle.Basic
+import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
 
 /-!
 # Precomposition, flat maps and bilinear maps in bundles of continuous alternating maps
@@ -50,6 +52,10 @@ point of a total space (`b` the projection) are covered:
 The coefficients of `flatAt` form the trivial bundle with fibre `G`, since the flat map is read
 through a trivialization of `V` alone; the two-forms of this library take values in `ℝ`. The other
 declarations allow any coefficient bundle `W`.
+
+On a normed space `E`, the trivialization at any point of the bundle of continuous alternating
+maps on the tangent spaces is the identity on each fibre
+(`FiberBundle.trivializationAt_continuousAlternatingMap_model_space_apply_snd`).
 
 ## Implementation notes
 
@@ -300,5 +306,26 @@ theorem contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear [CompleteS
 end SymplecticGeometry
 
 end TwoForms
+
+section ModelSpace
+
+variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F]
+  [NormedSpace 𝕜 F]
+
+/-- On a normed space `E`, the trivialization at any point `x₀` of the bundle of continuous
+alternating maps on the tangent spaces, with values in `F`, acts on each fibre as the
+identity. -/
+theorem FiberBundle.trivializationAt_continuousAlternatingMap_model_space_apply_snd (x₀ x : E)
+    (ω : TangentSpace 𝓘(𝕜, E) x [⋀^ι]→L[𝕜] Trivial E F x) :
+    (trivializationAt (E [⋀^ι]→L[𝕜] F)
+      (fun x : E ↦ TangentSpace 𝓘(𝕜, E) x [⋀^ι]→L[𝕜] Trivial E F x) x₀ ⟨x, ω⟩).2 = ω := by
+  rw [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    TangentBundle.symmL_model_space]
+  ext v
+  -- The identity `1 : E →L[𝕜] E` is that of `TangentSpace 𝓘(𝕜, E) x` only up to unfolding, so
+  -- `ContinuousLinearMap.one_apply` does not rewrite it.
+  exact ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _
+
+end ModelSpace
 
 end

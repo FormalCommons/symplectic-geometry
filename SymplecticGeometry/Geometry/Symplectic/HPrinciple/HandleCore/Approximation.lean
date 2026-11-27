@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Parametric
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
-import TauCeti.Geometry.Manifold.ContMDiff.Prod
 
 /-!
 # Holonomic approximation of the formal primitive near the handle core
@@ -167,8 +166,7 @@ theorem exists_diffeotopy_norm_mextDerivₗ_sub_lt_near_core (hk : 0 < k) {K : S
     fun l ↦ ⟨fun x ↦ f' (l, x), (isSmoothForm_modelSpace_iff.mpr (hf'l l)).mem_smoothBundleForms⟩
   have hBN : B ⊆ N := subset_of_mem_nhdsSet hN
   refine ⟨ε₀, hε₀pos, hε₀₁, hslab, h, β', V, hfst,
-    IsSmoothFamily.of_contMDiff_val (contMDiff_prod_modelWithCornersSelf_iff.mpr
-      (contMDiff_iff_contDiff.mpr hf')), hV, ?_, hQV, ?_⟩
+    IsSmoothFamily.of_contDiff_val hf', hV, ?_, hQV, ?_⟩
   · -- Points moved, or where `β' ≠ β`, lie near the core with core coordinate off `B`.
     intro t p hp
     suffices (∀ t, h (t, p) = p) ∧ f' p = f p from ⟨this.1 t, this.2⟩

@@ -146,9 +146,7 @@ open SmoothAlmostComplexStructure in
 closed, invariant under `i`, and `ω̃_l(v, i v) > 0` for every nonzero tangent vector `v`. -/
 theorem isKahler_blowupForm {l : ℝ} (hl : l ≠ 0) :
     (blowupForm n l).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) := by
-  have hb : IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
-      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
-    isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
+  have hb := isPseudoholomorphic_ofComplexManifold_blowdown (n := n)
   have hp : IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
       (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) pr :=
     isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_pr ∞).mdifferentiable (by simp))
@@ -194,8 +192,7 @@ theorem mpullback_zeroSection_blowupForm (l : ℝ) :
     funext pr_zeroSection
   rw [SmoothForm.mpullback_congr _
     (contMDiff_const (I := 𝓘(ℝ, Fin n → ℂ)) (I' := 𝓘(ℝ, Fin (n + 1) → ℂ))) h₁,
-    SmoothForm.mpullback_congr _ contMDiff_id h₂,
-    SmoothForm.mpullback_id, ω₀E_def, SmoothForm.mpullback_const, LinearMap.id_apply, zero_add]
+    SmoothForm.mpullback_eq_self_of_eq_id _ h₂, ω₀E_def, SmoothForm.mpullback_const, zero_add]
 
 /-- Every projective line of the exceptional divisor has area `π l²` for `ω̃_l`: for an injective
 linear map `f : ℂ² → E`, the integral of `ω̃_l` over the line `ℙ(f(ℂ²))`, embedded in the divisor

@@ -9,10 +9,12 @@ public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -42,7 +44,17 @@ subspace, `L` can be taken from
 
 With that choice, at index `m + 1`, the sphere is the level `-H = s ^ 2` of the Hessian form `H`
 of `f` at `p`, read on the disc; `X` is transverse to it, and the orbit of every point `x ≠ p` of
-the stable set meets it exactly once.
+the stable set meets it exactly once. Taking `s` small enough puts the sphere above any given
+level `a < f p`, so that the backward map to the level `a` is smooth near it.
+
+When `f` has no critical point in `f ⁻¹' Ico a (f p)`, as in an elementary cobordism between the
+levels `a` and `b`, the backward map carries that sphere to the level `f ⁻¹' {a}`. The result is
+a smooth injective immersion of the sphere whose image is the part of the stable set of `p` on
+that level.
+
+Last, for a regular value `a`, the boundary of the Weinstein domain `{x | f x ≤ a}` carries the
+contact form `fillingContactForm` of its filling. Any map into that boundary whose image in `M`
+lies in the stable set of `p` is horizontal for the kernel of this contact form.
 
 ## Main declarations
 
@@ -68,12 +80,22 @@ the stable set meets it exactly once.
   `SymplecticGeometry.IsWeinsteinStructure.range_comp_smul_coe_sphere_subset`: for the local
   stable disc, it lies in the stable set, below `f p`, off the critical points.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_sphere_existsUnique_flow_apply_mem_range`: at
-  index `m + 1`, a smoothly immersed sphere in the stable set, transverse to `X`, that every orbit
-  of the stable set other than `p` meets exactly once.
+  index `m + 1` and for each level `a < f p`, a smoothly immersed sphere in the stable set
+  above `a`, transverse to `X`, that every orbit of the stable set other than `p` meets exactly
+  once.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_le_flow_apply_notMem_of_isCompact` and
   `.exists_flow_apply_mem_diff_of_isCompact`: the backward orbit of a point `x ≠ p` of the stable
   set leaves each compact part `K` of it, so an orbit that reaches an open set `G` whose points
   of the stable set lie in `K` passes through `K \ G`.
+* `SymplecticGeometry.IsWeinsteinStructure.exists_sphere_range_eq_stableSet_inter_preimage`: at
+  index `m + 1`, for a level `a < f p` with no critical point in `f ⁻¹' Ico a (f p)`, a smooth
+  injective immersion of the unit sphere onto the part of the stable set of `p` on the level `a`;
+  the version in the namespace `SymplecticGeometry.IsElementaryWeinsteinCobordism` states it for
+  the lower level of an elementary Weinstein cobordism between `a` and `b`.
+* In the namespace `SymplecticGeometry.IsWeinsteinStructure`,
+  `isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet`: a map into the
+  boundary of a regular sublevel, with image in the stable set of a nondegenerate critical point,
+  is horizontal for the contact form of that boundary.
 
 ## Implementation notes
 
@@ -130,12 +152,32 @@ inside the sphere, and its backward orbit leaves the compact cap bounded by the 
 increases at a rate bounded below along it on that cap, which has no critical point below `f p`,
 while `f` is bounded below there.
 Since an interval is connected, the orbit meets the sphere between a time at which it is outside
-the cap and a later time at which it is strictly inside the sphere.
+the cap and a later time at which it is strictly inside the sphere. The sphere lies above the
+level `a` because `ι` is continuous at `0`, with `ι 0 = p` and `a < f p`, so that a small
+enough scale keeps it in the open set `f ⁻¹' Ioi a`.
+
+When the band `f ⁻¹' Ico a (f p)` is free of critical points, the backward map `B` to the level
+`a` is smooth near the sphere `σ` chosen above `a`, and `B ∘ σ` is the sphere in the level `a`.
+It is immersed because the kernel of the differential of `B` is the line of `X`, which is
+transverse to `σ`. It is injective because two points of `σ` with the same image under `B` lie
+on one orbit, which crosses `σ` only once. It is onto the part of the stable set on the level
+`a`: the orbit of such a point `y` crosses `σ` at some `σ u`, and `B` carries `σ u` back to
+`y` since the orbit meets the level `a` only once. In an elementary cobordism, the critical level
+`c = f p` bounds such a band, so the elementary version is a corollary.
+
+For horizontality, the contact form at a boundary point `w` of the sublevel is `-ι_Y σ`, with
+`σ` and `Y` the pullbacks of `ω` and `X` along the inclusion `ι` of the sublevel into `M`. Since
+the differential of `ι` is invertible, it sends `Y w` to `X (ι w)`, so `ι_Y σ` is the pullback of
+`ι_X ω` along `ι` (`TauCeti.mpullback_interior_at`). With the chain rule, the contact form on a
+tangent vector of the map is `ι_X ω` on its image in `M`, which vanishes by
+`SymplecticGeometry.IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`.
+No smoothness of the map is needed: where it is not differentiable, its differential is zero.
 
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11, on the stable manifolds of the critical points of a Weinstein structure
+  Chapter 11, on the stable manifolds of the critical points of a Weinstein structure; their
+  isotropy, Proposition 11.9 (a), gives the horizontality in the lower level
 -/
 
 public section
@@ -507,21 +549,21 @@ theorem exists_flow_apply_mem_diff_of_isCompact {p x : M} {K G : Set M} (hK : Is
   exact h₁ (hGK ⟨(Flow.apply_mem_stableSet_iff _ t).2 hx, h₂⟩)
 
 /-- **A sphere in the local stable disc crossed once by each orbit.** Let `(ω, X, f)` be a
-Weinstein structure with flow `φ`, and `p` a nondegenerate critical point of `f` of Morse index
-`m + 1`. There is a smooth injective immersion `σ` of the unit sphere of
+Weinstein structure with flow `φ`, `p` a nondegenerate critical point of `f` of Morse index
+`m + 1`, and `a < f p`. There is a smooth injective immersion `σ` of the unit sphere of
 `EuclideanSpace ℝ (Fin (m + 1))` into `M` such that:
-* its image lies in the stable set of `p`, strictly below the level `f p`, and contains no
-  critical point of `f`;
+* its image lies in the stable set of `p`, strictly between the levels `a` and `f p`, and
+  contains no critical point of `f`;
 * `X` is transverse to it: at no point `u` is `X (σ u)` in the range of the differential of `σ`;
 * the orbit of every point `x ≠ p` of the stable set of `p` meets the image of `σ` at exactly
   one time. -/
 theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {m : ℕ}
-    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) :
+    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) {a : ℝ} (ha : a < f p) :
     ∃ σ : sphere (0 : EuclideanSpace ℝ (Fin (m + 1))) 1 → M,
       ContMDiff (𝓡 m) 𝓘(ℝ, E) (⊤ : ℕ∞) σ ∧ Injective σ ∧
       (∀ u, Injective (mfderiv (𝓡 m) 𝓘(ℝ, E) σ u)) ∧
-      range σ ⊆ (hW.flow.stableSet p ∩ f ⁻¹' Iio (f p)) \ criticalPoints 𝓘(ℝ, E) f ∧
+      range σ ⊆ (hW.flow.stableSet p ∩ f ⁻¹' Ioo a (f p)) \ criticalPoints 𝓘(ℝ, E) f ∧
       (∀ u, X (σ u) ∉ range (mfderiv (𝓡 m) 𝓘(ℝ, E) σ u)) ∧
       ∀ x ∈ hW.flow.stableSet p, x ≠ p → ∃! t, hW.flow t x ∈ range σ := by
   have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin (m + 1))) = m + 1) :=
@@ -537,7 +579,8 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   have hιs (z : S) (hz : z ∈ ball 0 D.ρ) := And.intro (D.contMDiffAt_ι z hz)
     (D.injective_mfderiv_ι z hz)
   have hst := D.image_ball_subset_stableSet
-  have hπ := D.contMDiffOn_π
+  have hπ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, S) (⊤ : ℕ∞) D.π (extChartAt 𝓘(ℝ, E) p).source := by
+    simpa only [extChartAt_source, centeredExtChartAt_source] using D.contMDiffOn_π
   have hπι (z : S) (hz : z ∈ ball 0 D.ρ) := D.π_ι hz
   have hπp := D.π_self
   -- Only these properties of the disc are used below, so its data become plain variables.
@@ -559,8 +602,12 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   have hWcov {y : M} (hy : y ∈ hW.flow.stableSet p) (hyW : y ∈ W) : ι (π y) = y := by
     obtain ⟨z, hz, rfl⟩ := hcov ⟨⟨hy, interior_subset hyW.1.1⟩, hyW.2⟩
     rw [hπι z hz]
+  -- A radius `δ` such that `ι` maps the ball of radius `δ` into `W`, above the level `a`.
+  have hWa : IsOpen (W ∩ {y | a < f y}) :=
+    hWo.inter (isOpen_lt continuous_const hW.isGeneralizedMorse.contMDiff.continuous)
   obtain ⟨δ, hδ, hδW⟩ := Metric.mem_nhds_iff.1
-    ((hιs 0 (mem_ball_self hρ)).1.continuousAt.preimage_mem_nhds (hWo.mem_nhds (hι0 ▸ hpW)))
+    ((hιs 0 (mem_ball_self hρ)).1.continuousAt.preimage_mem_nhds
+      (hWa.mem_nhds (hι0 ▸ ⟨hpW, ha⟩ : ι 0 ∈ W ∩ {y | a < f y})))
   -- The scale `s`, so small that `L'` maps the closed ball of radius `s` into the balls of radii
   -- `δ` and `ρ'`.
   set r := min δ ρ'
@@ -576,8 +623,9 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
       (by rw [mul_comm]; exact hsL))
   have hLρ' {v : V} (hv : ‖v‖ ≤ s) : L' v ∈ ball 0 ρ' :=
     mem_ball_zero_iff.2 ((hLv hv).trans_le (min_le_right _ _))
-  have hLW {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W :=
+  have hLWa {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W ∩ {y | a < f y} :=
     hδW (mem_ball_zero_iff.2 ((hLv hv).trans_le (min_le_left _ _)))
+  have hLW {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W := (hLWa hv).1
   have hπL {v : V} (hv : ‖v‖ ≤ s) : π (ι (L' v)) = L' v :=
     hπι _ (ball_subset_ball hρ'ρ (hLρ' hv))
   have hL0 {v : V} (hv : ‖v‖ = s) : L' v ≠ 0 := fun h ↦ by
@@ -601,8 +649,12 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     injective_comp_smul_coe_sphere hπι hs hsLρ L.injective,
     injective_mfderiv_comp_smul_coe_sphere
       (fun z hz ↦ ⟨(hιs z hz).1.mdifferentiableAt (by simp), (hιs z hz).2⟩) hs hsLρ L.injective,
-    hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ
-      L.injective, ?_, ?_⟩
+    fun y hy ↦ ?_, ?_, ?_⟩
+  · -- The sphere lies above the level `a` by the choice of `δ`.
+    obtain ⟨⟨hys, hyp⟩, hyc⟩ := hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ
+      L.injective hy
+    obtain ⟨v, hv, rfl⟩ := (hrange y).1 hy
+    exact ⟨⟨hys, (hLWa hv.le).2, hyp⟩, hyc⟩
   · -- Transversality: `-H ∘ π` is constant on the sphere, but decreases strictly along `X`.
     intro u
     set z := s • L' (u : V)
@@ -682,7 +734,152 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
       exact hvs
     exact ⟨t, ht, fun t' ht' ↦ le_antisymm (hle t t' ht ht') (hle t' t ht' ht)⟩
 
+/-- **The stable sphere in a lower level.** Let `(ω, X, f)` be a Weinstein structure, `p` a
+nondegenerate critical point of `f` of Morse index `m + 1`, and `a < f p` a level such that `f`
+has no critical point in `f ⁻¹' Ico a (f p)`. There is a smooth injective immersion `τ` of the
+unit sphere of `EuclideanSpace ℝ (Fin (m + 1))` into `M` whose image is the set of points of the
+level `f ⁻¹' {a}` whose orbits tend to `p`. -/
+theorem exists_sphere_range_eq_stableSet_inter_preimage {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {m : ℕ}
+    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) {a : ℝ} (ha : a < f p)
+    (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a (f p) = ∅) :
+    ∃ τ : sphere (0 : EuclideanSpace ℝ (Fin (m + 1))) 1 → M,
+      ContMDiff (𝓡 m) 𝓘(ℝ, E) (⊤ : ℕ∞) τ ∧ Injective τ ∧
+      (∀ u, Injective (mfderiv (𝓡 m) 𝓘(ℝ, E) τ u)) ∧
+      range τ = hW.flow.stableSet p ∩ f ⁻¹' {a} := by
+  set φ := hW.flow
+  obtain ⟨σ, hσ, hσi, hσd, hσr, hσX, hσu⟩ :=
+    hW.exists_sphere_existsUnique_flow_apply_mem_range hp hm ha
+  -- The backward map `B` to the level `a`, and the points of the sphere in its domain.
+  set B : M → M := fun y ↦ φ (Flow.levelCrossingTime φ f a y) y
+  have hσs (u) : σ u ∈ φ.stableSet p := (hσr ⟨u, rfl⟩).1.1
+  have hσI (u) : σ u ∈ f ⁻¹' Ioo a (f p) := (hσr ⟨u, rfl⟩).1.2
+  have hσIco (u) : f (σ u) ∈ Ico a (f p) := Ioo_subset_Ico_self (hσI u)
+  have hBa (u) : B (σ u) ∈ φ.stableSet p ∩ f ⁻¹' {a} :=
+    hW.mapsTo_flow_levelCrossingTime_stableSet hc p ⟨hσs u, hσIco u⟩
+  have hBne (u) : B (σ u) ≠ p := fun h ↦ ha.ne (h ▸ (hBa u).2).symm
+  have hBσ (u) : φ (-Flow.levelCrossingTime φ f a (σ u)) (B (σ u)) = σ u :=
+    φ.map_neg_apply_map _ _
+  have hBd (u) : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E) B (σ u) :=
+    ((hW.contMDiffOn_flow_levelCrossingTime hc).contMDiffAt
+      ((isOpen_Ioo.preimage hW.isGeneralizedMorse.contMDiff.continuous).mem_nhds
+        (hσI u))).mdifferentiableAt (by simp)
+  refine ⟨B ∘ σ, (hW.contMDiffOn_flow_levelCrossingTime hc).comp_contMDiff hσ hσI,
+    fun u v huv ↦ ?_, fun u ↦ ?_, ?_⟩
+  · -- Two points of the sphere with the same image lie on one orbit, which meets the sphere once.
+    have huv' : B (σ u) = B (σ v) := huv
+    obtain ⟨t, -, ht⟩ := hσu _ (hBa u).1 (hBne u)
+    have hu := ht _ ⟨u, (hBσ u).symm⟩
+    have hv := ht _ ⟨v, (hBσ v).symm.trans (by rw [huv'])⟩
+    refine hσi ((hBσ u).symm.trans ?_)
+    rw [hu, ← hv, huv', hBσ]
+  · -- The kernel of the differential of `B` is the line of `X`, which is transverse to `σ`.
+    rw [mfderiv_comp u (hBd u) ((hσ u).mdifferentiableAt (by simp)),
+      injective_iff_map_eq_zero]
+    intro v hv
+    have hker : mfderiv (𝓡 m) 𝓘(ℝ, E) σ u v ∈ ℝ ∙ X (σ u) := by
+      rw [← hW.ker_mfderiv_flow_levelCrossingTime hc (hσI u)]
+      exact hv
+    obtain ⟨r, hr⟩ := Submodule.mem_span_singleton.1 hker
+    rcases eq_or_ne r 0 with rfl | hr0
+    · exact injective_iff_map_eq_zero _ |>.1 (hσd u) v (by rw [← hr, zero_smul])
+    · refine absurd ⟨r⁻¹ • v, ?_⟩ (hσX u)
+      rw [map_smul, ← hr, smul_smul, inv_mul_cancel₀ hr0, one_smul]
+  · refine Subset.antisymm (range_subset_iff.2 hBa) fun y ⟨hys, hya⟩ ↦ ?_
+    -- The orbit of `y` meets the sphere at some `σ u`, which `B` sends back to `y`.
+    have hyp : y ≠ p := fun h ↦ ha.ne (h ▸ hya).symm
+    obtain ⟨t, ⟨u, hu⟩, -⟩ := hσu y hys hyp
+    refine ⟨u, ?_⟩
+    have hlct : -t = Flow.levelCrossingTime φ f a (σ u) := by
+      rw [hW.eq_levelCrossingTime_iff hc (hσIco u), hu, φ.map_neg_apply_map]
+      exact hya
+    calc (B ∘ σ) u = φ (-t) (σ u) := by simp only [Function.comp_apply, B, hlct]
+      _ = y := by rw [hu, φ.map_neg_apply_map]
+
+section Horizontal
+
+variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type*} [TopologicalSpace HN]
+  {IN : ModelWithCorners ℝ EN HN} {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
+
+/-- **Stable sets are horizontal in a lower regular level.** Let `(ω, X, f)` be a Weinstein
+structure on a manifold `M` of dimension `n + 1`, `a` a regular value of `f`, and `p` a
+nondegenerate critical point of `f`. Give the sublevel `W = {x | f x ≤ a}` the structure of a
+Weinstein domain of `IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`, and its
+boundary the contact form `α = fillingContactForm σ Y` of that filling, where `σ` is the
+pull-back of `ω` along the inclusion `ι : W → M` and `Y` the pull-back `x ↦ (dι_x)⁻¹ (X x)` of
+`X`. Then every map `γ : N → ∂W` whose composite with the inclusion `∂W → M` takes values in the
+stable set of `p` is horizontal for the kernel distribution of `α`: the image of each differential
+of `γ` lies in `ker α`.
+
+See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+theorem isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet {n : ℕ}
+    (hn : finrank ℝ E = n + 1) {a : ℝ} (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
+    letI := scalarRegularSublevelChartedSpace
+      (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) ha hn
+    haveI := isManifold_scalarRegularSublevel ha hn (by simp) hW.isGeneralizedMorse.contMDiff
+    ∀ {γ : N → (𝓡∂ (n + 1)).boundary {x | f x ≤ a}},
+      range (fun y ↦ ((γ y : {x | f x ≤ a}) : M)) ⊆ hW.flow.stableSet p →
+      IsHorizontalMap IN (fillingContactForm
+        (SmoothForm.mpullback Subtype.val (contMDiff_subtypeVal_scalarRegularSublevel ha hn
+          (by simp) hW.isGeneralizedMorse.contMDiff) ω)
+        ⟨VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val X,
+          (hW.isWeinsteinDomain_scalarRegularSublevel hn ha).isStrongFilling
+            |>.isOutwardPointingField.contMDiff⟩).kerDistribution γ := by
+  have hf := hW.isGeneralizedMorse.contMDiff
+  let := scalarRegularSublevelChartedSpace (hf.of_le (by simp)) ha hn
+  have := isManifold_scalarRegularSublevel ha hn (by simp) hf
+  have hι := contMDiff_subtypeVal_scalarRegularSublevel ha hn (by simp) hf
+  have hinv := isInvertible_mfderiv_subtypeVal_scalarRegularSublevel (hf.of_le (by simp)) ha hn
+  have hb :=
+    (isSmoothEmbedding_subtypeVal_boundary (n := n) (k := (⊤ : ℕ∞)) {x | f x ≤ a}).contMDiff
+  intro γ hs
+  rw [isHorizontalMap_iff_range_mfderiv_le]
+  intro y
+  by_cases hγ : MDifferentiableAt IN (𝓡 n) γ y
+  swap
+  · simp [mfderiv_zero_of_not_mdifferentiableAt hγ]
+  rintro _ ⟨v, rfl⟩
+  let w : {x | f x ≤ a} := (γ y).val
+  have hιw : MDifferentiableAt (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val w :=
+    (hι w).mdifferentiableAt (by simp)
+  have hbw := (hb (γ y)).mdifferentiableAt (by simp)
+  have hbγ := hbw.comp y hγ
+  have h0 := hW.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet hp
+    (hιw.comp y hbγ) hs v
+  rw [mfderiv_comp_apply y hιw hbγ, mfderiv_comp_apply y hbw hγ, Function.comp_apply,
+    Function.comp_apply, ← mpullback_apply_one, mpullback_interior_at _ _ _ _
+    (VectorField.mfderiv_apply_mpullback (hinv w) X)] at h0
+  rw [SmoothForm.mem_kerDistribution, coe_fillingContactForm, Pi.neg_apply,
+    ContinuousAlternatingMap.neg_apply, mpullback_apply_one, ContMDiffSection.coeFn_mk,
+    SmoothForm.coe_mpullback]
+  exact neg_eq_zero.2 h0
+
+end Horizontal
+
 end IsWeinsteinStructure
+
+namespace IsElementaryWeinsteinCobordism
+
+/-- **The stable sphere in the lower level.** Let `(ω, X, f)` be an elementary Weinstein cobordism
+between the levels `a` and `b`, and `p` a nondegenerate critical point of `f` in the region
+`f ⁻¹' Icc a b`, of Morse index `m + 1`. There is a smooth injective immersion `τ` of
+the unit sphere of `EuclideanSpace ℝ (Fin (m + 1))` into `M` whose image is the set of points of
+the lower level `f ⁻¹' {a}` whose orbits tend to `p`. -/
+theorem exists_sphere_range_eq_stableSet_inter_preimage {a b : ℝ}
+    (hW : IsElementaryWeinsteinCobordism ω X f a b) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) (hpab : f p ∈ Icc a b) {m : ℕ}
+    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) :
+    ∃ τ : sphere (0 : EuclideanSpace ℝ (Fin (m + 1))) 1 → M,
+      ContMDiff (𝓡 m) 𝓘(ℝ, E) (⊤ : ℕ∞) τ ∧ Injective τ ∧
+      (∀ u, Injective (mfderiv (𝓡 m) 𝓘(ℝ, E) τ u)) ∧
+      range τ = hW.isWeinsteinStructure.flow.stableSet p ∩ f ⁻¹' {a} := by
+  obtain ⟨c, -, hsub, hc⟩ := hW.exists_criticalPoints_inter_preimage_Ico_eq_empty
+  have hpc : f p = c := hsub ⟨hp.mem_criticalPoints, hpab⟩
+  exact hW.isWeinsteinStructure.exists_sphere_range_eq_stableSet_inter_preimage hp hm
+    (hW.criticalPoints_inter_subset_preimage_Ioo ⟨hp.mem_criticalPoints, hpab⟩).1 (hpc ▸ hc)
+
+end IsElementaryWeinsteinCobordism
 
 end SymplecticGeometry
 
