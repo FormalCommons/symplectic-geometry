@@ -24,7 +24,9 @@ such as differential forms, through their maps to the total space.
 
 The same cover, without a chart: a function that is `C^n` on an open set `U` and vanishes on `U`
 outside a closed subset `K` of `U` is `C^n` once extended by `0` off `U`
-(`ContMDiffOn.contMDiff_indicator`), since `U` and the complement of `K` are open and cover `M`.
+(`ContMDiffOn.contMDiff_indicator_of_isClosed`), since `U` and the complement of `K` are open and
+cover `M`. This is the manifold form of Tau Ceti's `ContDiffOn.contDiff_indicator_of_isClosed`,
+with the same hypotheses.
 
 The extension by zero to `M` of a function on the model vector space read through an extended
 chart is Tau Ceti's `OpenPartialHomeomorph.contMDiff_indicator_comp_extend`. This file goes the
@@ -59,15 +61,13 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCom
 
 /-- A function that is `C^n` on an open set `U` and vanishes on `U` outside a closed set `K ⊆ U`,
 extended by `0` off `U`, is `C^n`. -/
-theorem ContMDiffOn.contMDiff_indicator {f : M → F} {U K : Set M}
+theorem ContMDiffOn.contMDiff_indicator_of_isClosed {f : M → F} {U K : Set M}
     (hf : ContMDiffOn I 𝓘(𝕜, F) n f U) (hU : IsOpen U) (hK : IsClosed K) (hKU : K ⊆ U)
-    (hf0 : ∀ x ∈ U, x ∉ K → f x = 0) : ContMDiff I 𝓘(𝕜, F) n (U.indicator f) :=
+    (hfK : U ∩ Function.support f ⊆ K) : ContMDiff I 𝓘(𝕜, F) n (U.indicator f) :=
   contMDiff_of_contMDiffOn_union_of_isOpen (hf.congr fun _ hx ↦ indicator_of_mem hx f)
-    (contMDiffOn_const.congr fun x hx ↦ by
-      by_cases hxU : x ∈ U
-      · rw [indicator_of_mem hxU, hf0 x hxU hx]
-      · exact indicator_of_notMem hxU f)
-    (eq_univ_of_forall fun x ↦ or_iff_not_imp_right.2 fun hx ↦ hKU (not_not.1 hx))
+    (contMDiffOn_const.congr fun _ hx ↦ indicator_apply_eq_zero.2 fun hxU ↦
+      Function.notMem_support.1 fun h ↦ absurd (hfK ⟨hxU, h⟩) hx)
+    (eq_univ_of_forall fun _ ↦ or_iff_not_imp_right.2 fun hx ↦ hKU (not_not.1 hx))
     hU hK.isOpen_compl
 
 end Indicator
@@ -162,7 +162,8 @@ theorem contMDiff_indicator_image_comp_symm {F : Type*} [NormedAddCommGroup F]
     ContMDiff I' 𝓘(𝕜, F) n ((ψ '' W).indicator fun y ↦ χ (ψ.symm y)) := by
   have hWo : IsOpen (ψ '' W) := by
     simpa using ψ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hW (by simpa using hWs)
-  refine ContMDiffOn.contMDiff_indicator ?_ hWo hC (image_mono hCW) fun x hxW hx ↦ ?_
+  refine ContMDiffOn.contMDiff_indicator_of_isClosed ?_ hWo hC (image_mono hCW)
+    fun _ ⟨hxW, hx⟩ ↦ by_contra fun hxC ↦ hx ?_
   · refine hχ.comp (ψ.symm.contMDiffOn.mono ?_) ?_
     · rintro _ ⟨z, hz, rfl⟩
       exact ψ.map_source (hWs hz)
@@ -170,8 +171,9 @@ theorem contMDiff_indicator_image_comp_symm {F : Type*} [NormedAddCommGroup F]
       rw [mem_preimage, symm_toPartialEquiv, ψ.left_inv (hWs hz)]
       exact hz
   · obtain ⟨z, hz, rfl⟩ := hxW
+    dsimp only
     rw [symm_toPartialEquiv, ψ.left_inv (hWs hz)]
-    exact hχ0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)
+    exact hχ0 z hz fun hzC ↦ hxC (mem_image_of_mem _ hzC)
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function
 `χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is `C^n`. -/
