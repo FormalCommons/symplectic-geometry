@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Symplectic.Moser.Field
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 
@@ -167,8 +168,8 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
     rwa [hΩ] at h
   · rw [hχ]
     exact timeDependentFlowOf_eq_self_of_forall_eq_zero ((hYp p).of_le (by simp))
-      (fun s ↦ moserField_eq_zero_of_apply_eq_zero (by rw [hB, Submodule.coe_smul, Pi.smul_apply,
-        hx, smul_zero])) 0 1
+      (fun s ↦ moserField_eq_zero_of_apply_eq_zero (by rw [hB, SmoothBundleForm.smul_apply, hx,
+        smul_zero])) 0 1
 
 end TauCeti.SmoothTwoForm
 
