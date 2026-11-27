@@ -11,6 +11,7 @@ public import TauCeti.Topology.Algebra.Star.Unitary
 import SymplecticGeometry.Analysis.CStarAlgebra.Matrix
 import SymplecticGeometry.LinearAlgebra.Matrix.NonsingularInverse
 import SymplecticGeometry.Algebra.Ring.Units
+import TauCeti.Algebra.Ring.Hom
 
 /-!
 # The space of linear complex structures
@@ -60,8 +61,7 @@ theorem range_toContinuousLinearMap :
   · rintro _ ⟨J, rfl⟩
     exact toContinuousLinearMap_mul_self J
   · refine ⟨⟨A.toLinearMap, ?_⟩, ContinuousLinearMap.coe_injective (by simp)⟩
-    ext v
-    simpa using congr($hA v)
+    exact TauCeti.mul_self_map_of_mul_self_eq_neg_one ContinuousLinearMap.toLinearMapRingHom hA
 
 /-- Sending a complex structure to its endomorphism is a closed embedding into the continuous
 endomorphisms: the condition `J ∘ J = -1` is closed. -/
@@ -91,14 +91,6 @@ section Matrix
 
 variable (n : Type*) [Fintype n] [DecidableEq n]
 
-private theorem toLinearMap_toEuclideanCLM_comp_self {A : Matrix n n ℝ} (hA : A * A = -1) :
-    (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) A).toLinearMap.comp
-      (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) A).toLinearMap = -LinearMap.id := by
-  have h := map_mul (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)) A A
-  rw [hA, map_neg, map_one] at h
-  refine LinearMap.ext fun v ↦ ?_
-  simpa using congr($h v).symm
-
 /-- The complex structures of `EuclideanSpace ℝ n` are homeomorphic to the real matrices of
 square `-1`, a structure going to its matrix in the standard basis. -/
 noncomputable def homeomorphMatrix :
@@ -109,7 +101,9 @@ noncomputable def homeomorphMatrix :
       (Matrix.toEuclideanCLM_symm_toContinuousLinearMap J.toLinearMap)).trans
       J.toEuclideanLin_symm_mul_self⟩
   invFun A := ⟨(Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ) A.val).toLinearMap,
-    toLinearMap_toEuclideanCLM_comp_self n A.property⟩
+    TauCeti.mul_self_map_of_mul_self_eq_neg_one
+      (ContinuousLinearMap.toLinearMapRingHom.comp
+        (Matrix.toEuclideanCLM (n := n) (𝕜 := ℝ)).toRingHom) A.property⟩
   left_inv J := by
     refine toLinearMap_injective (LinearMap.ext fun v ↦ ?_)
     simp

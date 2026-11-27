@@ -18,6 +18,7 @@ import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic
 import SymplecticGeometry.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Analysis.Normed.Operator.Pi
+import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.Basic
 
 /-!
 # Holonomic approximation along a zig-zag
@@ -672,8 +673,8 @@ private theorem exists_zigzag_defect_lt (i₀ : Fin m) {J' : Finset (Fin m)} {F 
     {ε : ℝ} (hε : 0 < ε) :
     ∃ δE > 0, ∀ u ∈ Metric.closedBall (0 : Fin m → ℝ) 1, ∀ y, dist y (u, 0) < δE →
       ∀ A : (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F, ‖(A - G y).comp P‖ < ‖A - G' y‖ + ε := by
-  have hGG' : ∀ y, G' y - G y = (fderiv ℝ f y - G y).comp Q' := fun y ↦
-    ContinuousLinearMap.ext fun w ↦ by simp [hG']; abel
+  have hGG' : ∀ y, G' y - G y = (fderiv ℝ f y - G y).comp Q' := fun y ↦ by
+    rw [hG', ContinuousLinearMap.comp_add_comp_id_sub_sub]
   have hPn : ‖P‖ ≤ 1 := ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun y ↦ by
     rw [one_mul, hP, Prod.norm_def, Prod.norm_def]
     exact max_le_max (ContinuousLinearMap.norm_coordProj_apply_le _ _) le_rfl
@@ -775,7 +776,7 @@ theorem exists_holonomic_approximation_zigzag (i₀ : Fin m) (j : Fin k) {J' : F
   set G' : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F := fun y ↦
     (fderiv ℝ f y).comp Q' + (G y).comp (ContinuousLinearMap.id ℝ _ - Q') with hG'_def
   have hG' : Continuous G' := (hfd.clm_comp continuous_const).add (hG.clm_comp continuous_const)
-  have hUf' : ∀ x ∈ U, fderiv ℝ f x = G' x := fun x hx ↦ ContinuousLinearMap.ext fun w ↦ by
+  have hUf' : ∀ x ∈ U, fderiv ℝ f x = G' x := fun x hx ↦ by
     simp [hG'_def, hUf x hx]
   -- `G'` and `G` agree in the directions `insert i₀ J'` near the core cube.
   set ε₂ := ε / 2 with hε₂

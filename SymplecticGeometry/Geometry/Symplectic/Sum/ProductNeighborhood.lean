@@ -17,6 +17,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Equiv
 import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.MetricSpace.Tube
@@ -707,9 +708,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
   mfderiv_symplecticNormalRepresentative' q h v :=
     -- The tangent spaces of `prodBall Q ε`, `U₀` and `Q × ℂ` are all the model space `EQ × ℂ`.
     (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := I) (f := ψ ∘ Opens.inclusion hle)
-      _).trans <| (mfderiv_comp_apply _ (ψ.contMDiff.mdifferentiableAt (by simp))
-        ((contMDiff_inclusion (n := 1) hle).mdifferentiableAt one_ne_zero) _).trans <|
-      (congrArg _ (TauCeti.Manifold.mfderiv_inclusion_apply hle _ _)).trans ((hψ q).2.2 v)
+      _).trans <| (TauCeti.Manifold.mfderiv_comp_inclusion_apply hle _ _).trans ((hψ q).2.2 v)
 
 section Exists
 

@@ -7,12 +7,15 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
+public import TauCeti.Geometry.Manifold.VectorField.Chart.Derivative
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
 # Lie derivatives of forms on a manifold: linearity, horizontal fields, naturality
@@ -25,6 +28,11 @@ field or of the form. Both are read in charts from the flat statements
 `TauCeti.lieDerivFormWithin_zero_left` and `TauCeti.lieDerivFormWithin_const_smul_left` of
 `SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv`. The proofs follow Tau Ceti's
 `VectorField.mlieBracket_const_smul_left_field`.
+
+At a zero `x` of the field, on a boundaryless manifold, the Lie derivative only sees the chart
+derivative `A` of the field at `x`: `(L_V φ)_x (v₀, …, vₖ₋₁) = ∑ i, φ_x (v₀, …, A vᵢ, …, vₖ₋₁)`
+(`TauCeti.mlieDerivForm_apply_of_eq_zero`), read off Tau Ceti's flat formula
+`TauCeti.lieDerivFormWithin_apply` in the chart at `x`.
 
 For a smooth vector field `X`, given as a smooth section of the tangent bundle,
 `TauCeti.SmoothForm.lieDeriv X` is the Lie derivative `φ ↦ L_X φ` as a real-linear map from smooth
@@ -58,6 +66,7 @@ the exterior derivative (`TauCeti.mpullback_mextDeriv`).
   along the zero field.
 * `TauCeti.mlieDerivFormWithin_const_smul_left`, `TauCeti.mlieDerivForm_const_smul_left`:
   homogeneity in the field.
+* `TauCeti.mlieDerivForm_apply_of_eq_zero`: the Lie derivative at a zero of the field.
 * `TauCeti.SmoothForm.lieDeriv`: the Lie derivative of smooth forms along a smooth vector field,
   as a linear map.
 * `TauCeti.SmoothForm.lieDeriv_eq_interiorProduct_add`,
@@ -119,6 +128,30 @@ theorem mlieDerivForm_const_smul_left (c : ℝ) (V : (x : M) → TangentSpace I 
     mlieDerivForm (c • V) φ = c • mlieDerivForm V φ := by
   rw [← mlieDerivFormWithin_univ, ← mlieDerivFormWithin_univ]
   exact funext fun _ ↦ mlieDerivFormWithin_const_smul_left c V φ (uniqueMDiffWithinAt_univ I)
+
+/-! ### The Lie derivative at a zero of the field -/
+
+/-- **The Lie derivative at a zero of the field.** On a boundaryless manifold, at a zero `x` of a
+vector field `V`, the Lie derivative of a form `φ` along `V` depends only on the chart derivative
+`A` of `V` at `x`: `(L_V φ)_x (v₀, …, vₖ₋₁) = ∑ i, φ_x (v₀, …, A vᵢ, …, vₖ₋₁)`. No
+differentiability of `V` or of `φ` is needed. -/
+theorem mlieDerivForm_apply_of_eq_zero [I.Boundaryless] [IsManifold I 1 M]
+    {V : (x : M) → TangentSpace I x} {x : M} (hV : V x = 0) (φ : RoughForm I M F k)
+    (v : Fin k → TangentSpace I x) :
+    mlieDerivForm V φ x v =
+      ∑ i, φ x (Function.update v i (vectorFieldChartDerivative I V x (v i))) := by
+  set Y : E → E := VectorField.mpullbackWithin 𝓘(ℝ, E) I (extChartAt I x).symm V (range I)
+  have hY : Y (extChartAt I x x) = 0 := (mpullbackWithin_extChartAt_symm_self V x).trans hV
+  have hA : fderivWithin ℝ Y (range I) (extChartAt I x x) =
+      (vectorFieldChartDerivative I V x : E →ₗ[ℝ] E) := by
+    rw [vectorFieldChartDerivative_def, I.range_eq_univ, fderivWithin_univ]
+    simp only [Y, I.range_eq_univ, VectorField.mpullbackWithin_univ]
+  rw [mlieDerivForm_def]
+  refine (lieDerivFormWithin_apply (V := Y) (φ.inChartAt x) v).trans ?_
+  rw [hY, map_zero, RoughForm.inChartAt_extChartAt_self, ← hA]
+  -- The zero form is applied to tangent vectors at `x`, which are vectors of `E` only up to
+  -- unfolding `TangentSpace`, so `ContinuousAlternatingMap.coe_zero` does not rewrite it.
+  exact zero_add _
 
 /-! ### Lie derivatives along horizontal fields of a product -/
 

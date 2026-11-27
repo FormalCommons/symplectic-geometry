@@ -153,7 +153,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Hermitian/Basic.lean` | the symplectic form of a Hermitian bundle | 25 |
 | `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` | the circle bundle of a Hermitian line bundle as a principal `Circle`-bundle, for fibres with their own complex inner products; the smooth side is *First Chern number*'s prerequisite 3 | 26 |
 | `Topology/FiberBundle/Basic.lean` | `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that each trivialization reads as an open condition on the model fibre is open | 3 |
-| `Topology/FiberBundle/ChangeModelFiber.lean` | change of model fibre of a fibre bundle along a homeomorphism | 26 |
+| `Topology/FiberBundle/ChangeModelFiber.lean` | trivializations read through homeomorphisms of the model fibre or of the total space | 26 |
 | `Topology/FiberBundle/Principal/ChangeGroup.lean` | change of structure group of a principal bundle along `G ≃ₜ* H` | 26 |
 | `Geometry/Manifold/IsManifold/InteriorBoundary.lean` | the interior of a manifold with boundary as a boundaryless manifold | 12 |
 | `Topology/Connected/Clopen.lean` | preconnectedness of a dense subset from local preconnectedness | 12 |
@@ -242,8 +242,8 @@ file to it.
   `Hermitian/CircleBundle.lean` uses nothing about circles or frames, so it is stated
   for any principal bundle and any `G ≃ₜ* H`, in the Tau Ceti folder of
   principal bundles, so that it can merge there. The step it rests on, reading
-  a fibre bundle with another model fibre along a homeomorphism, involves no
-  group, so it has its own file, `Topology/FiberBundle/ChangeModelFiber.lean`.
+  a fibre bundle with another model fibre along a homeomorphism, is Tau Ceti's
+  `FiberBundle.ofModelFiberHomeomorph`.
 - `Topology/FiberBundle/Basic.lean` is new: the openness argument behind
   `isOpen_setOfPred_nondegenerate` and `isOpen_polarFormulaDomain` holds for any
   fibrewise condition on any fibre bundle, so it is stated there, in Mathlib's `FiberBundle` namespace, as
@@ -1917,20 +1917,21 @@ smoothness of `g`) and `1 ≤ n`, are stated only where that atlas is used, in
   fibre and of structure group, applied to
   `Unitary.continuousLinearMapCircleEquiv`:
   `instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ)` is
-  `FiberBundle.changeModelFiber`
-  (`Topology/FiberBundle/ChangeModelFiber.lean`), and
+  Tau Ceti's `FiberBundle.ofModelFiberHomeomorph`
+  (`TauCeti/Topology/FiberBundle/ModelFiber.lean`), and
   `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
   (Fiber ℂ F E ℂ)` is `TauCeti.PrincipalBundle.changeGroup`
   (`Topology/FiberBundle/Principal/ChangeGroup.lean`). These constructions
   take as instance arguments the topology on the new total space and the
   action of `Circle` on frames, so the file supplies
-  `instTopologicalSpaceTotalSpaceCircleFiber`, the topology induced along
-  `Bundle.TotalSpace.modelFiberEquiv`, and `instMulActionCircleFiber`
-  (above). Their hypotheses, that `Bundle.TotalSpace.modelFiberEquiv` is
+  `instTopologicalSpaceTotalSpaceCircleFiber`, Tau Ceti's induced topology
+  `TauCeti.totalSpaceModelFiberInduced`, and `instMulActionCircleFiber`
+  (above). Their hypotheses, that the identity of points of the two total spaces is
   inducing and that the action of `Circle` is that of
-  `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism, then hold by `rfl`. The
+  `unitary (ℂ →L[ℂ] ℂ)` through the isomorphism, then hold by
+  `TauCeti.isInducing_totalSpaceModelFiberInduced` and by `rfl`. The
   trivializations are those of `instPrincipalBundleFiber` read through the
-  isomorphism by `Bundle.Trivialization.changeModelFiber`, and no
+  isomorphism by `Bundle.Trivialization.transModelFiber`, and no
   trivialization or total-space equivalence specific to `Circle` is
   defined. *First Chern number* uses both instances.
 - The smooth side (smoothness of the action and of the coordinate changes,

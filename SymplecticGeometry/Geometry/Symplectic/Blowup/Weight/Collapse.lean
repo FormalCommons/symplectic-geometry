@@ -7,8 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Volume
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.Analysis.Real.Sqrt
 
 /-!
 # The Hopf collapse onto the blowup of weight `λ`
@@ -18,7 +20,8 @@ Let `ψ` be a symplectic embedding of the closed ball of radius `√(l² + ε²)
 `Blowup/Weight/Basic.lean`. Following McDuff–Salamon, §7.1 (the construction (7.1.14)), the
 blowup is obtained from `M ∖ ψ(B°(l))` by collapsing each Hopf circle of the sphere `ψ(∂B(l))` to
 a point of the divisor. This file defines the collapse map, and shows that it is a quotient map
-with these fibres, so that the blowup is homeomorphic to that quotient.
+with these fibres, so that the blowup is homeomorphic to that quotient. It ends with the
+milestone that collects the properties of the blowup.
 
 ## Main definitions
 
@@ -51,6 +54,11 @@ with these fibres, so that the blowup is homeomorphic to that quotient.
   quotient map. A closed set of `M ∖ ψ(B°(l))` is the union of its part in the compact set
   `ψ(B(√(l² + ε²)))`, whose image is compact, and of its part off `ψ(B°(√(l² + ε²)))`, whose image
   under `inl` is closed, as the image of the model piece does not meet it.
+* `SymplecticGeometry.WeightBlowup.isSymplectic_form_and_divisor`: the blowup along a ball,
+  collecting for symplectic `σ` the symplectic form of `Blowup/Weight/Basic.lean`, the divisor
+  with its form `l² ω_FS` and its normal bundle, the tautological line
+  (`continuous_normalSpaceDivisorEquiv`), the description of the blowup as a quotient above, and
+  the volume identity `liouvilleMeasure_form_add` of `Blowup/Weight/Volume.lean`.
 
 ## References
 
@@ -111,7 +119,7 @@ theorem collapseMap_of_norm_eq {w : StdSpace (Fin (n + 1))} (hw : ‖w‖ = l)
     collapseMap hψ hl hε ⟨ψ w, hx⟩ =
       divisor hψ hl.le hε (sphereHopf n ⟨l⁻¹ • w, inv_smul_mem_sphere_one_of_norm_eq hl hw⟩) := by
   have hmem : ψ w ∈ ψ '' closedBall 0 l := ⟨w, mem_closedBall_zero_iff.2 hw.le, rfl⟩
-  have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_of_sq_le (by nlinarith)
+  have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_sq_add_sq l ε
   have hch : hmem.choose = w :=
     hψ.injOn (closedBall_subset_closedBall hle hmem.choose_spec.1)
       (closedBall_subset_closedBall hle (mem_closedBall_zero_iff.2 hw.le)) hmem.choose_spec.2
@@ -133,7 +141,7 @@ theorem collapseMap_eq_inr_shellPoint {z : puncturedSpace (Fin (n + 1) → ℂ)}
     collapseMap hψ hl hε ⟨ψ (complexToRealEuclidean (Fin (n + 1)) z), hx⟩ =
       GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph
         ⟨shellPoint l z, mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε hz)⟩ := by
-  have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_of_sq_le (by nlinarith)
+  have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_sq_add_sq l ε
   rcases hlz.eq_or_lt with hlz | hlz
   · -- On the sphere, both sides are the point of the divisor over the line of `z`.
     rw [collapseMap_of_norm_eq hψ hl hε hlz.symm, divisor_apply]
@@ -160,52 +168,44 @@ is `inr` of `shellPoint l` of the preimage under `ψ`, read in `ℂⁿ⁺¹`
 (`collapseMap_eq_inr_shellPoint`). -/
 private theorem continuousOn_collapseMap_image_ball :
     ContinuousOn (collapseMap hψ hl hε) (Subtype.val ⁻¹' (ψ '' ball 0 √(l ^ 2 + ε ^ 2))) := by
-  -- The inverse `Φ.symm` of `ψ` on its image, as a partial diffeomorphism.
-  set Φ := hψ.toPartialDiffeomorph
-    (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm
+  -- The inverse `Φ.symm` of `ψ ∘ complexToRealEuclidean` on its image.
+  set Φ := hψ.complexPartialDiffeomorph
   rw [continuousOn_iff_continuous_domRestrict]
   set W := Subtype.val ⁻¹' (ψ '' ball 0 √(l ^ 2 + ε ^ 2))
   have htarget : ∀ y : W, ((y : ((ψ '' ball 0 l)ᶜ : Set M)) : M) ∈ Φ.target := fun y ↦ by
-    rw [hψ.toPartialDiffeomorph_target]
+    rw [hψ.complexPartialDiffeomorph_target]
     exact y.property
-  have hsymm : ∀ y : W, Φ.symm y ∈ ball 0 √(l ^ 2 + ε ^ 2) ∧ ψ (Φ.symm y) = y := fun y ↦ by
-    have h₁ := Φ.map_target (htarget y)
-    have h₂ := Φ.right_inv (htarget y)
-    rw [hψ.toPartialDiffeomorph_source] at h₁
-    rw [hψ.coe_toPartialDiffeomorph] at h₂
-    exact ⟨h₁, h₂⟩
-  have hge : ∀ y : W, l ≤ ‖Φ.symm y‖ := fun y ↦
+  have hlt : ∀ y : W, ‖complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)‖ < √(l ^ 2 + ε ^ 2) :=
+    fun y ↦ hψ.mem_complexPartialDiffeomorph_source_iff.1 (Φ.map_target (htarget y))
+  have hψz : ∀ y : W, ψ (complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)) = y := fun y ↦ by
+    simpa [Φ] using Φ.right_inv (htarget y)
+  have hge : ∀ y : W, l ≤ ‖complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)‖ := fun y ↦
     not_lt.1 fun h ↦
-      (y : ((ψ '' ball 0 l)ᶜ : Set M)).property ⟨_, mem_ball_zero_iff.2 h, (hsymm y).2⟩
+      (y : ((ψ '' ball 0 l)ᶜ : Set M)).property ⟨_, mem_ball_zero_iff.2 h, hψz y⟩
   -- The preimage `z y` of `y` under `ψ`, read in `ℂⁿ⁺¹`, depends continuously on `y`.
-  let z : W → puncturedSpace (Fin (n + 1) → ℂ) := fun y ↦
-    ⟨(complexToRealEuclidean (Fin (n + 1))).symm (Φ.symm y), mem_puncturedSpace.2 <| by
-      simpa using norm_pos_iff.1 (hl.trans_le (hge y))⟩
-  have hnz : ∀ y, ‖complexToRealEuclidean (Fin (n + 1)) (z y)‖ = ‖Φ.symm y‖ := fun y ↦ by
-    simp [z]
-  have hψz : ∀ y : W, ψ (complexToRealEuclidean (Fin (n + 1)) (z y)) = y := fun y ↦ by
-    simpa [z] using (hsymm y).2
-  have hlt : ∀ y, ‖complexToRealEuclidean (Fin (n + 1)) (z y)‖ < √(l ^ 2 + ε ^ 2) := fun y ↦
-    (hnz y).trans_lt (mem_ball_zero_iff.1 (hsymm y).1)
-  have hz : Continuous z := by
-    refine Continuous.subtype_mk ((complexToRealEuclidean (Fin (n + 1))).symm.continuous.comp ?_) _
-    exact Φ.symm.contMDiffOn.continuousOn.comp_continuous
-      (continuous_subtypeVal.comp continuous_subtypeVal) htarget
+  obtain ⟨z, hz, hzy⟩ : ∃ z : W → puncturedSpace (Fin (n + 1) → ℂ),
+      Continuous z ∧ ∀ y, (z y : Fin (n + 1) → ℂ) = Φ.symm y :=
+    ⟨fun y ↦ ⟨Φ.symm y, mem_puncturedSpace.2 fun h ↦
+        (hl.trans_le (hge y)).ne' (by rw [h, map_zero, norm_zero])⟩,
+      (Φ.symm.contMDiffOn.continuousOn.comp_continuous
+        (continuous_subtypeVal.comp continuous_subtypeVal) htarget).subtype_mk _, fun _ ↦ rfl⟩
   -- On `W`, the collapse map is `inr ∘ shellPoint l ∘ z`.
   refine ((GluedAlong.continuous_inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph).comp
-    (((continuous_shellPoint l).comp hz).subtype_mk
-      fun y ↦ mem_modelPiece_iff.2 (shellPoint_mem_openNbhd hε (hlt y)))).congr fun y ↦ ?_
-  have hx : ψ (complexToRealEuclidean (Fin (n + 1)) (z y)) ∈ (ψ '' ball 0 l)ᶜ :=
-    (hψz y).symm ▸ (y : ((ψ '' ball 0 l)ᶜ : Set M)).property
+    (((continuous_shellPoint l).comp hz).subtype_mk fun y ↦ mem_modelPiece_iff.2
+      (shellPoint_mem_openNbhd hε ((hzy y).symm ▸ hlt y)))).congr fun y ↦ ?_
+  have hx : ψ (complexToRealEuclidean (Fin (n + 1)) (z y)) ∈ (ψ '' ball 0 l)ᶜ := by
+    rw [hzy, hψz y]
+    exact (y : ((ψ '' ball 0 l)ᶜ : Set M)).property
   have hy : collapseMap hψ hl hε y = collapseMap hψ hl hε ⟨_, hx⟩ :=
-    congrArg _ (Subtype.ext (hψz y).symm)
-  rw [Function.comp_apply, Set.domRestrict_apply, hy,
-    collapseMap_eq_inr_shellPoint hψ hl hε ((hge y).trans_eq (hnz y).symm) (hlt y) hx]
+    congrArg _ (Subtype.ext ((congrArg (fun w ↦ ψ (complexToRealEuclidean (Fin (n + 1)) w))
+      (hzy y)).trans (hψz y)).symm)
+  rw [Function.comp_apply, Set.domRestrict_apply, hy, collapseMap_eq_inr_shellPoint hψ hl hε
+    ((hzy y).symm ▸ hge y) ((hzy y).symm ▸ hlt y) hx]
   rfl
 
 /-- **The collapse map is continuous.** -/
 theorem continuous_collapseMap : Continuous (collapseMap hψ hl hε) := by
-  have hlR : l < √(l ^ 2 + ε ^ 2) := (Real.lt_sqrt hl.le).2 (by nlinarith)
+  have hlR : l < √(l ^ 2 + ε ^ 2) := Real.lt_sqrt_sq_add_sq l hε.ne'
   refine continuous_iff_continuousAt.2 fun x ↦ ?_
   by_cases hx : (x : M) ∈ ψ '' closedBall 0 l
   · exact (continuousOn_collapseMap_image_ball hψ hl hε).continuousAt
@@ -226,7 +226,7 @@ theorem continuous_collapseMap : Continuous (collapseMap hψ hl hε) := by
 `inr` of a point of the model piece off the divisor, which is glued to such a point, or a point of
 the divisor, the image of a point of the sphere `ψ(∂B(l))`. -/
 theorem surjective_collapseMap : Function.Surjective (collapseMap hψ hl hε) := by
-  have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_of_sq_le (by nlinarith)
+  have hle : l ≤ √(l ^ 2 + ε ^ 2) := Real.le_sqrt_sq_add_sq l ε
   have hinl : ∀ x : outerPiece hψ, ∃ y, collapseMap hψ hl hε y = GluedAlong.inl _ x := fun x ↦
     ⟨⟨x, fun h ↦ (mem_outerPiece_iff hψ).1 x.property (image_mono ball_subset_closedBall h)⟩,
       collapseMap_of_notMem hψ hl hε ((mem_outerPiece_iff hψ).1 x.property)⟩
@@ -300,7 +300,7 @@ theorem collapseMap_eq_collapseMap_iff {x y : ((ψ '' ball 0 l)ᶜ : Set M)} :
 the blowup. -/
 theorem isClosedMap_collapseMap : IsClosedMap (collapseMap hψ hl hε) := by
   set R := √(l ^ 2 + ε ^ 2)
-  have hlR : l < R := (Real.lt_sqrt hl.le).2 (by nlinarith)
+  have hlR : l < R := Real.lt_sqrt_sq_add_sq l hε.ne'
   have hdim := (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm
   intro C hC
   have hCM : IsClosed (Subtype.val '' C : Set M) :=
@@ -357,6 +357,73 @@ def collapseHomeomorph :
 theorem collapseHomeomorph_mk (x : ((ψ '' ball 0 l)ᶜ : Set M)) :
     collapseHomeomorph hψ hl hε (Quotient.mk _ x) = collapseMap hψ hl hε x :=
   (rfl)
+
+/-! ### The blowup along a ball -/
+
+open MeasureTheory Module _root_.Bundle in
+/-- **The symplectic blowup along a ball.** Let `σ` be a symplectic form on a boundaryless
+manifold `M` modelled on `ℂⁿ⁺¹`, Hausdorff and second countable, and let `ψ` be a symplectic
+embedding of the closed ball of radius `√(l² + ε²)`, for `0 < l` and `0 < ε`. Then the blowup
+`M̃_ψ` of weight `l`, with its form `ω̃_ψ`, satisfies:
+
+1. `ω̃_ψ` is symplectic;
+2. it pulls back along the divisor `ℙ(ℂⁿ⁺¹) → M̃_ψ` to `l² ω_FS`, and the divisor is a
+   symplectic submanifold;
+3. the normal bundle of the divisor is isomorphic to the tautological line bundle: there are
+   isomorphisms from the normal space of the divisor at each line `ℓ` onto `ℓ` that form a
+   continuous map of total spaces, the normal bundle with Tau Ceti's topology, and that send the
+   normal class of the image under `inr` of a tangent vector `w` of the model at
+   `zeroSection ℓ` to the differential of the blowdown applied to `w`;
+4. the collapse map induces a homeomorphism onto `M̃_ψ` from the quotient of `M ∖ ψ(B°(l))` by
+   its fibres, and these fibres are the points off the sphere `ψ(∂B(l))` and the images under `ψ`
+   of the Hopf circles of that sphere;
+5. the Liouville measure of `M̃_ψ` plus the Lebesgue measure of `B(l)` is the Liouville measure
+   of `M`, where `2 * m` is the real dimension of `M`.
+
+Milestone: *Symplectic blowup along a ball*. -/
+theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpace M]
+    [BorelSpace M] {m : ℕ} [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)]
+    [MeasurableSpace (WeightBlowup hψ hl.le hε)] [BorelSpace (WeightBlowup hψ hl.le hε)]
+    (hσ : σ.IsSymplectic) :
+    ∃ hω : (form hψ hl.le hε).IsSymplectic,
+      SmoothForm.mpullback (divisor hψ hl.le hε) (divisor hψ hl.le hε).contMDiff
+          (form hψ hl.le hε) = l ^ 2 • fubiniStudyForm n ∧
+      hω.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ)
+        (divisor hψ hl.le hε) ∧
+      (∀ hn : (∞ : ℕ∞ω) ≠ 0, ∃ e : ∀ ℓ : ℙ ℂ (Fin (n + 1) → ℂ),
+          (divisor hψ hl.le hε).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
+            Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ,
+        (Continuous fun p : TotalSpace ℂ
+            (fun ℓ ↦ (divisor hψ hl.le hε).isImmersion.NormalSpace ℓ hn) ↦
+          (⟨p.proj, e p.proj p.snd⟩ :
+            TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)))) ∧
+        ∀ (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+          (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)),
+          e ℓ ((divisor hψ hl.le hε).isImmersion.normalClass ℓ hn
+              (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+                (GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph)
+                ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
+            ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
+              mfderiv_blowdown_zeroSection_mem ℓ w⟩) ∧
+      (∃ h : Quotient (Setoid.ker (collapseMap hψ hl hε)) ≃ₜ WeightBlowup hψ hl.le hε,
+        ∀ x, h (Quotient.mk _ x) = collapseMap hψ hl hε x) ∧
+      (∀ x y : ((ψ '' ball 0 l)ᶜ : Set M),
+        collapseMap hψ hl hε x = collapseMap hψ hl hε y ↔ x = y ∨
+          ∃ (v w : StdSpace (Fin (n + 1))) (hv : ‖v‖ = l) (hw : ‖w‖ = l), ψ v = x ∧ ψ w = y ∧
+            sphereHopf n ⟨l⁻¹ • v, inv_smul_mem_sphere_one_of_norm_eq hl hv⟩ =
+              sphereHopf n ⟨l⁻¹ • w, inv_smul_mem_sphere_one_of_norm_eq hl hw⟩) ∧
+      (form hψ hl.le hε).liouvilleMeasure m univ +
+          volume (closedBall (0 : StdSpace (Fin (n + 1))) l) =
+        σ.liouvilleMeasure m univ :=
+  have hω := isSymplectic_form hψ hl.le hε hσ hl.ne'
+  ⟨hω, mpullback_divisor_form hψ hl.le hε,
+    isSymplecticSubmanifoldEmbedding_divisor hψ hl.le hε hω.isNondegenerate hl.ne',
+    fun hn ↦ ⟨normalSpaceDivisorEquiv hψ hl.le hε hn,
+      continuous_normalSpaceDivisorEquiv hψ hl.le hε,
+      normalSpaceDivisorEquiv_normalClass hψ hl.le hε hn⟩,
+    ⟨collapseHomeomorph hψ hl hε, collapseHomeomorph_mk hψ hl hε⟩,
+    fun _ _ ↦ collapseMap_eq_collapseMap_iff hψ hl hε,
+    liouvilleMeasure_form_add hψ hl.le hε⟩
 
 end WeightBlowup
 

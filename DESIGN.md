@@ -601,7 +601,7 @@ parallel transport, principal connections and fibre integrals of parts
 | Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `TauCeti.MapFiber.Atlas` with `IsContMDiff`; structure groups `TauCeti.MapFiber.Atlas.HasStructureGroup`, symplectic atlases, `TauCeti.MapFiber.Atlas.RestrictsTo` (see *Fibrations, connections and diffeomorphism groups*) | Tau Ceti, *Symplectic fibrations* |
 | Connection on a fibration, horizontal lift | `TauCeti.IsEhresmannConnection`, `horizontalLift` | Tau Ceti |
 | Parallel transport, holonomy, curvature of a connection | `TauCeti.IsEhresmannConnection.parallelTransport`, `curvature` | *Parallel transport* |
-| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `SymplecticGeometry.connectionCurvature` | *Principal connections* |
+| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `TauCeti.gaugeCurvature` | *Principal connections* |
 | Flux, flux group, endpoint flux | `TauCeti.Diffeotopy.flux`, `TauCeti.fluxGroup`, `TauCeti.endpointFlux` | Tau Ceti |
 | Integration over the fibre | `TauCeti.MapFiber.Atlas.fiberIntegral` | *Integration over the fibre* |
 | Diffeomorphism group with the $C^\infty$ topology | `TauCeti.Diff` with `Diffeomorph.weakWhitneyTopology` | Tau Ceti |
@@ -1401,9 +1401,8 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
   real matrix is positive definite exactly when its image over an `RCLike`
   field is, through Tau Ceti's realification),
-  `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
-  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$, and
-  `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
+  `LinearAlgebra/Matrix/Symmetric.lean`
+  (`Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
   when $A^{T}B=B^{T}A$),
   `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
   of $M$ that the first block column of $M^2=-1$ gives), and
@@ -1509,9 +1508,9 @@ it into issues; the overview fixes its folders and its dependencies.
   upstream),
   `Topology/FiberBundle/Basic.lean` (a fibrewise open condition on a fibre
   bundle gives an open set of the total space, in Mathlib's namespace),
-  `Topology/FiberBundle/ChangeModelFiber.lean` (a fibre bundle read with
-  another model fibre along a homeomorphism, in Mathlib's namespaces and at
-  Mathlib's fibre-bundle level, since it involves no group),
+  `Topology/FiberBundle/ChangeModelFiber.lean` (trivializations read through
+  homeomorphisms of the model fibre or of the total space, in Mathlib's
+  namespaces),
   `Topology/FiberBundle/Principal/ChangeGroup.lean` (the change of structure group
   of a Tau Ceti principal bundle along an isomorphism of topological groups,
   in the namespaces of the Tau Ceti and Mathlib types it is about; it sits
@@ -3010,8 +3009,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   (`TauCeti.deRhamHom` in
   `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the base
   cases of the de Rham theorem in
-  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the general
-  theorem is planned in *Asymptotically holomorphic sections*, in
+  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the compact case
+  is the merged `TauCeti.bijective_deRhamHom_of_compactSpace` of
+  *Asymptotically holomorphic sections*, in
   `SmoothSingular/DeRham/MayerVietoris/Induction.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
@@ -3914,10 +3914,14 @@ hypersurface theorem.
   Hermitian line bundle with real Chern class $a$ and a unitary connection of curvature
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
-  *Minimal coupling*, corrected by an imaginary one-form; the de Rham
-  theorem, that every integral class of degree two is $c_1$ of some line
-  bundle, and the comparison of that class with the Chern–Weil one are not
-  in either library, and the design file plans them as prerequisite issues), `ZeroSet.lean`
+  *Minimal coupling*, corrected by an imaginary one-form; it uses the merged
+  prerequisites `TauCeti.injective_deRhamHom` (the de Rham theorem, in
+  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`),
+  `exists_hermitianLineBundle_complexEulerClass_eq` (every integral class of
+  degree two is the Euler class of a line bundle, in
+  `VectorBundle/Hermitian/Realization.lean`) and
+  `Bundle.deRhamHom_realFirstChernClass_eq_neg` (its comparison with the
+  Chern–Weil class, in `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set

@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
+import TauCeti.Analysis.Calculus.IteratedDeriv.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -442,9 +443,8 @@ theorem cartanDiff_of_formCalculusCoeff (F : ℝ → ℝ) (hF : ContDiff ℝ ∞
         DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f (k + 1)))) := by
   have hd : ∀ x, HasDerivAt (iteratedDeriv k F) (formCalculusCoeff F hF f (k + 1) x) (f x) :=
     fun x ↦ by
-      rw [formCalculusCoeff_apply, iteratedDeriv_succ]
-      exact ((hF.differentiable_iteratedDeriv k
-        (WithTop.coe_lt_coe.mpr (ENat.natCast_lt_top k))).differentiableAt).hasDerivAt
+      rw [formCalculusCoeff_apply]
+      exact hF.hasDerivAt_iteratedDeriv (WithTop.coe_lt_coe.mpr (ENat.natCast_lt_top k)) (f x)
   rw [cartanDiff_of_zero, SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt
       (fun x ↦ formCalculusCoeff_apply F hF f k x) hd, ← hf, map_smul,
     SmoothForm.of_mul_of_zero_ofFunction, DirectSum.of_smul]
