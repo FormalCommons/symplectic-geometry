@@ -11,7 +11,7 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smoot
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
 /-!
 # Local orientations of a manifold in its charts
@@ -177,9 +177,8 @@ theorem localHomologyMap_sub_toHomologicalOrientation (z : M) :
     have hid : (trivializationAt E (TangentSpace I) z).linearEquivAt ℝ z
         (FiberBundle.mem_baseSet_trivializationAt' z) = LinearEquiv.refl ℝ E :=
       LinearEquiv.ext fun v ↦ by
-        rw [Trivialization.linearEquivAt_apply, ← Trivialization.continuousLinearMapAt_apply_of_mem
-          ℝ _ (FiberBundle.mem_baseSet_trivializationAt' z)]
-        exact continuousLinearMapAt_trivializationAt_self z v
+        rw [Trivialization.linearEquivAt_apply]
+        exact TangentBundle.trivializationAt_apply_self_snd z v
     rw [hid, ContinuousLinearEquiv.toLinearEquiv_refl]
     -- The two sides differ only in reading the tangent space at `z` as `E`.
     rfl
