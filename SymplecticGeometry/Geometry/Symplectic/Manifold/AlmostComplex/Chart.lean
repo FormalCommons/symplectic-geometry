@@ -21,11 +21,12 @@ structure `J` on `M` forward along a chart `ψ : M → G` into a normed space: a
 `dψ ∘ J ∘ dψ⁻¹`, taken at `ψ⁻¹ p`. This file gives its evaluation lemma, the counterpart of Tau
 Ceti's `ContMDiffAlmostComplexStructure.chartPushforward_apply`, and, for a smooth chart
 `ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞`, the facts that the derivatives of `ψ` and of its
-inverse intertwine `J` with its pushforward, and that the pushforward squares to `-1` on the
-target of `ψ`. At each point of the target the pushforward is then an almost complex structure on
-`G`, which depends continuously on the point on a boundaryless manifold; if `ψ` pulls a
-symplectic form `σ₀` on `G` back to a two-form compatible with `J`, then `σ₀` is compatible
-with it.
+inverse intertwine `J` with its pushforward, that the pushforward squares to `-1` on the target
+of `ψ`, and that the derivative of the transition between two smooth charts intertwines the
+pushforwards along them. At each point of the target the pushforward is then an almost complex
+structure on `G`, which depends continuously on the point on a boundaryless manifold; if `ψ`
+pulls a symplectic form `σ₀` on `G` back to a two-form compatible with `J`, then `σ₀` is
+compatible with it.
 
 ## Main declarations
 
@@ -35,6 +36,8 @@ with it.
   derivative of a smooth chart, and that of its inverse, intertwine `J` with its pushforward.
 * `TauCeti.SmoothAlmostComplexStructure.chartPushforward_apply_chartPushforward_apply`: the
   pushforward squares to `-1` on the target.
+* `TauCeti.SmoothAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`: the derivative
+  of the transition between two smooth charts intertwines the pushforwards along them.
 * `TauCeti.SmoothAlmostComplexStructure.forall_chartPushforward_apply_eq_iff`: a chart pushes `J`
   forward to a fixed map exactly when its derivative intertwines `J` with that map.
 * `TauCeti.SmoothAlmostComplexStructure.chartPushforwardAt`: the pushforward at a point of the
@@ -105,6 +108,27 @@ theorem chartPushforward_apply_chartPushforward_apply (ψ : PartialDiffeomorph I
     ψ.toOpenPartialHomeomorph hp (ψ.mdifferentiableAt (by simp) (ψ.map_target hp))
     (ψ.symm.mdifferentiableAt (by simp) hp) w
   rwa [toContMDiff_chartPushforward] at h
+
+/-- **Transitions intertwine the pushforwards.** For smooth charts `Φ : M → G` and `Ψ : M → G'`
+into normed spaces and `w` in the source of the transition `τ = Ψ ∘ Φ⁻¹`, the derivative of `τ`
+at `w` carries the pushforward of `J` along `Φ` at `w` to its pushforward along `Ψ` at `τ w`. -/
+theorem chartPushforward_symm_trans_comp_fderiv {G' : Type*} [NormedAddCommGroup G']
+    [NormedSpace ℝ G'] (Φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞)
+    (Ψ : PartialDiffeomorph I 𝓘(ℝ, G') M G' ∞) {w : G}
+    (hw : w ∈ (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph).source) :
+    (J.chartPushforward Ψ.toOpenPartialHomeomorph
+          ((Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w)).comp
+        (fderiv ℝ (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w) =
+      (fderiv ℝ (Φ.toOpenPartialHomeomorph.symm ≫ₕ Ψ.toOpenPartialHomeomorph) w).comp
+        (J.chartPushforward Φ.toOpenPartialHomeomorph w) := by
+  have hw' : w ∈ Φ.target ∧ Φ.symm w ∈ Ψ.source := by simpa using hw
+  have h := (J.toContMDiff ⊤).chartPushforward_symm_trans_comp_fderiv hw
+    (Φ.mdifferentiableAt (by simp) (Φ.map_target hw'.1))
+    (by
+      rw [PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm]
+      exact Ψ.symm.mdifferentiableAt (by simp) (Ψ.map_source hw'.2))
+    (Φ.differentiableAt_symm_trans Ψ (by simp) hw)
+  rwa [toContMDiff_chartPushforward, toContMDiff_chartPushforward] at h
 
 /-- A smooth chart `ψ` into a normed space carries `J` to a fixed map `J₀` on its target exactly
 when its derivative intertwines `J` with `J₀` at every point of its source. -/
