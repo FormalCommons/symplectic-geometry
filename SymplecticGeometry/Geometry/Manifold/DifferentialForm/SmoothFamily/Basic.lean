@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Deriv
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
@@ -338,28 +339,8 @@ variable {α β : N → SmoothForm I M F k}
 /-- The value of a smooth family at a point, as an alternating map on the tangent space there,
 depends smoothly on the parameter. -/
 theorem contMDiff_val_apply (h : IsSmoothFamily J α) (x : M) :
-    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) J 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞ fun t ↦ (α t).val x := by
-  have hS := (isSmoothFamily_iff_contMDiff.mp h).comp
-    (contMDiff_id.prodMk contMDiff_const : ContMDiff J (J.prod I) ∞ fun t ↦ (t, x))
-  intro t
-  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (hS t)).2
-  simp only [Function.comp_apply, id_eq,
-    FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd] at hc
-  have hx : x ∈ (trivializationAt E (TangentSpace I) x).baseSet :=
-    FiberBundle.mem_baseSet_trivializationAt' x
-  -- Undo the trivialization at `x` by precomposing with its inverse on the fibre.
-  let L : (E [⋀^Fin k]→L[ℝ] F) →L[ℝ] E [⋀^Fin k]→L[ℝ] F :=
-    ContinuousAlternatingMap.compContinuousLinearMapCLM
-      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x)
-  have hL (φ : E [⋀^Fin k]→L[ℝ] F) : L φ = φ.compContinuousLinearMap
-      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x) :=
-    ContinuousAlternatingMap.compContinuousLinearMapCLM_apply _ φ
-  refine (L.contMDiff.contMDiffAt.comp t hc).congr_of_eventuallyEq
-    (Filter.Eventually.of_forall fun s ↦ ?_)
-  rw [Function.comp_apply, hL]
-  ext v
-  simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
-    Trivialization.symmL_continuousLinearMapAt _ hx]
+    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) J 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞ fun t ↦ (α t).val x :=
+  fun t ↦ ContMDiffAt.roughForm_family_apply (q₀ := (t, x)) (isSmoothFamily_iff_contMDiff.mp h _)
 
 /-- The values of a smooth family at a point `x` on fixed tangent vectors depend smoothly on the
 parameter. -/
