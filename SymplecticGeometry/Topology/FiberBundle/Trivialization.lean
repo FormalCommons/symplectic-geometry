@@ -7,6 +7,8 @@ module
 
 public import Mathlib.Topology.FiberBundle.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
+public import SymplecticGeometry.Topology.Homeomorph.Prod
+import SymplecticGeometry.Logic.Equiv.Prod
 
 /-!
 # Trivializations read through homeomorphisms
@@ -28,6 +30,10 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
 * `Bundle.Trivialization.coordChange_transFiberwiseHomeomorph_left`, `_right`: its coordinate
   changes with another trivialization are those of the original trivialization composed with
   the fibres of `Φ⁻¹` or of `Φ`.
+* `Bundle.Trivialization.coordChange_transFiberwiseHomeomorph_symm_left`, `_right`: for
+  `Φ (p, v) = (p, χ p v)` with each `χ p` a homeomorphism of `F`, the coordinate changes of the
+  trivialization followed by `Φ⁻¹` are those of the original one composed with `χ b` or its
+  inverse.
 * `Bundle.Trivialization.mapFiberHomeomorph`: the fibre `TauCeti.MapFiber proj b` over a point `b`
   of the base set of a trivialization, identified with the model fibre.
 * `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
@@ -39,13 +45,6 @@ or of its total space. Tau Ceti's change of model fibre of a fibre bundle
 public section
 
 open Bundle
-
-/-- A homeomorphism of `X × F` that preserves the first coordinate has an inverse that preserves
-it too. -/
-theorem Homeomorph.fst_symm_apply_of_forall_fst_apply {X F : Type*} [TopologicalSpace X]
-    [TopologicalSpace F] {Φ : X × F ≃ₜ X × F} (hΦ : ∀ q, (Φ q).1 = q.1) (q : X × F) :
-    (Φ.symm q).1 = q.1 := by
-  simpa using (hΦ (Φ.symm q)).symm
 
 namespace Bundle.Trivialization
 
@@ -124,7 +123,8 @@ private noncomputable def fiberwiseOPH : OpenPartialHomeomorph (B × F) (B × F)
   left_inv' q h := fiberwiseFun_fiberwiseFun Φ hΦ h.1
   right_inv' q h := by
     simpa using
-      fiberwiseFun_fiberwiseFun Φ.symm (Homeomorph.fst_symm_apply_of_forall_fst_apply hΦ) h.1
+      fiberwiseFun_fiberwiseFun Φ.symm
+        (Equiv.fst_symm_apply_of_forall_fst_apply (Φ := Φ.toEquiv) hΦ) h.1
   open_source := U.isOpen.prod isOpen_univ
   open_target := U.isOpen.prod isOpen_univ
   continuousOn_toFun := continuousOn_fiberwiseFun Φ
@@ -171,10 +171,12 @@ noncomputable def transFiberwiseHomeomorph : Trivialization F proj where
 theorem transFiberwiseHomeomorph_baseSet : (e.transFiberwiseHomeomorph hU Φ hΦ).baseSet = U :=
   (rfl)
 
+@[simp]
 theorem transFiberwiseHomeomorph_source :
     (e.transFiberwiseHomeomorph hU Φ hΦ).source = proj ⁻¹' U := by
   rw [source_eq, transFiberwiseHomeomorph_baseSet]
 
+@[simp]
 theorem transFiberwiseHomeomorph_target :
     (e.transFiberwiseHomeomorph hU Φ hΦ).target = (U : Set B) ×ˢ univ := by
   rw [target_eq, transFiberwiseHomeomorph_baseSet]
@@ -215,6 +217,42 @@ theorem coordChange_transFiberwiseHomeomorph_right (e' : Trivialization F proj) 
   have h := e'.proj_symm_apply' (x := v) hb'
   rw [coordChange, coordChange, transFiberwiseHomeomorph_apply e hU Φ hΦ (h.symm ▸ hb)]
   simp_rw [h]
+
+/-! For `Φ (p, v) = (p, χ p v)` with a family `χ` of homeomorphisms of `F`, the trivialization
+`e` followed by the inverse of `Φ` reads the fibre coordinate `v` of `e` over `b ∈ U` as
+`(χ b)⁻¹ v`. -/
+
+section Family
+
+variable {Φ} {χ : U → F ≃ₜ F} (hχ : ∀ q, Φ q = (q.1, χ q.1 q.2))
+include hχ
+
+/-- If `Φ (p, v) = (p, χ p v)`, the coordinate change over `b ∈ U` from `e` followed by the
+inverse of `Φ` to a trivialization `e'` is `χ b` followed by the coordinate change from `e`. -/
+theorem coordChange_transFiberwiseHomeomorph_symm_left (e' : Trivialization F proj) {b : B}
+    (hb : b ∈ U) :
+    (e.transFiberwiseHomeomorph hU Φ.symm
+        (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ)).coordChange e' b =
+      e.coordChange e' b ∘ χ ⟨b, hb⟩ :=
+  funext fun v ↦ by
+    rw [coordChange_transFiberwiseHomeomorph_left _ _ _ _ _ hb, Homeomorph.symm_symm, hχ,
+      Function.comp_apply]
+
+/-- If `Φ (p, v) = (p, χ p v)`, the coordinate change over a point `b ∈ U` of the base set of a
+trivialization `e'`, from `e'` to `e` followed by the inverse of `Φ`, is the coordinate change
+to `e` followed by the inverse of `χ b`. -/
+theorem coordChange_transFiberwiseHomeomorph_symm_right (e' : Trivialization F proj) {b : B}
+    (hb : b ∈ U) (hb' : b ∈ e'.baseSet) :
+    e'.coordChange
+        (e.transFiberwiseHomeomorph hU Φ.symm (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ))
+        b =
+      (χ ⟨b, hb⟩).symm ∘ e'.coordChange e b :=
+  funext fun v ↦ by
+    rw [coordChange_transFiberwiseHomeomorph_right _ _ _ _ _ hb hb', Function.comp_apply,
+      Φ.symm_apply_eq.2 (by rw [hχ]; simp :
+        _ = Φ (⟨b, hb⟩, (χ ⟨b, hb⟩).symm (e'.coordChange e b v)))]
+
+end Family
 
 end transFiberwiseHomeomorph
 
