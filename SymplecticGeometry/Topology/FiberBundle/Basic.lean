@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Topology.FiberBundle.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
-public import SymplecticGeometry.Topology.FiberBundle.Trivialization
+import SymplecticGeometry.Topology.FiberBundle.Trivialization
 
 /-!
 # Fibre bundles read in their trivializations
