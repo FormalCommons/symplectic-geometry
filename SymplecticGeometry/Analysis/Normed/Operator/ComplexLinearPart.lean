@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
+public import Mathlib.Analysis.InnerProductSpace.Basic
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
+import SymplecticGeometry.Analysis.InnerProductSpace.Basic
 import TauCeti.Analysis.Normed.Module.RCLike.Basic
 
 /-!
@@ -47,6 +49,21 @@ setting of Tau Ceti's versions for real scalars, both parts commute with complex
 `ContinuousLinearMap.complexAntilinearPart_complex_smul`). In the normed compatible setting of
 the first paragraph, their values at a fixed vector are as smooth as the operator
 (`ContDiffOn.complexLinearPart_apply`, `ContDiffOn.complexAntilinearPart_apply`).
+
+The last section is about forms with values in a complex line `L` whose norm comes from a real
+inner product, such as a fibre of a Hermitian line bundle. If every value of a real-linear map `η`
+is orthogonal to a nonzero `u`, its complex-linear and complex-antilinear parts have values of
+equal norms, by `SymplecticGeometry.norm_add_I_smul_eq_norm_sub_I_smul`: for Tau Ceti's
+algebraic parts `TauCeti.complexLinearPart` and `TauCeti.complexAntilinearPart`, for any
+endomorphism `J` of the source
+(`TauCeti.norm_complexLinearPart_apply_eq_norm_complexAntilinearPart_apply`), and for the
+continuous parts of an operator on a complex normed space, with equal operator norms
+(`ContinuousLinearMap.norm_complexLinearPart_eq_norm_complexAntilinearPart`). This is the
+pointwise step of the bound on `|s|` at the critical points of `log |s|²` in [Donaldson1996].
+
+## References
+
+* [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996].
 -/
 
 public section
@@ -213,5 +230,54 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
   simp only [ContinuousLinearMap.complexAntilinearPart_apply]
   exact ((hf.clm_apply contDiffOn_const).add
     ((hf.clm_apply contDiffOn_const).const_smul Complex.I)).const_smul _
+
+/-! ### Equal norms of the two parts of a form with values in a complex line -/
+
+section ComplexLine
+
+open scoped RealInnerProductSpace
+open SymplecticGeometry
+
+variable {L : Type*} [NormedAddCommGroup L] [InnerProductSpace ℝ L] [NormedSpace ℂ L]
+  [IsScalarTower ℝ ℂ L]
+
+/-- Let `η` be a real-linear map from a real vector space `T` with an endomorphism `J` (in
+practice a complex structure) to a complex line `L` whose norm comes from a real inner product.
+If every value of `η` is orthogonal to a nonzero `u`, then `TauCeti.complexLinearPart` and
+`TauCeti.complexAntilinearPart` of `η`, for `J` and multiplication by `i`, take values of equal
+norms. -/
+theorem TauCeti.norm_complexLinearPart_apply_eq_norm_complexAntilinearPart_apply {T : Type*}
+    [AddCommGroup T] [Module ℝ T] (J : T →ₗ[ℝ] T) (hL : Module.finrank ℂ L = 1) {u : L}
+    (hu : u ≠ 0) {η : T →ₗ[ℝ] L} (hη : ∀ v, ⟪η v, u⟫ = 0) (v : T) :
+    ‖complexLinearPart J (DistribSMul.toLinearMap ℝ L Complex.I) η v‖ =
+      ‖complexAntilinearPart J (DistribSMul.toLinearMap ℝ L Complex.I) η v‖ := by
+  simp only [complexLinearPart_apply, complexAntilinearPart_apply, DistribSMul.toLinearMap_apply,
+    norm_smul, norm_add_I_smul_eq_norm_sub_I_smul hL hu (hη v) (hη (J v))]
+
+namespace ContinuousLinearMap
+
+variable {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W] [NormedSpace ℂ W]
+  [IsScalarTower ℝ ℂ W]
+
+/-- Let `Ψ` be a continuous real-linear operator from a complex normed space to a complex line
+whose norm comes from a real inner product. If every value of `Ψ` is orthogonal to a nonzero `u`,
+its complex-linear and complex-antilinear parts have values of equal norms. -/
+theorem norm_complexLinearPart_apply_eq_norm_complexAntilinearPart_apply
+    (hL : Module.finrank ℂ L = 1) {u : L} (hu : u ≠ 0) {Ψ : W →L[ℝ] L} (hΨ : ∀ v, ⟪Ψ v, u⟫ = 0)
+    (v : W) : ‖Ψ.complexLinearPart v‖ = ‖Ψ.complexAntilinearPart v‖ := by
+  rw [complexLinearPart_apply, complexAntilinearPart_apply, norm_smul, norm_smul,
+    norm_add_I_smul_eq_norm_sub_I_smul hL hu (hΨ v) (hΨ _)]
+
+/-- Let `Ψ` be a continuous real-linear operator from a complex normed space to a complex line
+whose norm comes from a real inner product. If every value of `Ψ` is orthogonal to a nonzero `u`,
+its complex-linear and complex-antilinear parts have equal operator norms. -/
+theorem norm_complexLinearPart_eq_norm_complexAntilinearPart (hL : Module.finrank ℂ L = 1)
+    {u : L} (hu : u ≠ 0) {Ψ : W →L[ℝ] L} (hΨ : ∀ v, ⟪Ψ v, u⟫ = 0) :
+    ‖Ψ.complexLinearPart‖ = ‖Ψ.complexAntilinearPart‖ :=
+  opNorm_ext _ _ (norm_complexLinearPart_apply_eq_norm_complexAntilinearPart_apply hL hu hΨ)
+
+end ContinuousLinearMap
+
+end ComplexLine
 
 end

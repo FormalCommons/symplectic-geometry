@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetri
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.Riemannian.AlmostComplex
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
+import TauCeti.Topology.VectorBundle.Riemannian.Comparison
 
 /-!
 # The metric of a compatible pair on a manifold
@@ -40,6 +41,9 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothTwoForm.Compatible.metric_eq_tangentEquiv_symm_metric`: Tau Ceti's metric of a
   compatible pair is the metric of this library's bundle construction.
 * `TauCeti.SmoothTwoForm.Compatible.metric_inner_apply_apply`: `g_J` is invariant under `J`.
+* `TauCeti.SmoothTwoForm.Compatible.exists_eval₂_apply_le_mul_norm_sq`: on a compact set,
+  `g_J(v, v) = σ(v, J v)` is at most a constant times `‖v‖ ^ 2` for any continuous Riemannian
+  metric on `TM`, by Tau Ceti's `IsCompact.exists_bound_of_continuousOn_bilinear_bundle`.
 * `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_apply_apply` (or `_apply_eval₂`) and
   `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_symm_apply_inner`: the two
   directions of the bijection are `σ(u, v) = g(J u, v)` and `g(u, v) = σ(u, J v)`.
@@ -103,6 +107,22 @@ theorem Compatible.metric_inner_apply_apply (hc : σ.Compatible J) (x : M)
   rw [hc.metric_eq_tangentEquiv_symm_metric]
   simpa using
     (ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 hc).metric_inner_apply_apply x u v
+
+/-- **The metric of a compatible pair is bounded on a compact set by any continuous metric.** If
+`σ` is compatible with `J` and `TM` carries a continuous Riemannian metric, then on a compact set
+`K` there is a constant `C` with `σ(v, J v) ≤ C * ‖v‖ ^ 2` for every tangent vector `v` at a
+point of `K`. -/
+theorem Compatible.exists_eval₂_apply_le_mul_norm_sq
+    [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] (hc : σ.Compatible J)
+    {K : Set M} (hK : IsCompact K) :
+    ∃ C, ∀ x ∈ K, ∀ v : TangentSpace I x, σ.eval₂ x v (J x v) ≤ C * ‖v‖ ^ 2 := by
+  obtain ⟨C, hC⟩ := hK.exists_bound_of_continuousOn_bilinear_bundle (b := id)
+    (φ := hc.metric.inner) hc.metric.contMDiff.continuous.continuousOn
+  refine ⟨C, fun x hx v ↦ ?_⟩
+  rw [← metric_inner hc, sq, ← mul_assoc]
+  exact (Real.le_norm_self _).trans
+    ((hc.metric.inner x).le_of_opNorm₂_le_of_le (hC x hx) le_rfl le_rfl)
 
 end SmoothTwoForm
 

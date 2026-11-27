@@ -22,7 +22,7 @@ carried to the normal bundle by the inverse of the pair isomorphism `tubePairIso
 class `μ_Φ` of `TauCeti.SmoothEmbedding.tubeFundamentalClass`.
 
 This file computes its local classes at the points `0_z` of the zero section, its images in
-`Hₙ(ν, ν ∖ 0_z; ℤ)` under `TauCeti.thomPairLocalHomologyRestriction`, for every tube.
+`Hₙ(ν, ν ∖ 0_z; ℤ)` under `SymplecticGeometry.thomPairLocalHomologyRestriction`, for every tube.
 
 * The tube carries the local class at `0_z` to the local orientation `oX (f z)`
   (`localHomologyMap_tubeFundamentalClass`). The composite of the pair maps involved is the
