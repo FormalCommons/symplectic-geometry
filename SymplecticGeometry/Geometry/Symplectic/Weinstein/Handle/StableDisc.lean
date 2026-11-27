@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
 import SymplecticGeometry.Geometry.Manifold.Flow.Chart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
@@ -442,10 +443,10 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     obtain ⟨ε, hε, hc⟩ := hconf r ⟨hr, hrr₀⟩
     set δ := min (r / 2) (ρ / (‖P‖ + 1))
     have hδ : 0 < δ := lt_min (by positivity) (by positivity)
-    refine ⟨e.source ∩ e ⁻¹' ball (e p) δ, inter_mem (extChartAt_source_mem_nhds p)
-      ((continuousAt_extChartAt p).preimage_mem_nhds (ball_mem_nhds _ hδ)), ε, hε, ?_⟩
-    rintro x ⟨⟨hx, hxs, hxb⟩, hfx⟩
-    rw [mem_preimage, mem_ball, dist_eq_norm] at hxb
+    refine ⟨chartBall 𝓘(ℝ, E) p δ, chartBall_mem_nhds _ p hδ, ε, hε, ?_⟩
+    rintro x ⟨⟨hx, hxc⟩, hfx⟩
+    obtain ⟨hxs, hxb⟩ := (mem_chartBall_iff _).1 hxc
+    rw [mem_ball, dist_eq_norm] at hxb
     have hcx := hc x hx hxs (hxb.le.trans (min_le_left _ _)) hfx
     set Y : ℝ → E := fun t ↦ e (hW.flow t x) - e p
     have hYi : IsIntegralCurveOn Y
