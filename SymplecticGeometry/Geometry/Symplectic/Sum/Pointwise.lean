@@ -53,11 +53,11 @@ section Manifold
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
 
-/-- Let `M` be covered by an open set `W` and an open set `V`, let `η` be a nondegenerate
-two-form on `M`, and let `β` be a smooth family of two-forms on `V` over `ℝ`, nondegenerate for
-`t ∈ [0, 1]`, with `β 1` the restriction of `η` to `V`. For a smooth `χ : V → [0, 1]` equal to
-`1` at the points of `W`, there is a nondegenerate two-form on `M` that is `η` on `W` and whose
-restriction to `V` is the slice of `β` along `χ`. -/
+/-- Let `M` be covered by an open set `W` and an open set `V`. Take a nondegenerate
+two-form `η` on `M`, and let `β` be a smooth family of two-forms on `V` over `ℝ`,
+nondegenerate for `t ∈ [0, 1]`, with `β 1` the restriction of `η` to `V`. For a smooth
+`χ : V → [0, 1]` equal to `1` at the points of `W`, there is a nondegenerate two-form on `M` that
+is `η` on `W` and whose restriction to `V` is the slice of `β` along `χ`. -/
 theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsOpen W)
     (hWV : W ∪ V = univ) {η : SmoothTwoForm I M} (hη : η.IsNondegenerate)
     {β : ℝ → SmoothTwoForm I V} (hβ : IsSmoothFamily 𝓘(ℝ, ℝ) β)
@@ -118,8 +118,8 @@ section InnerProductSpace
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- Let `0 ≤ ρ < R` and let `V` be an open subset of a real inner product space
-`E` containing every `w` with `ρ < ‖w‖`. Let `η` be a nondegenerate two-form on `E`, and
+/-- Let `0 ≤ ρ < R` and let `V` be an open set in a real inner product space
+`E` that contains every `w` with `ρ < ‖w‖`. Let `η` be a nondegenerate two-form on `E`, and
 `β` a smooth family of two-forms on `V` over `ℝ`, nondegenerate for `t ∈ [0, 1]`, with `β 1` the
 restriction of `η` to `V`. Then there is a nondegenerate two-form on `E` equal to `η` near the
 closed ball of radius `ρ` and whose restriction to `V` is `β 0` at the points with
