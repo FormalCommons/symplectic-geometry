@@ -189,7 +189,7 @@ private theorem exists_isNondegenerate_chart {e : E → M} (de : IsLocalDiffeomo
   -- The ball `e` on `W`, as a map into `V`.
   let k : W → V := fun x ↦ ⟨e x, hV x x.property⟩
   have hvk : Subtype.val ∘ k = e ∘ Subtype.val := rfl
-  have dk : IsLocalDiffeomorph 𝓘(ℝ, E) I ∞ k := TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1
+  have dk : IsLocalDiffeomorph 𝓘(ℝ, E) I ∞ k := IsLocalDiffeomorph.subtypeVal_comp_iff.1
     (hvk ▸ fun x ↦ (TauCeti.isLocalDiffeomorph_subtype_val x).comp (hg := de x))
   have hk : ContMDiff 𝓘(ℝ, E) I ∞ k := dk.contMDiff
   obtain ⟨τ, hτ, -, hτR⟩ := exists_isNondegenerate_eq_of_lt_norm hρ hρR (V := W)

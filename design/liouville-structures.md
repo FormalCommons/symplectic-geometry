@@ -635,9 +635,9 @@ Expected size: 300 lines.
   `Collar/Flow/Local.lean` and `Collar/Flow/Basic.lean`
   (`SymplecticGeometry.isLocalDiffeomorph_id`).
 - *Smooth families*: `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`
-  (`TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff`,
-  `TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff`,
-  `TauCeti.isLocalDiffeomorph_inclusion`), merged, in `Boundary/Collar/End.lean`
+  (`IsLocalDiffeomorphAt.subtypeVal_comp_iff`,
+  `IsLocalDiffeomorph.subtypeVal_comp_iff`,
+  `isLocalDiffeomorph_inclusion`), merged, in `Boundary/Collar/End.lean`
   and `StableHamiltonian.lean`.
 - *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
   part extends by integral curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,

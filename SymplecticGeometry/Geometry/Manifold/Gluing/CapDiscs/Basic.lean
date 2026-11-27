@@ -327,9 +327,9 @@ private theorem isLocalDiffeomorphAt_polarPoint {i : ι} (q : interiorOverlap c 
 include hinj in
 private theorem isLocalDiffeomorph_toAnnulus (i : ι) :
     IsLocalDiffeomorph (𝓡 2) (𝓡 2) ∞ (toAnnulus (c := c) (i := i) hγ) := fun q ↦ by
-  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  refine IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 ?_
   have hball : IsLocalDiffeomorphAt (𝓡 2) 𝓘(ℝ, ℂ) ∞ (toBall hγ) q :=
-    isLocalDiffeomorphAt_subtypeVal_comp_iff.1 (isLocalDiffeomorphAt_polarPoint hγ hinj q)
+    IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 (isLocalDiffeomorphAt_polarPoint hγ hinj q)
   exact hball.comp (hg := (remodelDiffeomorph complexDiffeomorph ball).isLocalDiffeomorph _)
 
 include hinj in
@@ -550,7 +550,7 @@ private theorem isLocalDiffeomorph_toAnnuli :
     rw [Function.comp_assoc, h]
     exact ((annulusDiffeomorph hγ hinj i).isLocalDiffeomorph_subtypeVal_comp _).comp
       (hg := isLocalDiffeomorph_sigmaMk i _)
-  exact isLocalDiffeomorphAt_subtypeVal_comp_iff.1
+  exact IsLocalDiffeomorphAt.subtypeVal_comp_iff.1
     (hmk.of_comp_right (isLocalDiffeomorph_inclusion _ _))
 
 /-- The gluing map from the part of the interior covered by the collars over the `γ i` to the
