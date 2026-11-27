@@ -5,11 +5,17 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
+public import TauCeti.AlgebraicTopology.FundamentalGroup.Product
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
+public import TauCeti.Topology.Homotopy.AddCircle
+public import TauCeti.Topology.Instances.AddCircle.Torus
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
+import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 
 /-!
 # Graph tori of circle maps
@@ -34,6 +40,15 @@ torus has symplectic tangent images for the product form.
 The graph tori of `h` and `h'` have disjoint images exactly when `h t ≠ h' t` for every `t`,
 since a point of `T` determines its coordinate `t = x i`.
 
+On fundamental groups based at `0`, the graph torus sends the class of the straight loop
+`TauCeti.torusLoop p (Pi.single j 1)` around the `j`-th circle, the `j`-th generator of `π₁(T, 0)`
+by `AddCircle.piFundamentalGroupMulEquivZero_torusLoop`, to an element of
+`π₁(Σ × T, (h 0, 0)) ≃* π₁(Σ, h 0) × π₁(T, 0)` (`FundamentalGroup.prodMulEquiv`) whose second
+component is that generator again, since the second component of the graph torus is the identity.
+Its first component is the class of the loop `t ↦ h t`, read at `h 0` by
+`ContinuousMap.toLoop`, for `j = i`, and trivial for `j ≠ i`, where the first component of the
+loop is constant.
+
 These tori enter the realization of finitely presented groups as fundamental groups of closed
 symplectic four-manifolds: the torus of a loop `h` in a surface `Σ` lies in `Σ × T²` and is
 symplectic for the product form.
@@ -51,6 +66,9 @@ symplectic for the product form.
   the product form.
 * `SymplecticGeometry.disjoint_range_graphTorus_iff`: two graph tori are disjoint exactly when the
   circle maps differ at every point.
+* `SymplecticGeometry.prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_self`,
+  `SymplecticGeometry.prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_of_ne`: the images of the
+  generators of `π₁(T, 0)` in `π₁(Σ, h 0) × π₁(T, 0)`.
 
 ## References
 
@@ -150,5 +168,61 @@ theorem hasSymplecticTangentImages_graphTorus {σ : SmoothTwoForm I M} (hσ : σ
     (graphTorus hh).contMDiff).1
   rw [mpullback_graphTorus_prod_torusSymplecticForm] at hpull
   exact (hpull (isSymplectic_torusSymplecticForm p).isNondegenerate).1
+
+/-! ### Fundamental groups -/
+
+/-- The graph torus of `h` sends the base point `0` of the torus to `(h 0, 0)`. -/
+theorem graphTorus_zero (hh : ContMDiff 𝓘(ℝ) I ∞ h) : graphTorus hh 0 = (h 0, 0) := by simp
+
+/-- On fundamental groups based at `0`, the torus component of the image of a loop class under the
+graph torus is that class again: the second component of the graph torus is the identity. -/
+theorem snd_prodMulEquiv_mapOfEq_graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (γ : FundamentalGroup (∀ i, AddCircle (p i)) 0) :
+    (FundamentalGroup.prodMulEquiv (h 0) 0
+      (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh) γ)).2 = γ := by
+  simp only [FundamentalGroup.prodMulEquiv_apply]
+  rw [← FundamentalGroup.mapOfEq_rfl]
+  have hc : ContinuousMap.snd.comp (graphTorus hh).toContinuousMap = ContinuousMap.id _ :=
+    ContinuousMap.ext fun x ↦ by simp
+  exact FundamentalGroup.mapOfEq_mapOfEq_of_comp_eq_id ContinuousMap.snd
+    (graphTorus hh).toContinuousMap (graphTorus_zero hh) rfl hc γ
+
+/-- The graph torus of `h : AddCircle (p i) → M` sends the class of the straight loop
+`torusLoop p (Pi.single i 1)` around the `i`-th circle of the torus to the class of the loop
+`(t ↦ h t, torusLoop p (Pi.single i 1))` in `π₁(M × T, (h 0, 0)) ≃* π₁(M, h 0) × π₁(T, 0)`, its
+first component being the circle map `h` read as a loop at `h 0` by `ContinuousMap.toLoop`. -/
+theorem prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_self [DecidableEq (ι ⊕ ι)]
+    (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
+    FundamentalGroup.prodMulEquiv (h 0) 0
+        (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh)
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single i 1))))) =
+      (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (⟨h, hh.continuous⟩ : C(AddCircle (p i), M)).toLoop),
+        FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single i 1)))) := by
+  refine Prod.ext ?_ (snd_prodMulEquiv_mapOfEq_graphTorus hh _)
+  simp only [FundamentalGroup.prodMulEquiv_apply, FundamentalGroup.mapOfEq_fromPath_mk,
+    FundamentalGroup.map_fromPath]
+  refine congrArg _ (congrArg _ (Path.ext (funext fun t ↦ ?_)))
+  refine Eq.trans ?_ (ContinuousMap.toLoop_apply ⟨h, hh.continuous⟩ t).symm
+  simp
+
+/-- For `j ≠ i`, the graph torus of `h : AddCircle (p i) → M` sends the class of the straight loop
+`torusLoop p (Pi.single j 1)` around the `j`-th circle of the torus to the class of the loop
+`(h 0, torusLoop p (Pi.single j 1))` in `π₁(M × T, (h 0, 0)) ≃* π₁(M, h 0) × π₁(T, 0)`, whose
+first component is trivial. -/
+theorem prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_of_ne [DecidableEq (ι ⊕ ι)]
+    (hh : ContMDiff 𝓘(ℝ) I ∞ h) {j : ι ⊕ ι} (hj : j ≠ i) :
+    FundamentalGroup.prodMulEquiv (h 0) 0
+        (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh)
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single j 1))))) =
+      (1, FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single j 1)))) := by
+  refine Prod.ext ?_ (snd_prodMulEquiv_mapOfEq_graphTorus hh _)
+  simp only [FundamentalGroup.prodMulEquiv_apply, FundamentalGroup.mapOfEq_fromPath_mk,
+    FundamentalGroup.map_fromPath]
+  rw [FundamentalGroup.one_def, ← Path.Homotopic.Quotient.mk_refl]
+  refine congrArg _ (congrArg _ (Path.ext (funext fun t ↦ ?_)))
+  refine Eq.trans ?_ (Path.refl_apply (h 0) t).symm
+  simp [hj.symm]
 
 end SymplecticGeometry
