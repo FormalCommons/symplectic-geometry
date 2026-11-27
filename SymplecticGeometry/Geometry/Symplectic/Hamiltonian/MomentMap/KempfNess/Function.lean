@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-public import SymplecticGeometry.Geometry.Lie.LeftTrivializedDeriv
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Algebra.GroupAction.OrbitRelQuotient
