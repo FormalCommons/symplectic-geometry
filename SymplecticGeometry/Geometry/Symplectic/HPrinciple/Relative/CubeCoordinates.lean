@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Topology.MetricSpace.Thickening
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
+public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 
 /-!
@@ -34,6 +35,11 @@ the chart sends it above `a`. The set `Y` is described by closed thickenings rat
 distances, so that a cube of dimension `0`, whose sphere is empty, and for which `Y` may be
 empty, needs no separate case.
 
+The forms of a stage are read in the chart of a cube by pullback along it, and give the cube a
+formal datum: the reading of the one-form, with the formal primitive (`FormalPrimitive.lean`) of
+the reading of the difference of the two-forms. It is holonomic at the points that the chart sends
+to where the forms are related, and smooth for smooth families.
+
 ## Main declarations
 
 * `SymplecticGeometry.BandCore.isLocalDiffeomorph_chart`: the charts are local diffeomorphisms.
@@ -41,6 +47,11 @@ empty, needs no separate case.
   diffeomorphism, with `chartPartialDiffeomorph_symm_apply`, `chartPartialDiffeomorph_source`,
   `chartPartialDiffeomorph_target` and `chartPartialDiffeomorph_apply_chart`.
 * `SymplecticGeometry.BandCore.exists_relativeSet`: the relative set of a cube and its margin.
+* `SymplecticGeometry.BandCore.fderiv_mpullback_chart_eq_formalPrimitive`: the formal datum of a
+  cube, read in its chart, is holonomic where the forms are related.
+* `SymplecticGeometry.BandCore.contDiff_mpullback_chart`,
+  `SymplecticGeometry.BandCore.contDiff_formalPrimitive_mpullback_chart`: for smooth families of
+  forms, it is smooth in the parameter and the point together.
 
 ## References
 
@@ -194,6 +205,77 @@ theorem exists_relativeSet (c : BandCore I g a₀ a b) (hg : Continuous g) {N : 
     refine ⟨hpY, lt_of_not_ge fun hga ↦ hpY (self_subset_cthickening _ ⟨hga, ?_⟩)⟩
     rw [mem_closedBall_zero_iff, Prod.norm_def, max_le_iff]
     constructor <;> linarith [hpq'.2]
+
+section Readings
+
+/-! ### The formal datum of a cube read in its chart
+
+Forms on `M` are read on the domain of the chart `φ := c.chart i` of cube `i` by the pullback
+`φ^*` (`TauCeti.SmoothForm.mpullback`). For two-forms `σ l`, `α l` and one-forms `β l` on `M`,
+the formal datum of the cube is the map `f (l, x) := (φ^* (β l)).val x` and its formal primitive
+`G (l, x) := formalPrimitive (φ^* (σ l - α l)).val (φ^* (β l)).val x` (`FormalPrimitive.lean`).
+The datum is holonomic, `fderiv ℝ (f (l, ·)) x = G (l, x)`, wherever
+`σ l = α l + d (β l)` at `c.chart i x`, and `f` and `G` are smooth for smooth families of forms:
+these are the hypotheses that the holonomic approximation theorem for families,
+`SymplecticGeometry.exists_holonomic_approximation_family`, asks of a formal datum.
+-/
+
+open TauCeti
+
+variable [IsManifold I ∞ M] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {L : Type*}
+  {σ α : L → SmoothForm I M F 2} {β : L → SmoothForm I M F 1}
+
+/-- **The formal datum of a cube is holonomic where the forms are related.** Let
+`σ l = α l + d (β l)` on a set `N` for every parameter `l`, and on all of `M` for the parameters
+`l ∈ P₀`. Then the formal primitive of the reading of `σ l - α l` in the chart of cube `i`, with
+zeroth-order part the reading of `β l`, is the derivative of that reading at every `(l, x)` with
+`c.chart i x ∈ N` or `l ∈ P₀`. -/
+theorem fderiv_mpullback_chart_eq_formalPrimitive (c : BandCore I g a₀ a b) (i : c.ι)
+    {N : Set M} (hN : ∀ l, ∀ x ∈ N, (σ l).val x = (α l + mextDerivₗ I 1 (β l)).val x)
+    {P₀ : Set L} (hP₀ : ∀ l ∈ P₀, ∀ x, (σ l).val x = (α l + mextDerivₗ I 1 (β l)).val x) :
+    ∀ p ∈ (univ : Set L) ×ˢ (c.chart i ⁻¹' N) ∪ P₀ ×ˢ univ,
+      fderiv ℝ (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (β p.1)).val p.2 =
+        formalPrimitive (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (σ p.1 - α p.1)).val
+          (SmoothForm.mpullback (c.chart i)
+            (c.isSmoothEmbedding_chart i).contMDiff (β p.1)).val p.2 := by
+  rintro ⟨l, x⟩ hp
+  refine (formalPrimitive_mpullback_eq_fderiv (c.isSmoothEmbedding_chart i).contMDiff ?_).symm
+  rcases hp with ⟨-, hx⟩ | ⟨hl, -⟩
+  · exact hN l _ hx
+  · exact hP₀ l hl _
+
+variable [NormedAddCommGroup L] [NormedSpace ℝ L]
+
+/-- **The reading of a smooth family of forms is smooth.** For a smooth family `β` of `k`-forms on
+`M` over a normed space `L`, the value `(mpullback (c.chart i) (β l)).val x` of its reading in the
+chart of cube `i` is smooth in `(l, x)`. -/
+theorem contDiff_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι) {k : ℕ}
+    {β : L → SmoothForm I M F k} (hβ : IsSmoothFamily 𝓘(ℝ, L) β) :
+    ContDiff
+      (F := ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin k]→L[ℝ] F) ℝ ∞
+      fun p : L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
+        (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff
+          (β p.1)).val p.2 :=
+  (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff).contDiff_val
+
+/-- **The formal primitive of the reading of smooth families is smooth.** For smooth families
+`σ`, `α` of two-forms and `β` of one-forms on `M` over a normed space `L`, the formal primitive of
+the reading of `σ l - α l` in the chart of cube `i`, with zeroth-order part the reading of `β l`,
+is smooth in `(l, x)`. -/
+theorem contDiff_formalPrimitive_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι)
+    (hσ : IsSmoothFamily 𝓘(ℝ, L) σ) (hα : IsSmoothFamily 𝓘(ℝ, L) α)
+    (hβ : IsSmoothFamily 𝓘(ℝ, L) β) :
+    ContDiff ℝ ∞ fun p : L × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
+      formalPrimitive (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (σ p.1 - α p.1)).val
+        (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (β p.1)).val p.2 :=
+  contDiff_formalPrimitive ((hσ.sub hα).mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)
+    (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)
+
+end Readings
 
 end BandCore
 

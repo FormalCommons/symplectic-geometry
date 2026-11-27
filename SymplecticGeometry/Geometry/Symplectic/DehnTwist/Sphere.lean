@@ -640,7 +640,7 @@ private theorem exists_restrict_of_mpullback_eq [IsManifold I ∞ M] {σ : Smoot
     have h : IsLocalDiffeomorph (𝓣 n) I ∞ (Subtype.val ∘ ι ∘ Opens.inclusion hW) := fun z ↦
       (isLocalDiffeomorph_inclusion hW z).comp I M
         (ι.isLocalDiffeomorph_subtypeVal_comp _)
-    exact isLocalDiffeomorph_subtypeVal_comp_iff.1 h
+    exact IsLocalDiffeomorph.subtypeVal_comp_iff.1 h
   have hχinj : Function.Injective χ := fun a b h ↦ by
     have h' : ((χ a : U₀) : M) = χ b := congrArg Subtype.val h
     have h'' := Subtype.ext_iff.1 (ι.injective (Subtype.ext h'))

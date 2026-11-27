@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.System
 public import TauCeti.Topology.VectorBundle.EulerClass
+public import SymplecticGeometry.Topology.VectorBundle.ZeroSection
 
 /-!
 # Restricting a class of the Thom pair to a point of the zero section
@@ -30,10 +31,6 @@ space is `zeroSectionCompl`, not the complement of a set), so this map is define
 
 ## Main results
 
-* `TauCeti.zeroSectionCompl_subset_compl_singleton_zeroSection`: the nonzero vectors lie off
-  `0_b`.
-* `TauCeti.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
-  of `0_b`.
 * `SymplecticGeometry.thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap`:
   for a set `S` containing the complement of `0_b`, reading a class of the Thom pair relative to
   `S` factors through its local class at `0_b`. With `S = E ∖ 0 ∪ E ∖ E_b`
@@ -53,35 +50,6 @@ noncomputable section
 open Bundle CategoryTheory Limits Set TauCeti
 
 universe w v u
-
-namespace TauCeti
-
-/-- The points of the total space that are nonzero vectors or lie off the fibre over `b` are
-the points other than the zero vector `0_b`. -/
-theorem zeroSectionCompl_union_compl_preimage_singleton {B : Type*} {P : Type*}
-    {E : B → Type*} [∀ b, Zero (E b)] (b : B) :
-    zeroSectionCompl P E ∪ (π P E ⁻¹' {b})ᶜ = {zeroSection P E b}ᶜ := by
-  ext ⟨b', v⟩
-  simp only [mem_union, mem_zeroSectionCompl, mem_compl_iff, mem_preimage, mem_singleton_iff,
-    zeroSection, TotalSpace.mk.injEq, not_and]
-  constructor
-  · rintro (hv | hb) rfl
-    exacts [fun h ↦ hv (eq_of_heq h), (hb rfl).elim]
-  · intro h
-    by_cases hb : b' = b
-    · subst hb
-      exact Or.inl fun hv ↦ h rfl (heq_of_eq hv)
-    · exact Or.inr hb
-
-/-- The nonzero vectors of a bundle lie in the complement of the point `0_b` of the zero
-section. -/
-theorem zeroSectionCompl_subset_compl_singleton_zeroSection {B : Type*} (F : Type*)
-    (E : B → Type*) [∀ b, Zero (E b)] (b : B) :
-    zeroSectionCompl F E ⊆ {zeroSection F E b}ᶜ := by
-  rw [zeroSectionCompl_eq_compl_range]
-  exact compl_subset_compl.2 (singleton_subset_iff.2 (mem_range_self b))
-
-end TauCeti
 
 namespace SymplecticGeometry
 
