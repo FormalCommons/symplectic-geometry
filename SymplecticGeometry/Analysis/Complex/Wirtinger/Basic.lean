@@ -34,8 +34,6 @@ Facts about the Wirtinger derivatives `∂` and `\bar∂` that Tau Ceti's
 * `ContDiffAt.norm_fderiv_fderiv_apply_add_apply_I_smul_le`: for such `g`, the vector
   `D²g(x)(v, v) + D²g(x)(I • v, I • v)` has norm at most `4 ‖D\bar∂g(x)‖ ‖v‖²`, since by the
   symmetry of `D²g` it is `2 D\bar∂g(x)(v)(v) - 2 I • D\bar∂g(x)(I • v)(v)`.
-* `TauCeti.norm_conjWirtingerDeriv_le`: `‖\bar∂g(x)‖ ≤ ‖Dg(x)‖`, the operator-norm form of Tau
-  Ceti's `TauCeti.norm_conjWirtingerDeriv_apply_le`.
 * `TauCeti.norm_conjWirtingerDeriv_le_add_norm_fderiv_sub` and
   `TauCeti.norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub`: `\bar∂e₂`
   and its derivative are bounded by those of `e₁` plus the first and second derivatives of
@@ -147,12 +145,6 @@ open Topology
 
 variable {x : V}
 
-/-- The operator norm of the conjugate Wirtinger derivative is at most that of the real
-derivative. -/
-theorem norm_conjWirtingerDeriv_le (g : V → W) (x : V) :
-    ‖conjWirtingerDeriv g x‖ ≤ ‖fderiv ℝ g x‖ :=
-  ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) (norm_conjWirtingerDeriv_apply_le g x)
-
 /-- The conjugate Wirtinger derivative of `e₂` at `x` is at most that of `e₁` plus the norm of
 the derivative of `e₁ - e₂`, when both maps are real differentiable at `x`. -/
 theorem norm_conjWirtingerDeriv_le_add_norm_fderiv_sub {e₁ e₂ : V → W}
@@ -161,8 +153,9 @@ theorem norm_conjWirtingerDeriv_le_add_norm_fderiv_sub {e₁ e₂ : V → W}
   have hd : conjWirtingerDeriv e₂ x =
       conjWirtingerDeriv e₁ x - conjWirtingerDeriv (e₁ - e₂) x := by
     rw [← conjWirtingerDeriv_sub h₁ (h₁.sub h₂), sub_sub_cancel]
-  rw [hd]
-  exact (norm_sub_le _ _).trans (add_le_add le_rfl (norm_conjWirtingerDeriv_le _ x))
+  rw [hd, conjWirtingerDeriv_eq_complexAntilinearPart (g := e₁ - e₂)]
+  exact (norm_sub_le _ _).trans
+    (add_le_add le_rfl (fderiv ℝ (e₁ - e₂) x).norm_complexAntilinearPart_le)
 
 /-- The derivative at `x` of the conjugate Wirtinger derivative of `e₂`, in the bundled
 real-linear form `y ↦ complexAntilinearPartL (fderiv ℝ e₂ y)`, is at most that of `e₁` plus
