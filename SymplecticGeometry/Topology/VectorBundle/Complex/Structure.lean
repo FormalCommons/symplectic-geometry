@@ -22,7 +22,9 @@ same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres
   (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivConjOfAnticommute`).
 
 When `Φ` is continuous on total spaces, so are these equivalences, for any complex models of the
-two complex bundles.
+two complex bundles. The complex-linear case also holds over a map `g : B₁ → B₂` of bases, for
+real-linear equivalences `Ψ b : U₁ b ≃ U₂ (g b)`
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong`).
 
 In the same way, a frame of `V` along a map `f : X → B` by real-linear equivalences
 `Ψ x : E ≃ V (f x)` from a complex normed space, that carries multiplication by `I` to `J`, is a
@@ -149,6 +151,58 @@ theorem continuous_fiberEquivConjOfAnticommute
     ConjugateBundle.toConjHomeomorph_apply, fiberEquivConjOfAnticommute_apply]
 
 end Anticommute
+
+/-! ### Complex-linear maps over a map of bases -/
+
+section CommuteAlong
+
+variable {B₁ : Type*} [TopologicalSpace B₁] {B₂ : Type*} [TopologicalSpace B₂]
+  {U₁ : B₁ → Type*} [∀ b, AddCommGroup (U₁ b)] [∀ b, Module ℝ (U₁ b)]
+  [∀ b, TopologicalSpace (U₁ b)] [∀ b, IsTopologicalAddGroup (U₁ b)]
+  [∀ b, ContinuousSMul ℝ (U₁ b)] [TopologicalSpace (TotalSpace F₁ U₁)]
+  [FiberBundle F₁ U₁] [VectorBundle ℝ F₁ U₁]
+  {U₂ : B₂ → Type*} [∀ b, AddCommGroup (U₂ b)] [∀ b, Module ℝ (U₂ b)]
+  [∀ b, TopologicalSpace (U₂ b)] [∀ b, IsTopologicalAddGroup (U₂ b)]
+  [∀ b, ContinuousSMul ℝ (U₂ b)] [TopologicalSpace (TotalSpace F₂ U₂)]
+  [FiberBundle F₂ U₂] [VectorBundle ℝ F₂ U₂]
+  (K₁ : ContinuousComplexStructure F₁ U₁) (K₂ : ContinuousComplexStructure F₂ U₂)
+  (g : B₁ → B₂) (Ψ : ∀ b, U₁ b ≃L[ℝ] U₂ (g b)) (hΨ : ∀ b v, Ψ b (K₁ b v) = K₂ (g b) (Ψ b v))
+
+/-- A family of real-linear equivalences `Ψ b : U₁ b ≃ U₂ (g b)` over a map `g` of bases that
+intertwines `K₁` with `K₂`, as complex-linear equivalences `K₁.Fiber b ≃ K₂.Fiber (g b)`. Over
+the identity of the base this is `fiberEquivOfCommute`. -/
+def fiberEquivOfCommuteAlong (b : B₁) : K₁.Fiber b ≃L[ℂ] K₂.Fiber (g b) :=
+  ((K₁.fiberEquiv b).trans ((Ψ b).trans (K₂.fiberEquiv (g b)).symm)).complexOfMapISmul fun v ↦
+    (K₂.fiberEquiv (g b)).injective <| by simp [hΨ]
+
+theorem fiberEquivOfCommuteAlong_apply (b : B₁) (v : K₁.Fiber b) :
+    K₁.fiberEquivOfCommuteAlong K₂ g Ψ hΨ b v =
+      (K₂.fiberEquiv (g b)).symm (Ψ b (K₁.fiberEquiv b v)) := by
+  simp [fiberEquivOfCommuteAlong]
+
+@[simp]
+theorem fiberEquiv_fiberEquivOfCommuteAlong (b : B₁) (v : K₁.Fiber b) :
+    K₂.fiberEquiv (g b) (K₁.fiberEquivOfCommuteAlong K₂ g Ψ hΨ b v) =
+      Ψ b (K₁.fiberEquiv b v) := by
+  rw [fiberEquivOfCommuteAlong_apply, ContinuousLinearEquiv.apply_symm_apply]
+
+variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
+  [FiniteDimensional ℝ F₁] [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
+  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+  [FiniteDimensional ℝ F₂] [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
+
+/-- If `Ψ` is continuous on total spaces, so is `fiberEquivOfCommuteAlong`. -/
+theorem continuous_fiberEquivOfCommuteAlong
+    (hc : Continuous fun p : TotalSpace F₁ U₁ ↦ TotalSpace.mk' F₂ (E := U₂) (g p.proj)
+      (Ψ p.proj p.snd)) :
+    Continuous fun p : TotalSpace G₁ K₁.Fiber ↦ TotalSpace.mk' G₂ (E := K₂.Fiber) (g p.proj)
+      (K₁.fiberEquivOfCommuteAlong K₂ g Ψ hΨ p.proj p.snd) := by
+  refine ((K₂.totalSpaceHomeomorph G₂).symm.continuous.comp
+    (hc.comp (K₁.totalSpaceHomeomorph G₁).continuous)).congr fun p ↦ ?_
+  rw [Function.comp_apply, Function.comp_apply, totalSpaceHomeomorph_apply,
+    totalSpaceHomeomorph_symm_apply, fiberEquivOfCommuteAlong_apply]
+
+end CommuteAlong
 
 /-! ### Complex frames from real frames -/
 
