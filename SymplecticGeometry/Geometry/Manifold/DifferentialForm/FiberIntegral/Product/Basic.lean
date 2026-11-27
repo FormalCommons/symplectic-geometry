@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
@@ -347,9 +348,8 @@ theorem contMDiff_prodFiberIntegrand {EP HP P : Type*} [NormedAddCommGroup EP] [
     {g : P → B} (hg : ContMDiff K I n g) {X : Fin r → (p : P) → TangentSpace I (g p)}
     (hX : ∀ i, ContMDiff K I.tangent n fun p ↦ (⟨g p, X i p⟩ : TangentBundle I B)) :
     ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)) n
-      (fun q : P × F ↦ TotalSpace.mk' (E' [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2
-        (prodFiberIntegrand α (g q.1) (fun i ↦ X i q.1) q.2)) := by
+      (sliceSection fun p ↦ prodFiberIntegrand α (g p) (fun i ↦ X i p)) := by
+  rw [sliceSection_def]
   intro q₀
   rw [contMDiffAt_continuousAlternatingMap_bundle]
   refine ⟨contMDiffAt_snd, ?_⟩
