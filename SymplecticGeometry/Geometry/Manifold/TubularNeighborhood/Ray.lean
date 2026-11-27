@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Radius
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Real
 
 /-!
@@ -175,7 +176,7 @@ theorem exists_rayTube (γ : SmoothEmbedding 𝓘(ℝ) I ∞ ℝ M)
     simp only [e, Ψ, Diffeomorph.coe_trans, Function.comp_apply, hh_symm, S,
       vectorBundleScalarDiffeomorph_apply, map_smul]
   have hemb : IsSmoothEmbedding (𝓘(ℝ).prod 𝓘(ℝ, V)) I ∞ (Subtype.val ∘ e) :=
-    isSmoothEmbedding_subtypeVal_comp_iff.2 (e.isSmoothEmbedding_comp (by simp) .id)
+    isSmoothEmbedding_subtypeVal_comp_iff.2 (e.isSmoothEmbedding (by simp))
   let Φ := SmoothEmbedding.ofIsSmoothEmbedding _ hemb
   have hΦ (q : ℝ × V) : Φ q = Ψ (q.1, (r q.1 / 2) • q.2) :=
     (SmoothEmbedding.ofIsSmoothEmbedding_apply _ hemb q).trans (he q)
