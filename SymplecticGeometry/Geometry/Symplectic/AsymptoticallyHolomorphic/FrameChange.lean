@@ -75,7 +75,8 @@ polynomial in `‖z‖`.
   chart at `x`, composed with the derivative of the transition.
 * `SymplecticGeometry.RescaledUnitaryCharts.dbarReading_eq_frameChange_smul_comp`: the same for
   the `∂̄` readings, since the derivative of the transition intertwines `J` read in the two charts
-  (`TauCeti.IsComplexLinear.complexAntilinearPart_comp_right`).
+  (`SymplecticGeometry.RescaledUnitaryCharts.isComplexLinear_fderiv_chartTransition` and
+  `TauCeti.IsComplexLinear.complexAntilinearPart_comp_right`).
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: on a
   ball of radius `ρ₁ * √k`, the `r`-jet norm at `0` of the change of frame between the chart
   centred at `(D.chart k x)⁻¹ z` and the chart centred at `x` is at most `C * (1 + ‖z‖) ^ r`.
@@ -130,12 +131,9 @@ private theorem exists_jetNormAt_stdForm_sub_le (r : ℕ) (Cτ : ℝ) :
   have hjτ : jetNormAt ℝ r τ 0 ≤ (1 + r * |Cτ|) * (1 + ‖z‖) :=
     jetNormAt_le_mul_one_add_norm_of_norm_iteratedFDeriv_succ_le fun j hj ↦
       hCτ (j + 1) (by omega) (by omega)
-  have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) 0 ≤ (r + 1) * |Cτ| := by
-    have := jetNormAt_le_of_norm_iteratedFDeriv_succ_le (r := r + 1) (C := |Cτ|) fun j hj ↦
-      (hCτ (j + 1) (by omega) (by omega)).trans (le_abs_self Cτ)
-    rw [jetNormAt_succ] at this
-    push_cast at this
-    linarith
+  have hjDτ : jetNormAt ℝ r (fderiv ℝ τ) 0 ≤ (r + 1) * |Cτ| :=
+    jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le fun j hj ↦
+      hCτ (j + 1) (by omega) (by omega)
   refine (jetNormAt_add_le (g := -g) hB1 hg.neg).trans ?_
   rw [jetNormAt_neg]
   have h1 : jetNormAt ℝ r (⇑(B 1)) 0 ≤ ‖B 1‖ := by
@@ -415,16 +413,8 @@ theorem dbarReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm α) {
     D.dbarReading k y s w = D.frameChange k x y w •
       (D.dbarReading k x s (D.chartTransition k x y w)).comp
         (fderiv ℝ (D.chartTransition k x y) w) := by
-  -- `dτ_w` intertwines `J` read in the chart at `y` at `w` and in the chart at `x` at `τ w`.
-  have hT : IsComplexLinear
-      (J.chartPushforward (D.chart k y).toOpenPartialHomeomorph w : StdSpace ι →ₗ[ℝ] StdSpace ι)
-      (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chartTransition k x y w) :
-        StdSpace ι →ₗ[ℝ] StdSpace ι)
-      (fderiv ℝ (D.chartTransition k x y) w : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
-    have h := J.chartPushforward_symm_trans_comp_fderiv (D.chart k y) (D.chart k x)
-      (by rw [← chartTransition_def]; exact D.chartTransitionDomain_subset_source k x y hw)
-    rw [← chartTransition_def] at h
-    exact isComplexLinear_of_apply fun v ↦ (DFunLike.congr_fun h v).symm
+  have hT :=
+    D.isComplexLinear_fderiv_chartTransition (D.chartTransitionDomain_subset_source k x y hw)
   ext v
   have h := LinearMap.congr_fun (hT.complexAntilinearPart_comp_right
     (J' := (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap)
