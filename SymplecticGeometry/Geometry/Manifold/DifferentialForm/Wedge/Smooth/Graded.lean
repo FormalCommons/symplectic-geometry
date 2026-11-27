@@ -342,7 +342,7 @@ theorem mul_eq_zero_of_forall_or {γ δ : ⨁ k, SmoothForm I M ℝ k}
   refine Finset.sum_eq_zero fun i _ ↦ Finset.sum_eq_zero fun j _ ↦ ?_
   suffices wedge (γ i) (δ j) = 0 by rw [of_mul_of_eq_of_wedge, this, map_zero]
   refine Subtype.ext (funext fun x ↦ ?_)
-  rw [ZeroMemClass.coe_zero, Pi.zero_apply]
+  rw [SmoothBundleForm.zero_apply]
   rcases h x with hx | hx
   · exact wedge_val_eq_zero_of_left (hx i) _
   · exact wedge_val_eq_zero_of_right _ (hx j)
