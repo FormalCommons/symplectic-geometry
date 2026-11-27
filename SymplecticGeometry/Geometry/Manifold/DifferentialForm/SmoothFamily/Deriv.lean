@@ -10,7 +10,6 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # The derivative in the parameter of a smooth family of forms
@@ -21,8 +20,8 @@ along the projection `(p, y) ↦ y` (the form in which Tau Ceti's
 `TauCeti.contMDiff_mpullback_prodMk_form` gives the slices of a form on a product).
 
 * `TauCeti.ContMDiffAt.roughForm_family_apply`: at a fixed `y₀`, the value `β p y₀` is `C^n` in
-  `p`. The model space of `F` may have any dimension here; the tangent trivialization at `y₀` is
-  undone by precomposing with its inverse on the fibre.
+  `p`. The model space of `F` may have any dimension here; the trivialization at `y₀` of the bundle
+  of `k`-forms is undone by its inverse `Trivialization.symmL` on the fibre.
 * `TauCeti.ContMDiffAt.roughForm_family_apply_trivializationAt`: for a finite-dimensional model
   space, the values of `β p y` on the frame `e.symmL y ∘ v` of the tangent trivialization `e` of
   `F` at `y₀`, for a fixed tuple `v` of model vectors, are `C^n` in `(p, y)` at each point over
@@ -74,24 +73,16 @@ theorem ContMDiffAt.roughForm_family_apply [IsManifold J 1 F] {n : WithTop ℕ�
   have hc := (contMDiffAt_totalSpace_iff.1 (hβ.comp q₀.1
     (contMDiffAt_id.prodMk contMDiffAt_const :
       ContMDiffAt K (K.prod J) n (fun p ↦ (p, q₀.2)) q₀.1))).2
-  simp only [Function.comp_apply, id_eq,
-    FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd] at hc
-  -- Undo the trivialization at `q₀.2` by precomposing with its inverse on the fibre.
+  -- Undo the trivialization at `q₀.2` of the bundle of forms by its inverse on the fibre.
+  have hb := mem_baseSet_trivializationAt (E [⋀^Fin k]→L[ℝ] G)
+    (fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y) q₀.2
   let L : (E [⋀^Fin k]→L[ℝ] G) →L[ℝ] E [⋀^Fin k]→L[ℝ] G :=
-    ContinuousAlternatingMap.compContinuousLinearMapCLM
-      ((trivializationAt E (TangentSpace J) q₀.2).continuousLinearMapAt ℝ q₀.2)
-  have hL (φ : E [⋀^Fin k]→L[ℝ] G) : L φ = φ.compContinuousLinearMap
-      ((trivializationAt E (TangentSpace J) q₀.2).continuousLinearMapAt ℝ q₀.2) :=
-    ContinuousAlternatingMap.compContinuousLinearMapCLM_apply _ φ
+    (trivializationAt (E [⋀^Fin k]→L[ℝ] G)
+      (fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y) q₀.2).symmL ℝ q₀.2
   refine (L.contMDiff.contMDiffAt.comp q₀.1 hc).congr_of_eventuallyEq
     (Filter.Eventually.of_forall fun p ↦ ?_)
-  rw [Function.comp_apply, hL]
-  ext v
-  -- `β p q₀.2` acts on `TangentSpace J q₀.2`, which is `E` only by definition, so the goal
-  -- cannot be rewritten with `ContinuousAlternatingMap.compContinuousLinearMap_apply`; both
-  -- sides are `β p q₀.2` applied to the same vectors up to that definitional unfolding.
-  exact congrArg (β p q₀.2) (funext fun i ↦ (Trivialization.symmL_continuousLinearMapAt (R := ℝ)
-    (trivializationAt E (TangentSpace J) q₀.2) (mem_baseSet_trivializationAt E _ q₀.2) (v i)).symm)
+  exact ((Trivialization.symmL_apply _ hb _).trans
+    (Trivialization.symm_apply_apply_mk _ hb _)).symm
 
 variable [FiniteDimensional ℝ E]
 
