@@ -1092,7 +1092,7 @@ The structure, in the namespace `SymplecticGeometry`, for levels
 `a₀ < a < b`:
 
 ```lean
-structure BandCore (g : M → ℝ) (a₀ a b : ℝ) where
+structure BandCore (I : ModelWithCorners ℝ E H) (g : M → ℝ) (a₀ a b : ℝ) where
   ι : Type
   [fintype : Fintype ι]
   dim : ι → ℕ
@@ -1120,10 +1120,9 @@ in a map sending `{g ≤ b}` into `U`. The sketch omits docstrings and the
 instance attribute on `fintype`. The API: `BandCore.cubes`, the union of
 the cubes, with `isCompact_cubes` and `cubes_subset` (they lie above `a₀`);
 and the example `BandCore.ofNoCriticalPoint`, the band core without cubes
-when `g` is proper with no critical value in `[a₀, b]`. Its compression is
-the flow of a field that vanishes near `{g ≤ a}`, lowers `g` at unit speed
-through the rest of the band and is cut off above `b`, built as in Tau Ceti's
-`exists_flow_apply_eq_sub` (`Geometry/Manifold/Morse/Deformation.lean`).
+when `g` is smooth and the band `g⁻¹[a, b]` is compact with no critical
+point (for any `a₀`). Its compression is `TauCeti.Diffeotopy.smoothIsotopy`
+of the diffeotopy `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`.
 
 #### `Morse/Core/Cube.lean`
 
