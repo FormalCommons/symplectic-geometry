@@ -410,6 +410,13 @@ theorem stdComplexStructure_complexToRealEuclidean (v : ι → ℂ) :
   rw [stdComplexStructure_def, AlmostComplexStructure.transport_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
 
+/-- `(complexToRealEuclidean ι).symm` carries `J₀` to multiplication by `I` on `ι → ℂ`. -/
+theorem complexToRealEuclidean_symm_stdComplexStructure (v : StdSpace ι) :
+    (complexToRealEuclidean ι).symm (stdComplexStructure ι v) =
+      Complex.I • (complexToRealEuclidean ι).symm v := by
+  rw [(complexToRealEuclidean ι).symm_apply_eq, ← stdComplexStructure_complexToRealEuclidean,
+    ContinuousLinearEquiv.apply_symm_apply]
+
 /-- The standard symplectic form of `ι → ℂ` is the imaginary part of the Hermitian product:
 `ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/
 theorem _root_.TauCeti.stdComplexPiSymplecticForm_apply_eq_im (z w : ι → ℂ) :

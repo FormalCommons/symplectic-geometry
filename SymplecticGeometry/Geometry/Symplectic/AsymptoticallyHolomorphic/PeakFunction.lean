@@ -8,13 +8,14 @@ module
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
-# Cut-off Gaussians and their uniform jet bounds
+# Cut-off Gaussians, their uniform jet bounds and their model `∂̄`
 
 The flat model of the peak sections of Donaldson and Auroux. For `k : ℕ` and a point `z` of a
 real normed space, `SymplecticGeometry.peakFunction k z` is the complex number
@@ -31,6 +32,8 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
 * `SymplecticGeometry.peakCutoff`: the cut-off `t ↦ smoothTransition (2 - t)`.
 * `SymplecticGeometry.peakFunction`: the cut-off Gaussian.
 * `SymplecticGeometry.peakFunction_mul`: a complex coordinate times the cut-off Gaussian.
+* `SymplecticGeometry.modelDbar`: the model `∂̄` of a complex function on `StdSpace ι`, the
+  complex-antilinear part for `J₀` of `v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`.
 
 ## Main results
 
@@ -49,6 +52,14 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.exists_jetNormAt_peakFunction_mul_le`: the **uniform Gaussian jet bounds**,
   `jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` with `C`, `N` and
   `c > 0` independent of `k` and `z`, and the same for `peakFunction_mul k j`, uniformly in `j`.
+* `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
+  for the model `∂̄`, and its form for a product with a complex coordinate.
+* `SymplecticGeometry.modelDbar_gaussian`, `SymplecticGeometry.modelDbar_coord_mul_gaussian`: the
+  Gaussian `exp (-‖z‖ ^ 2 / 4)` and `z_j` times it have model `∂̄` zero.
+* `SymplecticGeometry.exists_jetNormAt_modelDbar_peakFunction_le`,
+  `SymplecticGeometry.exists_jetNormAt_modelDbar_peakFunction_mul_le`: the **model `∂̄` bounds**,
+  `jetNormAt ℝ r (modelDbar (peakFunction k)) z ≤ C * k ^ (-1 / 2) * (1 + ‖z‖) ^ N *
+  exp (-c * ‖z‖ ^ 2)` for `k ≥ 1`, and the same for `peakFunction_mul k j`, uniformly in `j`.
 
 ## Implementation notes
 
@@ -60,6 +71,13 @@ The jet norms of the Gaussian are bounded by `exists_jetNormAt_exp_neg_mul_norm_
 products by `jetNormAt_fun_smul_le`. The complex coordinates are Tau Ceti's
 `complexToRealEuclidean` followed by a projection, `TauCeti.complexToRealEuclideanCoord`.
 
+That the Gaussian has model `∂̄` zero rests on the sign convention `ω₀(z, v) = ⟪J₀ z, v⟫`
+(`stdForm_apply_eq_inner`): the derivative `-½ ⟪z, ·⟫ g` of the Gaussian `g` and the connection
+term `-½ i ω₀(z, ·) g` add up to a complex-linear form. By the Leibniz rule the model `∂̄` of the
+cut-off Gaussian is the Gaussian times the flat `∂̄` of the cut-off, whose jets vanish off the
+annulus `k ^ (1 / 6) ≤ ‖z‖ ≤ 2 * k ^ (1 / 6)`. On that annulus `k ^ (1 / 2) ≤ ‖z‖ ^ 3`, which
+gives the factor `k ^ (-1 / 2)` at the cost of the power `(1 + ‖z‖) ^ 3`.
+
 ## References
 
 * [D. Auroux, *A remark about Donaldson's construction of symplectic submanifolds*][Auroux2002],
@@ -69,7 +87,7 @@ products by `jetNormAt_fun_smul_le`. The complex coordinates are Tau Ceti's
 
 public section
 
-open Metric
+open Metric TauCeti
 
 namespace SymplecticGeometry
 
@@ -308,6 +326,334 @@ theorem exists_jetNormAt_peakFunction_mul_le (r : ℕ) :
   calc (2 : ℝ) ^ r * jetNormAt ℝ r L z * jetNormAt ℝ r (peakFunction k) z
       ≤ 2 ^ r * (1 + ‖z‖) * (C * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) := by
         exact mul_le_mul (mul_le_mul_of_nonneg_left hL (by positivity)) (h k z)
+          (jetNormAt_nonneg _ _ _) (by positivity)
+    _ = _ := by ring
+
+/-! ### The model `∂̄` -/
+
+/-- The **model `∂̄`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
+complex-antilinear part `TauCeti.complexAntilinearPart`, for `J₀ = stdComplexStructure ι` and
+multiplication by `i` on `ℂ`, of the model connection reading
+`v ↦ df_z v - (ω₀(z, v) / 2) • (i f(z))`, with `ω₀ = stdForm ι`. This is the formula of
+`RescaledUnitaryCharts.connectionReading` and `RescaledUnitaryCharts.dbarReading` with the
+structure of the chart replaced by `J₀`. -/
+noncomputable def modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
+  LinearMap.toContinuousLinearMap (complexAntilinearPart
+    (stdComplexStructure ι).toLinearMap
+    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+    ((fderiv ℝ f z - ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap
+      ((stdForm ι).toBilinForm z)).smulRight (Complex.I * f z) : StdSpace ι →L[ℝ] ℂ) :
+      StdSpace ι →ₗ[ℝ] ℂ))
+
+theorem modelDbar_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDbar f z = LinearMap.toContinuousLinearMap (complexAntilinearPart
+      (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      ((fderiv ℝ f z - ((2⁻¹ : ℝ) • LinearMap.toContinuousLinearMap
+        ((stdForm ι).toBilinForm z)).smulRight (Complex.I * f z) : StdSpace ι →L[ℝ] ℂ) :
+        StdSpace ι →ₗ[ℝ] ℂ)) :=
+  (rfl)
+/-- The model `∂̄` of `f` at `z`, applied to `v`, is the flat `∂̄`, `½ (df_z v + i df_z (J₀ v))`,
+plus `¼ (⟪z, v⟫ - i ω₀(z, v)) f(z)`. -/
+theorem modelDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    modelDbar f z v =
+      (2⁻¹ : ℝ) • (fderiv ℝ f z v + Complex.I * fderiv ℝ f z (stdComplexStructure ι v)) +
+        (4⁻¹ : ℝ) • ((inner ℝ z v : ℝ) - Complex.I * (stdForm ι z v : ℝ)) * f z := by
+  simp only [modelDbar_def, LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+    AlmostComplexStructure.ofComplexModule_apply, ContinuousLinearMap.coe_coe,
+    sub_apply, ContinuousLinearMap.smulRight_apply,
+    smul_apply, map_sub, smul_eq_mul, stdForm_apply_stdComplexStructure, Complex.real_smul]
+  push_cast
+  linear_combination (-(4⁻¹ : ℂ) * f z * (inner ℝ z v : ℂ)) * Complex.I_sq
+
+/-- The model `∂̄` obeys the Leibniz rule. -/
+theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) :
+    modelDbar (fun y ↦ f y * g y) z = f z • modelDbar g z +
+      g z • LinearMap.toContinuousLinearMap (complexAntilinearPart
+        (stdComplexStructure ι).toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (fderiv ℝ f z : StdSpace ι →ₗ[ℝ] ℂ)) := by
+  ext v
+  rw [add_apply, smul_apply, smul_apply, modelDbar_apply, modelDbar_apply, fderiv_fun_mul hf hg]
+  simp only [add_apply,
+    smul_apply, LinearMap.coe_toContinuousLinearMap',
+    complexAntilinearPart_apply, AlmostComplexStructure.ofComplexModule_apply,
+    ContinuousLinearMap.coe_coe, smul_eq_mul, Complex.real_smul]
+  push_cast
+  ring
+
+/-- The complex-antilinear part for `J₀` and multiplication by `i`, as a continuous linear
+operator on `StdSpace ι →L[ℝ] ℂ`. -/
+private noncomputable def antilinearPartL : (StdSpace ι →L[ℝ] ℂ) →L[ℝ] StdSpace ι →L[ℝ] ℂ :=
+  LinearMap.toContinuousLinearMap
+    { toFun := fun φ ↦ LinearMap.toContinuousLinearMap (complexAntilinearPart
+        (stdComplexStructure ι).toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (φ : StdSpace ι →ₗ[ℝ] ℂ))
+      map_add' := fun φ ψ ↦ by
+        ext v
+        simp only [LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+          add_apply, ContinuousLinearMap.coe_coe,
+          AlmostComplexStructure.ofComplexModule_apply, ContinuousLinearMap.toLinearMap_add,
+          LinearMap.add_apply, map_add, smul_add]
+        abel
+      map_smul' := fun c φ ↦ by
+        ext v
+        simp only [LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+          ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply,
+          ContinuousLinearMap.toLinearMap_smul, LinearMap.smul_apply, RingHom.id_apply,
+          smul_apply, smul_add, smul_comm c] }
+
+private theorem antilinearPartL_apply (φ : StdSpace ι →L[ℝ] ℂ) :
+    antilinearPartL φ = LinearMap.toContinuousLinearMap (complexAntilinearPart
+        (stdComplexStructure ι).toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (φ : StdSpace ι →ₗ[ℝ] ℂ)) :=
+  (rfl)
+
+/-- The derivative of the Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function. -/
+private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
+    fderiv ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z v =
+      (-(2⁻¹ * inner ℝ z v) : ℝ) * Real.exp (-‖z‖ ^ 2 / 4) := by
+  have h0 : HasFDerivAt (fun y : StdSpace ι ↦ ‖y‖ ^ 2) (2 • innerSL ℝ z) z :=
+    (hasStrictFDerivAt_norm_sq z).hasFDerivAt
+  have h1 : HasFDerivAt (fun y : StdSpace ι ↦ -‖y‖ ^ 2 / 4) ((-4⁻¹ : ℝ) • (2 • innerSL ℝ z)) z := by
+    convert h0.const_smul (-4⁻¹ : ℝ) using 1
+    ext y
+    simp only [Pi.smul_apply, smul_eq_mul]
+    ring
+  have h2 := (Complex.ofRealCLM.hasFDerivAt).comp z h1.exp
+  rw [show (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) =
+    Complex.ofRealCLM ∘ fun y ↦ Real.exp (-‖y‖ ^ 2 / 4) from rfl, h2.fderiv]
+  simp only [ContinuousLinearMap.comp_apply, smul_apply, innerSL_apply_apply,
+    Complex.ofRealCLM_apply, smul_eq_mul, nsmul_eq_mul]
+  push_cast
+  ring
+
+/-- **The Gaussian is model-holomorphic**: the model `∂̄` of `z ↦ exp (-‖z‖ ^ 2 / 4)` vanishes. -/
+theorem modelDbar_gaussian :
+    modelDbar (fun z : StdSpace ι ↦ (Real.exp (-‖z‖ ^ 2 / 4) : ℂ)) = 0 := by
+  ext z v
+  have h : inner ℝ z (stdComplexStructure ι v) = -inner ℝ (stdComplexStructure ι z) v := by
+    rw [← inner_stdComplexStructure_stdComplexStructure z, AlmostComplexStructure.apply_apply,
+      inner_neg_right]
+  rw [modelDbar_apply, fderiv_gaussian_apply, fderiv_gaussian_apply, stdForm_apply_eq_inner, h]
+  simp only [Complex.real_smul, zero_apply, Pi.zero_apply]
+  push_cast
+  ring
+
+/-- The flat `∂̄` of the complex coordinate `z_j` vanishes: it is complex linear for `J₀`. -/
+private theorem complexAntilinearPart_complexToRealEuclideanCoord (j : ι) :
+    complexAntilinearPart (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      (TauCeti.complexToRealEuclideanCoord ι j : StdSpace ι →ₗ[ℝ] ℂ) = 0 := by
+  ext v
+  simp only [complexAntilinearPart_apply, ContinuousLinearMap.coe_coe,
+    AlmostComplexStructure.ofComplexModule_apply, TauCeti.complexToRealEuclideanCoord_apply,
+    complexToRealEuclidean_symm_stdComplexStructure, Pi.smul_apply, smul_eq_mul,
+    LinearMap.zero_apply]
+  rw [← mul_assoc, Complex.I_mul_I, neg_one_mul, add_neg_cancel, smul_zero]
+
+/-- The model `∂̄` of `z_j` times `f` is `z_j` times the model `∂̄` of `f`. -/
+theorem modelDbar_coord_mul {f : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (j : ι) :
+    modelDbar (fun y ↦ (complexToRealEuclidean ι).symm y j * f y) z =
+      (complexToRealEuclidean ι).symm z j • modelDbar f z := by
+  have hL := (TauCeti.complexToRealEuclideanCoord ι j).differentiableAt (x := z)
+  simp only [← TauCeti.complexToRealEuclideanCoord_apply]
+  rw [modelDbar_mul hL hf, (TauCeti.complexToRealEuclideanCoord ι j).fderiv,
+    complexAntilinearPart_complexToRealEuclideanCoord]
+  ext v
+  simp
+
+/-- **`z_j` times the Gaussian is model-holomorphic**. -/
+theorem modelDbar_coord_mul_gaussian (j : ι) :
+    modelDbar (fun z : StdSpace ι ↦
+      (complexToRealEuclidean ι).symm z j * (Real.exp (-‖z‖ ^ 2 / 4) : ℂ)) = 0 := by
+  ext z : 1
+  have hG : ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) :=
+    Complex.ofRealCLM.contDiff.comp (Real.contDiff_exp.comp
+      ((contDiff_norm_sq ℝ).neg.div_const 4))
+  rw [modelDbar_coord_mul (hG.differentiable one_ne_zero z) j, modelDbar_gaussian, Pi.zero_apply]
+  ext v
+  simp
+
+/-- The flat `∂̄` of the scaled cut-off `z ↦ χ (‖z‖ / s)`, as a function of the point. -/
+private noncomputable def cutoffDbar (s : ℝ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
+  antilinearPartL (fderiv ℝ (fun y : StdSpace ι ↦ ((peakCutoff (‖y‖ / s) : ℝ) : ℂ)) z)
+
+private theorem contDiff_cutoffDbar {n : ℕ∞} {s : ℝ} (hs : 0 ≤ s) :
+    ContDiff ℝ n (cutoffDbar (ι := ι) s) := by
+  have hχ : ContDiff ℝ ((n + 1 : ℕ∞) : WithTop ℕ∞) fun y : StdSpace ι ↦
+      ((peakCutoff (‖y‖ / s) : ℝ) : ℂ) :=
+    Complex.ofRealCLM.contDiff.comp (contDiff_peakCutoff_norm_div hs)
+  exact (antilinearPartL (ι := ι)).contDiff.comp (hχ.fderiv_right (m := n) (by norm_cast))
+
+/-- The jet norms of the flat `∂̄` of the scaled cut-offs are bounded uniformly in `s`, for `s`
+equal to `0` or at least `1`. -/
+private theorem exists_jetNormAt_cutoffDbar_le (r : ℕ) :
+    ∃ A, ∀ s : ℝ, (s = 0 ∨ 1 ≤ s) → ∀ z : StdSpace ι, jetNormAt ℝ r (cutoffDbar s) z ≤ A := by
+  obtain ⟨A, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := StdSpace ι) (r + 1)
+  refine ⟨‖(antilinearPartL : (StdSpace ι →L[ℝ] ℂ) →L[ℝ] _)‖ * A, fun s hs z ↦ ?_⟩
+  have hs0 : 0 ≤ s := by rcases hs with rfl | hs <;> linarith
+  have hχ : ContDiff ℝ (r + 1) fun y : StdSpace ι ↦ peakCutoff (‖y‖ / s) :=
+    contDiff_peakCutoff_norm_div hs0
+  have hχC : ContDiff ℝ (r + 1) (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦ peakCutoff (‖y‖ / s)) :=
+    Complex.ofRealCLM.contDiff.comp hχ
+  have h1 : jetNormAt ℝ r (cutoffDbar (ι := ι) s) z ≤
+      ‖(antilinearPartL : (StdSpace ι →L[ℝ] ℂ) →L[ℝ] _)‖ *
+        jetNormAt ℝ r (fderiv ℝ (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦
+          peakCutoff (‖y‖ / s))) z :=
+    jetNormAt_comp_left_le _ (hχC.fderiv_right le_rfl).contDiffAt
+  have h2 : jetNormAt ℝ r (fderiv ℝ (Complex.ofRealCLM ∘ fun y : StdSpace ι ↦
+      peakCutoff (‖y‖ / s))) z ≤ A := by
+    have h := jetNormAt_comp_left_le Complex.ofRealCLM hχ.contDiffAt (z := z)
+    rw [Complex.ofRealCLM_norm, one_mul, jetNormAt_succ] at h
+    linarith [hA s hs z, norm_nonneg ((Complex.ofRealCLM ∘ fun y : StdSpace ι ↦
+      peakCutoff (‖y‖ / s)) z)]
+  exact h1.trans (mul_le_mul_of_nonneg_left h2 (by positivity))
+
+/-- The flat `∂̄` of the scaled cut-off has vanishing jets off the annulus `s ≤ ‖z‖ ≤ 2 s`. -/
+private theorem jetNormAt_cutoffDbar_eq_zero (r : ℕ) {s : ℝ} (hs : 0 < s) {z : StdSpace ι}
+    (hz : ‖z‖ < s ∨ 2 * s < ‖z‖) : jetNormAt ℝ r (cutoffDbar s) z = 0 := by
+  -- On each of the two open sets, the cut-off is constant, so its derivative vanishes.
+  have key : ∀ U : Set (StdSpace ι), IsOpen U → z ∈ U → (∃ c : ℝ, ∀ y ∈ U,
+      peakCutoff (‖y‖ / s) = c) → jetNormAt ℝ r (cutoffDbar s) z = 0 := by
+    rintro U hU hzU ⟨c, hc⟩
+    have h : cutoffDbar (ι := ι) s =ᶠ[nhds z] fun _ ↦ 0 := by
+      filter_upwards [hU.mem_nhds hzU] with y hy
+      have hconst : (fun y : StdSpace ι ↦ ((peakCutoff (‖y‖ / s) : ℝ) : ℂ)) =ᶠ[nhds y]
+          fun _ ↦ (c : ℂ) := by
+        filter_upwards [hU.mem_nhds hy] with w hw
+        rw [hc w hw]
+      rw [cutoffDbar, hconst.fderiv_eq, fderiv_const_apply, map_zero]
+    rw [jetNormAt_congr_of_eventuallyEq r h, jetNormAt_const, norm_zero]
+  rcases hz with hz | hz
+  · refine key {y | ‖y‖ < s} (isOpen_lt continuous_norm continuous_const) hz ⟨1, fun y hy ↦ ?_⟩
+    exact peakCutoff_of_le_one ((div_le_one hs).2 (le_of_lt hy))
+  · refine key {y | 2 * s < ‖y‖} (isOpen_lt continuous_const continuous_norm) hz
+      ⟨0, fun y hy ↦ ?_⟩
+    exact peakCutoff_of_two_le ((le_div_iff₀ hs).2 (le_of_lt hy))
+
+/-- On the standard space, the model `∂̄` of the cut-off Gaussian is the Gaussian times the flat
+`∂̄` of the cut-off. -/
+private theorem modelDbar_peakFunction_eq (k : ℕ) :
+    modelDbar (peakFunction (E := StdSpace ι) k) =
+      fun z ↦ Real.exp (-‖z‖ ^ 2 / 4) • cutoffDbar ((k : ℝ) ^ (1 / 6 : ℝ)) z := by
+  have hχ : ContDiff ℝ 1 fun y : StdSpace ι ↦
+      ((peakCutoff (‖y‖ / (k : ℝ) ^ (1 / 6 : ℝ)) : ℝ) : ℂ) :=
+    Complex.ofRealCLM.contDiff.comp (contDiff_peakCutoff_norm_div (by positivity))
+  have hG : ContDiff ℝ 1 fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) :=
+    Complex.ofRealCLM.contDiff.comp (Real.contDiff_exp.comp
+      ((contDiff_norm_sq ℝ).neg.div_const 4))
+  have hP : peakFunction (E := StdSpace ι) k = fun y ↦
+      ((peakCutoff (‖y‖ / (k : ℝ) ^ (1 / 6 : ℝ)) : ℝ) : ℂ) * (Real.exp (-‖y‖ ^ 2 / 4) : ℂ) := by
+    ext y
+    rw [peakFunction_def, Complex.ofReal_mul]
+  ext z : 1
+  rw [hP, modelDbar_mul (hχ.differentiable one_ne_zero z) (hG.differentiable one_ne_zero z),
+    modelDbar_gaussian, cutoffDbar, antilinearPartL_apply]
+  ext v
+  simp only [Complex.real_smul, add_apply, smul_apply, Pi.zero_apply, zero_apply,
+    LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+    ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul,
+    Complex.ofReal_inv, Complex.ofReal_ofNat, mul_zero, zero_add]
+
+/-- The model `∂̄` of the cut-off Gaussian is smooth. -/
+theorem contDiff_modelDbar_peakFunction {n : ℕ∞} (k : ℕ) :
+    ContDiff ℝ n (modelDbar (peakFunction (E := StdSpace ι) k)) := by
+  rw [modelDbar_peakFunction_eq]
+  exact (Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).neg.div_const 4)).smul
+    (contDiff_cutoffDbar (by positivity))
+
+/-- The **model `∂̄` bound** for the cut-off Gaussians: for every order `r` there are `C`, `N` and
+`c > 0` such that `jetNormAt ℝ r (modelDbar (peakFunction k)) z` is at most
+`C * k ^ (-1 / 2) * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` for all `k ≥ 1` and all `z`. -/
+theorem exists_jetNormAt_modelDbar_peakFunction_le (r : ℕ) :
+    ∃ C N, ∃ c > 0, ∀ k : ℕ, 1 ≤ k → ∀ z : StdSpace ι,
+      jetNormAt ℝ r (modelDbar (peakFunction k)) z ≤
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2) := by
+  obtain ⟨A, hA⟩ := exists_jetNormAt_cutoffDbar_le (ι := ι) r
+  obtain ⟨B, hB⟩ := exists_jetNormAt_exp_neg_mul_norm_sq_le (E := StdSpace ι) r (a := 1 / 4)
+    (by norm_num)
+  have hG : (fun z : StdSpace ι ↦ Real.exp (-(1 / 4 * ‖z‖ ^ 2))) =
+      fun z ↦ Real.exp (-‖z‖ ^ 2 / 4) := by
+    ext z
+    ring_nf
+  have hG' (z : StdSpace ι) : Real.exp (-(1 / 4 * ‖z‖ ^ 2) / 2) = Real.exp (-‖z‖ ^ 2 / 8) := by
+    ring_nf
+  simp_rw [hG, hG'] at hB
+  refine ⟨2 ^ r * B * A, 3, 1 / 8, by norm_num, fun k hk z ↦ ?_⟩
+  set s := (k : ℝ) ^ (1 / 6 : ℝ)
+  have hk0 : (0 : ℝ) < k := by exact_mod_cast hk
+  have hs1 : 1 ≤ s := Real.one_le_rpow (by exact_mod_cast hk) (by norm_num)
+  have hs0 : 0 < s := zero_lt_one.trans_le hs1
+  -- Off the annulus `s ≤ ‖z‖ ≤ 2 s` the jets vanish; on it, `k ^ (1 / 2) = s ^ 3 ≤ ‖z‖ ^ 3`.
+  have hD : jetNormAt ℝ r (cutoffDbar (ι := ι) s) z ≤
+      A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3 := by
+    by_cases hz : ‖z‖ < s ∨ 2 * s < ‖z‖
+    · rw [jetNormAt_cutoffDbar_eq_zero r hs0 hz]
+      have := (jetNormAt_nonneg (𝕜 := ℝ) r (cutoffDbar (ι := ι) s) z).trans (hA s (.inr hs1) z)
+      positivity
+    · have hsz : s ≤ ‖z‖ := le_of_not_gt fun h ↦ hz (.inl h)
+      have hs3 : (k : ℝ) ^ (1 / 2 : ℝ) = s ^ 3 := by
+        rw [← Real.rpow_natCast, ← Real.rpow_mul hk0.le]
+        norm_num
+      have h1 : 1 ≤ (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3 := by
+        calc (1 : ℝ) = (k : ℝ) ^ (-1 / 2 : ℝ) * (k : ℝ) ^ (1 / 2 : ℝ) := by
+              rw [← Real.rpow_add hk0]
+              norm_num
+          _ ≤ (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3 := by
+              rw [hs3]
+              gcongr
+              linarith
+      have hA0 : 0 ≤ A :=
+        (jetNormAt_nonneg (𝕜 := ℝ) r (cutoffDbar (ι := ι) s) z).trans (hA s (.inr hs1) z)
+      calc jetNormAt ℝ r (cutoffDbar (ι := ι) s) z ≤ A * 1 := by
+            rw [mul_one]
+            exact hA s (.inr hs1) z
+        _ ≤ A * ((k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3) := by gcongr
+        _ = _ := by ring
+  have hg : ContDiff ℝ r fun z : StdSpace ι ↦ Real.exp (-‖z‖ ^ 2 / 4) :=
+    Real.contDiff_exp.comp ((contDiff_norm_sq ℝ).neg.div_const 4)
+  rw [modelDbar_peakFunction_eq]
+  refine (jetNormAt_fun_smul_le hg.contDiffAt
+    (contDiff_cutoffDbar (ι := ι) (n := r) hs0.le).contDiffAt).trans ?_
+  calc (2 : ℝ) ^ r * jetNormAt ℝ r (fun z : StdSpace ι ↦ Real.exp (-‖z‖ ^ 2 / 4)) z *
+        jetNormAt ℝ r (cutoffDbar s) z
+      ≤ 2 ^ r * (B * Real.exp (-‖z‖ ^ 2 / 8)) * (A * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ 3) :=
+        mul_le_mul (mul_le_mul_of_nonneg_left (hB z) (by positivity)) hD
+          (jetNormAt_nonneg _ _ _)
+          (mul_nonneg (by positivity) ((jetNormAt_nonneg _ _ _).trans (hB z)))
+    _ = _ := by ring_nf
+
+/-- The **model `∂̄` bound** for the coordinates times the cut-off Gaussians: for every order `r`
+there are `C`, `N` and `c > 0` such that `jetNormAt ℝ r (modelDbar (peakFunction_mul k j)) z` is
+at most `C * k ^ (-1 / 2) * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` for all `k ≥ 1`, `j` and `z`. -/
+theorem exists_jetNormAt_modelDbar_peakFunction_mul_le (r : ℕ) :
+    ∃ C N, ∃ c > 0, ∀ k : ℕ, 1 ≤ k → ∀ (j : ι) (z : StdSpace ι),
+      jetNormAt ℝ r (modelDbar (peakFunction_mul k j)) z ≤
+        C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2) := by
+  obtain ⟨C, N, c, hc, h⟩ := exists_jetNormAt_modelDbar_peakFunction_le (ι := ι) r
+  refine ⟨2 ^ r * C, N + 1, c, hc, fun k hk j z ↦ ?_⟩
+  set L := TauCeti.complexToRealEuclideanCoord ι j
+  have hL : jetNormAt ℝ r L z ≤ 1 + ‖z‖ := by
+    refine (jetNormAt_continuousLinearMap_le _ r z).trans ?_
+    have := TauCeti.norm_complexToRealEuclidean_symm_apply_le z j
+    have := TauCeti.norm_complexToRealEuclideanCoord_le (ι := ι) j
+    simp only [L, TauCeti.complexToRealEuclideanCoord_apply]
+    linarith
+  have hEq : modelDbar (peakFunction_mul k j) = fun z ↦ L z • modelDbar (peakFunction k) z := by
+    ext z : 1
+    rw [show peakFunction_mul k j = fun y ↦ (complexToRealEuclidean ι).symm y j * peakFunction k y
+      from funext (peakFunction_mul_def k j),
+      modelDbar_coord_mul ((contDiff_peakFunction (n := 1) k).differentiable one_ne_zero z),
+      TauCeti.complexToRealEuclideanCoord_apply]
+  rw [hEq]
+  refine (jetNormAt_fun_smul_le L.contDiff.contDiffAt
+    (contDiff_modelDbar_peakFunction (n := r) k).contDiffAt).trans ?_
+  calc (2 : ℝ) ^ r * jetNormAt ℝ r L z * jetNormAt ℝ r (modelDbar (peakFunction k)) z
+      ≤ 2 ^ r * (1 + ‖z‖) *
+          (C * (k : ℝ) ^ (-1 / 2 : ℝ) * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) :=
+        mul_le_mul (mul_le_mul_of_nonneg_left hL (by positivity)) (h k hk z)
           (jetNormAt_nonneg _ _ _) (by positivity)
     _ = _ := by ring
 
