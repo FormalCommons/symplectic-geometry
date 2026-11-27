@@ -295,11 +295,14 @@ Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
   $\lambda/(\lambda+\varepsilon)$, chosen smoothly in the parameters with
   Tau Ceti's `collaredSmoothTransition`. The issue fixes the formula.
   `ε < 1` is not needed.
-- `blowupCorrection λ ε` ($q$), smooth on `ℝ`, zero on `Iic (ε ^ 2)`,
-  with `λ ^ 2 * log s + q s` constant on `Ici ((λ + ε) ^ 2)`.
-- `profileForm n λ ε` ($\tilde\omega_{\lambda,\varepsilon}$),
+- `profileCorrection λ h` ($q$) of a profile `h` with the properties of
+  `blowupProfile λ ε` (`IsBlowupProfile λ ε h`), smooth on `ℝ`, zero on
+  `Iic (ε ^ 2)`, with `λ ^ 2 * log s + q s` constant on `Ici ((λ + ε) ^ 2)`.
+- `profileForm n λ ε h` ($\tilde\omega_{\lambda,\varepsilon}$), with `h`
+  defaulting to `blowupProfile λ ε`,
   `blowupForm n λ + blowdown^* (form of the potential q(|z|²))`, with
-  `profileForm_def`; `profileForm_eq_blowupForm_on` (on `closedNbhd n ε`),
+  `profileForm_def`; for every `h` with `IsBlowupProfile λ ε h`,
+  `profileForm_eq_blowupForm_on` (on `closedNbhd n ε`),
   `profileForm_eq_on_compl` (equal to `blowdown^* ω₀E` off
   `closedNbhd n (λ + ε)`), `mpullback_radialMap_profileForm` (off $Z$ it is
   $\pi^*F_{\lambda,\varepsilon}^*\omega_0$), and `isKahler_profileForm`,
