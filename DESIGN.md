@@ -3916,11 +3916,12 @@ hypersurface theorem.
   *Minimal coupling*, corrected by an imaginary one-form; it uses the merged
   prerequisites `TauCeti.injective_deRhamHom` (the de Rham theorem, in
   `SmoothSingular/DeRham/MayerVietoris/Induction.lean`),
-  `exists_hermitianLineBundle_complexEulerClass_eq` (every integral class of
-  degree two is the Euler class of a line bundle, in
+  `SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq`
+  (every integral class of degree two is the Euler class of a line bundle, in
   `VectorBundle/Hermitian/Realization.lean`) and
-  `Bundle.deRhamHom_realFirstChernClass_eq_neg` (its comparison with the
-  Chern–Weil class, in `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
+  `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg` (its
+  comparison with the Chern–Weil class, in
+  `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
