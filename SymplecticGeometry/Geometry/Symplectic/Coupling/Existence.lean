@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
@@ -346,7 +347,7 @@ theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoF
     funext (hα.couplingOneForm_apply_couplingField hβ)
   rw [ContinuousAlternatingMap.add_apply, h0, zero_add, Pi.neg_apply,
     ContinuousAlternatingMap.neg_apply, mextDeriv_ofFunction_apply, mextDerivₗ_apply, hC, hA]
-  simp only [sub_eq_add_neg, mvfderiv_add_const, mvfderiv_apply_eq_mfderiv_apply]
+  rw [mvfderiv_sub_const, mvfderiv_apply_eq_mfderiv_apply]
 
 /-- **The coupling form of a connection form and a family of primitives.** Let `α` be a connection
 form with curvature `F`, let `τ` be a family of two-forms on `B` indexed by `[a, b]`, and let `σ`
