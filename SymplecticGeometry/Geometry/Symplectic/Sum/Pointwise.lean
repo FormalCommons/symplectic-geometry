@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Nondegenerate forms that follow a homotopy outside a ball
@@ -104,8 +105,7 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
           SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply]
         exact congrArg (fun a ↦ a ![v, w]) (hγW y hyW)
       exact this ▸ hη.nondegenerate_bilinFormAt y
-  exact ⟨τ, SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun y ↦
-    (hnd y).ker_eq_bot, hγW, hτV⟩
+  exact ⟨τ, SmoothTwoForm.isNondegenerate_def.2 hnd, hγW, hτV⟩
 
 end Manifold
 
