@@ -13,6 +13,7 @@ import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.AlmostHolomorphic
 import SymplecticGeometry.Geometry.Manifold.Complex.TangentCoordinates
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -63,7 +64,7 @@ The final part builds, near one point `p₀` of the core, the local map of the c
 `N`. When `M` is a complex manifold and the differential of `Φ₀` is complex linear along the
 core, the reading `h = κ ∘ Φ₀ ∘ L⁻¹` of `Φ₀` in the chart `κ` of `M` at `Φ₀ p₀` and through
 `L = EuclideanSpace.sumEquivProd.symm` has a complex-linear derivative at the core points, by
-`SymplecticGeometry.fderiv_extChartAt_comp_I_smul`. The Euclidean construction
+`SymplecticGeometry.fderiv_extChartAt_comp_comp_I_smul`. The Euclidean construction
 `SymplecticGeometry.exists_localInverse_comp_taylorExtension` of
 `Surround/AlmostHolomorphic.lean` then gives a map `G'` of `ℂ^(k ⊕ m)`, and `G = L⁻¹ ∘ G' ∘ L`
 is the local map.
@@ -312,6 +313,34 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   [IsManifold 𝓘(ℝ, E) ∞ M]
 
+/-- At a point of the core where the differential of `Φ₀` commutes with `i`, so does the
+derivative of `Φ₀` read in a chart of `M` and in the coordinates of `ℂ^(k ⊕ m)`. -/
+private theorem fderiv_extChartAt_comp_sumEquivProd_I_smul
+    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
+    (hΦ₀I : ∀ x, modelDisc k m x ∈ Φ₀.source →
+      ∀ v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m),
+        mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ₀
+        (modelDisc k m x) (Complex.I • v) =
+        Complex.I • (show E from mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+          𝓘(ℝ, E) Φ₀ (modelDisc k m x) v))
+    {x : EuclideanSpace ℝ (Fin k)} (hx : modelDisc k m x ∈ Φ₀.source) {x₀ : M}
+    (hx₀ : Φ₀ (modelDisc k m x) ∈ (chartAt E x₀).source) (v : EuclideanSpace ℂ (Fin k ⊕ Fin m)) :
+    fderiv ℝ (extChartAt 𝓘(ℝ, E) x₀ ∘ Φ₀ ∘ EuclideanSpace.sumEquivProd)
+        (EuclideanSpace.sumEquivProd.symm (modelDisc k m x)) (Complex.I • v) =
+      Complex.I • fderiv ℝ (extChartAt 𝓘(ℝ, E) x₀ ∘ Φ₀ ∘ EuclideanSpace.sumEquivProd)
+        (EuclideanSpace.sumEquivProd.symm (modelDisc k m x)) v := by
+  let Lc : EuclideanSpace ℂ (Fin k ⊕ Fin m) →L[ℂ]
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) :=
+    (EuclideanSpace.sumEquivProd (𝕜 := ℂ)).toContinuousLinearMap
+  have hLc : ⇑Lc = ⇑(EuclideanSpace.sumEquivProd (𝕜 := ℂ)) := ContinuousLinearEquiv.coe_coe _
+  have hq : Lc (EuclideanSpace.sumEquivProd.symm (modelDisc k m x)) = modelDisc k m x := by
+    rw [hLc, ContinuousLinearEquiv.apply_symm_apply]
+  rw [← hLc]
+  exact fderiv_extChartAt_comp_comp_I_smul Lc
+    (by rw [hq]; exact Φ₀.mdifferentiableAt (by simp) hx) (by rw [hq]; exact hΦ₀I x hx)
+    (by rw [hq]; exact hx₀) v
+
 /-- **The local almost holomorphic map at a point of the core.** Let `M` be a complex manifold,
 `Φ₀` a smooth partial diffeomorphism from the model space `V = ℂᵏ × ℂᵐ` to `M` whose differential
 commutes with multiplication by `i` at each point of the core `ι₀ (ℝᵏ)` in its source, `p₀` a
@@ -361,18 +390,10 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
       ContinuousLinearEquiv.coe_restrictScalars' _ _,
       (ContinuousLinearEquiv.coe_restrictScalars'_symm _ _).trans (by simp)⟩
   simp only [← hLr, ← hLrs]
-  have hLrI : ∀ v, Lr.symm (Complex.I • v) = Complex.I • Lr.symm v := fun v ↦ by
-    rw [hLrs, map_smul]
   set κ := extChartAt 𝓘(ℝ, E) (Φ₀ p₀)
   set S₀ := Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E (Φ₀ p₀)).source
   have hS₀ : IsOpen S₀ :=
-    Φ₀.contMDiffOn.continuousOn.isOpen_inter_preimage Φ₀.open_source
-      (chartAt E (Φ₀ p₀)).open_source
-  have hΦ₀c : ∀ p ∈ Φ₀.source, ContinuousAt Φ₀ p := fun p hp ↦
-    Φ₀.contMDiffOn.continuousOn.continuousAt (Φ₀.open_source.mem_nhds hp)
-  have hΦ₀d : ∀ p ∈ Φ₀.source, MDifferentiableAt 𝓘(ℝ, _) 𝓘(ℝ, E) Φ₀ p := fun p hp ↦
-    ((Φ₀.contMDiffOn p hp).contMDiffAt (Φ₀.open_source.mem_nhds hp)).mdifferentiableAt
-      (by simp)
+    Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E (Φ₀ p₀)).open_source
   -- `h`: `Φ₀` read in the chart `κ` and in the coordinates of `L`.
   set h : EuclideanSpace ℂ (Fin k ⊕ Fin m) → E := κ ∘ Φ₀ ∘ Lr.symm
   have hh : ContDiffOn ℝ ∞ h (Lr.symm ⁻¹' S₀) := by
@@ -387,13 +408,8 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
     rw [hLr]
     exact complexEuclideanEquivRealProd_sumEquivProd_symm_modelDisc_snd x
   have hinv : (fderiv ℝ h (Lr (modelDisc k m x₀))).IsInvertible := by
-    have hκ : (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) κ (Φ₀ (modelDisc k m x₀))).IsInvertible :=
-      isInvertible_mfderiv_extChartAt (by simp)
-    have := isInvertible_mfderiv_comp hκ (Φ₀.isInvertible_mfderiv (by simp) hp₀Φ)
-    rw [mfderiv_eq_fderiv] at this
-    simp only [h, ← Function.comp_assoc]
-    rw [Lr.symm.comp_right_fderiv, Lr.symm_apply_apply]
-    exact this.comp ⟨Lr.symm, rfl⟩
+    simpa only [Lr.symm_symm] using Φ₀.isInvertible_fderiv_extChartAt_comp_comp (by simp) Lr.symm
+      hp₀Φ (mem_chart_source E _)
   obtain ⟨U', hU', hpU', hU'S, G', -, C, hG'c, hG'S, hG'fix, hG'id, hC₁, hC₂, -⟩ :=
     exists_localInverse_comp_taylorExtension hN (hS₀.preimage Lr.symm.continuous) hh hp₀S
       (hreal x₀) hinv
@@ -409,31 +425,13 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
     dsimp only
     rw [hG'fix _ hp hp0, Lr.symm_apply_apply]
   · rintro p hp ⟨x, rfl⟩
-    have hpS : Lr.symm (Lr (modelDisc k m x)) ∈ Φ₀.source := (hU'S hp).1
-    have hcore : Lr.symm (Lr (modelDisc k m x)) ∈ range (modelDisc k m) := by
-      rw [Lr.symm_apply_apply]
-      exact mem_range_self x
     -- At a core point, the derivative of `h` commutes with `i`, since that of `Φ₀` does.
+    have hx := hU'S hp
+    rw [mem_preimage, Lr.symm_apply_apply] at hx
     have hhI : ∀ v, fderiv ℝ h (Lr (modelDisc k m x)) (Complex.I • v) =
         Complex.I • fderiv ℝ h (Lr (modelDisc k m x)) v := by
-      refine fderiv_extChartAt_comp_I_smul (f := Φ₀ ∘ Lr.symm)
-        ((hΦ₀c _ hpS).comp Lr.symm.continuous.continuousAt) (fun v ↦ ?_) (hU'S hp).2
-      have hd : mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k ⊕ Fin m)) 𝓘(ℝ, E) (Φ₀ ∘ Lr.symm)
-          (Lr (modelDisc k m x)) =
-          (mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ₀
-            (Lr.symm (Lr (modelDisc k m x)))).comp
-            (Lr.symm : EuclideanSpace ℂ (Fin k ⊕ Fin m) →L[ℝ]
-              EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) := by
-        rw [mfderiv_comp _ (hΦ₀d _ hpS) Lr.symm.differentiableAt.mdifferentiableAt,
-          mfderiv_eq_fderiv, Lr.symm.fderiv]
-        -- `mfderiv_eq_fderiv` only inserts the identifications of the tangent spaces of a
-        -- normed space with the space itself, which are the identity.
-        rfl
-      rw [hd]
-      obtain ⟨y, hy⟩ := hcore
-      rw [← hy] at hpS ⊢
-      exact (congrArg (mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
-        Φ₀ (modelDisc k m y)) (hLrI v)).trans (hΦ₀I y hpS _)
+      simp only [h, hLr, hLrs]
+      exact fderiv_extChartAt_comp_sumEquivProd_I_smul Φ₀ hΦ₀I hx.1 hx.2
     have hG' := hG'id _ hp (hreal x) hhI
     -- `G` is written as a lambda; the chain rules for `Lr` ask for a composite.
     change fderiv ℝ (Lr.symm ∘ (G' ∘ Lr)) _ = _
