@@ -15,9 +15,6 @@ import TauCeti.LinearAlgebra.Matrix.ConjTranspose
 The entries of Mathlib's `Matrix.J l R`, the block matrix `fromBlocks 0 (-1) 1 0`, are given
 block by block as `simp` lemmas, so that `simp` evaluates `J` at indices `Sum.inl i`, `Sum.inr j`.
 
-The inverse `A⁻¹` of a symplectic matrix, as a matrix, is symplectic, since it is the inverse of
-`A` in the group `symplecticGroup l R` (Mathlib's `SymplecticGroup.coe_inv'`).
-
 Over a commutative star ring `R`, the conjugate transpose `Aᴴ` of a matrix `A` is the transpose of
 its entrywise conjugate. Both operations preserve the symplectic group `Sp(2n, R)` (Mathlib's
 `SymplecticGroup.transpose_mem` and `SymplecticGroup.map_mem`), so `Aᴴ` is symplectic exactly
@@ -28,7 +25,6 @@ when `A` is.
 * `Matrix.J_inl_inl`, `Matrix.J_inl_inr`, `Matrix.J_inr_inl`, `Matrix.J_inr_inr`: the four
   blocks of `Matrix.J`.
 * `Matrix.neg_J_mul_eq_fromBlocks`: the blocks of `-J * M` in terms of those of `M`.
-* `SymplecticGroup.inv_mem`: the inverse of a symplectic matrix is symplectic.
 * `SymplecticGroup.star_mem`: the conjugate transpose of a symplectic matrix is symplectic.
 * `SymplecticGroup.star_mem_iff`: a matrix is symplectic exactly when its conjugate transpose is.
 * `Matrix.IsSymm.mem_symplecticGroup_iff`: a symmetric matrix `P` is symplectic exactly when
@@ -93,17 +89,6 @@ end Matrix
 open Matrix
 
 namespace SymplecticGroup
-
-section Inv
-
-variable {l : Type*} [Fintype l] [DecidableEq l] {R : Type*} [CommRing R]
-  {A : Matrix (l ⊕ l) (l ⊕ l) R}
-
-/-- The inverse `A⁻¹` (`Matrix.inv`) of a symplectic matrix `A` is symplectic. -/
-theorem inv_mem (hA : A ∈ symplecticGroup l R) : A⁻¹ ∈ symplecticGroup l R := by
-  simpa only [coe_inv'] using ((⟨A, hA⟩ : symplecticGroup l R)⁻¹).property
-
-end Inv
 
 variable {l : Type*} [Fintype l] [DecidableEq l] {R : Type*} [CommRing R] [StarRing R]
   {A : Matrix (l ⊕ l) (l ⊕ l) R}

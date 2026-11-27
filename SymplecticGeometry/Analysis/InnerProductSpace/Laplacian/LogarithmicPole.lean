@@ -9,10 +9,9 @@ public import TauCeti.Analysis.PDE.FundamentalSolution.Planar.DistributionalLapl
 public import TauCeti.Analysis.InnerProductSpace.Laplacian.Basic
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Analysis.InnerProductSpace.Laplacian.Integral
 import TauCeti.Analysis.Sobolev.WeakDeriv.Laplacian
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import TauCeti.Analysis.Calculus.ContDiff.Indicator
 import SymplecticGeometry.Topology.Algebra.Support
 
 /-!
@@ -317,8 +316,8 @@ theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Born
     filter_upwards [hΩ.mem_nhds hz] with t ht
     exact Set.indicator_of_mem ht G
   have hgcd : ContDiff ℝ 2 g :=
-    contMDiff_iff_contDiff.mp (ContMDiffOn.contMDiff_indicator (I := modelWithCornersSelf ℝ ℂ)
-      (contMDiffOn_iff_contDiffOn.mpr fun z hz ↦ (hGcd hz).contDiffWithinAt) hΩ hKc hKΩ hG0)
+    ContDiffOn.contDiff_indicator_of_isClosed (fun z hz ↦ (hGcd hz).contDiffWithinAt) hΩ hKc hKΩ
+      fun x ⟨hx, hGx⟩ ↦ by_contra fun hxK ↦ hGx (hG0 x hx hxK)
   have hgK : tsupport g ⊆ K :=
     tsupport_indicator_subset_of_eqOn hKc fun x hx ↦ hG0 x hx.1 hx.2
   refine ⟨g, fun s ↦ φ s, hgcd, ?_, fun t ht ↦ ?_, fun s hs ↦ ?_, ?_⟩
