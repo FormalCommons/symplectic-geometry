@@ -198,7 +198,7 @@ theorem isConvexShapeAt_smoothedMaxPath (hδ : 0 < δ) (hη : 0 ≤ η) (hM : Co
   have hAc : IsConvexShapeAt (fun r ↦ A r - c) r := by
     convert hcA.add_const (c := η - c) (by linarith [hc.2]) using 2
     ring
-  exact isConvexShapeAt_smoothedMax hM (hA.sub contDiff_const) hδ hcM hAc
+  exact isConvexShapeAt_smoothedMax hM.contDiffAt (hA.sub contDiff_const).contDiffAt hδ hcM hAc
     (by rwa [deriv_sub_const])
 
 /-- **The path keeps the smaller margin in (4.3).** For `δ > 0`, `0 ≤ η < A r`, `M r > 0` and
