@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.Distribution.Orthogonal
 import SymplecticGeometry.Geometry.Manifold.Submersion.VerticalProjection
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
@@ -173,8 +174,8 @@ theorem _root_.TauCeti.SmoothForm.IsClosed.isVerticallyClosed (h : τ.IsClosed) 
 theorem IsVerticallyClosed.add (h₁ : IsVerticallyClosed IB proj τ₁)
     (h₂ : IsVerticallyClosed IB proj τ₂) : IsVerticallyClosed IB proj (τ₁ + τ₂) := by
   refine isVerticallyClosed_iff.2 fun x η₁ hη₁ η₂ hη₂ v ↦ ?_
-  rw [← mextDerivₗ_apply, map_add, Submodule.coe_add, mextDerivₗ_apply,
-    mextDerivₗ_apply, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+  rw [← mextDerivₗ_apply, map_add, SmoothBundleForm.add_apply, mextDerivₗ_apply,
+    mextDerivₗ_apply, ContinuousAlternatingMap.add_apply,
     isVerticallyClosed_iff.1 h₁ x η₁ hη₁ η₂ hη₂ v,
     isVerticallyClosed_iff.1 h₂ x η₁ hη₁ η₂ hη₂ v, add_zero]
 
