@@ -295,11 +295,20 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
     -- The two functions differ only by `Function.comp` and `id`, which unfold.
     exact Iff.rfl
 
+end TauCeti.SmoothForm
+
 /-! ### Time derivatives of segments -/
+
+namespace TauCeti.SmoothForm
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I 2 M] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-- The slices of the time derivative of the segment `α₀ + c(t) (α₁ - α₀)`
 (`TauCeti.SmoothForm.lineMapFamily`), as rough forms: the pullback along `x ↦ (t, x)` of the Lie
 derivative along `∂_t = (1, 0)` is the underlying form of `c'(t) (α₁ - α₀)`. -/
+@[simp]
 theorem mpullback_prodMk_mlieDerivForm_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
     (hc : ContDiff ℝ ∞ c) (t : ℝ) :
     TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
