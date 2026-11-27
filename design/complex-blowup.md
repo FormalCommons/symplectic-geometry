@@ -191,7 +191,7 @@ each issue is a few hundred lines, and `DESIGN.md` is updated to match.
 | `Blowup/Curve.lean` | lifts of holomorphic curves, and the milestone | 5 |
 | `Blowup/AlmostComplex.lean` | the almost complex blowup | 6 |
 | `Blowup/SelfIntersection.lean` | $Z\cdot Z=-1$ for complex dimension two | 7 |
-| `Blowup/ConnectedSum.lean` | $\widetilde M\cong M\#\overline{\mathbb CP}{}^n$ | 8 |
+| `Blowup/ConnectedSum/Basic.lean` | $\widetilde M\cong M\#\overline{\mathbb CP}{}^n$ | 8 |
 | `Blowup/ExceptionalClass.lean` | the class $e$ and its restrictions | 9 |
 | `Blowup/ChernClass.lean` | $c_1(T\widetilde M)=\pi^*c_1(TM)-(n-1)e$ | 10 |
 | `Hypersurface/LineBundle.lean` | the line bundle $\mathcal O(kD)$ of a smooth hypersurface | 11 |
@@ -453,7 +453,7 @@ For `n = 1` (the page's complex dimension two).
   bundle and the exceptional divisor*; the docstring of
   `selfIntersectionNumber_zeroSection` ends with its milestone line.
 
-### `Blowup/ConnectedSum.lean`
+### `Blowup/ConnectedSum/Basic.lean`
 
 For a connected complex manifold `M`, re-modelled on the real inner product
 space `EuclideanSpace ℂ (Fin (n + 1))` with `Remodel` (Tau Ceti's
@@ -634,7 +634,7 @@ part's building issue given here. Sizes are estimates.
 | 5 | Lifts of holomorphic curves; *Complex blowup at a point* | `Blowup/Curve.lean` | 4 | 300 |
 | 6 | The almost complex blowup | `Blowup/AlmostComplex.lean` | 4 | 300 |
 | 7 | The self-intersection of the exceptional divisor | `Blowup/SelfIntersection.lean` | 2, 4 | 250 |
-| 8 | The blowup as a connected sum | `Blowup/ConnectedSum.lean` | 4; #3274 | 500 |
+| 8 | The blowup as a connected sum | `Blowup/ConnectedSum/Basic.lean` | 4; #3274 | 500 |
 | 9 | The exceptional class | `Blowup/ExceptionalClass.lean` | 2, 4, 8; #3279 | 250 |
 | 10 | The first Chern class of the blowup | `Blowup/ChernClass.lean` | 6, 9; #3277, #3279 | 400 |
 | 11 | The line bundle of a smooth hypersurface | `Hypersurface/LineBundle.lean` | — | 350 |
