@@ -361,9 +361,9 @@ theorem not_exists_connectedSum (h₀ : n ≠ 0) (h₁ : n ≠ 1) (h₃ : n ≠ 
 /-- **The pointwise connected-sum obstruction.** For `n ∉ {0, 1, 3}`, coordinate balls `e₁`,
 `e₂`, nondegenerate forms `α₁`, `α₂`, radii `ρ₁`, `ρ₂` and open sets `V₁`, `V₂` as in
 `SymplecticGeometry.not_exists_connectedSum`, no symplectic form `σ` on the connected sum
-`TauCeti.ConnectedSum e₁ e₂` admits, for `i = 1, 2`, a smooth family `βᵢ` of nondegenerate
-two-forms on `Vᵢ` over `unitInterval`, equal at `0` to the pull-back of `σ` along `inl` (for
-`i = 1`) or `inr` (for `i = 2`) and at `1` to the restriction of `αᵢ`.
+`TauCeti.ConnectedSum e₁ e₂` admits, for `i = 1, 2`, a smooth family `βᵢ` over `unitInterval`
+of two-forms on `Vᵢ`, nondegenerate at each time, equal at `0` to the pull-back of `σ`
+along `inl` (for `i = 1`) or `inr` (for `i = 2`) and at `1` to the restriction of `αᵢ`.
 
 The summands need not be closed or connected, and `α₁`, `α₂` need not be closed; nor need `σ`
 be: extended to families over `ℝ` (`SymplecticGeometry.IsSmoothFamily.exists_extend`), such
