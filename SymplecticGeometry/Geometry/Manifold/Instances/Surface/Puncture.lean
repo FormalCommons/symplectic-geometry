@@ -118,6 +118,8 @@ the paths and loops of genus `g + 1` are related in this way to those of genus `
 * `SymplecticGeometry.ClosedSurface.summandPath_ne_ball`,
   `SymplecticGeometry.ClosedSurface.circleLoop_ne_ball`,
   `SymplecticGeometry.ClosedSurface.ballLoop_ne_ball`: they meet no centre.
+* `SymplecticGeometry.ClosedSurface.peripheralLoop_eq_puncturedBallPath_trans`: the peripheral
+  loop `i` is the path to the ball `i.rev`, the circle of that ball backwards, and the path back.
 * `SymplecticGeometry.ClosedSurface.summandPath_succ_zero`: the path to the torus summand `0` of
   genus `g + 1` crosses the neck from the second summand into the torus.
 * `SymplecticGeometry.ClosedSurface.succDiffeomorph_summandPath_succ_apply`,
@@ -1021,6 +1023,17 @@ theorem coe_peripheralLoop_apply (i : Fin n) (t : unitInterval) :
 theorem map_peripheralLoop (i : Fin n) :
     (peripheralLoop g n i).map continuous_subtypeVal = ballLoop g i.rev :=
   Path.map_codRestrict _ _
+
+/-- The peripheral loop `i` of `puncture g n` runs along the path to the ball `i.rev`, around the
+circle of that ball backwards, and back along the path. -/
+theorem peripheralLoop_eq_puncturedBallPath_trans (i : Fin n) :
+    peripheralLoop g n i =
+      ((puncturedBallPath g n i.rev).trans (puncturedBallCircle g n i.rev).symm).trans
+        (puncturedBallPath g n i.rev).symm := by
+  ext t
+  rw [coe_peripheralLoop_apply, ballLoop_def]
+  simp only [Path.trans_apply, Path.symm_apply]
+  split_ifs <;> simp
 
 /-- The peripheral loop `i` of `puncture (g + 1) n` is the peripheral loop `Fin.castSucc i` of
 `puncture g (n + 1)`, in the second summand of the connected sum: both run about the ball `i.rev`
