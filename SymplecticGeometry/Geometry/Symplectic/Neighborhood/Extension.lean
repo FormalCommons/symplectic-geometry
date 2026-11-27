@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The linear symplectic extension along a submanifold
@@ -254,10 +255,8 @@ theorem symplecticFormAt_mfderivRangeEquiv (hω₀ : σ₀.IsNondegenerate)
       hω₀.symplecticFormAt (f₀ q) x y := by
   obtain ⟨_, u, rfl⟩ := x
   obtain ⟨_, v, rfl⟩ := y
-  simp only [ContinuousLinearMap.coe_coe, mfderivRangeEquiv_apply_mfderiv]
-  have h := congr(SmoothForm.bilinFormAt $hσ q u v)
-  simp only [SmoothForm.bilinFormAt_apply, SmoothForm.eval₂_mpullback] at h
-  simpa [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply] using h
+  simpa [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply] using
+    congr(SmoothForm.bilinFormAt $hσ q u v)
 
 variable (hc₀ : σ₀.Compatible Jc₀) (hc₁ : σ₁.Compatible Jc₁)
   (hσ : SmoothForm.mpullback f₁ f₁.contMDiff σ₁ = SmoothForm.mpullback f₀ f₀.contMDiff σ₀)
