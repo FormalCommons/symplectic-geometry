@@ -386,7 +386,8 @@ theorem fibreFraming_def :
       symplecticNormalForm_fibreNormalEquiv_pos :=
   (rfl)
 
-/-- The framing of the fibre sends a normal vector `v` of the zero slice of `F × ℂ` at `x` to
+/-- The framing of the fibre sends a normal vector `v` at `x` of the zero slice of the product of
+the Fermat cubic with `ℂ` to
 `fibreNormalEquiv x ((√λ)⁻¹ • z)`, where `z ∈ ℂ` is the `ℂ`-component of `v` and `λ` is the
 normal symplectic form of the fibre on `(fibreNormalEquiv x 1, fibreNormalEquiv x i)`. -/
 @[simp]
