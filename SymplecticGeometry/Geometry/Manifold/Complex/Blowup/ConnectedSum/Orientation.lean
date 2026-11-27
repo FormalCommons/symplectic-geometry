@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ConnectedSum.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPreserving
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import Mathlib.LinearAlgebra.Complex.Determinant
 import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
@@ -17,7 +18,7 @@ import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
-# Orientations of the pieces of the blowup as a connected sum
+# The blowup as an oriented connected sum
 
 This file shows how the maps of `ConnectedSum/Basic.lean` act on the complex orientations, read
 with `SymplecticGeometry.complexManifoldOrientationOfFinrank`.
@@ -56,6 +57,17 @@ which are holomorphic. It therefore reverses the complex orientations, and prese
 from the opposite of the complex orientation of the projective space. These are the orientations
 of the summands of the connected sum `M # \overline{ℂP}^{n+1}`.
 
+With `TauCeti.ConnectedSum.isOrientationPreservingAt_of_comp_inl_of_comp_inr`, from this
+library's `ConnectedSum/OrientationPreserving.lean`, the two pieces show that
+`Blowup.connectedSumDiffeomorph c` carries `TauCeti.ConnectedSum.orientation` of these summands to
+the complex orientation of the blowup. Composed with the inverse of the orientation-preserving
+diffeomorphism of
+`TauCeti.OrientedConnectedSum.exists_diffeomorph_connectedSum_isOrientationPreservingAt`, also
+from that file, going from the oriented connected sum onto the connected sum along these balls, it
+identifies the blowup with
+Tau Ceti's oriented connected sum `TauCeti.OrientedConnectedSum` of `M` and the reversed
+projective space, preserving orientation.
+
 ## Main results
 
 * `SymplecticGeometry.instPathConnectedSpaceProjectiveBlowupOpens`: the complement of
@@ -70,7 +82,13 @@ of the summands of the connected sum `M # \overline{ℂP}^{n+1}`.
   into the blowup preserving the complex orientations;
 * `SymplecticGeometry.Blowup.isOrientationPreservingAt_connectedSumInr`: the punctured projective
   space maps into the blowup preserving orientation from the opposite of its complex orientation
-  to the complex orientation of the blowup.
+  to the complex orientation of the blowup;
+* `SymplecticGeometry.Blowup.isOrientationPreservingAt_connectedSumDiffeomorph`: the
+  diffeomorphism `Blowup.connectedSumDiffeomorph c` preserves orientation, from
+  `TauCeti.ConnectedSum.orientation` to the complex orientation of the blowup;
+* `SymplecticGeometry.Blowup.nonempty_orientationPreserving_diffeomorph_connectedSum`: the
+  blowup is diffeomorphic to the oriented connected sum of `M` and the reversed projective space
+  by a diffeomorphism that preserves orientation at every point.
 
 ## References
 
@@ -389,6 +407,98 @@ theorem isOrientationPreservingAt_connectedSumInr
     EuclideanComplexProjectiveSpace.orientation_def,
     ← complexManifoldOrientationOfFinrank_opens_eq_restrict, connectedSumInr_eq_comp]
   exact hl.comp_reversing hg
+
+variable [T2Space M]
+
+/-- For a holomorphic chart `c`, the diffeomorphism `Blowup.connectedSumDiffeomorph c` preserves
+orientation at every point, from the orientation `TauCeti.ConnectedSum.orientation` of the
+connected sum of `M`, with its complex orientation, and the projective space, with the opposite
+of its complex orientation, to the complex orientation of the blowup. -/
+theorem isOrientationPreservingAt_connectedSumDiffeomorph :
+    letI := TauCeti.ConnectedSum.chartedSpace (H := EuclideanSpace ℂ (Fin (n + 1)))
+      c.isOpenEmbedding_connectedSumBall
+      (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+    haveI := TauCeti.ConnectedSum.isManifold (n := 1) c.isOpenEmbedding_connectedSumBall
+      (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+      (IsLocalDiffeomorph.of_le (c.isLocalDiffeomorph_connectedSumBall Fact.out)
+        ENat.LEInfty.out)
+      (IsLocalDiffeomorph.of_le
+        (EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n) ENat.LEInfty.out)
+    ∀ p, IsOrientationPreservingAt
+      (TauCeti.ConnectedSum.orientation c.isOpenEmbedding_connectedSumBall
+        (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+        (IsLocalDiffeomorph.of_le (c.isLocalDiffeomorph_connectedSumBall Fact.out)
+          ENat.LEInfty.out)
+        (IsLocalDiffeomorph.of_le
+          (EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n)
+          ENat.LEInfty.out)
+        (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+          (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) (r := n)
+            (by simp))
+        (-EuclideanComplexProjectiveSpace.orientation n)
+        (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+          (EuclideanSpace ℂ (Fin (n + 1))) (r := n) (by simp))
+        (fun v _ ↦ c.isOrientationPreservingAt_connectedSumBall Fact.out v)
+        (fun u _ ↦ (isOrientationReversingAt_neg_right _ _ _ _).2
+          (EuclideanComplexProjectiveSpace.isOrientationPreservingAt_connectedSumBall n u)))
+      (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+        (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
+          (by simp))
+      (connectedSumDiffeomorph c) p := by
+  let := TauCeti.ConnectedSum.chartedSpace (H := EuclideanSpace ℂ (Fin (n + 1)))
+    c.isOpenEmbedding_connectedSumBall
+    (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+  refine TauCeti.ConnectedSum.isOrientationPreservingAt_of_comp_inl_of_comp_inr
+    ((connectedSumDiffeomorph c).isLocalDiffeomorph.of_le (by simp)) _ 0 (fun x ↦ ?_)
+    (fun y _ ↦ ?_)
+  · rw [show ⇑(connectedSumDiffeomorph c) ∘ ConnectedSum.inl _ _ = connectedSumInl c from
+      funext (connectedSumDiffeomorph_inl c)]
+    exact isOrientationPreservingAt_connectedSumInl c x
+  · rw [show ⇑(connectedSumDiffeomorph c) ∘ ConnectedSum.inr _ _ = connectedSumInr c from
+      funext (connectedSumDiffeomorph_inr c)]
+    exact isOrientationPreservingAt_connectedSumInr c y
+
+/-- **The blowup as an oriented connected sum.** Let `M` be a connected Hausdorff complex manifold
+of complex dimension `n + 1`, and `c` a holomorphic chart of `M` centred at `p₀`. Re-model `M`, the
+blowup `Blowup c` and the projective space `EuclideanComplexProjectiveSpace n` on
+`EuclideanSpace ℂ (Fin (n + 1))`, and give each its complex orientation. Then there is a
+diffeomorphism from the blowup onto Tau Ceti's oriented connected sum of `M` and the projective
+space with the opposite orientation, `M # \overline{ℂP}^{n+1}`, which preserves orientation at
+every point, for the orientation `TauCeti.OrientedConnectedSum.orientation` of the connected sum.
+
+Milestone: *Blowup as a connected sum with the reversed projective space*. -/
+theorem nonempty_orientationPreserving_diffeomorph_connectedSum [ConnectedSpace M] :
+    Nonempty {Φ : Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)
+        ≃ₘ^∞⟮𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))), 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1)))⟯
+        OrientedConnectedSum
+          (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+            (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) (r := n)
+              (by simp))
+          (-EuclideanComplexProjectiveSpace.orientation n) //
+      ∀ p, IsOrientationPreservingAt
+        (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+          (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
+            (by simp))
+        (OrientedConnectedSum.orientation _ _) Φ p} := by
+  let := TauCeti.ConnectedSum.chartedSpace (H := EuclideanSpace ℂ (Fin (n + 1)))
+    c.isOpenEmbedding_connectedSumBall
+    (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+  have := TauCeti.ConnectedSum.isManifold c.isOpenEmbedding_connectedSumBall
+    (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+    (c.isLocalDiffeomorph_connectedSumBall Fact.out)
+    (EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n)
+  obtain ⟨Ψ, hΨ⟩ := OrientedConnectedSum.exists_diffeomorph_connectedSum_isOrientationPreservingAt
+    _ _ c.isOpenEmbedding_connectedSumBall
+    (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n)
+    (c.isLocalDiffeomorph_connectedSumBall Fact.out)
+    (EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n) _
+    (c.isOrientationPreservingAt_connectedSumBall Fact.out)
+    (fun u ↦ (isOrientationReversingAt_neg_right _ _ _ _).2
+      (EuclideanComplexProjectiveSpace.isOrientationPreservingAt_connectedSumBall n u))
+  refine ⟨⟨(connectedSumDiffeomorph c).symm.trans Ψ.symm, fun p ↦ ?_⟩⟩
+  rw [Diffeomorph.coe_trans]
+  exact ((hΨ _).diffeomorph_symm (by simp)).comp
+    ((isOrientationPreservingAt_connectedSumDiffeomorph c _).diffeomorph_symm (by simp))
 
 end Blowup
 

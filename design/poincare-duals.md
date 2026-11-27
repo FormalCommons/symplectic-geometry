@@ -235,7 +235,7 @@ the only `dualClass` is a private helper of local orientations.
   with its fundamental classes in `Orientation/ZeroDim/FundamentalClass.lean`,
   both under `AlgebraicTopology/Singular/LocalHomology/`). The cap theorem
   has a case for $\dim Z=0$ through the second, so the milestone holds in
-  every dimension; $\dim X=0$ forces $r=0$ and is that case.
+  every dimension; $\dim X=0$ forces $r=0$, and then `X` takes the second too.
 
 ## Files
 
@@ -423,8 +423,9 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   first (`ofExact_normalOrientation` and
   `coe_cross_localOrientation_eq_neg_one_pow_smul`).
 - `dualClass_cap_fundamentalClass_of_finrank_eq_zero`: the case
-  $\dim Z=0$, with `toHomologicalOrientationOfZeroDim` and its fundamental
-  class.
+  $\dim Z=0<\dim X$, with `toHomologicalOrientationOfZeroDim` and its fundamental
+  class; for $\dim X=0$ as well,
+  `dualClass_cap_fundamentalClass_of_finrank_eq_zero_of_finrank_fiber_eq_zero`.
 - the milestone theorem
   `TauCeti.SmoothEmbedding.bijective_thomMap_and_dualClass_cap_fundamentalClass`,
   the conjunction of `bijective_thomMap_intCanonicalThomClass`,
@@ -432,8 +433,8 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   the Thom class is the generator of the fibre's orientation),
   `dualClass_restrict_compl`, `dualClass_restrict` and, for closed oriented
   `X` and `Z` with the induced normal orientation,
-  `dualClass_cap_fundamentalClass`, with the milestone line *Thom class and
-  Poincaré dual of a submanifold*. The plan's identity
+  `dualClass_cap_fundamentalClass` and its two zero-dimensional cases, with
+  the milestone line *Thom class and Poincaré dual of a submanifold*. The plan's identity
   $d_Z=\mathrm{PD}(i_*[Z])$ is this cap identity, as `DESIGN.md`'s
   convention *Poincaré duals* says; by
   `bijective_singularCapAddHom_fundamentalClass` it determines $d_Z$.

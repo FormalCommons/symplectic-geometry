@@ -1051,30 +1051,14 @@ def puncturedSphereFundamentalGroupMulEquiv :
       one_div_sq_le_abs_puncturedSpherePoint_sub puncturedSpherePoint_ne_zero).trans
         (SurfaceGroup.Orientable.genusZeroBasis n).repr.symm
 
-/-- The image of the class of a loop of the punctured sphere under the isomorphism with the surface
-group, read off from the class of that loop carried to the plane minus the points. -/
-private theorem puncturedSphereFundamentalGroupMulEquiv_fromPath (γ : Path
-      (⟨basePoint 0, basePoint_mem_puncture⟩ : puncture 0 (n + 1))
-      ⟨basePoint 0, basePoint_mem_puncture⟩) :
-    puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
-        (Path.Homotopic.Quotient.mk γ)) =
-      (SurfaceGroup.Orientable.genusZeroBasis n).repr.symm
-        (PlaneMinusRealPoints.fundamentalGroupMulEquiv (by positivity)
-          one_div_sq_le_abs_puncturedSpherePoint_sub puncturedSpherePoint_ne_zero
-          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
-            ((γ.map (puncturedSphereHomeomorph n).symm.continuous).cast
-              puncturedSphereHomeomorph_symm_basePoint.symm
-              puncturedSphereHomeomorph_symm_basePoint.symm)))) := by
-  rw [puncturedSphereFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
-    FundamentalGroup.homeomorphMulEquivOfEq_apply, FundamentalGroup.mapOfEq_fromPath_mk]
-
 /-- The isomorphism sends the class of the peripheral loop `Fin.castSucc k`, about the ball
 `(Fin.castSucc k).rev`, to the peripheral element `Fin.castSucc k`. -/
 private theorem puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_castSucc (k : Fin n) :
     puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
         (Path.Homotopic.Quotient.mk (peripheralLoop 0 (n + 1) (Fin.castSucc k)))) =
       SurfaceGroup.Orientable.peripheral 0 (n + 1) (Fin.castSucc k) := by
-  rw [puncturedSphereFundamentalGroupMulEquiv_fromPath,
+  rw [puncturedSphereFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
+    FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk,
     Path.Homotopic.Quotient.eq.2 (map_peripheralLoop_castSucc_homotopic_loop k),
     PlaneMinusRealPoints.fundamentalGroupMulEquiv_loop, FreeGroupBasis.repr_symm_apply_of,
     SurfaceGroup.Orientable.genusZeroBasis_apply]
@@ -1085,7 +1069,8 @@ private theorem puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_last :
     puncturedSphereFundamentalGroupMulEquiv n (FundamentalGroup.fromPath
         (Path.Homotopic.Quotient.mk (peripheralLoop 0 (n + 1) (Fin.last n)))) =
       SurfaceGroup.Orientable.peripheral 0 (n + 1) (Fin.last n) := by
-  rw [puncturedSphereFundamentalGroupMulEquiv_fromPath,
+  rw [puncturedSphereFundamentalGroupMulEquiv, MulEquiv.trans_apply, MulEquiv.trans_apply,
+    FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk,
     fromPath_map_peripheralLoop_last_eq_inv_prod, map_inv, map_list_prod, List.map_ofFn,
     map_inv, map_list_prod, List.map_ofFn, SurfaceGroup.Orientable.peripheral_last]
   simp [Function.comp_def]
