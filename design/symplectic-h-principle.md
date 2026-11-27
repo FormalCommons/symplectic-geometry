@@ -2285,7 +2285,7 @@ Each is a few hundred lines; each issue's blockers come before it.
      nothing.
    - 8d. **Approximation over a band core.** `Relative/CoreApproximation.lean`,
      both forms, with
-     `IsSmoothFamily.exists_pos_forall_nondegenerate_sub_smul_of_continuousOn`.
+     `exists_pos_forall_nondegenerate_sub_smul_of_continuousOn`.
      Blocked by 8a, 8b and 8c. If it exceeds the size limit, the
      continuous form becomes an issue of its own after it.
    - 8e. **The path of a stage.** `Relative/StagePath.lean`. Blocked by
