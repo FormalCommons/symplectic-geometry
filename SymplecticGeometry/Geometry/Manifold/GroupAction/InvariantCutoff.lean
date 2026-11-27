@@ -35,14 +35,15 @@ the proof of the Duistermaat–Heckman formula.
 ## Around a compact set, for a compact Lie group
 
 Let a compact Lie group `G` act smoothly on a boundaryless Hausdorff manifold `M` with a
-finite-dimensional model. A compact set `K` inside a `G`-invariant open set `U` has a smooth
-`G`-invariant cut-off with values in `[0, 1]`, equal to `1` on a `G`-invariant open neighbourhood
-of `K` and with compact topological support inside `U`
-(`SymplecticGeometry.exists_invariant_contMDiff_eq_one_of_isCompact`). It is Tau Ceti's invariant
-cut-off `IsCompact.exists_contMDiff_one_nhds_tsupport_subset_of_smul_mem` around the compact
-saturation `G • K`, and the neighbourhood is the interior of the set where it equals `1`. Unlike
-Tau Ceti's statement, this one does not ask `K` itself to be invariant, and it names an invariant
-open neighbourhood of `K` on which the cut-off is `1`.
+finite-dimensional model. Let `K` be a compact set and `U` an open set that contains `g • x` for
+every `g : G` and `x ∈ K`. Then there is a smooth `G`-invariant cut-off with values in `[0, 1]`,
+equal to `1` on a `G`-invariant open neighbourhood of `K` and with compact topological support
+inside `U` (`IsCompact.exists_invariant_contMDiff_eq_one`). The hypothesis on `U` cannot be
+weakened, since such a neighbourhood contains the orbit of every point of `K`. The cut-off is
+Tau Ceti's invariant cut-off `IsCompact.exists_contMDiff_one_nhds_tsupport_subset_of_smul_mem`
+around the compact saturation `G • K`, and the neighbourhood is the interior of the set where it
+equals `1`. Unlike Tau Ceti's statement, this one asks neither `K` nor `U` to be invariant, and
+it names an invariant open neighbourhood of `K` on which the cut-off is `1`.
 
 ## References
 
@@ -112,7 +113,7 @@ end PartialDiffeomorph
 
 open scoped Pointwise
 
-namespace SymplecticGeometry
+namespace IsCompact
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
@@ -124,11 +125,12 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 include J in
 /-- **A smooth invariant cutoff around a compact set.** For a compact Lie group `G` acting
-smoothly, a compact set `K` inside a `G`-invariant open set `U` has a smooth `G`-invariant
-function `ρ` with values in `[0, 1]` that is `1` on a `G`-invariant open neighbourhood `W` of
-`K`, and whose topological support is compact and contained in `U`. -/
-theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCompact K)
-    (hU : IsOpen U) (hKU : K ⊆ U) (hUinv : ∀ (g : G) (x : M), x ∈ U → g • x ∈ U) :
+smoothly, let `K` be a compact set and `U` an open set with `g • x ∈ U` for every `g : G` and
+`x ∈ K`. Then there is a smooth `G`-invariant function `ρ` with values in `[0, 1]` that is `1`
+on a `G`-invariant open neighbourhood `W` of `K`, and whose topological support is compact and
+contained in `U`. -/
+theorem exists_invariant_contMDiff_eq_one {K U : Set M} (hK : IsCompact K)
+    (hU : IsOpen U) (hKU : ∀ (g : G), ∀ x ∈ K, g • x ∈ U) :
     ∃ (ρ : M → ℝ) (W : Set M), ContMDiff I 𝓘(ℝ) ∞ ρ ∧ (∀ x, ρ x ∈ Icc 0 1) ∧
       (∀ (g : G) (x : M), ρ (g • x) = ρ x) ∧ IsOpen W ∧ K ⊆ W ∧
       (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
@@ -140,7 +142,7 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
   have hC : IsCompact ((univ : Set G) • K) := isCompact_univ.smul_set hK
   have hCU : (univ : Set G) • K ⊆ U := by
     rintro _ ⟨a, -, y, hy, rfl⟩
-    exact hUinv a y (hKU hy)
+    exact hKU a y hy
   have hCinv (g : G) (x : M) (hx : x ∈ (univ : Set G) • K) : g • x ∈ (univ : Set G) • K := by
     obtain ⟨a, -, y, hy, rfl⟩ := hx
     exact ⟨g * a, mem_univ _, y, hy, mul_smul g a y⟩
@@ -158,6 +160,6 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
     hKC.trans (subset_interior_iff_mem_nhdsSet.2 hρ1), hWinv, fun x hx ↦ interior_subset hx,
     hρc, hρU⟩
 
-end SymplecticGeometry
+end IsCompact
 
 end

@@ -27,7 +27,7 @@ The field is Milnor's cut-off normalized gradient `Y = (ρ / |∇f|²) ∇f` [Mi
 equivariant: `∇f` is the gradient for a `G`-invariant metric (Tau Ceti's
 `TauCeti.of_forall_riemannianBundle_inner_mfderiv`), and `ρ` is a `G`-invariant cutoff, equal to
 `1` near `K` and with compact support in the open set where `∇f ≠ 0`
-(`SymplecticGeometry.exists_invariant_contMDiff_eq_one_of_isCompact`). Since each `g • ·` is an
+(`IsCompact.exists_invariant_contMDiff_eq_one`). Since each `g • ·` is an
 isometry, it carries `∇f` to itself. In fact `df(Y) = ρ` everywhere. The construction follows the
 non-equivariant one of Tau Ceti's `TauCeti.exists_vectorField_eq_inv_smul_of_mvfderiv_lt_zero`
 and `TauCeti.exists_flow_apply_eq_sub_of_mvfderiv_lt_zero`.
@@ -109,9 +109,9 @@ theorem exists_invariant_vectorField_mfderiv_eq_one {f : M → ℝ} (hf : ContMD
     rw [← mvfderiv_apply_eq_mfderiv_apply, h0]
     rfl
   obtain ⟨ρ, W, hρ, -, hρinv, hW, hKW, hWinv, hρW, hρc, hρU⟩ :=
-    exists_invariant_contMDiff_eq_one_of_isCompact (I := I) J (G := G) hK
-      (isOpen_ne_fun hq.continuous continuous_const) hKU
-      (fun g x hx ↦ by simpa [U, hqinv] using hx)
+    hK.exists_invariant_contMDiff_eq_one (I := I) J (G := G)
+      (isOpen_ne_fun hq.continuous continuous_const)
+      (fun g x hx ↦ by simpa [U, hqinv] using hKU hx)
   have hρ0 (x : M) (hx : x ∉ tsupport ρ) : ρ x = 0 := image_eq_zero_of_notMem_tsupport hx
   set c : M → ℝ := fun x ↦ ρ x * (q x)⁻¹
   have hc : ContMDiff I 𝓘(ℝ) ∞ c := by
