@@ -16,7 +16,9 @@ import TauCeti.Analysis.Complex.Wirtinger.Basic
 For a continuous real-linear operator `Ψ` between complex normed spaces, Tau Ceti's
 `ContinuousLinearMap.complexLinearPart` and `ContinuousLinearMap.complexAntilinearPart` both have
 operator norm at most `‖Ψ‖` (`ContinuousLinearMap.norm_complexLinearPart_le`,
-`ContinuousLinearMap.norm_complexAntilinearPart_le`), with pointwise forms.
+`ContinuousLinearMap.norm_complexAntilinearPart_le`), with pointwise forms. The second bound
+makes the complex-antilinear part a continuous real-linear map into the complex-antilinear
+operators, `ContinuousLinearMap.complexAntilinearPartCLM`.
 
 The Wirtinger derivatives of a map are the complex-linear and complex-antilinear parts of its
 real derivative, and the derivative of `Ψ` is `Ψ`. So the bounds are Tau Ceti's
@@ -60,6 +62,21 @@ theorem norm_complexLinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :
 theorem norm_complexAntilinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :
     ‖Ψ.complexAntilinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ :=
   Ψ.complexAntilinearPart.le_of_opNorm_le Ψ.norm_complexAntilinearPart_le v
+
+/-- The complex-antilinear part, as a continuous real-linear map from the real-linear operators
+to the complex-antilinear ones. Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` is the
+same map, with values seen as real-linear operators. -/
+noncomputable def complexAntilinearPartCLM : (E →L[ℝ] F) →L[ℝ] E →L⋆[ℂ] F :=
+  LinearMap.mkContinuous
+    { toFun := complexAntilinearPart
+      map_add' := complexAntilinearPart_add
+      map_smul' := complexAntilinearPart_smul }
+    1 fun Ψ ↦ by simpa using norm_complexAntilinearPart_le Ψ
+
+@[simp]
+theorem complexAntilinearPartCLM_apply (Ψ : E →L[ℝ] F) :
+    complexAntilinearPartCLM Ψ = Ψ.complexAntilinearPart :=
+  (rfl)
 
 
 /-- The complex-linear part commutes with complex scalar multiplication. -/
