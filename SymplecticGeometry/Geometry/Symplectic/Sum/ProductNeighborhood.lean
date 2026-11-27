@@ -111,11 +111,13 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
 * `SymplecticGeometry.ProductNeighborhood.isClosed_image_closedBall`: for compact `Q` and
   Hausdorff `M`, the image of the closed tube of radius `δ < ε` is closed, and its complement
   is open (`isOpen_compl_image_closedBall`).
-* `SymplecticGeometry.ProductNeighborhood.exists`: for compact `Q`, a framing has product
-  neighbourhoods of every radius up to some `ε₀ > 0`. The neighbourhood theorem for the framing
-  gives a symplectomorphism `ψ` from an open neighbourhood `U₀` of the zero slice; by the tube
-  lemma `U₀` contains some `Q × B²(ε₀)`, and the restriction of `ψ` to it is the product
-  neighbourhood.
+* `SymplecticGeometry.ProductNeighborhood.exists_range_subset`: for compact `Q`, an open set `U`
+  containing `ι (Q)` and every radius up to some `ε₀ > 0`, a framing has a product
+  neighbourhood with range in `U`. The neighbourhood theorem for the framing gives a
+  symplectomorphism `ψ` from an open neighbourhood `U₀` of the zero slice; by the tube lemma the
+  open set of points of `U₀` that `ψ` sends into `U` contains some `Q × B²(ε₀)`, and the
+  restriction of `ψ` to it is the product neighbourhood.
+  `SymplecticGeometry.ProductNeighborhood.exists` is its case `U = M`.
 
 ## References
 
@@ -949,21 +951,43 @@ variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M]
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
 
+/-- **Existence of product neighbourhoods inside an open set.** For compact `Q` and closed
+nondegenerate `σ`, a symplectic framing `Φ` of `ι` and an open set `U ⊇ ι (Q)`, there is `ε₀ > 0`
+such that `Φ` has a product neighbourhood of every radius `ε ≤ ε₀` whose range lies in `U`. -/
+theorem exists_range_subset [CompactSpace Q] (Φ : SymplecticFraming hι hP) {U : Set M}
+    (hU : IsOpen U) (hιU : Set.range ι ⊆ U) :
+    ∃ ε₀ > 0, ∀ ε ≤ ε₀, ∃ f : ProductNeighborhood Φ ε, Set.range f ⊆ U := by
+  -- A compact manifold over a finite-dimensional model is second countable.
+  have := J.secondCountableTopology_of_sigmaCompact Q
+  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens hσ
+  -- The points of `U₀` that `ψ` sends into `U` form an open neighbourhood of the zero slice.
+  set W : Set (Q × ℂ) := Subtype.val '' ((Subtype.val ∘ ψ) ⁻¹' U)
+  have hWo : IsOpen W := U₀.isOpen.isOpenMap_subtypeVal _
+    (hU.preimage (continuous_subtypeVal.comp ψ.continuous))
+  have hWU₀ : W ⊆ U₀ := Subtype.coe_image_subset _ _
+  have hW₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ W := by
+    rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
+    obtain ⟨h, hq, -⟩ := hψ q
+    refine ⟨⟨zeroSlice J Q q, h⟩, ?_, zeroSlice_apply q⟩
+    rw [Set.mem_preimage, Function.comp_apply, hq]
+    exact hιU (Set.mem_range_self q)
+  obtain ⟨ε₀, hε₀, hε₀W⟩ := isCompact_univ.exists_prod_ball_subset hWo hW₀
+  have hle : ∀ {ε}, ε ≤ ε₀ → ∀ p ∈ prodBall Q ε, p ∈ W := fun hε p hp ↦
+    hε₀W ⟨trivial, Metric.ball_subset_ball hε (by simpa using hp)⟩
+  refine ⟨ε₀, hε₀, fun ε hε ↦
+    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hWU₀ (hle hε p hp), ?_⟩⟩
+  rintro _ ⟨p, rfl⟩
+  obtain ⟨y, hy, hyp⟩ := hle hε p p.property
+  obtain rfl : y = Opens.inclusion (fun p hp ↦ hWU₀ (hle hε p hp)) p := Subtype.ext hyp
+  exact hy
+
 /-- **Existence of product neighbourhoods.** For compact `Q` and closed nondegenerate `σ`, a
 symplectic framing `Φ` of `ι` has product neighbourhoods of every radius `ε ≤ ε₀`, for some
 `ε₀ > 0`. -/
 theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
-    ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
-  -- A compact manifold over a finite-dimensional model is second countable.
-  have := J.secondCountableTopology_of_sigmaCompact Q
-  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens hσ
-  have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
-    rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
-    simpa using (hψ q).1
-  obtain ⟨ε₀, hε₀, hε₀U⟩ := isCompact_univ.exists_prod_ball_subset U₀.isOpen hU₀
-  refine ⟨ε₀, hε₀, fun ε hε ↦
-    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hε₀U ⟨trivial, ?_⟩⟩⟩
-  exact Metric.ball_subset_ball hε (by simpa using hp)
+    ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) :=
+  (exists_range_subset hσ Φ isOpen_univ (Set.subset_univ _)).imp fun _ ⟨hε₀, h⟩ ↦
+    ⟨hε₀, fun ε hε ↦ (h ε hε).elim fun f _ ↦ ⟨f⟩⟩
 
 end Exists
 
