@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
-public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+public import TauCeti.Geometry.Manifold.Morse.Basic
+import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Compression
 import SymplecticGeometry.Geometry.Manifold.Morse.OpenManifold
 import SymplecticGeometry.Order.Filter.AtTopBot.Archimedean
@@ -24,7 +25,7 @@ The function `g` is `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`: 
 below by some `m`, with all its critical points of index less than the dimension. Its critical
 values below each level are finitely many, so together with `m - 1` and `m - 2` they lie in the
 range of a strictly increasing sequence `v` tending to `+∞`, with `v 0 = m - 2` and
-`v 1 = m - 1` (`Real.exists_strictMono_tendsto_atTop_subset_range`). The levels `d k` and `e k`
+`v 1 = m - 1` (`exists_strictMono_tendsto_atTop_subset_range`). The levels `d k` and `e k`
 are the points at one third and two thirds of the way from `v k` to `v (k + 1)`. Then the only
 value of `v` in `[d k, e (k + 1)]` is `v (k + 1)`, which lies in `(e k, e (k + 1))`, so every
 critical point of `g` in `g⁻¹[d k, e (k + 1)]` lies on the level `v (k + 1)`, and
@@ -63,11 +64,9 @@ theorem exists_isMorse_bandCore_seq (hE : Module.finrank ℝ E ≠ 1)
   have hm' (x : M) : m ≤ g x := hm (mem_range_self x)
   -- The critical values below each level are finitely many, and lie above `m - 1`.
   have hfin (r : ℝ) : (g '' TauCeti.criticalPoints I g ∩ Iic r).Finite := by
-    refine ((hg.finite_criticalPoints_inter
-      (hp.isCompact_preimage (isCompact_Icc (a := m) (b := r)))).image g).subset ?_
-    rintro _ ⟨⟨x, hx, rfl⟩, hxr⟩
-    exact ⟨x, ⟨hx, hm' x, hxr⟩, rfl⟩
-  obtain ⟨u, hu, hutop, hu0, hcrit⟩ := Real.exists_strictMono_tendsto_atTop_subset_range hfin
+    rw [← image_inter_preimage]
+    exact (hg.finite_criticalPoints_inter_preimage_Iic hp ⟨m, hm⟩ r).image g
+  obtain ⟨u, hu, hutop, hu0, hcrit⟩ := exists_strictMono_tendsto_atTop_subset_range hfin
     (a := m - 1) (by rintro _ ⟨x, -, rfl⟩; linarith [hm' x])
   -- The sequence `v` is `u` preceded by `m - 2`.
   set v : ℕ → ℝ := fun k ↦ Nat.casesOn k (m - 2) u
