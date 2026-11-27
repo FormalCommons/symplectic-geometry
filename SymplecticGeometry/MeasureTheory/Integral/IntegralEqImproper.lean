@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Integral.IntegrableOn
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
@@ -25,6 +26,11 @@ half-line, Mathlib's `HasCompactSupport.integral_Ioi_deriv_eq`, and each further
 integration by parts, Mathlib's `MeasureTheory.integral_Ioi_mul_deriv_eq_deriv_mul`. The identity
 is Taylor's formula with integral remainder (Mathlib's `taylor_integral_remainder`) expanded at a
 point to the left of the support of `F`.
+
+A real function `f` whose derivative `f'` on `[a, ∞)` is integrable on `(a, ∞)` is bounded below
+on `[a, ∞)`, by `f a - ∫ t in Ioi a, ‖f' t‖`
+(`MeasureTheory.bddBelow_image_Ici_of_hasDerivAt_of_integrableOn_Ioi`). This is the fundamental
+theorem of calculus on `[a, t]`, Mathlib's `intervalIntegral.integral_eq_sub_of_hasDerivAt`.
 -/
 
 public section
@@ -89,6 +95,21 @@ theorem integral_Ioi_pow_div_factorial_mul_iteratedDeriv_neg {k : ℕ} (hF : Con
       hinf
     simp only [sub_self, zero_sub, u, v, mul_neg, integral_neg, neg_neg] at this
     rw [this, ih (hF.of_le (by norm_cast; omega))]
+
+/-- A function `f : ℝ → ℝ` with derivative `f' t` at every `t ≥ a`, where `f'` is integrable on
+`(a, ∞)`, is bounded below on `[a, ∞)`. -/
+theorem bddBelow_image_Ici_of_hasDerivAt_of_integrableOn_Ioi {f f' : ℝ → ℝ} {a : ℝ}
+    (hf : ∀ t ∈ Ici a, HasDerivAt f (f' t) t) (hf' : IntegrableOn f' (Ioi a)) :
+    BddBelow (f '' Ici a) := by
+  refine ⟨f a - ∫ t in Ioi a, ‖f' t‖, ?_⟩
+  rintro _ ⟨t, ht, rfl⟩
+  have hFTC := intervalIntegral.integral_eq_sub_of_hasDerivAt
+    (fun s hs ↦ hf s (uIcc_of_le ht ▸ hs).1)
+    ((intervalIntegrable_iff_integrableOn_Ioc_of_le ht).mpr (hf'.mono_set Ioc_subset_Ioi_self))
+  have hle := (intervalIntegral.norm_integral_le_integral_norm ht).trans_eq
+    (intervalIntegral.integral_of_le ht) |>.trans (setIntegral_mono_set hf'.norm
+      (Eventually.of_forall fun _ ↦ norm_nonneg _) Ioc_subset_Ioi_self.eventuallySubset)
+  linarith [neg_abs_le (∫ s in a..t, f' s), (Real.norm_eq_abs _).symm.trans_le hle]
 
 end MeasureTheory
 

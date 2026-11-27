@@ -79,7 +79,11 @@ These paths, between consecutive members `M i` and `M (i + 1)` of the chain of s
   from `a + N h` on it is `M N` (`SymplecticGeometry.shapeChain_eq_smoothedMaxChain`), also as
   germs along a filter on which the joints eventually match
   (`SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxPath`,
-  `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`).
+  `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`). Its members are then
+  `i`-convex shapes at each `r` where the joints match nearby, the `A i` are `C²` and `i`-convex
+  shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, and the `A (i + 1) - η` are `i`-convex
+  shapes at `r` (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the mesh, `M N`
+  after it, and a path between smoothed maxima on each of its intervals.
 
 ## References
 
@@ -671,6 +675,44 @@ theorem shapeChain_eventuallyEq_smoothedMaxChain {l : Filter ℝ} (hδ : 0 < δ)
     (hℓ : a + N * h ≤ ℓ) :
     shapeChain δ η a h A N ℓ =ᶠ[l] smoothedMaxChain δ A N :=
   hJ.mono fun _ hr ↦ shapeChain_eq_smoothedMaxChain hδ hh hr hℓ
+
+/-- **The chain of paths consists of `i`-convex shapes.** For `δ, h > 0` and `η ≥ 0`, let the
+`A i`, `i ≤ N`, be `C²` and `i`-convex shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, let
+the `A (i + 1) - η`, `i < N`, be `i`-convex shapes at `r`, and let the joints match near `r`:
+`A (i + 1) - η + δ ≤ M i` for `i < N`, with `M = smoothedMaxChain δ A`. Then every member of the
+chain of paths between smoothed maxima is an `i`-convex shape at `r`. -/
+theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 0 ≤ η)
+    (hA : ∀ i ≤ N, ContDiff ℝ 2 (A i))
+    (hJ : ∀ᶠ r' in 𝓝 r, ∀ i < N, A (i + 1) r' - η + δ ≤ smoothedMaxChain δ A i r')
+    (hc : ∀ i ≤ N, IsConvexShapeAt (A i) r)
+    (hcη : ∀ i < N, IsConvexShapeAt (fun r ↦ A (i + 1) r - η) r)
+    (hG : ∀ i ≤ N, deriv (A i) r ≤ G) (hδG : δ * G ≤ r) (ℓ : ℝ) :
+    IsConvexShapeAt (shapeChain δ η a h A N ℓ) r := by
+  have hM {j : ℕ} (hj : j ≤ N) : IsConvexShapeAt (smoothedMaxChain δ A j) r :=
+    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ hA i (hi.trans hj))
+      (fun i hi ↦ hc i (hi.trans hj)) (fun i hi ↦ hG i (hi.trans hj)) hδG
+  rcases le_or_gt ℓ a with hℓa | hℓa
+  · rw [shapeChain_of_le hh (by linarith)]
+    exact hc 0 (Nat.zero_le N)
+  rcases le_or_gt (a + N * h) ℓ with hℓN | hℓN
+  · exact (hM le_rfl).congr_of_eventuallyEq
+      (shapeChain_eventuallyEq_smoothedMaxChain hδ hh hJ hℓN)
+  -- `ℓ` lies in the `j`-th interval of the mesh, for `j = ⌊(ℓ - a) / h⌋₊ < N`.
+  set j := ⌊(ℓ - a) / h⌋₊
+  have hx : 0 ≤ (ℓ - a) / h := div_nonneg (by linarith) hh.le
+  have hj₁ : (j : ℝ) * h ≤ ℓ - a := (le_div_iff₀ hh).1 (Nat.floor_le hx)
+  have hj₂ : ℓ - a < (j + 1) * h := (div_lt_iff₀ hh).1 (Nat.lt_floor_add_one _)
+  have hj : j < N := (Nat.floor_lt hx).2 ((div_lt_iff₀ hh).2 (by linarith))
+  refine IsConvexShapeAt.congr_of_eventuallyEq ?_
+    (shapeChain_eventuallyEq_smoothedMaxPath hδ hh hJ hj ⟨by linarith, by linarith⟩)
+  have hd : ∀ i ≤ j, DifferentiableAt ℝ (A i) r := fun i hi ↦
+    ((hA i (hi.trans hj.le)).differentiable two_ne_zero).differentiableAt
+  have hdM := deriv_smoothedMaxChain_le δ hd fun i hi ↦ hG i (hi.trans hj.le)
+  have hdA := hG (j + 1) hj
+  refine isConvexShapeAt_smoothedMaxPath hδ hη
+    (contDiff_smoothedMaxChain δ fun i hi ↦ hA i (hi.trans hj.le)) (hA (j + 1) hj) (hM hj.le)
+    (hcη j hj) ?_ _
+  nlinarith
 
 end shapeChain
 
