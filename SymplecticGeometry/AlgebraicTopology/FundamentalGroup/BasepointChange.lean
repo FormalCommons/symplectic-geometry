@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
+import SymplecticGeometry.GroupTheory.Subgroup.NormalClosure
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 
 /-!
@@ -60,6 +61,7 @@ theorem basepointChangeSubgroup_eq_map (γ : Path x₀ x₁) (H : Subgroup (Fund
   Subgroup.ext fun g ↦ (mem_basepointChangeSubgroup γ H g).trans (by simp [Subgroup.mem_map])
 
 /-- Changing the base point along `γ` and then along `η` is changing it along `γ.trans η`. -/
+@[simp]
 theorem basepointChangeSubgroup_trans {x₂ : X} (γ : Path x₀ x₁) (η : Path x₁ x₂)
     (H : Subgroup (FundamentalGroup X x₀)) :
     basepointChangeSubgroup (γ.trans η) H =
@@ -97,24 +99,19 @@ theorem normalClosure_basepointChangeSubgroup_eq (γ η : Path x₀ x₁)
     (H : Subgroup (FundamentalGroup X x₀)) :
     Subgroup.normalClosure (basepointChangeSubgroup γ H : Set (FundamentalGroup X x₁)) =
       Subgroup.normalClosure (basepointChangeSubgroup η H) := by
+  have hrange (δ : Path x₀ x₁) : (basepointChangeSubgroup δ H : Set (FundamentalGroup X x₁)) =
+      Set.range fun h : H ↦ fundamentalGroupMulEquivOfPath δ h :=
+    Set.ext fun g ↦ (mem_basepointChangeSubgroup δ H g).trans (by simp)
+  rw [hrange, hrange]
   -- moving along `η` is moving along `γ` and then along the loop `γ⁻¹ η` at `x₁`, which is
   -- conjugation by the class of that loop
-  suffices key : ∀ γ η : Path x₀ x₁, Subgroup.normalClosure (basepointChangeSubgroup η H :
-      Set (FundamentalGroup X x₁)) ≤ Subgroup.normalClosure (basepointChangeSubgroup γ H) from
-    le_antisymm (key η γ) (key γ η)
-  intro γ η
-  have hη : basepointChangeSubgroup η H =
-      basepointChangeSubgroup (γ.symm.trans η) (basepointChangeSubgroup γ H) := by
-    ext g
-    rw [mem_basepointChangeSubgroup_iff, mem_basepointChangeSubgroup_iff,
-      mem_basepointChangeSubgroup_iff, fundamentalGroupMulEquivOfPath_trans,
-      fundamentalGroupMulEquivOfPath_symm, MulEquiv.symm_trans_apply, MulEquiv.symm_symm,
-      MulEquiv.symm_apply_apply]
-  refine Subgroup.normalClosure_le_normal fun g hg ↦ ?_
-  rw [hη, SetLike.mem_coe, mem_basepointChangeSubgroup] at hg
-  obtain ⟨h, hh, rfl⟩ := hg
-  rw [fundamentalGroupMulEquivOfPath_loop_apply]
-  exact (Subgroup.normalClosure_normal).conj_mem _ (Subgroup.subset_normalClosure hh) _
+  refine Subgroup.normalClosure_range_eq_of_isConj fun h ↦ ?_
+  have hη : fundamentalGroupMulEquivOfPath η h = fundamentalGroupMulEquivOfPath (γ.symm.trans η)
+      (fundamentalGroupMulEquivOfPath γ h) := by
+    rw [fundamentalGroupMulEquivOfPath_trans, fundamentalGroupMulEquivOfPath_symm,
+      MulEquiv.trans_apply, MulEquiv.symm_apply_apply]
+  rw [hη, fundamentalGroupMulEquivOfPath_eq_conj]
+  exact isConj_iff.2 ⟨_, rfl⟩
 
 /-- If `k : W → Y` factors as `g ∘ f` through `f : W → X`, then the normal closure of
 `k_* π₁(W, w)` moved to `g x` along any path `η` is the normal closure of the image under `g_*`
