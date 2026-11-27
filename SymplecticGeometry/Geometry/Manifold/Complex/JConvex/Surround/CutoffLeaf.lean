@@ -38,17 +38,38 @@ derivatives of the leaf are `SymplecticGeometry.deriv_cutoff_add_sqrt` and
 `SymplecticGeometry.iteratedDeriv_two_cutoff_add_sqrt`, and together these give
 `SymplecticGeometry.isConvexShapeAt_cutoff_add_sqrt_of_two_le`.
 
+## The cutoff leaf
+
+* `SymplecticGeometry.cutoffLeaf L δ b c`: the leaf above. The leaf for `δ` is the one for
+  `δ = 1` with coefficients `b / δ` and `c / δ²`, rescaled
+  (`SymplecticGeometry.cutoffLeaf_eq_mul_cutoffLeaf_one`); it is the bottom leaf raised by `b`
+  up to `2 δ` (`SymplecticGeometry.cutoffLeaf_of_le`), so that its slope tends to `+∞` at `δ`
+  (`SymplecticGeometry.tendsto_deriv_cutoffLeaf`), and `√(64 r² - 64 δ² + c)` from `(2 + L) δ` on
+  (`SymplecticGeometry.cutoffLeaf_of_ge`).
+* Where its radicand does not vanish, for instance where `δ² < r²` and `0 < 64 (r² - δ²) + c`
+  (`SymplecticGeometry.cutoffLeaf_radicand_pos`), the cutoff leaf is smooth in `b`, `c` and `r`
+  (`ContDiffAt.cutoffLeaf`); at each `r` with `δ² ≤ r²` it increases strictly with `b` and
+  `c ≥ 0` (`SymplecticGeometry.cutoffLeaf_lt_cutoffLeaf`).
+* `SymplecticGeometry.exists_isConvexShapeAt_cutoffLeaf`: for `L` large enough, every cutoff leaf
+  with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²` is an `i`-convex shape at every `r > δ`. For `δ = 1` and
+  `r < 2` the leaf is, near `r`, the shape `√(64 r² - 64)` of
+  `SymplecticGeometry.isConvexShapeAt_sqrt_sub` plus the constant `b ≥ 0`; for `r ≥ 2` the shared
+  estimate applies; `IsConvexShapeAt.rescale` passes to `δ`. For large `L` its slope is at most
+  `11` from `2 δ` on (`SymplecticGeometry.deriv_cutoffLeaf_le`).
+
+Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`, in
+`Surround/ShapeFamily.lean`, are cutoff leaves, and their API follows from that of `cutoffLeaf`.
+
 ## The leaves `sqrtAddLeaf`
 
-* `SymplecticGeometry.sqrtAddLeaf L δ ℓ`: the leaf with `b = δ / 8 + ℓ` and
+* `SymplecticGeometry.sqrtAddLeaf L δ ℓ`: the cutoff leaf with `b = δ / 8 + ℓ` and
   `c = 64 δ² + ℓ²`. It is `√(64 r² - 64 δ²) + δ / 8 + ℓ` up to `2 δ`
   (`SymplecticGeometry.sqrtAddLeaf_of_le`) and the standard shape `√(64 r² + ℓ²)` from `(2 + L) δ`
   on (`SymplecticGeometry.sqrtAddLeaf_of_ge`); the leaves for `δ` are those for `δ = 1` rescaled
   (`SymplecticGeometry.sqrtAddLeaf_eq_mul_sqrtAddLeaf_one`).
 * `SymplecticGeometry.exists_isConvexShapeAt_sqrtAddLeaf`: for `L` large enough, every leaf with
-  `ℓ ∈ [0, 15 δ / 2]` is an `i`-convex shape at every `r > δ`. For `δ = 1` and `r < 2` the leaf is,
-  near `r`, the shape `√(64 r² - 64)` of `SymplecticGeometry.isConvexShapeAt_sqrt_sub` plus a
-  constant `≥ 0`; for `r ≥ 2` the shared estimate applies, as `b ≤ 61 / 8` and `c ≤ 121`.
+  `ℓ ∈ [0, 15 δ / 2]` is an `i`-convex shape at every `r > δ`, as then `b ≤ 61 δ / 8` and
+  `c ≤ 121 δ²`.
 * The family is smooth in `(ℓ, r)` on `r > δ` (`SymplecticGeometry.contDiffOn_uncurry_sqrtAddLeaf`),
   the slope of each leaf tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_sqrtAddLeaf`),
   and at each `r > δ` the leaves increase strictly with `ℓ ≥ 0`
@@ -262,78 +283,211 @@ theorem deriv_cutoff_add_sqrt_le_of_two_le {A B M L b c r : ℝ}
     (sq_sqrt (by nlinarith [mul_nonneg hc₀ (smoothTransition.nonneg ((r - 2) / L))]))
     (deriv_cutoff_add_sqrt hc₀ hr₁)
 
-/-! ### The leaves `sqrtAddLeaf` -/
+/-! ### The cutoff leaf -/
 
-/-- The leaf `ℓ` of the family of cutoff leaves over the cylinder of radius `δ` that rises
-from the leaf `0` of `sqrtSubLeaf`: with `h r = smoothTransition ((r - 2 δ) / (L δ))`,
-`r ↦ (δ / 8 + ℓ) (1 - h r) + √(64 (r² - δ²) + (64 δ² + ℓ²) h r)`. It is the bottom leaf
-`√(64 r² - 64 δ²)` raised by `δ / 8 + ℓ` for `r ≤ 2 δ` (when `L, δ ≥ 0`), and, when `L, δ > 0`,
-the standard shape `√(64 r² + ℓ²)` for `r ≥ (2 + L) δ`. -/
-noncomputable def sqrtAddLeaf (L δ ℓ r : ℝ) : ℝ :=
-  (δ / 8 + ℓ) * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
-    √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 + ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)))
+/-- The cutoff leaf over the cylinder of radius `δ` with coefficients `b` and `c`: with the
+cutoff `h r = smoothTransition ((r - 2 δ) / (L δ))` of width `L δ` starting at `2 δ`,
+`r ↦ b (1 - h r) + √(64 (r² - δ²) + c h r)`. It is the bottom leaf `√(64 r² - 64 δ²)` raised by
+`b` for `r ≤ 2 δ` (when `L, δ ≥ 0`), and `√(64 r² - 64 δ² + c)` for `r ≥ (2 + L) δ` (when
+`L, δ > 0`). -/
+noncomputable def cutoffLeaf (L δ b c r : ℝ) : ℝ :=
+  b * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
+    √(64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ)))
 
-theorem sqrtAddLeaf_def (L δ ℓ r : ℝ) : sqrtAddLeaf L δ ℓ r =
-    (δ / 8 + ℓ) * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
-      √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 + ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ))) :=
+theorem cutoffLeaf_def (L δ b c r : ℝ) : cutoffLeaf L δ b c r =
+    b * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
+      √(64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ))) :=
   (rfl)
 
-/-- The leaves for the radius `δ` are those for the radius `1`, rescaled by `δ`. -/
-theorem sqrtAddLeaf_eq_mul_sqrtAddLeaf_one (hδ : 0 < δ) (L ℓ : ℝ) :
-    sqrtAddLeaf L δ ℓ = fun r ↦ δ * sqrtAddLeaf L 1 (ℓ / δ) (r / δ) := by
+/-- For `δ = 1`, the cutoff leaf with the cutoff `smoothTransition ((x - 2) / L)` written out,
+in the form of `isConvexShapeAt_cutoff_add_sqrt_of_two_le`. -/
+theorem cutoffLeaf_one (L b c : ℝ) : cutoffLeaf L 1 b c = fun x ↦
+    b * (1 - smoothTransition ((x - 2) / L)) +
+      √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L)) := by
+  ext x
+  simp only [cutoffLeaf_def, one_pow, mul_one]
+  ring_nf
+
+/-- The cutoff leaves for the radius `δ` are those for the radius `1`, rescaled by `δ`, with the
+coefficients `b / δ` and `c / δ²`. -/
+theorem cutoffLeaf_eq_mul_cutoffLeaf_one (hδ : 0 < δ) (L b c : ℝ) :
+    cutoffLeaf L δ b c = fun r ↦ δ * cutoffLeaf L 1 (b / δ) (c / δ ^ 2) (r / δ) := by
   ext r
   have e : (r / δ - 2 * 1) / (L * 1) = (r - 2 * δ) / (L * δ) := by
     rcases eq_or_ne L 0 with rfl | hL
     · simp
     · field_simp
   have hm (X : ℝ) : δ * √X = √(δ ^ 2 * X) := by rw [sqrt_mul (sq_nonneg _), sqrt_sq hδ.le]
-  rw [sqrtAddLeaf_def, sqrtAddLeaf_def, e, mul_add, hm]
+  rw [cutoffLeaf_def, cutoffLeaf_def, e, mul_add, hm]
   congr 1
   · field_simp
   · congr 1
     field_simp
 
+/-- Up to `2 δ`, the cutoff leaf is the bottom leaf `√(64 r² - 64 δ²)` raised by `b`. -/
+theorem cutoffLeaf_of_le {L b c r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : r ≤ 2 * δ) :
+    cutoffLeaf L δ b c r = √(64 * r ^ 2 - 64 * δ ^ 2) + b := by
+  rw [cutoffLeaf_def, smoothTransition.zero_of_nonpos
+    (div_nonpos_of_nonpos_of_nonneg (by linarith) (by positivity))]
+  ring_nf
+
+/-- From `(2 + L) δ` on, the cutoff leaf is `√(64 r² - 64 δ² + c)`. -/
+theorem cutoffLeaf_of_ge {L b c r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 + L) * δ ≤ r) :
+    cutoffLeaf L δ b c r = √(64 * r ^ 2 - 64 * δ ^ 2 + c) := by
+  rw [cutoffLeaf_def,
+    smoothTransition.one_of_one_le ((one_le_div (by positivity)).2 (by linarith))]
+  ring_nf
+
+/-- The slope of every cutoff leaf tends to `+∞` at `δ`, where it meets the cylinder. -/
+theorem tendsto_deriv_cutoffLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (b c : ℝ) :
+    Tendsto (deriv (cutoffLeaf L δ b c)) (𝓝[>] δ) atTop := by
+  refine (tendsto_deriv_sqrt_sub (a := 64) (by norm_num) hδ).congr' ?_
+  filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < 2 * δ)] with r hr
+  have he : cutoffLeaf L δ b c =ᶠ[𝓝 r] fun x ↦ √(64 * x ^ 2 - 64 * δ ^ 2) + b := by
+    filter_upwards [gt_mem_nhds hr.2] with x hx using cutoffLeaf_of_le hL hδ.le hx.le
+  rw [he.deriv_eq, deriv_add_const]
+
+/-- The radicand `64 (r² - δ²) + c h r` of the cutoff leaf is positive where `δ² < r²` and
+`0 < 64 (r² - δ²) + c`: it lies between these two values, the cutoff `h r` being in `[0, 1]`. -/
+theorem cutoffLeaf_radicand_pos (L : ℝ) {c r : ℝ} (hr : δ ^ 2 < r ^ 2)
+    (hc : 0 < 64 * (r ^ 2 - δ ^ 2) + c) :
+    0 < 64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ)) := by
+  have hH₀ := smoothTransition.nonneg ((r - 2 * δ) / (L * δ))
+  have hH₁ := smoothTransition.le_one ((r - 2 * δ) / (L * δ))
+  rcases le_total 0 c with h | h
+  · nlinarith [mul_nonneg h hH₀]
+  · nlinarith [mul_le_mul_of_nonpos_left hH₁ h]
+
+/-- The cutoff leaf is smooth in its coefficients and its argument where its radicand does not
+vanish: if `b`, `c` and `r` are smooth at `x` and `64 (r x² - δ²) + c x h (r x) ≠ 0`, then so is
+`y ↦ cutoffLeaf L δ (b y) (c y) (r y)`. -/
+theorem _root_.ContDiffAt.cutoffLeaf {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {L : ℝ} {b c r : E → ℝ} {x : E} (hb : ContDiffAt ℝ ∞ b x) (hc : ContDiffAt ℝ ∞ c x)
+    (hr : ContDiffAt ℝ ∞ r x)
+    (hrad : 64 * (r x ^ 2 - δ ^ 2) + c x * smoothTransition ((r x - 2 * δ) / (L * δ)) ≠ 0) :
+    ContDiffAt ℝ ∞ (fun y ↦ cutoffLeaf L δ (b y) (c y) (r y)) x := by
+  have hH : ContDiffAt ℝ ∞ (fun y ↦ smoothTransition ((r y - 2 * δ) / (L * δ))) x :=
+    smoothTransition.contDiff.contDiffAt.comp x ((hr.sub contDiffAt_const).div_const _)
+  simp only [cutoffLeaf_def]
+  exact (hb.mul (contDiffAt_const.sub hH)).add
+    (((contDiffAt_const.mul ((hr.pow 2).sub contDiffAt_const)).add (hc.mul hH)).sqrt hrad)
+
+/-- At each `r` with `δ² ≤ r²`, the cutoff leaf is strictly increasing in its coefficients
+`b` and `c`, for `c ≥ 0`: the first term increases strictly where the cutoff is below `1`, and
+the square root where it is positive. -/
+theorem cutoffLeaf_lt_cutoffLeaf {L b₁ b₂ c₁ c₂ r : ℝ} (hb : b₁ < b₂) (hc : c₁ < c₂)
+    (hc₁ : 0 ≤ c₁) (hr : δ ^ 2 ≤ r ^ 2) :
+    cutoffLeaf L δ b₁ c₁ r < cutoffLeaf L δ b₂ c₂ r := by
+  simp only [cutoffLeaf_def]
+  set H := smoothTransition ((r - 2 * δ) / (L * δ))
+  have hH₀ : 0 ≤ H := smoothTransition.nonneg _
+  have hH₁ : H ≤ 1 := smoothTransition.le_one _
+  rcases hH₁.lt_or_eq with hH | hH
+  · exact add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_right hb (by linarith))
+      (sqrt_le_sqrt (by nlinarith))
+  · simp only [hH, sub_self, mul_zero, zero_add, mul_one]
+    exact sqrt_lt_sqrt (by nlinarith) (by linarith)
+
+/-- The cutoff leaf with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²`, for `δ > 0`, is an `i`-convex shape
+at every `r > δ`, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`, `B` of
+`smoothTransition''` and `M` of `x smoothTransition'' x`. -/
+theorem isConvexShapeAt_cutoffLeaf {A B M L b c r : ℝ}
+    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
+    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
+    (hb : b ≤ 8 * δ) (hc₀ : 0 ≤ c) (hc : c ≤ 128 * δ ^ 2) (hr : δ < r) :
+    IsConvexShapeAt (cutoffLeaf L δ b c) r := by
+  have hb₀' : 0 ≤ b / δ := div_nonneg hb₀ hδ.le
+  have hb' : b / δ ≤ 8 := (div_le_iff₀ hδ).2 hb
+  have hc₀' : 0 ≤ c / δ ^ 2 := div_nonneg hc₀ (sq_nonneg δ)
+  have hc' : c / δ ^ 2 ≤ 128 := (div_le_iff₀ (by positivity)).2 hc
+  have hr' : 1 < r / δ := (one_lt_div hδ).2 hr
+  -- The case `δ = 1`, rescaled by `δ`.
+  have h₁ : IsConvexShapeAt (cutoffLeaf L 1 (b / δ) (c / δ ^ 2)) (r / δ) := by
+    rcases lt_or_ge (r / δ) 2 with h | h
+    · refine ((isConvexShapeAt_sqrt_sub (a := 64) (c := 64 * 1 ^ 2) (by norm_num)
+        (by linarith) (by nlinarith)).add_const hb₀').congr_of_eventuallyEq ?_
+      filter_upwards [gt_mem_nhds h] with x hx
+      exact cutoffLeaf_of_le (by linarith) zero_le_one (by linarith)
+    · rw [cutoffLeaf_one]
+      exact isConvexShapeAt_cutoff_add_sqrt_of_two_le hA hB hM hL₁ hL hb₀' hb' hc₀' hc' h
+  have h := h₁.rescale hδ
+  rwa [mul_div_cancel₀ r hδ.ne', ← cutoffLeaf_eq_mul_cutoffLeaf_one hδ] at h
+
+/-- **The cutoff leaves are `i`-convex shapes.** There is `L₀ ≥ 1` such that for every `L ≥ L₀`,
+`δ > 0`, `b ∈ [0, 8 δ]` and `c ∈ [0, 128 δ²]`, the cutoff leaf `cutoffLeaf L δ b c` is an
+`i`-convex shape at every `r > δ`. -/
+theorem exists_isConvexShapeAt_cutoffLeaf :
+    ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ b ∈ Icc 0 (8 * δ), ∀ c ∈ Icc 0 (128 * δ ^ 2),
+      ∀ r, δ < r → IsConvexShapeAt (cutoffLeaf L δ b c) r := by
+  obtain ⟨A, hA⟩ := smoothTransition.exists_forall_norm_deriv_le
+  obtain ⟨B, hB⟩ := smoothTransition.exists_forall_norm_deriv_deriv_le
+  obtain ⟨M, hM⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
+  simp only [Real.norm_eq_abs] at hA hB hM
+  exact ⟨max 1 (1024 * (A + 2 * B + M)), le_max_left _ _, fun L hL δ hδ b hb c hc r hr ↦
+    isConvexShapeAt_cutoffLeaf hA hB hM ((le_max_left _ _).trans hL)
+      ((le_max_right _ _).trans hL) hδ hb.1 hb.2 hc.1 hc.2 hr⟩
+
+/-- The slope of the cutoff leaf with `0 ≤ b ≤ 8 δ` and `0 ≤ c ≤ 128 δ²`, for `δ > 0`, is at
+most `11` from `2 δ` on, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`,
+`B` of `smoothTransition''` and `M` of `x smoothTransition'' x`. -/
+theorem deriv_cutoffLeaf_le {A B M L b c r : ℝ}
+    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
+    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
+    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
+    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
+    (hb : b ≤ 8 * δ) (hc₀ : 0 ≤ c) (hc : c ≤ 128 * δ ^ 2) (hr : 2 * δ ≤ r) :
+    deriv (cutoffLeaf L δ b c) r ≤ 11 := by
+  have h₁ : deriv (fun r ↦ δ * cutoffLeaf L 1 (b / δ) (c / δ ^ 2) (r / δ)) r =
+      deriv (cutoffLeaf L 1 (b / δ) (c / δ ^ 2)) (r / δ) := by
+    have h := congrFun (iteratedDeriv_comp_div_const 1 δ (cutoffLeaf L 1 (b / δ) (c / δ ^ 2))) r
+    simp only [iteratedDeriv_one, pow_one, smul_eq_mul] at h
+    rw [deriv_const_mul_field, h]
+    field_simp
+  rw [cutoffLeaf_eq_mul_cutoffLeaf_one hδ, h₁, cutoffLeaf_one]
+  exact deriv_cutoff_add_sqrt_le_of_two_le hA hB hM hL₁ hL (div_nonneg hb₀ hδ.le)
+    ((div_le_iff₀ hδ).2 hb) (div_nonneg hc₀ (sq_nonneg δ))
+    ((div_le_iff₀ (by positivity)).2 hc) ((le_div_iff₀ hδ).2 (by linarith))
+
+/-! ### The leaves `sqrtAddLeaf` -/
+
+/-- The leaf `ℓ` of the family of cutoff leaves over the cylinder of radius `δ` that rises
+from the leaf `0` of `sqrtSubLeaf`: the cutoff leaf with `b = δ / 8 + ℓ` and `c = 64 δ² + ℓ²`,
+that is, with `h r = smoothTransition ((r - 2 δ) / (L δ))`,
+`r ↦ (δ / 8 + ℓ) (1 - h r) + √(64 (r² - δ²) + (64 δ² + ℓ²) h r)`. It is the bottom leaf
+`√(64 r² - 64 δ²)` raised by `δ / 8 + ℓ` for `r ≤ 2 δ` (when `L, δ ≥ 0`), and, when `L, δ > 0`,
+the standard shape `√(64 r² + ℓ²)` for `r ≥ (2 + L) δ`. -/
+noncomputable def sqrtAddLeaf (L δ ℓ r : ℝ) : ℝ :=
+  cutoffLeaf L δ (δ / 8 + ℓ) (64 * δ ^ 2 + ℓ ^ 2) r
+
+/-- `sqrtAddLeaf` is the cutoff leaf with `b = δ / 8 + ℓ` and `c = 64 δ² + ℓ²`. -/
+theorem sqrtAddLeaf_eq_cutoffLeaf (L δ ℓ : ℝ) :
+    sqrtAddLeaf L δ ℓ = cutoffLeaf L δ (δ / 8 + ℓ) (64 * δ ^ 2 + ℓ ^ 2) :=
+  (rfl)
+
+theorem sqrtAddLeaf_def (L δ ℓ r : ℝ) : sqrtAddLeaf L δ ℓ r =
+    (δ / 8 + ℓ) * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
+      √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 + ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ))) :=
+  by rw [sqrtAddLeaf_eq_cutoffLeaf, cutoffLeaf_def]
+
+/-- The leaves for the radius `δ` are those for the radius `1`, rescaled by `δ`. -/
+theorem sqrtAddLeaf_eq_mul_sqrtAddLeaf_one (hδ : 0 < δ) (L ℓ : ℝ) :
+    sqrtAddLeaf L δ ℓ = fun r ↦ δ * sqrtAddLeaf L 1 (ℓ / δ) (r / δ) := by
+  rw [sqrtAddLeaf_eq_cutoffLeaf, cutoffLeaf_eq_mul_cutoffLeaf_one hδ, sqrtAddLeaf_eq_cutoffLeaf]
+  ext r
+  congr 2 <;> field_simp
+
 /-- Up to `2 δ`, the leaf `ℓ` is the bottom leaf `√(64 r² - 64 δ²)` raised by `δ / 8 + ℓ`. -/
 theorem sqrtAddLeaf_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : r ≤ 2 * δ) :
     sqrtAddLeaf L δ ℓ r = √(64 * r ^ 2 - 64 * δ ^ 2) + (δ / 8 + ℓ) := by
-  rw [sqrtAddLeaf_def, smoothTransition.zero_of_nonpos
-    (div_nonpos_of_nonpos_of_nonneg (by linarith) (by positivity))]
-  ring_nf
+  rw [sqrtAddLeaf_eq_cutoffLeaf, cutoffLeaf_of_le hL hδ hr]
 
 /-- From `(2 + L) δ` on, the leaf `ℓ` is the standard shape `√(64 r² + ℓ²)`. -/
 theorem sqrtAddLeaf_of_ge {L ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 + L) * δ ≤ r) :
     sqrtAddLeaf L δ ℓ r = √(64 * r ^ 2 + ℓ ^ 2) := by
-  rw [sqrtAddLeaf_def,
-    smoothTransition.one_of_one_le ((one_le_div (by positivity)).2 (by linarith))]
+  rw [sqrtAddLeaf_eq_cutoffLeaf, cutoffLeaf_of_ge hL hδ hr]
   ring_nf
-
-/-- The leaf `m` for `δ = 1`, with the cutoff `smoothTransition ((x - 2) / L)` written out. -/
-private theorem sqrtAddLeaf_one_eq (L m : ℝ) : sqrtAddLeaf L 1 m = fun x ↦
-    (1 / 8 + m) * (1 - smoothTransition ((x - 2) / L)) +
-      √(64 * x ^ 2 - 64 + (64 + m ^ 2) * smoothTransition ((x - 2) / L)) := by
-  ext x
-  simp only [sqrtAddLeaf_def, one_pow, mul_one]
-  ring_nf
-
-/-- The leaves for `δ = 1` are `i`-convex shapes at every `r > 1`, for `m ∈ [0, 15 / 2]`, once
-`L ≥ 1` is large compared with bounds of `smoothTransition'`, `smoothTransition''` and
-`x smoothTransition'' x`. -/
-private theorem isConvexShapeAt_sqrtAddLeaf_one {A B M L m r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hm : m ∈ Icc 0 (15 / 2)) (hr : 1 < r) :
-    IsConvexShapeAt (sqrtAddLeaf L 1 m) r := by
-  obtain ⟨hm₀, hm₁⟩ := hm
-  rcases lt_or_ge r 2 with h | h
-  · have hb : 0 ≤ 1 / 8 + m := by linarith
-    refine ((isConvexShapeAt_sqrt_sub (a := 64) (c := 64 * 1 ^ 2) (by norm_num)
-      (by linarith) (by nlinarith)).add_const hb).congr_of_eventuallyEq ?_
-    filter_upwards [gt_mem_nhds h] with x hx
-    exact sqrtAddLeaf_of_le (by linarith) zero_le_one (by linarith)
-  · rw [sqrtAddLeaf_one_eq]
-    exact isConvexShapeAt_cutoff_add_sqrt_of_two_le hA hB hM hL₁ hL (by linarith) (by linarith)
-      (by positivity) (by nlinarith) h
 
 /-- The leaves `sqrtAddLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, are `i`-convex shapes at
 every `r > δ`, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`, `B` of
@@ -344,11 +498,9 @@ theorem isConvexShapeAt_sqrtAddLeaf {A B M L ℓ r : ℝ}
     (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (15 * δ / 2))
     (hr : δ < r) : IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r := by
-  have hm : ℓ / δ ∈ Icc 0 (15 / 2) :=
-    ⟨div_nonneg hℓ.1 hδ.le, (div_le_iff₀ hδ).2 (by linarith [hℓ.2])⟩
-  have h := (isConvexShapeAt_sqrtAddLeaf_one hA hB hM hL₁ hL hm
-    ((one_lt_div hδ).2 hr)).rescale hδ
-  rwa [mul_div_cancel₀ r hδ.ne', ← sqrtAddLeaf_eq_mul_sqrtAddLeaf_one hδ] at h
+  obtain ⟨hℓ₀, hℓ₁⟩ := hℓ
+  exact isConvexShapeAt_cutoffLeaf hA hB hM hL₁ hL hδ (by positivity) (by linarith)
+    (by positivity) (by nlinarith) hr
 
 /-- **The leaves `sqrtAddLeaf` are `i`-convex shapes.** There is `L₀ ≥ 1` such that for every
 `L ≥ L₀`, `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, the leaf `sqrtAddLeaf L δ ℓ` is an `i`-convex shape at
@@ -356,13 +508,10 @@ every `r > δ`. -/
 theorem exists_isConvexShapeAt_sqrtAddLeaf :
     ∃ L₀, 1 ≤ L₀ ∧ ∀ L, L₀ ≤ L → ∀ δ, 0 < δ → ∀ ℓ ∈ Icc 0 (15 * δ / 2), ∀ r, δ < r →
       IsConvexShapeAt (sqrtAddLeaf L δ ℓ) r := by
-  obtain ⟨A, hA⟩ := smoothTransition.exists_forall_norm_deriv_le
-  obtain ⟨B, hB⟩ := smoothTransition.exists_forall_norm_deriv_deriv_le
-  obtain ⟨M, hM⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
-  simp only [Real.norm_eq_abs] at hA hB hM
-  exact ⟨max 1 (1024 * (A + 2 * B + M)), le_max_left _ _, fun L hL δ hδ ℓ hℓ r hr ↦
-    isConvexShapeAt_sqrtAddLeaf hA hB hM ((le_max_left _ _).trans hL)
-      ((le_max_right _ _).trans hL) hδ hℓ hr⟩
+  obtain ⟨L₀, hL₀, h⟩ := exists_isConvexShapeAt_cutoffLeaf
+  refine ⟨L₀, hL₀, fun L hL δ hδ ℓ ⟨hℓ₀, hℓ₁⟩ r hr ↦ ?_⟩
+  -- The coefficients are `δ / 8 + ℓ ≤ 61 δ / 8` and `64 δ² + ℓ² ≤ 121 δ²`.
+  exact h L hL δ hδ _ ⟨by positivity, by linarith⟩ _ ⟨by positivity, by nlinarith⟩ r hr
 
 /-- The slope of the leaf `sqrtAddLeaf L δ ℓ`, for `δ > 0` and `ℓ ∈ [0, 15 δ / 2]`, is at most
 `11` from `2 δ` on, once `L ≥ 1` is large compared with bounds `A` of `smoothTransition'`, `B`
@@ -373,17 +522,9 @@ theorem deriv_sqrtAddLeaf_le {A B M L ℓ r : ℝ}
     (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hℓ : ℓ ∈ Icc 0 (15 * δ / 2))
     (hr : 2 * δ ≤ r) : deriv (sqrtAddLeaf L δ ℓ) r ≤ 11 := by
-  have hm₀ : 0 ≤ ℓ / δ := div_nonneg hℓ.1 hδ.le
-  have hm₁ : ℓ / δ ≤ 15 / 2 := (div_le_iff₀ hδ).2 (by linarith [hℓ.2])
-  have h₁ : deriv (fun r ↦ δ * sqrtAddLeaf L 1 (ℓ / δ) (r / δ)) r =
-      deriv (sqrtAddLeaf L 1 (ℓ / δ)) (r / δ) := by
-    have h := congrFun (iteratedDeriv_comp_div_const 1 δ (sqrtAddLeaf L 1 (ℓ / δ))) r
-    simp only [iteratedDeriv_one, pow_one, smul_eq_mul] at h
-    rw [deriv_const_mul_field, h]
-    field_simp
-  rw [sqrtAddLeaf_eq_mul_sqrtAddLeaf_one hδ, h₁, sqrtAddLeaf_one_eq]
-  exact deriv_cutoff_add_sqrt_le_of_two_le hA hB hM hL₁ hL (by linarith) (by linarith)
-    (by positivity) (by nlinarith) ((le_div_iff₀ hδ).2 (by linarith))
+  obtain ⟨hℓ₀, hℓ₁⟩ := hℓ
+  exact deriv_cutoffLeaf_le hA hB hM hL₁ hL hδ (by positivity) (by linarith) (by positivity)
+    (by nlinarith) hr
 
 /-- The leaf `ℓ ≥ 0` is at least `8 √(r² - δ²)`, for `0 ≤ δ`. -/
 theorem eight_mul_sqrt_le_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) {ℓ : ℝ} (hℓ : 0 ≤ ℓ) (r : ℝ) :
@@ -418,36 +559,23 @@ theorem sqrtAddLeaf_le (L : ℝ) (hδ : 0 ≤ δ) {ℓ r : ℝ} (hℓ : 0 ≤ �
 radicand is at least `64 (r² - δ²) > 0`. -/
 theorem contDiffOn_uncurry_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) :
     ContDiffOn ℝ ∞ (Function.uncurry (sqrtAddLeaf L δ)) (univ ×ˢ Ioi δ) := by
-  have e : Function.uncurry (sqrtAddLeaf L δ) = fun p : ℝ × ℝ ↦
-      (δ / 8 + p.1) * (1 - smoothTransition ((p.2 - 2 * δ) / (L * δ))) +
-        √(64 * (p.2 ^ 2 - δ ^ 2) +
-          (64 * δ ^ 2 + p.1 ^ 2) * smoothTransition ((p.2 - 2 * δ) / (L * δ))) := by
+  have e : Function.uncurry (sqrtAddLeaf L δ) =
+      fun p : ℝ × ℝ ↦ cutoffLeaf L δ (δ / 8 + p.1) (64 * δ ^ 2 + p.1 ^ 2) p.2 := by
     ext ⟨ℓ, r⟩
-    rw [Function.uncurry_apply_pair, sqrtAddLeaf_def]
-  have hH : ContDiff ℝ ∞ fun p : ℝ × ℝ ↦ smoothTransition ((p.2 - 2 * δ) / (L * δ)) :=
-    smoothTransition.contDiff.comp ((contDiff_snd.sub contDiff_const).div_const _)
+    rw [Function.uncurry_apply_pair, sqrtAddLeaf_eq_cutoffLeaf]
   rintro ⟨ℓ, r⟩ ⟨-, hr⟩
   rw [mem_Ioi] at hr
   have hrδ : δ ^ 2 < r ^ 2 := by gcongr
-  have hrad : 0 < 64 * (r ^ 2 - δ ^ 2) +
-      (64 * δ ^ 2 + ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) := by
-    nlinarith [mul_nonneg (by positivity : (0 : ℝ) ≤ 64 * δ ^ 2 + ℓ ^ 2)
-      (smoothTransition.nonneg ((r - 2 * δ) / (L * δ)))]
   rw [e]
-  exact ((contDiff_const.add contDiff_fst).mul (contDiff_const.sub hH)).contDiffAt.add
-    (((contDiff_const.mul ((contDiff_snd.pow 2).sub contDiff_const)).add
-      ((contDiff_const.add (contDiff_fst.pow 2)).mul hH)).contDiffAt.sqrt
-      hrad.ne') |>.contDiffWithinAt
+  exact ((contDiffAt_const.add contDiffAt_fst).cutoffLeaf
+    (contDiffAt_const.add (contDiffAt_fst.pow 2)) contDiffAt_snd
+    (cutoffLeaf_radicand_pos L hrδ (by nlinarith)).ne').contDiffWithinAt
 
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtAddLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
     Tendsto (deriv (sqrtAddLeaf L δ ℓ)) (𝓝[>] δ) atTop := by
-  refine (tendsto_deriv_sqrt_sub (a := 64) (by norm_num) hδ).congr' ?_
-  filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < 2 * δ)] with r hr
-  have he : sqrtAddLeaf L δ ℓ =ᶠ[𝓝 r]
-      fun x ↦ √(64 * x ^ 2 - 64 * δ ^ 2) + (δ / 8 + ℓ) := by
-    filter_upwards [gt_mem_nhds hr.2] with x hx using sqrtAddLeaf_of_le hL hδ.le hx.le
-  rw [he.deriv_eq, deriv_add_const]
+  rw [sqrtAddLeaf_eq_cutoffLeaf]
+  exact tendsto_deriv_cutoffLeaf hL hδ _ _
 
 /-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ≥ 0` are strictly increasing in `ℓ`: both
 terms of `sqrtAddLeaf` are nondecreasing in `ℓ ≥ 0`, the first strictly where the cutoff is
@@ -456,17 +584,8 @@ theorem strictMonoOn_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ <
     StrictMonoOn (fun ℓ ↦ sqrtAddLeaf L δ ℓ r) (Ici 0) := by
   intro ℓ₁ hℓ₁ ℓ₂ hℓ₂ h
   rw [mem_Ici] at hℓ₁ hℓ₂
-  simp only [sqrtAddLeaf_def]
-  set H := smoothTransition ((r - 2 * δ) / (L * δ))
-  have hH₀ : 0 ≤ H := smoothTransition.nonneg _
-  have hH₁ : H ≤ 1 := smoothTransition.le_one _
-  have hrδ : δ ^ 2 < r ^ 2 := by gcongr
-  have hsq : ℓ₁ ^ 2 < ℓ₂ ^ 2 := by nlinarith
-  rcases hH₁.lt_or_eq with hH | hH
-  · exact add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_right (by linarith) (by linarith))
-      (sqrt_le_sqrt (by nlinarith))
-  · simp only [hH, sub_self, mul_zero, zero_add, mul_one]
-    exact sqrt_lt_sqrt (by nlinarith) (by linarith)
+  simp only [sqrtAddLeaf_eq_cutoffLeaf]
+  exact cutoffLeaf_lt_cutoffLeaf (by linarith) (by nlinarith) (by positivity) (by gcongr)
 
 end SymplecticGeometry
 

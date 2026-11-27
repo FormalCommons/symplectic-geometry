@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Attached
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ChartLeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ComplexFrame
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import Mathlib.Geometry.Manifold.Diffeomorph
@@ -74,7 +75,7 @@ smooth diffeomorphism that keeps the open unit ball, and on the sphere `σ x = x
 `SymplecticGeometry.IsJOrthogonallyAttached.comp_of_mfderiv_apply_self_eq_smul`, the disc
 `ι ∘ σ` is again attached J-orthogonally.
 
-Finally, the file compares `φ` with the model level `modelLevel k m` read through a partial
+Next, the file compares `φ` with the model level `modelLevel k m` read through a partial
 diffeomorphism `Φ` with `Φ (modelDisc k m x) = ι x` and `dΦ = A x` there, at a point `x` of the
 sphere where the radial derivative of `φ ∘ ι` is `-2` and `dφ` vanishes on `A x (0 × ℂᵐ)`. Both
 values are `0`. For the differentials, write a vector of `ℂᵏ × ℂᵐ` as `(u, 0) + i (u', 0) + (0, w)`
@@ -86,6 +87,14 @@ terms vanish by J-orthogonality and by the choice of `A x`, and the differential
 level at `modelDisc k m x` (`fderiv_modelLevel_apply`) takes the same values. Since `A x` is
 `dΦ`, which is onto, the two differentials at `ι x` agree. This is the comparison of 1-jets in
 Step 3 of the proof of Theorem 8.5 of Cieliebak–Eliashberg.
+
+Finally, it carries the model level `φ₀ = modelLevel k m` to `M` through a chart `Φ`
+along a disc that is holomorphic to order `N ≥ 2` along the core, as in Step 4 of the proof of
+Theorem 8.5. Its Levi form has a margin of the form that
+`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm` takes with
+`N₀ = 0` (`SymplecticGeometry.exists_pos_mul_max_norm_le_re_leviForm_modelLevel`, on a bounded
+set containing the handles), so `φ₀ ∘ Φ⁻¹` is strictly plurisubharmonic on the image of a thin
+handle, and so on an open neighbourhood of the image of the unit sphere.
 
 ## Main results
 
@@ -101,11 +110,15 @@ Step 3 of the proof of Theorem 8.5 of Cieliebak–Eliashberg.
 * `SymplecticGeometry.IsJOrthogonallyAttached.apply_eq_modelLevel_symm_apply` and
   `SymplecticGeometry.IsJOrthogonallyAttached.mvfderiv_eq_mvfderiv_modelLevel_comp_symm`: on the
   sphere, `φ` and `modelLevel k m ∘ Φ.symm` have the same value and the same differential.
+* `exists_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm`:
+  `modelLevel k m ∘ Φ.symm` is strictly plurisubharmonic on `Φ` of every thin enough handle.
+* `exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm`:
+  the same on an open set of `Φ.target` containing `Φ (ι₀ (sphere 0 1))`.
 
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Corollary 8.1, and Steps 2 and 3 of the proof of Theorem 8.5.
+  Corollary 8.1, and Steps 2, 3 and 4 of the proof of Theorem 8.5.
 -/
 
 public section
@@ -577,6 +590,79 @@ theorem mvfderiv_eq_mvfderiv_modelLevel_comp_symm (h : IsJOrthogonallyAttached E
 end IsJOrthogonallyAttached
 
 end ModelJet
+
+section ModelLevel
+
+open TauCeti
+
+variable {k m : ℕ}
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 2 M]
+  [IsManifold 𝓘(ℝ, E) ∞ M] {N : ℕ}
+
+/-- **The model level through the chart along a disc.** Let `Φ` be a smooth partial
+diffeomorphism from `ℂᵏ × ℂᵐ` to `M` that is holomorphic to order `N ≥ 2` along the core, as
+`SymplecticGeometry.exists_modelChart` gives it. Then there is `γ₀ ∈ (0, 1]` such that, for
+`0 < γ < γ₀`, the handle `{p | t p ≤ γ² ∧ s p ≤ (1 + γ)²}` lies in the source of `Φ`, and
+`φ₀ ∘ Φ⁻¹` is strictly plurisubharmonic at `Φ p` for every `p` in the handle, where
+`φ₀ = modelLevel k m` and `(s, t) = shape p`. -/
+theorem exists_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
+    (hΦ : IsHolomorphicToOrderAlongCore N Φ) (hN : 2 ≤ N) :
+    ∃ γ₀ ∈ Ioc (0 : ℝ) 1, ∀ γ ∈ Ioo 0 γ₀,
+      {p | (shape p).2 ≤ γ ^ 2 ∧ (shape p).1 ≤ (1 + γ) ^ 2} ⊆ Φ.source ∧
+      ∀ p, (shape p).2 ≤ γ ^ 2 → (shape p).1 ≤ (1 + γ) ^ 2 →
+        IsManifoldStrictlyPlurisubharmonicAt E (modelLevel k m ∘ Φ.symm) (Φ p) := by
+  -- The handles of width at most `1` are bounded, so the model level has a margin on them.
+  obtain ⟨R, hR⟩ := isBounded_iff_forall_norm_le.1
+    (isCompact_setOfPred_shape_le (k := k) (m := m) (1 ^ 2) ((1 + 1) ^ 2)).isBounded
+  obtain ⟨c, hc, hmargin⟩ := exists_pos_mul_max_norm_le_re_leviForm_modelLevel (k := k) (m := m) R
+  obtain ⟨γ₀, hγ₀, h⟩ :=
+    isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm Φ hΦ hc (N₀ := 0) hN
+  refine ⟨γ₀, hγ₀, fun γ hγ ↦ ⟨(h γ hγ).1, fun p ht hs ↦ ?_⟩⟩
+  refine (h γ hγ).2 (modelLevel k m) contDiff_modelLevel (fun q ht' hs' ↦ ?_) p ht hs
+  have hq := hR q (setOfPred_shape_le_subset_setOfPred_shape_le hγ.1.le
+    (hγ.2.le.trans hγ₀.2) ⟨ht', hs'⟩)
+  exact ⟨isStrictlyPlurisubharmonicAt_modelLevel q, fun v ↦ by simpa using hmargin q hq v⟩
+
+/-- **An open neighbourhood of the attaching sphere on which the model level is strictly
+plurisubharmonic.** For `Φ` as in
+`exists_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm`, there is an open
+set `V ⊆ Φ.target` of `M` that contains the image under `Φ ∘ ι₀` of the unit sphere, at every
+point of which `modelLevel k m ∘ Φ⁻¹` is strictly plurisubharmonic. -/
+theorem exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
+    (hΦ : IsHolomorphicToOrderAlongCore N Φ) (hN : 2 ≤ N) :
+    ∃ V : Set M, IsOpen V ∧ V ⊆ Φ.target ∧ Φ '' (modelDisc k m '' sphere 0 1) ⊆ V ∧
+      ∀ x ∈ V, IsManifoldStrictlyPlurisubharmonicAt E (modelLevel k m ∘ Φ.symm) x := by
+  obtain ⟨γ₀, hγ₀, h⟩ :=
+    exists_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm Φ hΦ hN
+  have hγ : γ₀ / 2 ∈ Ioo 0 γ₀ := ⟨half_pos hγ₀.1, half_lt_self hγ₀.1⟩
+  obtain ⟨hsub, hpsh⟩ := h _ hγ
+  set U := {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
+    (shape p).2 < (γ₀ / 2) ^ 2 ∧ (shape p).1 < (1 + γ₀ / 2) ^ 2}
+  have hU : IsOpen U :=
+    (isOpen_lt (contDiff_shape (n := 0)).snd.continuous continuous_const).inter
+      (isOpen_lt (contDiff_shape (n := 0)).fst.continuous continuous_const)
+  have hUs : U ⊆ Φ.source := fun p hp ↦ hsub ⟨hp.1.le, hp.2.le⟩
+  refine ⟨Φ '' U, Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hU hUs,
+    ?_, ?_, ?_⟩
+  · rintro _ ⟨p, hp, rfl⟩
+    exact Φ.map_source (hUs hp)
+  · rintro _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩
+    refine ⟨modelDisc k m x, ⟨?_, ?_⟩, rfl⟩
+    · simp [shape_snd, hγ.1]
+    · have hs : (shape (modelDisc k m x)).1 = ‖x‖ ^ 2 := by
+        simp [EuclideanSpace.real_norm_sq_eq]
+      rw [hs, mem_sphere_zero_iff_norm.1 hx]
+      nlinarith [hγ.1]
+  · rintro _ ⟨p, hp, rfl⟩
+    exact hpsh p hp.1.le hp.2.le
+
+end ModelLevel
 
 end SymplecticGeometry
 
