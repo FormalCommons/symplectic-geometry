@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import SymplecticGeometry.MeasureTheory.Integral.IntegralEqImproper
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
@@ -156,6 +157,18 @@ infimum of `‖μ‖²` over that orbit (`SymplecticGeometry.momentNormSq_limit_
 proof of [GeorgoulasRobbinSalamon2021], Theorem 6.4, with the polar radius in place of the
 distance in `Gc ⧸ G`.
 
+## The Kempf–Ness function along a flow converging to a zero of `μ`
+
+If the flow from `p` converges to a point `x` with `μ x = 0`, then `‖μ‖²` is integrable along it
+on `(0, ∞)` (`SymplecticGeometry.integrableOn_Ioi_momentNormSq_maximalIntegralCurve`). This is
+`SymplecticGeometry.integrableOn_Ioi_sub_comp_maximalIntegralCurve_of_lojasiewicz`, with the
+Łojasiewicz inequality at `x` and `‖μ x‖² = 0`: for `θ > 1 / 2` it uses the finite length of the
+trajectory, not only its finite energy. Since `Φ_p` has derivative `-2 ‖μ‖²` along a flow curve
+`g`, the fundamental theorem of calculus bounds `Φ_p (g t)` below by
+`Φ_p (g 0) - ∫₀^∞ 2 ‖μ‖²` for all `t ≥ 0`
+(`SymplecticGeometry.bddBelow_kempfNessFunction_image_Ici`, by
+`MeasureTheory.bddBelow_image_Ici_of_hasDerivAt_of_integrableOn_Ioi`).
+
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
@@ -179,6 +192,10 @@ distance in `Gc ⧸ G`.
   of one `Gc`-orbit lie in one `G`-orbit.
 * `SymplecticGeometry.momentNormSq_limit_eq_iInf`: the moment limit theorem, the norm square at
   the limit of the flow from `p` is the infimum of `‖μ‖²` over the `Gc`-orbit of `p`.
+* `SymplecticGeometry.integrableOn_Ioi_momentNormSq_maximalIntegralCurve`,
+  `SymplecticGeometry.bddBelow_kempfNessFunction_image_Ici`: if the flow from `p` converges to a
+  zero of `μ`, then `‖μ‖²` is integrable along it, and the Kempf–Ness function is bounded below
+  along the corresponding flow curve in `Gc`.
 
 ## References
 
@@ -351,6 +368,33 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
   obtain ⟨θ, hθ, c, hc, hLp⟩ := hL p
   exact ⟨hx, p, mgradient_eq_zero_iff.mpr (mem_criticalPoints.mp hpc.1), hconv, θ, hθ, c, hc,
     hdist hc hθ.2 hLp⟩
+
+/-- **The norm square of a moment map is integrable along a flow converging to a zero of `μ`.**
+In the setting of `tendsto_maximalIntegralCurve_momentNormSq`, if the negative gradient flow of
+`f = momentNormSq B hB μ` from `p` converges to a point `x` with `μ x = 0`, then `f` is integrable
+along it on `(0, ∞)`. -/
+theorem integrableOn_Ioi_momentNormSq_maximalIntegralCurve [CompactSpace M]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+    [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] (hσc : σ.IsClosed)
+    (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap μ) {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : B.Nondegenerate)
+    (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) {p x : M}
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hx0 : μ x = 0) :
+    MeasureTheory.IntegrableOn (fun t ↦ momentNormSq B hB μ
+      (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t)) (Ioi 0) := by
+  have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
+    IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+    (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff ξ).of_le (by norm_cast)
+  obtain ⟨hI, -⟩ := tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p
+  obtain ⟨θ, hθ, c, hc, hL⟩ := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG x
+  have hfx : momentNormSq B hB μ x = 0 := by simp [momentNormSq_def, hx0]
+  simpa only [hfx, sub_zero] using
+    integrableOn_Ioi_sub_comp_maximalIntegralCurve_of_lojasiewicz hf hI hx.mapClusterPt hc hθ.2 hL
 
 end Lojasiewicz
 
@@ -905,6 +949,37 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     refine ge_of_tendsto ((hf.continuous.tendsto x).comp hx) (Eventually.of_forall fun t ↦ ?_)
     simp only [Function.comp_apply, hgx]
     exact ciInf_le hbdd _
+
+omit [ConnectedSpace G] [FiniteDimensional ℝ EC] [ContMDiffSMul IC I' ∞ Gc M] in
+/-- **The Kempf–Ness function is bounded below along a flow converging to a zero of `μ`.** Let
+`σ` be closed, nondegenerate and `G`-invariant, `-μ` an equivariant moment map for it, and `B`
+nondegenerate and `Ad`-invariant. Let the negative gradient flow of `‖μ‖²` from `p` converge to a
+point `x` with `μ x = 0`, and let `g : ℝ → Gc` be any curve such that `(g t)⁻¹ • p` is the flow at
+time `t` and `t ↦ Φ_p (g t)` has derivative `-2 ‖μ ((g t)⁻¹ • p)‖²`; for a complexified action,
+`exists_mem_orbit_maximalIntegralCurve` gives such a curve. Then `Φ_p ∘ g` is bounded below on
+`[0, ∞)`. -/
+theorem bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClosed) (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {p x : M}
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hx0 : μ x = 0) {g : ℝ → Gc}
+    (hgx : ∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p)
+    (hgd : ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
+      (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t) :
+    BddBelow ((fun t ↦ kempfNessFunction C μ p (g t)) '' Ici 0) := by
+  -- The derivative `t ↦ -2 ‖μ ((g t)⁻¹ • p)‖²` is integrable on `(0, ∞)`.
+  have hint : MeasureTheory.IntegrableOn
+      (fun t ↦ -2 * momentNormSq B hB μ ((g t)⁻¹ • p)) (Ioi 0) := by
+    have hneg : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
+      funext fun _ ↦ momentNormSq_neg
+    have := integrableOn_Ioi_momentNormSq_maximalIntegralCurve hσc hσ hσG hμ hB hBG
+      (hneg ▸ hx) (by simp [hx0])
+    simp only [hneg, hgx] at this
+    exact this.const_mul (-2)
+  exact MeasureTheory.bddBelow_image_Ici_of_hasDerivAt_of_integrableOn_Ioi (fun t _ ↦ hgd t) hint
 
 end MomentLimit
 

@@ -63,8 +63,9 @@ polynomial in `‖z‖`.
 
 * `SymplecticGeometry.RescaledUnitaryCharts.norm_frameChange`: `‖D.frameChange k x y w‖ = 1`.
 * `SymplecticGeometry.RescaledUnitaryCharts.contDiffOn_frameChange`: the change of frame is smooth
-  on `D.chartTransitionDomain k x y`, so differentiable at each of its points
-  (`SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_frameChange`).
+  on `D.chartTransitionDomain k x y`, so smooth and differentiable at each of its points
+  (`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_frameChange`,
+  `SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_frameChange`).
 * `SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`: the readings of a section
   in the two charts differ by the change of frame, and so agree near each point of the source of
   the transition (`SymplecticGeometry.RescaledUnitaryCharts.reading_eventuallyEq_frameChange_mul`).
@@ -256,9 +257,9 @@ variable [∀ x, MulAction Circleᵐᵒᵖ (P x)] [PrincipalBundle Circle P]
 attribute [local instance] finrank_real_complex_fact' in
 /-- **The change of frame is smooth.** For `k ≥ k₀`, it is smooth on the set of points of the ball
 of radius `ρ₀ * √k` that the transition from the chart centred at `y` to the chart centred at `x`
-sends into that ball. -/
-theorem contDiffOn_frameChange {k : ℕ} (hk : k₀ ≤ k) (x y : M) :
-    ContDiffOn ℝ ∞ (D.frameChange k x y) (D.chartTransitionDomain k x y) := by
+sends into that ball: it is `C^n` there for every `n : ℕ∞`. -/
+theorem contDiffOn_frameChange {n : ℕ∞} {k : ℕ} (hk : k₀ ≤ k) (x y : M) :
+    ContDiffOn ℝ n (D.frameChange k x y) (D.chartTransitionDomain k x y) := by
   set W := D.chartTransitionDomain k x y
   have hsymm : ContMDiffOn 𝓘(ℝ, StdSpace ι) I ∞ (D.chart k y).symm W :=
     (D.chart k y).symm.contMDiffOn.mono fun w hw ↦
@@ -277,15 +278,22 @@ theorem contDiffOn_frameChange {k : ℕ} (hk : k₀ ≤ k) (x y : M) :
         D.chart_symm_chartTransition (D.mem_chartTransitionDomain_iff.1 hw).2.1⟩
   have hg := ((hy.division hx).pow k)
   rw [← contMDiffOn_iff_contDiffOn]
-  exact (contMDiff_coe_sphere.comp_contMDiffOn hg).congr fun w _ ↦ (frameChange_def ..).symm
+  exact (contMDiff_coe_sphere.comp_contMDiffOn (hg.of_le (by exact_mod_cast le_top))).congr
+    fun w _ ↦ (frameChange_def ..).symm
+
+/-- For `k ≥ k₀`, the change of frame is smooth at each point of the open set
+`D.chartTransitionDomain k x y`: it is `C^n` there for every `n : ℕ∞`. -/
+theorem contDiffAt_frameChange {n : ℕ∞} {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι}
+    (hw : w ∈ D.chartTransitionDomain k x y) :
+    ContDiffAt ℝ n (D.frameChange k x y) w :=
+  (D.contDiffOn_frameChange hk x y).contDiffAt ((D.isOpen_chartTransitionDomain k x y).mem_nhds hw)
 
 /-- For `k ≥ k₀`, the change of frame is differentiable at each point of the open set
 `D.chartTransitionDomain k x y`. -/
 theorem differentiableAt_frameChange {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι}
     (hw : w ∈ D.chartTransitionDomain k x y) :
     DifferentiableAt ℝ (D.frameChange k x y) w :=
-  ((D.contDiffOn_frameChange hk x y).differentiableOn (by simp) w hw).differentiableAt
-    ((D.isOpen_chartTransitionDomain k x y).mem_nhds hw)
+  (D.contDiffAt_frameChange (n := 1) hk hw).differentiableAt (by simp)
 
 /-- **The readings in two charts differ by the change of frame.** For `w` in the source of the
 transition `τ` from the chart centred at `y` to the chart centred at `x`, the reading of a section
@@ -453,7 +461,7 @@ theorem exists_forall_jetNormAt_frameChange_zero_le [I.Boundaryless] (hJ : σ.Co
   have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
   have hW := (D.isOpen_chartTransitionDomain k x _).mem_nhds h0W
   have h := hK (D.contDiffAt_chartTransition (D.chartTransitionDomain_subset_source k x _ h0W))
-    (((D.contDiffOn_frameChange hk x _).contDiffAt hW).of_le (by simp))
+    (D.contDiffAt_frameChange hk h0W)
     (D.norm_frameChange k x _ 0)
     (Filter.eventually_of_mem hW fun w hw v ↦ D.fderiv_frameChange_apply hα hk hw v)
     (hCτ hk x z hz)
