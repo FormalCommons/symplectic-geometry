@@ -8,13 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
 public import TauCeti.LinearAlgebra.Projectivization.Basic
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Analytic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -459,6 +459,7 @@ theorem isLocalDiffeomorphOn_liftChart :
   · exact isLocalDiffeomorphAt_liftChart_of_mem c φ hz
   · exact isLocalDiffeomorphAt_liftChart_of_notMem c φ hz z.property
 
+omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] in
 /-- The lifted chart is injective over the source of `φ`. -/
 theorem injOn_liftChart : Set.InjOn (liftChart c φ) (blowdown c ⁻¹' φ.source) := by
   intro z hz z' hz' h
@@ -474,9 +475,7 @@ theorem injOn_liftChart : Set.InjOn (liftChart c φ) (blowdown c ⁻¹' φ.sourc
     rw [(c.fderivTransEquiv φ).mapProjectivization.injective (zeroSection_injective h)]
   · have hzd' : z' ∉ exceptionalDivisor c := by
       rwa [← blowdown_eq_center_iff, ← hb, blowdown_eq_center_iff]
-    rw [← mem_offDivisorOpens] at hzd hzd'
-    exact congrArg Subtype.val ((blowdownDiffeomorph c).injective (a₁ := ⟨z, hzd⟩)
-      (a₂ := ⟨z', hzd'⟩) (Subtype.ext (by simpa using hb)))
+    exact injOn_blowdown c hzd hzd' hb
 
 omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] in
 /-- The lifted chart maps the preimage of the source of `φ` onto the part of the model over the
@@ -508,6 +507,12 @@ def liftChartPartialDiffeomorph :
     PartialDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) (BlowupModel n) ω :=
   (isLocalDiffeomorphOn_liftChart c φ).partialDiffeomorphOfInjOn
     (φ.open_source.preimage (blowdown c).continuous) (injOn_liftChart c φ)
+
+theorem liftChartPartialDiffeomorph_def :
+    liftChartPartialDiffeomorph c φ =
+      IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn (isLocalDiffeomorphOn_liftChart c φ)
+        (φ.open_source.preimage (blowdown c).continuous) (injOn_liftChart c φ) :=
+  (rfl)
 
 @[simp]
 theorem coe_liftChartPartialDiffeomorph : ⇑(liftChartPartialDiffeomorph c φ) = liftChart c φ :=

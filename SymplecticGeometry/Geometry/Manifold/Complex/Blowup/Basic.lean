@@ -12,7 +12,6 @@ import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
@@ -94,6 +93,7 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
   the blowdown is holomorphic, and the preimage of `p₀` is the exceptional divisor.
 * `SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown`: off the divisor, the blowdown is a
   local biholomorphism.
+* `SymplecticGeometry.Blowup.injOn_blowdown`: the blowdown is injective off the divisor.
 
 The Hausdorff property follows from the criterion `SymplecticGeometry.GluedAlong.t2Space_iff`:
 a point `x ≠ p₀` and a point of the divisor are separated by the preimages of disjoint
@@ -621,6 +621,13 @@ def blowdown : C(Blowup c, M) :=
 theorem blowdown_inl (x : puncturedOpens c) : blowdown c (inl (gluingHomeomorph c) x) = x :=
   GluedAlong.desc_inl _ _ x
 
+/-- The blowdown is injective off the exceptional divisor. -/
+theorem injOn_blowdown : InjOn (blowdown c) (exceptionalDivisor c)ᶜ := by
+  rw [← range_inl]
+  rintro _ ⟨x, rfl⟩ _ ⟨x', rfl⟩ h
+  rw [blowdown_inl, blowdown_inl] at h
+  rw [Subtype.ext h]
+
 /-- On the part of the model over the target of `c`, the blowdown is `c.symm ∘ π`. -/
 @[simp]
 theorem blowdown_inr (y : modelOpens c) :
@@ -713,14 +720,9 @@ theorem coe_blowdownDiffeomorph_apply (z : offDivisorOpens c) :
 
 /-- Off the exceptional divisor, the blowdown `Blowup c → M` is a local biholomorphism. -/
 theorem isLocalDiffeomorphAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
-    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) z := by
-  let w : offDivisorOpens c := ⟨z, by simpa using hz⟩
-  -- On the complement of the divisor, the blowdown is `blowdownDiffeomorph c`.
-  have h : IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
-      (blowdown c ∘ Subtype.val) w :=
-    ((blowdownDiffeomorph c).isLocalDiffeomorph_subtypeVal_comp w).congr_of_eventuallyEq
-      (Filter.Eventually.of_forall fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm)
-  exact (TauCeti.isLocalDiffeomorph_subtype_val w).comp_iff_right.1 h
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) z :=
+  (blowdownDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
 
 end Complex
 

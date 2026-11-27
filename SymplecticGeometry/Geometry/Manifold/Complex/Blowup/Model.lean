@@ -19,7 +19,6 @@ public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
@@ -766,14 +765,9 @@ theorem blowdownDiffeomorph_symm_apply
 
 /-- Off the exceptional divisor, the blowdown of the model is a local biholomorphism. -/
 theorem isLocalDiffeomorphAt_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) :
-    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p := by
-  let q : offDivisorOpens n := ⟨p, by simpa using hp⟩
-  -- On the complement of the divisor, the blowdown is `blowdownDiffeomorph n`.
-  have h : IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
-      (blowdown ∘ Subtype.val) q :=
-    ((blowdownDiffeomorph n).isLocalDiffeomorph_subtypeVal_comp q).congr_of_eventuallyEq
-      (Eventually.of_forall fun v ↦ (coe_blowdownDiffeomorph v).symm)
-  exact (TauCeti.isLocalDiffeomorph_subtype_val q).comp_iff_right.1 h
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p :=
+  (blowdownDiffeomorph n).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownDiffeomorph v).symm) ⟨p, by simpa using hp⟩
 
 end Blowdown
 
