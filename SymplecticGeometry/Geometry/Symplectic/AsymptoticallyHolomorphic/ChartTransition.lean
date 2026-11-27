@@ -55,16 +55,17 @@ for it, for `k ≥ k₀`:
   `TauCeti.SmoothAlmostComplexStructure.compatible_chartPushforwardAt` and
   `TauCeti.SmoothTwoForm.Compatible.smul`); the forms `g_{k,x}(w)` are then symmetric and positive
   definite there;
-* since `J_x(w)² = -1` and `ω₀(u, ·) = ⟪J₀ u, ·⟫`, each `g_{k,x}(w)` on the target is invertible as
-  a map to the dual, with inverse `φ ↦ J₀ φ'`, `φ'` the vector dual to `φ ∘ J_x(w)` for the inner
-  product (`SymplecticGeometry.RescaledUnitaryCharts.inverse_associatedBilinFormInChart_apply`);
-  so the field of inverses is `J` read in the chart followed by a fixed continuous linear map that
-  does not increase norms, and it satisfies the same bounds on the ball as `g_{k,x}`
+* since `J_x(w)² = -1`, each `g_{k,x}(w)` on the target is invertible as a map to the dual, with
+  inverse `φ ↦ -ω₀♭⁻¹ (φ ∘ J_x(w))`, `ω₀♭ : u ↦ ω₀(u, ·)`
+  (`SymplecticGeometry.RescaledUnitaryCharts.inverse_associatedBilinFormInChart`, from
+  `SymplecticGeometry.inverse_precompR_stdForm_flip_apply`); so the field of inverses is `J` read
+  in the chart followed by the fixed continuous linear map
+  `SymplecticGeometry.stdFormCompRightInverseL`, which does not increase norms, and it satisfies
+  the same bounds on the ball as `g_{k,x}`
   (`SymplecticGeometry.RescaledUnitaryCharts.norm_inverse_associatedBilinFormInChart_le_of_mem_ball`
-  and, in the same namespace, `norm_iteratedFDeriv_inverse_associatedBilinFormInChart_le`); the
-  inverse of `u ↦ ω₀(u, A ·)` for `A² = -1` is
-  `SymplecticGeometry.inverse_precompR_stdForm_flip_apply_apply`, of
-  `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`;
+  and, in the same namespace, `norm_iteratedFDeriv_inverse_associatedBilinFormInChart_le`); both
+  bounds on derivatives come from one bound for any such map
+  (`SymplecticGeometry.RescaledUnitaryCharts.norm_iteratedFDeriv_comp_chartPushforward_le`);
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
   (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`), there is a radius
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
@@ -274,6 +275,25 @@ theorem norm_associatedBilinFormInChart_le_of_mem_ball {k : ℕ} (hk : k₀ ≤ 
   (D.norm_associatedBilinFormInChart_le k x w).trans
     (D.norm_chartPushforward_le_of_mem_ball hk x hw)
 
+/-- On a boundaryless manifold, for `k ≥ k₀`, `r ≥ 1` and `w` in the ball of radius `ρ₀ * √k`,
+the `r`-th iterated derivative at `w` of `J` read in the chart centred at `x`, followed by a
+continuous linear map `L` with `‖L A‖ ≤ ‖A‖` for all `A`, has norm at most `D.bound r * (√k)⁻¹`. -/
+theorem norm_iteratedFDeriv_comp_chartPushforward_le [I.Boundaryless] {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {L : (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] F}
+    (hL : ∀ A, ‖L A‖ ≤ ‖A‖) {k : ℕ} (hk : k₀ ≤ k) {r : ℕ} (hr : r ≠ 0) (x : M)
+    {w : StdSpace ι} (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+    ‖iteratedFDeriv ℝ r (L ∘ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w‖ ≤
+      D.bound r * (√k)⁻¹ := by
+  have hJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w :=
+    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
+      (D.chart k x).symm.contMDiffOn).contDiffAt
+      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
+  rw [ContinuousLinearMap.iteratedFDeriv_comp_left _ hJ (by exact_mod_cast le_top)]
+  refine (ContinuousMultilinearMap.opNorm_le_bound (norm_nonneg _) fun m ↦ ?_).trans
+    (D.iteratedFDeriv_jStruct_le hk hr x w hw)
+  rw [ContinuousLinearMap.compContinuousMultilinearMap_coe, Function.comp_apply]
+  exact (hL _).trans (ContinuousMultilinearMap.le_opNorm _ m)
+
 /-- **Uniform bounds on the derivatives of the forms read in the charts.** On a boundaryless
 manifold, for `k ≥ k₀`, `r ≥ 1` and `w` in the ball of radius `ρ₀ * √k`, the `r`-th iterated
 derivative of the field of forms `g_{k,x}` at `w` has norm at most `D.bound r * (√k)⁻¹`: the
@@ -283,20 +303,14 @@ theorem norm_iteratedFDeriv_associatedBilinFormInChart_le [I.Boundaryless] {k : 
     (hk : k₀ ≤ k) {r : ℕ} (hr : r ≠ 0) (x : M) {w : StdSpace ι}
     (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
     ‖iteratedFDeriv ℝ r (D.associatedBilinFormInChart k x) w‖ ≤ D.bound r * (√k)⁻¹ := by
-  have hJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w :=
-    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt
-      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
   have hfun : D.associatedBilinFormInChart k x =
       (ContinuousLinearMap.precompR (StdSpace ι)
           (stdForm ι).toBilinForm.toContinuousBilinearMap).flip ∘
         J.chartPushforward (D.chart k x).toOpenPartialHomeomorph :=
     funext (D.associatedBilinFormInChart_def k x)
-  rw [hfun, ContinuousLinearMap.iteratedFDeriv_comp_left _ hJ (by exact_mod_cast le_top)]
-  refine (ContinuousMultilinearMap.opNorm_le_bound (norm_nonneg _) fun m ↦ ?_).trans
-    (D.iteratedFDeriv_jStruct_le hk hr x w hw)
-  rw [ContinuousLinearMap.compContinuousMultilinearMap_coe, Function.comp_apply]
-  exact (norm_precompR_stdForm_flip_apply_le _).trans (ContinuousMultilinearMap.le_opNorm _ m)
+  rw [hfun]
+  exact D.norm_iteratedFDeriv_comp_chartPushforward_le norm_precompR_stdForm_flip_apply_le hk hr x
+    hw
 
 /-! ### Compatibility, symmetry and the inverse of the forms read in the charts -/
 
@@ -349,17 +363,14 @@ theorem isInvertible_associatedBilinFormInChart {k : ℕ} {x : M} {w : StdSpace 
     (J.chartPushforward_apply_chartPushforward_apply _ hw)
 
 /-- **The inverse of the forms read in the charts.** At a point `w` of the target of the chart
-centred at `x`, the inverse of `g_{k,x}(w)` sends a linear form `φ` to `J₀ φ'`, where `φ'` is
-the vector that the inner product makes dual to `φ ∘ J_x(w)`. Since `ω₀(u, ·) = ⟪J₀ u, ·⟫`, this
-is `-Ω⁻¹ (φ ∘ J_x(w))`, `Ω` being `ω₀` as a map to the dual. -/
-theorem inverse_associatedBilinFormInChart_apply {k : ℕ} {x : M} {w : StdSpace ι}
-    (hw : w ∈ (D.chart k x).target) (φ : StdSpace ι →L[ℝ] ℝ) :
-    (D.associatedBilinFormInChart k x w).inverse φ =
-      stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm
-        (φ ∘L J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w)) := by
+centred at `x`, the inverse of `g_{k,x}(w)` is `stdFormCompRightInverseL ι` applied to `J_x(w)`: it
+sends a linear form `φ` to `-Ω⁻¹ (φ ∘ J_x(w))`, `Ω` being `ω₀` as a map to the dual. -/
+theorem inverse_associatedBilinFormInChart {k : ℕ} {x : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chart k x).target) :
+    (D.associatedBilinFormInChart k x w).inverse =
+      stdFormCompRightInverseL ι (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w) := by
   rw [associatedBilinFormInChart_def]
-  exact inverse_precompR_stdForm_flip_apply_apply
-    (J.chartPushforward_apply_chartPushforward_apply _ hw) φ
+  exact inverse_precompR_stdForm_flip_apply (J.chartPushforward_apply_chartPushforward_apply _ hw)
 
 /-- The norm of the inverse of `g_{k,x}(w)`, at a point `w` of the target of the chart centred
 at `x`, is at most the norm of `J_x(w)`. -/
@@ -367,9 +378,8 @@ theorem norm_inverse_associatedBilinFormInChart_le {k : ℕ} {x : M} {w : StdSpa
     (hw : w ∈ (D.chart k x).target) :
     ‖(D.associatedBilinFormInChart k x w).inverse‖ ≤
       ‖J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w‖ := by
-  rw [associatedBilinFormInChart_def]
-  exact norm_inverse_precompR_stdForm_flip_apply_le
-    (J.chartPushforward_apply_chartPushforward_apply _ hw)
+  rw [D.inverse_associatedBilinFormInChart hw]
+  exact norm_stdFormCompRightInverseL_apply_le _
 
 /-- **A uniform bound on the inverses of the forms read in the charts.** For `k ≥ k₀` and `w` in
 the ball of radius `ρ₀ * √k`, the inverse of `g_{k,x}(w)` has norm at most
@@ -385,44 +395,21 @@ theorem norm_inverse_associatedBilinFormInChart_le_of_mem_ball {k : ℕ} (hk : k
 /-- **Uniform bounds on the derivatives of the inverses of the forms read in the charts.** On a
 boundaryless manifold, for `k ≥ k₀`, `r ≥ 1` and `w` in the ball of radius `ρ₀ * √k`, the `r`-th
 iterated derivative of `w ↦ g_{k,x}(w)⁻¹` at `w` has norm at most `D.bound r * (√k)⁻¹`: on the
-target of the chart, this field is `J` read in the chart followed by a fixed continuous linear
-map that does not increase norms. -/
+target of the chart, this field is `J` read in the chart followed by
+`stdFormCompRightInverseL ι`, which does not increase norms. -/
 theorem norm_iteratedFDeriv_inverse_associatedBilinFormInChart_le [I.Boundaryless] {k : ℕ}
     (hk : k₀ ≤ k) {r : ℕ} (hr : r ≠ 0) (x : M) {w : StdSpace ι}
     (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
     ‖iteratedFDeriv ℝ r (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) w‖ ≤
       D.bound r * (√k)⁻¹ := by
-  have hwt : (D.chart k x).target ∈ nhds w :=
-    (D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw)
-  have hJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) w :=
-    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
-      (D.chart k x).symm.contMDiffOn).contDiffAt hwt
-  -- The fixed map `A ↦ (φ ↦ J₀ φ')`, `φ'` the vector dual to `φ ∘ A`.
-  set L : (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι :=
-    ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
-        ((LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap).comp
-          (ContinuousLinearEquiv.toContinuousLinearMap
-            (InnerProductSpace.toDual ℝ (StdSpace ι)).symm.toContinuousLinearEquiv)) ∘L
-      (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip with hL
-  have hLapply (A : StdSpace ι →L[ℝ] StdSpace ι) (φ : StdSpace ι →L[ℝ] ℝ) :
-      L A φ = stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm (φ ∘L A)) := by
-    simp only [hL, ContinuousLinearMap.comp_apply, ContinuousLinearMap.compL_apply,
-      ContinuousLinearMap.flip_apply, LinearMap.coe_toContinuousLinearMap',
-      LinearIsometryEquiv.coe_coe'']
-  have hLle (A : StdSpace ι →L[ℝ] StdSpace ι) : ‖L A‖ ≤ ‖A‖ :=
-    ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun φ ↦ by
-      rw [hLapply]
-      exact norm_stdComplexStructure_toDual_symm_comp_le A φ
   have hfun : (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) =ᶠ[nhds w]
-      L ∘ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph :=
-    Filter.eventually_of_mem hwt fun w' hw' ↦ ContinuousLinearMap.ext fun φ ↦ by
-      rw [Function.comp_apply, hLapply, D.inverse_associatedBilinFormInChart_apply hw']
-  rw [(hfun.iteratedFDeriv ℝ r).eq_of_nhds,
-    ContinuousLinearMap.iteratedFDeriv_comp_left _ hJ (by exact_mod_cast le_top)]
-  refine (ContinuousMultilinearMap.opNorm_le_bound (norm_nonneg _) fun m ↦ ?_).trans
-    (D.iteratedFDeriv_jStruct_le hk hr x w hw)
-  rw [ContinuousLinearMap.compContinuousMultilinearMap_coe, Function.comp_apply]
-  exact (hLle _).trans (ContinuousMultilinearMap.le_opNorm _ m)
+      stdFormCompRightInverseL ι ∘ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph :=
+    Filter.eventually_of_mem
+      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
+      fun _ hw' ↦ D.inverse_associatedBilinFormInChart hw'
+  rw [(hfun.iteratedFDeriv ℝ r).eq_of_nhds]
+  exact D.norm_iteratedFDeriv_comp_chartPushforward_le norm_stdFormCompRightInverseL_apply_le hk hr
+    x hw
 
 /-! ### The derivatives of the transitions at the centre -/
 
