@@ -30,8 +30,8 @@ proved in the same way, by uniqueness of weak derivatives.
 
 ## Main definitions
 
-* `TauCeti.SectionChartData.toOrderOne`: a Sobolev section of order `k + 1` regarded as one of
-  order one.
+* `TauCeti.SectionChartData.toOrderOne`: the continuous linear map regarding a Sobolev section of
+  order `k + 1` as one of order one.
 
 ## Main results
 
@@ -59,13 +59,22 @@ variable {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDi
   (μ : Measure E) [μ.IsAddHaarMeasure] (p : ℝ≥0∞) [Fact (1 ≤ p)] (k : ℕ)
 
 /-- A Sobolev section of order `k + 1` regarded as one of order one, by forgetting its `k`
-highest weak derivatives. -/
-def toOrderOne (w : C.sobolevSections μ p (k + 1)) : C.sobolevSections μ p 1 :=
-  C.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w)
+highest weak derivatives: `TauCeti.SectionChartData.lowerOrdersL` from order `1 + k`, read on the
+sections of order `k + 1`. -/
+def toOrderOne : C.sobolevSections μ p (k + 1) →L[ℝ] C.sobolevSections μ p 1 :=
+  (Nat.add_comm 1 k).rec (motive := fun n _ ↦ C.sobolevSections μ p n →L[ℝ] C.sobolevSections μ p 1)
+    (C.lowerOrdersL μ p 1 k)
 
 theorem toOrderOne_def (w : C.sobolevSections μ p (k + 1)) :
-    C.toOrderOne μ p k w = C.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w) :=
-  (rfl)
+    C.toOrderOne μ p k w = C.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w) := by
+  -- Transporting a map along an equality of orders precomposes it with the reverse transport.
+  have key {a b : ℕ} (h : a = b) (L : C.sobolevSections μ p a →L[ℝ] C.sobolevSections μ p 1)
+      (w : C.sobolevSections μ p b) :
+      h.rec (motive := fun n _ ↦ C.sobolevSections μ p n →L[ℝ] C.sobolevSections μ p 1) L w =
+        L (h.symm ▸ w) := by
+    subst h
+    rfl
+  exact key (Nat.add_comm 1 k) _ w
 
 /-- Regarding a Sobolev section of order `k + 1` as one of order one does not change its reading
 in any chart. -/
@@ -73,27 +82,6 @@ in any chart. -/
 theorem chartValueL_toOrderOne (w : C.sobolevSections μ p (k + 1)) (i : Fin C.n) :
     C.chartValueL μ p 1 i (C.toOrderOne μ p k w) = C.chartValueL μ p (k + 1) i w := by
   rw [toOrderOne_def, chartValueL_lowerOrdersL, chartValueL_eqRec]
-
-/-- `toOrderOne` as a continuous linear map, built by lowering the order one step at a time
-(`TauCeti.SectionChartData.toOrderOneL_apply`). -/
-def toOrderOneL : (k : ℕ) → C.sobolevSections μ p (k + 1) →L[ℝ] C.sobolevSections μ p 1
-  | 0 => ContinuousLinearMap.id ℝ _
-  | k + 1 => (toOrderOneL k).comp (C.lowerOrderL μ p (k + 1))
-
-/-- `toOrderOneL` does not change the chart data. -/
-theorem chartValuesL_toOrderOneL (w : C.sobolevSections μ p (k + 1)) :
-    C.chartValuesL μ p 1 (C.toOrderOneL μ p k w) = C.chartValuesL μ p (k + 1) w := by
-  induction k with
-  | zero => rfl
-  | succ k ih =>
-    rw [toOrderOneL, ContinuousLinearMap.comp_apply, ih, chartValuesL_lowerOrderL]
-
-/-- `toOrderOneL` is `toOrderOne`. -/
-@[simp]
-theorem toOrderOneL_apply (w : C.sobolevSections μ p (k + 1)) :
-    C.toOrderOneL μ p k w = C.toOrderOne μ p k w :=
-  C.chartValuesL_injective μ p 1 <| funext fun i ↦ by
-    rw [chartValuesL_toOrderOneL, chartValuesL_apply, chartValuesL_apply, chartValueL_toOrderOne]
 
 /-- Almost everywhere on the image of chart `i`, the function assembled from the order-`k`
 components `chartDerivDataL` of the weak derivative of a Sobolev section `w` of order `k + 1` is
