@@ -15,6 +15,7 @@ import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import SymplecticGeometry.Analysis.Polynomial.RealCubic
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import TauCeti.Analysis.Calculus.Deriv.Second
 
@@ -43,8 +44,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   and has slope tending to `+∞` at `δ`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt_sub`: the shape `√(a r² - c)` for `a > 1`, at each
   `r > 0` with `c < a r²`; `√(ℓ² + a r²)` is its case `c = -ℓ²`. Its derivative
-  `a r / √(a r² - c)` is `SymplecticGeometry.deriv_sqrt_sub` (with
-  `SymplecticGeometry.hasDerivAt_sqrt_sub`), and its second derivative,
+  `a r / √(a r² - c)` is `Real.deriv_sqrt_sub` (with `Real.hasDerivAt_sqrt_sub`), and its
+  second derivative,
   `-a c / √(a r² - c)³`, is `SymplecticGeometry.iteratedDeriv_two_sqrt_sub`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt`, `SymplecticGeometry.isConvexShapeAt_quadratic` and
   `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
@@ -535,21 +536,6 @@ theorem iteratedDeriv_two_quadratic (ℓ b c r : ℝ) :
   simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
   ring
 
-/-- The shape `r ↦ √(a r² - c)` has derivative `a r / √(a r² - c)` at a point `r` where
-`a r² - c > 0`. -/
-theorem hasDerivAt_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
-    HasDerivAt (fun r ↦ √(a * r ^ 2 - c)) (a * r / √(a * r ^ 2 - c)) r := by
-  have hq : HasDerivAt (fun r ↦ a * r ^ 2 - c) (a * (2 * r)) r := by
-    simpa using ((hasDerivAt_pow 2 r).const_mul a).sub_const c
-  convert hq.sqrt h.ne' using 1
-  field_simp
-
-/-- The derivative of the shape `r ↦ √(a r² - c)`, at a point `r` where `a r² - c > 0`, is
-`a r / √(a r² - c)`. -/
-theorem deriv_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
-    deriv (fun r ↦ √(a * r ^ 2 - c)) r = a * r / √(a * r ^ 2 - c) :=
-  (hasDerivAt_sqrt_sub h).deriv
-
 /-- The second derivative of the shape `r ↦ √(a r² - c)`, at a point `r` where `a r² - c > 0`,
 is `-a c / √(a r² - c)³`. -/
 theorem iteratedDeriv_two_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
@@ -578,7 +564,7 @@ theorem iteratedDeriv_two_sqrt_quadratic {a ℓ r : ℝ} (h : 0 < ℓ ^ 2 + a * 
 theorem isConvexShapeAt_sqrt_sub {a c r : ℝ} (ha : 1 < a) (hr : 0 < r) (hc : c < a * r ^ 2) :
     IsConvexShapeAt (fun r ↦ √(a * r ^ 2 - c)) r := by
   have hQ : 0 < a * r ^ 2 - c := by linarith
-  have h₁ := deriv_sqrt_sub hQ
+  have h₁ := deriv_sqrt_sub hQ.ne'
   have h₂ := iteratedDeriv_two_sqrt_sub hQ
   set S := √(a * r ^ 2 - c)
   have hS : 0 < S := sqrt_pos.2 hQ
@@ -942,7 +928,7 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ 
     filter_upwards [lt_mem_nhds ht] with r hr
     rw [hψS' r hr.le, sub_neg_eq_add, add_comm]
   have hd : deriv ψ t = a * t / √(a * t ^ 2 - -1) := by
-    rw [hS.deriv_eq, deriv_sqrt_sub hQ]
+    rw [hS.deriv_eq, deriv_sqrt_sub hQ.ne']
   have hpos : 0 < ψ t - t * deriv ψ t := by
     have hRR := sq_sqrt hQ.le
     rw [hd, hS.eq_of_nhds, sub_pos, mul_div_assoc', div_lt_iff₀ (by positivity)]
