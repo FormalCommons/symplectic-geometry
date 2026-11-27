@@ -7,9 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.RegularValue
+public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.LevelTrivialization
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 
 /-!
 # The affine coordinate of the rational elliptic surface over `ℂℙ¹`
@@ -20,7 +22,8 @@ point `(L, [s : t])` with `s ≠ 0` to `t / s`. This file shows that it is a def
 the fibre `x ↦ (x, [1 : 0])` over `[1 : 0]`
 (`SymplecticGeometry.rationalEllipticSurface.fibreEmbedding`): it is analytic near the fibre, it
 vanishes on it, and its differential is onto at every point of it. Its differential then
-trivializes the normal bundle of the fibre, compatibly with the complex structures.
+trivializes the normal bundle of the fibre, compatibly with the complex structures, and a
+rescaling of that trivialization is a symplectic framing of the fibre.
 
 ## Main definitions and results
 
@@ -46,6 +49,8 @@ trivializes the normal bundle of the fibre, compatibly with the complex structur
 * `SymplecticGeometry.rationalEllipticSurface.normalComplexStructureAt_fibreNormalEquiv`: it
   intertwines multiplication by `i` with the complex structure that the surface induces on the
   normal spaces.
+* `SymplecticGeometry.rationalEllipticSurface.fibreFraming`: the symplectic framing of the fibre
+  for the symplectic form of the surface, with `fibreFraming_apply`.
 
 ## Regularity
 
@@ -75,6 +80,13 @@ normal space sends the class of `v` to the class of `i v`
 (`TauCeti.SmoothEmbedding.normalComplexStructureAt_normalClass`), and the affine coordinate is
 holomorphic, so its real differential sends `i v` to `i` times its value on `v`
 (`MDifferentiableAt.mfderiv_ofComplexManifold_apply`).
+
+So the complex structure of the normal space sends `fibreNormalEquiv x 1` to
+`fibreNormalEquiv x i`. The symplectic form of the surface tames its complex structure
+(`SymplecticGeometry.rationalEllipticSurface.tames_symplecticForm`), so the normal symplectic
+form is positive on this pair
+(`TauCeti.SmoothEmbedding.symplecticNormalForm_normalComplexStructureAt_pos`), and
+`SymplecticGeometry.SymplecticFraming.ofPos` rescales the trivialization to a symplectic framing.
 
 ## References
 
@@ -340,6 +352,54 @@ theorem normalComplexStructureAt_fibreNormalEquiv (x : SmoothProjectiveHypersurf
   exact congrArg (fibreNormalEquiv x)
     ((SmoothAlmostComplexStructure.ofComplexManifold_apply _ _).trans
       (smul_eq_mul (α := ℂ) _ _))
+
+/-! ### The symplectic framing of the fibre -/
+
+/-- The normal symplectic form of the fibre over `[1 : 0]` is positive on the pair
+`(fibreNormalEquiv x 1, fibreNormalEquiv x i)`: the second is the image of the first under the
+complex structure of the normal space, and the symplectic form of the surface tames the complex
+structure. -/
+theorem symplecticNormalForm_fibreNormalEquiv_pos (x : SmoothProjectiveHypersurface.fermat 1 3) :
+    0 < fibreEmbedding.symplecticNormalForm hasSymplecticTangentImages_fibreEmbedding x
+      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (fibreNormalEquiv x 1)
+        (fibreNormalEquiv x Complex.I) := by
+  have h := normalComplexStructureAt_fibreNormalEquiv x 1
+  rw [mul_one] at h
+  rw [← h]
+  exact SmoothEmbedding.symplecticNormalForm_normalComplexStructureAt_pos tames_symplecticForm
+    fibreEmbedding hasSymplecticTangentImages_fibreEmbedding _
+    (mapsTo_ofComplexManifold_tangentRange_fibreEmbedding x)
+    ((fibreNormalEquiv x).map_ne_zero_iff.2 one_ne_zero)
+
+/-- **The symplectic framing of the fibre over `[1 : 0]`.** The symplectic framing of the normal
+bundle of the Fermat cubic, embedded in the rational elliptic surface as the fibre over `[1 : 0]`,
+for the symplectic form of the surface: the normal trivialization `fibreNormalEquiv` given by the
+affine coordinate of the projection to `ℂℙ¹`, rescaled at each point so that it carries the
+standard form of `ℂ` to the normal symplectic form (`SymplecticFraming.ofPos`). -/
+noncomputable def fibreFraming :
+    SymplecticFraming hasSymplecticTangentImages_fibreEmbedding
+      (Nat.eq_sub_of_add_eq' finrank_add_finrank_eq_fibreEmbedding) :=
+  .ofPos fibreNormalEquiv contMDiff_fibreNormalEquiv symplecticNormalForm_fibreNormalEquiv_pos
+
+theorem fibreFraming_def :
+    fibreFraming = .ofPos fibreNormalEquiv contMDiff_fibreNormalEquiv
+      symplecticNormalForm_fibreNormalEquiv_pos :=
+  (rfl)
+
+/-- The framing of the fibre sends a normal vector `v` of the zero slice of `F × ℂ` at `x` to
+`fibreNormalEquiv x ((√λ)⁻¹ • z)`, where `z ∈ ℂ` is the `ℂ`-component of `v` and `λ` is the
+normal symplectic form of the fibre on `(fibreNormalEquiv x 1, fibreNormalEquiv x i)`. -/
+@[simp]
+theorem fibreFraming_apply (x : SmoothProjectiveHypersurface.fermat 1 3)
+    (v : (zeroSlice 𝓘(ℝ, Fin 1 → ℂ)
+      (SmoothProjectiveHypersurface.fermat 1 3)).isImmersion.NormalSpace
+        x (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    fibreFraming x v = fibreNormalEquiv x
+      ((√(fibreEmbedding.symplecticNormalForm hasSymplecticTangentImages_fibreEmbedding x
+        (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (fibreNormalEquiv x 1)
+          (fibreNormalEquiv x Complex.I)))⁻¹ •
+        zeroSliceNormalEquiv 𝓘(ℝ, Fin 1 → ℂ) (SmoothProjectiveHypersurface.fermat 1 3) x v) := by
+  rw [fibreFraming_def, SymplecticFraming.ofPos_apply]
 
 end SymplecticGeometry.rationalEllipticSurface
 
