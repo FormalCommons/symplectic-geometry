@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Morse.PseudoGradient.Existence
-import Mathlib.Geometry.Manifold.PartitionOfUnity
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
@@ -31,9 +31,9 @@ the form that `TauCeti.MorseChart.exists_cubeChart_unstableSet` (`Morse/Core/Cub
 
 ## Construction
 
-`X = χ • X₀`, for a smooth cutoff `0 ≤ χ ≤ 1` (Mathlib's
-`exists_contMDiffMap_one_nhds_of_subset_interior`) equal to `1` near `K` and vanishing outside a
-compact neighbourhood of `K` inside `U`. Then `dg(X) = χ · dg(X₀)`, which is `≤ 0` since
+`X = χ • X₀`, for a smooth cutoff `0 ≤ χ ≤ 1` (Tau Ceti's
+`IsCompact.exists_contMDiff_one_nhds_tsupport_subset`) equal to `1` near `K`, with compact support
+inside `U`. Then `dg(X) = χ · dg(X₀)`, which is `≤ 0` since
 `dg(X₀) < 0` at the regular points of `U` and `dg(X₀) = 0` at critical points. The Morse charts of
 `X₀` are shrunk with `TauCeti.MorseChart.restr` to the open set where `χ = 1`.
 
@@ -72,28 +72,27 @@ theorem _root_.IsCompact.exists_contMDiff_pseudoGradient_eq_zero_off {K : Set M}
       (∀ x ∈ K, mfderiv 𝓘(ℝ, E) 𝓘(ℝ) g x ≠ 0 → mvfderiv 𝓘(ℝ, E) g x (X x) < 0) ∧
       ∀ x ∈ K, mfderiv 𝓘(ℝ, E) 𝓘(ℝ) g x = 0 →
         ∃ φ : MorseChart E g x, ∀ y ∈ φ.toChart.source, X y = φ.field y := by
-  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace E M
   obtain ⟨U, hU, hUo, X₀, hX₀, hdesc, hchart⟩ := hK.exists_contMDiff_pseudoGradientOn_nhds hg hnd
-  -- A cutoff `χ`, equal to `1` on an open neighbourhood `V` of `K` and to `0` off a compact
-  -- `L ⊆ U`.
-  obtain ⟨L, hLc, hKL, hLU⟩ := exists_compact_between hK hUo (subset_of_mem_nhdsSet hU)
-  obtain ⟨χ, hχ1, hχ0, hχI⟩ :=
-    exists_contMDiffMap_one_nhds_of_subset_interior 𝓘(ℝ, E) (n := ⊤) hK.isClosed hKL
+  -- A cutoff `χ`, equal to `1` on an open neighbourhood `V` of `K`, with compact support in `U`.
+  obtain ⟨χ, hχ, hχ1, hχc, hχU, hχI⟩ :=
+    hK.exists_contMDiff_one_nhds_tsupport_subset 𝓘(ℝ, E) hUo (subset_of_mem_nhdsSet hU)
+  have hχ0 (x : M) (hx : x ∉ tsupport χ) : χ x = 0 := image_eq_zero_of_notMem_tsupport hx
   obtain ⟨V, ⟨hVo, hKV⟩, hχV⟩ := (hasBasis_nhdsSet K).eventually_iff.1 hχ1
   have hdX (x : M) : mvfderiv 𝓘(ℝ, E) g x (χ x • X₀ x) =
       χ x * mvfderiv 𝓘(ℝ, E) g x (X₀ x) := by
     rw [map_smul, smul_eq_mul]
-  refine ⟨fun x ↦ χ x • X₀ x, ContMDiff.smul_section χ.contMDiff hX₀,
-    ⟨L, hLc, fun x hx ↦ by simp [hχ0 x hx]⟩, fun x ↦ ?_, fun x hx hx0 ↦ ?_, fun x hx hx0 ↦ ?_⟩
+  refine ⟨fun x ↦ χ x • X₀ x, ContMDiff.smul_section hχ hX₀,
+    ⟨tsupport χ, hχc, fun x hx ↦ by simp [hχ0 x hx]⟩, fun x ↦ ?_, fun x hx hx0 ↦ ?_,
+    fun x hx hx0 ↦ ?_⟩
   · rw [hdX]
-    by_cases hxL : x ∈ L
+    by_cases hxL : x ∈ tsupport χ
     · refine mul_nonpos_of_nonneg_of_nonpos (hχI x).1 ?_
       by_cases hx0 : mfderiv 𝓘(ℝ, E) 𝓘(ℝ) g x = 0
       · simp [mvfderiv_eq_zero_iff.2 hx0]
-      · exact (hdesc x (hLU hxL) hx0).le
+      · exact (hdesc x (hχU hxL) hx0).le
     · rw [hχ0 x hxL, zero_mul]
   · rw [hdX, hχV (hKV hx), one_mul]
-    exact hdesc x (hLU (interior_subset (hKL hx))) hx0
+    exact hdesc x (hχU (subset_tsupport χ (by simp [hχV (hKV hx)]))) hx0
   · obtain ⟨φ, -, hφ⟩ := hchart x hx hx0
     refine ⟨φ.restr hVo (hKV hx), fun y hy ↦ ?_⟩
     rw [MorseChart.restr_source] at hy
