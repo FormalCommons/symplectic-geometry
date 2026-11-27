@@ -80,7 +80,8 @@ def graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
     SmoothEmbedding (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
       (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) ∞ (∀ i, AddCircle (p i))
       (M × ∀ i, AddCircle (p i)) :=
-  .ofIsSmoothEmbedding _ (hh.comp (contMDiff_apply (i := i))).isSmoothEmbedding_graph_swap
+  .ofIsSmoothEmbedding _
+    ((hh.comp (contMDiff_apply (i := i))).isSmoothEmbedding_graph_swap (by simp))
 
 /-- The graph torus of `h` sends `x` to `(h (x i), x)`. -/
 @[simp]
