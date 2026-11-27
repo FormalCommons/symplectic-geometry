@@ -175,14 +175,17 @@ section Pullback
 
 variable {U : Type*} [AddCommGroup U] [Module ℝ U] [FiniteDimensional ℝ U]
 
-/-- Let `β` be a symplectic form on `U` and `τ` an alternating form such that `τ + c • β` is
-nondegenerate for every `c ≥ c₁`. Then for every `c ≥ c₁`, a symplectic form `ω` with underlying
-form `τ + c • β` has the symplectic orientation of `β`. -/
+/-- Let `β` be a symplectic form on `U`, `τ` a bilinear form and `c` a real number such that
+`τ + c' • β` is nondegenerate for every `c' ≥ c`. Then a symplectic form `ω` with underlying form
+`τ + c • β` has the symplectic orientation of `β`. -/
 theorem orientation_eq_of_forall_ge_nondegenerate_add_smul (β : SymplecticForm U)
-    {τ : LinearMap.BilinForm ℝ U} (hτ : τ.IsAlt) {c₁ : ℝ}
-    (h : ∀ c ≥ c₁, (τ + c • β.toBilinForm).Nondegenerate) {c : ℝ} (hc : c₁ ≤ c)
+    {τ : LinearMap.BilinForm ℝ U} {c : ℝ}
+    (h : ∀ c' ≥ c, (τ + c' • β.toBilinForm).Nondegenerate)
     (ω : SymplecticForm U) (hω : ω.toBilinForm = τ + c • β.toBilinForm)
     (hk : finrank ℝ U = k) : ω.orientation hk = β.orientation hk := by
+  have hτ : τ.IsAlt := by
+    have : τ = ω.toBilinForm - c • β.toBilinForm := by rw [hω]; abel
+    exact this ▸ ω.isAlt.sub (β.isAlt.smul c)
   -- The forms `t • τ + (t * c + 1 - t) • β`, `t ∈ [0, 1]`, join `β` to `ω`; for `t ≠ 0` such a
   -- form is `t • (τ + (c + (1 - t) / t) • β)`, which is nondegenerate.
   let F : unitInterval → SymplecticForm U := fun t ↦
@@ -191,7 +194,7 @@ theorem orientation_eq_of_forall_ge_nondegenerate_add_smul (β : SymplecticForm 
       nondegenerate := by
         rcases eq_or_lt_of_le (unitInterval.nonneg t) with ht | ht
         · simpa [← ht] using β.nondegenerate
-        · have h' := h (c + (1 - t) / t) (le_add_of_le_of_nonneg hc
+        · have h' := h (c + (1 - t) / t) (le_add_of_nonneg_right
             (div_nonneg (sub_nonneg.2 (unitInterval.le_one t)) ht.le))
           rw [← TauCeti.BilinForm.nondegenerate_smul_iff (IsRegular.of_ne_zero ht.ne')] at h'
           convert h' using 1
@@ -207,22 +210,23 @@ theorem orientation_eq_of_forall_ge_nondegenerate_add_smul (β : SymplecticForm 
 
 variable {τ : LinearMap.BilinForm ℝ V} {L : V →ₗ[ℝ] U}
 
-/-- Let `τ` be an alternating form on `V`, nondegenerate on `ker L`, and `β` a symplectic form on
-`U`, such that `τ + c • β.comp L L` is nondegenerate for every `c ≥ c₁`. Let `H` be the
-`τ`-orthogonal of `ker L` and `e : H ≃ U` the restriction of `L`. Then for every `c ≥ c₁`, `e`
-carries the symplectic orientation of the restriction of `τ + c • β.comp L L` to `H` to the
-symplectic orientation of `β`. -/
-theorem map_orientation_restrict_orthogonal_ker (hτ : τ.IsAlt) (β : SymplecticForm U)
+/-- Let `τ` be a bilinear form on `V`, nondegenerate on `ker L`, `β` a symplectic form on `U`
+and `c` a real number such that `τ + c' • β.comp L L` is nondegenerate for every `c' ≥ c`. Let
+`H` be the `τ`-orthogonal of `ker L` and `e : H ≃ U` the restriction of `L`. Then `e` carries the
+symplectic orientation of the restriction to `H` of a symplectic form `ω` with underlying form
+`τ + c • β.comp L L` to the symplectic orientation of `β`. -/
+theorem map_orientation_restrict_orthogonal_ker (β : SymplecticForm U)
     (hτL : (τ.restrict (LinearMap.ker L)).Nondegenerate)
-    (e : τ.orthogonal (LinearMap.ker L) ≃ₗ[ℝ] U) (he : ∀ h, e h = L h) {c₁ : ℝ}
-    (h : ∀ c ≥ c₁, (τ + c • β.toBilinForm.comp L L).Nondegenerate) {c : ℝ} (hc : c₁ ≤ c)
+    (e : τ.orthogonal (LinearMap.ker L) ≃ₗ[ℝ] U) (he : ∀ h, e h = L h) {c : ℝ}
+    (h : ∀ c' ≥ c, (τ + c' • β.toBilinForm.comp L L).Nondegenerate)
     (ω : SymplecticForm V) (hω : ω.toBilinForm = τ + c • β.toBilinForm.comp L L)
     (hH : (ω.toBilinForm.restrict (τ.orthogonal (LinearMap.ker L))).Nondegenerate)
     (hk : finrank ℝ (τ.orthogonal (LinearMap.ker L)) = k) :
     Orientation.map (Fin k) e ((ω.restrict _ hH).orientation hk) =
       β.orientation (e.finrank_eq.symm.trans hk) := by
-  have hc' : IsCompl (τ.orthogonal (LinearMap.ker L)) (LinearMap.ker L) :=
-    (τ.isCompl_orthogonal_of_restrict_nondegenerate hτ.isRefl hτL).symm
+  have hτ : τ.IsAlt := by
+    have : τ = ω.toBilinForm - c • β.toBilinForm.comp L L := by rw [hω]; abel
+    exact this ▸ ω.isAlt.sub ((β.isAlt.comp L).smul c)
   -- Carried to `U` by `e`, the restriction of `τ + c' • β.comp L L` to `H` is `τ' + c' • β`.
   let f : U →ₗ[ℝ] V := (τ.orthogonal (LinearMap.ker L)).subtype ∘ₗ e.symm.toLinearMap
   have hT (ω' : SymplecticForm V) (c' : ℝ)
@@ -231,18 +235,15 @@ theorem map_orientation_restrict_orthogonal_ker (hτ : τ.IsAlt) (β : Symplecti
     ext u u'
     rw [transport_toBilinForm, restrict_toBilinForm, hω']
     simp [f, ← he]
-  have h' (c' : ℝ) (hc'' : c' ≥ c₁) : (τ.comp f f + c' • β.toBilinForm).Nondegenerate := by
-    let ω' : SymplecticForm V :=
-      ⟨τ + c' • β.toBilinForm.comp L L, hτ.add ((β.isAlt.comp L).smul c'), h c' hc''⟩
-    have hHK : ∀ x ∈ τ.orthogonal (LinearMap.ker L), ∀ y ∈ LinearMap.ker L, ω' x y = 0 :=
-      fun _ hx _ hy ↦
-      LinearMap.BilinForm.add_smul_comp_eq_zero_of_mem_orthogonal_of_mem_ker hτ.isRefl _ c' hx hy
-    rw [← hT ω' c' rfl (ω'.isSymplectic_left_of_isCompl hc' hHK).nondegenerate_restrict]
-    exact (transport _ _).nondegenerate
+  have h' (c' : ℝ) (hc' : c' ≥ c) : (τ.comp f f + c' • β.toBilinForm).Nondegenerate := by
+    convert ((LinearMap.BilinForm.nondegenerate_add_smul_comp_iff hτ β.isAlt hτL c').1
+      (h c' hc')).congr e using 1
+    ext u u'
+    simp [f, ← he]
   rw [(isSymplectomorphism_iff_transport_eq.2 rfl).map_orientation hk]
-  exact orientation_eq_of_forall_ge_nondegenerate_add_smul β (hτ.comp f) h' hc _ (hT ω c hω _) _
+  exact orientation_eq_of_forall_ge_nondegenerate_add_smul β h' _ (hT ω c hω _) _
 
-/-- Let `L : V → U` be a linear map, `τ` an alternating form on `V`, and `β`, `σ` symplectic
+/-- Let `L : V → U` be a linear map, `τ` a bilinear form on `V`, and `β`, `σ` symplectic
 forms on `U` and `W`. Let `D : V ≃ U × W` be a linear equivalence with first component `L`,
 through which `τ` restricts to `σ` on `{0} × W`. If `τ + c • β.comp L L` is nondegenerate for
 every `c ≥ c₁`, then for every `c ≥ c₁`, `D` carries the symplectic orientation of
@@ -251,7 +252,7 @@ every `c ≥ c₁`, then for every `c ≥ c₁`, `D` carries the symplectic orie
 The hypothesis is needed for all `c ≥ c₁` and not only for large `c`: for `V = U` of dimension
 two, `L = id` and `τ = -2 • β`, the form is `(c - 2) • β`, whose orientation changes at
 `c = 2`. -/
-theorem map_orientation_of_forall_ge_nondegenerate_add_smul_comp (hτ : τ.IsAlt)
+theorem map_orientation_of_forall_ge_nondegenerate_add_smul_comp
     (β : SymplecticForm U) (σ : SymplecticForm W) (D : V ≃ₗ[ℝ] U × W) (hD₁ : ∀ v, (D v).1 = L v)
     (hD₂ : ∀ w w', τ (D.symm (0, w)) (D.symm (0, w')) = σ w w') {c₁ : ℝ}
     (h : ∀ c ≥ c₁, (τ + c • β.toBilinForm.comp L L).Nondegenerate) {c : ℝ} (hc : c₁ ≤ c)
@@ -259,6 +260,9 @@ theorem map_orientation_of_forall_ge_nondegenerate_add_smul_comp (hτ : τ.IsAlt
     {m n : ℕ} (hm : finrank ℝ U = m) (hn : finrank ℝ W = n) (hV : finrank ℝ V = m + n) :
     Orientation.map (Fin (m + n)) D (ω.orientation hV) =
       (β.orientation hm).prod (σ.orientation hn) hm hn := by
+  have hτ : τ.IsAlt := by
+    have : τ = ω.toBilinForm - c • β.toBilinForm.comp L L := by rw [hω]; abel
+    exact this ▸ ω.isAlt.sub ((β.isAlt.comp L).smul c)
   set K := LinearMap.ker L
   set H := τ.orthogonal K
   have hDK (k : K) : D k = (0, (D k).2) :=
@@ -283,19 +287,18 @@ theorem map_orientation_of_forall_ge_nondegenerate_add_smul_comp (hτ : τ.IsAlt
     have := Submodule.finrank_add_eq_of_isCompl hc'
     omega
   -- `L` identifies `H` with `U`.
-  have hLH : Function.Injective (L ∘ₗ H.subtype) := fun x y hxy ↦ Subtype.ext <| by
-    rw [← sub_eq_zero]
-    refine Submodule.disjoint_def.1 hc'.disjoint _ (H.sub_mem x.property y.property) ?_
-    simpa [K, sub_eq_zero] using hxy
-  let e : H ≃ₗ[ℝ] U := LinearEquiv.ofBijective (L ∘ₗ H.subtype)
+  have hLH : Function.Injective (L.domRestrict H) :=
+    LinearMap.injective_domRestrict_iff.2 hc'.disjoint
+  let e : H ≃ₗ[ℝ] U := LinearEquiv.ofBijective (L.domRestrict H)
     ⟨hLH, (LinearMap.injective_iff_surjective_of_finrank_eq_finrank (hm'.trans hm.symm)).1 hLH⟩
-  have he (x : H) : e x = L x := LinearEquiv.ofBijective_apply (L ∘ₗ H.subtype) x
+  have he (x : H) : e x = L x := LinearEquiv.ofBijective_apply (L.domRestrict H) x
   have hHK : ∀ x ∈ H, ∀ y ∈ K, ω x y = 0 := fun x hx y hy ↦ (LinearMap.congr_fun₂ hω x y).trans
     (LinearMap.BilinForm.add_smul_comp_eq_zero_of_mem_orthogonal_of_mem_ker hτ.isRefl _ c hx hy)
   rw [ω.orientation_eq_map_prod_of_isCompl hc' hHK hm' hn' hV,
     Orientation.map_map_prodEquivOfIsCompl_prod hc' D e e' (fun x ↦ (hD₁ x).trans (he x).symm) he']
   congr 1
-  · exact map_orientation_restrict_orthogonal_ker hτ β hτL e he h hc ω hω _ hm'
+  · exact map_orientation_restrict_orthogonal_ker β hτL e he
+      (fun c' hc' ↦ h c' (hc.trans hc')) ω hω _ hm'
   · refine (isSymplectomorphism_iff.2 fun k k' ↦ ?_).map_orientation hn'
     rw [restrict_apply, ← hτK]
     exact ((LinearMap.congr_fun₂ hω k k').trans (by simp [LinearMap.mem_ker.1 k'.property])).symm
