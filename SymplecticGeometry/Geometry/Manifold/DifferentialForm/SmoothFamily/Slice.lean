@@ -16,7 +16,9 @@ manifold `P`. Its slice section `SymplecticGeometry.sliceSection β` sends `(p, 
 in the fibre over `y` of the bundle of `k`-forms of `F`; it is a section along the projection
 `(p, y) ↦ y`. Smoothness of a family is stated through it, as in Tau Ceti's
 `TauCeti.contMDiff_mpullback_prodMk_form` for the slices of a form on a product, where the
-section is written out. Suppose that the slice section is `C^n`.
+section is written out. A slice section that vanishes near a point is smooth there
+(`SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_zero`), as the zero section is.
+Suppose that the slice section is `C^n`.
 
 * `ContMDiffAt.roughForm_family_apply`: at a fixed `y₀`, the value `β p y₀` is `C^n` in `p`. The
   model space of `F` may have any dimension here; the trivialization at `y₀` of the bundle of
@@ -41,7 +43,7 @@ public section
 noncomputable section
 
 open Bundle TauCeti
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
 
 namespace SymplecticGeometry
 
@@ -94,6 +96,16 @@ theorem contMDiffAt_sliceSection_iff [IsManifold J 1 F] {n : WithTop ℕ∞}
           (sliceSection β q)).2) q₀ := by
   rw [contMDiffAt_totalSpace_iff]
   simp [contMDiffAt_snd]
+
+/-- The slice section of `β` is `C^n` at `q₀` if `β p y` vanishes for every `(p, y)` near `q₀`:
+near `q₀` it agrees with the zero section composed with the projection `(p, y) ↦ y`. -/
+theorem contMDiffAt_sliceSection_of_eventually_eq_zero [IsManifold J 1 F] {n : WithTop ℕ∞}
+    {β : P → RoughForm J F G k} {q₀ : P × F} (h : ∀ᶠ q in 𝓝 q₀, β q.1 q.2 = 0) :
+    ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) n (sliceSection β) q₀ := by
+  refine ((contMDiff_zeroSection ℝ
+    (fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y)).comp contMDiff_snd q₀)
+    |>.congr_of_eventuallyEq (h.mono fun q hq ↦ ?_)
+  simp [sliceSection_apply, hq, zeroSection]
 
 /-- If the slice section of `β` is `C^n` and `χ : F → P` is `C^n`, then the rough form
 `y ↦ β (χ y) y`, the slice of `β` along `χ`, is `C^n`. -/
