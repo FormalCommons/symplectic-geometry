@@ -79,7 +79,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   along a map that is `C^(m+1)` on an open set containing the function's support is a `C^m` form.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.mpullback_eq_iff`: an equation `f^* φ = ψ` of smooth forms is the same
-  equation of their underlying rough forms.
+  equation of their underlying rough forms; `TauCeti.SmoothForm.mpullback_eq_mpullback_iff` does
+  the same for an equation `f^* φ = g^* ψ` of two pullbacks.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
   it preserves `σ`.
 * `TauCeti.mpullback_apply_sub_eq_of_eq_add_mextDeriv`: if `α = β + dg` at `x` and at `f x`,
@@ -225,6 +226,17 @@ theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : Smooth
     {ψ : SmoothForm I M F k} :
     mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
   rw [← coe_mpullback _ hf, Subtype.ext_iff]
+
+/-- The smooth pullbacks of `φ` along `f` and of `ψ` along `g` agree exactly when the rough
+pullbacks of the underlying rough forms agree. -/
+theorem mpullback_eq_mpullback_iff {E'' H'' M'' : Type*} [NormedAddCommGroup E'']
+    [NormedSpace ℝ E''] [TopologicalSpace H''] [TopologicalSpace M''] [ChartedSpace H'' M'']
+    {I'' : ModelWithCorners ℝ E'' H''} [IsManifold I'' 1 M''] {f : M → M'}
+    (hf : ContMDiff I I' ∞ f) {g : M → M''} (hg : ContMDiff I I'' ∞ g)
+    {φ : SmoothForm I' M' F k} {ψ : SmoothForm I'' M'' F k} :
+    mpullback f hf φ = mpullback g hg ψ ↔
+      TauCeti.mpullback (F := F) I I' f φ.val = TauCeti.mpullback I I'' g ψ.val := by
+  rw [mpullback_eq_iff, coe_mpullback]
 
 /-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
 @[simp]
