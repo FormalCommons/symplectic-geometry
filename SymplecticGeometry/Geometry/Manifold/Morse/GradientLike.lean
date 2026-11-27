@@ -53,6 +53,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.IsGradientLike.strictMonoOn_comp`, `TauCeti.IsGradientLike.strictMono_comp`: `f`
   increases strictly along an integral curve of `X`, on a convex set of times or on all of `ℝ`,
   that meets no critical point.
+* `TauCeti.IsGradientLike.mvfderiv_apply_nonneg` and `TauCeti.IsGradientLike.monotone_comp`:
+  `df(X) ≥ 0` everywhere, so `f` is monotone along every integral curve of `X` along which it is
+  differentiable.
 * `TauCeti.IsGradientLike.smul`: `a • X` is gradient-like for a continuous positive `a`.
 * `TauCeti.IsGradientLike.comp`: `X` is gradient-like for `h ∘ f` when `h` is `C¹` with `h' > 0`.
 * `TauCeti.IsGradientLike.mpullback`: the pull-back `VectorField.mpullback Φ X` of a gradient-like
@@ -156,6 +159,13 @@ theorem mvfderiv_apply_pos (hX : IsGradientLike f X) {x : M} (hx : mvfderiv 𝓘
   have : 0 ≤ g.inner x (X x) (X x) := g.toRiemannianMetric.inner_self_nonneg x (X x)
   exact lt_of_lt_of_le (by have := hδ x; positivity) (h x)
 
+/-- A gradient-like field does not decrease `f`: `df(X) ≥ 0` at every point. -/
+theorem mvfderiv_apply_nonneg (hX : IsGradientLike f X) (x : M) :
+    0 ≤ mvfderiv 𝓘(ℝ, E) f x (X x) := by
+  by_cases hx : mvfderiv 𝓘(ℝ, E) f x = 0
+  · simp [hx]
+  · exact (hX.mvfderiv_apply_pos hx).le
+
 /-- A gradient-like field increases `f` strictly at every point of the level `f⁻¹(c)` of a
 regular value `c` of `f`. -/
 theorem mvfderiv_apply_pos_of_isRegularValue (hX : IsGradientLike f X) {c : ℝ}
@@ -203,6 +213,16 @@ theorem strictMono_comp (hX : IsGradientLike f X) {γ : ℝ → M} (hγ : IsMInt
     (hcrit : ∀ t, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) : StrictMono (f ∘ γ) :=
   strictMonoOn_univ.1 <| hX.strictMonoOn_comp convex_univ (hγ.isMIntegralCurveOn univ)
     fun t _ ↦ hcrit t
+
+/-- Along an integral curve of a gradient-like field, if `f` is differentiable at each point of
+the curve, then `f` is monotone along it. -/
+theorem monotone_comp (hX : IsGradientLike f X) {γ : ℝ → M} (hγ : IsMIntegralCurve γ X)
+    (hf : ∀ t, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t)) : Monotone (f ∘ γ) := by
+  -- Tau Ceti states the decreasing case; apply it to `-f`.
+  have hneg := hγ.antitone_comp (f := -f) (fun t ↦ (hf t).neg) fun t ↦ by
+    rw [mvfderiv_neg, neg_apply, neg_nonpos]
+    exact hX.mvfderiv_apply_nonneg (γ t)
+  exact fun a b hab ↦ neg_le_neg_iff.1 (hneg hab)
 
 /-- Multiplying a gradient-like field by a continuous positive function gives a gradient-like
 field. -/

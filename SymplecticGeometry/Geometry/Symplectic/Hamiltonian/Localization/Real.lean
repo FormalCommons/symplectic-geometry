@@ -322,7 +322,7 @@ theorem exists_eq_sum_of_cartanDiff_eq_zero
       rw [h1.self_of_nhds, one_smul]
   · ext k : 1
     refine Subtype.ext (funext fun x ↦ ?_)
-    rw [DirectSum.sum_apply, Submodule.coe_sum, Finset.sum_apply]
+    rw [DirectSum.sum_apply, SmoothBundleForm.sum_apply]
     simp only [hγ]
     rcases hloc x with h | ⟨j, -, h1, h0⟩
     · simp [h k]

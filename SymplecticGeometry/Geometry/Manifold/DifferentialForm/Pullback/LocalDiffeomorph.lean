@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import Mathlib.Analysis.InnerProductSpace.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
@@ -501,7 +502,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
   set K : C^∞⟮I', M'; ℝ⟯ := ⟨K₀, hK₀s⟩
   have hKK : ⇑K = K₀ := ContMDiffMap.coeFn_mk K₀ hK₀s
   refine ⟨K, hKK ▸ hK₀C, hKK ▸ hK₀e, Subtype.ext (funext fun x ↦ ?_)⟩
-  simp only [mextDerivₗ_apply, coe_ofFunction, hKK, Submodule.coe_sub, Pi.sub_apply,
+  simp only [mextDerivₗ_apply, coe_ofFunction, hKK, SmoothBundleForm.sub_apply,
     coe_mpullback]
   by_cases hx : x ∈ e '' W
   · -- On `e '' W`, compare the pullbacks along `e`, whose differential is invertible.

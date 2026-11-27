@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.AttachingCollar
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeClipping
@@ -213,7 +214,7 @@ theorem exists_isSmoothFamily_collarCorrection
     have h0 := eventually_homotopyOperator_mpullback_mextDerivₗ_eq_zero_closedBall hΦ hQ hV hγ'
     refine ⟨V ∩ {x | (homotopyOperator (mpullback Φ hΦ (mextDerivₗ _ 2 (τ l)))).val x = 0},
       Filter.inter_mem hV h0, γ', fun x hx ↦ ?_⟩
-    simp only [Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply, Pi.smul_apply]
+    simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.smul_apply]
     rw [hx.2, smul_zero, sub_zero, hγ' x hx.1]
 
 end Family

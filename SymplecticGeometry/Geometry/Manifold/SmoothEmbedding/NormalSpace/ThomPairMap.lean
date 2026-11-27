@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 
 /-!
 # The map of Thom pairs of normal bundles of a commuting triangle
@@ -38,6 +39,8 @@ inclusion of an open set `X' ⊆ X` that contains the range of `f`.
 * `TauCeti.SmoothEmbedding.normalSpaceEquivOfComp_normalClass`: on the normal class of a tangent
   vector `w`, the isomorphism is the normal class of `dv w`.
 * `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfComp`: its total-space map is continuous.
+  This holds as soon as `v` is `C¹` at the points `f' x`
+  (`TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfComp_of_contMDiffAt`).
 * `TauCeti.SmoothEmbedding.fiberThomPairMap_comp_thomPairMapOfComp`: on the fibre over `x`, the
   map of Thom pairs is the fibre-pair isomorphism of the derivative.
 -/
@@ -95,6 +98,25 @@ theorem normalSpaceEquivOfComp_normalClass (f' : SmoothEmbedding I J' n Z X')
 
 variable [IsManifold J' 1 X'] [IsManifold J 1 X] {K K' : Type*}
 
+/-- If `v` is `C¹` at each point `f' x`, the total-space map `w ↦ (w.proj, dv w)` of
+`normalSpaceEquivOfComp`, from the normal bundle of `f'` to that of `f`, is continuous for their
+quotient topologies. -/
+theorem continuous_normalSpaceEquivOfComp_of_contMDiffAt (f' : SmoothEmbedding I J' n Z X')
+    (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0)
+    (hv₁ : ∀ x, ContMDiffAt J' J 1 v (f' x))
+    (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) :
+    Continuous fun w : TotalSpace K (fun x ↦ f'.isImmersion.NormalSpace x hn) ↦
+      TotalSpace.mk' K' (E := fun x ↦ f.isImmersion.NormalSpace x hm) w.proj
+        (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) := by
+  convert f'.continuous_normalBundleMap_of_contMDiffAt (K := K) (K' := K') f hn hm
+    (u := _root_.id) hv₁ h using 1
+  funext w
+  rw [normalBundleMap_apply, normalSpaceEquivOfComp_def,
+    ← normalSpaceEquiv_toContinuousLinearMap]
+  -- The base points are `w.proj` and `_root_.id w.proj`, and the coercion of the equivalence to
+  -- a continuous linear map applies it: both sides agree up to unfolding `id` and that coercion.
+  rfl
+
 /-- For `v` of class `C¹`, the total-space map `w ↦ (w.proj, dv w)` of `normalSpaceEquivOfComp`,
 from the normal bundle of `f'` to that of `f`, is continuous for their quotient topologies. -/
 theorem continuous_normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n Z X')
@@ -102,15 +124,8 @@ theorem continuous_normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n Z X')
     (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible) (h : v ∘ f' = f) :
     Continuous fun w : TotalSpace K (fun x ↦ f'.isImmersion.NormalSpace x hn) ↦
       TotalSpace.mk' K' (E := fun x ↦ f.isImmersion.NormalSpace x hm) w.proj
-        (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) := by
-  convert f'.continuous_normalBundleMap (K := K) (K' := K') f hn hm (u := _root_.id) hv₁ h
-    using 1
-  funext w
-  rw [normalBundleMap_apply, normalSpaceEquivOfComp_def,
-    ← normalSpaceEquiv_toContinuousLinearMap]
-  -- The base points are `w.proj` and `_root_.id w.proj`, and the coercion of the equivalence to
-  -- a continuous linear map applies it: both sides agree up to unfolding `id` and that coercion.
-  rfl
+        (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) :=
+  f'.continuous_normalSpaceEquivOfComp_of_contMDiffAt f hn hm (fun _ ↦ hv₁.contMDiffAt) hv h
 
 /-- **The map of Thom pairs of normal bundles of a commuting triangle.** For a `C¹` map `v : X' → X`
 with `v ∘ f' = f` and invertible derivative at each point `f' x`, the map

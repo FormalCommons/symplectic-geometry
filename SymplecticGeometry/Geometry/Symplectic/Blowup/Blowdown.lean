@@ -10,10 +10,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Analysis.Real.Sqrt
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
@@ -121,9 +119,9 @@ symplectomorphic to `M ∖ Z`.
 
 The construction follows that of `SymplecticGeometry.WeightBlowup` in
 `Blowup/Weight/Basic.lean`, with the roles of the model and of the ball exchanged; its proof of
-`T2Space` is adapted from `SymplecticGeometry.WeightBlowup.instT2Space`, its form from
-`SymplecticGeometry.WeightBlowup.form`, and the diffeomorphism of the complement of the ball
-from `SymplecticGeometry.WeightBlowup.complDivisorSymplectomorph`.
+`T2Space` is adapted from `SymplecticGeometry.WeightBlowup.instT2Space` and its form from
+`SymplecticGeometry.WeightBlowup.form`. The diffeomorphism of the complement of the ball is the
+inverse of `inl` onto its range, `SymplecticGeometry.GluedAlong.rangeInlDiffeomorph`.
 
 ## References
 
@@ -241,17 +239,15 @@ def sourceComplRangeDiffeomorph (hΨ : Ψ.target = openNbhd n ε)
     (hf : ∀ q, f q ∈ Ψ.source ∧ Ψ (f q) = zeroSection q) :
     sourceComplRange hf ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
       openNbhdComplDivisor n ε :=
-  (Diffeomorph.nestedOpen (U := sourceComplRange hf) (D := ⟨Ψ.source, Ψ.open_source⟩)
-      fun _ hx ↦ hx.1).symm.trans
-    ((Ψ.toDiffeomorphSourceTarget.subtype fun x ↦ by
-        simp only [Opens.mem_comap, ContinuousMap.coe_mk,
-          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe]
-        refine ⟨fun hx ↦ apply_mem_openNbhdComplDivisor hΨ hf hx, fun hx ↦ ⟨x.property, ?_⟩⟩
-        exact (apply_mem_exceptionalDivisor_iff hf x.property).not.1
-          (mem_openNbhdComplDivisor_iff.1 hx).2).trans
-      (Diffeomorph.nestedOpen (D := ⟨Ψ.target, Ψ.open_target⟩) fun _ hp ↦ by
-        rw [Opens.mem_mk, hΨ]
-        exact (mem_openNbhdComplDivisor_iff.1 hp).1))
+  Ψ.toDiffeomorphSourceTarget.restrOpens (U := sourceComplRange hf) (fun _ hx ↦ hx.1)
+    (fun _ hp ↦ by
+      rw [Opens.mem_mk, hΨ]
+      exact (mem_openNbhdComplDivisor_iff.1 hp).1)
+    fun x ↦ by
+      rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe]
+      refine ⟨fun hx ↦ apply_mem_openNbhdComplDivisor hΨ hf hx, fun hx ↦ ⟨x.property, ?_⟩⟩
+      exact (apply_mem_exceptionalDivisor_iff hf x.property).not.1
+        (mem_openNbhdComplDivisor_iff.1 hx).2
 
 @[simp]
 theorem coe_sourceComplRangeDiffeomorph_apply (hΨ : Ψ.target = openNbhd n ε)
@@ -383,9 +379,8 @@ instance instT2Space : T2Space (DivisorBlowdown hΨ hf hl hε) := by
     nlinarith
   · have hz : Ψ z.val.val ∈ openNbhd n (ε / 2) := by
       have := hzB
-      rw [mem_preimage, Diffeomorph.coe_toHomeomorph, coe_gluingDiffeomorph_apply,
-        coe_shellSymplectomorph_apply, ← coe_radialBlowdownDiffeomorph_apply] at this
-      exact (mem_openNbhd_iff_radialBlowdownDiffeomorph l hδ.le _).2 this
+      rwa [mem_preimage, Diffeomorph.coe_toHomeomorph, coe_gluingDiffeomorph_apply,
+        mem_ofPred_eq, norm_shellSymplectomorph_lt_iff hl hε.le hδ.le] at this
     refine hzA ⟨Ψ z.val.val, openNbhd_subset_closedNbhd _ hz, ?_⟩
     exact Ψ.toOpenPartialHomeomorph.left_inv ((mem_outerOverlap_iff hf).1 z.property)
 
@@ -511,7 +506,7 @@ theorem isSymplectomorphism_sourceComplRangeDiffeomorph :
     exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hx ↦
       hσ.mpullback_apply hx
   rw [sourceComplRangeDiffeomorph]
-  exact h.subtype_nestedOpen _ _ _
+  exact h.restrOpens _ _ _
 
 include hσ in
 /-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `ω₀`
@@ -631,25 +626,28 @@ theorem isSymplecticBallEmbedding_blowdownBall_weight :
 /-- The complement in the blowdown of the image under `blowdownBall` of the closed ball of radius
 `l` (`mem_complBall_iff`): the image of the outer piece under `inl`, an open set. -/
 def complBall : Opens (DivisorBlowdown hΨ hf hl hε) :=
-  (GluedAlong.isLocalDiffeomorph_inl (gluingDiffeomorph hΨ hf hl hε)).image
+  GluedAlong.rangeInl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
 
+omit [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] in
 @[simp]
 theorem coe_complBall :
     (complBall hΨ hf hl hε : Set (DivisorBlowdown hΨ hf hl hε)) =
-      range (GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph) := by
-  rw [complBall, ← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
+      range (GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph) :=
+  GluedAlong.coe_rangeInl _
 
+omit [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] in
 /-- Every point `inl x` of the blowdown lies in `complBall`. -/
 @[simp]
 theorem inl_mem_complBall (x : outerPiece hf) :
     GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x ∈ complBall hΨ hf hl hε :=
-  SetLike.mem_coe.1 ((coe_complBall hΨ hf hl hε).symm ▸ mem_range_self x)
+  GluedAlong.inl_mem_rangeInl _ x
 
+omit [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] in
 /-- A point of the blowdown lies in `complBall` exactly when it is not the image under
 `blowdownBall` of a point of the closed ball of radius `l`. -/
 theorem mem_complBall_iff {z : DivisorBlowdown hΨ hf hl hε} :
     z ∈ complBall hΨ hf hl hε ↔ z ∉ blowdownBall hΨ hf hl hε '' closedBall 0 l := by
-  rw [← SetLike.mem_coe, coe_complBall, mem_image_blowdownBall_closedBall_iff]
+  rw [complBall, GluedAlong.mem_rangeInl, mem_image_blowdownBall_closedBall_iff]
   constructor
   · rintro ⟨x, rfl⟩ ⟨w, hw, hxw⟩
     obtain ⟨h, hxw⟩ := (GluedAlong.inr_eq_inl_iff _).1 hxw
@@ -669,31 +667,29 @@ It pulls `σ` back to the form of the blowdown
 (`isSymplectomorphism_complBallSymplectomorph`). -/
 def complBallSymplectomorph :
     complBall hΨ hf hl hε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ outerPiece hf :=
-  -- `complBall` is by definition the open set `IsLocalDiffeomorph.image` of `inl`.
-  ((GluedAlong.isLocalDiffeomorph_inl _).diffeomorphOfInjective (GluedAlong.inl_injective _)).symm
+  GluedAlong.rangeInlDiffeomorph (GluedAlong.isCompatible_glueData _)
 
 /-- The inverse of `complBallSymplectomorph` is `inl`. -/
 @[simp]
 theorem coe_complBallSymplectomorph_symm_apply (x : outerPiece hf) :
     ((complBallSymplectomorph hΨ hf hl hε).symm x : DivisorBlowdown hΨ hf hl hε) =
       GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x :=
-  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+  GluedAlong.coe_rangeInlDiffeomorph_symm_apply _ x
 
 /-- `inl` undoes `complBallSymplectomorph`. -/
 @[simp]
 theorem inl_complBallSymplectomorph_apply (z : complBall hΨ hf hl hε) :
     GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
-        (complBallSymplectomorph hΨ hf hl hε z) = z := by
-  rw [← coe_complBallSymplectomorph_symm_apply, Diffeomorph.symm_apply_apply]
+        (complBallSymplectomorph hΨ hf hl hε z) = z :=
+  GluedAlong.inl_rangeInlDiffeomorph_apply _ z
 
 /-- `complBallSymplectomorph` sends the point `inl x` to `x`. -/
 @[simp]
 theorem complBallSymplectomorph_inl (x : outerPiece hf) :
     complBallSymplectomorph hΨ hf hl hε
         ⟨GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x,
-          inl_mem_complBall hΨ hf hl hε x⟩ = x := by
-  apply GluedAlong.inl_injective (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
-  exact inl_complBallSymplectomorph_apply hΨ hf hl hε _
+          inl_mem_complBall hΨ hf hl hε x⟩ = x :=
+  GluedAlong.rangeInlDiffeomorph_mk_inl _ x
 
 /-- **The complement of the ball is symplectomorphic to `M ∖ Z`**: `complBallSymplectomorph`
 pulls the restriction of `σ` to `M ∖ Z` back to the restriction of the form of the blowdown to
@@ -705,8 +701,7 @@ theorem isSymplectomorphism_complBallSymplectomorph :
       (complBallSymplectomorph hΨ hf hl hε) := by
   rw [← SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
     SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq, ← mpullback_inl_blowdownForm]
-  exact SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
-    (GluedAlong.isLocalDiffeomorph_inl _) (GluedAlong.inl_injective _) _
+  exact GluedAlong.mpullback_rangeInlDiffeomorph_symm _ _
 
 /-! ### Blowing up the blowdown -/
 

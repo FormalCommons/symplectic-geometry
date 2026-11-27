@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CubeCompression
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ProdFiberContraction
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
@@ -216,8 +217,8 @@ theorem exists_homotopy_exact_of_closed_near_attaching_fin_one {K : Set L} (hK :
       ((hτ'.comp Prod.fst contMDiff_fst).fun_smul (hb.comp contMDiff_snd))
   have hνval (p : L × unitInterval) (x : (Fin 1 → ℝ) × F) :
       (ν p).val x = (τ p.1).val x - b p.2 • (η p.1).val x := by
-    simp only [hνdef, hτη, Submodule.coe_add, Submodule.coe_smul, Submodule.coe_sub,
-      Pi.add_apply, Pi.smul_apply, Pi.sub_apply]
+    simp only [hνdef, hτη, SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply,
+      SmoothBundleForm.sub_apply]
     module
   -- Pullback along a map that is the identity near `x` does not change the value at `x`.
   have hid (p : L × unitInterval) (θ : SmoothTwoForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F))
@@ -289,8 +290,8 @@ theorem exists_homotopy_exact_of_closed_near_attaching_fin_one {K : Set L} (hK :
     have hνγ : ∀ y ∈ V, (mextDerivₗ 𝓘(ℝ, (Fin 1 → ℝ) × F) 1 ((1 - b t) • γ + b t •
         SmoothForm.homotopyOperator (SmoothForm.mpullback _ hΦ (τ l)))).val y =
         (ν (l, t)).val y := fun y hy ↦ by
-      simp only [map_add, map_smul, Submodule.coe_add, Submodule.coe_smul, Pi.add_apply,
-        Pi.smul_apply, hγ y hy, hνdef, hτ'def]
+      simp only [map_add, map_smul, SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply,
+        hγ y hy, hνdef, hτ'def]
     obtain ⟨V', hV', h'⟩ :=
       SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq (hfp (l, t)) (hψQ (a t)) hV hνγ
     exact ⟨V', hV', _, h'⟩
