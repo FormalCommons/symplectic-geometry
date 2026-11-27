@@ -398,17 +398,11 @@ theorem continuous_tangentEquiv_val (hcover : ∀ x, ∃ i, x ∈ W i) :
         (E := fun x : E ↦ TangentSpace 𝓘(ℝ, E) x [⋀^Fin 2]→L[ℝ] Trivial E ℝ x) p.2 (p.1 p.2) :=
     ContMDiffSection.continuous_totalSpace_eval (I := 𝓘(ℝ, E))
       (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW hcover
-  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-  have hp := ((FiberBundle.continuousAt_totalSpace (E [⋀^Fin 2]→L[ℝ] ℝ) _).1
-    (h.continuousAt (x := p₀))).2
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
-    TangentBundle.symmL_model_space] at hp
-  refine hp.congr (Filter.Eventually.of_forall fun p ↦ ?_)
-  ext v
-  -- The trivialization at `p₀.2` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
-  -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
-  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans
-    (DFunLike.congr_fun (tangentEquiv_apply p.1 p.2) v).symm
+  refine continuous_iff_continuousAt.2 fun p₀ ↦
+    ((FiberBundle.continuousAt_totalSpace (E [⋀^Fin 2]→L[ℝ] ℝ) _).1 h.continuousAt).2.congr
+      (Filter.Eventually.of_forall fun p ↦
+        (FiberBundle.trivializationAt_continuousAlternatingMap_model_space_apply_snd _ p.2
+          (p.1 p.2)).trans (tangentEquiv_apply p.1 p.2).symm)
 
 end ModelSpace
 

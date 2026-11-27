@@ -57,9 +57,8 @@ the regularity that the continuous version of holonomic approximation asks of a 
 * `SymplecticGeometry.BandCore.contDiff_mpullback_chart`,
   `SymplecticGeometry.BandCore.contDiff_formalPrimitive_mpullback_chart`: for smooth families of
   forms, it is smooth in the parameter and the point together.
-* `SymplecticGeometry.BandCore.contDiff_val_mpullback_chart`,
-  `SymplecticGeometry.BandCore.contDiff_formalPrimitive_val_mpullback_chart`: for single forms, it
-  is smooth in the point.
+* `SymplecticGeometry.BandCore.contDiff_formalPrimitive_val_mpullback_chart`: for single forms,
+  its formal primitive is smooth in the point.
 * `SymplecticGeometry.BandCore.continuous_fderiv_mpullback_chart`,
   `SymplecticGeometry.BandCore.continuous_formalPrimitive_mpullback_chart`: for continuous
   families of two-forms in the frame topology and one-forms `B (s l)`, the derivative of its
@@ -305,18 +304,6 @@ are continuous in the parameter and the point together.
 open TauCeti _root_.Bundle
 
 variable [IsManifold I ∞ M] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-
-/-- **The reading of a form is smooth.** The value of the reading
-`mpullback (c.chart i) β` of a `k`-form `β` on `M` in the chart of cube `i` is a smooth function
-of the point. -/
-theorem contDiff_val_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι) {k : ℕ}
-    (β : SmoothForm I M F k) :
-    ContDiff
-      (F := ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin k]→L[ℝ] F)
-      ℝ ∞
-      (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff β).val :=
-  (c.contDiff_mpullback_chart i (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) β)).comp
-    ((contDiff_const (c := (0 : ℝ))).prodMk contDiff_id)
 
 /-- **The formal primitive of the readings of forms is smooth.** For two-forms `σ`, `α` and a
 one-form `β` on `M`, the formal primitive of the reading of `σ - α` in the chart of cube `i`,
