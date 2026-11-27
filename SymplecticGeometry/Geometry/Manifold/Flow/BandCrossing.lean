@@ -33,7 +33,8 @@ the band upwards, or come back into it from below, is Tau Ceti's
 `IsMIntegralCurveOn.lt_apply_of_le_apply` and `IsMIntegralCurveOn.apply_lt_of_apply_le`, applied
 to `-f`.
 
-The proofs follow those of Tau Ceti's `TauCeti.comp_maximalIntegralCurve_neg_mgradient_le_sub_mul`,
+The proofs of the band-crossing results follow those of Tau Ceti's
+`TauCeti.comp_maximalIntegralCurve_neg_mgradient_le_sub_mul`,
 `TauCeti.comp_maximalIntegralCurve_neg_mgradient_lt` and
 `TauCeti.exists_forall_comp_maximalIntegralCurve_neg_mgradient_lt`
 (`TauCeti/Geometry/Manifold/Morse/GradientFlow.lean`), which treat the field `-grad f`, for which
@@ -43,7 +44,7 @@ The proofs follow those of Tau Ceti's `TauCeti.comp_maximalIntegralCurve_neg_mgr
 
 * `IsMIntegralCurveOn.apply_le_add_mul`: if `df(v) ≤ C` along an integral curve on `[s, t]`, then
   `f` grows by at most `C (t - s)` along it.
-* `IsMIntegralCurve.mul_norm_sub_le_sub`: if `c ‖dg(v)‖ ≤ df(v)` along an integral curve on
+* `IsMIntegralCurveOn.mul_norm_sub_le_sub`: if `c ‖dg(v)‖ ≤ df(v)` along an integral curve on
   `[a, b)`, then from time `a` to time `b` the rise of `f` is at least `c` times the displacement
   of `g`.
 * `IsMIntegralCurve.apply_lt_of_mvfderiv_apply_le_neg`: an integral curve starting at or below `b`
@@ -92,28 +93,32 @@ theorem IsMIntegralCurveOn.apply_le_add_mul {s t C : ℝ} (hγ : IsMIntegralCurv
   simp only [Function.comp_apply] at h
   linarith
 
-/-- **Crossing estimate.** Let `γ` be an integral curve of `v`, `f : M → ℝ` a differentiable
-function and `g : M → F` a map to a normed space that is differentiable along `γ` on `[a, b]`.
+/-- **Crossing estimate.** Let `γ` be an integral curve of `v` on `[a, b]`, and let `f : M → ℝ`
+and `g : M → F`, a map to a normed space, be differentiable along `γ` on `[a, b]`.
 If `c ≥ 0` and `c ‖dg(v)‖ ≤ df(v)` along `γ` on `[a, b)`, then
 `c ‖g (γ b) - g (γ a)‖ ≤ f (γ b) - f (γ a)`. -/
-theorem IsMIntegralCurve.mul_norm_sub_le_sub {F : Type*} [NormedAddCommGroup F]
-    [NormedSpace ℝ F] {g : M → F} (hγ : IsMIntegralCurve γ v)
-    (hf : MDifferentiable I 𝓘(ℝ) f) {a b c : ℝ} (hc : 0 ≤ c) (hab : a ≤ b)
+theorem IsMIntegralCurveOn.mul_norm_sub_le_sub {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {g : M → F} {a b c : ℝ} (hγ : IsMIntegralCurveOn γ v (Icc a b))
+    (hf : ∀ τ ∈ Icc a b, MDifferentiableAt I 𝓘(ℝ) f (γ τ)) (hc : 0 ≤ c) (hab : a ≤ b)
     (hg : ∀ τ ∈ Icc a b, MDifferentiableAt I 𝓘(ℝ, F) g (γ τ))
     (hbound : ∀ τ ∈ Ico a b,
       c * ‖mvfderiv I g (γ τ) (v (γ τ))‖ ≤ mvfderiv I f (γ τ) (v (γ τ))) :
     c * ‖g (γ b) - g (γ a)‖ ≤ f (γ b) - f (γ a) := by
-  have hderiv (τ : ℝ) (hτ : τ ∈ Icc a b) : HasDerivAt (fun σ ↦ g (γ σ))
-      (mvfderiv I g (γ τ) (v (γ τ))) τ :=
-    TauCeti.Manifold.hasDerivAt_comp_curve (hg τ hτ) (hγ τ)
-  have hmv := image_norm_le_of_norm_deriv_right_le_deriv_boundary
+  have hgd (τ : ℝ) (hτ : τ ∈ Icc a b) :=
+    TauCeti.Manifold.hasDerivWithinAt_comp_curve (hg τ hτ) (hγ τ hτ)
+  have hfd (τ : ℝ) (hτ : τ ∈ Icc a b) :=
+    TauCeti.Manifold.hasDerivWithinAt_comp_curve (hf τ hτ) (hγ τ hτ)
+  -- On `[a, b)`, a derivative within `[a, b]` is a right derivative.
+  have hmv := image_norm_le_of_norm_deriv_right_le_deriv_boundary'
     (f := fun τ ↦ c • (g (γ τ) - g (γ a)))
     (f' := fun τ ↦ c • mvfderiv I g (γ τ) (v (γ τ)))
     (B := fun τ ↦ f (γ τ) - f (γ a)) (B' := fun τ ↦ mvfderiv I f (γ τ) (v (γ τ)))
-    (fun τ hτ ↦ (((hderiv τ hτ).continuousAt.sub continuousAt_const).const_smul
-      c).continuousWithinAt)
-    (fun τ hτ ↦ (((hderiv τ (Ico_subset_Icc_self hτ)).sub_const _).const_smul c).hasDerivWithinAt)
-    (by simp) (fun τ ↦ (TauCeti.Manifold.hasDerivAt_comp_curve (hf (γ τ)) (hγ τ)).sub_const _)
+    (fun τ hτ ↦ ((hgd τ hτ).continuousWithinAt.sub continuousWithinAt_const).const_smul c)
+    (fun τ hτ ↦ (((hgd τ (Ico_subset_Icc_self hτ)).sub_const _).const_smul c
+      ).mono_of_mem_nhdsWithin (Icc_mem_nhdsGE_of_mem hτ))
+    (by simp) (fun τ hτ ↦ (hfd τ hτ).continuousWithinAt.sub continuousWithinAt_const)
+    (fun τ hτ ↦ ((hfd τ (Ico_subset_Icc_self hτ)).sub_const _).mono_of_mem_nhdsWithin
+      (Icc_mem_nhdsGE_of_mem hτ))
     (fun τ hτ ↦ by rw [norm_smul, Real.norm_of_nonneg hc]; exact hbound τ hτ) ⟨hab, le_rfl⟩
   rwa [norm_smul, Real.norm_of_nonneg hc] at hmv
 

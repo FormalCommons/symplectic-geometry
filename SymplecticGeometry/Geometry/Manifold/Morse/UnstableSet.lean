@@ -27,7 +27,9 @@ neighbourhood `V` of `p`, apply the results to the restricted chart `φ.restr`.
 
 Let `B` be the image under the chart of a closed Euclidean ball of radius `ρ > 0` in the
 coordinates of negative weight (the other coordinates being `0`), and assume that this ball lies in
-the target of the chart. We show:
+the target of the chart. The continuous linear map `TauCeti.MorseChart.negativeExtendL` sends
+coordinates `c` in this Euclidean space to the vector of the model space with coordinates `c` of
+negative weight and `0` of positive weight. We show:
 
 * `TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_of_norm_le`: in backward time the
   flow moves the points of `B` radially: for `t ≤ 0`, `Φ t` sends the point with coordinates `c`
@@ -83,6 +85,15 @@ In the chart, `TauCeti.MorseChart.field_toChart_symm` writes the field of the ch
 with coordinates `z` as the image of `(-wᵢ zᵢ)ᵢ` under the differential of the inverse chart;
 `TauCeti.MorseChart.field_toChart_symm_negativeExtend` specializes it to the point with
 coordinates `c` of negative weight, where that vector is `c`.
+
+Two facts need only the chart, not the field.
+
+* `TauCeti.MorseChart.exists_pos_forall_norm_le_negativeExtend_mem_target`: some `ρ > 0` makes
+  the ball above lie in the target, by
+  `TauCeti.MorseBottChart.exists_pos_forall_norm_lt_mem_target`;
+* `TauCeti.MorseChart.apply_toChart_symm_negativeExtend`: `g = g p - ‖c‖² / 2` at the point with
+  coordinates `c`, by the normal form `TauCeti.MorseBottChart.eq_quadratic`, the negative weights
+  being `-1` (`TauCeti.MorseChart.weight_eq_neg_one_of_weight_neg`).
 
 ## References
 
@@ -159,6 +170,16 @@ namespace MorseChart
 
 variable (φ : MorseChart E g p)
 
+/-- The continuous linear map `c ↦ φ.negativeExtend c.ofLp` from the Euclidean space of the
+coordinates of negative weight of the Morse chart `φ` to the model space: it sends `c` to the
+vector with coordinates `c` of negative weight and `0` of positive weight. -/
+noncomputable def negativeExtendL : EuclideanSpace ℝ {i // φ.weight i < 0} →L[ℝ] E :=
+  LinearMap.toContinuousLinearMap (φ.negativeExtend ∘ₗ (WithLp.linearEquiv 2 ℝ _).toLinearMap)
+
+@[simp]
+theorem negativeExtendL_apply (c : EuclideanSpace ℝ {i // φ.weight i < 0}) :
+    φ.negativeExtendL c = φ.negativeExtend c.ofLp := (rfl)
+
 /-- A field equal to the linear field of a Morse chart on its source reads `(-wᵢ zᵢ)ᵢ` in the
 coordinates of the chart. -/
 theorem coord_mfderiv_of_forall_eq_field (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y)
@@ -180,6 +201,11 @@ theorem field_toChart_symm {z : E} (hz : z ∈ φ.toChart.target) :
     (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i) : E),
     φ.toChart.right_inv hz, LinearEquiv.apply_symm_apply]
 
+/-- A negative weight of a Morse chart is `-1`. -/
+theorem weight_eq_neg_one_of_weight_neg {i : Fin (Module.finrank ℝ E)} (hi : φ.weight i < 0) :
+    φ.weight i = -1 :=
+  (φ.weight_eq_neg_one_or_eq_one i).resolve_right fun h ↦ by rw [h] at hi; norm_num at hi
+
 /-- **The field of a Morse chart on the coordinates of negative weight.** At the point of the
 chart with coordinates `c` of negative weight and `0` of positive weight, the field of the Morse
 chart is the image of `c` under the differential of the inverse chart: the weights of these
@@ -192,10 +218,47 @@ theorem field_toChart_symm_negativeExtend {c : {i // φ.weight i < 0} → ℝ}
   congr 1
   refine φ.coord.symm_apply_eq.2 (funext fun i ↦ ?_)
   by_cases hi : φ.weight i < 0
-  · have hw : φ.weight i = -1 := (φ.weight_eq_neg_one_or_eq_one i).resolve_right
-      fun h ↦ by rw [h] at hi; norm_num at hi
-    rw [hw]; ring
+  · rw [φ.weight_eq_neg_one_of_weight_neg hi]; ring
   · rw [φ.coord_negativeExtend_of_not_weight_neg c hi]; ring
+
+/-- **A radius for the coordinates of negative weight.** There is `ρ > 0` such that the chart's
+target contains every vector whose coordinates are `c` of negative weight and `0` of positive
+weight, for each `c` of Euclidean norm at most `ρ`. -/
+theorem exists_pos_forall_norm_le_negativeExtend_mem_target :
+    ∃ ρ > 0, ∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ ≤ ρ →
+      φ.negativeExtend c.ofLp ∈ φ.toChart.target := by
+  obtain ⟨r, hr, hrT⟩ := φ.exists_pos_forall_norm_lt_mem_target
+  refine ⟨r / 2, half_pos hr, fun c hc ↦ ?_⟩
+  rw [← LinearEquiv.symm_apply_apply φ.coord (φ.negativeExtend c.ofLp)]
+  refine hrT _ (lt_of_le_of_lt ?_ (half_lt_self hr))
+  refine (pi_norm_le_iff_of_nonneg ((norm_nonneg c).trans hc)).2 fun i ↦ ?_
+  by_cases hi : φ.weight i < 0
+  · rw [φ.coord_negativeExtend_of_weight_neg _ ⟨i, hi⟩]
+    exact (PiLp.norm_apply_le c ⟨i, hi⟩).trans hc
+  · rw [φ.coord_negativeExtend_of_not_weight_neg _ hi, norm_zero]
+    exact (norm_nonneg c).trans hc
+
+/-- **The level on the coordinates of negative weight.** At the point of the Morse chart with
+coordinates `c` of negative weight and `0` of positive weight, `g = g p - ‖c‖² / 2`, `‖c‖` being
+the Euclidean norm of `c`. -/
+theorem apply_toChart_symm_negativeExtend {c : EuclideanSpace ℝ {i // φ.weight i < 0}}
+    (hc : φ.negativeExtend c.ofLp ∈ φ.toChart.target) :
+    g (φ.toChart.symm (φ.negativeExtend c.ofLp)) = g p - ‖c‖ ^ 2 / 2 := by
+  rw [φ.eq_quadratic _ (φ.toChart.map_target hc), φ.toChart.right_inv hc,
+    ← Fintype.sum_subtype_add_sum_subtype (fun i ↦ φ.weight i < 0), EuclideanSpace.norm_sq_eq]
+  have h0 : ∑ i : {i // ¬φ.weight i < 0},
+      φ.weight i * φ.coord (φ.negativeExtend c.ofLp) i ^ 2 = 0 :=
+    Finset.sum_eq_zero fun i _ ↦ by
+      rw [φ.coord_negativeExtend_of_not_weight_neg _ i.property]; ring
+  have h1 : ∑ i : {i // φ.weight i < 0},
+      φ.weight i * φ.coord (φ.negativeExtend c.ofLp) i ^ 2 = -∑ i, ‖c i‖ ^ 2 := by
+    rw [← Finset.sum_neg_distrib]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rw [φ.coord_negativeExtend_of_weight_neg, φ.weight_eq_neg_one_of_weight_neg i.property,
+      Real.norm_eq_abs, sq_abs]
+    ring
+  rw [h0, h1]
+  ring
 
 variable [CompleteSpace E] [T2Space M] [IsManifold 𝓘(ℝ, E) 1 M]
   (hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)))

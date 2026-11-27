@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Hypersurface.LineBund
 public import TauCeti.Analysis.Normed.Module.Alternating.TopDegree
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 
+import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Canonical
 
@@ -50,6 +51,10 @@ is `(w i) ^ n` times the coordinate form of the chart
 For `φ = c`, the lifted chart is `Blowup.lift c` over the source of `c`
 (`SymplecticGeometry.Blowup.liftChart_self`), so the chart is `blowupModelChart i ∘ lift c`.
 
+The Jacobian of a chart change of the model is computed from that of the blowdown: the chart
+change intertwines the blowdowns read in the two charts, which gives the determinant where
+`w i ≠ 0`, and continuity extends it to the whole source of the chart change.
+
 ## Main definitions
 
 * `SymplecticGeometry.Blowup.hypersurfaceData c`: the local equations of the exceptional divisor.
@@ -67,6 +72,12 @@ For `φ = c`, the lifted chart is `Blowup.lift c` over the source of `c`
   determinant is `(w i) ^ n`.
 * `SymplecticGeometry.Blowup.coordForm_blowdown`: the pull-back by the blowdown of the coordinate
   form of `φ` is `(w i) ^ n` times the coordinate form of the chart `i` of the blowup.
+* `SymplecticGeometry.BlowupModel.det_fderiv_blowupModelChart_symm_trans`: the change from the
+  chart `i` to the chart `k` of the model has Jacobian determinant `(update w i 1 k ^ n)⁻¹`.
+* `SymplecticGeometry.Blowup.coordForm_liftChart_trans_blowupModelChart`: so the coordinate forms
+  of the charts `i` and `k` of the blowup differ by the factor `g⁻ⁿ`, with `g` the transition
+  function `(hypersurfaceData c).g (some k) (some i)`. Unlike `coordForm_blowdown`, this
+  compares the two coordinate forms on the exceptional divisor too.
 
 ## References
 
@@ -127,6 +138,60 @@ theorem det_fderiv_blowdown_blowupModelChart_symm (i : Fin (n + 1)) (w : Fin (n 
     · simp [LinearMap.toMatrix'_apply, Fin.succAbove_ne, hab]
   rw [this]
   simp [LinearMap.toMatrix'_apply]
+
+/-- Where also the coordinate `i` does not vanish, the Jacobian of the chart change follows from
+that of the blowdown, which the chart change intertwines. -/
+private theorem det_fderiv_blowupModelChart_symm_trans_of_ne_zero (i k : Fin (n + 1))
+    {w : Fin (n + 1) → ℂ} (hw : update w i 1 k ≠ 0) (hi : w i ≠ 0) :
+    LinearMap.det (fderiv ℂ ((blowupModelChart i).symm.trans (blowupModelChart k)) w :
+      (Fin (n + 1) → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) = (update w i 1 k ^ n)⁻¹ := by
+  set T := (blowupModelChart i).symm.trans (blowupModelChart k)
+  have hS : T.source ∈ nhds w :=
+    T.open_source.mem_nhds (by rw [blowupModelChart_symm_trans_source]; exact hw)
+  have hT : DifferentiableAt ℂ T w :=
+    ((contDiffOn_blowupModelChart_symm_trans i k 1).differentiableOn one_ne_zero).differentiableAt
+      hS
+  have heq : (fun w ↦ ((blowupModelChart i).symm w).blowdown) =ᶠ[nhds w]
+      (fun w ↦ ((blowupModelChart k).symm w).blowdown) ∘ T := by
+    filter_upwards [hS] with w' hw'
+    rw [OpenPartialHomeomorph.trans_source] at hw'
+    simp only [comp_apply, T, OpenPartialHomeomorph.coe_trans,
+      (blowupModelChart k).left_inv hw'.2]
+  have h := (((hasFDerivAt_blowdown_blowupModelChart_symm k (T w)).comp w
+    hT.hasFDerivAt).congr_of_eventuallyEq heq).fderiv
+  have hdet := det_fderiv_blowdown_blowupModelChart_symm i w
+  rw [h, ContinuousLinearMap.toLinearMap_comp, LinearMap.det_comp,
+    ← (hasFDerivAt_blowdown_blowupModelChart_symm k (T w)).fderiv,
+    det_fderiv_blowdown_blowupModelChart_symm, blowupModelChart_symm_trans_apply_self,
+    mul_pow, mul_assoc] at hdet
+  refine eq_inv_of_mul_eq_one_right (mul_left_cancel₀ (pow_ne_zero n hi) ?_)
+  rw [mul_one]
+  exact hdet
+
+/-- **The Jacobian of the chart changes of the model.** On its source, where
+`update w i 1 k ≠ 0`, the change from the chart `i` to the chart `k` of the model has Jacobian
+determinant `(update w i 1 k ^ n)⁻¹`: it is `1` for `k = i` and `(w k ^ n)⁻¹` for `k ≠ i`. -/
+theorem det_fderiv_blowupModelChart_symm_trans (i k : Fin (n + 1)) {w : Fin (n + 1) → ℂ}
+    (hw : update w i 1 k ≠ 0) :
+    LinearMap.det (fderiv ℂ ((blowupModelChart i).symm.trans (blowupModelChart k)) w :
+      (Fin (n + 1) → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) = (update w i 1 k ^ n)⁻¹ := by
+  set T := (blowupModelChart i).symm.trans (blowupModelChart k)
+  -- Moving the coordinate `i` keeps the point in the source and the right side unchanged, and
+  -- where `w i ≠ 0` the identity holds; it extends to `w i = 0` by continuity.
+  have hcont : ContinuousOn (fun w ↦ LinearMap.det (fderiv ℂ T w :
+      (Fin (n + 1) → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ)) T.source :=
+    ContinuousLinearMap.continuous_det.comp_continuousOn
+      ((contDiffOn_blowupModelChart_symm_trans i k 1).continuousOn_fderiv_of_isOpen
+        T.open_source le_rfl)
+  have hline : Continuous fun t : ℂ ↦ LinearMap.det (fderiv ℂ T (update w i t) :
+      (Fin (n + 1) → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) :=
+    hcont.comp_continuous (continuous_const.update i continuous_id) fun t ↦ by
+      rw [blowupModelChart_symm_trans_source]
+      simpa using hw
+  have key := hline.ext_on (dense_compl_singleton 0) continuous_const fun t ht ↦ by
+    exact (det_fderiv_blowupModelChart_symm_trans_of_ne_zero i k (w := update w i t)
+      (by simpa using hw) (by simpa using ht)).trans (by rw [update_idem])
+  simpa using congrFun key (w i)
 
 end BlowupModel
 
@@ -487,6 +552,80 @@ theorem coordForm_blowdown (i : Fin (n + 1)) {z : Blowup c}
   rw [b.continuousDet_compContinuousLinearMap_mfderiv_comp hφd hbd hχd
     (hasFDerivAt_blowdown_blowupModelChart_symm i (χ z)).differentiableAt heq,
     det_fderiv_blowdown_blowupModelChart_symm, hχz]
+
+/-- **The coordinate forms of two charts of the blowup.** At a point `z` in the sources of the
+charts `χᵢ` and `χₖ` of the blowup, `liftChart c c` followed by `blowupModelChart i` and by
+`blowupModelChart k` (over the source of `c`, `liftChart c c` is `Blowup.lift c`,
+`liftChart_self`), the coordinate form of `χₖ` is `g⁻ⁿ` times that of `χᵢ`, where
+`g = (hypersurfaceData c).g (some k) (some i) z` is the ratio `v k / v i` of homogeneous
+coordinates of the line of the point of the model (`hypersurfaceData_g_some_some_eq`). The
+coordinate form of a chart is the determinant form of the basis `b` pulled back by its
+differential. -/
+theorem coordForm_liftChart_trans_blowupModelChart (i k : Fin (n + 1)) {z : Blowup c}
+    (hi : z ∈ ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+      (blowupModelChart i)).source)
+    (hk : z ∈ ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+      (blowupModelChart k)).source) :
+    b.continuousDet.compContinuousLinearMap
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+          ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+            (blowupModelChart k)) z) =
+      (((hypersurfaceData c).g (some k) (some i) z) ^ n)⁻¹ •
+        b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+            ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+              (blowupModelChart i)) z) := by
+  set L := (liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph
+  set χi := L.trans (blowupModelChart i)
+  set χk := L.trans (blowupModelChart k)
+  set T := (blowupModelChart i).symm.trans (blowupModelChart k)
+  have hL (z' : Blowup c) : L z' = liftChart c c z' := by
+    simp only [L, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
+      coe_liftChartPartialDiffeomorph]
+  have hχi (z' : Blowup c) : χi z' = blowupModelChart i (liftChart c c z') := by
+    simp only [χi, OpenPartialHomeomorph.coe_trans, comp_apply, hL]
+  have hmem {j : Fin (n + 1)} {z' : Blowup c} (hz' : z' ∈ (L.trans (blowupModelChart j)).source) :
+      liftChart c c z' ∈ (blowupModelChart j).source := by
+    rw [OpenPartialHomeomorph.trans_source] at hz'
+    rw [← hL]
+    exact hz'.2
+  -- The point `χᵢ z` lies in the source of the chart change `T`.
+  have hT : χi z ∈ T.source := by
+    rw [OpenPartialHomeomorph.trans_source]
+    refine ⟨by simp, ?_⟩
+    rw [mem_preimage, hχi, (blowupModelChart i).left_inv (hmem hi)]
+    exact hmem hk
+  -- Near `z`, the chart `χₖ` is `T ∘ χᵢ`.
+  have heq : χk ∘ id =ᶠ[nhds z] T ∘ χi := by
+    filter_upwards [χi.open_source.mem_nhds hi] with z' hz'
+    simp only [comp_apply, id_eq, T, χk, χi, OpenPartialHomeomorph.coe_trans, hL,
+      (blowupModelChart i).left_inv (hmem hz')]
+  have hχd {e : OpenPartialHomeomorph (Blowup c) (Fin (n + 1) → ℂ)}
+      (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c)) (hz : z ∈ e.source) :
+      MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e z :=
+    (contMDiffAt_of_mem_maximalAtlas he hz).mdifferentiableAt (by simp)
+  have hTd : DifferentiableAt ℂ T (χi z) :=
+    ((contDiffOn_blowupModelChart_symm_trans i k 1).differentiableOn one_ne_zero).differentiableAt
+      (T.open_source.mem_nhds hT)
+  have h := b.continuousDet_compContinuousLinearMap_mfderiv_comp
+    (hχd (liftChart_mem_maximalAtlas c c k) hk) mdifferentiableAt_id
+    (hχd (liftChart_mem_maximalAtlas c c i) hi) hTd heq
+  rw [mfderiv_id] at h
+  -- The factor: `T`'s Jacobian at `χᵢ z`, with `update (χᵢ z) i 1` spanning the line.
+  have hsrc : update (χi z) i 1 k ≠ 0 := by
+    have := hT
+    rwa [blowupModelChart_symm_trans_source] at this
+  have hg : (hypersurfaceData c).g (some k) (some i) z = update (χi z) i 1 k := by
+    have hz0 : blowdown c z ∈ c.source := by
+      simpa [χi, OpenPartialHomeomorph.trans_source, L] using hi.1
+    have hpr : (lift c z).pr = mk ℂ (update (χi z) i 1) (update_ne_zero _ i one_ne_zero) := by
+      rw [← liftChart_self c hz0, ← pr_blowupModelChart_symm_apply, hχi,
+        (blowupModelChart i).left_inv (hmem hi)]
+    rw [hypersurfaceData_g_some_some_eq c k i _ hpr, update_self, div_one]
+  rw [hg, ← det_fderiv_blowupModelChart_symm_trans i k hsrc, ← h]
+  ext v
+  rw [ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  exact congrArg _ (funext fun _ ↦ (ContinuousLinearMap.id_apply _).symm)
 
 end CoordForm
 

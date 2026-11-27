@@ -176,13 +176,13 @@ theorem integral_apply_smul_fderiv_fderiv_eq_integral_fderiv_fderiv_apply (hU : 
     (ContinuousLinearMap.id ℝ (F →L[ℝ] ℝ)) hφw ha hac u' u
   simp only [ContinuousLinearMap.id_apply, smul_apply] at h
   simp only [TauCeti.fderiv_clm_apply_const_apply
-    (((ha.fderiv_right (m := 1) (by norm_num)).differentiable one_ne_zero) _), map_smul]
+    (ha.contDiffAt.hasFDerivAt_fderiv le_rfl).differentiableAt, map_smul]
   rw [h]
   -- On the support of `a` the two second derivatives agree; off it, both sides vanish.
   refine integral_congr_ae (Filter.Eventually.of_forall fun y ↦ ?_)
   by_cases hy : y ∈ tsupport a
   · simp [TauCeti.fderiv_clm_apply_const_apply
-      (((hφw y hy).fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero)]
+      ((hφw y hy).hasFDerivAt_fderiv le_rfl).differentiableAt]
   · simp [image_eq_zero_of_notMem_tsupport hy]
 
 /-- **The formal transpose of a second-order operator.** Let `U` be an open subset of `E`,

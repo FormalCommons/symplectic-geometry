@@ -46,8 +46,22 @@ separate hypotheses.
 * `SymplecticGeometry.IsJOrthogonallyAttached.comp`: the condition persists when `φ` is
   replaced by `f ∘ φ`, for `f` with `f 0 = 0`, positive on `(0, ∞)`, and with positive derivative
   at `0`.
-* `SymplecticGeometry.IsJOrthogonallyAttached.comp_linearIsometry`: it persists under
-  precomposition of the disc with a linear isometry.
+* `SymplecticGeometry.IsJOrthogonallyAttached.comp_of_mfderiv_apply_self_eq_smul`: it persists
+  under precomposition of the disc with a map `σ : F' → F` that maps the open unit ball into the
+  open unit ball and the unit sphere into the unit sphere, and whose differential sends each
+  point `x` of the sphere to a positive multiple of `σ x`. When `σ` fixes the sphere pointwise,
+  this covers the radial maps `x ↦ τ x • x` with `τ = 1` on the sphere, `0 < 1 + dτ_x x` there
+  and `‖τ x • x‖ < 1` on the open ball.
+* `SymplecticGeometry.IsJOrthogonallyAttached.comp_linearIsometry`: in particular, it persists
+  under precomposition of the disc with a linear isometry.
+
+For a diffeomorphism `σ`, Tau Ceti already gives the other properties of `ι ∘ σ` that a
+reparametrization needs: it is a smooth embedding when `ι` is
+(`TauCeti.isSmoothEmbedding_comp_diffeomorph`), and its tangent images are those of `ι`
+(`Diffeomorph.range_mfderiv_comp_diffeomorph`). For a bijection `σ` of `F` that maps the open
+unit ball onto itself and fixes the unit sphere pointwise,
+`Equiv.image_closedBall_eq_of_eqOn_sphere` (in `SymplecticGeometry.Topology.MetricSpace.Ball`)
+shows that `ι ∘ σ` and `ι` give the same disc.
 
 The model case, `SymplecticGeometry.isJOrthogonallyAttached_model`, is in
 `SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape`, with the model disc and
@@ -190,24 +204,53 @@ theorem comp (h : IsJOrthogonallyAttached E φ ι) {f : ℝ → ℝ} {f' : ℝ} 
   · refine (key hx _).trans ?_
     rw [h.mvfderiv_I_smul_mfderiv x hx v, mul_zero]
 
-/-- **Reparametrizing the disc.** A disc attached J-orthogonally stays so after precomposition
-with a linear isometry. -/
+/-- **Reparametrizing the disc.** Let `σ : F' → F` map the open unit ball into the open unit ball
+and the unit sphere into the unit sphere, and have, at each point `x` of the sphere, a differential
+that sends the radial vector `x` to a positive multiple of `σ x`. Then a disc attached
+J-orthogonally stays so after precomposition with `σ`. -/
+theorem comp_of_mfderiv_apply_self_eq_smul (h : IsJOrthogonallyAttached E φ ι) {F' : Type*}
+    [NormedAddCommGroup F'] [NormedSpace ℝ F'] {σ : F' → F}
+    (hball : ∀ x : F', ‖x‖ < 1 → ‖σ x‖ < 1) (hsphere : ∀ x : F', ‖x‖ = 1 → ‖σ x‖ = 1)
+    (hrad : ∀ x : F', ‖x‖ = 1 → ∃ c : ℝ, 0 < c ∧ mfderiv 𝓘(ℝ, F') 𝓘(ℝ, F) σ x x = c • σ x) :
+    IsJOrthogonallyAttached E φ (ι ∘ σ) := by
+  -- Along the sphere, `d(ι ∘ σ)_x = dι_{σ x} ∘ dσ_x`.
+  have key {x : F'} (hx : ‖x‖ = 1) (v : TangentSpace 𝓘(ℝ, F') x) :
+      mfderiv 𝓘(ℝ, F') 𝓘(ℝ, E) (ι ∘ σ) x v =
+        mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (mfderiv 𝓘(ℝ, F') 𝓘(ℝ, F) σ x v) := by
+    -- `σ` is differentiable at `x`, since otherwise its differential would vanish there.
+    have hσ : MDifferentiableAt 𝓘(ℝ, F') 𝓘(ℝ, F) σ x := by
+      by_contra hσ
+      obtain ⟨c, hc, hcx⟩ := hrad x hx
+      rw [mfderiv_zero_of_not_mdifferentiableAt hσ] at hcx
+      have h0 : c • σ x = 0 := hcx.symm
+      simp only [smul_eq_zero, hc.ne', false_or] at h0
+      simpa [h0] using hsphere x hx
+    exact mfderiv_comp_apply x (h.mdifferentiableAt (hsphere x hx)) hσ v
+  refine ⟨fun x hx ↦ h.pos (σ x) (hball x hx), fun x hx ↦ h.eq_zero (σ x) (hsphere x hx),
+    fun x hx ↦ ?_, fun x hx v ↦ ?_⟩
+  · obtain ⟨c, hc, hcx⟩ := hrad x hx
+    have t : mvfderiv 𝓘(ℝ, E) φ (ι (σ x))
+        (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (mfderiv 𝓘(ℝ, F') 𝓘(ℝ, F) σ x x)) < 0 := by
+      -- `hcx` gives `c • σ x` with the scalar action of `F`, not of the tangent space.
+      have e : mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (c • σ x : F) =
+          c • mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (σ x) :=
+        (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x)).map_smul c (σ x)
+      rw [hcx, e, map_smul, smul_eq_mul]
+      exact mul_neg_of_pos_of_neg hc (h.mvfderiv_mfderiv_self_neg (σ x) (hsphere x hx))
+    exact key hx x ▸ t
+  · exact key hx v ▸ h.mvfderiv_I_smul_mfderiv (σ x) (hsphere x hx) _
+
+/-- **Reparametrizing the disc by an isometry.** A disc attached J-orthogonally stays so after
+precomposition with a linear isometry. -/
 theorem comp_linearIsometry (h : IsJOrthogonallyAttached E φ ι) {F' : Type*}
     [NormedAddCommGroup F'] [NormedSpace ℝ F'] (e : F' →ₗᵢ[ℝ] F) :
-    IsJOrthogonallyAttached E φ (ι ∘ e) := by
-  have key {x : F'} (hx : ‖x‖ = 1) (v : TangentSpace 𝓘(ℝ, F') x) :
-      mfderiv 𝓘(ℝ, F') 𝓘(ℝ, E) (ι ∘ e) x v = mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (e x) (e v) := by
-    have := mfderiv_comp_apply x (h.mdifferentiableAt (by simpa using hx))
-      e.toContinuousLinearMap.mdifferentiableAt v
-    rw [e.toContinuousLinearMap.mfderiv_eq] at this
-    exact this
-  refine ⟨fun x hx ↦ h.pos (e x) (by simpa using hx),
-    fun x hx ↦ h.eq_zero (e x) (by simpa using hx),
-    fun x hx ↦ ?_, fun x hx v ↦ ?_⟩
-  · have hx' : ‖e x‖ = 1 := by simpa using hx
-    exact key hx x ▸ h.mvfderiv_mfderiv_self_neg (e x) hx'
-  · have hx' : ‖e x‖ = 1 := by simpa using hx
-    exact key hx v ▸ h.mvfderiv_I_smul_mfderiv (e x) hx' (e v)
+    IsJOrthogonallyAttached E φ (ι ∘ e) :=
+  h.comp_of_mfderiv_apply_self_eq_smul (fun x hx ↦ by simpa using hx)
+    (fun x hx ↦ by simpa using hx) fun x _ ↦
+      ⟨1, one_pos, by
+        rw [← e.coe_toContinuousLinearMap, ContinuousLinearMap.mfderiv_eq]
+        -- The left side lives in the tangent space `TangentSpace 𝓘(ℝ, F) (e x)`, which is `F`.
+        exact (one_smul ℝ _).symm⟩
 
 end IsJOrthogonallyAttached
 

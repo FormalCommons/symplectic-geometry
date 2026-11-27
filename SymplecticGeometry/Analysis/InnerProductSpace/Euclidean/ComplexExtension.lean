@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Topology.Algebra.Module.Multilinear.Basic
 public import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 
@@ -36,6 +37,9 @@ linear map in `f`, and gives its basic properties.
   multiplication by `i` commutes with the extension.
 * `ContinuousLinearMap.complexExtension_injective`: the extension of an injective map whose image
   is totally real (Tau Ceti's `TauCeti.IsTotallyReal`) is injective.
+* `ContinuousMultilinearMap.eq_zero_of_map_update_I_smul`: a real-multilinear map on `ℂⁿ` that
+  commutes with multiplication by `i` in each argument and vanishes on tuples of real points is
+  zero.
 
 Along the way, `TauCeti.complexEuclideanEquivRealProd_I_smul` and
 `TauCeti.I_smul_complexEuclideanEquivRealProd_symm` say how multiplication by `i` acts on real
@@ -199,3 +203,50 @@ theorem complexExtension_injective {f : EuclideanSpace ℝ ι →L[ℝ] F}
   exact Prod.ext (hf (h₁.trans (map_zero f).symm)) (hf (h₂.trans (map_zero f).symm))
 
 end ContinuousLinearMap
+
+namespace ContinuousMultilinearMap
+
+variable {ι : Type*} [Fintype ι] {κ : Type*} [Finite κ] [DecidableEq κ]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
+
+/-- A real-multilinear map on `ℂⁿ` with values in a complex normed space that commutes with
+multiplication by `i` in each argument, and vanishes when all its arguments are real points
+`x + i 0`, is zero. This is the multilinear form of
+`ContinuousLinearMap.complexExtension_unique`. -/
+theorem eq_zero_of_map_update_I_smul
+    {P : ContinuousMultilinearMap ℝ (fun _ : κ ↦ EuclideanSpace ℂ ι) F}
+    (hI : ∀ m i v, P (Function.update m i (Complex.I • v)) =
+      Complex.I • P (Function.update m i v))
+    (hre : ∀ x : κ → EuclideanSpace ℝ ι,
+      P (fun i ↦ (complexEuclideanEquivRealProd ι).symm (x i, 0)) = 0) :
+    P = 0 := by
+  have := Fintype.ofFinite κ
+  set e := complexEuclideanEquivRealProd ι
+  -- Induction on a set of arguments outside which all arguments are real.
+  suffices h : ∀ S : Finset κ, ∀ m : κ → EuclideanSpace ℂ ι, (∀ i ∉ S, (e (m i)).2 = 0) →
+      P m = 0 by
+    ext m
+    exact h Finset.univ m (by simp)
+  intro S
+  induction S using Finset.induction_on with
+  | empty =>
+    intro m hm
+    have hm' : m = fun i ↦ e.symm ((e (m i)).1, 0) := by
+      funext i
+      rw [← hm i (Finset.notMem_empty i)]
+      simp
+    rw [hm', hre]
+  | insert i S hi ih =>
+    intro m hm
+    -- In the argument `i`, `P` is complex linear and vanishes on the real points.
+    have hg : P.toContinuousLinearMap m i = 0 := by
+      refine (ContinuousLinearMap.complexExtension_unique 0 (hI m i) fun x ↦ ?_).trans
+        (ContinuousLinearMap.complexExtension ι F).map_zero
+      refine (P.toContinuousLinearMap_apply m i _).trans (ih _ fun j hj ↦ ?_)
+      rcases eq_or_ne j i with rfl | hji
+      · simp [e]
+      · rw [Function.update_of_ne hji]
+        exact hm j (by simp [hji, hj])
+    simpa using congr($hg (m i))
+
+end ContinuousMultilinearMap

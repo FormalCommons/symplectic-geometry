@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.DivisorNeighborhood
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Analysis.Real.Sqrt
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
@@ -116,6 +117,12 @@ symplectomorphic to `M ∖ Z`.
   agree on the overlap, where both are `ψ ∘ shellSymplectomorph`; so the criterion
   `GluedAlong.descDiffeomorph` applies, and `GluedAlong.mpullback_descDiffeomorph` gives the
   statement on forms.
+* `SymplecticGeometry.exists_blowdown`: for a symplectic divisor `f` of `(M, σ)` with
+  `f^* σ = l² ω_FS`, `l > 0`, and normal bundle isomorphic to that of the zero section of the
+  model, the `ε` and `Ψ` of `BlowupModel.exists_symplectomorphism_blowupModel` exist, and the
+  blowdown along them has the properties above: its form is symplectic, `blowdownBall` embeds the
+  closed ball of radius `l` with complement symplectomorphic to `M ∖ Z`, and
+  `weightBlowup_blowdown` and `blowdown_weightBlowup` hold.
 
 The construction follows that of `SymplecticGeometry.WeightBlowup` in
 `Blowup/Weight/Basic.lean`, with the roles of the model and of the ball exchanged; its proof of
@@ -498,15 +505,8 @@ theorem isSymplectomorphism_sourceComplRangeDiffeomorph :
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
       (sourceComplRangeDiffeomorph hΨ hf) := by
-  have h : SmoothTwoForm.IsSymplectomorphism
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
-      Ψ.toDiffeomorphSourceTarget := by
-    rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
-    exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hx ↦
-      hσ.mpullback_apply hx
   rw [sourceComplRangeDiffeomorph]
-  exact h.restrOpens _ _ _
+  exact hσ.isSymplectomorphism_toDiffeomorphSourceTarget.restrOpens _ _ _
 
 include hσ in
 /-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `ω₀`
@@ -992,8 +992,7 @@ theorem mem_outerPiece_divisor_iff (x : WeightBlowup hψ hl hε) :
 private def outerDiffeomorph :
     outerPiece (WeightBlowup.divisor_mem_modelChart_source hψ hl hε) ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ),
       𝓘(ℝ, Fin (n + 1) → ℂ)⟯ WeightBlowup.outerPiece hψ :=
-  ((Diffeomorph.refl _ _ _).subtype fun x ↦ by
-      rw [Diffeomorph.coe_refl, id_eq, mem_outerPiece_divisor_iff]).trans
+  (Diffeomorph.setCongr (SetLike.ext (mem_outerPiece_divisor_iff hψ hl hε))).trans
     (WeightBlowup.complDivisorSymplectomorph hψ hl hε)
 
 private theorem inl_outerDiffeomorph
@@ -1001,38 +1000,36 @@ private theorem inl_outerDiffeomorph
     GluedAlong.inl (WeightBlowup.gluingDiffeomorphSymm hψ hl hε).toHomeomorph
       (outerDiffeomorph hψ hl hε x) = x := by
   rw [outerDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
-    WeightBlowup.inl_complDivisorSymplectomorph_apply, Diffeomorph.subtype_apply_coe,
-    Diffeomorph.coe_refl, id_eq]
+    WeightBlowup.inl_complDivisorSymplectomorph_apply, Diffeomorph.coe_setCongr_apply]
 
 private theorem isSymplectomorphism_outerDiffeomorph :
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (WeightBlowup.form hψ hl hε))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (outerDiffeomorph hψ hl hε) :=
-  ((SmoothTwoForm.isSymplectomorphism_refl _).subtype _).trans
+  (SmoothTwoForm.isSymplectomorphism_setCongr _ _).trans
     (WeightBlowup.isSymplectomorphism_complDivisorSymplectomorph hψ hl hε) (by simp)
 
 /-- The ball piece of the blowdown, read in `M`: `ψ ∘ complexToRealEuclidean`. -/
 private def ballDiffeomorph :
     ballPiece n l ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
       (⟨_, hψ.complexPartialDiffeomorph.open_target⟩ : Opens M) :=
-  ((Diffeomorph.refl _ _ _).subtype fun w ↦ by
-      rw [Diffeomorph.coe_refl, id_eq]
-      exact mem_ballPiece_iff.trans hψ.mem_complexPartialDiffeomorph_source_iff.symm).trans
+  (Diffeomorph.setCongr (SetLike.ext fun _ ↦
+      mem_ballPiece_iff.trans hψ.mem_complexPartialDiffeomorph_source_iff.symm)).trans
     hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget
 
 omit [T2Space M] in
 private theorem coe_ballDiffeomorph_apply (w : ballPiece n l ε) :
     (ballDiffeomorph hψ w : M) = ψ (complexToRealEuclidean (Fin (n + 1)) w) := by
   simp only [ballDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
-    PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph]
-  rw [Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id_eq]
+    PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph,
+    Diffeomorph.coe_setCongr_apply]
 
 omit [T2Space M] in
 private theorem isSymplectomorphism_ballDiffeomorph :
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (ballDiffeomorph (l := l) hψ) :=
-  ((SmoothTwoForm.isSymplectomorphism_refl _).subtype _).trans
+  (SmoothTwoForm.isSymplectomorphism_setCongr _ _).trans
     (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph
       ).isSymplectomorphism_toDiffeomorphSourceTarget (by simp)
 
@@ -1123,13 +1120,115 @@ theorem blowdown_weightBlowup :
   · rw [GluedAlong.descDiffeomorph_inl, Function.comp_apply, outerDiffeomorph,
       Diffeomorph.coe_trans, Function.comp_apply]
     exact congrArg (fun z ↦ (WeightBlowup.complDivisorSymplectomorph hψ hl hε z : M))
-      (Subtype.ext (by rw [Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id_eq]))
+      (Subtype.ext (Diffeomorph.coe_setCongr_apply _ _))
   · rw [blowdownBall_of_norm_lt _ _ hl hε hw, GluedAlong.descDiffeomorph_inr, Function.comp_apply,
       coe_ballDiffeomorph_apply, ContinuousLinearEquiv.apply_symm_apply]
 
 end DivisorBlowdown
 
 end WeightBlowup
+
+/-! ### The blowdown of a divisor -/
+
+section Milestone
+
+open BlowupModel Module
+open _root_.Bundle (TotalSpace)
+open scoped TauCeti.ComplexManifold
+
+-- As in the section `Form` above.
+attribute [local instance high] IsManifold.instOfNatWithTopENat_1
+
+variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
+  [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] [T2Space M] [SecondCountableTopology M]
+  {P₀ P₁ : Type*} [NormedAddCommGroup P₀] [NormedSpace ℝ P₀] [FiniteDimensional ℝ P₀]
+  [NormedAddCommGroup P₁] [NormedSpace ℝ P₁] [FiniteDimensional ℝ P₁]
+
+/-- **The symplectic blowdown**, following McDuff–Salamon, §7.1, and McDuff, Lemma 2.1 and
+Corollary 2.2. Let `(M, σ)` be a symplectic manifold without boundary, `l > 0`, and
+`f : ℙ ℂ (Fin (n + 1) → ℂ) → M` a smooth embedding with `f^* σ = l² ω_FS`, whose normal bundle is
+isomorphic to that of the zero section of the model blowup `L` by a smooth fibrewise isomorphism
+`Φ` that sends each pair of positive normal symplectic pairing for `σ` to one of positive pairing
+for `ω̃_l = blowupForm n l`. Then there are `ε > 0` and a partial diffeomorphism `Ψ` from `M`
+to the model with target `L(ε) = openNbhd n ε`, whose source contains the image `Z` of `f`,
+sending `f q` to `zeroSection q` and symplectic from `σ` to `ω̃_l` on its source
+(`BlowupModel.exists_symplectomorphism_blowupModel`), such that the blowdown `DivisorBlowdown`
+of `M` along `f`, `Ψ`, `l` and `ε`, with its form `blowdownForm`:
+* is symplectic;
+* has the symplectic embedding `blowdownBall` of the closed ball of radius `l`, and the
+  complement `complBall` of the image of that closed ball is symplectomorphic to `M ∖ Z`;
+* blown up along `blowdownBall` with weight `l` and any constant `δ` with `0 < δ < ε`, gives
+  `(M, σ)` back, by a symplectomorphism sending the divisor to `f` (`weightBlowup_blowdown`).
+
+Moreover, for every `ε' > 0` and every symplectic embedding `ψ` of the closed ball of radius
+`√(l² + ε'²)` in `M`, blowing down the divisor of the blowup of weight `l` of `M` along `ψ`
+gives `(M, σ)` back, by a symplectomorphism that is `complDivisorSymplectomorph` on the outer
+piece and sends `blowdownBall` to `ψ` on the open ball of radius `√(l² + ε'²)`
+(`blowdown_weightBlowup`).
+
+Milestone: *Symplectic blowdown*. -/
+theorem exists_blowdown {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M} (hσ : σ.IsSymplectic)
+    {f : SmoothEmbedding 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (ℙ ℂ (Fin (n + 1) → ℂ)) M}
+    {l : ℝ} (hl : 0 < l) (hf : SmoothForm.mpullback f f.contMDiff σ = l ^ 2 • fubiniStudyForm n)
+    (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hP₀ : finrank ℝ P₀ = finrank ℝ (Fin (n + 1) → ℂ) - finrank ℝ (Fin n → ℂ))
+    (hP₁ : finrank ℝ P₁ = finrank ℝ (Fin (n + 1) → ℂ) - finrank ℝ (Fin n → ℂ))
+    (Φ : ∀ q, f.isImmersion.NormalSpace q hn ≃L[ℝ]
+        (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hP₀
+      letI := (zeroSectionRealEmbedding n).normalSpaceFiberBundle hn hP₁
+      ContMDiff (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, P₀)) (𝓘(ℝ, Fin n → ℂ).prod 𝓘(ℝ, P₁)) ∞
+        (fun p : TotalSpace P₀ (fun q ↦ f.isImmersion.NormalSpace q hn) ↦
+          (⟨p.proj, Φ p.proj p.snd⟩ :
+            TotalSpace P₁ (fun q ↦ (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn))))
+    (hΦσ : ∀ q v w,
+      0 < f.symplecticNormalForm (hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
+        hσ.isNondegenerate f.contMDiff (pow_ne_zero 2 hl.ne') hf) q hn v w →
+      0 < (zeroSectionRealEmbedding n).symplecticNormalForm
+        (hasSymplecticTangentImages_zeroSectionRealEmbedding hl.ne') q hn (Φ q v) (Φ q w)) :
+    (∃ ε, ∃ hε : 0 < ε,
+      ∃ Ψ : PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) M (BlowupModel n) ∞,
+      ∃ hΨ : Ψ.target = openNbhd n ε, ∃ hfΨ : ∀ q, f q ∈ Ψ.source ∧ Ψ (f q) = zeroSection q,
+      ∃ hσΨ : σ.IsSymplecticMapOn (blowupForm n l) Ψ Ψ.source,
+        (DivisorBlowdown.blowdownForm hΨ hfΨ hl.le hε hσΨ).IsSymplectic ∧
+        IsSymplecticBallEmbedding (DivisorBlowdown.blowdownForm hΨ hfΨ hl.le hε hσΨ) l
+          (DivisorBlowdown.blowdownBall hΨ hfΨ hl.le hε) ∧
+        (∀ z, z ∈ DivisorBlowdown.complBall hΨ hfΨ hl.le hε ↔
+          z ∉ DivisorBlowdown.blowdownBall hΨ hfΨ hl.le hε '' closedBall 0 l) ∧
+        (∃ Θ : DivisorBlowdown.complBall hΨ hfΨ hl.le hε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ),
+            𝓘(ℝ, Fin (n + 1) → ℂ)⟯ DivisorBlowdown.outerPiece hfΨ,
+          SmoothTwoForm.IsSymplectomorphism
+            (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+              (DivisorBlowdown.blowdownForm hΨ hfΨ hl.le hε hσΨ))
+            (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) Θ) ∧
+        ∀ δ (hδ : 0 < δ) (hδε : δ < ε),
+          ∃ Θ : WeightBlowup (DivisorBlowdown.isSymplecticBallEmbedding_blowdownBall_sqrt hΨ hfΨ
+              hl.le hε hσΨ hδ.le hδε) hl.le hδ ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ),
+                𝓘(ℝ, Fin (n + 1) → ℂ)⟯ M,
+            SmoothTwoForm.IsSymplectomorphism (WeightBlowup.form _ hl.le hδ) σ Θ ∧
+              ∀ q, Θ (WeightBlowup.divisor _ hl.le hδ q) = f q) ∧
+    ∀ ε' (hε' : 0 < ε') (ψ : StdSpace (Fin (n + 1)) → M)
+      (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε' ^ 2)) ψ),
+      ∃ Θ : DivisorBlowdown (WeightBlowup.modelChart_target hψ hl.le hε')
+          (WeightBlowup.divisor_mem_modelChart_source hψ hl.le hε') hl.le hε' ≃ₘ⟮
+            𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ M,
+        SmoothTwoForm.IsSymplectomorphism (DivisorBlowdown.blowdownForm _ _ hl.le hε'
+          (WeightBlowup.isSymplecticMapOn_modelChart hψ hl.le hε')) σ Θ ∧
+        (∀ x, Θ (GluedAlong.inl _ x) =
+          WeightBlowup.complDivisorSymplectomorph hψ hl.le hε'
+            ⟨x, (DivisorBlowdown.mem_outerPiece_divisor_iff hψ hl.le hε' x).1 x.property⟩) ∧
+        ∀ w : StdSpace (Fin (n + 1)), ‖w‖ < √(l ^ 2 + ε' ^ 2) →
+          Θ (DivisorBlowdown.blowdownBall _ _ hl.le hε' w) = ψ w := by
+  refine ⟨?_, fun ε' hε' ψ hψ ↦ DivisorBlowdown.blowdown_weightBlowup hψ hl.le hε'⟩
+  obtain ⟨ε, hε, Ψ, hΨ, hfΨ, hσΨ⟩ :=
+    exists_symplectomorphism_blowupModel hσ hl.ne' hf hn hP₀ hP₁ Φ hΦ hΦσ
+  exact ⟨ε, hε, Ψ, hΨ, hfΨ, hσΨ, DivisorBlowdown.isSymplectic_blowdownForm hΨ hfΨ hl.le hε hσΨ hσ,
+    DivisorBlowdown.isSymplecticBallEmbedding_blowdownBall_weight hΨ hfΨ hl.le hε hσΨ,
+    fun _ ↦ DivisorBlowdown.mem_complBall_iff hΨ hfΨ hl.le hε,
+    ⟨_, DivisorBlowdown.isSymplectomorphism_complBallSymplectomorph hΨ hfΨ hl.le hε hσΨ⟩,
+    fun δ hδ hδε ↦ DivisorBlowdown.weightBlowup_blowdown hΨ hfΨ hl.le hε hσΨ hδ hδε⟩
+
+end Milestone
 
 end SymplecticGeometry
 

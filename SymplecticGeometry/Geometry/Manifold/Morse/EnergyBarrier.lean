@@ -39,7 +39,7 @@ bounded.
 The argument follows Tau Ceti's `Flow.IsNegativeGradient.dist_le_of_mem_stableSet`, with the
 time reversed (here `f` increases towards its limit) and on a manifold, in a chart. Since the norm
 of `E` need not be differentiable, the curve's displacement across the annulus is bounded by the
-crossing estimate `IsMIntegralCurve.mul_norm_sub_le_sub`, applied to the chart, rather than by
+crossing estimate `IsMIntegralCurveOn.mul_norm_sub_le_sub`, applied to the chart, rather than by
 differentiating the distance.
 
 ## References
@@ -143,8 +143,9 @@ theorem mem_source_and_norm_extChartAt_sub_le_of_tendsto (hX : IsGradientLike f 
     exact hτ.1.not_ge (le_csSup hBbdd ⟨⟨haB.1.1.trans hτ.1.le, hτ.2⟩,
       mem_closedBall_iff_norm.2 (not_le.1 hh).le⟩)
   -- Between `a` and `b`, `γ` crosses the annulus, and `f` rises by `c` times the displacement.
-  have hmv := hγ.mul_norm_sub_le_sub hf hc hab.le (fun τ hτ ↦ mdifferentiableAt_extChartAt
-    (by rw [← extChartAt_source 𝓘(ℝ, E)]; exact (hsrc τ (hafter hτ).1).1)) fun τ hτ ↦
+  have hmv := (hγ.isMIntegralCurveOn _).mul_norm_sub_le_sub (fun τ _ ↦ hf (γ τ)) hc hab.le
+    (fun τ hτ ↦ mdifferentiableAt_extChartAt
+      (by rw [← extChartAt_source 𝓘(ℝ, E)]; exact (hsrc τ (hafter hτ).1).1)) fun τ hτ ↦
       have hτ' := hafter (Ico_subset_Icc_self hτ)
       hann _ (hsrc τ hτ'.1).1 hτ'.2 (hsrc τ hτ'.1).2
   have hdisp : r - s ≤ ‖e (γ b) - e (γ a)‖ := by

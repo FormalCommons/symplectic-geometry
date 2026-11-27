@@ -5,14 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Riemannian.PathELength
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalNormalForm
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
+public import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
+import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.Gradient
+import TauCeti.Geometry.Manifold.Morse.GradientFlow
 
 /-!
 # The norm square of a moment map
@@ -56,6 +60,19 @@ Since `momentNormSq` does not change when `μ` is replaced by `-μ`
 (`SymplecticGeometry.momentNormSq_neg`), the inequality holds for either sign convention of the
 moment map.
 
+## Convergence of the gradient flow
+
+On a compact `M`, with a `C¹` Riemannian metric, the negative gradient flow of `f` from any point
+exists for all positive time and converges to a critical point of `f`, with a bound on the
+distance to the limit (`SymplecticGeometry.tendsto_maximalIntegralCurve_momentNormSq`). The
+forward trajectory stays in the compact space `M`, so it exists for all positive time
+(`TauCeti.Ici_subset_maximalIntegralCurveInterval_neg_mgradient`) and has a cluster point, which
+is critical (`TauCeti.mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient`).
+The inequality above at that point gives convergence
+(`SymplecticGeometry.tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`). This is
+Lerman's argument; no particular metric is needed, so it applies to the metric `σ(·, J ·)` of a
+compatible almost complex structure.
+
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
@@ -63,6 +80,8 @@ moment map.
   to `μ x` under `B`.
 * `SymplecticGeometry.exists_lojasiewicz_momentNormSq`: the Łojasiewicz gradient inequality for
   the norm square of a moment map.
+* `SymplecticGeometry.tendsto_maximalIntegralCurve_momentNormSq`: on a compact manifold, the
+  negative gradient flow of the norm square of a moment map converges to a critical point.
 
 ## References
 
@@ -156,6 +175,49 @@ theorem exists_lojasiewicz_momentNormSq [RiemannianBundle (fun x : M ↦ Tangent
   refine ⟨θ, hθ, e.exists_mul_abs_sub_rpow_le_norm_mgradient (by simp) hp
     (g := fun z ↦ MvPolynomial.eval z P) hP hc ?_⟩
   simpa only [TauCeti.norm_gradient_eq_norm_fderiv] using hL
+
+/-- **Convergence of the negative gradient flow of the norm square of a moment map.** Let a
+compact Hausdorff Lie group `G` act smoothly on a compact manifold `M` without boundary, let `σ`
+be a closed nondegenerate `G`-invariant two-form on `M` with coadjoint-equivariant moment map `μ`,
+let `B` be a nondegenerate `Ad`-invariant bilinear form on `𝔤`, and give `M` a `C¹` Riemannian
+metric. Then the maximal integral curve `γ` of `-grad f` through any `x`, for
+`f = momentNormSq B hB μ`, is defined for all `t ≥ 0` and converges as `t → ∞` to a point `p` at
+which `grad f` vanishes. Moreover, for some `θ ∈ [1/2, 1)` and `c > 0` and all large `t`, the
+Riemannian distance from `γ t` to `p` is at most `(f (γ t) - f p) ^ (1 - θ) / (c * (1 - θ))`. -/
+theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+    [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] (hσc : σ.IsClosed)
+    (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap μ) {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : B.Nondegenerate)
+    (hBG : Representation.IsInvariantForm (adjointRepresentation ℝ I G) B) (x : M) :
+    Ici 0 ⊆ maximalIntegralCurveInterval (-mgradient I' (momentNormSq B hB μ)) x ∧
+      ∃ p, mgradient I' (momentNormSq B hB μ) p = 0 ∧
+        Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x) atTop (𝓝 p) ∧
+        ∃ θ ∈ Ico (1 / 2 : ℝ) 1, ∃ c > 0, ∀ᶠ t in atTop,
+          riemannianEDist I' (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x t) p ≤
+            ENNReal.ofReal ((momentNormSq B hB μ
+              (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x t) -
+                momentNormSq B hB μ p) ^ (1 - θ) / (c * (1 - θ))) := by
+  have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
+    IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+    (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff ξ).of_le (by norm_cast)
+  have hmem := mapsTo_univ (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x)
+    (maximalIntegralCurveInterval (-mgradient I' (momentNormSq B hB μ)) x ∩ Ici 0)
+  have hx := Ici_subset_maximalIntegralCurveInterval_neg_mgradient isCompact_univ hmem hf
+  -- On a compact manifold the forward trajectory has a cluster point, which is critical.
+  obtain ⟨p, -, hp⟩ := isCompact_univ.exists_mapClusterPt (f := atTop)
+    (u := maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x)
+    (tendsto_principal.2 (Eventually.of_forall fun _ ↦ mem_univ _))
+  have hpc := mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient
+    isCompact_univ hmem hf hp
+  obtain ⟨θ, hθ, c, hc, hL⟩ := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG p
+  obtain ⟨hconv, hdist⟩ :=
+    tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz hf hx hp hc hθ.2 hL
+  exact ⟨hx, p, mgradient_eq_zero_iff.mpr (mem_criticalPoints.mp hpc), hconv, θ, hθ, c, hc, hdist⟩
 
 end Lojasiewicz
 

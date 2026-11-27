@@ -15,9 +15,11 @@ import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
+import SymplecticGeometry.Analysis.Complex.Wirtinger.VanishingOrder
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Flat
+import TauCeti.Analysis.Calculus.IteratedFDeriv.SymmetricFinite
 
 /-!
 # Almost holomorphic Taylor extensions
@@ -63,6 +65,19 @@ to `f` on the real points.
   neighbourhood of any compact set of real points in `U`. It follows from Tau Ceti's
   `TauCeti.norm_iteratedFDeriv_sub_le_of_iteratedFDeriv_eq_zero` on a ball about a point of the
   compact set, between `x` and `x + i y`.
+* `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`: a map `D` into a
+  complex normed space that is `C^N` on an open set `U`, vanishes at the real points of
+  `U`, and has `‖∂̄ D (x + i y)‖ ≤ C * ‖y‖ ^ N` on `U`, has derivatives of every order `j ≤ N`
+  zero at the real points of `U`; `SymplecticGeometry.fderiv_eq_zero_of_norm_conjWirtingerDeriv_le`
+  is the case `j = 1`.
+
+For the last result, fix a real point `x` of `U`. The iterated derivative `D^j D(x)` vanishes on
+real arguments, since `D` vanishes on the real points of `U`. In its last argument it is
+`D^(j-1) (DD)(x)`, and the complex antilinear part of `DD`, which is `∂̄ D`, is `O(‖z - x‖ ^ N)`,
+so its derivatives of order `j - 1 < N` vanish at `x`
+(`ContDiffAt.iteratedFDeriv_fderiv_apply_I_smul_of_isBigO_conjWirtingerDeriv`): hence `D^j D(x)`
+is complex linear in its last argument, and by symmetry in each argument. Such a multilinear map
+is zero (`ContinuousMultilinearMap.eq_zero_of_map_update_I_smul`).
 
 The formula of `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real` is the standard
 computation for almost analytic extensions: the derivative in the direction `i u` shifts the
@@ -406,6 +421,75 @@ theorem exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero {F : Type*}
     (fun w hw ↦ hM w (hball hw)) (fun i _ hi ↦ hx0 i hi) (N - j) (by omega) z hzk
   rwa [Nat.sub_sub_self (by omega), hx0 j (by omega), sub_zero, hzx,
     show N - j + 1 = N + 1 - j by omega] at h
+
+/-- A map `D` that is `C^N` over `ℝ` on an open set `U`, vanishes at the real points of `U`,
+and whose conjugate Wirtinger derivative satisfies `‖∂̄ D (x + i y)‖ ≤ C * ‖y‖ ^ N` on `U`, has
+iterated derivatives of every order `j ≤ N` equal to zero at each real point of `U`. -/
+theorem iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le {N : ℕ} {C : ℝ}
+    {D : EuclideanSpace ℂ ι' → W} {U : Set (EuclideanSpace ℂ ι')} (hU : IsOpen U)
+    (hD : ContDiffOn ℝ N D U)
+    (hD0 : ∀ x ∈ U, (complexEuclideanEquivRealProd ι' x).2 = 0 → D x = 0)
+    (hC : ∀ z ∈ U,
+      ‖conjWirtingerDeriv D z‖ ≤ C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N)
+    {x : EuclideanSpace ℂ ι'} (hxU : x ∈ U) (hx : (complexEuclideanEquivRealProd ι' x).2 = 0)
+    {j : ℕ} (hj : j ≤ N) :
+    iteratedFDeriv ℝ j D x = 0 := by
+  set e := complexEuclideanEquivRealProd ι'
+  have hDx : ContDiffAt ℝ N D x := hD.contDiffAt (hU.mem_nhds hxU)
+  refine ContinuousMultilinearMap.eq_zero_of_map_update_I_smul ?_ fun y ↦ ?_
+  · -- Complex linearity in each argument.
+    intro m i v
+    obtain _ | k := j
+    · exact i.elim0
+    -- `∂̄ D z` is `O(‖z - x‖ ^ N)`, since `x` is real.
+    have hO : (fun z ↦ conjWirtingerDeriv D z) =O[𝓝 x] fun z ↦ ‖z - x‖ ^ N := by
+      refine Asymptotics.IsBigO.of_bound (max C 0) ?_
+      filter_upwards [hU.mem_nhds hxU] with z hz
+      have him : (e z).2 = (e (z - x)).2 := by rw [map_sub, Prod.snd_sub, hx, sub_zero]
+      calc _ ≤ max C 0 * ‖(e z).2‖ ^ N := (hC z hz).trans (by gcongr; exact le_max_left _ _)
+        _ ≤ max C 0 * ‖‖z - x‖ ^ N‖ := by
+            rw [norm_pow, norm_norm, him]
+            gcongr
+            exact norm_complexEuclideanEquivRealProd_snd_le _
+    -- So the derivative of order `k` of `fderiv ℝ D` at `x` takes complex-linear values.
+    have hQ := ContDiffAt.iteratedFDeriv_fderiv_apply_I_smul_of_isBigO_conjWirtingerDeriv
+      (hDx.of_le (by exact_mod_cast hj)) hO (by omega)
+    -- By symmetry, the argument `i` can be moved to the last place.
+    have hlast (w : EuclideanSpace ℂ ι') : iteratedFDeriv ℝ (k + 1) D x (Function.update m i w) =
+        iteratedFDeriv ℝ k (fderiv ℝ D) x (Fin.init (m ∘ Equiv.swap i (Fin.last k))) w := by
+      rw [← hDx.iteratedFDeriv_comp_perm_of_le
+          (by rw [minSmoothness_of_isRCLikeNormedField]; exact_mod_cast (by omega)) _
+          (Equiv.swap i (Fin.last k)),
+        Function.update_comp_equiv, Equiv.symm_swap, Equiv.swap_apply_left,
+        iteratedFDeriv_succ_apply_right, Fin.init_update_last, Function.update_self]
+    rw [hlast, hlast, hQ]
+  · -- Vanishing on real arguments: `D` vanishes on the real points `y + i 0` of `U`.
+    set L : EuclideanSpace ℝ ι' →L[ℝ] EuclideanSpace ℂ ι' :=
+      e.symm.toContinuousLinearMap ∘L .inl ℝ _ _
+    have hL (y) : L y = e.symm (y, 0) := by simp [L]
+    have hLx : L (e x).1 = x := by rw [hL, ← hx]; simp
+    have hxL : (e x).1 ∈ L ⁻¹' U := by simpa [hLx]
+    have hU' : IsOpen (L ⁻¹' U) := hU.preimage L.continuous
+    have h := L.iteratedFDerivWithin_comp_right hD hU.uniqueDiffOn hU'.uniqueDiffOn hxL
+      (i := j) (by exact_mod_cast hj)
+    rw [iteratedFDerivWithin_congr (f := 0) (f₁ := D ∘ L)
+        (fun y hy ↦ hD0 (L y) hy (by simp [hL, e])) hxL,
+      iteratedFDerivWithin_zero, hLx, iteratedFDerivWithin_of_isOpen j hU hxU] at h
+    simpa [hL] using congr($h.symm y)
+
+/-- Under the hypotheses of `iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, with
+`1 ≤ N`, the derivative of `D` vanishes at each real point of `U`. -/
+theorem fderiv_eq_zero_of_norm_conjWirtingerDeriv_le {N : ℕ} {C : ℝ}
+    {D : EuclideanSpace ℂ ι' → W} {U : Set (EuclideanSpace ℂ ι')} (hU : IsOpen U)
+    (hD : ContDiffOn ℝ N D U)
+    (hD0 : ∀ x ∈ U, (complexEuclideanEquivRealProd ι' x).2 = 0 → D x = 0)
+    (hC : ∀ z ∈ U,
+      ‖conjWirtingerDeriv D z‖ ≤ C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N)
+    {x : EuclideanSpace ℂ ι'} (hxU : x ∈ U) (hx : (complexEuclideanEquivRealProd ι' x).2 = 0)
+    (hN : 1 ≤ N) :
+    fderiv ℝ D x = 0 := by
+  rw [← norm_eq_zero, ← norm_iteratedFDeriv_one,
+    iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le hU hD hD0 hC hxU hx hN, norm_zero]
 
 end SymplecticGeometry
 
