@@ -48,11 +48,13 @@ classes agree. The Euler class of the tautological line is minus the hyperplane 
 (`Projectivization.hyperplaneClass_def`), which takes the value `1` on `[ℂℙ¹]`
 (`Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass`).
 
-For the almost complex blowup, the map `Blowup.lift c` is pseudoholomorphic with invertible
-differential along the exceptional divisor (`Blowup.isPseudoholomorphicAt_lift`), which it sends
-onto the zero section of the model. So `TauCeti.SmoothEmbedding.selfIntersectionNumber_eq_of_comp`
-gives the same number as for the model. For a complex surface, the almost complex blowup is the
-complex structure of `Blowup c` (`Blowup.almostComplexStructure_eq_ofComplexManifold`).
+For the almost complex blowup, the map `Blowup.lift c` is pseudoholomorphic along the exceptional
+divisor (`Blowup.isPseudoholomorphicAt_lift_divisorRealEmbedding`), with invertible differential
+there (`Blowup.isInvertible_mfderiv_lift_divisorRealEmbedding`), and sends the divisor onto the
+zero section of the model (`Blowup.lift_comp_divisorRealEmbedding`). So
+`TauCeti.SmoothEmbedding.selfIntersectionNumber_eq_of_comp` gives the same number as for the model.
+For a complex surface, the almost complex blowup is the complex structure of `Blowup c`
+(`Blowup.almostComplexStructure_eq_ofComplexManifold`).
 
 ## References
 
@@ -159,19 +161,18 @@ theorem selfIntersectionNumber_exceptionalDivisor_almostComplexStructure
   rw [← BlowupModel.selfIntersectionNumber_zeroSection Φ]
   -- Near the exceptional divisor, `lift c` is a pseudoholomorphic local diffeomorphism onto a
   -- neighbourhood of the model's zero section, which it sends the divisor to.
-  have hmem (x : Remodel Φ (ℙ ℂ (Fin 2 → ℂ))) :
-      (divisorRealEmbedding c).compDiffeomorphOfBoundaryless
-          (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))).symm (by simp) x ∈
-        Set.range (GluedAlong.inr (gluingHomeomorph c)) := by
-    rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply, coe_divisorRealEmbedding]
-    exact ofDirection_mem_range_inr c _
   refine SmoothEmbedding.selfIntersectionNumber_eq_of_comp _ _ _ _ _ _ _ _ (φ := lift c) ?_
-    (fun x ↦ ?_) (fun x ↦ isPseudoholomorphicAt_lift c J hJ (hmem x)) (fun x ↦ ?_) _
+    (fun x ↦ ?_) (fun x ↦ ?_) (fun x ↦ ?_) _
   · rw [SmoothEmbedding.coe_compDiffeomorphOfBoundaryless,
-      SmoothEmbedding.coe_compDiffeomorphOfBoundaryless, coe_divisorRealEmbedding,
-      ← Function.comp_assoc, lift_comp_ofDirection, BlowupModel.coe_zeroSectionRealEmbedding]
-  · exact (isLocalDiffeomorphAt_lift c (hmem x)).contMDiffAt.of_le ENat.LEInfty.out
-  · exact (isLocalDiffeomorphAt_lift c (hmem x)).isInvertible_mfderiv (by simp)
+      SmoothEmbedding.coe_compDiffeomorphOfBoundaryless, ← Function.comp_assoc,
+      lift_comp_divisorRealEmbedding, BlowupModel.coe_zeroSectionRealEmbedding]
+  · rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply]
+    exact (isLocalDiffeomorphAt_lift_divisorRealEmbedding c _).contMDiffAt.of_le
+      ENat.LEInfty.out
+  · rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply]
+    exact isPseudoholomorphicAt_lift_divisorRealEmbedding c J hJ _
+  · rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply]
+    exact isInvertible_mfderiv_lift_divisorRealEmbedding c _
 
 end AlmostComplex
 

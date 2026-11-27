@@ -8,7 +8,7 @@ module
 public import TauCeti.Dynamics.Flow.Stable
 
 /-!
-# Stable sets of a flow that are a single point
+# Stable sets of a flow that are a single point, and orbits that do not reach their limit
 
 Let `φ` be a flow of `ℝ` on a topological space and `p` a rest point of `φ`. If, near `p`, the
 only point of the stable set of `p` is `p` itself, then the stable set of `p` is `{p}`
@@ -20,6 +20,10 @@ This local-to-global step is the end of the proof of Tau Ceti's
 `TauCeti.IsAdaptedPseudoGradient.unstableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`
 (`TauCeti/Geometry/Manifold/Morse/Stable/Manifold.lean`), there written inline for unstable sets.
 The proof here takes the same steps for stable sets of an arbitrary flow.
+
+In a Hausdorff space, the orbit of a point `x ≠ p` of the stable set of `p` never reaches `p`
+(`Flow.apply_ne_of_mem_stableSet`): `p` is a rest point (`Flow.fixed_of_mem_stableSet`), so
+flowing back from it gives `p` again.
 
 ## References
 
@@ -46,6 +50,12 @@ theorem stableSet_eq_singleton_of_eventually {φ : Flow ℝ α} {p : α} (hfix :
     rw [mem_singleton_iff, ← φ.map_neg_apply_map T x,
       hT ((apply_mem_stableSet_iff φ T).2 hx), hfix]
   · simpa [mem_stableSet, hfix] using tendsto_const_nhds
+
+/-- **An orbit does not reach its limit.** In a Hausdorff space, the orbit of a point `x ≠ p` of
+the stable set of `p` under a flow of `ℝ` never passes through `p`. -/
+theorem apply_ne_of_mem_stableSet [T2Space α] {φ : Flow ℝ α} {p x : α}
+    (hx : x ∈ stableSet φ p) (hxp : x ≠ p) (t : ℝ) : φ t x ≠ p := fun h ↦ hxp <| by
+  rw [← φ.map_neg_apply_map t x, h, fixed_of_mem_stableSet hx]
 
 end Flow
 

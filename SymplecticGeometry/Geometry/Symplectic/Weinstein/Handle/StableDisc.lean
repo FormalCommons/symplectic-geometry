@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Analysis.ODE.Linear
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 import TauCeti.Dynamics.Flow.Lyapunov
+import SymplecticGeometry.Dynamics.Flow.Stable
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
@@ -82,7 +83,9 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   in the stable set of `p`.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
   `SymplecticGeometry.IsWeinsteinStructure.notMem_criticalPoints_of_mem_stableSet`: a point
-  `x ≠ p` of the stable set of `p` has `f x < f p` and is not a critical point.
+  `x ≠ p` of the stable set of `p` has `f x < f p` and is not a critical point;
+  `SymplecticGeometry.IsWeinsteinStructure.strictMono_comp_flow_of_mem_stableSet`: `f` increases
+  strictly along its orbit.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le`
   states that at a nondegenerate critical point `p`, the orbits of the points of the stable set
   of `p` that start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a
@@ -103,10 +106,11 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   inverse is smooth on the source of the chart, the chart image of the disc grows at most
   linearly near `0`, and orbits of points of the disc close to `p` stay in the disc at small
   values of the left inverse.
-* `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc_strictAntiOn`: a local stable
-  disc on which, for `H` the second derivative of `f` read in the chart at `p`, the value of `-H`
-  at the left inverse strictly decreases along each orbit through a nonzero point of a small
-  ball, with a negative derivative at every time `t ≥ 0`.
+* `SymplecticGeometry.IsWeinsteinStructure.LocalStableDisc.exists_forall_flow_strictAntiOn`: on
+  every local stable disc of a nondegenerate critical point `p`, for `H` the second derivative of
+  `f` read in the chart at `p`, the value of `-H` at the left inverse strictly decreases along
+  each orbit through a nonzero point of a small ball, with a negative derivative at every time
+  `t ≥ 0`.
 * `SymplecticGeometry.IsWeinsteinStructure.mpullback_interior_eq_zero_of_bounded` and
   `SymplecticGeometry.IsWeinsteinStructure.mpullback_eq_zero_of_bounded`: a map `γ` with `γ y`
   in the stable set of `p` pulls `ι_X ω` and `ω` back to zero at `y`, if the derivative at `y`
@@ -287,20 +291,22 @@ theorem notMem_criticalPoints_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.sta
     (hxp : x ≠ p) : x ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
   hxp (Flow.eq_of_mem_stableSet (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 h)) hx)
 
+/-- **The function increases strictly along an orbit of a stable set.** If the orbit of `x ≠ p`
+under the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f` is strictly increasing
+along it. -/
+theorem strictMono_comp_flow_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p)
+    (hxp : x ≠ p) : StrictMono fun t ↦ f (hW.flow t x) :=
+  -- The orbit of `x` never reaches the rest point `p`, so it meets no critical point.
+  hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) fun t h ↦
+    hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx)
+      (Flow.apply_ne_of_mem_stableSet hx hxp t) (mem_criticalPoints.2 h)
+
 /-- **The function is strictly below its limit on a stable set.** If the orbit of `x ≠ p` under
 the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f x < f p`. -/
 theorem apply_lt_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) (hxp : x ≠ p) :
-    f x < f p := by
-  -- The orbit of `x` never reaches the rest point `p`, so it meets no critical point.
-  have hcrit (t : ℝ) : mvfderiv 𝓘(ℝ, E) f (hW.flow t x) ≠ 0 := fun h ↦ by
-    refine hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx)
-      (fun hpt ↦ hxp ?_) (mem_criticalPoints.2 h)
-    have hfix := Flow.fixed_of_mem_stableSet hx (-t)
-    rw [← hpt, ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply] at hfix
-    exact hfix.trans hpt
+    f x < f p :=
   calc f x = f (hW.flow 0 x) := by rw [Flow.map_zero_apply]
-    _ < f (hW.flow 1 x) :=
-      hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) hcrit one_pos
+    _ < f (hW.flow 1 x) := hW.strictMono_comp_flow_of_mem_stableSet hx hxp one_pos
     _ ≤ f p := hW.apply_le_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ 1).2 hx)
 
 /-- **Confinement of the stable set in the chart at a critical point.** Let `p` be a
@@ -708,50 +714,32 @@ theorem exists_forall_Q_flow_mem_ball_and_ι_eq
   refine ⟨hxV.2, ?_⟩
   rw [← hwx, D.Q_extChartAt_ι_sub hw]
 
-end LocalStableDisc
-
-/-- **`-H` decreases along the local stable disc.** Let `p` be a nondegenerate
-critical point of the function of a Weinstein structure `(ω, X, f)` with flow `φ`, `A` the
-linearization of `X` at `p`, `e` the extended chart at `p`, and
+/-- **`-H` decreases along a local stable disc.** Let `D` be a local stable disc, with map `ι`,
+radius `ρ` and left inverse `π x = Q (e x - e p)`, of a nondegenerate critical point `p` of the
+function of a Weinstein structure `(ω, X, f)` with flow `φ`, over the stable subspace of the
+linearization `A` of `X` at `p`. Let `e` be the extended chart at `p` and
 `H = fderiv ℝ (fderiv ℝ (f ∘ e.symm)) (e p)` the second derivative of `f` read in `e`. There is a
-local stable disc `ι` of radius `ρ`, with the properties of `exists_localStableDisc` (`ι 0 = p`,
-smooth with injective differential on the ball, image in the stable set of `p`, covering it near
-`p` where `f` is close to `f p`), with a left inverse `π x = Q (e x - e p)` on the ball, for a
-continuous linear map `Q` into the stable subspace, `π` smooth on the source of `e`, and a
-radius `ρ' ∈ (0, ρ]` with the following property. For `z` in the ball of radius `ρ'` and
-`t ≥ 0`, the orbit point `φ_t (ι z)` is `ι (ζ t)` for `ζ t = π (φ_t (ι z))` in the ball of
-radius `ρ`; and if `z ≠ 0`, then `t ↦ -H (ζ t) (ζ t)` has a negative derivative at
-every `t ≥ 0`, so it is strictly antitone on `[0, ∞)`. -/
-theorem exists_localStableDisc_strictAntiOn {p : M}
+radius `ρ' ∈ (0, ρ]` such that for `z` in the ball of radius `ρ'` and `t ≥ 0`, the point
+`ζ t = π (φ_t (ι z))` lies in the ball of radius `ρ` and `ι (ζ t) = φ_t (ι z)`; and if `z ≠ 0`,
+then `t ↦ -H (ζ t) (ζ t)` has a negative derivative at every `t ≥ 0`, so it is strictly antitone
+on `[0, ∞)`. -/
+theorem exists_forall_flow_strictAntiOn
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
-    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
-    ∃ ι : A.stableSubspace → M, ∃ ρ > 0, ι 0 = p ∧
-      (∀ z ∈ ball (0 : A.stableSubspace) ρ,
-        ContMDiffAt 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) (⊤ : ℕ∞) ι z ∧
-          Injective (mfderiv 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) ι z)) ∧
-      ι '' ball 0 ρ ⊆ hW.flow.stableSet p ∧
-      (∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ) ∧
-      ∃ Q : E →L[ℝ] A.stableSubspace,
-        ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞)
-          (fun x ↦ Q (extChartAt 𝓘(ℝ, E) p x - extChartAt 𝓘(ℝ, E) p p))
-          (extChartAt 𝓘(ℝ, E) p).source ∧
-        (∀ z ∈ ball (0 : A.stableSubspace) ρ,
-          Q (extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p) = z) ∧
-        ∃ ρ' ∈ Ioc 0 ρ, ∀ z ∈ ball (0 : A.stableSubspace) ρ',
-          (∀ t, 0 ≤ t →
-            Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (ι z)) - extChartAt 𝓘(ℝ, E) p p) ∈ ball 0 ρ ∧
-            ι (Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (ι z)) - extChartAt 𝓘(ℝ, E) p p)) =
-              hW.flow t (ι z)) ∧
-          (z ≠ 0 → (∀ t, 0 ≤ t → ∃ d < 0, HasDerivAt (fun s ↦
-            -fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
-              (Q (extChartAt 𝓘(ℝ, E) p (hW.flow s (ι z)) - extChartAt 𝓘(ℝ, E) p p))
-              (Q (extChartAt 𝓘(ℝ, E) p (hW.flow s (ι z)) - extChartAt 𝓘(ℝ, E) p p))) d t) ∧
-            StrictAntiOn (fun t ↦
-              -fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
-                (Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (ι z)) - extChartAt 𝓘(ℝ, E) p p))
-                (Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (ι z)) - extChartAt 𝓘(ℝ, E) p p)))
-              (Ici 0)) := by
-  obtain ⟨D⟩ := hW.exists_localStableDisc hp hA
+    (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
+    ∃ ρ' ∈ Ioc 0 D.ρ, ∀ z ∈ ball (0 : A.stableSubspace) ρ',
+      (∀ t, 0 ≤ t →
+        D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (D.ι z)) - extChartAt 𝓘(ℝ, E) p p) ∈ ball 0 D.ρ ∧
+        D.ι (D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (D.ι z)) - extChartAt 𝓘(ℝ, E) p p)) =
+          hW.flow t (D.ι z)) ∧
+      (z ≠ 0 → (∀ t, 0 ≤ t → ∃ d < 0, HasDerivAt (fun s ↦
+        -fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
+          (D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow s (D.ι z)) - extChartAt 𝓘(ℝ, E) p p))
+          (D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow s (D.ι z)) - extChartAt 𝓘(ℝ, E) p p))) d t) ∧
+        StrictAntiOn (fun t ↦
+          -fderiv ℝ (fderiv ℝ (f ∘ (extChartAt 𝓘(ℝ, E) p).symm)) (extChartAt 𝓘(ℝ, E) p p)
+            (D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (D.ι z)) - extChartAt 𝓘(ℝ, E) p p))
+            (D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (D.ι z)) - extChartAt 𝓘(ℝ, E) p p)))
+          (Ici 0)) := by
   obtain ⟨C, δ₁, hδ₁, hC⟩ := D.exists_norm_extChartAt_sub_le
   set e := extChartAt 𝓘(ℝ, E) p
   set H := fderiv ℝ (fderiv ℝ (f ∘ e.symm)) (e p)
@@ -794,10 +782,7 @@ theorem exists_localStableDisc_strictAntiOn {p : M}
     exact ⟨hPw, h⟩
   obtain ⟨ρ', ⟨hρ', hρ'le⟩, hρ'inv⟩ := D.exists_forall_Q_flow_mem_ball_and_ι_eq hp hρ₁
   have hρ'ρ : ρ' ≤ D.ρ := hρ'le.trans (min_le_left _ _)
-  refine ⟨D.ι, D.ρ, D.ρ_pos, D.ι_zero,
-    fun z hz ↦ ⟨D.contMDiffAt_ι z hz, D.injective_mfderiv_ι z hz⟩, D.image_ball_subset_stableSet,
-    D.exists_stableSet_inter_subset_image_ball, D.Q, D.contMDiffOn_Q_extChartAt_sub,
-    fun z hz ↦ D.Q_extChartAt_ι_sub hz, ρ', ⟨hρ', hρ'ρ⟩, fun z hz ↦ ?_⟩
+  refine ⟨ρ', ⟨hρ', hρ'ρ⟩, fun z hz ↦ ?_⟩
   have hzρ : z ∈ ball 0 D.ρ := ball_subset_ball hρ'ρ hz
   set ζ : ℝ → A.stableSubspace := fun s ↦ D.Q (e (hW.flow s (D.ι z)) - e p) with hζdef
   set w : ℝ → E := fun s ↦ e (hW.flow s (D.ι z)) - e p with hwdef
@@ -845,6 +830,8 @@ theorem exists_localStableDisc_strictAntiOn {p : M}
     obtain ⟨d, hd0, hd⟩ := hderiv t (le_of_lt ht)
     rw [hd.deriv]
     exact hd0
+
+end LocalStableDisc
 
 section Bounded
 

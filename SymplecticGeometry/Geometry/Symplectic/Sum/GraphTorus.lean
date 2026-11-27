@@ -5,12 +5,22 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
+public import TauCeti.AlgebraicTopology.FundamentalGroup.Product
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
+public import TauCeti.Topology.Homotopy.AddCircle
+public import TauCeti.Topology.Instances.AddCircle.Torus
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
+import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
+import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
 # Graph tori of circle maps
@@ -35,6 +45,21 @@ torus has symplectic tangent images for the product form.
 The graph tori of `h` and `h'` have disjoint images exactly when `h t ≠ h' t` for every `t`,
 since a point of `T` determines its coordinate `t = x i`.
 
+A tangent vector `v` of `Σ` at `h (x i)` gives the horizontal vector `(v, 0)` of `Σ × T` at
+`(h (x i), x)`, and so a normal class of the graph torus at `x`. For a family of vectors `v` that
+depends smoothly on `x` and on a parameter, these classes form a smooth map into the normal bundle,
+since the vectors `(v, 0)` form a smooth map into the pulled-back tangent bundle of `Σ × T` and
+taking normal classes is smooth (`TauCeti.SmoothEmbedding.contMDiff_normalQuotientMap`).
+
+On fundamental groups based at `0`, the graph torus sends the class of the straight loop
+`TauCeti.torusLoop p (Pi.single j 1)` around the `j`-th circle, the `j`-th generator of `π₁(T, 0)`
+by `AddCircle.piFundamentalGroupMulEquivZero_torusLoop`, to an element of
+`π₁(Σ × T, (h 0, 0)) ≃* π₁(Σ, h 0) × π₁(T, 0)` (`FundamentalGroup.prodMulEquiv`) whose second
+component is that generator again, since the second component of the graph torus is the identity.
+Its first component is the class of the loop `t ↦ h t`, read at `h 0` by
+`ContinuousMap.toLoop`, for `j = i`, and trivial for `j ≠ i`, where the first component of the
+loop is constant.
+
 These tori enter the realization of finitely presented groups as fundamental groups of closed
 symplectic four-manifolds: the torus of a loop `h` in a surface `Σ` lies in `Σ × T²` and is
 symplectic for the product form.
@@ -52,6 +77,14 @@ symplectic for the product form.
   the product form.
 * `SymplecticGeometry.disjoint_range_graphTorus_iff`: two graph tori are disjoint exactly when the
   circle maps differ at every point.
+* `SymplecticGeometry.contMDiff_normalClass_graphTorus_horizontal`: the normal classes of a smooth
+  family of horizontal vectors `(v, 0)` form a smooth map into the normal bundle of the graph torus.
+* `SymplecticGeometry.fst_prodMulEquiv_mapOfEq_graphTorus`,
+  `SymplecticGeometry.snd_prodMulEquiv_mapOfEq_graphTorus`: the two components of the image of a
+  class of `π₁(T, 0)`, the image of its `i`-th coordinate under `h` and the class itself.
+* `SymplecticGeometry.prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_self`,
+  `SymplecticGeometry.prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_of_ne`: the images of the
+  generators of `π₁(T, 0)` in `π₁(Σ, h 0) × π₁(T, 0)`.
 
 ## References
 
@@ -64,7 +97,7 @@ public section
 
 noncomputable section
 
-open Set Function TauCeti
+open Set Function TauCeti Bundle Module
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -89,6 +122,9 @@ def graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
 theorem graphTorus_apply (hh : ContMDiff 𝓘(ℝ) I ∞ h) (x : ∀ i, AddCircle (p i)) :
     graphTorus hh x = (h (x i), x) :=
   SmoothEmbedding.ofIsSmoothEmbedding_apply _ _ x
+
+/-- The graph torus of `h` sends the base point `0` of the torus to `(h 0, 0)`. -/
+theorem graphTorus_zero (hh : ContMDiff 𝓘(ℝ) I ∞ h) : graphTorus hh 0 = (h 0, 0) := by simp
 
 /-- The graph torus of `h` is the map `x ↦ (h (x i), x)`. -/
 theorem coe_graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
@@ -151,5 +187,119 @@ theorem hasSymplecticTangentImages_graphTorus {σ : SmoothTwoForm I M} (hσ : σ
     (graphTorus hh).contMDiff).1
   rw [mpullback_graphTorus_prod_torusSymplecticForm] at hpull
   exact (hpull (isSymplectic_torusSymplecticForm p).isNondegenerate).1
+section NormalClass
+
+variable {F H' Z : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H']
+  {K : ModelWithCorners ℝ F H'} [TopologicalSpace Z] [ChartedSpace H' Z]
+  {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+
+/-- **Horizontal normal classes of a graph torus are smooth.** Let `(x, z) ↦ u x z` be a family of
+tangent vectors `u x z ∈ T_{h (x i)} M`, parametrized by a point `x` of the torus and a point `z` of
+a manifold `Z`, that is smooth as a map into the tangent bundle of `M`. Then the normal classes
+`(x, z) ↦ [(u x z, 0)] ∈ N_x` of the horizontal vectors `(u x z, 0)` at `(h (x i), x)` form a
+smooth map into the normal bundle of the graph torus. -/
+theorem contMDiff_normalClass_graphTorus_horizontal (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (hP : finrank ℝ P = finrank ℝ (E × (ι ⊕ ι → ℝ)) - finrank ℝ (ι ⊕ ι → ℝ))
+    {u : ∀ x : ∀ i, AddCircle (p i), Z → TangentSpace I (h (x i))}
+    (hu : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K) I.tangent ∞
+      fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨h (y.1 i), u y.1 y.2⟩ : TangentBundle I M)) :
+    letI := (graphTorus hh).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K)
+      ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, P)) ∞
+      fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨y.1, (graphTorus hh).isImmersion.normalClass y.1
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (u y.1 y.2, 0)⟩ :
+        TotalSpace P fun x ↦ (graphTorus hh).isImmersion.NormalSpace x
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) := by
+  let f := graphTorus hh
+  let := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+  -- The ambient vectors `(u x z, 0)` along the graph torus form a smooth map into the pulled-back
+  -- tangent bundle, and taking normal classes is smooth.
+  have hg : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K)
+      ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, E × (ι ⊕ ι → ℝ))) ∞
+      fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨y.1, ((u y.1 y.2 : E), (0 : ι ⊕ ι → ℝ))⟩ :
+        TotalSpace (E × (ι ⊕ ι → ℝ)) ((f : _ → M × ∀ i, AddCircle (p i)) *ᵖ
+          (TangentSpace (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)))))) := by
+    refine (Pullback.contMDiff_iff f f.contMDiff).2 ⟨contMDiff_fst, ?_⟩
+    refine (contMDiff_equivTangentBundleProd_symm.comp
+      (hu.prodMk ((contMDiff_zeroSection ℝ (TangentSpace _)).comp contMDiff_fst))).congr
+      fun y ↦ ?_
+    -- The base points agree by `graphTorus_apply`; the fibres agree as the zero vector of a
+    -- tangent space is the zero of its model space.
+    exact TotalSpace.ext (by simp [Pullback.lift, f]) HEq.rfl
+  exact ((f.contMDiff_normalQuotientMap (m := ∞) _ le_rfl hP).comp hg).congr fun y ↦ by
+    rw [comp_apply, SmoothEmbedding.normalQuotientMap_apply]
+
+end NormalClass
+
+/-! ### Fundamental groups -/
+
+/-- On fundamental groups based at `0`, the first component of the image of a loop class under
+the graph torus of `h` is the image under `h` of its `i`-th coordinate. -/
+theorem fst_prodMulEquiv_mapOfEq_graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (γ : FundamentalGroup (∀ i, AddCircle (p i)) 0) :
+    (FundamentalGroup.prodMulEquiv (h 0) 0
+      (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh) γ)).1 =
+      FundamentalGroup.mapOfEq (⟨h, hh.continuous⟩ : C(AddCircle (p i), M)) rfl
+        (FundamentalGroup.mapOfEq (ContinuousMap.eval i) rfl γ) := by
+  have hc : (⟨h, hh.continuous⟩ : C(AddCircle (p i), M)).comp (ContinuousMap.eval i) =
+      ContinuousMap.fst.comp (graphTorus hh).toContinuousMap :=
+    ContinuousMap.ext fun x ↦ by simp
+  rw [FundamentalGroup.prodMulEquiv_mapOfEq]
+  exact (FundamentalGroup.mapOfEq_mapOfEq_eq_mapOfEq hc rfl rfl _ γ).symm
+
+/-- On fundamental groups based at `0`, the torus component of the image of a loop class under the
+graph torus is that class again: the second component of the graph torus is the identity. -/
+theorem snd_prodMulEquiv_mapOfEq_graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (γ : FundamentalGroup (∀ i, AddCircle (p i)) 0) :
+    (FundamentalGroup.prodMulEquiv (h 0) 0
+      (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh) γ)).2 = γ := by
+  have hc : ContinuousMap.snd.comp (graphTorus hh).toContinuousMap = ContinuousMap.id _ :=
+    ContinuousMap.ext fun x ↦ by simp
+  rw [FundamentalGroup.prodMulEquiv_mapOfEq]
+  exact (FundamentalGroup.mapOfEq_congr hc _ rfl γ).trans (FundamentalGroup.mapOfEq_id rfl γ)
+
+/-- The graph torus of `h : AddCircle (p i) → M` sends the class of the straight loop
+`torusLoop p (Pi.single i 1)` around the `i`-th circle of the torus to the class of the loop
+`(t ↦ h t, torusLoop p (Pi.single i 1))` in `π₁(M × T, (h 0, 0)) ≃* π₁(M, h 0) × π₁(T, 0)`, its
+first component being the circle map `h` read as a loop at `h 0` by `ContinuousMap.toLoop`. -/
+theorem prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_self [DecidableEq (ι ⊕ ι)]
+    (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
+    FundamentalGroup.prodMulEquiv (h 0) 0
+        (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh)
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single i 1))))) =
+      (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (⟨h, hh.continuous⟩ : C(AddCircle (p i), M)).toLoop),
+        FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single i 1)))) := by
+  refine Prod.ext ?_ (snd_prodMulEquiv_mapOfEq_graphTorus hh _)
+  rw [fst_prodMulEquiv_mapOfEq_graphTorus, FundamentalGroup.mapOfEq_rfl,
+    FundamentalGroup.mapOfEq_rfl, FundamentalGroup.map_fromPath, FundamentalGroup.map_fromPath]
+  refine congrArg _ (congrArg _ (Path.ext (funext fun t ↦ ?_)))
+  -- Neither `simp` nor `rw` can use `ContinuousMap.toLoop_apply` here: the goal reads `toLoop`
+  -- as a path from `h (ContinuousMap.eval i 0)`, the lemma as one from `h 0`, and these endpoints
+  -- agree only up to unfolding `ContinuousMap.eval`. So the lemma is applied by unification.
+  refine Eq.trans ?_ (ContinuousMap.toLoop_apply _ t).symm
+  simp
+
+/-- For `j ≠ i`, the graph torus of `h : AddCircle (p i) → M` sends the class of the straight loop
+`torusLoop p (Pi.single j 1)` around the `j`-th circle of the torus to the class of the loop
+`(h 0, torusLoop p (Pi.single j 1))` in `π₁(M × T, (h 0, 0)) ≃* π₁(M, h 0) × π₁(T, 0)`, whose
+first component is trivial. -/
+theorem prodMulEquiv_mapOfEq_graphTorus_torusLoop_single_of_ne [DecidableEq (ι ⊕ ι)]
+    (hh : ContMDiff 𝓘(ℝ) I ∞ h) {j : ι ⊕ ι} (hj : j ≠ i) :
+    FundamentalGroup.prodMulEquiv (h 0) 0
+        (FundamentalGroup.mapOfEq (graphTorus hh).toContinuousMap (graphTorus_zero hh)
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single j 1))))) =
+      (1, FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single j 1)))) := by
+  refine Prod.ext ?_ (snd_prodMulEquiv_mapOfEq_graphTorus hh _)
+  -- The `i`-th coordinate of the loop is constant, so its class is trivial in `π₁(AddCircle, 0)`.
+  have h₁ : FundamentalGroup.mapOfEq (ContinuousMap.eval i) rfl
+      (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusLoop p (Pi.single j 1)))) = 1 :=
+    have hq : (torusLoop p (Pi.single j 1)).map (ContinuousMap.eval i).continuous =
+        Path.refl _ :=
+      Path.ext (funext fun t ↦ by simp [hj.symm])
+    (FundamentalGroup.mapOfEq_fromPath_eq_one_iff _ _ _).2 (hq ▸ Path.Homotopic.refl _)
+  rw [fst_prodMulEquiv_mapOfEq_graphTorus, h₁, map_one]
+  rfl
 
 end SymplecticGeometry

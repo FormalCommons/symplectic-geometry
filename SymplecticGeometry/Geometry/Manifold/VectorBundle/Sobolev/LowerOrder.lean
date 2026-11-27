@@ -30,8 +30,8 @@ proved in the same way, by uniqueness of weak derivatives.
 
 ## Main definitions
 
-* `TauCeti.SectionChartData.toOrderOne`: a Sobolev section of order `k + 1` regarded as one of
-  order one.
+* `TauCeti.SectionChartData.toOrderOne`: the continuous linear map regarding a Sobolev section of
+  order `k + 1` as one of order one.
 
 ## Main results
 
@@ -59,13 +59,22 @@ variable {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDi
   (μ : Measure E) [μ.IsAddHaarMeasure] (p : ℝ≥0∞) [Fact (1 ≤ p)] (k : ℕ)
 
 /-- A Sobolev section of order `k + 1` regarded as one of order one, by forgetting its `k`
-highest weak derivatives. -/
-def toOrderOne (w : C.sobolevSections μ p (k + 1)) : C.sobolevSections μ p 1 :=
-  C.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w)
+highest weak derivatives: `TauCeti.SectionChartData.lowerOrdersL` from order `1 + k`, read on the
+sections of order `k + 1`. -/
+def toOrderOne : C.sobolevSections μ p (k + 1) →L[ℝ] C.sobolevSections μ p 1 :=
+  (Nat.add_comm 1 k).rec (motive := fun n _ ↦ C.sobolevSections μ p n →L[ℝ] C.sobolevSections μ p 1)
+    (C.lowerOrdersL μ p 1 k)
 
 theorem toOrderOne_def (w : C.sobolevSections μ p (k + 1)) :
-    C.toOrderOne μ p k w = C.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w) :=
-  (rfl)
+    C.toOrderOne μ p k w = C.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w) := by
+  -- Transporting a map along an equality of orders precomposes it with the reverse transport.
+  have key {a b : ℕ} (h : a = b) (L : C.sobolevSections μ p a →L[ℝ] C.sobolevSections μ p 1)
+      (w : C.sobolevSections μ p b) :
+      h.rec (motive := fun n _ ↦ C.sobolevSections μ p n →L[ℝ] C.sobolevSections μ p 1) L w =
+        L (h.symm ▸ w) := by
+    subst h
+    rfl
+  exact key (Nat.add_comm 1 k) _ w
 
 /-- Regarding a Sobolev section of order `k + 1` as one of order one does not change its reading
 in any chart. -/

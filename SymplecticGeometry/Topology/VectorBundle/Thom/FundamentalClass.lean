@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalHomologyRestriction
+public import SymplecticGeometry.Topology.VectorBundle.ZeroSection
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
 import Mathlib.Analysis.Normed.Module.Connected
@@ -27,7 +28,7 @@ both in the centred chart of `B` at `b`.
 It is the general criterion
 `TauCeti.HomologicalOrientation.map_singularCap_eq_fundamentalClass`
 (`Cohomology/Cap/FundamentalClass.lean`), with the excisive couple `(V ∖ 0, V ∖ V_b)`, whose
-union is the complement of `0_b` (`Bundle.zeroSectionCompl_union_compl_preimage_singleton`), so
+union is the complement of `0_b` (`TauCeti.zeroSectionCompl_union_compl_preimage_singleton`), so
 that the local class of `γ` at `0_b` factors through the restriction of the Thom pair
 (`SymplecticGeometry.thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap`),
 and with the

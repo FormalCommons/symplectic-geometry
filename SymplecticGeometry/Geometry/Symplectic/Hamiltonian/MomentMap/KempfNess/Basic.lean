@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import Mathlib.Analysis.CStarAlgebra.Classes
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
+import TauCeti.Geometry.Lie.Subgroup.Stabilizer
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
@@ -90,6 +91,12 @@ and the moment weights.
   `z ↦ μ ((γ z)⁻¹ • p) (C.im (a_u z))` satisfy `∂_v A_w = ∂_w A_v`. This is the closedness of the
   one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` on `Gc`, stated along maps so that no form on `Gc`
   is built.
+* `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero`:
+  at a zero `q` of `μ`, the fundamental vector field of `ζ` vanishes at `q` exactly when those
+  of `C.re ζ` and `C.im ζ` do.
+* `SymplecticGeometry.IsComplexifiedAction.discreteTopology_stabilizer_iff_of_moment_eq_zero`: at
+  a zero `q` of `μ`, the stabilizer of `q` in `Gc` is discrete exactly when no nonzero `ξ` in
+  the Lie algebra of `G` has `X_ξ(q) = 0`.
 
 The integral curve is Tau Ceti's `TauCeti.isMIntegralCurve_mulInvariantExp_smul_smul` for the
 action of `Gc` and the direction `C.cplx (C.lieMap ξ)`. In the example, the orbit maps of `ℂˣ` are
@@ -118,10 +125,19 @@ the terms with `J` are inner products, which are symmetric; infinitesimal equiva
 values of `μ` on brackets, and these cancel against the structure equation
 `fderiv_leftMaurerCartanForm_mfderiv_sub`, read through `C.im` (`LieComplexification.im_lie`).
 
+The step about the stabilizer at a zero `q` of `μ` follows [GeorgoulasRobbinSalamon2021],
+Theorem 4.3. Write `X_ζ(q) = u + J v` with `u = X_{C.re ζ}(q)` and `v = X_{C.im ζ}(q)`. Since the
+cocycle of the equivariant moment map vanishes and `μ q = 0`, `σ(v, u) = 0`, so `u` and `J v` are
+orthogonal for `g` (`TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq`), and
+`u + J v = 0` forces `u = 0` and then `v = 0`. Discreteness of the stabilizer is the triviality of
+the isotropy algebra of `Gc` at `q` (`TauCeti.Lie.discreteTopology_stabilizer_iff_isotropy_eq_bot`),
+and the first step reduces it to that of `G` through `C.lieMap_re_add_cplx_lieMap_im` and the
+injectivity of `C.lieMap`.
+
 ## References
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], §2.
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], §2 and Theorem 4.3.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
 -/
 
@@ -562,6 +578,72 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
   linarith
 
 end Closed
+
+/-! ### The infinitesimal stabilizer at a zero of the moment map -/
+
+section Stabilizer
+
+open _root_.Bundle
+open scoped RealInnerProductSpace
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [CompleteSpace E']
+  [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {C : LieComplexification I G IC Gc}
+
+/-- **The infinitesimal stabilizer in `Gc` at a zero of the moment map.** For a complexified
+action, with `-μ` an equivariant moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let
+`μ q = 0`. Then the fundamental vector field of `ζ` in the Lie algebra of `Gc` vanishes at `q`
+exactly when the fundamental vector fields of `C.re ζ` and of `C.im ζ` for the action of `G` both
+vanish at `q`. -/
+theorem IsComplexifiedAction.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero
+    (h : IsComplexifiedAction C J) (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {q : M} (hq : μ q = 0)
+    (ζ : GroupLieAlgebra IC Gc) :
+    fundamentalVectorField I' ζ q = 0 ↔
+      fundamentalVectorField I' (C.re ζ) q = 0 ∧ fundamentalVectorField I' (C.im ζ) q = 0 := by
+  rw [h.fundamentalVectorField_eq_re_add_im]
+  set u := fundamentalVectorField I' (C.re ζ) q
+  set v := fundamentalVectorField I' (C.im ζ) q
+  refine ⟨fun h0 ↦ ?_, fun ⟨hu, hv⟩ ↦ by simp [hu, hv]⟩
+  -- At a zero of `μ` the orbit of `G` is isotropic, so `u` and `J v` are orthogonal.
+  have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero q)
+    (C.im ζ) (C.re ζ)
+  simp only [InfinitesimalAction.fundamental_apply, hq, neg_zero,
+    LinearMap.zero_apply] at hcoc
+  have horth : ⟪J q v, u⟫ = 0 := by
+    rw [SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hg]
+    exact hcoc
+  have hu : u = 0 := by
+    have := congrArg (fun w ↦ ⟪u, w⟫) h0
+    rw [inner_add_right, real_inner_comm (J q v) u, horth, add_zero, inner_zero_right] at this
+    exact inner_self_eq_zero.1 this
+  refine ⟨hu, ?_⟩
+  rw [hu, zero_add] at h0
+  simpa [SmoothAlmostComplexStructure.apply_apply] using congrArg (J q) h0
+
+/-- **Discreteness of the stabilizer in `Gc` at a zero of the moment map.** For a complexified
+action, with `-μ` an equivariant moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let
+`μ q = 0`. Then the stabilizer of `q` in `Gc` is discrete exactly when `ξ = 0` is the only
+element of the Lie algebra of `G` whose fundamental vector field vanishes at `q`. -/
+theorem IsComplexifiedAction.discreteTopology_stabilizer_iff_of_moment_eq_zero [T2Space M]
+    [BoundarylessManifold I' M] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {q : M} (hq : μ q = 0) :
+    DiscreteTopology (MulAction.stabilizer Gc q) ↔
+      ∀ ξ : GroupLieAlgebra I G, fundamentalVectorField I' ξ q = 0 → ξ = 0 := by
+  rw [Lie.discreteTopology_stabilizer_iff_isotropy_eq_bot (I := IC) (I' := I'),
+    LieSubalgebra.eq_bot_iff]
+  simp only [InfinitesimalAction.mem_isotropy_iff, InfinitesimalAction.fundamental_apply]
+  refine ⟨fun H ξ hξ ↦ C.lieMap_injective ?_, fun H ζ hζ ↦ ?_⟩
+  · rw [map_zero]
+    exact H _ (by rw [h.fundamentalVectorField_lieMap]; exact hξ)
+  · obtain ⟨hre, him⟩ :=
+      (h.fundamentalVectorField_eq_zero_iff_of_moment_eq_zero hμ hg hq ζ).1 hζ
+    rw [← C.lieMap_re_add_cplx_lieMap_im ζ, H _ hre, H _ him, map_zero, map_zero, add_zero]
+
+end Stabilizer
 
 /-! ### The example: `ℂˣ` acting on `ℂ` -/
 

@@ -144,7 +144,7 @@ theorem PartialDiffeomorph.mpullback_symm_mpullback_apply (ψ : PartialDiffeomor
   have hid : ψ ∘ ψ.symm =ᶠ[𝓝 y] id :=
     eventually_of_mem (ψ.open_target.mem_nhds hy) fun z hz ↦ ψ.right_inv hz
   rw [← mpullback_comp_at (ψ.symm.mdifferentiableAt hn hy)
-    (ψ.mdifferentiableAt hn (ψ.map_target hy)), hid.mpullback_eq, mpullback_id]
+    (ψ.mdifferentiableAt hn (ψ.map_target hy)), hid.mpullback_apply_eq_self]
 
 /-- For a `C^n` partial diffeomorphism `ψ` with `n ≠ 0`, pulling a form `ω` back along `ψ.symm`
 and then along `ψ` gives `ω` back at every point of the source of `ψ`. -/
@@ -457,7 +457,7 @@ theorem mem_diffeomorphStabilizer_of_semiconj [IsManifold I 1 M] [IsManifold I' 
     have hx' : x ∉ C := fun hx' ↦ hx (hCg hx')
     have hid : (Ψ : M' → M') =ᶠ[𝓝 x] id :=
       Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx') hΨ
-    rw [hid.mpullback_eq, TauCeti.mpullback_id]
+    exact hid.mpullback_apply_eq_self _
 
 /-- **Carrying an exactness identity from a chart.** Let `e` be a smooth partial diffeomorphism
 from `M` to `M'`, and `C ⊆ W ⊆ e.source` with `e '' C` closed and `W` open. Let
@@ -506,7 +506,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
   · -- Off `e '' C`, `Φ` is the identity and `K₀` vanishes near `x`.
     have hnhds := hC.isOpen_compl.mem_nhds fun h ↦ hx (image_mono hCW h)
     have hid : (Φ : M' → M') =ᶠ[𝓝 x] id := eventually_of_mem hnhds hΦ
-    rw [hid.mpullback_eq, TauCeti.mpullback_id, sub_self,
+    rw [hid.mpullback_apply_eq_self, sub_self,
       mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (g := 0) (c := 0)
         (eventually_of_mem hnhds fun y hy ↦ by simp [hK₀C y hy]),
       mextDeriv_ofFunction_zero, Pi.zero_apply]
