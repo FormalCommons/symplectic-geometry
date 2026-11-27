@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # The change of frame between rescaled unitary charts
@@ -54,7 +53,8 @@ turns the model term of the chart at `y` into that of the chart at `x`.
 
 * `SymplecticGeometry.RescaledUnitaryCharts.norm_frameChange`: `‖D.frameChange k x y w‖ = 1`.
 * `SymplecticGeometry.RescaledUnitaryCharts.contDiffOn_frameChange`: the change of frame is smooth
-  on `D.chartTransitionDomain k x y`.
+  on `D.chartTransitionDomain k x y`, so differentiable at each of its points
+  (`SymplecticGeometry.RescaledUnitaryCharts.differentiableAt_frameChange`).
 * `SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`: the readings of a section
   in the two charts differ by the change of frame.
 * `SymplecticGeometry.RescaledUnitaryCharts.fderiv_frameChange_apply`: the logarithmic derivative
@@ -139,6 +139,14 @@ theorem contDiffOn_frameChange {k : ℕ} (hk : k₀ ≤ k) (x y : M) :
   have hg := ((hy.division hx).pow k)
   rw [← contMDiffOn_iff_contDiffOn]
   exact (contMDiff_coe_sphere.comp_contMDiffOn hg).congr fun w _ ↦ (frameChange_def ..).symm
+
+/-- For `k ≥ k₀`, the change of frame is differentiable at each point of the open set
+`D.chartTransitionDomain k x y`. -/
+theorem differentiableAt_frameChange {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι}
+    (hw : w ∈ D.chartTransitionDomain k x y) :
+    DifferentiableAt ℝ (D.frameChange k x y) w :=
+  ((D.contDiffOn_frameChange hk x y).differentiableOn (by simp) w hw).differentiableAt
+    ((D.isOpen_chartTransitionDomain k x y).mem_nhds hw)
 
 /-- **The readings in two charts differ by the change of frame.** For `w` in the source of the
 transition `τ` from the chart centred at `y` to the chart centred at `x`, the reading of a section
@@ -231,12 +239,9 @@ theorem connectionReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm
       (D.connectionReading k x s (D.chartTransition k x y w)).comp
         (fderiv ℝ (D.chartTransition k x y) w) := by
   have hws := D.chartTransitionDomain_subset_source k x y hw
-  have hτ : DifferentiableAt ℝ (D.chartTransition k x y) w := by
-    rw [chartTransition_def] at hws ⊢
-    exact (D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hws
+  have hτ := D.differentiableAt_chartTransition hws
   have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds hw
-  have he : DifferentiableAt ℝ (D.frameChange k x y) w :=
-    ((D.contDiffOn_frameChange hk x y).differentiableOn (by simp) w hw).differentiableAt hW
+  have he := D.differentiableAt_frameChange hk hw
   have hfτ : DifferentiableAt ℝ (fun w' ↦ D.reading k x s (D.chartTransition k x y w')) w :=
     hs.comp w hτ
   -- On the open set `W`, the reading at `y` is `e` times the reading at `x` composed with `τ`.
