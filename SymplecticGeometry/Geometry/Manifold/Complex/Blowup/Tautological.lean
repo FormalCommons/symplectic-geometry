@@ -87,7 +87,8 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
   `normalSpaceZeroSectionRealEquiv n hn ℓ`, the normal class of its real derivative at `0`
   applied to `c : ℂ` is `c • v`. This is the form of the derivative hypothesis of the
   slice lemma `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`; it follows
-  from the chain rule `mfderiv_blowdown_mfderiv_curveLift` of `Lift.lean`.
+  from `SymplecticGeometry.BlowupModel.mfderiv_blowdown_mfderiv_curveLift_smul`, the chain rule
+  `mfderiv_blowdown_mfderiv_curveLift` of `Lift.lean` along these lifts.
 
 ## Implementation notes
 
@@ -301,6 +302,19 @@ theorem mfderiv_blowdown_comp_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) �
   -- The two zeros are maps between the tangent spaces and between the model spaces.
   rfl
 
+/-- The chain rule for `blowdown` along the lift `curveLift (· • v)` of the line `t ↦ t • v`,
+for `v ≠ 0`: at `zeroSection [v]`, the differential of `blowdown` sends the real derivative of
+the lift at `0` applied to `c : ℂ` to `c • v`. -/
+theorem mfderiv_blowdown_mfderiv_curveLift_smul {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) (c : ℂ) :
+    mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection (mk ℂ v hv))
+      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c) = c • v := by
+  rw [← curveLift_smul_zero hv]
+  exact (((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero
+    ).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ _).symm.trans
+    ((mfderiv_blowdown_mfderiv_curveLift (by fun_prop)
+      ((contMDiff_curveLift_smul_real (r := 1) hv).mdifferentiable one_ne_zero 0) c).trans
+      (congrArg (c • ·) (by simp [deriv_smul_const] : deriv (· • v) (0 : ℂ) = v)))
+
 /-- Every vector `z` of the line `ℓ` is a value of the differential of `blowdown` at
 `zeroSection ℓ`: for `z ≠ 0`, it is the image of the velocity at `0` of the lift
 `curveLift (· • z)` of the line `t ↦ t • z`. -/
@@ -310,16 +324,8 @@ theorem exists_mfderiv_blowdown_zeroSection_eq (ℓ : ℙ ℂ (Fin (n + 1) → �
       mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v = z := by
   rcases eq_or_ne z 0 with rfl | hz0
   · exact ⟨0, map_zero _⟩
-  have hd : ∃ v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • z) (0 : ℂ)),
-      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown
-        (curveLift (· • z) (0 : ℂ)) v = z :=
-    ⟨_, (mfderiv_blowdown_mfderiv_curveLift (by fun_prop)
-      ((contMDiff_curveLift_smul_real hz0 (r := 1)).mdifferentiableAt one_ne_zero) 1).trans
-        (by rw [deriv_smul_const differentiableAt_id, deriv_id'', one_smul, one_smul])⟩
-  rw [curveLift_smul_zero hz0, Projectivization.mem_submodule_iff.1 hz hz0] at hd
-  obtain ⟨v, hv⟩ := hd
-  exact ⟨v, (MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ
-    ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero) v).symm.trans hv⟩
+  obtain rfl := (Projectivization.mem_submodule_iff.1 hz hz0).symm
+  exact ⟨_, (mfderiv_blowdown_mfderiv_curveLift_smul hz0 1).trans (one_smul ℂ z)⟩
 
 /-- The differential of `blowdown` at `zeroSection ℓ` is not zero: its image has positive
 dimension. -/
@@ -665,19 +671,7 @@ theorem normalSpaceZeroSectionRealEquiv_normalClassL_mfderiv_curveLift_smul
         exact Submodule.smul_mem _ c (Submodule.mem_span_singleton_self v)⟩ := by
   refine (congrArg _ (Manifold.IsImmersion.normalClassL_apply _ _ _ _)).trans
     ((normalSpaceZeroSectionRealEquiv_normalClass _ _).trans (Subtype.ext ?_))
-  dsimp only
-  -- The chain rule at the point `curveLift (· • v) 0`, which is `zeroSection ℓ`.
-  have key : mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
-      (curveLift (· • v) (0 : ℂ))
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c) =
-        (c • v : Fin (n + 1) → ℂ) :=
-    (((contMDiff_blowdown 1).mdifferentiable one_ne_zero
-    (curveLift (· • v) (0 : ℂ))).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c)).symm.trans
-    ((mfderiv_blowdown_mfderiv_curveLift (by fun_prop)
-      ((contMDiff_curveLift_smul_real (r := 1) hv).mdifferentiable one_ne_zero 0) c).trans
-      (congrArg (c • ·) (by simp [deriv_smul_const] : deriv (· • v) (0 : ℂ) = v)))
-  exact curveLift_smul_zero hv ▸ key
+  exact mfderiv_blowdown_mfderiv_curveLift_smul hv c
 
 /-- **The complex structure of the normal bundle of the exceptional divisor is multiplication by
 `Complex.I` on the tautological line.** Under `normalSpaceZeroSectionRealEquiv n hn ℓ`, the complex
