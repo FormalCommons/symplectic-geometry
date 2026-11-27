@@ -197,7 +197,7 @@ Three facts about complex frames:
 - `Matrix.range_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ)`: the range of
   `toEuclideanLin (fromRows X Y)` is the image of
   `Matrix.realImage (X.map ofReal + I • Y.map ofReal)` under
-  `TauCeti.complexToRealEuclidean ι`, read through `WithLp.equiv`.
+  `TauCeti.complexToRealEuclideanIsometry ι`.
 - `Matrix.exists_det_sub_smul_ne_zero {X Y : Matrix ι ι ℝ}
   (h : (X.map ofReal + I • Y.map ofReal).det ≠ 0) : ∃ t : ℝ, (X - t • Y).det ≠ 0`:
   `t ↦ det (X - t Y)` is a real polynomial, nonzero at `t = -i`, so it is not
@@ -470,7 +470,7 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
 - `det_ne_zero_of_isLagrangian_range_fromRows`: the complex frame of a
   Lagrangian frame is invertible. The Lagrangian range is maximal totally
   real for `J₀` (`TauCeti.SymplecticForm.IsLagrangian.isMaximalTotallyReal_of_compatible` with
-  `stdForm_compatible`). By `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`
+  `stdForm_compatible`). By `Matrix.range_toEuclideanLin_fromRows`
   it is the image under `complexToRealEuclideanIsometry`, which intertwines multiplication by
   `I` with `J₀` (`stdComplexStructure_complexToRealEuclideanIsometry`), of `(X + i Y).realImage`;
   so that real image is maximal totally real (`LinearEquiv.isMaximalTotallyReal_map_iff`), and Tau Ceti's
@@ -601,9 +601,7 @@ unitary action to Tau Ceti's `Matrix.realImage`.
   `complexToRealEuclideanIsometry ι`, a complex matrix acts as its realification). In
   `Frame.lean`: `StdSpace.map_realImage`
   (`A.realImage.map ε = (LinearMap.ker y).map (toEuclideanLin A.realify)`),
-  `StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage` (the span of
-  `fromRows X Y` is `(X + i Y).realImage` carried by `ε`), `StdSpace.graph_zero`
-  and `StdSpace.graphY_zero`. In `Matrix/UnitaryGroup/Real.lean`:
+  `StdSpace.graph_zero` and `StdSpace.graphY_zero`. In `Matrix/UnitaryGroup/Real.lean`:
   `Matrix.UnitaryGroup.map_re_conjTranspose_mul_self` (`Re (Uᴴ U) = 1`).
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Transverse.lean`

@@ -9,7 +9,7 @@ public import Mathlib.Algebra.Polynomial.Roots
 public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Data.Matrix.ColumnRowPartitioned
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
-public import TauCeti.Analysis.Complex.Euclidean.Space
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 public import TauCeti.LinearAlgebra.Matrix.OfReal
 public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 import TauCeti.LinearAlgebra.Matrix.Determinant.Pencil
@@ -41,7 +41,7 @@ frames in `ℂⁿ` (§2.3).
   (`Matrix.map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq`).
 * `Matrix.range_toEuclideanLin_fromRows`: the column space of `fromRows X Y` in `ℝ²ⁿ` is the
   real image `(X + i Y) ℝⁿ` (Tau Ceti's `Matrix.realImage`), read in real coordinates through
-  `TauCeti.complexToRealEuclidean`.
+  `TauCeti.complexToRealEuclideanIsometry`.
 * `Matrix.exists_det_sub_smul_ne_zero`: if `det (X + i Y) ≠ 0`, then `det (X - t Y) ≠ 0` for
   some real `t`.
 
@@ -106,12 +106,11 @@ theorem map_im_conjTranspose_mul_self_eq_zero_of_transpose_mul_eq [Fintype m]
 
 /-- The column space of the real `2n × n` matrix `fromRows X Y`, as a subspace of
 `EuclideanSpace ℝ (n ⊕ n)`, is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` written in the real
-coordinates `(Re, Im)` of `TauCeti.complexToRealEuclidean`. -/
+coordinates `(Re, Im)` of `TauCeti.complexToRealEuclideanIsometry`. -/
 theorem range_toEuclideanLin_fromRows [Fintype n] [DecidableEq n] (X Y : Matrix n n ℝ) :
     LinearMap.range (toEuclideanLin (fromRows X Y)) =
       (X.map ofReal + I • Y.map ofReal).realImage.map
-        ((TauCeti.complexToRealEuclidean n).toLinearMap ∘ₗ
-          (PiLp.continuousLinearEquiv 2 ℝ (fun _ : n ↦ ℂ)).toLinearMap) := by
+        (TauCeti.complexToRealEuclideanIsometry n).toLinearEquiv.toLinearMap := by
   ext w
   simp only [LinearMap.mem_range, Submodule.mem_map, mem_realImage_iff_exists_mulVec]
   constructor

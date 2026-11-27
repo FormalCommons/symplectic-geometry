@@ -234,7 +234,7 @@ theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :
     (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin
         (fromRows ((U : Matrix ι ι ℂ).map Complex.re) ((U : Matrix ι ι ℂ).map Complex.im))) := by
-  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage,
+  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows,
     map_re_add_I_smul_map_im]
 
 @[simp]
@@ -329,7 +329,7 @@ theorem unitaryFrame_unitaryOfFrame {X Y : Matrix ι ι ℝ}
   toSubmodule_injective <| by
     rw [coe_ofFrame, coe_unitaryFrame_eq_map, coe_unitaryOfFrame,
       GeneralLinearGroup.realImage_realOrthonormalize, GeneralLinearGroup.val_mkOfDetNeZero,
-      ← range_toEuclideanLin_fromRows_eq_map_realImage]
+      ← range_toEuclideanLin_fromRows]
 
 /-- **Transitivity of `U(n)`.** Every Lagrangian subspace of `StdSpace ι` is framed by a unitary
 matrix. -/
