@@ -285,16 +285,16 @@ theorem map_inv_smul_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF
   rw [map_smul, map_realFirstChernClass_vertical G G' hA hH hσ hb', hσc, smul_smul,
     inv_mul_cancel₀ hc, one_smul]
 
-include G in
 /-- **Compatible symplectic forms from the Chern class criterion.** Let `A` be a symplectic atlas
 of `proj : M → B` for `(F, σ)` such that `c₁(TF) = c • [σ]` in `H²(F; ℝ)` for a real `c ≠ 0`. If
 `M` is compact and `B` is connected and has a symplectic form `β`, then some symplectic form on
-`M` restricts to `σ` along `A`. Here `G` is a complex vector space whose real dimension is the
-rank of the vertical bundle; it is needed only to define `realFirstChernClass_vertical A`.
+`M` restricts to `σ` along `A`.
 
 This is the consequence that the milestone *Chern class criterion for compatible symplectic forms*
 states, there for a compact base: Thurston's theorem applies to the class
-`c⁻¹ • realFirstChernClass_vertical A`. -/
+`c⁻¹ • realFirstChernClass_vertical A`, computed with the complex model `G'` of `TF`, since the
+vertical bundle has the rank `dim F` (`TauCeti.MapFiber.Atlas.IsContMDiff.finrank_sub_finrank_eq`).
+-/
 theorem exists_isSymplectic_compatible_of_realFirstChernClass_eq [FiniteDimensional ℝ EF]
     [IF.Boundaryless] [T2Space F] [SigmaCompactSpace F] [CompactSpace M] [ConnectedSpace B]
     (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
@@ -305,9 +305,17 @@ theorem exists_isSymplectic_compatible_of_realFirstChernClass_eq [FiniteDimensio
       c • deRhamCohomology.mk IF 2 ⟨σ, hσ.isClosed.mem_closedForms⟩)
     {β : SmoothTwoForm IB B} (hβ : β.IsSymplectic) :
     ∃ θ : SmoothTwoForm IM M, θ.IsSymplectic ∧ A.RestrictsTo σ θ := by
+  rcases isEmpty_or_nonempty M with hM | hM
+  · -- Over an empty `M`, every form is symplectic, and the model fibre `F` is empty too.
+    exact ⟨0, ⟨SmoothForm.isClosed_zero,
+      SmoothTwoForm.isNondegenerate_iff_separatingLeft.2 fun x ↦ isEmptyElim x⟩,
+      restrictsTo_iff.2 fun b _ hb' ↦
+        funext fun v ↦ isEmptyElim ((A.trivAt b).fiberInclusionMap hb' v)⟩
+  have : Fact (finrank ℝ EM - finrank ℝ EB = 2 * finrank ℂ G') :=
+    ⟨(hA.finrank_sub_finrank_eq (by simp)).trans Fact.out⟩
   obtain ⟨b⟩ := ‹ConnectedSpace B›.toNonempty
   obtain ⟨K₀, hK₀⟩ := exists_isSymplectic_restricts_mk_eq hA hH hσ hβ (A.mem_baseSet_trivAt b)
-    (map_inv_smul_realFirstChernClass_vertical G G' hA hH hσ hc hσc (A.mem_baseSet_trivAt b))
+    (map_inv_smul_realFirstChernClass_vertical G' G' hA hH hσ hc hσc (A.mem_baseSet_trivAt b))
   obtain ⟨θ, hθ, hθA, -⟩ := hK₀ K₀ le_rfl
   exact ⟨θ, hθ, hθA⟩
 
