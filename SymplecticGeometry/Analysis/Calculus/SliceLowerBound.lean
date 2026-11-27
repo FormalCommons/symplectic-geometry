@@ -6,94 +6,58 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
-public import Mathlib.Analysis.Calculus.Deriv.Basic
 public import Mathlib.Analysis.Calculus.FDeriv.Defs
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
-import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Analysis.Calculus.FDeriv.Prod
 import Mathlib.Analysis.Normed.Operator.Bilinear
+import SymplecticGeometry.Analysis.Calculus.Deriv.SecondOrderLowerBound
+import TauCeti.Analysis.Calculus.FDeriv.Prod
+import TauCeti.Analysis.Calculus.Morse.Bott
 import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
 # A quadratic lower bound transverse to a slice
 
-Let `f : E × F → ℝ` be `C²` near `(a₀, 0)`, vanish to first order along the slice `E × {0}` near
-`a₀`, and have a second derivative at `(a₀, 0)` that is positive definite on the fibre directions
-`(0, w)`, with `F` finite-dimensional. Then `f (a, b)` is at least `c ‖b‖²` near `(a₀, 0)` for some
-`c > 0`.
+Let `f : E × F → ℝ` be `C²` at `(a₀, 0)`, with `F` finite-dimensional, be critical along the slice
+`E × {0}` near `a₀`, and have a second derivative at `(a₀, 0)` that is positive definite on the
+fibre directions `(0, w)`. Then `f (a, b) - f (a₀, 0)` is at least `c ‖b‖²` near `(a₀, 0)` for
+some `c > 0`. This is a lower companion of Tau Ceti's upper bound
+`TauCeti.exists_abs_sub_le_mul_norm_snd_sq`.
 
-The proof restricts `f` to the segments `t ↦ (a, t • b)`, `t ∈ [0, 1]`: their second derivative
-is the Hessian of `f` on `(0, b)`, which stays at least a positive multiple of `‖b‖²` near
-`(a₀, 0)` by continuity, and a real function vanishing to first order at `0` with second derivative
-at least `m` is at least `m t² / 2` (`SymplecticGeometry.mul_sq_div_two_le_of_hasDerivAt`). The
-coercivity at `(a₀, 0)` is Tau Ceti's `IsCompact.exists_pos_forall_mul_norm_sq_le`, for a single
-form.
+The critical value is constant along the slice near `a₀` (Tau Ceti's
+`TauCeti.eventually_apply_mk_zero_eq`). The coercivity of the Hessian on the fibre at `(a₀, 0)` is
+Tau Ceti's `IsCompact.exists_pos_forall_mul_norm_sq_le`, for a single form, and it persists, with
+half the constant, near `(a₀, 0)` by continuity of the Hessian. The rest restricts `f` to the
+segments `t ↦ (a, t • b)`, `t ∈ [0, 1]`, and bounds it from below with the second-order lower
+bound `SymplecticGeometry.add_mul_sub_add_mul_sub_sq_div_two_le`. That segment argument adapts the
+proof of Tau Ceti's second derivative test,
+`ContDiffAt.eventually_lt_of_fderiv_eq_zero_of_fderiv_fderiv_pos`, from segments through a
+critical point to segments leaving the slice.
 
 ## Main results
 
-* `SymplecticGeometry.mul_sq_div_two_le_of_hasDerivAt`: if `h 0 = 0`, `h' 0 = 0` and `m ≤ h''` on
-  `[0, x]`, then `m * x ^ 2 / 2 ≤ h x`.
-* `ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le`: the quadratic lower bound
-  `c * ‖p.2‖ ^ 2 ≤ f p` for `p` near `(a₀, 0)`.
+* `ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le_sub`: the quadratic lower bound
+  `c * ‖p.2‖ ^ 2 ≤ f p - f (a₀, 0)` for `p` near `(a₀, 0)`.
 -/
 
 public section
 
 open Set Filter Topology
 
-namespace SymplecticGeometry
-
-/-- A real function `h` with derivative `h'`, whose own derivative is `h''`, on `[0, x]`, and with
-`h 0 = 0`, `h' 0 = 0` and `m ≤ h''` on `[0, x]`, satisfies `m * x ^ 2 / 2 ≤ h x`. -/
-theorem mul_sq_div_two_le_of_hasDerivAt {h h' h'' : ℝ → ℝ} {m x : ℝ} (hx : 0 ≤ x)
-    (hh : ∀ t ∈ Icc 0 x, HasDerivAt h (h' t) t) (hh' : ∀ t ∈ Icc 0 x, HasDerivAt h' (h'' t) t)
-    (hm : ∀ t ∈ Icc 0 x, m ≤ h'' t) (h0 : h 0 = 0) (h'0 : h' 0 = 0) :
-    m * x ^ 2 / 2 ≤ h x := by
-  have hint : interior (Icc 0 x) ⊆ Icc 0 x := interior_subset
-  -- First `t ↦ h' t - m t` is monotone, so `m t ≤ h' t` on `[0, x]`.
-  have h1 : MonotoneOn (fun t ↦ h' t - m * t) (Icc 0 x) :=
-    monotoneOn_of_hasDerivWithinAt_nonneg (convex_Icc 0 x)
-      (fun t ht ↦ ((hh' t ht).continuousAt.sub (continuousAt_const.mul continuousAt_id))
-        |>.continuousWithinAt)
-      (fun t ht ↦ (((hh' t (hint ht)).sub ((hasDerivAt_id t).const_mul m)).hasDerivWithinAt))
-      (fun t ht ↦ by simpa using hm t (hint ht))
-  have hle : ∀ t ∈ Icc 0 x, m * t ≤ h' t := fun t ht ↦ by
-    have := h1 ⟨le_rfl, hx⟩ ht ht.1
-    simp only [h'0, mul_zero, sub_zero] at this
-    linarith
-  -- Then `t ↦ h t - m t² / 2` is monotone, and vanishes at `0`.
-  have h2 : MonotoneOn (fun t ↦ h t - m * t ^ 2 / 2) (Icc 0 x) :=
-    monotoneOn_of_hasDerivWithinAt_nonneg (convex_Icc 0 x)
-      (fun t ht ↦ ((hh t ht).continuousAt.sub (by fun_prop)).continuousWithinAt)
-      (fun t ht ↦ (((hh t (hint ht)).sub
-        (((hasDerivAt_pow 2 t).const_mul m).div_const 2)).hasDerivWithinAt))
-      (fun t ht ↦ by
-        have := hle t (hint ht)
-        norm_num
-        linarith)
-  have := h2 ⟨le_rfl, hx⟩ ⟨hx, le_rfl⟩ hx
-  simp only [h0] at this
-  linarith
-
-end SymplecticGeometry
-
 variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
   [NormedSpace ℝ F] [FiniteDimensional ℝ F]
 
 /-- **A quadratic lower bound transverse to a slice.** Let `f : E × F → ℝ` be `C²` at `(a₀, 0)`,
-with `F` finite-dimensional, such that `f (a, 0) = 0` and `fderiv ℝ f (a, 0) = 0` for `a` near
-`a₀`, and such that the second derivative of `f` at `(a₀, 0)` is positive at `((0, w), (0, w))`
-for every `w ≠ 0`. Then there is `c > 0` with `c * ‖p.2‖ ^ 2 ≤ f p` for every `p` near
-`(a₀, 0)`. -/
-theorem ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le {f : E × F → ℝ} {a₀ : E}
-    (hf : ContDiffAt ℝ 2 f (a₀, 0)) (hzero : ∀ᶠ a in 𝓝 a₀, f (a, 0) = 0)
-    (hcrit : ∀ᶠ a in 𝓝 a₀, fderiv ℝ f (a, 0) = 0)
+with `F` finite-dimensional, such that `fderiv ℝ f (a, 0) = 0` for `a` near `a₀`, and such that
+the second derivative of `f` at `(a₀, 0)` is positive at `((0, w), (0, w))` for every `w ≠ 0`.
+Then there is `c > 0` with `c * ‖p.2‖ ^ 2 ≤ f p - f (a₀, 0)` for every `p` near `(a₀, 0)`. -/
+theorem ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le_sub {f : E × F → ℝ} {a₀ : E}
+    (hf : ContDiffAt ℝ 2 f (a₀, 0)) (hcrit : ∀ᶠ a in 𝓝 a₀, fderiv ℝ f (a, 0) = 0)
     (hpos : ∀ w : F, w ≠ 0 → 0 < fderiv ℝ (fderiv ℝ f) (a₀, 0) (0, w) (0, w)) :
-    ∃ c > 0, ∀ᶠ p in 𝓝 (a₀, 0), c * ‖p.2‖ ^ 2 ≤ f p := by
+    ∃ c > 0, ∀ᶠ p in 𝓝 (a₀, 0), c * ‖p.2‖ ^ 2 ≤ f p - f (a₀, 0) := by
   set B₀ := fderiv ℝ (fderiv ℝ f) (a₀, 0)
   -- The Hessian is coercive on the fibre directions at `(a₀, 0)`.
   obtain ⟨c, hc, hcB⟩ := (isCompact_singleton (x := ())).exists_pos_forall_mul_norm_sq_le
@@ -101,15 +65,21 @@ theorem ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le {f : E × F → ℝ}
       (ContinuousLinearMap.inr ℝ E F)) continuousOn_const fun _ _ w hw ↦ by simpa using hpos w hw
   have hc₀ (w : F) : c * ‖w‖ ^ 2 ≤ B₀ (0, w) (0, w) := by simpa using hcB () rfl w
   -- Near `(a₀, 0)`, `f` stays `C²` and its Hessian stays `c / 2`-coercive on the fibre.
+  have hC2 : ∀ᶠ q in 𝓝 ((a₀, 0) : E × F), ContDiffAt ℝ 2 f q := hf.eventually (by simp)
   have hnear : ∀ᶠ q in 𝓝 ((a₀, 0) : E × F), ContDiffAt ℝ 2 f q ∧ ‖fderiv ℝ (fderiv ℝ f) q - B₀‖ <
       c / 2 :=
-    (hf.eventually (by simp)).and <|
+    hC2.and <|
       (hf.continuousAt_fderiv_fderiv le_rfl).eventually
         (Metric.ball_mem_nhds B₀ (half_pos hc)) |>.mono fun q hq ↦ by
           -- `rw [dist_eq_norm]` does not find `dist` here, as the instance paths differ.
           exact (dist_eq_norm (fderiv ℝ (fderiv ℝ f) q) B₀).symm ▸ hq
-  have hslice : ∀ᶠ q : E × F in 𝓝 (a₀, 0), f (q.1, 0) = 0 ∧ fderiv ℝ f (q.1, 0) = 0 :=
-    (continuous_fst.tendsto ((a₀, 0) : E × F)).eventually (hzero.and hcrit)
+  -- Along the slice, `f` is critical with constant value `f (a₀, 0)`.
+  have hdiff : ∀ᶠ a in 𝓝 a₀, DifferentiableAt ℝ f (a, 0) :=
+    ((continuous_id.prodMk continuous_const).tendsto a₀).eventually
+      (hC2.mono fun q hq ↦ hq.differentiableAt (by simp))
+  have hslice : ∀ᶠ q : E × F in 𝓝 (a₀, 0), f (q.1, 0) = f (a₀, 0) ∧ fderiv ℝ f (q.1, 0) = 0 :=
+    (continuous_fst.tendsto ((a₀, 0) : E × F)).eventually
+      ((TauCeti.eventually_apply_mk_zero_eq hcrit hdiff).and hcrit)
   obtain ⟨r, hr, hball⟩ := Metric.eventually_nhds_iff_ball.1 (hnear.and hslice)
   refine ⟨c / 4, by positivity, eventually_of_mem (Metric.ball_mem_nhds _ hr) fun p hp ↦ ?_⟩
   obtain ⟨a, b⟩ := p
@@ -129,8 +99,9 @@ theorem ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le {f : E × F → ℝ}
   have hh' (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
       HasDerivAt (fun s ↦ fderiv ℝ f (a, s • b) (0, b))
         (fderiv ℝ (fderiv ℝ f) (a, t • b) (0, b) (0, b)) t := by
-    have := ((hball _ (hseg t ht)).1.1.hasFDerivAt_fderiv le_rfl).comp_hasDerivAt t (hline t)
-    simpa using this.clm_apply (hasDerivAt_const t ((0 : E), b))
+    have hD := ((hball _ (hseg t ht)).1.1.hasFDerivAt_fderiv le_rfl).differentiableAt
+    simpa using TauCeti.hasDerivAt_fderiv_apply_line (p := ((a, 0) : E × F))
+      (q := ((0 : E), b)) (s := t) (by simpa using hD) ((0 : E), b)
   have hm (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
       c / 2 * ‖b‖ ^ 2 ≤ fderiv ℝ (fderiv ℝ f) (a, t • b) (0, b) (0, b) := by
     set B := fderiv ℝ (fderiv ℝ f) (a, t • b)
@@ -144,9 +115,14 @@ theorem ContDiffAt.exists_pos_eventually_mul_norm_snd_sq_le {f : E × F → ℝ}
     simp only [sub_apply] at hdiff
     linarith [(abs_le.1 hdiff).1]
   have h0 := (hball _ (hseg 0 ⟨le_rfl, zero_le_one⟩)).2
-  have key := SymplecticGeometry.mul_sq_div_two_le_of_hasDerivAt zero_le_one hh hh' hm
-    (by simpa using h0.1) (by simp [h0.2])
-  simp only [one_smul, one_pow, mul_one] at key
+  have key := SymplecticGeometry.add_mul_sub_add_mul_sub_sq_div_two_le zero_le_one
+    (fun t ht ↦ (hh t ht).continuousAt.continuousWithinAt)
+    (fun t ht ↦ (hh' t ht).continuousAt.continuousWithinAt)
+    (fun t ht ↦ (hh t (Ioo_subset_Icc_self ht)).hasDerivWithinAt)
+    (fun t ht ↦ (hh' t (Ioo_subset_Icc_self ht)).hasDerivWithinAt)
+    (fun t ht ↦ hm t (Ioo_subset_Icc_self ht))
+  simp only [zero_smul, one_smul, sub_zero, one_pow, mul_one, h0.1, h0.2,
+    zero_apply] at key
   linarith
 
 end
