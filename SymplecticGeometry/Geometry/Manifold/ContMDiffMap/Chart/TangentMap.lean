@@ -12,6 +12,7 @@ import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivWithinApply
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Evaluation
+import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 
 /-!
 # The bundled tangent map of a `C^n` map
@@ -123,13 +124,13 @@ target chart, differ at most by the larger of the differences of the `j`-th char
 `f` and `f₀` at `z` and `(1 + ‖v‖)` times a weighted sum of the differences of their chart
 derivatives of orders `1` to `j + 1` at `z`. -/
 private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
-    (f f₀ : C^∞⟮I, M; I', M'⟯) (hmn : (∞ : WithTop ℕ∞) + 1 ≤ ∞) {p : TangentBundle I M}
+    (f f₀ : C^∞⟮I, M; I', M'⟯) {p : TangentBundle I M}
     {q : TangentBundle I' M'} {w : E × E} (hw : w ∈ (extChartAt I.tangent p).target)
     (hf : f ((extChartAt I p.proj).symm w.1) ∈ (extChartAt I' q.proj).source)
     (hf₀ : f₀ ((extChartAt I p.proj).symm w.1) ∈ (extChartAt I' q.proj).source) (j : ℕ) :
-    dist (iteratedFDerivWithin 𝕜 j (extChartAt I'.tangent q ∘ f.tangentMap hmn ∘
+    dist (iteratedFDerivWithin 𝕜 j (extChartAt I'.tangent q ∘ f.tangentMap ENat.coe_top_add_one.le ∘
           (extChartAt I.tangent p).symm) (extChartAt I.tangent p).target w)
-        (iteratedFDerivWithin 𝕜 j (extChartAt I'.tangent q ∘ f₀.tangentMap hmn ∘
+        (iteratedFDerivWithin 𝕜 j (extChartAt I'.tangent q ∘ f₀.tangentMap ENat.coe_top_add_one.le ∘
           (extChartAt I.tangent p).symm) (extChartAt I.tangent p).target w) ≤
       max ‖iteratedFDerivWithin 𝕜 j (extChartAt I' q.proj ∘ f ∘ (extChartAt I p.proj).symm)
             (extChartAt I p.proj).target w.1 -
@@ -144,8 +145,7 @@ private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
   set φ := extChartAt I p.proj
   set ψ := extChartAt I' q.proj
   set T := φ.target
-  have hTp := TangentBundle.extChartAt_target p
-  have hwT : w.1 ∈ T := (hTp ▸ hw).1
+  have hwT : w.1 ∈ T := Bundle.fst_mem_extChartAt_target p hw
   -- A relatively open part `s = T ∩ O` of the chart target on which both maps are visible.
   have hcont : ContinuousOn (fun z ↦ (f (φ.symm z), f₀ (φ.symm z))) T :=
     ((map_continuous f).comp_continuousOn (continuousOn_extChartAt_symm _)).prodMk
@@ -165,7 +165,7 @@ private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
   have hws : w.1 ∈ s := ⟨hwT, hwO⟩
   have hs : UniqueDiffOn 𝕜 s := (uniqueDiffOn_extChartAt_target _).inter hO
   have hS : s ×ˢ (univ : Set E) = (extChartAt I.tangent p).target ∩ O ×ˢ univ := by
-    rw [hTp, prod_inter_prod, inter_univ]
+    rw [TangentBundle.extChartAt_target, prod_inter_prod, inter_univ]
   have hwS : w ∈ s ×ˢ (univ : Set E) := ⟨hws, mem_univ _⟩
   have hj : ((j + 1 : ℕ) : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
   -- For each of the two maps: smoothness of its chart expression on `s`, and the chart
@@ -175,7 +175,7 @@ private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
     (((g.contDiffWithinAt_extChartAt hz.1 (hg z hz)).of_le (by exact_mod_cast hj)).mono
       inter_subset_left)
   have hD (g : C^∞⟮I, M; I', M'⟯) (hg : ∀ z ∈ s, g (φ.symm z) ∈ ψ.source) :
-      iteratedFDerivWithin 𝕜 j (extChartAt I'.tangent q ∘ g.tangentMap hmn ∘
+      iteratedFDerivWithin 𝕜 j (extChartAt I'.tangent q ∘ g.tangentMap ENat.coe_top_add_one.le ∘
           (extChartAt I.tangent p).symm) (extChartAt I.tangent p).target w =
         (iteratedFDerivWithin 𝕜 j ((ψ ∘ g ∘ φ.symm) ∘ Prod.fst) (s ×ˢ univ) w).prod
           (iteratedFDerivWithin 𝕜 j (fun r : E × E ↦ fderivWithin 𝕜 (ψ ∘ g ∘ φ.symm) s r.1 r.2)
@@ -212,24 +212,24 @@ private theorem dist_iteratedFDerivWithin_extChartAt_tangentMap_le
     (norm_iteratedFDerivWithin_fderivWithin_apply_sub_le hs (hsm f fun z hz ↦ (hsrc hz).1)
       (hsm f₀ fun z hz ↦ (hsrc hz).2) hws w.2)
 
-/-- The tangent map `f ↦ tangentMap I I' f`, from smooth maps `M → M'` to smooth maps
-`TM → TM'`, is continuous for the weak Whitney topologies. -/
-theorem continuous_tangentMap_manifoldWeakWhitney (hmn : (∞ : WithTop ℕ∞) + 1 ≤ ∞) :
-    Continuous fun f : C^∞⟮I, M; I', M'⟯ ↦ f.tangentMap hmn := by
+/-- The bundled tangent map `f ↦ f.tangentMap`, from `C^∞⟮I, M; I', M'⟯` to
+`C^∞⟮I.tangent, TM; I'.tangent, TM'⟯`, is continuous for the weak Whitney topologies. -/
+theorem continuous_tangentMap_manifoldWeakWhitney :
+    Continuous fun f : C^∞⟮I, M; I', M'⟯ ↦ f.tangentMap ENat.coe_top_add_one.le := by
+  have hmn : (∞ : WithTop ℕ∞) + 1 ≤ ∞ := ENat.coe_top_add_one.le
   refine continuous_iff_continuousAt.mpr fun f₀ ↦ ?_
   refine tendsto_manifoldWeakWhitney_iff.mpr fun p q j hj K hK V hV h₀ ↦ ?_
   set φ := extChartAt I p.proj
   set ψ := extChartAt I' q.proj
-  have hTp := TangentBundle.extChartAt_target p
   -- The base points of `K` form a compact subset `C` of the base chart target.
   set C : Set E := Prod.fst '' (Subtype.val '' K)
   have hCc : IsCompact C := (hK.image continuous_subtypeVal).image continuous_fst
   have hCT : C ⊆ φ.target := by
     rintro _ ⟨_, ⟨w, -, rfl⟩, rfl⟩
-    exact ((Set.ext_iff.mp hTp w.val).mp w.property).1
+    exact Bundle.fst_mem_extChartAt_target p w.property
   have h₀' (w : (extChartAt I.tangent p).target) (hw : w ∈ K) :
       f₀ (φ.symm w.val.1) ∈ ψ.source :=
-    (tangentMap_extChartAt_symm_mem_extChartAt_source_iff f₀ w.property).mp
+    (tangentMap_extChartAt_symm_mem_extChartAt_source_iff f₀).mp
       ((mem_chartJetSet.mp h₀) w hw).1
   have hC₀ : ∀ z ∈ C, f₀ (φ.symm z) ∈ ψ.source := by
     rintro _ ⟨_, ⟨w, hw, rfl⟩, rfl⟩
@@ -272,7 +272,7 @@ theorem continuous_tangentMap_manifoldWeakWhitney (hmn : (∞ : WithTop ℕ∞) 
     ((mem_chartJetSet.mp hf) ⟨z, hCT hz⟩ hz).1
   refine mem_chartJetSet.mpr fun w hw ↦ ⟨?_, hδV (Metric.mem_thickening_iff.mpr
     ⟨_, mem_image_of_mem D hw, ?_⟩)⟩
-  · rw [coe_tangentMap, tangentMap_extChartAt_symm_mem_extChartAt_source_iff f w.property]
+  · rw [coe_tangentMap, tangentMap_extChartAt_symm_mem_extChartAt_source_iff f]
     exact hfC _ ⟨_, ⟨w, hw, rfl⟩, rfl⟩
   have hwC : w.val.1 ∈ C := ⟨_, ⟨w, hw, rfl⟩, rfl⟩
   have hd (i : ℕ) (hi : i ≤ j + 1) :
@@ -282,7 +282,7 @@ theorem continuous_tangentMap_manifoldWeakWhitney (hmn : (∞ : WithTop ℕ∞) 
     exact hfu i (Finset.mem_range.mpr (by omega)) _ hwC
   have hv : ‖w.val.2‖ ≤ |R| := (hR ⟨w, hw, rfl⟩).trans (le_abs_self R)
   have hR0 : 0 ≤ |R| := abs_nonneg R
-  refine (dist_iteratedFDerivWithin_extChartAt_tangentMap_le f f₀ hmn w.property
+  refine (dist_iteratedFDerivWithin_extChartAt_tangentMap_le f f₀ w.property
     (hfC _ hwC) (hC₀ _ hwC) j).trans_lt (max_lt ?_ ?_)
   · refine (hd j (Nat.le_succ j)).trans_le ?_
     exact div_le_self hδ.le (by nlinarith [mul_nonneg hR0 hA])

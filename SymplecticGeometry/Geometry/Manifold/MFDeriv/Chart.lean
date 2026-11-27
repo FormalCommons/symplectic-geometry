@@ -184,21 +184,21 @@ theorem ContinuousAt.extChartAt_tangentMap_extChartAt_symm {f : M → M'}
 chart at `p.proj` with the whole fibre. -/
 theorem TangentBundle.extChartAt_target (p : TangentBundle I M) :
     (extChartAt I.tangent p).target = (extChartAt I p.proj).target ×ˢ Set.univ := by
-  rw [FiberBundle.extChartAt_target, Set.inter_eq_left.mpr (show (extChartAt I p.proj).target ⊆
-    (extChartAt I p.proj).symm ⁻¹' (trivializationAt E (TangentSpace I) p.proj).baseSet from
-      fun z hz ↦ TangentBundle.mem_trivializationAt_baseSet_of_mem_extChartAt_source
-        ((extChartAt I p.proj).map_target hz))]
+  rw [FiberBundle.extChartAt_target, Set.inter_eq_left.mpr fun z hz ↦
+    TangentBundle.extChartAt_symm_mem_trivializationAt_baseSet hz]
 
-/-- A point of the target of the tangent-bundle chart at `p` is sent by the tangent map of `f`
-into the source of the tangent-bundle chart at `q` exactly when its base point is sent by `f`
-into the source of the base chart at `q.proj`. -/
+/-- For any `w : E × E`, the tangent map of `f` sends the inverse image of `w` under the
+tangent-bundle chart at `p` into the source of the tangent-bundle chart at `q` exactly when `f`
+sends the inverse image of `w.1` under the base chart at `p.proj` into the source of the base
+chart at `q.proj`. -/
 theorem tangentMap_extChartAt_symm_mem_extChartAt_source_iff (f : M → M')
-    {p : TangentBundle I M} {q : TangentBundle I' M'} {w : E × E}
-    (hw : w ∈ (extChartAt I.tangent p).target) :
+    {p : TangentBundle I M} {q : TangentBundle I' M'} {w : E × E} :
     tangentMap I I' f ((extChartAt I.tangent p).symm w) ∈ (extChartAt I'.tangent q).source ↔
       f ((extChartAt I p.proj).symm w.1) ∈ (extChartAt I' q.proj).source := by
   rw [extChartAt_source, extChartAt_source, TangentBundle.mem_chart_source_iff, tangentMap_proj,
-    Bundle.proj_extChartAt_symm p hw]
+    extChartAt_coe_symm, extChartAt_coe_symm, Function.comp_apply, Function.comp_apply,
+    TangentBundle.coe_chartAt_symm_fst, ModelWithCorners.tangent, modelWithCorners_prod_coe_symm,
+    Prod.map_fst]
 
 end TangentMap
 
