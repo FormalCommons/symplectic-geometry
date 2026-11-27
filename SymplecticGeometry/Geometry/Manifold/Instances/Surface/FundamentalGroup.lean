@@ -12,6 +12,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
 import Mathlib.Topology.Homeomorph.Lemmas
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Restrict
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Topology.Maps.Embedding
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 
@@ -50,8 +51,8 @@ torus with the open set `tailPuncture g n`, along the ball `0` corestricted to i
 carried onto `puncture (g + 1) n` by `TauCeti.ConnectedSum.restrictRightHomeomorph`, whose target
 is `succDiffeomorph '' puncture (g + 1) n` (`ClosedSurface.image_succDiffeomorph_puncture`), and
 its punctured second summand onto `puncture g (n + 1)`
-(`ClosedSurface.imageVal_puncture_codRestrict_ball`). The transport along these homeomorphisms
-by `CategoryTheory.IsPushout.of_iso'` follows the proof of
+(`ClosedSurface.imageVal_puncture_codRestrict_ball`, `TopologicalSpace.Opens.diffeomorphImageVal`).
+The transport along these homeomorphisms by `CategoryTheory.IsPushout.of_iso'` follows the proof of
 `TauCeti.ConnectedSum.isPushout_fundamentalGroup`, which transports Tau Ceti's
 `TauCeti.isPushout_fundamentalGroup` in the same way.
 
@@ -66,6 +67,7 @@ public section
 noncomputable section
 
 open Set Function Topology TopologicalSpace CategoryTheory TauCeti
+open scoped Manifold
 
 namespace SymplecticGeometry.ClosedSurface
 
@@ -106,15 +108,6 @@ theorem succDiffeomorph_puncturedSuccInr_apply (y : puncture g (n + 1)) :
   let := ConnectedSum.chartedSpace (H := EuclideanSpace ℝ (Fin 2))
     EuclideanTorus.isOpenEmbedding_ball (isOpenEmbedding_ball (g := g) 0)
   exact Diffeomorph.apply_symm_apply _ _
-
-/-- The neck of the connected sum along the ball `0` lies in `puncture g (n + 1)`. -/
-theorem coe_neckInr_ball_zero_mem_puncture {g n : ℕ} (v : ({0}ᶜ : Set (EuclideanSpace ℝ (Fin 2)))) :
-    (ConnectedSum.neckInr (isOpenEmbedding_ball (g := g) 0) v : ClosedSurface g) ∈
-      puncture g (n + 1) := by
-  rw [puncture_succ_eq_tailPuncture_inf, Opens.mem_inf]
-  refine ⟨?_, (ConnectedSum.neckInr _ v).property⟩
-  rw [ConnectedSum.coe_neckInr_apply]
-  exact ball_zero_mem_tailPuncture _
 
 /-- The neck `{0}ᶜ` of the plane in `puncture g (n + 1)`: the map
 `TauCeti.ConnectedSum.neckInr` of the ball `0`, `v ↦ ball g 0 (inversion 0 1 v)`. -/
@@ -162,37 +155,19 @@ theorem map_puncturedNeckInr_circleLoop :
 
 /-! ### The square -/
 
-private theorem mem_puncture_codRestrict_of_mem_puncture_succ {y : ClosedSurface g}
-    (hy : y ∈ puncture g (n + 1)) :
-    (⟨y, puncture_succ_le_tailPuncture hy⟩ : (tailPuncture g n : Set (ClosedSurface g))) ∈
-      ConnectedSum.puncture
-        (codRestrict (ball g 0) (tailPuncture g n) ball_zero_mem_tailPuncture) := by
-  rw [← imageVal_puncture_codRestrict_ball, Opens.mem_imageVal] at hy
-  exact hy.2
-
-private theorem val_val_mem_puncture_succ (z : ConnectedSum.puncture
-      (codRestrict (ball g 0) (tailPuncture g n) ball_zero_mem_tailPuncture)) :
-    z.val.val ∈ puncture g (n + 1) := by
-  rw [← imageVal_puncture_codRestrict_ball]
-  exact Opens.coe_mem_imageVal _ z
-
 /-- The punctured second summand of the sum of the torus with `tailPuncture g n` is
 `puncture g (n + 1)`. -/
 private def puncturedSummandHomeomorph :
     puncture g (n + 1) ≃ₜ ConnectedSum.puncture
-      (codRestrict (ball g 0) (tailPuncture g n) ball_zero_mem_tailPuncture) where
-  toFun y := ⟨⟨y.val, puncture_succ_le_tailPuncture y.property⟩,
-    mem_puncture_codRestrict_of_mem_puncture_succ y.property⟩
-  invFun z := ⟨z.val.val, val_val_mem_puncture_succ z⟩
-  left_inv _ := rfl
-  right_inv _ := rfl
-  continuous_toFun := ((continuous_subtypeVal).subtype_mk _).subtype_mk _
-  continuous_invFun := (continuous_subtypeVal.comp continuous_subtypeVal).subtype_mk _
+      (codRestrict (ball g 0) (tailPuncture g n) ball_zero_mem_tailPuncture) :=
+  (Homeomorph.setCongr (by rw [imageVal_puncture_codRestrict_ball])).trans
+    (Opens.diffeomorphImageVal (I := 𝓡 2) (n := 0) _).symm.toHomeomorph
 
 private theorem coe_coe_puncturedSummandHomeomorph_apply (y : puncture g (n + 1)) :
     ((puncturedSummandHomeomorph y : (tailPuncture g n : Set (ClosedSurface g))) :
-      ClosedSurface g) = y :=
-  (rfl)
+      ClosedSurface g) = y := by
+  -- `Homeomorph.setCongr` and `Diffeomorph.toHomeomorph` keep the underlying point.
+  exact Opens.coe_diffeomorphImageVal_symm_apply (I := 𝓡 2) (n := 0) _ _
 
 /-- The sum of the torus with `tailPuncture g n` is `puncture (g + 1) n`. -/
 private def puncturedSumHomeomorph :

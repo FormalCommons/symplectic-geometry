@@ -249,6 +249,15 @@ theorem puncture_succ_le_puncture_ball_zero :
   rw [puncture_succ_eq_tailPuncture_inf]
   exact inf_le_right
 
+/-- The neck of the connected sum along the ball `0` lies in `puncture g (n + 1)`. -/
+theorem coe_neckInr_ball_zero_mem_puncture (v : ({0}ᶜ : Set (EuclideanSpace ℝ (Fin 2)))) :
+    (ConnectedSum.neckInr (isOpenEmbedding_ball (g := g) 0) v : ClosedSurface g) ∈
+      puncture g (n + 1) := by
+  rw [puncture_succ_eq_tailPuncture_inf, Opens.mem_inf]
+  refine ⟨?_, (ConnectedSum.neckInr _ v).property⟩
+  rw [ConnectedSum.coe_neckInr_apply]
+  exact ball_zero_mem_tailPuncture _
+
 /-- The base point lies in each `tailPuncture g n`. -/
 @[simp]
 theorem basePoint_mem_tailPuncture : basePoint g ∈ tailPuncture g n :=
