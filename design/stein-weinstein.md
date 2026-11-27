@@ -616,11 +616,11 @@ containing `ι '' closedBall 0 1`:
     `IsConvexShapeAt (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r)`.
   - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
-    interval `Icc r₁ r₂`, `0 < r₁`, crossing transversally there
-    (`χ₁ r = χ₂ r → deriv χ₁ r ≠ deriv χ₂ r`), and let `O` be a
+    interval `Icc r₁ r₂`, and let `O` be a
     neighbourhood of `{r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
     `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
-    equal to `max (χ₁ r) (χ₂ r)` off `O`. Condition (4.3) passes to
+    equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`; no transversality
+    of the crossings is needed. Condition (4.3) passes to
     `smoothedMax δ (χ₁ r) (χ₂ r)` (`Analysis/SpecialFunctions/SmoothedMax.lean`),
     whose value is at least each `χᵢ r` and whose slope is a convex
     combination of theirs; for (4.4) the book makes the second
@@ -650,8 +650,7 @@ containing `ι '' closedBall 0 1`:
     `r > 0`; `isConvexShapeAt_linear` (Lemma 4.17 (e)): for `0 < ℓ`,
     `0 < d`, `r ↦ ℓ + d * r` at every `r ∈ Ioo 0 (ℓ * d ^ 3)`.
   - (14d4) The crossings of Lemma 4.18 (a)–(c), as statements about the
-    real roots of the differences of these three functions, with the
-    transversality that `exists_isConvexShapeAt_eq_max` asks for;
+    real roots of the differences of these three functions;
     `exists_isConvexShapeAt_eq_sqrt_of_eq_linear` (Lemma 4.19): for
     `1 < a` and `0 < γ` there are `d ∈ Ioo 0 1`, `β ∈ Ioo 0 γ` and a
     smooth `ψ`, convex shape at every `r > 0`, with
@@ -1112,19 +1111,22 @@ containing `ι '' closedBall 0 1`:
     `leviForm_add`, `leviForm_mul_apply` and
     `ContinuousLinearMap.abs_re_leviForm_toBilinForm_apply_self_le`.
 - `JConvex/Interpolation.lean` (issue 14d17):
-  - `Manifold.IsSmoothEmbedding.eventually_abs_comp_symm_le` (14d17):
-    the Taylor bounds. Let `ι`, `K` and the total reality be as in issue
-    14a, `ρ` as 14a gives it, and `D : M → ℝ` be `C²` near `ι '' K`
-    with `D (ι y) = 0` and `mvfderiv 𝓘(ℝ, E) D (ι y) = 0` for `y` in a
-    neighbourhood of `K`. For `y ∈ K` and a chart `e` at `ι y` of the
-    holomorphic maximal atlas there is `A` such that, for `z` near
+  - `Manifold.IsSmoothEmbedding.exists_abs_comp_symm_le` (14d17):
+    the Taylor bounds, at one point `y` of a real manifold. Let `ι` be a
+    `C^n` embedding, `n ≥ 2`, `ρ` be `C²` at `ι y`, nonnegative near
+    `ι y`, zero on `ι` near `y`, with critical Hessian at `ι y` positive
+    off the tangent image (as 14a gives it), and `D : M → ℝ` be `C²` near
+    `ι y` with `D (ι y') = 0` and `mvfderiv 𝓘(ℝ, E) D (ι y') = 0` for `y'`
+    near `y`. For a chart `e` at `ι y` of the `C²` maximal atlas (holomorphic
+    charts are among them) there is `A` such that, for `z` near
     `e (ι y)` and `x = e.symm z`, `|D x| ≤ A * ρ x`,
     `‖fderiv ℝ (D ∘ e.symm) z‖ ≤ A * √(ρ x)`,
     `‖fderiv ℝ (ρ ∘ e.symm) z‖ ≤ A * √(ρ x)` and
     `‖fderiv ℝ (fderiv ℝ (ρ ∘ e.symm)) z‖ ≤ A`. The bound of the squared
     distance to `range ι` by `ρ` comes from the critical Hessian of `ρ`,
-    positive off the tangent images at `ι '' K`; the bounds on `D` are
-    Taylor's formula at the nearest point of `range ι`, in a slice chart.
+    positive off the tangent image at `ι y`; the bounds on `D` are
+    Taylor's formula at the nearest point of the image in `e`, and the
+    bound on `fderiv ℝ (ρ ∘ e.symm)` is Glaeser's inequality.
   - `Manifold.IsSmoothEmbedding.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate`
     (14d17; Proposition 3.26): with `[T2Space M]`, `I'` boundaryless,
     `h : IsSmoothEmbedding I' 𝓘(ℝ, E) ∞ ι`, `K : Set N` compact with the
