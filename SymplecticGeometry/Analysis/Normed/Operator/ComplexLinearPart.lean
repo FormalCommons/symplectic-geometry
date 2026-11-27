@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Topology.Instances.RealVectorSpace
 import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 /-!
@@ -22,6 +23,16 @@ complex-antilinear part keeps its operator norm
 (`ContinuousLinearMap.norm_complexAntilinearPartL_apply`). The bound on the complex-antilinear
 part makes it a continuous real-linear map into the complex-antilinear operators,
 `ContinuousLinearMap.complexAntilinearPartCLM`.
+
+A continuous complex-antilinear operator is also a continuous real-linear one, by Mathlib's
+`AddMonoidHom.toRealLinearMap`, with the same operator norm. This gives a real-linear isometry
+`ContinuousLinearMap.restrictScalarsₛₗLI` from the complex-antilinear operators into the
+real-linear ones. Tau Ceti's
+`ContinuousLinearMap.complexAntilinearPartL` is `ContinuousLinearMap.complexAntilinearPartCLM`
+followed by this isometry
+(`ContinuousLinearMap.restrictScalarsₛₗLI_comp_complexAntilinearPartCLM`), and a
+complex-antilinear operator is its own complex-antilinear part
+(`ContinuousLinearMap.complexAntilinearPart_restrictScalarsₛₗLI`).
 
 The Wirtinger derivatives of a map are the complex-linear and complex-antilinear parts of its
 real derivative, and the derivative of `Ψ` is `Ψ`. So the bounds are Tau Ceti's
@@ -91,6 +102,40 @@ noncomputable def complexAntilinearPartCLM : (E →L[ℝ] F) →L[ℝ] E →L⋆
 theorem complexAntilinearPartCLM_apply (Ψ : E →L[ℝ] F) :
     complexAntilinearPartCLM Ψ = Ψ.complexAntilinearPart :=
   (rfl)
+
+/-- The inclusion of the continuous complex-antilinear operators into the continuous real-linear
+ones, as a real-linear isometry: a complex-antilinear operator, being additive and continuous, is
+real-linear (`AddMonoidHom.toRealLinearMap`), with the same operator norm. -/
+noncomputable def restrictScalarsₛₗLI : (E →L⋆[ℂ] F) →ₗᵢ[ℝ] E →L[ℝ] F where
+  toFun f := (f : E →+ F).toRealLinearMap f.continuous
+  map_add' _ _ := rfl
+  map_smul' _ _ := rfl
+  norm_map' _ := rfl
+
+@[simp]
+theorem coe_restrictScalarsₛₗLI (f : E →L⋆[ℂ] F) : ⇑(restrictScalarsₛₗLI f) = f :=
+  (rfl)
+
+theorem restrictScalarsₛₗLI_apply (f : E →L⋆[ℂ] F) (v : E) : restrictScalarsₛₗLI f v = f v :=
+  (rfl)
+
+/-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` is
+`ContinuousLinearMap.complexAntilinearPartCLM` followed by the inclusion of the
+complex-antilinear operators into the real-linear ones. -/
+theorem restrictScalarsₛₗLI_comp_complexAntilinearPartCLM :
+    (restrictScalarsₛₗLI.toContinuousLinearMap.comp complexAntilinearPartCLM :
+      (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F) = complexAntilinearPartL := by
+  ext Ψ v
+  simp
+
+/-- A complex-antilinear operator is its own complex-antilinear part. -/
+@[simp]
+theorem complexAntilinearPart_restrictScalarsₛₗLI (f : E →L⋆[ℂ] F) :
+    (restrictScalarsₛₗLI f).complexAntilinearPart = f := by
+  ext v
+  simp only [complexAntilinearPart_apply, coe_restrictScalarsₛₗLI, map_smulₛₗ, Complex.conj_I,
+    neg_smul, smul_neg, smul_smul, Complex.I_mul_I, neg_neg]
+  module
 
 
 /-- The complex-linear part commutes with complex scalar multiplication. -/
