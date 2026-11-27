@@ -8,9 +8,12 @@ module
 public import Mathlib.Geometry.Euclidean.Inversion.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import TauCeti.Algebra.Group.Fin.Tuple
+public import TauCeti.LinearAlgebra.Projectivization.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.Projectivization.Map
+import TauCeti.Topology.Algebra.Projectivization
 
 /-!
 # Projective space minus a point as the model blowup
@@ -29,8 +32,9 @@ holomorphic, so it is a diffeomorphism of the underlying real manifolds.
 ## Main definitions and results
 
 * `SymplecticGeometry.projectiveBlowupOpens n`: the complement of `[0 : ⋯ : 0 : 1]` in
-  `ℙ ℂ (Fin (n + 2) → ℂ)`, as an open set, and `SymplecticGeometry.mk_mem_projectiveBlowupOpens`:
-  the line of `v` lies in it exactly when `Fin.init v ≠ 0`.
+  `ℙ ℂ (Fin (n + 2) → ℂ)`, as an open set: Tau Ceti's `Projectivization.linearProjectionDomain`
+  of `Fin.init`. By `SymplecticGeometry.mk_mem_projectiveBlowupOpens`, the line of `v` lies in it
+  exactly when `Fin.init v ≠ 0`.
 * `SymplecticGeometry.projectiveBlowupModelDiffeomorph n`: the smooth diffeomorphism above, for
   the real manifold structures modelled on `𝓘(ℝ, Fin (n + 1) → ℂ)`, with
   `projectiveBlowupModelDiffeomorph_apply` and `projectiveBlowupModelDiffeomorph_symm_apply` on
@@ -56,15 +60,28 @@ variable {n : ℕ}
 
 /-! ### The complement of the point `[0 : ⋯ : 0 : 1]` -/
 
+/-- `Fin.init`, read as the linear map `LinearMap.funLeft ℂ ℂ Fin.castSucc`. -/
+private theorem funLeft_castSucc_apply (v : Fin (n + 2) → ℂ) :
+    LinearMap.funLeft ℂ ℂ Fin.castSucc v = Fin.init v :=
+  funext fun i => (LinearMap.funLeft_apply _ _ _ v i).trans (congrFun Fin.init_def i).symm
+
+/-- `Fin.init` as a continuous linear map, to read its smoothness off. -/
+private noncomputable def initCLM : (Fin (n + 2) → ℂ) →L[ℂ] Fin (n + 1) → ℂ :=
+  ⟨LinearMap.funLeft ℂ ℂ Fin.castSucc, LinearMap.continuous_on_pi _⟩
+
+private theorem initCLM_apply (v : Fin (n + 2) → ℂ) : initCLM v = Fin.init v :=
+  funLeft_castSucc_apply v
+
 variable (n) in
 /-- The complement in `ℙ ℂ (Fin (n + 2) → ℂ)` of the point `[0 : ⋯ : 0 : 1]`, the line of the last
-basis vector, as an open set. -/
+basis vector, as an open set: the domain of the projection `[v] ↦ [Fin.init v]`. -/
 noncomputable def projectiveBlowupOpens : TopologicalSpace.Opens (ℙ ℂ (Fin (n + 2) → ℂ)) :=
-  ⟨{mk ℂ (Pi.single (Fin.last (n + 1)) 1) (by simp)}ᶜ, isOpen_compl_singleton⟩
+  ⟨linearProjectionDomain (LinearMap.funLeft ℂ ℂ Fin.castSucc),
+    isOpen_linearProjectionDomain (LinearMap.continuous_on_pi _)⟩
 
 theorem projectiveBlowupOpens_def :
     (projectiveBlowupOpens n : Set (ℙ ℂ (Fin (n + 2) → ℂ))) =
-      {mk ℂ (Pi.single (Fin.last (n + 1)) 1) (by simp)}ᶜ :=
+      linearProjectionDomain (LinearMap.funLeft ℂ ℂ Fin.castSucc) :=
   (rfl)
 
 /-- The line of a nonzero vector `v` lies off `[0 : ⋯ : 0 : 1]` exactly when the first `n + 1`
@@ -72,25 +89,10 @@ coordinates `Fin.init v` of `v` are not all zero. -/
 @[simp]
 theorem mk_mem_projectiveBlowupOpens {v : Fin (n + 2) → ℂ} (hv : v ≠ 0) :
     mk ℂ v hv ∈ projectiveBlowupOpens n ↔ Fin.init v ≠ 0 := by
-  rw [← SetLike.mem_coe, projectiveBlowupOpens_def, mem_compl_singleton_iff, not_iff_not,
-    mk_eq_mk_iff']
-  constructor
-  · rintro ⟨a, rfl⟩
-    funext j
-    simp [Fin.init, Fin.castSucc_ne_last]
-  · intro h
-    refine ⟨v (Fin.last _), funext fun j => ?_⟩
-    induction j using Fin.lastCases with
-    | last => simp
-    | cast j => simpa [Fin.castSucc_ne_last, Fin.init] using (congrFun h j).symm
+  rw [← SetLike.mem_coe, projectiveBlowupOpens_def, mk_mem_linearProjectionDomain_iff,
+    funLeft_castSucc_apply]
 
 /-! ### Homogeneous coordinates -/
-
-/-- The first `n` entries of a scalar multiple of a tuple are the multiple of its first `n`
-entries. -/
-theorem _root_.Fin.init_smul {M α : Type*} [SMul M α] (a : M) (v : Fin (n + 1) → α) :
-    Fin.init (a • v) = a • Fin.init v :=
-  (rfl)
 
 /-- The squared Hermitian norm of a scalar multiple. -/
 private theorem sum_norm_smul_sq (a : ℂ) (z : Fin (n + 1) → ℂ) :
@@ -117,7 +119,8 @@ private theorem blowdownCoord_smul {a : ℂ} (ha : a ≠ 0) {v : Fin (n + 2) →
   have hS : ((∑ i, ‖Fin.init v i‖ ^ 2 : ℝ) : ℂ) ≠ 0 := by
     exact_mod_cast sum_norm_sq_ne_zero hz
   have ha' : conj a ≠ 0 := (map_ne_zero _).2 ha
-  rw [blowdownCoord_eq, blowdownCoord_eq, Fin.init_smul, sum_norm_smul_sq, Pi.smul_apply,
+  rw [blowdownCoord_eq, blowdownCoord_eq, ← funLeft_castSucc_apply (a • v), map_smul,
+    funLeft_castSucc_apply, sum_norm_smul_sq, Pi.smul_apply,
     smul_eq_mul, map_mul, smul_smul, Complex.ofReal_mul, Complex.ofReal_pow, ← Complex.conj_mul' a]
   congr 1
   field_simp
@@ -135,10 +138,8 @@ theorem mk_snoc_mem_projectiveBlowupOpens {z : Fin (n + 1) → ℂ} (hz : z ≠ 
   exact hz
 
 private theorem init_rep_ne_zero (x : projectiveBlowupOpens n) : Fin.init x.val.rep ≠ 0 := by
-  have h : mk ℂ x.val.rep x.val.rep_ne_zero ∈ projectiveBlowupOpens n := by
-    rw [mk_rep]
-    exact x.property
-  exact (mk_mem_projectiveBlowupOpens _).1 h
+  rw [← funLeft_castSucc_apply, ← mem_linearProjectionDomain_iff, ← projectiveBlowupOpens_def]
+  exact x.property
 
 /-! ### The map and its inverse -/
 
@@ -162,7 +163,8 @@ private theorem toFun_eq {x : projectiveBlowupOpens n} {v : Fin (n + 2) → ℂ}
     rintro rfl
     exact x.val.rep_ne_zero (by rw [← ha, zero_smul])
   rw [toFun_val, Prod.mk.injEq]
-  refine ⟨(mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨a, by rw [← Fin.init_smul, ha]⟩, ?_⟩
+  refine ⟨(mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨a, by
+    rw [← ha, ← funLeft_castSucc_apply (a • v), map_smul, funLeft_castSucc_apply]⟩, ?_⟩
   rw [← ha, blowdownCoord_smul ha0 hz]
 
 /-- The coefficient of the blowdown of `p` along the representative of its line. -/
@@ -172,7 +174,7 @@ private theorem exists_smul_rep (p : BlowupModel n) : ∃ t : ℂ, t • p.pr.re
 /-- The inverse `(ℓ, t • z) ↦ [z : t̄ |z|²]`, computed on the representative `rep` of `ℓ`. -/
 private noncomputable def invFun (p : BlowupModel n) : projectiveBlowupOpens n :=
   ⟨mk ℂ (Fin.snoc p.pr.rep (conj (exists_smul_rep p).choose *
-      ((∑ i, ‖p.pr.rep i‖ ^ 2 : ℝ) : ℂ)) : Fin (n + 2) → ℂ) 
+      ((∑ i, ‖p.pr.rep i‖ ^ 2 : ℝ) : ℂ)) : Fin (n + 2) → ℂ)
       (Fin.snoc_ne_zero_iff.2 (Or.inl p.pr.rep_ne_zero)),
     mk_snoc_mem_projectiveBlowupOpens p.pr.rep_ne_zero _⟩
 
@@ -236,41 +238,46 @@ private theorem toFun_invFun (p : BlowupModel n) : toFun (invFun p) = p := by
 
 /-! ### Smoothness -/
 
-private theorem contDiff_init :
-    ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => Fin.init v :=
-  contDiff_pi.2 fun j => contDiff_apply ℝ (fun _ => ℂ) j.castSucc
-
 private theorem contDiffAt_blowdownCoord {v : Fin (n + 2) → ℂ} (hz : Fin.init v ≠ 0) :
     ContDiffAt ℝ ∞ blowdownCoord v := by
+  have hinit : ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => Fin.init v := by
+    have h := (initCLM (n := n)).restrictScalars ℝ |>.contDiff (n := ∞)
+    rw [ContinuousLinearMap.coe_restrictScalars'] at h
+    convert h using 1
+    exact funext fun v => (initCLM_apply v).symm
   have hS : ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => ∑ i, ‖Fin.init v i‖ ^ 2 :=
     ContDiff.sum fun i _ =>
-      (contDiff_norm_sq ℝ).comp ((contDiff_apply ℝ (fun _ => ℂ) i).comp contDiff_init)
+      (contDiff_norm_sq ℝ).comp ((contDiff_apply ℝ (fun _ => ℂ) i).comp hinit)
   have hw : ContDiff ℝ ∞ fun v : Fin (n + 2) → ℂ => conj (v (Fin.last _)) :=
     Complex.conjCLE.contDiff.comp (contDiff_apply ℝ (fun _ => ℂ) _)
-  exact (hS.contDiffAt.inv (sum_norm_sq_ne_zero hz)).smul
-    (hw.contDiffAt.smul contDiff_init.contDiffAt)
+  exact (hS.contDiffAt.inv (sum_norm_sq_ne_zero hz)).smul (hw.contDiffAt.smul hinit.contDiffAt)
+
+/-- The first component of the map is the projection `[v] ↦ [Fin.init v]`. -/
+private theorem pr_toFun (x : projectiveBlowupOpens n) :
+    (toFun x).pr = linearProjection (LinearMap.funLeft ℂ ℂ Fin.castSucc) x.val := by
+  conv_rhs => rw [← mk_rep x.val]
+  rw [BlowupModel.pr_def, toFun_val,
+    linearProjection_mk _ _ (by rw [funLeft_castSucc_apply]; exact init_rep_ne_zero x)]
+  simp only [funLeft_castSucc_apply]
 
 private theorem contMDiff_toFun :
     ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (toFun (n := n)) := by
   intro x
-  obtain ⟨F, hF, hFx⟩ := exists_contMDiffAt_eventually_eq_mk (r := ∞)
-    (contMDiff_subtypeVal (I := 𝓘(ℂ, Fin (n + 1) → ℂ)) (n := ∞)
-      (U := projectiveBlowupOpens n)).contMDiffAt (x := x)
-  have hev : ∀ᶠ y in 𝓝 x, ∃ (_ : F y ≠ 0) (hz : Fin.init (F y) ≠ 0),
-      (toFun y : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) =
-        (mk ℂ (Fin.init (F y)) hz, blowdownCoord (F y)) := by
-    filter_upwards [hFx] with y ⟨hy, hyF⟩
-    have hz : Fin.init (F y) ≠ 0 := (mk_mem_projectiveBlowupOpens hy).1 (hyF ▸ y.property)
-    exact ⟨hy, hz, toFun_eq hy hyF hz⟩
-  obtain ⟨-, hzx, -⟩ := hev.self_of_nhds
-  have hinit : ContDiff ℂ ∞ fun v : Fin (n + 2) → ℂ => Fin.init v :=
-    contDiff_pi.2 fun j => contDiff_apply ℂ (fun _ => ℂ) j.castSucc
+  have hval := contMDiff_subtypeVal (I := 𝓘(ℂ, Fin (n + 1) → ℂ)) (n := ∞)
+    (U := projectiveBlowupOpens n)
   refine BlowupModel.contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp.2 ⟨?_, ?_⟩
-  · refine (contMDiffAt_of_eventually_eq_mk (hinit.contMDiff.contMDiffAt.comp x hF) ?_)
-      |>.restrictScalars' ℝ
-    filter_upwards [hev] with y ⟨_, hz, hy⟩
-    exact ⟨hz, (BlowupModel.pr_def _).trans (congrArg Prod.fst hy)⟩
-  · refine ((contDiffAt_blowdownCoord hzx).comp_contMDiffAt (hF.restrictScalars' ℝ))
+  · have hpr := ((contMDiffOn_linearProjection (LinearMap.funLeft ℂ ℂ Fin.castSucc) ∞).contMDiffAt
+      (((projectiveBlowupOpens n).isOpen).mem_nhds x.property)).comp x hval.contMDiffAt
+    simpa only [comp_def, pr_toFun] using hpr.restrictScalars' ℝ
+  · obtain ⟨F, hF, hFx⟩ := exists_contMDiffAt_eventually_eq_mk (r := ∞) hval.contMDiffAt (x := x)
+    have hev : ∀ᶠ y in 𝓝 x, ∃ (_ : F y ≠ 0) (hz : Fin.init (F y) ≠ 0),
+        (toFun y : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) =
+          (mk ℂ (Fin.init (F y)) hz, blowdownCoord (F y)) := by
+      filter_upwards [hFx] with y ⟨hy, hyF⟩
+      have hz : Fin.init (F y) ≠ 0 := (mk_mem_projectiveBlowupOpens hy).1 (hyF ▸ y.property)
+      exact ⟨hy, hz, toFun_eq hy hyF hz⟩
+    obtain ⟨-, hzx, -⟩ := hev.self_of_nhds
+    refine ((contDiffAt_blowdownCoord hzx).comp_contMDiffAt (hF.restrictScalars' ℝ))
       |>.congr_of_eventuallyEq ?_
     filter_upwards [hev] with y ⟨_, _, hy⟩
     exact (BlowupModel.blowdown_def _).trans (congrArg Prod.snd hy)
