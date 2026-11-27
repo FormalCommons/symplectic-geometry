@@ -22,7 +22,7 @@ import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Topology.Compactness.Compact
 import SymplecticGeometry.Topology.VectorBundle.Basic
@@ -505,7 +505,7 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
     (SmoothIsotopy.coe_codRestrict_apply _ _ _ _).trans (hR p)
   have hee : Manifold.IsSmoothEmbedding (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ fun w ↦ (ι₁ w : M) :=
     isSmoothEmbedding_subtypeVal_comp_iff.2
-      (ι₁.isSmoothEmbedding_comp (by simp) Manifold.IsSmoothEmbedding.id)
+      (ι₁.isSmoothEmbedding (by simp))
   refine ⟨U, hU, hzero, q.postcompSmoothEmbedding (fun w ↦ (ι₁ w : M)) hee (by simp) _ _
     (fun z ↦ ?_) (fun z ↦ ?_), SmoothIsotopy.isSymplectic_def.2 fun t ↦ ?_, fun t x ↦ ?_,
     fun t ↦ ?_⟩
