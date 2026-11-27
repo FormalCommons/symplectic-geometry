@@ -461,17 +461,22 @@ $X(g,n)$ for the complement of $c_0,\dots,c_{n-1}$.
   loop is `loopInPlane (c k) (δ / 4)`: down from `0` to `-i`, horizontally
   to `c k + δ / 4 - i`, up to `c k + δ / 4`, once counterclockwise around
   the circle of radius `δ / 4` about `c k`, and back the same way. The
-  second is step 8c, for finitely many positive points listed from the
-  largest to the smallest, with the same `hδ`, `hc` and `h0`: a
-  counterclockwise circle about `0` enclosing the points, reached along a
-  ray in the upper half-plane, is homotopic to the loops
-  `loop hδ hc h0 k` run one after the other, from the largest point to the
-  smallest. In Mathlib's
+  second is step 8c, `PlaneMinusRealPoints.fromPath_outerLoop_eq_prod`,
+  for `c : Fin m → ℝ` indexed in increasing order (`StrictMono c`), with
+  the same `hδ` and `hc`, and `hpos : ∀ i, 0 < c i` and
+  `hR : ∀ i, c i < R` in place of `h0`: a counterclockwise circle of
+  radius `R` about `0`, reached along a ray in the upper half-plane, has
+  the class of the product over `List.ofFn` of the classes of the loops
+  `loop hδ hc _ k`, so that the loop about the largest point runs first
+  and the one about the smallest last. In Mathlib's
   `FundamentalGroup` a product `x * y` runs `y` first, so the relation
   `p₀ ⋯ p_{n-1} = 1` says that the clockwise large circle followed by the
   loops about `1, 1/2, …, 1/(n - 1)` is trivial, which is the second fact.
-  Step 8f takes `ι = Fin (n - 1)`, `c j = 1 / (j + 1)` and a `δ > 0` no
-  larger than the smallest gap between these points, such as `1 / n ^ 2`.
+  Step 8f takes `ι = Fin (n - 1)` and the increasing
+  `c j = 1 / (n - 1 - j)`, which is `1 / (j + 1)` reindexed by `Fin.rev`,
+  so that one `c` serves both steps and the loop about `1 / (j + 1)` has
+  index `Fin.rev j`; and a `δ > 0` no larger than the smallest gap
+  between these points, such as `1 / n ^ 2`.
   Step 8b does not induct on the number of points. It takes the route of
   Tau Ceti's `TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup`
   with a cover of its own, since that theorem names no generators and its
