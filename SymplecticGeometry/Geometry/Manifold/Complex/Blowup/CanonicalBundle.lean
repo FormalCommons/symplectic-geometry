@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
 public import SymplecticGeometry.Geometry.Manifold.Complex.Hypersurface.LineBundle
 public import TauCeti.Analysis.Normed.Module.Alternating.TopDegree
+public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
@@ -809,6 +810,118 @@ private theorem compContinuousLinearMap_chartDeriv_eq {j k : Option (Fin (n + 1)
         coordForm_liftChart_trans_blowupModelChart c b i k hzi hzk, smul_smul, smul_smul]
       congr 1
       field_simp
+
+/-- The map `ω ↦ (ω ∘ L⁻¹) ⊗ 1`, inverse to `tmulComp c z L` when `L` is invertible. -/
+private def compInverseTmul (z : Blowup c)
+    (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z)) :
+    TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z →ₗ[ℂ]
+      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+        ((hypersurfaceData c).lineBundleCore n).Fiber z) :=
+  (TensorProduct.mk ℂ _ _).flip (1 : ℂ) ∘ₗ ContinuousAlternatingMap.compContinuousLinearMapₗ L.inverse
+
+private theorem compInverseTmul_apply (z : Blowup c)
+    (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z))
+    (η : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z) :
+    compInverseTmul c z L η = TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber z)
+        (η.compContinuousLinearMap L.inverse) (1 : ℂ) :=
+  (rfl)
+
+/-- For an invertible `L`, the equivalence `ω ↦ (ω ∘ L⁻¹) ⊗ 1`, with inverse
+`σ ⊗ a ↦ a • σ ∘ L`. -/
+private def tmulEquiv (z : Blowup c)
+    (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z)) (hL : L.IsInvertible) :
+    TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z ≃L[ℂ]
+      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+        ((hypersurfaceData c).lineBundleCore n).Fiber z) :=
+  haveI : FiniteDimensional ℂ (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z) :=
+    Module.finite_of_finrank_eq_succ (TauCeti.CanonicalBundle.finrank_eq_one z)
+  { toLinearEquiv := LinearEquiv.ofLinearMap (compInverseTmul c z L) (tmulComp c z L)
+      (TensorProduct.ext' fun (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z))
+          (a : ℂ) ↦ by
+        have h : (a • σ.compContinuousLinearMap L).compContinuousLinearMap L.inverse = a • σ := by
+          ext v
+          simp [Function.comp_def, hL.self_apply_inverse]
+        rw [LinearMap.comp_apply, LinearMap.id_apply, tmulComp_tmul, compInverseTmul_apply, h]
+        -- The fibres of `lineBundleCore` are `ℂ`, so `a • 1` is `a * 1`.
+        exact (TensorProduct.smul_tmul (M := Bundle.Pullback (blowdown c)
+          (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+          (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) a σ (1 : ℂ)).trans
+          (congrArg _ (mul_one a)))
+      (LinearMap.ext fun η ↦ by
+        rw [LinearMap.comp_apply, LinearMap.id_apply, compInverseTmul_apply, tmulComp_tmul, one_smul]
+        ext v
+        simp [hL.inverse_comp_self])
+    continuous_toFun :=
+      haveI := isModuleTopologyOfFiniteDimensional (𝕜 := ℂ)
+        (E := TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z)
+      haveI := IsModuleTopology.toContinuousAdd ℂ
+        (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+          ((hypersurfaceData c).lineBundleCore n).Fiber z)
+      IsModuleTopology.continuous_of_linearMap (R := ℂ) (compInverseTmul c z L)
+    continuous_invFun := IsModuleTopology.continuous_of_linearMap (R := ℂ) _ }
+
+private theorem tmulEquiv_symm_apply (z : Blowup c)
+    (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z)) (hL : L.IsInvertible)
+    (x : Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+        ((hypersurfaceData c).lineBundleCore n).Fiber z) :
+    (tmulEquiv c z L hL).symm x = tmulComp c z L x := by
+  rfl
+
+/-- **The canonical bundle of the blowup.** The fibrewise isomorphism, at each point `z` of the
+blowup `Blowup c` with blowdown `π`, of the canonical bundle `K` of the blowup with the tensor
+product of the pull-back `π^*K_M` of the canonical bundle of `M` with the line bundle `𝒪(nE)` of
+`n` times the exceptional divisor `E`, the line bundle of `(hypersurfaceData c).lineBundleCore n`.
+Off the divisor its inverse sends `σ ⊗ a` to `a` times the pull-back of `σ` by the blowdown
+(`canonicalBundleEquiv_symm_tmul_none`). In the chart `some i`, where the frame of `𝒪(nE)` is
+`(w i)⁻ⁿ`, it sends the coordinate form of `c` tensored with that frame to the coordinate form
+of the chart `blowupModelChart i ∘ lift c` (`canonicalBundleEquiv_symm_tmul_some`). For `n = 0`
+the line bundle is trivial and this is the pull-back `K ≅ π^*K_M`.
+
+This is the identity `K = π^*K_M ⊗ 𝒪(nE)` of canonical bundles of the milestone
+*First Chern class of a blowup at a point*; its Chern class part is
+`Blowup/ChernClass.lean`. -/
+def canonicalBundleEquiv (z : Blowup c) :
+    TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z ≃L[ℂ]
+      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+        ((hypersurfaceData c).lineBundleCore n).Fiber z) :=
+  tmulEquiv c z (chartDeriv c ((hypersurfaceData c).indexAt z) z)
+    (isInvertible_chartDeriv c ((hypersurfaceData c).mem_U_indexAt z))
+
+/-- The inverse of `canonicalBundleEquiv` in the preferred chart at `z`. -/
+private theorem canonicalBundleEquiv_symm_tmul (z : Blowup c)
+    (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) (y : ℂ) :
+    (canonicalBundleEquiv c z).symm (TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) σ y) =
+      y • σ.compContinuousLinearMap (chartDeriv c ((hypersurfaceData c).indexAt z) z) := by
+  rw [canonicalBundleEquiv, tmulEquiv_symm_apply, tmulComp_tmul]
+
+/-- The inverse of `canonicalBundleEquiv` in any chart `j` containing `z`: it sends `σ` tensored
+with the element of coordinate `a` in the chart `j` to `a • σ ∘ chartDeriv c j z`. -/
+private theorem canonicalBundleEquiv_symm_tmul_localTriv_symm {j : Option (Fin (n + 1))}
+    {z : Blowup c} (hz : z ∈ (hypersurfaceData c).U j)
+    (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) (a : ℂ) :
+    (canonicalBundleEquiv c z).symm (TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) σ
+        ((((hypersurfaceData c).lineBundleCore n).localTriv j).symm z a)) =
+      a • σ.compContinuousLinearMap (chartDeriv c j z) := by
+  have hz' : z ∈ (((hypersurfaceData c).lineBundleCore n).localTriv j).baseSet := by simpa using hz
+  refine (congrArg (fun y : ((hypersurfaceData c).lineBundleCore n).Fiber z ↦
+    (canonicalBundleEquiv c z).symm (TensorProduct.tmul ℂ
+      (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+      (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) σ y))
+    (VectorBundleCore.localTriv_symm_apply _ _ hz' a)).trans
+    ((canonicalBundleEquiv_symm_tmul c z σ _).trans ?_)
+  rw [ScalarCocycle.lineBundleCore_coordChange_apply, ScalarCocycle.lineBundleCore_indexAt,
+    compContinuousLinearMap_chartDeriv_eq c hz ((hypersurfaceData c).mem_U_indexAt z), zpow_natCast,
+    mul_comm, mul_smul]
 
 end CanonicalBundleEquiv
 
