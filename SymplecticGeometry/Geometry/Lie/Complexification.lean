@@ -73,6 +73,8 @@ The complex structure `cplx` is not determined by the other fields.
   embedding.
 * `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
   by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
+* `SymplecticGeometry.LieComplexification.polar_symm_inv`: for connected `G`, if
+  `polar.symm a = (η, u)` then `polar.symm a⁻¹ = (-Ad u⁻¹ η, u⁻¹)`.
 * `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
   connected `G`, the left-trivialized velocity of `τ ↦ expI (τ • ξ) * toHom u` is
   `cplx (lieMap (Ad u⁻¹ ξ))` at every time.
@@ -378,6 +380,17 @@ theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u 
   rw [expI_def, expI_def, Lie.conj_mulInvariantExp, lieMap_def,
     ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def,
     Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie]
+
+/-- For connected `G`, the polar decomposition of an inverse: if it reads `a` as `(η, u)`, then
+it reads `a⁻¹` as `(-Ad u⁻¹ η, u⁻¹)`, that is, `a⁻¹ = expI (-Ad u⁻¹ η) * toHom u⁻¹`. -/
+theorem polar_symm_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] {a : Gc}
+    {η : GroupLieAlgebra I G} {u : G} (h : C.polar.symm a = (η, u)) :
+    C.polar.symm a⁻¹ = (-Lie.tangentAd (I := I) u⁻¹ η, u⁻¹) := by
+  have ha : a⁻¹ = C.expI (-Lie.tangentAd (I := I) u⁻¹ η) * C.toHom u⁻¹ := by
+    rw [← C.expI_mul_toHom_polar_symm a, h, ← map_neg, ← C.toHom_mul_expI_mul_inv, expI_neg,
+      map_inv]
+    group
+  rw [ha, polar_symm_expI_mul_toHom]
 
 /-- For connected `G`, the radial curve `τ ↦ expI (τ • ξ) * toHom u` of the polar decomposition
 has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`. -/
