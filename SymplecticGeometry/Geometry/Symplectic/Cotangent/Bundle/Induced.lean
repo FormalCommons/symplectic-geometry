@@ -117,7 +117,8 @@ theorem eval₂_inducedForm_of_contMDiff_apply
   have hd (ξ : GroupLieAlgebra I G) (w : TangentSpace J p) :
       mvfderiv J (fun y ↦ ν y ξ) p w =
         mvfderiv J (fun y ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν y)) p w ξ :=
-    (mvfderiv_toContinuousLinearMap_apply (E := E) (fun ξ ↦ hν ξ p) (by simp) w ξ).symm
+    (mvfderiv_toContinuousLinearMap_apply (E := E)
+      (fun ξ ↦ (hν ξ p).mdifferentiableAt (by simp)) w ξ).symm
   have hk : Module.Dual.kirillovForm (L := GroupLieAlgebra I G)
       (LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) : E →ₗ[ℝ] ℝ) =
       (ν p).kirillovForm :=

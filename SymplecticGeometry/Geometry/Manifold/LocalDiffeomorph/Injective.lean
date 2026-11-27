@@ -17,6 +17,10 @@ diffeomorphism on `e.target`, then `e` itself is `C^n` on `e.source`
 on `e.target` in the sense of `Function.invFunOn`, so this is Tau Ceti's
 `IsLocalDiffeomorphOn.contMDiffOn_invFunOn`.
 
+The same Tau Ceti lemma, on the whole domain, shows that the left inverse
+`Function.invFunOn f univ` of an injective local diffeomorphism `f` is smooth on the range of `f`
+(`IsLocalDiffeomorph.contMDiffOn_invFunOn`).
+
 ## References
 
 * J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
@@ -53,5 +57,16 @@ theorem contMDiffOn_of_isLocalDiffeomorphOn_symm (e : OpenPartialHomeomorph M N)
     _ = invFunOn e.symm e.target y := by rw [e.left_inv hy]
 
 end OpenPartialHomeomorph
+
+namespace IsLocalDiffeomorph
+
+/-- The left inverse `Function.invFunOn f univ` of an injective `C^n` local diffeomorphism `f` is
+`C^n` on the range of `f`. -/
+theorem contMDiffOn_invFunOn [Nonempty M] {f : M → N} (hf : IsLocalDiffeomorph I J n f)
+    (hinj : Injective f) : ContMDiffOn J I n (invFunOn f univ) (range f) := by
+  simpa only [image_univ] using
+    (hf.isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ hinj.injOn
+
+end IsLocalDiffeomorph
 
 end
