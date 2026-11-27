@@ -259,13 +259,7 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
         exact hq
       · exact ⟨(q.1, ⟨q.2, mem_openNbhdOpens_iff.2 (hmem hq)⟩), hq, rfl⟩
     rw [himage]
-    obtain ⟨t₁, -, ht₁⟩ := isCompact_univ.exists_isMaxOn univ_nonempty hc.continuousOn
-    have hclosed : IsClosed {q : unitInterval × BlowupModel n | q.2 ∈ closedNbhd n (c q.1)} := by
-      simp only [mem_closedNbhd_iff]
-      exact isClosed_le ((complexToRealEuclidean (Fin (n + 1))).continuous.comp
-        (continuous_blowdown.comp continuous_snd)).norm (hc.comp continuous_fst)
-    refine (isCompact_univ.prod (isCompact_closedNbhd (n := n) (c t₁))).of_isClosed_subset
-      hclosed fun q hq ↦ ⟨mem_univ _, closedNbhd_mono (ht₁ (mem_univ q.1)) hq⟩
+    exact isCompact_setOf_mem_closedNbhd hc
   have hK : IsClosed ((fun q ↦ (q.1, (hψ q.1).ballLift
       ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩)) '' S) :=
     (hS.image (continuous_fst.prodMk
