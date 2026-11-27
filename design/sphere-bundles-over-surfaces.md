@@ -8,8 +8,9 @@ McDuff–Salamon [McDuffSalamon2017], §6.2: Lemma 6.2.3 and Exercise 6.2.4
 for the first, Theorem 6.2.5 with Exercises 6.2.6, 6.2.8 and 6.2.9 for the
 second. The input from differential topology is Smale's theorem
 [Smale1959], from part 46. The handle induction follows Milnor's *Morse
-theory* (1963), §3, and the de Rham Leray–Hirsch theorem follows Bott–Tu
-[BottTu1982], §5.
+theory* (1963), §3, and the de Rham Leray–Hirsch theorem is read off the
+singular one, as in Hatcher, *Algebraic Topology*, Theorem 4D.1, and
+Bott–Tu [BottTu1982], §14.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
 written with another one. Paths of new files are under `SymplecticGeometry/`.
@@ -271,17 +272,17 @@ notes of the reviews of #2280 and #2445.
 
 ## Departures from `DESIGN.md`
 
-`DESIGN.md` is corrected in the same pull request, in two places. In part
-56, `RuledSurface.lean` reaches $H^2(X_B;\mathbb R)$ through the de Rham
-Leray–Hirsch theorem of Decision 7, which it draws from the merged
-singular Leray–Hirsch files. *Builds on* and the build-order row gain part 50,
+`DESIGN.md` is corrected in the same pull request, in one place: in part
+56, *Builds on* and the build-order row gain part 50,
 *Principal connections*, only for `Fibration/Associated.lean`, which
 `RuledSurface.lean` uses (Decision 8), and they name the files of part 46
 before `Smale.lean` that `diffPlus`, `mobiusSubgroup` and
 `mobiusSubgroup_le_diffPlus` come from. Part 50 is at level 0, so part 56
 stays at level 2. Of part 48 the part uses `MapFiber.lean`,
 `StructureGroup.lean` and `Basic.lean`, which `DESIGN.md` already allows.
-The new blocker of the building issue is proposed in an issue.
+The new blocker of the building issue is proposed in an issue. In bringing
+the singular Leray–Hirsch theorem to de Rham classes, the part now follows
+`DESIGN.md`.
 
 ## Files
 
@@ -480,8 +481,7 @@ milestones are proved in issues 7 and 11.
   Theorem 6.2.5, Exercises 6.2.6, 6.2.8 and 6.2.9.
 * [S. Smale, *Diffeomorphisms of the 2-sphere*][Smale1959].
 * [R. Bott, L. W. Tu, *Differential Forms in Algebraic
-  Topology*][BottTu1982], §5 (the Mayer–Vietoris argument) and §14
-  (Leray–Hirsch).
+  Topology*][BottTu1982], §14 (Leray–Hirsch).
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002,
   Theorem 4D.1 (Leray–Hirsch).
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton
