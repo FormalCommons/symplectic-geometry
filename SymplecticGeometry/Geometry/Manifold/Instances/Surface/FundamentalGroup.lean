@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Restrict
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Topology.Maps.Embedding
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The fundamental groups of the punctured closed surfaces
@@ -166,7 +167,10 @@ private def puncturedSummandHomeomorph :
 private theorem coe_coe_puncturedSummandHomeomorph_apply (y : puncture g (n + 1)) :
     ((puncturedSummandHomeomorph y : (tailPuncture g n : Set (ClosedSurface g))) :
       ClosedSurface g) = y := by
-  -- `Homeomorph.setCongr` and `Diffeomorph.toHomeomorph` keep the underlying point.
+  rw [puncturedSummandHomeomorph, Homeomorph.trans_apply, Homeomorph.setCongr_apply]
+  -- `Diffeomorph.coe_toHomeomorph` cannot rewrite here, as instance search does not find the
+  -- charted space structure on `Opens.imageVal _` that this goal carries; `exact` unfolds the
+  -- coercion of `Diffeomorph.toHomeomorph` instead.
   exact Opens.coe_diffeomorphImageVal_symm_apply (I := 𝓡 2) (n := 0) _ _
 
 /-- The sum of the torus with `tailPuncture g n` is `puncture (g + 1) n`. -/

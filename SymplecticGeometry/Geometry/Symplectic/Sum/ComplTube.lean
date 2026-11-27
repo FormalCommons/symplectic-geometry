@@ -214,9 +214,8 @@ private theorem map_inclusion_collar_bijective (hδ : 0 ≤ δ) (hδε : δ < ε
         (annulusHomotopyEquiv (E := ℂ) le_rfl hδ hδε)).toFun =
         (ContinuousMap.id Q).prodMap (annulusHomotopyEquiv (E := ℂ) le_rfl hδ hδε).toFun := rfl
     rw [hP, annulusHomotopyEquiv_toFun]
-    simp only [e₀, e, Homeomorph.trans_apply]
-    -- `Homeomorph.setCongr` and `IsEmbedding.toHomeomorph` do not move the point in `M`
-    change f (annulusToProdBall _) = f (annulusToProdBall w)
+    simp only [e₀, e, Homeomorph.trans_apply, Homeomorph.setCongr_apply,
+      IsEmbedding.toHomeomorph_apply_coe, Function.comp_apply]
     exact congrArg f (Subtype.ext (by simpa using ContinuousMap.inclusion_apply_coe _ w.2))
   rw [← hH]
   exact H.fundamentalGroup_map_bijective x
