@@ -7,12 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
-import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
-import TauCeti.Analysis.Calculus.Deriv.Second
+import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.SecondDerivative
 
@@ -47,13 +46,26 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   (`SymplecticGeometry.exists_pos_div_le_iteratedDeriv_two_smoothedAbs`), makes up for it. So
   this route, unlike the book's quadratic bridge, needs no transversality of the crossings.
 * `SymplecticGeometry.shapeGraph χ`: the function `(s, t) ↦ χ (√t) - √s`, whose zero level,
-  composed with `shape`, is the hypersurface of the shape. Its partial derivatives use Tau Ceti's
-  `TauCeti.deriv_deriv_sqrt_quadratic` for the second derivative of `√·`, and
+  composed with `shape`, is the hypersurface of the shape. Its partial derivatives use
+  `Real.iteratedDeriv_two_sqrt` for the second derivative of `√·`, and
   `SymplecticGeometry.fderiv_shapeGraph_comp_shape_apply` gives the differential of
-  `shapeGraph χ ∘ shape`.
+  `shapeGraph χ ∘ shape`. Over a point `(χ r ², r ²)` of the curve, `shapeGraph χ` vanishes
+  (`SymplecticGeometry.shapeGraph_sq_sq`) and that differential does not
+  (`SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero`).
 * `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos`: if `χ` is `C²` at `r` and
   `IsConvexShapeAt χ r`, then at every `p` with `shape p = (χ r ², r ²)` the Levi form of
   `shapeGraph χ ∘ shape` is positive on the nonzero complex tangencies of its level set.
+* Near the cylinder `r = δ` the shapes have vertical tangents and are graphs `r = ρ(R)` over `R`.
+  `SymplecticGeometry.shapeGraphOverR ρ` is the function `(s, t) ↦ √t - ρ (√s)`, which has the
+  sign of `shapeGraph χ` when `ρ` is the inverse of an increasing `χ`.
+  `SymplecticGeometry.IsConvexShapeOverRAt ρ R` asks that the real part of the Levi form of
+  `shapeGraphOverR ρ ∘ shape`, as `re_leviForm_comp_shape_apply_self` writes it on a complex
+  tangency, be positive under the two Cauchy–Schwarz bounds on `|σ|²`. `isConvexShapeOverRAt_iff`
+  reduces it to `ρ' / R < 1 / ρ`, `ρ'' < 1 / ρ - ρ'³ / R` and `ρ'' < (1 + ρ'²) / ρ` at `R`, the
+  last of which follows from the second when `ρ' ≥ -R / ρ`. For the inverse of a shape the first two
+  are (4.3) and the case `σ = r` of (4.4). Unlike the slope of a shape, `ρ'` may vanish, as on
+  the cylinder itself. `SymplecticGeometry.IsConvexShapeOverRAt.re_leviForm_pos` is its Levi
+  theorem, at `R > 0`.
 
 The proof evaluates `SymplecticGeometry.re_leviForm_comp_shape_apply_self`. On a complex tangency
 `v` the Wirtinger derivatives `σ = ∂s v` and `τ = ∂t v` are proportional, `τ = r / (R χ') σ`, and
@@ -61,7 +73,9 @@ the Cauchy–Schwarz bound `SymplecticGeometry.norm_ofReal_mul_add_ofReal_mul_sq
 combination of `σ` and `τ` bounds `|σ|²` by `|v|²`; this takes the
 place of the book's splitting of the complex tangency into the two parts on which it computes
 the Levi form separately, and of its passage from `k = n` to `k < n`, where the extra directions
-only need `χ' > 0`.
+only need `χ' > 0`. The proof over `R` is the same computation, with the relation
+`τ = (r ρ' / R) σ` from `SymplecticGeometry.ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape`,
+which allows `ρ' = 0`.
 
 ## References
 
@@ -477,28 +491,15 @@ theorem fderiv_fderiv_shapeGraph_apply {s t : ℝ} (hχ : ContDiffAt ℝ 2 χ (�
       a * a' / (4 * s * √s) +
         b * b' * (iteratedDeriv 2 χ (√t) / (4 * t) - deriv χ (√t) / (4 * t * √t)) := by
   have hf : ContDiffAt ℝ 2 (fun s ↦ -√s) s := (Real.contDiffAt_sqrt hs.ne').neg
-  have hq : ContDiffAt ℝ 2 (fun t ↦ √t) t := Real.contDiffAt_sqrt ht.ne'
-  have hg : ContDiffAt ℝ 2 (χ ∘ fun t ↦ √t) t := hχ.comp t hq
-  -- The second derivative of `√·`, from Tau Ceti's formula for `√` of a quadratic.
-  have h2sqrt {x : ℝ} (hx : 0 < x) : iteratedDeriv 2 (√·) x = -1 / (4 * x * √x) := by
-    simpa [iteratedDeriv_succ] using
-      deriv_deriv_sqrt_quadratic (a := 0) (b := 1) (c := 0) (t := x) (by simpa using hx)
+  have hg : ContDiffAt ℝ 2 (χ ∘ fun t ↦ √t) t := hχ.comp t (Real.contDiffAt_sqrt ht.ne')
   have h2f : iteratedDeriv 2 (fun s ↦ -√s) s = 1 / (4 * s * √s) := by
-    rw [iteratedDeriv_fun_neg, h2sqrt hs]
+    rw [iteratedDeriv_fun_neg, Real.iteratedDeriv_two_sqrt hs]
     ring
-  have h2g : iteratedDeriv 2 (χ ∘ fun t ↦ √t) t =
-      iteratedDeriv 2 χ (√t) / (4 * t) - deriv χ (√t) / (4 * t * √t) := by
-    rw [iteratedDeriv_comp_two hχ hq, h2sqrt ht,
-      (Real.hasDerivAt_sqrt ht.ne').deriv]
-    have hsq : √t ^ 2 = t := Real.sq_sqrt ht.le
-    have : 0 < √t := Real.sqrt_pos.2 ht
-    field_simp
-    linear_combination (-4 * iteratedDeriv 2 χ (√t)) * hsq
   rw [shapeGraph_eq_comp_fst_add_comp_snd, fderiv_fderiv_comp_fst_add_comp_snd hf hg]
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     ContinuousLinearMap.coe_prodMap', Prod.map_fst, Prod.map_snd,
     ContinuousLinearMap.coprodEquivL_apply_apply,
-    fderiv_fderiv_apply_eq_smul_iteratedDeriv, h2f, h2g,
+    fderiv_fderiv_apply_eq_smul_iteratedDeriv, h2f, Real.iteratedDeriv_two_comp_sqrt hχ ht,
     smul_eq_mul]
   ring
 
@@ -521,8 +522,45 @@ theorem fderiv_shapeGraph_comp_shape_apply
   have h := fderiv_shapeGraph_apply hχ hs ht (fderiv ℝ (fun q ↦ (shape q).1) p v)
     (fderiv ℝ (fun q ↦ (shape q).2) p v)
   rw [Prod.mk.eta] at h
-  rw [fderiv_comp p hH ((contDiff_shape (n := 1)).differentiable one_ne_zero p),
-    ContinuousLinearMap.comp_apply, fderiv_shape_apply, h]
+  rw [fderiv_comp_shape_apply hH, h]
+
+/-- `shapeGraph χ` vanishes at the point `(χ r ², r ²)` of the curve of the shape, for
+`χ r ≥ 0` and `r ≥ 0`. -/
+theorem shapeGraph_sq_sq (hR : 0 ≤ χ r) (hr : 0 ≤ r) : shapeGraph χ (χ r ^ 2, r ^ 2) = 0 := by
+  rw [shapeGraph_def, Real.sqrt_sq hr, Real.sqrt_sq hR, sub_self]
+
+/-- The differential of `shapeGraph χ ∘ shape` at a point `p` over the point `(χ r ², r ²)` of the
+curve of the shape, for `χ r > 0`, `r > 0` and `χ` differentiable at `r`:
+`v ↦ -ds_p v / (2 χ r) + dt_p v χ'(r) / (2 r)`. -/
+theorem fderiv_shapeGraph_comp_shape_apply_of_shape_eq (hχ : DifferentiableAt ℝ χ r)
+    (hR : 0 < χ r) (hr : 0 < r) {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : shape p = (χ r ^ 2, r ^ 2)) (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (shapeGraph χ ∘ shape) p v =
+      -fderiv ℝ (fun q ↦ (shape q).1) p v / (2 * χ r) +
+        fderiv ℝ (fun q ↦ (shape q).2) p v * deriv χ r / (2 * r) := by
+  have hsr : √(r ^ 2) = r := Real.sqrt_sq hr.le
+  rw [fderiv_shapeGraph_comp_shape_apply (by rwa [hp, hsr]) (by rw [hp]; positivity)
+    (by rw [hp]; positivity), hp, Real.sqrt_sq hR.le, hsr]
+
+/-- At a point `p` over the point `(χ r ², r ²)` of the curve of the shape, for `χ r > 0`, `r > 0`
+and `χ` differentiable at `r`, the differential of `shapeGraph χ ∘ shape` does not vanish: it
+takes the value `-χ r` on the vector `((Re p₁ⱼ)ⱼ, 0)`. -/
+theorem fderiv_shapeGraph_comp_shape_ne_zero (hχ : DifferentiableAt ℝ χ r) (hR : 0 < χ r)
+    (hr : 0 < r) {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hp : shape p = (χ r ^ 2, r ^ 2)) : fderiv ℝ (shapeGraph χ ∘ shape) p ≠ 0 := by
+  intro h0
+  have h1 := fderiv_shapeGraph_comp_shape_apply_of_shape_eq hχ hR hr hp
+    (WithLp.toLp 2 (fun j ↦ ((p.1 j).re : ℂ)), 0)
+  rw [h0, zero_apply, fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h1
+  have hsum : ∑ j, (p.1 j).re * (p.1 j).re = χ r ^ 2 := by
+    have h2 : (shape p).1 = χ r ^ 2 := by rw [hp]
+    rw [shape_fst] at h2
+    rw [← h2]
+    exact Finset.sum_congr rfl fun j _ ↦ (sq _).symm
+  simp only [ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero,
+    inner_zero_right, zero_re, add_zero, hsum] at h1
+  field_simp at h1
+  exact hR.ne' (by nlinarith [h1])
 
 /-- On a complex tangency of `shapeGraph χ ∘ shape` at a point with `√s = R`, `√t = r` and
 `χ'(r) = d`, written through `fderiv_shapeGraph_comp_shape_apply`, the Wirtinger derivatives
@@ -535,31 +573,14 @@ private theorem inner_sub_I_mul_sum_eq_of_tangent {R r d : ℝ} (hR : R ≠ 0) (
       fderiv ℝ (fun q ↦ (shape q).2) p (I • v) * d / (2 * r) = 0) :
     ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j =
       ((r / (d * R) : ℝ) : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j := by
-  rw [fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h₁ h₂
-  simp only [Prod.smul_fst, Prod.smul_snd, PiLp.smul_apply, smul_eq_mul, inner_smul_right,
-    mul_re, mul_im, I_re, I_im, zero_mul, one_mul, zero_sub, mul_neg, Finset.sum_neg_distrib,
-    zero_add] at h₂
-  set σ := ∑ j, ((p.1 j).re : ℂ) * v.1 j with hσ
-  set τ := ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j with hτ
-  have hσre : σ.re = ∑ j, (p.1 j).re * (v.1 j).re := by simp [hσ, re_sum]
-  have hσim : σ.im = ∑ j, (p.1 j).re * (v.1 j).im := by simp [hσ, im_sum]
-  have hτre : τ.re = ∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re := by
-    simp [hτ, re_sum, add_comm]
-  have hτim : τ.im = (⟪p.2, v.2⟫_ℂ).im - ∑ j, (p.1 j).im * (v.1 j).re := by
-    simp [hτ, im_sum]
-  have hre : τ.re = r / (d * R) * σ.re := by
-    have e₁ : τ.re * d / r = σ.re / R := by
-      rw [hσre, hτre]
-      linear_combination h₁
-    field_simp at e₁ ⊢
-    linarith
-  have him : τ.im = r / (d * R) * σ.im := by
-    have e₁ : τ.im * d / r = σ.im / R := by
-      rw [hσim, hτim]
-      linear_combination -h₂
-    field_simp at e₁ ⊢
-    linarith
-  exact Complex.ext (by rwa [re_ofReal_mul]) (by rwa [im_ofReal_mul])
+  have h := ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape (α := -(1 / (2 * R)))
+    (β := d / (2 * r)) (by linear_combination h₁) (by linear_combination h₂)
+  have hR' : (R : ℂ) ≠ 0 := ofReal_ne_zero.2 hR
+  have hr' : (r : ℂ) ≠ 0 := ofReal_ne_zero.2 hr
+  have hd' : (d : ℂ) ≠ 0 := ofReal_ne_zero.2 hd
+  push_cast at h ⊢
+  field_simp at h ⊢
+  linear_combination h
 
 /-- **The Levi form of an `i`-convex shape.** Let `χ` be `C²` at `r` and an `i`-convex shape
 there, and let `p ∈ ℂᵏ × ℂᵐ` lie on the hypersurface of the shape, `shape p = (χ r ², r ²)`. Then
@@ -583,13 +604,8 @@ theorem IsConvexShapeAt.re_leviForm_pos (hχ : ContDiffAt ℝ 2 χ r) (h : IsCon
   have hs : 0 < χ r ^ 2 := by positivity
   have ht : 0 < r ^ 2 := by positivity
   have hH : ContDiffAt ℝ 2 (shapeGraph χ) (shape p) := hp ▸ contDiffAt_shapeGraph hχ' hs ht
-  have htan (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-      fderiv ℝ (shapeGraph χ ∘ shape) p u =
-        -fderiv ℝ (fun q ↦ (shape q).1) p u / (2 * χ r) +
-          fderiv ℝ (fun q ↦ (shape q).2) p u * deriv χ r / (2 * r) := by
-    rw [fderiv_shapeGraph_comp_shape_apply (by rw [hp]; exact hχ'.differentiableAt (by norm_num))
-      (by rw [hp]; exact hs) (by rw [hp]; exact ht), hp, hsR, hsr]
-  rw [htan] at hv₁ hv₂
+  rw [fderiv_shapeGraph_comp_shape_apply_of_shape_eq (hχ.differentiableAt (by norm_num)) hR hr
+    hp] at hv₁ hv₂
   -- On a complex tangency, `τ = λ σ` with `λ = r / (χ' R)`.
   have hτσ := inner_sub_I_mul_sum_eq_of_tangent hR.ne' hr.ne' hd.ne' hv₁ hv₂
   rw [re_leviForm_comp_shape_apply_self hH v, hp,
@@ -658,6 +674,344 @@ theorem IsConvexShapeAt.re_leviForm_pos (hχ : ContDiffAt ℝ 2 χ r) (h : IsCon
   rw [hττ]
   convert div_pos hN (by positivity : (0 : ℝ) < 4 * R ^ 2 * d ^ 2) using 1
   rw [hl]
+  field_simp
+  ring
+
+/-! ### Shapes as graphs over `R`
+
+Near the cylinder `r = δ` the shapes have vertical tangents, and their hypersurfaces are graphs
+`r = ρ (R)` over `R = √s` rather than graphs `R = χ (r)` over `r = √t`. -/
+
+/-- The **defining function of a shape over `R`** `ρ`: `(s, t) ↦ √t - ρ (√s)`. Composed with
+`shape`, its zero level near `shape p = (R ², ρ R ²)` is the hypersurface `r = ρ (R)`, with
+`R = √s` and `r = √t`. Where `ρ` is the inverse of an increasing `χ`, it has the sign of
+`shapeGraph χ`. -/
+def shapeGraphOverR (ρ : ℝ → ℝ) (q : ℝ × ℝ) : ℝ :=
+  √q.2 - ρ (√q.1)
+
+theorem shapeGraphOverR_def (ρ : ℝ → ℝ) (q : ℝ × ℝ) : shapeGraphOverR ρ q = √q.2 - ρ (√q.1) :=
+  (rfl)
+
+/-- `shapeGraphOverR ρ` is a separated sum of the functions `s ↦ -ρ (√s)` and `t ↦ √t`. -/
+theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
+    shapeGraphOverR ρ = (-(ρ ∘ fun s ↦ √s)) ∘ Prod.fst + (fun t ↦ √t) ∘ Prod.snd := by
+  funext q
+  simp [shapeGraphOverR_def, sub_eq_neg_add]
+
+/-- `shapeGraphOverR ρ` is `Cⁿ` at `(s, t)` with `s, t > 0` if `ρ` is `Cⁿ` at `√s`. -/
+theorem contDiffAt_shapeGraphOverR {ρ : ℝ → ℝ} {n : WithTop ℕ∞} {s t : ℝ}
+    (hρ : ContDiffAt ℝ n ρ (√s)) (hs : 0 < s) (ht : 0 < t) :
+    ContDiffAt ℝ n (shapeGraphOverR ρ) (s, t) := by
+  rw [shapeGraphOverR_eq_comp_fst_add_comp_snd]
+  exact ((hρ.comp s (Real.contDiffAt_sqrt hs.ne')).neg.comp (s, t) contDiffAt_fst).add
+    ((Real.contDiffAt_sqrt ht.ne').comp (s, t) contDiffAt_snd)
+
+/-- The differential of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0`:
+`(a, b) ↦ -a ρ'(√s) / (2 √s) + b / (2 √t)`. -/
+theorem fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ : DifferentiableAt ℝ ρ (√s))
+    (hs : 0 < s) (ht : 0 < t) (a b : ℝ) :
+    fderiv ℝ (shapeGraphOverR ρ) (s, t) (a, b) =
+      -a * deriv ρ (√s) / (2 * √s) + b / (2 * √t) := by
+  have hf : HasDerivAt (-(ρ ∘ fun s ↦ √s)) (-(deriv ρ (√s) * (1 / (2 * √s)))) s :=
+    (hρ.hasDerivAt.comp s (Real.hasDerivAt_sqrt hs.ne')).neg
+  have hg : HasDerivAt (fun t ↦ √t) (1 / (2 * √t)) t := Real.hasDerivAt_sqrt ht.ne'
+  rw [shapeGraphOverR_eq_comp_fst_add_comp_snd,
+    fderiv_comp_fst_add_comp_snd hf.differentiableAt hg.differentiableAt,
+    hf.hasFDerivAt.fderiv, hg.hasFDerivAt.fderiv]
+  simp only [ContinuousLinearMap.coprod_apply, ContinuousLinearMap.toSpanSingleton_apply,
+    smul_eq_mul]
+  ring
+
+/-- The second derivative of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0` is diagonal:
+`((a, b), (a', b')) ↦ a a' (ρ'(√s) / (4 s √s) - ρ''(√s) / (4 s)) - b b' / (4 t √t)`. -/
+theorem fderiv_fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ : ContDiffAt ℝ 2 ρ (√s))
+    (hs : 0 < s) (ht : 0 < t) (a b a' b' : ℝ) :
+    fderiv ℝ (fderiv ℝ (shapeGraphOverR ρ)) (s, t) (a, b) (a', b') =
+      a * a' * (deriv ρ (√s) / (4 * s * √s) - iteratedDeriv 2 ρ (√s) / (4 * s)) -
+        b * b' / (4 * t * √t) := by
+  have hf : ContDiffAt ℝ 2 (-(ρ ∘ fun s ↦ √s)) s := (hρ.comp s (Real.contDiffAt_sqrt hs.ne')).neg
+  have hg : ContDiffAt ℝ 2 (fun t ↦ √t) t := Real.contDiffAt_sqrt ht.ne'
+  have h2f : iteratedDeriv 2 (-(ρ ∘ fun s ↦ √s)) s =
+      deriv ρ (√s) / (4 * s * √s) - iteratedDeriv 2 ρ (√s) / (4 * s) := by
+    rw [iteratedDeriv_neg, Real.iteratedDeriv_two_comp_sqrt hρ hs]
+    ring
+  rw [shapeGraphOverR_eq_comp_fst_add_comp_snd, fderiv_fderiv_comp_fst_add_comp_snd hf hg]
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearMap.coe_prodMap', Prod.map_fst, Prod.map_snd,
+    ContinuousLinearMap.coprodEquivL_apply_apply,
+    fderiv_fderiv_apply_eq_smul_iteratedDeriv, h2f, Real.iteratedDeriv_two_sqrt ht, smul_eq_mul]
+  ring
+
+/-- The differential of `shapeGraphOverR ρ ∘ shape` at `p` with `s = (shape p).1 > 0` and
+`t = (shape p).2 > 0`, for `ρ` differentiable at `√s`:
+`v ↦ -ds_p v ρ'(√s) / (2 √s) + dt_p v / (2 √t)`. -/
+theorem fderiv_shapeGraphOverR_comp_shape_apply {ρ : ℝ → ℝ}
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hρ : DifferentiableAt ℝ ρ (√(shape p).1)) (hs : 0 < (shape p).1) (ht : 0 < (shape p).2)
+    (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (shapeGraphOverR ρ ∘ shape) p v =
+      -fderiv ℝ (fun q ↦ (shape q).1) p v * deriv ρ (√(shape p).1) / (2 * √(shape p).1) +
+        fderiv ℝ (fun q ↦ (shape q).2) p v / (2 * √(shape p).2) := by
+  have hH : DifferentiableAt ℝ (shapeGraphOverR ρ) (shape p) := by
+    rw [shapeGraphOverR_eq_comp_fst_add_comp_snd]
+    exact ((hρ.comp _ (Real.hasDerivAt_sqrt hs.ne').differentiableAt).neg.comp _
+      differentiableAt_fst).add
+      ((Real.hasDerivAt_sqrt ht.ne').differentiableAt.comp _ differentiableAt_snd)
+  have h := fderiv_shapeGraphOverR_apply hρ hs ht (fderiv ℝ (fun q ↦ (shape q).1) p v)
+    (fderiv ℝ (fun q ↦ (shape q).2) p v)
+  rw [Prod.mk.eta] at h
+  rw [fderiv_comp_shape_apply hH, h]
+
+variable {ρ : ℝ → ℝ} {R : ℝ}
+
+/-- The **`i`-convexity criterion for a shape over `R`** at `R`: `ρ : ℝ → ℝ` is positive at
+`R > 0`, and, with `r = ρ R`, `d = ρ' R` and `e = ρ'' R`,
+`0 < a (1 / r - d / R) + 2 b / r + S (d / R³ - e / R² - d² / (r R²))` for all `a, b, S ≥ 0`
+with `a + b > 0`, `S ≤ R² a` and `(1 + d²) S ≤ R² (a + b)`.
+
+The right side is four times the real part of the Levi form of `shapeGraphOverR ρ ∘ shape`
+(`re_leviForm_comp_shape_apply_self`) on a complex tangent vector `v` of its level set through a
+point with `shape p = (R ², r ²)`, written in `a = |v₁|²`, `b = |v₂|²` and `S = |σ|²`, where
+`σ = ∑ⱼ xⱼ v₁ⱼ`; the conditions on `S` are the Cauchy–Schwarz bounds `norm_sum_re_mul_sq_le`
+and `norm_ofReal_mul_add_ofReal_mul_sq_le` on such a vector. `isConvexShapeOverRAt_iff` reduces it
+to three inequalities on `d` and `e`. -/
+structure IsConvexShapeOverRAt (ρ : ℝ → ℝ) (R : ℝ) : Prop where
+  pos : 0 < R
+  pos_value : 0 < ρ R
+  levi : ∀ a b S : ℝ, 0 ≤ a → 0 ≤ b → 0 < a + b → 0 ≤ S → S ≤ R ^ 2 * a →
+    (1 + deriv ρ R ^ 2) * S ≤ R ^ 2 * (a + b) →
+    0 < a * (1 / ρ R - deriv ρ R / R) + 2 * b / ρ R +
+      S * (deriv ρ R / R ^ 3 - iteratedDeriv 2 ρ R / R ^ 2 - deriv ρ R ^ 2 / (ρ R * R ^ 2))
+
+namespace IsConvexShapeOverRAt
+
+/-- The case `a = 1`, `b = S = 0` of the criterion over `R`: `ρ' R / R < 1 / ρ R`, the analogue
+of `IsConvexShapeAt.one_div_lt_deriv_div` for the inverse `ρ` of a shape `χ`. -/
+theorem deriv_div_lt_one_div (h : IsConvexShapeOverRAt ρ R) : deriv ρ R / R < 1 / ρ R := by
+  have := h.levi 1 0 0 zero_le_one le_rfl (by norm_num) le_rfl (by positivity)
+    (by simp [sq_nonneg])
+  simp only [one_mul, mul_zero, zero_div, add_zero, zero_mul] at this
+  linarith
+
+/-- The slope of a shape over `R` is less than `R / ρ R`, the analogue of
+`IsConvexShapeAt.deriv_pos` for the inverse `ρ` of a shape `χ`. Unlike that slope, it need not
+be positive. -/
+theorem deriv_lt_div (h : IsConvexShapeOverRAt ρ R) : deriv ρ R < R / ρ R := by
+  have := h.deriv_div_lt_one_div
+  rw [div_lt_iff₀ h.pos] at this
+  calc deriv ρ R < 1 / ρ R * R := this
+    _ = R / ρ R := by ring
+
+/-- The case `a = 1`, `b = 0` and `S = R² / (1 + ρ' R ²)` of the criterion over `R`:
+`ρ'' R < 1 / ρ R - ρ' R ³ / R`. -/
+theorem iteratedDeriv_two_lt (h : IsConvexShapeOverRAt ρ R) :
+    iteratedDeriv 2 ρ R < 1 / ρ R - deriv ρ R ^ 3 / R := by
+  have hR := h.pos
+  have hr := h.pos_value
+  have hq : 0 < 1 + deriv ρ R ^ 2 := by positivity
+  have := h.levi 1 0 (R ^ 2 / (1 + deriv ρ R ^ 2)) zero_le_one le_rfl (by norm_num)
+    (by positivity) (by rw [mul_one]; exact div_le_self (sq_nonneg R) (by nlinarith))
+    (by field_simp; linarith)
+  rw [← sub_pos]
+  have e : 1 * (1 / ρ R - deriv ρ R / R) + 2 * 0 / ρ R + R ^ 2 / (1 + deriv ρ R ^ 2) *
+      (deriv ρ R / R ^ 3 - iteratedDeriv 2 ρ R / R ^ 2 - deriv ρ R ^ 2 / (ρ R * R ^ 2)) =
+      (1 / ρ R - deriv ρ R ^ 3 / R - iteratedDeriv 2 ρ R) / (1 + deriv ρ R ^ 2) := by
+    field_simp
+    ring
+  rw [e] at this
+  exact (div_pos_iff_of_pos_right hq).1 this
+
+/-- The case `a = 1`, `b = ρ' R ²` and `S = R²` of the criterion over `R`:
+`ρ'' R < (1 + ρ' R ²) / ρ R`. It follows from `iteratedDeriv_two_lt` where `-R / ρ R ≤ ρ' R`
+(`isConvexShapeOverRAt_of_neg_div_le_deriv`). -/
+theorem iteratedDeriv_two_lt_one_add_sq_div (h : IsConvexShapeOverRAt ρ R) :
+    iteratedDeriv 2 ρ R < (1 + deriv ρ R ^ 2) / ρ R := by
+  have hR := h.pos
+  have hr := h.pos_value
+  have := h.levi 1 (deriv ρ R ^ 2) (R ^ 2) zero_le_one (sq_nonneg _) (by positivity)
+    (sq_nonneg _) (by rw [mul_one]) (by rw [mul_comm])
+  rw [← sub_pos]
+  have e : 1 * (1 / ρ R - deriv ρ R / R) + 2 * deriv ρ R ^ 2 / ρ R + R ^ 2 *
+      (deriv ρ R / R ^ 3 - iteratedDeriv 2 ρ R / R ^ 2 - deriv ρ R ^ 2 / (ρ R * R ^ 2)) =
+      (1 + deriv ρ R ^ 2) / ρ R - iteratedDeriv 2 ρ R := by
+    field_simp
+    ring
+  rwa [e] at this
+
+end IsConvexShapeOverRAt
+
+/-- The criterion over `R` holds at `R` if and only if `0 < R`, `0 < ρ R`,
+`ρ' R / R < 1 / ρ R`, `ρ'' R < 1 / ρ R - ρ' R ³ / R` and `ρ'' R < (1 + ρ' R ²) / ρ R`: the
+inequality for all `a, b, S` amounts to its cases at the three extreme rays where it is not
+obvious. -/
+theorem isConvexShapeOverRAt_iff :
+    IsConvexShapeOverRAt ρ R ↔ 0 < R ∧ 0 < ρ R ∧ deriv ρ R / R < 1 / ρ R ∧
+      iteratedDeriv 2 ρ R < 1 / ρ R - deriv ρ R ^ 3 / R ∧
+      iteratedDeriv 2 ρ R < (1 + deriv ρ R ^ 2) / ρ R := by
+  refine ⟨fun h ↦ ⟨h.pos, h.pos_value, h.deriv_div_lt_one_div, h.iteratedDeriv_two_lt,
+    h.iteratedDeriv_two_lt_one_add_sq_div⟩, fun ⟨hR, hr, h₁, h₂, h₃⟩ ↦
+    ⟨hR, hr, fun a b S ha hb hab hS hSa hSab ↦ ?_⟩⟩
+  set r := ρ R
+  set d := deriv ρ R
+  set e := iteratedDeriv 2 ρ R
+  set K := d / R ^ 3 - e / R ^ 2 - d ^ 2 / (r * R ^ 2) with hK
+  have hq : 0 < 1 + d ^ 2 := by positivity
+  have hA : 0 < 1 / r - d / R := by linarith
+  have hr₂ : 0 < 2 / r := by positivity
+  -- Positive at `S = 0`, since `a + b > 0`.
+  have h₀ : 0 < a * (1 / r - d / R) + 2 * b / r := by
+    rcases ha.lt_or_eq with ha' | ha'
+    · have := mul_pos ha' hA
+      have : 0 ≤ 2 * b / r := by positivity
+      linarith
+    · rw [← ha'] at hab ⊢
+      have hb' : 0 < b := by linarith
+      have : 0 < 2 * b / r := by positivity
+      linarith
+  rcases le_or_gt 0 K with hK₀ | hK₀
+  · nlinarith [mul_nonneg hS hK₀]
+  -- For `K < 0` the expression is smallest at the largest `S`, which is
+  -- `R² (a + b) / (1 + d²)` for `b ≤ d² a` and `R² a` for `b ≥ d² a`.
+  have hB : 0 < 1 / r - d ^ 3 / R - e := by linarith
+  have hC : 0 < (1 + d ^ 2) / r - e := by linarith
+  rcases le_total b (d ^ 2 * a) with hbd | hbd
+  · have ha' : 0 < a := by
+      rcases ha.lt_or_eq with ha' | ha'
+      · exact ha'
+      · rw [← ha'] at hbd hab
+        linarith
+    have e₁ : (1 + d ^ 2) * (a * (1 / r - d / R) + 2 * b / r) + R ^ 2 * (a + b) * K =
+        a * (1 / r - d ^ 3 / R - e) + b * ((2 + d ^ 2) / r + d / R - e) := by
+      rw [hK]
+      field_simp
+      ring
+    have e₂ : (1 / r - d ^ 3 / R - e) + d ^ 2 * ((2 + d ^ 2) / r + d / R - e) =
+        (1 + d ^ 2) * ((1 + d ^ 2) / r - e) := by
+      field_simp
+      ring
+    have h₄ : 0 < a * (1 / r - d ^ 3 / R - e) + b * ((2 + d ^ 2) / r + d / R - e) := by
+      rcases le_or_gt 0 ((2 + d ^ 2) / r + d / R - e) with hC₀ | hC₀
+      · nlinarith [mul_pos ha' hB, mul_nonneg hb hC₀]
+      · have h₆ := mul_le_mul_of_nonpos_right hbd hC₀.le
+        nlinarith [mul_pos ha' (mul_pos hq hC)]
+    have h₅ : R ^ 2 * (a + b) * K ≤ (1 + d ^ 2) * S * K :=
+      mul_le_mul_of_nonpos_right hSab hK₀.le
+    have : 0 < (1 + d ^ 2) * (a * (1 / r - d / R) + 2 * b / r + S * K) := by nlinarith
+    exact pos_of_mul_pos_right this hq.le
+  · have h₅ : R ^ 2 * a * K ≤ S * K := mul_le_mul_of_nonpos_right hSa hK₀.le
+    rcases ha.lt_or_eq with ha' | ha'
+    · have e₃ : a * (1 / r - d / R) + 2 * (d ^ 2 * a) / r + R ^ 2 * a * K =
+          a * ((1 + d ^ 2) / r - e) := by
+        rw [hK]
+        field_simp
+        ring
+      have h₆ : 2 * (d ^ 2 * a) / r ≤ 2 * b / r := by gcongr
+      nlinarith [mul_pos ha' hC]
+    · rw [← ha'] at h₅ ⊢
+      nlinarith
+
+/-- The criterion over `R` for a slope `ρ' R ≥ -R / ρ R`, in particular for a nondecreasing `ρ`:
+it holds if `0 < R`, `0 < ρ R`, `ρ' R / R < 1 / ρ R` and `ρ'' R < 1 / ρ R - ρ' R ³ / R`. -/
+theorem isConvexShapeOverRAt_of_neg_div_le_deriv (hR : 0 < R) (hr : 0 < ρ R)
+    (hd : -R / ρ R ≤ deriv ρ R) (h₁ : deriv ρ R / R < 1 / ρ R)
+    (h₂ : iteratedDeriv 2 ρ R < 1 / ρ R - deriv ρ R ^ 3 / R) : IsConvexShapeOverRAt ρ R := by
+  refine isConvexShapeOverRAt_iff.2 ⟨hR, hr, h₁, h₂, h₂.trans_le ?_⟩
+  -- The difference of the two bounds is `ρ' R ² (1 / ρ R + ρ' R / R)`.
+  have hd' : 0 ≤ 1 / ρ R + deriv ρ R / R := by
+    have : -(1 / ρ R) ≤ deriv ρ R / R := by
+      rw [le_div_iff₀ hR]
+      calc -(1 / ρ R) * R = -R / ρ R := by ring
+        _ ≤ deriv ρ R := hd
+    linarith
+  have e : (1 + deriv ρ R ^ 2) / ρ R - (1 / ρ R - deriv ρ R ^ 3 / R) =
+      deriv ρ R ^ 2 * (1 / ρ R + deriv ρ R / R) := by
+    field_simp
+    ring
+  nlinarith [mul_nonneg (sq_nonneg (deriv ρ R)) hd']
+
+/-- **The Levi form of a shape over `R`.** Let `ρ` be `C²` at `R` and satisfy the criterion over
+`R` there, and let `p ∈ ℂᵏ × ℂᵐ` lie on the hypersurface `r = ρ (R)`,
+`shape p = (R ², ρ R ²)`. Then the Levi form of `F = shapeGraphOverR ρ ∘ shape` at `p` is positive
+on every nonzero `v` with `dF_p v = 0` and `dF_p (i v) = 0`, that is on the nonzero complex
+tangent vectors of the level set of `F` through `p`. -/
+theorem IsConvexShapeOverRAt.re_leviForm_pos (hρ : ContDiffAt ℝ 2 ρ R)
+    (h : IsConvexShapeOverRAt ρ R)
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (R ^ 2, ρ R ^ 2))
+    {v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hv : v ≠ 0)
+    (hv₁ : fderiv ℝ (shapeGraphOverR ρ ∘ shape) p v = 0)
+    (hv₂ : fderiv ℝ (shapeGraphOverR ρ ∘ shape) p (I • v) = 0) :
+    0 < (leviForm (shapeGraphOverR ρ ∘ shape) p v v).re := by
+  have hR := h.pos
+  have hr := h.pos_value
+  have hl := h.levi
+  have hsR : √(R ^ 2) = R := Real.sqrt_sq hR.le
+  have hsr : √(ρ R ^ 2) = ρ R := Real.sqrt_sq hr.le
+  have hρ' : ContDiffAt ℝ 2 ρ (√(R ^ 2)) := by rwa [hsR]
+  have hs : 0 < R ^ 2 := by positivity
+  have ht : 0 < ρ R ^ 2 := by positivity
+  have hH : ContDiffAt ℝ 2 (shapeGraphOverR ρ) (shape p) :=
+    hp ▸ contDiffAt_shapeGraphOverR hρ' hs ht
+  have htan (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+      fderiv ℝ (shapeGraphOverR ρ ∘ shape) p u =
+        -(deriv ρ R / (2 * R)) * fderiv ℝ (fun q ↦ (shape q).1) p u +
+          1 / (2 * ρ R) * fderiv ℝ (fun q ↦ (shape q).2) p u := by
+    rw [fderiv_shapeGraphOverR_comp_shape_apply
+      (by rw [hp]; exact hρ'.differentiableAt (by norm_num)) (by rw [hp]; exact hs)
+      (by rw [hp]; exact ht), hp, hsR, hsr]
+    ring
+  rw [htan] at hv₁ hv₂
+  -- On a complex tangency, `τ = λ σ` with `λ = ρ R ρ' R / R`.
+  have hτσ := ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape hv₁ hv₂
+  rw [re_leviForm_comp_shape_apply_self hH v, hp,
+    fderiv_shapeGraphOverR_apply (hρ'.differentiableAt (by norm_num)) hs ht,
+    fderiv_shapeGraphOverR_apply (hρ'.differentiableAt (by norm_num)) hs ht,
+    fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht, fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht,
+    fderiv_fderiv_shapeGraphOverR_apply hρ' hs ht, hsR, hsr]
+  set σ := ∑ j, ((p.1 j).re : ℂ) * v.1 j with hσ
+  set τ := ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j with hτ
+  set r := ρ R
+  set d := deriv ρ R
+  set e := iteratedDeriv 2 ρ R
+  have hR' : (R : ℂ) ≠ 0 := ofReal_ne_zero.2 hR.ne'
+  have hr' : (r : ℂ) ≠ 0 := ofReal_ne_zero.2 hr.ne'
+  have hτσ' : τ = ((r * d / R : ℝ) : ℂ) * σ := by
+    push_cast at hτσ ⊢
+    field_simp at hτσ ⊢
+    linear_combination hτσ
+  have hττ : ‖τ‖ ^ 2 = (r * d / R) ^ 2 * ‖σ‖ ^ 2 := by
+    rw [hτσ', norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs]
+  -- Cauchy–Schwarz for `σ + (R ρ' R / r) τ = (1 + ρ' R ²) σ`.
+  have hCS := norm_ofReal_mul_add_ofReal_mul_sq_le 1 (R * d / r) p v
+  rw [← hσ, ← hτ, hp, hτσ'] at hCS
+  dsimp only at hCS
+  have hc : (((1 : ℝ) : ℂ) * σ + ((R * d / r : ℝ) : ℂ) * (((r * d / R : ℝ) : ℂ) * σ)) =
+      ((1 + d ^ 2 : ℝ) : ℂ) * σ := by
+    push_cast
+    field_simp
+  rw [hc, norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs] at hCS
+  -- Cauchy–Schwarz for `σ` alone.
+  have hSa := norm_sum_re_mul_sq_le p v
+  rw [← hσ, hp] at hSa
+  dsimp only at hSa
+  set S := ‖σ‖ ^ 2
+  set a := ‖v.1‖ ^ 2 with ha
+  set b := ‖v.2‖ ^ 2 with hb
+  have hab : 0 < a + b := by
+    by_contra hab
+    refine hv (Prod.ext ?_ ?_)
+    · simpa [ha] using (show a = 0 by linarith [sq_nonneg ‖v.1‖, sq_nonneg ‖v.2‖])
+    · simpa [hb] using (show b = 0 by linarith [sq_nonneg ‖v.1‖, sq_nonneg ‖v.2‖])
+  have hq : 0 < 1 + d ^ 2 := by positivity
+  have hSab : (1 + d ^ 2) * S ≤ R ^ 2 * (a + b) := by
+    have e₁ : 1 ^ 2 * R ^ 2 + (R * d / r) ^ 2 * r ^ 2 = (1 + d ^ 2) * R ^ 2 := by
+      field_simp
+    rw [e₁] at hCS
+    have : (1 + d ^ 2) * ((1 + d ^ 2) * S) ≤ (1 + d ^ 2) * (R ^ 2 * (a + b)) := by
+      nlinarith
+    exact le_of_mul_le_mul_left this hq
+  have := hl a b S (by positivity) (by positivity) hab (by positivity) hSa hSab
+  rw [hττ]
+  convert div_pos this (by norm_num : (0 : ℝ) < 4) using 1
   field_simp
   ring
 

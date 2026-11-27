@@ -27,6 +27,14 @@ for it, for `k ≥ k₀`:
   derivative at `w` is an isometry from the bilinear form `ω₀(·, J_y(w) ·)` to the
   bilinear form `ω₀(·, J_x(τ w) ·)`, `J_y` and `J_x` being `J` read in the two charts
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition_chartPushforward`);
+* the field `D.associatedBilinFormInChart k x` of bilinear forms `ω₀(·, J_x ·)` on the chart
+  centred at `x`, the image of `J_x` under a fixed continuous linear map, is smooth on the target
+  of the chart
+  (`SymplecticGeometry.RescaledUnitaryCharts.contDiffOn_associatedBilinFormInChart`, from
+  `TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward`), and the derivatives of the
+  transitions pull it back from one chart to the other
+  (`RescaledUnitaryCharts.associatedBilinFormInChart_chartTransition_bilinearComp`, in the
+  namespace `SymplecticGeometry`);
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
   (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`), there is a radius
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
@@ -36,7 +44,11 @@ for it, for `k ≥ k₀`:
 * the set `D.chartTransitionDomain k x y` of points of the ball `B` of radius `ρ₀ * √k` in the
   source of the transition that it sends into `B` is open, and for `k ≥ k₀` and
   `y = (D.chart k x)⁻¹ z` with `z ∈ B` it contains `0`
-  (`SymplecticGeometry.RescaledUnitaryCharts.zero_mem_chartTransitionDomain`).
+  (`SymplecticGeometry.RescaledUnitaryCharts.zero_mem_chartTransitionDomain`);
+* the inverses of the two charts agree at `w` and at `τ w`, and so do their differentials, on
+  `v` and on `dτ_w v`
+  (`SymplecticGeometry.RescaledUnitaryCharts.mfderiv_chart_symm_chartTransition`, from Tau Ceti's
+  `OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans`).
 
 ## References
 
@@ -141,6 +153,52 @@ theorem stdForm_fderiv_chartTransition_chartPushforward {k : ℕ} (hk : k₀ ≤
   rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, ← chartTransition_def] at h
   rw [h, D.stdForm_fderiv_chartTransition hk hw]
 
+/-! ### The forms `ω₀(·, J ·)` read in the charts -/
+
+/-- The bilinear form `g_{k,x}(w) = ω₀(·, J_x(w) ·)` at a point `w` of the chart centred at `x`
+for the power `k`, where `J_x` is `J` read in that chart: the image of `J_x(w)` under the fixed
+continuous linear map `A ↦ ω₀(·, A ·)`. It is symmetric and positive definite only where `J` is
+compatible with `σ`, which the charts do not assume. The definition is total; its value at a
+point `w` outside `(D.chart k x).target` is junk. -/
+noncomputable def associatedBilinFormInChart (k : ℕ) (x : M) (w : StdSpace ι) :
+    StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+  (ContinuousLinearMap.precompR (StdSpace ι)
+      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+    (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w)
+
+/-- The form `g_{k,x}(w)` is `J_x(w)` composed with `A ↦ ω₀(·, A ·)`. -/
+theorem associatedBilinFormInChart_def (k : ℕ) (x : M) (w : StdSpace ι) :
+    D.associatedBilinFormInChart k x w =
+      (ContinuousLinearMap.precompR (StdSpace ι)
+          (stdForm ι).toBilinForm.toContinuousBilinearMap).flip
+        (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w) :=
+  (rfl)
+
+/-- `g_{k,x}(w)(u, v) = ω₀(u, J_x(w) v)`. -/
+@[simp]
+theorem associatedBilinFormInChart_apply (k : ℕ) (x : M) (w u v : StdSpace ι) :
+    D.associatedBilinFormInChart k x w u v =
+      stdForm ι u (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w v) := by
+  simp [associatedBilinFormInChart_def, LinearMap.toContinuousBilinearMap_apply]
+
+/-- On a boundaryless manifold, the field of forms `g_{k,x}` is smooth on the target of the chart
+centred at `x`. -/
+theorem contDiffOn_associatedBilinFormInChart [I.Boundaryless] (k : ℕ) (x : M) :
+    ContDiffOn ℝ ∞ (D.associatedBilinFormInChart k x) (D.chart k x).target :=
+  (ContinuousLinearMap.contDiff _).comp_contDiffOn
+    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn (D.chart k x).symm.contMDiffOn)
+
+/-- **Transitions carry the forms read in the charts to each other.** For `k ≥ k₀` and `w` in
+the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
+derivative `T` of `τ` at `w` pulls `g_{k,x}(τ w)` back to `g_{k,y}(w)`. -/
+theorem associatedBilinFormInChart_chartTransition_bilinearComp {k : ℕ} (hk : k₀ ≤ k)
+    {x y : M} {w : StdSpace ι} (hw : w ∈ (D.chartTransition k x y).source) :
+    (D.associatedBilinFormInChart k x (D.chartTransition k x y w)).bilinearComp
+        (fderiv ℝ (D.chartTransition k x y) w) (fderiv ℝ (D.chartTransition k x y) w) =
+      D.associatedBilinFormInChart k y w := by
+  ext u v
+  simpa using D.stdForm_fderiv_chartTransition_chartPushforward hk hw u v
+
 /-- At the centre `x` of the chart `D.chart k x`, for `k ≥ k₀`, the quadratic form
 `2π k σ(v, J v)` of a tangent vector `v` at `x` is `‖u‖ ^ 2`, for `u` the image of `v` under the
 derivative of the chart. -/
@@ -244,6 +302,26 @@ theorem chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
     (D.chart k x).symm (D.chartTransition k x y w) = (D.chart k y).symm w := by
   rw [chartTransition_apply]
   exact (D.chart k x).left_inv (D.mem_chartTransition_source_iff.1 hw).2
+
+/-- The derivative form of `chart_symm_chartTransition`: for `w` in the source of the transition
+`τ` from the chart centred at `y` to the chart centred at `x`, the differential of the inverse of
+the chart at `x` at `τ w` sends `dτ_w v` to the image of `v` under the differential of the
+inverse of the chart at `y` at `w`. -/
+theorem mfderiv_chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) (v : StdSpace ι) :
+    mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chartTransition k x y w)
+        (fderiv ℝ (D.chartTransition k x y) w v) =
+      mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w v := by
+  have hτ : D.chartTransition k x y w ∈ (D.chart k x).target := by
+    rw [chartTransition_apply]
+    exact (D.chart k x).map_source (D.mem_chartTransition_source_iff.1 hw).2
+  rw [chartTransition_def] at hw hτ ⊢
+  have h := OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans hw
+    ((D.chart k x).symm.mdifferentiableAt (by simp) (by simpa using hτ))
+    ((D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hw)
+  -- `exact` rather than `rw`: the two sides differ by the identification of `StdSpace ι` with
+  -- its tangent spaces, and by `ContinuousLinearMap.comp_apply`.
+  exact (DFunLike.congr_fun h v).symm
 
 end RescaledUnitaryCharts
 

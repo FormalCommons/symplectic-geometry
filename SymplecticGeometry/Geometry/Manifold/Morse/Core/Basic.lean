@@ -86,13 +86,10 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
     rw [Diffeotopy.final_apply, Diffeotopy.refl_apply]
     exact hsub ((show f x ≤ b from hx).trans hba)
   have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
-  obtain ⟨ε', hε', hεU'⟩ :=
+  -- `ε ≤ b - a`, so that the level `a + 2 ε / 3` is in the band.
+  obtain ⟨ε, hε, hεb, hεU⟩ :=
     exists_pos_sublevel_subset_of_isCompact_preimage_Icc hf.continuous hab hcompact
       (hU.mem_nhdsSet.2 hsub)
-  -- Take `ε ≤ b - a`, so that the level `a + 2 ε / 3` is in the band.
-  obtain ⟨ε, hε, hεb, hεU⟩ : ∃ ε > 0, ε ≤ b - a ∧ {x | f x ≤ a + ε} ⊆ U :=
-    ⟨min ε' (b - a), lt_min hε' (by linarith), min_le_right _ _,
-      fun x hx ↦ hεU' ((show f x ≤ a + min ε' (b - a) from hx).trans (by simp))⟩
   -- The cutoff `ρ ∘ f` vanishes below `c = a + ε / 3` and is `1` above `d = a + 2 ε / 3`.
   set c := a + ε / 3 with hc
   set d := a + 2 * ε / 3 with hd
