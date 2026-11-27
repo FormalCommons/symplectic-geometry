@@ -9,13 +9,17 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+public import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
-import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Symplectic.Lagrangian.Opens
 import SymplecticGeometry.Topology.Homotopy.Annulus
 
 /-!
@@ -560,6 +564,131 @@ theorem isSymplectic_symplecticForm (hω₁ : σ₁.IsSymplectic) (hω₂ : σ�
     (symplecticForm f₁ f₂ hδ hδε h).IsSymplectic :=
   GluedAlong.isSymplectic_gluedForm_iff.2
     ⟨hω₁.mpullback_subtype_val _, hω₂.mpullback_subtype_val _⟩
+
+end FiberSum
+
+/-! ### Embeddings that miss the tube -/
+
+namespace FiberSum
+
+variable {f₁ f₂ hδ hδε}
+  {EQ' HQ' : Type*} [NormedAddCommGroup EQ'] [NormedSpace ℝ EQ']
+  [TopologicalSpace HQ'] {J' : ModelWithCorners ℝ EQ' HQ'} {Q' : Type*} [TopologicalSpace Q']
+  [ChartedSpace HQ' Q'] (ι : SmoothEmbedding J' I ∞ Q' M₁)
+  (hι : range ι ⊆ f₁.complTube hδε)
+
+/-- An embedding `ι : Q' → M₁` whose image misses the closed tube, as an embedding into the
+complement of the tube. -/
+def codRestrictComplTube : SmoothEmbedding J' I ∞ Q' (f₁.complTube hδε) :=
+  ι.codRestrict _ fun q ↦ hι (mem_range_self q)
+
+@[simp]
+theorem coe_codRestrictComplTube_apply (q : Q') :
+    (codRestrictComplTube ι hι q : M₁) = ι q :=
+  ι.val_codRestrict_apply _ _ q
+
+theorem subtypeVal_comp_codRestrictComplTube :
+    Subtype.val ∘ codRestrictComplTube ι hι = ι :=
+  ι.val_comp_codRestrict _ _
+
+variable (f₂ hδ) in
+/-- **An embedding that misses the tube, carried to the fiber sum.** An embedding `ι : Q' → M₁`
+whose image misses the closed tube of radius `δ`, followed by the inclusion `inl` of the
+complement of the tube into the fiber sum. -/
+def inlEmbedding : SmoothEmbedding J' I ∞ Q' (FiberSum f₁ f₂ hδ hδε) :=
+  (codRestrictComplTube ι hι).transLocalDiffeomorph
+    (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph)
+    (fun x _ ↦ GluedAlong.isLocalDiffeomorph_inl _ x)
+    ((GluedAlong.isOpenEmbedding_inl _).isEmbedding.comp IsEmbedding.subtypeVal)
+    (subset_univ _)
+
+theorem coe_inlEmbedding :
+    ⇑(inlEmbedding f₂ hδ ι hι) =
+      GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph ∘ codRestrictComplTube ι hι :=
+  SmoothEmbedding.coe_transLocalDiffeomorph _ _ _ _ _
+
+@[simp]
+theorem inlEmbedding_apply (q : Q') :
+    inlEmbedding f₂ hδ ι hι q =
+      GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph ⟨ι q, hι (mem_range_self q)⟩ := by
+  rw [coe_inlEmbedding, Function.comp_apply]
+  exact congrArg _ (Subtype.ext (coe_codRestrictComplTube_apply ι hι q))
+/-- The embedding `ι` into the complement of the tube has symplectic tangent images for the
+restriction of `σ₁` exactly when `ι` has them for `σ₁`. -/
+theorem hasSymplecticTangentImages_codRestrictComplTube_iff :
+    (hσ₁.mpullback_subtype_val (f₁.complTube hδε)).HasSymplecticTangentImages J'
+        (codRestrictComplTube ι hι) ↔
+      hσ₁.HasSymplecticTangentImages J' ι := by
+  rw [← SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_subtype_val_comp_iff,
+    subtypeVal_comp_codRestrictComplTube]
+
+variable [IsManifold J' ∞ Q']
+  (h : SmoothForm.mpullback ι₁ ι₁.contMDiff σ₁ = SmoothForm.mpullback ι₂ ι₂.contMDiff σ₂)
+
+/-- The embedding carried to the fiber sum pulls the form of the fiber sum back to the form that
+`ι` pulls `σ₁` back to. -/
+@[simp]
+theorem mpullback_inlEmbedding_symplecticForm :
+    SmoothForm.mpullback (inlEmbedding f₂ hδ ι hι) (inlEmbedding f₂ hδ ι hι).contMDiff
+        (symplecticForm f₁ f₂ hδ hδε h) =
+      SmoothForm.mpullback ι ι.contMDiff σ₁ := by
+  rw [SmoothForm.mpullback_congr _ ((GluedAlong.isLocalDiffeomorph_inl _).contMDiff.comp
+      (codRestrictComplTube ι hι).contMDiff) (coe_inlEmbedding ι hι),
+    ← SmoothForm.mpullback_mpullback _ _ (codRestrictComplTube ι hι).contMDiff
+      (GluedAlong.isLocalDiffeomorph_inl _).contMDiff, mpullback_inl_symplecticForm,
+    SmoothForm.mpullback_mpullback]
+  exact SmoothForm.mpullback_congr _ _ (subtypeVal_comp_codRestrictComplTube ι hι) _
+
+variable {h} (hω : (symplecticForm f₁ f₂ hδ hδε h).IsNondegenerate)
+
+omit [IsManifold J' ∞ Q'] in
+/-- The embedding carried to the fiber sum has symplectic tangent images for the form of the
+fiber sum exactly when `ι` has them for `σ₁`. -/
+theorem hasSymplecticTangentImages_inlEmbedding_iff :
+    hω.HasSymplecticTangentImages J' (inlEmbedding f₂ hδ ι hι) ↔
+      hσ₁.HasSymplecticTangentImages J' ι := by
+  rw [coe_inlEmbedding,
+    SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_comp_iff_of_isLocalDiffeomorph
+      (hσ := hσ₁.mpullback_subtype_val _) (GluedAlong.isLocalDiffeomorph_inl _)
+      (mpullback_inl_symplecticForm h)
+      ((codRestrictComplTube ι hι).contMDiff.mdifferentiable (by simp)),
+    hasSymplecticTangentImages_codRestrictComplTube_iff]
+
+variable [FiniteDimensional ℝ EQ'] {ι hι} {hι' : hσ₁.HasSymplecticTangentImages J' ι}
+  {hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ'}
+
+/-- **A framing carried to the fiber sum.** A symplectic framing of an embedding `ι : Q' → M₁`
+that misses the closed tube gives one of the embedding carried to the fiber sum, for the form of
+the fiber sum: it is pulled back to the complement of the tube along the inclusion and then moved
+along `inl` (`SymplecticFraming.ofTransLocalDiffeomorph` and
+`SymplecticFraming.transLocalDiffeomorph`). -/
+def inlEmbeddingFraming (Φ : SymplecticFraming hι' hP') :
+    SymplecticFraming ((hasSymplecticTangentImages_inlEmbedding_iff ι hι hω).2 hι') hP' :=
+  (Φ.ofTransLocalDiffeomorph (hP := hP')
+      (hι := (hasSymplecticTangentImages_codRestrictComplTube_iff ι hι).2 hι')
+      isLocalDiffeomorph_subtype_val rfl
+      (subtypeVal_comp_codRestrictComplTube ι hι)).transLocalDiffeomorph
+    (GluedAlong.isLocalDiffeomorph_inl _) (mpullback_inl_symplecticForm h)
+    (coe_inlEmbedding ι hι).symm
+
+/-- The framing carried to the fiber sum sends a normal vector `v` of the zero slice at `q` to
+the image of `Φ q v` under the identification of the normal spaces of `ι` and of the carried
+embedding at `q`: back through the derivative of the inclusion of the complement of the tube,
+then forward through that of `inl`. -/
+theorem inlEmbeddingFraming_apply (Φ : SymplecticFraming hι' hP') (q : Q')
+    (v : (zeroSlice J' Q').isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    inlEmbeddingFraming hω Φ q v =
+      (codRestrictComplTube ι hι).normalSpaceEquivOfComp (inlEmbedding f₂ hδ ι hι)
+        (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+        (fun q ↦ (GluedAlong.isLocalDiffeomorph_inl _).isInvertible_mfderiv (by simp) (codRestrictComplTube ι hι q))
+        (coe_inlEmbedding ι hι).symm q
+        (((codRestrictComplTube ι hι).normalSpaceEquivOfComp ι
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+          (fun q ↦ (isLocalDiffeomorph_subtype_val (n := ∞)).isInvertible_mfderiv (by simp)
+            (codRestrictComplTube ι hι q))
+          (subtypeVal_comp_codRestrictComplTube ι hι) q).symm (Φ q v)) :=
+  by rw [inlEmbeddingFraming, SymplecticFraming.transLocalDiffeomorph_apply,
+    SymplecticFraming.ofTransLocalDiffeomorph_apply]
 
 end FiberSum
 

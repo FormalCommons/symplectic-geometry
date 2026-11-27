@@ -28,6 +28,8 @@ import SymplecticGeometry.LinearAlgebra.BilinearMap.Alternating
 import TauCeti.Geometry.Manifold.ContMDiff.Sqrt
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
@@ -513,6 +515,92 @@ theorem transDiffeomorph_apply (Φ : SymplecticFraming hι hP) (ψ : M ≃ₘ⟮
   (rfl)
 
 end TransDiffeomorph
+
+section TransLocalDiffeomorph
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M']
+  [ChartedSpace H' M'] [IsManifold I' ∞ M'] {σ' : SmoothTwoForm I' M'}
+  {hσ : σ.IsNondegenerate} {hσ' : σ'.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
+  {ι' : SmoothEmbedding J I' ∞ Q M'} {hι : hσ.HasSymplecticTangentImages J ι}
+  {hι' : hσ'.HasSymplecticTangentImages J ι'} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+  {hP' : finrank ℝ ℂ = finrank ℝ E' - finrank ℝ EQ} {k : M → M'}
+  (hk : IsLocalDiffeomorph I I' ∞ k) (hkσ : SmoothForm.mpullback k hk.contMDiff σ' = σ)
+  (hkι : k ∘ ι = ι')
+
+/-- **A framing moved along a local symplectomorphism.** Let `k : M → M'` be a local
+diffeomorphism, possibly into a manifold on another model, pulling `σ'` back to `σ`, and let `ι'`
+be the embedding `k ∘ ι`. A framing `Φ` of `ι` for `σ` gives the framing of `ι'` for `σ'` that
+follows `Φ q` by the identification of the normal spaces of `ι` and of `ι'` at `q` induced by the
+derivative of `k` (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`). -/
+def transLocalDiffeomorph (Φ : SymplecticFraming hι hP) : SymplecticFraming hι' hP' where
+  toFun q := (Φ q).trans (ι.normalSpaceEquivOfComp ι' _ _
+    (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q)
+  contMDiff_toFun := by
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    let := ι'.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
+    exact (ι.contMDiff_normalSpaceEquivOfComp (r := ∞) ι' _ _ le_rfl le_rfl hP hP' hk.contMDiff
+      (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι).comp Φ.contMDiff_toFun
+  symplecticNormalForm_toFun q v w := by
+    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      ι.symplecticNormalForm_normalSpaceEquivOfComp ι' hι hι' _ _ _ hkι q
+        ((hk (ι q)).mdifferentiableAt (by simp))
+        (fun a b ↦ by rw [← hkσ, SmoothForm.eval₂_mpullback]),
+      Φ.symplecticNormalForm_toFun, symplecticNormalForm_zeroSlice, symplecticNormalForm_zeroSlice]
+
+/-- The framing `Φ.transLocalDiffeomorph hk hkσ hkι` sends a normal vector `v` of the zero slice
+at `q` to the image of `Φ q v` under the identification of the normal spaces of `ι` and of
+`ι' = k ∘ ι` induced by the derivative of `k`. -/
+@[simp]
+theorem transLocalDiffeomorph_apply (Φ : SymplecticFraming hι hP) (q : Q)
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    Φ.transLocalDiffeomorph (hι' := hι') (hP' := hP') hk hkσ hkι q v =
+      ι.normalSpaceEquivOfComp ι' _ _ (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q
+        (Φ q v) :=
+  (rfl)
+
+/-- **A framing pulled back along a local symplectomorphism.** Let `k : M → M'` be a local
+diffeomorphism, possibly into a manifold on another model, pulling `σ'` back to `σ`, and let `ι'`
+be the embedding `k ∘ ι`. A framing `Φ'` of `ι'` for `σ'` gives the framing of `ι` for `σ` that
+follows `Φ' q` by the inverse of the identification of the normal spaces of `ι` and of `ι'` at
+`q` induced by the derivative of `k`. This undoes `transLocalDiffeomorph`. -/
+def ofTransLocalDiffeomorph (Φ' : SymplecticFraming hι' hP') : SymplecticFraming hι hP where
+  toFun q := (Φ' q).trans (ι.normalSpaceEquivOfComp ι' _ _
+    (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q).symm
+  contMDiff_toFun := by
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    let := ι.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    let := ι'.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
+    let := ι'.normalSpaceVectorBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP'
+    -- The inverse identification is smooth, as the inverse of a smooth fibrewise isomorphism.
+    exact (contMDiff_bundle_symm _ (ι.contMDiff_normalSpaceEquivOfComp (r := ∞) ι' _ _ le_rfl
+      le_rfl hP hP' hk.contMDiff (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι)).comp
+        Φ'.contMDiff_toFun
+  symplecticNormalForm_toFun q v w := by
+    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+      ← ι.symplecticNormalForm_normalSpaceEquivOfComp ι' hι hι' (by simp) (by simp)
+        (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι q
+        ((hk (ι q)).mdifferentiableAt (by simp))
+        (fun a b ↦ by rw [← hkσ, SmoothForm.eval₂_mpullback]),
+      ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
+      Φ'.symplecticNormalForm_toFun, symplecticNormalForm_zeroSlice, symplecticNormalForm_zeroSlice]
+
+/-- The framing `Φ'.ofTransLocalDiffeomorph hk hkσ hkι` sends a normal vector `v` of the zero
+slice at `q` to the preimage of `Φ' q v` under the identification of the normal spaces of `ι` and
+of `ι' = k ∘ ι` induced by the derivative of `k`. -/
+@[simp]
+theorem ofTransLocalDiffeomorph_apply (Φ' : SymplecticFraming hι' hP') (q : Q)
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    Φ'.ofTransLocalDiffeomorph (hι := hι) (hP := hP) hk hkσ hkι q v =
+      (ι.normalSpaceEquivOfComp ι' _ _ (fun q ↦ hk.isInvertible_mfderiv (by simp) (ι q)) hkι
+        q).symm (Φ' q v) :=
+  (rfl)
+
+end TransLocalDiffeomorph
 
 section OfPos
 
