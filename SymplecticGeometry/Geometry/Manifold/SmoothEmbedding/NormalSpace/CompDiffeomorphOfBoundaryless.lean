@@ -287,6 +287,7 @@ theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff
     (by simp) (by simp) hP hP' contMDiff_id hsq).of_le hk).comp h).congr fun y ↦ ?_
   obtain ⟨v, hv⟩ := f.isImmersion.normalClass_surjective (e (u y)) hn (w y)
   rw [Function.comp_apply, normalBundleMap_apply, ← hv, normalMap_normalClass, mfderiv_id,
+    ContinuousLinearMap.id_apply,
     normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_normalClass]
   -- The base points `e⁻¹ (e (u y))` and `u y` are equal.
   generalize hb : e.symm (e (u y)) = b
@@ -316,7 +317,8 @@ theorem symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless
     normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap]
   refine (f.compDiffeomorphOfBoundaryless e h1).symplecticNormalForm_normalMap f hg hf hn hn _
     mdifferentiableAt_id (fun a b ↦ ?_) (e.isInvertible_mfderiv hn).surjective ν μ
-  rw [mfderiv_id]
+  rw [mfderiv_id, ContinuousLinearMap.id_apply, ContinuousLinearMap.id_apply]
+  -- The base point `id (g x)` is `g x`.
   rfl
 
 end Symplectic
