@@ -14,6 +14,7 @@ import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.Deriv.Mul
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
 /-!
@@ -163,7 +164,7 @@ theorem bijective_mfderiv_affineChart_prodMap (hi : x.1 ∈ affineOpen i)
     ((isOpen_affineOpen i).mem_nhds hi)).mdifferentiableAt one_ne_zero
   have hdj := ((contMDiffOn_affineChart j 1).contMDiffAt
     ((isOpen_affineOpen j).mem_nhds hj)).mdifferentiableAt one_ne_zero
-  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod, mfderiv_prodMap hdi hdj]
+  rw [← mfderiv_prod_modelWithCornersSelf_target, mfderiv_prodMap hdi hdj]
   have h := (bijective_mfderiv_affineChart hi).prodMap (bijective_mfderiv_affineChart hj)
   rwa [← ContinuousLinearMap.coe_prodMap'] at h
 
