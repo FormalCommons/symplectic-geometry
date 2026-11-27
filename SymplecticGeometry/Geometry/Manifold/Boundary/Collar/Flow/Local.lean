@@ -37,22 +37,24 @@ the open half-space exactly at positive times, and `s ↦ φ⁻¹ (Ψ x (-s))` i
 `TauCeti.exists_contMDiffOn_localFlow_of_isOutwardPointing_neg`, gives these curves too, but not
 their chart expression, which the local diffeomorphism below needs.
 
-Written in the boundary chart at `p`, the flow from the boundary is the map
+Written in the charts of `∂W × [0, ∞)` at `(p, 0)` and of `W` at `p`, the flow from the boundary
+`(x, t) ↦ γ (-t, x)` is the map
 `G (z, τ) = Ψ (z inserted as a point with zeroth coordinate 0) (τ 0)` between open subsets of
-`ℝⁿ × ℝ¹` and `ℝⁿ⁺¹`. At `(z₀, 0)`, `z₀` the boundary chart reading of `p`, its derivative sends
-`(u, σ)` to `σ 0 • v` plus `u` inserted with zeroth coordinate `0`, where `v = -f (φ p)` is the
-velocity of `t ↦ Ψ (φ p) t` at `0`, since `Ψ x 0 = x`
-(`DifferentiableAt.hasFDerivAt_uncurry_zero`). It is invertible since `v` is transverse
-to the boundary hyperplane, so by the inverse function theorem in the boundaryless spaces `G` is
-a local diffeomorphism there
-(`TauCeti.isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt`). This adapts the
-proof of Tau Ceti's flow-out theorem `TauCeti.isLocalDiffeomorph_globalFlow_comp` (with its
-differential `TauCeti.mfderiv_globalFlow_comp_apply`) at time zero, with the linear inclusion of
-the hyperplane in place of an immersion; see also Lee, Theorem 9.20. Near that point `G` sends
-`ℝⁿ × [0, ∞)` exactly into the half-space, by the monotonicity of the zeroth coordinate, so it
-restricts to a local diffeomorphism of the half-space models (Tau Ceti's
-`TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff`), and in the charts of
-`∂W × [0, ∞)` and `W` this is the map `(x, t) ↦ γ (-t, x)`.
+`ℝⁿ × ℝ¹` and `ℝⁿ⁺¹`, also defined at negative times. At `(z₀, 0)`, `z₀` the boundary chart
+reading of `p`, its derivative sends `(u, σ)` to `σ 0 • v` plus `u` inserted with zeroth
+coordinate `0`, where `v = -f (φ p)` is the velocity of `t ↦ Ψ (φ p) t` at `0`, since
+`Ψ x 0 = x` (`DifferentiableAt.hasFDerivAt_uncurry_zero`). It is injective since `v` is
+transverse to the boundary hyperplane
+(`TauCeti.injective_fderiv_euclideanHalfSpaceBoundaryParam_of_hasDerivAt`). Near that point `G`
+sends exactly the points of `ℝⁿ × [0, ∞)` into the half-space, by the monotonicity of the zeroth
+coordinate, so Tau Ceti's inverse function theorem at boundary points,
+`TauCeti.isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff`, makes the flow from the
+boundary a local diffeomorphism at `(p, 0)`, hence on a box `B × [0, η)` inside the source of a
+partial diffeomorphism that agrees with it. This follows the proof of Tau Ceti's
+`TauCeti.isLocalDiffeomorphAt_flowOut_boundary`, for a field defined near `p` in the chart rather
+than a flow given on the manifold, which here needs no Hausdorff hypothesis on `W`; see also Lee,
+Theorem 9.20, and Tau Ceti's boundaryless flow-out theorem
+`TauCeti.isLocalDiffeomorph_globalFlow_comp`.
 
 These curves need no uniqueness result here: Tau Ceti's
 `IsMIntegralCurveOn.eqOn_of_isPreconnected` holds for curves that may meet the boundary, so two
@@ -64,9 +66,9 @@ a while forward, since its velocity there within `[t, ∞)` would be outward, wh
 
 ## Main results
 
-* `TauCeti.isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt`: a smooth family
-  `Ψ x t` with `Ψ x 0 = x` whose velocity at time `0` is transverse to the boundary hyperplane is,
-  out of that hyperplane, a local diffeomorphism.
+* `TauCeti.injective_fderiv_euclideanHalfSpaceBoundaryParam_of_hasDerivAt`: a family `Ψ x t`
+  with `Ψ x 0 = x` whose velocity at time `0` is transverse to the boundary hyperplane has, out of
+  that hyperplane, injective derivative.
 * `TauCeti.exists_isMIntegralCurveOn_of_isOutwardPointing`: integral curves of an outward field
   entering from the boundary near `p`, forming a local diffeomorphism `∂W × [0, η) → W`.
 
@@ -111,175 +113,54 @@ section Param
 
 variable {Ψ : EuclideanSpace ℝ (Fin (n + 1)) → ℝ → EuclideanSpace ℝ (Fin (n + 1))}
 
-/-- Let `Ψ x t` be a family of points of `ℝⁿ⁺¹` with `Ψ x 0 = x`, smooth on a neighbourhood of
-`(y₀, 0)`, where `y₀` is the point `z₀ ∈ ℝⁿ` of the boundary hyperplane, such that the curve
-`t ↦ Ψ y₀ t` has at time `0` a velocity `v` with `v 0 ≠ 0`. Then
-`(z, τ) ↦ Ψ (z in the hyperplane) (τ 0)` on `ℝⁿ × ℝ¹` is a local diffeomorphism at `(z₀, 0)`. -/
-theorem isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt
+/-- Let `Ψ x t` be a family of points of `ℝⁿ⁺¹` with `Ψ x 0 = x`, differentiable at `(y₀, 0)`,
+where `y₀` is the point `z₀ ∈ ℝⁿ` of the boundary hyperplane, such that the curve `t ↦ Ψ y₀ t`
+has at time `0` a velocity `v` with `v 0 ≠ 0`. Then `(z, τ) ↦ Ψ (z in the hyperplane) (τ 0)` on
+`ℝⁿ × ℝ¹` has injective derivative at `(z₀, 0)`. -/
+theorem injective_fderiv_euclideanHalfSpaceBoundaryParam_of_hasDerivAt
     {z₀ : EuclideanSpace ℝ (Fin n)}
-    {S : Set (EuclideanSpace ℝ (Fin (n + 1)) × ℝ)}
-    (hS : S ∈ 𝓝 (euclideanHalfSpaceBoundaryParam n z₀, 0))
-    (hΨ : ContDiffOn ℝ ∞ (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2) S)
+    (hΨ : DifferentiableAt ℝ (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2)
+      (euclideanHalfSpaceBoundaryParam n z₀, 0))
     (hΨ0 : ∀ x, Ψ x 0 = x) {v : EuclideanSpace ℝ (Fin (n + 1))}
     (hv : HasDerivAt (Ψ (euclideanHalfSpaceBoundaryParam n z₀)) v 0) (hv0 : v 0 ≠ 0) :
-    IsLocalDiffeomorphAt 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1))
-      𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) ∞
-      (fun q : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) ↦
-        Ψ (euclideanHalfSpaceBoundaryParam n q.1) (q.2 0)) (z₀, 0) := by
+    Injective (fderiv ℝ (fun q : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) ↦
+      Ψ (euclideanHalfSpaceBoundaryParam n q.1) (q.2 0)) (z₀, 0)) := by
   set ι := euclideanHalfSpaceBoundaryParam n
-  set F := fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2
   set L : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) →L[ℝ]
       EuclideanSpace ℝ (Fin (n + 1)) × ℝ :=
     (ι.comp (ContinuousLinearMap.fst ℝ _ _)).prod
       ((PiLp.proj 2 (fun _ : Fin 1 ↦ ℝ) 0).comp (ContinuousLinearMap.snd ℝ _ _))
   have hLz₀ : L (z₀, 0) = (ι z₀, 0) := by
     simp [L]
-  -- The derivative `D` of `F` at `(ι z₀, 0)` is the identity in space and `v` in time.
+  -- The derivative `D` of `Ψ` at `(ι z₀, 0)` is the identity in space and `v` in time.
   set D : EuclideanSpace ℝ (Fin (n + 1)) × ℝ →L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) :=
     ContinuousLinearMap.fst ℝ _ ℝ + (ContinuousLinearMap.snd ℝ _ ℝ).smulRight v
-  have hD : HasFDerivAt F D (ι z₀, 0) :=
-    ((hΨ.contDiffAt hS).differentiableAt (by simp)).hasFDerivAt_uncurry_zero
-      (Eventually.of_forall hΨ0) hv
+  have hD : HasFDerivAt (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2) D (ι z₀, 0) :=
+    hΨ.hasFDerivAt_uncurry_zero (Eventually.of_forall hΨ0) hv
   have hDapply (u : EuclideanSpace ℝ (Fin (n + 1))) (σ : ℝ) : D (u, σ) = u + σ • v := by
     simp [D]
-  -- So the derivative of `F ∘ L` at `(z₀, 0)` is injective, since `v` leaves the hyperplane.
-  have hinj : Injective (D.comp L) := by
-    rw [injective_iff_map_eq_zero]
-    rintro ⟨dz, dτ⟩ h
-    simp only [L, ContinuousLinearMap.coe_comp, comp_apply, ContinuousLinearMap.prod_apply,
-      ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd', PiLp.proj_apply, hDapply] at h
-    have h0 := congrArg (fun y : EuclideanSpace ℝ (Fin (n + 1)) ↦ y 0) h
-    simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, ι,
-      euclideanHalfSpaceBoundaryParam_apply_zero, zero_add, PiLp.zero_apply, mul_eq_zero, hv0,
-      or_false] at h0
-    have hτ : dτ = 0 := by
-      ext i
-      fin_cases i
-      simpa using h0
-    rw [h0, zero_smul, add_zero] at h
-    have hz : dz = 0 := euclideanHalfSpaceBoundaryParam_injective n (by simpa [ι] using h)
-    simp [hz, hτ]
-  set D' := L ⁻¹' interior S
-  have hD' : IsOpen D' := isOpen_interior.preimage L.continuous
-  have hz₀D' : (z₀, (0 : EuclideanSpace ℝ (Fin 1))) ∈ D' := by
-    simp only [D', mem_preimage, hLz₀]
-    exact mem_interior_iff_mem_nhds.2 hS
-  have hGs : ContDiffOn ℝ ∞ (fun q : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) ↦
-      Ψ (ι q.1) (q.2 0)) D' :=
-    (hΨ.mono interior_subset).comp L.contDiff.contDiffOn fun _ hq ↦ hq
   have hGd : HasFDerivAt (fun q : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) ↦
       Ψ (ι q.1) (q.2 0)) (D.comp L) (z₀, 0) := by
     rw [← hLz₀] at hD
     exact hD.comp (z₀, 0) L.hasFDerivAt
-  exact isLocalDiffeomorphAt_of_injective_mfderiv (contMDiffOn_iff_contDiffOn.2 hGs) hD' hz₀D'
-      BoundarylessManifold.isInteriorPoint (by simp)
-      (by rwa [mfderiv_eq_fderiv, hGd.fderiv]) (by simp)
-
-/-- Under the hypotheses of `isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt`,
-the map `(z, τ) ↦ Ψ z τ` from the boundary hyperplane agrees near `(z₀, 0)`, and inside a given
-open set `R`, with a partial diffeomorphism `Θ` that sends a point of its source into the
-half-space exactly when the point lies in `ℝⁿ × [0, ∞)`, provided that this holds for the map
-on `R`. -/
-private theorem exists_partialDiffeomorph_boundaryParam {z₀ : EuclideanSpace ℝ (Fin n)}
-    {S : Set (EuclideanSpace ℝ (Fin (n + 1)) × ℝ)}
-    (hS : S ∈ 𝓝 (euclideanHalfSpaceBoundaryParam n z₀, 0))
-    (hΨ : ContDiffOn ℝ ∞ (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2) S)
-    (hΨ0 : ∀ x, Ψ x 0 = x) {v : EuclideanSpace ℝ (Fin (n + 1))}
-    (hv : HasDerivAt (Ψ (euclideanHalfSpaceBoundaryParam n z₀)) v 0) (hv0 : v 0 ≠ 0)
-    {R : Set (EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1))} (hR : IsOpen R)
-    (hz₀R : (z₀, 0) ∈ R)
-    (hsign : ∀ q ∈ R, 0 ≤ Ψ (euclideanHalfSpaceBoundaryParam n q.1) (q.2 0) 0 ↔ 0 ≤ q.2 0) :
-    ∃ Θ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1))
-        𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) (EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1))
-        (EuclideanSpace ℝ (Fin (n + 1))) ∞,
-      (z₀, 0) ∈ Θ.source ∧ Θ.source ⊆ R ∧
-      (∀ q ∈ Θ.source, Θ q = Ψ (euclideanHalfSpaceBoundaryParam n q.1) (q.2 0)) ∧
-      ∀ q ∈ Θ.source, Θ q ∈ range (𝓡∂ (n + 1)) ↔ q ∈ range ((𝓡 n).prod (𝓡∂ 1)) := by
-  obtain ⟨Θ, hΘ0, hΘR, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph_eqOn
-    (isLocalDiffeomorphAt_euclideanHalfSpaceBoundaryParam_of_hasDerivAt hS hΨ hΨ0 hv hv0) hR hz₀R
-  refine ⟨Θ, hΘ0, hΘR, fun q hq ↦ (hGΘ hq).symm, ?_⟩
-  rintro ⟨z, τ⟩ hq
-  rw [← hGΘ hq, ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,
-    range_modelWithCornersEuclideanHalfSpace]
-  simp only [mem_ofPred_eq, mem_prod, modelWithCornersSelf_coe, range_id, mem_univ, true_and]
-  exact hsign _ (hΘR hq)
+  -- So that derivative is injective, since `v` leaves the hyperplane.
+  rw [hGd.fderiv, injective_iff_map_eq_zero]
+  rintro ⟨dz, dτ⟩ h
+  simp only [L, ContinuousLinearMap.coe_comp, comp_apply, ContinuousLinearMap.prod_apply,
+    ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd', PiLp.proj_apply, hDapply] at h
+  have h0 := congrArg (fun y : EuclideanSpace ℝ (Fin (n + 1)) ↦ y 0) h
+  simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, ι,
+    euclideanHalfSpaceBoundaryParam_apply_zero, zero_add, PiLp.zero_apply, mul_eq_zero, hv0,
+    or_false] at h0
+  have hτ : dτ = 0 := by
+    ext i
+    fin_cases i
+    simpa using h0
+  rw [h0, zero_smul, add_zero] at h
+  have hz : dz = 0 := euclideanHalfSpaceBoundaryParam_injective n (by simpa [ι] using h)
+  simp [hz, hτ]
 
 end Param
-
-/-- Let `Θ` be a partial diffeomorphism of `ℝⁿ × ℝ¹` into `ℝⁿ⁺¹` that sends a point of its source
-into the half-space exactly when the point lies in `ℝⁿ × [0, ∞)`. A map on an open set `S` of
-`∂W × [0, ∞)` which, read in the boundary chart at `p` and in the extended chart at `p`, is the
-restriction of `Θ`, is a local diffeomorphism on `S`. -/
-private theorem isLocalDiffeomorphOn_extChartAt_symm_comp {p : (𝓡∂ (n + 1)).boundary W}
-    (Θ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1))
-      𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1))) (EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1))
-      (EuclideanSpace ℝ (Fin (n + 1))) ∞)
-    (hΘ : ∀ q ∈ Θ.source, Θ q ∈ range (𝓡∂ (n + 1)) ↔ q ∈ range ((𝓡 n).prod (𝓡∂ 1)))
-    {f : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 → EuclideanSpace ℝ (Fin (n + 1))}
-    {S : Set ((𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1)} (hS : IsOpen S)
-    (hf : ∀ q ∈ S, q.1 ∈ (chartAt (EuclideanSpace ℝ (Fin n)) p).source ∧
-      (chartAt (EuclideanSpace ℝ (Fin n)) p q.1, q.2.val) ∈ Θ.source ∧
-      Θ (chartAt (EuclideanSpace ℝ (Fin n)) p q.1, q.2.val) = f q ∧
-      f q ∈ (extChartAt (𝓡∂ (n + 1)) (p : W)).target) :
-    IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞
-      (fun q ↦ (extChartAt (𝓡∂ (n + 1)) (p : W)).symm (f q)) S := by
-  set β := chartAt (EuclideanSpace ℝ (Fin n)) p
-  set C := chartAt (ModelProd (EuclideanSpace ℝ (Fin n)) (EuclideanHalfSpace 1))
-    ((p, 0) : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1)
-  -- The product chart at `(p, 0)` is `β` times the identity, and the product model is the
-  -- inclusion of `ℝⁿ × [0, ∞)`.
-  have hCapply (q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1) : C q = (β q.1, q.2) := by
-    simp only [C, β, prodChartedSpace_chartAt, chartAt_self_eq]
-    rw [OpenPartialHomeomorph.prod_apply, OpenPartialHomeomorph.refl_apply]
-    simp only [id_eq]
-  have hCsrc (q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1) (hq : q.1 ∈ β.source) :
-      q ∈ C.source := by
-    simp only [C, prodChartedSpace_chartAt, OpenPartialHomeomorph.prod_source, chartAt_self_eq,
-      OpenPartialHomeomorph.refl_source]
-    exact ⟨hq, mem_univ _⟩
-  have hI (q : EuclideanSpace ℝ (Fin n) × EuclideanHalfSpace 1) :
-      ((𝓡 n).prod (𝓡∂ 1)) q = (q.1, q.2.val) := by
-    rw [modelWithCorners_prod_coe, Prod.map_apply, modelWithCornersSelf_coe, id_eq,
-      modelWithCornersEuclideanHalfSpace_apply]
-  have hCI (q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1) :
-      ((𝓡 n).prod (𝓡∂ 1)) (C q) = (β q.1, q.2.val) := by
-    rw [hCapply, hI]
-  rintro ⟨q, hq⟩
-  obtain ⟨hq1, hsrc, hval, htgt⟩ := hf q hq
-  -- `Θ` read in the half-space models, as a partial diffeomorphism by Tau Ceti.
-  have hl : IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞
-      ((𝓡∂ (n + 1)).symm ∘ Θ ∘ ((𝓡 n).prod (𝓡∂ 1))) (C q) := by
-    have hΘ' : ∀ y ∈ Θ.toOpenPartialHomeomorph.source, Θ.toOpenPartialHomeomorph y ∈
-        range (𝓡∂ (n + 1)) ↔ y ∈ range ((𝓡 n).prod (𝓡∂ 1)) := by
-      simpa only [Θ.toOpenPartialHomeomorph_source,
-        PartialDiffeomorph.toFun'_toOpenPartialHomeomorph] using hΘ
-    have h := (PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff
-      Θ.toOpenPartialHomeomorph
-      (by
-        rw [Θ.toOpenPartialHomeomorph_source, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
-        exact contMDiffOn_iff_contDiffOn.1 Θ.contMDiffOn)
-      (by
-        rw [Θ.toOpenPartialHomeomorph_target, PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm]
-        exact contMDiffOn_iff_contDiffOn.1 Θ.symm.contMDiffOn) hΘ').isLocalDiffeomorphAt _ _ _
-      (by
-        rw [PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff_source, mem_preimage,
-          Θ.toOpenPartialHomeomorph_source, hCI]
-        exact hsrc)
-    rwa [PartialDiffeomorph.coe_ofOpenPartialHomeomorphOfMemRangeIff,
-      PartialDiffeomorph.toFun'_toOpenPartialHomeomorph] at h
-  have hχ : (𝓡∂ (n + 1)).symm (Θ (((𝓡 n).prod (𝓡∂ 1)) (C q))) ∈
-      (chartAt (EuclideanHalfSpace (n + 1)) (p : W)).target := by
-    rw [extChartAt_target] at htgt
-    rw [hCI, hval]
-    exact htgt.1
-  have hc := (C.isLocalDiffeomorphAt_of_mem_maximalAtlas (n := ∞)
-    (IsManifold.chart_mem_maximalAtlas _) (hCsrc q hq1)).comp (hg := hl.comp (hg :=
-      (OpenPartialHomeomorph.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas
-        (chartAt (EuclideanHalfSpace (n + 1)) (p : W))
-        (IsManifold.chart_mem_maximalAtlas _) hχ)))
-  refine hc.congr_of_eventuallyEq ?_
-  filter_upwards [hS.mem_nhds hq] with q' hq'
-  simp only [comp_apply, hCI, (hf q' hq').2.2.1, extChartAt_coe_symm]
 
 /-- **Integral curves entering from the boundary.** Let `Y` be a smooth vector field pointing out
 of `W` along its boundary, and `p` a boundary point. There are an open set `B ∋ p` of the
@@ -341,38 +222,89 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
     rwa [extChartAt_coe, modelWithCornersSelf_coe, id_comp] at h
   have hz₀ : ι (β p) = φ p := hι p (mem_extChartAt_source _)
   have hU' : interior U ∈ 𝓝 (φ p) := isOpen_interior.mem_nhds (mem_interior_iff_mem_nhds.2 hU)
-  obtain ⟨Θ, hΘ0, hΘR, hΘG, hcond⟩ := exists_partialDiffeomorph_boundaryParam (z₀ := β p)
-    (S := U ×ˢ Ioo (-ε) ε) (by rw [hz₀]; exact prod_mem_nhds hU (Ioo_mem_nhds (by simpa) hε))
-    (by simpa using hΨ) hΨ0 (v := -f (φ p))
-    (by
-      have h := (hcurve' _ (mem_of_mem_nhds hU) hp0 0 ⟨le_rfl, hε⟩).2
-      rw [hΨ0] at h
-      rwa [hz₀])
-    (by simpa using hw₀.ne)
-    (R := {q | q.2 0 ∈ Ioo (-ε) ε ∧ ι q.1 ∈ interior U})
-    ((isOpen_Ioo.preimage (by fun_prop)).inter (isOpen_interior.preimage (by fun_prop)))
-    ⟨by simp [hε], by rw [hz₀]; exact mem_of_mem_nhds hU'⟩ fun q hq ↦
-      (hsign _ (interior_subset hq.2) (euclideanHalfSpaceBoundaryParam_apply_zero _) _ hq.1).1
-  -- A product box in the source of `Θ`, and the corresponding set `B` of boundary points.
-  obtain ⟨δ, hδ, hδsub⟩ := Metric.isOpen_iff.1 Θ.open_source _ hΘ0
-  set B : Set ((𝓡∂ (n + 1)).boundary W) := β.source ∩ β ⁻¹' Metric.ball (β p) δ
-  have hB : IsOpen B := β.isOpen_inter_preimage Metric.isOpen_ball
-  have hBsrc : ∀ x ∈ B, (x : W) ∈ φ.source := fun x hx ↦ by
-    simpa [boundaryChartedSpace_chartAt_source, β, φ] using hx.1
-  have hBΘ : ∀ x ∈ B, ∀ τ : EuclideanSpace ℝ (Fin 1), ‖τ‖ < δ → (β x, τ) ∈ Θ.source :=
-    fun x hx τ hτ ↦ hδsub (by
-      rw [Metric.mem_ball, Prod.dist_eq]
-      exact max_lt hx.2 (by simpa using hτ))
+  have hβφ (x : (𝓡∂ (n + 1)).boundary W) (hx : x ∈ β.source) : (x : W) ∈ φ.source := by
+    simpa [boundaryChartedSpace_chartAt_source, β, φ] using hx
+  have hΨ' : ContDiffOn ℝ ∞ (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2)
+      (U ×ˢ Ioo (-ε) ε) := by
+    simpa using hΨ
+  -- The flow from the boundary `F (x, t) = φ⁻¹ (Ψ (φ x) t)` reads, in the charts at `(p, 0)` and
+  -- at `p`, as `g (z, τ) = Ψ (ι z) (τ 0)`, which is smooth on the open set `t`.
+  set F : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1 → W :=
+    fun q ↦ φ.symm (Ψ (φ q.1) (q.2.val 0))
+  set g : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) → EuclideanSpace ℝ (Fin (n + 1)) :=
+    fun q ↦ Ψ (ι q.1) (q.2 0)
+  set t : Set (EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1)) :=
+    {q | q.2 0 ∈ Ioo (-ε) ε ∧ ι q.1 ∈ interior U}
+  have ht : IsOpen t :=
+    (isOpen_Ioo.preimage (by fun_prop)).inter (isOpen_interior.preimage (by fun_prop))
+  have hg : ContDiffOn ℝ ∞ g t := by
+    set L : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) →L[ℝ]
+        EuclideanSpace ℝ (Fin (n + 1)) × ℝ :=
+      (ι.comp (ContinuousLinearMap.fst ℝ _ _)).prod
+        ((PiLp.proj 2 (fun _ : Fin 1 ↦ ℝ) 0).comp (ContinuousLinearMap.snd ℝ _ _))
+    exact hΨ'.comp L.contDiff.contDiffOn fun q hq ↦ ⟨interior_subset hq.2, hq.1⟩
+  have hval0 : (0 : EuclideanHalfSpace 1).val = 0 := by
+    ext i
+    rw [Subsingleton.elim i 0]
+    exact EuclideanHalfSpace.val_zero_apply
+  have hext (q : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1) :
+      extChartAt ((𝓡 n).prod (𝓡∂ 1)) (p, 0) q = (β q.1, q.2.val) := by
+    simp [β]
+  have hF0 : F (p, 0) = p := by
+    simp only [F, EuclideanHalfSpace.val_zero_apply, hΨ0]
+    exact φ.left_inv (mem_extChartAt_source _)
+  -- By the inverse function theorem at boundary points, `F` is a local diffeomorphism at `(p, 0)`.
+  have hloc : IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞ F (p, 0) := by
+    refine isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff hg ht ?_ (by simp) ?_
+      (by simp) (fun q hq ↦ ?_) ?_ ?_
+    · rw [hext]
+      exact ⟨by simp [EuclideanHalfSpace.val_zero_apply, hε], by
+        rw [hz₀]; exact mem_of_mem_nhds hU'⟩
+    · rw [hext, hval0]
+      refine injective_fderiv_euclideanHalfSpaceBoundaryParam_of_hasDerivAt ?_ hΨ0
+        (v := -f (φ p)) ?_ (by simpa using hw₀.ne)
+      · rw [hz₀]
+        exact (hΨ'.contDiffAt (prod_mem_nhds hU (Ioo_mem_nhds (by simpa) hε))).differentiableAt
+          (by simp)
+      · have h := (hcurve' _ (mem_of_mem_nhds hU) hp0 0 ⟨le_rfl, hε⟩).2
+        rw [hΨ0] at h
+        rwa [hz₀]
+    · -- Along a curve from the boundary hyperplane, the zeroth coordinate has the sign of the
+      -- time.
+      rw [ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,
+        range_modelWithCornersEuclideanHalfSpace]
+      simp only [mem_ofPred_eq, mem_prod, modelWithCornersSelf_coe, range_id, mem_univ, true_and]
+      exact (hsign _ (interior_subset hq.2) (euclideanHalfSpaceBoundaryParam_apply_zero _) _
+        hq.1).1
+    · rw [hF0, hext, hval0]
+      simp only [g, PiLp.zero_apply, hΨ0, hz₀, φ]
+    · rw [hF0]
+      filter_upwards [(β.open_source.preimage continuous_fst).mem_nhds
+        (show ((p, 0) : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1).1 ∈ β.source from
+          mem_chart_source _ p)] with q hq
+      simp only [F, g, hext, hι q.1 (hβφ q.1 hq), φ]
+  -- A partial diffeomorphism `Φ` agreeing with `F`, with source in the chart domain at `p`, and a
+  -- product box in its source.
+  set B₀ : Set ((𝓡∂ (n + 1)).boundary W) := β.source ∩ β ⁻¹' (ι ⁻¹' interior U)
+  have hB₀ : IsOpen B₀ := β.isOpen_inter_preimage (isOpen_interior.preimage (by fun_prop))
+  have hpB₀ : p ∈ B₀ := ⟨mem_chart_source _ p, by
+    rw [mem_preimage, mem_preimage, hz₀]; exact mem_of_mem_nhds hU'⟩
+  obtain ⟨Φ, hΦ0, hΦB₀, hFΦ⟩ :=
+    hloc.exists_partialDiffeomorph_eqOn (hB₀.preimage continuous_fst) hpB₀
+  obtain ⟨B, V, hB, hpB, hV, h0V, hBV⟩ := mem_nhds_prod_iff'.1 (Φ.open_source.mem_nhds hΦ0)
+  obtain ⟨δ, hδ, hδV⟩ := EuclideanHalfSpace.exists_normalIio_subset hV h0V
+  have hBB₀ : ∀ x ∈ B, x ∈ B₀ := fun x hx ↦
+    mem_preimage.1 (hΦB₀ (hBV (mk_mem_prod hx h0V)))
+  have hBsrc : ∀ x ∈ B, (x : W) ∈ φ.source := fun x hx ↦ hβφ x (hBB₀ x hx).1
   have hBU : ∀ x ∈ B, φ x ∈ U := fun x hx ↦ by
     rw [← hι x (hBsrc x hx)]
-    exact interior_subset (hΘR (hBΘ x hx 0 (by simpa using hδ))).2
+    exact interior_subset (hBB₀ x hx).2
   have hB0 : ∀ x ∈ B, φ x 0 = 0 := fun x hx ↦ by
     rw [← hι x (hBsrc x hx)]
     exact euclideanHalfSpaceBoundaryParam_apply_zero _
   have hη (s : ℝ) (hs : s ∈ Ioc (-min ε δ) 0) : -s ∈ Ico 0 ε :=
     ⟨neg_nonneg.2 hs.2, by linarith [hs.1, min_le_left ε δ]⟩
-  refine ⟨B, min ε δ, fun q ↦ φ.symm (Ψ (φ q.2) (-q.1)), hB,
-    ⟨mem_chart_source _ p, Metric.mem_ball_self hδ⟩, lt_min hε hδ, fun x hx ↦ ?_,
+  refine ⟨B, min ε δ, fun q ↦ φ.symm (Ψ (φ q.2) (-q.1)), hB, hpB, lt_min hε hδ, fun x hx ↦ ?_,
     fun x hx s hs ↦ ?_, fun x hx s hs ↦ ?_, ?_⟩
   · -- The curves start on the boundary.
     simp only [neg_zero, hΨ0]
@@ -393,20 +325,12 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
       (hmem s hs)
       (eventually_nhdsWithin_of_forall fun r hr ↦ extChartAt_target_subset_range _ (hmem r hr)) hd
     rwa [mfderivWithin_extChartAt_symm_mpullbackWithin (hmem s hs)] at h
-  · -- Read in charts, `(x, t) ↦ γ (-t, x)` is the restriction of `Θ` to the half-spaces.
+  · -- `(x, t) ↦ γ (-t, x)` is `F`, which agrees with `Φ` on the source of `Φ`.
     simp only [neg_neg]
-    refine isLocalDiffeomorphOn_extChartAt_symm_comp Θ hcond
-      (hB.prod (EuclideanHalfSpace.isOpen_normalIio _)) fun q ⟨hq1, hq2⟩ ↦ ?_
-    rw [EuclideanHalfSpace.mem_normalIio] at hq2
-    have h0 : 0 ≤ q.2.val 0 := q.2.property
-    have hnorm : ‖q.2.val‖ < δ := by
-      have h : ‖q.2.val‖ = |q.2.val 0| := by
-        simp [EuclideanSpace.norm_eq, Real.sqrt_sq_eq_abs]
-      rw [h, abs_of_nonneg h0]
-      exact lt_of_lt_of_le hq2 (min_le_right _ _)
-    have hsrc := hBΘ _ hq1 _ hnorm
-    refine ⟨hq1.1, hsrc, by rw [hΘG _ hsrc, hι _ (hBsrc _ hq1)],
-      (hcurve' _ (hBU _ hq1) (hB0 _ hq1) _ ⟨h0, lt_of_lt_of_le hq2 (min_le_left _ _)⟩).1⟩
+    rintro ⟨q, hq1, hq2⟩
+    refine isLocalDiffeomorphAt_of_eqOn (hBV ⟨hq1, hδV ?_⟩) hFΦ
+    rw [EuclideanHalfSpace.mem_normalIio] at hq2 ⊢
+    exact lt_of_lt_of_le hq2 (min_le_right _ _)
 
 end TauCeti
 

@@ -433,10 +433,10 @@ along the boundary), and a boundary point `p`:
   (`IsMIntegralCurveOn`), and `(x, t) ↦ γ (-t.val 0, x)` is a local
   diffeomorphism (`IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞`)
   on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is that flow
-  from the boundary hyperplane, a local diffeomorphism of
-  boundaryless spaces since `Y p` is transverse to the boundary, restricted
-  to the half-spaces
-  (Tau Ceti's `TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff`).
+  from the boundary hyperplane, with injective derivative since `Y p` is
+  transverse to the boundary, and sending exactly the nonnegative times into
+  the half-space (Tau Ceti's
+  `TauCeti.isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff`).
 
 Expected size: 500 lines.
 
