@@ -120,7 +120,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 * `SymplecticGeometry.GluedAlong.mpullback_rangeInlDiffeomorph_symm`,
   `mpullback_rangeInlDiffeomorph_symm_gluedForm`: the inverse of `rangeInlDiffeomorph` pulls the
   restriction of a form to the range of `inl` back to its pull-back by `inl`, and that of the
-  glued form back to the form on `M₁`.
+  glued form back to the form on `M₁`; `mpullback_rangeInrDiffeomorph_symm` and
+  `mpullback_rangeInrDiffeomorph_symm_gluedForm`, the same for `inr` and `M₂`.
 * `SymplecticGeometry.GluedAlong.isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
   `isSymplectic_gluedForm_iff`: the glued form is closed, nondegenerate or symplectic exactly
   when both forms are.
@@ -985,6 +986,25 @@ theorem mpullback_rangeInlDiffeomorph_symm_gluedForm
     SmoothForm.mpullback (rangeInlDiffeomorph h).symm (rangeInlDiffeomorph h).symm.contMDiff
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (gluedForm φ σ₁ σ₂ hσ)) = σ₁ := by
   rw [mpullback_rangeInlDiffeomorph_symm, mpullback_inl_gluedForm]
+
+/-- Pulling the restriction of a form `α` on the glued space to the range of `inr` back by the
+inverse of `rangeInrDiffeomorph h`, which is `inr`, is pulling `α` back by `inr`. -/
+@[simp]
+theorem mpullback_rangeInrDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCompatible I ∞)
+    (α : SmoothForm I (GluedAlong φ.toHomeomorph) F k) :
+    SmoothForm.mpullback (rangeInrDiffeomorph h).symm (rangeInrDiffeomorph h).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
+      SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff α :=
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+    (isLocalDiffeomorph_inr_of_isCompatible h) (inr_injective _) α
+
+/-- The inverse of `rangeInrDiffeomorph h` pulls the restriction of the glued form to the range
+of `inr` back to the form on `M₂`. -/
+theorem mpullback_rangeInrDiffeomorph_symm_gluedForm
+    (h : (glueData φ.toHomeomorph).IsCompatible I ∞) :
+    SmoothForm.mpullback (rangeInrDiffeomorph h).symm (rangeInrDiffeomorph h).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (gluedForm φ σ₁ σ₂ hσ)) = σ₂ := by
+  rw [mpullback_rangeInrDiffeomorph_symm, mpullback_inr_gluedForm]
 
 variable (φ) in
 /-- A smooth form on the glued space is closed exactly when its pull-backs by `inl` and `inr`

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # The coordinate form of a chart as a pull-back
@@ -18,7 +19,9 @@ the model space by the differential of the extended chart
 coordinate form makes sense for any chart of the maximal atlas, and the chain rule computes its
 pull-backs: if `e ∘ f` agrees near `z` with `F ∘ χ` for a map `F : E → E`, then the form of `e`
 pulled back by the differential of `f` is `det (DF (χ z))` times the form of `χ`
-(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_comp`).
+(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_comp`). When `f` is the identity,
+this compares the forms of two charts `e` and `χ` directly
+(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq`).
 
 ## References
 
@@ -82,6 +85,23 @@ theorem continuousDet_compContinuousLinearMap_mfderiv_comp (b : Module.Basis ι 
   -- unify here, where the tangent spaces are `E` only by definition, so the goal is closed by
   -- `exact`.
   exact h
+
+/-- **The chain rule for the coordinate forms of two charts.** Let `χ : M → E` be differentiable
+at `z`, `F : E → E` differentiable at `χ z`, and `e : M → E` equal to `F ∘ χ` near `z`. Then the
+determinant form of `b` pulled back by the differential of `e` at `z` is `det (DF (χ z))` times
+the determinant form of `b` pulled back by the differential of `χ` at `z`.
+This is `continuousDet_compContinuousLinearMap_mfderiv_comp` with `f` the identity. -/
+theorem continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq (b : Module.Basis ι 𝕜 E)
+    {e χ : M → E} {F : E → E} {z : M} (hχ : MDifferentiableAt I 𝓘(𝕜, E) χ z)
+    (hF : DifferentiableAt 𝕜 F (χ z)) (heq : e =ᶠ[nhds z] F ∘ χ) :
+    b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) e z) =
+      LinearMap.det (fderiv 𝕜 F (χ z) : E →ₗ[𝕜] E) •
+        b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) χ z) := by
+  have he : MDifferentiableAt I 𝓘(𝕜, E) e z :=
+    (hF.mdifferentiableAt.comp z hχ).congr_of_eventuallyEq heq
+  rw [← b.continuousDet_compContinuousLinearMap_mfderiv_comp he mdifferentiableAt_id hχ hF heq,
+    mfderiv_id]
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_id _).symm
 
 end Module.Basis
 
