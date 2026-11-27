@@ -122,10 +122,8 @@ theorem mpullback_fiberInclusionMap_eq_mpullback_coordChange {e e' : Trivializat
     TauCeti.mpullback IF IM (e.fiberInclusionMap hb) α =
       TauCeti.mpullback IF IF (e.coordChange e' b)
         (TauCeti.mpullback IF IM (e'.fiberInclusionMap hb') α) := by
-  have h : ⇑(e.fiberInclusionMap hb) = e'.fiberInclusionMap hb' ∘ e.coordChange e' b :=
-    funext fun v ↦ (e.fiberInclusionMap_coordChange e' hb hb' v).symm
   funext v
-  rw [h]
+  rw [e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb']
   exact TauCeti.mpullback_comp_at (hc v) (mdifferentiable_fiberInclusionMap he' hb' _) α
 
 /-- **Charts related by a stabilizing coordinate change.** If the coordinate change from `e` to
