@@ -483,13 +483,13 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_s
         IsManifoldStrictlyPlurisubharmonicAt E (modelLevel k m ∘ Φ.symm) (Φ p) := by
   -- The handles of width at most `1` are bounded, so the model level has a margin on them.
   obtain ⟨R, hR⟩ := isBounded_iff_forall_norm_le.1
-    (isCompact_setOf_shape_le (k := k) (m := m) (1 ^ 2) ((1 + 1) ^ 2)).isBounded
+    (isCompact_setOfPred_shape_le (k := k) (m := m) (1 ^ 2) ((1 + 1) ^ 2)).isBounded
   obtain ⟨c, hc, hmargin⟩ := exists_pos_mul_max_norm_le_re_leviForm_modelLevel (k := k) (m := m) R
   obtain ⟨γ₀, hγ₀, h⟩ :=
     isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm Φ hΦ hc (N₀ := 0) hN
   refine ⟨γ₀, hγ₀, fun γ hγ ↦ ⟨(h γ hγ).1, fun p ht hs ↦ ?_⟩⟩
   refine (h γ hγ).2 (modelLevel k m) contDiff_modelLevel (fun q ht' hs' ↦ ?_) p ht hs
-  have hq := hR q (setOf_shape_le_subset_setOf_shape_le hγ.1.le
+  have hq := hR q (setOfPred_shape_le_subset_setOfPred_shape_le hγ.1.le
     (hγ.2.le.trans hγ₀.2) ⟨ht', hs'⟩)
   exact ⟨isStrictlyPlurisubharmonicAt_modelLevel q, fun v ↦ by simpa using hmargin q hq v⟩
 
