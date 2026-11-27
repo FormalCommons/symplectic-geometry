@@ -69,15 +69,19 @@ to `f` on the real points.
   complex normed space that is `C^N` on an open set `U`, vanishes at the real points of
   `U`, and has `‖∂̄ D (x + i y)‖ ≤ C * ‖y‖ ^ N` on `U`, has derivatives of every order `j ≤ N`
   zero at the real points of `U`; `SymplecticGeometry.fderiv_eq_zero_of_norm_conjWirtingerDeriv_le`
-  is the case `j = 1`.
+  is the case `j = 1`;
+* `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`: the two
+  results above together. If `D` is moreover `C^(N + 1)`, then
+  `‖D^j D (x + i y)‖ ≤ C' * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` near any compact set of real
+  points in `U`.
 
-For the last result, fix a real point `x` of `U`. The iterated derivative `D^j D(x)` vanishes on
-real arguments, since `D` vanishes on the real points of `U`. In its last argument it is
-`D^(j-1) (DD)(x)`, and the complex antilinear part of `DD`, which is `∂̄ D`, is `O(‖z - x‖ ^ N)`,
-so its derivatives of order `j - 1 < N` vanish at `x`
-(`ContDiffAt.iteratedFDeriv_fderiv_apply_I_smul_of_isBigO_conjWirtingerDeriv`): hence `D^j D(x)`
-is complex linear in its last argument, and by symmetry in each argument. Such a multilinear map
-is zero (`ContinuousMultilinearMap.eq_zero_of_map_update_I_smul`).
+For `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, fix a real point
+`x` of `U`. The iterated derivative `D^j D(x)` vanishes on real arguments, since `D` vanishes on
+the real points of `U`. In its last argument it is `D^(j-1) (DD)(x)`, and the complex antilinear
+part of `DD`, which is `∂̄ D`, is `O(‖z - x‖ ^ N)`, so its derivatives of order `j - 1 < N`
+vanish at `x` (`ContDiffAt.iteratedFDeriv_fderiv_apply_I_smul_of_isBigO_conjWirtingerDeriv`):
+hence `D^j D(x)` is complex linear in its last argument, and by symmetry in each argument. Such a
+multilinear map is zero (`ContinuousMultilinearMap.eq_zero_of_map_update_I_smul`).
 
 The formula of `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real` is the standard
 computation for almost analytic extensions: the derivative in the direction `i u` shifts the
@@ -490,6 +494,25 @@ theorem fderiv_eq_zero_of_norm_conjWirtingerDeriv_le {N : ℕ} {C : ℝ}
     fderiv ℝ D x = 0 := by
   rw [← norm_eq_zero, ← norm_iteratedFDeriv_one,
     iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le hU hD hD0 hC hxU hx hN, norm_zero]
+
+/-- A map `D` into a complex normed space that is `C^(N + 1)` over `ℝ` on an open set `U`,
+vanishes at the real points of `U`, and whose conjugate Wirtinger derivative satisfies
+`‖∂̄ D (x + i y)‖ ≤ C * ‖y‖ ^ N` on `U`, vanishes to order `N + 1` near a compact set `K ⊆ U` of
+real points: there are a neighbourhood `U'` of `K` and a constant `C'` with
+`‖D^j D (x + i y)‖ ≤ C' * ‖y‖ ^ (N + 1 - j)` for all `x + i y ∈ U'` and `j ≤ N + 1`. -/
+theorem exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le {N : ℕ} {C : ℝ}
+    {D : EuclideanSpace ℂ ι' → W} {U K : Set (EuclideanSpace ℂ ι')} (hU : IsOpen U)
+    (hD : ContDiffOn ℝ (N + 1) D U)
+    (hD0 : ∀ x ∈ U, (complexEuclideanEquivRealProd ι' x).2 = 0 → D x = 0)
+    (hC : ∀ z ∈ U,
+      ‖conjWirtingerDeriv D z‖ ≤ C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N)
+    (hK : IsCompact K) (hKU : K ⊆ U)
+    (hKre : ∀ z ∈ K, (complexEuclideanEquivRealProd ι' z).2 = 0) :
+    ∃ U' ∈ 𝓝ˢ K, ∃ C', ∀ z ∈ U', ∀ j ≤ N + 1,
+      ‖iteratedFDeriv ℝ j D z‖ ≤ C' * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N + 1 - j) :=
+  exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hU hD hK hKU hKre
+    fun _ hxU hx _ hj ↦ iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le hU
+      (hD.of_le (by exact_mod_cast N.le_succ)) hD0 hC hxU hx hj
 
 end SymplecticGeometry
 

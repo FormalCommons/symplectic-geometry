@@ -16,7 +16,6 @@ import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.Gradient
-import TauCeti.Geometry.Manifold.Morse.GradientFlow
 
 /-!
 # The norm square of a moment map
@@ -65,11 +64,10 @@ moment map.
 On a compact `M`, with a `C¹` Riemannian metric, the negative gradient flow of `f` from any point
 exists for all positive time and converges to a critical point of `f`, with a bound on the
 distance to the limit (`SymplecticGeometry.tendsto_maximalIntegralCurve_momentNormSq`). The
-forward trajectory stays in the compact space `M`, so it exists for all positive time
-(`TauCeti.Ici_subset_maximalIntegralCurveInterval_neg_mgradient`) and has a cluster point, which
-is critical (`TauCeti.mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient`).
-The inequality above at that point gives convergence
-(`SymplecticGeometry.tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`). This is
+forward trajectory stays in the compact space `M`, where the inequality above holds near every
+point, so the convergence theorem for trapped trajectories
+(`SymplecticGeometry.exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`) applies
+with `K = M`; the bound uses the exponent `θ ∈ [1/2, 1)` of the inequality at the limit. This is
 Lerman's argument; no particular metric is needed, so it applies to the metric `σ(·, J ·)` of a
 compatible almost complex structure.
 
@@ -205,19 +203,16 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
     (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff ξ).of_le (by norm_cast)
-  have hmem := mapsTo_univ (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x)
-    (maximalIntegralCurveInterval (-mgradient I' (momentNormSq B hB μ)) x ∩ Ici 0)
-  have hx := Ici_subset_maximalIntegralCurveInterval_neg_mgradient isCompact_univ hmem hf
-  -- On a compact manifold the forward trajectory has a cluster point, which is critical.
-  obtain ⟨p, -, hp⟩ := isCompact_univ.exists_mapClusterPt (f := atTop)
-    (u := maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) x)
-    (tendsto_principal.2 (Eventually.of_forall fun _ ↦ mem_univ _))
-  have hpc := mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient
-    isCompact_univ hmem hf hp
-  obtain ⟨θ, hθ, c, hc, hL⟩ := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG p
-  obtain ⟨hconv, hdist⟩ :=
-    tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz hf hx hp hc hθ.2 hL
-  exact ⟨hx, p, mgradient_eq_zero_iff.mpr (mem_criticalPoints.mp hpc), hconv, θ, hθ, c, hc, hdist⟩
+  have hL (q : M) := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG q
+  -- The forward trajectory stays in the compact space `M`.
+  obtain ⟨hx, p, hpc, hconv, hdist⟩ :=
+    exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz hf isCompact_univ
+      (mapsTo_univ _ _) fun q _ ↦ by
+        obtain ⟨θ, hθ, c, hc, h⟩ := hL q
+        exact ⟨θ, hθ.2, c, hc, h⟩
+  obtain ⟨θ, hθ, c, hc, hLp⟩ := hL p
+  exact ⟨hx, p, mgradient_eq_zero_iff.mpr (mem_criticalPoints.mp hpc.1), hconv, θ, hθ, c, hc,
+    hdist hc hθ.2 hLp⟩
 
 end Lojasiewicz
 

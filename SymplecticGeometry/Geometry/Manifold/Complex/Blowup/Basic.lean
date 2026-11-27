@@ -11,7 +11,6 @@ public import Mathlib.Analysis.CStarAlgebra.Classes
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
@@ -773,11 +772,16 @@ inverts `inr (gluingHomeomorph c)`. -/
 theorem contMDiffOn_lift :
     ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (lift c)
       (range (inr (gluingHomeomorph c))) := by
-  have hinj := (GluedAlong.inr_injective (gluingHomeomorph c)).injOn (s := univ)
-  have h := (isLocalDiffeomorph_inr c).contMDiffOn_invFunOn (GluedAlong.inr_injective _)
-  refine (contMDiff_subtypeVal.comp_contMDiffOn h).congr ?_
   rintro _ ⟨y, rfl⟩
-  rw [lift_inr, Function.comp_apply, hinj.leftInvOn_invFunOn (mem_univ y)]
+  refine ContMDiffAt.contMDiffWithinAt ?_
+  rw [← contMDiffAt_subtype_iff (U := GluedAlong.rangeInr (gluingHomeomorph c))
+    (x := ⟨_, GluedAlong.inr_mem_rangeInr _ y⟩)]
+  refine ((contMDiff_subtypeVal.comp (GluedAlong.rangeInrDiffeomorph
+    (isCompatible_complex c Fact.out)).contMDiff).contMDiffAt).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall fun z ↦ ?_)
+  exact (congrArg (lift c)
+    (GluedAlong.inr_rangeInrDiffeomorph_apply (isCompatible_complex c Fact.out) z)).symm.trans
+      (lift_inr c _)
 
 end Complex
 
