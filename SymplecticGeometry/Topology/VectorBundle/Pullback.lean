@@ -80,7 +80,8 @@ continuity of multiplication by a scalar on the fibres, for the action of their 
 the instance for Tau Ceti's action is `Bundle.Pullback.instContinuousConstSMulSMul`, which sits
 with `instIsModuleTopologySMul` (see below).
 `Bundle.Pullback.instT2Space`, `instModuleFinite` and `instIsModuleTopology` carry the Hausdorff
-property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`; each asks for it on
+property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`. Each of these
+instances, `instIsNormableSpace` and `instContinuousConstSMul` too, asks for its property on
 `E (f y)` alone, so that it applies to tangent spaces, whose instances hold at each point.
 `instIsModuleTopology` is for the action of the fibres' module structure. Which scalar action
 `IsModuleTopology R ((f *ᵖ E) y)` is elaborated with depends on the instances of the fibres of
@@ -374,18 +375,19 @@ end Sub
 
 end Module
 
-/-- A fibre of the pull-back `f *ᵖ E` is normable over `𝕜` when the fibres of `E` are: it is
-`E (f y)`, with the same topology and module structure. -/
+/-- A fibre of the pull-back `f *ᵖ E` is normable over `𝕜` when the fibre of `E` it comes from
+is: it is `E (f y)`, with the same topology and module structure. -/
 instance instIsNormableSpace {𝕜 : Type*} [NormedField 𝕜] [∀ b, AddCommGroup (E b)]
-    [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, IsNormableSpace 𝕜 (E b)] :
+    [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)] [IsNormableSpace 𝕜 (E (f y))] :
     IsNormableSpace 𝕜 ((f *ᵖ E) y) :=
   inferInstanceAs (IsNormableSpace 𝕜 (E (f y)))
 
 /-- Multiplication by each scalar on a fibre of the pull-back `f *ᵖ E` is continuous when it is
-on the fibres of `E`. The action is that of the module structure of the fibre; the instance for
-Tau Ceti's action `Bundle.Pullback.instSMul` is `Bundle.Pullback.instContinuousConstSMulSMul`. -/
+on the fibre of `E` it comes from. The action is that of the module structure of the fibre; the
+instance for Tau Ceti's action `Bundle.Pullback.instSMul` is
+`Bundle.Pullback.instContinuousConstSMulSMul`. -/
 instance instContinuousConstSMul {R : Type*} [Semiring R] [∀ b, AddCommMonoid (E b)]
-    [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, ContinuousConstSMul R (E b)] :
+    [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)] [ContinuousConstSMul R (E (f y))] :
     ContinuousConstSMul R ((f *ᵖ E) y) :=
   inferInstanceAs (ContinuousConstSMul R (E (f y)))
 
