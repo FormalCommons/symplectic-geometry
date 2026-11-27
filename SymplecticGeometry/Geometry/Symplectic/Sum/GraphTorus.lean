@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 
 /-!
 # Graph tori of circle maps
@@ -132,10 +133,10 @@ theorem mpullback_graphTorus_prod_torusSymplecticForm (hh : ContMDiff 𝓘(ℝ) 
       torusSymplecticForm p := by
   -- The first component factors through the circle, where every two-form vanishes, and the
   -- second is the identity.
-  rw [SmoothTwoForm.prod_def, map_add,
-    SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_apply hh (fst_comp_graphTorus hh),
+  rw [SmoothTwoForm.mpullback_prod,
+    SmoothForm.mpullback_congr _ (hh.comp contMDiff_apply) (fst_comp_graphTorus hh),
+    ← SmoothForm.mpullback_mpullback _ _ contMDiff_apply hh,
     SmoothForm.eq_zero_of_finrank_lt (by simp) (SmoothForm.mpullback h hh σ), map_zero, zero_add,
-    SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_congr _ contMDiff_id (snd_comp_graphTorus hh)]
   exact LinearMap.congr_fun SmoothForm.mpullback_id _
 

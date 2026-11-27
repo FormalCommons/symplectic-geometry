@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import SymplecticGeometry.Algebra.BigOperators.Module
+import SymplecticGeometry.Analysis.Calculus.BumpFunction.SmoothApprox
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
@@ -90,6 +91,14 @@ These paths, between consecutive members `M i` and `M (i + 1)` of the chain of s
   any given values, up to `η + δ / 2` and a curvature term of order `1 / δ`
   (`SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le`, from
   `SymplecticGeometry.abs_iteratedDeriv_two_smoothedMax_sub_le` and its analogues).
+
+The members `A i` of such a chain are smooth stand-ins for members `χ ℓ` of a family that is only
+`C²` away from an open set where it is smooth:
+
+* `SymplecticGeometry.exists_contDiff_abs_iteratedDeriv_sub_lt_of_mem_Icc`: a smooth `g` within
+  `θ` of `χ ℓ` in value and two derivatives on `[r₁, r₂]`, equal to `χ ℓ` near the band
+  `[r₃, r₂]`, and equal to `χ a` near all of `[r₁, r₂]` when `ℓ = a`. It applies
+  `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt` to the slice of the open set at `ℓ`.
 
 ## References
 
@@ -770,6 +779,45 @@ theorem abs_iteratedDeriv_shapeChain_sub_le {C : ℝ} {j : ℕ} (hδ : 0 < δ) (
       abs_iteratedDeriv_two_smoothedMax_sub_le hAj (hAj₁.sub contDiff_const) hδ.le (hC _) (φ 2)
 
 end shapeChain
+
+/-- A member `χ ℓ` of a family that is `C²` in `r` over `[a, b] × [r₁, r₂]` and smooth on an open
+set `U` containing `[a, b] × [r₃, r₂]` and `{a} × [r₁, r₂]` has, for every `θ > 0`, a smooth
+replacement `g` whose value and first two derivatives are within `θ` of those of `χ ℓ` on
+`[r₁, r₂]`, which agrees with `χ ℓ` near `[r₃, r₂]`, and which for `ℓ = a` agrees with `χ a`
+near `[r₁, r₂]`. -/
+theorem exists_contDiff_abs_iteratedDeriv_sub_lt_of_mem_Icc {a b r₃ ℓ θ : ℝ} {U : Set (ℝ × ℝ)}
+    (hC2 : ∀ x ∈ Icc a b ×ˢ Icc r₁ r₂, ContDiffAt ℝ 2 (χ x.1) x.2) (hU : IsOpen U)
+    (hEU : {a} ×ˢ Icc r₁ r₂ ∪ Icc a b ×ˢ Icc r₃ r₂ ⊆ U)
+    (hsmooth : ContDiffOn ℝ ∞ (Function.uncurry χ) U) (hℓ : ℓ ∈ Icc a b) (hθ : 0 < θ) :
+    ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧
+      (∀ k ≤ 2, ∀ r ∈ Icc r₁ r₂, |iteratedDeriv k g r - iteratedDeriv k (χ ℓ) r| < θ) ∧
+      g =ᶠ[𝓝ˢ (Icc r₃ r₂)] χ ℓ ∧ (ℓ = a → g =ᶠ[𝓝ˢ (Icc r₁ r₂)] χ a) := by
+  -- The slice of `U` at `ℓ` is open, and `χ ℓ` is smooth on it.
+  have hcont : Continuous fun r : ℝ ↦ (ℓ, r) := by fun_prop
+  have hS : IsOpen {r | (ℓ, r) ∈ U} := hU.preimage hcont
+  have hχS : ContDiffOn ℝ ∞ (χ ℓ) {r | (ℓ, r) ∈ U} :=
+    hsmooth.comp (contDiffOn_const.prodMk contDiffOn_id) fun _ hr ↦ hr
+  -- `χ ℓ` is `C²` on a neighbourhood of `[r₁, r₂]`.
+  have hU₂ : {r | ContDiffAt ℝ 2 (χ ℓ) r} ∈ 𝓝ˢ (Icc r₁ r₂) :=
+    mem_nhdsSet_iff_forall.2 fun r hr ↦
+      (hC2 (ℓ, r) ⟨hℓ, hr⟩).eventually (by simp)
+  have hχ₂ : ContDiffOn ℝ 2 (χ ℓ) {r | ContDiffAt ℝ 2 (χ ℓ) r} :=
+    fun _ hr ↦ hr.contDiffWithinAt
+  -- The approximation that agrees with `χ ℓ` near `[c, r₂]`, for `[c, r₂]` in the slice.
+  have key : ∀ c, Icc c r₂ ⊆ {r | (ℓ, r) ∈ U} → ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧
+      (∀ k ≤ 2, ∀ r ∈ Icc r₁ r₂, |iteratedDeriv k g r - iteratedDeriv k (χ ℓ) r| < θ) ∧
+      g =ᶠ[𝓝ˢ (Icc c r₂)] χ ℓ := fun c hc ↦
+    hχ₂.exists_contDiff_abs_iteratedDeriv_sub_lt hU₂ (hS.mem_nhdsSet.2 hc) hχS hθ
+  by_cases ha : ℓ = a
+  · subst ha
+    obtain ⟨g, hg, hgθ, hgc⟩ := key (min r₁ r₃) fun r hr ↦ by
+      rcases le_or_gt r₁ r with h | h
+      · exact hEU (Or.inl ⟨rfl, h, hr.2⟩)
+      · exact hEU (Or.inr ⟨⟨le_rfl, hℓ.2⟩, (min_le_iff.1 hr.1).resolve_left h.not_ge, hr.2⟩)
+    exact ⟨g, hg, hgθ, hgc.filter_mono (nhdsSet_mono (Icc_subset_Icc_left (min_le_right _ _))),
+      fun _ ↦ hgc.filter_mono (nhdsSet_mono (Icc_subset_Icc_left (min_le_left _ _)))⟩
+  · obtain ⟨g, hg, hgθ, hgc⟩ := key r₃ fun r hr ↦ hEU (Or.inr ⟨hℓ, hr⟩)
+    exact ⟨g, hg, hgθ, hgc, fun h ↦ absurd h ha⟩
 
 end SymplecticGeometry
 

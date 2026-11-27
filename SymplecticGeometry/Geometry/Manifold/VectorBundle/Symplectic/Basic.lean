@@ -66,7 +66,8 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   family of linear maps `L` between bundles, which need not be invertible.
 * `ContMDiffTwoForm.tangentEquiv`: on the tangent bundle, smooth two-forms are Tau Ceti's
   `TauCeti.SmoothTwoForm`, with the same bilinear forms on each tangent space
-  (`bilinFormAt_tangentEquiv`) and the same nondegenerate ones.
+  (`bilinFormAt_tangentEquiv`), the same nondegenerate ones, and the same products with a smooth
+  function (`tangentEquiv_symm_funSMulₗ`).
 * `ContMDiffTwoForm.pushforward_eq_iff`: an isomorphism `Φ` of bundles transports `ω₁` to `ω₂`
   exactly when `ω₂(Φ v, Φ w) = ω₁(v, w)` on every fibre. Symplectic isomorphisms are stated in
   this unbundled form.
@@ -666,6 +667,15 @@ that form is. -/
 theorem isNondegenerate_tangentEquiv_symm_iff {φ : TauCeti.SmoothTwoForm I M} :
     (tangentEquiv.symm φ).IsNondegenerate ↔ φ.IsNondegenerate := by
   rw [← isNondegenerate_tangentEquiv_iff, LinearEquiv.apply_symm_apply]
+
+open scoped ContDiff in
+/-- Under `tangentEquiv`, multiplying a Tau Ceti smooth two-form by a smooth function `ρ` is
+multiplying the two-form on the tangent bundle by `ρ`. -/
+@[simp]
+theorem tangentEquiv_symm_funSMulₗ (ρ : C^∞⟮I, M; ℝ⟯) (φ : TauCeti.SmoothTwoForm I M) :
+    tangentEquiv.symm (TauCeti.SmoothForm.funSMulₗ ρ φ) = ρ • tangentEquiv.symm φ := by
+  ext x v
+  simp [ContMDiffSection.smul_apply, TauCeti.SmoothForm.coe_funSMulₗ]
 
 end Tangent
 

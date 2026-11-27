@@ -18,6 +18,7 @@ import Mathlib.Analysis.Convex.Deriv
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Arith
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
@@ -601,22 +602,11 @@ theorem kempfNessFunction_mul (h : IsComplexifiedAction C J)
     (((hΦ.comp hmul).sub contMDiff_const).mdifferentiable (by simp)) (fun x ĝ ↦ ?_) (by simp)
   · rw [← congrFun hf g]
     ring
-  -- The derivative of `g ↦ Φ_p (a * g) - Φ_p a`, typed as a map into `ℝ` (the tangent space of
-  -- `ℝ` at every point) so that the subtraction of `0` typechecks, as in Mathlib's `mfderiv_sub`.
-  have hd : HasMFDerivAt IC 𝓘(ℝ)
-      (fun g ↦ kempfNessFunction C μ p (a * g) - kempfNessFunction C μ p a) x
-      (((by exact ((mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) (a * x)).comp
-        (mfderiv IC IC (a * ·) x))) : TangentSpace IC x →L[ℝ] ℝ) -
-        (0 : TangentSpace IC x →L[ℝ] ℝ)) :=
-    ((hΦ.mdifferentiableAt (x := a * x) (by simp)).hasMFDerivAt.comp x
-      (hmul.mdifferentiableAt (x := x) (by simp)).hasMFDerivAt).sub
-      (hasMFDerivAt_const (kempfNessFunction C μ p a) x)
-  rw [(hd.congr_mfderiv (sub_zero _)).mfderiv]
-  -- `ContinuousLinearMap.comp_apply` does not rewrite here, since the composite is typed as a map
-  -- into `ℝ` and its factor as one into a tangent space of `ℝ`; the composite applied to `ĝ` is
-  -- the derivative of `Φ_p` at `a * x` applied to the translate of `ĝ` by definition.
+  rw [mfderiv_sub_const]
+  refine (mfderiv_comp_apply (g := kempfNessFunction C μ p) x (hΦ.mdifferentiableAt (by simp))
+    (hmul.mdifferentiableAt (by simp)) ĝ).trans ?_
   refine (mfderiv_kempfNessFunction C μ p h hμ hg (a * x) _).trans ?_
-  rw [ContinuousLinearMap.coe_coe, Lie.mfderiv_inv_mul_mfderiv_mul_left, mul_inv_rev, mul_smul]
+  rw [Lie.mfderiv_inv_mul_mfderiv_mul_left, mul_inv_rev, mul_smul]
 
 /-- The Kempf–Ness function is additive on the stabilizer of `p` in `Gc`, in the setting of
 `kempfNessFunction_mul`: `Φ_p (a * g) = Φ_p a + Φ_p g` when `a • p = p`. -/
