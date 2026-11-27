@@ -98,7 +98,8 @@ The members `A i` of such a chain are smooth stand-ins for members `χ ℓ` of a
 * `SymplecticGeometry.exists_contDiff_abs_iteratedDeriv_sub_lt_of_mem_Icc`: a smooth `g` within
   `θ` of `χ ℓ` in value and two derivatives on `[r₁, r₂]`, equal to `χ ℓ` near the band
   `[r₃, r₂]`, and equal to `χ a` near all of `[r₁, r₂]` when `ℓ = a`. It applies
-  `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt` to the slice of the open set at `ℓ`.
+  `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt_of_contDiffAt` to the slice of the open
+  set at `ℓ`.
 
 ## References
 
@@ -797,17 +798,12 @@ theorem exists_contDiff_abs_iteratedDeriv_sub_lt_of_mem_Icc {a b r₃ ℓ θ : �
   have hS : IsOpen {r | (ℓ, r) ∈ U} := hU.preimage hcont
   have hχS : ContDiffOn ℝ ∞ (χ ℓ) {r | (ℓ, r) ∈ U} :=
     hsmooth.comp (contDiffOn_const.prodMk contDiffOn_id) fun _ hr ↦ hr
-  -- `χ ℓ` is `C²` on a neighbourhood of `[r₁, r₂]`.
-  have hU₂ : {r | ContDiffAt ℝ 2 (χ ℓ) r} ∈ 𝓝ˢ (Icc r₁ r₂) :=
-    mem_nhdsSet_iff_forall.2 fun r hr ↦
-      (hC2 (ℓ, r) ⟨hℓ, hr⟩).eventually (by simp)
-  have hχ₂ : ContDiffOn ℝ 2 (χ ℓ) {r | ContDiffAt ℝ 2 (χ ℓ) r} :=
-    fun _ hr ↦ hr.contDiffWithinAt
   -- The approximation that agrees with `χ ℓ` near `[c, r₂]`, for `[c, r₂]` in the slice.
   have key : ∀ c, Icc c r₂ ⊆ {r | (ℓ, r) ∈ U} → ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧
       (∀ k ≤ 2, ∀ r ∈ Icc r₁ r₂, |iteratedDeriv k g r - iteratedDeriv k (χ ℓ) r| < θ) ∧
       g =ᶠ[𝓝ˢ (Icc c r₂)] χ ℓ := fun c hc ↦
-    hχ₂.exists_contDiff_abs_iteratedDeriv_sub_lt hU₂ (hS.mem_nhdsSet.2 hc) hχS hθ
+    hχS.exists_contDiff_abs_iteratedDeriv_sub_lt_of_contDiffAt
+      (fun r hr ↦ hC2 (ℓ, r) ⟨hℓ, hr⟩) hS hc hθ
   by_cases ha : ℓ = a
   · subst ha
     obtain ⟨g, hg, hgθ, hgc⟩ := key (min r₁ r₃) fun r hr ↦ by

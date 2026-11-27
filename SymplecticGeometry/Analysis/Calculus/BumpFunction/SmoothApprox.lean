@@ -19,7 +19,9 @@ space, and smooth on a neighbourhood of a compact set `C`. For every `ε > 0` th
 `g` whose derivatives of order at most `n` are within `ε` of those of `f` on `K`, and which
 equals `f` near `C` (`ContDiffOn.exists_contDiff_norm_iteratedFDeriv_sub_lt`). The version for
 real functions on an interval, with `iteratedDeriv`, is
-`ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt`.
+`ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt`;
+`ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt_of_contDiffAt` takes instead `Cⁿ` at each
+point of the interval and an open set on which `f` is smooth.
 
 The approximation itself is Tau Ceti's
 `ContDiffOn.exists_contDiff_hasCompactSupport_tendstoUniformlyOn_iteratedFDeriv` (convolution
@@ -142,3 +144,16 @@ theorem ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt {f : ℝ → ℝ} {n
     ← sub_apply]
   refine lt_of_le_of_lt ?_ (hgf k hk x hx)
   simpa using (iteratedFDeriv ℝ k g x - iteratedFDeriv ℝ k f x).le_opNorm fun _ ↦ 1
+
+/-- Let `f : ℝ → ℝ` be `Cⁿ` at every point of `[a, b]` and smooth on an open set `V` containing
+`[c, b]`. For every `ε > 0` there is a smooth `g` whose derivatives of order `k ≤ n` are within
+`ε` of those of `f` on `[a, b]`, and which agrees with `f` on a neighbourhood of `[c, b]`. -/
+theorem ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt_of_contDiffAt {f : ℝ → ℝ} {n : ℕ}
+    {a b c ε : ℝ} {V : Set ℝ} (hf : ∀ x ∈ Icc a b, ContDiffAt ℝ n f x) (hV : IsOpen V)
+    (hcV : Icc c b ⊆ V) (hfV : ContDiffOn ℝ ∞ f V) (hε : 0 < ε) :
+    ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧
+      (∀ k ≤ n, ∀ x ∈ Icc a b, |iteratedDeriv k g x - iteratedDeriv k f x| < ε) ∧
+      g =ᶠ[𝓝ˢ (Icc c b)] f :=
+  ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt
+    (mem_nhdsSet_iff_forall.2 fun x hx ↦ (hf x hx).eventually (by simp))
+    (fun _ hx ↦ ContDiffAt.contDiffWithinAt hx) (hV.mem_nhdsSet.2 hcV) hfV hε
