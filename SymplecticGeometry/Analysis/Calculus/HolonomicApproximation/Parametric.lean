@@ -44,6 +44,13 @@ those of `D`; those outside `J` record the parameter.
 * `SymplecticGeometry.dist_familyCubeEquiv_of_fst_eq`: it preserves the distance of two points
   with the same parameter, and `SymplecticGeometry.infDist_le_infDist_familyCubeEquiv` bounds the
   distance to `Q` by the distance of the image to `Q'`.
+* `SymplecticGeometry.familyRelativeSet`: the relative set on the core of `D'` for closed
+  `B ⊆ Fin m → ℝ` and `P₀ ⊆ L`, the points `Fin.append s u` with `u ∈ B` or `s = R⁻¹ • e l` for
+  some `l ∈ P₀`. It is closed (`SymplecticGeometry.isClosed_familyRelativeSet`), contains the
+  faces of the cube of `D'` in the directions `J` when `sphere 0 1 ⊆ B`
+  (`SymplecticGeometry.mem_familyRelativeSet_of_abs_eq_one`), and its product with `{0}` lies in
+  the image of any `U` that contains `univ ×ˢ (B ×ˢ {0})` and `P₀ ×ˢ univ`
+  (`SymplecticGeometry.familyRelativeSet_prod_zero_subset_image`).
 
 ## References
 
@@ -209,6 +216,84 @@ theorem mem_thickening_of_familyCubeEquiv_mem_thickening (hR : R ≠ 0) {δ : �
     p.2 ∈ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)}) := by
   rw [mem_thickening_iff_infDist_lt ⟨0, by simp⟩] at hp ⊢
   exact (infDist_le_infDist_familyCubeEquiv hR p).trans_lt hp
+
+variable (L) in
+/-- The relative set, in the core of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`, for
+`B ⊆ Fin m → ℝ` and a set of parameters `P₀ ⊆ L`: the points `Fin.append s u` with `u ∈ B`, or
+with `s = R⁻¹ • e l` for some `l ∈ P₀`, where `e = (Module.finBasis ℝ L).equivFun`. It is the
+image of `univ ×ˢ B ∪ ((fun l ↦ R⁻¹ • e l) '' P₀) ×ˢ univ` under
+`(splitCoords (finrank ℝ L) m).symm` (`familyRelativeSet_eq_image`), written as a preimage
+under `splitCoords`. -/
+noncomputable def familyRelativeSet (R : ℝ) (B : Set (Fin m → ℝ)) (P₀ : Set L) :
+    Set (Fin (finrank ℝ L + m) → ℝ) :=
+  splitCoords (𝕜 := ℝ) (finrank ℝ L) m ⁻¹'
+    (univ ×ˢ B ∪ ((fun l ↦ R⁻¹ • (finBasis ℝ L).equivFun l) '' P₀) ×ˢ univ)
+
+theorem familyRelativeSet_def (R : ℝ) (B : Set (Fin m → ℝ)) (P₀ : Set L) :
+    familyRelativeSet L R B P₀ = splitCoords (𝕜 := ℝ) (finrank ℝ L) m ⁻¹'
+      (univ ×ˢ B ∪ ((fun l ↦ R⁻¹ • (finBasis ℝ L).equivFun l) '' P₀) ×ˢ univ) :=
+  (rfl)
+
+/-- `familyRelativeSet` is the image of `univ ×ˢ B ∪ ((fun l ↦ R⁻¹ • e l) '' P₀) ×ˢ univ` under
+the concatenation `(splitCoords (finrank ℝ L) m).symm`. -/
+theorem familyRelativeSet_eq_image (R : ℝ) (B : Set (Fin m → ℝ)) (P₀ : Set L) :
+    familyRelativeSet L R B P₀ = (splitCoords (𝕜 := ℝ) (finrank ℝ L) m).symm ''
+      (univ ×ˢ B ∪ ((fun l ↦ R⁻¹ • (finBasis ℝ L).equivFun l) '' P₀) ×ˢ univ) := by
+  rw [familyRelativeSet_def, ContinuousLinearEquiv.image_symm_eq_preimage]
+
+/-- A point lies in `familyRelativeSet` if and only if its last `m` coordinates lie in `B` or
+its first `finrank ℝ L` coordinates are `R⁻¹ • e l` for some `l ∈ P₀`. -/
+theorem mem_familyRelativeSet_iff {R : ℝ} {B : Set (Fin m → ℝ)} {P₀ : Set L}
+    {z : Fin (finrank ℝ L + m) → ℝ} :
+    z ∈ familyRelativeSet L R B P₀ ↔ (fun i ↦ z (Fin.natAdd (finrank ℝ L) i)) ∈ B ∨
+      ∃ l ∈ P₀, R⁻¹ • (finBasis ℝ L).equivFun l = fun i ↦ z (Fin.castAdd m i) := by
+  simp only [familyRelativeSet_def, mem_preimage, splitCoords_apply, mem_union, mem_prod,
+    mem_univ, true_and, and_true, mem_image]
+
+/-- For closed `B` and `P₀`, `familyRelativeSet` is closed. -/
+theorem isClosed_familyRelativeSet (R : ℝ) {B : Set (Fin m → ℝ)} {P₀ : Set L} (hB : IsClosed B)
+    (hP₀ : IsClosed P₀) : IsClosed (familyRelativeSet L R B P₀) := by
+  rw [familyRelativeSet_def]
+  refine ((isClosed_univ.prod hB).union (IsClosed.prod ?_ isClosed_univ)).preimage
+    (splitCoords (finrank ℝ L) m).continuous
+  exact (isClosedMap_smul₀ R⁻¹).comp
+    (finBasis ℝ L).equivFun.toContinuousLinearEquiv.toHomeomorph.isClosedMap _ hP₀
+
+/-- When `sphere 0 1 ⊆ B`, `familyRelativeSet` contains the faces of the cube `closedBall 0 1`
+in the directions `Finset.univ.map (Fin.natAddEmb (finrank ℝ L))`, that is the points of the
+cube with a coordinate of absolute value `1` in one of these directions. -/
+theorem mem_familyRelativeSet_of_abs_eq_one (R : ℝ) {B : Set (Fin m → ℝ)} (P₀ : Set L)
+    (hB : sphere 0 1 ⊆ B) {u : Fin (finrank ℝ L + m) → ℝ} (hu : u ∈ closedBall 0 1)
+    (hi : ∃ i ∈ Finset.univ.map (Fin.natAddEmb (finrank ℝ L)), |u i| = 1) :
+    u ∈ familyRelativeSet L R B P₀ := by
+  obtain ⟨_, hi, hui⟩ := hi
+  obtain ⟨i, -, rfl⟩ := Finset.mem_map.1 hi
+  refine mem_familyRelativeSet_iff.2 (Or.inl (hB ?_))
+  rw [mem_closedBall, dist_zero_right] at hu
+  rw [mem_sphere, dist_zero_right]
+  refine le_antisymm ?_ ?_
+  · refine (le_max_right ‖fun i ↦ u (Fin.castAdd m i)‖ _).trans (le_of_eq_of_le ?_ hu)
+    rw [← Fin.norm_append, Fin.append_castAdd_natAdd]
+  · rw [← hui, ← Real.norm_eq_abs]
+    exact norm_le_pi_norm (fun i ↦ u (Fin.natAdd (finrank ℝ L) i)) i
+
+/-- If `U ⊆ L × ((Fin m → ℝ) × (Fin k → ℝ))` contains every point `(l, (u, 0))` with `u ∈ B` and
+every point over a parameter of `P₀`, then the image of `U` under `familyCubeEquiv` contains
+`familyRelativeSet L R B P₀ ×ˢ {0}`. -/
+theorem familyRelativeSet_prod_zero_subset_image (hR : R ≠ 0) {B : Set (Fin m → ℝ)}
+    {P₀ : Set L} {U : Set (L × (Fin m → ℝ) × (Fin k → ℝ))} (hBU : univ ×ˢ (B ×ˢ {0}) ⊆ U)
+    (hP₀U : P₀ ×ˢ univ ⊆ U) :
+    familyRelativeSet L R B P₀ ×ˢ {0} ⊆ familyCubeEquiv L m k hR '' U := by
+  rintro ⟨z, v⟩ ⟨hz, hv⟩
+  rw [mem_singleton_iff] at hv
+  subst hv
+  rw [ContinuousLinearEquiv.image_eq_preimage_symm, mem_preimage]
+  rcases mem_familyRelativeSet_iff.1 hz with hz | ⟨l, hl, hlz⟩
+  · exact hBU ⟨mem_univ _, by simpa using hz⟩
+  · refine hP₀U ⟨?_, mem_univ _⟩
+    rw [familyCubeEquiv_symm_apply, ← hlz, smul_smul, mul_inv_cancel₀ hR, one_smul,
+      LinearEquiv.symm_apply_apply]
+    exact hl
 
 end SymplecticGeometry
 
