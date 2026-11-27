@@ -32,8 +32,6 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
 
 ## Main declarations
 
-* `TauCeti.isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt`: on `E` as a
-  manifold modelled on itself, strict plurisubharmonicity is that of the Levi form on `E`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_iff_forall_pos`: a smooth `f` is
   strictly plurisubharmonic at `x` iff `0 < ω_f(v, i v)` at `x` for every `v ≠ 0`.
 * `SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`: `ω_f` is Kähler for `J`
@@ -75,18 +73,6 @@ open TauCeti TauCeti.SmoothAlmostComplexStructure
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
-
-/-! ### The model space -/
-
-/-- On a complex normed space `E`, seen as a complex manifold modelled on itself, strict
-plurisubharmonicity of `u : E → ℝ` at `z` is strict plurisubharmonicity in the sense of complex
-vector spaces: positive definiteness of the Levi form `leviForm u z`. -/
-@[simp]
-theorem _root_.TauCeti.isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt
-    {u : E → ℝ} {z : E} :
-    IsManifoldStrictlyPlurisubharmonicAt E u z ↔ IsStrictlyPlurisubharmonicAt u z := by
-  rw [isManifoldStrictlyPlurisubharmonicAt_iff, isStrictlyPlurisubharmonicAt_iff]
-  simp only [manifoldLeviForm_eq_leviForm]
 
 /-! ### Positivity of `ω_f` -/
 

@@ -17,6 +17,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Prod
+import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
