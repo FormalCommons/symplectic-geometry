@@ -5,11 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 
 /-!
-# Pulling Liouville vector fields back along related fields
+# Liouville vector fields: pullback along related fields, linearization at a zero
 
 Let `Φ : M' → M` be a smooth map, `σ` a smooth two-form on `M` and `X` a Liouville vector field
 of `σ`. If a vector field `Y` on `M'` is `Φ`-related to `X`, that is `dΦ_x (Y x) = X (Φ x)` for
@@ -21,6 +23,13 @@ ambient manifold.
 
 The proof applies the naturality of the Lie derivative along related fields,
 `TauCeti.mpullback_mlieDerivForm_of_related`: `Φ^* (L_X σ) = L_Y (Φ^* σ)`.
+
+At a zero `p` of a Liouville vector field `Z` of a two-form `σ`, the condition `L_Z σ = σ`, read
+at `p`, says that the linearization `A` of `Z` (Tau Ceti's `TauCeti.sectionLinearization`)
+satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`
+(`TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`). The Lie derivative at a zero
+of the field involves only the derivative of the field (`TauCeti.mlieDerivForm_apply_of_eq_zero`),
+so no regularity of `Z` or `σ` is needed.
 
 ## References
 
@@ -58,6 +67,29 @@ theorem IsLiouvilleVectorField.mpullback {Φ : M' → M} (hΦ : ContMDiff I' I �
   rw [isLiouvilleVectorField_iff, SmoothForm.coe_mpullback,
     ← mpullback_mlieDerivForm_of_related (k := 2) (hΦ.of_le (by simp))
       (σ.isSmoothForm.of_le (by simp)) hX hY hXY, isLiouvilleVectorField_iff.mp hXσ]
+
+section Linearization
+
+variable {N : Type*} [TopologicalSpace N] [ChartedSpace H N] [I.Boundaryless] [IsManifold I 1 N]
+
+/-- **The linearized Liouville identity.** Let `Z` be a Liouville vector field of a two-form `σ`
+(`L_Z σ = σ`) on a boundaryless manifold, and let `p` be a zero of `Z`, with linearization `A`.
+Then `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)` for all tangent vectors `u`, `v` at `p`: the
+Lie derivative at a zero of the field is read off its linearization. -/
+theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I N ℝ 2}
+    {Z : (x : N) → TangentSpace I x} (hZ : IsLiouvilleVectorField σ Z) {p : N} (hp : Z p = 0)
+    (u v : TangentSpace I p) :
+    σ p ![sectionLinearization (F := E) I id Z p u, v] +
+        σ p ![u, sectionLinearization (F := E) I id Z p v] = σ p ![u, v] := by
+  conv_rhs => rw [← isLiouvilleVectorField_iff.1 hZ]
+  rw [mlieDerivForm_apply_of_eq_zero hp, Fin.sum_univ_two,
+    sectionLinearization_apply_eq_vectorFieldChartDerivative,
+    sectionLinearization_apply_eq_vectorFieldChartDerivative]
+  -- Each entry of the updated pairs is computed by `Function.update` on `Fin 2`; the entries are
+  -- tangent vectors at `p`, which `simp` does not match against vectors of `E`.
+  congr 2 <;> funext i <;> fin_cases i <;> rfl
+
+end Linearization
 
 end TauCeti
 
