@@ -519,6 +519,11 @@ theorem coe_radialMapDiffeomorph_apply (z : puncturedSpace (ι → ℂ)) :
   rw [radialMapDiffeomorph, IsLocalDiffeomorph.coe_diffeomorphOfBijective, val_radialMapShell,
     val_radialMap]
 
+/-- The radial map undoes the inverse of the diffeomorphism onto the shell. -/
+theorem coe_radialMap_radialMapDiffeomorph_symm_apply (w : radialShell ι h hs hd) :
+    (radialMap h hh ((radialMapDiffeomorph ι h hs hh hd).symm w) : ι → ℂ) = w := by
+  rw [← coe_radialMapDiffeomorph_apply hs hh hd, Diffeomorph.apply_symm_apply]
+
 end Diffeomorph
 
 /-! ### The pull-back of `ω₀` along a radial map -/

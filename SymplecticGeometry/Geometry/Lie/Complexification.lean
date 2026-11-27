@@ -91,7 +91,7 @@ The complex structure `cplx` is not determined by the other fields.
   `SymplecticGeometry.LieComplexification.apply_polar_symm_inv_fst`: the polar radius
   `a ↦ B η η` is smooth, and for connected `G` and an `Ad`-invariant `B` it takes the same value
   at `a` and at `a⁻¹`.
-* `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
+* `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom`: for
   connected `G`, the left-trivialized velocity of `τ ↦ expI (τ • ξ) * toHom u` is
   `cplx (lieMap (Ad u⁻¹ ξ))` at every time.
 * `SymplecticGeometry.LieComplexification.apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom`: for
@@ -478,8 +478,8 @@ theorem apply_polar_symm_inv_fst [FiniteDimensional ℝ EC] [ConnectedSpace G]
 
 /-- For connected `G`, the radial curve `τ ↦ expI (τ • ξ) * toHom u` of the polar decomposition
 has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`. -/
-theorem mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom [FiniteDimensional ℝ EC] [ConnectedSpace G]
-    (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
+theorem mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom [FiniteDimensional ℝ EC]
+    [ConnectedSpace G] (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
     mfderiv IC IC ((C.expI (t • ξ) * C.toHom u)⁻¹ * ·) (C.expI (t • ξ) * C.toHom u)
         (Manifold.curveVelocity IC (fun τ : ℝ ↦ C.expI (τ • ξ) * C.toHom u) t) =
       C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ)) := by
@@ -490,7 +490,7 @@ theorem mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom [FiniteDimensional ℝ EC] [
       map_inv, inv_inv]
     group
   rw [funext h, h t]
-  exact mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul _ _ t
+  exact mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul _ _ t
 
 /-- For connected `G` and an `Ad`-invariant form `B` on its Lie algebra, a map
 `g z = expI (ξ z) * toHom (v z)` from a manifold into `Gc`, with `ξ` and `v` differentiable at `z`,

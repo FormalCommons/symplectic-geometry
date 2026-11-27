@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.ConnectedSum.OrientationPrese
 
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Euclidean.Inversion
@@ -57,8 +58,9 @@ symmetrically.
 For oriented `M₁` and `M₂`, `0 < ε`, balls `ι₁`, `ι₂` that preserve orientation on the unit ball
 from an orientation `oE` of `E`, and `Φ` of negative determinant, the rescaled ball
 `v ↦ ι₁ (ε • v)` preserves and `v ↦ ι₂ (Φ (ε • v))` reverses orientation at every point, since
-`E` is connected and a local diffeomorphism that preserves orientation at one point of a
-connected set does so on all of it (Tau Ceti's `IsPreconnected.isOrientationPreservingAt_iff`).
+`E` is connected and a local diffeomorphism of a connected manifold that preserves orientation
+at one point does so everywhere (`IsLocalDiffeomorph.isOrientationPreservingAt_iff`, which applies
+Tau Ceti's `IsPreconnected.isOrientationPreservingAt_iff`).
 So Tau Ceti's `TauCeti.ConnectedSum.orientation` orients the connected sum along them, and the
 connected sum of the book is oriented by carrying it back along the diffeomorphism above, as
 `TauCeti.OrientedConnectedSum.orientation` is carried from its connected sum. The inclusions of
@@ -794,9 +796,7 @@ theorem isOrientationPreservingAt_rescale_of_zero (hf : IsLocalDiffeomorph 𝓘(
     (hε : 0 < ε) (h0 : IsOrientationPreservingAt oE o f 0) (v : E) :
     IsOrientationPreservingAt oE o (rescale f ε) v := by
   have hd := isLocalDiffeomorph_rescale hf hε.ne'
-  refine (isPreconnected_univ.isOrientationPreservingAt_iff (fun x _ ↦ hd.contMDiff x)
-    (fun x _ ↦ (hd x).isInvertible_mfderiv one_ne_zero) oE o (Set.mem_univ 0)
-    (Set.mem_univ v)).1 ?_
+  refine (hd.isOrientationPreservingAt_iff one_ne_zero oE o 0 v).1 ?_
   exact isOrientationPreservingAt_rescale hε (by simpa using h0)
 
 /-- For `0 < ε`, the rescaled ball `v ↦ f (ε • v)` of a `C¹` local diffeomorphism `f` that

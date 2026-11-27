@@ -34,7 +34,9 @@ so the source of the chart is the preimage of a Euclidean ball, not a sup-norm b
   pseudoholomorphic from the complex structure of `ι → ℂ` to the constant structure `J₀`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isSymplecticMapOn_complexPartialDiffeomorph`:
   on its source, `hψ.complexPartialDiffeomorph` is a symplectic map from the constant form of
-  `stdComplexPiSymplecticForm (Fin m)` to `σ`.
+  `stdComplexPiSymplecticForm (Fin m)` to `σ`;
+  `SymplecticGeometry.IsSymplecticBallEmbedding.isSymplecticMapOn_complexPartialDiffeomorph_symm`:
+  on its target, its inverse is a symplectic map from `σ` to that form.
 
 ## References
 
@@ -106,6 +108,31 @@ theorem complexPartialDiffeomorph_target (hψ : IsSymplecticBallEmbedding σ r �
     hψ.complexPartialDiffeomorph.target = ψ '' ball 0 r := by
   simp [complexPartialDiffeomorph]
 
+/-- The inverse of `hψ.complexPartialDiffeomorph`, followed by `ψ ∘ complexToRealEuclidean`, is
+the identity on the image under `ψ` of the open ball of radius `r`. -/
+theorem apply_complexToRealEuclidean_complexPartialDiffeomorph_symm
+    (hψ : IsSymplecticBallEmbedding σ r ψ) {p : M} (hp : p ∈ ψ '' ball 0 r) :
+    ψ (complexToRealEuclidean (Fin m) (hψ.complexPartialDiffeomorph.symm p)) = p := by
+  have := hψ.complexPartialDiffeomorph.right_inv (by rwa [complexPartialDiffeomorph_target])
+  rwa [coe_complexPartialDiffeomorph, Function.comp_apply] at this
+
+/-- The inverse of `hψ.complexPartialDiffeomorph` sends `ψ (complexToRealEuclidean w)` back to
+`w`, for `w` in the preimage of the open ball of radius `r`. -/
+theorem complexPartialDiffeomorph_symm_apply_complexToRealEuclidean
+    (hψ : IsSymplecticBallEmbedding σ r ψ) {w : Fin m → ℂ}
+    (hw : ‖complexToRealEuclidean (Fin m) w‖ < r) :
+    hψ.complexPartialDiffeomorph.symm (ψ (complexToRealEuclidean (Fin m) w)) = w := by
+  have := hψ.complexPartialDiffeomorph.left_inv (hψ.mem_complexPartialDiffeomorph_source_iff.2 hw)
+  rwa [coe_complexPartialDiffeomorph, Function.comp_apply] at this
+
+/-- The inverse of `hψ.complexPartialDiffeomorph` maps the image under `ψ` of the open ball of
+radius `r` into the preimage of that ball. -/
+theorem norm_complexPartialDiffeomorph_symm_lt (hψ : IsSymplecticBallEmbedding σ r ψ) {p : M}
+    (hp : p ∈ ψ '' ball 0 r) :
+    ‖complexToRealEuclidean (Fin m) (hψ.complexPartialDiffeomorph.symm p)‖ < r :=
+  hψ.mem_complexPartialDiffeomorph_source_iff.1
+    (hψ.complexPartialDiffeomorph.map_target (by rwa [complexPartialDiffeomorph_target]))
+
 /-- On its source, `hψ.complexPartialDiffeomorph` is a symplectic map from the constant form of
 `stdComplexPiSymplecticForm (Fin m)` on `Fin m → ℂ` to `σ`. -/
 theorem isSymplecticMapOn_complexPartialDiffeomorph (hψ : IsSymplecticBallEmbedding σ r ψ) :
@@ -118,6 +145,15 @@ theorem isSymplecticMapOn_complexPartialDiffeomorph (hψ : IsSymplecticBallEmbed
       (isSymplectomorphism_complexToRealEuclidean (Fin m))).isSymplecticMap
   · rw [hψ.coe_toPartialDiffeomorph, hψ.toPartialDiffeomorph_source]
     exact hψ.isSymplecticMapOn
+
+/-- On the image under `ψ` of the open ball of radius `r`, the inverse of
+`hψ.complexPartialDiffeomorph` is a symplectic map from `σ` to the constant form of
+`stdComplexPiSymplecticForm (Fin m)` on `Fin m → ℂ`. -/
+theorem isSymplecticMapOn_complexPartialDiffeomorph_symm (hψ : IsSymplecticBallEmbedding σ r ψ) :
+    σ.IsSymplecticMapOn (stdComplexPiSymplecticForm (Fin m)).constSmooth
+      hψ.complexPartialDiffeomorph.symm hψ.complexPartialDiffeomorph.target :=
+  hψ.complexPartialDiffeomorph.isSymplecticMapOn_symm
+    hψ.isSymplecticMapOn_complexPartialDiffeomorph (by simp)
 
 end IsSymplecticBallEmbedding
 
