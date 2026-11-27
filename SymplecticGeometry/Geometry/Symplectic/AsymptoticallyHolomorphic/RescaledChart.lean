@@ -813,6 +813,19 @@ theorem chart_symm_zero {k : ℕ} (hk : k₀ ≤ k) (x : M) : (D.chart k x).symm
   rw [← D.apply_self hk x]
   exact (D.chart k x).left_inv (D.mem_source hk x)
 
+/-- The centre `0` lies in the target of the chart centred at `x`. -/
+theorem zero_mem_chart_target {k : ℕ} (hk : k₀ ≤ k) (x : M) :
+    (0 : StdSpace ι) ∈ (D.chart k x).target := by
+  rw [← D.apply_self hk x]
+  exact (D.chart k x).map_source (D.mem_source hk x)
+
+/-- The inverse of the chart centred at `x` sends a compact subset of the ball of radius
+`ρ₀ * √k` to a compact subset of `M`. -/
+theorem isCompact_chart_symm_image {k : ℕ} (hk : k₀ ≤ k) (x : M) {K : Set (StdSpace ι)}
+    (hK : IsCompact K) (hKB : K ⊆ ball 0 (ρ₀ * √k)) : IsCompact ((D.chart k x).symm '' K) :=
+  hK.image_of_continuousOn ((D.chart k x).toOpenPartialHomeomorph.continuousOn_symm.mono
+    (hKB.trans (D.ball_subset_target hk x)))
+
 /-- At a point `y` whose image `z` under the chart `D.chart k x` lies in the ball of radius
 `ρ₀ * √k`, the quadratic form `2π k σ(v, J v)` of a tangent vector `v` at `y` differs from
 `‖u‖ ^ 2`, for `u` the image of `v` under the derivative of the chart, by at most
