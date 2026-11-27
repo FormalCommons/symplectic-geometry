@@ -1180,7 +1180,8 @@ containing `ι '' closedBall 0 1`:
     `chartAt` need not vary continuously. Proof as in *Route* above:
     the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
     `h = κ ∘ Φ₀`, agree pairwise to order `N + 1` by
-    `exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`, a smooth partition of
+    `iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le` and
+    `exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero`, a smooth partition of
     unity on `V` glues them to a `G` with `G = id` on real points and
     differential the identity on the core, Tau Ceti's
     `exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt`
