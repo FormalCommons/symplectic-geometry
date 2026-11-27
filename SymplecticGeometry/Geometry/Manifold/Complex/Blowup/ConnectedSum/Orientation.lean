@@ -57,12 +57,14 @@ which are holomorphic. It therefore reverses the complex orientations, and prese
 from the opposite of the complex orientation of the projective space. These are the orientations
 of the summands of the connected sum `M # \overline{ℂP}^{n+1}`.
 
-With Tau Ceti's `TauCeti.ConnectedSum.isOrientationPreservingAt_of_comp_inl_of_comp_inr`, the
-two pieces show that `Blowup.connectedSumDiffeomorph c` carries `TauCeti.ConnectedSum.orientation`
-of these summands to the complex orientation of the blowup. Composed with the inverse of the
-orientation-preserving diffeomorphism of
-`TauCeti.OrientedConnectedSum.exists_diffeomorph_connectedSum_isOrientationPreservingAt`, from
-the oriented connected sum onto the connected sum along these balls, it identifies the blowup with
+With `TauCeti.ConnectedSum.isOrientationPreservingAt_of_comp_inl_of_comp_inr`, from this
+library's `ConnectedSum/OrientationPreserving.lean`, the two pieces show that
+`Blowup.connectedSumDiffeomorph c` carries `TauCeti.ConnectedSum.orientation` of these summands to
+the complex orientation of the blowup. Composed with the inverse of the orientation-preserving
+diffeomorphism of
+`TauCeti.OrientedConnectedSum.exists_diffeomorph_connectedSum_isOrientationPreservingAt`, also
+from that file, going from the oriented connected sum onto the connected sum along these balls, it
+identifies the blowup with
 Tau Ceti's oriented connected sum `TauCeti.OrientedConnectedSum` of `M` and the reversed
 projective space, preserving orientation.
 
