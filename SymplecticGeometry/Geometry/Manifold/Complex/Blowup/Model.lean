@@ -11,6 +11,7 @@ public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
 public import TauCeti.Analysis.Complex.Euclidean.Space
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
@@ -110,6 +111,9 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
 * `SymplecticGeometry.BlowupModel.isLocalDiffeomorphAt_blowdown`: so the blowdown is a local
   biholomorphism at each point off the divisor.
+* `SymplecticGeometry.BlowupModel.isPseudoholomorphic_ofComplexManifold_blowdown`: the blowdown
+  is pseudoholomorphic for the almost complex structures of the complex manifolds `BlowupModel n`
+  and `E`, by Tau Ceti's `TauCeti.isPseudoholomorphic_ofComplexManifold_iff`.
 
 ## Implementation notes
 
@@ -1022,6 +1026,14 @@ theorem isLocalDiffeomorphAt_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0
     IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω blowdown p :=
   (blowdownDiffeomorph n).isLocalDiffeomorphAt_of_coe_eq
     (fun v ↦ (coe_blowdownDiffeomorph v).symm) ⟨p, by simpa using hp⟩
+
+open TauCeti TauCeti.SmoothAlmostComplexStructure TauCeti.ComplexManifold in
+/-- The blowdown of the model is pseudoholomorphic, from the structure of the complex manifold
+`BlowupModel n` to that of `ℂⁿ⁺¹`. -/
+theorem isPseudoholomorphic_ofComplexManifold_blowdown :
+    IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
+  isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
 
 end Blowdown
 
