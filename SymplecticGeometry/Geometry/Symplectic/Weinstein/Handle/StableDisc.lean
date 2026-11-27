@@ -521,7 +521,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
       have hsrc : ι z ∈ κ.source :=
         (centeredExtChartAt_source_eq_extChartAt_source _ p).symm.subset (e.map_target (hq z hz))
       have h1 : ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m (fun u ↦ κ (hW.flow (-T) (ι u))) (h z) :=
-        ((contMDiffAt_centeredExtChartAt' (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) _ p hsrc).of_le
+        ((contMDiffAt_centeredExtChartAt' (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) hsrc).of_le
           (by exact_mod_cast le_top)).comp_of_eq
           ((((hW.contMDiff_flow_apply (-T)).of_le (by exact_mod_cast le_top)).contMDiffAt).comp
             (h z) hιhz) hback
