@@ -257,7 +257,7 @@ For connected `G` and a symmetric `Ad`-invariant `B`, so that `B` is also
   `a : ℝ → Gc` differentiable at `t`, with `(η, u) = C.polar.symm (a t)`,
   `s ↦ B (C.polar.symm (a s)).1 (C.polar.symm (a s)).1` has at `t` the
   derivative `2 * B (Ad u⁻¹ η) (C.im (a⁻¹ ȧ))`, where `a⁻¹ ȧ` is
-  `mfderiv IC IC ((a t)⁻¹ * ·) (a t) (mfderiv 𝓘(ℝ) IC a t 1)`. Proof:
+  `mfderiv IC IC ((a t)⁻¹ * ·) (a t) (Manifold.curveVelocity IC a t)`. Proof:
   differentiate `a = expI η * toHom u`, with `η` and `u` differentiable at `t`
   because `polar` is a diffeomorphism. By
   `LeftInvariantDerivation.hasMFDerivAt_lieExp` (with
