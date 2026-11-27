@@ -10,7 +10,6 @@ public import TauCeti.Dynamics.Flow.Stable
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Dynamics.Flow.OmegaLimit
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
@@ -18,7 +17,6 @@ import SymplecticGeometry.Geometry.Manifold.Morse.Core.Cube
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.PseudoGradient
 import SymplecticGeometry.Topology.Maps.Proper
 import SymplecticGeometry.Topology.Order.Sublevel
-import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.Flow.Locality
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 import TauCeti.Topology.OmegaLimit
@@ -55,8 +53,8 @@ Put together, for a cutoff `ρ` of `g` that vanishes near `{g ≤ a}` and is one
 `a`, the flow of `Y = (ρ ∘ g) • X` gives a diffeotopy fixed near `{g ≤ a}` that carries a compact
 sublevel `{g ≤ b}` into any open set containing `{g ≤ a}` and the parts above `a` of the
 unstable sets of the critical points of the level `v`
-(`TauCeti.exists_diffeotopy_mapsTo_of_unstableSet_subset`). The cutoff is chosen as in the proof
-of `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`.
+(`TauCeti.exists_diffeotopy_mapsTo_of_unstableSet_subset`). The cut-off field is
+`TauCeti.exists_cutoff_vectorField` (`Morse/Core/Basic.lean`).
 
 On a manifold modelled on `E` itself, for a proper Morse function `g` bounded below whose
 critical points in `g⁻¹[a₀, b]` all lie on the level `v` and have index less than `dim E`, this
@@ -66,7 +64,8 @@ compactly supported pseudo-gradient of `IsCompact.exists_contMDiff_pseudoGradien
 `TauCeti.MorseChart.exists_cubeChart_unstableSet` (`Morse/Core/Cube.lean`) at the critical
 points of the level `v`, disjoint because they lie in the unstable sets of distinct points
 (Tau Ceti's `Flow.disjoint_unstableSet`); and each open set containing `{g ≤ a}` and the cubes
-contains the parts above `a` of those unstable sets, so the diffeotopy above is a compression.
+contains the parts above `a` of those unstable sets, so the diffeotopy above gives a compression
+(`TauCeti.Diffeotopy.exists_smoothIsotopy_id_of_mapsTo_final`).
 
 ## Main results
 
@@ -298,39 +297,28 @@ theorem exists_diffeotopy_mapsTo_of_unstableSet_subset
     ∃ Φ : Diffeotopy I ∞ M, (∃ V ∈ 𝓝ˢ {x | g x ≤ a}, ∀ t, ∀ x ∈ V, Φ (t, x) = x) ∧
       MapsTo Φ.final {x | g x ≤ b} U := by
   have hgd : MDifferentiable I 𝓘(ℝ) g := hg.mdifferentiable (by simp)
-  -- A level `a + ε` with `{g ≤ a + ε} ⊆ U`, and the cutoff `ρ ∘ g`, zero below
-  -- `c = a + ε / 3` and one above `d = a + 2 ε / 3`.
+  -- A level `a + ε` with `{g ≤ a + ε} ⊆ U`, and the cut-off field `Y`, zero below
+  -- `c = a + ε / 3` and equal to `X` above `d = a + 2 ε / 3`.
   obtain ⟨ε, hε, -, hεU⟩ := exists_pos_sublevel_subset_of_isCompact_preimage_Icc
     hg.continuous hab (hS.of_isClosed_subset (isClosed_Icc.preimage hg.continuous)
       fun x hx ↦ hx.2) (hU.mem_nhdsSet.2 hsub)
   set c := a + ε / 3 with hc
   set d := a + 2 * ε / 3 with hd
-  set ρ : ℝ → ℝ := fun s ↦ Real.smoothTransition ((s - c) / (d - c))
-  have hρC : ContMDiff I 𝓘(ℝ) ∞ (ρ ∘ g) :=
-    (Real.smoothTransition.contDiff.comp
-      ((contDiff_id.sub contDiff_const).div_const _)).contMDiff.comp hg
-  have hρ0 : ∀ s, s ≤ c → ρ s = 0 := fun s hs ↦
-    Real.smoothTransition.zero_of_nonpos (div_nonpos_of_nonpos_of_nonneg (by linarith)
-      (by linarith))
-  have hρ1 : ∀ s, d ≤ s → ρ s = 1 := fun s hs ↦
-    Real.smoothTransition.one_of_one_le ((one_le_div (by linarith)).2 (by linarith))
-  -- The cut-off field `Y = (ρ ∘ g) • X`.
-  set Y : (x : M) → TangentSpace I x := fun x ↦ ρ (g x) • X x with hY
-  have hYs : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, Y x⟩ : TangentBundle I M)) :=
-    hρC.smul_section hXs
+  obtain ⟨Y, hYs, hY0, hYX, hYr⟩ := exists_cutoff_vectorField hg hXs (by linarith : c < d)
   have hY1 : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I M)) :=
     hYs.of_le (by simp)
-  have hYc := isCompleteVectorField_of_isCompact_of_eq_zero_off hY1 hC
-    fun x hx ↦ by simp [hY, hXC x hx]
+  have hYc := isCompleteVectorField_of_isCompact_of_eq_zero_off hY1 hC fun x hx ↦ by
+    obtain ⟨r, -, hr⟩ := hYr x
+    rw [hr, hXC x hx, smul_zero]
   have hgY (x : M) : mvfderiv I g x (Y x) ≤ 0 := by
-    rw [hY, map_smul, smul_eq_mul]
-    exact mul_nonpos_of_nonneg_of_nonpos (Real.smoothTransition.nonneg _) (hgX x)
-  have hYX (x : M) (hx : d < g x) : Y x = X x := by simp [hY, hρ1 _ hx.le]
+    obtain ⟨r, hr, hYx⟩ := hYr x
+    rw [hYx, map_smul, smul_eq_mul]
+    exact mul_nonpos_of_nonneg_of_nonpos hr.1 (hgX x)
   -- The sublevel `{g ≤ b}` is forward invariant, and its ω-limit set lies in `U`.
   have hmaps (t : ℝ) (ht : 0 ≤ t) := mapsTo_globalFlow_preimage_Iic hY1 hYc hgd hgY b ht
-  have hω := omegaLimit_globalFlow_subset_union_unstableSet hX hXc hY1 hYc hgd hgX hgY hYX
-    (fun x hx ↦ hneg x (by linarith)) (fun x hx hdx ↦ hcrit x hx (by linarith)) hfin hS hmaps
-    subset_rfl
+  have hω := omegaLimit_globalFlow_subset_union_unstableSet hX hXc hY1 hYc hgd hgX hgY
+    (fun x hx ↦ hYX x hx.le) (fun x hx ↦ hneg x (by linarith))
+    (fun x hx hdx ↦ hcrit x hx (by linarith)) hfin hS hmaps subset_rfl
   have hωU : ω atTop (globalFlow Y hY1 hYc) (g ⁻¹' Iic b) ⊆ U := by
     intro y hy
     rcases hω hy with hyd | hyc
@@ -342,7 +330,7 @@ theorem exists_diffeotopy_mapsTo_of_unstableSet_subset
     exists_diffeotopy_mapsTo_of_omegaLimit_subset (by simp) hYs hYc hS hmaps hU hωU
   exact ⟨Φ, ⟨{x | g x < c}, (isOpen_lt hg.continuous continuous_const).mem_nhdsSet.2
     fun x hx ↦ (show g x ≤ a from hx).trans_lt (by linarith),
-    fun t x hx ↦ hΦ0 t x (by simp [hY, hρ0 _ (show g x < c from hx).le])⟩, hΦS⟩
+    fun t x hx ↦ hΦ0 t x (hY0 x (show g x < c from hx).le)⟩, hΦS⟩
 
 end Cutoff
 
@@ -421,7 +409,7 @@ private theorem IsMorse.exists_bandCore_modelSpace (hg : IsMorse 𝓘(ℝ, E) g)
             exists_compression := fun U hU hsub ↦ ?_ }⟩
   -- The compression: the diffeotopy of `exists_diffeotopy_mapsTo_of_unstableSet_subset`, whose
   -- hypothesis on the unstable sets holds since their parts above `a` lie in the cubes.
-  obtain ⟨Φ, ⟨V, hV, hΦV⟩, hΦ⟩ := exists_diffeotopy_mapsTo_of_unstableSet_subset hX1 hXc hXs hC
+  obtain ⟨Φ, hΦV, hΦ⟩ := exists_diffeotopy_mapsTo_of_unstableSet_subset hX1 hXc hXs hC
     hXC hgs hgX (ha.trans hb) (hp.isCompact_preimage_Iic hbdd b)
     (fun x hx hxb ↦ hneg' x (by linarith) hxb)
     (fun x hx hax hxb ↦ (hcrit x hx (by linarith) hxb).1) hP hU (subset_union_left.trans hsub)
@@ -430,10 +418,7 @@ private theorem IsMorse.exists_bandCore_modelSpace (hg : IsMorse 𝓘(ℝ, E) g)
         rw [e.symm_apply_apply]
         exact hy.1
       exact hsub (Or.inr (mem_iUnion.2 ⟨e ⟨p, hpP⟩, hχu _ ⟨hyu, (show a < g y from hy.2).le⟩⟩))
-  refine ⟨_, Φ.smoothIsotopy ContMDiffMap.id Manifold.IsSmoothEmbedding.id,
-    ⟨V, hV, fun t x hx ↦ (Φ.smoothIsotopy_apply _ _ (t, x)).trans (hΦV t x hx)⟩,
-    fun x hx ↦ ?_⟩
-  simpa using hΦ hx
+  exact Φ.exists_smoothIsotopy_id_of_mapsTo_final hΦV hΦ
 
 end BandCore
 
