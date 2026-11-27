@@ -24,6 +24,9 @@ So two maps with the same value and the same differential at `x` pull every form
 same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`). With Tau Ceti's locality and
 naturality of the exterior derivative, it gives `dθ` at `x` for a smooth form `θ` that agrees
 near `x` with a pullback (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`).
+On a basis `c` of the tangent space at `x`, the pullback takes the value of `φ (f x)` on the
+image of `c` under the differential, when that is given as a linear equivalence
+(`TauCeti.mpullback_apply_basis_map`).
 With naturality alone, when `f` maps `s` into `t`, a form that is exact on a neighbourhood of `t`
 pulls back to one that is exact on a neighbourhood of `s`
 (`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
@@ -69,6 +72,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
 * `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
   the differential of the map at `x`.
+* `TauCeti.mpullback_apply_basis_map`: the pullback at `x` on a basis `c` is `φ (f x)` on the
+  image of `c` under the differential, when that is a linear equivalence.
 * `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`: if a smooth form agrees near `x` with
   `f^* α`, its exterior derivative at `x` is `dα` at `f x` composed with `mfderiv f x`.
 * `TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`: a form exact near `t` pulls
@@ -128,6 +133,19 @@ theorem mpullback_apply_eq_of_mfderiv_eq {f g : M → M'} {x : M} (h : f x = g x
     mpullback I I' f φ x = mpullback I I' g φ x := by
   rw [mpullback_apply_eq_compContinuousLinearMap, mpullback_apply_eq_compContinuousLinearMap, hd,
     h]
+
+/-- The pullback `f^* φ` at `x`, evaluated on a basis `c` of the tangent space at `x`, is `φ` at
+`f x` evaluated on the image of `c` under a linear equivalence `e` whose underlying map is the
+differential of `f` at `x`. -/
+theorem mpullback_apply_basis_map {f : M → M'} {x : M}
+    {e : TangentSpace I x ≃L[ℝ] TangentSpace I' (f x)}
+    (he : (e : TangentSpace I x →L[ℝ] TangentSpace I' (f x)) = mfderiv I I' f x)
+    (φ : RoughForm I' M' F k) (c : Module.Basis (Fin k) ℝ (TangentSpace I x)) :
+    mpullback I I' f φ x c = φ (f x) (c.map e.toLinearEquiv) := by
+  rw [mpullback_apply]
+  congr 1
+  funext i
+  simp [← he]
 
 /-- If a smooth form `θ` on `M` agrees near `x` with the pullback `f^* α` of a smooth form `α` on
 `M'` along a map `f` that is `C²` at `x`, then the exterior derivative `dθ` at `x` is `dα` at `f x`
