@@ -269,7 +269,7 @@ theorem exists_norm_mvfderiv_le_mul_norm [FiniteDimensional ℝ E]
   have hx : ψ.symm y ∈ ψ.source := ψ.map_target (hKψ hy)
   -- Apply the lower bound at `ψ (ψ.symm y)` rather than at `y`, so that the differential of
   -- `ψ.symm` there undoes that of `ψ` at `ψ.symm y` without moving between tangent spaces.
-  have hy' : ψ (ψ.symm y) ∈ K := by simpa [ψ.right_inv (hKψ hy)] using hy
+  have hy' : ψ (ψ.symm y) ∈ K := by simpa [ψ.toPartialEquiv.right_inv (hKψ hy)] using hy
   have key : mfderiv 𝓘(ℝ, E) I ψ.symm (ψ (ψ.symm y)) (mvfderiv I ψ (ψ.symm y) w) = w := by
     rw [mvfderiv_apply_eq_mfderiv_apply]
     exact ψ.mfderiv_symm_apply_mfderiv_apply hn hx w
