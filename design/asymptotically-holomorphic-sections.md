@@ -161,9 +161,10 @@ milestone states it.
 
 Three facts that neither Tau Ceti nor Mathlib had are prerequisites of the
 part. Issues 1–4 below planned them, and all are merged:
-`TauCeti.injective_deRhamHom`, `exists_hermitianLineBundle_complexEulerClass_eq`
-and `Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files listed under
-*Prerequisites*.
+`TauCeti.injective_deRhamHom`,
+`SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq` and
+`SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files
+listed under *Prerequisites*.
 
 1. **The de Rham theorem in degree two.** `TauCeti.deRhamHom` is injective
    on a compact manifold. Without it, an integral lift of $[\omega]$ says
@@ -179,30 +180,25 @@ and `Bundle.deRhamHom_realFirstChernClass_eq_neg`, in the files listed under
    neighbouring degrees.
 2. **Integral classes of degree two are Euler classes.** For a compact
    manifold $M$ and $b\in H^2(M;\mathbb Z)$ there is a smooth Hermitian line
-   bundle $L$ with `complexEulerClass L = b`. The route goes through
-   classifying maps. $M$ has finite CW type (Tau Ceti's
-   `TauCeti.FiniteCWType.of_isManifold`). The homotopy groups of
-   $\mathbb CP^N$ in low degrees are Tau Ceti's, from the long exact
-   sequence of the Hopf fibration (`Topology/ComplexProjectiveSpace/Hopf/Basic.lean`
-   and `Hopf/Exact.lean`): `TauCeti.ComplexProjectiveSpace.mk_mem_serreFibrations`,
-   `instSimplyConnectedSpace` ($\pi_1=0$), `pi2MulEquivInt`
-   ($\pi_2\cong\mathbb Z$) and `subsingleton_homotopyGroup` ($\pi_j=0$ for
-   $3\le j\le 2N$). They are carried to `ℙ ℂ (Fin (N + 1) → ℂ)`, the base
-   of `twistCore`, by
-   `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization`. So for
-   $2N\ge\dim M$ obstruction theory over the skeleta gives a map
-   $f:M\to\mathbb CP^N$ with $f^*h=b$.
-   It is made smooth up to homotopy by Tau Ceti's
-   `ContinuousMap.exists_contMDiff_homotopicRel_of_isCompact_closure_range`
-   (`Geometry/Manifold/SmoothApprox/`), and $L$ is the pull-back of Tau
+   bundle $L$ with `complexEulerClass L = b`. The merged route goes through
+   classifying maps. $M$ is homotopy equivalent to a finite CW complex
+   whose cells have dimension at most $\dim M$
+   (`SymplecticGeometry.exists_finite_cwComplex_homotopyEquiv_of_isManifold`,
+   from a Morse function). On such a complex with $2N\ge\dim M$, a map to
+   `ℙ ℂ (Fin (N + 1) → ℂ)` pulling the hyperplane class $h$ back to a given
+   class is built skeleton by skeleton
+   (`Projectivization.exists_continuousMap_projectivization_pullback_eq`,
+   in `ProjectiveSpaceClassifying.lean`): cell by cell on the 2-skeleton,
+   then over the higher cells, whose attaching maps become null-homotopic
+   by the low homotopy groups of $\mathbb CP^N$ that Tau Ceti computes from
+   the Hopf fibration. Through the homotopy equivalence this gives a
+   continuous $f:M\to\mathbb CP^N$ with $f^*h=b$
+   (`Projectivization.exists_continuousMap_projectivization_pullback_eq_of_isManifold`).
+   Tau Ceti's Whitney approximation `ContinuousMap.exists_contMDiff_homotopic`
+   replaces $f$ by a homotopic smooth map, and $L$ is the pull-back of Tau
    Ceti's `twistCore 1`, whose Euler class is $h$ by the library's
    `Projectivization.complexEulerClass_twistCore_one`, with
-   `TauCeti.complexEulerClass_pullback` and homotopy invariance. Tau Ceti's
-   cellular tools for Eilenberg–Mac Lane spaces
-   (`AlgebraicTopology/EilenbergMacLane/Extension.lean`, `Uniqueness.lean`)
-   and the relative skeleton lemmas
-   (`AlgebraicTopology/Homotopy/Relative/Skeleton.lean`) are searched first
-   for the extension step.
+   `TauCeti.complexEulerClass_pullback` and homotopy invariance.
 3. **Chern–Weil in degree two.** For this $L$, with unitary frame bundle
    $P$, `deRhamHom (realFirstChernClass P)` is **minus** the real image of
    `complexEulerClass L`. Two merged theorems fix the sign. On a closed
@@ -245,9 +241,8 @@ sections need $L$ positive for $J$, which is a condition on the curvature.
 The sign is carried to the class of the zero sets in `ZeroSet.lean` and
 `Hypersurface.lean` below.
 
-*Minimal coupling* (#2265) is still open, but this part uses only its merged
-`RealChernClass.lean` and the merged `CircleConnection.lean` and
-`Connection/Circle.lean`. So no issue here waits for #2265.
+Of *Minimal coupling* (#2265, closed) this part uses only the merged
+`RealChernClass.lean`, `CircleConnection.lean` and `Connection/Circle.lean`.
 
 ### Auroux's avoidance estimate, split
 
@@ -423,10 +418,8 @@ behind Lelong numbers and Crofton's formula.
 transverse and that its zero set is a symplectic submanifold. It waits for
 no other part. The second proves the class of the zero set, and with it the
 milestone. It waits for the issue that `design/poincare-duals.md` assigns to
-`Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`. That design is
-#3278 and is not merged, so the issue does not exist yet. Until it does, the
-second issue is blocked by #3278. The agent who splits #3291 marks it as
-blocked by the issue that #3278's design creates for `ZeroSet/DualClass.lean`.
+`Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`. That issue is
+#3396, now closed with the file merged, and #3505 is blocked by it.
 
 ### Connectivity by Tau Ceti's Morse–Bott theory
 
@@ -472,15 +465,15 @@ and the prerequisites, placed by topic.
 - `Geometry/Manifold/SmoothSingular/DeRham/MayerVietoris/Induction.lean`:
   `SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom` (for manifolds
   that have a finite good cover), `TauCeti.bijective_deRhamHom_of_compactSpace`
-  (for a compact one), `TauCeti.injective_deRhamHom`. If Tau Ceti's
-  `deRhamHom` lands in smooth singular cohomology, the file also compares it
-  with continuous singular cohomology, unless `SmoothSingular/Smoothing.lean`
-  already does.
+  (for a compact one), `TauCeti.injective_deRhamHom`. Tau Ceti's
+  `deRhamHom` already takes values in singular cohomology, through its
+  smoothing isomorphism `TauCeti.smoothSingularCohomologyIso`
+  (`SmoothSingular/Smoothing.lean`), so the file needs no comparison.
 - `AlgebraicTopology/Cohomology/ProjectiveSpaceClassifying.lean`: for a
   finite CW complex $X$ of dimension at most $2N$, every class of
   $H^2(X;\mathbb Z)$ is $f^*h$ for some $f:X\to\mathbb CP^N$
   (`exists_continuousMap_projectivization_pullback_eq`), from Tau Ceti's
-  homotopy groups of $\mathbb CP^N$ named above.
+  homotopy groups of $\mathbb CP^N$.
 - `Geometry/Manifold/VectorBundle/Hermitian/Realization.lean`: on a compact
   manifold every integral class of degree two is the Euler class of a smooth
   Hermitian line bundle pulled back from `twistCore 1` along a smooth map
@@ -652,9 +645,9 @@ and the prerequisites, placed by topic.
 ## Issues
 
 Each issue is a few hundred lines, in an order where each comes after the
-ones it waits for. Issues 1–4 are done. An issue that adds an existing name
-of Tau Ceti or Mathlib uses it instead; each prerequisite issue first
-searches both for its statement.
+ones it waits for. Issues 1–9, 11, 12, 14–19, 17a–17f and 21 are done. An
+issue that adds an existing name of Tau Ceti or Mathlib uses it instead;
+each prerequisite issue first searches both for its statement.
 
 1. **The de Rham theorem**
    (`SmoothSingular/DeRham/MayerVietoris/Induction.lean`). Waits for
@@ -675,7 +668,7 @@ searches both for its statement.
    class). Waits for 8.
 10. **The class of the zero set** (`ZeroSet.lean`, the milestone). Waits for
     9 and for the issue of *Poincaré duals of submanifolds* for
-    `ZeroSet/DualClass.lean`; until #3278 creates it, for #3278.
+    `ZeroSet/DualClass.lean`, #3396.
 11. **Centred Darboux charts with uniform bounds** (`RescaledChart.lean`,
     first half). Waits for nothing.
 12. **Rescaled unitary charts** (`RescaledChart.lean`, second half). Waits
@@ -724,7 +717,8 @@ searches both for its statement.
 26. **Donaldson's hypersurface theorem** (`Hypersurface.lean`). Waits for
     5, 10, 23 and 25.
 
-Issues 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
+Every issue that waits for nothing is done. Of the others, issues 10 and 13
+wait only for issues that are done.
 
 ## Uses
 
