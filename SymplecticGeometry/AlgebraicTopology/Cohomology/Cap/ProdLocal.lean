@@ -43,10 +43,8 @@ local cap computation is the case where `z` is the local orientation of `ω'`, a
 `m = 0` is the case where `Q` is a point and `z` any class of `H₀(Q, Q ∖ 0; ℤ)`.
 
 The cross product is also the local orientation of the orientation of `P × Q` that puts `ω'`
-first: `ω'.prod ω` of `Q × P`, carried to `P × Q` by the exchange of factors. This is
-`TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` with Tau Ceti's
-`TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`, so that
-no sign is counted
+first: `ω'.prod ω` of `Q × P`, carried to `P × Q` by the exchange of factors
+(`TauCeti.LocalOrientation.cross_localOrientation_eq_map_prodComm`), so that no sign is counted
 (`Orientation.singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm`).
 
 When `r = 0`, `Orientation.localOrientation` does not apply and the point class of `P` takes its
@@ -252,9 +250,7 @@ theorem singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm
                 (finrank_prod_eq_succ hP hQ (by omega))).val)) =
       (ω'.localOrientation hQ).val := by
   have hd' : k + 1 + (l + 1) = d + 1 := by omega
-  rw [localOrientation_map _ _ (finrank_prod_eq_succ hQ hP hd),
-    ← LocalOrientation.prod_localOrientation,
-    ← LocalOrientation.cross_eq_map_prodComm_prod hP hQ hd' hd]
+  rw [← LocalOrientation.cross_localOrientation_eq_map_prodComm hP hQ hd' hd]
   exact singularRelativeCap_modelThomGenerator_cross_localOrientation hP hQ hd' ω ω'
 
 omit [NormedSpace ℝ Q] in
