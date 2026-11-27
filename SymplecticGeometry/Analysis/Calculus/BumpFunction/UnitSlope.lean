@@ -75,9 +75,10 @@ theorem exists_contDiff_deriv_zero_eq_one_abs_le {w η : ℝ} (hw : 0 < w) (hη 
   refine ⟨fun s ↦ ε * arctan (s / ε) * f s, ?_, by simp, ?_, fun s hs ↦ ?_, fun s ↦ ?_,
     fun s ↦ ?_⟩
   · exact (contDiff_const.mul (contDiff_arctan.comp (contDiff_id.div_const ε))).mul f.contDiff
-  · rw [(hd 0).deriv, f.one_of_mem_closedBall (by simp; positivity)]
+  · rw [(hd 0).deriv,
+      f.one_of_mem_closedBall (by rw [Metric.mem_closedBall, dist_self]; positivity)]
     simp
-  · show ε * arctan (s / ε) * f s = 0
+  · dsimp only
     rw [f.zero_of_le_dist (by simpa [Real.dist_eq] using (by linarith : w / 2 ≤ |s|)), mul_zero]
   · rw [abs_mul, abs_mul, abs_of_pos hε, abs_of_nonneg f.nonneg]
     calc ε * |arctan (s / ε)| * f s ≤ ε * 2 * 1 := by

@@ -11,7 +11,9 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
+import SymplecticGeometry.Analysis.Calculus.BumpFunction.UnitSlope
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.InnerProductSpace.NormPow
 
 /-!
 # Frames adapted to the attaching sphere of a disc
@@ -58,7 +60,7 @@ public section
 
 noncomputable section
 
-open Manifold Set Filter
+open Manifold Set Filter Metric
 open scoped ContDiff Topology TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
@@ -223,6 +225,204 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
 end IsJOrthogonallyAttached
 
 end Frame
+
+section RadialProfile
+
+variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
+
+/-- The radial derivative of `z ↦ 1 + h (‖z‖ - 1) * b z` at a point `y ≠ 0`. -/
+private theorem fderiv_one_add_comp_norm_sub_one_mul_apply_self {h : ℝ → ℝ} {b : F → ℝ} {y : F}
+    (hy : y ≠ 0) (hh : DifferentiableAt ℝ h (‖y‖ - 1)) (hb : DifferentiableAt ℝ b y) :
+    fderiv ℝ (fun z ↦ 1 + h (‖z‖ - 1) * b z) y y =
+      deriv h (‖y‖ - 1) * ‖y‖ * b y + h (‖y‖ - 1) * fderiv ℝ b y y := by
+  have hN := (TauCeti.hasFDerivAt_norm_of_ne hy).sub_const 1
+  have H : HasFDerivAt (fun z ↦ 1 + h (‖z‖ - 1) * b z) _ y :=
+    ((hh.hasDerivAt.comp_hasFDerivAt y hN).mul hb.hasFDerivAt).const_add 1
+  rw [H.fderiv]
+  simp only [add_apply, smul_apply, smul_eq_mul, innerSL_apply_apply, real_inner_self_eq_norm_sq,
+    Function.comp_apply]
+  field_simp
+  ring
+
+variable [FiniteDimensional ℝ F]
+
+/-- **A radial profile with prescribed radial derivative on the unit sphere.** Let `F` be a
+finite-dimensional real inner product space and `g : F → ℝ` smooth with negative radial
+derivative `dg x x < 0` on the unit sphere. There is a smooth positive `τ : F → ℝ`, equal to `1`
+near `0`, on the unit sphere and outside a ball, such that `τ x + dτ x x > 0` everywhere and
+`dτ x x = -2 / dg x x - 1` on the unit sphere.
+
+With these properties `x ↦ τ x • x` has radial derivative `τ x + dτ x x > 0`, and on the sphere
+`dg x (τ x • x + dτ x x • x) = -2`. -/
+theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : ContDiff ℝ ∞ g)
+    (hneg : ∀ x, ‖x‖ = 1 → fderiv ℝ g x x < 0) :
+    ∃ τ : F → ℝ, ContDiff ℝ ∞ τ ∧ (∀ x, 0 < τ x) ∧ τ =ᶠ[𝓝 0] 1 ∧ (∀ x, ‖x‖ = 1 → τ x = 1) ∧
+      (∃ R, ∀ x, R ≤ ‖x‖ → τ x = 1) ∧ (∀ x, 0 < τ x + fderiv ℝ τ x x) ∧
+      ∀ x, ‖x‖ = 1 → fderiv ℝ τ x x = -2 / fderiv ℝ g x x - 1 := by
+  -- Outline: `a y = dg y y` is negative on the open set `U`, where `b = -2 / a - 1` is smooth.
+  -- A closed shell `K` around the sphere lies in `U`, with `1 + ‖y‖ * b y ≥ m > 0` on it and
+  -- `b`, `db y y` bounded by `M`. Then `τ y = 1 + h (‖y‖ - 1) * b y` for a profile `h` of
+  -- height and slope error `η` small compared with `m / M`, supported in the shell.
+  set a : F → ℝ := fun y ↦ fderiv ℝ g y y
+  have ha : ContDiff ℝ ∞ a := (hg.fderiv_right le_rfl).clm_apply contDiff_id
+  set b : F → ℝ := fun y ↦ -2 / a y - 1
+  set U : Set F := {y | a y < 0}
+  have hU : IsOpen U := isOpen_lt ha.continuous continuous_const
+  have hU0 : ∀ y ∈ U, y ≠ 0 := by
+    rintro y hy rfl
+    simp [U, a] at hy
+  have hbU : ContDiffOn ℝ ∞ b U := fun y hy ↦
+    ((contDiffAt_const.div ha.contDiffAt hy.ne).sub contDiffAt_const).contDiffWithinAt
+  set V : Set F := U ∩ (fun y ↦ 1 + ‖y‖ * b y) ⁻¹' Ioi 0
+  have hq : ContinuousOn (fun y ↦ 1 + ‖y‖ * b y) U :=
+    continuousOn_const.add (continuous_norm.continuousOn.mul hbU.continuousOn)
+  have hV : IsOpen V := hq.isOpen_inter_preimage hU isOpen_Ioi
+  have hSV : sphere (0 : F) 1 ⊆ V := by
+    intro x hx
+    rw [mem_sphere_zero_iff_norm] at hx
+    have hax := hneg x hx
+    have : 0 < -2 / a x := div_pos_of_neg_of_neg (by norm_num) hax
+    refine ⟨hax, ?_⟩
+    simp only [mem_preimage, mem_Ioi, hx, one_mul, b]
+    linarith
+  obtain ⟨δ, hδ, hδV⟩ := (isCompact_sphere (0 : F) 1).exists_thickening_subset_open hV hSV
+  set w := min δ 1 / 2 with hw_def
+  have hmin := min_le_left δ 1
+  have hmin' := min_le_right δ 1
+  have hw0 : 0 < w := by positivity
+  have hwδ : w < δ := by linarith
+  -- The closed shell `K` of width `w` around the sphere lies in `V`.
+  set K : Set F := {y | |‖y‖ - 1| ≤ w}
+  have hKV : K ⊆ V := by
+    intro y hy
+    have hy0 : y ≠ 0 := by
+      rintro rfl
+      simp only [K, mem_ofPred_eq, norm_zero, zero_sub, abs_neg, abs_one] at hy
+      linarith
+    have hr : 0 < ‖y‖ := norm_pos_iff.2 hy0
+    refine hδV (Metric.mem_thickening_iff.2 ⟨‖y‖⁻¹ • y, ?_, ?_⟩)
+    · rw [mem_sphere_zero_iff_norm]
+      exact norm_smul_inv_norm hy0
+    · have : y - ‖y‖⁻¹ • y = (1 - ‖y‖⁻¹) • y := by rw [sub_smul, one_smul]
+      rw [dist_eq_norm, this, norm_smul, Real.norm_eq_abs]
+      calc |1 - ‖y‖⁻¹| * ‖y‖ = |(1 - ‖y‖⁻¹) * ‖y‖| := by rw [abs_mul, abs_of_pos hr]
+        _ = |‖y‖ - 1| := by congr 1; field_simp
+        _ < δ := lt_of_le_of_lt hy hwδ
+  have hKc : IsCompact K := by
+    refine (isCompact_closedBall (0 : F) 2).of_isClosed_subset
+      (isClosed_le (by fun_prop) continuous_const) fun y hy ↦ ?_
+    rw [mem_closedBall_zero_iff]
+    have := (abs_le.1 (show |‖y‖ - 1| ≤ w from hy)).2
+    linarith
+  -- Bounds on the shell.
+  obtain ⟨m, hm0, hm⟩ := hKc.exists_forall_le' (f := fun y ↦ 1 + ‖y‖ * b y)
+    (hq.mono (hKV.trans inter_subset_left)) fun y hy ↦ (hKV hy).2
+  have hDb : ContinuousOn (fun y ↦ fderiv ℝ b y y) U :=
+    (hbU.continuousOn_fderiv_of_isOpen hU (by simp)).clm_apply continuousOn_id
+  obtain ⟨M, hM⟩ := hKc.exists_bound_of_continuousOn
+    (f := fun y ↦ |‖y‖ * b y| + |b y| + |fderiv ℝ b y y|)
+    (((continuous_norm.continuousOn.mul hbU.continuousOn).abs.add hbU.continuousOn.abs).add
+      hDb.abs |>.mono (hKV.trans inter_subset_left))
+  set m' := min m 1
+  set M' := max M 0
+  have hm'0 : 0 < m' := lt_min hm0 one_pos
+  have hM'0 : 0 ≤ M' := le_max_right _ _
+  set η := m' / (2 * (M' + 1)) with hη_def
+  have hη : 0 < η := by positivity
+  have hηM : η * M' < m' := by
+    rw [hη_def, div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
+    nlinarith
+  have hbound : ∀ y ∈ K, |‖y‖ * b y| + |b y| + |fderiv ℝ b y y| ≤ M' := fun y hy ↦ by
+    have := hM y hy
+    rw [Real.norm_of_nonneg (by positivity)] at this
+    exact this.trans (le_max_left _ _)
+  -- The profile and the function `τ`.
+  obtain ⟨h, hh, hh0, hhd0, hhw, hhb, hhd⟩ :=
+    exists_contDiff_deriv_zero_eq_one_abs_le (w := w / 2) (by positivity) hη
+  set ψ : F → ℝ := fun y ↦ h (‖y‖ - 1)
+  have hψout : ∀ y, w / 2 < |‖y‖ - 1| → ψ y = 0 := fun y hy ↦ hhw _ hy.le
+  have hψU : ContDiffOn ℝ ∞ ψ U := fun y hy ↦
+    (hh.contDiffAt.comp y ((contDiffAt_norm ℝ (hU0 y hy)).sub contDiffAt_const)).contDiffWithinAt
+  have htsU : tsupport ψ ⊆ U := by
+    have hT : IsClosed {y : F | |‖y‖ - 1| ≤ w / 2} := isClosed_le (by fun_prop) continuous_const
+    refine (closure_minimal (fun y hy ↦ ?_) hT).trans fun y hy ↦ ?_
+    · by_contra hy'
+      exact hy (hψout y (not_le.1 hy'))
+    · -- Membership in `K` and in the smaller shell are the inequalities that define them.
+      have hy' : |‖y‖ - 1| ≤ w / 2 := hy
+      exact (hKV (show |‖y‖ - 1| ≤ w from hy'.trans (by linarith))).1
+  set τ : F → ℝ := fun y ↦ 1 + h (‖y‖ - 1) * b y
+  have hτ : ContDiff ℝ ∞ τ :=
+    contDiff_const.add (by simpa only [smul_eq_mul] using
+      hbU.contDiff_smul_of_tsupport_subset hU hψU htsU)
+  have hτout : ∀ y, w / 2 < |‖y‖ - 1| → τ =ᶠ[𝓝 y] fun _ ↦ 1 := fun y hy ↦ by
+    filter_upwards [(isOpen_lt (f := fun _ : F ↦ w / 2) (g := fun z : F ↦ |‖z‖ - 1|)
+      continuous_const (by fun_prop)).mem_nhds hy] with z hz
+    simp [τ, hhw _ (le_of_lt hz)]
+  have hτd : ∀ y ∈ U, fderiv ℝ τ y y =
+      deriv h (‖y‖ - 1) * ‖y‖ * b y + h (‖y‖ - 1) * fderiv ℝ b y y := fun y hy ↦
+    fderiv_one_add_comp_norm_sub_one_mul_apply_self (hU0 y hy)
+      (hh.differentiable (by simp) _) ((hbU.contDiffAt (hU.mem_nhds hy)).differentiableAt
+        (by simp))
+  refine ⟨τ, hτ, fun x ↦ ?_, hτout 0 (by simp; linarith), fun x hx ↦ by simp [τ, hx, hh0],
+    ⟨2, fun x hx ↦ by
+      have := hhw (‖x‖ - 1) (by rw [abs_of_nonneg (by linarith)]; linarith)
+      simp [τ, this]⟩,
+    fun x ↦ ?_, fun x hx ↦ ?_⟩
+  · -- positivity of `τ`
+    by_cases hx : |‖x‖ - 1| ≤ w / 2
+    · have hxK : x ∈ K := hx.trans (by linarith)
+      have hB := hbound x hxK
+      have h1 : |h (‖x‖ - 1) * b x| ≤ η * M' := by
+        rw [abs_mul]
+        have h0 := abs_nonneg (‖x‖ * b x)
+        have h0' := abs_nonneg (fderiv ℝ b x x)
+        exact mul_le_mul (hhb _) (by linarith) (abs_nonneg _) hη.le
+      have := neg_abs_le (h (‖x‖ - 1) * b x)
+      have := min_le_right m 1
+      simp only [τ]
+      linarith
+    · simp [τ, hhw _ (by linarith : w / 2 ≤ |‖x‖ - 1|)]
+  · -- positivity of `τ + dτ (x) x`
+    by_cases hx : |‖x‖ - 1| ≤ w / 2
+    · have hxK : x ∈ K := hx.trans (by linarith)
+      have hxU : x ∈ U := (hKV hxK).1
+      rw [hτd x hxU]
+      have hB := hbound x hxK
+      have hmx : m ≤ 1 + ‖x‖ * b x := hm x hxK
+      set r := ‖x‖
+      set B := b x
+      set D := fderiv ℝ b x x
+      set H := h (r - 1)
+      set H' := deriv h (r - 1)
+      have hH : |H| ≤ η := hhb _
+      have hH' := hhd (r - 1)
+      have k1 : m' - η * |r * B| ≤ 1 + H' * (r * B) := by
+        rcases le_total 0 (r * B) with hp | hn
+        · rw [abs_of_nonneg hp]
+          nlinarith [min_le_right m 1, hH'.1]
+        · rw [abs_of_nonpos hn]
+          nlinarith [min_le_left m 1, hH'.2]
+      have k2 : |H * B| ≤ η * |B| := by
+        rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
+      have k3 : |H * D| ≤ η * |D| := by
+        rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
+      have k4 : η * (|r * B| + |B| + |D|) ≤ η * M' := mul_le_mul_of_nonneg_left hB hη.le
+      have := neg_abs_le (H * B)
+      have := neg_abs_le (H * D)
+      have hsplit : 1 + H * B + (H' * r * B + H * D) = 1 + H' * (r * B) + H * B + H * D := by
+        ring
+      simp only [τ]
+      rw [hsplit]
+      nlinarith
+    · rw [(hτout x (not_le.1 hx)).fderiv_eq]
+      simp [τ, hhw _ (by linarith : w / 2 ≤ |‖x‖ - 1|)]
+  · -- the radial derivative on the sphere
+    have hxU : x ∈ U := (hSV (mem_sphere_zero_iff_norm.2 hx)).1
+    rw [hτd x hxU]
+    simp [hx, hh0, hhd0, b, a]
+
+end RadialProfile
 
 end SymplecticGeometry
 
