@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.SymplecticTransport
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import Mathlib.Analysis.Normed.Ring.Units
 import Mathlib.Tactic.NoncommRing
+import SymplecticGeometry.Topology.Compactness.Compact
 
 /-!
 # The domain of the Cayley path
@@ -170,11 +171,9 @@ variable (R) in
 /-- The pairs `(A, B)` such that `(b, A, B)` lies in the domain of the Cayley path for every
 `b ∈ [0, 1]` form an open set. -/
 theorem isOpen_setOfPred_forall_Icc_mem_cayleyDomain :
-    IsOpen {p : R × R | ∀ b ∈ Icc (0 : ℝ) 1, (b, p.1, p.2) ∈ cayleyDomain R} := by
-  refine isOpen_iff_mem_nhds.2 fun p hp ↦ ?_
-  refine isCompact_Icc.eventually_forall_of_forall_eventually fun b hb ↦ ?_
-  have hc : Continuous fun z : (R × R) × ℝ ↦ (z.2, z.1.1, z.1.2) := by fun_prop
-  exact hc.continuousAt.preimage_mem_nhds ((isOpen_cayleyDomain R).mem_nhds (hp b hb))
+    IsOpen {p : R × R | ∀ b ∈ Icc (0 : ℝ) 1, (b, p.1, p.2) ∈ cayleyDomain R} :=
+  isCompact_Icc.isOpen_setOfPred_forall_prodMk_mem <| (isOpen_cayleyDomain R).preimage
+    (by fun_prop : Continuous fun z : (R × R) × ℝ ↦ (z.2, z.1.1, z.1.2))
 
 end Normed
 
