@@ -7,19 +7,26 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Group
 public import Mathlib.Topology.MetricSpace.Lipschitz
+import TauCeti.Data.Set.Function
 
 /-!
 # Support, fixed points and displacement of products and conjugates of diffeotopies
 
-For Tau Ceti's diffeotopies `TauCeti.Diffeotopy`, this file records how three properties behave
-under the pointwise product `Ψ * Φ` of `TauCeti.Diffeotopy.instGroup`, whose value at `(t, x)`
-is `Ψ (t, Φ (t, x))`, and under the conjugation `Ψ.transDiffeomorph f` by a diffeomorphism `f`,
-whose value at `(t, y)` is `f (Ψ (t, f⁻¹ y))`:
+For Tau Ceti's diffeotopies `TauCeti.Diffeotopy`, this file records how fixed points, supports
+and displacement behave under the pointwise product `Ψ * Φ` of `TauCeti.Diffeotopy.instGroup`,
+whose value at `(t, x)` is `Ψ (t, Φ (t, x))`, and under the conjugation `Ψ.transDiffeomorph f`
+by a diffeomorphism `f`, whose value at `(t, y)` is `f (Ψ (t, f⁻¹ y))`:
 
 * fixed points: a point fixed at time `t` by `Φ` and by `Ψ` is fixed by `Ψ * Φ`, and
   `Ψ.transDiffeomorph f` fixes `y` at time `t` exactly when `Ψ` fixes `f⁻¹ y`; hence a set
   fixed at every time by `Φ` and by `Ψ` is fixed by `Ψ * Φ`, and the image `f '' W` of a set `W`
   fixed by `Ψ` is fixed by `Ψ.transDiffeomorph f`;
+* finite products: at a time `t` at which each `Φ i` fixes every point outside `W i`, the sets
+  `W i` being pairwise disjoint, the product of the `Φ i` over a list acts on each `W i` as
+  `Φ i` and fixes every point outside the union of the `W i`. Tau Ceti's
+  `TauCeti.exists_diffeotopy_final_comp_eqOn_of_pairwise_disjoint` shows this for the final
+  maps, by the same induction over the factors; the step that each `Φ i` keeps `W i` in place
+  at time `t` is Tau Ceti's `Function.Injective.mapsTo_of_eq_self`;
 * on a pseudo-metric space, the displacement `dist (Φ (t, x)) x`: displacements add under the
   product, by the triangle inequality, and are multiplied by at most `L` under conjugation by an
   `L`-Lipschitz diffeomorphism.
@@ -37,6 +44,10 @@ every time.
   `TauCeti.Diffeotopy.transDiffeomorph_apply_eq_self_iff`: fixed points at one time.
 * `TauCeti.Diffeotopy.mul_apply_eq_self_of_mem`,
   `TauCeti.Diffeotopy.transDiffeomorph_apply_eq_self_of_mem_image`: fixed sets.
+* `TauCeti.Diffeotopy.list_prod_map_apply_of_mem`,
+  `TauCeti.Diffeotopy.list_prod_map_apply_eq_self_of_notMem_biUnion`: a product of diffeotopies
+  with pairwise disjoint supports, at a time at which each factor fixes the complement of its
+  set.
 * `TauCeti.Diffeotopy.dist_mul_apply_le`, `TauCeti.Diffeotopy.dist_mul_apply_lt_add`: the
   displacement of a product.
 * `TauCeti.Diffeotopy.dist_transDiffeomorph_apply_le`,
@@ -140,6 +151,51 @@ theorem transDiffeomorph_final_mul_apply_eq_self_of_mem_inter {Φ Ψ : Diffeotop
   refine fun t x hx ↦ mul_apply_eq_self (hΦ t x hx.1)
     (transDiffeomorph_apply_eq_self_of_mem_image _ hΨ t x ⟨x, hx.2, ?_⟩)
   rw [final_apply, hΦ 1 x hx.1]
+
+/-- A product of diffeotopies over a list fixes at time `t` every point that each factor fixes
+at time `t`. -/
+theorem list_prod_map_apply_eq_self {ι : Type*} {Φ : ι → Diffeotopy J n M} {l : List ι}
+    {t : I} {x : M} (hx : ∀ i ∈ l, Φ i (t, x) = x) : (l.map Φ).prod (t, x) = x := by
+  induction l with
+  | nil => rw [List.map_nil, List.prod_nil, one_apply]
+  | cons j l ih =>
+    rw [List.map_cons, List.prod_cons]
+    exact mul_apply_eq_self (ih fun i hi ↦ hx i (List.mem_cons_of_mem j hi))
+      (hx j List.mem_cons_self)
+
+/-- Let the sets `W i` be pairwise disjoint along a list `l`, and let `t` be a time at which
+each diffeotopy `Φ i`, for `i` in `l`, fixes every point outside `W i`. Then at time `t` the
+product of the `Φ i` over `l`, in the order of `l`, acts on `W i` as `Φ i`, for each `i` in
+`l`. -/
+theorem list_prod_map_apply_of_mem {ι : Type*} {Φ : ι → Diffeotopy J n M} {W : ι → Set M}
+    {l : List ι} (hW : l.Pairwise fun i j ↦ Disjoint (W i) (W j)) (t : I)
+    (hΦ : ∀ i ∈ l, ∀ x ∉ W i, Φ i (t, x) = x) {i : ι} (hi : i ∈ l) {x : M}
+    (hx : x ∈ W i) : (l.map Φ).prod (t, x) = Φ i (t, x) := by
+  induction l with
+  | nil => simp at hi
+  | cons j l ih =>
+    rw [List.pairwise_cons] at hW
+    have hΦl : ∀ k ∈ l, ∀ x ∉ W k, Φ k (t, x) = x := fun k hk ↦
+      hΦ k (List.mem_cons_of_mem j hk)
+    rw [List.map_cons, List.prod_cons, mul_apply]
+    rcases List.mem_cons.mp hi with rfl | hi
+    · rw [list_prod_map_apply_eq_self fun k hk ↦
+        hΦl k hk x fun hxk ↦ (hW.1 k hk).ne_of_mem hx hxk rfl]
+    · have hy : Φ i (t, x) ∈ W i := by
+        have h := ((Φ i).timeSlice t).injective.mapsTo_of_eq_self
+          (f := (Φ i).timeSlice t) (K := W i)
+          (fun p hp ↦ by rw [timeSlice_apply, hΦl i hi p hp]) hx
+        rwa [timeSlice_apply] at h
+      rw [ih hW.2 hΦl hi]
+      exact hΦ j List.mem_cons_self _ fun hyj ↦ (hW.1 i hi).ne_of_mem hyj hy rfl
+
+/-- If, at time `t`, each diffeotopy `Φ i` with `i` in a list `l` fixes every point outside
+`W i`, then at time `t` the product of the `Φ i` over `l` fixes every point outside the union
+of the `W i` over `l`. -/
+theorem list_prod_map_apply_eq_self_of_notMem_biUnion {ι : Type*} {Φ : ι → Diffeotopy J n M}
+    {W : ι → Set M} {l : List ι} (t : I) (hΦ : ∀ i ∈ l, ∀ x ∉ W i, Φ i (t, x) = x)
+    {x : M} (hx : x ∉ ⋃ i ∈ l, W i) : (l.map Φ).prod (t, x) = x :=
+  list_prod_map_apply_eq_self fun i hi ↦ hΦ i hi x fun hxi ↦ hx (mem_iUnion₂_of_mem hi hxi)
 
 end Support
 
