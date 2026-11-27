@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 import Mathlib.Tactic.LinearCombination
-import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 
 /-!
 # Basic facts of Wirtinger calculus
@@ -34,6 +34,11 @@ Facts about the Wirtinger derivatives `∂` and `\bar∂` that Tau Ceti's
 * `ContDiffAt.norm_fderiv_fderiv_apply_add_apply_I_smul_le`: for such `g`, the vector
   `D²g(x)(v, v) + D²g(x)(I • v, I • v)` has norm at most `4 ‖D\bar∂g(x)‖ ‖v‖²`, since by the
   symmetry of `D²g` it is `2 D\bar∂g(x)(v)(v) - 2 I • D\bar∂g(x)(I • v)(v)`.
+* `TauCeti.fderiv_complexAntilinearPartL_fderiv`,
+  `TauCeti.norm_fderiv_complexAntilinearPartL_fderiv`: at every point, the derivative of
+  `y ↦ complexAntilinearPartL (Dg(y))`, a map into the real-linear operators, is that of `\bar∂g`
+  followed by the isometric inclusion of the complex-antilinear operators into the real-linear
+  ones; so the two derivatives have the same norm.
 -/
 
 public section
@@ -134,6 +139,43 @@ theorem _root_.ContDiffAt.norm_fderiv_fderiv_apply_add_apply_I_smul_le (hg : Con
     _ ≤ 4 * ‖DB‖ * ‖v‖ ^ 2 := by linarith
 
 end DerivConj
+
+section DerivAntilinearPart
+
+open ContinuousLinearMap
+
+/-- The derivative of `y ↦ complexAntilinearPartL (Dg(y))`, a map into the real-linear
+operators, is the derivative of `\bar∂g`, a map into the complex-antilinear operators, followed
+by the inclusion `ContinuousLinearMap.restrictScalarsₛₗLI` of these into the real-linear
+operators. This holds at every point: both sides vanish where `\bar∂g` is not differentiable. -/
+theorem fderiv_complexAntilinearPartL_fderiv (g : V → W) (x : V) :
+    fderiv ℝ (fun y ↦ complexAntilinearPartL (fderiv ℝ g y)) x =
+      restrictScalarsₛₗLI.toContinuousLinearMap ∘L fderiv ℝ (conjWirtingerDeriv g) x := by
+  set ι : (V →L⋆[ℂ] W) →L[ℝ] V →L[ℝ] W := restrictScalarsₛₗLI.toContinuousLinearMap
+  have h : (fun y ↦ complexAntilinearPartL (fderiv ℝ g y)) = ι ∘ conjWirtingerDeriv g := by
+    funext y
+    rw [← restrictScalarsₛₗLI_comp_complexAntilinearPartCLM]
+    simp [ι, conjWirtingerDeriv_eq_complexAntilinearPart]
+  rw [h]
+  by_cases hd : DifferentiableAt ℝ (conjWirtingerDeriv g) x
+  · exact ι.fderiv_comp_left hd
+  · have hι : ¬DifferentiableAt ℝ (ι ∘ conjWirtingerDeriv g) x := fun hd' ↦ hd <| by
+      have h' : complexAntilinearPartCLM ∘ ι ∘ conjWirtingerDeriv g = conjWirtingerDeriv g := by
+        funext y
+        simp [ι]
+      rw [← h']
+      exact complexAntilinearPartCLM.comp_differentiableAt hd'
+    rw [fderiv_zero_of_not_differentiableAt hd, fderiv_zero_of_not_differentiableAt hι,
+      comp_zero]
+
+/-- The derivatives of `y ↦ complexAntilinearPartL (Dg(y))` and of `\bar∂g` have the same
+operator norm. -/
+theorem norm_fderiv_complexAntilinearPartL_fderiv (g : V → W) (x : V) :
+    ‖fderiv ℝ (fun y ↦ complexAntilinearPartL (fderiv ℝ g y)) x‖ =
+      ‖fderiv ℝ (conjWirtingerDeriv g) x‖ := by
+  rw [fderiv_complexAntilinearPartL_fderiv, LinearIsometry.norm_toContinuousLinearMap_comp]
+
+end DerivAntilinearPart
 
 end TauCeti
 
