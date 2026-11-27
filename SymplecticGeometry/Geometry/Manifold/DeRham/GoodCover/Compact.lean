@@ -10,6 +10,7 @@ import SymplecticGeometry.Geometry.Manifold.Immersion.TangentProjection
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Geometry.Manifold.WhitneyEmbedding
 import SymplecticGeometry.Analysis.Convex.Deriv
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # Finite good covers of compact manifolds
@@ -167,7 +168,7 @@ private theorem image_setOfPred_forall_dist_lt {ι : Type*} {x : M}
     · rw [mem_ball_zero_iff, hΦ z hzs]
       exact (Submodule.norm_orthogonalProjectionOnto_apply_le _ _).trans_lt
         (by rw [← dist_eq_norm]; exact (hz j hj).trans hρr)
-    · rw [PartialDiffeomorph.symm_toPartialEquiv, Φ.left_inv hzs]
+    · rw [Φ.left_inv hzs]
       exact pow_lt_pow_left₀ (hz i hi) dist_nonneg two_ne_zero
   · intro h
     refine ⟨Φ.symm u, fun i hi ↦ ?_, Φ.right_inv (htgt (h j hj).1)⟩

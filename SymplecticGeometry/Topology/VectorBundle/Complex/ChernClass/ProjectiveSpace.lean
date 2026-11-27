@@ -40,7 +40,9 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   `ℤ → H²(ℙ ℂ V; ℤ)` for `n ≥ 1`, and for every `n` each class of `H²(ℙ ℂ V; ℤ)` is a multiple
   of `h`.
 * `Projectivization.free_integralCohomology`: `Hᵐ(ℙ ℂ V; ℤ)` is a free `ℤ`-module for every `m`.
-* `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`.
+* `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`, and
+  `Projectivization.evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero`: so
+  `(f^* h) ^ (n + 1) = 0` for every continuous map `f : X → ℙ ℂ V`.
 * `Projectivization.aeval_hyperplaneClass_eq_zero_iff` and
   `Projectivization.surjective_aeval_hyperplaneClass`: a polynomial `p ∈ ℤ[X]` has `p(h) = 0`
   exactly when `X ^ (n + 1)` divides it, and every even class is some `p(h)`.
@@ -207,6 +209,15 @@ theorem hyperplaneClass_pow_eq_zero (hV : finrank ℂ V = n + 1) :
   rw [TopCat.evenIntegralCohomologyOf_pow_eq_of, Subsingleton.elim
     (((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V) ^ (n + 1)) (n + 1)) 0,
     map_zero]
+
+/-- The pull-back of the hyperplane class of `ℙ ℂ V` along a continuous map `f : X → ℙ ℂ V` is
+nilpotent: `(f^* h) ^ (n + 1) = 0` in the even integral cohomology ring of `X`, for
+`finrank ℂ V = n + 1`. -/
+theorem evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero {X : Type} [TopologicalSpace X]
+    (hV : finrank ℂ V = n + 1) (f : C(X, ℙ ℂ V)) :
+    TopCat.evenIntegralCohomologyMap (TopCat.ofHom f)
+        ((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V)) ^ (n + 1) = 0 := by
+  rw [← map_pow, hyperplaneClass_pow_eq_zero hV, map_zero]
 
 /-- A polynomial with integer coefficients vanishes at the hyperplane class exactly when it is a
 multiple of `X ^ (n + 1)`. -/
