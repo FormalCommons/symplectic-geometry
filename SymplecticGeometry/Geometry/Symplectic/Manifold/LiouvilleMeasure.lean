@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Measure
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
+import TauCeti.Geometry.Manifold.Measure.Atlas
 
 /-!
 # Integrating the symplectic volume form
@@ -59,12 +60,13 @@ with compact support, `m` the number of elements of `ι`,
 `EuclideanSpace.sumEquivProd`, which preserves Lebesgue measure
 (`EuclideanSpace.volume_preserving_sumEquivProd`).
 
-Null sets can be read off in charts. A subset of the source of an extended chart whose image is
-null for an additive Haar measure on the model is null for the Liouville measure of every
-two-form (`TauCeti.SmoothTwoForm.liouvilleMeasure_eq_zero_of_subset`), and on a Lindelöf
-manifold so is every chartwise null set in the sense of `TauCeti.IsNullSet`
-(`TauCeti.IsNullSet.liouvilleMeasure_eq_zero`). Both are the cases of the volume form of
-`TauCeti.RoughForm.measure_eq_zero_of_subset` and `TauCeti.RoughForm.measure_eq_zero_of_isNullSet`.
+Null sets can be read off in charts. On a Lindelöf manifold, every chartwise null set in the sense
+of `TauCeti.IsNullSet` is null for the Liouville measure of every two-form
+(`TauCeti.IsNullSet.liouvilleMeasure_eq_zero`), the case of the volume form of
+`TauCeti.RoughForm.measure_eq_zero_of_isNullSet`. In particular so is a subset of the source of
+an extended chart whose image is null for an additive Haar measure on the model
+(`TauCeti.SmoothTwoForm.liouvilleMeasure_eq_zero_of_subset`), by
+`TauCeti.isNullSet_of_measure_extend_image_eq_zero`.
 
 ## References
 
@@ -112,7 +114,8 @@ theorem liouvilleMeasure_eq_zero_of_subset [MeasurableSpace E] [BorelSpace E] {�
     {s : Set M} (hsub : s ⊆ (extChartAt I α).source) (μ : Measure E) [μ.IsAddHaarMeasure]
     (hs : μ (extChartAt I α '' s) = 0) : σ.liouvilleMeasure n s = 0 := by
   rw [liouvilleMeasure_def]
-  exact RoughForm.measure_eq_zero_of_subset _ hsub μ hs
+  exact RoughForm.measure_eq_zero_of_isNullSet _ (isNullSet_of_measure_extend_image_eq_zero
+    (by simpa using hsub) (IsManifold.chart_mem_maximalAtlas α) μ (by simpa using hs))
 
 /-- **A chartwise null set is null for the Liouville measure.** On a Lindelöf manifold, a set
 whose images in all extended charts are null for the additive Haar measures on the model has

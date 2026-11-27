@@ -8,11 +8,11 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
@@ -56,6 +56,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 * Two forms on `M` agree at a point of `U` if their restrictions to `U`, pulled back to `M'`
   along the inverse of a diffeomorphism `Φ` from `U` onto `M'`, agree at its image
   (`TauCeti.SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq`).
+* For an injective local diffeomorphism `f`, pulling the restriction of a smooth form to the image
+  of `f` back along Tau Ceti's `IsLocalDiffeomorph.diffeomorphOfInjective` is pulling the form
+  back along `f` (`TauCeti.SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val`).
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -248,6 +251,19 @@ theorem SmoothForm.apply_eq_of_mpullback_symm_mpullback_subtype_val_apply_eq {U 
   simp only [mpullback_subtype_val_apply] at h
   -- `h` is stated with the tangent space of `U` at `x`, which is that of `M` by definition.
   exact h
+
+/-- Let `f : M' → M` be an injective local diffeomorphism. Pulling the restriction of a form `σ`
+on `M` to the image of `f` back along the diffeomorphism of `M'` onto that image is pulling `σ`
+back along `f`. -/
+@[simp]
+theorem SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val {f : M' → M}
+    (hf : IsLocalDiffeomorph I' I ∞ f) (hinj : Function.Injective f)
+    (σ : SmoothForm I M F k) :
+    SmoothForm.mpullback (hf.diffeomorphOfInjective hinj) (hf.diffeomorphOfInjective hinj).contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback f hf.contMDiff σ := by
+  rw [SmoothForm.mpullback_mpullback]
+  exact SmoothForm.mpullback_congr _ _ (funext (hf.coe_diffeomorphOfInjective_apply hinj)) σ
 
 end Diffeomorph
 

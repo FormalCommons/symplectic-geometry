@@ -62,8 +62,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   shows that this is the orientation the page means: with $X$ and $\Sigma$
   oriented by $J$, the orientations of $\Sigma$ and $\nu$ induce that of
   $X$ through the short exact sequence of the normal bundle.
-- **Characteristic numbers.** $c_1(TX,J)$ is *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass G` of the complex tangent bundle
+- **Characteristic numbers.** $c_1(TX,J)$ is Tau Ceti's
+  `TauCeti.firstChernClass G` of the complex tangent bundle
   `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber` (Tau Ceti's
   `Geometry/Symplectic/Manifold/AlmostComplex/ComplexTangentBundle.lean`),
   for a complex model `G : Type` with `[Fact (finrank ℝ E = 2 * finrank ℂ G)]`.
@@ -144,7 +144,7 @@ additivity, which is stated for symplectic bundles, applies to it directly:
    the library's `ContMDiffComplexStructure.exists_compatible`
    (`Symplectic/ComplexStructure/Basic.lean`).
 2. The tangent image $W$ (frames
-   `Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
+   `Manifold.IsImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
    `Jf`-invariant, so `ω`, which tames `Jf`, is nondegenerate on it, and
    its `ω`-orthogonal
    $W^\omega$ is a complement and is `Jf`-invariant. The library's
@@ -361,7 +361,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   2 * (TauCeti.surfaceGenus M : ℤ) - 2 =
     f.selfIntersectionNumber hE J hJ o -
       (o.toHomologicalOrientation.evalFundamentalClass hM _ (f : C(M, X))
-        (SymplecticGeometry.Bundle.firstChernClass G
+        (TauCeti.firstChernClass G
           (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down
   ```
 
@@ -412,13 +412,12 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   which `Orientation.lean` imports for
   `IsComplexLinearMap.exists_rightInverse_of_surjective`.
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
-  (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
-  `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
+  (`contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
 - *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
   (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
-  and `ChernNumber/Basic.lean` (#784: `firstChernClass`,
-  `firstChernClass_pullback`, `firstChernClass_congr`,
+  and `ChernNumber/Basic.lean` (#784, on Tau Ceti's
+  `TauCeti.firstChernClass`: `firstChernClass_pullback_coe`, `firstChernClass_congr`,
   `firstChernClass_eq_complexEulerClass`, `chernNumber`,
   `chernNumber_neg_orientation`, `symplecticChernNumber`,
   `symplecticChernNumber_eq_chernNumber`, `symplecticChernNumber_congr`; #1922:
