@@ -96,9 +96,9 @@ fundamental vector field of `ξ` is Tau Ceti's `fundamentalVectorField I ξ`
 `DESIGN.md` leaves two questions to this file, and the issue a third.
 
 1. **Nondegeneracy of the pairing, through the Hodge theorem.** Of the two
-   routes `DESIGN.md` offers, singular duality would need the comparison of
-   the wedge and integration with the cup and cap products under Tau
-   Ceti's de Rham–singular isomorphism, which neither library has; periods
+   routes `DESIGN.md` offers, singular duality would need the wedge
+   product and integration to match the cup and cap products under
+   `TauCeti.deRhamHom`, a comparison that neither library proves; periods
    of closed one-forms describe $H^1$ but say nothing directly about
    $H^{m-1}$. The Hodge theorem gives it in a few steps: choose a metric;
    a closed $(m-1)$-form $\beta$ is $h+d\theta$ with $h$ harmonic; $\star h$
