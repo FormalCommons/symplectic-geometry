@@ -93,9 +93,6 @@ first Chern number of `V`, for the homological orientation of `o`, is `-(2π)⁻
 integral over `M` of the curvature of `α`. -/
 theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
-    -- a hint for the search of `IsManifold _ 1` on the total space; #7355 should make it unneeded
-    haveI : ContMDiffFiberBundle 1 Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      ContMDiffFiberBundle.of_le (n := ∞) (by simp)
     ∀ {α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1}
       (hα : IsCircleConnectionForm α),
       (chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
@@ -174,9 +171,6 @@ Connection forms and curvatures are real forms here: the curvature `F_α` is `-i
 Milestone: *Chern–Weil formula for circle bundles over surfaces*. -/
 theorem chernNumber_eq_integral_curvature_and_exists (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     letI : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
-    -- a hint for the search of `IsManifold _ 1` on the total space; #7355 should make it unneeded
-    haveI : ContMDiffFiberBundle 1 Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-      ContMDiffFiberBundle.of_le (n := ∞) (by simp)
     (∀ {α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1}
       (hα : IsCircleConnectionForm α),
       (chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
