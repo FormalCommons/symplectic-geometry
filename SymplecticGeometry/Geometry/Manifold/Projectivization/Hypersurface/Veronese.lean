@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Projectivization.Veronese
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # A hypersurface as a hyperplane section of a Veronese variety
@@ -268,8 +269,8 @@ noncomputable def veroneseAffineHomeomorph : X.complOpens ≃ₜ X.veroneseAffin
 theorem coe_veroneseAffineHomeomorph_apply (x : X.complOpens) :
     (X.veroneseAffineHomeomorph x : Fin (veroneseDim (n + 2) d - 1) → ℂ) =
       affineChart 0 (X.veroneseMap x) := by
-  simp only [veroneseAffineHomeomorph, Homeomorph.trans_apply, coe_interAffineOpenHomeomorph_apply]
-  rfl
+  simp only [veroneseAffineHomeomorph, Homeomorph.trans_apply, coe_interAffineOpenHomeomorph_apply,
+    Homeomorph.setCongr_apply, IsEmbedding.toHomeomorph_apply_coe, Function.comp_apply]
 
 /-- The atlas of the affine part `Z` of `Y`, carried from the complement of the hypersurface by
 `veroneseAffineHomeomorph`. -/

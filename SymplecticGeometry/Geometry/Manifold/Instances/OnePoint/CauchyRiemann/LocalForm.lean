@@ -96,7 +96,11 @@ this trivialization still reads the canonical orientation of the fibres
 (`TauCeti.VectorBundleOrientation.mapOrientation_complex_of_isLinear`). These are the local
 hypotheses of
 `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`
-at a zero of the section, apart from the orientation of the chart.
+at a zero of the section, apart from the orientation of the chart. That the chart also carries
+the complex orientation of the sphere to that of `ℂ`, when a two-form tames both `J` and `i`, is
+the case `M = OnePoint ℂ` of
+`SymplecticGeometry.localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames`, in
+`SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HomologicalOrientation`.
 
 ## Zeros of smooth kernel elements
 
