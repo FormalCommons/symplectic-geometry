@@ -17,6 +17,15 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
+import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
+import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.GoodCover
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.FiberBundle
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Surface
+import SymplecticGeometry.Geometry.Symplectic.Moser.Parameter
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Area forms on the fibres of an oriented surface fibration
@@ -39,22 +48,42 @@ integral one (change of variables,
 weights are nonnegative with sum one, so the combination is positive for `o`
 (`TauCeti.Manifold.Orientation.IsPositive.sum_smul`) with integral one.
 
+Over the base set `U` of one chart `e` of `A`, such a form `τ` can be read as `σ₀` on every fibre
+after a change of the fibre coordinate of `e`
+(`TauCeti.MapFiber.Atlas.exists_trivialization_mpullback_fiberInclusionMap_eq`). The fibre forms
+`σ_p` of `τ` over `U` are the slices of one form on `U × F`
+(`Bundle.Trivialization.mpullback_prodMk_mpullback_symm`); each `σ_p - σ₀` has integral zero,
+so it is exact, and these differences have a smooth family of primitives over `U`, since `F`
+has a finite good cover (`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq`). The segments
+from `σ₀` to `σ_p` stay positive, hence nondegenerate, and Moser's argument with a parameter in
+`U` (`TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub`) gives a
+diffeomorphism `(p, x) ↦ (p, χ_p x)` of `U × F` with `χ_p^* σ_p = σ₀`. The new chart is `e`
+followed by its inverse (`Bundle.Trivialization.transFiberwiseHomeomorph`). Each `χ_p` pulls a
+positive form back to a positive one, so it preserves `o`
+(`Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback`), and so do the
+coordinate changes of the new chart with those of `A`.
+
 ## Main results
 
 * `TauCeti.MapFiber.Atlas.exists_restricts_isPositive_area`: some two-form on `M` pulls back
   along every fibre inclusion of the atlas to a form positive for `o` with integral one.
+* `TauCeti.MapFiber.Atlas.exists_trivialization_mpullback_fiberInclusionMap_eq`: near each point
+  of the base, a smooth chart along whose fibre inclusions such a form pulls back to `σ₀`, with
+  coordinate changes with the charts of `A` that preserve `o`.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §6.2
   (the proof of Theorem 6.2.2).
+* J. Moser, *On the volume elements on a manifold*, Transactions of the American Mathematical
+  Society 120 (1965), 286–294.
 -/
 
 public section
 
 noncomputable section
 
-open Bundle Set
+open Bundle Set SymplecticGeometry
 open scoped Manifold ContDiff
 
 namespace TauCeti.MapFiber.Atlas
@@ -125,6 +154,93 @@ theorem exists_restricts_isPositive_area [T2Space B] [SigmaCompactSpace B] [T2Sp
     · simpa using ((SmoothForm.mpullback (φ i) (φ i).contMDiff σ₀).isSmoothForm.smul
         (ρ i b')).integrableTopForm (isClosed_tsupport _).isCompact
         (Module.finBasisOfFinrankEq ℝ EF hE)
+
+/-- **A chart reading the fibre forms as `σ₀`.** Let `A` be a smooth atlas of `proj : M → B`,
+over a Hausdorff boundaryless base modelled on a finite-dimensional space, whose model fibre is a
+closed surface `F`, connected or empty, with an orientation `o`, and whose coordinate changes
+preserve `o`. Let `σ₀` be a two-form on `F` positive for `o`, and `τ` a two-form on `M` whose
+pull-backs along the fibre inclusions of the chart `A.trivAt b` are positive for `o` with the
+integral of `σ₀`.
+Then there is a trivialization `e` of `proj` with the base set of `A.trivAt b`, smooth on its
+source with an inverse smooth on its target, along whose fibre inclusions `τ` pulls back to
+`σ₀`, and whose coordinate changes with every chart of `A`, in both directions, are
+diffeomorphisms of `F` preserving `o`. -/
+theorem exists_trivialization_mpullback_fiberInclusionMap_eq [T2Space B]
+    [BoundarylessManifold IB B] [IF.Boundaryless] [T2Space F] [CompactSpace F]
+    [PreconnectedSpace F] (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o))
+    {σ₀ : SmoothTwoForm IF F} (hσ₀ : o.IsPositive σ₀.val) {τ : SmoothTwoForm IM M} (b : B)
+    (hτ : ∀ b' (hb' : b' ∈ (A.trivAt b).baseSet),
+      o.IsPositive (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
+          (hA.contMDiffOn_trivAt_symm b) hb') τ).val ∧
+      integralTopForm o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
+          (hA.contMDiffOn_trivAt_symm b) hb') τ).val = integralTopForm o σ₀.val) :
+    ∃ e : Trivialization F proj, ContMDiffOn IM (IB.prod IF) ∞ e e.source ∧
+      ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target ∧
+      e.baseSet = (A.trivAt b).baseSet ∧
+      (∀ b' (hb' : b' ∈ e.baseSet),
+        TauCeti.mpullback IF IM (e.fiberInclusionMap hb') τ.val = σ₀.val) ∧
+      ∀ c x, x ∈ e.baseSet → x ∈ (A.trivAt c).baseSet →
+        (∃ φ ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o,
+          ⇑φ = e.coordChange (A.trivAt c) x) ∧
+        ∃ φ ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o,
+          ⇑φ = (A.trivAt c).coordChange e x := by
+  set e := A.trivAt b
+  have he := hA.contMDiffOn_trivAt b
+  have he_symm := hA.contMDiffOn_trivAt_symm b
+  set U : TopologicalSpace.Opens B := ⟨e.baseSet, e.open_baseSet⟩
+  have hU : (U : Set B) ⊆ e.baseSet := subset_rfl
+  have hE : Module.finrank ℝ EF = 2 := by simpa using o.card_eq.symm
+  -- The fibre forms `σ_p` over `U` are the slices of one form on `U × F`, and `σ_p - σ₀` is a
+  -- smooth family of exact forms, with a smooth family of primitives `α p`.
+  have hσ := e.mpullback_prodMk_mpullback_symm he_symm hU τ
+  obtain ⟨α, hα, hdα⟩ := exists_isSmoothFamily_mextDerivₗ_eq (k := 1)
+    hasFiniteGoodCover_of_compactSpace
+    ((e.isSmoothFamily_mpullback_fiberInclusionMap he_symm hU τ).sub (isSmoothFamily_const σ₀))
+    fun p ↦ (sub_mem_exactForms_iff_integralTopForm_eq o).2 (hτ p p.property).2
+  obtain ⟨β, hβ⟩ := isSmoothFamily_def.mp hα
+  -- Moser's argument with parameters in `U`, along the segments from `σ₀` to `σ_p`.
+  obtain ⟨Φ, χ, hΦ, hχ, -⟩ :=
+    SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
+      (SmoothForm.isClosed_of_finrank_le hE.le σ₀) _ β
+      (fun p ↦ by rw [hβ, hσ, ← hdα p, mextDerivₗ_apply])
+      fun p x s hs ↦ by
+        rw [hσ]
+        exact SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub (hσ₀.isPositiveAt x)
+          ((hτ p p.property).1.isPositiveAt x) hs
+  simp only [hσ] at hχ
+  -- Each `χ p` pulls the positive form `σ_p` back to the positive form `σ₀`, so it preserves `o`.
+  have hχo (p : U) : χ p ∈ Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o :=
+    (Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback
+      (hτ p p.property).1).2 (by rw [← SmoothForm.coe_mpullback _ (χ p).contMDiff, hχ p]; exact hσ₀)
+  have hΦ' (q : U × F) : Φ.toHomeomorph q = (q.1, (χ q.1).toHomeomorph q.2) := hΦ q
+  refine ⟨e.transFiberwiseHomeomorph hU Φ.toHomeomorph.symm
+      (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hΦ'),
+    e.contMDiffOn_transFiberwiseHomeomorph hU _ _ he Φ.symm.contMDiff,
+    e.contMDiffOn_transFiberwiseHomeomorph_symm hU _ _ he_symm Φ.contMDiff,
+    Trivialization.transFiberwiseHomeomorph_baseSet .., fun b' hb' ↦ ?_, fun c x hx hc ↦ ?_⟩
+  · have hb : b' ∈ U := by rwa [Trivialization.transFiberwiseHomeomorph_baseSet] at hb'
+    refine (SmoothForm.mpullback_eq_iff (Trivialization.contMDiff_fiberInclusionMap _
+      (e.contMDiffOn_transFiberwiseHomeomorph_symm hU Φ.toHomeomorph.symm
+        (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hΦ') he_symm Φ.contMDiff) hb')).1 ?_
+    rw [SmoothForm.mpullback_congr _
+      ((e.contMDiff_fiberInclusionMap he_symm (hU hb)).comp (χ ⟨b', hb⟩).contMDiff)
+      (by rw [e.coe_fiberInclusionMap_transFiberwiseHomeomorph_symm hU
+          (χ := fun p ↦ (χ p).toHomeomorph) hΦ' hb,
+        Diffeomorph.coe_toHomeomorph]),
+      ← SmoothForm.mpullback_mpullback _ _ (χ ⟨b', hb⟩).contMDiff]
+    exact hχ ⟨b', hb⟩
+  · rw [Trivialization.transFiberwiseHomeomorph_baseSet] at hx
+    obtain ⟨ψ, hψ, hψe⟩ := hasStructureGroup_iff.1 hH b c x hx hc
+    obtain ⟨ψ', hψ', hψ'e⟩ := hasStructureGroup_iff.1 hH c b x hc hx
+    refine ⟨⟨ψ * χ ⟨x, hx⟩, mul_mem hψ (hχo _), ?_⟩,
+      ⟨(χ ⟨x, hx⟩)⁻¹ * ψ', mul_mem (inv_mem (hχo _)) hψ', ?_⟩⟩
+    · rw [Trivialization.coordChange_transFiberwiseHomeomorph_symm_left e hU
+        (χ := fun p ↦ (χ p).toHomeomorph) hΦ' _ hx,
+        Diffeomorph.coe_mul, hψe, Diffeomorph.coe_toHomeomorph]
+    · rw [Trivialization.coordChange_transFiberwiseHomeomorph_symm_right e hU
+        (χ := fun p ↦ (χ p).toHomeomorph) hΦ' _ hx hc,
+        Diffeomorph.coe_mul, Diffeomorph.coe_inv, hψ'e, Diffeomorph.coe_toHomeomorph_symm]
 
 end TauCeti.MapFiber.Atlas
 
