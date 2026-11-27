@@ -38,6 +38,9 @@ under which `Blowup.almostComplexStructure` puts an almost complex structure on 
 
 ## Main results
 
+* `SymplecticGeometry.IsNormalizedAt.isPseudoholomorphicOn_comp_complexToRealEuclidean`: read on
+  `Fin (n + 1) → ℂ`, a normalization is pseudoholomorphic on the preimage of the open ball, from
+  the complex structure of `Fin (n + 1) → ℂ` to `J`.
 * `SymplecticGeometry.IsNormalizedAt.blowupChart_mem_maximalAtlas`: the blowup chart is in the
   smooth maximal atlas of `M`.
 * `SymplecticGeometry.IsNormalizedAt.blowupChart_isHolomorphic`: the blowup chart is
@@ -70,16 +73,13 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 
 /-- `ψ₀` normalizes the symplectic form `σ` and the almost complex structure `J` at `p₀` on the
 ball of radius `δ > 0`: `J` is compatible with `σ`, `ψ₀` is a symplectic embedding of the closed
-ball `B(δ)` with `ψ₀ 0 = p₀`, and at each point of the open ball the differential of `ψ₀` sends
-the standard complex structure `J₀` of `StdSpace` to `J`. -/
+ball `B(δ)` with `ψ₀ 0 = p₀`, and `ψ₀` is pseudoholomorphic on the open ball from the constant
+standard complex structure `J₀` of `StdSpace` to `J`. -/
 def IsNormalizedAt (σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M)
     (J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) M) (p₀ : M) (δ : ℝ)
     (ψ₀ : StdSpace (Fin (n + 1)) → M) : Prop :=
   σ.Compatible J ∧ 0 < δ ∧ IsSymplecticBallEmbedding σ δ ψ₀ ∧ ψ₀ 0 = p₀ ∧
-    ∀ z ∈ ball 0 δ, ∀ v : StdSpace (Fin (n + 1)),
-      mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z
-          (stdComplexStructure (Fin (n + 1)) v) =
-        J (ψ₀ z) (mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z v)
+    IsPseudoholomorphicOn (stdComplexStructure (Fin (n + 1))).constSmooth J ψ₀ (ball 0 δ)
 
 variable {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M}
   {J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) M} {p₀ : M} {δ : ℝ}
@@ -88,10 +88,8 @@ variable {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M}
 theorem isNormalizedAt_def :
     IsNormalizedAt σ J p₀ δ ψ₀ ↔
       σ.Compatible J ∧ 0 < δ ∧ IsSymplecticBallEmbedding σ δ ψ₀ ∧ ψ₀ 0 = p₀ ∧
-        ∀ z ∈ ball 0 δ, ∀ v : StdSpace (Fin (n + 1)),
-          mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z
-              (stdComplexStructure (Fin (n + 1)) v) =
-            J (ψ₀ z) (mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z v) :=
+        IsPseudoholomorphicOn (stdComplexStructure (Fin (n + 1))).constSmooth J ψ₀
+          (ball 0 δ) :=
   Iff.rfl
 
 namespace IsNormalizedAt
@@ -111,14 +109,32 @@ theorem isSymplecticBallEmbedding : IsSymplecticBallEmbedding σ δ ψ₀ := hN.
 /-- A normalization at `p₀` sends the origin to `p₀`. -/
 theorem map_zero : ψ₀ 0 = p₀ := hN.2.2.2.1
 
+/-- A normalization is pseudoholomorphic on the open ball of radius `δ`, from the constant
+standard complex structure `J₀` to `J`. -/
+theorem isPseudoholomorphicOn :
+    IsPseudoholomorphicOn (stdComplexStructure (Fin (n + 1))).constSmooth J ψ₀ (ball 0 δ) :=
+  hN.2.2.2.2
+
 /-- On the open ball, the differential of a normalization sends the standard complex
 structure `J₀` to `J`. -/
 theorem mfderiv_comp_stdComplexStructure {z : StdSpace (Fin (n + 1))} (hz : z ∈ ball 0 δ)
     (v : StdSpace (Fin (n + 1))) :
     mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z
         (stdComplexStructure (Fin (n + 1)) v) =
-      J (ψ₀ z) (mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z v) :=
-  hN.2.2.2.2 z hz v
+      J (ψ₀ z) (mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀ z v) := by
+  rw [← AlmostComplexStructure.constSmooth_apply _ z v]
+  exact ((hN.isPseudoholomorphicOn.isPseudoholomorphicWithinAt hz).isPseudoholomorphicAt_of_mem_nhds
+    (isOpen_ball.mem_nhds hz)).mfderiv_apply_commute v
+
+/-- Read on `Fin (n + 1) → ℂ`, a normalization is pseudoholomorphic on the preimage of the open
+ball: `ψ₀ ∘ complexToRealEuclidean (Fin (n + 1))` is pseudoholomorphic there from the complex
+structure of `Fin (n + 1) → ℂ` to `J`. -/
+theorem isPseudoholomorphicOn_comp_complexToRealEuclidean :
+    IsPseudoholomorphicOn (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) J
+      (ψ₀ ∘ complexToRealEuclidean (Fin (n + 1)))
+      (complexToRealEuclidean (Fin (n + 1)) ⁻¹' ball 0 δ) :=
+  hN.isPseudoholomorphicOn.comp
+    ((isPseudoholomorphic_complexToRealEuclidean _).isPseudoholomorphicOn _) (mapsTo_preimage _ _)
 
 /-- The blowup chart of a normalization `ψ₀` at `p₀`: the inverse of
 `ψ₀ ∘ complexToRealEuclidean (Fin (n + 1))`, from the image under `ψ₀` of the open ball of
@@ -179,7 +195,6 @@ theorem blowupChart_isHolomorphic :
   have hΦ : Φ.toOpenPartialHomeomorph.MDifferentiable 𝓘(ℝ, Fin (n + 1) → ℂ)
       𝓘(ℝ, Fin (n + 1) → ℂ) :=
     ⟨Φ.mdifferentiableOn (by simp), Φ.symm.mdifferentiableOn (by simp)⟩
-  obtain ⟨U, hUo, hU, hψU⟩ := hN.isSymplecticBallEmbedding.exists_contMDiffOn
   rw [isPseudoholomorphicOn_iff]
   intro y hy
   rw [blowupChart_source, ← hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_target,
@@ -187,31 +202,14 @@ theorem blowupChart_isHolomorphic :
   refine IsPseudoholomorphicAt.isPseudoholomorphicWithinAt ?_
   rw [blowupChart_toOpenPartialHomeomorph]
   refine hΦ.isPseudoholomorphicAt_symm hy ?_
-  set w := Φ.toOpenPartialHomeomorph.symm y
-  have hw : complexToRealEuclidean (Fin (n + 1)) w ∈ ball 0 δ := by
-    have h := Φ.toOpenPartialHomeomorph.map_target hy
-    rwa [PartialDiffeomorph.toOpenPartialHomeomorph_source,
-      hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_source] at h
-  have hψ : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀
-      (complexToRealEuclidean (Fin (n + 1)) w) :=
-    (hψU.mdifferentiableOn (by simp) _ (hU (ball_subset_closedBall hw))).mdifferentiableAt
-      (hUo.mem_nhds (hU (ball_subset_closedBall hw)))
-  have hd := hψ.hasMFDerivAt.comp w
-    (complexToRealEuclidean (Fin (n + 1))).hasMFDerivAt
+  have hw := Φ.toOpenPartialHomeomorph.map_target hy
+  rw [PartialDiffeomorph.toOpenPartialHomeomorph_source,
+    hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_source] at hw
   rw [PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
     hN.isSymplecticBallEmbedding.coe_complexPartialDiffeomorph]
-  have key (u : Fin (n + 1) → ℂ) :
-      mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀
-          (complexToRealEuclidean (Fin (n + 1)) w)
-          (complexToRealEuclidean (Fin (n + 1)) (Complex.I • u)) =
-        J (ψ₀ (complexToRealEuclidean (Fin (n + 1)) w))
-          (mfderiv 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ψ₀
-            (complexToRealEuclidean (Fin (n + 1)) w) (complexToRealEuclidean (Fin (n + 1)) u)) := by
-    rw [← stdComplexStructure_complexToRealEuclidean]
-    exact hN.mfderiv_comp_stdComplexStructure hw _
-  refine isPseudoholomorphicAt_of_hasMFDerivAt hd fun v ↦ ?_
-  exact (congrArg _ (ofComplexManifold_apply (E := Fin (n + 1) → ℂ) w v)).trans
-    (key v)
+  exact (hN.isPseudoholomorphicOn_comp_complexToRealEuclidean.isPseudoholomorphicWithinAt hw
+    ).isPseudoholomorphicAt_of_mem_nhds
+    ((isOpen_ball.preimage (complexToRealEuclidean _).continuous).mem_nhds hw)
 
 end IsNormalizedAt
 
