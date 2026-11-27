@@ -18,6 +18,7 @@ public import TauCeti.GroupTheory.SurfaceGroup.Basic
 import TauCeti.GroupTheory.SurfaceGroup.LowGenus
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.GroupTheory.FreeGroup.Primitive
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The punctured sphere as the plane minus real points
@@ -1033,6 +1034,7 @@ theorem fromPath_map_peripheralLoop_last_eq_inv_prod :
 section FundamentalGroup
 
 open TauCeti
+open scoped Manifold
 
 variable (n) in
 /-- The **fundamental group of the punctured sphere**: the fundamental group of the sphere
