@@ -7,11 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Completion
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Topology.Maps.Proper.CompactlyGenerated
 import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
+import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Domain
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
@@ -48,8 +48,8 @@ on the compact boundary, so it is greater than some `a > 0` on the image of `[-2
 under the collar map `Φ`, for a small `δ`: the inclusion of the compact `W` in its completion is
 a closed embedding, and the tube lemma `IsCompact.eventually_forall_of_forall_eventually` applies
 to the end map. Along the lines of `Φ`, which are integral curves of `Y`, `g (s, x) = f (Φ (s, x))`
-then has `∂_s g > a`, so by the mean value theorem `g (s, x) ≤ c + a s ≤ c + ε (eˢ − 1)` for
-`0 < ε ≤ a`. With a smooth
+then has `∂_s g > a`, so the growth bound `IsMIntegralCurveOn.apply_le_add_mul`, applied to `-f`,
+gives `g (s, x) ≤ c + a s ≤ c + ε (eˢ − 1)` for `0 < ε ≤ a`. With a smooth
 nondecreasing cutoff `ρ` made from `Real.smoothTransition`, `0` for `s ≤ -δ` and `1` for
 `s ≥ -δ / 2`, the function `(1 − ρ) g + ρ (c + ε (eˢ − 1))` on the end, and `f` elsewhere, is the
 required `F`. Its smoothness and its derivative along `Ŷ` are read on the two pieces of the
@@ -217,21 +217,14 @@ private theorem comp_collarFlow_le (hW : IsWeinsteinDomain σ Y f c) {a δ : ℝ
     {s : ℝ} (hs : s ∈ Icc (-(2 * δ)) 0) (x : (𝓡∂ (n + 1)).boundary W) :
     f (hW.isStrongFilling.collarFlow (s, x)) ≤ c + a * s := by
   set h := hW.isStrongFilling
-  have hsub : Icc (-(2 * δ)) 0 ⊆ Ioc (-h.collarWidth) 0 := fun t ht ↦ ⟨by linarith [ht.1], ht.2⟩
-  have hcont : ContinuousOn (fun t ↦ f (h.collarFlow (t, x))) (Icc (-(2 * δ)) 0) := fun t ht ↦
-    hW.contMDiff.continuous.continuousAt.comp_continuousWithinAt
-      ((h.isMIntegralCurveOn_collarFlow x t (hsub ht)).continuousWithinAt.mono hsub)
-  have hderiv : ∀ t ∈ interior (Icc (-(2 * δ)) 0), HasDerivAt (fun t ↦ f (h.collarFlow (t, x)))
-      (mvfderiv (𝓡∂ (n + 1)) f (h.collarFlow (t, x)) (Y (h.collarFlow (t, x)))) t := by
-    intro t ht
-    rw [interior_Icc] at ht
-    exact h.hasDerivAt_comp_collarFlow ⟨by linarith [ht.1], ht.2⟩ x
-      (hW.contMDiff.mdifferentiable (by simp) _)
-  have := (convex_Icc _ _).mul_sub_le_image_sub_of_le_deriv hcont
-    (fun t ht ↦ (hderiv t ht).differentiableAt.differentiableWithinAt)
-    (fun t ht ↦ by rw [(hderiv t ht).deriv]; exact (ha t (interior_subset ht) x).le)
-    s hs 0 ⟨by linarith [hs.1, hs.2], le_rfl⟩ hs.2
-  rw [h.collarFlow_zero, hW.eq_of_mem_boundary x x.property] at this
+  have hsub : Icc s 0 ⊆ Ioc (-h.collarWidth) 0 := fun t ht ↦ ⟨by linarith [hs.1, ht.1], ht.2⟩
+  -- The growth bound for `-f`, whose derivative along `Y` is below `-a`.
+  have := ((h.isMIntegralCurveOn_collarFlow x).mono hsub).apply_le_add_mul (f := -f) (C := -a)
+    (fun _ _ ↦ (hW.contMDiff.mdifferentiable (by simp) _).neg)
+    (fun t ht ↦ by
+      rw [mvfderiv_neg, neg_apply, neg_le_neg_iff]
+      exact (ha t ⟨by linarith [hs.1, ht.1], ht.2.le⟩ x).le) hs.2
+  rw [Pi.neg_apply, Pi.neg_apply, h.collarFlow_zero, hW.eq_of_mem_boundary x x.property] at this
   linarith
 
 /-! ### Smoothness and the derivative of the function on the end -/

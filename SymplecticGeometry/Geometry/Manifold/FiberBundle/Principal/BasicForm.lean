@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
@@ -399,10 +400,8 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
       (fun s ↦ (⟨s, constVectorField (1 : ℝ) s⟩ : TangentBundle 𝓘(ℝ) ℝ)) 0 :=
     (contMDiff_constVectorField (1 : ℝ) (n := 1)).mdifferentiableAt one_ne_zero
   have hV := mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (t := 0) (x := n)
-    ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦ by
-      have h := congrArg Subtype.val ((hslice s).trans (hslice 0).symm)
-      rwa [SmoothForm.coe_mpullback (Prod.mk s : N → ℝ × N),
-        SmoothForm.coe_mpullback (Prod.mk (0 : ℝ) : N → ℝ × N)] at h
+    ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦
+      (SmoothForm.mpullback_eq_mpullback_iff _ _).1 ((hslice s).trans (hslice 0).symm)
   -- The derivative of `(s, m) ↦ (γ s, m)`, from the integral curves `γ` of `ξ_P`.
   have hφ' (q : ℝ × N) : HasMFDerivAt (𝓘(ℝ).prod IN) ((IB.prod IG).prod IN)
       (fun q : ℝ × N ↦ (γ q.1, q.2)) q
