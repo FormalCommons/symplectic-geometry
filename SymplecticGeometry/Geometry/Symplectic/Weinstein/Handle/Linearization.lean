@@ -16,6 +16,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.ODE.Linear
+import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
 import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
@@ -26,7 +27,6 @@ import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Analysis.Calculus.FDeriv.SecondOrder
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import TauCeti.Analysis.ODE.ExponentialDichotomy
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
 # The linearization of a gradient-like field at a nondegenerate critical point
@@ -40,14 +40,13 @@ This is the first step of the analysis of the stable discs of a Weinstein struct
 nondegenerate critical point: it makes `A` hyperbolic and relates its stable dimension to the
 Morse index.
 
-At a zero `p` of a Liouville vector field `Z` of a two-form `σ`, the condition `L_Z σ = σ`, read
-at `p`, says that the linearization `A` of `Z` satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`.
-The Lie derivative at a zero of the field involves only the derivative of the field
-(`TauCeti.mlieDerivForm_apply_of_eq_zero`), so no regularity of `Z` or `σ` is needed. Along the
-flow of `A` the form `σ_p` then grows like `e ^ t`, so it vanishes on the stable subspace of `A`.
-For a Weinstein structure, whose form is symplectic, the stable subspace at a nondegenerate
-critical point is thus isotropic, and its dimension, the Morse index, is at most half the
-dimension of the manifold.
+At a zero `p` of a Liouville vector field `Z` of a two-form `σ`, the linearization `A` of `Z`
+satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`
+(`TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`). Along the flow of `A` the
+form `σ_p` then grows like `e ^ t`, so it vanishes on the stable subspace of `A`. For a Weinstein
+structure, whose form is symplectic, the stable subspace at a nondegenerate critical point is
+thus isotropic, and its dimension, the Morse index, is at most half the dimension of the
+manifold.
 
 ## Main results
 
@@ -59,8 +58,6 @@ dimension of the manifold.
   `TauCeti.IsGradientLike.finrank_range_eq_manifoldMorseIndex`: the stable subspace of `A`, which
   is the range of the projection of any such dichotomy, has dimension the Morse index of `f` at
   `p`.
-* `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`: the linearized Liouville
-  identity at a zero of a Liouville field.
 * `TauCeti.IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`: at a zero of a Liouville
   field, the form vanishes on the stable subspace of the linearization.
 * `SymplecticGeometry.IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`: at a nondegenerate
@@ -316,30 +313,12 @@ theorem IsGradientLike.finrank_range_eq_manifoldMorseIndex (hX : IsGradientLike 
   rw [ContinuousLinearMap.range_eq_stableSubspace_of_exponential_bounds hα hP hAP hs hu,
     hX.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp hA]
 
-/-! ### The Liouville identity at a zero -/
+/-! ### Isotropy of the stable subspace at a zero of a Liouville field -/
 
 section Liouville
 
 variable {H N : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   [TopologicalSpace N] [ChartedSpace H N] [IsManifold I 1 N]
-
-omit [FiniteDimensional ℝ E] in
-/-- **The linearized Liouville identity.** Let `Z` be a Liouville vector field of a two-form `σ`
-(`L_Z σ = σ`) on a boundaryless manifold, and let `p` be a zero of `Z`, with linearization `A`.
-Then `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)` for all tangent vectors `u`, `v` at `p`: the
-Lie derivative at a zero of the field is read off its linearization. -/
-theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I N ℝ 2}
-    {Z : (x : N) → TangentSpace I x} (hZ : IsLiouvilleVectorField σ Z) {p : N} (hp : Z p = 0)
-    (u v : TangentSpace I p) :
-    σ p ![sectionLinearization (F := E) I id Z p u, v] +
-        σ p ![u, sectionLinearization (F := E) I id Z p v] = σ p ![u, v] := by
-  conv_rhs => rw [← isLiouvilleVectorField_iff.1 hZ]
-  rw [mlieDerivForm_apply_of_eq_zero hp, Fin.sum_univ_two,
-    sectionLinearization_apply_eq_vectorFieldChartDerivative,
-    sectionLinearization_apply_eq_vectorFieldChartDerivative]
-  -- Each entry of the updated pairs is computed by `Function.update` on `Fin 2`; the entries are
-  -- tangent vectors at `p`, which `simp` does not match against vectors of `E`.
-  congr 2 <;> funext i <;> fin_cases i <;> rfl
 
 omit [FiniteDimensional ℝ E] in
 /-- **The stable subspace at a zero of a Liouville field is isotropic.** Let `Z` be a Liouville

@@ -1535,14 +1535,14 @@ are set on compact manifolds. Three pieces are missing:
   `IsGradientLike.exists_projection_exponential_bounds` (the dichotomy),
   `IsGradientLike.finrank_range_eq_manifoldMorseIndex` (for the projection
   of any such dichotomy),
-  `IsLiouvilleVectorField.apply_sectionLinearization_add` (the identity
-  for $\omega_p$ at a zero),
   `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace` ($\omega_p$
   vanishes on `A.stableSubspace`), and
   `IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`
   (`2 * k ≤ finrank ℝ E`), with the dimension bound for isotropic
   subspaces of a nondegenerate form taken from Mathlib, Tau Ceti or the
-  library.
+  library. The identity for $\omega_p$ at a zero,
+  `IsLiouvilleVectorField.apply_sectionLinearization_add`, is in
+  `Geometry/Symplectic/Liouville/VectorField.lean`.
 - Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
   and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
   (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`

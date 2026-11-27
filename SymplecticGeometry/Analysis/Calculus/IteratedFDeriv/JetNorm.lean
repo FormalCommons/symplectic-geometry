@@ -21,6 +21,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
   `ContinuousLinearEquiv.iteratedFDeriv_comp_left` applied to `ContinuousLinearEquiv.smulLeft`.
 * `SymplecticGeometry.jetNormAt_nonneg` and `SymplecticGeometry.jetNormAt_mono`: the jet norm is
   nonnegative and monotone in the order.
+* `SymplecticGeometry.norm_iteratedFDeriv_le_jetNormAt`: each derivative of order at most `r` is
+  bounded in norm by the `r`-jet norm.
 * `SymplecticGeometry.jetNormAt_zero`: the jet norm of order `0` is `‖f z‖`.
 * `SymplecticGeometry.jetNormAt_add_le`: the triangle inequality, for functions that are `C^r`
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
@@ -76,6 +78,13 @@ theorem jetNormAt_nonneg (r : ℕ) (f : E → F) (z : E) : 0 ≤ jetNormAt 𝕜 
 theorem jetNormAt_mono (f : E → F) (z : E) : Monotone fun r ↦ jetNormAt 𝕜 r f z :=
   fun r r' hr ↦ Finset.sum_le_sum_of_subset_of_nonneg
     (Finset.range_subset_range.2 (by omega)) fun _ _ _ ↦ norm_nonneg _
+
+/-- Each derivative of order `j ≤ r` is bounded in norm by the `r`-jet norm. -/
+theorem norm_iteratedFDeriv_le_jetNormAt {j r : ℕ} (hj : j ≤ r) (f : E → F) (z : E) :
+    ‖iteratedFDeriv 𝕜 j f z‖ ≤ jetNormAt 𝕜 r f z := by
+  rw [jetNormAt_def]
+  exact Finset.single_le_sum (f := fun l ↦ ‖iteratedFDeriv 𝕜 l f z‖)
+    (fun _ _ ↦ norm_nonneg _) (Finset.mem_range_succ_iff.2 hj)
 
 /-- The jet norm of order `0` is the norm of the value. -/
 @[simp]

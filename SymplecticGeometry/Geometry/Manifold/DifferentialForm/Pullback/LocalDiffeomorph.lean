@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Logic.Equiv.PartialEquiv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -311,9 +312,7 @@ theorem nondegenerate_bilinFormAt_smul_iff [IsManifold I 1 M] {G : Type*} [Group
     rw [← Diffeomorph.coe_constSmul (I := I) (n := ∞) k]
     exact (Diffeomorph.constSmul I ∞ k).isInvertible_mfderiv (by simp)
   refine nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hk ?_
-  have h := congrArg Subtype.val hσ
-  rw [SmoothForm.coe_mpullback] at h
-  exact congrFun h y
+  exact congrFun ((SmoothForm.mpullback_eq_iff _).1 hσ) y
 
 end SmoothTwoForm
 
@@ -482,7 +481,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
     [IsManifold I' ∞ M'] (e : PartialDiffeomorph I I' M M' ∞) {C W : Set M}
     (hC : _root_.IsClosed (e '' C)) (hW : IsOpen W) (hCW : C ⊆ W) (hWe : W ⊆ e.source)
     {Φ : M' ≃ₘ⟮I', I'⟯ M'} (hΦ : ∀ x ∉ e '' C, Φ x = x) {θ : SmoothForm I' M' ℝ 1} {k : M → ℝ}
-    (hk : ContMDiffOn I 𝓘(ℝ) ∞ k W) (hk0 : ∀ z ∈ W, z ∉ C → k z = 0)
+    (hk : ContMDiffOn I 𝓘(ℝ) ∞ k W) (hk0 : W ∩ Function.support k ⊆ C)
     (hθk : ∀ z ∈ W, TauCeti.mpullback I I' (Φ ∘ e) θ.val z - TauCeti.mpullback I I' e θ.val z =
       mextDeriv (RoughForm.ofFunction I k) z) :
     ∃ K : C^∞⟮I', M'; ℝ⟯, (∀ x ∉ e '' C, K x = 0) ∧ (∀ z ∈ W, K (e z) = k z) ∧
@@ -494,7 +493,8 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
   have hK₀C : ∀ x ∉ e '' C, K₀ x = 0 := fun x hx ↦ by
     by_cases hxW : x ∈ e '' W
     · obtain ⟨z, hz, rfl⟩ := hxW
-      rw [hK₀e z hz, hk0 z hz fun hzC ↦ hx (mem_image_of_mem _ hzC)]
+      rw [hK₀e z hz]
+      exact Function.notMem_support.1 fun h ↦ hx (mem_image_of_mem _ (hk0 ⟨hz, h⟩))
     · exact indicator_of_notMem hxW _
   have hK₀s : ContMDiff I' 𝓘(ℝ) ∞ K₀ :=
     e.contMDiff_indicator_image_comp_symm hk hC hW hCW hWe hk0

@@ -120,8 +120,8 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.realFirstChernClass_def :
 
 omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
 /-- A two-form `σ` on `B` is the curvature of a unitary connection on the Hermitian line bundle
-`(V, g)`: some connection form `α` on the principal `Circle`-bundle of `g`-unitary frames of `V`
-has curvature `hα.curvature = σ` (`SymplecticGeometry.IsCircleConnectionForm.curvature`). -/
+`(V, g)`: it is the curvature of a connection form on the principal `Circle`-bundle of
+`g`-unitary frames of `V` (`SymplecticGeometry.IsCircleConnectionCurvature`). -/
 def _root_.Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature (σ : SmoothForm IB B ℝ 2) :
     Prop :=
   letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
@@ -130,8 +130,7 @@ def _root_.Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature (σ : SmoothFo
     instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
   haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
     contMDiffFiberBundle_circleFiber g hI
-  ∃ (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1)
-    (hα : IsCircleConnectionForm α), hα.curvature = σ
+  IsCircleConnectionCurvature (Fiber ℂ F V ℂ) σ
 
 omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
 theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_def
@@ -143,8 +142,7 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_def
         instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
       haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
         contMDiffFiberBundle_circleFiber g hI
-      ∃ (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1)
-        (hα : IsCircleConnectionForm α), hα.curvature = σ :=
+      IsCircleConnectionCurvature (Fiber ℂ F V ℂ) σ :=
   Iff.rfl
 
 omit [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B] in
@@ -157,8 +155,7 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.IsConnectionCurvature.mem_closed
     instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
   have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
     contMDiffFiberBundle_circleFiber g hI
-  obtain ⟨α, hα, rfl⟩ := (g.isConnectionCurvature_def hI σ).1 h
-  exact hα.curvature_mem_closedForms
+  exact ((g.isConnectionCurvature_def hI σ).1 h).mem_closedForms
 
 /-- A closed two-form `σ` on `B` is the curvature of a unitary connection on `(V, g)` exactly
 when `-(2π)⁻¹ [σ]` is the real first Chern class of `(V, g)`. -/
@@ -174,7 +171,7 @@ theorem _root_.Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_iff
     instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
   have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) IB (𝓡 1) :=
     contMDiffFiberBundle_circleFiber g hI
-  exact exists_isCircleConnectionForm_curvature_eq_iff hσ
+  exact isCircleConnectionCurvature_iff hσ
 
 section Map
 

@@ -30,10 +30,10 @@ with inclusion `ι = X.embedding`, and let `h` be the hyperplane class of `ℂ�
 `⟨(ι^* h) ^ n, [X]⟩ = d`, the fundamental class being that of the complex orientation of `X`
 (`SymplecticGeometry.complexManifoldEvalFundamentalClass`).
 
-The class `(ι^* h) ^ n` is the top Chern class of `ι^* 𝒪(1)^{⊕n}`, by the Whitney sum formula
-for `𝒪(1)^{⊕n}` (`Projectivization.totalChernClass_twistPiCore`) and naturality, hence its Euler
-class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). Pairing the Euler class
-with `[X]` adds up, over the zeros of a section with finitely many zeros, its index at each
+The class `(ι^* h) ^ n` is the top Chern class of `ι^* 𝒪(1)^{⊕n}`, by the Whitney sum formula for
+`𝒪(1)^{⊕n}` (`Projectivization.totalChernClass_twistSumCore_const`) and naturality, hence its
+Euler class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). Pairing the Euler
+class with `[X]` adds up, over the zeros of a section with finitely many zeros, its index at each
 (`SymplecticGeometry.complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex`,
 a form of Tau Ceti's
 `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
@@ -53,7 +53,7 @@ of parameters, being dense, meets the nonempty open set of surjective tuples. Fo
 
 The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
 
-* `complexEulerClass_twistPiCore_pullback`: the Euler class of `ι^* 𝒪(1)^{⊕(r+1)}` is
+* `complexEulerClass_twistSumCore_pullback`: the Euler class of `ι^* 𝒪(1)^{⊕(r+1)}` is
   `(ι^* h) ^ (r + 1)`.
 * `exists_surjective_linearSection_regular`: some surjective `ℓ : ℂⁿ⁺² → ℂⁿ` gives a section
   of `ι^* 𝒪(1)^{⊕n}` that is transverse to zero, with finitely many zeros.
@@ -88,18 +88,18 @@ variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 /-- **The Euler class of `ι^* 𝒪(1)^{⊕(r+1)}`.** On a smooth projective hypersurface `X`, the Euler
 class of the pull-back of `𝒪(1) ⊗ ℂ^{r+1}` by the inclusion, read in integral cohomology, is
 `(ι^* h) ^ (r + 1)`. -/
-theorem complexEulerClass_twistPiCore_pullback (r : ℕ) :
+theorem complexEulerClass_twistSumCore_pullback (r : ℕ) :
     ((TopCat.of X).uliftIntegralCohomologyIso (2 * r + 2)).hom
         (complexEulerClass (Fin (r + 1) → ℂ)
-          (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin (r + 1))).Fiber)
+          (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : Fin (r + 1) ↦ 1).Fiber)
           (finrank_fin_fun ℂ)) =
       ((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (r + 1)) (r + 1) := by
   rw [← chernClass_finrank_eq_complexEulerClass, ← totalChernClass_apply]
   refine (congrArg (· (r + 1)) (totalChernClass_pullback (G := Fin (r + 1) → ℂ)
-    (E := (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin (r + 1))).Fiber)
+    (E := (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : Fin (r + 1) ↦ 1).Fiber)
     X.embedding.toContinuousMap)).trans ?_
   dsimp only
-  rw [totalChernClass_twistPiCore, one_smul, map_pow, map_add, map_one,
+  rw [totalChernClass_twistSumCore_const, one_smul, map_pow, map_add, map_one,
     evenIntegralCohomologyMap_hyperplaneClass]
   -- The component of degree `r + 1` of `(1 + ι^* h) ^ (r + 1)` is that of `(ι^* h) ^ (r + 1)`.
   rw [TopCat.one_add_evenIntegralCohomologyOf_pow_apply, Nat.choose_self, Nat.cast_one, one_smul]
@@ -204,7 +204,7 @@ theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurfa
     (X.linearSection ℓ).contMDiff.continuous
   -- The pairing is that of the Euler class of `ι^* 𝒪(1)^{⊕(n+1)}`, the sum of the local indices
   -- of the section given by `ℓ`.
-  rw [← X.complexEulerClass_twistPiCore_pullback n,
+  rw [← X.complexEulerClass_twistSumCore_pullback n,
     complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex _ _ hs hfin]
   calc _ = ∑ _z ∈ hfin.toFinset, (1 : ℤ) := Finset.sum_congr rfl ?_
     _ = d := by
