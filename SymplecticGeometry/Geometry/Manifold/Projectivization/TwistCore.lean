@@ -48,8 +48,8 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   underlying real manifold, by restriction of scalars (the scoped instance
   `VectorBundle.ComplexToReal.vectorBundle` and Tau Ceti's
   `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`); files using this real structure
-  `open scoped VectorBundle.ComplexToReal`. The fibres of `𝒪(k)` also get the continuity of
-  multiplication by real scalars.
+  `open scoped VectorBundle.ComplexToReal`, which also makes real scalar multiplication on the
+  fibres of `𝒪(k)` continuous.
 * `Projectivization.twistSumCoreOptionEquiv k x`: the splitting
   `⨁_{l : Option κ} 𝒪(k l) ≅ 𝒪(k none) ⊕ ⨁_{l : κ} 𝒪(k (some l))` into Mathlib's direct sum `×ᵇ`
   of bundles, continuous on total spaces in both directions, so that, by induction on `r`,
@@ -426,11 +426,6 @@ instance :
   have : ContMDiffVectorBundle ∞ ℂ (twistCore (𝕜 := ℂ) (n := n) k).Fiber 𝓘(ℂ, Fin n → ℂ) :=
     ContMDiffVectorBundle.of_le le_top
   ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
-
-/-- Multiplication by real scalars on a fibre of `𝒪(k)` is continuous. -/
-instance (x : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    ContinuousSMul ℝ ((twistCore (𝕜 := ℂ) (n := n) k).Fiber x) :=
-  IsScalarTower.continuousSMul ℂ
 
 end RestrictScalars
 
