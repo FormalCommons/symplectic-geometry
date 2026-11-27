@@ -78,7 +78,7 @@ private def mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ) :
         ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply]
       rw [← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
       -- `J̃ z` and `J (blowdown c z)` are applied through `toEndomorphism`, their coercion.
-      exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z.property _
+      exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z _
 
 /-- `mfderivBlowdownEquiv` is the differential of the blowdown on the underlying real vectors. -/
 private theorem fiberEquiv_mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ)
