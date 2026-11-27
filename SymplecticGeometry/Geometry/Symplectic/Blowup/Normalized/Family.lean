@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
-import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!
 # Families of normalized ball embeddings, their lifts and their forms
@@ -119,19 +119,11 @@ private theorem contMDiffAt_ballLift_family_of_blowdown_ne_zero
     ContMDiffAt ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
       (fun q : unitInterval × openNbhdOpens n r ↦
         (hψ q.1).ballLift ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩) p := by
-  classical
   set e := complexToRealEuclidean (Fin (n + 1))
   obtain ⟨U, hU, hrU, hψU⟩ := hψf.exists_contMDiffOn
   let V : Set (unitInterval × openNbhdOpens n r) := {q | (q.2 : BlowupModel n).blowdown ≠ 0}
   have hV : IsOpen V := isOpen_ne_fun (continuous_blowdown.comp
     (continuous_subtypeVal.comp continuous_snd)) continuous_const
-  let g : unitInterval × openNbhdOpens n r → Blowup.puncturedOpens hN.blowupChart := fun q ↦
-    if h : q ∈ V then
-      ⟨ψ (q.1, e (q.2 : BlowupModel n).blowdown),
-        (hψ q.1).apply_blowdown_mem_puncturedOpens (mem_openNbhdOpens_iff.1 q.2.property) h⟩
-    else
-      ⟨ψ (p.1, e (p.2 : BlowupModel n).blowdown),
-        (hψ p.1).apply_blowdown_mem_puncturedOpens (mem_openNbhdOpens_iff.1 p.2.property) hp⟩
   -- The point map `(t, y) ↦ (t, π y)`, read on `StdSpace`, is smooth with values in `univ ×ˢ U`.
   have hk : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
       ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin (n + 1)))) ∞
@@ -142,17 +134,16 @@ private theorem contMDiffAt_ballLift_family_of_blowdown_ne_zero
   have hkU : (p.1, e (p.2 : BlowupModel n).blowdown) ∈ univ ×ˢ U :=
     ⟨mem_univ _, hrU (Metric.mem_closedBall.2 (by
       simpa using (mem_openNbhd_iff.1 (mem_openNbhdOpens_iff.1 p.2.property)).le))⟩
-  have hg : ContMDiffAt ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ)) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g p := by
-    rw [← ContMDiffAt.subtypeVal_comp_iff]
-    refine (((hψU.contMDiffAt ((isOpen_univ.prod hU).mem_nhds hkU)).comp p
-      hk.contMDiffAt)).congr_of_eventuallyEq ?_
-    filter_upwards [hV.mem_nhds hp] with q hq
-    simp only [g, dite_eq_left hq, Function.comp_apply]
+  -- Near `p`, the map `(t, y) ↦ ψ (t, π y)` lifts to the punctured open set of the gluing.
+  obtain ⟨g, hg, hgψ⟩ := ContMDiffAt.exists_subtypeVal_comp_eventuallyEq
+    ((hψU.contMDiffAt ((isOpen_univ.prod hU).mem_nhds hkU)).comp p hk.contMDiffAt)
+    (W := Blowup.puncturedOpens hN.blowupChart)
+    ((hψ p.1).apply_blowdown_mem_puncturedOpens (mem_openNbhdOpens_iff.1 p.2.property) hp)
   refine ((Blowup.isLocalDiffeomorph_inl_real _ (g p)).contMDiffAt.comp p hg).congr_of_eventuallyEq
     ?_
-  filter_upwards [hV.mem_nhds hp] with q hq
+  filter_upwards [hV.mem_nhds hp, hgψ] with q hq hgq
   rw [(hψ q.1).ballLift_of_blowdown_ne_zero _ hq, Function.comp_apply]
-  simp only [g, e, dite_eq_left hq]
+  exact congrArg _ (Subtype.ext (by simpa using hgq.symm))
 
 /-- **The lifts of a family of normalized ball embeddings are jointly smooth.** Let
 `ψ : unitInterval × StdSpace → M` be a smooth family of symplectic ball embeddings of radius `r`
