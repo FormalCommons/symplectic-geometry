@@ -193,15 +193,8 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
       refine ContinuousLinearMap.ext fun v ↦ ?_ <;> simp [U, hNN]
   refine ⟨fun x ↦ (A x).comp (U x), fun x₀ ↦ ?_, fun x ↦ (hAinv x).comp (hU x),
     fun x v ↦ ?_, fun x ↦ ?_, fun x hx w ↦ ?_⟩
-  · have hnear : ∀ᶠ x in 𝓝 x₀, ι x ∈ (chartAt E (ι x₀)).source :=
-      (hι.contMDiff x₀).continuousAt.preimage_mem_nhds
-        ((chartAt E (ι x₀)).open_source.mem_nhds (mem_chart_source E (ι x₀)))
-    have hUs : ContDiff ℝ ∞ U := contDiff_const.sub hNs
-    refine ((hAs x₀).clm_comp hUs.contMDiff.contMDiffAt).congr_of_eventuallyEq ?_
-    filter_upwards [hnear] with x hx
-    rw [inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E) (f := modelDisc k m) _ hx,
-      inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E) (f := modelDisc k m) A hx]
-    exact (ContinuousLinearMap.comp_assoc _ _ _).symm
+  · have hUs : ContDiff ℝ ∞ U := contDiff_const.sub hNs
+    exact (hAs x₀).inTangentCoordinates_clm_comp 𝓘(ℝ, E) hUs.contMDiff.contMDiffAt
   · have hUI : U x (Complex.I • v) = Complex.I • U x v := by simp [U, hNI, smul_sub]
     simp only [ContinuousLinearMap.comp_apply, hUI]
     exact hAI x _

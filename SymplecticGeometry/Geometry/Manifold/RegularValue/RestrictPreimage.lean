@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.MFDeriv.Opens
 public import TauCeti.Geometry.Manifold.Submersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Submersion.Split
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Geometry.Manifold.Submersion.Basic
@@ -33,7 +34,10 @@ the local differential notions of `f` pass to this restriction:
   `TauCeti.isRegularValue_restrictPreimage_iff`);
 * the regular fibre: over a regular value `b ∈ V` the fibre of the restriction and the fibre of
   `f`, each with Tau Ceti's regular-fibre atlas, are diffeomorphic by the map that keeps the
-  point of `M` (`TauCeti.regularFiberRestrictPreimageDiffeomorph`).
+  point of `M` (`TauCeti.regularFiberRestrictPreimageDiffeomorph`);
+* the restriction of a `C^n` map, `1 ≤ n`, over an open set of regular values is a `C^n`
+  submersion (`ContMDiff.isSubmersion_restrictPreimage_of_isRegularValue`), by Tau Ceti's
+  `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`.
 
 Smoothness of the restriction is Tau Ceti's `ContMDiff.restrictPreimage`, and properness is
 Mathlib's `IsProperMap.restrictPreimage`.
@@ -259,5 +263,31 @@ theorem coe_coe_regularFiberRestrictPreimageDiffeomorph_symm_apply (hm : 1 ≤ m
 end Fiber
 
 end TauCeti
+
+section RegularSubmersion
+
+open TauCeti
+
+variable {𝕜 : Type*} [RCLike 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [I.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners 𝕜 F G}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  {n : ℕ∞ω} [IsManifold I n M] [IsManifold J n N] {f : M → N}
+
+/-- For a `C^n` map `f`, `1 ≤ n`, from a boundaryless manifold modelled on a finite-dimensional
+space over `ℝ` or `ℂ` to one modelled on a finite-dimensional space, and an open `R` all of whose
+points are regular values of `f`, the restriction `f⁻¹(R) → R` is a `C^n` submersion. -/
+theorem ContMDiff.isSubmersion_restrictPreimage_of_isRegularValue (hf : ContMDiff I J n f)
+    (hn : 1 ≤ n) (R : Opens N) (hreg : ∀ y ∈ R, IsRegularValue I J f y) :
+    Manifold.IsSubmersion (M := (⟨f ⁻¹' R, R.isOpen.preimage hf.continuous⟩ : Opens M))
+      (N := R) I J n ((R : Set N).restrictPreimage f) :=
+  ((hf.restrictPreimage R).isSubmersionOfComplement_of_surjective_mfderiv hn fun x ↦
+    isRegularPoint_iff.1 ((isRegularPoint_restrictPreimage_iff hf.continuous R).2
+      (isRegularValue_iff.1 (hreg _ x.property) x rfl))).isSubmersion
+
+end RegularSubmersion
 
 end
