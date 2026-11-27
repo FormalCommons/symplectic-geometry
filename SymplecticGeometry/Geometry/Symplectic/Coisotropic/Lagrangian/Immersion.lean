@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.ImmersionRange
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
 public import SymplecticGeometry.Geometry.Manifold.CleanIntersection
+import TauCeti.Geometry.Manifold.Immersion.Differential
 import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basic
 import SymplecticGeometry.Geometry.Manifold.ConstantRank.Immersion
 import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Manifold
@@ -108,8 +109,8 @@ theorem isLagrangianImmersionRange_leafSpaceMk_image [L.Boundaryless] [Nonempty 
       omega
     convert isLagrangianImmersionRange_range hι
     rw [range_eq_empty, range_eq_empty, image_empty]
-  have : FiniteDimensional ℝ E₀ := FiniteDimensional.of_injective _
-    (hc.isSmoothEmbedding.isImmersion.mfderiv_injective (by simp) x₀)
+  have : FiniteDimensional ℝ E₀ :=
+    hc.isSmoothEmbedding.isImmersion.finiteDimensional_tangentSpace x₀ (by simp)
   have : SecondCountableTopology C := hc.isSmoothEmbedding.isEmbedding.secondCountableTopology
   set p := (h.characteristicFoliation hi hf hσc hn).leafSpaceMk
   have hpc : ContMDiff L _ ∞ (p ∘ c) :=
