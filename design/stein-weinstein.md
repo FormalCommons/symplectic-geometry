@@ -1010,16 +1010,17 @@ containing `ι '' closedBall 0 1`:
     set) makes it a diffeomorphism near the core, and `Φ = Φ₀ ∘ G`.
     `√(t p)` bounds `‖im p‖`, the distance to the real points.
 
-- `Surround/ChartLeviForm.lean` (issues 14d14 and 14d15): the
+- `Surround/ChartLeviForm.lean` (issue 14d15) and
+  `Analysis/Complex/LeviForm/CompSymm.lean` (issue 14d14): the
   comparison.
-  - `re_leviForm_comp_symm_ge` (14d14): for complex normed spaces `V`,
-    `W` of finite dimension and every `K` there is `C` such that for
+  - `TauCeti.le_re_leviForm_comp_symm` (14d14): for complex normed
+    spaces `V`, `W` and every `K` there is `C` such that for
     every `e : OpenPartialHomeomorph V W`, `p ∈ e.source` with `e` `C²` at `p`
     and `e.symm` `C²` at `e p`, `‖fderiv ℝ e p‖ ≤ K`,
     `‖fderiv ℝ e.symm (e p)‖ ≤ K`, `‖fderiv ℝ (fderiv ℝ e) p‖ ≤ K`,
     every `u` `C²` at `p` and every `v`,
-    `(leviForm u p v v).re - C * (‖∂̄e p‖ * ‖fderiv ℝ (fderiv ℝ u) p‖ +
-    (‖∂̄e p‖ + ‖fderiv ℝ (fun q ↦ ∂̄e q) p‖) * ‖fderiv ℝ u p‖) * ‖v‖ ^ 2 ≤
+    `(leviForm u p v v).re - C * (‖conjWirtingerDeriv e p‖ * ‖fderiv ℝ (fderiv ℝ u) p‖ +
+    (‖conjWirtingerDeriv e p‖ + ‖fderiv ℝ (conjWirtingerDeriv e) p‖) * ‖fderiv ℝ u p‖) * ‖v‖ ^ 2 ≤
     (leviForm (u ∘ e.symm) (e p) (fderiv ℝ e p v) (fderiv ℝ e p v)).re`,
     with Tau Ceti's `leviForm` (`Analysis/Complex/LeviForm/Basic.lean`).
     The proof is the computation of *Comparison*; it is the
@@ -1730,7 +1731,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d11 | Almost holomorphic Taylor extensions | `JConvex/Surround/AlmostHolomorphic.lean` | 13 | 350 |
 | 14d12 | Maps with small $\bar\partial$ that vanish on the real points | `JConvex/Surround/AlmostHolomorphic.lean` | 14d11 | 350 |
 | 14d13 | The chart of order $N$ along a disc (Proposition 5.55) | `JConvex/Surround/Chart.lean` | 14d10, 14d12 | 400 |
-| 14d14 | The Levi form through a chart that is not holomorphic | `JConvex/Surround/ChartLeviForm.lean` | 13 | 300 |
+| 14d14 | The Levi form through a chart that is not holomorphic | `Analysis/Complex/LeviForm/CompSymm.lean` | 13 | 300 |
 | 14d15 | Margins carried to the manifold by the chart | `JConvex/Surround/ChartLeviForm.lean` | 14d13, 14d14 | 300 |
 | 14d16 | Logarithmic cutoffs and the Levi form of an interpolation | `JConvex/Interpolation.lean` | 13 | 250 |
 | 14d17 | Interpolation along a totally real submanifold (Proposition 3.26) | `JConvex/Interpolation.lean` | 14a, 14d16 | 400 |
