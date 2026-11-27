@@ -20,6 +20,10 @@ local diffeomorphisms; the main example is the pair of stereographic charts of a
 `τ'` be forms on `E` such that the inversion pulls `τ'` back to `τ` on the shell
 `R < ‖w‖ < R'⁻¹`.
 
+Two facts about any complementary pair come first: `s w = s' (inversion 0 1 w)` for `w ≠ 0`
+(`TauCeti.IsComplementaryBall.apply_eq_inversion_symm`), and `s' 0` is not in the range of `s`
+(`TauCeti.IsComplementaryBall.apply_zero_notMem_range`).
+
 The form `TauCeti.RoughForm.glue` of `τ` along `s` on `ball 0 R'⁻¹` and of `τ'` along `s'` pulls
 back along `s'` to `τ'` on `ball 0 R⁻¹`
 (`TauCeti.IsComplementaryBall.mpullback_glue_apply_of_mem_ball`): a point of `ball 0 R⁻¹` whose
@@ -52,12 +56,34 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   {s s' : E → N} {R R' : ℝ}
 
 omit [ChartedSpace H N] in
+/-- For complementary balls `s` and `s'`, the first ball is the complementary one read through
+the inversion away from the centre: `s w = s' (inversion 0 1 w)` for `w ≠ 0`. -/
+theorem apply_eq_inversion_symm (h : IsComplementaryBall s s') {w : E} (hw : w ≠ 0) :
+    s w = s' (inversion 0 1 w) := by
+  rw [h.apply_eq_inversion _ fun h0 ↦ hw ((inversion_eq_center one_ne_zero).1 h0),
+    inversion_inversion _ one_ne_zero]
+
+omit [ChartedSpace H N] in
+/-- For complementary balls `s` and `s'`, the centre `s' 0` of the complementary ball is not in
+the range of the first ball. -/
+theorem apply_zero_notMem_range (h : IsComplementaryBall s s') : s' 0 ∉ range s := by
+  rintro ⟨x, hx⟩
+  have hne : s' 0 ≠ s 0 := by
+    have : s' 0 ∈ range s' := mem_range_self 0
+    rwa [h.range_eq] at this
+  rcases eq_or_ne x 0 with rfl | hx0
+  · exact hne hx.symm
+  · rw [h.apply_eq_inversion_symm hx0] at hx
+    exact hx0 ((inversion_eq_center one_ne_zero).1 (h.isOpenEmbedding.injective hx))
+
+omit [ChartedSpace H N] in
 /-- Let `0 < R`, `0 < R'` with `R * R' < 1`. For complementary balls `s` and `s'`, a point off
-`s '' ball 0 R'⁻¹` is in `s' '' ball 0 R⁻¹`: it is not `s 0`, so it is `s' y`, and `y` is `0` or
-its inversion lies outside `ball 0 R'⁻¹`, so that `‖y‖ ≤ R' < R⁻¹`. -/
+`s '' ball 0 R'⁻¹` is in `s' '' ball 0 R⁻¹`, so that the two images cover `N`. -/
 theorem mem_image_ball_of_notMem_image_ball (h : IsComplementaryBall s s') (hR : 0 < R)
     (hR' : 0 < R') (hRR' : R * R' < 1) {z : N} (hz : z ∉ s '' Metric.ball 0 R'⁻¹) :
     z ∈ s' '' Metric.ball 0 R⁻¹ := by
+  -- The point is not `s 0`, so it is `s' y`, and `y` is `0` or its inversion lies outside
+  -- `ball 0 R'⁻¹`, so that `‖y‖ ≤ R' < R⁻¹`.
   have hz0 : z ∈ range s' := by
     rw [h.range_eq]
     rintro rfl
@@ -68,7 +94,7 @@ theorem mem_image_ball_of_notMem_image_ball (h : IsComplementaryBall s s') (hR :
   rcases eq_or_ne y 0 with rfl | hy0
   · simpa using hR
   have hy : ‖y‖ ≤ R' := le_of_not_gt fun hy ↦ hz ⟨inversion 0 1 y,
-    by rw [mem_ball_zero_iff, norm_inversion_zero_one]; exact inv_strictAnti₀ hR' hy,
+    mem_ball_zero_iff.2 ((norm_inversion_lt_inv_iff hR' hy0).2 hy),
     (h.apply_eq_inversion y hy0).symm⟩
   exact hy.trans_lt (lt_of_mul_lt_mul_left (by rwa [mul_inv_cancel₀ hR.ne']) hR.le)
 
@@ -89,17 +115,9 @@ theorem mpullback_glue_apply_of_mem_ball [IsManifold I 1 N] (h : IsComplementary
   · exact RoughForm.mpullback_glue_apply_of_notMem hinj' hmem
       ((hs' w).isInvertible_mfderiv (by simp))
   obtain ⟨x, hx, hxw⟩ := hmem
-  -- The point `w` is not the centre: `s' 0` is only `s x` for `x = 0`, which is not in the shell.
   have hw0 : w ≠ 0 := by
     rintro rfl
-    have hx0 : x ≠ 0 := by
-      rintro rfl
-      have : s' 0 ∈ range s' := mem_range_self 0
-      rw [h.range_eq, ← hxw] at this
-      exact this rfl
-    have hinv : inversion (0 : E) 1 x ≠ 0 := fun h0 ↦ hx0 ((inversion_eq_center one_ne_zero).1 h0)
-    rw [← inversion_inversion (0 : E) one_ne_zero x, ← h.apply_eq_inversion _ hinv] at hxw
-    exact hinv (hinj' hxw)
+    exact h.apply_zero_notMem_range ⟨x, hxw⟩
   have hv0 : inversion (0 : E) 1 w ≠ 0 := fun h0 ↦ hw0 ((inversion_eq_center one_ne_zero).1 h0)
   obtain rfl : x = inversion 0 1 w := h.injective (hxw.trans (h.apply_eq_inversion w hw0))
   have hRx : R < ‖inversion (0 : E) 1 w‖ := by
@@ -115,11 +133,10 @@ theorem mpullback_glue_apply_of_mem_ball [IsManifold I 1 N] (h : IsComplementary
   -- Near `w`, the ball `s'` is the ball `s` read through the inversion.
   have hev : s' =ᶠ[𝓝 w] s ∘ inversion 0 1 :=
     eventually_of_mem (isOpen_compl_singleton.mem_nhds hw0) fun y hy ↦ h.apply_eq_inversion y hy
-  have hii : inversion (0 : E) 1 ∘ inversion 0 1 = id :=
-    funext (inversion_inversion (0 : E) one_ne_zero)
   rw [hev.mpullback_eq, mpullback_comp_at (hinvd w hw0) ((hs _).mdifferentiableAt (by simp)),
     mpullback_apply_congr (hsx.trans (hτ _ hRx (mem_ball_zero_iff.1 hx)).symm),
-    ← mpullback_comp_at (hinvd w hw0) (hinvd _ hv0), hii, mpullback_id]
+    ← mpullback_comp_at (hinvd w hw0) (hinvd _ hv0),
+    (inversion_involutive (0 : E) one_ne_zero).comp_self, mpullback_id]
 
 /-- **Two forms that agree through the inversion glue along complementary balls.** Let `s` and
 `s'` be complementary balls, both smooth local diffeomorphisms, let `0 < R`, `0 < R'` with
