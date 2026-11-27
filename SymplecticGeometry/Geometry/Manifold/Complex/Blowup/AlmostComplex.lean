@@ -10,12 +10,9 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Glue
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LocalPullback
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # The almost complex blowup
@@ -61,40 +58,6 @@ open scoped Manifold ContDiff TauCeti.ComplexManifold
 
 noncomputable section
 
-namespace TauCeti.SmoothAlmostComplexStructure
-
-variable {E H X Y : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace X] [ChartedSpace H X] [IsManifold I ∞ X]
-  [TopologicalSpace Y] [ChartedSpace H Y] [IsManifold I ∞ Y]
-  {U : Opens X} {V : Opens Y}
-
-/-- Let `f : X → Y` agree on an open set `U` with a diffeomorphism `Ψ` from `U` onto an open set
-`V`. Then the differential of `f` at a point of `U` is complex linear for the pullback of a
-structure `K` of `Y` along `Ψ` (followed by the inclusion of `V`) and for `K`. -/
-theorem mfderiv_apply_localPullback_subtypeVal_comp (Ψ : U ≃ₘ^∞⟮I, I⟯ V) {f : X → Y}
-    (hf : ∀ x : U, f x = Ψ x) (K : SmoothAlmostComplexStructure I Y) (x : U)
-    (v : TangentSpace I x) :
-    mfderiv I I f x (localPullback Ψ.isLocalDiffeomorph_subtypeVal_comp K x v) =
-      K (f x) (mfderiv I I f x v) := by
-  have hfx : MDifferentiableAt I I f x :=
-    (Ψ.isLocalDiffeomorphAt_of_coe_eq hf x).mdifferentiableAt (by simp)
-  have h := ((hfx.hasMFDerivAt.comp x
-    ((contMDiff_subtypeVal : ContMDiff I I 1 (Subtype.val : U → X)).mdifferentiableAt
-      one_ne_zero).hasMFDerivAt).congr_of_eventuallyEq
-      (Filter.Eventually.of_forall fun u : U ↦ (hf u).symm)).mfderiv
-  have hmf : ∀ w : TangentSpace I x,
-      mfderiv I I (fun u : U ↦ (Ψ u : Y)) x w = mfderiv I I f x w := fun w ↦
-    (DFunLike.congr_fun h w).trans (by
-      simp only [comp_apply, Manifold.mfderiv_subtype_val, ContinuousLinearMap.comp_apply,
-        ContinuousLinearEquiv.coe_coe, Manifold.tangentSpaceOpenEquiv_apply]
-      -- `tangentSpaceCast` is the identity of the model space.
-      exact (rfl))
-  refine (hmf _).symm.trans ((mfderiv_localPullback_apply _ K x v).trans ?_)
-  rw [hmf, hf x]
-
-end TauCeti.SmoothAlmostComplexStructure
-
 namespace SymplecticGeometry
 
 namespace Blowup
@@ -103,35 +66,32 @@ open BlowupModel TauCeti TauCeti.SmoothAlmostComplexStructure
 
 open GluedAlong (inl inr)
 
-variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
-  [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] {p₀ : M} (c : BlowupChart (n := n) M p₀)
+variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M] {p₀ : M}
+  (c : BlowupChart (n := n) M p₀)
+
+/-! ### The cover by two open sets -/
+
+/-- The complement of the exceptional divisor and the range of `inr`. -/
+private def cover : Bool → Opens (Blowup c)
+  | false => offDivisorOpens c
+  | true => GluedAlong.rangeInr (gluingHomeomorph c)
+
+private theorem mem_cover_true {z : Blowup c} :
+    z ∈ cover c true ↔ z ∈ range (inr (gluingHomeomorph c)) :=
+  GluedAlong.mem_rangeInr _
+
+/-- The two open sets cover the blowup. -/
+private theorem isOpenCover_cover : IsOpenCover (cover c) := by
+  refine IsOpenCover.mk (eq_top_iff.2 fun z _ ↦ Opens.mem_iSup.2 ?_)
+  rcases (Set.ext_iff.1 (GluedAlong.range_inl_union_range_inr (gluingHomeomorph c)) z).2
+    (mem_univ z) with h | h
+  · exact ⟨false, (mem_offDivisorOpens c).2 (by rwa [range_inl] at h)⟩
+  · exact ⟨true, (mem_cover_true c).2 h⟩
+
+variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
 
 /-! ### The two pieces -/
-
-/-- The range of `inr (gluingHomeomorph c)`, as an open set of the blowup. -/
-private def rangeInrOpens : Opens (Blowup c) := (isLocalDiffeomorph_inr_real c).image
-
-/-- The inverse of `inr` on its range, as a diffeomorphism onto the part of the model over the
-target of `c`. -/
-private def rangeInrDiffeomorph :
-    rangeInrOpens c ≃ₘ^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ modelOpens c :=
-  ((isLocalDiffeomorph_inr_real c).diffeomorphOfInjective (GluedAlong.inr_injective _)).symm
-
-private theorem inr_rangeInrDiffeomorph (z : rangeInrOpens c) :
-    inr (gluingHomeomorph c) (rangeInrDiffeomorph c z) = z :=
-  (isLocalDiffeomorph_inr_real c).apply_diffeomorphOfInjective_symm _ z
-
-private theorem coe_rangeInrDiffeomorph (z : rangeInrOpens c) :
-    (rangeInrDiffeomorph c z : BlowupModel n) = lift c z := by
-  conv_rhs => rw [← inr_rangeInrDiffeomorph c z, lift_inr]
-
-/-- The blowdown sends the range of `inr` into the source of `c`. -/
-private theorem blowdown_mem_source {z : Blowup c} (hz : z ∈ rangeInrOpens c) :
-    blowdown c z ∈ c.source := by
-  obtain ⟨y, rfl⟩ := hz
-  rw [blowdown_inr]
-  exact c.map_target ((mem_modelOpens c).1 y.property)
 
 private theorem isLocalDiffeomorph_offDivisor :
     IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
@@ -140,17 +100,9 @@ private theorem isLocalDiffeomorph_offDivisor :
 
 private theorem isLocalDiffeomorph_rangeInr :
     IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
-      (fun z : rangeInrOpens c ↦ (rangeInrDiffeomorph c z : BlowupModel n)) :=
-  (rangeInrDiffeomorph c).isLocalDiffeomorph_subtypeVal_comp
-
-/-- The two open sets cover the blowup. -/
-private def cover : Bool → Opens (Blowup c) := fun b ↦ cond b (rangeInrOpens c) (offDivisorOpens c)
-
-private theorem isOpenCover_cover : IsOpenCover (cover c) := by
-  refine IsOpenCover.mk (eq_top_iff.2 fun z _ ↦ Opens.mem_iSup.2 ?_)
-  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · exact ⟨false, (mem_offDivisorOpens c).2 (inl_notMem_exceptionalDivisor c x)⟩
-  · exact ⟨true, mem_range_self y⟩
+      (fun z : GluedAlong.rangeInr (gluingHomeomorph c) ↦
+        (GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out) z : BlowupModel n)) :=
+  (GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out)).isLocalDiffeomorph_subtypeVal_comp
 
 variable (J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) M)
 
@@ -162,12 +114,14 @@ private def offDivisorStructure :
 /-- The structure on the range of `inr`: the pullback along `lift` of the structure of the
 complex manifold `BlowupModel n`. -/
 private def rangeInrStructure :
-    SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) (rangeInrOpens c) :=
+    SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ)
+      (GluedAlong.rangeInr (gluingHomeomorph c)) :=
   localPullback (isLocalDiffeomorph_rangeInr c)
     (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
 
 /-- The family of structures on the two open sets. -/
-private def coverStructure : ∀ b, SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) (cover c b)
+private def coverStructure :
+    ∀ b, SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) (cover c b)
   | false => offDivisorStructure c J
   | true => rangeInrStructure c
 
@@ -182,20 +136,15 @@ private theorem mfderiv_blowdown_offDivisorStructure (z : offDivisorOpens c)
   mfderiv_apply_localPullback_subtypeVal_comp (blowdownRealDiffeomorph c)
     (fun z ↦ (coe_blowdownRealDiffeomorph_apply c z).symm) J z v
 
-private theorem mfderiv_lift_rangeInrStructure (z : rangeInrOpens c)
+private theorem mfderiv_lift_rangeInrStructure (z : GluedAlong.rangeInr (gluingHomeomorph c))
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
     mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z
         (rangeInrStructure c z v) =
       ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n) (lift c z)
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z v) :=
-  mfderiv_apply_localPullback_subtypeVal_comp (rangeInrDiffeomorph c)
-    (fun z ↦ (coe_rangeInrDiffeomorph c z).symm) _ z v
-
-/-- On the range of `inr`, `lift` is a local diffeomorphism. -/
-private theorem isLocalDiffeomorphAt_lift {z : Blowup c} (hz : z ∈ rangeInrOpens c) :
-    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (lift c) z :=
-  (rangeInrDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
-    (fun v ↦ (coe_rangeInrDiffeomorph c v).symm) ⟨z, hz⟩
+  mfderiv_apply_localPullback_subtypeVal_comp
+    (GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out))
+    (fun z ↦ (coe_rangeInrDiffeomorph_apply c z).symm) _ z v
 
 variable {c J}
 
@@ -203,13 +152,16 @@ variable {c J}
 private theorem offDivisorStructure_apply_eq
     (hJ : IsPseudoholomorphicOn J (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c
       c.source)
-    {z : Blowup c} (h₀ : z ∈ offDivisorOpens c) (h₁ : z ∈ rangeInrOpens c)
-    (v : Fin (n + 1) → ℂ) :
+    {z : Blowup c} (h₀ : z ∈ offDivisorOpens c)
+    (h₁ : z ∈ GluedAlong.rangeInr (gluingHomeomorph c)) (v : Fin (n + 1) → ℂ) :
     offDivisorStructure c J ⟨z, h₀⟩ v = rangeInrStructure c ⟨z, h₁⟩ v := by
-  have hsrc := blowdown_mem_source c h₁
+  have hr : ∀ {w}, w ∈ GluedAlong.rangeInr (gluingHomeomorph c) →
+      w ∈ range (inr (gluingHomeomorph c)) := fun hw ↦ by
+    rwa [← SetLike.mem_coe, GluedAlong.coe_rangeInr] at hw
+  have hsrc := blowdown_mem_source c (hr h₁)
   have hc' := c.toOpenPartialHomeomorph.isLocalDiffeomorphAt_of_mem_maximalAtlas hc.out hsrc
   have hπ := isLocalDiffeomorphAt_blowdown_real c ((mem_offDivisorOpens c).1 h₀)
-  have hl := isLocalDiffeomorphAt_lift c h₁
+  have hl := isLocalDiffeomorphAt_lift c (hr h₁)
   have hJ' := (hJ.isPseudoholomorphicWithinAt hsrc).isPseudoholomorphicAt_of_mem_nhds
     (c.open_source.mem_nhds hsrc)
   have hbdℂ : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
@@ -225,27 +177,23 @@ private theorem offDivisorStructure_apply_eq
   set L := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z
   -- Near `z`, `c ∘ blowdown c` is `BlowupModel.blowdown ∘ lift c`.
   have hEq : c ∘ blowdown c =ᶠ[𝓝 z] BlowupModel.blowdown ∘ lift c := by
-    filter_upwards [(rangeInrOpens c).isOpen.mem_nhds h₁] with w hw
-    exact (blowdown_lift c (blowdown_mem_source c hw)).symm
+    filter_upwards [(GluedAlong.rangeInr (gluingHomeomorph c)).isOpen.mem_nhds h₁] with w hw
+    exact (blowdown_lift c (blowdown_mem_source c (hr hw))).symm
   have hd : ∀ w, A (B w) = D (L w) := fun w ↦
     (mfderiv_comp_apply z (hc'.mdifferentiableAt (by simp)) (hπ.mdifferentiableAt (by simp))
       w).symm.trans ((DFunLike.congr_fun hEq.mfderiv_eq w).trans
         (mfderiv_comp_apply z hbd (hl.mdifferentiableAt (by simp)) w))
-  -- The vectors below live in tangent spaces, which are `ℂⁿ⁺¹` only by definition; `id` gives
-  -- them that type, so that multiplication by `i` applies.
-  have hD : ∀ u : Fin (n + 1) → ℂ,
-      D (Complex.I • u) = Complex.I • @id (Fin (n + 1) → ℂ) (D u) := fun u ↦ by
-    simp only [D, hbdℂ.mfderiv_modelWithCornersSelf_restrictScalars_apply (R := ℝ), id]
-    exact (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) BlowupModel.blowdown
-      (lift c z)).map_smul Complex.I u
+  -- Both sides are multiplication by `i` after `A ∘ B`. The vectors live in tangent spaces,
+  -- which are `ℂⁿ⁺¹` only by definition; `id` gives them that type.
   have lhs : A (B (offDivisorStructure c J ⟨z, h₀⟩ v)) =
       Complex.I • @id (Fin (n + 1) → ℂ) (A (B v)) :=
     (congrArg A (mfderiv_blowdown_offDivisorStructure c J ⟨z, h₀⟩ v)).trans
       ((hJ'.mfderiv_apply_commute _).trans (ofComplexManifold_apply _ _))
   have rhs : A (B (rangeInrStructure c ⟨z, h₁⟩ v)) =
       Complex.I • @id (Fin (n + 1) → ℂ) (A (B v)) :=
-    (hd _).trans ((congrArg D ((mfderiv_lift_rangeInrStructure c ⟨z, h₁⟩ v).trans
-      (ofComplexManifold_apply _ _))).trans ((hD _).trans (congrArg _ (hd v).symm)))
+    (hd _).trans ((congrArg D (mfderiv_lift_rangeInrStructure c ⟨z, h₁⟩ v)).trans
+      ((hbdℂ.mfderiv_ofComplexManifold_apply _).trans
+        ((ofComplexManifold_apply _ _).trans (congrArg _ (hd v).symm))))
   exact ((hc'.isInvertible_mfderiv (by simp)).injective.comp
     (hπ.isInvertible_mfderiv (by simp)).injective) (lhs.trans rhs.symm)
 
@@ -330,7 +278,7 @@ theorem almostComplexStructure_lift {z : Blowup c} (hz : z ∈ range (inr (gluin
         (almostComplexStructure c J hJ z v) =
       ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n) (lift c z)
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z v) := by
-  have hz' : z ∈ cover c true := hz
+  have hz' : z ∈ cover c true := (mem_cover_true c).2 hz
   rw [almostComplexStructure, glue_apply _ _ true z hz', Manifold.tangentSpaceOpenEquiv_apply,
     Manifold.tangentSpaceOpenEquiv_symm_apply]
   exact mfderiv_lift_rangeInrStructure c ⟨z, hz'⟩ v
