@@ -77,8 +77,8 @@ over `N` and a smooth map `χ : M → N`, the smooth form on `M` whose value at 
 of `α (χ x)` at `x` (`SymplecticGeometry.IsSmoothFamily.sliceAlong_val`). -/
 def sliceAlong (hα : IsSmoothFamily J α) (χ : M → N) (hχ : ContMDiff I J ∞ χ) :
     SmoothForm I M F k :=
-  ⟨fun x ↦ (α (χ x)).val x, IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def _ _).mpr <|
-    (isSmoothFamily_iff_contMDiff.mp hα).comp (hχ.prodMk contMDiff_id)⟩
+  ⟨fun x ↦ (α (χ x)).val x, IsSmoothForm.mem_smoothBundleForms <|
+    isSmoothForm_of_contMDiff_sliceSection (isSmoothFamily_iff_contMDiff.mp hα) hχ⟩
 
 /-- The value of `SymplecticGeometry.IsSmoothFamily.sliceAlong hα χ hχ` at `x` is the value of
 `α (χ x)` at `x`. -/
