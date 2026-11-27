@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.SmoothSingular.Basic
 public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.StdSimplex
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
@@ -152,11 +153,10 @@ theorem relativeClass_eq_fundamentalClassOn [FiniteDimensional ℝ E'] [T2Space 
   have hclass : (TopPair.ofSubset ({p'}ᶜ : Set (TopCat.of U))).relClass R (n := 1)
       (simplexOn hU) hσU 1 = -(oU.toHomologicalOrientation hE2 p').val := by
     have hpU : p ∈ Set.range ι := by simpa [ι] using hU (interior_subset hp)
-    have hiso : IsIso (localHomologyMap R ι hι 2) :=
-      isIso_localHomologyMap R ι U.isOpenEmbedding' (S := {p'}) (T := {p})
-        (by ext z; simp [p', ι, Subtype.ext_iff]) isClosed_singleton (singleton_subset_iff.2 hpU) 2
+    have hinj := U.isOpenEmbedding'.injective_localHomologyMap R (j := ι) (A := {p'}) (T := {p})
+      (by ext z; simp [p', ι, Subtype.ext_iff]) isClosed_singleton (singleton_subset_iff.2 hpU) 2
     have hU' := (Manifold.Orientation.euclideanSpace 2).isOrientationPreservingAt_restrict U p'
-    apply ((ConcreteCategory.isIso_iff_bijective _).1 hiso).1
+    apply hinj
     rw [map_neg, Manifold.Orientation.localHomologyMap_toHomologicalOrientation hE2 hE2 ι hι hU',
       TopPair.relClass_localHomologyMap_apply R ι hι _ hσU hstd
         (toSSet_map_app_simplexOn_subtypeVal hU),
