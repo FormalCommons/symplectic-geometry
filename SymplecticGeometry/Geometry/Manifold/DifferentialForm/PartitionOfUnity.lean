@@ -16,10 +16,10 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 /-!
 # Gluing forms on open sets with a partition of unity of a base
 
-Let `proj : X → B` be a smooth map and `ρ` a smooth partition of unity on `B`. Given, for each
-`i`, an open set `W i` of `X` containing the preimage of the topological support of `ρ i` (for
-instance `proj ⁻¹' U i`, when `ρ` is subordinate to an open cover `U`) and a form `η i` on
-`W i`, the glued form `ρ.glueForms proj W η` is `∑ᵢ (ρ i ∘ proj) • η i`, each term
+Let `proj : X → B` be a smooth map and `ρ` a smooth partition of unity on a set `s` of `B`.
+Given, for each `i`, an open set `W i` of `X` containing the preimage of the topological support
+of `ρ i` (for instance `proj ⁻¹' U i`, when `ρ` is subordinate to an open cover `U`) and a form
+`η i` on `W i`, the glued form `ρ.glueForms proj W η` is `∑ᵢ (ρ i ∘ proj) • η i`, each term
 extended by zero off `W i`; at each point only the finitely many indices of
 `ρ.finsupport (proj x)` contribute.
 
@@ -65,9 +65,9 @@ variable {ι : Type*} {s : Set B} (ρ : SmoothPartitionOfUnity ι IB B s) (proj 
   (W : ι → Opens X)
 
 /-- **Gluing forms on open sets with a partition of unity of a base.** For a partition of unity
-`ρ` on `B`, a map `proj : X → B`, and forms `η i` on open sets `W i` of `X`, the form
-`∑ᵢ (ρ i ∘ proj) • η i` on `X`, where each `η i` is extended by zero off `W i`. The sum at `x`
-runs over the finite set `ρ.finsupport (proj x)` of indices whose weight does not vanish at
+`ρ` on a set `s` of `B`, a map `proj : X → B`, and forms `η i` on open sets `W i` of `X`, the
+form `∑ᵢ (ρ i ∘ proj) • η i` on `X`, where each `η i` is extended by zero off `W i`. The sum at
+`x` runs over the finite set `ρ.finsupport (proj x)` of indices whose weight does not vanish at
 `proj x`. -/
 noncomputable def glueForms (η : ∀ i, RoughForm IX (W i) F k) : RoughForm IX X F k :=
   fun x ↦ ∑ i ∈ ρ.finsupport (proj x), ρ i (proj x) • extendByZeroOfOpens (η i) x
@@ -89,9 +89,9 @@ private theorem isSmoothForm_smul_extendByZeroOfOpens [IsManifold IX 1 X] {n : �
     ((tsupport_comp_subset_preimage _ hproj.continuous).trans (hW i))
     (by rw [mpullback_subtype_val_extendByZeroOfOpens]; exact hη i)
 
-/-- **The glued form is smooth.** Let `ρ` be a smooth partition of unity on `B`, `proj : X → B`
-a `C^n` map, and `η i` a `C^n` form on an open set `W i` of `X` that contains the preimage of the
-topological support of `ρ i`. Then `ρ.glueForms proj W η` is a `C^n` form on `X`. -/
+/-- **The glued form is smooth.** Let `ρ` be a smooth partition of unity on `s ⊆ B`,
+`proj : X → B` a `C^n` map, and `η i` a `C^n` form on an open set `W i` of `X` that contains the
+preimage of the topological support of `ρ i`. Then `ρ.glueForms proj W η` is a `C^n` form on `X`. -/
 theorem isSmoothForm_glueForms [IsManifold IX 1 X] {n : ℕ∞} (hproj : ContMDiff IX IB n proj)
     (hW : ∀ i, proj ⁻¹' tsupport (ρ i) ⊆ W i) {η : ∀ i, RoughForm IX (W i) F k}
     (hη : ∀ i, IsSmoothForm IX n (η i)) : IsSmoothForm IX n (ρ.glueForms proj W η) := by
@@ -141,7 +141,7 @@ private theorem mextDeriv_smul_extendByZeroOfOpens_apply_of_mem_ker [IsManifold 
   rfl
 
 /-- **The derivative of the glued form on vertical vectors.** Let `ρ` be a smooth partition of
-unity on `B`, `proj : X → B` a `C^1` map, and `η i` a `C^1` real form on an open set `W i` of
+unity on `s ⊆ B`, `proj : X → B` a `C^1` map, and `η i` a `C^1` real form on an open set `W i` of
 `X` that contains the preimage of the topological support of `ρ i`. At `x : X`, on tangent
 vectors in the kernel of the differential of `proj`, the exterior derivative of
 `ρ.glueForms proj W η` is `∑ᵢ ρ i (proj x) * dη i`, over the indices `i` with `proj x` in the

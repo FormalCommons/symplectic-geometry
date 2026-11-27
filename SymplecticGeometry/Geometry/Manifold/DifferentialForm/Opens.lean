@@ -149,6 +149,13 @@ theorem extendByZeroOfOpens_apply_of_mem {U : Opens M} (ξ : RoughForm I U F k) 
   rw [extendByZeroOfOpens_apply]
   exact dite_eq_left hx
 
+/-- At a point `x` of `U`, the extension by zero of a form `ξ` on `U` to `M` takes the value
+`ξ x`. -/
+@[simp]
+theorem extendByZeroOfOpens_coe {U : Opens M} (ξ : RoughForm I U F k) (x : U) :
+    extendByZeroOfOpens ξ (x : M) = ξ x :=
+  extendByZeroOfOpens_apply_of_mem ξ x.property
+
 /-- The extension by zero of a form on `U` to `M` vanishes outside `U`. -/
 theorem extendByZeroOfOpens_apply_of_notMem {U : Opens M} (ξ : RoughForm I U F k) {x : M}
     (hx : x ∉ U) : extendByZeroOfOpens ξ x = 0 := by
