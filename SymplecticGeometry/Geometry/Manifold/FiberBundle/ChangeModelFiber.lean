@@ -8,7 +8,10 @@ module
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import SymplecticGeometry.Topology.FiberBundle.Trivialization
-import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Logic.Equiv.Prod
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 /-!
 # Smoothness after a change of the model fibre
 
@@ -24,7 +27,9 @@ Given a trivialization `e` of `f` with model fibre a manifold `Z` and `b₀ ∈ 
 file shows that the result is `C^n` with a `C^n` inverse, in the sense of the two fields of Tau
 Ceti's `TauCeti.MapFiber.Atlas.IsContMDiff`, when `T` is `C^n` in the sense above and `e` is `C^n`
 with a `C^n` inverse. It also shows that changing the model fibre of a `C^n` trivialization with a
-`C^n` inverse by a `C^n` diffeomorphism between manifolds keeps both properties.
+`C^n` inverse by a `C^n` diffeomorphism between manifolds keeps both properties, and so does
+changing its fibre coordinate over an open set `U` of the base set by a `C^n` family of
+diffeomorphisms of the model fibre, given as a homeomorphism of `U × F` over `U`.
 
 ## Main results
 
@@ -35,6 +40,16 @@ with a `C^n` inverse. It also shows that changing the model fibre of a `C^n` tri
 * `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_toHomeomorph`,
   `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_toHomeomorph_symm`: changing the fibre
   of a `C^n` trivialization with `C^n` inverse by a `C^n` diffeomorphism keeps both properties.
+* `Bundle.Trivialization.contMDiffOn_transFiberwiseHomeomorph`,
+  `Bundle.Trivialization.contMDiffOn_transFiberwiseHomeomorph_symm`: the same for the change of
+  fibre coordinate by a `C^n` family over an open set `U` of the base set, given by a
+  homeomorphism of `U × F` over `U` that is `C^n` with `C^n` inverse.
+* `Bundle.Trivialization.coordChangeDiffeomorph_transFiberwiseHomeomorph_symm_left`, `_right`:
+  for `Φ (p, v) = (p, χ p v)` with each `χ p` a `C^n` diffeomorphism of `F`, the coordinate
+  changes, as diffeomorphisms of `F`, of the trivialization `e` followed by `Φ⁻¹` with another
+  trivialization are those of `e` composed with `χ b` or its inverse. So, for instance, if
+  each `χ b` lies in a subgroup of the diffeomorphisms of `F` that contains the coordinate
+  changes of `e`, it contains the new ones.
 
 ## References
 
@@ -134,6 +149,123 @@ theorem contMDiffOn_transFiberHomeomorph_toHomeomorph_symm
     rfl
 
 end Diffeomorph
+
+section Fiberwise
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF]
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners 𝕜 EF HF}
+  {F : Type*} [TopologicalSpace F] [ChartedSpace HF F] {e : Trivialization F f}
+  {U : TopologicalSpace.Opens B} (hU : (U : Set B) ⊆ e.baseSet) (Φ : U × F ≃ₜ U × F)
+  (hΦ : ∀ q, (Φ q).1 = q.1)
+
+/-- Let `e` be a trivialization that is `C^n` on its source, and `Φ` a homeomorphism of `U × F`
+over an open set `U` of its base set. If `Φ` is `C^n`, then `e` followed by `Φ` is `C^n` on its
+source. -/
+theorem contMDiffOn_transFiberwiseHomeomorph (he : ContMDiffOn I (J.prod IF) n e e.source)
+    (hΦs : ContMDiff (J.prod IF) (J.prod IF) n Φ) :
+    ContMDiffOn I (J.prod IF) n (e.transFiberwiseHomeomorph hU Φ hΦ)
+      (e.transFiberwiseHomeomorph hU Φ hΦ).source := by
+  let W : TopologicalSpace.Opens P := ⟨f ⁻¹' U, by
+    rw [← transFiberwiseHomeomorph_source e hU Φ hΦ]
+    exact (e.transFiberwiseHomeomorph hU Φ hΦ).open_source⟩
+  have hWe (w : W) : (w : P) ∈ e.source := e.mem_source.2 (hU w.property)
+  -- On `W`, `e` followed by `Φ` is `w ↦ (f w, (e w).2)`, then `Φ`, then the inclusion
+  -- `U × F → B × F`.
+  have hf : ContMDiff I J n fun w : W ↦ f w :=
+    ((contMDiff_fst.comp_contMDiffOn he).comp_contMDiff contMDiff_subtypeVal hWe).congr
+      fun w ↦ (e.coe_fst' (hU w.property)).symm
+  have hk : ContMDiff I (J.prod IF) n fun w : W ↦ ((⟨f w, w.property⟩ : U), (e w).2) :=
+    ((TauCeti.ContMDiff.subtypeVal_comp_iff U _).1 hf).prodMk
+      (e.contMDiff_snd_subtypeVal he fun _ hw ↦ hWe ⟨_, hw⟩)
+  have h : ContMDiff I (J.prod IF) n fun w : W ↦ e.transFiberwiseHomeomorph hU Φ hΦ w :=
+    ((contMDiff_subtypeVal.prodMap contMDiff_id).comp (hΦs.comp hk)).congr fun w ↦ by
+      rw [transFiberwiseHomeomorph_apply _ _ _ _ (y := (w : P)) w.property]
+      exact Prod.ext (congrArg Subtype.val (hΦ (⟨f w, w.property⟩, (e w).2))).symm rfl
+  rw [transFiberwiseHomeomorph_source]
+  exact contMDiff_subtype_iff.1 h
+
+/-- Let `e` be a trivialization whose inverse is `C^n` on its target, and `Φ` a homeomorphism of
+`U × F` over an open set `U` of its base set. If the inverse of `Φ` is `C^n`, then the inverse
+of `e` followed by `Φ` is `C^n` on its target. -/
+theorem contMDiffOn_transFiberwiseHomeomorph_symm
+    (he : ContMDiffOn (J.prod IF) I n e.toOpenPartialHomeomorph.symm e.target)
+    (hΦs : ContMDiff (J.prod IF) (J.prod IF) n Φ.symm) :
+    ContMDiffOn (J.prod IF) I n
+      (e.transFiberwiseHomeomorph hU Φ hΦ).toOpenPartialHomeomorph.symm
+      (e.transFiberwiseHomeomorph hU Φ hΦ).target := by
+  let V : TopologicalSpace.Opens (B × F) := ⟨(U : Set B) ×ˢ univ, U.isOpen.prod isOpen_univ⟩
+  -- On `V`, the inverse is `q ↦ (q.1, q.2) ∈ U × F`, then `Φ⁻¹`, then the inverse of `e`.
+  have hk : ContMDiff (J.prod IF) (J.prod IF) n
+      fun q : V ↦ ((⟨q.val.1, q.property.1⟩ : U), q.val.2) :=
+    ((TauCeti.ContMDiff.subtypeVal_comp_iff U _).1
+      (contMDiff_fst.comp contMDiff_subtypeVal)).prodMk (contMDiff_snd.comp contMDiff_subtypeVal)
+  have h : ContMDiff (J.prod IF) I n fun q : V ↦
+      (e.transFiberwiseHomeomorph hU Φ hΦ).toOpenPartialHomeomorph.symm q :=
+    ((e.contMDiff_symm_val_prod he hU).comp (hΦs.comp hk)).congr fun q ↦ by
+      have hΦ' (q : U × F) : (Φ.symm q).1 = q.1 := by
+        rw [← Homeomorph.coe_symm_toEquiv]
+        exact Equiv.fst_symm_apply_of_forall_fst_apply hΦ q
+      rw [Function.comp_apply, Function.comp_apply, hΦ',
+        transFiberwiseHomeomorph_symm_apply _ _ _ _ q.property.1]
+  rw [transFiberwiseHomeomorph_target]
+  exact contMDiff_subtype_iff.1 h
+
+/-! In the rest of this section, `Φ (p, v) = (p, χ p v)` for a family `χ` of `C^n`
+diffeomorphisms of `F`, and `e` is followed by the inverse of `Φ`, so that over `b ∈ U` the new
+trivialization reads the fibre coordinate `v` of `e` as `(χ b)⁻¹ v`. -/
+
+section Family
+
+variable {Φ} {χ : U → F ≃ₘ^n⟮IF, IF⟯ F} (hχ : ∀ q, Φ q = (q.1, χ q.1 q.2))
+include hχ
+
+variable {e' : Trivialization F f} (he : ContMDiffOn I (J.prod IF) n e e.source)
+  (he_symm : ContMDiffOn (J.prod IF) I n e.toOpenPartialHomeomorph.symm e.target)
+  (he' : ContMDiffOn I (J.prod IF) n e' e'.source)
+  (he'_symm : ContMDiffOn (J.prod IF) I n e'.toOpenPartialHomeomorph.symm e'.target)
+  (hτ : ContMDiffOn I (J.prod IF) n
+    (e.transFiberwiseHomeomorph hU Φ.symm (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ))
+    (e.transFiberwiseHomeomorph hU Φ.symm
+      (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ)).source)
+  (hτ_symm : ContMDiffOn (J.prod IF) I n
+    (e.transFiberwiseHomeomorph hU Φ.symm
+      (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ)).toOpenPartialHomeomorph.symm
+    (e.transFiberwiseHomeomorph hU Φ.symm
+      (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ)).target)
+  {b : B} (hb : b ∈ U) (hb' : b ∈ e'.baseSet)
+
+/-- If `Φ (p, v) = (p, χ p v)`, the coordinate change over `b ∈ U` from `e` followed by the
+inverse of `Φ` to a trivialization `e'`, as a diffeomorphism of `F`, is `χ b` followed by the
+coordinate change from `e`. -/
+theorem coordChangeDiffeomorph_transFiberwiseHomeomorph_symm_left :
+    coordChangeDiffeomorph (b := b)
+        (e.transFiberwiseHomeomorph hU Φ.symm (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ))
+        e' hτ hτ_symm he' he'_symm (by rwa [transFiberwiseHomeomorph_baseSet]) hb' =
+      (χ ⟨b, hb⟩).trans (e.coordChangeDiffeomorph e' he he_symm he' he'_symm (hU hb) hb') :=
+  Diffeomorph.ext fun v ↦ by
+    rw [coe_coordChangeDiffeomorph,
+      coordChange_transFiberwiseHomeomorph_symm_left e hU (χ := fun p ↦ (χ p).toHomeomorph)
+        (by simpa using hχ) e' hb,
+      Diffeomorph.coe_trans, coe_coordChangeDiffeomorph, Diffeomorph.coe_toHomeomorph]
+
+/-- If `Φ (p, v) = (p, χ p v)`, the coordinate change over a point `b ∈ U` of the base set of a
+trivialization `e'`, from `e'` to `e` followed by the inverse of `Φ`, as a diffeomorphism of `F`,
+is the coordinate change to `e` followed by the inverse of `χ b`. -/
+theorem coordChangeDiffeomorph_transFiberwiseHomeomorph_symm_right :
+    e'.coordChangeDiffeomorph (b := b)
+        (e.transFiberwiseHomeomorph hU Φ.symm (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ))
+        he' he'_symm hτ hτ_symm hb' (by rwa [transFiberwiseHomeomorph_baseSet]) =
+      (e'.coordChangeDiffeomorph e he' he'_symm he he_symm hb' (hU hb)).trans
+        (χ ⟨b, hb⟩).symm :=
+  Diffeomorph.ext fun v ↦ by
+    rw [coe_coordChangeDiffeomorph,
+      coordChange_transFiberwiseHomeomorph_symm_right e hU (χ := fun p ↦ (χ p).toHomeomorph)
+        (by simpa using hχ) e' hb hb',
+      Diffeomorph.coe_trans, coe_coordChangeDiffeomorph, Diffeomorph.coe_toHomeomorph_symm]
+
+end Family
+
+end Fiberwise
 
 end Bundle.Trivialization
 
