@@ -1401,9 +1401,8 @@ it into issues; the overview fixes its folders and its dependencies.
   (`Matrix.posDef_map_algebraMap_iff` and `Matrix.posDef_map_ofReal_iff`: a
   real matrix is positive definite exactly when its image over an `RCLike`
   field is, through Tau Ceti's realification),
-  `LinearAlgebra/Matrix/Symmetric.lean` (`Matrix.IsSymm.sub_conjTranspose`:
-  $Z-Z^{*}=2i\,\mathrm{Im}\,Z$ for a symmetric complex $Z$, and
-  `Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
+  `LinearAlgebra/Matrix/Symmetric.lean`
+  (`Matrix.isSymm_mul_nonsing_inv_of_transpose_mul_eq`: $AB^{-1}$ is symmetric
   when $A^{T}B=B^{T}A$),
   `LinearAlgebra/Matrix/Block.lean` (the two identities between the blocks
   of $M$ that the first block column of $M^2=-1$ gives), and

@@ -17,6 +17,7 @@ import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Data.Matrix.Block
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Transpose
+import TauCeti.LinearAlgebra.Matrix.OfReal
 import TauCeti.LinearAlgebra.SymplecticGroup
 import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.OfReal
@@ -190,13 +191,14 @@ theorem isUnit_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ : Ψ ∈ sym
   by_contra hne
   have hu : v - w ≠ 0 := sub_ne_zero.2 hne
   have hN : denom Ψ Z *ᵥ (v - w) = 0 := by rw [mulVec_sub, hvw, sub_self]
+  have h2I : (2 * I : ℂ) ≠ 0 := by simp
   have heq := conjTranspose_denom_mul_num_sub hΨ Z
-  rw [Z.isSymm.sub_conjTranspose] at heq
+  rw [← smul_inv_smul₀ h2I ((Z : Matrix ι ι ℂ) - (Z : Matrix ι ι ℂ)ᴴ),
+    ← map_im_map_ofReal_of_transpose_eq Z.isSymm.eq] at heq
   have key := congrArg (fun P ↦ star (v - w) ⬝ᵥ (P *ᵥ (v - w))) heq
   simp only [sub_mulVec, ← mulVec_mulVec, hN, mulVec_zero, sub_zero] at key
   rw [dotProduct_mulVec, ← star_mulVec, hN, star_zero, zero_dotProduct, smul_mulVec,
     dotProduct_smul, smul_eq_mul] at key
-  have h2I : (2 * I : ℂ) ≠ 0 := by simp
   exact (hY.dotProduct_mulVec_pos hu).ne' ((mul_eq_zero.1 key.symm).resolve_left h2I)
 
 /-- The determinant of `CZ + D` is a unit, for symplectic `Ψ` and `Z` in the Siegel upper half
@@ -228,9 +230,9 @@ theorem map_im_num_mul_inv_denom {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     simp only [Matrix.mul_sub, Matrix.sub_mul, Matrix.mul_assoc, mul_nonsing_inv _ hd,
       Matrix.mul_one, conjTranspose_mul]
     rw [← Matrix.mul_assoc (N⁻¹)ᴴ, hNN, Matrix.one_mul]
-  rw [(isSymm_num_mul_inv_denom hΨ Z).sub_conjTranspose, conjTranspose_denom_mul_num_sub hΨ,
-    Z.isSymm.sub_conjTranspose, Matrix.mul_smul, Matrix.smul_mul] at h2
-  exact smul_right_injective _ (by simp : (2 * I : ℂ) ≠ 0) h2
+  rw [map_im_map_ofReal_of_transpose_eq (isSymm_num_mul_inv_denom hΨ Z).eq,
+    map_im_map_ofReal_of_transpose_eq Z.isSymm.eq, h2, conjTranspose_denom_mul_num_sub hΨ,
+    Matrix.mul_smul, Matrix.smul_mul]
 
 /-- For symplectic `Ψ` and `Z` in the Siegel upper half space, the imaginary part of
 `(AZ + B)(CZ + D)⁻¹` is positive definite. -/
