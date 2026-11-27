@@ -615,22 +615,16 @@ theorem mem_criticalPoints_of_eventuallyEq_const (hX : IsGradientLike f X) {γ :
     {t₀ c : ℝ} (hγ : IsMIntegralCurveAt γ X t₀) (hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t₀))
     (hfγ : f ∘ γ =ᶠ[𝓝 t₀] fun _ ↦ c) : γ t₀ ∈ criticalPoints 𝓘(ℝ, E) f := by
   by_contra h
-  -- `mvfderiv` of a real function is `mfderiv` read in `T ℝ = ℝ`, so the two agree by `rfl`.
-  exact (hX.mvfderiv_apply_pos (mt mem_criticalPoints.2 h)).ne'
-    (hγ.mfderiv_apply_eq_zero_of_eventuallyEq_const hf hfγ)
-
-/-- Along the orbits of a flow of a gradient-like field, a differentiable `f` is monotone. -/
-theorem monotone_comp_flow (hX : IsGradientLike f X)
-    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
-    (x : M) : Monotone fun t ↦ f (Φ t x) :=
-  hX.monotone_comp (hΦ x) fun _ ↦ hf _
+  have := (hX.mvfderiv_apply_pos (mt mem_criticalPoints.2 h)).ne'
+  rw [mvfderiv_apply_eq_mfderiv_apply] at this
+  exact this (hγ.mfderiv_apply_eq_zero_of_eventuallyEq_const hf hfγ)
 
 /-- A point along whose orbit `f` is constant is a critical point of `f`. -/
-theorem mem_criticalPoints_of_forall_flow_apply_eq (hX : IsGradientLike f X)
-    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
-    {z : M} (hz : ∀ t, f (Φ t z) = f z) : z ∈ criticalPoints 𝓘(ℝ, E) f := by
-  have h := hX.mem_criticalPoints_of_eventuallyEq_const ((hΦ z).isMIntegralCurveAt 0)
-    (c := f z) (by simpa only [Flow.map_zero_apply] using hf z) (.of_forall hz)
+theorem mem_criticalPoints_of_forall_flow_apply_eq (hX : IsGradientLike f X) {z : M}
+    (hz' : IsMIntegralCurve (fun t ↦ Φ t z) X) (hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f z)
+    (hz : ∀ t, f (Φ t z) = f z) : z ∈ criticalPoints 𝓘(ℝ, E) f := by
+  have h := hX.mem_criticalPoints_of_eventuallyEq_const (hz'.isMIntegralCurveAt 0)
+    (c := f z) (by simpa only [Flow.map_zero_apply] using hf) (.of_forall hz)
   rwa [Flow.map_zero_apply] at h
 
 /-- **Forward limit points of a gradient-like flow are critical.** If `Φ` is a flow of a
@@ -639,9 +633,9 @@ is a critical point of `f`. -/
 theorem mem_criticalPoints_of_mapClusterPt_atTop (hX : IsGradientLike f X)
     (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
     {x z : M} (hz : MapClusterPt z atTop fun t ↦ Φ t x) : z ∈ criticalPoints 𝓘(ℝ, E) f :=
-  hX.mem_criticalPoints_of_forall_flow_apply_eq hΦ hf fun t ↦ neg_inj.1 <|
+  hX.mem_criticalPoints_of_forall_flow_apply_eq (hΦ z) (hf z) fun t ↦ neg_inj.1 <|
     Flow.apply_flow_eq_of_mapClusterPt_of_antitone (g := -f)
-      (fun _ _ h ↦ neg_le_neg (hX.monotone_comp_flow hΦ hf x h))
+      (fun _ _ h ↦ neg_le_neg (hX.monotone_comp (hΦ x) (fun _ ↦ hf _) h))
       hf.continuous.neg hz t
 
 /-- **Backward limit points of a gradient-like flow are critical.** If `Φ` is a flow of a
@@ -650,9 +644,9 @@ is a critical point of `f`. -/
 theorem mem_criticalPoints_of_mapClusterPt_atBot (hX : IsGradientLike f X)
     (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
     {x z : M} (hz : MapClusterPt z atBot fun t ↦ Φ t x) : z ∈ criticalPoints 𝓘(ℝ, E) f :=
-  hX.mem_criticalPoints_of_forall_flow_apply_eq hΦ hf fun t ↦ neg_inj.1 <|
+  hX.mem_criticalPoints_of_forall_flow_apply_eq (hΦ z) (hf z) fun t ↦ neg_inj.1 <|
     Flow.apply_flow_eq_of_mapClusterPt_atBot_of_antitone (g := -f)
-      (fun _ _ h ↦ neg_le_neg (hX.monotone_comp_flow hΦ hf x h))
+      (fun _ _ h ↦ neg_le_neg (hX.monotone_comp (hΦ x) (fun _ ↦ hf _) h))
       hf.continuous.neg hz t
 
 /-- **Backward orbits in a compact region of a gradient-like flow.** Let `Φ` be a flow of a
@@ -671,17 +665,20 @@ theorem exists_flow_apply_le_or_mapClusterPt_atBot (hX : IsGradientLike f X)
   have hmem : ∀ᶠ t in atBot, Φ t x ∈ f ⁻¹' Icc a b :=
     (eventually_le_atBot 0).mono fun t ht ↦ ⟨(h t ht).le,
       (show f (Φ t x) ≤ f x by
-        simpa only [Flow.map_zero_apply] using hX.monotone_comp_flow hΦ hf x ht).trans hx⟩
+        simpa only [Function.comp_apply, Flow.map_zero_apply] using
+          hX.monotone_comp (hΦ x) (fun _ ↦ hf _) ht).trans hx⟩
   obtain ⟨z, -, hz⟩ := hK.exists_mapClusterPt_of_frequently hmem.frequently
   exact ⟨⟨z, hz⟩, fun z hz ↦ ⟨hX.mem_criticalPoints_of_mapClusterPt_atBot hΦ hf hz,
     (isClosed_Icc.preimage hf.continuous).mem_of_mapClusterPt hz hmem⟩⟩
 
 /-- The forward orbit of a point of `{a ≤ f}` that stays in `{f ≤ b}` lies in `f ⁻¹' Icc a b`. -/
-theorem mapsTo_flow_Ici_preimage_Icc (hX : IsGradientLike f X)
-    (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f)
-    {a b : ℝ} {x : M} (hx : a ≤ f x) (hb : ∀ t, 0 ≤ t → f (Φ t x) ≤ b) :
+theorem mapsTo_flow_Ici_preimage_Icc (hX : IsGradientLike f X) {x : M}
+    (hx' : IsMIntegralCurve (fun t ↦ Φ t x) X)
+    (hf : ∀ t, MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (Φ t x)) {a b : ℝ} (hx : a ≤ f x)
+    (hb : ∀ t, 0 ≤ t → f (Φ t x) ≤ b) :
     MapsTo (fun t ↦ Φ t x) (Ici 0) (f ⁻¹' Icc a b) := fun t (ht : 0 ≤ t) ↦ ⟨by
-  exact hx.trans (by simpa only [Flow.map_zero_apply] using hX.monotone_comp_flow hΦ hf x ht),
+  exact hx.trans (by
+    simpa only [Function.comp_apply, Flow.map_zero_apply] using hX.monotone_comp hx' hf ht),
     hb t ht⟩
 
 /-- **Forward orbits in a compact region of a gradient-like flow.** Let `Φ` be a flow of a
@@ -695,7 +692,8 @@ theorem exists_mapClusterPt_atTop_of_isCompact (hX : IsGradientLike f X)
     (∃ z, MapClusterPt z atTop fun t ↦ Φ t x) ∧ ∀ z, MapClusterPt z atTop (fun t ↦ Φ t x) →
       z ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b := by
   have hmem : ∀ᶠ t in atTop, Φ t x ∈ f ⁻¹' Icc a b :=
-    (eventually_ge_atTop 0).mono fun t ht ↦ hX.mapsTo_flow_Ici_preimage_Icc hΦ hf hx hb ht
+    (eventually_ge_atTop 0).mono fun t ht ↦
+      hX.mapsTo_flow_Ici_preimage_Icc (hΦ x) (fun _ ↦ hf _) hx hb ht
   obtain ⟨z, -, hz⟩ := hK.exists_mapClusterPt_of_frequently hmem.frequently
   exact ⟨⟨z, hz⟩, fun z hz ↦ ⟨hX.mem_criticalPoints_of_mapClusterPt_atTop hΦ hf hz,
     (isClosed_Icc.preimage hf.continuous).mem_of_mapClusterPt hz hmem⟩⟩
@@ -713,7 +711,7 @@ theorem exists_mem_stableSet_of_isCompact [T2Space M] (hX : IsGradientLike f X)
     ∃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b, x ∈ Φ.stableSet p := by
   obtain ⟨p, hp, hlim⟩ := exists_tendsto_atTop_of_setOf_mapClusterPt_subset hK
     (Φ.continuous continuous_id continuous_const).continuousOn
-    (hX.mapsTo_flow_Ici_preimage_Icc hΦ hf hx hb) hfin
+    (hX.mapsTo_flow_Ici_preimage_Icc (hΦ x) (fun _ ↦ hf _) hx hb) hfin
     (hX.exists_mapClusterPt_atTop_of_isCompact hΦ hf hK hx hb).2
   exact ⟨p, hp, Flow.mem_stableSet.2 hlim⟩
 
