@@ -680,19 +680,6 @@ theorem two_le_sqrtAddLeaf_sub_struweShape (L : ℝ) {ℓ r : ℝ} (hℓ : ℓ �
     exact le_sqrt_of_sq_le (by nlinarith)
   linarith
 
-/-- Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ`, as a function of `(ℓ, r)`, is smooth at
-every point with `δ < r`: it is `2 ℓ - 47 δ / 8` plus the shape with value `0` at `δ`. -/
-private theorem contDiffAt_struweShape_two_mul_sub (hδ : 0 < δ) {q : ℝ × ℝ} (hq : δ < q.2) :
-    ContDiffAt ℝ ∞ (fun p : ℝ × ℝ ↦ struweShape δ 1 (2 * p.1 - 47 * δ / 8) p.2) q := by
-  have e : (fun p : ℝ × ℝ ↦ struweShape δ 1 (2 * p.1 - 47 * δ / 8) p.2) =
-      fun p ↦ (2 * p.1 - 47 * δ / 8) + struweShape δ 1 0 p.2 := by
-    ext p
-    rw [← struweShape_add, add_zero]
-  rw [e]
-  exact ((contDiffAt_const.mul contDiffAt_fst).sub contDiffAt_const).add
-    (((contDiffOn_struweShape hδ le_rfl 0).contDiffAt (isOpen_Ioi.mem_nhds hq)).comp q
-      contDiffAt_snd)
-
 /-- At `ℓ = 6 δ`, Struwe's shape with value `2 ℓ - 47 δ / 8` at `δ` lies strictly below
 `sqrtAddLeaf L δ ℓ` at every `r > δ`, for `0 ≤ L` and `0 < δ`. -/
 private theorem struweShape_lt_sqrtAddLeaf_six_mul {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) {r : ℝ}
@@ -721,7 +708,13 @@ theorem contDiffAt_uncurry_struweSwitchLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < 
   set T := fun p : ℝ × ℝ ↦ struweShape δ 1 (2 * p.1 - 47 * δ / 8) p.2
   have hA : ContDiffAt ℝ ∞ A q := (contDiffOn_uncurry_sqrtAddLeaf L hδ.le).contDiffAt
     ((isOpen_univ.prod isOpen_Ioi).mem_nhds ⟨trivial, hq⟩)
-  have hT : ContDiffAt ℝ ∞ T q := contDiffAt_struweShape_two_mul_sub hδ hq
+  -- `T` is the joint Struwe shape composed with `(ℓ, r) ↦ (2 ℓ - 47 δ / 8, r)`.
+  have hT : ContDiffAt ℝ ∞ T q :=
+    ContDiffAt.comp (g := Function.uncurry (struweShape δ 1))
+      (f := fun p : ℝ × ℝ ↦ (2 * p.1 - 47 * δ / 8, p.2)) q
+      ((contDiffOn_uncurry_struweShape hδ le_rfl).contDiffAt
+        ((isOpen_univ.prod isOpen_Ioi).mem_nhds ⟨trivial, hq⟩))
+      (((contDiffAt_const.mul contDiffAt_fst).sub contDiffAt_const).prodMk contDiffAt_snd)
   obtain ⟨ℓ, r⟩ := q
   rcases lt_trichotomy ℓ (6 * δ) with hℓ | rfl | hℓ
   · -- Near `ℓ < 6 δ` the family is `sqrtAddLeaf`.
