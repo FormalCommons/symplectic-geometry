@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.WeinsteinChart
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -29,7 +30,6 @@ import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
@@ -628,15 +628,10 @@ private theorem exists_restrict_of_mpullback_eq [IsManifold I ∞ M] {σ : Smoot
       SmoothForm.mpullback χ hχs (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
           (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) := by
-  set W : Opens (𝕋 n) := ⟨Subtype.val '' ((fun z : U ↦ (ι z : M)) ⁻¹' U₀),
-    U.isOpen.isOpenMap_subtypeVal _
-      (U₀.isOpen.preimage (continuous_subtypeVal.comp ι.continuous))⟩
-  have hW : W ≤ U := by
-    rintro _ ⟨z, -, rfl⟩
-    exact z.property
-  have hχ (z : W) : (ι (Opens.inclusion hW z) : M) ∈ U₀ := by
-    obtain ⟨w, hw, hwz⟩ := z.property
-    rwa [show Opens.inclusion hW z = w from Subtype.ext hwz.symm]
+  set W : Opens (𝕋 n) := Opens.imageVal
+    ⟨(fun z : U ↦ (ι z : M)) ⁻¹' U₀, U₀.isOpen.preimage (continuous_subtypeVal.comp ι.continuous)⟩
+  have hW : W ≤ U := Opens.imageVal_le _
+  have hχ (z : W) : (ι (Opens.inclusion hW z) : M) ∈ U₀ := (Opens.mem_imageVal.1 z.property).2
   set χ : W → U₀ := fun z ↦ ⟨ι (Opens.inclusion hW z), hχ z⟩
   have hιW : ContMDiff (𝓣 n) I ∞ (Subtype.val ∘ ι ∘ Opens.inclusion hW) :=
     contMDiff_subtypeVal.comp (ι.contMDiff.comp (contMDiff_inclusion hW))
@@ -650,7 +645,7 @@ private theorem exists_restrict_of_mpullback_eq [IsManifold I ∞ M] {σ : Smoot
     have h' : ((χ a : U₀) : M) = χ b := congrArg Subtype.val h
     have h'' := Subtype.ext_iff.1 (ι.injective (Subtype.ext h'))
     exact Subtype.ext h''
-  refine ⟨W, hW, χ, hχs, hχd, hχinj, fun _ ↦ rfl, fun z hz ↦ ⟨z, hz, rfl⟩, ?_⟩
+  refine ⟨W, hW, χ, hχs, hχd, hχinj, fun _ ↦ rfl, fun z hz ↦ Opens.coe_mem_imageVal _ ⟨z, hz⟩, ?_⟩
   rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr (f := Subtype.val ∘ χ) _ hιW rfl,
     SmoothForm.mpullback_comp_comp_eq_of_mpullback_eq hι (contMDiff_inclusion hW)]
   exact SmoothForm.mpullback_congr _ _ rfl _

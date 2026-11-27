@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Geometry.Manifold.Strip
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
@@ -37,6 +36,7 @@ import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Stable Hamiltonian structures: wedge criterion, invariance and the model
@@ -356,8 +356,8 @@ theorem mpullback_globalFlowDiffeomorph_characteristicVectorField_twoForm
     mpullback (globalFlowDiffeomorph hc le_top (contMDiff_characteristicVectorField h.isContact) t)
       (globalFlowDiffeomorph hc le_top
         (contMDiff_characteristicVectorField h.isContact) t).contMDiff σ = σ := by
-  refine Subtype.ext (funext fun x ↦ ?_)
-  rw [coe_mpullback, coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
+  refine (mpullback_eq_iff _).2 (funext fun x ↦ ?_)
+  rw [coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
   exact h.mpullback_flowOf_characteristicVectorField_twoForm (hc.mem_flowDomain t x)
 
 /-- **The global flow of the characteristic vector field preserves the one-form.** If the
@@ -368,8 +368,8 @@ theorem mpullback_globalFlowDiffeomorph_characteristicVectorField_oneForm
     mpullback (globalFlowDiffeomorph hc le_top (contMDiff_characteristicVectorField h.isContact) t)
       (globalFlowDiffeomorph hc le_top
         (contMDiff_characteristicVectorField h.isContact) t).contMDiff α = α := by
-  refine Subtype.ext (funext fun x ↦ ?_)
-  rw [coe_mpullback, coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
+  refine (mpullback_eq_iff _).2 (funext fun x ↦ ?_)
+  rw [coe_globalFlowDiffeomorph, ← flowOf_eq_globalFlow]
   exact h.mpullback_flowOf_characteristicVectorField_oneForm (hc.mem_flowDomain t x)
 
 end IsStableHamiltonian

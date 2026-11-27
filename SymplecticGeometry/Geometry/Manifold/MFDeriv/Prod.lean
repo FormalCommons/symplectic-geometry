@@ -40,6 +40,14 @@ to a vector.
 
 A tangent vector of `M × M'` is in the kernel of the differential of the first projection exactly
 when its first component is zero (`mem_ker_mfderiv_fst_iff`).
+
+On a product `E₁ × E₂` of model vector spaces, Mathlib has two models: the product
+`𝓘(𝕜, E₁).prod 𝓘(𝕜, E₂)` of the self-models and the self-model `𝓘(𝕜, E₁ × E₂)`, whose charted
+space structures agree only up to `modelWithCornersSelf_prod` and `chartedSpaceSelf_prod`. The
+differentials of a map for the two are equal, for a map from `E₁ × E₂`
+(`mfderiv_prod_modelWithCornersSelf_source`) and for a map into it
+(`mfderiv_prod_modelWithCornersSelf_target`). These are the `mfderiv` counterparts of Tau Ceti's
+`contMDiffAt_prod_modelWithCornersSelf_iff`, with the same proof.
 -/
 
 public section
@@ -113,5 +121,24 @@ theorem mem_ker_mfderiv_fst_iff {p : M × M'} {v : TangentSpace (I.prod I') p} :
   -- The left side compares `v.1` with the zero of `TangentSpace I p.1`, the right side with the
   -- zero of `E`; the two spaces agree only by definition.
   exact Iff.rfl
+
+section ModelWithCornersSelf
+
+variable {E₁ E₂ : Type*} [NormedAddCommGroup E₁] [NormedSpace 𝕜 E₁] [NormedAddCommGroup E₂]
+  [NormedSpace 𝕜 E₂]
+
+/-- On a product of model vector spaces, the differential of a map for the product of the
+self-models is its differential for the self-model of the product. -/
+theorem mfderiv_prod_modelWithCornersSelf_source (f : E₁ × E₂ → M') (p : E₁ × E₂) :
+    mfderiv (𝓘(𝕜, E₁).prod 𝓘(𝕜, E₂)) I' f p = mfderiv 𝓘(𝕜, E₁ × E₂) I' f p := by
+  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
+
+/-- For a map into a product of model vector spaces, its differential for the product of the
+self-models is its differential for the self-model of the product. -/
+theorem mfderiv_prod_modelWithCornersSelf_target (f : M → E₁ × E₂) (x : M) :
+    mfderiv I (𝓘(𝕜, E₁).prod 𝓘(𝕜, E₂)) f x = mfderiv I 𝓘(𝕜, E₁ × E₂) f x := by
+  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod]
+
+end ModelWithCornersSelf
 
 end

@@ -15,6 +15,7 @@ import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.Deriv.Mul
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
@@ -184,7 +185,7 @@ theorem bijective_mfderiv_affineChart_prodMap (hi : x.1 ∈ affineOpen i)
     Function.Bijective (mfderiv (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, Fin n → 𝕜))
       𝓘(𝕜, (Fin m → 𝕜) × (Fin n → 𝕜)) (Prod.map (affineChart i) (affineChart j)) x) := by
   -- The differential of the product is the product of the differentials of the two charts.
-  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod,
+  rw [← mfderiv_prod_modelWithCornersSelf_target,
     mfderiv_prodMap (mdifferentiableAt_affineChart hi) (mdifferentiableAt_affineChart hj)]
   have h := (bijective_mfderiv_affineChart hi).prodMap (bijective_mfderiv_affineChart hj)
   rwa [← ContinuousLinearMap.coe_prodMap'] at h

@@ -99,18 +99,21 @@ With the metric `g_J` installed on `M`, the upper half of this comparison bounds
 the centre: for `z` in the ball of radius `ρ₁ * √k`, the image under the inverse of the chart of
 the segment from `0` to `z` has `g_J`-speed at most `√(3 / 2) * ‖z‖ / √(2π k)`, so
 `√(2π k)` times the Riemannian distance from `x` to the inverse image of `z` is at most
-`√(3 / 2) * ‖z‖` (`Manifold.riemannianEDist_le_of_norm_mfderiv_le`).
-The speed bound holds for every direction, not only `z`
-(`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_mul_norm_mfderiv_symm_le`).
+`√(3 / 2) * ‖z‖` (`Manifold.riemannianEDist_le_of_norm_mfderiv_le`). The speed bound holds for
+every direction, not only `z`
+(`SymplecticGeometry.RescaledUnitaryCharts.mul_norm_mfderiv_symm_le`).
 
 For the lower half, let `d_k = √(2π k) · d_{g_J}`. On the same ball, the differential of each chart
 stretches `g_J`-norms by at most `√2 * √(2π k)`
-(`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_norm_mvfderiv_le_mul`), so
+(`SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_le_mul`), so
 `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z)`
-(`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_norm_le_mul_riemannianEDist`,
-from `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`). Taking the smaller of the two
-radii gives both bounds at once
-(`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc`).
+(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_norm_le_mul_riemannianEDist`,
+from `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`). Each of these bounds is stated
+for one `k`, one point `x` and a radius `ρ₁` on which the comparison above holds in
+`D.chart k x` (`SymplecticGeometry.RescaledUnitaryCharts.IsComparisonRadius`), with `ρ₁ ≤ ρ₀`
+where the ball must lie in the target of the chart. Together the two halves give the two-sided
+bound `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖`
+(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`).
 
 ## Main definitions
 
@@ -122,6 +125,10 @@ radii gives both bounds at once
 * `SymplecticGeometry.RescaledUnitaryCharts`: for every large power `k` and every point, a chart
   centred there, rescaled so that it pulls `stdForm ι` back to `2π k σ`, with a frame of `P` in
   which the connection form read in the chart is the model, and bounds on `J` read in it.
+* `SymplecticGeometry.RescaledUnitaryCharts.IsComparisonRadius`: a radius `ρ₁` such that, at
+  every point of the source of `D.chart k x` whose image lies in the ball of radius `ρ₁ * √k`,
+  `2π k σ(v, J v)` lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2` for every tangent vector
+  `v`, `u` the image of `v` under the derivative of the chart.
 
 ## Main results
 
@@ -146,21 +153,23 @@ radii gives both bounds at once
   manifold with a two-form `σ`, a compatible almost complex structure, and a connection form
   of curvature `-2π σ`.
 * `SymplecticGeometry.RescaledUnitaryCharts.abs_eval₂_apply_sub_norm_sq_le` and
-  `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_eval₂_apply_mem_Icc`: `2π k σ(v, J v)`
-  is `‖u‖ ^ 2` up to `bound 1 * ‖z‖ / √k * ‖u‖ ^ 2`, `u` the image of `v` in the chart, and on a
-  smaller ball it lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2`.
-* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_mul_norm_mfderiv_symm_le` and
-  `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_norm_mvfderiv_le_mul`: for the metric
-  `g_J`, on a ball of radius `ρ₁ * √k` the derivative of the inverse of each chart has operator
-  norm at most `√(3 / 2) / √(2π k)`, and that of the chart at most `√2 * √(2π k)`.
-* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_riemannianEDist_symm_le`:
+  `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`: `2π k σ(v, J v)`
+  is `‖u‖ ^ 2` up to `bound 1 * ‖z‖ / √k * ‖u‖ ^ 2`, `u` the image of `v` in the chart, and some
+  `ρ₁ ≤ ρ₀` is a comparison radius for every `k ≥ k₀` and every point.
+* `SymplecticGeometry.RescaledUnitaryCharts.mul_norm_mfderiv_symm_le` and
+  `SymplecticGeometry.RescaledUnitaryCharts.norm_mvfderiv_le_mul`: for the metric `g_J` and a
+  comparison radius `ρ₁` for `D.chart k x` (with `ρ₁ ≤ ρ₀` for the first), on the
+  ball of radius `ρ₁ * √k` the derivative of the inverse of each
+  chart has operator norm at most `√(3 / 2) / √(2π k)`, and that of the chart at most
+  `√2 * √(2π k)`.
+* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_le`:
   for the metric `g_J`, `√(2π k)` times the distance from the centre `x` to the point with image
   `z` is at most `√(3 / 2) * ‖z‖` on a ball of radius `ρ₁ * √k`.
-* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_norm_le_mul_riemannianEDist`:
+* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_norm_le_mul_riemannianEDist`:
   on a ball of radius `ρ₁ * √k`, `‖z‖ / √2` is at most the rescaled distance `d_k` from `x` to
   the point with image `z`.
-* `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc`:
-  the two bounds together, on one ball of radius `ρ₁ * √k`: `d_k` from `x` to the point with
+* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`:
+  the two bounds together, on the same ball of radius `ρ₁ * √k`: `d_k` from `x` to the point with
   image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`.
 
 ## References
@@ -592,7 +601,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
   have hθχ : ContMDiffOn I 𝓘(ℝ) ∞ (fun x ↦ θ (χ x)) (χ.symm '' s) :=
     hθ'.contMDiffOn.comp (χ.contMDiffOn.mono hsrc) (by
       rintro _ ⟨z, hz, rfl⟩
-      simpa [χ.right_inv (hsχ hz)] using hz)
+      simpa [χ.toPartialEquiv.right_inv (hsχ hz)] using hz)
   refine ⟨fun x ↦ op (Circle.exp (θ (χ x))) • τ₀ x,
     hτ₀.totalSpaceMk_smul (contMDiff_circleExp.comp_contMDiffOn hθχ), fun z hz ↦ ?_⟩
   have hz' := hsχ hz
@@ -829,22 +838,54 @@ theorem abs_eval₂_apply_sub_norm_sq_le {k : ℕ} (hk : k₀ ≤ k) (x : M) {y 
         exact (A.le_opNorm u).trans (by gcongr; exact D.jStruct_sub_le hk x _ hyB)
     _ = D.bound 1 * (√k)⁻¹ * ‖D.chart k x y‖ * ‖u‖ ^ 2 := by ring
 
+/-- `D.IsComparisonRadius k x ρ₁` says that on the ball of radius `ρ₁ * √k` the quadratic form
+`2π k σ(v, J v)` is comparable with the square of the norm in the chart `D.chart k x`: for every
+`y` in the source of the chart whose image lies in that ball, and every tangent vector `v` at `y`,
+with `u` the image of `v` under the derivative of the chart,
+`‖u‖ ^ 2 / 2 ≤ 2π k σ(v, J v) ≤ 3 / 2 * ‖u‖ ^ 2`. -/
+def IsComparisonRadius (k : ℕ) (x : M) (ρ₁ : ℝ) : Prop :=
+  ∀ ⦃y : M⦄, y ∈ (D.chart k x).source → D.chart k x y ∈ ball 0 (ρ₁ * √k) →
+    ∀ v : TangentSpace I y, 2 * Real.pi * k * σ.eval₂ y v (J y v) ∈
+      Set.Icc (‖mvfderiv I (D.chart k x) y v‖ ^ 2 / 2) (3 / 2 * ‖mvfderiv I (D.chart k x) y v‖ ^ 2)
+
+theorem isComparisonRadius_def {k : ℕ} {x : M} {ρ₁ : ℝ} :
+    D.IsComparisonRadius k x ρ₁ ↔
+      ∀ ⦃y : M⦄, y ∈ (D.chart k x).source → D.chart k x y ∈ ball 0 (ρ₁ * √k) →
+        ∀ v : TangentSpace I y, 2 * Real.pi * k * σ.eval₂ y v (J y v) ∈
+          Set.Icc (‖mvfderiv I (D.chart k x) y v‖ ^ 2 / 2)
+            (3 / 2 * ‖mvfderiv I (D.chart k x) y v‖ ^ 2) :=
+  Iff.rfl
+
+variable {D} in
+/-- On a comparison radius, `2π k σ(v, J v)` lies between `‖u‖ ^ 2 / 2` and `3 / 2 * ‖u‖ ^ 2`,
+for `u` the image of `v` under the derivative of the chart. -/
+theorem IsComparisonRadius.mem_Icc {k : ℕ} {x : M} {ρ₁ : ℝ} (h : D.IsComparisonRadius k x ρ₁)
+    {y : M} (hy : y ∈ (D.chart k x).source) (hyB : D.chart k x y ∈ ball 0 (ρ₁ * √k))
+    (v : TangentSpace I y) :
+    2 * Real.pi * k * σ.eval₂ y v (J y v) ∈
+      Set.Icc (‖mvfderiv I (D.chart k x) y v‖ ^ 2 / 2)
+        (3 / 2 * ‖mvfderiv I (D.chart k x) y v‖ ^ 2) :=
+  D.isComparisonRadius_def.1 h hy hyB v
+
+variable {D} in
+/-- A radius smaller than a comparison radius is a comparison radius. -/
+theorem IsComparisonRadius.mono {k : ℕ} {x : M} {ρ₁ ρ₂ : ℝ} (h : D.IsComparisonRadius k x ρ₂)
+    (hρ : ρ₁ ≤ ρ₂) : D.IsComparisonRadius k x ρ₁ :=
+  D.isComparisonRadius_def.2 fun _ hy hyB v ↦
+    h.mem_Icc hy (ball_subset_ball (by gcongr) hyB) v
+
 /-- **The metric `g_J` read in the rescaled unitary charts.** For rescaled unitary charts with
-radius `ρ₀ > 0`, there is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every `k ≥ k₀`, every
-point `x`, every `y` in the source of `D.chart k x` whose image lies in the ball of radius
-`ρ₁ * √k`, and every tangent vector `v` at `y`, with `u` the image of `v` under the derivative of
-the chart,
+radius `ρ₀ > 0`, there is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` that is a comparison radius
+(`IsComparisonRadius`) for every `k ≥ k₀` and every point `x`: for every `y` in the source of
+`D.chart k x` whose image lies in the ball of radius `ρ₁ * √k`, and every tangent vector `v` at
+`y`, with `u` the image of `v` under the derivative of the chart,
 `‖u‖ ^ 2 / 2 ≤ 2π k σ(v, J v) ≤ 3 / 2 * ‖u‖ ^ 2`.
 For `J` compatible with `σ`, `σ(v, J v)` is the square of the norm of `v` for the metric `g_J`. -/
-theorem exists_forall_eval₂_apply_mem_Icc (hρ₀ : 0 < ρ₀) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x y : M), y ∈ (D.chart k x).source →
-      D.chart k x y ∈ ball 0 (ρ₁ * √k) → ∀ v : TangentSpace I y,
-        2 * Real.pi * k * σ.eval₂ y v (J y v) ∈
-          Set.Icc (‖mvfderiv I (D.chart k x) y v‖ ^ 2 / 2)
-            (3 / 2 * ‖mvfderiv I (D.chart k x) y v‖ ^ 2) := by
+theorem exists_forall_isComparisonRadius (hρ₀ : 0 < ρ₀) :
+    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ x : M, D.IsComparisonRadius k x ρ₁ := by
   set b := |D.bound 1|
   refine ⟨min ρ₀ (1 / (2 * (b + 1))), lt_min hρ₀ (by positivity), min_le_left _ _,
-    fun {k} hk x y hy hyB v ↦ ?_⟩
+    fun {k} hk x ↦ D.isComparisonRadius_def.2 fun y hy hyB v ↦ ?_⟩
   set ρ₁ := min ρ₀ (1 / (2 * (b + 1)))
   have hz : ‖D.chart k x y‖ < ρ₁ * √k := mem_ball_zero_iff.1 hyB
   have hρ₁ : 0 < ρ₁ := lt_min hρ₀ (by positivity)
@@ -874,68 +915,68 @@ section RiemannianEDist
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 
 /-- **The derivative of the inverse of a rescaled unitary chart, for `g_J`.** Let `M` carry a
-Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let `D` be rescaled unitary
-charts with radius `ρ₀ > 0`. There is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every
-`k ≥ k₀`, every point `x`, every `w` in the ball of radius `ρ₁ * √k` and every vector `u`, the
-derivative of the inverse of `D.chart k x` at `w` sends `u` to a tangent vector whose norm,
-multiplied by `√(2π k)`, is at most `√(3 / 2) * ‖u‖`. -/
-theorem exists_forall_mul_norm_mfderiv_symm_le (hρ₀ : 0 < ρ₀)
-    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M), ∀ w ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
-      ∀ u : StdSpace ι,
-        √(2 * Real.pi * k) * ‖mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm w u‖ ≤
-          √(3 / 2) * ‖u‖ := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_eval₂_apply_mem_Icc hρ₀
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun {k} hk x w hw u ↦ ?_⟩
-  set φ := D.chart k x
+Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `x` be a point,
+and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`), as
+`exists_forall_isComparisonRadius` provides. For every `w` in the ball of radius `ρ₁ * √k` and
+every vector `u`, the derivative of the inverse of `D.chart k x`
+at `w` sends `u` to a tangent vector whose norm, multiplied by `√(2π k)`, is at most
+`√(3 / 2) * ‖u‖`. -/
+theorem mul_norm_mfderiv_symm_le
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {w : StdSpace ι} (hw : w ∈ ball (0 : StdSpace ι) (ρ₁ * √k))
+    (u : StdSpace ι) :
+    √(2 * Real.pi * k) * ‖mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm w u‖ ≤
+      √(3 / 2) * ‖u‖ := by
+  set φ := D.chart k x with hφ
   have hwt : w ∈ φ.target :=
     (ball_subset_ball (by gcongr)).trans (D.ball_subset_target hk x) hw
   set v := mfderiv 𝓘(ℝ, StdSpace ι) I φ.symm w u
   have hu : mvfderiv I φ (φ.symm w) v = u := by
     rw [mvfderiv_apply_eq_mfderiv_apply]
     exact φ.mfderiv_apply_mfderiv_symm_apply (by simp) hwt u
-  have h := (hcmp hk x (φ.symm w) (φ.map_target hwt)
+  have h := (hcmp.mem_Icc (y := φ.symm w) (φ.map_target hwt)
     (by convert hw; exact φ.right_inv hwt) v).2
-  rw [hu, ← hg, real_inner_self_eq_norm_sq] at h
+  rw [← hφ, hu, ← hg, real_inner_self_eq_norm_sq] at h
   refine (pow_le_pow_iff_left₀ (by positivity) (by positivity) two_ne_zero).1 ?_
   rw [mul_pow, mul_pow, Real.sq_sqrt (by positivity), Real.sq_sqrt (by norm_num)]
   linarith
 
 /-- **A rescaled unitary chart stretches `g_J`-norms by at most `√2 * √(2π k)`.** Let `M` carry a
-Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let `D` be rescaled unitary
-charts with radius `ρ₀ > 0`. There is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every
-`k ≥ k₀`, every point `x`, every `y` in the source of `D.chart k x` whose image lies in the ball of
-radius `ρ₁ * √k`, and every tangent vector `v` at `y`, the derivative of the chart sends `v` to a
-vector of norm at most `√2 * √(2π k) * ‖v‖`. -/
-theorem exists_forall_norm_mvfderiv_le_mul (hρ₀ : 0 < ρ₀)
-    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x y : M), y ∈ (D.chart k x).source →
-      D.chart k x y ∈ ball 0 (ρ₁ * √k) → ∀ v : TangentSpace I y,
-        ‖mvfderiv I (D.chart k x) y v‖ ≤ √2 * √(2 * Real.pi * k) * ‖v‖ := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_eval₂_apply_mem_Icc hρ₀
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun {k} hk x y hy hyB v ↦ ?_⟩
-  have h := (hcmp hk x y hy hyB v).1
+Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k` be a natural number, `x` a
+point, and `ρ₁` a comparison radius for `D.chart k x` (`IsComparisonRadius`), as
+`exists_forall_isComparisonRadius` provides. For every `y` in the source of `D.chart k x`
+whose image lies in the ball of radius `ρ₁ * √k`, and every tangent vector `v` at `y`, the
+derivative of the chart sends `v` to a vector of norm at most `√2 * √(2π k) * ‖v‖`. -/
+theorem norm_mvfderiv_le_mul
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} {k : ℕ} (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {y : M} (hy : y ∈ (D.chart k x).source) (hyB : D.chart k x y ∈ ball 0 (ρ₁ * √k))
+    (v : TangentSpace I y) :
+    ‖mvfderiv I (D.chart k x) y v‖ ≤ √2 * √(2 * Real.pi * k) * ‖v‖ := by
+  have h := (hcmp.mem_Icc hy hyB v).1
   rw [← hg, real_inner_self_eq_norm_sq] at h
   refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
   rw [mul_pow, mul_pow, Real.sq_sqrt zero_le_two, Real.sq_sqrt (by positivity)]
   linarith
 
 /-- **Distances from the centre, bounded in the rescaled unitary charts.** Let `M` carry a
-Riemannian metric whose inner product is `g_J(u, w) = σ(u, J w)`, and let `D` be rescaled unitary
-charts with radius `ρ₀ > 0`. There is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every
-`k ≥ k₀`, every point `x` and every `z` in the ball of radius `ρ₁ * √k`, the Riemannian distance
-from `x` to the point `(D.chart k x).symm z`, multiplied by `√(2π k)`, is at most
-`√(3 / 2) * ‖z‖`. -/
-theorem exists_forall_ofReal_mul_riemannianEDist_symm_le (hρ₀ : 0 < ρ₀)
-    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M), ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
-      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ≤
-        ENNReal.ofReal (√(3 / 2) * ‖z‖) := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hspeed⟩ := D.exists_forall_mul_norm_mfderiv_symm_le hρ₀ hg
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun {k} hk x z hz ↦ ?_⟩
+Riemannian metric whose inner product is `g_J(u, w) = σ(u, J w)`, let `k ≥ k₀`, let `x` be a
+point, and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`), as
+`exists_forall_isComparisonRadius` provides. For every `z` in the ball of
+radius `ρ₁ * √k`, the Riemannian distance from `x` to the point
+`(D.chart k x).symm z`, multiplied by `√(2π k)`, is at most `√(3 / 2) * ‖z‖`. -/
+theorem ofReal_mul_riemannianEDist_symm_le
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
+    ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ≤
+      ENNReal.ofReal (√(3 / 2) * ‖z‖) := by
   set φ := D.chart k x
-  have hk0 : 0 < √k :=
-    pos_of_mul_pos_right ((norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)) hρ₁.le
+  have hR : 0 < ρ₁ * √k := (norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)
+  have hk0 : 0 < √k := pos_of_mul_pos_right hR (pos_of_mul_pos_left hR (Real.sqrt_nonneg _)).le
   set s := √(2 * Real.pi * k)
   have hs : 0 < s := by
     have : 0 < (k : ℝ) := Real.sqrt_pos.1 hk0
@@ -944,7 +985,7 @@ theorem exists_forall_ofReal_mul_riemannianEDist_symm_le (hρ₀ : 0 < ρ₀)
     (ball_subset_ball (by gcongr)).trans (D.ball_subset_target hk x)
   -- The straight segment from `0` to `z` lies in the ball, and its image is a path from `x`.
   have hseg : segment ℝ 0 z ⊆ ball (0 : StdSpace ι) (ρ₁ * √k) :=
-    (convex_ball _ _).segment_subset (mem_ball_self (by positivity)) hz
+    (convex_ball _ _).segment_subset (mem_ball_self hR) hz
   have h0 : φ.symm 0 = x := D.chart_symm_zero hk x
   have hd := Manifold.riemannianEDist_le_of_norm_mfderiv_le (I := I) (f := φ.symm)
     (C := √(3 / 2) * ‖z‖ / s)
@@ -952,7 +993,7 @@ theorem exists_forall_ofReal_mul_riemannianEDist_symm_le (hρ₀ : 0 < ρ₀)
     (fun w hw ↦ by
       have h : ‖mfderiv 𝓘(ℝ, StdSpace ι) I φ.symm w z‖ ≤ √(3 / 2) * ‖z‖ / s := by
         rw [le_div_iff₀ hs, mul_comm]
-        exact hspeed hk x w (hseg hw) z
+        exact D.mul_norm_mfderiv_symm_le hg hρ₁₀ hk x hcmp (hseg hw) z
       simpa using h)
   rw [h0] at hd
   calc ENNReal.ofReal s * Manifold.riemannianEDist I x (φ.symm z)
@@ -963,21 +1004,21 @@ theorem exists_forall_ofReal_mul_riemannianEDist_symm_le (hρ₀ : 0 < ρ₀)
 open scoped NNReal in
 /-- **Rescaled distances bound chart distances from below.** Let `M` be Hausdorff, with a Riemannian
 metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J` of a compatible pair
-(`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`). For rescaled unitary charts with radius
-`ρ₀ > 0`, there is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every `k ≥ k₀`, every point
-`x` and every `z` in the ball of radius `ρ₁ * √k`, the rescaled distance
-`d_k = √(2π k) · d_{g_J}` from `x` to the point `(D.chart k x).symm z` is at least `‖z‖ / √2`. -/
-theorem exists_forall_ofReal_mul_norm_le_mul_riemannianEDist [T2Space M] (hρ₀ : 0 < ρ₀)
-    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
-      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
-        ENNReal.ofReal ((√2)⁻¹ * ‖z‖) ≤
-          ENNReal.ofReal √(2 * Real.pi * k) *
-            Manifold.riemannianEDist I x ((D.chart k x).symm z) := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hstretch⟩ := D.exists_forall_norm_mvfderiv_le_mul hρ₀ hg
-  refine ⟨ρ₁, hρ₁, hρ₁₀, fun {k} hk x z hz ↦ ?_⟩
+(`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`), let `k ≥ k₀`, let `x` be a point, and let
+`ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`), as
+`exists_forall_isComparisonRadius` provides. For every `z` in the ball of
+radius `ρ₁ * √k`, the rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to the
+point `(D.chart k x).symm z` is at least `‖z‖ / √2`. -/
+theorem ofReal_mul_norm_le_mul_riemannianEDist [T2Space M]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
+    ENNReal.ofReal ((√2)⁻¹ * ‖z‖) ≤
+      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) := by
   have hR : 0 < ρ₁ * √k := (norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)
-  have hk0 : 0 < (k : ℝ) := Real.sqrt_pos.1 (pos_of_mul_pos_right hR hρ₁.le)
+  have hk0 : 0 < (k : ℝ) := Real.sqrt_pos.1
+    (pos_of_mul_pos_right hR (pos_of_mul_pos_left hR (Real.sqrt_nonneg _)).le)
   set s := √(2 * Real.pi * k)
   -- On the ball of radius `ρ₁ * √k`, the chart stretches `g_J`-norms by at most `√2 * s`.
   set C : ℝ≥0 := ⟨√2 * s, by positivity⟩
@@ -990,7 +1031,7 @@ theorem exists_forall_ofReal_mul_norm_le_mul_riemannianEDist [T2Space M] (hρ₀
     intro y hy hyB v
     rw [D.apply_self hk x] at hyB
     rw [hCdef]
-    exact hstretch hk x y hy hyB v
+    exact D.norm_mvfderiv_le_mul hg x hcmp hy hyB v
   have hball : ball (D.chart k x x) (ρ₁ * √k) ⊆ (D.chart k x).target := by
     rw [D.apply_self hk x]
     exact (ball_subset_ball (mul_le_mul_of_nonneg_right hρ₁₀ (Real.sqrt_nonneg _))).trans
@@ -1009,23 +1050,20 @@ theorem exists_forall_ofReal_mul_norm_le_mul_riemannianEDist [T2Space M] (hρ₀
 
 /-- **Rescaled distances compared with chart distances.** Let `M` be Hausdorff, with a Riemannian
 metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J` of a compatible pair
-(`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`). For rescaled unitary charts with radius
-`ρ₀ > 0`, there is a radius `ρ₁` with `0 < ρ₁ ≤ ρ₀` such that, for every `k ≥ k₀`, every point
-`x` and every `z` in the ball of radius `ρ₁ * √k`, the rescaled distance
-`d_k = √(2π k) · d_{g_J}` from `x` to the point `(D.chart k x).symm z` lies between `‖z‖ / √2`
-and `√(3 / 2) * ‖z‖`. -/
-theorem exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc [T2Space M] (hρ₀ : 0 < ρ₀)
-    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w)) :
-    ∃ ρ₁, 0 < ρ₁ ∧ ρ₁ ≤ ρ₀ ∧ ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M),
-      ∀ z ∈ ball (0 : StdSpace ι) (ρ₁ * √k),
-        ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ∈
-          Set.Icc (ENNReal.ofReal ((√2)⁻¹ * ‖z‖)) (ENNReal.ofReal (√(3 / 2) * ‖z‖)) := by
-  obtain ⟨ρ₁, hρ₁, hρ₁₀, hup⟩ := D.exists_forall_ofReal_mul_riemannianEDist_symm_le hρ₀ hg
-  obtain ⟨ρ₂, hρ₂, -, hlow⟩ := D.exists_forall_ofReal_mul_norm_le_mul_riemannianEDist hρ₀ hg
-  refine ⟨min ρ₁ ρ₂, lt_min hρ₁ hρ₂, (min_le_left _ _).trans hρ₁₀, fun {k} hk x z hz ↦ ?_⟩
-  have hsub : ∀ ρ, min ρ₁ ρ₂ ≤ ρ → ball (0 : StdSpace ι) (min ρ₁ ρ₂ * √k) ⊆ ball 0 (ρ * √k) :=
-    fun ρ h ↦ ball_subset_ball (by gcongr)
-  exact ⟨hlow hk x z (hsub ρ₂ (min_le_right _ _) hz), hup hk x z (hsub ρ₁ (min_le_left _ _) hz)⟩
+(`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`), let `k ≥ k₀`, let `x` be a point, and let
+`ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`), as
+`exists_forall_isComparisonRadius` provides. For every `z` in the ball of
+radius `ρ₁ * √k`, the rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to the
+point `(D.chart k x).symm z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`. -/
+theorem ofReal_mul_riemannianEDist_symm_mem_Icc [T2Space M]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
+    ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x ((D.chart k x).symm z) ∈
+      Set.Icc (ENNReal.ofReal ((√2)⁻¹ * ‖z‖)) (ENNReal.ofReal (√(3 / 2) * ‖z‖)) :=
+  ⟨D.ofReal_mul_norm_le_mul_riemannianEDist hg hρ₁₀ hk x hcmp hz,
+    D.ofReal_mul_riemannianEDist_symm_le hg hρ₁₀ hk x hcmp hz⟩
 
 end RiemannianEDist
 

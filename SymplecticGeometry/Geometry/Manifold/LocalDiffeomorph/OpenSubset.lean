@@ -55,7 +55,9 @@ between `U` and `V`, the lift has source `U` and target `V`, and takes the value
 `Diffeomorph.toPartialDiffeomorph_liftOpens_target`,
 `Diffeomorph.toPartialDiffeomorph_liftOpens_apply_coe`). A diffeomorphism from `M` onto an open
 subset of `N`, followed by the inclusion, is a local diffeomorphism from `M` to `N`
-(`Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`), by the first point above.
+(`Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`), by the first point above. So a map that
+agrees on an open subset `U` with a diffeomorphism from `U` onto an open subset is a local
+diffeomorphism at each point of `U` (`Diffeomorph.isLocalDiffeomorphAt_of_coe_eq`).
 
 ## Main results
 
@@ -84,6 +86,8 @@ subset of `N`, followed by the inclusion, is a local diffeomorphism from `M` to 
   target `V`, and agrees with the diffeomorphism on `U`.
 * `Diffeomorph.isLocalDiffeomorph_subtypeVal_comp`: a diffeomorphism onto an open subset,
   followed by the inclusion of that subset, is a local diffeomorphism.
+* `Diffeomorph.isLocalDiffeomorphAt_of_coe_eq`: a map that agrees on an open subset with a
+  diffeomorphism onto an open subset is a local diffeomorphism at each point of that subset.
 -/
 
 public section
@@ -154,8 +158,8 @@ theorem restrOpen_target_eq_of_subset (Φ : PartialDiffeomorph I J M N n) {t : S
     (Φ.restrOpen _ hs).target = t := by
   ext y
   rw [Φ.restrOpen_target]
-  exact ⟨fun hy ↦ Φ.right_inv hy.1 ▸ hy.2.2,
-    fun hy ↦ ⟨ht hy, Φ.map_target (ht hy), by simpa [Φ.right_inv (ht hy)] using hy⟩⟩
+  exact ⟨fun hy ↦ Φ.toPartialEquiv.right_inv hy.1 ▸ hy.2.2,
+    fun hy ↦ ⟨ht hy, Φ.map_target (ht hy), by simpa [Φ.toPartialEquiv.right_inv (ht hy)] using hy⟩⟩
 
 /-- A partial diffeomorphism `Φ : M → N` restricts to a `C^n` diffeomorphism `Ψ` from the open set
 `U = Φ.source ∩ Φ ⁻¹' V` onto any open subset `V` of its target, with `Ψ u = Φ u` for `u ∈ U`;
@@ -276,6 +280,15 @@ is a `C^n` local diffeomorphism from `M` to `N`. -/
 theorem isLocalDiffeomorph_subtypeVal_comp (Ψ : M ≃ₘ^n⟮I, J⟯ V) :
     IsLocalDiffeomorph I J n (fun x ↦ (Ψ x : N)) :=
   TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.2 Ψ.isLocalDiffeomorph
+
+/-- A map `f : M → N` that agrees on an open subset `U` of `M` with a diffeomorphism `Ψ` from `U`
+onto an open subset `V` of `N` is a `C^n` local diffeomorphism at each point of `U`. -/
+theorem isLocalDiffeomorphAt_of_coe_eq (Ψ : U ≃ₘ^n⟮I, J⟯ V) {f : M → N}
+    (hf : ∀ x : U, f x = Ψ x) (x : U) : IsLocalDiffeomorphAt I J n f x := by
+  have h : IsLocalDiffeomorphAt I J n (f ∘ Subtype.val) x :=
+    (Ψ.isLocalDiffeomorph_subtypeVal_comp x).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall hf)
+  exact (TauCeti.isLocalDiffeomorph_subtype_val x).comp_iff_right.1 h
 
 end Diffeomorph
 

@@ -72,10 +72,8 @@ every tangent vector `v` at `x`. -/
 theorem Tames.eval₂_mpullback_nonneg (hσ : σ.Tames K) (hf : IsPseudoholomorphicAt J K f x)
     (hf' : ContMDiff I I' ∞ f) (v : TangentSpace I x) :
     0 ≤ (SmoothForm.mpullback f hf' σ).eval₂ x v (J x v) := by
-  by_cases hv : mfderiv I I' f x v = 0
-  · rw [SmoothForm.eval₂_mpullback, hf.mfderiv_apply_commute, hv]
-    simp
-  · exact (hσ.eval₂_mpullback_pos hf hf' hv).le
+  rw [SmoothForm.eval₂_mpullback, hf.mfderiv_apply_commute]
+  exact hσ.eval₂_nonneg _ _
 
 /-- If `σ` tames `K` and `f` is a `(J, K)`-pseudoholomorphic map whose differentials are
 injective, then `f^* σ` tames `J`. -/

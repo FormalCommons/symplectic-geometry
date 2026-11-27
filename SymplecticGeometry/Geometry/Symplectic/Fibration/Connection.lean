@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.TimeDependent
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Topology.Connected.Clopen
+import TauCeti.Topology.FiberBundle.Proper
 
 /-!
 # Symplectic connections
@@ -83,6 +84,13 @@ symplectomorphism between these fibre forms.
   (`TauCeti.mpullback_mlieDerivForm_apply_eq_zero_of_eventuallyEq_const`), and
   `mlieDerivForm_apply_eq_mextDeriv_apply` with `ContinuousAlternatingMap.map_vecCons_rotate`
   turns this into the claim.
+* `TauCeti.IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed`: for a smooth atlas with
+  compact model fibre, a symplectic `σ`, and a two-form `τ` that restricts to `σ` on the fibres,
+  the connection of `τ` is symplectic exactly when `τ` is vertically closed (McDuff–Salamon,
+  Lemma 6.3.5). One direction is `IsVerticallyClosed.mpullback_parallelTransportIn`; the other
+  is `IsSymplectic.mextDeriv_apply_eq_zero` with
+  `TauCeti.SmoothTwoForm.isVerticallyClosed_iff_forall_mem_horizontalDistribution`. Compactness
+  of `F` makes `proj` proper (`TauCeti.isProperMap_of_forall_exists_trivialization`).
 
 ## Implementation notes
 
@@ -92,7 +100,7 @@ and the results here assume properness.
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  §6.3.
+  §6.3, Lemma 6.3.5.
 * [V. Guillemin, E. Lerman, S. Sternberg, *Symplectic Fibrations and Multiplicity
   Diagrams*][GuilleminLermanSternberg1996], §1.2.
 -/
@@ -500,6 +508,31 @@ theorem _root_.TauCeti.IsEhresmannConnection.IsSymplectic.mextDeriv_apply_eq_zer
   rw [mlieDerivForm_apply_eq_mextDeriv_apply hA hX0' (hXh 0) hη₁ hη₂, hX0] at hL
   -- `(η₁, η₂, v)` is a rotation of `(v, η₁, η₂)`, on which `dτ` vanishes.
   exact ((mextDeriv τ.val x).map_vecCons_rotate v η₁ η₂).symm.trans hL
+
+/-- **Symplectic connections and vertically closed forms.** Let `A` be a smooth atlas of `proj`
+with compact model fibre `F`, `σ` a symplectic form on `F`, and `τ` a two-form on `M` that
+restricts to `σ` on the fibres of `A`, so that `τ` is vertically nondegenerate and its horizontal
+spaces form a smooth Ehresmann connection. That connection is symplectic for `A` and `σ` exactly
+when `τ` is vertically closed for `proj`.
+
+Milestone: *Symplectic connections correspond to vertically closed 2-forms*. -/
+theorem _root_.TauCeti.IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed [CompactSpace F]
+    {σ : SmoothTwoForm IF F} (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsSymplectic)
+    (hτ : A.RestrictsTo σ τ) :
+    ((hτ.isVerticallyNondegenerate hA hσ.isNondegenerate).isEhresmannConnection
+        (hA.isSubmersion ENat.LEInfty.out)).IsSymplectic A σ ↔
+      IsVerticallyClosed IB proj τ := by
+  have hfp : IsProperMap proj :=
+    isProperMap_of_forall_exists_trivialization fun x ↦ ⟨A.trivAt x, A.mem_baseSet_trivAt x⟩
+  set hnd := hτ.isVerticallyNondegenerate hA hσ.isNondegenerate
+  refine ⟨fun hS ↦ ?_, fun h γ hγ s t b b' hs ht ↦ ?_⟩
+  · -- `dτ` vanishes on two vertical vectors and a horizontal one, which suffices.
+    exact (isVerticallyClosed_iff_forall_mem_horizontalDistribution hA hτ hσ.isClosed hnd).2
+      fun x η₁ hη₁ η₂ hη₂ v hv ↦ hS.mextDeriv_apply_eq_zero hfp hA hτ hη₁ hη₂ hv
+  · -- Transport carries the fibre forms of `τ`, which are `σ`, to one another.
+    have hT := h.mpullback_parallelTransportIn hfp hA
+      (hnd.isEhresmannConnection (hA.isSubmersion ENat.LEInfty.out)) hγ hs ht
+    rwa [MapFiber.Atlas.restrictsTo_iff.1 hτ, MapFiber.Atlas.restrictsTo_iff.1 hτ] at hT
 
 end Transport
 

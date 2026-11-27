@@ -337,17 +337,18 @@ Namespace `Projectivization`, over a field `𝕜` as Tau Ceti's `twistCore`
 where nothing else is needed, and over a complete one for the continuity of
 the tensor products on total spaces.
 
-- `twistPiCore k ι`, the vector bundle core of $\mathcal O(k)\otimes\mathbb
-  C^\iota$, with model `ι → 𝕜` and coordinate change
-  `twistTransition k i j x • id`, with `twistPiCore_coordChange_apply`, and
-  its `IsContMDiff` instance, as for `twistCore`.
-- `twistPiCoreOptionEquiv k ι x`: the fibrewise linear equivalence
-  `(twistPiCore k (Option ι)).Fiber x ≃L[𝕜] ((twistCore k).Fiber ×ᵇ
-  (twistPiCore k ι).Fiber) x` (by `ContinuousLinearEquiv.piOptionEquivProd`
+- The bundle $\mathcal O(k)\otimes\mathbb C^\iota$ is
+  `twistSumCore fun _ : ι ↦ k`: Tau Ceti's core of the sum of the `𝒪(k l)`
+  for a family `k : κ → ℤ`, with model `κ → 𝕜`, which has its coordinate
+  changes and its `IsContMDiff` instance there.
+- `twistSumCoreOptionEquiv k x`, for `k : Option κ → ℤ`: the fibrewise
+  linear equivalence `(twistSumCore k).Fiber x ≃L[𝕜]
+  ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x`
+  (by `ContinuousLinearEquiv.piOptionEquivProd`
   of Tau Ceti's `Topology/Algebra/Module/Equiv/Pi.lean`), continuous on
-  total spaces in both directions; and, for `IsEmpty ι`,
-  `twistPiCoreTrivializationOfIsEmpty`, a global trivialization of the
-  rank-zero `twistPiCore k ι`. These make $\mathcal O(k)^{\oplus r}$ an
+  total spaces in both directions; and, for `IsEmpty κ`,
+  `twistSumCoreTrivializationOfIsEmpty`, a global trivialization of the
+  rank-zero `twistSumCore k`. These make $\mathcal O(k)^{\oplus r}$ an
   iterated direct sum for the Whitney formula.
 - `twistCoreTensorEquiv k l x`: the fibrewise equivalence
   `(twistCore (k + l)).Fiber x ≃L[𝕜] (twistCore k).Fiber x ⊗[𝕜]
@@ -370,14 +371,14 @@ the tensor products on total spaces.
 Namespace `Projectivization`, on `ℙ ℂ (Fin (m + 1) → ℂ)`.
 
 - `eulerSequenceEquiv m x : (TangentSpace 𝓘(ℂ, Fin m → ℂ) ×ᵇ
-  Bundle.Trivial _ ℂ) x ≃L[ℂ] (twistPiCore 1 (Fin (m + 1))).Fiber x`, the
-  splitting of the Euler sequence
+  Bundle.Trivial _ ℂ) x ≃L[ℂ] (twistSumCore fun _ : Fin (m + 1) ↦ 1).Fiber x`,
+  the splitting of the Euler sequence
   $0\to\mathbb C\to\operatorname{Hom}(\ell,\mathbb C^{m+1})\to T\mathbb
   CP^m\to0$ by the standard Hermitian product: in chart `i`, at the point
   $v$ with $v_i=1$, $(\xi,c)\mapsto P_{v^\perp}\tilde\xi+c\,v$, where
   $\tilde\xi$ is $\xi$ with a zero inserted at `i` and $P_{v^\perp}$ the
   orthogonal projection onto $v^\perp$. The fibre `ℂ^{m+1}` of
-  `twistPiCore 1` in chart `i` is $\operatorname{Hom}(\ell,\mathbb C^{m+1})$
+  `twistSumCore fun _ ↦ 1` in chart `i` is $\operatorname{Hom}(\ell,\mathbb C^{m+1})$
   evaluated at $v$, which is why its transitions are those of `twistCore 1`.
   With `eulerSequenceEquiv_apply` and the continuity of its map of total
   spaces and of its inverse, checked in the charts of both bundles (the
@@ -398,9 +399,9 @@ Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
   and `complexEulerClass_twistCore_one` (#1040), read through
   `chernClass_one_eq_complexEulerClass`; `totalChernClass_twistCore`:
   $c(\mathcal O(k))=1+k\,h$.
-- `totalChernClass_twistPiCore (k : ℤ) (r : ℕ)`: $c(\mathcal O(k)^{\oplus
+- `totalChernClass_twistSumCore_const (k : ℤ) (r : ℕ)`: $c(\mathcal O(k)^{\oplus
   r})=(1+k\,h)^r$, for `ι = Fin r`, by induction with
-  `twistPiCoreOptionEquiv`, `totalChernClass_prod` and `totalChernClass_congr`.
+  `twistSumCoreOptionEquiv`, `totalChernClass_prod` and `totalChernClass_congr`.
 - **Milestone, part 1** `totalChernClass_tangentSpace`:
   `totalChernClass _ (TangentSpace 𝓘(ℂ, Fin m → ℂ)) = (1 + h) ^ (m + 1)` in
   `EvenIntegralCohomology`, from `eulerSequenceEquiv`, `totalChernClass_prod`
@@ -508,9 +509,9 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 
 For `n ≠ 0`.
 
-- `complexEulerClass_twistPiCore_pullback`: the Euler class of
+- `complexEulerClass_twistSumCore_pullback`: the Euler class of
   $\iota^*\mathcal O(1)^{\oplus n}$ is $(\iota^*h)^n$, from
-  `totalChernClass_twistPiCore`, `totalChernClass_pullback` and
+  `totalChernClass_twistSumCore_const`, `totalChernClass_pullback` and
   `chernClass_finrank_eq_complexEulerClass`.
 - `sectionIndex_eq_one_of_complexLinear` (in
   `Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean`, in the namespace

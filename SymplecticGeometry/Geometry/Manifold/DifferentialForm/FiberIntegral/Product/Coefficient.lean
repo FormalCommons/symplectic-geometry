@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Deriv
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Smooth families of top forms and their integrals
@@ -42,7 +43,8 @@ for the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`.
   (`ContMDiff.contMDiffOn_opens_prod_of_eq`).
 * `TauCeti.mfderiv_family_apply_eq_fderiv_smul`: if `β b' y = c b' • ν y` for `b' ∈ U` at a fixed
   `y`, with `c` differentiable at `b`, then `D y = (∂c/∂b)(b) a • ν y`. On `U` the derivative of
-  a map is that of the same map on `EB` (`TauCeti.Manifold.mfderiv_comp_subtype_val_apply`).
+  a map is the Fréchet derivative of the same map on `EB`
+  (`TauCeti.Manifold.mfderiv_modelSpace_comp_subtype_val_apply`).
 * `TauCeti.mfderiv_integralTopForm_apply`: for `F` compact and Hausdorff and a `C^n` family with
   `1 ≤ n`, the derivative of `b' ↦ ∫_F β b'` at `b` in the direction `a` is `∫_F D`; that this
   map is differentiable is `TauCeti.contMDiff_integralTopForm` with `P := U`. As in the proof
@@ -181,12 +183,11 @@ theorem mfderiv_family_apply_eq_fderiv_smul {β : U → RoughForm J F ℝ m} (ν
   dsimp only at heq ⊢
   have hF : HasFDerivAt (fun z : EB ↦ c z • η) ((fderiv ℝ c b).smulRight η) b :=
     hc.hasFDerivAt.smul_const η
-  have hmf := Manifold.mfderiv_comp_subtype_val_apply (J := 𝓘(ℝ, EB)) (U := U)
-    (I := 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) (f := fun z : EB ↦ c z • η) (x := b) a
-  rw [hF.hasMFDerivAt.mfderiv] at hmf
   rw [heq]
-  exact hmf.trans (ContinuousLinearMap.smulRight_apply (M₁ := EB)
-    (M₂ := E [⋀^Fin m]→L[ℝ] ℝ) (x := a))
+  refine (Manifold.mfderiv_modelSpace_comp_subtype_val_apply (U := U)
+    (f := fun z : EB ↦ c z • η) (x := b) a).trans ?_
+  rw [hF.fderiv]
+  exact ContinuousLinearMap.smulRight_apply (M₁ := EB) (M₂ := E [⋀^Fin m]→L[ℝ] ℝ) (x := a)
 
 variable [IsManifold J ∞ F] [T2Space F] [CompactSpace F]
 
@@ -230,9 +231,9 @@ theorem mfderiv_integralTopForm_apply {n : WithTop ℕ∞} (hn : 1 ≤ n)
     (continuousOn_fderiv_of_contMDiffOn U.isOpen isOpen_univ hc).comp_continuous
       (continuous_const.prodMk continuous_id) fun y ↦ ⟨b.property, mem_univ y⟩
   rw [hf]
-  refine (Manifold.mfderiv_comp_subtype_val_apply (J := 𝓘(ℝ, EB)) (I := 𝓘(ℝ)) (U := U)
+  refine (Manifold.mfderiv_modelSpace_comp_subtype_val_apply (U := U)
     (f := fun z ↦ ∫ y, c z y ∂riemannianVolume J F) (x := b) a).trans ?_
-  rw [hG.hasMFDerivAt.mfderiv]
+  rw [hG.fderiv]
   refine (ContinuousLinearMap.integral_apply
     (hd.integrable_of_hasCompactSupport (HasCompactSupport.of_compactSpace _)) a).trans ?_
   rw [funext fun y ↦ mfderiv_family_apply_eq_fderiv_smul _

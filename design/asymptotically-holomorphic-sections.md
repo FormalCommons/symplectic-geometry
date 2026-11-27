@@ -146,7 +146,7 @@ $d_k(x,y)$. Here $d_k=\sqrt{2\pi k}\,d_{g_J}$, with $d_{g_J}$ Mathlib's
 With these, a sequence $(s_k)_{k}$ of sections of `L k` is **asymptotically
 holomorphic** (`IsAsymptoticallyHolomorphic`) when for every $r$ there is a
 $C$ with, for large $k$ and every $x$, `jetNorm k r (s k) x ≤ C` and
-`jetNorm k r (∂̄ (s k)) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
+`dbarJetNorm k r (s k) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
 transverse** with constant $\eta>0$ (`IsUniformlyTransverse η`) when for
 large $k$ and every $x$,
 $\max(|s_k(x)|,(2\pi k)^{-1/2}\|\partial s_k(x)\|)\ge\eta$. These pointwise
@@ -233,7 +233,7 @@ $L$ from 2 with $b=-a$, and any connection form
 maps to the image of $a$, which is `deRhamHom` of $[\omega]$, so by 1 the
 real class is $[\omega]$. So the
 difference of the curvature from $-2\pi\omega$ is exact
-(`exists_isCircleConnectionForm_curvature_eq_iff`). Adding the
+(`isCircleConnectionCurvature_iff`). Adding the
 pull-back of a primitive (`IsCircleConnectionForm.add_mpullback`,
 `curvature_add_mpullback`) makes the curvature exactly $-2\pi\omega$.
 
@@ -588,7 +588,7 @@ and the prerequisites, placed by topic.
   frames in which the connection form is the model, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
   `connectionForm_eq_model`. The existence theorem is
   `exists_rescaledUnitaryCharts`, and
-  `exists_forall_ofReal_mul_riemannianEDist_symm_mem_Icc` compares $d_k$ with
+  `ofReal_mul_riemannianEDist_symm_mem_Icc` compares $d_k$ with
   chart distances.
 - `Basic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
   `IsUniformlyTransverse`, closure under sums and under products with

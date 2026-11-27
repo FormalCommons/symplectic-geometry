@@ -11,7 +11,6 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Produ
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Integrand
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.BoundarylessStokes
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
-import TauCeti.Geometry.Manifold.DifferentialForm.Opens.ModelSpace
 
 /-!
 # The fibre integral commutes with `d` over an open subset of a normed space
@@ -130,15 +129,9 @@ theorem prodFiberIntegral_mextDeriv_opens {m : ℕ} (o : Manifold.Orientation J 
   -- Read the tangent vectors at `b` as vectors of `E`, as the pointwise formulas take them.
   revert v
   refine fun (v : Fin (r + 1) → E) ↦ ?_
-  have hd : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E [⋀^Fin r]→L[ℝ] ℝ)
-      (fun b' : U ↦ show E [⋀^Fin r]→L[ℝ] ℝ from (prodFiberIntegral o α).val b') b := by
-    obtain ⟨ω₀, h₀, hω₀⟩ := (prodFiberIntegral o α).isSmoothForm.exists_contDiffOn_opens
-    rw [show (fun b' : U ↦ show E [⋀^Fin r]→L[ℝ] ℝ from (prodFiberIntegral o α).val b') =
-      ω₀ ∘ Subtype.val from funext hω₀, Manifold.mdifferentiableAt_comp_subtype_val_iff,
-      mdifferentiableAt_iff_differentiableAt]
-    exact (h₀.differentiableOn (by simp)).differentiableAt (U.isOpen.mem_nhds b.property)
-  rw [mextDeriv_opens_apply hd v, ← (sum_mfderivIntegrand o α b v).2,
-    SmoothForm.integralTopFormₗ_apply]
+  rw [mextDeriv_opens_apply
+      ((prodFiberIntegral o α).isSmoothForm.mdifferentiableAt_opens (by simp) b) v,
+    ← (sum_mfderivIntegrand o α b v).2, SmoothForm.integralTopFormₗ_apply]
   obtain _ | n := m
   · congr 1
     funext y

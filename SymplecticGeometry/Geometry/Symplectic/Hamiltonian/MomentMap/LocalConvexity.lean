@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.ConvexChart
 import SymplecticGeometry.LinearAlgebra.Projection
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
 
@@ -551,7 +552,7 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
     simp [T]
   · intro y hy ξ
     rw [hΘ, (hΦ _).1]
-    simp [hFq, chart.left_inv (hΘs.1 hy).1]
+    simp [hFq, chart.toPartialEquiv.left_inv (hΘs.1 hy).1]
 
 open scoped IsMulCommutative in
 /-- **Local convexity of a torus moment map.** Let a compact commutative Lie group `G` act smoothly
