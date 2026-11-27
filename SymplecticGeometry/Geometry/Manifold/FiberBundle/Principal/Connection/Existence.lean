@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Existence of connection forms
@@ -94,8 +95,9 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
         RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1) x =
       RoughForm.mapCoeff (adjointContinuousLinearMap g⁻¹)
         (TauCeti.mpullback (IB.prod IG) IG e.manifoldSnd (leftMaurerCartanForm IG G).val) x := by
-  have hR := congrArg Subtype.val (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
-  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mapCoeff] at hR
+  have hR :=
+    (SmoothForm.mpullback_eq_iff _).1 (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
+  rw [SmoothForm.coe_mapCoeff] at hR
   rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in

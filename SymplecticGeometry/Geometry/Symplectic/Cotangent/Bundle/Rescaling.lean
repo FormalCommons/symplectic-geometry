@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Topology.VectorBundle.Radial
 
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
@@ -26,6 +27,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import TauCeti.Topology.Compactness.Compact
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -341,9 +343,8 @@ theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundar
         (hemb t).isEmbedding⟩ },
     SmoothIsotopy.isSymplectic_def.2 fun t ↦ ?_, fun t x ↦ ?_, fun t ↦ hemb t⟩
   · -- the slices of the isotopy are those of the rescaled family, by construction
-    have h := congrArg Subtype.val ((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).1
-      (hsymp t))
-    rwa [SmoothForm.coe_mpullback] at h
+    exact (SmoothForm.mpullback_eq_iff _).1
+      ((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).1 (hsymp t))
   · exact vectorBundleRescaledFamily_zeroSection _ (hψ0 x) t
 
 section TwoEmbeddings
@@ -377,16 +378,15 @@ private theorem exists_symm_comp_of_apply_zeroSection_eq (hc : c ≠ 0)
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L) ∧
       ∀ z, ∃ hz : ψ z ∈ U₁, (ι₁ ⟨ψ z, hz⟩ : M) = ι₀ (Opens.inclusion hW z) := by
   -- the open set of the points of `U₀` that `ι₀` maps into `V₁`
-  have hWo : IsOpen {z : CotangentBundle J L | ∃ hz : z ∈ U₀, (ι₀ ⟨z, hz⟩ : M) ∈ V₁} := by
-    have := U₀.isOpen.isOpenMap_subtypeVal _
-      (V₁.isOpen.preimage (continuous_subtypeVal.comp ι₀.continuous))
-    rwa [Subtype.coe_image] at this
-  let W : Opens (CotangentBundle J L) := ⟨_, hWo⟩
-  have hW : W ≤ U₀ := fun z hz ↦ hz.1
+  let W : Opens (CotangentBundle J L) := Opens.imageVal
+    ⟨(fun z : U₀ ↦ (ι₀ z : M)) ⁻¹' V₁,
+      V₁.isOpen.preimage (continuous_subtypeVal.comp ι₀.continuous)⟩
+  have hW : W ≤ U₀ := Opens.imageVal_le _
   have hzW : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ W := by
     rintro _ ⟨x, rfl⟩
-    exact ⟨hU₀ (mem_range_self x), (h x).symm ▸ (ι₁ _).property⟩
-  let k : W → V₁ := fun z ↦ ⟨ι₀ (Opens.inclusion hW z), z.property.2⟩
+    exact Opens.mem_imageVal.2 ⟨hU₀ (mem_range_self x),
+      Opens.mem_mk.2 <| mem_preimage.2 <| (h x).symm ▸ (ι₁ _).property⟩
+  let k : W → V₁ := fun z ↦ ⟨ι₀ (Opens.inclusion hW z), (Opens.mem_imageVal.1 z.property).2⟩
   have hk : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ k := by
     have h₀k : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ fun z : W ↦ (ι₀ (Opens.inclusion hW z) : M) :=
       contMDiff_subtypeVal.comp (ι₀.contMDiff.comp (contMDiff_inclusion hW))
@@ -482,23 +482,13 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
   have hS : IsOpen {z : U' | ∀ t, F (t, z) ∈ U₁} :=
     isOpen_forall_prodMk_mem (ι := id) continuous_id
       (U₁.isOpen.preimage (F.contMDiff.continuous.comp continuous_swap))
-  obtain ⟨U, hUdef⟩ : ∃ U : Opens (CotangentBundle J L),
-      (U : Set (CotangentBundle J L)) = Subtype.val '' {z : U' | ∀ t, F (t, z) ∈ U₁} :=
-    ⟨⟨_, U'.isOpen.isOpenMap_subtypeVal _ hS⟩, rfl⟩
-  have hUU' : U ≤ U' := by
-    intro z hz
-    rw [← SetLike.mem_coe, hUdef] at hz
-    obtain ⟨z, -, rfl⟩ := hz
-    exact z.property
-  have hmem : ∀ t (z : U), F (t, Opens.inclusion hUU' z) ∈ U₁ := by
-    rintro t ⟨z, hz⟩
-    rw [← SetLike.mem_coe, hUdef] at hz
-    obtain ⟨w, hw, rfl⟩ := hz
-    exact hw t
+  let U : Opens (CotangentBundle J L) := Opens.imageVal ⟨_, hS⟩
+  have hUU' : U ≤ U' := Opens.imageVal_le _
+  have hmem : ∀ t (z : U), F (t, Opens.inclusion hUU' z) ∈ U₁ := fun t z ↦
+    (Opens.mem_imageVal.1 z.property).2 t
   have hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U := by
     rintro _ ⟨x, rfl⟩
-    rw [hUdef]
-    refine ⟨⟨_, hzero' (mem_range_self x)⟩, fun t ↦ ?_, rfl⟩
+    refine Opens.mem_imageVal.2 ⟨hzero' (mem_range_self x), fun t ↦ ?_⟩
     rw [hF0]
     exact hU₁ (mem_range_self x)
   have hU : U ≤ U₀ ⊓ U₁ := fun z hz ↦ ⟨hW (hU'W (hUU' hz)), by
@@ -541,16 +531,15 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
     have hval : SmoothForm.mpullback (Subtype.val ∘ fun z ↦ q (t, z))
         (contMDiff_subtypeVal.comp hqt) (symplecticForm J L) =
         SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L) := by
-      refine Subtype.ext ?_
       have hq : (Subtype.val ∘ fun z ↦ q (t, z)) = fun z ↦ F.symm.restrict hUU' (t, z) :=
         funext fun z ↦ SmoothIsotopy.coe_codRestrict_apply _ _ _ _
-      rw [SmoothForm.coe_mpullback, hq,
+      rw [SmoothForm.mpullback_eq_iff, hq,
         SmoothIsotopy.isSymplectic_def.1 (hFs.symm.restrict hUU') t,
         SmoothForm.mpullback_mpullback]
       exact congrArg Subtype.val (SmoothForm.mpullback_congr _ _ rfl _)
     rw [hval, ← map_smul] at key
     simp only [SmoothIsotopy.postcompSmoothEmbedding_apply]
-    exact (SmoothForm.coe_mpullback _ _ _).symm.trans (congrArg Subtype.val key)
+    exact (SmoothForm.mpullback_eq_iff _).1 key
   · -- `F` fixes the zero section, and `ι₁ = ι₀` there
     have hqx : q (t, ⟨_, hzero (mem_range_self x)⟩) = ⟨_, hU₁ (mem_range_self x)⟩ := by
       refine Subtype.ext ?_

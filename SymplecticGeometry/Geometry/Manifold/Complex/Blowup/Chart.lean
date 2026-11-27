@@ -8,10 +8,14 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
 public import TauCeti.LinearAlgebra.Projectivization.Basic
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Analytic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The lines at the centre of a blowup, and the charts lifted from other charts
@@ -30,6 +34,16 @@ of `φ`, which misses `p₀`, it is the point `(mk (φ x), φ x)` over `φ x`. S
 each point `x ≠ p₀` of the source of `φ`. On the divisor it acts on lines by the differential of
 `φ ∘ c⁻¹` at `0`, that is, through `directionEquiv c`, by the differential of `φ` at `p₀`.
 
+When `M` is a complex manifold, the lifted chart is a holomorphic chart of `Blowup c` with values
+in the model. Near a point of the divisor it is, read through `GluedAlong.inr`, the partial
+biholomorphism `BlowupModel.liftPartialDiffeomorph` of the transition map; off the divisor,
+followed by the blowdown of the model, it is `φ ∘ blowdown c`, and both blowdowns are local
+biholomorphisms there. Over the source of `φ` it is injective, since `φ` is and both blowdowns
+are injective off the divisor, while on the divisor it acts by a bijection of lines. So it is a
+partial biholomorphism onto the part of the model over the target of `φ`, and followed by a
+chart of the model it is a chart of the maximal atlas of `Blowup c` (Tau Ceti's
+`PartialDiffeomorph.trans_mem_maximalAtlas`).
+
 ## Main definitions
 
 * `SymplecticGeometry.BlowupChart.mfderivCenterEquiv c`: the differential of `c` at `p₀`, as a
@@ -45,6 +59,8 @@ each point `x ≠ p₀` of the source of `φ`. On the divisor it acts on lines b
   cases: `BlowupModel.liftMap` of `φ ∘ c⁻¹` after `Blowup.lift c` over the preimage under the
   blowdown of `c.source ∩ φ.source`, the point `(mk (φ x), φ x)` over the blowdown `x` of the
   point over the rest of `φ.source`, and an arbitrary value off the preimage of `φ.source`.
+* `SymplecticGeometry.Blowup.liftChartPartialDiffeomorph c φ`: the lifted chart as a partial
+  biholomorphism from `blowdown c ⁻¹' φ.source` onto `BlowupModel.blowdown ⁻¹' φ.target`.
 
 ## Main results
 
@@ -65,6 +81,13 @@ each point `x ≠ p₀` of the source of `φ`. On the divisor it acts on lines b
   lifted chart is `φ ∘ blowdown c`.
 * `SymplecticGeometry.Blowup.liftChart_ofDirection_directionEquiv_mk`: the lifted chart sends the
   point of the divisor over the line of `v ∈ T_{p₀}M` to the point `([dφ(p₀) v], 0)`.
+* `SymplecticGeometry.Blowup.isLocalDiffeomorphOn_liftChart`,
+  `SymplecticGeometry.Blowup.injOn_liftChart`,
+  `SymplecticGeometry.Blowup.liftChart_image_preimage_source`: over the source of `φ`, the lifted
+  chart is a local biholomorphism and injective, with image the part of the model over the target
+  of `φ`.
+* `SymplecticGeometry.Blowup.liftChart_mem_maximalAtlas`: the lifted chart followed by a chart
+  `blowupModelChart i` of the model is a chart of the complex maximal atlas of `Blowup c`.
 
 ## References
 
@@ -344,6 +367,177 @@ theorem liftChart_ofDirection_directionEquiv_mk (v : TangentSpace 𝓘(ℂ, Fin 
     ContinuousLinearEquiv.mapProjectivization_mk]
   congr 2
   exact BlowupChart.fderivTransEquiv_mfderiv c φ v
+
+end Blowup
+
+/-! ### The lifted chart is a holomorphic chart -/
+
+namespace Blowup
+
+open BlowupModel
+
+open GluedAlong (inl inr)
+
+variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+
+/-- On the exceptional divisor, the lifted chart is a local biholomorphism. -/
+private theorem isLocalDiffeomorphAt_liftChart_of_mem {z : Blowup c}
+    (hz : z ∈ exceptionalDivisor c) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (liftChart c φ) z := by
+  obtain ⟨y, hy0, rfl⟩ := (mem_exceptionalDivisor_iff c).1 hz
+  set ψ := c.symm.trans φ.toOpenPartialHomeomorph
+  have hψ : AnalyticOnNhd ℂ ψ ψ.source :=
+    OpenPartialHomeomorph.analyticOnNhd_symm_trans_of_mem_maximalAtlas hc.out hφ.out
+  have hψsymm : AnalyticOnNhd ℂ ψ.symm ψ.target := by
+    rw [← OpenPartialHomeomorph.symm_source, OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm,
+      OpenPartialHomeomorph.symm_symm]
+    exact OpenPartialHomeomorph.analyticOnNhd_symm_trans_of_mem_maximalAtlas hφ.out hc.out
+  -- The lift of `ψ = φ ∘ c⁻¹`, as a partial biholomorphism of the model.
+  set Φ := liftPartialDiffeomorph (c.zero_mem_symm_trans_source φ) (c.symm_trans_apply_zero φ)
+    hψ hψsymm
+  have hL : c.fderivTransEquiv φ = ψ.fderivEquiv (c.zero_mem_symm_trans_source φ)
+      (hψ 0 (c.zero_mem_symm_trans_source φ)).differentiableAt
+      (hψsymm _ (ψ.map_source (c.zero_mem_symm_trans_source φ))).differentiableAt :=
+    ContinuousLinearEquiv.ext (by
+      rw [BlowupChart.coe_fderivTransEquiv, OpenPartialHomeomorph.coe_fderivEquiv])
+  have hsrc : ∀ y' : modelOpens c, (y' : BlowupModel n) ∈ Φ.source →
+      c.symm (y' : BlowupModel n).blowdown ∈ φ.source := fun y' hy' ↦ by
+    simp only [Φ, liftPartialDiffeomorph_source, Set.mem_preimage,
+      OpenPartialHomeomorph.trans_source, OpenPartialHomeomorph.symm_source] at hy'
+    exact hy'.2
+  have hy : (y : BlowupModel n) ∈ Φ.source := by
+    simpa [Φ, hy0] using c.zero_mem_symm_trans_source φ
+  have h : IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
+      (liftChart c φ ∘ inr (gluingHomeomorph c)) y := by
+    refine ((TauCeti.isLocalDiffeomorph_subtype_val y).comp
+      (hg := Φ.isLocalDiffeomorphAt _ _ _ hy)).congr_of_eventuallyEq ?_
+    filter_upwards [(Φ.open_source.preimage continuous_subtypeVal).mem_nhds hy] with y' hy'
+    rw [Function.comp_apply, liftChart_inr c φ (hsrc y' hy'), Function.comp_apply,
+      liftPartialDiffeomorph_apply, hL]
+  exact (isLocalDiffeomorph_inr c y).comp_iff_right.1 h
+
+/-- Off the exceptional divisor, over the source of `φ`, the lifted chart is a local
+biholomorphism: followed by the blowdown of the model, which is one there, it is
+`φ ∘ blowdown c`. -/
+private theorem isLocalDiffeomorphAt_liftChart_of_notMem {z : Blowup c}
+    (hz : z ∉ exceptionalDivisor c) (hzφ : blowdown c z ∈ φ.source) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (liftChart c φ) z := by
+  have hU : blowdown c ⁻¹' φ.source ∩ (exceptionalDivisor c)ᶜ ∈ nhds z :=
+    ((φ.open_source.preimage (blowdown c).continuous).inter
+      (isClosed_exceptionalDivisor c).isOpen_compl).mem_nhds ⟨hzφ, hz⟩
+  have hne : ∀ w ∈ blowdown c ⁻¹' φ.source ∩ (exceptionalDivisor c)ᶜ,
+      φ (blowdown c w) ≠ 0 := fun w hw ↦
+    φ.apply_ne_zero hw.1 fun h ↦ hw.2 ((blowdown_eq_center_iff c).1 h)
+  have hF : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) 1
+      (fun w ↦ φ (blowdown c w)) z :=
+    ((contMDiffAt_of_mem_maximalAtlas hφ.out hzφ).comp z
+      ((contMDiff_blowdown c) z)).of_le (by simp)
+  have hcont : ContinuousAt (liftChart c φ) z := by
+    refine ((contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp le_rfl).2
+      ⟨contMDiffAt_of_eventually_eq_mk hF ?_, hF.congr_of_eventuallyEq ?_⟩).continuousAt
+    · filter_upwards [hU] with w hw
+      refine ⟨hne w hw, ?_⟩
+      rw [← mk_blowdown (by rw [blowdown_liftChart c φ hw.1]; exact hne w hw)]
+      congr 1
+      exact blowdown_liftChart c φ hw.1
+    · filter_upwards [hU] with w hw
+      exact blowdown_liftChart c φ hw.1
+  have h : IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
+      (BlowupModel.blowdown ∘ liftChart c φ) z := by
+    refine ((isLocalDiffeomorphAt_blowdown c hz).comp
+      (hg := φ.isLocalDiffeomorphAt_of_mem_maximalAtlas hφ.out hzφ)).congr_of_eventuallyEq ?_
+    filter_upwards [hU] with w hw
+    exact blowdown_liftChart c φ hw.1
+  exact h.of_comp_left (BlowupModel.isLocalDiffeomorphAt_blowdown
+    (by rw [blowdown_liftChart c φ hzφ]; exact hne z ⟨hzφ, hz⟩)) hcont
+
+/-- The lifted chart is a local biholomorphism over the source of `φ`. -/
+theorem isLocalDiffeomorphOn_liftChart :
+    IsLocalDiffeomorphOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (liftChart c φ)
+      (blowdown c ⁻¹' φ.source) := fun z ↦ by
+  by_cases hz : (z : Blowup c) ∈ exceptionalDivisor c
+  · exact isLocalDiffeomorphAt_liftChart_of_mem c φ hz
+  · exact isLocalDiffeomorphAt_liftChart_of_notMem c φ hz z.property
+
+omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] in
+/-- The lifted chart is injective over the source of `φ`. -/
+theorem injOn_liftChart : Set.InjOn (liftChart c φ) (blowdown c ⁻¹' φ.source) := by
+  intro z hz z' hz' h
+  have hb : blowdown c z = blowdown c z' :=
+    φ.injOn hz hz' (by rw [← blowdown_liftChart c φ hz, ← blowdown_liftChart c φ hz', h])
+  by_cases hzd : z ∈ exceptionalDivisor c
+  · have hzd' : z' ∈ exceptionalDivisor c := by
+      rwa [← blowdown_eq_center_iff, ← hb, blowdown_eq_center_iff]
+    rw [exceptionalDivisor_def] at hzd hzd'
+    obtain ⟨ℓ, rfl⟩ := hzd
+    obtain ⟨ℓ', rfl⟩ := hzd'
+    rw [liftChart_ofDirection, liftChart_ofDirection] at h
+    rw [(c.fderivTransEquiv φ).mapProjectivization.injective (zeroSection_injective h)]
+  · have hzd' : z' ∉ exceptionalDivisor c := by
+      rwa [← blowdown_eq_center_iff, ← hb, blowdown_eq_center_iff]
+    exact injOn_blowdown c hzd hzd' hb
+
+omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] in
+/-- The lifted chart maps the preimage of the source of `φ` onto the part of the model over the
+target of `φ`. -/
+theorem liftChart_image_preimage_source :
+    liftChart c φ '' (blowdown c ⁻¹' φ.source) = BlowupModel.blowdown ⁻¹' φ.target := by
+  refine Set.Subset.antisymm ?_ fun p hp ↦ ?_
+  · rintro _ ⟨z, hz, rfl⟩
+    rw [Set.mem_preimage, blowdown_liftChart c φ hz]
+    exact φ.map_source hz
+  have hx : φ.symm p.blowdown ∈ φ.source := φ.map_target hp
+  by_cases hp0 : p.blowdown = 0
+  · refine ⟨ofDirection c ((c.fderivTransEquiv φ).symm.mapProjectivization p.pr), ?_, ?_⟩
+    · rw [Set.mem_preimage, blowdown_ofDirection]
+      exact φ.mem_source
+    · rw [liftChart_ofDirection, ContinuousLinearEquiv.mapProjectivization_apply_symm_apply,
+        ← eq_zeroSection_pr hp0]
+  · have hne : φ.symm p.blowdown ≠ p₀ := fun h ↦
+      hp0 (by rw [← φ.right_inv hp, h, φ.map_center])
+    refine ⟨inl (gluingHomeomorph c) ⟨φ.symm p.blowdown, (mem_puncturedOpens c).2 hne⟩,
+      by simpa using hx, ?_⟩
+    rw [liftChart_inl c φ hx]
+    exact eq_of_blowdown_eq (by simpa [φ.right_inv hp] using hp0) (by simp [φ.right_inv hp])
+
+/-- **The lifted chart as a partial biholomorphism.** The chart `liftChart c φ` of the blowup,
+lifted from a second holomorphic chart `φ` at the centre, as a biholomorphism from the preimage
+`blowdown c ⁻¹' φ.source` onto the open set `BlowupModel.blowdown ⁻¹' φ.target` of the model. -/
+def liftChartPartialDiffeomorph :
+    PartialDiffeomorph 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) (BlowupModel n) ω :=
+  (isLocalDiffeomorphOn_liftChart c φ).partialDiffeomorphOfInjOn
+    (φ.open_source.preimage (blowdown c).continuous) (injOn_liftChart c φ)
+
+theorem liftChartPartialDiffeomorph_def :
+    liftChartPartialDiffeomorph c φ =
+      IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn (isLocalDiffeomorphOn_liftChart c φ)
+        (φ.open_source.preimage (blowdown c).continuous) (injOn_liftChart c φ) :=
+  (rfl)
+
+@[simp]
+theorem coe_liftChartPartialDiffeomorph : ⇑(liftChartPartialDiffeomorph c φ) = liftChart c φ :=
+  IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn ..
+
+@[simp]
+theorem liftChartPartialDiffeomorph_source :
+    (liftChartPartialDiffeomorph c φ).source = blowdown c ⁻¹' φ.source :=
+  IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..
+
+@[simp]
+theorem liftChartPartialDiffeomorph_target :
+    (liftChartPartialDiffeomorph c φ).target = BlowupModel.blowdown ⁻¹' φ.target :=
+  (IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target ..).trans
+    (liftChart_image_preimage_source c φ)
+
+/-- **The lifted chart is a holomorphic chart.** For holomorphic charts `c` and `φ` at the
+centre, the lifted chart `liftChart c φ`, as the partial biholomorphism
+`liftChartPartialDiffeomorph c φ` onto the part of the model over the target of `φ`, followed by
+any chart `blowupModelChart i` of the model, is a chart of the complex maximal atlas of
+`Blowup c`. -/
+theorem liftChart_mem_maximalAtlas (i : Fin (n + 1)) :
+    (liftChartPartialDiffeomorph c φ).toOpenPartialHomeomorph.trans (blowupModelChart i) ∈
+      IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω (Blowup c) :=
+  (liftChartPartialDiffeomorph c φ).trans_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas ω i)
 
 end Blowup
 
