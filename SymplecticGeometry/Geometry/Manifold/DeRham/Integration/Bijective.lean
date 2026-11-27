@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
-import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
+public import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 
 /-!
 # Exactness of differences of top forms on a closed connected manifold
@@ -18,6 +18,11 @@ compactly supported, so this follows from Tau Ceti's top-degree Poincaré lemma
 `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`, together with
 `TauCeti.exactCompactlySupportedForms_eq_exactForms` and
 `TauCeti.integralTopForm_sub_of_mem_compactlySupportedForms`.
+
+In the same setting, integration `TauCeti.deRhamCohomology.integral o` on top-degree de Rham
+cohomology is injective (`TauCeti.deRhamCohomology.injective_integral`): on a compact manifold
+de Rham cohomology is compactly supported de Rham cohomology, where Tau Ceti's
+`TauCeti.compactlySupportedDeRhamCohomology.injective_integral` applies.
 
 ## References
 
@@ -47,6 +52,18 @@ theorem sub_mem_exactForms_iff_integralTopForm_eq (o : Manifold.Orientation I M 
     integralTopForm_sub_of_mem_compactlySupportedForms o
       (by simp [compactlySupportedForms_eq_top]) (by simp [compactlySupportedForms_eq_top]),
     sub_eq_zero]
+
+/-- On a compact, preconnected, boundaryless, Hausdorff manifold of dimension `k` with an
+orientation `o`, integration `H^k_dR(M) → ℝ` is injective: a top-degree de Rham class is
+determined by its integral. -/
+theorem deRhamCohomology.injective_integral (o : Manifold.Orientation I M (Fin k)) :
+    Function.Injective (deRhamCohomology.integral o) := by
+  intro a b hab
+  obtain ⟨a, rfl⟩ := (compactlySupportedDeRhamCohomology.toDeRhamCohomology_bijective I k).2 a
+  obtain ⟨b, rfl⟩ := (compactlySupportedDeRhamCohomology.toDeRhamCohomology_bijective I k).2 b
+  rw [deRhamCohomology.integral_toDeRhamCohomology,
+    deRhamCohomology.integral_toDeRhamCohomology] at hab
+  rw [compactlySupportedDeRhamCohomology.injective_integral o hab]
 
 end TauCeti
 

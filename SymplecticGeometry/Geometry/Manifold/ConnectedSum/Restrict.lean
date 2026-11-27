@@ -10,6 +10,7 @@ public import SymplecticGeometry.Data.Set.Function
 
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Range
 import SymplecticGeometry.Topology.Maps.Embedding
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The connected sum with an open subset of the second summand
@@ -129,7 +130,7 @@ theorem coe_restrictRightHomeomorph (p : ConnectedSum e₁ (codRestrict e₂ U h
     (restrictRightHomeomorph he₁ he₂ hU h p : ConnectedSum e₁ e₂) =
       map id ((↑) : U → N) injective_id Subtype.val_injective (id_comp e₁)
         (val_comp_codRestrict e₂ U h) p := by
-  simp [restrictRightHomeomorph, Homeomorph.setCongr]
+  simp [restrictRightHomeomorph]
 
 /-- `restrictRightHomeomorph` is the identity on the punctured first summand. -/
 @[simp]
