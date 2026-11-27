@@ -386,9 +386,27 @@ theorem width_lt : ε < δ := hψ.2.2.2.2.2.1
 width. -/
 theorem eqOn : EqOn ψ ψ₀ (closedBall 0 ε) := hψ.2.2.2.2.2.2
 
+/-- A normalized ball embedding of width `ε` is pseudoholomorphic, from the constant standard
+complex structure `J₀` to `J`, at every point of the open ball `B°(ε)`. -/
+theorem isPseudoholomorphicAt {z : StdSpace (Fin (n + 1))} (hz : z ∈ ball 0 ε) :
+    IsPseudoholomorphicAt (stdComplexStructure (Fin (n + 1))).constSmooth J ψ z := by
+  have hzδ : z ∈ ball 0 δ := ball_subset_ball hψ.width_lt.le hz
+  refine ((hN.isPseudoholomorphicOn.isPseudoholomorphicWithinAt
+    hzδ).isPseudoholomorphicAt_of_mem_nhds (isOpen_ball.mem_nhds hzδ)).congr_of_eventuallyEq ?_
+  filter_upwards [isOpen_ball.mem_nhds hz] with w hw
+  exact hψ.eqOn (ball_subset_closedBall hw)
+
 /-- The width of a normalized ball embedding is less than its radius. -/
 theorem width_lt_radius : ε < r := by
   linarith [hψ.weight_pos, hψ.weight_add_width_lt]
+
+/-- A normalized ball embedding of width `ε` stays normalized, with the same radius, for any
+positive width `ε' ≤ ε` and any positive weight `l'` with `l' + ε' < r`. -/
+theorem of_width_le {l' ε' : ℝ} (hl' : 0 < l') (hε' : 0 < ε') (hε'ε : ε' ≤ ε)
+    (hr : l' + ε' < r) : IsNormalizedBallEmbedding hN ψ r l' ε' :=
+  isNormalizedBallEmbedding_def.2 ⟨hψ.isSymplecticBallEmbedding, hl', hε',
+    hε'ε.trans_lt hψ.width_lt_one, hr, hε'ε.trans_lt hψ.width_lt,
+    hψ.eqOn.mono (closedBall_subset_closedBall hε'ε)⟩
 
 /-- A normalized ball embedding for a normalization at `p₀` sends the origin to `p₀`. -/
 theorem map_zero : ψ 0 = p₀ :=

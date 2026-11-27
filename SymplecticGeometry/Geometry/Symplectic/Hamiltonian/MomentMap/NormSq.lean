@@ -39,6 +39,8 @@ equivariance or smoothness.
 * `SymplecticGeometry.momentNormSq_nonneg`, `SymplecticGeometry.momentNormSq_eq_zero_iff`: for a
   nonnegative, respectively anisotropic, `B`, the norm square is nonnegative, and it
   vanishes exactly where `μ` does.
+* `SymplecticGeometry.abs_apply_le_sqrt_momentNormSq_mul_sqrt`: the Cauchy–Schwarz inequality
+  `|μ x ξ| ≤ √(‖μ x‖²) √(B ξ ξ)` for a symmetric nonnegative `B`.
 * `SymplecticGeometry.momentSharp_neg`, `SymplecticGeometry.momentNormSq_neg`: replacing `μ`
   by `-μ`, as the sign convention of an equivariant moment map may require, negates `μ♯` and
   leaves the norm square unchanged.
@@ -141,6 +143,16 @@ theorem momentNormSq_eq_zero_iff (hB' : B.toQuadraticMap.Anisotropic) :
     momentNormSq B hB μ x = 0 ↔ μ x = 0 := by
   rw [momentNormSq_eq_momentSharp, ← momentSharp_eq_zero_iff (hB := hB)]
   exact ⟨hB' _, fun h ↦ by simp [h]⟩
+
+/-- **The Cauchy–Schwarz inequality** for the moment map: for a symmetric nonnegative form `B`,
+`|μ x ξ| ≤ √(‖μ x‖²) * √(B ξ ξ)`, where `‖μ x‖²` is `momentNormSq B hB μ x`. -/
+theorem abs_apply_le_sqrt_momentNormSq_mul_sqrt (hBs : B.IsSymm) (hpos : B.IsNonneg)
+    (ξ : GroupLieAlgebra I G) :
+    |μ x ξ| ≤ √(momentNormSq B hB μ x) * √(B ξ ξ) := by
+  rw [← apply_momentSharp (hB := hB), momentNormSq_eq_momentSharp,
+    ← Real.sqrt_mul (hpos.nonneg _)]
+  exact Real.abs_le_sqrt
+    (B.apply_sq_le_of_symm hpos.nonneg (LinearMap.BilinForm.isSymm_iff.1 hBs) _ _)
 
 /-- For a coadjoint-equivariant `μ` and an `Ad`-invariant form `B`, the dual vector is
 `Ad`-equivariant: `μ♯ (g • x) = Ad_g (μ♯ x)`. -/

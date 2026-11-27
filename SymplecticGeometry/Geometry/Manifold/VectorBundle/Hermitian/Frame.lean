@@ -96,6 +96,7 @@ open scoped VectorBundle.ComplexToReal
 
 namespace Bundle.ContMDiffRiemannianMetric
 
+open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric in
 /-- Let `s` be `k` smooth sections of a smooth Hermitian bundle that are orthonormal at every
 point, and `u` a smooth nowhere-zero section that is Hermitian orthogonal to all of them. Then
 the `k + 1` sections `u / ‖u‖, s 0, …, s (k - 1)` are smooth and orthonormal at every point.
@@ -118,8 +119,7 @@ theorem contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily
     (∀ i, ContMDiff IB (IB.prod 𝓘(ℝ, F)) n (fun x ↦ (⟨x,
         Matrix.vecCons (fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) • u x) s i x⟩ : TotalSpace F V))) ∧
       ∀ x, Orthonormal ℂ fun i ↦ Matrix.vecCons (fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) • u x) s i x := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
   have hc : ContMDiff IB 𝓘(ℝ, ℂ) n fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) :=
     Complex.ofRealCLM.contMDiff.comp
       ((hu.norm_bundle hu₀).inv₀ fun x ↦ norm_ne_zero_iff.2 (hu₀ x))
@@ -146,6 +146,7 @@ variable {XM HM M : Type*} [NormedAddCommGroup XM] [NormedSpace ℝ XM]
   {ι : Type*} [LinearOrder ι] [LocallyFiniteOrderBot ι] {b : M → B} {v : ι → ∀ m, V (b m)}
   {s : Set M} {x : M}
 
+open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric in
 /-- For a smooth Hermitian metric `(g, hI)`, Gram–Schmidt with respect to the Hermitian products
 `g.complexInnerProductSpace hI` keeps smoothness within a set at a point: if the sections `v i`
 along a map `b` are `C^n` within `s` at `x` for `i ≤ j`, and the vectors `v i x` with `i < j` are
@@ -161,8 +162,7 @@ theorem contMDiffWithinAt_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
       (fun m ↦ (⟨b m, gramSchmidt ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s x := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
   induction j using WellFoundedLT.induction with
   | ind j ih =>
     have hg (i : ι) (hi : i < j) :=
@@ -214,6 +214,7 @@ theorem contMDiffOn_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
       (fun m ↦ (⟨b m, gramSchmidt ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s :=
   fun m hm ↦ g.contMDiffWithinAt_gramSchmidt hI j (fun i hi ↦ hv i hi m hm) (hli m hm)
 
+open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric in
 /-- For a smooth Hermitian metric `(g, hI)`, normalized Gram–Schmidt with respect to the
 Hermitian products `g.complexInnerProductSpace hI` keeps smoothness within a set at a point: if
 the sections `v i` along a map `b` are `C^n` within `s` at `x` for `i ≤ j`, and the vectors
@@ -230,8 +231,7 @@ theorem contMDiffWithinAt_gramSchmidtNormed (g : ContMDiffRiemannianMetric IB n 
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
       (fun m ↦ (⟨b m, gramSchmidtNormed ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s x := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
   have hg := g.contMDiffWithinAt_gramSchmidt hI j hv (hli.mono Iio_subset_Iic_self)
   have h0 : gramSchmidt ℂ (fun i ↦ v i x) j ≠ 0 := gramSchmidt_ne_zero_coe j hli
   have hc : ContMDiffWithinAt IM 𝓘(ℝ, ℂ) n
@@ -266,6 +266,7 @@ end GramSchmidt
 
 variable [ContMDiffVectorBundle n F V IB]
 
+open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric in
 /-- Let `s` be a smooth family of sections, indexed by a finite type `ι`, of a smooth Hermitian
 bundle with model fibre `F`, that is orthonormal at every point of an open set `U`, and let `b` be
 a complex basis of `F`. Then there is a trivialization `e` over `U`, compatible with the smooth
@@ -289,8 +290,7 @@ theorem exists_unitary_trivialization_of_orthonormal
       ∀ x ∈ U, ∃ L : V x ≃ₗᵢ[ℂ] EuclideanSpace ℂ ι,
         ∀ v, b.equivFun (e ⟨x, v⟩).2 = (L v).ofLp := by
   classical
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
   have : FiniteDimensional ℂ F := b.finiteDimensional_of_finite
   have := VectorBundle.finiteDimensional ℂ F V
   -- Over `U` the sections form an orthonormal basis of each fibre.
@@ -319,6 +319,7 @@ theorem exists_unitary_trivialization_of_orthonormal
       ht.trivialization_complexDoubledFrame_apply_frame hU b hx]
   simpa [e.coe_linearMapAt_of_mem hxe] using LinearMap.congr_fun key v
 
+open scoped SymplecticGeometry.Bundle.ContMDiffHermitianMetric in
 /-- For a smooth Hermitian metric `(g, hI)` on a smooth complex vector bundle, and a complex
 linear trivialization `e` in the maximal atlas of `C^n` trivializations, each vector of the local
 unitary frame `e.orthonormalFrameAt c b` is a `C^n` section over the base set of `e`: for every
@@ -339,8 +340,7 @@ theorem _root_.Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffOn IB (IB.prod 𝓘(ℝ, F)) n
       (fun y ↦ (⟨y, e.orthonormalFrameAt c b y w⟩ : TotalSpace F V)) e.baseSet := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
   have hs (j : ι) : ContMDiffOn IB (IB.prod 𝓘(ℝ, F)) n
       (fun y ↦ (⟨y, e.symm y (c j)⟩ : TotalSpace F V)) e.baseSet :=
     (Trivialization.contMDiffOn_section_iff_of_mem_maximalAtlas he subset_rfl).2
