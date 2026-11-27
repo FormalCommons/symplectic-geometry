@@ -13,9 +13,9 @@ import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Data.Set.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
@@ -44,7 +44,7 @@ The function `G` is built from isotopy extension and two cutoffs, in three steps
    `T ×ˢ A` into `Q × M` (`TauCeti.exists_isOpen_isSmoothEmbedding_of_injOn`, with
    `Set.injOn_fst_prod_iff` and `MDifferentiableAt.injective_mfderiv_fst_prod_iff`), hence an
    injective local diffeomorphism (`Manifold.IsImmersion.isLocalDiffeomorph`), whose inverse is
-   smooth on its image (`TauCeti.IsLocalDiffeomorphOn.contMDiffOn_invFunOn`).
+   smooth on its image (`IsLocalDiffeomorph.contMDiffOn_invFunOn`).
 3. With a cutoff `χ` on `Q × M` near the image of `T ×ˢ A` and a cutoff `ρ` on `M` near the
    track, `G (q, y, s) = ρ y · χ (q, z) · h (q, s, x)`, where `z = (ψ q s)⁻¹ y` and `(q, x)` is
    the preimage of `(q, z)` under the graph. The parameter of `h` is that of the point `(q, y)`,
@@ -148,14 +148,13 @@ theorem _root_.ContMDiff.exists_contMDiff_family_comp_eventuallyEq
     hV.isImmersion.isLocalDiffeomorph (by simp [Module.finrank_prod, hd]) (by simp)
   have hinj : Injective f := hV.isEmbedding.injective
   let inv : Q × M → V := invFunOn f univ
-  have hinv : ContMDiffOn (IQ.prod I) (IQ.prod J) ∞ (fun z ↦ ((inv z : V) : Q × P)) (f '' univ) :=
-    contMDiff_subtypeVal.comp_contMDiffOn
-      ((hf.isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ hinj.injOn)
-  have hfo : IsOpen (f '' univ) := hf.isOpenMap _ isOpen_univ
+  have hinv : ContMDiffOn (IQ.prod I) (IQ.prod J) ∞ (fun z ↦ ((inv z : V) : Q × P)) (range f) :=
+    contMDiff_subtypeVal.comp_contMDiffOn (hf.contMDiffOn_invFunOn hinj)
+  have hfo : IsOpen (range f) := hf.isOpenMap.isOpen_range
   -- Step 3: the cutoffs `χ` near `Φ₀ '' (T ×ˢ A)` and `ρ` near the track of `A`.
   obtain ⟨χ, hχ, hχ1, -, hχf, -⟩ :=
     ((hT.prod hA).image hΦ₀.continuous).exists_contMDiff_one_nhds_tsupport_subset (IQ.prod I) hfo
-      (by rintro _ ⟨p, hp, rfl⟩; exact ⟨⟨p, hTAV hp⟩, mem_univ _, rfl⟩)
+      (by rintro _ ⟨p, hp, rfl⟩; exact ⟨⟨p, hTAV hp⟩, rfl⟩)
   have hL : IsCompact (k '' (T ×ˢ univ ×ˢ A)) :=
     (hT.prod (isCompact_univ.prod hA)).image hk.continuous
   obtain ⟨ρ, hρ, hρ1, hρc, hρW, -⟩ := hL.exists_contMDiff_one_nhds_tsupport_subset I hW
