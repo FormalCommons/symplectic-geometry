@@ -361,7 +361,7 @@ issue as a public lemma about fibre embeddings.
 
 For `M` compact:
 
-- `exists_forall_le_isSymplectic_add_smul_mpullback` (step 2): if a closed
+- `exists_forall_ge_isSymplectic_add_smul_mpullback` (step 2): if a closed
   $\tau$ restricts to the fibre forms and `β` is a symplectic form on `B`,
   there is $K_0$ such that $\tau+K\pi^*\beta$ is symplectic for every
   $K\ge K_0$. Pointwise, $\mathrm{Hor}_x=\mathrm{Ver}_x^{\tau}$ is a
