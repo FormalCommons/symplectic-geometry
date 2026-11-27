@@ -66,16 +66,10 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 
 /-! ### The map -/
 
-/-- Over the source of `c'`, the lifted chart `liftChart c c'` lands in the second piece of
-`Blowup c'`. -/
-theorem liftChart_mem_modelOpens {z : Blowup c} (hz : blowdown c z ∈ c'.source) :
-    liftChart c c' z ∈ modelOpens c' := by
-  rw [mem_modelOpens, blowdown_liftChart c c' hz]
-  exact c'.map_source hz
-
 omit hc hc' in
 /-- Off the source of `c'`, the blowdown misses the centre. -/
-theorem blowdown_mem_puncturedOpens_of_notMem {z : Blowup c} (hz : blowdown c z ∉ c'.source) :
+private theorem blowdown_mem_puncturedOpens_of_notMem {z : Blowup c}
+    (hz : blowdown c z ∉ c'.source) :
     blowdown c z ∈ puncturedOpens c' :=
   (mem_puncturedOpens c').2 fun h ↦ hz (h.symm ▸ c'.mem_source)
 
@@ -83,19 +77,19 @@ open scoped Classical in
 /-- The change of chart from `Blowup c` to `Blowup c'`, as a map. Over the source of `c'` it is the
 lifted chart `liftChart c c'`, read in the second piece of `Blowup c'`; over the rest of `M`, it
 is the blowdown, read in the first piece. -/
-def chartChangeMap (z : Blowup c) : Blowup c' :=
+private def chartChangeMap (z : Blowup c) : Blowup c' :=
   if hz : blowdown c z ∈ c'.source then
     inr (gluingHomeomorph c') ⟨liftChart c c' z, liftChart_mem_modelOpens c c' hz⟩
   else inl (gluingHomeomorph c') ⟨blowdown c z, blowdown_mem_puncturedOpens_of_notMem c c' hz⟩
 
 variable {c c'} in
-theorem chartChangeMap_of_mem {z : Blowup c} (hz : blowdown c z ∈ c'.source) :
+private theorem chartChangeMap_of_mem {z : Blowup c} (hz : blowdown c z ∈ c'.source) :
     chartChangeMap c c' z =
       inr (gluingHomeomorph c') ⟨liftChart c c' z, liftChart_mem_modelOpens c c' hz⟩ :=
   dite_eq_left hz
 
 /-- The change of chart commutes with the blowdowns. -/
-theorem blowdown_chartChangeMap (z : Blowup c) :
+private theorem blowdown_chartChangeMap (z : Blowup c) :
     blowdown c' (chartChangeMap c c' z) = blowdown c z := by
   rw [chartChangeMap]
   split_ifs with hz
@@ -104,12 +98,12 @@ theorem blowdown_chartChangeMap (z : Blowup c) :
 
 /-- The change of chart sends the exceptional divisor of `Blowup c` to that of `Blowup c'`, and
 its complement to the complement. -/
-theorem chartChangeMap_mem_exceptionalDivisor_iff {z : Blowup c} :
+private theorem chartChangeMap_mem_exceptionalDivisor_iff {z : Blowup c} :
     chartChangeMap c c' z ∈ exceptionalDivisor c' ↔ z ∈ exceptionalDivisor c := by
   rw [← blowdown_eq_center_iff, blowdown_chartChangeMap, blowdown_eq_center_iff]
 
 /-- Off the exceptional divisor, the change of chart is the identity of `M \ {p₀}`. -/
-theorem chartChangeMap_of_notMem {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+private theorem chartChangeMap_of_notMem {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
     chartChangeMap c c' z =
       inl (gluingHomeomorph c')
         ⟨blowdown c z, (mem_puncturedOpens c').2 ((blowdown_eq_center_iff c).not.2 hz)⟩ :=
@@ -118,7 +112,7 @@ theorem chartChangeMap_of_notMem {z : Blowup c} (hz : z ∉ exceptionalDivisor c
 
 /-- On the exceptional divisor, the change of chart acts on lines by the derivative at `0` of
 `c' ∘ c⁻¹`. -/
-theorem chartChangeMap_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+private theorem chartChangeMap_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     chartChangeMap c c' (ofDirection c ℓ) =
       ofDirection c' ((c.fderivTransEquiv c').mapProjectivization ℓ) := by
   rw [chartChangeMap_of_mem (by simpa using c'.mem_source), ofDirection_def c']
@@ -126,7 +120,7 @@ theorem chartChangeMap_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
   exact liftChart_ofDirection c c' ℓ
 
 /-- The change of chart from `c'` back to `c` undoes the change of chart from `c` to `c'`. -/
-theorem chartChangeMap_chartChangeMap (z : Blowup c) :
+private theorem chartChangeMap_chartChangeMap (z : Blowup c) :
     chartChangeMap c' c (chartChangeMap c c' z) = z := by
   by_cases hz : z ∈ exceptionalDivisor c
   · rw [exceptionalDivisor_def] at hz
@@ -139,12 +133,12 @@ theorem chartChangeMap_chartChangeMap (z : Blowup c) :
       chartChangeMap_mem_exceptionalDivisor_iff]
 
 /-- The change of chart from `c` to itself is the identity. -/
-theorem chartChangeMap_self (z : Blowup c) : chartChangeMap c c z = z := by
+private theorem chartChangeMap_self (z : Blowup c) : chartChangeMap c c z = z := by
   by_cases hz : z ∈ exceptionalDivisor c
   · rw [exceptionalDivisor_def] at hz
     obtain ⟨ℓ, rfl⟩ := hz
     rw [chartChangeMap_ofDirection, BlowupChart.fderivTransEquiv_self,
-      ContinuousLinearEquiv.mapProjectivization_refl, Homeomorph.refl_apply, id]
+      ContinuousLinearEquiv.mapProjectivization_refl, Homeomorph.refl_apply, id_eq]
   · refine injOn_blowdown c ?_ hz (by rw [blowdown_chartChangeMap])
     rwa [Set.mem_compl_iff, chartChangeMap_mem_exceptionalDivisor_iff]
 
@@ -153,7 +147,7 @@ theorem chartChangeMap_self (z : Blowup c) : chartChangeMap c c z = z := by
 variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
 
 /-- The change of chart is holomorphic. -/
-theorem contMDiff_chartChangeMap :
+private theorem contMDiff_chartChangeMap :
     ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (chartChangeMap c c') := by
   intro z
   by_cases hz : z ∈ exceptionalDivisor c
@@ -202,8 +196,7 @@ def chartChange : Blowup c ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ,
   contMDiff_toFun := contMDiff_chartChangeMap c c'
   contMDiff_invFun := contMDiff_chartChangeMap c' c
 
-@[simp]
-theorem coe_chartChange : ⇑(chartChange c c') = chartChangeMap c c' :=
+private theorem coe_chartChange : ⇑(chartChange c c') = chartChangeMap c c' :=
   (rfl)
 
 /-- The inverse of the change of chart from `c` to `c'` is the change of chart from `c'` to
@@ -215,13 +208,18 @@ theorem chartChange_symm : (chartChange c c').symm = chartChange c' c :=
 /-- The change of chart from `c` to itself is the identity. -/
 @[simp]
 theorem chartChange_self : chartChange c c = Diffeomorph.refl _ (Blowup c) ω :=
-  Diffeomorph.ext (chartChangeMap_self c)
+  Diffeomorph.ext fun z ↦ by rw [coe_chartChange, chartChangeMap_self, Diffeomorph.coe_refl, id_eq]
 
 /-- The change of chart commutes with the blowdowns. -/
 @[simp]
 theorem blowdown_chartChange (z : Blowup c) :
-    blowdown c' (chartChange c c' z) = blowdown c z :=
-  blowdown_chartChangeMap c c' z
+    blowdown c' (chartChange c c' z) = blowdown c z := by
+  rw [coe_chartChange, blowdown_chartChangeMap]
+
+/-- The change of chart sends the exceptional divisor of `Blowup c` onto that of `Blowup c'`. -/
+theorem chartChange_mem_exceptionalDivisor_iff {z : Blowup c} :
+    chartChange c c' z ∈ exceptionalDivisor c' ↔ z ∈ exceptionalDivisor c := by
+  rw [coe_chartChange, chartChangeMap_mem_exceptionalDivisor_iff]
 
 /-- On the first piece, the change of chart is the identity of `M \ {p₀}`. -/
 @[simp]
@@ -251,8 +249,8 @@ theorem chartChange_inr {y : modelOpens c} (hy : c.symm (y : BlowupModel n).blow
 @[simp]
 theorem chartChange_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     chartChange c c' (ofDirection c ℓ) =
-      ofDirection c' ((c.fderivTransEquiv c').mapProjectivization ℓ) :=
-  chartChangeMap_ofDirection c c' ℓ
+      ofDirection c' ((c.fderivTransEquiv c').mapProjectivization ℓ) := by
+  rw [coe_chartChange, chartChangeMap_ofDirection]
 
 end Blowup
 

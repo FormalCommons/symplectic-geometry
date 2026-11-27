@@ -365,6 +365,13 @@ theorem blowdown_liftChart {z : Blowup c} (hz : blowdown c z ∈ φ.source) :
     · rw [lift_inr, blowdown_inr, OpenPartialHomeomorph.coe_trans, Function.comp_apply]
   · rw [liftChart_of_notMem hzc hz, blowdown_ofNeZero]
 
+/-- Over the source of `φ`, the lifted chart lies over the target of `φ`, so in the second piece of
+the blowup `Blowup φ`. -/
+theorem liftChart_mem_modelOpens {z : Blowup c} (hz : blowdown c z ∈ φ.source) :
+    liftChart c φ z ∈ modelOpens φ := by
+  rw [mem_modelOpens, blowdown_liftChart c φ hz]
+  exact φ.map_source hz
+
 /-- Through `directionEquiv c`, the lifted chart sends the point of the exceptional divisor over
 the line of a tangent vector `v` at the centre to the point of the zero section over the line of
 the image of `v` under the differential of `φ`. -/
