@@ -27,10 +27,10 @@ On a finite-dimensional space the bound below holds since the sphere is compact
 (`SymplecticGeometry.exists_contDiff_radial_extension_hasDerivAt_add_log_pos`).
 
 On a real normed space, a positive derivative of `r ↦ θ (r • u) + log r` for every unit vector
-`u` gives one for every nonzero `u`, by rescaling
-(`SymplecticGeometry.exists_pos_hasDerivAt_smul_add_log_of_ne_zero`); so that function is strictly
-monotone on `(0, ∞)` (`SymplecticGeometry.strictMonoOn_smul_add_log`), and, where `θ` is
-differentiable at `c`, `0 < 1 + dθ_c(c)` (`SymplecticGeometry.one_add_fderiv_apply_self_pos`).
+`u` gives one for every vector `u`, by rescaling
+(`SymplecticGeometry.exists_pos_hasDerivAt_smul_add_log`); so that function is strictly monotone
+on `(0, ∞)` (`SymplecticGeometry.strictMonoOn_smul_add_log`), and `0 < 1 + dθ_c(c)` for every `c`
+(`SymplecticGeometry.one_add_fderiv_apply_self_pos`).
 
 Away from `0` the function is `θ x = C + χ (log ‖x‖) * (τ (normalize x) - C)`, with Mathlib's
 `NormedSpace.normalize x = ‖x‖⁻¹ • x` (smooth off `0` by Tau Ceti's
@@ -143,15 +143,16 @@ section Rays
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {θ : E → ℝ}
 
 /-- If for every unit vector `u` the function `r ↦ θ (r • u) + log r` has a positive derivative
-at every `r > 0`, then so has it for every nonzero vector `u`. -/
-theorem exists_pos_hasDerivAt_smul_add_log_of_ne_zero
+at every `r > 0`, then so has it for every vector `u`. -/
+theorem exists_pos_hasDerivAt_smul_add_log
     (hθ : ∀ u : E, ‖u‖ = 1 → ∀ r, 0 < r →
       ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r)
-    {u : E} (hu : u ≠ 0) {r : ℝ} (hr : 0 < r) :
+    (u : E) {r : ℝ} (hr : 0 < r) :
     ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r := by
+  rcases eq_or_ne u 0 with rfl | hu
+  · exact ⟨r⁻¹, inv_pos.2 hr, by simpa using (Real.hasDerivAt_log hr.ne').const_add (θ 0)⟩
   have hn : 0 < ‖u‖ := norm_pos_iff.2 hu
-  have h1 : ‖‖u‖⁻¹ • u‖ = 1 := by
-    rw [norm_smul, Real.norm_of_nonneg (inv_nonneg.2 hn.le), inv_mul_cancel₀ hn.ne']
+  have h1 : ‖‖u‖⁻¹ • u‖ = 1 := norm_smul_inv_norm hu
   obtain ⟨d, hd, hdd⟩ := hθ _ h1 (‖u‖ * r) (mul_pos hn hr)
   refine ⟨d * ‖u‖, mul_pos hd hn, ?_⟩
   have h := (hdd.comp r ((hasDerivAt_id r).const_mul ‖u‖)).sub_const (Real.log ‖u‖)
@@ -163,25 +164,26 @@ theorem exists_pos_hasDerivAt_smul_add_log_of_ne_zero
   ring
 
 /-- If for every unit vector `u` the function `r ↦ θ (r • u) + log r` has a positive derivative
-at every `r > 0`, then it is strictly monotone on `(0, ∞)` for every nonzero vector `u`. -/
+at every `r > 0`, then it is strictly monotone on `(0, ∞)` for every vector `u`. -/
 theorem strictMonoOn_smul_add_log
     (hθ : ∀ u : E, ‖u‖ = 1 → ∀ r, 0 < r →
       ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r)
-    {u : E} (hu : u ≠ 0) :
+    (u : E) :
     StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Set.Ioi 0) :=
   StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0) fun _ hr ↦
-    exists_pos_hasDerivAt_smul_add_log_of_ne_zero hθ hu hr
+    exists_pos_hasDerivAt_smul_add_log hθ u hr
 
-/-- If `θ` is differentiable at `c`, and for every unit vector `u` the function
-`r ↦ θ (r • u) + log r` has a positive derivative at every `r > 0`, then `0 < 1 + dθ_c(c)`.
+/-- If for every unit vector `u` the function `r ↦ θ (r • u) + log r` has a positive derivative
+at every `r > 0`, then `0 < 1 + dθ_c(c)` for every `c`.
 For `c ≠ 0`, `1 + dθ_c(c)` is the derivative of `r ↦ θ (r • c) + log r` at `r = 1`. -/
 theorem one_add_fderiv_apply_self_pos
     (hθ : ∀ u : E, ‖u‖ = 1 → ∀ r, 0 < r →
       ∃ d, 0 < d ∧ HasDerivAt (fun s ↦ θ (s • u) + Real.log s) d r)
-    {c : E} (hc : DifferentiableAt ℝ θ c) : 0 < 1 + fderiv ℝ θ c c := by
-  rcases eq_or_ne c 0 with rfl | hc0
-  · simp
-  obtain ⟨d, hd, hdd⟩ := exists_pos_hasDerivAt_smul_add_log_of_ne_zero hθ hc0 one_pos
+    (c : E) : 0 < 1 + fderiv ℝ θ c c := by
+  by_cases hc : DifferentiableAt ℝ θ c
+  swap
+  · simp [fderiv_zero_of_not_differentiableAt hc]
+  obtain ⟨d, hd, hdd⟩ := exists_pos_hasDerivAt_smul_add_log hθ c one_pos
   have hc' : HasFDerivAt θ (fderiv ℝ θ c) ((1 : ℝ) • c) := by
     rw [one_smul]
     exact hc.hasFDerivAt

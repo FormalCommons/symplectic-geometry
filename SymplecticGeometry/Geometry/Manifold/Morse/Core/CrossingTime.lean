@@ -182,11 +182,11 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     have h := hθτ₁ _ h1 ρ le_rfl
     rwa [smul_inv_smul₀ hρ0.ne'] at h
   -- Along each ray `r ↦ θ (r • u) + log r` is strictly monotone, and `0 < 1 + dθ_c(c)`.
-  have hmono (u : EuclideanSpace ℝ {i // φ.weight i < 0}) (hu : u ≠ 0) :
+  have hmono (u : EuclideanSpace ℝ {i // φ.weight i < 0}) :
       StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Ioi 0) :=
-    SymplecticGeometry.strictMonoOn_smul_add_log hθ₁d hu
+    SymplecticGeometry.strictMonoOn_smul_add_log hθ₁d u
   have hθc (c : EuclideanSpace ℝ {i // φ.weight i < 0}) : 0 < 1 + fderiv ℝ θ c c :=
-    SymplecticGeometry.one_add_fderiv_apply_self_pos hθ₁d ((hθs.differentiable (by simp)) c)
+    SymplecticGeometry.one_add_fderiv_apply_self_pos hθ₁d c
   -- The centre of the ball goes to `p`.
   have hF0 : Φ (θ 0) (ι 0) = p := φ.globalFlow_toChart_symm_negativeExtend_zero hX hXc hXφ (θ 0)
   -- On the sphere, `F` lands on the level `a`.
@@ -194,7 +194,8 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       g (Φ (θ c) (ι c)) = a := by
     rw [hθτ c hc]
     exact Flow.apply_flow_levelCrossingTime (hreach c hc)
-  refine ⟨θ, hθs, hθτ, hmono, hθc, fun c hc ↦ hsph c (mem_sphere_zero_iff_norm.1 hc), ?_, ?_⟩
+  refine ⟨θ, hθs, hθτ, fun u _ ↦ hmono u, hθc,
+    fun c hc ↦ hsph c (mem_sphere_zero_iff_norm.1 hc), ?_, ?_⟩
   · intro c hc
     rw [mem_closedBall_zero_iff] at hc
     rcases eq_or_ne c 0 with rfl | hc0
@@ -213,8 +214,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       rw [div_mul_div_comm, mul_comm, div_self (mul_pos hρ0 hn).ne', one_smul]
     -- The time `θ (r • u) + log r` is at most `θ u`, by monotonicity along the ray.
     have hle : θ (r • u) + Real.log r ≤ θ u := by
-      have hu0 : u ≠ 0 := norm_pos_iff.1 (hu ▸ hρ0)
-      simpa using (hmono u hu0).monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
+      simpa using (hmono u).monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
     simp only [mem_ofPred_eq]
     rw [← hru, φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu.le hr0 hr1]
     calc a = g (Φ (θ u) (ι u)) := (hsph u hu).symm
