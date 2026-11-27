@@ -77,6 +77,16 @@ fundamental vector fields for a linear representation `rep : G →* V ≃ₗ[ℝ
 map of `v` is `rep g` applied to that at `ξ` of the orbit map of `rep g⁻¹ v`. It is Tau Ceti's
 `TauCeti.mfderiv_smul_fundamentalVectorField` for the action through `rep`, whose translations
 `rep g` are their own derivatives.
+
+`TauCeti.contMDiff_prod_fundamentalVectorField` lets the Lie algebra element vary too: for a
+`C^n` action and `m + 1 ≤ n`, the map `(ξ, x) ↦ ξ_M(x)` is `C^m` from `E × M` to the tangent
+bundle of `M`. Here `ξ` ranges over the model space `E` of `G`, which is what
+`GroupLieAlgebra I G` unfolds to, since the tangent space carries no norm of its own; Tau Ceti's
+`TauCeti.contMDiff_mulInvariantVectorField_modelSpace` is stated in the same way. Its proof is
+that of Tau Ceti's `TauCeti.contMDiff_fundamentalVectorField`, the case of a fixed `ξ`, with
+`(ξ, x) ↦ ((1, ξ), (x, 0))` in place of `x ↦ ((1, ξ), (x, 0))`. Composing with a `C^m` map
+`ζ : N → E` gives `ContMDiff.contMDiff_prod_fundamentalVectorField`, the regularity of
+`(t, x) ↦ (ζ t)_M(x)`: for `N = ℝ`, a time-dependent vector field.
 -/
 
 public section
@@ -398,5 +408,75 @@ theorem mfderiv_linearEquiv_apply_adjointContinuousLinearMap (rep : G →* V ≃
 end TauCeti
 
 end LinearRepresentation
+
+section Smoothness
+
+namespace TauCeti
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  (G : Type*) [TopologicalSpace G] [ChartedSpace H G] [Group G] [IsManifold I 1 G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' 1 M] [MulAction G M]
+  {m n : ℕ∞ω}
+
+/-- **Joint smoothness of the fundamental vector fields.** For a `C^n` action and `m + 1 ≤ n`,
+the map `(ξ, x) ↦ ξ_M(x)` is `C^m` from `E × M` to the tangent bundle of `M`, where the Lie
+algebra `GroupLieAlgebra I G` is identified with the model space `E` of `G`. -/
+theorem contMDiff_prod_fundamentalVectorField [ContMDiffSMul I I' n G M] (hmn : m + 1 ≤ n) :
+    ContMDiff (𝓘(𝕜, E).prod I') I'.tangent m
+      (fun p : E × M ↦
+        (⟨p.2, fundamentalVectorField (I := I) (G := G) I' p.1 p.2⟩ : TangentBundle I' M)) := by
+  /- The value at `(ξ, x)` is the tangent map of the action `A : G × M → M` applied to the
+  tangent vector `(ξ, 0)` at `(1, x)`, and the tangent map of a `C^n` map is `C^m`. -/
+  have hA : ContMDiff (I.prod I') I' n (fun q : G × M ↦ q.1 • q.2) :=
+    ContMDiffSMul.contMDiff_smul
+  have hT := (hA.contMDiff_tangentMap hmn).comp
+    (contMDiff_equivTangentBundleProd_symm (I := I) (M := G) (I' := I') (M' := M))
+  have hF : ContMDiff (𝓘(𝕜, E).prod I') (I.tangent.prod I'.tangent) m
+      (fun p : E × M ↦ ((⟨1, p.1⟩ : TangentBundle I G), (⟨p.2, 0⟩ : TangentBundle I' M))) :=
+    (contMDiff_tangentBundle_mk_constBase contMDiff_fst (1 : G)).prodMk
+      (contMDiff_tangentBundle_mk_zero contMDiff_snd)
+  refine (hT.comp hF).congr fun ⟨ξ, x⟩ ↦ ?_
+  have hdiff : MDifferentiableAt (I.prod I') I' (fun q : G × M ↦ q.1 • q.2) (1, x) :=
+    (hA.of_le (le_add_self.trans hmn)).mdifferentiableAt one_ne_zero
+  have key : mfderiv (I.prod I') I' (fun q : G × M ↦ q.1 • q.2) (1, x) (ξ, 0) =
+      fundamentalVectorField (I := I) (G := G) I' ξ x := by
+    refine (mfderiv_prod_eq_add_apply (v := ((ξ, 0) : E × E')) hdiff).trans ?_
+    have h0 : mfderiv I' I' (fun z : M ↦ (1 : G) • z) x (0 : E') = 0 :=
+      ContinuousLinearMap.map_zero _
+    dsimp only
+    rw [h0, add_zero]
+    exact (fundamentalVectorField_apply (I' := I') (G := G) (M := M) ξ x).symm
+  simp +instances only [Function.comp_apply, tangentMap, equivTangentBundleProd,
+    Equiv.coe_fn_symm_mk]
+  -- The base point of the computed tangent vector is `1 • x`; generalize it to avoid a dependent
+  -- rewrite.
+  have hmk : ∀ (y : M) (v : E'), y = x → v = fundamentalVectorField (I := I) (G := G) I' ξ x →
+      (⟨x, fundamentalVectorField (I := I) (G := G) I' ξ x⟩ : TangentBundle I' M) = ⟨y, v⟩ := by
+    rintro y v rfl rfl
+    rfl
+  exact hmk _ _ (one_smul G x) key
+
+/-- **Fundamental vector fields of a varying Lie algebra element.** For a `C^n` action,
+`m + 1 ≤ n` and a `C^m` map `ζ : N → E` into the model space `E` of `G`, which is the Lie
+algebra `GroupLieAlgebra I G`, the map `(t, x) ↦ (ζ t)_M(x)` is `C^m` from `N × M` to the tangent
+bundle of `M`. For `N = 𝕜` this is the regularity of the time-dependent vector field
+`(t, x) ↦ (ζ t)_M(x)`. -/
+theorem _root_.ContMDiff.contMDiff_prod_fundamentalVectorField [ContMDiffSMul I I' n G M]
+    {EN : Type*} [NormedAddCommGroup EN] [NormedSpace 𝕜 EN] {HN : Type*} [TopologicalSpace HN]
+    {IN : ModelWithCorners 𝕜 EN HN} {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
+    {ζ : N → E} (hζ : ContMDiff IN 𝓘(𝕜, E) m ζ) (hmn : m + 1 ≤ n) :
+    ContMDiff (IN.prod I') I'.tangent m
+      (fun p : N × M ↦
+        (⟨p.2, fundamentalVectorField (I := I) (G := G) I' (ζ p.1) p.2⟩ : TangentBundle I' M)) :=
+  (TauCeti.contMDiff_prod_fundamentalVectorField G hmn).comp
+    ((hζ.comp contMDiff_fst).prodMk contMDiff_snd)
+
+end TauCeti
+
+end Smoothness
 
 end
