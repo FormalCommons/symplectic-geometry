@@ -516,7 +516,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
   `o.toHomologicalOrientation` is $\chi(S^2)=2$ by the Euler-number
   milestone, and the integral side is $2$ by the computation in
   *Conventions*. With the opposite orientation the left side would be $-2$.
-- `isConnectionCurvature_of_integralTopForm_eq`: if `M` is connected, every smooth
+- `Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integralTopForm_eq`: if `M`
+  is connected, every smooth
   real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
   (o.toHomologicalOrientation hn) hn F V` is the curvature of a
   connection form, `g.IsConnectionCurvature hI σ`. Proof: `σ - hα₀.curvature`
