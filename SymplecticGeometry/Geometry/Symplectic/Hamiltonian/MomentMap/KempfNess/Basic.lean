@@ -61,6 +61,8 @@ and the moment weights.
   vector field of any `ζ` for the action of `Gc` is `X_{C.re ζ} + J X_{C.im ζ}`.
 * `SymplecticGeometry.IsComplexifiedAction.isMIntegralCurve_expI_smul`: the curve
   `t ↦ C.expI (t • ξ) • p` is an integral curve of `x ↦ J x (X_ξ x)`.
+* `SymplecticGeometry.IsComplexifiedAction.expI_smul_smul_eq_self_iff`:
+  `C.expI (t • ξ)` fixes `x` for every `t` exactly when `X_ξ` vanishes at `x`.
 * `SymplecticGeometry.isComplexifiedAction_circle`: the action of `ℂˣ` on `ℂ` by multiplication,
   with `J` multiplication by `i`, is a complexified action of the rotation action of `Circle`, for
   the complexification `LieComplexification.circle`.
@@ -347,6 +349,16 @@ theorem isMIntegralCurve_expI_smul (h : IsComplexifiedAction C J) (ξ : GroupLie
     funext (h.fundamentalVectorField_cplx_lieMap ξ)
   rw [hγ, ← hv]
   exact isMIntegralCurve_mulInvariantExp_smul_smul (I' := I') (C.cplx (C.lieMap ξ)) p
+
+/-- **The imaginary one-parameter subgroups that fix a point.** For a complexified action on a
+Hausdorff manifold without boundary, `C.expI (t • ξ)` fixes `x` for every `t` exactly when the
+fundamental vector field of `ξ` for the action of `G` vanishes at `x`. -/
+theorem expI_smul_smul_eq_self_iff [T2Space M] [BoundarylessManifold I' M]
+    (h : IsComplexifiedAction C J) {ξ : GroupLieAlgebra I G} {x : M} :
+    (∀ t : ℝ, C.expI (t • ξ) • x = x) ↔ fundamentalVectorField I' ξ x = 0 := by
+  simp only [LieComplexification.expI_smul]
+  rw [mulInvariantExp_smul_smul_eq_iff (I' := I'), h.fundamentalVectorField_cplx_lieMap]
+  exact ⟨fun h0 ↦ J.injective x (h0.trans (map_zero _).symm), fun h0 ↦ by simp [h0]⟩
 
 omit [ContMDiffSMul IC I' ∞ Gc M] in
 /-- For a complexified action and a map `μ` whose negative is an equivariant moment map, `μ` is

@@ -94,13 +94,6 @@ noncomputable section
 open _root_.Bundle Module
 open scoped Manifold ContDiff
 
-/-- The real dimension of `ℂ` is twice its complex dimension: the dimension convention of
-complex structures on vector bundles with model fibre `ℂ`, as a `Fact` to enable locally as an
-instance. -/
-theorem Complex.finrank_real_complex_eq_two_mul_finrank_fact :
-    Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) :=
-  ⟨by simp⟩
-
 namespace TauCeti.SmoothEmbedding
 
 open SymplecticGeometry SymplecticGeometry.Bundle

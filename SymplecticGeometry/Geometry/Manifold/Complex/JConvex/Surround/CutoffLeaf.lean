@@ -9,7 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.SpecialShape
 
 import Mathlib.Analysis.Calculus.Deriv.Inv
-import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
+import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
@@ -34,9 +34,10 @@ least `7` and the second derivative at least `-(20 + 1 / 128) / r`, against `343
 (`SymplecticGeometry.deriv_le_of_cutoff_bounds`). The bounds on `p` and `q` hold once `L` is
 large compared with bounds on `smoothTransition'`, `smoothTransition''` and
 `x smoothTransition'' x` (`Real.smoothTransition.abs_deriv_sub_div_le`). The first two
-derivatives of the leaf are `SymplecticGeometry.deriv_cutoff_add_sqrt` and
-`SymplecticGeometry.iteratedDeriv_two_cutoff_add_sqrt`, and together these give
-`SymplecticGeometry.isConvexShapeAt_cutoff_add_sqrt_of_two_le`.
+derivatives of the leaf `cutoffLeaf L 1 b c` are `SymplecticGeometry.deriv_cutoffLeaf_one` and
+`SymplecticGeometry.iteratedDeriv_two_cutoffLeaf_one`, and together these give
+`SymplecticGeometry.isConvexShapeAt_cutoffLeaf_one_of_two_le` and
+`SymplecticGeometry.deriv_cutoffLeaf_one_le_of_two_le`.
 
 ## The cutoff leaf
 
@@ -92,6 +93,30 @@ open Real Set Filter Topology
 open scoped ContDiff
 
 variable {δ : ℝ}
+
+/-! ### The cutoff leaf -/
+
+/-- The cutoff leaf over the cylinder of radius `δ` with coefficients `b` and `c`: with the
+cutoff `h r = smoothTransition ((r - 2 δ) / (L δ))` of width `L δ` starting at `2 δ`,
+`r ↦ b (1 - h r) + √(64 (r² - δ²) + c h r)`. It is the bottom leaf `√(64 r² - 64 δ²)` raised by
+`b` for `r ≤ 2 δ` (when `L, δ ≥ 0`), and `√(64 r² - 64 δ² + c)` for `r ≥ (2 + L) δ` (when
+`L, δ > 0`). -/
+noncomputable def cutoffLeaf (L δ b c r : ℝ) : ℝ :=
+  b * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
+    √(64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ)))
+
+theorem cutoffLeaf_def (L δ b c r : ℝ) : cutoffLeaf L δ b c r =
+    b * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
+      √(64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ))) :=
+  (rfl)
+
+/-- For `δ = 1`, the cutoff leaf written out, with the cutoff `smoothTransition ((x - 2) / L)`. -/
+theorem cutoffLeaf_one (L b c : ℝ) : cutoffLeaf L 1 b c = fun x ↦
+    b * (1 - smoothTransition ((x - 2) / L)) +
+      √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L)) := by
+  ext x
+  simp only [cutoffLeaf_def, one_pow, mul_one]
+  ring_nf
 
 /-! ### The shared estimate -/
 
@@ -193,9 +218,8 @@ theorem deriv_le_of_cutoff_bounds {χ : ℝ → ℝ} {b c r H p S : ℝ} (hb₀ 
 
 /-- The slope at `x > 1` of the cutoff leaf `b (1 - H x) + √(64 x² - 64 + c H x)` for `δ = 1`,
 with the cutoff `H x = smoothTransition ((x - 2) / L)`, for `0 ≤ c`. -/
-theorem deriv_cutoff_add_sqrt {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1 < x) :
-    deriv (fun x ↦ b * (1 - smoothTransition ((x - 2) / L)) +
-        √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) x =
+theorem deriv_cutoffLeaf_one {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1 < x) :
+    deriv (cutoffLeaf L 1 b c) x =
       -b * (deriv smoothTransition ((x - 2) / L) / L) +
         (128 * x + c * (deriv smoothTransition ((x - 2) / L) / L)) /
           (2 * √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) := by
@@ -203,6 +227,7 @@ theorem deriv_cutoff_add_sqrt {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1 < x) :
     nlinarith [mul_nonneg hc (smoothTransition.nonneg ((x - 2) / L))]
   have hH := (((hasDerivAt_id' x).sub_const 2).div_const L).smoothTransition
   have hF := (((hasDerivAt_pow 2 x).const_mul 64).sub_const 64).add (hH.const_mul c)
+  rw [cutoffLeaf_one]
   refine HasDerivAt.deriv ?_
   refine (((hH.const_sub 1).const_mul b).add (hF.sqrt hpos.ne')).congr_deriv ?_
   simp only [Pi.add_apply, Nat.cast_ofNat, Nat.reduceSub, pow_one]
@@ -211,9 +236,8 @@ theorem deriv_cutoff_add_sqrt {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1 < x) :
 /-- The second derivative at `x > 1` of the cutoff leaf
 `b (1 - H x) + √(64 x² - 64 + c H x)` for `δ = 1`, with the cutoff
 `H x = smoothTransition ((x - 2) / L)`, for `0 ≤ c`. -/
-theorem iteratedDeriv_two_cutoff_add_sqrt {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1 < x) :
-    iteratedDeriv 2 (fun x ↦ b * (1 - smoothTransition ((x - 2) / L)) +
-        √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) x =
+theorem iteratedDeriv_two_cutoffLeaf_one {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1 < x) :
+    iteratedDeriv 2 (cutoffLeaf L 1 b c) x =
       -b * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2) +
         (128 + c * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2)) /
           (2 * √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) -
@@ -221,12 +245,11 @@ theorem iteratedDeriv_two_cutoff_add_sqrt {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1
           (4 * √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L)) ^ 3) := by
   have hpos : 0 < 64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L) := by
     nlinarith [mul_nonneg hc (smoothTransition.nonneg ((x - 2) / L))]
-  have hev : deriv (fun x ↦ b * (1 - smoothTransition ((x - 2) / L)) +
-        √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) =ᶠ[𝓝 x] fun y ↦
+  have hev : deriv (cutoffLeaf L 1 b c) =ᶠ[𝓝 x] fun y ↦
       -b * (deriv smoothTransition ((y - 2) / L) / L) +
         (128 * y + c * (deriv smoothTransition ((y - 2) / L) / L)) /
           (2 * √(64 * y ^ 2 - 64 + c * smoothTransition ((y - 2) / L))) := by
-    filter_upwards [lt_mem_nhds hx] with y hy using deriv_cutoff_add_sqrt hc hy
+    filter_upwards [lt_mem_nhds hx] with y hy using deriv_cutoffLeaf_one hc hy
   have hu := ((hasDerivAt_id' x).sub_const 2).div_const L
   have hH₁ := hu.deriv_smoothTransition.div_const L
   have hF := (((hasDerivAt_pow 2 x).const_mul 64).sub_const 64).add
@@ -248,65 +271,41 @@ theorem iteratedDeriv_two_cutoff_add_sqrt {L b c x : ℝ} (hc : 0 ≤ c) (hx : 1
 `H x = smoothTransition ((x - 2) / L)`, is an `i`-convex shape at every `r ≥ 2`, for
 `0 ≤ b ≤ 8` and `0 ≤ c ≤ 128`, once `L ≥ 1` is large compared with bounds `A` of
 `smoothTransition'`, `B` of `smoothTransition''` and `M` of `x smoothTransition'' x`. -/
-theorem isConvexShapeAt_cutoff_add_sqrt_of_two_le {A B M L b c r : ℝ}
+theorem isConvexShapeAt_cutoffLeaf_one_of_two_le {A B M L b c r : ℝ}
     (hA : ∀ x, |deriv smoothTransition x| ≤ A)
     (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
     (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hb₀ : 0 ≤ b) (hb : b ≤ 8) (hc₀ : 0 ≤ c)
     (hc : c ≤ 128) (hr : 2 ≤ r) :
-    IsConvexShapeAt (fun x ↦ b * (1 - smoothTransition ((x - 2) / L)) +
-      √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) r := by
+    IsConvexShapeAt (cutoffLeaf L 1 b c) r := by
   have hr₁ : 1 < r := by linarith
   obtain ⟨hp, hq⟩ := smoothTransition.abs_deriv_sub_div_le hA hB hM zero_le_two hL₁
     (ε := 1 / 1024) (by linarith) r
   exact isConvexShapeAt_of_cutoff_bounds hb₀ hb hc₀ hc (smoothTransition.nonneg _)
     (smoothTransition.le_one _) hp hq hr (sqrt_nonneg _)
-    (sq_sqrt (by nlinarith [mul_nonneg hc₀ (smoothTransition.nonneg ((r - 2) / L))])) rfl
-    (deriv_cutoff_add_sqrt hc₀ hr₁) (iteratedDeriv_two_cutoff_add_sqrt hc₀ hr₁)
+    (sq_sqrt (by nlinarith [mul_nonneg hc₀ (smoothTransition.nonneg ((r - 2) / L))]))
+    (by rw [cutoffLeaf_one]) (deriv_cutoffLeaf_one hc₀ hr₁)
+    (iteratedDeriv_two_cutoffLeaf_one hc₀ hr₁)
 
 /-- The slope of the cutoff leaf `b (1 - H x) + √(64 x² - 64 + c H x)` for `δ = 1`, with the
 cutoff `H x = smoothTransition ((x - 2) / L)`, is at most `11` at every `r ≥ 2`, for
 `0 ≤ b ≤ 8` and `0 ≤ c ≤ 128`, once `L ≥ 1` is large compared with bounds `A` of
 `smoothTransition'`, `B` of `smoothTransition''` and `M` of `x smoothTransition'' x`. -/
-theorem deriv_cutoff_add_sqrt_le_of_two_le {A B M L b c r : ℝ}
+theorem deriv_cutoffLeaf_one_le_of_two_le {A B M L b c r : ℝ}
     (hA : ∀ x, |deriv smoothTransition x| ≤ A)
     (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
     (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hb₀ : 0 ≤ b) (hb : b ≤ 8) (hc₀ : 0 ≤ c)
     (hc : c ≤ 128) (hr : 2 ≤ r) :
-    deriv (fun x ↦ b * (1 - smoothTransition ((x - 2) / L)) +
-      √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L))) r ≤ 11 := by
+    deriv (cutoffLeaf L 1 b c) r ≤ 11 := by
   have hr₁ : 1 < r := by linarith
   obtain ⟨hp, -⟩ := smoothTransition.abs_deriv_sub_div_le hA hB hM zero_le_two hL₁
     (ε := 1 / 1024) (by linarith) r
   exact deriv_le_of_cutoff_bounds hb₀ hb hc₀ hc (smoothTransition.nonneg _) hp hr (sqrt_nonneg _)
     (sq_sqrt (by nlinarith [mul_nonneg hc₀ (smoothTransition.nonneg ((r - 2) / L))]))
-    (deriv_cutoff_add_sqrt hc₀ hr₁)
+    (deriv_cutoffLeaf_one hc₀ hr₁)
 
-/-! ### The cutoff leaf -/
-
-/-- The cutoff leaf over the cylinder of radius `δ` with coefficients `b` and `c`: with the
-cutoff `h r = smoothTransition ((r - 2 δ) / (L δ))` of width `L δ` starting at `2 δ`,
-`r ↦ b (1 - h r) + √(64 (r² - δ²) + c h r)`. It is the bottom leaf `√(64 r² - 64 δ²)` raised by
-`b` for `r ≤ 2 δ` (when `L, δ ≥ 0`), and `√(64 r² - 64 δ² + c)` for `r ≥ (2 + L) δ` (when
-`L, δ > 0`). -/
-noncomputable def cutoffLeaf (L δ b c r : ℝ) : ℝ :=
-  b * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
-    √(64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ)))
-
-theorem cutoffLeaf_def (L δ b c r : ℝ) : cutoffLeaf L δ b c r =
-    b * (1 - smoothTransition ((r - 2 * δ) / (L * δ))) +
-      √(64 * (r ^ 2 - δ ^ 2) + c * smoothTransition ((r - 2 * δ) / (L * δ))) :=
-  (rfl)
-
-/-- For `δ = 1`, the cutoff leaf with the cutoff `smoothTransition ((x - 2) / L)` written out,
-in the form of `isConvexShapeAt_cutoff_add_sqrt_of_two_le`. -/
-theorem cutoffLeaf_one (L b c : ℝ) : cutoffLeaf L 1 b c = fun x ↦
-    b * (1 - smoothTransition ((x - 2) / L)) +
-      √(64 * x ^ 2 - 64 + c * smoothTransition ((x - 2) / L)) := by
-  ext x
-  simp only [cutoffLeaf_def, one_pow, mul_one]
-  ring_nf
+/-! ### Properties of the cutoff leaf -/
 
 /-- The cutoff leaves for the radius `δ` are those for the radius `1`, rescaled by `δ`, with the
 coefficients `b / δ` and `c / δ²`. -/
@@ -410,8 +409,7 @@ theorem isConvexShapeAt_cutoffLeaf {A B M L b c r : ℝ}
         (by linarith) (by nlinarith)).add_const hb₀').congr_of_eventuallyEq ?_
       filter_upwards [gt_mem_nhds h] with x hx
       exact cutoffLeaf_of_le (by linarith) zero_le_one (by linarith)
-    · rw [cutoffLeaf_one]
-      exact isConvexShapeAt_cutoff_add_sqrt_of_two_le hA hB hM hL₁ hL hb₀' hb' hc₀' hc' h
+    · exact isConvexShapeAt_cutoffLeaf_one_of_two_le hA hB hM hL₁ hL hb₀' hb' hc₀' hc' h
   have h := h₁.rescale hδ
   rwa [mul_div_cancel₀ r hδ.ne', ← cutoffLeaf_eq_mul_cutoffLeaf_one hδ] at h
 
@@ -439,14 +437,8 @@ theorem deriv_cutoffLeaf_le {A B M L b c r : ℝ}
     (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ) (hb₀ : 0 ≤ b)
     (hb : b ≤ 8 * δ) (hc₀ : 0 ≤ c) (hc : c ≤ 128 * δ ^ 2) (hr : 2 * δ ≤ r) :
     deriv (cutoffLeaf L δ b c) r ≤ 11 := by
-  have h₁ : deriv (fun r ↦ δ * cutoffLeaf L 1 (b / δ) (c / δ ^ 2) (r / δ)) r =
-      deriv (cutoffLeaf L 1 (b / δ) (c / δ ^ 2)) (r / δ) := by
-    have h := congrFun (iteratedDeriv_comp_div_const 1 δ (cutoffLeaf L 1 (b / δ) (c / δ ^ 2))) r
-    simp only [iteratedDeriv_one, pow_one, smul_eq_mul] at h
-    rw [deriv_const_mul_field, h]
-    field_simp
-  rw [cutoffLeaf_eq_mul_cutoffLeaf_one hδ, h₁, cutoffLeaf_one]
-  exact deriv_cutoff_add_sqrt_le_of_two_le hA hB hM hL₁ hL (div_nonneg hb₀ hδ.le)
+  rw [cutoffLeaf_eq_mul_cutoffLeaf_one hδ, deriv_const_mul_comp_div_const hδ.ne']
+  exact deriv_cutoffLeaf_one_le_of_two_le hA hB hM hL₁ hL (div_nonneg hb₀ hδ.le)
     ((div_le_iff₀ hδ).2 hb) (div_nonneg hc₀ (sq_nonneg δ))
     ((div_le_iff₀ (by positivity)).2 hc) ((le_div_iff₀ hδ).2 (by linarith))
 
