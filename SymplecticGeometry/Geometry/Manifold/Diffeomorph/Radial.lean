@@ -145,11 +145,10 @@ theorem isLocalDiffeomorph_smul_self [FiniteDimensional ℝ F] {n : WithTop ℕ�
   refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv (s := univ)
     (hτ.smul contDiff_id).contMDiff.contMDiffOn isOpen_univ (mem_univ x)
     BoundarylessManifold.isInteriorPoint hn ?_ rfl
-  rw [mfderiv_eq_fderiv]
-  -- The tangent spaces of `F` are `F` itself; stating the injectivity pointwise lets the
-  -- elaborator compare the two maps without asking for norms on the tangent spaces.
-  intro v w hvw
-  exact injective_fderiv_smul_self (hτ' x) (pos_of_forall_add_fderiv_pos hτ' hd x).ne' (hd x) hvw
+  rw [mfderiv_eq_fderiv, ContinuousLinearMap.coe_comp, ContinuousLinearMap.coe_comp]
+  exact (NormedSpace.fromTangentSpace _).symm.injective.comp
+    ((injective_fderiv_smul_self (hτ' x) (pos_of_forall_add_fderiv_pos hτ' hd x).ne' (hd x)).comp
+      (NormedSpace.fromTangentSpace x).injective)
 
 /-- For `F` finite-dimensional, `1 ≤ n` and `τ : F → ℝ` of class `C^n` with `0 < τ y + dτ_y y`
 for every `y` and `τ = 1` outside a ball, the map `x ↦ τ x • x` as a `C^n` diffeomorphism of `F`
