@@ -777,6 +777,13 @@ theorem prodBallHomeomorph_symm_apply {ε : ℝ} (w : prodBall Q ε) :
       ((w : Q × ℂ).1, ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩) :=
   (rfl)
 
+/-- For a point `(q, z)` of `Q × B²(ε)` and `t ∈ [0, 1]`, the point `(q, t • z)` is in
+`Q × B²(ε)` too. -/
+theorem mk_smul_mem_prodBall {ε : ℝ} (p : prodBall Q ε) (t : unitInterval) :
+    ((p : Q × ℂ).1, (t : ℝ) • (p : Q × ℂ).2) ∈ prodBall Q ε := by
+  rw [mem_prodBall, norm_smul, Real.norm_eq_abs, abs_of_nonneg t.property.1]
+  exact (mul_le_of_le_one_left (norm_nonneg _) t.property.2).trans_lt (mem_prodBall.1 p.property)
+
 /-- A **product neighbourhood** of radius `ε` of a smooth embedding `ι` with symplectic tangent
 images, adapted to a symplectic framing `Φ`: an open embedding `f` of `Q × B²(ε)` into `M` that is
 a local diffeomorphism, with `f (q, 0) = ι q`, pulling `σ` back to `ι^* σ ⊕ ω₀`, and whose
