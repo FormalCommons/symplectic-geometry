@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalHomologyRestriction
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
+import Mathlib.Analysis.Normed.Module.Connected
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.FundamentalClass
 
 /-!
@@ -36,6 +37,10 @@ comparison made after the centred chart, which detects classes of local homology
 * `TauCeti.HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`:
   the pointwise criterion for `π_*(u ⌢ γ)` to be the fundamental class of the base of a vector
   bundle, read in centred charts.
+* `TauCeti.HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_nhds`:
+  the same criterion, checked only on open contractible sets about `0` in each centred chart that
+  the chart's inverse carries into a given neighbourhood; it supplies a ball
+  (`exists_ball_mapsTo_centeredExtChartAt_symm`).
 
 ## References
 
@@ -48,6 +53,7 @@ public section
 noncomputable section
 
 open Bundle CategoryTheory MonoidalCategory Module Set AlgebraicTopology
+open scoped Topology
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
@@ -109,6 +115,56 @@ theorem map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt {q : ℕ}
       (mem_centeredExtChartAt_source I b) (centeredExtChartAt_self I b) q (by
       rw [← singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction]
       exact hγ b)
+
+/-- **The pointwise criterion for a fundamental class, on small sets of the centred charts.**
+In the setting of `map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`, let `T b` be a
+neighbourhood of `b` for each `b : B`. It suffices to check the hypothesis at `b` given an open
+contractible set `S ∋ 0` of the target of the centred chart at `b` that the inverse of the chart
+carries into `T b`. -/
+theorem map_proj_singularCap_eq_fundamentalClass_of_nhds {q : ℕ}
+    (o : HomologicalOrientation B E q) (hq : finrank ℝ E = q) {r n : ℕ} (h : r + q = n)
+    (u : (thomPair P V).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) r)
+    (γ : ((thomPair P V).singularHomology (ModuleCat.of ℤ (ULift.{0} ℤ)) n : ModuleCat.{0} ℤ))
+    {T : B → Set B} (hT : ∀ b, T b ∈ 𝓝 b)
+    (hγ : ∀ b (S : Set E) [ContractibleSpace S], IsOpen S →
+      S ⊆ (centeredExtChartAt I b).target → MapsTo (centeredExtChartAt I b).symm S (T b) →
+      (0 : E) ∈ S →
+      localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (centeredExtChartAt I b).sourceRestrict
+        (sourceRestrict_centeredExtChartAt_preimage_zero I b).subset q
+        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
+          (centeredExtChartAt I b).open_source.isOpenEmbedding_subtypeVal
+          ⟨b, mem_centeredExtChartAt_source I b⟩ q).inv
+          (TopPair.singularHomologyMap
+            (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P V, FiberBundle.continuous_proj P V⟩)
+              (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) (ModuleCat.of ℤ (ULift.{0} ℤ)) q
+            (TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom _
+              (TopCat.ofHom ⟨π P V, FiberBundle.continuous_proj P V⟩ ⁻¹'
+                ({b}ᶜ : Set (TopCat.of B)))
+              ((isOpen_zeroSectionCompl P V).preimage continuous_subtypeVal)
+              ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P V)).preimage
+                continuous_subtypeVal) r q n h u
+              (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
+                (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
+                (ModuleCat.of ℤ (ULift.{0} ℤ)) n
+                ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P V b n).hom
+                  γ))))) =
+      localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (centeredExtChartAt I b).sourceRestrict
+        (sourceRestrict_centeredExtChartAt_preimage_zero I b).subset q
+        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
+          (centeredExtChartAt I b).open_source.isOpenEmbedding_subtypeVal
+          ⟨b, mem_centeredExtChartAt_source I b⟩ q).inv (o b).val)) :
+    ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+        (TopCat.ofHom ⟨π P V, FiberBundle.continuous_proj P V⟩)
+      (((thomPair P V).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h u).hom γ) =
+      o.fundamentalClass hq := by
+  refine map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt (I := I) o hq h u γ
+    fun b ↦ ?_
+  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I b (hT b)
+  have := Metric.contractibleSpace_ball (x := (0 : E)) hε
+  exact hγ b _ Metric.isOpen_ball hSc hSe (Metric.mem_ball_self hε)
 
 end TauCeti.HomologicalOrientation
 
