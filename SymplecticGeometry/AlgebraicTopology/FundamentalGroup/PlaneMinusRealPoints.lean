@@ -26,6 +26,7 @@ import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
+import TauCeti.AlgebraicTopology.LocalCoefficient.Representation
 import TauCeti.GroupTheory.CoprodI
 import TauCeti.Topology.Homotopy.DeformationRetract
 
@@ -100,13 +101,13 @@ pieces are compared in the closed upper and lower half-planes minus the points, 
 so that paths in one of them with the same end points are homotopic. `starConvex_halfPlane` and
 `isPathHomotopyTrivial_half` follow the private lemmas `starConvex_setOf_mul_im` and
 `isSimplyConnected_setOf_mul_im` of that file. For any number of points the comparisons are
-bookkept in `π₁` through Tau Ceti's functor `TauCeti.Groupoid.functorOfEndHom`, for paths from
-`0` chosen as in `TauCeti.exists_functor_map_asHom_eq`, so that it sends any path to `π₁` and a
-loop at `0` to its class. For a real point `z` let `g z` be the class of the loop that goes
-from `0` to `z` through the lower half-plane and back through the upper one. It is constant between
-consecutive points and `1` left of them, the loop about `c k` is `(g (c k - r))⁻¹ * g (c k + r)`,
-and the large loop is `g R * (g (-R))⁻¹`, so the product of the loops telescopes to the large
-loop.
+bookkept in `π₁` through Tau Ceti's functor `TauCeti.Groupoid.functorOfEndHom`, for the paths from
+`0` that Tau Ceti's `TauCeti.LocalCoefficientSystem.pathFromBase` chooses, so that it sends any
+path to `π₁` and a loop at `0` to its class. For a real point `z` let `g z` be the class of the
+loop that goes from `0` to `z` through the lower half-plane and back through the upper one. It is
+constant between consecutive points and `1` left of them, the loop about `c k` is
+`(g (c k - r))⁻¹ * g (c k + r)`, and the large loop is `g R * (g (-R))⁻¹`, so the product of the
+loops telescopes to the large loop.
 
 ## References
 
@@ -880,33 +881,31 @@ private theorem range_via_subset {ε : ℝ} (hε : ε ≠ 0) (z : ↥(range fun 
 
 variable [Countable ι]
 
-open Classical in
-/-- Chosen classes of paths from `0` to the points of the plane minus the points `c i`, the
-constant one to `0` itself, as in Tau Ceti's `TauCeti.exists_functor_map_asHom_eq`. -/
-private def τ (z : FundamentalGroupoid ↥(range fun i ↦ (c i : ℂ))ᶜ) :
-    FundamentalGroupoid.mk (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ) ⟶ z :=
-  if hz : z = FundamentalGroupoid.mk ⟨0, zero_mem_compl_range h0⟩ then eqToHom hz.symm
-  else
-    -- The plane minus countably many points is path-connected.
-    have := isPathConnected_iff_pathConnectedSpace.1
-      ((countable_range fun i ↦ (c i : ℂ)).isPathConnected_compl_of_one_lt_rank (by
-        rw [Complex.rank_real_complex]
-        exact Nat.one_lt_ofNat))
-    FundamentalGroupoid.fromPath (Path.Homotopic.Quotient.mk (PathConnectedSpace.somePath _ z.as))
+/-- The plane minus countably many points is path-connected; a local instance, for Tau Ceti's
+`TauCeti.LocalCoefficientSystem.pathFromBase`. -/
+private theorem pathConnectedSpace_compl_range :
+    PathConnectedSpace ↥(range fun i ↦ (c i : ℂ))ᶜ :=
+  isPathConnected_iff_pathConnectedSpace.1
+    ((countable_range fun i ↦ (c i : ℂ)).isPathConnected_compl_of_one_lt_rank (by
+      rw [Complex.rank_real_complex]
+      exact Nat.one_lt_ofNat))
 
-private theorem τ_zero : τ h0 (FundamentalGroupoid.mk ⟨0, zero_mem_compl_range h0⟩) = 𝟙 _ := by
-  rw [τ, dite_eq_left rfl, eqToHom_refl]
+attribute [local instance] pathConnectedSpace_compl_range
 
 /-- The functor from the fundamental groupoid of the plane minus the points `c i` to `π₁` at `0`
-that reads a path through the chosen paths `τ`. -/
+that reads a path through Tau Ceti's chosen path classes from `0`,
+`TauCeti.LocalCoefficientSystem.pathFromBase`. -/
 private def toFundamentalGroup :
     FundamentalGroupoid ↥(range fun i ↦ (c i : ℂ))ᶜ ⥤
       SingleObj
         (FundamentalGroup ↥(range fun i ↦ (c i : ℂ))ᶜ ⟨0, zero_mem_compl_range h0⟩) :=
-  TauCeti.Groupoid.functorOfEndHom _ (τ h0) (MonoidHom.id _)
+  TauCeti.Groupoid.functorOfEndHom _
+    (TauCeti.LocalCoefficientSystem.pathFromBase (X := TopCat.of ↥(range fun i ↦ (c i : ℂ))ᶜ)
+      ⟨0, zero_mem_compl_range h0⟩)
+    (MonoidHom.id _)
 
 /-- The class in `π₁` at `0` of a path `p` between any two points: its end points are joined to
-`0` along the chosen paths `τ`. -/
+`0` along the chosen path classes. -/
 private def ofPath {z w : ↥(range fun i ↦ (c i : ℂ))ᶜ} (p : Path z w) :
     FundamentalGroup ↥(range fun i ↦ (c i : ℂ))ᶜ ⟨0, zero_mem_compl_range h0⟩ :=
   (toFundamentalGroup h0).map (FundamentalGroupoid.fromPath (Path.Homotopic.Quotient.mk p))
@@ -948,7 +947,8 @@ private theorem ofPath_cast {z' w' : ↥(range fun i ↦ (c i : ℂ))ᶜ} (p : P
 /-- On loops at `0`, `ofPath` is the class of the loop. -/
 private theorem ofPath_loop (γ : Path (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ)
     ⟨0, zero_mem_compl_range h0⟩) : ofPath h0 γ = fromPath (Path.Homotopic.Quotient.mk γ) := by
-  rw [ofPath_def, toFundamentalGroup, TauCeti.Groupoid.functorOfEndHom_map, τ_zero,
+  rw [ofPath_def, toFundamentalGroup, TauCeti.Groupoid.functorOfEndHom_map,
+    TauCeti.LocalCoefficientSystem.pathFromBase_mk,
     IsIso.inv_id, Category.id_comp,
     Category.comp_id, MonoidHom.id_apply]
 
