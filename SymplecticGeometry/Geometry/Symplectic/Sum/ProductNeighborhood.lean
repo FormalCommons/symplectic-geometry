@@ -95,7 +95,8 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   `SymplecticGeometry.SymplecticFraming.smul` is the framing of `ι` for `c • σ`, `c > 0`, obtained
   from one for `σ` by first multiplying by `(√c)⁻¹`: the normal form of `ι` for `c • σ` is `c`
   times that for `σ` (`TauCeti.SmoothEmbedding.symplecticNormalForm_smul`).
-* `SymplecticGeometry.prodBall Q ε`: the open set `Q × B²(ε)` of `Q × ℂ`.
+* `SymplecticGeometry.prodBall Q ε`: the open set `Q × B²(ε)` of `Q × ℂ`, and
+  `SymplecticGeometry.prodBallHomeomorph`, its homeomorphism with the product of `Q` and the disc.
 * `SymplecticGeometry.ProductNeighborhood Φ ε`: product neighbourhoods of radius `ε` adapted to
   the framing `Φ`.
 
@@ -755,6 +756,26 @@ theorem coe_prodBall (ε : ℝ) : (prodBall Q ε : Set (Q × ℂ)) = Set.univ ×
 @[simp]
 theorem mem_prodBall {ε : ℝ} {p : Q × ℂ} : p ∈ prodBall Q ε ↔ ‖p.2‖ < ε := by
   simp [← SetLike.mem_coe]
+
+variable (Q) in
+/-- The product `Q × B²(ε)` of `Q` with the open disc is homeomorphic to the open set
+`prodBall Q ε` of `Q × ℂ`. -/
+def prodBallHomeomorph (ε : ℝ) : Q × Metric.ball (0 : ℂ) ε ≃ₜ prodBall Q ε where
+  toFun w := ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩
+  invFun w := ((w : Q × ℂ).1, ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩)
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+@[simp]
+theorem coe_prodBallHomeomorph_apply {ε : ℝ} (w : Q × Metric.ball (0 : ℂ) ε) :
+    (prodBallHomeomorph Q ε w : Q × ℂ) = (w.1, (w.2 : ℂ)) :=
+  (rfl)
+
+@[simp]
+theorem prodBallHomeomorph_symm_apply {ε : ℝ} (w : prodBall Q ε) :
+    (prodBallHomeomorph Q ε).symm w =
+      ((w : Q × ℂ).1, ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩) :=
+  (rfl)
 
 /-- A **product neighbourhood** of radius `ε` of a smooth embedding `ι` with symplectic tangent
 images, adapted to a symplectic framing `Φ`: an open embedding `f` of `Q × B²(ε)` into `M` that is
