@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Gluing two spaces along open subsets
@@ -558,14 +559,14 @@ variable {σ₁ : SmoothForm I M₁ F k} {σ₂ : SmoothForm I M₂ F k}
 theorem mpullback_inl_gluedForm :
     SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff
       (gluedForm φ σ₁ σ₂ hσ) = σ₁ :=
-  Subtype.ext <| (SmoothForm.coe_mpullback _ _ _).trans (mpullback_inl_glue _ _)
+  (SmoothForm.mpullback_eq_iff _).2 (mpullback_inl_glue _ _)
 
 /-- The glued form pulls back by `inr` to the form on `M₂`. -/
 @[simp]
 theorem mpullback_inr_gluedForm :
     SmoothForm.mpullback (inr φ.toHomeomorph) (isLocalDiffeomorph_inr φ).contMDiff
       (gluedForm φ σ₁ σ₂ hσ) = σ₂ :=
-  Subtype.ext <| (SmoothForm.coe_mpullback _ _ _).trans <| mpullback_inr_glue <| by
+  (SmoothForm.mpullback_eq_iff _).2 <| mpullback_inr_glue <| by
     simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val hσ
 
 /-- The glued form is the only form on `GluedAlong φ.toHomeomorph` whose pull-backs by `inl` and
