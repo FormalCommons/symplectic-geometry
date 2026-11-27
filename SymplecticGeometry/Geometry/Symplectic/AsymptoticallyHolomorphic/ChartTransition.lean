@@ -72,15 +72,17 @@ for it, for `k ≥ k₀`:
 * the Christoffel symbols of the second kind `Γ_{k,x}` of `g_{k,x}`, Tau Ceti's
   `TauCeti.Manifold.christoffelSecondKind`, are smooth on the target of the chart
   (`RescaledUnitaryCharts.contDiffOn_christoffelSecondKind_associatedBilinFormInChart`, in the
-  namespace `SymplecticGeometry`, from `TauCeti.Manifold.contDiffOn_christoffelSecondKind`), and
-  for each `r` there is a constant `C`, independent of `k` and `x`, with
+  namespace `SymplecticGeometry`, from `TauCeti.Manifold.contDiffOn_christoffelSecondKind`), as
+  are `g_{k,x}` and the field of its inverses (in the same namespace,
+  `contDiffAt_associatedBilinFormInChart` and `contDiffOn_inverse_associatedBilinFormInChart`);
+  and for each `r` there is a constant `C`, independent of `k` and `x`, with
   `‖Dʲ Γ_{k,x}(w)‖ ≤ C * (√k)⁻¹` for `j ≤ r`, `k ≥ k₀` and `w` in the ball of radius `ρ₀ * √k`
   (in the same namespace,
   `exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le`). This is
   the Leibniz bound
-  `SymplecticGeometry.exists_norm_iteratedFDeriv_christoffelSecondKind_le` applied to the bounds
-  above on `g_{k,x}` and on its inverses; every term carries a derivative of `g_{k,x}` of positive
-  order, hence the factor `(√k)⁻¹`;
+  `SymplecticGeometry.norm_iteratedFDeriv_christoffelSecondKind_le_of_forall_le` applied to the
+  bounds above on `g_{k,x}` and on its inverses; every term carries a derivative of `g_{k,x}` of
+  positive order, hence the factor `(√k)⁻¹`;
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
   (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`), there is a radius
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
@@ -237,6 +239,14 @@ theorem contDiffOn_associatedBilinFormInChart [I.Boundaryless] (k : ℕ) (x : M)
     ContDiffOn ℝ ∞ (D.associatedBilinFormInChart k x) (D.chart k x).target :=
   (ContinuousLinearMap.contDiff _).comp_contDiffOn
     (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn (D.chart k x).symm.contMDiffOn)
+
+/-- On a boundaryless manifold, the field of forms `g_{k,x}` is smooth at each point of the target
+of the chart centred at `x`. -/
+theorem contDiffAt_associatedBilinFormInChart [I.Boundaryless] {k : ℕ} {x : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chart k x).target) :
+    ContDiffAt ℝ ∞ (D.associatedBilinFormInChart k x) w :=
+  (D.contDiffOn_associatedBilinFormInChart k x).contDiffAt
+    ((D.chart k x).open_target.mem_nhds hw)
 
 /-- **Transitions carry the forms read in the charts to each other.** For `k ≥ k₀` and `w` in
 the source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
@@ -435,16 +445,12 @@ theorem contDiffOn_christoffelSecondKind_associatedBilinFormInChart [I.Boundaryl
       ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm.1
         (D.isInvertible_associatedBilinFormInChart hw)
 
-/-- On a boundaryless manifold, for `k ≥ k₀` and `w` in the ball of radius `ρ₀ * √k`, the field
-`w ↦ g_{k,x}(w)⁻¹` of inverses is smooth at `w`. -/
-theorem contDiffAt_inverse_associatedBilinFormInChart [I.Boundaryless] {k : ℕ} (hk : k₀ ≤ k)
-    (x : M) {w : StdSpace ι} (hw : w ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
-    ContDiffAt ℝ ∞ (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) w := by
-  have hg : ContDiffAt ℝ ∞ (D.associatedBilinFormInChart k x) w :=
-    (D.contDiffOn_associatedBilinFormInChart k x).contDiffAt
-      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
-  exact (D.isInvertible_associatedBilinFormInChart (D.ball_subset_target hk x hw))
-    |>.contDiffAt_map_inverse.comp w hg
+/-- On a boundaryless manifold, the field `w ↦ g_{k,x}(w)⁻¹` of inverses is smooth on the target
+of the chart centred at `x`. -/
+theorem contDiffOn_inverse_associatedBilinFormInChart [I.Boundaryless] (k : ℕ) (x : M) :
+    ContDiffOn ℝ ∞ (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) (D.chart k x).target :=
+  fun _ hw ↦ ((D.isInvertible_associatedBilinFormInChart hw).contDiffAt_map_inverse.comp _
+    (D.contDiffAt_associatedBilinFormInChart hw)).contDiffWithinAt
 
 /-- **Uniform bounds on the Christoffel symbols of the forms read in the charts.** On a
 boundaryless manifold, for each `r` there is a constant `C` such that for all `j ≤ r`, all
@@ -457,54 +463,53 @@ theorem exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInCh
     ∃ C : ℝ, ∀ j ≤ r, ∀ k, k₀ ≤ k → ∀ (x : M), ∀ w ∈ ball (0 : StdSpace ι) (ρ₀ * √k),
       ‖iteratedFDeriv ℝ j (Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) w‖ ≤
         C * (√k)⁻¹ := by
-  obtain ⟨K, hK0, hK⟩ := exists_norm_iteratedFDeriv_christoffelSecondKind_le (E := StdSpace ι)
   -- A bound on the `i`-th derivative of the inverses, valid on the balls for all `k ≥ 1`.
   let A : ℕ → ℝ := fun i ↦ if i = 0 then
     |‖LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap‖ + |D.bound 1| * ρ₀|
     else |D.bound i|
-  let Cj : ℕ → ℝ := fun j ↦
-    K * ∑ i ∈ Finset.range (j + 1), (j.choose i : ℝ) * A i * |D.bound (j - i + 1)|
   have hA0 (i : ℕ) : 0 ≤ A i := by simp only [A]; split_ifs <;> positivity
-  have hCj0 (j : ℕ) : 0 ≤ Cj j := by simp only [Cj]; have := hA0; positivity
-  refine ⟨∑ j ∈ Finset.range (r + 1), Cj j, fun j hj k hk x w hw ↦ ?_⟩
+  let M₁ := ∑ i ∈ Finset.range (r + 1), A i
+  let M₂ := ∑ m ∈ Finset.range (r + 1), |D.bound (m + 1)|
+  refine ⟨christoffelSecondKindOfJetBilinNorm (StdSpace ι) * 2 ^ r * M₁ * M₂,
+    fun j hj k hk x w hw ↦ ?_⟩
+  have hwt := D.ball_subset_target hk x hw
   have hk0 : 0 < √k := (Real.sqrt_nonneg _).lt_of_ne fun h ↦ by
     simpa [← h] using pos_of_mem_ball hw
   have hk1 : (√k)⁻¹ ≤ 1 := by
     refine inv_le_one_of_one_le₀ (Real.one_le_sqrt.2 ?_)
     exact_mod_cast Nat.one_le_iff_ne_zero.2 fun h ↦ by simp [h] at hk0
-  have hg : ContDiffAt ℝ ∞ (D.associatedBilinFormInChart k x) w :=
-    (D.contDiffOn_associatedBilinFormInChart k x).contDiffAt
-      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hw))
-  have hinv (i : ℕ) :
-      ‖iteratedFDeriv ℝ i (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) w‖ ≤ A i := by
-    rcases eq_or_ne i 0 with rfl | hi
+  have hinv {i : ℕ} (hi : i ≤ j) :
+      ‖iteratedFDeriv ℝ i (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) w‖ ≤ M₁ := by
+    refine le_trans ?_ (Finset.single_le_sum (fun i _ ↦ hA0 i)
+      (Finset.mem_range.2 (Nat.lt_succ_of_le (hi.trans hj))))
+    rcases eq_or_ne i 0 with rfl | hi0
     · rw [norm_iteratedFDeriv_zero]
       exact (D.norm_inverse_associatedBilinFormInChart_le_of_mem_ball hk x hw).trans
         (by simp [A, le_abs_self])
-    · simp only [A, hi, ite_false]
+    · simp only [A, hi0, ite_false]
       calc _ ≤ D.bound i * (√k)⁻¹ :=
-            D.norm_iteratedFDeriv_inverse_associatedBilinFormInChart_le hk hi x hw
+            D.norm_iteratedFDeriv_inverse_associatedBilinFormInChart_le hk hi0 x hw
         _ ≤ |D.bound i| * 1 := by gcongr; exact le_abs_self _
         _ = |D.bound i| := mul_one _
-  have hder (m : ℕ) :
-      ‖iteratedFDeriv ℝ (m + 1) (D.associatedBilinFormInChart k x) w‖ ≤
-        |D.bound (m + 1)| * (√k)⁻¹ :=
-    (D.norm_iteratedFDeriv_associatedBilinFormInChart_le hk m.succ_ne_zero x hw).trans
-      (by gcongr; exact le_abs_self _)
-  calc _ ≤ K * ∑ i ∈ Finset.range (j + 1), (j.choose i : ℝ) *
-          ‖iteratedFDeriv ℝ i (fun w ↦ (D.associatedBilinFormInChart k x w).inverse) w‖ *
-            ‖iteratedFDeriv ℝ (j - i + 1) (D.associatedBilinFormInChart k x) w‖ :=
-        hK _ w hg (D.contDiffAt_inverse_associatedBilinFormInChart hk x hw)
-          (by exact_mod_cast le_top)
-    _ ≤ K * ∑ i ∈ Finset.range (j + 1), (j.choose i : ℝ) * A i *
-          (|D.bound (j - i + 1)| * (√k)⁻¹) := by
-        gcongr with i
-        exacts [hinv i, hder _]
-    _ = Cj j * (√k)⁻¹ := by
-        simp only [Cj, mul_assoc, Finset.sum_mul]
-    _ ≤ _ := by
-        gcongr
-        exact Finset.single_le_sum (fun j _ ↦ hCj0 j) (Finset.mem_range.2 (by omega))
+  have hder {m : ℕ} (hm : m ≤ j) :
+      ‖iteratedFDeriv ℝ (m + 1) (D.associatedBilinFormInChart k x) w‖ ≤ M₂ * (√k)⁻¹ := by
+    refine (D.norm_iteratedFDeriv_associatedBilinFormInChart_le hk m.succ_ne_zero x hw).trans ?_
+    gcongr
+    exact (le_abs_self _).trans (Finset.single_le_sum (f := fun m ↦ |D.bound (m + 1)|)
+      (fun _ _ ↦ abs_nonneg _) (Finset.mem_range.2 (Nat.lt_succ_of_le (hm.trans hj))))
+  calc _ ≤ christoffelSecondKindOfJetBilinNorm (StdSpace ι) * 2 ^ j * M₁ * (M₂ * (√k)⁻¹) :=
+        norm_iteratedFDeriv_christoffelSecondKind_le_of_forall_le
+          (D.contDiffAt_associatedBilinFormInChart hwt)
+          ((D.contDiffOn_inverse_associatedBilinFormInChart k x).contDiffAt
+            ((D.chart k x).open_target.mem_nhds hwt)) (by exact_mod_cast le_top)
+          (fun _ hi ↦ hinv hi) fun _ hm ↦ hder hm
+    _ ≤ christoffelSecondKindOfJetBilinNorm (StdSpace ι) * 2 ^ r * M₁ * (M₂ * (√k)⁻¹) := by
+        have hM₁ : 0 ≤ M₁ := Finset.sum_nonneg fun i _ ↦ hA0 i
+        have hM₂ : 0 ≤ M₂ := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
+        exact mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left
+          (pow_le_pow_right₀ one_le_two hj) (christoffelSecondKindOfJetBilinNorm_nonneg _)) hM₁)
+          (mul_nonneg hM₂ (inv_nonneg.2 hk0.le))
+    _ = _ := by ring
 
 /-! ### The derivatives of the transitions at the centre -/
 
