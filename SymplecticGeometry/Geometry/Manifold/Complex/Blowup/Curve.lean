@@ -52,7 +52,7 @@ divisor, the lifts of curves of this file, and the uniqueness of the complex str
 * `SymplecticGeometry.Blowup.mdifferentiable_curveLift`: the lift of a nonconstant holomorphic
   curve is holomorphic.
 * `SymplecticGeometry.Blowup.curveLift_unique`: it is the only continuous map over `u`.
-* `SymplecticGeometry.Blowup.blowdown_liftChart_divisorEmbedding_curveLift`: the properties of
+* `SymplecticGeometry.Blowup.contMDiff_blowdown_and_properties`: the properties of
   the complex blowup at a point, collected in one statement: the blowdown, the lifted charts, the
   exceptional divisor, the lifts of curves, and the uniqueness of the complex structure.
 
@@ -336,7 +336,7 @@ structure, has the following properties.
   is `diffeomorphOfEquiv c`).
 
 Milestone: *Complex blowup at a point*. -/
-theorem blowdown_liftChart_divisorEmbedding_curveLift :
+theorem contMDiff_blowdown_and_properties :
     ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) ∧
     (∃ e : offDivisorOpens c ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
         puncturedOpens c, ∀ z, (e z : M) = blowdown c z) ∧
