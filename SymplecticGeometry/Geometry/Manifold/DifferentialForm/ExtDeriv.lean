@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.ModelSpace
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The exterior derivative of functions, and in a chart
@@ -186,10 +187,7 @@ theorem mextDeriv_opens_apply {U : TopologicalSpace.Opens E} {k : ℕ}
   have h : (fun b' : U ↦ ω b' (i.removeNth v)) = (fun e ↦ ω₀ e (i.removeNth v)) ∘ Subtype.val :=
     funext fun b' ↦ congrArg (fun φ : E [⋀^Fin k]→L[ℝ] F ↦ φ (i.removeNth v)) (hω₀ b')
   rw [h]
-  refine Eq.symm ((Manifold.mfderiv_comp_subtype_val_apply (v i)).trans ?_)
-  rw [mfderiv_eq_fderiv]
-  -- `NormedSpace.fromTangentSpace` is the identity of `E` and of `F`.
-  rfl
+  exact (Manifold.mfderiv_modelSpace_comp_subtype_val_apply (v i)).symm
 
 end NormedSpace
 
