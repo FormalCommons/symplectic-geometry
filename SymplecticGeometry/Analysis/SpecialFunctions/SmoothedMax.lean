@@ -784,16 +784,6 @@ theorem smoothedMaxChain_succ_apply (δ : ℝ) (A : ℕ → ℝ → ℝ) (i : �
     smoothedMaxChain δ A (i + 1) r = smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r) :=
   (rfl)
 
-/-- A member of the chain of smoothed maxima is as smooth as the functions it is built from. -/
-theorem contDiff_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiff ℝ n (A j)) :
-    ContDiff ℝ n (smoothedMaxChain δ A i) := by
-  induction i with
-  | zero => rw [smoothedMaxChain_zero]; exact hA 0 le_rfl
-  | succ i ih =>
-    rw [smoothedMaxChain_succ]
-    exact (contDiff_smoothedMax δ).comp
-      ((ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).prodMk (hA (i + 1) le_rfl))
-
 /-- A member of the chain of smoothed maxima is `Cⁿ` at `r` if the functions it is built from
 are. -/
 theorem contDiffAt_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiffAt ℝ n (A j) r) :
@@ -804,6 +794,12 @@ theorem contDiffAt_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, C
     rw [smoothedMaxChain_succ]
     exact (contDiff_smoothedMax δ).contDiffAt.comp r
       ((ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).prodMk (hA (i + 1) le_rfl))
+
+/-- A member of the chain of smoothed maxima is as smooth as the functions it is built from. -/
+theorem contDiff_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiff ℝ n (A j)) :
+    ContDiff ℝ n (smoothedMaxChain δ A i) :=
+  contDiff_iff_contDiffAt.2 fun _ ↦
+    contDiffAt_smoothedMaxChain δ fun j hj ↦ (hA j hj).contDiffAt
 
 /-- A member of the chain of smoothed maxima is differentiable at `r` if the functions it is
 built from are. -/
