@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Lie.LeftTrivializedDeriv
-public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Regularity
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
@@ -15,11 +14,11 @@ import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 # Regularity of curves with a prescribed left-trivialized derivative
 
 Let `G` be a Lie group over `ℝ` with model space `E`, so that its Lie algebra
-`GroupLieAlgebra I G` is `E`. If a curve `g : ℝ → G` has left-trivialized derivative `ξ` at
-every time (`HasLeftTrivializedDerivOn g ξ univ`), then `g' t` is the value at `g t` of the
-left-invariant vector field of `ξ t`, so `g` solves the time-dependent equation of the field
-`X t x = mulInvariantVectorField (ξ t) x`, and `t ↦ (t, g t)` is an integral curve of its
-suspension `TauCeti.timeDependentSuspensionField X` on `ℝ × G`
+`GroupLieAlgebra I G` is `E`. If a curve `g : ℝ → G` has left-trivialized derivative `ξ` on a
+set `s` of times (`HasLeftTrivializedDerivOn g ξ s`), then `g' t` is the value at `g t` of the
+left-invariant vector field of `ξ t`, so `g` solves on `s` the time-dependent equation of the
+field `X t x = mulInvariantVectorField (ξ t) x`, and `t ↦ (t, g t)` is an integral curve on `s`
+of its suspension `TauCeti.timeDependentSuspensionField X` on `ℝ × G`
 (the first of the main results below).
 
 When `ξ` is `C^n`, the field `X` is jointly `C^n` by Tau Ceti's
@@ -33,9 +32,11 @@ the curve is given.
 
 All in the namespace `SymplecticGeometry.HasLeftTrivializedDerivOn`:
 
-* `isMIntegralCurve_prodMk_timeDependentSuspensionField_mulInvariantVectorField`: a curve with
-  left-trivialized derivative `ξ` at every time, lifted through its clock, is an integral curve
-  of the suspension of the left-invariant fields of `ξ`.
+* `isMIntegralCurveOn_prodMk_timeDependentSuspensionField_mulInvariantVectorField`: a curve
+  with left-trivialized derivative `ξ` on a set of times, lifted through its clock, is an
+  integral curve on that set of the suspension of the left-invariant fields of `ξ`.
+* `isMIntegralCurve_prodMk_timeDependentSuspensionField_mulInvariantVectorField`: the same at
+  every time.
 * `contMDiff_succ`: if `ξ` is `C^n`, a curve with left-trivialized derivative `ξ` at every time
   is `C^(n + 1)`.
 * `contMDiff`: if `ξ` is smooth, so is the curve.
@@ -58,16 +59,28 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
 
 /-- **A curve with left-trivialized derivative `ξ` lifts to an integral curve.** If `g : ℝ → G`
-has left-trivialized derivative `ξ` at every time, then `t ↦ (t, g t)` is an integral curve on
-`ℝ × G` of the suspension of the time-dependent vector field
+has left-trivialized derivative `ξ` on a set `s` of times, then `t ↦ (t, g t)` is an integral
+curve on `s`, in `ℝ × G`, of the suspension of the time-dependent vector field
+`(t, x) ↦ mulInvariantVectorField (ξ t) x`. -/
+theorem isMIntegralCurveOn_prodMk_timeDependentSuspensionField_mulInvariantVectorField
+    [ContMDiffMul I 1 G] {ξ : ℝ → E} {g : ℝ → G} {s : Set ℝ}
+    (hg : HasLeftTrivializedDerivOn (I := I) g ξ s) :
+    IsMIntegralCurveOn (fun t ↦ (t, g t))
+      (timeDependentSuspensionField fun t x ↦ mulInvariantVectorField (I := I) (ξ t) x) s :=
+  fun t ht ↦ hasMFDerivWithinAt_prodMk_timeDependentSuspensionField
+    (hasLeftTrivializedDerivOn_iff.mp hg t ht)
+
+/-- **A curve with left-trivialized derivative `ξ` at every time lifts to an integral curve.**
+If `g : ℝ → G` has left-trivialized derivative `ξ` at every time, then `t ↦ (t, g t)` is an
+integral curve on `ℝ × G` of the suspension of the time-dependent vector field
 `(t, x) ↦ mulInvariantVectorField (ξ t) x`. -/
 theorem isMIntegralCurve_prodMk_timeDependentSuspensionField_mulInvariantVectorField
     [ContMDiffMul I 1 G] {ξ : ℝ → E} {g : ℝ → G}
     (hg : HasLeftTrivializedDerivOn (I := I) g ξ univ) :
     IsMIntegralCurve (fun t ↦ (t, g t))
       (timeDependentSuspensionField fun t x ↦ mulInvariantVectorField (I := I) (ξ t) x) :=
-  fun t ↦ hasMFDerivWithinAt_univ.mp (hasMFDerivWithinAt_prodMk_timeDependentSuspensionField
-    (hasLeftTrivializedDerivOn_iff.mp hg t (mem_univ t)))
+  isMIntegralCurve_iff_isMIntegralCurveOn.mpr
+    hg.isMIntegralCurveOn_prodMk_timeDependentSuspensionField_mulInvariantVectorField
 
 variable [BoundarylessManifold I G]
 

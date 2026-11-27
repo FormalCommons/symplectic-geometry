@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import Mathlib.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
@@ -166,7 +167,16 @@ theorem isPathConnected_range_comp_annulusToProdBall [PathConnectedSpace Q] {a :
     IsPathConnected (range (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M)) := by
   have : PathConnectedSpace (annulus ℂ a ε) := isPathConnected_iff_pathConnectedSpace.1
     (isPathConnected_annulus (by simp [Complex.rank_real_complex]) ha haε)
-  exact isPathConnected_range (f.isOpenEmbedding_comp_annulusToProdBall a).continuous
+  exact _root_.isPathConnected_range (f.isOpenEmbedding_comp_annulusToProdBall a).continuous
+
+/-- The range of a product neighbourhood of radius `ε > 0` of a path connected `Q` is path
+connected. -/
+theorem isPathConnected_range [PathConnectedSpace Q] (hε : 0 < ε) : IsPathConnected (range f) := by
+  have h := (isPathConnected_univ (X := Q)).prod
+    ((convex_ball (0 : ℂ) ε).isPathConnected ⟨0, Metric.mem_ball_self hε⟩)
+  have : PathConnectedSpace (prodBall Q ε) :=
+    isPathConnected_iff_pathConnectedSpace.1 (by simpa using h)
+  exact _root_.isPathConnected_range f.isOpenEmbedding.continuous
 
 /-- A point `f p` lies in `f (Q × A(a, ε))` exactly when `a < |p.2|`. -/
 theorem apply_mem_range_comp_annulusToProdBall_iff {a : ℝ} {p : prodBall Q ε} :
