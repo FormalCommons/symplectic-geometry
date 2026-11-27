@@ -6,13 +6,15 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 import SymplecticGeometry.Geometry.Manifold.VectorField.ModelChart
 import SymplecticGeometry.Topology.Order.Sublevel
 
 /-!
-# Pushing a band without critical points down, relative to the sublevel below it
+# Band cores, and pushing a band without critical points down
 
 Let `f` be a smooth real function on a boundaryless finite-dimensional manifold `M`, and let the
 band `f⁻¹[a, b]` be compact and free of critical points of `f`. For every open set `U` containing
@@ -28,15 +30,28 @@ time `b - a` by `TauCeti.compactlySupportedFlowDiffeotopy`. A point of `{f ≤ b
 stayed above `a + 2 ε / 3` would descend at unit speed all that time, ending below `a`.
 The descending field is `TauCeti.exists_vectorField_mvfderiv_eq_neg_one_of_boundaryless`.
 
+A band core `SymplecticGeometry.BandCore I g a₀ a b` of `g : M → ℝ` is a finite family of pairwise
+disjoint cubes of positive codimension, each the image of the cube `closedBall 0 1 ×ˢ {0}` of
+`(Fin m → ℝ) × (Fin (finrank ℝ E - m) → ℝ)` under a smooth open embedding, above the level `a₀`
+and with boundary sphere below the level `a`, together with a compression: every open set
+containing `{g ≤ a}` and the cubes receives `{g ≤ b}` at the end of a smooth isotopy of the
+identity that fixes a neighbourhood of `{g ≤ a}`. A band without critical points has the band
+core without cubes (`SymplecticGeometry.BandCore.ofNoCriticalPoint`), whose compression is
+`TauCeti.Diffeotopy.smoothIsotopy` of the diffeotopy above.
+
 ## Main declarations
 
 * `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`: the diffeotopy fixed near `{f ≤ a}`
   carrying `{f ≤ b}` into a given open neighbourhood of `{f ≤ a}`.
+* `SymplecticGeometry.BandCore`: band cores; `SymplecticGeometry.BandCore.cubes`, the union of
+  the cubes, compact (`isCompact_cubes`) and above `a₀` (`cubes_subset`).
+* `SymplecticGeometry.BandCore.ofNoCriticalPoint`: the band core without cubes.
 
 ## References
 
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
   Theorem 3.1.
+* [Y. Eliashberg and N. Mishachev, *Introduction to the h-Principle*][EliashbergMishachev2002]
 -/
 
 public section
@@ -132,5 +147,130 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
   linarith
 
 end TauCeti
+
+namespace SymplecticGeometry
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- A **band core** of `g : M → ℝ` for the levels `a₀`, `a`, `b`: finitely many pairwise
+disjoint cubes of positive codimension, lying above the level `a₀` with their boundary spheres
+below the level `a`, such that every open set containing `{g ≤ a}` and the cubes receives
+`{g ≤ b}` at the end of a smooth isotopy from the identity that fixes a neighbourhood of
+`{g ≤ a}`.
+
+The cube `i` has dimension `m = dim i`. It is the image of `closedBall 0 1 ×ˢ {0}` under a smooth
+open embedding `chart i` of the whole of `(Fin m → ℝ) × (Fin (finrank ℝ E - m) → ℝ)` (with sup
+norms) into `M`, and its boundary sphere is the image of `sphere 0 1 ×ˢ {0}`. -/
+structure BandCore (g : M → ℝ) (a₀ a b : ℝ) where
+  /-- The index type of the cubes. -/
+  ι : Type
+  /-- There are finitely many cubes. -/
+  [fintype : Fintype ι]
+  /-- The dimension of each cube. -/
+  dim : ι → ℕ
+  /-- Each cube has positive codimension. -/
+  dim_lt (i : ι) : dim i < Module.finrank ℝ E
+  /-- The coordinates around each cube. -/
+  chart (i : ι) : (Fin (dim i) → ℝ) × (Fin (Module.finrank ℝ E - dim i) → ℝ) → M
+  /-- Each chart is a smooth embedding. -/
+  isSmoothEmbedding_chart (i : ι) : Manifold.IsSmoothEmbedding
+    𝓘(ℝ, (Fin (dim i) → ℝ) × (Fin (Module.finrank ℝ E - dim i) → ℝ)) I ∞ (chart i)
+  /-- Each chart has open range. -/
+  isOpen_range_chart (i : ι) : IsOpen (range (chart i))
+  /-- Each cube lies above the level `a₀`. -/
+  mapsTo_cube (i : ι) : MapsTo (chart i) (Metric.closedBall 0 1 ×ˢ {0}) {x | a₀ < g x}
+  /-- The boundary sphere of each cube lies below the level `a`. -/
+  mapsTo_sphere (i : ι) : MapsTo (chart i) (Metric.sphere 0 1 ×ˢ {0}) {x | g x < a}
+  /-- Distinct cubes are disjoint. -/
+  pairwise_disjoint : Pairwise fun i j ↦
+    Disjoint (chart i '' Metric.closedBall 0 1 ×ˢ {0}) (chart j '' Metric.closedBall 0 1 ×ˢ {0})
+  /-- Every open set containing `{g ≤ a}` and the cubes receives `{g ≤ b}` at the end of a
+  smooth isotopy from the identity that fixes a neighbourhood of `{g ≤ a}`. -/
+  exists_compression (U : Set M) (hU : IsOpen U)
+      (hsub : {x | g x ≤ a} ∪ ⋃ i, chart i '' Metric.closedBall 0 1 ×ˢ {0} ⊆ U) :
+    ∃ (f : C^∞⟮I, M; I, M⟯) (F : TauCeti.SmoothIsotopy ContMDiffMap.id f),
+      (∃ V ∈ 𝓝ˢ {x | g x ≤ a}, ∀ t, ∀ x ∈ V, F (t, x) = x) ∧ MapsTo f {x | g x ≤ b} U
+
+namespace BandCore
+
+attribute [instance] BandCore.fintype
+
+variable {I} {g : M → ℝ} {a₀ a b : ℝ}
+
+/-- The union of the cubes of a band core. -/
+def cubes (c : BandCore I g a₀ a b) : Set M :=
+  ⋃ i, c.chart i '' Metric.closedBall 0 1 ×ˢ {0}
+
+/-- The cubes of a band core are the images of the unit cube under its charts. -/
+theorem cubes_def (c : BandCore I g a₀ a b) :
+    c.cubes = ⋃ i, c.chart i '' Metric.closedBall 0 1 ×ˢ {0} := (rfl)
+
+/-- Each cube of a band core lies in its cubes. -/
+theorem image_chart_subset_cubes (c : BandCore I g a₀ a b) (i : c.ι) :
+    c.chart i '' Metric.closedBall 0 1 ×ˢ {0} ⊆ c.cubes := by
+  rw [cubes_def]
+  exact subset_iUnion (fun j ↦ c.chart j '' Metric.closedBall 0 1 ×ˢ {0}) i
+
+/-- Every open set containing `{g ≤ a}` and the cubes of a band core receives `{g ≤ b}` at the
+end of a smooth isotopy from the identity that fixes a neighbourhood of `{g ≤ a}`. -/
+theorem exists_compression_of_subset (c : BandCore I g a₀ a b) {U : Set M} (hU : IsOpen U)
+    (hsub : {x | g x ≤ a} ∪ c.cubes ⊆ U) :
+    ∃ (f : C^∞⟮I, M; I, M⟯) (F : TauCeti.SmoothIsotopy ContMDiffMap.id f),
+      (∃ V ∈ 𝓝ˢ {x | g x ≤ a}, ∀ t, ∀ x ∈ V, F (t, x) = x) ∧ MapsTo f {x | g x ≤ b} U :=
+  c.exists_compression U hU (by rwa [← cubes_def])
+
+/-- A point lies in the cubes when some chart sends a point of the unit cube to it. -/
+theorem mem_cubes_iff (c : BandCore I g a₀ a b) {x : M} :
+    x ∈ c.cubes ↔ ∃ i, ∃ v ∈ Metric.closedBall 0 1 ×ˢ {0}, c.chart i v = x := by
+  simp only [cubes_def, mem_iUnion, mem_image]
+
+/-- The cubes of a band core form a compact set. -/
+theorem isCompact_cubes (c : BandCore I g a₀ a b) : IsCompact c.cubes :=
+  isCompact_iUnion fun i ↦ ((isCompact_closedBall 0 1).prod isCompact_singleton).image
+    (c.isSmoothEmbedding_chart i).contMDiff.continuous
+
+/-- The cubes of a band core lie above the level `a₀`. -/
+theorem cubes_subset (c : BandCore I g a₀ a b) : c.cubes ⊆ {x | a₀ < g x} :=
+  iUnion_subset fun i ↦ (c.mapsTo_cube i).image_subset
+
+variable [FiniteDimensional ℝ E] [T2Space M] [I.Boundaryless] [IsManifold I ∞ M]
+
+/-- The band core without cubes of a smooth `g` whose band `g⁻¹[a, b]` is compact and contains
+no critical point of `g`, for any level `a₀`. Its compression is the smooth isotopy of the
+identity along the diffeotopy of `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`. -/
+noncomputable def ofNoCriticalPoint (hg : ContMDiff I 𝓘(ℝ) ∞ g)
+    (hcompact : IsCompact (g ⁻¹' Icc a b))
+    (hreg : ∀ x, a ≤ g x → g x ≤ b → mfderiv I 𝓘(ℝ) g x ≠ 0) (a₀ : ℝ) :
+    BandCore I g a₀ a b where
+  ι := Empty
+  dim := Empty.elim
+  dim_lt i := i.elim
+  chart i := i.elim
+  isSmoothEmbedding_chart i := i.elim
+  isOpen_range_chart i := i.elim
+  mapsTo_cube i := i.elim
+  mapsTo_sphere i := i.elim
+  pairwise_disjoint i := i.elim
+  exists_compression U hU hsub := by
+    obtain ⟨Φ, ⟨V, hV, hΦV⟩, hΦ⟩ := TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset hg
+      hcompact hreg hU (subset_union_left.trans hsub)
+    refine ⟨_, Φ.smoothIsotopy ContMDiffMap.id Manifold.IsSmoothEmbedding.id,
+      ⟨V, hV, fun t x hx ↦ ?_⟩, fun x hx ↦ ?_⟩
+    · exact (Φ.smoothIsotopy_apply _ _ (t, x)).trans (hΦV t x hx)
+    · simpa using hΦ hx
+
+/-- The band core `ofNoCriticalPoint` has no cubes. -/
+@[simp]
+theorem cubes_ofNoCriticalPoint (hg : ContMDiff I 𝓘(ℝ) ∞ g)
+    (hcompact : IsCompact (g ⁻¹' Icc a b))
+    (hreg : ∀ x, a ≤ g x → g x ≤ b → mfderiv I 𝓘(ℝ) g x ≠ 0) (a₀ : ℝ) :
+    (ofNoCriticalPoint hg hcompact hreg a₀).cubes = ∅ := by
+  simp [cubes_def, ofNoCriticalPoint]
+
+end BandCore
+
+end SymplecticGeometry
 
 end
