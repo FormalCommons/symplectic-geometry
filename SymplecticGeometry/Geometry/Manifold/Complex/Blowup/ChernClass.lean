@@ -1,0 +1,141 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
+
+/-!
+# The first Chern class of the blowup
+
+Let `M` be a smooth manifold modelled on `E = ℂⁿ⁺¹` with a smooth almost complex structure `J`,
+`c` a chart of `M` at `p₀` that is `J`-holomorphic on its source, and `J̃` the almost complex
+structure of the blowup `Blowup c` (`SymplecticGeometry.Blowup.almostComplexStructure`). The
+first Chern classes below are Tau Ceti's `TauCeti.firstChernClass` of the complex tangent bundles
+`(T Blowup c, J̃)` and `(TM, J)`, with any complex model `G`.
+
+## Main results
+
+* `SymplecticGeometry.Blowup.firstChernClass_restrict_compl`: on the complement of the
+  exceptional divisor, `c₁(T Blowup c, J̃)` and the pull-back of `c₁(TM, J)` by the blowdown `π`
+  restrict to the same class. There `dπ` is invertible
+  (`SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown_real`) and complex linear
+  (`SymplecticGeometry.Blowup.mfderiv_blowdown_almostComplexStructure_apply`), so it is a complex
+  isomorphism of the tangent bundle of the complement with the pull-back of `(TM, J)`, and the
+  naturality of the first Chern class
+  (`TauCeti.firstChernClass_eq_singularCohomologyMap_of_fiberwise`) applies.
+
+This is the first of three steps towards the formula `c₁(T Blowup c) = π^* c₁(TM) - n e`, where
+`e` is `SymplecticGeometry.Blowup.exceptionalClass` and Lean's `n` is the complex dimension of
+`M` minus one; McDuff–Salamon use this formula, (7.1.31), without proving it.
+
+## References
+
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
+  §7.1, (7.1.31), p. 311.
+-/
+
+public section
+
+open Bundle Module Set TauCeti TauCeti.SmoothAlmostComplexStructure
+open scoped Manifold ContDiff TauCeti.ComplexManifold
+
+noncomputable section
+
+namespace SymplecticGeometry
+
+namespace Blowup
+
+variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
+  [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] {p₀ : M} (c : BlowupChart (n := n) M p₀)
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
+  (J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) M)
+  (hJ : IsPseudoholomorphicOn J (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c
+    c.source)
+
+/-- Off the exceptional divisor, the differential of the blowdown, as a complex-linear
+isomorphism of the fibres of the complex tangent bundles `(T Blowup c, J̃)` and `(TM, J)`. -/
+private def mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ) :
+    ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber
+        (z : Blowup c) ≃L[ℂ]
+      (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber (blowdown c z) :=
+  ((((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
+      z).trans (((isLocalDiffeomorphAt_blowdown_real c z.property).mfderivToContinuousLinearEquiv
+        (by simp)).trans ((J.toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
+          (blowdown c z)).symm)).complexOfMapISmul fun v ↦
+    ((J.toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv (blowdown c z)).injective <| by
+      simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply,
+        Bundle.ContinuousComplexStructure.fiberEquiv_I_smul, toContMDiff_apply,
+        ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply]
+      rw [← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
+      -- `J̃ z` and `J (blowdown c z)` are applied through `toEndomorphism`, their coercion.
+      exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z.property _
+
+/-- `mfderivBlowdownEquiv` is the differential of the blowdown on the underlying real vectors. -/
+private theorem fiberEquiv_mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ)
+    (v : ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber
+      (z : Blowup c)) :
+    (J.toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv (blowdown c z)
+        (mfderivBlowdownEquiv c J hJ z v) =
+      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
+        (((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
+          z v) := by
+  rw [mfderivBlowdownEquiv, ContinuousLinearEquiv.complexOfMapISmul_apply,
+    ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    ContinuousLinearEquiv.apply_symm_apply, ← ContinuousLinearEquiv.coe_coe,
+    IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
+
+variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * finrank ℂ G)]
+
+/-- The isomorphisms `mfderivBlowdownEquiv` are continuous on total spaces, from the pull-back
+of `(T Blowup c, J̃)` to the complement of the exceptional divisor to `(TM, J)`. -/
+private theorem continuous_mfderivBlowdownEquiv :
+    Continuous fun v : TotalSpace G (⇑(ContinuousMap.subtypeVal (exceptionalDivisor c)ᶜ) *ᵖ
+        ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber) ↦
+      TotalSpace.mk' G (E := (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)
+        (blowdown c v.proj) (mfderivBlowdownEquiv c J hJ v.proj v.snd) := by
+  -- The map is `tangentMap (blowdown c)`, read through the complex tangent bundles.
+  refine (((J.toContMDiff ⊤).toContinuousComplexStructure.totalSpaceHomeomorph
+      G).symm.continuous.comp (((contMDiff_blowdown_real c).continuous_tangentMap (by simp)).comp
+    ((((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure
+      |>.totalSpaceHomeomorph G).continuous.comp (Pullback.continuous_lift G _ _)))).congr
+    fun v ↦ ?_
+  rw [Function.comp_apply, Function.comp_apply, Function.comp_apply, Homeomorph.symm_apply_eq,
+    Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply,
+    Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
+  -- `tangentMap` and `Pullback.lift` are read at `v` by unfolding: the fibres of the pull-back
+  -- are aliases of those of the bundle, at which their rewriting lemmas cannot be stated.
+  exact congrArg (TotalSpace.mk' _ (blowdown c v.proj))
+    (fiberEquiv_mfderivBlowdownEquiv c J hJ v.proj v.snd).symm
+
+/-- **The first Chern class of the blowup off the exceptional divisor.** On the complement of
+the exceptional divisor, the first Chern class of the complex tangent bundle of the blowup, with
+the almost complex structure `J̃ = almostComplexStructure c J hJ`, and the pull-back by the
+blowdown of the first Chern class of `(TM, J)` restrict to the same class; both are computed with
+the complex model `G`. -/
+theorem firstChernClass_restrict_compl :
+    TopCat.singularCohomologyMap
+        (TopPair.ofSubset (X := TopCat.of (Blowup c)) (exceptionalDivisor c)ᶜ).map 2
+        (firstChernClass G
+          ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber) =
+      TopCat.singularCohomologyMap
+        (TopPair.ofSubset (X := TopCat.of (Blowup c)) (exceptionalDivisor c)ᶜ).map 2
+        (TopCat.singularCohomologyMap (TopCat.ofHom (blowdown c)) 2
+          (firstChernClass G (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)) := by
+  have h := firstChernClass_eq_singularCohomologyMap_of_fiberwise
+    (g := (blowdown c).comp (ContinuousMap.subtypeVal _))
+    (continuous_mfderivBlowdownEquiv c J hJ G)
+  rw [firstChernClass_pullback, TopCat.ofHom_comp, TopCat.singularCohomologyMap_comp,
+    CategoryTheory.ConcreteCategory.comp_apply] at h
+  -- The embedding of the pair is `ContinuousMap.subtypeVal` (`TopPair.ofSubset_map`), which
+  -- cannot be rewritten, as the types of its source and target depend on the pair.
+  exact h
+
+end Blowup
+
+end SymplecticGeometry
