@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Uniqueness
 import TauCeti.Geometry.Symplectic.JHolomorphic.RiemannSurface
@@ -38,8 +38,8 @@ Riemann surface.
 
 The last section collects, in one theorem, what the library proves of the complex blowup at a
 point: the holomorphy of the blowdown and its biholomorphism off the exceptional divisor
-(`Blowup/Basic.lean`), the lifted charts (`Blowup/Chart.lean`), the holomorphic embedding of the
-divisor, the lifts of curves of this file, and the uniqueness of the complex structure
+(`Blowup/Basic.lean`), the lifted charts (`Blowup/Chart/Basic.lean`), the holomorphic embedding of
+the divisor, the lifts of curves of this file, and the uniqueness of the complex structure
 (`Blowup/Uniqueness.lean`).
 
 ## Main definitions

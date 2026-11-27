@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Cohomology.Relative
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Linear.Int
@@ -33,7 +34,9 @@ Each commutes with the maps induced by maps of pairs (the `_naturality` lemmas),
 `TopPair.singularCohomologyπ` from relative to absolute cohomology, followed on the absolute side
 by the change for spaces (the `_singularCohomologyπ` lemmas). An isomorphism of chain
 coefficients or of values gives an isomorphism of cohomology
-(`TopPair.singularCohomologyChainCoefficientIso`, `TopPair.singularCohomologyValueIso`).
+(`TopPair.singularCohomologyChainCoefficientIso`, `TopPair.singularCohomologyValueIso`). The
+change of values commutes with Tau Ceti's Kronecker map `TopPair.singularKronecker`
+(`TopPair.singularKronecker_singularCohomologyValueMap`).
 
 For a pair of spaces in `Type`, the three combine, along `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ`,
 into `TopPair.uliftIntegralCohomologyEquiv`: the `ℤ`-linear equivalence from cohomology with
@@ -203,6 +206,15 @@ theorem singularCohomologyπ_singularCohomologyValueMap (P : TopPair.{w}) (R : C
     singularCohomologyπ, ← homologyMap_comp, ← homologyMap_comp]
   congr 1
   exact (ChainComplex.linearYonedaObjMap_comp_linearYonedaFunctor_map k _ g).symm
+
+/-- **The Kronecker map under a change of values**: for `g : M ⟶ M'`, evaluating the class
+`g_* α ∈ Hⁿ(X, A; R, M')` on `Hₙ(X, A; R)` is evaluating `α` and then applying `g`. -/
+theorem singularKronecker_singularCohomologyValueMap (P : TopPair.{w}) (R : C) (k : Type*)
+    [Ring k] [Linear k C] (g : M ⟶ M') (n : ℕ) (α : P.singularCohomology R k M n) :
+    P.singularKronecker k n (P.singularCohomologyValueMap R k g n α) =
+      P.singularKronecker k n α ≫ g := by
+  rw [singularKronecker_def, singularKronecker_def]
+  exact TauCeti.ChainComplex.kronecker_coefficient_naturality g n α
 
 /-- The isomorphism `Hⁿ(X, A; R, M) ≅ Hⁿ(X, A; R, M')` induced by an isomorphism `e : M ≅ M'` of
 cochain values, with underlying map `TopPair.singularCohomologyValueMap`. -/
