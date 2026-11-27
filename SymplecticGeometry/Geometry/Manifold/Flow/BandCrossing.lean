@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import Mathlib.Analysis.Calculus.MeanValue
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.VectorField.Regularity
@@ -42,6 +43,9 @@ The proofs follow those of Tau Ceti's `TauCeti.comp_maximalIntegralCurve_neg_mgr
 
 * `IsMIntegralCurveOn.apply_le_add_mul`: if `df(v) ≤ C` along an integral curve on `[s, t]`, then
   `f` grows by at most `C (t - s)` along it.
+* `IsMIntegralCurve.mul_norm_sub_le_sub`: if `c ‖dg(v)‖ ≤ df(v)` along an integral curve on
+  `[a, b)`, then from time `a` to time `b` the rise of `f` is at least `c` times the displacement
+  of `g`.
 * `IsMIntegralCurve.apply_lt_of_mvfderiv_apply_le_neg`: an integral curve starting at or below `b`
   at time `s` is below `a` at each time `t ≥ s` with `ε (t - s) > b - a`, when `df(v) ≤ -ε` at its
   points in the band `f⁻¹[a, b]`.
@@ -87,6 +91,31 @@ theorem IsMIntegralCurveOn.apply_le_add_mul {s t C : ℝ} (hγ : IsMIntegralCurv
     s ⟨le_rfl, hst⟩ t ⟨hst, le_rfl⟩ hst
   simp only [Function.comp_apply] at h
   linarith
+
+/-- **Crossing estimate.** Let `γ` be an integral curve of `v`, `f : M → ℝ` a differentiable
+function and `g : M → F` a map to a normed space that is differentiable along `γ` on `[a, b]`.
+If `c ≥ 0` and `c ‖dg(v)‖ ≤ df(v)` along `γ` on `[a, b)`, then
+`c ‖g (γ b) - g (γ a)‖ ≤ f (γ b) - f (γ a)`. -/
+theorem IsMIntegralCurve.mul_norm_sub_le_sub {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {g : M → F} (hγ : IsMIntegralCurve γ v)
+    (hf : MDifferentiable I 𝓘(ℝ) f) {a b c : ℝ} (hc : 0 ≤ c) (hab : a ≤ b)
+    (hg : ∀ τ ∈ Icc a b, MDifferentiableAt I 𝓘(ℝ, F) g (γ τ))
+    (hbound : ∀ τ ∈ Ico a b,
+      c * ‖mvfderiv I g (γ τ) (v (γ τ))‖ ≤ mvfderiv I f (γ τ) (v (γ τ))) :
+    c * ‖g (γ b) - g (γ a)‖ ≤ f (γ b) - f (γ a) := by
+  have hderiv (τ : ℝ) (hτ : τ ∈ Icc a b) : HasDerivAt (fun σ ↦ g (γ σ))
+      (mvfderiv I g (γ τ) (v (γ τ))) τ :=
+    TauCeti.Manifold.hasDerivAt_comp_curve (hg τ hτ) (hγ τ)
+  have hmv := image_norm_le_of_norm_deriv_right_le_deriv_boundary
+    (f := fun τ ↦ c • (g (γ τ) - g (γ a)))
+    (f' := fun τ ↦ c • mvfderiv I g (γ τ) (v (γ τ)))
+    (B := fun τ ↦ f (γ τ) - f (γ a)) (B' := fun τ ↦ mvfderiv I f (γ τ) (v (γ τ)))
+    (fun τ hτ ↦ (((hderiv τ hτ).continuousAt.sub continuousAt_const).const_smul
+      c).continuousWithinAt)
+    (fun τ hτ ↦ (((hderiv τ (Ico_subset_Icc_self hτ)).sub_const _).const_smul c).hasDerivWithinAt)
+    (by simp) (fun τ ↦ (TauCeti.Manifold.hasDerivAt_comp_curve (hf (γ τ)) (hγ τ)).sub_const _)
+    (fun τ hτ ↦ by rw [norm_smul, Real.norm_of_nonneg hc]; exact hbound τ hτ) ⟨hab, le_rfl⟩
+  rwa [norm_smul, Real.norm_of_nonneg hc] at hmv
 
 /-- **Crossing a band of descent.** Let `γ` be an integral curve of `v` along which `f` is
 differentiable, with `df(v) ≤ -ε` at its points in the band `f⁻¹[a, b]`, where `a ≤ b`. If
