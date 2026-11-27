@@ -1460,9 +1460,10 @@ family by `IsSmoothFamily.mpullback_family`. The clauses:
   map that sends `Q` into `Q` stays exact near `Q`
   (`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
 
-No cutoff in space is needed, unlike the engine: only `Q` and the
-neighbourhood of `A` are constrained, and `e l 1` sends `Q` into the region
-of approximation. The merged case $m=1$
+Beyond the cutoff of step 4, which makes the datum holonomic near
+`B ×ˢ {0}` for every `l` as `exists_holonomic_approximation_family` asks,
+no cutoff in space is needed: only `Q` and the neighbourhood of `A` are
+constrained, and `e l 1` sends `Q` into the region of approximation. The merged case $m=1$
 (`HandleCore/OneDimensional.lean`) needs neither holonomic approximation
 nor a primitive near `A`; the working lemma does not use it.
 
