@@ -98,13 +98,8 @@ theorem isSymplecticMapOn_complexPartialDiffeomorph (hψ : IsSymplecticBallEmbed
   rw [complexPartialDiffeomorph_def]
   refine PartialDiffeomorph.isSymplecticMapOn_trans (σ := (stdForm (Fin m)).constSmooth)
     _ _ ?_ ?_ (by simp)
-  · have h : (stdComplexPiSymplecticForm (Fin m)).constSmooth.IsSymplecticMap
-        (stdForm (Fin m)).constSmooth (complexToRealEuclidean (Fin m)) := by
-      rw [SmoothTwoForm.isSymplecticMap_iff_mpullback_eq
-        (complexToRealEuclidean (Fin m)).contDiff.contMDiff,
-        ← (isSymplectomorphism_complexToRealEuclidean (Fin m)).mpullback_constSmooth]
-      simp only [ContinuousLinearEquiv.coe_toDiffeomorph]
-    simpa using h
+  · simpa using (SymplecticForm.isSymplectomorphism_constSmooth_toDiffeomorph_iff.2
+      (isSymplectomorphism_complexToRealEuclidean (Fin m))).isSymplecticMap
   · rw [hψ.coe_toPartialDiffeomorph, hψ.toPartialDiffeomorph_source]
     exact hψ.isSymplecticMapOn
 
