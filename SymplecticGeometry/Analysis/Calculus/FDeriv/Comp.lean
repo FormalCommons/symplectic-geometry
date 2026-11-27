@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Basic
 import TauCeti.Analysis.Calculus.SecondDerivative
 
 /-!
@@ -24,7 +25,8 @@ norm:
 When `f : E → 𝕜` is scalar and `φ : 𝕜 → F` is a function of one variable, the derivative of
 `φ ∘ f` is `(Df x).smulRight (φ'(f x))` (`SymplecticGeometry.fderiv_scalar_comp`), so its norm
 is `‖φ'(f x)‖ ‖Df(x)‖` (`SymplecticGeometry.norm_fderiv_scalar_comp`); and the bound above, read
-with Tau Ceti's `TauCeti.fderiv_fderiv_apply_eq_smul_iteratedDeriv`, becomes
+with Tau Ceti's `TauCeti.norm_fderiv_fderiv` and Mathlib's
+`norm_iteratedFDeriv_eq_norm_iteratedDeriv`, becomes
 `‖D²(φ ∘ f)(x)‖ ≤ ‖φ''(f x)‖ ‖Df(x)‖² + ‖φ'(f x)‖ ‖D²f(x)‖`
 (`SymplecticGeometry.norm_fderiv_fderiv_scalar_comp_le`), the norm form of Tau Ceti's
 `TauCeti.fderiv_fderiv_scalar_comp_apply`.
@@ -83,13 +85,9 @@ theorem norm_fderiv_fderiv_scalar_comp_le (hφ : ContDiffAt 𝕜 2 φ (f x))
     ‖fderiv 𝕜 (fderiv 𝕜 (φ ∘ f)) x‖ ≤
       ‖iteratedDeriv 2 φ (f x)‖ * ‖fderiv 𝕜 f x‖ ^ 2 +
         ‖deriv φ (f x)‖ * ‖fderiv 𝕜 (fderiv 𝕜 f) x‖ := by
-  have h2 : ‖fderiv 𝕜 (fderiv 𝕜 φ) (f x)‖ ≤ ‖iteratedDeriv 2 φ (f x)‖ := by
-    refine ContinuousLinearMap.opNorm_le_bound₂ _ (norm_nonneg _) fun a b ↦ ?_
-    rw [TauCeti.fderiv_fderiv_apply_eq_smul_iteratedDeriv, norm_smul, norm_mul, mul_comm,
-      mul_assoc]
-  refine (norm_fderiv_fderiv_comp_le hφ hf).trans ?_
-  rw [norm_deriv_eq_norm_fderiv]
-  gcongr
+  rw [← norm_iteratedFDeriv_eq_norm_iteratedDeriv, ← TauCeti.norm_fderiv_fderiv,
+    norm_deriv_eq_norm_fderiv]
+  exact norm_fderiv_fderiv_comp_le hφ hf
 
 end SymplecticGeometry
 
