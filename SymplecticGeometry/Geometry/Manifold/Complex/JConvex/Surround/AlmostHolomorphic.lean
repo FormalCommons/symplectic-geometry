@@ -15,9 +15,9 @@ import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
-import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.VanishingJet
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Flat
 
 /-!
 # Almost holomorphic Taylor extensions
@@ -60,9 +60,9 @@ to `f` on the real points.
 * `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero`: a map into a real
   normed space that is `C^(N + 1)` on an open set `U`, with derivatives of order at most `N` zero
   at the real points of `U`, has `‖D^j D (x + i y)‖ ≤ C * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` on a
-  neighbourhood of any compact set of real points in `U`. It follows from
-  `SymplecticGeometry.norm_iteratedFDeriv_add_le_of_iteratedFDeriv_eq_zero` along the segment from
-  `x` to `x + i y`.
+  neighbourhood of any compact set of real points in `U`. It follows from Tau Ceti's
+  `TauCeti.norm_iteratedFDeriv_sub_le_of_iteratedFDeriv_eq_zero` on a ball about a point of the
+  compact set, between `x` and `x + i y`.
 
 The formula of `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real` is the standard
 computation for almost analytic extensions: the derivative in the direction `i u` shifts the
@@ -383,35 +383,29 @@ theorem exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero {F : Type*}
       le_rfl).continuousWithinAt
   refine ⟨Metric.thickening δ K, Metric.thickening_mem_nhdsSet K hδ, M, fun z hz j hj ↦ ?_⟩
   obtain ⟨k, hk, hzk⟩ := Metric.mem_thickening_iff.1 hz
-  -- `z = x + y`, with `x` the real part of `z` and `y` its imaginary part, as points of `ℂⁿ`.
+  have hball : Metric.ball k δ ⊆ Metric.cthickening δ K :=
+    (Metric.ball_subset_thickening hk δ).trans (Metric.thickening_subset_cthickening _ _)
+  -- `x` is the real part of `z`, as a point of `ℂⁿ`.
   set x := e.symm ((e z).1, 0)
-  set y := e.symm (0, (e z).2)
-  have hxy : z = x + y := by simp [x, y, ← map_add]
-  have hnorm (p) : ‖e.symm p‖ = √(‖p.1‖ ^ 2 + ‖p.2‖ ^ 2) := by
-    rw [← norm_complexEuclideanEquivRealProd_symm_sq, Real.sqrt_sq (norm_nonneg _)]
-  have hy : ‖y‖ = ‖(e z).2‖ := by simp [y, hnorm]
+  have hzx : ‖z - x‖ = ‖(e z).2‖ := by
+    rw [← e.symm_apply_apply z, ← map_sub, e.symm_apply_apply, Prod.mk_sub_mk, sub_self,
+      sub_zero, norm_complexEuclideanEquivRealProd_symm_zero_mk]
   have hx : x ∈ Metric.ball k δ := by
     have hk' : k = e.symm ((e k).1, 0) := by
       rw [← hKre k hk]
       simp
-    rw [Metric.mem_ball, dist_eq_norm, hk', ← map_sub, Prod.mk_sub_mk, sub_zero, hnorm]
-    simp only [norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, add_zero,
-      Real.sqrt_sq (norm_nonneg _)]
+    rw [Metric.mem_ball, dist_eq_norm, hk', ← map_sub, Prod.mk_sub_mk, sub_zero,
+      norm_complexEuclideanEquivRealProd_symm_mk_zero]
     refine lt_of_le_of_lt ?_ (dist_eq_norm z k ▸ hzk)
     simpa using norm_complexEuclideanEquivRealProd_fst_le (z - k)
-  -- The segment from `x` to `z` lies in the ball of radius `δ` about `k`.
-  have hseg (t) (ht : t ∈ Set.Icc (0 : ℝ) 1) : x + t • y ∈ Metric.ball k δ := by
-    have := (convex_ball k δ).add_smul_sub_mem hx (Metric.mem_ball.2 hzk) ht
-    rwa [hxy, add_sub_cancel_left] at this
-  have hU' (t) (ht : t ∈ Set.Icc (0 : ℝ) 1) : x + t • y ∈ U :=
-    hδU (Metric.ball_subset_thickening hk δ |>.trans (Metric.thickening_subset_cthickening _ _)
-      (hseg t ht))
-  rw [← hy]
-  conv_lhs => rw [hxy]
-  refine norm_iteratedFDeriv_add_le_of_iteratedFDeriv_eq_zero hj
-    (fun t ht ↦ hD.contDiffAt (hU.mem_nhds (hU' t ht)))
-    (fun t ht ↦ hM _ (Metric.mem_cthickening_of_dist_le _ k _ _ hk (hseg t ht).le))
-    (h0 x (by simpa using hU' 0 (Set.left_mem_Icc.2 zero_le_one)) (by simp [x]))
+  rcases hj.eq_or_lt with rfl | hj
+  · simpa using hM z (hball hzk)
+  have hx0 := h0 x (hδU (hball hx)) (by simp [x])
+  have h := norm_iteratedFDeriv_sub_le_of_iteratedFDeriv_eq_zero (s := Metric.ball k δ) (k := N)
+    (fun w hw ↦ hD.contDiffAt (hU.mem_nhds (hδU (hball hw)))) (convex_ball k δ) hx
+    (fun w hw ↦ hM w (hball hw)) (fun i _ hi ↦ hx0 i hi) (N - j) (by omega) z hzk
+  rwa [Nat.sub_sub_self (by omega), hx0 j (by omega), sub_zero, hzx,
+    show N - j + 1 = N + 1 - j by omega] at h
 
 end SymplecticGeometry
 
