@@ -8,6 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Symplectic.Manifold.Opens
 
 /-!
 # The blowdown of a divisor modelled on the exceptional divisor
@@ -24,8 +31,14 @@ ball `|w| < √(l² + ε²)` of `E` (for the Euclidean norm `|w|` of `complexToR
 and `π` the blowdown, that is, with `BlowupModel.shellSymplectomorph` applied to `Ψ x`. This map
 is a diffeomorphism of `Ψ.source ∖ Z` onto the open shell `l < |w| < √(l² + ε²)`.
 
-The topology and the smooth structure do not use any form; the form of the blowdown is built from
-these pieces in a later step.
+The topology and the smooth structure do not use any form. Given a two-form `σ` on `M` such that
+`Ψ` pulls `ω̃_l = BlowupModel.blowupForm n l` back to `σ` on its source, the form of the blowdown
+is `σ` on `M ∖ Z` and the standard form `ω₀` on the ball. They agree on the overlap, since `Ψ`
+carries `σ` to `ω̃_l` and `shellSymplectomorph` carries `ω̃_l` to `ω₀`, so they glue by
+`GluedAlong.gluedForm`; the result is symplectic when `σ` is. The inclusion of the ball, read on
+`StdSpace`, is a symplectic embedding of every closed ball of radius less than `√(l² + ε²)`, and
+the complement of the image of the closed ball of radius `l` is the image of `inl`, so it is
+symplectomorphic to `M ∖ Z`.
 
 ## Main definitions
 
@@ -40,6 +53,15 @@ these pieces in a later step.
 * `SymplecticGeometry.DivisorBlowdown hΨ hf hl hε`: the blowdown, the space
   `SymplecticGeometry.GluedAlong` of `Geometry/Manifold/Gluing/Pair.lean` glued from the two
   pieces along `gluingDiffeomorph`.
+* `SymplecticGeometry.DivisorBlowdown.blowdownForm hΨ hf hl hε hσ`: the form of the blowdown,
+  glued from `σ` and `ω₀`.
+* `SymplecticGeometry.DivisorBlowdown.blowdownBall hΨ hf hl hε`: the ball embedding
+  `StdSpace (Fin (n + 1)) → DivisorBlowdown hΨ hf hl hε`, the inverse of
+  `complexToRealEuclidean` followed by `inr` on the open ball of radius `√(l² + ε²)`.
+* `SymplecticGeometry.DivisorBlowdown.complBall hΨ hf hl hε`: the complement of the image of
+  the closed ball of radius `l` under `blowdownBall`, the range of `inl`, and
+  `SymplecticGeometry.DivisorBlowdown.complBallSymplectomorph hΨ hf hl hε`, its diffeomorphism
+  onto `M ∖ Z`, the inverse of `inl`.
 
 ## Main results
 
@@ -56,10 +78,27 @@ these pieces in a later step.
   ball with `|w| ≤ l` and a point `x` of `M ∖ Z` off the source of `Ψ` are separated, for
   `0 < δ < ε`, by the ball `|w| < √(l² + δ²)` and the complement of the compact image of
   `L(δ)` under the inverse of `Ψ`. This is the criterion `GluedAlong.t2Space_iff`.
+* `SymplecticGeometry.DivisorBlowdown.isSymplectomorphism_gluingDiffeomorph`: the gluing map
+  pulls `ω₀` back to `σ`, by `isSymplectomorphism_sourceComplRangeDiffeomorph` and
+  `BlowupModel.isSymplectomorphism_shellSymplectomorph`.
+* `SymplecticGeometry.DivisorBlowdown.mpullback_inl_blowdownForm`, `mpullback_inr_blowdownForm`,
+  `eq_blowdownForm_iff`: the form of the blowdown is the form that pulls back to `σ` by `inl`
+  and to `ω₀` by `inr`.
+* `SymplecticGeometry.DivisorBlowdown.isSymplectic_blowdownForm`: for symplectic `σ`, the
+  form of the blowdown is symplectic.
+* `SymplecticGeometry.DivisorBlowdown.isSymplecticBallEmbedding_blowdownBall`: `blowdownBall`
+  is a symplectic embedding of the closed ball of every radius `r < √(l² + ε²)`, and so of
+  radius `l` (`isSymplecticBallEmbedding_blowdownBall_weight`); `ω₀` and `stdForm`
+  correspond by `constSmooth_stdComplexPiSymplecticForm_eq`.
+* `SymplecticGeometry.DivisorBlowdown.mem_complBall_iff`,
+  `isSymplectomorphism_complBallSymplectomorph`: the complement of the image of the closed ball
+  of radius `l` with the form of the blowdown is symplectomorphic to `M ∖ Z` with `σ`.
 
 The construction follows that of `SymplecticGeometry.WeightBlowup` in
 `Blowup/Weight/Basic.lean`, with the roles of the model and of the ball exchanged; its proof of
-`T2Space` is adapted from `SymplecticGeometry.WeightBlowup.instT2Space`.
+`T2Space` is adapted from `SymplecticGeometry.WeightBlowup.instT2Space`, its form from
+`SymplecticGeometry.WeightBlowup.form`, and the diffeomorphism of the complement of the ball
+from `SymplecticGeometry.WeightBlowup.complDivisorSymplectomorph`.
 
 ## References
 
@@ -318,6 +357,321 @@ instance instT2Space : T2Space (DivisorBlowdown hΨ hf hl hε) := by
       exact (mem_openNbhd_iff_radialBlowdownDiffeomorph l hδ.le _).2 this
     refine hzA ⟨Ψ z.val.val, openNbhd_subset_closedNbhd _ hz, ?_⟩
     exact Ψ.toOpenPartialHomeomorph.left_inv ((mem_outerOverlap_iff hf).1 z.property)
+
+/-! ### The ball of the blowdown -/
+
+include hl hε in
+/-- The ball piece contains `0`. -/
+theorem zero_mem_ballPiece : (0 : Fin (n + 1) → ℂ) ∈ ballPiece n l ε := by
+  rw [mem_ballPiece_iff, map_zero, norm_zero]
+  exact hl.trans_lt (Real.lt_sqrt_of_sq_lt (lt_add_of_pos_right _ (pow_pos hε 2)))
+
+/-- **The ball embedding of the blowdown**: the inclusion of the ball piece, read on
+`StdSpace (Fin (n + 1))` through `complexToRealEuclidean`, followed by `GluedAlong.inr`. Off the
+open ball of radius `√(l² + ε²)` it takes the value `inr 0`, which plays no role. -/
+def blowdownBall : StdSpace (Fin (n + 1)) → DivisorBlowdown hΨ hf hl hε := fun w ↦
+  GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph <|
+    if h : ‖w‖ < √(l ^ 2 + ε ^ 2) then
+      ⟨(complexToRealEuclidean (Fin (n + 1))).symm w, by simpa using h⟩
+    else ⟨0, zero_mem_ballPiece hl hε⟩
+
+theorem blowdownBall_def (w : StdSpace (Fin (n + 1))) :
+    blowdownBall hΨ hf hl hε w =
+      GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
+        (if h : ‖w‖ < √(l ^ 2 + ε ^ 2) then
+          ⟨(complexToRealEuclidean (Fin (n + 1))).symm w, by simpa using h⟩
+        else ⟨0, zero_mem_ballPiece hl hε⟩) :=
+  (rfl)
+
+/-- On the open ball of radius `√(l² + ε²)`, `blowdownBall` is `inr` of the point of `E` that
+`complexToRealEuclidean` sends to `w`. -/
+theorem blowdownBall_of_norm_lt {w : StdSpace (Fin (n + 1))} (hw : ‖w‖ < √(l ^ 2 + ε ^ 2)) :
+    blowdownBall hΨ hf hl hε w =
+      GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
+        ⟨(complexToRealEuclidean (Fin (n + 1))).symm w, by simpa using hw⟩ := by
+  simp only [blowdownBall_def, hw, ↓reduceDIte]
+
+/-- `blowdownBall` sends the point of `StdSpace` corresponding to a point `w` of the ball piece
+to `inr w`. -/
+@[simp]
+theorem blowdownBall_complexToRealEuclidean (w : ballPiece n l ε) :
+    blowdownBall hΨ hf hl hε (complexToRealEuclidean (Fin (n + 1)) w) =
+      GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph w := by
+  rw [blowdownBall_of_norm_lt hΨ hf hl hε ((mem_ballPiece_iff).1 w.property)]
+  simp
+
+/-- The image under `blowdownBall` of the closed ball of radius `l` consists of the points `inr w`
+with `|w| ≤ l`. -/
+theorem mem_image_blowdownBall_closedBall_iff {z : DivisorBlowdown hΨ hf hl hε} :
+    z ∈ blowdownBall hΨ hf hl hε '' closedBall 0 l ↔
+      ∃ w : ballPiece n l ε, ‖complexToRealEuclidean (Fin (n + 1)) (w : Fin (n + 1) → ℂ)‖ ≤ l ∧
+        GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph w = z := by
+  constructor
+  · rintro ⟨v, hv, rfl⟩
+    rw [mem_closedBall_zero_iff] at hv
+    have hv' := hv.trans_lt (Real.lt_sqrt_of_sq_lt (lt_add_of_pos_right _ (pow_pos hε 2)))
+    exact ⟨⟨(complexToRealEuclidean (Fin (n + 1))).symm v, by simpa using hv'⟩,
+      by simpa using hv, (blowdownBall_of_norm_lt hΨ hf hl hε hv').symm⟩
+  · rintro ⟨w, hw, rfl⟩
+    exact ⟨_, mem_closedBall_zero_iff.2 hw, blowdownBall_complexToRealEuclidean hΨ hf hl hε w⟩
+
+section Form
+
+open scoped TauCeti.ComplexManifold
+
+-- As in `Blowup/Weight/Basic.lean`: with the scope `TauCeti.ComplexManifold` open, the search for
+-- the `C^1` structure of an open subset of an open subset, which the pull-backs of forms below
+-- need, also tries complex structures and times out. Deriving it from the smooth structure first
+-- avoids this.
+attribute [local instance high] IsManifold.instOfNatWithTopENat_1
+
+variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M}
+  (hσ : σ.IsSymplecticMapOn (blowupForm n l) Ψ Ψ.source)
+
+/-! ### The form of the blowdown -/
+
+include hσ in
+/-- `sourceComplRangeDiffeomorph hΨ hf` pulls the restriction of `ω̃_l` to
+`openNbhdComplDivisor n ε` back to the restriction of `σ` to `Ψ.source ∖ Z`, when `Ψ` pulls
+`ω̃_l` back to `σ` on its source. -/
+theorem isSymplectomorphism_sourceComplRangeDiffeomorph :
+    SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
+      (sourceComplRangeDiffeomorph hΨ hf) := by
+  have h : SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
+      Ψ.toDiffeomorphSourceTarget := by
+    rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
+    exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hx ↦
+      hσ.mpullback_apply hx
+  rw [sourceComplRangeDiffeomorph]
+  exact h.subtype_nestedOpen _ _ _
+
+include hσ in
+/-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `ω₀`
+to the open shell back to the restriction of `σ` to `Ψ.source ∖ Z`, both read on the overlaps in
+the ball and the outer piece. -/
+theorem isSymplectomorphism_gluingDiffeomorph :
+    SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)))
+      (gluingDiffeomorph hΨ hf hl hε) := by
+  rw [gluingDiffeomorph]
+  exact (SmoothTwoForm.isSymplectomorphism_nestedOpen σ _).trans
+    ((isSymplectomorphism_sourceComplRangeDiffeomorph hΨ hf hσ).trans
+      ((isSymplectomorphism_shellSymplectomorph hl hε.le).trans
+        ((SmoothTwoForm.isSymplectomorphism_nestedOpen (ω₀E n) _).symm (by simp)) (by simp))
+      (by simp)) (by simp)
+
+include hσ in
+/-- The gluing map pulls the restriction of `ω₀` back to that of `σ`: the condition under which
+the two forms glue. -/
+theorem mpullback_gluingDiffeomorph :
+    SmoothForm.mpullback (gluingDiffeomorph hΨ hf hl hε) (gluingDiffeomorph hΨ hf hl hε).contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) :=
+  SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1
+    (isSymplectomorphism_gluingDiffeomorph hΨ hf hl hε hσ)
+
+/-- **The form of the blowdown**, following McDuff–Salamon, §7.1: the two-form that is `σ` on the
+outer piece `M ∖ Z` and the standard form `ω₀` on the ball piece `|w| < √(l² + ε²)`, which agree
+on the overlap (`mpullback_gluingDiffeomorph`). -/
+def blowdownForm : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (DivisorBlowdown hΨ hf hl hε) :=
+  GluedAlong.gluedForm _ (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+    (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
+    (mpullback_gluingDiffeomorph hΨ hf hl hε hσ)
+
+theorem blowdownForm_def :
+    blowdownForm hΨ hf hl hε hσ =
+      GluedAlong.gluedForm _ (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
+        (mpullback_gluingDiffeomorph hΨ hf hl hε hσ) :=
+  (rfl)
+
+/-- The form of the blowdown pulls back by `inl` to the restriction of `σ` to `M ∖ Z`. -/
+@[simp]
+theorem mpullback_inl_blowdownForm :
+    SmoothForm.mpullback (GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph)
+        (GluedAlong.isLocalDiffeomorph_inl _).contMDiff (blowdownForm hΨ hf hl hε hσ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ :=
+  GluedAlong.mpullback_inl_gluedForm
+
+/-- The form of the blowdown pulls back by `inr` to the restriction of `ω₀` to the ball piece. -/
+@[simp]
+theorem mpullback_inr_blowdownForm :
+    SmoothForm.mpullback (GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph)
+        (GluedAlong.isLocalDiffeomorph_inr _).contMDiff (blowdownForm hΨ hf hl hε hσ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n) :=
+  GluedAlong.mpullback_inr_gluedForm
+
+/-- A two-form on the blowdown is `blowdownForm hΨ hf hl hε hσ` exactly when it pulls back by
+`inl` to the restriction of `σ` and by `inr` to the restriction of `ω₀`. -/
+theorem eq_blowdownForm_iff
+    {α : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (DivisorBlowdown hΨ hf hl hε)} :
+    α = blowdownForm hΨ hf hl hε hσ ↔
+      SmoothForm.mpullback (GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph)
+          (GluedAlong.isLocalDiffeomorph_inl _).contMDiff α =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ ∧
+      SmoothForm.mpullback (GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph)
+          (GluedAlong.isLocalDiffeomorph_inr _).contMDiff α =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n) :=
+  GluedAlong.eq_gluedForm_iff
+
+/-- **The blowdown is symplectic**: for symplectic `σ`, the form of the blowdown is
+symplectic. -/
+theorem isSymplectic_blowdownForm (hσs : σ.IsSymplectic) :
+    (blowdownForm hΨ hf hl hε hσ).IsSymplectic :=
+  GluedAlong.isSymplectic_gluedForm_iff.2
+    ⟨hσs.mpullback_subtype_val _,
+      (ω₀E_def n ▸ SymplecticForm.isSymplectic_constSmooth _).mpullback_subtype_val _⟩
+
+/-! ### The ball embedding -/
+
+/-- **The ball embedding of the blowdown is symplectic**: `blowdownBall` is a symplectic
+embedding of the closed ball of every radius `r < √(l² + ε²)`, in particular of radius `l`
+(`isSymplecticBallEmbedding_blowdownBall_weight`). -/
+theorem isSymplecticBallEmbedding_blowdownBall {r : ℝ} (hr : r < √(l ^ 2 + ε ^ 2)) :
+    IsSymplecticBallEmbedding (blowdownForm hΨ hf hl hε hσ) r (blowdownBall hΨ hf hl hε) := by
+  -- `blowdownBall` is `inr ∘ g` for the map `g` into the ball piece below, which agrees with the
+  -- inverse of `complexToRealEuclidean` on the open ball `U` of radius `√(l² + ε²)`.
+  set e := complexToRealEuclidean (Fin (n + 1))
+  set U : Set (StdSpace (Fin (n + 1))) := ball 0 √(l ^ 2 + ε ^ 2)
+  let g : StdSpace (Fin (n + 1)) → ballPiece n l ε := fun w ↦
+    if h : ‖w‖ < √(l ^ 2 + ε ^ 2) then ⟨e.symm w, by simpa [e] using h⟩
+    else ⟨0, zero_mem_ballPiece hl hε⟩
+  have hgU : EqOn (Subtype.val ∘ g) e.symm U := fun w hw ↦ by
+    simp [g, mem_ball_zero_iff.1 hw]
+  have hgs : ContMDiffOn 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g U :=
+    (ContMDiffOn.subtypeVal_comp_iff _ _ _).1
+      (e.symm.contDiff.contMDiff.contMDiffOn.congr hgU)
+  have hg : IsSymplecticBallEmbedding
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)) r g := by
+    refine (isSymplecticBallEmbedding_def _ _ _).2
+      ⟨⟨U, isOpen_ball, closedBall_subset_ball hr, hgs⟩, fun v hv w hw h ↦ ?_, fun z hz ↦ ?_⟩
+    · have h' : (Subtype.val ∘ g) v = (Subtype.val ∘ g) w := by
+        rw [Function.comp_apply, Function.comp_apply, h]
+      rw [hgU (closedBall_subset_ball hr hv), hgU (closedBall_subset_ball hr hw)] at h'
+      exact e.symm.injective h'
+    · have hzU : z ∈ U := ball_subset_ball hr.le hz
+      have hgz : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) g z :=
+        (hgs.contMDiffAt (isOpen_ball.mem_nhds hzU)).mdifferentiableAt (by simp)
+      rw [SmoothForm.coe_mpullback,
+        ← mpullback_comp_at hgz ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero),
+        (Filter.eventuallyEq_of_mem (isOpen_ball.mem_nhds hzU) hgU).mpullback_eq, ω₀E_def,
+        constSmooth_stdComplexPiSymplecticForm_eq, SmoothForm.coe_mpullback,
+        ← mpullback_comp_at ((e.symm.contDiff (n := 1)).contMDiff.mdifferentiableAt one_ne_zero)
+          ((e.contDiff (n := 1)).contMDiff.mdifferentiableAt one_ne_zero)]
+      simp
+  have hbg : blowdownBall hΨ hf hl hε =
+      GluedAlong.inr (gluingDiffeomorph hΨ hf hl hε).toHomeomorph ∘ g :=
+    funext (blowdownBall_def hΨ hf hl hε)
+  rw [hbg]
+  exact hg.comp (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorph hΨ hf hl hε)).contMDiff
+    (GluedAlong.inr_injective _)
+    (by rw [← SmoothForm.coe_mpullback _
+      (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorph hΨ hf hl hε)).contMDiff,
+      mpullback_inr_blowdownForm])
+
+/-- `blowdownBall` is a symplectic embedding of the closed ball of radius `l`. -/
+theorem isSymplecticBallEmbedding_blowdownBall_weight :
+    IsSymplecticBallEmbedding (blowdownForm hΨ hf hl hε hσ) l (blowdownBall hΨ hf hl hε) :=
+  isSymplecticBallEmbedding_blowdownBall hΨ hf hl hε hσ
+    (Real.lt_sqrt_of_sq_lt (lt_add_of_pos_right _ (pow_pos hε 2)))
+
+/-! ### The complement of the ball -/
+
+/-- The complement in the blowdown of the image under `blowdownBall` of the closed ball of radius
+`l` (`mem_complBall_iff`): the image of the outer piece under `inl`, an open set. -/
+def complBall : Opens (DivisorBlowdown hΨ hf hl hε) :=
+  (GluedAlong.isLocalDiffeomorph_inl (gluingDiffeomorph hΨ hf hl hε)).image
+
+@[simp]
+theorem coe_complBall :
+    (complBall hΨ hf hl hε : Set (DivisorBlowdown hΨ hf hl hε)) =
+      range (GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph) := by
+  rw [complBall, ← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
+
+/-- Every point `inl x` of the blowdown lies in `complBall`. -/
+@[simp]
+theorem inl_mem_complBall (x : outerPiece hf) :
+    GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x ∈ complBall hΨ hf hl hε :=
+  SetLike.mem_coe.1 ((coe_complBall hΨ hf hl hε).symm ▸ mem_range_self x)
+
+/-- A point of the blowdown lies in `complBall` exactly when it is not the image under
+`blowdownBall` of a point of the closed ball of radius `l`. -/
+theorem mem_complBall_iff {z : DivisorBlowdown hΨ hf hl hε} :
+    z ∈ complBall hΨ hf hl hε ↔ z ∉ blowdownBall hΨ hf hl hε '' closedBall 0 l := by
+  rw [← SetLike.mem_coe, coe_complBall, mem_image_blowdownBall_closedBall_iff]
+  constructor
+  · rintro ⟨x, rfl⟩ ⟨w, hw, hxw⟩
+    obtain ⟨h, hxw⟩ := (GluedAlong.inr_eq_inl_iff _).1 hxw
+    have hw' := (gluingDiffeomorph hΨ hf hl hε ⟨x, h⟩).property
+    rw [Diffeomorph.coe_toHomeomorph] at hxw
+    rw [hxw, mem_ballOverlap_iff] at hw'
+    exact hw.not_gt hw'
+  · intro hz
+    rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, hx⟩ | ⟨w, rfl⟩
+    · exact ⟨x, hx⟩
+    · have hw : w ∈ ballOverlap n l ε := mem_ballOverlap_iff.2 (not_le.1 fun hw ↦ hz ⟨w, hw, rfl⟩)
+      exact ⟨_, GluedAlong.inl_symm_apply _ ⟨w, hw⟩⟩
+
+/-- **The complement of the ball**: the diffeomorphism from the complement in the blowdown of the
+image of the closed ball of radius `l` under `blowdownBall` onto `M ∖ Z`, the inverse of `inl`.
+It pulls `σ` back to the form of the blowdown
+(`isSymplectomorphism_complBallSymplectomorph`). -/
+def complBallSymplectomorph :
+    complBall hΨ hf hl hε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ outerPiece hf :=
+  -- `complBall` is by definition the open set `IsLocalDiffeomorph.image` of `inl`.
+  ((GluedAlong.isLocalDiffeomorph_inl _).diffeomorphOfInjective (GluedAlong.inl_injective _)).symm
+
+/-- The inverse of `complBallSymplectomorph` is `inl`. -/
+@[simp]
+theorem coe_complBallSymplectomorph_symm_apply (x : outerPiece hf) :
+    ((complBallSymplectomorph hΨ hf hl hε).symm x : DivisorBlowdown hΨ hf hl hε) =
+      GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x :=
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+
+/-- `inl` undoes `complBallSymplectomorph`. -/
+@[simp]
+theorem inl_complBallSymplectomorph_apply (z : complBall hΨ hf hl hε) :
+    GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
+        (complBallSymplectomorph hΨ hf hl hε z) = z := by
+  rw [← coe_complBallSymplectomorph_symm_apply, Diffeomorph.symm_apply_apply]
+
+/-- `complBallSymplectomorph` sends the point `inl x` to `x`. -/
+@[simp]
+theorem complBallSymplectomorph_inl (x : outerPiece hf) :
+    complBallSymplectomorph hΨ hf hl hε
+        ⟨GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x,
+          inl_mem_complBall hΨ hf hl hε x⟩ = x := by
+  apply GluedAlong.inl_injective (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
+  exact inl_complBallSymplectomorph_apply hΨ hf hl hε _
+
+/-- **The complement of the ball is symplectomorphic to `M ∖ Z`**: `complBallSymplectomorph`
+pulls the restriction of `σ` to `M ∖ Z` back to the restriction of the form of the blowdown to
+the complement of the image of the closed ball of radius `l` under `blowdownBall`. -/
+theorem isSymplectomorphism_complBallSymplectomorph :
+    SmoothTwoForm.IsSymplectomorphism
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowdownForm hΨ hf hl hε hσ))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (complBallSymplectomorph hΨ hf hl hε) := by
+  -- The inverse of `complBallSymplectomorph` followed by the inclusion is `inl`; the `show`
+  -- states this as an equality of functions, the form `SmoothForm.mpullback_congr` takes.
+  rw [← SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
+    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
+    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr _
+      (GluedAlong.isLocalDiffeomorph_inl _).contMDiff
+      (show Subtype.val ∘ (complBallSymplectomorph hΨ hf hl hε).symm = GluedAlong.inl _ from
+        funext (coe_complBallSymplectomorph_symm_apply hΨ hf hl hε)),
+    mpullback_inl_blowdownForm]
+
+end Form
 
 end DivisorBlowdown
 
