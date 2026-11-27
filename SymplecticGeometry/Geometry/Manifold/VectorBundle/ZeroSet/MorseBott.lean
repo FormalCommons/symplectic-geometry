@@ -160,11 +160,8 @@ theorem isNondegenerateCriticalSubmanifold_norm_sq_ofTransverseSection (hm2 : 2 
   have hg : ContMDiff J 𝓘(ℝ) 2 fun y ↦ ‖s y‖ ^ 2 :=
     ((contMDiff_norm_sq_bundle J m F' E').comp hsm).of_le hm2
   refine ⟨⟨fun z ↦ hg _, fun z ↦ ?_⟩, fun z ↦ ?_⟩
-  · refine IsLocalMin.mem_criticalPoints (Eventually.of_forall fun y ↦ ?_)
-      BoundarylessManifold.isInteriorPoint
-    simp only [ofTransverseSection_apply_eq_zero, norm_zero, ne_eq, OfNat.ofNat_ne_zero,
-      not_false_eq_true, zero_pow]
-    positivity
+  · exact mem_criticalPoints_norm_sq_of_eq_zero
+      (ofTransverseSection_apply_eq_zero hm hsm hs hE z) BoundarylessManifold.isInteriorPoint
   · rw [coe_ofTransverseSection, range_mfderiv_coe_transverseZeroSet hm hsm hs hE z]
     exact ker_criticalHessian_norm_sq_le_ker_sectionLinearization hm2 (hsm _) z.property
 
@@ -176,13 +173,11 @@ theorem manifoldMorseIndex_norm_sq_ofTransverseSection (z : ↥{x : X | s x = 0}
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     manifoldMorseIndex J (fun y ↦ ‖s y‖ ^ 2) (ofTransverseSection hm hsm hs hE z) = 0 := by
   let := transverseZeroSetChartedSpace hm hsm hs hE
-  refine manifoldMorseIndex_eq_zero_of_isLocalMin
+  exact manifoldMorseIndex_eq_zero_of_isLocalMin
     ((((contMDiff_norm_sq_bundle J m F' E').comp hsm).of_le
       (ENat.one_le_iff_ne_zero_withTop.2 hm)) _)
-    BoundarylessManifold.isInteriorPoint (Eventually.of_forall fun y ↦ ?_)
-  simp only [ofTransverseSection_apply_eq_zero, norm_zero, ne_eq, OfNat.ofNat_ne_zero,
-    not_false_eq_true, zero_pow]
-  positivity
+    BoundarylessManifold.isInteriorPoint
+    (isLocalMin_norm_sq_of_eq_zero (ofTransverseSection_apply_eq_zero hm hsm hs hE z))
 
 end TauCeti.SmoothEmbedding
 
