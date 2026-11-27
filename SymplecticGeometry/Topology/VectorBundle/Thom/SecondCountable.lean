@@ -10,6 +10,7 @@ public import TauCeti.Topology.MayerVietoris
 public import TauCeti.Topology.VectorBundle.Thom.Isomorphism
 public import TauCeti.Topology.VectorBundle.MayerVietoris.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.PullbackCup
+import TauCeti.AlgebraicTopology.Cohomology.DegreeZero
 
 /-!
 # The Thom isomorphism over a second-countable base
@@ -19,7 +20,9 @@ compact, second-countable space `B`, and let `u ∈ Hʳ(E, E₀; K)` be a Thom c
 in a commutative ring `K`. This file proves that for every `K`-module `M` the Thom map
 `Hᵖ(B; M) ⟶ Hᵖ⁺ʳ(E, E₀; M)`, `a ↦ π^*a ⌣ u`, is bijective
 (`TauCeti.bijective_thomMap_of_secondCountableTopology`), and bundles it as a linear equivalence
-(`TauCeti.thomEquivOfSecondCountableTopology`). Tau Ceti proves this over a compact base
+(`TauCeti.thomEquivOfSecondCountableTopology`). Over a path-connected nonempty base, where
+`H⁰(B; K)` is spanned by the unit class, every class of `Hʳ(E, E₀; K)` is then a multiple of `u`
+(`TauCeti.IsThomClass.exists_eq_smul`). Tau Ceti proves this over a compact base
 (`TauCeti.thomEquivOfCompactSpace`), and over any base when `K` is a field.
 
 The proof is the Mayer–Vietoris argument of Milnor and Stasheff, Theorem 10.4, arranged by Tau
@@ -59,6 +62,8 @@ and the global statements follow `TauCeti.bijective_thomMap_of_compactSpace` and
   Hausdorff, locally compact, second-countable base is bijective in every degree.
 * `TauCeti.thomEquivOfSecondCountableTopology`: the Thom isomorphism
   `Hᵖ(B; M) ≃ₗ[K] Hᵐ(E, E₀; M)`, `p + r = m`, with `thomEquivOfSecondCountableTopology_apply`.
+* `TauCeti.IsThomClass.exists_eq_smul`: over a path-connected nonempty base, every class of
+  `Hʳ(E, E₀; K)` is a multiple of the Thom class.
 
 ## References
 
@@ -202,5 +207,27 @@ theorem thomEquivOfSecondCountableTopology_apply [T2Space B] [LocallyCompactSpac
     (hu : IsThomClass F E u) (a : (TopCat.of B).singularCohomology (ModuleCat.of K K) K M p) :
     thomEquivOfSecondCountableTopology F E M p m h u hu a =
       thomMap F E M (finrank ℝ F) p m h u a := (rfl)
+
+/-- **Classes of the Thom pair in the degree of the rank are multiples of a Thom class.** For a
+Thom class `u ∈ Hʳ(E, E₀; K)` of a real vector bundle of finite rank `r` over a Hausdorff,
+locally compact, second-countable, path-connected and nonempty space `B`, every class
+`c ∈ Hʳ(E, E₀; K)` is `m • u` for some `m : K`. -/
+theorem IsThomClass.exists_eq_smul [T2Space B] [LocallyCompactSpace B]
+    [SecondCountableTopology B] [PathConnectedSpace B] [Nonempty B]
+    {u : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ F)}
+    (hu : IsThomClass F E u)
+    (c : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K)
+      (finrank ℝ F)) :
+    ∃ m : K, c = m • u := by
+  obtain ⟨a, rfl⟩ :=
+    (bijective_thomMap_of_secondCountableTopology (ModuleCat.of K K) 0 _ (zero_add _) hu).2 c
+  have : PathConnectedSpace (TopCat.of B) := ‹PathConnectedSpace B›
+  refine ⟨singularCohomologyZeroEval (Classical.arbitrary B) a, ?_⟩
+  conv_lhs => rw [eq_singularCohomologyZeroEval_smul_singularCohomologyZeroOne
+    (Classical.arbitrary B) a]
+  rw [map_smul, TopCat.singularCohomologyZeroOne_def (k := K)]
+  -- `thomMap_one` is stated for the class of the constant cocycle with coefficients
+  -- `ModuleCat.of K K`, which is the unit class since `𝟙_ (ModuleCat K)` is that module.
+  exact congrArg _ (thomMap_one _ _ _ _)
 
 end TauCeti
