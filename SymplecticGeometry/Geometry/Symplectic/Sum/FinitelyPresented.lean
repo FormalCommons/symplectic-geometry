@@ -285,6 +285,8 @@ theorem comap_map_fst_normalClosure_eq_normalClosure_graphTorus {κ : Type*} {x 
         (map (graphTorus contMDiff_const).toContinuousMap 0 (e.symm (map .snd (x, y) g))) := by
       refine prod_ext ?_ ?_
       · rw [hg, map_fst_fundamentalGroupMulEquivOfPath_map_graphTorus_const]
+        -- The two sides are the units of `π₁(M, x)` and of `π₁(M, (x, y).1)`, which `rw` does not
+        -- identify.
         rfl
       · rw [map_snd_fundamentalGroupMulEquivOfPath_map_graphTorus]
         exact (e.apply_symm_apply _).symm
