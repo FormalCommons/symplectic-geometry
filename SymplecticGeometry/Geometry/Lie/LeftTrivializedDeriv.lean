@@ -227,8 +227,9 @@ theorem HasLeftTrivializedDerivOn.congr (hg : HasLeftTrivializedDerivOn g ξ s) 
   rfl
 
 /-- On a union of two open sets, the condition holds if it holds on each of them. -/
-theorem HasLeftTrivializedDerivOn.union {s' : Set ℝ} (hg : HasLeftTrivializedDerivOn g ξ s)
-    (hg' : HasLeftTrivializedDerivOn g ξ s') (hs : IsOpen s) (hs' : IsOpen s') :
+theorem HasLeftTrivializedDerivOn.union_of_isOpen {s' : Set ℝ}
+    (hg : HasLeftTrivializedDerivOn g ξ s) (hg' : HasLeftTrivializedDerivOn g ξ s')
+    (hs : IsOpen s) (hs' : IsOpen s') :
     HasLeftTrivializedDerivOn g ξ (s ∪ s') := by
   rw [hasLeftTrivializedDerivOn_iff_of_isOpen hs] at hg
   rw [hasLeftTrivializedDerivOn_iff_of_isOpen hs'] at hg'
@@ -245,7 +246,7 @@ theorem HasLeftTrivializedDerivOn.piecewise [LieGroup I 1 G] {s' : Set ℝ}
     (hss' : IsPreconnected (s ∩ s')) {t₀ : ℝ} (ht₀ : t₀ ∈ s ∩ s') (h₀ : g t₀ = h t₀) :
     HasLeftTrivializedDerivOn (s.piecewise g h) ξ (s ∪ s') := by
   have hgh := (hg.mono inter_subset_left).eqOn (hh.mono inter_subset_right) hss' ht₀ h₀
-  refine (hg.congr (piecewise_eqOn s g h)).union (hh.congr fun t ht ↦ ?_) hs hs'
+  refine (hg.congr (piecewise_eqOn s g h)).union_of_isOpen (hh.congr fun t ht ↦ ?_) hs hs'
   by_cases hts : t ∈ s
   · rw [piecewise_eq_of_mem _ _ _ hts]
     exact hgh ⟨hts, ht⟩
