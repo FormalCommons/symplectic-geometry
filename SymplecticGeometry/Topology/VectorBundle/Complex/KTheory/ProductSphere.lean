@@ -18,7 +18,7 @@ import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LinearClutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.PolynomialClutching
 import Mathlib.Topology.Separation.CompletelyRegular
-import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
+import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 
 /-!
 # Bundles over `X × ℂP¹`: clutchings, the lines `L m`, linear clutchings, generators of `K`
@@ -242,7 +242,7 @@ theorem exists_iso_clutching :
   -- `annulusDeformation`, are its pullbacks along the projections.
   have hc : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
       (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
-        (circleToAnnulus X) = (F.pullback (prodMkOne X)).pullback ContinuousMap.fst := by
+        (circleToAnnulus X) = (F.pullback (prodMkOne X)).circlePullback := by
     simp [pullback_comp]
   have hd : (((F.pullback (prodMkOne X)).pullback ContinuousMap.fst).pullback
       (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc))).pullback
@@ -427,7 +427,7 @@ private theorem eq_zero_of_unitDiscRieszProjection_homotopy (x : X) {u : ℂ} (h
 identity on the range of `𝟙 E - P`. -/
 noncomputable def smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) :
     E.circlePullback ≅ E.circlePullback where
-  hom := circleCoord X •
+  hom := ContinuousMap.laurentMonomial 1 (1 : C(X, ℂ)) •
       pullbackMap P (ContinuousMap.fst : C(X × Circle, X)) +
     pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
   inv := ContinuousMap.laurentMonomial (-1) (1 : C(X, ℂ)) •
@@ -435,10 +435,10 @@ noncomputable def smulIdempotentAddIso {P : E ⟶ E} (hP : P ≫ P = P) :
     pullbackMap (𝟙 E - P) (ContinuousMap.fst : C(X × Circle, X))
   hom_inv_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
     simp [fiberMap_comp, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      fiberMap_fiberMap_of_comp_self hP, smul_smul, Circle.coe_ne_zero]
+      fiberMap_fiberMap_of_comp_self hP, smul_smul]
   inv_hom_id := hom_ext fun w ↦ ContinuousLinearMap.ext fun y ↦ by
     simp [fiberMap_comp, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      fiberMap_fiberMap_of_comp_self hP, smul_smul, Circle.coe_ne_zero]
+      fiberMap_fiberMap_of_comp_self hP, smul_smul]
 
 @[simp]
 theorem fiberMap_smulIdempotentAddIso_hom {P : E ⟶ E} (hP : P ≫ P = P) (w : X × Circle) :
@@ -642,8 +642,7 @@ variable {X : Type} [TopologicalSpace X]
 theorem of_clutching_circleZPowIso_zero :
     (of ((trivial ℂ X 1).clutching (circleZPowIso X 0)) :
       SplitK0 (FiniteRankBundleCore ℂ (X × ℙ ℂ (Fin 2 → ℂ)))) = 1 := by
-  rw [circleZPowIso_zero, of_congr (clutchingOneIso _), one_def]
-  exact of_congr (eqToIso (pullback_tensorUnit _))
+  rw [circleZPowIso_zero, of_congr (clutchingOneIso _), pullback_trivial, of_trivial_one]
 
 /-- The line `L (-1)`, clutched from the trivial line by `u ↦ u⁻¹`, has the class `[H]` of the
 pullback of the tautological line of `ℙ ℂ (Fin 2 → ℂ)`. -/

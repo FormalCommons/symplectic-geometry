@@ -24,7 +24,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Topology.Order.Sublevel
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The forms `ω̃_λ` on the model blowup
@@ -53,7 +52,7 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `TauCeti.exists_pos_sublevel_subset_of_isCompact_of_mem_nhdsSet`).
 * `SymplecticGeometry.BlowupModel.openNbhdOpens n ε`: `openNbhd n ε`, as an open subset of the
   model, and `SymplecticGeometry.BlowupModel.openNbhdComplDivisor n ε`: `openNbhd n ε ∖ Z`, as an
-  open subset of the model, which lies in the former (`openNbhdComplDivisor_le_openNbhdOpens`).
+  open subset of the model, the meet of the former and `offDivisorOpens n`.
 * `SymplecticGeometry.BlowupModel.blowupForm n l`: the form `π^* ω₀ + l² pr^* ω_FS`, and
   `SymplecticGeometry.BlowupModel.isClosed_blowupForm`: it is closed.
 * `SymplecticGeometry.BlowupModel.isKahler_blowupForm`: for `l ≠ 0`, `ω̃_l` is Kähler for the
@@ -73,9 +72,8 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
   `SymplecticGeometry.BlowupModel.integralTopForm_blowupForm_line`: every projective line of the
   divisor has area `π l²`, by `integralTopForm_mpullback_map_fubiniStudyForm`.
 * `SymplecticGeometry.BlowupModel.blowdownPuncturedDiffeomorph n`: `blowdownDiffeomorph n` as a
-  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, whose inverse has the real
-  derivative of that of `blowdownDiffeomorph n`
-  (`mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply`), holomorphic
+  real diffeomorphism from `L ∖ Z` onto `puncturedSpace E`, with the same map and inverse
+  (`coe_blowdownPuncturedDiffeomorph`, `coe_blowdownPuncturedDiffeomorph_symm`), holomorphic
   (`SymplecticGeometry.BlowupModel.isPseudoholomorphic_blowdownPuncturedDiffeomorph`), and
   `SymplecticGeometry.BlowupModel.mpullback_blowdownDiffeomorph_symm_blowupForm`: along its
   inverse, `ω̃_l` pulls back to `radialPotentialForm` of `s ↦ s + l² log s`, the sum of
@@ -261,25 +259,38 @@ theorem mem_openNbhdOpens_iff {ε : ℝ} {p : BlowupModel n} :
 
 variable (n) in
 /-- `openNbhd n ε ∖ Z`: the points of the model blowup off the exceptional divisor whose
-blowdown has Euclidean norm less than `ε`, as an open subset. -/
-def openNbhdComplDivisor (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
-  ⟨openNbhd n ε \ exceptionalDivisor n, (isOpen_openNbhd ε).sdiff isClosed_exceptionalDivisor⟩
+blowdown has Euclidean norm less than `ε`, as an open subset: the intersection of
+`openNbhdOpens n ε` with `offDivisorOpens n`. -/
+noncomputable def openNbhdComplDivisor (ε : ℝ) : TopologicalSpace.Opens (BlowupModel n) :=
+  openNbhdOpens n ε ⊓ offDivisorOpens n
 
-@[simp]
-theorem coe_openNbhdComplDivisor (ε : ℝ) :
-    (openNbhdComplDivisor n ε : Set (BlowupModel n)) = openNbhd n ε \ exceptionalDivisor n :=
+theorem openNbhdComplDivisor_def (ε : ℝ) :
+    openNbhdComplDivisor n ε = openNbhdOpens n ε ⊓ offDivisorOpens n :=
   (rfl)
 
 @[simp]
+theorem coe_openNbhdComplDivisor (ε : ℝ) :
+    (openNbhdComplDivisor n ε : Set (BlowupModel n)) = openNbhd n ε \ exceptionalDivisor n := by
+  rw [openNbhdComplDivisor_def, TopologicalSpace.Opens.coe_inf, coe_openNbhdOpens,
+    coe_offDivisorOpens, Set.sdiff_eq]
+
+@[simp]
 theorem mem_openNbhdComplDivisor_iff {ε : ℝ} {p : BlowupModel n} :
-    p ∈ openNbhdComplDivisor n ε ↔ p ∈ openNbhd n ε ∧ p ∉ exceptionalDivisor n :=
-  Iff.rfl
+    p ∈ openNbhdComplDivisor n ε ↔ p ∈ openNbhd n ε ∧ p ∉ exceptionalDivisor n := by
+  rw [← SetLike.mem_coe, coe_openNbhdComplDivisor, Set.mem_sdiff]
+
+/-- `openNbhdComplDivisor n ε` lies in the complement `offDivisorOpens n` of the divisor. -/
+theorem openNbhdComplDivisor_le_offDivisorOpens (ε : ℝ) :
+    openNbhdComplDivisor n ε ≤ offDivisorOpens n := by
+  rw [openNbhdComplDivisor_def]
+  exact inf_le_right
 
 variable (n) in
 /-- `openNbhd n ε ∖ Z` lies in `openNbhd n ε`. -/
 theorem openNbhdComplDivisor_le_openNbhdOpens (ε : ℝ) :
-    openNbhdComplDivisor n ε ≤ openNbhdOpens n ε :=
-  fun _ hp ↦ (mem_openNbhdComplDivisor_iff.1 hp).1
+    openNbhdComplDivisor n ε ≤ openNbhdOpens n ε := by
+  rw [openNbhdComplDivisor_def]
+  exact inf_le_left
 
 /-! ### The forms `ω̃_λ` -/
 
@@ -387,20 +398,31 @@ of `Geometry/Symplectic/Complex/Radial.lean` live. -/
 noncomputable def blowdownPuncturedDiffeomorph :
     offDivisorOpens n
       ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ puncturedSpace (Fin (n + 1) → ℂ) :=
-  (((blowdownDiffeomorph n).restrictScalars' ℝ).ofLE le_top).trans
-    ((Diffeomorph.refl _ _ _).subtype fun _ ↦ by simp)
+  ((blowdownDiffeomorph n).restrictScalars' ℝ).ofLE le_top
+
+/-- As a map, `blowdownPuncturedDiffeomorph n` is `blowdownDiffeomorph n`. -/
+theorem coe_blowdownPuncturedDiffeomorph :
+    ⇑(blowdownPuncturedDiffeomorph n) = blowdownDiffeomorph n := by
+  rw [blowdownPuncturedDiffeomorph, Diffeomorph.coe_ofLE, Diffeomorph.coe_restrictScalars']
+
+/-- As a map, the inverse of `blowdownPuncturedDiffeomorph n` is that of
+`blowdownDiffeomorph n`. -/
+theorem coe_blowdownPuncturedDiffeomorph_symm :
+    ⇑(blowdownPuncturedDiffeomorph n).symm = (blowdownDiffeomorph n).symm := by
+  rw [blowdownPuncturedDiffeomorph, Diffeomorph.ofLE_symm, Diffeomorph.coe_ofLE,
+    Diffeomorph.restrictScalars'_symm, Diffeomorph.coe_restrictScalars']
 
 @[simp]
 theorem coe_blowdownPuncturedDiffeomorph_apply
     (p : offDivisorOpens n) :
     (blowdownPuncturedDiffeomorph n p : Fin (n + 1) → ℂ) = p.val.blowdown := by
-  simp [blowdownPuncturedDiffeomorph]
+  rw [coe_blowdownPuncturedDiffeomorph, coe_blowdownDiffeomorph]
 
 @[simp]
 theorem coe_blowdownPuncturedDiffeomorph_symm_apply (z : puncturedSpace (Fin (n + 1) → ℂ)) :
     ((blowdownPuncturedDiffeomorph n).symm z : BlowupModel n) =
       ofNeZero (mem_puncturedSpace.1 z.property) := by
-  simp [blowdownPuncturedDiffeomorph, blowdownDiffeomorph_symm_apply]
+  rw [coe_blowdownPuncturedDiffeomorph_symm, blowdownDiffeomorph_symm_apply]
 
 /-- Read through the inclusions of the complement of the divisor and of `E ∖ 0`, the blowdown
 inverts `(blowdownPuncturedDiffeomorph n).symm`. -/
@@ -410,24 +432,6 @@ theorem blowdown_comp_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm :
   funext fun z ↦ by
     rw [Function.comp_apply, Function.comp_apply, coe_blowdownPuncturedDiffeomorph_symm_apply,
       blowdown_ofNeZero]
-
-/-- The real derivative of `(blowdownPuncturedDiffeomorph n).symm`, read in the model, is that of
-`(blowdownDiffeomorph n).symm`, since the two inverses agree on `E ∖ 0`. -/
-theorem mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply
-    (z : puncturedSpace (Fin (n + 1) → ℂ)) (v : Fin (n + 1) → ℂ) :
-    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-        (Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm) z v =
-      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
-        (Subtype.val ∘ (blowdownDiffeomorph n).symm) ⟨z, mem_puncturedSpace.1 z.property⟩ v := by
-  have hle : puncturedSpace (Fin (n + 1) → ℂ) ≤ ⟨{z | z ≠ 0}, isOpen_ne⟩ :=
-    fun _ h ↦ mem_puncturedSpace.1 h
-  have hcomp : Subtype.val ∘ (blowdownPuncturedDiffeomorph n).symm =
-      (Subtype.val ∘ (blowdownDiffeomorph n).symm) ∘ Opens.inclusion hle := funext fun w ↦ by
-    simp
-  have hz : Opens.inclusion hle z = ⟨z, mem_puncturedSpace.1 z.property⟩ :=
-    Subtype.ext (Set.coe_inclusion hle z)
-  exact (congrArg (fun f ↦ mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) f z v) hcomp).trans
-    ((Manifold.mfderiv_comp_inclusion_apply hle z v).trans (by rw [hz]))
 
 open SmoothAlmostComplexStructure in
 /-- The blowdown, from the complement of the exceptional divisor onto `E ∖ 0`, is holomorphic. -/
@@ -609,11 +613,9 @@ open neighbourhood of radius `ε` minus the exceptional divisor onto the open sh
 (`isSymplectomorphism_shellSymplectomorph`). -/
 noncomputable def shellSymplectomorph (l ε : ℝ) (hl : 0 ≤ l) (hε : 0 ≤ ε) :
     openNbhdComplDivisor n ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ openShell n l ε :=
-  (Diffeomorph.nestedOpen (U := openNbhdComplDivisor n ε)
-      (D := offDivisorOpens n)
-      fun _ hp ↦ mem_offDivisorOpens.2 (mem_openNbhdComplDivisor_iff.1 hp).2).symm.trans
+  (Diffeomorph.nestedOpen (openNbhdComplDivisor_le_offDivisorOpens (n := n) ε)).symm.trans
     (((radialBlowdownDiffeomorph n l).subtype fun p ↦ by
-        simp only [Opens.mem_comap]
+        simp only [Opens.mem_comap, ContinuousMap.coe_mk, mem_openNbhdComplDivisor_iff]
         exact ⟨fun hp ↦ ⟨lt_norm_radialBlowdownDiffeomorph hl p,
             (mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).1 hp.1⟩,
           fun hw ↦ ⟨(mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).2 hw.2,
@@ -626,7 +628,7 @@ theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ �
     (shellSymplectomorph n l ε hl hε p : Fin (n + 1) → ℂ) =
       radialMap (fun s ↦ s + l ^ 2) (fun _ hs ↦ add_pos_of_pos_of_nonneg hs (sq_nonneg l))
         (blowdownPuncturedDiffeomorph n
-          ⟨p.val, mem_offDivisorOpens.2 (mem_openNbhdComplDivisor_iff.1 p.property).2⟩) := by
+          ⟨p.val, openNbhdComplDivisor_le_offDivisorOpens ε p.property⟩) := by
   simp [shellSymplectomorph]
 
 /-- **The shell symplectomorphism.** `shellSymplectomorph` carries `ω̃_l` on the open

@@ -47,8 +47,8 @@ each density being the value of the form on the derivatives of the curve along `
   differentiable at `t` with `u t ≠ 0`, the density of the pull-back of `ω̃_{l,ε}` along
   `curveLift u` is `g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`, with `s = |u t|²` and `v = u'(t)`.
   By `mfderiv_curveLift_of_ne_zero` the derivative of the lift at `t` is that of the inverse of
-  the blowdown off the divisor, the same for `blowdownPuncturedDiffeomorph`
-  (`mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply`), along whose inverse
+  the blowdown off the divisor, which is also the inverse of `blowdownPuncturedDiffeomorph`
+  (`coe_blowdownPuncturedDiffeomorph_symm`), along whose inverse
   `ω̃_{l,ε}` pulls back to the radial potential form of `g`
   (`mpullback_blowdownDiffeomorph_symm_profileForm`); its value on `(v, i v)` is
   `radialPotentialForm_apply_I_smul`. Only the derivative of the lift at `t` enters, so no form
@@ -65,11 +65,10 @@ From these it proves the area identity and the milestone:
   curve `u` that is `C¹` near `closure Ω`, holomorphic on `Ω`, with `|u| > l + ε` on
   `frontier Ω` and finitely many zeros in `Ω`, of total order `m`, the area of `u` for `ω₀`
   over `Ω` is that of any continuous lift `ũ` for `ω̃_{l,ε}` plus `m π l²`. The lift is
-  `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential along `u`,
-  changed at the zeros where only its Laplacian off them matters, is constant near `frontier Ω`
-  and has a pole `-l² k log |t - t₀|²` at a zero of order `k`, so the planar identity
-  `setIntegral_laplacian_eq_of_log_poles` gives `∫ Δ(φ ∘ u) = 4π l² m`; the densities of
-  `u^* ω₀` are integrable, as continuous functions on the compact `closure Ω`
+  `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential along `u` is
+  constant near `frontier Ω` and has a pole `-l² k log |t - t₀|²` at a zero of order `k`, so the
+  planar identity `setIntegral_laplacian_eq_of_log_poles` gives `∫ Δ(φ ∘ u) = 4π l² m`; the
+  densities of `u^* ω₀` are integrable, as continuous functions on the compact `closure Ω`
   (`integrableOn_eval₂_ω₀E_mfderiv`).
 * `SymplecticGeometry.BlowupModel.kahler_blowupModel`: the conjunction of the Kähler property
   of `ω̃_l` and the area of the lines of the divisor, the Kähler property of pull-backs of `ω₀`
@@ -194,10 +193,8 @@ theorem eval₂_profileForm_mfderiv_curveLift (hl : 0 < l) (hε : 0 < ε)
     radialPotentialForm_apply_I_smul, Function.comp_apply,
     coe_blowdownPuncturedDiffeomorph_symm_apply] at key
   rw [mfderiv_curveLift_of_ne_zero hu h0, mfderiv_curveLift_of_ne_zero hu h0, one_smul,
-    curveLift_of_ne_zero h0]
-  exact (congrArg₂ ((profileForm n l ε).eval₂ (ofNeZero h0))
-    (mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply _ _).symm
-    (mfderiv_subtypeVal_comp_blowdownPuncturedDiffeomorph_symm_apply _ _).symm).trans key.symm
+    curveLift_of_ne_zero h0, ← coe_blowdownPuncturedDiffeomorph_symm]
+  exact key.symm
 
 /-- **The two area densities along a curve differ by a quarter Laplacian.** For `0 < l`, `0 < ε`
 and `u : ℂ → ℂⁿ⁺¹` analytic at `t` with `u t ≠ 0`, the density at `t` of `u^* ω₀` minus that of
@@ -314,38 +311,25 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
         -(l ^ 2 * (analyticOrderNatAt u s : ℕ) * Real.log (‖t - s‖ ^ 2)) + k t := fun s hs ↦ by
     obtain ⟨g, hg, hg0, hug⟩ := (hua s (hSΩ hs)).analyticOrderAt_ne_top.1 (hfin s (hSΩ hs))
     exact exists_areaPotential_comp_eq_log_add hl hε hg hg0 hug
-  choose! K hKs hKeq using hK
-  -- The area potential along `u`, corrected at the zeros, where its value does not matter.
-  set h : ℂ → ℝ := fun t ↦ if t ∈ S then K t t else areaPotential l ε (u t) with h_def
-  have hh_eq : ∀ t ∉ S, h =ᶠ[𝓝 t] areaPotential l ε ∘ u := fun t ht ↦
-    Filter.mem_of_superset (S.finite_toSet.isClosed.isOpen_compl.mem_nhds ht) fun z hz ↦ by
-      simp only [mem_ofPred_eq, h_def, Function.comp_apply, show z ∉ S from hz, ↓reduceIte]
+  set h : ℂ → ℝ := areaPotential l ε ∘ u with h_def
   set C := -(l ^ 2 * Real.log ((l + ε) ^ 2) + blowupCorrection l ε ((l + ε) ^ 2))
   have hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C := by
     refine eventually_nhdsSet_iff_forall.2 fun x hx ↦ ?_
-    have hxS : x ∉ S := fun hxS ↦ (hΩ.frontier_eq ▸ hx).2 (hSΩ hxS)
     have hux : ContinuousAt u x := (hu x (frontier_subset_closure hx)).continuousAt
-    filter_upwards [hh_eq x hxS, areaPotential_comp_eventuallyEq hl hε hux (hfr x hx)]
-      with t h₁ h₂
-    rw [h₁, h₂, areaPotential_of_ge hl hε (pow_le_pow_left₀ (by positivity) (hfr x hx).le 2)]
+    filter_upwards [areaPotential_comp_eventuallyEq hl hε hux (hfr x hx)] with t ht
+    rw [h_def, ht,
+      areaPotential_of_ge hl hε (pow_le_pow_left₀ (by positivity) (hfr x hx).le 2)]
   have hsm : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z := fun z hz ↦ by
     have hz0 : u z ≠ 0 := fun h0 ↦ hz.2 ((hmem z).2 ⟨hz.1, h0⟩)
-    exact (((contDiffAt_areaPotential hl hε hz0).comp z
-      ((hua z hz.1).contDiffAt.restrict_scalars ℝ)).of_le (by simp)).congr_of_eventuallyEq
-        (hh_eq z hz.2)
-  have hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧ ∀ᶠ t in 𝓝 s,
+    exact ((contDiffAt_areaPotential hl hε hz0).comp z
+      ((hua z hz.1).contDiffAt.restrict_scalars ℝ)).of_le (by simp)
+  have hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧ ∀ᶠ t in 𝓝[≠] s,
       h t = -(l ^ 2 * (analyticOrderNatAt u s : ℕ)) * Real.log (‖t - s‖ ^ 2) + k t :=
     fun s hs ↦ by
-      refine ⟨K s, (hKs s hs).of_le (by simp), ?_⟩
-      filter_upwards [eventually_nhdsWithin_iff.1 (hKeq s hs),
-        (S.erase s).finite_toSet.isClosed.isOpen_compl.mem_nhds (by simp)] with t h₁ h₂
-      by_cases hts : t = s
-      · subst hts
-        simp [h_def, hs]
-      · have htS : t ∉ S := fun htS ↦ h₂ (Finset.mem_erase.2 ⟨hts, htS⟩)
-        simp only [h_def, htS, ↓reduceIte]
-        rw [h₁ hts]
-        ring
+      obtain ⟨k, hk, hkeq⟩ := hK s hs
+      refine ⟨k, hk.of_le (by simp), hkeq.mono fun t ht ↦ ?_⟩
+      rw [h_def, Function.comp_apply, ht]
+      ring
   have hΔ := setIntegral_laplacian_eq_of_log_poles hΩ hb hSΩ hsm hC hpole
   have hΔi := integrableOn_laplacian_of_log_poles hΩ hb hSΩ hsm hC hpole
   have hsum : ∑ s ∈ S, -(l ^ 2 * (analyticOrderNatAt u s : ℝ)) =
@@ -363,8 +347,7 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
       ae_restrict_of_ae (S.finite_toSet.countable.ae_notMem volume)] with t htΩ htS
     have hev : ũ =ᶠ[𝓝 t] curveLift u := Filter.mem_of_superset (hΩ.mem_nhds htΩ) hlift
     have ht0 : u t ≠ 0 := fun h0 ↦ htS ((hmem t).2 ⟨htΩ, h0⟩)
-    rw [(InnerProductSpace.laplacian_congr_nhds (hh_eq t htS)).eq_of_nhds,
-      ← eval₂_ω₀E_sub_eval₂_profileForm_curveLift hl hε (hua t htΩ) ht0, hev.mfderiv_eq]
+    rw [← eval₂_ω₀E_sub_eval₂_profileForm_curveLift hl hε (hua t htΩ) ht0, hev.mfderiv_eq]
     exact (SmoothForm.eval₂_tangentSpaceCast (profileForm n l ε) (hlift htΩ).symm
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I)).trans (by ring)
