@@ -33,6 +33,8 @@ homologically oriented surface `M`, the integer `⟨c₁(E), [M]⟩`.
   (from `TauCeti.DetBundle.congrModelHomeomorph`);
 * `TauCeti.Bundle.ContinuousComplexStructure.firstChernClass_congr_model`: the class of the
   complex bundle of a continuous complex structure does not depend on the complex model;
+* `firstChernClass_detBundle`: the determinant line has the same class as the bundle
+  (from `TauCeti.firstChernClass_eq_lineFirstChernClass`);
 * `firstChernClass_pullback_coe`: naturality along a map of any type `K` with
   `[ContinuousMapClass K X B]`, from `TauCeti.firstChernClass_pullback` along `(f : C(X, B))`;
 * `firstChernClass_eq_complexEulerClass`: for a line bundle it is the Euler class of the bundle
@@ -40,8 +42,9 @@ homologically oriented surface `M`, the integer `⟨c₁(E), [M]⟩`.
 * `firstChernClass_conj`: the conjugate bundle has the opposite class
   (from `TauCeti.DetBundle.conjugateHomeomorph`);
 * `chernNumber o hn G E`: the first Chern number over a compact oriented surface, with
-  `chernNumber_neg_orientation`, `chernNumber_congr`, `chernNumber_trivial`, `chernNumber_conj`
-  and `chernNumber_pullback` (the number of a pull-back is the degree times the number).
+  `chernNumber_neg_orientation`, `chernNumber_congr`, `chernNumber_detBundle`,
+  `chernNumber_trivial`, `chernNumber_conj` and `chernNumber_pullback` (the number of a
+  pull-back is the degree times the number).
 
 ## Implementation notes
 
@@ -90,6 +93,12 @@ theorem firstChernClass_congr
     (φ := DetBundle.congrModelEquiv (F₁ := G) (F' := G') Φ)
     ((DetBundle.congrModelHomeomorph Φ hΦ).continuous.congr fun p ↦
       DetBundle.congrModelHomeomorph_apply Φ hΦ p)
+
+/-- **The determinant line has the same first Chern class as the bundle**:
+`c₁(det E) = c₁(E)`, where `det E` is the complex line bundle `TauCeti.DetBundle ℂ G E`. -/
+theorem firstChernClass_detBundle :
+    firstChernClass ℂ (DetBundle ℂ G E) = firstChernClass G E := by
+  rw [firstChernClass_eq_lineFirstChernClass (finrank_self ℂ), firstChernClass_def]
 
 /-- **Naturality of the first Chern class along a map of any `ContinuousMapClass`**:
 `c₁(f* E) = f* c₁(E)` for `f : K` with `[ContinuousMapClass K X B]`. The pull-back `(⇑f) *ᵖ E`
@@ -193,6 +202,12 @@ theorem chernNumber_congr
     (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G' (E := E') p.proj (Φ p.proj p.snd)) :
     chernNumber o hn G E = chernNumber o hn G' E' := by
   rw [chernNumber_def, chernNumber_def, firstChernClass_congr Φ hΦ]
+
+/-- **The determinant line has the same first Chern number as the bundle**:
+`⟨c₁(det E), [M]⟩ = ⟨c₁(E), [M]⟩`, where `det E` is `TauCeti.DetBundle ℂ G E`. -/
+theorem chernNumber_detBundle :
+    chernNumber o hn ℂ (DetBundle ℂ G E) = chernNumber o hn G E := by
+  rw [chernNumber_def, chernNumber_def, firstChernClass_detBundle]
 
 /-- **The trivial bundle has first Chern number zero.** -/
 @[simp] theorem chernNumber_trivial (G : Type) [NormedAddCommGroup G] [NormedSpace ℂ G]
