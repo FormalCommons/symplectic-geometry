@@ -434,7 +434,7 @@ theorem HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction {c : ℝ → Gc}
     (hs : s ∈ 𝓝 t) :
     HasDerivAt (fun u ↦ kempfNessFunction C μ p (c u)) (μ ((c t)⁻¹ • p) (C.im (ξ t))) t := by
   have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg (hc.mdifferentiableAt hs)
-  rwa [hc.mfderiv_inv_mul_mfderiv hs] at hΦ
+  rwa [← curveVelocity_apply, hc.mfderiv_inv_mul_mfderiv hs] at hΦ
 
 /-- **The derivative of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be

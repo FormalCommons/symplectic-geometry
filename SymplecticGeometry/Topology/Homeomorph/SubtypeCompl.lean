@@ -8,6 +8,7 @@ module
 public import Mathlib.Data.Set.Subset
 public import Mathlib.Topology.Homeomorph.Lemmas
 import SymplecticGeometry.Topology.Homeomorph.HomeomorphImage
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The complement of a set inside a subspace
@@ -40,12 +41,12 @@ noncomputable def subtypeCompl (D : Set t) : (Dᶜ : Set t) ≃ₜ ↥(t \ Subty
 @[simp]
 theorem subtypeCompl_apply_coe (D : Set t) (z : (Dᶜ : Set t)) :
     (subtypeCompl D z : X) = z := by
-  simp [subtypeCompl, Homeomorph.setCongr]
+  simp [subtypeCompl]
 
 @[simp]
 theorem coe_coe_subtypeCompl_symm_apply (D : Set t) (z : ↥(t \ Subtype.val '' D)) :
     (((subtypeCompl D).symm z : t) : X) = z := by
-  simp [subtypeCompl, Homeomorph.setCongr, IsEmbedding.apply_homeomorphImage_symm_apply]
+  simp [subtypeCompl, IsEmbedding.apply_homeomorphImage_symm_apply]
 
 end Homeomorph.Set
 
