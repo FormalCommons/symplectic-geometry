@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
-import Mathlib.Analysis.Normed.Module.ContinuousInverse
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 import TauCeti.Topology.VectorBundle.Trivialization
 
@@ -28,10 +28,10 @@ Conversely, let `E` be a vector bundle over `𝕜'` with finite-dimensional mode
 vector bundle over the complete field `𝕜` with the same trivializations, and is `C^n` over `𝕜`, for
 a model over `𝕜`. Then its coordinate changes over `𝕜'` are `C^n` over `𝕜`
 (`contMDiffOn_coordChangeL_of_restrictScalars`): restricting their scalars gives the coordinate
-changes over `𝕜` (`Bundle.Trivialization.restrictScalars_coordChangeL`), and restricting scalars
-has a continuous linear left inverse in finite dimension
-(`ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteDimensional`). The main example is a
-complex vector bundle whose underlying real bundle is smooth.
+changes over `𝕜` (`Bundle.Trivialization.restrictScalars_coordChangeL`), and in finite dimension a
+family of `𝕜'`-linear maps is `C^n` over `𝕜` as soon as its scalar restriction is
+(`contMDiffOn_clm_restrictScalars_iff`). The main example is a complex vector
+bundle whose underlying real bundle is smooth.
 
 In the same way, a family of continuous `𝕜'`-linear maps `φ x : E x →L[𝕜'] E' x` between vector
 bundles over `𝕜'`, with models finite-dimensional over `𝕜`, whose map of total spaces is `C^n` over
@@ -115,15 +115,9 @@ underlying real bundle is smooth are smooth. -/
 theorem contMDiffOn_coordChangeL_of_restrictScalars (e e' : Trivialization F (π F E))
     [MemTrivializationAtlas e] [MemTrivializationAtlas e'] :
     ContMDiffOn IB 𝓘(𝕜, F →L[𝕜'] F) n (fun b ↦ (e.coordChangeL 𝕜' e' b : F →L[𝕜'] F))
-      (e.baseSet ∩ e'.baseSet) := by
-  -- Restricting the scalars to `𝕜` has a continuous `𝕜`-linear left inverse `P`.
-  obtain ⟨P, hP⟩ := ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteDimensional
-    (f := ContinuousLinearMap.restrictScalarsL 𝕜' F F 𝕜 𝕜)
-    (fun f g h ↦ ContinuousLinearMap.ext fun x ↦ by simpa using DFunLike.congr_fun h x)
-  refine (P.contMDiff.comp_contMDiffOn (contMDiffOn_coordChangeL (IB := IB) e e')).congr
-    fun b _ ↦ ?_
-  simp only [Function.comp_apply, ← Trivialization.restrictScalars_coordChangeL 𝕜 𝕜' e e']
-  exact (hP _).symm
+      (e.baseSet ∩ e'.baseSet) :=
+  contMDiffOn_clm_restrictScalars_iff.1 <| (contMDiffOn_coordChangeL (IB := IB) e e').congr
+    fun _ _ ↦ Trivialization.restrictScalars_coordChangeL 𝕜 𝕜' e e'
 
 end CoordChange
 
@@ -161,14 +155,8 @@ theorem contMDiffAt_continuousLinearMapAt_comp_symmL_of_restrictScalars
   set t' := trivializationAt F' E' a
   have ht : a ∈ t.baseSet := mem_baseSet_trivializationAt F E a
   have ht' : a ∈ t'.baseSet := mem_baseSet_trivializationAt F' E' a
-  -- Restricting the scalars to `𝕜` has a continuous `𝕜`-linear left inverse `P`.
-  obtain ⟨P, hP⟩ := ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteDimensional
-    (f := ContinuousLinearMap.restrictScalarsL 𝕜' F F' 𝕜 𝕜)
-    (fun f g h ↦ ContinuousLinearMap.ext fun x ↦ by simpa using DFunLike.congr_fun h x)
-  refine (P.contMDiff.contMDiffAt.comp a (f := fun x ↦ ContinuousLinearMap.restrictScalarsL
-      𝕜' F F' 𝕜 𝕜 ((t'.continuousLinearMapAt 𝕜' x).comp ((φ x).comp (t.symmL 𝕜' x))))
-      (TauCeti.contMDiffAt_clm_apply.2 fun w ↦ ?_)).congr_of_eventuallyEq
-    (Filter.Eventually.of_forall fun x ↦ (hP _).symm)
+  -- It suffices that the scalar restrictions of the expressions are `C^n`, applied to each `w`.
+  refine contMDiffAt_clm_restrictScalars_iff.1 (TauCeti.contMDiffAt_clm_apply.2 fun w ↦ ?_)
   -- The section `x ↦ t.symm x w` is `C^n` near `a`: read in `t`, it is constant.
   have hs : ContMDiffAt IB (IB.prod 𝓘(𝕜, F)) n (fun x ↦ TotalSpace.mk' F x (t.symm x w)) a := by
     rw [contMDiffAt_section_iff]
@@ -179,7 +167,7 @@ theorem contMDiffAt_continuousLinearMapAt_comp_symmL_of_restrictScalars
   have h := (contMDiffAt_totalSpace_iff.1 ((hφ _).comp a hs)).2
   refine h.congr_of_eventuallyEq ?_
   filter_upwards [t.open_baseSet.mem_nhds ht, t'.open_baseSet.mem_nhds ht'] with x hx hx'
-  simp [t', t.symmL_apply hx, Trivialization.continuousLinearMapAt_apply_of_mem 𝕜' t' hx']
+  simp [t, t', t.symmL_apply hx, Trivialization.continuousLinearMapAt_apply_of_mem 𝕜' t' hx']
 
 end Coordinates
 
