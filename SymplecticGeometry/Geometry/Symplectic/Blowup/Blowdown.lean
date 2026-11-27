@@ -7,10 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import SymplecticGeometry.Analysis.Real.Sqrt
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
