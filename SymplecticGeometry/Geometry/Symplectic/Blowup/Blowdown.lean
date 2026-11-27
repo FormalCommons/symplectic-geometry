@@ -276,11 +276,11 @@ theorem inl_eq_inr_iff {x : outerPiece hf} {w : ballPiece n l ε} :
         shellSymplectomorph n l ε hl hε.le
           ⟨Ψ x, apply_mem_openNbhdComplDivisor hΨ hf
             ((mem_sourceComplRange_iff hf).2 ⟨h, (mem_outerPiece_iff hf).1 x.property⟩)⟩ := by
-  rw [GluedAlong.inl_eq_inr_iff]
+  rw [GluedAlong.inl_eq_inr_diffeomorph_iff]
   refine ⟨fun ⟨h, hw⟩ ↦ ⟨(mem_outerOverlap_iff hf).1 h, ?_⟩,
     fun ⟨h, hw⟩ ↦ ⟨(mem_outerOverlap_iff hf).2 h, Subtype.ext ?_⟩⟩
-  · rw [← hw, Diffeomorph.coe_toHomeomorph, coe_gluingDiffeomorph_apply]
-  · rw [hw, Diffeomorph.coe_toHomeomorph, coe_gluingDiffeomorph_apply]
+  · rw [← hw, coe_gluingDiffeomorph_apply]
+  · rw [hw, coe_gluingDiffeomorph_apply]
 
 /-- **The blowdown is Hausdorff**, for Hausdorff `M`. -/
 instance instT2Space : T2Space (DivisorBlowdown hΨ hf hl hε) := by
