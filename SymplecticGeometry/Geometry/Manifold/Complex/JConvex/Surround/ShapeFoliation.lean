@@ -83,7 +83,13 @@ These paths, between consecutive members `M i` and `M (i + 1)` of the chain of s
   `i`-convex shapes at each `r` where the joints match nearby, the `A i` are `C²` and `i`-convex
   shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, and the `A (i + 1) - η` are `i`-convex
   shapes at `r` (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the mesh, `M N`
-  after it, and a path between smoothed maxima on each of its intervals.
+  after it, and a path between smoothed maxima on each of its intervals. Where moreover
+  `A 0, …, A j` climb by `δ` near `r`, so that `M j = A j` there, a member on the `j`-th interval
+  is the smoothed maximum of `A j` and some `A (j + 1) - c`, `c ∈ [0, η]`, near `r`; its value and
+  first two derivatives at `r` are then within the farther of those of `A j` and `A (j + 1)` of
+  any given values, up to `η + δ / 2` and a curvature term of order `1 / δ`
+  (`SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le`, from
+  `SymplecticGeometry.abs_iteratedDeriv_two_smoothedMax_sub_le` and its analogues).
 
 ## References
 
@@ -713,6 +719,55 @@ theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 
     (contDiff_smoothedMaxChain δ fun i hi ↦ hA i (hi.trans hj.le)) (hA (j + 1) hj) (hM hj.le)
     (hcη j hj) ?_ _
   nlinarith
+
+/-- **The chain of paths stays `C²`-close to what its ends are close to.** For `δ, h > 0` and
+`η ≥ 0`, let `A j` and `A (j + 1)` be `C²`, let the joints match near `r`,
+`A (i + 1) - η + δ ≤ M i` for `i < N` with `M = smoothedMaxChain δ A`, and let `A 0, …, A j` each
+lie at least `δ` below the next near `r`, so that `M j = A j` near `r`. If `C / δ` bounds the
+curvature of `smoothedAbs δ`, then for `ℓ ∈ [a + j h, a + (j + 1) h]` and any values `φ 0`,
+`φ 1`, `φ 2`, the value and the first two derivatives at `r` of the member of the chain at `ℓ`
+are as close to `φ 0`, `φ 1`, `φ 2` as the farther of those of `A j` and `A (j + 1)`, up to
+`η + δ / 2` for the value and `C (A j' r - A (j + 1)' r)² / (2 δ)` for the second derivative. -/
+theorem abs_iteratedDeriv_shapeChain_sub_le {C : ℝ} {j : ℕ} (hδ : 0 < δ) (hh : 0 < h)
+    (hη : 0 ≤ η) (hAj : ContDiff ℝ 2 (A j)) (hAj₁ : ContDiff ℝ 2 (A (j + 1)))
+    (hJ : ∀ᶠ r' in 𝓝 r, ∀ i < N, A (i + 1) r' - η + δ ≤ smoothedMaxChain δ A i r')
+    (hup : ∀ᶠ r' in 𝓝 r, ∀ i < j, A i r' + δ ≤ A (i + 1) r')
+    (hC : ∀ t, iteratedDeriv 2 (smoothedAbs δ) t ≤ C / δ) (hj : j < N)
+    (hℓ : ℓ ∈ Icc (a + j * h) (a + (j + 1) * h)) (φ : ℕ → ℝ) :
+    |shapeChain δ η a h A N ℓ r - φ 0| ≤
+        max |A j r - φ 0| |A (j + 1) r - φ 0| + η + δ / 2 ∧
+      |deriv (shapeChain δ η a h A N ℓ) r - φ 1| ≤
+        max |deriv (A j) r - φ 1| |deriv (A (j + 1)) r - φ 1| ∧
+      |iteratedDeriv 2 (shapeChain δ η a h A N ℓ) r - φ 2| ≤
+        max |iteratedDeriv 2 (A j) r - φ 2| |iteratedDeriv 2 (A (j + 1)) r - φ 2| +
+          C * (deriv (A j) r - deriv (A (j + 1)) r) ^ 2 / (2 * δ) := by
+  obtain ⟨c, ⟨hc₀, hcη⟩, he⟩ := exists_mem_Icc_smoothedMaxPath_eq
+    (δ := δ) (M := smoothedMaxChain δ A j) (A := A (j + 1)) hη ((ℓ - a - j * h) / h)
+  -- Near `r`, the member of the chain at `ℓ` is the smoothed maximum of `A j` and `A (j + 1) - c`.
+  have hloc : shapeChain δ η a h A N ℓ =ᶠ[𝓝 r]
+      fun r' ↦ smoothedMax δ (A j r') (A (j + 1) r' - c) := by
+    filter_upwards [shapeChain_eventuallyEq_smoothedMaxPath hδ hh hJ hj hℓ,
+      smoothedMaxChain_eventuallyEq hδ hup] with r' h₁ h₂
+    rw [h₁, he]
+    exact congrArg (smoothedMax δ · (A (j + 1) r' - c)) h₂
+  have hd : DifferentiableAt ℝ (A j) r := (hAj.differentiable two_ne_zero).differentiableAt
+  have hd₁ : DifferentiableAt ℝ (A (j + 1)) r :=
+    (hAj₁.differentiable two_ne_zero).differentiableAt
+  refine ⟨?_, ?_, ?_⟩
+  · rw [hloc.eq_of_nhds]
+    have hc : |A (j + 1) r - c - φ 0| ≤ |A (j + 1) r - φ 0| + η := by
+      rw [sub_right_comm]
+      exact (abs_sub _ _).trans (by rw [abs_of_nonneg hc₀]; linarith)
+    have hm : max |A j r - φ 0| |A (j + 1) r - c - φ 0| ≤
+        max |A j r - φ 0| |A (j + 1) r - φ 0| + η :=
+      max_le (by linarith [le_max_left |A j r - φ 0| |A (j + 1) r - φ 0|])
+        (hc.trans (by linarith [le_max_right |A j r - φ 0| |A (j + 1) r - φ 0|]))
+    linarith [abs_smoothedMax_sub_le hδ (A j r) (A (j + 1) r - c) (φ 0)]
+  · rw [hloc.deriv_eq]
+    simpa only [deriv_sub_const] using abs_deriv_smoothedMax_sub_le hd (hd₁.sub_const c) (φ 1)
+  · rw [hloc.iteratedDeriv_eq 2]
+    simpa only [deriv_sub_const, iteratedDeriv_sub_const two_pos] using
+      abs_iteratedDeriv_two_smoothedMax_sub_le hAj (hAj₁.sub contDiff_const) hδ.le (hC _) (φ 2)
 
 end shapeChain
 

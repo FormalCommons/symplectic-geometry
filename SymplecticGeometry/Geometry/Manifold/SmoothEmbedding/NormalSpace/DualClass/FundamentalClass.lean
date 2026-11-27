@@ -10,9 +10,9 @@ public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalCap
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Relative
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
 import Mathlib.Analysis.Normed.Module.Connected
-import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.FundamentalClass
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDimChart
+import SymplecticGeometry.Topology.VectorBundle.Thom.FundamentalClass
 
 /-!
 # The cap product of the Thom class with the tube's fundamental class
@@ -40,8 +40,9 @@ push-forward along `π` of a cap product, that image is computed from the local 
 `0_z`. Read in the centred chart of `Z` at `z` (which detects classes of local homology at `z`,
 `OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`), this gives the pointwise
 criterion
-`HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`.
-At each `z`, on a small ball about `0` in that chart:
+`HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`
+(`Topology/VectorBundle/Thom/FundamentalClass.lean`). At each `z`, on a small ball about `0`
+in that chart:
 
 * `DualClass/LocalClass.lean` reads the local class of `μ_Φ` in the chart of the total space as a
   cross product, normal factor first, of the local orientation of the normal fibre with that of
@@ -58,9 +59,6 @@ apply to it directly.
 
 ## Main results
 
-* `HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`:
-  the pointwise criterion for `π_*(u ⌢ γ)` to be the fundamental class of the base of a vector
-  bundle, read in centred charts.
 * `TauCeti.SmoothEmbedding.map_proj_singularCap_tubeFundamentalClass`,
   `…_of_finrank_fiber_eq_zero`, `…_of_finrank_eq_zero` and
   `…_of_finrank_eq_zero_of_finrank_fiber_eq_zero`: `π_*(u ⌢ μ_Φ) = [Z]` when `Z` and the normal
@@ -83,67 +81,6 @@ open Bundle CategoryTheory MonoidalCategory Module Set AlgebraicTopology
 open scoped Manifold ContDiff
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
-
-namespace TauCeti.HomologicalOrientation
-
-open SymplecticGeometry
-
-variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] {B : Type}
-  [TopologicalSpace B] [T2Space B] [CompactSpace B] [ChartedSpace H B] [ChartedSpace E B]
-  {P : Type} [NormedAddCommGroup P] [NormedSpace ℝ P] {V : B → Type}
-  [TopologicalSpace (TotalSpace P V)] [∀ b, AddCommMonoid (V b)]
-  [∀ b, Module ℝ (V b)] [∀ b, TopologicalSpace (V b)] [FiberBundle P V] [VectorBundle ℝ P V]
-
-/-- **The pointwise criterion for a fundamental class, read in centred charts.** Let `V → B` be a
-real vector bundle over a compact manifold `B` with a homological orientation `o` of dimension
-`q`, and let `u ∈ Hʳ(V, V ∖ 0)` and `γ ∈ Hₙ(V, V ∖ 0)`, `r + q = n`. Suppose that for every
-`b : B`, the cap product with `u` of the local class of `γ` at `0_b`, by the excisive couple
-`(V ∖ 0, V ∖ V_b)`, pushed forward along the projection to `H_q(B, B ∖ b)` and read in the centred
-chart at `b`, is the local orientation `o b` read in that chart. Then `π_*(u ⌢ γ)` is the
-fundamental class of `o`. -/
-theorem map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt {q : ℕ}
-    (o : HomologicalOrientation B E q) (hq : finrank ℝ E = q) {r n : ℕ} (h : r + q = n)
-    (u : (thomPair P V).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) r)
-    (γ : ((thomPair P V).singularHomology (ModuleCat.of ℤ (ULift.{0} ℤ)) n : ModuleCat.{0} ℤ))
-    (hγ : ∀ b, localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredExtChartAt I b).sourceRestrict
-        (sourceRestrict_centeredExtChartAt_preimage_zero I b).subset q
-        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-          (centeredExtChartAt I b).open_source.isOpenEmbedding_subtypeVal
-          ⟨b, mem_centeredExtChartAt_source I b⟩ q).inv
-          (TopPair.singularHomologyMap
-            (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P V, FiberBundle.continuous_proj P V⟩)
-              (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) (ModuleCat.of ℤ (ULift.{0} ℤ)) q
-            (TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom _
-              (TopCat.ofHom ⟨π P V, FiberBundle.continuous_proj P V⟩ ⁻¹'
-                ({b}ᶜ : Set (TopCat.of B)))
-              ((isOpen_zeroSectionCompl P V).preimage continuous_subtypeVal)
-              ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P V)).preimage
-                continuous_subtypeVal) r q n h u
-              (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-                (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
-                (ModuleCat.of ℤ (ULift.{0} ℤ)) n
-                ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P V b n).hom
-                  γ))))) =
-      localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredExtChartAt I b).sourceRestrict
-        (sourceRestrict_centeredExtChartAt_preimage_zero I b).subset q
-        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-          (centeredExtChartAt I b).open_source.isOpenEmbedding_subtypeVal
-          ⟨b, mem_centeredExtChartAt_source I b⟩ q).inv (o b).val)) :
-    ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-        (TopCat.ofHom ⟨π P V, FiberBundle.continuous_proj P V⟩)
-      (((thomPair P V).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h u).hom γ) =
-      o.fundamentalClass hq :=
-  o.map_singularCap_eq_fundamentalClass ℤ hq _ _ _ (isOpen_zeroSectionCompl P V) r n h u γ
-    fun b ↦ (centeredExtChartAt I b).injective_localHomologyMap_sourceRestrict _
-      (mem_centeredExtChartAt_source I b) (centeredExtChartAt_self I b) q (by
-      rw [← singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction]
-      exact hγ b)
-
-end TauCeti.HomologicalOrientation
 
 namespace TauCeti.SmoothEmbedding
 

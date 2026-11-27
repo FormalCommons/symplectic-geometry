@@ -12,7 +12,7 @@ import TauCeti.Geometry.Symplectic.JHolomorphic.RiemannSurface
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ChartedSpace
 import TauCeti.Geometry.Manifold.Complex.Chart
-import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 
 /-!
@@ -161,14 +161,11 @@ private theorem contMDiffAt_of_eventually_eq_comp {r : ℕ∞ω} {N : Type*} [To
     (hG : ContMDiffAt 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r G x) {F : S → Blowup c}
     (hF : ∀ᶠ y in 𝓝 x, ∃ h : G y ∈ U, F y = ι ⟨G y, h⟩) :
     ContMDiffAt 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r F x := by
-  classical
-  obtain ⟨hx, -⟩ := hF.self_of_nhds
-  let g : S → U := fun y ↦ if h : G y ∈ U then ⟨G y, h⟩ else ⟨G x, hx⟩
-  have hg : ContMDiffAt 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r g x :=
-    (TauCeti.ContMDiffAt.subtypeVal_comp_iff U g x).1 <|
-      hG.congr_of_eventuallyEq (hF.mono fun y ⟨h, _⟩ ↦ by simp [g, h])
-  exact (hι.contMDiffAt.comp x hg).congr_of_eventuallyEq
-    (hF.mono fun y ⟨h, hy⟩ ↦ by simp [g, h, hy])
+  obtain ⟨g, hg, hgG⟩ := hG.exists_subtypeVal_comp_eventuallyEq hF.self_of_nhds.1
+  refine (hι.contMDiffAt.comp x hg).congr_of_eventuallyEq ?_
+  filter_upwards [hF, hgG] with y ⟨h, hy⟩ hgy
+  rw [hy, Function.comp_apply]
+  exact congrArg ι (Subtype.ext (by simpa using hgy.symm))
 
 section Holomorphic
 
