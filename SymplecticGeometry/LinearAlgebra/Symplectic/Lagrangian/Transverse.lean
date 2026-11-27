@@ -115,7 +115,7 @@ theorem mem_graphY_iff {S : selfAdjoint (Matrix ι ι ℝ)} {z : StdSpace ι} :
 theorem coe_graphY_eq_map [DecidableEq ι] (S : selfAdjoint (Matrix ι ι ℝ)) :
     (graphY S : Submodule ℝ (StdSpace ι)) =
       (S : Matrix ι ι ℝ).lagrangianChart.map
-        (StdSpace.complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) :=
+        (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap :=
   (StdSpace.map_lagrangianChart _).symm
 
 /-- A chart point determines its symmetric matrix. -/

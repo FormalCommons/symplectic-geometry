@@ -308,7 +308,7 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 - `Blowup c` as in *Decisions*, the `GluedAlong` of
   `Blowup.gluingHomeomorph c`, whose gluing data
   `GluedAlong.glueData (Blowup.gluingHomeomorph c)` is
-  `TopCat.GlueData.ofHomeomorph` along it; the canonical maps are
+  Tau Ceti's star gluing `TauCeti.starGlueData` along it; the canonical maps are
   `GluedAlong.inl (Blowup.gluingHomeomorph c) : Blowup.puncturedOpens c → Blowup c`
   (the open set `{p₀}ᶜ`) and
   `GluedAlong.inr (Blowup.gluingHomeomorph c) : Blowup.modelOpens c → Blowup c`

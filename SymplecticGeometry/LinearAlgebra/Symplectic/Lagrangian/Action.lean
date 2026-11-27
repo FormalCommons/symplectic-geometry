@@ -216,7 +216,7 @@ theorem unitaryFrame_def (U : unitaryGroup ι ℂ) : unitaryFrame U = U • hori
 theorem coe_unitaryFrame_eq_map (U : unitaryGroup ι ℂ) :
     (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
       (U : Matrix ι ι ℂ).realImage.map
-        (complexEuclideanEquiv ι : EuclideanSpace ℂ ι →ₗ[ℝ] StdSpace ι) := by
+        (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap := by
   rw [unitaryFrame_def, coe_unitary_smul, coe_horizontal, map_realImage]
 
 /-- The intersection of the Lagrangian framed by `U` with `{y = 0}` has the dimension of the
@@ -225,7 +225,7 @@ theorem finrank_unitaryFrame_inf_horizontal (U : unitaryGroup ι ℂ) :
     Module.finrank ℝ ↥((unitaryFrame U : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι) =
       Module.finrank ℝ ↥((U : Matrix ι ι ℂ).realImage ⊓ TauCeti.realSubspace ι) := by
   rw [coe_unitaryFrame_eq_map, coe_horizontal, ← StdSpace.map_realSubspace,
-    ← Submodule.map_inf _ (StdSpace.complexEuclideanEquiv ι).injective,
+    ← Submodule.map_inf _ (complexToRealEuclideanIsometry ι).injective,
     LinearEquiv.finrank_map_eq]
 
 /-- The Lagrangian framed by `U` is spanned by the columns of the real `2n × n` matrix
@@ -234,7 +234,7 @@ theorem coe_unitaryFrame (U : unitaryGroup ι ℂ) :
     (unitaryFrame U : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin
         (fromRows ((U : Matrix ι ι ℂ).map Complex.re) ((U : Matrix ι ι ℂ).map Complex.im))) := by
-  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows_eq_map_realImage,
+  rw [coe_unitaryFrame_eq_map, range_toEuclideanLin_fromRows,
     map_re_add_I_smul_map_im]
 
 @[simp]
@@ -329,7 +329,7 @@ theorem unitaryFrame_unitaryOfFrame {X Y : Matrix ι ι ℝ}
   toSubmodule_injective <| by
     rw [coe_ofFrame, coe_unitaryFrame_eq_map, coe_unitaryOfFrame,
       GeneralLinearGroup.realImage_realOrthonormalize, GeneralLinearGroup.val_mkOfDetNeZero,
-      ← range_toEuclideanLin_fromRows_eq_map_realImage]
+      ← range_toEuclideanLin_fromRows]
 
 /-- **Transitivity of `U(n)`.** Every Lagrangian subspace of `StdSpace ι` is framed by a unitary
 matrix. -/
@@ -360,7 +360,7 @@ instance : MulAction.IsPretransitive (GLSymplectic ι ℝ) (ℒ ι) :=
 theorem unitaryFrame_eq_horizontal_iff {U : unitaryGroup ι ℂ} :
     unitaryFrame U = horizontal ι ↔ U ∈ UnitaryGroup.realSubgroup ι := by
   rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, coe_horizontal, ← map_realSubspace,
-    (Submodule.map_injective_of_injective (complexEuclideanEquiv ι).injective).eq_iff,
+    (Submodule.map_injective_of_injective (complexToRealEuclideanIsometry ι).injective).eq_iff,
     UnitaryGroup.mem_realSubgroup_iff_exists]
   constructor
   · intro h

@@ -36,13 +36,14 @@ structures.
   (`isSymplectomorphism_complexToRealEuclidean`).
 * `SymplecticGeometry.stdComplexStructure ι` is `J₀`, the transport of multiplication by `I`,
   so that `x (J₀ z) = -y z` and `y (J₀ z) = x z`; it is the map of `Matrix.J ι ℝ`.
-* `SymplecticGeometry.StdSpace.complexEuclideanEquiv ι` identifies `EuclideanSpace ℂ ι` with
-  `StdSpace ι` by real and imaginary parts, so that subspaces of `ℂⁿ` can be compared with
+* The isometry `TauCeti.complexToRealEuclideanIsometry ι` (of
+  `SymplecticGeometry.Analysis.Complex.Euclidean.Space`) identifies `EuclideanSpace ℂ ι`
+  with `StdSpace ι` by real and imaginary parts (`x_complexToRealEuclideanIsometry`,
+  `y_complexToRealEuclideanIsometry`), so that subspaces of `ℂⁿ` can be compared with
   subspaces of the model; it carries multiplication by `I` to `J₀`
-  (`stdComplexStructure_complexEuclideanEquiv`), as `complexToRealEuclidean ι` does
+  (`stdComplexStructure_complexToRealEuclideanIsometry`), as `complexToRealEuclidean ι` does
   (`stdComplexStructure_complexToRealEuclidean`), and `ω₀` to `Im ⟪·, ·⟫`
-  (`stdForm_apply_eq_im_inner`). As a map, it is the isometry
-  `TauCeti.complexToRealEuclideanIsometry ι` (`complexToRealEuclideanIsometry_apply_eq`).
+  (`stdForm_apply_eq_im_inner`).
 * `SymplecticGeometry.StdSpace.swap ι` is the coordinate swap `(x, y) ↦ (y, x)`, which reverses
   the sign of `ω₀` (`stdForm_swap`).
 * `SymplecticGeometry.StdSpace.finSumIsometry n` relabels the coordinates of `StdSpace (Fin n)`
@@ -230,35 +231,16 @@ theorem y_complexToRealEuclidean (u : ι → ℂ) :
   ext i
   simp [complexToRealEuclidean_apply]
 
-variable (ι) in
-/-- The real-linear identification of `ℂⁿ = EuclideanSpace ℂ ι` with the standard model
-`ℝ²ⁿ = StdSpace ι`, sending `v` to `(Re v, Im v)`. It is how subspaces of `ℂⁿ` (as in Tau Ceti's
-totally real geometry) are compared with subspaces of `StdSpace ι`. -/
-noncomputable def complexEuclideanEquiv : EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι :=
-  (PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans (complexToRealEuclidean ι)
+/-- The `x`-coordinates of `complexToRealEuclideanIsometry ι v` are the real parts of `v`. -/
+theorem x_complexToRealEuclideanIsometry (v : EuclideanSpace ℂ ι) :
+    x (complexToRealEuclideanIsometry ι v) = fun i ↦ (v i).re := by
+  simp
 
-theorem complexEuclideanEquiv_def :
-    complexEuclideanEquiv ι =
-      (PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans (complexToRealEuclidean ι) :=
-  (rfl)
-
-/-- The `x`-coordinates of `complexEuclideanEquiv ι v` are the real parts of `v`. -/
-@[simp]
-theorem x_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
-    (complexEuclideanEquiv ι v).x = fun i ↦ (v i).re := by
-  simp [complexEuclideanEquiv_def]
-
-/-- The `y`-coordinates of `complexEuclideanEquiv ι v` are the imaginary parts of `v`. -/
-@[simp]
-theorem y_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
-    (complexEuclideanEquiv ι v).y = fun i ↦ (v i).im := by
-  simp [complexEuclideanEquiv_def]
-
-/-- `complexEuclideanEquiv ι` and the isometry `complexToRealEuclideanIsometry ι` are the same
-map. -/
-theorem complexToRealEuclideanIsometry_apply_eq (v : EuclideanSpace ℂ ι) :
-    complexToRealEuclideanIsometry ι v = complexEuclideanEquiv ι v := by
-  simp [complexEuclideanEquiv_def, PiLp.coe_continuousLinearEquiv]
+/-- The `y`-coordinates of `complexToRealEuclideanIsometry ι v` are the imaginary parts of
+`v`. -/
+theorem y_complexToRealEuclideanIsometry (v : EuclideanSpace ℂ ι) :
+    y (complexToRealEuclideanIsometry ι v) = fun i ↦ (v i).im := by
+  simp
 
 /-- The inner product of the standard model in coordinates. -/
 theorem inner_eq_sum (z w : StdSpace ι) :
@@ -342,12 +324,13 @@ theorem stdForm_complexToRealEuclidean (u v : ι → ℂ) :
       stdComplexPiSymplecticForm ι u v :=
   SymplecticForm.transport_apply_apply _ _ u v
 
-/-- Through `StdSpace.complexEuclideanEquiv`, the standard symplectic form is the imaginary part
-of the Hermitian inner product of `ℂⁿ`: `ω₀(v, w) = Im ⟪v, w⟫`. -/
+/-- Through `complexToRealEuclideanIsometry ι`, the standard symplectic form is the imaginary
+part of the Hermitian inner product of `ℂⁿ`: `ω₀(v, w) = Im ⟪v, w⟫`. -/
 theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
-    stdForm ι (complexEuclideanEquiv ι v) (complexEuclideanEquiv ι w) = (inner ℂ v w).im := by
+    stdForm ι (complexToRealEuclideanIsometry ι v) (complexToRealEuclideanIsometry ι w) =
+      (inner ℂ v w).im := by
   rw [← imInnerSymplecticForm_apply, imInnerSymplecticForm_euclideanSpace_apply]
-  simp [complexEuclideanEquiv_def]
+  simp
 
 variable (ι) in
 /-- `complexToRealEuclidean ι` is a symplectomorphism from `(ι → ℂ, stdComplexPiSymplecticForm ι)`
@@ -401,10 +384,10 @@ theorem stdComplexStructure_apply_inr (z : StdSpace ι) (i : ι) :
   rw [← y_apply, stdComplexStructure_y]
   rfl
 
-/-- `complexEuclideanEquiv ι` carries multiplication by `I` on `ℂⁿ` to `J₀`. -/
-@[simp]
-theorem stdComplexStructure_complexEuclideanEquiv (v : EuclideanSpace ℂ ι) :
-    stdComplexStructure ι (complexEuclideanEquiv ι v) = complexEuclideanEquiv ι (Complex.I • v) :=
+/-- `complexToRealEuclideanIsometry ι` carries multiplication by `I` on `ℂⁿ` to `J₀`. -/
+theorem stdComplexStructure_complexToRealEuclideanIsometry (v : EuclideanSpace ℂ ι) :
+    stdComplexStructure ι (complexToRealEuclideanIsometry ι v) =
+      complexToRealEuclideanIsometry ι (Complex.I • v) :=
   StdSpace.ext (by simp [Pi.neg_def]) (by simp)
 
 /-- `complexToRealEuclidean ι` carries multiplication by `I` on `ι → ℂ` to `J₀`. -/

@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 import Mathlib.Tactic.Module
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
@@ -470,8 +471,8 @@ theorem mk_sub_mk_eq_neg_smul_realFirstChernClass (h : IsCouplingForm σ τ) (t 
   have hα' : IsCircleConnectionForm (α + (β - c • α)) := by
     refine ⟨fun z ↦ ?_, fun x ↦ ?_⟩
     · rw [map_add, map_sub, map_smul, hα.mpullback_op_smul, mpullback_smul_primitive h]
-    · simp only [Submodule.coe_add, Submodule.coe_sub, Submodule.coe_smul, Pi.add_apply,
-        Pi.sub_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
+    · simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply,
+        SmoothBundleForm.smul_apply, ContinuousAlternatingMap.add_apply,
         ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
         hα.apply_rightFundamentalVectorField]
       simp [β, c, primitive_apply_rightFundamentalVectorField h]
