@@ -44,6 +44,10 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
 * `SymplecticGeometry.isConvexShapeAt_sqrt`, `SymplecticGeometry.isConvexShapeAt_quadratic` and
   `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
   `ℓ + b r + c r² / (2 ℓ)` for `c > 1`, and `ℓ + d r` for `r < ℓ d³`.
+  Their second derivatives, `a ℓ² / √(ℓ² + a r²)³`, `c / ℓ` and `0`, are
+  `SymplecticGeometry.iteratedDeriv_two_sqrt_quadratic`,
+  `SymplecticGeometry.iteratedDeriv_two_quadratic` and
+  `SymplecticGeometry.iteratedDeriv_two_linear`.
 
 * The crossings of these three shapes on `(0, ∞)`. `√(ℓ² + a r²)` and `ℓ + d r` meet only at
   `2 ℓ d / (a - d²)` (`SymplecticGeometry.sqrt_eq_linear_iff`), and `ℓ + b r + c r² / (2 ℓ)` and
@@ -512,6 +516,33 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
 
 end Struwe
 
+/-- The second derivative of the linear shape `r ↦ ℓ + d r` is `0`. -/
+theorem iteratedDeriv_two_linear (ℓ d r : ℝ) : iteratedDeriv 2 (fun r ↦ ℓ + d * r) r = 0 := by
+  have hd' : deriv (fun r ↦ ℓ + d * r) = fun _ ↦ d := funext fun x ↦ by simp
+  simp [iteratedDeriv_succ, hd']
+
+/-- The second derivative of the quadratic shape `r ↦ ℓ + b r + c r² / (2 ℓ)` is `c / ℓ`. -/
+theorem iteratedDeriv_two_quadratic (ℓ b c r : ℝ) :
+    iteratedDeriv 2 (fun r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)) r = c / ℓ := by
+  have e : (fun r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)) =
+      fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2 := by
+    ext r
+    ring
+  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
+  ring
+
+/-- The second derivative of the shape `r ↦ √(ℓ² + a r²)`, at a point `r` where
+`ℓ² + a r² > 0`, is `a ℓ² / √(ℓ² + a r²)³`. -/
+theorem iteratedDeriv_two_sqrt_quadratic {a ℓ r : ℝ} (h : 0 < ℓ ^ 2 + a * r ^ 2) :
+    iteratedDeriv 2 (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) r = a * ℓ ^ 2 / √(ℓ ^ 2 + a * r ^ 2) ^ 3 := by
+  have e : (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
+    simp
+  have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by simpa using h
+  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
+  rw [deriv_deriv_sqrt_quadratic hQ, zero_mul, add_zero, pow_succ _ 2, sq_sqrt h.le]
+  field_simp
+  ring
+
 /-- **The shape `√(ℓ² + a r²)`.** For `1 < a` and any `ℓ`, `r ↦ √(ℓ² + a r²)` is an `i`-convex
 shape at every `r > 0`. -/
 theorem isConvexShapeAt_sqrt {a ℓ r : ℝ} (ha : 1 < a) (hr : 0 < r) :
@@ -528,11 +559,7 @@ theorem isConvexShapeAt_sqrt {a ℓ r : ℝ} (ha : 1 < a) (hr : 0 < r) :
     field_simp
     ring
   have h₂ : iteratedDeriv 2 (fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2)) r = a * ℓ ^ 2 / S ^ 3 := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero]
-    rw [deriv_deriv_sqrt_quadratic hQ, ← hS_def, show S ^ 3 = (ℓ ^ 2 + 0 * r + a * r ^ 2) * S by
-      rw [← hSS]; ring]
-    field_simp
-    ring
+    rw [← e, iteratedDeriv_two_sqrt_quadratic (by simpa using hQ), hS_def, zero_mul, add_zero]
   refine isConvexShapeAt_iff.2 ⟨hr, hS, ?_, ?_⟩
   · rw [h₁, show a * r / S / r = a / S by field_simp]
     exact div_lt_div_of_pos_right ha hS
@@ -561,9 +588,7 @@ theorem isConvexShapeAt_quadratic {ℓ b c r : ℝ} (hℓ : 0 < ℓ) (hb : 0 ≤
     rw [(hasDerivAt_quadratic _ _ _ r).deriv]
     field_simp
   have h₂ : iteratedDeriv 2 (fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2) r = c / ℓ := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero]
-    rw [deriv_deriv_quadratic]
-    field_simp
+    rw [← e, iteratedDeriv_two_quadratic]
   have hχ : ℓ < ℓ + b * r + c / (2 * ℓ) * r ^ 2 := by
     have : 0 < c / (2 * ℓ) * r ^ 2 := by positivity
     nlinarith
@@ -585,8 +610,7 @@ theorem isConvexShapeAt_linear {ℓ d r : ℝ} (hℓ : 0 < ℓ) (hd : 0 < d) (hr
   obtain ⟨hr₀, hr₁⟩ := hr
   have hd' : deriv (fun r ↦ ℓ + d * r) = fun _ ↦ d := funext fun x ↦ by simp
   have h₁ : deriv (fun r ↦ ℓ + d * r) r = d := by rw [hd']
-  have h₂ : iteratedDeriv 2 (fun r ↦ ℓ + d * r) r = 0 := by
-    simp [iteratedDeriv_succ, hd']
+  have h₂ : iteratedDeriv 2 (fun r ↦ ℓ + d * r) r = 0 := iteratedDeriv_two_linear ℓ d r
   have hχ : 0 < ℓ + d * r := by positivity
   refine isConvexShapeAt_iff.2 ⟨hr₀, hχ, ?_, ?_⟩
   · -- `r (1 - d²) < ℓ d`: for `d ≤ 1` this follows from `r < ℓ d³ ≤ ℓ d`.
@@ -761,21 +785,12 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀
     isConvexShapeAt_quadratic hℓ hb.le hc hr
   have hSc : ∀ r, 0 < r → IsConvexShapeAt S r := fun r hr ↦ isConvexShapeAt_sqrt ha hr
   -- The three shapes are convex, and so are the functions that join them.
-  have hL₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 L r := by simp [L, iteratedDeriv_succ]
+  have hL₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 L r := (iteratedDeriv_two_linear ℓ d r).ge
   have hQ₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 Q r := by
-    have e : Q = fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2 := by
-      funext r
-      simp only [Q]
-      ring
-    simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
+    rw [iteratedDeriv_two_quadratic]
     positivity
   have hS₂ (r : ℝ) : 0 ≤ iteratedDeriv 2 S r := by
-    have e : S = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
-      funext r
-      simp [S]
-    have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by nlinarith [sq_nonneg r]
-    simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
-    rw [deriv_deriv_sqrt_quadratic hQ]
+    rw [iteratedDeriv_two_sqrt_quadratic (by positivity)]
     exact div_nonneg (by nlinarith [sq_nonneg ℓ]) (by positivity)
   -- From the linear to the quadratic shape, across `x`, on `[x / 4, 3 x / 2]`.
   obtain ⟨φ, hφs, hφc, hφL, hφQ, hφ₁, hφ₂, hφcv⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici
