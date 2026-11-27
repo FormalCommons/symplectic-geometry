@@ -10,6 +10,7 @@ public import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 public import TauCeti.Topology.Homotopy.Path
 
 import Mathlib.Data.Int.Cast.Lemmas
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 
 /-!
@@ -137,9 +138,9 @@ theorem fundamentalGroupComplSingletonMulEquivInt_circleLoop :
           (FundamentalGroup.map ((starConvex_univ 0).sphereHomotopyEquiv hr (subset_univ _)).toFun
             _ (FundamentalGroup.fromPath
               (Path.Homotopic.Quotient.mk (Complex.sphereLoop 0 hr)))) := by
-    rintro y rfl γ hγ
-    rw [FundamentalGroup.homeomorphMulEquivOfEq_apply, FundamentalGroup.mapOfEq_rfl,
-      TauCeti.FundamentalGroup.map_fromPath, TauCeti.FundamentalGroup.map_fromPath, Path.map_map]
+    intro y hy γ hγ
+    rw [TauCeti.FundamentalGroup.map_fromPath, FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk,
+      Path.map_map]
     congr 2
     ext t
     simp [hγ]
