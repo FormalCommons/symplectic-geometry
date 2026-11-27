@@ -20,7 +20,8 @@ between them that sends each generator to the generator of the same index.
 * `TauCeti.SurfaceGroup.Orientable.congr`: for `g = g'` and `m = m'`, the isomorphism
   `S⁺(g, m) ≃* S⁺(g', m')` sending `aᵢ`, `bᵢ` and `pⱼ` to the generators of `S⁺(g', m')` with the
   same indices, carried along `Fin.cast`; its inverse, identity and composition lemmas
-  `TauCeti.SurfaceGroup.Orientable.congr_symm`, `congr_refl` and `congr_trans`.
+  `TauCeti.SurfaceGroup.Orientable.congr_symm`, `congr_refl` and `congr_trans`, and its
+  composition on elements `congr_congr`.
 
 The surface groups and their presentation are those of Tau Ceti's
 `TauCeti/GroupTheory/SurfaceGroup/Basic.lean`.
@@ -82,6 +83,13 @@ theorem congr_refl : congr (rfl : g = g) (rfl : m = m) = MulEquiv.refl _ :=
 theorem congr_trans (hg : g = g') (hm : m = m') (hg' : g' = g'') (hm' : m' = m'') :
     (congr hg hm).trans (congr hg' hm') = congr (hg.trans hg') (hm.trans hm') :=
   MulEquiv.toMonoidHom_injective <| by ext <;> simp
+
+/-- Applying two congruences in turn is applying the congruence along the composed equalities. -/
+@[simp]
+theorem congr_congr (hg : g = g') (hm : m = m') (hg' : g' = g'') (hm' : m' = m'')
+    (x : Orientable g m) :
+    congr hg' hm' (congr hg hm x) = congr (hg.trans hg') (hm.trans hm') x := by
+  rw [← MulEquiv.trans_apply, congr_trans]
 
 /-- The inverse of the congruence along `g = g'` and `m = m'` is the congruence along the reversed
 equalities. -/
