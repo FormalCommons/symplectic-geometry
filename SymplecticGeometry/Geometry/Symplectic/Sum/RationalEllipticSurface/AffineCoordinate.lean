@@ -131,8 +131,7 @@ theorem contMDiffAt_affineCoordinate {p : rationalEllipticSurface}
     (hp : (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0) (r : ℕ∞ω) :
     ContMDiffAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, ℂ) r affineCoordinate p :=
   (ContinuousLinearMap.proj (R := ℂ) (φ := fun _ : Fin 1 ↦ ℂ) 0).contMDiff.contMDiffAt.comp p
-    (((contMDiffOn_affineChart 0 r).contMDiffAt ((isOpen_affineOpen 0).mem_nhds hp)).comp p
-      ((contMDiff_snd p).of_le le_top))
+    ((contMDiffAt_affineChart hp r).comp p ((contMDiff_snd p).of_le le_top))
 
 /-- The fibre over `[1 : 0]` lies over the affine open `s ≠ 0` of `ℂℙ¹`. -/
 theorem snd_fibreEmbedding_mem_affineOpen (x : SmoothProjectiveHypersurface.fermat 1 3) :
