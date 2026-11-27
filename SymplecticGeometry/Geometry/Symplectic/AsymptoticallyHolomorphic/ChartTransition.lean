@@ -44,7 +44,11 @@ for it, for `k ≥ k₀`:
 * the set `D.chartTransitionDomain k x y` of points of the ball `B` of radius `ρ₀ * √k` in the
   source of the transition that it sends into `B` is open, and for `k ≥ k₀` and
   `y = (D.chart k x)⁻¹ z` with `z ∈ B` it contains `0`
-  (`SymplecticGeometry.RescaledUnitaryCharts.zero_mem_chartTransitionDomain`).
+  (`SymplecticGeometry.RescaledUnitaryCharts.zero_mem_chartTransitionDomain`);
+* the inverses of the two charts agree at `w` and at `τ w`, and so do their differentials, on
+  `v` and on `dτ_w v`
+  (`SymplecticGeometry.RescaledUnitaryCharts.mfderiv_chart_symm_chartTransition`, from Tau Ceti's
+  `OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans`).
 
 ## References
 
@@ -298,6 +302,26 @@ theorem chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
     (D.chart k x).symm (D.chartTransition k x y w) = (D.chart k y).symm w := by
   rw [chartTransition_apply]
   exact (D.chart k x).left_inv (D.mem_chartTransition_source_iff.1 hw).2
+
+/-- The derivative form of `chart_symm_chartTransition`: for `w` in the source of the transition
+`τ` from the chart centred at `y` to the chart centred at `x`, the differential of the inverse of
+the chart at `x` at `τ w` sends `dτ_w v` to the image of `v` under the differential of the
+inverse of the chart at `y` at `w`. -/
+theorem mfderiv_chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) (v : StdSpace ι) :
+    mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (D.chartTransition k x y w)
+        (fderiv ℝ (D.chartTransition k x y) w v) =
+      mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w v := by
+  have hτ : D.chartTransition k x y w ∈ (D.chart k x).target := by
+    rw [chartTransition_apply]
+    exact (D.chart k x).map_source (D.mem_chartTransition_source_iff.1 hw).2
+  rw [chartTransition_def] at hw hτ ⊢
+  have h := OpenPartialHomeomorph.mfderiv_symm_eq_mfderiv_symm_comp_fderiv_symm_trans hw
+    ((D.chart k x).symm.mdifferentiableAt (by simp) (by simpa using hτ))
+    ((D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hw)
+  -- `exact` rather than `rw`: the two sides differ by the identification of `StdSpace ι` with
+  -- its tangent spaces, and by `ContinuousLinearMap.comp_apply`.
+  exact (DFunLike.congr_fun h v).symm
 
 end RescaledUnitaryCharts
 
