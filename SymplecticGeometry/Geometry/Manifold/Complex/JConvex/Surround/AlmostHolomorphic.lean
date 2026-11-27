@@ -194,6 +194,7 @@ theorem fderiv_taylorExtension_apply_imag {N : ℕ} {f : EuclideanSpace ℝ ι' 
   have hsum := HasFDerivAt.fun_sum (u := Finset.range (N + 1)) fun j _ ↦
     (((iteratedFDeriv ℝ j f x).hasFDerivAt (d j y)).comp y (d j).hasFDerivAt).const_smul
         (Complex.I ^ j / (j.factorial : ℂ))
+  -- `rfl`: `d j y'` is the constant tuple `fun _ ↦ y'` by the definition of `d`.
   replace hsum := hsum.congr_of_eventuallyEq
     (f₁ := taylorExtension N f ∘ fun y' ↦ e.symm (x, y')) (.of_eq (by rw [heq]; rfl))
   have h := congrArg (· u) ((hF.hasFDerivAt.comp y hline).unique hsum)
