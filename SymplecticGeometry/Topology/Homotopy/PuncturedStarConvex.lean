@@ -12,6 +12,8 @@ public import TauCeti.Analysis.Normed.Group.BallSphere
 public import TauCeti.Topology.Homotopy.FiberHomotopyEquiv.Basic
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
 
+import TauCeti.Topology.Homeomorph.SetCongr
+
 /-!
 # Radial projection over the sphere, and the complement of a line
 
@@ -163,10 +165,9 @@ theorem radialProjectionToSphere_setCongr_compl_eq_univ_sdiff (x : ({0}ᶜ : Set
         (Homeomorph.setCongr (compl_eq_univ_sdiff {0}) x) =
       complSingletonHomotopyEquivSphere (0 : E) x := by
   ext1
-  rw [coe_radialProjectionToSphere_apply, coe_complSingletonHomotopyEquivSphere_apply]
-  -- `Homeomorph.setCongr` has no evaluation lemma; it does not move points.
+  rw [coe_radialProjectionToSphere_apply, coe_complSingletonHomotopyEquivSphere_apply,
+    Homeomorph.setCongr_apply]
   simp only [zero_add, sub_zero, one_div]
-  rfl
 
 end Radial
 
@@ -204,11 +205,10 @@ theorem coe_complZeroPreimageHomotopyEquiv_apply
       complSingletonHomotopyEquivSphere (0 : E) x := by
   rw [complZeroPreimageHomotopyEquiv, ContinuousMap.HomotopyEquiv.trans_apply,
     ContinuousMap.HomotopyEquiv.trans_apply, Homeomorph.coe_toHomotopyEquiv,
-    FiberHomotopyEquiv.toHomotopyEquiv_apply]
-  -- `Homeomorph.setCongr` and `Homeomorph.subtype` have no evaluation lemmas; they do not move
-  -- points.
-  exact (FiberHomotopyEquiv.coe_restrictPreimage_toFun_apply _ W _).trans
-    (radialProjectionToSphere_setCongr_compl_eq_univ_sdiff _)
+    FiberHomotopyEquiv.toHomotopyEquiv_apply, Homeomorph.coe_toHomotopyEquiv,
+    Homeomorph.setCongr_apply, FiberHomotopyEquiv.coe_restrictPreimage_toFun_apply,
+    Homeomorph.subtype_apply_coe, StarConvex.radialProjectionFiberHomotopyEquiv_toFun,
+    radialProjectionToSphere_setCongr_compl_eq_univ_sdiff]
 
 /-- The homotopy inverse of `SymplecticGeometry.complZeroPreimageHomotopyEquiv` is the inclusion of
 `W`. -/
@@ -217,13 +217,12 @@ theorem coe_complZeroPreimageHomotopyEquiv_symm_apply (y : W) :
     (((complZeroPreimageHomotopyEquiv W).symm y : ({0}ᶜ : Set E)) : E) = y := by
   rw [complZeroPreimageHomotopyEquiv, ContinuousMap.HomotopyEquiv.symm_trans,
     ContinuousMap.HomotopyEquiv.symm_trans, ContinuousMap.HomotopyEquiv.trans_apply,
-    ContinuousMap.HomotopyEquiv.trans_apply, FiberHomotopyEquiv.toHomotopyEquiv_symm_apply]
-  -- `Homeomorph.setCongr` and `Homeomorph.subtype` have no evaluation lemmas; they do not move
-  -- points.
-  exact (congrArg Subtype.val (FiberHomotopyEquiv.coe_restrictPreimage_invFun_apply
-    ((starConvex_univ (0 : E)).radialProjectionFiberHomotopyEquiv one_pos (subset_univ _))
-      W _)).trans
-    (coe_sphereInclusionDiffSingleton_apply _ _ _)
+    ContinuousMap.HomotopyEquiv.trans_apply, FiberHomotopyEquiv.toHomotopyEquiv_symm_apply,
+    ← Homeomorph.symm_toHomotopyEquiv, ← Homeomorph.symm_toHomotopyEquiv,
+    Homeomorph.coe_toHomotopyEquiv, Homeomorph.coe_toHomotopyEquiv,
+    Homeomorph.subtype_symm_apply_coe, Homeomorph.setCongr_symm_apply,
+    Homeomorph.setCongr_symm_apply, FiberHomotopyEquiv.coe_restrictPreimage_invFun_apply,
+    StarConvex.radialProjectionFiberHomotopyEquiv_invFun, coe_sphereInclusionDiffSingleton_apply]
 
 end Radial
 
