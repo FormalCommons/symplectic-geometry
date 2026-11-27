@@ -944,7 +944,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
   mfderiv_symplecticNormalRepresentative' q h v :=
     -- The tangent spaces of `prodBall Q ε`, `U₀` and `Q × ℂ` are all the model space `EQ × ℂ`.
     (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := I) (f := ψ ∘ Opens.inclusion hle)
-      _).trans <| (TauCeti.Manifold.mfderiv_comp_inclusion_apply hle _ _).trans ((hψ q).2.2 v)
+      _).trans <| (mfderiv_comp_inclusion_apply hle _ _).trans ((hψ q).2.2 v)
 
 section Exists
 
