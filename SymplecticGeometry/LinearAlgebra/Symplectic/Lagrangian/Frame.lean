@@ -53,10 +53,9 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
   `exists_eq_graph_of_isCompl_ker_x`, `exists_eq_graphY_of_isCompl_ker_y`.
 * `SymplecticGeometry.StdSpace.map_symJ_graph`: the matrix `J` of `TauCeti.GLSymplectic.symJ`
   sends `graph A` to `graphY (-A)`.
-* `SymplecticGeometry.StdSpace.map_realSubspace`, `map_lagrangianChart`,
-  `SymplecticGeometry.stdForm_apply_eq_im_inner`: through `StdSpace.complexEuclideanEquiv`,
-  Tau Ceti's `ℝⁿ ⊆ ℂⁿ` is the horizontal subspace `{y = 0}`, its chart subspace
-  `Matrix.lagrangianChart S` is `graphY S`, and `ω₀` is `Im ⟪·, ·⟫`.
+* `SymplecticGeometry.StdSpace.map_realSubspace`, `map_lagrangianChart`: through
+  `StdSpace.complexEuclideanEquiv`, Tau Ceti's `ℝⁿ ⊆ ℂⁿ` is the horizontal subspace `{y = 0}`,
+  and its chart subspace `Matrix.lagrangianChart S` is `graphY S`.
 * `SymplecticGeometry.isLagrangian_range_fromRows_iff`: `fromRows X Y` spans a Lagrangian
   subspace iff it has rank `n` and `Xᵀ Y = Yᵀ X`.
 * `SymplecticGeometry.isLagrangian_map_swap_iff`: the coordinate swap preserves and reflects
@@ -260,13 +259,6 @@ theorem map_realImage [DecidableEq ι] (A : Matrix ι ι ℂ) :
 end StdSpace
 
 open StdSpace
-
-/-- Through `StdSpace.complexEuclideanEquiv`, the standard symplectic form is the imaginary part
-of the Hermitian inner product of `ℂⁿ`: `ω₀(v, w) = Im ⟪v, w⟫`. -/
-theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
-    stdForm ι (complexEuclideanEquiv ι v) (complexEuclideanEquiv ι w) = (inner ℂ v w).im := by
-  rw [← imInnerSymplecticForm_apply, imInnerSymplecticForm_euclideanSpace_apply]
-  simp [complexEuclideanEquiv_def]
 
 /-! ### Graphs are Lagrangian exactly for symmetric matrices -/
 
