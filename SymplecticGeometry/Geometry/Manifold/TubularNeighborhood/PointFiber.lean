@@ -168,12 +168,8 @@ theorem
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         (m + 1)
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (m + 1)).hom
