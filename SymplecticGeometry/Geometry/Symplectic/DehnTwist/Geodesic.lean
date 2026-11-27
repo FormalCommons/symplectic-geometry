@@ -328,7 +328,7 @@ theorem contMDiff_cotangentCoord :
         (fun q : 𝕊 n ↦ (⟨q, Manifold.mgradient (𝓡 n)
           (fun r : 𝕊 n ↦ ⟪b j, (r : 𝔼 n)⟫_ℝ) q⟩ : TangentBundle (𝓡 n) (𝕊 n))) := by
     have hh : ContMDiff (𝓡 n) 𝓘(ℝ) (∞ + 1) (fun r : 𝕊 n ↦ ⟪b j, (r : 𝔼 n)⟫_ℝ) :=
-      ((innerSL ℝ (b j)).contDiff.contMDiff.comp contMDiff_coe_sphere).of_le le_top
+      (TauCeti.contMDiff_inner_coe_sphere (b j)).of_le le_top
     exact Manifold.contMDiff_mgradient hh
   have hcoeff (j : Fin (n + 1)) :
       ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ) ∞

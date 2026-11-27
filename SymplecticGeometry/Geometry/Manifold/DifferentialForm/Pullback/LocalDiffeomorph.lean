@@ -333,8 +333,7 @@ theorem mpullback_apply_smul_eq_of_apply_eq [IsManifold I 1 M] {G : Type*} [Grou
     ContMDiffConstSMul.mdifferentiable_const_smul (I := I') (n := 1) one_ne_zero g (f y)
   have hsurj : Function.Surjective (mfderiv I I (g • ·) y) := by
     rw [← Diffeomorph.coe_constSmul (I := I) (n := 1) g]
-    exact (((Diffeomorph.constSmul I 1 g).isLocalDiffeomorph y).isInvertible_mfderiv
-      one_ne_zero).surjective
+    exact ((Diffeomorph.constSmul I 1 g).isInvertible_mfderiv one_ne_zero).surjective
   refine (mpullback_apply_eq_mpullback_apply_iff hsurj).1 ?_
   -- Both sides at `y`: `(f ∘ (g • ·))^* α = ((g • ·) ∘ f)^* α = f^* α = β = (g • ·)^* β`.
   rw [hβ, ← mpullback_comp_at hgM (hf.at_smul_of_map_smul g hfg),
