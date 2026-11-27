@@ -24,7 +24,9 @@ So in these charts the homeomorphism and its inverse are the identity, and both 
 ## Main declarations
 
 * `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization_affineParam`: the homeomorphism
-  matches the standard affine parametrizations of the two models.
+  matches the standard affine parametrizations of the two models;
+  `TauCeti.ComplexProjectiveSpace.homeomorphProjectivization_symm_mk_insertNth` is its inverse
+  form.
 * `TauCeti.ComplexProjectiveSpace.contMDiff_homeomorphProjectivization` and
   `TauCeti.ComplexProjectiveSpace.contMDiff_homeomorphProjectivization_symm`: the homeomorphism
   and its inverse are `C^r` for the complex models `𝓘(ℂ, Fin n → ℂ)`, for every `r`.
@@ -50,6 +52,7 @@ variable (n : ℕ)
 in the chart `X_k ≠ 0` of the sphere-quotient model to the point with the same affine coordinates
 in the chart `X_k ≠ 0` of the projectivization: both are the line through
 `Fin.insertNth k 1 z`. -/
+@[simp]
 theorem homeomorphProjectivization_affineParam (k : Fin (n + 1)) (z : Fin n → ℂ) :
     homeomorphProjectivization n (affineParam k z) = (Projectivization.affineChart k).symm z := by
   rw [affineParam_def, homeomorphProjectivization_mk, Projectivization.affineChart_symm_apply,
@@ -60,6 +63,17 @@ theorem homeomorphProjectivization_affineParam (k : Fin (n + 1)) (z : Fin n → 
   rcases Fin.eq_self_or_eq_succAbove k j with rfl | ⟨j, rfl⟩
   · rw [Fin.insertNth_apply_same, affineVector_apply_self]
   · rw [Fin.insertNth_apply_succAbove, affineVector_apply_succAbove]
+
+/-- The inverse of the homeomorphism `CPⁿ ≃ₜ ℙ ℂ (Fin (n + 1) → ℂ)` sends the line through
+`Fin.insertNth k 1 z` to the point with affine coordinates `z` in the chart `X_k ≠ 0` of the
+sphere-quotient model. -/
+@[simp]
+theorem homeomorphProjectivization_symm_mk_insertNth (k : Fin (n + 1)) (z : Fin n → ℂ) :
+    (homeomorphProjectivization n).symm (Projectivization.mk ℂ
+      (Fin.insertNth (α := fun _ ↦ ℂ) k 1 z) (Fin.insertNth_one_ne_zero k z)) =
+      affineParam k z := by
+  rw [Homeomorph.symm_apply_eq, homeomorphProjectivization_affineParam,
+    Projectivization.affineChart_symm_apply]
 
 /-- On the affine open `X_k ≠ 0`, the homeomorphism `CPⁿ ≃ₜ ℙ ℂ (Fin (n + 1) → ℂ)` reads, in the
 standard charts, as the identity: it is the inverse of the chart of `ℙ ℂ (Fin (n + 1) → ℂ)`
