@@ -1337,9 +1337,14 @@ containing `ι '' closedBall 0 1`:
        derivatives of `smoothedMax` are nonnegative with sum `1`; the
        strict upper bound gives `χ ℓ > M N + κ * θ ℓ + δ` near `ℓ₁`, where
        the family is then `χ ℓ`. Last, near `r₂` the family is blended
-       with `χ` by a cutoff in `r`: both are increasing in `ℓ` there and
-       close in value and two `r`-derivatives (step 4), so the blend is
-       increasing and, by step 1, a convex shape.
+       with `χ` by a cutoff `ρ ≥ 0` in `r`: both are increasing in `ℓ` there
+       and close in value and first `r`-derivative (step 4), while their
+       second `r`-derivatives are close only from below: near `ℓ₁` the term of
+       `iteratedDeriv_two_smoothedMax` with `(smoothedAbs δ)''` is
+       nonnegative and may be of order `1 / δ`. So the blend is increasing
+       and, by the one-sided blend lemma
+       `exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two`
+       (`Surround/ConvexShape/Basic.lean`), a convex shape.
     The shapes of `exists_convexShapeFamily_surround` have vertical
     tangents at `r = δ`, where they are not graphs over `r`; there the
     same statement is used with `r` as a function of `R`, the shapes
