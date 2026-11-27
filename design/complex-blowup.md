@@ -123,7 +123,7 @@ maps out of the blowup, such as $\pi_M$, `GluedAlong.t2Space_iff` and the
 For a smooth manifold `M` charted on `E`, with
 `J : TauCeti.SmoothAlmostComplexStructure 𝓘(ℝ, E) M` and a chart `c` in the
 real maximal atlas that is $J$-holomorphic on its source
-(`hJ : ∀ x ∈ c.source, mfderiv … c x ∘L J x = (Complex.I • ·) ∘L mfderiv … c x`),
+(`hJ : IsPseudoholomorphicOn J (SmoothAlmostComplexStructure.ofComplexManifold E E) c c.source`),
 the structure $\tilde J$ on `Blowup c` is glued from two pieces that agree
 on the overlap:
 
