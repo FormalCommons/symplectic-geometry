@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
+import Mathlib.Analysis.Calculus.BumpFunction.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Graph
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
@@ -28,10 +28,11 @@ point.
   nondegenerate for `t ∈ [0, 1]`, with `β 1` the restriction of `η`, and a smooth
   `χ : V → [0, 1]` equal to `1` on `W`, there is a nondegenerate form equal to `η` on `W` whose
   restriction to `V` is the slice of `β` along `χ`.
-* `SymplecticGeometry.exists_isNondegenerate_eq_of_lt_norm`: on a real inner product
-  space, with `0 ≤ ρ < R`, `V` containing `{w | ρ < ‖w‖}` and `β` as above, there is a
-  nondegenerate form equal to `η` near the closed ball of radius `ρ` and to `β 0` where
-  `R < ‖w‖`. The cut-off is a `ContDiffBump` between two radii in `(ρ, R)`.
+* `SymplecticGeometry.exists_isNondegenerate_eq_of_lt_norm`: on a real normed space
+  with smooth bump functions, such as a finite-dimensional one, with `0 ≤ ρ < R`,
+  `V` containing `{w | ρ < ‖w‖}` and `β` as above, there is a nondegenerate form equal
+  to `η` near the closed ball of radius `ρ` and to `β 0` where `R < ‖w‖`. The
+  cut-off is a `ContDiffBump` between two radii in `(ρ, R)`.
 
 ## References
 
@@ -95,31 +96,26 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
   have hnd : ∀ y, (τ.bilinFormAt y).Nondegenerate := fun y ↦ by
     by_cases hy : y ∈ V
     · have hσnd : SmoothTwoForm.IsNondegenerate σ := hβ.isNondegenerate_sliceAlong hχ hχI hβnd
-      have hd := (isLocalDiffeomorph_subtype_val (I := I) (n := ∞) (U := V)
-        ⟨y, hy⟩).isInvertible_mfderiv (by simp)
-      exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hd
-        (congrFun hγV ⟨y, hy⟩)).2 (hσnd.nondegenerate_bilinFormAt ⟨y, hy⟩)
+      exact (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff ⟨y, hy⟩).1
+        (hτV ▸ hσnd.nondegenerate_bilinFormAt ⟨y, hy⟩)
     · have hyW : y ∈ W := (hWV.symm.subset (mem_univ y)).resolve_right hy
       have : τ.bilinFormAt y = η.bilinFormAt y := LinearMap.ext₂ fun v w ↦ by
         rw [SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply,
           SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply]
         exact congrArg (fun a ↦ a ![v, w]) (hγW y hyW)
       exact this ▸ hη.nondegenerate_bilinFormAt y
-  refine ⟨τ, ?_, hγW, hτV⟩
-  rw [SmoothTwoForm.isNondegenerate_iff_separatingLeft]
-  intro y v hv
-  refine (hnd y).1 v fun w ↦ ?_
-  rw [SmoothForm.bilinFormAt_apply]
-  exact hv w
+  exact ⟨τ, SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun y ↦
+    (hnd y).ker_eq_bot, hγW, hτV⟩
 
 end Manifold
 
-section InnerProductSpace
+section BumpFunction
 
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [HasContDiffBump E]
 
-/-- Let `0 ≤ ρ < R` and let `V` be an open set in a real inner product space
-`E` that contains every `w` with `ρ < ‖w‖`. Let `η` be a nondegenerate two-form on `E`, and
+/-- Let `0 ≤ ρ < R` and let `V` be an open set in a real normed space `E` with smooth bump
+functions (`HasContDiffBump E`, as for every finite-dimensional `E`) that contains every `w`
+with `ρ < ‖w‖`. Let `η` be a nondegenerate two-form on `E`, and
 `β` a smooth family of two-forms on `V` over `ℝ`, nondegenerate for `t ∈ [0, 1]`, with `β 1` the
 restriction of `η` to `V`. Then there is a nondegenerate two-form on `E` equal to `η` near the
 closed ball of radius `ρ` and whose restriction to `V` is `β 0` at the points with
@@ -154,7 +150,7 @@ theorem exists_isNondegenerate_eq_of_lt_norm {ρ R : ℝ} (hρ : 0 ≤ ρ) (hρR
     rw [hτV, IsSmoothFamily.sliceAlong_val]
     simp only [h0]
 
-end InnerProductSpace
+end BumpFunction
 
 end SymplecticGeometry
 
