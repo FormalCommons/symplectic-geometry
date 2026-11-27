@@ -501,7 +501,7 @@ theorem exists_complexFrame_mfderiv {ι : EuclideanSpace ℝ (Fin k) → M}
     coprod_apply _ _ _
   refine ⟨A, fun x₀ ↦ ?_, hBL, fun x v ↦ ?_, fun x ↦ ?_⟩
   · exact (hL (fun x ↦ (modelDisc k m x).1) x₀).inTangentCoordinates_clm_coprod (A := L)
-      (B := B) 𝓘(ℝ, E) (hB (fun x ↦ (modelDisc k m x).2) x₀) hιs.continuous.continuousAt
+      (B := B) 𝓘(ℝ, E) (hB (fun x ↦ (modelDisc k m x).2) x₀)
   · -- `A x` takes values in `E`, which the tangent space is only up to unfolding.
     refine (?_ : A x (Complex.I • v) = Complex.I • A x v).trans (ofComplexManifold_apply _ _).symm
     obtain ⟨z, w⟩ := v

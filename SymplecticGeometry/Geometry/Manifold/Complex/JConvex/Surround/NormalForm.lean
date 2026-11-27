@@ -195,7 +195,6 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
     fun x v ↦ ?_, fun x ↦ ?_, fun x hx w ↦ ?_⟩
   · have hUs : ContDiff ℝ ∞ U := contDiff_const.sub hNs
     exact (hAs x₀).inTangentCoordinates_clm_comp 𝓘(ℝ, E) hUs.contMDiff.contMDiffAt
-      (hι.contMDiff x₀).continuousAt
   · have hUI : U x (Complex.I • v) = Complex.I • U x v := by simp [U, hNI, smul_sub]
     simp only [ContinuousLinearMap.comp_apply, hUI]
     exact hAI x _

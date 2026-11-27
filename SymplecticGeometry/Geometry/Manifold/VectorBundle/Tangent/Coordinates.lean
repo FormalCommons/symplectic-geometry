@@ -36,11 +36,14 @@ It follows that of the private lemma `inTangentCoordinates_I_smul_id` of Tau Cet
 For a family of maps from a model space into the tangent spaces, the coordinates on the source
 play no role (`inTangentCoordinates_model_space_source`): in tangent coordinates the family is
 its composite with the tangent coordinate changes of `M`
-(`inTangentCoordinates_eq_tangentCoordChange_comp`). Hence a family that is `Cⁿ` in tangent
-coordinates, along a base map continuous at the point, stays so after composing on the right with
-a `Cⁿ` family of linear maps between model spaces (`ContMDiffAt.inTangentCoordinates_clm_comp`,
-a smooth counterpart of Tau Ceti's `ContinuousAt.inCoordinates_clm_comp`), and two such families
-give one on the product (`ContMDiffAt.inTangentCoordinates_clm_coprod`). Such a family that is
+(`inTangentCoordinates_eq_tangentCoordChange_comp`). For the same reason, reading in tangent
+coordinates commutes with composing on the right with linear maps between model spaces
+(`inTangentCoordinates_clm_comp`) and with taking the coprod of two families
+(`inTangentCoordinates_coprod`), at every point. Hence a family that is `Cⁿ` in tangent
+coordinates stays so after composing on the right with a `Cⁿ` family of linear maps between model
+spaces (`ContMDiffAt.inTangentCoordinates_clm_comp`, a smooth counterpart of Tau Ceti's
+`ContinuousAt.inCoordinates_clm_comp`), and two such families give one on the product
+(`ContMDiffAt.inTangentCoordinates_clm_coprod`). Such a family that is
 continuous as a map `X × G → TM` is continuous in tangent coordinates
 (`continuousAt_inTangentCoordinates_of_continuous`, from
 `Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). Conversely, a family that is
@@ -129,10 +132,39 @@ theorem inTangentCoordinates_model_space_source {G X : Type*} [NormedAddCommGrou
   -- which are both `G` only up to unfolding.
   rfl
 
-/-- Let `A x : G → T_(g x) M` be a family of maps along a map `g : X → M` continuous at `x₀`, and
-`U x : G' → G` a family of linear maps between model spaces. If `A` read in tangent coordinates
-and `U` are both `Cⁿ` at `x₀`, then so is `x ↦ A x ∘ U x` read in tangent coordinates. This is a
-smooth counterpart of Tau Ceti's `ContinuousAt.inCoordinates_clm_comp`. -/
+/-- Read in tangent coordinates, the composite of a family of maps `A x` from a model space `G`
+into the tangent spaces `T_(g x) M` with a family of linear maps `U x : G' → G` is the reading of
+`A` composed with `U`. -/
+theorem inTangentCoordinates_clm_comp {G G' X : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+    [NormedAddCommGroup G'] [NormedSpace 𝕜 G'] (f : X → G) (f' : X → G') (g : X → M)
+    (A : ∀ x, G →L[𝕜] TangentSpace I (g x)) (U : X → G' →L[𝕜] G) (x₀ : X) :
+    inTangentCoordinates 𝓘(𝕜, G') I f' g (fun x ↦ A x ∘L U x) x₀ =
+      fun x ↦ inTangentCoordinates 𝓘(𝕜, G) I f g A x₀ x ∘L U x := by
+  ext1 x
+  simp only [inTangentCoordinates, ContinuousLinearMap.inCoordinates,
+    TangentBundle.symmL_model_space]
+  -- The identities of `TangentSpace 𝓘(𝕜, G')` at `f' x` and of `TangentSpace 𝓘(𝕜, G)` at `f x`
+  -- are those of `G'` and `G` only up to unfolding.
+  rfl
+
+/-- Read in tangent coordinates, the coprod of two families of maps `A x : G₁ → T_(g x) M` and
+`B x : G₂ → T_(g x) M` from model spaces is the coprod of their readings. -/
+theorem inTangentCoordinates_coprod {G₁ G₂ X : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁]
+    [NormedAddCommGroup G₂] [NormedSpace 𝕜 G₂] (f₁ : X → G₁) (f₂ : X → G₂) (f : X → G₁ × G₂)
+    (g : X → M) (A : ∀ x, G₁ →L[𝕜] TangentSpace I (g x)) (B : ∀ x, G₂ →L[𝕜] TangentSpace I (g x))
+    (x₀ : X) :
+    inTangentCoordinates 𝓘(𝕜, G₁ × G₂) I f g (fun x ↦ (A x).coprod (B x)) x₀ =
+      fun x ↦ (inTangentCoordinates 𝓘(𝕜, G₁) I f₁ g A x₀ x).coprod
+        (inTangentCoordinates 𝓘(𝕜, G₂) I f₂ g B x₀ x) := by
+  ext1 x
+  simp only [inTangentCoordinates, ContinuousLinearMap.inCoordinates,
+    TangentBundle.symmL_model_space]
+  exact ContinuousLinearMap.comp_coprod _ _ _
+
+/-- Let `A x : G → T_(g x) M` be a family of maps along a map `g : X → M`, and `U x : G' → G` a
+family of linear maps between model spaces. If `A` read in tangent coordinates and `U` are both
+`Cⁿ` at `x₀`, then so is `x ↦ A x ∘ U x` read in tangent coordinates. This is a smooth
+counterpart of Tau Ceti's `ContinuousAt.inCoordinates_clm_comp`. -/
 theorem _root_.ContMDiffAt.inTangentCoordinates_clm_comp {n : WithTop ℕ∞}
     {G G' X EX HX : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [NormedAddCommGroup G']
     [NormedSpace 𝕜 G'] [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
@@ -140,19 +172,15 @@ theorem _root_.ContMDiffAt.inTangentCoordinates_clm_comp {n : WithTop ℕ∞}
     {f : X → G} {f' : X → G'} {g : X → M} {A : ∀ x, G →L[𝕜] TangentSpace I (g x)}
     {U : X → G' →L[𝕜] G} {x₀ : X}
     (hA : ContMDiffAt IX 𝓘(𝕜, G →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G) I f g A x₀) x₀)
-    (hU : ContMDiffAt IX 𝓘(𝕜, G' →L[𝕜] G) n U x₀) (hg : ContinuousAt g x₀) :
+    (hU : ContMDiffAt IX 𝓘(𝕜, G' →L[𝕜] G) n U x₀) :
     ContMDiffAt IX 𝓘(𝕜, G' →L[𝕜] E) n
       (inTangentCoordinates 𝓘(𝕜, G') I f' g (fun x ↦ A x ∘L U x) x₀) x₀ := by
-  refine (hA.clm_comp hU).congr_of_eventuallyEq ?_
-  filter_upwards [hg.preimage_mem_nhds
-    ((chartAt H (g x₀)).open_source.mem_nhds (mem_chart_source H (g x₀)))] with x hx
-  rw [inTangentCoordinates_eq_tangentCoordChange_comp I A hx]
-  exact (inTangentCoordinates_eq_tangentCoordChange_comp I (f := f') (fun x ↦ A x ∘L U x)
-    hx).trans (ContinuousLinearMap.comp_assoc _ _ _).symm
+  rw [SymplecticGeometry.inTangentCoordinates_clm_comp I f f' g A U x₀]
+  exact hA.clm_comp hU
 
 /-- Let `A x : G₁ → T_(g x) M` and `B x : G₂ → T_(g x) M` be families of maps along a map
-`g : X → M` continuous at `x₀`. If both are `Cⁿ` at `x₀` when read in tangent coordinates, then
-so is the family `x ↦ (A x).coprod (B x)` of maps `G₁ × G₂ → T_(g x) M`. -/
+`g : X → M`. If both are `Cⁿ` at `x₀` when read in tangent coordinates, then so is the family
+`x ↦ (A x).coprod (B x)` of maps `G₁ × G₂ → T_(g x) M`. -/
 theorem _root_.ContMDiffAt.inTangentCoordinates_clm_coprod {n : WithTop ℕ∞}
     {G₁ G₂ X EX HX : Type*} [NormedAddCommGroup G₁] [NormedSpace 𝕜 G₁] [NormedAddCommGroup G₂]
     [NormedSpace 𝕜 G₂] [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
@@ -160,17 +188,11 @@ theorem _root_.ContMDiffAt.inTangentCoordinates_clm_coprod {n : WithTop ℕ∞}
     {f₁ : X → G₁} {f₂ : X → G₂} {f : X → G₁ × G₂} {g : X → M}
     {A : ∀ x, G₁ →L[𝕜] TangentSpace I (g x)} {B : ∀ x, G₂ →L[𝕜] TangentSpace I (g x)} {x₀ : X}
     (hA : ContMDiffAt IX 𝓘(𝕜, G₁ →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G₁) I f₁ g A x₀) x₀)
-    (hB : ContMDiffAt IX 𝓘(𝕜, G₂ →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G₂) I f₂ g B x₀) x₀)
-    (hg : ContinuousAt g x₀) :
+    (hB : ContMDiffAt IX 𝓘(𝕜, G₂ →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G₂) I f₂ g B x₀) x₀) :
     ContMDiffAt IX 𝓘(𝕜, G₁ × G₂ →L[𝕜] E) n
       (inTangentCoordinates 𝓘(𝕜, G₁ × G₂) I f g (fun x ↦ (A x).coprod (B x)) x₀) x₀ := by
-  refine (hA.clm_coprod hB).congr_of_eventuallyEq ?_
-  filter_upwards [hg.preimage_mem_nhds
-    ((chartAt H (g x₀)).open_source.mem_nhds (mem_chart_source H (g x₀)))] with x hx
-  rw [inTangentCoordinates_eq_tangentCoordChange_comp I A hx,
-    inTangentCoordinates_eq_tangentCoordChange_comp I B hx]
-  exact (inTangentCoordinates_eq_tangentCoordChange_comp I (f := f)
-    (fun x ↦ (A x).coprod (B x)) hx).trans (ContinuousLinearMap.comp_coprod _ _ _)
+  rw [inTangentCoordinates_coprod I f₁ f₂ f g A B x₀]
+  exact hA.clm_coprod hB
 
 /-- A family of maps `ϕ x` from a finite-dimensional normed space `G` into the tangent spaces
 `T_(g x) M`, continuous as a map `X × G → TM`, is continuous at `x₀` when read in the tangent
