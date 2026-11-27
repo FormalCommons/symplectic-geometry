@@ -18,6 +18,7 @@ import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import TauCeti.Analysis.Calculus.Deriv.Second
+import TauCeti.Analysis.Real.Sqrt
 
 /-!
 # Special `i`-convex shapes
@@ -217,7 +218,7 @@ theorem tendsto_deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
   have hc : ContinuousAt (fun u ↦ log (u / δ)) δ :=
     (continuousAt_id.div_const δ).log (by simp [hδ.ne'])
   have h₀ : Tendsto (fun u ↦ √(log (u / δ))) (𝓝[>] δ) (𝓝[>] 0) := by
-    refine Tendsto.sqrt_nhdsGT_zero ?_ ?_
+    refine tendsto_sqrt_nhdsGT_zero.comp (tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩)
     · simpa [hδ.ne'] using hc.tendsto.mono_left nhdsWithin_le_nhds
     · filter_upwards [self_mem_nhdsWithin] with u (hu : δ < u)
       exact log_pos ((one_lt_div hδ).2 hu)
