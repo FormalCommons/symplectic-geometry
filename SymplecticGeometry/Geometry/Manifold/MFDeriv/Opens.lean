@@ -30,7 +30,7 @@ maps to agree everywhere, and its proof is that of Tau Ceti's lemma with
 Restricting a map `g` on an open subset `V` to a smaller open subset `U` does not change its
 differential (`TauCeti.Manifold.mfderiv_comp_inclusion_apply`), whether or not `g` is
 differentiable. Since `Opens.inclusion h` is a local diffeomorphism
-(`TauCeti.isLocalDiffeomorph_inclusion`), this is Tau Ceti's chain rule
+(`isLocalDiffeomorph_inclusion`), this is Tau Ceti's chain rule
 `IsLocalDiffeomorphAt.mfderiv_comp` for precomposition with a local diffeomorphism, combined with
 the differential of the inclusion, `TauCeti.Manifold.mfderiv_inclusion_apply`.
 
@@ -92,7 +92,7 @@ not differentiable there). -/
 theorem mfderiv_comp_inclusion_apply {U V : Opens M} (h : U ≤ V) {g : V → M'} (x : U)
     (v : TangentSpace I x) :
     mfderiv I I' (g ∘ Opens.inclusion h) x v = mfderiv I I' g (Opens.inclusion h x) v := by
-  rw [(TauCeti.isLocalDiffeomorph_inclusion (n := 1) h x).mfderiv_comp one_ne_zero g,
+  rw [(isLocalDiffeomorph_inclusion (n := 1) h x).mfderiv_comp one_ne_zero g,
     ContinuousLinearMap.comp_apply, mfderiv_inclusion_apply]
 
 /-- On an open subset `U` of a normed space `E`, read with the model `𝓘(𝕜, E)`, the derivative

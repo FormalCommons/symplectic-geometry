@@ -317,7 +317,7 @@ diffeomorphism. -/
 theorem isLocalDiffeomorphAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ))
     {t : normalIioOpens 1} (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
     IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
-  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  refine IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 ?_
   rw [val_comp_negNormalCoord]
   exact (isLocalDiffeomorphAt_opens_val_zero ht).comp
     (hg := SymplecticGeometry.isLocalDiffeomorph_neg _)
@@ -327,7 +327,7 @@ diffeomorphism. -/
 theorem isLocalDiffeomorphAt_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ))
     {t : normalIioOpens 1} (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
     IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (posNormalCoord hS) t := by
-  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  refine IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 ?_
   rw [val_comp_posNormalCoord]
   exact isLocalDiffeomorphAt_opens_val_zero ht
 
