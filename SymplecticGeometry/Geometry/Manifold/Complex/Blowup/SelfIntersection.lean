@@ -59,6 +59,7 @@ complex structure of `Blowup c` (`Blowup.almostComplexStructure_eq_ofComplexMani
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
   Lemma 7.1.1.
 -/
+
 public section
 
 open Bundle Module TauCeti
@@ -162,15 +163,13 @@ theorem selfIntersectionNumber_exceptionalDivisor_almostComplexStructure
       (divisorRealEmbedding c).compDiffeomorphOfBoundaryless
           (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))).symm (by simp) x ∈
         Set.range (GluedAlong.inr (gluingHomeomorph c)) := by
-    rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply, coe_divisorRealEmbedding,
-      ofDirection_def]
-    exact Set.mem_range_self _
+    rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply, coe_divisorRealEmbedding]
+    exact ofDirection_mem_range_inr c _
   refine SmoothEmbedding.selfIntersectionNumber_eq_of_comp _ _ _ _ _ _ _ _ (φ := lift c) ?_
     (fun x ↦ ?_) (fun x ↦ isPseudoholomorphicAt_lift c J hJ (hmem x)) (fun x ↦ ?_) _
-  · funext x
-    rw [Function.comp_apply, SmoothEmbedding.compDiffeomorphOfBoundaryless_apply,
-      SmoothEmbedding.compDiffeomorphOfBoundaryless_apply, coe_divisorRealEmbedding,
-      lift_ofDirection, BlowupModel.coe_zeroSectionRealEmbedding]
+  · rw [SmoothEmbedding.coe_compDiffeomorphOfBoundaryless,
+      SmoothEmbedding.coe_compDiffeomorphOfBoundaryless, coe_divisorRealEmbedding,
+      ← Function.comp_assoc, lift_comp_ofDirection, BlowupModel.coe_zeroSectionRealEmbedding]
   · exact (isLocalDiffeomorphAt_lift c (hmem x)).contMDiffAt.of_le ENat.LEInfty.out
   · exact (isLocalDiffeomorphAt_lift c (hmem x)).isInvertible_mfderiv (by simp)
 
@@ -204,10 +203,7 @@ theorem selfIntersectionNumber_exceptionalDivisor
           (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) = -1 := by
   -- The almost complex blowup of the structure of `M` is the structure of `Blowup c`.
   have h := selfIntersectionNumber_exceptionalDivisor_almostComplexStructure c _
-    (isPseudoholomorphicOn_ofComplexManifold_iff.2
-      ((contMDiffOn_of_mem_maximalAtlas (Fact.out :
-        c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin 2 → ℂ) ω M)).mdifferentiableOn
-        (by simp))) Φ
+    (isPseudoholomorphicOn_ofComplexManifold_blowupChart c) Φ
   simpa only [almostComplexStructure_eq_ofComplexManifold] using h
 
 end Complex

@@ -323,7 +323,7 @@ theorem isPseudoholomorphicOn_lift :
   isPseudoholomorphicOn_iff.2 fun _ hz ↦
     (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
 
-/-- **The exceptional divisor is a `J̃`-holomorphic curve.** The real embedding
+/-- **The exceptional divisor is `J̃`-holomorphic.** The real embedding
 `divisorRealEmbedding c` of `ℙ ℂ (Fin (n + 1) → ℂ)` as the exceptional divisor is
 pseudoholomorphic, from the structure of the complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)` to the
 almost complex blowup. -/
@@ -332,17 +332,15 @@ theorem isPseudoholomorphic_divisorRealEmbedding :
       (almostComplexStructure c J hJ) (divisorRealEmbedding c) := by
   refine isPseudoholomorphic_iff.2 fun ℓ ↦ ?_
   have hmem : divisorRealEmbedding c ℓ ∈ range (inr (gluingHomeomorph c)) := by
-    rw [coe_divisorRealEmbedding, ofDirection_def]
-    exact mem_range_self _
+    rw [coe_divisorRealEmbedding]
+    exact ofDirection_mem_range_inr c ℓ
   -- After `lift c`, which is pseudoholomorphic with invertible differential there, the divisor
   -- is the holomorphic zero section of the model.
-  have hcomp : lift c ∘ divisorRealEmbedding c = zeroSection := by
-    funext ℓ
-    rw [comp_apply, coe_divisorRealEmbedding, lift_ofDirection]
   refine IsPseudoholomorphicAt.of_comp ?_ (isPseudoholomorphicAt_lift c J hJ hmem)
     ((isLocalDiffeomorphAt_lift c hmem).isInvertible_mfderiv (by simp)).injective
     ((divisorRealEmbedding c).contMDiff.mdifferentiableAt (by simp))
-  rw [hcomp, isPseudoholomorphicAt_ofComplexManifold_iff]
+  rw [coe_divisorRealEmbedding, lift_comp_ofDirection,
+    isPseudoholomorphicAt_ofComplexManifold_iff]
   exact (contMDiff_zeroSection ω).mdifferentiableAt (by simp)
 
 /-- The almost complex blowup preserves the tangent spaces of the exceptional divisor
@@ -389,6 +387,14 @@ section Complex
 variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
   [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
 
+/-- A chart `c` of the complex atlas of a complex manifold `M` is pseudoholomorphic on its
+source, from the structure of `M` to the standard structure of `ℂⁿ⁺¹`. -/
+theorem isPseudoholomorphicOn_ofComplexManifold_blowupChart :
+    IsPseudoholomorphicOn (ofComplexManifold (Fin (n + 1) → ℂ) M)
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c c.source :=
+  isPseudoholomorphicOn_ofComplexManifold_iff.2
+    ((contMDiffOn_of_mem_maximalAtlas hc.out).mdifferentiableOn (by simp))
+
 /-- **The almost complex blowup of a complex manifold is the complex blowup.** For a complex
 manifold `M` and a chart `c` of its complex atlas, the almost complex blowup of the structure of
 `M` is the structure of the complex manifold `Blowup c`. Being holomorphic, `c` is
@@ -396,8 +402,7 @@ pseudoholomorphic for the structure of `M`, and it is a chart of the smooth atla
 (`Blowup.instFactMemMaximalAtlasReal`), so the almost complex blowup is defined. -/
 theorem almostComplexStructure_eq_ofComplexManifold :
     almostComplexStructure c (ofComplexManifold (Fin (n + 1) → ℂ) M)
-        (isPseudoholomorphicOn_ofComplexManifold_iff.2
-          ((contMDiffOn_of_mem_maximalAtlas hc.out).mdifferentiableOn (by simp))) =
+        (isPseudoholomorphicOn_ofComplexManifold_blowupChart c) =
       ofComplexManifold (Fin (n + 1) → ℂ) (Blowup c) := by
   ext z v
   rcases (Set.ext_iff.1 (GluedAlong.range_inl_union_range_inr (gluingHomeomorph c)) z).2
