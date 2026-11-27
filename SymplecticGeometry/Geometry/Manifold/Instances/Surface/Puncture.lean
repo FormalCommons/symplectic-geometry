@@ -404,7 +404,7 @@ theorem continuous_sphereCoChart : Continuous sphereCoChart :=
     (isComplementaryBall_sphereBall _).isOpenEmbedding.continuous
 
 /-- The complementary chart sends `0` to the base point of the sphere. -/
-theorem sphereCoChart_zero : sphereCoChart 0 = basePoint 0 := by
+@[simp] theorem sphereCoChart_zero : sphereCoChart 0 = basePoint 0 := by
   rw [sphereCoChart_def, neg_zero, sphereBall_zero, neg_neg, Diffeomorph.symm_apply_apply]
 
 /-- Away from `0`, the complementary chart is the chart `sphereChart` after the inversion in the
@@ -540,7 +540,7 @@ private def ballPathAux : (g j : ℕ) →
     letI := ConnectedSum.chartedSpace (H := EuclideanSpace ℝ (Fin 2))
       EuclideanTorus.isOpenEmbedding_ball (isOpenEmbedding_ball (g := g) 0)
     ⟨((((ballPathAux g (j + 1)).val.codRestrict (s := ConnectedSum.puncture (ball g 0))
-        (x := ⟨basePoint g, basePoint_mem_puncture⟩)
+        (x := ⟨basePoint g, basePoint_mem_puncture_ball_zero⟩)
         (y := ⟨ball g (j + 1) (neckIsometry 1), ConnectedSum.mem_puncture.2 (by simp)⟩)
         fun t ↦ ConnectedSum.mem_puncture.2 ((ballPathAux g (j + 1)).property t 0)).map
           (ConnectedSum.continuous_inr _ _)).map (succDiffeomorph (g := g)).symm.continuous).cast
@@ -614,7 +614,7 @@ theorem succDiffeomorph_ballPath_apply (j : ℕ) (t : unitInterval) :
 variable (g n) in
 /-- The path to the ball `j`, as a path in `puncture g n`. -/
 def puncturedBallPath (j : ℕ) :
-    Path (⟨basePoint g, basePoint_mem_puncture'⟩ : puncture g n)
+    Path (⟨basePoint g, basePoint_mem_puncture⟩ : puncture g n)
       ⟨ball g j (neckIsometry 1), ball_neckIsometry_one_mem_puncture j⟩ :=
   (ballPath g j).codRestrict fun t ↦ ballPath_mem_puncture j t
 
