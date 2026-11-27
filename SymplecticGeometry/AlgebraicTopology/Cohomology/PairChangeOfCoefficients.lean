@@ -49,9 +49,9 @@ conversion that the proof of the library's `TauCeti.bijective_integralCup_eulerC
 (`Topology/VectorBundle/Thom/CupEulerClass.lean`) makes for a Thom class.
 
 The proofs follow those of the same statements for spaces, in the setting of pairs: Tau Ceti's
-`TopCat.singularCohomologyChainCoefficientMap_id`, `_comp` and `_naturality`, and this
-library's `TopCat.singularCohomologyValueMap_naturality` and
-`TopCat.singularCohomologyLinearCongr_naturality`.
+`TopCat.singularCohomologyChainCoefficientMap_id`, `_comp` and `_naturality` and
+`TopCat.singularCohomologyMap_comp_eqToHom`, and this library's
+`TopCat.singularCohomologyValueMap_naturality`.
 
 ## References
 
