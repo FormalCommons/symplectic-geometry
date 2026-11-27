@@ -12,6 +12,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.TimeDependent
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Symplectic connections
@@ -37,6 +39,10 @@ symplectomorphism between these fibre forms.
 * `IsSymplectic.parallelTransportInDiffeomorph_mem_diffeomorphStabilizer`, in the namespace
   `TauCeti.IsEhresmannConnection`: the diffeomorphisms of the model fibre given by transport in
   the charts of a smooth atlas lie in the stabilizer of `σ`.
+* `TauCeti.IsEhresmannConnection.mpullback_comp_fiberInclusionMap_of_eqOn_parallelTransport`:
+  a map that agrees with transport on a fibre, composed with the inclusion of that fibre in a
+  chart, is transport read in two charts followed by the inclusion of the later fibre, so a form
+  pulls back along it as along that composite.
 * `TauCeti.SmoothTwoForm.mlieDerivForm_apply_eq_mextDeriv_apply`: for a smooth atlas of `proj`,
   a two-form `τ` and a `C¹` vector field `X` with horizontal values, the Lie derivative of `τ`
   along `X` agrees on pairs of vertical vectors with `dτ` contracted with `X`. By Cartan's formula
@@ -69,9 +75,10 @@ symplectomorphism between these fibre forms.
   `η₁ η₂` and horizontal `v`. The field through `v` of
   `IsEhresmannConnection.exists_timeDependentField_eqOn_parallelTransport_apply_eq` has a flow
   that is transport near time `0`, so the pull-backs of `τ` along it to the fibre of `x` stay
-  equal to `σ`. Their velocity at `0`, the pull-back of the Lie derivative of `τ` along the
-  field, is therefore zero, and `mlieDerivForm_apply_eq_mextDeriv_apply` turns this into the
-  claim.
+  equal to `σ`. So the pull-back of the Lie derivative of `τ` along the field vanishes
+  (`TauCeti.mpullback_mlieDerivForm_apply_eq_zero_of_eventuallyEq_const`), and
+  `mlieDerivForm_apply_eq_mextDeriv_apply` with `ContinuousAlternatingMap.map_vecCons_rotate`
+  turns this into the claim.
 
 ## Implementation notes
 
@@ -185,6 +192,39 @@ theorem IsSymplectic.parallelTransportInDiffeomorph_mem_diffeomorphStabilizer
   rw [SmoothForm.mem_diffeomorphStabilizer_iff_forall, coe_parallelTransportInDiffeomorph]
   exact congrFun (h γ hγ s t b b' hs ht)
 
+omit [IsManifold IF ∞ F] in
+/-- **Pull-backs along a map that is transport on a fibre.** Let `D` be a smooth Ehresmann
+connection on a proper map with a smooth atlas `A`, `γ` a smooth curve in `B`, and `ψ : M → M` a
+map that agrees with transport along `γ` from `s` to `t` on the fibre over `γ s`. For charts
+`A.trivAt b₁` and `A.trivAt b₂` whose base sets contain `γ s` and `γ t`, the pull-back of a form
+`α` along `ψ` composed with the inclusion of the fibre over `γ s` is the pull-back, along
+transport read in these charts, of the pull-back of `α` to the fibre over `γ t`. -/
+theorem mpullback_comp_fiberInclusionMap_of_eqOn_parallelTransport
+    {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] {k : ℕ}
+    {hD : IsEhresmannConnection IM IB ∞ proj D} (hfp : IsProperMap proj)
+    (hA : A.IsContMDiff ∞ IB IF IM) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) IB ∞ γ) {s t : ℝ}
+    {b₁ b₂ : B} (hs₁ : γ s ∈ (A.trivAt b₁).baseSet) (ht₂ : γ t ∈ (A.trivAt b₂).baseSet)
+    {ψ : M → M} (hψ : Set.EqOn ψ (hD.parallelTransport γ s t) (proj ⁻¹' {γ s}))
+    (α : RoughForm IM M V k) :
+    mpullback IF IM (ψ ∘ (A.trivAt b₁).fiberInclusionMap hs₁) α =
+      mpullback IF IF (hD.parallelTransportIn (A.trivAt b₁) (A.trivAt b₂) γ s t)
+        (mpullback IF IM ((A.trivAt b₂).fiberInclusionMap ht₂) α) := by
+  have hn' : ((⊤ : ℕ∞) : ℕ∞ω) + 1 ≤ ∞ := by exact_mod_cast le_top
+  have hf : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hA.contMDiff_proj.of_le hn'
+  have hγ' : ContMDiff 𝓘(ℝ, ℝ) IB ((⊤ : ℕ∞) + 1) γ := hγ.of_le hn'
+  -- On the fibre over `γ s`, `ψ` is transport followed by the inclusion of the fibre over `γ t`.
+  have hψι : ψ ∘ (A.trivAt b₁).fiberInclusionMap hs₁ = (A.trivAt b₂).fiberInclusionMap ht₂ ∘
+      hD.parallelTransportIn (A.trivAt b₁) (A.trivAt b₂) γ s t := funext fun y ↦ by
+    rw [comp_apply, comp_apply, hψ ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y),
+      hD.fiberInclusionMap_parallelTransportIn le_top hf hfp hγ' hs₁ ht₂]
+  have hP : MDifferentiable IF IF (hD.parallelTransportIn (A.trivAt b₁) (A.trivAt b₂) γ s t) :=
+    (hD.contMDiff_parallelTransportIn le_top hf hfp hγ' (hA.contMDiffOn_trivAt_symm b₁)
+      (hA.contMDiffOn_trivAt b₂) hs₁ ht₂).mdifferentiable (by simp)
+  have hι₂ : MDifferentiable IF IM ((A.trivAt b₂).fiberInclusionMap ht₂) :=
+    ((A.trivAt b₂).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b₂)
+      ht₂).mdifferentiable (by simp)
+  rw [hψι, mpullback_comp hP hι₂]
+
 end IsEhresmannConnection
 
 namespace SmoothTwoForm
@@ -240,13 +280,9 @@ theorem IsVerticallyClosed.mlieDerivForm_apply_eq_zero (hA : A.IsContMDiff ∞ I
     (hη₁ : η₁ ∈ (mfderiv IM IB proj x).ker) (hη₂ : η₂ ∈ (mfderiv IM IB proj x).ker) :
     mlieDerivForm X τ.val x ![η₁, η₂] = 0 := by
   rw [mlieDerivForm_apply_eq_mextDeriv_apply hA hX hXh hη₁ hη₂]
-  -- `(X, η₁, η₂)` is a permutation of `(η₁, η₂, X)`, on which `dτ` vanishes.
-  have hσ : ![X x, η₁, η₂] = ![η₁, η₂, X x] ∘ (finRotate 3).symm := by
-    ext i
-    fin_cases i <;> simp
-  have hperm := (mextDeriv τ.val x).toAlternatingMap.map_perm ![η₁, η₂, X x] (finRotate 3).symm
-  rwa [← hσ, ContinuousAlternatingMap.coe_toAlternatingMap,
-    isVerticallyClosed_iff.1 h x η₁ hη₁ η₂ hη₂ (X x), smul_zero] at hperm
+  -- `(X, η₁, η₂)` is a rotation of `(η₁, η₂, X)`, on which `dτ` vanishes.
+  rw [ContinuousAlternatingMap.map_vecCons_rotate]
+  exact isVerticallyClosed_iff.1 h x η₁ hη₁ η₂ hη₂ (X x)
 
 section Transport
 
@@ -295,7 +331,7 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     (Filter.Eventually.of_forall fun u ↦ hφ t u _)
     (hasDerivAt_mpullback_timeDependentFlowOf_self hX t (g x)
       ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _))).congr_deriv ?_
-  ext w
+  refine ContinuousAlternatingMap.ext fun w ↦ ?_
   rw [mpullback_apply]
   -- The derivative of `g` takes vertical values, as `proj` is constant along it.
   have hvert (i : Fin 2) : mfderiv IN IM g x (w i) ∈ (mfderiv IM IB proj (g x)).ker := by
@@ -360,18 +396,9 @@ private theorem IsVerticallyClosed.mpullback_parallelTransportIn_of_mapsTo_baseS
       (fun r hr ↦ (hderiv r (Set.Ico_subset_Icc_self hr)).hasDerivWithinAt)
     rw [hk t ht, hk s hs]
   -- At time `t`, `φ t ∘ ι` is transport followed by the inclusion of the fibre over `γ t`.
-  have hφt : φ t ∘ ι = (A.trivAt b₂).fiberInclusionMap ht₂ ∘
-      hD.parallelTransportIn (A.trivAt b₁) (A.trivAt b₂) γ s t := funext fun y ↦ by
-    rw [comp_apply, comp_apply, htr t ht ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y),
-      hD.fiberInclusionMap_parallelTransportIn le_top hf hfp hγ' hs₁ ht₂]
-  have hP : MDifferentiable IF IF (hD.parallelTransportIn (A.trivAt b₁) (A.trivAt b₂) γ s t) :=
-    (hD.contMDiff_parallelTransportIn le_top hf hfp hγ' (hA.contMDiffOn_trivAt_symm b₁)
-      (hA.contMDiffOn_trivAt b₂) hs₁ ht₂).mdifferentiable (by simp)
-  have hι₂ : MDifferentiable IF IM ((A.trivAt b₂).fiberInclusionMap ht₂) :=
-    ((A.trivAt b₂).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b₂)
-      ht₂).mdifferentiable (by simp)
   funext v
-  rw [← mpullback_comp hP hι₂, ← hφt, hconst v, show φ s ∘ ι = ι from
+  rw [← IsEhresmannConnection.mpullback_comp_fiberInclusionMap_of_eqOn_parallelTransport hfp hA hγ
+    hs₁ ht₂ (htr t ht), hconst v, show φ s ∘ ι = ι from
     funext fun y ↦ timeDependentFlowOf_self X s _]
 
 /-- **Transport preserves the fibre forms of a vertically closed form.** Let `A` be a smooth atlas
@@ -437,69 +464,38 @@ theorem _root_.TauCeti.IsEhresmannConnection.IsSymplectic.mextDeriv_apply_eq_zer
   have hn' : ((⊤ : ℕ∞) : ℕ∞ω) + 1 ≤ ∞ := by exact_mod_cast le_top
   have hf : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hA.contMDiff_proj.of_le hn'
   -- A horizontal field through `v` whose flow is transport along a curve `γ` through `proj x`.
-  obtain ⟨γ, hγ, hγ0, -, a, b, hab, X, hc, hX, hXh, htr, hX0⟩ :=
+  obtain ⟨γ, hγ, hγ0, -, a, b, hab, X, -, hX, hXh, htr, hX0⟩ :=
     hD.exists_timeDependentField_eqOn_parallelTransport_apply_eq le_top hf hfp hv
-  have hγ' : ContMDiff 𝓘(ℝ, ℝ) IB ((⊤ : ℕ∞) + 1) γ := hγ.of_le hn'
   have hX1 : ContMDiff (𝓘(ℝ, ℝ).prod IM) IM.tangent 1
       (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle IM M)) := hX.of_le (by simp)
   have hX0' : ContMDiff IM IM.tangent 1 fun y ↦ (⟨y, X 0 y⟩ : TangentBundle IM M) :=
     hX1.comp ((contMDiff_const (c := (0 : ℝ))).prodMk contMDiff_id)
-  have hφ (u : ℝ) : MDifferentiable IM IM (timeDependentFlowOf X 0 u) :=
-    ((contMDiff_timeDependentFlowOf hc le_rfl hX1).comp
-      ((contMDiff_const (c := ((0 : ℝ), u))).prodMk contMDiff_id)).mdifferentiable one_ne_zero
   -- On the fibre over `γ 0`, the Lie derivative of `τ` along `X 0` pulls back to zero, since the
-  -- pull-backs of `τ` along the flow of `X` from `0` are `σ` near `0`.
+  -- pull-backs of `τ` along the flow of `X` from `0`, composed with the fibre inclusion, are `σ`
+  -- near `0`.
   have hlie : ∀ (c : B) (hc : c ∈ (A.trivAt (proj x)).baseSet), γ 0 = c →
       mpullback IF IM ((A.trivAt (proj x)).fiberInclusionMap hc) (mlieDerivForm (X 0) τ.val) =
         mpullback IF IM ((A.trivAt (proj x)).fiberInclusionMap hc) 0 := by
     rintro c hc rfl
-    set ι := (A.trivAt (proj x)).fiberInclusionMap hc
-    have hι : MDifferentiable IF IM ι :=
+    have hι : MDifferentiable IF IM ((A.trivAt (proj x)).fiberInclusionMap hc) :=
       ((A.trivAt (proj x)).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm _)
         hc).mdifferentiable (by simp)
     rw [mpullback_zero]
     funext w
-    have hderiv : HasDerivAt (F := EF [⋀^Fin 2]→L[ℝ] ℝ)
-        (fun u ↦ mpullback IF IM (timeDependentFlowOf X 0 u ∘ ι) τ.val w)
-        (mpullback IF IM ι (mlieDerivForm (X 0) τ.val) w) 0 :=
-      hasDerivAt_mpullback_of_eq_comp (χ := timeDependentFlowOf X 0) (g := ι)
-        (Filter.Eventually.of_forall fun _ ↦ Filter.EventuallyEq.rfl) (hι w)
-        (Filter.Eventually.of_forall fun u ↦ hφ u _)
-        (hasDerivAt_mpullback_timeDependentFlowOf_self hX1 0 (ι w)
-          ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _))
-    have hconst : (fun u ↦ mpullback IF IM (timeDependentFlowOf X 0 u ∘ ι) τ.val w) =ᶠ[𝓝 0]
-        fun _ ↦ σ.val w := by
-      filter_upwards [hab] with u hu
-      have h0 : (0 : ℝ) ∈ Set.Icc a b := mem_of_mem_nhds hab
-      have hu' := A.mem_baseSet_trivAt (γ u)
-      -- The flow from `0` to `u` is transport followed by the inclusion of the fibre over `γ u`.
-      have hφu : timeDependentFlowOf X 0 u ∘ ι = (A.trivAt (γ u)).fiberInclusionMap hu' ∘
-          hD.parallelTransportIn (A.trivAt (proj x)) (A.trivAt (γ u)) γ 0 u := funext fun y ↦ by
-        rw [comp_apply, comp_apply,
-          htr 0 h0 u hu ((A.trivAt (proj x)).proj_fiberInclusionMap hc y),
-          hD.fiberInclusionMap_parallelTransportIn le_top hf hfp hγ' hc hu']
-      have hP : MDifferentiable IF IF
-          (hD.parallelTransportIn (A.trivAt (proj x)) (A.trivAt (γ u)) γ 0 u) :=
-        (hD.contMDiff_parallelTransportIn le_top hf hfp hγ' (hA.contMDiffOn_trivAt_symm _)
-          (hA.contMDiffOn_trivAt _) hc hu').mdifferentiable (by simp)
-      have hι' : MDifferentiable IF IM ((A.trivAt (γ u)).fiberInclusionMap hu') :=
-        ((A.trivAt (γ u)).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm _)
-          hu').mdifferentiable (by simp)
-      rw [hφu, mpullback_comp hP hι', MapFiber.Atlas.restrictsTo_iff.1 hτ _ _ hu',
-        hS γ hγ 0 u _ _ hc hu']
-    exact hderiv.unique ((hasDerivAt_const _ _).congr_of_eventuallyEq hconst)
+    refine mpullback_mlieDerivForm_apply_eq_zero_of_eventuallyEq_const hX1 (hι w) 0
+      ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _) (c := σ.val w) ?_
+    filter_upwards [hab] with u hu
+    have hu' := A.mem_baseSet_trivAt (γ u)
+    rw [IsEhresmannConnection.mpullback_comp_fiberInclusionMap_of_eqOn_parallelTransport hfp hA hγ
+      hc hu' (htr 0 (mem_of_mem_nhds hab) u hu), MapFiber.Atlas.restrictsTo_iff.1 hτ _ _ hu',
+      hS γ hγ 0 u _ _ hc hu']
   have hx := A.mem_baseSet_trivAt (proj x)
   have hL := (A.trivAt (proj x)).apply_eq_of_mpullback_fiberInclusionMap_eq
     (hA.mdifferentiable_trivAt (by simp) _) hx (hlie _ hx hγ0)
     (u := ![η₁, η₂]) (Fin.forall_fin_two.2 ⟨hη₁, hη₂⟩)
   rw [mlieDerivForm_apply_eq_mextDeriv_apply hA hX0' (hXh 0) hη₁ hη₂, hX0] at hL
-  -- `(η₁, η₂, v)` is a permutation of `(v, η₁, η₂)`, on which `dτ` vanishes.
-  have hσ : ![η₁, η₂, v] = ![v, η₁, η₂] ∘ finRotate 3 := by
-    ext i
-    fin_cases i <;> simp
-  have hperm := (mextDeriv τ.val x).toAlternatingMap.map_perm ![v, η₁, η₂] (finRotate 3)
-  rw [← hσ, ContinuousAlternatingMap.coe_toAlternatingMap, hL] at hperm
-  exact hperm.trans (smul_zero _)
+  -- `(η₁, η₂, v)` is a rotation of `(v, η₁, η₂)`, on which `dτ` vanishes.
+  exact ((mextDeriv τ.val x).map_vecCons_rotate v η₁ η₂).symm.trans hL
 
 end Transport
 

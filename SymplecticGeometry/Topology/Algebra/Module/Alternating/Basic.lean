@@ -29,7 +29,9 @@ and `AlternatingMap.ext_fin_two` for the underlying alternating maps.
 
 A continuous alternating map vanishes on a family two of whose members are multiples of one
 vector (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`), as an alternating map does
-(`AlternatingMap.map_eq_zero_of_eq_smul`).
+(`AlternatingMap.map_eq_zero_of_eq_smul`). In degree three, its value does not change under a
+cyclic rotation of the arguments (`ContinuousAlternatingMap.map_vecCons_rotate`), since
+`AlternatingMap.map_perm` multiplies it by the sign of the rotation, which is `1`.
 
 Fixing the first `r` arguments of a continuous alternating map `f` of `r + m` arguments to `u`
 gives the continuous alternating map `f.appendLeft u : w ↦ f (Fin.append u w)` of `m` arguments.
@@ -75,6 +77,16 @@ theorem ext_fin_two {f g : M [⋀^Fin 2]→L[R] N} (h : ∀ v w, f ![v, w] = g !
 theorem map_eq_zero_of_eq_smul {ι : Type*} (f : M [⋀^ι]→L[R] N) {v : ι → M} {i j : ι}
     (hij : i ≠ j) {x : M} {a b : R} (hi : v i = a • x) (hj : v j = b • x) : f v = 0 :=
   f.toAlternatingMap.map_eq_zero_of_eq_smul hij hi hj
+
+/-- A continuous alternating map of three vectors takes the same value on `![a, b, c]` and on its
+cyclic rotation `![b, c, a]`, as a cyclic permutation of three arguments is even. -/
+theorem map_vecCons_rotate {N : Type*} [AddCommGroup N] [Module R N] [TopologicalSpace N]
+    (f : M [⋀^Fin 3]→L[R] N) (a b c : M) : f ![a, b, c] = f ![b, c, a] := by
+  have h : ![a, b, c] = ![b, c, a] ∘ (finRotate 3).symm := by
+    ext i
+    fin_cases i <;> rfl
+  rw [h, ← coe_toAlternatingMap, AlternatingMap.map_perm, Equiv.Perm.sign_symm, sign_finRotate]
+  simp
 
 /-- Let `V` be a submodule of `W` of rank at most `m`. A continuous alternating map `f` of
 `r + m` vectors takes the same value on `Fin.append (v + u) w` and on `Fin.append v w` when every
