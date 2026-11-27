@@ -368,6 +368,13 @@ theorem ofDirection_mem_exceptionalDivisor (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
   rw [exceptionalDivisor_def]
   exact mem_range_self ℓ
 
+/-- The point over each line `ℓ` lies in the range of `inr`, the open piece of the blowup that
+comes from the model. -/
+theorem ofDirection_mem_range_inr (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    ofDirection c ℓ ∈ range (inr (gluingHomeomorph c)) := by
+  rw [ofDirection_def]
+  exact mem_range_self _
+
 /-- A point of the blowup is on the exceptional divisor exactly when it is the image of a point
 of the model over `0`. -/
 theorem mem_exceptionalDivisor_iff {z : Blowup c} :
@@ -477,6 +484,10 @@ of the model's zero section. -/
 theorem lift_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     lift c (ofDirection c ℓ) = zeroSection ℓ := by
   rw [ofDirection_def, lift_inr]
+
+/-- The map to the model sends the exceptional divisor onto the model's zero section. -/
+theorem lift_comp_ofDirection : lift c ∘ ofDirection c = zeroSection :=
+  funext (lift_ofDirection c)
 
 /-- On the punctured source of `c`, the map to the model is the inverse of the blowdown applied
 to `c x`, which is `(mk (c x), c x)`. -/

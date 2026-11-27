@@ -595,7 +595,7 @@ containing `ι '' closedBall 0 1`:
   `shapeGraph χ : ℝ × ℝ → ℝ`, `(s, t) ↦ χ (√t) - √s`, with
   `shapeGraph_def`.
 
-- `Surround/ConvexShape.lean` (issues 14d1 and 14d2): $i$-convex shapes.
+- `Surround/ConvexShape/Basic.lean` (issues 14d1 and 14d2): $i$-convex shapes.
   - `IsConvexShapeAt.re_leviForm_pos` (14d1; the book's
     Proposition 4.8 (a), (b), Proposition 4.10 and Lemma 4.14 (a)): if
     `χ` is `C²` at `r` and `IsConvexShapeAt χ r`, then at every `p` with
@@ -614,7 +614,8 @@ containing `ι '' closedBall 0 1`:
   - `IsConvexShapeAt.add_const` (14d2; Lemma 4.13 (a)), for `0 ≤ c`, and
     `IsConvexShapeAt.rescale` (Lemma 4.13 (b)): for `0 < ℓ`,
     `IsConvexShapeAt (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r)`.
-  - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
+  - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d); in
+    `Surround/ConvexShape/SmoothedMax.lean`): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
     interval `Icc r₁ r₂`, and let `O` be a
     neighbourhood of `Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
@@ -752,7 +753,7 @@ containing `ι '' closedBall 0 1`:
 
     The proof is in five steps, each a building issue of 14d6.
     1. `exists_forall_isConvexShapeAt_of_abs_sub_lt`
-       (`Surround/ConvexShape.lean`): for a compact `K ⊆ ℝ × ℝ` with
+       (`Surround/ConvexShape/Basic.lean`): for a compact `K ⊆ ℝ × ℝ` with
        `IsConvexShapeAt (χ ℓ) r` and the joint continuity above on `K`,
        there is `η > 0` such that every `φ : ℝ → ℝ` and `(ℓ, r) ∈ K`
        with `|iteratedDeriv k φ r -
@@ -770,7 +771,7 @@ containing `ι '' closedBall 0 1`:
        `ContDiffBump`, glued by a cutoff). It turns finitely many members
        into smooth convex shapes `A i` (step 1).
     3. `exists_forall_isConvexShapeAt_smoothedMax`
-       (`Surround/ConvexShape.lean`, through the public pointwise step
+       (`Surround/ConvexShape/SmoothedMax.lean`, through the public pointwise step
        `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
        only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
        and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
@@ -1842,8 +1843,8 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14a | Squared distance near a compact part of a totally real embedding | `JConvex/TotallyReal.lean` | 13 | 300 |
 | 14b | $J$-orthogonally attached discs | `JConvex/Surround/Attached.lean` | 13 | 300 |
 | 14c | Shape functions and the model handle | `JConvex/Surround/Shape.lean` | 13 | 400 |
-| 14d1 | The Levi form of an $i$-convex shape | `JConvex/Surround/ConvexShape.lean` | 14c | 400 |
-| 14d2 | Sufficient conditions, shifts, rescaling and smoothed maxima of shapes | `JConvex/Surround/ConvexShape.lean` | 14d1 | 400 |
+| 14d1 | The Levi form of an $i$-convex shape | `JConvex/Surround/ConvexShape/Basic.lean` | 14c | 400 |
+| 14d2 | Sufficient conditions, shifts, rescaling and smoothed maxima of shapes | `JConvex/Surround/ConvexShape/Basic.lean`, `JConvex/Surround/ConvexShape/SmoothedMax.lean` | 14d1 | 400 |
 | 14d3 | Struwe’s solutions and the shapes $S$, $Q$, $L$ | `JConvex/Surround/SpecialShape.lean` | 14d2 | 400 |
 | 14d4 | The surrounding shape: Theorem 4.1 (i)–(iii) | `JConvex/Surround/SpecialShape.lean` | 14d3 | 400 |
 | 14d5 | Families of special shapes | `JConvex/Surround/ShapeFamily.lean` | 14d4 | 400 |
