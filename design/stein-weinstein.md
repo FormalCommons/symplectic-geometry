@@ -951,9 +951,12 @@ containing `ι '' closedBall 0 1`:
     (it restricts to `f` on real points), `contDiff_taylorExtension`
     (`C^r` for `f` of class `C^(r + N)`), and the formula of its defect:
     for real directions `u`,
-    `∂̄ (taylorExtension N f) z u = -(Complex.I ^ (N + 1) / N.factorial) •
-    iteratedFDeriv ℝ (N + 1) f (re z) (Fin.cons u (fun _ ↦ im z))`,
-    the terms of lower order cancelling in pairs, and `∂̄` is
+    `conjWirtingerDeriv (taylorExtension N f) z u =
+    ((2 : ℂ)⁻¹ * Complex.I ^ N / N.factorial) •
+    iteratedFDeriv ℝ (N + 1) f (re z) (Fin.cons u (fun _ ↦ im z))`
+    (`conjWirtingerDeriv_taylorExtension_apply_real`, for `f` of class
+    `C^(N + 1)`),
+    the terms of lower order cancelling in pairs, and it is
     conjugate linear. Hence `norm_dbar_taylorExtension_le`: on
     `{z | re z ∈ K}`, `K` compact, `‖∂̄ (taylorExtension N f) z‖ ≤
     C * ‖im z‖ ^ N` and, for `1 ≤ N`, the same for its derivative with
