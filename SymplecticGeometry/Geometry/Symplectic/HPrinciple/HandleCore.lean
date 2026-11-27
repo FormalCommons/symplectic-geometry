@@ -11,7 +11,9 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.NormedSpace
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CollarPrimitive
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.Approximation
+import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.Collar
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.CompressionIsotopy
 
 /-!
@@ -48,9 +50,25 @@ and `b`, with `b` starting once `a` has reached `1`, as in the one-dimensional c
 (`SymplecticGeometry.exists_homotopy_exact_of_closed_near_attaching_fin_one`), whose assembly this
 proof follows. At time `1` it is `d ((e l 1)^* β' l)`.
 
+## Removing the common collar
+
+`SymplecticGeometry.exists_homotopy_exact_of_forall_exact_near_attaching` asks only that each
+`τ l`, `l ∈ K`, have a primitive on some neighbourhood of `A` of its own, with no smooth
+dependence on `l`. The collar correction
+(`SymplecticGeometry.exists_isSmoothFamily_collarCorrection`) gives a smooth family `η`,
+vanishing near `A`, small on `Q` and with `τ l - η l` exact on one product collar for every
+`l ∈ K`; the finite good cover of that collar
+(`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_near_sphere_prod_closedBall`) then gives
+the family `β` that the working lemma takes, for `τ - η`. The homotopy is
+`σ' (l, b t) + (1 - a t) • η l`, with `σ'` the working lemma's homotopy for `τ - η` and the same
+smooth steps: it runs the straight line from `τ l` to `τ l - η l`, then `σ'`, and needs no
+gluing, since each step is constant while the other moves.
+
 ## Main results
 
 * `SymplecticGeometry.exists_homotopy_exact_of_exact_near_attaching`
+* `SymplecticGeometry.exists_homotopy_exact_of_forall_exact_near_attaching`: the handle-core
+  lemma, McDuff–Salamon's Lemma 7.3.2.
 
 ## References
 
@@ -69,8 +87,9 @@ namespace SymplecticGeometry
 
 variable {m k : ℕ} {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [FiniteDimensional ℝ L]
 
-/-- **The handle-core lemma.** On `D = (Fin m → ℝ) × (Fin k → ℝ)` with the sup norms and `0 < k`,
-let `Q = closedBall 0 1` be the cube and `A = sphere 0 1 ×ˢ closedBall 0 1` its attaching faces.
+/-- **The handle-core working lemma.** On `D = (Fin m → ℝ) × (Fin k → ℝ)` with the sup norms and
+`0 < k`, let `Q = closedBall 0 1` be the cube and `A = sphere 0 1 ×ˢ closedBall 0 1` its attaching
+faces.
 Let `τ` be a smooth family of two-forms and `β` a smooth family of one-forms on `D`, over a
 finite-dimensional normed space `L`, and `K ⊆ L` compact, such that for `l ∈ K` the form `τ l` is
 nondegenerate on `Q` and equal to `dβ l` on the open set `W ⊇ A`. Then there is a smooth family
@@ -235,6 +254,119 @@ theorem exists_homotopy_exact_of_exact_near_attaching (hk : 0 < k) {K : Set L}
     obtain ⟨V', hV', h'⟩ :=
       SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq (hfp (l, t)) (heQ (l, a' t)) hU hνγ
     exact ⟨V', hV', _, h'⟩
+
+/-- **Relative extension of exact forms over a handle core.** On
+`D = (Fin m → ℝ) × (Fin k → ℝ)` with the sup norms and `0 < k`, let `Q = closedBall 0 1` be the
+cube and `A = sphere 0 1 ×ˢ closedBall 0 1` its attaching faces. Let `τ` be a smooth family of
+two-forms on `D` over a finite-dimensional normed space `L`, and `K ⊆ L` compact, such that for
+`l ∈ K` the form `τ l` is nondegenerate on `Q` and has a primitive on some neighbourhood of `A`,
+which may depend on `l`. Then there is a smooth family `σ` of two-forms over `L × [0, 1]` with
+`σ (l, 0) = τ l` such that:
+
+* `σ (l, t)` is nondegenerate on `Q` for `l ∈ K` and every `t`;
+* for each `l ∈ K`, `σ (l, t) = τ l` on a neighbourhood of `A` that does not depend on `t`;
+* `σ (l, 1)` is exact on `D`, for every `l`;
+* if `l ∈ K` and `τ l` has a primitive on a neighbourhood of `Q`, then so does every `σ (l, t)`.
+
+Milestone: *Relative extension of exact symplectic forms over a handle core*. -/
+theorem exists_homotopy_exact_of_forall_exact_near_attaching (hk : 0 < k) {K : Set L}
+    (hK : IsCompact K) {τ : L → SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ))
+      ((Fin m → ℝ) × (Fin k → ℝ))} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
+    (hnd : ∀ l ∈ K, ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 1,
+      ((τ l).bilinFormAt x).Nondegenerate)
+    (hex : ∀ l ∈ K, ∃ W ∈ 𝓝ˢ (sphere (0 : Fin m → ℝ) 1 ×ˢ closedBall (0 : Fin k → ℝ) 1),
+      ∃ β : SmoothForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) ℝ 1,
+        ∀ x ∈ W, (mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 β).val x = (τ l).val x) :
+    ∃ σ : L × unitInterval →
+        SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)),
+      IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) σ ∧
+      (∀ l, σ (l, 0) = τ l) ∧
+      (∀ l ∈ K, ∀ t, ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 1,
+        ((σ (l, t)).bilinFormAt x).Nondegenerate) ∧
+      (∀ l ∈ K, ∃ W' ∈ 𝓝ˢ (sphere (0 : Fin m → ℝ) 1 ×ˢ closedBall (0 : Fin k → ℝ) 1), ∀ t,
+        ∀ x ∈ W', (σ (l, t)).val x = (τ l).val x) ∧
+      (∀ l, ∃ γ : SmoothForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) ℝ 1,
+        mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 γ = σ (l, 1)) ∧
+      ∀ l ∈ K, (∃ V ∈ 𝓝ˢ (closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 1),
+          ∃ γ : SmoothForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) ℝ 1,
+            ∀ x ∈ V, (mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 γ).val x = (τ l).val x) →
+        ∀ t, ∃ V ∈ 𝓝ˢ (closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 1),
+          ∃ γ : SmoothForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) ℝ 1,
+            ∀ x ∈ V, (mextDerivₗ 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 1 γ).val x =
+              (σ (l, t)).val x := by
+  -- Step 0: the correction `η` makes `τ - η` exact on one product collar for all of `K`.
+  obtain ⟨ε, hε, hε₁, η, hη, hηK⟩ := exists_isSmoothFamily_collarCorrection hτ hK hnd hex
+  -- Steps 1 to 3: a smooth family of primitives of `τ - η` near the attaching faces.
+  obtain ⟨β, hβ, W, hW, hAW, hτβ⟩ :=
+    exists_isSmoothFamily_mextDerivₗ_eq_near_sphere_prod_closedBall hε hε₁ (hτ.sub hη)
+      (K := K) fun l hl ↦ by
+        obtain ⟨γ, hγ⟩ := (hηK l hl).2.2.1
+        rw [exactForms_succ]
+        refine ⟨SmoothForm.mpullback _ contMDiff_subtypeVal γ, ?_⟩
+        rw [SmoothForm.mextDerivₗ_mpullback]
+        refine Subtype.ext (funext fun x ↦ ?_)
+        rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
+        exact mpullback_apply_congr (hγ x x.property)
+  -- The working lemma, applied to `τ - η`.
+  obtain ⟨σ', hσ', hσ'0, hσ'nd, ⟨W', hW', hσ'W'⟩, hσ'1, hσ'rel⟩ :=
+    exists_homotopy_exact_of_exact_near_attaching hk hK (hτ.sub hη)
+      (fun l hl x hx ↦ by simpa using (hηK l hl).2.1 1 ⟨zero_le_one, le_rfl⟩ x hx) hβ hW hAW
+      hτβ
+  -- The smooth steps in time: first `a` runs the line from `τ` to `τ - η`, then `b` runs the
+  -- working lemma's homotopy.
+  set a : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ))
+  set b : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ) - 1)
+  have ha : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ a :=
+    (Real.smoothTransition.contDiff.comp (contDiff_const.mul contDiff_id)).contMDiff.comp
+      contMDiff_subtypeVal_Icc
+  have hb : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ b :=
+    (Real.smoothTransition.contDiff.comp ((contDiff_const.mul contDiff_id).sub
+      contDiff_const)).contMDiff.comp contMDiff_subtypeVal_Icc
+  set b' : unitInterval → unitInterval := fun t ↦
+    ⟨b t, Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
+  have hb' : ContMDiff (𝓡∂ 1) (𝓡∂ 1) ∞ b' :=
+    contMDiff_iff_comp_subtypeVal_Icc.2 ⟨hb.continuous.subtype_mk _, hb⟩
+  have ha₀ (t : unitInterval) : a t ∈ Icc (0 : ℝ) 1 :=
+    ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
+  have hab (t : unitInterval) : b' t = 0 ∨ a t = 1 := by
+    by_cases h : 2 * (t : ℝ) - 1 ≤ 0
+    · exact Or.inl (Subtype.ext (Real.smoothTransition.zero_of_nonpos h))
+    · exact Or.inr (Real.smoothTransition.one_of_one_le (by linarith))
+  set σ : L × unitInterval →
+      SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) :=
+    fun p ↦ σ' (p.1, b' p.2) + (1 - a p.2) • η p.1 with hσdef
+  -- Before `b` starts, `σ` is the line from `τ` to `τ - η`; once `a` is done, it is `σ'`.
+  have hσline (l : L) {t : unitInterval} (h : b' t = 0) : σ (l, t) = τ l - a t • η l := by
+    simp only [hσdef, h, hσ'0]
+    module
+  have hσwork (l : L) {t : unitInterval} (h : a t = 1) : σ (l, t) = σ' (l, b' t) := by
+    simp only [hσdef, h, sub_self, zero_smul, add_zero]
+  refine ⟨σ, (hσ'.comp (fun p ↦ (p.1, b' p.2)) (contMDiff_fst.prodMk
+      (hb'.comp contMDiff_snd))).add ((hη.comp Prod.fst contMDiff_fst).fun_smul
+      (contMDiff_const.sub (ha.comp contMDiff_snd))), fun l ↦ ?_, fun l hl t x hx ↦ ?_,
+    fun l hl ↦ ?_, fun l ↦ ?_, fun l hl hQ t ↦ ?_⟩
+  · have ha0 : a 0 = 0 := Real.smoothTransition.zero_of_nonpos (by simp)
+    rw [hσline l (Subtype.ext (Real.smoothTransition.zero_of_nonpos (by simp))), ha0,
+      zero_smul, sub_zero]
+  · rcases hab t with h | h
+    · rw [hσline l h]
+      exact (hηK l hl).2.1 (a t) (ha₀ t) x hx
+    · rw [hσwork l h]
+      exact hσ'nd l hl _ x hx
+  · -- Near `A`, `η l` vanishes and `σ'` is `τ - η`.
+    refine ⟨W' ∩ {x | (η l).val x = 0}, Filter.inter_mem hW' (hηK l hl).1, fun t x hx ↦ ?_⟩
+    have h0 : (η l).val x = 0 := hx.2
+    simp only [hσdef, SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply,
+      hσ'W' l hl _ x hx.1, SmoothBundleForm.sub_apply, h0, smul_zero, sub_zero, add_zero]
+  · have hb1 : b' 1 = 1 := Subtype.ext (Real.smoothTransition.one_of_one_le (by norm_num))
+    rw [hσwork l (Real.smoothTransition.one_of_one_le (by norm_num)), hb1]
+    exact hσ'1 l
+  · rcases hab t with h | h
+    · rw [hσline l h]
+      exact (hηK l hl).2.2.2 hQ (a t) (ha₀ t)
+    · rw [hσwork l h]
+      refine hσ'rel l ?_ _
+      simpa using (hηK l hl).2.2.2 hQ 1 ⟨zero_le_one, le_rfl⟩
 
 end SymplecticGeometry
 
