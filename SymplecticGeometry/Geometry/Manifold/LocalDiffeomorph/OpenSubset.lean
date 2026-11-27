@@ -20,7 +20,9 @@ map `g` into `W` is a `C^n` local diffeomorphism at `x` exactly when its composi
 cancelled on the left (`IsLocalDiffeomorphAt.comp_iff_left`). Continuity of `g` need not be
 assumed, since either side gives it, `W` carrying the subspace topology. The domain of `g` is any
 manifold, for instance a nested open subset. In particular, for open subsets `U ≤ W` of `M` the
-inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism.
+inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism, and a local diffeomorphism
+that maps an open subset `U` into an open subset `V` restricts to one from `U` to `V`
+(`IsLocalDiffeomorph.mapsToRestrict`).
 
 For a partial diffeomorphism `Φ`, Tau Ceti's diffeomorphism
 `PartialDiffeomorph.toDiffeomorphSourceTarget` between its source and target, followed by the
@@ -72,6 +74,8 @@ diffeomorphism at each point of `U` (`Diffeomorph.isLocalDiffeomorphAt_of_coe_eq
 * `TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff`,
   `TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff`: a map into an open subset is a local
   diffeomorphism exactly when its composite with the inclusion of that subset is.
+* `IsLocalDiffeomorph.mapsToRestrict`: a local diffeomorphism that maps an open subset into an
+  open subset restricts to a local diffeomorphism between them.
 * `TauCeti.isLocalDiffeomorph_inclusion`: the inclusion `U → W` of open subsets `U ≤ W` is a
   `C^n` local diffeomorphism.
 * `PartialDiffeomorph.restrOpen_target_eq_of_subset`: restricting a partial diffeomorphism to the
@@ -138,6 +142,26 @@ theorem isLocalDiffeomorph_inclusion {U W : Opens M} (h : U ≤ W) :
     ((Set.val_comp_inclusion h).symm ▸ isLocalDiffeomorph_subtype_val)
 
 end TauCeti
+
+namespace IsLocalDiffeomorph
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners 𝕜 E H} {n : WithTop ℕ∞}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {G : Type*} [TopologicalSpace G]
+  {J : ModelWithCorners 𝕜 F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+
+/-- A `C^n` local diffeomorphism `f : M → N` that maps an open subset `U` of `M` into an open
+subset `V` of `N` restricts to a `C^n` local diffeomorphism from `U` to `V`. -/
+theorem mapsToRestrict {f : M → N} (hf : IsLocalDiffeomorph I J n f) {U : Opens M}
+    {V : Opens N} (h : Set.MapsTo f U V) :
+    IsLocalDiffeomorph (M := U) (N := V) I J n (h.restrict f U V) :=
+  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 fun x ↦
+    ((TauCeti.isLocalDiffeomorph_subtype_val (I := I) x).comp (hg := hf x)).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall h.val_restrict_apply)
+
+end IsLocalDiffeomorph
 
 namespace PartialDiffeomorph
 

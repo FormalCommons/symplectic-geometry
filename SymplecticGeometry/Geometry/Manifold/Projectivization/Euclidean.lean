@@ -30,9 +30,6 @@ CW type and its Euler characteristic.
   dimension `n + 1`, charted on `EuclideanSpace ℂ (Fin (n + 1))`.
 * `SymplecticGeometry.EuclideanComplexProjectiveSpace.orientation`: its complex orientation, indexed
   by `Fin (2 * n + 1 + 1)`.
-* `SymplecticGeometry.remodelEuclideanRealDiffeomorph n X`: for a space `X` charted on
-  `Fin (n + 1) → ℂ`, the identity from `X` to its re-modelling on the Hermitian space, as a
-  diffeomorphism of the underlying real manifolds.
 
 ## Main results
 
@@ -58,40 +55,6 @@ instance isManifold_real_remodel_euclideanSpace (n : ℕ) (M : Type*) [Topologic
       (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) :=
   (inferInstance : IsManifold 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞
     (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M)).restrictScalars ℝ
-
-/-- For a space `X` charted on `Fin (n + 1) → ℂ`, the identity from `X` to `X` re-modelled on the
-Hermitian space `EuclideanSpace ℂ (Fin (n + 1))`, as a smooth diffeomorphism for the models
-`𝓘(ℝ, Fin (n + 1) → ℂ)` and `𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1)))` of the underlying real
-manifolds. -/
-def remodelEuclideanRealDiffeomorph (n : ℕ) (X : Type*) [TopologicalSpace X]
-    [ChartedSpace (Fin (n + 1) → ℂ) X] :
-    X ≃ₘ^∞⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1)))⟯
-      Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm X :=
-  -- The re-modelling along the real-linear identification of the models has the same points and
-  -- the same charts as the one along the complex-linear identification, by definition.
-  remodelDiffeomorph (PiLp.continuousLinearEquiv 2 ℝ fun _ : Fin (n + 1) ↦ ℂ).toDiffeomorph.symm X
-
-@[simp]
-theorem coe_remodelEuclideanRealDiffeomorph (n : ℕ) (X : Type*) [TopologicalSpace X]
-    [ChartedSpace (Fin (n + 1) → ℂ) X] :
-    ⇑(remodelEuclideanRealDiffeomorph n X) = remodelHomeomorph _ X := by
-  have h := coe_remodelDiffeomorph
-    ((PiLp.continuousLinearEquiv 2 ℝ fun _ : Fin (n + 1) ↦ ℂ).toDiffeomorph.symm (n := ∞)) X
-  rw [coe_remodelHomeomorph] at h
-  rw [coe_remodelHomeomorph]
-  -- `exact`: both re-modellings of `X` are `X`, by definition.
-  exact h
-
-@[simp]
-theorem coe_remodelEuclideanRealDiffeomorph_symm (n : ℕ) (X : Type*) [TopologicalSpace X]
-    [ChartedSpace (Fin (n + 1) → ℂ) X] :
-    ⇑(remodelEuclideanRealDiffeomorph n X).symm = (remodelHomeomorph _ X).symm := by
-  have h := coe_remodelDiffeomorph_symm
-    ((PiLp.continuousLinearEquiv 2 ℝ fun _ : Fin (n + 1) ↦ ℂ).toDiffeomorph.symm (n := ∞)) X
-  rw [coe_remodelHomeomorph_symm] at h
-  rw [coe_remodelHomeomorph_symm]
-  -- `exact`: both re-modellings of `X` are `X`, by definition.
-  exact h
 
 /-- The **complex projective space** `ℙ ℂ (Fin (n + 2) → ℂ)` of complex dimension `n + 1`, charted
 on the Hermitian space `EuclideanSpace ℂ (Fin (n + 1))`: its homogeneous-ratio charts are followed
