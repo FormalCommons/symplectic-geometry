@@ -21,8 +21,8 @@ the diagonal action of `g`. The proof is the one of the field `mpullback_smul` i
 (`TauCeti/Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/Torus.lean`), for any monoid in
 place of a torus.
 
-Along any smooth map `F : X → M × N`, the product form pulls back to
-`(pr₁ ∘ F)^* σ + (pr₂ ∘ F)^* τ` (`TauCeti.SmoothTwoForm.mpullback_prod`), which generalizes
+Along any smooth map `u : X → M × N`, the product form pulls back to
+`(pr₁ ∘ u)^* σ + (pr₂ ∘ u)^* τ` (`TauCeti.SmoothTwoForm.mpullback_prod`), which generalizes
 `mpullback_prodMap_prod` from product maps to all maps into the product. Its proof takes the
 first rewriting steps of Tau Ceti's `TauCeti.integralTopForm_mpullback_prod`
 (`TauCeti/Geometry/Symplectic/Manifold/Prod/Area.lean`), stated for the forms instead of for
@@ -65,15 +65,15 @@ theorem mpullback_smul_prod {σ : SmoothTwoForm I M} {τ : SmoothTwoForm J N} (g
   exact hg
 
 /-- **Pull-back of the product form along a map into a product.** For a smooth map
-`F : X → M × N`, the pull-back of `pr₁^* σ + pr₂^* τ` along `F` is
-`(pr₁ ∘ F)^* σ + (pr₂ ∘ F)^* τ`. -/
+`u : X → M × N`, the pull-back of `pr₁^* σ + pr₂^* τ` along `u` is
+`(pr₁ ∘ u)^* σ + (pr₂ ∘ u)^* τ`. -/
 theorem mpullback_prod {E₀ H₀ X : Type*} [NormedAddCommGroup E₀] [NormedSpace ℝ E₀]
     [TopologicalSpace H₀] {I₀ : ModelWithCorners ℝ E₀ H₀} [TopologicalSpace X]
-    [ChartedSpace H₀ X] [IsManifold I₀ 1 X] {F : X → M × N} (hF : ContMDiff I₀ (I.prod J) ∞ F)
+    [ChartedSpace H₀ X] [IsManifold I₀ 1 X] {u : X → M × N} (hu : ContMDiff I₀ (I.prod J) ∞ u)
     (σ : SmoothTwoForm I M) (τ : SmoothTwoForm J N) :
-    SmoothForm.mpullback F hF (σ.prod τ) =
-      SmoothForm.mpullback (Prod.fst ∘ F) (contMDiff_fst.comp hF) σ +
-        SmoothForm.mpullback (Prod.snd ∘ F) (contMDiff_snd.comp hF) τ := by
+    SmoothForm.mpullback u hu (σ.prod τ) =
+      SmoothForm.mpullback (Prod.fst ∘ u) (contMDiff_fst.comp hu) σ +
+        SmoothForm.mpullback (Prod.snd ∘ u) (contMDiff_snd.comp hu) τ := by
   rw [prod_def, map_add, SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback]
 
 /-- The product form `σ ⊕ τ` restricts to `σ` on each slice `x ↦ (x, c)` of `M × N`: the pull-back
