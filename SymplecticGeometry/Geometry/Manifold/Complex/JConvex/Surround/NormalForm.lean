@@ -14,7 +14,11 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Algebra.Order.Ring.Basic
+import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Interpolation
+import SymplecticGeometry.Geometry.Manifold.Complex.TotallyReal.Basic
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Radial
+import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Comp
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.UnitSlope
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
@@ -23,6 +27,7 @@ import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.InnerProductSpace.NormPow
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.Morse.Sphere.Restriction
 
 /-!
@@ -96,6 +101,22 @@ Theorem 8.5. Its Levi form has a margin of the form that
 set containing the handles), so `φ₀ ∘ Φ⁻¹` is strictly plurisubharmonic on the image of a thin
 handle, and so on an open neighbourhood of the image of the unit sphere.
 
+These pieces assemble into the normal form of `φ` near the attaching sphere,
+`SymplecticGeometry.IsJOrthogonallyAttached.exists_normalForm`. After the radial
+reparametrization `σ`, take the adapted frame along `ι ∘ σ` and a chart `Φ` with that
+differential (`SymplecticGeometry.exists_modelChart`). On the sphere, `φ` and
+`ψ = modelLevel k m ∘ Φ⁻¹` have the same 1-jet, and both are strictly plurisubharmonic there:
+`ψ` by the previous paragraph, `φ` because the sphere lies in `{φ = 0}`. The sphere, embedded by
+`ι ∘ σ`, is a compact totally real submanifold (`SymplecticGeometry.isSmoothEmbedding_coe_sphere`,
+`TauCeti.IsTotallyReal.range_mfderiv_comp`), so the interpolation along it,
+`Manifold.IsSmoothEmbedding.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate` (the route of
+Proposition 3.26 of Cieliebak–Eliashberg), gives `θ` equal to `ψ` near the sphere and to `φ` away
+from it. The disc `ι ∘ σ` stays attached J-orthogonally to `{θ ≤ 0}`: near the sphere `θ` is the
+model level read through `Φ` (`SymplecticGeometry.isJOrthogonallyAttached_modelLevel_comp_symm`),
+and on the open disc `θ` lies above the smaller of `φ` and `ψ`, both positive there. For `k = 0`
+the sphere is empty and `θ = φ`. This is Steps 2–4 of the proof of Theorem 8.5 of
+Cieliebak–Eliashberg.
+
 ## Main results
 
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_complexFrame_mfderiv_ker`: along a disc
@@ -114,11 +135,15 @@ handle, and so on an open neighbourhood of the image of the unit sphere.
   `modelLevel k m ∘ Φ.symm` is strictly plurisubharmonic on `Φ` of every thin enough handle.
 * `exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm`:
   the same on an open set of `Φ.target` containing `Φ (ι₀ (sphere 0 1))`.
+* `SymplecticGeometry.IsJOrthogonallyAttached.exists_normalForm`: after a radial
+  reparametrization of the disc and in a chart along it, `φ` is changed near the attaching
+  sphere into a function `θ` that is the model level near the sphere, stays strictly
+  plurisubharmonic, has no new critical points, and keeps the disc attached J-orthogonally.
 
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Corollary 8.1, and Steps 2, 3 and 4 of the proof of Theorem 8.5.
+  Corollary 8.1, Proposition 3.26, and Steps 2, 3 and 4 of the proof of Theorem 8.5.
 -/
 
 public section
@@ -663,6 +688,213 @@ theorem exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_model
     exact hpsh p hp.1.le hp.2.le
 
 end ModelLevel
+
+section NormalForm
+
+open Module TauCeti TauCeti.SmoothAlmostComplexStructure
+
+variable {k m : ℕ} {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
+  [IsManifold 𝓘(ℝ, E) ∞ M] [T2Space M] {φ : M → ℝ} {N : ℕ}
+
+namespace IsJOrthogonallyAttached
+
+/-- The interpolation step of `exists_normalForm`: for a disc whose radial derivative of `φ` is
+`-2` on the sphere, and a chart `Φ` along it with an adapted frame, `φ` is joined to
+`modelLevel k m ∘ Φ.symm` near the sphere. -/
+private theorem exists_interpolate_modelLevel {ι : EuclideanSpace ℝ (Fin k) → M}
+    (hι : IsSmoothEmbedding 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ∞ ι)
+    (hιR : ∀ x, IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι x)).toLinearMap
+      (LinearMap.range (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x).toLinearMap))
+    (hφ : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ φ)
+    (hφs : ∀ x, φ x ≤ 0 → IsManifoldStrictlyPlurisubharmonicAt E φ x)
+    (h : IsJOrthogonallyAttached E φ ι)
+    (hrad : ∀ x, ‖x‖ = 1 →
+      mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x x) = -2)
+    {A : ∀ x, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ]
+      TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hAI : ∀ x v, A x (Complex.I • v) = Complex.I • (show E from A x v))
+    (hAd : ∀ x, (A x).comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelDisc k m) x) =
+      mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x)
+    (hA0 : ∀ x, ‖x‖ = 1 → ∀ w, mvfderiv 𝓘(ℝ, E) φ (ι x) (A x (0, w)) = 0)
+    (Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
+    (hsrc : range (modelDisc k m) ⊆ Φ.source) (hval : ∀ x, Φ (modelDisc k m x) = ι x)
+    (hd : ∀ x, mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ
+      (modelDisc k m x) = A x)
+    (hΦ : IsHolomorphicToOrderAlongCore N Φ) (hN : 2 ≤ N)
+    {U : Set M} (hU : IsOpen U) (hιU : ι '' sphere 0 1 ⊆ U) :
+    ∃ V W : Set M, IsOpen V ∧ IsOpen W ∧ ι '' sphere 0 1 ⊆ V ∧ V ⊆ W ∧ W ⊆ U ∩ Φ.target ∧
+      ∃ θ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ θ ∧ EqOn θ (modelLevel k m ∘ Φ.symm) V ∧
+        (∀ x ∉ W, θ =ᶠ[𝓝 x] φ) ∧
+        (∀ x ∈ W, min (φ x) (modelLevel k m (Φ.symm x)) ≤ θ x ∧
+          θ x ≤ max (φ x) (modelLevel k m (Φ.symm x))) ∧
+        (∀ x ∈ W ∪ {x | θ x ≤ 0}, IsManifoldStrictlyPlurisubharmonicAt E θ x) ∧
+        (∀ x ∈ W, mvfderiv 𝓘(ℝ, E) θ x ≠ 0) ∧ IsJOrthogonallyAttached E θ ι := by
+  -- For `k = 0` the sphere is empty, and `θ = φ`.
+  obtain _ | j := k
+  · have hs : sphere (0 : EuclideanSpace ℝ (Fin 0)) 1 = ∅ :=
+      eq_empty_of_forall_notMem fun x hx ↦ by simp [Subsingleton.elim x 0] at hx
+    refine ⟨∅, ∅, isOpen_empty, isOpen_empty, by simp [hs], subset_rfl, empty_subset _, φ, hφ,
+      eqOn_empty _ _, fun _ _ ↦ EventuallyEq.rfl, fun _ hx ↦ hx.elim, ?_, fun _ hx ↦ hx.elim, h⟩
+    rintro x (hx | hx)
+    exacts [hx.elim, hφs x hx]
+  have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin (j + 1))) = j + 1) := ⟨finrank_euclideanSpace_fin⟩
+  set ψ := modelLevel (j + 1) m ∘ Φ.symm
+  -- The model level through `Φ` is strictly plurisubharmonic on an open `V₁ ⊇ ι '' sphere 0 1`.
+  obtain ⟨V₁, hV₁, hV₁t, hsV₁, hψs⟩ :=
+    exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_modelChart_symm Φ hΦ hN
+  have hsph : Φ '' (modelDisc (j + 1) m '' sphere 0 1) = ι '' sphere 0 1 := by
+    rw [image_image]
+    exact image_congr fun x _ ↦ hval x
+  -- The sphere, embedded by `ι`, as a totally real submanifold.
+  set ιs : sphere (0 : EuclideanSpace ℝ (Fin (j + 1))) 1 → M := ι ∘ (↑)
+  have hιs : IsSmoothEmbedding (𝓡 j) 𝓘(ℝ, E) ∞ ιs :=
+    hι.comp_of_boundaryless isSmoothEmbedding_coe_sphere (by simp)
+  have hιsR (y) (_ : y ∈ univ) :
+      IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ιs y)).toLinearMap
+        (LinearMap.range (mfderiv (𝓡 j) 𝓘(ℝ, E) ιs y).toLinearMap) :=
+    (hιR y).range_mfderiv_comp (hι.contMDiff.mdifferentiableAt (by simp))
+      ((contMDiff_coe_sphere (m := 1)).mdifferentiableAt one_ne_zero)
+  have hK : ιs '' univ = ι '' sphere 0 1 := by
+    rw [image_univ, range_comp, Subtype.range_coe]
+  have hψsm : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) ∞ ψ V₁ :=
+    (contDiff_modelLevel.contMDiff.comp_contMDiffOn Φ.symm.contMDiffOn).mono hV₁t
+  -- `φ` is strictly plurisubharmonic on the sphere, which lies in `{φ = 0}`.
+  have hφsph (x) (hx : x ∈ ι '' sphere 0 1) : φ x = 0 := by
+    obtain ⟨y, hy, rfl⟩ := hx
+    exact h.eq_zero y (by simpa using hy)
+  -- The 1-jets of `φ` and `ψ` agree on the sphere.
+  have hjet : ∀ᶠ y in 𝓝ˢ (univ : Set (sphere (0 : EuclideanSpace ℝ (Fin (j + 1))) 1)),
+      φ (ιs y) = ψ (ιs y) ∧ mvfderiv 𝓘(ℝ, E) φ (ιs y) = mvfderiv 𝓘(ℝ, E) ψ (ιs y) := by
+    refine Eventually.of_forall fun y ↦ ?_
+    have hy : ‖(y : EuclideanSpace ℝ (Fin (j + 1)))‖ = 1 := by simp
+    exact ⟨h.apply_eq_modelLevel_symm_apply Φ hy (hsrc (mem_range_self _)) (hval _),
+      h.mvfderiv_eq_mvfderiv_modelLevel_comp_symm hy (hrad _ hy) (hAI _) (hAd _) (hA0 _ hy)
+        (by simp) Φ (hsrc (mem_range_self _)) (hval _) (hd _)⟩
+  obtain ⟨V, W, hV, hW, hKV, hVW, hWUO, θ, hθ, hθψ, hθφ, hθs, hθb, hθc⟩ :=
+    hιs.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate isCompact_univ hιsR hV₁
+      (by rw [hK, ← hsph]; exact hsV₁) hφ.contMDiffOn hψsm
+      (fun x hx ↦ hφs x (hφsph x (by rwa [hK] at hx)).le)
+      (fun x hx ↦ hψs x (hsV₁ (by rwa [hsph, ← hK]))) hjet hU (by rwa [hK])
+  rw [hK] at hKV
+  -- `θ` is the model level near the sphere, so the attachment of the model carries over.
+  have hmodel := isJOrthogonallyAttached_modelLevel_comp_symm (by simp) Φ
+    (fun _ ⟨x, _, hx⟩ ↦ hx ▸ hsrc (mem_range_self x)) fun x _ v ↦ by rw [hd x]; exact hAI x v
+  rw [show Φ ∘ modelDisc (j + 1) m = ι from funext hval] at hmodel
+  refine ⟨V, W, hV, hW, hKV, hVW, fun x hx ↦ ⟨(hWUO hx).1, hV₁t (hWUO hx).2⟩, θ,
+    fun x ↦ ?_, hθψ, hθφ, fun x _ ↦ hθb x, ?_, hθc ?_, ?_⟩
+  · by_cases hx : x ∈ V₁
+    · exact hθ.contMDiffAt (hV₁.mem_nhds hx)
+    · exact (hφ x).congr_of_eventuallyEq (hθφ x fun hxW ↦ hx (hWUO hxW).2)
+  · rintro x (hx | hx)
+    · exact hθs x hx
+    by_cases hxW : x ∈ W
+    · exact hθs x hxW
+    exact (hφs x ((hθφ x hxW).eq_of_nhds ▸ hx)).congr_of_eventuallyEq (hθφ x hxW)
+  · rintro _ ⟨y, -, rfl⟩ h0
+    have := h.mvfderiv_mfderiv_self_neg y (by simp)
+    have h0' : mvfderiv 𝓘(ℝ, E) φ (ι y) = 0 := h0
+    rw [h0'] at this
+    simp at this
+  · exact hmodel.congr_of_eventuallyEq
+      (fun x hx ↦ eventuallyEq_of_mem (hV.mem_nhds (hKV ⟨x, by simpa using hx, rfl⟩)) hθψ)
+      fun x hx ↦ (lt_min (h.pos x hx) (hmodel.pos x hx)).trans_le (hθb _).1
+
+/-- **The normal form of `φ` near the attaching sphere.** Let `M` be a Hausdorff complex manifold
+modelled on `E`, with `dim_ℂ E = k + m`, and `φ : M → ℝ` smooth and strictly plurisubharmonic on
+`{φ ≤ 0}`. Let `ι : ℝᵏ → M` be a smooth embedding with totally real tangent images, attached
+J-orthogonally to `{φ ≤ 0}`, and let `O ⊇ range ι` and `U ⊇ ι '' sphere 0 1` be open and
+`2 ≤ N`. Then there are:
+* a radial reparametrization `σ x = τ x • x` of the disc, as in
+  `exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`, after which the radial derivative of
+  `φ` along `ι ∘ σ` is `-2` on the sphere and `ι ∘ σ` is still attached J-orthogonally;
+* a frame `A` along `ι ∘ σ` as in `exists_complexFrame_mfderiv_ker`;
+* a chart `Φ` along `ι ∘ σ` with differential `A` along the core, holomorphic to order `N`
+  along the core and with target in `O`, as `exists_modelChart` gives it;
+* open sets `V ⊆ W ⊆ U ∩ Φ.target` with `ι '' sphere 0 1 ⊆ V`, and a smooth `θ : M → ℝ` equal to
+  the model level `modelLevel k m ∘ Φ.symm` on `V`, to `φ` near every point outside `W`, lying
+  between the two on `W`, strictly plurisubharmonic on `W ∪ {θ ≤ 0}`, without critical points
+  in `W`, and such that `ι ∘ σ` is attached J-orthogonally to `{θ ≤ 0}`. -/
+theorem exists_normalForm (hφ : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ φ)
+    (hφs : ∀ x, φ x ≤ 0 → IsManifoldStrictlyPlurisubharmonicAt E φ x)
+    {ι : EuclideanSpace ℝ (Fin k) → M}
+    (hι : IsSmoothEmbedding 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ∞ ι)
+    (hιR : ∀ x, IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι x)).toLinearMap
+      (LinearMap.range (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ι x).toLinearMap))
+    (hdim : finrank ℂ E = k + m) (h : IsJOrthogonallyAttached E φ ι)
+    {O : Set M} (hO : IsOpen O) (hιO : range ι ⊆ O)
+    {U : Set M} (hU : IsOpen U) (hιU : ι '' sphere 0 1 ⊆ U) (hN : 2 ≤ N) :
+    ∃ (τ : EuclideanSpace ℝ (Fin k) → ℝ)
+      (σ : EuclideanSpace ℝ (Fin k) ≃ₘ^∞⟮𝓘(ℝ, EuclideanSpace ℝ (Fin k)),
+        𝓘(ℝ, EuclideanSpace ℝ (Fin k))⟯ EuclideanSpace ℝ (Fin k)),
+      ContDiff ℝ ∞ τ ∧ (∀ x, 0 < τ x) ∧ τ =ᶠ[𝓝 0] 1 ∧ (∀ x, ‖x‖ = 1 → τ x = 1) ∧
+      (∀ x, σ x = τ x • x) ∧ (∀ x, ‖σ x‖ < 1 ↔ ‖x‖ < 1) ∧
+      (∀ x, ‖x‖ = 1 → mvfderiv 𝓘(ℝ, E) φ ((ι ∘ σ) x)
+        (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) (ι ∘ σ) x x) = -2) ∧
+      IsJOrthogonallyAttached E φ (ι ∘ σ) ∧
+      ∃ A : ∀ x, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ]
+          TangentSpace 𝓘(ℝ, E) ((ι ∘ σ) x),
+        (∀ x₀, ContMDiffAt 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
+          𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →L[ℝ] E) ∞
+          (inTangentCoordinates 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+            𝓘(ℝ, E) (modelDisc k m) (ι ∘ σ) A x₀) x₀) ∧
+        (∀ x, (A x).IsInvertible) ∧
+        (∀ x v, A x (Complex.I • v) = ofComplexManifold E M ((ι ∘ σ) x) (A x v)) ∧
+        (∀ x, (A x).comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k))
+            𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) (modelDisc k m) x) =
+          mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) (ι ∘ σ) x) ∧
+        (∀ x, ‖x‖ = 1 → ∀ w, mvfderiv 𝓘(ℝ, E) φ ((ι ∘ σ) x) (A x (0, w)) = 0) ∧
+      ∃ Φ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+          𝓘(ℝ, E) (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞,
+        range (modelDisc k m) ⊆ Φ.source ∧ Φ.target ⊆ O ∧
+        (∀ x, Φ (modelDisc k m x) = (ι ∘ σ) x) ∧
+        (∀ x, mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E) Φ
+          (modelDisc k m x) = A x) ∧
+        IsHolomorphicToOrderAlongCore N Φ ∧
+      ∃ V W : Set M, IsOpen V ∧ IsOpen W ∧ ι '' sphere 0 1 ⊆ V ∧ V ⊆ W ∧
+        W ⊆ U ∩ Φ.target ∧
+      ∃ θ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ θ ∧ EqOn θ (modelLevel k m ∘ Φ.symm) V ∧
+        (∀ x ∉ W, θ =ᶠ[𝓝 x] φ) ∧
+        (∀ x ∈ W, min (φ x) (modelLevel k m (Φ.symm x)) ≤ θ x ∧
+          θ x ≤ max (φ x) (modelLevel k m (Φ.symm x))) ∧
+        (∀ x ∈ W ∪ {x | θ x ≤ 0}, IsManifoldStrictlyPlurisubharmonicAt E θ x) ∧
+        (∀ x ∈ W, mvfderiv 𝓘(ℝ, E) θ x ≠ 0) ∧ IsJOrthogonallyAttached E θ (ι ∘ σ) := by
+  -- The radial reparametrization, and the disc `ι' = ι ∘ σ`.
+  obtain ⟨τ, σ, hτ, hτpos, hτ0, hτ1, hσ, hball, hrad, h'⟩ :=
+    h.exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two hφ hι.contMDiff
+  have hσs (x : EuclideanSpace ℝ (Fin k)) (hx : ‖x‖ = 1) : σ x = x := by
+    rw [hσ, hτ1 x hx, one_smul]
+  have hι' : IsSmoothEmbedding 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) ∞ (ι ∘ σ) :=
+    isSmoothEmbedding_comp_diffeomorph σ hι
+  have hιR' (x) : IsTotallyReal ((ofComplexManifold E M).toEndomorphism ((ι ∘ σ) x)).toLinearMap
+      (LinearMap.range (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) (ι ∘ σ) x).toLinearMap) :=
+    (hιR (σ x)).range_mfderiv_comp (hι.contMDiff.mdifferentiableAt (by simp))
+      (σ.contMDiff.mdifferentiableAt (by simp))
+  replace hrad (x) (hx : ‖x‖ = 1) : mvfderiv 𝓘(ℝ, E) φ ((ι ∘ σ) x)
+      (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, E) (ι ∘ σ) x x) = -2 := by
+    rw [Function.comp_apply, hσs x hx]
+    exact hrad x hx
+  have hsph : (ι ∘ σ) '' sphere 0 1 = ι '' sphere 0 1 :=
+    image_congr fun x hx ↦ congrArg ι (hσs x (by simpa using hx))
+  -- The adapted frame and the chart along `ι'`.
+  obtain ⟨A, hA, hAinv, hAI, hAd, hA0⟩ :=
+    h'.exists_complexFrame_mfderiv_ker hι'.isImmersion hιR' hdim hφ
+  have hAI' (x) (v) : A x (Complex.I • v) = Complex.I • (show E from A x v) :=
+    (hAI x v).trans (ofComplexManifold_apply _ _)
+  obtain ⟨Φ, hsrc, htgt, hval, hd, hΦ⟩ :=
+    exists_modelChart hι'.contMDiff hι'.isEmbedding.isInducing hA hAinv hAd hAI' hO
+      ((range_comp_subset_range _ _).trans hιO) N
+  obtain ⟨V, W, hV, hW, hKV, hVW, hWUΦ, θ, hθ⟩ :=
+    exists_interpolate_modelLevel hι' hιR' hφ hφs h' hrad hAI' hAd hA0 Φ hsrc hval hd hΦ hN hU
+      (hsph ▸ hιU)
+  exact ⟨τ, σ, hτ, hτpos, hτ0, hτ1, hσ, hball, hrad, h', A, hA, hAinv, hAI, hAd, hA0, Φ, hsrc,
+    htgt, hval, hd, hΦ, V, W, hV, hW, hsph ▸ hKV, hVW, hWUΦ, θ, hθ⟩
+
+end IsJOrthogonallyAttached
+
+end NormalForm
 
 end SymplecticGeometry
 
