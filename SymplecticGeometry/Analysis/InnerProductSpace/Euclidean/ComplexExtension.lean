@@ -40,7 +40,10 @@ linear map in `f`, and gives its basic properties.
 Along the way, `TauCeti.complexEuclideanEquivRealProd_I_smul` and
 `TauCeti.I_smul_complexEuclideanEquivRealProd_symm` say how multiplication by `i` acts on real
 and imaginary parts, and `TauCeti.norm_complexEuclideanEquivRealProd_fst_le`,
-`TauCeti.norm_complexEuclideanEquivRealProd_snd_le` bound their norms by that of the point.
+`TauCeti.norm_complexEuclideanEquivRealProd_snd_le` bound their norms by that of the point, and
+`TauCeti.norm_complexEuclideanEquivRealProd_symm_mk_zero` and
+`TauCeti.norm_complexEuclideanEquivRealProd_symm_zero_mk` give the norms of the points `x + i 0`
+and `0 + i y`.
 
 ## References
 
@@ -119,6 +122,22 @@ theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_snd_le (z : EuclideanS
   rw [ContinuousLinearEquiv.symm_apply_apply] at h
   exact (pow_le_pow_iff_left₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1
     (h ▸ le_add_of_nonneg_left (sq_nonneg _))
+
+/-- The real point `x + i 0` of `ℂⁿ` has the norm of `x`. -/
+@[simp]
+theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_symm_mk_zero
+    (x : EuclideanSpace ℝ ι) : ‖(complexEuclideanEquivRealProd ι).symm (x, 0)‖ = ‖x‖ := by
+  have h := norm_complexEuclideanEquivRealProd_symm_sq (ι := ι) (x, 0)
+  rw [norm_zero, zero_pow two_ne_zero, add_zero] at h
+  exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1 h
+
+/-- The purely imaginary point `0 + i y` of `ℂⁿ` has the norm of `y`. -/
+@[simp]
+theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_symm_zero_mk
+    (y : EuclideanSpace ℝ ι) : ‖(complexEuclideanEquivRealProd ι).symm (0, y)‖ = ‖y‖ := by
+  have h := norm_complexEuclideanEquivRealProd_symm_sq (ι := ι) (0, y)
+  rw [norm_zero, zero_pow two_ne_zero, zero_add] at h
+  exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1 h
 
 /-- The complex-linear extension of `f` commutes with multiplication by `i`. -/
 theorem complexExtension_apply_I_smul (f : EuclideanSpace ℝ ι →L[ℝ] F)
