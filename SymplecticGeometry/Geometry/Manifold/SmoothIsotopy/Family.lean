@@ -179,8 +179,7 @@ theorem exists_contMDiff_diffeomorph_family_of_graph {ER HR R : Type*}
   -- The `M`-component of the motion of `x` solves the equation of `Y (π x)`.
   have hγ (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) I (fun s ↦ G (s, x)) u
       ((1 : ℝ →L[ℝ] ℝ).smulRight (Y (π x) u (G (u, x)))) :=
-    ((hasMFDerivAt_snd _).comp u (hvel u x hx)).congr_mfderiv
-      (ContinuousLinearMap.ext fun _ ↦ rfl)
+    (hvel u x hx).snd_curve
   rw [timeDependentFlowDiffeomorph_apply]
   exact timeDependentFlowOf_eq_of_forall_hasMFDerivAt (hYq₁ (π x)) hγ 0 t
 

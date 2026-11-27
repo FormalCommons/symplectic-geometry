@@ -703,8 +703,7 @@ containing `ι '' closedBall 0 1`:
 - `Surround/ShapeFamily.lean` (issue 14d5): the families of §4.6.
   `isConvexShapeAt_struweShape_two` (Lemma 4.23: for `0 < δ`, `4 ≤ d`,
   the solution on `Ioc δ (2 * δ)` with value `2 * d * δ` at `2 * δ`),
-  `exists_convexShapeFamily_linear` (Lemma 4.25, bending the linear
-  family `ℓ + d ℓ * r` down to `√(64 * r ^ 2 - 64 * δ ^ 2)`),
+  `exists_convexShapeFamily_sqrt_sub` (the leaves with `ℓ ≤ 0`, below),
   `exists_convexShapeFamily_sqrt` (Lemma 4.26, from `8 * r` to
   `√(64 * r ^ 2 + ℓ ^ 2)`), and `exists_convexShapeFamily_surround`
   (Proposition 4.27): for `0 < γ` and all small enough `δ ∈ Ioo 0 γ`, a
@@ -722,6 +721,73 @@ containing `ι '' closedBall 0 1`:
   `∂χ/∂r` and `∂²χ/∂r²` to be jointly continuous on
   `Icc (-8 * δ) 1 ×ˢ Ioi δ`, which is what issue 14d6 uses, and not for
   smoothness in `ℓ`.
+  - `isConvexShapeAt_sqrt_sub` (in `Surround/SpecialShape.lean`, next to
+    `isConvexShapeAt_sqrt`): for `1 < a`, `0 < r` and `c < a * r ^ 2`,
+    `r ↦ √(a * r ^ 2 - c)` is a convex shape at `r`. With
+    `χ ^ 2 = a * r ^ 2 - c` one has `χ' = a * r / χ` and
+    `χ'' = -a * c / χ ^ 3`, so the first inequality of
+    `isConvexShapeAt_iff` is `1 < a` and the second is
+    `(a - 1) * c < (a ^ 3 - a) * r ^ 2`. Its case `c = -ℓ ^ 2` is
+    `isConvexShapeAt_sqrt`; its case `a = 64`, `c = 64 * δ ^ 2` is the
+    bottom leaf at every `r > δ`.
+  - `exists_convexShapeFamily_sqrt_sub`, the leaves `ℓ ∈ Icc (-8 * δ) 0`
+    of `exists_convexShapeFamily_surround`. The design does not follow the
+    book's bending of linear shapes (Lemma 4.25) here: these leaves have
+    an explicit formula. Statement: there is `K > 2` such that for every
+    `δ > 0` there is `χ : ℝ → ℝ → ℝ` with
+    - `ContDiffOn ℝ ∞ (Function.uncurry χ) U` for some
+      `U ∈ 𝓝ˢ (Icc (-8 * δ) 0 ×ˢ Ioi δ)`;
+    - `IsConvexShapeAt (χ ℓ) r` for `ℓ ∈ Icc (-8 * δ) 0` and `δ < r`;
+    - `χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)` for every `r`;
+    - `χ ℓ r = (ℓ + 8 * δ) / 64 + √(64 * r ^ 2 - 64 * δ ^ 2)` for
+      `ℓ ∈ Icc (-8 * δ) 0` and `r ∈ Icc δ (2 * δ)`, and
+      `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop`;
+    - `χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)` for `ℓ ∈ Icc (-8 * δ) 0` and
+      `K * δ ≤ r`;
+    - `StrictMonoOn (fun ℓ ↦ χ ℓ r) (Icc (-8 * δ) 0)` for `δ < r`.
+
+    Near the cylinder the leaves are the bottom leaf raised by
+    `(ℓ + 8 * δ) / 64`, so their heights `χ ℓ δ` rise strictly from `0`,
+    as issue 14d7 expects of the leaves of small height. The proof takes
+    `h r = Real.smoothTransition ((r - 2 * δ) / (L * δ))` and
+    `χ ℓ r = (ℓ + 8 * δ) / 64 * (1 - h r) +
+    √(64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * h r)`, with `K = 2 + L`
+    and `L ≥ 1` large. The radicand is positive on
+    `Ioo (-16 * δ) (16 * δ) ×ˢ Ioi δ`, which serves as `U`. For
+    `r < 2 * δ` the leaf is, near `r`, the bottom leaf plus a constant
+    `≥ 0` (`isConvexShapeAt_sqrt_sub`, `IsConvexShapeAt.add_const`). For
+    `2 * δ ≤ r` write `F` for the radicand and `A` for a bound of the
+    first two derivatives of `smoothTransition` (continuous, and zero
+    outside `Icc 0 1`); with `L ≥ 64 * A` what `h` adds is small:
+    `F'' ≥ 127`, `128 * r ≤ F' ≤ 128 * r + δ` and
+    `4 * √3 * r ≤ √F ≤ 8 * r`, so `χ' ≥ 8 - 1 / 512` and
+    `χ'' ≥ -F' ^ 2 / (4 * √F ^ 3) - 1 / (100 * r) > -13 / r`, against
+    `χ' ^ 3 / r > 500 / r` and `1 / χ < 1 / (6 * r)`. These bounds do
+    not depend on `δ`, nor does `L`; alternatively, prove the case
+    `δ = 1` and pass to `δ` by `IsConvexShapeAt.rescale`, the leaf `ℓ`
+    for `δ` being `r ↦ δ * χ₁ (ℓ / δ) (r / δ)`. Monotonicity in `ℓ`: both
+    terms are nondecreasing on `ℓ ≤ 0`, the first strictly where
+    `h r < 1` and the second strictly where `0 < h r`.
+
+    `exists_convexShapeFamily_surround` uses it with `δ < γ / K` and
+    `r₀ = K * δ`, as its part `ℓ ∈ Icc (-8 * δ) 0`. That part gives the
+    bottom leaf; the clause near `-8 * δ`, since every leaf with `ℓ ≤ 0`
+    is standard on `Ici r₀` and `Icc (-8 * δ) 0 ∈ 𝓝[≥] (-8 * δ)`; the
+    standard leaves for `γ ≤ r`; convexity and the vertical tangent;
+    `χ ℓ` increasing in `r` (`strictMonoOn_Ici_of_isConvexShapeAt`, the
+    formula giving continuity at `δ`); and the joint continuity of `χ`,
+    `∂χ/∂r` and `∂²χ/∂r²` on `Icc (-8 * δ) 0 ×ˢ Ioi δ`, from the
+    smoothness on `U` through Tau Ceti's
+    `ContDiffAt.iteratedFDeriv_prod_right`
+    (`Analysis/Calculus/IteratedFDeriv/Prod.lean`). Monotonicity in `ℓ`
+    reduces `χ ℓ ≤ χ 1` to `χ 0 ≤ χ 1`. The leaves `ℓ ∈ Icc 0 1` start
+    at this `χ 0`, which has height `δ / 8` at `δ` and is `8 * r` on
+    `Ici r₀`: their family equals `χ 0` at `ℓ = 0`, so that the joint
+    continuity holds on the union of the two closed pieces. Their
+    statement, that of `exists_convexShapeFamily_sqrt` and of the joining
+    to the shape of `exists_convexShape_surround` (with the smoothed
+    maximum of shapes that are smooth only on `Ioi δ`), is left to a
+    design issue of its own.
 
 - `Surround/ShapeFoliation.lean` (issue 14d6): from families of shapes
   to functions.
