@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 
 /-!
 # Symplectic maps on a set, and on open subsets
@@ -23,7 +24,10 @@ Symplectomorphisms restrict to open subsets that correspond under them, for the 
 `TauCeti.SmoothTwoForm.IsSymplectomorphism.subtype`, for Tau Ceti's `Diffeomorph.subtype`;
 `TauCeti.SmoothTwoForm.isSymplectomorphism_nestedOpen`, for Tau Ceti's `Diffeomorph.nestedOpen`;
 and, composing the two, `TauCeti.SmoothTwoForm.IsSymplectomorphism.subtype_nestedOpen`, for a
-symplectomorphism between open subsets restricted to smaller open subsets.
+symplectomorphism between open subsets restricted to smaller open subsets. A partial
+diffeomorphism that is symplectic on its source is a symplectomorphism from its source onto its
+target, for Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget`
+(`TauCeti.SmoothTwoForm.IsSymplecticMapOn.isSymplectomorphism_toDiffeomorphSourceTarget`).
 
 ## References
 
@@ -99,6 +103,19 @@ theorem IsSymplectomorphism.subtype_nestedOpen {U₀ U : Opens M} {V₀ V : Open
       ((Diffeomorph.nestedOpen hU).symm.trans ((Φ.subtype h).trans (Diffeomorph.nestedOpen hV))) :=
   ((isSymplectomorphism_nestedOpen σ hU).symm (by simp)).trans
     ((hΦ.subtype h).trans (isSymplectomorphism_nestedOpen σ' hV) (by simp)) (by simp)
+
+/-- **A partial diffeomorphism symplectic on its source is a symplectomorphism of open subsets.**
+If a partial diffeomorphism `Φ` from `M` to `M'` is a symplectic map from `σ` to `σ'` on its
+source, then `Φ.toDiffeomorphSourceTarget`, from the source of `Φ` onto its target, is a
+symplectomorphism from the restriction of `σ` to the source to the restriction of `σ'` to the
+target. -/
+theorem IsSymplecticMapOn.isSymplectomorphism_toDiffeomorphSourceTarget
+    {Φ : PartialDiffeomorph I I' M M' ∞} (h : σ.IsSymplecticMapOn σ' Φ Φ.source) :
+    IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') Φ.toDiffeomorphSourceTarget := by
+  rw [isSymplectomorphism_iff_mpullback_eq]
+  exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hx ↦
+    h.mpullback_apply hx
 
 end Opens
 

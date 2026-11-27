@@ -13,10 +13,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Analysis.Real.Sqrt
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
-import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 
 /-!
@@ -68,10 +68,6 @@ symplectomorphic to `M ∖ Z`.
   the closed ball of radius `l` under `blowdownBall`, the range of `inl`, and
   `SymplecticGeometry.DivisorBlowdown.complBallSymplectomorph hΨ hf hl hε`, its diffeomorphism
   onto `M ∖ Z`, the inverse of `inl`.
-* `SymplecticGeometry.WeightBlowup.modelChart hψ hl hε`: the inverse of `inr` on the blowup of
-  weight `l`, a partial diffeomorphism onto `openNbhd n ε` that sends the divisor
-  `WeightBlowup.divisor` to the zero section and pulls `ω̃_l` back to the form of the blowup, so
-  that the divisor of the blowup can be blown down along it.
 
 ## Main results
 
@@ -708,66 +704,6 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
   {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M} {ψ : StdSpace (Fin (n + 1)) → M} {l ε : ℝ}
   (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) (hl : 0 ≤ l) (hε : 0 < ε)
 
-namespace WeightBlowup
-
-/-- A point of the model piece, which provides the junk values of `modelChart`. -/
-private def modelPiecePoint : modelPiece n ε :=
-  ⟨zeroSection (Classical.arbitrary _), zeroSection_mem_modelPiece hε _⟩
-
-/-- **The model chart of the blowup of weight `l`**: the inverse of `inr`, from the image of `inr`
-onto the model piece `openNbhd n ε`, as a partial diffeomorphism from the blowup to the model
-blowup. -/
-def modelChart :
-    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (WeightBlowup hψ hl hε)
-      (BlowupModel n) ∞ :=
-  ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)).diffeomorphOfInjective
-      (GluedAlong.inr_injective _)).symm.toPartialDiffeomorph.liftOpens
-    ⟨(GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)).diffeomorphOfInjective
-      (GluedAlong.inr_injective _) (modelPiecePoint hε)⟩ ⟨modelPiecePoint hε⟩
-
-/-- The source of the model chart is the image of `inr`. -/
-theorem modelChart_source :
-    (modelChart hψ hl hε).source =
-      range (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) := by
-  simp only [modelChart, PartialDiffeomorph.liftOpens_source,
-    Diffeomorph.toPartialDiffeomorph_toPartialEquiv, Diffeomorph.symm_toEquiv,
-    Equiv.symm_toPartialEquiv, PartialEquiv.symm_source, Equiv.toPartialEquiv_target, image_univ,
-    Subtype.range_coe_subtype, SetLike.setOfPred_mem_eq]
-  rw [← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
-
-/-- The target of the model chart is `openNbhd n ε`. -/
-theorem modelChart_target : (modelChart hψ hl hε).target = openNbhd n ε := by
-  ext p
-  simp [modelChart, mem_openNbhd_iff]
-
-/-- The model chart sends `inr p` to `p`. -/
-@[simp]
-theorem modelChart_inr (p : modelPiece n ε) :
-    modelChart hψ hl hε (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p) = p := by
-  rw [modelChart, ← IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply
-    (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε))
-    (GluedAlong.inr_injective _) p, PartialDiffeomorph.liftOpens_apply_coe]
-  simp
-
-/-- The divisor lies in the source of the model chart, which sends it to the zero section. -/
-theorem divisor_mem_modelChart_source (q : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    divisor hψ hl hε q ∈ (modelChart hψ hl hε).source ∧
-      modelChart hψ hl hε (divisor hψ hl hε q) = zeroSection q := by
-  rw [divisor_apply, modelChart_source, modelChart_inr]
-  exact ⟨mem_range_self _, rfl⟩
-
-/-- The model chart pulls `ω̃_l` back to the form of the blowup on its source. -/
-theorem isSymplecticMapOn_modelChart :
-    (form hψ hl hε).IsSymplecticMapOn (blowupForm n l) (modelChart hψ hl hε)
-      (modelChart hψ hl hε).source := by
-  refine Diffeomorph.isSymplecticMapOn_toPartialDiffeomorph_liftOpens _ _ _ ?_
-  rw [← SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
-    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val, mpullback_inr_form]
-
-end WeightBlowup
-
 namespace DivisorBlowdown
 
 /-- A point of the blowup of weight `l` lies in the outer piece of the blowdown of its divisor
@@ -796,12 +732,9 @@ private theorem inl_outerDiffeomorph
 private theorem isSymplectomorphism_outerDiffeomorph :
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (WeightBlowup.form hψ hl hε))
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (outerDiffeomorph hψ hl hε) := by
-  refine SmoothTwoForm.IsSymplectomorphism.trans ?_
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (outerDiffeomorph hψ hl hε) :=
+  ((SmoothTwoForm.isSymplectomorphism_refl _).subtype _).trans
     (WeightBlowup.isSymplectomorphism_complDivisorSymplectomorph hψ hl hε) (by simp)
-  rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq, SmoothForm.mpullback_mpullback]
-  exact SmoothForm.mpullback_congr _ _ (funext fun x ↦ by
-    rw [Function.comp_apply, Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id_eq]) _
 
 /-- The ball piece of the blowdown, read in `M`: `ψ ∘ complexToRealEuclidean`. -/
 private def ballDiffeomorph :
@@ -823,18 +756,10 @@ omit [T2Space M] in
 private theorem isSymplectomorphism_ballDiffeomorph :
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (ballDiffeomorph (l := l) hψ) := by
-  have h : SmoothTwoForm.IsSymplectomorphism
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget := by
-    rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
-    exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hw ↦
-      (WeightBlowup.isSymplecticMapOn_complexPartialDiffeomorph hψ).mpullback_apply hw
-  refine SmoothTwoForm.IsSymplectomorphism.trans ?_ h (by simp)
-  rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq, SmoothForm.mpullback_mpullback]
-  exact SmoothForm.mpullback_congr _ _ (funext fun x ↦ by
-    rw [Function.comp_apply, Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id_eq]) _
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (ballDiffeomorph (l := l) hψ) :=
+  ((SmoothTwoForm.isSymplectomorphism_refl _).subtype _).trans
+    (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph
+      ).isSymplectomorphism_toDiffeomorphSourceTarget (by simp)
 
 /-- On the overlap, the outer piece and the ball piece, read in `M`, agree through the gluing map
 of the blowdown. -/
@@ -900,13 +825,11 @@ theorem blowdown_weightBlowup :
       ∀ w : StdSpace (Fin (n + 1)), ‖w‖ < √(l ^ 2 + ε ^ 2) →
         Φ (blowdownBall _ _ hl hε w) = ψ w := by
   have hg₁ : IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
-      (Subtype.val ∘ outerDiffeomorph hψ hl hε) := fun x ↦
-    IsLocalDiffeomorphAt.comp (hf := (outerDiffeomorph hψ hl hε).isLocalDiffeomorph x)
-      (hg := TauCeti.isLocalDiffeomorph_subtype_val _)
+      (Subtype.val ∘ outerDiffeomorph hψ hl hε) :=
+    (outerDiffeomorph hψ hl hε).isLocalDiffeomorph_subtypeVal_comp
   have hg₂ : IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
-      (Subtype.val ∘ ballDiffeomorph (l := l) (ε := ε) hψ) := fun w ↦
-    IsLocalDiffeomorphAt.comp (hf := (ballDiffeomorph hψ).isLocalDiffeomorph w)
-      (hg := TauCeti.isLocalDiffeomorph_subtype_val _)
+      (Subtype.val ∘ ballDiffeomorph (l := l) (ε := ε) hψ) :=
+    (ballDiffeomorph hψ).isLocalDiffeomorph_subtypeVal_comp
   refine ⟨GluedAlong.descDiffeomorph hg₁ hg₂ (ballDiffeomorph_gluingDiffeomorph hψ hl hε)
       (Subtype.val_injective.comp (outerDiffeomorph hψ hl hε).injective)
       (Subtype.val_injective.comp (ballDiffeomorph hψ).injective)
