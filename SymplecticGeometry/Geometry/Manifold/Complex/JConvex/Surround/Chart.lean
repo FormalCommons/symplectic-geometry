@@ -934,7 +934,8 @@ theorem exists_modelChart {ι : EuclideanSpace ℝ (Fin k) → M}
   have hC : C₂ ≤ max C₂ 0 := le_max_left _ _
   rw [he]
   constructor
-  · refine (norm_conjWirtingerDeriv_comp_continuousLinearEquiv_le L _ p).trans ?_
+  · rw [conjWirtingerDeriv_comp_continuousLinearEquiv]
+    refine (ContinuousLinearMap.opNorm_comp_le _ _).trans ?_
     rw [hLp]
     calc _ ≤ max C₂ 0 * a ^ (N + 1) * nL := by
           gcongr

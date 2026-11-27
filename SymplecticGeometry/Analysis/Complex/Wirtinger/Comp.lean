@@ -25,8 +25,8 @@ of operators (`HasFDerivAt.clm_comp`), and bounds the result. The defect `∂̄`
 `ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ D z)`, a real-linear map, so that its
 derivative is a real derivative of a map into `V →L[ℝ] W`.
 
-The file ends with the bounds on `∂̄` and its derivative before a complex-linear change of
-variables, which need no differentiability.
+The file ends with a bound on the derivative of `∂̄` before a complex-linear change of
+variables, which needs no differentiability.
 
 ## Main results
 
@@ -46,9 +46,8 @@ variables, which need no differentiability.
   is `C²` with `D z ∈ K` and `‖dD z‖ ≤ B`. Thus a holomorphic change of coordinates, defined near
   a compact set, keeps the derivative of `∂̄` of a map small where `∂̄` and its derivative are
   small and the derivative of the map is bounded.
-* `TauCeti.norm_conjWirtingerDeriv_comp_continuousLinearEquiv_le` and
-  `TauCeti.norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le`: before a
-  complex-linear equivalence `L`, `∂̄` grows at most by `‖L‖` and its derivative by `‖L‖ ^ 2`.
+* `TauCeti.norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le`: before a
+  complex-linear equivalence `L`, the derivative of `∂̄` grows at most by `‖L‖ ^ 2`.
 
 ## References
 
@@ -182,14 +181,6 @@ theorem eventually_norm_conjWirtingerDeriv_comp_le (hg : ContDiffAt ℂ 1 g (D z
   refine (opNorm_comp_le _ _).trans ?_
   calc _ ≤ (‖fderiv ℂ g (D z)‖ + 1) * ‖conjWirtingerDeriv D w‖ := by gcongr
     _ ≤ _ := by gcongr
-
-/-- **`∂̄` before a complex-linear change of variables, in norm.** For a complex-linear
-equivalence `L`, `‖∂̄ (g ∘ L) x‖ ≤ ‖∂̄ g (L x)‖ * ‖L‖`. -/
-theorem norm_conjWirtingerDeriv_comp_continuousLinearEquiv_le (L : V ≃L[ℂ] W) (g : W → X)
-    (x : V) :
-    ‖conjWirtingerDeriv (g ∘ L) x‖ ≤ ‖conjWirtingerDeriv g (L x)‖ * ‖(L : V →L[ℂ] W)‖ := by
-  rw [conjWirtingerDeriv_comp_continuousLinearEquiv]
-  exact opNorm_comp_le _ _
 
 /-- **The derivative of `∂̄` before a complex-linear change of variables, in norm.** For a
 complex-linear equivalence `L`, the derivative at `x` of
