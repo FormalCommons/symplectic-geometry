@@ -71,6 +71,15 @@ theorem lift_a_mem_bWordsNormalClosure (j : J) :
     FreeGroup.lift (a g 0) (w j) ∈ bWordsNormalClosure w :=
   Subgroup.subset_normalClosure (.inr ⟨j, rfl⟩)
 
+/-- The universal property of `bWordsNormalClosure w`: it lies in a normal subgroup `N` if and only
+if `N` contains every generator `b k` and every word `w j` read in the generators `a k`. -/
+theorem bWordsNormalClosure_le_iff {N : Subgroup (Orientable g 0)} [N.Normal] :
+    bWordsNormalClosure w ≤ N ↔
+      (∀ k, b g 0 k ∈ N) ∧ ∀ j, FreeGroup.lift (a g 0) (w j) ∈ N := by
+  rw [bWordsNormalClosure_def, ← Subgroup.normalClosure_subset_iff, Set.union_subset_iff,
+    Set.range_subset_iff, Set.range_subset_iff]
+  simp only [SetLike.mem_coe]
+
 /-- The homomorphism `S⁺(g, 0) →* PresentedGroup (Set.range w)` sending `a k` to the generator `k`
 and `b k` to `1`. It is a step of `quotientEquivPresentedGroup`. -/
 private def toPresentedGroup : Orientable g 0 →* PresentedGroup (Set.range w) :=
@@ -79,13 +88,11 @@ private def toPresentedGroup : Orientable g 0 →* PresentedGroup (Set.range w) 
 
 private theorem bWordsNormalClosure_le_ker :
     bWordsNormalClosure w ≤ (toPresentedGroup w).ker := by
-  refine Subgroup.normalClosure_le_normal ?_
-  rintro _ (⟨k, rfl⟩ | ⟨j, rfl⟩)
-  · simp [toPresentedGroup]
-  · rw [SetLike.mem_coe, MonoidHom.mem_ker, ← MonoidHom.comp_apply,
-      FreeGroup.lift_unique (f := PresentedGroup.of) _ fun k ↦ by simp [toPresentedGroup],
-      PresentedGroup.lift_of_eq_mk]
-    exact (QuotientGroup.eq_one_iff _).2 (Subgroup.subset_normalClosure ⟨j, rfl⟩)
+  refine (bWordsNormalClosure_le_iff w).2 ⟨fun k ↦ by simp [toPresentedGroup], fun j ↦ ?_⟩
+  rw [MonoidHom.mem_ker, ← MonoidHom.comp_apply,
+    FreeGroup.lift_unique (f := PresentedGroup.of) _ fun k ↦ by simp [toPresentedGroup],
+    PresentedGroup.lift_of_eq_mk]
+  exact (QuotientGroup.eq_one_iff _).2 (Subgroup.subset_normalClosure ⟨j, rfl⟩)
 
 /-- The homomorphism `PresentedGroup (Set.range w) →* S⁺(g, 0) ⧸ bWordsNormalClosure w` sending the
 generator `k` to the class of `a k`. It is a step of `quotientEquivPresentedGroup`. -/
