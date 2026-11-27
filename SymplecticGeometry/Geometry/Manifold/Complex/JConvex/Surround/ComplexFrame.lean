@@ -22,7 +22,6 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
-import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordChange
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
@@ -303,10 +302,7 @@ private theorem exists_mem_nhds_frame_near [IsManifold 𝓘(ℝ, E) 1 M]
     ⟨hy, mem_chart_source E (ι y)⟩
   refine ⟨fun v ↦ ?_, ?_⟩
   · simp only [ContinuousLinearMap.comp_apply]
-    rw [hB₀I,
-      TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
-      TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
-      map_smul]
+    rw [hB₀I, tangentCoordChange_complex_smul hy']
   · have hPQ : ((L y).coprod (B₀ y)).inverse ∘L (R y ∘L B₀ x₀ - B₀ y) ∘L snd ℝ G₁ G₂ = Q y := by
       simp only [Q, hA' y, (hTinv y hy).inverse_comp_of_left, hTinverse y hy,
         ContinuousLinearMap.comp_assoc]
