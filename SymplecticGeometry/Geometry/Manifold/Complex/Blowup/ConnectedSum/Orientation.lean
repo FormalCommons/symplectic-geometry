@@ -439,8 +439,7 @@ theorem isOrientationPreservingAt_connectedSumDiffeomorph :
         (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
           (EuclideanSpace ℂ (Fin (n + 1))) (r := n) (by simp))
         (fun v _ ↦ c.isOrientationPreservingAt_connectedSumBall Fact.out v)
-        (fun u _ ↦ (isOrientationReversingAt_neg_right _ _ _ _).2
-          (EuclideanComplexProjectiveSpace.isOrientationPreservingAt_connectedSumBall n u)))
+        (fun u _ ↦ EuclideanComplexProjectiveSpace.isOrientationReversingAt_connectedSumBall n u))
       (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
         (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
           (by simp))
@@ -493,8 +492,7 @@ theorem nonempty_orientationPreserving_diffeomorph_connectedSum [ConnectedSpace 
     (c.isLocalDiffeomorph_connectedSumBall Fact.out)
     (EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall n) _
     (c.isOrientationPreservingAt_connectedSumBall Fact.out)
-    (fun u ↦ (isOrientationReversingAt_neg_right _ _ _ _).2
-      (EuclideanComplexProjectiveSpace.isOrientationPreservingAt_connectedSumBall n u))
+    (EuclideanComplexProjectiveSpace.isOrientationReversingAt_connectedSumBall n)
   refine ⟨⟨(connectedSumDiffeomorph c).symm.trans Ψ.symm, fun p ↦ ?_⟩⟩
   rw [Diffeomorph.coe_trans]
   exact ((hΨ _).diffeomorph_symm (by simp)).comp

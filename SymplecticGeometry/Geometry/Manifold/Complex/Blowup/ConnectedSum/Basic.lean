@@ -136,7 +136,9 @@ sum in the same way with `IsLocalDiffeomorph.diffeomorphOfBijective`.
   `SymplecticGeometry.BlowupChart.isOrientationPreservingAt_connectedSumBall`;
 * `SymplecticGeometry.EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall`,
   `SymplecticGeometry.EuclideanComplexProjectiveSpace.isLocalDiffeomorph_connectedSumBall`,
-  `SymplecticGeometry.EuclideanComplexProjectiveSpace.isOrientationReversingAt_connectedSumBall`;
+  `SymplecticGeometry.EuclideanComplexProjectiveSpace.isOrientationPreservingAt_connectedSumBall`,
+  `SymplecticGeometry.EuclideanComplexProjectiveSpace.isOrientationReversingAt_connectedSumBall`:
+  at every point, the ball preserves the complex orientations and reverses the opposite one;
 * `SymplecticGeometry.projectiveBlowupModelDiffeomorph_apply_snoc_one`: the diffeomorphism sends
   `[u : 1]` to `([u], u / |u|²)`, and
   `SymplecticGeometry.blowdown_projectiveBlowupModelDiffeomorph_snoc_one`:
@@ -381,15 +383,15 @@ theorem isOrientationPreservingAt_connectedSumBall (u : EuclideanSpace ℂ (Fin 
     (lastAffineChart_mem_maximalAtlas n) (by simp)
     ).isOrientationPreservingAt_complexManifoldOrientation ∞).reindex _
 
-/-- The ball `connectedSumBall n` reverses at `0` the complex orientation of
-`EuclideanSpace ℂ (Fin (n + 1))` and the opposite of the complex orientation of the projective
-space. -/
-theorem isOrientationReversingAt_connectedSumBall :
+/-- The ball `connectedSumBall n` reverses orientation at every point, from the complex
+orientation of `EuclideanSpace ℂ (Fin (n + 1))` to the opposite of the complex orientation of the
+projective space. -/
+theorem isOrientationReversingAt_connectedSumBall (u : EuclideanSpace ℂ (Fin (n + 1))) :
     (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
         (EuclideanSpace ℂ (Fin (n + 1))) (r := n) (by simp)).IsOrientationReversingAt
-      (-orientation n) (connectedSumBall n) 0 := by
+      (-orientation n) (connectedSumBall n) u := by
   rw [Manifold.Orientation.isOrientationReversingAt_neg_right]
-  exact isOrientationPreservingAt_connectedSumBall n 0
+  exact isOrientationPreservingAt_connectedSumBall n u
 
 end EuclideanComplexProjectiveSpace
 
