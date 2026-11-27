@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Vertically nondegenerate two-forms and forms compatible with an oriented atlas
@@ -97,12 +98,6 @@ theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞
       ((TauCeti.SmoothForm.mpullback (e.fiberInclusionMap hb) hι τ).bilinFormAt
         v).SeparatingLeft := by
   have hrange := e.range_mfderiv_fiberInclusionMap he hb v
-  have hpull : ∀ u w,
-      (TauCeti.SmoothForm.mpullback (e.fiberInclusionMap hb) hι τ).bilinFormAt v u w =
-        τ.bilinFormAt _ (mfderiv IF IM (e.fiberInclusionMap hb) v u)
-          (mfderiv IF IM (e.fiberInclusionMap hb) v w) := fun u w ↦ by
-    rw [TauCeti.SmoothForm.bilinFormAt_apply, TauCeti.SmoothForm.eval₂_mpullback,
-      TauCeti.SmoothForm.bilinFormAt_apply]
   have hrefl : ((τ.bilinFormAt (e.fiberInclusionMap hb v)).restrict
       (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker).IsRefl :=
     (TauCeti.SmoothForm.isAlt_bilinFormAt τ _).isRefl.domRestrict _
@@ -112,7 +107,7 @@ theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞
   rw [← LinearMap.separatingLeft_congr_iff i.symm i.symm]
   convert Iff.rfl
   ext u w
-  simp [i, hpull]
+  simp [i]
 
 end Bundle.Trivialization
 
