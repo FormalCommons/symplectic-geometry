@@ -336,7 +336,7 @@ About 450 lines.
   derivative of a form that vanishes on vertical vectors, since
   $v^\sharp$ is horizontal, so its pull-back to a fibre is zero.
 - The milestone, `IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed`:
-  for `[CompactSpace F]`, `hA`, `A.HasStructureGroup (diffeomorphStabilizer σ)`,
+  for `[CompactSpace F]`, `hA`,
   `σ.IsSymplectic` and `hτ : A.RestrictsTo σ τ`, the connection
   `(hτ.isVerticallyNondegenerate hA _).isEhresmannConnection
   (hA.isSubmersion ENat.LEInfty.out)`

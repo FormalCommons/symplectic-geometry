@@ -16,7 +16,8 @@ A partial equivalence `e` defined on all of `α` has its target as range
 
 For a partial equivalence `e : PartialEquiv α β` and a function `χ` on `α`, the function
 `χ ∘ e.symm` on `e '' W`, extended by `0` off `e '' W`, takes the value `χ z` at `e z` for each
-`z ∈ W` in the source of `e` (`PartialEquiv.indicator_image_comp_symm_apply_self`). It gives the
+`z ∈ W` in the source of `e` (`PartialEquiv.indicator_image_comp_symm_apply_self`), and likewise
+on the whole target of `e` (`PartialEquiv.indicator_target_comp_symm_apply_self`). They give the
 values of extensions by zero along a chart, such as the one of
 `PartialDiffeomorph.contMDiff_indicator_image_comp_symm`, at the images of the points of `W`.
 -/
@@ -38,6 +39,12 @@ at `e z` for each `z ∈ W` in the source of `e`. -/
 theorem indicator_image_comp_symm_apply_self (χ : α → M) {W : Set α} {z : α} (hz : z ∈ W)
     (hzs : z ∈ e.source) : (e '' W).indicator (fun y ↦ χ (e.symm y)) (e z) = χ z := by
   rw [indicator_of_mem (mem_image_of_mem _ hz), e.left_inv hzs]
+
+/-- The function `χ ∘ e.symm` on the target of `e`, extended by `0` off it, takes the value `χ z`
+at `e z` for each `z` in the source of `e`. -/
+theorem indicator_target_comp_symm_apply_self (χ : α → M) {z : α} (hz : z ∈ e.source) :
+    e.target.indicator (fun y ↦ χ (e.symm y)) (e z) = χ z := by
+  rw [indicator_of_mem (e.map_source hz), e.left_inv hz]
 
 end PartialEquiv
 

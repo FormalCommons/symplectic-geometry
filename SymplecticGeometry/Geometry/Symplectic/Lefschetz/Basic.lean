@@ -232,8 +232,8 @@ theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → 
     contDiff_pi.2 fun _ ↦ contDiff_const.add LefschetzModel.contDiff_quadric
   have heq : π ∘ φ.symm =ᶠ[𝓝 z] (affineChart i).symm ∘ g := by
     filter_upwards [φ.open_target.mem_nhds hz] with w hw
-    have hx : φ.symm w ∈ φ.source := φ.toPartialEquiv.map_target hw
-    have hw' : φ (φ.symm w) = w := φ.toPartialEquiv.right_inv hw
+    have hx : φ.symm w ∈ φ.source := φ.map_target hw
+    have hw' : φ (φ.symm w) = w := φ.right_inv hw
     simp only [Function.comp_apply]
     rw [h.eqOn_source hx, Function.comp_apply, Function.comp_apply, hw']
   exact ((contMDiff_affineChart_symm i ∞).contMDiffAt.comp z hg.contMDiff.contMDiffAt
@@ -292,7 +292,7 @@ theorem exists_isLefschetzChart_comp (h : IsLefschetzChart J π p φ i)
   have h0t : (0 : Fin 2 → ℂ) ∈ φ.target :=
     h.apply_eq_zero ▸ φ.toPartialEquiv.map_source h.mem_source
   have hU : φ.target ∩ (fun w ↦ Ψ (π (φ.symm w))) ⁻¹' affineOpen j ∈ 𝓝 (0 : Fin 2 → ℂ) := by
-    have hp0 : φ.symm 0 = p := h.apply_eq_zero ▸ φ.toPartialEquiv.left_inv h.mem_source
+    have hp0 : φ.symm 0 = p := h.apply_eq_zero ▸ φ.left_inv h.mem_source
     refine inter_mem (φ.open_target.mem_nhds h0t) (ContinuousAt.preimage_mem_nhds
       (Ψ.continuous.continuousAt.comp (h.contMDiffAt_comp_symm h0t).continuousAt) ?_)
     rw [hp0]
@@ -312,7 +312,7 @@ theorem exists_isLefschetzChart_comp (h : IsLefschetzChart J π p φ i)
     exact ⟨h.mem_source, by rw [mem_preimage, h.apply_eq_zero]; exact h0e⟩
   · rw [PartialDiffeomorph.coe_trans, he', Function.comp_apply, h.apply_eq_zero, he0]
   · rw [PartialDiffeomorph.trans_source, he's] at hx
-    have hxx : φ.symm (φ x) = x := φ.toPartialEquiv.left_inv hx.1
+    have hxx : φ.symm (φ x) = x := φ.left_inv hx.1
     have hx' : Ψ (π (φ.symm (φ x))) ∈ affineOpen j := (heU hx.2).2
     rwa [hxx] at hx'
   · rw [PartialDiffeomorph.trans_source, he's] at hy
