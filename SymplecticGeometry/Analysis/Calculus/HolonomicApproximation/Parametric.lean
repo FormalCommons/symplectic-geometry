@@ -9,11 +9,13 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import Mathlib.Topology.MetricSpace.Thickening
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Topology.Algebra.Module.Equiv.Fin
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.FDeriv.Equiv
 import Mathlib.Analysis.Normed.Group.Bounded
 import SymplecticGeometry.Analysis.Normed.Group.Pi
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 
@@ -68,6 +70,12 @@ those of `D`; those outside `J` record the parameter.
   `SymplecticGeometry.fderiv_comp_symm_eq_familyFDeriv_comp_iff` reads this in coordinates
   `Ψ : L × E ≃L[ℝ] E'`, such as `familyCubeEquiv`, in the form of the hypothesis `hUf` of the
   cube theorem.
+* `SymplecticGeometry.exists_holonomic_approximation_family_of_cube`: the conclusion of the cube
+  theorem on `D'`, in the directions `J` and for the datum transported by `familyCubeEquiv`, read
+  back on `L × D`. The diffeotopy is the conjugate of the one on `D'`, built from its slices by
+  `TauCeti.Diffeotopy.ofContMDiff`, since Tau Ceti's `TauCeti.Diffeotopy.transDiffeomorph` keeps
+  the model and `familyCubeEquiv` changes it. It keeps the parameter, and the bound on the space
+  derivative is `SymplecticGeometry.norm_fderiv_comp_familyCubeEquiv_sub_le`.
 
 ## References
 
@@ -219,7 +227,7 @@ theorem infDist_le_infDist_familyCubeEquiv (hR : R ≠ 0) (p : L × (Fin m → �
   have hu : (u, (0 : Fin k → ℝ)) ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)} := by
     refine ⟨?_, rfl⟩
     rw [mem_closedBall, dist_zero_right]
-    exact (le_max_right _ _).trans ((Fin.norm_append _ _).symm.le.trans (hyu ▸ hy))
+    exact (pi_norm_comp_le y (Fin.natAdd _)).trans hy
   refine (infDist_le_dist_of_mem hu).trans ?_
   rw [familyCubeEquiv_apply, hyu, Prod.dist_eq, Prod.dist_eq, Fin.dist_append]
   exact max_le_max (le_max_right _ _) le_rfl
@@ -366,6 +374,137 @@ theorem fderiv_comp_symm_eq_familyFDeriv_comp_iff (Ψ : (L × E) ≃L[ℝ] E')
   simpa using congr($h (Ψ w))
 
 end Datum
+
+section Conjugation
+
+open scoped Manifold ContDiff
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- The derivative in the space variable of `f'' ∘ familyCubeEquiv` differs from `G p` at `p` by
+at most `ε` in operator norm, when `f''` is differentiable at `q = familyCubeEquiv p` and its
+derivative there differs from the transported datum `familyFDeriv f G p ∘L Ψ.symm` by at most
+`ε * ‖w‖` on each vector `w` in the directions `Finset.univ.map (Fin.natAddEmb (finrank ℝ L))`.
+On a space vector `w`, the first difference is the second evaluated at `Ψ (0, w)`. -/
+theorem norm_fderiv_comp_familyCubeEquiv_sub_le (hR : R ≠ 0)
+    {f'' : (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) → F}
+    {f : L × (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G : L × (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    {p : L × (Fin m → ℝ) × (Fin k → ℝ)} {ε : ℝ} (hε : 0 ≤ ε)
+    (hf'' : DifferentiableAt ℝ f'' (familyCubeEquiv L m k hR p))
+    (h : ∀ w : (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ),
+      (∀ i ∉ Finset.univ.map (Fin.natAddEmb (finrank ℝ L)), w.1 i = 0) →
+        ‖((fderiv ℝ f'' (familyCubeEquiv L m k hR p) -
+          familyFDeriv f G p ∘L ((familyCubeEquiv L m k hR).symm :
+            _ →L[ℝ] L × (Fin m → ℝ) × (Fin k → ℝ)) :
+          (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) →L[ℝ] F)) w‖ ≤ ε * ‖w‖) :
+    ‖fderiv ℝ (fun x ↦ f'' (familyCubeEquiv L m k hR (p.1, x))) p.2 - G p‖ ≤ ε := by
+  set Ψ := familyCubeEquiv L m k hR
+  have hd : fderiv ℝ (fun x ↦ f'' (Ψ (p.1, x))) p.2 =
+      fderiv ℝ f'' (Ψ p) ∘L (Ψ : _ →L[ℝ] _) ∘L ContinuousLinearMap.inr ℝ L _ :=
+    (hf''.hasFDerivAt.comp p.2 (Ψ.hasFDerivAt.comp p.2 (hasFDerivAt_prodMk_right p.1 p.2))).fderiv
+  rw [hd]
+  refine ContinuousLinearMap.opNorm_le_bound _ hε fun w ↦ ?_
+  have hw := h (Ψ (0, w)) fun i hi ↦ by
+    have hmem : Ψ (0, w) ∈ range (fun w ↦ Ψ (0, w)) := mem_range_self w
+    rw [range_familyCubeEquiv_zero_fst] at hmem
+    exact hmem i hi
+  rw [norm_familyCubeEquiv_zero_fst] at hw
+  simpa using hw
+
+/-- The output of holonomic approximation on `D' = (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`, in
+the directions `J = Finset.univ.map (Fin.natAddEmb (finrank ℝ L))`, for the datum
+`(f ∘ Ψ.symm, q ↦ familyFDeriv f G (Ψ.symm q) ∘L Ψ.symm)` transported by
+`Ψ = familyCubeEquiv L m k hR`, carried back to a family over `L`.
+
+Let `R > 0` bound `‖e l‖` on `K ⊆ L`, where `e = (Module.finBasis ℝ L).equivFun`. Let `h''` be a
+diffeotopy of `D'` that keeps the coordinates outside `J` and moves points by less than `δ`, let
+`f''` be smooth, let `C''` be a compact subset of the `δ`-thickening of the cube of `D'` off which
+`h''` is the identity and `f''` is the transported `f`, and let `V''` be open, contain the image
+of the cube under `h'' 1`, and be a set on which `f''` is `ε`-close to the transported `f` and its
+derivative is `ε`-close to the transported datum on the vectors in the directions `J`. Then the
+conjugate `h` of `h''` by `Ψ`, with `f' = f'' ∘ Ψ`, keeps the parameter, moves points by less
+than `δ`, is the identity and has `f' = f` off a compact set whose points have space part within
+`δ` of `Q = closedBall 0 1 ×ˢ {0}`, and on an open set `V` containing `h (1, (l, y))` for `l ∈ K`
+and `y ∈ Q`, `f'` is `ε`-close to `f` and its space derivative is at most `ε` from `G`. -/
+theorem exists_holonomic_approximation_family_of_cube (hR : 0 < R) {K : Set L}
+    (hK : ∀ l ∈ K, ‖(finBasis ℝ L).equivFun l‖ ≤ R)
+    {f : L × (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G : L × (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (h'' : Diffeotopy 𝓘(ℝ, (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)) ∞
+      ((Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)))
+    {f'' : (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) → F}
+    {V'' C'' : Set ((Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ))} {ε δ : ℝ}
+    (hC'' : IsCompact C'') (hC''Q : C'' ⊆ thickening δ (closedBall 0 1 ×ˢ {0}))
+    (hhC'' : ∀ t, ∀ x ∉ C'', h'' (t, x) = x)
+    (hfC'' : ∀ x ∉ C'', f'' x = f ((familyCubeEquiv L m k hR.ne').symm x))
+    (hdist : ∀ t x, dist (h'' (t, x)) x < δ)
+    (hJ : ∀ t x, ∀ i ∉ Finset.univ.map (Fin.natAddEmb (finrank ℝ L)), (h'' (t, x)).1 i = x.1 i)
+    (hV'' : IsOpen V'') (hQV'' : (fun x ↦ h'' (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V'')
+    (hf'' : ContDiff ℝ ∞ f'')
+    (happrox : ∀ x ∈ V'', ‖f'' x - f ((familyCubeEquiv L m k hR.ne').symm x)‖ < ε ∧
+      ∀ w : (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ),
+        (∀ i ∉ Finset.univ.map (Fin.natAddEmb (finrank ℝ L)), w.1 i = 0) →
+          ‖((fderiv ℝ f'' x - familyFDeriv f G ((familyCubeEquiv L m k hR.ne').symm x) ∘L
+            ((familyCubeEquiv L m k hR.ne').symm : _ →L[ℝ] L × (Fin m → ℝ) × (Fin k → ℝ)) :
+              (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) →L[ℝ] F)) w‖ ≤ ε * ‖w‖) :
+    ∃ (h : Diffeotopy 𝓘(ℝ, L × (Fin m → ℝ) × (Fin k → ℝ)) ∞ (L × (Fin m → ℝ) × (Fin k → ℝ)))
+      (f' : L × (Fin m → ℝ) × (Fin k → ℝ) → F) (V : Set (L × (Fin m → ℝ) × (Fin k → ℝ))),
+      (∀ t p, h (t, p) =
+        (familyCubeEquiv L m k hR.ne').symm (h'' (t, familyCubeEquiv L m k hR.ne' p))) ∧
+      (∀ p, f' p = f'' (familyCubeEquiv L m k hR.ne' p)) ∧
+      (∀ t p, (h (t, p)).1 = p.1) ∧ ContDiff ℝ ∞ f' ∧
+      (∃ C, IsCompact C ∧
+        (∀ p ∈ C, p.2 ∈ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)})) ∧
+        ∀ p ∉ C, (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      (∀ t p, dist (h (t, p)) p < δ) ∧
+      IsOpen V ∧ (∀ l ∈ K, ∀ y ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)},
+        h (1, (l, y)) ∈ V) ∧
+      ∀ p ∈ V, ‖f' p - f p‖ < ε ∧ ‖fderiv ℝ (fun x ↦ f' (p.1, x)) p.2 - G p‖ ≤ ε := by
+  set Ψ := familyCubeEquiv L m k hR.ne'
+  -- the conjugate of `h''` by `Ψ`, built slice by slice since `Ψ` changes the model
+  let ψ (t : unitInterval) :
+      (L × (Fin m → ℝ) × (Fin k → ℝ)) ≃ₘ[ℝ] (L × (Fin m → ℝ) × (Fin k → ℝ)) :=
+    Ψ.toDiffeomorph.trans ((h''.timeSlice t).trans Ψ.symm.toDiffeomorph)
+  have hψ (p : unitInterval × (L × (Fin m → ℝ) × (Fin k → ℝ))) :
+      ψ p.1 p.2 = Ψ.symm (h'' (p.1, Ψ p.2)) := by
+    simp [ψ, Diffeotopy.timeSlice_apply]
+  have hc : ContMDiff ((𝓡∂ 1).prod 𝓘(ℝ, L × (Fin m → ℝ) × (Fin k → ℝ)))
+      𝓘(ℝ, L × (Fin m → ℝ) × (Fin k → ℝ)) ∞ (fun p : unitInterval × _ ↦ ψ p.1 p.2) := by
+    simp_rw [hψ]
+    exact Ψ.symm.contDiff.contMDiff.comp
+      (h''.contMDiff.comp (contMDiff_fst.prodMk (Ψ.contDiff.contMDiff.comp contMDiff_snd)))
+  set h := Diffeotopy.ofContMDiff ψ hc fun x ↦ by simpa using hψ (0, x)
+  have hh (t p) : h (t, p) = Ψ.symm (h'' (t, Ψ p)) := by
+    rw [Diffeotopy.ofContMDiff_apply]
+    exact hψ (t, p)
+  have hfst (t p) : (h (t, p)).1 = p.1 := by
+    rw [hh]
+    conv_rhs => rw [← Ψ.symm_apply_apply p]
+    exact (familyCubeEquiv_symm_fst_eq_iff hR.ne' _ _).2 (hJ t (Ψ p))
+  have hΨh (t p) : Ψ (h (t, p)) = h'' (t, Ψ p) := by
+    rw [hh, ContinuousLinearEquiv.apply_symm_apply]
+  refine ⟨h, f'' ∘ Ψ, Ψ ⁻¹' V'', hh, fun _ ↦ rfl, hfst, hf''.comp Ψ.contDiff,
+    ⟨Ψ.symm '' C'', hC''.image Ψ.symm.continuous, ?_, fun p hp ↦ ?_⟩, fun t p ↦ ?_,
+    hV''.preimage Ψ.continuous, fun l hl y hy ↦ ?_, fun p hp ↦ ?_⟩
+  · rintro _ ⟨x, hx, rfl⟩
+    refine mem_thickening_of_familyCubeEquiv_mem_thickening hR.ne' ?_
+    rw [ContinuousLinearEquiv.apply_symm_apply]
+    exact hC''Q hx
+  · have hp' : Ψ p ∉ C'' := fun h' ↦ hp ⟨Ψ p, h', Ψ.symm_apply_apply p⟩
+    refine ⟨fun t ↦ ?_, ?_⟩
+    · rw [hh, hhC'' t _ hp', ContinuousLinearEquiv.symm_apply_apply]
+    · rw [Function.comp_apply, hfC'' _ hp', ContinuousLinearEquiv.symm_apply_apply]
+  · rw [← dist_familyCubeEquiv_of_fst_eq hR.ne' (hfst t p), hΨh]
+    exact hdist t (Ψ p)
+  · rw [mem_preimage, hΨh]
+    exact hQV'' ⟨Ψ (l, y), mapsTo_familyCubeEquiv hR hK ⟨hl, hy⟩, rfl⟩
+  · obtain ⟨h₁, h₂⟩ := happrox (Ψ p) hp
+    rw [ContinuousLinearEquiv.symm_apply_apply] at h₁ h₂
+    exact ⟨h₁, norm_fderiv_comp_familyCubeEquiv_sub_le hR.ne'
+      ((norm_nonneg _).trans_lt h₁).le (hf''.differentiable (by simp) _) h₂⟩
+
+end Conjugation
 
 end SymplecticGeometry
 

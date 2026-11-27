@@ -558,10 +558,9 @@ theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {ω : SmoothTwoF
       (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) w) = form₀ v w
 ```
 
-The proof uses Tau Ceti's chain rule
-`PartialDiffeomorph.mfderiv_symm_trans_apply_mfderiv_apply`.
-`mvfderiv I φ x` is surjective, so both sides are `ω` at `x`, read through
-the two charts. It needs only that both charts pull the same constant form
+It is the case `B = form₀`, `w = φ x` of
+`PartialDiffeomorph.apply_fderiv_symm_trans_eq_of_mvfderiv`
+(`Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`). It needs only that both charts pull the same constant form
 back to `ω` at `x`, so `ω` needs no hypothesis.
 
 ### `Geometry/Symplectic/Moser/Stability.lean`

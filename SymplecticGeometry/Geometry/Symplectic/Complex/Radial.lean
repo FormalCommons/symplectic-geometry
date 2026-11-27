@@ -67,12 +67,7 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.isKahler_radialPotentialForm`: if both hold on `(0, ∞)`, the form is Kähler
   for `J`, as the form of a strictly plurisubharmonic potential
   (`SymplecticGeometry.isKahler_potentialForm`).
-* `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`;
-  and `SymplecticGeometry.constSmooth_stdComplexPiSymplecticForm_eq`: the constant form `ω₀` on
-  `ι → ℂ` is the pull-back of the constant form `stdForm ι` along `complexToRealEuclidean ι`,
-  since that map is a linear symplectomorphism
-  (`SymplecticGeometry.isSymplectomorphism_complexToRealEuclidean`,
-  `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`).
+* `SymplecticGeometry.radialPotentialForm_id`: for `g = id` the form is `ω₀`, restricted to `Z`.
 * `SymplecticGeometry.eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv`: along a curve
   `u : ℂ → ι → ℂ` complex differentiable at `t`, the value of `ω₀` on the derivatives of `u` along
   `1` and `i` is `|u'(t)|²`.
@@ -281,15 +276,6 @@ theorem eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv {u : ℂ → ι �
     hu.fderiv_restrictScalars_eq_smul_deriv ℝ, hu.fderiv_restrictScalars_eq_smul_deriv ℝ,
     one_smul]
   simp [Complex.sq_norm, Complex.normSq_apply]
-
-variable (ι) in
-/-- The constant form `stdComplexPiSymplecticForm ι` on `ι → ℂ` is the pull-back of the constant
-form `stdForm ι` of `StdSpace ι` along the real-linear identification `complexToRealEuclidean ι`.
--/
-theorem constSmooth_stdComplexPiSymplecticForm_eq :
-    (stdComplexPiSymplecticForm ι).constSmooth = SmoothForm.mpullback (complexToRealEuclidean ι)
-      (complexToRealEuclidean ι).contDiff.contMDiff (stdForm ι).constSmooth :=
-  (isSymplectomorphism_complexToRealEuclidean ι).mpullback_constSmooth.symm
 
 /-- For `g = log` the radial potential form is the Fubini–Study lift `ρ`, the pull-back of the
 Fubini–Study form to `ℂⁿ⁺¹ ∖ 0`. -/

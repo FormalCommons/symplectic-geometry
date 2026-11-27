@@ -6,11 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Orientation
-import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
-import TauCeti.Analysis.InnerProductSpace.Calculus
-import TauCeti.Topology.Algebra.Module.Determinant
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
@@ -96,10 +93,8 @@ theorem exists_diffeotopy_eqOn_closedBall_of_isOrientationPreservingAt [T2Space 
   let G := SmoothEmbedding.ofIsSmoothEmbedding _
     (hVg.comp_univBall hρ0 (hball.trans inter_subset_right) le_rfl)
   -- `univBall 0 ρ` fixes `0` and has derivative `ρ • id` there, so it preserves `o` at `0`.
-  have hψo : o.IsOrientationPreservingAt o (univBall (0 : E) ρ) 0 := by
-    refine Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos o ?_
-    rw [(hasFDerivAt_univBall hρ0 0 0).fderiv]
-    simpa using pow_pos hρ0 (Module.finrank ℝ E)
+  have hψo : o.IsOrientationPreservingAt o (univBall (0 : E) ρ) 0 :=
+    isOrientationPreservingAt_univBall hρ0 o
   have hFo : o.IsOrientationPreservingAt oM F 0 := by
     simpa [F] using (univBall_apply_zero (0 : E) ρ ▸ hfo).comp hψo
   have hGo : o.IsOrientationPreservingAt oM G 0 := by
