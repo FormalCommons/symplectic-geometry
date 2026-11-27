@@ -16,8 +16,8 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 A partial diffeomorphism `Φ : M → N` whose source is all of `M` is a diffeomorphism of `M` onto
 the open subset `Φ.target` of `N`, followed by the inclusion of that subset. So, when `M` and `N`
-have the same model, it is a smooth embedding, whose range is `Φ.target` (Mathlib's
-`OpenPartialHomeomorph.image_source_eq_target`). The same holds for an open partial
+have the same model, it is a smooth embedding, whose range is `Φ.target`
+(`PartialEquiv.range_eq_target_of_source_eq_univ`). The same holds for an open partial
 homeomorphism of a normed space into itself, defined everywhere and `C^n` both ways, which Tau
 Ceti's `TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph` makes a partial diffeomorphism.
 

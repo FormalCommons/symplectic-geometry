@@ -9,6 +9,7 @@ public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.PartialDiffeomorph
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 import TauCeti.Geometry.Manifold.Instances.OpenBall.Diffeomorph
 
 /-!
@@ -28,7 +29,8 @@ that send `0` to `0`:
   embedding of `ι → ℝ` onto its sup-norm ball of radius `δ`, the box `(-δ, δ)ᶥ`. It is Mathlib's
   `OpenPartialHomeomorph.univBall 0 δ` of `ℝ` on each coordinate (`OpenPartialHomeomorph.pi`),
   which is a smooth embedding onto its target, as its source is everything
-  (`OpenPartialHomeomorph.isSmoothEmbedding_of_source_eq_univ`).
+  (`OpenPartialHomeomorph.isSmoothEmbedding_of_source_eq_univ` and
+  `PartialEquiv.range_eq_target_of_source_eq_univ`).
 * `SymplecticGeometry.exists_isSmoothEmbedding_prod_range_eq_ball_prod_ball`: the product of
   the two, a smooth embedding of `V × (ι → ℝ)` onto (open unit ball of `F`) × (box).
 
@@ -105,7 +107,8 @@ theorem exists_isSmoothEmbedding_range_eq_ball_pi {δ : ℝ} (hδ : 0 < δ) :
       (htarget ▸ contDiffOn_pi.2 fun i ↦ contDiffOn_univBall_symm.comp
         (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i).contDiffOn fun y hy ↦
           mem_ball_zero_iff.2 ((norm_le_pi_norm y i).trans_lt (mem_ball_zero_iff.1 hy))),
-    by rw [← image_univ, ← hsource, Θ.image_source_eq_target, htarget], ?_⟩
+    by rw [← coe_toPartialEquiv, Θ.toPartialEquiv.range_eq_target_of_source_eq_univ hsource,
+      htarget], ?_⟩
   ext i
   simp [Θ, univBall_apply_zero]
 
