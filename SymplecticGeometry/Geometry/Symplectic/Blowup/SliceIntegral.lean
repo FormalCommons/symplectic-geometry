@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Area
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
-public import TauCeti.Geometry.Manifold.Complex.Integration
+import TauCeti.Geometry.Manifold.Complex.Integration
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Integral
 
