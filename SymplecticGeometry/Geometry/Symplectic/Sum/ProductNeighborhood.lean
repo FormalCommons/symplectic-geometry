@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Complex.Line
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import Mathlib.Analysis.CStarAlgebra.Classes
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.CompDiffeomorphOfBoundaryless
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
@@ -73,6 +74,11 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   isomorphisms of `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
   (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`, `Geometry/Symplectic/Neighborhood/CodimTwo`),
   with an explicit factor in place of a ratio on a local frame.
+  `SymplecticGeometry.SymplecticFraming.compDiffeomorphOfBoundaryless`, the framing of the
+  reparametrised embedding `ι ∘ χ` for a diffeomorphism `χ : Q' ≃ Q`: `Φ (χ q')`, read through
+  `zeroSliceNormalEquiv` on the zero slices and through
+  `TauCeti.SmoothEmbedding.normalSpaceEquivCompDiffeomorphOfBoundaryless` on the normal spaces of
+  `ι` and `ι ∘ χ`.
 * `SymplecticGeometry.prodBall Q ε`: the open set `Q × B²(ε)` of `Q × ℂ`.
 * `SymplecticGeometry.ProductNeighborhood Φ ε`: product neighbourhoods of radius `ε` adapted to
   the framing `Φ`.
@@ -504,6 +510,68 @@ theorem ofPos_apply
     Units.smul_mk0]
 
 end OfPos
+
+section CompDiffeomorph
+
+variable [I.Boundaryless] {EQ' HQ' : Type*} [NormedAddCommGroup EQ'] [NormedSpace ℝ EQ']
+  [FiniteDimensional ℝ EQ'] [TopologicalSpace HQ'] {J' : ModelWithCorners ℝ EQ' HQ'}
+  [J'.Boundaryless] {Q' : Type*} [TopologicalSpace Q'] [ChartedSpace HQ' Q'] [IsManifold J' ∞ Q']
+  {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
+  {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+
+/-- **A framing along a diffeomorphism of the source.** For a framing `Φ` of `ι` and a
+diffeomorphism `χ : Q' ≃ Q`, the framing of the reparametrised embedding `ι ∘ χ`
+(`TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless`) for the same form `σ`. At `q'` it
+identifies the normal space of the zero slice of `Q' × ℂ` with `ℂ` and then with the normal space
+of the zero slice of `Q × ℂ` at `χ q'` (`zeroSliceNormalEquiv`), applies `Φ (χ q')`, and
+identifies the normal space of `ι` at `χ q'` with that of `ι ∘ χ` at `q'`
+(`TauCeti.SmoothEmbedding.normalSpaceEquivCompDiffeomorphOfBoundaryless`). The hypothesis `hι'`
+follows from `hι` by Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_comp_diffeomorph_iff`, and `hP'`
+from `hP` when `Q'` is nonempty. -/
+def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃ₘ⟮J', J⟯ Q)
+    (hι' : hσ.HasSymplecticTangentImages J' (ι.compDiffeomorphOfBoundaryless χ (by simp)))
+    (hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ') :
+    SymplecticFraming hι' hP' where
+  toFun q := (zeroSliceNormalEquiv J' Q' q).trans ((zeroSliceNormalEquiv J Q (χ q)).symm.trans
+    ((Φ (χ q)).trans (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ q).symm))
+  contMDiff_toFun := by
+    let := (zeroSlice J' Q').normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ'))
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    -- Read through the identification of normal spaces, the framing is `Φ` over `χ`, after the
+    -- identifications of the normal bundles of the zero slices with `Q' × ℂ` and `Q × ℂ`.
+    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ _ hP hP' le_rfl
+      (u := TotalSpace.proj)).2 ?_
+    exact Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
+      (((χ.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd).comp
+        contMDiff_zeroSliceNormalEquiv))
+  symplecticNormalForm_toFun q v w := by
+    refine (ι.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless χ _ _ hι hι' q _
+      _).symm.trans ?_
+    simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply]
+    -- On both zero slices the normal form is `ω₀`, read through `zeroSliceNormalEquiv`.
+    refine ((Φ.symplecticNormalForm_toFun (χ q) _ _).trans ?_).trans
+      (symplecticNormalForm_zeroSlice _ q v w).symm
+    rw [symplecticNormalForm_zeroSlice, ContinuousLinearEquiv.apply_symm_apply,
+      ContinuousLinearEquiv.apply_symm_apply]
+
+/-- The framing `Φ.compDiffeomorphOfBoundaryless χ hι' hP'` at `q'` is `Φ (χ q')` read through the
+identifications of the normal spaces of the zero slices with `ℂ` and of those of `ι` and `ι ∘ χ`. -/
+@[simp]
+theorem compDiffeomorphOfBoundaryless_apply (Φ : SymplecticFraming hι hP) (χ : Q' ≃ₘ⟮J', J⟯ Q)
+    (hι' : hσ.HasSymplecticTangentImages J' (ι.compDiffeomorphOfBoundaryless χ (by simp)))
+    (hP' : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ') (q : Q')
+    (v : (zeroSlice J' Q').isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    Φ.compDiffeomorphOfBoundaryless χ hι' hP' q v =
+      (ι.normalSpaceEquivCompDiffeomorphOfBoundaryless χ (by simp)
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) q).symm
+        (Φ (χ q) ((zeroSliceNormalEquiv J Q (χ q)).symm (zeroSliceNormalEquiv J' Q' q v))) :=
+  (rfl)
+
+end CompDiffeomorph
 
 variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
