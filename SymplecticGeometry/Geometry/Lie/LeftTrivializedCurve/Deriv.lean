@@ -33,6 +33,7 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   derivative at each point.
 * `SymplecticGeometry.hasLeftTrivializedDerivOn_iff`: the condition in terms of Mathlib's
   `mulInvariantVectorField`.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.continuousOn`: such a curve is continuous on `s`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.mdifferentiableAt`,
   `SymplecticGeometry.HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv`: at a time of which `s`
   is a neighbourhood, the curve is differentiable, and its velocity translated to the identity
@@ -240,6 +241,12 @@ theorem HasLeftTrivializedDerivOn.congr (hg : HasLeftTrivializedDerivOn g ξ s) 
   -- identity of the model space.
   ext
   rfl
+
+/-- A curve with left-trivialized derivative on `s` is continuous on `s`. -/
+theorem HasLeftTrivializedDerivOn.continuousOn (hg : HasLeftTrivializedDerivOn g ξ s) :
+    ContinuousOn g s := fun t ht ↦
+  let ⟨_, hgv, _⟩ := hg t ht
+  hgv.continuousWithinAt
 
 /-- At a time `t` of which `s` is a neighbourhood, a curve with left-trivialized derivative on
 `s` is differentiable. -/

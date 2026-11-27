@@ -44,7 +44,9 @@ is `SymplecticGeometry.smoothedMax`.
   `SymplecticGeometry.le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div`; there the
   curvature bound
   `SymplecticGeometry.two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs`
-  makes up for the loss of the cube under that condition alone.
+  makes up for the loss of the cube under that condition alone. So under it the smoothed
+  maximum of two `i`-convex shapes at `r` is one, for any such `δ`
+  (`SymplecticGeometry.isConvexShapeAt_smoothedMax`).
 * `SymplecticGeometry.exists_isConvexShapeAt_eqOn_Iic_Ici`: the same smoothing, for shapes that
   cross only inside `(u, v) ⊆ [r₁, r₂]`, continued by the first shape to the left of `u` and the
   second to the right of `v`, which gives an `i`-convex shape that passes from one to the other,
@@ -197,6 +199,21 @@ theorem min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div {χ�
     (by linarith : 0 ≤ (1 - s) / 2) (by ring)
   simp only [smul_eq_mul] at hm
   linarith
+
+/-- **The smoothed maximum of two `i`-convex shapes, for a moderate width.** Let `χ₁`,
+`χ₂` be `C²` and `i`-convex shapes at `r`, and `δ > 0` with `δ (χ₁' r + χ₂' r) ≤ 2 r`. Then
+`r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` is an `i`-convex shape at `r`. -/
+theorem isConvexShapeAt_smoothedMax {χ₁ χ₂ : ℝ → ℝ} {δ : ℝ} (h₁ : ContDiff ℝ 2 χ₁)
+    (h₂ : ContDiff ℝ 2 χ₂) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
+    (hc₂ : IsConvexShapeAt χ₂ r) (hδr : δ * (deriv χ₁ r + deriv χ₂ r) ≤ 2 * r) :
+    IsConvexShapeAt (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r := by
+  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div h₁ h₂ hδ hc₁.pos
+    hc₁.pos_value hc₂.pos_value hc₁.deriv_pos.le hc₂.deriv_pos.le hδr
+  have hm := lt_min (sub_pos.2 hc₁.one_div_lt_iteratedDeriv_add)
+    (sub_pos.2 hc₂.one_div_lt_iteratedDeriv_add)
+  exact isConvexShapeAt_iff.2 ⟨hc₁.pos, hc₁.pos_value.trans_le
+    ((le_max_left _ _).trans (max_le_smoothedMax hδ _ _)),
+    one_div_smoothedMax_lt_deriv_div h₁ h₂ hδ hc₁ hc₂, by linarith⟩
 
 /-- The second inequality of `isConvexShapeAt_iff` for the smoothed maximum of two `i`-convex
 shapes at `r`, given a margin `a` in it for both, upper bounds `G` and `Q` for the error made by
