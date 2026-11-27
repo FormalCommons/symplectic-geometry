@@ -275,7 +275,7 @@ theorem exists_isClosed_restricts_of_map_eq [IsManifold IB ∞ B] [FiniteDimensi
     ∃ τ : SmoothForm IM M ℝ (k + 1), ∃ hτ : τ.IsClosed, A.RestrictsTo σ τ ∧
       deRhamCohomology.mk IM (k + 1) ⟨τ, hτ.mem_closedForms⟩ = a := by
   obtain ⟨⟨τ₀, hτ₀⟩, rfl⟩ := deRhamCohomology.mk_surjective IM (k + 1) a
-  have hτ₀c : τ₀.IsClosed := (SmoothForm.isClosed_def τ₀).2 ((mem_closedForms IM τ₀).1 hτ₀)
+  have hτ₀c : τ₀.IsClosed := (SmoothForm.isClosed_iff_mem_closedForms τ₀).2 hτ₀
   have hproj := hA.contMDiff_proj
   -- A cover of `B` by smoothly contractible open sets `U b ⊆ (A.trivAt b).baseSet`, and a
   -- partition of unity subordinate to it.
@@ -297,8 +297,8 @@ theorem exists_isClosed_restricts_of_map_eq [IsManifold IB ∞ B] [FiniteDimensi
   let Λ : SmoothForm IM M ℝ k := ⟨ρ.glueForms proj W fun b ↦ (η b).val,
     (ρ.isSmoothForm_glueForms hproj hW fun b ↦ (η b).isSmoothForm).mem_smoothBundleForms⟩
   set τ := τ₀ + mextDerivₗ IM k Λ with hτ
-  have hτc : τ.IsClosed := (SmoothForm.isClosed_def τ).2 ((mem_closedForms IM τ).1
-    (add_mem hτ₀ (mextDerivₗ_mem_closedForms IM k Λ)))
+  have hτc : τ.IsClosed := (SmoothForm.isClosed_iff_mem_closedForms τ).2
+    (add_mem hτ₀ (mextDerivₗ_mem_closedForms IM k Λ))
   -- On vertical vectors, `τ` is the average of the forms `θ b` with the weights `ρ b ∘ proj`.
   have hval : ∀ (x : M) {u : Fin (k + 1) → TangentSpace IM x},
       (∀ i, u i ∈ (mfderiv IM IB proj x).ker) →
