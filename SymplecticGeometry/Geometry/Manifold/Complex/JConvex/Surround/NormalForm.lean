@@ -409,17 +409,10 @@ theorem exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two
       (∀ x, ‖x‖ = 1 →
         mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (ι ∘ σ) x x) = -2) ∧
       IsJOrthogonallyAttached E φ (ι ∘ σ) := by
-  -- The radial derivative of `φ ∘ ι` on the sphere is `a x = dφ (dι x x) < 0`.
-  set g : F → ℝ := φ ∘ ι
-  have hg : ContDiff ℝ ∞ g := contMDiff_iff_contDiff.1 (hφ.comp hι)
-  have hga (x : F) (hx : ‖x‖ = 1) : fderiv ℝ g x x =
-      mvfderiv 𝓘(ℝ, E) φ (ι x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x) := by
-    have h1 := mvfderiv_comp_apply x (h.mdifferentiableAt_apply hx) (h.mdifferentiableAt hx) x
-    rwa [mvfderiv_eq_fderiv] at h1
-  have hneg (x : F) (hx : ‖x‖ = 1) : fderiv ℝ g x x < 0 :=
-    hga x hx ▸ h.mvfderiv_mfderiv_self_neg x hx
+  -- The radial derivative of `φ ∘ ι` on the sphere is `dφ (dι x x) < 0`.
+  have hg : ContDiff ℝ ∞ (φ ∘ ι) := contMDiff_iff_contDiff.1 (hφ.comp hι)
   obtain ⟨τ, hτ, hτpos, hτ0, hτ1, ⟨R, hR⟩, hd, hτd⟩ :=
-    exists_contDiff_fderiv_apply_self_eq_on_sphere hg hneg
+    exists_contDiff_fderiv_apply_self_eq_on_sphere hg fun _ ↦ h.fderiv_comp_apply_self_neg
   have hτ' : Differentiable ℝ τ := hτ.differentiable (by simp)
   set σ := radialSmulDiffeomorph (by simp) hτ hd hR
   have hσ (x : F) : σ x = τ x • x := radialSmulDiffeomorph_apply _ _ _ _ x
@@ -428,20 +421,12 @@ theorem exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two
   have hσx (x : F) (hx : ‖x‖ = 1) : σ x = x := by rw [hσ, hτ1 x hx, one_smul]
   have hdσ (x : F) (hx : ‖x‖ = 1) : mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x x =
       (τ x + fderiv ℝ τ x x) • σ x := by
-    have H : HasFDerivAt (fun y ↦ τ y • y)
-        (τ x • ContinuousLinearMap.id ℝ F + (fderiv ℝ τ x).smulRight x) x :=
-      (hτ' x).hasFDerivAt.smul (hasFDerivAt_id x)
-    rw [hσx x hx, show (σ : F → F) = fun y ↦ τ y • y from funext hσ, H.hasMFDerivAt.mfderiv]
-    -- The goal applies the differential to `x` seen as a tangent vector; `e` states it in `F`.
-    have e : (τ x • ContinuousLinearMap.id ℝ F + (fderiv ℝ τ x).smulRight x) x =
-        (τ x + fderiv ℝ τ x x) • x := by
-      simp [add_smul]
-    exact e
+    rw [mfderiv_radialSmulDiffeomorph_apply, hσx x hx, add_smul]
   have hattached : IsJOrthogonallyAttached E φ (ι ∘ σ) :=
     h.comp_of_mfderiv_apply_self_eq_smul (fun x hx ↦ (hball x).2 hx)
       (fun x hx ↦ by rw [hσx x hx, hx]) fun x hx ↦ ⟨_, hd x, hdσ x hx⟩
   refine ⟨τ, σ, hτ, hτpos, hτ0, hτ1, hσ, hball, fun x hx ↦ ?_, hattached⟩
-  have hax := hneg x hx
+  have hax := h.fderiv_comp_apply_self_neg hx
   have key : mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (ι ∘ σ) x x =
       mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x x) :=
     mfderiv_comp_apply x (h.mdifferentiableAt (by rw [hσx x hx, hx]))
@@ -450,7 +435,8 @@ theorem exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two
   have e : mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x ((τ x + fderiv ℝ τ x x) • x : F) =
       (τ x + fderiv ℝ τ x x) • mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x x :=
     (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι x).map_smul _ x
-  rw [key, hdσ x hx, hσx x hx, e, map_smul, smul_eq_mul, ← hga x hx, hτ1 x hx, hτd x hx]
+  rw [key, hdσ x hx, hσx x hx, e, map_smul, smul_eq_mul, ← h.fderiv_comp_apply_self hx,
+    hτ1 x hx, hτd x hx]
   field_simp [hax.ne]
   ring
 

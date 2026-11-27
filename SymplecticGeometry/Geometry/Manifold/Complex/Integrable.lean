@@ -63,6 +63,9 @@ itself it is integrable.
   diffeomorphism at the point.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
+* `TauCeti.isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas`: every chart of the
+  maximal complex atlas of a complex manifold is pseudoholomorphic on its source, from the
+  structure of the manifold to that of the model.
 * `TauCeti.SmoothAlmostComplexStructure.ofTangentCoordChange` and
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofTangentCoordChange`: the constant structure
   of a complex structure of the model that commutes with the changes of coordinates, and its
@@ -444,5 +447,25 @@ theorem isIntegrable_iff_forall_exists_isIsothermalChart :
 end Surface
 
 end SmoothAlmostComplexStructure
+
+section ComplexManifold
+
+open scoped TauCeti.ComplexManifold
+
+variable {E M : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [TopologicalSpace M]
+  [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
+
+/-- Every chart `e` of the maximal `Cⁿ` atlas of a complex manifold `M`, for `n ≠ 0`, is
+pseudoholomorphic on its source, from the almost complex structure of `M` to that of the model
+`E`. -/
+theorem isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas {n : WithTop ℕ∞}
+    [IsManifold 𝓘(ℂ, E) n M] {e : OpenPartialHomeomorph M E}
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, E) n M) (hn : n ≠ 0) :
+    IsPseudoholomorphicOn (SmoothAlmostComplexStructure.ofComplexManifold E M)
+      (SmoothAlmostComplexStructure.ofComplexManifold E E) e e.source :=
+  isPseudoholomorphicOn_ofComplexManifold_iff.2
+    ((contMDiffOn_of_mem_maximalAtlas he).mdifferentiableOn hn)
+
+end ComplexManifold
 
 end TauCeti
