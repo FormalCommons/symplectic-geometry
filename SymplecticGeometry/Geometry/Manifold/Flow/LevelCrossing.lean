@@ -8,6 +8,8 @@ module
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import TauCeti.Geometry.Manifold.Flow.HittingTime
 public import TauCeti.Geometry.Manifold.Flow.Complete
+import TauCeti.Geometry.Manifold.Flow.ReturnDerivative
+import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
@@ -27,7 +29,11 @@ No new implicit function argument is needed. The hitting time carries the points
 level (`TauCeti.eventually_flowHittingTime`), and on an orbit that meets the level at most once the
 crossing time is the only time spent on the level (`Flow.apply_flow_levelCrossingTime`). Tau
 Ceti's `TauCeti.contMDiffAt_flowHittingTime` and `TauCeti.contMDiffAt_flowOf_comp` then give the
-smoothness.
+smoothness. In finite dimension, the same eventual equality identifies the map to the level near `x`
+with Tau Ceti's transition `TauCeti.flowTransition v g T x`, so the kernel of its derivative at `x`
+is the line through `v x`: it contains `v x` by `TauCeti.mfderiv_flowTransition_apply_eq_zero`,
+and nothing else, by `TauCeti.mfderiv_flowTransition_apply` and the injectivity of the derivative
+of the time-`T` map (`TauCeti.injective_mfderiv_flowOf`).
 
 An orbit along which `g` is antitone, and transverse to the level wherever it meets it, meets the
 level at most once (`IsMIntegralCurve.subsingleton_setOf_apply_eq`): two meetings would make `g`
@@ -40,6 +46,8 @@ Ceti's `IsMIntegralCurveAt.mfderiv_apply_eq_zero_of_eventuallyEq_const`.
   meets a level transverse to it at most once.
 * `TauCeti.levelCrossingTime_eventuallyEq_flowHittingTime`: near a point whose orbit crosses the
   level transversally, the crossing time is the hitting time of the level.
+* `TauCeti.ker_mfderiv_flow_levelCrossingTime`: in finite dimension, the derivative of the map to
+  the level has kernel the line through the field.
 * `TauCeti.contMDiffAt_levelCrossingTime`, `TauCeti.contMDiffOn_levelCrossingTime`: the crossing
   time is `C^n` where the crossing is transverse.
 * `TauCeti.contMDiffAt_flow_levelCrossingTime`, `TauCeti.contMDiffOn_flow_levelCrossingTime`: so
@@ -105,6 +113,49 @@ theorem levelCrossingTime_eventuallyEq_flowHittingTime
     with y hy huniq_y
   have hyc : g (Φ (flowHittingTime v g T x y) y) = c := by rw [← hc, ← hΦ, hy.2]
   exact huniq_y (Flow.apply_flow_levelCrossingTime ⟨_, hyc⟩) hyc
+
+/-- **The kernel of the derivative of the map to the level.** Let `v` be a complete `C¹` field on a
+finite-dimensional manifold, with flow `Φ`, and let the orbits through a neighbourhood of `x` meet
+the level `{g = c}` at most once. If the orbit of `x` meets the level at a point where `g` is `C¹`
+and `dg (v) ≠ 0`, then the derivative at `x` of `y ↦ Φ (Flow.levelCrossingTime Φ g c y) y` has
+kernel the line spanned by `v x`. -/
+theorem ker_mfderiv_flow_levelCrossingTime [FiniteDimensional ℝ E]
+    (hv : CMDiff 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
+    (hΦ : flowOf v = ⇑Φ) (huniq : ∀ᶠ y in 𝓝 x, {t | g (Φ t y) = c}.Subsingleton)
+    (hx : ∃ t, g (Φ t x) = c)
+    (hg : ContMDiffAt I 𝓘(ℝ) 1 g (Φ (Flow.levelCrossingTime Φ g c x) x))
+    (hgv : mvfderiv I g (Φ (Flow.levelCrossingTime Φ g c x) x)
+      (v (Φ (Flow.levelCrossingTime Φ g c x) x)) ≠ 0) :
+    (mfderiv I I (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) x).ker = ℝ ∙ v x := by
+  set T := Flow.levelCrossingTime Φ g c x
+  -- Near `x`, the map to the level is the transition to the section through `Φ T x`.
+  have hF : (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) =ᶠ[𝓝 x] flowTransition v g T x := by
+    filter_upwards [levelCrossingTime_eventuallyEq_flowHittingTime hv hcomplete hΦ huniq hx hg
+      hgv] with y hy
+    rw [flowTransition_apply, hy, hΦ]
+  have hT := hcomplete.mem_flowDomain T x
+  rw [← hΦ] at hg hgv
+  -- `flowTransition v g T x x` and `Φ T x` are equal but not by definition, so the tangent spaces
+  -- at them are identified by `rfl` below, as in `HasMFDerivAt.congr_of_eventuallyEq_abuse`.
+  have hD (w : TangentSpace I x) :
+      mfderiv I I (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y) x w =
+        mfderiv I I (flowTransition v g T x) x w := by
+    rw [(HasMFDerivAt.congr_of_eventuallyEq_abuse
+      (mdifferentiableAt_flowTransition hv hT hg hgv).hasMFDerivAt hF).mfderiv]
+    rfl
+  ext w
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, Submodule.mem_span_singleton, hD]
+  constructor
+  · -- The time-`T` map sends `w` and `-dτ(w) • v x` to the same vector, and is injective.
+    intro h
+    rw [mfderiv_flowTransition_apply hv hT hg hgv] at h
+    refine ⟨-mvfderiv I (flowHittingTime v g T x) x w,
+      injective_mfderiv_flowOf hv hcomplete T x ?_⟩
+    rw [map_smul, mfderiv_flowOf_apply_self hv hT]
+    exact (neg_smul _ _).trans (eq_neg_of_add_eq_zero_right h).symm
+  · rintro ⟨r, rfl⟩
+    rw [map_smul, mfderiv_flowTransition_apply_eq_zero hv hT hg hgv, smul_zero]
+    rfl
 
 variable {n : ℕ∞} (hn : 1 ≤ n) [IsManifold I n M]
   (hv : CMDiff n (fun y ↦ (⟨y, v y⟩ : TangentBundle I M))) (hcomplete : IsCompleteVectorField v)
