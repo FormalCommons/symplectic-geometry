@@ -10,6 +10,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Tangent.OpensModelSpace
 import TauCeti.Data.Fin.Tuple.Basic
 import SymplecticGeometry.Data.Fin.Tuple.RemoveNth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # The integrand of `dα` on a product with flat base
@@ -171,16 +172,13 @@ theorem mfderiv_prodFiberIntegrand_apply (α : RoughForm (𝓘(ℝ, E).prod J) (
     rw [prodFiberIntegrand_apply_eq_inChartAt_self α b b' u y w', Function.comp_apply,
       prodFiberIntegrandCLM_apply]
   dsimp only at heq ⊢
-  have hmf := Manifold.mfderiv_comp_subtype_val_apply (J := 𝓘(ℝ, E)) (U := U)
-    (I := 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ))
+  have hmf := Manifold.mfderiv_modelSpace_comp_subtype_val_apply (𝕜 := ℝ) (U := U)
     (f := fun e : E ↦ L (α.inChartAt (b, y) (e, extChartAt J y y))) (x := b) a
-  rw [hcomp.hasMFDerivAt.mfderiv] at hmf
+  rw [hcomp.fderiv] at hmf
   rw [heq]
   refine (congrArg (fun φ : E' [⋀^Fin m]→L[ℝ] ℝ ↦ φ w) hmf).trans ?_
-  -- `hmf` applies the composite derivative as a map of tangent spaces; read it as a map of `E`
-  -- into alternating maps of vectors of `E'`, so that it can be evaluated on `w`.
-  change L (fderivWithin ℝ (α.inChartAt (b, y)) s x₀ (ContinuousLinearMap.inl ℝ E E' a)) w = _
-  rw [ContinuousLinearMap.inl_apply, prodFiberIntegrandCLM_apply,
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
+    ContinuousLinearMap.inl_apply, prodFiberIntegrandCLM_apply,
     fderivWithin_continuousAlternatingMap_apply_const_apply hs hα]
 
 /-- **The fibre derivative of the integrand.** Let `X₁, …, Xₘ ∈ E'`. If the coordinate expression

@@ -34,11 +34,14 @@ name: cache-library
 # and for exactly the commit that this run is for. Only the merge queue
 # starts such a run (GitHub's documentation names no other way), and it ran
 # the workflow and the build scripts of that same commit, with the token that
-# CI has, on files that it restored from main's saves alone: CI reads no
-# artifact in the merge queue. That is the code, and those are the saves,
-# that this job itself would have built with. The artifact is always a build
-# from nothing (CI hands one over only when it restored no save), and it is
-# taken only while main has no build from source for these dependencies (the
+# CI has, on what it restored from main's saves and fetched from the bucket
+# of Lake's cache: CI reads no workflow artifact in the merge queue. CI hands
+# a build over only when it restored no save. Such a build is not one from
+# nothing: the run took from the bucket what the mappings it read cover,
+# main's and those of the pull request that it merged, and compiled the
+# rest. So main's save now trusts what ci.yml's step that fetches from the
+# bucket trusts; see there. The artifact is taken only while main has no
+# build from source for these dependencies (the
 # step that takes it runs only while this run's save is named `none`), so
 # the builds from source replace what the saves carry along as they did
 # before; the
