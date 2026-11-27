@@ -60,7 +60,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `hasDerivAt_smoothedMax_left`, `hasDerivAt_smoothedMax_right`, monotonicity in each argument
   (`monotone_smoothedMax_left`, `monotone_smoothedMax_right`, `smoothedMax_le_smoothedMax`), the
   first and second derivatives `hasDerivAt_smoothedMax`, `deriv_smoothedMax` and
-  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, the first one also
+  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions (the second one
+  nonnegative where theirs are, `iteratedDeriv_two_smoothedMax_nonneg`), the first one also
   as a weighted average (`hasDerivAt_smoothedMax_weighted`, `deriv_smoothedMax_weighted`, with
   the weight in `[0, 1]` by `one_add_smoothedSign_div_two_mem_Icc`), the bounds
   `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
@@ -524,6 +525,20 @@ theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f
       (hg.differentiable two_ne_zero x)]
   simp only [Pi.sub_apply]
   ring
+
+/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two `C²` functions `f`
+and `g` is nonnegative if those of `f` and `g` are. -/
+theorem iteratedDeriv_two_smoothedMax_nonneg {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f)
+    (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) {x : ℝ} (hf₂ : 0 ≤ iteratedDeriv 2 f x)
+    (hg₂ : 0 ≤ iteratedDeriv 2 g x) :
+    0 ≤ iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  rw [iteratedDeriv_two_smoothedMax hf hg]
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
+  have h₁ := mul_nonneg (by linarith : 0 ≤ 1 + smoothedSign δ (f x - g x)) hf₂
+  have h₂ := mul_nonneg (by linarith : 0 ≤ 1 - smoothedSign δ (f x - g x)) hg₂
+  have h₃ := mul_nonneg (iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x))
+    (sq_nonneg (deriv f x - deriv g x))
+  linarith
 
 theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoothedMax δ b a := by
   rw [smoothedMax_def, smoothedMax_def, ← neg_sub, smoothedAbs_neg hδ, add_comm a]

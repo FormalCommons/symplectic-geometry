@@ -24,7 +24,9 @@ of base point along a path, read on their classes.
 * `FundamentalGroup.mapOfEq_fromPath_mk`: `mapOfEq f h` sends the class of `γ` to the class of
   `(γ.map f.continuous).cast h.symm h.symm`.
 * `FundamentalGroup.fundamentalGroupMulEquivOfPath_symm_fromPath_mk`: the change of base point
-  along `γ`, read backwards, sends the class of a loop `g` to the class of `γ · g · γ⁻¹`.
+  along `γ`, read backwards, sends the class of a loop `g` to the class of `γ · g · γ⁻¹`;
+  `FundamentalGroup.fundamentalGroupMulEquivOfPath_fromPath_mk`: read forwards, it sends the
+  class of `g` to that of `γ⁻¹ · g · γ`.
 * `FundamentalGroup.fromPath_trans`, `FundamentalGroup.fromPath_symm`: the class of a
   concatenation of loops is the product of their classes, in the reverse order, and the class of
   a reversed loop is the inverse.
@@ -52,6 +54,15 @@ theorem fundamentalGroupMulEquivOfPath_symm_fromPath_mk {x₀ x₁ : X} (γ : Pa
     (fundamentalGroupMulEquivOfPath γ).symm (fromPath (Path.Homotopic.Quotient.mk g)) =
       fromPath (Path.Homotopic.Quotient.mk (γ.trans (g.trans γ.symm))) := by
   rw [fundamentalGroupMulEquivOfPath_symm_apply, Path.Homotopic.Quotient.mk_trans,
+    Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm]
+
+/-- The change of base point along a path `γ` from `x₀` to `x₁` sends the class of a loop `g` at
+`x₀` to the class of the loop `γ⁻¹ · g · γ` at `x₁`. -/
+theorem fundamentalGroupMulEquivOfPath_fromPath_mk {x₀ x₁ : X} (γ : Path x₀ x₁)
+    (g : Path x₀ x₀) :
+    fundamentalGroupMulEquivOfPath γ (fromPath (Path.Homotopic.Quotient.mk g)) =
+      fromPath (Path.Homotopic.Quotient.mk (γ.symm.trans (g.trans γ))) := by
+  rw [fundamentalGroupMulEquivOfPath_apply, Path.Homotopic.Quotient.mk_trans,
     Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm]
 
 /-- The concatenation `γ · δ` of two classes of loops is their product in the fundamental group, in
