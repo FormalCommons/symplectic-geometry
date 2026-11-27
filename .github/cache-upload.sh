@@ -20,13 +20,18 @@
 #   meets one that it must refuse.
 # - The mappings must be lines of the form that Lake writes, and every
 #   archive that they name must be in DIR or already in the bucket.
-# - An archive that the bucket has is not uploaded again, so nothing in the
-#   bucket is replaced.
+# - Nothing in the bucket is replaced. An archive that the bucket has is not
+#   sent, and every upload carries `If-None-Match: *`, which makes the bucket
+#   refuse it (412) if the name is taken, also when two uploads race. A
+#   commit's mappings that are there already stay as they are.
 # - The mappings go last, so that a commit's mappings never name an archive
 #   that is not there.
 #
 # If anything is wrong the script says what and exits with 1, and nothing or
 # only archives have been uploaded: archives without mappings do no harm.
+#
+# The two content types are Lake's own, `artifactContentType` and
+# `mapContentType` in its Lake/Config/Cache.lean.
 set -euo pipefail
 
 dir=${1:?the staged directory} artifacts=${2:?the address of the archives} mappings=${3:?the address of the mappings}
@@ -85,15 +90,23 @@ while read -r code url; do
 done < "$work/head.out"
 echo "archives named: $(wc -l < "$work/named"), in the bucket: $have, to upload: $send"
 
-# Hetzner answers 503 to many uploads at once; curl tries those again.
+# Hetzner answers 503 to many uploads at once; curl tries those again. 412
+# means that the name was taken meanwhile, which is as good as uploaded.
 if [ "$send" -gt 0 ]; then
   { printf '%s\n' "$key"; cat "$work/put.cfg"; } |
-    curl -q -sS -Z --parallel-max 16 --retry 8 --retry-all-errors --max-time 900 --fail -o /dev/null \
-      --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.artifact' -K - ||
-    fail "could not upload the archives"
+    curl -q -sS -Z --parallel-max 16 --retry 8 --max-time 900 -o /dev/null -w '%{http_code}\n' \
+      --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.artifact' \
+      -H 'If-None-Match: *' -K - > "$work/put.out" || fail "could not upload the archives"
+  if grep -qvE '^(200|412)$' "$work/put.out"; then
+    fail "the bucket answered $(grep -vE '^(200|412)$' "$work/put.out" | sort | uniq -c | tr '\n' ' ') to uploads of archives"
+  fi
 fi
-printf '%s\n' "$key" |
-  curl -q -sS --retry 8 --retry-all-errors --max-time 300 --fail -o /dev/null \
-    --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/x-ndjson' -K - -T "$dir/outputs.jsonl" "$mappings" ||
-  fail "could not upload the mappings"
-echo "mappings uploaded to $mappings"
+code=$(printf '%s\n' "$key" |
+  curl -q -sS --retry 8 --max-time 300 -o /dev/null -w '%{http_code}' \
+    --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.outputs+json-lines' \
+    -H 'If-None-Match: *' -K - -T "$dir/outputs.jsonl" "$mappings") || fail "could not upload the mappings"
+case $code in
+  200) echo "mappings uploaded to $mappings" ;;
+  412) echo "the bucket has mappings at $mappings already; they stay as they are" ;;
+  *) fail "the bucket answered $code to the upload of the mappings" ;;
+esac

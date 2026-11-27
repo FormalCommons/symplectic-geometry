@@ -11,7 +11,10 @@ on:
 # own to the workflow cache-library as an artifact, which needs no
 # permission; see the last steps. `actions: read` is for a pull request's
 # run that finds no build of main's: it looks for the build that an earlier
-# run for the same pull request kept, and downloads it.
+# run for the same pull request kept, and downloads it. A run whose build
+# passed also hands over its build in the form of Lake's remote cache, as
+# the artifact `lake-cache`; the workflow cache-upload, which is not this
+# one and holds the key that this one must not have, puts it into a bucket.
 permissions:
   contents: read
   actions: read
@@ -264,9 +267,10 @@ jobs:
       # The build keeps its outputs in Lake's cache as well as in
       # `.lake/build`, and `-o` writes its mappings: for each module, which
       # archive it builds to. The next two steps hand both to the workflow
-      # cache-upload, which puts them in the bucket that
-      # `.github/lake-config.toml` describes. This job holds no key to the
-      # bucket; see cache-upload for why. Nothing here reads the bucket yet.
+      # cache-upload, which puts them into a bucket. This job holds no key
+      # to the bucket; see cache-upload for why. Nothing here reads the
+      # bucket yet. Lake's cache is then on for the dependencies' modules
+      # too, as it is in the agents' jobs.
       - name: build
         id: build
         env:
