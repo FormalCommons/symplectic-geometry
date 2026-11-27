@@ -100,9 +100,6 @@ inverse `r` of the normal class map. -/
 def tangentNormalEquiv (x : M) :
     (TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x ≃L[𝕜]
       ((f : M → N) *ᵖ (TangentSpace J)) x :=
-  haveI : T2Space (((f : M → N) *ᵖ (TangentSpace J)) x) := inferInstanceAs (T2Space V)
-  haveI : FiniteDimensional 𝕜 (((f : M → N) *ᵖ (TangentSpace J)) x) :=
-    inferInstanceAs (FiniteDimensional 𝕜 V)
   haveI : T2Space ((TangentSpace I ×ᵇ fun x ↦ f.isImmersion.NormalSpace x hn) x) :=
     inferInstanceAs (T2Space (E × f.isImmersion.NormalSpace x hn))
   ((exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv

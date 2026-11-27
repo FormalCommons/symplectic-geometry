@@ -17,6 +17,7 @@ import SymplecticGeometry.Analysis.Normed.Module.Alternating.TopDegree
 import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Canonical
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # The canonical bundle of the blowup
@@ -786,21 +787,6 @@ private theorem compContinuousLinearMap_chartDeriv_eq {j k : Option (Fin (n + 1)
         coordForm_liftChart_trans_blowupModelChart c b i k hzi hzk, smul_smul, smul_smul]
       congr 1
       field_simp
-
-omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] hc in
-/-- The fibres of `π^*K_M` carry their module topology, which `TensorProduct.ridL` needs. -/
-private theorem isModuleTopology_pullback_canonicalBundle (z : Blowup c) :
-    IsModuleTopology ℂ
-      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) :=
-  haveI : FiniteDimensional ℂ
-      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) :=
-    Module.finite_of_finrank_eq_succ (TauCeti.CanonicalBundle.finrank_eq_one (blowdown c z))
-  haveI : T2Space
-      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) :=
-    inferInstanceAs (T2Space (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)))
-  isModuleTopologyOfFiniteDimensional
-
-attribute [local instance] isModuleTopology_pullback_canonicalBundle
 
 /-- **The canonical bundle of the blowup.** The fibrewise isomorphism, at each point `z` of the
 blowup `Blowup c` with blowdown `π`, of the canonical bundle `K` of the blowup with the tensor
