@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.Linear
 public import TauCeti.Geometry.Symplectic.Liouville.Radial.Basic
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow.Basic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Volume
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The one-form of a family of weights on the standard model
@@ -127,7 +128,7 @@ theorem weightOneForm_const (c : ℝ) :
     funext i
     fin_cases i
     rfl
-  rw [weightOneForm_apply, SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
+  rw [weightOneForm_apply, SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply,
     hv, SymplecticForm.radialPrimitive_apply]
   -- Tangent vectors at `z` are points of `StdSpace ι`, where `stdForm_apply` is stated.
   suffices ∀ w : StdSpace ι, ∑ j, c * (z.x j * w.y j - z.y j * w.x j) =

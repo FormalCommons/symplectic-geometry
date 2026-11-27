@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -54,6 +55,8 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   vectors.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.mextDeriv_apply_eq_zero`: a form that restricts to a closed
   form along a smooth atlas has exterior derivative zero on tuples of vertical vectors.
+* `TauCeti.MapFiber.Atlas.RestrictsTo.isClosed`: a form on `F` to which a closed form restricts
+  along a smooth atlas over a nonempty base is closed.
 * `TauCeti.MapFiber.Atlas.restrictsTo_iff_forall_exists`: for a smooth atlas with structure group
   the stabilizer of `σ`, it suffices that one chart at each point pull `τ` back to `σ`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.of_coordChangeMem`: the predicate passes to an atlas
@@ -277,6 +280,18 @@ theorem RestrictsTo.mextDeriv_apply_eq_zero [IsManifold IF 2 F] [IsManifold IM 2
     ((isSmoothBundleForm_def 1 _).2 (τ.isSmoothForm.of_le (by simp)).contMDiff)
     (A.mem_baseSet_trivAt (proj x))
     (by rw [hτ _ _ (A.mem_baseSet_trivAt (proj x)), (SmoothForm.isClosed_def σ).1 hσ]) hu
+
+/-- **The fibre form of a closed form is closed.** If a closed form `τ` restricts to `σ` along a
+smooth atlas over a nonempty base, then `σ` is closed: it is the pull-back of `τ` along a smooth
+fibre inclusion. Over an empty base every form `σ` satisfies the hypothesis. -/
+theorem RestrictsTo.isClosed [IsManifold IF 2 F] [IsManifold IM 2 M] [Nonempty B]
+    (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) (hτc : τ.IsClosed) :
+    σ.IsClosed := by
+  obtain ⟨b⟩ := ‹Nonempty B›
+  have hb := A.mem_baseSet_trivAt b
+  have hj := (A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb
+  rw [← (SmoothForm.mpullback_eq_iff hj).2 (restrictsTo_iff.1 hτ b b hb)]
+  exact hτc.mpullback _ hj
 
 /-- **One chart at each point suffices.** For a smooth atlas whose coordinate changes preserve
 `σ`, a form `τ` restricts to `σ` exactly when, for each point `b'` of the base, some chart whose
