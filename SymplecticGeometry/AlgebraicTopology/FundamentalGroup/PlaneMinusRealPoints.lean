@@ -24,14 +24,14 @@ import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
 import TauCeti.GroupTheory.CoprodI
 import TauCeti.Topology.Homotopy.DeformationRetract
-import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
 # The plane minus real points: a free basis of loops
 
 Let `c : ι → ℝ` be nonzero reals, any two of them at distance at least `δ > 0` (for instance
-finitely many distinct nonzero reals, with `δ` from `exists_pos_pairwise_le_abs_sub`). The
-fundamental group of `ℂ` with the points `c i` removed, based at `0`, is free on the loops
+finitely many distinct nonzero reals, with `δ` from
+`Function.Injective.exists_pos_pairwise_le_dist` and `Real.dist_eq`). The fundamental group of
+`ℂ` with the points `c i` removed, based at `0`, is free on the loops
 `PlaneMinusRealPoints.loop hδ hc h0 k`. The loop about `c k` goes from `0` straight down to `-i`,
 right or left to `c k + r - i` and straight up to `c k + r`, once counterclockwise around the
 circle of radius `r = δ / 4` about `c k`, and back the same way.
@@ -39,7 +39,7 @@ circle of radius `r = δ / 4` about `c k`, and back the same way.
 ## Main definitions
 
 * `SymplecticGeometry.PlaneMinusRealPoints.approach x r`, `circle x r` and `loopInPlane x r`:
-  the loop in `ℂ` about `x` of radius `r`, based at `0`, and its two parts.
+  the loop in `ℂ` about `x` of radius `r`, based at `0`, and the pieces it is made of.
 * `SymplecticGeometry.PlaneMinusRealPoints.loop hδ hc h0 k`: the loop about `c k`, based at `0`, in
   the plane minus the points.
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv hδ hc h0`: the isomorphism
@@ -69,6 +69,12 @@ point `-i`, and each piece is itself a punctured star-convex set, so that
 puncture. A change of base point along the approach path turns it into the loop about the point,
 and one along the segment from `-i` to `0` brings everything to `0`.
 
+Some steps follow private lemmas of the same Tau Ceti file, at the same commit, adapted to the
+pieces here: `starConvex_fan` follows `starConvex_model`, `sphere_subset_fan` follows
+`sphere_subset_model`, `notMem_band_of_mem_band` follows the last case of
+`piece_inter_piece_subset`, and `bijective_lift_loop_of_isEmpty` follows the case of no points
+in `nonempty_fundamentalGroup_compl_range_mulEquiv_freeGroup`.
+
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 1.2, Theorem 1.20
@@ -88,18 +94,6 @@ namespace SymplecticGeometry
 namespace PlaneMinusRealPoints
 
 variable {ι : Type*} {c : ι → ℝ} {δ : ℝ}
-
-/-- Finitely many distinct reals are uniformly separated: some `δ > 0` is at most the distance
-between any two of them. -/
-theorem exists_pos_pairwise_le_abs_sub [Finite ι] (hc : Function.Injective c) :
-    ∃ δ, 0 < δ ∧ Pairwise fun i j ↦ δ ≤ |c i - c j| := by
-  have := Fintype.ofFinite ι
-  obtain ⟨r, hr, -, hrc⟩ := TauCeti.exists_pos_closedBall_subset_and_lt_dist
-    (T := Finset.univ.image c) (U := fun _ ↦ univ) fun _ _ ↦ Filter.univ_mem
-  refine ⟨2 * r, by positivity, fun i j hij ↦ ?_⟩
-  have h := (hrc _ (Finset.mem_image_of_mem c (Finset.mem_univ i)) _
-    (Finset.mem_image_of_mem c (Finset.mem_univ j)) (hc.ne hij)).le
-  rwa [Real.dist_eq] at h
 
 /-! ### The loops in `ℂ` -/
 
