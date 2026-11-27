@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Profile
@@ -15,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
@@ -56,7 +58,11 @@ The lift carries the forms of the model to the blowup. For a profile `h` of the 
 off the image under `ψ̃` of `closedNbhd n (l + ε)`. On the overlap `ω̃_{l,ε}` is the pull-back of
 `ω₀` by the blowdown of the model, and `ψ` pulls `σ` back to `ω₀`, so the two descriptions
 agree. On the image of `closedNbhd n ε` the form is the push-forward of `ω̃_l = blowupForm n l`
-(McDuff–Salamon, Theorem 7.1.21 (i)).
+(McDuff–Salamon, Theorem 7.1.21 (i)). If moreover `ψ` is pseudoholomorphic from `J₀` to `J`
+at every point of the closed ball `B(l + ε)`, the form is compatible with the almost complex blowup
+`J̃ = Blowup.almostComplexStructure` of `J` (Theorem 7.1.21 (iv)): on the image of `L(l + ε)`
+the lift is `J̃`-holomorphic, and elsewhere the form and `J̃` are the pull-backs of `σ` and `J` by
+the blowdown.
 
 ## Main definitions
 
@@ -104,6 +110,11 @@ agree. On the image of `closedNbhd n ε` the form is the push-forward of `ω̃_l
   exceptional divisor, the lift pulls `ω̃_{ψ,l,ε}` back to `ω̃_l`.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isSymplectic_normalizedBlowupForm`: for symplectic
   `σ`, the form `ω̃_{ψ,l,ε}` is symplectic.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.isPseudoholomorphicAt_ballLiftPartialDiffeomorph`:
+  the lift is pseudoholomorphic, from the complex structure of the model to `J̃`, at each point of
+  `openNbhd n r` over which `ψ` is pseudoholomorphic from `J₀` to `J`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.compatible_normalizedBlowupForm`: if `ψ` is
+  pseudoholomorphic from `J₀` to `J` on `B(l + ε)`, the form `ω̃_{ψ,l,ε}` is compatible with `J̃`.
 
 ## Implementation notes
 
@@ -121,7 +132,7 @@ blowup, `normalizedBlowupForm hψ h` is the pull-back of `σ` by the blowdown.
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
-  Definition 7.1.17 and Remark 7.1.18.
+  Definition 7.1.17, Remark 7.1.18 and Theorem 7.1.21.
 -/
 
 public section
@@ -598,15 +609,25 @@ theorem ballLiftPartialDiffeomorph_target :
     ← Set.range_domRestrict]
   exact congrArg range (funext fun y ↦ hψ.ballLiftExt_of_mem y.property)
 
-/-- The exceptional divisor of the blowup lies in the image of the lift. -/
-theorem exceptionalDivisor_subset_ballLiftPartialDiffeomorph_target :
-    Blowup.exceptionalDivisor hN.blowupChart ⊆ hψ.ballLiftPartialDiffeomorph.target := by
+/-- The exceptional divisor of the blowup lies in the image under the lift of `openNbhd n ε`. -/
+theorem exceptionalDivisor_subset_image_openNbhd :
+    Blowup.exceptionalDivisor hN.blowupChart ⊆
+      hψ.ballLiftPartialDiffeomorph '' openNbhd n ε := by
   intro z hz
   obtain ⟨y, hy0, rfl⟩ := (Blowup.mem_exceptionalDivisor_iff _).1 hz
   have hy : (y : BlowupModel n) ∈ openNbhd n ε :=
     exceptionalDivisor_subset_openNbhd hψ.width_pos (mem_exceptionalDivisor_iff.2 hy0)
-  rw [ballLiftPartialDiffeomorph_target]
-  exact ⟨⟨y, openNbhd_mono hψ.width_lt_radius.le hy⟩, hψ.ballLift_of_mem_openNbhd _ hy⟩
+  refine ⟨y, hy, ?_⟩
+  rw [hψ.ballLiftPartialDiffeomorph_apply ⟨y, openNbhd_mono hψ.width_lt_radius.le hy⟩,
+    hψ.ballLift_of_mem_openNbhd _ hy]
+
+/-- The exceptional divisor of the blowup lies in the image of the lift. -/
+theorem exceptionalDivisor_subset_ballLiftPartialDiffeomorph_target :
+    Blowup.exceptionalDivisor hN.blowupChart ⊆ hψ.ballLiftPartialDiffeomorph.target := by
+  refine hψ.exceptionalDivisor_subset_image_openNbhd.trans ?_
+  rintro _ ⟨y, hy, rfl⟩
+  exact hψ.ballLiftPartialDiffeomorph.map_source (by
+    rw [ballLiftPartialDiffeomorph_source]; exact openNbhd_mono hψ.width_lt_radius.le hy)
 
 /-- The lift of a normalized ball embedding is an open embedding of `openNbhd n r` into the
 blowup. -/
@@ -879,6 +900,123 @@ theorem isSymplectic_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfil
     rw [hW]
     exact ⟨hσ.isClosed.mpullback _ _,
       hσ.isNondegenerate.isNondegenerate_mpullback_of_isLocalDiffeomorph hloc⟩
+
+/-! #### Compatibility with the almost complex blowup -/
+
+omit [T2Space M] in
+/-- The lift `ψ̃` is pseudoholomorphic at a point `y` of `openNbhd n r`, from the complex structure
+of the model blowup to the almost complex blowup `J̃` of `J`, if `ψ` is pseudoholomorphic from
+`J₀` to `J` at the image of `y` under the blowdown, read in `StdSpace`. On `openNbhd n ε` this
+holds since `lift` inverts `ψ̃` there; off the exceptional divisor, since the blowdown of the
+blowup is `J̃`-holomorphic with injective differential and `ψ̃` lies over `ψ`. -/
+theorem isPseudoholomorphicAt_ballLiftPartialDiffeomorph {y : BlowupModel n}
+    (hy : y ∈ openNbhd n r)
+    (hJψ : IsPseudoholomorphicAt (stdComplexStructure (Fin (n + 1))).constSmooth J ψ
+      (complexToRealEuclidean (Fin (n + 1)) y.blowdown)) :
+    IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (Blowup.almostComplexStructure hN.blowupChart J hN.blowupChart_isHolomorphic)
+      hψ.ballLiftPartialDiffeomorph y := by
+  set Φ := hψ.ballLiftPartialDiffeomorph
+  have hΦy : y ∈ Φ.source := by rwa [ballLiftPartialDiffeomorph_source]
+  have hΦ : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Φ y :=
+    Φ.mdifferentiableAt (by simp) hΦy
+  have hΦapp (y' : BlowupModel n) (hy' : y' ∈ openNbhd n r) : Φ y' = hψ.ballLift ⟨y', hy'⟩ :=
+    hψ.ballLiftPartialDiffeomorph_apply ⟨y', hy'⟩
+  by_cases hyε : y ∈ openNbhd n ε
+  · -- Near `y`, `lift ∘ ψ̃` is the identity.
+    have hz : Φ y ∈ range (inr (gluingHomeomorph hN.blowupChart)) :=
+      ⟨_, ((hΦapp y hy).trans (hψ.ballLift_of_mem_openNbhd ⟨y, hy⟩ hyε)).symm⟩
+    have hl := Blowup.isLocalDiffeomorphAt_lift hN.blowupChart hz
+    refine IsPseudoholomorphicAt.of_comp (v := Blowup.lift hN.blowupChart) ?_
+      (Blowup.isPseudoholomorphicAt_lift _ J _ hz) (hl.isInvertible_mfderiv (by simp)).injective
+      hΦ
+    refine (isPseudoholomorphicAt_id _ y).congr_of_eventuallyEq ?_
+    filter_upwards [(isOpen_openNbhd ε).mem_nhds hyε] with y' hy'
+    rw [Function.comp_apply, hΦapp y' (openNbhd_mono hψ.width_lt_radius.le hy'),
+      hψ.ballLift_of_mem_openNbhd _ hy', Blowup.lift_inr, id]
+  · -- Off the divisor, the blowdown of the blowup composed with `ψ̃` is `ψ ∘ π`.
+    set e := complexToRealEuclidean (Fin (n + 1))
+    have hy0 := hψ.blowdown_ne_zero_of_notMem hyε
+    have hz : Φ y ∉ Blowup.exceptionalDivisor hN.blowupChart := by
+      rw [hΦapp y hy, hψ.ballLift_of_blowdown_ne_zero _ hy0]
+      exact Blowup.inl_notMem_exceptionalDivisor _ _
+    have hπ := Blowup.isLocalDiffeomorphAt_blowdown_real hN.blowupChart hz
+    have hb : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+        (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown y :=
+      (isPseudoholomorphic_ofComplexManifold_iff.2
+        ((contMDiff_blowdown ∞).mdifferentiable (by simp))).isPseudoholomorphicAt y
+    have heb : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+        (stdComplexStructure (Fin (n + 1))).constSmooth (e ∘ blowdown) y :=
+      ((isPseudoholomorphic_complexToRealEuclidean (Fin (n + 1))).isPseudoholomorphicAt
+        y.blowdown).comp hb
+    refine IsPseudoholomorphicAt.of_comp (v := Blowup.blowdown hN.blowupChart) ?_
+      (Blowup.isPseudoholomorphicAt_blowdown _ J _ hz)
+      (hπ.isInvertible_mfderiv (by simp)).injective hΦ
+    refine (IsPseudoholomorphicAt.comp (u := e ∘ blowdown) (v := ψ) hJψ
+      heb).congr_of_eventuallyEq ?_
+    filter_upwards [(isOpen_openNbhd r).mem_nhds hy] with y' hy'
+    rw [Function.comp_apply, hΦapp y' hy', blowdown_ballLift]
+    rfl
+
+/-- **Compatibility of `ω̃_{ψ,l,ε}`** (McDuff–Salamon, Theorem 7.1.21 (iv)). If `ψ` is
+pseudoholomorphic from `J₀` to `J` at every point of the closed ball `B(l + ε)`, then for a
+profile `h` of the blowup the form `ω̃_{ψ,l,ε}` is compatible with the almost complex blowup `J̃`
+of `J`. On the image of `L(l + ε)` the lift `ψ̃` is pseudoholomorphic and pulls the form back to
+the Kähler form `ω̃_{l,ε}`; elsewhere the form is the pull-back of `σ` by the blowdown, which
+intertwines `J̃` with `J` and has injective differential there. -/
+theorem compatible_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h)
+    (hJψ : ∀ z ∈ closedBall (0 : StdSpace (Fin (n + 1))) (l + ε),
+      IsPseudoholomorphicAt (stdComplexStructure (Fin (n + 1))).constSmooth J ψ z) :
+    (hψ.normalizedBlowupForm h).Compatible
+      (Blowup.almostComplexStructure hN.blowupChart J hN.blowupChart_isHolomorphic) := by
+  set Φ := hψ.ballLiftPartialDiffeomorph
+  set J' := Blowup.almostComplexStructure hN.blowupChart J hN.blowupChart_isHolomorphic
+  set τ := hψ.normalizedBlowupForm h
+  have hK := (isKahler_profileForm n hh).compatible
+  suffices H : ∀ x, (∀ v w, τ.eval₂ x (J' x v) (J' x w) = τ.eval₂ x v w) ∧
+      ∀ v, v ≠ 0 → 0 < τ.eval₂ x v (J' x v) from
+    ⟨SmoothTwoForm.invariant_iff.2 fun x ↦ (H x).1, SmoothTwoForm.tames_iff.2 fun x ↦ (H x).2⟩
+  intro x
+  by_cases hx : x ∈ Φ '' closedNbhd n (l + ε)
+  · obtain ⟨y, hy, rfl⟩ := hx
+    have hyr : y ∈ openNbhd n r := mem_openNbhd_iff.2
+      ((mem_closedNbhd_iff.1 hy).trans_lt hψ.weight_add_width_lt)
+    have hΦy : y ∈ Φ.source := by rwa [ballLiftPartialDiffeomorph_source]
+    have hhol := hψ.isPseudoholomorphicAt_ballLiftPartialDiffeomorph hyr
+      (hJψ _ (mem_closedBall_zero_iff.2 (mem_closedNbhd_iff.1 hy)))
+    have hsurj := (Φ.isInvertible_mfderiv (by simp) hΦy).surjective
+    have heval (a b : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) y) :
+        τ.eval₂ (Φ y) (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Φ y a)
+            (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Φ y b) =
+          (profileForm n l ε h).eval₂ y a b := by
+      rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
+        ← hψ.normalizedBlowupForm_eq_on_ballLift hh y hyr, TauCeti.mpullback_apply_pair]
+    refine ⟨fun v w ↦ ?_, fun v hv ↦ ?_⟩
+    · obtain ⟨a, rfl⟩ := hsurj v
+      obtain ⟨b, rfl⟩ := hsurj w
+      rw [← hhol.mfderiv_apply_commute, ← hhol.mfderiv_apply_commute, heval, heval,
+        hK.invariant.apply]
+    · obtain ⟨a, rfl⟩ := hsurj v
+      rw [← hhol.mfderiv_apply_commute, heval]
+      exact SmoothTwoForm.tames_iff.1 hK.tames y a fun ha ↦ hv (by rw [ha, _root_.map_zero])
+  · have hZ : x ∉ Blowup.exceptionalDivisor hN.blowupChart := fun hZ ↦ by
+      obtain ⟨y, hy, rfl⟩ := hψ.exceptionalDivisor_subset_image_openNbhd hZ
+      exact hx ⟨y, closedNbhd_mono (le_add_of_nonneg_left hψ.weight_pos.le)
+        (openNbhd_subset_closedNbhd ε hy), rfl⟩
+    have hπ := Blowup.isLocalDiffeomorphAt_blowdown_real hN.blowupChart hZ
+    have hv := Blowup.isPseudoholomorphicAt_blowdown hN.blowupChart J
+      hN.blowupChart_isHolomorphic hZ
+    have heval (a b : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) x) : τ.eval₂ x a b =
+        (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
+          (Blowup.contMDiff_blowdown_real _) σ).eval₂ x a b := by
+      rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
+        hψ.normalizedBlowupForm_eq_on_compl x hx]
+    refine ⟨fun v w ↦ ?_, fun v hv0 ↦ ?_⟩
+    · rw [heval, heval]
+      exact hN.compatible.invariant.eval₂_mpullback hv _ v w
+    · rw [heval]
+      exact hN.compatible.tames.eval₂_mpullback_pos hv _
+        ((map_ne_zero_iff _ (hπ.isInvertible_mfderiv (by simp)).injective).2 hv0)
 
 end IsNormalizedBallEmbedding
 

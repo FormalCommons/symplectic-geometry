@@ -86,6 +86,10 @@ The complex structure `cplx` is not determined by the other fields.
   acts componentwise, so `re (Ad (toHom u) x) = Ad u (re x)`, and the same for `im`.
 * `SymplecticGeometry.LieComplexification.polar_symm_inv`: for connected `G`, if
   `polar.symm a = (η, u)` then `polar.symm a⁻¹ = (-Ad u⁻¹ η, u⁻¹)`.
+* `SymplecticGeometry.LieComplexification.contMDiff_polar_symm_fst_apply`,
+  `SymplecticGeometry.LieComplexification.apply_polar_symm_inv_fst`: the polar radius
+  `a ↦ B η η` is smooth, and for connected `G` and an `Ad`-invariant `B` it takes the same value
+  at `a` and at `a⁻¹`.
 * `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
   connected `G`, the left-trivialized velocity of `τ ↦ expI (τ • ξ) * toHom u` is
   `cplx (lieMap (Ad u⁻¹ ξ))` at every time.
@@ -448,6 +452,28 @@ theorem polar_symm_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] {a : Gc}
       map_inv]
     group
   rw [ha, polar_symm_expI_mul_toHom]
+
+/-- The polar radius `a ↦ B η η`, for `(η, u) = C.polar.symm a`, is smooth on `Gc`. -/
+theorem contMDiff_polar_symm_fst_apply [FiniteDimensional ℝ E]
+    (B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)) :
+    ContMDiff IC 𝓘(ℝ) ∞ fun a ↦ B (C.polar.symm a).1 (C.polar.symm a).1 := by
+  let Bc : E →L[ℝ] E →L[ℝ] ℝ := LinearMap.toContinuousBilinearMap B
+  have hq : ContDiff ℝ ∞ fun e : E ↦ Bc e e := Bc.isBoundedBilinearMap.contDiff.comp
+    (contDiff_id.prodMk contDiff_id)
+  exact hq.contMDiff.comp (contMDiff_fst.comp C.polar.symm.contMDiff)
+
+/-- For connected `G` and an `Ad`-invariant form `B` on its Lie algebra, `a` and `a⁻¹` have the
+same polar radius: `B η' η' = B η η`, for the first components `η` of `C.polar.symm a` and `η'`
+of `C.polar.symm a⁻¹`. -/
+theorem apply_polar_symm_inv_fst [FiniteDimensional ℝ EC] [ConnectedSpace G]
+    {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (a : Gc) :
+    B (C.polar.symm a⁻¹).1 (C.polar.symm a⁻¹).1 = B (C.polar.symm a).1 (C.polar.symm a).1 := by
+  obtain ⟨η, u, h⟩ : ∃ (η : GroupLieAlgebra I G) (u : G), C.polar.symm a = (η, u) :=
+    ⟨_, _, rfl⟩
+  rw [C.polar_symm_inv h, h]
+  simp only [map_neg, LinearMap.neg_apply, neg_neg]
+  rw [Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply (𝕜 := ℝ), hB.apply]
 
 /-- For connected `G`, the radial curve `τ ↦ expI (τ • ξ) * toHom u` of the polar decomposition
 has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`. -/

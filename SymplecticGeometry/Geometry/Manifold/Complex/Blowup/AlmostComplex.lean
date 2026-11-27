@@ -45,7 +45,8 @@ is injective.
 * `SymplecticGeometry.Blowup.almostComplexStructure_lift`: on the range of `inr`, `J̃` is the
   pullback of multiplication by `i` along `lift`.
 * `SymplecticGeometry.Blowup.mfderiv_blowdown_comp_almostComplexStructure`: off the exceptional
-  divisor, `dπ ∘ J̃ = J ∘ dπ`.
+  divisor, `dπ ∘ J̃ = J ∘ dπ`; so there the blowdown is pseudoholomorphic from `J̃` to `J`
+  (`SymplecticGeometry.Blowup.isPseudoholomorphicAt_blowdown`).
 * `SymplecticGeometry.Blowup.isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
   `blowupModelChart i ∘ lift c` near the exceptional divisor are pseudoholomorphic from `J̃` to
   the standard structure of `ℂⁿ⁺¹`.
@@ -321,6 +322,14 @@ theorem isPseudoholomorphicOn_lift :
       (range (inr (gluingHomeomorph c))) :=
   isPseudoholomorphicOn_iff.2 fun _ hz ↦
     (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
+
+/-- Off the exceptional divisor, the blowdown is pseudoholomorphic from the almost complex
+blowup to `J`. -/
+theorem isPseudoholomorphicAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ) J (blowdown c) z :=
+  isPseudoholomorphicAt_iff_mfderiv.2
+    ⟨(isLocalDiffeomorphAt_blowdown_real c hz).mdifferentiableAt (by simp),
+      mfderiv_blowdown_almostComplexStructure_apply c J hJ hz⟩
 
 /-- **The exceptional divisor is `J̃`-holomorphic.** The real embedding
 `divisorRealEmbedding c` of `ℙ ℂ (Fin (n + 1) → ℂ)` as the exceptional divisor is
