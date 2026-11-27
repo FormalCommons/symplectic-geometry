@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.Order.Ring.Defs
 public import Mathlib.Algebra.Order.Group.Unbundled.Abs
+public import Mathlib.Order.Interval.Set.Defs
 
 import Mathlib.Algebra.Order.Ring.Abs
 import Mathlib.Tactic.Linarith
@@ -26,6 +27,11 @@ Supplements to `Mathlib.Algebra.Order.Ring.Defs`.
   `2 w (1 - w) (x - y)² (|x| + |y|)`.
 * `SymplecticGeometry.mul_pow_three_add_mul_pow_three_sub_pow_three_le`: its case `x, y ≥ 0`,
   where the cube falls short by at most `2 w (1 - w) (x - y)² (x + y)`.
+* `SymplecticGeometry.one_add_mul_pos_of_abs_le`: `0 < 1 + x y` when `|x| ≤ η`, `|y| ≤ M` and
+  `η M < 1`.
+* `SymplecticGeometry.one_add_mul_add_mul_add_mul_pos_of_abs_le`: `0 < 1 + H' p + H B + H D`
+  when `|H| ≤ η`, `H' ∈ [-η, 1 + η]`, `|p| + |B| + |D| ≤ M`, `η M < m`, `m ≤ 1` and
+  `m ≤ 1 + p`: a perturbation of `1 + H' p` with `H'` near `[0, 1]`, by terms of size `η`.
 -/
 
 public section
@@ -70,6 +76,36 @@ theorem mul_pow_three_add_mul_pow_three_sub_pow_three_le {α : Type*} [CommRing 
   simpa [abs_of_nonneg hx, abs_of_nonneg hy] using
     (le_abs_self _).trans
       (abs_mul_pow_three_add_mul_pow_three_sub_pow_three_le (x := x) (y := y) hw₀ hw₁)
+
+/-- If `|x| ≤ η`, `|y| ≤ M` and `η * M < 1`, then `0 < 1 + x * y`. -/
+theorem one_add_mul_pos_of_abs_le {α : Type*} [CommRing α] [LinearOrder α]
+    [IsStrictOrderedRing α] {x y η M : α} (hx : |x| ≤ η) (hy : |y| ≤ M) (h : η * M < 1) :
+    0 < 1 + x * y := by
+  have h1 : |x * y| ≤ η * M := by
+    rw [abs_mul]
+    exact mul_le_mul hx hy (abs_nonneg _) ((abs_nonneg _).trans hx)
+  linarith [neg_abs_le (x * y)]
+
+/-- Let `m ≤ 1` and `m ≤ 1 + p`. If `|H| ≤ η`, `-η ≤ H' ≤ 1 + η`, `|p| + |B| + |D| ≤ M` and
+`η * M < m`, then `0 < 1 + H' * p + H * B + H * D`. -/
+theorem one_add_mul_add_mul_add_mul_pos_of_abs_le {α : Type*} [CommRing α] [LinearOrder α]
+    [IsStrictOrderedRing α] {p B D H H' η M m : α} (hm1 : m ≤ 1) (hmp : m ≤ 1 + p)
+    (hH : |H| ≤ η) (hH' : H' ∈ Set.Icc (-η) (1 + η)) (hM : |p| + |B| + |D| ≤ M)
+    (hηM : η * M < m) : 0 < 1 + H' * p + H * B + H * D := by
+  have hη : 0 ≤ η := (abs_nonneg _).trans hH
+  -- The term `H' * p` is at least `-η * |p|` for `p ≥ 0`, and at least `(1 + η) * p` for `p ≤ 0`.
+  have k1 : m - η * |p| ≤ 1 + H' * p := by
+    rcases le_total 0 p with hp | hp
+    · rw [abs_of_nonneg hp]
+      nlinarith [hH'.1]
+    · rw [abs_of_nonpos hp]
+      nlinarith [hH'.2]
+  have k2 : |H * B| ≤ η * |B| := by
+    rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
+  have k3 : |H * D| ≤ η * |D| := by
+    rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
+  have k4 : η * (|p| + |B| + |D|) ≤ η * M := mul_le_mul_of_nonneg_left hM hη
+  linarith [neg_abs_le (H * B), neg_abs_le (H * D)]
 
 end SymplecticGeometry
 
