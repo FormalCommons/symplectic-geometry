@@ -420,13 +420,15 @@ its two factors exchanged. -/
 private theorem chartRel_true_false :
     (glueData φ).chartRel ⟨true⟩ ⟨false⟩ =
       Prod.swap ⁻¹' {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2} :=
-  Set.ext fun p ↦ (glueData φ).mem_chartRel_iff.trans <| eq_comm.trans <|
-    (glueData φ).mem_chartRel_iff.symm.trans (Set.ext_iff.1 (chartRel_false_true φ) p.swap)
+  Set.ext fun p ↦
+    (glueData φ).swap_mem_chartRel_iff.symm.trans (Set.ext_iff.1 (chartRel_false_true φ) p.swap)
 
 /-- **Hausdorff criterion for the glued space.** The glued space is Hausdorff exactly when `M₁`
 and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`. -/
 theorem t2Space_iff_isClosed_graph : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ ∧
     IsClosed {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2} := by
+  -- `t2Space_iff_isClosed_chartRel` is stated for the glued space of `glueData φ`, which is
+  -- `GluedAlong φ`, with its topology, by definition.
   rw [show T2Space (GluedAlong φ) ↔ T2Space (glueData φ).toGlueData.glued from Iff.rfl,
     (glueData φ).t2Space_iff_isClosed_chartRel]
   refine ⟨fun h ↦ ⟨?_, ?_, chartRel_false_true φ ▸ h ⟨false⟩ ⟨true⟩⟩, fun ⟨h₁, h₂, hg⟩ ↦ ?_⟩
@@ -452,37 +454,35 @@ neighbourhoods `A` and `B` such that `φ` maps no point of `U₁ ∩ A` into `B`
 theorem t2Space_iff : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ ∧
     ∀ x ∉ U₁, ∀ y ∉ U₂, ∃ A ∈ 𝓝 x, ∃ B ∈ 𝓝 y, ∀ z : U₁, (z : M₁) ∈ A → (φ z : M₂) ∉ B := by
   rw [t2Space_iff_isClosed_graph]
-  refine and_congr_right fun _ ↦ and_congr_right fun _ ↦ ⟨fun hc x hx y _ ↦ ?_, fun h ↦ ?_⟩
-  · -- The point `(x, y)` lies off the closed graph, so a box around it misses the graph.
-    have hxy : (x, y) ∈ {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}ᶜ :=
-      fun ⟨u, hu, _⟩ ↦ hx (by simp only at hu; exact hu ▸ u.property)
-    obtain ⟨A, hA, B, hB, hAB⟩ := mem_nhds_prod_iff.1 (hc.isOpen_compl.mem_nhds hxy)
-    exact ⟨A, hA, B, hB, fun z hz hz' ↦ hAB (mk_mem_prod hz hz') ⟨z, rfl, rfl⟩⟩
-  refine isOpen_compl_iff.1 (isOpen_iff_mem_nhds.2 fun ⟨x, y⟩ hxy ↦ ?_)
-  by_cases hx : x ∈ U₁
-  · -- Separate `φ x` from `y`, and pull the neighbourhood of `φ x` back by `φ`.
-    have hne : (φ ⟨x, hx⟩ : M₂) ≠ y := fun h ↦ hxy ⟨⟨x, hx⟩, rfl, h⟩
-    obtain ⟨P, Q, hP, hQ, hxP, hyQ, hPQ⟩ := t2_separation hne
-    have hA : (Subtype.val '' ((fun u : U₁ ↦ (φ u : M₂)) ⁻¹' P) : Set M₁) ∈ 𝓝 x :=
-      (U₁.isOpen.isOpenMap_subtypeVal _ (hP.preimage (by fun_prop))).mem_nhds ⟨⟨x, hx⟩, hxP, rfl⟩
-    filter_upwards [prod_mem_nhds hA (hQ.mem_nhds hyQ)]
-    rintro ⟨x', y'⟩ ⟨⟨u, hu, rfl⟩, hy'⟩ ⟨u', hu', rfl⟩
-    obtain rfl : u' = u := Subtype.ext hu'
-    exact hPQ.ne_of_mem hu hy' rfl
-  by_cases hy : y ∈ U₂
-  · -- Separate `x` from `φ⁻¹ y`, and pull the neighbourhood of `φ⁻¹ y` back by `φ⁻¹`.
-    have hne : (φ.symm ⟨y, hy⟩ : M₁) ≠ x := fun h ↦ hx (h ▸ (φ.symm ⟨y, hy⟩).property)
-    obtain ⟨P, Q, hP, hQ, hyP, hxQ, hPQ⟩ := t2_separation hne
-    have hB : (Subtype.val '' ((fun v : U₂ ↦ (φ.symm v : M₁)) ⁻¹' P) : Set M₂) ∈ 𝓝 y :=
-      (U₂.isOpen.isOpenMap_subtypeVal _ (hP.preimage (by fun_prop))).mem_nhds ⟨⟨y, hy⟩, hyP, rfl⟩
-    filter_upwards [prod_mem_nhds (hQ.mem_nhds hxQ) hB]
-    rintro ⟨x', y'⟩ ⟨hx', ⟨v, hv, rfl⟩⟩ ⟨u, rfl, hu⟩
-    obtain rfl : φ u = v := Subtype.ext hu
-    exact hPQ.ne_of_mem (by simpa using hv) hx' rfl
-  · obtain ⟨A, hA, B, hB, hAB⟩ := h x hx y hy
-    filter_upwards [prod_mem_nhds hA hB]
-    rintro ⟨x', y'⟩ ⟨hx', hy'⟩ ⟨u, rfl, rfl⟩
-    exact hAB u hx' hy'
+  refine and_congr_right fun h₁ ↦ and_congr_right fun h₂ ↦ ?_
+  -- The pieces of `glueData φ` are `M₁` and `M₂` by definition (`starGlueData_U`).
+  have : T2Space ((glueData φ).U ⟨false⟩) := h₁
+  have : T2Space ((glueData φ).U ⟨true⟩) := h₂
+  rw [← chartRel_false_true φ]
+  refine ((glueData φ).isClosed_chartRel_iff (i := ⟨false⟩) (j := ⟨true⟩)).trans ?_
+  have hne : (⟨false⟩ : ULift.{u} Bool) ≠ ⟨true⟩ := by simp
+  -- The overlaps of the two pieces are `U₁` and `U₂`, and the transition between them is `φ`.
+  -- The maps `f` of `glueData φ` are `Subtype.val` by definition (`starGlueData_f`); that lemma
+  -- cannot be used to rewrite here, since its index type is `ULift Bool`, not `(glueData φ).J`.
+  have hU₁ (x : M₁) : x ∈ range ((glueData φ).f ⟨false⟩ ⟨true⟩) ↔ x ∈ U₁ :=
+    ⟨fun ⟨z, hz⟩ ↦ hz ▸ starOverlap_le hne z.property,
+      fun h ↦ ⟨⟨x, mem_starOverlap.2 (.inr ⟨h, trivial⟩)⟩, rfl⟩⟩
+  have hU₂ (y : M₂) : y ∈ range ((glueData φ).f ⟨true⟩ ⟨false⟩) ↔ y ∈ U₂ :=
+    ⟨fun ⟨z, hz⟩ ↦ hz ▸ ((mem_starOverlap.1 z.property).resolve_left hne.symm).2,
+      fun h ↦ ⟨⟨y, mem_starOverlap.2 (.inr ⟨trivial, h⟩)⟩, rfl⟩⟩
+  have ht (z : starOverlap (glueMap φ) ⟨false⟩ ⟨true⟩)
+      (hz : (z : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩) ∈ glueSource M₂ U₁ ⟨false⟩) :
+      (starTransition (glueMap φ) ⟨false⟩ ⟨true⟩ z : partialHomeomorphGluePiece M₂ M₁ ⟨true⟩) =
+        (φ ⟨(z : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩), hz⟩ : M₂) :=
+    coe_starTransition_apply_of_ne hne z hz trivial
+  refine forall_congr' fun x ↦ imp_congr (not_congr (hU₁ x)) <| forall_congr' fun y ↦
+    imp_congr (not_congr (hU₂ y)) <| exists_congr fun A ↦ and_congr_right fun _ ↦
+      exists_congr fun B ↦ and_congr_right fun _ ↦ ⟨fun h z hA hB ↦ ?_, fun h z hA hB ↦ ?_⟩
+  · have hz : ((z : M₁) : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩) ∈
+        starOverlap (glueMap φ) ⟨false⟩ ⟨true⟩ := mem_starOverlap.2 (.inr ⟨z.property, trivial⟩)
+    exact h ⟨_, hz⟩ hA ((ht ⟨_, hz⟩ z.property).symm.subst (motive := (· ∈ B)) hB)
+  · have hz := starOverlap_le hne z.property
+    exact h ⟨z.val, hz⟩ hA (ht z hz ▸ hB)
 
 end GluedAlong
 
