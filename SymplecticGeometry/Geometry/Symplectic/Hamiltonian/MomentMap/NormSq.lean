@@ -161,21 +161,23 @@ theorem momentNormSq_smul [LieGroup I 1 G] [MulAction G M]
     ← Lie.adjointRepresentation_apply (𝕜 := ℝ), Representation.isInvariantForm_iff.1 hBG,
     momentNormSq_eq_momentSharp]
 
-/-- In a basis `b` of the Lie algebra, the norm square of `μ x` is
-`∑ i, μ x (b i) * μ x (B♯ (b.coord i))`, with `B♯` the inverse of `B.toDual hB`. -/
-private theorem momentNormSq_eq_sum {ι : Type*} [Fintype ι]
-    (b : Module.Basis ι ℝ (GroupLieAlgebra I G)) :
-    momentNormSq B hB μ x = ∑ i, μ x (b i) * μ x ((B.toDual hB).symm (b.coord i)) := by
-  rw [momentNormSq_eq_apply_momentSharp, momentSharp_def]
-  conv_lhs => arg 2; rw [← b.sum_dual_apply_smul_coord (μ x)]
-  simp only [map_sum, map_smul, smul_eq_mul]
+/-- The norm square through continuous linear maps: write `L y` for the linear form `μ y` on the
+model space `E`, read as a continuous linear map, and `Φ` for the inverse of `B.toDual hB`, read as
+a continuous linear map from `E →L[ℝ] ℝ` to `E`. Then the norm square at `y` is `L y (Φ (L y))`.
+-/
+theorem momentNormSq_eq_clm_apply :
+    momentNormSq B hB μ = fun y ↦ (LinearMap.toContinuousLinearMap (μ y) : E →L[ℝ] ℝ)
+      ((LinearMap.toContinuousLinearMap
+        ((B.toDual hB).symm.toLinearMap ∘ₗ ContinuousLinearMap.coeLM ℝ) : (E →L[ℝ] ℝ) →L[ℝ] E)
+          (LinearMap.toContinuousLinearMap (μ y))) :=
+  funext fun _ ↦ momentNormSq_eq_apply_momentSharp
 
 /-- If every component `x ↦ μ x ξ` of the moment map is `C^n`, so is its norm square. -/
 theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : WithTop ℕ∞}
     (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) n fun x ↦ μ x ξ) : ContMDiff I' 𝓘(ℝ) n (momentNormSq B hB μ) := by
-  let b := Module.finBasis ℝ (GroupLieAlgebra I G)
-  simp_rw [funext fun x ↦ momentNormSq_eq_sum (hB := hB) (μ := μ) (x := x) b]
-  exact ContMDiff.sum fun i _ ↦ (hμ _).mul (hμ _)
+  have hL := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ
+  rw [momentNormSq_eq_clm_apply]
+  exact hL.clm_apply ((ContinuousLinearMap.contMDiff _).comp hL)
 
 /-- For a symmetric form `B`, if each component `y ↦ μ y ξ` of `μ` is differentiable at `x`, the
 derivative of the norm square at `x` is twice that of the component `y ↦ μ y (μ♯ x)`. -/
@@ -184,7 +186,8 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
     mvfderiv I' (momentNormSq B hB μ) x =
       (2 : ℝ) • mvfderiv I' (fun y ↦ μ y (momentSharp B hB μ x)) x := by
   -- Read `μ` as a family `L` of continuous linear forms, and `μ♯` as `Φ ∘ L` for the continuous
-  -- linear map `Φ` that inverts `B.toDual hB`; the norm square is then `y ↦ L y (Φ (L y))`.
+  -- linear map `Φ` that inverts `B.toDual hB`; the norm square is then
+  -- `y ↦ L y (Φ (L y))` (`momentNormSq_eq_clm_apply`).
   set L : M → E →L[ℝ] ℝ := fun y ↦ LinearMap.toContinuousLinearMap (μ y)
   have hL : MDifferentiableAt I' 𝓘(ℝ, E →L[ℝ] ℝ) L x := mdifferentiableAt_clm_apply.2 hμ
   let Φ : (E →L[ℝ] ℝ) →L[ℝ] E := LinearMap.toContinuousLinearMap
@@ -193,10 +196,6 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
   -- the composite do not rewrite across that identification, and `Φ f` unfolds by definition.
   have hΦ (f : E →L[ℝ] ℝ) : Φ f = (B.toDual hB).symm (f : E →ₗ[ℝ] ℝ) := rfl
   have hLx (y : M) : (L y : E →ₗ[ℝ] ℝ) = μ y := LinearMap.coe_toContinuousLinearMap _
-  have hsq : momentNormSq B hB μ = fun y ↦ L y (Φ (L y)) := by
-    funext y
-    rw [momentNormSq_eq_apply_momentSharp, momentSharp_def, hΦ, hLx]
-    exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ y)) _).symm
   have h₁ : Φ (L x) = momentSharp B hB μ x := by rw [hΦ, hLx, momentSharp_def]
   -- For symmetric `B`, `μ x (Φ f) = B (μ♯ x) (Φ f) = B (Φ f) (μ♯ x) = f (μ♯ x)`.
   have h₂ (f : E →L[ℝ] ℝ) : L x (Φ f) = f (momentSharp B hB μ x) := by
@@ -212,8 +211,9 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
     mvfderiv_toContinuousLinearMap_apply (E := E) hμ v _
   have hΦL := Φ.mvfderiv_comp_apply hL v
   rw [Function.comp_def] at hΦL
-  rw [hsq, mvfderiv_clm_apply (p := fun y ↦ Φ (L y)) hL (Φ.mdifferentiableAt.comp x hL) v, hΦL,
-    h₁, h₂, h₃, smul_apply, two_smul]
+  rw [momentNormSq_eq_clm_apply,
+    mvfderiv_clm_apply (p := fun y ↦ Φ (L y)) hL (Φ.mdifferentiableAt.comp x hL) v, hΦL, h₁, h₂, h₃,
+    smul_apply, two_smul]
 
 end MomentSharp
 
