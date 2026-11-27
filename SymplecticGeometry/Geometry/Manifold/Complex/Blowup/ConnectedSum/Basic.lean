@@ -48,7 +48,8 @@ the hypotheses of that theorem.
   `ρ = OpenPartialHomeomorph.univBall 0 ε` is Mathlib's map `v ↦ ε (1 + |v|²)^(-1/2) v` onto the
   ball of radius `ε`, for an `ε > 0` (`BlowupChart.ballRadius c`) whose closed ball lies in the
   target of the chart. When `c` is holomorphic, the ball preserves the complex orientations at
-  `0`: there `ρ` has derivative `ε • id`, and `c.symm` is a local biholomorphism.
+  `0`: there `ρ` has derivative `ε • id`, and `c.symm` is a local biholomorphism. Being a local
+  diffeomorphism of a connected space, it then preserves them at every point.
 * The second summand is `EuclideanComplexProjectiveSpace n` with the opposite of its complex
   orientation, and `EuclideanComplexProjectiveSpace.connectedSumBall n` is `u ↦ [u : 1]`, the
   inverse of the affine chart at the last coordinate. Being holomorphic, it preserves the complex
@@ -278,15 +279,23 @@ theorem isLocalDiffeomorph_connectedSumBall
       (c.euclideanChart_mem_maximalAtlas hc))
     c.ballRadius_pos (ball_subset_closedBall.trans c.closedBall_ballRadius_subset)
 
-/-- For a holomorphic chart `c`, the ball `c.connectedSumBall` preserves at `0` the complex
-orientations of `EuclideanSpace ℂ (Fin (n + 1))` and of `M`, re-modelled on it. -/
+/-- For a holomorphic chart `c`, the ball `c.connectedSumBall` preserves at every point the
+complex orientations of `EuclideanSpace ℂ (Fin (n + 1))` and of `M`, re-modelled on it. -/
 theorem isOrientationPreservingAt_connectedSumBall
-    (hc : c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M) :
+    (hc : c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)
+    (v : EuclideanSpace ℂ (Fin (n + 1))) :
     (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
         (EuclideanSpace ℂ (Fin (n + 1))) (r := n) (by simp)).IsOrientationPreservingAt
       (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
         (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) (r := n) (by simp))
-      c.connectedSumBall 0 := by
+      c.connectedSumBall v := by
+  -- The ball is a local diffeomorphism of the connected space `EuclideanSpace ℂ (Fin (n + 1))`,
+  -- so it is enough to check the point `0`, where `univBall` has derivative `ε • id`.
+  have hd := c.isLocalDiffeomorph_connectedSumBall hc
+  refine (isPreconnected_univ.isOrientationPreservingAt_iff
+    (fun y _ ↦ (hd y).contMDiffAt.of_le (by simp))
+    (fun y _ ↦ ⟨_, (hd y).mfderivToContinuousLinearEquiv_coe (by simp)⟩)
+    _ _ (mem_univ 0) (mem_univ v)).1 ?_
   have hφ := (c.euclideanChart.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas
     (c.euclideanChart_mem_maximalAtlas hc)
     c.zero_mem_euclideanChart_target).isOrientationPreservingAt_complexManifoldOrientation ∞
