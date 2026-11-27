@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 public import TauCeti.Analysis.Complex.Wirtinger.Weak
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Morrey
+public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
@@ -30,6 +31,8 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffRepresentative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+import TauCeti.Geometry.Symplectic.Manifold.Orientation
 
 /-!
 # Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
@@ -98,6 +101,20 @@ hypotheses of
 `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`
 at a zero of the section, apart from the orientation of the chart.
 
+## The orientation of an isothermal chart
+
+The remaining hypothesis asks that the translated chart `x ↦ ψ x - ψ z` carry the local
+orientation of the sphere at `z`, for its complex orientation, to the one of `ℂ` given by
+`complexOrientation ℂ`. By
+`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt` it is
+enough that the derivative `D` of `ψ` at `z` carry the tangent orientation at `z` to
+`complexOrientation ℂ`. When a two-form `σ` tames both `J` and `i`, the complex orientation of
+`J` is the symplectic orientation of `σ`, hence that of `i`, which is the complex orientation
+of the sphere (`TauCeti.SmoothTwoForm.Tames.orientation_eq`,
+`TauCeti.SmoothAlmostComplexStructure.orientation_ofComplexManifold`). Since `D` carries `J` to
+`i`, it preserves the complex orientations
+(`TauCeti.SmoothAlmostComplexStructure.isOrientationPreservingAt_orientation`).
+
 ## Zeros of smooth kernel elements
 
 From this equation the zeros of a smooth kernel element are understood. In the rescaled
@@ -153,6 +170,10 @@ operator is the space `twistOneKernel J` of smooth solutions.
   smooth element of the kernel of `D_J` is complex analytic in an isothermal chart and a real
   linear trivialization of `𝒪(1)` that reads the canonical orientation of the fibres as that of
   `ℂ`.
+* `SymplecticGeometry.localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames`:
+  for `J` tamed together with `i`, a chart that carries `J` to `i` at `z`, translated so that
+  `z` goes to the origin, carries the local orientation of the sphere at `z` to the one of `ℂ`
+  given by `complexOrientation ℂ`.
 * `SymplecticGeometry.eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel`: near
   each point, a smooth kernel element vanishes identically or has no zero on a punctured
   neighbourhood.
@@ -448,6 +469,65 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
     rw [hr, mul_comm]
   · rw [VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
       VectorBundleOrientation.mapOrientation_complex_of_isLinear e hx]
+
+/-- **Isothermal charts carry the complex orientation of the sphere.** Let a two-form `σ` tame
+both `J` and the standard structure `i` of the sphere, and let `ψ` be a smooth partial
+diffeomorphism from the sphere to `ℂ` whose derivative at a point `z` of its source carries `J`
+to multiplication by `i`. Then the translated chart `x ↦ ψ x - ψ z` carries the local
+orientation at `z` of the complex orientation `complexManifoldHomologicalOrientation` of the
+sphere to the local orientation of `ℂ` at the origin selected by the canonical orientation
+`complexOrientation ℂ`, indexed by `Fin (1 + 1)`. -/
+theorem localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames
+    {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
+    (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞) {z : OnePoint ℂ}
+    (hz : z ∈ ψ.source)
+    (hψ : IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ z) :
+    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+        (⟨fun x : ψ.toOpenPartialHomeomorph.source ↦
+            ψ.toOpenPartialHomeomorph x - ψ.toOpenPartialHomeomorph z,
+          ψ.toOpenPartialHomeomorph.continuousOn.domRestrict.sub continuous_const⟩ :
+          C(ψ.toOpenPartialHomeomorph.source, ℂ)) (S := {⟨z, hz⟩}) (T := {0})
+        (by
+          rintro x hx
+          exact Subtype.ext (ψ.toOpenPartialHomeomorph.injOn x.property hz (sub_eq_zero.1 hx)))
+        (1 + 1)
+        ((ψ.toOpenPartialHomeomorph.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
+          ⟨z, hz⟩ (1 + 1)).symm
+          (complexManifoldHomologicalOrientation ℂ (OnePoint ℂ) (r := 0) (by simp) z)).val =
+      ((Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+        (complexOrientation ℂ)).localOrientation (by simp)).val := by
+  -- The derivative `D` of `ψ` at `z`, read on `ℂ`, the tangent space of both sides.
+  obtain ⟨D, hD⟩ : ∃ D : ℂ ≃L[ℝ] ℂ, (D : ℂ →L[ℝ] ℂ) = mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ z :=
+    (ψ.isLocalDiffeomorphAt _ _ ∞ hz).isInvertible_mfderiv (by simp)
+  have hDf : HasFDerivAt (ψ.toOpenPartialHomeomorph ∘ (extChartAt 𝓘(ℝ, ℂ) z).symm)
+      (D : ℂ →L[ℝ] ℂ) (extChartAt 𝓘(ℝ, ℂ) z z) := by
+    have := ((ψ.isLocalDiffeomorphAt _ _ ∞ hz).mdifferentiableAt (by simp)).hasMFDerivAt.2
+    rw [hD]
+    simp only [writtenInExtChartAt, extChartAt_model_space_eq_id, hasFDerivWithinAt_univ,
+      modelWithCornersSelf_coe, range_id, PartialEquiv.refl_coe, Function.id_comp] at this
+    -- The derivative of `ψ` read in the charts is its derivative between the tangent spaces,
+    -- which are `ℂ`.
+    exact this
+  -- Since `σ` tames `J` and `i`, the complex orientation of `J` is that of the sphere, and `ψ`,
+  -- which carries `J` to `i`, preserves the complex orientations.
+  have hk := finrank_real_of_complex ℂ
+  have hJi : J.orientation hk = complexManifoldOrientation ℂ (OnePoint ℂ) := by
+    rw [← hJ.orientation_eq hk, ← SmoothAlmostComplexStructure.orientation_ofComplexManifold,
+      ← hi.orientation_eq hk]
+  have hpres := J.isOrientationPreservingAt_orientation
+    (J₂ := SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) hk hk (f := ψ) (x := z)
+    hψ.mfderiv_apply_commute (by rw [← hD]; exact D.injective)
+  rw [hJi, SmoothAlmostComplexStructure.orientation_ofComplexManifold,
+    Manifold.Orientation.isOrientationPreservingAt_iff_of_coe_eq _ _ _ _ D hD,
+    orientationAt_complexManifoldOrientation_eq_complexOrientation,
+    orientationAt_complexManifoldOrientation_eq_complexOrientation] at hpres
+  rw [complexManifoldHomologicalOrientation_def,
+    Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt _ _
+      (by simp) _ hz hDf,
+    orientationAt_complexManifoldOrientationOfFinrank]
+  -- The tangent space at `z` is `ℂ`, so the reindexing commutes with `D`.
+  congr 2
+  exact (Orientation.map_reindex (M := ℂ) D.toLinearEquiv _ _).trans (congrArg _ hpres)
 
 /-- **Zeros of a smooth kernel element are isolated or interior.** Let `s` be a smooth section
 of `𝒪(1)` with `D_J s = 0`. At each point `z` of the sphere, either `s` vanishes on a
