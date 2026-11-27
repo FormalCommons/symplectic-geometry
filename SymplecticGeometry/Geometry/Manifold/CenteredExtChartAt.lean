@@ -20,7 +20,7 @@ built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of
 `centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, and, restricted to its source,
 it vanishes at `x` only (`sourceRestrict_centeredExtChartAt_preimage_zero`, from
 `OpenPartialHomeomorph.sourceRestrict_preimage_singleton`). Its inverse carries some ball about
-the origin into any given open neighbourhood of `x`
+the origin into any given neighbourhood of `x`
 (`exists_ball_mapsTo_centeredExtChartAt_symm`).
 
 ## Main definitions
@@ -34,7 +34,7 @@ public section
 noncomputable section
 
 open Set
-open scoped Manifold
+open scoped Manifold Topology
 
 namespace SymplecticGeometry
 
@@ -96,18 +96,19 @@ theorem sourceRestrict_centeredExtChartAt_preimage_zero :
   exact (centeredExtChartAt I x).sourceRestrict_preimage_singleton _
 
 /-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
-target that its inverse carries into any given open neighbourhood `T` of `x`. -/
-theorem exists_ball_mapsTo_centeredExtChartAt_symm {T : Set M} (hT : IsOpen T) (hx : x ∈ T) :
+target that its inverse carries into any given neighbourhood `T` of `x`. -/
+theorem exists_ball_mapsTo_centeredExtChartAt_symm {T : Set M} (hT : T ∈ 𝓝 x) :
     ∃ ε > 0, Metric.ball (0 : E) ε ⊆ (centeredExtChartAt I x).target ∧
       MapsTo (centeredExtChartAt I x).symm (Metric.ball 0 ε) T := by
-  set c := centeredExtChartAt I x
-  have hO : IsOpen (c.target ∩ c.symm ⁻¹' T) :=
-    c.continuousOn_symm.isOpen_inter_preimage c.open_target hT
-  have h0 : (0 : E) ∈ c.target ∩ c.symm ⁻¹' T := by
+  have hx := mem_centeredExtChartAt_source I x
+  have h : (centeredExtChartAt I x).target ∩ (centeredExtChartAt I x).symm ⁻¹' T ∈
+      𝓝 (0 : E) := by
     rw [← centeredExtChartAt_self I x]
-    exact ⟨c.map_source (mem_centeredExtChartAt_source I x),
-      by rwa [mem_preimage, c.left_inv (mem_centeredExtChartAt_source I x)]⟩
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 hO 0 h0
+    refine Filter.inter_mem ((centeredExtChartAt I x).open_target.mem_nhds
+      ((centeredExtChartAt I x).map_source hx)) ?_
+    rw [← Filter.mem_map, (centeredExtChartAt I x).symm_map_nhds_eq hx]
+    exact hT
+  obtain ⟨ε, hε, hball⟩ := Metric.mem_nhds_iff.1 h
   exact ⟨ε, hε, fun _ hy ↦ (hball hy).1, fun _ hy ↦ (hball hy).2⟩
 
 end SymplecticGeometry

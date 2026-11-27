@@ -340,8 +340,8 @@ theorem map_proj_singularCap_tubeFundamentalClass
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
   obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
-    (mem_baseSet_trivializationAt P _ z)
+    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
+      (mem_baseSet_trivializationAt P _ z))
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation hE oZ z]
   exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation_reindex
@@ -380,8 +380,8 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_fiber_eq_zero
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
   obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
-    (mem_baseSet_trivializationAt P _ z)
+    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
+      (mem_baseSet_trivializationAt P _ z))
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation hE oZ z]
   exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero_reindex
@@ -421,8 +421,8 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_eq_zero
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
   obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
-    (mem_baseSet_trivializationAt P _ z)
+    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
+      (mem_baseSet_trivializationAt P _ z))
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim oZ
       (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z)]
@@ -466,8 +466,8 @@ theorem
   refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
     (I := I) _ hE _ _ _ fun z ↦ ?_
   obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
-    (mem_baseSet_trivializationAt P _ z)
+    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
+      (mem_baseSet_trivializationAt P _ z))
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim oZ
       (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z)]
