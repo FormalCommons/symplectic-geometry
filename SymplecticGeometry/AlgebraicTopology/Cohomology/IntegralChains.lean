@@ -23,20 +23,9 @@ For a commutative ring `k` and a space `X`, the `k`-linear singular cochains on 
 coefficients in `k`, read as abelian groups through the restriction of scalars `F` along
 `ℤ → k`, are the integral cochains `Hom_ℤ(C(X; ℤ), k)` with values in the abelian group `k`.
 Here integral chains have coefficients `ModuleCat.of ℤ (ULift ℤ)`, as those of Tau Ceti's
-fundamental class.
+fundamental class. The chain map `SSet.intCastChainMap` that casts integral chains to `k`, and
+its map on cycles `SSet.intCastCyclesMap`, are in `SimplicialSet/Homology/RestrictScalars.lean`.
 
-* `SSet.intCastChainMap k S : C(S; ℤ) ⟶ F (C(S; k))`: the chain map that casts
-  the coefficients of the integral chains of a simplicial set `S` to `k`, the change of
-  coefficients `SSet.restrictScalarsChainMap` along the cast of integers
-  `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) : ULift ℤ ⟶ F k` of Tau Ceti, which
-  serves for `k = ℚ` as well as `k = ℝ`; on simplices it is
-  `SSet.ιChainComplex_intCastChainMap_f`, on an element it is
-  `SSet.intCastChainMap_f_ιChainComplex`, and followed by a cochain it is
-  `SSet.intCastChainMap_f_comp_apply`.
-* `SSet.intCastCyclesMap k S n : Z_n(S; ℤ) ⟶ F (Z_n(S; k))`: the map it induces on
-  cycles, the change of coefficients `SSet.restrictScalarsCyclesMap` along the same map, which
-  `SSet.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
-  and `SSet.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
 * `TopCat.restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap`: for any ring map, Tau Ceti's
   comparison of chains `TopCat.restrictScalarsChainMap` is the change of coefficients
   `SSet.restrictScalarsChainMap` on the singular simplicial set of the space.
@@ -77,127 +66,6 @@ noncomputable section
 
 open CategoryTheory Simplicial TauCeti
 open scoped MonoidalCategory
-
-namespace SSet
-
-variable (k : Type) [CommRing k]
-
-/-- The chain map `C(S; ℤ) ⟶ F (C(S; k))` that casts the coefficients of the integral chains of
-a simplicial set `S` to `k`, the target read as a complex of abelian groups through the
-restriction of scalars `F` along `ℤ → k`: the change of coefficients
-`SSet.restrictScalarsChainMap` along the cast `ULift ℤ → k` of integers into the restricted
-`k`-module `k`. -/
-def intCastChainMap (S : SSet.{0}) :
-    S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟶
-      ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
-        (S.chainComplex (ModuleCat.of k k)) :=
-  SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-    (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) S
-
-variable {k} in
-/-- The chain map casting integral chains to `k` is the change of coefficients
-`SSet.restrictScalarsChainMap` along `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)`,
-the cast of integers into the restricted `k`-module `k`. -/
-theorem intCastChainMap_def (S : SSet.{0}) :
-    intCastChainMap k S =
-      SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-        (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) S :=
-  (rfl)
-
-variable {k} in
-/-- The chain map casting integral chains to `k` keeps each simplex and casts its coefficient
-to `k`. -/
-@[reassoc (attr := simp)]
-theorem ιChainComplex_intCastChainMap_f (S : SSet.{0}) {n : ℕ} (σ : S _⦋n⦌) :
-    S.ιChainComplex σ ≫ (intCastChainMap k S).f n =
-      ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          (S.ιChainComplex (R := ModuleCat.of k k) σ) := by
-  rw [intCastChainMap_def, SSet.ιChainComplex_restrictScalarsChainMap_f]
-
-variable {k} in
-/-- The chain map casting integral chains to `k` sends the simplex `σ` with integral coefficient
-`a` to `σ` with coefficient `a` cast to `k`. -/
-theorem intCastChainMap_f_ιChainComplex (S : SSet.{0}) {n : ℕ} (σ : S _⦋n⦌) (a : ULift.{0} ℤ) :
-    (intCastChainMap k S).f n (S.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
-      S.ιChainComplex (R := ModuleCat.of k k) σ (a.down : k) := by
-  rw [intCastChainMap_def, SSet.restrictScalarsChainMap_f_ιChainComplex,
-    ModuleCat.uliftUnitToRestrictScalars_apply, eq_intCast]
-
-variable {k} in
-/-- Casting coefficients to `k` commutes with the chain maps induced by maps of simplicial sets. -/
-@[reassoc]
-theorem chainComplexMap_f_intCastChainMap {S T : SSet.{0}} (j : S ⟶ T) (n : ℕ) :
-    (SSet.chainComplexMap j (ModuleCat.of ℤ (ULift.{0} ℤ))).f n ≫
-        (intCastChainMap k T).f n =
-      (intCastChainMap k S).f n ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          ((SSet.chainComplexMap j (ModuleCat.of k k)).f n) := by
-  rw [intCastChainMap_def, intCastChainMap_def, SSet.chainComplexMap_f_restrictScalarsChainMap]
-
-variable {k} in
-/-- Casting the coefficients of an integral chain to `k` and then applying a `k`-linear map `φ`
-on chains with coefficients in `k`, read as abelian groups: the simplex `σ` with coefficient `a`
-goes to `a φ(σ)`. -/
-theorem intCastChainMap_f_comp_apply (S : SSet.{0}) {n : ℕ}
-    (σ : S _⦋n⦌) (φ : (S.chainComplex (ModuleCat.of k k)).X n ⟶ ModuleCat.of k k)
-    (a : ULift.{0} ℤ) :
-    ((intCastChainMap k S).f n ≫ (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map φ ≫
-        (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom)
-        (S.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
-      (a.down : k) * φ (S.ιChainComplex (R := ModuleCat.of k k) σ 1) := by
-  rw [ModuleCat.comp_apply, ModuleCat.comp_apply, intCastChainMap_f_ιChainComplex]
-  -- The identification of `k` with the restricted `k`-module `k`, and the restriction of scalars
-  -- of `φ`, are the identity on elements, but their evaluation lemmas are stated for the
-  -- underlying types, which `rw` does not identify with the carriers here.
-  erw [ModuleCat.restrictScalarsAlgebraMapIso_hom_apply, ModuleCat.restrictScalars.map_apply]
-  rw [← smul_eq_mul, ← map_smul, ← map_smul, smul_eq_mul, mul_one]
-
-/-- The map `Z_n(S; ℤ) ⟶ F (Z_n(S; k))` that casts the coefficients of the integral `n`-cycles
-of a simplicial set `S` to `k`, the target read as an abelian group through the restriction of
-scalars `F` along `ℤ → k`: the change of coefficients `SSet.restrictScalarsCyclesMap` along
-the cast `ULift ℤ → k` of integers into the restricted `k`-module `k`. -/
-def intCastCyclesMap (S : SSet.{0}) (n : ℕ) :
-    (S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles n ⟶
-      (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
-        ((S.chainComplex (ModuleCat.of k k)).cycles n) :=
-  SSet.restrictScalarsCyclesMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-    (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) S n
-
-variable {k} in
-/-- The map casting integral cycles to `k` is the change of coefficients
-`SSet.restrictScalarsCyclesMap` along `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)`,
-the cast of integers into the restricted `k`-module `k`. -/
-theorem intCastCyclesMap_def (S : SSet.{0}) (n : ℕ) :
-    intCastCyclesMap k S n =
-      SSet.restrictScalarsCyclesMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-        (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k))
-        S n :=
-  (rfl)
-
-variable {k} in
-/-- The map casting integral cycles to `k` is the map induced on cycles by
-`SSet.intCastChainMap`, followed by the identification of the cycles of the
-restricted complex with the restriction of the cycles. -/
-theorem intCastCyclesMap_eq_cyclesMap (S : SSet.{0}) (n : ℕ) :
-    intCastCyclesMap k S n =
-      HomologicalComplex.cyclesMap (intCastChainMap k S) n ≫
-        (((S.chainComplex (ModuleCat.of k k)).sc n).mapCyclesIso
-          (ModuleCat.restrictScalars.{0} (algebraMap ℤ k))).hom := by
-  rw [intCastCyclesMap_def, SSet.restrictScalarsCyclesMap_def, intCastChainMap_def]
-
-variable {k} in
-/-- The underlying chain of an integral cycle cast to `k` is the underlying chain cast to `k`. -/
-@[reassoc, elementwise nosimp]
-theorem intCastCyclesMap_iCycles (S : SSet.{0}) (n : ℕ) :
-    intCastCyclesMap k S n ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          ((S.chainComplex (ModuleCat.of k k)).iCycles n) =
-      (S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles n ≫
-        (intCastChainMap k S).f n := by
-  rw [intCastCyclesMap_def, SSet.restrictScalarsCyclesMap_iCycles, intCastChainMap_def]
-
-end SSet
 
 namespace TopCat
 
