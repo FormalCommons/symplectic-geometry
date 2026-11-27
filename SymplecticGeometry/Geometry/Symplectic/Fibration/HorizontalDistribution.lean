@@ -42,6 +42,9 @@ of its three arguments are vertical.
 * `TauCeti.SmoothTwoForm.isVerticallyClosed_mpullback`: the pull-back of a two-form on the base
   is vertically closed, so adding it does not change vertical closedness
   (`isVerticallyClosed_add_mpullback_iff`).
+* `TauCeti.SmoothTwoForm.IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap`: a vertically
+  closed two-form pulls back to a closed form along every fibre inclusion of a smooth
+  trivialization.
 * `TauCeti.SmoothTwoForm.convex_setOfPred_restrictsTo_isVerticallyClosed`: the vertically closed
   two-forms that restrict to a given form on the fibre along an atlas form a convex set.
 * `IsVerticallyNondegenerate.isContMDiffDistribution_horizontalDistribution`:
@@ -211,6 +214,47 @@ theorem isVerticallyClosed_add_mpullback_iff [IsManifold IB ∞ B]
     IsVerticallyClosed IB proj (τ + SmoothForm.mpullback proj hproj β) ↔
       IsVerticallyClosed IB proj τ :=
   (isVerticallyClosed_mpullback hproj β).add_right_iff
+
+section FiberInclusion
+
+variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F]
+  [ChartedSpace HF F] [IsManifold IF ∞ F]
+
+/-- **The fibre forms of a vertically closed form are closed.** For a trivialization `e` of
+`proj` that is smooth with smooth inverse, a vertically closed two-form pulls back to a closed
+form along each fibre inclusion of `e`: the derivative of the pull-back is the pull-back of the
+derivative, which is evaluated on vertical vectors only. -/
+theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
+    (h : IsVerticallyClosed IB proj τ) {e : Trivialization F proj}
+    (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target) {b : B}
+    (hb : b ∈ e.baseSet) :
+    (SmoothForm.mpullback (e.fiberInclusionMap hb)
+      (e.contMDiff_fiberInclusionMap he_symm hb) τ).IsClosed := by
+  have hd : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF) :=
+    ⟨he.mdifferentiableOn (by simp), he_symm.mdifferentiableOn (by simp)⟩
+  rw [SmoothForm.isClosed_def, SmoothForm.coe_mpullback,
+    ← mpullback_mextDeriv ((e.contMDiff_fiberInclusionMap he_symm hb).of_le (by simp))
+      ((isSmoothBundleForm_def 1 _).2 (τ.isSmoothForm.of_le (by simp)).contMDiff)]
+  funext v
+  refine ContinuousAlternatingMap.ext fun w ↦ ?_
+  rw [mpullback_apply]
+  -- The derivative of the fibre inclusion takes vertical values.
+  have hw (i : Fin 3) : mfderiv IF IM (e.fiberInclusionMap hb) v (w i) ∈
+      (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
+    rw [← e.range_mfderiv_fiberInclusionMap hd hb v]
+    exact LinearMap.mem_range_self _ _
+  have h3 : (fun i ↦ mfderiv IF IM (e.fiberInclusionMap hb) v (w i)) =
+      ![mfderiv IF IM (e.fiberInclusionMap hb) v (w 0),
+        mfderiv IF IM (e.fiberInclusionMap hb) v (w 1),
+        mfderiv IF IM (e.fiberInclusionMap hb) v (w 2)] := by
+    ext i
+    fin_cases i <;> rfl
+  rw [h3, isVerticallyClosed_iff.1 h _ _ (hw 0) _ (hw 1), Pi.zero_apply,
+    ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+
+end FiberInclusion
 
 section RestrictsTo
 

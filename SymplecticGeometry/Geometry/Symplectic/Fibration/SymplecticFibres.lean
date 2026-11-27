@@ -12,7 +12,7 @@ import Mathlib.Topology.Connected.Clopen
 import Mathlib.Topology.Maps.Proper.Basic
 import SymplecticGeometry.Geometry.Symplectic.Fibration.Connection
 import SymplecticGeometry.Geometry.Manifold.Submersion.RadialTrivialization
-import SymplecticGeometry.Topology.FiberBundle.Trivialization
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
 
 /-!
 # Fibrations with symplectic fibres
@@ -40,12 +40,6 @@ trivialization in the fibre with such a diffeomorphism gives the charts of the n
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap`: a vertically
-  closed two-form pulls back to a closed form along every fibre inclusion of a smooth
-  trivialization.
-* `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_toHomeomorph`,
-  `Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_toHomeomorph_symm`: changing the fibre
-  of a `C^n` trivialization with `C^n` inverse by a `C^n` diffeomorphism keeps both properties.
 * `TauCeti.SmoothTwoForm.exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed`: for compact
   connected `M` and a vertically closed, vertically nondegenerate `τ`, there are a symplectic form
   `σ` on `F` and a smooth atlas with structure group the stabilizer of `σ` along which `τ`
@@ -71,55 +65,6 @@ noncomputable section
 open Bundle Function Set
 open scoped ContDiff Manifold Topology
 
-/-! ### Changing the fibre of a trivialization by a diffeomorphism -/
-
-namespace Bundle.Trivialization
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {n : ℕ∞ω}
-  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] {HB : Type*} [TopologicalSpace HB]
-  {IB : ModelWithCorners 𝕜 EB HB} {B : Type*} [TopologicalSpace B] [ChartedSpace HB B]
-  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF] {HF : Type*} [TopologicalSpace HF]
-  {IF : ModelWithCorners 𝕜 EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
-  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] {HM : Type*} [TopologicalSpace HM]
-  {IM : ModelWithCorners 𝕜 EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
-  {proj : M → B} {e : Trivialization F proj}
-
-/-- Changing the fibre of a trivialization that is `C^n` on its source by a `C^n` diffeomorphism
-of the fibre gives a trivialization that is `C^n` on its source. -/
-theorem contMDiffOn_transFiberHomeomorph_toHomeomorph
-    (he : ContMDiffOn IM (IB.prod IF) n e e.source) (φ : F ≃ₘ^n⟮IF, IF⟯ F) :
-    ContMDiffOn IM (IB.prod IF) n (e.transFiberHomeomorph φ.toHomeomorph)
-      (e.transFiberHomeomorph φ.toHomeomorph).source :=
-  ((contMDiff_fst.prodMk (φ.contMDiff.comp contMDiff_snd)).comp_contMDiffOn he).congr
-    fun x _ ↦ by rw [transFiberHomeomorph_apply, Diffeomorph.coe_toHomeomorph]; rfl
-
-/-- Changing the fibre of a trivialization whose inverse is `C^n` on its target by a `C^n`
-diffeomorphism of the fibre gives a trivialization whose inverse is `C^n` on its target. -/
-theorem contMDiffOn_transFiberHomeomorph_toHomeomorph_symm
-    (he : ContMDiffOn (IB.prod IF) IM n e.toOpenPartialHomeomorph.symm e.target)
-    (φ : F ≃ₘ^n⟮IF, IF⟯ F) :
-    ContMDiffOn (IB.prod IF) IM n
-      (e.transFiberHomeomorph φ.toHomeomorph).toOpenPartialHomeomorph.symm
-      (e.transFiberHomeomorph φ.toHomeomorph).target := by
-  refine (he.comp (contMDiff_fst.prodMk (φ.symm.contMDiff.comp contMDiff_snd)).contMDiffOn
-    fun p hp ↦ ?_).congr fun p _ ↦ ?_
-  · rw [transFiberHomeomorph_target] at hp
-    exact e.mem_target.2 hp.1
-  · rw [transFiberHomeomorph_symm_apply, Diffeomorph.coe_toHomeomorph_symm]
-    rfl
-
-/-- The fibre inclusion of a trivialization whose fibre is changed by a diffeomorphism `φ` is the
-fibre inclusion of the original trivialization after the inverse of `φ`. -/
-theorem coe_fiberInclusionMap_transFiberHomeomorph_toHomeomorph (φ : F ≃ₘ^n⟮IF, IF⟯ F) {b : B}
-    (hb : b ∈ e.baseSet) :
-    ⇑((e.transFiberHomeomorph φ.toHomeomorph).fiberInclusionMap (b := b)
-      (by rwa [transFiberHomeomorph_baseSet])) =
-      e.fiberInclusionMap hb ∘ φ.symm := funext fun v ↦ by
-  rw [fiberInclusionMap_apply, transFiberHomeomorph_symm_apply, Diffeomorph.coe_toHomeomorph_symm,
-    comp_apply, fiberInclusionMap_apply]
-
-end Bundle.Trivialization
-
 namespace TauCeti
 
 namespace SmoothTwoForm
@@ -136,41 +81,6 @@ variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimens
   {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
   {F : Type*} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
   {proj : M → B} {A : MapFiber.Atlas F proj} {τ : SmoothTwoForm IM M}
-
-omit [FiniteDimensional ℝ EM] [IM.Boundaryless] [T2Space M] [FiniteDimensional ℝ EB]
-  [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
-/-- **The fibre forms of a vertically closed form are closed.** For a trivialization `e` of
-`proj` that is smooth with smooth inverse, a vertically closed two-form pulls back to a closed
-form along each fibre inclusion of `e`: the derivative of the pull-back is the pull-back of the
-derivative, which is evaluated on vertical vectors only. -/
-theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
-    (h : IsVerticallyClosed IB proj τ) {e : Trivialization F proj}
-    (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
-    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target) {b : B}
-    (hb : b ∈ e.baseSet) :
-    (SmoothForm.mpullback (e.fiberInclusionMap hb)
-      (e.contMDiff_fiberInclusionMap he_symm hb) τ).IsClosed := by
-  have hd : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF) :=
-    ⟨he.mdifferentiableOn (by simp), he_symm.mdifferentiableOn (by simp)⟩
-  rw [SmoothForm.isClosed_def, SmoothForm.coe_mpullback,
-    ← mpullback_mextDeriv ((e.contMDiff_fiberInclusionMap he_symm hb).of_le (by simp))
-      ((isSmoothBundleForm_def 1 _).2 (τ.isSmoothForm.of_le (by simp)).contMDiff)]
-  funext v
-  refine ContinuousAlternatingMap.ext fun w ↦ ?_
-  rw [mpullback_apply]
-  -- The derivative of the fibre inclusion takes vertical values.
-  have hw (i : Fin 3) : mfderiv IF IM (e.fiberInclusionMap hb) v (w i) ∈
-      (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker := by
-    rw [← e.range_mfderiv_fiberInclusionMap hd hb v]
-    exact LinearMap.mem_range_self _ _
-  have h3 : (fun i ↦ mfderiv IF IM (e.fiberInclusionMap hb) v (w i)) =
-      ![mfderiv IF IM (e.fiberInclusionMap hb) v (w 0),
-        mfderiv IF IM (e.fiberInclusionMap hb) v (w 1),
-        mfderiv IF IM (e.fiberInclusionMap hb) v (w 2)] := by
-    ext i
-    fin_cases i <;> rfl
-  rw [h3, isVerticallyClosed_iff.1 h _ _ (hw 0) _ (hw 1), Pi.zero_apply,
-    ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 /-- The local step: around each point `b`, transport along the rays of a chart of `B` from `b`
 gives a smooth trivialization whose fibre inclusions all pull a vertically closed `τ` back to its
@@ -232,8 +142,7 @@ private theorem exists_diffeomorph_mpullback_eq [PreconnectedSpace B] (hfp : IsP
   have hsymm : ∀ b c, R b c → R c b := by
     rintro b c ⟨φ, hφ⟩
     refine ⟨φ.symm, ?_⟩
-    rw [← hφ, ← mpullback_comp (hdiff φ.symm) (hdiff φ),
-      show ⇑φ ∘ ⇑φ.symm = id from funext φ.apply_symm_apply, mpullback_id]
+    rw [← hφ, mpullback_symm_mpullback (by simp)]
   have htrans : IsTrans B R := ⟨fun a b c ⟨ψ, hψ⟩ ⟨φ, hφ⟩ ↦ ⟨ψ.trans φ, by
     rw [Diffeomorph.coe_trans, mpullback_comp (hdiff ψ) (hdiff φ), hφ, hψ]⟩⟩
   -- Near each point, the coordinate changes to the radial trivialization relate the fibre forms.
@@ -299,9 +208,9 @@ theorem exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed [CompactSpace
     -- `A'.trivAt b` is the radial chart changed in the fibre, by the definition of `A'`.
     change mpullback IF IM
       ((e b).transFiberHomeomorph (φ b).symm.toHomeomorph |>.fiberInclusionMap hb') τ.val = _
-    rw [Trivialization.coe_fiberInclusionMap_transFiberHomeomorph_toHomeomorph (e := e b)
-      (φ b).symm hb',
-      Diffeomorph.symm_symm, mpullback_comp ((φ b).mdifferentiable (by simp)) hι, hω b b' hb',
+    rw [(e b).coe_fiberInclusionMap_transFiberHomeomorph (φ b).symm.toHomeomorph hb',
+      Diffeomorph.coe_toHomeomorph_symm, Diffeomorph.symm_symm,
+      mpullback_comp ((φ b).mdifferentiable (by simp)) hι, hω b b' hb',
       hφ b, SmoothForm.coe_mpullback]
   exact ⟨σ, hσ, A', hA', hτ.hasStructureGroup hA', hτ⟩
 
