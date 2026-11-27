@@ -651,7 +651,7 @@ containing `ι '' closedBall 0 1`:
     `0 < d`, `r ↦ ℓ + d * r` at every `r ∈ Ioo 0 (ℓ * d ^ 3)`.
   - (14d4) The crossings of Lemma 4.18 (a)–(c), as statements about the
     real roots of the differences of these three functions;
-    `exists_isConvexShapeAt_eq_sqrt_of_eq_linear` (Lemma 4.19): for
+    `exists_isConvexShapeAt_eq_linear_eq_sqrt` (Lemma 4.19): for
     `1 < a` and `0 < γ` there are `d ∈ Ioo 0 1`, `β ∈ Ioo 0 γ` and a
     smooth `ψ`, convex shape at every `r > 0`, with
     `ψ r = √(1 + a * r ^ 2)` for `γ ≤ r` and `ψ r = 1 + d * r` for
@@ -1061,7 +1061,7 @@ containing `ι '' closedBall 0 1`:
     `z ↦ complexAntilinearPartL (fderiv ℝ (taylorExtension N f) z)` with
     `‖im z‖ ^ (N - 1)`, where also `‖im z‖ ≤ 1`. This is the almost analytic extension of a
     smooth function, truncated at order `N`.
-  - (14d12) `norm_iteratedFDeriv_le_of_norm_dbar_le`: if
+  - (14d12) `exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`: if
     `D : EuclideanSpace ℂ ι' → W`
     is `C^(N + 1)` on a neighbourhood `U` of a compact set of real points,
     vanishes on the real points of `U`, and
@@ -1105,7 +1105,7 @@ containing `ι '' closedBall 0 1`:
     `chartAt` need not vary continuously. Proof as in *Route* above:
     the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
     `h = κ ∘ Φ₀`, agree pairwise to order `N + 1` by
-    `norm_iteratedFDeriv_le_of_norm_dbar_le`, a smooth partition of
+    `exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`, a smooth partition of
     unity on `V` glues them to a `G` with `G = id` on real points and
     differential the identity on the core, Tau Ceti's
     `exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt`
@@ -1621,7 +1621,8 @@ are set on compact manifolds. Three pieces are missing:
   namespace `ContinuousLinearMap`, under the hypotheses of
   `exists_localStableGraph_of_contDiffAt`:
   `exists_localStableGraph_of_contDiffAt_fderiv` gives that theorem's
-  `r`, `ρ` and `g` with its conclusions, and moreover a family
+  `r`, `ρ` and `g` with its conclusions, with `r` at most any given
+  `r₀ > 0`, and moreover a family
   `y : E → ℝ → E` such that, for `z ∈ range P ∩ closedBall 0 ρ`,
   `y z` is a confined forward integral curve of `fun _ w ↦ V (x + w)` with
   `y z 0 = z + g z`, each `fun w ↦ y w t` (`t ≥ 0`) is differentiable at
@@ -1651,10 +1652,11 @@ are set on compact manifolds. Three pieces are missing:
 - Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
   and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
   (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`
-  (a map `ι : E → M` with `ι 0 = p`, smooth with injective `mfderiv` on
-  `range P ∩ ball 0 ρ`, whose image there lies in the stable set and
-  contains the points of the stable set near `p` with `f` near `f p`, and
-  with `d(φ_t ∘ ι)` bounded in `t ≥ 0`); and the main results
+  (for each `n ≥ 1`, a map `ι : A.stableSubspace → M` with `ι 0 = p`,
+  `C^n` with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
+  the stable set and contains the points of the stable set near `p` with
+  `f` near `f p`, and with `d(e ∘ φ_t ∘ ι)` bounded in `t ≥ 0`, `e` the
+  extended chart at `p`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
@@ -1667,7 +1669,9 @@ are set on compact manifolds. Three pieces are missing:
   `hW.flow.stableSet p ∩ f ⁻¹' {a}`, horizontal for the contact form of
   that boundary. The sphere is first a small level of $-H$ in the local
   disc, which every orbit of the disc other than `p` crosses once and
-  transversally; it is then carried back to the level `a`, which every
+  transversally. That disc must be smooth, while `exists_localStableDisc`
+  gives a `C^n` disc for each finite `n`, on a ball that depends on `n`;
+  the smooth local disc is issue #6754. The sphere is then carried back to the level `a`, which every
   backward orbit of the stable set reaches since the cobordism is
   elementary, at a time that Tau Ceti's `Flow.levelCrossingTime`
   (`Dynamics/Flow/LevelCrossing.lean`) gives as a continuous function and
