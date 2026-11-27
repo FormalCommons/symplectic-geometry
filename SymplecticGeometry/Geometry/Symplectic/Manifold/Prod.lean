@@ -82,7 +82,7 @@ theorem mpullback_prodMk_left_prod (σ : SmoothTwoForm I M) (τ : SmoothTwoForm 
     SmoothForm.mpullback (fun x : M ↦ (x, c)) (contMDiff_id.prodMk contMDiff_const)
       (σ.prod τ) = σ := by
   simp only [mpullback_prod, Function.comp_def, SmoothForm.mpullback_const, add_zero]
-  exact LinearMap.congr_fun SmoothForm.mpullback_id σ
+  exact SmoothForm.mpullback_eq_self_of_eq_id _ rfl σ
 
 /-- The product form evaluates on two tangent vectors of `M × N`, which are pairs, as the sum of
 the factor forms on their components. -/
