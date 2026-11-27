@@ -905,7 +905,7 @@ issues, in an order where each issue's blockers come before it.
    the instances `SymplecticGeometry.Bundle.instFiberBundleCircleFiber` and
    `instPrincipalBundleCircleFiber : TauCeti.PrincipalBundle Circle
    (Fiber ℂ F L ℂ)`, whose trivializations are those of the frame bundle
-   read through that isomorphism (`Bundle.Trivialization.changeModelFiber`).
+   read through that isomorphism (`Bundle.Trivialization.transModelFiber`).
    That file states them for fibres with their own `InnerProductSpace ℂ`
    instances and `TauCeti.ContinuousFiberNorm F L`, and `Fact (finrank ℂ F
    = 1)`. This issue, and the issues that use `P`, work with a Hermitian

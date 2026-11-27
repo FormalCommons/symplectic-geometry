@@ -436,8 +436,7 @@ along the boundary), and a boundary point `p`:
   from the boundary hyperplane, a local diffeomorphism of
   boundaryless spaces since `Y p` is transverse to the boundary, restricted
   to the half-spaces
-  (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`, in
-  *Smooth families*' `Geometry/Manifold/LocalDiffeomorph/Basic.lean`).
+  (Tau Ceti's `TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorphOfMemRangeIff`).
 
 Expected size: 500 lines.
 
