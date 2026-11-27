@@ -8,7 +8,9 @@ module
 public import Mathlib.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
 /-!
 # The inclusion of an open subset, and differentials of maps between open subsets
@@ -23,6 +25,13 @@ differential of `A` there (`TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_e
 generalizes Tau Ceti's `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`, which asks for the
 maps to agree everywhere, and its proof is that of Tau Ceti's lemma with
 `Filter.EventuallyEq.mfderiv_eq` in place of a rewrite.
+
+Restricting a map `g` on an open subset `V` to a smaller open subset `U` does not change its
+differential (`TauCeti.Manifold.mfderiv_comp_inclusion_apply`), whether or not `g` is
+differentiable. Since `Opens.inclusion h` is a local diffeomorphism
+(`TauCeti.isLocalDiffeomorph_inclusion`), this is Tau Ceti's chain rule
+`IsLocalDiffeomorphAt.mfderiv_comp` for precomposition with a local diffeomorphism, combined with
+the differential of the inclusion, `TauCeti.Manifold.mfderiv_inclusion_apply`.
 -/
 
 public section
@@ -66,6 +75,16 @@ theorem mfderiv_apply_of_subtype_val_comp_eventuallyEq {U : Opens M} {V : Opens 
   rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, tangentSpaceCast_apply]
   exact mfderiv_comp_subtype_val_apply v
+
+/-- Restricting a map `g` on an open subset `V` to an open subset `U ≤ V` does not change its
+differential: at `x : U`, the differential of `g ∘ Opens.inclusion h` is that of `g` at
+`Opens.inclusion h x`, on the common model space of the tangent spaces (both are `0` when `g` is
+not differentiable there). -/
+theorem mfderiv_comp_inclusion_apply {U V : Opens M} (h : U ≤ V) {g : V → M'} (x : U)
+    (v : TangentSpace I x) :
+    mfderiv I I' (g ∘ Opens.inclusion h) x v = mfderiv I I' g (Opens.inclusion h x) v := by
+  rw [(TauCeti.isLocalDiffeomorph_inclusion (n := 1) h x).mfderiv_comp one_ne_zero g,
+    ContinuousLinearMap.comp_apply, mfderiv_inclusion_apply]
 
 end TauCeti.Manifold
 
