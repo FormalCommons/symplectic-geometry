@@ -258,13 +258,12 @@ theorem singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm
   exact singularRelativeCap_modelThomGenerator_cross_localOrientation hP hQ hd' ω ω'
 
 omit [NormedSpace ℝ Q] in
-open Classical in
 /-- **The local cap computation when the normal factor is a point.** For `P` of dimension zero,
 an orientation `ω` of `P` (of the empty index type) and any class `z` of `H_q(Q, Q ∖ 0; ℤ)`, read
-the local cross product of the point class of `P` with `z` relative to
-`(P ∖ 0) × Q ∪ P × (Q ∖ 0)`, cap it with the pull-back of `ω.modelThomGenerator hP` along the first
-projection, and push forward along the second projection: the result is `z` when `ω` is the
-positive orientation and `-z` otherwise. This is the case `r = 0` of the local cap computation. -/
+the local cross product of the local orientation `ω.localOrientationOfZeroDim hP` with `z`
+relative to `(P ∖ 0) × Q ∪ P × (Q ∖ 0)`, cap it with the pull-back of `ω.modelThomGenerator hP`
+along the first projection, and push forward along the second projection: the result is `z`.
+This is the case `r = 0` of the local cap computation. -/
 theorem singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero
     [FiniteDimensional ℝ P] {q : ℕ} (hP : finrank ℝ P = 0) (ω : Orientation ℝ P (Fin 0))
     (z : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q) :
@@ -284,10 +283,8 @@ theorem singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero
               (TopCat.mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl
                 (0 : P) (0 : Q))) (ModuleCat.of ℤ (ULift.{0} ℤ)) q
             ((localHomologyCross (0 : P) (0 : Q) 0 q q (zero_add q)).hom
-              ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-                (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ z)))) =
-      if ω = positiveOrientation then z else -z := by
+              ((ω.localOrientationOfZeroDim hP).val ⊗ₜ z)))) = z := by
   rw [singularRelativeCap_localHomologyCross, kronecker_modelThomGenerator_zero]
-  split_ifs <;> simp
+  simp
 
 end Orientation

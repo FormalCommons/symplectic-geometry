@@ -73,13 +73,13 @@ that of `Z`, normal factor first, with no sign
 (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation`), by the library's
 `TauCeti.LocalOrientation.cross_eq_map_prodComm_prod` and Tau Ceti's
 `TauCeti.LocalOrientation.prod_localOrientation` and `Orientation.localOrientation_map`. If `Z`
-has dimension zero, the orientation of `Z` at `z` is the positive orientation of `E` or its
-negative, and the class is the cross product `SymplecticGeometry.localHomologyCross` of the local
-orientation of the normal fibre with the class of the origin of `E`, taken with that sign
+has dimension zero, the class is the cross product `SymplecticGeometry.localHomologyCross` of the
+local orientation of the normal fibre with the local orientation of `E` at the origin selected by
+the orientation of `Z` at `z` (`Orientation.localOrientationOfZeroDim`)
 (`localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`). Exchanging
 a zero-dimensional factor brings no sign (Tau Ceti's `Orientation.map_prodComm_prod_of_even`), and
-the cross product with the class of the origin is computed by the library's
-`Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`. The
+the cross product with a zero-dimensional local orientation is computed by the library's
+`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim`. The
 third case, where the normal fibre is a point and `Z` has positive dimension, is treated in
 `SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.PointFiber`.
 
@@ -647,7 +647,6 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation
   erw [hlin]
   exact congrArg Subtype.val (hcross _ _)
 
-open Classical in
 /-- **The local orientation of the ambient manifold through a normalized tube, at a point of a
 zero-dimensional submanifold.** Let `oX` and `oZ` orient `X` and `Z`, where `Z` has dimension
 zero and the normal fibre `P` and `X` dimension `r + 1`, and let `e` be the preferred
@@ -655,9 +654,8 @@ trivialization of the normal bundle at `z`. The chart `normalTubeChart Φ z` of 
 `Φ`, translated so that `f z` goes to the origin, carries the local orientation of `X` at `f z` to
 the cross product `SymplecticGeometry.localHomologyCross`, normal factor first, of the local
 orientation of `P` selected by the normal orientation `normalOrientation f hn hdim oX oZ` at `z`
-read in `e` with the class of the origin of `E`, the local orientation of the identity chart of
-`E`, counted positively if the orientation of `Z` at `z` is the positive orientation and
-negatively otherwise. -/
+read in `e` with the local orientation of `E` at the origin selected by the orientation of `Z` at
+`z`. -/
 theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero
     (Φ : letI := f.normalSpaceFiberBundle hn hdim
       TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W) (z : Z)
@@ -680,12 +678,7 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
               (Fin (finrank ℝ P))
             (mem_baseSet_trivializationAt P _ z)
             (normalOrientation f hn hdim oX oZ z))).localOrientation hP).val ⊗ₜ
-          (if oZ.orientationAt z = positiveOrientation then
-            (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-              (OpenPartialHomeomorph.mem_refl_source _) hE).val
-          else
-            -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-              (OpenPartialHomeomorph.mem_refl_source _) hE).val)) := by
+          (Orientation.localOrientationOfZeroDim (P := E) (oZ.orientationAt z) hE).val) := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   have hdX : 0 + finrank ℝ P = r + 1 := by omega
@@ -697,10 +690,9 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
       (mem_baseSet_trivializationAt P _ z) (normalOrientation f hn hdim oX oZ z))
   -- The orientation of `Z` at `z`, as one of `E`.
   set o : Orientation ℝ E (Fin 0) := oZ.orientationAt z
-  -- With the sign in the class of the origin, the cross product is that of `p.prod o`.
+  -- The cross product is the local orientation of `p.prod o`.
   refine Eq.trans ?_
-    (Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart
-      hP hE p o).symm
+    (Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim hP hE p o).symm
   -- In dimension zero for `Z`, exchanging the factors brings no sign.
   rw [Orientation.map_prodComm_prod_of_even _ _ _ _ (by simp), ← Orientation.reindex_trans,
     Orientation.prod_reindex_finCongr_left]
@@ -929,7 +921,6 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross
     hS hSc hSe h0 _ _
     (localHomologyMap_sub_normalTubeChart_toHomologicalOrientation Φ z hΦ hE hP hV oX oZ)
 
-open Classical in
 /-- **The local orientation of the ambient manifold through a normalized tube, from the total
 space, at a point of a zero-dimensional submanifold.** In the setting of
 `localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank_eq_zero`, let `c` be
@@ -938,10 +929,9 @@ of its target containing `0` that `c⁻¹` carries into the base set of the pref
 trivialization `e` of the normal bundle at `z`. The isomorphism
 `Bundle.Trivialization.localChartLocalHomologyIso` of `e` and `c` carries the cross product
 `SymplecticGeometry.localHomologyCross`, normal factor first, of the local orientation of `P`
-selected by the normal orientation at `z` read in `e` with the class of the origin of `E`,
-counted positively if the orientation of `Z` at `z` is the positive orientation and negatively
-otherwise, to a local class of the total space at `0_z`; the tube `Φ` carries that class to the
-local orientation of `X` at `f z`. -/
+selected by the normal orientation at `z` read in `e` with the local orientation of `E` at the
+origin selected by the orientation of `Z` at `z`, to a local class of the total space at `0_z`;
+the tube `Φ` carries that class to the local orientation of `X` at `f z`. -/
 theorem localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero
     (hΦ : f.IsNormalizedTube hn hdim Φ) {r : ℕ} (hE : finrank ℝ E = 0)
     (hP : finrank ℝ P = r + 1) (hV : finrank ℝ V = r + 1)
@@ -972,12 +962,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_fi
               ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
                 (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
                 (normalOrientation f hn hdim oX oZ z))).localOrientation hP).val ⊗ₜ
-              (if oZ.orientationAt z = positiveOrientation then
-                (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-                  (OpenPartialHomeomorph.mem_refl_source _) hE).val
-              else
-                -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-                  (OpenPartialHomeomorph.mem_refl_source _) hE).val)))) =
+              (Orientation.localOrientationOfZeroDim (P := E) (oZ.orientationAt z) hE).val))) =
       ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV (f z)).val :=
   localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart Φ z hΦ
     hS hSc hSe h0 _ _
