@@ -33,7 +33,11 @@ for it, for `k ≥ k₀`:
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
   `(D.chart k x)⁻¹ z` to the chart at `x` has norm at most `√2` for all `k ≥ k₀`, all `x` and all
   `z` in the ball of radius `ρ₁ * √k`
-  (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_norm_fderiv_chartTransition_zero_le`).
+  (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_norm_fderiv_chartTransition_zero_le`);
+* the set `D.chartTransitionDomain k x y` of points of the ball `B` of radius `ρ₀ * √k` in the
+  source of the transition that it sends into `B` is open, and for `k ≥ k₀` and
+  `y = (D.chart k x)⁻¹ z` with `z ∈ B` it contains `0`
+  (`SymplecticGeometry.RescaledUnitaryCharts.zero_mem_chartTransitionDomain`).
 
 ## References
 
@@ -245,6 +249,50 @@ theorem exists_forall_norm_fderiv_chartTransition_zero_le (hρ₀ : 0 < ρ₀) :
     ((D.chart k x).map_target hzt) ?_
   convert hz using 2
   exact (D.chart k x).right_inv hzt
+
+/-! ### The domain of the transition between the balls -/
+
+/-- The points `w` of the ball `B` of radius `ρ₀ * √k` that lie in the source of the transition
+`τ` from the chart centred at `y` to the chart centred at `x` and that `τ` sends into `B`. -/
+noncomputable def chartTransitionDomain (k : ℕ) (x y : M) : Set (StdSpace ι) :=
+  ball 0 (ρ₀ * √k) ∩
+    ((D.chartTransition k x y).source ∩ D.chartTransition k x y ⁻¹' ball 0 (ρ₀ * √k))
+
+theorem mem_chartTransitionDomain_iff {k : ℕ} {x y : M} {w : StdSpace ι} :
+    w ∈ D.chartTransitionDomain k x y ↔
+      w ∈ ball 0 (ρ₀ * √k) ∧ w ∈ (D.chartTransition k x y).source ∧
+        D.chartTransition k x y w ∈ ball 0 (ρ₀ * √k) :=
+  Iff.rfl
+
+theorem chartTransitionDomain_subset_ball (k : ℕ) (x y : M) :
+    D.chartTransitionDomain k x y ⊆ ball 0 (ρ₀ * √k) :=
+  fun _ hw ↦ hw.1
+
+theorem chartTransitionDomain_subset_source (k : ℕ) (x y : M) :
+    D.chartTransitionDomain k x y ⊆ (D.chartTransition k x y).source :=
+  fun _ hw ↦ hw.2.1
+
+theorem isOpen_chartTransitionDomain (k : ℕ) (x y : M) :
+    IsOpen (D.chartTransitionDomain k x y) :=
+  isOpen_ball.inter ((D.chartTransition k x y).isOpen_inter_preimage isOpen_ball)
+
+/-- For `k ≥ k₀` and `z` in the ball of radius `ρ₀ * √k`, the domain of the transition from the
+chart centred at `(D.chart k x)⁻¹ z` to the chart centred at `x` contains `0`. -/
+theorem zero_mem_chartTransitionDomain {k : ℕ} (hk : k₀ ≤ k) (x : M) {z : StdSpace ι}
+    (hz : z ∈ ball (0 : StdSpace ι) (ρ₀ * √k)) :
+    0 ∈ D.chartTransitionDomain k x ((D.chart k x).symm z) := by
+  have hzt : z ∈ (D.chart k x).target := D.ball_subset_target hk x hz
+  refine ⟨mem_ball_self (pos_of_mem_ball hz), D.zero_mem_chartTransition_source hk
+    ((D.chart k x).map_target hzt), ?_⟩
+  rwa [Set.mem_preimage, D.chartTransition_symm_zero hk hzt]
+
+/-- A point of the source of the transition from the chart centred at `y` to the chart centred
+at `x` has the same image under the inverses of the two charts, read at `w` and at `τ w`. -/
+theorem chart_symm_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+    (hw : w ∈ (D.chartTransition k x y).source) :
+    (D.chart k x).symm (D.chartTransition k x y w) = (D.chart k y).symm w := by
+  rw [chartTransition_apply]
+  exact (D.chart k x).left_inv (D.mem_chartTransition_source_iff.1 hw).2
 
 end RescaledUnitaryCharts
 
