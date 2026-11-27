@@ -8,7 +8,6 @@ module
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
-import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import TauCeti.Analysis.Calculus.Deriv.Second
 
@@ -20,7 +19,8 @@ import TauCeti.Analysis.Calculus.Deriv.Second
 * `Real.iteratedDeriv_two_sqrt_sub`: its second derivative is `-a c / √(a r² - c)³` at each
   `r` with `a r² - c > 0`. `Real.iteratedDeriv_two_sqrt_quadratic` is the case `c = -ℓ²`:
   the second derivative of `r ↦ √(ℓ² + a r²)` is `a ℓ² / √(ℓ² + a r²)³` where
-  `ℓ² + a r² > 0`.
+  `ℓ² + a r² > 0`. The first lemma is the case `b = 0` of Tau Ceti's
+  `TauCeti.deriv_deriv_sqrt_quadratic`.
 * `Real.iteratedDeriv_two_sqrt`: the second derivative of `√·` at `x > 0` is
   `-1 / (4 x √x)`. It is the case `a = c = 0`, `b = 1` of Tau Ceti's
   `TauCeti.deriv_deriv_sqrt_quadratic`.
@@ -32,7 +32,7 @@ public section
 
 namespace Real
 
-open TauCeti Topology
+open TauCeti
 
 /-- The map `r ↦ √(a r² - c)` has derivative `a r / √(a r² - c)` at each `r` with
 `a r² - c ≠ 0`. -/
@@ -55,19 +55,11 @@ theorem deriv_sqrt_sub {a c r : ℝ} (h : a * r ^ 2 - c ≠ 0) :
 `-a c / √(a r² - c)³`. -/
 theorem iteratedDeriv_two_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
     iteratedDeriv 2 (fun r ↦ √(a * r ^ 2 - c)) r = -a * c / √(a * r ^ 2 - c) ^ 3 := by
-  have hev : deriv (fun r ↦ √(a * r ^ 2 - c)) =ᶠ[𝓝 r] fun r ↦ a * r / √(a * r ^ 2 - c) := by
-    have hc : Continuous fun r : ℝ ↦ a * r ^ 2 - c := by fun_prop
-    filter_upwards [hc.continuousAt.eventually (lt_mem_nhds h)] with s hs
-    exact deriv_sqrt_sub hs.ne'
-  have hS : √(a * r ^ 2 - c) ≠ 0 := (sqrt_pos.2 h).ne'
-  have hd : HasDerivAt (fun r ↦ a * r / √(a * r ^ 2 - c))
-      ((a * 1 * √(a * r ^ 2 - c) - a * r * (a * r / √(a * r ^ 2 - c))) /
-        √(a * r ^ 2 - c) ^ 2) r :=
-    HasDerivAt.div ((hasDerivAt_id r).const_mul a) (hasDerivAt_sqrt_sub h.ne') hS
-  rw [iteratedDeriv_succ, iteratedDeriv_one, hev.deriv_eq, hd.deriv]
-  have hSS : √(a * r ^ 2 - c) ^ 2 = a * r ^ 2 - c := sq_sqrt h.le
+  have e (s : ℝ) : a * s ^ 2 - c = -c + 0 * s + a * s ^ 2 := by ring
+  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
+  rw [deriv_deriv_sqrt_quadratic (by linarith [e r]), ← e, pow_succ _ 2, sq_sqrt h.le]
   field_simp
-  linear_combination a * hSS
+  ring
 
 /-- The second derivative of `r ↦ √(ℓ² + a r²)` at each `r` with `ℓ² + a r² > 0` is
 `a ℓ² / √(ℓ² + a r²)³`. -/
