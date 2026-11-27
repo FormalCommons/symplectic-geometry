@@ -54,9 +54,9 @@ namespace SymplecticGeometry
 
 open Real Set Filter Topology MeasureTheory intervalIntegral TauCeti
 
-/-- **Struwe's shape**: `r ↦ c + ∫ u in K δ..r, 1 / √(log (u / δ))`. For `r > δ` it solves
-Struwe's equation `χ'' + χ'³ / (2 r) = 0`, its slope tends to `+∞` at `δ`, and it takes the value
-`c` at `K δ`. -/
+/-- **Struwe's shape**: `r ↦ c + ∫ u in K δ..r, 1 / √(log (u / δ))`. It takes the value `c` at
+`K δ`, and for `δ > 0` and `K ≥ 1` it solves Struwe's equation `χ'' + χ'³ / (2 r) = 0` on
+`(δ, ∞)`, with slope tending to `+∞` at `δ`. -/
 def struweShape (δ K c r : ℝ) : ℝ :=
   c + ∫ u in K * δ..r, 1 / √(log (u / δ))
 
@@ -131,6 +131,7 @@ theorem hasDerivAt_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ}
     (measurable_struwe δ).stronglyMeasurable.stronglyMeasurableAtFilter hc
   exact h.const_add c
 
+/-- The slope of Struwe's shape at `r > δ` is `1 / √(log (r / δ))`. -/
 theorem deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : δ < r) :
     deriv (struweShape δ K c) r = 1 / √(log (r / δ)) :=
   (hasDerivAt_struweShape hδ hK c hr).deriv
