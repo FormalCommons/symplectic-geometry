@@ -68,6 +68,14 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
   `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
+* `SymplecticGeometry.abs_one_add_smoothedSign_div_two_mul_add_sub_le`: the weighted average
+  with the weights of the derivative of `smoothedMax δ` is as close to any target as the farther
+  of its two terms.
+* `SymplecticGeometry.abs_smoothedMax_sub_le`, `SymplecticGeometry.abs_deriv_smoothedMax_sub_le`
+  and `SymplecticGeometry.abs_iteratedDeriv_two_smoothedMax_sub_le`: the value and the first two
+  derivatives of the smoothed maximum of two functions are as close to any target as the farther
+  of the two functions is, up to `δ / 2` for the value and `C (f' - g')² / (2 δ)` for the second
+  derivative, where `C / δ` bounds the curvature of `smoothedAbs δ`.
 
 ## References
 
@@ -547,6 +555,60 @@ theorem smoothedMax_le_max_add (hδ : 0 < δ) (a b : ℝ) :
     smoothedMax δ a b ≤ max a b + δ / 2 := by
   rw [smoothedMax_def]
   linarith [smoothedAbs_le_abs_add hδ (a - b), max_sub_min_eq_abs' a b, min_add_max a b]
+
+/-- For `δ > 0`, the smoothed maximum of `a` and `b` is as close to any `c` as the farther of `a`
+and `b`, up to `δ / 2`. -/
+theorem abs_smoothedMax_sub_le (hδ : 0 < δ) (a b c : ℝ) :
+    |smoothedMax δ a b - c| ≤ max |a - c| |b - c| + δ / 2 := by
+  have h := abs_max_sub_max_le_max a b c c
+  rw [max_self] at h
+  rw [abs_le] at h ⊢
+  constructor <;>
+    linarith [max_le_smoothedMax hδ a b, smoothedMax_le_max_add hδ a b, h.1, h.2]
+
+/-- The weighted average `w a + (1 - w) b`, with the weight `w = (1 + smoothedSign δ t) / 2` of
+the derivative of the smoothed maximum, is as close to any `c` as the farther of `a` and `b`. -/
+theorem abs_one_add_smoothedSign_div_two_mul_add_sub_le (δ t a b c : ℝ) :
+    |(1 + smoothedSign δ t) / 2 * a + (1 - (1 + smoothedSign δ t) / 2) * b - c| ≤
+      max |a - c| |b - c| := by
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ t
+  have hmin := Convex.min_le_combo a b hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
+  have hmax := Convex.combo_le_max a b hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
+  simp only [smul_eq_mul] at hmin hmax
+  have h := abs_le_max_abs_abs (sub_le_sub_right hmin c) (sub_le_sub_right hmax c)
+  rcases le_total a b with hab | hab
+  · rwa [min_eq_left hab, max_eq_right hab] at h
+  · rwa [min_eq_right hab, max_eq_left hab, max_comm |_ - c|] at h
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x` is as close to
+any `φ` as the farther of their derivatives. -/
+theorem abs_deriv_smoothedMax_sub_le {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) (φ : ℝ) :
+    |deriv (fun x ↦ smoothedMax δ (f x) (g x)) x - φ| ≤
+      max |deriv f x - φ| |deriv g x - φ| := by
+  rw [deriv_smoothedMax_weighted hf hg]
+  exact abs_one_add_smoothedSign_div_two_mul_add_sub_le _ _ _ _ _
+
+/-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g` is as close to
+any `φ` as the farther of their second derivatives, up to `C (f' - g')² / (2 δ)` where
+`C / δ` bounds the curvature of `smoothedAbs δ` at `f x - g x`
+(`exists_forall_iteratedDeriv_two_smoothedAbs_le` gives such a `C` for all `δ > 0`). -/
+theorem abs_iteratedDeriv_two_smoothedMax_sub_le {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f)
+    (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) {C x : ℝ}
+    (hC : iteratedDeriv 2 (smoothedAbs δ) (f x - g x) ≤ C / δ) (φ : ℝ) :
+    |iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x - φ| ≤
+      max |iteratedDeriv 2 f x - φ| |iteratedDeriv 2 g x - φ| +
+        C * (deriv f x - deriv g x) ^ 2 / (2 * δ) := by
+  have h := abs_le.1 (abs_one_add_smoothedSign_div_two_mul_add_sub_le δ (f x - g x)
+    (iteratedDeriv 2 f x) (iteratedDeriv 2 g x) φ)
+  have hp := iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x)
+  have hsq := sq_nonneg (deriv f x - deriv g x)
+  have hB : iteratedDeriv 2 (smoothedAbs δ) (f x - g x) * (deriv f x - deriv g x) ^ 2 / 2 ≤
+      C * (deriv f x - deriv g x) ^ 2 / (2 * δ) := by
+    rw [mul_comm (2 : ℝ), ← div_div, mul_div_right_comm C]
+    gcongr
+  rw [iteratedDeriv_two_smoothedMax hf hg, abs_le]
+  constructor <;> nlinarith [mul_nonneg hp hsq]
 
 /-- For `δ > 0` and `a, b > 0`, the reciprocal of the smoothed maximum of `a` and `b` is at most
 the convex combination of `1 / a` and `1 / b` with the weights `(1 ± smoothedSign δ (a - b)) / 2`
