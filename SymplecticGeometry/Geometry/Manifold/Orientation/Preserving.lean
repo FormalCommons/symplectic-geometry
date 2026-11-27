@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.Orientation.Pullback
 
 /-!
 # Orientation-preserving maps between a manifold and its model space
@@ -23,6 +24,10 @@ orientation at a point of its target when the chart preserves it at the correspo
 source (`TauCeti.Manifold.Orientation.IsOrientationPreservingAt.symm_of_mem_maximalAtlas`). It
 reads the chart as a partial diffeomorphism and applies Tau Ceti's
 `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.partialDiffeomorph_symm`.
+
+A local diffeomorphism of a preconnected manifold preserves orientations at one point exactly when
+it does at any other (`IsLocalDiffeomorph.isOrientationPreservingAt_iff`), by Tau Ceti's
+`IsPreconnected.isOrientationPreservingAt_iff` on the whole manifold.
 
 ## References
 
@@ -66,6 +71,21 @@ theorem IsOrientationPreservingAt.symm_of_mem_maximalAtlas {M : Type*} [Topologi
   have h' := IsOrientationPreservingAt.partialDiffeomorph_symm (Φ := Φ) (o := o) (o' := o')
     (by simpa [Φ] using hy) (by rwa [hΦ, hΦs]) one_ne_zero
   rwa [hΦs] at h'
+
+/-- **Orientation preservation of a local diffeomorphism is global.** A `Cⁿ` local
+diffeomorphism `f : M → M'`, for `n ≠ 0`, of a preconnected manifold `M` preserves the orientations
+`o` and `o'` at one point exactly when it preserves them at any other. -/
+theorem _root_.IsLocalDiffeomorph.isOrientationPreservingAt_iff {H E' H' M M' : Type*}
+    [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I 1 M] [PreconnectedSpace M] [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [FiniteDimensional ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+    [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M'] {n : WithTop ℕ∞}
+    {f : M → M'} (hf : IsLocalDiffeomorph I I' n f) (hn : n ≠ 0)
+    (o : Manifold.Orientation I M ι) (o' : Manifold.Orientation I' M' ι) (x y : M) :
+    IsOrientationPreservingAt o o' f x ↔ IsOrientationPreservingAt o o' f y :=
+  isPreconnected_univ.isOrientationPreservingAt_iff
+    (fun z _ ↦ (hf z).contMDiffAt.of_le (ENat.one_le_iff_ne_zero_withTop.mpr hn))
+    (fun z _ ↦ (hf z).isInvertible_mfderiv hn) o o' (Set.mem_univ x) (Set.mem_univ y)
 
 end TauCeti.Manifold.Orientation
 

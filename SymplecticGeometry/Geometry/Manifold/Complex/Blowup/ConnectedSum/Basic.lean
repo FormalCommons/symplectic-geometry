@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.ConnectedSum.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Geometry.Manifold.Complex.Analytic
@@ -292,10 +293,7 @@ theorem isOrientationPreservingAt_connectedSumBall
   -- The ball is a local diffeomorphism of the connected space `EuclideanSpace ℂ (Fin (n + 1))`,
   -- so it is enough to check the point `0`, where `univBall` has derivative `ε • id`.
   have hd := c.isLocalDiffeomorph_connectedSumBall hc
-  refine (isPreconnected_univ.isOrientationPreservingAt_iff
-    (fun y _ ↦ (hd y).contMDiffAt.of_le (by simp))
-    (fun y _ ↦ ⟨_, (hd y).mfderivToContinuousLinearEquiv_coe (by simp)⟩)
-    _ _ (mem_univ 0) (mem_univ v)).1 ?_
+  refine (hd.isOrientationPreservingAt_iff (by simp) _ _ 0 v).1 ?_
   have hφ := (c.euclideanChart.isLocalDiffeomorphAt_symm_of_mem_maximalAtlas
     (c.euclideanChart_mem_maximalAtlas hc)
     c.zero_mem_euclideanChart_target).isOrientationPreservingAt_complexManifoldOrientation ∞
