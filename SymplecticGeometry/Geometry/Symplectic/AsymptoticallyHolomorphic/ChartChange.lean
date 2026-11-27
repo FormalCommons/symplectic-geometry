@@ -106,15 +106,14 @@ theorem jetNorm_le_of_chart_change [T2Space M] [I.Boundaryless]
   have h0W := D.zero_mem_chartTransitionDomain hk x hz₀
   have hW := (D.isOpen_chartTransitionDomain k x y).mem_nhds h0W
   -- The transition and the change of frame are `C^r` at `0`, and so is `f ∘ τ`.
-  have hτr : ContDiffAt ℝ r τ 0 :=
-    (D.contDiffOn_chartTransition.contDiffAt ((D.chartTransition k x y).open_source.mem_nhds
-      (D.chartTransitionDomain_subset_source k x y h0W))).of_le (by simp)
+  have h0s := D.chartTransitionDomain_subset_source k x y h0W
+  have hτr : ContDiffAt ℝ r τ 0 := (D.contDiffAt_chartTransition h0s).of_le (by simp)
   have her : ContDiffAt ℝ r e 0 := ((D.contDiffOn_frameChange hk x y).contDiffAt hW).of_le (by simp)
   have hs' : ContDiffAt ℝ r f (τ 0) := by rwa [hτ0]
   -- Near `0`, the reading at `y` is `e • (f ∘ τ)`.
-  have heq : D.reading k y s =ᶠ[𝓝 0] fun w ↦ e w • (f ∘ τ) w :=
-    Filter.eventually_of_mem hW fun w hw ↦
-      D.reading_eq_frameChange_mul (D.chartTransitionDomain_subset_source k x y hw) s
+  have heq : D.reading k y s =ᶠ[𝓝 0] fun w ↦ e w • (f ∘ τ) w := by
+    simpa only [smul_eq_mul, Function.comp_apply] using
+      D.reading_eventuallyEq_frameChange_mul h0s s
   -- The bounds on the jets of `e` and of `τ` at `0`.
   have he : jetNormAt ℝ r e 0 ≤ |Ce| * (1 + ‖z‖) ^ r :=
     (hCe hk x z hz₂).trans (by gcongr; exact le_abs_self _)
