@@ -18,7 +18,10 @@ Tau Ceti paths are relative to `.lake/packages/TauCeti/TauCeti/`, as in
 `DESIGN.md`. Manifolds, forms, embeddings and neighbourhood germs follow
 *Manifolds, families and signs* of `DESIGN.md`. Every manifold here is
 boundaryless, finite-dimensional, Hausdorff and second countable, as Tau
-Ceti's tubular neighbourhoods and Moser theorems need it to be.
+Ceti's tubular neighbourhoods and Moser theorems need it to be, except the
+targets `M₁` of `exists_diffeomorph_opens_mfderiv_eq` and
+`exists_symplectomorphism_opens_mfderiv_eq`, which need not be second
+countable.
 
 ## What exists, and what the part adds
 
@@ -482,6 +485,8 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
   `(ψ ⟨f₀ q, _⟩ : M₁) = f₁ q` and `mfderiv I₀ I₁ ψ ⟨f₀ q, _⟩ = A q`. Route:
   Tau Ceti's `exists_partialDiffeomorph_mfderiv_eq`
   (`Geometry/Manifold/TubularNeighborhood/PrescribedDifferential.lean`),
+  through `exists_partialDiffeomorph_mfderiv_eq'`, so that only `M₀` is
+  second countable,
   with `hA` read in tangent coordinates through
   `Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`, and its
   partial diffeomorphism restricted to its source and target. It needs no
