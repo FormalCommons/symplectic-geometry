@@ -24,8 +24,10 @@ condition above would hold for every form, `0` included.
 
 A positive top form vanishes nowhere (`IsPositiveAt.ne_zero`), and a nowhere-vanishing top form
 is positive for the orientation it defines (`isPositive_ofTopForm`). The orientation for which a
-top form is positive is unique (`IsPositiveAt.orientationAt_eq`, `IsPositive.eq`), and `-φ` is
-positive for `-o` when `φ` is positive for `o` (`IsPositiveAt.neg`).
+top form is positive is unique (`IsPositiveAt.orientationAt_eq`, `IsPositive.eq`), since a form
+positive for `o` at `x` is positive exactly on the bases with the orientation of `o` there
+(`IsPositiveAt.apply_pos_iff`). If `φ` is positive for `o`, then `-φ` is positive for `-o`
+(`IsPositiveAt.neg`).
 
 Positivity is kept by positive multiples, sums, and combinations with nonnegative weights of
 which one is positive. It is carried back along maps that preserve orientation: if `f` preserves
@@ -159,13 +161,26 @@ theorem IsPositiveAt.neg (h : IsPositiveAt o φ x) : IsPositiveAt (-o) (-φ) x :
   have hd : d.orientation = o.orientationAt x :=
     (o.orientationAt x).someBasis_orientation (o.finrank_tangentSpace_eq x).symm
   rw [Manifold.Orientation.orientationAt_neg, ← hd] at hc
-  -- `c` has the orientation opposite to `d`, so `-φ x c = |d.det c| * φ x d`.
-  have key := (φ x).toAlternatingMap.signBasis_mul_apply_eq_abs_det_mul d c
-  rw [Orientation.signBasis_eq_neg_of_orientation_eq_neg _ d c hc,
-    Orientation.signBasis_orientation, Units.val_neg, Units.val_one, Int.cast_neg, Int.cast_one,
-    neg_one_mul, ContinuousAlternatingMap.coe_toAlternatingMap] at key
+  -- `c` has the orientation opposite to `d`.
+  have key : -φ x c = |d.det c| * φ x d := by
+    simpa [Orientation.signBasis_eq_neg_of_orientation_eq_neg _ d c hc] using
+      (φ x).toAlternatingMap.signBasis_mul_apply_eq_abs_det_mul d c
   rw [Pi.neg_apply, ContinuousAlternatingMap.neg_apply, key]
   exact mul_pos (abs_pos.2 (d.isUnit_det c).ne_zero) (h.apply_pos hd)
+
+/-- If `φ` is positive for `o` at `x`, then `φ` is positive on a basis `c` of the tangent space
+at `x` exactly when `c` has the orientation of `o` there. -/
+theorem IsPositiveAt.apply_pos_iff (h : IsPositiveAt o φ x)
+    (c : Module.Basis (Fin k) ℝ (TangentSpace I x)) :
+    0 < φ x c ↔ c.orientation = o.orientationAt x := by
+  refine ⟨fun hc ↦ ?_, h.apply_pos⟩
+  rcases c.orientation_eq_or_eq_neg (o.orientationAt x) with hc' | hc'
+  · exact hc'.symm
+  · -- Otherwise `c` is positive for `-o`, on which `-φ` is positive, so `φ` is negative on `c`.
+    have hneg := h.neg.apply_pos (c := c)
+      (by rw [Manifold.Orientation.orientationAt_neg, hc']; exact (neg_neg c.orientation).symm)
+    rw [Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hneg
+    linarith
 
 /-- An orientation on which a top form is positive at `x` is unique there: if `φ` is positive
 for both `o` and `o'` at `x`, then `o` and `o'` agree at `x`. -/
@@ -173,16 +188,8 @@ theorem IsPositiveAt.orientationAt_eq {o' : Manifold.Orientation I M (Fin k)}
     (h : IsPositiveAt o φ x) (h' : IsPositiveAt o' φ x) :
     o.orientationAt x = o'.orientationAt x := by
   classical
-  set d := (o.orientationAt x).someBasis (o.finrank_tangentSpace_eq x).symm
-  have hd : d.orientation = o.orientationAt x :=
-    (o.orientationAt x).someBasis_orientation (o.finrank_tangentSpace_eq x).symm
-  rcases d.orientation_eq_or_eq_neg (o'.orientationAt x) with hd' | hd'
-  · exact hd.symm.trans hd'.symm
-  · -- Otherwise `d` is positive for `-o'`, on which `-φ` is positive, so `φ` is negative on `d`.
-    have hneg := h'.neg.apply_pos (c := d)
-      (by rw [Manifold.Orientation.orientationAt_neg, hd']; exact (neg_neg d.orientation).symm)
-    rw [Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hneg
-    linarith [h.apply_pos hd]
+  have hd := (o.orientationAt x).someBasis_orientation (o.finrank_tangentSpace_eq x).symm
+  exact hd.symm.trans ((h'.apply_pos_iff _).1 (h.apply_pos hd))
 
 /-- An orientation on which a top form is positive is unique: if `φ` is positive for both `o`
 and `o'`, then `o = o'`. -/
