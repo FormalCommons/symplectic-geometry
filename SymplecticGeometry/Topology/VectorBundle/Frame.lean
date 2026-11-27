@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Analysis.Normed.Module.ContinuousInverse
 public import TauCeti.Topology.VectorBundle.Contractible
+import TauCeti.Topology.VectorBundle.Hom
 
 /-!
 # Transition maps of frames of a vector bundle
@@ -35,11 +36,11 @@ base set the transition is the frame read in `e`, which is continuous there by T
 `TauCeti.continuousOn_continuousLinearMapAt_comp`. More generally, a family of linear maps
 `L y : G → E (f y)` from a finite-dimensional space that is continuous into the total space is,
 read in `e`, continuous on the preimage of the base set
-(`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). Its proof adapts that of
-`TauCeti.continuousOn_continuousLinearMapAt_comp`, the case of a frame. Composing the inverse of
-a frame with such a family gives a continuous family of maps `G → F`
-(`SymplecticGeometry.Bundle.continuous_frame_symm_comp`); the proof follows that of Tau Ceti's
-`TauCeti.continuous_trans_symm_of_continuous_frame_aux`.
+(`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). It is the case of Tau Ceti's
+`TauCeti.continuousOn_continuousLinearMapAt_comp_symmL` whose source is the trivial bundle with
+fibre `G`. Composing the inverse of a frame with such a family gives a continuous family of
+maps `G → F` (`SymplecticGeometry.Bundle.continuous_frame_symm_comp`); the proof follows that
+of Tau Ceti's `TauCeti.continuous_trans_symm_of_continuous_frame_aux`.
 
 ## References
 
@@ -195,12 +196,9 @@ theorem continuousOn_continuousLinearMapAt_comp {G : Type*} [NormedAddCommGroup 
     (hL : Continuous fun q : B × G ↦ TotalSpace.mk' F (f q.1) (L q.1 q.2))
     (e : Trivialization F (π F E)) [e.IsLinear R] :
     ContinuousOn (fun y ↦ (e.continuousLinearMapAt R (f y)).comp (L y)) (f ⁻¹' e.baseSet) := by
-  refine continuousOn_clm_apply.2 fun v ↦ ?_
-  have hc : ContinuousOn (fun y ↦ (e (TotalSpace.mk' F (f y) (L y v))).2) (f ⁻¹' e.baseSet) :=
-    continuous_snd.comp_continuousOn (e.continuousOn.comp
-      (hL.comp (Continuous.prodMk_left v)).continuousOn fun y hy ↦ e.mem_source.2 hy)
-  refine hc.congr fun y (hy : f y ∈ e.baseSet) ↦ ?_
-  simp [e.coe_linearMapAt_of_mem hy]
+  simpa using TauCeti.continuousOn_continuousLinearMapAt_comp_symmL (E' := Bundle.Trivial B G)
+    (g := f) (φ := L) (hL.comp (Bundle.Trivial.homeomorphProd B G).continuous) e
+    (Bundle.Trivial.trivialization B G)
 
 end Bundle.Trivialization
 
