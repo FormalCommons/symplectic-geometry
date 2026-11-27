@@ -9,7 +9,7 @@ public import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Algebra.BigOperators.Intervals
 import Mathlib.Data.Nat.Choose.Bounds
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
-import TauCeti.Analysis.Calculus.IteratedFDeriv.Basic
+import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Bilinear
 
 /-!
@@ -36,9 +36,16 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
 * `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for every
   `f`.
-* `SymplecticGeometry.jetNormAt_id_le`: the `r`-jet norm of the identity at `z` is at most
-  `‖z‖ + r`, from Tau Ceti's `TauCeti.norm_iteratedFDeriv_id_le_one`.
-* `SymplecticGeometry.jetNormAt_clm_comp_le`: the jet norm of `L ∘ f`, for a continuous linear
+* `SymplecticGeometry.jetNormAt_succ`: the `(r + 1)`-jet norm of `f` is `‖f z‖` plus the `r`-jet
+  norm of `fderiv 𝕜 f`, from Mathlib's `norm_iteratedFDeriv_fderiv`.
+* `SymplecticGeometry.jetNormAt_const`: the jet norm of a constant function.
+* `SymplecticGeometry.jetNormAt_le_of_norm_iteratedFDeriv_succ_le`: a bound of the `r`-jet norm
+  from a common bound of the derivatives of orders `1` to `r`.
+* `SymplecticGeometry.jetNormAt_continuousLinearMap_le`: the `r`-jet norm of a continuous linear
+  map `L` at `z` is at most `‖L z‖ + ‖L‖`.
+* `SymplecticGeometry.jetNormAt_comp_fst`: the jet norm of `f ∘ Prod.fst` at `p` is that of `f`
+  at `p.1`, from Tau Ceti's `Prod.norm_iteratedFDeriv_comp_fst`.
+* `SymplecticGeometry.jetNormAt_comp_left_le`: the jet norm of `L ∘ f`, for a continuous linear
   map `L`, is at most `‖L‖` times that of `f`, from Mathlib's
   `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`.
 * `SymplecticGeometry.jetNormAt_comp_le`: for `f` of class `C^r` at `z` and `g` of class `C^r` at
@@ -151,15 +158,39 @@ theorem jetNormAt_add_le {r : ℕ} {f g : E → F} {z : E} (hf : ContDiffAt 𝕜
   rw [iteratedFDeriv_add_apply (hf.of_le hjr) (hg.of_le hjr)]
   exact norm_add_le _ _
 
-/-- The `r`-jet norm of the identity at `z` is at most `‖z‖ + r`: its derivatives of positive
-order have norm at most one. -/
-theorem jetNormAt_id_le (r : ℕ) (z : E) : jetNormAt 𝕜 r (id : E → E) z ≤ ‖z‖ + r := by
-  rw [jetNormAt_def, Finset.sum_range_succ', norm_iteratedFDeriv_zero, id_eq, add_comm ‖z‖]
+/-- The `(r + 1)`-jet norm of `f` at `z` is the norm of `f z` plus the `r`-jet norm of
+`fderiv 𝕜 f` at `z`. -/
+theorem jetNormAt_succ (r : ℕ) (f : E → F) (z : E) :
+    jetNormAt 𝕜 (r + 1) f z = ‖f z‖ + jetNormAt 𝕜 r (fderiv 𝕜 f) z := by
+  simp only [jetNormAt_def, Finset.sum_range_succ' _ (r + 1), norm_iteratedFDeriv_zero,
+    norm_iteratedFDeriv_fderiv, add_comm ‖f z‖]
+
+/-- A constant function has jet norm the norm of its value. -/
+@[simp]
+theorem jetNormAt_const (r : ℕ) (c : F) (z : E) :
+    jetNormAt 𝕜 r (fun _ : E ↦ c) z = ‖c‖ := by
+  rw [jetNormAt_def, Finset.sum_range_succ']
+  simp [iteratedFDeriv_const_of_ne]
+
+/-- If the derivatives of `f` at `z` of orders `1` to `r` have norm at most `C`, the `r`-jet norm
+of `f` at `z` is at most `‖f z‖ + r * C`. -/
+theorem jetNormAt_le_of_norm_iteratedFDeriv_succ_le {r : ℕ} {f : E → F} {z : E} {C : ℝ}
+    (h : ∀ j < r, ‖iteratedFDeriv 𝕜 (j + 1) f z‖ ≤ C) :
+    jetNormAt 𝕜 r f z ≤ ‖f z‖ + r * C := by
+  rw [jetNormAt_def, Finset.sum_range_succ', norm_iteratedFDeriv_zero, add_comm ‖f z‖]
   gcongr
-  calc ∑ j ∈ Finset.range r, ‖iteratedFDeriv 𝕜 (j + 1) (id : E → E) z‖
-      ≤ ∑ _j ∈ Finset.range r, (1 : ℝ) :=
-        Finset.sum_le_sum fun j _ ↦ TauCeti.norm_iteratedFDeriv_id_le_one (by omega) z
-    _ = r := by simp
+  calc ∑ j ∈ Finset.range r, ‖iteratedFDeriv 𝕜 (j + 1) f z‖
+      ≤ ∑ _j ∈ Finset.range r, C := Finset.sum_le_sum fun j hj ↦ h j (Finset.mem_range.1 hj)
+    _ = r * C := by simp
+
+/-- The `r`-jet norm of a continuous linear map `L` at `z` is at most `‖L z‖ + ‖L‖`: its
+derivatives of order two or more vanish. -/
+theorem jetNormAt_continuousLinearMap_le (L : E →L[𝕜] F) (r : ℕ) (z : E) :
+    jetNormAt 𝕜 r L z ≤ ‖L z‖ + ‖L‖ := by
+  cases r with
+  | zero => simp
+  | succ r =>
+    rw [jetNormAt_succ, funext fun x ↦ L.fderiv (x := x), jetNormAt_const]
 
 /-- The jet norm of a scalar multiple `c • f` is `‖c‖` times that of `f`, for every `f`. -/
 @[simp]
@@ -175,9 +206,15 @@ variable {G H : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [NormedAddCom
 
 open scoped Nat
 
+/-- The jet norm of `f ∘ Prod.fst` at `p` is the jet norm of `f` at `p.1`. -/
+@[simp]
+theorem jetNormAt_comp_fst (r : ℕ) (f : E → F) (p : E × G) :
+    jetNormAt 𝕜 r (f ∘ Prod.fst) p = jetNormAt 𝕜 r f p.1 := by
+  simp only [jetNormAt_def, Prod.norm_iteratedFDeriv_comp_fst]
+
 /-- The jet norm of `L ∘ f`, for a continuous linear map `L` and a map `f` that is `C^r` at `z`,
 is at most `‖L‖` times the jet norm of `f`. -/
-theorem jetNormAt_clm_comp_le (L : F →L[𝕜] G) {r : ℕ} {f : E → F} {z : E}
+theorem jetNormAt_comp_left_le (L : F →L[𝕜] G) {r : ℕ} {f : E → F} {z : E}
     (hf : ContDiffAt 𝕜 r f z) :
     jetNormAt 𝕜 r (L ∘ f) z ≤ ‖L‖ * jetNormAt 𝕜 r f z := by
   simp only [jetNormAt_def, Finset.mul_sum]

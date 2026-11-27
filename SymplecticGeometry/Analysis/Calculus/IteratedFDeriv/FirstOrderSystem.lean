@@ -154,19 +154,12 @@ theorem jetNormAt_le_of_eventually_fderiv_eq {h : E → F} {Φ : E × F → E �
       ‖h w₀‖ + r * firstOrderSystemConst r * (1 + jetNormAt 𝕜 r Φ (w₀, h w₀)) ^ r := by
   set A := jetNormAt 𝕜 r Φ (w₀, h w₀)
   have hA : 1 ≤ 1 + A := le_add_of_nonneg_right (jetNormAt_nonneg _ _ _)
-  rw [jetNormAt_def, Finset.sum_range_succ', norm_iteratedFDeriv_zero, add_comm ‖h w₀‖]
-  gcongr
-  calc ∑ j ∈ Finset.range r, ‖iteratedFDeriv 𝕜 (j + 1) h w₀‖
-      ≤ ∑ _j ∈ Finset.range r, (firstOrderSystemConst r * (1 + A) ^ r : ℝ) := by
-        refine Finset.sum_le_sum fun j hj ↦ ?_
-        have hjr : j + 1 ≤ r := Finset.mem_range.1 hj
-        refine (norm_iteratedFDeriv_le_of_eventually_fderiv_eq hh hΦ heq
-          (fun i hi ↦ norm_iteratedFDeriv_le_jetNormAt (r := r) (by omega) Φ _) (by omega)
-          (by omega)).trans (mul_le_mul (by exact_mod_cast firstOrderSystemConst_mono hjr)
-          (pow_le_pow_right₀ hA (by omega)) (by positivity) (by positivity))
-    _ = r * firstOrderSystemConst r * (1 + A) ^ r := by
-        rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
-        ring
+  refine (jetNormAt_le_of_norm_iteratedFDeriv_succ_le
+    (C := firstOrderSystemConst r * (1 + A) ^ r) fun j hj ↦ ?_).trans_eq (by ring)
+  exact (norm_iteratedFDeriv_le_of_eventually_fderiv_eq (j := j + 1) hh hΦ heq
+    (fun i hi ↦ norm_iteratedFDeriv_le_jetNormAt (r := r) (by omega) Φ _) (by omega)
+    (by omega)).trans (mul_le_mul (by exact_mod_cast firstOrderSystemConst_mono hj)
+    (pow_le_pow_right₀ hA (by omega)) (by positivity) (by positivity))
 
 section SecondOrder
 
