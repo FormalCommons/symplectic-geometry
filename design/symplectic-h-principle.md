@@ -618,14 +618,14 @@ Proof, from the strengthened `exists_holonomic_approximation_cube_directions`:
 1. *Coordinates.* With `p := Module.finrank ℝ L`, a continuous linear
    equivalence `e : L ≃L[ℝ] (Fin p → ℝ)`
    (`(Module.finBasis ℝ L).equivFun.toContinuousLinearEquiv`) and `R > 0`
-   with `‖e l‖ < R` on `K` (`IsCompact.exists_bound_of_continuousOn`). Let
-   `Ψ : L × D ≃L[ℝ] D'`, `D' := (Fin (p + m) → ℝ) × (Fin k → ℝ)`, send
+   with `‖e l‖ < R` on `K` (`exists_pos_norm_finBasis_equivFun_lt`). Let
+   `Ψ : L × D ≃L[ℝ] D'` (`familyCubeEquiv`),
+   `D' := (Fin (p + m) → ℝ) × (Fin k → ℝ)`, send
    `(l, (u, v))` to `(A (R⁻¹ • e l, u), v)`, where
-   `A : (Fin p → ℝ) × (Fin m → ℝ) ≃L[ℝ] (Fin (p + m) → ℝ)` comes from
-   `LinearEquiv.sumArrowLequivProdArrow` and `LinearEquiv.funCongrLeft`
-   along `finSumFinEquiv`, and is an isometry for the sup norms
-   (`IsometryEquiv.sumArrowIsometryEquivProdArrow`, `IsometryEquiv.piCongrLeft`). The
-   core directions of the space are `J := Finset.univ.map (Fin.natAddEmb p m)`;
+   `A : (Fin p → ℝ) × (Fin m → ℝ) ≃L[ℝ] (Fin (p + m) → ℝ)` is Tau Ceti's
+   `(TauCeti.splitCoords p m).symm`, `Fin.append` on the two blocks, and is
+   an isometry for the sup norms (`Fin.appendIsometry`). The
+   core directions of the space are `J := Finset.univ.map (Fin.natAddEmb p)`;
    the parameters are the core coordinates outside `J`, and `Ψ` sends
    `K ×ˢ Q` into the cube `Q'` of `D'`. On the vectors `(0, w)` it is an
    isometry onto the vectors in the directions `J`.
