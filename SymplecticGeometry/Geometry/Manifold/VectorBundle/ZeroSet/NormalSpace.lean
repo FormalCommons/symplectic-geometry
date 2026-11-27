@@ -404,6 +404,34 @@ theorem normalOrientationOfSection_neg (o' : VectorBundleOrientation F' E' ι) :
   exact VectorBundleOrientation.comap_neg hι o'
     (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE)
 
+/-- Reindexing the orientation of `E'` reindexes the normal orientation of the zero set. -/
+@[simp]
+theorem normalOrientationOfSection_reindex {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
+    (hι' : Fintype.card ι' = finrank ℝ F') (o' : VectorBundleOrientation F' E' ι) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    haveI := isManifold_transverseZeroSet hm hsm hs hE
+    haveI : IsManifold 𝓘(ℝ, E) 1 ↥{x : X | s x = 0} :=
+      .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+    haveI : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+    letI := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle (P := F') hm
+      (Nat.eq_sub_of_add_eq' hE)
+    letI := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
+      (Nat.eq_sub_of_add_eq' hE)
+    normalOrientationOfSection hm hsm hs hE hι' (VectorBundleOrientation.reindex e o') =
+      VectorBundleOrientation.reindex e (normalOrientationOfSection hm hsm hs hE
+        ((Fintype.card_congr e).trans hι') o') := by
+  let := transverseZeroSetChartedSpace hm hsm hs hE
+  have := isManifold_transverseZeroSet hm hsm hs hE
+  have : IsManifold 𝓘(ℝ, E) 1 ↥{x : X | s x = 0} :=
+    .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+  have : IsManifold J 1 X := .of_le (ENat.one_le_iff_ne_zero_withTop.mpr hm)
+  let := (ofTransverseSection hm hsm hs hE).normalSpaceFiberBundle (P := F') hm
+    (Nat.eq_sub_of_add_eq' hE)
+  have := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
+    (Nat.eq_sub_of_add_eq' hE)
+  exact VectorBundleOrientation.comap_reindex (o := o')
+    (hφ := continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE) e hι'
+
 end Orientation
 
 end SymplecticGeometry

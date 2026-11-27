@@ -42,6 +42,8 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   `t ↦ exp (t • v)` has constant left-trivialized derivative `v`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul`: left translates `t ↦ a * g t` of
   such a curve have the same left-trivialized derivative.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul_comp_inv_smul`: the same for a
+  derivative `F ((g t)⁻¹ • a⁻¹ • p)` read off along an orbit, which becomes `F ((a * g t)⁻¹ • p)`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.piecewise`: two such curves on open sets with a
   preconnected intersection, agreeing at one of its points, glue to one on the union.
 * `HasMFDerivWithinAt.mul_inv_of_eq_one`: if two maps from a manifold into a Lie group take the
@@ -191,6 +193,17 @@ theorem HasLeftTrivializedDerivOn.const_mul [ContMDiffMul I 1 G]
       ContinuousLinearMap.comp_toSpanSingleton, mfderiv_mul_left_mulInvariantVectorField]
   exact (mdifferentiableAt_mul_left.hasMFDerivAt.comp_hasMFDerivWithinAt t (hg t ht)).congr_mfderiv
     hder
+
+/-- Left translation of a curve whose left-trivialized derivative is read off along an orbit:
+for an action of `G` on `X`, `F : X → 𝔤`, `a : G` and `p : X`, if `g` has left-trivialized
+derivative `F ((g t)⁻¹ • a⁻¹ • p)` on `s`, then `t ↦ a * g t` has left-trivialized derivative
+`F ((a * g t)⁻¹ • p)` on `s`. -/
+theorem HasLeftTrivializedDerivOn.const_mul_comp_inv_smul [ContMDiffMul I 1 G] {X : Type*}
+    [MulAction G X] {F : X → GroupLieAlgebra I G} {a : G} {p : X}
+    (hg : HasLeftTrivializedDerivOn g (fun t ↦ F ((g t)⁻¹ • a⁻¹ • p)) s) :
+    HasLeftTrivializedDerivOn (fun t ↦ a * g t) (fun t ↦ F ((a * g t)⁻¹ • p)) s := by
+  simp only [mul_inv_rev, mul_smul]
+  exact hg.const_mul a
 
 /-- The one-parameter subgroup `t ↦ exp (t • v)` has the constant left-trivialized derivative
 `v` at every time. -/
