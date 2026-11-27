@@ -36,6 +36,8 @@ lifted chart, and off it, by `Blowup.blowdownDiffeomorph`.
 * `SymplecticGeometry.Blowup.chartChange_symm`, `SymplecticGeometry.Blowup.chartChange_self`:
   its inverse is the change of chart the other way, and the change of chart from `c` to itself
   is the identity.
+* `SymplecticGeometry.Blowup.liftChart_self`: lifted from `c` itself, the lifted chart is
+  `Blowup.lift c` over the source of `c`.
 * `SymplecticGeometry.Blowup.chartChange_trans`,
   `SymplecticGeometry.Blowup.chartChange_chartChange`: the cocycle condition.
 * `SymplecticGeometry.Blowup.chartChange_ofDirection_directionEquiv`: on the lines of the tangent
@@ -236,6 +238,15 @@ theorem chartChange_of_mem {z : Blowup c} (hz : blowdown c z ∈ c'.source) :
     chartChange c c' z =
       inr (gluingHomeomorph c') ⟨liftChart c c' z, liftChart_mem_modelOpens c c' hz⟩ := by
   rw [coe_chartChange, chartChangeMap_of_mem hz]
+
+/-- Lifted from `c` itself, the lifted chart is the map `Blowup.lift c` to the model, over the
+source of `c`. -/
+theorem liftChart_self {z : Blowup c} (hz : blowdown c z ∈ c.source) :
+    liftChart c c z = lift c z := by
+  have h := chartChange_of_mem c c hz
+  rw [chartChange_self, Diffeomorph.coe_refl, id_eq] at h
+  conv_rhs => rw [h]
+  rw [lift_inr]
 
 /-- Off the exceptional divisor, the change of chart is the identity of `M \ {p₀}`, read in the
 first piece of `Blowup c'`. -/
