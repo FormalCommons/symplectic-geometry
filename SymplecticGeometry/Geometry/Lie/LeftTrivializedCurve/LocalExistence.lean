@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
+public import Mathlib.Geometry.Manifold.GroupLieAlgebra
 import SymplecticGeometry.Analysis.ODE.TimeDependentUniformTime
+import TauCeti.Geometry.Lie.InvariantVectorField.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
 /-!
 # Local curves with a prescribed left-trivialized derivative
@@ -21,8 +23,8 @@ interval.
 In the extended chart at `1`, the equation reads `y' = W y (ξ t)`, where `W y` is the derivative
 at the chart image of `1` of left translation by the point with coordinate `y`, read in the
 chart. Since multiplication is `C²`, `W` is `C¹` near that point, so
-`ContDiffAt.exists_pos_forall_mem_Icc_exists_forall_mem_Ioo_hasDerivAt` gives solutions in the
-chart on a uniform time interval; they are read back on `G` through the inverse chart, as in
+`ContDiffAt.exists_pos_forall_mem_Icc_exists_eq_forall_mem_Ioo_hasDerivAt_and_mem` gives solutions
+in the chart on a uniform time interval; they are read back on `G` through the inverse chart, as in
 Mathlib's `exists_isMIntegralCurveAt_of_contMDiffAt`. Tau Ceti's
 `exists_isMIntegralCurve_mulInvariantVectorField` treats the autonomous case, where `ξ` is
 constant.
@@ -93,25 +95,17 @@ private theorem mfderiv_extChartAt_symm_fderiv_chartMulLeft [LieGroup I (2 : ℕ
   have : ContMDiffMul I 1 G := ContMDiffMul.of_le (n := 2) (by norm_num)
   set c := extChartAt I (1 : G) 1
   set g := (extChartAt I (1 : G)).symm y
-  have hL : HasMFDerivAt I I (g * ·) ((extChartAt I (1 : G)).symm c)
+  have hmul : HasMFDerivAt I I (g * ·) ((extChartAt I (1 : G)).symm c)
       (mfderiv I I (g * ·) 1) := by
     rw [extChartAt_to_inv]
     exact mdifferentiableAt_mul_left.hasMFDerivAt
-  have hg : g ∈ (chartAt H (1 : G)).source := by
-    rw [← extChartAt_source (I := I)]
+  have hL := (hmul.comp c (TauCeti.hasMFDerivAt_extChartAt_symm_self (1 : G))).congr_mfderiv
+    (ContinuousLinearMap.comp_id _)
+  have hz : ((g * ·) ∘ (extChartAt I (1 : G)).symm) c ∈ (extChartAt I (1 : G)).source := by
+    rw [comp_apply, extChartAt_to_inv, mul_one]
     exact (extChartAt I (1 : G)).map_target hy
-  have hφ : HasMFDerivAt I 𝓘(ℝ, E) (extChartAt I (1 : G)) (g * (extChartAt I (1 : G)).symm c)
-      (mfderiv I 𝓘(ℝ, E) (extChartAt I (1 : G)) g) := by
-    rw [extChartAt_to_inv, mul_one]
-    exact (mdifferentiableAt_extChartAt hg).hasMFDerivAt
-  have hcomp := hφ.comp c (hL.comp c (TauCeti.hasMFDerivAt_extChartAt_symm_self (1 : G)))
-  have hW' : fderiv ℝ (extChartAt I (1 : G) ∘ (g * ·) ∘ (extChartAt I (1 : G)).symm) c v =
-      mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E)
-        (extChartAt I (1 : G) ∘ (g * ·) ∘ (extChartAt I (1 : G)).symm) c v := by
-    rw [mfderiv_eq_fderiv]
-    -- the casts `NormedSpace.fromTangentSpace` in `mfderiv_eq_fderiv` are identities
-    rfl
-  rw [chartMulLeft_eq, hW', hcomp.mfderiv]
+  rw [chartMulLeft_eq, ContinuousAt.fderiv_extChartAt_comp_apply hL.continuousAt hz, hL.mfderiv,
+    comp_apply, extChartAt_to_inv, mul_one]
   have h := mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt (I := I) hy
   rw [I.range_eq_univ, mfderivWithin_univ] at h
   -- the two sides agree once the compositions of continuous linear maps are applied
@@ -131,27 +125,22 @@ theorem exists_pos_forall_mem_Icc_exists_hasMFDerivAt_mfderiv_inv_mul_eq [Comple
           mfderiv I I ((γ t)⁻¹ * ·) (γ t) v = ξ t := by
   have : LieGroup I 2 G := LieGroup.of_le hn
   have hξE : Continuous fun t ↦ (ξ t : E) := hξ
-  obtain ⟨ε, hε, hsol⟩ :=
-    (contDiffAt_uncurry_chartMulLeft.fderiv (g := fun _ ↦ extChartAt I (1 : G) 1)
-      contDiffAt_const (by norm_num)).exists_pos_forall_mem_Icc_exists_forall_mem_Ioo_hasDerivAt
-      hξE a b (extChartAt_target_mem_nhds (I := I) (1 : G))
+  have hW : ContDiffAt ℝ 1 (fun y ↦ fderiv ℝ (chartMulLeft I G y) (extChartAt I (1 : G) 1))
+      (extChartAt I (1 : G) 1) :=
+    contDiffAt_uncurry_chartMulLeft.fderiv contDiffAt_const (by norm_num)
+  obtain ⟨ε, hε, hsol⟩ := hW.exists_pos_forall_mem_Icc_exists_eq_forall_mem_Ioo_hasDerivAt_and_mem
+    hξE a b (extChartAt_target_mem_nhds (I := I) (1 : G))
   refine ⟨ε, hε, fun t₀ ht₀ ↦ ?_⟩
   obtain ⟨y, hy₀, hy⟩ := hsol t₀ ht₀
   refine ⟨fun t ↦ (extChartAt I (1 : G)).symm (y t), by simp only [hy₀, extChartAt_to_inv],
     fun t ht ↦ ?_⟩
-  obtain ⟨hyt, hy'⟩ := hy t ht
-  have hψ : HasMFDerivAt 𝓘(ℝ, E) I (extChartAt I (1 : G)).symm (y t)
-      (mfderiv 𝓘(ℝ, E) I (extChartAt I (1 : G)).symm (y t)) := by
-    have := mdifferentiableWithinAt_extChartAt_symm (I := I) hyt
-    rw [I.range_eq_univ, mdifferentiableWithinAt_univ] at this
-    exact this.hasMFDerivAt
+  obtain ⟨hy', hyt⟩ := hy t ht
   refine ⟨mfderiv 𝓘(ℝ, E) I (extChartAt I (1 : G)).symm (y t)
     (fderiv ℝ (chartMulLeft I G (y t)) (extChartAt I (1 : G) 1) (ξ t)), ?_, ?_⟩
-  · refine (hψ.comp t hy'.hasFDerivAt.hasMFDerivAt).congr_mfderiv
-      (ContinuousLinearMap.ext fun s ↦ ?_)
-    -- applied to `s`, both sides are `D (s • w) = s • D w`, `D` the derivative of the inverse chart
-    exact map_smul (mfderiv 𝓘(ℝ, E) I (extChartAt I (1 : G)).symm (y t))
-      (NormedSpace.fromTangentSpace t s) _
+  · have h := TauCeti.Manifold.hasMFDerivWithinAt_extChartAt_symm_comp (J := univ) hyt
+      (by simp [I.range_eq_univ]) hy'.hasDerivWithinAt
+    rw [I.range_eq_univ, mfderivWithin_univ] at h
+    exact hasMFDerivWithinAt_univ.mp h
   · have h := congrArg (mfderiv I I (((extChartAt I (1 : G)).symm (y t))⁻¹ * ·)
       ((extChartAt I (1 : G)).symm (y t)))
       (mfderiv_extChartAt_symm_fderiv_chartMulLeft hyt (ξ t))

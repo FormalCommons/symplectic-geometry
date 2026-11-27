@@ -13,7 +13,7 @@ import Mathlib.Analysis.ODE.ExistUnique
 /-!
 # Local solutions of a time-dependent equation on a uniform time interval
 
-Let `W : E → (E →L[ℝ] E)` be `C¹` at `x₀` and let `ξ : ℝ → E` be continuous. This file shows that
+Let `W : E → (V →L[ℝ] E)` be `C¹` at `x₀` and let `ξ : ℝ → V` be continuous. This file shows that
 the time-dependent equation `y' = W y (ξ t)` has, for every initial time `t₀` in a compact
 interval `[a, b]`, a solution with `y t₀ = x₀` on `(t₀ - ε, t₀ + ε)`, for one `ε > 0` that does
 not depend on `t₀`, and that these solutions stay in any given neighbourhood of `x₀`.
@@ -28,8 +28,8 @@ autonomous counterpart, for a field `y ↦ g y` that does not depend on time.
 
 ## Main results
 
-* `ContDiffAt.exists_pos_forall_mem_Icc_exists_forall_mem_Ioo_hasDerivAt`: the uniform local
-  existence above.
+* `ContDiffAt.exists_pos_forall_mem_Icc_exists_eq_forall_mem_Ioo_hasDerivAt_and_mem`: the uniform
+  local existence above.
 -/
 
 public section
@@ -38,18 +38,18 @@ open Set Metric
 open scoped NNReal Topology
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
 
-/-- If `W : E → (E →L[ℝ] E)` is `C¹` at `x₀` and `ξ : ℝ → E` is continuous, then for every compact
+/-- If `W : E → (V →L[ℝ] E)` is `C¹` at `x₀` and `ξ : ℝ → V` is continuous, then for every compact
 interval `[a, b]` and every neighbourhood `s` of `x₀` there is `ε > 0` such that, for each
 `t₀ ∈ [a, b]`, the equation `y' = W y (ξ t)` has a solution `y` with `y t₀ = x₀` that stays in `s`
 on `(t₀ - ε, t₀ + ε)`. -/
-theorem ContDiffAt.exists_pos_forall_mem_Icc_exists_forall_mem_Ioo_hasDerivAt
-    {W : E → E →L[ℝ] E} {x₀ : E} (hW : ContDiffAt ℝ 1 W x₀) {ξ : ℝ → E} (hξ : Continuous ξ)
+theorem ContDiffAt.exists_pos_forall_mem_Icc_exists_eq_forall_mem_Ioo_hasDerivAt_and_mem
+    {W : E → V →L[ℝ] E} {x₀ : E} (hW : ContDiffAt ℝ 1 W x₀) {ξ : ℝ → V} (hξ : Continuous ξ)
     (a b : ℝ) {s : Set E} (hs : s ∈ 𝓝 x₀) :
     ∃ ε > 0, ∀ t₀ ∈ Icc a b, ∃ y : ℝ → E, y t₀ = x₀ ∧
-      ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), y t ∈ s ∧ HasDerivAt y (W (y t) (ξ t)) t := by
-  obtain ⟨K, U, hU, hK⟩ := hW.contDiffWithinAt (s := univ).exists_lipschitzOnWith convex_univ
-  rw [nhdsWithin_univ] at hU
+      ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), HasDerivAt y (W (y t) (ξ t)) t ∧ y t ∈ s := by
+  obtain ⟨K, U, hU, hK⟩ := hW.exists_lipschitzOnWith
   have hWx₀ : ∀ᶠ y in 𝓝 x₀, ‖W y‖ ≤ ‖W x₀‖ + 1 :=
     (hW.continuousAt.norm.eventually (gt_mem_nhds (lt_add_one ‖W x₀‖))).mono fun _ h ↦ h.le
   obtain ⟨ρ, hρ, hρU⟩ := nhds_basis_closedBall.mem_iff.mp
@@ -92,7 +92,7 @@ theorem ContDiffAt.exists_pos_forall_mem_Icc_exists_forall_mem_Ioo_hasDerivAt
     rw [ODE.FunSpace.compProj_val (t := t₀')]
     exact α.apply_of_zero
   refine ⟨α.compProj, hα₀,
-    fun t ht ↦ ⟨(hρU (α.compProj_mem_closedBall hPL.mul_max_le)).2, ?_⟩⟩
+    fun t ht ↦ ⟨?_, (hρU (α.compProj_mem_closedBall hPL.mul_max_le)).2⟩⟩
   have ht' : t ∈ Icc (t₀ - ε) (t₀ + ε) := Ioo_subset_Icc_self ht
   refine (ODE.hasDerivWithinAt_picard_Icc t₀'.property hPL.continuousOn_uncurry
     α.continuous_compProj.continuousOn (fun _ _ ↦ α.compProj_mem_closedBall hPL.mul_max_le) x₀ ht'
