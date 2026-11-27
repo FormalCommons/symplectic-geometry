@@ -13,7 +13,14 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
-# Smooth forms: bilinear forms of two-forms, multiplication by smooth functions, `0`-forms
+# Smooth forms: values at a point, bilinear forms of two-forms, function multiples, `0`-forms
+
+A smooth bundle-valued form `φ : TauCeti.SmoothBundleForm I F V k` is an element of a submodule
+of rough forms, and its value at `x` is `φ.val x`. The file starts with the value at `x` of
+the zero form, of a sum, a scalar multiple, a negative, a difference and a finite sum of smooth
+forms: `TauCeti.SmoothBundleForm.add_apply` and its neighbours, all `@[simp]`. They spare proofs
+the passage through `Submodule.coe_add` and `Pi.add_apply`, and apply to the smooth forms
+`TauCeti.SmoothForm` with fixed coefficients as well.
 
 Tau Ceti's `TauCeti.SmoothForm.bilinFormAt` reads the value at `x` of a real smooth two-form
 `σ` on `M` as a bilinear form `σ_x` on the tangent space `T_x M`. This file shows that the map
@@ -45,6 +52,10 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 
 ## Main results
 
+* `TauCeti.SmoothBundleForm.zero_apply`, `TauCeti.SmoothBundleForm.add_apply`,
+  `TauCeti.SmoothBundleForm.smul_apply`, `TauCeti.SmoothBundleForm.neg_apply`,
+  `TauCeti.SmoothBundleForm.sub_apply`, `TauCeti.SmoothBundleForm.sum_apply`: the value at a
+  point of a combination of smooth forms.
 * `TauCeti.SmoothForm.bilinFormAt_def`: `σ_x` is the bilinear form of `σ x`.
 * `TauCeti.SmoothForm.bilinFormAt_add`, `TauCeti.SmoothForm.bilinFormAt_smul`,
   `TauCeti.SmoothForm.bilinFormAt_zero`, `TauCeti.SmoothForm.bilinFormAt_neg`,
@@ -62,6 +73,54 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 public section
 
 open scoped ContDiff Manifold
+
+namespace TauCeti.SmoothBundleForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  [∀ x, TopologicalSpace (V x)] [TopologicalSpace (Bundle.TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle ℝ F V]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)] {k : ℕ}
+
+/-- The value at `x` of the zero form is zero. -/
+@[simp]
+theorem zero_apply (x : M) : (0 : SmoothBundleForm I F V k).val x = 0 :=
+  (rfl)
+
+/-- The value at `x` of a sum of smooth forms is the sum of their values at `x`. -/
+@[simp]
+theorem add_apply (φ ψ : SmoothBundleForm I F V k) (x : M) :
+    (φ + ψ).val x = φ.val x + ψ.val x :=
+  (rfl)
+
+/-- The value at `x` of a scalar multiple `c • φ` of a smooth form is `c` times the value of `φ`
+at `x`. The scalars `c` act through `ℝ`, so they may be real numbers or integers. -/
+@[simp]
+theorem smul_apply {S : Type*} [SMul S ℝ] [∀ x, SMul S (TangentSpace I x [⋀^Fin k]→L[ℝ] V x)]
+    [IsScalarTower S ℝ (RoughBundleForm I M V k)] (c : S) (φ : SmoothBundleForm I F V k)
+    (x : M) : (c • φ).val x = c • φ.val x :=
+  (rfl)
+
+/-- The value at `x` of the negative of a smooth form is the negative of its value at `x`. -/
+@[simp]
+theorem neg_apply (φ : SmoothBundleForm I F V k) (x : M) : (-φ).val x = -φ.val x :=
+  (rfl)
+
+/-- The value at `x` of a difference of smooth forms is the difference of their values at `x`. -/
+@[simp]
+theorem sub_apply (φ ψ : SmoothBundleForm I F V k) (x : M) :
+    (φ - ψ).val x = φ.val x - ψ.val x :=
+  (rfl)
+
+/-- The value at `x` of a finite sum of smooth forms is the sum of their values at `x`. -/
+@[simp]
+theorem sum_apply {ι : Type*} (s : Finset ι) (φ : ι → SmoothBundleForm I F V k) (x : M) :
+    (∑ i ∈ s, φ i).val x = ∑ i ∈ s, (φ i).val x := by
+  rw [Submodule.coe_sum, Finset.sum_apply]
+
+end TauCeti.SmoothBundleForm
 
 namespace TauCeti.SmoothForm
 
