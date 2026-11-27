@@ -84,8 +84,11 @@ variable [CommRing k]
 `n`-manifold `M` in degree `p`, for `p + p = n`: the cup pairing `(α, β) ↦ ⟨α ⌣ β, [M]_k⟩` on
 `Hᵖ(M; k)`, for `[M]_k ∈ Hₙ(M; k)` the fundamental class over `k`.
 
-Tau Ceti's `TauCeti.HomologicalOrientation.cupPairing` is the integral counterpart, on
-`Hᵖ(M; ℤ)`. -/
+Tau Ceti's `TauCeti.HomologicalOrientation.cupPairing` is a different pairing: it is defined on
+`integralCohomology` of a space `X`, and it evaluates on the pushforward along a map
+`f : C(N, X)` of the fundamental class of an oriented manifold `N`, while this form is on
+`singularCohomology (𝟙_ (ModuleCat k))` of `M` itself and evaluates on
+`fundamentalClassOver hn k`. -/
 def intersectionForm :
     LinearMap.BilinForm k ((TopCat.of M).singularCohomology (𝟙_ (ModuleCat.{0} k)) k (𝟙_ _) p) :=
   (TopCat.of M).singularCupPairing k h (o.fundamentalClassOver hn k)
@@ -127,10 +130,10 @@ theorem intersectionQuadraticForm_apply
     o.intersectionQuadraticForm hn k h α = o.intersectionForm hn k h α α :=
   (rfl)
 
-/-- The **signature** over a linearly ordered commutative ring `k` of a compact homologically
+/-- The **signature** over a commutative ring `k` with a linear order of a compact homologically
 oriented `n`-manifold `M` in degree `p`, for `p + p = n`: the signature `sigPos - sigNeg` of the
-quadratic form of the intersection form on `Hᵖ(M; k)`. The signature of a `4k`-manifold is the
-case `p = 2k`, usually over `ℚ` or `ℝ`. -/
+quadratic form of the intersection form on `Hᵖ(M; k)`. The signature of a `4m`-manifold is the
+case `p = 2m`, usually over `ℚ` or `ℝ`. -/
 def signature [LinearOrder k] : ℤ :=
   (o.intersectionQuadraticForm hn k h).signature
 
