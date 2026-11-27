@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -98,7 +99,16 @@ is `Cⁿ` in tangent coordinates
 (`Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates`), by Tau Ceti's
 `Bundle.Pullback.contMDiffAt_hom_section_iff` and Mathlib's `contMDiffAt_hom_bundle`. This is
 the smoothness in which Tau Ceti's `exists_partialDiffeomorph_mfderiv_eq` asks for a prescribed
-differential.
+differential. In the same way, for two continuous maps `f : X → B` and `g : X → C` and vector
+bundles `V` over `B` and `W` over `C`, a family of maps `A x : V (f x) → W (g x)` is a `Cⁿ`
+section of the bundle of maps from `f *ᵖ V` to `g *ᵖ W` exactly when its coordinates between `V`
+and `W` are `Cⁿ` (`Bundle.Pullback.contMDiffAt_hom_section_iff_inCoordinates`), by Mathlib's
+`contMDiffAt_hom_bundle` and Tau Ceti's `ContinuousLinearMap.inCoordinates_pullback_of_mem`; it
+is the converse of Tau Ceti's `Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`. For
+tangent bundles these coordinates are tangent coordinates. So, for `g` into an open subset `U` of
+`M'`, a section of the bundle of maps from `f *ᵖ TM` to `g *ᵖ TU` is `Cⁿ` exactly when it is one
+along `g` followed by the inclusion of `U`
+(`Bundle.Pullback.contMDiffAt_hom_section_subtypeVal_iff`).
 
 ## References
 
@@ -601,5 +611,90 @@ theorem contMDiffAt_hom_trivial_section_iff_inTangentCoordinates (ι : K) {x₀ 
 end Bundle.Pullback
 
 end HomTangentSpace
+
+section HomAlongMaps
+
+variable {𝕜 B C X F G K L EX HX : Type*} [NontriviallyNormedField 𝕜]
+  [TopologicalSpace B] [TopologicalSpace C]
+  [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
+  {IX : ModelWithCorners 𝕜 EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+  {V : B → Type*} {W : C → Type*}
+  [∀ b, AddCommGroup (V b)] [∀ b, Module 𝕜 (V b)] [∀ b, TopologicalSpace (V b)]
+  [∀ c, AddCommGroup (W c)] [∀ c, Module 𝕜 (W c)] [∀ c, TopologicalSpace (W c)]
+  [∀ c, IsTopologicalAddGroup (W c)] [∀ c, ContinuousSMul 𝕜 (W c)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle 𝕜 F V]
+  [TopologicalSpace (TotalSpace G W)] [FiberBundle G W] [VectorBundle 𝕜 G W]
+  [FunLike K X B] [ContinuousMapClass K X B] [FunLike L X C] [ContinuousMapClass L X C]
+  {n : WithTop ℕ∞}
+
+namespace Bundle.Pullback
+
+/-- For continuous maps `f : X → B` and `g : X → C`, a family of linear maps
+`A x : V (f x) → W (g x)` is a `Cⁿ` section at `x₀` of the bundle of linear maps from `f *ᵖ V`
+to `g *ᵖ W` exactly when its coordinates
+`inCoordinates F V G W (f x₀) (f x) (g x₀) (g x) (A x)` are `Cⁿ` at `x₀`. -/
+theorem contMDiffAt_hom_section_iff_inCoordinates (f : K) (g : L) {x₀ : X}
+    (A : ∀ x, V (f x) →L[𝕜] W (g x)) :
+    ContMDiffAt IX (IX.prod 𝓘(𝕜, F →L[𝕜] G)) n
+        (fun x ↦ TotalSpace.mk' (F →L[𝕜] G)
+          (E := fun x ↦ ((f : X → B) *ᵖ V) x →L[𝕜] ((g : X → C) *ᵖ W) x) x (A x)) x₀ ↔
+      ContMDiffAt IX 𝓘(𝕜, F →L[𝕜] G) n
+        (fun x ↦ ContinuousLinearMap.inCoordinates F V G W (f x₀) (f x) (g x₀) (g x) (A x))
+        x₀ := by
+  rw [contMDiffAt_hom_bundle]
+  refine (and_iff_right contMDiffAt_id).trans (Filter.EventuallyEq.contMDiffAt_iff ?_)
+  -- Near `x₀`, the coordinates between the pull-backs are those between `V` and `W`.
+  filter_upwards [(map_continuous f).continuousAt.eventually_mem_baseSet_trivializationAt F V,
+    (map_continuous g).continuousAt.eventually_mem_baseSet_trivializationAt G W] with y hyV hyW
+  exact ContinuousLinearMap.inCoordinates_pullback_of_mem f g x₀ y (A y) hyV hyW
+
+end Bundle.Pullback
+
+end HomAlongMaps
+
+section HomTangentSpaceAlongMaps
+
+variable {𝕜 E E' H H' M M' X EX HX K L : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H']
+  {I' : ModelWithCorners 𝕜 E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+  [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
+  {IX : ModelWithCorners 𝕜 EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [FunLike K X M] [ContinuousMapClass K X M] [FunLike L X M'] [ContinuousMapClass L X M']
+  {n : WithTop ℕ∞}
+
+namespace Bundle.Pullback
+
+/-- Let `g : X → U` be a map into an open subset `U` of `M'` that is `g' : X → M'` followed by the
+inclusion. A family of linear maps `A x : T_(f x) M → T_(g' x) M'` is a `Cⁿ` section at `x₀` of
+the bundle of linear maps from `f *ᵖ TM` to `g *ᵖ TU` exactly when it is one of the bundle of
+linear maps from `f *ᵖ TM` to `g' *ᵖ TM'`. -/
+theorem contMDiffAt_hom_section_subtypeVal_iff {U : TopologicalSpace.Opens M'} {L' : Type*}
+    [FunLike L' X U] [ContinuousMapClass L' X U] (f : K) (g : L') (g' : L)
+    (hg : ∀ x, (g x : M') = g' x) {x₀ : X}
+    (A : ∀ x, TangentSpace I (f x) →L[𝕜] TangentSpace I' (g' x)) :
+    ContMDiffAt IX (IX.prod 𝓘(𝕜, E →L[𝕜] E')) n
+        (fun x ↦ TotalSpace.mk' (E →L[𝕜] E')
+          (E := fun x ↦ ((f : X → M) *ᵖ (TangentSpace I)) x →L[𝕜]
+            ((g : X → U) *ᵖ (TangentSpace I')) x) x (A x)) x₀ ↔
+      ContMDiffAt IX (IX.prod 𝓘(𝕜, E →L[𝕜] E')) n
+        (fun x ↦ TotalSpace.mk' (E →L[𝕜] E')
+          (E := fun x ↦ ((f : X → M) *ᵖ (TangentSpace I)) x →L[𝕜]
+            ((g' : X → M') *ᵖ (TangentSpace I')) x) x (A x)) x₀ := by
+  -- In tangent coordinates, `A` along `g` is `A` along `g'` near `x₀`.
+  have h := TauCeti.Manifold.inTangentCoordinates_subtypeVal_comp_eventuallyEq (I := I')
+    (I' := I) (f := f) (g := g) A (x₀ := x₀) (map_continuous g).continuousAt
+  rw [show (fun x ↦ (g x : M')) = g' from funext hg] at h
+  -- Tangent coordinates are the coordinates between the tangent bundles.
+  unfold inTangentCoordinates at h
+  exact (contMDiffAt_hom_section_iff_inCoordinates (V := TangentSpace I) (W := TangentSpace I')
+    f g A).trans (h.contMDiffAt_iff.trans (contMDiffAt_hom_section_iff_inCoordinates
+      (V := TangentSpace I) (W := TangentSpace I') f g' A).symm)
+
+end Bundle.Pullback
+
+end HomTangentSpaceAlongMaps
 
 end
