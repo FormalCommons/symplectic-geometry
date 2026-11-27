@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
-public import TauCeti.Geometry.Symplectic.TameMetric
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
@@ -275,10 +274,7 @@ theorem mvfderiv_dCLiouvilleField_exp_comp_mem_Icc {ψ : C^∞⟮𝓘(ℝ, E), M
       (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction φ)))).val x
         ![X, (ofComplexManifold E M).toEndomorphism x X] := by
     have hK := isKahler_mextDerivₗ_covectorComplexStructure hφ
-    simpa only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply,
-      SmoothAlmostComplexStructure.almostComplexStructureAt_apply, SmoothBundleForm.eval₂_apply]
-      using SymplecticForm.Tames.symplecticForm_apply_apply_self_nonneg
-        (hK.isNondegenerate.tames_iff.1 hK.compatible.tames x) X
+    simpa only [SmoothBundleForm.eval₂_apply] using hK.compatible.tames.eval₂_nonneg x X
   -- `dφ(X) = ω_φ(X, J X) + dφ(X)² + dφ(J X)²`
   have e := mul_left_cancel₀ hpos.ne' (key.trans (mul_add _ _ _).symm)
   constructor <;>
