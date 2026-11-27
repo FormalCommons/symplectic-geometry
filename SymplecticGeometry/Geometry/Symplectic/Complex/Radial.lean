@@ -15,6 +15,7 @@ import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.Deriv
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Defs
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -180,11 +181,9 @@ theorem radialPotentialForm_apply (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (
     leviForm_scalar_comp_apply hgs hs,
     leviForm_norm_sq_complexToRealEuclidean, extendRCLike_fderiv_norm_sq_complexToRealEuclidean,
     extendRCLike_fderiv_norm_sq_complexToRealEuclidean]
-  have h2 : iteratedDeriv 2 g = deriv (deriv g) := by
-    rw [iteratedDeriv_succ, iteratedDeriv_one]
   beta_reduce
-  simp only [stdComplexPiSymplecticForm_apply_eq_im, s, norm_sq_complexToRealEuclidean, h2,
-    map_mul, Complex.conj_ofNat, smul_eq_mul]
+  simp only [stdComplexPiSymplecticForm_apply_eq_im, s, norm_sq_complexToRealEuclidean,
+    iteratedDeriv_two, map_mul, Complex.conj_ofNat, smul_eq_mul]
   norm_num
   ring
 

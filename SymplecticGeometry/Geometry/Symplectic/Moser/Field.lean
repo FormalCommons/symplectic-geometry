@@ -116,8 +116,7 @@ theorem moserField_eq_zero_of_apply_eq_zero {t : N} {x : M}
     moserField σ β ρ t x = 0 := by
   have h : SmoothForm.degreeOneEquiv
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β) x = 0 :=
-    (ContinuousLinearMap.coe_injective.eq_iff' ContinuousLinearMap.toLinearMap_zero).1
-      (SmoothForm.degreeOneEquiv_coe_eq_zero_iff.2 hx)
+    SmoothForm.degreeOneEquiv_apply_eq_zero_iff.2 hx
   rw [moserField_def, h, neg_zero, map_zero, smul_zero]
 
 /-- The Moser field vanishes outside the support of the cutoff `ρ`. -/
