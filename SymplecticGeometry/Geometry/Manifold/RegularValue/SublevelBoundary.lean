@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.RegularValue.Scalar.Boundary
 public import TauCeti.Geometry.Manifold.Boundary.Charts
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Comp
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Lift
 import TauCeti.Geometry.Manifold.RegularValue.Level
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
@@ -77,12 +77,10 @@ theorem isSmoothEmbedding_coe_boundary_scalarRegularSublevel :
   have := isManifold_boundary (n := n) (k := m) {x | f x ≤ a}
   let := regularLevelChartedSpace (fun _ _ ↦ (hfm.of_le hm).contMDiffAt) hreg
     (finrank_sub_finrank_real_eq hn)
-  have := isManifold_regularLevel hm (fun x _ ↦ hfm x) hreg (finrank_sub_finrank_real_eq hn)
-  have hΦ := (scalarRegularSublevelBoundaryDiffeomorph (hfm.of_le hm) hreg hn
-    m).isSmoothEmbedding_comp hm IsSmoothEmbedding.id
-  have hι := (isSmoothEmbedding_coe_regularLevel hm (fun x _ ↦ hfm x) hreg
-    (finrank_sub_finrank_real_eq hn)).comp_of_boundaryless hΦ hm
-  convert hι using 1
+  convert isSmoothEmbedding_comp_diffeomorph_of_boundaryless
+    (scalarRegularSublevelBoundaryDiffeomorph (hfm.of_le hm) hreg hn m) hm
+    (isSmoothEmbedding_coe_regularLevel hm (fun x _ ↦ hfm x) hreg
+      (finrank_sub_finrank_real_eq hn)) using 1
   funext q
   simp
 
@@ -110,14 +108,12 @@ theorem mdifferentiableAt_iff_comp_coe_boundary_scalarRegularSublevel
 
 /-- **The differential of a map into the boundary of a regular sublevel.** Let `a` be a regular
 value of a `C^m` function `f : M → ℝ`, `1 ≤ m`, and `g` a map into the boundary of the sublevel
-`{x | f x ≤ a}` which is differentiable at `y`. The differential at `y` of the composite of `g`
+`{x | f x ≤ a}`. The differential at `y` of the composite of `g`
 with the inclusion of the boundary into `M` is the differential of `g`, followed by those of the
 inclusion of the boundary into the sublevel and of the inclusion of the sublevel into `M`. -/
 theorem mfderiv_comp_coe_boundary_scalarRegularSublevel
     {g : N → letI := scalarRegularSublevelChartedSpace (hfm.of_le hm) hreg hn
-      (𝓡∂ (n + 1)).boundary {x | f x ≤ a}} {y : N}
-    (hg : letI := scalarRegularSublevelChartedSpace (hfm.of_le hm) hreg hn
-      MDifferentiableAt J 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) g y) :
+      (𝓡∂ (n + 1)).boundary {x | f x ≤ a}} {y : N} :
     letI := scalarRegularSublevelChartedSpace (hfm.of_le hm) hreg hn
     mfderiv J I (fun y ↦ ((g y : {x | f x ≤ a}) : M)) y =
       (mfderiv (𝓡∂ (n + 1)) I (Subtype.val : {x | f x ≤ a} → M) (g y)).comp
@@ -125,6 +121,11 @@ theorem mfderiv_comp_coe_boundary_scalarRegularSublevel
           (Subtype.val : (𝓡∂ (n + 1)).boundary {x | f x ≤ a} → {x | f x ≤ a}) (g y)).comp
           (mfderiv J 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) g y)) := by
   let := scalarRegularSublevelChartedSpace (hfm.of_le hm) hreg hn
+  by_cases hg : MDifferentiableAt J 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) g y
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hg, mfderiv_zero_of_not_mdifferentiableAt
+      (mt (mdifferentiableAt_iff_comp_coe_boundary_scalarRegularSublevel hreg hn hm hfm).2 hg)]
+    simp
   have := isManifold_scalarRegularSublevel hreg hn hm hfm
   have hm0 : m ≠ 0 := by rintro rfl; simp at hm
   have hval := ((isSmoothEmbedding_subtypeVal_boundary (n := n) (k := m)
