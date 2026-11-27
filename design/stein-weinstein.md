@@ -1611,7 +1611,8 @@ containing `ι '' closedBall 0 1`:
     for `ι`, `O`, `A` as above and `N : ℕ`, there is `Φ` as in 14d10 (source,
     target, `Φ ∘ modelDisc k m = ι`, `mfderiv _ _ Φ (modelDisc k m x) = A x`
     for all `x`), when `A x (Complex.I • v) = Complex.I • A x v` for all
-    `x` and `v`, such that every point `p₀` of
+    `x` and `v`, such that `IsHolomorphicToOrderAlongCore N Φ`, defined in
+    `Surround/Chart.lean` as: every point `p₀` of
     `range (modelDisc k m)` has a neighbourhood `U ⊆ Φ.source` with
     `U ⊆ Φ ⁻¹' (chartAt E (Φ p₀)).source`
     and a constant `C` with, for `e = writtenInExtChartAt 𝓘(ℝ, V)
@@ -1648,8 +1649,9 @@ containing `ι '' closedBall 0 1`:
     counterpart, for `e` not holomorphic, of Tau Ceti's
     `leviForm_comp_symm_apply_of_mem_maximalAtlas`.
   - `isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm` (14d15;
-    the book's (8.1) with Theorem 4.2 (iv)): let `Φ` be as in
-    `exists_modelChart` for some `N`, and `c > 0`, `N₀ : ℕ` with
+    the book's (8.1) with Theorem 4.2 (iv)): let `Φ` satisfy
+    `IsHolomorphicToOrderAlongCore N Φ` for some `N`, as `exists_modelChart`
+    gives it, and `c > 0`, `N₀ : ℕ` with
     `N₀ + 2 ≤ N`. There is `γ₀ ∈ Ioc 0 1` such that for every
     `γ ∈ Ioo 0 γ₀` the handle `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` lies in
     `Φ.source`, and for every `u : V → ℝ` that is `C²` and, at each

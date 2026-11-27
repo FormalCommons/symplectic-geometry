@@ -35,7 +35,7 @@ before the compression of the cube.
    points `(u, v)` with `‖v‖ ≤ 1` and `1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η` lie in `W`.
 2. *The formal primitive, made holonomic near the faces.* The datum is `f l := β l` with the
    field `G l = formalPrimitive (τ l) (β l)`, smooth by
-   `SymplecticGeometry.contMDiff_formalPrimitive`. For the parameters of `K` it is holonomic on
+   `SymplecticGeometry.contDiff_formalPrimitive`. For the parameters of `K` it is holonomic on
    `W` (`SymplecticGeometry.formalPrimitive_eq_fderiv`), and `W` contains `B ×ˢ {0}`, for
    `B = {1 - 2ε₀ ≤ ‖u‖ ≤ 1 + η}`. The cutoff in space
    `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod` replaces `G` by a smooth
@@ -146,10 +146,8 @@ theorem exists_diffeotopy_norm_mextDerivₗ_sub_lt_near_core (hk : 0 < k) {K : S
   set G : L × (Fin m → ℝ) × (Fin k → ℝ) →
       (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] ((Fin m → ℝ) × (Fin k → ℝ)) [⋀^Fin 1]→L[ℝ] ℝ :=
     fun p ↦ formalPrimitive (c p.1) (b p.1) p.2
-  have hf : ContDiff ℝ ∞ f :=
-    contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp hβ.contMDiff_val)
-  have hG : ContDiff ℝ ∞ G := contMDiff_iff_contDiff.mp
-    (contMDiff_prod_modelWithCornersSelf_iff.mp (contMDiff_formalPrimitive hτ hβ))
+  have hf : ContDiff ℝ ∞ f := hβ.contDiff_val
+  have hG : ContDiff ℝ ∞ G := contDiff_formalPrimitive hτ hβ
   have hWf : ∀ l ∈ K, ∀ x ∈ W, fderiv ℝ (fun y ↦ f (l, y)) x = G (l, x) := fun l hl x hx ↦ by
     refine (formalPrimitive_eq_fderiv ?_).symm
     have := hτβ l hl x hx
