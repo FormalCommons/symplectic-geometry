@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
@@ -310,24 +311,18 @@ theorem exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal (x : U)
   set s := t ∩ eU.baseSet ∩ Subtype.val ⁻¹' eM.baseSet
   have hs : IsOpen s :=
     (hto.inter eU.open_baseSet).inter (eM.open_baseSet.preimage continuous_subtypeVal)
-  obtain ⟨D, hDs⟩ : ∃ D : Opens M, (D : Set M) = Subtype.val '' s :=
-    ⟨⟨_, U.isOpen.isOpenMap_subtypeVal s hs⟩, rfl⟩
-  have hDs' (y : U) : (y : M) ∈ D ↔ y ∈ s := by
-    rw [← SetLike.mem_coe, hDs, Subtype.val_injective.mem_set_image]
+  set D : Opens M := Opens.imageVal ⟨s, hs⟩
+  have hDs' (y : U) : (y : M) ∈ D ↔ y ∈ s :=
+    ⟨fun hy ↦ (Opens.mem_imageVal.1 hy).2, fun hy ↦ Opens.coe_mem_imageVal _ ⟨y, hy⟩⟩
   have hsub (y : U) (hy : (y : M) ∈ D) :
       y ∈ t ∧ y ∈ eU.baseSet ∧ (y : M) ∈ eM.baseSet := by
     obtain ⟨⟨h₁, h₂⟩, h₃⟩ := (hDs' y).1 hy
     exact ⟨h₁, h₂, h₃⟩
   have hD' : (D.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, M)) : Set U) ⊆ eU.baseSet :=
     fun y hy ↦ (hsub y (Opens.mem_comap.1 (SetLike.mem_coe.1 hy))).2.1
-  have hDU : (D : Set M) ⊆ U := by
-    rw [hDs]
-    rintro _ ⟨y, -, rfl⟩
-    exact y.property
-  have hD : (D : Set M) ⊆ eM.baseSet := by
-    rw [hDs]
-    rintro _ ⟨y, hy, rfl⟩
-    exact hy.2
+  have hDU : (D : Set M) ⊆ U := SetLike.coe_subset_coe.2 (Opens.imageVal_le _)
+  have hD : (D : Set M) ⊆ eM.baseSet := fun z hz ↦
+    (Opens.mem_imageVal.1 (SetLike.mem_coe.1 hz)).2.2
   refine ⟨D, (hDs' x).2 ⟨⟨hxt, FiberBundle.mem_baseSet_trivializationAt' x⟩,
       (FiberBundle.mem_baseSet_trivializationAt' (x : M) : (x : M) ∈ eM.baseSet)⟩, hDU, hD,
     hD', fun ω z hz ↦ ?_⟩

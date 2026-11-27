@@ -28,10 +28,12 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 A linear map `ℓ : 𝕜^{m+1} → 𝕜^ι` is a tuple of `ι` linear forms on `𝕜^{m+1}`, and each of them
 is a section of `𝒪(1)` on `ℙ 𝕜 (Fin (m + 1) → 𝕜)`, by Tau Ceti's `homogeneousSection 1`. Together
 they form a section `Projectivization.linearSection ℓ` of `𝒪(1) ⊗ 𝕜^ι`, the bundle
-`Projectivization.twistPiCore 1 ι`, whose zeros are the lines on which all the forms vanish.
+Tau Ceti's `Projectivization.twistSumCore fun _ : ι ↦ 1`, whose zeros are the lines on which all
+the forms vanish.
 
 On a smooth projective hypersurface `X` of dimension `n`, a tuple of `ι` linear forms on
-`ℂ^{n+2}` so gives a section of the pull-back `X.embedding *ᵖ (twistPiCore 1 ι).Fiber` of
+`ℂ^{n+2}` so gives a section of the pull-back
+`X.embedding *ᵖ (twistSumCore fun _ : ι ↦ 1).Fiber` of
 `𝒪(1) ⊗ ℂ^ι` to `X`. For `ι = Fin n`, the rank of that bundle is the dimension of `X`, and the
 degree of `X` can be computed by counting the zeros of a generic such section, with Tau Ceti's
 `ContMDiffSection.mem_residual_setOf_regular_and_finite_zero_affineFamily`; this file provides
@@ -110,7 +112,7 @@ Ceti's section `homogeneousSection 1` of `𝒪(1)` given by the form `v ↦ ℓ 
 frame of the chart `j`, at the line spanned by a vector `v` with `v j = 1`, it is `ℓ v`
 (`Projectivization.twistTransition_mul_linearSection_mk`). -/
 def linearSection (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι → 𝕜) (x : ℙ 𝕜 (Fin (m + 1) → 𝕜)) :
-    (twistPiCore 1 ι).Fiber x :=
+    (twistSumCore fun _ : ι ↦ 1).Fiber x :=
   (fun k ↦ homogeneousSection 1 ((LinearMap.toMatrix' ℓ).toMvPolynomial k) x : ι → 𝕜)
 
 /-- The coordinate `k` of the section given by `ℓ` is the section of `𝒪(1)` given by the form
@@ -158,7 +160,8 @@ theorem linearSection_eq_zero_iff (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι 
   constructor
   · intro h
     funext k
-    have hk : linearSection ℓ x k = 0 := congrArg (fun s : (twistPiCore 1 ι).Fiber x ↦ s k) h
+    have hk : linearSection ℓ x k = 0 :=
+      congrArg (fun s : (twistSumCore fun _ : ι ↦ 1).Fiber x ↦ s k) h
     rwa [linearSection_apply, div_eq_zero_iff, or_iff_left hi] at hk
   · intro h
     funext k
@@ -190,9 +193,9 @@ theorem linearSection_smul (c : 𝕜) (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜]
 theorem contMDiff_linearSection (ℓ : (Fin (m + 1) → 𝕜) →ₗ[𝕜] ι → 𝕜) (r : ℕ∞ω) :
     ContMDiff 𝓘(𝕜, Fin m → 𝕜) (𝓘(𝕜, Fin m → 𝕜).prod 𝓘(𝕜, ι → 𝕜)) r
       (fun x ↦ TotalSpace.mk' (ι → 𝕜) x (linearSection ℓ x)) := by
-  rw [contMDiff_section_twistPiCore_iff]
+  rw [contMDiff_section_twistSumCore_iff]
   refine fun j ↦ contMDiffOn_pi_module_iff.2 fun k ↦ ?_
-  simpa only [Nat.cast_one, linearSection_def] using
+  simpa only [Nat.cast_one, linearSection_def, twistSumCore_indexAt_eq_twistCore_indexAt _ 1] using
     (contMDiff_section_twistCore_iff _ _).1 (contMDiff_homogeneousSection
       (Matrix.toMvPolynomial_isHomogeneous (LinearMap.toMatrix' ℓ) k) r) j
 
@@ -204,14 +207,14 @@ namespace SmoothProjectiveHypersurface
 
 variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 
-/-- The pull-back of `𝒪(k) ⊗ ℂ^ι` to a smooth projective hypersurface is a smooth real vector
+/-- The pull-back of `⨁ₗ 𝒪(k l)` to a smooth projective hypersurface is a smooth real vector
 bundle over the underlying real manifold. Its real structure is Mathlib's pull-back of that of
-`𝒪(k) ⊗ ℂ^ι`. -/
-instance (k : ℤ) (ι : Type*) [Fintype ι] :
-    ContMDiffVectorBundle ∞ (ι → ℂ) (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber)
+`⨁ₗ 𝒪(k l)`. -/
+instance {κ : Type*} [Fintype κ] (k : κ → ℤ) :
+    ContMDiffVectorBundle ∞ (κ → ℂ) (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) k).Fiber)
       𝓘(ℝ, Fin n → ℂ) :=
-  have : ContMDiffVectorBundle ∞ (ι → ℂ)
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber)
+  have : ContMDiffVectorBundle ∞ (κ → ℂ)
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) k).Fiber)
       𝓘(ℂ, Fin n → ℂ) :=
     Bundle.Pullback.contMDiffVectorBundle (X.embedding.contMDiff.of_le le_top)
   ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
@@ -225,7 +228,7 @@ theorem contMDiff_linearSection_embedding (ℓ : (Fin (n + 2) → ℂ) →ₗ[�
     ContMDiff 𝓘(ℂ, Fin n → ℂ)
       (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ι → ℂ)) ω
       (fun x : X ↦ TotalSpace.mk' (ι → ℂ)
-        (E := X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) x
+        (E := X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) x
         (Projectivization.linearSection ℓ (X.embedding x))) :=
   (Bundle.Pullback.contMDiff_iff X.embedding X.embedding.contMDiff).2
     ⟨contMDiff_id, (contMDiff_linearSection ℓ ω).comp X.embedding.contMDiff⟩
@@ -236,7 +239,7 @@ theorem contMDiff_linearSection_embedding (ℓ : (Fin (n + 2) → ℂ) →ₗ[�
 vector bundle over the underlying real manifold. It is `ℝ`-linear in `ℓ`. -/
 def linearSection : ((Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) →ₗ[ℝ]
     ContMDiffSection 𝓘(ℝ, Fin n → ℂ) (ι → ℂ) ∞
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) where
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) where
   toFun ℓ := ContMDiffSection.restrictScalars' ℝ
     { toFun x := Projectivization.linearSection ℓ (X.embedding x)
       contMDiff_toFun := (X.contMDiff_linearSection_embedding ℓ).of_le le_top }
@@ -282,7 +285,7 @@ theorem span_range_linearSection_smulRight [DecidableEq ι] (x : X) :
   -- The fibre is `ι → ℂ` by the definitions of `Bundle.Pullback` and
   -- `VectorBundleCore.Fiber`, so the real basis of `ι → ℂ` is one of the fibre.
   let e : Module.Basis (Σ _ : ι, Fin 2) ℝ
-      ((X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) x) :=
+      ((X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) x) :=
     Pi.basis fun _ ↦ Complex.basisOneI
   rw [eq_top_iff, ← e.span_eq]
   refine Submodule.span_mono ?_
@@ -308,16 +311,20 @@ coordinates `Fin.insertNth j 1 (affineChart j y)` of `y`, whose coordinate `j` i
 theorem trivializationAt_linearSection_snd (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) {z y : X}
     (hy : (y : ℙ ℂ (Fin (n + 2) → ℂ)) ∈
       affineOpen ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ (Fin (n + 2) → ℂ)))) :
-    (trivializationAt (ι → ℂ) (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
+    (trivializationAt (ι → ℂ)
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
       ⟨y, X.linearSection ℓ y⟩).2 =
       ℓ (Fin.insertNth (α := fun _ ↦ ℂ) ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)) 1
         (affineChart ((twistCore (𝕜 := ℂ) 1).indexAt (z : ℙ ℂ _)) (y : ℙ ℂ _))) := by
   rw [linearSection_apply, trivializationAt, FiberBundle.pullback_trivializationAt',
-    Trivialization.pullback_apply, Pullback.lift_mk, twistPiCore_trivializationAt_apply_snd,
-    coe_embedding]
+    Trivialization.pullback_apply, Pullback.lift_mk, coe_embedding]
   funext k
-  rw [twistTransition_mul_linearSection, insertNth_one_affineChart_eq_normalizedRep _ hy,
-    normalizedRep_def, LinearMap.proj_apply, map_smul, Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
+  refine (twistSumCore_trivializationAt_apply_snd (fun _ ↦ 1) _ _
+    (Projectivization.linearSection ℓ _) k).trans ?_
+  rw [twistSumCore_indexAt_eq_twistCore_indexAt _ 1, twistSumCore_indexAt_eq_twistCore_indexAt _ 1,
+    twistTransition_mul_linearSection,
+    insertNth_one_affineChart_eq_normalizedRep _ hy, normalizedRep_def, LinearMap.proj_apply,
+    map_smul, Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
 
 /-- The normalized homogeneous coordinates of points of `X` near `z`, read in the chart of `X`
 at `z`: the representative of the image in projective space whose coordinate of the preferred
@@ -372,7 +379,7 @@ trivialization of the pull-back at `z`, is `ℓ` applied to the normalized homog
 coordinates. -/
 private theorem chartLift_eventuallyEq (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ) (z : X) :
     (fun y ↦ (trivializationAt (ι → ℂ)
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
+      (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
       ⟨(chartAt (Fin n → ℂ) z).symm y,
         X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2) =ᶠ[𝓝
       (chartAt (Fin n → ℂ) z z)] fun y ↦ ℓ (chartLift X z y) := by
@@ -384,7 +391,7 @@ private theorem chartLift_eventuallyEq (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] 
 the derivative of the normalized homogeneous coordinates. -/
 private theorem hasFDerivAt_trivializationAt_linearSection (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ)
     (z : X) : HasFDerivAt (fun y ↦ (trivializationAt (ι → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
+        (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
         ⟨(chartAt (Fin n → ℂ) z).symm y,
           X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2)
       (((LinearMap.toContinuousLinearMap ℓ).comp (fderiv ℂ (chartLift X z)
@@ -401,7 +408,7 @@ restriction of scalars of a `ℂ`-linear map. -/
 theorem exists_hasFDerivAt_trivializationAt_linearSection (ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ] ι → ℂ)
     (z : X) : ∃ A : (Fin n → ℂ) →L[ℂ] ι → ℂ,
       HasFDerivAt (fun y ↦ (trivializationAt (ι → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 ι).Fiber) z
+        (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : ι ↦ 1).Fiber) z
         ⟨(chartAt (Fin n → ℂ) z).symm y,
           X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2)
         (A.restrictScalars ℝ) (chartAt (Fin n → ℂ) z z) :=
@@ -649,7 +656,7 @@ theorem exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection
     (htr : ∃ w, ℓ w = 0 ∧ ∑ i, w i * eval (z : ℙ ℂ (Fin (n + 2) → ℂ)).rep (pderiv i X.poly) ≠ 0) :
     ∃ A : (Fin n → ℂ) ≃L[ℂ] Fin n → ℂ,
       HasFDerivAt (fun y ↦ (trivializationAt (Fin n → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin n)).Fiber) z
+        (X.embedding *ᵖ (twistSumCore (𝕜 := ℂ) (n := n + 1) fun _ : Fin n ↦ 1).Fiber) z
         ⟨(chartAt (Fin n → ℂ) z).symm y,
           X.linearSection ℓ ((chartAt (Fin n → ℂ) z).symm y)⟩).2)
         ((A : (Fin n → ℂ) →L[ℂ] Fin n → ℂ).restrictScalars ℝ)
