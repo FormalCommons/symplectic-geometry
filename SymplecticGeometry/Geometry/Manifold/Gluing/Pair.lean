@@ -462,14 +462,12 @@ theorem t2Space_iff : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ 
   refine ((glueData φ).isClosed_chartRel_iff (i := ⟨false⟩) (j := ⟨true⟩)).trans ?_
   have hne : (⟨false⟩ : ULift.{u} Bool) ≠ ⟨true⟩ := by simp
   -- The overlaps of the two pieces are `U₁` and `U₂`, and the transition between them is `φ`.
-  -- The maps `f` of `glueData φ` are `Subtype.val` by definition (`starGlueData_f`); that lemma
-  -- cannot be used to rewrite here, since its index type is `ULift Bool`, not `(glueData φ).J`.
   have hU₁ (x : M₁) : x ∈ range ((glueData φ).f ⟨false⟩ ⟨true⟩) ↔ x ∈ U₁ :=
-    ⟨fun ⟨z, hz⟩ ↦ hz ▸ starOverlap_le hne z.property,
-      fun h ↦ ⟨⟨x, mem_starOverlap.2 (.inr ⟨h, trivial⟩)⟩, rfl⟩⟩
+    (Set.ext_iff.1 ((glueData φ).preimage_range ⟨true⟩ ⟨false⟩) x).symm.trans
+      (inl_mem_range_inr_iff φ)
   have hU₂ (y : M₂) : y ∈ range ((glueData φ).f ⟨true⟩ ⟨false⟩) ↔ y ∈ U₂ :=
-    ⟨fun ⟨z, hz⟩ ↦ hz ▸ ((mem_starOverlap.1 z.property).resolve_left hne.symm).2,
-      fun h ↦ ⟨⟨y, mem_starOverlap.2 (.inr ⟨trivial, h⟩)⟩, rfl⟩⟩
+    (Set.ext_iff.1 ((glueData φ).preimage_range ⟨false⟩ ⟨true⟩) y).symm.trans
+      (inr_mem_range_inl_iff φ)
   have ht (z : starOverlap (glueMap φ) ⟨false⟩ ⟨true⟩)
       (hz : (z : partialHomeomorphGluePiece M₂ M₁ ⟨false⟩) ∈ glueSource M₂ U₁ ⟨false⟩) :
       (starTransition (glueMap φ) ⟨false⟩ ⟨true⟩ z : partialHomeomorphGluePiece M₂ M₁ ⟨true⟩) =
