@@ -121,6 +121,9 @@ direction follows by Tau Ceti's `TauCeti.contMDiff_bundle_symm`.
 * `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_tmul_none` and
   `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_tmul_some`: the inverse of
   `canonicalBundleEquiv` in the charts `none` and `some i`, at every point of these charts.
+  `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_continuousDet_mfderiv_tmul_none` evaluates
+  the first on the frame built from a holomorphic chart `e` of `M`: it gives the coordinate form
+  of `e ∘ π`.
 * `SymplecticGeometry.Blowup.contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm` and
   `SymplecticGeometry.Blowup.continuousDet_mfderiv_tmul_localTriv_symm_ne_zero`: the local frames
   of `π^*K_M ⊗ 𝒪(nE)` are holomorphic and nowhere zero; the `_some` forms do this for the frame on
@@ -897,6 +900,30 @@ theorem canonicalBundleEquiv_symm_tmul_none {z : Blowup c} (hz : z ∉ exception
     rwa [hypersurfaceData_U_none, SetLike.mem_coe, mem_offDivisorOpens]
   rw [canonicalBundleEquiv_symm_tmul_localTriv_symm c hz', chartDeriv]
 
+/-- **`canonicalBundleEquiv` on the frame of a chart off the exceptional divisor.** For a
+holomorphic chart `e` of `M` and a point `y` off the exceptional divisor whose blowdown lies in
+the source of `e`, the inverse of `canonicalBundleEquiv` sends the coordinate form of `e` at the
+blowdown of `y`, tensored with the element of coordinate `a` in the chart `none` of `𝒪(nE)`, to
+`a` times the coordinate form at `y` of `e ∘ blowdown c`. -/
+theorem canonicalBundleEquiv_symm_continuousDet_mfderiv_tmul_none
+    {e : OpenPartialHomeomorph M (Fin (n + 1) → ℂ)}
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) {y : Blowup c}
+    (hy : y ∉ exceptionalDivisor c) (hye : blowdown c y ∈ e.source) (a : ℂ) :
+    (canonicalBundleEquiv c y).symm (TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) y)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber y)
+        (b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e (blowdown c y)))
+        ((((hypersurfaceData c).lineBundleCore n).localTriv none).symm y a)) =
+      a • b.continuousDet.compContinuousLinearMap
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (e ∘ blowdown c) y) := by
+  rw [canonicalBundleEquiv_symm_tmul_none c hy,
+    mfderiv_comp y ((contMDiffAt_of_mem_maximalAtlas he hye).mdifferentiableAt (by simp))
+      ((contMDiff_blowdown c y).mdifferentiableAt (by simp))]
+  exact congrArg (a • ·)
+    (ContinuousAlternatingMap.compContinuousLinearMap_compContinuousLinearMap _ _ _)
+
 /-- **`canonicalBundleEquiv` in the chart `some i`.** At a point `z` of the chart `some i` of the
 exceptional divisor, the inverse of `canonicalBundleEquiv` sends the coordinate form of `c` at
 the blowdown of `z`, tensored with the element of coordinate `a` in the chart `some i` of
@@ -1026,6 +1053,15 @@ theorem continuousDet_mfderiv_tmul_localTriv_symm_some_ne_zero
 
 end Frames
 
+/-- The pull-back by the blowdown of a holomorphic vector bundle on `M` is a holomorphic vector
+bundle on the blowup. -/
+instance contMDiffVectorBundle_pullback_blowdown {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℂ F] {E : M → Type*} [∀ x, AddCommMonoid (E x)] [∀ x, Module ℂ (E x)]
+    [∀ x, TopologicalSpace (E x)] [TopologicalSpace (Bundle.TotalSpace F E)] [FiberBundle F E]
+    [VectorBundle ℂ F E] [ContMDiffVectorBundle ω F E 𝓘(ℂ, Fin (n + 1) → ℂ)] :
+    ContMDiffVectorBundle ω F (Bundle.Pullback (blowdown c) E) 𝓘(ℂ, Fin (n + 1) → ℂ) :=
+  Bundle.Pullback.contMDiffVectorBundle (contMDiff_blowdown c)
+
 section Holomorphy
 
 open Bundle
@@ -1047,11 +1083,14 @@ theorem contMDiff_canonicalBundleEquiv_symm :
         TotalSpace.mk' ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
           (E := TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c)) p.proj
           ((canonicalBundleEquiv c p.proj).symm p.snd)) := by
-  -- Mathlib's instance for pull-backs wants a `C^n` map, and `blowdown c` is a continuous one.
-  have := Bundle.Pullback.contMDiffVectorBundle
-    (F := (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
-    (E := TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) (contMDiff_blowdown c)
   set b := Module.finBasis ℂ (Fin (n + 1) → ℂ)
+  -- The fibres are lines. Each use below passes `hF` as `by exact hF`, which elaborates it
+  -- after the instances on the fibre are found; passed as a term, `hF` fixes them by
+  -- unification first, and the proof runs out of heartbeats.
+  have hF : finrank ℂ (TauCeti.ProjectiveTensor ℂ
+      ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ) = 1 := by
+    rw [TauCeti.ProjectiveTensor.finrank_eq_mul, b.finrank_continuousAlternatingMap_eq_one,
+      Module.finrank_self]
   -- Near each point, test the inverse on a nowhere zero holomorphic section of
   -- `π^*K_M ⊗ 𝒪(nE)`, whose image is a coordinate form.
   intro p
@@ -1064,8 +1103,7 @@ theorem contMDiff_canonicalBundleEquiv_symm :
     have key := ContMDiffOn.bundleMap_of_finrank_eq_one (n := ω) (F := TauCeti.ProjectiveTensor ℂ
         ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)
       (F' := (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
-      (by rw [TauCeti.ProjectiveTensor.finrank_eq_mul, b.finrank_continuousAlternatingMap_eq_one,
-        Module.finrank_self]) hU
+      (by exact hF) hU
       (contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm_some c b i)
       (fun z hz ↦ continuousDet_mfderiv_tmul_localTriv_symm_some_ne_zero c b hz)
       (A := fun z ↦ ((canonicalBundleEquiv c z).symm :
@@ -1090,8 +1128,7 @@ theorem contMDiff_canonicalBundleEquiv_symm :
     have key := ContMDiffOn.bundleMap_of_finrank_eq_one (n := ω) (F := TauCeti.ProjectiveTensor ℂ
         ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)
       (F' := (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
-      (by rw [TauCeti.ProjectiveTensor.finrank_eq_mul, b.finrank_continuousAlternatingMap_eq_one,
-        Module.finrank_self]) hU
+      (by exact hF) hU
       (contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm c he b none)
       (fun z hz ↦ continuousDet_mfderiv_tmul_localTriv_symm_ne_zero c he b hz.1 hz.2)
       (A := fun z ↦ ((canonicalBundleEquiv c z).symm :
@@ -1104,11 +1141,8 @@ theorem contMDiff_canonicalBundleEquiv_symm :
       he' (by simp) b).contMDiffWithinAt).congr_of_mem (fun y hy ↦ ?_) hz
     have hy' : y ∉ exceptionalDivisor c := by
       simpa [hypersurfaceData_U_none] using hy.1
-    simp only [ContinuousLinearEquiv.coe_coe, canonicalBundleEquiv_symm_tmul_none c hy', one_smul]
-    rw [mfderiv_comp y ((contMDiffAt_of_mem_maximalAtlas he hy.2).mdifferentiableAt (by simp))
-      ((contMDiff_blowdown c y).mdifferentiableAt (by simp))]
-    exact congrArg (TotalSpace.mk' _ y)
-      (ContinuousAlternatingMap.compContinuousLinearMap_compContinuousLinearMap _ _ _)
+    simp only [ContinuousLinearEquiv.coe_coe,
+      canonicalBundleEquiv_symm_continuousDet_mfderiv_tmul_none c he b hy' hy.2, one_smul]
 
 /-- **`canonicalBundleEquiv` is holomorphic.** The map of total spaces
 `⟨z, σ⟩ ↦ ⟨z, canonicalBundleEquiv c z σ⟩`, from the canonical bundle of the blowup to
@@ -1128,9 +1162,6 @@ theorem contMDiff_canonicalBundleEquiv :
             Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
               ((hypersurfaceData c).lineBundleCore n).Fiber z) p.proj
           (canonicalBundleEquiv c p.proj p.snd)) := by
-  have := Bundle.Pullback.contMDiffVectorBundle
-    (F := (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
-    (E := TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) (contMDiff_blowdown c)
   have key := TauCeti.contMDiff_bundle_symm (n := ω) (IB := 𝓘(ℂ, Fin (n + 1) → ℂ))
     (F₁ := TauCeti.ProjectiveTensor ℂ
       ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)
