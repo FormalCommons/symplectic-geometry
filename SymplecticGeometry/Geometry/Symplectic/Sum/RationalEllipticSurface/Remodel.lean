@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreTorus
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.AffineCoordinate
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreComplement
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # The rational elliptic surface on a real model, with a framed standard torus
@@ -150,9 +151,10 @@ include e in
 /-- The standard torus `∀ i : Unit ⊕ Unit, AddCircle (p i)` has codimension two in
 `OnModel e`. -/
 theorem finrank_complex_eq_finrank_sub :
-    finrank ℝ ℂ = finrank ℝ E - finrank ℝ (Unit ⊕ Unit → ℝ) := by
-  rw [← e.toLinearEquiv.finrank_eq]
-  simp [Module.finrank_pi_fintype]
+    finrank ℝ ℂ = finrank ℝ E - finrank ℝ (Unit ⊕ Unit → ℝ) :=
+  Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two
+    (by rw [← e.toLinearEquiv.finrank_eq]; simp [Module.finrank_pi_fintype])
+    (by simp)
 
 variable [FiniteDimensional ℝ E]
 

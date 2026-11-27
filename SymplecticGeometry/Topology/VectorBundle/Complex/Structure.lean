@@ -338,6 +338,11 @@ theorem fiberEquivOfCommuteI_apply (b : B) (v : J.Fiber b) :
     J.fiberEquivOfCommuteI e he b v = e b (J.fiberEquiv b v) := by
   simp [fiberEquivOfCommuteI]
 
+@[simp]
+theorem fiberEquivOfCommuteI_symm_apply (b : B) (w : W b) :
+    (J.fiberEquivOfCommuteI e he b).symm w = (J.fiberEquiv b).symm ((e b).symm w) := by
+  simp [fiberEquivOfCommuteI]
+
 variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   [FiniteDimensional ℝ F] [Fact (finrank ℝ F = 2 * finrank ℂ G)]
   {F' : Type*} [TopologicalSpace (TotalSpace F' W)]

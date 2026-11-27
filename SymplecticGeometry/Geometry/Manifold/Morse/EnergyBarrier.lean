@@ -178,7 +178,7 @@ theorem exists_forall_mem_source_and_norm_centeredExtChartAt_le (hX : IsGradient
   -- The estimates are proved in the extended chart `e`, and read in the centred one.
   have htarget {ρ : ℝ} (h : closedBall (e p) ρ ⊆ e.target) :
       closedBall (0 : E) ρ ⊆ (centeredExtChartAt 𝓘(ℝ, E) p).target := fun w hw ↦ by
-    rw [centeredExtChartAt_target]
+    rw [mem_centeredExtChartAt_target_iff]
     exact h (by simpa [e, dist_eq_norm] using hw)
   -- A ball about `e p` in the chart target whose points other than `e p` are not critical.
   have hev : ∀ᶠ w in 𝓝 (e p),

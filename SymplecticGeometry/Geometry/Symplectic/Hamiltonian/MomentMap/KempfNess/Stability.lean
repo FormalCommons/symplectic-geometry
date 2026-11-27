@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.NormSquare
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import TauCeti.LinearAlgebra.BilinearForm.Basic
 
@@ -56,6 +58,16 @@ all unit `ξ`. Convexity then gives `Φ_q (C.expI η * C.toHom u) ≥ c (‖η�
 the properness half of [GeorgoulasRobbinSalamon2021], Theorem 7.3, with the polar radius in place
 of the distance in `Gc ⧸ G`.
 
+Conversely, if `Φ_p` is bounded below and proper, it has a minimum `g`, as its sublevel sets are
+compact; there its differential vanishes, so `q = g⁻¹ • p` is a zero of `μ`
+(`SymplecticGeometry.mfderiv_kempfNessFunction_eq_zero_iff`), and `Φ_q` is proper by the cocycle
+identity. If `X_ξ(q) = 0`, then `C.expI (s • ξ)` fixes `q` for every `s`
+(`SymplecticGeometry.IsComplexifiedAction.expI_smul_smul_eq_self_iff`), so `Φ_q` vanishes along
+`s ↦ C.expI (s • ξ)`, a curve whose polar radius is `‖s • ξ‖`; properness bounds it, so `ξ = 0`
+and the stabilizer of `q` is discrete. Together these give
+`SymplecticGeometry.isStable_iff_bddBelow_and_isProperMap_kempfNessFunction`, the stability half
+of [GeorgoulasRobbinSalamon2021], Theorem 7.3 (with Theorem 4.3 there for the critical points).
+
 ## Main results
 
 * `SymplecticGeometry.isSemistable_iff_bddBelow_kempfNessFunction`: `p` is semistable exactly
@@ -66,14 +78,20 @@ of the distance in `Gc ⧸ G`.
   bounded below along the flow curve `g`, then the limit of the flow is a zero of `μ`.
 * `SymplecticGeometry.mem_lowerBounds_range_kempfNessFunction`: if the flow converges to a zero
   of `μ`, a lower bound of `Φ_p ∘ g` on `[0, ∞)` bounds `Φ_p` on all of `Gc`.
+* `SymplecticGeometry.isProperMap_kempfNessFunction_smul_iff`: the Kempf–Ness function of `g • p`
+  is proper exactly when that of `p` is.
 * `SymplecticGeometry.IsStable.isProperMap_kempfNessFunction`: the Kempf–Ness function of a stable
   point is proper.
+* `SymplecticGeometry.isStable_of_bddBelow_of_isProperMap_kempfNessFunction`: a point whose
+  Kempf–Ness function is bounded below and proper is stable.
+* `SymplecticGeometry.isStable_iff_bddBelow_and_isProperMap_kempfNessFunction`: `p` is stable
+  exactly when its Kempf–Ness function is bounded below and proper.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Theorem 7.3.
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Theorems 4.3 and 7.3.
 -/
 
 public section
@@ -312,6 +330,30 @@ theorem isProperMap_kempfNessFunction_of_moment_eq_zero (h : IsComplexifiedActio
   rw [mem_closedBall_zero_iff]
   linarith
 
+omit [I.Boundaryless] [I'.Boundaryless] [T2Space M] [CompactSpace G] [T2Space G] [CompactSpace M]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] in
+/-- For a complexified action, with `-μ` an equivariant moment map for `σ` and the metric
+`σ(·, J ·)`, the Kempf–Ness function of `g • p` is proper exactly when that of `p` is. -/
+theorem isProperMap_kempfNessFunction_smul_iff (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M} (g : Gc) :
+    IsProperMap (kempfNessFunction C μ (g • p)) ↔ IsProperMap (kempfNessFunction C μ p) := by
+  have := topologicalGroup_of_lieGroup (G := Gc) IC ∞
+  -- By the cocycle identity, `Φ_{a⁻¹ • x} y = Φ_x (a * y) - Φ_x a`.
+  have key (a : Gc) (x : M) (hx : IsProperMap (kempfNessFunction C μ x)) :
+      IsProperMap (kempfNessFunction C μ (a⁻¹ • x)) := by
+    have heq : kempfNessFunction C μ (a⁻¹ • x) = (· - kempfNessFunction C μ x a) ∘
+        kempfNessFunction C μ x ∘ (a * ·) := funext fun y ↦ by
+      have := kempfNessFunction_mul C μ x h hμ hgm a y
+      simp only [Function.comp_apply]
+      linarith
+    rw [heq]
+    exact (Homeomorph.subRight (kempfNessFunction C μ x a)).isProperMap.comp
+      (hx.comp (Homeomorph.mulLeft a).isProperMap)
+  refine ⟨fun hg ↦ ?_, fun hp ↦ ?_⟩
+  · simpa only [inv_smul_smul] using key g (g • p) hg
+  · simpa only [inv_inv] using key g⁻¹ p hp
+
 omit [I.Boundaryless] [T2Space G] [CompactSpace M]
   [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] in
 /-- **The Kempf–Ness function of a stable point is proper.** For a complexified action, with `-μ`
@@ -324,17 +366,68 @@ theorem IsStable.isProperMap_kempfNessFunction (h : IsComplexifiedAction C J)
     (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
     (hp : IsStable C μ p) : IsProperMap (kempfNessFunction C μ p) := by
   obtain ⟨g, hg0⟩ := isPolystable_iff_exists_smul.1 hp.isPolystable
-  have := topologicalGroup_of_lieGroup (G := Gc) IC ∞
   have := ((isStable_smul_iff g).2 hp).discreteTopology_stabilizer
-  have hq := isProperMap_kempfNessFunction_of_moment_eq_zero h hμ hgm hg0
-  -- By the cocycle identity, `Φ_p x = Φ_p g⁻¹ + Φ_{g • p} (g * x)`.
-  have heq : kempfNessFunction C μ p = (kempfNessFunction C μ p g⁻¹ + ·) ∘
-      kempfNessFunction C μ (g • p) ∘ (g * ·) := funext fun x ↦ by
-    have := kempfNessFunction_mul C μ p h hμ hgm g⁻¹ (g * x)
-    rwa [inv_mul_cancel_left, inv_inv] at this
-  rw [heq]
-  exact (Homeomorph.addLeft (kempfNessFunction C μ p g⁻¹)).isProperMap.comp
-    (hq.comp (Homeomorph.mulLeft g).isProperMap)
+  exact (isProperMap_kempfNessFunction_smul_iff h hμ hgm g).1
+    (isProperMap_kempfNessFunction_of_moment_eq_zero h hμ hgm hg0)
+
+omit [I.Boundaryless] [CompactSpace G] [T2Space G] [CompactSpace M]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] in
+/-- A point whose Kempf–Ness function is bounded below and proper is stable, for a complexified
+action, with `-μ` an equivariant moment map for `σ` and the metric `σ(·, J ·)`. -/
+theorem isStable_of_bddBelow_of_isProperMap_kempfNessFunction (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
+    (hbdd : BddBelow (range (kempfNessFunction C μ p)))
+    (hprop : IsProperMap (kempfNessFunction C μ p)) : IsStable C μ p := by
+  -- `Φ_p` attains its minimum at some `g`, a critical point, so `μ` vanishes at `q = g⁻¹ • p`.
+  obtain ⟨g, hg⟩ := hprop.exists_isMinOn_of_bddBelow hbdd
+  have hq : μ (g⁻¹ • p) = 0 := by
+    rw [← mfderiv_kempfNessFunction_eq_zero_iff C μ p h hμ hgm g,
+      ← mem_criticalPoints_iff_mfderiv_eq_zero]
+    exact hg.mem_criticalPoints BoundarylessManifold.isInteriorPoint
+  set q := g⁻¹ • p
+  have hqprop : IsProperMap (kempfNessFunction C μ q) :=
+    (isProperMap_kempfNessFunction_smul_iff h hμ hgm g⁻¹).2 hprop
+  -- If `X_ξ(q) = 0`, then `Φ_q` vanishes along `s ↦ C.expI (s • ξ)`, whose polar radius is
+  -- `‖s • ξ‖`; properness bounds it, so `ξ = 0`.
+  have : DiscreteTopology (MulAction.stabilizer Gc q) := by
+    refine (h.discreteTopology_stabilizer_iff_of_moment_eq_zero hμ hgm hq).2 fun ξ hξ ↦ ?_
+    have hfix := (h.expI_smul_smul_eq_self_iff (x := q)).2 hξ
+    have hd (t : ℝ) :
+        HasDerivAt (fun s : ℝ ↦ kempfNessFunction C μ q (1 * C.expI (s • ξ))) 0 t := by
+      have := hasDerivAt_kempfNessFunction_geodesic C μ q h hμ hgm 1 ξ t
+      rwa [inv_one, one_smul, ← neg_smul, hfix, hq, LinearMap.zero_apply] at this
+    have hzero (s : ℝ) : C.expI (s • ξ) ∈ kempfNessFunction C μ q ⁻¹' {0} := by
+      have := is_const_of_deriv_eq_zero (fun t ↦ (hd t).differentiableAt)
+        (fun t ↦ (hd t).deriv) s 0
+      simpa [C.expI_zero, kempfNessFunction_one] using this
+    obtain ⟨r, hr⟩ := (((hqprop.isCompact_preimage isCompact_singleton).image
+      C.polar.symm.continuous).image continuous_fst).isBounded.subset_closedBall 0
+    exact eq_zero_of_forall_smul_mem_closedBall (F := E) fun s : ℝ ↦ hr ⟨_, ⟨_, hzero s, rfl⟩, by
+      rw [← mul_one (C.expI _), ← map_one C.toHom, C.polar_symm_expI_mul_toHom]
+      -- The two sides differ only in the smul: that of `GroupLieAlgebra I G` and that of `E`,
+      -- which agree since the Lie algebra is `E` by definition.
+      rfl⟩
+  exact (isStable_smul_iff g⁻¹).1 (isStable_of_moment_eq_zero hq)
+
+/-- **Stability is boundedness below and properness of the Kempf–Ness function.** In the Kähler
+setting of `isSemistable_iff_bddBelow_kempfNessFunction`, a point `p` is stable exactly when its
+Kempf–Ness function `Φ_p : Gc → ℝ` is bounded below and proper.
+
+This is [GeorgoulasRobbinSalamon2021], Theorem 7.3. -/
+theorem isStable_iff_bddBelow_and_isProperMap_kempfNessFunction (h : IsComplexifiedAction C J)
+    (hσc : σ.IsClosed) (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) :
+    IsStable C μ p ↔
+      BddBelow (range (kempfNessFunction C μ p)) ∧ IsProperMap (kempfNessFunction C μ p) :=
+  ⟨fun hp ↦ ⟨(isSemistable_iff_bddBelow_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG
+      p).1 hp.isSemistable, hp.isProperMap_kempfNessFunction h hμ hgm⟩,
+    fun ⟨hb, hpr⟩ ↦ isStable_of_bddBelow_of_isProperMap_kempfNessFunction h hμ hgm hb hpr⟩
 
 end Proper
 
