@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
+import SymplecticGeometry.LinearAlgebra.Alternating.Sign
 
 /-!
 # Top forms positive for an orientation
@@ -28,7 +29,10 @@ Positivity is kept by positive multiples, sums, and combinations with nonnegativ
 which one is positive. It is carried back along maps that preserve orientation: if `f` preserves
 the orientations `o` and `o'` at `x`, and `φ` is positive for `o'` at `f x`, then `f^* φ` is
 positive for `o` at `x`, since the derivative of `f` at `x` carries a positively oriented basis to
-one.
+one. Conversely, when the derivative of `f` at `x` is invertible and `φ` is positive for `o'` at
+`f x`, a pull-back `f^* φ` that is positive on one basis with the orientation of `o` shows that
+`f` preserves the orientations at `x`: the derivative carries that basis to one on which `φ` is
+positive, and a top form positive on two bases gives them the same orientation.
 
 ## Main definitions
 
@@ -41,6 +45,11 @@ one.
   nonnegative weights, one of them positive, is positive.
 * `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.isPositiveAt_mpullback`: pull-backs
   along orientation-preserving maps keep top forms positive.
+* `TauCeti.Manifold.Orientation.isOrientationPreservingAt_iff_isPositiveAt_mpullback`: a map with
+  invertible derivative preserves the orientations exactly when it pulls a positive top form back
+  to a positive one.
+* `Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback`: a diffeomorphism
+  preserves an orientation exactly when it pulls a positive top form back to a positive one.
 
 ## References
 
@@ -173,6 +182,66 @@ point and the top form `φ` is positive for `o'`, then its pull-back `f^* φ` is
 theorem IsPositive.mpullback (hf : ∀ x, IsOrientationPreservingAt o o' f x)
     {φ : RoughForm I' M' ℝ k} (hφ : IsPositive o' φ) : IsPositive o (mpullback I I' f φ) :=
   fun x ↦ (hf x).isPositiveAt_mpullback (hφ (f x))
+
+/-- **Orientation from a positive pull-back.** Let `f` have an invertible derivative at `x`, and
+let the top form `φ` be positive for `o'` at `f x`. If the pull-back `f^* φ` takes a positive value
+on one basis of the tangent space at `x` with the orientation of `o`, then `f` preserves the
+orientations `o` and `o'` at `x`. -/
+theorem isOrientationPreservingAt_of_mpullback_apply_pos {x : M}
+    (hf : (mfderiv I I' f x).IsInvertible) {φ : RoughForm I' M' ℝ k}
+    (hφ : IsPositiveAt o' φ (f x)) {c : Module.Basis (Fin k) ℝ (TangentSpace I x)}
+    (hc : c.orientation = o.orientationAt x) (h : 0 < mpullback I I' f φ x c) :
+    IsOrientationPreservingAt o o' f x := by
+  classical
+  obtain ⟨e, he⟩ := hf
+  rw [isOrientationPreservingAt_iff_of_coe_eq o o' f x e he, ← hc,
+    ← Module.Basis.orientation_map]
+  -- Compare the image basis `c.map e` with a basis `d` having the orientation of `o'`: `φ` is
+  -- positive on both, so the change-of-basis determinant from `d` to `c.map e` is positive.
+  set d := (o'.orientationAt (f x)).someBasis (o'.finrank_tangentSpace_eq (f x)).symm
+  have hd : d.orientation = o'.orientationAt (f x) :=
+    (o'.orientationAt (f x)).someBasis_orientation _
+  have hce : 0 < φ (f x) (c.map e.toLinearEquiv) := by
+    rw [mpullback_apply] at h
+    convert h using 2
+    funext i
+    simp [← he]
+  rw [← hd, eq_comm, Module.Basis.orientation_eq_iff_det_pos]
+  refine AlternatingMap.pos_apply_basis_of_pos (f := (φ (f x)).toAlternatingMap) (v := d) _
+    (hφ d hd) ?_ hce
+  rw [Module.Basis.det_self]
+  exact one_pos
+
+/-- **Orientation from a positive pull-back.** For a map `f` with an invertible derivative at `x`
+and a top form `φ` positive for `o'` at `f x`, `f` preserves the orientations `o` and `o'` at `x`
+exactly when the pull-back `f^* φ` is positive for `o` at `x`. -/
+theorem isOrientationPreservingAt_iff_isPositiveAt_mpullback {x : M}
+    (hf : (mfderiv I I' f x).IsInvertible) {φ : RoughForm I' M' ℝ k}
+    (hφ : IsPositiveAt o' φ (f x)) :
+    IsOrientationPreservingAt o o' f x ↔ IsPositiveAt o (mpullback I I' f φ) x := by
+  classical
+  refine ⟨fun h ↦ h.isPositiveAt_mpullback hφ, fun h ↦ ?_⟩
+  have hc := (o.orientationAt x).someBasis_orientation (o.finrank_tangentSpace_eq x).symm
+  exact isOrientationPreservingAt_of_mpullback_apply_pos hf hφ hc (h.apply_pos hc)
+
+section Diffeomorph
+
+open scoped ContDiff
+
+variable {n : ℕ∞ω}
+
+/-- **Orientation-preserving diffeomorphisms from a positive pull-back.** Let `φ` be a top form
+positive for the orientation `o`. A `Cⁿ` diffeomorphism `f` of `M`, for `n ≠ 0`, preserves `o`
+exactly when the pull-back `f^* φ` is positive for `o`. -/
+theorem _root_.Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback (hn : n ≠ 0)
+    {o : TauCeti.Manifold.Orientation I M (Fin k)} {φ : RoughForm I M ℝ k} (hφ : IsPositive o φ)
+    {f : TauCeti.Diff I M n} :
+    f ∈ Diffeomorph.orientationPreservingSubgroup hn o ↔ IsPositive o (mpullback I I f φ) := by
+  rw [Diffeomorph.mem_orientationPreservingSubgroup_iff]
+  exact forall_congr' fun x ↦
+    isOrientationPreservingAt_iff_isPositiveAt_mpullback (f.isInvertible_mfderiv hn) (hφ (f x))
+
+end Diffeomorph
 
 end TauCeti.Manifold.Orientation
 
