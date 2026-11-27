@@ -11,6 +11,7 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Analysis.ODE.ExponentialDichotomy
 import SymplecticGeometry.Analysis.ODE.Linear
+import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import TauCeti.Analysis.InnerProductSpace.LyapunovForm.Inertia
 import TauCeti.Analysis.ODE.ExponentialDichotomy.Hyperbolic
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
@@ -23,7 +24,9 @@ continuous bilinear form on `X` with `c * ‖v‖ ^ 2 ≤ B v (A v)` for some `c
 `exp (t • A)` the quadratic form `v ↦ B v v` then increases. This is Tau Ceti's notion of a
 Lyapunov form (`ContinuousLinearMap.HasLyapunovForm`) without a choice of inner product: on an
 inner product space, `B v w = ⟪S v, w⟫` for a symmetric `S`. This file transfers Tau Ceti's
-inertia theorem to this setting.
+inertia theorem to this setting. It also holds a local estimate near a rest point of a nonlinear
+map `Y` whose derivative at `0` is `A`, on any real normed space: there `B (P w) (P (Y w))`
+bounds a multiple of `‖P w‖ ^ 2` on cones, for an operator `P` commuting with `A`.
 
 ## Main results
 
@@ -36,12 +39,11 @@ inertia theorem to this setting.
   stable subspace and positive definite on the unstable one.
 * `ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`: the negative index of
   inertia of `v ↦ B v v` is the dimension of the stable subspace of `A`.
-* `ContinuousLinearMap.hasDerivAt_apply_self`: the derivative of `B (u s) (u s)` along a curve.
 * `ContinuousLinearMap.exists_forall_half_mul_norm_sq_le_apply`: for a map `Y` with derivative
   `A` at a zero `0` and an operator `P` commuting with `A`, the bound
   `c / 2 * ‖P w‖ ^ 2 ≤ B (P w) (P (Y w))` on each cone `‖w‖ ≤ C * ‖P w‖` near `0`.
 * `ContinuousLinearMap.hasDerivAt_neg_apply_self_comp`: the derivative of `-B (P w) (P w)` along
-  a curve `w` with `w' = Y w`.
+  a curve `w`.
 
 ## Implementation notes
 
@@ -84,15 +86,6 @@ theorem eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul_of_le_apply (hB : ∀ u v,
   have hw0 : ‖w‖ ^ 2 = 0 := by nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖w‖]
   simpa using And.intro hv0 hw0
 
-/-- The derivative of the quadratic form `s ↦ B (u s) (u s)` of a symmetric bilinear form `B`
-along a curve `u` with derivative `u'` at `t` is `2 * B (u t) u'`. -/
-theorem hasDerivAt_apply_self (hB : ∀ u v, B u v = B v u) {u : ℝ → X} {u' : X} {t : ℝ}
-    (hu : HasDerivAt u u' t) :
-    HasDerivAt (fun s ↦ B (u s) (u s)) (2 * B (u t) u') t := by
-  convert B.hasDerivAt_of_bilinear (fun _ ↦ hu) (fun _ ↦ hu) using 1
-  rw [hB u']
-  ring
-
 /-- **The projected quadratic form near a rest point.** Let `Y` vanish at `0` with derivative `A`
 there, let `P` commute with `A`, and let `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`. Then for each
 `C` there is `δ > 0` such that `c / 2 * ‖P w‖ ^ 2 ≤ B (P w) (P (Y w))` for every `w` with
@@ -131,16 +124,15 @@ theorem exists_forall_half_mul_norm_sq_le_apply (hc : 0 < c)
   rw [hsplit]
   linarith
 
-/-- The derivative of `s ↦ -B (P (w s)) (P (w s))` at `t`, along a curve `w` with
-`w' t = Y (w t)`, is `-2 * B (P (w t)) (P (Y (w t)))`, for a symmetric bilinear form `B` and an
-operator `P`. -/
+/-- The derivative of `s ↦ -B (P (w s)) (P (w s))` at `t`, along a curve `w` with derivative `w'`
+at `t`, is `-2 * B (P (w t)) (P w')`, for a symmetric bilinear form `B` and an operator `P`. -/
 theorem hasDerivAt_neg_apply_self_comp (hB : ∀ u v, B u v = B v u) (P : X →L[ℝ] X)
-    {Y : X → X} {w : ℝ → X} {t : ℝ} (hw : HasDerivAt w (Y (w t)) t) :
-    HasDerivAt (fun s ↦ -B (P (w s)) (P (w s))) (-2 * B (P (w t)) (P (Y (w t)))) t := by
-  have h := HasDerivAt.neg (f := fun s ↦ B (P (w s)) (P (w s)))
-    (hasDerivAt_apply_self hB (P.hasFDerivAt.comp_hasDerivAt t hw))
+    {w : ℝ → X} {w' : X} {t : ℝ} (hw : HasDerivAt w w' t) :
+    HasDerivAt (fun s ↦ -B (P (w s)) (P (w s))) (-2 * B (P (w t)) (P w')) t := by
+  have h := (hasDerivAt_const t B).clm_apply_self (P.hasFDerivAt.comp_hasDerivAt t hw) hB
+  rw [zero_apply, zero_apply, zero_add] at h
   rw [neg_mul]
-  exact h
+  exact h.neg
 
 variable [FiniteDimensional ℝ X]
 
