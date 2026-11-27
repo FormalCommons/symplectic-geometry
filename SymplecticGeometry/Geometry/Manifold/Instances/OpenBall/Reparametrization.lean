@@ -8,8 +8,8 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import Mathlib.Analysis.InnerProductSpace.Calculus
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.PartialDiffeomorph
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 import TauCeti.Geometry.Manifold.Instances.OpenBall.Diffeomorph
 
 /-!
@@ -28,8 +28,9 @@ that send `0` to `0`:
 * `SymplecticGeometry.exists_isSmoothEmbedding_range_eq_ball_pi`: for `δ > 0`, a smooth
   embedding of `ι → ℝ` onto its sup-norm ball of radius `δ`, the box `(-δ, δ)ᶥ`. It is Mathlib's
   `OpenPartialHomeomorph.univBall 0 δ` of `ℝ` on each coordinate (`OpenPartialHomeomorph.pi`),
-  made a diffeomorphism onto its target by Tau Ceti's
-  `TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph`.
+  which is a smooth embedding onto its target, as its source is everything
+  (`OpenPartialHomeomorph.isSmoothEmbedding_of_source_eq_univ` and
+  `PartialEquiv.range_eq_target_of_source_eq_univ`).
 * `SymplecticGeometry.exists_isSmoothEmbedding_prod_range_eq_ball_prod_ball`: the product of
   the two, a smooth embedding of `V × (ι → ℝ)` onto (open unit ball of `F`) × (box).
 
@@ -101,25 +102,15 @@ theorem exists_isSmoothEmbedding_range_eq_ball_pi {δ : ℝ} (hδ : 0 < δ) :
   let Θ : OpenPartialHomeomorph (ι → ℝ) (ι → ℝ) := .pi fun _ ↦ univBall (0 : ℝ) δ
   have hsource : Θ.source = univ := by simp [Θ, univBall_source]
   have htarget : Θ.target = ball 0 δ := by simp [Θ, univBall_target _ hδ, ball_pi _ hδ]
-  let Φ : PartialDiffeomorph 𝓘(ℝ, ι → ℝ) 𝓘(ℝ, ι → ℝ) (ι → ℝ) (ι → ℝ) ∞ :=
-    TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph Θ
-      (contDiff_pi.2 fun i ↦ contDiff_univBall.comp (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i)).contDiffOn
+  refine ⟨Θ, Θ.isSmoothEmbedding_of_source_eq_univ hsource
+      (contDiff_pi.2 fun i ↦ contDiff_univBall.comp (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i))
       (htarget ▸ contDiffOn_pi.2 fun i ↦ contDiffOn_univBall_symm.comp
         (contDiff_apply ℝ (fun _ : ι ↦ ℝ) i).contDiffOn fun y hy ↦
-          mem_ball_zero_iff.2 ((norm_le_pi_norm y i).trans_lt (mem_ball_zero_iff.1 hy)))
-  have hΦ : Φ.toPartialEquiv = Θ.toPartialEquiv :=
-    TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph_toPartialEquiv _ _ _
-  have htop : (⟨Φ.source, Φ.open_source⟩ : TopologicalSpace.Opens (ι → ℝ)) = ⊤ := by
-    rw [← SetLike.coe_set_eq, TopologicalSpace.Opens.coe_mk, TopologicalSpace.Opens.coe_top, hΦ]
-    exact hsource
-  refine ⟨(Subtype.val ∘ Φ.toDiffeomorphSourceTarget) ∘ (Diffeomorph.ofTop _ htop).symm,
-    TauCeti.isSmoothEmbedding_comp_diffeomorph _
-      (TauCeti.isSmoothEmbedding_comp_diffeomorph _ (IsSmoothEmbedding.of_opens _)), ?_, ?_⟩
-  · rw [EquivLike.range_comp, EquivLike.range_comp, Subtype.range_coe,
-      TopologicalSpace.Opens.coe_mk, hΦ]
-    exact htarget
-  · ext i
-    simp [hΦ, Θ, univBall_apply_zero]
+          mem_ball_zero_iff.2 ((norm_le_pi_norm y i).trans_lt (mem_ball_zero_iff.1 hy))),
+    by rw [← coe_toPartialEquiv, Θ.toPartialEquiv.range_eq_target_of_source_eq_univ hsource,
+      htarget], ?_⟩
+  ext i
+  simp [Θ, univBall_apply_zero]
 
 end Box
 
