@@ -48,6 +48,8 @@ every time.
   `TauCeti.Diffeotopy.list_prod_map_apply_eq_self_of_notMem_biUnion`: a product of diffeotopies
   with pairwise disjoint supports, at a time at which each factor fixes the complement of its
   set.
+* `TauCeti.Diffeotopy.list_prod_map_apply_fst`: a product of diffeotopies of `S × P` that each
+  keep the first coordinate keeps it.
 * `TauCeti.Diffeotopy.dist_mul_apply_le`, `TauCeti.Diffeotopy.dist_mul_apply_lt_add`: the
   displacement of a product.
 * `TauCeti.Diffeotopy.dist_transDiffeomorph_apply_le`,
@@ -196,6 +198,18 @@ theorem list_prod_map_apply_eq_self_of_notMem_biUnion {ι : Type*} {Φ : ι → 
     {W : ι → Set M} {l : List ι} (t : I) (hΦ : ∀ i ∈ l, ∀ x ∉ W i, Φ i (t, x) = x)
     {x : M} (hx : x ∉ ⋃ i ∈ l, W i) : (l.map Φ).prod (t, x) = x :=
   list_prod_map_apply_eq_self fun i hi ↦ hΦ i hi x fun hxi ↦ hx (mem_iUnion₂_of_mem hi hxi)
+
+/-- A product over a list of diffeotopies of a product `S × P` that each keep the first
+coordinate also keeps the first coordinate. -/
+theorem list_prod_map_apply_fst {S P : Type*} [TopologicalSpace S] [TopologicalSpace P]
+    [ChartedSpace H (S × P)] {ι : Type*} {Φ : ι → Diffeotopy J n (S × P)} {l : List ι}
+    (hΦ : ∀ i ∈ l, ∀ t p, (Φ i (t, p)).1 = p.1) (t : I) (p : S × P) :
+    ((l.map Φ).prod (t, p)).1 = p.1 := by
+  refine List.prod_induction (fun Ψ : Diffeotopy J n (S × P) ↦ ∀ t p, (Ψ (t, p)).1 = p.1)
+    (fun Ψ Ψ' hΨ hΨ' t p ↦ by rw [mul_apply, hΨ, hΨ']) (fun t p ↦ by rw [one_apply])
+    (fun Ψ hΨ ↦ ?_) t p
+  obtain ⟨i, hi, rfl⟩ := List.mem_map.1 hΨ
+  exact hΦ i hi
 
 end Support
 
