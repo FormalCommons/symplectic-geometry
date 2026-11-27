@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
 public import TauCeti.Analysis.Normed.Module.Alternating.TopDegree
 
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Canonical
+
 /-!
 # The coordinate form pulled back by the blowdown
 
@@ -154,27 +156,12 @@ theorem coordForm_blowdown (i : Fin (n + 1)) {z : Blowup c}
     ((contMDiff_blowdown c) z).mdifferentiableAt (by simp)
   have hχd : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) χ z :=
     (contMDiffAt_of_mem_maximalAtlas hχ hz).mdifferentiableAt (by simp)
-  have hF := ((hasFDerivAt_blowdown_blowupModelChart_symm i (χ z)).differentiableAt.hasFDerivAt
-    ).hasMFDerivAt
-  have key := (mfderiv_comp z hφd hbd).symm.trans (heq.mfderiv_eq.trans
-    ((hF.comp z hχd.hasMFDerivAt).mfderiv))
   have hχz : χ z = blowupModelChart i (liftChart c φ z) := by
     simp only [χ, OpenPartialHomeomorph.coe_trans, comp_apply,
       PartialDiffeomorph.toFun'_toOpenPartialHomeomorph, coe_liftChartPartialDiffeomorph]
-  ext v
-  have h : b.det (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) φ (blowdown c z) ∘
-      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c) z ∘ v)) =
-      b.det ((fderiv ℂ (fun w ↦ ((blowupModelChart i).symm w).blowdown) (χ z) :
-        (Fin (n + 1) → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) ∘
-        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) χ z ∘ v)) :=
-    congrArg (fun L : (Fin (n + 1) → ℂ) →L[ℂ] Fin (n + 1) → ℂ ↦ b.det (L ∘ v)) key
-  rw [Basis.det_comp, det_fderiv_blowdown_blowupModelChart_symm, hχz] at h
-  rw [← Basis.continuousDet_apply, ← Basis.continuousDet_apply] at h
-  -- The two sides of `h` are those of the goal applied to `v`, by the definitions of
-  -- `compContinuousLinearMap` and of the scalar action. The rewriting lemmas for these do not
-  -- unify here, where the tangent spaces of the blowup are `E` only by definition, so the goal is
-  -- closed by `exact`.
-  exact h
+  rw [b.continuousDet_compContinuousLinearMap_mfderiv_comp hφd hbd hχd
+    (hasFDerivAt_blowdown_blowupModelChart_symm i (χ z)).differentiableAt heq,
+    det_fderiv_blowdown_blowupModelChart_symm, hχz]
 
 end Blowup
 

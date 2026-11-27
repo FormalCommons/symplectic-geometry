@@ -79,8 +79,6 @@ chart of the model it is a chart of the maximal atlas of `Blowup c` (Tau Ceti's
   pieces of the blowup and on the divisor.
 * `SymplecticGeometry.Blowup.blowdown_liftChart`: over the source of `φ`, the blowdown of the
   lifted chart is `φ ∘ blowdown c`.
-* `SymplecticGeometry.Blowup.liftChart_self`: lifted from `c` itself, the lifted chart is
-  `Blowup.lift c` over the source of `c`.
 * `SymplecticGeometry.Blowup.liftChart_ofDirection_directionEquiv_mk`: the lifted chart sends the
   point of the divisor over the line of `v ∈ T_{p₀}M` to the point `([dφ(p₀) v], 0)`.
 * `SymplecticGeometry.Blowup.isLocalDiffeomorphOn_liftChart`,
@@ -365,22 +363,6 @@ theorem liftChart_mem_modelOpens {z : Blowup c} (hz : blowdown c z ∈ φ.source
     liftChart c φ z ∈ modelOpens φ := by
   rw [mem_modelOpens, blowdown_liftChart c φ hz]
   exact φ.map_source hz
-
-/-- Lifted from `c` itself, the lifted chart is the map `Blowup.lift c` to the model, over the
-source of `c`. -/
-theorem liftChart_self {z : Blowup c} (hz : blowdown c z ∈ c.source) :
-    liftChart c c z = lift c z := by
-  rw [liftChart_of_mem ⟨hz, hz⟩, BlowupChart.fderivTransEquiv_self]
-  have hp : (lift c z).blowdown ∈ c.target := by
-    rw [blowdown_lift c hz]
-    exact c.map_source hz
-  have hψ : (c.symm.trans c.toOpenPartialHomeomorph) (lift c z).blowdown = (lift c z).blowdown := by
-    rw [OpenPartialHomeomorph.coe_trans, Function.comp_apply, c.right_inv hp]
-  by_cases h0 : (lift c z).blowdown = 0
-  · rw [liftMap_of_eq_zero _ (by rw [hψ, h0]), ContinuousLinearEquiv.mapProjectivization_refl,
-      Homeomorph.refl_apply, id_eq, ← eq_zeroSection_pr h0]
-  · rw [liftMap_of_ne_zero _ (by rwa [hψ])]
-    exact eq_of_blowdown_eq (by rwa [blowdown_ofNeZero, hψ]) (by rw [blowdown_ofNeZero, hψ])
 
 /-- Through `directionEquiv c`, the lifted chart sends the point of the exceptional divisor over
 the line of a tangent vector `v` at the centre to the point of the zero section over the line of

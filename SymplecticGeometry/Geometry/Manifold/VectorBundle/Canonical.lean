@@ -16,7 +16,9 @@ it, on the source of the chart, with the pull-back of the determinant form `b.co
 the model space by the differential of the extended chart
 (`TauCeti.CanonicalBundle.coordForm_eq_compContinuousLinearMap_mfderiv`). In that form the
 coordinate form makes sense for any chart of the maximal atlas, and the chain rule computes its
-pull-backs.
+pull-backs: if `e ∘ f` agrees near `z` with `F ∘ χ` for a map `F : E → E`, then the form of `e`
+pulled back by the differential of `f` is `det (DF (χ z))` times the form of `χ`
+(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_comp`).
 
 ## References
 
@@ -47,5 +49,40 @@ theorem coordForm_eq_compContinuousLinearMap_mfderiv {x₀ x : M}
     (M := E) b.continuousDet _ v).symm
 
 end TauCeti.CanonicalBundle
+
+namespace Module.Basis
+
+variable {𝕜 E H H' : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] [TopologicalSpace H] [TopologicalSpace H'] {I : ModelWithCorners 𝕜 E H}
+  {I' : ModelWithCorners 𝕜 E H'} {M N : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [TopologicalSpace N] [ChartedSpace H' N] {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+/-- **The chain rule for coordinate forms.** Let `f : M → N`, `e : N → E` and `χ : M → E` be
+differentiable at the points concerned, and `F : E → E` differentiable at `χ z`, with `e ∘ f`
+equal to `F ∘ χ` near `z`. Then the determinant form of `b` pulled back by the differential of
+`e` at `f z` and then by that of `f` at `z` is `det (DF (χ z))` times the determinant form of
+`b` pulled back by the differential of `χ` at `z`. -/
+theorem continuousDet_compContinuousLinearMap_mfderiv_comp (b : Module.Basis ι 𝕜 E) {f : M → N}
+    {e : N → E} {χ : M → E} {F : E → E} {z : M} (he : MDifferentiableAt I' 𝓘(𝕜, E) e (f z))
+    (hf : MDifferentiableAt I I' f z) (hχ : MDifferentiableAt I 𝓘(𝕜, E) χ z)
+    (hF : DifferentiableAt 𝕜 F (χ z)) (heq : e ∘ f =ᶠ[nhds z] F ∘ χ) :
+    (b.continuousDet.compContinuousLinearMap (mfderiv I' 𝓘(𝕜, E) e (f z))).compContinuousLinearMap
+        (mfderiv I I' f z) =
+      LinearMap.det (fderiv 𝕜 F (χ z) : E →ₗ[𝕜] E) •
+        b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) χ z) := by
+  have key := (mfderiv_comp z he hf).symm.trans (heq.mfderiv_eq.trans
+    ((hF.hasFDerivAt.hasMFDerivAt.comp z hχ.hasMFDerivAt).mfderiv))
+  ext v
+  have h : b.det (mfderiv I' 𝓘(𝕜, E) e (f z) ∘ (mfderiv I I' f z ∘ v)) =
+      b.det ((fderiv 𝕜 F (χ z) : E →ₗ[𝕜] E) ∘ (mfderiv I 𝓘(𝕜, E) χ z ∘ v)) :=
+    congrArg (fun L : E →L[𝕜] E ↦ b.det (L ∘ v)) key
+  rw [Basis.det_comp, ← Basis.continuousDet_apply, ← Basis.continuousDet_apply] at h
+  -- The two sides of `h` are those of the goal applied to `v`, by the definitions of
+  -- `compContinuousLinearMap` and of the scalar action. The rewriting lemmas for these do not
+  -- unify here, where the tangent spaces are `E` only by definition, so the goal is closed by
+  -- `exact`.
+  exact h
+
+end Module.Basis
 
 end
