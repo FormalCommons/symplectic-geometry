@@ -244,14 +244,15 @@ private theorem mfderiv_symplecticNormalRepresentative_eq {hσ₀ : σ₀.IsNond
     (f₁.eval₂_symplecticNormalRepresentative_mfderiv h₁ (φ q) hn _ _)).trans (sub_zero 0))
 
 variable [I₀.Boundaryless] [T2Space M₀] [T2Space M₁]
-  [SecondCountableTopology M₀] [SecondCountableTopology M₁]
+  [SecondCountableTopology M₀]
 
 /-- **The symplectic neighbourhood theorem.** Let `f₀ : Q₀ → M₀` and `f₁ : Q₁ → M₁` be smooth
-embeddings with symplectic tangent images into second countable Hausdorff manifolds without
-boundary with symplectic forms `σ₀` and `σ₁`. Let `φ : Q₀ → Q₁` be a diffeomorphism with
-`φ^* (f₁^* σ₁) = f₀^* σ₀`, and let `Φ q` be linear isomorphisms from the normal spaces of `f₀` at
-`q` to those of `f₁` at `φ q` which preserve the normal symplectic forms and form a smooth map of
-normal bundles, the normal bundles having model fibres `P₀` and `P₁` of the right dimensions.
+embeddings with symplectic tangent images into Hausdorff manifolds without boundary, `M₀`
+second countable, with symplectic forms `σ₀` and `σ₁`. Let `φ : Q₀ → Q₁` be a diffeomorphism
+with `φ^* (f₁^* σ₁) = f₀^* σ₀`, and let `Φ q` be linear isomorphisms from the normal spaces of
+`f₀` at `q` to those of `f₁` at `φ q` which preserve the normal symplectic forms and form a
+smooth map of normal bundles, the normal bundles having model fibres `P₀` and `P₁` of the right
+dimensions.
 Then there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁` pulling the
 restriction of `σ₁` back to that of `σ₀`, such that for every `q`, `f₀ q ∈ U₀`,
 `ψ (f₀ q) = f₁ (φ q)`, `dψ ∘ df₀ = df₁ ∘ dφ` at `q`, and `dψ` maps the symplectic

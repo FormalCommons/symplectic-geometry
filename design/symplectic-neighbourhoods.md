@@ -19,9 +19,11 @@ Tau Ceti paths are relative to `.lake/packages/TauCeti/TauCeti/`, as in
 *Manifolds, families and signs* of `DESIGN.md`. Every manifold here is
 boundaryless, finite-dimensional, Hausdorff and second countable, as Tau
 Ceti's tubular neighbourhoods and Moser theorems need it to be, except the
-targets `M₁` of `exists_diffeomorph_opens_mfderiv_eq` and
-`exists_symplectomorphism_opens_mfderiv_eq`, which need not be second
-countable.
+targets `M₁` of `exists_diffeomorph_opens_mfderiv_eq`,
+`exists_symplectomorphism_opens_mfderiv_eq`,
+`exists_symplectomorphism_opens_of_mpullback_eq` and the isotropic,
+coisotropic, symplectic and codimension-two neighbourhood theorems, which
+need not be second countable.
 
 ## What exists, and what the part adds
 
@@ -533,8 +535,10 @@ The comparison theorem. Namespace `TauCeti.SmoothEmbedding`.
   and `mfderiv ψ v = L q v + mfderiv J I₁ f₁ q u` for some `u`, for
   `v ∈ ω₀`-orthogonal of the tangent range. Route: Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible` gives compatible
-  `J₀`, `J₁`, read pointwise by `Compatible.compatibleAt`. Then `smoothExtendAlong` is an `A` for
-  `exists_symplectomorphism_opens_mfderiv_eq`.
+  `J₀` on `M₀` and `J₁` on a second countable open neighbourhood of the
+  image of `f₁`, read pointwise by `Compatible.compatibleAt`. Then
+  `smoothExtendAlong`, for `f₁` with image restricted to that
+  neighbourhood, is an `A` for `exists_symplectomorphism_opens_mfderiv_eq`.
 
 ### `Geometry/Symplectic/Neighborhood/Symplectic.lean`
 
