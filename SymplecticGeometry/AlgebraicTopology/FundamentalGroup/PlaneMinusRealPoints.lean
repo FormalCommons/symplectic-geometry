@@ -614,14 +614,13 @@ private theorem exists_mulEquiv_member (hδ : 0 < δ) (hc : Pairwise fun i j ↦
     Subtype.ext ((Topology.IsEmbedding.homeomorphOfSubsetRange_apply_coe _ _ _).trans
       coe_spineBase)
   refine ⟨(FundamentalGroup.homeomorphMulEquivOfEq H hH).trans e, ?_⟩
-  rw [MulEquiv.trans_apply, FundamentalGroup.homeomorphMulEquivOfEq_apply,
-    FundamentalGroup.mapOfEq_fromPath_mk, ← he]
+  rw [MulEquiv.trans_apply, FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk, ← he]
   congr 3
   ext t
   have hHc (z : member c δ k) : (H z : ℂ) = (z : spine c δ) :=
     Topology.IsEmbedding.homeomorphOfSubsetRange_apply_coe _ _ _
   simp only [Path.codRestrict_coe, Path.cast_coe, Path.map_coe, Function.comp_apply,
-    ContinuousMap.coe_ofClass, hHc, coe_spineLoop_apply]
+    hHc, coe_spineLoop_apply]
 
 /-! ### The free basis -/
 
