@@ -56,11 +56,13 @@ compose to a smooth diffeomorphism of real manifolds from the Fermat cubic onto 
 * `SymplecticGeometry.fermatCubicDiffeomorph`: the biholomorphism from the Fermat cubic to the
   points of `fermatWeierstrassCurve`, with `toProjectivization_fermatCubicDiffeomorph_mk` giving
   its value on a representative and `coe_fermatCubicDiffeomorph_symm_apply` its inverse.
-* `SymplecticGeometry.fermatUniformization`: a biholomorphism from `ℂ / Λ` onto the points of
-  `fermatWeierstrassCurve` that is an additive isomorphism, chosen from Tau Ceti's
-  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`
-  (`SymplecticGeometry.fermatUniformization_add` and
-  `SymplecticGeometry.fermatUniformization_symm_add`).
+* `SymplecticGeometry.fermatUniformizationAddEquiv`: an isomorphism of topological groups from
+  `ℂ / Λ` onto the points of `fermatWeierstrassCurve`, chosen from Tau Ceti's
+  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`.
+* `SymplecticGeometry.fermatUniformization`: the same map as a biholomorphism
+  (`SymplecticGeometry.coe_fermatUniformizationAddEquiv` and
+  `SymplecticGeometry.coe_fermatUniformizationAddEquiv_symm`), with `simp` lemmas for its values
+  on `0`, sums, negatives and differences, and those of its inverse.
 * `SymplecticGeometry.fermatPeriodBasis`: a `ℤ`-basis `b₀, b₁` of `Λ` with
   `0 < Im (conj b₀ * b₁)` (`SymplecticGeometry.zero_lt_im_conj_mul_fermatPeriodBasis`).
 * `SymplecticGeometry.fermatCubicTorusDiffeomorph p`: the smooth diffeomorphism of real manifolds
@@ -233,42 +235,113 @@ theorem coe_fermatCubicDiffeomorph_symm_apply (P : fermatWeierstrassCurve.toProj
       fermatCubicLinearEquiv.symm.mapProjectivization P.toProjectivization :=
   congrArg (· P.toProjectivization) (LinearEquiv.mapProjectivization_symm fermatCubicLinearEquiv)
 
+/-- The isomorphism of topological groups from `ℂ / Λ`, for the period lattice `Λ` of
+`fermatWeierstrassCurve`, onto the group of points of `fermatWeierstrassCurve` that underlies
+`fermatUniformization`: one of the isomorphisms given by Tau Ceti's uniformization theorem
+`WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`, chosen once and for all.
+As a function it is `fermatUniformization` (`coe_fermatUniformizationAddEquiv`). -/
+noncomputable def fermatUniformizationAddEquiv :
+    (ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) ≃ₜ+
+      fermatWeierstrassCurve.toProjective.Point :=
+  (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose
+
+theorem fermatUniformizationAddEquiv_def :
+    fermatUniformizationAddEquiv =
+      (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose :=
+  (rfl)
+
 /-- **The Weierstrass curve `Y² Z = X³ - 432 Z³` as a complex torus.** A biholomorphism from
 `ℂ / Λ`, for the period lattice `Λ` of `fermatWeierstrassCurve`, onto the points of
-`fermatWeierstrassCurve`, which is also an isomorphism of groups. It is one of those given by Tau
-Ceti's uniformization theorem `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`,
-chosen once and for all. -/
+`fermatWeierstrassCurve`, which is also an isomorphism of groups: as a function it is the
+additive equivalence `fermatUniformizationAddEquiv` (`coe_fermatUniformizationAddEquiv`). -/
 noncomputable def fermatUniformization :
     (ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) ≃ₘ^ω⟮𝓘(ℂ), 𝓘(ℂ)⟯
       fermatWeierstrassCurve.toProjective.Point where
-  toEquiv := (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose
-  contMDiff_toFun :=
-    (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.1
-  contMDiff_invFun :=
-    (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.2
+  toEquiv := fermatUniformizationAddEquiv.toEquiv
+  contMDiff_toFun := by
+    rw [fermatUniformizationAddEquiv_def]
+    exact (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.1
+  contMDiff_invFun := by
+    rw [fermatUniformizationAddEquiv_def]
+    exact (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose_spec.2
 
-/-- `fermatUniformization` is the isomorphism of groups chosen from
-`WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`. -/
-theorem coe_fermatUniformization :
-    ⇑fermatUniformization =
-      (exists_continuousAddEquiv_periodLattice_contMDiff fermatWeierstrassCurve).choose :=
+/-- The additive equivalence `fermatUniformizationAddEquiv` and the biholomorphism
+`fermatUniformization` are the same function. -/
+@[simp]
+theorem coe_fermatUniformizationAddEquiv :
+    ⇑fermatUniformizationAddEquiv = ⇑fermatUniformization :=
   (rfl)
+
+/-- The inverses of the additive equivalence `fermatUniformizationAddEquiv` and of the
+biholomorphism `fermatUniformization` are the same function. -/
+@[simp]
+theorem coe_fermatUniformizationAddEquiv_symm :
+    ⇑fermatUniformizationAddEquiv.symm = ⇑fermatUniformization.symm :=
+  (rfl)
+
+/-- `fermatUniformization` sends the class of `0` in `ℂ / Λ` to the zero of the group of points of
+`fermatWeierstrassCurve`. -/
+@[simp]
+theorem fermatUniformization_zero : fermatUniformization 0 = 0 := by
+  rw [← coe_fermatUniformizationAddEquiv]
+  exact map_zero _
 
 /-- `fermatUniformization` is additive: it sends a sum of classes in `ℂ / Λ` to the sum of their
 images in the group of points of `fermatWeierstrassCurve`. -/
 @[simp]
 theorem fermatUniformization_add (z w : ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) :
     fermatUniformization (z + w) = fermatUniformization z + fermatUniformization w := by
-  rw [coe_fermatUniformization]
+  rw [← coe_fermatUniformizationAddEquiv]
   exact map_add _ z w
+
+/-- `fermatUniformization` sends the negative of a class in `ℂ / Λ` to the negative of its
+image. -/
+@[simp]
+theorem fermatUniformization_neg (z : ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) :
+    fermatUniformization (-z) = -fermatUniformization z := by
+  rw [← coe_fermatUniformizationAddEquiv]
+  exact map_neg _ z
+
+/-- `fermatUniformization` sends a difference of classes in `ℂ / Λ` to the difference of their
+images. -/
+@[simp]
+theorem fermatUniformization_sub (z w : ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) :
+    fermatUniformization (z - w) = fermatUniformization z - fermatUniformization w := by
+  rw [← coe_fermatUniformizationAddEquiv]
+  exact map_sub _ z w
+
+/-- The inverse of `fermatUniformization` sends the zero of the group of points of
+`fermatWeierstrassCurve` to the class of `0` in `ℂ / Λ`. -/
+@[simp]
+theorem fermatUniformization_symm_zero : fermatUniformization.symm 0 = 0 := by
+  rw [← coe_fermatUniformizationAddEquiv_symm]
+  exact map_zero _
 
 /-- The inverse of `fermatUniformization` is additive: it sends a sum of points of
 `fermatWeierstrassCurve` to the sum of their classes in `ℂ / Λ`. -/
 @[simp]
 theorem fermatUniformization_symm_add (P Q : fermatWeierstrassCurve.toProjective.Point) :
     fermatUniformization.symm (P + Q) =
-      fermatUniformization.symm P + fermatUniformization.symm Q :=
-  fermatUniformization.injective <| by simp
+      fermatUniformization.symm P + fermatUniformization.symm Q := by
+  rw [← coe_fermatUniformizationAddEquiv_symm]
+  exact map_add _ P Q
+
+/-- The inverse of `fermatUniformization` sends the negative of a point of
+`fermatWeierstrassCurve` to the negative of its class in `ℂ / Λ`. -/
+@[simp]
+theorem fermatUniformization_symm_neg (P : fermatWeierstrassCurve.toProjective.Point) :
+    fermatUniformization.symm (-P) = -fermatUniformization.symm P := by
+  rw [← coe_fermatUniformizationAddEquiv_symm]
+  exact map_neg _ P
+
+/-- The inverse of `fermatUniformization` sends a difference of points of
+`fermatWeierstrassCurve` to the difference of their classes in `ℂ / Λ`. -/
+@[simp]
+theorem fermatUniformization_symm_sub (P Q : fermatWeierstrassCurve.toProjective.Point) :
+    fermatUniformization.symm (P - Q) =
+      fermatUniformization.symm P - fermatUniformization.symm Q := by
+  rw [← coe_fermatUniformizationAddEquiv_symm]
+  exact map_sub _ P Q
 
 /-- A positively oriented `ℤ`-basis `b₀, b₁` of the period lattice of `fermatWeierstrassCurve`:
 one with `0 < Im (conj b₀ * b₁)`, chosen by `ZLattice.exists_basis_zero_lt_im_conj_mul`. -/
