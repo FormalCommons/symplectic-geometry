@@ -434,7 +434,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
     rw [Manifold.tangentSpaceProdEquiv_apply, ← mul_one (NormedSpace.fromTangentSpace _ _),
       ← smul_eq_mul]
     exact (hasDerivAt_id p.1).mvfderiv_comp_fst_apply u
-  rw [stableHamiltonianModel_def, SmoothBundleForm.eval₂_apply, Submodule.coe_sub, Pi.sub_apply,
+  rw [stableHamiltonianModel_def, SmoothBundleForm.eval₂_apply, SmoothBundleForm.sub_apply,
     ContinuousAlternatingMap.sub_apply, ← SmoothBundleForm.eval₂_apply, eval₂_mpullback_snd,
     mextDerivₗ_apply, coe_funSMulₗ g β,
     mextDeriv_fun_smul_apply ((g.contMDiff p).mdifferentiableAt (by simp))
@@ -486,8 +486,8 @@ private theorem bilinFormAt_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
     ContinuousLinearEquiv.symm_symm, ContinuousLinearEquiv.prodCongr_symm,
     ContinuousLinearEquiv.prodCongr_apply, ContinuousLinearEquiv.refl_symm,
     ContinuousLinearEquiv.coe_refl', id_eq, LinearMap.neg_apply, degreeOneEquiv_coe_apply,
-    SmoothBundleForm.eval₂_apply, Submodule.coe_sub, Submodule.coe_smul, Pi.sub_apply,
-    Pi.smul_apply, ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
+    SmoothBundleForm.eval₂_apply, SmoothBundleForm.sub_apply, SmoothBundleForm.smul_apply,
+    ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
     bilinFormAt_apply, smul_eq_mul]
   ring
 

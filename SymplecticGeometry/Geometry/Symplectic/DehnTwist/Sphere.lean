@@ -848,7 +848,7 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
     have h1 := mpullback_liftOpens_apply_coe ι.toPartialDiffeomorph (by simp) hUne (hUne.map ι)
       θ.val (x := ⟨z, hWU (subset_closure hz)⟩) (by simp)
     refine eq_add_of_sub_eq' ?_
-    rw [hdg z hz, Submodule.coe_sub, Pi.sub_apply, SmoothForm.coe_mpullback_subtype_val_apply,
+    rw [hdg z hz, SmoothBundleForm.sub_apply, SmoothForm.coe_mpullback_subtype_val_apply,
       SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
     congr 1
     simpa only [Diffeomorph.coe_toPartialDiffeomorph] using h1
