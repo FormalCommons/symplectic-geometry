@@ -8,7 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -64,7 +64,7 @@ namespace TauCeti.Manifold.Orientation
 
 open Bundle
 
-variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace H M] [ChartedSpace E M]
   [IsManifold I 1 M] {m : ℕ} (hE : finrank ℝ E = m + 1)
