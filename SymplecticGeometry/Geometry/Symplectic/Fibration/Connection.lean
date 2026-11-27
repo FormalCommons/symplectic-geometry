@@ -91,6 +91,11 @@ symplectomorphism between these fibre forms.
   is `IsSymplectic.mextDeriv_apply_eq_zero` with
   `TauCeti.SmoothTwoForm.isVerticallyClosed_iff_forall_mem_horizontalDistribution`. Compactness
   of `F` makes `proj` proper (`TauCeti.isProperMap_of_forall_exists_trivialization`).
+* `TauCeti.IsEhresmannConnection.IsSymplectic.exists_restrictsTo_isVerticallyClosed`: if
+  moreover the coordinate changes of `A` preserve `σ`, every symplectic connection is the
+  connection of a vertically closed two-form that restricts to `σ`. The form that
+  `TauCeti.SmoothTwoForm.exists_restrictsTo_horizontalDistribution_eq` builds has that
+  connection, and the previous result shows that it is vertically closed.
 
 ## Implementation notes
 
@@ -533,6 +538,22 @@ theorem _root_.TauCeti.IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed
     have hT := h.mpullback_parallelTransportIn hfp hA
       (hnd.isEhresmannConnection (hA.isSubmersion ENat.LEInfty.out)) hγ hs ht
     rwa [MapFiber.Atlas.restrictsTo_iff.1 hτ, MapFiber.Atlas.restrictsTo_iff.1 hτ] at hT
+
+/-- **Symplectic connections come from connection two-forms.** Let `A` be a smooth atlas of
+`proj` with compact model fibre `F`, whose coordinate changes preserve a symplectic form `σ` on
+`F`. Every smooth Ehresmann connection `D` on `proj` that is symplectic for `A` and `σ` is the
+connection of a two-form `τ` on `M` that restricts to `σ` on the fibres of `A` and is vertically
+closed for `proj`: the horizontal spaces of `τ` are those of `D`. -/
+theorem _root_.TauCeti.IsEhresmannConnection.IsSymplectic.exists_restrictsTo_isVerticallyClosed
+    [CompactSpace F] {σ : SmoothTwoForm IF F} {D : Π x : M, Submodule ℝ (TangentSpace IM x)}
+    {hD : IsEhresmannConnection IM IB ∞ proj D} (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsSymplectic)
+    (hS : hD.IsSymplectic A σ) :
+    ∃ τ : SmoothTwoForm IM M, A.RestrictsTo σ τ ∧ IsVerticallyClosed IB proj τ ∧
+      horizontalDistribution IB proj τ = D := by
+  obtain ⟨τ, hτ, rfl⟩ :=
+    exists_restrictsTo_horizontalDistribution_eq hA hH hσ.isNondegenerate hD
+  exact ⟨τ, hτ, (IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed hA hσ hτ).1 hS, rfl⟩
 
 end Transport
 
