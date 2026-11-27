@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Spec
 
 import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
+import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
@@ -57,6 +58,15 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   least `7`, and the second derivative is at least `-21 / r`, so both inequalities of
   `SymplecticGeometry.isConvexShapeAt_iff` hold with a wide margin.
   From `(2 + L) δ` on, the leaf `ℓ` is `√(64 r² - ℓ²)` (`SymplecticGeometry.sqrtSubLeaf_of_ge`).
+
+* `SymplecticGeometry.exists_convexShapeFamily_sqrt_sub`: these leaves, for `L` as above and
+  `K = 2 + L`, as the part `ℓ ∈ [-8 δ, 0]` of the family over the cylinder. The leaf `-8 δ` is
+  `√(64 r² - 64 δ²)` (`SymplecticGeometry.sqrtSubLeaf_neg_eight_mul`); the family is jointly
+  smooth where `δ < r` and `|ℓ| < 8 r`, since there the radicand is a convex combination of
+  `64 (r² - δ²)` and `64 r² - ℓ²` (`SymplecticGeometry.contDiffOn_uncurry_sqrtSubLeaf`); the
+  slope of each leaf tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_sqrtSubLeaf`); and
+  at each `r > δ` the leaves increase strictly with `ℓ`
+  (`SymplecticGeometry.strictMonoOn_sqrtSubLeaf`).
 
 ## References
 
@@ -433,6 +443,113 @@ theorem exists_isConvexShapeAt_sqrtSubLeaf :
         ((le_max_right _ _).trans hL) hm h
   have h := h₁.rescale hδ
   rwa [mul_div_cancel₀ r hδ.ne', ← sqrtSubLeaf_eq_mul_sqrtSubLeaf_one hδ] at h
+
+/-- The bottom leaf: the leaf `-8 δ` is `√(64 r² - 64 δ²)` at every `r`. -/
+theorem sqrtSubLeaf_neg_eight_mul (L δ r : ℝ) :
+    sqrtSubLeaf L δ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2) := by
+  rw [sqrtSubLeaf_def]; ring_nf
+
+/-- The family `(ℓ, r) ↦ sqrtSubLeaf L δ ℓ r` is smooth where `δ < r` and `|ℓ| < 8 r`, for
+`0 ≤ δ`: there the radicand is positive. -/
+theorem contDiffOn_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) :
+    ContDiffOn ℝ ∞ (Function.uncurry (sqrtSubLeaf L δ)) {p | δ < p.2 ∧ |p.1| < 8 * p.2} := by
+  have e : Function.uncurry (sqrtSubLeaf L δ) = fun p : ℝ × ℝ ↦
+      (p.1 + 8 * δ) / 64 * (1 - smoothTransition ((p.2 - 2 * δ) / (L * δ))) +
+        √(64 * (p.2 ^ 2 - δ ^ 2) +
+          (64 * δ ^ 2 - p.1 ^ 2) * smoothTransition ((p.2 - 2 * δ) / (L * δ))) := by
+    ext ⟨ℓ, r⟩
+    rw [Function.uncurry_apply_pair, sqrtSubLeaf_def]
+  have hH : ContDiff ℝ ∞ fun p : ℝ × ℝ ↦ smoothTransition ((p.2 - 2 * δ) / (L * δ)) :=
+    smoothTransition.contDiff.comp ((contDiff_snd.sub contDiff_const).div_const _)
+  rintro ⟨ℓ, r⟩ ⟨hr, hℓ⟩
+  dsimp only at hr hℓ
+  set H := smoothTransition ((r - 2 * δ) / (L * δ))
+  have hH₀ : 0 ≤ H := smoothTransition.nonneg _
+  have hH₁ : H ≤ 1 := smoothTransition.le_one _
+  have hrδ : δ ^ 2 < r ^ 2 := by gcongr
+  have hℓr : ℓ ^ 2 < 64 * r ^ 2 := by
+    have := sq_lt_sq' (by linarith [abs_nonneg ℓ]) hℓ
+    rw [sq_abs] at this
+    linarith
+  -- The radicand is `64 (r² - δ²) (1 - H) + (64 r² - ℓ²) H`, a convex combination of two
+  -- positive numbers.
+  have hrad : 0 < 64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * H := by
+    rcases hH₁.lt_or_eq with h | h
+    · nlinarith [mul_nonneg hH₀ (sub_nonneg.2 hℓr.le)]
+    · rw [h]; linarith
+  rw [e]
+  exact (((contDiff_fst.add contDiff_const).div_const 64).mul
+    (contDiff_const.sub hH)).contDiffAt.add
+    (((contDiff_const.mul ((contDiff_snd.pow 2).sub contDiff_const)).add
+      ((contDiff_const.sub (contDiff_fst.pow 2)).mul hH)).contDiffAt.sqrt
+      hrad.ne') |>.contDiffWithinAt
+
+/-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
+theorem tendsto_deriv_sqrtSubLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
+    Tendsto (deriv (sqrtSubLeaf L δ ℓ)) (𝓝[>] δ) atTop := by
+  refine (tendsto_deriv_sqrt_sub (a := 64) (by norm_num) hδ).congr' ?_
+  filter_upwards [Ioo_mem_nhdsGT (by linarith : δ < 2 * δ)] with r hr
+  have he : sqrtSubLeaf L δ ℓ =ᶠ[𝓝 r]
+      fun x ↦ √(64 * x ^ 2 - 64 * δ ^ 2) + (ℓ + 8 * δ) / 64 := by
+    filter_upwards [gt_mem_nhds hr.2] with x hx using sqrtSubLeaf_of_le hL hδ.le hx.le
+  rw [he.deriv_eq, deriv_add_const]
+
+/-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ∈ [-8 δ, 0]` are strictly increasing in `ℓ`:
+both terms of `sqrtSubLeaf` are nondecreasing in `ℓ ≤ 0`, the first strictly where the cutoff
+is below `1` and the second where it is positive. -/
+theorem strictMonoOn_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) {r : ℝ} (hr : δ < r) :
+    StrictMonoOn (fun ℓ ↦ sqrtSubLeaf L δ ℓ r) (Icc (-8 * δ) 0) := by
+  intro ℓ₁ hℓ₁ ℓ₂ hℓ₂ h
+  simp only [sqrtSubLeaf_def]
+  set H := smoothTransition ((r - 2 * δ) / (L * δ))
+  have hH₀ : 0 ≤ H := smoothTransition.nonneg _
+  have hH₁ : H ≤ 1 := smoothTransition.le_one _
+  have hrδ : δ ^ 2 < r ^ 2 := by gcongr
+  have hsq : ℓ₂ ^ 2 < ℓ₁ ^ 2 := by nlinarith [hℓ₂.2]
+  rcases hH₁.lt_or_eq with hH | hH
+  · exact add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_right (by linarith) (by linarith))
+      (sqrt_le_sqrt (by nlinarith))
+  · simp only [hH, sub_self, mul_zero, zero_add, mul_one]
+    exact sqrt_lt_sqrt (by nlinarith [hℓ₁.1, hℓ₁.2]) (by linarith)
+
+/-- **The leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`**
+(the part `ℓ ≤ 0` of Cieliebak–Eliashberg's family of §4.6). There is `K > 2` such that for
+every `δ > 0` there is a family `χ ℓ` of functions with:
+* `(ℓ, r) ↦ χ ℓ r` smooth on a neighbourhood of `[-8 δ, 0] × (δ, ∞)`;
+* each `χ ℓ`, `ℓ ∈ [-8 δ, 0]`, an `i`-convex shape at every `r > δ`;
+* the bottom leaf `χ (-8 δ) r = √(64 r² - 64 δ²)`;
+* on `[δ, 2 δ]`, `χ ℓ` the bottom leaf raised by `(ℓ + 8 δ) / 64`, so that its slope tends to
+  `+∞` at `δ`;
+* from `K δ` on, `χ ℓ` the standard shape `√(64 r² + ℓ |ℓ|)`;
+* at each `r > δ`, `χ ℓ r` strictly increasing in `ℓ ∈ [-8 δ, 0]`.
+
+The family is explicit, `sqrtSubLeaf`, rather than the book's bending of linear shapes
+(Lemma 4.25). -/
+theorem exists_convexShapeFamily_sqrt_sub :
+    ∃ K, 2 < K ∧ ∀ δ, 0 < δ → ∃ χ : ℝ → ℝ → ℝ,
+      (∃ U ∈ 𝓝ˢ (Icc (-8 * δ) 0 ×ˢ Ioi δ), ContDiffOn ℝ ∞ (Function.uncurry χ) U) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, δ < r → IsConvexShapeAt (χ ℓ) r) ∧
+      (∀ r, χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r ∈ Icc δ (2 * δ),
+        χ ℓ r = (ℓ + 8 * δ) / 64 + √(64 * r ^ 2 - 64 * δ ^ 2)) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 0, Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop) ∧
+      (∀ ℓ ∈ Icc (-8 * δ) 0, ∀ r, K * δ ≤ r → χ ℓ r = √(64 * r ^ 2 + ℓ * |ℓ|)) ∧
+      ∀ r, δ < r → StrictMonoOn (fun ℓ ↦ χ ℓ r) (Icc (-8 * δ) 0) := by
+  obtain ⟨L, hL, hconv⟩ := exists_isConvexShapeAt_sqrtSubLeaf
+  refine ⟨2 + L, by linarith, fun δ hδ ↦ ⟨sqrtSubLeaf L δ,
+    ⟨_, ?_, contDiffOn_uncurry_sqrtSubLeaf L hδ.le⟩,
+    fun ℓ hℓ r hr ↦ hconv L le_rfl δ hδ ℓ hℓ r hr, sqrtSubLeaf_neg_eight_mul L δ,
+    fun ℓ _ r hr ↦ ?_, fun ℓ _ ↦ tendsto_deriv_sqrtSubLeaf (by linarith) hδ ℓ,
+    fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ strictMonoOn_sqrtSubLeaf L hδ.le hr⟩⟩
+  · refine ((isOpen_lt continuous_const continuous_snd).inter
+      (isOpen_lt (by fun_prop : Continuous fun p : ℝ × ℝ ↦ |p.1|)
+        (by fun_prop : Continuous fun p : ℝ × ℝ ↦ 8 * p.2))).mem_nhdsSet.2 ?_
+    rintro ⟨ℓ, r⟩ ⟨hℓ, hr⟩
+    rw [mem_Ioi] at hr
+    exact ⟨hr, (abs_of_nonpos hℓ.2).trans_lt (by linarith [hℓ.1])⟩
+  · rw [sqrtSubLeaf_of_le (by linarith) hδ.le hr.2, add_comm]
+  · rw [sqrtSubLeaf_of_ge (by linarith) hδ hr, abs_of_nonpos hℓ.2]
+    ring_nf
 
 end SymplecticGeometry
 
