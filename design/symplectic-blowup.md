@@ -59,7 +59,8 @@ files are under `SymplecticGeometry/`.
   `‖complexToRealEuclidean _ z‖`, written $|z|$ below. In the model,
   `BlowupModel.closedNbhd n ε` ($L(\varepsilon)$) and
   `BlowupModel.openNbhd n ε` are the preimages under `blowdown` of
-  $\{|z|\le\varepsilon\}$ and $\{|z|<\varepsilon\}$.
+  $\{|z|\le\varepsilon\}$ and $\{|z|<\varepsilon\}$, from the complex
+  part's `Blowup/Model.lean` (`design/complex-blowup.md`).
 - **Ball embeddings.** A symplectic embedding of $B(r)$ is *Isotopy
   extension*'s `IsSymplecticBallEmbedding ω r ψ`, for
   `ψ : StdSpace (Fin (n + 1)) → M`, and a family of them is
@@ -254,10 +255,6 @@ potential forms, up to `radialPotentialForm_id`, are stated on `ι → ℂ` for
 Namespace `SymplecticGeometry.BlowupModel`, on `BlowupModel n`.
 
 - `ω₀E` as in *Setting*.
-- `closedNbhd n ε`, `openNbhd n ε` as in *Setting*, with
-  `isCompact_closedNbhd`, `isOpen_openNbhd`, and
-  `exceptionalDivisor_subset_openNbhd`, `exceptionalDivisor_subset_closedNbhd`
-  for `0 < ε`.
 - `blowupForm n λ` ($\tilde\omega_\lambda$):
   `blowdown^* ω₀E + λ ^ 2 • pr^* fubiniStudyForm n`, with
   `blowupForm_def`; `isKahler_blowupForm` for `λ ≠ 0`, for the complex
