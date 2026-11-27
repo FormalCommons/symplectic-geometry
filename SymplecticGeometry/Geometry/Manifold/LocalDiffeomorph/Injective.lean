@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 
 /-!
-# Open partial homeomorphisms whose inverse is a local diffeomorphism
+# Injective local diffeomorphisms
 
 If `e` is an open partial homeomorphism from `M` to `N` whose inverse `e.symm` is a `C^n` local
 diffeomorphism on `e.target`, then `e` itself is `C^n` on `e.source`
@@ -81,6 +81,11 @@ noncomputable def partialDiffeomorphOfInjective [Nonempty M] {f : M → N}
 
 variable [Nonempty M] {f : M → N} (hf : IsLocalDiffeomorph I J n f) (hinj : Injective f)
 
+theorem partialDiffeomorphOfInjective_def :
+    hf.partialDiffeomorphOfInjective hinj =
+      (hf.isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn isOpen_univ hinj.injOn :=
+  (rfl)
+
 /-- The partial diffeomorphism is `f` itself as a function. -/
 @[simp]
 theorem coe_partialDiffeomorphOfInjective : ⇑(hf.partialDiffeomorphOfInjective hinj) = f :=
@@ -103,6 +108,13 @@ theorem partialDiffeomorphOfInjective_target :
 theorem partialDiffeomorphOfInjective_symm_apply (y : N) :
     (hf.partialDiffeomorphOfInjective hinj).toPartialEquiv.symm y = invFunOn f univ y :=
   IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply ..
+
+/-- Its inverse sends `f x` back to `x`. -/
+@[simp]
+theorem partialDiffeomorphOfInjective_symm_apply_apply (x : M) :
+    (hf.partialDiffeomorphOfInjective hinj).toPartialEquiv.symm (f x) = x := by
+  rw [partialDiffeomorphOfInjective_symm_apply]
+  exact hinj.injOn.leftInvOn_invFunOn (mem_univ x)
 
 end IsLocalDiffeomorph
 

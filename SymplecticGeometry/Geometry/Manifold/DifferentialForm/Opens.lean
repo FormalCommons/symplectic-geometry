@@ -383,9 +383,7 @@ theorem exists_diffeomorph_opens_mpullback_eq {e : X → Y}
   · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun x ↦ isEmptyElim x, Subtype.ext (funext isEmptyElim)⟩
   let ee := he.partialDiffeomorphOfInjective heinj
   have hee : ⇑ee = e := he.coe_partialDiffeomorphOfInjective heinj
-  have hees (x : X) : ee.symm (e x) = x := by
-    rw [← hee]
-    exact ee.left_inv (by rw [IsLocalDiffeomorph.partialDiffeomorphOfInjective_source]; trivial)
+  have hees (x : X) : ee.symm (e x) = x := he.partialDiffeomorphOfInjective_symm_apply_apply heinj x
   let Ψ := ee.symm.trans Φ
   have hΨ : ⇑Ψ = Φ ∘ ee.symm := PartialDiffeomorph.coe_trans _ _
   have hmemΨ {x : X} (hx : x ∈ Φ.source) : e x ∈ Ψ.source := by
