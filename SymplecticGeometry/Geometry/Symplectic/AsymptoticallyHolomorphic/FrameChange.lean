@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.C
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FirstOrderSystem
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
+import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
 
 /-!
@@ -71,6 +72,9 @@ polynomial in `‖z‖`.
 * `SymplecticGeometry.RescaledUnitaryCharts.connectionReading_eq_frameChange_smul_comp`: the
   connection read in the chart at `y` is the change of frame times the connection read in the
   chart at `x`, composed with the derivative of the transition.
+* `SymplecticGeometry.RescaledUnitaryCharts.dbarReading_eq_frameChange_smul_comp`: the same for
+  the `∂̄` readings, since the derivative of the transition intertwines `J` read in the two charts
+  (`TauCeti.IsComplexLinear.complexAntilinearPart_comp_right`).
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_forall_jetNormAt_frameChange_zero_le`: on a
   ball of radius `ρ₁ * √k`, the `r`-jet norm at `0` of the change of frame between the chart
   centred at `(D.chart k x)⁻¹ z` and the chart centred at `x` is at most `C * (1 + ‖z‖) ^ r`.
@@ -390,6 +394,43 @@ theorem connectionReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm
     connectionReading_apply, heq.fderiv_eq,
     fderiv_fun_mul he hfτ, fderiv_fun_comp w hs hτ]
   simp [D.fderiv_frameChange_apply hα hk hw v, D.reading_eq_frameChange_mul hws s]
+  ring
+
+/-- **Covariance of the `∂̄` reading.** Let `α` be a connection form, `k ≥ k₀`, and `τ` the
+transition from the chart centred at `y` to the chart centred at `x`. At a point `w` of
+`D.chartTransitionDomain k x y`, for a section `s` of `PowerBundle P k` whose reading in the chart
+at `x` is differentiable at `τ w`, the `∂̄` reading in the chart at `y` at `w` is the change of
+frame `e(w)` times the `∂̄` reading in the chart at `x` at `τ w`, composed with `dτ_w`. -/
+theorem dbarReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm α) {k : ℕ}
+    (hk : k₀ ≤ k) {x y : M} {w : StdSpace ι} (hw : w ∈ D.chartTransitionDomain k x y)
+    {s : Π y, PowerBundle P k y}
+    (hs : DifferentiableAt ℝ (D.reading k x s) (D.chartTransition k x y w)) :
+    D.dbarReading k y s w = D.frameChange k x y w •
+      (D.dbarReading k x s (D.chartTransition k x y w)).comp
+        (fderiv ℝ (D.chartTransition k x y) w) := by
+  -- `dτ_w` intertwines `J` read in the chart at `y` at `w` and in the chart at `x` at `τ w`.
+  have hT : IsComplexLinear
+      (J.chartPushforward (D.chart k y).toOpenPartialHomeomorph w : StdSpace ι →ₗ[ℝ] StdSpace ι)
+      (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph (D.chartTransition k x y w) :
+        StdSpace ι →ₗ[ℝ] StdSpace ι)
+      (fderiv ℝ (D.chartTransition k x y) w : StdSpace ι →ₗ[ℝ] StdSpace ι) := by
+    have h := J.chartPushforward_symm_trans_comp_fderiv (D.chart k y) (D.chart k x)
+      (by rw [← chartTransition_def]; exact D.chartTransitionDomain_subset_source k x y hw)
+    rw [← chartTransition_def] at h
+    exact isComplexLinear_of_apply fun v ↦ (DFunLike.congr_fun h v).symm
+  ext v
+  have h := LinearMap.congr_fun (hT.complexAntilinearPart_comp_right
+    (J' := (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap)
+    (D.connectionReading k x s (D.chartTransition k x y w) : StdSpace ι →ₗ[ℝ] ℂ)) v
+  simp only [LinearMap.comp_apply, complexAntilinearPart_apply, ContinuousLinearMap.coe_coe,
+    AlmostComplexStructure.ofComplexModule_apply] at h
+  rw [dbarReading_def, D.connectionReading_eq_frameChange_smul_comp hα hk hw hs, smul_apply,
+    ContinuousLinearMap.comp_apply, dbarReading_def]
+  simp only [LinearMap.coe_toContinuousLinearMap', complexAntilinearPart_apply,
+    ContinuousLinearMap.coe_coe, smul_apply, ContinuousLinearMap.comp_apply,
+    AlmostComplexStructure.ofComplexModule_apply] at h ⊢
+  rw [← h]
+  simp only [smul_eq_mul, Complex.real_smul]
   ring
 
 /-! ### Jet norms of the change of frame -/
