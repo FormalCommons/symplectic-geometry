@@ -102,6 +102,9 @@ the blowdown.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.blowdown_ballLift`: the lift lies over `ψ`.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.isOpenEmbedding_ballLift`: the lift is an open
   embedding.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.isLocalDiffeomorph_ballLift`,
+  `SymplecticGeometry.IsNormalizedBallEmbedding.contMDiff_ballLift`: on `openNbhdOpens n r`, the
+  lift is a local diffeomorphism, and so smooth.
 * `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_on_ballLift`,
   `SymplecticGeometry.IsNormalizedBallEmbedding.normalizedBlowupForm_eq_on_compl`: the two
   descriptions of `ω̃_{ψ,l,ε}`; by
@@ -639,6 +642,27 @@ theorem isOpenEmbedding_ballLift : IsOpenEmbedding hψ.ballLift := by
   convert h using 1
   ext y
   exact (hψ.ballLiftPartialDiffeomorph_apply y).symm
+
+/-- The lift of a normalized ball embedding, read on the open subset `openNbhdOpens n r` of the
+model blowup, is a local diffeomorphism into the blowup. -/
+theorem isLocalDiffeomorph_ballLift :
+    IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      fun y : openNbhdOpens n r ↦ hψ.ballLift ⟨y, mem_openNbhdOpens_iff.1 y.property⟩ := by
+  intro y
+  have hΦ : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      hψ.ballLiftPartialDiffeomorph y :=
+    hψ.ballLiftPartialDiffeomorph.isLocalDiffeomorphAt (hx := by
+      rw [ballLiftPartialDiffeomorph_source]; exact mem_openNbhdOpens_iff.1 y.property)
+  refine (IsLocalDiffeomorphAt.comp (hf := isLocalDiffeomorph_subtype_val y) (hg := hΦ))
+    |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun x ↦ ?_)
+  exact (hψ.ballLiftPartialDiffeomorph_apply ⟨x, mem_openNbhdOpens_iff.1 x.property⟩).symm
+
+/-- The lift of a normalized ball embedding, read on the open subset `openNbhdOpens n r` of the
+model blowup, is smooth. -/
+theorem contMDiff_ballLift :
+    ContMDiff 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
+      fun y : openNbhdOpens n r ↦ hψ.ballLift ⟨y, mem_openNbhdOpens_iff.1 y.property⟩ :=
+  hψ.isLocalDiffeomorph_ballLift.contMDiff
 
 /-! #### The forms `ω̃_{ψ,l,ε}` -/
 
