@@ -301,9 +301,9 @@ For connected `G` and a symmetric `Ad`-invariant `B`, so that `B` is also
 
 - `mgradient_momentNormSq`: $\operatorname{grad}\|\mu\|^2(x)=-2JX_{\mu^\sharp(x)}(x)$.
 - `exists_mem_orbit_maximalIntegralCurve`: the negative gradient flow of
-  $f$ stays in the $G^{\mathbb C}$-orbit of its start, as $g(t)^{-1}p$ for
-  the solution of $g^{-1}\dot g=-i\mu^\sharp(g^{-1}p)$ in `Gc`, and
-  $\frac{d}{dt}\Phi_p(g(t))=-\|\mu(g(t)^{-1}p)\|^2$.
+  `momentNormSq` stays in the $G^{\mathbb C}$-orbit of its start, as $g(t)^{-1}p$ for
+  the solution of $g^{-1}\dot g=-2i\mu^\sharp(g^{-1}p)$ in `Gc` with $g(0)=1$, at
+  every time, and $\frac{d}{dt}\Phi_p(g(t))=-2\|\mu(g(t)^{-1}p)\|^2$.
 - `exists_lojasiewicz_momentNormSq`: decision 4 (d), for any Hamiltonian
   action of a compact group with an equivariant moment map (not only
   Kähler).
