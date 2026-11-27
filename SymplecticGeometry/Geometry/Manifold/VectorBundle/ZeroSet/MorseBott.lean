@@ -10,11 +10,10 @@ public import TauCeti.Geometry.Manifold.Morse.Bott.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Embedding
 
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
-import Mathlib.Topology.VectorBundle.Riemannian
 import TauCeti.Geometry.Manifold.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
+import SymplecticGeometry.Topology.VectorBundle.Riemannian
 
 /-!
 # The zero set of a transverse section is a Morse–Bott minimum of `‖s‖²`
@@ -28,8 +27,8 @@ At a zero `z`, every vector in the kernel of the critical Hessian of `‖s‖²`
 the linearization `L = TauCeti.sectionLinearization J id s z`
 (`TauCeti.ker_criticalHessian_norm_sq_le_ker_sectionLinearization`). Indeed, in the
 trivialization at `z` the section has fibre coordinates `φ`, and near `z` the bundle norm
-dominates `‖A ∘ φ‖` for a suitable injective linear map `A` into a Euclidean space, by the local
-bound on the trivialization (`eventually_norm_trivializationAt_lt`). So
+dominates `‖A ∘ φ‖` for a suitable injective linear map `A` into a Euclidean space
+(`exists_injective_norm_trivializationAt_le`). So
 `‖s‖² - ‖A ∘ φ‖²` has a local minimum at `z`, and its Hessian there is positive semidefinite,
 while the Hessian of `‖A ∘ φ‖²` at `z` is `2 ⟪A (dφ u), A (dφ w)⟫`
 (`TauCeti.criticalHessian_norm_sq_continuousLinearMap_comp_apply_of_eq_zero`). A vector `u` in
@@ -97,27 +96,8 @@ theorem ker_criticalHessian_norm_sq_le_ker_sectionLinearization (hm2 : 2 ≤ m) 
   have hφz : φ z = 0 := by
     simp only [hφ_def, hz, ← e.continuousLinearMapAt_apply_of_mem (R := ℝ) hzb, map_zero]
   -- An injective linear map `A` into a Euclidean space with `‖A (φ y)‖ ≤ ‖s y‖` near `z`.
-  obtain ⟨C, hC, hCev⟩ := eventually_norm_trivializationAt_lt F' E' z
-  set T : F' →L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F')) :=
-    (toEuclidean : F' ≃L[ℝ] EuclideanSpace ℝ (Fin (finrank ℝ F'))).toContinuousLinearMap
-  set c : ℝ := (C * (‖T‖ + 1))⁻¹
-  have hc : 0 < c := by positivity
-  set A := c • T
-  have hbound : ∀ᶠ y in 𝓝 z, ‖A (φ y)‖ ≤ ‖s y‖ := by
-    filter_upwards [hCev, e.open_baseSet.mem_nhds hzb] with y hy hyb
-    have h1 : ‖φ y‖ ≤ C * ‖s y‖ := by
-      simp only [hφ_def, ← e.continuousLinearMapAt_apply_of_mem (R := ℝ) hyb]
-      exact ((e.continuousLinearMapAt ℝ y).le_opNorm _).trans
-        (mul_le_mul_of_nonneg_right hy.le (norm_nonneg _))
-    have h2 : ‖A (φ y)‖ ≤ c * (‖T‖ * (C * ‖s y‖)) := by
-      rw [smul_apply, norm_smul, Real.norm_of_nonneg hc.le]
-      gcongr
-      exact (T.le_opNorm _).trans (by gcongr)
-    have hT : c * (‖T‖ * C) ≤ 1 := by
-      rw [inv_mul_le_iff₀ (by positivity)]
-      nlinarith [norm_nonneg T]
-    calc ‖A (φ y)‖ ≤ c * (‖T‖ * C) * ‖s y‖ := h2.trans_eq (by ring)
-      _ ≤ ‖s y‖ := mul_le_of_le_one_left (norm_nonneg _) hT
+  obtain ⟨A, hAinj, hAev⟩ := exists_injective_norm_trivializationAt_le F' E' z
+  have hbound : ∀ᶠ y in 𝓝 z, ‖A (φ y)‖ ≤ ‖s y‖ := hAev.mono fun y hy ↦ hy (s y)
   -- The difference `h = ‖s‖² - ‖A ∘ φ‖²` has a local minimum at `z`.
   set q : X → ℝ := fun y ↦ ‖A (φ y)‖ ^ 2
   set h : X → ℝ := fun y ↦ ‖s y‖ ^ 2 - q y
@@ -148,10 +128,8 @@ theorem ker_criticalHessian_norm_sq_le_ker_sectionLinearization (hm2 : 2 ≤ m) 
     have : inner ℝ (A (mfderiv J 𝓘(ℝ, F') φ z u)) (A (mfderiv J 𝓘(ℝ, F') φ z u)) ≤ 0 := by
       linarith
     exact real_inner_self_nonpos.1 this
-  have hAinj (v : F') (hv : A v = 0) : v = 0 := by
-    rw [smul_apply, smul_eq_zero, or_iff_right hc.ne'] at hv
-    exact (toEuclidean (E := F')).map_eq_zero_iff.1 hv
-  have hdφ : mfderiv J 𝓘(ℝ, F') (fun y ↦ (e ⟨y, s y⟩).2) z u = 0 := hAinj _ hA
+  have hdφ : mfderiv J 𝓘(ℝ, F') (fun y ↦ (e ⟨y, s y⟩).2) z u = 0 :=
+    (injective_iff_map_eq_zero A).1 hAinj _ hA
   rw [LinearMap.mem_ker, sectionLinearization_eq_symmL_comp continuousAt_id hzb
     (hφ2.mdifferentiableAt two_ne_zero) hz]
   simp [mvfderiv, hdφ]
