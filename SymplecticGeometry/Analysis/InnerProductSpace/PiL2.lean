@@ -17,7 +17,9 @@ It proves Cauchy–Schwarz for the Hermitian product `star z ⬝ᵥ v` on `ι �
 Hermitian square `star z ⬝ᵥ z` as the squared Euclidean norm. It also places
 the standard basis vectors of `EuclideanSpace 𝕜 ι` on the unit sphere, and shows
 that splitting `EuclideanSpace 𝕜 (ι ⊕ κ)` into two blocks by `EuclideanSpace.sumEquivProd`
-preserves the squared norm, and gives the coordinates of the two blocks and of the inverse map.
+preserves the squared norm, and gives the coordinates of the inverse map. Tau Ceti's
+`EuclideanSpace.sumEquivProd_apply_fst` and `EuclideanSpace.sumEquivProd_apply_snd` give those
+of the two blocks.
 
 ## Main results
 
@@ -29,10 +31,9 @@ preserves the squared norm, and gives the coordinates of the two blocks and of t
 * `EuclideanSpace.single_one_mem_sphere`: each standard basis vector has norm one.
 * `EuclideanSpace.norm_sq_sumEquivProd`: the squared norms of the two blocks of
   `sumEquivProd x` add up to `‖x‖²`.
-* `EuclideanSpace.sumEquivProd_symm_apply_inl`, `EuclideanSpace.sumEquivProd_symm_apply_inr`,
-  `EuclideanSpace.sumEquivProd_apply_fst_apply`, `EuclideanSpace.sumEquivProd_apply_snd_apply`:
-  the coordinates of `sumEquivProd.symm p` and of `sumEquivProd z`. `simp` proves them by
-  unfolding `sumEquivProd`, so they are stated for rewriting and are not `@[simp]`.
+* `EuclideanSpace.sumEquivProd_symm_apply_inl`, `EuclideanSpace.sumEquivProd_symm_apply_inr`:
+  the coordinates of `sumEquivProd.symm p`. `simp` proves them by unfolding `sumEquivProd`, so
+  they are stated for rewriting and are not `@[simp]`.
 -/
 
 public section
@@ -104,18 +105,6 @@ theorem sumEquivProd_symm_apply_inl (p : EuclideanSpace 𝕜 ι × EuclideanSpac
 `p` is the coordinate `j` of `p.2`. -/
 theorem sumEquivProd_symm_apply_inr (p : EuclideanSpace 𝕜 ι × EuclideanSpace 𝕜 κ) (j : κ) :
     sumEquivProd.symm p (Sum.inr j) = p.2 j := by
-  simp
-
-/-- The coordinate `i` of the first component of `sumEquivProd z` is the coordinate
-`Sum.inl i` of `z`. -/
-theorem sumEquivProd_apply_fst_apply (z : EuclideanSpace 𝕜 (ι ⊕ κ)) (i : ι) :
-    (sumEquivProd z).1 i = z (Sum.inl i) := by
-  simp
-
-/-- The coordinate `j` of the second component of `sumEquivProd z` is the coordinate
-`Sum.inr j` of `z`. -/
-theorem sumEquivProd_apply_snd_apply (z : EuclideanSpace 𝕜 (ι ⊕ κ)) (j : κ) :
-    (sumEquivProd z).2 j = z (Sum.inr j) := by
   simp
 
 end sumEquivProd
