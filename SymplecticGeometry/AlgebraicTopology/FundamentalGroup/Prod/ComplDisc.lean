@@ -7,14 +7,15 @@ module
 
 public import Mathlib.Topology.Connected.LocallyPathConnected
 
-import Mathlib.Analysis.Convex.PathConnected
-import Mathlib.Analysis.Normed.Module.Convex
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import Mathlib.Topology.Homeomorph.Lemmas
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Homeomorph
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.VanKampen
+import SymplecticGeometry.Analysis.Convex.PathConnected
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.Analysis.Normed.Module.Connected
+import TauCeti.Topology.Homeomorph.SetCongr
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.PuncturedDisc
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
@@ -32,7 +33,9 @@ The proof is van Kampen for the cover of `X` by `X \ Z` and the range of `f`, wh
 image of `Q × (ball c R \ {c})`, in the form of
 `FundamentalGroup.ker_map_subtypeVal_eq_normalClosure_image`. The map `f` identifies the leg
 `π₁((X \ Z) ∩ range f) → π₁(range f)` with the map computed in
-`FundamentalGroup.ker_map_prodMap_inclusion_ball_diff_singleton_eq_normalClosure`. The complement
+`FundamentalGroup.ker_map_prodMap_inclusion_ball_diff_singleton_eq_normalClosure`, through
+`FundamentalGroup.map_surjective_iff_of_homeomorph` and
+`FundamentalGroup.ker_map_eq_map_ker_of_homeomorph`. The complement
 `X \ Z` is path connected by `IsPathConnected.of_isOpen_of_union_eq_univ`, since `X` is connected
 and the range of `f` meets it in a path connected set.
 
@@ -215,43 +218,24 @@ private theorem surjective_and_exists_ker_eq (hf : IsOpenEmbedding f) (q : Q)
     (ContinuousMap.inclusion (sdiff_subset : ball c R \ {c} ⊆ ball c R))
   have hg : IsEmbedding (f ∘ F) := hf.isEmbedding.comp
     (IsEmbedding.id.prodMap (IsEmbedding.inclusion sdiff_subset))
-  have hrange := hf.injective.range_comp_prodMap_inclusion_ball_diff_singleton
   let e' : Q × ↥(ball c R \ {c}) ≃ₜ ↥((f '' {p | (p.2 : ℂ) = c})ᶜ ∩ range f) :=
-    hg.toHomeomorph.trans (Homeomorph.setCongr hrange)
-  let e : Q × ↥(ball c R) ≃ₜ ↥(range f) := hf.isEmbedding.toHomeomorph
-  -- `e'` and `e` are `f` on points, so their basepoint equations are `hx`
-  let φ' := homeomorphMulEquivOfEq e' (Subtype.ext hx.symm : e' (q, z) = x)
-  let φ := homeomorphMulEquivOfEq e
-    (Subtype.ext hx.symm : e (F (q, z)) = ContinuousMap.inclusion inter_subset_right x)
-  have hsq : ∀ γ, map (ContinuousMap.inclusion inter_subset_right) x (φ' γ) =
-      φ (map F (q, z) γ) := fun γ ↦ by
-    simp only [φ, φ', homeomorphMulEquivOfEq_apply, ← mapOfEq_rfl]
-    -- both composites are `f ∘ F` on points
-    exact mapOfEq_mapOfEq_eq_mapOfEq_mapOfEq (by ext; rfl) _ _ _ _ γ
-  set L := map (ContinuousMap.inclusion inter_subset_right) x
-  have hcomp : L.comp (φ' : _ →* _) = φ.toMonoidHom.comp (map F (q, z)) := MonoidHom.ext hsq
-  refine ⟨fun y ↦ ?_, φ' (fromPath (Path.Homotopic.Quotient.mk
-    ((Path.refl q).prod (c.loopAround z)))), ?_, ?_⟩
-  · obtain ⟨γ, hγ⟩ := map_prodMap_inclusion_ball_diff_singleton_surjective q z (φ.symm y)
-    exact ⟨φ' γ, (hsq γ).trans ((congrArg φ hγ).trans (φ.apply_symm_apply y))⟩
-  · have hL : L = (L.comp (φ' : _ →* _)).comp
-        (φ'.symm : _ →* FundamentalGroup (Q × ↥(ball c R \ {c})) (q, z)) := by
-      ext γ
-      simp
-    rw [hL, MonoidHom.ker_comp_mulEquiv, hcomp, MonoidHom.ker_comp_of_injective _ _ φ.injective,
-      ker_map_prodMap_inclusion_ball_diff_singleton_eq_normalClosure, MulEquiv.symm_symm,
-      Subgroup.map_normalClosure _ _ φ'.surjective, image_singleton]
-    simp only [MonoidHom.coe_ofClass]
-  · simp only [φ', homeomorphMulEquivOfEq_apply, ← mapOfEq_rfl]
+    hg.toHomeomorph.trans
+      (Homeomorph.setCongr hf.injective.range_comp_prodMap_inclusion_ball_diff_singleton)
+  -- `e'` is `f ∘ F` on points, so its basepoint equation is `hx`
+  have he' : e' (q, z) = x := Subtype.ext hx.symm
+  have hsq : ∀ w, ContinuousMap.inclusion inter_subset_right (e' w) =
+      hf.isEmbedding.toHomeomorph (F w) := fun _ ↦ by ext; simp [e', F]
+  refine ⟨(map_surjective_iff_of_homeomorph hsq he').2
+      (map_prodMap_inclusion_ball_diff_singleton_surjective q z),
+    homeomorphMulEquivOfEq e' he'
+      (fromPath (Path.Homotopic.Quotient.mk ((Path.refl q).prod (c.loopAround z)))), ?_, ?_⟩
+  · rw [ker_map_eq_map_ker_of_homeomorph hsq he',
+      ker_map_prodMap_inclusion_ball_diff_singleton_eq_normalClosure,
+      Subgroup.map_normalClosure _ _ (homeomorphMulEquivOfEq e' he').surjective, image_singleton]
+    simp only [MulEquiv.toMonoidHom_eq_coe, MonoidHom.coe_ofClass]
+  · simp only [homeomorphMulEquivOfEq_apply, ← mapOfEq_rfl]
     -- `inclusion ∘ e'` is `restrictPuncturedBall` on points
     exact mapOfEq_mapOfEq_eq_mapOfEq (by ext; rfl) _ _ _ _
-
-/-- The range of a continuous `f : Q × ball c R → X` is path connected if `Q` is and `R > 0`. -/
-private theorem isPathConnected_range_of_pos [PathConnectedSpace Q] (hf : Continuous f)
-    (hR : 0 < R) : IsPathConnected (range f) :=
-  have : PathConnectedSpace ↥(ball c R) := isPathConnected_iff_pathConnectedSpace.1
-    ((convex_ball c R).isPathConnected ⟨c, mem_ball_self hR⟩)
-  isPathConnected_range hf
 
 /-- The interiors of the complement of `f '' (Q × {c})` and of the range of `f` cover `X`. -/
 private theorem interior_compl_image_union_interior_range (hf : IsOpenEmbedding f)
@@ -275,7 +259,7 @@ theorem map_subtypeVal_compl_image_surjective (hf : IsOpenEmbedding f)
   have hz := hf.injective.apply_notMem_image_setOfPred_snd_eq q z
   map_subtypeVal_surjective_of_map_inclusion_surjective
     (interior_compl_image_union_interior_range hf hZ) (hf.isPathConnected_compl_image hZ hR)
-    (isPathConnected_range_of_pos hf.continuous hR)
+    (isPathConnected_range_prod_ball hR hf.continuous)
     (hf.injective.isPathConnected_compl_image_inter_range hf.continuous hR)
     hz (mem_range_self _)
     (surjective_and_exists_ker_eq hf q z ⟨_, mem_inter hz (mem_range_self _)⟩ rfl).1
@@ -295,7 +279,7 @@ theorem ker_map_subtypeVal_compl_image_eq_normalClosure (hf : IsOpenEmbedding f)
     ⟨_, mem_inter hz (mem_range_self _)⟩ rfl
   refine (ker_map_subtypeVal_eq_normalClosure_image
     (interior_compl_image_union_interior_range hf hZ) (hf.isPathConnected_compl_image hZ hR)
-    (isPathConnected_range_of_pos hf.continuous hR)
+    (isPathConnected_range_prod_ball hR hf.continuous)
     (hf.injective.isPathConnected_compl_image_inter_range hf.continuous hR)
     hz (mem_range_self _) hsurj hμ).trans ?_
   rw [image_singleton, hμ', ← hf.map_restrictPuncturedBall_eq_meridian]
