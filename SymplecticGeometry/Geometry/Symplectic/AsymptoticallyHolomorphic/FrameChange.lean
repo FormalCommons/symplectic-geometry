@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # The change of frame between rescaled unitary charts
@@ -155,10 +154,9 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
         (fderiv ℝ (D.chartTransition k x y) w v)) : ℝ) : ℂ) * D.frameChange k x y w := by
   obtain ⟨hwB, hws, hτB⟩ := D.mem_chartTransitionDomain_iff.1 hw
   have hwt : w ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 hws).1
-  set τ := D.chartTransition k x y with hτdef
+  set τ := D.chartTransition k x y
   set p := (D.chart k y).symm w
   have hpx : (D.chart k x).symm (τ w) = p := D.chart_symm_chartTransition hws
-  have hps : p ∈ (D.chart k x).source := (D.mem_chartTransition_source_iff.1 hws).2
   set g : M → Circle := fun b ↦ PrincipalBundle.division Circle (D.frame k y b) (D.frame k x b)
   -- Both frames are smooth near `p`, on the images of the balls under the inverse charts.
   have hU (z : M) : IsOpen ((D.chart k z).symm '' ball 0 (ρ₀ * √k)) :=
@@ -174,17 +172,8 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
   -- The tangent vector `u` at `p` that the chart at `y` sends to `v`; the chart at `x` sends it
   -- to `dτ_w v`.
   set u := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w v
-  have hu : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (τ w) (fderiv ℝ τ w v) = u := by
-    have hT := (D.chart k y).mvfderiv_eq_fderiv_symm_trans_comp (D.chart k x) (by simp)
-      (by rwa [hτdef, chartTransition_def] at hws)
-    rw [← chartTransition_def] at hT
-    have hyu : mvfderiv I (D.chart k y) p u = v := by
-      rw [mvfderiv_apply_eq_mfderiv_apply]
-      exact (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) hwt v
-    have hxu : mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) p u = fderiv ℝ τ w v := by
-      rw [← mvfderiv_apply_eq_mfderiv_apply, hT, ContinuousLinearMap.comp_apply, hyu]
-    rw [← hxu, hτdef, chartTransition_apply]
-    exact (D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) hps u
+  have hu : mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k x).symm (τ w) (fderiv ℝ τ w v) = u :=
+    D.mfderiv_chart_symm_chartTransition hws v
   -- The change of section: `σ_x^* α = g^* dθ + σ_y^* α` at `p`.
   have hA := congrArg (· ![u]) (hα.mpullback_apply_eq_mpullback_division_add (hU y)
     (D.contMDiffOn_frame hk y) hpy (hFx.mdifferentiableAt (by simp)))
