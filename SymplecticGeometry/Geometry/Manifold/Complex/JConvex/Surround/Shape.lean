@@ -349,6 +349,14 @@ theorem fderiv_shape_snd_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpa
   rw [shape_snd_eq, ((HasFDerivAt.sum fun j _ ↦ h j).add h₂).fderiv]
   simp [coordCLM_apply, PiLp.inner_apply, Complex.re_sum, Finset.mul_sum, mul_add, mul_assoc]
 
+/-- The differential of `shape` at `p` is the pair of the differentials of `s` and of `t`. -/
+theorem fderiv_shape_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ shape p v =
+      (fderiv ℝ (fun q ↦ (shape q).1) p v, fderiv ℝ (fun q ↦ (shape q).2) p v) := by
+  have hd : DifferentiableAt ℝ shape p := (contDiff_shape (n := 1)).differentiable one_ne_zero p
+  rw [fderiv.fst hd, fderiv.snd hd, ContinuousLinearMap.comp_apply,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd']
+
 /-- **The Levi form of a function of the shape coordinates.** Let `h : ℝ × ℝ → ℝ` be `C²` at
 `(s, t) = shape p`, with `p = (x + i y, w)`, and write `hₛ`, `hₜ` for its first and `hₛₛ`, `hₛₜ`,
 `hₜₜ` for its second partial derivatives there. For `v = (v₁, v₂)`, put `σ = ∑ⱼ xⱼ v₁ⱼ` and
