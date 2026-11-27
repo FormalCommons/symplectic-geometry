@@ -109,6 +109,11 @@ the paths and loops of genus `g + 1` are related in this way to those of genus `
 * `SymplecticGeometry.ClosedSurface.ballPath_zero_zero`,
   `SymplecticGeometry.ClosedSurface.ballPath_zero_succ`: the paths to the balls of the sphere, as
   segments in its two charts.
+* `SymplecticGeometry.ClosedSurface.isOpenEmbedding_sphereCoChart`,
+  `SymplecticGeometry.ClosedSurface.range_sphereCoChart`: the complementary chart of the sphere is
+  an open embedding that misses only the centre of the ball `0`.
+* `SymplecticGeometry.ClosedSurface.ball_zero_apply_zero_eq_sphereCoChart`: for `j ≠ 0`, the
+  centre of the ball `j` of the sphere is `j⁻¹ • e` in the complementary chart, for `e = (1, 0)`.
 * `SymplecticGeometry.ClosedSurface.summandPath_ne_ball`,
   `SymplecticGeometry.ClosedSurface.circleLoop_ne_ball`,
   `SymplecticGeometry.ClosedSurface.ballLoop_ne_ball`: they meet no centre.
@@ -464,6 +469,40 @@ about `j • e`, for `e = (1, 0)`. -/
 theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
     ball 0 j w = sphereChart (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) := by
   rw [sphereChart_def, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
+
+/-- The complementary chart of the sphere is an open embedding. -/
+theorem isOpenEmbedding_sphereCoChart : IsOpenEmbedding sphereCoChart :=
+  zeroDiffeomorph.symm.toHomeomorph.isOpenEmbedding.comp
+    (isComplementaryBall_sphereBall _).isOpenEmbedding
+
+/-- The complementary chart of the sphere is injective. -/
+theorem injective_sphereCoChart : Injective sphereCoChart :=
+  isOpenEmbedding_sphereCoChart.injective
+
+/-- The complementary chart of the sphere covers everything but the centre of the ball `0`. -/
+theorem range_sphereCoChart : range sphereCoChart = {ball 0 0 0}ᶜ := by
+  have h : sphereCoChart = zeroDiffeomorph.symm ∘
+      fun w ↦ -sphereBall (zeroDiffeomorph (basePoint 0)) (-w) := by
+    ext1 w
+    rw [sphereCoChart_def, comp_apply]
+  have hb : ball 0 0 0 =
+      zeroDiffeomorph.symm (sphereBall (n := 2) (zeroDiffeomorph (basePoint 0)) 0) := by
+    rw [ball_zero_eq_sphereChart, univBall_apply_zero, zero_smul, sphereChart_def]
+  rw [h, range_comp, (isComplementaryBall_sphereBall (n := 2) _).range_eq, hb,
+    image_compl_eq (f := zeroDiffeomorph.symm) zeroDiffeomorph.symm.toHomeomorph.bijective,
+    image_singleton]
+
+/-- For `j ≠ 0`, the centre of the ball `j` of the sphere is `j⁻¹ • e` in the complementary chart,
+for `e = (1, 0)`. -/
+theorem ball_zero_apply_zero_eq_sphereCoChart {j : ℕ} (hj : j ≠ 0) :
+    ball 0 j 0 = sphereCoChart ((j : ℝ)⁻¹ • EuclideanSpace.single 0 1) := by
+  have hj' : (j : ℝ) ≠ 0 := Nat.cast_ne_zero.2 hj
+  rw [ball_zero_eq_sphereChart, univBall_apply_zero, sphereCoChart_of_ne (by simp [hj'])]
+  congr 1
+  simp only [EuclideanGeometry.inversion, dist_zero_right, norm_smul, norm_inv, RCLike.norm_natCast,
+    PiLp.norm_single, norm_one, mul_one, div_inv_eq_mul, one_mul, vsub_eq_sub, sub_zero, smul_smul,
+    vadd_eq_add, add_zero]
+  rw [← Nat.cast_smul_eq_nsmul ℝ, sq, mul_assoc, mul_inv_cancel₀ hj', mul_one]
 
 private theorem sphereChart_ne_ball {w : EuclideanSpace ℝ (Fin 2)}
     (hw : ∀ k : ℕ, w ≠ k • EuclideanSpace.single 0 1) (k : ℕ) : sphereChart w ≠ ball 0 k 0 := by
