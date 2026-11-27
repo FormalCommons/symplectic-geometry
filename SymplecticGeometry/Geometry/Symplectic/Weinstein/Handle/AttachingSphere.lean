@@ -9,10 +9,12 @@ public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
+import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -50,6 +52,10 @@ levels `a` and `b`, the backward map carries that sphere to the level `f ⁻¹' 
 a smooth injective immersion of the sphere whose image is the part of the stable set of `p` on
 that level.
 
+Last, for a regular value `a`, the boundary of the Weinstein domain `{x | f x ≤ a}` carries the
+contact form `fillingContactForm` of its filling. Any map into that boundary whose image in `M`
+lies in the stable set of `p` is horizontal for the kernel of this contact form.
+
 ## Main declarations
 
 * `SymplecticGeometry.IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`:
@@ -86,6 +92,10 @@ that level.
   injective immersion of the unit sphere onto the part of the stable set of `p` on the level `a`;
   the version in the namespace `SymplecticGeometry.IsElementaryWeinsteinCobordism` states it for
   the lower level of an elementary Weinstein cobordism between `a` and `b`.
+* In the namespace `SymplecticGeometry.IsWeinsteinStructure`,
+  `isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet`: a map into the
+  boundary of a regular sublevel, with image in the stable set of a nondegenerate critical point,
+  is horizontal for the contact form of that boundary.
 
 ## Implementation notes
 
@@ -155,10 +165,19 @@ on one orbit, which crosses `σ` only once. It is onto the part of the stable se
 `y` since the orbit meets the level `a` only once. In an elementary cobordism, the critical level
 `c = f p` bounds such a band, so the elementary version is a corollary.
 
+For horizontality, the contact form at a boundary point `w` of the sublevel is `-ι_Y σ`, with
+`σ` and `Y` the pullbacks of `ω` and `X` along the inclusion `ι` of the sublevel into `M`. Since
+the differential of `ι` is invertible, it sends `Y w` to `X (ι w)`, so `ι_Y σ` is the pullback of
+`ι_X ω` along `ι` (`TauCeti.mpullback_interior_at`). With the chain rule, the contact form on a
+tangent vector of the map is `ι_X ω` on its image in `M`, which vanishes by
+`SymplecticGeometry.IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`.
+No smoothness of the map is needed: where it is not differentiable, its differential is zero.
+
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11, on the stable manifolds of the critical points of a Weinstein structure
+  Chapter 11, on the stable manifolds of the critical points of a Weinstein structure; their
+  isotropy, Proposition 11.9 (a), gives the horizontality in the lower level
 -/
 
 public section
@@ -776,6 +795,67 @@ theorem exists_sphere_range_eq_stableSet_inter_preimage {p : M}
       exact hya
     calc (B ∘ σ) u = φ (-t) (σ u) := by simp only [Function.comp_apply, B, hlct]
       _ = y := by rw [hu, φ.map_neg_apply_map]
+
+section Horizontal
+
+variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type*} [TopologicalSpace HN]
+  {IN : ModelWithCorners ℝ EN HN} {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
+
+/-- **Stable sets are horizontal in a lower regular level.** Let `(ω, X, f)` be a Weinstein
+structure on a manifold `M` of dimension `n + 1`, `a` a regular value of `f`, and `p` a
+nondegenerate critical point of `f`. Give the sublevel `W = {x | f x ≤ a}` the structure of a
+Weinstein domain of `IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`, and its
+boundary the contact form `α = fillingContactForm σ Y` of that filling, where `σ` is the
+pull-back of `ω` along the inclusion `ι : W → M` and `Y` the pull-back `x ↦ (dι_x)⁻¹ (X x)` of
+`X`. Then every map `γ : N → ∂W` whose composite with the inclusion `∂W → M` takes values in the
+stable set of `p` is horizontal for the kernel distribution of `α`: the image of each differential
+of `γ` lies in `ker α`.
+
+See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+theorem isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet {n : ℕ}
+    (hn : finrank ℝ E = n + 1) {a : ℝ} (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
+    letI := scalarRegularSublevelChartedSpace
+      (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) ha hn
+    haveI := isManifold_scalarRegularSublevel ha hn (by simp) hW.isGeneralizedMorse.contMDiff
+    ∀ {γ : N → (𝓡∂ (n + 1)).boundary {x | f x ≤ a}},
+      range (fun y ↦ ((γ y : {x | f x ≤ a}) : M)) ⊆ hW.flow.stableSet p →
+      IsHorizontalMap IN (fillingContactForm
+        (SmoothForm.mpullback Subtype.val (contMDiff_subtypeVal_scalarRegularSublevel ha hn
+          (by simp) hW.isGeneralizedMorse.contMDiff) ω)
+        ⟨VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val X,
+          (hW.isWeinsteinDomain_scalarRegularSublevel hn ha).isStrongFilling
+            |>.isOutwardPointingField.contMDiff⟩).kerDistribution γ := by
+  have hf := hW.isGeneralizedMorse.contMDiff
+  let := scalarRegularSublevelChartedSpace (hf.of_le (by simp)) ha hn
+  have := isManifold_scalarRegularSublevel ha hn (by simp) hf
+  have hι := contMDiff_subtypeVal_scalarRegularSublevel ha hn (by simp) hf
+  have hinv := isInvertible_mfderiv_subtypeVal_scalarRegularSublevel (hf.of_le (by simp)) ha hn
+  have hb :=
+    (isSmoothEmbedding_subtypeVal_boundary (n := n) (k := (⊤ : ℕ∞)) {x | f x ≤ a}).contMDiff
+  intro γ hs
+  rw [isHorizontalMap_iff_range_mfderiv_le]
+  intro y
+  by_cases hγ : MDifferentiableAt IN (𝓡 n) γ y
+  swap
+  · simp [mfderiv_zero_of_not_mdifferentiableAt hγ]
+  rintro _ ⟨v, rfl⟩
+  let w : {x | f x ≤ a} := (γ y).val
+  have hιw : MDifferentiableAt (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val w :=
+    (hι w).mdifferentiableAt (by simp)
+  have hbw := (hb (γ y)).mdifferentiableAt (by simp)
+  have hbγ := hbw.comp y hγ
+  have h0 := hW.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet hp
+    (hιw.comp y hbγ) hs v
+  rw [mfderiv_comp_apply y hιw hbγ, mfderiv_comp_apply y hbw hγ, Function.comp_apply,
+    Function.comp_apply, ← mpullback_apply_one, mpullback_interior_at _ _ _ _
+    (VectorField.mfderiv_apply_mpullback (hinv w) X)] at h0
+  rw [SmoothForm.mem_kerDistribution, coe_fillingContactForm, Pi.neg_apply,
+    ContinuousAlternatingMap.neg_apply, mpullback_apply_one, ContMDiffSection.coeFn_mk,
+    SmoothForm.coe_mpullback]
+  exact neg_eq_zero.2 h0
+
+end Horizontal
 
 end IsWeinsteinStructure
 
