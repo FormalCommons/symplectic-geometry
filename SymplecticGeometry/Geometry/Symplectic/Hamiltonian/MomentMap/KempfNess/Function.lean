@@ -8,9 +8,11 @@ module
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Algebra.GroupAction.OrbitRelQuotient
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.LevelAction
+import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Geometry.Lie.Complexification
 import Mathlib.Analysis.Convex.Deriv
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
@@ -83,10 +85,17 @@ the polystable `Gc`-orbits.
   and the second is the squared norm of the fundamental vector field of `ξ` at
   `C.expI (-(t • ξ)) • g⁻¹ • p`.
 * `SymplecticGeometry.convexOn_kempfNessFunction_geodesic`: `Φ_p` is convex along these curves.
+* `SymplecticGeometry.kempfNessFunction_add_moment_le`,
+  `SymplecticGeometry.kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le`: the tangent line at
+  `t = 0` bounds `Φ_p (g * C.expI η * C.toHom u)` below by `Φ_p g + μ (g⁻¹ • p) η`, and by
+  Cauchy–Schwarz below by `Φ_p g - √(‖μ (g⁻¹ • p)‖²) * √(B η η)` for a symmetric nonnegative `B`.
 * `SymplecticGeometry.eq_kempfNessFunction_of_mfderiv_eq`,
   `SymplecticGeometry.existsUnique_kempfNessFunction`: `Φ_p` is the only smooth function with this
   differential that vanishes on `G`; a differentiable one with this differential that vanishes at
   `1` is already `Φ_p`.
+* `SymplecticGeometry.kempfNessFunction_mul`: the cocycle identity
+  `Φ_p (a * g) = Φ_p a + Φ_{a⁻¹ • p} g`; by `SymplecticGeometry.kempfNessFunction_mul_of_smul_eq`,
+  `Φ_p` is additive on the stabilizer of `p`.
 * `SymplecticGeometry.mfderiv_kempfNessFunction_eq_zero_iff`: `g` is a critical point of `Φ_p`
   exactly when `μ (g⁻¹ • p) = 0`.
 * `SymplecticGeometry.isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero`: `p` is
@@ -119,7 +128,15 @@ Along `t ↦ g * C.expI (t • ξ)`, a left translate of a one-parameter subgrou
 left-trivialized velocity is `C.cplx (C.lieMap ξ)`, the derivative of `Φ_p` is read off
 `hasDerivAt_kempfNessFunction_comp`; its derivative in turn is `hasDerivAt_moment_expI` at
 `g⁻¹ • p` and time `-t`, and convexity follows from the monotonicity of the first derivative
-(`antitone_moment_expI`).
+(`antitone_moment_expI`). The slope of this convex function at `t = 0` is `μ (g⁻¹ • p) η`, and
+Mathlib's `ConvexOn.le_slope_of_hasDerivAt` bounds it by the slope of the secant from `0` to `1`;
+the Cauchy–Schwarz inequality `abs_apply_le_sqrt_momentNormSq_mul_sqrt` gives the form with
+norms.
+
+For the cocycle identity, `g ↦ Φ_p (a * g) - Φ_p a` vanishes at `1`, and since left translation
+commutes with the left-trivialized derivative (`TauCeti.Lie.mfderiv_inv_mul_mfderiv_mul_left`) it
+has the differential of `Φ_{a⁻¹ • p}`, so `eq_kempfNessFunction_of_mfderiv_eq` identifies the
+two.
 
 For two zeros `x` and `y = C.expI ξ • C.toHom u • x` of `μ` in one orbit, `μ` vanishes at
 `C.toHom u • x` by equivariance, and `expI_smul_eq_self_of_moment_apply_le` shows that
@@ -498,6 +515,41 @@ theorem convexOn_kempfNessFunction_geodesic [FiniteDimensional ℝ E']
   rw [(hD a).deriv, (hD b).deriv, ← neg_smul, ← neg_smul]
   exact antitone_moment_expI h hμ.toIsMomentMap hg ξ (g⁻¹ • p) (neg_le_neg hab)
 
+/-- **The lower bound from convexity.** Let the action of `Gc` be a complexified action, let `-μ`
+be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. Then
+`Φ_p g + μ (g⁻¹ • p) η ≤ Φ_p (g * C.expI η * C.toHom u)` for all `g`, `η` and `u`: the convex
+function `t ↦ Φ_p (g * C.expI (t • η))` lies above its tangent line at `t = 0`. -/
+theorem kempfNessFunction_add_moment_le [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (g : Gc) (η : GroupLieAlgebra I G) (u : G) :
+    kempfNessFunction C μ p g + μ (g⁻¹ • p) η ≤
+      kempfNessFunction C μ p (g * C.expI η * C.toHom u) := by
+  have hD := hasDerivAt_kempfNessFunction_geodesic C μ p h hμ hg g η 0
+  rw [zero_smul, neg_zero, C.expI_zero, one_smul] at hD
+  have hle := (convexOn_kempfNessFunction_geodesic C μ p h hμ hg g η).le_slope_of_hasDerivAt
+    (Set.mem_univ 0) (Set.mem_univ 1) zero_lt_one hD
+  rw [slope_def_field, sub_zero, div_one, zero_smul, C.expI_zero, mul_one, one_smul] at hle
+  rw [kempfNessFunction_mul_toHom]
+  linarith
+
+/-- **The lower bound from convexity, with norms.** In the setting of
+`kempfNessFunction_add_moment_le`, for a symmetric nonnegative form `B` on the Lie algebra,
+`Φ_p g - √(‖μ (g⁻¹ • p)‖²) * √(B η η) ≤ Φ_p (g * C.expI η * C.toHom u)`, where `‖μ x‖²` is
+`momentNormSq B hB μ x`. -/
+theorem kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate} (hBs : B.IsSymm)
+    (hpos : B.IsNonneg) (g : Gc) (η : GroupLieAlgebra I G) (u : G) :
+    kempfNessFunction C μ p g - √(momentNormSq B hB μ (g⁻¹ • p)) * √(B η η) ≤
+      kempfNessFunction C μ p (g * C.expI η * C.toHom u) := by
+  have hCS := neg_abs_le (μ (g⁻¹ • p) η) |>.trans' <| neg_le_neg <|
+    abs_apply_le_sqrt_momentNormSq_mul_sqrt (hB := hB) hBs hpos η
+  linarith [kempfNessFunction_add_moment_le C μ p h hμ hg g η u]
+
 /-- **Uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a complexified action,
 let `-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. A
 differentiable function on `Gc` whose differential at every `g` is the one-form
@@ -532,6 +584,48 @@ theorem existsUnique_kempfNessFunction (h : IsComplexifiedAction C J)
       mfderiv_kempfNessFunction C μ p h hμ hg, kempfNessFunction_toHom C μ p⟩,
     fun _ ⟨hf, hdf, hf0⟩ ↦ eq_kempfNessFunction_of_mfderiv_eq C μ p h hμ hg
       (hf.mdifferentiable (by simp)) hdf (by simpa using hf0 1)⟩
+
+/-- **The cocycle identity for the Kempf–Ness function.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then `Φ_p (a * g) = Φ_p a + Φ_{a⁻¹ • p} g` for all `a g : Gc`. -/
+theorem kempfNessFunction_mul (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (a g : Gc) :
+    kempfNessFunction C μ p (a * g) =
+      kempfNessFunction C μ p a + kempfNessFunction C μ (a⁻¹ • p) g := by
+  -- `g ↦ Φ_p (a * g) - Φ_p a` vanishes at `1` and has the differential of `Φ_{a⁻¹ • p}`.
+  have hΦ := contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg
+  have hmul : ContMDiff IC IC ∞ (a * · : Gc → Gc) := contMDiff_const.mul contMDiff_id
+  have hf := eq_kempfNessFunction_of_mfderiv_eq C μ (a⁻¹ • p) h hμ hg
+    (f := fun g ↦ kempfNessFunction C μ p (a * g) - kempfNessFunction C μ p a)
+    (((hΦ.comp hmul).sub contMDiff_const).mdifferentiable (by simp)) (fun x ĝ ↦ ?_) (by simp)
+  · rw [← congrFun hf g]
+    ring
+  -- The derivative of `g ↦ Φ_p (a * g) - Φ_p a`, typed as a map into `ℝ` (the tangent space of
+  -- `ℝ` at every point) so that the subtraction of `0` typechecks, as in Mathlib's `mfderiv_sub`.
+  have hd : HasMFDerivAt IC 𝓘(ℝ)
+      (fun g ↦ kempfNessFunction C μ p (a * g) - kempfNessFunction C μ p a) x
+      (((by exact ((mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) (a * x)).comp
+        (mfderiv IC IC (a * ·) x))) : TangentSpace IC x →L[ℝ] ℝ) -
+        (0 : TangentSpace IC x →L[ℝ] ℝ)) :=
+    ((hΦ.mdifferentiableAt (x := a * x) (by simp)).hasMFDerivAt.comp x
+      (hmul.mdifferentiableAt (x := x) (by simp)).hasMFDerivAt).sub
+      (hasMFDerivAt_const (kempfNessFunction C μ p a) x)
+  rw [(hd.congr_mfderiv (sub_zero _)).mfderiv]
+  -- `ContinuousLinearMap.comp_apply` does not rewrite here, since the composite is typed as a map
+  -- into `ℝ` and its factor as one into a tangent space of `ℝ`; the composite applied to `ĝ` is
+  -- the derivative of `Φ_p` at `a * x` applied to the translate of `ĝ` by definition.
+  refine (mfderiv_kempfNessFunction C μ p h hμ hg (a * x) _).trans ?_
+  rw [ContinuousLinearMap.coe_coe, Lie.mfderiv_inv_mul_mfderiv_mul_left, mul_inv_rev, mul_smul]
+
+/-- The Kempf–Ness function is additive on the stabilizer of `p` in `Gc`, in the setting of
+`kempfNessFunction_mul`: `Φ_p (a * g) = Φ_p a + Φ_p g` when `a • p = p`. -/
+theorem kempfNessFunction_mul_of_smul_eq (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {a : Gc}
+    (ha : a • p = p) (g : Gc) :
+    kempfNessFunction C μ p (a * g) = kempfNessFunction C μ p a + kempfNessFunction C μ p g := by
+  rw [kempfNessFunction_mul C μ p h hμ hg, inv_smul_eq_iff.2 ha.symm]
 
 /-- **Critical points of the Kempf–Ness function.** Let the action of `Gc` be a complexified
 action, let `-μ` be an equivariant moment map for `σ`, and let the metric be

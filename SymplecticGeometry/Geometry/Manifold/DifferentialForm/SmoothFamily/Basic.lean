@@ -15,12 +15,12 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
@@ -31,7 +31,8 @@ A family `α : N → SmoothForm I M F k` of smooth forms on `M`, indexed by the 
 manifold `N` (in the uses, `unitInterval` or `ℝ`), is smooth (`SymplecticGeometry.IsSmoothFamily`)
 when there is a smooth form `Ω` on `N × M` with `α t = ι_t^* Ω` for every `t`, where
 `ι_t : y ↦ (t, y)`. Such a family is read through its *slice section*
-`(t, y) ↦ (α t) y`, a section along the projection `N × M → M`.
+`(t, y) ↦ (α t) y`, a section along the projection `N × M → M`
+(`SymplecticGeometry.sliceSection`, in `SmoothFamily/Slice.lean`).
 
 The slice section of a family of slices is smooth (Tau Ceti's
 `TauCeti.contMDiff_mpullback_prodMk_form`). Conversely, if the slice section of `α` is smooth,
@@ -143,6 +144,7 @@ public section
 noncomputable section
 
 open Bundle Set Filter TopologicalSpace
+open SymplecticGeometry (sliceSection sliceSection_def)
 open scoped Manifold Topology ContDiff
 
 namespace TauCeti
@@ -160,16 +162,13 @@ of `M` and an open subset `U ≤ W`, the slice section of the restrictions of th
 theorem contMDiffAt_mpullback_inclusion_iff_of_family {m : WithTop ℕ∞} {U W : Opens M}
     (h : U ≤ W) (β : N → RoughForm I W F k) (p : N × U) :
     ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
-        (fun q : N × U ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-          (E := fun y : U ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial U F y) q.2
-          (mpullback I I (Opens.inclusion h) (β q.1) q.2)) p ↔
+        (sliceSection fun t ↦ mpullback I I (Opens.inclusion h) (β t)) p ↔
       ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
-        (fun q : N × W ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-          (E := fun y : W ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial W F y) q.2 (β q.1 q.2))
+        (sliceSection β)
         (p.1, Opens.inclusion h p.2) := by
   have hf : IsLocalDiffeomorphAt (J.prod I) (J.prod I) ω (Prod.map id (Opens.inclusion h)) p :=
     (SymplecticGeometry.isLocalDiffeomorph_id p.1).prodMap (isLocalDiffeomorph_inclusion h p.2)
-  rw [← contMDiffAt_verticalForm_iff,
+  rw [← contMDiffAt_verticalForm_iff β,
     ← contMDiffAt_verticalForm_iff (fun t ↦ mpullback I I (Opens.inclusion h) (β t))]
   refine Iff.trans (Iff.of_eq (congrArg (ContMDiffAt _ _ _ · p) (funext fun q ↦ ?_)))
     (hf.contMDiffAt_mpullback_form_iff le_top)
@@ -199,9 +198,7 @@ family (`TauCeti.SmoothForm.coe_ofSlices`), so that it vanishes on the direction
 whose slice at `t` is `α t` (`TauCeti.SmoothForm.mpullback_prodMk_ofSlices`). -/
 def ofSlices (α : N → SmoothForm I M F k)
     (hα : ContMDiff (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        ((α p.1).val p.2))) :
+      (sliceSection fun t ↦ (α t).val)) :
     SmoothForm (J.prod I) (N × M) F k :=
   ⟨verticalForm J fun t ↦ (α t).val,
     IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def _ _).mpr fun p ↦
@@ -209,9 +206,7 @@ def ofSlices (α : N → SmoothForm I M F k)
 
 variable {α : N → SmoothForm I M F k}
   {hα : ContMDiff (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-    (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-      (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        ((α p.1).val p.2))}
+    (sliceSection fun t ↦ (α t).val)}
 
 /-- The underlying form of `TauCeti.SmoothForm.ofSlices α hα` is the vertical form of the family
 of underlying forms of the `α t`. -/
@@ -243,9 +238,7 @@ theorem mpullback_prodMap_ofSlices {EN' HN' N' E' H' M' : Type*} [NormedAddCommG
     {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M'] {f : N' → N} (hf : ContMDiff J' J ∞ f)
     {g : M' → M} (hg : ContMDiff I' I ∞ g)
     (hα' : ContMDiff (J'.prod I') (I'.prod 𝓘(ℝ, E' [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : N' × M' ↦ TotalSpace.mk' (E' [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M' ↦ TangentSpace I' y [⋀^Fin k]→L[ℝ] Trivial M' F y) p.2
-        ((mpullback g hg (α (f p.1))).val p.2))) :
+      (sliceSection fun t ↦ (mpullback g hg (α (f t))).val)) :
     mpullback (Prod.map f g) (hf.prodMap hg) (ofSlices α hα) =
       ofSlices (fun t ↦ mpullback g hg (α (f t))) hα' := by
   rw [mpullback_eq_iff, coe_ofSlices, coe_ofSlices,
@@ -329,12 +322,10 @@ theorem isSmoothFamily_def {α : N → SmoothForm I M F k} :
 `N × M → M`. -/
 theorem isSmoothFamily_iff_contMDiff {α : N → SmoothForm I M F k} :
     IsSmoothFamily J α ↔ ContMDiff (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        ((α p.1).val p.2)) := by
+      (sliceSection fun t ↦ (α t).val) := by
   refine ⟨?_, fun h ↦ ⟨SmoothForm.ofSlices α h, SmoothForm.mpullback_prodMk_ofSlices⟩⟩
   rintro ⟨Ω, hΩ⟩
-  simp_rw [← hΩ, SmoothForm.coe_mpullback]
+  simp_rw [← hΩ, SmoothForm.coe_mpullback, sliceSection_def]
   exact contMDiff_mpullback_prodMk_form Ω.contMDiff
 
 /-- A family `α` of smooth forms on `M` over `N` is smooth exactly when its vertical form
@@ -368,8 +359,9 @@ theorem contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFa
     ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
       fun p : N × E ↦ (α p.1).val p.2 := by
   intro p₀
-  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (isSmoothFamily_iff_contMDiff.mp h p₀)).2
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+  rw [isSmoothFamily_iff_contMDiff] at h
+  have hc := contMDiffAt_sliceSection_iff.mp (h p₀)
+  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
     TangentBundle.symmL_model_space] at hc
   refine hc.congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
   ext v
@@ -385,9 +377,9 @@ theorem of_contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k}
     (h : ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
       fun p : N × E ↦ (α p.1).val p.2) :
     IsSmoothFamily J α := by
-  refine isSmoothFamily_iff_contMDiff.mpr fun p₀ ↦
-    Bundle.contMDiffAt_totalSpace_iff.mpr ⟨contMDiffAt_snd, ?_⟩
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+  rw [isSmoothFamily_iff_contMDiff]
+  refine fun p₀ ↦ contMDiffAt_sliceSection_iff.mpr ?_
+  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
     TangentBundle.symmL_model_space]
   refine (h p₀).congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
   ext v
@@ -505,7 +497,7 @@ protected theorem mextDeriv [IsManifold I 2 M] [IsManifold J 2 N] {α : N → Sm
 protected theorem glue_collaredHalves {α β : unitInterval → SmoothForm I M F k}
     (hα : IsSmoothFamily (𝓡∂ 1) α) (hβ : IsSmoothFamily (𝓡∂ 1) β) (hαβ : α 1 = β 0) :
     IsSmoothFamily (𝓡∂ 1) (collaredConcat α β) := by
-  rw [isSmoothFamily_iff_contMDiff] at hα hβ ⊢
+  rw [isSmoothFamily_iff_contMDiff, sliceSection_def] at hα hβ ⊢
   refine (hα.glue_collaredHalves_left hβ (fun x ↦ by rw [hαβ]) le_rfl).congr fun p ↦ ?_
   exact apply_collaredConcat (fun γ : SmoothForm I M F k ↦ TotalSpace.mk'
     (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) _ p.2 (γ.val p.2))
@@ -598,9 +590,7 @@ theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.p
     (h : IsSmoothFamily J (fun t ↦ SmoothForm.mpullback (fun x ↦ f (t, x))
       (hf.comp (contMDiff_const.prodMk contMDiff_id)) (α t))) :
     ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun q : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) q.2
-        ((α q.1).val q.2)) (p.1, f p) := by
+      (sliceSection fun t ↦ (α t).val) (p.1, f p) := by
   obtain ⟨Ω, hΩ⟩ := h
   -- A local inverse `L` of `q ↦ (q.1, f q)` near `(p.1, f p)`; it keeps the first coordinate.
   set L := hΦ.localInverse
@@ -641,6 +631,7 @@ theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.p
     exact h1
   have hslice := congrArg Subtype.val (hΩ t)
   simp only [SmoothForm.coe_mpullback] at hslice
+  rw [sliceSection_apply]
   refine congrArg (TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
     (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) y) ?_
   have hmk : MDifferentiableAt I' (J.prod I') (Prod.mk t) (s y) :=
@@ -688,7 +679,7 @@ protected theorem extendByZero_smul {U W : Opens M} (h : U ≤ W)
     refine ((contMDiff_zeroSection ℝ (fun y : W ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] F)).comp
       contMDiff_snd (t, x)).congr_of_eventuallyEq ?_
     filter_upwards [hev] with q hq
-    rw [hq q.1]
+    rw [sliceSection_apply, hq q.1]
     -- The zero section takes the value `0` at every point.
     rfl
 
@@ -729,7 +720,7 @@ theorem isSmoothFamily_interiorₗ (σ : SmoothTwoForm I M)
     (hX : ContMDiff (J.prod I) I.tangent ∞
       fun p : N × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)) :
     IsSmoothFamily J fun t ↦ σ.interiorₗ (X t) := by
-  rw [isSmoothFamily_iff_contMDiff]
+  rw [isSmoothFamily_iff_contMDiff, sliceSection_def]
   intro p
   rw [← SmoothForm.contMDiffAt_sectionAlong_degreeOneEquiv_iff (b := Prod.snd)
     (α := fun q : N × M ↦ σ.interiorₗ (X q.1))]
