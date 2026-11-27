@@ -1145,8 +1145,9 @@ theorem isLocalDiffeomorph_connectedSumInl :
     funext x
     simp [R, connectedSumInl_apply, Subtype.ext_iff]
   rw [hF]
-  exact fun x ↦ ((((R M).symm.isLocalDiffeomorph.mapsToRestrict hmaps) x).comp
-    (hg := isLocalDiffeomorph_inl_real c _)).comp (hg := (R (Blowup c)).isLocalDiffeomorph _)
+  exact fun x ↦
+    (((((R M).symm.isLocalDiffeomorph.isLocalDiffeomorphOn _).mapsToRestrict hmaps) x).comp
+      (hg := isLocalDiffeomorph_inl_real c _)).comp (hg := (R (Blowup c)).isLocalDiffeomorph _)
 
 omit [T2Space M] in
 /-- For a holomorphic chart `c`, the punctured projective space is mapped into the blowup by a
@@ -1167,7 +1168,7 @@ theorem isLocalDiffeomorph_connectedSumInr :
       BlowupModel.radialRescale_ballRadius_mem_modelOpens c _⟩
   have hg : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g :=
     TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 fun y ↦
-      ((((R _).symm.isLocalDiffeomorph.mapsToRestrict hmaps) y).comp
+      (((((R _).symm.isLocalDiffeomorph.isLocalDiffeomorphOn _).mapsToRestrict hmaps) y).comp
         (hg := (projectiveBlowupModelDiffeomorph n).isLocalDiffeomorph _)).comp
         (hg := BlowupModel.isLocalDiffeomorph_radialRescale c.ballRadius_pos _)
   have hF : connectedSumInr c = ⇑(R (Blowup c)) ∘ inr (gluingHomeomorph c) ∘ g := by
@@ -1247,6 +1248,7 @@ theorem connectedSumInl_eq_connectedSumInr_iff {x : puncture c.connectedSumBall}
     obtain ⟨y, hy'⟩ := y
     subst hx hy
     exact connectedSumInl_eq_connectedSumInr c v hx' hy'
+
 /-- The two pieces cover the blowup. -/
 theorem range_connectedSumInl_union_range_connectedSumInr :
     range (connectedSumInl c) ∪ range (connectedSumInr c) = univ := by
