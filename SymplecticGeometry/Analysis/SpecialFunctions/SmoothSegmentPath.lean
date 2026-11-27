@@ -37,6 +37,7 @@ namespace TauCeti
 
 /-- A linear map carries the smooth path along the segment from `x` to `y` to the smooth path
 along the segment from its image of `x` to its image of `y`. -/
+@[simp]
 theorem map_smoothSegmentPath {L : Type*} [FunLike L E F] [LinearMapClass L ℝ E F] (f : L)
     (x y : E) (s : ℝ) : f (smoothSegmentPath x y s) = smoothSegmentPath (f x) (f y) s := by
   simp [smoothSegmentPath_def]

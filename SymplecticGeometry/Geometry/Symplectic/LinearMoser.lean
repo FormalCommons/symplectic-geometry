@@ -353,7 +353,7 @@ theorem segmentMoserFlow_conj {W : Type*} [NormedAddCommGroup W] [NormedSpace â„
     (TauCeti.contDiff_smoothSegmentPath a b) (isInvertible_segmentPath hp)]
   congr 2
   ext1 t
-  rw [TauCeti.map_smoothSegmentPath]
+  simp
 
 end Segment
 
