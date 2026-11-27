@@ -589,9 +589,9 @@ and the prerequisites, placed by topic.
   chart distances.
 - `Basic.lean`: `jetNorm`, `IsAsymptoticallyHolomorphic`,
   `IsUniformlyTransverse`, closure under sums and under products with
-  sequences of bounded functions, and `jetNorm_le_of_chart_change` (a
+  sequences of bounded functions; `jetNorm_le_of_chart_change` (a
   polynomial in $d_k(x,y)$ bounds the change between the charts at $x$ and
-  $y$).
+  $y$) is in `ChartChange.lean`.
 - `PeakSection.lean`: `peakSection k x` and `peakSection_mul k x j`, the
   cut-off Gaussians $\chi(|z|/k^{1/6})e^{-|z|^2/4}$ and $z_j$ times them in
   the chart at $x$, extended by zero. The milestone
