@@ -7,11 +7,15 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
+public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
+import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Map
+import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal.Bundle
 
 /-!
 # The normal bundle of an embedding reparametrised by a diffeomorphism
@@ -25,12 +29,17 @@ identifications form a continuous isomorphism of normal bundles over `e`. When a
 structure `J` on `X` preserves the tangent planes of `f`, it preserves those of `g`, the
 identifications are complex linear for the complex structures that `J` induces on the normal
 bundles, and naturality of the Euler class gives that the Euler class of the complex normal bundle
-of `g` is the pull-back along `e` of that of `f`.
+of `g` is the pull-back along `e` of that of `f`. For a nondegenerate two-form on `X` for which
+`f` and `g` have symplectic tangent images, the identifications carry the normal symplectic form
+of `g` to that of `f`.
 
 The fibrewise identification is Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceEquiv` for the
-square `id ∘ g = f ∘ e`; its continuity on total spaces is Tau Ceti's
-`TauCeti.SmoothEmbedding.continuous_normalBundleMap`, and the comparison of Euler classes is Tau
-Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+square `id ∘ g = f ∘ e`; its continuity and smoothness on total spaces are Tau Ceti's
+`TauCeti.SmoothEmbedding.continuous_normalBundleMap` and
+`TauCeti.SmoothEmbedding.contMDiff_normalBundleMap`, and its inverse is smooth since it is the
+normal map of the square `id ∘ f = g ∘ e⁻¹`. The comparison of normal symplectic forms is Tau
+Ceti's naturality `TauCeti.SmoothEmbedding.symplecticNormalForm_normalMap`, and the comparison of
+Euler classes is Tau Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
 
 ## Main definitions
 
@@ -45,6 +54,14 @@ Ceti's `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
   field that preserves the tangent planes of `f` preserves those of `g`.
 * `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless`: the
   identifications are continuous on total spaces.
+* `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless` and
+  `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff`: the
+  identifications and their inverses are `C^r` on total spaces, when `f` and `e` are `C^n` with
+  `r + 1 ≤ n`.
+* `TauCeti.SmoothEmbedding.hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff`: `g` has
+  symplectic tangent images for a nondegenerate two-form exactly when `f` has.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless`:
+  the identifications preserve the normal symplectic forms.
 * `TauCeti.SmoothEmbedding.complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless`:
   the Euler class of the complex normal bundle of `g` is the pull-back along `e` of that of `f`.
 
@@ -138,6 +155,21 @@ theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass (f : SmoothEmb
   -- `f.compDiffeomorphOfBoundaryless e h1 x`.
   rfl
 
+/-- The inverse identification of normal spaces sends the class of a tangent vector `w` of `X` at
+`f (e x)` to the class of `w` at the point `f.compDiffeomorphOfBoundaryless e h1 x`. -/
+@[simp]
+theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_normalClass
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (x : M')
+    (w : TangentSpace I (f (e x))) :
+    (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x).symm
+        (f.isImmersion.normalClass (e x) hn w) =
+      (f.compDiffeomorphOfBoundaryless e h1).isImmersion.normalClass x hn
+        (tangentSpaceCast I (f (e x)) (f.compDiffeomorphOfBoundaryless e h1 x) w) := by
+  rw [ContinuousLinearEquiv.symm_apply_eq,
+    normalSpaceEquivCompDiffeomorphOfBoundaryless_normalClass,
+    tangentSpaceCast_trans (compDiffeomorphOfBoundaryless_apply f e h1 x).symm
+      (compDiffeomorphOfBoundaryless_apply f e h1 x), tangentSpaceCast_self]
+
 /-- The identification of normal spaces is the normal map of the square
 `id ∘ (f.compDiffeomorphOfBoundaryless e h1) = f ∘ e`. -/
 theorem normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap
@@ -193,6 +225,123 @@ theorem continuous_normalSpaceEquivCompDiffeomorphOfBoundaryless {K K' : Type*}
     ContinuousLinearEquiv.coe_coe]
 
 end Bundle
+
+section Smooth
+
+variable {n r : ℕ∞ω} [IsManifold I n X] [IsManifold I'' n M'] [FiniteDimensional ℝ E']
+  [FiniteDimensional ℝ E''] [IsManifold I (r + 1) X] [IsManifold I' (r + 1) M]
+  [IsManifold I'' (r + 1) M']
+  {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+
+/-- The identifications of the normal spaces of `f.compDiffeomorphOfBoundaryless e h1` with those
+of `f`, over `e`, are `C^r` on the total spaces of the normal bundles with model fibre `P`, when
+`f` and `e` are `C^n` with `r + 1 ≤ n`. -/
+theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless (f : SmoothEmbedding I' I n M X)
+    (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) (hr : r + 1 ≤ n)
+    (hP : finrank ℝ P = finrank ℝ E - finrank ℝ E')
+    (hP' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') :
+    haveI : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
+    letI := f.normalSpaceFiberBundle hn hP
+    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
+    ContMDiff (I''.prod 𝓘(ℝ, P)) (I'.prod 𝓘(ℝ, P)) r
+      fun p : TotalSpace P
+          (fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) ↦
+        TotalSpace.mk' P (E := fun y ↦ f.isImmersion.NormalSpace y hn) (e p.proj)
+          (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn p.proj p.snd) := by
+  have : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+  have : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+  have : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
+  let := f.normalSpaceFiberBundle hn hP
+  let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
+  refine ((f.compDiffeomorphOfBoundaryless e h1).contMDiff_normalBundleMap (r := r) f hn hn
+    hr hr hP' hP contMDiff_id
+    (id_comp_compDiffeomorphOfBoundaryless f e h1)).congr fun p ↦ ?_
+  rw [normalBundleMap_apply, ← normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap,
+    ContinuousLinearEquiv.coe_coe]
+
+/-- A map into the normal bundle of `f.compDiffeomorphOfBoundaryless e h1` that is given over
+`u y` by the inverse identification of normal spaces applied to `w y`, a normal vector of `f` at
+`e (u y)`, is `C^k` for `k ≤ r` exactly when `y ↦ w y` is `C^k` as a map into the normal bundle
+of `f`. -/
+theorem contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff
+    {EY HY Y : Type*} [NormedAddCommGroup EY] [NormedSpace ℝ EY] [TopologicalSpace HY]
+    {L : ModelWithCorners ℝ EY HY} [TopologicalSpace Y] [ChartedSpace HY Y]
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0)
+    (hr : r + 1 ≤ n) (hP : finrank ℝ P = finrank ℝ E - finrank ℝ E')
+    (hP' : finrank ℝ P = finrank ℝ E - finrank ℝ E'') {k : ℕ∞ω} (hk : k ≤ r) {u : Y → M'}
+    {w : ∀ y, f.isImmersion.NormalSpace (e (u y)) hn} :
+    haveI : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
+    letI := f.normalSpaceFiberBundle hn hP
+    letI := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
+    ContMDiff L (I''.prod 𝓘(ℝ, P)) k (fun y ↦ TotalSpace.mk' P
+        (E := fun x ↦ (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) (u y)
+        ((f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn (u y)).symm (w y))) ↔
+      ContMDiff L (I'.prod 𝓘(ℝ, P)) k (fun y ↦ TotalSpace.mk' P
+        (E := fun x ↦ f.isImmersion.NormalSpace x hn) (e (u y)) (w y)) := by
+  have : IsManifold I 1 X := .of_le (n := r + 1) le_add_self
+  have : IsManifold I' 1 M := .of_le (n := r + 1) le_add_self
+  have : IsManifold I'' 1 M' := .of_le (n := r + 1) le_add_self
+  let := f.normalSpaceFiberBundle hn hP
+  let := (f.compDiffeomorphOfBoundaryless e h1).normalSpaceFiberBundle hn hP'
+  refine ⟨fun h ↦ (((f.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn hr
+    hP hP').of_le hk).comp h).congr fun y ↦ ?_, fun h ↦ ?_⟩
+  · simp only [Function.comp_apply, ContinuousLinearEquiv.apply_symm_apply]
+  -- The normal map of the square `id ∘ f = (f ∘ e) ∘ e⁻¹` inverts the identifications.
+  have hsq : _root_.id ∘ f = (f.compDiffeomorphOfBoundaryless e h1) ∘ e.symm := by
+    funext y
+    simp
+  refine (((f.contMDiff_normalBundleMap (r := r) (f.compDiffeomorphOfBoundaryless e h1) hn hn
+    hr hr hP hP' contMDiff_id hsq).of_le hk).comp h).congr fun y ↦ ?_
+  obtain ⟨v, hv⟩ := f.isImmersion.normalClass_surjective (e (u y)) hn (w y)
+  rw [Function.comp_apply, normalBundleMap_apply, ← hv, normalMap_normalClass, mfderiv_id,
+    ContinuousLinearMap.id_apply,
+    normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_normalClass]
+  -- The base points `e⁻¹ (e (u y))` and `u y` are equal.
+  generalize hb : e.symm (e (u y)) = b
+  rw [e.symm_apply_apply] at hb
+  subst hb
+  rfl
+
+end Smooth
+
+section Symplectic
+
+variable {n : ℕ∞ω} [IsManifold I ∞ X] [IsManifold I n X] [IsManifold I'' n M']
+  {σ : SmoothTwoForm I X} {hσ : σ.IsNondegenerate}
+
+/-- The reparametrised embedding `f.compDiffeomorphOfBoundaryless e h1` has symplectic tangent
+images for a nondegenerate two-form `σ` on `X` exactly when `f` has. -/
+theorem hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0) :
+    hσ.HasSymplecticTangentImages I'' (f.compDiffeomorphOfBoundaryless e h1) ↔
+      hσ.HasSymplecticTangentImages I' f := by
+  rw [coe_compDiffeomorphOfBoundaryless]
+  exact hσ.hasSymplecticTangentImages_comp_diffeomorph_iff e hn
+
+/-- The identification of the normal spaces of `f.compDiffeomorphOfBoundaryless e h1` with those
+of `f` carries the normal symplectic form of the first, for a nondegenerate two-form `σ` on `X`,
+to that of the second. -/
+theorem symplecticNormalForm_normalSpaceEquivCompDiffeomorphOfBoundaryless
+    (f : SmoothEmbedding I' I n M X) (e : M' ≃ₘ^n⟮I'', I'⟯ M) (h1 : 1 ≤ n) (hn : n ≠ 0)
+    (hf : hσ.HasSymplecticTangentImages I' f)
+    (hg : hσ.HasSymplecticTangentImages I'' (f.compDiffeomorphOfBoundaryless e h1)) (x : M')
+    (ν μ : (f.compDiffeomorphOfBoundaryless e h1).isImmersion.NormalSpace x hn) :
+    f.symplecticNormalForm hf (e x) hn (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x ν)
+        (f.normalSpaceEquivCompDiffeomorphOfBoundaryless e h1 hn x μ) =
+      (f.compDiffeomorphOfBoundaryless e h1).symplecticNormalForm hg x hn ν μ := by
+  rw [← ContinuousLinearEquiv.coe_coe,
+    normalSpaceEquivCompDiffeomorphOfBoundaryless_toContinuousLinearMap]
+  refine (f.compDiffeomorphOfBoundaryless e h1).symplecticNormalForm_normalMap f hg hf hn hn _
+    mdifferentiableAt_id (fun a b ↦ ?_) (e.isInvertible_mfderiv hn).surjective ν μ
+  rw [mfderiv_id, ContinuousLinearMap.id_apply, ContinuousLinearMap.id_apply]
+  -- The base point `id (g x)` is `g x`.
+  rfl
+
+end Symplectic
 
 section EulerClass
 

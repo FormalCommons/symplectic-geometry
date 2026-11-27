@@ -78,18 +78,13 @@ private theorem one_div_smoothedMax_lt_deriv_div {χ₁ χ₂ : ℝ → ℝ} {δ
     (h₂ : ContDiff ℝ 2 χ₂) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
     (hc₂ : IsConvexShapeAt χ₂ r) :
     1 / smoothedMax δ (χ₁ r) (χ₂ r) < deriv (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r / r := by
-  have hs := abs_le.1 (abs_smoothedSign_le_one δ (χ₁ r - χ₂ r))
   have hinv := one_div_smoothedMax_le hδ hc₁.pos_value hc₂.pos_value
-  rw [(hasDerivAt_smoothedMax ((h₁.differentiable two_ne_zero) r).hasDerivAt
-    ((h₂.differentiable two_ne_zero) r).hasDerivAt).deriv]
-  set s := smoothedSign δ (χ₁ r - χ₂ r)
-  set w := (1 + s) / 2 with hw
-  have hw₀ : 0 ≤ w := by rw [hw]; linarith
-  have hw₁ : w ≤ 1 := by rw [hw]; linarith
-  rw [show (1 - s) / 2 = 1 - w by rw [hw]; ring] at hinv
-  have e : (deriv χ₁ r + deriv χ₂ r + s * (deriv χ₁ r - deriv χ₂ r)) / 2 / r =
-      w * (deriv χ₁ r / r) + (1 - w) * (deriv χ₂ r / r) := by rw [hw]; ring
-  rw [e]
+  rw [deriv_smoothedMax_weighted ((h₁.differentiable two_ne_zero) r)
+    ((h₂.differentiable two_ne_zero) r)]
+  obtain ⟨hw₀, hw₁⟩ := one_add_smoothedSign_div_two_mem_Icc δ (χ₁ r - χ₂ r)
+  set w := (1 + smoothedSign δ (χ₁ r - χ₂ r)) / 2 with hw
+  rw [show (1 - smoothedSign δ (χ₁ r - χ₂ r)) / 2 = 1 - w by rw [hw]; ring] at hinv
+  rw [add_div, mul_div_assoc, mul_div_assoc]
   rcases hw₀.lt_or_eq with hw₀' | hw₀'
   · nlinarith [mul_lt_mul_of_pos_left hc₁.one_div_lt_deriv_div hw₀',
       mul_le_mul_of_nonneg_left hc₂.one_div_lt_deriv_div.le (sub_nonneg.2 hw₁)]
@@ -116,19 +111,16 @@ private theorem one_div_smoothedMax_lt_iteratedDeriv_add {χ₁ χ₂ : ℝ → 
   have hr := hc₁.pos
   have hx := hc₁.deriv_pos
   have hy := hc₂.deriv_pos
-  have hs := abs_le.1 (abs_smoothedSign_le_one δ (χ₁ r - χ₂ r))
   have hinv := one_div_smoothedMax_le hδ hc₁.pos_value hc₂.pos_value
-  rw [(hasDerivAt_smoothedMax ((h₁.differentiable two_ne_zero) r).hasDerivAt
-    ((h₂.differentiable two_ne_zero) r).hasDerivAt).deriv, iteratedDeriv_two_smoothedMax h₁ h₂]
+  rw [deriv_smoothedMax_weighted ((h₁.differentiable two_ne_zero) r)
+    ((h₂.differentiable two_ne_zero) r), iteratedDeriv_two_smoothedMax h₁ h₂]
+  obtain ⟨hw₀, hw₁⟩ := one_add_smoothedSign_div_two_mem_Icc δ (χ₁ r - χ₂ r)
   set x := deriv χ₁ r
   set y := deriv χ₂ r
   set s := smoothedSign δ (χ₁ r - χ₂ r)
   set p := iteratedDeriv 2 (smoothedAbs δ) (χ₁ r - χ₂ r)
   set w := (1 + s) / 2 with hw
-  have hw₀ : 0 ≤ w := by rw [hw]; linarith
-  have hw₁ : w ≤ 1 := by rw [hw]; linarith
   rw [show (1 - s) / 2 = 1 - w by rw [hw]; ring] at hinv
-  rw [show (x + y + s * (x - y)) / 2 = w * x + (1 - w) * y by rw [hw]; ring]
   -- The cube of the slope falls short of the combination of the cubes by
   -- `E ≤ (1 - s²) / 2 · (x - y)² (x + y) / r`.
   set E := w * (x ^ 3 / r) + (1 - w) * (y ^ 3 / r) - (w * x + (1 - w) * y) ^ 3 / r with hE
@@ -396,9 +388,12 @@ private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → �
   set p := iteratedDeriv 2 (smoothedAbs δ) (-ρ₁ R - -ρ₂ R)
   have hs : -1 ≤ s ∧ s ≤ 1 := abs_le.1 (abs_smoothedSign_le_one δ _)
   have hd : deriv (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R =
-      -((-x + -y + s * (-x - -y)) / 2) :=
-    (hasDerivAt_smoothedMax ((h₁.differentiable two_ne_zero) R).hasDerivAt.neg
-      ((h₂.differentiable two_ne_zero) R).hasDerivAt.neg).neg.deriv
+      -((-x + -y + s * (-x - -y)) / 2) := by
+    rw [deriv.fun_neg, deriv_smoothedMax (f := fun R ↦ -ρ₁ R) (g := fun R ↦ -ρ₂ R)
+      ((h₁.differentiable two_ne_zero) R).neg ((h₂.differentiable two_ne_zero) R).neg]
+    simp only [deriv.fun_neg]
+    -- The two sides differ only by the local definitions `x`, `y` and `s`.
+    rfl
   have he : iteratedDeriv 2 (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R =
       -((-iteratedDeriv 2 ρ₁ R + -iteratedDeriv 2 ρ₂ R +
         s * (-iteratedDeriv 2 ρ₁ R - -iteratedDeriv 2 ρ₂ R) + p * (-x - -y) ^ 2) / 2) := by
