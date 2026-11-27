@@ -46,6 +46,10 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   follows from the positive lower bound, by compactness, on the derivative of
   `Real.smoothTransition` where its values stay away from `0` and `1`
   (`Real.smoothTransition.exists_pos_le_deriv`).
+  `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
+  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
+  `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
+  below which that bound holds for given margins and bounds.
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
@@ -216,6 +220,65 @@ theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε
     constructor <;> linarith
   gcongr
   exact hcK _ hu
+
+/-- **The error of a smoothing by `smoothedAbs δ`.** Let `s = smoothedSign δ t` and
+`p = (smoothedAbs δ)'' t`. If `0 ≤ g`, `0 ≤ T ≤ Q`, `g T ≤ G` and `ε G < a`, and if `c / δ ≤ p`
+wherever `|s| ≤ 1 - ε`, with `δ Q ≤ c`, then `(1 - s²) / 2 · g T < a + p g / 2`: where `|s|` is
+near `1` the weight `(1 - s²) / 2` is below `ε`, and elsewhere the curvature `p ≥ Q` makes up for
+the error. -/
+theorem one_sub_smoothedSign_sq_div_two_mul_lt {δ ε a c g T Q G t : ℝ} (hδ : 0 < δ) (hε : 0 < ε)
+    (hg : 0 ≤ g) (hT : 0 ≤ T) (hTQ : T ≤ Q) (hG : g * T ≤ G) (hεG : ε * G < a)
+    (hc : |smoothedSign δ t| ≤ 1 - ε → c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t)
+    (hδQ : δ * Q ≤ c) :
+    (1 - smoothedSign δ t ^ 2) / 2 * (g * T) < a + iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  have hp := iteratedDeriv_two_smoothedAbs_nonneg hδ.le t
+  set s := smoothedSign δ t
+  set p := iteratedDeriv 2 (smoothedAbs δ) t
+  have hgT : 0 ≤ g * T := mul_nonneg hg hT
+  by_cases hsε : |s| ≤ 1 - ε
+  · have ha : 0 < a := lt_of_le_of_lt (mul_nonneg hε.le (hgT.trans hG)) hεG
+    have hpQ : Q ≤ p := le_trans ((le_div_iff₀ hδ).2 (by linarith)) (hc hsε)
+    calc (1 - s ^ 2) / 2 * (g * T) ≤ 1 / 2 * (g * p) := by
+          gcongr
+          · linarith [sq_nonneg s]
+          · exact hTQ.trans hpQ
+      _ < a + p * g / 2 := by linarith
+  · have hs₃ : (1 - s ^ 2) / 2 < ε := by
+      rw [not_le] at hsε
+      rcases le_or_gt 0 (1 - ε) with h | h
+      · have : (1 - ε) ^ 2 < s ^ 2 := by
+          rw [← sq_abs s]
+          exact pow_lt_pow_left₀ hsε h two_ne_zero
+        linarith [sq_nonneg ε]
+      · linarith [sq_nonneg s]
+    calc (1 - s ^ 2) / 2 * (g * T) ≤ ε * (g * T) := by gcongr
+      _ ≤ ε * G := by gcongr
+      _ < a := hεG
+      _ ≤ a + p * g / 2 := by linarith [mul_nonneg hp hg]
+
+/-- **A uniform choice of the smoothing parameter.** For `a > 0` and bounds `G` and `Q` there is
+`δ₀ > 0` such that for every `δ ∈ (0, δ₀]`, all `g ≥ 0` and `T ∈ [0, Q]` with `g T ≤ G`, and
+all `t`, `(1 - s²) / 2 · g T < a + p g / 2`, where `s = smoothedSign δ t` and
+`p = (smoothedAbs δ)'' t`. -/
+theorem exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt {a : ℝ} (ha : 0 < a) (G Q : ℝ) :
+    ∃ δ₀ > 0, ∀ δ, 0 < δ → δ ≤ δ₀ → ∀ {g T : ℝ}, 0 ≤ g → 0 ≤ T → T ≤ Q → g * T ≤ G → ∀ t,
+      (1 - smoothedSign δ t ^ 2) / 2 * (g * T) <
+        a + iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  set ε := a / (2 * (|G| + 1))
+  have hε : 0 < ε := by positivity
+  have hεG : ε * G < a := by
+    calc ε * G ≤ ε * |G| := by gcongr; exact le_abs_self G
+      _ < a := by
+        rw [div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
+        nlinarith [abs_nonneg G]
+  obtain ⟨c, hc, hcδ⟩ := exists_pos_div_le_iteratedDeriv_two_smoothedAbs hε
+  refine ⟨c / (|Q| + 1), by positivity, fun δ hδ hδ₀ g T hg hT hTQ hG t ↦
+    one_sub_smoothedSign_sq_div_two_mul_lt hδ hε hg hT hTQ hG hεG (hcδ δ hδ t) ?_⟩
+  calc δ * Q ≤ δ * |Q| := by gcongr; exact le_abs_self Q
+    _ ≤ c / (|Q| + 1) * |Q| := by gcongr
+    _ ≤ c := by
+      rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
+      nlinarith [abs_nonneg Q]
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
 theorem smoothedAbs_of_le (hδ : 0 < δ) {t : ℝ} (ht : δ ≤ t) : smoothedAbs δ t = t := by

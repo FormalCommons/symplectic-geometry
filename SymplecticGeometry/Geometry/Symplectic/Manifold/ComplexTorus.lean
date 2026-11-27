@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Algebra.Quotient
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 import SymplecticGeometry.Algebra.Module.ZLattice.Complex
 import TauCeti.LinearAlgebra.Determinant.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Complex tori as standard symplectic tori
@@ -260,7 +261,7 @@ theorem eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos
   erw [SmoothBundleForm.eval₂_apply] at hc
   rw [h]
   erw [SmoothBundleForm.eval₂_apply]
-  simp only [SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.coe_smul, hc,
+  simp only [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply, hc,
     stdComplexSymplecticForm_apply, one_re, I_im, mul_one, one_im, I_re, mul_zero, sub_zero,
     smul_eq_mul]
   exact det_latticeTorusEquiv_pos p _ hb

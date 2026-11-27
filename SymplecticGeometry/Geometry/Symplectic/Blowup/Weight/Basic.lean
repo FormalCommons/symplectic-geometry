@@ -22,7 +22,6 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 
 /-!
 # The blowup of weight `λ` along a symplectic ball
@@ -114,7 +113,7 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
   `SmoothEmbedding.normalSpaceEquiv`, since `inr` is a local diffeomorphism.
 * `SymplecticGeometry.WeightBlowup.continuous_normalSpaceDivisorEquiv`: these isomorphisms
   form a continuous map from the total space of the normal bundle of the divisor to that of the
-  tautological line. A left inverse of `inr` on its open range is smooth near the divisor and
+  tautological line. The model chart, the inverse of `inr` on its open range, is smooth there and
   carries it onto the zero section of the model, so the map of normal bundles that it induces is
   continuous by `TauCeti.SmoothEmbedding.continuous_normalBundleMap_of_contMDiffAt`; composed
   with the model's isomorphisms, continuous by
@@ -647,6 +646,68 @@ theorem isSymplecticSubmanifoldEmbedding_divisor (hω : (form hψ hl hε).IsNond
       hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ (pow_ne_zero 2 hl₀)
         (mpullback_divisor_form hψ hl hε)
 
+/-! ### The model chart -/
+
+/-- **The model chart of the blowup of weight `l`**: the inverse of `inr`, from the image of `inr`
+onto the model piece `openNbhd n ε`, as a partial diffeomorphism from the blowup to the model
+blowup. -/
+def modelChart :
+    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (WeightBlowup hψ hl hε)
+      (BlowupModel n) ∞ :=
+  PartialDiffeomorph.liftOpens
+    (GluedAlong.rangeInrDiffeomorph
+      (GluedAlong.isCompatible_glueData (gluingDiffeomorphSymm hψ hl hε))).toPartialDiffeomorph
+    ⟨⟨_, GluedAlong.inr_mem_rangeInr _ (zeroSectionOpenNbhd hε (Classical.arbitrary _))⟩⟩
+    ⟨zeroSectionOpenNbhd hε (Classical.arbitrary _)⟩
+
+/-- The source of the model chart is the image of `inr`. -/
+theorem modelChart_source :
+    (modelChart hψ hl hε).source =
+      range (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) := by
+  simp only [modelChart, PartialDiffeomorph.liftOpens_source,
+    Diffeomorph.toPartialDiffeomorph_toPartialEquiv, Equiv.toPartialEquiv_source, image_univ,
+    Subtype.range_coe_subtype, SetLike.setOfPred_mem_eq, GluedAlong.coe_rangeInr]
+
+/-- The target of the model chart is `openNbhd n ε`. -/
+theorem modelChart_target : (modelChart hψ hl hε).target = openNbhd n ε := by
+  ext p
+  simp [modelChart, mem_openNbhdOpens_iff]
+
+/-- The model chart sends `inr p` to `p`. -/
+@[simp]
+theorem modelChart_inr (p : openNbhdOpens n ε) :
+    modelChart hψ hl hε (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p) = p := by
+  rw [modelChart, ← GluedAlong.coe_rangeInrDiffeomorph_symm_apply
+    (GluedAlong.isCompatible_glueData (gluingDiffeomorphSymm hψ hl hε)) p,
+    PartialDiffeomorph.liftOpens_apply_coe]
+  simp
+
+/-- The inverse of the model chart sends a point `p` of the model piece to `inr p`. -/
+@[simp]
+theorem modelChart_toPartialEquiv_symm_apply (p : openNbhdOpens n ε) :
+    (modelChart hψ hl hε).toPartialEquiv.symm p =
+      GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p := by
+  have h := (modelChart hψ hl hε).left_inv
+    (by rw [modelChart_source]; exact mem_range_self p)
+  rwa [modelChart_inr] at h
+
+/-- The divisor lies in the source of the model chart, which sends it to the zero section. -/
+theorem divisor_mem_modelChart_source (q : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    divisor hψ hl hε q ∈ (modelChart hψ hl hε).source ∧
+      modelChart hψ hl hε (divisor hψ hl hε q) = zeroSection q := by
+  rw [divisor_apply, modelChart_source, modelChart_inr]
+  exact ⟨mem_range_self _, rfl⟩
+
+/-- The model chart pulls `ω̃_l` back to the form of the blowup on its source. -/
+theorem isSymplecticMapOn_modelChart :
+    (form hψ hl hε).IsSymplecticMapOn (blowupForm n l) (modelChart hψ hl hε)
+      (modelChart hψ hl hε).source := by
+  refine Diffeomorph.isSymplecticMapOn_toPartialDiffeomorph_liftOpens _ _ _ ?_
+  rw [← SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
+    ← SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
+    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
+    GluedAlong.mpullback_rangeInrDiffeomorph_symm, mpullback_inr_form]
+
 variable (hn : (∞ : ℕ∞ω) ≠ 0)
 
 /-- The normal spaces of the zero section in the model piece and in the model are the same,
@@ -747,25 +808,17 @@ theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
     Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn) =>
       (⟨p.proj, normalSpaceDivisorEquiv hψ hl hε hn p.proj p.snd⟩ :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
-  -- The left inverse `v` of `inr` on its open range carries the divisor to the zero section of
-  -- the model, and is smooth along the divisor.
-  have : Nonempty (openNbhdOpens n ε) := ⟨⟨zeroSection (Classical.arbitrary _),
-    mem_openNbhdOpens_iff.2 (zeroSection_mem_openNbhd hε _)⟩⟩
-  let v : WeightBlowup hψ hl hε → BlowupModel n :=
-    Subtype.val ∘
-      Function.invFunOn (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) univ
-  have hvr : v ∘ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph = Subtype.val := by
-    funext y
-    simp only [v, Function.comp_apply,
-      (GluedAlong.inr_injective _).injOn.leftInvOn_invFunOn (mem_univ y)]
+  -- The model chart `v`, the inverse of `inr` on its open range, carries the divisor to the zero
+  -- section of the model, and is smooth there.
+  let v : WeightBlowup hψ hl hε → BlowupModel n := modelChart hψ hl hε
+  have hvr : v ∘ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph = Subtype.val :=
+    funext (modelChart_inr hψ hl hε)
   have h : v ∘ divisor hψ hl hε = zeroSectionRealEmbedding n ∘ _root_.id := by
     rw [coe_divisor, ← Function.comp_assoc, hvr, val_comp_zeroSectionOpenNbhd, Function.comp_id]
-  have hi := (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
-    (n := ∞)).contMDiffOn_invFunOn (GluedAlong.inr_injective _)
   have hv : ∀ y, ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ v
       (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y) := fun y ↦
-    contMDiff_subtypeVal.contMDiffAt.comp _
-      (hi.contMDiffAt ((GluedAlong.isOpen_range_inr _).mem_nhds (mem_range_self _)))
+    (modelChart hψ hl hε).contMDiffOn.contMDiffAt ((modelChart hψ hl hε).open_source.mem_nhds
+      (by rw [modelChart_source]; exact mem_range_self y))
   -- The isomorphisms of the divisor are those of the model after the normal-bundle map of `v`.
   convert (continuous_normalSpaceZeroSectionRealEquiv hn (K := ℂ)).comp
     ((divisor hψ hl hε).continuous_normalBundleMap_of_contMDiffAt (K := K) (K' := ℂ)
@@ -797,70 +850,6 @@ theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
     ((normalSpaceDivisorEquiv_normalClass hψ hl hε hn ℓ w).trans (Eq.trans ?_ e.symm))
   exact Subtype.ext (congrArg (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
     (zeroSection ℓ)) (key _ (divisor_apply hψ hl hε ℓ)).symm)
-
-/-! ### The model chart -/
-
-/-- **The model chart of the blowup of weight `l`**: the inverse of `inr`, from the image of `inr`
-onto the model piece `openNbhd n ε`, as a partial diffeomorphism from the blowup to the model
-blowup. -/
-def modelChart :
-    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (WeightBlowup hψ hl hε)
-      (BlowupModel n) ∞ :=
-  ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)).diffeomorphOfInjective
-      (GluedAlong.inr_injective _)).symm.toPartialDiffeomorph.liftOpens
-    ⟨(GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)).diffeomorphOfInjective
-      (GluedAlong.inr_injective _) (zeroSectionOpenNbhd hε (Classical.arbitrary _))⟩
-    ⟨zeroSectionOpenNbhd hε (Classical.arbitrary _)⟩
-
-/-- The source of the model chart is the image of `inr`. -/
-theorem modelChart_source :
-    (modelChart hψ hl hε).source =
-      range (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) := by
-  simp only [modelChart, PartialDiffeomorph.liftOpens_source,
-    Diffeomorph.toPartialDiffeomorph_toPartialEquiv, Diffeomorph.symm_toEquiv,
-    Equiv.symm_toPartialEquiv, PartialEquiv.symm_source, Equiv.toPartialEquiv_target, image_univ,
-    Subtype.range_coe_subtype, SetLike.setOfPred_mem_eq]
-  rw [← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
-
-/-- The target of the model chart is `openNbhd n ε`. -/
-theorem modelChart_target : (modelChart hψ hl hε).target = openNbhd n ε := by
-  ext p
-  simp [modelChart, mem_openNbhdOpens_iff]
-
-/-- The model chart sends `inr p` to `p`. -/
-@[simp]
-theorem modelChart_inr (p : openNbhdOpens n ε) :
-    modelChart hψ hl hε (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p) = p := by
-  rw [modelChart, ← IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply
-    (GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε))
-    (GluedAlong.inr_injective _) p, PartialDiffeomorph.liftOpens_apply_coe]
-  simp
-
-/-- The inverse of the model chart sends a point `p` of the model piece to `inr p`. -/
-@[simp]
-theorem modelChart_toPartialEquiv_symm_apply (p : openNbhdOpens n ε) :
-    (modelChart hψ hl hε).toPartialEquiv.symm p =
-      GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph p := by
-  have h := (modelChart hψ hl hε).left_inv
-    (by rw [modelChart_source]; exact mem_range_self p)
-  rwa [modelChart_inr] at h
-
-/-- The divisor lies in the source of the model chart, which sends it to the zero section. -/
-theorem divisor_mem_modelChart_source (q : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    divisor hψ hl hε q ∈ (modelChart hψ hl hε).source ∧
-      modelChart hψ hl hε (divisor hψ hl hε q) = zeroSection q := by
-  rw [divisor_apply, modelChart_source, modelChart_inr]
-  exact ⟨mem_range_self _, rfl⟩
-
-/-- The model chart pulls `ω̃_l` back to the form of the blowup on its source. -/
-theorem isSymplecticMapOn_modelChart :
-    (form hψ hl hε).IsSymplecticMapOn (blowupForm n l) (modelChart hψ hl hε)
-      (modelChart hψ hl hε).source := by
-  refine Diffeomorph.isSymplecticMapOn_toPartialDiffeomorph_liftOpens _ _ _ ?_
-  rw [← SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
-    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val, mpullback_inr_form]
 
 end Divisor
 
