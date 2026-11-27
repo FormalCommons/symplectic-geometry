@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ConnectedSum.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import TauCeti.Analysis.Calculus.FDeriv.Pi.Basic
@@ -190,23 +189,9 @@ theorem isOrientationPreservingAt_connectedSumInl [T2Space M] (x : puncture c.co
         (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
           (by simp))
       (connectedSumInl c) x := by
-  let R (X : Type) [TopologicalSpace X] [ChartedSpace (Fin (n + 1) → ℂ) X] :=
-    remodelDiffeomorph (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm X
-  have hmaps : MapsTo (R M).symm (puncture c.connectedSumBall) (puncturedOpens c) :=
-    fun x hx ↦ by simpa [R] using symm_coe_mem_puncturedOpens c ⟨x, hx⟩
-  have hF : connectedSumInl c =
-      ⇑(R (Blowup c)) ∘ GluedAlong.inl (gluingHomeomorph c) ∘ hmaps.restrict _ _ _ := by
-    funext x
-    simp [R, connectedSumInl_apply, Subtype.ext_iff]
-  -- The map is a local biholomorphism.
-  have hl : IsLocalDiffeomorphAt 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1)))
-      𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞ (connectedSumInl c) x := by
-    rw [hF]
-    exact (((((R M).symm.isLocalDiffeomorph.isLocalDiffeomorphOn _).mapsToRestrict hmaps) x).comp
-      (hg := (isLocalDiffeomorph_inl c _).of_le le_top)).comp
-      (hg := (R (Blowup c)).isLocalDiffeomorph _)
   rw [← complexManifoldOrientationOfFinrank_opens_eq_restrict]
-  exact hl.isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞
+  exact (isLocalDiffeomorph_connectedSumInl_complex c x
+    ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞
 
 /-- For a holomorphic chart `c`, the map `connectedSumInr c` of the punctured projective space into
 the blowup, both re-modelled on `EuclideanSpace ℂ (Fin (n + 1))`, preserves orientation at every
@@ -220,54 +205,34 @@ theorem isOrientationPreservingAt_connectedSumInr
         (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
           (by simp))
       (connectedSumInr c) y := by
-  let R (X : Type) [TopologicalSpace X] [ChartedSpace (Fin (n + 1) → ℂ) X] :=
-    remodelDiffeomorph (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm X
-  have hmaps : MapsTo (R (ℙ ℂ (Fin (n + 2) → ℂ))).symm
-      (puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) (projectiveBlowupOpens n) :=
-    fun y hy ↦ by
-      simpa [R] using EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens ⟨y, hy⟩
-  set h := hmaps.restrict _ _ _
-  let g : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n) → modelOpens c :=
-    fun y ↦ ⟨BlowupModel.radialRescale c.ballRadius (projectiveBlowupModelDiffeomorph n (h y)),
-      BlowupModel.radialRescale_ballRadius_mem_modelOpens c _⟩
-  have hF : connectedSumInr c = ⇑(R (Blowup c)) ∘ GluedAlong.inr (gluingHomeomorph c) ∘ g := by
-    funext y
-    have hy : h y =
-        ⟨_, EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens y⟩ :=
-      Subtype.ext (by simp [h, R])
-    simp only [Function.comp_apply, g, hy, connectedSumInr_apply]
-    simp [R]
   -- The composite of `GluedAlong.inr` and the re-modelling is holomorphic.
   have hl : (complexManifoldOrientationOfFinrank (Fin (n + 1) → ℂ) (modelOpens c) (r := n)
       (by simp)).IsOrientationPreservingAt
       (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
         (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
-          (by simp)) (⇑(R (Blowup c)) ∘ GluedAlong.inr (gluingHomeomorph c)) (g y) :=
-    (((isLocalDiffeomorph_inr c _).of_le le_top).comp (hg := (R (Blowup c)).isLocalDiffeomorph _)
-      ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞
-  -- The re-modelling of the punctured projective space is holomorphic.
-  have hh : (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
-      (puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) (r := n)
-      (by simp)).IsOrientationPreservingAt
-      (complexManifoldOrientationOfFinrank (Fin (n + 1) → ℂ) (projectiveBlowupOpens n) (r := n)
-        (by simp)) h y :=
-    ((((R _).symm.isLocalDiffeomorph.isLocalDiffeomorphOn _).mapsToRestrict hmaps) y
+          (by simp)) (remodelHomeomorph _ _ ∘ GluedAlong.inr (gluingHomeomorph c))
+      (connectedSumInrModel c y) := by
+    rw [← coe_remodelDiffeomorph (n := ∞)]
+    exact (((isLocalDiffeomorph_inr c _).of_le le_top).comp
+      (hg := (remodelDiffeomorph _ _).isLocalDiffeomorph _)
       ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞
   have hg : (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
       (puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) (r := n)
       (by simp)).IsOrientationReversingAt
       (complexManifoldOrientationOfFinrank (Fin (n + 1) → ℂ) (modelOpens c) (r := n)
-        (by simp)) g y := by
+        (by simp)) (connectedSumInrModel c) y := by
     rw [complexManifoldOrientationOfFinrank_opens_eq_restrict (M := BlowupModel n),
       ← Manifold.Orientation.isOrientationPreservingAt_neg_right,
       ← Manifold.Orientation.restrict_neg,
       Manifold.Orientation.isOrientationPreservingAt_restrict_iff,
-      Manifold.Orientation.isOrientationPreservingAt_neg_right]
+      Manifold.Orientation.isOrientationPreservingAt_neg_right, coe_connectedSumInrModel]
     exact (BlowupModel.isOrientationPreservingAt_radialRescale c.ballRadius_pos _).comp_reversing
-      ((isOrientationReversing_projectiveBlowupModelDiffeomorph _).comp_preserving hh)
+      ((isOrientationReversing_projectiveBlowupModelDiffeomorph _).comp_preserving
+        ((isLocalDiffeomorph_connectedSumInrOpens y
+          ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞))
   rw [Manifold.Orientation.restrict_neg, Manifold.Orientation.isOrientationPreservingAt_neg_left,
     EuclideanComplexProjectiveSpace.orientation_def,
-    ← complexManifoldOrientationOfFinrank_opens_eq_restrict, hF]
+    ← complexManifoldOrientationOfFinrank_opens_eq_restrict, connectedSumInr_eq_comp]
   exact hl.comp_reversing hg
 
 end Blowup
