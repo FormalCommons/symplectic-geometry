@@ -7,9 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.RealThomClass
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Multiple
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Slice
-import SymplecticGeometry.Topology.VectorBundle.Thom.SecondCountable
-import TauCeti.Geometry.Manifold.Topology
 
 /-!
 # The real relative dual class of a submanifold
@@ -33,11 +32,10 @@ class is the real image of `relDualClass f hn hdim hf o hr`, and its image in `H
 real image of `dualClass f hn hdim hf o hr`.
 
 When `Z` is connected, the real canonical Thom class is a Thom class with coefficients `ℝ`
-(`TauCeti.VectorBundleOrientation.isThomClass_realCanonicalThomClass`), so every class of
-`Hʳ(ν, ν ∖ 0; ℝ)` is a real multiple of it (`TauCeti.IsThomClass.exists_eq_smul`). Through
-`bijective_relDualClassOf` and the exact sequence of the pair, as for the integral classes in
-`DualClass/Multiple.lean`, every class of `Hʳ(X, X ∖ f(Z); ℝ)` is a real multiple of the real
-relative dual class, and every class of `Hʳ(X; ℝ)` that vanishes on `X ∖ f(Z)` is a real multiple
+(`TauCeti.VectorBundleOrientation.isThomClass_realCanonicalThomClass`). So, by
+`TauCeti.SmoothEmbedding.exists_eq_smul_relDualClassOf` (`DualClass/Multiple.lean`), every class
+of `Hʳ(X, X ∖ f(Z); ℝ)` is a real multiple of the real relative dual class, and, by the exact
+sequence of the pair, every class of `Hʳ(X; ℝ)` that vanishes on `X ∖ f(Z)` is a real multiple
 of the real image of the dual class.
 
 ## Main definitions
@@ -204,14 +202,8 @@ theorem exists_eq_smul_realRelDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : 
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   subst hr
-  have : T2Space Z := f.isEmbedding.t2Space
-  have : SecondCountableTopology Z := f.isEmbedding.secondCountableTopology
-  have : LocallyCompactSpace Z := Manifold.locallyCompact_of_finiteDimensional I
-  have : LocallyPathConnectedSpace Z := I.locallyPathConnectedSpace_of_chartedSpace Z
-  have : PathConnectedSpace Z := pathConnectedSpace_iff_connectedSpace.2 ‹_›
-  obtain ⟨u, rfl⟩ := (bijective_relDualClassOf f hn hdim hf _).surjective c
-  obtain ⟨m, rfl⟩ := (o.isThomClass_realCanonicalThomClass rfl).exists_eq_smul u
-  exact ⟨m, relDualClassOf_smul f hn hdim hf _ _⟩
+  rw [realRelDualClass_def]
+  exact exists_eq_smul_relDualClassOf f hn hdim hf (o.isThomClass_realCanonicalThomClass rfl) c
 
 /-- **A real class vanishing off a connected submanifold is a multiple of its dual class.** For a
 smooth embedding `f : Z → X` with closed range and connected (so nonempty) source, and an
