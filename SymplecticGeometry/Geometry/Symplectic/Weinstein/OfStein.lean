@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Manifold.Flow.Complete
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import SymplecticGeometry.Analysis.SpecialFunctions.ExpDeriv
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
@@ -169,7 +170,7 @@ theorem mul_mvfderiv_dCLiouvilleField_comp {g g' g'' : ℝ → ℝ} {φ ψ a b :
   rw [mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt hψ ha hb hg hg',
     covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt (g' := a) hψ
       fun y ↦ ha y ▸ hg y] at key
-  simp only [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+  simp only [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
     SmoothForm.coe_funSMulₗ, ContinuousAlternatingMap.smul_apply, smul_eq_mul,
     SmoothForm.extDerivWedgeₗ_apply, hcast, RoughForm.wedge_apply_one_one,
     mextDeriv_ofFunction_apply, covectorComplexStructure_apply_vec, mextDerivₗ_zero_apply,

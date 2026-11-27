@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Manifold.DeRham.Harmonic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 import SymplecticGeometry.Geometry.Manifold.Complex.KahlerCoordinates
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
@@ -291,7 +292,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
-  simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
+  simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.neg_apply]
   rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
       α hy hgr,
     ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl' (by omega) (σ.lefschetz α) hy
@@ -335,7 +336,7 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
   let _ : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
     VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
   have hm := (o.fact_finrank_tangentSpace (ψ.symm y)).out
-  simp only [Submodule.coe_sub, Submodule.coe_neg, Pi.sub_apply, Pi.neg_apply]
+  simp only [SmoothBundleForm.sub_apply, SmoothBundleForm.neg_apply]
   rw [val_lefschetz hg, ψ.val_codifferential_symm_of_fderiv_gramInChart_eq_zero o hkl (by omega)
       α hy hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
