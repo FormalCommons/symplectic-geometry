@@ -42,10 +42,10 @@ A *frame* is a real `2n × n` matrix `Z = fromRows X Y`, whose columns span the 
 
 ## Main results
 
-* `SymplecticGeometry.StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage`: the span of
-  `fromRows X Y` is the real image of its complex frame `X + i Y`, carried to `StdSpace ι`;
-  `map_realImage`: the real image of a complex matrix `A` is the image of `{y = 0}` under the
-  realification of `A`.
+* `SymplecticGeometry.StdSpace.map_realImage`: carried to `StdSpace ι`, the real image of a
+  complex matrix `A` is the image of `{y = 0}` under the realification of `A`. With
+  `Matrix.range_toEuclideanLin_fromRows`, the span of `fromRows X Y` is the image of the real
+  image of its complex frame `X + i Y`.
 * `SymplecticGeometry.StdSpace.graph_zero`, `graphY_zero`: the graphs of `0` are the coordinate
   subspaces `{y = 0}` and `{x = 0}`.
 * `SymplecticGeometry.StdSpace.isCompl_graph_ker_x`, `isCompl_graphY_ker_y`: each graph is
@@ -232,16 +232,6 @@ theorem map_lagrangianChart [DecidableEq ι] (S : Matrix ι ι ℝ) :
     rw [← Submodule.comap_equiv_eq_map_symm]
     ext v
     simp [funext_iff, mem_lagrangianChart, mulVec, dotProduct])
-
-/-- The column space of a frame `fromRows X Y` is the real image `(X + i Y) ℝⁿ ⊆ ℂⁿ` of its
-complex frame, carried to `StdSpace ι` by `complexToRealEuclideanIsometry`. -/
-theorem range_toEuclideanLin_fromRows_eq_map_realImage [DecidableEq ι] (X Y : Matrix ι ι ℝ) :
-    LinearMap.range (toEuclideanLin (fromRows X Y)) =
-      (X.map Complex.ofReal + Complex.I • Y.map Complex.ofReal).realImage.map
-        (complexToRealEuclideanIsometry ι).toLinearEquiv.toLinearMap := by
-  rw [range_toEuclideanLin_fromRows]
-  congr 1
-  exact LinearMap.ext fun v ↦ by simp [PiLp.coe_continuousLinearEquiv]
 
 /-- Through `complexToRealEuclideanIsometry`, the real image `A ℝⁿ` of a complex matrix is the
 image of the horizontal subspace `{y = 0}` under its realification. -/
@@ -528,7 +518,7 @@ theorem det_ne_zero_of_isLagrangian_range_fromRows {X Y : Matrix ι ι ℝ}
       e.toLinearMap ∘ₗ (LinearMap.lsmul ℂ (EuclideanSpace ℂ ι) Complex.I).restrictScalars ℝ :=
     LinearMap.ext fun v ↦ stdComplexStructure_complexToRealEuclideanIsometry v
   have hJ := h.isMaximalTotallyReal_of_compatible stdForm_compatible
-  rw [range_toEuclideanLin_fromRows_eq_map_realImage] at hJ
+  rw [range_toEuclideanLin_fromRows] at hJ
   exact isMaximalTotallyReal_realImage_iff.1 ((e.isMaximalTotallyReal_map_iff he).1 hJ)
 
 end Frame
