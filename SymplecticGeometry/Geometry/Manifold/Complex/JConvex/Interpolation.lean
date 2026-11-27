@@ -13,6 +13,8 @@ public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
+import Mathlib.Analysis.Convex.Segment
+import SymplecticGeometry.Analysis.Calculus.FDeriv.CompactBound
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Glaeser
 import SymplecticGeometry.Analysis.Complex.Pseudoconvex
 import SymplecticGeometry.Geometry.Manifold.Immersion.InfDist
@@ -95,7 +97,7 @@ and `χ` is a cutoff equal to `1` near `ι '' K` and supported in the union `W` 
 of the chart balls given by the uniform local data (Tau Ceti's
 `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`, which needs no σ-compactness). In each of
 these charts the Levi form of `θ` is bounded below by
-`TauCeti.exists_le_re_leviForm_add_logCutoff_mul_sub`, and its differential by
+`TauCeti.exists_mul_sq_norm_le_re_leviForm_add_logCutoff_mul_sub`, and its differential by
 `TauCeti.sub_le_norm_fderiv_add_logCutoff_mul_sub`; both errors are small once `δ = η ^ 2` and
 `log (δ / ε) = 1 / η` with `η` small, uniformly over the finitely many charts. This is the
 logarithmic cutoff route of the library's design for Proposition 3.26, and we do not claim that
@@ -375,13 +377,14 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
   -- The function `ρ`, a squared distance to the image of `ι` near `ι '' K`.
   obtain ⟨ρ, hρs, hρ0, V₀, hV₀, hKV₀, hρV₀, -, hpos⟩ :=
     h.exists_contMDiff_isManifoldStrictlyPlurisubharmonicAt_of_isCompact (n := ⊤) (by simp) hK hι
+  have hρ2 : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) 2 ρ := hρs.of_le (by simp)
   have hC2 {f : M → ℝ} (hf : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) ∞ f O) {x : M} (hx : x ∈ O) :
       ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x :=
     (hf.contMDiffAt (hO.mem_nhds hx)).of_le (by simp)
   -- The uniform local data at each point of `K`, in a holomorphic chart.
   have hloc (y : K) :=
     h.exists_closedBall_abs_sub_le_and_le_re_leviForm (n := ∞) (y := (y : N)) (by simp)
-    (hρs.of_le (by simp)).contMDiffAt (Eventually.of_forall hρ0)
+    hρ2.contMDiffAt (Eventually.of_forall hρ0)
     (eventually_of_mem (hι_cont.continuousAt.preimage_mem_nhds
       (hV₀.mem_nhds (hKV₀ ⟨y, y.property, rfl⟩))) fun y' hy' ↦ (hρV₀ _ hy').2 ⟨y', rfl⟩)
     (hpos y y.property)
@@ -398,11 +401,6 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
     IsManifold.chart_mem_maximalAtlas _
   have heR (y : K) : e y ∈ IsManifold.maximalAtlas 𝓘(ℝ, E) 2 M :=
     IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 2 two_ne_zero (he y)
-  have hcd {f : M → ℝ} (y : K) {z : E} (hz : z ∈ (e y).target)
-      (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f ((e y).symm z)) :
-      ContDiffAt ℝ 2 (f ∘ (e y).symm) z := by
-    simpa [(e y).right_inv hz] using
-      (contMDiffAt_iff_contDiffAt_comp_extend_symm (heR y) ((e y).map_target hz)).1 hf
   -- Finitely many open chart balls cover `ι '' K`; `W` is their union.
   set ball' : K → Set M := fun y ↦ (e y).source ∩ e y ⁻¹' ball (e y (ι y)) (r y)
   have hball'o (y : K) : IsOpen (ball' y) := (e y).isOpen_inter_preimage isOpen_ball
@@ -425,21 +423,17 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
   obtain ⟨χ, hχs, hχ1, -, hχW, hχI⟩ :=
     (hK.image hι_cont).exists_contMDiff_one_nhds_tsupport_subset 𝓘(ℝ, E) hWo ht
   -- Bounds on the first two derivatives of `χ` in the charts.
+  have hχ2 : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) 2 χ := hχs.of_le (by simp)
   have hχB (y : K) : ∃ B, ∀ z ∈ closedBall (e y (ι y)) (r y),
       ‖fderiv ℝ (χ ∘ (e y).symm) z‖ ≤ B ∧ ‖fderiv ℝ (fderiv ℝ (χ ∘ (e y).symm)) z‖ ≤ B := by
-    have hc (z) (hz : z ∈ closedBall (e y (ι y)) (r y)) : ContDiffAt ℝ 2 (χ ∘ (e y).symm) z :=
-      hcd y (hrt y hz) ((hχs.of_le (by simp)).contMDiffAt)
-    obtain ⟨B₁, hB₁⟩ := (isCompact_closedBall _ _).exists_bound_of_continuousOn
-      (f := fderiv ℝ (χ ∘ (e y).symm)) fun z hz ↦
-        ((hc z hz).continuousAt_fderiv two_ne_zero).continuousWithinAt
-    obtain ⟨B₂, hB₂⟩ := (isCompact_closedBall _ _).exists_bound_of_continuousOn
-      (f := fderiv ℝ (fderiv ℝ (χ ∘ (e y).symm))) fun z hz ↦
-        ((hc z hz).continuousAt_fderiv_fderiv le_rfl).continuousWithinAt
-    exact ⟨max B₁ B₂, fun z hz ↦ ⟨(hB₁ z hz).trans (le_max_left _ _),
-      (hB₂ z hz).trans (le_max_right _ _)⟩⟩
+    refine (isCompact_closedBall _ _).exists_forall_norm_fderiv_le_and_norm_fderiv_fderiv_le
+      le_rfl fun z hz ↦ ?_
+    have := hχ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y)
+      ((e y).map_target (hrt y hz))
+    rwa [(e y).right_inv (hrt y hz)] at this
   choose B hB using hχB
   -- The parameters: `δ = η ^ 2` and `log (δ / ε) = 1 / η`, for `η` small.
-  obtain ⟨Kc, hKc⟩ := exists_le_re_leviForm_add_logCutoff_mul_sub
+  obtain ⟨Kc, hKc⟩ := exists_mul_sq_norm_le_re_leviForm_add_logCutoff_mul_sub
   have hev : ∀ᶠ η in 𝓝 (0 : ℝ), η ≤ 1 / 3 ∧ ∀ y ∈ t,
       Kc * (A y ^ 2 + A y ^ 3 + A y ^ 2 * B y + A y * B y) * (η + η) < m y ∧
       A y * η + (logCutoffConst * A y ^ 2 * η * η + A y * B y * η ^ 2) < m y := by
@@ -460,12 +454,8 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
     simp only [hβ, Pi.mul_apply, Pi.sub_apply, Pi.one_apply, Function.comp_apply]
   have hθx (x : M) : θ x = φ x + β x * (ψ x - φ x) := by
     simp only [hθ, Pi.add_apply, Pi.mul_apply, Pi.sub_apply]
-  have hβ01 (x : M) : 0 ≤ β x ∧ β x ≤ 1 := by
-    have := hχI x
-    have := logCutoffProfile_nonneg hε0 hεδ (ρ x)
-    have := logCutoffProfile_le_one hε0 hεδ (ρ x)
-    rw [hβx]
-    exact ⟨mul_nonneg (hχI x).1 (by linarith), by nlinarith [(hχI x).1, (hχI x).2]⟩
+  have hβ01 (x : M) : β x ∈ Icc 0 1 :=
+    mul_one_sub_logCutoffProfile_comp_mem_Icc hε0 hεδ (hχI x).1 (hχI x).2
   have hβs : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ β :=
     hχs.mul (contMDiff_const.sub
       ((contDiff_logCutoffProfile hδ0.ne').comp_contMDiff hρs))
@@ -492,73 +482,47 @@ theorem exists_isManifoldStrictlyPlurisubharmonicAt_interpolate [T2Space M] [I'.
     filter_upwards [this] with x' hx'
     simp [hθx, hβx, hx']
   · intro x hx
-    obtain ⟨y, hy, hxs, hz, hzx⟩ := hmemW hx
+    obtain ⟨y, hy, hxs, hz, -⟩ := hmemW hx
     have hxO := (hWUO hx).2
     rw [isManifoldStrictlyPlurisubharmonicAt_iff_of_mem_maximalAtlas (he y) hxs
       (hC2 hθs hxO)]
     set z := e y x
-    have hzt := hrt y hz
     obtain ⟨hD, hDD, hDρ, hD2ρ, hLφ, hLψ, -⟩ := hdata y z hz
-    have hL := hKc (f := φ ∘ (e y).symm) (g := ψ ∘ (e y).symm) (ρ := ρ ∘ (e y).symm)
-      (χ := χ ∘ (e y).symm) hε0 h4 hδ1 (hcd y hzt (by rw [hzx]; exact hC2 hφ hxO))
-      (hcd y hzt (by rw [hzx]; exact hC2 hψ hxO)) (hcd y hzt (hρs.of_le (by simp)).contMDiffAt)
-      (hcd y hzt (hχs.of_le (by simp)).contMDiffAt)
-      (by
-        rw [Function.comp_apply, abs_le]
-        constructor <;> linarith [(hχI ((e y).symm z)).1, (hχI ((e y).symm z)).2])
-      (hB y z hz).1 (hB y z hz).2 (hρ0 _) hDρ hD2ρ hD hDD
-    have hb := hβ01 ((e y).symm z)
-    have hbz : (χ ∘ (e y).symm * (1 - logCutoffProfile ε δ ∘ (ρ ∘ (e y).symm))) z =
-        β ((e y).symm z) := by simp [hβx]
     rw [hθe, isStrictlyPlurisubharmonicAt_iff]
     intro v hv
-    have hv2 : 0 < ‖v‖ ^ 2 := by positivity
-    have hLv := hL v
-    rw [hbz, hΛ, one_div_one_div, hsδ] at hLv
-    have h1 := mul_le_mul_of_nonneg_left (hLφ v) (sub_nonneg.2 hb.2)
-    have h2 := mul_le_mul_of_nonneg_left (hLψ v) hb.1
-    have h3 := mul_pos (sub_pos.2 (hηt y hy).1) hv2
-    nlinarith
+    have hL := hKc hε0 h4 hδ1 ((hC2 hφ hxO).contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs)
+      ((hC2 hψ hxO).contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs)
+      (hρ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs)
+      (hχ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs) (hχI _).1 (hχI _).2
+      (hB y z hz).1 (hB y z hz).2 (hρ0 _) hDρ hD2ρ hD hDD v (hLφ v) (hLψ v)
+    rw [hΛ, one_div_one_div, hsδ] at hL
+    exact (mul_pos (sub_pos.2 (hηt y hy).1) (by positivity)).trans_le hL
   · intro x
-    obtain ⟨h0, h1⟩ := hβ01 x
-    rw [hθx]
-    constructor
-    · rcases le_total (φ x) (ψ x) with h | h
-      · rw [min_eq_left h]; nlinarith
-      · rw [min_eq_right h]; nlinarith
-    · rcases le_total (φ x) (ψ x) with h | h
-      · rw [max_eq_right h]; nlinarith
-      · rw [max_eq_left h]; nlinarith
+    -- `θ x` is a convex combination of `φ x` and `ψ x`.
+    have h := lineMap_mem_segment ℝ (φ x) (ψ x) (hβ01 x)
+    rw [segment_eq_uIcc, ← Icc_min_max, AffineMap.lineMap_apply_ring', add_comm, ← hθx] at h
+    exact h
   · intro hcrit x hx
-    obtain ⟨y, hy, hxs, hz, hzx⟩ := hmemW hx
+    obtain ⟨y, hy, hxs, hz, -⟩ := hmemW hx
     have hxO := (hWUO hx).2
     set z := e y x
-    have hzt := hrt y hz
     obtain ⟨hD, hDD, hDρ, hD2ρ, -, -, hDφ⟩ := hdata y z hz
     have hA0 : 0 ≤ A y := (norm_nonneg (E := E →L[ℝ] E →L[ℝ] ℝ) _).trans hD2ρ
-    have hf := hcd y hzt (by rw [hzx]; exact hC2 hφ hxO)
-    have hg := hcd y hzt (by rw [hzx]; exact hC2 hψ hxO)
-    have hρz := hcd y hzt (hρs.of_le (by simp)).contMDiffAt
-    have hχz := hcd y hzt (hχs.of_le (by simp)).contMDiffAt
+    have hf := (hC2 hφ hxO).contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs
+    have hg := (hC2 hψ hxO).contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs
+    have hρz := hρ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs
+    have hχz := hχ2.contMDiffAt.contDiffAt_comp_symm_of_mem_maximalAtlas (heR y) hxs
     have hk := sub_le_norm_fderiv_add_logCutoff_mul_sub hε0 h4 (hf.differentiableAt (by simp))
       (hg.differentiableAt (by simp)) (hρz.differentiableAt (by simp))
       (hχz.differentiableAt (by simp)) (hχI _).1 (hχI _).2 (hB y z hz).1 (hρ0 _) hA0 hDρ hD hDD
       (hDφ (hcrit _ ⟨y, y.property, rfl⟩))
-    rw [hΛ, hsδ, ← hθe] at hk
-    have hc : logCutoffConst * A y ^ 2 * η / (1 / η) = logCutoffConst * A y ^ 2 * η * η := by
-      field_simp
-    have hpos : 0 < ‖fderiv ℝ (θ ∘ (e y).symm) z‖ := by
-      have := (hηt y hy).2
-      rw [hc] at hk
-      linarith
+    rw [hΛ, hsδ, div_div_eq_mul_div, div_one, ← hθe] at hk
     intro h0
-    have h0' := (mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero
-      (IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 1 two_ne_zero (he y)) hxs).1 h0
-    simp only [OpenPartialHomeomorph.extend, modelWithCornersSelf_partialEquiv,
-      PartialEquiv.trans_refl, OpenPartialHomeomorph.toFun_eq_coe,
-      OpenPartialHomeomorph.coe_toPartialEquiv_symm] at h0'
-    rw [h0', norm_zero] at hpos
-    exact lt_irrefl _ hpos
+    have h0' : fderiv ℝ (θ ∘ (e y).symm) z = 0 := by
+      simpa using (mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero
+        (IsManifold.maximalAtlas_subset_restrictScalars_of_ne_zero 1 two_ne_zero (he y)) hxs).1 h0
+    rw [h0', norm_zero] at hk
+    linarith [(hηt y hy).2]
 
 end Manifold.IsSmoothEmbedding
 
