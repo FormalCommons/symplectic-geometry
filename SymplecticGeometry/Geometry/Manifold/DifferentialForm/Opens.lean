@@ -14,6 +14,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
@@ -411,18 +412,16 @@ theorem exists_diffeomorph_opens_mpullback_eq {e : X → Y}
         TauCeti.SmoothForm.mpullback (Subtype.val : U → Y) contMDiff_subtypeVal τ := by
   rcases isEmpty_or_nonempty X with hX | hX
   · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun x ↦ isEmptyElim x, Subtype.ext (funext isEmptyElim)⟩
-  let ee := (he.isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn isOpen_univ heinj.injOn
-  have hee : ⇑ee = e := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn _ _ _
-  have hees (x : X) : ee.symm (e x) = x := by
-    rw [← hee]
-    exact ee.left_inv (by rw [IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source]; trivial)
+  let ee := he.partialDiffeomorphOfInjective heinj
+  have hee : ⇑ee = e := he.coe_partialDiffeomorphOfInjective heinj
+  have hees (x : X) : ee.symm (e x) = x := he.partialDiffeomorphOfInjective_symm_apply_apply heinj x
   let Ψ := ee.symm.trans Φ
   have hΨ : ⇑Ψ = Φ ∘ ee.symm := PartialDiffeomorph.coe_trans _ _
   have hmemΨ {x : X} (hx : x ∈ Φ.source) : e x ∈ Ψ.source := by
     rw [PartialDiffeomorph.trans_source]
     refine ⟨?_, by rw [mem_preimage, hees]; exact hx⟩
     rw [PartialDiffeomorph.symm_toPartialEquiv, PartialEquiv.symm_source,
-      IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target, image_univ]
+      IsLocalDiffeomorph.partialDiffeomorphOfInjective_target]
     exact mem_range_self x
   refine ⟨⟨Ψ.source, Ψ.open_source⟩, ⟨Ψ.target, Ψ.open_target⟩, Ψ.toDiffeomorphSourceTarget,
     fun x hx ↦ ⟨hmemΨ hx, ?_⟩, ?_⟩
