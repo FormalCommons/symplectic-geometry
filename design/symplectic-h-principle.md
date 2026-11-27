@@ -142,11 +142,13 @@ formulation.
    representative of the class is not fixed but a family $\alpha_\lambda$ in
    the class with
    $\alpha_\lambda=\tau_\lambda$ on `P₀`, an extension of `τ` from `P₀` into
-   the convex set of closed representatives of $a$: by an explicit formula
-   for the parameter spaces used ($\alpha_t=(1-t)\omega_0+t\omega_1$ on
-   $[0,1]$, a radial formula on a disc relative to its boundary sphere), or
-   by Dugundji's extension theorem in general. On `P₀` the formal primitive
-   is then zero, hence holonomic.
+   the convex set of closed representatives of $a$. The engine takes this
+   family as a hypothesis, and each use builds it by an explicit formula: a
+   constant at a point, $\alpha_t=(1-t)\omega_0+t\omega_1$ on $[0,1]$, a
+   radial formula on a disc or cube relative to its boundary. No extension
+   theorem is used: the paragraph *The family `α` of Decision 4 is an
+   input*, in the section on `HPrinciple/Relative/`, says why. On `P₀` the
+   formal primitive is then zero, hence holonomic.
 5. **The homotopy equivalence.** `Parametric.lean` proves that the
    inclusion of the symplectic forms in class $a$ into the nondegenerate
    forms is a `ContinuousMap.IsWeakHomotopyEquivalence`, for every open
@@ -684,11 +686,11 @@ theorem exists_holonomic_approximation_continuous_family {P : Type*} [Topologica
       (h : TauCeti.Diffeotopy 𝓘(ℝ, (Fin n → ℝ) × D) ∞ ((Fin n → ℝ) × D))
       (g : (Fin n → ℝ) × D → F) (V : Set (P × D)),
       Continuous σ ∧ (∀ t q, (h (t, q)).1 = q.1) ∧ ContDiff ℝ ∞ g ∧
-      (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧ ∀ l, ∀ x ∉ C,
-        (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
-      (∀ l t x, dist (h (t, (σ l, x))).2 x < δ) ∧
-      (∃ N ∈ 𝓝ˢ B, ∀ l x, x.1 ∈ N →
-        (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      (∃ C, IsCompact C ∧ (∀ q ∈ C, q.2 ∈ thickening δ Q) ∧ ∀ q ∉ C,
+        (∀ t, h (t, q) = q) ∧ g q = 0) ∧
+      (∀ t q, dist (h (t, q)).2 q.2 < δ) ∧
+      (∃ N ∈ 𝓝ˢ B, ∀ q : (Fin n → ℝ) × D, q.2.1 ∈ N →
+        (∀ t, h (t, q) = q) ∧ g q = 0) ∧
       (∀ l ∈ P₀, ∀ x, (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
       IsOpen V ∧ (∀ l, ∀ y ∈ Q, (l, (h (1, (σ l, y))).2) ∈ V) ∧
       ∀ p ∈ V, ‖g (σ p.1, p.2)‖ < ε ∧
@@ -702,7 +704,12 @@ asks for no new definition: every continuity in `l` that a use needs, such
 as that of all space derivatives for the frame topology of the engine,
 follows from continuity of `σ`, smoothness of `g` and `h`, and that of `f`.
 The hypotheses ask for continuity of the first derivatives only, which is
-all the proof uses.
+all the proof uses. The clauses for `C`, the displacement and `N` hold at
+every point of `(Fin n → ℝ) × D`, not only over the range of `σ`: the
+engine carries `h` and `g` to `M` along a chart, as smooth families over
+all of `Fin n → ℝ`, which needs their supports controlled at every point
+(building issue 8c states them so; the merged theorem states them over the
+range of `σ`).
 
 Proof, from the smooth version, by a partition of unity on `P`:
 
@@ -734,8 +741,9 @@ Proof, from the smooth version, by a partition of unity on `P`:
    gives `h`, `f''` and `V''`. Put `g := f'' - F`, and
    `V := {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ ball 0 2`, open as `σ` is
    continuous; it contains the images of `Q`, since they lie within `1` of
-   `Q`. The clauses for `C` (its image under `Prod.snd`), `N` and `P₀` (where
-   `σ l ∈ P₀'`) are those of the smooth version.
+   `Q`. The clauses for `C`, the displacement and `N`, at every point of
+   `(Fin n → ℝ) × D`, and for `P₀` (where `σ l ∈ P₀'`) are those of the
+   smooth version.
 5. *The estimate.* At `p = (l, x) ∈ V`, with `c := χ (τ l)`, the error
    `fderiv ℝ (fun x ↦ f l x + g (σ l, x)) x - G l x` is
    `(fderiv ℝ (fun y ↦ f'' (σ l, y)) x - G' (σ l, x))
@@ -760,18 +768,18 @@ Proof, from the smooth version, by a partition of unity on `P`:
   `H l s x := (h (s, (l, x))).2` and `β' := f'`, and every point moved, or
   where `β' l ≠ β l`, has `‖u‖ < 1 - 2ε₀` and `‖v‖ < δ`: its core
   coordinate is off `N ⊇ B`, and it lies within `δ < η` of the core cube.
-- *The engine* (`HPrinciple/Engine.lean`) uses, over each cube of a band core
-  in its chart, the continuous version for its continuous form and the
-  smooth version for its smooth form, with the parameters of the engine
-  and its `P₀`; `B` is a closed set of core points containing the sphere,
-  over which the chart stays in a closed neighbourhood of
-  $\{g\le e_k\}$ inside $N_k$, chosen with a margin so that, for `δ` small
-  (by uniform continuity, before the theorem is applied), no point within
-  `δ` of the cube over a core point outside `B` lies in $\{g\le e_k\}$. The
-  clause for `N` then keeps $\beta^k_\lambda$ unchanged near
+- *The engine* (`HPrinciple/Relative/CoreApproximation.lean`) uses, over
+  each cube of a band core in its chart, the continuous version for its
+  continuous form and the smooth version for its smooth form, with the
+  parameters of the engine and its `P₀`, after a cutoff in the parameter
+  near `P₀`; `B` is the closed set of core points of
+  `BandCore.exists_relativeSet`, containing the sphere, chosen with a
+  margin so that, for `δ` small (fixed before the theorem is applied), no
+  point within `δ` of the cube over a core point outside `B` lies in
+  $\{g\le e_k\}$. The clause for `N` then keeps $\beta^k_l$ unchanged near
   $\{g\le e_k\}$ at every transverse height, and the clause for `P₀` keeps
-  the parameters of `P₀` unchanged. Making the formal primitive a datum on
-  the chart, and moving the result back to `M`, is the engine's work.
+  the parameters of `P₀` unchanged. The engine's datum is holonomic near
+  `B ×ˢ {0}` for every parameter, so it needs no cutoff in space.
 
 **Building issues of issue 3**, in this order:
 
@@ -1487,63 +1495,477 @@ The docstring of
 `exists_homotopy_exact_of_forall_exact_near_attaching` ends with "Milestone:
 *Relative extension of exact symplectic forms over a handle core*."
 
-### `Geometry/Symplectic/HPrinciple/Engine.lean`
+### `Geometry/Symplectic/HPrinciple/Relative/`
 
 The parametric relative theorem, by Decision 1, for an open `M` of
-dimension $2n$:
+dimension $2n$, one band core of `SymplecticGeometry.exists_isMorse_bandCore_seq`
+at a time (`Morse/Core/`). Issue 8 is one stage, in the four files
+`CubeCoordinates.lean`, `CoreApproximation.lean`, `StagePath.lean` and
+`Stage.lean`; issue 9 composes the stages, in `Relative/Basic.lean`.
+Throughout, `c : BandCore I g a₀ a b` with `g : M → ℝ` continuous,
+`D i := (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)`
+with sup norms, `Q i := closedBall 0 1 ×ˢ {0} ⊆ D i` its cube, and
+`k i := Module.finrank ℝ E - c.dim i`, positive by `c.dim_lt i`. The stage
+uses neither `a₀` nor the level structure below `a`, only that the boundary
+sphere of each cube lies in `{g < a}` (`c.mapsTo_sphere`), that the cubes
+are disjoint, and the compression.
 
-- *Continuous version.* Given a compact Hausdorff `P`, closed `P₀ ⊆ P`, a
-  closed representative `α` of `a`, and `τ : C(P, X)` where
+**The invariant.** Stage $k$ starts from families over the parameters of
+
+- two-forms $\omega_l$, nondegenerate for the parameters `l ∈ K`;
+- closed two-forms $\alpha_l$ (Decision 4: at the first stage, the family
+  in the class with $\alpha_l=\tau_l$ for `l ∈ P₀`);
+- one-forms $\beta_l$;
+
+and an open `N ⊇ {g ≤ a}` with $\omega_l=\alpha_l+d\beta_l$ on `N` for
+**every** parameter `l`, and on all of `M` for every `l ∈ P₀`. At the first
+stage $\beta=0$ and `N = ∅`, since `g > e 0` everywhere. The stage returns
+the same data for `b` in place of `a`, with
+$\alpha'_l=e_{l,1}^*\alpha_l$ for the end $e_{l,1}$ of an isotopy of
+embeddings $e_{l,t}$ from the identity, together with a primitive $\gamma_l$
+of $\alpha'_l-\alpha_l$ that vanishes near `{g ≤ a}`; and the path
+from $\omega_l$ to $\omega'_l$, constant near `{g ≤ a}` and, for
+`l ∈ P₀`, through closed forms cohomologous to $\alpha_l$.
+
+Two choices make this invariant easy to keep.
+
+- *The identities hold for every parameter*, and only nondegeneracy is
+  restricted to `K`. The stage keeps them for every parameter, since the
+  end of its path is $e_{l,1}^*\sigma_l$ near `{g ≤ b}` by an algebraic identity
+  that does not use `l ∈ K` (`StagePath.lean`). So the datum of each cube
+  is holonomic near the relative set for every `l`, and the stage needs no
+  cutoff in space to make it so (the remark under
+  `exists_holonomic_approximation_family`): `B` is a set of core points
+  for all parameters at once.
+- *The closed family moves*, $\alpha'_l=e_{l,1}^*\alpha_l$, instead of staying
+  fixed with the primitive of $e_{l,1}^*\alpha_l-\alpha_l$ added to $\beta$. The primitive
+  given by the homotopy formula depends on `l` through `α` and the
+  isotopy, and keeping it in $\beta$ would ask for its regularity in `l`
+  in both forms. With $\alpha$ moving, the new one-forms are
+  $e_{l,1}^*\beta'_l$, pulled back along a family of embeddings that is smooth in
+  the parameter, and the primitives $\gamma_l$ are only needed one `l` at a
+  time, by issue 9, which sums them (a locally finite sum, since
+  $\gamma^{(k)}$ vanishes near $\{g\le e_k\}$) to show that the limit of
+  the $\alpha^{(k)}$ is cohomologous to $\alpha^{(0)}$. The explicit
+  primitive is $\gamma_l=-\,h\bigl(\Psi_l^*\alpha_l\bigr)$ for the homotopy
+  operator `h` and the reversed isotopy $\Psi_l(x,u)=e_{l,1-u}(x)$ from $e_{l,1}$
+  to the identity: by `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`
+  (`DifferentialForm/HomotopyOperator.lean`),
+  $d\,h(\Psi_l^*\alpha_l)=\alpha_l-e_{l,1}^*\alpha_l$, and
+  `eventually_homotopyOperator_mpullback_eq_zero` gives the vanishing where
+  the isotopy is the identity.
+
+**Parameters.** The two forms of Decision 4 share all of the stage except
+the call to holonomic approximation, which differs in its two versions.
+
+- *Smooth form*: parameters in a finite-dimensional normed space `L`, a
+  compact `K ⊆ L` and a closed `P₀ ⊆ L`; all families are
+  `IsSmoothFamily 𝓘(ℝ, L)`; the path is an
+  `IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1))`. Nondegeneracy, of the data and
+  of the path, is asked only over `K`.
+- *Continuous form*: a compact Hausdorff `P` (so `K = univ`) and a closed
+  `P₀ ⊆ P`; the two-forms are continuous into the frame topology of a
+  covering frame system, read through `tangentEquiv.symm` as in
+  `FormSpaces.lean`; the one-forms factor as $\beta_l=B(s\,l)$ through a
+  continuous `s : P → S` into a finite-dimensional normed space `S` and an
+  `IsSmoothFamily 𝓘(ℝ, S) B`. This factorization is the form in which the
+  continuous version of holonomic approximation returns its output, and the
+  stage returns it again (with a larger `S`), so no topology on one-forms
+  is needed. At the first stage `B = 0` over `S = Fin 0 → ℝ`.
+
+The shared part is stated over a topological parameter space `Λ` with a
+compact `K ⊆ Λ`, a continuous `s : Λ → S` into a finite-dimensional
+normed space, two-forms `ω α : Λ → SmoothTwoForm I M` given one `l` at a
+time, and the smooth data of the approximation over `S`
+(`StagePath.lean`). The smooth form takes `Λ = S = L` and `s = id`; the
+continuous form takes `Λ = P`. Its conclusion gives the path by an
+explicit formula, from which each form proves the regularity it needs
+(`Stage.lean`).
+
+**The family `α` of Decision 4 is an input.** Dugundji's extension
+theorem, which gives `α` for a general compact Hausdorff `P`, is in neither
+library, and it needs a metrizable domain; a finite partition of unity on
+`P` gives a family that agrees with `τ` on `P₀` only up to a small error,
+while the stage needs equality there. So the stage and the theorem of
+issue 9 take the family `α` as a hypothesis (closed for every parameter,
+`α l - α₀` exact, and `α l = τ l` for `l ∈ P₀`), and each use builds it explicitly:
+
+- a point, with `P₀ = ∅` or `P₀ = univ`: the constant `α₀` or `τ` itself;
+- `unitInterval`, extended to `ℝ`, with `P₀ = {0, 1}`:
+  $\alpha_t=(1-t)\,\omega_0+t\,\omega_1$, smooth on `ℝ` and closed for
+  every `t`;
+- a disc or the cube `I^n` with `P₀` its boundary, for homotopy groups
+  (`Parametric.lean`): $\alpha_x=\psi(x)\,\tau_{r(x)}+(1-\psi(x))\,\alpha_0$,
+  with `r` the radial retraction from the centre onto the boundary and `ψ`
+  continuous, `1` on the boundary and `0` near the centre; continuous into
+  the frame topology since the frame topology makes addition and scalar
+  multiplication continuous (`continuousSMul_frameTopology`).
+
+#### `Relative/CubeCoordinates.lean`
+
+The cube charts as coordinates for forms, in the namespace
+`SymplecticGeometry.BandCore`.
+
+- `isLocalDiffeomorph_chart`: each `c.chart i` is a local diffeomorphism,
+  by Tau Ceti's `Manifold.IsImmersion.isLocalDiffeomorph`, since
+  `c.dim i + k i = Module.finrank ℝ E`.
+- `chartPartialDiffeomorph c i : PartialDiffeomorph I 𝓘(ℝ, D i) M (D i) ∞`,
+  the symm of this library's `IsLocalDiffeomorph.partialDiffeomorphOfInjective`
+  (`LocalDiffeomorph/Injective.lean`), with source `range (c.chart i)` and
+  target `univ`, and `chartPartialDiffeomorph_symm_apply` (it is
+  `c.chart i`).
+- *Readings.* A form on `M` is read in the chart by
+  `TauCeti.SmoothForm.mpullback` along `c.chart i`. The formal datum of the
+  cube is `f l x := (mpullback (c.chart i) (β l)).val x` and
+  `G l x := formalPrimitive (mpullback (c.chart i) (ω l - α l)).val
+  (mpullback (c.chart i) (β l)).val x` (`FormalPrimitive.lean`, whose `J`
+  is built from `ContinuousAlternatingMap.curryLeft`). It is holonomic at
+  every point of `(c.chart i) ⁻¹' N`, by `formalPrimitive_eq_fderiv` and
+  Tau Ceti's `SmoothForm.mextDerivₗ_mpullback`, for every `l`, and on all
+  of `D i` for `l ∈ P₀`. Smoothness in the smooth form is
+  `contMDiff_formalPrimitive`. In the continuous form, the joint continuity
+  of `(l, x) ↦ G l x` comes from `continuous_tangentEquiv_symm_mpullback_of_contMDiff`
+  (to the two-forms on `D i`) and `ContMDiffSection.continuous_totalSpace_eval`,
+  and that of `(l, x) ↦ fderiv ℝ (f l) x` from the smoothness of `B` and
+  the continuity of `s`.
+- *Back to `M`.* For a smooth `a : S × D i → D i [⋀^Fin 1]→L[ℝ] ℝ` whose
+  slices vanish off a fixed compact set, the forms
+  `TauCeti.SmoothForm.extendByZeroAlong (c.chartPartialDiffeomorph i) (a (q, ·))`
+  (`DifferentialForm/PartialDiffeomorph.lean`) are an `IsSmoothFamily 𝓘(ℝ, S)`:
+  the new lemma `IsSmoothFamily.extendByZeroAlong`, in that file. Since
+  `mpullback_symm_extendByZeroAlong` reads the extension back as `a` on the
+  chart, the corrected one-forms
+  `B' q := B q + ∑ i, extendByZeroAlong (c.chartPartialDiffeomorph i) (a i (q, ·))`
+  read as `f + a i` in the chart of `i`, wherever the other corrections
+  vanish.
+- *Diffeotopies back to `M`.* `extendDiffeotopyAlong`: for a smooth open
+  embedding `φ : D → M` of a normed space and a smooth
+  `h : (S × unitInterval) × D → D`, with slices diffeomorphisms, `h ((q, 0), ·) = id`,
+  and `h` the identity off `univ ×ˢ C` for a compact `C ⊆ D`, the map equal
+  to `φ ∘ h ((q, t), ·) ∘ φ⁻¹` on the range of `φ` and to the identity
+  elsewhere is smooth on `(S × unitInterval) × M`, with slices
+  diffeomorphisms (their inverses are built from those of `h`), the
+  identity at `t = 0` and off `φ '' C`. It is a lemma about smooth open
+  embeddings, so it goes in `Geometry/Manifold/SmoothIsotopy/Chart.lean`,
+  in the namespace `TauCeti`, with `Diffeotopy` slices as in
+  `SmoothIsotopy/Diffeotopy.lean`. The cubes' diffeotopies have disjoint
+  supports, so the stage composes their extensions in the order of
+  `(Finset.univ : Finset c.ι).toList`, and each point of a cube is moved
+  only by the extension of its own cube.
+- *The relative set and the margin* (the review of #6134 asked to check it
+  against the band-core faces). `exists_relativeSet`: for an open
+  `N ⊇ {g ≤ a}` and a cube `i`, let `T := closedBall (0 : D i) 2` and
+  `Y := (c.chart i) ⁻¹' {x | g x ≤ a} ∩ T`, compact. There are
+  `0 < η < 1` and the closed
+  `B := {u | ‖u‖ ≤ 1 + η ∧ (u, 0) ∈ cthickening η Y}` such that
+  1. `sphere 0 1 ⊆ B`, since `c.mapsTo_sphere` puts `(u, 0)` in `Y` for
+     `‖u‖ = 1`;
+  2. `B ×ˢ {0} ⊆ (c.chart i) ⁻¹' N`, for `η` with
+     `cthickening (2 * η) Y ⊆ (c.chart i) ⁻¹' N`
+     (`IsCompact.exists_cthickening_subset_open`);
+  3. for `0 < δ ≤ η / 2`, no `p ∈ thickening δ (Q i)` with `p.1 ∉ B`
+     is in `cthickening (η / 2) Y`; in particular `c.chart i p ∉ {g ≤ a}`.
+     Indeed `‖p.1‖ < 1 + δ`, so `(p.1, 0) ∉ cthickening η Y`, and
+     `‖p - (p.1, 0)‖ = ‖p.2‖ < δ`; and `p ∈ T`.
+
+  `cthickening` and not `infDist` is used because a cube of dimension `0`
+  has an empty sphere and possibly an empty `Y`, for which `infDist` is
+  `0`; then `B = ∅`. Only `c.mapsTo_sphere` and the charts being defined on
+  all of `D i` enter; where the cubes lie relative to `a₀` does not.
+
+#### `Relative/CoreApproximation.lean`
+
+Holonomic approximation over all cubes of a band core, relative to `N` and
+to `P₀`, in a smooth and a continuous form,
+`BandCore.exists_approximation_family` and
+`BandCore.exists_approximation_continuous_family`. Both return exactly the
+hypotheses of `exists_stagePath` (next file):
+
+- `S`, a continuous `s : Λ → S` (`S = L` and `s = id` in the smooth form,
+  `S = S₀ × ((i : c.ι) → Fin (n i) → ℝ)` and `s l = (s₀ l, fun i ↦ σ i l)`
+  in the continuous form, with the `σ i` of the continuous version), and
+  `B` over `S` with `β l = B (s l)` (`B q = B₀ q.1` in the continuous form);
+- a smooth `Φ : (S × unitInterval) × M → M` with diffeomorphisms as slices,
+  `Φ ((q, 0), ·) = id`, and corrected one-forms `B'`, an
+  `IsSmoothFamily 𝓘(ℝ, S)`;
+- an open `N₁` with `{g ≤ a} ⊆ N₁ ⊆ N`, on which every slice of `Φ` is the
+  identity and `B' q = B q`, for every `q`;
+- for `l ∈ P₀`: `Φ ((s l, t), ·) = id` and `B' (s l) = B (s l)`;
+- an open `U ⊆ Λ × M` with `K ×ˢ N₁ ⊆ U` and
+  `(l, Φ ((s l, 1), y)) ∈ U` for `l ∈ K` and `y ∈ c.cubes`, at whose
+  points `(l, y)` with `l ∈ K` every
+  `ω l + r • (α l + mextDerivₗ I 1 (B' (s l)) - ω l)`, `r ∈ [0, 1]`, is
+  nondegenerate at `y`.
+
+Proof, the same in both forms except in step 4:
+
+1. *Readings and margins.* For each cube the readings of
+   `CubeCoordinates.lean`, and `η i`, `B i` of `exists_relativeSet`.
+   A `δ' > 0` with the sets `c.chart i '' cthickening δ' (Q i)` pairwise
+   disjoint (`c.pairwise_disjoint`, compactness), and
+   `0 < δ ≤ min (min_i η i / 2) (min δ' (1 / 2))`.
+2. *Nondegeneracy margin.* `r > 0` with: for `l ∈ K` and
+   `x ∈ closedBall 0 2`, every two-form within `r` of the reading of
+   `ω l` at `x`, and every point of the segment towards it, is
+   nondegenerate at `x`. In the smooth form this is
+   `IsSmoothFamily.exists_pos_forall_nondegenerate_sub_smul`; in the
+   continuous form the same statement for a family whose values are only
+   jointly continuous, `exists_pos_forall_nondegenerate_sub_smul_of_continuousOn`,
+   a new lemma in `SmoothFamily/NormedSpace.lean` from which the merged
+   one follows, since its proof uses only that continuity. Put
+   `ε₁ := r / 5`.
+3. *A cutoff in the parameter near `P₀`.* The holonomic approximation
+   theorems ask the datum to be holonomic on an open set containing
+   `P₀ ×ˢ univ`; the invariant gives it on `P₀ ×ˢ univ` only. With
+   `T := closedBall 0 2`, the set
+   `O := {l | ∀ i, ∀ x ∈ T, ‖fderiv ℝ (f i l) x - G i l x‖ < ε₁}` is open
+   and contains `P₀`: the new lemma `isOpen_setOf_forall_norm_sub_lt`, in
+   `HolonomicApproximation/Parametric.lean`, for a jointly continuous
+   `e : Λ × D → F'` and a compact `T`
+   (`IsCompact.eventually_forall_of_forall_eventually`); step 1 of the
+   continuous version proves the same inline. Take `χ : Λ → [0, 1]`, `1`
+   on an open `O' ⊇ P₀` and `0` off `O` (smooth on `L` by
+   `exists_contMDiffMap_zero_one_nhds_of_isClosed`, continuous on `P` by
+   `exists_continuous_zero_one_of_isClosed`), and replace `G i` by
+   `G' i l x := G i l x + χ l • (fderiv ℝ (f i l) x - G i l x)`. It is
+   holonomic on the open
+   `(univ ×ˢ (c.chart i) ⁻¹' N) ∪ (O' ×ˢ univ)`, which contains
+   `univ ×ˢ (B i ×ˢ {0})` (item 2 of `exists_relativeSet`) and
+   `P₀ ×ˢ univ`, and `‖G' i - G i‖ < ε₁` on `Λ × T`.
+4. *Approximation.* For each cube, `exists_holonomic_approximation_family`
+   (smooth form) or `exists_holonomic_approximation_continuous_family`
+   (continuous form; building issue 8c states its support clauses at every
+   point, as its proof gives) with `K`, `P₀`, `B i`, `ε₁` and `δ`. It gives
+   the diffeotopy `h i`, the approximation, `V i`, `C i` and `N i`. On
+   `V i` the derivative of the approximation is within `2 * ε₁` of `G i`
+   at points of `T`, so its exterior derivative is within `4 * ε₁ < r` of
+   the reading of `ω l - α l`
+   (`norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le`).
+5. *Back to `M`.* `a i` is the approximation minus `f i` (in the continuous
+   form `g i (q.2 i, x)`), which vanishes off the compact `C i`. Then `B'`
+   as in `CubeCoordinates.lean`, and `Φ` the composite of the extensions
+   of the `h i` (`extendDiffeotopyAlong`).
+6. *The set `N₁`.* Let `Z i := Prod.snd '' C i ∩ {x | x.1 ∉ interior (N i)}`,
+   compact. Every point that `h i` moves, or where `a i ≠ 0`, lies in
+   `Z i`, by the `C` and `N` clauses, and `Z i` misses
+   `(c.chart i) ⁻¹' {g ≤ a}` by item 3 of `exists_relativeSet`, since
+   `B i ⊆ interior (N i)`. So `N₁ := N ∩ ⋂ i, (c.chart i '' Z i)ᶜ` is open
+   and contains `{g ≤ a}`.
+7. *The set `U`.* The union of `univ ×ˢ N₁` and, for each `i`, the open
+   set of `(l, c.chart i x)` with `x ∈ thickening δ' (Q i) ∩ ball 0 2` and
+   `(l, x) ∈ V i`. On
+   `univ ×ˢ N₁` the segment is constant, `B' = B` there and
+   `ω l = α l + dβ l` on `N`; at a point of the second set the
+   corrections of the other cubes vanish (step 1), so the segment's
+   reading is within `r` of that of `ω l`, by steps 2 and 4, and
+   nondegeneracy carries back to `M` by
+   `SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`
+   along the chart. The displaced cube points lie in it since `h i` moves
+   points by less than `δ < δ'`.
+
+#### `Relative/StagePath.lean`
+
+The shared part of the two forms.
+
+```lean
+theorem exists_stagePath {Λ S : Type*} [TopologicalSpace Λ] [NormedAddCommGroup S]
+    [NormedSpace ℝ S] [FiniteDimensional ℝ S] (c : BandCore I g a₀ a b) (hg : Continuous g)
+    {K P₀ : Set Λ} (hK : IsCompact K) {s : Λ → S} (hs : Continuous s)
+    {ω α : Λ → SmoothTwoForm I M} (hnd : ∀ l ∈ K, (ω l).IsNondegenerate)
+    {B B' : S → SmoothForm I M ℝ 1} (hB' : IsSmoothFamily 𝓘(ℝ, S) B')
+    {Φ : (S × unitInterval) × M → M} (hΦ : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ Φ)
+    (hΦd : ∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ Φ (p, x)) (hΦ₀ : ∀ q x, Φ ((q, 0), x) = x)
+    {N₁ : Set M} (hN₁ : IsOpen N₁) (haN₁ : {x | g x ≤ a} ⊆ N₁)
+    (hΦN₁ : ∀ p, ∀ x ∈ N₁, Φ (p, x) = x) (hB'N₁ : ∀ q, ∀ x ∈ N₁, (B' q).val x = (B q).val x)
+    (hωN₁ : ∀ l, ∀ x ∈ N₁, (ω l).val x = (α l + mextDerivₗ I 1 (B (s l))).val x)
+    (hP₀ : ∀ l ∈ P₀, ω l = α l + mextDerivₗ I 1 (B (s l)) ∧
+      (∀ t x, Φ ((s l, t), x) = x) ∧ B' (s l) = B (s l))
+    {U : Set (Λ × M)} (hU : IsOpen U) (hKN₁ : K ×ˢ N₁ ⊆ U)
+    (hUc : ∀ l ∈ K, ∀ y ∈ c.cubes, (l, Φ ((s l, 1), y)) ∈ U)
+    (hUnd : ∀ p ∈ U, p.1 ∈ K → ∀ r ∈ Icc (0 : ℝ) 1,
+      ((ω p.1 + r • (α p.1 + mextDerivₗ I 1 (B' (s p.1)) - ω p.1)).bilinFormAt
+        p.2).Nondegenerate) :
+    ∃ (e : (S × unitInterval) × M → M) (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e)
+      (ρ : M → ℝ) (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) (V N' : Set M),
+      (∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ e (p, x)) ∧ (∀ q x, e ((q, 0), x) = x) ∧
+      V ∈ 𝓝ˢ {x | g x ≤ a} ∧ V ⊆ N₁ ∧ (∀ p, ∀ x ∈ V, e (p, x) = x) ∧
+      IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧ (∀ x, ρ x ∈ Icc (0 : ℝ) 1) ∧ (∀ x ∈ N', ρ x = 1) ∧
+      ∀ l ∈ K, ∀ t, (stagePath he hρ s ω α B' (l, t)).IsNondegenerate
+```
+
+The path is a definition of this file, with `stagePath_def`, given by its
+formula, for the smooth steps `A := TauCeti.collaredFirstHalf` and
+`C := TauCeti.collaredSecondHalf` of `HandleCore/Homotopy.lean` (`C` leaves
+`0` only once `A` has reached `1`) and $e_{l,t}:=e((s\,l,t),\cdot)$:
+
+$$\mathrm{stagePath}(l,t)=e_{l,A(t)}^{\,*}\,\omega_l
+  +C(t)\,\rho\cdot e_{l,1}^{\,*}\bigl(\alpha_l+d\beta'_l-\omega_l\bigr),
+  \qquad \beta'_l=B'(s\,l),$$
+
+with pullbacks by `TauCeti.SmoothForm.mpullback` and the product with `ρ`
+of Tau Ceti's `IsSmoothForm.fun_smul`. The new data are
+`α' l := e_{l,1}^* α l` and the one-forms `β'' (s l)`, with
+`β'' q := (e ((q, 1), ·))^* B' q`, an `IsSmoothFamily 𝓘(ℝ, S)` by
+`IsSmoothFamily.mpullback_family`. The lemmas below read the stage's other
+conclusions off the formula, one `l` at a time, each with the hypotheses
+on `e`, `ρ`, `V` and `N'` that the theorem provides, so that both forms of
+`Stage.lean` use them:
+
+- `stagePath_zero`: at `t = 0` the path is `ω l`.
+- `stagePath_one_eqOn`: on `N'`, `stagePath (l, 1)` equals
+  `α' l + d (β'' (s l))`, for every `l`, since pullback commutes with `d`
+  (Tau Ceti's `SmoothForm.mextDerivₗ_mpullback`).
+- `stagePath_eqOn_nhdsSet`: on `V`, `stagePath (l, t) = ω l`,
+  `α' l = α l` and `β'' (s l) = B (s l)`, since the slices of `e` are the
+  identity there and `α l + dβ'_l = ω l` on `N₁` (`hB'N₁`, `hωN₁`).
+- `stagePath_of_mem`: for `l ∈ P₀` the second term vanishes, since
+  `α l + dβ'_l = ω l` on all of `M`; so `stagePath (l, t)` is
+  `e_{l,A t}^* ω l`, closed, with `stagePath (l, t) - α l` exact
+  (`ω l - α l` is exact, and `mpullback_sub_mem_exactForms_of_homotopy`
+  along the isotopy), and `stagePath (l, 1) = α' l + d (β'' (s l))` on all
+  of `M`.
+- `exists_mextDerivₗ_eq_endPullback_sub`: for every `l`, the form
+  `γ l := -homotopyOperator (Ψ_l^* α l)` of the invariant, with
+  `α' l = α l + d (γ l)` and `γ l = 0` on `V`.
+
+
+Proof of `exists_stagePath`:
+
+1. *The open set to compress into.*
+   `W := {x | ∀ l ∈ K, (l, Φ ((s l, 1), x)) ∈ U}` is open, by compactness of
+   `K` (`IsCompact.eventually_forall_of_forall_eventually`), and contains
+   `{g ≤ a}` (by `hKN₁` and `hΦN₁`) and the cubes (by `hUc`).
+2. *The compression.* `c.exists_compression_of_subset` for `W` gives `f`,
+   the isotopy `F` from the identity to `f`, fixed on a neighbourhood
+   `V₀` of `{g ≤ a}`, with `f '' {g ≤ b} ⊆ W`.
+3. *The isotopy of the stage* is `e ((q, t), x) := Φ ((q, t), F (t, x))`:
+   smooth, the identity at `t = 0` and on `V := V₀ ∩ N₁`, with slices
+   local diffeomorphisms (a slice of `F` is a smooth embedding of `M` into
+   itself, a local diffeomorphism by Tau Ceti's
+   `Manifold.IsImmersion.isLocalDiffeomorph`), and
+   `e ((s l, 1), ·) = Φ ((s l, 1), ·) ∘ f`. This is the compression
+   conjugated by the displacement: compressing first and displacing after
+   sends `{g ≤ b}` to points `y` with `(l, y) ∈ U`.
+4. *The cutoff.* `W₁ := {x | ∀ l ∈ K, (l, e ((s l, 1), x)) ∈ U}` is open
+   and contains `{g ≤ b}`. `ρ` is smooth, `1` on an open `N' ⊇ {g ≤ b}` and
+   `0` off `W₁` (`exists_contMDiffMap_zero_one_nhds_of_isClosed`, for the
+   closed sets `{g ≤ b}` and `W₁ᶜ`). The cutoff is on `M`, outside the
+   pullback, so that it does not depend on `l`.
+5. *Nondegeneracy.* While `C t = 0` the path is the pullback of `ω l` along
+   a local diffeomorphism; once `C t ≠ 0`, `A t = 1`, and at a point `x` the value
+   is the pullback along the differential of `e_{l,1}` at `x` of
+   `ω l + (C t * ρ x) • (α l + dβ'_l - ω l)` at `e_{l,1} x`, which is nondegenerate
+   by `hUnd` when `ρ x ≠ 0`, as then `x ∈ W₁`. Both cases use
+   `SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`.
+
+#### `Relative/Stage.lean`
+
+The stage in its two forms, each from `exists_approximation_family` or
+`exists_approximation_continuous_family` followed by `exists_stagePath`.
+The smooth form:
+
+```lean
+theorem BandCore.exists_stage_family (c : BandCore I g a₀ a b) (hg : Continuous g)
+    {K P₀ : Set L} (hK : IsCompact K) (hP₀ : IsClosed P₀)
+    {ω α : L → SmoothTwoForm I M} (hω : IsSmoothFamily 𝓘(ℝ, L) ω)
+    (hα : IsSmoothFamily 𝓘(ℝ, L) α) (hαc : ∀ l, mextDerivₗ I 2 (α l) = 0)
+    (hnd : ∀ l ∈ K, (ω l).IsNondegenerate)
+    {β : L → SmoothForm I M ℝ 1} (hβ : IsSmoothFamily 𝓘(ℝ, L) β)
+    {N : Set M} (hN : IsOpen N) (haN : {x | g x ≤ a} ⊆ N)
+    (hωN : ∀ l, ∀ x ∈ N, (ω l).val x = (α l + mextDerivₗ I 1 (β l)).val x)
+    (hωP₀ : ∀ l ∈ P₀, ω l = α l + mextDerivₗ I 1 (β l)) :
+    ∃ (H : L × unitInterval → SmoothTwoForm I M) (α' : L → SmoothTwoForm I M)
+      (β' : L → SmoothForm I M ℝ 1) (V N' : Set M),
+      IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) H ∧ IsSmoothFamily 𝓘(ℝ, L) α' ∧
+      IsSmoothFamily 𝓘(ℝ, L) β' ∧ (∀ l, H (l, 0) = ω l) ∧
+      (∀ l ∈ K, ∀ t, (H (l, t)).IsNondegenerate) ∧
+      V ∈ 𝓝ˢ {x | g x ≤ a} ∧ (∀ l t, ∀ x ∈ V, (H (l, t)).val x = (ω l).val x ∧
+        (α' l).val x = (α l).val x ∧ (β' l).val x = (β l).val x) ∧
+      (∀ l, mextDerivₗ I 2 (α' l) = 0 ∧
+        ∃ γ : SmoothForm I M ℝ 1, α' l = α l + mextDerivₗ I 1 γ ∧ ∀ x ∈ V, γ.val x = 0) ∧
+      IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧
+      (∀ l, ∀ x ∈ N', (H (l, 1)).val x = (α' l + mextDerivₗ I 1 (β' l)).val x) ∧
+      ∀ l ∈ P₀, H (l, 1) = α' l + mextDerivₗ I 1 (β' l) ∧
+        ∀ t, mextDerivₗ I 2 (H (l, t)) = 0 ∧ H (l, t) - α l ∈ exactForms I M 2
+```
+
+`H := stagePath …`, an `IsSmoothFamily` by
+`IsSmoothFamily.mpullback_family`, `fun_smul` and `add`, as in
+`HandleCore/Homotopy.lean`. The data unchanged near `{g ≤ a}` are in
+particular unchanged near `{g ≤ d k}` for the levels of
+`exists_isMorse_bandCore_seq`, as issue 9 needs.
+
+The continuous form, `BandCore.exists_stage_continuous_family`, has the
+same conclusions for `l ∈ P` (with `K = univ`), with
+`hω : Continuous fun l ↦ tangentEquiv.symm (ω l)` and the same for `α`
+into the frame topology of a covering frame system
+(`letI := ContMDiffSection.frameTopology …`, `hcover`), `β l = B (s l)`
+as in *Parameters*, and in the conclusion `H` continuous on
+`P × unitInterval` and `α'` continuous in the same sense, and
+`β' l = B'' (s' l)` for a continuous `s' : P → S'` into a
+finite-dimensional normed space and an `IsSmoothFamily 𝓘(ℝ, S') B''`.
+The continuity of `H`, term by term in the formula:
+
+- `e_{l,A t}^* ω l` and `e_{l,1}^* (α l - ω l)`: Tau Ceti's frame topology
+  through this library's `continuous_tangentEquiv_symm_mpullback_prod`
+  (`VectorBundle/Symplectic/Topology.lean`), with parameter manifold
+  `S × unitInterval` and the smooth `e`, composed with
+  `(l, t) ↦ (ω l, (s l, A t))`;
+- `e_{l,1}^* (d β'_l)`, a smooth family over `S` composed with `s`: the
+  new lemma `IsSmoothFamily.continuous_tangentEquiv_symm` in
+  `VectorBundle/Symplectic/Topology.lean`, that a smooth family of
+  two-forms over a manifold is continuous into the frame topology (its
+  frame jets are jointly smooth in the parameter and the point);
+- the products with `C t` and `ρ`: `continuousSMul_frameTopology` for the
+  scalar, and, for the fixed function `ρ`, the new lemma
+  `continuous_tangentEquiv_symm_smul` in the same file, multiplication by
+  a fixed smooth function being continuous for the frame topology
+  (`ContMDiffSection.continuous_fiberwiseMap`, `Section/Topology.lean`).
+
+`α' l = e_{l,1}^* α l` is continuous by the first item.
+
+#### `Relative/Basic.lean`
+
+The parametric relative theorem, from the stages, in two forms:
+
+- *Continuous version.* Given a compact Hausdorff `P`, closed `P₀ ⊆ P`,
+  `τ : C(P, X)` where
   `X := {ω : Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I) // ω.IsNondegenerate}`
   with the topology of a covering frame system (as *Symplectic vector
-  bundles* installs it, `letI` and `hcover`), with `tangentEquiv (τ λ)`
-  symplectic and `tangentEquiv (τ λ) - α ∈ exactForms I M 2` for `λ ∈ P₀`:
-  there is `H : C(P × unitInterval, X)` with `H (λ, 0) = τ λ`, `H (λ, t)`
-  symplectic in the class for `λ ∈ P₀` and all `t`, and `H (λ, 1)`
-  symplectic in the class for all `λ`.
+  bundles* installs it, `letI` and `hcover`), and a family `α` continuous
+  into the frame topology with `α l` closed, `α l - α₀ ∈ exactForms I M 2`,
+  and `α l = tangentEquiv (τ l)` for `l ∈ P₀`: there is
+  `H : C(P × unitInterval, X)` with `H (l, 0) = τ l`, `H (l, t)` symplectic
+  in the class of `α₀` for `l ∈ P₀` and all `t`, and `H (l, 1)` symplectic
+  in that class for all `l`.
 - *Smooth version.* The same for `τ : L → SmoothTwoForm I M` an
   `IsSmoothFamily` over a finite-dimensional normed space `L`, with a
-  compact `K ⊆ L` and a closed `P₀ ⊆ L`, the conditions on `τ` and the
-  conclusions asked only for `λ ∈ K`, and `H` an `IsSmoothFamily` over
-  `L × unitInterval`. The uses are a point and `unitInterval`, a family over
-  which is first extended to `ℝ` by the time extension of
-  `DifferentialForm/TimeExtension.lean`, with `K = [0, 1]` (the
+  compact `K ⊆ L`, a closed `P₀ ⊆ L` and a smooth family `α` as above, the
+  nondegeneracy of `τ` and the conclusions asked only for `l ∈ K`, and `H`
+  an `IsSmoothFamily` over `L × unitInterval`. The uses are a point and
+  `unitInterval`, a family over which is first extended to `ℝ` by the time
+  extension of `DifferentialForm/TimeExtension.lean`, with `K = [0, 1]` (the
   `Parametric.lean` section of holonomic approximation says why no
-  parameter manifold is needed).
+  parameter manifold is needed). The family `α` of each use is given under
+  *The family `α` of Decision 4 is an input* above. A corollary for a
+  family over `unitInterval` does that extension and restricts `H` from
+  `ℝ × unitInterval` back by `isSmoothFamily_iff_contMDiff`, so that
+  `OpenManifold.lean` does not extend by hand.
 
-Proof, one band core of `SymplecticGeometry.exists_isMorse_bandCore_seq` at a time
-(`Morse/Core/`), with the family $\alpha_\lambda$ of Decision 4. Stage $k$
-starts from nondegenerate $\omega^k_\lambda$ ($\omega^0=\tau$) and one-forms
-$\beta^k_\lambda$ with $\omega^k_\lambda=\alpha_\lambda+d\beta^k_\lambda$ on a
-neighbourhood $N_k$ of $\{g\le e_k\}$, and on all of $M$ for $\lambda\in P_0$.
-The formal primitive of $\omega^k_\lambda-\alpha_\lambda$ in the cube charts is
-then holonomic on $N_k$ and on `P₀`. Parametric holonomic approximation over
-each cube of the band core in turn (they are disjoint), relative to $N_k$, as
-noted at the end of `Morse/Core/`, and to `P₀`, gives $\beta'_\lambda$, equal
-to $\beta^k_\lambda$ away from a neighbourhood of the cubes that lies above
-$d_k$, and an open $U$ around $\{g\le e_k\}$ and the displaced cubes on which
-every $(1-s)\omega^k_\lambda+s\sigma_\lambda$ is nondegenerate, where
-$\sigma_\lambda=\alpha_\lambda+d\beta'_\lambda$ is closed in the class. The
-band core's compression, conjugated by the displacing diffeotopy, gives an
-isotopy $h_s$ fixed near $\{g\le e_k\}$ with $h_1(\{g\le e_{k+1}\})\subseteq U$.
-For a cutoff $\chi$ supported in $U$ and equal to $1$ near
-$h_1(\{g\le e_{k+1}\})$, the stage is the path $h_s^*\omega^k_\lambda$
-followed by $h_1^*(\omega^k_\lambda+s\chi(\sigma_\lambda-\omega^k_\lambda))$,
-nondegenerate since embeddings are local diffeomorphisms
-(`IsNondegenerate.isNondegenerate_mpullback_of_isLocalDiffeomorph`). Its end
-$\omega^{k+1}_\lambda$ is $\alpha_\lambda+d\beta^{k+1}_\lambda$ near
-$\{g\le e_{k+1}\}$, with $\beta^{k+1}_\lambda$ the sum of
-$h_1^*\beta'_\lambda$ and the primitive of
-$h_1^*\alpha_\lambda-\alpha_\lambda$ given by the isotopy, which vanishes
-where $h_s$ is the identity (the class is kept as in
-`mpullback_sub_mem_exactForms_of_homotopy`). A stage changes nothing near
-$\{g\le d_k\}$, and $d_k\to\infty$, so the stages, run on the times
-$[1-2^{-k},1-2^{-k-1}]$, are constant near each compact set for times close
-to $1$; they compose to the homotopy $H$, whose end is closed in the class
-and nondegenerate. On `P₀` the approximation is the identity, so the second
-half of each stage is constant and the first stays symplectic in the class.
-Since this is long, the issue splits it into one stage and the composition
-of the stages.
+Proof. `SymplecticGeometry.exists_isMorse_bandCore_seq` gives `g`, `d`,
+`e` and the band cores; its hypothesis `hE : Module.finrank ℝ E ≠ 1` needs
+a case split, since `TauCeti.SymplecticForm.even_finrank` gives nothing when
+`M` is empty, and an empty `M` is a trivial case. Stage `k` is the stage of
+`Stage.lean` for the band core of `(d k, e k, e (k + 1))`, from the data of
+stage `k - 1` (at `k = 0`: `ω = τ`, the given `α`, `β = 0`, `N = ∅`).
+A stage changes nothing near $\{g\le e_k\}$, and $e_k\to\infty$ with `g`
+proper, so the stages, run on the times $[1-2^{-k},1-2^{-k-1}]$, are
+constant near each compact set for times close to `1`; they compose to the
+homotopy `H`. Its end is $\alpha^{(\infty)}_l+d\beta^{(\infty)}_l$, the
+limits being eventually constant near each compact set, and
+$\alpha^{(\infty)}_l-\alpha^{(0)}_l=d\sum_k\gamma^{(k)}_l$, a locally
+finite sum; so the end is closed in the class, and nondegenerate. On `P₀`
+every stage is through closed forms in the class (`stagePath_of_mem`).
 
 ### `Geometry/Symplectic/HPrinciple/OpenManifold.lean`
 
@@ -1851,12 +2273,38 @@ Each is a few hundred lines; each issue's blockers come before it.
    section gives. It settles step 0, the common collar, first. If it
    exceeds the size limit, the case $m=1$ becomes an issue of its own.
 8. **The engine: one stage.** The approximation near a band core and the
-   compressed path of one stage, in
-   `Geometry/Symplectic/HPrinciple/Engine.lean`, with the relative form of
-   holonomic approximation noted at the end of `Morse/Core/`. Blocked by 3
-   and by the building issues of 5.
-9. **The engine: the stages composed.** The rest of `Engine.lean`. Blocked
-   by 8.
+   compressed path of one stage, in the first four files of
+   `Geometry/Symplectic/HPrinciple/Relative/`, in these building issues,
+   in this order:
+   - 8a. **Cube coordinates and the relative set.**
+     `Relative/CubeCoordinates.lean` without the diffeotopies:
+     `BandCore.isLocalDiffeomorph_chart`, `BandCore.chartPartialDiffeomorph`,
+     the readings of the formal datum and `BandCore.exists_relativeSet`;
+     and `IsSmoothFamily.extendByZeroAlong` in
+     `DifferentialForm/PartialDiffeomorph.lean`. Blocked by nothing.
+   - 8b. **Diffeotopies along a chart.** `SmoothIsotopy/Chart.lean`:
+     `TauCeti.extendDiffeotopyAlong`. Blocked by nothing.
+   - 8c. **The continuous version's clauses at every point.** The `C`, `N`
+     and displacement clauses of
+     `exists_holonomic_approximation_continuous_family` for every point of
+     `(Fin n → ℝ) × D`, as in the statement of its section, and
+     `isOpen_setOf_forall_norm_sub_lt`, in `Parametric.lean`. Blocked by
+     nothing.
+   - 8d. **Approximation over a band core.** `Relative/CoreApproximation.lean`,
+     both forms, with
+     `IsSmoothFamily.exists_pos_forall_nondegenerate_sub_smul_of_continuousOn`.
+     Blocked by 8a, 8b and 8c. If it exceeds the size limit, the
+     continuous form becomes an issue of its own after it.
+   - 8e. **The path of a stage.** `Relative/StagePath.lean`. Blocked by
+     nothing.
+   - 8f. **Smooth families and products in the frame topology.**
+     `IsSmoothFamily.continuous_tangentEquiv_symm` and
+     `continuous_tangentEquiv_symm_smul` in
+     `VectorBundle/Symplectic/Topology.lean`. Blocked by nothing.
+   - 8g. **The stage.** `Relative/Stage.lean`, both forms; this is issue 8
+     itself. Blocked by 8d, 8e and 8f.
+9. **The engine: the stages composed.** `Relative/Basic.lean`. Blocked by
+   8.
 10. **Existence and path components.**
     `Geometry/Symplectic/HPrinciple/OpenManifold.lean`. Blocked by 9.
 11. **Design the CW type of spaces of forms** (a design issue, Decision 5).
