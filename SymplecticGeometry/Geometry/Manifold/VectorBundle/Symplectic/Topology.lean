@@ -9,6 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
@@ -24,7 +27,8 @@ is an open condition in it, that pulling two-forms back along the slices of a sm
 of maps, such as the time slices of a smooth isotopy, is jointly continuous in the form and the
 parameter, and that pulling them back along a single smooth map, such as the inclusion of an
 open subset, is continuous. Near each point of an open subset, the frame coordinates of a two-form
-and of its restriction agree.
+and of its restriction agree. A smooth family of two-forms is continuous in its parameter, and
+multiplication by a fixed smooth function is continuous.
 
 ## Main results
 
@@ -49,6 +53,11 @@ and of its restriction agree.
 * `Bundle.ContMDiffTwoForm.exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal`: near
   each point `x` of `U`, the frame coordinates of a two-form on `M` in the trivialization at `x`
   are those of its restriction to `U` in the trivialization of the two-forms on `U` at `x`.
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_smul`: for any frame system, the map
+  `σ ↦ tangentEquiv.symm (ρ • tangentEquiv σ)` is continuous, for a fixed smooth function `ρ`.
+* `SymplecticGeometry.IsSmoothFamily.continuous_tangentEquiv_symm`: a smooth family `τ` of
+  two-forms on `M` over a manifold `N`, both with finite-dimensional models, gives a continuous
+  map `t ↦ tangentEquiv.symm (τ t)` into the frame topology of any frame system.
 
 ## Implementation notes
 
@@ -66,7 +75,11 @@ pull-back bundle by
 `Bundle.Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv`. For an isotopy `h`, the
 family is the motion of `h` over `unitInterval`. Pull-back along a smooth map `g : M → N` is the
 slice at `0` of the constant family `(p, x) ↦ g x : ℝ × M → N`, and restriction to an open
-`U ⊆ M` is its case `g = Subtype.val`.
+`U ⊆ M` is its case `g = Subtype.val`. A smooth family `τ` over `N` is the family of slices of
+a smooth form `Ω` on `N × M`, that is, of its pull-backs along the slices of the identity of
+`N × M`, so its continuity is the case of that family with `Ω` fixed. Multiplication by a
+smooth function is Tau Ceti's `ContMDiffSection.continuous_smul_function_frameTopology`, read
+through `tangentEquiv`.
 
 The comparison of frame coordinates on `M` and on `U` is not definitional: it rests on the
 agreement of the charts that `U` inherits with those of `M` near `x`. It takes `D` to be the
@@ -332,7 +345,75 @@ theorem exists_frameCoordinates_eq_frameCoordinates_mpullback_subtypeVal (x : U)
 
 end RestrictionCoordinates
 
+section FunSMul
+
+open scoped ContDiff
+
+variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
+  [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M] {ι : Type*}
+  (e : ι → Trivialization (EB [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (EB [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (W : ι → Opens M) (hW : ∀ i, (W i : Set M) ⊆ (e i).baseSet)
+
+/-- Multiplication of smooth two-forms on the tangent bundle by a fixed smooth function `ρ`,
+`σ ↦ tangentEquiv.symm (ρ • tangentEquiv σ)`, is continuous for the frame topology of any frame
+system. -/
+theorem continuous_tangentEquiv_symm_smul (ρ : C^∞⟮I, M; ℝ⟯) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    Continuous fun σ : ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M)) ↦
+      tangentEquiv.symm (TauCeti.SmoothForm.funSMulₗ ρ (tangentEquiv σ)) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  refine (ContMDiffSection.continuous_smul_function_frameTopology e W hW ρ).congr fun σ ↦ ?_
+  ext x v
+  simp [tangentEquiv_symm_apply, tangentEquiv_apply]
+
+end FunSMul
+
 end Bundle.ContMDiffTwoForm
+
+namespace IsSmoothFamily
+
+open Bundle.ContMDiffTwoForm
+
+variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
+  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
+  [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M]
+  {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN}
+  [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ((⊤ : ℕ∞) : WithTop ℕ∞) N] {κ : Type*}
+  (e' : κ → Trivialization (EB [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (EB [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (e' j)]
+  (W' : κ → Opens M) (hW' : ∀ j, (W' j : Set M) ⊆ (e' j).baseSet)
+
+/-- A smooth family `τ` of smooth two-forms on `M`, over a manifold `N` with a
+finite-dimensional model, is continuous into the frame topology of any frame system of the
+two-forms on the tangent bundle of `M`, when the model of `M` is finite-dimensional. -/
+theorem continuous_tangentEquiv_symm {τ : N → TauCeti.SmoothTwoForm I M}
+    (hτ : IsSmoothFamily J τ) :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
+    Continuous fun t ↦
+      (tangentEquiv.symm (τ t) : Bundle.ContMDiffTwoForm I ⊤ EB (TangentSpace I (M := M))) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e' W' hW'
+  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp hτ
+  -- `τ t` is the pull-back of `Ω` along the slice at `t` of the identity of `N × M`, and the
+  -- two-forms on `N × M` carry the frame topology of the trivializations at their points.
+  let eN (q : N × M) := trivializationAt ((EN × EB) [⋀^Fin 2]→L[ℝ] ℝ)
+    (fun y : N × M ↦ TangentSpace (J.prod I) y [⋀^Fin 2]→L[ℝ] Trivial (N × M) ℝ y) q
+  let WN (q : N × M) : Opens (N × M) := ⟨_, (eN q).open_baseSet⟩
+  let _ := ContMDiffSection.frameTopology (I := J.prod I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) eN WN
+    fun _ ↦ subset_rfl
+  have h := continuous_tangentEquiv_symm_mpullback_prod eN WN (fun _ ↦ subset_rfl) e' W' hW'
+    ContMDiffMap.id fun q ↦ ⟨q, FiberBundle.mem_baseSet_trivializationAt' q⟩
+  refine (h.comp (continuous_const.prodMk continuous_id :
+    Continuous fun t : N ↦ (tangentEquiv.symm Ω, t))).congr fun t ↦ ?_
+  simp only [Function.comp_apply, LinearEquiv.apply_symm_apply, ← hΩ t]
+  exact congrArg _
+    (TauCeti.SmoothForm.mpullback_congr _ _ (funext fun y ↦ ContMDiffMap.id_apply _) Ω)
+
+end IsSmoothFamily
 
 end SymplecticGeometry
 

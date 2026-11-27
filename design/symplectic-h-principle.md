@@ -1920,7 +1920,7 @@ The continuity of `H`, term by term in the formula:
   scalar, and, for the fixed function `ρ`, the new lemma
   `continuous_tangentEquiv_symm_smul` in the same file, multiplication by
   a fixed smooth function being continuous for the frame topology
-  (`ContMDiffSection.continuous_fiberwiseMap`, `Section/Topology.lean`).
+  (Tau Ceti's `ContMDiffSection.continuous_smul_function_frameTopology`).
 
 `α' l = e_{l,1}^* α l` is continuous by the first item.
 
