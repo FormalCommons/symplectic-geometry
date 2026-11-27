@@ -833,10 +833,8 @@ theorem exists_norm_zeroOnePart_powerConnection_le [FiniteDimensional ℝ E] [Co
     gcongr
     exact (hC₂ x (Set.mem_univ x) v).trans (by gcongr; exact le_max_left _ _)
   have hkpow : ((k : ℝ) ^ (-1 / 2 : ℝ)) ^ 2 * k = 1 := by
-    rw [← Real.rpow_natCast, ← Real.rpow_mul hkpos.le]
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hkpos.le, ← Real.rpow_add_one hkpos.ne']
     norm_num
-    rw [Real.rpow_neg_one]
-    exact inv_mul_cancel₀ hkpos.ne'
   have : 0 ≤ A := le_max_right _ _
   have : 0 ≤ B := le_max_right _ _
   refine (D.dbarReading k x (s k) 0).le_opNorm u |>.trans ?_
