@@ -12,7 +12,6 @@ public import TauCeti.Topology.Homotopy.Path
 import Mathlib.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import TauCeti.Analysis.Normed.Module.Ball.Homeomorph
-import TauCeti.Geometry.Manifold.ConnectedSum.Sphere
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Sphere
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Restrict
 import TauCeti.Geometry.Manifold.Connected
