@@ -140,7 +140,9 @@ theorem map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt {q : ℕ}
   o.map_singularCap_eq_fundamentalClass ℤ hq _ _ _ (isOpen_zeroSectionCompl P V) r n h u γ
     fun b ↦ (centeredExtChartAt I b).injective_localHomologyMap_sourceRestrict _
       (mem_centeredExtChartAt_source I b) (centeredExtChartAt_self I b) q (by
-      rw [← singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction]
+      rw [← thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap _ _ _ b n
+        fun _ hv ↦ (zeroSectionCompl_union_compl_preimage_singleton b).superset hv,
+        ConcreteCategory.comp_apply]
       exact hγ b)
 
 end TauCeti.HomologicalOrientation
