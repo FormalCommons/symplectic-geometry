@@ -5,11 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
+public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import Mathlib.Topology.MetricSpace.Thickening
 public import TauCeti.Topology.Algebra.Module.Equiv.Fin
+import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Analysis.Calculus.FDeriv.Equiv
 import Mathlib.Analysis.Normed.Group.Bounded
 import SymplecticGeometry.Analysis.Normed.Group.Pi
+import TauCeti.Analysis.Calculus.FDeriv.Prod
 
 /-!
 # Holonomic approximation for families over a finite-dimensional space
@@ -44,6 +49,16 @@ those of `D`; those outside `J` record the parameter.
 * `SymplecticGeometry.dist_familyCubeEquiv_of_fst_eq`: it preserves the distance of two points
   with the same parameter, and `SymplecticGeometry.infDist_le_infDist_familyCubeEquiv` bounds the
   distance to `Q` by the distance of the image to `Q'`.
+* `SymplecticGeometry.familyFDeriv f G`: for a family of data `(f (l, ·), G (l, ·))` on a space
+  `E`, the datum on `L × E` that completes `G` by the derivative of `f` in the parameter. It is
+  smooth when `f` and `G` are (`ContDiff.familyFDeriv`).
+* `SymplecticGeometry.fderiv_eq_familyFDeriv_iff`: where `f` is differentiable, its derivative
+  is `familyFDeriv f G` exactly when its derivative in the space variable is `G`, since the
+  derivative of `f` is the sum of its two partial derivatives (Tau Ceti's
+  `TauCeti.fderiv_apply_eq_fderiv_slice_left_add_fderiv_slice_right`).
+  `SymplecticGeometry.fderiv_comp_symm_eq_familyFDeriv_comp_iff` reads this in coordinates
+  `Ψ : L × E ≃L[ℝ] E'`, such as `familyCubeEquiv`, in the form of the hypothesis `hUf` of the
+  cube theorem.
 
 ## References
 
@@ -209,6 +224,66 @@ theorem mem_thickening_of_familyCubeEquiv_mem_thickening (hR : R ≠ 0) {δ : �
     p.2 ∈ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)}) := by
   rw [mem_thickening_iff_infDist_lt ⟨0, by simp⟩] at hp ⊢
   exact (infDist_le_infDist_familyCubeEquiv hR p).trans_lt hp
+
+section Datum
+
+variable {L E E' F : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [NormedAddCommGroup E]
+  [NormedSpace ℝ E] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [NormedAddCommGroup F]
+  [NormedSpace ℝ F] {f : L × E → F} {G : L × E → E →L[ℝ] F} {q : L × E}
+
+/-- The datum on `L × E` of a family over `L` of data `(f (l, ·), G (l, ·))` on `E`: at `q`, it
+is the derivative of `f` in the parameter on the `L` component and `G q` on the `E` component. -/
+noncomputable def familyFDeriv (f : L × E → F) (G : L × E → E →L[ℝ] F) (q : L × E) :
+    L × E →L[ℝ] F :=
+  fderiv ℝ (fun l ↦ f (l, q.2)) q.1 ∘L ContinuousLinearMap.fst ℝ L E +
+    G q ∘L ContinuousLinearMap.snd ℝ L E
+
+theorem familyFDeriv_def (f : L × E → F) (G : L × E → E →L[ℝ] F) (q : L × E) :
+    familyFDeriv f G q = fderiv ℝ (fun l ↦ f (l, q.2)) q.1 ∘L ContinuousLinearMap.fst ℝ L E +
+      G q ∘L ContinuousLinearMap.snd ℝ L E :=
+  (rfl)
+
+@[simp]
+theorem familyFDeriv_apply (f : L × E → F) (G : L × E → E →L[ℝ] F) (q w : L × E) :
+    familyFDeriv f G q w = fderiv ℝ (fun l ↦ f (l, q.2)) q.1 w.1 + G q w.2 := by
+  simp [familyFDeriv_def]
+
+/-- `familyFDeriv f G` is `Cⁿ` when `f` is `Cᵐ` with `n + 1 ≤ m` and `G` is `Cⁿ`. -/
+theorem _root_.ContDiff.familyFDeriv {n m : WithTop ℕ∞} (hf : ContDiff ℝ m f)
+    (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m) : ContDiff ℝ n (familyFDeriv f G) := by
+  have h : ContDiff ℝ n fun q : L × E ↦ fderiv ℝ (fun l ↦ f (l, q.2)) q.1 :=
+    ContDiff.fderiv (f := fun (q : L × E) (l : L) ↦ f (l, q.2))
+      (hf.comp (contDiff_snd.prodMk (contDiff_snd.comp contDiff_fst))) contDiff_fst hnm
+  rw [show SymplecticGeometry.familyFDeriv f G = fun q ↦ _ from
+    funext (familyFDeriv_def f G)]
+  exact (h.clm_comp contDiff_const).add (hG.clm_comp contDiff_const)
+
+/-- At a point `q` where `f` is differentiable, its derivative is `familyFDeriv f G q` exactly
+when its derivative in the space variable at `q` is `G q`. -/
+theorem fderiv_eq_familyFDeriv_iff (hf : DifferentiableAt ℝ f q) :
+    fderiv ℝ f q = familyFDeriv f G q ↔ fderiv ℝ (fun x ↦ f (q.1, x)) q.2 = G q := by
+  obtain ⟨l, x⟩ := q
+  refine ⟨fun h ↦ ?_, fun h ↦ ContinuousLinearMap.ext fun w ↦ ?_⟩
+  · rw [TauCeti.fderiv_slice_right hf, h]
+    ext w
+    simp
+  · rw [TauCeti.fderiv_apply_eq_fderiv_slice_left_add_fderiv_slice_right hf, familyFDeriv_apply,
+      h]
+
+/-- In coordinates `Ψ : L × E ≃L[ℝ] E'`, such as `familyCubeEquiv`, the datum
+`(f ∘ Ψ.symm, q' ↦ familyFDeriv f G (Ψ.symm q') ∘L Ψ.symm)` on `E'` is holonomic at `Ψ q`
+exactly when the derivative of `f` in the space variable at `q` is `G q`, provided `f` is
+differentiable at `q`. -/
+theorem fderiv_comp_symm_eq_familyFDeriv_comp_iff (Ψ : (L × E) ≃L[ℝ] E')
+    (hf : DifferentiableAt ℝ f q) :
+    fderiv ℝ (f ∘ Ψ.symm) (Ψ q) = familyFDeriv f G q ∘L (Ψ.symm : E' →L[ℝ] L × E) ↔
+      fderiv ℝ (fun x ↦ f (q.1, x)) q.2 = G q := by
+  rw [Ψ.symm.comp_right_fderiv, Ψ.symm_apply_apply, ← fderiv_eq_familyFDeriv_iff hf]
+  refine ⟨fun h ↦ ?_, fun h ↦ h ▸ rfl⟩
+  refine ContinuousLinearMap.ext fun w ↦ ?_
+  simpa using congr($h (Ψ w))
+
+end Datum
 
 end SymplecticGeometry
 
