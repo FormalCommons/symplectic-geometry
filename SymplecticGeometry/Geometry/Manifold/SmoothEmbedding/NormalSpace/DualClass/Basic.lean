@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients
 public import TauCeti.AlgebraicTopology.Cohomology.Excision
 public import TauCeti.Topology.VectorBundle.Orientation.EulerClass
 
@@ -277,6 +278,23 @@ theorem relDualClassOf_neg (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞
     f.relDualClassOf hn hdim hf (-u) = -f.relDualClassOf hn hdim hf u :=
   map_neg _ _
 
+omit [Linear k C] in
+/-- The relative class commutes with the change of `k`-linear structure of `C`: for an equality
+`e : L₁ = L₂` of two structures, the class for `L₂` of the image of `u` under
+`TopPair.singularCohomologyLinearCongr e` is the image under it of the class for `L₁` of `u`. -/
+theorem relDualClassOf_singularCohomologyLinearCongr {L₁ L₂ : Linear k C} (e : L₁ = L₂)
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) {n : ℕ}
+    (u : letI := L₁
+      letI := f.normalSpaceFiberBundle hn hdim
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology R k M n) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    (letI := L₂; f.relDualClassOf hn hdim hf (TopPair.singularCohomologyLinearCongr e _ R M n u)) =
+      TopPair.singularCohomologyLinearCongr e _ R M n
+        (letI := L₁; f.relDualClassOf hn hdim hf u) := by
+  subst e
+  simp only [TopPair.singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply]
+
 /-- **The absolute class of a submanifold given by a class of its normal bundle**: the image in
 `Hⁿ(X)` of the relative class `relDualClassOf f hn hdim hf u ∈ Hⁿ(X, X ∖ f(Z))`. -/
 def dualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
@@ -391,6 +409,37 @@ theorem relDualClass_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω
     letI := f.normalSpaceVectorBundle hn hdim
     f.relDualClass hn hdim hf o hr = f.relDualClassOf hn hdim hf (o.canonicalThomClass hr) :=
   (rfl)
+
+/-- The relative dual class through `relDualClassOf` for Mathlib's `ℤ`-linear structure
+`ModuleCat.instLinear` of `ModuleCat ℤ`, the one that statements over a general ring `k` take at
+`k = ℤ`. The class `relDualClass` itself uses the structure `Linear.preadditiveIntLinear` of the
+canonical Thom class; the two structures are equal (`Linear.subsingletonInt`), and
+`TopPair.singularCohomologyLinearCongr` carries classes from one to the other. -/
+theorem relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+          (hr : finrank ℝ P = r) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    letI := f.normalSpaceVectorBundle hn hdim
+    f.relDualClass hn hdim hf o hr =
+      TopPair.singularCohomologyLinearCongr
+        (Subsingleton.elim (α := Linear ℤ (ModuleCat.{w} ℤ)) ModuleCat.instLinear
+          Linear.preadditiveIntLinear) (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ)
+        (ModuleCat.of ℤ (ULift.{w} ℤ)) (ModuleCat.of ℤ (ULift.{w} ℤ)) r
+        (letI : Linear ℤ (ModuleCat.{w} ℤ) := ModuleCat.instLinear;
+          f.relDualClassOf hn hdim hf (TopPair.singularCohomologyLinearCongr
+            (Subsingleton.elim (α := Linear ℤ (ModuleCat.{w} ℤ)) Linear.preadditiveIntLinear
+              ModuleCat.instLinear) (thomPair P fun x ↦ f.isImmersion.NormalSpace x hn)
+            (ModuleCat.of ℤ (ULift.{w} ℤ)) (ModuleCat.of ℤ (ULift.{w} ℤ)) r
+            (o.canonicalThomClass hr))) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  rw [relDualClass_def, ← relDualClassOf_singularCohomologyLinearCongr,
+    TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
+    LinearEquiv.refl_apply]
 
 /-- **The dual class of a normally oriented submanifold.** For a smooth embedding `f : Z → X`
 with closed range and an orientation `o` of its normal bundle, of rank `r`, the class

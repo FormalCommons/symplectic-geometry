@@ -209,6 +209,35 @@ theorem normalSlice_fst_apply (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ
     (congrArg (fun v ↦ (Φ v : X)) (fiberThomPairMap_fst_apply P
         (fun x ↦ f.isImmersion.NormalSpace x hn) x v))
 
+/-- **The normal slice read through a linear isomorphism.** For a linear isomorphism
+`m : P ≃ ν_x` and a map of pairs `h : (X, X ∖ f(Z)) ⟶ (Y, B')`, the inclusion
+`(univ, univ ∖ {0}) ⟶ (P, P ∖ {0})`, followed by `m`, the normal slice of `Φ` at `x` and `h`, is
+the map of pairs given by any `g : P → Y` with `g w = h(Φ(x, m w))` for all `w`. -/
+theorem ofSubsetMap_subtypeVal_comp_complZeroPairIso_hom_comp_normalSlice_comp
+    (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x) (x : Z)
+    (m : P ≃L[ℝ] f.isImmersion.NormalSpace x hn) {Y : TopCat.{w}} {B' : Set Y}
+    (h : TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ ⟶ TopPair.ofSubset B') {g : P → Y}
+    (hgc : ContinuousOn g univ) (hgB : ∀ w, w ≠ 0 → g w ∈ B')
+    (hg : ∀ w, TopPair.Hom.fst h (Φ (TotalSpace.mk' P x (m w)) : X) = g w) :
+    (TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := TopCat.of P)
+        (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
+        (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
+        m.complZeroPairIso.hom) ≫ f.normalSlice hn hdim Φ hΦ x ≫ h =
+      TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := Y)
+        (TopCat.ofHom ⟨univ.domRestrict g, hgc.domRestrict⟩) (B := {⟨0, mem_univ 0⟩}ᶜ)
+        (B' := B') fun w hw ↦ hgB w fun h ↦ hw (Subtype.ext h) := by
+  refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
+  simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
+  -- The points of the pairs are those of `univ`, `P` and `Y` only up to unfolding `ofSubset`.
+  erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
+  rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply, normalSlice_fst_apply]
+  exact hg _
+
 end NormalSlice
 
 section Slice
@@ -710,28 +739,14 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
     simp [ψ, m]
   have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc hg0 hgf
     (hφ.comp 0 hg') hA c
-  -- Read on `(univ, univ ∖ {0})` through `m`, the map `g` is `ℓ⁻¹`, then the normal slice of
-  -- `Φ'`, then `φ`.
-  have hgi : TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := TopCat.of X)
-      (TopCat.ofHom ⟨univ.domRestrict g, hgc.domRestrict⟩) (B := {⟨0, mem_univ 0⟩}ᶜ)
-      (B' := (range f)ᶜ) (fun w hw h ↦ hw (Subtype.ext (hgf w w.property h))) =
-      (TopPair.ofSubsetMap (X := TopCat.of (univ : Set P)) (Y := TopCat.of P)
-        (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
-        (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
-        m.complZeroPairIso.hom) ≫ ℓ.complZeroPairIso.inv ≫
-        (f.transDiffeomorph φ.symm).normalSlice hn hdim Φ' hΦ'.apply_zeroSection x ≫
-          TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
-            (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ) := by
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-    -- The points of the pairs are those of `univ`, `P` and `X` only up to unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply,
-      TopPair.ofSubsetMap_fst_apply]
-    rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply,
-      ContinuousLinearEquiv.complZeroPairIso_inv_fst_apply, normalSlice_fst_apply]
-    -- Both sides are `φ (Φ' (x, ℓ⁻¹ (m w)))`, with `w` a point of `univ` only up to unfolding
-    -- `ofSubset`, so `Set.domRestrict_apply` does not apply syntactically.
-    rfl
+  -- Read on `(univ, univ ∖ {0})` through `ψ = ℓ⁻¹ ∘ m`, the normal slice of `Φ'` followed by `φ`
+  -- is `g`.
+  have hgi := ofSubsetMap_subtypeVal_comp_complZeroPairIso_hom_comp_normalSlice_comp _ hn hdim Φ'
+    hΦ'.apply_zeroSection x ψ (TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
+      (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) hgc
+    (fun w hw h ↦ hw (hgf w (mem_univ w) h)) fun _ ↦ TopPair.ofSubsetMap_fst_apply _ _ _
+  rw [ContinuousLinearEquiv.complZeroPairIso_trans, ContinuousLinearEquiv.complZeroPairIso_symm ℓ,
+    Iso.trans_hom, Iso.symm_hom, Category.assoc, Category.assoc] at hgi
   have h3 : TopPair.singularCohomologyMap (ℓ.complZeroPairIso.inv ≫
       (f.transDiffeomorph φ.symm).normalSlice hn hdim Φ' hΦ'.apply_zeroSection x ≫
         TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
@@ -739,7 +754,7 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
       TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ.apply_zeroSection x) n c := by
     refine TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp R k M (0 : P)
       m.complZeroPairIso n ?_
-    rw [← TopPair.singularCohomologyMap_comp_apply, ← hgi, h1]
+    rw [← TopPair.singularCohomologyMap_comp_apply, Category.assoc, hgi, h1]
   rw [TopPair.singularCohomologyMap_comp_apply ℓ.complZeroPairIso.hom, ← h3,
     ← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id_assoc]
 
@@ -839,27 +854,17 @@ theorem relDualClass_transDiffeomorph (f : SmoothEmbedding I J ∞ Z X) (hn : (�
   let := (f.transDiffeomorph φ.symm).normalSpaceFiberBundle hn hdim
   let := (f.transDiffeomorph φ.symm).normalSpaceVectorBundle hn hdim
   subst hr
-  -- `relDualClass` takes integral cohomology with the structure `Linear.preadditiveIntLinear` of
-  -- `ModuleCat ℤ`, `relDualClassOf_transDiffeomorph` the structure `ModuleCat.instLinear`; they
-  -- are equal (`Linear.subsingletonInt`) but not by definition.
-  have key (L : Linear ℤ (ModuleCat.{w} ℤ))
-      (u : (thomPair P fun x ↦ f.isImmersion.NormalSpace x hn).singularCohomology
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ P)) :
-      (f.transDiffeomorph φ.symm).relDualClassOf hn hdim
-          (f.isClosed_range_transDiffeomorph hf φ.symm)
-          (TopPair.singularCohomologyMap (f.transDiffeomorphThomPairMap hn φ) _ u) =
-        TopPair.singularCohomologyMap
-          (TopPair.ofSubsetMap (X := TopCat.of X') (Y := TopCat.of X)
-            (TopCat.ofHom ⟨φ, φ.continuous⟩) (f.mapsTo_compl_range_transDiffeomorph φ)) _
-          (f.relDualClassOf hn hdim hf u) := by
-    obtain rfl : L = ModuleCat.instLinear := Subsingleton.elim _ _
-    exact relDualClassOf_transDiffeomorph f hn hdim hf φ u
-  rw [relDualClass_def, relDualClass_def, ← key, transDiffeomorphThomPairMap_def,
+  -- `relDualClassOf_transDiffeomorph` is stated for the `ℤ`-linear structure
+  -- `ModuleCat.instLinear`; read both classes for that structure.
+  rw [relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
+    relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf,
+    ← TopPair.singularCohomologyLinearCongr_naturality, ← relDualClassOf_transDiffeomorph,
+    ← TopPair.singularCohomologyLinearCongr_naturality, transDiffeomorphThomPairMap_def,
     thomPairMapOfComp_def]
   -- The goal agrees with the naturality of the canonical Thom class only up to unfolding
   -- (`thomPairMapOfFiberwise` over `g = ContinuousMap.id Z`), which `rw` does not see.
-  exact congrArg _ (o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap rfl rfl
-      _).symm
+  congr 3
+  exact (o.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass_comap rfl rfl _).symm
 
 /-- **Naturality of the dual class under a diffeomorphism.** Let `φ : X' ≃ X` be a diffeomorphism
 and `o` an orientation of the normal bundle of `f`, of rank `r`. The dual class of `φ⁻¹ ∘ f`,
