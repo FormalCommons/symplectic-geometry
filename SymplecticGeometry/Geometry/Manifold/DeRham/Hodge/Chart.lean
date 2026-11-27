@@ -20,6 +20,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffe
 public import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
@@ -205,9 +206,8 @@ theorem hodgeStarInChart_apply_eq_sum (hn : n ≠ 0) (hkl : k + l = m)
   rw [hodgeStarInChart_apply, formHodgeStarCLM_apply,
     Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum _ _ B, hgram]
   congr 1
-  · refine Eq.trans ?_ (mpullback_apply _ _ y _).symm
-    rw [riemannianVolumeForm_apply]
-    exact congrArg _ (funext fun i ↦ (hB i).trans (hA _))
+  · rw [← riemannianVolumeForm_apply]
+    exact (mpullback_apply_basis_map (ψ.toContinuousLinearMap_mfderivSymmEquiv hn hy) _ b).symm
   refine Finset.sum_congr rfl fun s _ ↦ ?_
   congr 1
   · refine (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans ?_

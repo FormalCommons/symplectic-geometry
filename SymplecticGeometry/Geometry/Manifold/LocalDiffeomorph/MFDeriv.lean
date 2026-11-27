@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
@@ -48,6 +49,8 @@ Tau Ceti's `PartialDiffeomorph.inner_fderiv_comp_symm`, with `B` in place of the
   `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
   `PartialDiffeomorph.det_fderiv_chartAt_symm_trans_ne_zero`: the transitions between `Φ` and a
   chart are smooth, with derivatives of nonzero determinant.
+* `PartialDiffeomorph.isInvertible_fderiv_extChartAt_comp_comp`: for `Φ` from a normed space, the
+  reading of `Φ` in a chart of the target, after a linear equivalence, has invertible derivative.
 * `PartialDiffeomorph.contDiffOn_symm_trans`, `PartialDiffeomorph.differentiableAt_symm_trans`
   and `PartialDiffeomorph.mvfderiv_eq_fderiv_symm_trans_comp`: the transition between two
   partial diffeomorphisms into normed spaces is smooth, and the chain rule through it.
@@ -165,6 +168,27 @@ theorem det_fderiv_chartAt_symm_trans_ne_zero
     hz
 
 end ChartTransition
+
+section ChartReading
+
+variable {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M'] [IsManifold 𝓘(𝕜, E) 1 M']
+
+/-- For a `C^n` partial diffeomorphism `Φ` from a normed space `F` to `M'`, `n ≠ 0`, a continuous
+linear equivalence `L : F' ≃L[𝕜] F` and `p ∈ Φ.source`, the reading `κ ∘ Φ ∘ L` of `Φ` in the
+extended chart `κ` at `x`, whose source contains `Φ p`, has invertible derivative at `L⁻¹ p`. -/
+theorem isInvertible_fderiv_extChartAt_comp_comp {F F' : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
+    (Φ : PartialDiffeomorph 𝓘(𝕜, F) 𝓘(𝕜, E) F M' n) (hn : n ≠ 0) (L : F' ≃L[𝕜] F) {p : F}
+    (hp : p ∈ Φ.source) {x : M'} (hx : Φ p ∈ (chartAt E x).source) :
+    (fderiv 𝕜 (extChartAt 𝓘(𝕜, E) x ∘ Φ ∘ L) (L.symm p)).IsInvertible := by
+  have hκ := isInvertible_mfderiv_extChartAt (I := 𝓘(𝕜, E)) (x := x)
+    (by rwa [extChartAt_source])
+  have h := TauCeti.isInvertible_mfderiv_comp hκ (Φ.isInvertible_mfderiv hn hp)
+  rw [mfderiv_eq_fderiv] at h
+  rw [← Function.comp_assoc, L.comp_right_fderiv, L.apply_symm_apply]
+  exact h.comp ⟨L, rfl⟩
+
+end ChartReading
 
 section SymmTrans
 
