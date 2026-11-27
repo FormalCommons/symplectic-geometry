@@ -13,7 +13,6 @@ public import TauCeti.Geometry.Symplectic.LinearReduction
 import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
-import TauCeti.LinearAlgebra.Dimension.Submodule
 
 /-!
 # An explicit linear symplectic extension
@@ -267,13 +266,8 @@ variable (W) in
 `K = W ∩ W^ω`, since `W^ω = K ⊕ E`. -/
 theorem Compatible.finrank_normalComplement [FiniteDimensional ℝ V] :
     finrank ℝ (ω.normalComplement J W) = finrank ℝ (ω.ReducedSpace (ω.orthogonal W)) := by
-  have h₁ : finrank ℝ (ω.ReducedSpace (ω.orthogonal W)) +
-      finrank ℝ (LinearMap.ker (ω.toBilinForm.restrict (ω.orthogonal W))) =
-        finrank ℝ (ω.orthogonal W) :=
-    Submodule.finrank_quotient_add_finrank _
-  have hK : finrank ℝ (LinearMap.ker (ω.toBilinForm.restrict (ω.orthogonal W))) =
-      finrank ℝ ↥(W ⊓ ω.orthogonal W) := by
-    rw [ker_restrict_orthogonal, Submodule.finrank_comap_subtype, inf_eq_left.2 inf_le_right]
+  have h₁ := finrank_reducedSpace_add_finrank_inf ω (ω.orthogonal W)
+  rw [orthogonal_orthogonal, inf_comm] at h₁
   have h₂ := Submodule.finrank_sup_add_finrank_inf_eq (W ⊓ ω.orthogonal W)
     (ω.normalComplement J W)
   rw [hJ.inf_sup_normalComplement, hJ.disjoint_inf_normalComplement.eq_bot, finrank_bot] at h₂
