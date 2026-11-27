@@ -53,8 +53,9 @@ differential at `[1, z]` sends `(ξ, v)` to `ξ_M(ι z) + dι v`, by Tau Ceti's
 At a point `z` fixed by `K`, `dπ` at `(1, z)` kills `(ξ, 0)` for every `ξ` whose one-parameter
 subgroup lies in `K`, since the curve `t ↦ (exp (t ξ), z)` stays in the class `[1, z]`. So the
 lift is a local diffeomorphism at `[1, z]` when its differential composed with `dπ` is onto and
-vanishes only on such vectors `(ξ, 0)`: its own differential is then bijective, and Tau Ceti's
-inverse function theorem `TauCeti.isLocalDiffeomorphAt_iff_exists_mfderiv_eq` applies. Since the
+vanishes only on such vectors `(ξ, 0)`: its own differential is then bijective, and the inverse
+function theorem `TauCeti.isLocalDiffeomorphAt_of_bijective_mfderiv`
+(`Geometry/Manifold/LocalDiffeomorph/Basic.lean`) applies. Since the
 lift is `G`-equivariant, the points where it is a local diffeomorphism are `G`-invariant
 (`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`); so it is one at `[g, z]` exactly when it is
 one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
@@ -417,13 +418,9 @@ theorem isLocalDiffeomorphAt_liftRightTranslation_mk_one [T2Space G] [IsManifold
     obtain ⟨⟨ξ, v⟩, rfl⟩ := hπ w
     obtain ⟨hξ, rfl⟩ := hker ξ v hw
     exact mfderiv_quotientMk_apply_eq_zero_of_forall_mem F hz hξ
-  refine (isLocalDiffeomorphAt_iff_exists_mfderiv_eq hsmooth hopen
-    ⟨(1, z), ⟨mem_univ _, hzs⟩, rfl⟩ BoundarylessManifold.isInteriorPoint (by simp)).2
-    ⟨(LinearEquiv.ofBijective A.toLinearMap ⟨hAinj, hAsurj⟩).toContinuousLinearEquiv, ?_⟩
-  ext w
-  -- `LinearEquiv.ofBijective_apply` does not match here, as the tangent spaces are type synonyms
-  -- of the model spaces; the equivalence applies `A` by definition.
-  rfl
+  exact isLocalDiffeomorphAt_of_bijective_mfderiv hsmooth hopen
+    ⟨(1, z), ⟨mem_univ _, hzs⟩, rfl⟩ BoundarylessManifold.isInteriorPoint (by simp)
+    ⟨hAinj, hAsurj⟩
 
 variable (F) in
 /-- **The lift is a local diffeomorphism at `[g, z]` exactly when it is one at `[1, z]`**, since
@@ -538,14 +535,12 @@ theorem isLocalDiffeomorphAt_mk_mulInvariantExp [T2Space G] (hj : Injective j)
     erw [ContinuousLinearMap.coe_prodMap, ContinuousLinearMap.coe_id, LinearMap.range_prodMap,
       LinearMap.range_id, ker_mfderiv_mk_toRightTranslation_one_of_forall_smul_eq F hz]
     exact hcompl.symm.prod isCompl_top_bot
-  refine (isLocalDiffeomorphAt_iff_exists_mfderiv_eq (hπ.contMDiff.comp hφ).contMDiffOn
-    isOpen_univ (mem_univ _) BoundarylessManifold.isInteriorPoint (by simp)).2
-    ⟨(LinearEquiv.ofBijective _ hbij).toContinuousLinearEquiv, ?_⟩
-  rw [(hπd.comp (0, z) hφd).mfderiv]
-  ext w
-  -- `LinearEquiv.ofBijective_apply` does not match here, as the tangent spaces are type synonyms
-  -- of the model spaces; the equivalence applies the composite by definition.
-  rfl
+  -- `hbij` is about `P` on the tangent space at `(1, z)`, the chain rule about the tangent space
+  -- at `φ (0, z)`; both are `E × EZ` by definition, so `exact` closes the goal.
+  exact isLocalDiffeomorphAt_of_bijective_mfderiv (f := π ∘ φ)
+    (hπ.contMDiff.comp hφ).contMDiffOn isOpen_univ (mem_univ _)
+    BoundarylessManifold.isInteriorPoint (by simp)
+    (by rw [(hπd.comp (0, z) hφd).mfderiv]; exact hbij)
 
 end ExpCoordinates
 
