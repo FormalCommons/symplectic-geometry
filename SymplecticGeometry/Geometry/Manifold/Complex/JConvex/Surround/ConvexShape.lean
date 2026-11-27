@@ -5,13 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
 import Mathlib.Analysis.InnerProductSpace.ProdL2
+import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Normed.Group.Prod
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Topology.Order.Compact
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -37,9 +38,15 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
   for `ℓ > 0`, are again `i`-convex shapes. The derivatives of the rescaled shape come from
   `iteratedDeriv_comp_div_const`, with no differentiability assumption on `χ`.
+* `SymplecticGeometry.exists_forall_isConvexShapeAt_of_abs_sub_lt`: being an `i`-convex shape
+  is an open condition on `(r, χ r, χ' r, χ'' r)`, so for a compact family of shapes whose
+  values and first two derivatives depend continuously on the point, one `η > 0` works for all:
+  any function within `η` of a member in value and two derivatives at `r` is a shape at `r`.
+  The uniform `η` comes from `IsCompact.exists_thickening_subset_open`.
 * `SymplecticGeometry.exists_isConvexShapeAt_eq_max`: two `i`-convex shapes on `[r₁, r₂]` have
   a common smoothing of their maximum, `r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` for small `δ`, that is
-  again an `i`-convex shape and is the maximum away from a given neighbourhood of their crossings.
+  again an `i`-convex shape and is the maximum away from a given neighbourhood of their crossings
+  in `[r₁, r₂]`.
   Its slope is a convex combination of theirs, which gives (4.3). For the case `σ = r` of (4.4)
   the cube of that slope falls short of the combination of the cubes by a multiple of
   `(χ₁' - χ₂')²` (`SymplecticGeometry.mul_pow_three_add_mul_pow_three_sub_pow_three_le`);
@@ -47,6 +54,12 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   `(smoothedAbs δ)'' (χ₁' - χ₂')² / 2` of the second derivative, of order `1 / δ`
   (`SymplecticGeometry.exists_pos_div_le_iteratedDeriv_two_smoothedAbs`), makes up for it. So
   this route, unlike the book's quadratic bridge, needs no transversality of the crossings.
+  It is the case of a single pair in
+  `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, which gives every width up to
+  some `δ₀ > 0` at once for a compact family of pairs whose values and two derivatives are
+  jointly continuous in the parameter, since the margins and bounds above are then uniform.
+  `SymplecticGeometry.exists_pos_forall_isConvexShapeAt_smoothedMax` is the pointwise statement
+  behind both: `δ₀` depends only on the margin and the two bounds, not on the shapes.
 * `SymplecticGeometry.exists_isConvexShapeAt_eqOn_Iic_Ici`: the same smoothing, for shapes that
   cross only inside `(u, v) ⊆ [r₁, r₂]`, continued by the first shape to the left of `u` and the
   second to the right of `v`, which gives an `i`-convex shape that passes from one to the other,
@@ -230,6 +243,59 @@ theorem isConvexShapeAt_of_iteratedDeriv_two_nonpos (hr : 0 < r) (hχ : 0 < χ r
       div_le_div_of_nonneg_right (by linarith [sq_nonneg d]) hχ.le
     linarith
 
+open Metric in
+/-- **`i`-convex shapes are stable under small `C²` perturbations, uniformly on a compact set.**
+Let `K ⊆ ℝ × ℝ` be compact, with `χ ℓ` an `i`-convex shape at `r` for every `(ℓ, r) ∈ K`, and
+with `(ℓ, r) ↦ iteratedDeriv k (χ ℓ) r` continuous on `K` for `k ≤ 2`. Then there is `η > 0`
+such that every `φ : ℝ → ℝ` whose value and first two derivatives at `r` are within `η` of
+those of `χ ℓ`, for some `(ℓ, r) ∈ K`, is an `i`-convex shape at `r`.
+
+No differentiability of `φ` or of the `χ ℓ` is assumed: only the values of the derivatives at
+`r` enter `isConvexShapeAt_iff`. -/
+theorem exists_forall_isConvexShapeAt_of_abs_sub_lt {χ : ℝ → ℝ → ℝ} {K : Set (ℝ × ℝ)}
+    (hK : IsCompact K) (hc : ∀ x ∈ K, IsConvexShapeAt (χ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (χ x.1) x.2) K) :
+    ∃ η > 0, ∀ φ : ℝ → ℝ, ∀ x ∈ K,
+      (∀ k ≤ 2, |iteratedDeriv k φ x.2 - iteratedDeriv k (χ x.1) x.2| < η) →
+        IsConvexShapeAt φ x.2 := by
+  -- The inequalities of `isConvexShapeAt_iff`, as an open set of `(r, χ r, χ' r, χ'' r)`.
+  set U : Set (ℝ × ℝ × ℝ × ℝ) := {p | 0 < p.1 ∧ 0 < p.2.1 ∧ 1 / p.2.1 < p.2.2.1 / p.1 ∧
+    1 / p.2.1 < p.2.2.2 + p.2.2.1 ^ 3 / p.1}
+  have hU : IsOpen U := by
+    refine isOpen_iff_mem_nhds.2 fun p ⟨h₁, h₂, h₃, h₄⟩ ↦ ?_
+    have h₁' := h₁.ne'
+    have h₂' := h₂.ne'
+    have e₁ : ∀ᶠ q in 𝓝 p, 0 < q.1 := continuousAt_const.eventually_lt continuousAt_fst h₁
+    have e₂ : ∀ᶠ q in 𝓝 p, 0 < q.2.1 :=
+      continuousAt_const.eventually_lt (by fun_prop) h₂
+    have e₃ : ∀ᶠ q in 𝓝 p, 1 / q.2.1 < q.2.2.1 / q.1 :=
+      ContinuousAt.eventually_lt (by fun_prop (disch := assumption))
+        (by fun_prop (disch := assumption)) h₃
+    have e₄ : ∀ᶠ q in 𝓝 p, 1 / q.2.1 < q.2.2.2 + q.2.2.1 ^ 3 / q.1 :=
+      ContinuousAt.eventually_lt (by fun_prop (disch := assumption))
+        (by fun_prop (disch := assumption)) h₄
+    filter_upwards [e₁, e₂, e₃, e₄] with q h₁ h₂ h₃ h₄ using ⟨h₁, h₂, h₃, h₄⟩
+  -- The values of `(r, χ ℓ r, (χ ℓ)' r, (χ ℓ)'' r)` on `K` form a compact subset of `U`.
+  set g : ℝ × ℝ → ℝ × ℝ × ℝ × ℝ :=
+    fun x ↦ (x.2, χ x.1 x.2, deriv (χ x.1) x.2, iteratedDeriv 2 (χ x.1) x.2) with hg_def
+  have hg : ContinuousOn g K := by
+    have h₀ := hcont 0 (by norm_num)
+    have h₁ := hcont 1 (by norm_num)
+    simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
+    exact continuousOn_snd.prodMk (h₀.prodMk (h₁.prodMk (hcont 2 le_rfl)))
+  obtain ⟨η, hη, hsub⟩ := (hK.image_of_continuousOn hg).exists_thickening_subset_open hU
+    (by rintro _ ⟨x, hx, rfl⟩; exact isConvexShapeAt_iff.1 (hc x hx))
+  refine ⟨η, hη, fun φ x hx hφ ↦ isConvexShapeAt_iff.2 ?_⟩
+  -- `U` is a set-builder set, so membership in it is the conjunction to be proved.
+  change (x.2, φ x.2, deriv φ x.2, iteratedDeriv 2 φ x.2) ∈ U
+  refine hsub (mem_thickening_iff.2 ⟨g x, Set.mem_image_of_mem g hx, ?_⟩)
+  have h₀ := hφ 0 (by norm_num)
+  have h₁ := hφ 1 (by norm_num)
+  have h₂ := hφ 2 le_rfl
+  simp only [iteratedDeriv_zero, iteratedDeriv_one] at h₀ h₁
+  simp only [hg_def, Prod.dist_eq, Real.dist_eq, sub_self, abs_zero]
+  exact max_lt hη (max_lt h₀ (max_lt h₁ h₂))
+
 namespace IsConvexShapeAt
 
 /-- Being an `i`-convex shape at `r` only depends on the germ of the shape at `r`. -/
@@ -360,8 +426,8 @@ private theorem one_div_smoothedMax_lt_iteratedDeriv_add {χ₁ χ₂ : ℝ → 
   have h := hL (sq_nonneg (x - y)) hT hQ hG
   linarith
 
-/-- The pointwise step of `exists_isConvexShapeAt_eq_max`: at `r`, the smoothed maximum of two
-`i`-convex shapes is one, under the hypotheses of
+/-- The pointwise step of `exists_pos_forall_isConvexShapeAt_smoothedMax`: at `r`, the smoothed
+maximum of two `i`-convex shapes is one, under the hypotheses of
 `one_div_smoothedMax_lt_iteratedDeriv_add`. -/
 private theorem isConvexShapeAt_smoothedMax_of_le {χ₁ χ₂ : ℝ → ℝ} {δ a G Q : ℝ}
     (h₁ : ContDiff ℝ 2 χ₁) (h₂ : ContDiff ℝ 2 χ₂) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
@@ -379,10 +445,89 @@ private theorem isConvexShapeAt_smoothedMax_of_le {χ₁ χ₂ : ℝ → ℝ} {�
     one_div_smoothedMax_lt_deriv_div h₁ h₂ hδ hc₁ hc₂,
     one_div_smoothedMax_lt_iteratedDeriv_add h₁ h₂ hδ hc₁ hc₂ ha₁ ha₂ hG hQ hL⟩
 
+/-- **A uniform width for the smoothed maximum of two `i`-convex shapes.** Given `a > 0` and
+bounds `G` and `Q`, there is `δ₀ > 0` such that, for every `δ ∈ (0, δ₀]`, the smoothed maximum
+`r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` of two `C²` functions `χ₁`, `χ₂` is an `i`-convex shape at each
+`r` where both are, where both satisfy the second inequality of `isConvexShapeAt_iff` with margin
+at least `a`, and where `(χ₁' - χ₂')² (χ₁' + χ₂') / r ≤ G` and `(χ₁' + χ₂') / r ≤ Q`.
+
+So `δ₀` depends only on `a`, `G` and `Q`, not on the shapes. -/
+theorem exists_pos_forall_isConvexShapeAt_smoothedMax {a : ℝ} (ha : 0 < a) (G Q : ℝ) :
+    ∃ δ₀ > 0, ∀ δ ∈ Set.Ioc 0 δ₀, ∀ {χ₁ χ₂ : ℝ → ℝ} {r : ℝ}, ContDiff ℝ 2 χ₁ →
+      ContDiff ℝ 2 χ₂ → IsConvexShapeAt χ₁ r → IsConvexShapeAt χ₂ r →
+      a ≤ iteratedDeriv 2 χ₁ r + deriv χ₁ r ^ 3 / r - 1 / χ₁ r →
+      a ≤ iteratedDeriv 2 χ₂ r + deriv χ₂ r ^ 3 / r - 1 / χ₂ r →
+      (deriv χ₁ r - deriv χ₂ r) ^ 2 * ((deriv χ₁ r + deriv χ₂ r) / r) ≤ G →
+      (deriv χ₁ r + deriv χ₂ r) / r ≤ Q →
+      IsConvexShapeAt (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r := by
+  obtain ⟨δ₀, hδ₀, hL⟩ := exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt ha G Q
+  refine ⟨δ₀, hδ₀, ?_⟩
+  intro δ hδ χ₁ χ₂ r h₁ h₂ hc₁ hc₂ ha₁ ha₂ hG hQ
+  exact isConvexShapeAt_smoothedMax_of_le h₁ h₂ hδ.1 hc₁ hc₂ ha₁ ha₂ hG hQ
+    fun hg hT hTQ hgT ↦ hL δ hδ.1 hδ.2 hg hT hTQ hgT _
+
+/-- **The smoothed maximum of a compact family of pairs of `i`-convex shapes.** Let `K` be a
+compact set of parameters, and for `p ∈ K` let `M p` and `A p` be `C²` and `i`-convex shapes at
+every point of `[r₁, r₂]`, whose values and first two derivatives are jointly continuous in
+`(p, r)` on `K × [r₁, r₂]`. Then there is `δ₀ > 0` such that, for every `δ ∈ (0, δ₀]` and
+`p ∈ K`, `r ↦ smoothedMax δ (M p r) (A p r)` is an `i`-convex shape at every point of
+`[r₁, r₂]`. -/
+theorem exists_forall_isConvexShapeAt_smoothedMax {P : Type*} [TopologicalSpace P] {K : Set P}
+    (hK : IsCompact K) {M A : P → ℝ → ℝ} {r₁ r₂ : ℝ}
+    (hM : ∀ p ∈ K, ContDiff ℝ 2 (M p)) (hA : ∀ p ∈ K, ContDiff ℝ 2 (A p))
+    (hcM : ∀ p ∈ K, ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt (M p) r)
+    (hcA : ∀ p ∈ K, ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt (A p) r)
+    (hdM : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (M q.1) q.2)
+      (K ×ˢ Set.Icc r₁ r₂))
+    (hdA : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (A q.1) q.2)
+      (K ×ˢ Set.Icc r₁ r₂)) :
+    ∃ δ₀ > 0, ∀ δ ∈ Set.Ioc 0 δ₀, ∀ p ∈ K, ∀ r ∈ Set.Icc r₁ r₂,
+      IsConvexShapeAt (fun r ↦ smoothedMax δ (M p r) (A p r)) r := by
+  set S := K ×ˢ Set.Icc r₁ r₂
+  have hS : IsCompact S := hK.prod isCompact_Icc
+  have hr₀ : ∀ q ∈ S, q.2 ≠ 0 := fun q hq ↦ (hcM q.1 hq.1 q.2 hq.2).pos.ne'
+  have hsnd : ContinuousOn (fun q : P × ℝ ↦ q.2) S := continuous_snd.continuousOn
+  have value {F : P → ℝ → ℝ}
+      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S) :
+      ContinuousOn (fun q : P × ℝ ↦ F q.1 q.2) S := by
+    simpa only [iteratedDeriv_zero] using hd 0 zero_le_two
+  have slope {F : P → ℝ → ℝ}
+      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S) :
+      ContinuousOn (fun q : P × ℝ ↦ deriv (F q.1) q.2) S := by
+    simpa only [iteratedDeriv_one] using hd 1 one_le_two
+  -- A common margin `a` in the second inequality of `isConvexShapeAt_iff` for both families.
+  have margin {F : P → ℝ → ℝ}
+      (hd : ∀ k ≤ 2, ContinuousOn (fun q : P × ℝ ↦ iteratedDeriv k (F q.1) q.2) S)
+      (hc : ∀ p ∈ K, ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt (F p) r) :
+      ∃ a > 0, ∀ q ∈ S,
+        a ≤ iteratedDeriv 2 (F q.1) q.2 + deriv (F q.1) q.2 ^ 3 / q.2 - 1 / F q.1 q.2 := by
+    have h₁ : ContinuousOn (fun q : P × ℝ ↦ deriv (F q.1) q.2 ^ 3 / q.2) S :=
+      ((slope hd).pow 3).div hsnd hr₀
+    have h₂ : ContinuousOn (fun q : P × ℝ ↦ 1 / F q.1 q.2) S :=
+      continuousOn_const.div (value hd) fun q hq ↦ (hc q.1 hq.1 q.2 hq.2).pos_value.ne'
+    exact hS.exists_forall_le' (((hd 2 le_rfl).add h₁).sub h₂)
+      fun q hq ↦ sub_pos.2 (hc q.1 hq.1 q.2 hq.2).one_div_lt_iteratedDeriv_add
+  obtain ⟨a₁, ha₁, hA₁⟩ := margin hdM hcM
+  obtain ⟨a₂, ha₂, hA₂⟩ := margin hdA hcA
+  -- Bounds on the error terms.
+  have hcq : ContinuousOn (fun q : P × ℝ ↦ (deriv (M q.1) q.2 + deriv (A q.1) q.2) / q.2) S :=
+    ((slope hdM).add (slope hdA)).div hsnd hr₀
+  obtain ⟨Q, hQ⟩ := hS.exists_bound_of_continuousOn hcq
+  obtain ⟨G, hG⟩ := hS.exists_bound_of_continuousOn ((((slope hdM).sub (slope hdA)).pow 2).mul hcq)
+  obtain ⟨δ₀, hδ₀, h⟩ := exists_pos_forall_isConvexShapeAt_smoothedMax (lt_min ha₁ ha₂) G Q
+  refine ⟨δ₀, hδ₀, fun δ hδ p hp r hr ↦ ?_⟩
+  have hq : (p, r) ∈ S := ⟨hp, hr⟩
+  have e₁ : a₁ ≤ iteratedDeriv 2 (M p) r + deriv (M p) r ^ 3 / r - 1 / M p r := hA₁ (p, r) hq
+  have e₂ : a₂ ≤ iteratedDeriv 2 (A p) r + deriv (A p) r ^ 3 / r - 1 / A p r := hA₂ (p, r) hq
+  exact h δ hδ (hM p hp) (hA p hp) (hcM p hp r hr) (hcA p hp r hr)
+    ((min_le_left _ _).trans e₁) ((min_le_right _ _).trans e₂)
+    ((Real.le_norm_self _).trans (hG _ hq)) ((Real.le_norm_self _).trans (hQ _ hq))
+
 /-- **The smoothed maximum of two `i`-convex shapes.** Let `χ₁` and `χ₂` be `C²` and `i`-convex
-shapes at every point of `[r₁, r₂]`, and let `O` be a neighbourhood of the set where they cross.
-Then some `χ`, as smooth as `χ₁` and `χ₂` are (so at least `C²`), is an `i`-convex shape at every
-point of `[r₁, r₂]` and equals `max (χ₁ r) (χ₂ r)` at the points of `[r₁, r₂]` outside `O`.
+shapes at every point of `[r₁, r₂]`, and let `O` be a neighbourhood of the points of `[r₁, r₂]`
+where they cross. Then some `χ`, as smooth as `χ₁` and `χ₂` are (so at least `C²`), is an
+`i`-convex shape at every point of `[r₁, r₂]` and equals `max (χ₁ r) (χ₂ r)`
+at the points of `[r₁, r₂]` outside `O`.
 
 The function is `r ↦ smoothedMax δ (χ₁ r) (χ₂ r)` for `δ` small. Unlike the book's, this
 statement does not ask that the shapes cross transversally. -/
@@ -390,47 +535,26 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
     (h₁ : ContDiff ℝ 2 χ₁) (h₂ : ContDiff ℝ 2 χ₂)
     (hc₁ : ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt χ₁ r)
     (hc₂ : ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt χ₂ r)
-    (hO : O ∈ 𝓝ˢ {r | χ₁ r = χ₂ r}) :
+    (hO : O ∈ 𝓝ˢ (Set.Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r})) :
     ∃ χ : ℝ → ℝ, (∀ n : ℕ∞, ContDiff ℝ n χ₁ → ContDiff ℝ n χ₂ → ContDiff ℝ n χ) ∧
       (∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt χ r) ∧
       ∀ r ∈ Set.Icc r₁ r₂ \ O, χ r = max (χ₁ r) (χ₂ r) := by
-  have hd₁ := h₁.continuous_deriv one_le_two
-  have hd₂ := h₂.continuous_deriv one_le_two
-  have hr₀ : ∀ r ∈ Set.Icc r₁ r₂, r ≠ 0 := fun r hr ↦ (hc₁ r hr).pos.ne'
-  -- A common margin `a` in the second inequality of `isConvexShapeAt_iff` for both shapes.
-  have margin {χ : ℝ → ℝ} (h : ContDiff ℝ 2 χ) (hc : ∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt χ r) :
-      ∃ a > 0, ∀ r ∈ Set.Icc r₁ r₂, a ≤ iteratedDeriv 2 χ r + deriv χ r ^ 3 / r - 1 / χ r := by
-    have hcont : ContinuousOn (fun r ↦ iteratedDeriv 2 χ r + deriv χ r ^ 3 / r - 1 / χ r)
-        (Set.Icc r₁ r₂) :=
-      ((h.continuous_iteratedDeriv 2 le_rfl).continuousOn.add
-        (((h.continuous_deriv one_le_two).continuousOn.pow 3).div continuousOn_id hr₀)).sub
-        (continuousOn_const.div h.continuous.continuousOn fun r hr ↦ (hc r hr).pos_value.ne')
-    obtain ⟨a, ha, h⟩ := isCompact_Icc.exists_forall_le' hcont fun r hr ↦
-      sub_pos.2 (hc r hr).one_div_lt_iteratedDeriv_add
-    exact ⟨a, ha, h⟩
-  obtain ⟨a₁, ha₁, hA₁⟩ := margin h₁ hc₁
-  obtain ⟨a₂, ha₂, hA₂⟩ := margin h₂ hc₂
-  -- Bounds on the error terms.
-  have hcq : ContinuousOn (fun r ↦ (deriv χ₁ r + deriv χ₂ r) / r) (Set.Icc r₁ r₂) :=
-    (hd₁.add hd₂).continuousOn.div continuousOn_id hr₀
-  obtain ⟨Q, hQ⟩ := isCompact_Icc.exists_bound_of_continuousOn hcq
-  obtain ⟨G, hG⟩ := isCompact_Icc.exists_bound_of_continuousOn
-    (((hd₁.sub hd₂).pow 2).continuousOn.mul hcq)
-  obtain ⟨δ₀, hδ₀, hL⟩ :=
-    exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt (lt_min ha₁ ha₂) G Q
+  obtain ⟨δ₀, hδ₀, h⟩ := exists_forall_isConvexShapeAt_smoothedMax isCompact_univ
+    (M := fun _ : Unit ↦ χ₁) (A := fun _ ↦ χ₂) (fun _ _ ↦ h₁) (fun _ _ ↦ h₂) (fun _ _ ↦ hc₁)
+    (fun _ _ ↦ hc₂)
+    (fun k hk ↦ ((h₁.continuous_iteratedDeriv k (by exact_mod_cast hk)).comp
+      continuous_snd).continuousOn)
+    (fun k hk ↦ ((h₂.continuous_iteratedDeriv k (by exact_mod_cast hk)).comp
+      continuous_snd).continuousOn)
   -- A lower bound `β` for `|χ₁ - χ₂|` on `[r₁, r₂]` outside `O`.
   obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
-    h₁.continuous.continuousOn h₂.continuous.continuousOn
-    (nhdsSet_mono Set.inter_subset_right hO)
+    h₁.continuous.continuousOn h₂.continuous.continuousOn hO
   set δ := min δ₀ β
   have hδ : 0 < δ := lt_min hδ₀ hβ
   refine ⟨fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r), fun n hn₁ hn₂ ↦
-    (contDiff_smoothedMax δ).comp (hn₁.prodMk hn₂), fun r hr ↦ ?_, fun r hr ↦ ?_⟩
-  · exact isConvexShapeAt_smoothedMax_of_le h₁ h₂ hδ (hc₁ r hr) (hc₂ r hr)
-      ((min_le_left _ _).trans (hA₁ r hr)) ((min_le_right _ _).trans (hA₂ r hr))
-      ((Real.le_norm_self _).trans (hG r hr)) ((Real.le_norm_self _).trans (hQ r hr))
-      fun hg hT hTQ hgT ↦ hL δ hδ (min_le_left _ _) hg hT hTQ hgT _
-  · exact smoothedMax_eq_max hδ ((min_le_right _ _).trans (hβD r hr))
+    (contDiff_smoothedMax δ).comp (hn₁.prodMk hn₂), fun r hr ↦
+    h δ ⟨hδ, min_le_left _ _⟩ () (Set.mem_univ _) r hr, fun r hr ↦ ?_⟩
+  exact smoothedMax_eq_max hδ ((min_le_right _ _).trans (hβD r hr))
 
 open Set in
 /-- **Passing from one `i`-convex shape to another.** Let `χ₁` and `χ₂` be `Cⁿ`, `n ≥ 2`, and
@@ -453,25 +577,14 @@ theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ
       (∀ r < u, IsConvexShapeAt χ₁ r → IsConvexShapeAt χ r) ∧
       (∀ r, v < r → IsConvexShapeAt χ₂ r → IsConvexShapeAt χ r) := by
   have hn' : ((2 : ℕ∞) : WithTop ℕ∞) ≤ n := WithTop.coe_le_coe.2 hn
-  obtain ⟨χ, hχs, hχc, hχ⟩ := exists_isConvexShapeAt_eq_max (O := Iio r₁ ∪ Ioo u v ∪ Ioi r₂)
+  obtain ⟨χ, hχs, hχc, hχ⟩ := exists_isConvexShapeAt_eq_max (O := Ioo u v)
     (h₁.of_le hn') (h₂.of_le hn') hc₁ hc₂
-    (((isOpen_Iio.union isOpen_Ioo).union isOpen_Ioi).mem_nhdsSet.2 fun r (hr : χ₁ r = χ₂ r) ↦ by
-      rcases lt_or_ge r r₁ with h | h
-      · exact Or.inl (Or.inl h)
-      rcases le_or_gt r r₂ with h' | h'
-      · exact Or.inl (Or.inr (hcross r ⟨h, h'⟩ hr))
-      · exact Or.inr h')
+    (isOpen_Ioo.mem_nhdsSet.2 fun r hr ↦ hcross r hr.1 hr.2)
   replace hχs := hχs n h₁ h₂
-  have hnot : ∀ r ∈ Icc r₁ r₂, (r ≤ u ∨ v ≤ r) → r ∉ Iio r₁ ∪ Ioo u v ∪ Ioi r₂ := by
-    intro r hr h
-    simp only [mem_union, mem_Iio, mem_Ioo, mem_Ioi]
-    rintro ((h' | ⟨h', h''⟩) | h') <;> rcases h with h | h <;> linarith [hr.1, hr.2]
   have hχ₁ : ∀ r ∈ Icc r₁ u, χ r = χ₁ r := fun r hr ↦ by
-    have hr' : r ∈ Icc r₁ r₂ := ⟨hr.1, by linarith [hr.2]⟩
-    rw [hχ r ⟨hr', hnot r hr' (Or.inl hr.2)⟩, max_eq_left (hle₁ r hr)]
+    rw [hχ r ⟨⟨hr.1, by linarith [hr.2]⟩, fun h ↦ hr.2.not_gt h.1⟩, max_eq_left (hle₁ r hr)]
   have hχ₂ : ∀ r ∈ Icc v r₂, χ r = χ₂ r := fun r hr ↦ by
-    have hr' : r ∈ Icc r₁ r₂ := ⟨by linarith [hr.1], hr.2⟩
-    rw [hχ r ⟨hr', hnot r hr' (Or.inr hr.1)⟩, max_eq_right (hle₂ r hr)]
+    rw [hχ r ⟨⟨by linarith [hr.1], hr.2⟩, fun h ↦ hr.1.not_gt h.2⟩, max_eq_right (hle₂ r hr)]
   -- Outside `[r₁, r₂]`, replace `χ` by `χ₁` on the left and by `χ₂` on the right.
   set ψ : ℝ → ℝ := fun r ↦ if r ≤ (r₁ + u) / 2 then χ₁ r else if r ≤ (v + r₂) / 2 then χ r
     else χ₂ r with hψ
@@ -1118,10 +1231,10 @@ private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → �
     linarith
 
 /-- **The smoothed minimum of two shapes over `R`.** Let `ρ₁` and `ρ₂` be `C²` and satisfy the
-criterion over `R` at every point of `[R₁, R₂]`, and let `O` be a neighbourhood of the set where
-they cross. Then some `ρ`, as smooth as `ρ₁` and `ρ₂` are (so at least `C²`), satisfies the
-criterion over `R` at every point of `[R₁, R₂]` and equals `min (ρ₁ R) (ρ₂ R)` at the points of
-`[R₁, R₂]` outside `O`.
+criterion over `R` at every point of `[R₁, R₂]`, and let `O` be a neighbourhood of the points of
+`[R₁, R₂]` where they cross. Then some `ρ`, as smooth as `ρ₁` and `ρ₂` are (so at least `C²`),
+satisfies the criterion over `R` at every point of `[R₁, R₂]` and equals `min (ρ₁ R) (ρ₂ R)`
+at the points of `[R₁, R₂]` outside `O`.
 
 The function is `R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)` for `δ` small. For graphs `r = ρ (R)` the
 side of `r` small is the inside, so two insides meet in the minimum of the graphs, as they meet in
@@ -1131,7 +1244,7 @@ theorem exists_isConvexShapeOverRAt_eq_min {ρ₁ ρ₂ : ℝ → ℝ} {R₁ R�
     (h₁ : ContDiff ℝ 2 ρ₁) (h₂ : ContDiff ℝ 2 ρ₂)
     (hc₁ : ∀ R ∈ Set.Icc R₁ R₂, IsConvexShapeOverRAt ρ₁ R)
     (hc₂ : ∀ R ∈ Set.Icc R₁ R₂, IsConvexShapeOverRAt ρ₂ R)
-    (hO : O ∈ 𝓝ˢ {R | ρ₁ R = ρ₂ R}) :
+    (hO : O ∈ 𝓝ˢ (Set.Icc R₁ R₂ ∩ {R | ρ₁ R = ρ₂ R})) :
     ∃ ρ : ℝ → ℝ, (∀ n : ℕ∞, ContDiff ℝ n ρ₁ → ContDiff ℝ n ρ₂ → ContDiff ℝ n ρ) ∧
       (∀ R ∈ Set.Icc R₁ R₂, IsConvexShapeOverRAt ρ R) ∧
       ∀ R ∈ Set.Icc R₁ R₂ \ O, ρ R = min (ρ₁ R) (ρ₂ R) := by
@@ -1176,8 +1289,7 @@ theorem exists_isConvexShapeOverRAt_eq_min {ρ₁ ρ₂ : ℝ → ℝ} {R₁ R�
     exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt (lt_min ha₁ ha₂) G Q
   -- A lower bound `β` for `|ρ₁ - ρ₂|` on `[R₁, R₂]` outside `O`.
   obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
-    h₁.continuous.continuousOn h₂.continuous.continuousOn
-    (nhdsSet_mono Set.inter_subset_right hO)
+    h₁.continuous.continuousOn h₂.continuous.continuousOn hO
   set δ := min (min δ₀ β) μ
   have hδ : 0 < δ := lt_min (lt_min hδ₀ hβ) hμ
   refine ⟨fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R), fun n hn₁ hn₂ ↦

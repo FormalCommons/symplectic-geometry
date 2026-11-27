@@ -99,7 +99,7 @@ theorem map_fiberInclusionMap_eq_comp [IsManifold IF 2 F] {e e' : Trivialization
   rw [← deRhamCohomology.map_comp]
   congr 1
   rw [hφe]
-  exact funext fun v ↦ (e.fiberInclusionMap_coordChange e' hb hb' v).symm
+  exact e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb'
 
 /-- **Charts related by a stabilizing coordinate change, in cohomology.** Let `e` and `e'` be
 trivializations of `proj` with smooth inverses, whose coordinate change over `b` is a

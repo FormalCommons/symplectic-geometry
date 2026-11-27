@@ -49,7 +49,9 @@ positive weight: each point of the ball is moved along its flow line for the tim
   from `y_u`;
 * `TauCeti.MorseChart.injOn_globalFlow_toChart_symm_negativeExtend`: `F` is injective on the
   closed ball when `r ↦ θ (r • u) + log r` is strictly monotone on `(0, 1]` for each `u` of the
-  sphere; the centre goes to `p`, and on each ray the radius is recovered from this function;
+  sphere; the centre goes to `p`
+  (`TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_zero`), and on each ray the radius
+  is recovered from this function;
 * `TauCeti.MorseChart.mapsTo_globalFlow_closedBall_unstableSet`: `F` maps the ball into the
   unstable set of `p`;
 * `TauCeti.MorseChart.globalFlow_mem_image_closedBall` and
@@ -86,14 +88,16 @@ with coordinates `z` as the image of `(-wᵢ zᵢ)ᵢ` under the differential of
 `TauCeti.MorseChart.field_toChart_symm_negativeExtend` specializes it to the point with
 coordinates `c` of negative weight, where that vector is `c`.
 
-Two facts need only the chart, not the field.
+Some facts need only the chart, not the field.
 
 * `TauCeti.MorseChart.exists_pos_forall_norm_le_negativeExtend_mem_target`: some `ρ > 0` makes
   the ball above lie in the target, by
   `TauCeti.MorseBottChart.exists_pos_forall_norm_lt_mem_target`;
 * `TauCeti.MorseChart.apply_toChart_symm_negativeExtend`: `g = g p - ‖c‖² / 2` at the point with
   coordinates `c`, by the normal form `TauCeti.MorseBottChart.eq_quadratic`, the negative weights
-  being `-1` (`TauCeti.MorseChart.weight_eq_neg_one_of_weight_neg`).
+  being `-1` (`TauCeti.MorseChart.weight_eq_neg_one_of_weight_neg`);
+* `TauCeti.MorseChart.finrank_euclideanSpace_negativeWeight`: the Euclidean space of the
+  coordinates of negative weight has the dimension of the Morse index.
 
 ## References
 
@@ -179,6 +183,14 @@ noncomputable def negativeExtendL : EuclideanSpace ℝ {i // φ.weight i < 0} �
 @[simp]
 theorem negativeExtendL_apply (c : EuclideanSpace ℝ {i // φ.weight i < 0}) :
     φ.negativeExtendL c = φ.negativeExtend c.ofLp := (rfl)
+
+/-- The Euclidean space of the coordinates of negative weight of a Morse chart has the dimension of
+the Morse index. -/
+theorem finrank_euclideanSpace_negativeWeight :
+    Module.finrank ℝ (EuclideanSpace ℝ {i // φ.weight i < 0}) =
+      manifoldMorseIndex 𝓘(ℝ, E) g p := by
+  rw [finrank_euclideanSpace, ← Module.finrank_fintype_fun_eq_card (R := ℝ),
+    φ.finrank_negativeWeight_fun]
 
 /-- A field equal to the linear field of a Morse chart on its source reads `(-wᵢ zᵢ)ᵢ` in the
 coordinates of the chart. -/
@@ -273,6 +285,15 @@ theorem globalFlow_self (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y) (
     rw [MorseBottChart.linearFlow_zero_right, map_zero, ← φ.apply_self]
     exact φ.toChart.map_source φ.mem_source
   rwa [MorseBottChart.linearFlow_zero_right, φ.toChart_symm_coord_symm_zero] at h
+
+/-- The flow of `X` fixes the point of the Morse chart with coordinates `0` of negative weight,
+which is the centre `p`, when `X` is the linear field of the chart on its source. -/
+theorem globalFlow_toChart_symm_negativeExtend_zero
+    (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y) (t : ℝ) :
+    globalFlow X hX hXc t
+      (φ.toChart.symm (φ.negativeExtend (0 : EuclideanSpace ℝ {i // φ.weight i < 0}).ofLp)) =
+        p := by
+  rw [WithLp.ofLp_zero, map_zero, φ.toChart_symm_zero, φ.globalFlow_self hX hXc hXφ]
 
 /-- **Radial flow along the coordinates of negative weight.** If `X` is the linear field of the
 Morse chart `φ` on its source, `t ≤ 0`, and the points with coordinates `e^{s} c` of negative
@@ -552,8 +573,7 @@ theorem injOn_globalFlow_toChart_symm_negativeExtend
     rw [← Flow.map_add, neg_add_cancel, Flow.map_zero_apply,
       φ.globalFlow_self hX hXc hXφ] at h'
     exact φ.toChart_symm_negativeExtend_ne (by simpa using hc0) (hρ c hc) h'
-  have hzero : Φ (θ 0) (φ.toChart.symm (φ.negativeExtend (0 : EuclideanSpace ℝ _).ofLp)) = p := by
-    rw [WithLp.ofLp_zero, map_zero, φ.toChart_symm_zero, φ.globalFlow_self hX hXc hXφ]
+  have hzero := φ.globalFlow_toChart_symm_negativeExtend_zero hX hXc hXφ (θ 0)
   intro c hc c' hc' h
   rw [mem_closedBall_zero_iff] at hc hc'
   dsimp only at h

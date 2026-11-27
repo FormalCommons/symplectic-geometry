@@ -16,7 +16,8 @@ import TauCeti.Analysis.InnerProductSpace.NormPow
 Derivatives of a radial function `y ↦ β ‖y‖` on a real inner product space `V`, for `β : ℝ → F`.
 It is `Cⁿ` when `β` is `Cⁿ` and constant near `0` (`ContDiff.comp_norm_of_eventuallyEq_const`).
 Away from the origin its derivative along `v` is `(⟪y, v⟫ / ‖y‖) • β' (‖y‖)`
-(`fderiv_comp_norm_apply`). Its norm is at most `‖β' (‖y‖)‖` at every point
+(`fderiv_comp_norm_apply`), and along `y` itself it is `‖y‖ • β' (‖y‖)`
+(`fderiv_comp_norm_apply_self`). Its norm is at most `‖β' (‖y‖)‖` at every point
 (`norm_fderiv_comp_norm_le`): at the origin the derivative is `0` because the function is even
 (`Function.Even.fderiv_zero`), and away from it a radial function that is differentiable at `y`
 forces `β` to be differentiable at `‖y‖` (Tau Ceti's `TauCeti.differentiableAt_comp_norm_iff`).
@@ -57,6 +58,14 @@ theorem fderiv_comp_norm_apply {β : ℝ → F} {y : V} (hy : y ≠ 0)
     hβ.hasFDerivAt.comp y (TauCeti.hasFDerivAt_norm_of_ne hy)
   rw [H.fderiv]
   simp [div_eq_inv_mul, mul_smul]
+
+/-- Away from the origin, the derivative of the radial function `z ↦ β ‖z‖` at `y` along `y` is
+`‖y‖ • β' (‖y‖)`. -/
+theorem fderiv_comp_norm_apply_self {β : ℝ → F} {y : V} (hy : y ≠ 0)
+    (hβ : DifferentiableAt ℝ β ‖y‖) :
+    fderiv ℝ (fun z : V ↦ β ‖z‖) y y = ‖y‖ • deriv β ‖y‖ := by
+  rw [fderiv_comp_norm_apply hy hβ, real_inner_self_eq_norm_sq, sq,
+    mul_div_cancel_right₀ _ (norm_ne_zero_iff.2 hy)]
 
 /-- The derivative of the radial function `z ↦ β ‖z‖` at `y` has norm at most `‖β' (‖y‖)‖`. -/
 theorem norm_fderiv_comp_norm_le (β : ℝ → F) (y : V) :
