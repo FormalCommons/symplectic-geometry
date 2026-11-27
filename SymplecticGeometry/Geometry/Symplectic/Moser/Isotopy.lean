@@ -118,10 +118,8 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq (f : SmoothEmbedding J I �
     (fun t _ ↦ by rw [hσt]; exact hτ₀.add (hτ.smul t))
     γ
     (Eventually.of_forall fun p ↦ by
-      have h := congrArg (fun α : SmoothTwoForm I W ↦ α.val p.2)
-        (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily τ₀ τ₁ (contDiff_id (n := ∞)) p.1)
-      simp only [deriv_id, one_smul] at h
-      rw [h, hβt, hdβW])
+      rw [SmoothForm.coe_mpullback, SmoothForm.coe_timeDeriv,
+        SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily, deriv_id, one_smul, hβt, hdβW])
     (fun t _ ↦ by
       rw [hβt]
       ext q v

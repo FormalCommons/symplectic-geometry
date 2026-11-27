@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
@@ -359,9 +360,9 @@ theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff
     refine moserField_rate_eq_zero (congrFun ((SmoothForm.isClosed_def _).1 hcl) _)
       (by simpa only [Λ, SmoothForm.mpullback_prodMk_lineMapFamily] using
         hx s (uIcc_of_le (zero_le_one (α := ℝ)) ▸ hs)) ?_
-    rw [SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily,
-      SmoothForm.mpullback_prodMk_lineMapFamily, sub_zero, zero_add, hγ, ← map_smul,
-      mextDerivₗ_apply]
+    rw [SmoothForm.coe_mpullback, SmoothForm.coe_timeDeriv,
+      SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily_eq_mextDeriv (β := γ)
+        (by rw [hγ, mextDerivₗ_apply]) hc]
   have h := mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc
     hX hcX (fun _ _ ↦ (Λ.contMDiff.of_le (by simp)).contMDiffAt)
     (s := 0) (t := 1) (x := x) hrate
