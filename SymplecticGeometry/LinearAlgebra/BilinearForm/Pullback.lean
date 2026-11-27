@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.FiniteDimension
+public import Mathlib.Analysis.Normed.Operator.NormedSpace
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 public import Mathlib.Topology.Algebra.Ring.Basic
 public import Mathlib.Topology.Order.Basic
