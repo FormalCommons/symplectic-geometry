@@ -24,8 +24,9 @@ normed space has a derivative of size at most a constant times `√(f x)` near `
 
 The proof is the classical one. At a point `x`, the second-order Taylor estimate
 `|f (x + a) - f x - Df x a| ≤ L ‖a‖²`, uniform over a compact neighbourhood of `K`, together
-with `0 ≤ f (x + a)` gives `‖Df x‖ ≤ f x / t + L t` for every small `t > 0`; one takes `t`
-proportional to `√(f x)`. The uniform Taylor estimate is Tau Ceti's
+with `0 ≤ f (x + a)` gives `‖Df x‖ ≤ f x / t + L t` for every small `t > 0`
+(`ContinuousLinearMap.norm_le_div_add_mul_of_forall_norm_le`, which holds in any real normed
+space); one takes `t` proportional to `√(f x)`. The uniform Taylor estimate is Tau Ceti's
 `IsCompact.exists_pos_forall_norm_sub_sub_fderiv_sub_le_mul`.
 
 The bound is a step towards the interpolation of strictly plurisubharmonic functions along a
@@ -44,17 +45,21 @@ open Filter Topology Set Metric
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- The pointwise step: if `0 ≤ f (x + a)` and the first-order remainder of `f` at `x`
-along `φ` is at most `L ‖a‖²` for all `‖a‖ ≤ t`, with `0 ≤ L`, then `‖φ‖ ≤ f x / t + L t`. -/
-private lemma norm_le_div_add_mul_of_forall {f : E → ℝ} {x : E} {φ : E →L[ℝ] ℝ} {t L : ℝ}
-    (ht : 0 < t) (hL : 0 ≤ L)
-    (hf : ∀ a : E, ‖a‖ ≤ t → 0 ≤ f (x + a) ∧ |f (x + a) - f x - φ a| ≤ L * ‖a‖ ^ 2) :
+/-- **Glaeser's inequality at a point.** Let `φ` be a continuous linear form on a real normed
+space, `x` a point, and `t > 0`, `L ≥ 0`. If `0 ≤ f (x + a)` and
+`|f (x + a) - f x - φ a| ≤ L ‖a‖²` for every `a` with `‖a‖ ≤ t`, then
+`‖φ‖ ≤ f x / t + L t`. -/
+theorem ContinuousLinearMap.norm_le_div_add_mul_of_forall_norm_le {f : E → ℝ} {x : E}
+    {φ : E →L[ℝ] ℝ} {t L : ℝ} (ht : 0 < t) (hL : 0 ≤ L)
+    (hf₀ : ∀ a : E, ‖a‖ ≤ t → 0 ≤ f (x + a))
+    (hf : ∀ a : E, ‖a‖ ≤ t → |f (x + a) - f x - φ a| ≤ L * ‖a‖ ^ 2) :
     ‖φ‖ ≤ f x / t + L * t := by
-  have hfx : 0 ≤ f x := by simpa using (hf 0 (by simpa using ht.le)).1
+  have hfx : 0 ≤ f x := by simpa using hf₀ 0 (by simpa using ht.le)
   -- One side of the bound for every `w`, then the other by `-w`.
   have key (w : E) (hw : w ≠ 0) : -φ w ≤ (f x / t + L * t) * ‖w‖ := by
     have hw' : 0 < ‖w‖ := norm_pos_iff.mpr hw
-    obtain ⟨h0, h1⟩ := hf ((t / ‖w‖) • w) (by simp [norm_smul, abs_of_pos ht, hw'.ne'])
+    have h0 := hf₀ ((t / ‖w‖) • w) (by simp [norm_smul, abs_of_pos ht, hw'.ne'])
+    have h1 := hf ((t / ‖w‖) • w) (by simp [norm_smul, abs_of_pos ht, hw'.ne'])
     rw [map_smul, smul_eq_mul, norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos ht hw'),
       div_mul_cancel₀ _ hw'.ne'] at h1
     have h2 : -(t / ‖w‖ * φ w) ≤ f x + L * t ^ 2 := by linarith [(abs_le.mp h1).2]
@@ -111,15 +116,14 @@ theorem IsCompact.exists_eventually_norm_fderiv_le_mul_sqrt [FiniteDimensional �
       Real.sqrt_le_sqrt ((le_abs_self _).trans ((hC x hxK').trans (le_max_left _ _)))
     calc t ≤ s * √M := mul_le_mul_of_nonneg_left h1 hs.le
       _ = min δ ε := div_mul_cancel₀ _ (Real.sqrt_pos.mpr hM).ne'
-  have key := norm_le_div_add_mul_of_forall (f := f) (x := x) (φ := fderiv ℝ f x) ht
-    (le_max_right L 0)
+  have key := ContinuousLinearMap.norm_le_div_add_mul_of_forall_norm_le (f := f) (x := x)
+    (φ := fderiv ℝ f x) ht (le_max_right L 0)
+    (fun a ha => (hUS _ (hεU (mem_cthickening_of_dist_le _ x ε K' hxK'
+      (by simpa [dist_eq_norm] using ha.trans (htle.trans (min_le_right _ _)))))).2)
     fun a ha => by
-      refine ⟨(hUS _ (hεU ?_)).2, ?_⟩
-      · exact mem_cthickening_of_dist_le _ x ε K' hxK'
-          (by simpa [dist_eq_norm] using ha.trans (htle.trans (min_le_right _ _)))
-      · have := hL x hxK' a 0 (ha.trans (htle.trans (min_le_left _ _))) (by simpa using hδ.le)
-        calc |f (x + a) - f x - fderiv ℝ f x a| ≤ L * ‖a‖ * ‖a‖ := by simpa using this
-          _ ≤ max L 0 * ‖a‖ ^ 2 := by rw [mul_assoc, ← sq]; gcongr; exact le_max_left _ _
+      have := hL x hxK' a 0 (ha.trans (htle.trans (min_le_left _ _))) (by simpa using hδ.le)
+      calc |f (x + a) - f x - fderiv ℝ f x a| ≤ L * ‖a‖ * ‖a‖ := by simpa using this
+        _ ≤ max L 0 * ‖a‖ ^ 2 := by rw [mul_assoc, ← sq]; gcongr; exact le_max_left _ _
   calc ‖fderiv ℝ f x‖ ≤ f x / t + max L 0 * t := key
     _ = (1 / s + max L 0 * s) * √(f x) := by
       have : f x = √(f x) * √(f x) := (Real.mul_self_sqrt hfx.le).symm
