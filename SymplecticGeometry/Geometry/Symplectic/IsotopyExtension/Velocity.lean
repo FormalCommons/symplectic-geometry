@@ -257,7 +257,7 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
   refine SmoothBundleForm.ext_fin_one fun x w ↦ ?_
   have hcomp : mfderiv J I (fun y ↦ G (t, Opens.inclusion h y)) x w =
       mfderiv J I (fun y ↦ G (t, y)) (Opens.inclusion h x) w :=
-    Manifold.mfderiv_comp_inclusion_apply (g := fun y ↦ G (t, y)) h x w
+    mfderiv_comp_inclusion_apply (g := fun y ↦ G (t, y)) h x w
   conv_rhs => rw [SmoothForm.mpullback_apply_one, Manifold.mfderiv_inclusion_apply]
   refine (mpullback_prodMk_velocityForm σ (G.restrict h) t x w).trans
     (Eq.trans ?_ (mpullback_prodMk_velocityForm σ G t (Opens.inclusion h x) w).symm)

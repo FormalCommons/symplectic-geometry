@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # The first Chern class of the blowup
@@ -68,13 +69,10 @@ private def mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ) :
     ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber
         (z : Blowup c) ≃L[ℂ]
       (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber (blowdown c z) :=
-  ((((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
-      z).trans (((isLocalDiffeomorphAt_blowdown_real c z.property).mfderivToContinuousLinearEquiv
-        (by simp)).trans ((J.toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
-          (blowdown c z)).symm)).complexOfMapISmul fun v ↦
-    ((J.toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv (blowdown c z)).injective <| by
-      simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply,
-        Bundle.ContinuousComplexStructure.fiberEquiv_I_smul, toContMDiff_apply,
+  Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt _ _
+    ((isLocalDiffeomorphAt_blowdown_real c z.property).mfderivToContinuousLinearEquiv (by simp))
+    fun v ↦ by
+      simp only [toContMDiff_apply,
         ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply]
       rw [← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
       -- `J̃ z` and `J (blowdown c z)` are applied through `toEndomorphism`, their coercion.
@@ -89,10 +87,8 @@ private theorem fiberEquiv_mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)�
       mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
         (((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
           z v) := by
-  rw [mfderivBlowdownEquiv, ContinuousLinearEquiv.complexOfMapISmul_apply,
-    ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
-    ContinuousLinearEquiv.apply_symm_apply, ← ContinuousLinearEquiv.coe_coe,
-    IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
+  rw [mfderivBlowdownEquiv, Bundle.ContinuousComplexStructure.fiberEquiv_fiberEquivOfCommuteAt,
+    ← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
 
 variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * finrank ℂ G)]
