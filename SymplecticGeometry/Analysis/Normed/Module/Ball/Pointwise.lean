@@ -13,7 +13,8 @@ public import Mathlib.Analysis.Normed.Module.Ball.Pointwise
 A complement to Mathlib's `Mathlib.Analysis.Normed.Module.Ball.Pointwise`: in a normed space
 over a normed field, scaling by `c⁻¹` sends the ball of radius `‖c‖ * r` about `0` onto the ball
 of radius `r` about `0`, stated pointwise; and in a real normed space, scaling by `r⁻¹` sends the
-sphere of radius `r > 0` about `0` into the unit sphere. It is kept in the root namespace, next to
+sphere of radius `r > 0` about `0` into the unit sphere. Over a nontrivially normed field, only `0`
+has all its multiples in one closed ball about `0`. It is kept in the root namespace, next to
 Mathlib's `smul_ball`, so that it can move upstream unchanged.
 
 ## Main results
@@ -22,6 +23,8 @@ Mathlib's `smul_ball`, so that it can move upstream unchanged.
   `ball 0 (‖c‖ * r)`.
 * `inv_smul_mem_sphere_one_of_norm_eq`: for `0 < r` and `‖z‖ = r`, `r⁻¹ • z` lies in
   `sphere 0 1`.
+* `eq_zero_of_forall_smul_mem_closedBall`: a vector whose multiples all lie in `closedBall 0 r`
+  is `0`.
 -/
 
 public section
@@ -43,5 +46,17 @@ theorem inv_smul_mem_sphere_one_of_norm_eq {F : Type*} [SeminormedAddCommGroup F
     r⁻¹ • z ∈ sphere (0 : F) 1 := by
   rw [mem_sphere_zero_iff_norm, norm_smul, hz, Real.norm_eq_abs, abs_inv, abs_of_pos hr,
     inv_mul_cancel₀ hr.ne']
+
+/-- Over a nontrivially normed field, a vector all of whose multiples lie in one closed ball about
+`0` is `0`. -/
+theorem eq_zero_of_forall_smul_mem_closedBall {𝕜 F : Type*} [NontriviallyNormedField 𝕜]
+    [NormedAddCommGroup F] [NormedSpace 𝕜 F] {z : F} {r : ℝ}
+    (h : ∀ c : 𝕜, c • z ∈ closedBall (0 : F) r) : z = 0 := by
+  by_contra hz
+  have hpos : 0 < ‖z‖ := norm_pos_iff.2 hz
+  obtain ⟨c, hc⟩ := NormedField.exists_lt_norm 𝕜 (r / ‖z‖)
+  have hmem := h c
+  rw [mem_closedBall_zero_iff, norm_smul] at hmem
+  exact (div_lt_iff₀ hpos).1 hc |>.not_ge hmem
 
 end

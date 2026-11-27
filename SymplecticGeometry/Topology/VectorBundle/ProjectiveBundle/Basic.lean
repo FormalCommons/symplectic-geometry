@@ -18,6 +18,7 @@ public import TauCeti.Topology.VectorBundle.Smul
 public import TauCeti.Topology.VectorBundle.ZeroSection
 
 import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Topology.FiberBundle.Prod
 import SymplecticGeometry.Topology.Algebra.Projectivization
 import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 import TauCeti.Topology.FiberBundle.Trivialization
@@ -809,17 +810,9 @@ def prodComm :
     rintro ⟨b, x⟩
     induction x using Projectivization.ind with | h x hx => simp
   continuous_toFun := continuous_mapProjectivization_of_continuous
-    (φ := fun b ↦ ContinuousLinearEquiv.prodComm 𝕜 (E₁ b) (E₂ b)) (by
-    simp only [ContinuousLinearEquiv.prodComm_apply, Prod.swap]
-    exact (FiberBundle.Prod.isInducing_diag G₂ E₂ G₁ E₁).continuous_iff.2
-      ((continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).prodMk
-        (continuous_fst.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous)))
+    (φ := fun b ↦ ContinuousLinearEquiv.prodComm 𝕜 (E₁ b) (E₂ b)) Bundle.Prod.continuous_prodComm
   continuous_invFun := continuous_mapProjectivization_of_continuous
-    (φ := fun b ↦ ContinuousLinearEquiv.prodComm 𝕜 (E₂ b) (E₁ b)) (by
-    simp only [ContinuousLinearEquiv.prodComm_apply, Prod.swap]
-    exact (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
-      ((continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₂ E₂ G₁ E₁).continuous).prodMk
-        (continuous_fst.comp (FiberBundle.Prod.isInducing_diag G₂ E₂ G₁ E₁).continuous)))
+    (φ := fun b ↦ ContinuousLinearEquiv.prodComm 𝕜 (E₂ b) (E₁ b)) Bundle.Prod.continuous_prodComm
 
 @[simp]
 theorem prodComm_apply (p : ProjectiveBundle 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)) :
