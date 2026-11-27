@@ -725,14 +725,20 @@ private theorem compContinuousLinearMap_eq_apply_smul {V : Type*} [AddCommGroup 
   ext v
   simp
 
+/-- The value on `b` of a form at the blowdown of `z`, read in the chart `c`. -/
+private def chartCoeff (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ))
+    (z : Blowup c) (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) : ℂ :=
+  (σ.compContinuousLinearMap
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse :
+    (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) b
+
 /-- In the chart `some k`, a form `σ` composed with `chartDeriv c (some k) z` is `μ` times the
 coordinate form of the chart `χₖ`, where `μ` is the value on `b` of `σ` read in the chart `c`. -/
 private theorem compContinuousLinearMap_chartDeriv_some
     (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) (k : Fin (n + 1))
     (z : Blowup c) (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) :
     σ.compContinuousLinearMap (chartDeriv c (some k) z) =
-      σ.compContinuousLinearMap
-          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse b •
+      chartCoeff c b z σ •
         b.continuousDet.compContinuousLinearMap
           (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
             ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
@@ -751,8 +757,7 @@ private theorem compContinuousLinearMap_chartDeriv_none
     {z : Blowup c} (hz : z ∈ (hypersurfaceData c).U (some i))
     (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) :
     σ.compContinuousLinearMap (chartDeriv c none z) =
-      σ.compContinuousLinearMap
-          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse b •
+      chartCoeff c b z σ •
         ((lift c z).blowdown i ^ n •
           b.continuousDet.compContinuousLinearMap
             (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
@@ -770,6 +775,40 @@ private theorem compContinuousLinearMap_chartDeriv_none
   ext v
   simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
   exact congrArg σ (funext fun j ↦ (hD.inverse_apply_self _).symm)
+
+/-- **The maps of two charts agree up to the transition function.** At a point of the charts `j`
+and `k`, a form composed with `chartDeriv c j z` is `g k j ^ n` times the form composed with
+`chartDeriv c k z`, with `g` the transition function of `hypersurfaceData c`. -/
+private theorem compContinuousLinearMap_chartDeriv_eq {j k : Option (Fin (n + 1))} {z : Blowup c}
+    (hj : z ∈ (hypersurfaceData c).U j) (hk : z ∈ (hypersurfaceData c).U k)
+    (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) :
+    σ.compContinuousLinearMap (chartDeriv c j z) =
+      (hypersurfaceData c).g k j z ^ n • σ.compContinuousLinearMap (chartDeriv c k z) := by
+  have hg := (hypersurfaceData c).g_ne_zero hk hj
+  set b := Module.finBasis ℂ (Fin (n + 1) → ℂ)
+  cases j with
+  | none =>
+    cases k with
+    | none => rw [(hypersurfaceData c).g_self hj, one_pow, one_smul]
+    | some i =>
+      rw [compContinuousLinearMap_chartDeriv_none c b hk, compContinuousLinearMap_chartDeriv_some,
+        hypersurfaceData_g_some_none, smul_comm]
+  | some i =>
+    cases k with
+    | none =>
+      have hw : (lift c z).blowdown i ≠ 0 := by
+        simpa using (hypersurfaceData c).g_ne_zero hj hk
+      rw [compContinuousLinearMap_chartDeriv_some c b, compContinuousLinearMap_chartDeriv_none c b hj,
+        hypersurfaceData_g_none_some, smul_smul, smul_smul]
+      congr 1
+      rw [mul_right_comm, inv_pow, inv_mul_cancel₀ (pow_ne_zero n hw), one_mul]
+    | some k =>
+      obtain ⟨hzi, -, -⟩ := mem_source_of_mem_U_some c hj
+      obtain ⟨hzk, -, -⟩ := mem_source_of_mem_U_some c hk
+      rw [compContinuousLinearMap_chartDeriv_some c b, compContinuousLinearMap_chartDeriv_some c b,
+        coordForm_liftChart_trans_blowupModelChart c b i k hzi hzk, smul_smul, smul_smul]
+      congr 1
+      field_simp
 
 end CanonicalBundleEquiv
 
