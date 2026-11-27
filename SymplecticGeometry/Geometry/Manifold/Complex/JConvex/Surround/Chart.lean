@@ -40,8 +40,8 @@ the core pointwise and has the identity as differential there. The second part o
 that such a `G` is a partial diffeomorphism near the core, by the inverse function theorem
 `TauCeti.isLocalDiffeomorphAt_of_fderiv_eq` at each core point and Tau Ceti's assembly
 `TauCeti.exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt` along the section
-`ι₀`, whose left inverse is the real part of the first factor; and that composing with it changes
-neither the values nor the differential of `Φ₀` along the core.
+`ι₀`, whose continuous left inverse is the projection `SymplecticGeometry.modelDiscProj`; and
+that composing with it changes neither the values nor the differential of `Φ₀` along the core.
 
 ## Main results
 
@@ -133,19 +133,14 @@ theorem exists_partialDiffeomorph_of_fderiv_modelDisc_eq_id
         (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
         (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ∞,
       ⇑Ψ = G ∧ range (modelDisc k m) ⊆ Ψ.source ∧ Ψ.source ⊆ W ∧ Ψ.target ⊆ O' := by
-  -- The real part of the first factor is a continuous left inverse of `ι₀`.
-  let π : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → EuclideanSpace ℝ (Fin k) :=
-    fun p ↦ WithLp.toLp 2 fun j ↦ (p.1 j).re
-  have hπ : Continuous π := by fun_prop
-  have hsect : Function.LeftInverse π (modelDisc k m) := fun x ↦ by
-    ext j
-    simp [π, modelDisc_apply_fst_apply]
+  have hsect := leftInverse_modelDiscProj (k := k) (m := m)
+  have hπ := (modelDiscProj k m).continuous
   have hGs : G ∘ modelDisc k m = modelDisc k m := funext hfix
   obtain ⟨Ψ, hsrc, hsrcW, htgt, -, hΨ⟩ :=
     TauCeti.exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt
       (fun x ↦ TauCeti.isLocalDiffeomorphAt_of_fderiv_eq hG hW (hcore (mem_range_self x))
         (by simp) (e := ContinuousLinearEquiv.refl ℝ _) (hd x).symm)
-      hW hcore hO' (by rwa [hGs]) (modelDisc k m).continuous π hπ hsect
+      hW hcore hO' (by rwa [hGs]) (modelDisc k m).continuous _ hπ hsect
       (by rw [hGs]; exact (hsect.isEmbedding hπ (modelDisc k m).continuous).isInducing)
   exact ⟨Ψ, hΨ, hsrc, hsrcW, htgt⟩
 

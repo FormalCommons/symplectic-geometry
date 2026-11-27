@@ -138,8 +138,6 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   [ContMDiffVectorBundle 1 F V 𝓘(ℝ, EM)]
   (J : ContinuousComplexStructure F V) [Fact (finrank ℝ F = 2 * finrank ℂ ℂ)]
 
-local instance (x : M) : ContinuousSMul ℝ (J.Fiber x) := IsScalarTower.continuousSMul ℂ
-
 open scoped VectorBundle.ComplexToReal
 
 omit [T2Space M] [CompactSpace M] [FiniteDimensional ℝ EM] [IsManifold 𝓘(ℝ, EM) 1 M]
