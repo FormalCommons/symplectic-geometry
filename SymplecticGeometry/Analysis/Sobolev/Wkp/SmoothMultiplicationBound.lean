@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
-public import TauCeti.Analysis.Sobolev.Wkp.LineDeriv
+public import TauCeti.Analysis.Sobolev.Wkp.LineDeriv.Basic
 import SymplecticGeometry.Analysis.Sobolev.Wkp.LineDerivNorm
 import Mathlib.Analysis.Calculus.ContDiff.Bounds
 

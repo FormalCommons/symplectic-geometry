@@ -25,7 +25,7 @@ import TauCeti.Analysis.Normed.Operator.Compact.Domination
 import TauCeti.Analysis.Distribution.SchwartzSpace.Cutoff
 import TauCeti.Analysis.Distribution.TemperedDistribution.Lp
 import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
-import TauCeti.Analysis.Sobolev.BesselPotential.Rellich
+import TauCeti.Analysis.Sobolev.BesselPotential.Rellich.Basic
 import TauCeti.MeasureTheory.Function.Lp.FiniteDimensional
 import TauCeti.MeasureTheory.Measure.Haar.Unique
 import SymplecticGeometry.Analysis.Distribution.LinearEquiv
