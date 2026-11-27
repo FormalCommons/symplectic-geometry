@@ -89,17 +89,22 @@ comes from the flow of `‖μ‖²` rather than of `½ ‖μ‖²`.
 The flow is global since `M` is compact, and `C¹`, so `ξ t = -2 i μ♯(x t)` is a `C¹` curve in the
 Lie algebra of `Gc`, and `g = SymplecticGeometry.leftTrivializedCurve ξ 1`. The orbit curve
 `y t = (g t)⁻¹ • p` has velocity `-X_{ξ t}(y t)`
-(`SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul`), and so has `x`, by
-`mgradient_momentNormSq` and `X_{iη} = J X_η`. The time-dependent field `(t, z) ↦ -X_{ξ t}(z)` is
+(`SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul_of_contMDiffSMul`), and
+so has `x`, since the gradient of `f` is the fundamental vector field of `-2 i μ♯`
+(`SymplecticGeometry.mgradient_momentNormSq_eq_fundamentalVectorField`, from
+`mgradient_momentNormSq` and `X_{iη} = J X_η`). The time-dependent field `(t, z) ↦ -X_{ξ t}(z)` is
 `C¹` (`ContMDiff.contMDiff_prod_fundamentalVectorField`), so `x = y` by Tau Ceti's uniqueness of
 solutions, `TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`. The derivative of the
-Kempf–Ness function along `g` is `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`.
+Kempf–Ness function along `g` is
+`SymplecticGeometry.HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction`.
 
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
   `-2 J X_{μ♯ x}(x)`, with `X_ξ` the fundamental vector field of `ξ` and `μ♯ x` the vector dual
   to `μ x` under `B`.
+* `SymplecticGeometry.mgradient_momentNormSq_eq_fundamentalVectorField`: for a complexified
+  action, that gradient is the fundamental vector field of `-2 i μ♯ x` for the action of `Gc`.
 * `SymplecticGeometry.exists_lojasiewicz_momentNormSq`: the Łojasiewicz gradient inequality for
   the norm square of a moment map.
 * `SymplecticGeometry.tendsto_maximalIntegralCurve_momentNormSq`: on a compact manifold, the
@@ -161,6 +166,41 @@ theorem mgradient_momentNormSq
     Manifold.inner_mgradient, smul_apply, smul_eq_mul]
 
 end Gradient
+
+section GradientComplexified
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **The gradient of the norm square is a fundamental vector field of `Gc`.** In the setting of
+`mgradient_momentNormSq`, let the action of `Gc` be a complexified action. Then the gradient of
+`x ↦ ‖μ x‖²` at `x` is the value at `x` of the fundamental vector field of `-2 i μ♯ x` for the
+action of `Gc`, where `i = C.cplx` and `μ♯ x` is the vector dual to `μ x` under `B`. -/
+theorem mgradient_momentNormSq_eq_fundamentalVectorField (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (x : M) :
+    Manifold.mgradient I' (momentNormSq B hB μ) x =
+      fundamentalVectorField I' ((-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x))) x := by
+  rw [mgradient_momentNormSq hμ hg hBs, fundamentalVectorField_smul, Pi.smul_apply,
+    h.fundamentalVectorField_cplx, h.fundamentalVectorField_lieMap]
+
+end GradientComplexified
 
 section Lojasiewicz
 
@@ -289,7 +329,6 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
       (∀ t, maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t = (g t)⁻¹ • p) ∧
       ∀ t, HasDerivAt (fun s ↦ kempfNessFunction C μ p (g s))
         (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t := by
-  have : LieGroup IC 1 Gc := LieGroup.of_le (n := ∞) (by norm_num)
   have hμm := hμ.toIsMomentMap
   set γ := maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
@@ -298,10 +337,8 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   -- On the compact manifold `M` the flow is defined for all time, and it is `C¹`.
   have hγ : IsMIntegralCurve γ (-mgradient I' (momentNormSq B hB μ)) :=
     isMIntegralCurve_maximalIntegralCurve hv
-  have hγc : ContMDiff 𝓘(ℝ) I' 1 γ := by
-    rw [← contMDiffOn_univ]
-    exact (contMDiffOn_two_of_isMIntegralCurveOn uniqueDiffOn_univ
-      (hγ.isMIntegralCurveOn univ) fun _ _ ↦ hv.contMDiffAt).of_le one_le_two
+  have hγc : ContMDiff 𝓘(ℝ) I' 1 γ :=
+    (contMDiff_succ_of_isMIntegralCurve 1 hγ hv).of_le (by norm_num)
   -- The curve `ξ` in the Lie algebra of `Gc` along which `g` is solved for.
   set ξ : ℝ → GroupLieAlgebra IC Gc :=
     fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ (γ t)))
@@ -325,18 +362,15 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
     ContMDiff.contMDiff_prod_fundamentalVectorField Gc hξ.neg (by norm_cast)
   have hy (t : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) I' (fun u ↦ (g u)⁻¹ • p) t
       ((1 : ℝ →L[ℝ] ℝ).smulRight (fundamentalVectorField I' (-ξ t) ((g t)⁻¹ • p))) := by
-    have := hasMFDerivWithinAt_univ.mp (hgξ.hasMFDerivWithinAt_inv_smul (I' := I') (p := p)
-      (mem_univ t) (((ContMDiffSMul.contMDiff_smul_const (I := IC) (I' := I') p).comp
-        (contMDiff_inv IC ∞)).mdifferentiableAt (by simp)))
+    have : ContMDiffSMul IC I' 1 Gc M := ContMDiffSMul.of_le (M := M) (m := ∞) (by norm_num)
+    have := hasMFDerivWithinAt_univ.mp
+      (hgξ.hasMFDerivWithinAt_inv_smul_of_contMDiffSMul (I' := I') (p := p) (mem_univ t))
     rwa [fundamentalVectorField_neg, Pi.neg_apply]
   have hx (t : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) I' γ t
       ((1 : ℝ →L[ℝ] ℝ).smulRight (fundamentalVectorField I' (-ξ t) (γ t))) := by
     have hγt := hγ t
-    rw [Pi.neg_apply, mgradient_momentNormSq hμm hg hBs, ← neg_smul, neg_neg,
-      ← h.fundamentalVectorField_lieMap, ← h.fundamentalVectorField_cplx, ← Pi.smul_apply,
-      ← fundamentalVectorField_smul] at hγt
-    convert hγt using 4
-    simp [ξ]
+    rw [Pi.neg_apply, mgradient_momentNormSq_eq_fundamentalVectorField h hμm hg hBs] at hγt
+    rwa [fundamentalVectorField_neg, Pi.neg_apply]
   have heq (t : ℝ) : γ t = (g t)⁻¹ • p := by
     have h₁ := timeDependentFlowOf_eq_of_forall_hasMFDerivAt
       (X := fun u z ↦ fundamentalVectorField I' (-ξ u) z) hX hx 0 t
@@ -347,16 +381,8 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   have hξg : (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))) = ξ :=
     funext fun t ↦ by rw [← heq]
   refine ⟨g, hg0, hξg ▸ hgξ, heq, fun t ↦ ?_⟩
-  -- The derivative of `Φ_p` along `g` is `μ (g⁻¹ p) (C.im (g⁻¹ ġ))`.
-  obtain ⟨w, hw', hwξ⟩ := hasLeftTrivializedDerivOn_univ_iff.mp hgξ t
-  have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hw'.mdifferentiableAt
-  have hw1 : mfderiv 𝓘(ℝ) IC g t (1 : ℝ) = w := by
-    rw [hw'.mfderiv]
-    -- `(smulRight 1 w) 1` is `1 • w`, the `1` of `ℝ` read in the tangent space of `ℝ` at `t`.
-    exact one_smul ℝ w
-  refine hΦ.congr_deriv ?_
-  rw [hw1, hwξ, map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq,
-    momentNormSq_eq_apply_momentSharp]
+  refine (hgξ.hasDerivAt_kempfNessFunction C μ p h hμ hg Filter.univ_mem).congr_deriv ?_
+  rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_eq_apply_momentSharp]
 
 end Flow
 
