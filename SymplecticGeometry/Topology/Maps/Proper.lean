@@ -57,7 +57,9 @@ theorem IsProperMap.isCompact_preimage_Iic (hp : IsProperMap f) (hbdd : BddBelow
 
 end Preorder
 
-variable [LinearOrder α] [OrderTopology α] [CompactIccSpace α]
+section LinearOrder
+
+variable [LinearOrder α] [ClosedIicTopology α] [CompactIccSpace α]
 
 /-- A proper map into a linear order with compact closed intervals, from a nonempty space, whose
 range is bounded below attains its minimum. -/
@@ -68,6 +70,10 @@ theorem IsProperMap.exists_isMinOn_of_bddBelow [Nonempty X] {f : X → α} (hp :
     Filter.mem_of_superset (hp.isCompact_preimage_Iic hbdd (f x₀)).compl_mem_cocompact
       fun y hy ↦ (not_le.1 hy).le
   exact ⟨x, isMinOn_univ_iff.2 hx⟩
+
+end LinearOrder
+
+variable [LinearOrder α] [OrderTopology α] [CompactIccSpace α]
 
 /-- A continuous function into a linear order with compact closed intervals that lies above a
 proper function bounded below is proper. -/
