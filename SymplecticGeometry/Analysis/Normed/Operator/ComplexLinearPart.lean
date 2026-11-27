@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Topology.Instances.RealVectorSpace
 import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 /-!
@@ -23,15 +24,15 @@ complex-antilinear part keeps its operator norm
 part makes it a continuous real-linear map into the complex-antilinear operators,
 `ContinuousLinearMap.complexAntilinearPartCLM`.
 
-A complex-antilinear operator is also real-linear, with the same operator norm
-(`ContinuousLinearMap.restrictScalarsₛₗ`, `ContinuousLinearMap.norm_restrictScalarsₛₗ`). This
-gives a real-linear isometry `ContinuousLinearMap.restrictScalarsₛₗLI` from the
-complex-antilinear operators into the real-linear ones. Tau Ceti's
+A continuous complex-antilinear operator is also a continuous real-linear one, by Mathlib's
+`AddMonoidHom.toRealLinearMap`, with the same operator norm. This gives a real-linear isometry
+`ContinuousLinearMap.restrictScalarsₛₗLI` from the complex-antilinear operators into the
+real-linear ones. Tau Ceti's
 `ContinuousLinearMap.complexAntilinearPartL` is `ContinuousLinearMap.complexAntilinearPartCLM`
 followed by this isometry
 (`ContinuousLinearMap.restrictScalarsₛₗLI_comp_complexAntilinearPartCLM`), and a
 complex-antilinear operator is its own complex-antilinear part
-(`ContinuousLinearMap.complexAntilinearPart_restrictScalarsₛₗ`).
+(`ContinuousLinearMap.complexAntilinearPart_restrictScalarsₛₗLI`).
 
 The Wirtinger derivatives of a map are the complex-linear and complex-antilinear parts of its
 real derivative, and the derivative of `Ψ` is `Ψ`. So the bounds are Tau Ceti's
@@ -102,35 +103,20 @@ theorem complexAntilinearPartCLM_apply (Ψ : E →L[ℝ] F) :
     complexAntilinearPartCLM Ψ = Ψ.complexAntilinearPart :=
   (rfl)
 
-/-- A continuous complex-antilinear operator, seen as a continuous real-linear operator. -/
-def restrictScalarsₛₗ (f : E →L⋆[ℂ] F) : E →L[ℝ] F where
-  toFun := f
-  map_add' := map_add f
-  map_smul' c v := by
-    simp only [← Complex.coe_smul, map_smulₛₗ, Complex.conj_ofReal, RingHom.id_apply]
-  cont := f.continuous
-
-@[simp]
-theorem restrictScalarsₛₗ_apply (f : E →L⋆[ℂ] F) (v : E) : f.restrictScalarsₛₗ v = f v :=
-  (rfl)
-
-/-- Seeing a complex-antilinear operator as a real-linear one keeps its operator norm. -/
-@[simp]
-theorem norm_restrictScalarsₛₗ (f : E →L⋆[ℂ] F) : ‖f.restrictScalarsₛₗ‖ = ‖f‖ :=
-  le_antisymm (opNorm_le_bound _ (norm_nonneg f) fun v ↦ f.le_opNorm v)
-    (opNorm_le_bound _ (norm_nonneg _) fun v ↦ f.restrictScalarsₛₗ.le_opNorm v)
-
 /-- The inclusion of the continuous complex-antilinear operators into the continuous real-linear
-ones, `ContinuousLinearMap.restrictScalarsₛₗ`, as a real-linear isometry. -/
+ones, as a real-linear isometry: a complex-antilinear operator, being additive and continuous, is
+real-linear (`AddMonoidHom.toRealLinearMap`), with the same operator norm. -/
 noncomputable def restrictScalarsₛₗLI : (E →L⋆[ℂ] F) →ₗᵢ[ℝ] E →L[ℝ] F where
-  toFun := restrictScalarsₛₗ
+  toFun f := (f : E →+ F).toRealLinearMap f.continuous
   map_add' _ _ := rfl
   map_smul' _ _ := rfl
-  norm_map' := norm_restrictScalarsₛₗ
+  norm_map' _ := rfl
 
 @[simp]
-theorem restrictScalarsₛₗLI_apply (f : E →L⋆[ℂ] F) :
-    restrictScalarsₛₗLI f = f.restrictScalarsₛₗ :=
+theorem coe_restrictScalarsₛₗLI (f : E →L⋆[ℂ] F) : ⇑(restrictScalarsₛₗLI f) = f :=
+  (rfl)
+
+theorem restrictScalarsₛₗLI_apply (f : E →L⋆[ℂ] F) (v : E) : restrictScalarsₛₗLI f v = f v :=
   (rfl)
 
 /-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL` is
@@ -144,10 +130,10 @@ theorem restrictScalarsₛₗLI_comp_complexAntilinearPartCLM :
 
 /-- A complex-antilinear operator is its own complex-antilinear part. -/
 @[simp]
-theorem complexAntilinearPart_restrictScalarsₛₗ (f : E →L⋆[ℂ] F) :
-    f.restrictScalarsₛₗ.complexAntilinearPart = f := by
+theorem complexAntilinearPart_restrictScalarsₛₗLI (f : E →L⋆[ℂ] F) :
+    (restrictScalarsₛₗLI f).complexAntilinearPart = f := by
   ext v
-  simp only [complexAntilinearPart_apply, restrictScalarsₛₗ_apply, map_smulₛₗ, Complex.conj_I,
+  simp only [complexAntilinearPart_apply, coe_restrictScalarsₛₗLI, map_smulₛₗ, Complex.conj_I,
     neg_smul, smul_neg, smul_smul, Complex.I_mul_I, neg_neg]
   module
 

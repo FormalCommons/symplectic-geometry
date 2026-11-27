@@ -10,6 +10,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 
 import Mathlib.Analysis.Calculus.FDeriv.Symmetric
 import Mathlib.Tactic.LinearCombination
+import TauCeti.Analysis.Calculus.FDeriv.Comp
 
 /-!
 # Basic facts of Wirtinger calculus
@@ -157,16 +158,7 @@ theorem fderiv_complexAntilinearPartL_fderiv (g : V → W) (x : V) :
     rw [← restrictScalarsₛₗLI_comp_complexAntilinearPartCLM]
     simp [ι, conjWirtingerDeriv_eq_complexAntilinearPart]
   rw [h]
-  by_cases hd : DifferentiableAt ℝ (conjWirtingerDeriv g) x
-  · exact ι.fderiv_comp_left hd
-  · have hι : ¬DifferentiableAt ℝ (ι ∘ conjWirtingerDeriv g) x := fun hd' ↦ hd <| by
-      have h' : complexAntilinearPartCLM ∘ ι ∘ conjWirtingerDeriv g = conjWirtingerDeriv g := by
-        funext y
-        simp [ι]
-      rw [← h']
-      exact complexAntilinearPartCLM.comp_differentiableAt hd'
-    rw [fderiv_zero_of_not_differentiableAt hd, fderiv_zero_of_not_differentiableAt hι,
-      comp_zero]
+  exact ι.fderiv_comp_left_of_leftInverse complexAntilinearPartCLM (fun f ↦ by simp [ι]) _ x
 
 /-- The derivatives of `y ↦ complexAntilinearPartL (Dg(y))` and of `\bar∂g` have the same
 operator norm. -/
