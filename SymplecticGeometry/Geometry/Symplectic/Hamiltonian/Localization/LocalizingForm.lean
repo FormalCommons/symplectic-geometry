@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.We
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantOneForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -444,7 +445,7 @@ theorem exists_localizingForm_of_weightCharts [SigmaCompactSpace M] {ι : Type*}
       simp [h]
   have hval (x : M) : (∑ i, τ i + SmoothForm.funSMulₗ f β).val x =
       ∑ i, (τ i).val x + (1 - ∑ i, ρ i x) • β.val x := by
-    rw [SmoothForm.add_toRoughForm, SmoothForm.coe_funSMulₗ]
+    rw [SmoothBundleForm.add_apply, SmoothForm.coe_funSMulₗ]
     simp [f]
   have hvalX (x : M) : (∑ i, τ i + SmoothForm.funSMulₗ f β).val x ![X x] =
       ∑ i, (τ i).val x ![X x] + (1 - ∑ i, ρ i x) * β.val x ![X x] := by
