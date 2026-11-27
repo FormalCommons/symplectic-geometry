@@ -26,7 +26,7 @@ import TauCeti.GroupTheory.CoprodI
 import TauCeti.Topology.Homotopy.DeformationRetract
 
 /-!
-# The plane minus real points: a free basis of loops
+# The plane minus real points: a free basis of loops, and the large circle
 
 Let `c : ι → ℝ` be nonzero reals, any two of them at distance at least `δ > 0`. For finitely
 many distinct nonzero reals, at least two of them, `δ = Set.infsep (Set.range c)` will do: it is
@@ -37,6 +37,11 @@ fundamental group of `ℂ` with the points `c i` removed, based at `0`, is free 
 right or left to `c k + r - i` and straight up to `c k + r`, once counterclockwise around the
 circle of radius `r = δ / 4` about `c k`, and back the same way.
 
+When the points are positive, `c 0 < c 1 < ⋯ < c (m - 1)`, and all less than `R`, the loop
+`PlaneMinusRealPoints.outerLoop`, which runs out along a ray in the upper half-plane, once
+counterclockwise around the circle of radius `R` about `0`, and back, is the product of these
+loops: run one after the other from the largest point to the smallest, they are homotopic to it.
+
 ## Main definitions
 
 * `SymplecticGeometry.PlaneMinusRealPoints.approach x r`, `circle x r` and `loopInPlane x r`:
@@ -45,12 +50,19 @@ circle of radius `r = δ / 4` about `c k`, and back the same way.
   the plane minus the points.
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv hδ hc h0`: the isomorphism
   of `π₁(ℂ ∖ {c i}, 0)` with `FreeGroup ι`.
+* `SymplecticGeometry.PlaneMinusRealPoints.outerCircle R θ`, `outerLoopInPlane R θ` and
+  `outerLoop h0 hR hθ₀ hθπ`: the circle about `0` of radius `R` from the angle `θ`, and the loop
+  based at `0` that reaches it along the ray at the angle `θ`, in `ℂ` and in the plane minus the
+  points.
 
 ## Main results
 
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv_loop`: the isomorphism sends
   the class of `loop hδ hc h0 k` to `FreeGroup.of k`; its inverse is `FreeGroup.lift` of the
   classes of the loops (`fundamentalGroupMulEquiv_symm_apply`).
+* `SymplecticGeometry.PlaneMinusRealPoints.fromPath_outerLoop_eq_prod`: for increasing positive
+  points, the class of `outerLoop` is the product of the classes of the loops, in the order of the
+  points, so that the loop about the largest point runs first.
 
 ## Implementation notes
 
@@ -75,6 +87,20 @@ pieces here: `starConvex_fan` follows `starConvex_model`, `sphere_subset_fan` fo
 `sphere_subset_model`, `notMem_band_of_mem_band` follows the last case of
 `piece_inter_piece_subset`, and `bijective_lift_loop_of_isEmpty` follows the case of no points
 in `nonempty_fundamentalGroup_compl_range_mulEquiv_freeGroup`.
+
+The large circle is handled without the van Kampen theorem, as in the proof of Tau Ceti's
+`TauCeti.ThricePuncturedSphere.αPlus_trans_δ_trans_symm_homotopic_γ0_trans_γ1`
+(`TauCeti/AlgebraicTopology/ThricePuncturedSphere/LoopAtInfinity.lean`, same commit), which does
+it for the two points `0` and `1`: the circles are cut where they meet the real axis, and the
+pieces are compared in the closed upper and lower half-planes minus the points, each star-convex,
+so that paths in one of them with the same end points are homotopic. `starConvex_halfPlane` and
+`isPathHomotopyTrivial_half` follow the private lemmas `starConvex_setOf_mul_im` and
+`isSimplyConnected_setOf_mul_im` of that file. For any number of points the comparisons are
+bookkept in `π₁` through `FundamentalGroup.ofPath`: for a real point `z` let `g z` be the class of
+the loop that goes from `0` to `z` through the lower half-plane and back through the upper one.
+It is constant between consecutive points and `1` left of them, the loop about `c k` is
+`(g (c k - r))⁻¹ * g (c k + r)`, and the large loop is `g R * (g (-R))⁻¹`, so the product of the
+loops telescopes to the large loop.
 
 ## References
 
@@ -714,7 +740,9 @@ private theorem segment_zero_circleMap_mem_compl_range (h0 : ∀ i, c i ≠ 0)
   have hsin : 0 < Real.sin θ := Real.sin_pos_of_pos_of_lt_pi hθ₀ hθπ
   simp only [ofReal_im, Path.segment_apply, AffineMap.lineMap_apply_module',
     sub_zero] at him
-  simp [circleMap, hR, hsin.ne'] at him
+  simp only [circleMap, zero_add, real_smul, add_zero, mul_im, ofReal_re, exp_ofReal_mul_I_im,
+    ofReal_im, exp_ofReal_mul_I_re, zero_mul, mul_re, sub_zero, zero_eq_mul, Icc.coe_eq_zero,
+    mul_eq_zero, hR, hsin.ne', or_self, or_false] at him
   rcases him with rfl
   exact h0 i (by simpa [AffineMap.lineMap_apply_module'] using hi)
 
@@ -831,7 +859,8 @@ private theorem range_segment_trans_segment_subset {ε : ℝ} (hε : ε ≠ 0)
       (range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im} := by
   rw [Path.trans_range, Path.range_segment, Path.range_segment, segment_symm]
   exact union_subset ((starConvex_halfPlane hε).segment_subset
-    (mem_compl_range_inter_halfPlane h0 ε)) ((starConvex_halfPlane hε).segment_subset ⟨z.2, hz⟩)
+    (mem_compl_range_inter_halfPlane h0 ε))
+    ((starConvex_halfPlane hε).segment_subset ⟨z.property, hz⟩)
 
 /-- The path from `0` straight to `ε i` and on straight to `z`, a point of the closed half-plane
 of `ε`. -/
@@ -842,7 +871,9 @@ private def via {ε : ℝ} (hε : ε ≠ 0) (z : ↥(range fun i ↦ (c i : ℂ)
 
 private theorem range_via_subset {ε : ℝ} (hε : ε ≠ 0) (z : ↥(range fun i ↦ (c i : ℂ))ᶜ)
     (hz : z ∈ half c ε) : range (via h0 hε z hz) ⊆ half c ε := by
-  exact range_codRestrict_subset_half _ fun _ hx ↦ (range_segment_trans_segment_subset h0 hε z hz hx).2
+  exact range_codRestrict_subset_half _ fun _ hx ↦
+    (range_segment_trans_segment_subset h0 hε z hz hx).2
+
 open Classical in
 /-- The class in the fundamental group of `via`, or `1` off the half-plane. -/
 private def V (ε : ℝ) (z : ↥(range fun i ↦ (c i : ℂ))ᶜ) :
@@ -856,7 +887,8 @@ private theorem ofPath_eq_V {ε : ℝ} (hε : ε ≠ 0) {z w : ↥(range fun i �
   have hz : z ∈ half c ε := hp ⟨0, p.source⟩
   have hw : w ∈ half c ε := hp ⟨1, p.target⟩
   have h := FundamentalGroup.ofPath_congr (x := ⟨0, zero_mem_compl_range h0⟩)
-    (isPathHomotopyTrivial_def.mp (isPathHomotopyTrivial_half (c := c) hε) ((via h0 hε z hz).trans p) (via h0 hε w hw)
+    (isPathHomotopyTrivial_def.mp (isPathHomotopyTrivial_half (c := c) hε)
+      ((via h0 hε z hz).trans p) (via h0 hε w hw)
       (by rw [Path.trans_range]; exact union_subset (range_via_subset h0 hε z hz) hp)
       (range_via_subset h0 hε w hw))
   rw [FundamentalGroup.ofPath_trans] at h
@@ -866,7 +898,8 @@ private theorem V_zero {ε : ℝ} (hε : ε ≠ 0) : V h0 ε ⟨0, zero_mem_comp
   have hmem : (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ) ∈ half c ε :=
     (mem_compl_range_inter_halfPlane h0 ε).2
   rw [V, dite_eq_left ⟨hε, hmem⟩, ← FundamentalGroup.ofPath_refl (x := _) ⟨0, _⟩]
-  exact FundamentalGroup.ofPath_congr (isPathHomotopyTrivial_def.mp (isPathHomotopyTrivial_half (c := c) hε) _ _
+  exact FundamentalGroup.ofPath_congr (isPathHomotopyTrivial_def.mp
+    (isPathHomotopyTrivial_half (c := c) hε) _ _
     (range_via_subset h0 hε _ hmem) (by rw [Path.refl_range]; exact singleton_subset_iff.2 hmem))
 
 /-- The class of the loop from `0` to a point `z` through the lower half-plane and back through
@@ -898,7 +931,7 @@ private theorem g_eq_of_forall_notMem {z w : ↥(range fun i ↦ (c i : ℂ))ᶜ
   · rintro ⟨i, hi⟩
     rw [hσ, ofReal_inj] at hi
     refine h i (hi ▸ segment_subset_uIcc x y
-      ⟨1 - (t : ℝ), t, sub_nonneg.2 t.2.2, t.2.1, by ring, ?_⟩)
+      ⟨1 - (t : ℝ), t, sub_nonneg.2 t.property.2, t.property.1, by ring, ?_⟩)
     simp only [smul_eq_mul]
   · rw [Path.codRestrict_coe, hσ, ofReal_im]
 
@@ -966,14 +999,16 @@ private theorem exists_ofPath_loop_eq (k : ι) :
   have hU := ofPath_eq_V h0 one_ne_zero (CX.subpath 0 h) (range_subpath_subset_half _
     (by rw [← Subtype.coe_le_coe, hh]; norm_num) fun t _ ht ↦ by
       rw [Path.codRestrict_coe, im_circle, one_mul]
-      exact mul_nonneg hr.le (Real.sin_nonneg_of_nonneg_of_le_pi (mul_nonneg (by positivity) t.2.1)
+      exact mul_nonneg hr.le (Real.sin_nonneg_of_nonneg_of_le_pi
+        (mul_nonneg (by positivity) t.property.1)
         (by rw [hh] at ht; nlinarith [Real.pi_pos])))
-  have hD := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (CX.subpath h 1) (range_subpath_subset_half _
+  have hD := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (CX.subpath h 1)
+    (range_subpath_subset_half _
     (by rw [← Subtype.coe_le_coe, hh]; norm_num) fun t ht ht' ↦ by
       rw [Path.codRestrict_coe, im_circle, neg_one_mul, neg_nonneg]
       rw [hh] at ht
       have hs := Real.sin_nonneg_of_nonneg_of_le_pi (x := 2 * Real.pi * t - Real.pi)
-        (by nlinarith [Real.pi_pos]) (by nlinarith [Real.pi_pos, t.2.2])
+        (by nlinarith [Real.pi_pos]) (by nlinarith [Real.pi_pos, t.property.2])
       rw [Real.sin_sub_pi] at hs
       exact mul_nonpos_of_nonneg_of_nonpos hr.le (by linarith))
   have hL := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (sX.trans αX) (by
@@ -1004,7 +1039,7 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
     (hθπ : θ < Real.pi) :
     ∃ z w : ↥(range fun i ↦ (c i : ℂ))ᶜ, (z : ℂ) = (-R : ℝ) ∧ (w : ℂ) = (R : ℝ) ∧
       ofPath _ (outerLoop h0 hR hθ₀ hθπ) = g h0 w * (g h0 z)⁻¹ := by
-  have hπ := Real.pi_pos
+  have := Real.pi_pos
   let B : ↥(range fun i ↦ (c i : ℂ))ᶜ := ⟨circleMap 0 R θ, circleMap_zero_mem_compl_range hR θ⟩
   let ρX : Path (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ) B :=
     (Path.segment 0 (circleMap 0 R θ)).codRestrict
@@ -1034,11 +1069,11 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
       FundamentalGroup.ofPath_congr (Path.Homotopic.subpath_trans_subpath CX 0 t₂ 1),
       Path.subpath_zero_one, FundamentalGroup.ofPath_cast]
   have h1 := ofPath_eq_V h0 one_ne_zero (CX.subpath 0 t₁) (range_subpath_subset_half _
-    (by rw [← Subtype.coe_le_coe, ht₁]; exact t₁.2.1) fun t _ ht ↦ by
+    (by rw [← Subtype.coe_le_coe, ht₁]; exact t₁.property.1) fun t _ ht ↦ by
       rw [Path.codRestrict_coe, im_outerCircle, one_mul]
       rw [ht₁] at ht
       refine mul_nonneg hR₀.le (Real.sin_nonneg_of_nonneg_of_le_pi ?_ ?_)
-      · nlinarith [t.2.1]
+      · nlinarith [t.property.1]
       · have := mul_le_mul_of_nonneg_left ht (by positivity : (0 : ℝ) ≤ 2 * Real.pi)
         rw [mul_div_cancel₀ _ (by positivity)] at this
         linarith)
@@ -1056,13 +1091,13 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
       rw [Real.sin_sub_pi] at hs
       exact mul_nonpos_of_nonneg_of_nonpos hR₀.le (by linarith))
   have h3 := ofPath_eq_V h0 one_ne_zero (CX.subpath t₂ 1) (range_subpath_subset_half _
-    t₂.2.2 fun t ht _ ↦ by
+    t₂.property.2 fun t ht _ ↦ by
       rw [Path.codRestrict_coe, im_outerCircle, one_mul]
       rw [ht₂] at ht
       have ha := mul_le_mul_of_nonneg_left ht (by positivity : (0 : ℝ) ≤ 2 * Real.pi)
       rw [mul_div_cancel₀ _ (by positivity)] at ha
       have hs := Real.sin_nonneg_of_nonneg_of_le_pi
-        (x := θ + 2 * Real.pi * t - 2 * Real.pi) (by linarith) (by nlinarith [t.2.2])
+        (x := θ + 2 * Real.pi * t - 2 * Real.pi) (by linarith) (by nlinarith [t.property.2])
       rw [Real.sin_sub_two_pi] at hs
       exact mul_nonneg hR₀.le hs)
   have hρ := ofPath_eq_V h0 one_ne_zero ρX (range_codRestrict_subset_half _
@@ -1107,7 +1142,6 @@ theorem fromPath_outerLoop_eq_prod {m : ℕ} {c : Fin m → ℝ} (hδ : 0 < δ)
     have := hconv.contractibleSpace ⟨0, zero_mem_compl_range h0⟩
     exact Subsingleton.elim _ _
   have hR₀ : 0 < R := (abs_nonneg _).trans_lt (hR ⟨0, hm⟩)
-  have hr : 0 < δ / 4 := by positivity
   -- Consecutive points are at distance at least `δ`.
   have hgap {i j : Fin m} (hij : i < j) : c i + δ ≤ c j := by
     have := hc hij.ne
@@ -1115,20 +1149,20 @@ theorem fromPath_outerLoop_eq_prod {m : ℕ} {c : Fin m → ℝ} (hδ : 0 < δ)
     rw [abs_sub_comm, abs_of_pos (sub_pos.2 (hmono hij))] at this
     linarith
   -- Read the equation in the fundamental group through `ofPath`, a conjugation on loops.
-  apply (MulAut.conj (fromPath (Path.Homotopic.Quotient.mk
-    (Joined.refl (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ)).somePath))⁻¹).injective
+  apply (MulAut.conj (fromPath (Path.Homotopic.Quotient.mk (Joined.refl
+    (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ)).somePath))⁻¹).injective
   rw [map_list_prod, List.map_ofFn]
   simp only [Function.comp_def, ← FundamentalGroup.ofPath_loop]
   choose z w hz hw hl using exists_ofPath_loop_eq hδ hc h0
   obtain ⟨z', w', hz', hw', hL⟩ := exists_ofPath_outerLoop_eq h0 hR hR₀ hθ₀ hθπ
   -- The value of `g` between the points `c (j - 1)` and `c j`, and `1` left of `c 0`.
   let F : ℕ → FundamentalGroup ↥(range fun i ↦ (c i : ℂ))ᶜ ⟨0, zero_mem_compl_range h0⟩ :=
-    fun j ↦ if h : j = 0 then 1 else if h' : j - 1 < m then g h0 (w ⟨j - 1, h'⟩) else 1
+    fun j ↦ if j = 0 then 1 else if h' : j - 1 < m then g h0 (w ⟨j - 1, h'⟩) else 1
   have hF (k : Fin m) : g h0 (w k) = F (k + 1) := by
-    simp only [F, Nat.add_sub_cancel, dite_eq_right (Nat.succ_ne_zero _), dite_eq_left k.2]
+    simp only [F, Nat.add_sub_cancel, Nat.add_one_ne_zero, ↓reduceIte, dite_eq_left k.isLt]
   have hFz (k : Fin m) : g h0 (z k) = F k := by
     rcases Nat.eq_zero_or_pos k with hk | hk
-    · have hFk : F k = 1 := by simp only [F, dite_eq_left hk]
+    · have hFk : F k = 1 := by simp only [F, hk, ↓reduceIte]
       rw [hFk, ← g_zero h0]
       refine g_eq_of_forall_notMem h0 (y := 0) (hz k) (by simp) (notMem_uIcc_of_lt_of_lt
         (a := min (c k - δ / 4) 0 - 1) (b := c k) (fun i ↦ .inr (hmono.monotone
@@ -1137,18 +1171,21 @@ theorem fromPath_outerLoop_eq_prod {m : ℕ} {c : Fin m → ℝ} (hδ : 0 < δ)
     · let j : Fin m := ⟨k - 1, by omega⟩
       have hjk : j < k := Fin.lt_def.2 (by simp only [j]; omega)
       have hFk : F k = g h0 (w j) := by
-        simp only [F, dite_eq_right hk.ne', dite_eq_left (by omega : (k : ℕ) - 1 < m), j]
+        simp only [F, hk.ne', ↓reduceIte, dite_eq_left (by omega : (k : ℕ) - 1 < m), j]
       rw [hFk]
       have := hgap hjk
       refine g_eq_of_forall_notMem h0 (hz k) (hw j) (notMem_uIcc_of_lt_of_lt (a := c j) (b := c k)
         (fun i ↦ ?_) (by linarith) (by linarith) (by linarith) (by linarith))
       rcases le_or_gt i j with h | h
       · exact .inl (hmono.monotone h)
-      · exact .inr (hmono.monotone (Fin.le_def.2 (by rw [Fin.lt_def] at h; simp only [j] at h; omega)))
+      · refine .inr (hmono.monotone (Fin.le_def.2 ?_))
+        rw [Fin.lt_def] at h
+        simp only [j] at h
+        omega
   have hFm : g h0 w' = F m := by
     let j : Fin m := ⟨m - 1, by omega⟩
     have hFm : F m = g h0 (w j) := by
-      simp only [F, dite_eq_right hm.ne', dite_eq_left (by omega : m - 1 < m), j]
+      simp only [F, hm.ne', ↓reduceIte, dite_eq_left (by omega : m - 1 < m), j]
     rw [hFm]
     have := (le_abs_self (c j)).trans_lt (hR j)
     refine g_eq_of_forall_notMem h0 hw' (hw j) (notMem_uIcc_of_lt_of_lt (a := c j)

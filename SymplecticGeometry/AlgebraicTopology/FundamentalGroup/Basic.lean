@@ -17,7 +17,8 @@ Mathlib's `FundamentalGroup.mapOfEq f h : π₁(X, x) →* π₁(Y, y)`, for `f 
 `y` through `h`. This file states that on the class of a loop, as a rewrite rule, to go with
 `FundamentalGroup.mapOfEq_apply`, which states it on an element of `π₁(X, x)` in the
 fundamental groupoid. It also states how concatenation and reversal of loops, and the change
-of base point along a path, read on their classes.
+of base point along a path, read on their classes. Finally it reads any path, not only a loop,
+as an element of `π₁(X, x)`, by joining its end points to `x` along chosen paths.
 
 ## Main results
 
@@ -28,6 +29,13 @@ of base point along a path, read on their classes.
 * `FundamentalGroup.fromPath_trans`, `FundamentalGroup.fromPath_symm`: the class of a
   concatenation of loops is the product of their classes, in the reverse order, and the class of
   a reversed loop is the inverse.
+
+## Main definitions
+
+* `FundamentalGroup.ofPath x p`: the class in `π₁(X, x)` of a path `p`, its end points joined to
+  `x` along chosen paths. It reverses concatenation (`FundamentalGroup.ofPath_trans`), is
+  invariant under homotopy (`FundamentalGroup.ofPath_congr`) and casts, and on loops at `x` is a
+  conjugation of their classes (`FundamentalGroup.ofPath_loop`).
 -/
 
 public section
