@@ -686,6 +686,19 @@ theorem apply_mk_zero (f : ProductNeighborhood Φ ε) (q : Q) (h : (q, (0 : ℂ)
   rw [← f.apply_zeroSlice q (by rwa [zeroSlice_apply])]
   simp only [zeroSlice_apply]
 
+/-- A point `f p` of the range of a product neighbourhood lies on `ι (Q)` exactly when the disc
+coordinate of `p` vanishes. -/
+theorem apply_mem_range_embedding_iff (f : ProductNeighborhood Φ ε) {p : prodBall Q ε} :
+    f p ∈ Set.range ι ↔ (p : Q × ℂ).2 = 0 := by
+  refine ⟨?_, fun h ↦ ⟨(p : Q × ℂ).1, ?_⟩⟩
+  · rintro ⟨q, hq⟩
+    have hq0 : (q, (0 : ℂ)) ∈ prodBall Q ε := mem_prodBall.2 (by
+      simpa using (norm_nonneg _).trans_lt (mem_prodBall.1 p.property))
+    rw [← f.apply_mk_zero q hq0] at hq
+    rw [← f.isOpenEmbedding.injective hq]
+  · have hp : p = ⟨((p : Q × ℂ).1, 0), h ▸ p.property⟩ := Subtype.ext (Prod.ext rfl h)
+    rw [hp, f.apply_mk_zero]
+
 /-- A product neighbourhood pulls `σ` back to the restriction of `ι^* σ ⊕ ω₀`. -/
 theorem mpullback_eq (f : ProductNeighborhood Φ ε) :
     SmoothForm.mpullback f f.contMDiff σ =

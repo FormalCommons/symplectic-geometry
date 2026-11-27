@@ -15,6 +15,7 @@ import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Topology.Homotopy.Annulus
 
 /-!
 # The symplectic fiber sum
@@ -119,6 +120,12 @@ theorem annulusToProdBall_injective :
   simp only [coe_annulusToProdBall, Prod.mk.injEq] at h'
   exact Prod.ext h'.1 (Subtype.ext h'.2)
 
+/-- A point `p` of `Q × B²(ε)` whose disc coordinate lies in the annulus `A(δ, ε)` is the image of
+that point of `Q × A(δ, ε)`. -/
+theorem annulusToProdBall_mk (p : prodBall Q ε) (h : (p : Q × ℂ).2 ∈ annulus ℂ δ ε) :
+    annulusToProdBall ((p : Q × ℂ).1, ⟨(p : Q × ℂ).2, h⟩) = p :=
+  Subtype.ext (by simp)
+
 omit [FiniteDimensional ℝ EQ] [IsManifold J ∞ Q] in
 theorem isLocalDiffeomorph_annulusToProdBall :
     IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
@@ -136,6 +143,39 @@ variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M
   {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
   {Φ : SymplecticFraming hι hP} {ε δ : ℝ} (f : ProductNeighborhood Φ ε)
+
+/-- A product neighbourhood restricted to the product of `Q` with the annulus `a < |z| < ε` is a
+local diffeomorphism. -/
+theorem isLocalDiffeomorph_comp_annulusToProdBall (a : ℝ) :
+    IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) I ∞
+      (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M) := fun p ↦
+  (isLocalDiffeomorph_annulusToProdBall p).comp (hg := f.isLocalDiffeomorph _)
+
+/-- A product neighbourhood restricted to the product of `Q` with the annulus `a < |z| < ε` is an
+open embedding. -/
+theorem isOpenEmbedding_comp_annulusToProdBall (a : ℝ) :
+    IsOpenEmbedding (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M) :=
+  have h := f.isLocalDiffeomorph_comp_annulusToProdBall a
+  .of_continuous_injective_isOpenMap h.contMDiff.continuous
+    (f.isOpenEmbedding.injective.comp annulusToProdBall_injective) h.isOpenMap
+
+/-- The range of a product neighbourhood on `Q × A(a, ε)` is path connected, for path connected
+`Q` and `0 ≤ a < ε`. -/
+theorem isPathConnected_range_comp_annulusToProdBall [PathConnectedSpace Q] {a : ℝ} (ha : 0 ≤ a)
+    (haε : a < ε) :
+    IsPathConnected (range (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M)) := by
+  have : PathConnectedSpace (annulus ℂ a ε) := isPathConnected_iff_pathConnectedSpace.1
+    (isPathConnected_annulus (by simp [Complex.rank_real_complex]) ha haε)
+  exact isPathConnected_range (f.isOpenEmbedding_comp_annulusToProdBall a).continuous
+
+/-- A point `f p` lies in `f (Q × A(a, ε))` exactly when `a < |p.2|`. -/
+theorem apply_mem_range_comp_annulusToProdBall_iff {a : ℝ} {p : prodBall Q ε} :
+    f p ∈ range (f ∘ annulusToProdBall : Q × annulus ℂ a ε → M) ↔ a < ‖(p : Q × ℂ).2‖ := by
+  refine ⟨?_, fun h ↦ ⟨_, congrArg f (annulusToProdBall_mk p
+    (mem_annulus.2 ⟨h, mem_prodBall.1 p.property⟩))⟩⟩
+  rintro ⟨w, hw⟩
+  rw [← f.isOpenEmbedding.injective hw]
+  simpa using (mem_annulus.1 w.2.property).1
 
 /-- For compact `Q`, Hausdorff `M` and `δ < ε`, the complement in `M` of the image of the closed
 tube `Q × B̄²(δ)` under the product neighbourhood `f`, as an open set. -/
@@ -166,12 +206,11 @@ theorem coe_collarMap (hδε : δ < ε) (p : Q × annulus ℂ δ ε) :
   (rfl)
 
 theorem collarMap_injective (hδε : δ < ε) : Function.Injective (f.collarMap hδε) := fun _ _ h ↦
-  annulusToProdBall_injective (f.isOpenEmbedding.injective (congrArg Subtype.val h))
+  (f.isOpenEmbedding_comp_annulusToProdBall δ).injective (congrArg Subtype.val h)
 
 theorem isLocalDiffeomorph_collarMap (hδε : δ < ε) :
     IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) I ∞ (f.collarMap hδε) :=
-  isLocalDiffeomorph_subtypeVal_comp_iff.1 fun p ↦
-    (isLocalDiffeomorph_annulusToProdBall p).comp (hg := f.isLocalDiffeomorph _)
+  isLocalDiffeomorph_subtypeVal_comp_iff.1 (f.isLocalDiffeomorph_comp_annulusToProdBall δ)
 
 theorem continuous_collarMap (hδε : δ < ε) : Continuous (f.collarMap hδε) :=
   (f.isLocalDiffeomorph_collarMap hδε).contMDiff.continuous
