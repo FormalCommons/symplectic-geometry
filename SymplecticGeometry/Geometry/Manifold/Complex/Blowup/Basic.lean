@@ -711,6 +711,16 @@ theorem contMDiff_blowdown_of_isCompatible [IsManifold 𝓘(𝕜, Fin (n + 1) �
   · exact (hc.comp_contMDiff (hb.comp contMDiff_subtypeVal) fun y ↦ y.property).congr fun y ↦ by
       simp only [Function.comp_apply, blowdown_inr]
 
+/-- For a `C^r` compatible gluing, the diffeomorphism `GluedAlong.rangeInrDiffeomorph h`, from
+the range of `inr` onto the part of the model over the target of `c`, is `lift c`. -/
+@[simp]
+theorem coe_rangeInrDiffeomorph_apply [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r M]
+    [IsManifold 𝓘(𝕜, Fin (n + 1) → ℂ) r (BlowupModel n)]
+    (h : (glueData (gluingHomeomorph c)).IsCompatible 𝓘(𝕜, Fin (n + 1) → ℂ) r)
+    (z : GluedAlong.rangeInr (gluingHomeomorph c)) :
+    (GluedAlong.rangeInrDiffeomorph h z : BlowupModel n) = lift c z := by
+  conv_rhs => rw [← GluedAlong.inr_rangeInrDiffeomorph_apply h z, lift_inr]
+
 end Smooth
 
 /-- The blowdown is holomorphic. -/
@@ -784,12 +794,9 @@ theorem contMDiffOn_lift :
   refine ContMDiffAt.contMDiffWithinAt ?_
   rw [← contMDiffAt_subtype_iff (U := GluedAlong.rangeInr (gluingHomeomorph c))
     (x := ⟨_, GluedAlong.inr_mem_rangeInr _ y⟩)]
-  refine ((contMDiff_subtypeVal.comp (GluedAlong.rangeInrDiffeomorph
+  exact ((contMDiff_subtypeVal.comp (GluedAlong.rangeInrDiffeomorph
     (isCompatible_complex c Fact.out)).contMDiff).contMDiffAt).congr_of_eventuallyEq
-      (Filter.Eventually.of_forall fun z ↦ ?_)
-  exact (congrArg (lift c)
-    (GluedAlong.inr_rangeInrDiffeomorph_apply (isCompatible_complex c Fact.out) z)).symm.trans
-      (lift_inr c _)
+      (.of_forall fun z ↦ (coe_rangeInrDiffeomorph_apply c _ z).symm)
 
 end Complex
 
@@ -829,22 +836,13 @@ theorem isLocalDiffeomorphAt_blowdown_real {z : Blowup c} (hz : z ∉ exceptiona
     (fun v ↦ (coe_blowdownRealDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
 
 open scoped TauCeti.ComplexManifold in
-/-- The diffeomorphism `GluedAlong.rangeInrDiffeomorph` of the smooth gluing, from the range of
-`inr` onto the part of the model over the target of `c`, is `lift c`. -/
-@[simp]
-theorem coe_rangeInrDiffeomorph_apply (z : GluedAlong.rangeInr (gluingHomeomorph c)) :
-    (GluedAlong.rangeInrDiffeomorph (isCompatible_real c Fact.out) z : BlowupModel n) =
-      lift c z := by
-  conv_rhs => rw [← GluedAlong.inr_rangeInrDiffeomorph_apply (isCompatible_real c Fact.out) z,
-    lift_inr]
-
-open scoped TauCeti.ComplexManifold in
 /-- On the range of `inr`, the map `lift c` to the model is a local diffeomorphism of real
 manifolds. -/
 theorem isLocalDiffeomorphAt_lift {z : Blowup c} (hz : z ∈ range (inr (gluingHomeomorph c))) :
     IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (lift c) z :=
   (GluedAlong.rangeInrDiffeomorph (isCompatible_real c Fact.out)).isLocalDiffeomorphAt_of_coe_eq
-    (fun v ↦ (coe_rangeInrDiffeomorph_apply c v).symm) ⟨z, (GluedAlong.mem_rangeInr _).2 hz⟩
+    (fun v ↦ (coe_rangeInrDiffeomorph_apply c (isCompatible_real c Fact.out) v).symm)
+    ⟨z, (GluedAlong.mem_rangeInr _).2 hz⟩
 
 end Real
 
