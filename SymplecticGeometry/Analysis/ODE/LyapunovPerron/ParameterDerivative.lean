@@ -34,8 +34,9 @@ bounded curves, for every `t` at once.
 * `ContinuousLinearMap.norm_fderiv_lyapunovPerronSolution_apply_le`: that derivative is bounded,
   uniformly in `t`, by the norm of the derivative into bounded curves.
 * `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_fderiv`: the local stable graph of
-  `exists_localStableGraph_of_contDiffAt`, together with a family of confined forward solutions
-  starting on the graph whose derivatives in the starting point are bounded in time.
+  `exists_localStableGraph_of_contDiffAt`, with a confinement radius at most any given bound,
+  together with a family of confined forward solutions starting on the graph whose derivatives
+  in the starting point are bounded in time.
 
 The proof of `exists_localStableGraph_of_contDiffAt_fderiv` follows Tau Ceti's proof of
 `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt`; its choice of the radii follows the
@@ -108,10 +109,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- The radii of the local stable graph: at a point `x` where `V` has derivative `A`, the remainder
 `z ↦ V (x + z) - A z` has derivative zero at `0`, is Lipschitz on a closed ball with a constant
 small against the dichotomy constants, and is uniformly `C^n` on the open ball; a smaller
-parameter radius `ρ` keeps the Lyapunov–Perron bound inside that ball. -/
+parameter radius `ρ` keeps the Lyapunov–Perron bound inside that ball. The radius `r` can be
+taken at most any given `r₀ > 0`. -/
 private theorem exists_remainder_radii (hn : 1 ≤ n) (hV : ContDiffAt ℝ n V x)
-    (hA : HasFDerivAt V A x) (hα : 0 < α) :
-    ∃ ε : ℝ≥0, ∃ r > 0, ∃ ρ > 0,
+    (hA : HasFDerivAt V A x) (hα : 0 < α) {r₀ : ℝ} (hr₀ : 0 < r₀) :
+    ∃ ε : ℝ≥0, ∃ r > 0, r ≤ r₀ ∧ ∃ ρ > 0,
       LipschitzOnWith ε (fun z ↦ V (x + z) - A z) (closedBall 0 r) ∧
       HasFDerivAt (fun z ↦ V (x + z) - A z) (0 : E →L[ℝ] E) 0 ∧
       2 * K * (ε * 2) < α ∧
@@ -138,28 +140,31 @@ private theorem exists_remainder_radii (hn : 1 ≤ n) (hV : ContDiffAt ℝ n V x
     one_ne_zero).exists_lipschitzOnWith_of_nnNorm_lt ε (by simpa using hε)
   obtain ⟨r₁, hr₁, hr₁u⟩ := Metric.mem_nhds_iff.1 hu
   obtain ⟨r₂, hr₂, hNn⟩ := hN.exists_uniformContDiffOn_closedBall
-  set r := min (r₁ / 2) r₂
-  have hr : 0 < r := lt_min (by positivity) hr₂
+  set r := min (min (r₁ / 2) r₂) r₀
+  have hr : 0 < r := lt_min (lt_min (by positivity) hr₂) hr₀
   obtain ⟨ρ, hρ, hρr⟩ := exists_pos_mul_lt hr ((K : ℝ) / (1 - 2 * K * ((ε : ℝ) * 2) / α))
-  refine ⟨ε, r, hr, ρ, hρ, hNu.mono ?_, hN', hsmall, hNn.mono ?_, hρr⟩
-  · exact (closedBall_subset_ball ((min_le_left _ _).trans_lt (by linarith))).trans hr₁u
-  · exact ball_subset_closedBall.trans (closedBall_subset_closedBall (min_le_right _ _))
+  refine ⟨ε, r, hr, min_le_right _ _, ρ, hρ, hNu.mono ?_, hN', hsmall, hNn.mono ?_, hρr⟩
+  · exact (closedBall_subset_ball (((min_le_left _ _).trans (min_le_left _ _)).trans_lt
+      (by linarith))).trans hr₁u
+  · exact ball_subset_closedBall.trans
+      (closedBall_subset_closedBall ((min_le_left _ _).trans (min_le_right _ _)))
 
 /-- **Local stable graph with a bounded parameter derivative.** Under the hypotheses of
-`ContinuousLinearMap.exists_localStableGraph_of_contDiffAt`, there are a confinement radius `r`,
-a parameter radius `ρ` and a graph map `g` with all of that theorem's conclusions, and moreover a
-family `y` of curves such that, for each `z ∈ range P` with `‖z‖ ≤ ρ`, the curve `y z` is a forward
-integral curve of `fun _ w ↦ V (x + w)` confined to the closed ball of radius `r`, starting at
-`z + g z`; each `fun w ↦ y w t`, `t ≥ 0`, is differentiable at `z`, and its derivative there is
-bounded independently of `t`. -/
+`ContinuousLinearMap.exists_localStableGraph_of_contDiffAt`, and for any bound `r₀ > 0`, there
+are a confinement radius `r ≤ r₀`, a parameter radius `ρ` and a graph map `g` with all of that
+theorem's conclusions, and moreover a family `y` of curves such that, for each `z ∈ range P` with
+`‖z‖ ≤ ρ`, the curve `y z` is a forward integral curve of `fun _ w ↦ V (x + w)` confined to the
+closed ball of radius `r`, starting at `z + g z`; each `fun w ↦ y w t`, `t ≥ 0`, is
+differentiable at `z`, and its derivative there is bounded independently of `t`. -/
 theorem exists_localStableGraph_of_contDiffAt_fderiv
     (hs : ∀ t : ℝ, 0 ≤ t → ∀ z : E,
       ‖NormedSpace.exp (t • A) (P z)‖ ≤ K * Real.exp (-α * t) * ‖z‖)
     (hu : ∀ t : ℝ, t ≤ 0 → ∀ z : E,
       ‖NormedSpace.exp (t • A) (z - P z)‖ ≤ K * Real.exp (α * t) * ‖z‖)
     (hα : 0 < α) (hP : IsIdempotentElem P) (hAP : Commute A P)
-    (hn : 1 ≤ n) (hV : ContDiffAt ℝ n V x) (hx : V x = 0) (hA : HasFDerivAt V A x) :
-    ∃ r > 0, ∃ ρ > 0, ∃ g : E → E, ∃ C : ℝ≥0,
+    (hn : 1 ≤ n) (hV : ContDiffAt ℝ n V x) (hx : V x = 0) (hA : HasFDerivAt V A x)
+    {r₀ : ℝ} (hr₀ : 0 < r₀) :
+    ∃ r > 0, r ≤ r₀ ∧ ∃ ρ > 0, ∃ g : E → E, ∃ C : ℝ≥0,
       LipschitzWith C g ∧ g 0 = 0 ∧ HasFDerivAt g (0 : E →L[ℝ] E) 0 ∧
       (∀ z ∈ closedBall (0 : E) ρ, ContDiffAt ℝ n g z) ∧
       (∀ z, P (g z) = 0) ∧ (∀ z, g (P z) = g z) ∧
@@ -173,8 +178,8 @@ theorem exists_localStableGraph_of_contDiffAt_fderiv
         MapsTo (y z) (Ici 0) (closedBall 0 r) ∧ y z 0 = z + g z ∧
         (∀ t, 0 ≤ t → DifferentiableAt ℝ (fun w ↦ y w t) z) ∧
         ∃ C : ℝ, ∀ t, 0 ≤ t → ‖fderiv ℝ (fun w ↦ y w t) z‖ ≤ C := by
-  obtain ⟨ε, r, hr, ρ, hρ, hN, hN', hsmall, hNn, hρr⟩ :=
-    exists_remainder_radii (K := K) hn hV hA hα
+  obtain ⟨ε, r, hr, hrr₀, ρ, hρ, hN, hN', hsmall, hNn, hρr⟩ :=
+    exists_remainder_radii (K := K) hn hV hA hα hr₀
   set N : E → E := fun z ↦ V (x + z) - A z
   have hN0 : N 0 = 0 := by simp [N, hx]
   have hfield : (fun (_ : ℝ) z ↦ A z + N z) = fun (_ : ℝ) z ↦ V (x + z) := by
@@ -200,7 +205,7 @@ theorem exists_localStableGraph_of_contDiffAt_fderiv
       (mem_closedBall_zero_iff.1 hz) t
   have hδ : 0 < r - (K : ℝ) / (1 - 2 * K * ((ε : ℝ) * 2) / α) * ρ := sub_pos.2 hρr
   set g := localStableGraphMap A P N r hs hu hr.le hN hsmall
-  refine ⟨r, hr, ρ, hρ, g, _, lipschitzWith_localStableGraphMap hs hu hr.le hN hsmall,
+  refine ⟨r, hr, hrr₀, ρ, hρ, g, _, lipschitzWith_localStableGraphMap hs hu hr.le hN hsmall,
     localStableGraphMap_zero hs hu hr.le hN hsmall hN0,
     hasFDerivAt_localStableGraphMap_zero hs hu hr.le hN hsmall hN0 hN',
     fun z hz ↦ contDiffAt_localStableGraphMap_of_uniformContDiffOn hs hu hr.le hN hsmall

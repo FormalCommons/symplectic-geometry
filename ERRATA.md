@@ -184,3 +184,21 @@ Each entry has this form:
 - **Issue:** #3447.
 
 ## Other sources
+
+### Constants of the quadratic shape need a small γ
+
+- **Where:** K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*,
+  §4.5, Remark 4.20.
+- **Error:** the remark offers `c = (1 + a)/2` and `b = γ(a - 1)/16` for the
+  quadratic shape `1 + b r + c r²/2` in the proof of Lemma 4.19, which needs
+  that shape to pass below `√(1 + a r²)` before `γ` and needs `b < 1`, with no
+  bound on `γ` in terms of `a`. For `a = 100` and `γ = 1/2`, the quadratic
+  shape at `γ` is about `8.86` while `√(1 + a γ²)` is about `5.10`, and
+  `b ≈ 3.09 > 1`. Lemma 4.19 itself is not affected, since a smaller `γ` gives
+  a stronger conclusion.
+- **Fix:** `quadratic_lt_sqrt_of_mul_sq_le` proves the remark's claim under
+  `γ (a + 1)² ≤ a - 1`, which also gives `b < 1`, with the counterexample above
+  as an `example` next to it; `exists_isConvexShapeAt_eq_linear_eq_sqrt` uses
+  the constants for `min γ ((a - 1)/(a + 1)²)` (both in
+  `Geometry/Manifold/Complex/JConvex/Surround/SpecialShape.lean`).
+- **Issue:** #6628.
