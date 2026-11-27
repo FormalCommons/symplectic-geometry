@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 public import TauCeti.Topology.Homotopy.AddCircle
 public import TauCeti.Topology.Instances.AddCircle.Torus
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
@@ -173,8 +174,7 @@ theorem mpullback_graphTorus_prod_torusSymplecticForm (hh : ContMDiff 𝓘(ℝ) 
     SmoothForm.mpullback_congr _ (hh.comp contMDiff_apply) (fst_comp_graphTorus hh),
     ← SmoothForm.mpullback_mpullback _ _ contMDiff_apply hh,
     SmoothForm.eq_zero_of_finrank_lt (by simp) (SmoothForm.mpullback h hh σ), map_zero, zero_add,
-    SmoothForm.mpullback_congr _ contMDiff_id (snd_comp_graphTorus hh)]
-  exact LinearMap.congr_fun SmoothForm.mpullback_id _
+    SmoothForm.mpullback_eq_self_of_eq_id _ (snd_comp_graphTorus hh)]
 
 /-- For a nondegenerate two-form `σ` on `M`, the graph torus has symplectic tangent images for the
 product form `pr₁^* σ + pr₂^* ω_T`. -/
