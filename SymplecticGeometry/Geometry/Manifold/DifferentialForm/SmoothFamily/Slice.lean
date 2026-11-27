@@ -95,6 +95,16 @@ theorem contMDiffAt_sliceSection_iff [IsManifold J 1 F] {n : WithTop ℕ∞}
   rw [contMDiffAt_totalSpace_iff]
   simp [contMDiffAt_snd]
 
+/-- If the slice section of `β` is `C^n` and `χ : F → P` is `C^n`, then the rough form
+`y ↦ β (χ y) y`, the slice of `β` along `χ`, is `C^n`. -/
+theorem isSmoothForm_of_contMDiff_sliceSection [IsManifold J 1 F] {n : WithTop ℕ∞}
+    {β : P → RoughForm J F G k}
+    (hβ : ContMDiff (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) n (sliceSection β))
+    {χ : F → P} (hχ : ContMDiff J K n χ) :
+    IsSmoothForm J n (fun y ↦ β (χ y) y : RoughForm J F G k) := by
+  rw [sliceSection_def] at hβ
+  exact (isSmoothForm_def _ _).mpr (hβ.comp (hχ.prodMk contMDiff_id))
+
 end SymplecticGeometry
 
 open SymplecticGeometry
