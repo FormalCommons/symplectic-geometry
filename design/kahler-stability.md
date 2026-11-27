@@ -344,10 +344,13 @@ This is a hypothesis of the statements below, not a definition.
   `g̃ t = g₀ * C.expI (-(2 * t) • momentSharp B hB μ y)` are flow curves
   from `x`, with `(g t)⁻¹ • x = x` and `(g̃ t)⁻¹ • x = y`, and
   `y = C.toHom (u t)⁻¹ • C.expI (-η t) • x`. The function `N t = B (η t) (η t)` is
-  antitone and nonnegative, so `N (t + 1) - N t → 0`, and by the mean
-  value theorem the derivative of `N` tends to `0` along some `tₙ → ∞`.
-  Passing to a subsequence, `η tₙ → η∞` (`B` is positive definite on a
-  finite-dimensional space) and `u tₙ → u∞` (`G` is compact). Then
+  antitone and nonnegative, with derivative `4 * F (η t, u t)` for
+  `F (η, u) = μ x η - μ (C.expI (-η) • x) η`. The pairs `(η, u)` with
+  `B η η ≤ N 0` and `y = C.toHom u⁻¹ • C.expI (-η) • x` form a compact set
+  (`B` is positive definite on a finite-dimensional space and `G` is
+  compact) that contains `(η t, u t)` for `t ≥ 0`, and `F` takes its maximum
+  on it at some `(η∞, u∞)`. The maximum is `0`, since otherwise `N` would
+  decrease at a rate bounded below and become negative. Then
   `μ x η∞ = μ (C.expI (-η∞) • x) η∞`, so `C.expI (-η∞)` fixes `x`
   (`expI_smul_eq_self_of_moment_apply_le`, applied to `-η∞`), and
   `y = C.toHom u∞⁻¹ • x`. This generalizes `exists_smul_eq_of_moment_eq_zero`.
