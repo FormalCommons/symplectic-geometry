@@ -168,7 +168,8 @@ private theorem exists_eventually_infDist_le_mul_norm_snd [I'.Boundaryless]
   -- The transition map from the normal-form coordinates to `e` is Lipschitz near `(a₀, 0)`.
   set T : E' × F → E := (e.extend 𝓘(ℝ, E) ∘ ψ.symm) ∘ L
   have hT : ContDiffAt ℝ 1 T (a₀, 0) := by
-    have := (contMDiffAt_iff_contDiffAt_comp_extend_symm hψ hyψ).1 (e.contMDiffAt_extend he hy)
+    have : ContDiffAt ℝ 1 (e.extend 𝓘(ℝ, E) ∘ ψ.symm) (ψ (ι y)) :=
+      (e.contMDiffAt_extend he hy).contDiffAt_comp_symm_of_mem_maximalAtlas hψ hyψ
     rw [← hLu₀] at this
     exact this.comp (a₀, 0) L.contDiff.contDiffAt
   obtain ⟨K, t, ht, hK⟩ := hT.exists_lipschitzOnWith
@@ -250,7 +251,8 @@ theorem exists_eventually_infDist_sq_le_mul [I'.Boundaryless]
     have hga : g (a, 0) = 0 := by simp only [g, comp_apply, ha, hρa]
     exact IsLocalMin.fderiv_eq_zero (ha'.mono fun u hu ↦ hga ▸ hu)
   have hg : ContDiffAt ℝ 2 g (a₀, 0) := by
-    have hf₀ := (contMDiffAt_iff_contDiffAt_comp_extend_symm hψ hyψ).1 hρ
+    have hf₀ : ContDiffAt ℝ 2 (ρ ∘ ψ.symm) (ψ (ι y)) :=
+      hρ.contDiffAt_comp_symm_of_mem_maximalAtlas hψ hyψ
     rw [← hLu₀] at hf₀
     exact hf₀.comp (a₀, 0) L.contDiff.contDiffAt
   have hρy : ρ (ι y) = 0 := hρι.self_of_nhds
