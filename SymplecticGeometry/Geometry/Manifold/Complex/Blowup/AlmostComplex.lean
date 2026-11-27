@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LocalPullback
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 
@@ -52,6 +53,9 @@ is injective.
   of `inr`, an open neighbourhood of the exceptional divisor.
 * `SymplecticGeometry.Blowup.almostComplexStructure_eq_ofComplexManifold`: for a complex manifold
   `M` and a holomorphic chart `c`, `J̃` is the structure of the complex manifold `Blowup c`.
+* `SymplecticGeometry.Blowup.mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding`: the
+  structure of the complex manifold `Blowup c` preserves the tangent spaces of the exceptional
+  divisor.
 
 ## References
 
@@ -62,7 +66,7 @@ is injective.
 public section
 
 open Set Function Topology TopologicalSpace
-open scoped Manifold ContDiff TauCeti.ComplexManifold
+open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
 
 noncomputable section
 
@@ -154,7 +158,8 @@ private theorem mfderiv_lift_rangeInrStructure (z : GluedAlong.rangeInr (gluingH
         (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z v) :=
   mfderiv_apply_localPullback_subtypeVal_comp
     (GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out))
-    (fun z ↦ (coe_rangeInrDiffeomorph_apply c z).symm) _ z v
+    (fun z ↦ (coe_rangeInrDiffeomorph_apply c (isCompatible_real c hc.out) z).symm)
+    _ z v
 
 variable {c J}
 
@@ -376,6 +381,20 @@ theorem almostComplexStructure_eq_ofComplexManifold :
         ((GluedAlong.isOpen_range_inr _).mem_nhds h)).mdifferentiableAt (by simp)
     refine ((isLocalDiffeomorphAt_lift c h).isInvertible_mfderiv (by simp)).injective ?_
     rw [almostComplexStructure_lift c _ _ h, hl.mfderiv_ofComplexManifold_apply]
+
+variable {hn : (∞ : ℕ∞ω) ≠ 0}
+
+/-- The complex structure of the blowup of a complex manifold preserves the tangent spaces of the
+exceptional divisor. -/
+theorem mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    Set.MapsTo
+      (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ) (Blowup c)
+        (divisorRealEmbedding c ℓ))
+      ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn)
+      ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn) := by
+  rw [divisorRealEmbedding_eq_restrictScalars]
+  exact (divisorEmbedding c).mapsTo_ofComplexManifold_tangentRange_restrictScalars le_top
+    ENat.LEInfty.out hn ℓ
 
 end Complex
 

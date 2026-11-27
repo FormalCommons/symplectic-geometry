@@ -85,9 +85,7 @@ theorem exists_isOpenEmbedding_prod_ball :
   set P : Opens M := ⟨a ⁻¹' R, R.isOpen.preimage ha.continuous⟩
   set g : P → R := (R : Set ℂ).restrictPreimage a
   have hg : Manifold.IsSubmersion 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) ∞ g :=
-    ((ha.restrictPreimage R).isSubmersionOfComplement_of_surjective_mfderiv (by simp)
-      fun p ↦ isRegularPoint_iff.1 ((isRegularPoint_restrictPreimage_iff ha.continuous R).2
-        (isRegularValue_iff.1 (hεreg p.property) p rfl))).isSubmersion
+    ha.isSubmersion_restrictPreimage_of_isRegularValue (by simp) R fun _ hy ↦ hεreg hy
   have := 𝓘(ℝ, Fin 2 → ℂ).secondCountableTopology_of_sigmaCompact rationalEllipticSurface
   have := ChartedSpace.locallyCompactSpace (Fin 2 → ℂ) P
   -- The Fermat cubic is the fibre of `g` over `0`.
