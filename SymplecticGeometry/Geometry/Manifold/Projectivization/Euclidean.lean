@@ -46,6 +46,16 @@ open scoped Manifold ContDiff LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry
 
+/-- A complex manifold charted on `Fin (n + 1) → ℂ`, re-modelled on the Hermitian space
+`EuclideanSpace ℂ (Fin (n + 1))`, is a smooth real manifold, the one underlying its complex
+structure. -/
+instance isManifold_real_remodel_euclideanSpace (n : ℕ) (M : Type*) [TopologicalSpace M]
+    [ChartedSpace (Fin (n + 1) → ℂ) M] [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ∞ M] :
+    IsManifold 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) ∞
+      (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) :=
+  (inferInstance : IsManifold 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞
+    (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M)).restrictScalars ℝ
+
 /-- The **complex projective space** `ℙ ℂ (Fin (n + 2) → ℂ)` of complex dimension `n + 1`, charted
 on the Hermitian space `EuclideanSpace ℂ (Fin (n + 1))`: its homogeneous-ratio charts are followed
 by the complex-linear identification of `Fin (n + 1) → ℂ` with `EuclideanSpace ℂ (Fin (n + 1))`. -/
@@ -55,12 +65,6 @@ abbrev EuclideanComplexProjectiveSpace (n : ℕ) : Type :=
 namespace EuclideanComplexProjectiveSpace
 
 variable (n : ℕ)
-
-/-- Complex projective space is a smooth real manifold, the one underlying its complex
-structure. -/
-instance : IsManifold 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) ∞ (EuclideanComplexProjectiveSpace n) :=
-  (inferInstance : IsManifold 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞
-    (EuclideanComplexProjectiveSpace n)).restrictScalars ℝ
 
 /-- The complex orientation of complex projective space, indexed by `Fin (2 * n + 1 + 1)`: the
 canonical orientation of a complex manifold,

@@ -36,9 +36,9 @@ For a chart `φ` of a manifold modelled on `E` whose target contains `ball c r`,
 (`OpenPartialHomeomorph.isOpenEmbedding_symm_comp_univBall`,
 `OpenPartialHomeomorph.isLocalDiffeomorph_symm_comp_univBall`): a coordinate ball. This is the
 rest of the proof of Tau Ceti's `TauCeti.exists_isOpenEmbedding_isLocalDiffeomorph`, for any chart
-of the maximal atlas instead of `chartAt`. At `0`, the map `univBall 0 ρ` has derivative
+of the maximal atlas instead of `chartAt`. At `0`, the map `univBall c ρ` has derivative
 `ρ • id`, so for `0 < ρ` it preserves every orientation of `E` there
-(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_zero`).
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`).
 
 ## Main results
 
@@ -47,7 +47,7 @@ of the maximal atlas instead of `chartAt`. At `0`, the map `univBall 0 ρ` has d
 * `OpenPartialHomeomorph.isOpenEmbedding_symm_comp_univBall`,
   `OpenPartialHomeomorph.isLocalDiffeomorph_symm_comp_univBall`: a chart inverse after
   `univBall c r` is a coordinate ball.
-* `OpenPartialHomeomorph.isOrientationPreservingAt_univBall_zero`: `univBall 0 ρ` preserves
+* `OpenPartialHomeomorph.isOrientationPreservingAt_univBall`: `univBall c ρ` preserves
   orientations at `0`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
   `ball c ρ`, precomposed with `univBall c ρ`, is a smooth embedding of `E`.
@@ -80,7 +80,6 @@ theorem isLocalDiffeomorph_univBall (hn : n ≤ ∞) :
   exact fun x ↦
     isLocalDiffeomorphAt_of_eqOn (Φ := Φ) (by simp [Φ, univBall_source]) fun _ _ ↦ by simp [Φ]
 
-
 section Chart
 
 variable {N : Type*} [TopologicalSpace N] {φ : OpenPartialHomeomorph N E} {r : ℝ}
@@ -110,14 +109,13 @@ theorem isLocalDiffeomorph_symm_comp_univBall [ChartedSpace E N] [IsManifold �
 
 end Chart
 
-/-- For `0 < ρ`, Mathlib's map `univBall 0 ρ` of a finite-dimensional `E` onto the ball of
-radius `ρ` preserves every orientation of `E` at `0`: it fixes `0`, with derivative `ρ • id`
-there. -/
-theorem isOrientationPreservingAt_univBall_zero [FiniteDimensional ℝ E] {ι : Type*} [Fintype ι]
+/-- For `0 < ρ`, Mathlib's map `univBall c ρ` of a finite-dimensional `E` onto the ball
+`ball c ρ` preserves every orientation of `E` at `0`: its derivative there is `ρ • id`. -/
+theorem isOrientationPreservingAt_univBall [FiniteDimensional ℝ E] {ι : Type*} [Fintype ι]
     (hρ : 0 < ρ) (o : Manifold.Orientation 𝓘(ℝ, E) E ι) :
-    o.IsOrientationPreservingAt o (univBall (0 : E) ρ) 0 := by
+    o.IsOrientationPreservingAt o (univBall c ρ) 0 := by
   refine Manifold.Orientation.isOrientationPreservingAt_of_det_fderiv_pos o ?_
-  rw [(hasFDerivAt_univBall hρ 0 0).fderiv]
+  rw [(hasFDerivAt_univBall hρ c 0).fderiv]
   simpa using pow_pos hρ (Module.finrank ℝ E)
 
 end OpenPartialHomeomorph

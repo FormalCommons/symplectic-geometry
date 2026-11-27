@@ -72,16 +72,6 @@ open OpenPartialHomeomorph
 
 variable {n : ℕ}
 
-/-- A complex manifold charted on `Fin (n + 1) → ℂ`, re-modelled on the Hermitian space
-`EuclideanSpace ℂ (Fin (n + 1))`, is a smooth real manifold, the one underlying its complex
-structure. -/
-instance (M : Type*) [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
-    [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] :
-    IsManifold 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) ∞
-      (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) :=
-  (inferInstance : IsManifold 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞
-    (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M)).restrictScalars ℝ
-
 variable {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M] {p₀ : M}
 
 namespace BlowupChart
@@ -94,33 +84,23 @@ that space. -/
 def euclideanChart :
     OpenPartialHomeomorph (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M)
       (EuclideanSpace ℂ (Fin (n + 1))) :=
-  c.toOpenPartialHomeomorph.trans
-    (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm.toHomeomorph.toOpenPartialHomeomorph
+  remodelChart _ c.toOpenPartialHomeomorph
 
 theorem euclideanChart_def :
-    c.euclideanChart = c.toOpenPartialHomeomorph.trans
-      ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm.toHomeomorph
-        |>.toOpenPartialHomeomorph) :=
-  (rfl)
-
-theorem center_mem_euclideanChart_source : p₀ ∈ c.euclideanChart.source := by
-  rw [euclideanChart_def, OpenPartialHomeomorph.trans_source]
-  exact ⟨c.mem_source, trivial⟩
-
-theorem euclideanChart_apply (x : M) :
-    c.euclideanChart x = (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm (c x) :=
+    c.euclideanChart =
+      remodelChart (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm
+        c.toOpenPartialHomeomorph :=
   (rfl)
 
 @[simp]
 theorem euclideanChart_symm_apply (v : EuclideanSpace ℂ (Fin (n + 1))) :
-    c.euclideanChart.symm v = c.symm (EuclideanSpace.equiv (Fin (n + 1)) ℂ v) :=
-  (rfl)
+    c.euclideanChart.symm v =
+      remodelHomeomorph _ M (c.symm (EuclideanSpace.equiv (Fin (n + 1)) ℂ v)) := by
+  rw [euclideanChart_def, remodelChart_symm_apply, ← ContinuousLinearEquiv.symm_toDiffeomorph,
+    ContinuousLinearEquiv.coe_toDiffeomorph_symm, ContinuousLinearEquiv.symm_symm]
 
-theorem euclideanChart_center : c.euclideanChart p₀ = 0 := by
-  rw [euclideanChart_apply, c.map_center, map_zero]
-
-theorem zero_mem_euclideanChart_target : 0 ∈ c.euclideanChart.target :=
-  c.euclideanChart_center ▸ c.euclideanChart.map_source c.center_mem_euclideanChart_source
+theorem zero_mem_euclideanChart_target : 0 ∈ c.euclideanChart.target := by
+  simpa [euclideanChart_def] using c.zero_mem_target
 
 /-- When `c` is a holomorphic chart of `M`, `c.euclideanChart` is a holomorphic chart of `M`
 re-modelled on `EuclideanSpace ℂ (Fin (n + 1))`. -/
@@ -128,7 +108,7 @@ theorem euclideanChart_mem_maximalAtlas [IsManifold 𝓘(ℂ, Fin (n + 1) → �
     (hc : c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M) :
     c.euclideanChart ∈ IsManifold.maximalAtlas 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞
       (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) :=
-  trans_mem_maximalAtlas_remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M
+  remodelChart_mem_maximalAtlas
     (IsManifold.maximalAtlas_eq_of_ne_zero (I := 𝓘(ℂ, Fin (n + 1) → ℂ)) (M := M) (m := ω) (n := ∞)
       (by simp) (by simp) ▸ hc)
 
@@ -162,13 +142,13 @@ theorem connectedSumBall_def :
 
 theorem connectedSumBall_apply (v : EuclideanSpace ℂ (Fin (n + 1))) :
     c.connectedSumBall v =
-      c.symm (EuclideanSpace.equiv (Fin (n + 1)) ℂ (univBall 0 c.ballRadius v)) := by
+      remodelHomeomorph _ M
+        (c.symm (EuclideanSpace.equiv (Fin (n + 1)) ℂ (univBall 0 c.ballRadius v))) := by
   rw [connectedSumBall_def, Function.comp_apply, euclideanChart_symm_apply]
 
 @[simp]
-theorem connectedSumBall_zero : c.connectedSumBall 0 = p₀ := by
-  rw [connectedSumBall_def, Function.comp_apply, univBall_apply_zero, ← c.euclideanChart_center]
-  exact c.euclideanChart.left_inv c.center_mem_euclideanChart_source
+theorem connectedSumBall_zero : c.connectedSumBall 0 = remodelHomeomorph _ M p₀ := by
+  rw [connectedSumBall_apply, univBall_apply_zero, map_zero, symm_zero]
 
 theorem isOpenEmbedding_connectedSumBall : Topology.IsOpenEmbedding c.connectedSumBall :=
   isOpenEmbedding_symm_comp_univBall c.ballRadius_pos
@@ -200,7 +180,7 @@ theorem isOrientationPreservingAt_connectedSumBall
   rw [complexManifoldOrientationOfFinrank_def, complexManifoldOrientationOfFinrank_def,
     connectedSumBall_def]
   exact ((univBall_apply_zero (0 : EuclideanSpace ℂ (Fin (n + 1))) c.ballRadius ▸
-    hφ.reindex _).comp (isOrientationPreservingAt_univBall_zero c.ballRadius_pos _))
+    hφ.reindex _).comp (isOrientationPreservingAt_univBall c.ballRadius_pos _))
 
 end BlowupChart
 
@@ -213,30 +193,20 @@ variable (n)
 followed by the identification of `Fin (n + 1) → ℂ` with `EuclideanSpace ℂ (Fin (n + 1))`. -/
 def lastAffineChart :
     OpenPartialHomeomorph (EuclideanComplexProjectiveSpace n) (EuclideanSpace ℂ (Fin (n + 1))) :=
-  (Projectivization.affineOpenPartialHomeomorph (K := ℂ) (Fin.last (n + 1))).trans
-    (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm.toHomeomorph.toOpenPartialHomeomorph
+  remodelChart _ (Projectivization.affineOpenPartialHomeomorph (K := ℂ) (Fin.last (n + 1)))
 
 theorem lastAffineChart_def :
     lastAffineChart n =
-      (Projectivization.affineOpenPartialHomeomorph (K := ℂ) (Fin.last (n + 1))).trans
-        ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm.toHomeomorph
-          |>.toOpenPartialHomeomorph) :=
+      remodelChart (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm
+        (Projectivization.affineOpenPartialHomeomorph (K := ℂ) (Fin.last (n + 1))) :=
   (rfl)
 
 theorem lastAffineChart_symm_apply (u : EuclideanSpace ℂ (Fin (n + 1))) :
-    (lastAffineChart n).symm u =
-      (Projectivization.affineChart (Fin.last (n + 1))).symm (EuclideanSpace.equiv _ ℂ u) := by
-  -- The same statement on `ℙ ℂ (Fin (n + 2) → ℂ)`, whose type synonym is
-  -- `EuclideanComplexProjectiveSpace n`, where the lemmas on `trans` apply.
-  have h : ((Projectivization.affineOpenPartialHomeomorph (K := ℂ) (Fin.last (n + 1))).trans
-      ((EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm.toHomeomorph
-        |>.toOpenPartialHomeomorph)).symm
-        u =
-      (Projectivization.affineChart (Fin.last (n + 1))).symm (EuclideanSpace.equiv _ ℂ u) := by
-    rw [OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm, OpenPartialHomeomorph.coe_trans,
-      Function.comp_apply, Projectivization.coe_affineOpenPartialHomeomorph_symm]
-    simp
-  exact h
+    (lastAffineChart n).symm u = remodelHomeomorph _ _
+      ((Projectivization.affineChart (Fin.last (n + 1))).symm (EuclideanSpace.equiv _ ℂ u)) := by
+  rw [lastAffineChart_def, remodelChart_symm_apply, ← ContinuousLinearEquiv.symm_toDiffeomorph,
+    ContinuousLinearEquiv.coe_toDiffeomorph_symm, ContinuousLinearEquiv.symm_symm,
+    Projectivization.coe_affineOpenPartialHomeomorph_symm]
 
 @[simp]
 theorem lastAffineChart_target : (lastAffineChart n).target = univ := by
@@ -245,7 +215,7 @@ theorem lastAffineChart_target : (lastAffineChart n).target = univ := by
 theorem lastAffineChart_mem_maximalAtlas :
     lastAffineChart n ∈ IsManifold.maximalAtlas 𝓘(ℂ, EuclideanSpace ℂ (Fin (n + 1))) ∞
       (EuclideanComplexProjectiveSpace n) :=
-  trans_mem_maximalAtlas_remodel _ _
+  remodelChart_mem_maximalAtlas
     (Projectivization.affineOpenPartialHomeomorph_mem_maximalAtlas (Fin.last (n + 1)))
 
 /-- The coordinate ball of the projective space along which the blowup is a connected sum:
@@ -257,10 +227,10 @@ theorem connectedSumBall_def : connectedSumBall n = (lastAffineChart n).symm :=
   (rfl)
 
 theorem connectedSumBall_apply (u : EuclideanSpace ℂ (Fin (n + 1))) :
-    connectedSumBall n u =
-      Projectivization.mk ℂ
+    connectedSumBall n u = remodelHomeomorph _ _
+      (Projectivization.mk ℂ
         (Fin.insertNth (α := fun _ ↦ ℂ) (Fin.last (n + 1)) 1 (EuclideanSpace.equiv _ ℂ u))
-        (Fin.insertNth_one_ne_zero _ _) := by
+        (Fin.insertNth_one_ne_zero _ _)) := by
   rw [connectedSumBall_def, lastAffineChart_symm_apply, Projectivization.affineChart_symm_apply]
 
 theorem isOpenEmbedding_connectedSumBall : Topology.IsOpenEmbedding (connectedSumBall n) :=
