@@ -80,9 +80,10 @@ lies in the stable set of `p` is horizontal for the kernel of this contact form.
   `.exists_flow_apply_mem_diff_of_isCompact`: the backward orbit of a point `x ≠ p` of the stable
   set leaves each compact part `K` of it, so an orbit that reaches an open set `G` whose points
   of the stable set lie in `K` passes through `K \ G`.
-* `SymplecticGeometry.IsWeinsteinStructure.isHorizontalMap_kerDistribution_fillingContactForm`:
-  a map into the boundary of a regular sublevel, with image in the stable set of a nondegenerate
-  critical point, is horizontal for the contact form of that boundary.
+* In the namespace `SymplecticGeometry.IsWeinsteinStructure`,
+  `isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet`: a map into the
+  boundary of a regular sublevel, with image in the stable set of a nondegenerate critical point,
+  is horizontal for the contact form of that boundary.
 
 ## Implementation notes
 
@@ -709,14 +710,15 @@ variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type*} 
 structure on a manifold `M` of dimension `n + 1`, `a` a regular value of `f`, and `p` a
 nondegenerate critical point of `f`. Give the sublevel `W = {x | f x ≤ a}` the structure of a
 Weinstein domain of `IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`, and its
-boundary the contact form `α = fillingContactForm σ Y` of that filling. Then every map
-`γ : N → ∂W` whose composite with the inclusion `∂W → M` takes values in the stable set of `p`
-is horizontal for the kernel distribution of `α`: the image of each differential of `γ` lies in
-`ker α`.
+boundary the contact form `α = fillingContactForm σ Y` of that filling, where `σ` is the
+pull-back of `ω` along the inclusion `ι : W → M` and `Y` the pull-back `x ↦ (dι_x)⁻¹ (X x)` of
+`X`. Then every map `γ : N → ∂W` whose composite with the inclusion `∂W → M` takes values in the
+stable set of `p` is horizontal for the kernel distribution of `α`: the image of each differential
+of `γ` lies in `ker α`.
 
 See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
-theorem isHorizontalMap_kerDistribution_fillingContactForm {n : ℕ} (hn : finrank ℝ E = n + 1)
-    {a : ℝ} (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) {p : M}
+theorem isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet {n : ℕ}
+    (hn : finrank ℝ E = n + 1) {a : ℝ} (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) {p : M}
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
     letI := scalarRegularSublevelChartedSpace
       (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) ha hn
