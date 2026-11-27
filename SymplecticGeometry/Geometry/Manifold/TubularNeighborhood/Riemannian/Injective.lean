@@ -5,10 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Coordinates
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Differential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
-public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
@@ -16,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.TubularNeighborhood.Riemannian.Noncompact
 import SymplecticGeometry.Topology.VectorBundle.Basic
 
 /-!
@@ -28,10 +27,11 @@ countable, with normal bundle `ν`. This file gives a smooth map `T : ν → N`,
 for a function `c > 0` (`TauCeti.SmoothEmbedding.exists_contMDiff_injective_normalBundle`).
 
 The map is the normal exponential of an auxiliary Riemannian metric on `N`, which is a
-diffeomorphism on a neighbourhood of the zero section (Tau Ceti's
-`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_subset`), precomposed with a
-fibrewise radial compression `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` of `ν` into
-that neighbourhood, for an auxiliary metric on `ν`. The compression follows the proof of Tau Ceti's
+diffeomorphism on the bundle of open normal discs of some positive smooth radius `r`, measured in
+the metric that `ν` inherits from `N` (Tau Ceti's
+`TauCeti.SmoothEmbedding.exists_partialDiffeomorph_normalExp_norm_lt_subset`), precomposed with
+the fibrewise radial compression `TauCeti.vectorBundleRadialPartialDiffeomorphOfRadius` of `ν`
+onto that disc bundle. The compression follows the proof of Tau Ceti's
 `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_riemannian_subset`; the differential along
 the zero section comes from `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply` and the
 chain rule. Unlike Tau Ceti's tubular diffeomorphisms, the statement records that differential.
@@ -88,31 +88,23 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
   · have : IsEmpty (TotalSpace P ν) := ⟨fun p ↦ hM.false p.proj⟩
     exact ⟨isEmptyElim, fun p ↦ isEmptyElim p, fun p ↦ isEmptyElim p, fun x ↦ isEmptyElim x,
       fun _ ↦ 1, fun _ ↦ one_pos, fun x ↦ isEmptyElim x⟩
-  have : T2Space M := f.isEmbedding.t2Space
-  have : SecondCountableTopology M := f.isEmbedding.isInducing.secondCountableTopology
-  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
   have := Manifold.locallyCompact_of_finiteDimensional (M := N) J
-  -- An auxiliary metric on `N`, and the normal exponential on a neighbourhood of the zero
-  -- section on which it is a diffeomorphism.
+  -- An auxiliary metric on `N`, and the normal exponential on the open disc bundle of a positive
+  -- smooth radius `r`, for the metric on `ν` induced by orthogonal representatives, on which it
+  -- is a diffeomorphism.
   obtain ⟨gN⟩ := nonempty_contMDiffRiemannianMetric (IB := J) (n := ⊤) (F := V)
     (E := fun y : N ↦ TangentSpace J y)
   let : RiemannianBundle (fun y : N ↦ TangentSpace J y) := ⟨gN.toRiemannianMetric⟩
   let : IsContMDiffRiemannianBundle J ∞ V (fun y : N ↦ TangentSpace J y) :=
     Bundle.instIsContMDiffRiemannianBundle gN
-  obtain ⟨Ψ, hzero, -, -, -, hΨ⟩ := f.exists_partialDiffeomorph_normalExp_subset (P := P)
-    (m := ∞) hn (by simp) (by simp) hdim isOpen_univ (subset_univ _)
-  -- An auxiliary metric on the normal bundle, and a radial compression into the source of `Ψ`.
-  obtain ⟨gν⟩ := nonempty_contMDiffRiemannianMetric (IB := I) (n := ⊤) (F := P) (E := ν)
-  let : RiemannianBundle ν := ⟨gν.toRiemannianMetric⟩
+  obtain ⟨Ψ, r, hΨ, hr, hsrc, -⟩ := f.exists_partialDiffeomorph_normalExp_norm_lt_subset (P := P)
+    hdim isOpen_univ (subset_univ _)
+  -- A radial compression of `ν` onto that disc bundle.
+  let : RiemannianBundle ν := ⟨f.normalRiemannianMetric hn⟩
   let : ∀ x, NormedAddCommGroup (ν x) := fun x => inferInstance
   let : ∀ x, InnerProductSpace ℝ (ν x) := fun x => inferInstance
-  let : IsContMDiffRiemannianBundle I ∞ P ν := Bundle.instIsContMDiffRiemannianBundle gν
-  let : IsContinuousRiemannianBundle P ν := by
-    obtain ⟨b, hb, heq⟩ :=
-      IsContMDiffRiemannianBundle.exists_contMDiff (IB := I) (n := ∞) (F := P) (E := ν)
-    exact ⟨b, hb.continuous, heq⟩
-  obtain ⟨r, hr, -, hdisc⟩ := Ψ.open_source.exists_contMDiffMap_norm_le_subset_bundle
-    (I := I) (n := ⊤) hzero (continuous_const (y := (1 : ℝ))) (fun _ => zero_lt_one)
+  let : IsContMDiffRiemannianBundle I ∞ P ν :=
+    f.isContMDiffRiemannianBundle_normalRiemannianMetric (m := ∞) hn (by simp) hdim
   let R := vectorBundleRadialPartialDiffeomorphOfRadius (F := P) (V := ν) r.contMDiff hr
   have hRapply (p : TotalSpace P ν) :
       R p = ⟨p.proj, r p.proj • (Real.sqrt (1 + ‖p.snd‖ ^ 2))⁻¹ • p.snd⟩ := by
@@ -122,9 +114,8 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     rw [vectorBundleRadialPartialDiffeomorphOfRadius_source]
     exact mem_univ p
   have hRS (p : TotalSpace P ν) : R p ∈ Ψ.source := by
-    have h := R.map_source (hRsrc p)
-    rw [vectorBundleRadialPartialDiffeomorphOfRadius_target] at h
-    exact hdisc _ _ (le_of_lt h)
+    rw [hsrc, ← vectorBundleRadialPartialDiffeomorphOfRadius_target r.contMDiff hr]
+    exact R.map_source (hRsrc p)
   have hR : ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, P)) ∞ R := fun p ↦
     R.contMDiffAt (hRsrc p)
   have hT : ContMDiff (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ Ψ (R p)) :=
@@ -140,7 +131,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
   -- map sends this line to the image under `Ψ` of the reparametrized line `t ↦ s t • v`, with
   -- `s' 0 = r x`.
   have hΨ0 : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Ψ (zeroSection P ν x) :=
-    (Ψ.contMDiffAt (hzero x)).mdifferentiableAt (by simp)
+    (Ψ.contMDiffAt (hzeroR x ▸ hRS _)).mdifferentiableAt (by simp)
   rw [normalFiberDeriv_apply_eq_mfderiv_smul f hn hdim ((hT _).mdifferentiableAt (by simp))]
   let line : ℝ → TotalSpace P ν := fun t ↦ ⟨x, t • v⟩
   have hl : ContMDiff 𝓘(ℝ) (I.prod 𝓘(ℝ, P)) 1 line :=
