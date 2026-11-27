@@ -18,7 +18,7 @@ A continuous linear equivalence `e : X ≃L[ℝ] Y` conjugates the flow `exp (t 
 `ContinuousLinearMap.stableSubspace` of `A` onto that of `e A e⁻¹`.
 
 A continuous bilinear map `B` with `B (A u) v + B u (A v) = B u v` grows like `e ^ t` along the
-flow: `B (exp (t • A) u) (exp (t • A) v) = e ^ t * B u v`. So it vanishes on pairs of stable
+flow: `B (exp (t • A) u) (exp (t • A) v) = e ^ t • B u v`. So it vanishes on pairs of stable
 vectors, since the left side then tends to `0`. For a Liouville field this is the isotropy of the
 stable subspace of its linearization at a zero.
 
@@ -76,7 +76,7 @@ namespace ContinuousLinearMap
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 /-- Let `B` be a continuous bilinear map with `B (A u) v + B u (A v) = B u v` for all `u`, `v`,
-so that `B (exp (t • A) u) (exp (t • A) v) = e ^ t * B u v`. Then `B u v = 0` for `u` and `v` in
+so that `B (exp (t • A) u) (exp (t • A) v) = e ^ t • B u v`. Then `B u v = 0` for `u` and `v` in
 the stable subspace of `A`. -/
 theorem apply_eq_zero_of_mem_stableSubspace {A : X →L[ℝ] X} {B : X →L[ℝ] X →L[ℝ] F}
     (hB : ∀ u v, B (A u) v + B u (A v) = B u v) {u v : X} (hu : u ∈ A.stableSubspace)
