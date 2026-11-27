@@ -36,12 +36,9 @@ noncomputable section
 
 open CategoryTheory Module
 
-universe w
-
 namespace TauCeti.HomologicalOrientation
 
-variable {M E : Type w} [TopologicalSpace M] [T2Space M]
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M] {n : ℕ}
+variable {n : ℕ}
 
 /-- **Orientations and fundamental classes correspond.** On a compact manifold with
 `finrank ℝ E = n`, the bijection between the homological orientations of `M` and the integral

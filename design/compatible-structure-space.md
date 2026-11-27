@@ -327,11 +327,12 @@ Mathlib, Tau Ceti and `LinearAlgebra/BilinearForm/SelfAdjoint.lean`.
   for a linear symplectomorphism `e : V ≃ₗ[ℝ] W` from `ω` to `ω₂`,
   `e.conj Y ∈ ω₂.compatibleTangentSpace (J.transport e) ↔ Y ∈ ω.compatibleTangentSpace J`.
 
-### `Algebra/Star/Module.lean`
+### Finiteness of the self-adjoint part
 
-`selfAdjoint.instModuleFinite`: `Module.Finite R (selfAdjoint A)` for a finite
-star module `A` over a Noetherian ring `R` with trivial star, through Mathlib's
-`selfAdjoint.submodule`.
+Tau Ceti's `selfAdjoint.instModuleFinite`
+(`LinearAlgebra/FiniteDimensional/SelfAdjoint.lean`): `Module.Finite R (selfAdjoint A)`
+for a finite star module `A` over a Noetherian ring `R` with trivial star, through
+Mathlib's `selfAdjoint.submodule`.
 
 ### The dimension of the tangent spaces
 

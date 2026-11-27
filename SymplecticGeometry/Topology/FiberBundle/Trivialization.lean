@@ -7,9 +7,9 @@ module
 
 public import Mathlib.Topology.FiberBundle.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
-public import TauCeti.Topology.FiberBundle.Trivialization
 public import SymplecticGeometry.Topology.Homeomorph.Prod
 import SymplecticGeometry.Logic.Equiv.Prod
+import TauCeti.Topology.FiberBundle.Trivialization
 
 /-!
 # Trivializations read through homeomorphisms

@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import TauCeti.Geometry.Symplectic.Hamiltonian.CanonicalTransformation
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
+import SymplecticGeometry.Topology.Algebra.GroupAction.InvariantCore
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens

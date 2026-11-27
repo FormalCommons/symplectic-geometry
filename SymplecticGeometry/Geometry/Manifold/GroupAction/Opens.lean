@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.GroupAction.Restrict
-public import SymplecticGeometry.Topology.Algebra.GroupAction.InvariantCore
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
