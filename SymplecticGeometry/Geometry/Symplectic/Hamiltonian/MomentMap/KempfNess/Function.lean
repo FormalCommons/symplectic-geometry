@@ -433,14 +433,8 @@ theorem HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction {c : ℝ → Gc}
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {t : ℝ}
     (hs : s ∈ 𝓝 t) :
     HasDerivAt (fun u ↦ kempfNessFunction C μ p (c u)) (μ ((c t)⁻¹ • p) (C.im (ξ t))) t := by
-  obtain ⟨w, hw, hwξ⟩ := hasLeftTrivializedDerivOn_def.mp hc t (mem_of_mem_nhds hs)
-  have hw' := hw.hasMFDerivAt hs
-  have hw1 : mfderiv 𝓘(ℝ) IC c t (1 : ℝ) = w := by
-    rw [hw'.mfderiv]
-    -- `(smulRight 1 w) 1` is `1 • w`, the `1` of `ℝ` read in the tangent space of `ℝ` at `t`.
-    exact one_smul ℝ w
-  have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hw'.mdifferentiableAt
-  rwa [hw1, hwξ] at hΦ
+  have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg (hc.mdifferentiableAt hs)
+  rwa [hc.mfderiv_inv_mul_mfderiv hs] at hΦ
 
 /-- **The derivative of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be

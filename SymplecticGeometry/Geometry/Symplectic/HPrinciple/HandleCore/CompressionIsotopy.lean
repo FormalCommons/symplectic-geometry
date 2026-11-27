@@ -115,16 +115,9 @@ theorem exists_isotopy_mapsTo_of_diffeotopy {ε₀ : ℝ} (hε₀ : 0 < ε₀) (
     exact contDiff_snd.contMDiff.comp (H.contMDiff.comp ((contMDiff_snd.comp contMDiff_fst).prodMk
       ((contMDiff_fst.comp contMDiff_fst).prodMk_space hcs)))
   · -- the time slice of `H` as a diffeomorphism for the product model, so that it has slices
-    have hmodel (f : L × E × F → L × E × F) (hf : ContMDiff 𝓘(ℝ, L × E × F) 𝓘(ℝ, L × E × F) ∞ f) :
-        ContMDiff (𝓘(ℝ, L).prod 𝓘(ℝ, E × F)) (𝓘(ℝ, L).prod 𝓘(ℝ, E × F)) ∞ f := by
-      rwa [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hf
-    let Ψ : (L × E × F) ≃ₘ^∞⟮𝓘(ℝ, L).prod 𝓘(ℝ, E × F), 𝓘(ℝ, L).prod 𝓘(ℝ, E × F)⟯
-        (L × E × F) :=
-      { toEquiv := (H.timeSlice p.2).toEquiv
-        contMDiff_toFun := hmodel _ (H.timeSlice p.2).contMDiff
-        contMDiff_invFun := hmodel _ (H.timeSlice p.2).symm.contMDiff }
-    -- `Ψ` has the same underlying equivalence as the time slice of `H`
-    have hΨ (q : L × E × F) : Ψ q = H (p.2, q) := H.timeSlice_apply p.2 q
+    set Ψ := Diffeomorph.prodModelEquiv (H.timeSlice p.2) with hΨdef
+    have hΨ (q : L × E × F) : Ψ q = H (p.2, q) := by
+      rw [hΨdef, Diffeomorph.coe_prodModelEquiv, Diffeotopy.timeSlice_apply]
     refine ⟨(prodFiberScalingDiffeomorph (hψs p.2) fun u ↦ (hψpos _).1.ne').trans
       (Ψ.slice (fun q ↦ (congrArg Prod.fst (hΨ q)).trans (hH p.2 q)) p.1), ?_⟩
     funext x

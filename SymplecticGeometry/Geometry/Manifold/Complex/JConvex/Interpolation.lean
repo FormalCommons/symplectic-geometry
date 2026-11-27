@@ -12,7 +12,6 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Manifold.Morse.Hessian
-import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import Mathlib.Analysis.Convex.Segment
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Glaeser
@@ -155,8 +154,8 @@ theorem exists_abs_comp_symm_le [I'.Boundaryless] (h : IsSmoothEmbedding I' 𝓘
   obtain ⟨C, hC⟩ := (h.isImmersion.isImmersionAt y).exists_eventually_infDist_sq_le_mul hn hρ
     hρ0 hρι hpos (IsManifold.maximalAtlas_subset_of_le (by norm_num) he) hy
   -- Glaeser's inequality for `ρ ∘ e.symm`.
-  have hf : ContDiffAt ℝ 2 (ρ ∘ e.symm) z₀ := by
-    simpa using (contMDiffAt_iff_contDiffAt_comp_extend_symm he hy).1 hρ
+  have hf : ContDiffAt ℝ 2 (ρ ∘ e.symm) z₀ :=
+    hρ.contDiffAt_comp_symm_of_mem_maximalAtlas he hy
   obtain ⟨A₁, hA₁⟩ := (isCompact_singleton (x := z₀)).exists_eventually_norm_fderiv_le_mul_sqrt
     (by simpa using hf) (by rw [nhdsSet_singleton]; exact hsymm_tendsto.eventually hρ0)
   rw [nhdsSet_singleton] at hA₁
@@ -266,8 +265,8 @@ theorem exists_closedBall_abs_sub_le_and_le_re_leviForm [I'.Boundaryless]
   have hcd {f : M → ℝ} (hf : ∀ᶠ x in 𝓝 (ι y), ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x) :
       ∀ᶠ z in 𝓝 z₀, ContDiffAt ℝ 2 (f ∘ e.symm) z := by
     filter_upwards [hsymm.eventually hf, htarget] with z hz hzt
-    simpa [e.right_inv hzt] using
-      (contMDiffAt_iff_contDiffAt_comp_extend_symm heR (e.map_target hzt)).1 hz
+    simpa only [e.right_inv hzt] using
+      hz.contDiffAt_comp_symm_of_mem_maximalAtlas heR (e.map_target hzt)
   -- Strict plurisubharmonicity in the chart is an open condition.
   have hsp {f : M → ℝ} (hf : ∀ᶠ x in 𝓝 (ι y), ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f x)
       (hfs : IsManifoldStrictlyPlurisubharmonicAt E f (ι y)) :

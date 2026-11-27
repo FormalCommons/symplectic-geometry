@@ -361,8 +361,8 @@ theorem isPseudoholomorphicOn_blowupModelChart_comp_lift (i : Fin (n + 1)) :
     IsPseudoholomorphicOn (almostComplexStructure c J hJ)
       (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) (blowupModelChart i ∘ lift c)
       (range (inr (gluingHomeomorph c)) ∩ lift c ⁻¹' (blowupModelChart i).source) :=
-  (isPseudoholomorphicOn_ofComplexManifold_iff.2
-    ((contMDiffOn_blowupModelChart i ω).mdifferentiableOn (by simp))).comp
+  (isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas
+    (blowupModelChart_mem_maximalAtlas ω i) (by simp)).comp
     ((isPseudoholomorphicOn_lift c J hJ).mono inter_subset_left) fun _ hz ↦ hz.2
 
 /-- **The almost complex blowup is integrable near the exceptional divisor**: its restriction to
@@ -387,14 +387,6 @@ section Complex
 variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
   [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
 
-/-- A chart `c` of the complex atlas of a complex manifold `M` is pseudoholomorphic on its
-source, from the structure of `M` to the standard structure of `ℂⁿ⁺¹`. -/
-theorem isPseudoholomorphicOn_ofComplexManifold_blowupChart :
-    IsPseudoholomorphicOn (ofComplexManifold (Fin (n + 1) → ℂ) M)
-      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c c.source :=
-  isPseudoholomorphicOn_ofComplexManifold_iff.2
-    ((contMDiffOn_of_mem_maximalAtlas hc.out).mdifferentiableOn (by simp))
-
 /-- **The almost complex blowup of a complex manifold is the complex blowup.** For a complex
 manifold `M` and a chart `c` of its complex atlas, the almost complex blowup of the structure of
 `M` is the structure of the complex manifold `Blowup c`. Being holomorphic, `c` is
@@ -402,7 +394,7 @@ pseudoholomorphic for the structure of `M`, and it is a chart of the smooth atla
 (`Blowup.instFactMemMaximalAtlasReal`), so the almost complex blowup is defined. -/
 theorem almostComplexStructure_eq_ofComplexManifold :
     almostComplexStructure c (ofComplexManifold (Fin (n + 1) → ℂ) M)
-        (isPseudoholomorphicOn_ofComplexManifold_blowupChart c) =
+        (isPseudoholomorphicOn_ofComplexManifold_of_mem_maximalAtlas hc.out (by simp)) =
       ofComplexManifold (Fin (n + 1) → ℂ) (Blowup c) := by
   ext z v
   rcases (Set.ext_iff.1 (GluedAlong.range_inl_union_range_inr (gluingHomeomorph c)) z).2

@@ -30,7 +30,7 @@ it.
 `TauCeti.MorseChart.exists_radial_extension_levelCrossingTime` gives a smooth `θ : N → ℝ`, equal
 on the sphere of radius `ρ` to the time `Flow.levelCrossingTime Φ g a` at which the flow line of
 `y_c` crosses the level `{g = a}`, such that `r ↦ θ (r • u) + log r` has a positive derivative for
-every `u ≠ 0`. It states this in the two forms that the next steps use: that function is strictly
+every `u`. It states this in the two forms that the next steps use: that function is strictly
 monotone on `(0, ∞)`, which gives the hypothesis of
 `TauCeti.MorseChart.injOn_globalFlow_toChart_symm_negativeExtend`, and `1 + dθ_c(c) > 0` (its
 derivative at `r = 1` for `u = c`), the hypothesis of
@@ -96,7 +96,7 @@ coordinates `c` of negative weight and `0` of positive weight, and let the close
 
 Then there is a smooth `θ`, equal for `‖c‖ = ρ` to the time at which the flow line of `y_c`
 crosses the level `{g = a}`, such that `r ↦ θ (r • u) + log r` is strictly monotone on `(0, ∞)`
-for every `u ≠ 0`, such that `1 + dθ_c(c) > 0` for every `c`, and such that `F c = Φ (θ c) y_c`
+for every `u`, such that `1 + dθ_c(c) > 0` for every `c`, and such that `F c = Φ (θ c) y_c`
 maps the sphere of radius `ρ` into
 `{g = a}` and the closed ball into `{a ≤ g}`, and reaches, from the open ball, every point `x` of
 the unstable set of `p` with `a < g x`. -/
@@ -115,7 +115,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       (∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ = ρ →
         θ c = Flow.levelCrossingTime (globalFlow X hX hXc) g a
           (φ.toChart.symm (φ.negativeExtend c.ofLp))) ∧
-      (∀ u : EuclideanSpace ℝ {i // φ.weight i < 0}, u ≠ 0 →
+      (∀ u : EuclideanSpace ℝ {i // φ.weight i < 0},
         StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Ioi 0)) ∧
       (∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, 0 < 1 + fderiv ℝ θ c c) ∧
       MapsTo (fun c ↦ globalFlow X hX hXc (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)))
@@ -194,7 +194,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       g (Φ (θ c) (ι c)) = a := by
     rw [hθτ c hc]
     exact Flow.apply_flow_levelCrossingTime (hreach c hc)
-  refine ⟨θ, hθs, hθτ, fun u _ ↦ hmono u, hθc,
+  refine ⟨θ, hθs, hθτ, hmono, hθc,
     fun c hc ↦ hsph c (mem_sphere_zero_iff_norm.1 hc), ?_, ?_⟩
   · intro c hc
     rw [mem_closedBall_zero_iff] at hc

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Manifold.Rescale
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -57,6 +58,9 @@ tangent space of `f₁` being symplectic, the difference vanishes.
   the symplectic neighbourhood theorem.
 * `TauCeti.SmoothEmbedding.symplecticNormalForm_congr`: the normal symplectic form depends only
   on the ambient form.
+* `TauCeti.SmoothEmbedding.symplecticNormalForm_smul`: rescaling the ambient form by a nonzero
+  constant `c` rescales the normal symplectic form by `c`, the symplectic representatives being
+  unchanged (`TauCeti.SmoothEmbedding.symplecticNormalRepresentative_smul`).
 * `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`: the normal symplectic form,
   evaluated on two maps into the normal bundle that are smooth at a point, is smooth there. As in
   the proof of Tau Ceti's `TauCeti.SmoothEmbedding.contMDiff_symplecticNormalFlat`, it is the
@@ -88,6 +92,37 @@ theorem symplecticNormalForm_congr {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup
     f.symplecticNormalForm h₁ q hn = f.symplecticNormalForm h₂ q hn := by
   subst h
   rfl
+
+section Rescale
+
+variable {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ]
+  [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
+  [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN] [TopologicalSpace HN]
+  {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold K ∞ N]
+  {σ : SmoothTwoForm K N} {hσ : σ.IsNondegenerate} {n : ℕ∞ω} {f : SmoothEmbedding J K n Q N}
+
+/-- Rescaling the ambient form by a nonzero constant does not change the symplectic
+representatives of the normal classes, since the symplectic complements stay the same. -/
+theorem symplecticNormalRepresentative_smul (h : hσ.HasSymplecticTangentImages J f) {c : ℝ}
+    (hc : c ≠ 0) (h' : (hσ.smul c hc).HasSymplecticTangentImages J f) (q : Q) (hn : n ≠ 0) :
+    f.symplecticNormalRepresentative h' q hn = f.symplecticNormalRepresentative h q hn := by
+  ext v
+  refine (f.symplecticNormalRepresentative_eq_iff h' q hn v _).2 ⟨?_, ?_⟩
+  · rw [hσ.symplecticFormAt_smul c hc, SymplecticForm.orthogonal_rescale c hc]
+    exact f.symplecticNormalRepresentative_mem_orthogonal h q hn v
+  · exact f.normalClass_symplecticNormalRepresentative h q hn v
+
+/-- Rescaling the ambient form by a nonzero constant `c` rescales the normal symplectic form of
+an embedding by `c`. -/
+theorem symplecticNormalForm_smul (h : hσ.HasSymplecticTangentImages J f) {c : ℝ} (hc : c ≠ 0)
+    (h' : (hσ.smul c hc).HasSymplecticTangentImages J f) (q : Q) (hn : n ≠ 0) :
+    f.symplecticNormalForm h' q hn = (f.symplecticNormalForm h q hn).rescale c hc := by
+  apply SymplecticForm.toBilinForm_injective
+  ext v w
+  simp only [symplecticNormalForm_apply, symplecticNormalRepresentative_smul h hc h',
+    SmoothForm.eval₂_smul, SymplecticForm.rescale_apply, smul_eq_mul]
+
+end Rescale
 
 section
 

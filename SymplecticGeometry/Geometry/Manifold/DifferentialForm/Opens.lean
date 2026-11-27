@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
+import TauCeti.Topology.Algebra.Support
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
@@ -35,7 +36,17 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 
 * A form on `U` extends by zero to a form on `M` (`TauCeti.RoughForm.extendByZeroOfOpens`)
   whose restriction to `U` is the form, so every form on `U` is the restriction of a form on `M`
-  (`TauCeti.mpullback_subtype_val_surjective`).
+  (`TauCeti.mpullback_subtype_val_surjective`). Its restriction to any open subset `W` is Tau
+  Ceti's `TauCeti.RoughForm.extendByZero W` of the form
+  (`TauCeti.RoughForm.mpullback_subtype_val_extendByZeroOfOpens_eq_extendByZero`). It commutes
+  with multiplication by a function on `M` (`TauCeti.RoughForm.extendByZeroOfOpens_fun_smul`), is
+  supported in the image of the support of a compactly supported form on a Hausdorff manifold
+  (`TauCeti.RoughForm.tsupport_extendByZeroOfOpens_subset`), and has the exterior derivative of
+  the form at the points of `U` (`TauCeti.RoughForm.mextDeriv_extendByZeroOfOpens_coe`), hence
+  everywhere if it vanishes near every point outside `U`
+  (`TauCeti.RoughForm.mextDeriv_extendByZeroOfOpens`). Its product with a `C^n` function whose
+  support lies in `U` is `C^n` when the form is
+  (`TauCeti.IsSmoothForm.fun_smul_extendByZeroOfOpens`).
 * Restricting to an open subset `W` and then to an open subset `V ≤ W` is restricting to `V`
   (`TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
   `TauCeti.SmoothForm.mpullback_inclusion_mpullback_subtype_val` for smooth forms).
@@ -76,7 +87,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 
 The proofs of the last item adapt those of Tau Ceti's `TauCeti.mpullback_inclusion_mextDeriv` and
 `TauCeti.RoughForm.inChartAt_mpullback_inclusion_eventuallyEq`, with Tau Ceti's
-`TopologicalSpace.Opens.coe_extChartAt_symm_apply` for the agreement of the inverse charts.
+`TopologicalSpace.Opens.coe_extChartAt_symm_apply` for the agreement of the inverse charts. The
+proof of `TauCeti.RoughForm.mextDeriv_extendByZeroOfOpens` adapts that of Tau Ceti's
+`TauCeti.RoughForm.mextDeriv_extendByZero` to extension along `Subtype.val`.
 
 ## Pull-back along a partial diffeomorphism of open subsets
 
@@ -170,6 +183,42 @@ theorem mpullback_subtype_val_extendByZeroOfOpens {U : Opens M} (ξ : RoughForm 
   funext x
   rw [mpullback_subtype_val_apply, extendByZeroOfOpens_apply_of_mem ξ x.property]
 
+/-- Restricting to an open subset `W` the extension by zero of a form on `U` to `M` is Tau Ceti's
+extension by zero of the form from `U` to `W`. -/
+theorem mpullback_subtype_val_extendByZeroOfOpens_eq_extendByZero {U : Opens M} (W : Opens M)
+    (ξ : RoughForm I U F k) :
+    mpullback I I (Subtype.val : W → M) (extendByZeroOfOpens ξ) = extendByZero W ξ := by
+  funext x
+  rw [mpullback_subtype_val_apply]
+  by_cases hx : (x : M) ∈ U
+  · exact (extendByZeroOfOpens_apply_of_mem ξ hx).trans (extendByZero_apply_of_mem ξ hx).symm
+  · exact (extendByZeroOfOpens_apply_of_notMem ξ hx).trans
+      (extendByZero_apply_of_notMem ξ hx).symm
+
+/-- The extension by zero to `M` of the product of a form on `U` with the restriction of a
+function on `M` is the product of the function with the extension by zero of the form. -/
+theorem extendByZeroOfOpens_fun_smul {U : Opens M} (f : M → ℝ) (ξ : RoughForm I U F k) :
+    extendByZeroOfOpens (fun y : U ↦ f y • ξ y) = fun x ↦ f x • extendByZeroOfOpens ξ x := by
+  funext x
+  by_cases hx : x ∈ U
+  · rw [extendByZeroOfOpens_apply_of_mem _ hx, extendByZeroOfOpens_apply_of_mem ξ hx]
+    rfl
+  · rw [extendByZeroOfOpens_apply_of_notMem _ hx, extendByZeroOfOpens_apply_of_notMem ξ hx,
+      smul_zero]
+
+/-- On a Hausdorff manifold, the extension by zero to `M` of a compactly supported form on an
+open subset `U` is supported in the image of the support of the form. -/
+theorem tsupport_extendByZeroOfOpens_subset [T2Space M] {U : Opens M} {ξ : RoughForm I U F k}
+    (hξ : IsCompact (_root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) ξ)) :
+    _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) (extendByZeroOfOpens ξ) ⊆
+      Subtype.val '' _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) ξ := by
+  refine TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun x hx ↦ ?_)
+    (hξ.image continuous_subtypeVal).isClosed
+  by_cases hU : x ∈ U
+  · rw [extendByZeroOfOpens_apply_of_mem ξ hU]
+    exact image_eq_zero_of_notMem_tsupport fun h ↦ hx ⟨_, h, rfl⟩
+  · exact extendByZeroOfOpens_apply_of_notMem ξ hU
+
 end RoughForm
 
 /-- Every form on an open subset `U` of `M` is the restriction to `U` of a form on `M`. -/
@@ -231,6 +280,16 @@ theorem isSmoothForm_fun_smul_of_mpullback_subtype_val {n : WithTop ℕ∞} {W :
   rw [isSmoothForm_def]
   exact ContMDiffOn.smul_section_of_tsupport hf.contMDiffOn W.isOpen hfW fun x hx ↦
     ((contMDiffAt_mpullback_subtype_val_iff μ ⟨x, hx⟩).1 (hμ.contMDiff _)).contMDiffWithinAt
+
+/-- Let `ξ` be a `C^n` form on an open subset `U` of `M` and `f` a `C^n` function on `M` whose
+topological support lies in `U`. Then the product of `f` with the extension by zero of `ξ` to `M`
+is a `C^n` form on `M`. -/
+theorem IsSmoothForm.fun_smul_extendByZeroOfOpens {n : WithTop ℕ∞} {U : Opens M}
+    {ξ : RoughForm I U F k} (hξ : IsSmoothForm I n ξ) {f : M → ℝ} (hf : ContMDiff I 𝓘(ℝ) n f)
+    (hfU : tsupport f ⊆ U) :
+    IsSmoothForm I n (fun x ↦ f x • RoughForm.extendByZeroOfOpens ξ x) :=
+  isSmoothForm_fun_smul_of_mpullback_subtype_val hf hfU
+    (by rw [RoughForm.mpullback_subtype_val_extendByZeroOfOpens]; exact hξ)
 
 /-- **Gluing a form on an open subset with a global form.** Let `M` be covered by an open set `W`
 and an open subset `V`. A smooth form `η` on `M` and a smooth form `σ` on `V` that agree at the
@@ -319,6 +378,27 @@ theorem mpullback_subtype_val_mextDeriv {U : Opens M} (γ : RoughForm I M F k) :
   rw [mpullback_subtype_val_apply, mextDeriv_def, mextDeriv_def,
     ← Opens.extChartAt_apply U x x]
   exact (heq.extDerivWithin_eq (heq.self_of_nhdsWithin (mem_range_self _))).symm
+
+/-- At a point of an open subset `U`, the exterior derivative of the extension by zero to `M` of a
+form `ξ` on `U` is that of `ξ`, with no regularity assumption. -/
+@[simp]
+theorem RoughForm.mextDeriv_extendByZeroOfOpens_coe {U : Opens M} (ξ : RoughForm I U F k)
+    (x : U) : mextDeriv (extendByZeroOfOpens ξ) (x : M) = mextDeriv ξ x := by
+  have h := congrFun (mpullback_subtype_val_mextDeriv (U := U) (extendByZeroOfOpens ξ)) x
+  rwa [mpullback_subtype_val_apply, RoughForm.mpullback_subtype_val_extendByZeroOfOpens] at h
+
+/-- The exterior derivative commutes with extension by zero from an open subset `U` to `M`,
+provided the extension vanishes near every point outside `U`. No regularity is needed. -/
+theorem RoughForm.mextDeriv_extendByZeroOfOpens {U : Opens M} {ξ : RoughForm I U F k}
+    (hzero : ∀ x ∉ U, ∀ᶠ y in 𝓝 x, extendByZeroOfOpens ξ y = 0) :
+    mextDeriv (extendByZeroOfOpens ξ) = extendByZeroOfOpens (mextDeriv ξ) := by
+  funext x
+  by_cases hx : x ∈ U
+  · rw [extendByZeroOfOpens_apply_of_mem _ hx]
+    exact mextDeriv_extendByZeroOfOpens_coe ξ ⟨x, hx⟩
+  · rw [extendByZeroOfOpens_apply_of_notMem _ hx]
+    have hz : ∀ᶠ y in 𝓝 x, extendByZeroOfOpens ξ y = (0 : RoughForm I M F k) y := hzero x hx
+    rw [mextDeriv_congr_of_eventuallyEq hz, mextDeriv_zero, Pi.zero_apply]
 
 section Diffeomorph
 

@@ -10,13 +10,18 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Hypersurface.LineBund
 public import TauCeti.Analysis.Normed.Module.Alternating.TopDegree
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+public import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.TopDegree
 import SymplecticGeometry.Topology.Algebra.Module.TensorProduct
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.LinearAlgebra.TensorProduct.Separation
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import TauCeti.Geometry.Manifold.VectorBundle.TensorProduct
+import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Canonical
+import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
 # The canonical bundle of the blowup
@@ -68,6 +73,16 @@ followed by the inverse of that of `c` (chart `some i`). The Jacobians above sho
 maps differ, from one chart to another, exactly by the transition functions of `𝒪(nE)`, so that
 the value in every chart containing `z` is the same.
 
+The file ends with holomorphic local frames of `π^*K_M ⊗ 𝒪(nE)`, the source of the inverse of
+`canonicalBundleEquiv`: for a chart `e` of the maximal atlas of `M` and an index `j`, the
+coordinate form of `e` at `π z` tensored with the element of coordinate `1` in the chart `j` of
+`𝒪(nE)`. It is holomorphic over the chart `j` and the source of `e`, as a tensor product
+(Tau Ceti's `ContMDiffOn.tmul_section`) of the pull-back by `π` of a holomorphic form and of a
+section with constant coordinate, and nowhere zero there, as a tensor product of nonzero
+vectors. For `j = some i` one takes `e = c`, the frame of `canonicalBundleEquiv_symm_tmul_some`;
+off the divisor, `j = none` and `e = chartAt _ (π z₀)` give a frame near each point `z₀`, the
+one of `canonicalBundleEquiv_symm_tmul_none`.
+
 ## Main definitions
 
 * `SymplecticGeometry.Blowup.hypersurfaceData c`: the local equations of the exceptional divisor.
@@ -96,6 +111,10 @@ the value in every chart containing `z` is the same.
 * `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_tmul_none` and
   `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_tmul_some`: the inverse of
   `canonicalBundleEquiv` in the charts `none` and `some i`, at every point of these charts.
+* `SymplecticGeometry.Blowup.contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm` and
+  `SymplecticGeometry.Blowup.continuousDet_mfderiv_tmul_localTriv_symm_ne_zero`: the local frames
+  of `π^*K_M ⊗ 𝒪(nE)` are holomorphic and nowhere zero; the `_some` forms do this for the frame on
+  the chart `some i` built from `c`.
 
 ## References
 
@@ -787,21 +806,6 @@ private theorem compContinuousLinearMap_chartDeriv_eq {j k : Option (Fin (n + 1)
       congr 1
       field_simp
 
-omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] hc in
-/-- The fibres of `π^*K_M` carry their module topology, which `TensorProduct.ridL` needs. -/
-private theorem isModuleTopology_pullback_canonicalBundle (z : Blowup c) :
-    IsModuleTopology ℂ
-      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) :=
-  haveI : FiniteDimensional ℂ
-      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) :=
-    Module.finite_of_finrank_eq_succ (TauCeti.CanonicalBundle.finrank_eq_one (blowdown c z))
-  haveI : T2Space
-      (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) :=
-    inferInstanceAs (T2Space (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)))
-  isModuleTopologyOfFiniteDimensional
-
-attribute [local instance] isModuleTopology_pullback_canonicalBundle
-
 /-- **The canonical bundle of the blowup.** The fibrewise isomorphism, at each point `z` of the
 blowup `Blowup c` with blowdown `π`, of the canonical bundle `K` of the blowup with the tensor
 product of the pull-back `π^*K_M` of the canonical bundle of `M` with the line bundle `𝒪(nE)` of
@@ -911,6 +915,103 @@ theorem canonicalBundleEquiv_symm_tmul_some {i : Fin (n + 1)} {z : Blowup c}
   ext v
   simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
   exact congrArg b.continuousDet (funext fun _ ↦ hD.self_apply_inverse _)
+
+section Frames
+
+open Bundle
+
+/-- **Local frames of `π^*K_M ⊗ 𝒪(nE)`.** For a holomorphic chart `e` of `M` and an index `j` of
+`hypersurfaceData c`, the section `z ↦ dz_e ⊗ s_j` of `π^*K_M ⊗ 𝒪(nE)`, the coordinate form of `e`
+at the blowdown of `z` tensored with the element of coordinate `1` in the chart `j` of `𝒪(nE)`, is
+holomorphic on the chart `j` of `hypersurfaceData c` over the source of `e`. -/
+theorem contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm {e : OpenPartialHomeomorph M
+    (Fin (n + 1) → ℂ)} (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) (j : Option (Fin (n + 1))) :
+    ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ)
+      (𝓘(ℂ, Fin (n + 1) → ℂ).prod 𝓘(ℂ, TauCeti.ProjectiveTensor ℂ
+        ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)) ω
+      (fun z ↦ TotalSpace.mk' (TauCeti.ProjectiveTensor ℂ
+          ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)
+        (E := fun z ↦
+          Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+            ((hypersurfaceData c).lineBundleCore n).Fiber z) z
+        ((b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e (blowdown c z)) :
+            Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+          ⊗ₜ[ℂ] (((hypersurfaceData c).lineBundleCore n).localTriv j).symm z 1))
+      ((hypersurfaceData c).U j ∩ blowdown c ⁻¹' e.source) := by
+  have hU : IsOpen ((hypersurfaceData c).U j ∩ blowdown c ⁻¹' e.source) :=
+    ((hypersurfaceData c).isOpen_U j).inter (e.open_source.preimage (blowdown c).continuous)
+  refine ContMDiffOn.tmul_section (b := id) (F₂ := ℂ)
+    (F₁ := (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
+    (E₁ := (blowdown c) *ᵖ (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M))
+    (E₂ := ((hypersurfaceData c).lineBundleCore n).Fiber) ?_ ?_
+  · intro z hz
+    rw [Bundle.Pullback.contMDiffWithinAt_iff (blowdown c) (contMDiff_blowdown c _)]
+    refine ⟨contMDiffWithinAt_id, ?_⟩
+    exact ((TauCeti.CanonicalBundle.contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv
+      (contMDiffAt_of_mem_maximalAtlas he hz.2) (by simp) b).comp z
+      (contMDiff_blowdown c z)).contMDiffWithinAt
+  · have hsub : (hypersurfaceData c).U j ∩ blowdown c ⁻¹' e.source ⊆
+        (((hypersurfaceData c).lineBundleCore n).localTriv j).baseSet := fun z hz ↦ by
+      simpa using hz.1
+    have : MemTrivializationAtlas (((hypersurfaceData c).lineBundleCore n).localTriv j) :=
+      ⟨⟨j, rfl⟩⟩
+    exact (((hypersurfaceData c).lineBundleCore n).localTriv j).contMDiffOn_section_symm hU hsub
+      (contMDiffOn_const (c := (1 : ℂ)))
+
+/-- **The local frames of `π^*K_M ⊗ 𝒪(nE)` do not vanish.** At a point `z` of the chart `j` of
+`hypersurfaceData c` whose blowdown lies in the source of a holomorphic chart `e` of `M`, the
+coordinate form of `e` at the blowdown of `z` tensored with the element of coordinate `1` in the
+chart `j` of `𝒪(nE)` is nonzero. -/
+theorem continuousDet_mfderiv_tmul_localTriv_symm_ne_zero {e : OpenPartialHomeomorph M
+    (Fin (n + 1) → ℂ)} (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) {j : Option (Fin (n + 1))}
+    {z : Blowup c} (hz : z ∈ (hypersurfaceData c).U j) (hze : blowdown c z ∈ e.source) :
+    (b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e (blowdown c z)) :
+        Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) ⊗ₜ[ℂ]
+      (((hypersurfaceData c).lineBundleCore n).localTriv j).symm z 1 ≠ 0 :=
+  TauCeti.tmul_ne_zero
+    (b.continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero he le_top hze)
+    (((((hypersurfaceData c).lineBundleCore n).localTriv j).symm_apply_ne_zero_iff ℂ
+      (by simpa using hz)).2 one_ne_zero)
+
+/-- **The local frame of `π^*K_M ⊗ 𝒪(nE)` on the chart `some i`.** The coordinate form of `c` at
+the blowdown of `z` tensored with the element of coordinate `1` in the chart `some i` of
+`𝒪(nE)`, the frame that `canonicalBundleEquiv_symm_tmul_some` evaluates, is holomorphic on the
+chart `some i` of `hypersurfaceData c`. -/
+theorem contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm_some
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) (i : Fin (n + 1)) :
+    ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ)
+      (𝓘(ℂ, Fin (n + 1) → ℂ).prod 𝓘(ℂ, TauCeti.ProjectiveTensor ℂ
+        ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)) ω
+      (fun z ↦ TotalSpace.mk' (TauCeti.ProjectiveTensor ℂ
+          ((Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) ℂ)
+        (E := fun z ↦
+          Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+            ((hypersurfaceData c).lineBundleCore n).Fiber z) z
+        ((b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)) :
+            Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+          ⊗ₜ[ℂ] (((hypersurfaceData c).lineBundleCore n).localTriv (some i)).symm z 1))
+      ((hypersurfaceData c).U (some i)) :=
+  (contMDiffOn_continuousDet_mfderiv_tmul_localTriv_symm c hc.out b (some i)).mono
+    fun _ hz ↦ ⟨hz, (mem_source_of_mem_U_some c hz).2.1⟩
+
+/-- The local frame of `π^*K_M ⊗ 𝒪(nE)` on the chart `some i`, built from the coordinate form of
+`c`, does not vanish there. -/
+theorem continuousDet_mfderiv_tmul_localTriv_symm_some_ne_zero
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) {i : Fin (n + 1)}
+    {z : Blowup c} (hz : z ∈ (hypersurfaceData c).U (some i)) :
+    (b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)) :
+        Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z) ⊗ₜ[ℂ]
+      (((hypersurfaceData c).lineBundleCore n).localTriv (some i)).symm z 1 ≠ 0 :=
+  continuousDet_mfderiv_tmul_localTriv_symm_ne_zero c hc.out b hz
+    (mem_source_of_mem_U_some c hz).2.1
+
+end Frames
 
 end CanonicalBundleEquiv
 
