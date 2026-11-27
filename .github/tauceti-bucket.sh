@@ -42,9 +42,10 @@
 # has that save, the runs of CI take the modules on the word of the move's
 # own run.
 #
-# The search asks for no further file once two minutes have passed, and the
-# run goes on without the bucket. With the request that is under way then,
-# that is two and a half minutes at most.
+# The search asks for nothing further once two minutes have passed, and the
+# run goes on without the bucket. What is under way then still ends: a file
+# has 15 seconds, and the question to GitHub for the run's own commits a
+# minute (own-commits.sh). So the search takes three minutes at most.
 #
 # `stage` makes OUT, the directory that CI hands to the workflow
 # cache-upload as the artifact `lake-cache-tauceti`. If `find` found
@@ -100,7 +101,7 @@ find_mappings() {
     take queue "$queue" "$c" && return 0
   done
   late && return 0
-  for c in $(timeout 20 "$here/own-commits.sh"); do
+  for c in $("$here/own-commits.sh"); do
     late && return 0
     take pr "$pr" "$c" && return 0
   done
