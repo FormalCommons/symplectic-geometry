@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
@@ -266,7 +267,7 @@ theorem IsCircleConnectionForm.add_mpullback (hα : IsCircleConnectionForm α)
   mpullback_op_smul z := by
     rw [map_add, hα.mpullback_op_smul, PrincipalBundle.mpullback_op_smul_mpullback_proj]
   apply_rightFundamentalVectorField x := by
-    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+    rw [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply,
       hα.apply_rightFundamentalVectorField, SmoothForm.mpullback_apply_one,
       -- Tau Ceti states the vanishing of `dπ` on fundamental fields with the projection written
       -- out.
@@ -301,7 +302,7 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
         exact hc.trans (zero_add _).symm
       rw [hv0, ContinuousAlternatingMap.vecCons_add, ContinuousAlternatingMap.vecCons_smul,
         ((β - α).val x).map_coord_zero (0 : Fin 1) rfl,
-        Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
+        SmoothBundleForm.sub_apply, ContinuousAlternatingMap.sub_apply,
         hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
         smul_zero, add_zero])
   refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
