@@ -41,15 +41,44 @@ complex-antilinear operator is its own complex-antilinear part
 Each value of either part is half the sum of two vectors of norm at most `‖Ψ‖ * ‖v‖`, so the
 pointwise bounds follow from Tau Ceti's `TauCeti.norm_two_inv_smul_add_le`.
 
-Both parts commute with complex scalars (`ContinuousLinearMap.complexLinearPart_complex_smul`,
-`ContinuousLinearMap.complexAntilinearPart_complex_smul`), next to Tau Ceti's versions for real
-scalars, and their values at a fixed vector are as smooth as the operator
+For topological complex modules whose real structure is compatible with the complex one, the
+setting of Tau Ceti's versions for real scalars, both parts commute with complex scalars
+(`ContinuousLinearMap.complexLinearPart_complex_smul`,
+`ContinuousLinearMap.complexAntilinearPart_complex_smul`). In the normed compatible setting of
+the first paragraph, their values at a fixed vector are as smooth as the operator
 (`ContDiffOn.complexLinearPart_apply`, `ContDiffOn.complexAntilinearPart_apply`).
 -/
 
 public section
 
 namespace ContinuousLinearMap
+
+section Module
+
+variable {E F : Type*} [AddCommGroup E] [TopologicalSpace E] [Module ℝ E] [Module ℂ E]
+  [IsScalarTower ℝ ℂ E] [ContinuousConstSMul ℂ E]
+  [AddCommGroup F] [TopologicalSpace F] [IsTopologicalAddGroup F] [Module ℝ F] [Module ℂ F]
+  [IsScalarTower ℝ ℂ F] [ContinuousConstSMul ℝ F] [ContinuousConstSMul ℂ F]
+
+/-- The complex-linear part commutes with complex scalar multiplication. -/
+@[simp]
+theorem complexLinearPart_complex_smul (c : ℂ) (Ψ : E →L[ℝ] F) :
+    (c • Ψ).complexLinearPart = c • Ψ.complexLinearPart := by
+  ext v
+  simp only [complexLinearPart_apply, smul_apply]
+  rw [smul_comm Complex.I c]
+  module
+
+/-- The complex-antilinear part commutes with complex scalar multiplication. -/
+@[simp]
+theorem complexAntilinearPart_complex_smul (c : ℂ) (Ψ : E →L[ℝ] F) :
+    (c • Ψ).complexAntilinearPart = c • Ψ.complexAntilinearPart := by
+  ext v
+  simp only [complexAntilinearPart_apply, smul_apply]
+  rw [smul_comm Complex.I c]
+  module
+
+end Module
 
 section CompatibleReal
 
@@ -162,29 +191,11 @@ theorem complexAntilinearPart_restrictScalarsₛₗLI (f : E →L⋆[ℂ] F) :
     neg_smul, smul_neg, smul_smul, Complex.I_mul_I, neg_neg]
   module
 
-
-/-- The complex-linear part commutes with complex scalar multiplication. -/
-@[simp]
-theorem complexLinearPart_complex_smul (c : ℂ) (Ψ : E →L[ℝ] F) :
-    (c • Ψ).complexLinearPart = c • Ψ.complexLinearPart := by
-  ext v
-  simp only [complexLinearPart_apply, smul_apply]
-  rw [smul_comm Complex.I c]
-  module
-
-/-- The complex-antilinear part commutes with complex scalar multiplication. -/
-@[simp]
-theorem complexAntilinearPart_complex_smul (c : ℂ) (Ψ : E →L[ℝ] F) :
-    (c • Ψ).complexAntilinearPart = c • Ψ.complexAntilinearPart := by
-  ext v
-  simp only [complexAntilinearPart_apply, smul_apply]
-  rw [smul_comm Complex.I c]
-  module
-
 end ContinuousLinearMap
 
 variable {G E F : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedAddCommGroup E]
-  [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F]
+  [NormedSpace ℝ E] [NormedSpace ℂ E] [IsScalarTower ℝ ℂ E] [NormedAddCommGroup F]
+  [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
   {f : G → E →L[ℝ] F} {s : Set G} {n : WithTop ℕ∞}
 
 /-- If a family of real-linear operators is `C^n` on `s`, so is the value of its complex-linear
