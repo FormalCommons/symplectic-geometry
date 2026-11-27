@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Determinant
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
 
@@ -24,6 +23,12 @@ determinant line for that metric. Since the latter does not depend on the metric
 (`Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric`), neither does the choice
 made here.
 
+For a line bundle, Tau Ceti's `TauCeti.DetBundle.lineHomeomorph` identifies the determinant line
+with the bundle, smoothly (`TauCeti.DetBundle.contMDiff_lineHomeomorph`). The unit vectors of the
+unitary frames of the determinant line, carried along this identification, form a smooth
+`Circle`-equivariant map to the nonzero vectors of the bundle, so the two real first Chern classes
+agree (`SymplecticGeometry.Bundle.realFirstChernClass_eq_of_equivariant`).
+
 ## Main definitions and results
 
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass G J`: the real first
@@ -32,6 +37,9 @@ made here.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_eq_of_metric`: it is
   the real first Chern class of the unitary frame bundle of the determinant line for every smooth
   Hermitian metric on that line.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_eq_of_finrank_eq_one`:
+  for a line bundle, it is the real first Chern class of the unitary frame bundle of the bundle
+  itself, for every smooth Hermitian metric on it.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_pushforward`: a smooth
   isomorphism of real vector bundles that carries one smooth complex structure to another does not
   change the class, whatever the complex models of the two structures.
@@ -101,6 +109,40 @@ theorem realFirstChernClass_eq_of_metric (J : ContMDiffComplexStructure I ⊤ F 
     (hI : ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
     realFirstChernClass G J = g.realFirstChernClass hI :=
   ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric _ _ g hI
+
+/-- **The real first Chern class of a smooth complex line bundle.** If the complex model `G` is a
+line, the real first Chern class of a smooth complex structure `J` is the real first Chern class
+of the unitary frame bundle of the line bundle `J.toContinuousComplexStructure.Fiber` itself, for
+every smooth metric `g` on it that multiplication by `Complex.I` preserves. -/
+theorem realFirstChernClass_eq_of_finrank_eq_one [Fact (finrank ℂ G = 1)]
+    (J : ContMDiffComplexStructure I ⊤ F V)
+    (g : ContMDiffRiemannianMetric I ∞ G J.toContinuousComplexStructure.Fiber)
+    (hI : ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
+    realFirstChernClass G J = g.realFirstChernClass hI := by
+  have hG : finrank ℂ G = 1 := Fact.out
+  obtain ⟨g₀, hI₀⟩ := exists_hermitianMetric_detBundle G J
+  rw [realFirstChernClass_eq_of_metric G J g₀ hI₀,
+    ContMDiffRiemannianMetric.realFirstChernClass_def g₀ hI₀]
+  let : RiemannianBundle (DetBundle ℂ G J.toContinuousComplexStructure.Fiber) :=
+    ⟨g₀.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (DetBundle ℂ G J.toContinuousComplexStructure.Fiber x) :=
+    g₀.complexInnerProductSpace hI₀
+  let : IsContinuousRiemannianBundle ℂ (DetBundle ℂ G J.toContinuousComplexStructure.Fiber) :=
+    instIsContinuousRiemannianBundle g₀.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle
+      (OrthonormalFrameBundle.Fiber ℂ ℂ (DetBundle ℂ G J.toContinuousComplexStructure.Fiber) ℂ)
+      I (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g₀ hI₀
+  -- The unit vector of a unitary frame of the determinant line, carried to the bundle itself.
+  refine realFirstChernClass_eq_of_equivariant g hI
+    (fun x φ ↦ DetBundle.lineEquiv hG x (φ.frame 1)) ?_ (fun _ φ ↦ ?_) fun z _ φ ↦ ?_
+  · exact ((DetBundle.contMDiff_lineHomeomorph hG).comp
+      (contMDiff_circleFiber_frame_one g₀ hI₀)).congr fun _ ↦ by
+        rw [Function.comp_apply, DetBundle.lineHomeomorph_apply]
+  · exact (map_ne_zero_iff _ (DetBundle.lineEquiv hG _).injective).2
+      (φ.frame.map_ne_zero_iff.2 one_ne_zero)
+  · rw [OrthonormalFrameBundle.Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul,
+      ← _root_.map_smul, smul_eq_mul, mul_one]
 
 variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℝ F'] [FiniteDimensional ℝ F']
   {V' : M → Type*} [∀ x, AddCommGroup (V' x)] [∀ x, Module ℝ (V' x)]
