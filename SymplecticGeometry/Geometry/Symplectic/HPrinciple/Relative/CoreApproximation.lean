@@ -89,17 +89,19 @@ theorem exists_pairwise_disjoint_image_cthickening [T2Space M] (c : BandCore I g
 
 /-- **The open set where the cube data are trivial.** Let `N` be an open set containing
 `{g ≤ a}` in a Hausdorff manifold, and let `δ : ℝ`. For each cube `i` of a band core `c`, let
-`C i ⊆ S × D i`, `D i` the domain of `c.chart i`, be compact, with every point `(q, z)` having `z`
-in the open `δ`-thickening of the unit cube; let `B i` be a set of core coordinates such that the
-chart sends every point `z` of that thickening with `z.1 ∉ B i` above `a` (as item 3 of
-`exists_relativeSet` gives); and let `N' i` be a neighbourhood of `B i`. Put
+`C i ⊆ S i × D i` be compact, where the parameter space `S i` may depend on the cube and `D i`
+is the domain of `c.chart i`, with every point `(q, z)` having `z` in the open `δ`-thickening
+of the unit cube; let `B i` be a set of core coordinates such that the chart sends every
+point `z` of that thickening with `z.1 ∉ B i` above `a` (as item 3 of `exists_relativeSet`
+gives); and let `N' i` be a neighbourhood of `B i`. Put
 `Z i := Prod.snd '' C i ∩ {z | z.1 ∉ interior (N' i)}`. Then each `Z i` is compact and misses
 the preimage of `{g ≤ a}` under the chart, and `N₁ := N ∩ ⋂ i, (c.chart i '' Z i)ᶜ` is open,
 contains `{g ≤ a}` and is contained in `N`. Moreover, if `(q, z) ∈ C i` and `c.chart i z ∈ N₁`,
 then `z.1 ∈ interior (N' i)`. -/
 theorem exists_isOpen_compl_image_chart_notMem_interior [T2Space M] (c : BandCore I g a₀ a b)
-    {N : Set M} (hN : IsOpen N) (haN : {x | g x ≤ a} ⊆ N) {S : Type*} [TopologicalSpace S]
-    {C : ∀ i, Set (S × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))}
+    {N : Set M} (hN : IsOpen N) (haN : {x | g x ≤ a} ⊆ N) {S : c.ι → Type*}
+    [∀ i, TopologicalSpace (S i)]
+    {C : ∀ i, Set (S i × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))}
     (hC : ∀ i, IsCompact (C i)) {δ : ℝ}
     (hCδ : ∀ i, ∀ p ∈ C i, p.2 ∈ thickening δ (closedBall 0 1 ×ˢ {0}))
     {B N' : ∀ i, Set (Fin (c.dim i) → ℝ)}
