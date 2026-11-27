@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.Radial.Basic
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.ExtDeriv
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The model connection form on `StdSpace ι`
@@ -69,7 +70,7 @@ variable {ι}
 @[simp]
 theorem stdConnectionForm_apply (x : StdSpace ι) (v : TangentSpace 𝓘(ℝ, StdSpace ι) x) :
     (stdConnectionForm ι).val x ![v] = -Real.pi * stdForm ι x v := by
-  rw [stdConnectionForm_def, SetLike.val_smul, Pi.smul_apply,
+  rw [stdConnectionForm_def, SmoothBundleForm.smul_apply,
     ContinuousAlternatingMap.smul_apply, SymplecticForm.radialPrimitive_apply, smul_eq_mul]
   ring
 

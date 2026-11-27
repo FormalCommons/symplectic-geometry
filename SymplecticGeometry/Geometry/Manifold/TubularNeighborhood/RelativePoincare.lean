@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Relative primitives near an embedded submanifold
@@ -114,7 +115,7 @@ theorem exists_smoothForm_relative_primitive_sub (f : SmoothEmbedding J I ∞ Q 
   refine ⟨W, hWO, hfW, ⟨β, hβ.mem_smoothBundleForms⟩, ?_, hβ0, fun q hq ↦ hβ1 q ?_⟩
   · rw [hdβ, ← map_sub]
     exact (SmoothForm.coe_mpullback _ _ _).symm
-  · rw [AddSubgroupClass.coe_sub, Pi.sub_apply, hq, sub_self]
+  · rw [SmoothBundleForm.sub_apply, hq, sub_self]
 
 /-- **Primitives with prescribed pullback, given a smooth retraction.** Let `f : Q → M` be a
 smooth embedding with a smooth left inverse `ρ : M → Q`, `θ` a closed smooth `(k + 1)`-form on `M`
