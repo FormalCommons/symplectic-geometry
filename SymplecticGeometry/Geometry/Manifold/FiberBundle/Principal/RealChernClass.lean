@@ -37,8 +37,8 @@ of `-(2π)⁻¹ F_α` is the first Chern number of `V`
 * `SymplecticGeometry.IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff`: two
   closed `2`-forms differ in cohomology by `c` times the class exactly when
   `ω₁ - ω₂ + c (2π)⁻¹ F_α` is exact.
-* `SymplecticGeometry.IsCircleConnectionCurvature.mem_closedForms`: the curvature of a connection
-  form is closed.
+* `SymplecticGeometry.IsCircleConnectionCurvature.mem_closedForms`: a form that is the curvature
+  of some connection form is closed.
 * `SymplecticGeometry.IsCircleConnectionForm.isCircleConnectionCurvature_iff_sub_mem_exactForms`:
   `σ` is the curvature of a connection form exactly when `σ - F_α` is exact; then it is the
   curvature of `α + π^* a`, for a primitive `a` of `σ - F_α`.
