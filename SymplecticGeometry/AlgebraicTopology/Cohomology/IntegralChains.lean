@@ -14,6 +14,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Linear.Int
+import SymplecticGeometry.AlgebraicTopology.Singular.RestrictScalars
 import TauCeti.Algebra.Homology.HomologicalComplex.Basic
 
 /-!
@@ -26,9 +27,6 @@ Here integral chains have coefficients `ModuleCat.of ℤ (ULift ℤ)`, as those 
 fundamental class. The chain map `SSet.intCastChainMap` that casts integral chains to `k`, and
 its map on cycles `SSet.intCastCyclesMap`, are in `SimplicialSet/Homology/RestrictScalars.lean`.
 
-* `TopCat.restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap`: for any ring map, Tau Ceti's
-  comparison of chains `TopCat.restrictScalarsChainMap` is the change of coefficients
-  `SSet.restrictScalarsChainMap` on the singular simplicial set of the space.
 * `TopCat.singularCochainComplexRestrictScalarsUnitIso`: integral cochains with values in `F k`,
   for Mathlib's `ℤ`-linear structure `ModuleCat.instLinear` in which Tau Ceti's comparisons over a
   general ring land, are integral cochains with values in the abelian group `k`, through the
@@ -68,23 +66,6 @@ open CategoryTheory Simplicial TauCeti
 open scoped MonoidalCategory
 
 namespace TopCat
-
-section RestrictScalars
-
-universe w
-
-variable (X : TopCat.{w}) {R k : Type w} [CommRing R] [CommRing k] (f : R →+* k)
-  {T : ModuleCat.{w} R} (c : T ⟶ (ModuleCat.restrictScalars f).obj (𝟙_ (ModuleCat.{w} k)))
-
-/-- Tau Ceti's comparison of singular chains `TopCat.restrictScalarsChainMap f c` is the change of
-coefficients `SSet.restrictScalarsChainMap f c` on the singular simplicial set of `X`. -/
-theorem restrictScalarsChainMap_eq_sSet_restrictScalarsChainMap :
-    X.restrictScalarsChainMap f c = SSet.restrictScalarsChainMap f c (toSSet.obj X) := by
-  ext n : 1
-  refine SSet.chainComplex_hom_ext fun σ ↦ ?_
-  rw [SSet.ιChainComplex_restrictScalarsChainMap_f, ιChainComplex_restrictScalarsChainMap_f]
-
-end RestrictScalars
 
 variable (k : Type) [CommRing k] (X : TopCat.{0})
 

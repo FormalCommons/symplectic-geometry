@@ -33,8 +33,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 
 * `SymplecticGeometry.smoothedSign`: the smooth step, with `smoothedSign_of_le`,
   `smoothedSign_of_le_neg`, `smoothedSign_neg`, `abs_smoothedSign_le_one`,
-  `monotone_smoothedSign`, and its derivative `hasDerivAt_smoothedSign`,
-  `deriv_smoothedSign`.
+  `monotone_smoothedSign`, its signs `smoothedSign_nonneg` and `smoothedSign_nonpos`, and its
+  derivative `hasDerivAt_smoothedSign`, `deriv_smoothedSign`.
 * `SymplecticGeometry.smoothedAbs`: the smoothing of `|t|` on `(-δ, δ)`.
 * `SymplecticGeometry.contDiff_smoothedAbs`, `SymplecticGeometry.deriv_smoothedAbs`,
   `SymplecticGeometry.abs_deriv_smoothedAbs_le_one`,
@@ -61,11 +61,15 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   (`monotone_smoothedMax_left`, `monotone_smoothedMax_right`, `smoothedMax_le_smoothedMax`), the
   first and second derivatives `hasDerivAt_smoothedMax`, `deriv_smoothedMax` and
   `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions (the second one
-  nonnegative where theirs are, `iteratedDeriv_two_smoothedMax_nonneg`), the first one also
+  nonnegative where theirs are, `iteratedDeriv_two_smoothedMax_nonneg`, and at least the smaller
+  of theirs, `min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax`), the first one also
   as a weighted average (`hasDerivAt_smoothedMax_weighted`, `deriv_smoothedMax_weighted`, with
   the weight in `[0, 1]` by `one_add_smoothedSign_div_two_mem_Icc`), the bounds
-  `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
-  `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
+  `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, its positivity where the
+  larger argument increases and the other does not decrease (`deriv_smoothedMax_pos_left`,
+  `deriv_smoothedMax_pos_right`), `smoothedMax_eq_max`, `smoothedMax_eq_left`,
+  `smoothedMax_eq_right`, their versions near a set (`smoothedMax_eventuallyEq_left`,
+  `smoothedMax_eventuallyEq_right`), `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
 * `SymplecticGeometry.smoothedSign_eq_smoothedSign_one`,
   `SymplecticGeometry.smoothedAbs_eq_mul_smoothedAbs_one` and
@@ -100,7 +104,7 @@ public section
 
 noncomputable section
 
-open Set intervalIntegral
+open Set Filter Topology intervalIntegral
 
 namespace SymplecticGeometry
 
@@ -178,6 +182,12 @@ theorem deriv_smoothedSign (δ : ℝ) :
 /-- For `δ > 0`, `smoothedSign δ` is nonnegative on `[0, ∞)`. -/
 theorem smoothedSign_nonneg (hδ : 0 < δ) {s : ℝ} (hs : 0 ≤ s) : 0 ≤ smoothedSign δ s := by
   have := monotone_smoothedSign hδ.le (neg_le_self hs)
+  rw [smoothedSign_neg hδ] at this
+  linarith
+
+/-- For `δ > 0`, `smoothedSign δ` is nonpositive on `(-∞, 0]`. -/
+theorem smoothedSign_nonpos (hδ : 0 < δ) {s : ℝ} (hs : s ≤ 0) : smoothedSign δ s ≤ 0 := by
+  have := smoothedSign_nonneg hδ (neg_nonneg.2 hs)
   rw [smoothedSign_neg hδ] at this
   linarith
 
@@ -555,6 +565,28 @@ theorem deriv_smoothedMax_le_max {f g : ℝ → ℝ} {x : ℝ} (hf : Differentia
   rw [deriv_smoothedMax_weighted hf hg, ← smul_eq_mul, ← smul_eq_mul (1 - _)]
   exact Convex.combo_le_max _ _ hw.1 (sub_nonneg.2 hw.2) (add_sub_cancel _ _)
 
+/-- For `δ > 0`, if `g x ≤ f x`, `f' > 0` and `g' ≥ 0`, then the smoothed maximum of `f` and `g`
+has positive derivative at `x`: the weight of `f'` in `hasDerivAt_smoothedMax_weighted` is at
+least `1 / 2`. -/
+theorem deriv_smoothedMax_pos_left {f g : ℝ → ℝ} {f' g' x : ℝ} (hδ : 0 < δ)
+    (hf : HasDerivAt f f' x) (hg : HasDerivAt g g' x) (hle : g x ≤ f x) (hf' : 0 < f')
+    (hg' : 0 ≤ g') : 0 < deriv (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  rw [(hasDerivAt_smoothedMax_weighted hf hg).deriv]
+  have hs := smoothedSign_nonneg hδ (sub_nonneg.2 hle)
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  exact add_pos_of_pos_of_nonneg (mul_pos (by linarith) hf') (mul_nonneg (sub_nonneg.2 hw.2) hg')
+
+/-- For `δ > 0`, if `f x ≤ g x`, `f' ≥ 0` and `g' > 0`, then the smoothed maximum of `f` and `g`
+has positive derivative at `x`: the weight of `g'` in `hasDerivAt_smoothedMax_weighted` is at
+least `1 / 2`. -/
+theorem deriv_smoothedMax_pos_right {f g : ℝ → ℝ} {f' g' x : ℝ} (hδ : 0 < δ)
+    (hf : HasDerivAt f f' x) (hg : HasDerivAt g g' x) (hle : f x ≤ g x) (hf' : 0 ≤ f')
+    (hg' : 0 < g') : 0 < deriv (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  rw [(hasDerivAt_smoothedMax_weighted hf hg).deriv]
+  have hs := smoothedSign_nonpos hδ (sub_nonpos.2 hle)
+  have hw := one_add_smoothedSign_div_two_mem_Icc δ (f x - g x)
+  exact add_pos_of_nonneg_of_pos (mul_nonneg hw.1 hf') (mul_pos (by linarith) hg')
+
 /-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
 `s = smoothedSign δ (f x - g x)`, it is
 `(f'' + g'' + s (f'' - g'') + (smoothedAbs δ)'' (f x - g x) (f' - g')²) / 2`. -/
@@ -580,18 +612,28 @@ theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f
   ring
 
 /-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two `C²` functions `f`
+and `g` is at least the smaller of those of `f` and `g`. -/
+theorem min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ}
+    (hf : ContDiff ℝ 2 f) (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) (x : ℝ) :
+    min (iteratedDeriv 2 f x) (iteratedDeriv 2 g x) ≤
+      iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  rw [iteratedDeriv_two_smoothedMax hf hg]
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
+  have h₁ := mul_le_mul_of_nonneg_left (min_le_left (iteratedDeriv 2 f x) (iteratedDeriv 2 g x))
+    (by linarith : 0 ≤ 1 + smoothedSign δ (f x - g x))
+  have h₂ := mul_le_mul_of_nonneg_left (min_le_right (iteratedDeriv 2 f x) (iteratedDeriv 2 g x))
+    (by linarith : 0 ≤ 1 - smoothedSign δ (f x - g x))
+  have h₃ := mul_nonneg (iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x))
+    (sq_nonneg (deriv f x - deriv g x))
+  linarith
+
+/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two `C²` functions `f`
 and `g` is nonnegative if those of `f` and `g` are. -/
 theorem iteratedDeriv_two_smoothedMax_nonneg {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f)
     (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) {x : ℝ} (hf₂ : 0 ≤ iteratedDeriv 2 f x)
     (hg₂ : 0 ≤ iteratedDeriv 2 g x) :
-    0 ≤ iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x := by
-  rw [iteratedDeriv_two_smoothedMax hf hg]
-  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
-  have h₁ := mul_nonneg (by linarith : 0 ≤ 1 + smoothedSign δ (f x - g x)) hf₂
-  have h₂ := mul_nonneg (by linarith : 0 ≤ 1 - smoothedSign δ (f x - g x)) hg₂
-  have h₃ := mul_nonneg (iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x))
-    (sq_nonneg (deriv f x - deriv g x))
-  linarith
+    0 ≤ iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x :=
+  (le_min hf₂ hg₂).trans (min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax hf hg hδ x)
 
 /-- For `δ ≠ 0`, `smoothedMax δ` is `smoothedMax 1` rescaled by `δ`. -/
 theorem smoothedMax_eq_mul_smoothedMax_one (hδ : δ ≠ 0) (a b : ℝ) :
@@ -628,6 +670,22 @@ theorem smoothedMax_eq_left (hδ : 0 < δ) {a b : ℝ} (h : b + δ ≤ a) : smoo
 /-- For `δ > 0`, the smoothed maximum of `a` and `b` is `b` when `a + δ ≤ b`. -/
 theorem smoothedMax_eq_right (hδ : 0 < δ) {a b : ℝ} (h : a + δ ≤ b) : smoothedMax δ a b = b := by
   rw [smoothedMax_comm hδ, smoothedMax_eq_left hδ h]
+
+/-- For `δ > 0` and continuous `f` and `g` with `g + δ < f` on `s`, the smoothed maximum of `f`
+and `g` equals `f` on a neighbourhood of `s`. -/
+theorem smoothedMax_eventuallyEq_left {X : Type*} [TopologicalSpace X] {f g : X → ℝ}
+    {s : Set X} (hδ : 0 < δ) (hf : Continuous f) (hg : Continuous g)
+    (h : ∀ x ∈ s, g x + δ < f x) : (fun x ↦ smoothedMax δ (f x) (g x)) =ᶠ[𝓝ˢ s] f := by
+  filter_upwards [(isOpen_lt (hg.add continuous_const) hf).mem_nhdsSet.2 h] with x hx
+  exact smoothedMax_eq_left hδ hx.le
+
+/-- For `δ > 0` and continuous `f` and `g` with `f + δ < g` on `s`, the smoothed maximum of `f`
+and `g` equals `g` on a neighbourhood of `s`. -/
+theorem smoothedMax_eventuallyEq_right {X : Type*} [TopologicalSpace X] {f g : X → ℝ}
+    {s : Set X} (hδ : 0 < δ) (hf : Continuous f) (hg : Continuous g)
+    (h : ∀ x ∈ s, f x + δ < g x) : (fun x ↦ smoothedMax δ (f x) (g x)) =ᶠ[𝓝ˢ s] g := by
+  filter_upwards [(isOpen_lt (hf.add continuous_const) hg).mem_nhdsSet.2 h] with x hx
+  exact smoothedMax_eq_right hδ hx.le
 
 /-- For `δ > 0`, the smoothed maximum lies above the maximum. -/
 theorem max_le_smoothedMax (hδ : 0 < δ) (a b : ℝ) : max a b ≤ smoothedMax δ a b := by
