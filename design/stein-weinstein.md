@@ -1334,7 +1334,7 @@ containing `ι '' closedBall 0 1`:
        second `r`-derivatives are close only from below: near `ℓ₁` the term of
        `iteratedDeriv_two_smoothedMax` with `(smoothedAbs δ)''` is
        nonnegative and may be of order `1 / δ`. So the blend is increasing
-       and, by the one-sided form of step 1,
+       and, by the one-sided blend lemma
        `exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two`
        (`Surround/ConvexShape/Basic.lean`), a convex shape.
     The shapes of `exists_convexShapeFamily_surround` have vertical
