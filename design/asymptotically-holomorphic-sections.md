@@ -418,8 +418,10 @@ behind Lelong numbers and Crofton's formula.
 transverse and that its zero set is a symplectic submanifold. It waits for
 no other part. The second proves the class of the zero set, and with it the
 milestone. It waits for the issue that `design/poincare-duals.md` assigns to
-`Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`. That issue is
-#3396, now closed with the file merged, and #3505 is blocked by it.
+`Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`, and for the one
+it assigns to `Geometry/Manifold/Orientation/DualClass.lean`. These are
+#3396, closed with the file merged, and #3391, still open; #3505 is blocked
+by both.
 
 ### Connectivity by Tau Ceti's Morse–Bott theory
 
@@ -667,8 +669,9 @@ each prerequisite issue first searches both for its statement.
 9. **Transverse symplectic zero sets** (`ZeroSet.lean`, without the
    class). Waits for 8.
 10. **The class of the zero set** (`ZeroSet.lean`, the milestone). Waits for
-    9 and for the issue of *Poincaré duals of submanifolds* for
-    `ZeroSet/DualClass.lean`, #3396.
+    9 and for the issues of *Poincaré duals of submanifolds* for
+    `ZeroSet/DualClass.lean`, #3396 (done), and for
+    `Orientation/DualClass.lean`, #3391.
 11. **Centred Darboux charts with uniform bounds** (`RescaledChart.lean`,
     first half). Waits for nothing.
 12. **Rescaled unitary charts** (`RescaledChart.lean`, second half). Waits
@@ -717,8 +720,8 @@ each prerequisite issue first searches both for its statement.
 26. **Donaldson's hypersurface theorem** (`Hypersurface.lean`). Waits for
     5, 10, 23 and 25.
 
-Every issue that waits for nothing is done. Of the others, issues 10 and 13
-wait only for issues that are done.
+Every issue that waits for nothing is done. Of the others, issue 13 waits
+only for issues that are done, and issue 10 waits only for #3391.
 
 ## Uses
 
