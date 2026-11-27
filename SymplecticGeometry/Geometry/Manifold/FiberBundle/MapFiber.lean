@@ -59,7 +59,9 @@ from the fibre onto `F`, and its underlying homeomorphism is
 * `Bundle.Trivialization.injective_mfderiv_fiberInclusionMap` and
   `Bundle.Trivialization.range_mfderiv_fiberInclusionMap`: the derivative of a fibre inclusion is
   injective, and its range is the kernel of the derivative of `proj`.
-* `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas is a submersion.
+* `TauCeti.MapFiber.Atlas.IsContMDiff.surjective_mfderiv` and
+  `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: the map of a smooth atlas has onto
+  derivative everywhere, and is a submersion.
 * `TauCeti.ManifoldTotalSpace.isContMDiff_mapFiberAtlas` and
   `TauCeti.ManifoldTotalSpace.coordChange_mapFiberAtlas`: the atlas of a smooth fibre bundle is
   smooth, with the bundle's coordinate changes.
@@ -340,6 +342,13 @@ theorem IsContMDiff.mdifferentiable_trivAt (hA : A.IsContMDiff n IB IF IM) (hn :
   ⟨(hA.contMDiffOn_trivAt b).mdifferentiableOn hn,
     (hA.contMDiffOn_trivAt_symm b).mdifferentiableOn hn⟩
 
+/-- The map of a `C^n` atlas, `n ≠ 0`, has onto derivative at every point. -/
+theorem IsContMDiff.surjective_mfderiv (hA : A.IsContMDiff n IB IF IM) (hn : n ≠ 0) (x : M) :
+    Surjective (mfderiv IM IB proj x) :=
+  TauCeti.isRegularPoint_iff.1 <| (A.trivAt (proj x)).isRegularPoint_proj
+    (hA.mdifferentiable_trivAt hn (proj x))
+    ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))
+
 /-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` on the
 source of the chart. -/
 theorem IsContMDiff.contMDiffOn_snd_trivAt (hA : A.IsContMDiff n IB IF IM) (b : B) :
@@ -374,10 +383,8 @@ variable {𝕜 : Type*} [RCLike 𝕜] {n : ℕ∞ω}
 between finite-dimensional manifolds with `M` boundaryless, then `proj` is a `C^n` submersion. -/
 theorem isSubmersion (hA : A.IsContMDiff n IB IF IM) (hn : 1 ≤ n) :
     Manifold.IsSubmersion IM IB n proj :=
-  (hA.contMDiff_proj.isSubmersionOfComplement_of_surjective_mfderiv hn fun x ↦
-    TauCeti.isRegularPoint_iff.1 <| Bundle.Trivialization.isRegularPoint_proj
-      (hA.mdifferentiable_trivAt (ne_of_gt (zero_lt_one.trans_le hn)) (proj x))
-      ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))).isSubmersion
+  (hA.contMDiff_proj.isSubmersionOfComplement_of_surjective_mfderiv hn
+    (hA.surjective_mfderiv (ne_of_gt (zero_lt_one.trans_le hn)))).isSubmersion
 
 end TauCeti.MapFiber.Atlas.IsContMDiff
 
