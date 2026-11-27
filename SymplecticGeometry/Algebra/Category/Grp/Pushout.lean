@@ -7,10 +7,38 @@ module
 
 public import Mathlib.Algebra.Category.Grp.EpiMono
 public import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
+public import Mathlib.GroupTheory.PushoutI
 public import Mathlib.GroupTheory.QuotientGroup.Basic
 
 /-!
-# Pushouts of groups along a surjection
+# Pushouts of groups
+
+This file describes pushout squares in `GrpCat` in two ways.
+
+## Pushouts over `Bool` as `Monoid.PushoutI`
+
+For a group `H` and a family `φ : ∀ b : Bool, H →* G b` of homomorphisms, Mathlib's amalgamated
+product `Monoid.PushoutI φ` is a pushout in `GrpCat` of `φ false` and `φ true`. So every pushout
+square of `φ false` and `φ true` in `GrpCat` is identified with it.
+
+* `Monoid.PushoutI.isPushout`: the square formed by `φ false`, `φ true` and the inclusions
+  `Monoid.PushoutI.of false`, `Monoid.PushoutI.of true` is a pushout in `GrpCat`.
+* `CategoryTheory.IsPushout.mulEquivPushoutI`: for any pushout square
+  ```
+  H      --φ false-->  G false
+  |                    |
+  φ true               inl
+  v                    v
+  G true --inr------>  P
+  ```
+  in `GrpCat`, the isomorphism `P ≃* Monoid.PushoutI φ`, which sends `inl x` to
+  `Monoid.PushoutI.of false x` and `inr x` to `Monoid.PushoutI.of true x`.
+
+The square is a pushout because `Monoid.PushoutI.lift` gives the map out of it to any cocone, and
+`Monoid.PushoutI.hom_ext_nonempty` its uniqueness; the isomorphism is then
+`CategoryTheory.IsPushout.isoIsPushout`.
+
+## Pushouts along a surjection
 
 Consider a pushout square of groups
 ```
@@ -22,8 +50,6 @@ G₂ --inr-> P
 ```
 in `GrpCat`, with `f` surjective. Then `P` is the quotient of `G₂` by the normal closure of the
 image under `g` of the kernel of `f`.
-
-## Main results
 
 * `CategoryTheory.IsPushout.surjective_inr_of_surjective`: `inr` is surjective.
 * `CategoryTheory.IsPushout.ker_inr_eq_normalClosure`: the kernel of `inr` is the normal closure
@@ -46,7 +72,80 @@ public section
 
 universe u
 
+namespace Monoid.PushoutI
+
+open CategoryTheory Limits
+
+variable {G : Bool → Type u} [∀ b, Group (G b)] {H : Type u} [Group H] (φ : ∀ b, H →* G b)
+
+/-- The amalgamated product `Monoid.PushoutI φ` of a family `φ` of group homomorphisms indexed by
+`Bool` is a pushout of `φ false` and `φ true` in `GrpCat`, with the inclusions `of false` and
+`of true`. -/
+theorem isPushout :
+    IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true))
+      (GrpCat.ofHom (of (φ := φ) false)) (GrpCat.ofHom (of (φ := φ) true)) := by
+  refine IsPushout.of_isColimit (PushoutCocone.IsColimit.mk
+    (by ext x; simp [of_apply_eq_base]) (fun s => GrpCat.ofHom (lift
+      (Bool.rec (motive := fun b => G b →* s.pt) s.inl.hom s.inr.hom) (s.inl.hom.comp (φ false))
+      ?_)) (fun s => ?_) (fun s => ?_) fun s m h₁ h₂ => ?_)
+  · have := congrArg GrpCat.Hom.hom s.condition
+    simp only [GrpCat.hom_comp, GrpCat.hom_ofHom] at this
+    rintro (_ | _)
+    · rfl
+    · exact this.symm
+  · ext x
+    simp
+  · ext x
+    simp
+  · refine GrpCat.hom_ext (hom_ext_nonempty fun b => ?_)
+    cases b
+    · ext x
+      simpa using ConcreteCategory.congr_hom h₁ x
+    · ext x
+      simpa using ConcreteCategory.congr_hom h₂ x
+
+end Monoid.PushoutI
+
 namespace CategoryTheory.IsPushout
+
+section PushoutI
+
+variable {G : Bool → Type u} [∀ b, Group (G b)] {H : Type u} [Group H] {φ : ∀ b, H →* G b}
+  {P : GrpCat.{u}} {inl : GrpCat.of (G false) ⟶ P} {inr : GrpCat.of (G true) ⟶ P}
+
+/-- A pushout in `GrpCat` of the two homomorphisms of a family `φ` indexed by `Bool` is
+isomorphic to the amalgamated product `Monoid.PushoutI φ`, by the isomorphism that sends the
+legs `inl` and `inr` of the square to `Monoid.PushoutI.of false` and `Monoid.PushoutI.of true`. -/
+noncomputable def mulEquivPushoutI
+    (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) :
+    P ≃* Monoid.PushoutI φ :=
+  (hP.isoIsPushout _ _ (Monoid.PushoutI.isPushout φ)).groupIsoToMulEquiv
+
+@[simp]
+theorem mulEquivPushoutI_inl
+    (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G false) :
+    hP.mulEquivPushoutI (inl x) = Monoid.PushoutI.of false x :=
+  ConcreteCategory.congr_hom (hP.inl_isoIsPushout_hom _ _ (Monoid.PushoutI.isPushout φ)) x
+
+@[simp]
+theorem mulEquivPushoutI_inr
+    (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G true) :
+    hP.mulEquivPushoutI (inr x) = Monoid.PushoutI.of true x :=
+  ConcreteCategory.congr_hom (hP.inr_isoIsPushout_hom _ _ (Monoid.PushoutI.isPushout φ)) x
+
+@[simp]
+theorem mulEquivPushoutI_symm_of_false
+    (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G false) :
+    hP.mulEquivPushoutI.symm (Monoid.PushoutI.of false x) = inl x := by
+  rw [MulEquiv.symm_apply_eq, mulEquivPushoutI_inl]
+
+@[simp]
+theorem mulEquivPushoutI_symm_of_true
+    (hP : IsPushout (GrpCat.ofHom (φ false)) (GrpCat.ofHom (φ true)) inl inr) (x : G true) :
+    hP.mulEquivPushoutI.symm (Monoid.PushoutI.of true x) = inr x := by
+  rw [MulEquiv.symm_apply_eq, mulEquivPushoutI_inr]
+
+end PushoutI
 
 open Subgroup
 
