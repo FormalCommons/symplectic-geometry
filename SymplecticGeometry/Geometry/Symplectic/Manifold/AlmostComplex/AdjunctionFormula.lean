@@ -103,7 +103,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
           finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (f : C(M, X))
           (TauCeti.firstChernClass G
             (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down := by
-  have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four hE
+  have hdim := Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+      finrank_euclideanSpace_fin
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   let := f.normalSpaceContMDiffVectorBundle (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) hn (by simp) hdim

@@ -354,7 +354,7 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   𝓘(ℂ, Fin n → ℂ) 𝓘(ℂ, E) ω (ℙ ℂ E) (Blowup c)` ($\tilde\iota$), `inr`
   composed with the model's `zeroSectionEmbedding n`, and the real one
   `Blowup.divisorRealEmbedding c`.
-- `Blowup.liftChart c φ` (in `Blowup/Chart.lean`): for any
+- `Blowup.liftChart c φ` (in `Blowup/Chart/Basic.lean`): for any
   `φ : BlowupChart M p₀` in the same maximal atlas, $\tilde\phi$ of `φ` on
   `Blowup c`, `liftMap` of
   `φ ∘ c.symm` composed with `c.lift` over `blowdown c ⁻¹' (c.source ∩ φ.source)`,
@@ -367,7 +367,7 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
   `blowdown ⁻¹' φ.target` of the model, and followed by `blowupModelChart i`
   a holomorphic chart, by `liftPartialDiffeomorph` near the divisor and
   the two blowdowns off it.
-- `Blowup.chartChange c c'` (in `Blowup/ChartChange.lean`), the biholomorphism
+- `Blowup.chartChange c c'` (in `Blowup/Chart/Change.lean`), the biholomorphism
   `Blowup c ≃ Blowup c'` for two charts of the same atlas:
   `GluedAlong.inr (gluingHomeomorph c')` of `liftChart c c'` where the blowdown
   lies in the source of `c'`, and `GluedAlong.inl (gluingHomeomorph c')` of the
