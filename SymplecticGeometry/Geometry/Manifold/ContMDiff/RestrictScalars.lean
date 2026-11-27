@@ -27,7 +27,7 @@ manifolds.
 Conversely, a family of continuous `𝕜'`-linear maps between spaces that are finite-dimensional
 over the complete field `𝕜` is `C^n` over `𝕜` if and only if the family of continuous `𝕜`-linear
 maps obtained by restricting their scalars is: restricting scalars is injective
-(`ContinuousLinearMap.restrictScalarsL_injective`), so in finite dimension it has a continuous
+(`ContinuousLinearMap.restrictScalars_injective`), so in finite dimension it has a continuous
 linear left inverse (`ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteDimensional`).
 
 ## Main results
@@ -37,8 +37,9 @@ linear left inverse (`ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteD
   trivial models over `𝕜'` (within a set, at a point, on a set, globally) is `C^n` for the
   trivial models over `𝕜`.
 * `contMDiffWithinAt_clm_restrictScalars_iff`, `contMDiffAt_clm_restrictScalars_iff`,
-  `contMDiffOn_clm_restrictScalars_iff`: a family of continuous `𝕜'`-linear maps between spaces
-  finite-dimensional over `𝕜` is `C^n` over `𝕜` if and only if its scalar restriction is.
+  `contMDiffOn_clm_restrictScalars_iff`, `contMDiff_clm_restrictScalars_iff`: a family of
+  continuous `𝕜'`-linear maps between spaces finite-dimensional over `𝕜` is `C^n` over `𝕜`
+  (within a set, at a point, on a set, globally) if and only if its scalar restriction is.
 
 ## References
 
@@ -105,7 +106,8 @@ theorem contMDiffWithinAt_clm_restrictScalars_iff :
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · -- Restricting the scalars to `𝕜` has a continuous `𝕜`-linear left inverse `P`.
     obtain ⟨P, hP⟩ := ContinuousLinearMap.HasLeftInverse.of_injective_of_finiteDimensional
-      (ContinuousLinearMap.restrictScalarsL_injective 𝕜' F F' 𝕜 𝕜)
+      (f := ContinuousLinearMap.restrictScalarsL 𝕜' F F' 𝕜 𝕜)
+      (ContinuousLinearMap.restrictScalars_injective 𝕜)
     simp only [ContinuousLinearMap.coe_restrict_scalarsL'] at hP
     exact (P.contMDiff.contMDiffAt.comp_contMDiffWithinAt x h).congr (fun y _ ↦ (hP _).symm)
       (hP _).symm
@@ -128,6 +130,14 @@ theorem contMDiffOn_clm_restrictScalars_iff :
     ContMDiffOn I 𝓘(𝕜, F →L[𝕜] F') n (fun y ↦ (f y).restrictScalars 𝕜) s ↔
       ContMDiffOn I 𝓘(𝕜, F →L[𝕜'] F') n f s :=
   forall₂_congr fun _ _ ↦ contMDiffWithinAt_clm_restrictScalars_iff
+
+/-- Let `F` and `F'` be finite-dimensional over the complete field `𝕜`. A family of continuous
+`𝕜'`-linear maps `F → F'` is `C^n` over `𝕜` if and only if the family of continuous `𝕜`-linear
+maps obtained by restricting their scalars is. -/
+theorem contMDiff_clm_restrictScalars_iff :
+    ContMDiff I 𝓘(𝕜, F →L[𝕜] F') n (fun y ↦ (f y).restrictScalars 𝕜) ↔
+      ContMDiff I 𝓘(𝕜, F →L[𝕜'] F') n f :=
+  forall_congr' fun _ ↦ contMDiffAt_clm_restrictScalars_iff
 
 end ContinuousLinearMap
 

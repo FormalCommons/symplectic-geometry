@@ -5,22 +5,20 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
+public import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.RestrictScalars
 
 /-!
 # Restricting the scalars of continuous linear maps is injective
 
 A continuous `A`-linear map is determined by the continuous `R`-linear map that it defines, since
 both have the same underlying function. This file states this for Mathlib's
-`ContinuousLinearMap.restrictScalars` and for its continuous linear version
-`ContinuousLinearMap.restrictScalarsL`. They are the continuous counterparts of Mathlib's
-`LinearMap.restrictScalars_injective`.
+`ContinuousLinearMap.restrictScalars`. The results are the continuous counterparts of Mathlib's
+`LinearMap.restrictScalars_injective` and `LinearMap.restrictScalars_inj`.
 
 ## Main results
 
 * `ContinuousLinearMap.restrictScalars_injective`, `ContinuousLinearMap.restrictScalars_inj`:
   restricting the scalars of continuous linear maps is injective.
-* `ContinuousLinearMap.restrictScalarsL_injective`: so is its continuous linear version.
 -/
 
 public section
@@ -43,18 +41,5 @@ are. -/
 theorem restrictScalars_inj (f g : M₁ →L[A] M₂) :
     f.restrictScalars R = g.restrictScalars R ↔ f = g :=
   (restrictScalars_injective R).eq_iff
-
-/-- `ContinuousLinearMap.restrictScalarsL`, which restricts the scalars of continuous linear maps
-from `𝕜` to `𝕜'` as a continuous `𝕜''`-linear map, is injective. -/
-theorem restrictScalarsL_injective (𝕜 : Type*) [NontriviallyNormedField 𝕜] (E F : Type*)
-    [AddCommGroup E] [TopologicalSpace E] [Module 𝕜 E] [ContinuousSMul 𝕜 E]
-    [AddCommGroup F] [TopologicalSpace F] [IsTopologicalAddGroup F] [Module 𝕜 F]
-    (𝕜' : Type*) [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜' 𝕜]
-    [Module 𝕜' E] [IsScalarTower 𝕜' 𝕜 E] [Module 𝕜' F] [IsScalarTower 𝕜' 𝕜 F]
-    (𝕜'' : Type*) [Ring 𝕜''] [Module 𝕜'' F] [ContinuousConstSMul 𝕜'' F]
-    [SMulCommClass 𝕜 𝕜'' F] [SMulCommClass 𝕜' 𝕜'' F] :
-    Function.Injective (restrictScalarsL 𝕜 E F 𝕜' 𝕜'') := by
-  rw [coe_restrict_scalarsL']
-  exact restrictScalars_injective 𝕜'
 
 end ContinuousLinearMap
