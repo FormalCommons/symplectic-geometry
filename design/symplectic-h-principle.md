@@ -1656,7 +1656,7 @@ The cube charts as coordinates for forms, in the namespace
      `‖u‖ = 1`;
   2. `B ×ˢ {0} ⊆ (c.chart i) ⁻¹' N`, for `η` with
      `cthickening (2 * η) Y ⊆ (c.chart i) ⁻¹' N`
-     (`IsCompact.exists_cthickening_subset_open`);
+     (`Metric.eventually_image_cthickening_subset`);
   3. for `0 < δ ≤ η / 2`, no `p ∈ thickening δ (Q i)` with `p.1 ∉ B`
      is in `cthickening (η / 2) Y`; in particular `c.chart i p ∉ {g ≤ a}`.
      Indeed `‖p.1‖ < 1 + δ`, so `(p.1, 0) ∉ cthickening η Y`, and
