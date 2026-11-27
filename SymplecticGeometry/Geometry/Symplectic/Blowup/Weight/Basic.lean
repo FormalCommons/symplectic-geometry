@@ -399,15 +399,9 @@ theorem isSymplectomorphism_shellDiffeomorph
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (shellDiffeomorph hψ) := by
-  have h : SmoothTwoForm.IsSymplectomorphism
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget := by
-    rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
-    exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hw ↦
-      (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph).mpullback_apply hw
   rw [shellDiffeomorph]
-  exact h.restrOpens _ _ _
+  exact (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph
+    ).isSymplectomorphism_toDiffeomorphSourceTarget.restrOpens _ _ _
 
 /-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `σ`
 to `shellImage hψ` back to the restriction of `ω̃_l` to `openNbhd n ε ∖ Z`, both read on the
