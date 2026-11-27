@@ -65,6 +65,8 @@ Chern number of the determinant line
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_pushforward`: a smooth
   isomorphism of real vector bundles that carries one smooth complex structure to another does not
   change the class, whatever the complex models of the two structures.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_congr_model`: the
+  class does not depend on the complex model `G`.
 
 ## Implementation notes
 
@@ -217,6 +219,17 @@ theorem realFirstChernClass_pushforward (J : ContMDiffComplexStructure I ⊤ F V
     ((DetBundle.contMDiff_congrModelHomeomorph e
       (J.contMDiff_fiberEquivOfCommute G J' G' Φ hΦ hK)).congr fun _ ↦
         (DetBundle.congrModelHomeomorph_apply ..).symm)
+
+/-- **The real first Chern class of a smooth complex structure does not depend on the complex
+model.** For a smooth complex structure `J` on `V` and two complex models `G` and `G'` whose real
+dimensions are that of `F`, the real first Chern class of `J` computed with `G'` is the one
+computed with `G`. -/
+theorem realFirstChernClass_congr_model (J : ContMDiffComplexStructure I ⊤ F V)
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ F = 2 * finrank ℂ G')] :
+    realFirstChernClass G' J = realFirstChernClass G J :=
+  realFirstChernClass_pushforward G' G J J (fun x ↦ ContinuousLinearEquiv.refl ℝ (V x))
+    contMDiff_id fun _ _ ↦ rfl
 
 section Surface
 

@@ -7,16 +7,19 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ConnectedSum.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import Mathlib.LinearAlgebra.Complex.Determinant
+import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import TauCeti.Analysis.Calculus.FDeriv.Pi.Basic
 import TauCeti.Analysis.InnerProductSpace.Calculus
 import TauCeti.Geometry.Manifold.Connected
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
 # Orientations of the pieces of the blowup as a connected sum
 
-This file shows how two maps of `ConnectedSum/Basic.lean` act on the complex orientations, read
+This file shows how the maps of `ConnectedSum/Basic.lean` act on the complex orientations, read
 with `SymplecticGeometry.complexManifoldOrientationOfFinrank`.
 
 The diffeomorphism `projectiveBlowupModelDiffeomorph n`, from the complement of `[0 : ⋯ : 0 : 1]`
@@ -40,6 +43,19 @@ divisor, the rescaling reads, in the chart `blowupModelChart i` on both sides, a
 Since `ρ` has derivative `ε • id` at `0`, the real derivative of this map at `0` is `ε` times the
 identity on the coordinate `i` and the identity on the others, which has positive determinant.
 
+The file then orients the two pieces `Blowup.connectedSumInl c` and `Blowup.connectedSumInr c`
+through which the connected sum of `M` and the projective space maps onto the blowup. The first,
+from the punctured `M`, is holomorphic: a re-modelling, the inclusion of an open set and
+`GluedAlong.inl`. So it preserves the complex orientations, by
+`IsLocalDiffeomorphAt.isOrientationPreservingAt_complexManifoldOrientationOfFinrank`, the complex
+orientation of an open subset being the restriction of that of the manifold. The second, from the
+punctured projective space, is the re-modelling into `projectiveBlowupOpens n`, which is
+holomorphic, then `projectiveBlowupModelDiffeomorph n`, which reverses the complex orientations,
+then the radial rescaling, which preserves them, and finally `GluedAlong.inr` and a re-modelling,
+which are holomorphic. It therefore reverses the complex orientations, and preserves orientation
+from the opposite of the complex orientation of the projective space. These are the orientations
+of the summands of the connected sum `M # \overline{ℂP}^{n+1}`.
+
 ## Main results
 
 * `SymplecticGeometry.instPathConnectedSpaceProjectiveBlowupOpens`: the complement of
@@ -49,7 +65,12 @@ identity on the coordinate `i` and the identity on the others, which has positiv
   point;
 * `SymplecticGeometry.BlowupModel.instPathConnectedSpace`: the model blowup is path-connected;
 * `SymplecticGeometry.BlowupModel.isOrientationPreservingAt_radialRescale`: for `0 < ε`, the
-  radial rescaling preserves the complex orientation at every point.
+  radial rescaling preserves the complex orientation at every point;
+* `SymplecticGeometry.Blowup.isOrientationPreservingAt_connectedSumInl`: the punctured `M` maps
+  into the blowup preserving the complex orientations;
+* `SymplecticGeometry.Blowup.isOrientationPreservingAt_connectedSumInr`: the punctured projective
+  space maps into the blowup preserving orientation from the opposite of its complex orientation
+  to the complex orientation of the blowup.
 
 ## References
 
@@ -305,6 +326,77 @@ theorem isOrientationPreservingAt_radialRescale (hε : 0 < ε) (p : BlowupModel 
     (isOrientationPreservingAt_radialRescale_blowupModelChart_symm_zero hε 0)
 
 end BlowupModel
+
+/-! ## The orientations of the two pieces of the connected sum -/
+
+namespace Blowup
+
+open ConnectedSum (puncture)
+open scoped LinearAlgebra.Projectivization
+
+variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M] {p₀ : M}
+  (c : BlowupChart (n := n) M p₀) [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- For a holomorphic chart `c`, the map `connectedSumInl c` of the punctured `M` into the
+blowup, both re-modelled on `EuclideanSpace ℂ (Fin (n + 1))`, preserves orientation at every
+point, from the restriction of the complex orientation of `M` to the complex orientation of the
+blowup. -/
+theorem isOrientationPreservingAt_connectedSumInl [T2Space M] (x : puncture c.connectedSumBall) :
+    ((complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+        (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm M) (r := n)
+          (by simp)).restrict (puncture c.connectedSumBall)).IsOrientationPreservingAt
+      (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+        (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
+          (by simp))
+      (connectedSumInl c) x := by
+  rw [← complexManifoldOrientationOfFinrank_opens_eq_restrict]
+  exact (isLocalDiffeomorph_connectedSumInl_complex c x
+    ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞
+
+/-- For a holomorphic chart `c`, the map `connectedSumInr c` of the punctured projective space into
+the blowup, both re-modelled on `EuclideanSpace ℂ (Fin (n + 1))`, preserves orientation at every
+point, from the restriction of the opposite of the complex orientation of the projective space to
+the complex orientation of the blowup. -/
+theorem isOrientationPreservingAt_connectedSumInr
+    (y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    ((-EuclideanComplexProjectiveSpace.orientation n).restrict
+        (puncture (EuclideanComplexProjectiveSpace.connectedSumBall n))).IsOrientationPreservingAt
+      (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+        (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
+          (by simp))
+      (connectedSumInr c) y := by
+  -- The composite of `GluedAlong.inr` and the re-modelling is holomorphic.
+  have hl : (complexManifoldOrientationOfFinrank (Fin (n + 1) → ℂ) (modelOpens c) (r := n)
+      (by simp)).IsOrientationPreservingAt
+      (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+        (Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c)) (r := n)
+          (by simp)) (remodelHomeomorph _ _ ∘ GluedAlong.inr (gluingHomeomorph c))
+      (connectedSumInrModel c y) := by
+    rw [← coe_remodelDiffeomorph (n := ∞)]
+    exact (((isLocalDiffeomorph_inr c _).of_le le_top).comp
+      (hg := (remodelDiffeomorph _ _).isLocalDiffeomorph _)
+      ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞
+  have hg : (complexManifoldOrientationOfFinrank (EuclideanSpace ℂ (Fin (n + 1)))
+      (puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) (r := n)
+      (by simp)).IsOrientationReversingAt
+      (complexManifoldOrientationOfFinrank (Fin (n + 1) → ℂ) (modelOpens c) (r := n)
+        (by simp)) (connectedSumInrModel c) y := by
+    rw [complexManifoldOrientationOfFinrank_opens_eq_restrict (M := BlowupModel n),
+      ← Manifold.Orientation.isOrientationPreservingAt_neg_right,
+      ← Manifold.Orientation.restrict_neg,
+      Manifold.Orientation.isOrientationPreservingAt_restrict_iff,
+      Manifold.Orientation.isOrientationPreservingAt_neg_right, val_comp_connectedSumInrModel]
+    exact (BlowupModel.isOrientationPreservingAt_radialRescale c.ballRadius_pos _).comp_reversing
+      ((isOrientationReversingAt_projectiveBlowupModelDiffeomorph _).comp_preserving
+        ((isLocalDiffeomorph_connectedSumInrOpens y
+          ).isOrientationPreservingAt_complexManifoldOrientationOfFinrank _ _ ∞))
+  rw [Manifold.Orientation.restrict_neg, Manifold.Orientation.isOrientationPreservingAt_neg_left,
+    EuclideanComplexProjectiveSpace.orientation_def,
+    ← complexManifoldOrientationOfFinrank_opens_eq_restrict, connectedSumInr_eq_comp]
+  exact hl.comp_reversing hg
+
+end Blowup
 
 end SymplecticGeometry
 

@@ -239,7 +239,7 @@ theorem moment_inv_smul_im_mfderiv_polar_smul
     (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
     μ ((C.polar (t • ξ, u))⁻¹ • p)
         (C.im (mfderiv IC IC ((C.polar (t • ξ, u))⁻¹ * ·) (C.polar (t • ξ, u))
-          (mfderiv 𝓘(ℝ) IC (fun τ : ℝ ↦ C.polar (τ • ξ, u)) t (1 : ℝ)))) =
+          (Manifold.curveVelocity IC (fun τ : ℝ ↦ C.polar (τ • ξ, u)) t))) =
       μ (C.expI (-(t • ξ)) • p) ξ := by
   rw [funext fun τ : ℝ ↦ C.polar_apply (τ • ξ) u, C.polar_apply,
     C.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom, C.im_cplx_lieMap, mul_inv_rev, ← map_inv,
@@ -306,7 +306,7 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
     {c : ℝ → Gc} (hc : ContMDiff 𝓘(ℝ) IC ∞ c) (s₀ : ℝ) :
     HasDerivAt (kempfNessFunction C μ p ∘ c)
       (μ ((c s₀)⁻¹ • p)
-        (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (mfderiv 𝓘(ℝ) IC c s₀ (1 : ℝ))))) s₀ := by
+        (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (curveVelocity IC c s₀)))) s₀ := by
   have hμc : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ := hμ.toIsMomentMap.contMDiff_of_neg
   -- The polar components of `c`, and the homotopy `γ (s, t) = C.polar (t • ξ s, u s)` from the
   -- curve `s ↦ C.toHom (u s)` in `G` to `c`.
@@ -331,16 +331,14 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
       ((hξ.comp contDiff_fst).prodMk contDiff_snd)
   -- The curve `q ↦ γ (q, t)` has velocity `∂_s γ`.
   have hfst (s t : ℝ) : mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (1, 0) =
-      mfderiv 𝓘(ℝ) IC (fun q ↦ γ (q, t)) s (1 : ℝ) :=
-    (curveVelocity_eq_mfderiv_fst (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm.trans
-      curveVelocity_apply
+      curveVelocity IC (fun q ↦ γ (q, t)) s :=
+    (curveVelocity_eq_mfderiv_fst (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm
   -- Along `t`, the one-form is the integrand (`moment_inv_smul_im_mfderiv_polar_smul`).
   have hA : α (0, 1) = A := by
     funext ⟨s, t⟩
     have hv : mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1) =
-        mfderiv 𝓘(ℝ) IC (fun τ ↦ γ (s, τ)) t (1 : ℝ) :=
-      (curveVelocity_eq_mfderiv_snd (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm.trans
-        curveVelocity_apply
+        curveVelocity IC (fun τ ↦ γ (s, τ)) t :=
+      (curveVelocity_eq_mfderiv_snd (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm
     -- `change` unfolds the local definition `α` to expose the velocity that `hv` rewrites.
     change μ ((γ (s, t))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s, t))⁻¹ * ·) (γ (s, t))
       (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1)))) = A (s, t)
@@ -366,7 +364,7 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
     -- `change` unfolds the local definition `α` to expose `γ (s₀, 0)` and the velocity.
     change μ ((γ (s₀, 0))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s₀, 0))⁻¹ * ·) (γ (s₀, 0))
       (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s₀, 0) (1, 0)))) = 0
-    rw [hfst, hγ0, hγ00,
+    rw [hfst, hγ0, hγ00, curveVelocity_apply,
       C.im_mfderiv_inv_mul_mfderiv_toHom_comp (hu.mdifferentiableAt (by simp)) (1 : ℝ), map_zero]
   -- At `t = 1` the homotopy is the curve `c`.
   have hγ1 : (fun q ↦ γ (q, 1)) = c := by
@@ -374,7 +372,7 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
     have hq : (((1 : ℝ) • ξ q : E), u q) = C.polar.symm (c q) := Prod.ext (one_smul ℝ _) rfl
     exact (congrArg C.polar hq).trans (C.polar.apply_symm_apply (c q))
   have hB1 : α (1, 0) (s₀, 1) = μ ((c s₀)⁻¹ • p)
-      (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (mfderiv 𝓘(ℝ) IC c s₀ (1 : ℝ)))) := by
+      (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (curveVelocity IC c s₀))) := by
     -- `change` unfolds the local definition `α` to expose `γ (s₀, 1)` and the velocity.
     change μ ((γ (s₀, 1))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s₀, 1))⁻¹ * ·) (γ (s₀, 1))
       (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s₀, 1) (1, 0)))) = _
@@ -415,12 +413,11 @@ theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
     {c : ℝ → Gc} {s₀ : ℝ} (hc : MDifferentiableAt 𝓘(ℝ) IC c s₀) :
     HasDerivAt (kempfNessFunction C μ p ∘ c)
       (μ ((c s₀)⁻¹ • p)
-        (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (mfderiv 𝓘(ℝ) IC c s₀ (1 : ℝ))))) s₀ := by
+        (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (curveVelocity IC c s₀)))) s₀ := by
   have hΦ := hasDerivAt_comp_curve
     ((contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).mdifferentiableAt
       (x := c s₀) (by simp)) (hasMFDerivAt_curveVelocity hc)
-  rwa [mvfderiv, ContinuousLinearMap.comp_apply, mfderiv_kempfNessFunction C μ p h hμ hg,
-    curveVelocity_apply] at hΦ
+  rwa [mvfderiv, ContinuousLinearMap.comp_apply, mfderiv_kempfNessFunction C μ p h hμ hg] at hΦ
 
 /-- **The derivative of the Kempf–Ness function along a curve with left-trivialized derivative.**
 Let the action of `Gc` be a complexified action, let `-μ` be an equivariant moment map for `σ`,
@@ -434,7 +431,7 @@ theorem HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction {c : ℝ → Gc}
     (hs : s ∈ 𝓝 t) :
     HasDerivAt (fun u ↦ kempfNessFunction C μ p (c u)) (μ ((c t)⁻¹ • p) (C.im (ξ t))) t := by
   have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg (hc.mdifferentiableAt hs)
-  rwa [← curveVelocity_apply, hc.mfderiv_inv_mul_mfderiv hs] at hΦ
+  rwa [hc.mfderiv_inv_mul_mfderiv hs] at hΦ
 
 /-- **The derivative of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
