@@ -66,9 +66,10 @@ the polystable `Gc`-orbits.
 * `SymplecticGeometry.contDiff_moment_expI_neg_smul_smul_apply`: the integrand
   `(ξ, t) ↦ μ (C.expI (-(t • ξ)) • p) ξ` is smooth.
 * `SymplecticGeometry.contMDiff_kempfNessFunction`: `Φ_p` is smooth.
-* `SymplecticGeometry.moment_inv_smul_im_mfderiv_polar_smul`: on the velocity of the radial curve
-  `τ ↦ C.polar (τ • ξ, u)` at `t`, the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` takes the value
-  `μ (C.expI (-(t • ξ)) • p) ξ` of the integrand of `Φ_p (C.polar (ξ, u))`.
+* `SymplecticGeometry.moment_inv_smul_im_mfderiv_inv_mul_curveVelocity_polar_smul`: on the
+  velocity of the radial curve `τ ↦ C.polar (τ • ξ, u)` at `t`, translated to the identity, the
+  one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` takes the value `μ (C.expI (-(t • ξ)) • p) ξ` of the
+  integrand of `Φ_p (C.polar (ξ, u))`.
 * `SymplecticGeometry.mfderiv_kempfNessFunction`: the differential of `Φ_p` at `g` is
   `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 * `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a curve `c` differentiable at
@@ -102,10 +103,11 @@ smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
 The derivative follows [GeorgoulasRobbinSalamon2021], §2. Along a smooth curve `c`, write
 `c s = C.polar (ξ s, u s)` and deform the curve `s ↦ C.toHom (u s)` in `G` to `c` through
 `γ (s, t) = C.polar (t • ξ s, u s)`. Along `t` the one-form takes the value of the integrand
-(`moment_inv_smul_im_mfderiv_polar_smul`), so `Φ_p (c s) = ∫ t in 0..1, A (s, t)` with `A` the
-one-form on `∂_t γ`. The closedness of the one-form (`fderiv_moment_inv_smul_im_comm`) turns
-`∂_s A` into `∂_t B`, with `B` the one-form on `∂_s γ`, so differentiating under the integral sign
-and integrating along `t` (`intervalIntegral.hasDerivAt_integral_of_hasDerivAt_snd`) leaves
+(`moment_inv_smul_im_mfderiv_inv_mul_curveVelocity_polar_smul`), so
+`Φ_p (c s) = ∫ t in 0..1, A (s, t)` with `A` the one-form on `∂_t γ`. The closedness of the
+one-form (`fderiv_moment_inv_smul_im_comm`) turns `∂_s A` into `∂_t B`, with `B` the one-form
+on `∂_s γ`, so differentiating under the integral sign and integrating along `t`
+(`intervalIntegral.hasDerivAt_integral_of_hasDerivAt_snd`) leaves
 `B (s, 1) - B (s, 0)`. Here `B (s, 0) = 0` since
 `γ (·, 0)` stays in `G` (`LieComplexification.im_mfderiv_inv_mul_mfderiv_toHom_comp`), and
 `B (s, 1)` is the one-form on the velocity of `c`. The differential at `g` is read along the curve
@@ -234,7 +236,7 @@ variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
 `C.polar (ξ, u)`. Here `g⁻¹ ĝ` is the left translate `mfderiv IC IC (g⁻¹ * ·) g ĝ` of `ĝ` to the
 identity, and `μ` is assumed equivariant along `C.toHom` for the coadjoint action of `G`, as
 `IsComplexifiedAction.moment_toHom_smul` shows for the intended `μ`. -/
-theorem moment_inv_smul_im_mfderiv_polar_smul
+theorem moment_inv_smul_im_mfderiv_inv_mul_curveVelocity_polar_smul
     (hμ : ∀ (u : G) (x : M), μ (C.toHom u • x) = Lie.coadjointRepresentation ℝ I G u (μ x))
     (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
     μ ((C.polar (t • ξ, u))⁻¹ • p)
@@ -333,7 +335,8 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
   have hfst (s t : ℝ) : mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (1, 0) =
       curveVelocity IC (fun q ↦ γ (q, t)) s :=
     (curveVelocity_eq_mfderiv_fst (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm
-  -- Along `t`, the one-form is the integrand (`moment_inv_smul_im_mfderiv_polar_smul`).
+  -- Along `t`, the one-form is the integrand
+  -- (`moment_inv_smul_im_mfderiv_inv_mul_curveVelocity_polar_smul`).
   have hA : α (0, 1) = A := by
     funext ⟨s, t⟩
     have hv : mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1) =
@@ -343,7 +346,8 @@ private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifi
     change μ ((γ (s, t))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s, t))⁻¹ * ·) (γ (s, t))
       (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1)))) = A (s, t)
     rw [hv]
-    exact moment_inv_smul_im_mfderiv_polar_smul C μ p (h.moment_toHom_smul hμ) (ξ s) (u s) t
+    exact moment_inv_smul_im_mfderiv_inv_mul_curveVelocity_polar_smul C μ p
+      (h.moment_toHom_smul hμ) (ξ s) (u s) t
   -- Differentiating under the integral sign, the closedness of the one-form trades `∂_s A` for
   -- `∂_t (α (1, 0))`, and the fundamental theorem of calculus evaluates the integral.
   have hD : HasDerivAt (kempfNessFunction C μ p ∘ c)

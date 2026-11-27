@@ -29,11 +29,11 @@ from `ι₁ q` (`ProductNeighborhood.basepointChangeSubgroup_collarRadialPath`) 
 loops of the complement of the tube in `M₁` it is the map induced by the inclusion into the sum
 (`FiberSum.fundamentalGroupMulEquiv_mk`).
 
-For `M₂` the rational elliptic surface `E(1)` on the model of a four-manifold `X`
-(`rationalEllipticSurface.OnModel e`), its form rescaled to the area of the standard torus `T`, and
-`ι₂` its framed fibre torus, the complement of the fibre is simply connected, and this gives
-`fibreSum_fundamentalGroupMulEquiv`: `π₁` of the sum of `X` with `E(1)` along a framed symplectic
-embedding `ι` of `T` is `π₁(X, ι t) ⧸ ⟨⟨ι_* π₁(T, t)⟩⟩`.
+For `M₂` the rational elliptic surface `E(1)` on the model and in the universe of a four-manifold
+`X` (`rationalEllipticSurface.OnModel e`), its form rescaled to the area of the standard torus
+`T`, and `ι₂` its framed fibre torus, the complement of the fibre is simply connected, and this
+gives `fibreSum_fundamentalGroupMulEquiv`: `π₁` of the sum of `X` with `E(1)` along a framed
+symplectic embedding `ι` of `T` is `π₁(X, ι t) ⧸ ⟨⟨ι_* π₁(T, t)⟩⟩`.
 
 ## Main results
 
@@ -162,7 +162,7 @@ section RationalEllipticSurface
 
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
   (e : (Fin 2 → ℂ) ≃L[ℝ] V) (p : Unit ⊕ Unit → ℝ) [∀ i, Fact (0 < p i)]
-  {X : Type} [TopologicalSpace X] [ChartedSpace V X] [IsManifold 𝓘(ℝ, V) ∞ X] [T2Space X]
+  {X : Type*} [TopologicalSpace X] [ChartedSpace V X] [IsManifold 𝓘(ℝ, V) ∞ X] [T2Space X]
   [ConnectedSpace X] {σ : SmoothTwoForm 𝓘(ℝ, V) X} {hσ : σ.IsNondegenerate}
   {ι : SmoothEmbedding (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) 𝓘(ℝ, V) ∞
     (∀ i, AddCircle (p i)) X}
@@ -172,7 +172,7 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
   (f₂ : ProductNeighborhood (rationalEllipticSurface.OnModel.torusFraming e p) ε)
   (hδ : 0 ≤ δ) (hδε : δ < ε)
 
-/-- **The fundamental group of the fibre sum with the rational elliptic surface.** Let `X : Type`
+/-- **The fundamental group of the fibre sum with the rational elliptic surface.** Let `X`
 be a connected Hausdorff manifold modelled on the four-dimensional real space `V`, with a
 nondegenerate two-form `σ`, such as a symplectic form, and `ι` an embedding with symplectic
 tangent images of the standard torus `T = ∀ i, AddCircle (p i)`, of any area `p inl * p inr`,
@@ -183,8 +183,8 @@ product neighbourhoods of radius `ε` and any `0 ≤ δ < ε`. The sum is path c
 (`FiberSum.instPathConnectedSpace`), and for a point `w = (t, z)` of `T × A(δ, ε)` its
 fundamental group at the collar point `f₁ (t, z)` is `π₁(X, ι t)` modulo the normal closure of
 `ι_* π₁(T, t)`. The statement does not ask that `ι` pull `σ` back to the form of `T`: that is
-needed only for the symplectic form of the sum (`FiberSum.symplecticForm`). It takes `X` in
-`Type`, the universe of `E(1)`, since the two pieces of a fibre sum share a universe.
+needed only for the symplectic form of the sum (`FiberSum.symplecticForm`). `X` may lie in any
+universe: `E(1)` is lifted to it (`rationalEllipticSurface.OnModel`).
 
 Milestone: *Fundamental group after summing with the rational elliptic surface*. -/
 def fibreSum_fundamentalGroupMulEquiv (w : (∀ i, AddCircle (p i)) × annulus ℂ δ ε) :
