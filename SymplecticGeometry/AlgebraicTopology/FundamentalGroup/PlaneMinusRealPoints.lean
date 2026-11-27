@@ -10,6 +10,7 @@ public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Analysis.Convex.PathConnected
 public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
+public import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 public import TauCeti.Topology.Homotopy.Path
 
 import Mathlib.Analysis.Complex.Convex
@@ -18,7 +19,6 @@ import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import Mathlib.Topology.MetricSpace.HausdorffDistance
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
-import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.Analysis.SpecialFunctions.Complex.CircleMap
 import TauCeti.CategoryTheory.Groupoid.SingleObj
@@ -55,10 +55,9 @@ loops: run one after the other from the largest point to the smallest, they are 
   the plane minus the points.
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv hδ hc h0`: the isomorphism
   of `π₁(ℂ ∖ {c i}, 0)` with `FreeGroup ι`.
-* `SymplecticGeometry.PlaneMinusRealPoints.outerCircle R θ`, `outerLoopInPlane R θ` and
-  `outerLoop h0 hR hθ₀ hθπ`: the circle about `0` of radius `R` from the angle `θ`, and the loop
-  based at `0` that reaches it along the ray at the angle `θ`, in `ℂ` and in the plane minus the
-  points.
+* `SymplecticGeometry.PlaneMinusRealPoints.outerLoopInPlane R θ` and
+  `outerLoop h0 hR hθ₀ hθπ`: the loop based at `0` that runs along the ray at the angle `θ` out
+  to the circle `circlePath 0 R θ`, around it, and back, in `ℂ` and in the plane minus the points.
 
 ## Main results
 
@@ -142,16 +141,18 @@ theorem approach_def (x r : ℝ) :
         (Path.segment ((x + r : ℝ) - I) ((x + r : ℝ) : ℂ)) :=
   (rfl)
 
-/-- The circle about `x` of radius `r`, run once counterclockwise from `x + r`. -/
-def circle (x r : ℝ) : Path ((x + r : ℝ) : ℂ) ((x + r : ℝ) : ℂ) where
-  toFun t := x + r * exp ((2 * Real.pi * t : ℝ) * I)
-  continuous_toFun := by fun_prop
-  source' := by simp
-  target' := by simp [exp_mul_I]
+/-- The circle about `x` of radius `r`, run once counterclockwise from `x + r`: the path
+`circlePath x r 0`, with its end points written as the real number `x + r`. -/
+def circle (x r : ℝ) : Path ((x + r : ℝ) : ℂ) ((x + r : ℝ) : ℂ) :=
+  (circlePath x r 0).cast (by simp [circleMap]) (by simp [circleMap])
+
+theorem circle_def (x r : ℝ) :
+    circle x r = (circlePath x r 0).cast (by simp [circleMap]) (by simp [circleMap]) :=
+  (rfl)
 
 theorem circle_apply (x r : ℝ) (t : unitInterval) :
     circle x r t = circleMap x r (2 * Real.pi * t) := by
-  simp [circle, circleMap]
+  rw [circle_def, Path.cast_coe, circlePath_apply, zero_add]
 
 /-- The loop in `ℂ` about `x` of radius `r`, based at `0`: straight down from `0` to `-i`, along
 `approach x r` to `x + r`, once counterclockwise around the circle about `x`, and back the same
@@ -710,28 +711,16 @@ end Main
 
 /-! ### The large circle -/
 
-/-- The circle about `0` of radius `R`, run once counterclockwise from `R e^{iθ}`. -/
-def outerCircle (R θ : ℝ) : Path (circleMap 0 R θ) (circleMap 0 R θ) where
-  toFun t := R * exp ((θ + 2 * Real.pi * t : ℝ) * I)
-  continuous_toFun := by fun_prop
-  source' := by simp [circleMap]
-  target' := by simpa [circleMap] using periodic_circleMap 0 R θ
-
-theorem outerCircle_apply (R θ : ℝ) (t : unitInterval) :
-    outerCircle R θ t = circleMap 0 R (θ + 2 * Real.pi * t) := by
-  simp only [circleMap, zero_add]
-  rfl
-
 /-- The loop in `ℂ` based at `0` that runs along the ray at the angle `θ` out to the circle about
 `0` of radius `R`, once counterclockwise around that circle, and back along the ray. -/
 def outerLoopInPlane (R θ : ℝ) : Path (0 : ℂ) 0 :=
   (Path.segment 0 (circleMap 0 R θ)).trans
-    ((outerCircle R θ).trans (Path.segment 0 (circleMap 0 R θ)).symm)
+    ((circlePath 0 R θ).trans (Path.segment 0 (circleMap 0 R θ)).symm)
 
 theorem outerLoopInPlane_def (R θ : ℝ) :
     outerLoopInPlane R θ =
       (Path.segment 0 (circleMap 0 R θ)).trans
-        ((outerCircle R θ).trans (Path.segment 0 (circleMap 0 R θ)).symm) :=
+        ((circlePath 0 R θ).trans (Path.segment 0 (circleMap 0 R θ)).symm) :=
   (rfl)
 
 variable {R θ : ℝ}
@@ -769,7 +758,7 @@ theorem outerLoopInPlane_mem_compl_range (h0 : ∀ i, c i ≠ 0) (hR : ∀ i, |c
   rw [outerLoopInPlane_def, Path.trans_range, Path.trans_range, Path.symm_range,
     union_subset_iff, union_subset_iff, range_subset_iff, range_subset_iff]
   exact ⟨segment_zero_circleMap_mem_compl_range h0 hθ₀ hθπ,
-    fun t ↦ outerCircle_apply R θ t ▸ circleMap_zero_mem_compl_range hR _,
+    fun t ↦ circlePath_apply 0 R θ t ▸ circleMap_zero_mem_compl_range hR _,
     segment_zero_circleMap_mem_compl_range h0 hθ₀ hθπ⟩
 
 /-- The loop based at `0` in the plane minus the real points `c i`, all of absolute value less
@@ -1125,8 +1114,8 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
   let ρX : Path (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ) B :=
     (Path.segment 0 (circleMap 0 R θ)).codRestrict
       (segment_zero_circleMap_mem_compl_range h0 hθ₀ hθπ)
-  let CX : Path B B := (outerCircle R θ).codRestrict fun t ↦
-    outerCircle_apply R θ t ▸ circleMap_zero_mem_compl_range hR _
+  let CX : Path B B := (circlePath 0 R θ).codRestrict fun t ↦
+    circlePath_apply 0 R θ t ▸ circleMap_zero_mem_compl_range hR _
   have hloop : outerLoop h0 hR hθ₀ hθπ = ρX.trans (CX.trans ρX.symm) := by
     ext t
     simp only [coe_outerLoop_apply, outerLoopInPlane_def, Path.trans_apply, Path.symm_apply,
@@ -1156,18 +1145,18 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
       Path.subpath_zero_one, ofPath_cast]
   have h1 := ofPath_eq_V h0 one_ne_zero (CX.subpath 0 t₁) (range_subpath_subset_half _
     (by rw [← Subtype.coe_le_coe, ht₁]; exact t₁.property.1) fun t _ ht ↦ by
-      rw [Path.codRestrict_coe, outerCircle_apply]
+      rw [Path.codRestrict_coe, circlePath_apply]
       exact one_mul_im_circleMap_nonneg hR₀ (by nlinarith [t.property.1])
         (hle t _ (ht.trans_eq ht₁)))
   have h2 := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) (CX.subpath t₁ t₂)
     (range_subpath_subset_half _ (by rw [← Subtype.coe_le_coe, ht₁, ht₂]; gcongr; linarith)
       fun t ht ht' ↦ by
-      rw [Path.codRestrict_coe, outerCircle_apply]
+      rw [Path.codRestrict_coe, circlePath_apply]
       exact neg_one_mul_im_circleMap_nonneg hR₀ (hge t _ (ht₁ ▸ ht))
         (hle t _ (ht'.trans_eq ht₂)))
   have h3 := ofPath_eq_V h0 one_ne_zero (CX.subpath t₂ 1) (range_subpath_subset_half _
     t₂.property.2 fun t ht _ ↦ by
-      rw [Path.codRestrict_coe, outerCircle_apply, ← (periodic_circleMap _ _).sub_eq]
+      rw [Path.codRestrict_coe, circlePath_apply, ← (periodic_circleMap _ _).sub_eq]
       have := hge t _ (ht₂ ▸ ht)
       exact one_mul_im_circleMap_nonneg hR₀ (by linarith) (by nlinarith [t.property.2]))
   have hρ := ofPath_eq_V h0 one_ne_zero ρX (range_codRestrict_subset_half _
@@ -1180,9 +1169,9 @@ private theorem exists_ofPath_outerLoop_eq (hR : ∀ i, |c i| < R) (hR₀ : 0 < 
       θ + 2 * Real.pi * t = a :=
     le_antisymm (hle t a h.le) (hge t a h.ge)
   refine ⟨CX t₁, CX t₂, ?_, ?_, ?_⟩
-  · rw [Path.codRestrict_coe, outerCircle_apply, hangle t₁ Real.pi ht₁]
+  · rw [Path.codRestrict_coe, circlePath_apply, hangle t₁ Real.pi ht₁]
     simp [circleMap]
-  · rw [Path.codRestrict_coe, outerCircle_apply, hangle t₂ (2 * Real.pi) ht₂]
+  · rw [Path.codRestrict_coe, circlePath_apply, hangle t₂ (2 * Real.pi) ht₂]
     simp [circleMap]
   · rw [hloop]
     simp only [ofPath_trans, ofPath_symm, hC, h1, h2, h3, hρ, g]

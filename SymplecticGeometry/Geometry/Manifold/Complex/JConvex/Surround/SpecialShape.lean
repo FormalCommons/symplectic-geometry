@@ -1,0 +1,501 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape
+
+import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+import Mathlib.Analysis.SpecialFunctions.Sqrt
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import TauCeti.Analysis.Calculus.Deriv.Second
+
+/-!
+# Special `i`-convex shapes
+
+Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak and Eliashberg's
+§4.5, from which their model handle is put together.
+
+* `SymplecticGeometry.struweShape δ K c`: the function
+  `r ↦ c + ∫ u in K * δ..r, 1 / √(log (u / δ))`. For `r > δ` its slope is `1 / √(log (r / δ))`
+  (`SymplecticGeometry.deriv_struweShape`), and its second derivative is `-χ'³ / (2 r)`
+  (`SymplecticGeometry.iteratedDeriv_two_struweShape`), so that it solves Struwe's equation
+  `χ'' + χ'³ / (2 r) = 0`, with an infinite slope at `δ` and the value `c` at `K δ`. It is
+  smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
+  (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
+  `SymplecticGeometry.strictMonoOn_struweShape`).
+* `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
+  `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
+* `SymplecticGeometry.isConvexShapeAt_struweShape`: for `0 < d`, `0 < δ`, `exp (4 / d²) ≤ K`
+  and `4 K δ ≤ (log K) ^ (-3 / 2)`, the solution with `c = 1 + d K δ` is an `i`-convex shape on
+  `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value in `[1 + d δ, 1 + d K δ)`,
+  and has slope tending to `+∞` at `δ`.
+* `SymplecticGeometry.isConvexShapeAt_sqrt`, `SymplecticGeometry.isConvexShapeAt_quadratic` and
+  `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
+  `ℓ + b r + c r² / (2 ℓ)` for `c > 1`, and `ℓ + d r` for `r < ℓ d³`.
+
+All of them are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe's shape the two
+inequalities read `r √L < χ` and `2 r √L³ < χ`, with `L = log (r / δ)`; the second follows from
+`4 K δ √(log K)³ ≤ 1`, and the first also uses the lower bound `1 + d δ` of `χ`. That bound
+amounts to `∫ u in δ..K δ, 1 / √(log (u / δ)) ≤ d (K - 1) δ`, which is proved by comparing
+the integrand minus `d` with its product by `u₀ / u`, where `u₀ = δ exp (1 / d²)` is the point
+where the integrand equals `d`, and integrating the latter exactly.
+
+## References
+
+* [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
+  §4.5: Lemma 4.15, Remark 4.16 and Lemma 4.17 (a), (b), (e).
+-/
+
+public section
+
+noncomputable section
+
+namespace SymplecticGeometry
+
+open Real Set Filter Topology MeasureTheory intervalIntegral TauCeti
+open scoped ContDiff Interval
+
+/-- **Struwe's shape**: `r ↦ c + ∫ u in K δ..r, 1 / √(log (u / δ))`. It takes the value `c` at
+`K δ`, and for `δ > 0` and `K ≥ 1` it solves Struwe's equation `χ'' + χ'³ / (2 r) = 0` on
+`(δ, ∞)`, with slope tending to `+∞` at `δ`. -/
+def struweShape (δ K c r : ℝ) : ℝ :=
+  c + ∫ u in K * δ..r, 1 / √(log (u / δ))
+
+theorem struweShape_def (δ K c r : ℝ) :
+    struweShape δ K c r = c + ∫ u in K * δ..r, 1 / √(log (u / δ)) := (rfl)
+
+@[simp]
+theorem struweShape_apply_mul (δ K c : ℝ) : struweShape δ K c (K * δ) = c := by
+  simp [struweShape_def]
+
+section Struwe
+
+variable {δ K : ℝ}
+
+/-- The derivative of `u ↦ √(log (u / δ))` for `u > δ > 0`. -/
+private theorem hasDerivAt_sqrt_log (hδ : 0 < δ) {u : ℝ} (hu : δ < u) :
+    HasDerivAt (fun u ↦ √(log (u / δ))) (1 / (2 * u * √(log (u / δ)))) u := by
+  have hu₀ : 0 < u := hδ.trans hu
+  have hL : 0 < log (u / δ) := log_pos ((one_lt_div hδ).2 hu)
+  have h := (((hasDerivAt_id' u).div_const δ).log (div_pos hu₀ hδ).ne').sqrt hL.ne'
+  convert h using 1
+  field_simp
+
+private theorem continuousOn_sqrt_log (hδ : 0 < δ) (b : ℝ) :
+    ContinuousOn (fun u ↦ √(log (u / δ))) (Icc δ b) := by
+  refine (ContinuousOn.log (continuousOn_id.div_const δ) fun u hu ↦ ?_).sqrt
+  have : 0 < u / δ := div_pos (hδ.trans_le hu.1) hδ
+  exact this.ne'
+
+private theorem measurable_struwe (δ : ℝ) : Measurable fun u ↦ 1 / √(log (u / δ)) := by
+  fun_prop
+
+/-- The integrand of `struweShape` is integrable on `[δ, b]`, although it is unbounded near
+`δ`: on `(δ, b]` it is at most `b` times `1 / (u √(log (u / δ)))`, twice the derivative of
+`√(log (u / δ))`. -/
+private theorem intervalIntegrable_deriv_sqrt_log (hδ : 0 < δ) {b : ℝ} (hb : δ ≤ b) :
+    IntervalIntegrable (fun u ↦ 1 / (2 * u * √(log (u / δ)))) volume δ b :=
+  (intervalIntegrable_iff_integrableOn_Ioc_of_le hb).2 <|
+    integrableOn_deriv_of_nonneg (continuousOn_sqrt_log hδ b)
+      (fun u hu ↦ hasDerivAt_sqrt_log hδ hu.1) fun u hu ↦ by
+        have := hδ.trans hu.1
+        positivity
+
+private theorem intervalIntegrable_struwe (hδ : 0 < δ) {b : ℝ} (hb : δ ≤ b) :
+    IntervalIntegrable (fun u ↦ 1 / √(log (u / δ))) volume δ b := by
+  have hg := ((intervalIntegrable_iff_integrableOn_Ioc_of_le hb).1
+    (intervalIntegrable_deriv_sqrt_log hδ hb))
+  refine (intervalIntegrable_iff_integrableOn_Ioc_of_le hb).2 ?_
+  refine (hg.const_mul (2 * b)).mono' (measurable_struwe δ).aestronglyMeasurable ?_
+  refine ae_restrict_of_forall_mem measurableSet_Ioc fun u hu ↦ ?_
+  have hu₀ : 0 < u := hδ.trans hu.1
+  have hS : 0 < √(log (u / δ)) := sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu.1))
+  rw [norm_of_nonneg (by positivity), show 2 * b * (1 / (2 * u * √(log (u / δ)))) =
+    b / u * (1 / √(log (u / δ))) by field_simp]
+  exact le_mul_of_one_le_left (by positivity) ((one_le_div hu₀).2 hu.2)
+
+private theorem intervalIntegrable_struwe_of_lt (hδ : 0 < δ) (hK : 1 ≤ K) {r : ℝ}
+    (hr : δ ≤ r) : IntervalIntegrable (fun u ↦ 1 / √(log (u / δ))) volume (K * δ) r :=
+  (intervalIntegrable_struwe hδ (le_mul_of_one_le_left hδ.le hK)).symm.trans
+    (intervalIntegrable_struwe hδ hr)
+
+/-- The slope of Struwe's shape at `r > δ` is `1 / √(log (r / δ))`. -/
+theorem hasDerivAt_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : δ < r) :
+    HasDerivAt (struweShape δ K c) (1 / √(log (r / δ))) r := by
+  have hc : ContinuousAt (fun u ↦ 1 / √(log (u / δ))) r := by
+    have hr₀ : 0 < r := hδ.trans hr
+    have hS : 0 < √(log (r / δ)) := sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hr))
+    exact continuousAt_const.div
+      ((continuousAt_id.div_const δ).log (div_pos hr₀ hδ).ne').sqrt hS.ne'
+  have h := integral_hasDerivAt_right (intervalIntegrable_struwe_of_lt hδ hK hr.le)
+    (measurable_struwe δ).stronglyMeasurable.stronglyMeasurableAtFilter hc
+  exact h.const_add c
+
+/-- The slope of Struwe's shape at `r > δ` is `1 / √(log (r / δ))`. -/
+theorem deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : δ < r) :
+    deriv (struweShape δ K c) r = 1 / √(log (r / δ)) :=
+  (hasDerivAt_struweShape hδ hK c hr).deriv
+
+/-- Struwe's equation: the second derivative of Struwe's shape at `r > δ` is `-χ'³ / (2 r)`,
+with `χ' = 1 / √(log (r / δ))`. -/
+theorem iteratedDeriv_two_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : δ < r) :
+    iteratedDeriv 2 (struweShape δ K c) r = -(1 / √(log (r / δ))) ^ 3 / (2 * r) := by
+  have heq : deriv (struweShape δ K c) =ᶠ[𝓝 r] (fun u ↦ √(log (u / δ)))⁻¹ :=
+    (lt_mem_nhds hr).mono fun u hu ↦ by rw [deriv_struweShape hδ hK c hu, one_div, Pi.inv_apply]
+  have hS : 0 < √(log (r / δ)) := sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hr))
+  have hr₀ : 0 < r := hδ.trans hr
+  simp only [iteratedDeriv_succ, iteratedDeriv_zero]
+  have h := (hasDerivAt_sqrt_log hδ hr).inv hS.ne'
+  rw [heq.deriv_eq, h.deriv]
+  field_simp
+
+/-- The slope of Struwe's shape tends to `+∞` at `δ`. -/
+theorem tendsto_deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    Tendsto (deriv (struweShape δ K c)) (𝓝[>] δ) atTop := by
+  have hc : ContinuousAt (fun u ↦ √(log (u / δ))) δ :=
+    ((continuousAt_id.div_const δ).log (by simp [hδ.ne'])).sqrt
+  have h₀ : Tendsto (fun u ↦ √(log (u / δ))) (𝓝[>] δ) (𝓝[>] 0) := by
+    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
+    · simpa [hδ.ne'] using hc.tendsto.mono_left nhdsWithin_le_nhds
+    · filter_upwards [self_mem_nhdsWithin] with u (hu : δ < u)
+      exact sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu))
+  refine (tendsto_inv_nhdsGT_zero.comp h₀).congr' ?_
+  filter_upwards [self_mem_nhdsWithin] with u (hu : δ < u)
+  rw [deriv_struweShape hδ hK c hu, one_div]
+  rfl
+
+/-- Struwe's shape is smooth on `(δ, ∞)`. -/
+theorem contDiffOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    ContDiffOn ℝ ∞ (struweShape δ K c) (Ioi δ) := by
+  have hL : ∀ u ∈ Ioi δ, 0 < log (u / δ) := fun u hu ↦ log_pos ((one_lt_div hδ).2 hu)
+  refine (contDiffOn_infty_iff_deriv_of_isOpen isOpen_Ioi).2
+    ⟨fun r hr ↦ (hasDerivAt_struweShape hδ hK c hr).differentiableAt.differentiableWithinAt, ?_⟩
+  have hf : ContDiffOn ℝ ∞ (fun u ↦ 1 / √(log (u / δ))) (Ioi δ) :=
+    contDiffOn_const.div (((contDiffOn_id.div_const δ).log fun u hu ↦
+      (div_pos (hδ.trans hu) hδ).ne').sqrt fun u hu ↦ (hL u hu).ne')
+      fun u hu ↦ (sqrt_pos.2 (hL u hu)).ne'
+  exact hf.congr fun r hr ↦ deriv_struweShape hδ hK c hr
+
+/-- Struwe's shape is continuous on `[δ, ∞)`: its integrand is integrable near `δ`. -/
+theorem continuousOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    ContinuousOn (struweShape δ K c) (Ici δ) := by
+  intro r (hr : δ ≤ r)
+  set b := max r (K * δ) + 1
+  have hrb : r < b := by linarith [le_max_left r (K * δ)]
+  have hb : δ ≤ b := hr.trans hrb.le
+  have hKδ : K * δ ∈ [[δ, b]] := by
+    rw [uIcc_of_le hb]
+    exact ⟨le_mul_of_one_le_left hδ.le hK, by linarith [le_max_right r (K * δ)]⟩
+  have h := (continuousOn_primitive_interval' (intervalIntegrable_struwe hδ hb) hKδ).const_add c
+  rw [uIcc_of_le hb, ← funext (struweShape_def δ K c)] at h
+  refine (h r ⟨hr, hrb.le⟩).mono_of_mem_nhdsWithin ?_
+  rw [← Ici_inter_Iic]
+  exact inter_mem_nhdsWithin _ (Iic_mem_nhds hrb)
+
+/-- Struwe's shape is strictly increasing on `[δ, ∞)`. -/
+theorem strictMonoOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    StrictMonoOn (struweShape δ K c) (Ici δ) :=
+  strictMonoOn_of_deriv_pos (convex_Ici δ) (continuousOn_struweShape hδ hK c) fun r hr ↦ by
+    rw [interior_Ici] at hr
+    rw [deriv_struweShape hδ hK c hr]
+    exact one_div_pos.2 (sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hr)))
+
+/-- At `r > δ`, Struwe's shape is an `i`-convex shape if its value at `r` exceeds both
+`r √L` and `2 r √L³`, where `L = log (r / δ)`. -/
+theorem isConvexShapeAt_struweShape_of_lt (hδ : 0 < δ) (hK : 1 ≤ K) {c r : ℝ} (hr : δ < r)
+    (h₁ : r * √(log (r / δ)) < struweShape δ K c r)
+    (h₂ : 2 * r * √(log (r / δ)) ^ 3 < struweShape δ K c r) :
+    IsConvexShapeAt (struweShape δ K c) r := by
+  have hr₀ : 0 < r := hδ.trans hr
+  set t := √(log (r / δ))
+  have ht₀ : 0 < t := sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hr))
+  have hχ₀ : 0 < struweShape δ K c r := (by positivity : 0 < r * t).trans h₁
+  refine isConvexShapeAt_iff.2 ⟨hr₀, hχ₀, ?_, ?_⟩
+  · rw [deriv_struweShape hδ hK _ hr, div_div, div_lt_div_iff₀ hχ₀ (by positivity)]
+    linarith
+  · rw [deriv_struweShape hδ hK _ hr, iteratedDeriv_two_struweShape hδ hK _ hr]
+    have e : -(1 / t) ^ 3 / (2 * r) + (1 / t) ^ 3 / r = 1 / (2 * r * t ^ 3) := by
+      field_simp
+      ring
+    rw [e, div_lt_div_iff₀ hχ₀ (by positivity)]
+    linarith
+
+/-- The bounds on `K` that the hypothesis `exp (4 / d²) ≤ K` gives: `1 < K`, `0 < log K` and
+`2 ≤ d √(log K)`. -/
+private theorem struwe_log_bounds {d : ℝ} (hd : 0 < d) (hK : exp (4 / d ^ 2) ≤ K) :
+    1 < K ∧ 0 < log K ∧ 2 ≤ d * √(log K) := by
+  have hlog : 4 / d ^ 2 ≤ log K := by simpa using log_le_log (exp_pos _) hK
+  have hlog₀ : 0 < log K := (by positivity : (0 : ℝ) < 4 / d ^ 2).trans_le hlog
+  refine ⟨(one_lt_exp_iff.2 (by positivity : (0 : ℝ) < 4 / d ^ 2)).trans_le hK, hlog₀, ?_⟩
+  have h4 : √(4 / d ^ 2) = 2 / d := by
+    rw [sqrt_div' _ (by positivity), show (4 : ℝ) = 2 ^ 2 by norm_num, sqrt_sq (by norm_num),
+      sqrt_sq hd.le]
+  have := sqrt_le_sqrt hlog
+  rw [h4, div_le_iff₀ hd] at this
+  linarith
+
+/-- The integral of the integrand of Struwe's shape over `[δ, K δ]` is at most `d (K - 1) δ`
+when `log K ≥ 4 / d²`. The integrand minus `d` is at most its product by `u₀ / u`, where
+`u₀ = δ exp (1 / d²)` is where the integrand equals `d`, and that product integrates to
+`u₀ (2 √(log K) - d log K) ≤ 0`. -/
+private theorem integral_struwe_le {d : ℝ} (hd : 0 < d) (hδ : 0 < δ) (hK : exp (4 / d ^ 2) ≤ K) :
+    ∫ u in δ..K * δ, 1 / √(log (u / δ)) ≤ d * (K - 1) * δ := by
+  set f : ℝ → ℝ := fun u ↦ 1 / √(log (u / δ)) with hf
+  set u₀ := δ * exp (1 / d ^ 2)
+  obtain ⟨hK₁, hlog₀, hs⟩ := struwe_log_bounds hd hK
+  have hδK : δ ≤ K * δ := le_mul_of_one_le_left hδ.le hK₁.le
+  set g : ℝ → ℝ := fun u ↦ 2 * u₀ * (1 / (2 * u * √(log (u / δ)))) - u₀ * d * u⁻¹
+  have hint₁ := intervalIntegrable_deriv_sqrt_log hδ hδK
+  have hint₂ : IntervalIntegrable (fun u : ℝ ↦ u⁻¹) volume δ (K * δ) :=
+    intervalIntegral.intervalIntegrable_inv (fun u hu ↦ by
+      have : 0 < u := hδ.trans_le (by simpa [hδK] using hu.1)
+      exact this.ne') (continuousOn_id)
+  have hfi := intervalIntegrable_struwe hδ hδK
+  -- The pointwise comparison.
+  have hpt : ∀ u ∈ Ioo δ (K * δ), f u - d ≤ g u := by
+    intro u hu
+    have hu₀ : 0 < u := hδ.trans hu.1
+    have hL : 0 < log (u / δ) := log_pos ((one_lt_div hδ).2 hu.1)
+    have hS : 0 < √(log (u / δ)) := sqrt_pos.2 hL
+    have hu : u = δ * exp (log (u / δ)) := by
+      rw [exp_log (div_pos hu₀ hδ)]
+      field_simp
+    have hg : g u = u₀ / u * (f u - d) := by
+      simp only [g, hf]
+      field_simp
+    rw [hg]
+    -- `(f u - d) (1 - u₀ / u) ≤ 0`: the two factors have opposite signs.
+    have key : (f u - d) * (u - u₀) ≤ 0 := by
+      rcases le_total (log (u / δ)) (1 / d ^ 2) with h | h
+      · have h₁ : u ≤ u₀ := by
+          rw [hu]
+          exact mul_le_mul_of_nonneg_left (exp_le_exp.2 h) hδ.le
+        have h₂ : d ≤ f u := by
+          have : √(log (u / δ)) ≤ 1 / d := by
+            calc √(log (u / δ)) ≤ √(1 / d ^ 2) := sqrt_le_sqrt h
+              _ = 1 / d := by rw [sqrt_div' _ (by positivity), sqrt_one, sqrt_sq hd.le]
+          simp only [hf]
+          rw [le_div_iff₀ hS]
+          rwa [le_div_iff₀ hd, mul_comm] at this
+        nlinarith
+      · have h₁ : u₀ ≤ u := by
+          rw [hu]
+          exact mul_le_mul_of_nonneg_left (exp_le_exp.2 h) hδ.le
+        have h₂ : f u ≤ d := by
+          have : 1 / d ≤ √(log (u / δ)) := by
+            calc 1 / d = √(1 / d ^ 2) := by
+                  rw [sqrt_div' _ (by positivity), sqrt_one, sqrt_sq hd.le]
+              _ ≤ √(log (u / δ)) := sqrt_le_sqrt h
+          simp only [hf]
+          rw [div_le_iff₀ hS]
+          rwa [div_le_iff₀ hd, mul_comm] at this
+        nlinarith
+    have : f u - d - u₀ / u * (f u - d) = (f u - d) * (u - u₀) / u := by
+      field_simp
+    have : (f u - d) * (u - u₀) / u ≤ 0 := div_nonpos_of_nonpos_of_nonneg key hu₀.le
+    linarith
+  have hmono := integral_mono_on_of_le_Ioo hδK (hfi.sub intervalIntegrable_const)
+    ((hint₁.const_mul _).sub (hint₂.const_mul _)) hpt
+  -- The two sides.
+  have hlhs : ∫ u in δ..K * δ, (f u - d) = (∫ u in δ..K * δ, f u) - (K * δ - δ) * d := by
+    rw [integral_sub hfi intervalIntegrable_const, intervalIntegral.integral_const, smul_eq_mul]
+  have hftc : ∫ u in δ..K * δ, 1 / (2 * u * √(log (u / δ))) = √(log K) := by
+    rw [integral_eq_sub_of_hasDerivAt_of_le hδK (continuousOn_sqrt_log hδ (K * δ))
+      (fun u hu ↦ hasDerivAt_sqrt_log hδ hu.1) hint₁]
+    simp [hδ.ne']
+  have hrhs : ∫ u in δ..K * δ, g u = u₀ * (2 * √(log K) - d * log K) := by
+    simp only [g]
+    rw [integral_sub (hint₁.const_mul _) (hint₂.const_mul _), intervalIntegral.integral_const_mul,
+      intervalIntegral.integral_const_mul, hftc, integral_inv_of_pos hδ (by positivity),
+      mul_div_cancel_right₀ _ hδ.ne']
+    ring
+  have hneg : u₀ * (2 * √(log K) - d * log K) ≤ 0 := by
+    have hsq : log K = √(log K) * √(log K) := (mul_self_sqrt hlog₀.le).symm
+    have : 0 ≤ √(log K) := sqrt_nonneg _
+    have hu₀ : 0 < u₀ := by positivity
+    refine mul_nonpos_of_nonneg_of_nonpos hu₀.le ?_
+    nlinarith [mul_nonneg (sub_nonneg.2 hs) this]
+  rw [hlhs, hrhs] at hmono
+  nlinarith
+
+/-- **Struwe's solutions as `i`-convex shapes.** Let `0 < d`, `0 < δ`, `exp (4 / d²) ≤ K` and
+`4 K δ ≤ (log K) ^ (-3 / 2)`. Struwe's shape with value `1 + d K δ` at `K δ` is an `i`-convex
+shape at every point of `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value at least
+`1 + d δ` and less than `1 + d K δ`, and its slope tends to `+∞` at `δ`. -/
+theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
+    (hK : exp (4 / d ^ 2) ≤ K) (hKδ : 4 * K * δ ≤ log K ^ (-3 / 2 : ℝ)) :
+    (∀ r ∈ Ioc δ (K * δ), IsConvexShapeAt (struweShape δ K (1 + d * K * δ)) r) ∧
+      deriv (struweShape δ K (1 + d * K * δ)) (K * δ) ≤ d ∧
+      (1 + d * δ ≤ struweShape δ K (1 + d * K * δ) δ ∧
+        struweShape δ K (1 + d * K * δ) δ < 1 + d * K * δ) ∧
+      Tendsto (deriv (struweShape δ K (1 + d * K * δ))) (𝓝[>] δ) atTop := by
+  set χ := struweShape δ K (1 + d * K * δ)
+  set f : ℝ → ℝ := fun u ↦ 1 / √(log (u / δ)) with hf
+  obtain ⟨hK₁', hlog₀, hds⟩ := struwe_log_bounds hd hK
+  have hK₀ : 0 < K := one_pos.trans hK₁'
+  have hK₁ := hK₁'.le
+  have hδK : δ < K * δ := lt_mul_of_one_lt_left hδ hK₁'
+  set s := √(log K) with hs_def
+  have hs₀ : 0 < s := sqrt_pos.2 hlog₀
+  have hss : s ^ 2 = log K := sq_sqrt hlog₀.le
+  -- `4 K δ s³ ≤ 1`.
+  have hA : 4 * K * δ * s ^ 3 ≤ 1 := by
+    have e : log K ^ (-3 / 2 : ℝ) = (s ^ 3)⁻¹ := by
+      rw [show (-3 / 2 : ℝ) = -(3 / 2) by norm_num, rpow_neg hlog₀.le, hs_def, sqrt_eq_rpow,
+        ← rpow_natCast, ← rpow_mul hlog₀.le]
+      norm_num
+    rw [e] at hKδ
+    have := mul_le_mul_of_nonneg_right hKδ (by positivity : (0 : ℝ) ≤ s ^ 3)
+    rwa [inv_mul_cancel₀ (by positivity)] at this
+  -- The value at `δ`.
+  have hfi := intervalIntegrable_struwe hδ hδK.le
+  have hχδ : χ δ = 1 + d * K * δ - ∫ u in δ..K * δ, f u := by
+    simp only [χ, struweShape_def, hf]
+    rw [integral_symm]
+    ring
+  have hpos : 0 < ∫ u in δ..K * δ, f u :=
+    intervalIntegral_pos_of_pos_on hfi (fun u hu ↦
+      one_div_pos.2 (sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu.1)))) hδK
+  have hval : 1 + d * δ ≤ χ δ := by
+    have := integral_struwe_le hd hδ hK
+    rw [hχδ]
+    nlinarith
+  refine ⟨fun r hr ↦ ?_, ?_, ⟨hval, by linarith⟩,
+    tendsto_deriv_struweShape hδ hK₁ _⟩
+  · have hr₀ : 0 < r := hδ.trans hr.1
+    have hL : 0 < log (r / δ) := log_pos ((one_lt_div hδ).2 hr.1)
+    have hLK : log (r / δ) ≤ log K :=
+      log_le_log (div_pos hr₀ hδ) ((div_le_iff₀ hδ).2 hr.2)
+    set t := √(log (r / δ))
+    have ht₀ : 0 < t := sqrt_pos.2 hL
+    have hts : t ≤ s := sqrt_le_sqrt hLK
+    have hχr : 1 + d * δ < χ r := hval.trans_lt
+      (strictMonoOn_struweShape hδ hK₁ _ (mem_Ici.2 le_rfl) hr.1.le hr.1)
+    -- `r t < χ r`.
+    have h₁ : r * t < χ r := by
+      have hrt : r * t ≤ K * δ * s := mul_le_mul hr.2 hts ht₀.le (by positivity)
+      refine hrt.trans_lt (lt_of_le_of_lt ?_ hχr)
+      -- `K δ s ≤ 1 + d δ`, multiplied by `s² > 0`.
+      have hdδ : 2 * δ * s ≤ d * δ * s ^ 2 := by
+        have := mul_le_mul_of_nonneg_left hds (by positivity : (0 : ℝ) ≤ δ * s)
+        nlinarith
+      rcases le_total (1 / 4) (s ^ 2) with h | h
+      · nlinarith
+      · -- `K (1 - log K) ≤ 1`, so `K ≤ 4 / 3` and `K s² ≤ 1 / 3`.
+        have he := add_one_le_exp (-log K)
+        rw [exp_neg, exp_log hK₀] at he
+        have hK3 := mul_le_mul_of_nonneg_left he hK₀.le
+        rw [mul_inv_cancel₀ hK₀.ne'] at hK3
+        have hK43 : K ≤ 4 / 3 := by nlinarith
+        have hKs : K * s ^ 2 ≤ 1 / 3 := by
+          nlinarith [mul_le_mul hK43 h (sq_nonneg s) (by norm_num : (0 : ℝ) ≤ 4 / 3)]
+        have : K * δ * s ^ 3 ≤ 1 / 3 * δ * s := by
+          have := mul_le_mul_of_nonneg_right hKs (by positivity : (0 : ℝ) ≤ δ * s)
+          linear_combination this
+        nlinarith
+    -- `2 r t³ < χ r`.
+    have h₂ : 2 * r * t ^ 3 < χ r := by
+      have : r * t ^ 3 ≤ K * δ * s ^ 3 :=
+        mul_le_mul hr.2 (pow_le_pow_left₀ ht₀.le hts 3) (by positivity) (by positivity)
+      nlinarith
+    exact isConvexShapeAt_struweShape_of_lt hδ hK₁ hr.1 h₁ h₂
+  · rw [deriv_struweShape hδ hK₁ _ hδK, mul_div_cancel_right₀ _ hδ.ne', div_le_iff₀ hs₀]
+    linarith
+
+end Struwe
+
+/-- **The shape `√(ℓ² + a r²)`.** For `1 < a` and any `ℓ`, `r ↦ √(ℓ² + a r²)` is an `i`-convex
+shape at every `r > 0`. -/
+theorem isConvexShapeAt_sqrt {a ℓ r : ℝ} (ha : 1 < a) (hr : 0 < r) :
+    IsConvexShapeAt (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) r := by
+  have e : (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
+    simp
+  rw [e]
+  have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by nlinarith
+  set S := √(ℓ ^ 2 + 0 * r + a * r ^ 2) with hS_def
+  have hS : 0 < S := sqrt_pos.2 hQ
+  have hSS : S ^ 2 = ℓ ^ 2 + 0 * r + a * r ^ 2 := sq_sqrt hQ.le
+  have h₁ : deriv (fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2)) r = a * r / S := by
+    rw [((hasDerivAt_quadratic _ _ _ r).sqrt hQ.ne').deriv]
+    field_simp
+    ring
+  have h₂ : iteratedDeriv 2 (fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2)) r = a * ℓ ^ 2 / S ^ 3 := by
+    simp only [iteratedDeriv_succ, iteratedDeriv_zero]
+    rw [deriv_deriv_sqrt_quadratic hQ, ← hS_def, show S ^ 3 = (ℓ ^ 2 + 0 * r + a * r ^ 2) * S by
+      rw [← hSS]; ring]
+    field_simp
+    ring
+  refine isConvexShapeAt_iff.2 ⟨hr, hS, ?_, ?_⟩
+  · rw [h₁, show a * r / S / r = a / S by field_simp]
+    exact div_lt_div_of_pos_right ha hS
+  · rw [h₁, h₂]
+    have e' : a * ℓ ^ 2 / S ^ 3 + (a * r / S) ^ 3 / r = (a * ℓ ^ 2 + a ^ 3 * r ^ 2) / S ^ 3 := by
+      field_simp
+    rw [e', div_lt_div_iff₀ hS (by positivity)]
+    have : S ^ 3 = S * S ^ 2 := by ring
+    rw [this, hSS]
+    have : a * r ^ 2 < a ^ 3 * r ^ 2 := by
+      have : a < a ^ 3 := by
+        nlinarith [mul_pos (by linarith : (0 : ℝ) < a - 1) (by positivity : (0 : ℝ) < a * (a + 1))]
+      exact mul_lt_mul_of_pos_right this (by positivity)
+    have : ℓ ^ 2 ≤ a * ℓ ^ 2 := by nlinarith
+    nlinarith
+
+/-- **The shape `ℓ + b r + c r² / (2 ℓ)`.** For `0 < ℓ`, `0 ≤ b` and `1 < c`,
+`r ↦ ℓ + b r + c r² / (2 ℓ)` is an `i`-convex shape at every `r > 0`. -/
+theorem isConvexShapeAt_quadratic {ℓ b c r : ℝ} (hℓ : 0 < ℓ) (hb : 0 ≤ b) (hc : 1 < c)
+    (hr : 0 < r) : IsConvexShapeAt (fun r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)) r := by
+  have e : (fun r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)) =
+      fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2 := by
+    ext r
+    ring
+  have h₁ : deriv (fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2) r = b + c * r / ℓ := by
+    rw [(hasDerivAt_quadratic _ _ _ r).deriv]
+    field_simp
+  have h₂ : iteratedDeriv 2 (fun r ↦ ℓ + b * r + c / (2 * ℓ) * r ^ 2) r = c / ℓ := by
+    simp only [iteratedDeriv_succ, iteratedDeriv_zero]
+    rw [deriv_deriv_quadratic]
+    field_simp
+  have hχ : ℓ < ℓ + b * r + c / (2 * ℓ) * r ^ 2 := by
+    have : 0 < c / (2 * ℓ) * r ^ 2 := by positivity
+    nlinarith
+  have hinv : 1 / (ℓ + b * r + c / (2 * ℓ) * r ^ 2) < c / ℓ :=
+    (one_div_lt_one_div_of_lt hℓ hχ).trans (div_lt_div_of_pos_right hc hℓ)
+  rw [e]
+  refine isConvexShapeAt_iff.2 ⟨hr, hℓ.trans hχ, ?_, ?_⟩
+  · rw [h₁, add_div, mul_div_right_comm, mul_div_assoc, div_self hr.ne', mul_one]
+    have : 0 ≤ b / r := by positivity
+    linarith
+  · rw [h₁, h₂]
+    have : 0 < (b + c * r / ℓ) ^ 3 / r := by positivity
+    linarith
+
+/-- **The linear shape `ℓ + d r`.** For `0 < ℓ` and `0 < d`, `r ↦ ℓ + d r` is an `i`-convex shape
+at every `r ∈ (0, ℓ d³)`. -/
+theorem isConvexShapeAt_linear {ℓ d r : ℝ} (hℓ : 0 < ℓ) (hd : 0 < d) (hr : r ∈ Ioo 0 (ℓ * d ^ 3)) :
+    IsConvexShapeAt (fun r ↦ ℓ + d * r) r := by
+  obtain ⟨hr₀, hr₁⟩ := hr
+  have hd' : deriv (fun r ↦ ℓ + d * r) = fun _ ↦ d := funext fun x ↦ by simp
+  have h₁ : deriv (fun r ↦ ℓ + d * r) r = d := by rw [hd']
+  have h₂ : iteratedDeriv 2 (fun r ↦ ℓ + d * r) r = 0 := by
+    simp [iteratedDeriv_succ, hd']
+  have hχ : 0 < ℓ + d * r := by positivity
+  refine isConvexShapeAt_iff.2 ⟨hr₀, hχ, ?_, ?_⟩
+  · -- `r (1 - d²) < ℓ d`: for `d ≤ 1` this follows from `r < ℓ d³ ≤ ℓ d`.
+    rw [h₁, div_lt_div_iff₀ hχ hr₀]
+    rcases le_total 1 d with h | h
+    · nlinarith
+    · have : d ^ 3 ≤ d := by nlinarith [pow_le_one₀ hd.le h (n := 2)]
+      have : ℓ * d ^ 3 ≤ ℓ * d := mul_le_mul_of_nonneg_left this hℓ.le
+      nlinarith [mul_pos hd hr₀]
+  · rw [h₁, h₂, zero_add, div_lt_div_iff₀ hχ hr₀]
+    nlinarith [pow_pos hd 4]
+
+end SymplecticGeometry
+
+end
