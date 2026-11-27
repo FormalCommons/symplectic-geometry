@@ -46,15 +46,15 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   follows from the positive lower bound, by compactness, on the derivative of
   `Real.smoothTransition` where its values stay away from `0` and `1`
   (`Real.smoothTransition.exists_pos_le_deriv`).
+  `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
+  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
+  `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
+  below which that bound holds for given margins and bounds.
 * `SymplecticGeometry.two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs` and
   `SymplecticGeometry.exists_forall_iteratedDeriv_two_smoothedAbs_le`: the curvature of
   `smoothedAbs δ` lies between `2 (1 - s²) / δ`, with `s = smoothedSign δ t`, and `C / δ` for a
   constant `C`. The lower bound follows from `8 ψ (1 - ψ) ≤ ψ'` for `ψ = Real.smoothTransition`
   (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`).
-  `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
-  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
-  `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
-  below which that bound holds for given margins and bounds.
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
