@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Topology.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousAlternatingMap
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -98,7 +99,12 @@ is `Cⁿ` in tangent coordinates
 (`Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates`), by Tau Ceti's
 `Bundle.Pullback.contMDiffAt_hom_section_iff` and Mathlib's `contMDiffAt_hom_bundle`. This is
 the smoothness in which Tau Ceti's `exists_partialDiffeomorph_mfderiv_eq` asks for a prescribed
-differential.
+differential. In the same way, for two maps `f : X → M` and `g : X → M'`, a family of maps
+`A x : T_(f x) M → T_(g x) M'` is a `Cⁿ` section of the bundle of maps from `f *ᵖ TM` to
+`g *ᵖ TM'` exactly when it is `Cⁿ` in tangent coordinates
+(`Bundle.Pullback.contMDiffAt_hom_section_iff_inTangentCoordinates`). So, for `g` into an open
+subset `U` of `M'`, such a section along `g` is `Cⁿ` exactly when it is along `g` followed by the
+inclusion of `U` (`Bundle.Pullback.contMDiffAt_hom_section_subtypeVal_iff`).
 
 ## References
 
@@ -601,5 +607,67 @@ theorem contMDiffAt_hom_trivial_section_iff_inTangentCoordinates (ι : K) {x₀ 
 end Bundle.Pullback
 
 end HomTangentSpace
+
+section HomTangentSpaceAlongMaps
+
+variable {𝕜 E E' H H' M M' X EX HX K L : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H']
+  {I' : ModelWithCorners 𝕜 E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+  [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
+  {IX : ModelWithCorners 𝕜 EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [FunLike K X M] [ContinuousMapClass K X M] [FunLike L X M'] [ContinuousMapClass L X M']
+  {n : WithTop ℕ∞}
+
+namespace Bundle.Pullback
+
+/-- For continuous maps `f : X → M` and `g : X → M'`, a family of linear maps
+`A x : T_(f x) M → T_(g x) M'` is a `Cⁿ` section at `x₀` of the bundle of linear maps from
+`f *ᵖ TM` to `g *ᵖ TM'` exactly when it is `Cⁿ` at `x₀` in tangent coordinates. -/
+theorem contMDiffAt_hom_section_iff_inTangentCoordinates (f : K) (g : L) {x₀ : X}
+    (A : ∀ x, TangentSpace I (f x) →L[𝕜] TangentSpace I' (g x)) :
+    ContMDiffAt IX (IX.prod 𝓘(𝕜, E →L[𝕜] E')) n
+        (fun x ↦ TotalSpace.mk' (E →L[𝕜] E')
+          (E := fun x ↦ ((f : X → M) *ᵖ (TangentSpace I)) x →L[𝕜]
+            ((g : X → M') *ᵖ (TangentSpace I')) x) x (A x)) x₀ ↔
+      ContMDiffAt IX 𝓘(𝕜, E →L[𝕜] E') n (inTangentCoordinates I I' f g A x₀) x₀ := by
+  rw [contMDiffAt_hom_bundle]
+  refine (and_iff_right contMDiffAt_id).trans (Filter.EventuallyEq.contMDiffAt_iff ?_)
+  -- Near `x₀`, the coordinates between the pull-backs are those of the tangent bundles.
+  filter_upwards [(map_continuous f).continuousAt.preimage_mem_nhds
+      ((trivializationAt E (TangentSpace I) (f x₀)).open_baseSet.mem_nhds
+        (FiberBundle.mem_baseSet_trivializationAt E (TangentSpace I) (f x₀))),
+    (map_continuous g).continuousAt.preimage_mem_nhds
+      ((trivializationAt E' (TangentSpace I') (g x₀)).open_baseSet.mem_nhds
+        (FiberBundle.mem_baseSet_trivializationAt E' (TangentSpace I') (g x₀)))] with y hyV hyW
+  exact ContinuousLinearMap.inCoordinates_pullback_of_mem f g x₀ y (A y) hyV hyW
+
+/-- Let `g : X → U` be a map into an open subset `U` of `M'` that is `g' : X → M'` followed by the
+inclusion. A family of linear maps `A x : T_(f x) M → T_(g' x) M'` is a `Cⁿ` section at `x₀` of
+the bundle of linear maps from `f *ᵖ TM` to `g *ᵖ TU` exactly when it is one of the bundle of
+linear maps from `f *ᵖ TM` to `g' *ᵖ TM'`. -/
+theorem contMDiffAt_hom_section_subtypeVal_iff {U : TopologicalSpace.Opens M'} {L' : Type*}
+    [FunLike L' X U] [ContinuousMapClass L' X U] (f : K) (g : L') (g' : L)
+    (hg : ∀ x, (g x : M') = g' x) {x₀ : X}
+    (A : ∀ x, TangentSpace I (f x) →L[𝕜] TangentSpace I' (g' x)) :
+    ContMDiffAt IX (IX.prod 𝓘(𝕜, E →L[𝕜] E')) n
+        (fun x ↦ TotalSpace.mk' (E →L[𝕜] E')
+          (E := fun x ↦ ((f : X → M) *ᵖ (TangentSpace I)) x →L[𝕜]
+            ((g : X → U) *ᵖ (TangentSpace I')) x) x (A x)) x₀ ↔
+      ContMDiffAt IX (IX.prod 𝓘(𝕜, E →L[𝕜] E')) n
+        (fun x ↦ TotalSpace.mk' (E →L[𝕜] E')
+          (E := fun x ↦ ((f : X → M) *ᵖ (TangentSpace I)) x →L[𝕜]
+            ((g' : X → M') *ᵖ (TangentSpace I')) x) x (A x)) x₀ := by
+  -- In tangent coordinates, `A` along `g` is `A` along `g'` near `x₀`.
+  have h := TauCeti.Manifold.inTangentCoordinates_subtypeVal_comp_eventuallyEq (I := I')
+    (I' := I) (f := f) (g := g) A (x₀ := x₀) (map_continuous g).continuousAt
+  rw [show (fun x ↦ (g x : M')) = g' from funext hg] at h
+  exact (contMDiffAt_hom_section_iff_inTangentCoordinates f g A).trans
+    (h.contMDiffAt_iff.trans (contMDiffAt_hom_section_iff_inTangentCoordinates f g' A).symm)
+
+end Bundle.Pullback
+
+end HomTangentSpaceAlongMaps
 
 end

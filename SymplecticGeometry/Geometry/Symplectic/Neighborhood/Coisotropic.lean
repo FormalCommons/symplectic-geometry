@@ -67,11 +67,10 @@ variable {EQ₀ EQ₁ E₀ E₁ HQ₀ HQ₁ H₀ H₁ Q₀ Q₁ M₀ M₁ : Type
   [TopologicalSpace M₀] [ChartedSpace H₀ M₀] [IsManifold I₀ ∞ M₀] [T2Space M₀]
   [SecondCountableTopology M₀]
   [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁] [T2Space M₁]
-  [SecondCountableTopology M₁]
 
 /-- **The coisotropic neighbourhood theorem.** Let `f₀ : Q₀ → M₀` and `f₁ : Q₁ → M₁` be
-coisotropic smooth embeddings into second countable Hausdorff symplectic manifolds `(M₀, ω₀)` and
-`(M₁, ω₁)` without boundary, and let `φ : Q₀ ≃ Q₁` be a diffeomorphism with
+coisotropic smooth embeddings into Hausdorff symplectic manifolds `(M₀, ω₀)` and `(M₁, ω₁)`
+without boundary, `M₀` second countable, and let `φ : Q₀ ≃ Q₁` be a diffeomorphism with
 `φ^* (f₁^* ω₁) = f₀^* ω₀`. Then there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism
 `ψ : U₀ ≃ U₁` pulling the restriction of `ω₁` back to that of `ω₀`, such that `f₀ q ∈ U₀` and
 `ψ (f₀ q) = f₁ (φ q)` for every `q`; as `φ` is onto, `U₁` contains the image of `f₁` too.
