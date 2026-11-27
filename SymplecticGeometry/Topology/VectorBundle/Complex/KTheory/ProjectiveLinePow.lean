@@ -12,7 +12,6 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.Basic
 import SymplecticGeometry.Algebra.BigOperators.SqEqZero
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Core
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
-import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 import SymplecticGeometry.Topology.VectorBundle.Complex.KTheory.ProductSphere
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 
@@ -37,8 +36,10 @@ homeomorphism `(Fin m → P) × P ≃ (Fin (m + 1) → P)` given by `Fin.snoc`, 
 Let `y_i ∈ H²((ℂP¹)^m; ℤ)` be the first Chern class of the pullback of the tautological line
 `Projectivization.Tautological ℂ (Fin 2 → ℂ)` along the evaluation at the `i`th factor. The
 Newton class `s_m : K((ℂP¹)^m) → H^{2m}((ℂP¹)^m; ℤ)` (`SymplecticGeometry.Bundle.newtonClassHom`)
-takes its values in the multiples of `m! y_1 ⋯ y_m`. Indeed `y_i ^ 2 = 0`, being pulled back from
-`ℂP¹`, and `c₁(L_T) = ∑ i ∈ T, y_i`, so `s_m(L_T) = (∑ i ∈ T, y_i) ^ m` is `m! y_1 ⋯ y_m` for
+takes its values in the multiples of `m! y_1 ⋯ y_m`, as in Hatcher's computation on products of
+spheres `S²` [Hatcher2017, Chapter 4]. Indeed `y_i ^ 2 = 0`, being pulled back from `ℂP¹`
+(`Projectivization.evenIntegralCohomologyOf_chernClass_one_pullback_tautological_pow_eq_zero`),
+and `c₁(L_T) = ∑ i ∈ T, y_i`, so `s_m(L_T) = (∑ i ∈ T, y_i) ^ m` is `m! y_1 ⋯ y_m` for
 `T = univ` and `0` otherwise, by `Finset.sum_pow_of_sq_eq_zero`; the `L_T` generate `K`.
 
 ## Main definitions and results
@@ -49,15 +50,15 @@ takes its values in the multiples of `m! y_1 ⋯ y_m`. Indeed `y_i ^ 2 = 0`, bei
   `of_pullback_tensorTautological` gives the class of its pullback along a continuous map.
 * `SymplecticGeometry.Bundle.closure_range_of_tensorTautological_eq_top`: the classes of the
   `L_T` generate `K((ℂP¹)^m)`.
-* `SymplecticGeometry.Bundle.chernClass_one_tensorTautological`: `c₁(L_T) = ∑ i ∈ T, y_i`, and
-  `sq_evenIntegralCohomologyOf_chernClass_eval`: `y_i ^ 2 = 0`.
+* `SymplecticGeometry.Bundle.chernClass_one_tensorTautological`: `c₁(L_T) = ∑ i ∈ T, y_i`.
 * `SymplecticGeometry.Bundle.newtonClassHom_mem_zmultiples`: `s_m` of every class of
   `K((ℂP¹)^m)` is an integer multiple of the component of degree `2m` of `m! • ∏ i, y_i`.
 
 ## References
 
 * [A. Hatcher, *Vector Bundles and K-Theory*, version 2.2 (2017)][Hatcher2017], §2.1 (the
-  product theorem and `K` of a product of spheres `S²`)
+  product theorem and `K` of a product of spheres `S²`) and Chapter 4 (the Newton class on a
+  product of spheres `S²`, and Bott's integrality theorem on spheres)
 -/
 
 public section
@@ -268,16 +269,6 @@ theorem chernClass_one_tensorTautological (T : Finset (Fin m)) :
       FiniteRankBundleCore.pullback_ofBundleOfFinrankEq,
       FiniteRankBundleCore.chernClass_ofBundleOfFinrankEq]
 
-/-- The class `y_i` vanishes in square: `y_i ^ 2 = 0` in the even integral cohomology ring of
-`(ℂP¹)^m`, since `y_i` is pulled back from `H²(ℂP¹; ℤ)`, where `h ^ 2 = 0`. -/
-theorem sq_evenIntegralCohomologyOf_chernClass_eval (i : Fin m) :
-    (TopCat.of (Fin m → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
-      (chernClass ℂ (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
-        (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1) ^ 2 = 0 := by
-  rw [chernClass_pullback, Projectivization.chernClass_one_tautological,
-    ← TopCat.evenIntegralCohomologyMap_of, ← map_pow, map_neg, neg_sq,
-    Projectivization.hyperplaneClass_pow_eq_zero (n := 1) (by simp), map_zero]
-
 /-- The Newton class `s_m` of `L_T` is the component of degree `2m` of `(∑ i ∈ T, y_i) ^ m`. -/
 theorem newtonClassHom_of_tensorTautological (T : Finset (Fin m)) :
     newtonClassHom _ m (SplitK0.of (tensorTautological T)) =
@@ -302,8 +293,13 @@ theorem newtonClassHom_mem_zmultiples
     (AddSubgroup.comap (newtonClassHom _ m) _)).2 ?_
       ((closure_range_of_tensorTautological_eq_top m).symm ▸ AddSubgroup.mem_top x))
   rintro _ ⟨T, rfl⟩
+  have hy (i : Fin m) : (TopCat.of (Fin m → ℙ ℂ (Fin 2 → ℂ))).evenIntegralCohomologyOf 1
+      (chernClass ℂ (ContinuousMap.eval (X := fun _ : Fin m ↦ ℙ ℂ (Fin 2 → ℂ)) i *ᵖ
+        (Projectivization.Tautological ℂ (Fin 2 → ℂ))) 1) ^ 2 = 0 :=
+    Projectivization.evenIntegralCohomologyOf_chernClass_one_pullback_tautological_pow_eq_zero
+      (n := 1) (Module.finrank_fin_fun ℂ) _
   rw [SetLike.mem_coe, AddSubgroup.mem_comap, newtonClassHom_of_tensorTautological,
-    Finset.sum_pow_of_sq_eq_zero fun i _ ↦ sq_evenIntegralCohomologyOf_chernClass_eval i]
+    Finset.sum_pow_of_sq_eq_zero fun i _ ↦ hy i]
   -- `s_m(L_T)` is `m! • ∏ i, y_i` for `T = univ`, and `0` otherwise, since then `T` has no
   -- subset with `m` elements.
   by_cases hT : T = univ
