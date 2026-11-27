@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Embeddin
 
 import TauCeti.Geometry.Manifold.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import SymplecticGeometry.Analysis.Normed.Group.LocalExtr
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import SymplecticGeometry.Topology.VectorBundle.Riemannian
 

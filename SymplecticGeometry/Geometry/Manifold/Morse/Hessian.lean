@@ -12,6 +12,7 @@ public import TauCeti.Analysis.InnerProductSpace.Calculus
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Manifold.RegularValue
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Analysis.Normed.Group.LocalExtr
 import SymplecticGeometry.Geometry.Manifold.Immersion.Basic
 import TauCeti.Geometry.Manifold.Morse.Submersion
 
@@ -53,7 +54,8 @@ derivative of the coordinate expressions (Tau Ceti's `TauCeti.fderiv_fderiv_add`
 
 For a dependent map `φ : ∀ p, V p` into seminormed groups, such as a section of a normed vector
 bundle, the function `p ↦ ‖φ p‖²` has a local minimum at each zero `x` of `φ`
-(`isLocalMin_norm_sq_of_eq_zero`), hence a critical point if `x` is an interior point
+(`isLocalMin_norm_sq_of_eq_zero`, in `SymplecticGeometry.Analysis.Normed.Group.LocalExtr`),
+hence a critical point if `x` is an interior point
 (`TauCeti.mem_criticalPoints_norm_sq_of_eq_zero`). If `φ : M → W` takes values in a real inner
 product space, `M` is boundaryless and `φ` is `C²` at `x`, its critical Hessian there is
 `2 ⟪dφ u, dφ w⟫` (`TauCeti.criticalHessian_norm_sq_apply_of_eq_zero`), by the second-order
@@ -187,15 +189,6 @@ variable {E H M W : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 section Dependent
 
 variable {V : M → Type*} [∀ p, SeminormedAddGroup (V p)] {φ : ∀ p, V p}
-
-/-- At a zero `x` of a dependent map `φ` into seminormed groups, such as a section of a normed
-vector bundle, the function `p ↦ ‖φ p‖²` has a local minimum: it is nonnegative and vanishes at
-`x`. -/
-theorem _root_.isLocalMin_norm_sq_of_eq_zero (hφx : φ x = 0) :
-    IsLocalMin (fun p ↦ ‖φ p‖ ^ 2) x :=
-  Eventually.of_forall fun p ↦ by
-    simp only [hφx, norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow]
-    positivity
 
 /-- An interior point `x` where a dependent map `φ` into seminormed groups, such as a section of
 a normed vector bundle, vanishes is a critical point of `p ↦ ‖φ p‖²`, which has a local minimum
