@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 public import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
 public import TauCeti.Topology.Homotopy.Path
 
+import Mathlib.Data.Int.Cast.Lemmas
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 
 /-!
@@ -31,6 +32,8 @@ computation over to `E`, with the circle `t ↦ φ (r e^{2πit})` as generator. 
 
 * `LinearIsometryEquiv.fundamentalGroupComplSingletonMulEquivInt_circleLoop`: the class of
   `circleLoop φ hr` corresponds to `1 : ℤ`.
+* `LinearIsometryEquiv.fundamentalGroupComplSingleton_hom_ext`: homomorphisms out of
+  `π₁(E ∖ {0}, φ r)` are determined by their value on the class of `circleLoop φ hr`.
 
 ## References
 
@@ -144,6 +147,22 @@ theorem fundamentalGroupComplSingletonMulEquivInt_circleLoop :
     (MulEquiv.symm_apply_eq _).mpr
       (key _ (univDiffHomeomorph_sphereHomotopyEquiv φ hr) _ (coe_circleLoop_apply φ hr)),
     StarConvex.fundamentalGroupMulEquivInt_sphereLoop]
+
+/-- Two homomorphisms out of `π₁(E ∖ {0}, φ r)` are equal once they agree on the class of
+`circleLoop φ hr`, which generates it. -/
+theorem fundamentalGroupComplSingleton_hom_ext {G : Type*} [Group G]
+    {f f' : FundamentalGroup ({0}ᶜ : Set E) (φ.circleBasepoint hr) →* G}
+    (h : f (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (φ.circleLoop hr))) =
+      f' (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (φ.circleLoop hr)))) :
+    f = f' := by
+  set ε := φ.fundamentalGroupComplSingletonMulEquivInt hr
+  have hε : ε.symm (Multiplicative.ofAdd 1) =
+      FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (φ.circleLoop hr)) := by
+    rw [MulEquiv.symm_apply_eq, fundamentalGroupComplSingletonMulEquivInt_circleLoop]
+  have : f.comp ε.symm.toMonoidHom = f'.comp ε.symm.toMonoidHom :=
+    MonoidHom.ext_mint (by simpa [hε] using h)
+  ext x
+  simpa using DFunLike.congr_fun this (ε x)
 
 end LinearIsometryEquiv
 
