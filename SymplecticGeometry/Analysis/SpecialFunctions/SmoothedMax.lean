@@ -50,6 +50,11 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
   `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
   below which that bound holds for given margins and bounds.
+* `SymplecticGeometry.two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs` and
+  `SymplecticGeometry.exists_forall_iteratedDeriv_two_smoothedAbs_le`: the curvature of
+  `smoothedAbs δ` lies between `2 (1 - s²) / δ`, with `s = smoothedSign δ t`, and `C / δ` for a
+  constant `C`. The lower bound follows from `8 ψ (1 - ψ) ≤ ψ'` for `ψ = Real.smoothTransition`
+  (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`).
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
@@ -225,6 +230,25 @@ theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε
     constructor <;> linarith
   gcongr
   exact hcK _ hu
+
+/-- The curvature of `smoothedAbs δ` is at least `2 (1 - s²) / δ`, where `s = smoothedSign δ t` is
+its slope: a lower bound of order `1 / δ` that degrades only as fast as `1 - s²` where the slope
+nears `±1`. -/
+theorem two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs (hδ : 0 < δ)
+    (t : ℝ) : 2 * (1 - smoothedSign δ t ^ 2) / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
+  rw [iteratedDeriv_two_smoothedAbs, smoothedSign_def]
+  gcongr
+  linarith [Real.smoothTransition.eight_mul_mul_one_sub_le_deriv ((t + δ) / (2 * δ))]
+
+/-- The curvature of `smoothedAbs δ` is at most of order `1 / δ`: there is `C` with
+`(smoothedAbs δ)''(t) ≤ C / δ` for all `δ > 0` and all `t`. -/
+theorem exists_forall_iteratedDeriv_two_smoothedAbs_le :
+    ∃ C, ∀ δ > 0, ∀ t, iteratedDeriv 2 (smoothedAbs δ) t ≤ C / δ := by
+  obtain ⟨L, hL⟩ := Real.smoothTransition.exists_forall_norm_deriv_le
+  refine ⟨L, fun δ hδ t ↦ ?_⟩
+  rw [iteratedDeriv_two_smoothedAbs]
+  gcongr
+  exact (le_abs_self _).trans (hL _)
 
 /-- **The error of a smoothing by `smoothedAbs δ`.** Let `s = smoothedSign δ t` and
 `p = (smoothedAbs δ)'' t`. If `0 ≤ g`, `0 ≤ T ≤ Q`, `g T ≤ G` and `ε G < a`, and if `c / δ ≤ p`
