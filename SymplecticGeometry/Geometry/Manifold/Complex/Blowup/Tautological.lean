@@ -104,7 +104,7 @@ one too, by Tau Ceti's `Diffeomorph.isSmoothEmbedding_comp`.
 
 The differential of `blowdown` at `zeroSection ℓ` vanishes on the tangent image of the zero
 section, of dimension `n`, since `blowdown` vanishes on the zero section, and its image contains
-`ℓ`, through the curves `t ↦ (ℓ, t • z)`; by rank–nullity in dimension `n + 1`, both inclusions
+`ℓ`, through the lifts `curveLift (· • z)`; by rank–nullity in dimension `n + 1`, both inclusions
 are equalities. Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` then gives the isomorphism
 of the normal space with `ℓ`. Its continuity on total spaces follows, by
 `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer`, from that of the differentials of
@@ -302,28 +302,24 @@ theorem mfderiv_blowdown_comp_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) �
   rfl
 
 /-- Every vector `z` of the line `ℓ` is a value of the differential of `blowdown` at
-`zeroSection ℓ`: it is the image of the velocity at `0` of the curve `t ↦ (ℓ, t • z)`. -/
+`zeroSection ℓ`: for `z ≠ 0`, it is the image of the velocity at `0` of the lift
+`curveLift (· • z)` of the line `t ↦ t • z`. -/
 theorem exists_mfderiv_blowdown_zeroSection_eq (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     {z : Fin (n + 1) → ℂ} (hz : z ∈ ℓ.submodule) :
     ∃ v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ),
       mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v = z := by
-  let γ : ℂ → BlowupModel n := fun t =>
-    ⟨(ℓ, t • z), mem_blowupModel_iff.2 (ℓ.submodule.smul_mem t hz)⟩
-  have hγ : ContMDiff 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) 1 γ :=
-    ((isSmoothEmbedding_blowupModel_val (n := n) (r := 1) le_rfl).contMDiff_iff_comp).2 <|
-      contMDiff_const.prodMk (contDiff_id.smul contDiff_const).contMDiff
-  have hγ₀ : γ 0 = zeroSection ℓ := ext (by simp [γ]) (by simp [γ])
-  have hcomp : (blowdown ∘ γ) = fun t : ℂ => t • z := funext fun t => blowdown_mk _ _ _
-  have hz' : HasFDerivAt (fun t : ℂ => t • z) ((ContinuousLinearMap.id ℂ ℂ).smulRight z) 0 :=
-    (hasFDerivAt_id (0 : ℂ)).smul_const z
-  have hd : mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown ∘ γ) 0 (1 : ℂ) = z := by
-    rw [hcomp, (hasMFDerivAt_iff_hasFDerivAt.2 hz').mfderiv]
-    -- `ContinuousLinearMap.smulRight_apply` does not rewrite here, as the argument `1` lives in
-    -- `TangentSpace 𝓘(ℂ, ℂ) 0`.
-    exact one_smul ℂ z
-  rw [mfderiv_comp (0 : ℂ) ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero)
-    (hγ.mdifferentiableAt one_ne_zero), hγ₀] at hd
-  exact ⟨_, hd⟩
+  rcases eq_or_ne z 0 with rfl | hz0
+  · exact ⟨0, map_zero _⟩
+  have hd : ∃ v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • z) (0 : ℂ)),
+      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown
+        (curveLift (· • z) (0 : ℂ)) v = z :=
+    ⟨_, (mfderiv_blowdown_mfderiv_curveLift (by fun_prop)
+      ((contMDiff_curveLift_smul_real hz0 (r := 1)).mdifferentiableAt one_ne_zero) 1).trans
+        (by rw [deriv_smul_const differentiableAt_id, deriv_id'', one_smul, one_smul])⟩
+  rw [curveLift_smul_zero hz0, Projectivization.mem_submodule_iff.1 hz hz0] at hd
+  obtain ⟨v, hv⟩ := hd
+  exact ⟨v, (MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ
+    ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero) v).symm.trans hv⟩
 
 /-- The differential of `blowdown` at `zeroSection ℓ` is not zero: its image has positive
 dimension. -/
