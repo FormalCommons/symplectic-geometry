@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Strong
 public import TauCeti.Geometry.Manifold.Morse.Hessian
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Jet
+import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import TauCeti.Geometry.Manifold.ExtChartAt
 
@@ -87,28 +89,16 @@ private theorem mem_posDirJets_iff (hn : 2 ≤ n) (g : C^n⟮I, M; 𝓘(ℝ), �
     rw [← extChartAt_source (I := I)]; exact (extChartAt I a).map_target hz
   have hzx : (chartAt H a).extend I x = z := by
     rw [← extChartAt.eq_1]; exact (extChartAt I a).right_inv hz
-  have hopen := (isOpen_extChartAt_target (I := I) a)
-  have hcrit : x ∈ criticalPoints I g ↔
-      chartIteratedFDeriv g a 1 ((by norm_num : ((1 : ℕ) : WithTop ℕ∞) ≤ 2).trans hn) z = 0 := by
-    rw [mem_criticalPoints, mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero
-      (IsManifold.maximalAtlas_subset_of_le ((by norm_num : (1 : WithTop ℕ∞) ≤ 2).trans hn)
-        (IsManifold.chart_mem_maximalAtlas a)) hxs, hzx,
-      chartIteratedFDeriv_self_target_apply, iteratedFDerivWithin_of_isOpen 1 hopen hz,
-      ← norm_eq_zero, ← norm_eq_zero (a := iteratedFDeriv _ _ _ _), norm_iteratedFDeriv_one,
-      ← extChartAt.eq_1]
+  have hcrit := extChartAt_symm_mem_criticalPoints_iff
+    ((by norm_num : ((1 : ℕ) : WithTop ℕ∞) ≤ 2).trans hn) g a z
   have hhess : x ∈ criticalPoints I g → ((∃ v, 0 < criticalHessian I g x v v) ↔
       ∃ w : E, 0 < chartIteratedFDeriv g a 2 hn z ![w, w]) := fun hx ↦ by
     rw [exists_criticalHessian_pos_iff_of_mem_maximalAtlas
       (IsManifold.maximalAtlas_subset_of_le hn (IsManifold.chart_mem_maximalAtlas a)) hxs
-      ((g.contMDiff.of_le hn).contMDiffAt) hx, hzx, chartIteratedFDeriv_self_target_apply,
-      iteratedFDerivWithin_of_isOpen 2 hopen hz, ← extChartAt.eq_1]
-    simp [iteratedFDeriv_two_apply]
-  simp only [PosDirJets, mem_ofPred_eq, ne_eq, hcrit]
-  by_cases h0 : chartIteratedFDeriv g a 1
-      ((by norm_num : ((1 : ℕ) : WithTop ℕ∞) ≤ 2).trans hn) z = 0
-  · simp only [h0, not_true_eq_false, false_or, true_implies]
-    exact (hhess (hcrit.mpr h0)).symm
-  · exact iff_of_true (Or.inl h0) fun h ↦ absurd h h0
+      ((g.contMDiff.of_le hn).contMDiffAt) hx, hzx, ← extChartAt.eq_1]
+    simp only [chartIteratedFDeriv_two_apply]
+  simp only [PosDirJets, mem_ofPred_eq, ne_eq, ← imp_iff_not_or, ← hcrit]
+  exact imp_congr_right fun hx ↦ (hhess hx).symm
 
 variable [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]
 
