@@ -89,8 +89,10 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredNormalTubeChart Φ z) (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (centeredNormalTubeChart_preimage_zero Φ z hΦ).subset
+        ((normalTubeChart Φ z).centeredSourceRestrict (f z))
+        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        ((normalTubeChart Φ z).centeredSourceRestrict_preimage_zero
+          (mem_normalTubeChart_source Φ z hΦ)).subset
         (m + 1)
         (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (m + 1)).symm
