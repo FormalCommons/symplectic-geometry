@@ -426,8 +426,9 @@ The change of cochain values in singular cohomology, in the namespace
 The change of linear structure in singular cohomology, in the namespace
 `TopCat`, for any abelian `C` and two equal structures `L₁ L₂ : Linear k C`:
 `singularCohomologyLinearCongr e X R M n` for `e : L₁ = L₂`, the linear
-equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm`, `_trans` and
-`_naturality` (it commutes with `singularCohomologyMap f`); cup products go through
+equivalence `LinearEquiv.cast` along `e`, with `_refl`, `_symm` and `_trans`;
+maps induced by continuous maps go through Tau Ceti's
+`TopCat.singularCohomologyMap_comp_eqToHom`, and cup products through
 Tau Ceti's `TopCat.singularCup_eqToHom`. `IntegralCohomologyULift.lean` uses it to pass
 from `ModuleCat.instLinear` to `CategoryTheory.Linear.preadditiveIntLinear`.
 
