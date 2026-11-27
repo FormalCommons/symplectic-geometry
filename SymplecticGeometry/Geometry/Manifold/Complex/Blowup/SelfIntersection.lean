@@ -96,7 +96,7 @@ theorem selfIntersectionNumber_zeroSection
           (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))) (by simp)
           (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) = -1 := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
-  have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two
+  have hdim := Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two
     (by simp [Module.finrank_pi_fintype] : finrank ℝ (Fin 2 → ℂ) = 4)
     (finrank_real_of_finrank_complex_eq_add_one (finrank_fin_fun ℂ (n := 1)))
   let := (zeroSectionRealEmbedding 1).normalSpaceFiberBundle hn hdim
