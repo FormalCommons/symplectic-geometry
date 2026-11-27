@@ -13,7 +13,8 @@ public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
-import Mathlib.Analysis.Normed.Module.Alternating.Curry
+import TauCeti.Analysis.Normed.Module.Alternating.Curry
+import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.ODE.Linear
 import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -350,20 +351,10 @@ theorem IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace [CompleteSpac
     {p : N} (hp : Z p = 0) {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) I id Z p)
     {u v : E} (hu : u ∈ A.stableSubspace) (hv : v ∈ A.stableSubspace) : σ p ![u, v] = 0 := by
   subst hA
-  -- The value of `σ` at `p`, an alternating map on the tangent space `E` at `p`, curried into a
-  -- continuous bilinear map.
+  -- The value of `σ` at `p`, an alternating map on the tangent space `E` at `p`.
   let σ₀ : E [⋀^Fin 2]→L[ℝ] ℝ := σ p
-  let B : E →L[ℝ] E →L[ℝ] ℝ :=
-    (ContinuousAlternatingMap.ofSubsingletonLIE (𝕜 := ℝ) (E := E) (F := ℝ) (ι := Fin 1)
-      0).symm.toContinuousLinearEquiv.toContinuousLinearMap ∘L σ₀.curryLeft
-  have hB (u v : E) : B u v = σ p ![u, v] := by
-    simp only [B, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      LinearIsometryEquiv.coe_toContinuousLinearEquiv,
-      ContinuousAlternatingMap.ofSubsingletonLIE_symm_apply,
-      ContinuousAlternatingMap.ofSubsingleton_symm_apply_apply]
-    refine (σ₀.curryLeft_apply_apply u _).trans (congrArg σ₀ ?_)
-    ext i
-    fin_cases i <;> simp
+  have hB (u v : E) : ContinuousAlternatingMap.flatL ℝ E ℝ σ₀ u v = σ p ![u, v] :=
+    ContinuousAlternatingMap.flatL_apply_apply σ₀ u v
   rw [← hB]
   refine ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace (fun u v ↦ ?_) hu hv
   simp only [hB]
@@ -393,9 +384,7 @@ theorem IsWeinsteinStructure.two_mul_manifoldMorseIndex_le (hW : IsWeinsteinStru
   have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
       (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
     (hW.contMDiff_field p).mdifferentiableAt (by simp)
-  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (by
-    rw [mvfderiv_eq_fderiv_comp_extChartAt_symm]
-    exact ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).fderiv_eq_zero)
+  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
   rw [← hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl]
   refine LinearMap.BilinForm.two_mul_finrank_le_finrank_of_le_orthogonal
     (hW.isSymplectic.isNondegenerate.nondegenerate_bilinFormAt p) fun w hw ↦
