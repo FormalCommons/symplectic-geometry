@@ -31,7 +31,8 @@ declarations are in the namespace `SymplecticGeometry`.
   `SmoothAlmostComplexStructure.pullback φ J`, whose value at $x$ is
   $(d\phi_x)^{-1}J_{\phi(x)}\,d\phi_x$ (`pullback_apply`): the page's
   convention.
-- $\mathcal J$ is `↥sphereComplexStructures`, the structures tamed by
+- $\mathcal J$ is the subtype `{J // OnePoint.fubiniStudyForm.Tames J}` (`𝒥`, a
+  local notation, in Lean statements below), the structures tamed by
   $\omega_{FS}$, with Tau Ceti's
   `SmoothAlmostComplexStructure.frameTopology e U hU` for a covering frame
   system (`hcover : ∀ x, ∃ k, x ∈ U k`). Statements about the topology of
@@ -293,12 +294,11 @@ Issue 1:
 
 - `diffPlus : Subgroup (TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞)`, Decision 1,
   with `mem_diffPlus_iff`.
-- `sphereComplexStructures : Set (SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ))`,
-  the structures tamed by `OnePoint.fubiniStudyForm`, with
-  `mem_sphereComplexStructures_iff` and `ofComplexManifold_mem_sphereComplexStructures`.
-- `mem_diffPlus_iff_tames_pullback : φ ∈ diffPlus ↔ fubiniStudyForm.Tames (φ.pullback i)`
+- `𝒥`, the subtype of the structures tamed by `OnePoint.fubiniStudyForm`,
+  and `tameOfComplexManifold : 𝒥`, the structure $i$.
+- `mem_diffPlus_iff_tames_pullback : φ ∈ diffPlus ↔ fubiniStudyForm.Tames (i.pullback φ)`
   (`φ : TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞`).
-- `complexStructureMap : diffPlus → sphereComplexStructures`, $\phi\mapsto\phi^*i$,
+- `complexStructureMap : diffPlus → 𝒥`, $\phi\mapsto\phi^*i$,
   with `coe_complexStructureMap`, `complexStructureMap_mul`
   ($(\phi\psi)^*i=\psi^*(\phi^*i)$, from `pullback_trans`) and
   `continuous_complexStructureMap` for every covering frame system
@@ -312,7 +312,7 @@ About 350 lines.
 
 Issue 2:
 
-- `complexStructureContraction : (ContinuousMap.id sphereComplexStructures).HomotopyRel (ContinuousMap.const _ i) {i}`,
+- `complexStructureContraction : (ContinuousMap.id 𝒥).HomotopyRel (ContinuousMap.const _ i) {i}`,
   for every covering frame system, from the Cayley path (Decision 4), with
   `complexStructureContraction_apply`.
 
@@ -348,7 +348,7 @@ About 250 lines.
 
 ### `Uniformization.lean`
 
-Issue 5 (for `J ∈ sphereComplexStructures`; part 45's results with
+Issue 5 (for `J : 𝒥`; part 45's results with
 $\sigma=\omega_{FS}$):
 
 - `exists_mem_twistOneKernel_eq_zero`: every point is the zero of some
@@ -393,7 +393,7 @@ About 350 lines.
 Issue 7:
 
 - `mobiusSubgroup_le_diffPlus` (Decision 1).
-- `diffPlusTrivialization : diffPlus ≃ₜ sphereComplexStructures × mobiusSubgroup`,
+- `diffPlusTrivialization : diffPlus ≃ₜ 𝒥 × mobiusSubgroup`,
   for every covering frame system, $\phi\mapsto(\phi^*i,\ \phi\,\sigma(\phi^*i)^{-1})$,
   with inverse $(J,g)\mapsto g\,\sigma(J)$; `diffPlusTrivialization_apply_fst`,
   `coe_diffPlusTrivialization_apply_snd`, `coe_diffPlusTrivialization_symm_apply`,
@@ -402,7 +402,7 @@ Issue 7:
 - The milestone, `exists_continuous_section_homeomorph_prod_mobiusSubgroup`:
   `uniformizingDiffeomorph` is a continuous section of `complexStructureMap`;
   each value is the unique element of `diffPlus` over $J$ fixing `0`, `1`,
-  `∞`; and there is a homeomorphism `diffPlus ≃ₜ sphereComplexStructures × mobiusSubgroup`
+  `∞`; and there is a homeomorphism `diffPlus ≃ₜ 𝒥 × mobiusSubgroup`
   whose first component is `complexStructureMap`, whose second is
   $\phi\,\sigma(\phi^*i)^{-1}$, and whose inverse is $(J,g)\mapsto g\,\sigma(J)$.
   Its docstring ends with the milestone line for *Diffeomorphisms of the

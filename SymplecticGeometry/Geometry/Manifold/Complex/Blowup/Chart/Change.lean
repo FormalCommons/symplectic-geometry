@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!

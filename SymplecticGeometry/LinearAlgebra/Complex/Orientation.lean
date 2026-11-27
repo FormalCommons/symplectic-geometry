@@ -7,6 +7,8 @@ module
 
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.LinearAlgebra.Complex.Orientation
+import Mathlib.Analysis.InnerProductSpace.TwoDim
+import TauCeti.Analysis.InnerProductSpace.OrientedJacobian
 
 /-!
 # The standard orientation of `ℂ` and of `ℝ²`
@@ -15,14 +17,24 @@ The identification `Complex.orthonormalBasisOneI.repr : ℂ ≃ₗᵢ[ℝ] Eucli
 `z ↦ (re z, im z)`, carries the standard orientation `Complex.orientation` of `ℂ` to the
 orientation of the standard basis of `ℝ²`.
 
+The area form of `Complex.orientation` is `(a, b) ↦ Im (conj a * b)` (Mathlib's
+`Complex.areaForm`), and an `ℝ`-linear endomorphism `L` of `ℂ` multiplies it by its determinant
+(Tau Ceti's `Orientation.areaForm_comp_eq` with `Orientation.orientedJacobian_self`). So an
+`ℝ`-linear automorphism `L` has positive determinant, that is, preserves the orientation of `ℂ`,
+exactly when the area form tames the complex structure `L⁻¹ ∘ i ∘ L`.
+
 ## Main results
 
 * `Complex.orientation_map_orthonormalBasisOneI_repr`.
+* `Complex.det_pos_iff_forall_im_conj_mul_symm_I_mul_pos`: `0 < det L` exactly when
+  `Im (conj v * L⁻¹ (i L v)) > 0` for every `v ≠ 0`.
 -/
 
 public section
 
-open Module
+open Module ComplexConjugate
+
+attribute [local instance] Complex.finrank_real_complex_fact
 
 /-- The real basis `(1, i)` of `ℂ` goes to the standard basis of `ℝ²` under
 `Complex.orthonormalBasisOneI.repr`, so this identification carries the standard orientation of
@@ -35,5 +47,28 @@ theorem Complex.orientation_map_orthonormalBasisOneI_repr :
   ext i : 1
   rw [← Complex.toBasis_orthonormalBasisOneI, Basis.map_apply, OrthonormalBasis.coe_toBasis]
   fin_cases i <;> ext j <;> fin_cases j <;> simp [Complex.orthonormalBasisOneI_repr_apply]
+
+/-- An `ℝ`-linear automorphism `L` of `ℂ` has positive determinant exactly when the area form
+`(a, b) ↦ Im (conj a * b)` tames the conjugate `L⁻¹ ∘ i ∘ L` of multiplication by `i`. -/
+theorem Complex.det_pos_iff_forall_im_conj_mul_symm_I_mul_pos (L : ℂ ≃ₗ[ℝ] ℂ) :
+    0 < LinearMap.det (L : ℂ →ₗ[ℝ] ℂ) ↔
+      ∀ v ≠ 0, 0 < (conj v * L.symm (Complex.I * L v)).im := by
+  have key (u : ℂ) : (conj (L.symm u) * L.symm (Complex.I * u)).im =
+      (LinearMap.det (L : ℂ →ₗ[ℝ] ℂ))⁻¹ * Complex.normSq u := by
+    have h := Complex.orientation.areaForm_comp_eq Complex.orientation
+      (L.symm : ℂ →ₗ[ℝ] ℂ) u (Complex.I * u)
+    rw [Complex.areaForm, Complex.areaForm, Orientation.orientedJacobian_self,
+      LinearEquiv.coe_coe] at h
+    rw [h, ← LinearEquiv.coe_det, ← LinearEquiv.coe_det, LinearEquiv.det_symm, map_inv,
+      Units.val_inv_eq_inv_val]
+    simp [Complex.normSq_apply]
+  refine ⟨fun h v hv ↦ ?_, fun h ↦ ?_⟩
+  · have h1 := key (L v)
+    rw [L.symm_apply_apply] at h1
+    rw [h1]
+    exact mul_pos (inv_pos.2 h) (Complex.normSq_pos.2 (by simpa using hv))
+  · have h1 := h (L.symm 1) (by simp)
+    rw [L.apply_symm_apply, key, Complex.normSq_one, mul_one] at h1
+    exact inv_pos.1 h1
 
 end

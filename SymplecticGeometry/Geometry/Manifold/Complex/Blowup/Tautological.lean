@@ -87,7 +87,8 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
   `normalSpaceZeroSectionRealEquiv n hn ℓ`, the normal class of its real derivative at `0`
   applied to `c : ℂ` is `c • v`. This is the form of the derivative hypothesis of the
   slice lemma `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`; it follows
-  from the chain rule `mfderiv_blowdown_mfderiv_curveLift` of `Lift.lean`.
+  from `SymplecticGeometry.BlowupModel.mfderiv_blowdown_mfderiv_curveLift_smul`, the chain rule
+  `mfderiv_blowdown_mfderiv_curveLift` of `Lift.lean` along these lifts.
 
 ## Implementation notes
 
@@ -104,7 +105,7 @@ one too, by Tau Ceti's `Diffeomorph.isSmoothEmbedding_comp`.
 
 The differential of `blowdown` at `zeroSection ℓ` vanishes on the tangent image of the zero
 section, of dimension `n`, since `blowdown` vanishes on the zero section, and its image contains
-`ℓ`, through the curves `t ↦ (ℓ, t • z)`; by rank–nullity in dimension `n + 1`, both inclusions
+`ℓ`, through the lifts `curveLift (· • z)`; by rank–nullity in dimension `n + 1`, both inclusions
 are equalities. Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` then gives the isomorphism
 of the normal space with `ℓ`. Its continuity on total spaces follows, by
 `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer`, from that of the differentials of
@@ -301,29 +302,30 @@ theorem mfderiv_blowdown_comp_mfderiv_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) �
   -- The two zeros are maps between the tangent spaces and between the model spaces.
   rfl
 
+/-- The chain rule for `blowdown` along the lift `curveLift (· • v)` of the line `t ↦ t • v`,
+for `v ≠ 0`: at `zeroSection [v]`, the differential of `blowdown` sends the real derivative of
+the lift at `0` applied to `c : ℂ` to `c • v`. -/
+theorem mfderiv_blowdown_mfderiv_curveLift_smul {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) (c : ℂ) :
+    mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection (mk ℂ v hv))
+      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c) = c • v := by
+  rw [← curveLift_smul_zero hv]
+  exact (((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero
+    ).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ _).symm.trans
+    ((mfderiv_blowdown_mfderiv_curveLift (by fun_prop)
+      ((contMDiff_curveLift_smul_real (r := 1) hv).mdifferentiable one_ne_zero 0) c).trans
+      (congrArg (c • ·) (by simp [deriv_smul_const] : deriv (· • v) (0 : ℂ) = v)))
+
 /-- Every vector `z` of the line `ℓ` is a value of the differential of `blowdown` at
-`zeroSection ℓ`: it is the image of the velocity at `0` of the curve `t ↦ (ℓ, t • z)`. -/
+`zeroSection ℓ`: for `z ≠ 0`, it is the image of the velocity at `0` of the lift
+`curveLift (· • z)` of the line `t ↦ t • z`. -/
 theorem exists_mfderiv_blowdown_zeroSection_eq (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
     {z : Fin (n + 1) → ℂ} (hz : z ∈ ℓ.submodule) :
     ∃ v : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ),
       mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) v = z := by
-  let γ : ℂ → BlowupModel n := fun t =>
-    ⟨(ℓ, t • z), mem_blowupModel_iff.2 (ℓ.submodule.smul_mem t hz)⟩
-  have hγ : ContMDiff 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) 1 γ :=
-    ((isSmoothEmbedding_blowupModel_val (n := n) (r := 1) le_rfl).contMDiff_iff_comp).2 <|
-      contMDiff_const.prodMk (contDiff_id.smul contDiff_const).contMDiff
-  have hγ₀ : γ 0 = zeroSection ℓ := ext (by simp [γ]) (by simp [γ])
-  have hcomp : (blowdown ∘ γ) = fun t : ℂ => t • z := funext fun t => blowdown_mk _ _ _
-  have hz' : HasFDerivAt (fun t : ℂ => t • z) ((ContinuousLinearMap.id ℂ ℂ).smulRight z) 0 :=
-    (hasFDerivAt_id (0 : ℂ)).smul_const z
-  have hd : mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown ∘ γ) 0 (1 : ℂ) = z := by
-    rw [hcomp, (hasMFDerivAt_iff_hasFDerivAt.2 hz').mfderiv]
-    -- `ContinuousLinearMap.smulRight_apply` does not rewrite here, as the argument `1` lives in
-    -- `TangentSpace 𝓘(ℂ, ℂ) 0`.
-    exact one_smul ℂ z
-  rw [mfderiv_comp (0 : ℂ) ((contMDiff_blowdown 1).mdifferentiableAt one_ne_zero)
-    (hγ.mdifferentiableAt one_ne_zero), hγ₀] at hd
-  exact ⟨_, hd⟩
+  rcases eq_or_ne z 0 with rfl | hz0
+  · exact ⟨0, map_zero _⟩
+  obtain rfl := (Projectivization.mem_submodule_iff.1 hz hz0).symm
+  exact ⟨_, (mfderiv_blowdown_mfderiv_curveLift_smul hz0 1).trans (one_smul ℂ z)⟩
 
 /-- The differential of `blowdown` at `zeroSection ℓ` is not zero: its image has positive
 dimension. -/
@@ -669,19 +671,7 @@ theorem normalSpaceZeroSectionRealEquiv_normalClassL_mfderiv_curveLift_smul
         exact Submodule.smul_mem _ c (Submodule.mem_span_singleton_self v)⟩ := by
   refine (congrArg _ (Manifold.IsImmersion.normalClassL_apply _ _ _ _)).trans
     ((normalSpaceZeroSectionRealEquiv_normalClass _ _).trans (Subtype.ext ?_))
-  dsimp only
-  -- The chain rule at the point `curveLift (· • v) 0`, which is `zeroSection ℓ`.
-  have key : mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
-      (curveLift (· • v) (0 : ℂ))
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c) =
-        (c • v : Fin (n + 1) → ℂ) :=
-    (((contMDiff_blowdown 1).mdifferentiable one_ne_zero
-    (curveLift (· • v) (0 : ℂ))).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ
-      (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift (· • v)) 0 c)).symm.trans
-    ((mfderiv_blowdown_mfderiv_curveLift (by fun_prop)
-      ((contMDiff_curveLift_smul_real (r := 1) hv).mdifferentiable one_ne_zero 0) c).trans
-      (congrArg (c • ·) (by simp [deriv_smul_const] : deriv (· • v) (0 : ℂ) = v)))
-  exact curveLift_smul_zero hv ▸ key
+  exact mfderiv_blowdown_mfderiv_curveLift_smul hv c
 
 /-- **The complex structure of the normal bundle of the exceptional divisor is multiplication by
 `Complex.I` on the tautological line.** Under `normalSpaceZeroSectionRealEquiv n hn ℓ`, the complex
