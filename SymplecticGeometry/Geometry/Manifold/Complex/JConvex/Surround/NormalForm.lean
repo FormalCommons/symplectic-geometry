@@ -10,8 +10,13 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Comp
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
+import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
+import SymplecticGeometry.Analysis.Calculus.BumpFunction.UnitSlope
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Shell
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.InnerProductSpace.NormPow
 
 /-!
 # Frames adapted to the attaching sphere of a disc
@@ -42,23 +47,39 @@ The coefficients `λ x` and `μ x` depend smoothly on `x` because `x ↦ dφ (ι
 a cutoff in `‖x‖`, the function `χ` needs neither an annulus around the sphere nor care at the
 origin.
 
+The file also builds the radial factor of a reparametrization `x ↦ τ x • x` of the disc that
+makes the radial derivative of `φ ∘ ι` equal to `-2` along the sphere, as in Step 2 of the proof
+of Theorem 8.5 and in Corollary 8.1 of Cieliebak–Eliashberg. Let `F` be a real inner product
+space of finite dimension and `g : F → ℝ` smooth with `a y = dg y y < 0` on the unit sphere.
+Then `SymplecticGeometry.exists_contDiff_fderiv_apply_self_eq_on_sphere` gives
+`τ y = 1 + h (‖y‖ - 1) * b y` with `b = -2 / a - 1`, smooth where `a < 0`, and a profile `h`
+from `SymplecticGeometry.exists_contDiff_deriv_zero_eq_one_abs_le`: `h 0 = 0` and `h' 0 = 1`
+make `dτ x x = b x` on the sphere, and `h` is supported in a thin shell around the sphere where
+`a < 0`, with height and slope error small against the bounds of `b` and `db y y` on that shell,
+so that `τ` and `τ + dτ y y` stay positive. Away from `0` the norm is smooth because `F` has an
+inner product; Tau Ceti's `ContDiffOn.contDiff_smul_of_tsupport_subset` makes `τ` smooth on all
+of `F`.
+
 ## Main results
 
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_complexFrame_mfderiv_ker`: along a disc
   attached J-orthogonally to `{φ ≤ 0}` there is a frame with the properties of
   `exists_complexFrame_mfderiv` whose second factor lies in the kernel of `dφ` along the sphere.
+* `SymplecticGeometry.exists_contDiff_fderiv_apply_self_eq_on_sphere`: a smooth positive radial
+  factor `τ`, equal to `1` near `0`, on the unit sphere and far out, with `τ + dτ y y > 0` and a
+  prescribed radial derivative `dτ x x = -2 / dg x x - 1` on the sphere.
 
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Step 3 of the proof of Theorem 8.5.
+  Corollary 8.1, and Steps 2 and 3 of the proof of Theorem 8.5.
 -/
 
 public section
 
 noncomputable section
 
-open Manifold Set Filter
+open Manifold Set Filter Metric
 open scoped ContDiff Topology TauCeti.ComplexManifold
 
 namespace SymplecticGeometry
@@ -216,6 +237,140 @@ theorem exists_complexFrame_mfderiv_ker {φ : M → ℝ} {ι : EuclideanSpace �
 end IsJOrthogonallyAttached
 
 end Frame
+
+section RadialProfile
+
+variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
+
+/-- **A radial profile with prescribed radial derivative on the unit sphere.** Let `F` be a
+finite-dimensional real inner product space and `g : F → ℝ` smooth with negative radial
+derivative `dg x x < 0` on the unit sphere. There is a smooth positive `τ : F → ℝ`, equal to `1`
+near `0`, on the unit sphere and outside a ball, such that `τ x + dτ x x > 0` everywhere and
+`dτ x x = -2 / dg x x - 1` on the unit sphere.
+
+With these properties `x ↦ τ x • x` has radial derivative `τ x + dτ x x > 0`, and on the sphere
+`dg x (τ x • x + dτ x x • x) = -2`. -/
+theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : ContDiff ℝ ∞ g)
+    (hneg : ∀ x, ‖x‖ = 1 → fderiv ℝ g x x < 0) :
+    ∃ τ : F → ℝ, ContDiff ℝ ∞ τ ∧ (∀ x, 0 < τ x) ∧ τ =ᶠ[𝓝 0] 1 ∧ (∀ x, ‖x‖ = 1 → τ x = 1) ∧
+      (∃ R, ∀ x, R ≤ ‖x‖ → τ x = 1) ∧ (∀ x, 0 < τ x + fderiv ℝ τ x x) ∧
+      ∀ x, ‖x‖ = 1 → fderiv ℝ τ x x = -2 / fderiv ℝ g x x - 1 := by
+  -- Outline: `a y = dg y y` is negative on the open set `U`, where `b = -2 / a - 1` is smooth.
+  -- A closed shell `K` around the sphere lies in `U`, with `1 + ‖y‖ * b y ≥ m > 0` on it and
+  -- `b`, `db y y` bounded by `M`. Then `τ y = 1 + h (‖y‖ - 1) * b y` for a profile `h` of
+  -- height and slope error `η` small compared with `m / M`, supported in the shell.
+  set a : F → ℝ := fun y ↦ fderiv ℝ g y y
+  have ha : ContDiff ℝ ∞ a := (hg.fderiv_right le_rfl).clm_apply contDiff_id
+  set b : F → ℝ := fun y ↦ -2 / a y - 1
+  set U : Set F := {y | a y < 0}
+  have hU : IsOpen U := isOpen_lt ha.continuous continuous_const
+  have hU0 : ∀ y ∈ U, y ≠ 0 := by
+    rintro y hy rfl
+    simp [U, a] at hy
+  have hbU : ContDiffOn ℝ ∞ b U := fun y hy ↦
+    ((contDiffAt_const.div ha.contDiffAt hy.ne).sub contDiffAt_const).contDiffWithinAt
+  set V : Set F := U ∩ (fun y ↦ 1 + ‖y‖ * b y) ⁻¹' Ioi 0
+  have hq : ContinuousOn (fun y ↦ 1 + ‖y‖ * b y) U :=
+    continuousOn_const.add (continuous_norm.continuousOn.mul hbU.continuousOn)
+  have hV : IsOpen V := hq.isOpen_inter_preimage hU isOpen_Ioi
+  have hSV : sphere (0 : F) 1 ⊆ V := by
+    intro x hx
+    rw [mem_sphere_zero_iff_norm] at hx
+    have hax := hneg x hx
+    have : 0 < -2 / a x := div_pos_of_neg_of_neg (by norm_num) hax
+    refine ⟨hax, ?_⟩
+    simp only [mem_preimage, mem_Ioi, hx, one_mul, b]
+    linarith
+  -- A closed shell `K` of width `w` around the sphere lies in `V`.
+  obtain ⟨w, hw0, hw1, hKV⟩ := exists_abs_norm_sub_le_subset_of_sphere_subset one_pos hV hSV
+  set K : Set F := {y | |‖y‖ - 1| ≤ w}
+  have hKc : IsCompact K := isCompact_setOf_abs_norm_sub_le 1 w
+  -- Bounds on the shell.
+  obtain ⟨m, hm0, hm⟩ := hKc.exists_forall_le' (f := fun y ↦ 1 + ‖y‖ * b y)
+    (hq.mono (hKV.trans inter_subset_left)) fun y hy ↦ (hKV hy).2
+  have hDb : ContinuousOn (fun y ↦ fderiv ℝ b y y) U :=
+    (hbU.continuousOn_fderiv_of_isOpen hU (by simp)).clm_apply continuousOn_id
+  obtain ⟨M, hM⟩ := hKc.exists_bound_of_continuousOn
+    (f := fun y ↦ |‖y‖ * b y| + |b y| + |fderiv ℝ b y y|)
+    (((continuous_norm.continuousOn.mul hbU.continuousOn).abs.add hbU.continuousOn.abs).add
+      hDb.abs |>.mono (hKV.trans inter_subset_left))
+  set m' := min m 1
+  set M' := max M 0
+  have hm'0 : 0 < m' := lt_min hm0 one_pos
+  have hM'0 : 0 ≤ M' := le_max_right _ _
+  set η := m' / (2 * (M' + 1)) with hη_def
+  have hη : 0 < η := by positivity
+  have hηM : η * M' < m' := by
+    rw [hη_def, div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
+    nlinarith
+  have hbound : ∀ y ∈ K, |‖y‖ * b y| + |b y| + |fderiv ℝ b y y| ≤ M' := fun y hy ↦ by
+    have := hM y hy
+    rw [Real.norm_of_nonneg (by positivity)] at this
+    exact this.trans (le_max_left _ _)
+  -- The profile and the function `τ`.
+  obtain ⟨h, hh, hh0, hhd0, hhw, hhb, hhd⟩ :=
+    exists_contDiff_deriv_zero_eq_one_abs_le (w := w / 2) (by positivity) hη
+  set ψ : F → ℝ := fun y ↦ h (‖y‖ - 1)
+  have hψout : ∀ y, w / 2 < |‖y‖ - 1| → ψ y = 0 := fun y hy ↦ hhw _ hy.le
+  have hψU : ContDiffOn ℝ ∞ ψ U := fun y hy ↦
+    (hh.contDiffAt.comp y ((contDiffAt_norm ℝ (hU0 y hy)).sub contDiffAt_const)).contDiffWithinAt
+  have htsU : tsupport ψ ⊆ U := by
+    have hT : IsClosed {y : F | |‖y‖ - 1| ≤ w / 2} := isClosed_le (by fun_prop) continuous_const
+    refine (closure_minimal (fun y hy ↦ ?_) hT).trans fun y hy ↦ ?_
+    · by_contra hy'
+      exact hy (hψout y (not_le.1 hy'))
+    · -- Membership in `K` and in the smaller shell are the inequalities that define them.
+      have hy' : |‖y‖ - 1| ≤ w / 2 := hy
+      exact (hKV (show |‖y‖ - 1| ≤ w from hy'.trans (by linarith))).1
+  set τ : F → ℝ := fun y ↦ 1 + h (‖y‖ - 1) * b y
+  have hτ : ContDiff ℝ ∞ τ :=
+    contDiff_const.add (by simpa only [smul_eq_mul] using
+      hbU.contDiff_smul_of_tsupport_subset hU hψU htsU)
+  have hτout : ∀ y, w / 2 < |‖y‖ - 1| → τ =ᶠ[𝓝 y] fun _ ↦ 1 := fun y hy ↦ by
+    filter_upwards [(isOpen_lt (f := fun _ : F ↦ w / 2) (g := fun z : F ↦ |‖z‖ - 1|)
+      continuous_const (by fun_prop)).mem_nhds hy] with z hz
+    simp [τ, hhw _ (le_of_lt hz)]
+  have hτd : ∀ y ∈ U, fderiv ℝ τ y y =
+      deriv h (‖y‖ - 1) * ‖y‖ * b y + h (‖y‖ - 1) * fderiv ℝ b y y := fun y hy ↦ by
+    have hy0 := hU0 y hy
+    have hβ : DifferentiableAt ℝ (fun r ↦ h (r - 1)) ‖y‖ :=
+      (hh.differentiable (by simp) _).comp _ (differentiableAt_id.sub_const 1)
+    have hb : DifferentiableAt ℝ b y :=
+      (hbU.contDiffAt (hU.mem_nhds hy)).differentiableAt (by simp)
+    have H : HasFDerivAt τ (ψ y • fderiv ℝ b y + b y • fderiv ℝ ψ y) y :=
+      ((((TauCeti.differentiableAt_comp_norm_iff hy0).2 hβ).hasFDerivAt.mul
+        hb.hasFDerivAt).const_add 1)
+    rw [H.fderiv, add_apply, smul_apply, smul_apply, fderiv_comp_norm_apply_self hy0 hβ,
+      deriv_comp_sub_const, smul_eq_mul, smul_eq_mul, smul_eq_mul]
+    ring
+  refine ⟨τ, hτ, fun x ↦ ?_, hτout 0 (by simp; linarith), fun x hx ↦ by simp [τ, hx, hh0],
+    ⟨2, fun x hx ↦ by
+      have := hhw (‖x‖ - 1) (by rw [abs_of_nonneg (by linarith)]; linarith)
+      simp [τ, this]⟩,
+    fun x ↦ ?_, fun x hx ↦ ?_⟩
+  · -- positivity of `τ`
+    by_cases hx : |‖x‖ - 1| ≤ w / 2
+    · have hB := hbound x (hx.trans (by linarith))
+      have hbx : |b x| ≤ M' := by
+        linarith [abs_nonneg (‖x‖ * b x), abs_nonneg (fderiv ℝ b x x)]
+      exact one_add_mul_pos_of_abs_le (hhb _) hbx (hηM.trans_le (min_le_right m 1))
+    · simp [τ, hhw _ (by linarith : w / 2 ≤ |‖x‖ - 1|)]
+  · -- positivity of `τ + dτ (x) x`
+    by_cases hx : |‖x‖ - 1| ≤ w / 2
+    · have hxK : x ∈ K := hx.trans (by linarith)
+      rw [hτd x (hKV hxK).1]
+      have := one_add_mul_add_mul_add_mul_pos_of_abs_le (min_le_right m 1)
+        ((min_le_left m 1).trans (hm x hxK)) (hhb (‖x‖ - 1)) (hhd (‖x‖ - 1)) (hbound x hxK) hηM
+      simp only [τ]
+      linarith
+    · rw [(hτout x (not_le.1 hx)).fderiv_eq]
+      simp [τ, hhw _ (by linarith : w / 2 ≤ |‖x‖ - 1|)]
+  · -- the radial derivative on the sphere
+    have hxU : x ∈ U := (hSV (mem_sphere_zero_iff_norm.2 hx)).1
+    rw [hτd x hxU]
+    simp [hx, hh0, hhd0, b, a]
+
+end RadialProfile
 
 end SymplecticGeometry
 
