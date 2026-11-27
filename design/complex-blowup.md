@@ -231,6 +231,11 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
 - `BlowupModel.exceptionalDivisor n`, the set `{p | p.blowdown = 0}`, with
   `exceptionalDivisor_eq_range`: it is the image of `ℓ ↦ (ℓ, 0)`, the map
   `BlowupModel.zeroSection`.
+- `BlowupModel.closedNbhd n ε` and `BlowupModel.openNbhd n ε`, the preimages
+  under `blowdown` of `‖complexToRealEuclidean _ z‖ ≤ ε` and `< ε`, with
+  `isCompact_closedNbhd`, `isOpen_openNbhd`, and
+  `exceptionalDivisor_subset_openNbhd`, `exceptionalDivisor_subset_closedNbhd`
+  for `0 < ε`.
 - `blowdownDiffeomorph n`: $\pi$ as a biholomorphism from the complement of
   the divisor onto `TauCeti.puncturedSpace E`, both as open subsets, with inverse
   `z ↦ (mk z, z)`; `coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`.
