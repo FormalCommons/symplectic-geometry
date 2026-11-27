@@ -10,8 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Real
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import TauCeti.AlgebraicTopology.Singular.SurfaceGenus
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
-public import Mathlib.Geometry.Manifold.Diffeomorph
-import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Positivity
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Axioms
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
@@ -54,16 +53,17 @@ counterpart of the integral class
   depend on the complex model `G`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames`: on a manifold, every
   smooth almost complex structure tamed by `σ` gives the class of `σ`.
-* `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_mpullback`: a diffeomorphism `φ` with
-  `φ^* σ' = σ` carries the class of `σ'` to that of `σ`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_mpullback`: a smooth local
+  diffeomorphism `φ` with `φ^* σ' = σ` carries the class of `σ'` to that of `σ`.
 * `SymplecticGeometry.realFirstChernClass_tangent_eq_of_surface`: on a closed connected surface
   `S` of genus `g`, for a symplectic form `σ` whose orientation is `o`,
   `c₁(σ) = ((2 - 2 g) / ∫_S σ) • [σ]`.
 
 ## Proofs
 
-For `realFirstChernClass_mpullback`, the derivatives of `φ` form an isomorphism from `TM` to the
-pull-back `φ *ᵖ TM'`, smooth on total spaces
+For `realFirstChernClass_mpullback`, the derivatives of the local diffeomorphism `φ`, each a
+linear isomorphism (`IsLocalDiffeomorph.mfderivToContinuousLinearEquiv`), form an isomorphism
+from `TM` to the pull-back `φ *ᵖ TM'`, smooth on total spaces
 (`Bundle.Pullback.contMDiff_totalSpace_mfderiv`), which carries the pull-back of the form of
 `σ'` to the form of `σ` (`ContMDiffTwoForm.tangentEquiv_compMFDeriv_pullback`); so the result
 follows from `realFirstChernClass_pushforward` and `realFirstChernClass_pullback`.
@@ -225,11 +225,8 @@ theorem IsNondegenerate.realFirstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
     (h : σ.IsNondegenerate) {J : SmoothAlmostComplexStructure I M} (hJ : σ.Tames J) :
     h.realFirstChernClass G = ContMDiffComplexStructure.realFirstChernClass G
       (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)) := by
-  have hK : (ContMDiffTwoForm.tangentEquiv.symm σ).Tames
-      (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)) := by
-    rw [← ContMDiffTwoForm.tames_tangentEquiv_iff]
-    simpa using hJ
-  exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames G _ hK
+  exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames G _
+    (ContMDiffTwoForm.tames_tangentEquiv_symm_iff.2 hJ)
 
 /-- **On a manifold, the real first Chern class of a nondegenerate `σ` does not depend on the
 complex model** `G` used to compute it. -/
@@ -246,27 +243,33 @@ variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Finite
   (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
   [Fact (finrank ℝ E' = 2 * finrank ℂ G')]
 
-/-- **Naturality of the real first Chern class under diffeomorphisms.** If a diffeomorphism
-`φ : M → M'` pulls a nondegenerate two-form `σ'` on `M'` back to `σ`, then the real first Chern
-class of `σ` is the pull-back along `φ` of that of `σ'`. -/
+/-- **Naturality of the real first Chern class under local diffeomorphisms.** If a smooth local
+diffeomorphism `φ : M → M'`, such as a diffeomorphism or a smooth covering map, pulls a
+nondegenerate two-form `σ'` on `M'` back to `σ`, then the real first Chern class of `σ` is the
+pull-back along `φ` of that of `σ'`. -/
 theorem IsNondegenerate.realFirstChernClass_mpullback {σ : SmoothTwoForm I M}
     {σ' : SmoothTwoForm I' M'} (h : σ.IsNondegenerate) (h' : σ'.IsNondegenerate)
-    (φ : M ≃ₘ⟮I, I'⟯ M') (hσ : SmoothForm.mpullback φ φ.contMDiff σ' = σ) :
-    h.realFirstChernClass G = deRhamCohomology.map φ φ.contMDiff 2 (h'.realFirstChernClass G') := by
+    {φ : M → M'} (hφ : IsLocalDiffeomorph I I' ∞ φ)
+    (hσ : SmoothForm.mpullback φ hφ.contMDiff σ' = σ) :
+    h.realFirstChernClass G =
+      deRhamCohomology.map φ hφ.contMDiff 2 (h'.realFirstChernClass G') := by
+  -- The pull-back bundle `φ *ᵖ TM'` is defined for bundled continuous maps.
+  obtain ⟨φ, rfl⟩ : ∃ f : C(M, M'), ⇑f = φ :=
+    ⟨⟨φ, hφ.contMDiff.continuous⟩, ContinuousMap.coe_mk _ _⟩
   set τ' := ContMDiffTwoForm.tangentEquiv.symm σ'
   have hτ' : τ'.IsNondegenerate := ContMDiffTwoForm.isNondegenerate_tangentEquiv_symm_iff.2 h'
-  have := Pullback.contMDiffVectorBundle (F := E') (E := TangentSpace I' (M := M')) φ.contMDiff
+  have := Pullback.contMDiffVectorBundle (F := E') (E := TangentSpace I' (M := M')) hφ.contMDiff
   -- The derivatives of `φ`, an isomorphism from `TM` to `φ *ᵖ TM'`, carry the pull-back of `τ'`
   -- to the form of `σ`.
   let Φ (x : M) : TangentSpace I x ≃L[ℝ] ((φ : M → M') *ᵖ (TangentSpace I' : M' → Type _)) x :=
-    φ.mfderivToContinuousLinearEquiv (by simp) x
+    hφ.mfderivToContinuousLinearEquiv (by simp) x
   have hcoe (x : M) (v : TangentSpace I x) : Φ x v = mfderiv I I' φ x v :=
-    congr($(φ.mfderivToContinuousLinearEquiv_coe (x := x) (by simp)) v)
+    congr($(hφ.mfderivToContinuousLinearEquiv_coe (by simp) x) v)
   have hΦ : ContMDiff (I.prod 𝓘(ℝ, E)) (I.prod 𝓘(ℝ, E')) ∞
       (fun p : TangentBundle I M ↦ TotalSpace.mk' E' p.proj (Φ p.proj p.snd)) :=
-    (Pullback.contMDiff_totalSpace_mfderiv φ φ.contMDiff).congr fun p ↦ by rw [hcoe]
+    (Pullback.contMDiff_totalSpace_mfderiv φ hφ.contMDiff).congr fun p ↦ by rw [hcoe]
   have hσ' : ContMDiffTwoForm.tangentEquiv.symm σ =
-      (τ'.pullback φ φ.contMDiff).compMFDeriv φ φ.contMDiff := by
+      (τ'.pullback φ hφ.contMDiff).compMFDeriv φ hφ.contMDiff := by
     rw [LinearEquiv.symm_apply_eq, ContMDiffTwoForm.tangentEquiv_compMFDeriv_pullback,
       LinearEquiv.apply_symm_apply, hσ]
   rw [IsNondegenerate.realFirstChernClass_def, IsNondegenerate.realFirstChernClass_def,

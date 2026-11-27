@@ -250,7 +250,7 @@ About 400 lines.
 - On the tangent bundle: `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass`,
   through `ContMDiffTwoForm.tangentEquiv`, and
   `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass_mpullback`: a
-  diffeomorphism $\varphi$ with $\varphi^*\sigma'=\sigma$ carries one class
+  smooth local diffeomorphism $\varphi$ with $\varphi^*\sigma'=\sigma$ carries one class
   to the other.
 - `realFirstChernClass_tangent_eq_of_surface`: on a closed connected
   surface, for a symplectic form `σ` inducing the orientation `o`

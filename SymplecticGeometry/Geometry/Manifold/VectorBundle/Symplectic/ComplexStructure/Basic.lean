@@ -50,8 +50,8 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `Tames.pushforward`, `Invariant.pushforward`, `Compatible.pushforward`: transport along an
   isomorphism of bundles, moving the form and the complex structure together.
 * `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff`, `compatible_tangentEquiv_iff`: on the
-  tangent bundle, the predicates are Tau Ceti's; `compatible_tangentEquiv_symm_iff` reads
-  compatibility the other way.
+  tangent bundle, the predicates are Tau Ceti's; `tames_tangentEquiv_symm_iff` and
+  `compatible_tangentEquiv_symm_iff` read tameness and compatibility the other way.
 * `convex_setOfPred_tames`, `convex_setOfPred_invariant`, `convex_setOfPred_compatible`: the
   two-forms taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
@@ -343,6 +343,17 @@ theorem compatible_tangentEquiv_iff :
       ω.Compatible J := by
   rw [compatible_iff, ← invariant_tangentEquiv_iff, ← tames_tangentEquiv_iff]
   exact ⟨fun h ↦ ⟨h.invariant, h.tames⟩, fun h ↦ ⟨h.1, h.2⟩⟩
+
+/-- A smooth two-form in the sense of Tau Ceti tames a smooth almost complex structure exactly
+when the corresponding two-form on the tangent bundle tames the corresponding complex
+structure. -/
+@[simp]
+theorem tames_tangentEquiv_symm_iff {φ : TauCeti.SmoothTwoForm I M}
+    {K : TauCeti.SmoothAlmostComplexStructure I M} :
+    (tangentEquiv.symm φ).Tames (ContMDiffComplexStructure.tangentEquiv.symm (K.toContMDiff ⊤)) ↔
+      φ.Tames K := by
+  rw [← tames_tangentEquiv_iff]
+  simp
 
 /-- A smooth two-form and a smooth almost complex structure in the sense of Tau Ceti are
 compatible exactly when the corresponding two-form and complex structure on the tangent bundle
