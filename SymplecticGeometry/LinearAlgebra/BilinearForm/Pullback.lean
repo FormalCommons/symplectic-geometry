@@ -8,10 +8,10 @@ module
 public import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 public import Mathlib.Topology.Algebra.Ring.Basic
 public import Mathlib.Topology.Order.Basic
-import Mathlib.LinearAlgebra.Matrix.BilinearForm
-import Mathlib.Topology.Instances.Matrix
 import Mathlib.Topology.Algebra.Order.Field
 import Mathlib.Tactic.LinearCombination
+import TauCeti.LinearAlgebra.BilinearForm.Basic
+import TauCeti.Topology.Algebra.Module.BilinearForm
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 
 /-!
@@ -29,8 +29,11 @@ the projection.
 
 * `LinearMap.BilinForm.nondegenerate_add_smul_comp_iff`: the `τ`-orthogonal `H` of `ker L`
   is a complement of `ker L` (Mathlib's `isCompl_orthogonal_of_restrict_nondegenerate`), and
-  `τ + c • P` is block diagonal for `H ⊕ ker L` and agrees with `τ` on `ker L`; so it is
-  nondegenerate exactly when its restriction to `H` is.
+  `τ + c • P` is block diagonal for `H ⊕ ker L`
+  (`LinearMap.BilinForm.add_smul_comp_eq_zero_of_mem_ker_of_mem_orthogonal` and
+  `LinearMap.BilinForm.add_smul_comp_eq_zero_of_mem_orthogonal_of_mem_ker`) and agrees with `τ`
+  on `ker L` (`LinearMap.BilinForm.restrict_ker_add_smul_comp`); so it is nondegenerate exactly
+  when its restriction to `H` is.
 * `LinearMap.BilinForm.nondegenerate_restrict_orthogonal_ker_comp`: `P` is nondegenerate on
   `H`.
 * `LinearMap.BilinForm.pullbackProd τ β L s`: the form
@@ -64,11 +67,6 @@ section CommSemiring
 variable {R V U : Type*} [CommSemiring R] [AddCommMonoid V] [Module R V] [AddCommMonoid U]
   [Module R U]
 
-/-- The pull-back of a reflexive bilinear form along a linear map is reflexive. -/
-theorem IsRefl.comp {β : BilinForm R U} (hβ : β.IsRefl) (L : V →ₗ[R] U) :
-    (β.comp L L).IsRefl :=
-  fun x y h ↦ by simpa using hβ (L x) (L y) (by simpa using h)
-
 /-- The pull-back of an alternating bilinear form along a linear map is alternating. -/
 theorem IsAlt.comp {β : BilinForm R U} (hβ : β.IsAlt) (L : V →ₗ[R] U) :
     (β.comp L L).IsAlt :=
@@ -80,6 +78,20 @@ theorem IsAlt.comp {β : BilinForm R U} (hβ : β.IsAlt) (L : V →ₗ[R] U) :
 theorem restrict_ker_add_smul_comp (τ : BilinForm R V) (β : BilinForm R U) (L : V →ₗ[R] U)
     (c : R) : (τ + c • β.comp L L).restrict (LinearMap.ker L) = τ.restrict (LinearMap.ker L) :=
   LinearMap.ext₂ fun x y ↦ by simp [LinearMap.mem_ker.1 x.property]
+
+/-- `τ + c • β.comp L L` pairs `ker L` with its `τ`-orthogonal to zero. -/
+theorem add_smul_comp_eq_zero_of_mem_ker_of_mem_orthogonal (τ : BilinForm R V)
+    (β : BilinForm R U) {L : V →ₗ[R] U} (c : R) {w h : V} (hw : w ∈ LinearMap.ker L)
+    (hh : h ∈ τ.orthogonal (LinearMap.ker L)) : (τ + c • β.comp L L) w h = 0 := by
+  simp [LinearMap.mem_ker.1 hw, mem_orthogonal_iff.1 hh w hw]
+
+/-- If `τ` is reflexive, then `τ + c • β.comp L L` pairs the `τ`-orthogonal of `ker L` with
+`ker L` to zero. -/
+theorem add_smul_comp_eq_zero_of_mem_orthogonal_of_mem_ker {τ : BilinForm R V} (hτ : τ.IsRefl)
+    (β : BilinForm R U) {L : V →ₗ[R] U} (c : R) {h w : V}
+    (hh : h ∈ τ.orthogonal (LinearMap.ker L)) (hw : w ∈ LinearMap.ker L) :
+    (τ + c • β.comp L L) h w = 0 := by
+  simp [LinearMap.mem_ker.1 hw, hτ _ _ (mem_orthogonal_iff.1 hh w hw)]
 
 end CommSemiring
 
@@ -135,8 +147,8 @@ theorem nondegenerate_add_smul_comp_iff [FiniteDimensional 𝕜 V] (hτ : τ.IsA
       ((τ + c • β.comp L L).restrict (τ.orthogonal (LinearMap.ker L))).Nondegenerate := by
   have hc := τ.isCompl_orthogonal_of_restrict_nondegenerate hτ.isRefl hτL
   rw [(hτ.add ((hβ.comp L).smul c)).isRefl.nondegenerate_iff_of_isCompl hc
-    fun w hw h hh ↦ ?_, restrict_ker_add_smul_comp, and_iff_right hτL]
-  simp [LinearMap.mem_ker.1 hw, (mem_orthogonal_iff.1 hh) w hw]
+    fun w hw h hh ↦ add_smul_comp_eq_zero_of_mem_ker_of_mem_orthogonal τ β c hw hh,
+    restrict_ker_add_smul_comp, and_iff_right hτL]
 
 /-- If `τ` is reflexive and nondegenerate on `ker L`, `L` is surjective and `β` is reflexive and
 nondegenerate, then the pull-back `β.comp L L` is nondegenerate on the `τ`-orthogonal of
@@ -146,7 +158,7 @@ theorem nondegenerate_restrict_orthogonal_ker_comp [FiniteDimensional 𝕜 V] (h
     (hβn : β.Nondegenerate) (hL : Function.Surjective L) :
     ((β.comp L L).restrict (τ.orthogonal (LinearMap.ker L))).Nondegenerate := by
   have hc := τ.isCompl_orthogonal_of_restrict_nondegenerate hτ hτL
-  rw [(hβ.comp L).nondegenerate_restrict_iff]
+  rw [IsRefl.nondegenerate_restrict_iff (B := β.comp L L) (hβ.compl₁₂ L)]
   intro u hu hP
   have hLu : L u = 0 := hβn.1 _ fun b ↦ by
     obtain ⟨v, rfl⟩ := hL b
@@ -214,22 +226,9 @@ theorem nondegenerate_pullbackProd_zero_iff [FiniteDimensional 𝕜 U] (hτ : τ
 theorem eventually_nondegenerate_pullbackProd [TopologicalSpace 𝕜] [IsTopologicalRing 𝕜]
     [T1Space 𝕜] [FiniteDimensional 𝕜 V] [FiniteDimensional 𝕜 U]
     (h : (pullbackProd τ β L 0).Nondegenerate) :
-    ∀ᶠ s in 𝓝 0, (pullbackProd τ β L s).Nondegenerate := by
-  let b := Module.finBasis 𝕜 (V × U)
-  set M₀ := toMatrix b (pullbackProd τ β L 0) with hM₀
-  set N := toMatrix b (β.comp (LinearMap.snd 𝕜 V U) (LinearMap.snd 𝕜 V U)) with hN
-  have hb (s : 𝕜) : toMatrix b (pullbackProd τ β L s) = M₀ - s • N := by
-    ext i j
-    simp only [hM₀, hN, toMatrix_apply, pullbackProd_apply, Matrix.sub_apply, Matrix.smul_apply,
-      comp_apply, LinearMap.snd_apply, smul_eq_mul]
-    ring
-  have hc : Continuous fun s : 𝕜 ↦ (M₀ - s • N).det := by fun_prop
-  have h0 : (M₀ - (0 : 𝕜) • N).det ≠ 0 := by
-    rw [zero_smul, sub_zero]
-    exact (nondegenerate_iff_det_ne_zero b).1 h
-  filter_upwards [hc.continuousAt.eventually_ne h0] with s hs
-  rw [nondegenerate_iff_det_ne_zero b, hb]
-  exact hs
+    ∀ᶠ s in 𝓝 0, (pullbackProd τ β L s).Nondegenerate :=
+  (TauCeti.isOpen_setOf_nondegenerate (B := pullbackProd τ β L) fun v w ↦ by
+    simp only [pullbackProd_apply]; fun_prop).mem_nhds h
 
 end Field
 
@@ -237,16 +236,16 @@ section Ordered
 
 variable {𝕜 V U : Type*} [Field 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] [TopologicalSpace 𝕜]
   [OrderTopology 𝕜] [AddCommGroup V] [Module 𝕜 V] [AddCommGroup U] [Module 𝕜 U]
-  [FiniteDimensional 𝕜 V] [FiniteDimensional 𝕜 U] {τ : BilinForm 𝕜 V} {β : BilinForm 𝕜 U}
-  {L : V →ₗ[𝕜] U}
+  [FiniteDimensional 𝕜 V] {τ : BilinForm 𝕜 V} {β : BilinForm 𝕜 U} {L : V →ₗ[𝕜] U}
 
-/-- Over an ordered field, let `τ` and `β` be alternating forms on finite-dimensional spaces, `β`
-nondegenerate, `L` surjective, and `τ` nondegenerate on `ker L`. Then `τ + c • β.comp L L` is
-nondegenerate for all large `c`. -/
+/-- Over an ordered field, let `τ` and `β` be alternating forms on `V` and `U`, with `V`
+finite-dimensional, `β` nondegenerate, `L` surjective, and `τ` nondegenerate on `ker L`. Then
+`τ + c • β.comp L L` is nondegenerate for all large `c`. -/
 theorem exists_forall_ge_nondegenerate_add_smul_comp (hτ : τ.IsAlt) (hβ : β.IsAlt)
     (hβn : β.Nondegenerate) (hL : Function.Surjective L)
     (hτL : (τ.restrict (LinearMap.ker L)).Nondegenerate) :
     ∃ c₀ : 𝕜, ∀ c ≥ c₀, (τ + c • β.comp L L).Nondegenerate := by
+  have := Module.Finite.of_surjective L hL
   have h := eventually_nondegenerate_pullbackProd
     ((nondegenerate_pullbackProd_zero_iff hτ hβ hβn hL).2 hτL)
   refine eventually_atTop.1 ?_
