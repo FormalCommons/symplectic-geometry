@@ -1740,7 +1740,7 @@ are set on compact manifolds. Three pieces are missing:
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
   `IsElementaryWeinsteinCobordism ω X f a b` and `p` in the region:
-  `IsElementaryWeinsteinCobordism.stableSet_inter_preimage_eq_empty` for
+  `IsWeinsteinCobordism.stableSet_inter_preimage_eq_empty` for
   `k = 0` (the stable set is `{p}`), and, for `k = m + 1`,
   `IsElementaryWeinsteinCobordism.exists_attachingSphere`, a smooth
   embedding of the unit sphere of `EuclideanSpace ℝ (Fin (m + 1))` into

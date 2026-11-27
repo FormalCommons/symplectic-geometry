@@ -38,8 +38,11 @@ into `(c, b)`, and equals `c₁` from `b` on (`Real.exists_contDiff_eq_self_maps
 For Tau Ceti's `TauCeti.collaredSmoothTransition`, the map `s ↦ smoothTransition (2 * s - 1 / 2)`,
 it adds that the map is `0` near `0` and `1` near `1`
 (`TauCeti.collaredSmoothTransition_eventuallyEq_zero`,
-`TauCeti.collaredSmoothTransition_eventuallyEq_one`), and that its derivative is positive at
-every point where its value is neither `0` nor `1` (`TauCeti.deriv_collaredSmoothTransition_pos`).
+`TauCeti.collaredSmoothTransition_eventuallyEq_one`), that it is monotone
+(`TauCeti.monotone_collaredSmoothTransition`), that `(1 - collaredSmoothTransition s) * η` lies in
+`[0, η]` for `η ≥ 0` (`TauCeti.one_sub_collaredSmoothTransition_mul_mem_Icc`), and that its
+derivative is positive at every point where its value is neither `0` nor `1`
+(`TauCeti.deriv_collaredSmoothTransition_pos`).
 
 It also gives a smooth map `c : ℝ → ℝ` that is the identity on a closed interval `[a, b]`,
 takes its values in the open interval `(a - ε, b + ε)`, and is constant outside it
@@ -189,6 +192,17 @@ theorem collaredSmoothTransition_eventuallyEq_one :
     collaredSmoothTransition =ᶠ[𝓝 1] fun _ ↦ 1 := by
   filter_upwards [Ioi_mem_nhds (by norm_num : (3 / 4 : ℝ) < 1)] with s hs
   exact collaredSmoothTransition_eq_one_of_ge hs.le
+
+/-- `collaredSmoothTransition` is monotone. -/
+theorem monotone_collaredSmoothTransition : Monotone collaredSmoothTransition := fun s t hst ↦ by
+  rw [collaredSmoothTransition_def, collaredSmoothTransition_def]
+  exact Real.smoothTransition.monotone (by linarith)
+
+/-- For `η ≥ 0`, the multiple `(1 - collaredSmoothTransition s) * η` lies in `[0, η]`. -/
+theorem one_sub_collaredSmoothTransition_mul_mem_Icc {η : ℝ} (hη : 0 ≤ η) (s : ℝ) :
+    (1 - collaredSmoothTransition s) * η ∈ Set.Icc 0 η := by
+  obtain ⟨h₀, h₁⟩ := collaredSmoothTransition_mem s
+  exact ⟨mul_nonneg (sub_nonneg.2 h₁) hη, mul_le_of_le_one_left hη (by linarith)⟩
 
 /-- Where `collaredSmoothTransition` is neither `0` nor `1`, its derivative is positive. -/
 theorem deriv_collaredSmoothTransition_pos {s : ℝ}
