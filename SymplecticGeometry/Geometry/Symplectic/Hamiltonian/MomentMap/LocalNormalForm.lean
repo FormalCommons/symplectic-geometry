@@ -105,6 +105,8 @@ inverse of `Ψ ∘ s`, followed by a linear isomorphism onto a Euclidean space, 
 * [V. Guillemin and S. Sternberg][GuilleminSternberg1990]
 * C.-M. Marle, *Modèle d'action hamiltonienne d'un groupe de Lie sur une variété symplectique*,
   Rend. Sem. Mat. Univ. Politec. Torino 43 (1985).
+* E. Lerman, *Gradient flow of the norm squared of a moment map*, Enseign. Math. 51 (2005),
+  117–127, for the norm square of the moment map in a chart.
 -/
 
 public section
