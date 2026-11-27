@@ -18,7 +18,7 @@ Let `F` be a manifold and let `β b` be a `k`-form on `F` for each point `b` of 
 of a normed space `EB`, with the model `𝓘(ℝ, EB)`, such that `(b, y) ↦ β b y` is a smooth section
 of the bundle of `k`-forms of `F` along the projection `(b, y) ↦ y`.
 
-* `SymplecticGeometry.isSmoothForm_mfderiv_family_apply`: for `b ∈ U` and `a ∈ EB` the
+* `ContMDiff.isSmoothForm_mfderiv_family_apply`: for `b ∈ U` and `a ∈ EB` the
   `k`-form whose value at `y` is the derivative at `b`, in the direction `a`, of `b' ↦ β b' y` is
   smooth. In the frames of the tangent trivializations of `F`, its values are the partial
   derivatives in the parameter of the functions of
@@ -29,6 +29,9 @@ of the bundle of `k`-forms of `F` along the projection `(b, y) ↦ y`.
 
 This is the smoothness in the base of the integrand of the fibre integral over a product, as in
 Bott–Tu, §6.
+
+The lemma is a statement about a `ContMDiff` hypothesis, so it sits in the namespace `ContMDiff`,
+where dot notation finds it, as the lemmas of `SmoothFamily/Slice.lean` sit in `ContMDiffAt`.
 
 ## References
 
@@ -43,9 +46,9 @@ noncomputable section
 open Bundle Set Function TopologicalSpace
 open scoped ContDiff Manifold
 
-namespace SymplecticGeometry
+namespace ContMDiff
 
-open TauCeti
+open TauCeti SymplecticGeometry
 
 variable {E H F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {J : ModelWithCorners ℝ E H} [TopologicalSpace F] [ChartedSpace H F]
@@ -102,6 +105,6 @@ theorem isSmoothForm_mfderiv_family_apply {β : U → RoughForm J F ℝ k}
     (contMDiffAt_const.prodMk contMDiffAt_id)).clm_apply (contMDiffAt_const (c := a)))
     |>.congr_of_eventuallyEq (Filter.Eventually.of_forall hval)
 
-end SymplecticGeometry
+end ContMDiff
 
 end

@@ -52,7 +52,7 @@ for the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`.
   `TauCeti.hasFDerivAt_integral_of_contMDiffOn` differentiates it under the integral sign.
 
 That `D` is a smooth form, for forms of every degree and with no orientation on `F`, is
-`SymplecticGeometry.isSmoothForm_mfderiv_family_apply`
+`ContMDiff.isSmoothForm_mfderiv_family_apply`
 (`DifferentialForm/SmoothFamily/Deriv.lean`).
 
 These give the smoothness in the base of the fibre integral on a product `B × F`, as in Bott–Tu,
