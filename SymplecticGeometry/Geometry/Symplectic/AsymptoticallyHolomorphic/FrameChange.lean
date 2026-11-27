@@ -123,15 +123,10 @@ theorem reading_eq_frameChange_mul {k : ℕ} {x y : M} {w : StdSpace ι}
     (hw : w ∈ (D.chartTransition k x y).source) (s : Π y, PowerBundle P k y) :
     D.reading k y s w = D.frameChange k x y w * D.reading k x s (D.chartTransition k x y w) := by
   have h := D.apply_chart_symm_eq_mk k x s (D.chartTransition k x y w)
-  rw [D.chart_symm_chartTransition hw, ← PrincipalBundle.smul_division (G := Circle)
-    (D.frame k y ((D.chart k y).symm w)) (D.frame k x ((D.chart k y).symm w)),
-    PowerBundle.mk_op_smul, ← AssociatedBundle.mk_smul_scalar,
-    D.apply_chart_symm_eq_mk k y s w, ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ),
-    ← AssociatedBundle.mkLinearIsometryEquiv_apply (𝕜 := ℂ)] at h
-  have h' := congrArg PowerModel.toComplex (LinearIsometryEquiv.injective _ h)
-  rw [LinearIsometryEquiv.apply_symm_apply, map_smul, LinearIsometryEquiv.apply_symm_apply,
-    smul_eq_mul] at h'
-  rw [h', frameChange_def, Circle.coe_pow, zpow_natCast]
+  rw [D.chart_symm_chartTransition hw] at h
+  rw [reading_def, h, AssociatedBundle.mkLinearIsometryEquiv_symm_apply_mk,
+    PowerModel.toComplex_smul, frameChange_def, Circle.coe_pow, zpow_natCast,
+    LinearIsometryEquiv.apply_symm_apply]
 
 end RescaledUnitaryCharts
 
