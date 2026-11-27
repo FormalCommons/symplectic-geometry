@@ -616,11 +616,11 @@ containing `ι '' closedBall 0 1`:
     `IsConvexShapeAt (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r)`.
   - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
-    interval `Icc r₁ r₂`, `0 < r₁`, crossing transversally there
-    (`χ₁ r = χ₂ r → deriv χ₁ r ≠ deriv χ₂ r`), and let `O` be a
+    interval `Icc r₁ r₂`, and let `O` be a
     neighbourhood of `{r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
     `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
-    equal to `max (χ₁ r) (χ₂ r)` off `O`. Condition (4.3) passes to
+    equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`; no transversality
+    of the crossings is needed. Condition (4.3) passes to
     `smoothedMax δ (χ₁ r) (χ₂ r)` (`Analysis/SpecialFunctions/SmoothedMax.lean`),
     whose value is at least each `χᵢ r` and whose slope is a convex
     combination of theirs; for (4.4) the book makes the second
@@ -650,8 +650,7 @@ containing `ι '' closedBall 0 1`:
     `r > 0`; `isConvexShapeAt_linear` (Lemma 4.17 (e)): for `0 < ℓ`,
     `0 < d`, `r ↦ ℓ + d * r` at every `r ∈ Ioo 0 (ℓ * d ^ 3)`.
   - (14d4) The crossings of Lemma 4.18 (a)–(c), as statements about the
-    real roots of the differences of these three functions, with the
-    transversality that `exists_isConvexShapeAt_eq_max` asks for;
+    real roots of the differences of these three functions;
     `exists_isConvexShapeAt_eq_sqrt_of_eq_linear` (Lemma 4.19): for
     `1 < a` and `0 < γ` there are `d ∈ Ioo 0 1`, `β ∈ Ioo 0 γ` and a
     smooth `ψ`, convex shape at every `r > 0`, with

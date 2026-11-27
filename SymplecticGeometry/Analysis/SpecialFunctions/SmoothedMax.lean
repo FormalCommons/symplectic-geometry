@@ -49,8 +49,10 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
 * `SymplecticGeometry.smoothedMax`: the smoothed maximum, with `contDiff_smoothedMax`,
-  `hasDerivAt_smoothedMax_left`, `smoothedMax_eq_max`, `smoothedMax_eq_left`,
-  `smoothedMax_eq_right`, `max_le_smoothedMax` and `smoothedMax_le_max_add`.
+  `hasDerivAt_smoothedMax_left`, the first and second derivatives `hasDerivAt_smoothedMax` and
+  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, `smoothedMax_eq_max`,
+  `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax` and
+  `smoothedMax_le_max_add`.
 
 ## References
 
@@ -308,6 +310,43 @@ theorem hasDerivAt_smoothedMax_left (δ b a : ℝ) :
     ((hasDerivAt_smoothedAbs δ (a - b)).comp a ((hasDerivAt_id a).sub_const b))).div_const 2
   simp only [smoothedMax_def]
   convert h using 2 <;> simp
+
+/-- The derivative of the smoothed maximum of two functions: at `x`, it is the convex combination
+`(f' + g' + smoothedSign δ (f x - g x) (f' - g')) / 2` of their derivatives. -/
+theorem hasDerivAt_smoothedMax {f g : ℝ → ℝ} {f' g' x : ℝ} (hf : HasDerivAt f f' x)
+    (hg : HasDerivAt g g' x) :
+    HasDerivAt (fun x ↦ smoothedMax δ (f x) (g x))
+      ((f' + g' + smoothedSign δ (f x - g x) * (f' - g')) / 2) x := by
+  have h := ((hf.add hg).add ((hasDerivAt_smoothedAbs δ (f x - g x)).comp x
+    (hf.sub hg))).div_const 2
+  convert h using 1
+  funext y
+  simp only [smoothedMax_def, Pi.add_apply, Pi.sub_apply, Function.comp_apply]
+
+/-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
+`s = smoothedSign δ (f x - g x)`, it is
+`(f'' + g'' + s (f'' - g'') + (smoothedAbs δ)'' (f x - g x) (f' - g')²) / 2`. -/
+theorem iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ} (hf : ContDiff ℝ 2 f) (hg : ContDiff ℝ 2 g)
+    (x : ℝ) :
+    iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x =
+      (iteratedDeriv 2 f x + iteratedDeriv 2 g x +
+        smoothedSign δ (f x - g x) * (iteratedDeriv 2 f x - iteratedDeriv 2 g x) +
+        iteratedDeriv 2 (smoothedAbs δ) (f x - g x) * (deriv f x - deriv g x) ^ 2) / 2 := by
+  have hf₁ := hf.differentiable two_ne_zero
+  have hg₁ := hg.differentiable two_ne_zero
+  have hd : deriv (fun x ↦ smoothedMax δ (f x) (g x)) = fun x ↦
+      (deriv f x + deriv g x + smoothedSign δ (f x - g x) * (deriv f x - deriv g x)) / 2 :=
+    funext fun x ↦ (hasDerivAt_smoothedMax (hf₁ x).hasDerivAt (hg₁ x).hasDerivAt).deriv
+  have hS : HasDerivAt (fun x ↦ smoothedSign δ (f x - g x))
+      (iteratedDeriv 2 (smoothedAbs δ) (f x - g x) * (deriv f x - deriv g x)) x := by
+    rw [iteratedDeriv_two_smoothedAbs]
+    exact (hasDerivAt_smoothedSign δ _).comp x ((hf₁ x).hasDerivAt.sub (hg₁ x).hasDerivAt)
+  have hf₂ := (hf.differentiable_deriv_two x).hasDerivAt
+  have hg₂ := (hg.differentiable_deriv_two x).hasDerivAt
+  simp only [iteratedDeriv_two, hd]
+  convert (((hf₂.add hg₂).add (hS.mul (hf₂.sub hg₂))).div_const 2).deriv using 1
+  rw [iteratedDeriv_two, Pi.sub_apply]
+  ring
 
 theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoothedMax δ b a := by
   rw [smoothedMax_def, smoothedMax_def, ← neg_sub, smoothedAbs_neg hδ, add_comm a]
