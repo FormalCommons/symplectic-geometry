@@ -142,11 +142,13 @@ formulation.
    representative of the class is not fixed but a family $\alpha_\lambda$ in
    the class with
    $\alpha_\lambda=\tau_\lambda$ on `P₀`, an extension of `τ` from `P₀` into
-   the convex set of closed representatives of $a$: by an explicit formula
-   for the parameter spaces used ($\alpha_t=(1-t)\omega_0+t\omega_1$ on
-   $[0,1]$, a radial formula on a disc relative to its boundary sphere), or
-   by Dugundji's extension theorem in general. On `P₀` the formal primitive
-   is then zero, hence holonomic.
+   the convex set of closed representatives of $a$. The engine takes this
+   family as a hypothesis, and each use builds it by an explicit formula: a
+   constant at a point, $\alpha_t=(1-t)\omega_0+t\omega_1$ on $[0,1]$, a
+   radial formula on a disc or cube relative to its boundary. No extension
+   theorem is used: the paragraph *The family `α` of Decision 4 is an
+   input*, in the section on `HPrinciple/Relative/`, says why. On `P₀` the
+   formal primitive is then zero, hence holonomic.
 5. **The homotopy equivalence.** `Parametric.lean` proves that the
    inclusion of the symplectic forms in class $a$ into the nondegenerate
    forms is a `ContinuousMap.IsWeakHomotopyEquivalence`, for every open
