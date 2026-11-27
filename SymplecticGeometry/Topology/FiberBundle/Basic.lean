@@ -52,6 +52,8 @@ two trivializations, these inclusions differ by the coordinate change.
   of a bundle and the identity of its total space, the fibre bundle structure of Tau Ceti's
   `TauCeti.MapFiber.Atlas.fiberBundleOfHomeomorph` has the trivializations of the atlas as its
   preferred trivializations and as its atlas.
+* `FiberBundle.iUnion_baseSet_trivializationAt`: the base sets of the preferred trivializations
+  of a fibre bundle cover the base.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
@@ -212,6 +214,13 @@ namespace FiberBundle
 
 variable {B F : Type*} {E : B → Type*} [TopologicalSpace B] [TopologicalSpace F]
   [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+
+variable (F E) in
+/-- The base sets of the preferred trivializations `trivializationAt F E b` of a fibre bundle
+cover its base. -/
+@[simp]
+theorem iUnion_baseSet_trivializationAt : ⋃ b, (trivializationAt F E b).baseSet = Set.univ :=
+  Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, mem_baseSet_trivializationAt F E b⟩
 
 /-- A set `s` of the total space of a fibre bundle is open if there is an open set `t` of the
 model fibre such that, for each point `b` of the base, a point `q` of the source of the
