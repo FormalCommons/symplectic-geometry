@@ -56,6 +56,11 @@ coordinates of negative weight follows
 `TauCeti.IsAdaptedPseudoGradient.exists_isSliceChart_unstableSet` (`Morse/Stable/Manifold.lean`),
 which treat adapted pseudo-gradients on compact manifolds.
 
+In the chart, `TauCeti.MorseChart.field_toChart_symm` writes the field of the chart at the point
+with coordinates `z` as the image of `(-wᵢ zᵢ)ᵢ` under the differential of the inverse chart;
+`TauCeti.MorseChart.field_toChart_symm_negativeExtend` specializes it to the point with
+coordinates `c` of negative weight, where that vector is `c`.
+
 ## References
 
 * J. Milnor, *Morse Theory*, Annals of Mathematics Studies 51, Princeton University Press, 1963,
@@ -138,6 +143,40 @@ theorem coord_mfderiv_of_forall_eq_field (hXφ : ∀ y ∈ φ.toChart.source, X 
     φ.coord (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart y (X y)) =
       fun i ↦ -(φ.weight i * φ.coord (φ.toChart y) i) := by
   rw [hXφ y hy, φ.coord_mfderiv_field hy]
+
+/-- **The field of a Morse chart through the inverse chart.** At the point of the chart with
+coordinates `z`, the field of the Morse chart is the image of the vector `(-wᵢ zᵢ)ᵢ` under the
+differential of the inverse chart. -/
+theorem field_toChart_symm {z : E} (hz : z ∈ φ.toChart.target) :
+    φ.field (φ.toChart.symm z) = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm z
+      (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i)) := by
+  refine (φ.eq_field_of_coord_mfderiv (φ.toChart.map_target hz) ?_).symm
+  set v : TangentSpace 𝓘(ℝ, E) z := φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i) with hv
+  have h : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z)
+      (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm z v) = v := by
+    rw [← ContinuousLinearMap.comp_apply,
+      (mdifferentiable_of_mem_maximalAtlas φ.mem_maximalAtlas_one).comp_symm_deriv hz]
+    -- The tangent spaces at `z` and at `φ.toChart (φ.toChart.symm z)` are both `E`, so `rw`
+    -- cannot match `ContinuousLinearMap.id_apply` between them.
+    exact ContinuousLinearMap.id_apply v
+  rw [h, hv, φ.toChart.right_inv hz, LinearEquiv.apply_symm_apply]
+
+/-- **The field of a Morse chart on the coordinates of negative weight.** At the point of the
+chart with coordinates `c` of negative weight and `0` of positive weight, the field of the Morse
+chart is the image of `c` under the differential of the inverse chart: the weights of these
+coordinates are `-1`. -/
+theorem field_toChart_symm_negativeExtend {c : {i // φ.weight i < 0} → ℝ}
+    (hc : φ.negativeExtend c ∈ φ.toChart.target) :
+    φ.field (φ.toChart.symm (φ.negativeExtend c)) =
+      mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm (φ.negativeExtend c) (φ.negativeExtend c) := by
+  rw [φ.field_toChart_symm hc]
+  congr 1
+  refine φ.coord.symm_apply_eq.2 (funext fun i ↦ ?_)
+  by_cases hi : φ.weight i < 0
+  · have hw : φ.weight i = -1 := (φ.weight_eq_neg_one_or_eq_one i).resolve_right
+      fun h ↦ by rw [h] at hi; norm_num at hi
+    rw [hw]; ring
+  · rw [φ.coord_negativeExtend_of_not_weight_neg c hi]; ring
 
 variable [CompleteSpace E] [T2Space M] [IsManifold 𝓘(ℝ, E) 1 M]
   (hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)))
