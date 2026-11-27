@@ -29,7 +29,10 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   (4.3), `1 / χ r < χ' r / r` (`SymplecticGeometry.IsConvexShapeAt.one_div_lt_deriv_div`), so
   that this one is not a field. `SymplecticGeometry.isConvexShapeAt_iff` says that (4.4) for all
   `σ, u` amounts to (4.3) together with its case `σ = r`, `u = 0`,
-  `1 / χ r < χ'' r + χ' r ³ / r`.
+  `1 / χ r < χ'' r + χ' r ³ / r`. Since its slope is positive
+  (`SymplecticGeometry.IsConvexShapeAt.deriv_pos`), a function that is an `i`-convex shape at
+  every `r > δ` and continuous on `[δ, ∞)` is strictly increasing there
+  (`SymplecticGeometry.strictMonoOn_Ici_of_isConvexShapeAt`).
 * `SymplecticGeometry.isConvexShapeAt_of_iteratedDeriv_two_nonpos`: a sufficient condition for
   a shape with `χ'' ≤ 0`. `SymplecticGeometry.IsConvexShapeAt.add_const` and
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
@@ -141,6 +144,14 @@ theorem one_div_lt_iteratedDeriv_add (h : IsConvexShapeAt χ r) :
   simpa using hl
 
 end IsConvexShapeAt
+
+open Set in
+/-- A function, continuous on `[δ, ∞)`, that is an `i`-convex shape at every `r > δ` is strictly
+increasing on `[δ, ∞)`, since an `i`-convex shape has a positive slope. -/
+theorem strictMonoOn_Ici_of_isConvexShapeAt {δ : ℝ} (hc : ContinuousOn χ (Ici δ))
+    (hχ : ∀ r, δ < r → IsConvexShapeAt χ r) : StrictMonoOn χ (Ici δ) :=
+  strictMonoOn_of_deriv_pos (convex_Ici δ) hc fun r hr ↦
+    (hχ r (by rwa [interior_Ici] at hr)).deriv_pos
 
 /-- `χ` is an `i`-convex shape at `r` if and only if `0 < r`, `0 < χ r`, `1 / χ r < χ' r / r`
 and `1 / χ r < χ'' r + χ' r ³ / r`: the inequality (4.4) for all `σ, u` with `σ² + u² = r²`
@@ -418,15 +429,16 @@ theorem fderiv_shapeGraph_comp_shape_ne_zero (hχ : DifferentiableAt ℝ χ r) (
     (hp : shape p = (χ r ^ 2, r ^ 2)) : fderiv ℝ (shapeGraph χ ∘ shape) p ≠ 0 := by
   intro h0
   have h1 := fderiv_shapeGraph_comp_shape_apply_of_shape_eq hχ hR hr hp
-    (WithLp.toLp 2 (fun j ↦ ((p.1 j).re : ℂ)), 0)
+    (modelDisc k m (modelDiscProj k m p))
   rw [h0, zero_apply, fderiv_shape_fst_apply, fderiv_shape_snd_apply] at h1
   have hsum : ∑ j, (p.1 j).re * (p.1 j).re = χ r ^ 2 := by
     have h2 : (shape p).1 = χ r ^ 2 := by rw [hp]
     rw [shape_fst] at h2
     rw [← h2]
     exact Finset.sum_congr rfl fun j _ ↦ (sq _).symm
-  simp only [ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero,
-    inner_zero_right, zero_re, add_zero, hsum] at h1
+  simp only [modelDisc_apply_fst_apply, modelDisc_apply_snd, modelDiscProj_apply,
+    ofReal_re, ofReal_im, mul_zero, Finset.sum_const_zero, inner_zero_right, zero_re, add_zero,
+    hsum] at h1
   field_simp at h1
   exact hR.ne' (by nlinarith [h1])
 
