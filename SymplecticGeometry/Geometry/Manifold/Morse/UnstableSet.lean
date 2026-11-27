@@ -27,7 +27,9 @@ neighbourhood `V` of `p`, apply the results to the restricted chart `φ.restr`.
 
 Let `B` be the image under the chart of a closed Euclidean ball of radius `ρ > 0` in the
 coordinates of negative weight (the other coordinates being `0`), and assume that this ball lies in
-the target of the chart. We show:
+the target of the chart. The continuous linear map `TauCeti.MorseChart.negativeExtendL` sends
+coordinates `c` in this Euclidean space to the vector of the model space with coordinates `c` of
+negative weight and `0` of positive weight. We show:
 
 * `TauCeti.MorseChart.globalFlow_toChart_symm_negativeExtend_of_norm_le`: in backward time the
   flow moves the points of `B` radially: for `t ≤ 0`, `Φ t` sends the point with coordinates `c`
@@ -158,6 +160,16 @@ end MorseBottChart
 namespace MorseChart
 
 variable (φ : MorseChart E g p)
+
+/-- The continuous linear map `c ↦ φ.negativeExtend c.ofLp` from the Euclidean space of the
+coordinates of negative weight of the Morse chart `φ` to the model space: it sends `c` to the
+vector with coordinates `c` of negative weight and `0` of positive weight. -/
+noncomputable def negativeExtendL : EuclideanSpace ℝ {i // φ.weight i < 0} →L[ℝ] E :=
+  LinearMap.toContinuousLinearMap (φ.negativeExtend ∘ₗ (WithLp.linearEquiv 2 ℝ _).toLinearMap)
+
+@[simp]
+theorem negativeExtendL_apply (c : EuclideanSpace ℝ {i // φ.weight i < 0}) :
+    φ.negativeExtendL c = φ.negativeExtend c.ofLp := (rfl)
 
 /-- A field equal to the linear field of a Morse chart on its source reads `(-wᵢ zᵢ)ᵢ` in the
 coordinates of the chart. -/
