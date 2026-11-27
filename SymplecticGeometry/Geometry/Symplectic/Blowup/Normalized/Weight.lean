@@ -541,6 +541,103 @@ omit [T2Space M] in
 private theorem injective_modelMap : Function.Injective (hψ.modelMap hε'ε) := fun y y' hyy' ↦
   Subtype.ext (by simpa using congrArg Subtype.val (hψ.injective_ballLift hyy'))
 
+/-- The two maps agree on the overlap of the pieces: a point `y` of `openNbhd n ε' ∖ Z`, glued to
+`ψ(F_l(π y))`, is sent by both to `ψ(π y)`, since `F_h = F_l` on `B(ε)`. -/
+private theorem modelMap_gluingDiffeomorphSymm
+    (x : WeightBlowup.outerOverlap (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
+    hψ.modelMap hε'ε (WeightBlowup.gluingDiffeomorphSymm
+        (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε' x) =
+      hψ.outerMap hh hε' hε'ε x := by
+  obtain ⟨y, rfl⟩ : ∃ y, WeightBlowup.gluingDiffeomorph
+      (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε' y = x :=
+    ⟨_, WeightBlowup.gluingDiffeomorph_gluingDiffeomorphSymm_apply _ _ _ x⟩
+  rw [WeightBlowup.gluingDiffeomorphSymm_gluingDiffeomorph_apply]
+  have hyZ : (y.val : BlowupModel n) ∉ exceptionalDivisor n :=
+    WeightBlowup.mem_modelOverlap_iff.1 y.property
+  have hy0 : (y.val : BlowupModel n).blowdown ≠ 0 := fun h0 ↦
+    hyZ (mem_exceptionalDivisor_iff.2 h0)
+  have hyε' := mem_openNbhd_iff.1 (mem_openNbhdOpens_iff.1 y.val.property)
+  set w : puncturedSpace (Fin (n + 1) → ℂ) :=
+    blowdownPuncturedDiffeomorph n ⟨y.val, mem_offDivisorOpens.2 hyZ⟩
+  have hw : (w : Fin (n + 1) → ℂ) = (y.val : BlowupModel n).blowdown :=
+    coe_blowdownPuncturedDiffeomorph_apply _
+  have hwε : ‖complexToRealEuclidean (Fin (n + 1)) w‖ ≤ ε := by
+    rw [hw]; exact hyε'.le.trans hε'ε
+  have hwr : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < r :=
+    hwε.trans_lt hψ.width_lt_radius
+  rw [modelMap, hψ.ballLift_of_blowdown_ne_zero _ hy0, outerMap]
+  congr 1
+  refine Subtype.ext ?_
+  dsimp only
+  rw [WeightBlowup.coe_gluingDiffeomorph_apply,
+    coe_shellSymplectomorph_apply, ← hh.radialMap_of_le_collar hwε,
+    hψ.isSymplecticBallEmbedding.radialContraction_radialMap hh hψ.weight_add_width_lt w hwr, hw]
+
+/-- The images of the two maps cover the blowup `Blowup c`: the exceptional divisor lies in the
+image of `openNbhd n ε'` under the lift, and every other point is `p ≠ p₀`, the image of
+`radialExpansion p`. -/
+private theorem range_outerMap_union_range_modelMap :
+    range (hψ.outerMap hh hε' hε'ε) ∪ range (hψ.modelMap hε'ε) = univ := by
+  refine eq_univ_of_forall fun z ↦ ?_
+  by_cases hz : z ∈ Blowup.exceptionalDivisor hN.blowupChart
+  · right
+    obtain ⟨y, hy0, rfl⟩ := (Blowup.mem_exceptionalDivisor_iff _).1 hz
+    have hy : (y : BlowupModel n) ∈ openNbhd n ε' :=
+      exceptionalDivisor_subset_openNbhd hε' (mem_exceptionalDivisor_iff.2 hy0)
+    refine ⟨⟨y, mem_openNbhdOpens_iff.2 hy⟩, ?_⟩
+    rw [modelMap, hψ.ballLift_of_mem_openNbhd _ (openNbhd_mono hε'ε hy)]
+  · left
+    rw [← mem_compl_iff, ← Blowup.range_inl] at hz
+    obtain ⟨q, rfl⟩ := hz
+    have hq : (q : M) ≠ ψ 0 := fun h0 ↦
+      (Blowup.mem_puncturedOpens _).1 q.property (h0.trans hψ.map_zero)
+    refine ⟨⟨hψ.isSymplecticBallEmbedding.radialExpansion hh q, (WeightBlowup.mem_outerPiece_iff
+      _).2 (hψ.isSymplecticBallEmbedding.radialExpansion_notMem hh hψ.weight_add_width_lt hq)⟩,
+      ?_⟩
+    rw [outerMap]
+    congr 1
+    exact Subtype.ext
+      (hψ.isSymplecticBallEmbedding.radialContraction_radialExpansion hh hψ.weight_add_width_lt hq)
+
+/-- A point of the outer piece sent by the first map to a point of the image of the second lies in
+the overlap: it is `ψ(F_h(π y))` for a point `y` of `openNbhd n ε'` off the divisor, so it lies in
+the image of the open ball of radius `√(l² + ε'²)`. -/
+private theorem mem_outerOverlap_of_outerMap_eq
+    (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε))
+    (y : openNbhdOpens n ε') (hxy : hψ.outerMap hh hε' hε'ε x = hψ.modelMap hε'ε y) :
+    x ∈ WeightBlowup.outerOverlap (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) := by
+  rw [WeightBlowup.mem_outerOverlap_iff]
+  have hyε' := mem_openNbhd_iff.1 (mem_openNbhdOpens_iff.1 y.property)
+  by_cases hy0 : (y : BlowupModel n).blowdown = 0
+  · exfalso
+    have hy : (y : BlowupModel n) ∈ openNbhd n ε := openNbhd_mono hε'ε (mem_openNbhdOpens_iff.1 y.property)
+    rw [modelMap, hψ.ballLift_of_mem_openNbhd _ hy, outerMap] at hxy
+    exact Blowup.inl_notMem_exceptionalDivisor _ _
+      (hxy ▸ (Blowup.inr_mem_exceptionalDivisor_iff _).2 hy0)
+  · rw [modelMap, hψ.ballLift_of_blowdown_ne_zero _ hy0, outerMap] at hxy
+    have h₁ := congrArg Subtype.val (GluedAlong.inl_injective _ hxy)
+    have hyZ : (y : BlowupModel n) ∉ exceptionalDivisor n := fun hZ ↦
+      hy0 (mem_exceptionalDivisor_iff.1 hZ)
+    set w : puncturedSpace (Fin (n + 1) → ℂ) :=
+      blowdownPuncturedDiffeomorph n ⟨y, mem_offDivisorOpens.2 hyZ⟩
+    have hw : (w : Fin (n + 1) → ℂ) = (y : BlowupModel n).blowdown :=
+      coe_blowdownPuncturedDiffeomorph_apply _
+    have hwε' : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < ε' := by rw [hw]; exact hyε'
+    have hwr : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < r :=
+      hwε'.trans (hε'ε.trans_lt hψ.width_lt_radius)
+    have hx : (x : M) = ψ (complexToRealEuclidean (Fin (n + 1))
+        (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) w)) := by
+      rw [← hψ.isSymplecticBallEmbedding.radialExpansion_radialContraction hh
+          hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x.property),
+        ← hψ.isSymplecticBallEmbedding.radialExpansion_apply hh w hwr, hw]
+      exact congrArg _ h₁
+    rw [hx]
+    refine ⟨_, mem_ball_zero_iff.2 ?_, rfl⟩
+    rw [hh.radialMap_of_le_collar (hwε'.le.trans hε'ε), Real.lt_sqrt (norm_nonneg _),
+      norm_radialMap]
+    have := pow_lt_pow_left₀ hwε' (norm_nonneg _) two_ne_zero
+    linarith
+
 end IsNormalizedBallEmbedding
 
 end SymplecticGeometry
