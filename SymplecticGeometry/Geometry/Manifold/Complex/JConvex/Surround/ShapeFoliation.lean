@@ -5,11 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
+public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
+import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import TauCeti.Analysis.Calculus.ParametricFDeriv
 import TauCeti.Analysis.Normed.Operator.Prod
 
@@ -36,6 +40,27 @@ passes from `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos` to `φ ∘ shap
 `SymplecticGeometry.forall_re_manifoldLeviForm_pos_iff_of_mvfderiv_eq_smul`, with
 `SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero` for the nonvanishing of the
 differential of `shapeGraph (χ ℓ) ∘ shape`.
+
+The file also gives one step of a weakly increasing chain of shapes:
+
+* `SymplecticGeometry.smoothedMaxPath δ η M A`: the path
+  `σ ↦ (r ↦ smoothedMax δ (M r) (A r - (1 - ρ σ) η))`, `ρ = TauCeti.collaredSmoothTransition`,
+  from the smoothed maximum of `M` and `A - η` (up to `σ = 1 / 4`,
+  `SymplecticGeometry.smoothedMaxPath_of_le`) to that of `M` and `A` (from `σ = 3 / 4`,
+  `SymplecticGeometry.smoothedMaxPath_of_ge`). It is smooth in `(σ, r)`
+  (`SymplecticGeometry.contDiff_smoothedMaxPath`) and, for `η ≥ 0`, monotone in `σ`
+  (`SymplecticGeometry.monotone_smoothedMaxPath`, so `Monotone.deriv_nonneg` makes its
+  `σ`-derivative nonnegative), since `smoothedMax` is monotone in its second
+  argument and `ρ` is monotone (`TauCeti.monotone_collaredSmoothTransition`). It consists of
+  `i`-convex shapes where `M` and the `A - c`, `c ∈ [0, η]`, are and `δ (M' + A') ≤ 2 r`
+  (`SymplecticGeometry.isConvexShapeAt_smoothedMaxPath`, from
+  `SymplecticGeometry.isConvexShapeAt_smoothedMax`), with margins at least the smaller of those
+  of `M` and of `A - η` (`SymplecticGeometry.min_le_deriv_smoothedMaxPath_div_sub_one_div`,
+  `SymplecticGeometry.min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div`).
+  Each shape of the path is the smoothed maximum of `M` and some `A - c` with `c ∈ [0, η]`
+  (`SymplecticGeometry.exists_mem_Icc_smoothedMaxPath_eq`). The margins of `A - η` are those of
+  `A` less `η / (A (A - η))` (`SymplecticGeometry.deriv_sub_const_div_sub_one_div_sub_const`),
+  which lets a caller choose `η` from a margin of `A`.
 
 ## References
 
@@ -370,6 +395,123 @@ theorem exists_contDiff_shapeLevel
     positivity
   exact fun p hp v hv hv₁ hv₂ ↦
     re_leviForm_shapeLevelFun_comp_shape_pos hχ hconv hmono hℓ hr hp hv hv₁ hv₂
+
+
+/-! ### The path between consecutive smoothed maxima -/
+
+/-- The **path between consecutive smoothed maxima**: for `σ` from `0` to `1`, the shape
+`r ↦ smoothedMax δ (M r) (A r - (1 - ρ σ) η)`, where `ρ = collaredSmoothTransition`. It runs
+from the smoothed maximum of `M` and `A - η` to that of `M` and `A`, and is constant in `σ` near
+both ends. -/
+def smoothedMaxPath (δ η : ℝ) (M A : ℝ → ℝ) (σ r : ℝ) : ℝ :=
+  smoothedMax δ (M r) (A r - (1 - collaredSmoothTransition σ) * η)
+
+theorem smoothedMaxPath_def (δ η : ℝ) (M A : ℝ → ℝ) (σ r : ℝ) :
+    smoothedMaxPath δ η M A σ r =
+      smoothedMax δ (M r) (A r - (1 - collaredSmoothTransition σ) * η) :=
+  (rfl)
+
+variable {δ η σ r : ℝ} {M A : ℝ → ℝ}
+
+/-- The path between smoothed maxima of `Cⁿ` functions is `Cⁿ` in `(σ, r)`. -/
+theorem contDiff_smoothedMaxPath {n : ℕ∞} (hM : ContDiff ℝ n M) (hA : ContDiff ℝ n A) :
+    ContDiff ℝ n (Function.uncurry (smoothedMaxPath δ η M A)) := by
+  have hρ : ContDiff ℝ n collaredSmoothTransition :=
+    contDiff_collaredSmoothTransition (WithTop.coe_le_coe.2 le_top)
+  have h : ContDiff ℝ n fun x : ℝ × ℝ ↦
+      smoothedMax δ (M x.2) (A x.2 - (1 - collaredSmoothTransition x.1) * η) :=
+    (contDiff_smoothedMax δ).comp ((hM.comp contDiff_snd).prodMk ((hA.comp contDiff_snd).sub
+      ((contDiff_const.sub (hρ.comp contDiff_fst)).mul contDiff_const)))
+  convert h using 1
+  funext ⟨σ, r⟩
+  rw [Function.uncurry_apply_pair, smoothedMaxPath_def]
+
+/-- Up to `σ = 1 / 4`, the path is the smoothed maximum of `M` and `A - η`. -/
+theorem smoothedMaxPath_of_le (hσ : σ ≤ 1 / 4) :
+    smoothedMaxPath δ η M A σ = fun r ↦ smoothedMax δ (M r) (A r - η) := by
+  funext r
+  rw [smoothedMaxPath_def, collaredSmoothTransition_eq_zero_of_le hσ, sub_zero, one_mul]
+
+/-- From `σ = 3 / 4` on, the path is the smoothed maximum of `M` and `A`. -/
+theorem smoothedMaxPath_of_ge (hσ : 3 / 4 ≤ σ) :
+    smoothedMaxPath δ η M A σ = fun r ↦ smoothedMax δ (M r) (A r) := by
+  funext r
+  rw [smoothedMaxPath_def, collaredSmoothTransition_eq_one_of_ge hσ, sub_self, zero_mul,
+    sub_zero]
+
+/-- Up to `σ = 1 / 4`, the path is `M` wherever `A - η` lies at least `δ` below `M`. -/
+theorem smoothedMaxPath_eq_left (hδ : 0 < δ) (hσ : σ ≤ 1 / 4) (h : A r - η + δ ≤ M r) :
+    smoothedMaxPath δ η M A σ r = M r := by
+  rw [smoothedMaxPath_of_le hσ]
+  exact smoothedMax_eq_left hδ h
+
+/-- For `η ≥ 0`, the path is monotone in `σ` at each `r`. -/
+theorem monotone_smoothedMaxPath (hη : 0 ≤ η) (r : ℝ) :
+    Monotone fun σ ↦ smoothedMaxPath δ η M A σ r := fun σ σ' hσ ↦ by
+  simp only [smoothedMaxPath_def]
+  refine monotone_smoothedMax_right δ (M r) ?_
+  have := monotone_collaredSmoothTransition hσ
+  nlinarith
+
+/-- For `η ≥ 0`, the shape of the path at `σ` is the smoothed maximum of `M` and `A - c` for some
+`c ∈ [0, η]`, namely `c = (1 - collaredSmoothTransition σ) * η`. -/
+theorem exists_mem_Icc_smoothedMaxPath_eq (hη : 0 ≤ η) (σ : ℝ) :
+    ∃ c ∈ Icc 0 η, smoothedMaxPath δ η M A σ = fun r ↦ smoothedMax δ (M r) (A r - c) :=
+  ⟨_, one_sub_collaredSmoothTransition_mul_mem_Icc hη σ,
+    funext fun r ↦ smoothedMaxPath_def δ η M A σ r⟩
+
+/-- The path consists of `i`-convex shapes at `r` if `M` and every `A - c`, `c ∈ [0, η]`, are
+`C²` and `i`-convex shapes at `r`, and `δ (M' r + A' r) ≤ 2 r`. -/
+theorem isConvexShapeAt_smoothedMaxPath (hδ : 0 < δ) (hη : 0 ≤ η) (hM : ContDiff ℝ 2 M)
+    (hA : ContDiff ℝ 2 A) (hcM : IsConvexShapeAt M r)
+    (hcA : ∀ c ∈ Icc 0 η, IsConvexShapeAt (fun r ↦ A r - c) r)
+    (hδr : δ * (deriv M r + deriv A r) ≤ 2 * r) (σ : ℝ) :
+    IsConvexShapeAt (smoothedMaxPath δ η M A σ) r := by
+  obtain ⟨c, hc, he⟩ := exists_mem_Icc_smoothedMaxPath_eq (δ := δ) (M := M) (A := A) hη σ
+  rw [he]
+  exact isConvexShapeAt_smoothedMax hM (hA.sub contDiff_const) hδ hcM (hcA c hc)
+    (by rwa [deriv_sub_const])
+
+/-- **The path keeps the smaller margin in (4.3).** For `δ > 0`, `0 ≤ η < A r`, `M r > 0` and
+`M`, `A` differentiable at `r`, the margin `χ' / r - 1 / χ` of each shape `χ` of the path at `r`
+is at least the smaller of those of `M` and of `A - η`. The latter is that of `A` less
+`η / (A r (A r - η))` (`deriv_sub_const_div_sub_one_div_sub_const`). -/
+theorem min_le_deriv_smoothedMaxPath_div_sub_one_div (hδ : 0 < δ) (hη : 0 ≤ η)
+    (hηA : η < A r) (hM₀ : 0 < M r) (hMd : DifferentiableAt ℝ M r)
+    (hAd : DifferentiableAt ℝ A r) (σ : ℝ) :
+    min (deriv M r / r - 1 / M r) (deriv A r / r - 1 / (A r - η)) ≤
+      deriv (smoothedMaxPath δ η M A σ) r / r - 1 / smoothedMaxPath δ η M A σ r := by
+  obtain ⟨c, ⟨-, hcη⟩, he⟩ := exists_mem_Icc_smoothedMaxPath_eq (δ := δ) (M := M) (A := A) hη σ
+  have hAc : 0 < A r - c := by linarith
+  have h := min_le_deriv_smoothedMax_div_sub_one_div hMd (hAd.sub_const c) hδ hM₀ hAc
+  rw [deriv_sub_const] at h
+  have hb : 1 / (A r - c) ≤ 1 / (A r - η) := one_div_le_one_div_of_le (by linarith) (by linarith)
+  rw [he]
+  exact (min_le_min_left _ (by linarith)).trans h
+
+/-- **The path keeps the smaller margin in the case `σ = r` of (4.4).** For `δ > 0`, `r > 0`,
+`0 ≤ η < A r`, `M r > 0`, `M` and `A` of class `C²` with `M' r, A' r ≥ 0` and
+`δ (M' r + A' r) ≤ 2 r`, the margin `χ'' + χ'³ / r - 1 / χ` of each shape `χ` of the path at
+`r` is at least the smaller of those of `M` and of `A - η`. The latter is that of `A` less
+`η / (A r (A r - η))` (`iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const`). -/
+theorem min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div (hδ : 0 < δ)
+    (hr : 0 < r) (hη : 0 ≤ η) (hηA : η < A r) (hM₀ : 0 < M r) (hM : ContDiff ℝ 2 M)
+    (hA : ContDiff ℝ 2 A) (hMd : 0 ≤ deriv M r) (hAd : 0 ≤ deriv A r)
+    (hδr : δ * (deriv M r + deriv A r) ≤ 2 * r) (σ : ℝ) :
+    min (iteratedDeriv 2 M r + deriv M r ^ 3 / r - 1 / M r)
+        (iteratedDeriv 2 A r + deriv A r ^ 3 / r - 1 / (A r - η)) ≤
+      iteratedDeriv 2 (smoothedMaxPath δ η M A σ) r +
+        deriv (smoothedMaxPath δ η M A σ) r ^ 3 / r - 1 / smoothedMaxPath δ η M A σ r := by
+  obtain ⟨c, ⟨-, hcη⟩, he⟩ := exists_mem_Icc_smoothedMaxPath_eq (δ := δ) (M := M) (A := A) hη σ
+  have hAc : 0 < A r - c := by linarith
+  have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hM
+    (hA.sub contDiff_const) hδ hr hM₀ hAc hMd (by rwa [deriv_sub_const]) (by rwa [deriv_sub_const])
+  have h₂ : iteratedDeriv 2 (fun r ↦ A r - c) r = iteratedDeriv 2 A r := by
+    simp only [iteratedDeriv_succ, iteratedDeriv_zero, deriv_sub_const_fun]
+  rw [deriv_sub_const, h₂] at h
+  have hb : 1 / (A r - c) ≤ 1 / (A r - η) := one_div_le_one_div_of_le (by linarith) (by linarith)
+  rw [he]
+  exact (min_le_min_left _ (by linarith)).trans h
 
 end SymplecticGeometry
 
