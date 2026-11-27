@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Determinant
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
-public import SymplecticGeometry.Topology.VectorBundle.DetBundle.Basic
 
 /-!
 # The real first Chern class of a smooth complex vector bundle
