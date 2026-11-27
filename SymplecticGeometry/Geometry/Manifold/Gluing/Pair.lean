@@ -12,7 +12,8 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
@@ -80,6 +81,9 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
   diffeomorphism.
 * `SymplecticGeometry.GluedAlong.descDiffeomorph`: the diffeomorphism onto a manifold that two
   injective local diffeomorphisms from `M₁` and `M₂` cover, meeting only along the overlap.
+* `SymplecticGeometry.GluedAlong.rangeInl`: the range of `inl`, as an open set, and
+  `SymplecticGeometry.GluedAlong.rangeInlDiffeomorph`: for a compatible gluing, the
+  diffeomorphism from it onto `M₁` inverse to `inl`.
 * `SymplecticGeometry.GluedAlong.gluedForm`: the form glued from forms on `M₁` and `M₂` that
   agree on the overlap.
 
@@ -112,6 +116,10 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
   countable spaces is second countable.
 * `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
   `eq_gluedForm_iff`: the glued form is the unique form with the given pull-backs.
+* `SymplecticGeometry.GluedAlong.mpullback_rangeInlDiffeomorph_symm`,
+  `mpullback_rangeInlDiffeomorph_symm_gluedForm`: the inverse of `rangeInlDiffeomorph` pulls the
+  restriction of a form to the range of `inl` back to its pull-back by `inl`, and that of the
+  glued form back to the form on `M₁`.
 * `SymplecticGeometry.GluedAlong.isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
   `isSymplectic_gluedForm_iff`: the glued form is closed, nondegenerate or symplectic exactly
   when both forms are.
@@ -319,6 +327,20 @@ theorem inr_mem_range_inl_iff {y : M₂} : inr φ y ∈ range (inl φ) ↔ y ∈
   obtain ⟨h, rfl⟩ := (inl_eq_inr_iff φ).1 hx
   exact (φ ⟨x, h⟩).property
 
+/-- The range of `inl`, an open subset of the glued space: the points that come from `M₁`. -/
+def rangeInl : Opens (GluedAlong φ) := ⟨range (inl φ), isOpen_range_inl φ⟩
+
+@[simp]
+theorem coe_rangeInl : (rangeInl φ : Set (GluedAlong φ)) = range (inl φ) := (rfl)
+
+/-- A point of the glued space lies in `rangeInl φ` exactly when it is `inl x` for some `x`. -/
+@[simp]
+theorem mem_rangeInl {z : GluedAlong φ} : z ∈ rangeInl φ ↔ ∃ x, inl φ x = z := Iff.rfl
+
+/-- Every point `inl x` of the glued space lies in `rangeInl φ`. -/
+theorem inl_mem_rangeInl (x : M₁) : inl φ x ∈ rangeInl φ :=
+  (mem_rangeInl φ).2 ⟨x, rfl⟩
+
 section Desc
 
 variable {X : Type*} [TopologicalSpace X]
@@ -525,6 +547,37 @@ diffeomorphism for the glued atlas. -/
 theorem isLocalDiffeomorph_inr_of_isCompatible [IsManifold I n M₁] [IsManifold I n M₂]
     (h : (glueData φ).IsCompatible I n) : IsLocalDiffeomorph I I n (inr φ) :=
   h.isLocalDiffeomorph_ι ⟨true⟩
+
+/-- For a `C^n` compatible gluing, the `C^n` diffeomorphism from the range of `inl` onto `M₁`,
+the inverse of `inl`. -/
+def rangeInlDiffeomorph [IsManifold I n M₁] [IsManifold I n M₂]
+    (h : (glueData φ).IsCompatible I n) : rangeInl φ ≃ₘ^n⟮I, I⟯ M₁ :=
+  -- `rangeInl φ` is by definition the open set `IsLocalDiffeomorph.image` of `inl φ`.
+  ((isLocalDiffeomorph_inl_of_isCompatible h).diffeomorphOfInjective (inl_injective φ)).symm
+
+section RangeInl
+
+variable [IsManifold I n M₁] [IsManifold I n M₂] (h : (glueData φ).IsCompatible I n)
+
+/-- The inverse of `rangeInlDiffeomorph h` is `inl`. -/
+@[simp]
+theorem coe_rangeInlDiffeomorph_symm_apply (x : M₁) :
+    ((rangeInlDiffeomorph h).symm x : GluedAlong φ) = inl φ x :=
+  IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply _ _ x
+
+/-- `inl` undoes `rangeInlDiffeomorph h`. -/
+@[simp]
+theorem inl_rangeInlDiffeomorph_apply (z : rangeInl φ) : inl φ (rangeInlDiffeomorph h z) = z :=
+  IsLocalDiffeomorph.apply_diffeomorphOfInjective_symm (isLocalDiffeomorph_inl_of_isCompatible h)
+    _ z
+
+/-- `rangeInlDiffeomorph h` sends the point `inl x` to `x`. -/
+@[simp]
+theorem rangeInlDiffeomorph_mk_inl (x : M₁) :
+    rangeInlDiffeomorph h ⟨inl φ x, inl_mem_rangeInl φ x⟩ = x :=
+  inl_injective φ (inl_rangeInlDiffeomorph_apply h _)
+
+end RangeInl
 
 /-- For a `C^n` compatible gluing, a map out of the glued space is `C^m`, for `m ≤ n`, exactly
 when its compositions with `inl` and `inr` are. -/
@@ -849,6 +902,25 @@ theorem eq_gluedForm_iff {α : SmoothForm I (GluedAlong φ.toHomeomorph) F k} :
     exact ⟨mpullback_inl_gluedForm, mpullback_inr_gluedForm⟩
   · rw [h₁, mpullback_inl_gluedForm]
   · rw [h₂, mpullback_inr_gluedForm]
+
+/-- Pulling the restriction of a form `α` on the glued space to the range of `inl` back by the
+inverse of `rangeInlDiffeomorph h`, which is `inl`, is pulling `α` back by `inl`. -/
+@[simp]
+theorem mpullback_rangeInlDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCompatible I ∞)
+    (α : SmoothForm I (GluedAlong φ.toHomeomorph) F k) :
+    SmoothForm.mpullback (rangeInlDiffeomorph h).symm (rangeInlDiffeomorph h).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
+      SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff α :=
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+    (isLocalDiffeomorph_inl_of_isCompatible h) (inl_injective _) α
+
+/-- The inverse of `rangeInlDiffeomorph h` pulls the restriction of the glued form to the range
+of `inl` back to the form on `M₁`. -/
+theorem mpullback_rangeInlDiffeomorph_symm_gluedForm
+    (h : (glueData φ.toHomeomorph).IsCompatible I ∞) :
+    SmoothForm.mpullback (rangeInlDiffeomorph h).symm (rangeInlDiffeomorph h).symm.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (gluedForm φ σ₁ σ₂ hσ)) = σ₁ := by
+  rw [mpullback_rangeInlDiffeomorph_symm, mpullback_inl_gluedForm]
 
 variable (φ) in
 /-- A smooth form on the glued space is closed exactly when its pull-backs by `inl` and `inr`
