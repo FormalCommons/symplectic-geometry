@@ -9,6 +9,7 @@ public import Mathlib.Analysis.RCLike.Basic
 public import Mathlib.Topology.Compactness.Paracompact
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Pullback
+import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 import SymplecticGeometry.Algebra.Exact.Basic
@@ -58,7 +59,8 @@ and back, by Tau Ceti's `TauCeti.continuous_hom_bundle_iff`; the normal class ma
 map from the total space of `f^* TN` onto that of `ν`
 (`TauCeti.SmoothEmbedding.isQuotientMap_normalQuotientMap`). The finite dimension of the model
 space of `M`, which the vector bundle structure on `ν` needs, comes from the injectivity of the
-differential at a point; over an empty `M` there is nothing to prove.
+differential at a point (Tau Ceti's `Manifold.IsImmersion.finiteDimensional_tangentSpace`); over
+an empty `M` there is nothing to prove.
 
 ## References
 
@@ -193,10 +195,8 @@ theorem exists_rightInverse_normalClass :
       continuous_iff_continuousAt.2 fun v ↦ isEmptyElim v.proj⟩
   -- The differential at `x₀` embeds the model space of `M` in `V`, so it is finite-dimensional
   -- and the normal spaces, of rank `finrank V - finrank E`, form a vector bundle.
-  have : FiniteDimensional 𝕜 (TangentSpace J (f x₀)) := inferInstanceAs (FiniteDimensional 𝕜 V)
-  have : FiniteDimensional 𝕜 (TangentSpace I x₀) := .of_injective
-    (mfderiv I J (f : M → N) x₀ : TangentSpace I x₀ →ₗ[𝕜] TangentSpace J (f x₀))
-    (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn x₀)
+  have : FiniteDimensional 𝕜 (TangentSpace I x₀) :=
+    f.isImmersion.finiteDimensional_tangentSpace x₀ hn
   have : FiniteDimensional 𝕜 E := this
   let := IsRCLikeNormedField.rclike 𝕜
   let P := Fin (Module.finrank 𝕜 V - Module.finrank 𝕜 E) → 𝕜

@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basi
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Isotropic
 public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.ImmersionRange
 public import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
+import TauCeti.Geometry.Manifold.Immersion.Differential
 import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.ConstantRank
 import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Immersion
 import TauCeti.Geometry.Symplectic.Lagrangian.Submersion
@@ -278,8 +279,8 @@ theorem isInjectiveLagrangianImmersionRange_leafSpaceMk_image [Nonempty N]
     exact isInjectiveLagrangianImmersionRange_range hι (Function.injective_of_subsingleton ι)
   have : SecondCountableTopology C := hc.isSmoothEmbedding.isEmbedding.secondCountableTopology
   have x₀ : C := Classical.arbitrary C
-  have : FiniteDimensional ℝ E₀ := FiniteDimensional.of_injective _
-    (hc.isSmoothEmbedding.isImmersion.mfderiv_injective (by simp) x₀)
+  have : FiniteDimensional ℝ E₀ :=
+    hc.isSmoothEmbedding.isImmersion.finiteDimensional_tangentSpace x₀ (by simp)
   -- The leaf space of `C` is modelled on `EuclideanSpace ℝ (Fin (dim C - (dim C - r)))`, where the
   -- rank `r` is at most `dim C`.
   have hle := (hc.mfderivRank_leafSpaceMk_comp_eq hR hg x₀).symm.trans_le
