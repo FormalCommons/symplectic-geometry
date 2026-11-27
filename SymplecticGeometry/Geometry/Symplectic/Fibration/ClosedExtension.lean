@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Map
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.DeRham
 import TauCeti.Geometry.Manifold.DeRham.HomotopyInvariance
 import Mathlib.Geometry.Manifold.PartitionOfUnity
@@ -97,12 +98,8 @@ theorem map_eq_of_restricts (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.Restricts
         ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') k
         (deRhamCohomology.mk IM k ⟨τ, hτc.mem_closedForms⟩) =
       deRhamCohomology.mk IF k
-        ⟨σ, (haveI : Nonempty B := ⟨b⟩; hτ.isClosed hA hτc).mem_closedForms⟩ := by
-  rw [deRhamCohomology.map_mk]
-  congr 1
-  ext1
-  rw [closedForms.coe_mpullback]
-  exact hτ.mpullback_fiberInclusionMap_eq hA hb'
+        ⟨σ, (haveI : Nonempty B := ⟨b⟩; hτ.isClosed hA hτc).mem_closedForms⟩ :=
+  deRhamCohomology.map_mk_eq_mk_of_mpullback_eq _ (hτ.mpullback_fiberInclusionMap_eq hA hb')
 
 end Restricts
 
