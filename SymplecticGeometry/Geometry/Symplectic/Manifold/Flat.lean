@@ -55,6 +55,9 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
   `TauCeti.SmoothTwoForm.contMDiff_flatComp_pullback`: along a smooth map `f`, the forms
   `σ♭_{f q}` and `σ(C ·, ·)` at `f q` are smooth sections of the bundle of bilinear forms on
   the pull-back `f *ᵖ TM`.
+* `TauCeti.SmoothTwoForm.inCoordinates_flat_apply`: in the trivialization of `TM` at a point,
+  the coordinate expression of `σ♭_x` takes two coordinate vectors to the value of `σ_x` on the
+  tangent vectors with these coordinates.
 
 The smoothness lemma takes the argument by which Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` shows that its inverse is smooth
@@ -290,6 +293,29 @@ theorem contMDiff_flatComp_pullback (σ : SmoothTwoForm I M)
     ((σ.flatComp C).contMDiff.comp hf)
 
 end Pullback
+
+section Coordinates
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+
+/-- Read in the trivialization of `TM` at `x₀`, the flat map of `σ` at a point `x` of its base
+set pairs two coordinate vectors as `σ_x` pairs the tangent vectors that they are the
+coordinates of. -/
+theorem inCoordinates_flat_apply (σ : SmoothTwoForm I M) {x₀ x : M}
+    (hx : x ∈ (trivializationAt E (TangentSpace I) x₀).baseSet) (v w : E) :
+    ContinuousLinearMap.inCoordinates E (TangentSpace I) (E →L[ℝ] ℝ)
+        (fun x ↦ TangentSpace I x →L[ℝ] ℝ) x₀ x x₀ x (σ.flat x) v w =
+      σ.bilinFormAt x ((trivializationAt E (TangentSpace I) x₀).symmL ℝ x v)
+        ((trivializationAt E (TangentSpace I) x₀).symmL ℝ x w) := by
+  have h := ContinuousLinearMap.inCoordinates_apply_continuousLinearMapAt₂_eq_apply hx hx
+    (σ.flat x) ((trivializationAt E (TangentSpace I) x₀).symmL ℝ x v)
+    ((trivializationAt E (TangentSpace I) x₀).symmL ℝ x w)
+  rwa [Trivialization.continuousLinearMapAt_symmL _ hx,
+    Trivialization.continuousLinearMapAt_symmL _ hx, flat_apply,
+    ← SmoothForm.bilinFormAt_apply] at h
+
+end Coordinates
 
 end SmoothTwoForm
 
