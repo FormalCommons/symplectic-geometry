@@ -219,7 +219,7 @@ theorem infDist_le_infDist_familyCubeEquiv (hR : R ≠ 0) (p : L × (Fin m → �
   have hu : (u, (0 : Fin k → ℝ)) ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)} := by
     refine ⟨?_, rfl⟩
     rw [mem_closedBall, dist_zero_right]
-    exact (le_max_right _ _).trans ((Fin.norm_append _ _).symm.le.trans (hyu ▸ hy))
+    exact (pi_norm_comp_le y (Fin.natAdd _)).trans hy
   refine (infDist_le_dist_of_mem hu).trans ?_
   rw [familyCubeEquiv_apply, hyu, Prod.dist_eq, Prod.dist_eq, Fin.dist_append]
   exact max_le_max (le_max_right _ _) le_rfl
