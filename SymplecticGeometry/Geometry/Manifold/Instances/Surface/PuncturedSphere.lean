@@ -14,8 +14,8 @@ import SymplecticGeometry.Geometry.Euclidean.Inversion
 import TauCeti.Topology.Path.Map
 import TauCeti.Topology.Circle.Degree
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
-public import TauCeti.GroupTheory.SurfaceGroup.LowGenus
-import TauCeti.AlgebraicTopology.Sphere.SimplyConnected
+public import TauCeti.GroupTheory.SurfaceGroup.Basic
+import TauCeti.GroupTheory.SurfaceGroup.LowGenus
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.GroupTheory.FreeGroup.Primitive
 
@@ -86,7 +86,7 @@ of the plane minus real points.
 * `SymplecticGeometry.ClosedSurface.exists_puncturedFundamentalGroupMulEquiv_zero`: for every `n`,
   the fundamental group of `puncture 0 n` is isomorphic to `Orientable 0 n`, the peripheral loops
   going to the peripheral elements; for `n = 0` both groups are trivial, the sphere being simply
-  connected (`TauCeti.simplyConnectedSpace_sphere_euclideanSpace`).
+  connected.
 
 ## Implementation notes
 
@@ -1117,11 +1117,6 @@ theorem puncturedSphereFundamentalGroupMulEquiv_peripheralLoop (i : Fin (n + 1))
   induction i using Fin.lastCases with
   | last => exact puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_last
   | cast k => exact puncturedSphereFundamentalGroupMulEquiv_peripheralLoop_castSucc k
-
-/-- The sphere, the closed surface of genus `0`, is simply connected. -/
-instance : SimplyConnectedSpace (ClosedSurface 0) :=
-  have := simplyConnectedSpace_sphere_euclideanSpace (n := 2) le_rfl
-  zeroDiffeomorph.toHomeomorph.toHomotopyEquiv.simplyConnectedSpace
 
 variable (n) in
 /-- **The base case of the fundamental groups of the punctured closed surfaces**: for every `n`,
