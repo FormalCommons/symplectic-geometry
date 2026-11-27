@@ -642,8 +642,7 @@ variable {X : Type} [TopologicalSpace X]
 theorem of_clutching_circleZPowIso_zero :
     (of ((trivial ℂ X 1).clutching (circleZPowIso X 0)) :
       SplitK0 (FiniteRankBundleCore ℂ (X × ℙ ℂ (Fin 2 → ℂ)))) = 1 := by
-  rw [circleZPowIso_zero, of_congr (clutchingOneIso _), one_def]
-  exact of_congr (eqToIso (pullback_tensorUnit _))
+  rw [circleZPowIso_zero, of_congr (clutchingOneIso _), pullback_trivial, of_trivial_one]
 
 /-- The line `L (-1)`, clutched from the trivial line by `u ↦ u⁻¹`, has the class `[H]` of the
 pullback of the tautological line of `ℙ ℂ (Fin 2 → ℂ)`. -/
