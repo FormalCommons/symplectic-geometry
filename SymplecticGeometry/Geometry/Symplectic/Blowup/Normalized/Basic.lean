@@ -690,6 +690,13 @@ private theorem closedNbhd_subset_source {a : ℝ} (ha : a < r) :
 private abbrev sourceOpens : Opens (BlowupModel n) :=
   ⟨hψ.ballLiftPartialDiffeomorph.source, hψ.ballLiftPartialDiffeomorph.open_source⟩
 
+/-- The image under the lift `ψ̃` of the closed neighbourhood `closedNbhd n a` of the divisor, for
+`a < r`, is compact. -/
+theorem isCompact_ballLiftPartialDiffeomorph_image_closedNbhd {a : ℝ} (ha : a < r) :
+    IsCompact (hψ.ballLiftPartialDiffeomorph '' closedNbhd n a) :=
+  (isCompact_closedNbhd _).image_of_continuousOn
+    (hψ.ballLiftPartialDiffeomorph.contMDiffOn.continuousOn.mono (hψ.closedNbhd_subset_source ha))
+
 /-- The image of the lift, as an open subset of the blowup. -/
 private abbrev targetOpens : Opens (Blowup hN.blowupChart) :=
   ⟨hψ.ballLiftPartialDiffeomorph.target, hψ.ballLiftPartialDiffeomorph.open_target⟩
@@ -734,9 +741,8 @@ variable [T2Space M]
 subset of the blowup. -/
 private def outerOpens : Opens (Blowup hN.blowupChart) :=
   ⟨(hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε))ᶜ,
-    ((isCompact_closedNbhd _).image_of_continuousOn
-      (hψ.ballLiftPartialDiffeomorph.contMDiffOn.continuousOn.mono
-        (hψ.closedNbhd_subset_source hψ.weight_add_width_lt))).isClosed.isOpen_compl⟩
+    (hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd
+      hψ.weight_add_width_lt).isClosed.isOpen_compl⟩
 
 /-- The complement of the image of `closedNbhd n (l + ε)` under the lift and the image of the lift
 cover the blowup. -/

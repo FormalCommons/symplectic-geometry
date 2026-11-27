@@ -20,7 +20,11 @@ Tau Ceti's `TauCeti.inner_complexToRealEuclidean` and `Matrix.re_star_dotProduct
 * `TauCeti.complexToRealEuclideanIsometry ι`: so `complexToRealEuclidean ι`, read on
   `EuclideanSpace ℂ ι`, is a real linear isometry onto `EuclideanSpace ℝ (ι ⊕ ι)`;
 * `TauCeti.norm_complexToRealEuclidean`: so the norm of `complexToRealEuclidean ι u` is the
-  Hermitian norm of `u`, read in `EuclideanSpace ℂ ι`.
+  Hermitian norm of `u`, read in `EuclideanSpace ℂ ι`;
+* `TauCeti.complexToRealEuclideanCoord ι j`: the `j`-th complex coordinate of
+  `(complexToRealEuclidean ι).symm x`, as a real continuous linear map, of operator norm at most
+  `1` (`TauCeti.norm_complexToRealEuclideanCoord_le`), since each coordinate has norm at most
+  `‖x‖` (`TauCeti.norm_complexToRealEuclidean_symm_apply_le`).
 -/
 
 public section
@@ -74,6 +78,29 @@ theorem norm_complexToRealEuclidean (u : ι → ℂ) :
   rw [← (complexToRealEuclideanIsometry ι).norm_map ((EuclideanSpace.equiv ι ℂ).symm u),
     complexToRealEuclideanIsometry_apply]
   simp
+
+/-- The `j`-th complex coordinate of `(complexToRealEuclidean ι).symm x` has norm at most `‖x‖`. -/
+theorem norm_complexToRealEuclidean_symm_apply_le (x : EuclideanSpace ℝ (ι ⊕ ι)) (j : ι) :
+    ‖(complexToRealEuclidean ι).symm x j‖ ≤ ‖x‖ := by
+  have h := PiLp.norm_apply_le ((complexToRealEuclideanIsometry ι).symm x) j
+  rwa [LinearIsometryEquiv.norm_map, complexToRealEuclideanIsometry_symm_apply,
+    PiLp.toLp_apply] at h
+
+variable (ι) in
+/-- The `j`-th complex coordinate `x ↦ (complexToRealEuclidean ι).symm x j` on
+`EuclideanSpace ℝ (ι ⊕ ι)`, as a real continuous linear map. -/
+noncomputable def complexToRealEuclideanCoord (j : ι) : EuclideanSpace ℝ (ι ⊕ ι) →L[ℝ] ℂ :=
+  ContinuousLinearMap.proj j ∘L (complexToRealEuclidean ι).symm.toContinuousLinearMap
+
+@[simp]
+theorem complexToRealEuclideanCoord_apply (j : ι) (x : EuclideanSpace ℝ (ι ⊕ ι)) :
+    complexToRealEuclideanCoord ι j x = (complexToRealEuclidean ι).symm x j :=
+  (rfl)
+
+/-- The `j`-th complex coordinate on `EuclideanSpace ℝ (ι ⊕ ι)` has operator norm at most `1`. -/
+theorem norm_complexToRealEuclideanCoord_le (j : ι) : ‖complexToRealEuclideanCoord ι j‖ ≤ 1 :=
+  (complexToRealEuclideanCoord ι j).opNorm_le_bound zero_le_one fun x ↦ by
+    simpa using norm_complexToRealEuclidean_symm_apply_le x j
 
 end TauCeti
 
