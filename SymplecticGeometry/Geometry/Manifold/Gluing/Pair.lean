@@ -118,6 +118,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
   `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
 * The instance `SecondCountableTopology (GluedAlong φ)`: the glued space of two second
   countable spaces is second countable.
+* `SymplecticGeometry.GluedAlong.compactSpace_of_isCompact`: the glued space is compact when the
+  images of a compact subset of each piece cover it.
 * `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
   `eq_gluedForm_iff`: the glued form is the unique form with the given pull-backs.
 * `SymplecticGeometry.GluedAlong.mpullback_rangeInlDiffeomorph_symm`,
@@ -139,6 +141,8 @@ The compatibility of the gluing is Tau Ceti's `TauCeti.isCompatible_starGlueData
 for a target in any universe. The proofs that `descDiffeomorph` is a local diffeomorphism and
 that `desc` is bijective (`bijective_desc`) follow the steps of Tau Ceti's
 `TopCat.GlueData.IsCompatible.gluedDiffeomorph`, for a target that is not itself a gluing.
+The cover argument of `compactSpace_of_isCompact` is that of Tau Ceti's
+`TauCeti.ConnectedSum.compactSpace`, for any gluing of two pieces.
 
 ## References
 
@@ -358,6 +362,28 @@ theorem range_inl_inter_range_inr : range (inl φ) ∩ range (inr φ) = inl φ '
     exact ⟨x, inl_mem_range_inr_iff φ |>.1 hz, rfl⟩
   · rintro ⟨x, hx, rfl⟩
     exact ⟨mem_range_self x, inl_mem_range_inr_iff φ |>.2 hx⟩
+
+/-- The glued space is compact when the images of compact sets `K₁ ⊆ M₁` and `K₂ ⊆ M₂` cover
+it: each point of `M₁` outside `K₁` is glued to a point of `K₂`, and `K₂` contains every point
+of `M₂` outside `U₂`. A point `y` of `U₂` outside `K₂` is then glued to the point `φ⁻¹ y`, which
+lies in `K₁`, since otherwise `y` would be glued to a point of `K₂`. -/
+theorem compactSpace_of_isCompact {K₁ : Set M₁} {K₂ : Set M₂} (hK₁ : IsCompact K₁)
+    (hK₂ : IsCompact K₂) (h₁ : ∀ x ∉ K₁, ∃ y ∈ K₂, inr φ y = inl φ x)
+    (h₂ : (U₂ : Set M₂)ᶜ ⊆ K₂) : CompactSpace (GluedAlong φ) := by
+  have hcover : inl φ '' K₁ ∪ inr φ '' K₂ = univ := by
+    refine eq_univ_of_forall fun z ↦ ?_
+    rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+    · by_cases hx : x ∈ K₁
+      · exact Or.inl (mem_image_of_mem _ hx)
+      · exact Or.inr (h₁ x hx)
+    · by_cases hy : y ∈ K₂
+      · exact Or.inr (mem_image_of_mem _ hy)
+      have hyU : y ∈ U₂ := not_not.1 fun h ↦ hy (h₂ h)
+      refine Or.inl ⟨φ.symm ⟨y, hyU⟩, by_contra fun hx ↦ hy ?_, inl_symm_apply φ ⟨y, hyU⟩⟩
+      obtain ⟨y', hy', h⟩ := h₁ _ hx
+      rw [inl_symm_apply, inr_inj] at h
+      rwa [h] at hy'
+  exact ⟨hcover ▸ (hK₁.image (continuous_inl φ)).union (hK₂.image (continuous_inr φ))⟩
 
 /-- The canonical map from `M₁` to the glued space, as a continuous map. -/
 @[expose] def inlContinuousMap : C(M₁, GluedAlong φ) := ⟨inl φ, continuous_inl φ⟩
