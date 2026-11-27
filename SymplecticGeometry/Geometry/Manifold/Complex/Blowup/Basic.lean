@@ -641,6 +641,15 @@ theorem blowdown_inr (y : modelOpens c) :
 theorem blowdown_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : blowdown c (ofDirection c ℓ) = p₀ := by
   rw [ofDirection_def, blowdown_inr, blowdown_zeroSection, c.symm_zero]
 
+/-- Over the source of `c`, the map to the model lies over `c`: the blowdown of `lift c z` is `c`
+of the blowdown of `z`. -/
+theorem blowdown_lift {z : Blowup c} (hz : blowdown c z ∈ c.source) :
+    (lift c z).blowdown = c (blowdown c z) := by
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · rw [blowdown_inl] at hz ⊢
+    rw [lift_inl c hz, blowdownDiffeomorph_symm_apply, blowdown_ofNeZero]
+  · rw [lift_inr, blowdown_inr, c.right_inv ((mem_modelOpens c).1 y.property)]
+
 section Smooth
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedSpace 𝕜 (Fin (n + 1) → ℂ)] {r : ℕ∞ω}

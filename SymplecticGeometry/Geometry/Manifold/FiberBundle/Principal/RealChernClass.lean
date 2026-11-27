@@ -37,11 +37,13 @@ of `-(2π)⁻¹ F_α` is the first Chern number of `V`
 * `SymplecticGeometry.IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff`: two
   closed `2`-forms differ in cohomology by `c` times the class exactly when
   `ω₁ - ω₂ + c (2π)⁻¹ F_α` is exact.
-* `SymplecticGeometry.IsCircleConnectionForm.exists_curvature_eq_of_sub_mem_exactForms`: if
-  `σ - F_α` is exact, then `σ` is the curvature of the connection form `α + π^* a`, for a
-  primitive `a` of `σ - F_α`.
-* `SymplecticGeometry.exists_isCircleConnectionForm_curvature_eq_iff`: a closed `2`-form `σ` is
-  the curvature of a connection form exactly when `-(2π)⁻¹ [σ]` is the real first Chern class.
+* `SymplecticGeometry.IsCircleConnectionCurvature.mem_closedForms`: a form that is the curvature
+  of some connection form is closed.
+* `SymplecticGeometry.IsCircleConnectionForm.isCircleConnectionCurvature_iff_sub_mem_exactForms`:
+  `σ` is the curvature of a connection form exactly when `σ - F_α` is exact; then it is the
+  curvature of `α + π^* a`, for a primitive `a` of `σ - F_α`.
+* `SymplecticGeometry.isCircleConnectionCurvature_iff`: a closed `2`-form `σ` is the curvature of
+  a connection form exactly when `-(2π)⁻¹ [σ]` is the real first Chern class.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback`,
   `SymplecticGeometry.IsCircleConnectionForm.curvature_mpullback`: for a smooth equivariant map
   `Φ : Q → P` of principal `Circle`-bundles covering `f : B' → B`, the pull-back `Φ^* α` is a
@@ -102,16 +104,25 @@ theorem IsCircleConnectionForm.deRhamCohomology_mk_curvature_eq (hα : IsCircleC
     exactForms_succ]
   exact LinearMap.mem_range_self _ a
 
-/-- If `σ - F_α` is exact for a connection form `α`, then `σ` is the curvature of a connection
-form, namely of `α + π^* a` for a primitive `a` of `σ - F_α`. -/
-theorem IsCircleConnectionForm.exists_curvature_eq_of_sub_mem_exactForms
-    (hα : IsCircleConnectionForm α) {σ : SmoothForm IB B ℝ 2}
-    (h : σ - hα.curvature ∈ exactForms IB B 2) :
-    ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
-      (hβ : IsCircleConnectionForm β), hβ.curvature = σ := by
-  rw [exactForms_succ] at h
-  obtain ⟨a, ha⟩ := h
-  exact ⟨_, hα.add_mpullback a, by rw [hα.curvature_add_mpullback, ha, add_sub_cancel]⟩
+/-- A form that is the curvature of a connection form on `P` is closed. -/
+theorem IsCircleConnectionCurvature.mem_closedForms {σ : SmoothForm IB B ℝ 2}
+    (h : IsCircleConnectionCurvature P σ) : σ ∈ closedForms IB B 2 := by
+  obtain ⟨β, hβ, rfl⟩ := (isCircleConnectionCurvature_def P σ).1 h
+  exact hβ.curvature_mem_closedForms
+
+/-- For a connection form `α`, a `2`-form `σ` on `B` is the curvature of a connection form exactly
+when `σ - F_α` is exact. If `σ - F_α = d a`, then `σ` is the curvature of `α + π^* a`. -/
+theorem IsCircleConnectionForm.isCircleConnectionCurvature_iff_sub_mem_exactForms
+    (hα : IsCircleConnectionForm α) {σ : SmoothForm IB B ℝ 2} :
+    IsCircleConnectionCurvature P σ ↔ σ - hα.curvature ∈ exactForms IB B 2 := by
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · obtain ⟨β, hβ, rfl⟩ := (isCircleConnectionCurvature_def P σ).1 h
+    have h := hα.deRhamCohomology_mk_curvature_eq hβ
+    rwa [deRhamCohomology.mk_eq_mk_iff, Submodule.coe_mk, Submodule.coe_mk] at h
+  · rw [exactForms_succ] at h
+    obtain ⟨a, ha⟩ := h
+    rw [← add_sub_cancel hα.curvature σ, ← ha, ← hα.curvature_add_mpullback]
+    exact (hα.add_mpullback a).isCircleConnectionCurvature
 
 variable [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]
 
@@ -153,17 +164,14 @@ theorem IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff
 
 /-- A closed `2`-form `σ` on `B` is the curvature of a connection form on `P` exactly when
 `-(2π)⁻¹ [σ]` is the real first Chern class of `P`. -/
-theorem exists_isCircleConnectionForm_curvature_eq_iff {σ : SmoothForm IB B ℝ 2}
+theorem isCircleConnectionCurvature_iff {σ : SmoothForm IB B ℝ 2}
     (hσ : σ ∈ closedForms IB B 2) :
-    (∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
-        (hβ : IsCircleConnectionForm β), hβ.curvature = σ) ↔
+    IsCircleConnectionCurvature P σ ↔
       -(2 * Real.pi)⁻¹ • deRhamCohomology.mk IB 2 ⟨σ, hσ⟩ = realFirstChernClass IB P := by
-  refine ⟨fun ⟨β, hβ, h⟩ ↦ by subst h; exact hβ.realFirstChernClass_eq.symm, fun h ↦ ?_⟩
   obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (IB := IB) (P := P)
-  rw [hα.realFirstChernClass_eq] at h
-  have hmk := smul_right_injective _ (by simp [Real.pi_ne_zero] : -(2 * Real.pi)⁻¹ ≠ 0) h
-  rw [deRhamCohomology.mk_eq_mk_iff, Submodule.coe_mk, Submodule.coe_mk] at hmk
-  exact hα.exists_curvature_eq_of_sub_mem_exactForms hmk
+  rw [hα.isCircleConnectionCurvature_iff_sub_mem_exactForms, hα.realFirstChernClass_eq,
+    (smul_right_injective _ (by simp [Real.pi_ne_zero] : -(2 * Real.pi)⁻¹ ≠ 0)).eq_iff,
+    deRhamCohomology.mk_eq_mk_iff, Submodule.coe_mk, Submodule.coe_mk]
 
 /-! ### Naturality under maps of principal bundles -/
 

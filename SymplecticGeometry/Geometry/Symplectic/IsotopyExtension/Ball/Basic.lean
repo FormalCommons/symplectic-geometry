@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
@@ -69,6 +70,8 @@ constant family), which contains a larger closed ball
   `ℝ × U` for an open neighbourhood `U` of `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.mpullback_eq_of_mem_closedBall`: for `0 < r`, a
   symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.subtype_of_eqOn`: a map into an open subset
+  that agrees near `B(r)` with a symplectic embedding is one for the restricted form.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isCompact_image_closedBall`: it maps each closed
   ball `B(r')` with `r' ≤ r` onto a compact set.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
@@ -185,6 +188,28 @@ theorem mono (hj : IsSymplecticBallEmbedding σ r j) (h : r' ≤ r) :
   obtain ⟨⟨U, hUo, hU, hjU⟩, hinj, hpull⟩ := hj
   exact ⟨⟨U, hUo, (closedBall_subset_closedBall h).trans hU, hjU⟩,
     hinj.mono (closedBall_subset_closedBall h), fun z hz ↦ hpull z (ball_subset_ball h hz)⟩
+
+/-- A map `g` into an open subset `U` of `M` whose composite with the inclusion agrees, on an
+open set `V ⊇ B(r)`, with a symplectic embedding `j` of `B(r)` is a symplectic embedding of
+`B(r)` into `U` with the restriction of `σ`. -/
+theorem subtype_of_eqOn (hj : IsSymplecticBallEmbedding σ r j) {U : TopologicalSpace.Opens M}
+    {g : StdSpace (Fin n) → U} {V : Set (StdSpace (Fin n))} (hV : IsOpen V)
+    (hrV : closedBall 0 r ⊆ V) (hgj : EqOn (Subtype.val ∘ g) j V) :
+    IsSymplecticBallEmbedding (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) r g := by
+  obtain ⟨⟨W, hW, hrW, hjW⟩, hinj, hpull⟩ := hj
+  have hg : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) I ∞ g (W ∩ V) :=
+    (ContMDiffOn.subtypeVal_comp_iff _ _ _).1
+      ((hjW.mono inter_subset_left).congr fun z hz ↦ hgj hz.2)
+  refine ⟨⟨W ∩ V, hW.inter hV, subset_inter hrW hrV, hg⟩, fun v hv w hw h ↦ hinj hv hw ?_,
+    fun z hz ↦ ?_⟩
+  · rw [← hgj (hrV hv), ← hgj (hrV hw), comp_apply, comp_apply, h]
+  · have hz' : z ∈ W ∩ V := ⟨hrW (ball_subset_closedBall hz), hrV (ball_subset_closedBall hz)⟩
+    have hgz : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I g z :=
+      (hg.contMDiffAt ((hW.inter hV).mem_nhds hz')).mdifferentiableAt (by simp)
+    rw [SmoothForm.coe_mpullback,
+      ← mpullback_comp_at hgz ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero),
+      (eventuallyEq_of_mem (hV.mem_nhds hz'.2) hgj).mpullback_eq]
+    exact hpull z hz
 
 /-- For `r' ≤ r`, a symplectic embedding of `B(r)` maps a point of the sphere of radius `r'` off
 the image of the open ball of radius `r'`, since it is injective on `B(r)`. -/
