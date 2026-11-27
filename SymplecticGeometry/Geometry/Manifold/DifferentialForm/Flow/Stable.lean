@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Continuity
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Chart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 
 /-!
 # Forms scaled by a flow vanish along its stable sets
@@ -69,8 +70,8 @@ theorem mpullback_eq_zero_of_mpullback_eq_exp_smul (φ : Flow ℝ M)
   obtain ⟨r, hr, B, -, -, hσB⟩ := hσ.exists_ball_norm_inChartAt_le p
   -- For large `t`, the point `φ_t (γ y)` is in the chart, near `p`.
   have hev : ∀ᶠ t in atTop, φ t (γ y) ∈ e.source ∧ e (φ t (γ y)) ∈ ball (e p) r :=
-    (Flow.mem_stableSet.1 hy).eventually (inter_mem (extChartAt_source_mem_nhds p)
-      ((continuousAt_extChartAt p).preimage_mem_nhds (ball_mem_nhds _ hr)))
+    ((Flow.mem_stableSet.1 hy).eventually (SymplecticGeometry.chartBall_mem_nhds I p hr)).mono
+      fun _ h ↦ (SymplecticGeometry.mem_chartBall_iff I).1 h
   -- There, `e^t c` is the value of the form read in the chart on bounded vectors.
   have hle : ∀ᶠ t in atTop, Real.exp t * |c| ≤ B * ∏ i, C i := by
     filter_upwards [hev, eventually_all.2 hC] with t ⟨hs, hball⟩ hCt
