@@ -311,13 +311,11 @@ theorem struweShape_sub_struweShape_one_mem_Icc (hK : 1 ≤ K) (c : ℝ) {r : �
   set f : ℝ → ℝ := fun u ↦ struweShape 1 K c u - √2 * √(u ^ 2 - 1)
   have hd : ∀ u : ℝ, 1 < u → HasDerivAt f (1 / √(log u) - √2 * (u / √(u ^ 2 - 1))) u := by
     intro u hu
-    have hw : u ^ 2 - 1 ≠ 0 := by nlinarith
-    have h := (((hasDerivAt_pow 2 u).sub_const 1).sqrt hw).const_mul √2
+    have h := (hasDerivAt_sqrt_sub (a := 1) (c := 1) (r := u) (by nlinarith)).const_mul √2
+    simp only [one_mul] at h
     have hT := hasDerivAt_struweShape one_pos hK c hu
     rw [div_one] at hT
-    convert hT.sub h using 2
-    push_cast
-    field_simp
+    exact hT.sub h
   have hf : AntitoneOn f (Ici 1) := by
     refine antitoneOn_of_deriv_nonpos (convex_Ici 1) ?_ ?_ ?_
     · exact (continuousOn_struweShape one_pos hK c).sub (by fun_prop)

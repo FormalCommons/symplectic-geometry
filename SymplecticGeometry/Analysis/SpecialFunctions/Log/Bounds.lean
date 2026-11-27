@@ -11,8 +11,8 @@ public import Mathlib.Analysis.Real.Sqrt
 /-!
 # A lower bound for the logarithm near `1`
 
-For `1 < u`, the bound `log (u ^ 2) ≥ 1 - 1 / u ^ 2` (`Real.one_sub_inv_le_log_of_pos`) gives
-`log u ≥ (u ^ 2 - 1) / (2 * u ^ 2)`, and so
+For `0 < u`, the bound `log (u ^ 2) ≥ 1 - 1 / u ^ 2` (`Real.one_sub_inv_le_log_of_pos`) gives
+`log u ≥ (u ^ 2 - 1) / (2 * u ^ 2)` (`Real.sq_sub_one_div_le_log`), and so, for `1 < u`,
 `1 / √(log u) ≤ √2 * u / √(u ^ 2 - 1)` (`Real.one_div_sqrt_log_le`). The right side is the
 derivative of `√2 * √(u ^ 2 - 1)`, which makes integrals of `1 / √(log u)` from `1` easy to
 bound; such integrals define Struwe's shapes.
@@ -27,10 +27,10 @@ public section
 
 namespace Real
 
-/-- For `1 < u`, `log u` is at least `(u ^ 2 - 1) / (2 * u ^ 2)`. -/
-theorem sq_sub_one_div_le_log {u : ℝ} (hu : 1 < u) :
+/-- For `0 < u`, `log u` is at least `(u ^ 2 - 1) / (2 * u ^ 2)`. -/
+theorem sq_sub_one_div_le_log {u : ℝ} (hu : 0 < u) :
     (u ^ 2 - 1) / (2 * u ^ 2) ≤ log u := by
-  have hu₂ : 0 < u ^ 2 := pow_pos (zero_lt_one.trans hu) 2
+  have hu₂ : 0 < u ^ 2 := pow_pos hu 2
   have h := one_sub_inv_le_log_of_pos hu₂
   rw [log_pow, Nat.cast_ofNat, ← one_div, one_sub_div hu₂.ne', div_le_iff₀ hu₂] at h
   rw [div_le_iff₀ (by positivity)]
@@ -42,7 +42,7 @@ theorem one_div_sqrt_log_le {u : ℝ} (hu : 1 < u) :
   have hu₀ : 0 < u := zero_lt_one.trans hu
   have hL : 0 < log u := log_pos hu
   have h : u ^ 2 - 1 ≤ 2 * u ^ 2 * log u :=
-    (div_le_iff₀' (by positivity)).1 (sq_sub_one_div_le_log hu)
+    (div_le_iff₀' (by positivity)).1 (sq_sub_one_div_le_log hu₀)
   have hw : √(u ^ 2 - 1) ≤ √2 * u * √(log u) := by
     calc √(u ^ 2 - 1) ≤ √(2 * u ^ 2 * log u) := sqrt_le_sqrt h
       _ = √2 * u * √(log u) := by
