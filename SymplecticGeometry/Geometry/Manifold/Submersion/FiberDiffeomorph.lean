@@ -165,9 +165,7 @@ theorem nonempty_diffeomorph_fiber_of_isProperMap (hf : ContMDiff I J ∞ f) (hf
   let P : Opens M := ⟨f ⁻¹' R, R.isOpen.preimage hf.continuous⟩
   let g : P → R := (R : Set N).restrictPreimage f
   have hg : Manifold.IsSubmersion I J ∞ g :=
-    ((hf.restrictPreimage R).isSubmersionOfComplement_of_surjective_mfderiv (by simp)
-      fun x ↦ isRegularPoint_iff.1 ((isRegularPoint_restrictPreimage_iff hf.continuous R).2
-        (isRegularValue_iff.1 (hreg _ x.property) x rfl))).isSubmersion
+    hf.isSubmersion_restrictPreimage_of_isRegularValue (by simp) R hreg
   have hgp : IsProperMap g := hfp.restrictPreimage _
   have : PreconnectedSpace R := isPreconnected_iff_preconnectedSpace.1 hR
   -- `M` is second countable, as a σ-compact manifold, so its open subset `P` is σ-compact.

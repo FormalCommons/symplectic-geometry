@@ -22,7 +22,6 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
-import TauCeti.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordChange
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
@@ -501,18 +500,8 @@ theorem exists_complexFrame_mfderiv {ι : EuclideanSpace ℝ (Fin k) → M}
       (w : EuclideanSpace ℂ (Fin m)) : A x (z, w) = L x z + B' x w :=
     coprod_apply _ _ _
   refine ⟨A, fun x₀ ↦ ?_, hBL, fun x v ↦ ?_, fun x ↦ ?_⟩
-  · have hΩ : ∀ᶠ x in 𝓝 x₀, ι x ∈ (chartAt E (ι x₀)).source :=
-      hιs.continuous.continuousAt.preimage_mem_nhds
-        ((chartAt E (ι x₀)).open_source.mem_nhds (mem_chart_source E (ι x₀)))
-    refine ((hL (fun x ↦ (modelDisc k m x).1) x₀).clm_coprod
-      (hB (fun x ↦ (modelDisc k m x).2) x₀)).congr_of_eventuallyEq ?_
-    filter_upwards [hΩ] with x hx
-    have h₁ := inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E)
-      (f := fun x ↦ (modelDisc k m x).1) L hx
-    have h₂ := inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E)
-      (f := fun x ↦ (modelDisc k m x).2) B hx
-    have h₃ := inTangentCoordinates_eq_tangentCoordChange_comp 𝓘(ℝ, E) (f := modelDisc k m) A hx
-    exact h₃.trans ((comp_coprod _ _ _).trans (congrArg₂ coprod h₁.symm h₂.symm))
+  · exact (hL (fun x ↦ (modelDisc k m x).1) x₀).inTangentCoordinates_clm_coprod (A := L)
+      (B := B) 𝓘(ℝ, E) (hB (fun x ↦ (modelDisc k m x).2) x₀)
   · -- `A x` takes values in `E`, which the tangent space is only up to unfolding.
     refine (?_ : A x (Complex.I • v) = Complex.I • A x v).trans (ofComplexManifold_apply _ _).symm
     obtain ⟨z, w⟩ := v
