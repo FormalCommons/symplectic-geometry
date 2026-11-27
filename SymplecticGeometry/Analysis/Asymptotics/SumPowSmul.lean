@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Asymptotics.Defs
 public import Mathlib.Analysis.Normed.Module.Basic
-import Mathlib.Analysis.Asymptotics.Lemmas
 import TauCeti.Analysis.Asymptotics.Lemmas
 import TauCeti.Analysis.Asymptotics.TruncatedPowerSeries
 
@@ -17,7 +16,8 @@ import TauCeti.Analysis.Asymptotics.TruncatedPowerSeries
 A polynomial `∑_{i ≤ j} hⁱ • cᵢ` with vector coefficients that is `o(hʲ)` as `h → 0`, `h ≠ 0`,
 has all its coefficients zero. This is the little-o companion of Tau Ceti's
 `TauCeti.eq_zero_of_isBigO_sum_pow_smul`, which it uses for the coefficients of order `< j`.
-The last coefficient is then a constant that is `o(1)`, hence zero.
+The top term `hʲ • cⱼ` is then `o(hʲ)`, so `cⱼ = 0` by Tau Ceti's
+`Asymptotics.isLittleO_smul_const_self_iff`.
 
 ## Main results
 
@@ -44,15 +44,12 @@ theorem eq_zero_of_isLittleO_sum_pow_smul {𝕜 E : Type*} [NontriviallyNormedFi
   have htop : (fun h : 𝕜 ↦ h ^ j • c j) =o[𝓝[≠] 0] fun h ↦ h ^ j := by
     refine hc.congr_left fun h ↦ ?_
     rw [sum_range_succ, sum_eq_zero fun i hi ↦ by simp [hlow i (mem_range.1 hi)], zero_add]
-  have hconst : (fun _ : 𝕜 ↦ c j) =o[𝓝[≠] 0] fun _ ↦ (1 : 𝕜) := by
-    refine ((isBigO_refl (fun h : 𝕜 ↦ (h ^ j)⁻¹) _).smul_isLittleO htop).congr' ?_ ?_ <;>
-      filter_upwards [self_mem_nhdsWithin] with h (hh : h ≠ 0)
-    · rw [smul_smul, inv_mul_cancel₀ (pow_ne_zero j hh), one_smul]
-    · rw [smul_eq_mul, inv_mul_cancel₀ (pow_ne_zero j hh)]
   intro i hi
   rcases hi.lt_or_eq with hi | rfl
   · exact hlow i hi
-  · exact isLittleO_const_const_iff.1 hconst
+  · exact (isLittleO_smul_const_self_iff (.of_forall fun _ ↦ norm_nonneg _)
+      (eventually_mem_nhdsWithin.mono fun h (hh : h ≠ 0) ↦
+        norm_ne_zero_iff.2 (pow_ne_zero _ hh)).frequently (norm_smul · _)).1 htop
 
 end SymplecticGeometry
 
