@@ -1125,7 +1125,7 @@ of the diffeotopy `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`.
 
 #### `Morse/Core/Cube.lean`
 
-The cube at one critical point, in the namespace `TauCeti`. Tau Ceti's flow
+The cube at one critical point, in the namespace `TauCeti.MorseChart`. Tau Ceti's flow
 of an adapted pseudo-gradient (`Morse/PseudoGradient/Flow.lean`) needs
 `[CompactSpace M]`, so this file uses a compactly supported smooth field `X`
 with `dg(X) ≤ 0`, `dg(X) < 0` on the band off the critical points, and equal
@@ -1137,10 +1137,15 @@ near each critical point of the band to the linear field
 critical point `p` of index `m`, with `a₀ < a < g p` and no critical point
 on the support with value in `[a₀, g p)` (points of the level `g p` itself
 are allowed, since no flow line from `p` reaches them),
-`TauCeti.exists_cubeChart_unstableSet` gives a smooth open embedding
+`TauCeti.MorseChart.exists_cubeChart_unstableSet` gives a smooth open embedding
 `φ : D m → M` with `φ 0 = p`, sending the cube into the unstable set of `p`
 for this flow and above `a₀`, and its sphere below `a`, such that every point
 of that unstable set at level at least `a` is in the image of the cube.
+The theorem takes the field in a more general form: any complete smooth `X`
+with `dg(X) ≤ 0`, equal to the linear field on the source of a Morse chart
+at `p`, with `dg(X) < 0` wherever `a₀ < g < g p` and `g⁻¹[a₀, b]` compact
+for `b < g p`. A compactly supported field as above that does not vanish on
+`g⁻¹[a₀, g p)` satisfies these hypotheses.
 
 The chart is built from hitting times, not from one fixed time, since
 different flow lines from `p` can take very different times to descend. Fix
@@ -1180,7 +1185,7 @@ theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
 The cubes are those of `Cube.lean` at the finitely many critical points of
 the level `v` (`TauCeti.IsMorse.finite_criticalPoints_inter`), all for the
 one field `X`: by `hcrit` no critical value lies in `[a₀, v)`, which is the
-hypothesis of `TauCeti.exists_cubeChart_unstableSet` at each of them, the
+hypothesis of `TauCeti.MorseChart.exists_cubeChart_unstableSet` at each of them, the
 other points of the level `v` being allowed. They are disjoint since
 unstable sets of distinct critical points are. The compression is the time-`T`
 map of the flow of `ρ • X`, with `ρ` zero near `{g ≤ a}` and one from just
@@ -1774,7 +1779,7 @@ Each is a few hundred lines; each issue's blockers come before it.
    - 5a. **The structure.** `Morse/Core/Basic.lean`: `BandCore`, its API
      and `BandCore.ofNoCriticalPoint`. Blocked by nothing.
    - 5b. **The cube at a critical point.** `Morse/Core/Cube.lean`:
-     `TauCeti.exists_cubeChart_unstableSet`. Blocked by nothing.
+     `TauCeti.MorseChart.exists_cubeChart_unstableSet`. Blocked by nothing.
    - 5c. **Compression across one critical level.**
      `Morse/Core/Compression.lean`: `TauCeti.IsMorse.exists_bandCore`.
      Blocked by 5a and 5b.
