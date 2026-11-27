@@ -524,7 +524,7 @@ theorem normalForm_normalClass (hdim : finrank ℝ P = finrank ℝ E - finrank �
 omit [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ∞) M] in
 /-- The representative in the `ω`-orthogonal of the image of `a` under the complex structure
 induced by `J` on the normal space is the image under `J` of the representative of `a`. -/
-private theorem complementRepresentative_normalComplexStructureAt
+theorem complementRepresentative_normalComplexStructureAt
     (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
         (f.isImmersion.tangentRange x hn))
     (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) (x : M)
