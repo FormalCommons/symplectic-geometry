@@ -92,8 +92,8 @@ pull-backs by the two maps (`mpullback_descContMDiffMap`, `mpullback_descDiffeom
 
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
   `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`,
-  `inl_mem_range_inr_iff`, `inr_mem_range_inl_iff`, `isClosed_image_inl`: the topology of the
-  glued space.
+  `inl_mem_range_inr_iff`, `inr_mem_range_inl_iff`, `range_inl_eq_compl_image_inr`,
+  `isClosed_image_inl`: the topology of the glued space.
 * `SymplecticGeometry.GluedAlong.isCompatible_glueData_of_contMDiff`: the gluing along a
   homeomorphism that is `C^n` both ways is compatible.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
@@ -327,6 +327,15 @@ theorem inr_mem_range_inl_iff {y : M₂} : inr φ y ∈ range (inl φ) ↔ y ∈
   refine ⟨fun ⟨x, hx⟩ ↦ ?_, fun hy ↦ ⟨_, inl_symm_apply φ ⟨y, hy⟩⟩⟩
   obtain ⟨h, rfl⟩ := (inl_eq_inr_iff φ).1 hx
   exact (φ ⟨x, h⟩).property
+
+/-- The image of `M₁` in the glued space is the complement of the image of `M₂ \ U₂`. -/
+theorem range_inl_eq_compl_image_inr : range (inl φ) = (inr φ '' (U₂ : Set M₂)ᶜ)ᶜ := by
+  ext z
+  rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · refine iff_of_true (mem_range_self x) fun ⟨y, hy, h⟩ ↦ hy ?_
+    exact (inr_mem_range_inl_iff φ).1 ⟨x, h.symm⟩
+  · rw [inr_mem_range_inl_iff, mem_compl_iff, (inr_injective φ).mem_set_image, mem_compl_iff,
+      not_not, SetLike.mem_coe]
 
 /-- The range of `inl`, an open subset of the glued space: the points that come from `M₁`. -/
 def rangeInl : Opens (GluedAlong φ) := ⟨range (inl φ), isOpen_range_inl φ⟩
