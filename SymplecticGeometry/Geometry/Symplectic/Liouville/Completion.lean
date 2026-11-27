@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The completion of a strong filling: its symplectic form, primitive and Liouville field
@@ -733,9 +734,7 @@ private theorem isClosed_completionForm : h.completionForm.IsClosed := by
         exact congrFun ((SmoothForm.isClosed_def _).1 h.isSymplectic.isClosed) p)
 
 private theorem isNondegenerate_completionForm : h.completionForm.IsNondegenerate := by
-  refine SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦ ?_
-  suffices hz : (h.completionForm.bilinFormAt z).Nondegenerate from
-    LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
+  refine SmoothTwoForm.isNondegenerate_def.2 fun z ↦ ?_
   rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | ⟨p, hp, rfl⟩
   · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
       ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).isInvertible_mfderiv (by simp))
