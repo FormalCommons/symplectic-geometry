@@ -40,6 +40,10 @@ Facts about the Wirtinger derivatives `∂` and `\bar∂` that Tau Ceti's
   `y ↦ complexAntilinearPartL (Dg(y))`, a map into the real-linear operators, is that of `\bar∂g`
   followed by the isometric inclusion of the complex-antilinear operators into the real-linear
   ones; so the two derivatives have the same norm.
+* `TauCeti.norm_conjWirtingerDeriv_le_add_norm_fderiv_sub` and
+  `TauCeti.norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub`: `\bar∂e₂`
+  and its derivative are bounded by those of `e₁` plus the first and second derivatives of
+  `e₁ - e₂`, since `e₂ = e₁ - (e₁ - e₂)`.
 -/
 
 public section
@@ -168,6 +172,57 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv (g : V → W) (x : V) :
   rw [fderiv_complexAntilinearPartL_fderiv, LinearIsometry.norm_toContinuousLinearMap_comp]
 
 end DerivAntilinearPart
+
+section Sub
+
+open Topology
+
+variable {x : V}
+
+/-- The conjugate Wirtinger derivative of `e₂` at `x` is at most that of `e₁` plus the norm of
+the derivative of `e₁ - e₂`, when both maps are real differentiable at `x`. -/
+theorem norm_conjWirtingerDeriv_le_add_norm_fderiv_sub {e₁ e₂ : V → W}
+    (h₁ : DifferentiableAt ℝ e₁ x) (h₂ : DifferentiableAt ℝ e₂ x) :
+    ‖conjWirtingerDeriv e₂ x‖ ≤ ‖conjWirtingerDeriv e₁ x‖ + ‖fderiv ℝ (e₁ - e₂) x‖ := by
+  have hd : conjWirtingerDeriv e₂ x =
+      conjWirtingerDeriv e₁ x - conjWirtingerDeriv (e₁ - e₂) x := by
+    rw [← conjWirtingerDeriv_sub h₁ (h₁.sub h₂), sub_sub_cancel]
+  rw [hd, conjWirtingerDeriv_eq_complexAntilinearPart (g := e₁ - e₂)]
+  exact (norm_sub_le _ _).trans
+    (add_le_add le_rfl (fderiv ℝ (e₁ - e₂) x).norm_complexAntilinearPart_le)
+
+/-- The derivative at `x` of the conjugate Wirtinger derivative of `e₂`, in the bundled
+real-linear form `y ↦ complexAntilinearPartL (fderiv ℝ e₂ y)`, is at most that of `e₁` plus
+`‖complexAntilinearPartL‖` times the norm of the second derivative of `e₁ - e₂` at `x`, when both
+maps are `C²` over `ℝ` at `x`. -/
+theorem norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub
+    {e₁ e₂ : V → W} (h₁ : ContDiffAt ℝ 2 e₁ x) (h₂ : ContDiffAt ℝ 2 e₂ x) :
+    ‖fderiv ℝ (fun y ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₂ y)) x‖ ≤
+      ‖fderiv ℝ (fun y ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₁ y)) x‖ +
+        ‖(ContinuousLinearMap.complexAntilinearPartL : (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W)‖ *
+          ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
+  set P : (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W := ContinuousLinearMap.complexAntilinearPartL
+  have hd (g : V → W) (hg : ContDiffAt ℝ 2 g x) : DifferentiableAt ℝ (fderiv ℝ g) x :=
+    (hg.fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero
+  have h₁₂ : ContDiffAt ℝ 2 (e₁ - e₂) x := h₁.sub h₂
+  have hPd (g : V → W) (hg : ContDiffAt ℝ 2 g x) :
+      DifferentiableAt ℝ (fun y ↦ P (fderiv ℝ g y)) x :=
+    P.differentiableAt.comp x (hd g hg)
+  -- Near `x`, `P ∘ D e₂ = P ∘ D e₁ - P ∘ D (e₁ - e₂)`.
+  have hev : (fun y ↦ P (fderiv ℝ e₂ y)) =ᶠ[𝓝 x]
+      fun y ↦ P (fderiv ℝ e₁ y) - P (fderiv ℝ (e₁ - e₂) y) := by
+    filter_upwards [h₁.eventually (by simp), h₂.eventually (by simp)] with y hy₁ hy₂
+    rw [← map_sub, fderiv_sub (hy₁.differentiableAt (by simp)) (hy₂.differentiableAt (by simp)),
+      sub_sub_cancel]
+  rw [hev.fderiv_eq, fderiv_fun_sub (hPd e₁ h₁) (hPd _ h₁₂)]
+  have hb : ‖fderiv ℝ (fun y ↦ P (fderiv ℝ (e₁ - e₂) y)) x‖ ≤
+      ‖P‖ * ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
+    rw [fderiv_fun_comp x P.differentiableAt (hd _ h₁₂), P.fderiv,
+      ← norm_iteratedFDeriv_fderiv (n := 1), norm_iteratedFDeriv_one]
+    exact P.opNorm_comp_le _
+  exact (norm_sub_le (E := V →L[ℝ] V →L[ℝ] W) _ _).trans (add_le_add le_rfl hb)
+
+end Sub
 
 end TauCeti
 
