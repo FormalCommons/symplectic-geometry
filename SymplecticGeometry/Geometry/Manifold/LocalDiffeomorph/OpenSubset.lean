@@ -45,7 +45,7 @@ under `Φ`; it takes the values of `Φ` (`Diffeomorph.coe_restrOpens_apply`). It
 sides with Tau Ceti's `Diffeomorph.nestedOpen`. Applied to
 `PartialDiffeomorph.toDiffeomorphSourceTarget`, it restricts a partial diffeomorphism to open
 subsets of its source and target that correspond under it. For equal open subsets `U = V` of
-`M`, `Diffeomorph.opensCongr` is the identity of `M` read as a diffeomorphism from `U` to `V`, as
+`M`, `Diffeomorph.setCongr` is the identity of `M` read as a diffeomorphism from `U` to `V`, as
 Mathlib's `Homeomorph.setCongr` is for homeomorphisms.
 
 Tau Ceti reads a partial diffeomorphism `Φ` between open subsets `U` and `V` in the ambient
@@ -98,7 +98,7 @@ diffeomorphism at each point of `U` (`Diffeomorph.isLocalDiffeomorphAt_of_coe_eq
   diffeomorphism onto an open subset is a local diffeomorphism at each point of that subset.
 * `Diffeomorph.restrOpens`, `Diffeomorph.coe_restrOpens_apply`: a diffeomorphism between open
   subsets restricts to a diffeomorphism between smaller open subsets that correspond under it.
-* `Diffeomorph.opensCongr`, `Diffeomorph.coe_opensCongr_apply`: the identity between two equal
+* `Diffeomorph.setCongr`, `Diffeomorph.coe_setCongr_apply`: the identity between two equal
   open subsets, as a diffeomorphism.
 -/
 
@@ -313,32 +313,32 @@ theorem coe_restrOpens_symm_apply (Φ : U₀ ≃ₘ^n⟮I, J⟯ V₀) (hU : U �
 
 end RestrOpens
 
-section OpensCongr
+section SetCongr
 
 /-- The identity of `M` as a `C^n` diffeomorphism between two equal open subsets `U = V` of `M`,
 the smooth form of Mathlib's `Homeomorph.setCongr`. -/
-def opensCongr {U V : Opens M} (h : U = V) : U ≃ₘ^n⟮I, I⟯ V :=
+def setCongr {U V : Opens M} (h : U = V) : U ≃ₘ^n⟮I, I⟯ V :=
   (Diffeomorph.refl I M n).subtype fun _ ↦ by rw [h, coe_refl, id_eq]
 
-/-- `Diffeomorph.opensCongr` is Tau Ceti's `Diffeomorph.subtype` of the identity of `M`. -/
-theorem opensCongr_def {U V : Opens M} (h : U = V) :
-    opensCongr (I := I) (n := n) h =
+/-- `Diffeomorph.setCongr` is Tau Ceti's `Diffeomorph.subtype` of the identity of `M`. -/
+theorem setCongr_def {U V : Opens M} (h : U = V) :
+    setCongr (I := I) (n := n) h =
       (Diffeomorph.refl I M n).subtype fun _ ↦ by rw [h, coe_refl, id_eq] :=
   (rfl)
 
-/-- The diffeomorphism `Diffeomorph.opensCongr` keeps the underlying point. -/
+/-- The diffeomorphism `Diffeomorph.setCongr` keeps the underlying point. -/
 @[simp]
-theorem coe_opensCongr_apply {U V : Opens M} (h : U = V) (x : U) :
-    (opensCongr (I := I) (n := n) h x : M) = x := by
-  rw [opensCongr_def, subtype_apply_coe, coe_refl, id_eq]
+theorem coe_setCongr_apply {U V : Opens M} (h : U = V) (x : U) :
+    (setCongr (I := I) (n := n) h x : M) = x :=
+  subtype_apply_coe _ _ x
 
-/-- The inverse of `Diffeomorph.opensCongr` keeps the underlying point. -/
+/-- The inverse of `Diffeomorph.setCongr` keeps the underlying point. -/
 @[simp]
-theorem coe_opensCongr_symm_apply {U V : Opens M} (h : U = V) (y : V) :
-    ((opensCongr (I := I) (n := n) h).symm y : M) = y := by
-  rw [opensCongr_def, subtype_symm_apply_coe, symm_refl, coe_refl, id_eq]
+theorem coe_setCongr_symm_apply {U V : Opens M} (h : U = V) (y : V) :
+    ((setCongr (I := I) (n := n) h).symm y : M) = y :=
+  subtype_symm_apply_coe _ _ y
 
-end OpensCongr
+end SetCongr
 
 end Diffeomorph
 
