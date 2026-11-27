@@ -242,7 +242,7 @@ theorem moment_inv_smul_im_mfderiv_polar_smul
           (Manifold.curveVelocity IC (fun τ : ℝ ↦ C.polar (τ • ξ, u)) t))) =
       μ (C.expI (-(t • ξ)) • p) ξ := by
   rw [funext fun τ : ℝ ↦ C.polar_apply (τ • ξ) u, C.polar_apply,
-    C.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom, C.im_cplx_lieMap, mul_inv_rev, ← map_inv,
+    C.mfderiv_inv_mul_curveVelocity_expI_smul_mul_toHom, C.im_cplx_lieMap, mul_inv_rev, ← map_inv,
     ← C.expI_neg, mul_smul, hμ, Lie.coadjointRepresentation_apply, inv_inv,
     ← Lie.tangentAd_apply, Lie.tangentAd_inv, LieEquiv.apply_symm_apply]
 
@@ -399,7 +399,7 @@ theorem mfderiv_kempfNessFunction (h : IsComplexifiedAction C J)
   have h' := hΦ.unique (hasDerivAt_kempfNessFunction_comp_of_contMDiff C μ p h hμ hg
     (c := fun s ↦ g * mulInvariantExp (s • ζ))
     (contMDiff_const.mul (contMDiff_mulInvariantExp_smul ζ)) 0)
-  rwa [mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul, zero_smul, mulInvariantExp_zero,
+  rwa [mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul, zero_smul, mulInvariantExp_zero,
     mul_one] at h'
 
 /-- **The derivative of the Kempf–Ness function along a curve.** Let the action of `Gc` be a
@@ -431,7 +431,7 @@ theorem HasLeftTrivializedDerivOn.hasDerivAt_kempfNessFunction {c : ℝ → Gc}
     (hs : s ∈ 𝓝 t) :
     HasDerivAt (fun u ↦ kempfNessFunction C μ p (c u)) (μ ((c t)⁻¹ • p) (C.im (ξ t))) t := by
   have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg (hc.mdifferentiableAt hs)
-  rwa [hc.mfderiv_inv_mul_mfderiv hs] at hΦ
+  rwa [hc.mfderiv_inv_mul_curveVelocity hs] at hΦ
 
 /-- **The derivative of the Kempf–Ness function along a geodesic.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
@@ -450,8 +450,8 @@ theorem hasDerivAt_kempfNessFunction_geodesic (h : IsComplexifiedAction C J)
   have hc : MDifferentiableAt 𝓘(ℝ) IC (fun s ↦ g * mulInvariantExp (s • ζ)) t :=
     (contMDiff_const.mul (contMDiff_mulInvariantExp_smul ζ)).mdifferentiableAt (by simp)
   have hD := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hc
-  rw [mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul, C.im_cplx_lieMap, mul_inv_rev, mul_smul,
-    ← hexp, ← C.expI_neg] at hD
+  rw [mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul, C.im_cplx_lieMap, mul_inv_rev,
+    mul_smul, ← hexp, ← C.expI_neg] at hD
   simpa only [Function.comp_def, hexp] using hD
 
 /-- **The second derivative of the Kempf–Ness function along a geodesic.** Let the action of
