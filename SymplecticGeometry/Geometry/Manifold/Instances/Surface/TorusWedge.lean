@@ -197,8 +197,8 @@ theorem torusCirclesFundamentalGroupMulEquiv_torusCircleLoop (i : Fin 2) :
   rw [← WedgeSum.circleFundamentalGroupMulEquiv_expLoop i, torusCirclesFundamentalGroupMulEquiv,
     MulEquiv.trans_apply]
   congr 1
-  rw [MulEquiv.symm_apply_eq, FundamentalGroup.homeomorphMulEquivOfEq_apply,
-    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_fromPath_mk]
+  rw [MulEquiv.symm_apply_eq, FundamentalGroup.mapOfEq_fromPath_mk,
+    FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk]
   refine congrArg CategoryTheory.End.of (congrArg _ ?_)
   ext t
   simp [torusCirclesHomeomorph_apply, wedgeToTorusCircles, circleIncl]
