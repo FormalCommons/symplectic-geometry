@@ -272,9 +272,8 @@ theorem Compatible.cayleyPath_of_nonpos {t : ℝ} (ht : t ≤ 0) : h₀.cayleyPa
 @[simp]
 theorem Compatible.cayleyPath_of_one_le {t : ℝ} (ht : 1 ≤ t) : h₀.cayleyPath h t = J := by
   ext x v
-  have hJ₀ : J₀ x * J₀ x = -1 := by
-    rw [ContinuousLinearMap.mul_def, ContinuousLinearMap.one_def]
-    exact J₀.square_neg x
+  have hJ₀ : J₀ x * J₀ x = -1 :=
+    ContinuousLinearMap.mul_self_eq_neg_one_iff_comp_eq_neg_id.2 (J₀.square_neg x)
   rw [h₀.cayleyPath_apply, Real.smoothTransition.one_of_one_le ht, cayleyPathFormula_one hJ₀
     (isUnit_of_mem_cayleyPathDomain (h₀.mem_cayleyPathDomain h x) ⟨zero_le_one, le_rfl⟩).1]
 

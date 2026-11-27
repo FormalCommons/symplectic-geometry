@@ -9,10 +9,10 @@ public import Mathlib.Analysis.Matrix.Normed
 public import TauCeti.Analysis.Matrix.Polar.Symplectic
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Connected
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
+import TauCeti.LinearAlgebra.SymplecticGroup
 import SymplecticGeometry.Analysis.CStarAlgebra.Exponential
 import SymplecticGeometry.Analysis.Matrix.L2OpNorm
 import SymplecticGeometry.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.ExpLog
-import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.Topology.Algebra.Matrix.Realify
 
 /-!
@@ -65,7 +65,7 @@ private theorem exists_path_contDiff_apply {A B : Matrix (n ⊕ n) (n ⊕ n) ℝ
     (hA : A ∈ symplecticGroup n ℝ) (hB : B ∈ symplecticGroup n ℝ) :
     ∃ γ : ℝ → Matrix (n ⊕ n) (n ⊕ n) ℝ, (∀ i j, ContDiff ℝ ∞ fun t ↦ γ t i j) ∧
       (∀ t, γ t ∈ symplecticGroup n ℝ) ∧ γ 0 = A ∧ γ 1 = B := by
-  have hA' : A⁻¹ ∈ symplecticGroup n ℝ := SymplecticGroup.inv_mem hA
+  have hA' : A⁻¹ ∈ symplecticGroup n ℝ := SymplecticGroup.nonsing_inv_mem hA
   obtain ⟨C, hCB⟩ := (isUnit_iff_isUnit_det _).2
     (SymplecticGroup.symplectic_det (Submonoid.mul_mem _ hA' hB))
   have hC : (C : Matrix (n ⊕ n) (n ⊕ n) ℝ) ∈ symplecticGroup n ℝ :=

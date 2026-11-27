@@ -353,8 +353,7 @@ theorem deRhamHom_realFirstChernClass_eq_neg_projectiveSpace :
     have hι : Function.Injective ι := LinearMap.funLeft_injective_of_surjective _ _ _
       fun j ↦ by fin_cases j <;> [exact ⟨0, rfl⟩; exact ⟨1, rfl⟩]
     let f : C(ℙ ℂ (Fin 2 → ℂ), ℙ ℂ (Fin (n + 1 + 1) → ℂ)) :=
-      ⟨Projectivization.map ι hι, Projectivization.continuous_map hι
-        (LinearMap.continuous_of_finiteDimensional ι)⟩
+      Projectivization.mapContinuousMap ι hι
     have hf : ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ f :=
       Projectivization.contMDiff_map_restrictScalars ι hι ∞
     have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := F) (E := V) hf

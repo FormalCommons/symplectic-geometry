@@ -127,7 +127,7 @@ theorem complexManifoldEvalFundamentalClass_map_hyperplaneClass {W : Type}
     (hι : Function.Injective ι) :
     complexManifoldEvalFundamentalClass (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)
       (TopCat.singularCohomologyMap
-        (TopCat.ofHom ⟨map ι hι, continuous_map hι (LinearMap.continuous_of_finiteDimensional ι)⟩)
+        (TopCat.ofHom (mapContinuousMap ι hι))
         2 (hyperplaneClass W)) = 1 := by
   rw [hyperplaneClass_map]
   exact complexManifoldEvalFundamentalClass_hyperplaneClass

@@ -16,7 +16,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
-public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+public import TauCeti.Topology.FiberBundle.ModelFiber
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
@@ -55,19 +55,19 @@ base:
   by changing the structure group along that isomorphism
   (`TauCeti.PrincipalBundle.changeGroup`); its trivializations are those of Tau Ceti's bundle
   followed by the isomorphism on the fibre coordinate
-  (`Bundle.Trivialization.changeModelFiber`). Such a trivialization reads a frame `φ` as the
+  (`Bundle.Trivialization.transModelFiber`). Such a trivialization reads a frame `φ` as the
   inner product `⟪σ 1, φ 1⟫` with the unit vector of the local frame `σ`
-  (`Bundle.Trivialization.coe_snd_changeModelFiber_orthonormalFrameBundleFiber`), so its
+  (`Bundle.Trivialization.coe_snd_transModelFiber_orthonormalFrameBundleFiber`), so its
   transition functions are the inner products `⟪σ' 1, σ 1⟫`
-  (`Bundle.Trivialization.coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber`).
+  (`Bundle.Trivialization.coe_coordChange_transModelFiber_orthonormalFrameBundleFiber`).
 
 The rank-one condition is the instance `Fact (Module.finrank ℂ F = 1)`. The instances
 `FiniteDimensional.of_fact_finrank_eq_one` and
 `Module.fact_finrank_self_eq_of_fact_finrank_eq_one`, from
 `SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne`, derive from it that `F` is
 finite-dimensional and has the rank of `ℂ`. The topology on the frames with model fibre `Circle`
-is induced from Tau Ceti's along `Bundle.TotalSpace.modelFiberEquiv`
-(`SymplecticGeometry.Bundle.isInducing_modelFiberEquiv_circleFiber`).
+is induced from Tau Ceti's along the identity of points (`TauCeti.totalSpaceModelFiberInduced`,
+`SymplecticGeometry.Bundle.isInducing_totalSpaceMk'_circleFiber`).
 
 The last section adds the smooth structure, for a Hermitian line bundle `(g, hI)` over a manifold:
 a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, whose fibres get
@@ -338,31 +338,30 @@ variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
   [∀ x, InnerProductSpace ℂ (E x)] [TopologicalSpace (TotalSpace F E)]
 
 /-- The topology on the total space of the unitary frame bundle with model fibre `Circle`,
-induced from the one with model fibre `unitary (ℂ →L[ℂ] ℂ)` along
-`Bundle.TotalSpace.modelFiberEquiv`, as `FiberBundle.changeModelFiber` and
+induced from the one with model fibre `unitary (ℂ →L[ℂ] ℂ)` along the identity of points
+(`TauCeti.totalSpaceModelFiberInduced`), as `FiberBundle.ofModelFiberHomeomorph` and
 `TauCeti.PrincipalBundle.changeGroup` ask. -/
 instance instTopologicalSpaceTotalSpaceCircleFiber :
     TopologicalSpace (TotalSpace Circle (Fiber ℂ F E ℂ)) :=
-  .induced (TotalSpace.modelFiberEquiv (unitary (ℂ →L[ℂ] ℂ)) Circle (Fiber ℂ F E ℂ))
-    inferInstance
+  TauCeti.totalSpaceModelFiberInduced (unitary (ℂ →L[ℂ] ℂ)) Circle (Fiber ℂ F E ℂ)
 
-/-- `Bundle.TotalSpace.modelFiberEquiv`, from the unitary frames with model fibre `Circle` to
-those with model fibre `unitary (ℂ →L[ℂ] ℂ)`, is inducing: the topology
-`instTopologicalSpaceTotalSpaceCircleFiber` is induced along it. -/
-theorem isInducing_modelFiberEquiv_circleFiber :
-    Topology.IsInducing
-      (TotalSpace.modelFiberEquiv (unitary (ℂ →L[ℂ] ℂ)) Circle (Fiber ℂ F E ℂ)) :=
-  ⟨rfl⟩
+/-- The identity of points, from the unitary frames with model fibre `Circle` to those with model
+fibre `unitary (ℂ →L[ℂ] ℂ)`, is inducing: the topology `instTopologicalSpaceTotalSpaceCircleFiber`
+is induced along it. -/
+theorem isInducing_totalSpaceMk'_circleFiber :
+    Topology.IsInducing fun p : TotalSpace Circle (Fiber ℂ F E ℂ) ↦
+      TotalSpace.mk' (unitary (ℂ →L[ℂ] ℂ)) p.proj p.snd :=
+  TauCeti.isInducing_totalSpaceModelFiberInduced _ _ _
 
 variable [TopologicalSpace B] [NormedAddCommGroup F] [NormedSpace ℂ F] [FiberBundle F E]
   [VectorBundle ℂ F E] [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)]
 
 /-- The unitary frames of a complex line bundle form a fibre bundle with fibre `Circle`: Tau Ceti's
 frame bundle with its model fibre `unitary (ℂ →L[ℂ] ℂ)` replaced by `Circle` along
-`Unitary.continuousLinearMapCircleEquiv` (`FiberBundle.changeModelFiber`). -/
+`Unitary.continuousLinearMapCircleEquiv` (`FiberBundle.ofModelFiberHomeomorph`). -/
 instance instFiberBundleCircleFiber : FiberBundle Circle (Fiber ℂ F E ℂ) :=
-  FiberBundle.changeModelFiber (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
-      isInducing_modelFiberEquiv_circleFiber
+  FiberBundle.ofModelFiberHomeomorph _ (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
+      isInducing_totalSpaceMk'_circleFiber
 
 /-- **The unitary frames of a complex line bundle form a principal `Circle`-bundle**, `Circle`
 acting on the right by precomposition with multiplication: the change of structure group of
@@ -370,7 +369,7 @@ Tau Ceti's principal `unitary (ℂ →L[ℂ] ℂ)`-bundle along
 `Unitary.continuousLinearMapCircleEquiv`. -/
 instance instPrincipalBundleCircleFiber : PrincipalBundle Circle (Fiber ℂ F E ℂ) :=
   PrincipalBundle.changeGroup Unitary.continuousLinearMapCircleEquiv
-    isInducing_modelFiberEquiv_circleFiber fun _ _ _ ↦ rfl
+    isInducing_totalSpaceMk'_circleFiber fun _ _ _ ↦ rfl
 
 end Principal
 
@@ -393,30 +392,30 @@ variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
 the unitary frame bundle over `e` reads a frame `φ` over the base set of `e` as the inner product
 `⟪σ 1, φ 1⟫` of the unit vectors given by `φ` and by the local frame `σ = e.orthonormalFrameAt c b`.
 -/
-theorem coe_snd_changeModelFiber_orthonormalFrameBundleFiber
+theorem coe_snd_transModelFiber_orthonormalFrameBundleFiber
     (p : TotalSpace Circle (Fiber ℂ F E ℂ)) (hp : p.proj ∈ e.baseSet) :
-    (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.changeModelFiber
+    (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.transModelFiber
       (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
-      isInducing_modelFiberEquiv_circleFiber p).2 : ℂ) =
+      isInducing_totalSpaceMk'_circleFiber p).2 : ℂ) =
       ⟪e.orthonormalFrameAt c b p.proj 1, p.snd.frame 1⟫_ℂ := by
-  rw [changeModelFiber_apply, orthonormalFrameBundleFiber_apply, totalSpaceEquiv_apply,
+  rw [transModelFiber_apply, orthonormalFrameBundleFiber_apply, totalSpaceEquiv_apply,
     orthonormalFrameBundle_apply_mk e c b ⟨_, hp⟩]
   simp only [e.orthonormalFrameAt_of_mem c b hp]
   rw [LinearIsometryEquiv.inner_map_eq_flip]
   simp
 
-/-- The inverse of the trivialization of `coe_snd_changeModelFiber_orthonormalFrameBundleFiber`
+/-- The inverse of the trivialization of `coe_snd_transModelFiber_orthonormalFrameBundleFiber`
 sends `(y, z)`, for `y` in the base set of `e`, to a frame over `y` whose unit vector is `z • σ 1`,
 for the local frame `σ = e.orthonormalFrameAt c b` at `y`. -/
-theorem frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one {y : B} (hy : y ∈ e.baseSet)
+theorem frame_transModelFiber_orthonormalFrameBundleFiber_symm_one {y : B} (hy : y ∈ e.baseSet)
     (z : Circle) :
-    (⟨_, (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.changeModelFiber
+    (⟨_, (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.transModelFiber
       (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
-      isInducing_modelFiberEquiv_circleFiber).toOpenPartialHomeomorph.symm
+      isInducing_totalSpaceMk'_circleFiber).toOpenPartialHomeomorph.symm
         (y, z)).snd.frame 1⟩ : TotalSpace F E) = ⟨y, (z : ℂ) • e.orthonormalFrameAt c b y 1⟩ := by
-  rw [changeModelFiber_symm_apply, orthonormalFrameBundleFiber_symm_apply,
-    e.orthonormalFrameBundle_symm_apply c b ⟨y, hy⟩, TotalSpace.modelFiberEquiv_symm_apply,
-    totalSpaceEquiv_symm_apply]
+  rw [transModelFiber_symm_apply, orthonormalFrameBundleFiber_symm_apply,
+    e.orthonormalFrameBundle_symm_apply c b ⟨y, hy⟩,
+    TauCeti.totalSpaceModelFiberHomeomorph_symm_apply, totalSpaceEquiv_symm_apply]
   simp only [OrthonormalFrameBundle.proj_smul, OrthonormalFrameBundle.frame_smul_apply,
     unop_op, ContinuousMulEquiv.coe_toHomeomorph_symm, e.orthonormalFrameAt_of_mem c b hy]
   have hz : (((Unitary.continuousLinearMapCircleEquiv.symm : Circle ≃ₜ _) z :
@@ -427,17 +426,17 @@ theorem frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one {y : B} (hy 
     (by simpa using (e.orthonormalFrame c b ⟨y, hy⟩).map_smul (z : ℂ) 1)
 
 /-- The transition function between two of the trivializations of
-`coe_snd_changeModelFiber_orthonormalFrameBundleFiber` is the inner product `⟪σ' 1, σ 1⟫` of the
+`coe_snd_transModelFiber_orthonormalFrameBundleFiber` is the inner product `⟪σ' 1, σ 1⟫` of the
 unit vectors of their local frames. -/
-theorem coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber
+theorem coe_coordChange_transModelFiber_orthonormalFrameBundleFiber
     (e' : Trivialization F (π F E)) [e'.IsLinear ℂ] (c' : Basis ι ℂ F)
     (b' : OrthonormalBasis ι ℂ ℂ) {y : B} (hy : y ∈ e.baseSet) (hy' : y ∈ e'.baseSet) :
-    (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.changeModelFiber
+    (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.transModelFiber
       (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
-      isInducing_modelFiberEquiv_circleFiber).coordChange
-        ((e'.orthonormalFrameBundle c' b').orthonormalFrameBundleFiber.changeModelFiber
+      isInducing_totalSpaceMk'_circleFiber).coordChange
+        ((e'.orthonormalFrameBundle c' b').orthonormalFrameBundleFiber.transModelFiber
           (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
-          isInducing_modelFiberEquiv_circleFiber) y 1 : ℂ) =
+          isInducing_totalSpaceMk'_circleFiber) y 1 : ℂ) =
       ⟪e'.orthonormalFrameAt c' b' y 1, e.orthonormalFrameAt c b y 1⟫_ℂ := by
   have key (q : TotalSpace F E) (hq : q = ⟨y, ((1 : Circle) : ℂ) • e.orthonormalFrameAt c b y 1⟩) :
       ⟪e'.orthonormalFrameAt c' b' q.proj 1, q.snd⟫_ℂ =
@@ -445,8 +444,8 @@ theorem coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber
     subst hq
     rw [Circle.coe_one, one_smul]
   rw [coordChange]
-  refine (e'.coe_snd_changeModelFiber_orthonormalFrameBundleFiber c' b' _ ?_).trans
-    (key _ (e.frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one c b hy 1))
+  refine (e'.coe_snd_transModelFiber_orthonormalFrameBundleFiber c' b' _ ?_).trans
+    (key _ (e.frame_transModelFiber_orthonormalFrameBundleFiber_symm_one c b hy 1))
   convert hy'
   exact proj_symm_apply' _ (by simpa using hy)
 
@@ -509,22 +508,26 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
     instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
   refine (PrincipalBundle.contMDiffFiberBundle_iff (n := n) (G := Circle)
     (P := Fiber ℂ F V ℂ) (IB := I) (IG := 𝓡 1)).2 fun t₁ t₂ h₁ h₂ ↦ ?_
-  obtain ⟨s₁, hs₁, rfl⟩ :=
-    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ t₁ h₁
-  obtain ⟨s₂, hs₂, rfl⟩ :=
-    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ t₂ h₂
+  obtain ⟨s₁, hs₁, rfl⟩ := (FiberBundle.trivializationAtlas_ofModelFiberHomeomorph
+    (unitary (ℂ →L[ℂ] ℂ)) (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
+    isInducing_totalSpaceMk'_circleFiber).subset
+        h₁.out
+  obtain ⟨s₂, hs₂, rfl⟩ := (FiberBundle.trivializationAtlas_ofModelFiberHomeomorph
+    (unitary (ℂ →L[ℂ] ℂ)) (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
+    isInducing_totalSpaceMk'_circleFiber).subset
+        h₂.out
   obtain ⟨e₁, he₁, c₁, b₁, rfl⟩ :=
-    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s₁).1 hs₁
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s₁).1 ⟨hs₁⟩
   obtain ⟨e₂, he₂, c₂, b₂, rfl⟩ :=
-    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s₂).1 hs₂
-  simp only [Trivialization.baseSet_changeModelFiber,
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s₂).1 ⟨hs₂⟩
+  simp only [Trivialization.transModelFiber_baseSet,
     Trivialization.baseSet_orthonormalFrameBundleFiber,
     Trivialization.baseSet_orthonormalFrameBundle]
   refine ContMDiffOn.of_coe_sphere (E := ℂ) ?_
   exact (g.contMDiffOn_hermitianPairing hI (b := id)
     ((e₂.contMDiffOn_orthonormalFrameAt_one g hI c₂ b₂).mono Set.inter_subset_right)
     ((e₁.contMDiffOn_orthonormalFrameAt_one g hI c₁ b₁).mono Set.inter_subset_left)).congr
-    fun y hy ↦ e₁.coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber c₁ b₁ e₂ c₂ b₂
+    fun y hy ↦ e₁.coe_coordChange_transModelFiber_orthonormalFrameBundleFiber c₁ b₁ e₂ c₂ b₂
       hy.1 hy.2
 
 variable [IsManifold I n B]
@@ -548,10 +551,13 @@ theorem contMDiff_circleFiber_frame_one :
   intro x₀
   set h := ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)
   have ht := trivialization_mem_atlas Circle (Fiber ℂ F V ℂ) (h.symm x₀).proj
-  obtain ⟨s, hs, hst⟩ :=
-    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ _ ⟨ht⟩
+  obtain ⟨s, hs, hst⟩ := (FiberBundle.trivializationAtlas_ofModelFiberHomeomorph
+    (unitary (ℂ →L[ℂ] ℂ)) (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
+    isInducing_totalSpaceMk'_circleFiber).subset ht
+  replace hst := hst.symm
+  beta_reduce at hst
   obtain ⟨e, he, c, b, rfl⟩ :=
-    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s).1 hs
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s).1 ⟨hs⟩
   set t := trivializationAt Circle (Fiber ℂ F V ℂ) (h.symm x₀).proj
   have hx₀ : x₀ ∈ h.symm ⁻¹' t.source :=
     t.mem_source.2 (mem_baseSet_trivializationAt Circle (Fiber ℂ F V ℂ) _)
@@ -577,7 +583,7 @@ theorem contMDiff_circleFiber_frame_one :
     rw [hst] at hq
     simp only [Function.comp_apply, hst]
     conv_lhs => rw [← (Trivialization.toOpenPartialHomeomorph _).left_inv hx]
-    exact e.frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one c b hq _
+    exact e.frame_transModelFiber_orthonormalFrameBundleFiber_symm_one c b hq _
 
 section Sections
 
@@ -613,10 +619,13 @@ theorem contMDiffOn_circleFiber_iff {b : M → B} {U : Set M} (hU : IsOpen U) :
   refine (ManifoldTotalSpace.contMDiffAt_iff.2
     ⟨hb.contMDiffAt (hU.mem_nhds hm₀), ?_⟩).contMDiffWithinAt
   have ht := trivialization_mem_atlas Circle (Fiber ℂ F V ℂ) (b m₀)
-  obtain ⟨s, hs, hst⟩ :=
-    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ _ ⟨ht⟩
+  obtain ⟨s, hs, hst⟩ := (FiberBundle.trivializationAtlas_ofModelFiberHomeomorph
+    (unitary (ℂ →L[ℂ] ℂ)) (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle)
+    isInducing_totalSpaceMk'_circleFiber).subset ht
+  replace hst := hst.symm
+  beta_reduce at hst
   obtain ⟨e, he, c, b', rfl⟩ :=
-    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s).1 hs
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s).1 ⟨hs⟩
   have hbase : (trivializationAt Circle (Fiber ℂ F V ℂ) (b m₀)).baseSet = e.baseSet := by
     rw [hst]; simp
   have hW : IsOpen (U ∩ b ⁻¹' e.baseSet) := hb.continuousOn.isOpen_inter_preimage hU e.open_baseSet
@@ -628,7 +637,7 @@ theorem contMDiffOn_circleFiber_iff {b : M → B} {U : Set M} (hU : IsOpen U) :
     ((e.contMDiffOn_orthonormalFrameAt_one g hI c b').comp (hb.mono Set.inter_subset_left)
       fun m hm ↦ hm.2) (h.mono Set.inter_subset_left)).congr fun m hm ↦ ?_).contMDiffAt
     (hW.mem_nhds hm))
-  have key := e.coe_snd_changeModelFiber_orthonormalFrameBundleFiber c b'
+  have key := e.coe_snd_transModelFiber_orthonormalFrameBundleFiber c b'
     (⟨b m, σ m⟩ : TotalSpace Circle (Fiber ℂ F V ℂ)) hm.2
   rw [← hst] at key
   exact key
@@ -741,14 +750,14 @@ def circleBundleDiffeomorph (hn : 1 ≤ n) :
   letI := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
     hn fun _ ↦ one_pos
   { toEquiv := (((ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)).symm.trans
-      (TotalSpace.modelFiberHomeomorph isInducing_modelFiberEquiv_circleFiber)).trans
+      (TauCeti.totalSpaceModelFiberHomeomorph _ _ isInducing_totalSpaceMk'_circleFiber)).trans
         circleBundleHomeomorph).toEquiv
     contMDiff_toFun := (isSmoothEmbedding_coe_sphereBundle (F := F) (V := V)
       (contMDiff_const (I := I) (c := (1 : ℝ))) hn fun _ ↦ one_pos).contMDiff_iff_comp.2
         ((contMDiff_circleFiber_frame_one g hI).congr fun x ↦ by
-          simp [TotalSpace.coe_modelFiberHomeomorph, TotalSpace.modelFiberEquiv_apply])
+          simp [TauCeti.totalSpaceModelFiberHomeomorph_apply])
     contMDiff_invFun := (contMDiff_circleBundleHomeomorph_symm g hI hn).congr fun p ↦ by
-      simp [TotalSpace.coe_modelFiberHomeomorph_symm, TotalSpace.modelFiberEquiv_symm_apply] }
+      simp [TauCeti.totalSpaceModelFiberHomeomorph_symm_apply] }
 
 /-- `circleBundleDiffeomorph` is `circleBundleHomeomorph`, read through the identification of the
 total space of the unitary frame bundle with model fibre `Circle` with
@@ -768,11 +777,10 @@ theorem circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
   intro p
   -- `circleBundleDiffeomorph` is defined as `circleBundleHomeomorph` after the change of model
   -- fibre, and this is the statement of that definition.
-  change circleBundleHomeomorph (TotalSpace.modelFiberHomeomorph
-    isInducing_modelFiberEquiv_circleFiber
+  change circleBundleHomeomorph (TauCeti.totalSpaceModelFiberHomeomorph _ _
+    isInducing_totalSpaceMk'_circleFiber
     ((ManifoldTotalSpace.homeomorph _ _).symm (ManifoldTotalSpace.homeomorph _ _ p))) = _
-  rw [Homeomorph.symm_apply_apply, TotalSpace.coe_modelFiberHomeomorph,
-    TotalSpace.modelFiberEquiv_apply]
+  rw [Homeomorph.symm_apply_apply, TauCeti.totalSpaceModelFiberHomeomorph_apply]
 
 /-- `circleBundleDiffeomorph` sends a frame `φ` of `V x` to the unit vector `φ 1`. -/
 @[simp]

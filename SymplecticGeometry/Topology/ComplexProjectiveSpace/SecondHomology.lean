@@ -121,15 +121,13 @@ theorem bijective_singularHomologyMap_map_two (f : V →ₗ[ℂ] W) (hf : Functi
     (hV : finrank ℂ V = n + 1) (hn : n ≠ 0) :
     Function.Bijective
       (((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).map
-        (TopCat.ofHom
-          ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩)) := by
+        (TopCat.ofHom (mapContinuousMap f hf))) := by
   have hle := LinearMap.finrank_le_finrank_of_injective hf
   have hW : finrank ℂ W = (finrank ℂ W - 1) + 1 := by omega
   have hcomp : ⇑((TopCat.of (ℙ ℂ V)).integralKronecker 2 (hyperplaneClass V)) =
       (TopCat.of (ℙ ℂ W)).integralKronecker 2 (hyperplaneClass W) ∘
         ((singularHomologyFunctor (ModuleCat.{0} ℤ) 2).obj (𝟙_ (ModuleCat.{0} ℤ))).map
-          (TopCat.ofHom
-          ⟨map f hf, continuous_map hf (LinearMap.continuous_of_finiteDimensional f)⟩) := by
+          (TopCat.ofHom (mapContinuousMap f hf)) := by
     ext x
     rw [Function.comp_apply, ← TopCat.integralKronecker_naturality, hyperplaneClass_map]
   rw [← (bijective_integralKronecker_hyperplaneClass hW (by omega)).of_comp_iff', ← hcomp]

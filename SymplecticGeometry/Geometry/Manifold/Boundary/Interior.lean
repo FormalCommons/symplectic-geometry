@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Maps into the charted interior, and its identification with the open interior
@@ -145,11 +146,10 @@ every regularity `n`. -/
 theorem isLocalDiffeomorph_subtypeVal_interior :
     IsLocalDiffeomorph 𝓘(𝕜, E) I n (Subtype.val : I.interior M → M) := by
   intro x
-  have h := ((interiorOpensDiffeomorph I M n).symm.isLocalDiffeomorph x).comp
-    (hg := isLocalDiffeomorph_subtype_val _)
+  have h := (interiorOpensDiffeomorph I M n).symm.isLocalDiffeomorph_subtypeVal_comp x
   convert h using 1
   ext y
-  simp only [Function.comp_apply, coe_interiorOpensDiffeomorph_symm_apply]
+  simp only [coe_interiorOpensDiffeomorph_symm_apply]
 
 omit [IsManifold I 1 M] in
 /-- The inclusion of Tau Ceti's charted interior `I.interior M` into `M` has derivative the

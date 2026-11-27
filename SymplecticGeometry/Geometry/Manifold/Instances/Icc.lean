@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Instances.Icc
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.Riemannian.Interval.Basic
 
 /-!
 # The inclusion and the unit vector field of a closed interval
@@ -34,8 +35,8 @@ ends (`contMDiff_prodVectorField_one_zero`), so it is a smooth section of the ta
 (`unitIntervalTimeField`). In the same way, on `[0, 1]² × P` the unit field `∂ₛ = ((0, 1), 0)`
 of the second time coordinate is a smooth section (`unitIntervalSqSndField`).
 
-Every tangent vector of the interval is a real multiple of `1`: a vector that the inclusion sends
-to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative of a map into the
+Every tangent vector of the interval is a real multiple of `1`, its image under the inclusion
+(Tau Ceti's `TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc`). So the derivative of a map into the
 interval is read off from that of its composite with the inclusion
 (`mfderiv_apply_eq_smul_one_Icc`), and continuous linear maps on a tangent space of the interval
 agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
@@ -190,15 +191,6 @@ theorem unitIntervalSqSndField_apply (p : (unitInterval × unitInterval) × P) :
 
 end Cylinder
 
-/-- A tangent vector `v` of a closed interval `[x, y]`, `x < y`, is `r` times the unit tangent
-vector `1` when the inclusion `Icc x y → ℝ` sends it to `r`. -/
-theorem eq_smul_one_of_mfderiv_subtypeVal_Icc {z : Icc x y} {v : TangentSpace (𝓡∂ 1) z} {r : ℝ}
-    (h : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r) :
-    v = r • (1 : TangentSpace (𝓡∂ 1) z) := by
-  -- The inclusion has invertible derivative, which sends `1` to `1`.
-  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc z).injective ?_
-  rw [mfderiv_subtypeVal_Icc_smul_one, h]
-
 /-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
 at `t`. If the derivative at `t` of `Subtype.val ∘ f : M → ℝ` sends `v` to `r`, then the
 derivative of `f` at `t` sends `v` to `r` times the unit tangent vector `1` at `f t`. -/
@@ -207,8 +199,9 @@ theorem mfderiv_apply_eq_smul_one_Icc {E H M : Type*} [NormedAddCommGroup E] [No
     {f : M → Icc x y} {t : M} (hf : MDifferentiableAt I (𝓡∂ 1) f t) {v : TangentSpace I t}
     {r : ℝ} (h : mfderiv I 𝓘(ℝ) (Subtype.val ∘ f) t v = r) :
     mfderiv I (𝓡∂ 1) f t v = r • (1 : TangentSpace (𝓡∂ 1) (f t)) := by
-  refine eq_smul_one_of_mfderiv_subtypeVal_Icc ?_
-  rw [← mfderiv_comp_apply t (mdifferentiableAt_subtypeVal_Icc _) hf, h]
+  refine (TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc _ _).trans ?_
+  rw [mvfderiv_apply_eq_mfderiv_apply,
+    ← mfderiv_comp_apply t (mdifferentiableAt_subtypeVal_Icc _) hf, h]
 
 /-- Let `Φ : M × [x, y] → F`, with `F` a normed space, be differentiable at `(p, t)` and affine in
 time along the slice through `p`: `Φ (p, s) = a + s • v` for every `s`. Then the derivative of
@@ -243,8 +236,7 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
     [TopologicalSpace F] {z : Icc x y} {f g : TangentSpace (𝓡∂ 1) z →L[ℝ] F} (h : f 1 = g 1) :
     f = g := by
   ext1 v
-  obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
-  rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
+  rw [TauCeti.eq_mvfderiv_subtypeVal_smul_one_Icc z v, map_smul, map_smul, h]
 
 /-- Mathlib's affine homeomorphism `iccHomeoI x y h : Icc x y ≃ₜ unitInterval`,
 `z ↦ (z - x) / (y - x)`, is `C^n` for every `n`, up to both ends. -/
