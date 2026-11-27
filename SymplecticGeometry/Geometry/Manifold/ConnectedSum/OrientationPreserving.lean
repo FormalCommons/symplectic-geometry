@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.ConnectedSum.Oriented
 public import TauCeti.Geometry.Manifold.ConnectedSum.Orientation
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Orientation
 import TauCeti.Analysis.InnerProductSpace.Reflection
@@ -67,6 +68,9 @@ after Tau Ceti's `exists_congrLeftInr_eq`).
 
 ## Main results
 
+* `TauCeti.ConnectedSum.nonempty_orientation`, `TauCeti.ConnectedSum.orientable_of_orientable`:
+  a connected sum of oriented manifolds has an orientation, along any balls; the orientation of a
+  summand is negated where needed so that `TauCeti.ConnectedSum.orientation` applies.
 * `TauCeti.ConnectedSum.exists_diffeomorph_isOrientationPreservingAt`: connected sums of connected
   oriented manifolds along two admissible pairs of balls are diffeomorphic by an
   orientation-preserving diffeomorphism.
@@ -314,6 +318,34 @@ theorem isOrientationPreservingAt_congrLeftHomeomorph [T2Space N] (φ : M ≃ₜ
     exact (hr y' hy').symm
 
 end CongrLeft
+
+/-- **A connected sum of oriented manifolds has an orientation.** Given orientations of `M`, `N`
+and `E`, the connected sum along open embeddings `e₁ : E → M` and `e₂ : E → N` that are `C¹`
+local diffeomorphisms has an orientation: after negating the orientation of `M` or of `N` where
+needed, `e₁` preserves and `e₂` reverses orientation at every point, and
+`TauCeti.ConnectedSum.orientation` applies. -/
+theorem nonempty_orientation (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂)
+    (d₁ : IsLocalDiffeomorph 𝓘(ℝ, E) I 1 e₁) (d₂ : IsLocalDiffeomorph 𝓘(ℝ, E) I 1 e₂)
+    (o₁ : Manifold.Orientation I M ι) (o₂ : Manifold.Orientation I N ι)
+    (oE : Manifold.Orientation 𝓘(ℝ, E) E ι) :
+    letI := chartedSpace (H := H) h₁ h₂
+    Nonempty (Manifold.Orientation I (ConnectedSum e₁ e₂) ι) := by
+  let := chartedSpace (H := H) h₁ h₂
+  obtain ⟨o₁', -, he₁⟩ := d₁.exists_orientation_forall_isOrientationPreservingAt one_ne_zero oE o₁
+  obtain ⟨o₂', -, he₂⟩ := d₂.exists_orientation_forall_isOrientationReversingAt one_ne_zero oE o₂
+  exact ⟨orientation h₁ h₂ d₁ d₂ o₁' o₂' oE (fun v _ ↦ he₁ v) (fun v _ ↦ he₂ v)⟩
+
+/-- **A connected sum of orientable manifolds is orientable**, along any open embeddings
+`e₁ : E → M` and `e₂ : E → N` that are `C¹` local diffeomorphisms. -/
+theorem orientable_of_orientable [Orientable I M] [Orientable I N] (h₁ : IsOpenEmbedding e₁)
+    (h₂ : IsOpenEmbedding e₂) (d₁ : IsLocalDiffeomorph 𝓘(ℝ, E) I 1 e₁)
+    (d₂ : IsLocalDiffeomorph 𝓘(ℝ, E) I 1 e₂) :
+    letI := chartedSpace (H := H) h₁ h₂
+    Orientable I (ConnectedSum e₁ e₂) :=
+  letI := chartedSpace (H := H) h₁ h₂
+  ⟨nonempty_orientation h₁ h₂ d₁ d₂ (Orientable.nonempty_orientation (I := I) (M := M)).some
+    (Orientable.nonempty_orientation (I := I) (M := N)).some
+    (Orientable.nonempty_orientation (I := 𝓘(ℝ, E)) (M := E)).some⟩
 
 end TauCeti.ConnectedSum
 

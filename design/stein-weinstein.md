@@ -705,8 +705,11 @@ containing `ι '' closedBall 0 1`:
   `isConvexShapeAt_struweShape_two` (Lemma 4.23: for `0 < δ`, `4 ≤ d`,
   the solution on `Ioc δ (2 * δ)` with value `2 * d * δ` at `2 * δ`),
   `exists_convexShapeFamily_sqrt_sub` (the leaves with `ℓ ≤ 0`, below),
-  `exists_convexShapeFamily_sqrt` (Lemma 4.26, from `8 * r` to
-  `√(64 * r ^ 2 + ℓ ^ 2)`), and `exists_convexShapeFamily_surround`
+  `exists_convexShapeFamily_sqrt` (Lemma 4.26: for `1 < a` and
+  `0 < γ`, the leaves `ℓ ≥ 0` from the cone `√a * r` at `ℓ = 0`, linear,
+  `ℓ + d * r`, for `r ≤ ℓ * β` and `√(ℓ ^ 2 + a * r ^ 2)` for
+  `ℓ * γ ≤ r`), `exists_convexShapeFamily_struweShape` (the leaves
+  `ℓ ≥ ℓ₁`, below), and `exists_convexShapeFamily_surround`
   (Proposition 4.27): for `0 < γ` and all small enough `δ ∈ Ioo 0 γ`, a
   family `χ : ℝ → ℝ → ℝ`, `ℓ ∈ Icc (-8 * δ) 1`, continuous in
   `(ℓ, r)` and smooth in `r` on `Ioi δ` for each `ℓ`, with every
@@ -784,11 +787,104 @@ containing `ι '' closedBall 0 1`:
     reduces `χ ℓ ≤ χ 1` to `χ 0 ≤ χ 1`. The leaves `ℓ ∈ Icc 0 1` start
     at this `χ 0`, which has height `δ / 8` at `δ` and is `8 * r` on
     `Ici r₀`: their family equals `χ 0` at `ℓ = 0`, so that the joint
-    continuity holds on the union of the two closed pieces. Their
-    statement, that of `exists_convexShapeFamily_sqrt` and of the joining
-    to the shape of `exists_convexShape_surround` (with the smoothed
-    maximum of shapes that are smooth only on `Ioi δ`), is left to a
-    design issue of its own.
+    continuity holds on the union of the two closed pieces. The leaves
+    `ℓ ∈ Icc ℓ₁ 1` come from `exists_convexShapeFamily_struweShape`
+    below; those in `Icc 0 ℓ₁`, which join this `χ 0` to its leaf `ℓ₁`,
+    are left to a design issue of their own.
+  - `exists_isConvexShapeAt_eq_struweShape_eq_linear` (in
+    `Surround/SpecialShape.lean`, next to `exists_convexShape_surround`):
+    a Struwe shape joined to the line of slope `d` where they cross, the
+    step of `exists_convexShape_surround` that the leaves `ℓ ≥ ℓ₁` repeat.
+    For `0 < d`, `0 < δ`, `exp (4 / d ^ 2) ≤ K`, `4 < K` and an `ℓ` with
+    `2 * K * δ * √(log (2 * K)) ≤ ℓ`,
+    `4 * K * δ * √(log (2 * K)) ^ 3 ≤ ℓ` and `2 * K * δ < ℓ * d ^ 3`,
+    there is `G : ℝ → ℝ` with `ContDiffOn ℝ ∞ G (Ioi δ)`,
+    `IsConvexShapeAt G r` for `r ∈ Ioc δ (2 * K * δ)`,
+    `G r = struweShape δ K (ℓ + d * K * δ) r` for `r ≤ 3 * K * δ / 4`,
+    and `G r = ℓ + d * r` for `3 * K * δ / 2 ≤ r`. Proof: with
+    `S = struweShape δ K (ℓ + d * K * δ)`, `sub_le_struweShape` gives
+    `ℓ + d * δ ≤ S δ`, so `S` is a convex shape on
+    `Ioc δ (2 * K * δ)` by `isConvexShapeAt_struweShape_of_le_of_mem_Ioc`
+    (with `m = ℓ`; the two bounds are the first two hypotheses on `ℓ`),
+    and it crosses `ℓ + d * r` only at `K * δ` (`linear_lt_struweShape`,
+    `struweShape_lt_linear`). The line is a convex shape on
+    `Icc (K * δ / 2) (2 * K * δ)` by `isConvexShapeAt_linear` (the third
+    hypothesis). `ContDiffOn.exists_contDiff_eqOn_Ici` extends `S` from
+    `Ici (K * δ / 4)`, which lies in `Ioi δ` since `4 < K`, to a smooth
+    function on `ℝ`, and `exists_isConvexShapeAt_eqOn_Iic_Ici` on
+    `Icc (K * δ / 2) (2 * K * δ)` with `u = 3 * K * δ / 4` and
+    `v = 3 * K * δ / 2` joins the two; `G` is `S` left of `K * δ / 2`
+    and that join from there on. So no version of the smoothed maximum
+    for shapes that are `C²` only near `Icc r₁ r₂` is needed.
+    `exists_convexShape_surround` is this lemma with `ℓ = 1`, followed by
+    the shape `ψ` of Lemma 4.19 from `2 * K * δ` on (where `ψ` is still
+    `1 + d * r` once `2 * K * δ < β`); its proof is rewritten through it.
+  - `exists_convexShapeFamily_struweShape`, the leaves `ℓ ≥ ℓ₁` of
+    `exists_convexShapeFamily_surround`: Struwe shapes near the cylinder
+    on the members of the square-root family, the construction of
+    `exists_convexShape_surround` made uniform in `ℓ`. It takes the
+    family `φ` of `exists_convexShapeFamily_sqrt` as hypotheses, so that
+    the leaves `ℓ ∈ Icc 0 ℓ₁` can use the same `φ`: let `0 < d`,
+    `exp (4 / d ^ 2) ≤ K`, `4 < K`, `0 < β`, and `φ : ℝ → ℝ → ℝ` with
+    `ContDiffAt ℝ ∞ (Function.uncurry φ) q` for
+    `q ∈ Ici 0 ×ˢ Ioi 0`, `IsConvexShapeAt (φ ℓ) r` for `0 ≤ ℓ` and
+    `0 < r`, `φ ℓ r < φ ℓ' r` for `0 ≤ ℓ < ℓ'` and `0 < r`, and
+    `φ ℓ r = ℓ + d * r` for `0 < ℓ` and `r ≤ ℓ * β`, in the form of the
+    clauses of `exists_convexShapeFamily_sqrt`. Then there is `C > 0`
+    such that for all `δ > 0` and `ℓ₁` with `C * δ ≤ ℓ₁` there is
+    `F : ℝ → ℝ → ℝ` with
+    - `ContDiffAt ℝ ∞ (Function.uncurry F) q` for
+      `q ∈ Ici ℓ₁ ×ˢ Ioi δ`;
+    - `IsConvexShapeAt (F ℓ) r` for `ℓ₁ ≤ ℓ` and `δ < r`;
+    - `StrictMonoOn (fun ℓ ↦ F ℓ r) (Ici ℓ₁)` for `δ < r`;
+    - `F ℓ r = ℓ + struweShape δ K (d * K * δ) r` for every `ℓ` and
+      `r ≤ 3 * K * δ / 4`, and `Tendsto (deriv (F ℓ)) (𝓝[>] δ) atTop`
+      for every `ℓ`;
+    - `F ℓ r = F ℓ₁ r + (ℓ - ℓ₁)` for every `ℓ` and `r < 2 * K * δ`;
+    - `F ℓ r = φ ℓ r` for `ℓ₁ ≤ ℓ` and `3 * K * δ / 2 ≤ r`.
+
+    So the leaf `ℓ₁` is `ℓ₁ + S₀` on `Icc δ (3 * K * δ / 4)`, with
+    `S₀ = struweShape δ K (d * K * δ)`, the member `φ ℓ₁` from
+    `3 * K * δ / 2` on, and the join of the previous lemma in between;
+    every other leaf is it raised by `ℓ - ℓ₁` below `2 * K * δ`. Proof:
+    take any `C` with `2 * K * √(log (2 * K)) ≤ C`,
+    `4 * K * √(log (2 * K)) ^ 3 ≤ C`, `2 * K < C * d ^ 3` and
+    `2 * K < C * β`, so that `C * δ ≤ ℓ₁` gives the hypotheses of the
+    previous lemma for `ℓ₁` and `2 * K * δ < ℓ₁ * β`. With its `G` for
+    `ℓ₁`, put `F ℓ r = G r + (ℓ - ℓ₁)` for `r < 2 * K * δ` and
+    `F ℓ r = φ ℓ r` otherwise. Since
+    `struweShape δ K (ℓ₁ + c) r = ℓ₁ + struweShape δ K c r`
+    (`struweShape_def`), the formula near the cylinder holds, and the
+    vertical tangent is `tendsto_deriv_struweShape`. For `ℓ'` near some
+    `ℓ ≥ ℓ₁` and `r ∈ Ioo (3 * K * δ / 2) (ℓ' * β)` both pieces are
+    `ℓ' + d * r`, so `F` is near each point the smooth `G r + (ℓ - ℓ₁)`
+    or `φ`: this gives the smoothness, and with
+    `IsConvexShapeAt.add_const` (for `ℓ - ℓ₁ ≥ 0`) and
+    `IsConvexShapeAt.congr_of_eventuallyEq` the convexity. Monotonicity
+    in `ℓ` holds piece by piece, as each piece is used for a fixed `r`.
+
+    `exists_convexShapeFamily_surround` applies
+    `exists_convexShapeFamily_sqrt` with `a = 64` and its own `γ`, and
+    this lemma with `K = exp (4 / d ^ 2)` (`4 < K` as `d < 1`), for `δ`
+    with `C * δ ≤ 1`, `3 * K * δ / 2 ≤ γ` and the conditions of the other
+    pieces, and an `ℓ₁ ∈ Icc (C * δ) 1` that the design of the leaves
+    `ℓ ∈ Icc 0 ℓ₁` fixes. Its leaves `ℓ ∈ Icc ℓ₁ 1` are the `F ℓ`. They
+    are standard for `γ ≤ r`, as `F ℓ = φ ℓ` there and `ℓ * γ ≤ γ`; the
+    joint continuity of `F`, `∂F/∂r` and `∂²F/∂r²` on
+    `Icc ℓ₁ 1 ×ˢ Ioi δ` is `ContDiffAt.continuousAt_iteratedDeriv_prod_right`
+    applied to the smoothness; `F ℓ` is continuous on `Ici δ` by the
+    formula and `continuousOn_struweShape`, so increasing in `r` by
+    `strictMonoOn_Ici_of_isConvexShapeAt`; `F ℓ ≤ F 1` is the
+    monotonicity in `ℓ`; and the top leaf has height
+    `F 1 δ = 1 + S₀ δ`, with `d * δ ≤ S₀ δ` (`sub_le_struweShape`) and
+    `S₀ δ < S₀ (K * δ) = d * K * δ < γ` (`strictMonoOn_struweShape`), so
+    `1 < F 1 δ < 1 + γ`.
+
+    Building issues, in this order: (1) in `Surround/SpecialShape.lean`,
+    `exists_isConvexShapeAt_eq_struweShape_eq_linear`, with the proof of
+    `exists_convexShape_surround` rewritten through it (about 150
+    lines); (2) in `Surround/ShapeFamily.lean`,
+    `exists_convexShapeFamily_struweShape` (about 200 lines).
 
 - `Surround/ShapeFoliation.lean` (issue 14d6): from families of shapes
   to functions.
