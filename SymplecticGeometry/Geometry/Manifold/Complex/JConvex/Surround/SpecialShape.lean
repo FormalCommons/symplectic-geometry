@@ -24,7 +24,12 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `r ↦ c + ∫ u in K * δ..r, 1 / √(log (u / δ))`. For `r > δ` its slope is `1 / √(log (r / δ))`
   (`SymplecticGeometry.deriv_struweShape`), and its second derivative is `-χ'³ / (2 r)`
   (`SymplecticGeometry.iteratedDeriv_two_struweShape`), so that it solves Struwe's equation
-  `χ'' + χ'³ / (2 r) = 0`, with an infinite slope at `δ` and the value `c` at `K δ`.
+  `χ'' + χ'³ / (2 r) = 0`, with an infinite slope at `δ` and the value `c` at `K δ`. It is
+  smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
+  (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
+  `SymplecticGeometry.strictMonoOn_struweShape`).
+* `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
+  `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
 * `SymplecticGeometry.isConvexShapeAt_struweShape`: for `0 < d`, `0 < δ`, `exp (4 / d²) ≤ K`
   and `4 K δ ≤ (log K) ^ (-3 / 2)`, the solution with `c = 1 + d K δ` is an `i`-convex shape on
   `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value in `[1 + d δ, 1 + d K δ)`,
@@ -53,6 +58,7 @@ noncomputable section
 namespace SymplecticGeometry
 
 open Real Set Filter Topology MeasureTheory intervalIntegral TauCeti
+open scoped ContDiff Interval
 
 /-- **Struwe's shape**: `r ↦ c + ∫ u in K δ..r, 1 / √(log (u / δ))`. It takes the value `c` at
 `K δ`, and for `δ > 0` and `K ≥ 1` it solves Struwe's equation `χ'' + χ'³ / (2 r) = 0` on
@@ -61,11 +67,10 @@ def struweShape (δ K c r : ℝ) : ℝ :=
   c + ∫ u in K * δ..r, 1 / √(log (u / δ))
 
 theorem struweShape_def (δ K c r : ℝ) :
-    struweShape δ K c r = c + ∫ u in K * δ..r, 1 / √(log (u / δ)) := by
-  rw [struweShape]
+    struweShape δ K c r = c + ∫ u in K * δ..r, 1 / √(log (u / δ)) := (rfl)
 
 @[simp]
-theorem struweShape_mul_self (δ K c : ℝ) : struweShape δ K c (K * δ) = c := by
+theorem struweShape_apply_mul (δ K c : ℝ) : struweShape δ K c (K * δ) = c := by
   simp [struweShape_def]
 
 section Struwe
@@ -163,6 +168,62 @@ theorem tendsto_deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
   filter_upwards [self_mem_nhdsWithin] with u (hu : δ < u)
   rw [deriv_struweShape hδ hK c hu, one_div]
   rfl
+
+/-- Struwe's shape is smooth on `(δ, ∞)`. -/
+theorem contDiffOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    ContDiffOn ℝ ∞ (struweShape δ K c) (Ioi δ) := by
+  have hL : ∀ u ∈ Ioi δ, 0 < log (u / δ) := fun u hu ↦ log_pos ((one_lt_div hδ).2 hu)
+  refine (contDiffOn_infty_iff_deriv_of_isOpen isOpen_Ioi).2
+    ⟨fun r hr ↦ (hasDerivAt_struweShape hδ hK c hr).differentiableAt.differentiableWithinAt, ?_⟩
+  have hf : ContDiffOn ℝ ∞ (fun u ↦ 1 / √(log (u / δ))) (Ioi δ) :=
+    contDiffOn_const.div (((contDiffOn_id.div_const δ).log fun u hu ↦
+      (div_pos (hδ.trans hu) hδ).ne').sqrt fun u hu ↦ (hL u hu).ne')
+      fun u hu ↦ (sqrt_pos.2 (hL u hu)).ne'
+  exact hf.congr fun r hr ↦ deriv_struweShape hδ hK c hr
+
+/-- Struwe's shape is continuous on `[δ, ∞)`: its integrand is integrable near `δ`. -/
+theorem continuousOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    ContinuousOn (struweShape δ K c) (Ici δ) := by
+  intro r (hr : δ ≤ r)
+  set b := max r (K * δ) + 1
+  have hrb : r < b := by linarith [le_max_left r (K * δ)]
+  have hb : δ ≤ b := hr.trans hrb.le
+  have hKδ : K * δ ∈ [[δ, b]] := by
+    rw [uIcc_of_le hb]
+    exact ⟨le_mul_of_one_le_left hδ.le hK, by linarith [le_max_right r (K * δ)]⟩
+  have h := (continuousOn_primitive_interval' (intervalIntegrable_struwe hδ hb) hKδ).const_add c
+  rw [uIcc_of_le hb, ← funext (struweShape_def δ K c)] at h
+  refine (h r ⟨hr, hrb.le⟩).mono_of_mem_nhdsWithin ?_
+  rw [← Ici_inter_Iic]
+  exact inter_mem_nhdsWithin _ (Iic_mem_nhds hrb)
+
+/-- Struwe's shape is strictly increasing on `[δ, ∞)`. -/
+theorem strictMonoOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
+    StrictMonoOn (struweShape δ K c) (Ici δ) :=
+  strictMonoOn_of_deriv_pos (convex_Ici δ) (continuousOn_struweShape hδ hK c) fun r hr ↦ by
+    rw [interior_Ici] at hr
+    rw [deriv_struweShape hδ hK c hr]
+    exact one_div_pos.2 (sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hr)))
+
+/-- At `r > δ`, Struwe's shape is an `i`-convex shape if its value at `r` exceeds both
+`r √L` and `2 r √L³`, where `L = log (r / δ)`. -/
+theorem isConvexShapeAt_struweShape_of_lt (hδ : 0 < δ) (hK : 1 ≤ K) {c r : ℝ} (hr : δ < r)
+    (h₁ : r * √(log (r / δ)) < struweShape δ K c r)
+    (h₂ : 2 * r * √(log (r / δ)) ^ 3 < struweShape δ K c r) :
+    IsConvexShapeAt (struweShape δ K c) r := by
+  have hr₀ : 0 < r := hδ.trans hr
+  set t := √(log (r / δ))
+  have ht₀ : 0 < t := sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hr))
+  have hχ₀ : 0 < struweShape δ K c r := (by positivity : 0 < r * t).trans h₁
+  refine isConvexShapeAt_iff.2 ⟨hr₀, hχ₀, ?_, ?_⟩
+  · rw [deriv_struweShape hδ hK _ hr, div_div, div_lt_div_iff₀ hχ₀ (by positivity)]
+    linarith
+  · rw [deriv_struweShape hδ hK _ hr, iteratedDeriv_two_struweShape hδ hK _ hr]
+    have e : -(1 / t) ^ 3 / (2 * r) + (1 / t) ^ 3 / r = 1 / (2 * r * t ^ 3) := by
+      field_simp
+      ring
+    rw [e, div_lt_div_iff₀ hχ₀ (by positivity)]
+    linarith
 
 /-- The bounds on `K` that the hypothesis `exp (4 / d²) ≤ K` gives: `1 < K`, `0 < log K` and
 `2 ≤ d √(log K)`. -/
@@ -304,18 +365,6 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
     have := integral_struwe_le hd hδ hK
     rw [hχδ]
     nlinarith
-  -- The shape increases on `[δ, ∞)`.
-  have hincr : ∀ r, δ < r → χ δ < χ r := by
-    intro r hr
-    have h : χ r - χ δ = ∫ u in δ..r, f u := by
-      simp only [χ, struweShape_def, hf]
-      rw [add_sub_add_left_eq_sub, integral_interval_sub_left
-        (intervalIntegrable_struwe_of_lt hδ hK₁ hr.le)
-        (intervalIntegrable_struwe_of_lt hδ hK₁ le_rfl)]
-    have : 0 < ∫ u in δ..r, f u :=
-      intervalIntegral_pos_of_pos_on (intervalIntegrable_struwe hδ hr.le) (fun u hu ↦
-        one_div_pos.2 (sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu.1)))) hr
-    linarith
   refine ⟨fun r hr ↦ ?_, ?_, ⟨hval, by linarith⟩,
     tendsto_deriv_struweShape hδ hK₁ _⟩
   · have hr₀ : 0 < r := hδ.trans hr.1
@@ -325,7 +374,8 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
     set t := √(log (r / δ))
     have ht₀ : 0 < t := sqrt_pos.2 hL
     have hts : t ≤ s := sqrt_le_sqrt hLK
-    have hχr : 1 + d * δ < χ r := hval.trans_lt (hincr r hr.1)
+    have hχr : 1 + d * δ < χ r := hval.trans_lt
+      (strictMonoOn_struweShape hδ hK₁ _ (mem_Ici.2 le_rfl) hr.1.le hr.1)
     -- `r t < χ r`.
     have h₁ : r * t < χ r := by
       have hrt : r * t ≤ K * δ * s := mul_le_mul hr.2 hts ht₀.le (by positivity)
@@ -353,16 +403,7 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
       have : r * t ^ 3 ≤ K * δ * s ^ 3 :=
         mul_le_mul hr.2 (pow_le_pow_left₀ ht₀.le hts 3) (by positivity) (by positivity)
       nlinarith
-    have hχ₀ : 0 < χ r := by nlinarith
-    refine isConvexShapeAt_iff.2 ⟨hr₀, hχ₀, ?_, ?_⟩
-    · rw [deriv_struweShape hδ hK₁ _ hr.1, div_div, div_lt_div_iff₀ hχ₀ (by positivity)]
-      linarith
-    · rw [deriv_struweShape hδ hK₁ _ hr.1, iteratedDeriv_two_struweShape hδ hK₁ _ hr.1]
-      have e : -(1 / t) ^ 3 / (2 * r) + (1 / t) ^ 3 / r = 1 / (2 * r * t ^ 3) := by
-        field_simp
-        ring
-      rw [e, div_lt_div_iff₀ hχ₀ (by positivity)]
-      linarith
+    exact isConvexShapeAt_struweShape_of_lt hδ hK₁ hr.1 h₁ h₂
   · rw [deriv_struweShape hδ hK₁ _ hδK, mul_div_cancel_right₀ _ hδ.ne', div_le_iff₀ hs₀]
     linarith
 
