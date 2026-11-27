@@ -16,7 +16,9 @@ coordinate blocks in `EuclideanSpace ℝ (ι ⊕ ι)`. This file computes the no
 Tau Ceti's `TauCeti.inner_complexToRealEuclidean` and `Matrix.re_star_dotProduct_self`:
 
 * `TauCeti.norm_sq_complexToRealEuclidean`: `‖complexToRealEuclidean ι u‖ ^ 2 = ∑ᵢ ‖uᵢ‖²`;
-* `TauCeti.norm_complexToRealEuclidean_smul`: scaling `u` by `a : ℂ` scales that norm by `‖a‖`.
+* `TauCeti.norm_complexToRealEuclidean_smul`: scaling `u` by `a : ℂ` scales that norm by `‖a‖`;
+* `TauCeti.complexToRealEuclideanIsometry ι`: so `complexToRealEuclidean ι`, read on
+  `EuclideanSpace ℂ ι`, is a real linear isometry onto `EuclideanSpace ℝ (ι ⊕ ι)`.
 -/
 
 public section
@@ -36,6 +38,32 @@ theorem norm_complexToRealEuclidean_smul (a : ℂ) (v : ι → ℂ) :
     ‖complexToRealEuclidean ι (a • v)‖ = ‖a‖ * ‖complexToRealEuclidean ι v‖ := by
   rw [← sq_eq_sq₀ (norm_nonneg _) (by positivity)]
   simp [mul_pow, norm_sq_complexToRealEuclidean, Finset.mul_sum]
+
+variable (ι) in
+/-- The real linear isometry `EuclideanSpace ℂ ι ≃ₗᵢ[ℝ] EuclideanSpace ℝ (ι ⊕ ι)` sending `v` to
+the real and imaginary parts of its coordinates: `complexToRealEuclidean ι` read on
+`EuclideanSpace ℂ ι`. -/
+noncomputable def complexToRealEuclideanIsometry :
+    EuclideanSpace ℂ ι ≃ₗᵢ[ℝ] EuclideanSpace ℝ (ι ⊕ ι) where
+  toLinearEquiv := ((PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)).trans
+    (complexToRealEuclidean ι)).toLinearEquiv
+  norm_map' v := by
+    rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), EuclideanSpace.norm_sq_eq v]
+    exact norm_sq_complexToRealEuclidean (WithLp.ofLp v)
+
+/-- `complexToRealEuclideanIsometry ι` is `complexToRealEuclidean ι` on the coordinates. -/
+@[simp]
+theorem complexToRealEuclideanIsometry_apply (v : EuclideanSpace ℂ ι) :
+    complexToRealEuclideanIsometry ι v = complexToRealEuclidean ι (WithLp.ofLp v) :=
+  (rfl)
+
+/-- The inverse of `complexToRealEuclideanIsometry ι` recombines the two real coordinate blocks
+into a complex vector, by the inverse of `complexToRealEuclidean ι`. -/
+@[simp]
+theorem complexToRealEuclideanIsometry_symm_apply (x : EuclideanSpace ℝ (ι ⊕ ι)) :
+    (complexToRealEuclideanIsometry ι).symm x =
+      WithLp.toLp 2 ((complexToRealEuclidean ι).symm x) :=
+  (rfl)
 
 end TauCeti
 
