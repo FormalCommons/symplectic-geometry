@@ -8,8 +8,10 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import Mathlib.Topology.Algebra.Module.Equiv.Prod
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Geometry.Manifold.Instances.OpenBall.Reparametrization
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Comp
+import SymplecticGeometry.Topology.MetricSpace.Tube
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
@@ -33,10 +35,10 @@ only defined near a closed ball times `{0}` into a smooth open embedding of the 
 The chart is `Ψ` composed with `ψ` and with the map `(a, b) ↦ (ρ • a, e b)`, where `ψ` is
 the reparametrization `SymplecticGeometry.exists_isSmoothEmbedding_prod_range_eq_ball_prod_ball`
 of `D` onto the open unit ball of `N` times a small box, chosen so that the image of the open cube
-contains `ρ⁻¹ • K`, and `e : (Fin k → ℝ) ≃L[ℝ] S` is a linear isomorphism. The box is small enough
-that the image lies in `V`, by the tube lemma (`generalized_tube_lemma`). A point of the boundary
-of the cube is not sent into the image of `K`, since `ψ` is injective and already reaches
-`ρ⁻¹ • K` from the open cube.
+contains `ρ⁻¹ • K`, and `e : (Fin k → ℝ) ≃L[ℝ] S` is a linear isomorphism. The box is small
+enough that the image lies in `V`, by the tube lemma (`IsCompact.exists_prod_ball_subset`). A
+point of the boundary of the cube is not sent into the image of `K`, since `ψ` is injective and
+already reaches `ρ⁻¹ • K` from the open cube.
 
 The balls of `N` are those of its inner product norm, while the cube of `D` is that of the sup
 norm. This is the form in which the cube of a critical point of a Morse function is read off its
@@ -84,36 +86,33 @@ theorem exists_cubeChart_of_isSmoothEmbedding {m k : ℕ} (hm : Module.finrank �
       Ψ '' (Subtype.val ⁻¹' (K ×ˢ {0})) ⊆ χ '' (closedBall 0 1 ×ˢ {0}) := by
   -- A box `ball 0 δ` of `Fin k → ℝ` whose image under `e` keeps the closed ball inside `V`.
   let e : (Fin k → ℝ) ≃L[ℝ] S := ContinuousLinearEquiv.ofFinrankEq (by simp [hk])
-  obtain ⟨u, v, -, hv, hu, h0v, huv⟩ := generalized_tube_lemma (isCompact_closedBall 0 ρ)
-    isCompact_singleton V.isOpen hV
-  obtain ⟨δ, hδ, hδv⟩ := Metric.mem_nhds_iff.1
-    (e.continuous.continuousAt.preimage_mem_nhds (hv.mem_nhds (by simpa using h0v)) :
-      e ⁻¹' v ∈ nhds (0 : Fin k → ℝ))
+  obtain ⟨δ, hδ, hδV⟩ := (isCompact_closedBall (0 : N) ρ).exists_prod_ball_subset
+    (V.isOpen.preimage (continuous_id.prodMap e.continuous)) (by
+      rintro ⟨a, b⟩ ⟨ha, hb⟩
+      obtain rfl : b = 0 := hb
+      simpa using hV (mk_mem_prod ha rfl))
   -- The reparametrization of `D` onto the unit ball of `N` times the box, reaching `ρ⁻¹ • K`.
   have hKρ' : ρ⁻¹ • K ⊆ ball 0 1 := by
     rintro _ ⟨x, hx, rfl⟩
-    have hx := mem_ball_zero_iff.1 (hKρ hx)
-    rw [mem_ball_zero_iff, norm_smul, Real.norm_of_nonneg (inv_nonneg.2 hρ.le),
-      inv_mul_lt_one₀ hρ]
-    exact hx
+    exact (inv_smul_mem_ball_zero_iff hρ.ne').2 (by simpa [abs_of_pos hρ] using hKρ hx)
+  have hρb {a : N} (ha : a ∈ ball 0 1) : ρ • a ∈ ball 0 ρ := by
+    simpa [smul_unitBall_of_pos hρ] using smul_mem_smul_set (a := ρ) ha
   obtain ⟨ψ, hψ, hψr, hψ0, hψ2, hψK⟩ :=
     exists_isSmoothEmbedding_prod_range_eq_ball_prod_ball (ι := Fin k) (V := Fin m → ℝ)
       (by simp [hm]) (hK.smul ρ⁻¹) hKρ' hδ
+  have hψb (x : (Fin m → ℝ) × (Fin k → ℝ)) : ψ x ∈ ball 0 1 ×ˢ ball 0 δ :=
+    hψr ▸ mem_range_self x
   let L : (N × (Fin k → ℝ)) ≃L[ℝ] (N × S) :=
     (ContinuousLinearEquiv.smulLeft (Units.mk0 ρ hρ.ne')).prodCongr e
   have hL (q : N × (Fin k → ℝ)) : L q = (ρ • q.1, e q.2) := by
     simp [L, Units.smul_def]
-  have hLV (x : (Fin m → ℝ) × (Fin k → ℝ)) : L (ψ x) ∈ V := by
-    obtain ⟨h1, h2⟩ : ψ x ∈ ball 0 1 ×ˢ ball 0 δ := hψr ▸ mem_range_self x
-    rw [hL]
-    refine huv ⟨hu (mem_closedBall_zero_iff.2 ?_), hδv h2⟩
-    rw [norm_smul, Real.norm_of_nonneg hρ.le]
-    nlinarith [mem_ball_zero_iff.1 h1, norm_nonneg (ψ x).1]
+  have hLV (x : (Fin m → ℝ) × (Fin k → ℝ)) : (L ∘ ψ) x ∈ V := by
+    simpa [hL] using hδV (mk_mem_prod (ball_subset_closedBall (hρb (hψb x).1)) (hψb x).2)
   have hj : IsSmoothEmbedding 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) 𝓘(ℝ, N × S) ∞ (L ∘ ψ) :=
     (TauCeti.isSmoothEmbedding_continuousLinearEquiv L).comp_of_boundaryless hψ (by simp)
-  let j : (Fin m → ℝ) × (Fin k → ℝ) → V := fun x ↦ ⟨L (ψ x), hLV x⟩
-  have hjv (x : (Fin m → ℝ) × (Fin k → ℝ)) : (j x : N × S) = (ρ • (ψ x).1, e (ψ x).2) :=
-    hL (ψ x)
+  let j : (Fin m → ℝ) × (Fin k → ℝ) → V := codRestrict (L ∘ ψ) V hLV
+  have hjv (x : (Fin m → ℝ) × (Fin k → ℝ)) : (j x : N × S) = (ρ • (ψ x).1, e (ψ x).2) := by
+    simp [j, hL]
   -- The points `(x, 0)` go to `(ρ • (ψ (x, 0)).1, 0)`.
   have hj0 (x : Fin m → ℝ) : (j (x, 0) : N × S) = (ρ • (ψ (x, 0)).1, 0) := by
     rw [hjv, hψ2, map_zero]
@@ -121,42 +120,27 @@ theorem exists_cubeChart_of_isSmoothEmbedding {m k : ℕ} (hm : Module.finrank �
   · -- `Ψ` is an open embedding, and the range of `j` is open in `V`.
     rw [range_comp]
     refine (IsOpenEmbedding.isOpenMap ⟨hΨ.isEmbedding, hΨo⟩) _ ?_
-    have hr : range j = Subtype.val ⁻¹' (L '' (ball 0 1 ×ˢ ball 0 δ)) := by
-      ext q
-      constructor
-      · rintro ⟨x, rfl⟩
-        exact ⟨ψ x, hψr ▸ mem_range_self x, rfl⟩
-      · rintro ⟨y, hy, hLy⟩
-        rw [← hψr] at hy
-        obtain ⟨x, rfl⟩ := hy
-        exact ⟨x, Subtype.ext hLy⟩
-    rw [hr]
+    rw [range_codRestrict, range_comp, hψr]
     exact (L.toHomeomorph.isOpenMap _ (isOpen_ball.prod isOpen_ball)).preimage
       continuous_subtypeVal
   · simp only [comp_apply]
     congr 1
     exact Subtype.ext (by rw [hjv, hψ0]; simp)
   · rintro ⟨x, _⟩ ⟨-, rfl⟩
-    obtain ⟨h1, -⟩ : ψ (x, 0) ∈ ball 0 1 ×ˢ ball 0 δ := hψr ▸ mem_range_self _
     refine ⟨j (x, 0), ?_, rfl⟩
     rw [mem_preimage, hj0]
-    refine ⟨mem_ball_zero_iff.2 ?_, rfl⟩
-    rw [norm_smul, Real.norm_of_nonneg hρ.le]
-    nlinarith [mem_ball_zero_iff.1 h1, norm_nonneg (ψ (x, 0)).1]
+    exact ⟨hρb (hψb _).1, rfl⟩
   · rintro ⟨x, _⟩ ⟨hx, rfl⟩
-    obtain ⟨h1, -⟩ : ψ (x, 0) ∈ ball 0 1 ×ˢ ball 0 δ := hψr ▸ mem_range_self _
     refine ⟨j (x, 0), ?_, rfl⟩
     rw [mem_preimage, hj0]
-    refine ⟨⟨mem_ball_zero_iff.2 ?_, fun hK' ↦ ?_⟩, rfl⟩
-    · rw [norm_smul, Real.norm_of_nonneg hρ.le]
-      nlinarith [mem_ball_zero_iff.1 h1, norm_nonneg (ψ (x, 0)).1]
-    · -- Otherwise `ψ (x, 0)` is also `ψ (x', 0)` for some `x'` in the open cube.
-      have hmem : ((ψ (x, 0)).1, (0 : Fin k → ℝ)) ∈ (ρ⁻¹ • K) ×ˢ ({0} : Set (Fin k → ℝ)) :=
-        ⟨(mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hρ.ne') _ _).2 (by rwa [inv_inv]), rfl⟩
-      obtain ⟨⟨x', _⟩, ⟨hx', rfl⟩, hψx'⟩ := hψK hmem
-      have hxx' : ψ (x', 0) = ψ (x, 0) := hψx'.trans (Prod.ext rfl (hψ2 x).symm)
-      obtain rfl := congrArg Prod.fst (hψ.isEmbedding.injective hxx')
-      exact (ne_of_lt (mem_ball_zero_iff.1 hx')) (mem_sphere_zero_iff_norm.1 hx)
+    refine ⟨⟨hρb (hψb _).1, fun hK' ↦ ?_⟩, rfl⟩
+    -- Otherwise `ψ (x, 0)` is also `ψ (x', 0)` for some `x'` in the open cube.
+    have hmem : ((ψ (x, 0)).1, (0 : Fin k → ℝ)) ∈ (ρ⁻¹ • K) ×ˢ ({0} : Set (Fin k → ℝ)) :=
+      ⟨(mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hρ.ne') _ _).2 (by rwa [inv_inv]), rfl⟩
+    obtain ⟨⟨x', _⟩, ⟨hx', rfl⟩, hψx'⟩ := hψK hmem
+    have hxx' : ψ (x', 0) = ψ (x, 0) := hψx'.trans (Prod.ext rfl (hψ2 x).symm)
+    obtain rfl := congrArg Prod.fst (hψ.isEmbedding.injective hxx')
+    exact (ne_of_lt (mem_ball_zero_iff.1 hx')) (mem_sphere_zero_iff_norm.1 hx)
   · rintro _ ⟨⟨⟨c, _⟩, _⟩, ⟨hc, rfl⟩, rfl⟩
     have hmem : (ρ⁻¹ • c, (0 : Fin k → ℝ)) ∈ (ρ⁻¹ • K) ×ˢ ({0} : Set (Fin k → ℝ)) :=
       ⟨smul_mem_smul_set hc, rfl⟩
