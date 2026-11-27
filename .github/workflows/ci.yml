@@ -15,9 +15,11 @@ on:
 # passed also hands over its build in the form of Lake's remote cache, as
 # the artifact `lake-cache`; the workflow cache-upload, which is not this
 # one and holds the key that this one must not have, puts it into a bucket.
+# Every run reads that bucket, which needs no key; see the step that does.
 permissions:
   contents: read
   actions: read
+  pull-requests: read
 
 jobs:
   build:
@@ -34,11 +36,14 @@ jobs:
     timeout-minutes: 150
     steps:
       # For a pull request this is the merge of its branch with the base
-      # branch, and with a depth of 2 also the two commits that were merged,
-      # which the next step compares.
+      # branch, with the two commits that were merged, which the next step
+      # compares. The depth is for the step that fetches from the bucket:
+      # Lake looks for main's mappings at the commit that is checked out and
+      # then at the commits before it, and main's latest commits may have
+      # none yet.
       - uses: actions/checkout@v7
         with:
-          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+          fetch-depth: 20
       # A run for a pull request builds the merge of its branch with the base
       # branch as that is when the run starts. For a move of Tau Ceti this
       # costs much. No build of main's exists for the new dependencies, and
@@ -96,6 +101,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 20
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
       # but for Tau Ceti's rev; lean-toolchain, and every other package in
       # lake-manifest.json, must be as Tau Ceti has them at that commit. So a
@@ -225,10 +231,10 @@ jobs:
       # request built, so a pull request could make its own check pass with
       # a doctored build from a commit that is no longer in it. That is why
       # only a pull request's own runs read these artifacts. A run of the
-      # merge queue and the cache workflows never do, the review builds the
-      # pull request for itself, and so what main and its saves hold is
-      # checked as before. If anything here fails, the run builds from
-      # nothing, as it did before.
+      # merge queue and the cache workflows never do, and the review builds
+      # the pull request for itself. (The bucket's mappings are another
+      # matter; see the step that fetches from it.) If anything here fails,
+      # the run goes on without that build.
       - name: take the build of this pull request's earlier run
         if: >-
           github.event_name == 'pull_request' &&
@@ -260,20 +266,127 @@ jobs:
               { echo "::warning::GitHub does not list run $run as a run of CI for this pull request"; return 1; }
           }
           if ! { earlier && .github/build-artifact.sh take "$run" "$NAME"; }; then
-            echo "this run builds the library from its source"
+            echo "this run has no build of an earlier run to start from"
           fi
+      # The bucket that the workflow cache-upload fills holds, for a commit,
+      # mappings that say which archive each module builds to, and the
+      # archives. With a commit's mappings in Lake's cache, the build below
+      # takes from an archive every module whose source, imports, toolchain
+      # and options are as the mappings have them, and compiles the others.
+      # Unlike a save of `.lake/build`, which is some commits behind main,
+      # the mappings of a commit of main are there a minute or two after the
+      # merge queue has built it. This step fetches mappings and archives
+      # into Lake's cache. `lake cache get` takes the mappings of the commit
+      # that is checked out or, if there are none, of the nearest commit
+      # before it that has some, and Lake checks every archive against the
+      # hash in its name.
+      #
+      # Whose mappings a run reads decides what it trusts, since a build
+      # believes a mapping: it does not compile what a mapping covers.
+      #
+      # - Every run reads main's (`fc-queue`). Only runs of the merge queue
+      #   write those, each for a commit whose pull request the reviewer
+      #   approved.
+      # - A run for a pull request also reads those of the pull request's
+      #   own earlier commits (`fc-pr`), as it reads the build that an
+      #   earlier run kept (above), and with the same caveat: a pull request
+      #   can make its own check pass with a doctored build.
+      # - A run of the merge queue also reads those of the head commit of
+      #   the pull request that it merges, and of no other. This is a
+      #   maintainer's decision, and it changes what the queue's check
+      #   means: for the modules that the pull request's own run already
+      #   built, with the same inputs, the queue takes that run's word. What
+      #   keeps this narrow:
+      #   - cache-upload takes mappings under `r/pr/` only from runs for
+      #     pull requests that target main and never targeted another
+      #     branch, so they come from the pull request's commits and main
+      #     alone.
+      #   - The review builds the head commit for itself, in its own
+      #     container, and reads nothing from `r/pr/`. A commit that does
+      #     not build is not approved.
+      #   - A mapping covers a module only for the inputs it names. Whatever
+      #     main has changed since the pull request's run gives the modules
+      #     that depend on it other inputs, and the queue compiles those.
+      #     That is what the queue is for.
+      #   - The workflow cache-source builds main from its source, without
+      #     the bucket, and fails if main does not build.
+      #   What it buys: a move of Tau Ceti, or any pull request that
+      #   changes a module that most others import, is compiled once, in
+      #   its own run, and not a second time in the queue while every other
+      #   pull request waits.
+      #
+      # Which commits count as the pull request's own is GitHub's list of
+      # its commits, not the history that is checked out, in which main's
+      # commits and the branch's are mixed. The step asks the bucket which
+      # of the latest 20 has mappings and takes the latest that has.
+      #
+      # Mappings of main's are read last, so that they win where both have
+      # a module. Between the two, Lake's copies of the mappings files are
+      # removed: Lake keeps them by commit alone, and would take the pull
+      # request's for main's if main's walk came to that commit. If the
+      # step fails or finds nothing, the build goes on from main's saved
+      # build alone, as before.
+      - name: fetch the library's build from the bucket
+        continue-on-error: true
+        timeout-minutes: 15
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAKE_CONFIG: ${{ github.workspace }}/.github/lake-config.toml
+          LAKE_ARTIFACT_CACHE: 'true'
+          LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+          PR: ${{ github.event.pull_request.number }}
+          OWN_REPO: ${{ github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository }}
+        run: |
+          set -o pipefail
+          # get NAME ARGS...: `lake cache get` with ARGS, its output in a
+          # file, since it has two lines for every archive.
+          get() {
+            local name=$1 log; shift
+            log=$RUNNER_TEMP/lake-get-$name.log
+            if timeout 5m lake cache get --package=SymplecticGeometry "$@" > "$log" 2>&1; then
+              echo "$name: $(grep -c 'downloaded artifact' "$log") archives fetched, for $(grep -o 'revision [0-9a-f]*' "$log" | tail -n 1)"
+            else
+              echo "$name: nothing taken: $(tail -n 1 "$log")"
+            fi
+          }
+          # The commits whose mappings this run may read beside main's,
+          # latest first.
+          commits=
+          if [ "$OWN_REPO" = true ]; then
+            if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+              commits=$(timeout 60 gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --jq '.[].sha' | tail -n 20 | tac) ||
+                echo "::warning::could not ask GitHub for the commits of pull request $PR"
+            elif [[ $QUEUE_REF =~ ^refs/heads/gh-readonly-queue/main/pr-([0-9]+)-[0-9a-f]{40}$ ]]; then
+              commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/pulls/${BASH_REMATCH[1]}" --jq '.head.sha') ||
+                echo "::warning::could not ask GitHub for the head commit of pull request ${BASH_REMATCH[1]}"
+            fi
+          fi
+          if [ -n "$commits" ]; then
+            if at=$(python3 -I .github/lake-cache-address.py fc-pr "$(cat lean-toolchain)" | sed -n 2p) && [ -n "$at" ]; then
+              for c in $commits; do
+                [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
+                if curl -q -sfI --connect-timeout 5 --max-time 10 -o /dev/null "$at/$c.jsonl"; then
+                  get pull-request --service=fc-pr --rev="$c"
+                  break
+                fi
+              done
+              rm -rf "$LAKE_CACHE_DIR/revisions"
+            fi
+          fi
+          get main --service=fc-queue --max-revs=20
       # --wfail fails the build on any warning, including a `sorry`.
       #
       # The build keeps its outputs in Lake's cache as well as in
       # `.lake/build`, and `-o` writes its mappings: for each module, which
       # archive it builds to. The next two steps hand both to the workflow
-      # cache-upload, which puts them into a bucket. This job holds no key
-      # to the bucket; see cache-upload for why. Nothing here reads the
-      # bucket yet. Lake's cache is then on for the dependencies' modules
-      # too, as it is in the agents' jobs.
+      # cache-upload, which puts them into the bucket. This job holds no key
+      # to the bucket; see cache-upload for why. Lake's cache is then on for
+      # the dependencies' modules too, as it is in the agents' jobs.
       - name: build
         id: build
         env:
+          LAKE_CONFIG: ${{ github.workspace }}/.github/lake-config.toml
           LAKE_ARTIFACT_CACHE: 'true'
           LAKE_RESTORE_ARTIFACTS: 'true'
           LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
@@ -314,10 +427,14 @@ jobs:
       # cache-library compiles after it is little. A run for a pull request
       # does not do this, and no run of CI reads such a build.
       #
-      # The build is always one from nothing: the run restored no save, so
-      # it descends from no build from source. cache-library takes it only
-      # while main has no build from source for these dependencies. See
-      # build-artifact.sh for the artifact's form.
+      # The run restored no save, so the build descends from no saved build
+      # from source. It is not a build from nothing, though: the run took
+      # from the bucket what the mappings it read cover, main's and those of
+      # the pull request that it merges, and compiled the rest; see the
+      # step that fetches from the bucket for what that trusts. So main's
+      # save, which cache-library makes of this build, trusts the same.
+      # cache-library takes it only while main has no build from source for
+      # these dependencies. See build-artifact.sh for the artifact's form.
       #
       # GitHub deletes the artifact after a day, the shortest time it allows;
       # a move leaves a few of them, about 320 MB each. If either step
