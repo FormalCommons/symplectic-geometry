@@ -29,10 +29,10 @@ then `v = 0`.
 
 * `SymplecticGeometry.injective_smul_self`, `SymplecticGeometry.surjective_smul_self`: `σ` is
   injective, and onto when `τ = 1` outside a ball.
-* `SymplecticGeometry.isLocalDiffeomorph_smul_self`: for `F` finite-dimensional and `τ` smooth,
-  `σ` is a local diffeomorphism, by Tau Ceti's inverse function theorem
+* `SymplecticGeometry.isLocalDiffeomorph_smul_self`: for `F` finite-dimensional and `τ` of class
+  `C^n` with `1 ≤ n`, `σ` is a `C^n` local diffeomorphism, by Tau Ceti's inverse function theorem
   `TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`.
-* `SymplecticGeometry.radialSmulDiffeomorph`: `σ` as a diffeomorphism of `F`, from Mathlib's
+* `SymplecticGeometry.radialSmulDiffeomorph`: `σ` as a `C^n` diffeomorphism of `F`, from Mathlib's
   `IsLocalDiffeomorph.diffeomorphOfBijective`, with `radialSmulDiffeomorph_apply`.
 * `SymplecticGeometry.norm_smul_self_lt_iff` (and its `le` and `eq` versions): if `τ = 1` on the
   sphere of radius `r`, then `‖τ x • x‖ < r ↔ ‖x‖ < r`, so that `σ` maps the open ball, the
@@ -129,15 +129,15 @@ theorem injective_fderiv_smul_self {x : F} (hτ : DifferentiableAt ℝ τ x) (hx
   rw [ha, zero_smul, add_zero] at hv'
   exact (smul_eq_zero.1 hv').resolve_left hx
 
-/-- For `F` finite-dimensional and `τ` smooth with `0 < τ y + dτ_y y` for every `y`, the map
-`x ↦ τ x • x` is a smooth local diffeomorphism. -/
-theorem isLocalDiffeomorph_smul_self [FiniteDimensional ℝ F] (hτ : ContDiff ℝ ∞ τ)
-    (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x) :
-    IsLocalDiffeomorph 𝓘(ℝ, F) 𝓘(ℝ, F) ∞ fun x : F ↦ τ x • x := fun x ↦ by
-  have hτ' : Differentiable ℝ τ := hτ.differentiable (by simp)
+/-- For `F` finite-dimensional, `1 ≤ n` and `τ` of class `C^n` with `0 < τ y + dτ_y y` for every
+`y`, the map `x ↦ τ x • x` is a `C^n` local diffeomorphism. -/
+theorem isLocalDiffeomorph_smul_self [FiniteDimensional ℝ F] {n : WithTop ℕ∞} (hn : 1 ≤ n)
+    (hτ : ContDiff ℝ n τ) (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x) :
+    IsLocalDiffeomorph 𝓘(ℝ, F) 𝓘(ℝ, F) n fun x : F ↦ τ x • x := fun x ↦ by
+  have hτ' : Differentiable ℝ τ := hτ.differentiable (by positivity)
   refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv (s := univ)
     (hτ.smul contDiff_id).contMDiff.contMDiffOn isOpen_univ (mem_univ x)
-    BoundarylessManifold.isInteriorPoint (by simp) ?_ rfl
+    BoundarylessManifold.isInteriorPoint hn ?_ rfl
   have hσ : DifferentiableAt ℝ (fun y : F ↦ τ y • y) x := (hτ' x).smul differentiableAt_id
   rw [hσ.hasFDerivAt.hasMFDerivAt.mfderiv]
   -- The tangent spaces of `F` are `F` itself; stating the injectivity pointwise lets the
@@ -145,26 +145,30 @@ theorem isLocalDiffeomorph_smul_self [FiniteDimensional ℝ F] (hτ : ContDiff �
   intro v w hvw
   exact injective_fderiv_smul_self (hτ' x) (pos_of_forall_add_fderiv_pos hτ' hd x).ne' (hd x) hvw
 
-/-- For `F` finite-dimensional and `τ : F → ℝ` smooth with `0 < τ y + dτ_y y` for every `y` and
-`τ = 1` outside a ball, the map `x ↦ τ x • x` as a smooth diffeomorphism of `F`
+/-- For `F` finite-dimensional, `1 ≤ n` and `τ : F → ℝ` of class `C^n` with `0 < τ y + dτ_y y`
+for every `y` and `τ = 1` outside a ball, the map `x ↦ τ x • x` as a `C^n` diffeomorphism of `F`
 (`radialSmulDiffeomorph_apply`). -/
-noncomputable def radialSmulDiffeomorph [FiniteDimensional ℝ F] (hτ : ContDiff ℝ ∞ τ)
-    (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x) {R : ℝ} (hR : ∀ x, R ≤ ‖x‖ → τ x = 1) :
-    F ≃ₘ⟮𝓘(ℝ, F), 𝓘(ℝ, F)⟯ F :=
-  (isLocalDiffeomorph_smul_self hτ hd).diffeomorphOfBijective
-    ⟨injective_smul_self (hτ.differentiable (by simp)) hd, surjective_smul_self hτ.continuous hR⟩
+noncomputable def radialSmulDiffeomorph [FiniteDimensional ℝ F] {n : WithTop ℕ∞} (hn : 1 ≤ n)
+    (hτ : ContDiff ℝ n τ) (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x) {R : ℝ}
+    (hR : ∀ x, R ≤ ‖x‖ → τ x = 1) : F ≃ₘ^n⟮𝓘(ℝ, F), 𝓘(ℝ, F)⟯ F :=
+  (isLocalDiffeomorph_smul_self hn hτ hd).diffeomorphOfBijective
+    ⟨injective_smul_self (hτ.differentiable (by positivity)) hd,
+      surjective_smul_self hτ.continuous hR⟩
 
 section radialSmulDiffeomorph
 
-variable [FiniteDimensional ℝ F] (hτ : ContDiff ℝ ∞ τ) (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x)
-  {R : ℝ} (hR : ∀ x, R ≤ ‖x‖ → τ x = 1)
+variable [FiniteDimensional ℝ F] {n : WithTop ℕ∞} (hn : 1 ≤ n) (hτ : ContDiff ℝ n τ)
+  (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x) {R : ℝ} (hR : ∀ x, R ≤ ‖x‖ → τ x = 1)
 
-theorem coe_radialSmulDiffeomorph : ⇑(radialSmulDiffeomorph hτ hd hR) = fun x ↦ τ x • x := by
+/-- The underlying map of `radialSmulDiffeomorph` is `x ↦ τ x • x`. -/
+theorem coe_radialSmulDiffeomorph :
+    ⇑(radialSmulDiffeomorph hn hτ hd hR) = fun x ↦ τ x • x := by
   unfold radialSmulDiffeomorph
   exact IsLocalDiffeomorph.coe_diffeomorphOfBijective _ _
 
 @[simp]
-theorem radialSmulDiffeomorph_apply (x : F) : radialSmulDiffeomorph hτ hd hR x = τ x • x := by
+theorem radialSmulDiffeomorph_apply (x : F) :
+    radialSmulDiffeomorph hn hτ hd hR x = τ x • x := by
   rw [coe_radialSmulDiffeomorph]
 
 end radialSmulDiffeomorph
@@ -218,39 +222,52 @@ theorem norm_smul_self_eq_iff (hτ : Differentiable ℝ τ) (hd : ∀ x, 0 < τ 
 
 section radialSmulDiffeomorph
 
-variable [FiniteDimensional ℝ F] (hτ : ContDiff ℝ ∞ τ) (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x)
-  {R : ℝ} (hR : ∀ x, R ≤ ‖x‖ → τ x = 1) {r : ℝ} (hr : ∀ x : F, ‖x‖ = r → τ x = 1)
+variable [FiniteDimensional ℝ F] {n : WithTop ℕ∞} (hn : 1 ≤ n) (hτ : ContDiff ℝ n τ)
+  (hd : ∀ x, 0 < τ x + fderiv ℝ τ x x) {R : ℝ} (hR : ∀ x, R ≤ ‖x‖ → τ x = 1) {r : ℝ}
+  (hr : ∀ x : F, ‖x‖ = r → τ x = 1)
 include hr
 
+/-- If `τ = 1` on the sphere of radius `r`, the preimage of `ball 0 r` under
+`radialSmulDiffeomorph` is `ball 0 r`. -/
 theorem preimage_radialSmulDiffeomorph_ball :
-    radialSmulDiffeomorph hτ hd hR ⁻¹' ball 0 r = ball 0 r := by
+    radialSmulDiffeomorph hn hτ hd hR ⁻¹' ball 0 r = ball 0 r := by
   ext x
-  simp [norm_smul_self_lt_iff (hτ.differentiable (by simp)) hd hr]
+  simp [norm_smul_self_lt_iff (hτ.differentiable (by positivity)) hd hr]
 
+/-- If `τ = 1` on the sphere of radius `r`, the preimage of `closedBall 0 r` under
+`radialSmulDiffeomorph` is `closedBall 0 r`. -/
 theorem preimage_radialSmulDiffeomorph_closedBall :
-    radialSmulDiffeomorph hτ hd hR ⁻¹' closedBall 0 r = closedBall 0 r := by
+    radialSmulDiffeomorph hn hτ hd hR ⁻¹' closedBall 0 r = closedBall 0 r := by
   ext x
-  simp [norm_smul_self_le_iff (hτ.differentiable (by simp)) hd hr]
+  simp [norm_smul_self_le_iff (hτ.differentiable (by positivity)) hd hr]
 
+/-- If `τ = 1` on the sphere of radius `r`, the preimage of `sphere 0 r` under
+`radialSmulDiffeomorph` is `sphere 0 r`. -/
 theorem preimage_radialSmulDiffeomorph_sphere :
-    radialSmulDiffeomorph hτ hd hR ⁻¹' sphere 0 r = sphere 0 r := by
+    radialSmulDiffeomorph hn hτ hd hR ⁻¹' sphere 0 r = sphere 0 r := by
   ext x
-  simp [norm_smul_self_eq_iff (hτ.differentiable (by simp)) hd hr]
+  simp [norm_smul_self_eq_iff (hτ.differentiable (by positivity)) hd hr]
 
+/-- If `τ = 1` on the sphere of radius `r`, `radialSmulDiffeomorph` maps `ball 0 r` onto
+itself. -/
 theorem image_radialSmulDiffeomorph_ball :
-    radialSmulDiffeomorph hτ hd hR '' ball 0 r = ball 0 r := by
-  conv_lhs => rw [← preimage_radialSmulDiffeomorph_ball hτ hd hR hr]
-  exact (radialSmulDiffeomorph hτ hd hR).toEquiv.surjective.image_preimage _
+    radialSmulDiffeomorph hn hτ hd hR '' ball 0 r = ball 0 r := by
+  conv_lhs => rw [← preimage_radialSmulDiffeomorph_ball hn hτ hd hR hr]
+  exact (radialSmulDiffeomorph hn hτ hd hR).toEquiv.surjective.image_preimage _
 
+/-- If `τ = 1` on the sphere of radius `r`, `radialSmulDiffeomorph` maps `closedBall 0 r` onto
+itself. -/
 theorem image_radialSmulDiffeomorph_closedBall :
-    radialSmulDiffeomorph hτ hd hR '' closedBall 0 r = closedBall 0 r := by
-  conv_lhs => rw [← preimage_radialSmulDiffeomorph_closedBall hτ hd hR hr]
-  exact (radialSmulDiffeomorph hτ hd hR).toEquiv.surjective.image_preimage _
+    radialSmulDiffeomorph hn hτ hd hR '' closedBall 0 r = closedBall 0 r := by
+  conv_lhs => rw [← preimage_radialSmulDiffeomorph_closedBall hn hτ hd hR hr]
+  exact (radialSmulDiffeomorph hn hτ hd hR).toEquiv.surjective.image_preimage _
 
+/-- If `τ = 1` on the sphere of radius `r`, `radialSmulDiffeomorph` maps `sphere 0 r` onto
+itself. -/
 theorem image_radialSmulDiffeomorph_sphere :
-    radialSmulDiffeomorph hτ hd hR '' sphere 0 r = sphere 0 r := by
-  conv_lhs => rw [← preimage_radialSmulDiffeomorph_sphere hτ hd hR hr]
-  exact (radialSmulDiffeomorph hτ hd hR).toEquiv.surjective.image_preimage _
+    radialSmulDiffeomorph hn hτ hd hR '' sphere 0 r = sphere 0 r := by
+  conv_lhs => rw [← preimage_radialSmulDiffeomorph_sphere hn hτ hd hR hr]
+  exact (radialSmulDiffeomorph hn hτ hd hR).toEquiv.surjective.image_preimage _
 
 end radialSmulDiffeomorph
 
