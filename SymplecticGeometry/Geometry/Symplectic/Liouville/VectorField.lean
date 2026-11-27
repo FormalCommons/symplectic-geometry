@@ -13,7 +13,7 @@ import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 
 /-!
-# Liouville vector fields: pullback along related fields, linearization at a zero
+# Liouville vector fields: pullback along related fields, linearization at a zero, linear fields
 
 Let `Φ : M' → M` be a smooth map, `σ` a smooth two-form on `M` and `X` a Liouville vector field
 of `σ`. If a vector field `Y` on `M'` is `Φ`-related to `X`, that is `dΦ_x (Y x) = X (Φ x)` for
@@ -32,6 +32,14 @@ satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`
 (`TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`). The Lie derivative at a zero
 of the field involves only the derivative of the field (`TauCeti.mlieDerivForm_apply_of_eq_zero`),
 so no regularity of `Z` or `σ` is needed.
+
+On a finite-dimensional real normed space `V`, with a linear symplectic form `σ` seen as a
+constant form, a linear vector field `x ↦ A x` is Liouville as soon as
+`σ (A u) v + σ u (A v) = σ u v` for all `u`, `v`
+(`TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth`). Since the form is constant, its
+Lie derivative along the field involves only the derivative `A` of the field. For linear fields
+this is the converse of `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`, read at
+the zero `0`.
 
 ## References
 

@@ -12,7 +12,6 @@ public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 import SymplecticGeometry.Geometry.Symplectic.Liouville.VectorField
-import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
@@ -35,19 +34,21 @@ stated property by property.
 
 ## Main results
 
-* `TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth`: for a linear symplectic form `ω`
-  and an operator `A` with `ω (A u) v + ω u (A v) = ω u v`, the linear field `x ↦ A x` is a
-  Liouville field of the constant form `ω`.
 * `SymplecticGeometry.isLiouvilleVectorField_modelHandleField`: the handle field is a Liouville
   field of the constant product form. On each complex line of the first factor the field is
-  `diag (-1, 2)`, of trace `1`, and on the second factor it is `1 / 2`, which gives the identity
-  above.
+  `diag (-1, 2)`, of trace `1`, and on the second factor it is `1 / 2`, so that
+  `ω (A u) v + ω u (A v) = ω u v`
+  (`SymplecticGeometry.prod_imInnerSymplecticForm_modelHandleField_add`). The criterion
+  `TauCeti.SymplecticForm.isLiouvilleVectorField_constSmooth` of
+  `Liouville/VectorField.lean`, applied here, turns this identity into the Liouville property.
 * `SymplecticGeometry.mvfderiv_modelHandle_modelHandleField`:
   `d(bt - as)_p (A p) = 2 a s + 4 b |y|² + b |w|²`.
 * `SymplecticGeometry.isGradientLike_modelHandle_modelHandleField`: the handle field is
   gradient-like for the model handle function, by `TauCeti.isGradientLike_of_mul_le`, since the
   derivative above is a positive definite quadratic form in `p` while `A p` and `d(bt - as)_p`
-  grow linearly in `p`.
+  grow linearly in `p`. The differential of the model handle function and its bound,
+  `SymplecticGeometry.fderiv_modelHandle_apply` and
+  `SymplecticGeometry.norm_fderiv_modelHandle_le`, come from `JConvex/Surround/Shape.lean`.
 
 ## References
 
@@ -164,24 +165,6 @@ theorem isLiouvilleVectorField_modelHandleField :
 
 /-! ### The gradient-like property -/
 
-/-- The differential of the model handle function `b t - a s` at `p = (x + i y, w)`:
-`v ↦ 2 b (∑ⱼ yⱼ Im v₁ⱼ + Re ⟪w, v₂⟫) - 2 a ∑ⱼ xⱼ Re v₁ⱼ`. -/
-theorem fderiv_modelHandle_apply (a b : ℝ)
-    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    fderiv ℝ (modelHandle k m a b) p v =
-      b * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) -
-        a * (2 * ∑ j, (p.1 j).re * (v.1 j).re) := by
-  have hs : Differentiable ℝ fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
-      (shape q).1 := (contDiff_shape (n := 1)).fst.differentiable one_ne_zero
-  have ht : Differentiable ℝ fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
-      (shape q).2 := (contDiff_shape (n := 1)).snd.differentiable one_ne_zero
-  have he : modelHandle k m a b = fun q ↦ b * (shape q).2 - a * (shape q).1 :=
-    funext (modelHandle_def a b)
-  rw [he, fderiv_fun_sub ((ht p).const_mul b) ((hs p).const_mul a), fderiv_const_mul (ht p),
-    fderiv_const_mul (hs p)]
-  simp only [sub_apply, smul_apply, smul_eq_mul,
-    fderiv_shape_fst_apply, fderiv_shape_snd_apply]
-
 /-- **The derivative of the model handle function along the handle field**:
 `d(bt - as)_p (A p) = 2 a s + 4 b |y|² + b |w|²` at `p = (x + i y, w)`. -/
 theorem mvfderiv_modelHandle_modelHandleField (a b : ℝ)
@@ -201,55 +184,6 @@ theorem mvfderiv_modelHandle_modelHandleField (a b : ℝ)
     rw [← Finset.sum_neg_distrib]; exact Finset.sum_congr rfl fun j _ ↦ by ring
   rw [h₁, h₂]
   ring
-
-/-- The differential of the model handle function grows linearly:
-`‖d(bt - as)_p‖ ≤ (2 |a| + 4 |b|) ‖p‖`. -/
-theorem norm_fderiv_modelHandle_le (a b : ℝ)
-    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    ‖fderiv ℝ (modelHandle k m a b) p‖ ≤ (2 * |a| + 4 * |b|) * ‖p‖ := by
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
-  rw [fderiv_modelHandle_apply, Real.norm_eq_abs]
-  set e := complexEuclideanEquivRealProd (Fin k)
-  -- The two coordinate sums are real inner products of the real and imaginary parts.
-  have h₁ : |∑ j, (p.1 j).re * (v.1 j).re| ≤ ‖p.1‖ * ‖v.1‖ := by
-    have hi : ∑ j, (p.1 j).re * (v.1 j).re = ⟪(e p.1).1, (e v.1).1⟫_ℝ := by
-      simp [e, PiLp.inner_apply, mul_comm]
-    rw [hi]
-    exact (abs_real_inner_le_norm _ _).trans
-      (mul_le_mul (norm_complexEuclideanEquivRealProd_fst_le _)
-        (norm_complexEuclideanEquivRealProd_fst_le _) (norm_nonneg _) (norm_nonneg _))
-  have h₂ : |∑ j, (p.1 j).im * (v.1 j).im| ≤ ‖p.1‖ * ‖v.1‖ := by
-    have hi : ∑ j, (p.1 j).im * (v.1 j).im = ⟪(e p.1).2, (e v.1).2⟫_ℝ := by
-      simp [e, PiLp.inner_apply, mul_comm]
-    rw [hi]
-    exact (abs_real_inner_le_norm _ _).trans
-      (mul_le_mul (norm_complexEuclideanEquivRealProd_snd_le _)
-        (norm_complexEuclideanEquivRealProd_snd_le _) (norm_nonneg _) (norm_nonneg _))
-  have h₃ : |(⟪p.2, v.2⟫_ℂ).re| ≤ ‖p.2‖ * ‖v.2‖ :=
-    (Complex.abs_re_le_norm _).trans (norm_inner_le_norm _ _)
-  have hp₁ : ‖p.1‖ ≤ ‖p‖ := norm_fst_le p
-  have hp₂ : ‖p.2‖ ≤ ‖p‖ := norm_snd_le p
-  have hv₁ : ‖v.1‖ ≤ ‖v‖ := norm_fst_le v
-  have hv₂ : ‖v.2‖ ≤ ‖v‖ := norm_snd_le v
-  have hpv₁ : ‖p.1‖ * ‖v.1‖ ≤ ‖p‖ * ‖v‖ :=
-    mul_le_mul hp₁ hv₁ (norm_nonneg _) (norm_nonneg _)
-  have hpv₂ : ‖p.2‖ * ‖v.2‖ ≤ ‖p‖ * ‖v‖ :=
-    mul_le_mul hp₂ hv₂ (norm_nonneg _) (norm_nonneg _)
-  calc |b * (2 * (∑ j, (p.1 j).im * (v.1 j).im + (⟪p.2, v.2⟫_ℂ).re)) -
-        a * (2 * ∑ j, (p.1 j).re * (v.1 j).re)|
-      ≤ |b| * (2 * (|∑ j, (p.1 j).im * (v.1 j).im| + |(⟪p.2, v.2⟫_ℂ).re|)) +
-          |a| * (2 * |∑ j, (p.1 j).re * (v.1 j).re|) := by
-        refine (abs_sub _ _).trans (add_le_add ?_ ?_)
-        · rw [abs_mul, abs_mul, abs_two]
-          gcongr
-          exact abs_add_le _ _
-        · rw [abs_mul, abs_mul, abs_two]
-    _ ≤ |b| * (2 * (‖p‖ * ‖v‖ + ‖p‖ * ‖v‖)) + |a| * (2 * (‖p‖ * ‖v‖)) := by
-        gcongr
-        · exact h₂.trans hpv₁
-        · exact h₃.trans hpv₂
-        · exact h₁.trans hpv₁
-    _ = (2 * |a| + 4 * |b|) * ‖p‖ * ‖v‖ := by ring
 
 /-- **The standard handle field is gradient-like** for the model handle function `b t - a s`,
 for `0 < a` and `0 < b`, with a constant `δ`. -/
