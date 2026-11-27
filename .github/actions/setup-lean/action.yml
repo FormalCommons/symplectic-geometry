@@ -19,7 +19,8 @@ inputs:
     description: >-
       With 'true', a job that finds no save of the dependencies also looks
       in the bucket of Lake's cache for the Tau Ceti modules, and writes the
-      mappings of those it built. Only ci.yml asks for this.
+      mappings of all those that its build covered. Only ci.yml asks for
+      this.
     default: 'false'
 outputs:
   # A save of `.lake/packages` has this name, then a hash of the list of Tau
@@ -106,8 +107,9 @@ runs:
     # modules in the bucket that the workflow cache-upload fills, where an
     # earlier run's are: see tauceti-bucket.sh for whose it may read. The
     # step below then fetches them, compiles only what is still missing, and
-    # writes the mappings of the Tau Ceti modules it built, which ci.yml
-    # hands to cache-upload. The cache workflows do not ask for this: main's
+    # writes the mappings of all the Tau Ceti modules that its build
+    # covered, which ci.yml hands to cache-upload with the archives that the
+    # bucket's file does not name. The cache workflows do not ask for this: main's
     # save of the dependencies comes from Tau Ceti's source and its own
     # cache alone.
     - name: look for the Tau Ceti modules in the bucket

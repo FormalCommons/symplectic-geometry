@@ -22,15 +22,16 @@
 # compiles, and the others take its work.
 #
 # In CI a run may also take the modules from the bucket of Lake's cache, and
-# hand over what it built; see tauceti-bucket.sh, which finds the mappings
+# hand over its own; see tauceti-bucket.sh, which finds the mappings
 # file that this script is given as TAUCETI_BUCKET_MAPPINGS. Lake fetches
 # the archives that the file names before the build, and the build takes
 # from them every module whose inputs are as the file has them. (An archive
 # that is not one, though its name is the hash of its content, fails that
 # build and the library's after it; cache-upload.sh cannot tell, and the
 # library's archives are no different in this.) With
-# TAUCETI_MAPPINGS_OUT the build writes the mappings of the Tau Ceti modules
-# it built to that file, for which Lake packs an archive of each module
+# TAUCETI_MAPPINGS_OUT the build writes to that file the mappings of all the
+# Tau Ceti modules it covered, those that were up to date or fetched as
+# well as those it compiled, for which Lake packs an archive of each module
 # that has none yet. The agents' jobs set neither, and the script is for
 # them as it was.
 #

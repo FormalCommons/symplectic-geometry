@@ -5,8 +5,10 @@
 # compiles the Tau Ceti modules that Tau Ceti's own cache does not have as
 # the pinned commit builds them, which after the move to 0aaa80fd were 2,047
 # modules and an hour on a runner, in each run. With this script a run takes
-# from the bucket what an earlier run compiled, and hands over what it
-# compiled itself.
+# from the bucket the modules that an earlier run handed over, and hands
+# over its own: the mappings of all the Tau Ceti modules that its build
+# covered, those it compiled and those it fetched, and the archives that
+# the bucket's file does not name.
 #
 #   tauceti-bucket.sh find DIR
 #   tauceti-bucket.sh stage MAPPINGS DIR OUT
@@ -15,8 +17,8 @@
 # this run may read, and writes it to DIR/mappings.jsonl, and to DIR/from a
 # line `pr <commit>` or `queue <commit>` that says where it was. It only
 # downloads that file. tauceti-cache.sh then has Lake fetch the archives
-# (TAUCETI_BUCKET_MAPPINGS) and writes the mappings of what it built
-# (TAUCETI_MAPPINGS_OUT).
+# (TAUCETI_BUCKET_MAPPINGS) and writes the mappings of all the Tau Ceti
+# modules that its build covered (TAUCETI_MAPPINGS_OUT).
 #
 # A run reads one file: main's latest for these dependencies under
 # `r/queue/`, or without one the latest of its own commits under `r/pr/`
@@ -75,7 +77,7 @@ find_mappings() {
   # take KIND ADDRESS COMMIT: downloads the commit's file if the bucket has it.
   take() {
     [[ $3 =~ ^[0-9a-f]{40}$ ]] || return 1
-    curl -q -sf --connect-timeout 5 --max-time 30 -o "$dir/mappings.jsonl" "$2/$3.tauceti.jsonl" ||
+    curl -q -sf --connect-timeout 5 --max-time 15 -o "$dir/mappings.jsonl" "$2/$3.tauceti.jsonl" ||
       { rm -f "$dir/mappings.jsonl"; return 1; }
     echo "$1 $3" > "$dir/from"
     say "the bucket has Tau Ceti modules for the commit $3 (r/$1): $(($(wc -l < "$dir/mappings.jsonl") - 1)) mappings"

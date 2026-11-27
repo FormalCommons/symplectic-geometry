@@ -201,9 +201,10 @@ jobs:
       # elan, then the latest save of the built dependencies, or Mathlib's
       # build cache and Tau Ceti's without one; see the workflow
       # cache-dependencies. Without a save, the run also takes from the
-      # bucket the Tau Ceti modules that an earlier run compiled (`bucket`),
-      # and its last steps hand over those it compiled itself; see the
-      # action and tauceti-bucket.sh.
+      # bucket the Tau Ceti modules that an earlier run handed over
+      # (`bucket`), and its last steps hand over its own: the mappings of
+      # all that its build covered, and the archives that the bucket's file
+      # does not name; see the action and tauceti-bucket.sh.
       - name: set up Lean and restore the built dependencies
         id: setup
         uses: ./.github/actions/setup-lean
