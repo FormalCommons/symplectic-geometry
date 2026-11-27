@@ -66,28 +66,7 @@ open scoped Manifold ContDiff Topology
 
 namespace SymplecticGeometry
 
-variable {m k : ℕ}
-
-/-- A point `(u, v)` with `‖v‖ ≤ 1` and `1 / 2 ≤ ‖u‖` is within `|‖u‖ - 1|` of the attaching
-faces, so it lies in every set that contains a thickening of them by more than that. -/
-private theorem mem_of_thickening_attaching_subset {W : Set ((Fin m → ℝ) × (Fin k → ℝ))}
-    {δ : ℝ} (hδ : thickening δ (sphere (0 : Fin m → ℝ) 1 ×ˢ closedBall (0 : Fin k → ℝ) 1) ⊆ W)
-    {x : (Fin m → ℝ) × (Fin k → ℝ)} (hv : ‖x.2‖ ≤ 1) (hu : 1 / 2 ≤ ‖x.1‖)
-    (hux : |‖x.1‖ - 1| < δ) : x ∈ W := by
-  obtain ⟨u, v⟩ := x
-  have hpos : 0 < ‖u‖ := by simp only at hu; linarith
-  refine hδ (mem_thickening_iff.2 ⟨(‖u‖⁻¹ • u, v), ⟨?_, ?_⟩, ?_⟩)
-  · rw [mem_sphere_zero_iff_norm, norm_smul, norm_inv, norm_norm, inv_mul_cancel₀ hpos.ne']
-  · simpa using hv
-  · have hsub : u - ‖u‖⁻¹ • u = (1 - ‖u‖⁻¹) • u := by module
-    have heq : |1 - ‖u‖⁻¹| * ‖u‖ = |‖u‖ - 1| := by
-      rw [← abs_of_pos hpos, ← abs_mul, abs_of_pos hpos]
-      congr 1
-      field_simp
-    rw [Prod.dist_eq, dist_self, dist_eq_norm, hsub, norm_smul, Real.norm_eq_abs, heq]
-    exact max_lt hux (lt_of_le_of_lt (abs_nonneg _) hux)
-
-variable {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [FiniteDimensional ℝ L]
+variable {m k : ℕ} {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [FiniteDimensional ℝ L]
 
 /-- **Holonomic approximation of the formal primitive near the handle core.** Let
 `D = (Fin m → ℝ) × (Fin k → ℝ)` with the sup norms and `0 < k`, let `τ` and `β` be smooth
@@ -139,10 +118,23 @@ theorem exists_diffeotopy_norm_mextDerivₗ_sub_lt_near_core (hk : 0 < k) {K : S
   have hη₂ : η ≤ δ₁ / 2 := min_le_right _ _
   set B : Set (Fin m → ℝ) := {u | 1 - 2 * ε₀ ≤ ‖u‖ ∧ ‖u‖ ≤ 1 + η}
   have hcollar : ∀ x : (Fin m → ℝ) × (Fin k → ℝ), ‖x.2‖ ≤ 1 → x.1 ∈ B → x ∈ W := by
-    intro x hv ⟨hu₁, hu₂⟩
-    refine mem_of_thickening_attaching_subset hδ₁W hv (by linarith) ?_
-    rw [abs_lt]
-    constructor <;> linarith
+    -- `(u, v)` is within `|‖u‖ - 1| < δ₁` of the point `(‖u‖⁻¹ • u, v)` of the faces.
+    rintro ⟨u, v⟩ hv ⟨hu₁, hu₂⟩
+    simp only at hv hu₁ hu₂
+    have hpos : 0 < ‖u‖ := by linarith
+    refine hδ₁W (mem_thickening_iff.2 ⟨(‖u‖⁻¹ • u, v), ⟨?_, ?_⟩, ?_⟩)
+    · rw [mem_sphere_zero_iff_norm, norm_smul, norm_inv, norm_norm, inv_mul_cancel₀ hpos.ne']
+    · simpa using hv
+    · have hsub : u - ‖u‖⁻¹ • u = (1 - ‖u‖⁻¹) • u := by module
+      have heq : |1 - ‖u‖⁻¹| * ‖u‖ = |‖u‖ - 1| := by
+        rw [← abs_of_pos hpos, ← abs_mul, abs_of_pos hpos]
+        congr 1
+        field_simp
+      have hlt : |‖u‖ - 1| < δ₁ := by
+        rw [abs_lt]
+        constructor <;> linarith
+      rw [Prod.dist_eq, dist_self, dist_eq_norm, hsub, norm_smul, Real.norm_eq_abs, heq]
+      exact max_lt hlt (lt_of_le_of_lt (abs_nonneg _) hlt)
   have hslab : ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 1,
       1 - 2 * ε₀ ≤ ‖x.1‖ → x ∈ W := by
     intro x hx hx₁
