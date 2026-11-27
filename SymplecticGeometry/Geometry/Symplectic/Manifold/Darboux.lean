@@ -11,7 +11,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
@@ -155,15 +155,12 @@ theorem apply_fderiv_transition_eq (form₀ : SymplecticForm F) {σ : SmoothTwoF
     (v w : F) :
     form₀ (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) v)
         (fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) w) = form₀ v w := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  obtain ⟨a, rfl⟩ := (φ.bijective_mvfderiv hn hxφ).surjective v
-  obtain ⟨b, rfl⟩ := (φ.bijective_mvfderiv hn hxφ).surjective w
-  have hcomp (a : TangentSpace I x) :
-      fderiv ℝ (fun z ↦ ψ (φ.symm z)) (φ x) (mvfderiv I φ x a) = mvfderiv I ψ x a := by
-    have h := φ.mfderiv_symm_trans_apply_mfderiv_apply ψ hn hxφ hxψ a
-    rwa [PartialDiffeomorph.coe_trans, mfderiv_eq_fderiv, ← mvfderiv_apply_eq_mfderiv_apply,
-      ← mvfderiv_apply_eq_mfderiv_apply] at h
-  rw [hcomp, hcomp, ← hψ, hφ]
+  have hx : φ.symm (φ x) = x := φ.left_inv hxφ
+  have hw : φ x ∈ (φ.toOpenPartialHomeomorph.symm ≫ₕ ψ.toOpenPartialHomeomorph).source := by
+    simp [φ.map_source hxφ, φ.left_inv hxφ, hxψ]
+  have h := φ.apply_fderiv_symm_trans_eq_of_mvfderiv ψ (by simp) (fun a b ↦ form₀ a b) hw
+    (by rw [hx]; intro a b; rw [← hφ, ← hψ]) v w
+  simpa [OpenPartialHomeomorph.coe_trans, Function.comp_def] using h
 
 end SymplecticForm
 
