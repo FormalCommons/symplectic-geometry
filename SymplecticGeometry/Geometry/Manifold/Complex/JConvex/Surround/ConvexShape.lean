@@ -575,7 +575,6 @@ theorem IsConvexShapeAt.re_leviForm_pos (hχ : ContDiffAt ℝ 2 χ r) (h : IsCon
     (hv₂ : fderiv ℝ (shapeGraph χ ∘ shape) p (I • v) = 0) :
     0 < (leviForm (shapeGraph χ ∘ shape) p v v).re := by
   have hr := h.pos
-  have hr := h.pos
   have hR := h.pos_value
   have hd := h.deriv_pos
   have h₃ := h.one_div_lt_deriv_div
