@@ -178,17 +178,17 @@ theorem differentiableAt_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
   exact (D.chart k y).differentiableAt_symm_trans (D.chart k x) (by simp) hw
 
 /-- The transition from the chart centred at `y` to the chart centred at `x` is smooth on its
-source. -/
-theorem contDiffOn_chartTransition {k : ℕ} {x y : M} :
-    ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source := by
+source: it is `C^n` there for every `n : ℕ∞`. -/
+theorem contDiffOn_chartTransition {n : ℕ∞} {k : ℕ} {x y : M} :
+    ContDiffOn ℝ n (D.chartTransition k x y) (D.chartTransition k x y).source := by
   rw [chartTransition_def]
-  exact (D.chart k y).contDiffOn_symm_trans (D.chart k x)
+  exact ((D.chart k y).contDiffOn_symm_trans (D.chart k x)).of_le (by exact_mod_cast le_top)
 
 /-- The transition from the chart centred at `y` to the chart centred at `x` is smooth at each
-point of its source. -/
-theorem contDiffAt_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
+point of its source: it is `C^n` there for every `n : ℕ∞`. -/
+theorem contDiffAt_chartTransition {n : ℕ∞} {k : ℕ} {x y : M} {w : StdSpace ι}
     (hw : w ∈ (D.chartTransition k x y).source) :
-    ContDiffAt ℝ ∞ (D.chartTransition k x y) w :=
+    ContDiffAt ℝ n (D.chartTransition k x y) w :=
   D.contDiffOn_chartTransition.contDiffAt ((D.chartTransition k x y).open_source.mem_nhds hw)
 
 /-- For `y` in the source of the chart centred at `x`, the centre `0` of the chart at `y` lies in
@@ -719,7 +719,7 @@ theorem fderiv_fderiv_chartTransition [I.Boundaryless] (hJ : σ.Compatible J) {k
     rw [chartTransition_apply]
     exact (D.chart k x).map_source (D.mem_chartTransition_source_iff.1 hw).2
   refine fderiv_fderiv_eq_sub_christoffelSecondKind (D.chartTransition k x y).open_source
-    (D.contDiffOn_chartTransition.of_le (by simp)) (fun w' hw' u v ↦ ?_) hw
+    D.contDiffOn_chartTransition (fun w' hw' u v ↦ ?_) hw
     (D.bijective_fderiv_chartTransition hk hw).2
     (ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm.1
       (D.isInvertible_associatedBilinFormInChart hwy))
@@ -813,7 +813,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryles
   refine hK (τ := D.chartTransition k x y)
     (a := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k y))
     (b := Manifold.christoffelSecondKind (D.associatedBilinFormInChart k x)) (w₀ := 0)
-    ((D.contDiffAt_chartTransition h0s).of_le (by simp))
+    (D.contDiffAt_chartTransition h0s)
     (((D.contDiffOn_christoffelSecondKind_associatedBilinFormInChart k y).contDiffAt
       ((D.chart k y).open_target.mem_nhds h0t)).of_le (by simp))
     ?_ ?_ ?_ (fun i _ hi ↦ hΓ y h0 i hi) (fun i _ hi ↦ ?_) j hj₁ (by omega)

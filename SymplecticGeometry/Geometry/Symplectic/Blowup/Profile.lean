@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
@@ -53,13 +54,16 @@ explicit formula, without an integral, and its smoothness in `(l, ε, s)` is tha
   positive derivative, `h s = l ^ 2 + s` for `s ≤ ε ^ 2` and `h s = s` for `(l + ε) ^ 2 ≤ s`
   (`isBlowupProfile_blowupProfile`). Such an `h` is strictly increasing
   (`IsBlowupProfile.strictMono`) and positive on `[0, ∞)` (`IsBlowupProfile.pos`), as `radialMap`
-  asks on `Ioi 0`.
+  asks on `Ioi 0`. The profiles of weight `l` and collar `ε` form a convex set
+  (`convex_setOfPred_isBlowupProfile`, and `IsBlowupProfile.one_sub_smul_add_smul` for the segment
+  `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`).
 * `SymplecticGeometry.BlowupModel.profileCorrection l h s`: the correction
   `q(s) = ∫₀ˢ (h(u) - u - l²) / u du` of a profile `h`. For `IsBlowupProfile l ε h` it is smooth
   (`contDiff_profileCorrection`), zero for `s ≤ ε ^ 2` (`profileCorrection_of_le`), equal to
   `-l² log s` plus a constant for `s ≥ (l + ε) ^ 2` (`sq_mul_log_add_profileCorrection_of_ge`),
   with `s q'(s) = h(s) - s - l²` (`mul_deriv_profileCorrection`). For `h = blowupProfile l ε`
-  it is smooth in `(l, ε, s)` (`contDiffOn_profileCorrection_blowupProfile`).
+  it is smooth in `(l, ε, s)` (`contDiffOn_profileCorrection_blowupProfile`). It is affine in
+  the profile (`profileCorrection_one_sub_smul_add_smul`), by linearity of the integral.
 
 The smoothness of `q` is that of the primitive of its integrand, which is smooth
 (`IsBlowupProfile.contDiff_sub_sub_div`) since it vanishes for `u ≤ ε ^ 2`, so near `u = 0`.
@@ -101,6 +105,12 @@ argument, which defaults to `blowupProfile l ε`, so that `profileForm n l ε` i
   `radialMap` of `h`: by `mpullback_radialMap_stdForm`, since
   `s + l² log s + q(s)` has derivative `h(s) / s` (`deriv_add_mul_log_add_profileCorrection`).
   This follows `mpullback_radialMap_blowdown` of `Model.lean`, the case `h(s) = s + l²`.
+* `SymplecticGeometry.BlowupModel.profileForm_one_sub_smul_add_smul`: along the segment
+  `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles, `ω̃_{l,ε}` is the segment between
+  their forms, as are the correction potential and its form
+  (`correctionPotential_one_sub_smul_add_smul`, `correctionForm_one_sub_smul_add_smul`). The
+  bound on `t` keeps the segment among the profiles, outside of which these definitions take
+  their default values.
 * `SymplecticGeometry.BlowupModel.isKahler_profileForm`: for a profile `h`, `ω̃_{l,ε}` is
   Kähler for the complex structure of `L`. It is closed (`isClosed_profileForm`), and its
   compatibility is checked on two open sets that cover `L`
@@ -326,6 +336,24 @@ theorem isBlowupProfile_blowupProfile (hl : 0 < l) (hε : 0 < ε) :
   ⟨hl, hε, contDiff_blowupProfile hl hε, fun _ ↦ blowupProfile_of_le hl hε,
     fun _ ↦ blowupProfile_of_ge hl hε, deriv_blowupProfile_pos hl hε⟩
 
+/-- The profiles of the blowup of weight `l` with collar `ε` form a convex set: the two boundary
+equations are affine in `h`, and the derivative of a convex combination of profiles is a convex
+combination of positive numbers. -/
+theorem convex_setOfPred_isBlowupProfile :
+    Convex ℝ {h : ℝ → ℝ | IsBlowupProfile l ε h} := by
+  intro h₀ hh₀ h₁ hh₁ a b ha hb hab
+  have hd₀ := hh₀.contDiff.differentiable (by simp)
+  have hd₁ := hh₁.contDiff.differentiable (by simp)
+  refine ⟨hh₀.weight_pos, hh₀.collar_pos,
+    (hh₀.contDiff.const_smul a).add (hh₁.contDiff.const_smul b), fun s hs ↦ ?_, fun s hs ↦ ?_,
+    fun s ↦ ?_⟩
+  · simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, hh₀.eq_of_le hs, hh₁.eq_of_le hs]
+    linear_combination (l ^ 2 + s) * hab
+  · simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, hh₀.eq_of_ge hs, hh₁.eq_of_ge hs]
+    linear_combination s * hab
+  · rw [(((hd₀ s).hasDerivAt.const_smul a).add ((hd₁ s).hasDerivAt.const_smul b)).deriv]
+    exact convex_Ioi (0 : ℝ) (hh₀.deriv_pos s) (hh₁.deriv_pos s) ha hb hab
+
 namespace IsBlowupProfile
 
 variable {h : ℝ → ℝ}
@@ -352,6 +380,13 @@ theorem contDiff_sub_sub_div {k : ℕ∞} (hh : IsBlowupProfile l ε h) :
     have hε2 : u < ε ^ 2 := hu.trans_lt (pow_pos hh.collar_pos 2)
     filter_upwards [Iio_mem_nhds hε2] with v hv
     rw [hh.eq_of_le (le_of_lt hv)]; ring
+
+/-- A convex combination `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, of profiles of the blowup of
+weight `l` with collar `ε` is a profile of the blowup of weight `l` with collar `ε`. -/
+theorem one_sub_smul_add_smul {h₀ h₁ : ℝ → ℝ} (hh₀ : IsBlowupProfile l ε h₀)
+    (hh₁ : IsBlowupProfile l ε h₁) {t : ℝ} (ht₀ : 0 ≤ t) (ht₁ : t ≤ 1) :
+    IsBlowupProfile l ε ((1 - t) • h₀ + t • h₁) :=
+  convex_setOfPred_isBlowupProfile hh₀ hh₁ (sub_nonneg.2 ht₁) ht₀ (sub_add_cancel 1 t)
 
 end IsBlowupProfile
 
@@ -490,6 +525,24 @@ theorem deriv_deriv_profileCorrection_of_le (hh : IsBlowupProfile l ε h) {s : �
       (deriv_profileCorrection_of_le hh hs)
   exact (uniqueDiffOn_Iic _ s hs).eq_deriv _ (hd s).hasDerivAt.hasDerivWithinAt h₀
 
+/-- The correction is affine in the profile: for profiles `h₀`, `h₁` of the blowup of weight `l`
+(with any collars) and every real `t`, the correction of `(1 - t) • h₀ + t • h₁` is
+`(1 - t) • profileCorrection l h₀ + t • profileCorrection l h₁`. -/
+theorem profileCorrection_one_sub_smul_add_smul {ε₀ ε₁ : ℝ} {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε₀ h₀) (hh₁ : IsBlowupProfile l ε₁ h₁) (t : ℝ) :
+    profileCorrection l ((1 - t) • h₀ + t • h₁) =
+      (1 - t) • profileCorrection l h₀ + t • profileCorrection l h₁ := by
+  funext s
+  have hi₀ := (hh₀.contDiff_sub_sub_div (k := 0)).continuous.intervalIntegrable
+    (μ := MeasureTheory.volume) 0 s
+  have hi₁ := (hh₁.contDiff_sub_sub_div (k := 0)).continuous.intervalIntegrable
+    (μ := MeasureTheory.volume) 0 s
+  simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, profileCorrection_def]
+  rw [← intervalIntegral.integral_const_mul, ← intervalIntegral.integral_const_mul,
+    ← intervalIntegral.integral_add (hi₀.const_mul _) (hi₁.const_mul _)]
+  refine intervalIntegral.integral_congr fun u _ ↦ ?_
+  ring
+
 /-! ### The forms `ω̃_{λ,ε}` -/
 
 section ProfileForm
@@ -556,11 +609,7 @@ theorem correctionForm_apply_eq_zero {l ε : ℝ} {h : ℝ → ℝ} {z : Fin (n 
     (correctionForm n l ε h).val z = 0 := by
   by_cases hh : IsBlowupProfile l ε h
   swap
-  · have h0 : SmoothForm.ofFunction (correctionPotential n l ε h) = 0 := by
-      rw [correctionPotential_of_not n hh]
-      exact SmoothBundleForm.ext fun x v ↦ by
-        simp [SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply]
-    rw [correctionForm_def, h0, map_zero]
+  · rw [correctionForm_def, correctionPotential_of_not n hh, SmoothForm.ofFunction_zero, map_zero]
     simp
   have hq := contDiff_profileCorrection (k := ⊤) hh
   have hq' := (contDiff_infty_iff_deriv.1 hq).2
@@ -637,6 +686,42 @@ theorem isClosed_correctionForm (l ε : ℝ) (h : ℝ → ℝ) : (correctionForm
 theorem isClosed_profileForm (l ε : ℝ) (h : ℝ → ℝ) : (profileForm n l ε h).IsClosed := by
   rw [profileForm_def]
   exact (isClosed_blowupForm l).add ((isClosed_correctionForm n l ε h).mpullback _ _)
+
+/-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup,
+the correction potential is the segment between those of `h₀` and `h₁`. -/
+theorem correctionPotential_one_sub_smul_add_smul {l ε : ℝ} {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε h₀) (hh₁ : IsBlowupProfile l ε h₁) {t : ℝ} (ht₀ : 0 ≤ t)
+    (ht₁ : t ≤ 1) :
+    correctionPotential n l ε ((1 - t) • h₀ + t • h₁) =
+      (1 - t) • correctionPotential n l ε h₀ + t • correctionPotential n l ε h₁ :=
+  ContMDiffMap.ext fun z ↦ by
+    simp [correctionPotential_apply n (hh₀.one_sub_smul_add_smul hh₁ ht₀ ht₁),
+      correctionPotential_apply n hh₀, correctionPotential_apply n hh₁,
+      profileCorrection_one_sub_smul_add_smul hh₀ hh₁ t]
+
+/-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup,
+the form `ω_q` of the correction potential is the segment between those of `h₀` and `h₁`, since
+the form of a potential is linear in the potential. -/
+theorem correctionForm_one_sub_smul_add_smul {l ε : ℝ} {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε h₀) (hh₁ : IsBlowupProfile l ε h₁) {t : ℝ} (ht₀ : 0 ≤ t)
+    (ht₁ : t ≤ 1) :
+    correctionForm n l ε ((1 - t) • h₀ + t • h₁) =
+      (1 - t) • correctionForm n l ε h₀ + t • correctionForm n l ε h₁ := by
+  rw [correctionForm_def, correctionForm_def, correctionForm_def,
+    correctionPotential_one_sub_smul_add_smul n hh₀ hh₁ ht₀ ht₁, SmoothForm.ofFunction_add,
+    SmoothForm.ofFunction_smul, SmoothForm.ofFunction_smul, map_add, map_smul, map_smul]
+
+/-- Along the segment `(1 - t) • h₀ + t • h₁`, `t ∈ [0, 1]`, between two profiles of the blowup,
+the form `ω̃_{l,ε}` is the segment between those of `h₀` and `h₁`: the form `ω̃_l` does not
+depend on the profile, and the correction form is affine in it. -/
+theorem profileForm_one_sub_smul_add_smul {l ε : ℝ} {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε h₀) (hh₁ : IsBlowupProfile l ε h₁) {t : ℝ} (ht₀ : 0 ≤ t)
+    (ht₁ : t ≤ 1) :
+    profileForm n l ε ((1 - t) • h₀ + t • h₁) =
+      (1 - t) • profileForm n l ε h₀ + t • profileForm n l ε h₁ := by
+  rw [profileForm_def, profileForm_def, profileForm_def,
+    correctionForm_one_sub_smul_add_smul n hh₀ hh₁ ht₀ ht₁, map_add, map_smul, map_smul]
+  module
 
 /-- The radial potential `s ↦ s + l² log s + q(s)` of `ω̃_{l,ε}` off the divisor, for
 `q = profileCorrection l h`, is smooth on `(0, ∞)`. -/
