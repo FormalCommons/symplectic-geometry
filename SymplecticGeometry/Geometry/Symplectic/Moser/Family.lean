@@ -258,7 +258,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
   have hγ'f (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) (q : Q) :
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ').val (f q) =
         0 := by
-    have hq := hdφ t q (by rw [hγf t ht, ZeroMemClass.coe_zero, Pi.zero_apply])
+    have hq := hdφ t q (by rw [hγf t ht, SmoothBundleForm.zero_apply])
     rw [hslice, SmoothBundleForm.sub_apply, mextDerivₗ_apply,
       SmoothForm.coe_mpullback (Prod.mk t) _ Φ, hΦ, mpullback_ofFunction, ← hq,
       Function.comp_def, sub_self]
@@ -367,13 +367,13 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     exact timeDependentFlowOf_eq_self_of_forall_eq_zero ((hYτ τ).of_le (by simp)) h 0 1
   have hψ₀ (x : N) : ψ 0 x = x := hψ0 0 x <| hY0 <| by
     rw [← Set.Icc.coe_zero, hβ' (0 : unitInterval).property, Subtype.coe_eta, hβ₀,
-      ZeroMemClass.coe_zero, Pi.zero_apply]
+      SmoothBundleForm.zero_apply]
   let χ := Diffeotopy.ofReal ψ hψs hψ₀
   have hχ (t : unitInterval) (x : N) : χ (t, x) = ψ t x := Diffeotopy.ofReal_apply ψ hψs hψ₀ _
   refine ⟨χ, fun t x hx ↦ (hχ t x).trans (hψ0 t x (hY0 (by rw [hβ' t.property]; exact hβK t x hx))),
     ⟨C, hC, fun t x hx ↦ (hχ t x).trans (hψ0 t x fun s ↦ hYC t s x hx)⟩,
     fun t ht x ↦ (hχ t x).trans (hψ0 t x (hY0 (by
-      rw [hβ' t.property, ht, ZeroMemClass.coe_zero, Pi.zero_apply]))), ?_⟩
+      rw [hβ' t.property, ht, SmoothBundleForm.zero_apply]))), ?_⟩
   -- `S`: the points near which `ρ = 1` and the forms of `Ω` are nondegenerate, where Moser's
   -- equation holds.
   set S := {p : (ℝ × ℝ) × N | ∀ᶠ q in 𝓝 p, ρ q = 1 ∧ q ∈ O}
