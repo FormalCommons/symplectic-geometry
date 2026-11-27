@@ -41,7 +41,8 @@ level `f ⁻¹' {c}` with `a < c < b` (or there are none).
   points in the region lie on one level strictly between `a` and `b`; with
   `SymplecticGeometry.IsWeinsteinCobordism.isElementary_iff` (the critical values in the region
   form a subsingleton) and `.isElementary_of_criticalPoints_inter_eq_empty`, and stable under
-  `.comp` and `.pullback`.
+  `.comp` and `.pullback`. Its critical level `c` can be taken with no critical point of `f` in
+  `f ⁻¹' Ico a c` (`.exists_criticalPoints_inter_preimage_Ico_eq_empty`).
 * `SymplecticGeometry.isElementaryWeinsteinCobordism_norm_sq`: for the radial Weinstein structure
   on a symplectic vector space, such as `ℂⁿ`, every region between two nonzero levels of
   `‖x‖ ^ 2` is an elementary Weinstein cobordism.
@@ -230,6 +231,17 @@ theorem isElementary_of_criticalPoints_inter_eq_empty (h : IsWeinsteinCobordism 
 end IsWeinsteinCobordism
 
 namespace IsElementaryWeinsteinCobordism
+
+/-- **The regular band below the critical level.** For an elementary Weinstein cobordism between
+`a` and `b`, there is a level `c ∈ (a, b)` that contains every critical point of `f` in the
+region `f ⁻¹' Icc a b`, and `f` has no critical point in `f ⁻¹' Ico a c`. -/
+theorem exists_criticalPoints_inter_preimage_Ico_eq_empty
+    (hW : IsElementaryWeinsteinCobordism ω X f a b) :
+    ∃ c ∈ Ioo a b, criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b ⊆ f ⁻¹' {c} ∧
+      criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅ := by
+  obtain ⟨c, hc, hsub⟩ := hW.exists_criticalPoints_inter_subset
+  refine ⟨c, hc, hsub, eq_empty_iff_forall_notMem.2 fun y hy ↦ ?_⟩
+  exact hy.2.2.ne (hsub ⟨hy.1, hy.2.1, hy.2.2.le.trans hc.2.le⟩)
 
 /-- Reparametrizing the function of an elementary Weinstein cobordism between `a` and `b` by a
 smooth strictly increasing `h` with `h' > 0` at every value of `f` gives an elementary Weinstein
