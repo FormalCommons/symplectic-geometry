@@ -352,8 +352,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have hPu : P (y z t) = u := by
       rw [← hu, map_add, hPg, add_zero, ← hv, ← mul_apply_eq_comp, hP.eq]
     rw [hPu, hu]
-  have hinv (T : ℝ) (x : M) : hW.flow (-T) (hW.flow T x) = x := by
-    simp
+  have hinv (T : ℝ) (x : M) : hW.flow (-T) (hW.flow T x) = x := by simp
   have hQ (x : E) : P x ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) x
   set Q : E →L[ℝ] S := P.codRestrict S hQ with hQdef
   -- Smoothness spreads from a small ball to the ball of radius `ρ` along the flow: for `T`
