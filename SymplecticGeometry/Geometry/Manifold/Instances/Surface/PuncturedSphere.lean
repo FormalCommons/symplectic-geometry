@@ -1122,10 +1122,7 @@ theorem exists_puncturedFundamentalGroupMulEquiv_zero :
         SurfaceGroup.Orientable.peripheral 0 n i := by
   cases n with
   | zero =>
-    have h : (puncture 0 0 : Set (ClosedSurface 0)) = univ := by
-      rw [puncture_zero, TopologicalSpace.Opens.coe_top]
-    have := ((Homeomorph.setCongr h).trans (Homeomorph.Set.univ _)).toHomotopyEquiv
-      |>.simplyConnectedSpace
+    have := (punctureZeroHomeomorph 0).toHomotopyEquiv.simplyConnectedSpace
     let := uniqueOfSubsingleton (1 : FundamentalGroup (puncture 0 0)
       ⟨basePoint 0, basePoint_mem_puncture⟩)
     let := uniqueOfSubsingleton (1 : SurfaceGroup.Orientable 0 0)

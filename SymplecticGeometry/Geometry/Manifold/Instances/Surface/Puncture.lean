@@ -66,6 +66,8 @@ the paths and loops of genus `g + 1` are related in this way to those of genus `
   centres of the balls `0, …, n - 1` removed.
 * `SymplecticGeometry.ClosedSurface.tailPuncture g n`: the closed surface of genus `g` with the
   centres of the balls `1, …, n` removed.
+* `SymplecticGeometry.ClosedSurface.punctureZeroHomeomorph g`: the inclusion of `puncture g 0`
+  into the surface, as a homeomorphism.
 * `SymplecticGeometry.ClosedSurface.ballCircle g j`: the circle of radius `1` of the ball `j`,
   counterclockwise in the coordinates `SymplecticGeometry.EuclideanTorus.neckIsometry`.
 * `SymplecticGeometry.ClosedSurface.ballPath g j`: a path from the base point to the start of
@@ -178,6 +180,23 @@ variable (g) in
 theorem puncture_zero : puncture g 0 = ⊤ := by
   ext x
   simp [mem_puncture]
+
+variable (g) in
+/-- With no centre removed, the inclusion of `puncture g 0` into the closed surface of genus `g`
+is a homeomorphism, since `puncture g 0` is the whole surface (`ClosedSurface.puncture_zero`). -/
+def punctureZeroHomeomorph : puncture g 0 ≃ₜ ClosedSurface g where
+  toEquiv := Equiv.subtypeUnivEquiv fun x ↦ by simp
+  continuous_toFun := continuous_subtypeVal
+  continuous_invFun := continuous_id.subtype_mk _
+
+@[simp]
+theorem punctureZeroHomeomorph_apply (x : puncture g 0) : punctureZeroHomeomorph g x = x :=
+  (rfl)
+
+@[simp]
+theorem punctureZeroHomeomorph_symm_apply (x : ClosedSurface g) :
+    (punctureZeroHomeomorph g).symm x = ⟨x, by simp⟩ :=
+  (rfl)
 
 variable (g) in
 /-- With one centre removed, `puncture g 1` is the punctured summand
