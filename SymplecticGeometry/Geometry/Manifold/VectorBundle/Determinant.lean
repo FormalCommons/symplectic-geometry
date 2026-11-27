@@ -8,11 +8,10 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import TauCeti.Topology.VectorBundle.Determinant
 import Mathlib.Analysis.Normed.Operator.Mul
-import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
 import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
-import TauCeti.Topology.VectorBundle.Trivialization
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
 # The determinant line of a smooth vector bundle is smooth
@@ -37,7 +36,9 @@ For a line bundle, Tau Ceti identifies the determinant line with the bundle itse
 (`TauCeti.DetBundle.lineHomeomorph`). Read in the trivializations at a point, this identification
 multiplies the coordinate by the vector of the basis `Module.finBasis 𝕜' G` of the model line
 (`TauCeti.DetBundle.snd_apply_lineEquiv`), and its inverse takes the coordinate along that
-vector, so both are `C^n`.
+vector. A fibrewise map that is a fixed continuous linear map in these trivializations is `C^n`
+(`TauCeti.contMDiff_bundleMap_of_constant_coordinates`), so both are `C^n`. This needs no
+smoothness of `E`.
 
 ## Main results
 
@@ -61,15 +62,20 @@ open scoped Manifold
 
 namespace TauCeti.DetBundle
 
-variable {𝕜 𝕜' : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
+variable {𝕜 𝕜' : Type*} [NontriviallyNormedField 𝕜]
   [NontriviallyNormedField 𝕜'] [CompleteSpace 𝕜'] [NormedAlgebra 𝕜 𝕜']
   {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
   {I : ModelWithCorners 𝕜 EB HB} [TopologicalSpace B] [ChartedSpace HB B] {n : WithTop ℕ∞}
   {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜' G] [NormedSpace 𝕜 G] [IsScalarTower 𝕜 𝕜' G]
-  [FiniteDimensional 𝕜' G] [FiniteDimensional 𝕜 G]
-  {E : B → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜' (E x)] [∀ x, Module 𝕜 (E x)]
+  [FiniteDimensional 𝕜' G]
+  {E : B → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜' (E x)]
   [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
-  [FiberBundle G E] [VectorBundle 𝕜' G E] [VectorBundle 𝕜 G E] [ContMDiffVectorBundle n G E I]
+  [FiberBundle G E] [VectorBundle 𝕜' G E]
+
+section Smooth
+
+variable [CompleteSpace 𝕜] [FiniteDimensional 𝕜 G] [∀ x, Module 𝕜 (E x)] [VectorBundle 𝕜 G E]
+  [ContMDiffVectorBundle n G E I]
   [∀ x, Module 𝕜 (DetBundle 𝕜' G E x)] [VectorBundle 𝕜 𝕜' (DetBundle 𝕜' G E)]
 
 /-- **The determinant line of a `C^n` vector bundle is a `C^n` line bundle.** For a vector bundle
@@ -94,6 +100,7 @@ instance contMDiffVectorBundle : ContMDiffVectorBundle n 𝕜' (DetBundle 𝕜' 
       ← Trivialization.restrictScalars_coordChangeL 𝕜 𝕜', ContinuousLinearMap.coe_restrictScalars',
       ContinuousLinearEquiv.coe_coe]
 
+end Smooth
 
 section Line
 
@@ -106,20 +113,11 @@ theorem contMDiff_lineHomeomorph (hF : finrank 𝕜' G = 1) :
   -- In trivializations, the map multiplies the coordinate by the basis vector of the model.
   let L : 𝕜' →L[𝕜] G :=
     ((ContinuousLinearMap.id 𝕜' 𝕜').smulRight (Module.finBasis 𝕜' G default)).restrictScalars 𝕜
-  rintro ⟨x, a⟩
-  set e := trivializationAt G E x
-  set t := trivializationAt 𝕜' (DetBundle 𝕜' G E) x
-  have ht : t = trivialization e := trivializationAt_eq x
-  have hp : (⟨x, a⟩ : TotalSpace 𝕜' (DetBundle 𝕜' G E)) ∈ t.source :=
-    t.mem_source.2 (mem_baseSet_trivializationAt _ _ x)
-  rw [e.contMDiffAt_iff (e.mem_source.2 (by simpa using mem_baseSet_trivializationAt _ _ x))]
-  refine ⟨by simpa using contMDiffAt_proj (n := n) (IB := I) (E := DetBundle 𝕜' G E), ?_⟩
-  refine (L.contMDiff.contMDiffAt.comp _ (contMDiffAt_snd.comp _ (t.contMDiffAt hp)))
-    |>.congr_of_eventuallyEq ?_
-  filter_upwards [t.open_source.mem_nhds hp] with ⟨y, w⟩ hy
-  rw [ht, Trivialization.mem_source, trivialization_baseSet] at hy
-  simp only [Function.comp_apply, lineHomeomorph_apply]
-  rw [snd_apply_lineEquiv hF e hy w default, ht, trivialization_apply_mk e hy]
+  refine (TauCeti.contMDiff_bundleMap_of_constant_coordinates (IB := I) (n := n)
+    (fun x ↦ lineEquiv (E := E) hF x) L fun a x hx v ↦ ?_).congr
+      fun p ↦ by simp [lineHomeomorph_apply]
+  rw [trivializationAt_eq, trivialization_baseSet, Set.inter_self] at hx
+  rw [snd_apply_lineEquiv hF _ hx v default, trivializationAt_eq, trivialization_apply_mk _ hx]
   simp [L]
 
 /-- **The identification of a line bundle with its determinant line is `C^n`.** For a vector
@@ -131,22 +129,13 @@ theorem contMDiff_lineHomeomorph_symm (hF : finrank 𝕜' G = 1) :
   -- In trivializations, the map reads the coordinate of a vector along the basis of the model.
   let L : G →L[𝕜] 𝕜' :=
     (LinearMap.toContinuousLinearMap ((Module.finBasis 𝕜' G).coord default)).restrictScalars 𝕜
-  rintro ⟨x, w⟩
-  set e := trivializationAt G E x
-  set t := trivializationAt 𝕜' (DetBundle 𝕜' G E) x
-  have ht : t = trivialization e := trivializationAt_eq x
-  have hp : (⟨x, w⟩ : TotalSpace G E) ∈ e.source :=
-    e.mem_source.2 (mem_baseSet_trivializationAt _ _ x)
-  rw [t.contMDiffAt_iff (t.mem_source.2 (by simpa using mem_baseSet_trivializationAt _ _ x))]
-  refine ⟨by simpa using contMDiffAt_proj (n := n) (IB := I) (E := E), ?_⟩
-  refine (L.contMDiff.contMDiffAt.comp _ (contMDiffAt_snd.comp _ (e.contMDiffAt hp)))
-    |>.congr_of_eventuallyEq ?_
-  filter_upwards [e.open_source.mem_nhds hp] with ⟨y, u⟩ hy
-  rw [Trivialization.mem_source] at hy
-  have h := snd_apply_lineEquiv hF e hy ((lineEquiv hF y).symm u) default
+  refine (TauCeti.contMDiff_bundleMap_of_constant_coordinates (IB := I) (n := n)
+    (fun x ↦ (lineEquiv (E := E) hF x).symm) L fun a x hx u ↦ ?_).congr
+      fun p ↦ by simp [lineHomeomorph_symm_apply]
+  rw [trivializationAt_eq, trivialization_baseSet, Set.inter_self] at hx
+  have h := snd_apply_lineEquiv hF _ hx ((lineEquiv hF x).symm u) default
   rw [ContinuousLinearEquiv.apply_symm_apply] at h
-  simp only [Function.comp_apply, lineHomeomorph_symm_apply]
-  rw [h, ht, trivialization_apply_mk e hy]
+  rw [h, trivializationAt_eq, trivialization_apply_mk _ hx]
   simp [L]
 
 end Line
