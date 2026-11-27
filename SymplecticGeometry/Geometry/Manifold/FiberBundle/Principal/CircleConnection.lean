@@ -52,6 +52,8 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 
 * `SymplecticGeometry.IsCircleConnectionForm α`: `α` is a connection form.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature`: the curvature of a connection form.
+* `SymplecticGeometry.IsCircleConnectionCurvature P σ`: the `2`-form `σ` on `B` is the curvature
+  of some connection form on `P`.
 
 ## Main results
 
@@ -317,6 +319,25 @@ theorem IsCircleConnectionForm.curvature_add_mpullback (hα : IsCircleConnection
     (hα.add_mpullback a).curvature = hα.curvature + mextDerivₗ IB 1 a := by
   rw [curvature_eq_iff, map_add, mpullback_curvature, map_add,
     SmoothForm.mextDerivₗ_mpullback]
+
+variable (P) in
+/-- A `2`-form `σ` on `B` is the curvature of a connection form on the principal `Circle`-bundle
+`P`: some connection form `β` on `P` has `hβ.curvature = σ`. -/
+def IsCircleConnectionCurvature (σ : SmoothForm IB B ℝ 2) : Prop :=
+  ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+    (hβ : IsCircleConnectionForm β), hβ.curvature = σ
+
+variable (P) in
+theorem isCircleConnectionCurvature_def (σ : SmoothForm IB B ℝ 2) :
+    IsCircleConnectionCurvature P σ ↔
+      ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+        (hβ : IsCircleConnectionForm β), hβ.curvature = σ :=
+  Iff.rfl
+
+/-- The curvature of a connection form `α` on `P` satisfies `IsCircleConnectionCurvature P`. -/
+theorem IsCircleConnectionForm.isCircleConnectionCurvature (hα : IsCircleConnectionForm α) :
+    IsCircleConnectionCurvature P hα.curvature :=
+  (isCircleConnectionCurvature_def P _).2 ⟨α, hα, rfl⟩
 
 omit [IB.Boundaryless]
 

@@ -37,7 +37,7 @@ which is `deRhamHom [σ]`. By the de Rham theorem on a compact manifold
 (`TauCeti.injective_deRhamHom`), the real first Chern class of `L` is `[σ]`. So `-2π σ` is the
 curvature of a connection form (`Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_iff`): an
 arbitrary connection form, corrected by the pull-back of a primitive of the difference of the two
-curvatures (`SymplecticGeometry.exists_isCircleConnectionForm_curvature_eq_iff`).
+curvatures (`SymplecticGeometry.isCircleConnectionCurvature_iff`).
 
 The Euler class of `L` is `-a`, not `a`: the bundle with curvature `-2π i σ` has real first Chern
 class `[σ]`, and its Euler class is minus the integral class that lifts it.
