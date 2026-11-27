@@ -28,6 +28,8 @@ of base point along a path, read on their classes.
 * `FundamentalGroup.fromPath_trans`, `FundamentalGroup.fromPath_symm`: the class of a
   concatenation of loops is the product of their classes, in the reverse order, and the class of
   a reversed loop is the inverse.
+* `Path.Homotopic.Quotient.trans_symm_trans`, `Path.Homotopic.Quotient.symm_trans_trans`: a
+  class of paths and its reverse, composed in front of a third class, cancel.
 -/
 
 public section
@@ -66,5 +68,24 @@ theorem fromPath_symm (γ : Path.Homotopic.Quotient x x) :
   (rfl)
 
 end FundamentalGroup
+
+namespace Path.Homotopic.Quotient
+
+variable {X : Type*} [TopologicalSpace X] {x y z : X}
+
+/-- A class of paths and its reverse cancel in front of a third class: `p · (p⁻¹ · q) = q`. -/
+@[simp]
+theorem trans_symm_trans (p : Path.Homotopic.Quotient x y) (q : Path.Homotopic.Quotient x z) :
+    p.trans (p.symm.trans q) = q := by
+  rw [← trans_assoc, trans_symm, refl_trans]
+
+/-- The reverse of a class of paths and the class cancel in front of a third class:
+`p⁻¹ · (p · q) = q`. -/
+@[simp]
+theorem symm_trans_trans (p : Path.Homotopic.Quotient x y) (q : Path.Homotopic.Quotient y z) :
+    p.symm.trans (p.trans q) = q := by
+  rw [← trans_assoc, symm_trans, refl_trans]
+
+end Path.Homotopic.Quotient
 
 end

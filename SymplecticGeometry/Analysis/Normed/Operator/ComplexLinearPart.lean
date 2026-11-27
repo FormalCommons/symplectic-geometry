@@ -16,9 +16,12 @@ import TauCeti.Analysis.Complex.Wirtinger.Basic
 For a continuous real-linear operator `Ψ` between complex normed spaces, Tau Ceti's
 `ContinuousLinearMap.complexLinearPart` and `ContinuousLinearMap.complexAntilinearPart` both have
 operator norm at most `‖Ψ‖` (`ContinuousLinearMap.norm_complexLinearPart_le`,
-`ContinuousLinearMap.norm_complexAntilinearPart_le`), with pointwise forms. The second bound
-makes the complex-antilinear part a continuous real-linear map into the complex-antilinear
-operators, `ContinuousLinearMap.complexAntilinearPartCLM`.
+`ContinuousLinearMap.norm_complexAntilinearPart_le`), with pointwise forms. Seen as a
+real-linear operator by Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, the
+complex-antilinear part keeps its operator norm
+(`ContinuousLinearMap.norm_complexAntilinearPartL_apply`). The bound on the complex-antilinear
+part makes it a continuous real-linear map into the complex-antilinear operators,
+`ContinuousLinearMap.complexAntilinearPartCLM`.
 
 The Wirtinger derivatives of a map are the complex-linear and complex-antilinear parts of its
 real derivative, and the derivative of `Ψ` is `Ψ`. So the bounds are Tau Ceti's
@@ -52,6 +55,17 @@ theorem norm_complexAntilinearPart_le (Ψ : E →L[ℝ] F) :
   opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ by
     simpa [TauCeti.conjWirtingerDeriv_eq_complexAntilinearPart] using
       TauCeti.norm_conjWirtingerDeriv_apply_le (⇑Ψ) 0 v
+
+/-- Tau Ceti's `ContinuousLinearMap.complexAntilinearPartL`, which sees the complex-antilinear part
+of an operator as a real-linear operator, preserves its operator norm. -/
+theorem norm_complexAntilinearPartL_apply (Ψ : E →L[ℝ] F) :
+    ‖complexAntilinearPartL Ψ‖ = ‖Ψ.complexAntilinearPart‖ := by
+  refine le_antisymm (opNorm_le_bound _ (norm_nonneg _) fun v ↦ ?_)
+    (opNorm_le_bound _ (norm_nonneg _) fun v ↦ ?_)
+  · rw [complexAntilinearPartL_apply_apply, ← complexAntilinearPart_apply]
+    exact le_opNorm _ v
+  · rw [complexAntilinearPart_apply, ← complexAntilinearPartL_apply_apply]
+    exact le_opNorm _ v
 
 /-- Pointwise form of `ContinuousLinearMap.norm_complexLinearPart_le`. -/
 theorem norm_complexLinearPart_apply_le (Ψ : E →L[ℝ] F) (v : E) :

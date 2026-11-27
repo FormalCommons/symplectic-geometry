@@ -617,7 +617,7 @@ containing `ι '' closedBall 0 1`:
   - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
     interval `Icc r₁ r₂`, and let `O` be a
-    neighbourhood of `{r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
+    neighbourhood of `Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
     `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
     equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`; no transversality
     of the crossings is needed. Condition (4.3) passes to
@@ -659,13 +659,13 @@ containing `ι '' closedBall 0 1`:
     (`c = (1 + a) / 2`, `b = γ * (a - 1) / 16`), which §4.7 needs.
   - `exists_convexShape_surround` (14d4; Proposition 4.21, which is
     Theorem 4.1 (i)–(iii) in terms of the shape): for `1 < a` and
-    `γ ∈ Ioo 0 1` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
+    `0 < γ` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
     `Ioi δ` and continuous on `Ici δ`, with `IsConvexShapeAt χ r` for
     all `r > δ`, `χ r = √(1 + a * r ^ 2)` for `γ ≤ r`,
     `Tendsto (deriv χ) (𝓝[>] δ) atTop` and `1 < χ δ < 1 + γ`. The
     hypersurface of Theorem 4.1 is
     $\Sigma=\{t=\delta^2,\ \sqrt s\le\chi(\delta)\}\cup\{t>\delta^2,\ \sqrt s=\chi(\sqrt t)\}$;
-    the statement records (ii) and (iii) as
+    theorems about this `χ` record (ii) and (iii) as
     `Σ ∩ {p | γ ^ 2 ≤ t p} = {p | a * t p - s p = -1} ∩ {p | γ ^ 2 ≤ t p}`
     and `Σ ∩ {p | s p ≤ 1} = {p | t p = δ ^ 2 ∧ s p ≤ 1}`, and (i) by
     `IsConvexShapeAt.re_leviForm_pos` on the curved part and
@@ -752,31 +752,36 @@ containing `ι '' closedBall 0 1`:
 
     The proof is in five steps, each a building issue of 14d6.
     1. `exists_forall_isConvexShapeAt_of_abs_sub_lt`
-       (`Surround/ShapeFoliation.lean`): under the hypotheses on `Q`
-       above, there is `η > 0` such that every `φ : ℝ → ℝ`, `ℓ ∈ Icc ℓ₀ ℓ₁`
-       and `r ∈ Icc r₁ r₂` with `|iteratedDeriv k φ r -
+       (`Surround/ConvexShape.lean`): for a compact `K ⊆ ℝ × ℝ` with
+       `IsConvexShapeAt (χ ℓ) r` and the joint continuity above on `K`,
+       there is `η > 0` such that every `φ : ℝ → ℝ` and `(ℓ, r) ∈ K`
+       with `|iteratedDeriv k φ r -
        iteratedDeriv k (χ ℓ) r| < η` for `k ≤ 2` give
        `IsConvexShapeAt φ r`. The two strict inequalities of
        `isConvexShapeAt_iff`, and `0 < χ`, are an open condition on
-       `(χ, χ', χ'', r)`, and the image of `Q` is compact. Every later
+       `(χ, χ', χ'', r)`, and the image of `K` is compact. Every later
        step only checks closeness to some member in this sense.
-    2. `exists_contDiff_abs_iteratedDeriv_sub_lt`
-       (`Analysis/Calculus/ContDiff/SmoothApprox.lean`, a statement about
-       real functions): a function `C²` on a neighbourhood of `Icc a b` is,
-       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in value
-       and first two derivatives, and `g` equals it near `Icc c b` if it
+    2. `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt`
+       (`Analysis/Calculus/BumpFunction/SmoothApprox.lean`, a statement about
+       real functions): a function `Cⁿ` on a neighbourhood of `Icc a b` is,
+       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in its
+       derivatives of order at most `n`, and `g` equals it near `Icc c b` if it
        is smooth on a neighbourhood of `Icc c b` (convolution with a
        `ContDiffBump`, glued by a cutoff). It turns finitely many members
        into smooth convex shapes `A i` (step 1).
-    3. `exists_forall_isConvexShapeAt_smoothedMax_sub`
-       (`Surround/ConvexShape.lean`, making the step
-       `isConvexShapeAt_smoothedMax_of_le` public): for smooth `M`, `A`,
-       convex shapes on `Icc r₁ r₂`, and `η' > 0` with every `A - s`,
-       `s ∈ Icc 0 η'`, a convex shape there, one `δ > 0` makes
-       `fun r ↦ smoothedMax δ (M r) (A r - s)` a convex shape on
-       `Icc r₁ r₂` for all these `s` at once: the margins and bounds in the
-       proof of `exists_isConvexShapeAt_eq_max` do not change when `A` is
-       shifted by a constant.
+    3. `exists_forall_isConvexShapeAt_smoothedMax`
+       (`Surround/ConvexShape.lean`, through the public pointwise step
+       `exists_pos_forall_isConvexShapeAt_smoothedMax`, whose `δ₀` depends
+       only on a margin `a > 0` and bounds `G`, `Q`): for a compact `K`
+       and `C²` families `M p`, `A p`, `p ∈ K`, of convex shapes on
+       `Icc r₁ r₂`, whose values and first two `r`-derivatives are
+       continuous on `K ×ˢ Icc r₁ r₂`, some `δ₀ > 0` makes
+       `fun r ↦ smoothedMax δ (M p r) (A p r)` a convex shape on
+       `Icc r₁ r₂` for all `δ ∈ Ioc 0 δ₀` and `p ∈ K` at once:
+       the margins and bounds in the proof of
+       `exists_isConvexShapeAt_eq_max`, which is its case of one point, are
+       uniform over the compact set. Step 4 takes `A p = A - p`,
+       `p ∈ Icc 0 η'`.
     4. `exists_monotone_shapeChain` (`Surround/ShapeFoliation.lean`): a
        smooth family that is only weakly increasing. Take
        `ℓ₀ < a < b < ℓ₁` with `Icc ℓ₀ a ×ˢ Icc r₁ r₂` and
@@ -856,7 +861,8 @@ containing `ι '' closedBall 0 1`:
     for `ℓ` near `-8 * δ`; and continued a little past `u = 1` by
     `χ 1 r + √(64 * r ^ 2 + u) - √(64 * r ^ 2 + 1)`, which is standard
     for `γ ≤ r`, so smooth across `u = 1` there, is a convex shape for
-    `u` close to `1` by step 1 of `exists_shapeFoliation`, and lies
+    `u` close to `1` by
+    `exists_forall_isConvexShapeAt_of_abs_sub_lt`, and lies
     strictly above `χ 1`, hence above every earlier member), and write its leaf `ℓ` near the line
     `r = δ` as `r = ρ ℓ R` over `R ≥ 0`, with `ρ ℓ = δ` on
     `Icc 0 (χ ℓ δ)`. For `δ' < δ` close to `δ` there are `r₁ ∈ Ioo δ γ`,
