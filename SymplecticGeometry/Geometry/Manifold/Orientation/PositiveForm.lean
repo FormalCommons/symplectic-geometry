@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import Mathlib.Analysis.Convex.Basic
 import TauCeti.LinearAlgebra.Orientation.Basis
-import SymplecticGeometry.LinearAlgebra.Alternating.Sign
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Top forms positive for an orientation
@@ -248,11 +248,8 @@ theorem IsOrientationPreservingAt.isPositiveAt_mpullback {x : M}
     (hφ : IsPositiveAt o' φ (f x)) : IsPositiveAt o (mpullback I I' f φ) x := fun c hc ↦ by
   obtain ⟨e, he, hmap⟩ := (isOrientationPreservingAt_iff _ _ _ _).1 hf
   -- The derivative carries `c` to the basis `c.map e`, which has the orientation of `o'`.
-  have h := hφ (c.map e.toLinearEquiv) (by rw [Module.Basis.orientation_map, hc, hmap])
-  rw [mpullback_apply]
-  convert h using 2
-  funext i
-  simp [← he]
+  rw [mpullback_apply_basis_map he]
+  exact hφ (c.map e.toLinearEquiv) (by rw [Module.Basis.orientation_map, hc, hmap])
 
 /-- **Pull-backs of positive top forms.** If `f` preserves the orientations `o` and `o'` at every
 point and the top form `φ` is positive for `o'`, then its pull-back `f^* φ` is positive for
@@ -270,25 +267,12 @@ theorem isOrientationPreservingAt_of_mpullback_apply_pos {x : M}
     (hφ : IsPositiveAt o' φ (f x)) {c : Module.Basis (Fin k) ℝ (TangentSpace I x)}
     (hc : c.orientation = o.orientationAt x) (h : 0 < mpullback I I' f φ x c) :
     IsOrientationPreservingAt o o' f x := by
-  classical
   obtain ⟨e, he⟩ := hf
   rw [isOrientationPreservingAt_iff_of_coe_eq o o' f x e he, ← hc,
     ← Module.Basis.orientation_map]
-  -- Compare the image basis `c.map e` with a basis `d` having the orientation of `o'`: `φ` is
-  -- positive on both, so the change-of-basis determinant from `d` to `c.map e` is positive.
-  set d := (o'.orientationAt (f x)).someBasis (o'.finrank_tangentSpace_eq (f x)).symm
-  have hd : d.orientation = o'.orientationAt (f x) :=
-    (o'.orientationAt (f x)).someBasis_orientation _
-  have hce : 0 < φ (f x) (c.map e.toLinearEquiv) := by
-    rw [mpullback_apply] at h
-    convert h using 2
-    funext i
-    simp [← he]
-  rw [← hd, eq_comm, Module.Basis.orientation_eq_iff_det_pos]
-  refine AlternatingMap.pos_apply_basis_of_pos (f := (φ (f x)).toAlternatingMap) (v := d) _
-    (hφ d hd) ?_ hce
-  rw [Module.Basis.det_self]
-  exact one_pos
+  -- The derivative carries `c` to a basis on which `φ` is positive, so that basis has the
+  -- orientation of `o'` at `f x`.
+  exact (hφ.apply_pos_iff _).1 (by rwa [← mpullback_apply_basis_map he])
 
 /-- **Orientation from a positive pull-back.** For a map `f` with an invertible derivative at `x`
 and a top form `φ` positive for `o'` at `f x`, `f` preserves the orientations `o` and `o'` at `x`

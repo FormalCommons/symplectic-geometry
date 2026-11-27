@@ -11,14 +11,15 @@ public import SymplecticGeometry.Geometry.Symplectic.Sum.Fibre
 public import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import Mathlib.Analysis.Convex.Contractible
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.BasepointChange
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Homeomorph
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.VanKampen
 import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Topology.Homotopy.Annulus
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
-import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 import TauCeti.Geometry.Manifold.Topology
+import TauCeti.Topology.Homeomorph.SetCongr
 import TauCeti.Topology.Homotopy.Path
 
 /-!
@@ -51,8 +52,7 @@ and `FundamentalGroup.ker_map_subtypeVal_eq_normalClosure_image`) then shows tha
 the complement of the tube into `M` is onto on fundamental groups, with kernel inside the normal
 closure of the image of the collar's group; and the image of `π₁(range f)` in `π₁(M)` is that of
 the collar's group. Dividing by these normal closures gives an isomorphism of quotients. The
-transport along `f` follows the proof of `FundamentalGroup.map_subtypeVal_compl_image_surjective`
-in `AlgebraicTopology/FundamentalGroup/Prod/ComplDisc.lean`.
+surjectivity is moved along `f` by `FundamentalGroup.map_surjective_iff_of_homeomorph`.
 
 At a point `f (q, z)` of the collar, the normal closure `tubeSubgroup` is that of the image of
 `ι_* : π₁(Q, q) → π₁(M, ι q)`, moved along the radial path
@@ -276,38 +276,20 @@ theorem map_inclusion_inter_range_surjective (hδε : δ < ε)
     f.complTube_inter_range hδε ▸ y.property
   have hsub : (annulus ℂ δ ε : Set ℂ) ⊆ Metric.ball 0 ε := fun z hz ↦
     mem_ball_zero_iff.2 (mem_annulus.1 hz).2
-  let F := (ContinuousMap.id Q).prodMap (ContinuousMap.inclusion hsub)
-  let e := f.rangeHomeomorph
+  have : ContractibleSpace (Metric.ball (0 : ℂ) ε) :=
+    (convex_ball 0 ε).contractibleSpace ⟨_, hsub p.2.property⟩
   let e' : Q × annulus ℂ δ ε ≃ₜ ↥((f.complTube hδε : Set M) ∩ range f) :=
     (f.isOpenEmbedding_comp_annulusToProdBall δ).isEmbedding.toHomeomorph.trans
       (Homeomorph.setCongr (f.complTube_inter_range hδε).symm)
-  -- `e'` and `e ∘ F` are `f` on points, so their basepoint equations are `hp`
-  let φ' := FundamentalGroup.homeomorphMulEquivOfEq e' (Subtype.ext hp : e' p = y)
-  let φ := FundamentalGroup.homeomorphMulEquivOfEq e
-    (Subtype.ext ((f.coe_rangeHomeomorph_apply _).trans ((congrArg f (Subtype.ext
-      (coe_annulusToProdBall p).symm)).trans hp)) :
-      e (F p) = ContinuousMap.inclusion inter_subset_right y)
-  have : ContractibleSpace (Metric.ball (0 : ℂ) ε) :=
-    (convex_ball 0 ε).contractibleSpace ⟨_, (F p).2.property⟩
-  intro t
-  obtain ⟨γ, hγ⟩ := FundamentalGroup.map_id_prodMap_surjective _ p.1 p.2 (φ.symm t)
-  refine ⟨φ' γ, ?_⟩
-  have hsq : FundamentalGroup.map (ContinuousMap.inclusion inter_subset_right) y (φ' γ) =
-      φ (FundamentalGroup.map F p γ) := by
-    simp only [φ, φ', FundamentalGroup.homeomorphMulEquivOfEq_apply,
-      ← FundamentalGroup.mapOfEq_rfl]
-    -- both composites are `(q, z) ↦ f (q, z)` on points; the `show` states the coercions to
-    -- `M` through the definitions of `e` and `e'`
-    have hcomp : (ContinuousMap.inclusion
-        (inter_subset_right : (f.complTube hδε : Set M) ∩ range f ⊆ range f)).comp
-          (e' : C(Q × annulus ℂ δ ε, _)) =
-        (e : C(Q × Metric.ball (0 : ℂ) ε, range f)).comp F :=
-      ContinuousMap.ext fun w ↦ Subtype.ext
-      (show f (annulusToProdBall w) = (e (F w) : M) from
-        (congrArg f (Subtype.ext (coe_annulusToProdBall w))).trans
-          (f.coe_rangeHomeomorph_apply _).symm)
-    exact FundamentalGroup.mapOfEq_mapOfEq_eq_mapOfEq_mapOfEq hcomp _ _ _ _ γ
-  rw [hsq, hγ, MulEquiv.apply_symm_apply]
+  have hsq : ∀ w, ContinuousMap.inclusion inter_subset_right (e' w) =
+      f.rangeHomeomorph ((ContinuousMap.id Q).prodMap (ContinuousMap.inclusion hsub) w) := by
+    intro w
+    ext
+    simp only [e', Homeomorph.trans_apply, Homeomorph.setCongr_apply, coe_rangeHomeomorph_apply]
+    exact congrArg f (Subtype.ext (by
+      simpa [coe_annulusToProdBall] using (ContinuousMap.inclusion_apply_coe hsub w.2).symm))
+  exact (FundamentalGroup.map_surjective_iff_of_homeomorph hsq (Subtype.ext hp)).2
+    (FundamentalGroup.map_id_prodMap_surjective _ p.1 p.2)
 
 omit [PathConnectedSpace Q] [ConnectedSpace M] in
 /-- The fundamental group of the collar and that of the intersection of the complement of the tube
