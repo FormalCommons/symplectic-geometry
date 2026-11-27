@@ -43,7 +43,9 @@ displacement of `φ ∘ γ` by `C` times the length of `γ`. A path from `x` wit
 less than `R` cannot leave `W` (`PartialDiffeomorph.mapsTo_of_mul_pathELength_lt`): while it
 stays in `W` it stays in the image under `φ⁻¹` of a closed ball of radius `r < R`, a compact set,
 so closed, and Mathlib's `IsClosed.Icc_subset_of_forall_mem_nhdsGT_of_Icc_subset` carries this to
-all of `[0, 1]`. Applied to a path to `φ⁻¹ z`, its endpoint gives the bound.
+all of `[0, 1]`. Applied to a path to `φ⁻¹ z`, its endpoint gives the bound. Applied to a path
+to a point outside `W`, it shows that every point outside `W` is at distance at least `R / C`
+from `x`.
 
 This exit-time argument adapts the proof of Tau Ceti's
 `TauCeti.IsAsymptoticallyEuclideanEnd.ofReal_mul_sub_le_riemannianEDist`, through its helper
@@ -59,6 +61,8 @@ than in an annulus of an asymptotically Euclidean end.
   the preimage of the ball.
 * `PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`: the lower bound for the
   Riemannian distance by distances in the chart.
+* `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`: a point outside the preimage of
+  the ball is at distance at least `R / C` from `x`.
 
 ## References
 
@@ -227,6 +231,27 @@ theorem ofReal_norm_sub_le_mul_riemannianEDist [T2Space M] [ProperSpace F]
   calc ENNReal.ofReal ‖z - φ x‖ = C * (ENNReal.ofReal ‖z - φ x‖ / C) :=
         (ENNReal.mul_div_cancel hC0' ENNReal.coe_ne_top).symm
     _ ≤ C * Manifold.riemannianEDist I x (φ.symm z) := by gcongr
+
+/-- **Points outside the chart's ball are far.** Under the hypotheses of
+`PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist`, every point `y` outside
+`φ.source ∩ φ ⁻¹' ball (φ x) R` satisfies `R ≤ C · d(x, y)`, `d` the Riemannian distance. -/
+theorem ofReal_le_mul_riemannianEDist_of_notMem [T2Space M] [ProperSpace F]
+    (φ : PartialDiffeomorph I 𝓘(ℝ, F) M F n) (hn : 1 ≤ n) {x : M} (hx : x ∈ φ.source) {R : ℝ}
+    (hR : ball (φ x) R ⊆ φ.target) {C : ℝ≥0} (hC0 : C ≠ 0)
+    (hC : ∀ y ∈ φ.source, φ y ∈ ball (φ x) R → ∀ v : TangentSpace I y,
+      ‖mvfderiv I φ y v‖ ≤ C * ‖v‖)
+    {y : M} (hy : y ∉ φ.source ∩ φ ⁻¹' ball (φ x) R) :
+    ENNReal.ofReal R ≤ C * Manifold.riemannianEDist I x y := by
+  have hC0' : (C : ℝ≥0∞) ≠ 0 := ENNReal.coe_ne_zero.2 hC0
+  -- A path from `x` to `y` with `C` times its length less than `R` would end in the ball.
+  have key : ENNReal.ofReal R / C ≤ Manifold.riemannianEDist I x y := by
+    refine TauCeti.Manifold.le_riemannianEDist_of_forall_le_pathELength fun γ hγ0 hγ1 hγ ↦
+      ENNReal.div_le_of_le_mul' (not_lt.1 fun hlt ↦ hy ?_)
+    rw [← hγ1]
+    exact φ.mapsTo_of_mul_pathELength_lt hn hx hR hC hγ0 hγ hlt ⟨zero_le_one, le_rfl⟩
+  calc ENNReal.ofReal R = C * (ENNReal.ofReal R / C) :=
+        (ENNReal.mul_div_cancel hC0' ENNReal.coe_ne_top).symm
+    _ ≤ C * Manifold.riemannianEDist I x y := by gcongr
 
 end PartialDiffeomorph
 
