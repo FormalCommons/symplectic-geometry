@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Complex.Radial
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 
 /-!
 # The blowup forms and the blowup of weight `l`
@@ -382,6 +383,21 @@ theorem radialExpansion_notMem (hr : l + ε < r) {q : M} (hq : q ≠ ψ 0) :
     refine hqb ⟨v, mem_ball_zero_iff.2 ((mem_closedBall_zero_iff.1 hv).trans_lt ?_), rfl⟩
     linarith [hh.collar_pos]
 
+/-- On the image of the open ball, the inverse of `ψ`, read on `E`, pulls `ω₀` back to `σ`. -/
+theorem mpullback_complexPartialDiffeomorph_symm_apply {p : M}
+    (hp : p ∈ hψ.complexPartialDiffeomorph.target) :
+    TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      hψ.complexPartialDiffeomorph.symm (ω₀E n).val p = σ.val p := by
+  have hs := hψ.complexPartialDiffeomorph.map_target hp
+  have hev : (hψ.complexPartialDiffeomorph ∘ hψ.complexPartialDiffeomorph.symm) =ᶠ[𝓝 p] id :=
+    Filter.eventuallyEq_of_mem (hψ.complexPartialDiffeomorph.open_target.mem_nhds hp)
+      fun q hq ↦ hψ.complexPartialDiffeomorph.right_inv hq
+  rw [mpullback_apply_congr ((ω₀E_def n ▸
+      hψ.isSymplecticMapOn_complexPartialDiffeomorph).mpullback_apply hs).symm,
+    ← mpullback_comp_at (hψ.complexPartialDiffeomorph.symm.mdifferentiableAt (by simp) hp)
+      (hψ.complexPartialDiffeomorph.mdifferentiableAt (by simp) hs),
+    hev.mpullback_eq, mpullback_id]
+
 variable [T2Space M]
 
 /-- `radialContraction` is a local diffeomorphism at each point off `ψ(B(l))`, for `l + ε < r`. -/
@@ -750,6 +766,152 @@ private theorem mpullback_outerMap_apply_of_notMem
     ← mpullback_comp_at ((hψ.isLocalDiffeomorph_outerMap hh hε' hε'ε).contMDiff.mdifferentiableAt
       (by simp)) ((Blowup.contMDiff_blowdown_real _).mdifferentiableAt (by simp)),
     hev.mpullback_eq, mpullback_subtype_val_apply]
+/-- On `ψ(B°(r)) ∖ ψ(B(l))`, the first map pulls `ω̃_{ψ,l,ε}` back to `σ`: there it is
+`ψ̃ ∘ π⁻¹ ∘ F_h⁻¹ ∘ ψ⁻¹`, the lift pulls the form back to `ω̃_{l,ε}`, which `π⁻¹` pulls back to
+`F_h^* ω₀` (`mpullback_radialMap_profileForm`), and `ψ⁻¹` pulls `ω₀` back to `σ`. -/
+private theorem mpullback_outerMap_apply_of_mem
+    (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε))
+    (hx : (x : M) ∈ ψ '' ball 0 r) :
+    TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (hψ.outerMap hh hε' hε'ε)
+      (hψ.normalizedBlowupForm h).val x = σ.val x := by
+  classical
+  set Ψ := hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph with hΨ
+  set R := hh.radialDiffeomorph n
+  set B := blowdownPuncturedDiffeomorph n
+  let U : Set (WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) := Subtype.val ⁻¹' (ψ '' ball 0 r)
+  have hUo : IsOpen U := by
+    refine continuous_subtypeVal.isOpen_preimage _ ?_
+    have := Ψ.open_target
+    rwa [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target] at this
+  have hev : ∀ᶠ x' in 𝓝 x, x' ∈ U := hUo.mem_nhds hx
+  have hmem (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) (hx' : x' ∈ U) :
+      (x' : M) ∈ ψ '' ball 0 r ∧ (x' : M) ∉ ψ '' closedBall 0 l :=
+    ⟨hx', (WeightBlowup.mem_outerPiece_iff _).1 x'.property⟩
+  let g : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) →
+      radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s) :=
+    fun x' ↦ if hx' : x' ∈ U then
+      ⟨_, hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph_symm_mem_radialShell hh
+        (hmem x' hx')⟩
+      else ⟨_, hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph_symm_mem_radialShell hh
+        (hmem x hx)⟩
+  have hgx (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) (hx' : x' ∈ U) :
+      ((g x' : Fin (n + 1) → ℂ)) = Ψ.symm x' := by
+    simp only [g, dite_eq_left hx']
+    rfl
+  have hxt : (x : M) ∈ Ψ.target := by rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx
+  have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g x := by
+    rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
+    refine (IsLocalDiffeomorphAt.comp (hf := isLocalDiffeomorph_subtype_val x)
+      (hg := Ψ.symm.isLocalDiffeomorphAt _ _ _ hxt)).congr_of_eventuallyEq ?_
+    filter_upwards [hev] with x' hx'
+    rw [Function.comp_apply, hgx x' hx']
+    rfl
+  let G' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) → offDivisorOpens n := fun x' ↦ B.symm (R.symm (g x'))
+  have hG' : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) G' x :=
+    ((B.symm.contMDiff.comp R.symm.contMDiff).mdifferentiableAt (by simp)).comp x
+      (hg.mdifferentiableAt (by simp))
+  have hBG (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
+      ((G' x' : BlowupModel n).blowdown : Fin (n + 1) → ℂ) = R.symm (g x') := by
+    rw [← coe_blowdownPuncturedDiffeomorph_apply, Diffeomorph.apply_symm_apply]
+  have hnorm (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) (hx' : x' ∈ U) :
+      ‖complexToRealEuclidean (Fin (n + 1)) (G' x' : BlowupModel n).blowdown‖ < r := by
+    rw [hBG]
+    refine hh.norm_lt_of_norm_radialMap_lt hψ.weight_add_width_lt ?_
+    rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
+      Diffeomorph.apply_symm_apply, hgx x' hx',
+      ← hψ.isSymplecticBallEmbedding.mem_complexPartialDiffeomorph_source_iff]
+    exact Ψ.map_target (by rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx')
+  have hGr : (G' x : BlowupModel n) ∈ openNbhd n r := mem_openNbhd_iff.2 (hnorm x hx)
+  -- Near `x`, the first map is the lift composed with `G'`.
+  have hfun : hψ.outerMap hh hε' hε'ε =ᶠ[𝓝 x]
+      hψ.ballLiftPartialDiffeomorph ∘ (Subtype.val ∘ G') := by
+    filter_upwards [hev] with x' hx'
+    have hr' : (G' x' : BlowupModel n) ∈ openNbhd n r := mem_openNbhd_iff.2 (hnorm x' hx')
+    have h0 : (G' x' : BlowupModel n).blowdown ≠ 0 := fun h0 ↦
+      mem_offDivisorOpens.1 (G' x').property (mem_exceptionalDivisor_iff.2 h0)
+    rw [Function.comp_apply, Function.comp_apply, hψ.ballLiftPartialDiffeomorph_apply ⟨_, hr'⟩,
+      hψ.ballLift_of_blowdown_ne_zero _ h0, outerMap]
+    congr 1
+    refine Subtype.ext ?_
+    dsimp only
+    rw [hψ.isSymplecticBallEmbedding.radialContraction_of_mem hh (hmem x' hx'),
+      IsSymplecticBallEmbedding.coe_complexPartialDiffeomorph, Function.comp_apply, hBG]
+    simp only [g, dite_eq_left hx']
+    rfl
+  have hΦ : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      hψ.ballLiftPartialDiffeomorph (G' x : BlowupModel n) :=
+    hψ.ballLiftPartialDiffeomorph.mdifferentiableAt (by simp)
+      (by rw [ballLiftPartialDiffeomorph_source]; exact hGr)
+  have hval {V : TopologicalSpace.Opens (Fin (n + 1) → ℂ)} (v : V) :
+      MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Subtype.val v :=
+    (contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)
+  have hvG : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      (Subtype.val ∘ G') x :=
+    ((contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)).comp x hG'
+  have hFB := (contMDiff_radialMap (ι := Fin (n + 1)) hh.contDiff.contDiffOn
+    (fun _ hs ↦ hh.pos (le_of_lt hs))).comp B.contMDiff
+  have hFBG : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      ((radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) ∘ B) ∘ G') x :=
+    (hFB.mdifferentiableAt (by simp)).comp x hG'
+  -- Read in `E`, `F_h ∘ π ∘ G'` is `ψ⁻¹` near `x`.
+  have hfun₂ : Subtype.val ∘ ((radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) ∘ B) ∘ G') =ᶠ[𝓝 x]
+      Ψ.symm ∘ Subtype.val := by
+    filter_upwards [hev] with x' hx'
+    simp only [Function.comp_apply, G', Diffeomorph.apply_symm_apply]
+    rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
+      Diffeomorph.apply_symm_apply, hgx x' hx']
+  have hprof := congrArg Subtype.val (mpullback_radialMap_profileForm n hh)
+  simp only [SmoothForm.coe_mpullback] at hprof
+  rw [hfun.mpullback_eq, mpullback_comp_at hvG hΦ,
+    mpullback_apply_congr (f := Subtype.val ∘ G')
+      (hψ.normalizedBlowupForm_eq_on_ballLift hh _ hGr),
+    mpullback_comp_at hG' ((contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp)),
+    ← hprof,
+    ← mpullback_comp_at hG' (hFB.mdifferentiableAt (by simp)),
+    ← mpullback_comp_at hFBG (hval _), hfun₂.mpullback_eq,
+    mpullback_comp_at ((contMDiff_subtypeVal (n := ∞)).mdifferentiableAt (by simp))
+      (Ψ.symm.mdifferentiableAt (by simp) hxt),
+    mpullback_subtype_val_apply,
+    hψ.isSymplecticBallEmbedding.mpullback_complexPartialDiffeomorph_symm_apply hxt]
+
+/-- On the outer piece `M ∖ ψ(B(l))`, the diffeomorphism onto `Blowup c` pulls the form
+`ω̃_{ψ,l,ε}` of `Blowup c` back to `σ`. -/
+private theorem mpullback_inl_weightBlowupDiffeomorph :
+    SmoothForm.mpullback (inl (WeightBlowup.gluingDiffeomorphSymm
+        (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε').toHomeomorph)
+        (GluedAlong.isLocalDiffeomorph_inl _).contMDiff
+        (SmoothForm.mpullback (hψ.weightBlowupDiffeomorph hh hε' hε'ε)
+          (hψ.weightBlowupDiffeomorph hh hε' hε'ε).contMDiff (hψ.normalizedBlowupForm h)) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ := by
+  rw [SmoothForm.mpullback_mpullback]
+  refine Subtype.ext (funext fun x ↦ ?_)
+  have hfun : ⇑(hψ.weightBlowupDiffeomorph hh hε' hε'ε) ∘
+      inl (WeightBlowup.gluingDiffeomorphSymm (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)
+        hψ.weight_pos.le hε').toHomeomorph = hψ.outerMap hh hε' hε'ε := by
+    funext x'
+    rw [Function.comp_apply, weightBlowupDiffeomorph, GluedAlong.descDiffeomorph_inl]
+  rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback_subtype_val_apply, hfun]
+  by_cases hx : (x : M) ∈ ψ '' ball 0 r
+  · exact hψ.mpullback_outerMap_apply_of_mem hh hε' hε'ε x hx
+  · refine hψ.mpullback_outerMap_apply_of_notMem hh hε' hε'ε x fun ⟨z, hz, hzx⟩ ↦ hx ⟨z, ?_, hzx⟩
+    exact mem_ball_zero_iff.2 ((mem_closedBall_zero_iff.1 hz).trans_lt hψ.weight_add_width_lt)
+
+/-- **The blowup form is the form of the blowup of weight `l`** (McDuff–Salamon,
+Theorem 7.1.21 (ii)). For a normalized ball embedding `ψ` of weight `l` and width `ε`, a profile
+`h` of the blowup of weight `l` with collar `ε`, and `0 < ε' ≤ ε`, the diffeomorphism
+`normalizedBlowupSymplectomorph` is a symplectomorphism from `Blowup c` with the form
+`ω̃_{ψ,l,ε}` onto the blowup of weight `l` with collar `ε'` along `ψ` with its form `ω̃_ψ`. -/
+theorem isSymplectomorphism_normalizedBlowupSymplectomorph :
+    (hψ.normalizedBlowupForm h).IsSymplectomorphism
+      (WeightBlowup.form (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le hε')
+      (hψ.normalizedBlowupSymplectomorph hh hε' hε'ε) := by
+  have hΘ : (WeightBlowup.form (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) hψ.weight_pos.le
+      hε').IsSymplectomorphism (hψ.normalizedBlowupForm h)
+        (hψ.weightBlowupDiffeomorph hh hε' hε'ε) := by
+    rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
+    exact (WeightBlowup.eq_form_iff _ _ _).2 ⟨hψ.mpullback_inl_weightBlowupDiffeomorph hh hε' hε'ε,
+      hψ.mpullback_inr_weightBlowupDiffeomorph hh hε' hε'ε⟩
+  exact hΘ.symm (by simp)
 
 end IsNormalizedBallEmbedding
 
