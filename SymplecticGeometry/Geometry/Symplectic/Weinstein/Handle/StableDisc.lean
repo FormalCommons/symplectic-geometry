@@ -8,8 +8,11 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Dynamics.Flow.Stable
+public import TauCeti.Geometry.Manifold.Morse.Basic
 import TauCeti.Dynamics.Flow.Lyapunov
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
 
 /-!
 # The flow of a Weinstein structure and its stable sets
@@ -20,7 +23,9 @@ flow and gives it the API that later files use, so that none of them unfolds it:
 integral curves of `X`, every integral curve is an orbit, each time map is smooth and a
 diffeomorphism, and its differential carries `X` to itself. Since `X` is gradient-like for `f`,
 the function `f` increases along every orbit; so on the stable set of a point `p`, the set of
-points whose orbits tend to `p`, the function `f` is at most `f p`.
+points whose orbits tend to `p`, the function `f` is at most `f p`. Near a nondegenerate critical
+point `p`, read in the chart at `p`, an orbit of the stable set that starts close to `p`, at a
+value of `f` close to `f p`, never moves far from `p`.
 
 This is the first step towards the isotropy of the stable discs of the nondegenerate critical
 points. The conformal scaling `φ_t^* ω = e^t ω` and `φ_t^* (ι_X ω) = e^t ι_X ω` of the flow is
@@ -50,13 +55,21 @@ apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
   derivative `df(X)`, which is nonnegative, so it is monotone.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_le_of_mem_stableSet`: `f x ≤ f p` for every `x`
   in the stable set of `p`.
+* `IsWeinsteinStructure.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le`:
+  at a nondegenerate critical point `p`, the orbits of the points of the stable set of `p` that
+  start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a slightly larger
+  ball.
 
 ## Implementation notes
 
 The definitions and lemmas follow those of Tau Ceti's `TauCeti.IsAdaptedPseudoGradient.flow`,
 which names the flow of an adapted pseudo-gradient in the same way. Tau Ceti's pseudo-gradients
 decrease the function, while a Weinstein field increases it; the bound on the stable set is
-therefore `TauCeti.Flow.le_of_mem_stableSet_of_antitone` applied to `-f`.
+therefore `TauCeti.Flow.le_of_mem_stableSet_of_antitone` applied to `-f`. The confinement near a
+critical point is `TauCeti.IsGradientLike.exists_forall_mem_source_and_norm_extChartAt_sub_le`
+(`SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier`), applied to the orbits of the flow;
+a nondegenerate critical point is isolated by Tau Ceti's
+`TauCeti.IsManifoldNondegenerateCriticalPoint.eventually_notMem_criticalPoints`.
 
 ## References
 
@@ -66,7 +79,7 @@ therefore `TauCeti.Flow.le_of_mem_stableSet_of_antitone` applied to `-f`.
 
 public section
 
-open Function Set TauCeti
+open Function Metric Set TauCeti
 open scoped Manifold
 
 namespace SymplecticGeometry
@@ -167,6 +180,31 @@ theorem apply_le_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) : f
     simpa using hW.monotone_comp_flow x hab
   simpa using Flow.le_of_mem_stableSet_of_antitone hx
     (hW.isGeneralizedMorse.contMDiff.continuous.neg.continuousAt) hanti
+
+
+/-- **Confinement of the stable set in the chart at a critical point.** Let `p` be a
+nondegenerate critical point of the function of a Weinstein structure, and `e` the extended chart
+at `p`. There is `r₀ > 0` with the closed ball of radius `r₀` about `e p` in the chart target,
+such that for every `r ∈ (0, r₀]` there is `ε > 0` with the following property: the orbit of a
+point `x` of the stable set of `p`, with `x` in the chart within `r / 2` of `e p` and
+`f p - ε < f x`, lies in the chart within `r` of `e p` at every time `t ≥ 0`. -/
+theorem exists_forall_flow_mem_source_and_norm_extChartAt_sub_le {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
+    ∃ r₀ > 0, closedBall (extChartAt 𝓘(ℝ, E) p p) r₀ ⊆ (extChartAt 𝓘(ℝ, E) p).target ∧
+      ∀ r ∈ Ioc 0 r₀, ∃ ε > 0, ∀ x ∈ hW.flow.stableSet p, x ∈ (extChartAt 𝓘(ℝ, E) p).source →
+        ‖extChartAt 𝓘(ℝ, E) p x - extChartAt 𝓘(ℝ, E) p p‖ ≤ r / 2 → f p - ε < f x →
+        ∀ t, 0 ≤ t → hW.flow t x ∈ (extChartAt 𝓘(ℝ, E) p).source ∧
+          ‖extChartAt 𝓘(ℝ, E) p (hW.flow t x) - extChartAt 𝓘(ℝ, E) p p‖ ≤ r := by
+  obtain ⟨r₀, hr₀, hsub, h⟩ :=
+    hW.isGradientLike.exists_forall_mem_source_and_norm_extChartAt_sub_le
+      (hW.isGeneralizedMorse.contMDiff.of_le (by simp)) hW.contMDiff_field.continuous
+      (hp.eventually_notMem_criticalPoints.mono fun _ hy ↦ by rwa [mem_criticalPoints] at hy)
+  refine ⟨r₀, hr₀, hsub, fun r hr ↦ ?_⟩
+  obtain ⟨ε, hε, hconf⟩ := h r hr
+  have h₀ (x : M) : hW.flow 0 x = x := hW.flow.map_zero_apply x
+  exact ⟨ε, hε, fun x hx hxs hxr hfx t ht ↦ hconf (fun s ↦ hW.flow s x)
+    (hW.isMIntegralCurve_flow x) (Flow.mem_stableSet.1 hx) (by rwa [h₀]) (by rwa [h₀])
+    (by rwa [h₀]) t ht⟩
 
 end IsWeinsteinStructure
 
