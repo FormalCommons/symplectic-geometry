@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 
 /-!
-# Continuity of normal-bundle maps for ambient maps that are `C¹` along the embedding
+# Continuity of maps out of the intrinsic normal bundle
 
 Let `f : M → N` and `g : M' → N'` be smooth embeddings, and `u : M → M'`, `v : N → N'` maps with
 `v ∘ f = g ∘ u`. Tau Ceti's `TauCeti.SmoothEmbedding.normalBundleMap` is the map of intrinsic
@@ -26,11 +26,24 @@ The proof is that of Tau Ceti's `TauCeti.SmoothEmbedding.continuous_normalBundle
 continuity of `v` and of its tangent map taken pointwise, at the points over the image of `f`,
 through `ContMDiffAt.continuousAt` and `ContMDiffAt.continuousAt_tangentMap`.
 
+For a family `g x : T_(f x) N → E₂ x` of continuous linear maps whose kernels are the tangent
+ranges of `f`, Tau Ceti's `Manifold.IsImmersion.normalSpaceEquivOfKer` gives isomorphisms of the
+normal spaces with the fibres `E₂ x`. They form a continuous map on total spaces, for the
+quotient topology, as soon as `⟨x, v⟩ ↦ ⟨x, g x v⟩` is continuous on the pulled-back tangent
+bundle (`TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer`). This needs no bundle
+structure on the normal bundle; its proof is that of Tau Ceti's
+`TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfKer`, with continuity in place of
+smoothness.
+
 ## Main results
 
 * `TauCeti.SmoothEmbedding.continuous_normalBundleMap_of_contMDiffAt`: the normal-bundle map of a
   commuting square is continuous when the ambient map is `C¹` at each point of the image of the
   source embedding.
+* `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfKer`: the isomorphisms
+  `Manifold.IsImmersion.normalSpaceEquivOfKer` of a family of maps with kernels the tangent ranges
+  form a continuous map on total spaces when the family is continuous on the pulled-back tangent
+  bundle.
 
 ## References
 
@@ -97,6 +110,37 @@ theorem continuous_normalBundleMap_of_contMDiffAt
   convert (g.isQuotientMap_normalQuotientMap (K := K') hm).continuous.comp hT using 1
   funext p
   exact f.normalBundleMap_normalQuotientMap g hn hm h p
+
+section KerEquiv
+
+variable [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] {W : Type*} {E₂ : M → Type*}
+  [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜 (E₂ x)] [∀ x, FiniteDimensional 𝕜 (E₂ x)]
+  [∀ x, TopologicalSpace (E₂ x)] [∀ x, IsTopologicalAddGroup (E₂ x)]
+  [∀ x, ContinuousSMul 𝕜 (E₂ x)] [∀ x, T2Space (E₂ x)] [TopologicalSpace (TotalSpace W E₂)]
+
+/-- For a smooth embedding `f` and a family of continuous linear maps
+`g x : T_(f x) N → E₂ x` whose kernels are the tangent ranges of `f`, if
+`⟨x, v⟩ ↦ ⟨x, g x v⟩` is continuous on the pulled-back ambient tangent bundle, then so is the
+induced map `⟨x, [v]⟩ ↦ ⟨x, g x v⟩` from the normal bundle of `f`, with its quotient topology,
+to `E₂`. The label `K` of the normal total space is arbitrary, and no bundle structure on the
+normal bundle is needed. -/
+theorem continuous_normalSpaceEquivOfKer (f : SmoothEmbedding I J n M N) (hn : n ≠ 0)
+    (g : ∀ x, TangentSpace J (f x) →L[𝕜] E₂ x)
+    (hg : ∀ x v, g x v = 0 ↔ v ∈ f.isImmersion.tangentRange x hn)
+    (hgdim : ∀ x, Module.finrank 𝕜 (f.isImmersion.NormalSpace x hn) = Module.finrank 𝕜 (E₂ x))
+    (hgs : Continuous fun p : TotalSpace F ((f : M → N) *ᵖ (TangentSpace J)) ↦
+      TotalSpace.mk' W (E := E₂) p.proj (g p.proj p.snd)) :
+    Continuous fun p : TotalSpace K (fun x ↦ f.isImmersion.NormalSpace x hn) ↦
+      TotalSpace.mk' W (E := E₂) p.proj
+        (f.isImmersion.normalSpaceEquivOfKer p.proj hn (g p.proj) (hg p.proj) (hgdim p.proj)
+          p.snd) := by
+  rw [f.continuous_normalBundle_iff hn]
+  refine hgs.congr fun ⟨x, v⟩ ↦ ?_
+  rw [Function.comp_apply, normalQuotientMap_apply]
+  exact congrArg (TotalSpace.mk' W x)
+    (f.isImmersion.normalSpaceEquivOfKer_normalClass x hn (g x) (hg x) (hgdim x) v).symm
+
+end KerEquiv
 
 end TauCeti.SmoothEmbedding
 

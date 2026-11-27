@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Cutoff
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Differential forms restricted to open subsets
@@ -324,7 +325,7 @@ theorem exists_isSmoothForm_eq_on_of_closure_subset [FiniteDimensional ℝ E] [I
   have hdφ := congrFun (mpullback_subtype_val_mextDeriv (U := U) φ) ⟨z, hWU (subset_closure hz)⟩
   rw [mpullback_subtype_val_apply, hφ] at hdφ
   rw [mextDeriv_congr_of_eventuallyEq (hnear z hz), hdφ]
-  rw [← mextDerivₗ_apply, hη, ZeroMemClass.coe_zero, Pi.zero_apply]
+  rw [← mextDerivₗ_apply, hη, SmoothBundleForm.zero_apply]
   -- The two zeros are those of the forms on `U` and on `M` at the same point.
   rfl
 

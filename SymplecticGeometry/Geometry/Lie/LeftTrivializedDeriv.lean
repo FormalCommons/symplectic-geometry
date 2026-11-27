@@ -32,6 +32,8 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   `mulInvariantVectorField`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul`: left translates `t ↦ a * g t` of
   such a curve have the same left-trivialized derivative.
+* `SymplecticGeometry.HasLeftTrivializedDerivOn.piecewise`: two such curves on open sets with a
+  preconnected intersection, agreeing at one of its points, glue to one on the union.
 * `HasMFDerivWithinAt.mul_inv_of_eq_one`: if two maps from a manifold into a Lie group take the
   value `1` at `x` with the same derivative there, then `u ↦ φ u * (ψ u)⁻¹` has zero
   derivative at `x`.
@@ -43,6 +45,9 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
 
 The derivative is taken within `s`, as in Mathlib's `IsMIntegralCurveOn`; on an open set, and in
 particular on `Set.univ`, this is the derivative at each point.
+
+The gluing lemma `piecewise` adapts the proof of Mathlib's `isMIntegralCurveOn_piecewise` from
+intervals to open sets, with `eqOn` in place of the uniqueness of integral curves.
 
 The proof of `const_mul` follows that of Tau Ceti's `IsMIntegralCurveOn.map_of_mfderiv_eq`, with
 Tau Ceti's `mfderiv_mul_left_mulInvariantVectorField` for the vector fields; so does the private
@@ -207,6 +212,45 @@ theorem HasLeftTrivializedDerivOn.eqOn [LieGroup I 1 G] (hg : HasLeftTrivialized
   intro t ht
   have := hs.convex.apply_eq_of_hasMFDerivWithinAt_zero hk ht ht₀
   rwa [h₀, mul_inv_cancel, mul_inv_eq_one] at this
+
+/-- A curve that agrees on `s` with a curve of left-trivialized derivative `ξ` on `s` has
+left-trivialized derivative `ξ` on `s`. -/
+theorem HasLeftTrivializedDerivOn.congr (hg : HasLeftTrivializedDerivOn g ξ s) {f : ℝ → G}
+    (hfg : EqOn f g s) : HasLeftTrivializedDerivOn f ξ s := by
+  intro t ht
+  obtain ⟨v, hgv, hv⟩ := hg t ht
+  refine ⟨v, (hgv.congr_of_eventuallyEq (eventually_nhdsWithin_of_forall hfg)
+    (hfg ht)).congr_mfderiv ?_, by rw [hfg ht]; exact hv⟩
+  -- `tangentSpaceCast` between the tangent spaces at the equal points `g t` and `f t` is the
+  -- identity of the model space.
+  ext
+  rfl
+
+/-- On a union of two open sets, the condition holds if it holds on each of them. -/
+theorem HasLeftTrivializedDerivOn.union_of_isOpen {s' : Set ℝ}
+    (hg : HasLeftTrivializedDerivOn g ξ s) (hg' : HasLeftTrivializedDerivOn g ξ s')
+    (hs : IsOpen s) (hs' : IsOpen s') :
+    HasLeftTrivializedDerivOn g ξ (s ∪ s') := by
+  rw [hasLeftTrivializedDerivOn_iff_of_isOpen hs] at hg
+  rw [hasLeftTrivializedDerivOn_iff_of_isOpen hs'] at hg'
+  rw [hasLeftTrivializedDerivOn_iff_of_isOpen (hs.union hs')]
+  rintro t (ht | ht)
+  exacts [hg t ht, hg' t ht]
+
+/-- **Gluing.** Let `g` and `h` have left-trivialized derivative `ξ` on open sets `s` and `s'`
+whose intersection is preconnected, and agree at a point of it. Then the curve equal to `g` on
+`s` and to `h` elsewhere has left-trivialized derivative `ξ` on `s ∪ s'`. -/
+theorem HasLeftTrivializedDerivOn.piecewise [LieGroup I 1 G] {s' : Set ℝ}
+    [∀ t, Decidable (t ∈ s)] (hg : HasLeftTrivializedDerivOn g ξ s)
+    (hh : HasLeftTrivializedDerivOn h ξ s') (hs : IsOpen s) (hs' : IsOpen s')
+    (hss' : IsPreconnected (s ∩ s')) {t₀ : ℝ} (ht₀ : t₀ ∈ s ∩ s') (h₀ : g t₀ = h t₀) :
+    HasLeftTrivializedDerivOn (s.piecewise g h) ξ (s ∪ s') := by
+  have hgh := (hg.mono inter_subset_left).eqOn (hh.mono inter_subset_right) hss' ht₀ h₀
+  refine (hg.congr (piecewise_eqOn s g h)).union_of_isOpen (hh.congr fun t ht ↦ ?_) hs hs'
+  by_cases hts : t ∈ s
+  · rw [piecewise_eq_of_mem _ _ _ hts]
+    exact hgh ⟨hts, ht⟩
+  · exact piecewise_eq_of_notMem _ _ _ hts
 
 end SymplecticGeometry
 

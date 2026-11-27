@@ -7,7 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
+public import TauCeti.Topology.FiberBundle.MapFiber
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
+import Mathlib.Topology.LocalAtTarget
 import SymplecticGeometry.Geometry.Manifold.Instances.Projectivization
 import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.LevelTrivialization
@@ -35,10 +37,19 @@ rescaling of that trivialization is a symplectic framing of the fibre.
   smooth over `ℝ` at the points of the fibre.
 * `SymplecticGeometry.rationalEllipticSurface.affineCoordinate_fibreEmbedding`: it vanishes on the
   fibre.
+* `SymplecticGeometry.rationalEllipticSurface.mem_range_fibreEmbedding_iff`: the fibre is the set
+  of points over the affine open `s ≠ 0` where it vanishes.
 * `SymplecticGeometry.rationalEllipticSurface.isRegularPoint_affineCoordinate`: its complex
   differential is onto at every point of the fibre, and
   `SymplecticGeometry.rationalEllipticSurface.isRegularPoint_restrictScalars_affineCoordinate`:
   so is its real differential.
+* `SymplecticGeometry.rationalEllipticSurface.overAffineOpen`: the open set of points over the
+  affine open `s ≠ 0`. On it the affine coordinate is a proper map
+  (`isProperMap_affineCoordinate_comp_subtypeVal`), smooth over `ℝ`
+  (`contMDiff_affineCoordinate_comp_subtypeVal`), with `0` as a regular value
+  (`isRegularValue_affineCoordinate_comp_subtypeVal_zero`).
+* `SymplecticGeometry.rationalEllipticSurface.fibreHomeomorph`: the Fermat cubic is homeomorphic,
+  through `fibreEmbedding`, to the fibre over `0` of the affine coordinate on that open set.
 * `SymplecticGeometry.rationalEllipticSurface.fibreNormalEquiv`: the normal trivialization
   `ℂ ≃L[ℝ] N_x` of the fibre, the inverse of the isomorphism of the normal space with `ℂ` induced
   by the real differential of the affine coordinate (`fibreNormalEquiv_mfderiv`,
@@ -95,7 +106,7 @@ form is positive on this pair
 
 public section
 
-open MvPolynomial Set TauCeti Projectivization
+open MvPolynomial Set TauCeti Projectivization TopologicalSpace
 open scoped ContDiff Manifold LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry.rationalEllipticSurface
@@ -135,6 +146,90 @@ theorem contMDiffAt_affineCoordinate {p : rationalEllipticSurface}
 theorem snd_fibreEmbedding_mem_affineOpen (x : SmoothProjectiveHypersurface.fermat 1 3) :
     (fibreEmbedding x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0 := by
   simp [coe_fibreEmbedding_apply]
+
+/-- A point over the affine open `s ≠ 0` is determined over `ℂℙ¹` by its affine coordinate. -/
+theorem snd_eq_affineChart_symm_affineCoordinate {p : rationalEllipticSurface}
+    (hp : (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0) :
+    (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 =
+      (affineChart 0).symm (fun _ ↦ affineCoordinate p) := by
+  have h : (fun _ : Fin 1 ↦ affineCoordinate p) =
+      affineChart 0 (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 := by
+    funext k
+    rw [Subsingleton.elim k 0, affineCoordinate_def]
+  rw [h, (affineChart 0).left_inv (by rwa [affineChart_source])]
+
+/-- A point of the rational elliptic surface lies on the fibre over `[1 : 0]` exactly when it lies
+over the affine open `s ≠ 0` of `ℂℙ¹` and its affine coordinate vanishes. -/
+theorem mem_range_fibreEmbedding_iff {p : rationalEllipticSurface} :
+    p ∈ range fibreEmbedding ↔
+      (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0 ∧ affineCoordinate p = 0 := by
+  refine ⟨?_, fun ⟨hp, h⟩ ↦ ?_⟩
+  · rintro ⟨x, rfl⟩
+    exact ⟨snd_fibreEmbedding_mem_affineOpen x, affineCoordinate_fibreEmbedding x⟩
+  rw [range_fibreEmbedding, mem_ofPred_eq, snd_eq_affineChart_symm_affineCoordinate hp, h,
+    ← Pi.zero_def, affineChart_symm_zero]
+  congr 1
+  funext k
+  fin_cases k <;> simp
+
+/-- The open set of points of the rational elliptic surface over the affine open `s ≠ 0` of
+`ℂℙ¹`. -/
+noncomputable def overAffineOpen : Opens rationalEllipticSurface :=
+  ⟨(fun p : rationalEllipticSurface ↦ (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2) ⁻¹'
+      affineOpen 0,
+    (isOpen_affineOpen 0).preimage (continuous_snd.comp continuous_subtypeVal)⟩
+
+theorem coe_overAffineOpen : SetLike.coe overAffineOpen =
+    (fun p : rationalEllipticSurface ↦ (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2) ⁻¹'
+      affineOpen 0 :=
+  (rfl)
+
+@[simp]
+theorem mem_overAffineOpen {p : rationalEllipticSurface} :
+    p ∈ overAffineOpen ↔ (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0 := by
+  rw [← SetLike.mem_coe, coe_overAffineOpen, mem_preimage]
+
+/-- The affine coordinate is a proper map on the points over the affine open `s ≠ 0`. -/
+theorem isProperMap_affineCoordinate_comp_subtypeVal :
+    IsProperMap (affineCoordinate ∘ Subtype.val : overAffineOpen → ℂ) := by
+  -- It is the restriction over the affine open of the projection to `ℂℙ¹`, which is proper
+  -- since the surface is compact, followed by the affine chart.
+  set φ := affineOpenPartialHomeomorph (K := ℂ) (n := 1) 0
+  set F := fun p : rationalEllipticSurface ↦ (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2
+  have hS : SetLike.coe overAffineOpen = F ⁻¹' φ.source := by
+    simp [φ, F, coe_overAffineOpen, ← affineChart_source]
+  have hT : IsClosed φ.target := by
+    simp only [φ, affineOpenPartialHomeomorph_toPartialEquiv, affineChart_target, isClosed_univ]
+  have hF := (continuous_snd.comp continuous_subtypeVal : Continuous F).isProperMap
+  convert (Homeomorph.funUnique (Fin 1) ℂ).isProperMap.comp
+    (hT.isClosedEmbedding_subtypeVal.isProperMap.comp (φ.toHomeomorphSourceTarget.isProperMap.comp
+      ((hF.restrictPreimage φ.source).comp (Homeomorph.setCongr hS).isProperMap))) using 1
+  funext p
+  simp only [φ, affineCoordinate_def, Homeomorph.setCongr, Function.comp_apply,
+    Homeomorph.funUnique_apply, Fin.default_eq_zero,
+    OpenPartialHomeomorph.toHomeomorphSourceTarget_apply_coe, restrictPreimage_coe,
+    Homeomorph.homeomorph_mk_coe, coe_affineOpenPartialHomeomorph]
+  rw [Set.equivOfEq_apply]
+
+/-- The Fermat cubic is homeomorphic, through `fibreEmbedding`, to the fibre over `0` of the affine
+coordinate on the points over the affine open `s ≠ 0`. -/
+noncomputable def fibreHomeomorph : SmoothProjectiveHypersurface.fermat 1 3 ≃ₜ
+    MapFiber (affineCoordinate ∘ Subtype.val : overAffineOpen → ℂ) 0 :=
+  Topology.IsEmbedding.toHomeomorphOfSurjective
+    (f := fun x ↦ ⟨⟨fibreEmbedding x, mem_overAffineOpen.2 (snd_fibreEmbedding_mem_affineOpen x)⟩,
+      affineCoordinate_fibreEmbedding x⟩)
+    (.of_comp ((fibreEmbedding.isEmbedding.continuous.subtype_mk _).subtype_mk _)
+      (continuous_subtypeVal.comp continuous_subtypeVal) fibreEmbedding.isEmbedding)
+    (by
+      intro z
+      obtain ⟨x, hx⟩ := mem_range_fibreEmbedding_iff.2
+        ⟨mem_overAffineOpen.1 z.val.property, z.property⟩
+      exact ⟨x, Subtype.ext (Subtype.ext hx)⟩)
+
+@[simp]
+theorem coe_coe_fibreHomeomorph_apply (x : SmoothProjectiveHypersurface.fermat 1 3) :
+    ((fibreHomeomorph x : overAffineOpen) : rationalEllipticSurface) = fibreEmbedding x :=
+  (rfl)
 
 /-- The affine coordinate is smooth, over `ℝ`, at every point of the fibre over `[1 : 0]`. -/
 theorem contMDiffAt_affineCoordinate_fibreEmbedding (x : SmoothProjectiveHypersurface.fermat 1 3) :
@@ -248,6 +343,24 @@ theorem isRegularPoint_restrictScalars_affineCoordinate
   (isRegularPoint_affineCoordinate x).restrictScalars'
     ((contMDiffAt_affineCoordinate (snd_fibreEmbedding_mem_affineOpen x) 1).mdifferentiableAt
       one_ne_zero)
+
+/-- The affine coordinate on the points over the affine open `s ≠ 0`, as a smooth map over `ℝ`. -/
+theorem contMDiff_affineCoordinate_comp_subtypeVal :
+    ContMDiff 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) ∞ (affineCoordinate ∘ Subtype.val : overAffineOpen → ℂ) :=
+  fun p ↦ ((contMDiffAt_affineCoordinate (mem_overAffineOpen.1 p.property) ∞).restrictScalars'
+    ℝ).comp p (contMDiff_subtypeVal p)
+
+/-- `0` is a regular value, over `ℝ`, of the affine coordinate on the points over the affine open
+`s ≠ 0`: its real differential is onto at each of them where it vanishes. -/
+theorem isRegularValue_affineCoordinate_comp_subtypeVal_zero :
+    IsRegularValue 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, ℂ) (affineCoordinate ∘ Subtype.val : overAffineOpen → ℂ)
+      0 := by
+  refine isRegularValue_iff.2 fun p hp ↦ ?_
+  obtain ⟨x, hx⟩ := mem_range_fibreEmbedding_iff.2 ⟨mem_overAffineOpen.1 p.property, hp⟩
+  have h := isRegularPoint_restrictScalars_affineCoordinate x
+  rw [hx] at h
+  exact h.comp (isRegularPoint_subtype_val p)
+
 
 /-! ### The normal trivialization of the fibre -/
 

@@ -711,26 +711,110 @@ containing `ι '' closedBall 0 1`:
   `(ℓ, r)` and smooth in `r` on `Ioi δ` for each `ℓ`, with every
   `χ ℓ` increasing and a convex shape at every `r > δ`,
   `χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)`, `χ ℓ r` equal to the
-  standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`,
-  `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop` and `1 < χ 1 δ < 1 + γ`. The
-  book's family is piecewise smooth in `ℓ`; the statement asks only
-  for continuity in `ℓ`, which is what issue 14d6 uses.
+  standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`, and, for some
+  `r₀ ∈ Ioo δ γ`, for all `r ≥ r₀` when `ℓ` is near `-8 * δ` (as issue
+  14d7 needs; not for all `r > δ`, since for `-8 * δ < ℓ` the standard
+  leaf has a finite slope at `δ`),
+  `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop`, `χ ℓ ≤ χ 1` on `Ioi δ` and
+  `1 < χ 1 δ < 1 + γ`. The book's family is piecewise smooth in `ℓ`,
+  smooth in `(ℓ, r)` on each piece, so the statement asks for `χ`,
+  `∂χ/∂r` and `∂²χ/∂r²` to be jointly continuous on
+  `Icc (-8 * δ) 1 ×ˢ Ioi δ`, which is what issue 14d6 uses, and not for
+  smoothness in `ℓ`.
 
 - `Surround/ShapeFoliation.lean` (issue 14d6): from families of shapes
   to functions.
   - `exists_shapeFoliation` (Proposition 3.25 within shapes, Corollary
-    4.29): let `χ : ℝ → ℝ → ℝ` be continuous on `Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂`,
-    `0 < r₁`, with `χ ℓ` `C²` and a convex shape at every point of
-    `Icc r₁ r₂` for each `ℓ`, `χ ℓ₀ ≤ χ ℓ ≤ χ ℓ₁`, and smooth in `(ℓ, r)`
-    and strictly increasing in `ℓ` for `ℓ` near `ℓ₀` and `ℓ₁` and for
-    `r` near `r₂`. Then there is a family with all these properties that
-    is smooth in `(ℓ, r)` and strictly increasing in `ℓ` everywhere,
-    agrees with `χ` for `ℓ` near `ℓ₀` and `ℓ₁` and `r` near `r₂`, and
-    has the same values at `ℓ₀` and `ℓ₁`. The book makes the family
-    monotone by maxima and then perturbs it; in one variable the maxima
-    are those of `exists_isConvexShapeAt_eq_max`, and the perturbation is
-    small in `C²`, under which the conditions of `IsConvexShapeAt`, strict
-    inequalities on a compact set, persist.
+    4.29). Write `Q = Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂` and `E` for the part of
+    its boundary where the family is kept,
+    `({ℓ₀, ℓ₁} ×ˢ Icc r₁ r₂) ∪ (Icc ℓ₀ ℓ₁ ×ˢ {r₂})`. Hypotheses:
+    `0 < r₁`, `ℓ₀ < ℓ₁`, `r₁ < r₂`; `ContDiffAt ℝ 2 (χ ℓ) r` and
+    `IsConvexShapeAt (χ ℓ) r` on `Q`; for `k ≤ 2` the map
+    `fun x : ℝ × ℝ ↦ iteratedDeriv k (χ x.1) x.2` is continuous on `Q`
+    (the value and the first two `r`-derivatives are jointly continuous);
+    `χ ℓ r < χ ℓ₁ r` for `ℓ ∈ Ico ℓ₀ ℓ₁` and `r ∈ Icc r₁ r₂`; and some
+    `U ∈ 𝓝ˢ E` on which `Function.uncurry χ` is smooth with
+    `0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ`. Conclusion: a `ψ : ℝ → ℝ → ℝ`,
+    `ContDiffOn ℝ ∞ (Function.uncurry ψ) Q`, with
+    `IsConvexShapeAt (ψ ℓ) r` and `0 < deriv (fun ℓ' ↦ ψ ℓ' r) ℓ` on
+    `Q`, and `Function.uncurry ψ = Function.uncurry χ` on some
+    `V ∈ 𝓝ˢ E`. "Increasing in `ℓ`" is always this strict sign of the
+    `ℓ`-derivative, the hypothesis of `exists_contDiff_shapeLevel`, and
+    `ℓ` is whatever parameter the caller uses (issue 14d7 takes
+    `u = ℓ * |ℓ|`, see there). No lower bound `χ ℓ₀ ≤ χ ℓ` is needed,
+    and the members in between need not be ordered; the strict upper
+    bound is what lets the new family end on `χ ℓ₁` exactly. Without the
+    joint continuity of the `r`-derivatives the statement is not proved
+    this way: `χ ℓ r = f r + c * h ^ 2 * sin (r / h)`, `h = (ℓ - ℓ') ^ 2`,
+    is jointly continuous with every member a smooth convex shape, but
+    `∂²χ/∂r²` has no limit at `ℓ'`, so no margin of `isConvexShapeAt_iff`
+    is uniform in `ℓ`.
+
+    The proof is in five steps, each a building issue of 14d6.
+    1. `exists_forall_isConvexShapeAt_of_abs_sub_lt`
+       (`Surround/ShapeFoliation.lean`): under the hypotheses on `Q`
+       above, there is `η > 0` such that every `φ : ℝ → ℝ`, `ℓ ∈ Icc ℓ₀ ℓ₁`
+       and `r ∈ Icc r₁ r₂` with `|iteratedDeriv k φ r -
+       iteratedDeriv k (χ ℓ) r| < η` for `k ≤ 2` give
+       `IsConvexShapeAt φ r`. The two strict inequalities of
+       `isConvexShapeAt_iff`, and `0 < χ`, are an open condition on
+       `(χ, χ', χ'', r)`, and the image of `Q` is compact. Every later
+       step only checks closeness to some member in this sense.
+    2. `exists_contDiff_abs_iteratedDeriv_sub_lt`
+       (`Analysis/Calculus/ContDiff/SmoothApprox.lean`, a statement about
+       real functions): a function `C²` on a neighbourhood of `Icc a b` is,
+       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in value
+       and first two derivatives, and `g` equals it near `Icc c b` if it
+       is smooth on a neighbourhood of `Icc c b` (convolution with a
+       `ContDiffBump`, glued by a cutoff). It turns finitely many members
+       into smooth convex shapes `A i` (step 1).
+    3. `exists_forall_isConvexShapeAt_smoothedMax_sub`
+       (`Surround/ConvexShape.lean`, making the step
+       `isConvexShapeAt_smoothedMax_of_le` public): for smooth `M`, `A`,
+       convex shapes on `Icc r₁ r₂`, and `η' > 0` with every `A - s`,
+       `s ∈ Icc 0 η'`, a convex shape there, one `δ > 0` makes
+       `fun r ↦ smoothedMax δ (M r) (A r - s)` a convex shape on
+       `Icc r₁ r₂` for all these `s` at once: the margins and bounds in the
+       proof of `exists_isConvexShapeAt_eq_max` do not change when `A` is
+       shifted by a constant.
+    4. `exists_monotone_shapeChain` (`Surround/ShapeFoliation.lean`): a
+       smooth family that is only weakly increasing. Take
+       `ℓ₀ < a < b < ℓ₁` with `Icc ℓ₀ a ×ˢ Icc r₁ r₂` and
+       `Icc b ℓ₁ ×ˢ Icc r₁ r₂` in `U`, points `a = t 0 < … < t N = b` of a
+       small mesh `h`, `A 0 = χ a`, `A i` smooth and close to `χ (t i)`
+       (step 2), and `M 0 = A 0`,
+       `M (i + 1) = smoothedMax δᵢ (M i) (A (i + 1))`. By uniform continuity
+       `A (i + 1) - η' < M i - δᵢ` once `h` is small, so the path
+       `σ ↦ smoothedMax δᵢ (M i) (A (i + 1) - (1 - σ) * η')`, run through a
+       smooth step that is flat at both ends, goes from `M i` to
+       `M (i + 1)`, is smooth in `(σ, r)`, weakly increasing in `σ`
+       (`smoothedMax` is monotone in its second argument), and consists of
+       convex shapes (step 3). The paths glue, being flat at the joints, to
+       a smooth `C` on `Icc a b`, weakly increasing in `ℓ`, with `C a = χ a`
+       and `C b = M N ≤ max over Icc a b of χ ℓ + ∑ δᵢ + ε`. Near `r₂`,
+       where `∂χ/∂ℓ ≥ m > 0` and `χ` is smooth, `M i = A i = χ (t i)` once
+       `δᵢ < m * h / 2`, and `C ℓ` is within any given tolerance of `χ ℓ`
+       in value and two `r`-derivatives once `h` is small, since there
+       `∂χ/∂r` is Lipschitz in `ℓ` and the second derivative of
+       `smoothedAbs δᵢ` is of order `1 / δᵢ`. The order of choice is
+       tolerance, `η'`, `h`, `ε`, `δᵢ`.
+    5. `exists_shapeFoliation` itself (`Surround/ShapeFoliation.lean`):
+       with `κ > 0` small and a smooth `θ`, nondecreasing, `0` near `ℓ₀`,
+       constant near `ℓ₁` and with `θ' > 0` in between, the family is
+       `χ (λ₀ ℓ) + κ * θ ℓ` near `ℓ₀` (`λ₀` a smooth reparametrization onto
+       `Icc ℓ₀ a`, the identity near `ℓ₀` and flat at its other end),
+       `C ℓ + κ * θ ℓ` in the middle, and
+       `smoothedMax δ (M N + κ * θ ℓ) (χ (λ₁ ℓ))` near `ℓ₁` (`λ₁` onto
+       `Icc b ℓ₁`, flat at its first end, the identity near `ℓ₁`). The
+       shifts keep convex shapes by `IsConvexShapeAt.add_const`; the
+       `ℓ`-derivative is positive because at each point `θ' > 0` or the
+       reparametrization has positive slope, and the two partial
+       derivatives of `smoothedMax` are nonnegative with sum `1`; the
+       strict upper bound gives `χ ℓ > M N + κ * θ ℓ + δ` near `ℓ₁`, where
+       the family is then `χ ℓ`. Last, near `r₂` the family is blended
+       with `χ` by a cutoff in `r`: both are increasing in `ℓ` there and
+       close in value and two `r`-derivatives (step 4), so the blend is
+       increasing and, by step 1, a convex shape.
     The shapes of `exists_convexShapeFamily_surround` have vertical
     tangents at `r = δ`, where they are not graphs over `r`; there the
     same statement is used with `r` as a function of `R`, the shapes
@@ -765,7 +849,15 @@ containing `ι '' closedBall 0 1`:
   - `exists_shapeFoliation_cylinder` (the leaves near the cylinder; the
     book has no counterpart, see issue 14d4's paragraph on the corner):
     take the family of `exists_convexShapeFamily_surround`, made smooth
-    by `exists_shapeFoliation`, and write its leaf `ℓ` near the line
+    by `exists_shapeFoliation` (applied in the parameter `u = ℓ * |ℓ|`,
+    in which the standard leaves `√(64 * r ^ 2 + u)` have positive
+    `u`-derivative, also at `u = 0`; on a rectangle whose lower end in
+    `r` lies above the `r₀` of issue 14d5, where the family is standard
+    for `ℓ` near `-8 * δ`; and continued a little past `u = 1` by
+    `χ 1 r + √(64 * r ^ 2 + u) - √(64 * r ^ 2 + 1)`, which is standard
+    for `γ ≤ r`, so smooth across `u = 1` there, is a convex shape for
+    `u` close to `1` by step 1 of `exists_shapeFoliation`, and lies
+    strictly above `χ 1`, hence above every earlier member), and write its leaf `ℓ` near the line
     `r = δ` as `r = ρ ℓ R` over `R ≥ 0`, with `ρ ℓ = δ` on
     `Icc 0 (χ ℓ δ)`. For `δ' < δ` close to `δ` there are `r₁ ∈ Ioo δ γ`,
     `R₁ > 0` and curves `r = ρ' ℓ R`, `ℓ ∈ Icc (-8 * δ) 1`, smooth in
@@ -986,12 +1078,13 @@ containing `ι '' closedBall 0 1`:
 
 - `Surround/Chart.lean` (issues 14d10 and 14d13): the chart along the
   disc.
-  - `exists_partialDiffeomorph_modelDisc` (14d10): for `ι` as in 14d9
+  - `exists_partialDiffeomorph_modelDisc` (14d10): for `ι` smooth and
+    inducing (as in 14d9)
     and an open `O ⊇ range ι`, there is
     `Φ₀ : PartialDiffeomorph 𝓘(ℝ, V) 𝓘(ℝ, E) V M ∞` with
     `range (modelDisc k m) ⊆ Φ₀.source`, `Φ₀.target ⊆ O`,
     `Φ₀ (modelDisc k m x) = ι x` and `mfderiv _ _ Φ₀ (modelDisc k m x) = A x`
-    (so complex linear) for all `x`. It is Tau Ceti's
+    (so complex linear when `A` is) for all `x`. It is Tau Ceti's
     `SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq` with
     `i = modelDisc k m`, `g = ι` and a frame `A` with the properties
     that 14d9 gives (that of 14d9, or the adapted one of 14d18), applied on an
@@ -1169,12 +1262,13 @@ containing `ι '' closedBall 0 1`:
     property of `exists_complexFrame_mfderiv` and
     `mvfderiv 𝓘(ℝ, E) φ (ι x) (A x (0, w)) = 0` for `‖x‖ = 1` and all `w`.
     From the frame `A` of 14d9, put
-    `A' x (z, w) = A x (z - χ ‖x‖ • ℓ x w, w)` with
+    `A' x (z, w) = A x (z - χ x • ℓ x w, w)` with
     `ℓ x w = (λ x ((modelDisc k m x).1))⁻¹ * μ x w • (modelDisc k m x).1`,
     where `λ x` and `μ x` are the complex-linear extensions
     (`StrongDual.extendRCLike`) of `z ↦ dφ (A x (z, 0))` and
-    `w ↦ dφ (A x (0, w))`, and `χ` is a cutoff equal to `1` near `1` and
-    supported where `λ x ((modelDisc k m x).1) ≠ 0`. On the sphere that
+    `w ↦ dφ (A x (0, w))`, and `χ : ℝᵏ → ℝ` is smooth, equal to `1` on the
+    sphere and to `0` near the points where `λ x ((modelDisc k m x).1)` has
+    non-negative real part. On the sphere that
     number is `dφ (dι x x) - i dφ (J dι x x)`, negative and real by
     `mvfderiv_mfderiv_self_neg` and `mvfderiv_I_smul_mfderiv`. `A' x`
     agrees with `A x` on the first factor and is `A x` composed with a
