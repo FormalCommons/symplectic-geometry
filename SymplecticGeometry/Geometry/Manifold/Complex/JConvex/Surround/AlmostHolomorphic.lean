@@ -19,6 +19,7 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.VanishingOrder
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
+import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Flat
 import TauCeti.Analysis.Calculus.IteratedFDeriv.SymmetricFinite
 
@@ -171,11 +172,7 @@ theorem fderiv_taylorExtension_apply_real {N : ℕ} {f : EuclideanSpace ℝ ι' 
   set e := complexEuclideanEquivRealProd ι'
   have hF : DifferentiableAt ℝ (taylorExtension N f) (e.symm (x, y)) :=
     ((contDiff_taylorExtension (r := 1) (by rwa [add_comm])).differentiable one_ne_zero) _
-  have hline : HasFDerivAt (fun x' ↦ e.symm (x', y))
-      (e.symm.toContinuousLinearMap.comp
-        (.inl ℝ (EuclideanSpace ℝ ι') (EuclideanSpace ℝ ι'))) x :=
-    e.symm.hasFDerivAt.comp x (hasFDerivAt_prodMk_left x y)
-  have heq : (taylorExtension N f ∘ fun x' ↦ e.symm (x', y)) = fun x' ↦
+  have heq : (fun x' ↦ (taylorExtension N f ∘ e.symm) (x', y)) = fun x' ↦
       ∑ j ∈ Finset.range (N + 1), (Complex.I ^ j / j.factorial) •
         iteratedFDeriv ℝ j f x' (fun _ ↦ y) := by
     funext x'
@@ -184,14 +181,14 @@ theorem fderiv_taylorExtension_apply_real {N : ℕ} {f : EuclideanSpace ℝ ι' 
     (((hf.differentiable_iteratedFDeriv (m := j) (by norm_cast; simp at hj; omega)) x).hasFDerivAt
       |>.continuousMultilinear_apply_const (fun _ ↦ y)).const_smul
         (Complex.I ^ j / (j.factorial : ℂ))
-  replace hsum := hsum.congr_of_eventuallyEq
-    (f₁ := taylorExtension N f ∘ fun x' ↦ e.symm (x', y)) (.of_eq (by rw [heq]; rfl))
-  have h := congrArg (· u) ((hF.hasFDerivAt.comp x hline).unique hsum)
+  have h := congrArg (· u) (fderiv_slice_left (hF.comp (x, y) e.symm.differentiableAt))
+  simp only [Pi.smul_apply] at hsum
+  rw [e.symm.comp_right_fderiv, heq, hsum.fderiv] at h
   simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearMap.inl_apply,
     ContinuousLinearEquiv.coe_coe, FunLike.coe_sum, Finset.sum_apply,
     FunLike.coe_smul, Pi.smul_apply,
     ContinuousLinearMap.flipMultilinear_apply_apply] at h
-  rw [h]
+  rw [← h]
   simp_rw [iteratedFDeriv_succ_apply_left, Fin.cons_zero, Fin.tail_cons]
 
 /-- The real derivative of the truncated Taylor extension at `x + i y` in an imaginary direction
@@ -205,11 +202,7 @@ theorem fderiv_taylorExtension_apply_imag {N : ℕ} {f : EuclideanSpace ℝ ι' 
   set e := complexEuclideanEquivRealProd ι'
   have hF : DifferentiableAt ℝ (taylorExtension N f) (e.symm (x, y)) :=
     ((contDiff_taylorExtension (r := 1) (by rwa [add_comm])).differentiable one_ne_zero) _
-  have hline : HasFDerivAt (fun y' ↦ e.symm (x, y'))
-      (e.symm.toContinuousLinearMap.comp
-        (.inr ℝ (EuclideanSpace ℝ ι') (EuclideanSpace ℝ ι'))) y :=
-    e.symm.hasFDerivAt.comp y (hasFDerivAt_prodMk_right x y)
-  have heq : (taylorExtension N f ∘ fun y' ↦ e.symm (x, y')) = fun y' ↦
+  have heq : (fun y' ↦ (taylorExtension N f ∘ e.symm) (x, y')) = fun y' ↦
       ∑ j ∈ Finset.range (N + 1), (Complex.I ^ j / j.factorial) •
         iteratedFDeriv ℝ j f x (fun _ ↦ y') := by
     funext y'
@@ -217,14 +210,14 @@ theorem fderiv_taylorExtension_apply_imag {N : ℕ} {f : EuclideanSpace ℝ ι' 
   have hsum := HasFDerivAt.fun_sum (u := Finset.range (N + 1)) fun j _ ↦
     (HasFDerivAt.multilinear_comp (f := iteratedFDeriv ℝ j f x) (g := fun _ ↦ id)
       (fun _ ↦ hasFDerivAt_id y)).const_smul (Complex.I ^ j / (j.factorial : ℂ))
-  replace hsum := hsum.congr_of_eventuallyEq
-    (f₁ := taylorExtension N f ∘ fun y' ↦ e.symm (x, y')) (.of_eq heq)
-  have h := congrArg (· u) ((hF.hasFDerivAt.comp y hline).unique hsum)
+  have h := congrArg (· u) (fderiv_slice_right (hF.comp (x, y) e.symm.differentiableAt))
+  simp only [Pi.smul_apply, id_eq] at hsum
+  rw [e.symm.comp_right_fderiv, heq, hsum.fderiv] at h
   simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearMap.inr_apply,
     ContinuousLinearEquiv.coe_coe, FunLike.coe_sum, Finset.sum_apply,
     FunLike.coe_smul, Pi.smul_apply, ContinuousMultilinearMap.toContinuousLinearMap_apply,
     ContinuousLinearMap.coe_id', id_eq] at h
-  rw [h, Finset.sum_range_succ']
+  rw [← h, Finset.sum_range_succ']
   simp only [Finset.univ_eq_empty, Finset.sum_empty, smul_zero, add_zero]
   refine Finset.sum_congr rfl fun j hj ↦ ?_
   rw [hf.contDiffAt.sum_iteratedFDeriv_update_const
@@ -278,10 +271,8 @@ theorem fderiv_taylorExtension_comp_ofReal {N : ℕ} (hN : 1 ≤ N) {h : Euclide
   rw [fderiv_taylorExtension_ofReal hN hf]
   refine (ContinuousLinearMap.complexExtension_unique _ hI fun u ↦ ?_).symm
   -- The derivative of `h ∘ ofReal` is that of `h` in the real directions.
-  have hline : HasFDerivAt (fun x' ↦ e.symm (x', 0))
-      (e.symm.toContinuousLinearMap.comp (.inl ℝ _ _)) x :=
-    e.symm.hasFDerivAt.comp x (hasFDerivAt_prodMk_left x 0)
-  rw [HasFDerivAt.fderiv (f := fun y ↦ h (e.symm (y, 0))) (hx.hasFDerivAt.comp x hline)]
+  rw [show (fun y ↦ h (e.symm (y, 0))) = fun y ↦ (h ∘ e.symm) (y, 0) from rfl,
+    fderiv_slice_left (hx.comp _ e.symm.differentiableAt), e.symm.comp_right_fderiv]
   simp [e]
 
 /-- The conjugate Wirtinger derivative of the truncated Taylor extension of a `C^(N + 1)` map

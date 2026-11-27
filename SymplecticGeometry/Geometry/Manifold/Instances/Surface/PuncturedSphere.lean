@@ -68,6 +68,8 @@ of the plane minus real points.
   the inverse of that of `outerLoop`, and so, by
   `PlaneMinusRealPoints.fromPath_outerLoop_eq_prod`, the inverse of the product over `List.ofFn`
   of the classes of the loops `PlaneMinusRealPoints.loop` about the points.
+* `SymplecticGeometry.ClosedSurface.sphereCoChart_repr_inversion`: away from `0`, the
+  complementary chart after the inversion in the unit circle is the chart `sphereChart`.
 * `SymplecticGeometry.ClosedSurface.ballCircle_zero_apply_eq_sphereChart`: in the chart
   `sphereChart`, the circle of the ball `j` is the circle of radius `√2 / 4` about `j • e`, from the
   angle `π / 4`.
@@ -249,15 +251,10 @@ Euclidean plane. -/
       sphereCoChart (Complex.orthonormalBasisOneI.repr z) :=
   (rfl)
 
-/-- The point `0` is not among the points `puncturedSpherePoint n k`. -/
-theorem zero_mem_compl_range_puncturedSpherePoint :
-    (0 : ℂ) ∈ (range fun k ↦ (puncturedSpherePoint n k : ℂ))ᶜ := by
-  rintro ⟨k, hk⟩
-  exact puncturedSpherePoint_ne_zero k (Complex.ofReal_eq_zero.1 hk)
-
 /-- The homeomorphism sends `0` to the base point of the sphere. -/
 @[simp] theorem puncturedSphereHomeomorph_zero :
-    puncturedSphereHomeomorph n ⟨0, zero_mem_compl_range_puncturedSpherePoint⟩ =
+    puncturedSphereHomeomorph n
+        ⟨0, PlaneMinusRealPoints.zero_mem_compl_range puncturedSpherePoint_ne_zero⟩ =
       ⟨basePoint 0, basePoint_mem_puncture⟩ := by
   ext
   rw [coe_puncturedSphereHomeomorph_apply, map_zero, sphereCoChart_zero]
@@ -265,7 +262,7 @@ theorem zero_mem_compl_range_puncturedSpherePoint :
 /-- The inverse of the homeomorphism sends the base point of the sphere to `0`. -/
 @[simp] theorem puncturedSphereHomeomorph_symm_basePoint :
     (puncturedSphereHomeomorph n).symm ⟨basePoint 0, basePoint_mem_puncture⟩ =
-      ⟨0, zero_mem_compl_range_puncturedSpherePoint⟩ :=
+      ⟨0, PlaneMinusRealPoints.zero_mem_compl_range puncturedSpherePoint_ne_zero⟩ :=
   (puncturedSphereHomeomorph n).symm_apply_eq.2 puncturedSphereHomeomorph_zero.symm
 
 /-! ### The loops about the finite punctures
@@ -282,7 +279,9 @@ open EuclideanGeometry (inversion inversion_zero_eq_sq_div_conj)
 open EuclideanTorus (neckIsometry)
 open PlaneMinusRealPoints (fan approach circle)
 
-private theorem sphereCoChart_repr_inversion {u : ℂ} (hu : u ≠ 0) :
+/-- Away from `0`, read through the identification of `ℂ` with the Euclidean plane, the
+complementary chart after the inversion in the unit circle is the chart `sphereChart`. -/
+theorem sphereCoChart_repr_inversion {u : ℂ} (hu : u ≠ 0) :
     sphereCoChart (Complex.orthonormalBasisOneI.repr (inversion 0 1 u)) =
       sphereChart (Complex.orthonormalBasisOneI.repr u) := by
   rw [sphereCoChart_of_ne, LinearIsometryEquiv.map_inversion_zero,
@@ -760,7 +759,8 @@ private theorem coe_inversionToCompl_apply
 
 /-- The segment from `0` to `-i` in the plane minus the points, ending at the image of `-i`
 under `inversionToCompl`. -/
-private def segmentToNegI : Path (⟨0, zero_mem_compl_range_puncturedSpherePoint⟩ :
+private def segmentToNegI :
+    Path (⟨0, PlaneMinusRealPoints.zero_mem_compl_range puncturedSpherePoint_ne_zero⟩ :
       ↥(range fun i ↦ (puncturedSpherePoint n i : ℂ))ᶜ) (inversionToCompl k (nNegI _ _)) :=
   ((Path.segment (0 : ℂ) (-I)).cast rfl
     (by simp [coe_inversionToCompl_apply, inversion_zero_eq_sq_div_conj])).codRestrict
@@ -929,29 +929,13 @@ a circle about `0`. -/
 theorem ballCircle_zero_zero_apply (t : unitInterval) :
     ballCircle 0 0 t = sphereCoChart (Complex.orthonormalBasisOneI.repr
       (circlePath 0 (2 * √2) (Real.pi / 4) t)) := by
-  set z := Complex.orthonormalBasisOneI.repr (circlePath 0 (2 * √2) (Real.pi / 4) t) with hz_def
-  -- In the chart `sphereChart` the circle has radius `1 / (2 √2)`, and the inversion takes it
-  -- to the circle of radius `2 √2`, point by point along the same rays.
-  have hz : z = (2 * √2 : ℝ) • EuclideanTorus.neckIsometry (circleMap 0 1 (2 * Real.pi * t)) := by
-    rw [hz_def, EuclideanTorus.neckIsometry_circleMap, circlePath_apply]
-    ext i
-    fin_cases i <;> simp [Complex.orthonormalBasisOneI_repr_apply, circleMap_zero_re,
-      circleMap_zero_im, add_comm]
-  have hn : ‖z‖ = 2 * √2 := by
-    rw [hz_def, LinearIsometryEquiv.norm_map, circlePath_apply, norm_circleMap_zero,
-      abs_of_pos (by positivity)]
-  have hne : z ≠ 0 := by
-    rw [← norm_pos_iff, hn]
-    positivity
-  rw [ballCircle_apply, ball_zero_eq_sphereChart, sphereCoChart_of_ne hne, zero_smul,
-    OpenPartialHomeomorph.univBall_apply (by norm_num), LinearIsometryEquiv.norm_map,
-    norm_circleMap_zero, abs_one, vadd_eq_add, add_zero]
-  congr 1
-  rw [EuclideanGeometry.inversion, dist_zero_right, hn, vsub_eq_sub, sub_zero, vadd_eq_add,
-    add_zero, hz, smul_smul]
-  congr 1
-  field_simp
-  norm_num
+  have hr : (1 : ℝ) ^ 2 / (√2 / 4) = 2 * √2 := by
+    have := Real.mul_self_sqrt (show (0 : ℝ) ≤ 2 by norm_num)
+    field_simp
+    linarith
+  rw [ballCircle_zero_apply_eq_sphereChart, Nat.cast_zero, ← sphereCoChart_repr_inversion
+    (circleMap_ne_center (by positivity)), EuclideanGeometry.inversion_circleMap, hr,
+    circlePath_apply]
 
 variable (n) in
 /-- Through the homeomorphism `puncturedSphereHomeomorph n`, the reverse of the loop `outerLoop`
