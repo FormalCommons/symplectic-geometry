@@ -54,8 +54,11 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
 * `SymplecticGeometry.smoothedMax`: the smoothed maximum, with `contDiff_smoothedMax`,
-  `hasDerivAt_smoothedMax_left`, the first and second derivatives `hasDerivAt_smoothedMax` and
-  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, `smoothedMax_eq_max`,
+  `hasDerivAt_smoothedMax_left`, `hasDerivAt_smoothedMax_right`, monotonicity in each argument
+  (`monotone_smoothedMax_left`, `monotone_smoothedMax_right`, `smoothedMax_le_smoothedMax`), the
+  first and second derivatives `hasDerivAt_smoothedMax`, `deriv_smoothedMax` and
+  `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions, the bounds
+  `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
   `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
 
@@ -383,6 +386,66 @@ theorem hasDerivAt_smoothedMax {f g : ℝ → ℝ} {f' g' x : ℝ} (hf : HasDeri
 theorem hasDerivAt_smoothedMax_left (δ b a : ℝ) :
     HasDerivAt (fun a ↦ smoothedMax δ a b) ((1 + smoothedSign δ (a - b)) / 2) a := by
   simpa using hasDerivAt_smoothedMax (δ := δ) (hasDerivAt_id a) (hasDerivAt_const a b)
+
+/-- The derivative of the smoothed maximum in its second argument: at `b`, it is
+`(1 - smoothedSign δ (a - b)) / 2`. -/
+theorem hasDerivAt_smoothedMax_right (δ a b : ℝ) :
+    HasDerivAt (fun b ↦ smoothedMax δ a b) ((1 - smoothedSign δ (a - b)) / 2) b := by
+  convert hasDerivAt_smoothedMax (δ := δ) (hasDerivAt_const b a) (hasDerivAt_id' b) using 1
+  ring
+
+/-- The smoothed maximum is monotone in its first argument, since its partial derivative
+`(1 + smoothedSign δ (a - b)) / 2` is nonnegative. -/
+theorem monotone_smoothedMax_left (δ b : ℝ) : Monotone fun a ↦ smoothedMax δ a b :=
+  monotone_of_deriv_nonneg (fun a ↦ (hasDerivAt_smoothedMax_left δ b a).differentiableAt)
+    fun a ↦ by
+      rw [(hasDerivAt_smoothedMax_left δ b a).deriv]
+      linarith [(abs_le.1 (abs_smoothedSign_le_one δ (a - b))).1]
+
+/-- The smoothed maximum is monotone in its second argument, since its partial derivative
+`(1 - smoothedSign δ (a - b)) / 2` is nonnegative. -/
+theorem monotone_smoothedMax_right (δ a : ℝ) : Monotone fun b ↦ smoothedMax δ a b :=
+  monotone_of_deriv_nonneg (fun b ↦ (hasDerivAt_smoothedMax_right δ a b).differentiableAt)
+    fun b ↦ by
+      rw [(hasDerivAt_smoothedMax_right δ a b).deriv]
+      linarith [(abs_le.1 (abs_smoothedSign_le_one δ (a - b))).2]
+
+/-- The smoothed maximum is monotone in both arguments together. -/
+@[gcongr]
+theorem smoothedMax_le_smoothedMax {a a' b b' : ℝ} (ha : a ≤ a') (hb : b ≤ b') :
+    smoothedMax δ a b ≤ smoothedMax δ a' b' :=
+  (monotone_smoothedMax_left δ b ha).trans (monotone_smoothedMax_right δ a' hb)
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x`. -/
+theorem deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ smoothedMax δ (f x) (g x)) x =
+      (deriv f x + deriv g x + smoothedSign δ (f x - g x) * (deriv f x - deriv g x)) / 2 :=
+  (hasDerivAt_smoothedMax hf.hasDerivAt hg.hasDerivAt).deriv
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x` is at least
+the smaller of their derivatives. -/
+theorem min_deriv_le_deriv_smoothedMax {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    min (deriv f x) (deriv g x) ≤ deriv (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
+  convert Convex.min_le_combo (deriv f x) (deriv g x)
+    (a := (1 + smoothedSign δ (f x - g x)) / 2) (b := (1 - smoothedSign δ (f x - g x)) / 2)
+    (by linarith) (by linarith) (by ring) using 1
+  rw [deriv_smoothedMax hf hg, smul_eq_mul, smul_eq_mul]
+  ring
+
+/-- The derivative of the smoothed maximum of two functions differentiable at `x` is at most
+the larger of their derivatives. -/
+theorem deriv_smoothedMax_le_max {f g : ℝ → ℝ} {x : ℝ} (hf : DifferentiableAt ℝ f x)
+    (hg : DifferentiableAt ℝ g x) :
+    deriv (fun x ↦ smoothedMax δ (f x) (g x)) x ≤ max (deriv f x) (deriv g x) := by
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
+  convert Convex.combo_le_max (deriv f x) (deriv g x)
+    (a := (1 + smoothedSign δ (f x - g x)) / 2) (b := (1 - smoothedSign δ (f x - g x)) / 2)
+    (by linarith) (by linarith) (by ring) using 1
+  rw [deriv_smoothedMax hf hg, smul_eq_mul, smul_eq_mul]
+  ring
 
 /-- The second derivative of the smoothed maximum of two `C²` functions `f` and `g`: with
 `s = smoothedSign δ (f x - g x)`, it is
