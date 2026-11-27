@@ -139,7 +139,7 @@ theorem exists_isIso_nonempty_iso_clutching_linear [CompactSpace X] [T2Space X] 
       (a + ContinuousMap.const X (t : ℂ) • b).fiberMap w.1 +
         (ContinuousMap.const X (t : ℂ) • a + b).fiberMap w.1 := by
     simp only [G, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, zpow_one, smul_eq_mul, mul_one,
+      ContinuousMap.laurentMonomial_one_apply, zpow_one,
       ContinuousMap.fst_apply]
   have hGm (w : X × Circle) : G.fiberMap w =
       ((w.2 : ℂ) + t) • a.fiberMap w.1 + ((t : ℂ) * w.2 + 1) • b.fiberMap w.1 := by

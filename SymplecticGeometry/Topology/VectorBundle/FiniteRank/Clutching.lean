@@ -590,13 +590,11 @@ def circleZPowSMul (m : ℤ)
   hom := ContinuousMap.laurentMonomial m (1 : C(X, ℂ)) • f.hom
   inv := ContinuousMap.laurentMonomial (-m) (1 : C(X, ℂ)) • f.inv
   hom_inv_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-      ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_one_apply,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_hom_inv_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel, zpow_zero, one_smul]
   inv_hom_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-      ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_one_apply,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_inv_hom_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), neg_add_cancel, zpow_zero, one_smul]
 

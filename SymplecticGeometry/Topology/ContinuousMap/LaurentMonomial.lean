@@ -25,6 +25,8 @@ Stone–Weierstrass theorem, is in `SymplecticGeometry.Topology.ContinuousMap.La
 
 * `ContinuousMap.laurentMonomial k`: the linear map `g ↦ ((x, u) ↦ u ^ k • g x)` from `C(X, V)` to
   `C(X × Circle, V)`.
+* `ContinuousMap.laurentMonomial_one_apply`: the value of `laurentMonomial k 1` at `(x, u)` is
+  `u ^ k`.
 * `ContinuousMap.laurentMonomial_mul_laurentMonomial` and `ContinuousMap.star_laurentMonomial`:
   products and conjugates of scalar Laurent monomials.
 
@@ -53,6 +55,12 @@ noncomputable def laurentMonomial (k : ℤ) : C(X, V) →ₗ[ℂ] C(X × Circle,
 theorem laurentMonomial_apply (k : ℤ) (g : C(X, V)) (w : X × Circle) :
     laurentMonomial k g w = (w.2 : ℂ) ^ k • g w.1 :=
   (rfl)
+
+/-- The scalar Laurent monomial of degree `k` with coefficient `1` is the `k`-th power of the
+circle coordinate. -/
+theorem laurentMonomial_one_apply (k : ℤ) (w : X × Circle) :
+    laurentMonomial k (1 : C(X, ℂ)) w = (w.2 : ℂ) ^ k := by
+  simp
 
 /-- The product of two scalar Laurent monomials is a Laurent monomial. -/
 @[simp]

@@ -90,9 +90,9 @@ theorem polynomialHom_def (n : ℕ) (a : ℕ → (A ⟶ D)) :
 theorem fiberMap_polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) (w : X × Circle) :
     (polynomialHom n a).fiberMap w =
       ∑ i ∈ Finset.range n, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
-  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-    ContinuousMap.one_apply, smul_eq_mul, mul_one, zpow_natCast,
-    fiberMap_pullbackMap, ContinuousMap.fst_apply]
+  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul,
+    ContinuousMap.laurentMonomial_one_apply, zpow_natCast, fiberMap_pullbackMap,
+    ContinuousMap.fst_apply]
 
 @[simp]
 theorem polynomialHom_zero (a : ℕ → (A ⟶ D)) : polynomialHom 0 a = 0 := by
@@ -105,7 +105,7 @@ theorem polynomialHom_succ (n : ℕ) (a : ℕ → (A ⟶ D)) :
       pullbackMap (a 0) ContinuousMap.fst + 𝔲 • polynomialHom n (fun i ↦ a (i + 1)) :=
   hom_ext fun w ↦ by
     simp only [fiberMap_polynomialHom, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, zpow_one, smul_eq_mul, mul_one,
+      ContinuousMap.laurentMonomial_one_apply, zpow_one,
       ContinuousMap.fst_apply, Finset.sum_range_succ', pow_succ', mul_smul,
       Finset.smul_sum, pow_zero, one_smul]
     abel
@@ -242,7 +242,7 @@ theorem exists_linear_clutching_iso_of_fiberMap_eq_sum (n : ℕ) (a : ℕ → (E
   refine ⟨A, B, L, fun w ↦ ?_, e⟩
   rw [hL]
   simp only [fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-    ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, zpow_one, smul_eq_mul, mul_one,
+    ContinuousMap.laurentMonomial_one_apply, zpow_one,
     ContinuousMap.fst_apply]
   exact add_comm _ _
 
