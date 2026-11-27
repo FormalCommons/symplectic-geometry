@@ -18,7 +18,9 @@ Tau Ceti's `TauCeti.inner_complexToRealEuclidean` and `Matrix.re_star_dotProduct
 * `TauCeti.norm_sq_complexToRealEuclidean`: `‖complexToRealEuclidean ι u‖ ^ 2 = ∑ᵢ ‖uᵢ‖²`;
 * `TauCeti.norm_complexToRealEuclidean_smul`: scaling `u` by `a : ℂ` scales that norm by `‖a‖`;
 * `TauCeti.complexToRealEuclideanIsometry ι`: so `complexToRealEuclidean ι`, read on
-  `EuclideanSpace ℂ ι`, is a real linear isometry onto `EuclideanSpace ℝ (ι ⊕ ι)`.
+  `EuclideanSpace ℂ ι`, is a real linear isometry onto `EuclideanSpace ℝ (ι ⊕ ι)`;
+* `TauCeti.norm_complexToRealEuclidean`: so the norm of `complexToRealEuclidean ι u` is the
+  Hermitian norm of `u`, read in `EuclideanSpace ℂ ι`.
 -/
 
 public section
@@ -64,6 +66,14 @@ theorem complexToRealEuclideanIsometry_symm_apply (x : EuclideanSpace ℝ (ι �
     (complexToRealEuclideanIsometry ι).symm x =
       WithLp.toLp 2 ((complexToRealEuclidean ι).symm x) :=
   (rfl)
+
+/-- `complexToRealEuclidean ι` preserves the norm: the Euclidean norm of the real coordinates of
+`u : ι → ℂ` is the Hermitian norm of `u`, read in `EuclideanSpace ℂ ι`. -/
+theorem norm_complexToRealEuclidean (u : ι → ℂ) :
+    ‖complexToRealEuclidean ι u‖ = ‖(EuclideanSpace.equiv ι ℂ).symm u‖ := by
+  rw [← (complexToRealEuclideanIsometry ι).norm_map ((EuclideanSpace.equiv ι ℂ).symm u),
+    complexToRealEuclideanIsometry_apply]
+  simp
 
 end TauCeti
 
