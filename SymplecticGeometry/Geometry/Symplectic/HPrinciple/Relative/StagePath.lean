@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
@@ -145,10 +146,9 @@ theorem stagePath_eqOn_nhdsSet {l : Λ} {V : Set M} (hV : IsOpen V)
   -- A slice of `e` fixes `V`, which is open, so pullback along it does not change a form there.
   have hid (t : unitInterval) {k : ℕ} (θ : SmoothForm I M ℝ k) {x : M} (hx : x ∈ V) :
       (SmoothForm.mpullback (fun x ↦ e ((s l, t), x))
-        (he.comp (contMDiff_const.prodMk contMDiff_id)) θ).val x = θ.val x := by
-    have hnear : (fun y ↦ e ((s l, t), y)) =ᶠ[𝓝 x] id :=
-      eventually_of_mem (hV.mem_nhds hx) (heV t)
-    rw [SmoothForm.coe_mpullback, hnear.mpullback_eq, TauCeti.mpullback_id]
+        (he.comp (contMDiff_const.prodMk contMDiff_id)) θ).val x = θ.val x :=
+    SmoothForm.mpullback_apply_eq_self_of_eventuallyEq_id _
+      (eventually_of_mem (hV.mem_nhds hx) (heV t)) θ
   refine ⟨fun t x hx ↦ ?_, fun x hx ↦ hid 1 _ hx, fun x hx ↦ (hid 1 _ hx).trans (hB'V x hx)⟩
   -- `d (B' (s l)) = d (B (s l))` on the open set `V`, so the correction vanishes there.
   have hd : (mextDerivₗ I 1 (B' (s l))).val x = (mextDerivₗ I 1 (B (s l))).val x := by
@@ -183,16 +183,12 @@ theorem stagePath_of_mem {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
   · rw [hpath, ← mem_closedForms_iff_mextDerivₗ_eq_zero]
     exact SmoothForm.mpullback_mem_closedForms _ _ hτc
   · -- `τ l - e_{A t}^* τ l` is exact along the isotopy, and `τ l - α l = d (B' (s l))`.
-    have hex := SmoothForm.mpullback_sub_mem_exactForms_of_homotopy contMDiff_id
-      (he.comp (contMDiff_const.prodMk contMDiff_id))
-      (g := fun x ↦ e ((s l, collaredFirstHalf (n := ∞) le_rfl t), x))
-      (F := fun q : M × Set.Icc (0 : ℝ) 1 ↦
-        e ((s l, Set.Icc.convexComb 0 (collaredFirstHalf (n := ∞) le_rfl t) q.2), q.1))
-      (he.comp ((contMDiff_const.prodMk
-        (contMDiff_const.convexComb contMDiff_const contMDiff_snd)).prodMk contMDiff_fst))
-      (fun x ↦ by simp only [Set.Icc.convexComb_zero, he₀, id])
-      (fun x ↦ by simp only [Set.Icc.convexComb_one]) hτc
-    rw [SmoothForm.mpullback_id, LinearMap.id_apply] at hex
+    have hex := SmoothForm.mpullback_slice_zero_sub_mpullback_slice_mem_exactForms
+      (F := fun q : unitInterval × M ↦ e ((s l, q.1), q.2))
+      (he.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd))
+      (collaredFirstHalf (n := ∞) le_rfl t) hτc
+    rw [SmoothForm.mpullback_congr _ contMDiff_id (funext he₀), SmoothForm.mpullback_id,
+      LinearMap.id_apply] at hex
     have hsplit : stagePath he hρ s τ α B' (l, t) - α l =
         -(τ l - SmoothForm.mpullback (fun x ↦ e ((s l, collaredFirstHalf (n := ∞) le_rfl t), x))
           (he.comp (contMDiff_const.prodMk contMDiff_id)) (τ l)) +

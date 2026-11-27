@@ -639,7 +639,7 @@ theorem contMDiffAt_of_mpullback_family {f : N × M' → M} (hf : ContMDiff (J.p
   dsimp only
   symm
   rw [hL.mpullback_eq, mpullback_comp_at hs hmk, hslice, ← mpullback_comp_at hs hft,
-    hfs.mpullback_eq, mpullback_id]
+    hfs.mpullback_apply_eq_self]
 
 end Maps
 
