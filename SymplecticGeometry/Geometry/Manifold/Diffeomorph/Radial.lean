@@ -25,6 +25,9 @@ theorem on each ray shows that `σ` is onto. Its differential `v ↦ τ x • v 
 injective: a vector `v` in its kernel satisfies `dτ_x v * (τ x + dτ_x x) = 0`, so `dτ_x v = 0` and
 then `v = 0`.
 
+The differential itself is `SymplecticGeometry.hasFDerivAt_smul_self`, and
+`SymplecticGeometry.mfderiv_radialSmulDiffeomorph_apply` states it for the diffeomorphism.
+
 ## Main results
 
 * `SymplecticGeometry.injective_smul_self`, `SymplecticGeometry.surjective_smul_self`: `σ` is
@@ -111,14 +114,18 @@ theorem surjective_smul_self (hτ : Continuous τ) {R : ℝ} (hR : ∀ x, R ≤ 
     (show (1 : ℝ) ∈ Icc (0 * τ ((0 : ℝ) • y)) (S * τ (S • y)) by simp [hSy, hS])
   exact ⟨s • y, by simp only [smul_smul, mul_comm, hs, one_smul]⟩
 
+/-- If `τ` is differentiable at `x`, the differential of `y ↦ τ y • y` at `x` is
+`v ↦ τ x • v + dτ_x v • x`. -/
+theorem hasFDerivAt_smul_self {x : F} (hτ : DifferentiableAt ℝ τ x) :
+    HasFDerivAt (fun y ↦ τ y • y)
+      (τ x • ContinuousLinearMap.id ℝ F + (fderiv ℝ τ x).smulRight x) x :=
+  hτ.hasFDerivAt.smul (hasFDerivAt_id x)
+
 /-- If `τ` is differentiable at `x` with `0 < τ x + dτ_x x` and `τ x ≠ 0`, the differential
 `v ↦ τ x • v + dτ_x v • x` of `x ↦ τ x • x` at `x` is injective. -/
 theorem injective_fderiv_smul_self {x : F} (hτ : DifferentiableAt ℝ τ x) (hx : τ x ≠ 0)
     (hd : 0 < τ x + fderiv ℝ τ x x) : Function.Injective (fderiv ℝ (fun x ↦ τ x • x) x) := by
-  have hσ : HasFDerivAt (fun y ↦ τ y • y)
-      (τ x • ContinuousLinearMap.id ℝ F + (fderiv ℝ τ x).smulRight x) x :=
-    hτ.hasFDerivAt.smul (hasFDerivAt_id x)
-  rw [hσ.fderiv, injective_iff_map_eq_zero]
+  rw [(hasFDerivAt_smul_self hτ).fderiv, injective_iff_map_eq_zero]
   intro v hv
   have hv' : τ x • v + fderiv ℝ τ x v • x = 0 := by simpa using hv
   have ha : fderiv ℝ τ x v = 0 := by
@@ -138,8 +145,7 @@ theorem isLocalDiffeomorph_smul_self [FiniteDimensional ℝ F] {n : WithTop ℕ�
   refine TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv (s := univ)
     (hτ.smul contDiff_id).contMDiff.contMDiffOn isOpen_univ (mem_univ x)
     BoundarylessManifold.isInteriorPoint hn ?_ rfl
-  have hσ : DifferentiableAt ℝ (fun y : F ↦ τ y • y) x := (hτ' x).smul differentiableAt_id
-  rw [hσ.hasFDerivAt.hasMFDerivAt.mfderiv]
+  rw [mfderiv_eq_fderiv]
   -- The tangent spaces of `F` are `F` itself; stating the injectivity pointwise lets the
   -- elaborator compare the two maps without asking for norms on the tangent spaces.
   intro v w hvw
@@ -170,6 +176,19 @@ theorem coe_radialSmulDiffeomorph :
 theorem radialSmulDiffeomorph_apply (x : F) :
     radialSmulDiffeomorph hn hτ hd hR x = τ x • x := by
   rw [coe_radialSmulDiffeomorph]
+
+/-- The differential of `radialSmulDiffeomorph` at `x` is `v ↦ τ x • v + dτ_x v • x`. -/
+theorem mfderiv_radialSmulDiffeomorph_apply (x v : F) :
+    mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) (radialSmulDiffeomorph hn hτ hd hR) x v =
+      τ x • v + fderiv ℝ τ x v • x := by
+  rw [coe_radialSmulDiffeomorph,
+    (hasFDerivAt_smul_self (hτ.differentiable (by positivity) x)).hasMFDerivAt.mfderiv]
+  -- The goal applies the differential to `v` seen as a tangent vector, where `simp` does not
+  -- rewrite; `e` states the same equality in `F`.
+  have e : (τ x • ContinuousLinearMap.id ℝ F + (fderiv ℝ τ x).smulRight x) v =
+      τ x • v + fderiv ℝ τ x v • x := by
+    simp
+  exact e
 
 end radialSmulDiffeomorph
 
