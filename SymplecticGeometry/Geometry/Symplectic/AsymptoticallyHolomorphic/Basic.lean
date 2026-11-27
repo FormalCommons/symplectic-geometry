@@ -475,6 +475,58 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_add_eventuallyEq hs ht)]
   exact jetNormAt_add_le hs' ht'
 
+/-! ### Smoothness and germs of the readings -/
+
+/-- The connection read in the chart is `C^n` at `z` where the reading of the section is
+`C^(n + 1)`. -/
+theorem contDiffAt_connectionReading {n : ℕ∞} {k : ℕ} {x : M}
+    {s : Π y, PowerBundle P k y} {z : StdSpace ι}
+    (hs : ContDiffAt ℝ (n + 1) (D.reading k x s) z) :
+    ContDiffAt ℝ n (D.connectionReading k x s) z := by
+  let B : StdSpace ι →ₗ[ℝ] StdSpace ι →L[ℝ] ℝ :=
+    LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ (stdForm ι).toBilinForm
+  have hB : ContDiff ℝ n fun w ↦ (2⁻¹ : ℝ) • B w :=
+    (LinearMap.toContinuousLinearMap B).contDiff.const_smul _
+  have h := (hs.fderiv_right le_rfl).sub
+    (hB.contDiffAt.smulRight ((contDiffAt_const (c := Complex.I)).mul (hs.of_le le_self_add)))
+  exact h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ connectionReading_def ..)
+
+/-- On a boundaryless manifold, the `∂̄` reading is `C^n` at a point `z` of the target of the
+chart where the reading of the section is `C^(n + 1)`. -/
+theorem contDiffAt_dbarReading [I.Boundaryless] {n : ℕ∞} {k : ℕ} {x : M}
+    {s : Π y, PowerBundle P k y} {z : StdSpace ι} (hz : z ∈ (D.chart k x).target)
+    (hs : ContDiffAt ℝ (n + 1) (D.reading k x s) z) :
+    ContDiffAt ℝ n (D.dbarReading k x s) z := by
+  have hJ : ContDiffAt ℝ n (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
+    ((J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
+      (D.chart k x).symm.contMDiffOn).contDiffAt
+      ((D.chart k x).open_target.mem_nhds hz)).of_le (by exact_mod_cast le_top)
+  have hC := D.contDiffAt_connectionReading hs
+  have h := (hC.add ((hC.clm_comp hJ).const_smul Complex.I)).const_smul (2⁻¹ : ℝ)
+  refine h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ ?_)
+  ext v
+  simp [dbarReading_def, complexAntilinearPart_apply,
+    AlmostComplexStructure.ofComplexModule_apply]
+
+/-- The connection read in the chart at `z` depends only on the germ at `z` of the reading. -/
+theorem connectionReading_congr_of_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (h : D.reading k x s =ᶠ[𝓝 z] D.reading k x t) :
+    D.connectionReading k x s z = D.connectionReading k x t z := by
+  rw [connectionReading_def, connectionReading_def, h.fderiv_eq, h.eq_of_nhds]
+
+/-- The `∂̄` reading at `z` depends only on the germ at `z` of the reading. -/
+theorem dbarReading_congr_of_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (h : D.reading k x s =ᶠ[𝓝 z] D.reading k x t) :
+    D.dbarReading k x s z = D.dbarReading k x t z := by
+  rw [dbarReading_def, dbarReading_def, D.connectionReading_congr_of_eventuallyEq h]
+
+/-- Sections whose readings have the same germ at `z` have `∂̄` readings with the same germ
+at `z`. -/
+theorem dbarReading_eventuallyEq {k : ℕ} {x : M} {s t : Π y, PowerBundle P k y}
+    {z : StdSpace ι} (h : D.reading k x s =ᶠ[𝓝 z] D.reading k x t) :
+    D.dbarReading k x s =ᶠ[𝓝 z] D.dbarReading k x t :=
+  h.eventually_nhds.mono fun _ hw ↦ D.dbarReading_congr_of_eventuallyEq hw
+
 /-! ### Products with complex functions -/
 
 /-- The **`∂̄` of a complex function `f` on the chart** at `z`: the complex-antilinear part
