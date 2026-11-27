@@ -20,7 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Deriv
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Slice
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
