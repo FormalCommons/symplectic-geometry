@@ -19,7 +19,9 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.VanishingOrder
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
+import TauCeti.Analysis.Calculus.BumpFunction.FiniteDimension
 import TauCeti.Analysis.Calculus.FDeriv.Prod
+import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Flat
 import TauCeti.Analysis.Calculus.IteratedFDeriv.SymmetricFinite
 
@@ -48,9 +50,10 @@ to `f` on the real points.
   real direction `u` and in the imaginary direction `i u`, for `f` of class `C^(N + 1)`;
 * `SymplecticGeometry.fderiv_taylorExtension_ofReal`: for `1 ≤ N`, its real derivative at a real
   point `x + i 0` is the complex-linear extension of the derivative of `f` at `x`;
-* `SymplecticGeometry.fderiv_taylorExtension_comp_ofReal`: if `f` is the restriction to the real
-  points of a map `h` whose derivative at a real point `x + i 0` commutes with multiplication by
-  `i`, and `1 ≤ N`, then `taylorExtension N f` and `h` have the same derivative at `x + i 0`;
+* `SymplecticGeometry.fderiv_taylorExtension_comp_ofReal`: if `f` agrees near `x` with the
+  restriction to the real points of a map `h` whose derivative at the real point `x + i 0`
+  commutes with multiplication by `i`, and `1 ≤ N`, then `taylorExtension N f` and `h` have the
+  same derivative at `x + i 0`;
 * `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real`: in a real direction `u`,
   the conjugate Wirtinger derivative of `taylorExtension N f` at `x + i y` is
   `(2⁻¹ * i ^ N / N!) • D^(N+1) f(x) (u, y, …, y)`, so it vanishes to order `N` on the real
@@ -85,7 +88,15 @@ to `f` on the real points.
   first two derivatives of `e₁ - e₂` are `O(‖y‖ ^ (N + 1 - j))` on an open set, as
   `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le` gives them
   for `1 ≤ N`, then the bounds `C₁ * ‖y‖ ^ N` on `∂̄ e₁` and `C₁ * ‖y‖ ^ (N - 1)` on its
-  derivative pass to `e₂`, with another constant.
+  derivative pass to `e₂`, with another constant;
+* `SymplecticGeometry.exists_localInverse_comp_taylorExtension`: for `h : ℂⁿ → W` smooth near a
+  real point `z₀` with invertible real derivative there, and `1 ≤ N`, there is a map `G`, smooth
+  near `z₀`, that fixes the real points, has derivative the identity at the real points where the
+  derivative of `h` is complex linear, and makes `h ∘ G` a truncated Taylor extension
+  `taylorExtension N f` near `z₀`, with the two bounds above on `∂̄ (h ∘ G)` and its derivative.
+  It is `h⁻¹ ∘ taylorExtension N f`, for the local inverse `h⁻¹` of the inverse function theorem
+  (smooth on its target by Tau Ceti's `HasStrictFDerivAt.contDiffAt_toOpenPartialHomeomorph_symm`)
+  and `f` a globally smooth map that agrees with `y ↦ h (y + i 0)` near the real part of `z₀`.
 
 For `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, fix a real point
 `x` of `U`. The iterated derivative `D^j D(x)` vanishes on real arguments, since `D` vanishes on
@@ -112,6 +123,7 @@ public section
 namespace SymplecticGeometry
 
 open TauCeti Topology
+open scoped ContDiff
 
 variable {ι' : Type*} [Fintype ι'] {W : Type*} [NormedAddCommGroup W] [NormedSpace ℂ W]
 
@@ -253,22 +265,21 @@ theorem fderiv_taylorExtension_ofReal {N : ℕ} (hN : 1 ≤ N) {f : EuclideanSpa
   simp
 
 /-- Let `h : ℂⁿ → W` be real differentiable at a real point `x + i 0`, with a derivative there
-that commutes with multiplication by `i`, and let its restriction `y ↦ h (y + i 0)` to the real
-points be `C^(N + 1)` with `1 ≤ N`. Then the truncated Taylor extension of order `N` of this
-restriction has the same real derivative as `h` at `x + i 0`. (Their values there agree by
-`taylorExtension_ofReal`.) For `N = 0` this fails: the extension is then constant in the
-imaginary directions. -/
+that commutes with multiplication by `i`, and let `f : ℝⁿ → W` be a `C^(N + 1)` map, with
+`1 ≤ N`, that agrees near `x` with the restriction `y ↦ h (y + i 0)` of `h` to the real points.
+Then the truncated Taylor extension of order `N` of `f` has the same real derivative as `h` at
+`x + i 0`. (Their values there agree by `taylorExtension_ofReal`.) For `N = 0` this fails: the
+extension is then constant in the imaginary directions. -/
 theorem fderiv_taylorExtension_comp_ofReal {N : ℕ} (hN : 1 ≤ N) {h : EuclideanSpace ℂ ι' → W}
-    (hf : ContDiff ℝ (N + 1) fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
-    {x : EuclideanSpace ℝ ι'}
+    {f : EuclideanSpace ℝ ι' → W} (hf : ContDiff ℝ (N + 1) f) {x : EuclideanSpace ℝ ι'}
+    (hfh : f =ᶠ[𝓝 x] fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
     (hx : DifferentiableAt ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)))
     (hI : ∀ v, fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) (Complex.I • v) =
       Complex.I • fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) v) :
-    fderiv ℝ (taylorExtension N fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
-        ((complexEuclideanEquivRealProd ι').symm (x, 0)) =
+    fderiv ℝ (taylorExtension N f) ((complexEuclideanEquivRealProd ι').symm (x, 0)) =
       fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) := by
   set e := complexEuclideanEquivRealProd ι'
-  rw [fderiv_taylorExtension_ofReal hN hf]
+  rw [fderiv_taylorExtension_ofReal hN hf, hfh.fderiv_eq]
   refine (ContinuousLinearMap.complexExtension_unique _ hI fun u ↦ ?_).symm
   -- The derivative of `h ∘ ofReal` is that of `h` in the real directions.
   rw [show (fun y ↦ h (e.symm (y, 0))) = fun y ↦ (h ∘ e.symm) (y, 0) from rfl,
@@ -608,6 +619,135 @@ theorem exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le {N : ℕ
         · exact hC₁' z hz
         · exact h2.trans (by gcongr)
       _ = _ := by rw [add_mul]
+
+open Metric Set in
+/-- Let `h : ℂⁿ → W` be smooth on an open set `S`, with an invertible real derivative at a real
+point `z₀ ∈ S`, and let `1 ≤ N`. Then there are an open neighbourhood `U ⊆ S` of `z₀`, a map
+`G : ℂⁿ → ℂⁿ`, smooth on `U` with `G '' U ⊆ S`, a smooth map `f : ℝⁿ → W` and a constant `C`
+such that:
+* `G` fixes the real points of `U`;
+* `G` has derivative the identity at each real point `z ∈ U` where the derivative of `h`
+  commutes with multiplication by `i`;
+* `h ∘ G` is the truncated Taylor extension `taylorExtension N f` on `U`, where `f` agrees
+  with `y ↦ h (y + i 0)` on the real parts of the points of `U`;
+* on `U`, writing `z = x + i y`, the conjugate Wirtinger derivative of `h ∘ G` has norm at most
+  `C * ‖y‖ ^ N`, and its derivative, taken in the bundled form
+  `w ↦ complexAntilinearPartL (fderiv ℝ (h ∘ G) w)`, has norm at most `C * ‖y‖ ^ (N - 1)`. -/
+theorem exists_localInverse_comp_taylorExtension {N : ℕ} (hN : 1 ≤ N)
+    {h : EuclideanSpace ℂ ι' → W} {S : Set (EuclideanSpace ℂ ι')} (hS : IsOpen S)
+    (hh : ContDiffOn ℝ ∞ h S) {z₀ : EuclideanSpace ℂ ι'} (hz₀S : z₀ ∈ S)
+    (hz₀ : (complexEuclideanEquivRealProd ι' z₀).2 = 0) (hinv : (fderiv ℝ h z₀).IsInvertible) :
+    ∃ U, IsOpen U ∧ z₀ ∈ U ∧ U ⊆ S ∧
+    ∃ (G : EuclideanSpace ℂ ι' → EuclideanSpace ℂ ι') (f : EuclideanSpace ℝ ι' → W) (C : ℝ),
+      ContDiffOn ℝ ∞ G U ∧ G '' U ⊆ S ∧
+      (∀ z ∈ U, (complexEuclideanEquivRealProd ι' z).2 = 0 → G z = z) ∧
+      (∀ z ∈ U, (complexEuclideanEquivRealProd ι' z).2 = 0 →
+        (∀ v, fderiv ℝ h z (Complex.I • v) = Complex.I • fderiv ℝ h z v) →
+        fderiv ℝ G z = ContinuousLinearMap.id ℝ _) ∧
+      (∀ z ∈ U, ‖conjWirtingerDeriv (h ∘ G) z‖ ≤
+        C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N) ∧
+      (∀ z ∈ U, ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL
+          (fderiv ℝ (h ∘ G) w)) z‖ ≤ C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1)) ∧
+      ContDiff ℝ ∞ f ∧ (∀ z ∈ U, h (G z) = taylorExtension N f z) ∧
+      ∀ z ∈ U, f (complexEuclideanEquivRealProd ι' z).1 =
+        h ((complexEuclideanEquivRealProd ι').symm
+          ((complexEuclideanEquivRealProd ι' z).1, 0)) := by
+  set e := complexEuclideanEquivRealProd ι'
+  set x₀ := (e z₀).1
+  have hz₀e : e.symm (x₀, 0) = z₀ := by rw [← hz₀]; simp [x₀]
+  have hhS : ∀ z ∈ S, ContDiffAt ℝ ∞ h z := fun z hz ↦ hh.contDiffAt (hS.mem_nhds hz)
+  obtain ⟨A, hA⟩ := hinv
+  have hA' : HasStrictFDerivAt h (A : EuclideanSpace ℂ ι' →L[ℝ] W) z₀ :=
+    (hhS z₀ hz₀S).hasStrictFDerivAt
+      (hA ▸ ((hhS z₀ hz₀S).differentiableAt (by simp)).hasFDerivAt) (by simp)
+  -- `P`: the local homeomorphism of the inverse function theorem, `P.symm` the local inverse.
+  set P := hA'.toOpenPartialHomeomorph h
+  have hP : ⇑P = h := hA'.toOpenPartialHomeomorph_coe
+  set O := S ∩ P.source
+  have hO : IsOpen O := hS.inter P.open_source
+  have hz₀O : z₀ ∈ O := ⟨hz₀S, hA'.mem_toOpenPartialHomeomorph_source⟩
+  set V := P.target ∩ P.symm ⁻¹' O
+  have hV : IsOpen V := P.isOpen_inter_preimage_symm hO
+  have hPV : ∀ a ∈ V, ContDiffAt ℝ ∞ P.symm a := fun a ha ↦
+    hA'.contDiffAt_toOpenPartialHomeomorph_symm ha.1 (hhS _ ha.2.1)
+  -- `f`: a smooth map on `ℝⁿ` that agrees with `y ↦ h (y + i 0)` near `x₀`.
+  have hofR : ContDiff ℝ ∞ fun y : EuclideanSpace ℝ ι' ↦ e.symm (y, 0) :=
+    e.symm.contDiff.comp (contDiff_id.prodMk contDiff_const)
+  obtain ⟨f, hf, -, hfh⟩ := ContDiffOn.exists_contDiff_eventuallyEq_of_finiteDimensional (n := ⊤)
+    (hh.comp hofR.contDiffOn fun _ hy ↦ hy)
+    (hofR.continuous.continuousAt.preimage_mem_nhds (by rw [hz₀e]; exact hS.mem_nhds hz₀S))
+  obtain ⟨δ, hδ, hball⟩ := Metric.mem_nhds_iff.1 hfh
+  have hfh : ∀ y ∈ closedBall x₀ (δ / 2), f y = h (e.symm (y, 0)) := fun y hy ↦
+    hball (closedBall_subset_ball (by linarith) hy)
+  have hfN : ∀ n : ℕ, ContDiff ℝ n f := fun n ↦ hf.of_le (mod_cast le_top)
+  set T := taylorExtension N f
+  have hT : ContDiff ℝ ∞ T := contDiff_taylorExtension (by
+    rwa [← WithTop.coe_natCast, ← WithTop.coe_add, top_add])
+  have hTre : ∀ y ∈ closedBall x₀ (δ / 2), T (e.symm (y, 0)) = h (e.symm (y, 0)) :=
+    fun y hy ↦ by simp only [T]; rw [taylorExtension_ofReal, hfh y hy]
+  obtain ⟨C₁, hC₁⟩ := norm_conjWirtingerDeriv_taylorExtension_le (by exact_mod_cast hfN (N + 1))
+    (isCompact_closedBall x₀ (δ / 2))
+  obtain ⟨C₂, hC₂⟩ := norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le
+    (by exact_mod_cast hfN (N + 2)) (isCompact_closedBall x₀ (δ / 2))
+  set U := ({z | (e z).1 ∈ ball x₀ (δ / 2)} ∩ {z | ‖(e z).2‖ < 1}) ∩ O ∩ T ⁻¹' V
+  have hU : IsOpen U :=
+    (((isOpen_ball.preimage (by fun_prop)).inter (isOpen_lt (by fun_prop) continuous_const)).inter
+      hO).inter (hV.preimage hT.continuous)
+  have hz₀U : z₀ ∈ U := by
+    have h1 : z₀ ∈ {z | (e z).1 ∈ ball x₀ (δ / 2)} := by
+      rw [mem_ofPred_eq]; exact mem_ball_self (by positivity)
+    have h2 : z₀ ∈ {z | ‖(e z).2‖ < 1} := by simp [hz₀]
+    have h3 : T z₀ ∈ V := by
+      rw [← hz₀e, hTre _ (mem_closedBall_self (by positivity)), hz₀e]
+      refine mem_inter hA'.image_mem_toOpenPartialHomeomorph_target ?_
+      rw [mem_preimage, ← hP, P.left_inv hz₀O.2]
+      exact hz₀O
+    exact mem_inter (mem_inter (mem_inter h1 h2) hz₀O) h3
+  set G := fun z ↦ P.symm (T z)
+  have hGT : ∀ z ∈ U, h (G z) = T z := fun z hz ↦ P.right_inv hz.2.1
+  have hreal : ∀ z ∈ U, (e z).2 = 0 → T z = h z := fun z hz hre ↦ by
+    have hz' : e.symm ((e z).1, 0) = z := by rw [← hre]; simp
+    rw [← hz', hTre _ (ball_subset_closedBall hz.1.1.1)]
+  have hev : ∀ z ∈ U, h ∘ G =ᶠ[𝓝 z] T := fun z hz ↦ by
+    filter_upwards [hU.mem_nhds hz] with w hw using hGT w hw
+  refine ⟨U, hU, hz₀U, fun z hz ↦ hz.1.2.1, G, f, max C₁ C₂,
+    fun z hz ↦ ((hPV _ hz.2).comp z hT.contDiffAt).contDiffWithinAt, ?_, ?_, ?_, ?_, ?_, hf, hGT,
+    fun z hz ↦ hfh _ (ball_subset_closedBall hz.1.1.1)⟩
+  · rintro _ ⟨z, hz, rfl⟩
+    exact hz.2.2.1
+  · intro z hz hre
+    simp only [G, hreal z hz hre]
+    exact P.left_inv hz.1.2.2
+  · intro z hz hre hI
+    have hz' : e.symm ((e z).1, 0) = z := by rw [← hre]; simp
+    have hhz : DifferentiableAt ℝ h z := (hhS z hz.1.2.1).differentiableAt (by simp)
+    have hTz : fderiv ℝ T z = fderiv ℝ h z := by
+      rw [← hz'] at hhz hI ⊢
+      refine fderiv_taylorExtension_comp_ofReal hN (by exact_mod_cast hfN (N + 1)) ?_ hhz hI
+      filter_upwards [isOpen_ball.mem_nhds hz.1.1.1] with y hy using
+        hfh y (ball_subset_closedBall hy)
+    have hPd : DifferentiableAt ℝ P.symm (h z) :=
+      (hPV _ (hreal z hz hre ▸ hz.2)).differentiableAt (by simp)
+    have hinv : P.symm ∘ h =ᶠ[𝓝 z] id := P.eventually_left_inverse hz.1.2.2
+    calc fderiv ℝ G z = (fderiv ℝ P.symm (h z)).comp (fderiv ℝ h z) := by
+          rw [fderiv_fun_comp z (hreal z hz hre ▸ hPd) (hT.differentiable (by simp) z), hTz,
+            hreal z hz hre]
+      _ = fderiv ℝ (P.symm ∘ h) z := (fderiv_comp z hPd hhz).symm
+      _ = ContinuousLinearMap.id ℝ _ := hinv.fderiv_eq.trans (fderiv_id)
+  · intro z hz
+    rw [(hev z hz).conjWirtingerDeriv_eq]
+    refine (hC₁ z (ball_subset_closedBall hz.1.1.1)).trans ?_
+    gcongr
+    exact le_max_left _ _
+  · intro z hz
+    have : (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ (h ∘ G) w)) =ᶠ[𝓝 z]
+        fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ T w) := by
+      filter_upwards [(hev z hz).fderiv (𝕜 := ℝ)] with w hw
+      rw [hw]
+    rw [this.fderiv_eq]
+    refine (hC₂ z (ball_subset_closedBall hz.1.1.1) hz.1.1.2.le).trans ?_
+    gcongr
+    exact le_max_right _ _
 
 end SymplecticGeometry
 
