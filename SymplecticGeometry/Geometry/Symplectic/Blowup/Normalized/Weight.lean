@@ -35,7 +35,7 @@ open TauCeti
 
 namespace BlowupModel.IsBlowupProfile
 
-variable {l ε : ℝ} {h : ℝ → ℝ}
+variable {n : ℕ} {l ε : ℝ} {h : ℝ → ℝ}
 
 /-- A profile of the blowup of weight `l` maps `(0, ∞)` onto `(l², ∞)`: it is increasing, equal
 to `l²` at `0` and to the identity far out. -/
@@ -53,7 +53,7 @@ theorem image_Ioi (hh : IsBlowupProfile l ε h) : h '' Ioi 0 = Ioi (l ^ 2) := by
       ⟨by rw [h0]; exact ht, by rw [hs₁]; exact le_max_left _ _⟩
     exact ⟨s, hs.1, hst⟩
 
-variable (n : ℕ) in
+variable (n) in
 /-- The radial map `F_h z = √(h(|z|²) / |z|²) z` of a profile `h` of the blowup of weight `l`, as
 a diffeomorphism of `E ∖ 0` onto the complement of the closed ball `|w| ≤ l`. -/
 abbrev radialDiffeomorph (hh : IsBlowupProfile l ε h) :=
@@ -107,7 +107,8 @@ theorem norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε <
 
 /-- For `l + ε < r`, a point `z ≠ 0` whose image under the radial map of `h` lies in the open ball
 of radius `r` lies in it too: off `B(l + ε)` the radial map is the identity. -/
-theorem norm_lt_of_norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r) {z : puncturedSpace (Fin (n + 1) → ℂ)}
+theorem norm_lt_of_norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r)
+    {z : puncturedSpace (Fin (n + 1) → ℂ)}
     (hz : ‖complexToRealEuclidean (Fin (n + 1))
       (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) z)‖ < r) :
     ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
@@ -179,7 +180,8 @@ theorem radialContraction_of_notMem {p : M}
       rw [h0, map_zero, norm_zero] at hle
       linarith [hh.weight_pos, hh.collar_pos]
     rw [hψ.radialContraction_of_mem hh hp']
-    have hR : (hh.radialDiffeomorph n).symm ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp'⟩ =
+    have hR : (hh.radialDiffeomorph n).symm
+        ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp'⟩ =
         ⟨Ψ.symm p, h0⟩ := by
       rw [← (hh.radialDiffeomorph n).symm_apply_apply ⟨Ψ.symm p, h0⟩]
       congr 1
@@ -218,7 +220,8 @@ theorem radialContraction_radialMap (hr : l + ε < r) (z : puncturedSpace (Fin (
   have hsymm : Ψ.symm (ψ (complexToRealEuclidean (Fin (n + 1)) w)) = w := by
     have := Ψ.left_inv hws
     rwa [coe_complexPartialDiffeomorph, Function.comp_apply] at this
-  have hR : (hh.radialDiffeomorph n).symm ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp⟩ = z := by
+  have hR : (hh.radialDiffeomorph n).symm
+      ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp⟩ = z := by
     rw [← (hh.radialDiffeomorph n).symm_apply_apply z]
     congr 1
     refine Subtype.ext ?_
@@ -501,7 +504,8 @@ theorem radialContraction_mem_puncturedOpens
       Blowup.puncturedOpens hN.blowupChart := by
   rw [Blowup.mem_puncturedOpens]
   intro h0
-  exact hψ.isSymplecticBallEmbedding.radialContraction_ne hh hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x.property)
+  exact hψ.isSymplecticBallEmbedding.radialContraction_ne hh hψ.weight_add_width_lt
+    ((WeightBlowup.mem_outerPiece_iff _).1 x.property)
     (h0.trans hψ.map_zero.symm)
 
 /-- The map from the outer piece `M ∖ ψ(B(l))` of the blowup of weight `l` to `Blowup c`:
@@ -514,7 +518,8 @@ private def outerMap (x : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding
 /-- The map from the model piece `openNbhd n ε'` of the blowup of weight `l` to `Blowup c`: the
 lift of `ψ`. -/
 private def modelMap (y : openNbhdOpens n ε') : Blowup hN.blowupChart :=
-  hψ.ballLift ⟨y, openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le) (mem_openNbhdOpens_iff.1 y.property)⟩
+  hψ.ballLift ⟨y, openNbhd_mono (hε'ε.trans hψ.width_lt_radius.le)
+    (mem_openNbhdOpens_iff.1 y.property)⟩
 
 private theorem isLocalDiffeomorph_outerMap :
     IsLocalDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
@@ -627,7 +632,8 @@ private theorem mem_outerOverlap_of_outerMap_eq
   have hyε' := mem_openNbhd_iff.1 (mem_openNbhdOpens_iff.1 y.property)
   by_cases hy0 : (y : BlowupModel n).blowdown = 0
   · exfalso
-    have hy : (y : BlowupModel n) ∈ openNbhd n ε := openNbhd_mono hε'ε (mem_openNbhdOpens_iff.1 y.property)
+    have hy : (y : BlowupModel n) ∈ openNbhd n ε :=
+      openNbhd_mono hε'ε (mem_openNbhdOpens_iff.1 y.property)
     rw [modelMap, hψ.ballLift_of_mem_openNbhd _ hy, outerMap] at hxy
     exact Blowup.inl_notMem_exceptionalDivisor _ _
       (hxy ▸ (Blowup.inr_mem_exceptionalDivisor_iff _).2 hy0)
@@ -775,16 +781,17 @@ private theorem mpullback_outerMap_apply_of_mem
     TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (hψ.outerMap hh hε' hε'ε)
       (hψ.normalizedBlowupForm h).val x = σ.val x := by
   classical
-  set Ψ := hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph with hΨ
+  set Ψ := hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph
   set R := hh.radialDiffeomorph n
   set B := blowdownPuncturedDiffeomorph n
-  let U : Set (WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) := Subtype.val ⁻¹' (ψ '' ball 0 r)
+  let U : Set (WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :=
+    Subtype.val ⁻¹' (ψ '' ball 0 r)
   have hUo : IsOpen U := by
     refine continuous_subtypeVal.isOpen_preimage _ ?_
     have := Ψ.open_target
     rwa [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target] at this
   have hev : ∀ᶠ x' in 𝓝 x, x' ∈ U := hUo.mem_nhds hx
-  have hmem (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) (hx' : x' ∈ U) :
+  have hmem (x') (hx' : x' ∈ U) :
       (x' : M) ∈ ψ '' ball 0 r ∧ (x' : M) ∉ ψ '' closedBall 0 l :=
     ⟨hx', (WeightBlowup.mem_outerPiece_iff _).1 x'.property⟩
   let g : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) →
@@ -794,11 +801,12 @@ private theorem mpullback_outerMap_apply_of_mem
         (hmem x' hx')⟩
       else ⟨_, hψ.isSymplecticBallEmbedding.complexPartialDiffeomorph_symm_mem_radialShell hh
         (hmem x hx)⟩
-  have hgx (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) (hx' : x' ∈ U) :
+  have hgx (x') (hx' : x' ∈ U) :
       ((g x' : Fin (n + 1) → ℂ)) = Ψ.symm x' := by
     simp only [g, dite_eq_left hx']
     rfl
-  have hxt : (x : M) ∈ Ψ.target := by rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx
+  have hxt : (x : M) ∈ Ψ.target := by
+    rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx
   have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g x := by
     rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
     refine (IsLocalDiffeomorphAt.comp (hf := isLocalDiffeomorph_subtype_val x)
@@ -806,21 +814,22 @@ private theorem mpullback_outerMap_apply_of_mem
     filter_upwards [hev] with x' hx'
     rw [Function.comp_apply, hgx x' hx']
     rfl
-  let G' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε) → offDivisorOpens n := fun x' ↦ B.symm (R.symm (g x'))
+  let G' := fun x' ↦ B.symm (R.symm (g x'))
   have hG' : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) G' x :=
     ((B.symm.contMDiff.comp R.symm.contMDiff).mdifferentiableAt (by simp)).comp x
       (hg.mdifferentiableAt (by simp))
   have hBG (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) :
       ((G' x' : BlowupModel n).blowdown : Fin (n + 1) → ℂ) = R.symm (g x') := by
     rw [← coe_blowdownPuncturedDiffeomorph_apply, Diffeomorph.apply_symm_apply]
-  have hnorm (x' : WeightBlowup.outerPiece (hψ.isSymplecticBallEmbedding_sqrt hε' hε'ε)) (hx' : x' ∈ U) :
+  have hnorm (x') (hx' : x' ∈ U) :
       ‖complexToRealEuclidean (Fin (n + 1)) (G' x' : BlowupModel n).blowdown‖ < r := by
     rw [hBG]
     refine hh.norm_lt_of_norm_radialMap_lt hψ.weight_add_width_lt ?_
     rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
       Diffeomorph.apply_symm_apply, hgx x' hx',
       ← hψ.isSymplecticBallEmbedding.mem_complexPartialDiffeomorph_source_iff]
-    exact Ψ.map_target (by rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx')
+    exact Ψ.map_target
+      (by rw [IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]; exact hx')
   have hGr : (G' x : BlowupModel n) ∈ openNbhd n r := mem_openNbhd_iff.2 (hnorm x hx)
   -- Near `x`, the first map is the lift composed with `G'`.
   have hfun : hψ.outerMap hh hε' hε'ε =ᶠ[𝓝 x]
