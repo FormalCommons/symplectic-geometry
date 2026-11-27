@@ -273,7 +273,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 
 /-- **The negative gradient flow of `‖μ‖²` stays in the complex orbit.** Let the action of `Gc`
 on the compact manifold `M` without boundary be a complexified action, let `-μ` be an equivariant
-moment map for `σ`, let the `C¹` metric be `g(u, w) = σ(u, J w)`, and let `B` be a nondegenerate
+moment map for `σ`, let the `C¹` metric be `⟪u, w⟫ = σ(u, J w)`, and let `B` be a nondegenerate
 symmetric form on the Lie algebra. Let `x` be the maximal integral curve of `-grad ‖μ‖²` through
 `p`. Then there is a curve `g : ℝ → Gc` with `g 0 = 1` and left-trivialized derivative
 `g⁻¹ ġ = -2 i μ♯(g⁻¹ p)` at every time, where `i = C.cplx` and `μ♯` is the vector dual to `μ`
@@ -352,10 +352,11 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hw'.mdifferentiableAt
   have hw1 : mfderiv 𝓘(ℝ) IC g t (1 : ℝ) = w := by
     rw [hw'.mfderiv]
+    -- `(smulRight 1 w) 1` is `1 • w`, the `1` of `ℝ` read in the tangent space of `ℝ` at `t`.
     exact one_smul ℝ w
   refine hΦ.congr_deriv ?_
-  rw [hw1, hwξ]
-  rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_eq_apply_momentSharp]
+  rw [hw1, hwξ, map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq,
+    momentNormSq_eq_apply_momentSharp]
 
 end Flow
 
