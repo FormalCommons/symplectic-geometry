@@ -573,7 +573,7 @@ theorem kempfNessFunction_nonneg_of_moment_eq_zero [FiniteDimensional ℝ E']
     exact LinearMap.zero_apply _
   rwa [one_mul, C.expI_mul_toHom_polar_symm, kempfNessFunction_one, h0, add_zero] at hle
 
-omit [FiniteDimensional ℝ EC] [ConnectedSpace G] in
+omit [ConnectedSpace G] in
 /-- **A uniform positive slope at a zero of the moment map.** For a complexified action, with `-μ`
 a moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let `μ p = 0` and let `0` be the only
 `ξ` whose fundamental vector field vanishes at `p`. Then there is `c > 0` with
