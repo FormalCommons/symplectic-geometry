@@ -467,8 +467,8 @@ a fibre.
   `Orientation/DualClass.lean`.
 - *Parallel transport*: `RadialTrivialization.lean`.
 - Merged: *Adjunction* (`adjunction_formula`), *First Chern number*
-  (`firstChernClass`), *First Chern class of nondegenerate forms* (invariance
-  of $c_1$), *Complex projective space* (`fubiniStudyForm`), the library's
+  (`chernNumber`, on Tau Ceti's `TauCeti.firstChernClass`), *First Chern
+  class of nondegenerate forms* (invariance of $c_1$), *Complex projective space* (`fubiniStudyForm`), the library's
   `Topology/VectorBundle/Orientation/Whitney.lean`.
 
 Mathlib, Tau Ceti and this library were searched at the pinned versions for

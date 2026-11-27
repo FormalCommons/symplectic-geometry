@@ -417,8 +417,8 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 - *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
   (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
-  and `ChernNumber/Basic.lean` (#784: `firstChernClass`,
-  `firstChernClass_pullback`, `firstChernClass_congr`,
+  and `ChernNumber/Basic.lean` (#784, on Tau Ceti's
+  `TauCeti.firstChernClass`: `firstChernClass_pullback_coe`, `firstChernClass_congr`,
   `firstChernClass_eq_complexEulerClass`, `chernNumber`,
   `chernNumber_neg_orientation`, `symplecticChernNumber`,
   `symplecticChernNumber_eq_chernNumber`, `symplecticChernNumber_congr`; #1922:

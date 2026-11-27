@@ -190,7 +190,7 @@ Most of *First Chern class of a complex vector bundle* is merged. What is
 missing is the Whitney formula over a base that is not compact, the value
 of $c_1(T\mathbb CP^{n-1})$, $c_1$ of the tautological line in the form of
 `firstChernClass`, and the page's normalization of $h$ by its value on a
-projective line. The class is *First Chern number*'s `firstChernClass`,
+projective line. The class is Tau Ceti's `TauCeti.firstChernClass`,
 with values in `H²(B; ULift ℤ)` as everywhere in the library; statements
 that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
 `chernClass_one_eq_firstChernClass` does.
@@ -1197,7 +1197,7 @@ orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.
 
 *Complex blowup* computes $c_1$ of a blowup with
-`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback`,
+`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback_coe`,
 `firstChernClass_tautological` and `firstChernClass_tangentSpace`.
 
 ## Issues

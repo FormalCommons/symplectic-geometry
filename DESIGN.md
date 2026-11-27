@@ -555,8 +555,7 @@ the library.
 These notions are used by several parts. All are reused from Tau Ceti or
 Mathlib, except the three definitions of *Standard model* and the bundle
 complex structures of *Symplectic vector bundles*, which *First Chern number*
-also uses, the first Chern class of *First Chern number*, the
-integrability predicate of *Nijenhuis tensor*, and the fibrations,
+also uses, the integrability predicate of *Nijenhuis tensor*, and the fibrations,
 parallel transport, principal connections and fibre integrals of parts
 47, 48, 50 and 51.
 
@@ -1944,9 +1943,9 @@ it into issues; the overview fixes its folders and its dependencies.
 
 ### 13. First Chern number (needs `design/first-chern-number.md`)
 
-- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (the
-  first Chern class of a complex bundle, as `TauCeti.complexEulerClass` of
-  its determinant line, and the first Chern number over a compact oriented
+- **Files:** `Topology/VectorBundle/Complex/FirstChernClass.lean` (what
+  the library adds to Tau Ceti's first Chern class `TauCeti.firstChernClass`
+  of a complex bundle, and the first Chern number over a compact oriented
   surface), and in `Geometry/Manifold/VectorBundle/ChernNumber/`:
   `Basic.lean` (the number of a symplectic bundle, through a compatible
   complex structure), `Clutching.lean` (the disc clutching formula, by
@@ -2776,8 +2775,8 @@ complete target and a function on the whole half-space.
 ### 31. First Chern class of nondegenerate forms
 
 - **Files:** `Geometry/Symplectic/Manifold/FirstChernClass.lean`
-  (`TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`, *First Chern
-  number*'s `firstChernClass` of the complex tangent bundle of a compatible
+  (`TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`, Tau Ceti's
+  `TauCeti.firstChernClass` of the complex tangent bundle of a compatible
   $J$, chosen by Tau Ceti's `IsNondegenerate.exists_compatible`; it equals
   the class of every compatible and every taming $J$, since two structures
   taming one form give isomorphic complex bundles, by the merged
@@ -2835,7 +2834,7 @@ complete target and a function on the whole half-space.
   classes $c_k$ and the total class of a complex vector bundle in integral
   singular cohomology, by the projective bundle and Tau Ceti's Leray–Hirsch
   files (`AlgebraicTopology/Cohomology/LerayHirsch/`), with $c_1$ equal to
-  *First Chern number*'s `firstChernClass`; naturality, the Whitney sum
+  Tau Ceti's `TauCeti.firstChernClass`; naturality, the Whitney sum
   formula, the top class as Tau Ceti's `TauCeti.complexEulerClass`; the
   cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively.
   The evaluation of the Euler class of the tangent bundle of a closed
@@ -2854,8 +2853,10 @@ complete target and a function on the whole half-space.
   formula (Poincaré–Hopf for the gradient of a Morse function) and the
   issues.
 - **Extension for `auxiliary/first-chern-class.md`** (needs an update of
-  `design/chern-classes.md`): the merged files give `firstChernClass`,
-  its naturality `firstChernClass_pullback`, its equality with the Euler
+  `design/chern-classes.md`): Tau Ceti gives `TauCeti.firstChernClass`
+  with its naturality `TauCeti.firstChernClass_pullback` along `C(X, B)`;
+  the merged files give its naturality along any `ContinuousMapClass`
+  (`firstChernClass_pullback_coe`), its equality with the Euler
   class for a line (`firstChernClass_eq_complexEulerClass`), the Whitney
   formula `firstChernClass_prod` over a compact normal base,
   $c_1(L)=-h$ (`complexEulerClass_twistCore_neg_one`) and
@@ -4195,9 +4196,9 @@ manifolds and characteristic classes*).
 | *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing input: `TauCeti.integralTopForm_mpullback_nonneg`. |
 
 The results that the page quotes rather than proves are handled as follows.
-The integral first Chern class is *First Chern number*'s, the Euler class of
-the determinant line. Higher Chern classes, the cohomology ring of
-$\mathbb CP^n$ and the Euler characteristic formula are built by *Chern
+The integral first Chern class is Tau Ceti's `TauCeti.firstChernClass`, the
+Euler class of the determinant line. Higher Chern classes, the cohomology
+ring of $\mathbb CP^n$ and the Euler characteristic formula are built by *Chern
 classes*, Poincaré duality by *First Chern number*'s prerequisites
 (#806–#810). The Hodge theorem is built by *Hodge theory*, on Tau Ceti's
 elliptic regularity. *Energy of pseudoholomorphic curves* identifies
@@ -4340,7 +4341,7 @@ Both milestones, proved in full. Their parts wait for no part of
 
 | Milestone | Where |
 |---|---|
-| *First Chern class of a complex vector bundle* | *Chern classes* (its extension). Existing inputs, merged: `firstChernClass`, `firstChernClass_pullback`, `firstChernClass_prod` (compact normal base), `firstChernClass_eq_complexEulerClass`, `complexEulerClass_twistCore_neg_one`, `totalChernClass_tangentSpace`. |
+| *First Chern class of a complex vector bundle* | *Chern classes* (its extension). Existing inputs: from Tau Ceti, `TauCeti.firstChernClass` and `TauCeti.firstChernClass_pullback`; merged, `firstChernClass_pullback_coe`, `firstChernClass_prod` (compact normal base), `firstChernClass_eq_complexEulerClass`, `complexEulerClass_twistCore_neg_one`, `totalChernClass_tangentSpace`. |
 | *Thom class and Poincaré dual of a submanifold* | *Poincaré duals of submanifolds*. Existing inputs: `TauCeti.VectorBundleOrientation.thomClassOfModel`, `TauCeti.VectorBundleOrientation.eulerClass`, `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`. |
 
 ### `auxiliary/connected-sums-and-blowups.md`
