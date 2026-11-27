@@ -419,9 +419,9 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   [ConnectedSpace G]
   {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
   [FiniteDimensional ℝ EC]
-  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
-  [T2Space Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
   {M : Type*} [MulAction Gc M]
   {C : LieComplexification I G IC Gc}
   {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
@@ -443,16 +443,11 @@ theorem hasDerivAt_polar_symm_fst_inv_mul (hBs : B.IsSymm)
       (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))) s)
     (hg' : HasLeftTrivializedDerivOn g'
       (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g' t)⁻¹ • p)))) s)
-    {t : ℝ} (hs : s ∈ 𝓝 t) :
+    {t : ℝ} (hs : s ∈ 𝓝 t) {η : GroupLieAlgebra I G} {u : G}
+    (hηu : C.polar.symm ((g t)⁻¹ * g' t) = (η, u)) :
     HasDerivAt (fun r ↦ B (C.polar.symm ((g r)⁻¹ * g' r)).1 (C.polar.symm ((g r)⁻¹ * g' r)).1)
-      (4 * (μ ((g t)⁻¹ • p) (C.polar.symm ((g t)⁻¹ * g' t)).1 -
-        μ (C.expI (-(C.polar.symm ((g t)⁻¹ * g' t)).1) • (g t)⁻¹ • p)
-          (C.polar.symm ((g t)⁻¹ * g' t)).1)) t := by
+      (4 * (μ ((g t)⁻¹ • p) η - μ (C.expI (-η) • (g t)⁻¹ • p) η)) t := by
   have := C.connectedSpace
-  obtain ⟨η, u, hηu⟩ : ∃ (η : GroupLieAlgebra I G) (u : G),
-      C.polar.symm ((g t)⁻¹ * g' t) = (η, u) := ⟨_, _, rfl⟩
-  rw [hηu]
-  dsimp only
   have hgt := hg.mdifferentiableAt hs
   have hgt' := hg'.mdifferentiableAt hs
   -- The left factor: the polar radius of `a` is that of `a⁻¹`, and `(g' t)⁻¹ * g r` has the
@@ -497,8 +492,7 @@ theorem hasDerivAt_polar_symm_fst_inv_mul (hBs : B.IsSymm)
     (by simp)
   refine (hasDerivAt_comp_mul_of_hasDerivAt hf
     (((contMDiff_inv IC 1).mdifferentiableAt one_ne_zero).comp t hgt) hgt' h₁ h₂).congr_deriv ?_
-  -- The two sides differ in the type in which `-η` is negated, `E` or the Lie algebra.
-  exact (by intros; ring : ∀ a b : ℝ, 4 * a + -(4 * b) = 4 * (a - b)) _ _
+  ring
 
 end PolarRadius
 
@@ -511,11 +505,10 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   [ConnectedSpace G]
   {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
   [FiniteDimensional ℝ EC]
-  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
-  [T2Space Gc]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [FiniteDimensional ℝ E']
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
   [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
@@ -542,23 +535,25 @@ theorem antitoneOn_polar_symm_fst_inv_mul (h : IsComplexifiedAction C J)
     (hs : Convex ℝ s) :
     AntitoneOn (fun r ↦ B (C.polar.symm ((g r)⁻¹ * g' r)).1 (C.polar.symm ((g r)⁻¹ * g' r)).1)
       s := by
-  have hd {t : ℝ} (ht : t ∈ interior s) :=
+  have hd {t : ℝ} (ht : t ∈ interior s) {η : GroupLieAlgebra I G} {u : G}
+      (hηu : C.polar.symm ((g t)⁻¹ * g' t) = (η, u)) :=
     hasDerivAt_polar_symm_fst_inv_mul hBs hBG (h.moment_toHom_smul hμ) hg hg'
-      (mem_interior_iff_mem_nhds.mp ht)
+      (mem_interior_iff_mem_nhds.mp ht) hηu
   refine antitoneOn_of_deriv_nonpos hs
     ((C.contMDiff_polar_symm_fst_apply B).continuous.comp_continuousOn
       ((contMDiff_mul IC 1).continuous.comp_continuousOn
         (((contMDiff_inv IC 1).continuous.comp_continuousOn hg.continuousOn).prodMk
           hg'.continuousOn)))
-    (fun t ht ↦ (hd ht).differentiableAt.differentiableWithinAt) fun t ht ↦ ?_
-  rw [(hd ht).deriv]
+    (fun t ht ↦ (hd ht (Prod.mk.eta ..).symm).differentiableAt.differentiableWithinAt)
+    fun t ht ↦ ?_
+  obtain ⟨η, u, hηu⟩ : ∃ (η : GroupLieAlgebra I G) (u : G),
+      C.polar.symm ((g t)⁻¹ * g' t) = (η, u) := ⟨_, _, (Prod.mk.eta ..).symm⟩
+  rw [(hd ht hηu).deriv]
   -- `⟨μ, η⟩` decreases along `expI (r • η)`, from `r = -1` to `r = 0`.
-  set η : GroupLieAlgebra I G := (C.polar.symm ((g t)⁻¹ * g' t)).1
   have hη := antitone_moment_expI h hμ.toIsMomentMap hgm η
     ((g t)⁻¹ • p) (neg_nonpos.mpr zero_le_one)
   dsimp only at hη
   rw [zero_smul, C.expI_zero, one_smul, neg_one_smul] at hη
-  -- `exact` sees through the two negations of `η`, in `E` and in the Lie algebra.
   exact mul_nonpos_of_nonneg_of_nonpos (by norm_num) (sub_nonpos.mpr hη)
 
 end PolarRadiusAntitone
