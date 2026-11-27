@@ -815,11 +815,15 @@ product of the pull-back `π^*K_M` of the canonical bundle of `M` with the line 
 `n` times the exceptional divisor `E`, the line bundle of `(hypersurfaceData c).lineBundleCore n`.
 Off the divisor its inverse sends `σ ⊗ a` to `a` times the pull-back of `σ` by the blowdown
 (`canonicalBundleEquiv_symm_tmul_none`). In the chart `some i`, where the frame of `𝒪(nE)` is
-`(w i)⁻ⁿ`, it sends the coordinate form of `c` tensored with that frame to the coordinate form
-of the chart `blowupModelChart i ∘ lift c` (`canonicalBundleEquiv_symm_tmul_some`). For `n = 0`
-the line bundle is trivial and this is the pull-back `K ≅ π^*K_M`.
+`(w i)⁻ⁿ`, the inverse sends the coordinate form of `c` tensored with that frame to the
+coordinate form of the chart `blowupModelChart i ∘ lift c`
+(`canonicalBundleEquiv_symm_tmul_some`). For `n = 0` the line bundle is trivial and this is the
+pull-back `K ≅ π^*K_M`.
 
-This is the identity `K = π^*K_M ⊗ 𝒪(nE)` of canonical bundles that is part of the milestone
+At `z` it is `ω ↦ (ω ∘ L⁻¹) ⊗ 1`, for `L` the differential of the blowdown (chart `none`), or
+that of the chart `blowupModelChart i ∘ lift c` followed by the inverse of that of `c` (chart
+`some i`), in the preferred chart at `z`. Together with its holomorphy, it gives the identity
+`K = π^*K_M ⊗ 𝒪(nE)` of canonical bundles that is part of the milestone
 *First Chern class of a blowup at a point*. -/
 def canonicalBundleEquiv (z : Blowup c) :
     TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z ≃L[ℂ]
