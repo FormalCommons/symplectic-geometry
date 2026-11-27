@@ -513,7 +513,8 @@ Issue 10:
 - `eulerNumber_twistCore_one`: the Euler number of $L$, for the orientations
   of Decision 7, is $1$, from `OnePoint.identitySection`.
 - `existsUnique_eq_zero_of_mem_twistOneKernel`: for `J` tamed by `σ`, a
-  nonzero `s ∈ twistOneKernel J` has exactly one zero; and its order there
+  nonzero `s ∈ twistOneKernel J` has exactly one zero; and, as
+  `surjective_sectionLinearization_of_mem_twistOneKernel`, its order there
   is one, stated as the invertibility of the derivative of the reading of
   `s` in a chart and a frame at the zero
   (`TauCeti.sectionLinearization` is onto).
