@@ -38,6 +38,8 @@ of `M` at `x` can be read in `c`: in the source of `c` first, through the invers
   by the isomorphism for `ι'`.
 * `TauCeti.localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom`: the isomorphism
   at a point carries the class of the point to the class of its image.
+* `Topology.IsOpenEmbedding.injective_localHomologyMap`: with coefficients in a module, the
+  map of excision along an open embedding is injective.
 * `OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`: reading the local homology
   of `M` at `x` in an open partial homeomorphism, through its source, is injective.
 
@@ -112,6 +114,25 @@ lemma localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom {ι : M
 
 end TauCeti
 
+namespace Topology.IsOpenEmbedding
+
+open TauCeti
+
+variable {S : Type*} [Ring S] (R : ModuleCat.{w} S) {M Q : Type w} [TopologicalSpace M]
+  [TopologicalSpace Q]
+
+/-- **Excision along an open embedding, injectivity.** If `j : M → Q` is an open embedding, `T`
+is a closed set of `Q` in the image of `j` and `A = j ⁻¹' T`, then the map
+`Hₖ(M, M ∖ A) → Hₖ(Q, Q ∖ T)` induced by `j`, with coefficients in a module `R`, is
+injective. -/
+theorem injective_localHomologyMap {j : C(M, Q)} (hj : IsOpenEmbedding j) {A : Set M}
+    {T : Set Q} (h : j ⁻¹' T = A) (hT : IsClosed T) (hTj : T ⊆ range j) (k : ℕ) :
+    Function.Injective (localHomologyMap R j h.subset k) :=
+  have := isIso_localHomologyMap R j hj h hT hTj k
+  (ModuleCat.mono_iff_injective _).1 inferInstance
+
+end Topology.IsOpenEmbedding
+
 namespace OpenPartialHomeomorph
 
 open TauCeti
@@ -129,10 +150,9 @@ theorem injective_localHomologyMap_sourceRestrict (c : OpenPartialHomeomorph M Q
       ((localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
         ⟨x, hx⟩ k).inv a) := by
   subst hy
-  have := isIso_localHomologyMap R c.sourceRestrict c.isOpenEmbedding_sourceRestrict
+  exact (c.isOpenEmbedding_sourceRestrict.injective_localHomologyMap R
     (c.sourceRestrict_preimage_singleton hx) isClosed_singleton
-    (Set.singleton_subset_iff.2 ⟨_, c.sourceRestrict_apply ⟨x, hx⟩⟩) k
-  exact ((ModuleCat.mono_iff_injective _).1 inferInstance).comp
+    (Set.singleton_subset_iff.2 ⟨_, c.sourceRestrict_apply ⟨x, hx⟩⟩) k).comp
     ((ModuleCat.mono_iff_injective _).1 inferInstance)
 
 end OpenPartialHomeomorph
