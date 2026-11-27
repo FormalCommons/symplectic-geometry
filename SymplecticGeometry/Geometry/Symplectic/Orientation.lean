@@ -176,8 +176,8 @@ section Pullback
 variable {U : Type*} [AddCommGroup U] [Module ℝ U] [FiniteDimensional ℝ U]
 
 /-- Let `β` be a symplectic form on `U` and `τ` an alternating form such that `τ + c • β` is
-nondegenerate for every `c ≥ c₁`. Then for every `c ≥ c₁`, the symplectic form `τ + c • β` has
-the symplectic orientation of `β`. -/
+nondegenerate for every `c ≥ c₁`. Then for every `c ≥ c₁`, a symplectic form `ω` with underlying
+form `τ + c • β` has the symplectic orientation of `β`. -/
 theorem orientation_eq_of_forall_ge_nondegenerate_add_smul (β : SymplecticForm U)
     {τ : LinearMap.BilinForm ℝ U} (hτ : τ.IsAlt) {c₁ : ℝ}
     (h : ∀ c ≥ c₁, (τ + c • β.toBilinForm).Nondegenerate) {c : ℝ} (hc : c₁ ≤ c)
