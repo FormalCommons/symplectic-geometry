@@ -19,9 +19,9 @@ positive value on every tangent basis whose orientation is that of `o`. This fil
 positivity is carried back along maps that preserve orientation: if `f` preserves the
 orientations `o` and `o'` at `x`, and `φ` is positive for `o'` at `f x`, then `f^* φ` is positive
 for `o` at `x`, since the derivative of `f` at `x` carries a positively oriented basis to one.
-It also shows that a nonempty closed oriented manifold carries a smooth top form positive for its
-orientation with integral one: Tau Ceti's `TauCeti.exists_topForm_of_orientation`, divided by
-its integral, which is positive.
+It also shows that a nonempty compact Hausdorff oriented manifold carries a smooth top form
+positive for its orientation with integral one: Tau Ceti's
+`TauCeti.exists_topForm_of_orientation`, divided by its integral, which is positive.
 
 ## Main results
 
