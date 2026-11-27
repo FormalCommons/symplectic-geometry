@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 public import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
@@ -20,6 +21,7 @@ import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Regularity
@@ -115,6 +117,26 @@ derivative `4 * (μ x η - μ (C.expI (-η) • x) η)`
 along `C.expI (r • η)` (`SymplecticGeometry.antitone_moment_expI`), the derivative is at most `0`,
 so the polar radius is antitone (`SymplecticGeometry.antitoneOn_polar_symm_fst_inv_mul`).
 
+## Ness's uniqueness theorem
+
+Two critical points `x` and `y = g₀⁻¹ • x` of `‖μ‖²` in one `Gc`-orbit lie in one `G`-orbit
+(`SymplecticGeometry.exists_smul_eq_of_mgradient_momentNormSq_eq_zero`). We follow the proof of
+Calabi and Chen, as [GeorgoulasRobbinSalamon2021] gives it for Theorem 6.3, with the polar radius
+in place of the distance in `Gc ⧸ G`. At a critical point `x` the gradient
+`X_{-2 i μ♯ x}(x)` vanishes, so the one-parameter subgroup of `-2 i μ♯ x` fixes `x`
+(`SymplecticGeometry.expI_smul_smul_eq_self_of_mgradient_momentNormSq_eq_zero`, from Tau Ceti's
+`mulInvariantExp_smul_smul_eq_iff`). Hence `g t = exp (-2 t i μ♯ x)` and
+`g' t = g₀ * exp (-2 t i μ♯ y)` are flow curves from `x`, with `(g t)⁻¹ • x = x` and
+`(g' t)⁻¹ • x = y`. Writing `(g t)⁻¹ * g' t = C.expI η * C.toHom u`, the polar radius `N = B η η`
+is antitone, nonnegative since `B` is positive definite, and has derivative `4 F (η, u)` with
+`F (η, u) = μ x η - μ (C.expI (-η) • x) η ≤ 0`. The pairs `(η, u)` with `B η η ≤ N 0` and
+`(C.expI η * C.toHom u)⁻¹ • x = y` form a compact set
+(`LinearMap.BilinForm.isCompact_setOf_apply_self_le`), so `F` has a maximum there; it is `0`,
+for otherwise `N` would become negative (`nonneg_of_bddBelow_of_hasDerivAt_le`). At a maximum
+`(η, u)`, `C.expI (-η)` fixes `x`
+(`SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`), and `y = u⁻¹ • x`. This replaces
+the sequence and subsequence of the published proof by one maximum on a compact set.
+
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
@@ -132,11 +154,17 @@ so the polar radius is antitone (`SymplecticGeometry.antitoneOn_polar_symm_fst_i
 * `SymplecticGeometry.hasDerivAt_polar_symm_fst_inv_mul`,
   `SymplecticGeometry.antitoneOn_polar_symm_fst_inv_mul`: the derivative of the polar radius of
   `(g t)⁻¹ * g' t` for two such curves in `Gc`, and its monotonicity.
+* `SymplecticGeometry.exists_smul_eq_of_mgradient_momentNormSq_eq_zero`: Ness's uniqueness
+  theorem, two critical points of `‖μ‖²` in one `Gc`-orbit lie in one `G`-orbit.
 
 ## References
 
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
   Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021].
+* E. Calabi and X. X. Chen, *The space of Kähler metrics II*, J. Differential Geom. 61 (2002),
+  173–193.
+* L. Ness, *A stratification of the null cone via the moment map*, Amer. J. Math. 106 (1984),
+  1281–1329.
 * E. Lerman, *Gradient flow of the norm squared of a moment map*, Enseign. Math. 51 (2005),
   117–127, proof of Theorem 1.1.
 -/
@@ -555,6 +583,158 @@ theorem antitoneOn_polar_symm_fst_inv_mul (h : IsComplexifiedAction C J)
   exact mul_nonpos_of_nonneg_of_nonpos (by norm_num) (sub_nonpos.mpr hη)
 
 end PolarRadiusAntitone
+
+section Uniqueness
+
+/-! ### Ness's uniqueness theorem -/
+
+open Set
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [T2Space M]
+  [BoundarylessManifold I' M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **A critical point of `‖μ‖²` is fixed by `exp (i t μ♯ x)`.** In the setting of
+`mgradient_momentNormSq_eq_fundamentalVectorField`, on a Hausdorff manifold without boundary: if
+the gradient of `x ↦ ‖μ x‖²` vanishes at `x`, then `C.expI (t • μ♯ x)` fixes `x` for every `t`,
+where `μ♯ x` is the vector dual to `μ x` under `B`. -/
+theorem expI_smul_smul_eq_self_of_mgradient_momentNormSq_eq_zero (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    {x : M} (hx : Manifold.mgradient I' (momentNormSq B hB μ) x = 0) (t : ℝ) :
+    C.expI (t • momentSharp B hB μ x) • x = x := by
+  -- The fundamental vector field of `-2 i μ♯ x` for `Gc` vanishes at `x`.
+  have hfix := (mulInvariantExp_smul_smul_eq_iff (I' := I') (x := x)
+    (ξ := (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))).2
+      (by rw [← mgradient_momentNormSq_eq_fundamentalVectorField h hμ hg hBs, hx]) (-(t / 2))
+  rw [C.expI_def, map_smul, map_smul]
+  convert hfix using 3
+  rw [smul_smul]
+  norm_num
+
+/-- **Ness's uniqueness theorem.** Let the action of `Gc` on the Hausdorff manifold `M` without
+boundary be a complexified action, let `-μ` be an equivariant moment map for `σ`, let the metric
+be `⟪u, w⟫ = σ(u, J w)`, and let `B` be a symmetric, positive definite, `Ad`-invariant form on
+the Lie algebra of the compact connected group `G`. If the gradient of `‖μ‖²` vanishes at `x`
+and at `g₀⁻¹ • x` for some `g₀ : Gc`, then `g₀⁻¹ • x = u • x` for some `u : G`: two critical
+points of `‖μ‖²` in one `Gc`-orbit lie in one `G`-orbit.
+
+This is [GeorgoulasRobbinSalamon2021], Theorem 6.3, by the proof of Calabi and Chen given there,
+through the monotonicity of the distance between two flow lines (Lemma A.2 there), here
+`antitoneOn_polar_symm_fst_inv_mul`. It extends `exists_smul_eq_of_moment_eq_zero` from zeros
+of `μ` to critical points of `‖μ‖²`. -/
+theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [ConnectedSpace G]
+    [FiniteDimensional ℝ EC] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {x : M} (g₀ : Gc) (hx : Manifold.mgradient I' (momentNormSq B hB μ) x = 0)
+    (hy : Manifold.mgradient I' (momentNormSq B hB μ) (g₀⁻¹ • x) = 0) :
+    ∃ u : G, u • x = g₀⁻¹ • x := by
+  have hμm := hμ.toIsMomentMap
+  -- The two flow curves from `x`: `g` from `1`, which stays at `x`, and `g'` from `g₀`, which
+  -- stays at `y = g₀⁻¹ • x`.
+  set y := g₀⁻¹ • x
+  have hfix {z : M} (hz : Manifold.mgradient I' (momentNormSq B hB μ) z = 0) (t : ℝ) :
+      (mulInvariantExp (I := IC)
+        (t • (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ z))))⁻¹ • z = z := by
+    rw [inv_smul_eq_iff]
+    convert (expI_smul_smul_eq_self_of_mgradient_momentNormSq_eq_zero h hμm hgm hBs hz
+      (-2 * t)).symm using 2
+    rw [C.expI_def, map_smul, map_smul, smul_smul, mul_comm]
+  set g : ℝ → Gc := fun t ↦
+    mulInvariantExp (I := IC) (t • (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))
+  set g' : ℝ → Gc := fun t ↦
+    g₀ * mulInvariantExp (I := IC) (t • (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ y)))
+  have hgx (t : ℝ) : (g t)⁻¹ • x = x := hfix hx t
+  have hg'x (t : ℝ) : (g' t)⁻¹ • x = y := by
+    simp only [g', mul_inv_rev, mul_smul]
+    exact hfix hy t
+  have hg : HasLeftTrivializedDerivOn g
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • x)))) univ := by
+    simp only [hgx]
+    exact hasLeftTrivializedDerivOn_mulInvariantExp_smul _
+  have hg' : HasLeftTrivializedDerivOn g'
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g' t)⁻¹ • x)))) univ := by
+    simp only [hg'x]
+    exact (hasLeftTrivializedDerivOn_mulInvariantExp_smul _).const_mul g₀
+  -- The polar radius `N` of `(g t)⁻¹ * g' t` is antitone, with derivative `4 * F (η t, u t)`.
+  set N : ℝ → ℝ := fun t ↦
+    B (C.polar.symm ((g t)⁻¹ * g' t)).1 (C.polar.symm ((g t)⁻¹ * g' t)).1
+  set F : E × G → ℝ := fun q ↦
+    μ x q.1 - μ (C.expI (-(q.1 : GroupLieAlgebra I G)) • x) q.1
+  have hanti : Antitone N := antitoneOn_univ.1
+    (antitoneOn_polar_symm_fst_inv_mul h hμ hgm hBs hBG hg hg' convex_univ)
+  have hN (t : ℝ) : HasDerivAt N (4 * F (C.polar.symm ((g t)⁻¹ * g' t))) t := by
+    have := hasDerivAt_polar_symm_fst_inv_mul hBs hBG (h.moment_toHom_smul hμ) hg hg' (t := t)
+      Filter.univ_mem (Prod.mk.eta ..).symm
+    rwa [hgx] at this
+  -- The points `(η, u)` of the polar decomposition with `B η η ≤ N 0` and
+  -- `(C.expI η * C.toHom u)⁻¹ • x = y` form a compact set `K`, which contains `(η t, u t)` for
+  -- `t ≥ 0`.
+  set K : Set (E × G) := ({η : E | B η η ≤ N 0} ×ˢ univ) ∩ {q | (C.polar q)⁻¹ • x = y}
+  have hsmul : Continuous fun p : Gc × M ↦ p.1 • p.2 :=
+    (ContMDiffSMul.contMDiff_smul (I := IC) (I' := I') (n := ∞)).continuous
+  have hK : IsCompact K :=
+    ((LinearMap.BilinForm.isCompact_setOf_apply_self_le (E := E) hBp _).prod
+      isCompact_univ).inter_right <| isClosed_eq
+        (hsmul.comp ((((contMDiff_inv IC 1).continuous.comp C.polar.continuous)).prodMk
+          continuous_const)) continuous_const
+  have hmem {t : ℝ} (ht : 0 ≤ t) : C.polar.symm ((g t)⁻¹ * g' t) ∈ K := by
+    refine ⟨⟨hanti ht, mem_univ _⟩, ?_⟩
+    rw [mem_ofPred_eq]
+    rw [C.polar.apply_symm_apply, mul_inv_rev, inv_inv, mul_smul, ← inv_smul_eq_iff.1 (hgx t),
+      hg'x]
+  -- `F` is continuous.
+  have hF : Continuous F := by
+    let L : Module.Dual ℝ (GroupLieAlgebra I G) →ₗ[ℝ] (E →L[ℝ] ℝ) :=
+      (LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] ℝ) ≃ₗ[ℝ] (E →L[ℝ] ℝ)).toLinearMap
+    have hL := hμm.continuous_linearMap_comp L
+    have hz : Continuous fun q : E × G ↦ C.expI (-(q.1 : GroupLieAlgebra I G)) • x :=
+      hsmul.comp ((C.contMDiff_expI.continuous.comp continuous_fst.neg).prodMk continuous_const)
+    have h₁ : Continuous fun q : E × G ↦ μ x q.1 :=
+      (LinearMap.continuous_of_finiteDimensional (μ x : E →ₗ[ℝ] ℝ)).comp continuous_fst
+    refine (h₁.add ((hL.comp hz).clm_apply continuous_fst)).congr fun q ↦ ?_
+    simp only [F, L, Pi.add_apply, Function.comp_apply, sub_eq_add_neg]
+    -- `L` reads a functional on the Lie algebra as a continuous functional on the model space
+    -- `E`, keeping its values; no lemma states this for its `LinearEquiv` coercion.
+    rfl
+  obtain ⟨⟨η, u⟩, hqK, hqmax⟩ := hK.exists_isMaxOn ⟨_, hmem le_rfl⟩ hF.continuousOn
+  -- Read `η` in the Lie algebra, where `μ x` and `C.expI` take their arguments.
+  set ξ : GroupLieAlgebra I G := η
+  -- The maximum of `F` on `K` is `0`: otherwise `N` would decrease at a rate bounded below and
+  -- become negative.
+  have hF0 : 0 ≤ F (ξ, u) := by
+    have := nonneg_of_bddBelow_of_hasDerivAt_le ⟨0, by rintro _ ⟨t, -, rfl⟩; exact hBp.nonneg _⟩
+      (fun t _ ↦ hN t) fun t ht ↦ mul_le_mul_of_nonneg_left
+        (isMaxOn_iff.1 hqmax _ (hmem (mem_Ici.1 ht))) (by norm_num : (0 : ℝ) ≤ 4)
+    linarith
+  -- So `⟨μ, -η⟩` does not decrease from `x` to `C.expI (-η) • x`, which is then `x`.
+  have hfixη := expI_smul_eq_self_of_moment_apply_le h hμm hgm (ξ := -ξ) (x := x) <| by
+    rw [map_neg, map_neg, neg_le_neg_iff]
+    exact sub_nonneg.1 hF0
+  refine ⟨u⁻¹, ?_⟩
+  -- `show`: `ξ` is `η`, read in the Lie algebra, where `C.polar_apply` takes it.
+  rw [← hqK.2, show C.polar (ξ, u) = C.expI ξ * C.toHom u from C.polar_apply ξ u, mul_inv_rev,
+    mul_smul, ← C.expI_neg, hfixη, ← map_inv, h.toHom_smul]
+
+end Uniqueness
 
 end SymplecticGeometry
 

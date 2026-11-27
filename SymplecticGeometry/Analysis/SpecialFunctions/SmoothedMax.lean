@@ -67,6 +67,15 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
   `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
+* `SymplecticGeometry.smoothedMaxChain δ A`: the chain whose first member is `A 0` and whose
+  `(i + 1)`-th member is the smoothed maximum of the `i`-th one and `A (i + 1)`. Its members are
+  as smooth as the `A j` (`contDiff_smoothedMaxChain`), increase along the chain
+  (`monotone_smoothedMaxChain`), lie above the `A j` they are built from
+  (`le_smoothedMaxChain_of_le`) and at most `i δ / 2` above one of them
+  (`exists_smoothedMaxChain_le_add`), keep the bounds of the slopes of the `A j`
+  (`le_deriv_smoothedMaxChain`, `deriv_smoothedMaxChain_le`), and are `A i` where the `A j` climb
+  by at least `δ` from each to the next (`smoothedMaxChain_eq`,
+  `smoothedMaxChain_eventuallyEq`).
 * `SymplecticGeometry.abs_smoothedMax_sub_le`, `SymplecticGeometry.abs_deriv_smoothedMax_sub_le`
   and `SymplecticGeometry.abs_iteratedDeriv_two_smoothedMax_sub_le`: the value and the first two
   derivatives of the smoothed maximum of two functions are as close to any target as the farther
@@ -76,7 +85,7 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 3, smoothing of maxima.
+  Chapter 3, smoothing of maxima; the chains of smoothed maxima serve Proposition 3.25.
 -/
 
 public section
@@ -628,5 +637,143 @@ theorem one_div_smoothedMax_le (hδ : 0 < δ) {a b : ℝ} (ha : 0 < a) (hb : 0 <
     one_div_le_one_div_of_le hb ((le_max_right _ _).trans hm)
   nlinarith [mul_le_mul_of_nonneg_left h₁ (by linarith : 0 ≤ (1 + smoothedSign δ (a - b)) / 2),
     mul_le_mul_of_nonneg_left h₂ (by linarith : 0 ≤ (1 - smoothedSign δ (a - b)) / 2)]
+
+/-! ### Chains of smoothed maxima -/
+
+/-- The **chain of smoothed maxima** of a sequence of functions `A : ℕ → ℝ → ℝ`: its first member
+is `A 0`, and each next one is the smoothed maximum, of width `δ`, of the previous member and the
+next function of the sequence. -/
+def smoothedMaxChain (δ : ℝ) (A : ℕ → ℝ → ℝ) : ℕ → ℝ → ℝ
+  | 0 => A 0
+  | i + 1 => fun r ↦ smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r)
+
+section smoothedMaxChain
+
+variable {A : ℕ → ℝ → ℝ} {i : ℕ} {r : ℝ}
+
+@[simp]
+theorem smoothedMaxChain_zero (δ : ℝ) (A : ℕ → ℝ → ℝ) : smoothedMaxChain δ A 0 = A 0 :=
+  (rfl)
+
+theorem smoothedMaxChain_succ (δ : ℝ) (A : ℕ → ℝ → ℝ) (i : ℕ) :
+    smoothedMaxChain δ A (i + 1) =
+      fun r ↦ smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r) :=
+  (rfl)
+
+@[simp]
+theorem smoothedMaxChain_succ_apply (δ : ℝ) (A : ℕ → ℝ → ℝ) (i : ℕ) (r : ℝ) :
+    smoothedMaxChain δ A (i + 1) r = smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r) :=
+  (rfl)
+
+/-- A member of the chain of smoothed maxima is as smooth as the functions it is built from. -/
+theorem contDiff_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiff ℝ n (A j)) :
+    ContDiff ℝ n (smoothedMaxChain δ A i) := by
+  induction i with
+  | zero => rw [smoothedMaxChain_zero]; exact hA 0 le_rfl
+  | succ i ih =>
+    rw [smoothedMaxChain_succ]
+    exact (contDiff_smoothedMax δ).comp
+      ((ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).prodMk (hA (i + 1) le_rfl))
+
+/-- A member of the chain of smoothed maxima is differentiable at `r` if the functions it is
+built from are. -/
+theorem differentiableAt_smoothedMaxChain (δ : ℝ)
+    (hA : ∀ j ≤ i, DifferentiableAt ℝ (A j) r) :
+    DifferentiableAt ℝ (smoothedMaxChain δ A i) r := by
+  induction i with
+  | zero => rw [smoothedMaxChain_zero]; exact hA 0 le_rfl
+  | succ i ih =>
+    rw [smoothedMaxChain_succ]
+    exact (hasDerivAt_smoothedMax (ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).hasDerivAt
+      (hA (i + 1) le_rfl).hasDerivAt).differentiableAt
+
+/-- For `δ > 0`, each member of the chain of smoothed maxima lies below the next one. -/
+theorem smoothedMaxChain_le_succ (hδ : 0 < δ) (A : ℕ → ℝ → ℝ) (i : ℕ) (r : ℝ) :
+    smoothedMaxChain δ A i r ≤ smoothedMaxChain δ A (i + 1) r := by
+  rw [smoothedMaxChain_succ_apply]
+  exact (le_max_left _ _).trans (max_le_smoothedMax hδ _ _)
+
+/-- For `δ > 0`, the chain of smoothed maxima increases at each point. -/
+theorem monotone_smoothedMaxChain (hδ : 0 < δ) (A : ℕ → ℝ → ℝ) (r : ℝ) :
+    Monotone fun i ↦ smoothedMaxChain δ A i r :=
+  monotone_nat_of_le_succ fun i ↦ smoothedMaxChain_le_succ hδ A i r
+
+/-- For `δ > 0`, the `i`-th member of the chain of smoothed maxima lies above `A i`. -/
+theorem le_smoothedMaxChain (hδ : 0 < δ) (A : ℕ → ℝ → ℝ) (i : ℕ) (r : ℝ) :
+    A i r ≤ smoothedMaxChain δ A i r := by
+  cases i with
+  | zero => rw [smoothedMaxChain_zero]
+  | succ i =>
+    rw [smoothedMaxChain_succ_apply]
+    exact (le_max_right _ _).trans (max_le_smoothedMax hδ _ _)
+
+/-- For `δ > 0`, the `i`-th member of the chain of smoothed maxima lies above every `A j` with
+`j ≤ i`. -/
+theorem le_smoothedMaxChain_of_le (hδ : 0 < δ) (A : ℕ → ℝ → ℝ) {j : ℕ} (hj : j ≤ i) (r : ℝ) :
+    A j r ≤ smoothedMaxChain δ A i r :=
+  (le_smoothedMaxChain hδ A j r).trans (monotone_smoothedMaxChain hδ A r hj)
+
+/-- For `δ > 0`, the `i`-th member of the chain of smoothed maxima exceeds one of the functions
+`A j`, `j ≤ i`, by at most `i δ / 2`. -/
+theorem exists_smoothedMaxChain_le_add (hδ : 0 < δ) (A : ℕ → ℝ → ℝ) (i : ℕ) (r : ℝ) :
+    ∃ j ≤ i, smoothedMaxChain δ A i r ≤ A j r + i * δ / 2 := by
+  induction i with
+  | zero => exact ⟨0, le_rfl, by simp⟩
+  | succ i ih =>
+    obtain ⟨j, hj, h⟩ := ih
+    have h₁ := smoothedMax_le_max_add hδ (smoothedMaxChain δ A i r) (A (i + 1) r)
+    rw [smoothedMaxChain_succ_apply]
+    push_cast
+    rcases le_total (smoothedMaxChain δ A i r) (A (i + 1) r) with h₂ | h₂
+    · rw [max_eq_right h₂] at h₁
+      have : 0 ≤ (i : ℝ) * δ := by positivity
+      exact ⟨i + 1, le_rfl, by linarith⟩
+    · rw [max_eq_left h₂] at h₁
+      exact ⟨j, Nat.le_succ_of_le hj, by linarith⟩
+
+/-- The derivative at `r` of a member of the chain of smoothed maxima is at least `m` if those
+of the functions it is built from are. -/
+theorem le_deriv_smoothedMaxChain (δ : ℝ) {m : ℝ} (hA : ∀ j ≤ i, DifferentiableAt ℝ (A j) r)
+    (hm : ∀ j ≤ i, m ≤ deriv (A j) r) : m ≤ deriv (smoothedMaxChain δ A i) r := by
+  induction i with
+  | zero => rw [smoothedMaxChain_zero]; exact hm 0 le_rfl
+  | succ i ih =>
+    have hA' : ∀ j ≤ i, DifferentiableAt ℝ (A j) r := fun j hj ↦ hA j (Nat.le_succ_of_le hj)
+    rw [smoothedMaxChain_succ]
+    exact (le_min (ih hA' fun j hj ↦ hm j (Nat.le_succ_of_le hj)) (hm (i + 1) le_rfl)).trans
+      (min_deriv_le_deriv_smoothedMax (differentiableAt_smoothedMaxChain δ hA')
+        (hA (i + 1) le_rfl))
+
+/-- The derivative at `r` of a member of the chain of smoothed maxima is at most `G` if those
+of the functions it is built from are. -/
+theorem deriv_smoothedMaxChain_le (δ : ℝ) {G : ℝ} (hA : ∀ j ≤ i, DifferentiableAt ℝ (A j) r)
+    (hG : ∀ j ≤ i, deriv (A j) r ≤ G) : deriv (smoothedMaxChain δ A i) r ≤ G := by
+  induction i with
+  | zero => rw [smoothedMaxChain_zero]; exact hG 0 le_rfl
+  | succ i ih =>
+    have hA' : ∀ j ≤ i, DifferentiableAt ℝ (A j) r := fun j hj ↦ hA j (Nat.le_succ_of_le hj)
+    rw [smoothedMaxChain_succ]
+    exact (deriv_smoothedMax_le_max (differentiableAt_smoothedMaxChain δ hA')
+      (hA (i + 1) le_rfl)).trans
+        (max_le (ih hA' fun j hj ↦ hG j (Nat.le_succ_of_le hj)) (hG (i + 1) le_rfl))
+
+/-- For `δ > 0`, if at `r` each of `A 0, …, A i` lies at least `δ` below the next, then the
+`i`-th member of the chain of smoothed maxima is `A i` at `r`. -/
+theorem smoothedMaxChain_eq (hδ : 0 < δ) (h : ∀ j < i, A j r + δ ≤ A (j + 1) r) :
+    smoothedMaxChain δ A i r = A i r := by
+  induction i with
+  | zero => rw [smoothedMaxChain_zero]
+  | succ i ih =>
+    rw [smoothedMaxChain_succ_apply, ih fun j hj ↦ h j (Nat.lt_succ_of_lt hj)]
+    exact smoothedMax_eq_right hδ (h i (Nat.lt_succ_self i))
+
+/-- For `δ > 0`, if eventually along `l` each of `A 0, …, A i` lies at least `δ` below the next,
+then the `i`-th member of the chain of smoothed maxima is eventually `A i` along `l`. -/
+theorem smoothedMaxChain_eventuallyEq {l : Filter ℝ} (hδ : 0 < δ)
+    (h : ∀ᶠ r in l, ∀ j < i, A j r + δ ≤ A (j + 1) r) :
+    smoothedMaxChain δ A i =ᶠ[l] A i :=
+  h.mono fun _ ↦ smoothedMaxChain_eq hδ
+
+end smoothedMaxChain
 
 end SymplecticGeometry

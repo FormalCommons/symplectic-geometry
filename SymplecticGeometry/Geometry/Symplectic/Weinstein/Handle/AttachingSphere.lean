@@ -27,7 +27,8 @@ no critical point in `f ⁻¹' Ico a c`, as below the critical level `c` of an e
 the orbit of each point `x` with `a ≤ f x < c` meets `f ⁻¹' {a}` exactly once, at a time
 `Flow.levelCrossingTime φ f a x ≤ 0`, and transversally. The map
 `x ↦ φ (Flow.levelCrossingTime φ f a x) x` is smooth on `f ⁻¹' Ioo a c`, takes values in
-`f ⁻¹' {a}`, and preserves the stable set of every point.
+`f ⁻¹' {a}`, and preserves the stable set of every point. Its derivative at a point `x` of that band
+kills exactly the line through `X x`.
 
 ## Main declarations
 
@@ -45,6 +46,8 @@ the orbit of each point `x` with `a ≤ f x < c` meets `f ⁻¹' {a}` exactly on
   `.contMDiffOn_flow_levelCrossingTime` and `.mapsTo_flow_levelCrossingTime_stableSet`: the
   backward map to the lower level takes values in `f ⁻¹' {a}`, is smooth on `f ⁻¹' Ioo a c`, and
   sends a stable set into its part on the lower level.
+* `SymplecticGeometry.IsWeinsteinStructure.ker_mfderiv_flow_levelCrossingTime`: the kernel of the
+  derivative of the backward map at `x` is the span of `X x`.
 
 ## Implementation notes
 
@@ -78,6 +81,9 @@ reversed orbit. It meets the level at most once by
 the implicit function theorem at the regular level `a`, in the form of Tau Ceti's
 `TauCeti.contMDiffOn_flow_levelCrossingTime`, and not the continuity of
 `Flow.levelCrossingTime` on a connecting set.
+
+The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`, whose hypotheses are checked as for
+the smoothness.
 
 ## References
 
@@ -234,13 +240,31 @@ theorem contMDiffOn_flow_levelCrossingTime
       (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) (f ⁻¹' Ioo a c) := by
   have hIco {y : M} (hy : y ∈ f ⁻¹' Ioo a c) : f y ∈ Ico a c := Ioo_subset_Ico_self hy
   exact _root_.TauCeti.contMDiffOn_flow_levelCrossingTime (n := ⊤) le_top hW.contMDiff_field
-    hW.isCompleteVectorField ((flowOf_eq_globalFlow _ _).trans (congrArg _ hW.flow_def.symm))
+    hW.isCompleteVectorField hW.flowOf_eq_flow
     (isOpen_Ioo.preimage hW.isGeneralizedMorse.contMDiff.continuous)
     (fun _ hy _ hs _ ht ↦ ((hW.eq_levelCrossingTime_iff hc (hIco hy)).2 hs).trans
       ((hW.eq_levelCrossingTime_iff hc (hIco hy)).2 ht).symm)
     (fun _ hy ↦ ⟨_, hW.mapsTo_flow_levelCrossingTime hc (hIco hy)⟩)
     (fun _ _ ↦ hW.isGeneralizedMorse.contMDiff _)
     fun _ hy ↦ (hW.mvfderiv_apply_pos_flow_levelCrossingTime hc (hIco hy)).ne'
+
+/-- **The kernel of the derivative of the backward map.** If `f` has no critical point in
+`f ⁻¹' Ico a c` and `a < f x < c`, the derivative at `x` of the map
+`y ↦ φ (Flow.levelCrossingTime φ f a y) y` to the lower level, for `φ` the flow, has kernel the
+line spanned by `X x`. -/
+theorem ker_mfderiv_flow_levelCrossingTime
+    (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅) (hx : f x ∈ Ioo a c) :
+    (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E)
+      (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y) x).ker = ℝ ∙ X x := by
+  have hIco {y : M} (hy : y ∈ f ⁻¹' Ioo a c) : f y ∈ Ico a c := Ioo_subset_Ico_self hy
+  exact _root_.TauCeti.ker_mfderiv_flow_levelCrossingTime (hW.contMDiff_field.of_le (by simp))
+    hW.isCompleteVectorField hW.flowOf_eq_flow
+    (eventually_of_mem ((isOpen_Ioo.preimage hW.isGeneralizedMorse.contMDiff.continuous).mem_nhds
+      hx) fun _ hy _ hs _ ht ↦ ((hW.eq_levelCrossingTime_iff hc (hIco hy)).2 hs).trans
+        ((hW.eq_levelCrossingTime_iff hc (hIco hy)).2 ht).symm)
+    ⟨_, hW.mapsTo_flow_levelCrossingTime hc (hIco hx)⟩
+    ((hW.isGeneralizedMorse.contMDiff _).of_le (by simp))
+    (hW.mvfderiv_apply_pos_flow_levelCrossingTime hc (hIco hx)).ne'
 
 /-- **The backward map preserves stable sets.** If `f` has no critical point in `f ⁻¹' Ico a c`,
 the map `y ↦ φ (Flow.levelCrossingTime φ f a y) y`, for `φ` the flow, sends the points of the
