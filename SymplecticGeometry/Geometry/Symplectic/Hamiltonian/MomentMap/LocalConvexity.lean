@@ -202,8 +202,7 @@ theorem exists_weightModelChart_isotropy
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ) (x : M) :
     let 𝔤ₓ : Submodule ℝ (GroupLieAlgebra I G) :=
       ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
-    let K : Subgroup G := (Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
-      (MulAction.stabilizer G x).subtype
+    let K : Subgroup G := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
     ∃ (n : ℕ) (χ : Fin n → K →ₜ* Circle)
       (α : Fin n → StrongDual ℝ 𝔤ₓ)
       (chart : PartialDiffeomorph I' 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n))
@@ -225,7 +224,7 @@ theorem exists_weightModelChart_isotropy
   set S := MulAction.stabilizer G x
   have hS : IsClosed (S : Set G) := isClosed_stabilizer
     (ContMDiffSMul.contMDiff_smul_const (I := I) (I' := I') (n := ∞) x).continuous
-  refine (Lie.isTorus_map_connectedComponentOfOne (S := S) hS.isCompact).elim (I := I)
+  refine (Lie.isTorus_ambientConnectedComponentOfOne (S := S) hS.isCompact).elim (I := I)
     fun d ↦ ?_
   intro _ _ _ _ _ _ _
   let F := (Lie.lieSubalgebraOfSubgroup (I := I) K).toSubmodule
@@ -235,7 +234,7 @@ theorem exists_weightModelChart_isotropy
   have hK := h.comp_monoidHom K.subtype hφ fun _ _ ↦ rfl
   obtain ⟨n, χ, α, chart, r, hα, -, hx, h0, hr, htarget, hequiv, hform, hgen, hμ⟩ :=
     hK.exists_weightModelChart hσ (fun g ↦ hG g) (p := x)
-      fun g ↦ Subgroup.map_subtype_le _ g.property
+      fun g ↦ Subgroup.ambientConnectedComponentOfOne_le _ g.property
   -- The differential of the inclusion `K → G` identifies the Lie algebra of `K` with `𝔤ₓ`.
   let e : GroupLieAlgebra 𝓘(ℝ, F) K ≃ₗ[ℝ] 𝔤ₓ := d.groupLieAlgebraEquivIsotropy (I' := I')
   have he (ξ : 𝔤ₓ) :
@@ -517,7 +516,7 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
   obtain ⟨Φ, hΦ0, hΦa, hΦ⟩ := hF.exists_openPartialHomeomorph_fst_eq_snd_snd_eq <|
     LinearMap.range_eq_top.2 fun q ↦ by
       obtain ⟨b, hb⟩ := exists_fderiv_comp_symm_sub_comp_subtype_weightModelSplit_symm_eq h hx
-        (hform x hx) (fun g ↦ Subgroup.map_subtype_le _ g.property)
+        (hform x hx) (fun g ↦ Subgroup.ambientConnectedComponentOfOne_le _ g.property)
         (fun g ↦ Filter.eventually_of_mem (chart.open_source.mem_nhds hx)
           fun y hy ↦ (hequiv g y hy).2) h𝔮 (p := p) (fun k hk ↦ by rwa [Ne, hα]) q
       refine ⟨b, ?_⟩

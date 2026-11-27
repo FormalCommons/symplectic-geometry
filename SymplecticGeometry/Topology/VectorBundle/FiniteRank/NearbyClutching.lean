@@ -10,6 +10,7 @@ public import Mathlib.Analysis.SpecificLimits.Normed
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.CompactCharts
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Basic
 
 /-!
 # Nearby clutching functions give isomorphic clutchings
@@ -239,11 +240,8 @@ theorem isIso_segmentHom_of_norm_conj_lt_one (f₀ : E.circlePullback ≅ E.circ
         1 = s • (↑U⁻¹ * ((f₀.inv.fiberMap (b.1.1, b.2)).comp (f₁.fiberMap (b.1.1, b.2))) * ↑U -
           1) := by
     ext v : 1
-    have hU : (↑U⁻¹ : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜))
-        ((↑U : (Fin E.circlePullback.rank → 𝕜) →L[𝕜] (Fin E.circlePullback.rank → 𝕜)) v) = v := by
-      rw [← mul_apply_eq_comp, Units.inv_mul, one_apply_eq_self]
     simp only [sub_apply, mul_apply_eq_comp, add_apply, smul_apply, one_apply_eq_self, map_add,
-      map_smul, hU]
+      map_smul, ContinuousLinearMap.units_inv_apply_apply]
     module
   rw [he, norm_smul]
   exact (mul_le_of_le_one_left (norm_nonneg _) hs).trans_lt hU
