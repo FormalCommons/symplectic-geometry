@@ -103,9 +103,9 @@ theorem ContMDiffOn.contDiffOn_extChartAt_comp {n : WithTop ℕ∞} [IsManifold 
 
 /-- The reading of a map `g` from a normed space into `M` in extended charts at `x` and at
 `g x` is `extChartAt I (g x) ∘ g`: the chart of the normed space is the identity. -/
+@[simp, mfld_simps]
 theorem writtenInExtChartAt_model_space_left (g : F → M) (x : F) :
-    writtenInExtChartAt 𝓘(𝕜, F) I x g = extChartAt I (g x) ∘ g := by
-  rw [writtenInExtChartAt, extChartAt_model_space_eq_id, PartialEquiv.refl_symm,
-    PartialEquiv.refl_coe, Function.comp_id]
+    writtenInExtChartAt 𝓘(𝕜, F) I x g = extChartAt I (g x) ∘ g :=
+  rfl
 
 end

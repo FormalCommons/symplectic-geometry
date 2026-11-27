@@ -194,13 +194,10 @@ theorem complexAntilinearPartL_fderiv_comp_continuousLinearEquiv (L : V ≃L[ℂ
     (y : V) :
     complexAntilinearPartL (fderiv ℝ (g ∘ L) y) =
       (complexAntilinearPartL (fderiv ℝ g (L y))).comp ((L : V →L[ℂ] W).restrictScalars ℝ) := by
-  set Lr : V ≃L[ℝ] W := L.restrictScalars' ℝ
-  have hLr : ⇑Lr = ⇑L := ContinuousLinearEquiv.coe_restrictScalars' _ _
-  have hLc : (Lr : V →L[ℝ] W) = (L : V →L[ℂ] W).restrictScalars ℝ := by
-    ext v
-    simp [hLr]
-  rw [← hLr, Lr.comp_right_fderiv, hLc, hLr]
-  exact complexAntilinearPartL_comp_restrictScalars _ (L : V →L[ℂ] W)
+  ext v
+  simpa [← restrictScalarsₛₗLI_comp_complexAntilinearPartCLM,
+    ← conjWirtingerDeriv_eq_complexAntilinearPart]
+    using DFunLike.congr_fun (conjWirtingerDeriv_comp_continuousLinearEquiv L g y) v
 
 /-- **The derivative of `∂̄` before a complex-linear change of variables, in norm.** For a
 complex-linear equivalence `L`, the derivative at `x` of
