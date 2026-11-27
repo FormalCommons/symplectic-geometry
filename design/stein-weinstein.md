@@ -424,7 +424,7 @@ and that neither library has. Each file is in
   it (Tau Ceti's `SquaredDistance.lean` has the complex-chart
   computation); isotropic submanifolds of a $J$-convex level, tangent to
   the complex tangencies, are totally real.
-- `Interpolation.lean` (issues 14d16 and 14d17): two strictly
+- `Interpolation.lean` (issue 14d17): two strictly
   plurisubharmonic functions with the same 1-jet along a compact part of
   a totally real submanifold are joined by one equal to the second near
   it and to the first farther away (Cieliebak–Eliashberg's Proposition
@@ -1087,20 +1087,24 @@ containing `ι '' closedBall 0 1`:
   building issues look up the numbers of the book's lemmas in its proof
   and cite those whose steps they follow.
 
-- `JConvex/Interpolation.lean` (issues 14d16 and 14d17):
-  - `TauCeti.abs_iteratedDeriv_two_logCutoffProfile_le` (14d16): there
+- `Geometry/Manifold/Riemannian/Surface/LogCutoff/SecondDeriv.lean` and
+  `Analysis/Complex/LeviForm/Interpolation.lean` (issue 14d16):
+  - `TauCeti.exists_abs_iteratedDeriv_two_logCutoffProfile_le` (the
+    first file): there
     is an absolute constant `c₁` with
     `|iteratedDeriv 2 (logCutoffProfile ε δ) u| ≤ c₁ / (u ^ 2 * Real.log (δ / ε))`
-    for `0 < 4 * ε ≤ δ` and `0 < u`, the second-order companion of Tau
+    for `0 < 4 * ε ≤ δ` and every `u`, the second-order companion of Tau
     Ceti's `deriv_logCutoffProfile_le`; in the namespace `TauCeti`,
     since it concerns Tau Ceti's profile only.
-  - `re_leviForm_add_mul_sub_ge` (14d16): on a complex normed space `V`,
+  - `TauCeti.le_re_leviForm_add_mul_sub_apply_self` (the second file):
+    on a complex normed space `V`,
     for `f g β : V → ℝ` that are `C²` at `p` and every `v`,
     `(1 - β p) * (leviForm f p v v).re + β p * (leviForm g p v v).re -
     (|g p - f p| * ‖fderiv ℝ (fderiv ℝ β) p‖ + ‖fderiv ℝ β p‖ * ‖fderiv ℝ (g - f) p‖) * ‖v‖ ^ 2 ≤
     (leviForm (f + β * (g - f)) p v v).re`, from Tau Ceti's
     `leviForm_add`, `leviForm_mul_apply` and
     `ContinuousLinearMap.abs_re_leviForm_toBilinForm_apply_self_le`.
+- `JConvex/Interpolation.lean` (issue 14d17):
   - `Manifold.IsSmoothEmbedding.eventually_abs_comp_symm_le` (14d17):
     the Taylor bounds. Let `ι`, `K` and the total reality be as in issue
     14a, `ρ` as 14a gives it, and `D : M → ℝ` be `C²` near `ι '' K`
@@ -1732,7 +1736,7 @@ In this order; each is blocked by the ones listed. All are parts of
 | 14d13 | The chart of order $N$ along a disc (Proposition 5.55) | `JConvex/Surround/Chart.lean` | 14d10, 14d12 | 400 |
 | 14d14 | The Levi form through a chart that is not holomorphic | `JConvex/Surround/ChartLeviForm.lean` | 13 | 300 |
 | 14d15 | Margins carried to the manifold by the chart | `JConvex/Surround/ChartLeviForm.lean` | 14d13, 14d14 | 300 |
-| 14d16 | Logarithmic cutoffs and the Levi form of an interpolation | `JConvex/Interpolation.lean` | 13 | 250 |
+| 14d16 | Logarithmic cutoffs and the Levi form of an interpolation | `Geometry/Manifold/Riemannian/Surface/LogCutoff/SecondDeriv.lean`, `Analysis/Complex/LeviForm/Interpolation.lean` | 13 | 250 |
 | 14d17 | Interpolation along a totally real submanifold (Proposition 3.26) | `JConvex/Interpolation.lean` | 14a, 14d16 | 400 |
 | 14d18 | Radial reparametrization and frames adapted to the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14b, 14d9 | 300 |
 | 14d19 | The normal form of $\varphi$ near the attaching sphere | `JConvex/Surround/NormalForm.lean` | 14d13, 14d15, 14d17, 14d18 | 300 |
