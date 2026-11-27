@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Topology.Compactness.Compact
+import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
 import SymplecticGeometry.Analysis.Calculus.TangentGraphChart
 import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -347,8 +348,7 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
         hΦsymm]
       exact congrArg e (hinjOn.leftInvOn_invFunOn hz)
     have hmem : φ z₀ ∈ φ '' s := ⟨z₀, hz₀, rfl⟩
-    rw [((heq.eventuallyEq_of_mem ((hΦt ▸ Φ.open_target).mem_nhds hmem)).iteratedFDeriv ℝ
-      j).eq_of_nhds]
+    rw [heq.iteratedFDeriv_of_isOpen (hΦt ▸ Φ.open_target) j hmem]
     refine (T.norm_iteratedFDeriv_comp_right_le _ _ j).trans ?_
     rw [hkey z₀ hz₀.1]
     have hTn' : ‖(T : V →L[ℝ] E)‖ ≤ ‖S‖ + 1 :=
