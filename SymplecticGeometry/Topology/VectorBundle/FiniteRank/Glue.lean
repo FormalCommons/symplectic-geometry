@@ -11,7 +11,7 @@ public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import Mathlib.Topology.Compactness.Paracompact
 import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
-import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
+import TauCeti.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 
 /-!
 # Gluing a finite-rank core over two open sets by an automorphism
@@ -90,7 +90,7 @@ with Tau Ceti's `VectorBundleCore.CoordinateHom.ofContinuous`, as
 `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` is, and inverted with Tau Ceti's
 `VectorBundleCore.CoordinateHom.invOfIsInvertible`. The proof of `nonempty_iso_glue_of_homotopic`
 rests on homotopy invariance of pullbacks
-(`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`).
+(Tau Ceti's `TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_pullback_of_homotopic`).
 
 ## References
 
@@ -971,8 +971,7 @@ private theorem baseSet_pullback_glue_subset (i : B) :
         ((ContinuousMap.id B).prodMk (.const B t))).core.baseSet i ⊆
       (A.glue hU hV hUV g).core.baseSet i := by
   intro b hb
-  rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, ← VectorBundleCore.baseSet_at,
-    Set.mem_preimage, baseSet_glue, glueIndex_preimage, ContinuousMap.prod_eval,
+  rw [mem_baseSet_pullback, baseSet_glue, glueIndex_preimage, ContinuousMap.prod_eval,
     ContinuousMap.id_apply] at hb
   rw [baseSet_glue]
   generalize glueIndex U i = s at hb ⊢
@@ -1092,7 +1091,7 @@ theorem nonempty_iso_glue_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSpace �
     ⟨⟨⟨fun p ↦ (p.2, p.1), by fun_prop⟩, fun _ ↦ rfl, fun _ ↦ rfl⟩⟩
   obtain ⟨e⟩ := ((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
     (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H)
-    |>.nonempty_pullback_iso_of_homotopic hJ
+    |>.nonempty_pullback_iso_pullback_of_homotopic hJ
   exact ⟨(A.pullbackGlueIso hU hV hUV g₀ H 0 h₀).symm ≪≫ e ≪≫
     A.pullbackGlueIso hU hV hUV g₁ H 1 h₁⟩
 
