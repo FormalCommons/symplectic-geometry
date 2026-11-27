@@ -257,7 +257,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 
 ### `KempfNess/NormSquare.lean`
 
-- `mgradient_momentNormSq`: $\operatorname{grad}f(x)=-JX_{\mu^\sharp(x)}(x)$.
+- `mgradient_momentNormSq`: $\operatorname{grad}\|\mu\|^2(x)=-2JX_{\mu^\sharp(x)}(x)$.
 - `exists_mem_orbit_maximalIntegralCurve`: the negative gradient flow of
   $f$ stays in the $G^{\mathbb C}$-orbit of its start, as $g(t)^{-1}p$ for
   the solution of $g^{-1}\dot g=-i\mu^\sharp(g^{-1}p)$ in `Gc`, and
