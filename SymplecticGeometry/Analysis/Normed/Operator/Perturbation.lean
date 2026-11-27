@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Analysis.SpecificLimits.Normed
+public import Mathlib.Topology.Algebra.Module.ContinuousLinearMap.Invertible
 public import Mathlib.LinearAlgebra.Orientation
 import TauCeti.LinearAlgebra.Matrix.Charpoly.DetSign
 import TauCeti.LinearAlgebra.Orientation.Basic
@@ -28,6 +29,8 @@ a real eigenvalue `μ` of `C` satisfies `|μ| ≤ ‖C‖ < 1`.
   space, `‖C‖ < 1` gives `0 < det (1 - C)`.
 * `ContinuousLinearEquiv.addOfNormLt`: the isomorphism `A + B`, for `‖B‖ * ‖A⁻¹‖ < 1`.
 * `Orientation.map_addOfNormLt`: `A + B` and `A` carry each orientation to the same one.
+* `ContinuousLinearMap.IsInvertible.of_norm_inverse_comp_sub_lt_one`: a map `A` with
+  `‖A₀⁻¹ ∘ (A - A₀)‖ < 1`, for an invertible `A₀`, is invertible.
 
 The invertibility of `A + B` is Mathlib's `Units.oneSub` applied to `-A⁻¹ B`; the two orientations
 are compared with Tau Ceti's `Orientation.map_eq_map_iff_det_pos`. Tau Ceti's
@@ -101,6 +104,26 @@ theorem coe_addOfNormLt : (A.addOfNormLt B h : E →L[𝕜] F) = A + B := by
   simp
 
 end ContinuousLinearEquiv
+
+namespace ContinuousLinearMap.IsInvertible
+
+variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  [CompleteSpace E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- **A perturbation that is small relative to an isomorphism is an isomorphism.** If `A₀` is
+invertible and `‖A₀⁻¹ ∘ (A - A₀)‖ < 1`, then `A` is invertible. -/
+theorem of_norm_inverse_comp_sub_lt_one {A₀ A : E →L[𝕜] F} (h : A₀.IsInvertible)
+    (hA : ‖A₀.inverse ∘L (A - A₀)‖ < 1) : A.IsInvertible := by
+  have hP : A = A₀ ∘L (1 + A₀.inverse ∘L (A - A₀)) := by
+    ext x
+    simp [h.self_apply_inverse]
+  rw [hP]
+  exact h.comp ⟨ContinuousLinearEquiv.unitsEquiv 𝕜 E (Units.oneSub _ (by rwa [norm_neg])),
+    ContinuousLinearMap.ext fun x ↦ by
+      rw [ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.unitsEquiv_apply, Units.val_oneSub,
+        sub_neg_eq_add]⟩
+
+end ContinuousLinearMap.IsInvertible
 
 namespace Orientation
 

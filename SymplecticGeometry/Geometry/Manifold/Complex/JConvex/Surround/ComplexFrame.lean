@@ -12,9 +12,15 @@ public import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExt
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Analysis.Normed.Operator.Perturbation
 import SymplecticGeometry.Geometry.Manifold.Complex.TangentCoordinates
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Topology.VectorBundle.Complement
 import SymplecticGeometry.Topology.VectorBundle.Frame
+public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordChange
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ContMDiff
 import TauCeti.Topology.Algebra.Module.ComplexSmulI
@@ -182,5 +188,238 @@ theorem exists_continuous_isInvertible_coprod_tangentSpace [IsManifold 𝓘(ℝ,
     ext v <;> simp [he', hjv]
 
 end ContinuousComplement
+
+section Smoothing
+
+open _root_.Bundle Function Module TauCeti.SmoothAlmostComplexStructure
+
+variable {EX HX X : Type*} [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX]
+  {IX : ModelWithCorners ℝ EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+
+/-- The underlying real manifold of the complex manifold `M`. -/
+private local instance instIsManifoldRealSmoothing : IsManifold 𝓘(ℝ, E) ∞ M :=
+  IsManifold.restrictScalars ℝ (inferInstance : IsManifold 𝓘(ℂ, E) ∞ M)
+
+/-- **Smoothing a complex complement.** Let `ι : X → M` be a smooth map from a σ-compact
+Hausdorff finite-dimensional manifold into a complex manifold, `L x : G₁ → T_(ι x) M` a family of
+real-linear maps smooth in tangent coordinates, and `B₀ x : G₂ → T_(ι x) M` complex-linear maps,
+continuous as a map `X × G₂ → TM`, such that each `(L x, B₀ x) : G₁ × G₂ → T_(ι x) M` is an
+isomorphism. Then there are complex-linear maps `B x : G₂ → T_(ι x) M`, smooth in tangent
+coordinates, such that each `(L x, B x)` is again an isomorphism.
+
+The family `B` is a smooth section, glued by a partition of unity
+(`exists_contMDiffSection_forall_mem_convex_of_local`), of the bundle of maps from the trivial
+bundle `ι^* G₂` to `ι^* TM`, with values in the convex sets of complex-linear maps `B` for which
+`(L x, B₀ x)⁻¹ ∘ (B - B₀ x)` has norm less than `1`. -/
+theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous
+    [IsManifold IX ∞ X] [FiniteDimensional ℝ EX] [T2Space X] [SigmaCompactSpace X]
+    [IsManifold 𝓘(ℝ, E) 1 M]
+    {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℝ G₁] [FiniteDimensional ℝ G₁]
+    [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {f₁ : X → G₁}
+    {L : ∀ x, G₁ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hL : ∀ x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
+      (inTangentCoordinates 𝓘(ℝ, G₁) 𝓘(ℝ, E) f₁ ι L x₀) x₀)
+    {B₀ : ∀ x, G₂ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hB₀ : Continuous fun q : X × G₂ ↦ (⟨ι q.1, B₀ q.1 q.2⟩ : TangentBundle 𝓘(ℝ, E) M))
+    (hB₀I : ∀ x v, B₀ x (Complex.I • v) = ofComplexManifold E M (ι x) (B₀ x v))
+    (hB₀L : ∀ x, ((L x).coprod (B₀ x)).IsInvertible) :
+    ∃ B : ∀ x, G₂ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x),
+      (∀ (f₂ : X → G₂) x₀, ContMDiffAt IX 𝓘(ℝ, G₂ →L[ℝ] E) ∞
+        (inTangentCoordinates 𝓘(ℝ, G₂) 𝓘(ℝ, E) f₂ ι B x₀) x₀) ∧
+      (∀ x v, B x (Complex.I • v) = ofComplexManifold E M (ι x) (B x v)) ∧
+      ∀ x, ((L x).coprod (B x)).IsInvertible := by
+  -- `L` and `B₀` as families of maps into the fixed space `E`.
+  let L' (x : X) : G₁ →L[ℝ] E := L x
+  let B₀' (x : X) : G₂ →L[ℝ] E := B₀ x
+  replace hB₀I (x : X) (v : G₂) : B₀' x (Complex.I • v) = Complex.I • B₀' x v :=
+    (hB₀I x v).trans (ofComplexManifold_apply _ _)
+  let ιc : C(X, M) := ⟨ι, hι.continuous⟩
+  have := Bundle.Pullback.contMDiffVectorBundle (n := ∞) (F := G₂) (E := Trivial M G₂)
+    (IB := 𝓘(ℝ, E)) (f := ιc) hι
+  have := Bundle.Pullback.contMDiffVectorBundle (n := ∞) (F := E)
+    (E := TangentSpace 𝓘(ℝ, E)) (IB := 𝓘(ℝ, E)) (f := ιc) hι
+  let Z (x : X) :=
+    ((ιc : X → M) *ᵖ (Trivial M G₂)) x →L[ℝ] ((ιc : X → M) *ᵖ (TangentSpace 𝓘(ℝ, E))) x
+  -- The fibres of `Z` are those of `G₂ →L[ℝ] E`.
+  let toE (x : X) (B : Z x) : G₂ →L[ℝ] E := B
+  -- The defect of `B` from `B₀ x`, read in the frame `(L x, B₀ x)`.
+  let P (x : X) (B : G₂ →L[ℝ] E) : G₁ × G₂ →L[ℝ] G₁ × G₂ :=
+    ((L' x).coprod (B₀' x)).inverse ∘L (B - B₀' x) ∘L snd ℝ G₁ G₂
+  let t (x : X) : Set (Z x) := {B | (∀ v, toE x B (Complex.I • v) =
+    Complex.I • toE x B v) ∧ P x (toE x B) ∈ Metric.ball 0 1}
+  have hconv (x : X) : Convex ℝ (t x) := by
+    rintro B ⟨hBI, hBP⟩ B' ⟨hB'I, hB'P⟩ a b ha hb hab
+    have hE : toE x (a • B + b • B') = a • toE x B + b • toE x B' := rfl
+    refine ⟨fun v ↦ ?_, ?_⟩
+    · rw [hE, add_apply, smul_apply, smul_apply, hBI, hB'I, add_apply, smul_apply, smul_apply,
+        smul_add, smul_comm a, smul_comm b]
+    · obtain rfl : b = 1 - a := by linarith
+      have hPab : P x (toE x (a • B + (1 - a) • B')) =
+          a • P x (toE x B) + (1 - a) • P x (toE x B') := by
+        have hsub : a • toE x B + (1 - a) • toE x B' - B₀' x =
+            a • (toE x B - B₀' x) + (1 - a) • (toE x B' - B₀' x) := by module
+        simp only [hE, P, hsub, comp_add, comp_smul, add_comp, smul_comp]
+      rw [hPab]
+      exact convex_ball 0 1 hBP hB'P ha hb hab
+  have hloc (x₀ : X) : ∃ U ∈ 𝓝 x₀, ∃ s : ∀ x, Z x,
+      ContMDiffOn IX (IX.prod 𝓘(ℝ, G₂ →L[ℝ] E)) ∞
+        (fun x ↦ TotalSpace.mk' (G₂ →L[ℝ] E) x (s x)) U ∧ ∀ y ∈ U, s y ∈ t y := by
+    -- Near `x₀`, read everything in the tangent coordinates at `ι x₀`.
+    let Ω : Set X := ι ⁻¹' (chartAt E (ι x₀)).source
+    have hΩ : IsOpen Ω := (chartAt E (ι x₀)).open_source.preimage hι.continuous
+    have hx₀Ω : x₀ ∈ Ω := mem_chart_source E (ι x₀)
+    let T (y : X) : E →L[ℝ] E := tangentCoordChange 𝓘(ℝ, E) (ι y) (ι x₀) (ι y)
+    let R (y : X) : E →L[ℝ] E := tangentCoordChange 𝓘(ℝ, E) (ι x₀) (ι y) (ι y)
+    have hsrc (y : X) (hy : y ∈ Ω) :
+        ι y ∈ (extChartAt 𝓘(ℝ, E) (ι x₀)).source ∧ ι y ∈ (extChartAt 𝓘(ℝ, E) (ι y)).source :=
+      ⟨by rwa [extChartAt_source], mem_extChartAt_source (ι y)⟩
+    have hRT (y : X) (hy : y ∈ Ω) : R y ∘L T y = .id ℝ E := by
+      ext v
+      exact (tangentCoordChange_comp ⟨⟨(hsrc y hy).2, (hsrc y hy).1⟩, (hsrc y hy).2⟩).trans
+        (tangentCoordChange_self (hsrc y hy).2)
+    have hTR (y : X) (hy : y ∈ Ω) : T y ∘L R y = .id ℝ E := by
+      ext v
+      exact (tangentCoordChange_comp ⟨⟨(hsrc y hy).1, (hsrc y hy).2⟩, (hsrc y hy).1⟩).trans
+        (tangentCoordChange_self (hsrc y hy).1)
+    have hTinv (y : X) (hy : y ∈ Ω) : (T y).IsInvertible := .of_inverse (hTR y hy) (hRT y hy)
+    have hTinverse (y : X) (hy : y ∈ Ω) : (T y).inverse = R y := by
+      calc (T y).inverse = (T y).inverse ∘L (T y ∘L R y) := by
+            rw [hTR y hy, ContinuousLinearMap.comp_id]
+        _ = R y := by
+            rw [← ContinuousLinearMap.comp_assoc, (hTinv y hy).inverse_comp_self,
+              ContinuousLinearMap.id_comp]
+    have hT₀ : T x₀ = .id ℝ E := by
+      ext v
+      exact tangentCoordChange_self (hsrc x₀ hx₀Ω).1
+    -- The coordinates of `L` and `B₀` are continuous at `x₀`.
+    have hLc : ContinuousAt (fun y ↦ T y ∘L L' y) x₀ :=
+      (hL x₀).continuousAt.congr (Filter.eventually_of_mem (hΩ.mem_nhds hx₀Ω)
+        fun y hy ↦ inTangentCoordinates_eq_tangentCoordChange_comp _ L hy)
+    have hBc : ContinuousAt (fun y ↦ T y ∘L B₀' y) x₀ := by
+      let e := trivializationAt E (TangentSpace 𝓘(ℝ, E)) (ι x₀)
+      have hbase (y : X) (hy : y ∈ Ω) : ι y ∈ e.baseSet := by
+        simpa [e] using show ι y ∈ (chartAt E (ι x₀)).source from hy
+      refine (continuousOn_clm_apply.2 fun v ↦ ?_).continuousAt (hΩ.mem_nhds hx₀Ω)
+      have hc : ContinuousOn (fun y ↦ (e ⟨ι y, B₀ y v⟩).2) Ω :=
+        continuous_snd.comp_continuousOn (e.continuousOn.comp
+          (hB₀.comp (continuous_id.prodMk continuous_const)).continuousOn
+          fun y hy ↦ e.mem_source.2 (hbase y hy))
+      refine hc.congr fun y hy ↦ ?_
+      -- Unfold the composition and the family `B₀'`, the family `B₀` read in `E`.
+      change T y (B₀ y v) = (e ⟨ι y, B₀ y v⟩).2
+      rw [← e.continuousLinearMapAt_apply_of_mem (R := ℝ) (hbase y hy),
+        TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hy]
+      rfl
+    let A' (y : X) : G₁ × G₂ →L[ℝ] E := (T y ∘L L' y).coprod (T y ∘L B₀' y)
+    have hA' (y : X) : A' y = T y ∘L (L' y).coprod (B₀' y) := (comp_coprod _ _ _).symm
+    have hA'c : ContinuousAt A' x₀ :=
+      (coprodEquivL (S := ℝ)).continuous.continuousAt.comp (f := fun y ↦ (_, _)) (hLc.prodMk hBc)
+    have hA'₀ : A' x₀ = (L' x₀).coprod (B₀' x₀) := by rw [hA', hT₀, ContinuousLinearMap.id_comp]
+    have hinvc : ContinuousAt (fun y ↦ (A' y).inverse) x₀ := by
+      have hinv : ContinuousAt (ContinuousLinearMap.inverse : (G₁ × G₂ →L[ℝ] E) → _) (A' x₀) := by
+        rw [hA'₀]
+        exact ((hB₀L x₀).contDiffAt_map_inverse (n := 0)).continuousAt
+      exact hinv.comp hA'c
+    -- The defect of the local section, in coordinates.
+    let Q (y : X) : G₁ × G₂ →L[ℝ] G₁ × G₂ :=
+      (A' y).inverse ∘L (B₀' x₀ - T y ∘L B₀' y) ∘L snd ℝ G₁ G₂
+    have hQc : ContinuousAt Q x₀ :=
+      hinvc.clm_comp ((continuousAt_const.sub hBc).clm_comp continuousAt_const)
+    have hQ₀ : Q x₀ = 0 := by simp [Q, hT₀]
+    let s (y : X) : Z y := R y ∘L B₀' x₀
+    refine ⟨Ω ∩ Q ⁻¹' Metric.ball 0 1, inter_mem (hΩ.mem_nhds hx₀Ω)
+      (hQc.preimage_mem_nhds (Metric.isOpen_ball.mem_nhds (by simp [hQ₀]))), s, ?_, ?_⟩
+    · intro y₁ hy₁
+      refine ContMDiffAt.contMDiffWithinAt
+        ((Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates ιc
+        (hι y₁) (0 : X → G₂) s).2 ?_)
+      have hy₁Ω : y₁ ∈ Ω := hy₁.1
+      have hU₁ : ∀ᶠ y in 𝓝 y₁, ι y ∈ (chartAt E (ι x₀)).source ∩ (chartAt E (ι y₁)).source :=
+        hι.continuous.continuousAt.preimage_mem_nhds
+          (((chartAt E (ι x₀)).open_source.inter (chartAt E (ι y₁)).open_source).mem_nhds
+            ⟨hy₁Ω, mem_chart_source E (ι y₁)⟩)
+      have hcc : ContMDiffAt IX 𝓘(ℝ, G₂ →L[ℝ] E) ∞
+          (fun y ↦ tangentCoordChange 𝓘(ℝ, E) (ι x₀) (ι y₁) (ι y) ∘L B₀' x₀) y₁ := by
+        have : (tangentBundleCore 𝓘(ℝ, E) M).IsContMDiff 𝓘(ℝ, E) ∞ := tangentBundleCore.isContMDiff
+        have h := ((tangentBundleCore 𝓘(ℝ, E) M).contMDiffOn_coordChange 𝓘(ℝ, E) (n := ∞)
+          (achart E (ι x₀)) (achart E (ι y₁))).contMDiffAt
+          (((chartAt E (ι x₀)).open_source.inter (chartAt E (ι y₁)).open_source).mem_nhds
+            ⟨hy₁Ω, mem_chart_source E (ι y₁)⟩)
+        exact (h.comp y₁ (hι y₁)).clm_comp contMDiffAt_const
+      refine hcc.congr_of_eventuallyEq ?_
+      filter_upwards [hU₁] with y hy
+      rw [inTangentCoordinates_eq_tangentCoordChange_comp _ s hy.2]
+      ext v
+      exact tangentCoordChange_comp (w := ι x₀) (x := ι y) (y := ι y₁)
+        ⟨⟨by rw [extChartAt_source]; exact hy.1, mem_extChartAt_source (ι y)⟩,
+          by rw [extChartAt_source]; exact hy.2⟩
+    · rintro y ⟨hy, hQy⟩
+      have hy' : ι y ∈ (chartAt E (ι x₀)).source ∩ (chartAt E (ι y)).source :=
+        ⟨hy, mem_chart_source E (ι y)⟩
+      refine ⟨fun v ↦ ?_, ?_⟩
+      · change R y (B₀' x₀ (Complex.I • v)) = Complex.I • R y (B₀' x₀ v)
+        rw [hB₀I,
+          TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
+          TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply ℝ (𝕜' := ℂ) hy',
+          map_smul]
+      · have hPQ : P y (toE y (s y)) = Q y := by
+          have hs : toE y (s y) = R y ∘L B₀' x₀ := rfl
+          simp only [P, Q, hs, hA' y, (hTinv y hy).inverse_comp_of_left, hTinverse y hy,
+            ContinuousLinearMap.comp_assoc]
+          have hRTv (w : E) : R y (T y w) = w := by
+            rw [← ContinuousLinearMap.comp_apply, hRT y hy, ContinuousLinearMap.id_apply]
+          ext p <;> simp [hRTv]
+        rw [hPQ]
+        exact hQy
+  obtain ⟨σ, hσ⟩ := exists_contMDiffSection_forall_mem_convex_of_local IX Z t hconv hloc
+  refine ⟨fun x ↦ σ x, fun f₂ x₀ ↦ ?_,
+    fun x v ↦ ((hσ x).1 v).trans (ofComplexManifold_apply _ _).symm, fun x ↦ ?_⟩
+  · exact (Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates ιc (hι x₀) f₂
+      (fun x ↦ σ x)).1 (σ.contMDiff x₀)
+  · -- Read the maps in the normed space `E`, which the tangent spaces are only up to unfolding.
+    change ((L' x).coprod (toE x (σ x))).IsInvertible
+    refine (show ((L' x).coprod (B₀' x)).IsInvertible from
+      hB₀L x).of_norm_inverse_comp_sub_lt_one ?_
+    have hsub : (L' x).coprod (toE x (σ x)) - (L' x).coprod (B₀' x) =
+        (toE x (σ x) - B₀' x) ∘L snd ℝ G₁ G₂ := by
+      ext p <;> simp
+    rw [hsub]
+    exact mem_ball_zero_iff.1 (hσ x).2
+
+/-- **A smooth complex complement along a map from a contractible manifold.** Let `ι : X → M` be
+a smooth map from a contractible σ-compact Hausdorff finite-dimensional manifold into a complex
+manifold modelled on a finite-dimensional space `E`, and `L x : G₁ → T_(ι x) M` injective
+complex-linear maps, continuous as a map `X × G₁ → TM` and smooth in tangent coordinates. If
+`dim G₁ + dim G₂ = dim E`, there are complex-linear maps `B x : G₂ → T_(ι x) M`, smooth in
+tangent coordinates, such that each `(L x, B x) : G₁ × G₂ → T_(ι x) M` is an isomorphism.
+
+This is `exists_continuous_isInvertible_coprod_tangentSpace`, made smooth by
+`exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous`. -/
+theorem exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod
+    [IsManifold IX ∞ X] [FiniteDimensional ℝ EX] [T2Space X] [SigmaCompactSpace X]
+    [ContractibleSpace X] [FiniteDimensional ℂ E] [IsManifold 𝓘(ℝ, E) 1 M]
+    {G₁ G₂ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
+    [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+    (hdim : finrank ℂ E = finrank ℂ G₁ + finrank ℂ G₂)
+    {ι : X → M} (hι : ContMDiff IX 𝓘(ℝ, E) ∞ ι) {f₁ : X → G₁}
+    {L : ∀ x, G₁ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)}
+    (hLc : Continuous fun q : X × G₁ ↦ (⟨ι q.1, L q.1 q.2⟩ : TangentBundle 𝓘(ℝ, E) M))
+    (hL : ∀ x₀, ContMDiffAt IX 𝓘(ℝ, G₁ →L[ℝ] E) ∞
+      (inTangentCoordinates 𝓘(ℝ, G₁) 𝓘(ℝ, E) f₁ ι L x₀) x₀)
+    (hLI : ∀ x v, L x (Complex.I • v) = ofComplexManifold E M (ι x) (L x v))
+    (hinj : ∀ x, Injective (L x)) :
+    ∃ B : ∀ x, G₂ →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x),
+      (∀ (f₂ : X → G₂) x₀, ContMDiffAt IX 𝓘(ℝ, G₂ →L[ℝ] E) ∞
+        (inTangentCoordinates 𝓘(ℝ, G₂) 𝓘(ℝ, E) f₂ ι B x₀) x₀) ∧
+      (∀ x v, B x (Complex.I • v) = ofComplexManifold E M (ι x) (B x v)) ∧
+      ∀ x, ((L x).coprod (B x)).IsInvertible := by
+  have := Manifold.locallyCompact_of_finiteDimensional IX (M := X)
+  obtain ⟨B₀, hB₀, hB₀I, hB₀L⟩ :=
+    exists_continuous_isInvertible_coprod_tangentSpace (G₂ := G₂) hdim hLc hLI hinj
+  exact exists_contMDiffAt_inTangentCoordinates_isInvertible_coprod_of_continuous hι hL hB₀ hB₀I
+    hB₀L
+
+end Smoothing
 
 end SymplecticGeometry
