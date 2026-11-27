@@ -551,6 +551,21 @@ theorem kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le [FiniteDimensional �
     abs_apply_le_sqrt_momentNormSq_mul_sqrt (hB := hB) hBs hpos η
   linarith [kempfNessFunction_add_moment_le C μ p h hμ hg g η u]
 
+/-- **The Kempf–Ness function at a zero of the moment map is nonnegative.** In the setting of
+`kempfNessFunction_add_moment_le`, if `μ p = 0` then `0 ≤ Φ_p g` for every `g`: the function `Φ_p`
+attains its minimum `0` at `1`. -/
+theorem kempfNessFunction_nonneg_of_moment_eq_zero [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hp : μ p = 0)
+    (g : Gc) : 0 ≤ kempfNessFunction C μ p g := by
+  have hle := kempfNessFunction_add_moment_le C μ p h hμ hg 1 (C.polar.symm g).1
+    (C.polar.symm g).2
+  have h0 : μ ((1 : Gc)⁻¹ • p) (C.polar.symm g).1 = 0 := by
+    rw [inv_one, one_smul, hp]
+    exact LinearMap.zero_apply _
+  rwa [one_mul, C.expI_mul_toHom_polar_symm, kempfNessFunction_one, h0, add_zero] at hle
+
 /-- **Uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a complexified action,
 let `-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. A
 differentiable function on `Gc` whose differential at every `g` is the one-form
