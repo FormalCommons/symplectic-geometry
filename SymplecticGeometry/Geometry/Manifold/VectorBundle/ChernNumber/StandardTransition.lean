@@ -135,6 +135,7 @@ open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 variable [ContMDiffVectorBundle ∞ F V (𝓡 2)] (g : ContMDiffRiemannianMetric (𝓡 2) ∞ F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
 
+open scoped ContMDiffHermitianMetric in
 /-- **Unit sections with transitions `(z / ‖z‖) ^ k` on coordinate discs.** Let `M` be a closed
 smooth surface with an orientation `o`, and `V` a smooth complex line bundle over `M` with a
 smooth Hermitian metric `g`. Then there are:
@@ -177,12 +178,7 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
         ∑ i, k i = chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
           finrank_euclideanSpace_fin F V := by
   classical
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
   have : SecondCountableTopology M :=
     ChartedSpace.secondCountable_of_sigmaCompact (EuclideanSpace ℝ (Fin 2)) M
   -- a smooth section `s` with finitely many zeros
