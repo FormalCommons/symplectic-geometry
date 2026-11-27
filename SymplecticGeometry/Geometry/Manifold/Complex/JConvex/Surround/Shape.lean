@@ -94,9 +94,9 @@ bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`; the sec
 
 The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `ι₀ (closedBall 0 1)`.
 
-* `SymplecticGeometry.isCompact_setOf_shape_le`: the sets `{t ≤ a, s ≤ b}` are compact;
-* `SymplecticGeometry.setOf_shape_le_subset_setOf_shape_le`: the handles grow with `γ`;
-* `SymplecticGeometry.iInter_setOf_shape_le_eq`: the intersection of the handles for
+* `SymplecticGeometry.isCompact_setOfPred_shape_le`: the sets `{t ≤ a, s ≤ b}` are compact;
+* `SymplecticGeometry.setOfPred_shape_le_subset_setOfPred_shape_le`: the handles grow with `γ`;
+* `SymplecticGeometry.iInter_setOfPred_shape_le_eq`: the intersection of the handles for
   `0 < γ < 1` is the model disc `ι₀ (closedBall 0 1)`.
 
 ## The model handle function and the model level
@@ -745,7 +745,7 @@ section Handle
 open Filter Metric Set
 
 /-- The sets `{p | t p ≤ a ∧ s p ≤ b}` of the shape coordinates `(s, t) = shape p` are compact. -/
-theorem isCompact_setOf_shape_le (a b : ℝ) :
+theorem isCompact_setOfPred_shape_le (a b : ℝ) :
     IsCompact {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
       (shape p).2 ≤ a ∧ (shape p).1 ≤ b} := by
   have hc := (contDiff_shape (k := k) (m := m) (n := 0)).continuous
@@ -771,7 +771,7 @@ theorem isCompact_setOf_shape_le (a b : ℝ) :
     linarith [le_abs_self a, le_abs_self b, abs_nonneg a, abs_nonneg b]
 
 /-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` grow with `γ ≥ 0`. -/
-theorem setOf_shape_le_subset_setOf_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
+theorem setOfPred_shape_le_subset_setOfPred_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
     {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
       (shape p).2 ≤ a ^ 2 ∧ (shape p).1 ≤ (1 + a) ^ 2} ⊆
       {p | (shape p).2 ≤ b ^ 2 ∧ (shape p).1 ≤ (1 + b) ^ 2} :=
@@ -779,7 +779,7 @@ theorem setOf_shape_le_subset_setOf_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a
 
 /-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` for `0 < γ < 1` have the model disc
 `ι₀ (closedBall 0 1)` as their intersection. -/
-theorem iInter_setOf_shape_le_eq :
+theorem iInter_setOfPred_shape_le_eq :
     ⋂ γ : Ioo (0 : ℝ) 1, {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
       (shape p).2 ≤ (γ : ℝ) ^ 2 ∧ (shape p).1 ≤ (1 + (γ : ℝ)) ^ 2} =
       modelDisc k m '' closedBall 0 1 := by
