@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Vertically nondegenerate two-forms and forms compatible with an oriented atlas
@@ -217,10 +216,7 @@ theorem RestrictsTo.isVerticallyNondegenerate
     (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsNondegenerate) (hτ : A.RestrictsTo σ τ) :
     SmoothTwoForm.IsVerticallyNondegenerate IB proj τ := by
   refine isVerticallyNondegenerate_of_isNondegenerate_mpullback hA fun b ↦ ?_
-  have hpull : SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
-      (hA.contMDiffOn_trivAt_symm b) (A.mem_baseSet_trivAt b)) τ = σ :=
-    (SmoothForm.mpullback_eq_iff _).2 (restrictsTo_iff.1 hτ _ _ _)
-  rw [hpull]
+  rw [hτ.mpullback_fiberInclusionMap_eq hA]
   exact hσ
 
 /-! ### Symplectic forms compatible with an oriented atlas -/
