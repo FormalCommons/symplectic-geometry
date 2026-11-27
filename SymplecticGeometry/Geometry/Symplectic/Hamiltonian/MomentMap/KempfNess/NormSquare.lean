@@ -340,7 +340,7 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
   have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    (contMDiff_momentNormSq_of_isMomentMap hμ.toIsMomentMap).of_le (by norm_cast)
+    hμ.toIsMomentMap.contMDiff_momentNormSq.of_le (by norm_cast)
   have hL (q : M) := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG q
   -- The forward trajectory stays in the compact space `M`.
   obtain ⟨hx, p, hpc, hconv, hdist⟩ :=
@@ -402,9 +402,8 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
         (-2 * momentNormSq B hB μ ((g t)⁻¹ • p)) t := by
   have hμm := hμ.toIsMomentMap
   set γ := maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) := by
-    rw [← momentNormSq_neg']
-    exact (contMDiff_momentNormSq_of_isMomentMap hμm).of_le (by norm_cast)
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+    hμm.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hv := contMDiff_neg_mgradient_one hf
   -- On the compact manifold `M` the flow is defined for all time, and it is `C¹`.
   have hγ : IsMIntegralCurve γ (-mgradient I' (momentNormSq B hB μ)) :=
@@ -881,9 +880,8 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     {p x : M}
     (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x)) :
     momentNormSq B hB μ x = ⨅ g : Gc, momentNormSq B hB μ (g • p) := by
-  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) := by
-    rw [← momentNormSq_neg']
-    exact (contMDiff_momentNormSq_of_isMomentMap hμ.toIsMomentMap).of_le (by norm_cast)
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+    hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
     ⟨0, by
       rintro _ ⟨g, rfl⟩

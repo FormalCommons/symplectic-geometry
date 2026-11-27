@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.RepresentationTheory.InvariantForm
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
@@ -48,8 +47,7 @@ equivariance or smoothness.
   `Ad`-invariant `B` and a coadjoint-equivariant `μ`, `μ♯` is equivariant and the norm square
   is `G`-invariant.
 * `SymplecticGeometry.contMDiff_momentNormSq`: if each component `x ↦ μ x ξ` is `C^n`, so is the
-  norm square; by `SymplecticGeometry.contMDiff_momentNormSq_of_isMomentMap`, the norm square of
-  a moment map is smooth.
+  norm square.
 * `SymplecticGeometry.mvfderiv_momentNormSq`: for a symmetric `B` and differentiable components,
   the derivative of the norm square at `x` is twice that of `y ↦ μ y (μ♯ x)`.
 
@@ -191,16 +189,6 @@ theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : Wit
   have hL := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ
   rw [momentNormSq_eq_clm_apply]
   exact hL.clm_apply ((ContinuousLinearMap.contMDiff _).comp hL)
-
-/-- The norm square of a moment map `μ`, for a two-form `σ` on a smooth manifold, is smooth.
-When `-μ` is the moment map, `momentNormSq_neg'` turns this into the smoothness of the norm
-square of `μ`. -/
-theorem contMDiff_momentNormSq_of_isMomentMap [CompleteSpace E]
-    [LieGroup I (minSmoothness ℝ 3) G] [TopologicalSpace M] [ChartedSpace H' M]
-    [IsManifold I' ∞ M] {σ : SmoothTwoForm I' M}
-    {a : InfinitesimalAction (GroupLieAlgebra I G) I' M} (h : σ.IsMomentMap a μ) :
-    ContMDiff I' 𝓘(ℝ) ∞ (momentNormSq B hB μ) :=
-  contMDiff_momentNormSq h.contMDiff
 
 /-- For a symmetric form `B`, if each component `y ↦ μ y ξ` of `μ` is differentiable at `x`, the
 derivative of the norm square at `x` is twice that of the component `y ↦ μ y (μ♯ x)`. -/

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 
 /-!
@@ -20,7 +21,10 @@ takes `μ` to a smooth function, and `SymplecticGeometry.contMDiff_linearMap_com
 concludes.
 
 It also records that the components of `μ` are smooth when `-μ` is a moment map, the sign
-convention of many texts, and that their derivatives are then values of `σ`.
+convention of many texts, and that their derivatives are then values of `σ`. For a Lie group `G`
+and a nondegenerate form `B` on its Lie algebra, the norm square
+`SymplecticGeometry.momentNormSq B hB μ` of a moment map `μ`, or of `μ` when `-μ` is one, is
+smooth.
 
 ## Main results
 
@@ -30,6 +34,9 @@ convention of many texts, and that their derivatives are then values of `σ`.
   of `μ` are smooth.
 * `TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_apply_of_neg`: if `-μ` is a moment map for the
   infinitesimal action `a`, the derivative of `x ↦ μ x Z` in the direction `v` is `-σ(a Z x, v)`.
+* `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq`,
+  `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_momentNormSq_of_neg`: the norm square of `μ` is
+  smooth if `μ`, respectively `-μ`, is a moment map.
 -/
 
 public section
@@ -58,6 +65,33 @@ theorem mvfderiv_apply_of_neg {E H M : Type*} [NormedAddCommGroup E] [NormedSpac
     mvfderiv I (fun y ↦ μ y Z) x v = -SmoothBundleForm.eval₂ σ x (a Z x) v := by
   rw [h.eval₂_apply Z x v, show (fun y ↦ μ y Z) = fun y ↦ -(-μ y) Z by ext; simp,
     mvfderiv_fun_neg, neg_apply]
+
+section NormSq
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+  [LieGroup I (minSmoothness ℝ 3) G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {σ : SmoothTwoForm I' M} {a : InfinitesimalAction (GroupLieAlgebra I G) I' M}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- The norm square `‖μ‖²`, for a nondegenerate form `B` on the Lie algebra, of a moment map `μ`
+is smooth. -/
+theorem contMDiff_momentNormSq (h : σ.IsMomentMap a μ) :
+    ContMDiff I' 𝓘(ℝ) ∞ (SymplecticGeometry.momentNormSq B hB μ) :=
+  SymplecticGeometry.contMDiff_momentNormSq h.contMDiff
+
+/-- If `-μ` is a moment map, the norm square `‖μ‖²`, for a nondegenerate form `B` on the Lie
+algebra, is smooth. -/
+theorem contMDiff_momentNormSq_of_neg (h : σ.IsMomentMap a fun x ↦ -μ x) :
+    ContMDiff I' 𝓘(ℝ) ∞ (SymplecticGeometry.momentNormSq B hB μ) :=
+  SymplecticGeometry.contMDiff_momentNormSq h.contMDiff_of_neg
+
+end NormSq
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
