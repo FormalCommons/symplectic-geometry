@@ -32,6 +32,22 @@ made here.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_eq_of_metric`: it is
   the real first Chern class of the unitary frame bundle of the determinant line for every smooth
   Hermitian metric on that line.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_pushforward`: a smooth
+  isomorphism of real vector bundles that carries one smooth complex structure to another does not
+  change the class, whatever the complex models of the two structures.
+
+## Implementation notes
+
+For `realFirstChernClass_pushforward`, the isomorphism `Φ` is complex-linear from
+`J.toContinuousComplexStructure.Fiber` to `J'.toContinuousComplexStructure.Fiber`
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommute`), and smooth on total spaces
+(`SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_fiberEquivOfCommute`), so it
+induces a smooth map of determinant lines (`TauCeti.DetBundle.contMDiff_congrModelHomeomorph`).
+Sending a unitary frame `φ` of the determinant line of `J` to the image of `φ 1` is then an
+equivariant map to the nonzero vectors of the determinant line of `J'`, and
+`SymplecticGeometry.Bundle.realFirstChernClass_eq_of_equivariant` applies. This follows the proof
+of `Bundle.ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric`, with the map of
+determinant lines added.
 
 ## References
 
@@ -44,7 +60,7 @@ public section
 
 noncomputable section
 
-open Bundle Module TauCeti
+open Bundle Module TauCeti TauCeti.OrthonormalFrameBundle
 open scoped Manifold ContDiff VectorBundle.ComplexToReal
 
 namespace SymplecticGeometry.Bundle.ContMDiffComplexStructure
@@ -88,6 +104,56 @@ theorem realFirstChernClass_eq_of_metric (J : ContMDiffComplexStructure I ⊤ F 
     (hI : ∀ x v w, g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
     realFirstChernClass G J = g.realFirstChernClass hI :=
   ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric _ _ g hI
+
+variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℝ F'] [FiniteDimensional ℝ F']
+  {V' : M → Type*} [∀ x, AddCommGroup (V' x)] [∀ x, Module ℝ (V' x)]
+  [∀ x, TopologicalSpace (V' x)] [∀ x, IsTopologicalAddGroup (V' x)]
+  [∀ x, ContinuousSMul ℝ (V' x)] [TopologicalSpace (TotalSpace F' V')]
+  [FiberBundle F' V'] [VectorBundle ℝ F' V'] [ContMDiffVectorBundle ∞ F' V' I]
+  (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+  [Fact (finrank ℝ F' = 2 * finrank ℂ G')]
+
+/-- **A complex-linear isomorphism does not change the real first Chern class.** Let `J` and `J'`
+be smooth complex structures on smooth real vector bundles `V` and `V'` over the same base, with
+complex models `G` and `G'`. If a family `Φ x : V x ≃ V' x` of real-linear isomorphisms is smooth
+on total spaces and carries `J` to `J'`, that is `Φ x (J x v) = J' x (Φ x v)`, then `J` and `J'`
+have the same real first Chern class. -/
+theorem realFirstChernClass_pushforward (J : ContMDiffComplexStructure I ⊤ F V)
+    (J' : ContMDiffComplexStructure I ⊤ F' V') (Φ : ∀ x, V x ≃L[ℝ] V' x)
+    (hΦ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F')) ∞
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F' p.proj (Φ p.proj p.snd)))
+    (hJ : ∀ x v, Φ x (J x v) = J' x (Φ x v)) :
+    realFirstChernClass G J = realFirstChernClass G' J' := by
+  set K := J.toContinuousComplexStructure
+  have hK : ∀ x v, Φ x (K x v) = J'.toContinuousComplexStructure x (Φ x v) := fun x v ↦ by
+    rw [J.toContinuousComplexStructure_apply, J'.toContinuousComplexStructure_apply, hJ]
+  -- `Φ` as a smooth complex-linear isomorphism of the complex bundles.
+  set e := K.fiberEquivOfCommute J'.toContinuousComplexStructure Φ hK
+  have he := J.contMDiff_fiberEquivOfCommute G J' G' Φ hΦ hK
+  set g := (exists_hermitianMetric_detBundle G J).choose
+  set hI := (exists_hermitianMetric_detBundle G J).choose_spec
+  set g' := (exists_hermitianMetric_detBundle G' J').choose
+  set hI' := (exists_hermitianMetric_detBundle G' J').choose_spec
+  rw [realFirstChernClass_def, realFirstChernClass_def,
+    ContMDiffRiemannianMetric.realFirstChernClass_def g hI]
+  let : RiemannianBundle (DetBundle ℂ G K.Fiber) := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (DetBundle ℂ G K.Fiber x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle ℂ (DetBundle ℂ G K.Fiber) :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ ℂ (DetBundle ℂ G K.Fiber) ℂ) I (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  -- A unitary frame `φ` of the determinant line of `J` goes to the image of `φ 1`.
+  refine realFirstChernClass_eq_of_equivariant g' hI'
+    (Q := Fiber ℂ ℂ (DetBundle ℂ G K.Fiber) ℂ)
+    (fun x φ ↦ DetBundle.congrModelEquiv (F₁ := G) (F' := G') e x (φ.frame 1)) ?_
+    (fun _ φ ↦ ?_) fun z _ φ ↦ ?_
+  · exact ((DetBundle.contMDiff_congrModelHomeomorph e he).comp
+      (contMDiff_circleFiber_frame_one g hI)).congr fun _ ↦ by
+        rw [Function.comp_apply, DetBundle.congrModelHomeomorph_apply]
+  · rw [Ne, ContinuousLinearEquiv.map_eq_zero_iff]
+    exact φ.frame.map_ne_zero_iff.2 one_ne_zero
+  · rw [Fiber.frame_op_circle_smul_apply, mul_one, ← _root_.map_smul, ← _root_.map_smul,
+      smul_eq_mul, mul_one]
 
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 
