@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.FiberBundle.Basic
-public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
+public import SymplecticGeometry.Topology.FiberBundle.Trivialization
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.RegularValue

@@ -83,7 +83,7 @@ theorem contMDiff_indicator_range_comp_invFunOn [FiniteDimensional 𝕜 E] [IsMa
   have hψ : ⇑ψ = Φ := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn ..
   have h := ψ.contMDiff_indicator_image_comp_symm hχ.contMDiffOn (hψ ▸ hK) isOpen_univ
     (subset_univ K) (IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..).ge
-    fun z _ hz ↦ notMem_support.1 fun h ↦ hz (hχK h)
+    (inter_subset_right.trans hχK)
   simp only [ψ, IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn,
     PartialDiffeomorph.symm_toPartialEquiv,
     IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply,

@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Surface.LogCutoff.Profile
 import TauCeti.Analysis.Calculus.Deriv.Second
 import TauCeti.Analysis.SpecialFunctions.Exp.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # The second derivative of the logarithmic cutoff profile
@@ -98,10 +99,7 @@ theorem exists_abs_iteratedDeriv_two_logCutoffProfile_le :
     ∃ c₁ : ℝ, ∀ {ε δ : ℝ}, 0 < ε → 4 * ε ≤ δ → ∀ u : ℝ,
       |iteratedDeriv 2 (logCutoffProfile ε δ) u| ≤ c₁ / (u ^ 2 * Real.log (δ / ε)) := by
   obtain ⟨M₁, hM₁⟩ := smoothTransition.exists_forall_norm_deriv_le
-  obtain ⟨M₂, hM₂⟩ : ∃ M, ∀ x, ‖x * deriv (deriv smoothTransition) x‖ ≤ M :=
-    (continuous_id.mul (smoothTransition.contDiff.iterate_deriv 2).continuous
-      ).bounded_above_of_compact_support
-      smoothTransition.hasCompactSupport_deriv.deriv.mul_left
+  obtain ⟨M₂, hM₂⟩ := smoothTransition.exists_forall_norm_mul_deriv_deriv_le
   have h2 : 0 < log 2 := Real.log_pos one_lt_two
   have hM₁0 : 0 ≤ M₁ := (norm_nonneg _).trans (hM₁ 0)
   have hM₂0 : 0 ≤ M₂ := (norm_nonneg _).trans (hM₂ 0)
@@ -151,9 +149,8 @@ theorem exists_abs_iteratedDeriv_two_logCutoffProfile_le :
   rw [hv', hv] at h
   -- The bounds on `N` and `N'`.
   have hτ' (x : ℝ) : |deriv τ x| ≤ M₁ := by simpa only [Real.norm_eq_abs] using hM₁ x
-  have hxτ' (x : ℝ) : |x * deriv τ x| ≤ M₁ := by
-    rw [abs_of_nonneg (smoothTransition.mul_deriv_nonneg x)]
-    exact (smoothTransition.mul_deriv_le_deriv x).trans ((le_abs_self _).trans (hτ' x))
+  have hxτ' (x : ℝ) : |x * deriv τ x| ≤ M₁ :=
+    (smoothTransition.abs_mul_deriv_le_deriv x).trans ((le_abs_self _).trans (hτ' x))
   have hxτ'' (x : ℝ) : |x * deriv (deriv τ) x| ≤ M₂ := by
     simpa only [Real.norm_eq_abs] using hM₂ x
   have hNle : |N (log u)| ≤ 1 + 2 * M₁ := by
