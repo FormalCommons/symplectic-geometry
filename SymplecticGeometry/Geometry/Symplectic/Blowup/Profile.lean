@@ -896,21 +896,13 @@ theorem norm_lt_of_norm_radialMap_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr
   rw [hh.radialMap_of_le (hr.le.trans (not_lt.1 hle))] at hz
   exact hle hz
 
-/-- The radial map of a profile `h` undoes the inverse of `radialDiffeomorph`. -/
-theorem coe_radialMap_radialDiffeomorph_symm (hh : IsBlowupProfile l ε h)
-    (w : radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s)) :
-    (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs)) ((hh.radialDiffeomorph n).symm w) :
-      Fin (n + 1) → ℂ) = w := by
-  rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
-    Diffeomorph.apply_symm_apply]
-
 /-- For `l + ε < r`, the inverse of `radialDiffeomorph` maps the points of the shell in the open
 ball of radius `r` into that ball. -/
 theorem norm_radialDiffeomorph_symm_lt (hh : IsBlowupProfile l ε h) {r : ℝ} (hr : l + ε < r)
     {w : radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s)}
     (hw : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < r) :
     ‖complexToRealEuclidean (Fin (n + 1)) ((hh.radialDiffeomorph n).symm w)‖ < r :=
-  hh.norm_lt_of_norm_radialMap_lt hr (by rwa [hh.coe_radialMap_radialDiffeomorph_symm])
+  hh.norm_lt_of_norm_radialMap_lt hr (by rwa [coe_radialMap_radialMapDiffeomorph_symm_apply])
 
 end IsBlowupProfile
 

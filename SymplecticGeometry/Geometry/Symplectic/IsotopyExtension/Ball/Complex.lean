@@ -125,6 +125,14 @@ theorem complexPartialDiffeomorph_symm_apply_complexToRealEuclidean
   have := hψ.complexPartialDiffeomorph.left_inv (hψ.mem_complexPartialDiffeomorph_source_iff.2 hw)
   rwa [coe_complexPartialDiffeomorph, Function.comp_apply] at this
 
+/-- The inverse of `hψ.complexPartialDiffeomorph` maps the image under `ψ` of the open ball of
+radius `r` into the preimage of that ball. -/
+theorem norm_complexPartialDiffeomorph_symm_lt (hψ : IsSymplecticBallEmbedding σ r ψ) {p : M}
+    (hp : p ∈ ψ '' ball 0 r) :
+    ‖complexToRealEuclidean (Fin m) (hψ.complexPartialDiffeomorph.symm p)‖ < r :=
+  hψ.mem_complexPartialDiffeomorph_source_iff.1
+    (hψ.complexPartialDiffeomorph.map_target (by rwa [complexPartialDiffeomorph_target]))
+
 /-- On its source, `hψ.complexPartialDiffeomorph` is a symplectic map from the constant form of
 `stdComplexPiSymplecticForm (Fin m)` on `Fin m → ℂ` to `σ`. -/
 theorem isSymplecticMapOn_complexPartialDiffeomorph (hψ : IsSymplecticBallEmbedding σ r ψ) :
