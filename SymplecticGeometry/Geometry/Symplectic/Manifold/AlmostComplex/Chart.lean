@@ -321,6 +321,7 @@ theorem exists_compatible_mfderiv_apply_eq [FiniteDimensional ℝ E] [FiniteDime
         (LinearMap.toContinuousLinearMap (K x).toLinearMap)) ψ.source := by
     refine (contMDiffOn_mfderiv_symm_comp_comp_mfderiv ψ J₀.constSmooth).congr fun x hx ↦ ?_
     refine congrArg (Bundle.TotalSpace.mk' _ x) (ContinuousLinearMap.ext fun v ↦ ?_)
+    -- Turning `(K x).toLinearMap` into a continuous linear map keeps its values.
     exact (hK x hx v).trans (congrArg _ (J₀.constSmooth_apply (ψ x) _).symm)
   obtain ⟨J', hJ', hJ'A, -, -⟩ := hJ₁.exists_compatible_eqOn K hKc ψ.open_source hA hAψ hKs
   refine ⟨J', hJ', fun x hx v ↦ ?_⟩
