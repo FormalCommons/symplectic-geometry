@@ -61,14 +61,17 @@ orientation of `M`.
   equal numbers for `f` and `f'`: its derivative identifies the two complex normal bundles
   (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`), and Tau Ceti's
   `TauCeti.complexEulerClass_eq_of_fiberwise` gives equal Euler classes.
-* `TauCeti.SmoothEmbedding.selfIntersectionNumber_remodel`: for a surface `C` charted on another
-  two-dimensional space and re-modelled on `𝓡 2` along a diffeomorphism `Φ` of models
-  (`SymplecticGeometry.Remodel`), the number of the embedding of `Remodel Φ C` with the same image
-  is the Euler class of the complex normal bundle of the original embedding, evaluated on the
+* `TauCeti.SmoothEmbedding.selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm`: for a
+  surface `C` charted on another two-dimensional space and a diffeomorphism `e` from `C` to a
+  surface `M` charted on `𝓡 2`, the number of the embedding of `M` with the same image is the
+  Euler class of the complex normal bundle of the original embedding, evaluated on the
   fundamental class of `C`. It combines Tau Ceti's naturality of the Euler class, through
   `TauCeti.SmoothEmbedding.complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless`,
   with the invariance of fundamental classes under diffeomorphisms
   (`TauCeti.Manifold.Orientation.evalFundamentalClass_toHomologicalOrientation_map`).
+* `TauCeti.SmoothEmbedding.selfIntersectionNumber_remodel`: its case `e = remodelDiffeomorph Φ C`,
+  for `C` re-modelled on `𝓡 2` along a diffeomorphism `Φ` of models
+  (`SymplecticGeometry.Remodel`).
 * `TauCeti.SmoothEmbedding.selfIntersectionNumber_remodel_complexCurveOrientation`: for a complex
   curve with its complex orientation, this is
   `SymplecticGeometry.complexManifoldEvalFundamentalClass` of that Euler class.
@@ -267,6 +270,47 @@ variable {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F]
   [FiniteDimensional ℝ F] {C : Type} [TopologicalSpace C] [T2Space C] [CompactSpace C]
   [ChartedSpace F C] [IsManifold 𝓘(ℝ, F) ∞ C]
 
+/-- **The self-intersection number after a change of parametrisation.** Let `C` be a compact
+surface charted on a real space `F` of dimension two, `f` an embedding of `C` in a four-manifold
+`X` whose tangent planes the almost complex structure `J` preserves, and `e` a diffeomorphism from
+`C` to a surface `M` charted on `𝓡 2`. For an orientation `o` of `C`, carried to `M` by `e`, the
+self-intersection number of the embedding `f ∘ e⁻¹` of `M` is the evaluation of the Euler class
+of the normal bundle of `f`, with the complex structure induced by `J`, on the fundamental class
+of `(C, o)`. -/
+theorem selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm [T2Space M] [CompactSpace M]
+    (e : C ≃ₘ^∞⟮𝓘(ℝ, F), 𝓡 2⟯ M) (f : SmoothEmbedding 𝓘(ℝ, F) I ∞ C X)
+    (hE : finrank ℝ E = 4) (hF : finrank ℝ F = 2) (J : SmoothAlmostComplexStructure I X)
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
+    (o : Manifold.Orientation 𝓘(ℝ, F) C (Fin 2)) :
+    letI := f.normalSpaceFiberBundle hn
+      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
+    letI := f.normalSpaceVectorBundle hn
+      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
+    (f.compDiffeomorphOfBoundaryless e.symm (by simp)).selfIntersectionNumber
+        hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
+        (o.map e hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
+      ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
+        (ContinuousMap.id C)
+        (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
+          (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF) hJ).Fiber
+          (finrank_self ℂ))).down := by
+  have hν := finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF
+  let := f.normalSpaceFiberBundle hn hν
+  let := f.normalSpaceVectorBundle hn hν
+  rw [selfIntersectionNumber_def,
+    complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless f _ (by simp) J hJ hν
+      (finrank_real_complex_eq_sub_of_finrank_eq_four hE) (finrank_self ℂ),
+    Manifold.Orientation.evalFundamentalClass_toHomologicalOrientation_map hF
+      finrank_euclideanSpace_fin o e hn,
+    ← ModuleCat.comp_apply, ← TopCat.singularCohomologyMap_comp]
+  -- The pull-back along `e` and then along its inverse is the identity.
+  have hid : TopCat.ofHom (e.toHomeomorph : C(C, M)) ≫
+      TopCat.ofHom (e.symm.toHomeomorph : C(M, C)) = 𝟙 (TopCat.of C) := by
+    ext x
+    simp
+  rw [hid, TopCat.singularCohomologyMap_id, ModuleCat.id_apply]
+
 /-- **The self-intersection number of a re-modelled surface.** Let `C` be a compact surface
 charted on a real space `F` of dimension two, `Φ` a diffeomorphism from the model `𝓘(ℝ, F)` to
 `𝓡 2`, and `f` an embedding of `C` in a four-manifold `X` whose tangent planes the almost
@@ -292,23 +336,8 @@ theorem selfIntersectionNumber_remodel
         (ContinuousMap.id C)
         (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
           (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF) hJ).Fiber
-          (finrank_self ℂ))).down := by
-  have hν := finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF
-  let := f.normalSpaceFiberBundle hn hν
-  let := f.normalSpaceVectorBundle hn hν
-  rw [selfIntersectionNumber_def,
-    complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless f _ (by simp) J hJ hν
-      (finrank_real_complex_eq_sub_of_finrank_eq_four hE) (finrank_self ℂ),
-    Manifold.Orientation.evalFundamentalClass_toHomologicalOrientation_map hF
-      finrank_euclideanSpace_fin o (remodelDiffeomorph Φ C) hn,
-    ← ModuleCat.comp_apply, ← TopCat.singularCohomologyMap_comp]
-  -- The pull-back along `remodelDiffeomorph Φ C` and then along its inverse is the identity.
-  have hid : TopCat.ofHom ((remodelDiffeomorph Φ C).toHomeomorph : C(C, Remodel Φ C)) ≫
-      TopCat.ofHom ((remodelDiffeomorph Φ C).symm.toHomeomorph : C(Remodel Φ C, C)) =
-        𝟙 (TopCat.of C) := by
-    ext x
-    simp
-  rw [hid, TopCat.singularCohomologyMap_id, ModuleCat.id_apply]
+          (finrank_self ℂ))).down :=
+  selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm _ f hE hF J hJ o
 
 end Real
 
@@ -349,7 +378,7 @@ theorem selfIntersectionNumber_remodel_complexCurveOrientation
           (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
             (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE
               (finrank_real_of_finrank_complex_eq_add_one hG)) hJ).Fiber (finrank_self ℂ))) := by
-  rw [selfIntersectionNumber_remodel Φ f hE
+  rw [selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm _ f hE
       (finrank_real_of_finrank_complex_eq_add_one hG) J hJ,
     complexManifoldEvalFundamentalClass_def,
     HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
