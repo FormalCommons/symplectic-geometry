@@ -37,8 +37,8 @@ bounded curves, for every `t` at once.
   `exists_localStableGraph_of_contDiffAt`, with a confinement radius at most any given bound,
   together with a family of confined forward solutions starting on the graph whose derivatives
   in the starting point are bounded in time.
-* `ContinuousLinearMap.localStableGraph_apply_eq_of_le`: two graph maps described by confined
-  forward solutions, with nested confinement radii, agree where both are described.
+* `ContinuousLinearMap.localStableGraph_apply_eq_of_le`: two graph maps, one whose graph contains
+  the confined forward solutions and one whose graph they contain, agree where both are described.
 * `ContinuousLinearMap.exists_localStableGraph_of_contDiffAt_infty`: for a field that is `C^∞`
   at the zero, one graph map is `C^n` near `0` for every `n`; it is the graph map of order one,
   which agrees near `0` with the graph map of each order `n` built inside its confinement ball.
@@ -240,41 +240,35 @@ theorem exists_localStableGraph_of_contDiffAt_fderiv
   · exact norm_fderiv_lyapunovPerronSolution_apply_le hs hu hα hM hsmall hn hMn hδ
       (hSball _ hz) t.toNNReal
 
-/-- Two local stable graph maps agree where both are described. Let `g` and `g'` be graph
-maps over `range P`, with values in `ker P` and constant along the fibres of `P`, such that the
-starting points `z` of forward integral curves of `v` confined to `closedBall 0 r`
-(respectively `closedBall 0 r'`) with `‖P z‖ ≤ ρ` (respectively `ρ'`) form the graph of `g`
-(respectively `g'`) over `range P ∩ closedBall 0 ρ` (respectively `ρ'`). If `r' ≤ r`, then
-`g z = g' z` whenever `‖P z‖ ≤ ρ` and `‖P z‖ ≤ ρ'`. -/
+/-- Two local stable graph maps agree where both are described. Let `g` and `g'` be maps with
+values in `ker P` and constant along the fibres of `P`. Suppose that every starting point `z`,
+with `‖P z‖ ≤ ρ`, of a forward integral curve of `v` confined to `closedBall 0 r` lies on the
+graph of `g` over `range P ∩ closedBall 0 ρ`, and that every point of the graph of `g'` over
+`range P ∩ closedBall 0 ρ'` starts a forward integral curve of `v` confined to
+`closedBall 0 r'`. If `r' ≤ r`, then `g z = g' z` whenever `‖P z‖ ≤ ρ` and `‖P z‖ ≤ ρ'`. -/
 theorem localStableGraph_apply_eq_of_le {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {P : F →L[ℝ] F} (hP : IsIdempotentElem P) {v : ℝ → F → F} {g g' : F → F}
     {r r' ρ ρ' : ℝ} (hr : r' ≤ r)
     (hPg : ∀ z, P (g z) = 0) (hgP : ∀ z, g (P z) = g z)
     (hPg' : ∀ z, P (g' z) = 0) (hgP' : ∀ z, g' (P z) = g' z)
     (hset : {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
-        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} =
+        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} ⊆
         (fun z ↦ z + g z) '' (Set.range P ∩ closedBall 0 ρ))
-    (hset' : {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
-        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r')) ∧ ‖P z‖ ≤ ρ'} =
-        (fun z ↦ z + g' z) '' (Set.range P ∩ closedBall 0 ρ'))
+    (hset' : (fun z ↦ z + g' z) '' (Set.range P ∩ closedBall 0 ρ') ⊆
+        {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
+        y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r')) ∧ ‖P z‖ ≤ ρ'})
     {z : F} (hzρ : ‖P z‖ ≤ ρ) (hzρ' : ‖P z‖ ≤ ρ') :
     g z = g' z := by
   have hPP (w : F) : P (P w) = P w := by rw [← mul_apply_eq_comp, hP.eq]
-  -- The point of the graph of `g'` over `P z` starts a curve confined to the larger ball, so it
-  -- lies on the graph of `g`.
-  have hmem : P z + g' (P z) ∈ (fun z ↦ z + g' z) '' (Set.range P ∩ closedBall 0 ρ') :=
-    ⟨P z, ⟨⟨z, rfl⟩, mem_closedBall_zero_iff.2 hzρ'⟩, rfl⟩
-  rw [← hset'] at hmem
-  obtain ⟨⟨y, hy, hy0, hymaps⟩, -⟩ := hmem
-  have hmem : P z + g' (P z) ∈ {z : F | (∃ y : ℝ → F, IsIntegralCurveOn y v (Ici 0) ∧
-      y 0 = z ∧ MapsTo y (Ici 0) (closedBall 0 r)) ∧ ‖P z‖ ≤ ρ} :=
+  -- The point of the graph of `g'` over `P z` starts a curve confined to the smaller ball, hence
+  -- to the larger one, so it lies on the graph of `g`.
+  obtain ⟨⟨y, hy, hy0, hymaps⟩, -⟩ :=
+    hset' ⟨P z, ⟨⟨z, rfl⟩, mem_closedBall_zero_iff.2 hzρ'⟩, rfl⟩
+  obtain ⟨w, ⟨⟨u, rfl⟩, -⟩, hw⟩ := hset
     ⟨⟨y, hy, hy0, hymaps.mono_right (closedBall_subset_closedBall hr)⟩,
       by rwa [map_add, hPP, hPg', add_zero]⟩
-  rw [hset] at hmem
-  obtain ⟨w, ⟨⟨u, rfl⟩, -⟩, hw⟩ := hmem
   have hwz : P u = P z := by
-    have := congrArg P hw
-    rwa [map_add, map_add, hPP, hPP, hPg, hPg', add_zero, add_zero] at this
+    simpa [hPP, hPg, hPg'] using congrArg P hw
   rw [hwz, add_right_inj] at hw
   rw [← hgP, hw, hgP']
 
@@ -322,7 +316,7 @@ theorem exists_localStableGraph_of_contDiffAt_infty
     hδU (closedBall_subset_ball (half_lt_self hδ)
       (closedBall_subset_closedBall (min_le_right _ _) hz))
   have hgg : g =ᶠ[𝓝 z] g' := Filter.mem_of_superset (hU.mem_nhds hzU) fun u hu ↦
-    localStableGraph_apply_eq_of_le hP hr' hPg hgP hPg' hgP' hset hset'
+    localStableGraph_apply_eq_of_le hP hr' hPg hgP hPg' hgP' hset.subset hset'.superset
       (le_min_iff.1 (le_of_lt hu)).1 (le_min_iff.1 (le_of_lt hu)).2
   exact ((hg'n z (closedBall_subset_closedBall (min_le_left _ _) hz)).congr_of_eventuallyEq
     hgg).of_le (by exact_mod_cast n.le_succ)
