@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Slice
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.NormalSpace
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Local.Restrict
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -25,7 +26,11 @@ pulls each class `u` of degree `r` of the Thom pair of `E'` back to the relative
 `relDualClassOf` of `Z` for the pull-back of `u` to the normal bundle along that identification,
 and in particular pulls the canonical Thom class of an orientation `o'` of `E'` back to the
 relative dual class of `Z` with the normal orientation
-`SymplecticGeometry.normalOrientationOfSection o'`.
+`SymplecticGeometry.normalOrientationOfSection o'`. Since `s` is homotopic to the zero section
+through `t • s`, the image of this class in absolute cohomology is the Euler class of `E'`
+(`TauCeti.eulerClass_eq_singularCohomologyMap_thomPairMapOfNeZero`): the dual class of the zero
+set is the Euler class, in every rank, and for a complex bundle with its canonical orientation it
+is `TauCeti.complexEulerClass`.
 
 The proof is the slice criterion `TauCeti.SmoothEmbedding.eq_relDualClassOf_iff_forall_slice`.
 At a point `x` of `Z`, read the normal slice of a normalized tube `Φ` through the preferred
@@ -57,6 +62,13 @@ linearization argument of Tau Ceti's
 * `TauCeti.SmoothEmbedding.relDualClass_ofTransverseSection`: the pull-back along `s` of the
   canonical Thom class of `o'` is the relative dual class of the zero set with the normal
   orientation `normalOrientationOfSection o'`, in every rank.
+* `TauCeti.SmoothEmbedding.dualClass_ofTransverseSection`: the dual class of the zero set is the
+  Euler class of the canonical Thom class of `o'`, in every rank;
+  `TauCeti.SmoothEmbedding.dualClass_ofTransverseSection_eq_eulerClass`, its form in positive
+  rank with `VectorBundleOrientation.eulerClass o'`.
+* `TauCeti.SmoothEmbedding.dualClass_ofTransverseSection_eq_complexEulerClass`: for a complex
+  bundle, such as a complex line bundle, the dual class of the zero set is
+  `TauCeti.complexEulerClass`.
 
 ## References
 
@@ -179,28 +191,11 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
   have h1 := singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt e' hx'
     Filter.univ_mem hgS hg0 hgS0 hA L.antilipschitzWith u
   -- Read on `(univ, univ ∖ {0})` through `m`, the normal slice followed by `s` is `g`.
-  have hgi : (TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of F')
-        (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
-        (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
-        m.complZeroPairIso.hom) ≫
-      (ofTransverseSection hm hsm hs hE).normalSlice hm (Nat.eq_sub_of_add_eq' hE) Φ
-          hΦ.apply_zeroSection x ≫
-        thomPairMapOfNeZero ⟨_, hsm.continuous⟩
-          (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE) =
-      TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of (TotalSpace F' E'))
-        (TopCat.ofHom ⟨univ.domRestrict g, hgS.domRestrict⟩) (B := {⟨0, mem_univ 0⟩}ᶜ)
-        (B' := zeroSectionCompl F' E')
-        fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w w.property fun h ↦ hw (Subtype.ext h)) := by
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-    -- The points of the pairs are those of `univ`, `F'` and `TotalSpace F' E'` only up to
-    -- unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-    rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply, normalSlice_fst_apply,
-      thomPairMapOfNeZero_fst_apply]
-    -- Both sides are `g w`, with `w` a point of `univ` only up to unfolding `ofSubset`, so
-    -- `Set.domRestrict_apply` does not apply syntactically.
-    rfl
+  have hgi := ofSubsetMap_subtypeVal_comp_complZeroPairIso_hom_comp_normalSlice_comp _ hm
+    (Nat.eq_sub_of_add_eq' hE) Φ hΦ.apply_zeroSection x m (thomPairMapOfNeZero ⟨_, hsm.continuous⟩
+      (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE)) hgS
+    (fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w (mem_univ w) hw))
+    fun _ ↦ thomPairMapOfNeZero_fst_apply _ _ _
   -- Read in the same way, the fibre inclusion after `ψ` is `L` followed by `ℓ⁻¹`.
   have hLi : (TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of F')
         (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
@@ -299,29 +294,88 @@ theorem relDualClass_ofTransverseSection {r : ℕ} (o' : VectorBundleOrientation
   let := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
     (Nat.eq_sub_of_add_eq' hE)
   subst hr
-  -- `relDualClass` takes integral cohomology with the structure `Linear.preadditiveIntLinear` of
-  -- `ModuleCat ℤ`, `relDualClassOf_ofTransverseSection` the structure `ModuleCat.instLinear`;
-  -- they are equal (`Linear.subsingletonInt`) but not by definition.
-  have key (L : Linear ℤ (ModuleCat.{w} ℤ))
-      (u : (thomPair F' E').singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ F')) :
-      TopPair.singularCohomologyMap (thomPairMapOfNeZero ⟨_, hsm.continuous⟩
-          (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE)) _ u =
-        (ofTransverseSection hm hsm hs hE).relDualClassOf hm (Nat.eq_sub_of_add_eq' hE)
-          (isClosed_range_ofTransverseSection hm hsm hs hE)
-          (TopPair.singularCohomologyMap (thomPairMapOfFiberwise
-            (g := (ofTransverseSection hm hsm hs hE).toContinuousMap)
-            (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE)) _ u) := by
-    obtain rfl : L = ModuleCat.instLinear := Subsingleton.elim _ _
-    exact relDualClassOf_ofTransverseSection hm hsm hs hE u
   have hι : Fintype.card (Fin (finrank ℝ F')) = finrank ℝ F' := Fintype.card_fin _
   have h := o'.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass
     (g := (ofTransverseSection hm hsm hs hE).toContinuousMap) rfl
     (normalOrientationOfSection hm hsm hs hE hι o') rfl
     (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE)
     (map_normalOrientationOfSection_apply hm hsm hs hE hι o')
-  rw [relDualClass_def, ← h]
-  exact key _ _
+  -- `relDualClassOf_ofTransverseSection` is stated for the `ℤ`-linear structure
+  -- `ModuleCat.instLinear`; read the class for that structure.
+  rw [relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf, ← h,
+    TopPair.singularCohomologyLinearCongr_naturality,
+    ← relDualClassOf_ofTransverseSection hm hsm hs hE,
+    TopPair.singularCohomologyLinearCongr_naturality,
+    TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
+    LinearEquiv.refl_apply]
+
+
+/-- **The dual class of the zero set of a transverse section is the Euler class.** Let `s` be a
+smooth section, transverse to the zero section, of a real vector bundle `E'` of rank `r` with an
+orientation `o'`. The dual class of its zero set, for the normal orientation
+`SymplecticGeometry.normalOrientationOfSection o'`, is the Euler class of the canonical Thom class
+of `o'`. Every rank is allowed, including `r = 0`. -/
+theorem dualClass_ofTransverseSection {r : ℕ} (o' : VectorBundleOrientation F' E' (Fin r))
+    (hr : finrank ℝ F' = r) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    haveI := isManifold_transverseZeroSet hm hsm hs hE
+    (ofTransverseSection hm hsm hs hE).dualClass hm (Nat.eq_sub_of_add_eq' hE)
+        (isClosed_range_ofTransverseSection hm hsm hs hE)
+        (normalOrientationOfSection hm hsm hs hE ((Fintype.card_fin r).trans hr.symm) o') hr =
+      eulerClass _ _ _ F' E' r (o'.canonicalThomClass hr) := by
+  let := transverseZeroSetChartedSpace hm hsm hs hE
+  have := isManifold_transverseZeroSet hm hsm hs hE
+  rw [dualClass_eq_singularCohomologyπ_relDualClass, ← relDualClass_ofTransverseSection,
+    eulerClass_eq_singularCohomologyMap_thomPairMapOfNeZero F' E' hsm.continuous
+      (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE)]
+  -- The first space of the pair `(X, X ∖ Z)` is `X` only up to unfolding `TopPair.ofSubset`, so
+  -- `ConcreteCategory.comp_apply` does not rewrite.
+  exact (ConcreteCategory.comp_apply _ _ _).symm
+
+/-- **The dual class of the zero set of a transverse section is the Euler class**, for an oriented
+bundle `E'` of positive rank `m + 1`: the dual class of the zero set, for the normal orientation
+`SymplecticGeometry.normalOrientationOfSection o'`, is the Euler class of `o'`. -/
+theorem dualClass_ofTransverseSection_eq_eulerClass {m : ℕ}
+    (o' : VectorBundleOrientation F' E' (Fin (m + 1))) (hr : finrank ℝ F' = m + 1) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    haveI := isManifold_transverseZeroSet hm hsm hs hE
+    (ofTransverseSection hm hsm hs hE).dualClass hm (Nat.eq_sub_of_add_eq' hE)
+        (isClosed_range_ofTransverseSection hm hsm hs hE)
+        (normalOrientationOfSection hm hsm hs hE ((Fintype.card_fin _).trans hr.symm) o') hr =
+      o'.eulerClass hr := by
+  let := transverseZeroSetChartedSpace hm hsm hs hE
+  have := isManifold_transverseZeroSet hm hsm hs hE
+  rw [dualClass_ofTransverseSection, VectorBundleOrientation.canonicalThomClass_eq_thomClass,
+    VectorBundleOrientation.eulerClass_def]
+
+section Complex
+
+variable [NormedSpace ℂ F'] [IsScalarTower ℝ ℂ F'] [FiniteDimensional ℂ F']
+  [∀ x, Module ℂ (E' x)] [∀ x, IsScalarTower ℝ ℂ (E' x)] [VectorBundle ℂ F' E']
+
+/-- **Complex bundles: the dual class of a transverse zero set is `complexEulerClass`.** Let `s`
+be a smooth section, transverse to the zero section, of a complex vector bundle `E'` of complex
+rank `n + 1`, for instance a complex line bundle (`n = 0`). The dual class of its
+zero set, for the normal orientation `SymplecticGeometry.normalOrientationOfSection` carried from
+the canonical orientation `VectorBundleOrientation.complex` of `E'` (reindexed by
+`Fin (2 * finrank ℂ F') ≃ Fin (2 * n + 2)`), is the Euler class `TauCeti.complexEulerClass` of
+`E'`. -/
+theorem dualClass_ofTransverseSection_eq_complexEulerClass {n : ℕ} (hF : finrank ℂ F' = n + 1) :
+    letI := transverseZeroSetChartedSpace hm hsm hs hE
+    haveI := isManifold_transverseZeroSet hm hsm hs hE
+    (ofTransverseSection hm hsm hs hE).dualClass hm (Nat.eq_sub_of_add_eq' hE)
+        (isClosed_range_ofTransverseSection hm hsm hs hE)
+        (normalOrientationOfSection hm hsm hs hE
+          (by rw [Fintype.card_fin, finrank_real_eq_two_mul_finrank_complex, hF]; ring)
+          (VectorBundleOrientation.reindex
+            (finCongr (by omega) : Fin (2 * finrank ℂ F') ≃ Fin (2 * n + 2))
+            (VectorBundleOrientation.complex F' E')))
+        (by rw [finrank_real_eq_two_mul_finrank_complex, hF]; ring) =
+      complexEulerClass F' E' hF := by
+  rw [complexEulerClass_def]
+  exact dualClass_ofTransverseSection_eq_eulerClass hm hsm hs hE _ _
+
+end Complex
 
 end DualClass
 

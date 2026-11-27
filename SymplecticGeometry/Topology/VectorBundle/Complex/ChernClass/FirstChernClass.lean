@@ -20,7 +20,7 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 
 There are two first Chern classes of a complex vector bundle `E → B` in the library: the Chern
 class `chernClass G E 1`, from the projective bundle of `E`, and
-`SymplecticGeometry.Bundle.firstChernClass G E`, the Euler class of the determinant line of `E`,
+`TauCeti.firstChernClass G E`, the Euler class of the determinant line of `E`,
 with values in `ULift ℤ`. This file shows that over a compact Hausdorff base they agree, through
 `TopCat.uliftIntegralCohomologyIso` (`chernClass_one_eq_firstChernClass`), so that they are one
 notion.
@@ -35,7 +35,7 @@ product of complex lines with finite trivializing covers over a normal base is t
 Euler classes (`TauCeti.complexEulerClass_tensorProduct`). On lines both are the Euler class
 of the bundle (`chernClass_one_eq_complexEulerClass`, `firstChernClass_eq_complexEulerClass`),
 and in rank zero both vanish (`chernClass_eq_zero_of_finrank_lt`,
-`firstChernClass_eq_zero_of_finrank_eq_zero`).
+`TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`).
 The comparison then goes by induction on the rank with the splitting principle: the
 pull-back of `E` to its projective bundle `π : P(E) → B` splits as the tautological line plus a
 bundle of smaller rank (`ProjectiveBundle.pullbackEquivTautologicalProdComplement`), `P(E)` is
@@ -92,10 +92,8 @@ have finite trivializing covers too, and whose Euler class is the sum of their E
 theorem firstChernClass_prod_of_hasFiniteTrivializingCover
     (h₁ : HasFiniteTrivializingCover ℂ G₁ E₁) (h₂ : HasFiniteTrivializingCover ℂ G₂ E₂) :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ := by
-  rw [firstChernClass_eq_complexEulerClass_detBundle,
-    firstChernClass_eq_complexEulerClass_detBundle,
-    firstChernClass_eq_complexEulerClass_detBundle,
-    ← complexEulerClass_eq_of_fiberwise _ _ (φ := DetBundle.prodEquiv ℂ G₁ E₁ G₂ E₂)
+  simp only [firstChernClass_def, lineFirstChernClass_def]
+  rw [← complexEulerClass_eq_of_fiberwise _ _ (φ := DetBundle.prodEquiv ℂ G₁ E₁ G₂ E₂)
       DetBundle.continuous_prodEquiv]
   exact complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ) h₁.detBundle
     h₂.detBundle
@@ -148,7 +146,7 @@ theorem chernClass_one_eq_firstChernClass :
   induction n generalizing B G E with
   | zero =>
     rw [chernClass_eq_zero_of_finrank_lt G E (by omega),
-      firstChernClass_eq_zero_of_finrank_eq_zero G E hn, map_zero]
+      firstChernClass_eq_zero_of_finrank_eq_zero hn, map_zero]
   | succ n ih =>
     have hS : finrank ℂ ℂ = 0 + 1 := finrank_self ℂ
     -- Pull back to the projective bundle, where `E` splits as `S ⊕ Q` with `Q` of rank `n`.
@@ -179,7 +177,7 @@ hyperplane class.
 Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V] :
     ((TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2).hom
-        (SymplecticGeometry.Bundle.firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
+        (TauCeti.firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
   rw [hyperplaneClass_def, neg_neg, firstChernClass_eq_complexEulerClass _ (finrank_self ℂ)]
 
 end Projectivization

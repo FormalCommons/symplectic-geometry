@@ -47,8 +47,8 @@ files are under `SymplecticGeometry/`.
   `TauCeti.complexManifoldOrientation`, reindexed by the library's
   `Geometry/Manifold/Complex/Orientation.lean`; $\overline{\mathbb CP}{}^n$
   is `ℙ ℂ (Fin (n + 2) → ℂ)` with its negative, as `DESIGN.md` says.
-- **Classes.** $c_1$ is the library's `SymplecticGeometry.Bundle.firstChernClass`
-  (`Topology/VectorBundle/Complex/FirstChernClass.lean`) of the complex
+- **Classes.** $c_1$ is Tau Ceti's `TauCeti.firstChernClass`
+  (`Topology/VectorBundle/Orientation/Complex/FirstChernClass.lean`) of the complex
   tangent bundle `(J.toContMDiff ⊤).toContinuousComplexStructure.Fiber`, as
   in `design/adjunction.md`; $h$ is `Projectivization.hyperplaneClass`; $e$
   is the class $d_Z$ of *Poincaré duals of submanifolds*, in the coefficient
@@ -232,7 +232,7 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
   `exceptionalDivisor_eq_range`: it is the image of `ℓ ↦ (ℓ, 0)`, the map
   `BlowupModel.zeroSection`.
 - `blowdownDiffeomorph n`: $\pi$ as a biholomorphism from the complement of
-  the divisor onto `{z : E | z ≠ 0}`, both as open subsets, with inverse
+  the divisor onto `TauCeti.puncturedSpace E`, both as open subsets, with inverse
   `z ↦ (mk z, z)`; `coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`.
 
 ### `Blowup/Tautological.lean`
@@ -522,7 +522,7 @@ second countable.
   page's three steps:
   1. off $Z$, $d\pi_M$ is a complex isomorphism of $T\widetilde M$ with
      $\pi_M^*TM$ (`mfderiv_blowdown_comp_almostComplexStructure`), so the
-     difference restricts to zero there, by `firstChernClass_pullback`;
+     difference restricts to zero there, by `firstChernClass_pullback_coe`;
   2. the long exact sequence of the pair lifts it to
      $H^2(\widetilde M,\widetilde M\setminus Z)$, which the Thom isomorphism
      of *Poincaré duals of submanifolds* identifies with $H^0(Z)\cong\mathbb Z$
@@ -595,13 +595,14 @@ For a complex manifold `M` and `c` in the complex atlas.
   complex structures (`localPullback`, `ofComplexManifold`), orientations
   of complex manifolds, `TauCeti.ConnectedSum` and
   `TauCeti.OrientedConnectedSum`, the canonical bundle with `coordForm`,
-  tensor products of bundles, and `signedPointTwistCore` as a pattern.
+  tensor products of bundles, `TauCeti.firstChernClass`, and
+  `signedPointTwistCore` as a pattern.
 - Mathlib: `TopCat.GlueData`, `Projectivization.map`, `analyticOrderAt`,
   the identity theorem, `Bundle.Pullback`.
 - The library: `Projectivization.Tautological` and
   `tautologicalTwistCoreEquiv`, `complexEulerClass_twistCore_neg_one`,
-  `Projectivization.hyperplaneClass`, `firstChernClass` with
-  `firstChernClass_pullback`, *Adjunction*'s `selfIntersectionNumber`,
+  `Projectivization.hyperplaneClass`, `firstChernClass_pullback_coe`,
+  *Adjunction*'s `selfIntersectionNumber`,
   `Remodel`, `IsIntegrable`, and the complex orientation of
   `Geometry/Manifold/Complex/Orientation.lean`.
 - Other parts, not yet merged: *Connected sums* (#3274, the orientation

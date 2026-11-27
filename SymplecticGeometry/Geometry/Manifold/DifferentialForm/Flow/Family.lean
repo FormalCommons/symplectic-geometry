@@ -323,7 +323,7 @@ theorem mpullback_prodMk_mlieDerivForm_mpullback_prodMap_subtypeVal
   -- Near `t`, the slices of the restriction at the times `g v` are the slices of `β` at `v`.
   filter_upwards [hu] with v hv
   have hs := congrArg (fun γ ↦ γ.val x)
-    (SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right contMDiff_subtypeVal β (g v))
+    (SmoothForm.mpullback_prodMk_mpullback_prodMap_id β contMDiff_subtypeVal (g v))
   simp only [SmoothForm.coe_mpullback, hv, id] at hs
   rw [SmoothForm.coe_mpullback]
   -- `hs` reads the forms in the tangent spaces of `M`, the goal in the model `E`.
