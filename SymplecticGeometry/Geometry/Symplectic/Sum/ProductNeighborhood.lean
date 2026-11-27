@@ -514,7 +514,7 @@ variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
 `ψ (q, 0) = ι q` and whose derivative maps the symplectic representative of each normal vector `v`
 of the zero slice to that of `Φ q v`. -/
 theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Space Q]
-    [SecondCountableTopology Q] [T2Space M] [SecondCountableTopology M]
+    [SecondCountableTopology Q] [T2Space M]
     (Φ : SymplecticFraming hι hP) :
     ∃ (U₀ : Opens (Q × ℂ)) (U₁ : Opens M) (ψ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), I⟯ U₁),
       (∀ q, ∃ h : zeroSlice J Q q ∈ U₀, (ψ ⟨zeroSlice J Q q, h⟩ : M) = ι q ∧
@@ -712,7 +712,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
 
 section Exists
 
-variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M] [SecondCountableTopology M]
+variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M]
   (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
