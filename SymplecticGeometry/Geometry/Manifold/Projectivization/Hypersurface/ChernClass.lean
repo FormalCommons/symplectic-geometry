@@ -84,8 +84,8 @@ theorem evenIntegralCohomologyMap_hyperplaneClass :
 /-- `ι^* h` is nilpotent: `(ι^* h) ^ (n + 2) = 0`, since `h ^ (n + 2) = 0` on `ℂℙⁿ⁺¹`. -/
 theorem hyperplaneClass_pow_eq_zero :
     (TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 2) = 0 := by
-  rw [← evenIntegralCohomologyMap_hyperplaneClass, ← map_pow,
-    Projectivization.hyperplaneClass_pow_eq_zero (by simp), map_zero]
+  rw [← evenIntegralCohomologyMap_hyperplaneClass,
+    Projectivization.evenIntegralCohomologyMap_hyperplaneClass_pow_eq_zero (by simp)]
 
 /-! ### The normal bundle -/
 
