@@ -12,18 +12,24 @@ public import Mathlib.Topology.MetricSpace.Thickening
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Topology.Algebra.Module.Equiv.Fin
 import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Analysis.Calculus.FDeriv.Add
 import Mathlib.Analysis.Calculus.FDeriv.Equiv
 import Mathlib.Analysis.Normed.Group.Bounded
 import Mathlib.Analysis.Normed.Module.Ball.Pointwise
+import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import Mathlib.Tactic.Module
+import Mathlib.Topology.Maps.Proper.Basic
+import Mathlib.Topology.UrysohnsLemma
 import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
+import TauCeti.Analysis.Convex.PartitionOfUnity
 
 /-!
-# Holonomic approximation for families over a finite-dimensional space
+# Holonomic approximation for families of formal sections
 
 A family of data on `D = (Fin m → ℝ) × (Fin k → ℝ)` over a finite-dimensional real normed space
 `L` is a datum on `L × D`. This file proves the holonomic approximation theorem for such
@@ -95,6 +101,18 @@ those of `D`; those outside `J` record the parameter.
   `TauCeti.Diffeotopy.ofContMDiff`, since Tau Ceti's `TauCeti.Diffeotopy.transDiffeomorph` keeps
   the model and `familyCubeEquiv` changes it. It keeps the parameter, and the bound on the space
   derivative is `SymplecticGeometry.norm_fderiv_comp_familyCubeEquiv_sub_le`.
+* `SymplecticGeometry.exists_holonomic_approximation_continuous_family`: the same theorem for a
+  family over a compact Hausdorff space `P`, continuous in the parameter together with the first
+  space derivatives. The result is stated through a continuous `σ : P → Fin n → ℝ` and a smooth
+  diffeotopy and correction `g` on `(Fin n → ℝ) × D`. It follows from the smooth version over
+  `Fin n → ℝ`. Tau Ceti's `ContinuousMap.exists_partitionOfUnity_dist_finsum_smul_le`, applied
+  to the error `G l - fderiv ℝ (f l)` curried into a map from `P` to the continuous maps on
+  `closedBall 0 2`, gives finitely many parameters `l i` and a partition of unity `ρ` on `P` such
+  that `∑ i, ρ i l • (G (l i) - fderiv ℝ (f (l i)))` is uniformly close to the error at `l`. Then
+  `σ l = Fin.cons (τ l) (ρ · l)`, where `τ` vanishes on `P₀` and equals `1` where the error is
+  not already small. The datum over `s : Fin n → ℝ` is `∑ i, s i.succ • f (l i)`, with the
+  errors of the samples added back through the cutoff `Real.smoothTransition (2 * s 0 - 1)`, so
+  it is holonomic where `s 0 < 1 / 2`.
 
 ## References
 
@@ -652,6 +670,223 @@ theorem exists_holonomic_approximation_family (hk : 0 < k)
   simp [Ψ]
 
 end Conjugation
+
+section Continuous
+
+open scoped Manifold ContDiff Topology
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {P : Type*} [TopologicalSpace P]
+
+/-- The final estimate of `exists_holonomic_approximation_continuous_family`, at one point. For
+weights `w i` and `c ∈ [0, 1]`, the approximation `d₀ + (A - ∑ i, w i • d i)` of `e₀ + d₀` is
+`ε`-close to it when `A` is `ε / 2`-close to `∑ i, w i • (d i + c • e i)`, `∑ i, w i • e i` is
+within `ε / 8` of `e₀`, and `‖e₀‖ < ε / 4` if `c < 1`: the difference is
+`(A - ∑ i, w i • (d i + c • e i)) + c • (∑ i, w i • e i - e₀) - (1 - c) • e₀`. -/
+private theorem norm_add_sub_sum_smul_sub_lt {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] {n : ℕ} {w : Fin n → ℝ} {c : ℝ} (hc : c ∈ Icc (0 : ℝ) 1)
+    {d e : Fin n → E} {A d₀ e₀ : E} {ε : ℝ} (hA : ‖A - ∑ i, w i • (d i + c • e i)‖ < ε / 2)
+    (he : ‖∑ i, w i • e i - e₀‖ ≤ ε / 8) (he₀ : c < 1 → ‖e₀‖ < ε / 4) :
+    ‖d₀ + (A - ∑ i, w i • d i) - (e₀ + d₀)‖ < ε := by
+  have hε : 0 < ε := by linarith [(norm_nonneg _).trans_lt hA]
+  have key : d₀ + (A - ∑ i, w i • d i) - (e₀ + d₀) =
+      (A - ∑ i, w i • (d i + c • e i)) + c • (∑ i, w i • e i - e₀) - (1 - c) • e₀ := by
+    simp only [smul_add, Finset.sum_add_distrib, smul_comm (w _) c, ← Finset.smul_sum]
+    module
+  have h₁ : ‖c • (∑ i, w i • e i - e₀)‖ ≤ ε / 8 := by
+    rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg hc.1]
+    exact (mul_le_of_le_one_left (norm_nonneg _) hc.2).trans he
+  have h₂ : ‖(1 - c) • e₀‖ ≤ ε / 4 := by
+    rcases eq_or_lt_of_le hc.2 with hc1 | hc1
+    · rw [hc1, sub_self, zero_smul, norm_zero]
+      positivity
+    rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg (by linarith)]
+    exact (mul_le_of_le_one_left (norm_nonneg _) (by linarith [hc.1])).trans (he₀ hc1).le
+  rw [key]
+  calc _ ≤ ‖A - ∑ i, w i • (d i + c • e i)‖ + ‖c • (∑ i, w i • e i - e₀)‖ +
+        ‖(1 - c) • e₀‖ := (norm_sub_le _ _).trans (by gcongr; exact norm_add_le _ _)
+    _ < ε := by linarith
+
+/-- Holonomic approximation for a family over a compact Hausdorff space `P` that is only
+continuous in the parameter, in coordinates ([EliashbergMishachev2002], Theorem 4.7.4). Let
+`(f l, G l)`, `l : P`, be formal sections on `D = (Fin m → ℝ) × (Fin k → ℝ)`, `0 < k`, each
+smooth, with `fderiv ℝ (f l) x` and `G l x` jointly continuous in `(l, x)`, and holonomic on an
+open `U ⊆ P × D` that contains every point `(l, (u, 0))` with `u` in a closed `B ⊇ sphere 0 1`
+and every point over a closed `P₀ ⊆ P`. Then for `ε, δ > 0` there are a continuous
+`σ : P → Fin n → ℝ`, a diffeotopy `h` of `(Fin n → ℝ) × D` keeping the first coordinate, a smooth
+`g` and an open `V ⊆ P × D` with the following properties, where the diffeotopy at `l` is the
+slice of `h` at `σ l` and the approximation at `l` is `f l + g (σ l, ·)`. Each slice is smooth;
+since `σ` is continuous and `g` smooth, the correction `g (σ l, ·)` has all its space derivatives
+continuous in `(l, x)`, so the approximation is smooth with first space derivative continuous in
+`(l, x)`. Over `σ l`, `h` is the identity and `g` vanishes off a compact subset of the
+`δ`-thickening of the cube `Q = closedBall 0 1 ×ˢ {0}`, over a neighbourhood of
+`B` in the core, and for `l ∈ P₀`; the slices move points by less than `δ`; `V` contains the
+image of `Q` under the slice at time `1`, for every `l`; and on `V`, `g (σ l, ·)` is less than
+`ε` and the space derivative of the approximation is `ε`-close to `G`. -/
+theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Space P]
+    (hk : 0 < k) {f : P → (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G : P → (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (hf : ∀ l, ContDiff ℝ ∞ (f l)) (hG : ∀ l, ContDiff ℝ ∞ (G l))
+    (hdf : Continuous fun p : P × (Fin m → ℝ) × (Fin k → ℝ) ↦ fderiv ℝ (f p.1) p.2)
+    (hcG : Continuous fun p : P × (Fin m → ℝ) × (Fin k → ℝ) ↦ G p.1 p.2)
+    {P₀ : Set P} (hP₀ : IsClosed P₀) {B : Set (Fin m → ℝ)} (hB : IsClosed B)
+    (hSB : sphere 0 1 ⊆ B) {U : Set (P × (Fin m → ℝ) × (Fin k → ℝ))} (hU : IsOpen U)
+    (hBU : univ ×ˢ (B ×ˢ {0}) ⊆ U) (hP₀U : P₀ ×ˢ univ ⊆ U)
+    (hUf : ∀ p ∈ U, fderiv ℝ (f p.1) p.2 = G p.1 p.2) {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (n : ℕ) (σ : P → Fin n → ℝ)
+      (h : Diffeotopy 𝓘(ℝ, (Fin n → ℝ) × (Fin m → ℝ) × (Fin k → ℝ)) ∞
+        ((Fin n → ℝ) × (Fin m → ℝ) × (Fin k → ℝ)))
+      (g : (Fin n → ℝ) × (Fin m → ℝ) × (Fin k → ℝ) → F)
+      (V : Set (P × (Fin m → ℝ) × (Fin k → ℝ))),
+      Continuous σ ∧ (∀ t q, (h (t, q)).1 = q.1) ∧ ContDiff ℝ ∞ g ∧
+      (∃ C, IsCompact C ∧
+        C ⊆ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)}) ∧
+        ∀ l, ∀ x ∉ C, (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      (∀ l t x, dist (h (t, (σ l, x))).2 x < δ) ∧
+      (∃ N ∈ 𝓝ˢ B, ∀ l, ∀ x : (Fin m → ℝ) × (Fin k → ℝ), x.1 ∈ N →
+        (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      (∀ l ∈ P₀, ∀ x, (∀ t, h (t, (σ l, x)) = (σ l, x)) ∧ g (σ l, x) = 0) ∧
+      IsOpen V ∧ (∀ l, ∀ y ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)},
+        (l, (h (1, (σ l, y))).2) ∈ V) ∧
+      ∀ p ∈ V, ‖g (σ p.1, p.2)‖ < ε ∧
+        ‖fderiv ℝ (fun x ↦ f p.1 x + g (σ p.1, x)) p.2 - G p.1 p.2‖ < ε := by
+  classical
+  -- step 1: the error `e` of the datum, and uniform control on the compact `closedBall 0 2`
+  set e : P → (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F :=
+    fun l x ↦ G l x - fderiv ℝ (f l) x
+  have hce : Continuous fun p : P × (Fin m → ℝ) × (Fin k → ℝ) ↦ e p.1 p.2 := hcG.sub hdf
+  have heU : ∀ l x, (l, x) ∈ U → e l x = 0 := fun l x hp ↦ by simp [e, hUf _ hp]
+  set O : Set ((Fin m → ℝ) × (Fin k → ℝ)) := (Prod.snd '' Uᶜ)ᶜ
+  have hO : IsOpen O := (isClosedMap_snd_of_compactSpace _ hU.isClosed_compl).isOpen_compl
+  have hOU : ∀ l, ∀ x ∈ O, (l, x) ∈ U := fun l x hx ↦ by_contra fun h ↦ hx ⟨(l, x), h, rfl⟩
+  have hBO : B ×ˢ {0} ⊆ O := by
+    rintro x hx ⟨p, hp, rfl⟩
+    exact hp (hBU ⟨mem_univ _, hx⟩)
+  have hnear : ∀ (l₀ : P), ∀ r > 0, ∀ᶠ l in 𝓝 l₀,
+      ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2, ‖e l x - e l₀ x‖ < r :=
+    fun l₀ r hr ↦ (isCompact_closedBall _ _).eventually_forall_of_forall_eventually fun x _ ↦
+      ((hce.sub (hce.comp (continuous_const.prodMk continuous_snd))).norm.tendsto
+        (l₀, x)).eventually (gt_mem_nhds (by simpa using hr))
+  set O₀ : Set P := interior {l | ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
+    ‖e l x‖ < ε / 4}
+  have hP₀O₀ : P₀ ⊆ O₀ := fun l hl ↦ mem_interior_iff_mem_nhds.2 <|
+    (hnear l (ε / 4) (by positivity)).mono fun l' hl' x hx ↦ by
+      simpa [heU l x (hP₀U ⟨hl, mem_univ x⟩)] using hl' x hx
+  -- step 2: a partition of unity `ρ` on `P`, indexed by finitely many samples `pts i`, whose
+  -- combinations of the sampled errors are uniformly `ε / 8`-close to `e` on `closedBall 0 2`
+  set Φ : C(P, C(closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
+      (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F)) :=
+    ContinuousMap.curry ⟨fun p ↦ e p.1 p.2,
+      hce.comp (continuous_fst.prodMk (continuous_subtypeVal.comp continuous_snd))⟩
+  obtain ⟨t, ρ, hρ⟩ := ContinuousMap.exists_partitionOfUnity_dist_finsum_smul_le
+    (E := C(closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2, (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F))
+    Φ (ε := ε / 8) (by positivity)
+  set n' := t.card
+  set pts : Fin n' → P := fun i ↦ (t.equivFin.symm i : P)
+  have hρe : ∀ l, ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
+      ‖∑ i, ρ (t.equivFin.symm i) l • e (pts i) x - e l x‖ ≤ ε / 8 := fun l x hx ↦ by
+    have := (ContinuousMap.dist_apply_le_dist ⟨x, hx⟩).trans (hρ l)
+    rw [finsum_eq_sum_of_fintype, ← t.equivFin.symm.sum_comp, dist_eq_norm] at this
+    simpa [Φ, pts] using this
+  -- step 3: the extra coordinate `τ` and the cutoff `χ`
+  obtain ⟨τ, hτ0, hτ1, hτI⟩ := exists_continuous_zero_one_of_isClosed hP₀
+    isOpen_interior.isClosed_compl (disjoint_compl_right_iff_subset.2 hP₀O₀)
+  set χ : ℝ → ℝ := fun r ↦ Real.smoothTransition (2 * r - 1)
+  have hχ : ContDiff ℝ ∞ χ := Real.smoothTransition.contDiff.comp (by fun_prop)
+  -- step 4: the datum on `(Fin (n' + 1) → ℝ) × D` and the smooth version
+  set σ : P → Fin (n' + 1) → ℝ := fun l ↦ Fin.cons (τ l) fun i ↦ ρ (t.equivFin.symm i) l
+  have hσ : Continuous σ := continuous_pi fun j ↦ by
+    refine Fin.cases ?_ (fun i ↦ ?_) j
+    · simpa [σ] using τ.continuous
+    · simpa [σ] using (ρ _).continuous
+  have hσK : ∀ l, σ l ∈ closedBall 0 1 := fun l ↦ by
+    refine mem_closedBall_zero_iff.2 ((pi_norm_le_iff_of_nonneg zero_le_one).2 fun j ↦ ?_)
+    refine Fin.cases ?_ (fun i ↦ ?_) j
+    · simpa [σ, abs_le, Real.norm_eq_abs] using
+        ⟨(neg_nonpos.2 zero_le_one).trans (hτI l).1, (hτI l).2⟩
+    · simpa [σ, abs_le, Real.norm_eq_abs] using
+        ⟨(neg_nonpos.2 zero_le_one).trans (ρ.nonneg _ l), ρ.le_one _ l⟩
+  have hfd : ∀ l, ContDiff ℝ ∞ (fderiv ℝ (f l)) := fun l ↦ (hf l).fderiv_right (by simp)
+  set F₀ : (Fin (n' + 1) → ℝ) × (Fin m → ℝ) × (Fin k → ℝ) → F :=
+    fun q ↦ ∑ i, q.1 i.succ • f (pts i) q.2
+  set G₀ : (Fin (n' + 1) → ℝ) × (Fin m → ℝ) × (Fin k → ℝ) →
+      (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F :=
+    fun q ↦ ∑ i, q.1 i.succ • (fderiv ℝ (f (pts i)) q.2 + χ (q.1 0) • e (pts i) q.2)
+  have hcoord : ∀ j, ContDiff ℝ ∞ fun q : (Fin (n' + 1) → ℝ) × (Fin m → ℝ) × (Fin k → ℝ) ↦ q.1 j :=
+    fun j ↦ by fun_prop
+  have hF₀ : ContDiff ℝ ∞ F₀ := ContDiff.sum fun i _ ↦
+    (hcoord i.succ).smul ((hf _).comp contDiff_snd)
+  have hG₀ : ContDiff ℝ ∞ G₀ := ContDiff.sum fun i _ ↦
+    (hcoord i.succ).smul (((hfd _).comp contDiff_snd).add
+      ((hχ.comp (hcoord 0)).smul
+        (((hG _).sub (hfd _)).comp contDiff_snd)))
+  have hF₀d : ∀ (s : Fin (n' + 1) → ℝ) x, HasFDerivAt (fun y ↦ F₀ (s, y))
+      (∑ i, s i.succ • fderiv ℝ (f (pts i)) x) x := fun s x ↦
+    HasFDerivAt.fun_sum fun (i : Fin n') _ ↦
+      (((hf _).differentiable (by simp) x).hasFDerivAt).const_smul (s i.succ)
+  set U₀ : Set ((Fin (n' + 1) → ℝ) × (Fin m → ℝ) × (Fin k → ℝ)) :=
+    {q | q.1 0 < 1 / 2 ∨ q.2 ∈ O}
+  have hU₀ : IsOpen U₀ := (isOpen_lt ((continuous_apply 0).comp continuous_fst)
+    continuous_const).union (hO.preimage continuous_snd)
+  have hUf₀ : ∀ q ∈ U₀, fderiv ℝ (fun x ↦ F₀ (q.1, x)) q.2 = G₀ q := fun q hq ↦ by
+    rw [(hF₀d q.1 q.2).fderiv]
+    refine Finset.sum_congr rfl fun i _ ↦ ?_
+    rcases hq with hq | hq
+    · have hχ0 : χ (q.1 0) = 0 := Real.smoothTransition.zero_of_nonpos (by linarith)
+      rw [hχ0, zero_smul, add_zero]
+    · rw [heU _ _ (hOU _ _ hq), smul_zero, add_zero]
+  obtain ⟨h, f'', V'', hfst, hf'', ⟨C₁, hC₁, hC₁Q, hC₁fix⟩, hdist, ⟨N, hN, hNfix⟩, hP₀fix,
+      hV'', hKV'', happrox⟩ :=
+    exists_holonomic_approximation_family hk hF₀ hG₀ (isCompact_closedBall 0 1)
+      (isClosed_le (continuous_apply 0) (continuous_const (y := (1 / 4 : ℝ)))) hB hSB hU₀
+      (fun q hq ↦ Or.inr (hBO hq.2)) (fun q hq ↦ Or.inl (lt_of_le_of_lt hq.1 (by norm_num)))
+      hUf₀ (half_pos hε) (lt_min hδ one_pos)
+  have hfix : ∀ q, ((∀ t, h (t, q) = q) ∧ f'' q = F₀ q) →
+      (∀ t, h (t, q) = q) ∧ f'' q - F₀ q = 0 := fun q hq ↦ ⟨hq.1, sub_eq_zero.2 hq.2⟩
+  refine ⟨n' + 1, σ, h, fun q ↦ f'' q - F₀ q,
+    {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ ball 0 2, hσ, hfst, hf''.sub hF₀,
+    ⟨Prod.snd '' C₁, hC₁.image continuous_snd, ?_, fun l x hx ↦ hfix _ (hC₁fix _ ?_)⟩,
+    fun l t x ↦ ?_, ⟨N, hN, fun l x hx ↦ hfix _ (hNfix _ hx)⟩,
+    fun l hl x ↦ hfix _ (hP₀fix _ ?_), ?_, fun l y hy ↦ ?_, fun p hp ↦ ?_⟩
+  · rintro _ ⟨p, hp, rfl⟩
+    exact thickening_mono (min_le_left _ _) _ (hC₁Q p hp)
+  · exact fun hc ↦ hx ⟨_, hc, rfl⟩
+  · have := hdist t (σ l, x)
+    rw [Prod.dist_eq] at this
+    exact (le_max_right _ _).trans_lt (this.trans_le (min_le_left _ _))
+  · simp [σ, hτ0 hl]
+  · exact (hV''.preimage ((hσ.comp continuous_fst).prodMk continuous_snd)).inter
+      (isOpen_univ.prod isOpen_ball)
+  · have hq : (σ l, (h (1, (σ l, y))).2) = h (1, (σ l, y)) := Prod.ext (hfst 1 (σ l, y)).symm rfl
+    refine ⟨by simpa [hq] using hKV'' (σ l) (hσK l) y hy, mem_univ _, ?_⟩
+    have hd := hdist 1 (σ l, y)
+    rw [Prod.dist_eq] at hd
+    have hy0 : dist y 0 ≤ 1 := by
+      rw [Prod.dist_eq]
+      exact max_le (mem_closedBall.1 hy.1) (by simp [mem_singleton_iff.1 hy.2])
+    exact mem_ball.2 ((dist_triangle _ y 0).trans_lt (by
+      linarith [le_max_right (dist (h (1, (σ l, y))).1 (σ l, y).1)
+        (dist (h (1, (σ l, y))).2 (σ l, y).2), min_le_right δ 1]))
+  obtain ⟨h₁, h₂⟩ := happrox (σ p.1, p.2) hp.1
+  refine ⟨h₁.trans (half_lt_self hε), ?_⟩
+  obtain ⟨l, x⟩ := p
+  simp only at h₂ hp ⊢
+  have hx : x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2 := ball_subset_closedBall hp.2.2
+  have hA : HasFDerivAt (fun y ↦ f'' (σ l, y)) (fderiv ℝ (fun y ↦ f'' (σ l, y)) x) x :=
+    ((hf''.differentiable (by simp) _).comp x
+      ((differentiableAt_const _).prodMk differentiableAt_id)).hasFDerivAt
+  rw [(((hf l).differentiable (by simp) x).hasFDerivAt.fun_add
+    (hA.fun_sub (hF₀d (σ l) x))).fderiv, show G l x = e l x + fderiv ℝ (f l) x by simp [e]]
+  simp only [σ, Fin.cons_succ, Fin.cons_zero, G₀] at h₂ ⊢
+  refine norm_add_sub_sum_smul_sub_lt
+    ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩ h₂ (hρe l x hx) fun hc ↦ ?_
+  have hl : l ∈ O₀ := by
+    by_contra hl
+    refine hc.ne (Real.smoothTransition.one_of_one_le ?_)
+    rw [hτ1 hl]
+    norm_num
+  exact interior_subset hl x hx
+
+end Continuous
 
 end SymplecticGeometry
 

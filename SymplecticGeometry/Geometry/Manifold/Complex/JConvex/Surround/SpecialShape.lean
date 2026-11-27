@@ -49,6 +49,14 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   between them and above outside (`SymplecticGeometry.exists_crossings_quadratic_sqrt`):
   there `(ℓ + b r + c r² / (2 ℓ))² - ℓ² - a r²` is `r` times a cubic whose coefficients of `1`
   and `r³` are positive, whose sign `SymplecticGeometry.exists_two_roots_cubic_of_neg` gives.
+* `SymplecticGeometry.exists_isConvexShapeAt_eq_linear_eq_sqrt`: for `1 < a` and `0 < γ`, a
+  smooth `i`-convex shape on `(0, ∞)` that is `1 + d r`, for some `d ∈ (0, 1)`, near `0` and
+  `√(1 + a r²)` on `[γ, ∞)`. It comes from
+  `SymplecticGeometry.exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt`, which passes
+  from the linear to the quadratic shape and from there to the square-root one, given a point
+  `r₀` where the quadratic shape is below the square-root one, and from the constants
+  `b = γ (a - 1) / 16`, `c = (1 + a) / 2` of `SymplecticGeometry.quadratic_lt_sqrt_of_mul_sq_le`,
+  for which `r₀ = γ` is such a point once `γ (a + 1)² ≤ a - 1`.
 
 The shapes are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe's shape the two
 inequalities read `r √L < χ` and `2 r √L³ < χ`, with `L = log (r / δ)`; the second follows from
@@ -60,7 +68,8 @@ where the integrand equals `d`, and integrating the latter exactly.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §4.5: Lemma 4.15, Remark 4.16, Lemma 4.17 (a), (b), (e) and Lemma 4.18.
+  §4.5: Lemma 4.15, Remark 4.16, Lemma 4.17 (a), (b), (e), Lemma 4.18, Lemma 4.19 and
+  Remark 4.20.
 -/
 
 public section
@@ -612,6 +621,152 @@ theorem exists_crossings_quadratic_sqrt {ℓ a b c r₀ : ℝ} (hℓ : 0 < ℓ) 
   obtain ⟨h₁, h₂, h₃⟩ := hsign r hr
   exact ⟨(hlt r hr).trans h₁, (hgt r hr).trans h₂,
     (eq_iff_eq_of_lt_iff_lt_of_gt_iff_gt (hlt r hr) (hgt r hr)).trans h₃⟩
+
+/-! ### From the linear to the square-root shape
+
+Cieliebak and Eliashberg's Lemma 4.19 and Remark 4.20: a smooth `i`-convex shape that is linear
+near `0` and equal to `√(1 + a r²)` beyond a given `γ`. The linear shape gives way to a quadratic
+one where the two cross, and the quadratic shape to the square-root one where those cross, each
+time by `exists_isConvexShapeAt_eqOn_Iic_Ici`. -/
+
+/-- The slope of the linear shape in
+`exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt`: some `d ∈ (b, 1)` so close to `b`
+that twice the crossing `x = 2 ℓ (d - b) / c` of the linear and quadratic shapes is below `ℓ d³`,
+where the linear shape stops being convex, and at most a given `r₁ > 0`. -/
+private theorem exists_slope_linear {ℓ b c r₁ : ℝ} (hℓ : 0 < ℓ) (hb : 0 < b) (hb₁ : b < 1)
+    (hc : 0 < c) (hr₁ : 0 < r₁) :
+    ∃ d ∈ Ioo b 1, 2 * (2 * ℓ * (d - b) / c) < ℓ * d ^ 3 ∧ 2 * (2 * ℓ * (d - b) / c) ≤ r₁ := by
+  set ρ := min (ℓ * b ^ 3) r₁
+  set ε := min (c * ρ / (4 * ℓ)) ((1 - b) / 2)
+  have hε₀ : 0 < ε := lt_min (by positivity) (by linarith)
+  have hd₁ : b + ε < 1 := by linarith [min_le_right (c * ρ / (4 * ℓ)) ((1 - b) / 2)]
+  have hx : 2 * (2 * ℓ * (b + ε - b) / c) ≤ ρ := by
+    rw [show b + ε - b = ε by ring, ← mul_div_assoc, div_le_iff₀ hc]
+    have : ε ≤ c * ρ / (4 * ℓ) := min_le_left _ _
+    rw [le_div_iff₀ (by positivity)] at this
+    nlinarith
+  refine ⟨b + ε, ⟨by linarith, hd₁⟩, hx.trans_lt ((min_le_left _ _).trans_lt ?_),
+    hx.trans (min_le_right _ _)⟩
+  exact mul_lt_mul_of_pos_left (pow_lt_pow_left₀ (by linarith) hb.le (by norm_num)) hℓ
+
+/-- **From a linear to a square-root shape, through a quadratic one.** Let `0 < ℓ`, `1 < a`,
+`0 < b < 1` and `1 < c`, and suppose that the quadratic shape `ℓ + b r + c r² / (2 ℓ)` is below
+`√(ℓ² + a r²)` at some `r₀ > 0`. Then there are a slope `d ∈ (b, 1)`, some `β ∈ (0, r₀)` and a
+smooth `ψ`, an `i`-convex shape at every `r > 0`, with `ψ r = √(ℓ² + a r²)` for `r ≥ r₀` and
+`ψ r = ℓ + d r` for `r ≤ β`. -/
+theorem exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt {ℓ a b c r₀ : ℝ}
+    (hℓ : 0 < ℓ) (ha : 1 < a) (hb : 0 < b) (hb₁ : b < 1) (hc : 1 < c) (hr₀ : 0 < r₀)
+    (h : ℓ + b * r₀ + c * r₀ ^ 2 / (2 * ℓ) < √(ℓ ^ 2 + a * r₀ ^ 2)) :
+    ∃ d ∈ Ioo b 1, ∃ β ∈ Ioo 0 r₀, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧
+      (∀ r, 0 < r → IsConvexShapeAt ψ r) ∧ (∀ r, r₀ ≤ r → ψ r = √(ℓ ^ 2 + a * r ^ 2)) ∧
+      ∀ r ≤ β, ψ r = ℓ + d * r := by
+  have hc₀ : 0 < c := by linarith
+  obtain ⟨r₁, ⟨hr₁₀, hr₁r₀⟩, r₂, hr₂, hQS⟩ := exists_crossings_quadratic_sqrt hℓ hb hc₀ hr₀ h
+  have hr₂ : r₀ < r₂ := hr₂
+  obtain ⟨d, ⟨hbd, hd₁⟩, hxd, hxr₁⟩ := exists_slope_linear hℓ hb hb₁ hc₀ hr₁₀
+  set x := 2 * ℓ * (d - b) / c with hx
+  have hx₀ : 0 < x := by rw [hx]; have := sub_pos.2 hbd; positivity
+  set L : ℝ → ℝ := fun r ↦ ℓ + d * r
+  set Q : ℝ → ℝ := fun r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)
+  set S : ℝ → ℝ := fun r ↦ √(ℓ ^ 2 + a * r ^ 2)
+  have hLs : ContDiff ℝ ∞ L := by fun_prop
+  have hQs : ContDiff ℝ ∞ Q := by fun_prop
+  have hSs : ContDiff ℝ ∞ S :=
+    ContDiff.sqrt (by fun_prop) fun r ↦ (by positivity : 0 < ℓ ^ 2 + a * r ^ 2).ne'
+  have hLc : ∀ r ∈ Ioo 0 (2 * x), IsConvexShapeAt L r := fun r hr ↦
+    isConvexShapeAt_linear hℓ (hb.trans hbd) ⟨hr.1, hr.2.trans hxd⟩
+  have hQc : ∀ r, 0 < r → IsConvexShapeAt Q r := fun r hr ↦
+    isConvexShapeAt_quadratic hℓ hb.le hc hr
+  have hSc : ∀ r, 0 < r → IsConvexShapeAt S r := fun r hr ↦ isConvexShapeAt_sqrt ha hr
+  -- From the linear to the quadratic shape, across `x`, on `[x / 4, 3 x / 2]`.
+  obtain ⟨φ, hφs, hφc, hφL, hφQ, hφ₁, hφ₂⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici (r₁ := x / 4)
+    (u := x / 2) (v := 5 * x / 4) (r₂ := 3 * x / 2) le_top hLs hQs (by linarith) (by linarith)
+    (by linarith) (fun r hr ↦ hLc r ⟨by linarith [hr.1], by linarith [hr.2]⟩)
+    (fun r hr ↦ hQc r (by linarith [hr.1]))
+    (fun r hr ↦ ((quadratic_lt_linear_iff hℓ hc₀ (by linarith [hr.1])).2
+      (by linarith [hr.2])).le)
+    (fun r hr ↦ ((linear_lt_quadratic_iff hℓ hc₀ (by linarith [hr.1])).2
+      (by linarith [hr.1])).le)
+    (fun r hr he ↦ by
+      have := (quadratic_eq_linear_iff hℓ hc₀ (by linarith [hr.1]) (b := b) (d := d)).1 he.symm
+      exact ⟨by linarith, by linarith⟩)
+  have hφc' : ∀ r, 0 < r → IsConvexShapeAt φ r := fun r hr ↦ by
+    rcases lt_or_ge r (x / 4) with h₁ | h₁
+    · exact hφ₁ r (by linarith) (hLc r ⟨hr, by linarith⟩)
+    rcases le_or_gt r (3 * x / 2) with h₂ | h₂
+    · exact hφc r ⟨h₁, h₂⟩
+    · exact hφ₂ r (by linarith) (hQc r hr)
+  -- From the quadratic to the square-root shape, across `r₁`, on `[5 x / 4, r₀]`.
+  obtain ⟨ψ, hψs, hψc, hψφ, hψS, hψ₁, hψ₂⟩ := exists_isConvexShapeAt_eqOn_Iic_Ici
+    (r₁ := 5 * x / 4) (u := (3 * x / 2 + r₁) / 2) (v := (r₁ + r₀) / 2) (r₂ := r₀) le_top hφs hSs
+    (by linarith) (by linarith) (by linarith) (fun r hr ↦ hφc' r (by linarith [hr.1]))
+    (fun r hr ↦ hSc r (by linarith [hr.1]))
+    (fun r hr ↦ by
+      rw [hφQ (show 5 * x / 4 ≤ r from hr.1)]
+      exact ((hQS r (by linarith [hr.1])).2.1.2 (Or.inl (by linarith [hr.2]))).le)
+    (fun r hr ↦ by
+      rw [hφQ (show 5 * x / 4 ≤ r by linarith [hr.1])]
+      exact ((hQS r (by linarith [hr.1])).1.2 ⟨by linarith [hr.1], by linarith [hr.2]⟩).le)
+    (fun r hr he ↦ by
+      rw [hφQ (show 5 * x / 4 ≤ r from hr.1)] at he
+      rcases (hQS r (by linarith [hr.1])).2.2.1 he with rfl | rfl
+      · exact ⟨by linarith, by linarith⟩
+      · linarith [hr.2])
+  refine ⟨d, ⟨hbd, hd₁⟩, x / 2, ⟨by positivity, by linarith⟩, ψ, hψs, fun r hr ↦ ?_,
+    fun r hr ↦ hψS (show (r₁ + r₀) / 2 ≤ r by linarith),
+    fun r hr ↦ (hψφ (show r ≤ (3 * x / 2 + r₁) / 2 by linarith)).trans (hφL hr)⟩
+  rcases lt_or_ge r ((3 * x / 2 + r₁) / 2) with h₁ | h₁
+  · exact hψ₁ r h₁ (hφc' r hr)
+  rcases le_or_gt r r₀ with h₂ | h₂
+  · exact hψc r ⟨by linarith, h₂⟩
+  · exact hψ₂ r (by linarith) (hSc r hr)
+
+/-- **Admissible constants for the quadratic shape** (Cieliebak–Eliashberg, Remark 4.20). For
+`0 < γ` and `γ (a + 1)² ≤ a - 1`, which force `1 < a`, the quadratic shape with `ℓ = 1`,
+`b = γ (a - 1) / 16` and `c = (1 + a) / 2` is below `√(1 + a r²)` at `r = γ`. -/
+theorem quadratic_lt_sqrt_of_mul_sq_le {a γ : ℝ} (hγ : 0 < γ) (h : γ * (a + 1) ^ 2 ≤ a - 1) :
+    1 + γ * (a - 1) / 16 * γ + (1 + a) / 2 * γ ^ 2 / 2 < √(1 + a * γ ^ 2) := by
+  have ha : 1 < a := by nlinarith [sq_nonneg (a - 1), mul_pos hγ hγ]
+  rw [lt_sqrt (by positivity), ← sub_neg]
+  have e : (1 + γ * (a - 1) / 16 * γ + (1 + a) / 2 * γ ^ 2 / 2) ^ 2 - (1 + a * γ ^ 2) =
+      γ ^ 2 * (γ ^ 2 * ((a - 1) ^ 2 / 256 + (a + 1) * (3 * a + 1) / 32) - 3 * (a - 1) / 8) := by
+    ring
+  rw [e]
+  refine mul_neg_of_pos_of_neg (by positivity) (sub_neg.2 ?_)
+  have hγ₁ : γ < 1 := by nlinarith
+  have h₁ : γ ^ 2 * (a + 1) ^ 2 ≤ γ * (a - 1) := by nlinarith [mul_le_mul_of_nonneg_left h hγ.le]
+  have h₂ : (a - 1) ^ 2 / 256 + (a + 1) * (3 * a + 1) / 32 < (a + 1) ^ 2 / 8 := by nlinarith
+  calc γ ^ 2 * ((a - 1) ^ 2 / 256 + (a + 1) * (3 * a + 1) / 32)
+      ≤ γ ^ 2 * ((a + 1) ^ 2 / 8) := by gcongr
+    _ ≤ γ * (a - 1) / 8 := by linarith
+    _ < 3 * (a - 1) / 8 := by nlinarith
+
+/-- The hypothesis `γ (a + 1)² ≤ a - 1` of `quadratic_lt_sqrt_of_mul_sq_le` cannot be dropped:
+for `a = 100` and `γ = 1 / 2`, Remark 4.20's quadratic shape is above `√(1 + a γ²)` at `γ`. -/
+example : ¬ ((1 : ℝ) + 1 / 2 * (100 - 1) / 16 * (1 / 2) + (1 + 100) / 2 * (1 / 2) ^ 2 / 2 <
+    √(1 + 100 * (1 / 2) ^ 2)) := by
+  rw [not_lt, Real.sqrt_le_left (by norm_num)]
+  norm_num
+
+/-- **From a linear to a square-root shape** (Cieliebak–Eliashberg, Lemma 4.19). For `1 < a` and
+`0 < γ` there are `d ∈ (0, 1)`, `β ∈ (0, γ)` and a smooth `ψ`, an `i`-convex shape at every
+`r > 0`, with `ψ r = √(1 + a r²)` for `r ≥ γ` and `ψ r = 1 + d r` for `r ≤ β`. -/
+theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
+    ∃ d ∈ Ioo 0 1, ∃ β ∈ Ioo 0 γ, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧
+      (∀ r, 0 < r → IsConvexShapeAt ψ r) ∧ (∀ r, γ ≤ r → ψ r = √(1 + a * r ^ 2)) ∧
+      ∀ r ≤ β, ψ r = 1 + d * r := by
+  set γ' := min γ ((a - 1) / (a + 1) ^ 2)
+  have hγ'₀ : 0 < γ' := lt_min hγ (div_pos (by linarith) (by positivity))
+  have h : γ' * (a + 1) ^ 2 ≤ a - 1 := (le_div_iff₀ (by positivity)).1 (min_le_right _ _)
+  have hb : γ' * (a - 1) / 16 < 1 := by nlinarith [mul_le_mul_of_nonneg_left h hγ'₀.le]
+  obtain ⟨d, hd, β, hβ, ψ, hψs, hψc, hψS, hψL⟩ :=
+    exists_isConvexShapeAt_eq_linear_eq_sqrt_of_quadratic_lt (ℓ := 1) (b := γ' * (a - 1) / 16)
+      (c := (1 + a) / 2) one_pos ha (by have := sub_pos.2 ha; positivity) hb (by linarith) hγ'₀
+      (by simpa using quadratic_lt_sqrt_of_mul_sq_le hγ'₀ h)
+  have hγγ' : γ' ≤ γ := min_le_left _ _
+  refine ⟨d, ⟨lt_trans (by have := sub_pos.2 ha; positivity) hd.1, hd.2⟩, β,
+    ⟨hβ.1, hβ.2.trans_le hγγ'⟩, ψ, hψs, hψc, fun r hr ↦ by simpa using hψS r (hγγ'.trans hr),
+    hψL⟩
 
 end SymplecticGeometry
 

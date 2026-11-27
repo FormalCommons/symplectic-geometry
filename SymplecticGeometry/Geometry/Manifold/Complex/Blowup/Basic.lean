@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import Mathlib.Analysis.CStarAlgebra.Classes
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -470,6 +471,13 @@ theorem lift_def (z : Blowup c) :
 theorem lift_inr (y : modelOpens c) : lift c (inr (gluingHomeomorph c) y) = y := by
   rw [lift_def, IsOpenEmbedding.toOpenPartialHomeomorph_left_inv]
 
+/-- The map to the model sends the point of the exceptional divisor over `ℓ` to the point `(ℓ, 0)`
+of the model's zero section. -/
+@[simp]
+theorem lift_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    lift c (ofDirection c ℓ) = zeroSection ℓ := by
+  rw [ofDirection_def, lift_inr]
+
 /-- On the punctured source of `c`, the map to the model is the inverse of the blowdown applied
 to `c x`, which is `(mk (c x), c x)`. -/
 theorem lift_inl {x : puncturedOpens c} (hx : (x : M) ∈ c.source) :
@@ -900,6 +908,16 @@ theorem coe_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ 
   rw [divisorRealEmbedding, TauCeti.SmoothEmbedding.transLocalDiffeomorph_apply, ofDirection_def]
   exact congrArg (inr (gluingHomeomorph c)) (Subtype.ext (by
     rw [TauCeti.SmoothEmbedding.val_codRestrict_apply, coe_zeroSectionRealEmbedding]))
+
+open scoped TauCeti.ComplexManifold in
+/-- For a complex manifold `M`, the real embedding of the exceptional divisor is the real form
+of its holomorphic embedding. -/
+theorem divisorRealEmbedding_eq_restrictScalars [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    divisorRealEmbedding c = (divisorEmbedding c).restrictScalars ℝ le_top ENat.LEInfty.out := by
+  ext ℓ
+  rw [coe_divisorRealEmbedding, TauCeti.SmoothEmbedding.restrictScalars_apply,
+    coe_divisorEmbedding]
 
 open scoped TauCeti.ComplexManifold in
 /-- The image of the real embedding of the divisor is the exceptional divisor. -/
