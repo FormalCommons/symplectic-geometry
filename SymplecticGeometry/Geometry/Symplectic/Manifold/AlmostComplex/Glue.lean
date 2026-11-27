@@ -56,6 +56,8 @@ def AgreeOnOverlaps : Prop :=
       Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hj⟩ : U j)
         (J j ⟨x, hj⟩ ((Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hj⟩ : U j)).symm v))
 
+/-- Unfolds `AgreeOnOverlaps`: the structures take the same value at every point of every
+overlap. -/
 theorem agreeOnOverlaps_iff :
     AgreeOnOverlaps U J ↔ ∀ i j (x : M) (hi : x ∈ U i) (hj : x ∈ U j) (v : TangentSpace I x),
       Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)

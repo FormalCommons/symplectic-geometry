@@ -112,9 +112,6 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 /-- The range of `inr (gluingHomeomorph c)`, as an open set of the blowup. -/
 private def rangeInrOpens : Opens (Blowup c) := (isLocalDiffeomorph_inr_real c).image
 
-private theorem mem_rangeInrOpens {z : Blowup c} :
-    z ∈ rangeInrOpens c ↔ z ∈ range (inr (gluingHomeomorph c)) := Iff.rfl
-
 /-- The inverse of `inr` on its range, as a diffeomorphism onto the part of the model over the
 target of `c`. -/
 private def rangeInrDiffeomorph :
@@ -173,7 +170,6 @@ private def rangeInrStructure :
 private def coverStructure : ∀ b, SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) (cover c b)
   | false => offDivisorStructure c J
   | true => rangeInrStructure c
-
 
 /-! ### Differentials on the two pieces -/
 
