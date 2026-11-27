@@ -92,9 +92,8 @@ theorem IsMIntegralCurveOn.isIntegralCurveOn_centeredExtChartAt {γ : ℝ → M}
     IsIntegralCurveOn (fun t ↦ SymplecticGeometry.centeredExtChartAt I p (γ t))
       (fun _ w ↦ mpullback 𝓘(ℝ, E) I (extChartAt I p).symm v (extChartAt I p p + w)) s := by
   intro t ht
-  have hγt : γ t ∈ (extChartAt I p).source := by
-    rw [extChartAt_source, ← SymplecticGeometry.centeredExtChartAt_source I p]
-    exact hmem t ht
+  have hγt : γ t ∈ (extChartAt I p).source :=
+    (SymplecticGeometry.centeredExtChartAt_source_eq_extChartAt_source I p).subset (hmem t ht)
   have h := (hγ t ht).hasDerivWithinAt_extChartAt_comp_mpullbackWithin hγt
     |>.sub_const (extChartAt I p p)
   rw [I.range_eq_univ, mpullbackWithin_univ] at h
