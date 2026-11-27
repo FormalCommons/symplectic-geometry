@@ -25,7 +25,7 @@ the same model. This file moves `E(1)` to the model `𝓘(ℝ, E)` along a real 
 * `rationalEllipticSurface.OnModel e`: the rational elliptic surface, lifted to any universe
   `Type u` (`Diffeomorph.ulift`), with its charts followed by `e`, as `SymplecticGeometry.Remodel`
   gives it. It is a compact, connected, Hausdorff, second countable smooth manifold over
-  `𝓘(ℝ, E)`. Since the fibre sum takes both pieces in one universe, it lives in that of `X`.
+  `𝓘(ℝ, E)`. Since the fibre sum takes both pieces in one universe, it is taken in that of `X`.
 * `rationalEllipticSurface.OnModel.diffeomorph e`: the identification of the surface with
   `OnModel e`, a diffeomorphism from the model `Fin 2 → ℂ` to the model `E`.
 * `rationalEllipticSurface.OnModel.symplecticForm e p`: the form of the surface rescaled by
@@ -114,31 +114,26 @@ namespace OnModel
 form of the surface, moved to `OnModel e` along `OnModel.diffeomorph`. For this form the fibre
 over `[1 : 0]` has the area `p inl * p inr` of the standard torus. -/
 def symplecticForm : SmoothTwoForm 𝓘(ℝ, E) (OnModel e) :=
-  SmoothForm.mpullback (diffeomorph e).symm
-    (diffeomorph e).symm.contMDiff
+  SmoothForm.mpullback (diffeomorph e).symm (diffeomorph e).symm.contMDiff
     (torusScale p • rationalEllipticSurface.symplecticForm)
 
 theorem symplecticForm_def :
     symplecticForm e p =
-      SmoothForm.mpullback (diffeomorph e).symm
-        (diffeomorph e).symm.contMDiff
+      SmoothForm.mpullback (diffeomorph e).symm (diffeomorph e).symm.contMDiff
         (torusScale p • rationalEllipticSurface.symplecticForm) :=
   (rfl)
 
-/-- Pulled back along `OnModel.diffeomorph`, the form of `OnModel e` is
-`torusScale p` times the form of the rational elliptic surface. -/
+/-- Pulled back along `OnModel.diffeomorph`, the form of `OnModel e` is `torusScale p` times the
+form of the rational elliptic surface. -/
 theorem mpullback_diffeomorph_symplecticForm :
-    SmoothForm.mpullback (diffeomorph e)
-        (diffeomorph e).contMDiff
-        (symplecticForm e p) =
+    SmoothForm.mpullback (diffeomorph e) (diffeomorph e).contMDiff (symplecticForm e p) =
       torusScale p • rationalEllipticSurface.symplecticForm := by
   rw [symplecticForm_def]
   exact SmoothForm.mpullback_mpullback_symm _ _
 
 /-- The form of the rational elliptic surface on the model `E` is symplectic. -/
 theorem isSymplectic_symplecticForm : (symplecticForm e p).IsSymplectic :=
-  ((diffeomorph e).symm.isLocalDiffeomorph
-    |>.isSymplectic_mpullback_iff
+  ((diffeomorph e).symm.isLocalDiffeomorph.isSymplectic_mpullback_iff
       (diffeomorph e).symm.surjective).2
     (rationalEllipticSurface.isSymplectic_symplecticForm.smul _ (torusScale_pos p).ne')
 
