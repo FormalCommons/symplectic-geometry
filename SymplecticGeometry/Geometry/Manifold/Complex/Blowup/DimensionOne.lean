@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.RestrictScalars
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
 # The blowup of a point in complex dimension one
@@ -24,12 +24,12 @@ formula for the blowup, which there follows by naturality.
 * `SymplecticGeometry.Blowup.bijective_blowdown`: the blowdown is bijective. Off the divisor it is
   injective (`injOn_blowdown`), the divisor is the fibre over `p₀`, and `M ∖ {p₀}` is the image
   of `inl`.
-* `SymplecticGeometry.Blowup.isLocalDiffeomorph_blowdown`: the blowdown is a local
+* `SymplecticGeometry.Blowup.isLocalDiffeomorph_blowdown_real`: the blowdown is a local
   diffeomorphism. Off the divisor this is `isLocalDiffeomorphAt_blowdown_real`. On the range of
   `inr`, `c ∘ π` agrees near each point with the model blowdown after `lift c`, a composition of
   local diffeomorphisms by `BlowupModel.blowdownDiffeomorphDimOne` and `isLocalDiffeomorphAt_lift`,
   and Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` cancels the chart `c`.
-* `SymplecticGeometry.Blowup.blowdownDiffeomorphDimOne`: the blowdown as a diffeomorphism
+* `SymplecticGeometry.Blowup.blowdownRealDiffeomorphDimOne`: the blowdown as a diffeomorphism
   `Blowup c ≃ₘ^∞ M`, by Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`.
 * `SymplecticGeometry.Blowup.almostComplexStructure_eq_pullback`: the almost complex blowup is the
   pullback of `J` by this diffeomorphism (Tau Ceti's
@@ -65,8 +65,7 @@ theorem subsingleton_exceptionalDivisor : (exceptionalDivisor c).Subsingleton :=
   have : Subsingleton (ℙ ℂ (Fin 1 → ℂ)) :=
     Projectivization.subsingleton_of_rank_le_one (by simp)
   rw [exceptionalDivisor_def]
-  rintro _ ⟨ℓ, rfl⟩ _ ⟨ℓ', rfl⟩
-  rw [Subsingleton.elim ℓ ℓ']
+  exact Set.subsingleton_range _
 
 /-- For `n = 0` the blowdown `Blowup c → M` is bijective. -/
 theorem bijective_blowdown : Bijective (blowdown c) := by
@@ -85,7 +84,7 @@ variable [IsManifold 𝓘(ℝ, Fin 1 → ℂ) ∞ M]
 
 /-- For `n = 0` the blowdown `Blowup c → M` is a local diffeomorphism of real manifolds,
 also at the point of the exceptional divisor. -/
-theorem isLocalDiffeomorph_blowdown :
+theorem isLocalDiffeomorph_blowdown_real :
     IsLocalDiffeomorph 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 1 → ℂ) ∞ (blowdown c) := by
   intro z
   rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
@@ -93,10 +92,8 @@ theorem isLocalDiffeomorph_blowdown :
   have hz : inr (gluingHomeomorph c) y ∈ range (inr (gluingHomeomorph c)) := mem_range_self y
   have hbd : IsLocalDiffeomorphAt 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 1 → ℂ) ∞ BlowupModel.blowdown
       (lift c (inr (gluingHomeomorph c) y)) := by
-    simpa only [Diffeomorph.coe_ofLE, Diffeomorph.coe_restrictScalars',
-      coe_blowdownDiffeomorphDimOne] using
-      ((BlowupModel.blowdownDiffeomorphDimOne.restrictScalars' ℝ).ofLE le_top).isLocalDiffeomorph
-        _
+    simpa using
+      ((BlowupModel.blowdownDiffeomorphDimOne.isLocalDiffeomorph _).restrictScalars ℝ).of_le le_top
   exact IsLocalDiffeomorphAt.of_comp_left
     (((isLocalDiffeomorphAt_lift c hz).comp (hg := hbd)).congr_of_eventuallyEq
       (comp_blowdown_eventuallyEq_blowdown_comp_lift c hz))
@@ -106,12 +103,12 @@ theorem isLocalDiffeomorph_blowdown :
 
 /-- **The blowdown in complex dimension one.** For `n = 0`, the blowdown `Blowup c → M` is a
 diffeomorphism of real manifolds. -/
-noncomputable def blowdownDiffeomorphDimOne :
+noncomputable def blowdownRealDiffeomorphDimOne :
     Blowup c ≃ₘ^∞⟮𝓘(ℝ, Fin 1 → ℂ), 𝓘(ℝ, Fin 1 → ℂ)⟯ M :=
-  (isLocalDiffeomorph_blowdown c).diffeomorphOfBijective (bijective_blowdown c)
+  (isLocalDiffeomorph_blowdown_real c).diffeomorphOfBijective (bijective_blowdown c)
 
 @[simp]
-theorem coe_blowdownDiffeomorphDimOne : ⇑(blowdownDiffeomorphDimOne c) = blowdown c :=
+theorem coe_blowdownRealDiffeomorphDimOne : ⇑(blowdownRealDiffeomorphDimOne c) = blowdown c :=
   IsLocalDiffeomorph.coe_diffeomorphOfBijective _ _
 
 variable (J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin 1 → ℂ) M)
@@ -120,9 +117,9 @@ variable (J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin 1 → ℂ) M)
 /-- For `n = 0`, the almost complex blowup `J̃` is the pullback of `J` by the blowdown
 diffeomorphism `π`: `J̃ = (dπ)⁻¹ ∘ J ∘ dπ` at every point. -/
 theorem almostComplexStructure_eq_pullback :
-    almostComplexStructure c J hJ = pullback (blowdownDiffeomorphDimOne c) J :=
+    almostComplexStructure c J hJ = pullback (blowdownRealDiffeomorphDimOne c) J :=
   (eq_pullback_iff _ _).2 fun z v => by
-    rw [coe_blowdownDiffeomorphDimOne]
+    rw [coe_blowdownRealDiffeomorphDimOne]
     exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z v
 
 end Blowup
