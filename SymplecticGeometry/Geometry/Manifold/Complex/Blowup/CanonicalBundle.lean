@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Canonical
 
 /-!
@@ -713,19 +714,6 @@ private theorem isInvertible_chartDeriv {j : Option (Fin (n + 1))} {z : Blowup c
     exact (isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx).inverse.comp
       (isInvertible_mfderiv_of_mem_maximalAtlas (liftChart_mem_maximalAtlas c c i) hzχ)
 
-/-- A top-degree form `s` on the model, pulled back by `A`, is `s b` times the determinant form
-of `b` pulled back by `A`. -/
-private theorem compContinuousLinearMap_eq_apply_smul {V : Type*} [AddCommGroup V]
-    [Module ℂ V] [TopologicalSpace V]
-    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ))
-    (s : (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
-    (A : V →L[ℂ] Fin (n + 1) → ℂ) :
-    s.compContinuousLinearMap A = s b • b.continuousDet.compContinuousLinearMap A := by
-  conv_lhs => rw [← b.topFormEquiv.symm_apply_apply s, Module.Basis.topFormEquiv_symm_eq_smul,
-    Module.Basis.topFormEquiv_apply]
-  ext v
-  simp
-
 /-- The value on `b` of a form at the blowdown of `z`, read in the chart `c`. -/
 private def chartCoeff (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ))
     (z : Blowup c) (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) : ℂ :=
@@ -744,8 +732,11 @@ private theorem compContinuousLinearMap_chartDeriv_some
           (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
             ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
               (blowupModelChart k)) z) := by
-  refine Eq.trans ?_ (compContinuousLinearMap_eq_apply_smul b (σ.compContinuousLinearMap
-    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse) _)
+  refine Eq.trans ?_
+    (ContinuousAlternatingMap.compContinuousLinearMap_eq_apply_smul_continuousDet
+      (σ.compContinuousLinearMap
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse :
+        (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) b _)
   ext v
   simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
   rfl
@@ -770,9 +761,11 @@ private theorem compContinuousLinearMap_chartDeriv_none
   have h := coordForm_blowdown c c b i hzχ
   rw [hl, blowupModelChart_apply_self] at h
   rw [← h]
-  refine Eq.trans ?_ (compContinuousLinearMap_eq_apply_smul b (σ.compContinuousLinearMap D.inverse)
-    ((mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).comp
-      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c) z)))
+  refine Eq.trans ?_
+    (ContinuousAlternatingMap.compContinuousLinearMap_eq_apply_smul_continuousDet
+      (σ.compContinuousLinearMap D.inverse :
+        (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) b
+      (D.comp (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c) z)))
   ext v
   simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
   exact congrArg σ (funext fun j ↦ (hD.inverse_apply_self _).symm)
@@ -799,7 +792,8 @@ private theorem compContinuousLinearMap_chartDeriv_eq {j k : Option (Fin (n + 1)
     | none =>
       have hw : (lift c z).blowdown i ≠ 0 := by
         simpa using (hypersurfaceData c).g_ne_zero hj hk
-      rw [compContinuousLinearMap_chartDeriv_some c b, compContinuousLinearMap_chartDeriv_none c b hj,
+      rw [compContinuousLinearMap_chartDeriv_some c b,
+        compContinuousLinearMap_chartDeriv_none c b hj,
         hypersurfaceData_g_none_some, smul_smul, smul_smul]
       congr 1
       rw [mul_right_comm, inv_pow, inv_mul_cancel₀ (pow_ne_zero n hw), one_mul]
@@ -818,7 +812,8 @@ private def compInverseTmul (z : Blowup c)
     TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z →ₗ[ℂ]
       (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
         ((hypersurfaceData c).lineBundleCore n).Fiber z) :=
-  (TensorProduct.mk ℂ _ _).flip (1 : ℂ) ∘ₗ ContinuousAlternatingMap.compContinuousLinearMapₗ L.inverse
+  (TensorProduct.mk ℂ _ _).flip (1 : ℂ) ∘ₗ
+    ContinuousAlternatingMap.compContinuousLinearMapₗ L.inverse
 
 private theorem compInverseTmul_apply (z : Blowup c)
     (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
@@ -853,7 +848,8 @@ private def tmulEquiv (z : Blowup c)
           (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) a σ (1 : ℂ)).trans
           (congrArg _ (mul_one a)))
       (LinearMap.ext fun η ↦ by
-        rw [LinearMap.comp_apply, LinearMap.id_apply, compInverseTmul_apply, tmulComp_tmul, one_smul]
+        rw [LinearMap.comp_apply, LinearMap.id_apply, compInverseTmul_apply, tmulComp_tmul,
+          one_smul]
         ext v
         simp [hL.inverse_comp_self])
     continuous_toFun :=
@@ -922,6 +918,53 @@ private theorem canonicalBundleEquiv_symm_tmul_localTriv_symm {j : Option (Fin (
   rw [ScalarCocycle.lineBundleCore_coordChange_apply, ScalarCocycle.lineBundleCore_indexAt,
     compContinuousLinearMap_chartDeriv_eq c hz ((hypersurfaceData c).mem_U_indexAt z), zpow_natCast,
     mul_comm, mul_smul]
+
+/-- **`canonicalBundleEquiv` off the exceptional divisor.** At a point `z` of the chart `none`,
+the complement of the exceptional divisor, the inverse of `canonicalBundleEquiv` sends `σ`
+tensored with the element of coordinate `a` in the chart `none` of `𝒪(nE)` to `a` times the
+pull-back of `σ` by the differential of the blowdown. -/
+theorem canonicalBundleEquiv_symm_tmul_none {z : Blowup c} (hz : z ∉ exceptionalDivisor c)
+    (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) (a : ℂ) :
+    (canonicalBundleEquiv c z).symm (TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) σ
+        ((((hypersurfaceData c).lineBundleCore n).localTriv none).symm z a)) =
+      a • σ.compContinuousLinearMap
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c) z) := by
+  have hz' : z ∈ (hypersurfaceData c).U none := by
+    rwa [hypersurfaceData_U_none, SetLike.mem_coe, mem_offDivisorOpens]
+  rw [canonicalBundleEquiv_symm_tmul_localTriv_symm c hz', chartDeriv]
+
+/-- **`canonicalBundleEquiv` in the chart `some i`.** At a point `z` of the chart `some i` of the
+exceptional divisor, the inverse of `canonicalBundleEquiv` sends the coordinate form of `c` at
+the blowdown of `z`, tensored with the element of coordinate `a` in the chart `some i` of
+`𝒪(nE)`, to `a` times the coordinate form at `z` of the chart `χᵢ`, `liftChart c c` followed by
+`blowupModelChart i` (over the source of `c`, `liftChart c c` is `Blowup.lift c`,
+`liftChart_self`). The coordinate form of a chart is the determinant form of the basis `b`
+pulled back by its differential. The element of coordinate `1` is the frame `(w i)⁻ⁿ` of
+`𝒪(nE)`; off the divisor, the pull-back by the blowdown of the coordinate form of `c` is
+`(w i) ^ n` times that of `χᵢ` (`coordForm_blowdown`), so this agrees with
+`canonicalBundleEquiv_symm_tmul_none`. -/
+theorem canonicalBundleEquiv_symm_tmul_some {i : Fin (n + 1)} {z : Blowup c}
+    (hz : z ∈ (hypersurfaceData c).U (some i))
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) (a : ℂ) :
+    (canonicalBundleEquiv c z).symm (TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber z)
+        (b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)))
+        ((((hypersurfaceData c).lineBundleCore n).localTriv (some i)).symm z a)) =
+      a • b.continuousDet.compContinuousLinearMap
+        (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+          ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+            (blowupModelChart i)) z) := by
+  obtain ⟨-, hx, -⟩ := mem_source_of_mem_U_some c hz
+  have hD := isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx
+  rw [canonicalBundleEquiv_symm_tmul_localTriv_symm c hz]
+  congr 1
+  ext v
+  simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  exact congrArg b.continuousDet (funext fun _ ↦ hD.self_apply_inverse _)
 
 end CanonicalBundleEquiv
 
