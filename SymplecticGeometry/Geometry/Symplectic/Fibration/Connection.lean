@@ -43,7 +43,7 @@ symplectomorphism between these fibre forms.
   `ι_X dτ + d ι_X τ`; the first term vanishes by vertical closedness, and the second because
   `ι_X τ` is semibasic, so that its derivative pulls back to zero on the fibres
   (`Bundle.Trivialization.mextDeriv_apply_eq_zero_of_isSemibasic`).
-* `TauCeti.SmoothTwoForm.IsVerticallyClosed.hasDerivAt_mpullback_comp_zero`: for a jointly `C²`
+* `TauCeti.SmoothTwoForm.IsVerticallyClosed.hasDerivAt_mpullback_comp_zero`: for a jointly `C¹`
   time-dependent field `X` with complete suspension and horizontal values at time `t`, and a map
   `ι` that the flow of `X` from `s` to `t` carries into one fibre, the pull-back of a vertically
   closed `τ` along the flow from `s` to `u` composed with `ι` has zero velocity at `u = t`. This
@@ -242,7 +242,7 @@ variable {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimens
 
 omit [FiniteDimensional ℝ EB] [IsManifold IB ∞ B] [IB.Boundaryless] [T2Space B] in
 /-- **Horizontal flows, restricted to fibres.** Let `A` be a smooth atlas of `proj`, `τ` a
-vertically closed two-form on `M`, and `X` a jointly `C²` time-dependent vector field on `M` with
+vertically closed two-form on `M`, and `X` a jointly `C¹` time-dependent vector field on `M` with
 complete suspension, whose values at time `t` lie in the horizontal spaces of `τ`. If `ι : N → M`
 is differentiable at `x` and the flow of `X` from `s` to `t` maps the image of `ι` into one fibre
 of `proj`, then the pull-backs of `τ` at `x` along the flow from `s` to `u` composed with `ι` have
@@ -253,25 +253,24 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     (hA : A.IsContMDiff ∞ IB IF IM) (h : IsVerticallyClosed IB proj τ)
     {X : ℝ → Π y : M, TangentSpace IM y}
     (hc : IsCompleteVectorField (timeDependentSuspensionField X))
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod IM) IM.tangent 2
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod IM) IM.tangent 1
       (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle IM M))) {s t : ℝ}
     (hXh : ∀ y, X t y ∈ horizontalDistribution IB proj τ y) {ι : N → M} {x : N}
     (hι : MDifferentiableAt IN IM ι x)
     (hιt : ∀ y, proj (timeDependentFlowOf X s t (ι y)) = proj (timeDependentFlowOf X s t (ι x))) :
     HasDerivAt (F := EN [⋀^Fin 2]→L[ℝ] ℝ)
       (fun u ↦ mpullback IN IM (timeDependentFlowOf X s u ∘ ι) τ.val x) 0 t := by
-  have hX₁ := hX.of_le (m := 1) one_le_two
   have hφ (r u : ℝ) : MDifferentiable IM IM (timeDependentFlowOf X r u) :=
-    ((contMDiff_timeDependentFlowOf hc le_rfl hX₁).comp
+    ((contMDiff_timeDependentFlowOf hc le_rfl hX).comp
       ((contMDiff_const (c := (r, u))).prodMk contMDiff_id)).mdifferentiable one_ne_zero
   set g := timeDependentFlowOf X s t ∘ ι
   have hg : MDifferentiableAt IN IM g x := (hφ s t _).comp x hι
   -- By the composition law, the flow from `s` to `u` is the flow from `t` to `u` after `g`.
   refine (hasDerivAt_mpullback_of_eq_comp (χ := timeDependentFlowOf X t) (g := g)
     (Filter.Eventually.of_forall fun u ↦ Filter.Eventually.of_forall fun y ↦
-      (timeDependentFlowOf_trans hc hX₁ s t u (ι y)).symm) hg
+      (timeDependentFlowOf_trans hc hX s t u (ι y)).symm) hg
     (Filter.Eventually.of_forall fun u ↦ hφ t u _)
-    (hasDerivAt_mpullback_timeDependentFlowOf_self hX₁ t (g x)
+    (hasDerivAt_mpullback_timeDependentFlowOf_self hX t (g x)
       ((τ.isSmoothForm.contMDiff.mdifferentiable (by simp)) _))).congr_deriv ?_
   ext w
   rw [mpullback_apply]
@@ -287,7 +286,7 @@ theorem IsVerticallyClosed.hasDerivAt_mpullback_comp_zero
     fin_cases i <;> rfl
   rw [hw]
   have hXt : ContMDiff IM IM.tangent 1 fun y ↦ (⟨y, X t y⟩ : TangentBundle IM M) :=
-    hX₁.comp ((contMDiff_const (c := t)).prodMk contMDiff_id)
+    hX.comp ((contMDiff_const (c := t)).prodMk contMDiff_id)
   -- The right side is the zero form evaluated at `w`; `rfl` closes it, as the zero form is read
   -- on the tangent spaces of `N`, through which `zero_apply` finds no instance.
   exact (h.mlieDerivForm_apply_eq_zero hA hXt hXh (hvert 0) (hvert 1)).trans rfl
@@ -312,9 +311,8 @@ private theorem IsVerticallyClosed.mpullback_parallelTransportIn_of_mapsTo_baseS
   have hn' : ((⊤ : ℕ∞) : ℕ∞ω) + 1 ≤ ∞ := by exact_mod_cast le_top
   have hf : ContMDiff IM IB ((⊤ : ℕ∞) + 1) proj := hA.contMDiff_proj.of_le hn'
   have hγ' : ContMDiff 𝓘(ℝ, ℝ) IB ((⊤ : ℕ∞) + 1) γ := hγ.of_le hn'
-  obtain ⟨X, hc, hX, hXh, htrans⟩ :=
+  obtain ⟨X, hc, hX, hXh, -, htrans⟩ :=
     hD.exists_timeDependentField_eqOn_parallelTransport_of_mapsTo_baseSet le_top hf hfp hγ' e hγe
-  have hX₂ := hX.of_le (m := 2) (by simp)
   have htr := htrans s hs
   set φ := timeDependentFlowOf X s
   set ι := (A.trivAt b₁).fiberInclusionMap hs₁
@@ -331,7 +329,8 @@ private theorem IsVerticallyClosed.mpullback_parallelTransportIn_of_mapsTo_baseS
         rw [htr u hu ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y)]
         exact hD.parallelTransport_mem_preimage le_top hf hfp hγ'
           ((A.trivAt b₁).proj_fiberInclusionMap hs₁ y) u
-      exact h.hasDerivAt_mpullback_comp_zero hA hc hX₂ (hXh u) (hι v) fun y ↦ by rw [hproj, hproj]
+      exact h.hasDerivAt_mpullback_comp_zero hA hc (hX.of_le (by simp)) (hXh u) (hι v)
+        fun y ↦ by rw [hproj, hproj]
     have hk := constant_of_has_deriv_right_zero (E := EF [⋀^Fin 2]→L[ℝ] ℝ)
       (f := (fun r ↦ mpullback IF IM (φ r ∘ ι) τ.val v : ℝ → EF [⋀^Fin 2]→L[ℝ] ℝ))
       (fun r hr ↦ (hderiv r hr).continuousAt.continuousWithinAt)

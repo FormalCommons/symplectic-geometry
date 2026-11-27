@@ -20,18 +20,20 @@ import SymplecticGeometry.Analysis.Normed.Operator.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Support
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.CompactSupport
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.FDeriv
+import SymplecticGeometry.Topology.Algebra.Module.ContinuousLinearMap.Basic
 import SymplecticGeometry.Topology.MetricSpace.Thickening
 
 /-!
-# Holonomic approximation over a cube: the base and the step of the induction
+# Holonomic approximation over a cube
 
 In the coordinates of `SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Basic`, on
 `D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms, let `Q = closedBall 0 1 ×ˢ {0}` be the core
 cube. The holonomic approximation theorem over `Q` is proved, following
 [EliashbergMishachev2002], Chapter 3, by induction on the set `J` of core directions in which the
 approximation is asked for, the other core coordinates being parameters. This file proves the
-base case `J = ∅`, where only the transverse derivatives are tested, and the step from `J'` to
-`insert i₀ J'`.
+base case `J = ∅`, where only the transverse derivatives are tested, the step from `J'` to
+`insert i₀ J'`, the statement for every `J` by induction on `J`, and its case
+`J = Finset.univ` relative to the boundary sphere of the cube.
 
 In the base case `J = ∅`, the diffeotopy is the identity, and the approximation is the
 transverse Taylor map `T (u, v) = f (u, 0) + G (u, 0) (0, v)`, glued to `f` by a cutoff
@@ -64,6 +66,11 @@ bounds on `Φ` of `Diffeomorph.exists_lipschitzWith_and_norm_fderiv_symm_le`.
 * `SymplecticGeometry.exists_holonomic_approximation_cube_directions_insert`: holonomic
   approximation in the directions `insert i₀ J'` from holonomic approximation in the
   directions `J'`.
+* `SymplecticGeometry.exists_holonomic_approximation_cube_directions`: holonomic approximation
+  over the cube in the core directions `J`, relative to a closed set `B` that contains the faces
+  of the cube in the directions `J`.
+* `SymplecticGeometry.exists_holonomic_approximation_cube`: holonomic approximation over the
+  cube, relative to its boundary.
 
 ## References
 
@@ -284,14 +291,10 @@ private theorem exists_datum_directions {f₁ : (Fin m → ℝ) × (Fin k → �
     ((hf₁.fderiv_right (by simp)).clm_comp contDiff_const).add (hG.clm_comp contDiff_const),
     fun x w hw ↦ ?_, fun x hx ↦ ?_, fun x w ↦ ⟨P w, fun i hi ↦ ?_,
       max_le_max (ContinuousLinearMap.norm_coordProj_apply_le J w.1) le_rfl, ?_⟩⟩
-  · have hPw : P w = w := Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl
-    simp [hPw]
-  · refine ContinuousLinearMap.ext fun w ↦ ?_
-    simp [hx]
+  · simp [show P w = w from Prod.ext (ContinuousLinearMap.coordProj_apply_eq_self hw) rfl]
+  · simp [hx]
   · simp [P, hi]
-  · simp only [sub_apply, add_apply,
-      ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply, map_sub]
-    abel
+  · simp only [ContinuousLinearMap.comp_add_comp_id_sub_sub, ContinuousLinearMap.comp_apply]
 
 /-- **The assembly estimate.** Let `Φ` be a diffeomorphism of `D` keeping the core coordinates
 outside `J' ⊆ J`, with `‖fderiv ℝ Φ.symm (Φ z)‖ ≤ L`. Suppose that at `Φ z` the map `f₁` is
@@ -453,10 +456,7 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
     exact hf₁C₁ x fun h ↦ hx (Or.inl h)
   · exact TauCeti.Diffeotopy.image_transDiffeomorph_final_mul_apply_one_subset hQV₂ hy
   · obtain ⟨x, hx, rfl⟩ := hy
-    have e := DFunLike.congr_fun (TauCeti.Diffeotopy.final_transDiffeomorph_final_mul h₁ h₂) x
-    rw [TauCeti.Diffeotopy.final_apply, Diffeomorph.mul_apply,
-      TauCeti.Diffeotopy.final_apply h₂] at e
-    rw [e]
+    rw [TauCeti.Diffeotopy.transDiffeomorph_final_mul_apply_one]
     exact hδ₀V₁ (thickening_mono (min_le_left _ _) _ (mem_thickening_iff.2 ⟨x, hx, hh₂δ 1 x⟩))
   · rintro _ ⟨⟨z, hz, rfl⟩, hy⟩
     have hε₂L : ε / (2 * L) * L = ε / 2 := by field_simp
@@ -472,6 +472,86 @@ theorem exists_holonomic_approximation_cube_directions_insert (hk : 0 < k) (i₀
         _ = y := Φ.symm_apply_apply y
     simp only [Function.comp_apply, hΦsy, hf₂'U₂' hy.2, hΦy]
     exact hf₁U₁ hy.1.2
+
+/-- **Holonomic approximation over the cube in the core directions `J`.** On
+`D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms, `0 < k`, let `Q = closedBall 0 1 ×ˢ {0}` be the
+core cube, and let `(f, G)` be a smooth formal section that is holonomic (`D f = G`) on an open
+set `U` containing `B ×ˢ {0}`, for a closed set `B` of core points that contains every point of
+the cube with a coordinate of absolute value `1` in a direction of `J`. Let `ε, δ > 0`. Then
+there are a diffeotopy `h` of `D`, a smooth map `f'` and an open set `V` such that:
+* `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
+* `h` moves every point by less than `δ`, keeps the core coordinates outside `J`, and is the
+  identity at all times near `B ×ˢ {0}`;
+* `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f`, and
+  `(D f' - G) w` has norm at most `ε ‖w‖` for every vector `w` whose core part vanishes outside
+  the directions `J`;
+* `f'` equals `f` near `B ×ˢ {0}`. -/
+theorem exists_holonomic_approximation_cube_directions (hk : 0 < k) (J : Finset (Fin m))
+    {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G) {B : Set (Fin m → ℝ)} (hB : IsClosed B)
+    (hJB : ∀ u ∈ closedBall (0 : Fin m → ℝ) 1, (∃ i ∈ J, |u i| = 1) → u ∈ B)
+    {U : Set ((Fin m → ℝ) × (Fin k → ℝ))} (hU : IsOpen U) (hBU : B ×ˢ {0} ⊆ U)
+    (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ∞ ((Fin m → ℝ) × (Fin k → ℝ)))
+      (f' : (Fin m → ℝ) × (Fin k → ℝ) → F) (V : Set ((Fin m → ℝ) × (Fin k → ℝ))),
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ (closedBall 0 1 ×ˢ {0}) ∧
+        (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
+      (∀ t x, dist (h (t, x)) x < δ) ∧
+      (∀ t x, ∀ i ∉ J, (h (t, x)).1 i = x.1 i) ∧
+      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
+      IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧ ContDiff ℝ ∞ f' ∧
+      (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ∀ w : (Fin m → ℝ) × (Fin k → ℝ),
+        (∀ i ∉ J, w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
+      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U' := by
+  induction J using Finset.induction_on generalizing ε δ with
+  | empty => exact exists_holonomic_approximation_cube_empty hf hG hB hU hBU hUf hε hδ
+  | insert i₀ J' _ ih =>
+    exact exists_holonomic_approximation_cube_directions_insert hk i₀ hG hB hJB hU hBU hUf
+      (fun ε δ hε hδ ↦ ih (fun u hu ⟨i, hi, hui⟩ ↦ hJB u hu ⟨i, Finset.mem_insert_of_mem hi, hui⟩)
+        hε hδ) hε hδ
+
+/-- **Holonomic approximation over a cube.** On `D = (Fin m → ℝ) × (Fin k → ℝ)` with sup norms,
+`0 < k`, let `Q = closedBall 0 1 ×ˢ {0}` be the core cube, and let `(f, G)` be a smooth formal
+section that is holonomic (`D f = G`) on an open set `U` containing `sphere 0 1 ×ˢ {0}`, the
+boundary of the cube. Let `ε, δ > 0`. Then there are a diffeotopy `h` of `D`, a smooth map `f'`
+and an open set `V` such that:
+* `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
+* `h` moves every point by less than `δ`, and is the identity at all times near the boundary
+  `sphere 0 1 ×ˢ {0}`;
+* `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f` and
+  its derivative is `ε`-close to `G`;
+* `f'` equals `f` near the boundary `sphere 0 1 ×ˢ {0}`. -/
+theorem exists_holonomic_approximation_cube (hk : 0 < k) {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G : (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G) {U : Set ((Fin m → ℝ) × (Fin k → ℝ))}
+    (hU : IsOpen U) (hUf : ∀ x ∈ U, fderiv ℝ f x = G x) (hU' : sphere 0 1 ×ˢ {0} ⊆ U)
+    {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (h : TauCeti.Diffeotopy 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ∞ ((Fin m → ℝ) × (Fin k → ℝ)))
+      (f' : (Fin m → ℝ) × (Fin k → ℝ) → F) (V : Set ((Fin m → ℝ) × (Fin k → ℝ))),
+      (∃ C, IsCompact C ∧ C ⊆ thickening δ (closedBall 0 1 ×ˢ {0}) ∧
+        (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
+      (∀ t x, dist (h (t, x)) x < δ) ∧
+      (∃ W ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
+      IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧
+      ContDiff ℝ ∞ f' ∧ (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ‖fderiv ℝ f' x - G x‖ < ε) ∧
+      ∃ U' ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), EqOn f' f U' := by
+  have hJB : ∀ u ∈ closedBall (0 : Fin m → ℝ) 1, (∃ i ∈ Finset.univ, |u i| = 1) →
+      u ∈ sphere 0 1 := by
+    rintro u hu ⟨i, -, hui⟩
+    rw [mem_closedBall_zero_iff] at hu
+    rw [mem_sphere_zero_iff_norm]
+    refine le_antisymm hu ?_
+    rw [← hui, ← Real.norm_eq_abs]
+    exact norm_le_pi_norm u i
+  obtain ⟨h, f', V, hC, hhδ, -, hW, hV, hQV, hf', hf'V, hU''⟩ :=
+    exists_holonomic_approximation_cube_directions hk Finset.univ hf hG isClosed_sphere hJB hU hU'
+      hUf (half_pos hε) hδ
+  refine ⟨h, f', V, hC, hhδ, hW, hV, hQV, hf', fun x hx ↦ ?_, hU''⟩
+  obtain ⟨h₁, h₂⟩ := hf'V x hx
+  refine ⟨h₁.trans (half_lt_self hε), ?_⟩
+  exact (ContinuousLinearMap.opNorm_le_bound _ (half_pos hε).le
+    fun w ↦ h₂ w fun i hi ↦ absurd (Finset.mem_univ i) hi).trans_lt (half_lt_self hε)
 
 end SymplecticGeometry
 
