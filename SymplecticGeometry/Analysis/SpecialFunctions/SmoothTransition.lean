@@ -22,7 +22,9 @@ Mathlib's `Real.smoothTransition` is `0` on `(-∞, 0]`, `1` on `[1, ∞)`, and 
 vanishes outside `[0, 1]`. This file shows that the derivative is positive on the open interval
 `(0, 1)` (`Real.smoothTransition.deriv_pos`): by the quotient rule it is
 `(f' x f (1 - x) + f x f' (1 - x)) / (f x + f (1 - x)) ^ 2`, and `f` and `f'` are positive on
-`(0, ∞)`.
+`(0, ∞)`. Since the derivative `τ'` vanishes outside `[0, 1]`, also `|x τ'(x)| ≤ τ'(x)`
+(`Real.smoothTransition.abs_mul_deriv_le_deriv`), and `x τ''(x)` is bounded
+(`Real.smoothTransition.exists_forall_norm_mul_deriv_deriv_le`).
 For `a > 0`, the points where `Real.smoothTransition` takes values in `[a, 1 - a]` form a
 compact subset of `(0, 1)`, so the derivative has a positive lower bound on them
 (`Real.smoothTransition.exists_pos_le_deriv`).
@@ -121,6 +123,20 @@ theorem exists_pos_le_deriv {a : ℝ} (ha : 0 < a) :
   obtain ⟨c, hc, hcK⟩ := hK.exists_forall_le' differentiable_deriv.continuous.continuousOn
     fun u hu ↦ deriv_pos (hmem hu.2).1 (hmem hu.2).2
   exact ⟨c, hc, fun u hu ↦ hcK u ⟨⟨(hmem hu).1.le, (hmem hu).2.le⟩, hu⟩⟩
+
+/-- The product `x τ'(x)` of the argument and the derivative of the smooth transition function
+`τ` is at most `τ'(x)` in absolute value, since `τ'` vanishes outside `[0, 1]`. -/
+theorem abs_mul_deriv_le_deriv (x : ℝ) :
+    |x * deriv smoothTransition x| ≤ deriv smoothTransition x := by
+  rw [abs_of_nonneg (mul_deriv_nonneg x)]
+  exact mul_deriv_le_deriv x
+
+/-- The product `x τ''(x)` of the argument and the second derivative of the smooth transition
+function `τ` is bounded, since `τ''` is continuous with compact support. -/
+theorem exists_forall_norm_mul_deriv_deriv_le :
+    ∃ M : ℝ, ∀ x, ‖x * deriv (deriv smoothTransition) x‖ ≤ M :=
+  (continuous_id.mul (smoothTransition.contDiff.iterate_deriv 2).continuous
+    ).bounded_above_of_compact_support hasCompactSupport_deriv.deriv.mul_left
 
 end Real.smoothTransition
 
