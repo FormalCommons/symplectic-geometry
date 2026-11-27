@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas

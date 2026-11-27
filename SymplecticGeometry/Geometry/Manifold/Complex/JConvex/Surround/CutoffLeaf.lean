@@ -9,7 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.SpecialShape
 
 import Mathlib.Analysis.Calculus.Deriv.Inv
-import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
+import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
