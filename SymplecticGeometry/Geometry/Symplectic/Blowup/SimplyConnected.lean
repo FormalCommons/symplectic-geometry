@@ -79,12 +79,13 @@ connected: the blowdown maps it homeomorphically onto a punctured ball of `ℂ�
 theorem isPathConnected_openNbhd_sdiff_exceptionalDivisor {r : ℝ} (hr : 0 < r) :
     IsPathConnected (openNbhd n r \ exceptionalDivisor n) := by
   let e := TauCeti.complexToRealEuclidean (Fin (n + 1))
-  let N : Opens (Fin (n + 1) → ℂ) := ⟨{z | z ≠ 0}, isOpen_ne⟩
   -- The inverse of the blowdown, `z ↦ (mk z, z)` on nonzero vectors.
-  let f : N → BlowupModel n := fun z ↦ ((blowdownDiffeomorph n).symm z : BlowupModel n)
+  let f : TauCeti.puncturedSpace (Fin (n + 1) → ℂ) → BlowupModel n := fun z ↦
+    ((blowdownDiffeomorph n).symm z : BlowupModel n)
   have hf : Continuous f := continuous_subtypeVal.comp (blowdownDiffeomorph n).symm.continuous
   -- The punctured ball, in the nonzero vectors.
-  let T : Set N := (fun z : N ↦ e z) ⁻¹' (Metric.ball 0 r \ {0})
+  let T : Set (TauCeti.puncturedSpace (Fin (n + 1) → ℂ)) :=
+    (fun z : TauCeti.puncturedSpace (Fin (n + 1) → ℂ) ↦ e z) ⁻¹' (Metric.ball 0 r \ {0})
   have hT : IsPathConnected T := by
     rw [Topology.IsInducing.subtypeVal.isPathConnected_iff]
     have hrank : 1 < Module.rank ℝ (EuclideanSpace ℝ (Fin (n + 1) ⊕ Fin (n + 1))) := by
@@ -99,21 +100,22 @@ theorem isPathConnected_openNbhd_sdiff_exceptionalDivisor {r : ℝ} (hr : 0 < r)
     · rintro ⟨z, -, h, rfl⟩
       exact ⟨e z, h, e.symm_apply_apply z⟩
     · rintro ⟨w, hw, rfl⟩
-      refine ⟨e.symm w, fun h ↦ hw.2 ?_, by simpa using hw, rfl⟩
+      refine ⟨e.symm w, TauCeti.mem_puncturedSpace.2 fun h ↦ hw.2 ?_, by simpa using hw, rfl⟩
       simpa using congrArg e h
   convert hT.image hf using 1
   ext p
   simp only [mem_sdiff, mem_openNbhd_iff, mem_exceptionalDivisor_iff, mem_image]
   constructor
   · rintro ⟨hp, hp0⟩
-    refine ⟨⟨p.blowdown, hp0⟩, ?_, eq_of_blowdown_eq (by simpa [f] using hp0) (by simp [f])⟩
+    refine ⟨⟨p.blowdown, TauCeti.mem_puncturedSpace.2 hp0⟩, ?_,
+      eq_of_blowdown_eq (by simpa [f] using hp0) (by simp [f])⟩
     simp only [T, mem_preimage, mem_sdiff, Metric.mem_ball, dist_zero_right, mem_singleton_iff,
       map_eq_zero_iff e e.injective]
     exact ⟨hp, hp0⟩
   · rintro ⟨z, hz, rfl⟩
     simp only [T, mem_preimage, mem_sdiff, Metric.mem_ball, dist_zero_right,
       mem_singleton_iff] at hz
-    simpa [f] using ⟨hz.1, z.property⟩
+    simpa [f] using ⟨hz.1, TauCeti.mem_puncturedSpace.1 z.property⟩
 
 end BlowupModel
 
