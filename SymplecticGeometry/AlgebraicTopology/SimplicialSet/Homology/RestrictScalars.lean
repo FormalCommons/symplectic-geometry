@@ -33,7 +33,7 @@ integral chain into a real one.
   `C(X; M) ≅ f^* C(X; N)` whose forward map is `SSet.restrictScalarsChainMap f e.hom X`, with
   `SSet.ιChainComplex_restrictScalarsChainIso_hom_f` and
   `SSet.map_ιChainComplex_restrictScalarsChainIso_inv_f` on simplices.
-* `SSet.intCastChainMap k S : C(S; ℤ) ⟶ F (C(S; k))`: for a commutative ring `k` and `F` the
+* `SSet.intCastChainMap k S : C(S; ℤ) ⟶ F (C(S; k))`: for a ring `k` and `F` the
   restriction of scalars along `ℤ → k`, the chain map that casts the coefficients of the
   integral chains of `S` to `k`, the change of coefficients along Tau Ceti's cast of integers
   `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)`. Integral chains have coefficients
@@ -210,7 +210,7 @@ end Iso
 
 section IntCast
 
-variable (k : Type) [CommRing k]
+variable (k : Type) [Ring k]
 
 /-- The chain map `C(S; ℤ) ⟶ F (C(S; k))` that casts the coefficients of the integral chains of
 a simplicial set `S` to `k`, the target read as a complex of abelian groups through the

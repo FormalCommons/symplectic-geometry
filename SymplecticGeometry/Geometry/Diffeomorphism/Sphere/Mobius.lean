@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Diffeomorphism.Group
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Moebius
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
+public import SymplecticGeometry.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.Geometry.Manifold.Complex.Pullback
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.Automorphism
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
@@ -55,18 +56,17 @@ namespace SymplecticGeometry
 
 /-- The Möbius transformations as diffeomorphisms of the Riemann sphere regarded as a real surface:
 the homomorphism sending `g ∈ PSL(2, ℂ)` to the smooth diffeomorphism `x ↦ g • x`. -/
-noncomputable def mobiusHom : PSL(2, ℂ) →* TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞ where
-  toFun g := Diffeomorph.constSmul 𝓘(ℝ, ℂ) ∞ g
-  map_one' := Diffeomorph.constSmul_one
-  map_mul' g h := Diffeomorph.constSmul_mul g h
+noncomputable def mobiusHom : PSL(2, ℂ) →* TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞ :=
+  Diffeomorph.constSmulHom 𝓘(ℝ, ℂ) ∞
 
-/-- The Möbius transformation of `g` is the diffeomorphism `Diffeomorph.constSmul` of `g`. -/
-theorem mobiusHom_def (g : PSL(2, ℂ)) : mobiusHom g = Diffeomorph.constSmul 𝓘(ℝ, ℂ) ∞ g := (rfl)
+/-- The Möbius homomorphism is `Diffeomorph.constSmulHom` for the action of `PSL(2, ℂ)` on the
+sphere. -/
+theorem mobiusHom_def : mobiusHom = Diffeomorph.constSmulHom 𝓘(ℝ, ℂ) ∞ := (rfl)
 
 /-- The Möbius transformation of `g` sends `x` to `g • x`. -/
 @[simp]
 theorem mobiusHom_apply (g : PSL(2, ℂ)) (x : OnePoint ℂ) : mobiusHom g x = g • x := by
-  rw [mobiusHom_def, Diffeomorph.constSmul_apply]
+  rw [mobiusHom_def, Diffeomorph.constSmulHom_apply, Diffeomorph.constSmul_apply]
 
 /-- The Möbius transformation of `g` is the map `x ↦ g • x`. -/
 theorem coe_mobiusHom (g : PSL(2, ℂ)) : ⇑(mobiusHom g) = fun x ↦ g • x :=
@@ -74,7 +74,7 @@ theorem coe_mobiusHom (g : PSL(2, ℂ)) : ⇑(mobiusHom g) = fun x ↦ g • x :
 
 /-- Distinct elements of `PSL(2, ℂ)` give distinct diffeomorphisms of the sphere. -/
 theorem mobiusHom_injective : Function.Injective mobiusHom :=
-  Diffeomorph.constSmul_injective (I := 𝓘(ℝ, ℂ)) (n := ∞)
+  mobiusHom_def ▸ Diffeomorph.constSmulHom_injective
 
 /-- The Möbius group as a subgroup of the diffeomorphisms of the sphere: the diffeomorphisms `φ`
 that pull the almost complex structure `i` of the Riemann sphere back to itself. -/

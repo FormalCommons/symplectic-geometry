@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Topology.MetricSpace.Thickening
+import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
@@ -40,8 +41,9 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   a shape with `χ'' ≤ 0`. `SymplecticGeometry.IsConvexShapeAt.add_const` and
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
   for `ℓ > 0`, are again `i`-convex shapes. The derivatives of the rescaled shape come from
-  `iteratedDeriv_comp_div_const`, with no differentiability assumption on `χ`. Lowering a shape
-  by `c` lowers both margins of `isConvexShapeAt_iff` by `c / (χ (χ - c))`
+  `deriv_const_mul_comp_div_const` and `iteratedDeriv_comp_div_const`, with no differentiability
+  assumption on `χ`. Lowering a shape by `c` lowers both margins of `isConvexShapeAt_iff` by
+  `c / (χ (χ - c))`
   (`SymplecticGeometry.deriv_sub_const_div_sub_one_div_sub_const`,
   `SymplecticGeometry.iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const`), so
   `χ - c` is again an `i`-convex shape while that is less than both
@@ -507,14 +509,11 @@ theorem rescale {ℓ : ℝ} (hℓ : 0 < ℓ) (h : IsConvexShapeAt χ r) :
   have hr := h.pos
   have hχ := h.pos_value
   -- The derivatives of `r ↦ ℓ χ (r / ℓ)`, which need no differentiability of `χ`.
-  have hn (n : ℕ) : iteratedDeriv n (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) =
-      ℓ * (ℓ⁻¹ ^ n * iteratedDeriv n χ r) := by
+  have h₁ : deriv (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) = deriv χ r := by
+    rw [deriv_const_mul_comp_div_const hℓ.ne', mul_div_cancel_left₀ r hℓ.ne']
+  have h₂ : iteratedDeriv 2 (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) = iteratedDeriv 2 χ r / ℓ := by
     rw [iteratedDeriv_const_mul_field, iteratedDeriv_comp_div_const]
     simp only [mul_div_cancel_left₀ r hℓ.ne', smul_eq_mul]
-  have h₁ : deriv (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) = deriv χ r := by
-    simpa [iteratedDeriv_one, hℓ.ne'] using hn 1
-  have h₂ : iteratedDeriv 2 (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) = iteratedDeriv 2 χ r / ℓ := by
-    rw [hn 2]
     field_simp
   have hv : ℓ * χ (ℓ * r / ℓ) = ℓ * χ r := by
     rw [mul_div_cancel_left₀ r hℓ.ne']

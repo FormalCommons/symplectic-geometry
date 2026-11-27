@@ -11,6 +11,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Cuto
 
 import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
+import SymplecticGeometry.Order.Interval.Set.Piecewise
+import SymplecticGeometry.Topology.Order.Piecewise
 
 /-!
 # Families of special `i`-convex shapes
@@ -264,27 +266,31 @@ theorem exists_convexShapeFamily_struweShape {d K β : ℝ} (hd : 0 < d)
     have := pos_of_mul_pos_left ((by positivity : 0 < 2 * K * δ).trans hℓ₁β) hβ.le
     linarith
   have hKδ : 0 < K * δ := by positivity
-  -- Below `2 K δ` the leaf `ℓ` is `G` raised by `ℓ - ℓ₁`; from there on it is `φ ℓ`.
-  set F : ℝ → ℝ → ℝ := fun ℓ r ↦ if r < 2 * K * δ then G r + (ℓ - ℓ₁) else φ ℓ r
-  have hFG {ℓ r : ℝ} (hr : r < 2 * K * δ) : F ℓ r = G r + (ℓ - ℓ₁) := by
-    simp [F, hr]
   -- Where both pieces are lines, they agree.
-  have hFφ {ℓ r : ℝ} (hℓ : 2 * K * δ < ℓ * β) (hr : 3 * K * δ / 2 ≤ r) : F ℓ r = φ ℓ r := by
-    have hℓ0 : 0 < ℓ := pos_of_mul_pos_left (by linarith) hβ.le
-    by_cases h : r < 2 * K * δ
-    · rw [hFG h, hGL r hr, hφL ℓ hℓ0 r (by linarith)]
-      ring
-    · simp [F, h]
+  have hGφ {ℓ : ℝ} (hℓ : 2 * K * δ < ℓ * β) :
+      EqOn (fun r ↦ G r + (ℓ - ℓ₁)) (φ ℓ) (Icc (3 * K * δ / 2) (ℓ * β)) := fun r hr ↦ by
+    dsimp only
+    rw [hGL r hr.1, hφL ℓ (pos_of_mul_pos_left (by linarith) hβ.le) r hr.2]
+    ring
+  -- Up to `2 K δ` the leaf `ℓ` is `G` raised by `ℓ - ℓ₁`; after it, it is `φ ℓ`.
+  set F : ℝ → ℝ → ℝ := fun ℓ r ↦ if r ≤ 2 * K * δ then G r + (ℓ - ℓ₁) else φ ℓ r
+  have hFG {ℓ r : ℝ} (hr : r ≤ 2 * K * δ) : F ℓ r = G r + (ℓ - ℓ₁) := by
+    simp [F, hr]
+  have hFφ {ℓ r : ℝ} (hℓ : 2 * K * δ < ℓ * β) (hr : 3 * K * δ / 2 ≤ r) : F ℓ r = φ ℓ r :=
+    EqOn.eqOn_ite_le_right (s := Ici (3 * K * δ / 2))
+      ((hGφ hℓ).mono fun y hy ↦ mem_Icc.2 ⟨mem_Ici.1 hy.1, by linarith [mem_Iic.1 hy.2]⟩) hr
   have hFS (ℓ : ℝ) {r : ℝ} (hr : r ≤ 3 * K * δ / 4) :
       F ℓ r = struweShape δ K (ℓ + d * K * δ) r := by
     rw [hFG (by linarith), hGS r hr, struweShape_add, struweShape_add]
     ring
-  have hFφ' {ℓ r : ℝ} (hℓ : ℓ₁ ≤ ℓ) (hr : 2 * K * δ ≤ r) :
-      F ℓ =ᶠ[𝓝 r] φ ℓ := by
-    filter_upwards [Ioi_mem_nhds (show 3 * K * δ / 2 < r by linarith)] with y hy
-    exact hFφ (hℓβ hℓ) (mem_Ioi.1 hy).le
+  have hFG' {ℓ r : ℝ} (hℓ : ℓ₁ ≤ ℓ) (hr : r < ℓ * β) :
+      F ℓ =ᶠ[𝓝 r] fun y ↦ G y + (ℓ - ℓ₁) :=
+    ((hGφ (hℓβ hℓ)).mono Ioo_subset_Icc_self).eventuallyEq_ite_le_left (by linarith) hr
+  have hFφ' {ℓ r : ℝ} (hℓ : ℓ₁ ≤ ℓ) (hr : 2 * K * δ ≤ r) : F ℓ =ᶠ[𝓝 r] φ ℓ :=
+    ((hGφ (hℓβ hℓ)).mono Ioo_subset_Icc_self).eventuallyEq_ite_le_right (hℓβ hℓ)
+      (by linarith)
   refine ⟨F, ?_, fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ ?_, fun ℓ r hr ↦ ?_, fun ℓ ↦ ?_,
-    fun ℓ r hr ↦ by rw [hFG hr, hFG hr]; ring, fun ℓ hℓ r hr ↦ hFφ (hℓβ hℓ) hr⟩
+    fun ℓ r hr ↦ by rw [hFG hr.le, hFG hr.le]; ring, fun ℓ hℓ r hr ↦ hFφ (hℓβ hℓ) hr⟩
   · rintro ⟨ℓ, r⟩ ⟨hℓ, hr⟩
     rw [mem_Ici] at hℓ
     rw [mem_Ioi] at hr
@@ -292,7 +298,7 @@ theorem exists_convexShapeFamily_struweShape {d K β : ℝ} (hd : 0 < d)
     · -- Near `(ℓ, r)` the family is `G r + (ℓ - ℓ₁)`.
       have he : Function.uncurry F =ᶠ[𝓝 (ℓ, r)] fun q ↦ G q.2 + (q.1 - ℓ₁) := by
         filter_upwards [(isOpen_lt continuous_snd continuous_const).mem_nhds h] with q hq
-        exact hFG hq
+        exact hFG hq.le
       refine ContDiffAt.congr_of_eventuallyEq ?_ he
       exact ((hGs.contDiffAt (Ioi_mem_nhds hr)).comp _ contDiffAt_snd).add
         (contDiffAt_fst.sub contDiffAt_const)
@@ -305,14 +311,13 @@ theorem exists_convexShapeFamily_struweShape {d K β : ℝ} (hd : 0 < d)
       exact (hφs (ℓ, r) ⟨mem_Ici.2 (hℓ₀ hℓ), mem_Ioi.2 (by linarith)⟩).congr_of_eventuallyEq
         he
   · rcases lt_or_ge r (2 * K * δ) with h | h
-    · refine ((hGc r ⟨hr, h.le⟩).add_const (sub_nonneg.2 hℓ)).congr_of_eventuallyEq ?_
-      filter_upwards [Iio_mem_nhds h] with y hy
-      exact hFG hy
+    · exact ((hGc r ⟨hr, h.le⟩).add_const (sub_nonneg.2 hℓ)).congr_of_eventuallyEq
+        (hFG' hℓ (h.trans (hℓβ hℓ)))
     · exact (hφc ℓ (hℓ₀ hℓ) r (by linarith)).congr_of_eventuallyEq (hFφ' hℓ h)
   · intro ℓ hℓ ℓ' hℓ' hlt
     rw [mem_Ici] at hℓ hℓ'
     rcases lt_or_ge r (2 * K * δ) with h | h
-    · simp only [hFG h]
+    · simp only [hFG h.le]
       linarith
     · simp only [(hFφ' hℓ h).eq_of_nhds, (hFφ' hℓ' h).eq_of_nhds]
       exact hφm ℓ ℓ' (hℓ₀ hℓ) hlt r (by linarith)
