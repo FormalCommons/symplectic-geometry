@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Plane
 public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
+import SymplecticGeometry.Geometry.Symplectic.Orientation
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Normed.Module.FiniteDimension
 import TauCeti.Analysis.Normed.Operator.FiniteDimensional
@@ -209,9 +210,9 @@ theorem orientation_ker_eq_of_apply_eq {F : V →ₗ[ℝ] ℂ} {x y : V}
     ((ω.restrict K hKs.nondegenerate_restrict).orientation hm)
     ((ω.restrict N hNs.nondegenerate_restrict).orientation hN2) hm hN2
   rw [Orientation.ofExact_inl_snd, Orientation.map_refl, Equiv.refl_apply, hmapC] at key
-  rw [Orientation.kerOfExact_eq_iff, ← key, ← orientation_prod _ _ hm hN2 (by simp [hm, hN2])]
-  -- The two sides differ only in the proofs that `ω` restricts nondegenerately to `K` and `N`.
-  exact ((ω.isSymplectomorphism_prodEquivOfIsCompl hc).map_orientation _).trans rfl
+  rw [Orientation.kerOfExact_eq_iff, ← key]
+  exact (ω.orientation_eq_map_prod_of_isCompl hc (fun k hk n hn ↦ mem_orthogonal_iff.1 hn k hk)
+    hm hN2 hV).symm
 
 end ApplyEq
 
