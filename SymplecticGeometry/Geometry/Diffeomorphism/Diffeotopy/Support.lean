@@ -47,7 +47,6 @@ every time.
   `Ψ.transDiffeomorph Φ.final * Φ`.
 * `TauCeti.Diffeotopy.transDiffeomorph_mul_apply_eq_self_of_notMem_union_image`,
   `TauCeti.Diffeotopy.transDiffeomorph_final_mul_apply_eq_self_of_mem_inter`,
-  `TauCeti.Diffeotopy.exists_mem_nhdsSet_transDiffeomorph_final_mul_apply_eq_self`,
   `TauCeti.Diffeotopy.dist_transDiffeomorph_mul_apply_lt`: support, fixed sets and displacement
   of `Ψ.transDiffeomorph f * Φ`.
 
@@ -60,7 +59,7 @@ every time.
 public section
 
 open Set unitInterval
-open scoped Manifold ContDiff NNReal Topology
+open scoped Manifold ContDiff NNReal
 
 namespace TauCeti.Diffeotopy
 
@@ -141,17 +140,6 @@ theorem transDiffeomorph_final_mul_apply_eq_self_of_mem_inter {Φ Ψ : Diffeotop
   refine fun t x hx ↦ mul_apply_eq_self (hΦ t x hx.1)
     (transDiffeomorph_apply_eq_self_of_mem_image _ hΨ t x ⟨x, hx.2, ?_⟩)
   rw [final_apply, hΦ 1 x hx.1]
-
-/-- If `Φ` and `Ψ` each fix, at every time, every point of a neighbourhood of `S`, then so does
-the product `Ψ.transDiffeomorph Φ.final * Φ`. -/
-theorem exists_mem_nhdsSet_transDiffeomorph_final_mul_apply_eq_self {Φ Ψ : Diffeotopy J n M}
-    {S : Set M} (hΦ : ∃ W ∈ 𝓝ˢ S, ∀ t, ∀ x ∈ W, Φ (t, x) = x)
-    (hΨ : ∃ W ∈ 𝓝ˢ S, ∀ t, ∀ x ∈ W, Ψ (t, x) = x) :
-    ∃ W ∈ 𝓝ˢ S, ∀ t, ∀ x ∈ W, (Ψ.transDiffeomorph Φ.final * Φ) (t, x) = x := by
-  obtain ⟨W₁, hW₁, hΦ⟩ := hΦ
-  obtain ⟨W₂, hW₂, hΨ⟩ := hΨ
-  exact ⟨W₁ ∩ W₂, Filter.inter_mem hW₁ hW₂,
-    transDiffeomorph_final_mul_apply_eq_self_of_mem_inter hΦ hΨ⟩
 
 end Support
 
