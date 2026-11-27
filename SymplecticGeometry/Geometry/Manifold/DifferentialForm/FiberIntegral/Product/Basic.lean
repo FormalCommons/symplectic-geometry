@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
@@ -500,15 +501,16 @@ def prodFiberIntegral (o : Manifold.Orientation J F (Fin m)) :
   toFun α := ⟨prodFiberIntegralRoughForm o α,
     (isSmoothForm_prodFiberIntegralRoughForm o α).mem_smoothBundleForms⟩
   map_add' α β := SmoothBundleForm.ext fun b v ↦ by
-    simp only [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-      prodFiberIntegralRoughForm_apply, prodFiberIntegrand_add]
+    -- `Submodule.coe_add` splits the rough form `↑(α + β)` that the integrand takes.
+    rw [SmoothBundleForm.add_apply, ContinuousAlternatingMap.add_apply]
+    simp only [prodFiberIntegralRoughForm_apply, Submodule.coe_add, prodFiberIntegrand_add]
     exact integralTopForm_add_of_compactSpace o
       ((isSmoothForm_prodFiberIntegrand α.isSmoothForm b v).of_le bot_le)
       ((isSmoothForm_prodFiberIntegrand β.isSmoothForm b v).of_le bot_le)
   map_smul' c α := SmoothBundleForm.ext fun b v ↦ by
-    simp only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
-      prodFiberIntegralRoughForm_apply, prodFiberIntegrand_smul, integralTopForm_smul,
-      RingHom.id_apply, smul_eq_mul]
+    rw [SmoothBundleForm.smul_apply, ContinuousAlternatingMap.smul_apply]
+    simp only [prodFiberIntegralRoughForm_apply, Submodule.coe_smul, prodFiberIntegrand_smul,
+      integralTopForm_smul, RingHom.id_apply, smul_eq_mul]
 
 /-- The value of the fibre integral at `b` on `v` is the integral over `F` of the integrand
 `prodFiberIntegrand α b v`. -/

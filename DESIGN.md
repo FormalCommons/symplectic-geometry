@@ -2443,7 +2443,8 @@ complete target and a function on the whole half-space.
   `Topology/Sets/Strip.lean` (the open strip
   $(-\varepsilon,\varepsilon)\times X$ of $\mathbb R\times X$ and the tube
   lemma for it),
-  `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` and
+  `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` (integral curves of
+  an outward field in the interior) and
   `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` (the smooth collar of
   a compact boundary whose normal lines are the integral curves of a given
   outward field),
@@ -2471,10 +2472,8 @@ complete target and a function on the whole half-space.
   nondegeneracy, for `StableHamiltonian.lean`), which is merged,
   `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* (for
   `StableHamiltonian.lean`), and *Smooth families*: its
-  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
-  `Geometry/Manifold/MFDeriv/Chart.lean`, which are merged, for
-  `Collar/Flow/Local.lean`, which reads the field in a boundary chart and
-  takes Tau Ceti's half-space flow of its negative, and its
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which is merged, for
+  `Collar/Flow/Basic.lean`, and its
   `DifferentialForm/SmoothFamily/Basic.lean`, which is merged, for
   `StableHamiltonian.lean`. `Completion.lean` uses
   `Filling.lean` and `End.lean`.
@@ -3917,11 +3916,12 @@ hypersurface theorem.
   *Minimal coupling*, corrected by an imaginary one-form; it uses the merged
   prerequisites `TauCeti.injective_deRhamHom` (the de Rham theorem, in
   `SmoothSingular/DeRham/MayerVietoris/Induction.lean`),
-  `exists_hermitianLineBundle_complexEulerClass_eq` (every integral class of
-  degree two is the Euler class of a line bundle, in
+  `SymplecticGeometry.exists_hermitianLineBundle_complexEulerClass_eq`
+  (every integral class of degree two is the Euler class of a line bundle, in
   `VectorBundle/Hermitian/Realization.lean`) and
-  `Bundle.deRhamHom_realFirstChernClass_eq_neg` (its comparison with the
-  Chern–Weil class, in `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
+  `SymplecticGeometry.Bundle.deRhamHom_realFirstChernClass_eq_neg` (its
+  comparison with the Chern–Weil class, in
+  `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
@@ -4018,7 +4018,7 @@ behind.
 | 0 | *Linear Moser* | — (it imports `Topology/Algebra/Module/BilinearForm.lean` of *Compatible complex structures*, which imports only Mathlib and Tau Ceti and is merged) |
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
-| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
+| 0 | *Liouville structures* | — (it imports `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean`, which is merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
 | 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 0 | *Lie group actions* | — |

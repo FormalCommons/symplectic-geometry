@@ -346,9 +346,7 @@ the tensor products on total spaces.
   ((twistCore (k none)).Fiber ×ᵇ (twistSumCore fun l ↦ k (some l)).Fiber) x`
   (by `ContinuousLinearEquiv.piOptionEquivProd`
   of Tau Ceti's `Topology/Algebra/Module/Equiv/Pi.lean`), continuous on
-  total spaces in both directions; and, for `IsEmpty κ`,
-  `twistSumCoreTrivializationOfIsEmpty`, a global trivialization of the
-  rank-zero `twistSumCore k`. These make $\mathcal O(k)^{\oplus r}$ an
+  total spaces in both directions. It makes $\mathcal O(k)^{\oplus r}$ an
   iterated direct sum for the Whitney formula.
 - `twistCoreTensorEquiv k l x`: the fibrewise equivalence
   `(twistCore (k + l)).Fiber x ≃L[𝕜] (twistCore k).Fiber x ⊗[𝕜]
@@ -399,8 +397,8 @@ Namespace `Projectivization`, with `h := hyperplaneClass (Fin (m + 1) → ℂ)`.
   and `complexEulerClass_twistCore_one` (#1040), read through
   `chernClass_one_eq_complexEulerClass`; `totalChernClass_twistCore`:
   $c(\mathcal O(k))=1+k\,h$.
-- `totalChernClass_twistSumCore_const (k : ℤ) (r : ℕ)`: $c(\mathcal O(k)^{\oplus
-  r})=(1+k\,h)^r$, for `ι = Fin r`, by induction with
+- `totalChernClass_twistSumCore (k : Fin r → ℤ)`: $c(\bigoplus_i\mathcal O(k_i))
+  =\prod_i(1+k_i\,h)$, by induction with
   `twistSumCoreOptionEquiv`, `totalChernClass_prod` and `totalChernClass_congr`.
 - **Milestone, part 1** `totalChernClass_tangentSpace`:
   `totalChernClass _ (TangentSpace 𝓘(ℂ, Fin m → ℂ)) = (1 + h) ^ (m + 1)` in
@@ -509,9 +507,9 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 
 For `n ≠ 0`.
 
-- `complexEulerClass_twistSumCore_pullback`: the Euler class of
+- `complexEulerClass_twistSumCore_const_one_pullback`: the Euler class of
   $\iota^*\mathcal O(1)^{\oplus n}$ is $(\iota^*h)^n$, from
-  `totalChernClass_twistSumCore_const`, `totalChernClass_pullback` and
+  `totalChernClass_twistSumCore`, `totalChernClass_pullback` and
   `chernClass_finrank_eq_complexEulerClass`.
 - `sectionIndex_eq_one_of_complexLinear` (in
   `Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean`, in the namespace

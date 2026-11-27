@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
