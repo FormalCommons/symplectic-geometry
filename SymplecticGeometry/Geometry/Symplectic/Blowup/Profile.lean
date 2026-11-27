@@ -292,16 +292,22 @@ theorem blowupProfile_le (hl : 0 < l) (hε : 0 < ε) (s : ℝ) : blowupProfile l
 
 /-! ### Profiles of the blowup and their corrections -/
 
-/-- A profile of the blowup of weight `l` with collar `ε`, in the variable `s = |z|²`: for
-`0 < l` and `0 < ε`, a smooth function `h : ℝ → ℝ` with positive derivative that is `l² + s` for
-`s ≤ ε²` and `s` for `s ≥ (l + ε)²`. The profile `blowupProfile l ε` is one
+/-- `h` is a profile of the blowup of weight `l` with collar `ε`, in the variable `s = |z|²`:
+`0 < l`, `0 < ε`, and `h : ℝ → ℝ` is smooth with positive derivative, `l² + s` for `s ≤ ε²` and
+`s` for `s ≥ (l + ε)²`. For `0 < l` and `0 < ε`, `blowupProfile l ε` is one
 (`isBlowupProfile_blowupProfile`). -/
 structure IsBlowupProfile (l ε : ℝ) (h : ℝ → ℝ) : Prop where
+  /-- The weight is positive. -/
   weight_pos : 0 < l
+  /-- The collar is positive. -/
   collar_pos : 0 < ε
+  /-- The profile is smooth. -/
   contDiff : ContDiff ℝ ∞ h
+  /-- Near the exceptional divisor, the profile is `l² + s`. -/
   eq_of_le ⦃s : ℝ⦄ : s ≤ ε ^ 2 → h s = l ^ 2 + s
+  /-- Off the collar, the profile is the identity. -/
   eq_of_ge ⦃s : ℝ⦄ : (l + ε) ^ 2 ≤ s → h s = s
+  /-- The profile has positive derivative. -/
   deriv_pos (s : ℝ) : 0 < deriv h s
 
 /-- For `0 < l` and `0 < ε`, `blowupProfile l ε` is a profile of the blowup of weight `l` with
