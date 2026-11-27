@@ -919,6 +919,16 @@ theorem coe_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ 
     rw [TauCeti.SmoothEmbedding.val_codRestrict_apply, coe_zeroSectionRealEmbedding]))
 
 open scoped TauCeti.ComplexManifold in
+/-- Each point of the exceptional divisor `divisorRealEmbedding c` lies in the range of `inr`,
+the open piece of the blowup that comes from the model. -/
+theorem divisorRealEmbedding_mem_range_inr [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
+    (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    divisorRealEmbedding c ℓ ∈ range (inr (gluingHomeomorph c)) := by
+  rw [coe_divisorRealEmbedding]
+  exact ofDirection_mem_range_inr c ℓ
+
+open scoped TauCeti.ComplexManifold in
 /-- For a complex manifold `M`, the real embedding of the exceptional divisor is the real form
 of its holomorphic embedding. -/
 theorem divisorRealEmbedding_eq_restrictScalars [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
@@ -942,9 +952,8 @@ theorem isLocalDiffeomorphAt_lift_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin
     [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
     (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (lift c)
-      (divisorRealEmbedding c ℓ) := by
-  rw [coe_divisorRealEmbedding]
-  exact isLocalDiffeomorphAt_lift c (ofDirection_mem_range_inr c ℓ)
+      (divisorRealEmbedding c ℓ) :=
+  isLocalDiffeomorphAt_lift c (divisorRealEmbedding_mem_range_inr c ℓ)
 
 open scoped TauCeti.ComplexManifold in
 /-- Along the exceptional divisor, `lift c` has invertible real differential. -/

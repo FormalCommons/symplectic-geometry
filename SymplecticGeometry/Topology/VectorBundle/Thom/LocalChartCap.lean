@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalHomologyRestriction
+public import SymplecticGeometry.Topology.VectorBundle.ZeroSection
 
 /-!
 # The cap product of an excisive couple, read in a local chart of the total space

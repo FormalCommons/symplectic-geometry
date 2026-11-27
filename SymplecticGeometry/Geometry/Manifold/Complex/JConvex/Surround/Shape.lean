@@ -90,6 +90,15 @@ bounds `|σ|² ≤ s |v₁|²` and `|τ|² ≤ t (|v₁|² + |v₂|²)`; the sec
 `SymplecticGeometry.norm_ofReal_mul_add_ofReal_mul_sq_le`, the bound
 `|c₁ σ + c₂ τ|² ≤ (c₁² s + c₂² t) |v|²` for real `c₁`, `c₂`.
 
+## Handles around the model disc
+
+The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `ι₀ (closedBall 0 1)`.
+
+* `SymplecticGeometry.isCompact_setOf_shape_le`: the sets `{t ≤ a, s ≤ b}` are compact;
+* `SymplecticGeometry.setOf_shape_le_subset_setOf_shape_le`: the handles grow with `γ`;
+* `SymplecticGeometry.iInter_setOf_shape_le_eq`: the intersection of the handles for
+  `0 < γ < 1` is the model disc `ι₀ (closedBall 0 1)`.
+
 ## The model handle function and the model level
 
 * `SymplecticGeometry.modelHandle k m a b`: the model handle function `b t - a s`. For `0 < b`
@@ -724,6 +733,95 @@ theorem isManifoldStrictlyPlurisubharmonicAt_shape {f g : ℝ → ℝ}
     isStrictlyPlurisubharmonicAt_shape hf hg h₁ h₂
 
 end Shape
+
+/-! ### Handles around the model disc -/
+
+section Handle
+
+open Filter Metric Set
+
+/-- The sets `{p | t p ≤ a ∧ s p ≤ b}` of the shape coordinates `(s, t) = shape p` are compact. -/
+theorem isCompact_setOf_shape_le (a b : ℝ) :
+    IsCompact {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
+      (shape p).2 ≤ a ∧ (shape p).1 ≤ b} := by
+  have hc := (contDiff_shape (k := k) (m := m) (n := 0)).continuous
+  refine Metric.isCompact_of_isClosed_isBounded
+    ((isClosed_le (continuous_snd.comp hc) continuous_const).inter
+      (isClosed_le (continuous_fst.comp hc) continuous_const))
+    ((isBounded_closedBall (x := 0) (r := √(|a| + |b|))).subset fun p hp ↦ ?_)
+  obtain ⟨ha, hb⟩ := hp
+  have hs := shape_fst_nonneg p
+  have ht := shape_snd_nonneg p
+  rw [shape_fst] at hs hb
+  rw [shape_snd] at ht ha
+  rw [mem_closedBall, dist_zero_right, Prod.norm_def, max_le_iff]
+  constructor <;> refine Real.le_sqrt_of_sq_le ?_
+  · have hn : ‖p.1‖ ^ 2 = ∑ j, ((p.1 j).re ^ 2 + (p.1 j).im ^ 2) := by
+      rw [EuclideanSpace.norm_sq_eq]
+      exact Finset.sum_congr rfl fun j _ ↦ by rw [Complex.sq_norm, Complex.normSq_apply]; ring
+    rw [hn, Finset.sum_add_distrib]
+    have : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
+    have : 0 ≤ ‖p.2‖ ^ 2 := by positivity
+    linarith [le_abs_self a, le_abs_self b]
+  · have : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
+    linarith [le_abs_self a, le_abs_self b, abs_nonneg a, abs_nonneg b]
+
+/-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` grow with `γ ≥ 0`. -/
+theorem setOf_shape_le_subset_setOf_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
+      (shape p).2 ≤ a ^ 2 ∧ (shape p).1 ≤ (1 + a) ^ 2} ⊆
+      {p | (shape p).2 ≤ b ^ 2 ∧ (shape p).1 ≤ (1 + b) ^ 2} :=
+  fun _ hp ↦ ⟨hp.1.trans (by gcongr), hp.2.trans (by gcongr)⟩
+
+/-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` for `0 < γ < 1` have the model disc
+`ι₀ (closedBall 0 1)` as their intersection. -/
+theorem iInter_setOf_shape_le_eq :
+    ⋂ γ : Ioo (0 : ℝ) 1, {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
+      (shape p).2 ≤ (γ : ℝ) ^ 2 ∧ (shape p).1 ≤ (1 + (γ : ℝ)) ^ 2} =
+      modelDisc k m '' closedBall 0 1 := by
+  -- A lower bound for a continuous `f` on `(0, 1)` is one for `f 0`.
+  have hlim {f : ℝ → ℝ} (hf : Continuous f) {x : ℝ} (h : ∀ γ ∈ Ioo (0 : ℝ) 1, x ≤ f γ) :
+      x ≤ f 0 :=
+    haveI := left_nhdsWithin_Ioo_neBot (zero_lt_one' ℝ)
+    ge_of_tendsto ((hf.tendsto 0).mono_left nhdsWithin_le_nhds)
+      (eventually_nhdsWithin_of_forall h)
+  ext p
+  simp only [mem_iInter, mem_ofPred_eq, Subtype.forall]
+  constructor
+  · intro hp
+    have ht : (shape p).2 ≤ 0 := by
+      simpa using hlim (f := fun γ ↦ γ ^ 2) (by fun_prop) fun γ hγ ↦ (hp γ hγ).1
+    have hs : (shape p).1 ≤ 1 := by
+      simpa using hlim (f := fun γ ↦ (1 + γ) ^ 2) (by fun_prop) fun γ hγ ↦ (hp γ hγ).2
+    rw [shape_snd] at ht
+    have him : ∀ j, (p.1 j).im = 0 := fun j ↦ by
+      have : (p.1 j).im ^ 2 ≤ ∑ i, (p.1 i).im ^ 2 :=
+        Finset.single_le_sum (f := fun i ↦ (p.1 i).im ^ 2) (fun _ _ ↦ by positivity)
+          (Finset.mem_univ j)
+      have : 0 ≤ ‖p.2‖ ^ 2 := by positivity
+      exact pow_eq_zero_iff (n := 2) (by norm_num) |>.1 (by nlinarith [sq_nonneg (p.1 j).im])
+    have h2 : p.2 = 0 := by
+      have : 0 ≤ ∑ i, (p.1 i).im ^ 2 := by positivity
+      exact norm_eq_zero.1 (pow_eq_zero_iff (n := 2) (by norm_num) |>.1
+        (le_antisymm (by linarith) (by positivity)))
+    refine ⟨modelDiscProj k m p, ?_, ?_⟩
+    · rw [mem_closedBall, dist_zero_right]
+      refine (sq_le_one_iff₀ (norm_nonneg _)).1 ?_
+      rw [EuclideanSpace.norm_sq_eq]
+      simpa [shape_fst] using hs
+    · ext j
+      · exact Complex.ext (by simp) (by simp [him j])
+      · simp [h2]
+  · rintro ⟨x, hx, rfl⟩ γ hγ
+    rw [mem_closedBall, dist_zero_right] at hx
+    have hx2 : ∑ j, x j ^ 2 ≤ 1 := by
+      have := pow_le_one₀ (n := 2) (norm_nonneg x) hx
+      simpa [EuclideanSpace.norm_sq_eq] using this
+    refine ⟨by simpa using sq_nonneg (γ : ℝ), ?_⟩
+    simp only [shape_fst, modelDisc_apply_fst_apply, Complex.ofReal_re]
+    nlinarith [hγ.1]
+
+end Handle
 
 /-! ### The model handle function and the model level -/
 

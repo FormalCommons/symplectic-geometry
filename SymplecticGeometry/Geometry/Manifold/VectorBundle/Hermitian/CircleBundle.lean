@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Topology.FiberBundle.ModelFiber
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
@@ -76,8 +77,9 @@ the statements). The class `SymplecticGeometry.Bundle.ContMDiffHermitianMetric` 
 `SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian` holds `g` and `hI`, and
 its scoped instances give these three; this file adds the scoped instance
 `SymplecticGeometry.Bundle.ContMDiffHermitianMetric.contMDiffFiberBundle` for the smooth principal
-bundle structure below, so that a proof installs them all with one `let`. Under the class, its
-lemmas `SymplecticGeometry.Bundle.ContMDiffHermitianMetric.real_inner_eq`,
+bundle structure below, at every exponent `m ≤ n` given as a `Fact`, so that a proof installs
+them all with one `let`. Under the class, its lemmas
+`SymplecticGeometry.Bundle.ContMDiffHermitianMetric.real_inner_eq`,
 `SymplecticGeometry.Bundle.ContMDiffHermitianMetric.norm_sq_eq` and
 `SymplecticGeometry.Bundle.ContMDiffHermitianMetric.inner_eq` express the inner products and
 norms through `g`.
@@ -549,13 +551,30 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
 
 namespace ContMDiffHermitianMetric
 
-/-- The unitary frames of a smooth Hermitian line bundle form a smooth principal `Circle`-bundle:
-`contMDiffFiberBundle_circleFiber` as an instance. -/
-scoped instance contMDiffFiberBundle [h : ContMDiffHermitianMetric I n F V] [IsManifold I n B] :
-    ContMDiffFiberBundle n Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
-  contMDiffFiberBundle_circleFiber h.metric h.inner_I_smul
+/- The exponent `m` is separate from `n`, which the metric fixes, so that a search for a `C^m`
+structure, such as the `C^1` manifold structure of the total space, applies this instance once.
+With the conclusion at `n`, the search tries it at each exponent between `m` and `n`, and each
+failure unfolds the fibre inner products of two metrics; that exceeds the default limits. -/
+/-- The unitary frames of a `C^n` Hermitian line bundle form a `C^m` principal `Circle`-bundle
+for every `m ≤ n`: `contMDiffFiberBundle_circleFiber` as an instance. -/
+scoped instance contMDiffFiberBundle {m : ℕ∞ω} [h : ContMDiffHermitianMetric I n F V]
+    [IsManifold I n B] [hm : Fact (m ≤ n)] :
+    ContMDiffFiberBundle m Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
+  haveI := contMDiffFiberBundle_circleFiber h.metric h.inner_I_smul
+  ContMDiffFiberBundle.of_le hm.out
 
 end ContMDiffHermitianMetric
+
+open scoped ContMDiffHermitianMetric in
+/- Under a `C^∞` metric installed by one `let`, instance search finds the `C^1` manifold
+structure of the total space of the circle bundle, which curvatures of connection forms need. -/
+example [IsManifold I ∞ B] [ContMDiffVectorBundle ∞ F V I]
+    (g : ContMDiffRiemannianMetric I ∞ F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) : True := by
+  let : ContMDiffHermitianMetric I ∞ F V := ⟨g, hI⟩
+  have : IsManifold (I.prod (𝓡 1)) 1 (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) :=
+    inferInstance
+  trivial
 
 variable [IsManifold I n B]
 

@@ -135,7 +135,7 @@ omit [FiniteDimensional ℝ EQ] [IsManifold J ∞ Q] in
 theorem isLocalDiffeomorph_annulusToProdBall :
     IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (annulusToProdBall : Q × annulus ℂ δ ε → prodBall Q ε) :=
-  isLocalDiffeomorph_subtypeVal_comp_iff.1
+  IsLocalDiffeomorph.subtypeVal_comp_iff.1
     (isLocalDiffeomorph_id.prodMap isLocalDiffeomorph_subtype_val)
 
 end AnnulusToProdBall
@@ -251,7 +251,7 @@ theorem collarMap_injective (hδε : δ < ε) : Function.Injective (f.collarMap 
 
 theorem isLocalDiffeomorph_collarMap (hδε : δ < ε) :
     IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) I ∞ (f.collarMap hδε) :=
-  isLocalDiffeomorph_subtypeVal_comp_iff.1 (f.isLocalDiffeomorph_comp_annulusToProdBall δ)
+  IsLocalDiffeomorph.subtypeVal_comp_iff.1 (f.isLocalDiffeomorph_comp_annulusToProdBall δ)
 
 theorem continuous_collarMap (hδε : δ < ε) : Continuous (f.collarMap hδε) :=
   (f.isLocalDiffeomorph_collarMap hδε).contMDiff.continuous

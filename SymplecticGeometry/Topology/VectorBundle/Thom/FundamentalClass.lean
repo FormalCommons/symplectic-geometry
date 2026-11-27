@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalHomologyRestriction
+public import SymplecticGeometry.Topology.VectorBundle.ZeroSection
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
 import Mathlib.Analysis.Normed.Module.Connected

@@ -94,18 +94,12 @@ theorem extendByZeroAlong {ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞}
     have hKc : IsClosed (ψ.symm '' K) :=
       (ψ.symm.isCompact_image_of_subset_source hK hKψ).isClosed
     have hxK : x ∉ ψ.symm '' K := fun ⟨y, hy, hyx⟩ ↦ hx (hyx ▸ ψ.map_target (hKψ hy))
-    have hev : ∀ᶠ q : N × M in 𝓝 (t, x), ∀ s, (β s).val q.2 = 0 := by
-      filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
-        (hKc.isOpen_compl.mem_nhds hxK)] with q hq s
-      rw [hβ]
-      exact RoughForm.extendByZeroAlong_apply_of_notMem_image _ fun h ↦ hq (image_mono
-        (tsupport_subset_of_forall_notMem_eq_zero (haK s) hK.isClosed) h)
-    refine ((contMDiff_zeroSection ℝ (fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] F)).comp
-      contMDiff_snd (t, x)).congr_of_eventuallyEq ?_
-    filter_upwards [hev] with q hq
-    rw [sliceSection_apply, hq q.1]
-    -- The zero section takes the value `0` at every point.
-    rfl
+    refine contMDiffAt_sliceSection_of_eventually_eq_zero ?_
+    filter_upwards [continuous_snd.continuousAt.preimage_mem_nhds
+      (hKc.isOpen_compl.mem_nhds hxK)] with q hq
+    rw [hβ]
+    exact RoughForm.extendByZeroAlong_apply_of_notMem_image _ fun h ↦ hq (image_mono
+      (tsupport_subset_of_forall_notMem_eq_zero (haK q.1) hK.isClosed) h)
 
 end SymplecticGeometry.IsSmoothFamily
 
