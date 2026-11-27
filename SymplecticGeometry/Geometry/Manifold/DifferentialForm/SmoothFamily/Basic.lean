@@ -73,6 +73,11 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   parameter space is a normed space.
 * `SymplecticGeometry.IsSmoothFamily.of_contMDiff_val`: conversely, a family of forms on a
   normed space whose value is jointly smooth in the parameter and the point is smooth.
+* `SymplecticGeometry.IsSmoothFamily.of_contDiff_val`: the same as a `ContDiff` hypothesis, when
+  the parameter space is a normed space.
+* `SymplecticGeometry.isSmoothFamily_iff_contDiff_val`: over a normed parameter space, a family
+  of forms on a normed space is smooth exactly when its value is a `C^∞` function of the
+  parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value of a smooth family of forms on a
   normed space is jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
@@ -405,6 +410,16 @@ theorem contDiff_val {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
     ContDiff (F := E [⋀^Fin k]→L[ℝ] F) ℝ ∞ fun p : L × E ↦ (α p.1).val p.2 :=
   contMDiff_iff_contDiff.mp (contMDiff_prod_modelWithCornersSelf_iff.mp h.contMDiff_val)
 
+/-- **Smooth families from `C^∞` values over a normed space.** A family `α` of `k`-forms on a
+normed space `E` over a normed space `L`, whose value `(α t) x`, an element of
+`E [⋀^Fin k]→L[ℝ] F`, is a `C^∞` function of `(t, x) ∈ L × E`, is a smooth family. This is the
+converse of `SymplecticGeometry.IsSmoothFamily.contDiff_val`. -/
+theorem of_contDiff_val {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+    {α : L → SmoothForm 𝓘(ℝ, E) E F k}
+    (h : ContDiff (F := E [⋀^Fin k]→L[ℝ] F) ℝ ∞ fun p : L × E ↦ (α p.1).val p.2) :
+    IsSmoothFamily 𝓘(ℝ, L) α :=
+  of_contMDiff_val (contMDiff_prod_modelWithCornersSelf_iff.mpr (contMDiff_iff_contDiff.mpr h))
+
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/
 theorem continuous_apply_one {α : N → SmoothForm 𝓘(ℝ, ℝ) ℝ F 1} (h : IsSmoothFamily J α) :
@@ -469,6 +484,15 @@ protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯)
   hα.funSMul_family (fun _ ↦ g) (g.contMDiff.comp contMDiff_snd)
 
 end IsSmoothFamily
+
+/-- A family `α` of `k`-forms on a normed space `E` over a normed space `L` is smooth exactly
+when its value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, is a `C^∞` function of
+`(t, x) ∈ L × E`. -/
+theorem isSmoothFamily_iff_contDiff_val {L : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L]
+    {α : L → SmoothForm 𝓘(ℝ, E) E F k} :
+    IsSmoothFamily 𝓘(ℝ, L) α ↔
+      ContDiff (F := E [⋀^Fin k]→L[ℝ] F) ℝ ∞ fun p : L × E ↦ (α p.1).val p.2 :=
+  ⟨IsSmoothFamily.contDiff_val, IsSmoothFamily.of_contDiff_val⟩
 
 /-- A constant family is smooth: it is the family of slices of the pullback of its value along
 the projection `N × M → M`. -/
