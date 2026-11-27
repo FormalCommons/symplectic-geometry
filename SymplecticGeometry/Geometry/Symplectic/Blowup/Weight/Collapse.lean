@@ -176,9 +176,9 @@ private theorem continuousOn_collapseMap_image_ball :
     rw [hψ.complexPartialDiffeomorph_target]
     exact y.property
   have hlt : ∀ y : W, ‖complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)‖ < √(l ^ 2 + ε ^ 2) :=
-    fun y ↦ hψ.mem_complexPartialDiffeomorph_source_iff.1 (Φ.map_target (htarget y))
-  have hψz : ∀ y : W, ψ (complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)) = y := fun y ↦ by
-    simpa [Φ] using Φ.right_inv (htarget y)
+    fun y ↦ hψ.norm_complexPartialDiffeomorph_symm_lt y.property
+  have hψz : ∀ y : W, ψ (complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)) = y :=
+    fun y ↦ hψ.apply_complexToRealEuclidean_complexPartialDiffeomorph_symm y.property
   have hge : ∀ y : W, l ≤ ‖complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)‖ := fun y ↦
     not_lt.1 fun h ↦
       (y : ((ψ '' ball 0 l)ᶜ : Set M)).property ⟨_, mem_ball_zero_iff.2 h, hψz y⟩
