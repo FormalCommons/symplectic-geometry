@@ -234,7 +234,7 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   have := _root_.Bundle.Pullback.contMDiffVectorBundle (F := Fin k → ℝ) (E := fun x ↦ V x) hj
   -- The derivative of `j` at `y` is an isomorphism from `T_y F` onto the vertical space at `j y`.
   let Φ (y : F) : TangentSpace IF y ≃L[ℝ] ((j : F → M) *ᵖ (fun x ↦ V x)) y :=
-    (Trivialization.mfderivFiberInclusionMapEquiv hdj hb' y).toContinuousLinearEquiv
+    Trivialization.mfderivFiberInclusionMapEquiv hdj hb' y
   have hΦv (y : F) (v : TangentSpace IF y) :
       (Subtype.val (Φ y v) : TangentSpace IM (j y)) = mfderiv IF IM j y v :=
     Trivialization.coe_mfderivFiberInclusionMapEquiv_apply hdj hb' y v
