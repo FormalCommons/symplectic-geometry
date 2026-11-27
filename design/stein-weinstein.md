@@ -1111,19 +1111,22 @@ containing `ι '' closedBall 0 1`:
     `leviForm_add`, `leviForm_mul_apply` and
     `ContinuousLinearMap.abs_re_leviForm_toBilinForm_apply_self_le`.
 - `JConvex/Interpolation.lean` (issue 14d17):
-  - `Manifold.IsSmoothEmbedding.eventually_abs_comp_symm_le` (14d17):
-    the Taylor bounds. Let `ι`, `K` and the total reality be as in issue
-    14a, `ρ` as 14a gives it, and `D : M → ℝ` be `C²` near `ι '' K`
-    with `D (ι y) = 0` and `mvfderiv 𝓘(ℝ, E) D (ι y) = 0` for `y` in a
-    neighbourhood of `K`. For `y ∈ K` and a chart `e` at `ι y` of the
-    holomorphic maximal atlas there is `A` such that, for `z` near
+  - `Manifold.IsSmoothEmbedding.exists_abs_comp_symm_le` (14d17):
+    the Taylor bounds, at one point `y` of a real manifold. Let `ι` be a
+    `C^n` embedding, `n ≥ 2`, `ρ` be `C²` at `ι y`, nonnegative near
+    `ι y`, zero on `ι` near `y`, with critical Hessian at `ι y` positive
+    off the tangent image (as 14a gives it), and `D : M → ℝ` be `C²` near
+    `ι y` with `D (ι y') = 0` and `mvfderiv 𝓘(ℝ, E) D (ι y') = 0` for `y'`
+    near `y`. For a chart `e` at `ι y` of the `C²` maximal atlas (holomorphic
+    charts are among them) there is `A` such that, for `z` near
     `e (ι y)` and `x = e.symm z`, `|D x| ≤ A * ρ x`,
     `‖fderiv ℝ (D ∘ e.symm) z‖ ≤ A * √(ρ x)`,
     `‖fderiv ℝ (ρ ∘ e.symm) z‖ ≤ A * √(ρ x)` and
     `‖fderiv ℝ (fderiv ℝ (ρ ∘ e.symm)) z‖ ≤ A`. The bound of the squared
     distance to `range ι` by `ρ` comes from the critical Hessian of `ρ`,
-    positive off the tangent images at `ι '' K`; the bounds on `D` are
-    Taylor's formula at the nearest point of `range ι`, in a slice chart.
+    positive off the tangent image at `ι y`; the bounds on `D` are
+    Taylor's formula at the nearest point of the image in `e`, and the
+    bound on `fderiv ℝ (ρ ∘ e.symm)` is Glaeser's inequality.
   - `Manifold.IsSmoothEmbedding.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate`
     (14d17; Proposition 3.26): with `[T2Space M]`, `I'` boundaryless,
     `h : IsSmoothEmbedding I' 𝓘(ℝ, E) ∞ ι`, `K : Set N` compact with the
