@@ -61,7 +61,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   (`monotone_smoothedMax_left`, `monotone_smoothedMax_right`, `smoothedMax_le_smoothedMax`), the
   first and second derivatives `hasDerivAt_smoothedMax`, `deriv_smoothedMax` and
   `iteratedDeriv_two_smoothedMax` of the smoothed maximum of two functions (the second one
-  nonnegative where theirs are, `iteratedDeriv_two_smoothedMax_nonneg`), the first one also
+  nonnegative where theirs are, `iteratedDeriv_two_smoothedMax_nonneg`, and at least the smaller
+  of theirs, `min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax`), the first one also
   as a weighted average (`hasDerivAt_smoothedMax_weighted`, `deriv_smoothedMax_weighted`, with
   the weight in `[0, 1]` by `one_add_smoothedSign_div_two_mem_Icc`), the bounds
   `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
@@ -589,6 +590,22 @@ theorem iteratedDeriv_two_smoothedMax_nonneg {f g : ℝ → ℝ} (hf : ContDiff 
   have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
   have h₁ := mul_nonneg (by linarith : 0 ≤ 1 + smoothedSign δ (f x - g x)) hf₂
   have h₂ := mul_nonneg (by linarith : 0 ≤ 1 - smoothedSign δ (f x - g x)) hg₂
+  have h₃ := mul_nonneg (iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x))
+    (sq_nonneg (deriv f x - deriv g x))
+  linarith
+
+/-- For `δ ≥ 0`, the second derivative at `x` of the smoothed maximum of two `C²` functions `f`
+and `g` is at least the smaller of those of `f` and `g`. -/
+theorem min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax {f g : ℝ → ℝ}
+    (hf : ContDiff ℝ 2 f) (hg : ContDiff ℝ 2 g) (hδ : 0 ≤ δ) (x : ℝ) :
+    min (iteratedDeriv 2 f x) (iteratedDeriv 2 g x) ≤
+      iteratedDeriv 2 (fun x ↦ smoothedMax δ (f x) (g x)) x := by
+  rw [iteratedDeriv_two_smoothedMax hf hg]
+  have hs := abs_le.1 (abs_smoothedSign_le_one δ (f x - g x))
+  have h₁ := mul_le_mul_of_nonneg_left (min_le_left (iteratedDeriv 2 f x) (iteratedDeriv 2 g x))
+    (by linarith : 0 ≤ 1 + smoothedSign δ (f x - g x))
+  have h₂ := mul_le_mul_of_nonneg_left (min_le_right (iteratedDeriv 2 f x) (iteratedDeriv 2 g x))
+    (by linarith : 0 ≤ 1 - smoothedSign δ (f x - g x))
   have h₃ := mul_nonneg (iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x))
     (sq_nonneg (deriv f x - deriv g x))
   linarith
