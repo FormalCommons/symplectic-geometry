@@ -317,10 +317,23 @@ private theorem sqrtSubLeaf_one_eq (L m : ℝ) : sqrtSubLeaf L 1 m = fun x ↦
   simp only [sqrtSubLeaf_def, one_pow, mul_one]
   ring_nf
 
+/-- The radicand of the leaf `ℓ` is positive at each `r` with `δ² < r²` and `ℓ² < 64 r²`: it is
+`64 (r² - δ²) (1 - H) + (64 r² - ℓ²) H` for the cutoff `H ∈ [0, 1]`, a convex combination of two
+positive numbers. -/
+theorem sqrtSubLeaf_radicand_pos (L : ℝ) {ℓ r : ℝ} (hr : δ ^ 2 < r ^ 2)
+    (hℓ : ℓ ^ 2 < 64 * r ^ 2) :
+    0 < 64 * (r ^ 2 - δ ^ 2) +
+      (64 * δ ^ 2 - ℓ ^ 2) * smoothTransition ((r - 2 * δ) / (L * δ)) := by
+  have hH₀ := smoothTransition.nonneg ((r - 2 * δ) / (L * δ))
+  rcases (smoothTransition.le_one ((r - 2 * δ) / (L * δ))).lt_or_eq with h | h
+  · nlinarith [mul_nonneg hH₀ (sub_nonneg.2 hℓ.le)]
+  · rw [h]; linarith
+
 /-- For `m ^ 2 ≤ 64`, the radicand of the leaf `m` for `δ = 1` is positive at `x > 1`. -/
 private theorem sqrtSubLeaf_one_radicand_pos {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
     0 < 64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L) := by
-  nlinarith [mul_nonneg (sub_nonneg.2 hm) (smoothTransition.nonneg ((x - 2) / L))]
+  simpa only [one_pow, mul_one, mul_sub] using
+    sqrtSubLeaf_radicand_pos (δ := 1) L (by nlinarith) (by nlinarith)
 
 /-- The slope of the leaf `m` for `δ = 1` at `x > 1`, for `m ^ 2 ≤ 64`. -/
 private theorem deriv_sqrtSubLeaf_one {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
@@ -463,20 +476,12 @@ theorem contDiffOn_uncurry_sqrtSubLeaf (L : ℝ) (hδ : 0 ≤ δ) :
     smoothTransition.contDiff.comp ((contDiff_snd.sub contDiff_const).div_const _)
   rintro ⟨ℓ, r⟩ ⟨hr, hℓ⟩
   dsimp only at hr hℓ
-  set H := smoothTransition ((r - 2 * δ) / (L * δ))
-  have hH₀ : 0 ≤ H := smoothTransition.nonneg _
-  have hH₁ : H ≤ 1 := smoothTransition.le_one _
   have hrδ : δ ^ 2 < r ^ 2 := by gcongr
   have hℓr : ℓ ^ 2 < 64 * r ^ 2 := by
     have := sq_lt_sq' (by linarith [abs_nonneg ℓ]) hℓ
     rw [sq_abs] at this
     linarith
-  -- The radicand is `64 (r² - δ²) (1 - H) + (64 r² - ℓ²) H`, a convex combination of two
-  -- positive numbers.
-  have hrad : 0 < 64 * (r ^ 2 - δ ^ 2) + (64 * δ ^ 2 - ℓ ^ 2) * H := by
-    rcases hH₁.lt_or_eq with h | h
-    · nlinarith [mul_nonneg hH₀ (sub_nonneg.2 hℓr.le)]
-    · rw [h]; linarith
+  have hrad := sqrtSubLeaf_radicand_pos L hrδ hℓr
   rw [e]
   exact (((contDiff_fst.add contDiff_const).div_const 64).mul
     (contDiff_const.sub hH)).contDiffAt.add

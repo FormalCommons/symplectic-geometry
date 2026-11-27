@@ -5,13 +5,20 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
+import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -41,10 +48,24 @@ parameter `l` at a time:
 * `SymplecticGeometry.stagePath_of_mem`: if `α l` is closed and `τ l = α l + d (B' (s l))` on all
   of `M`, then the path runs through closed forms cohomologous to `α l` and ends at
   `e_{s l, 1}^* α l + d (e_{s l, 1}^* B' (s l))`;
+* `SymplecticGeometry.stagePath_isNondegenerate`: if the slices of `e` are local diffeomorphisms,
+  `ρ` takes values in `[0, 1]`, `τ l` is nondegenerate, and the interpolations
+  `τ l + r • (α l + d (B' (s l)) - τ l)`, `r ∈ [0, 1]`, are nondegenerate at `e_{s l, 1} x`
+  wherever `ρ x ≠ 0`, then the path is nondegenerate at all times;
 * `SymplecticGeometry.exists_mextDerivₗ_eq_endPullback_sub`: if `α l` is closed, then
   `e_{s l, 1}^* α l - α l = d γ` for a one-form `γ` that vanishes on every set fixed by all slices
   `e_{s l, t}`, namely `γ = -h (Ψ^* α l)` for the homotopy operator `h` and the reversed isotopy
   `Ψ (x, u) = e_{s l, 1 - u} x`.
+
+`SymplecticGeometry.exists_stagePath` builds the data `e` and `ρ` of a stage from a band core `c`
+and a family `Φ` of isotopies that displaces the cubes of `c` into a region `U` where every
+interpolation `τ l + r • (α l + d (B' (s l)) - τ l)`, `r ∈ [0, 1]`, is nondegenerate, for `l` in a
+compact set `K`. Its isotopy first compresses `{g ≤ b}` towards `{g ≤ a}` and the cubes
+(`SymplecticGeometry.BandCore.exists_compression_of_subset`), into the open set of points that
+`Φ` sends into `U` for all `l ∈ K` at once, and then applies `Φ`; its cutoff is `1` near
+`{g ≤ b}` and supported where the end of that isotopy lands in `U`, so that the path is
+nondegenerate for every `l ∈ K` by `SymplecticGeometry.stagePath_isNondegenerate`: at each point
+it is the pullback, along a local diffeomorphism, of `τ l` or of one of these interpolations.
 
 The time steps are those of `SymplecticGeometry.exists_homotopy_exact_of_isotopy`
 (`HandleCore/Homotopy.lean`), which uses the same isotopy-then-interpolation scheme. The family
@@ -211,6 +232,51 @@ theorem stagePath_of_mem {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
     exact LinearMap.mem_range_self _ _
   · rw [hpath, collaredFirstHalf_one, hτ, map_add, SmoothForm.mextDerivₗ_mpullback]
 
+/-- The path is nondegenerate at all times for a parameter `l`, if the slices `e ((s l, t), ·)`
+are local diffeomorphisms, `ρ` takes values in `[0, 1]`, `τ l` is nondegenerate, and at every
+point `x` with `ρ x ≠ 0` each interpolation `τ l + r • (α l + d (B' (s l)) - τ l)`,
+`r ∈ [0, 1]`, is nondegenerate at `e ((s l, 1), x)`. -/
+theorem stagePath_isNondegenerate {l : Λ}
+    (hed : ∀ t, IsLocalDiffeomorph I I ∞ fun x ↦ e ((s l, t), x))
+    (hρI : ∀ x, ρ x ∈ Icc (0 : ℝ) 1) (hnd : (τ l).IsNondegenerate)
+    (hint : ∀ x, ρ x ≠ 0 → ∀ r ∈ Icc (0 : ℝ) 1,
+      ((τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)).bilinFormAt
+        (e ((s l, 1), x))).Nondegenerate)
+    (t : unitInterval) : (stagePath he hρ s τ α B' (l, t)).IsNondegenerate := by
+  refine SmoothTwoForm.isNondegenerate_def.2 fun x ↦ ?_
+  -- At `x` the path is the pullback along `e_{s l, A t}` of the form `σ`.
+  set A := collaredFirstHalf (n := ∞) le_rfl
+  set C := collaredSecondHalf (n := ∞) le_rfl
+  set r : ℝ := (C t : ℝ) * ρ x with hr_def
+  set σ := τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l) with hσ_def
+  have hAC (h : (C t : ℝ) ≠ 0) : A t = 1 :=
+    collaredFirstHalf_eq_one_of_collaredSecondHalf_ne_zero le_rfl
+      fun h' ↦ h (by rw [h', Set.Icc.coe_zero])
+  have hval : (SmoothForm.mpullback (fun x ↦ e ((s l, A t), x))
+      (he.comp (contMDiff_const.prodMk contMDiff_id)) σ).val x =
+      (stagePath he hρ s τ α B' (l, t)).val x := by
+    rw [stagePath_apply]
+    rcases eq_or_ne (C t : ℝ) 0 with h0 | h0
+    · have hr0 : r = 0 := by rw [hr_def, h0, zero_mul]
+      rw [hσ_def, hr0, zero_smul, add_zero]
+      simp only [A, C, h0, zero_mul, zero_smul, add_zero]
+    · have hA := hAC h0
+      simp only [A] at hA ⊢
+      simp only [hA, hσ_def, hr_def, map_add, map_smul, SmoothBundleForm.add_apply,
+        SmoothBundleForm.smul_apply, map_sub, SmoothBundleForm.sub_apply]
+      abel
+  have hpull : mpullback I I (fun x ↦ e ((s l, A t), x)) σ.val x =
+      (stagePath he hρ s τ α B' (l, t)).val x := by
+    rw [← hval, SmoothForm.coe_mpullback]
+  refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    ((hed (A t) x).isInvertible_mfderiv (by simp)) hpull).1 ?_
+  by_cases hr : r = 0
+  · rw [hσ_def, hr, zero_smul, add_zero]
+    exact SmoothTwoForm.isNondegenerate_def.1 hnd _
+  -- Otherwise `C t ≠ 0`, so `A t = 1`, and `ρ x ≠ 0`.
+  rw [hAC (left_ne_zero_of_mul hr)]
+  exact hint x (right_ne_zero_of_mul hr) r (unitInterval.mul_mem (C t).property (hρI x))
+
 /-- The moved closed form differs from `α l` by an exact form whose primitive vanishes on `V`: for
 an isotopy starting at the identity whose slices `e ((s l, t), ·)` fix a set `V`, and a closed
 form `α l`, there is a one-form `γ` with `d γ = e₁^* α l - α l` and `γ = 0` on `V`, for the end
@@ -233,6 +299,93 @@ theorem exists_mextDerivₗ_eq_endPullback_sub {l : Λ} (he₀ : ∀ x, e ((s l,
   · rw [SmoothForm.neg_toRoughForm, Pi.neg_apply, SmoothForm.coe_homotopyOperator,
       SmoothForm.coe_mpullback, homotopyOperator_mpullback_apply_eq_zero (y := x)
         (fun t ↦ heV _ x hx), neg_zero]
+
+section Exists
+
+variable [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [SigmaCompactSpace M]
+  [TopologicalSpace Λ] {g : M → ℝ} {a₀ a b : ℝ}
+
+/-- **The isotopy and cutoff of a stage.** Let `c` be a band core of a continuous `g` for the
+levels `a₀`, `a`, `b`, let `K ⊆ Λ` be compact, `s : Λ → S` continuous, and `τ l` nondegenerate for
+`l ∈ K`. Let `Φ : (S × [0, 1]) × M → M` be a smooth family of isotopies from the identity by local
+diffeomorphisms, fixing an open set `N₁ ⊇ {g ≤ a}`. Let `U ⊆ Λ × M` be open, containing
+`K × N₁` and the points `(l, Φ ((s l, 1), y))` for `l ∈ K` and `y` in the cubes of `c`, such that
+for `(l, x) ∈ U` with `l ∈ K` and `r ∈ [0, 1]` the form `τ l + r • (α l + d (B' (s l)) - τ l)` is
+nondegenerate at `x`.
+
+Then there are a smooth family `e` of isotopies from the identity by local diffeomorphisms, a
+smooth `ρ : M → [0, 1]`, an open neighbourhood `V ⊆ N₁` of `{g ≤ a}` fixed by every slice of `e`,
+and an open `N' ⊇ {g ≤ b}` on which `ρ = 1`, such that `stagePath (l, t)` is nondegenerate for
+`l ∈ K` and every `t`. -/
+theorem exists_stagePath (c : BandCore I g a₀ a b) (hg : Continuous g) {K : Set Λ}
+    (hK : IsCompact K) {s : Λ → S} (hs : Continuous s) {τ α : Λ → SmoothTwoForm I M}
+    (hnd : ∀ l ∈ K, (τ l).IsNondegenerate) {B' : S → SmoothForm I M ℝ 1}
+    {Φ : (S × unitInterval) × M → M} (hΦ : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ Φ)
+    (hΦd : ∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ Φ (p, x)) (hΦ₀ : ∀ q x, Φ ((q, 0), x) = x)
+    {N₁ : Set M} (hN₁ : IsOpen N₁) (haN₁ : {x | g x ≤ a} ⊆ N₁)
+    (hΦN₁ : ∀ p, ∀ x ∈ N₁, Φ (p, x) = x)
+    {U : Set (Λ × M)} (hU : IsOpen U) (hKN₁ : K ×ˢ N₁ ⊆ U)
+    (hUc : ∀ l ∈ K, ∀ y ∈ c.cubes, (l, Φ ((s l, 1), y)) ∈ U)
+    (hUnd : ∀ p ∈ U, p.1 ∈ K → ∀ r ∈ Icc (0 : ℝ) 1,
+      ((τ p.1 + r • (α p.1 + mextDerivₗ I 1 (B' (s p.1)) - τ p.1)).bilinFormAt
+        p.2).Nondegenerate) :
+    ∃ (e : (S × unitInterval) × M → M) (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e)
+      (ρ : M → ℝ) (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) (V N' : Set M),
+      (∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ e (p, x)) ∧ (∀ q x, e ((q, 0), x) = x) ∧
+      IsOpen V ∧ V ∈ 𝓝ˢ {x | g x ≤ a} ∧ V ⊆ N₁ ∧ (∀ p, ∀ x ∈ V, e (p, x) = x) ∧
+      IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧ (∀ x, ρ x ∈ Icc (0 : ℝ) 1) ∧ (∀ x ∈ N', ρ x = 1) ∧
+      ∀ l ∈ K, ∀ t, (stagePath he hρ s τ α B' (l, t)).IsNondegenerate := by
+  -- The points sent into `U` over all of `K` by a continuous family of maps form an open set.
+  have hopen (h : Λ × M → M) (hh : Continuous h) : IsOpen {x | ∀ l ∈ K, (l, h (l, x)) ∈ U} :=
+    isOpen_iff_mem_nhds.2 fun x hx ↦ hK.eventually_forall_of_forall_eventually
+      (P := fun x l ↦ (l, h (l, x)) ∈ U) fun l hl ↦
+        ((continuous_snd.prodMk (hh.comp (continuous_snd.prodMk continuous_fst))).continuousAt
+          (x := (x, l))).preimage_mem_nhds (hU.mem_nhds (hx l hl))
+  -- Step 1: the open set to compress into.
+  set W := {x | ∀ l ∈ K, (l, Φ ((s l, 1), x)) ∈ U}
+  have hW : IsOpen W := hopen (fun p ↦ Φ ((s p.1, 1), p.2))
+    (hΦ.continuous.comp (((hs.comp continuous_fst).prodMk continuous_const).prodMk
+      continuous_snd))
+  have haW : {x | g x ≤ a} ∪ c.cubes ⊆ W := by
+    rintro x (hx | hx) l hl
+    · rw [hΦN₁ _ x (haN₁ hx)]
+      exact hKN₁ ⟨hl, haN₁ hx⟩
+    · exact hUc l hl x hx
+  -- Step 2: the compression.
+  obtain ⟨f, F, ⟨V₀, hV₀, hFV₀⟩, hfW⟩ := c.exists_compression_of_subset hW haW
+  -- Step 3: the isotopy of the stage, the compression followed by the displacement.
+  set e : (S × unitInterval) × M → M := fun p ↦ Φ (p.1, F (p.1.2, p.2)) with he_def
+  have he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e :=
+    hΦ.comp (contMDiff_fst.prodMk
+      (F.contMDiff.comp ((contMDiff_snd.comp contMDiff_fst).prodMk contMDiff_snd)))
+  have hed (p : S × unitInterval) : IsLocalDiffeomorph I I ∞ fun x ↦ e (p, x) :=
+    fun x ↦ IsLocalDiffeomorphAt.comp I M
+      ((F.isSmoothEmbedding p.2).isImmersion.isLocalDiffeomorph rfl (by simp) x) (hΦd p _)
+  have he₁ (q : S) (x : M) : e ((q, 1), x) = Φ ((q, 1), f x) := by
+    simp only [he_def, SmoothIsotopy.apply_one]
+  -- Step 4: the cutoff, supported where the end of the isotopy sends every `l ∈ K` into `U`.
+  set W₁ := {x | ∀ l ∈ K, (l, e ((s l, 1), x)) ∈ U}
+  have hW₁ : IsOpen W₁ := hopen (fun p ↦ e ((s p.1, 1), p.2))
+    (he.continuous.comp (((hs.comp continuous_fst).prodMk continuous_const).prodMk
+      continuous_snd))
+  have hbW₁ : {x | g x ≤ b} ⊆ W₁ := fun x hx l hl ↦ by
+    rw [he₁]
+    exact hfW hx l hl
+  obtain ⟨θ, hθW₁, hθ₁, hθI⟩ :=
+    (isClosed_le hg continuous_const).exists_contMDiffMap_tsupport_subset_eventually_eq_one I hW₁
+      hbW₁
+  obtain ⟨N', hN', hbN', hθN'⟩ := eventually_nhdsSet_iff_exists.1 hθ₁
+  refine ⟨e, he, θ, θ.contMDiff, interior V₀ ∩ N₁, N', hed, fun q x ↦ ?_, isOpen_interior.inter hN₁,
+    inter_mem (isOpen_interior.mem_nhdsSet.2 (subset_interior_iff_mem_nhdsSet.2 hV₀))
+      (hN₁.mem_nhdsSet.2 haN₁), inter_subset_right, fun p x hx ↦ ?_, hN', hbN', hθI, hθN',
+    fun l hl t ↦ ?_⟩
+  · simp only [he_def, SmoothIsotopy.apply_zero, ContMDiffMap.id_apply, hΦ₀]
+  · simp only [he_def, hFV₀ _ x (interior_subset hx.1), hΦN₁ _ x hx.2]
+  -- Step 5: nondegeneracy, where `θ x ≠ 0` puts `x` in `W₁`.
+  exact stagePath_isNondegenerate he θ.contMDiff s τ α B' (fun t ↦ hed (s l, t)) hθI (hnd l hl)
+    (fun x hx r hr ↦ hUnd (l, e ((s l, 1), x)) (hθW₁ (subset_tsupport _ hx) l hl) hl r hr) t
+
+end Exists
 
 end SymplecticGeometry
 
