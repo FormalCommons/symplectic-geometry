@@ -214,13 +214,13 @@ theorem iteratedDeriv_two_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r
 /-- The slope of Struwe's shape tends to `+∞` at `δ`. -/
 theorem tendsto_deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
     Tendsto (deriv (struweShape δ K c)) (𝓝[>] δ) atTop := by
-  have hc : ContinuousAt (fun u ↦ √(log (u / δ))) δ :=
-    ((continuousAt_id.div_const δ).log (by simp [hδ.ne'])).sqrt
+  have hc : ContinuousAt (fun u ↦ log (u / δ)) δ :=
+    (continuousAt_id.div_const δ).log (by simp [hδ.ne'])
   have h₀ : Tendsto (fun u ↦ √(log (u / δ))) (𝓝[>] δ) (𝓝[>] 0) := by
-    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
+    refine Tendsto.sqrt_nhdsGT_zero ?_ ?_
     · simpa [hδ.ne'] using hc.tendsto.mono_left nhdsWithin_le_nhds
     · filter_upwards [self_mem_nhdsWithin] with u (hu : δ < u)
-      exact sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu))
+      exact log_pos ((one_lt_div hδ).2 hu)
   refine (tendsto_inv_nhdsGT_zero.comp h₀).congr' ?_
   filter_upwards [self_mem_nhdsWithin] with u (hu : δ < u)
   rw [deriv_struweShape hδ hK c hu, one_div]

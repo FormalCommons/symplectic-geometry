@@ -26,11 +26,22 @@ import TauCeti.Analysis.Calculus.Deriv.Second
   `TauCeti.deriv_deriv_sqrt_quadratic`.
 * `Real.iteratedDeriv_two_comp_sqrt`: the second derivative of `f ∘ √·` at `t > 0`, for `f`
   that is `C²` at `√t`, by the chain rule `iteratedDeriv_comp_two`.
+* `Filter.Tendsto.sqrt_nhdsGT_zero`: if `f` tends to `0` along a filter and is eventually
+  positive along it, then `√f` tends to `0` from the right.
 * `Real.tendsto_deriv_sqrt_sub`: for `0 < a` and `0 < δ`, the slope of `r ↦ √(a r² - a δ²)`
   tends to `+∞` at `δ`, by `Real.deriv_sqrt_sub`.
 -/
 
 public section
+
+open Filter Topology in
+/-- If `f` tends to `0` along `l` and is eventually positive along `l`, then `√f` tends to `0`
+from the right along `l`. -/
+theorem Filter.Tendsto.sqrt_nhdsGT_zero {α : Type*} {l : Filter α} {f : α → ℝ}
+    (hf : Tendsto f l (𝓝 0)) (hpos : ∀ᶠ x in l, 0 < f x) :
+    Tendsto (fun x ↦ √(f x)) l (𝓝[>] 0) :=
+  tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _ (by simpa using hf.sqrt)
+    (hpos.mono fun _ h ↦ Real.sqrt_pos.2 h)
 
 namespace Real
 
@@ -99,11 +110,10 @@ theorem tendsto_deriv_sqrt_sub {a δ : ℝ} (ha : 0 < a) (hδ : 0 < δ) :
   have hpos : ∀ r ∈ Ioi δ, 0 < a * r ^ 2 - a * δ ^ 2 := fun r (hr : δ < r) ↦ by
     have : δ ^ 2 < r ^ 2 := by gcongr
     nlinarith
-  have hc : ContinuousAt (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) δ := by fun_prop
-  have h₀ : Tendsto (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) (𝓝[>] δ) (𝓝[>] 0) := by
-    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
-    · simpa using hc.tendsto.mono_left nhdsWithin_le_nhds
-    · filter_upwards [self_mem_nhdsWithin] with r hr using sqrt_pos.2 (hpos r hr)
+  have hc : Continuous fun r ↦ a * r ^ 2 - a * δ ^ 2 := by fun_prop
+  have h₀ : Tendsto (fun r ↦ √(a * r ^ 2 - a * δ ^ 2)) (𝓝[>] δ) (𝓝[>] 0) :=
+    ((hc.tendsto' δ 0 (sub_self _)).mono_left nhdsWithin_le_nhds).sqrt_nhdsGT_zero
+      (eventually_nhdsWithin_of_forall hpos)
   have h₁ : Tendsto (fun r ↦ a * r) (𝓝[>] δ) (𝓝 (a * δ)) :=
     ((continuous_const.mul continuous_id).tendsto δ).mono_left nhdsWithin_le_nhds
   refine (h₁.pos_mul_atTop (mul_pos ha hδ) (tendsto_inv_nhdsGT_zero.comp h₀)).congr' ?_
