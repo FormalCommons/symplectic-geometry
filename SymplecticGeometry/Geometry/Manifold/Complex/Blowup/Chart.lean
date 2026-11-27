@@ -475,9 +475,8 @@ theorem injOn_liftChart : Set.InjOn (liftChart c φ) (blowdown c ⁻¹' φ.sourc
   · have hzd' : z' ∉ exceptionalDivisor c := by
       rwa [← blowdown_eq_center_iff, ← hb, blowdown_eq_center_iff]
     rw [← mem_offDivisorOpens] at hzd hzd'
-    have := congrArg Subtype.val ((blowdownDiffeomorph c).injective (a₁ := ⟨z, hzd⟩)
+    exact congrArg Subtype.val ((blowdownDiffeomorph c).injective (a₁ := ⟨z, hzd⟩)
       (a₂ := ⟨z', hzd'⟩) (Subtype.ext (by simpa using hb)))
-    exact this
 
 omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] in
 /-- The lifted chart maps the preimage of the source of `φ` onto the part of the model over the

@@ -10,10 +10,10 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import Mathlib.Analysis.CStarAlgebra.Classes
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -718,8 +718,7 @@ theorem isLocalDiffeomorphAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivi
   -- On the complement of the divisor, the blowdown is `blowdownDiffeomorph c`.
   have h : IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
       (blowdown c ∘ Subtype.val) w :=
-    (((blowdownDiffeomorph c).isLocalDiffeomorph w).comp
-      (hg := TauCeti.isLocalDiffeomorph_subtype_val _)).congr_of_eventuallyEq
+    ((blowdownDiffeomorph c).isLocalDiffeomorph_subtypeVal_comp w).congr_of_eventuallyEq
       (Filter.Eventually.of_forall fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm)
   exact (TauCeti.isLocalDiffeomorph_subtype_val w).comp_iff_right.1 h
 
