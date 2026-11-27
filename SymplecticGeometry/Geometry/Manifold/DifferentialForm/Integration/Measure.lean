@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Measure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
-import Mathlib.MeasureTheory.Measure.Haar.Unique
 import TauCeti.Algebra.Ring.Int.Units
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Operations
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
@@ -42,11 +41,6 @@ proof is that of `TauCeti.setIntegral_chartRiemannianVolume`. The sign of a char
 read off as in the proof of `TauCeti.integralTopForm_nonneg`, from the compatibility of the chart
 signs of an orientation lift.
 
-A subset of a chart source whose chart image is null for an additive Haar measure is null for
-`|φ|`. The proof follows that of `TauCeti.riemannianVolume_eq_zero_iff_image_of_subset`
-(`TauCeti/Geometry/Manifold/Riemannian/VolumeDensity/Null.lean`), with the coordinate formula
-`TauCeti.RoughForm.measure_apply_of_subset` in place of the chart density of the metric.
-
 ## Main results
 
 * `TauCeti.RoughForm.setIntegral_measure_of_subset`: the integral against `|φ|` over a
@@ -56,8 +50,6 @@ A subset of a chart source whose chart image is null for an additive Haar measur
 * `TauCeti.signBasis_orientationAt_mul_nonneg_of_iff`: the sign condition on `φ`, for an
   orientation described by the bases on which `φ` is positive.
 * `TauCeti.integralTopForm_smul_eq_integral_measure`: `∫_M f φ = ∫ f d|φ|`.
-* `TauCeti.RoughForm.measure_eq_zero_of_subset`: a subset of a chart source that is null in the
-  chart is null for `|φ|`.
 
 ## References
 
@@ -235,7 +227,7 @@ theorem integralTopForm_smul_eq_integral_measure (o : Manifold.Orientation I M (
   set b := finBasisOfFinrankEq ℝ E hk.out
   set ψ : RoughForm I M ℝ k := fun x ↦ f x • φ x
   -- `f φ` is a continuous top form supported in the support of `f`.
-  have hψ : IsSmoothForm I 0 ψ := hφ.fun_smul (contMDiff_zero_iff.2 hf)
+  have hψ : IsSmoothForm I 0 ψ := hφ.fun_smul_of_continuous hf
   have hsupp : _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) ψ ⊆ tsupport f :=
     -- `simp` leaves the zero of the fibre at `x` against the value at `x` of the zero form.
     closure_mono fun x hx ↦ Function.mem_support.2 fun h ↦ hx (by simp [ψ, h]; rfl)
@@ -265,43 +257,5 @@ theorem integralTopForm_smul_eq_integral_measure (o : Manifold.Orientation I M (
     mul_comm]
 
 end Integral
-
-/-! ### Null sets -/
-
-namespace RoughForm
-
-variable [MeasurableSpace M] [BorelSpace M] [LindelofSpace M] [Fact (finrank ℝ E = k)]
-  [MeasurableSpace E] [BorelSpace E]
-
-/-- **A set that is null in a chart is null for the measure of a top form.** A subset of the
-source of the extended chart at `α` whose image in the chart is null for an additive Haar measure
-on the model is null for `|φ|`. The set need not be measurable. -/
-theorem measure_eq_zero_of_subset (φ : RoughForm I M ℝ k) {α : M} {s : Set M}
-    (hsub : s ⊆ (extChartAt I α).source) (μ : Measure E) [μ.IsAddHaarMeasure]
-    (hs : μ (extChartAt I α '' s) = 0) : φ.measure s = 0 := by
-  obtain rfl : ‹MeasurableSpace E› = extChartAtMeasurableSpaceE := BorelSpace.measurable_eq
-  let : MeasurableSpace E := extChartAtMeasurableSpaceE
-  let e := extChartAt I α
-  -- A measurable set `t` with `s ⊆ t ⊆ e.source` whose image is still null.
-  let A := toMeasurable μ (e '' s)
-  let t := Subtype.val '' (e.source.domRestrict e ⁻¹' A)
-  have hval := MeasurableEmbedding.subtypeVal (isOpen_extChartAt_source (I := I) α).measurableSet
-  have htm : MeasurableSet t := hval.measurableSet_image.2
-    ((measurableSet_toMeasurable _ _).preimage
-      (measurableEmbedding_extChartAt_restrict α).measurable)
-  have hts : t ⊆ e.source := by
-    rintro _ ⟨y, -, rfl⟩
-    exact y.property
-  have hst : s ⊆ t := fun x hx ↦
-    ⟨⟨x, hsub hx⟩, subset_toMeasurable μ (e '' s) (mem_image_of_mem e hx), rfl⟩
-  have hAt : e '' t ⊆ A := by
-    rintro _ ⟨_, ⟨z, hz, rfl⟩, rfl⟩
-    exact hz
-  refine measure_mono_null hst ?_
-  rw [φ.measure_apply_of_subset htm hts]
-  exact setLIntegral_measure_zero _ _ (Measure.absolutelyContinuous_isAddHaarMeasure _ μ
-    (measure_mono_null hAt (by rwa [measure_toMeasurable])))
-
-end RoughForm
 
 end TauCeti

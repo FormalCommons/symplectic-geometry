@@ -16,7 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Moser.Local
 import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Moser stability
@@ -155,7 +155,7 @@ theorem exists_diffeotopy_mpullback_eq (σ : SmoothTwoForm ((𝓡∂ 1).prod I) 
     rw [h]
     exact isNondegenerate_iff_isInvertible_flat.mp (hσ _).isNondegenerate x
   have hres {k : ℕ} (β : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ k) (t : P) :=
-    SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right contMDiff_subtypeVal β t
+    SmoothForm.mpullback_prodMk_mpullback_prodMap_id β contMDiff_subtypeVal t
   set τ' := SmoothForm.mpullback (Prod.map (Subtype.val : P → ℝ) id)
     (contMDiff_subtypeVal.prodMap contMDiff_id) τ
   have hτ'symp (t : P) : IsSymplectic

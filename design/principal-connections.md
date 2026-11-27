@@ -140,10 +140,9 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
   structure), `Existence.lean` and `Curvature.lean`,
   so that three issues do not write one file. The comparison of curvatures
   with the circle case is in `Connection/Circle.lean`.
-- The curvature is `connectionCurvature A`, defined for every
-  $\mathfrak g$-valued one-form, rather than a declaration named
-  `curvature`: it needs no proof that $A$ is a connection form, and a bare
-  `curvature` in the namespace `SymplecticGeometry` would say too little.
+- The curvature is Tau Ceti's `TauCeti.gaugeCurvature (TauCeti.lieL ℝ 𝔤 𝔤) A`,
+  defined for every $\mathfrak g$-valued one-form: it needs no proof that
+  $A$ is a connection form.
   The table of shared definitions is corrected.
 
 Two files are added that `DESIGN.md` does not name:
@@ -159,7 +158,7 @@ diffeomorphism $\Phi$ above).
 | `Geometry/Lie/MaurerCartan.lean` | the left Maurer–Cartan form of a Lie group as a smooth $\mathfrak g$-valued one-form |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
-| `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | `connectionCurvature` and its properties |
+| `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | the properties of the curvature of a connection form |
 | `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` | $P\times F$ as the pull-back of $P$ to $P\times_GF$; descent along $q$ |
 | `Geometry/Manifold/FiberBundle/Associated/Connection.lean` | the connection induced on $P\times_GF$ |
 | `Geometry/Symplectic/Fibration/Associated.lean` | Weinstein's form and the milestone |
@@ -239,14 +238,12 @@ This file names it as a form.
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean`
 
-- `connectionCurvature A := mextDerivₗ _ 1 A + (1/2 : ℝ) •
-  SmoothForm.wedgeWith (TauCeti.lieL ℝ 𝔤 𝔤) A A`, with
-  `connectionCurvature_def` and
-  `connectionCurvature_apply : (connectionCurvature A).val x ![v, w] =
-  mextDeriv A x ![v, w] + ⁅A.val x ![v], A.val x ![w]⁆`.
-- `IsConnectionForm.mpullback_op_smul_connectionCurvature`: the curvature is
+- The curvature is Tau Ceti's `gaugeCurvature (TauCeti.lieL ℝ 𝔤 𝔤) A`,
+  `mextDerivₗ _ 1 A + (2 : ℝ)⁻¹ • SmoothForm.wedgeWith (lieL ℝ 𝔤 𝔤) A A`;
+  its value on two vectors is Tau Ceti's `gaugeCurvature_val`.
+- `IsConnectionForm.mpullback_op_smul_gaugeCurvature`: the curvature is
   equivariant, by naturality of $d$ and of the wedge.
-- `IsConnectionForm.isSemibasic_connectionCurvature`: it is semibasic,
+- `IsConnectionForm.isSemibasic_gaugeCurvature`: it is semibasic,
   vanishing when one argument is vertical. With $\xi^\sharp$ the fundamental
   field, differentiating the equivariance gives
   $L_{\xi^\sharp}A=-[\xi,A]$ (the $\mathfrak g$-valued version of the
@@ -254,15 +251,15 @@ This file names it as a form.
   same way along the flow $x\mapsto x\cdot\exp(t\xi)$), and Cartan's
   formula with $A(\xi^\sharp)=\xi$ constant gives
   $\iota_{\xi^\sharp}dA=-[\xi,A]$, which the bracket term cancels.
-  Together with equivariance, `IsConnectionForm.isTensorialForm_connectionCurvature`.
-- `connectionCurvature_apply_horizontal`: for vector
+  Together with equivariance, `IsConnectionForm.isTensorialForm_gaugeCurvature`.
+- `TauCeti.gaugeCurvature_apply_horizontal`, stated for any bracket in
+  `Geometry/Manifold/DifferentialForm/GaugeCurvature.lean`: for vector
   fields $X,Y$ horizontal near $x$,
   $F_A(X,Y)(x)=-A_x([X,Y](x))$ with `VectorField.mlieBracket`, from
   `SmoothForm.mextDeriv_apply_one`.
-- `connectionCurvature_add`: for any one-form $a$, the curvature of $A+a$
-  is $F_A+d a+[A\wedge a]+\tfrac12[a\wedge a]$, written with `wedgeWith`.
+- The curvature of $A+t\,a$ is Tau Ceti's `gaugeCurvature_add_smul`.
 - The circle case, in `Principal/Connection/Circle.lean`, which imports
-  this file: `IsCircleConnectionForm.connectionCurvature_mapCoeff`:
+  this file: `IsCircleConnectionForm.gaugeCurvature_mapCoeff`:
   the curvature of the $\mathfrak g$-valued form of $\alpha$ is
   `mapCoeff` of the pull-back of `hα.curvature`; the bracket vanishes
   since $\mathfrak g$ is spanned by `circleLieGenerator`.
@@ -338,7 +335,7 @@ pulled back to `ManifoldTotalSpace G P × F` along `Prod.fst` and
   $\sigma+d\langle\mu,A\rangle$, with `weinsteinForm_def`.
 - `weinsteinForm_apply`: the page's second expression,
   $\sigma(\hat x_1+X_{A v_1},\hat x_2+X_{A v_2})+\langle\mu,F_A(v_1,v_2)\rangle$,
-  with `fundamentalVectorField` and `connectionCurvature`. The proof is
+  with `fundamentalVectorField` and `gaugeCurvature`. The proof is
   the Leibniz rule `mextDeriv_wedgeWith`, the moment map condition for
   $d\mu$, and `momentCocycle_eq_zero` for the bracket term.
 - `isClosed_weinsteinForm`, from the first expression.
