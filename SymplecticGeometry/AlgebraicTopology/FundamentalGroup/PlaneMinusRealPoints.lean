@@ -51,6 +51,9 @@ loops: run one after the other from the largest point to the smallest, they are 
 
 * `SymplecticGeometry.PlaneMinusRealPoints.approach x r`, `circle x r` and `loopInPlane x r`:
   the loop in `ℂ` about `x` of radius `r`, based at `0`, and the pieces it is made of.
+* `SymplecticGeometry.PlaneMinusRealPoints.fan c δ k`: the open lower half-plane together with
+  the open vertical strip of half-width `δ / 2` about `c k`. It is star-convex about `c k`
+  (`starConvex_fan`), and contains no other point `c i` (`eq_of_ofReal_mem_fan`).
 * `SymplecticGeometry.PlaneMinusRealPoints.loop hδ hc h0 k`: the loop about `c k`, based at `0`, in
   the plane minus the points.
 * `SymplecticGeometry.PlaneMinusRealPoints.fundamentalGroupMulEquiv hδ hc h0`: the isomorphism
@@ -185,8 +188,14 @@ private def band (k : ι) : Set ℂ := {z | |z.re - c k| < δ / 2}
 private theorem mem_band {k : ι} {z : ℂ} : z ∈ band c δ k ↔ |z.re - c k| < δ / 2 := Iff.rfl
 
 variable (c δ) in
-/-- The lower half-plane together with the strip about `c k`. -/
-private def fan (k : ι) : Set ℂ := lowerHalf ∪ band c δ k
+/-- The open lower half-plane together with the open vertical strip of half-width `δ / 2` about the
+real point `c k`. -/
+def fan (k : ι) : Set ℂ := lowerHalf ∪ band c δ k
+
+/-- A point lies in the fan about `c k` when it lies in the open lower half-plane or within `δ / 2`
+of `c k` in its real part. -/
+theorem mem_fan_iff {k : ι} {z : ℂ} : z ∈ fan c δ k ↔ z.im < 0 ∨ |z.re - c k| < δ / 2 :=
+  Iff.rfl
 
 variable (c δ) in
 /-- The lower half-plane together with all the strips, minus the points `c i`. -/
@@ -220,7 +229,7 @@ private theorem eq_of_ofReal_mem_band (hδ : 0 < δ) (hc : Pairwise fun i j ↦ 
   exact notMem_band_of_mem_band hc hik (mem_band_self hδ i) h
 
 /-- The lower half-plane together with the strip about `c k` is star-convex about `c k`. -/
-private theorem starConvex_fan (hδ : 0 < δ) (k : ι) : StarConvex ℝ (c k : ℂ) (fan c δ k) := by
+theorem starConvex_fan (hδ : 0 < δ) (k : ι) : StarConvex ℝ (c k : ℂ) (fan c δ k) := by
   refine (starConvex_iff_forall_pos (s := fan c δ k) (Or.inr (mem_band_self hδ k))).2
     fun z hz a b ha hb hab ↦ ?_
   have hre : (a • (c k : ℂ) + b • z).re - c k = b * (z.re - c k) := by
@@ -235,7 +244,8 @@ private theorem starConvex_fan (hδ : 0 < δ) (k : ι) : StarConvex ℝ (c k : �
     rw [hre, abs_mul, abs_of_pos hb]
     nlinarith [abs_nonneg (z.re - c k)]
 
-private theorem sphere_subset_fan (hδ : 0 < δ) (k : ι) :
+/-- The circle of radius `δ / 4` about `c k` lies in the fan about `c k`. -/
+theorem sphere_subset_fan (hδ : 0 < δ) (k : ι) :
     sphere (c k : ℂ) (δ / 4) ⊆ fan c δ k := by
   intro z hz
   refine .inr (mem_band.2 ?_)
@@ -243,6 +253,24 @@ private theorem sphere_subset_fan (hδ : 0 < δ) (k : ι) :
   rw [mem_sphere_iff_norm] at hz
   rw [sub_re, ofReal_re] at h
   linarith
+
+/-- The open disc of radius `δ / 2` about `c k` lies in the fan about `c k`. -/
+theorem ball_subset_fan (k : ι) : ball (c k : ℂ) (δ / 2) ⊆ fan c δ k := by
+  intro z hz
+  refine .inr (mem_band.2 ?_)
+  have h := abs_re_le_norm (z - c k)
+  rw [mem_ball, dist_eq_norm] at hz
+  rw [sub_re, ofReal_re] at h
+  linarith
+
+/-- A point of the open lower half-plane lies in the fan about `c k`, and is not `c k`. -/
+theorem mem_fan_diff_of_im_neg (k : ι) {z : ℂ} (hz : z.im < 0) : z ∈ fan c δ k \ {(c k : ℂ)} :=
+  ⟨.inl (mem_lowerHalf.2 hz), fun h ↦ by simp [mem_singleton_iff.1 h] at hz⟩
+
+/-- Among the points `c i`, only `c k` lies in the fan about `c k`. -/
+theorem eq_of_ofReal_mem_fan (hδ : 0 < δ) (hc : Pairwise fun i j ↦ δ ≤ |c i - c j|) {i k : ι}
+    (h : (c i : ℂ) ∈ fan c δ k) : i = k :=
+  h.elim (fun h ↦ (ofReal_notMem_lowerHalf _ h).elim) (eq_of_ofReal_mem_band hδ hc)
 
 /-- The punctured fan lies in the spine. -/
 private theorem fan_diff_subset_spine (hδ : 0 < δ) (hc : Pairwise fun i j ↦ δ ≤ |c i - c j|)
@@ -422,7 +450,8 @@ theorem zero_mem_compl_range (h0 : ∀ i, c i ≠ 0) : (0 : ℂ) ∈ (range fun 
   rintro ⟨i, hi⟩
   exact h0 i (by simpa using hi)
 
-private theorem segment_mem_compl_range (h0 : ∀ i, c i ≠ 0) (t : unitInterval) :
+/-- The segment from `0` to `-i` avoids the points, if none of them is `0`. -/
+theorem segment_mem_compl_range (h0 : ∀ i, c i ≠ 0) (t : unitInterval) :
     Path.segment (0 : ℂ) (-I) t ∈ (range fun i ↦ (c i : ℂ))ᶜ := by
   rintro ⟨i, hi⟩
   have hre : (Path.segment (0 : ℂ) (-I) t).re = 0 := by
@@ -430,9 +459,9 @@ private theorem segment_mem_compl_range (h0 : ∀ i, c i ≠ 0) (t : unitInterva
   rw [← hi, ofReal_re] at hre
   exact h0 i hre
 
-private theorem negI_mem_fan (k : ι) : -I ∈ fan c δ k \ {(c k : ℂ)} :=
-  ⟨.inl negI_mem_lowerHalf, fun h ↦ by
-    simpa using congrArg im (mem_singleton_iff.1 h)⟩
+/-- The point `-i` lies in the fan about `c k`, and is not `c k`. -/
+theorem negI_mem_fan (k : ι) : -I ∈ fan c δ k \ {(c k : ℂ)} :=
+  mem_fan_diff_of_im_neg k (by simp)
 
 private theorem approach_mem_fan (hδ : 0 < δ) (k : ι) (t : unitInterval) :
     approach (c k) (δ / 4) t ∈ fan c δ k \ {(c k : ℂ)} := by
