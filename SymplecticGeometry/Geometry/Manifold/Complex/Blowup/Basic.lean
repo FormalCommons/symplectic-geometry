@@ -316,6 +316,9 @@ theorem ofDirection_def (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
 theorem ofDirection_injective : Injective (ofDirection c) := fun _ _ h ↦
   zeroSection_injective (congrArg Subtype.val (GluedAlong.inr_injective (gluingHomeomorph c) h))
 
+/-- The blowup is nonempty: it contains the exceptional divisor. -/
+instance : Nonempty (Blowup c) := ⟨ofDirection c (Classical.arbitrary _)⟩
+
 /-- The exceptional divisor of the blowup: the image of the zero section of the model, a copy
 of `ℙ ℂ (Fin (n + 1) → ℂ)`. -/
 def exceptionalDivisor : Set (Blowup c) := range (ofDirection c)
