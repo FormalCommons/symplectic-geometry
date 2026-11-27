@@ -616,7 +616,7 @@ omit [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M] in
 `blowdownBall` of a point of the closed ball of radius `l`. -/
 theorem mem_complBall_iff {z : DivisorBlowdown hΨ hf hl hε} :
     z ∈ complBall hΨ hf hl hε ↔ z ∉ blowdownBall hΨ hf hl hε '' closedBall 0 l := by
-  rw [← SetLike.mem_coe, coe_complBall, mem_image_blowdownBall_closedBall_iff]
+  rw [complBall, GluedAlong.mem_rangeInl, mem_image_blowdownBall_closedBall_iff]
   constructor
   · rintro ⟨x, rfl⟩ ⟨w, hw, hxw⟩
     obtain ⟨h, hxw⟩ := (GluedAlong.inr_eq_inl_iff _).1 hxw
@@ -649,17 +649,16 @@ theorem coe_complBallSymplectomorph_symm_apply (x : outerPiece hf) :
 @[simp]
 theorem inl_complBallSymplectomorph_apply (z : complBall hΨ hf hl hε) :
     GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
-        (complBallSymplectomorph hΨ hf hl hε z) = z := by
-  rw [← coe_complBallSymplectomorph_symm_apply, Diffeomorph.symm_apply_apply]
+        (complBallSymplectomorph hΨ hf hl hε z) = z :=
+  GluedAlong.inl_rangeInlDiffeomorph_apply _ z
 
 /-- `complBallSymplectomorph` sends the point `inl x` to `x`. -/
 @[simp]
 theorem complBallSymplectomorph_inl (x : outerPiece hf) :
     complBallSymplectomorph hΨ hf hl hε
         ⟨GluedAlong.inl (gluingDiffeomorph hΨ hf hl hε).toHomeomorph x,
-          inl_mem_complBall hΨ hf hl hε x⟩ = x := by
-  apply GluedAlong.inl_injective (gluingDiffeomorph hΨ hf hl hε).toHomeomorph
-  exact inl_complBallSymplectomorph_apply hΨ hf hl hε _
+          inl_mem_complBall hΨ hf hl hε x⟩ = x :=
+  GluedAlong.rangeInlDiffeomorph_mk_inl _ x
 
 /-- **The complement of the ball is symplectomorphic to `M ∖ Z`**: `complBallSymplectomorph`
 pulls the restriction of `σ` to `M ∖ Z` back to the restriction of the form of the blowdown to

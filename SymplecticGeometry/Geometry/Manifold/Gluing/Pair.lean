@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
@@ -307,10 +307,13 @@ def rangeInl : Opens (GluedAlong φ) := ⟨range (inl φ), isOpen_range_inl φ�
 @[simp]
 theorem coe_rangeInl : (rangeInl φ : Set (GluedAlong φ)) = range (inl φ) := (rfl)
 
-/-- Every point `inl x` of the glued space lies in `rangeInl φ`. -/
+/-- A point of the glued space lies in `rangeInl φ` exactly when it is `inl x` for some `x`. -/
 @[simp]
+theorem mem_rangeInl {z : GluedAlong φ} : z ∈ rangeInl φ ↔ ∃ x, inl φ x = z := Iff.rfl
+
+/-- Every point `inl x` of the glued space lies in `rangeInl φ`. -/
 theorem inl_mem_rangeInl (x : M₁) : inl φ x ∈ rangeInl φ :=
-  SetLike.mem_coe.1 ((coe_rangeInl φ).symm ▸ mem_range_self x)
+  (mem_rangeInl φ).2 ⟨x, rfl⟩
 
 section Desc
 
@@ -490,8 +493,9 @@ theorem coe_rangeInlDiffeomorph_symm_apply (x : M₁) :
 
 /-- `inl` undoes `rangeInlDiffeomorph h`. -/
 @[simp]
-theorem inl_rangeInlDiffeomorph_apply (z : rangeInl φ) : inl φ (rangeInlDiffeomorph h z) = z := by
-  rw [← coe_rangeInlDiffeomorph_symm_apply h, Diffeomorph.symm_apply_apply]
+theorem inl_rangeInlDiffeomorph_apply (z : rangeInl φ) : inl φ (rangeInlDiffeomorph h z) = z :=
+  IsLocalDiffeomorph.apply_diffeomorphOfInjective_symm (isLocalDiffeomorph_inl_of_isCompatible h)
+    _ z
 
 /-- `rangeInlDiffeomorph h` sends the point `inl x` to `x`. -/
 @[simp]
@@ -832,9 +836,9 @@ theorem mpullback_rangeInlDiffeomorph_symm (h : (glueData φ.toHomeomorph).IsCom
     (α : SmoothForm I (GluedAlong φ.toHomeomorph) F k) :
     SmoothForm.mpullback (rangeInlDiffeomorph h).symm (rangeInlDiffeomorph h).symm.contMDiff
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal α) =
-      SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff α := by
-  rw [SmoothForm.mpullback_mpullback]
-  exact SmoothForm.mpullback_congr _ _ (funext (coe_rangeInlDiffeomorph_symm_apply h)) α
+      SmoothForm.mpullback (inl φ.toHomeomorph) (isLocalDiffeomorph_inl φ).contMDiff α :=
+  SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+    (isLocalDiffeomorph_inl_of_isCompatible h) (inl_injective _) α
 
 /-- The inverse of `rangeInlDiffeomorph h` pulls the restriction of the glued form to the range
 of `inl` back to the form on `M₁`. -/

@@ -524,7 +524,7 @@ theorem mem_complDivisor_iff {z : WeightBlowup hψ hl hε} :
     z ∈ complDivisor hψ hl hε ↔
       z ∉ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph ''
         {y : openNbhdOpens n ε | (y : BlowupModel n) ∈ exceptionalDivisor n} := by
-  rw [← SetLike.mem_coe, coe_complDivisor]
+  rw [complDivisor, GluedAlong.mem_rangeInl]
   constructor
   · rintro ⟨x, rfl⟩ ⟨y, hy, hxy⟩
     obtain ⟨h, -⟩ := (inl_eq_inr_iff hψ hl hε).1 hxy.symm
@@ -552,17 +552,16 @@ theorem coe_complDivisorSymplectomorph_symm_apply (x : outerPiece hψ) :
 @[simp]
 theorem inl_complDivisorSymplectomorph_apply (z : complDivisor hψ hl hε) :
     GluedAlong.inl (gluingDiffeomorphSymm hψ hl hε).toHomeomorph
-        (complDivisorSymplectomorph hψ hl hε z) = z := by
-  rw [← coe_complDivisorSymplectomorph_symm_apply, Diffeomorph.symm_apply_apply]
+        (complDivisorSymplectomorph hψ hl hε z) = z :=
+  GluedAlong.inl_rangeInlDiffeomorph_apply _ z
 
 /-- `complDivisorSymplectomorph` sends the point `inl x` to `x`. -/
 @[simp]
 theorem complDivisorSymplectomorph_inl (x : outerPiece hψ) :
     complDivisorSymplectomorph hψ hl hε
         ⟨GluedAlong.inl (gluingDiffeomorphSymm hψ hl hε).toHomeomorph x,
-          inl_mem_complDivisor hψ hl hε x⟩ = x := by
-  apply GluedAlong.inl_injective (gluingDiffeomorphSymm hψ hl hε).toHomeomorph
-  exact inl_complDivisorSymplectomorph_apply hψ hl hε _
+          inl_mem_complDivisor hψ hl hε x⟩ = x :=
+  GluedAlong.rangeInlDiffeomorph_mk_inl _ x
 
 /-- **The complement of the divisor is symplectomorphic to `M ∖ ψ(B(l))`**:
 `complDivisorSymplectomorph` pulls the restriction of `σ` to `M ∖ ψ(B(l))` back to the restriction
