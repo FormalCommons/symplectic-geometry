@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChartCap
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.System
 public import TauCeti.Topology.VectorBundle.EulerClass
 
@@ -26,6 +27,13 @@ space is `zeroSectionCompl`, not the complement of a set), so this map is define
 * `TauCeti.thomPairLocalHomologyRestriction`: the map from the homology of the Thom pair to the
   local homology of the total space at `0_b`, unfolded by
   `TauCeti.thomPairLocalHomologyRestriction_def`.
+
+## Main results
+
+* `TauCeti.singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction`: reading a class of
+  the Thom pair relative to `E ∖ 0 ∪ E ∖ E_b` factors through its local class at `0_b`, since
+  that set is the complement of `0_b`
+  (`Bundle.zeroSectionCompl_union_compl_preimage_singleton`).
 
 ## References
 
@@ -69,6 +77,31 @@ theorem thomPairLocalHomologyRestriction_def (b : B) (k : ℕ) :
       TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of (TotalSpace F E)))
         (zeroSectionCompl_subset_compl_singleton_zeroSection F E b)) R k :=
   (rfl)
+
+section
+
+variable {B : Type} [TopologicalSpace B] {F : Type} [TopologicalSpace F] {E : B → Type}
+  [∀ b, Zero (E b)] [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
+  [FiberBundle F E]
+
+/-- Reading a class of the Thom pair `Hₖ(E, E ∖ 0)` relative to `E ∖ 0 ∪ E ∖ E_b` is reading its
+local class at `0_b` (`thomPairLocalHomologyRestriction`) relative to that set, since that set is
+the complement of `0_b`. -/
+theorem singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction (R : ModuleCat.{0} ℤ)
+    (b : B) (k : ℕ) (γ : ((thomPair F E).singularHomology R k : ModuleCat.{0} ℤ)) :
+    TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
+        (zeroSectionCompl_union_compl_preimage_singleton (P := F) b).superset hv) R k
+        ((thomPairLocalHomologyRestriction R F E b k).hom γ) =
+      TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of (TotalSpace F E)))
+        (B := zeroSectionCompl F E)
+        (B' := zeroSectionCompl F E ∪ TopCat.ofHom ⟨π F E, FiberBundle.continuous_proj F E⟩ ⁻¹'
+          ({b}ᶜ : Set (TopCat.of B))) fun _ hx ↦ Or.inl hx) R k γ := by
+  rw [thomPairLocalHomologyRestriction_def, ← ConcreteCategory.comp_apply,
+    ← TopPair.singularHomologyMap_comp]
+  exact congrArg (fun g ↦ TopPair.singularHomologyMap g R k γ)
+    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (Category.comp_id _))
+
+end
 
 end TauCeti
 
