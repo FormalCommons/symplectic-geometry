@@ -9,12 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ExceptionalClass
-public import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
-import TauCeti.Topology.Algebra.Module.ComplexSmulI
 
 /-!
 # The first Chern class of the blowup
@@ -48,8 +46,8 @@ exceptional divisor with the complex structure induced by `J̃`, with complex mo
 * `SymplecticGeometry.Blowup.firstChernClass_normalComplexStructure_divisorRealEmbedding`: so the
   normal bundle of the exceptional divisor, with the complex structure induced by `J̃`, is
   isomorphic to the tautological line, and its first Chern class is `-h`, with `h` the
-  hyperplane class (`Projectivization.firstChernClass_tautological`). The complex isomorphism
-  is built as in the proof of `SymplecticGeometry.BlowupModel.selfIntersectionNumber_zeroSection`.
+  hyperplane class (`Projectivization.firstChernClass_tautological`). The complex isomorphisms
+  are `TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI`.
 
 The first result is step 1, and the last two are part of step 3, of the proof of the formula
 `c₁(T Blowup c) = π^* c₁(TM) - n e`, where `e` is `SymplecticGeometry.Blowup.exceptionalClass`
@@ -200,22 +198,13 @@ theorem firstChernClass_normalComplexStructure_divisorRealEmbedding {hn : (∞ :
   let := (divisorRealEmbedding c).normalSpaceVectorBundle hn hdim
   set ν := (divisorRealEmbedding c).normalComplexStructure hn (almostComplexStructure c J hJ) hdim
     (mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding c J hJ) with hν
-  -- The isomorphisms `divisorNormalEquiv c`, complex linear for `ν`.
-  let φ (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-      ν.Fiber ℓ ≃L[ℂ] Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
-    ((ν.fiberEquiv ℓ).trans (divisorNormalEquiv c ℓ)).complexOfMapISmul fun v ↦ by
-      rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
-        ν.fiberEquiv_I_smul, hν, SmoothEmbedding.normalComplexStructure_apply,
-        divisorNormalEquiv_normalComplexStructureAt]
-  have hφ : Continuous fun p : TotalSpace ℂ ν.Fiber ↦
-      TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) p.proj
-        (φ p.proj p.snd) :=
-    ((continuous_divisorNormalEquiv c).comp (ν.totalSpaceHomeomorph ℂ).continuous).congr
-      fun p ↦ by
-        rw [Function.comp_apply, Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
-        simp only [φ, ContinuousLinearEquiv.complexOfMapISmul_apply,
-          ContinuousLinearEquiv.trans_apply]
-  rw [SymplecticGeometry.Bundle.firstChernClass_congr φ hφ,
+  -- `divisorNormalEquiv c` carries `ν` to multiplication by `I`.
+  have he (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) (w) :
+      divisorNormalEquiv c ℓ (ν ℓ w) = Complex.I • divisorNormalEquiv c ℓ w := by
+    rw [hν, SmoothEmbedding.normalComplexStructure_apply,
+      divisorNormalEquiv_normalComplexStructureAt]
+  rw [SymplecticGeometry.Bundle.firstChernClass_congr _
+      (ν.continuous_fiberEquivOfCommuteI _ he ℂ (continuous_divisorNormalEquiv c)),
     Projectivization.firstChernClass_tautological]
 
 end Blowup

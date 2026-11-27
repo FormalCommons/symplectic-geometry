@@ -37,7 +37,10 @@ two complex bundles.
 In the same way, a frame of `V` along a map `f : X → B` by real-linear equivalences
 `Ψ x : E ≃ V (f x)` from a complex normed space, that carries multiplication by `I` to `J`, is a
 frame of the complex bundle `J.Fiber` (`TauCeti.Bundle.ContinuousComplexStructure.frameOfCommute`),
-continuous when `Ψ` is.
+continuous when `Ψ` is. In the other direction, real-linear equivalences `e b : V b ≃ W b`
+onto a family of complex vector spaces, that carry `J` to multiplication by `I`, are
+complex-linear equivalences `J.Fiber b ≃ W b`
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI`), continuous when `e` is.
 
 The trivialization of `J.Fiber` at `b₀` is read in that of `V` at `b₀`
 (`TauCeti.Bundle.ContinuousComplexStructure.trivializationAt_fiberEquiv_symm_apply_snd`): over
@@ -284,6 +287,47 @@ theorem continuous_frameOfCommute [TopologicalSpace X]
   rw [Function.comp_apply, totalSpaceHomeomorph_symm_apply, frameOfCommute_apply]
 
 end Frame
+
+/-! ### Complex-linear maps into bundles of complex vector spaces -/
+
+section ToComplex
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)] [∀ b, TopologicalSpace (V b)]
+  [∀ b, IsTopologicalAddGroup (V b)] [∀ b, ContinuousSMul ℝ (V b)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  (J : ContinuousComplexStructure F V)
+  {W : B → Type*} [∀ b, AddCommGroup (W b)] [∀ b, Module ℝ (W b)] [∀ b, Module ℂ (W b)]
+  [∀ b, IsScalarTower ℝ ℂ (W b)] [∀ b, TopologicalSpace (W b)]
+  (e : ∀ b, V b ≃L[ℝ] W b) (he : ∀ b v, e b (J b v) = Complex.I • e b v)
+
+/-- Real-linear equivalences `e b : V b ≃ W b` onto the fibres of a family of complex vector
+spaces, that carry `J` to multiplication by `I`, as complex-linear equivalences
+`J.Fiber b ≃ W b`. -/
+def fiberEquivOfCommuteI (b : B) : J.Fiber b ≃L[ℂ] W b :=
+  ((J.fiberEquiv b).trans (e b)).complexOfMapISmul fun v ↦ by
+    rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply, fiberEquiv_I_smul,
+      he]
+
+@[simp]
+theorem fiberEquivOfCommuteI_apply (b : B) (v : J.Fiber b) :
+    J.fiberEquivOfCommuteI e he b v = e b (J.fiberEquiv b v) := by
+  simp [fiberEquivOfCommuteI]
+
+variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [FiniteDimensional ℝ F] [Fact (finrank ℝ F = 2 * finrank ℂ G)]
+  {F' : Type*} [TopologicalSpace (TotalSpace F' W)]
+
+/-- If `e` is continuous on total spaces, so is `fiberEquivOfCommuteI`, for any complex model `G`
+of `J.Fiber`. -/
+theorem continuous_fiberEquivOfCommuteI
+    (hc : Continuous fun p : TotalSpace F V ↦ TotalSpace.mk' F' p.proj (e p.proj p.snd)) :
+    Continuous fun p : TotalSpace G J.Fiber ↦
+      TotalSpace.mk' F' p.proj (J.fiberEquivOfCommuteI e he p.proj p.snd) := by
+  refine (hc.comp (J.totalSpaceHomeomorph G).continuous).congr fun p ↦ ?_
+  rw [Function.comp_apply, totalSpaceHomeomorph_apply, fiberEquivOfCommuteI_apply]
+
+end ToComplex
 
 /-! ### The trivializations of `J.Fiber` -/
 
