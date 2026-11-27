@@ -1630,7 +1630,8 @@ The cube charts as coordinates for forms, in the namespace
   slices vanish off a fixed compact set, the forms
   `TauCeti.SmoothForm.extendByZeroAlong (c.chartPartialDiffeomorph i) (a (q, ·))`
   (`DifferentialForm/PartialDiffeomorph.lean`) are an `IsSmoothFamily 𝓘(ℝ, S)`:
-  the new lemma `IsSmoothFamily.extendByZeroAlong`, in that file. Since
+  the new lemma `IsSmoothFamily.extendByZeroAlong`, in
+  `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Since
   `mpullback_symm_extendByZeroAlong` reads the extension back as `a` on the
   chart, the corrected one-forms
   `B' q := B q + ∑ i, extendByZeroAlong (c.chartPartialDiffeomorph i) (a i (q, ·))`
@@ -2279,7 +2280,8 @@ Each is a few hundred lines; each issue's blockers come before it.
      `BandCore.isLocalDiffeomorph_chart`, `BandCore.chartPartialDiffeomorph`,
      the readings of the formal datum and `BandCore.exists_relativeSet`;
      and `IsSmoothFamily.extendByZeroAlong` in
-     `DifferentialForm/PartialDiffeomorph.lean`. Blocked by nothing.
+     `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Blocked by
+     nothing.
    - 8b. **Diffeotopies along a chart.** `SmoothIsotopy/Chart.lean`:
      `TauCeti.extendDiffeotopyAlong`. Blocked by nothing.
    - 8c. **The continuous version's clauses at every point.** The `C`, `N`
