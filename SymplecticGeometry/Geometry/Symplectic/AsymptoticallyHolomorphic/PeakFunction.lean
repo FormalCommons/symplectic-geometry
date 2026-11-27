@@ -9,12 +9,14 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import TauCeti.Analysis.InnerProductSpace.SquaredDistance
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # Cut-off Gaussians, their uniform jet bounds and their model `∂̄`
@@ -57,6 +59,11 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.exists_jetNormAt_peakFunction_mul_le`: the **uniform Gaussian jet bounds**,
   `jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` with `C`, `N` and
   `c > 0` independent of `k` and `z`, and the same for `peakFunction_mul k j`, uniformly in `j`.
+* `SymplecticGeometry.dbarFunction_eq_flatDbar_comp`,
+  `SymplecticGeometry.flatDbar_apply_eq_dbarFunction`: the flat `∂̄` is Tau Ceti's `∂̄` on
+  functions, `TauCeti.SmoothAlmostComplexStructure.dbarFunction`, for the constant structure
+  `J₀.constSmooth`; `SymplecticGeometry.flatDbar_eq_zero_iff`: it vanishes at `z` exactly when
+  `df_z` is complex linear for `J₀`.
 * `SymplecticGeometry.contDiffAt_flatDbar`, `SymplecticGeometry.contDiffAt_modelDbar`: both `∂̄`
   of a `C^(n + 1)` function are `C^n`; `SymplecticGeometry.modelDbar_add`,
   `SymplecticGeometry.modelDbar_smul`: the model `∂̄` is additive and commutes with complex
@@ -81,6 +88,13 @@ The jet norms of the Gaussian are bounded by `exists_jetNormAt_exp_neg_mul_norm_
 products by `jetNormAt_fun_smul_le`. The complex coordinates are Tau Ceti's
 `complexToRealEuclidean` followed by a projection, `TauCeti.complexToRealEuclideanCoord`.
 
+The flat `∂̄` is defined on `StdSpace ι` itself rather than as Tau Ceti's `dbarFunction`, whose
+values are forms on the tangent spaces `TangentSpace 𝓘(ℝ, StdSpace ι) z`, a family of types
+depending on `z`, so that its jets can be taken with `jetNormAt`. The two agree by
+`dbarFunction_eq_flatDbar_comp`, and the additivity, the commutation with scalars, the Leibniz rule
+and the vanishing criterion of the flat `∂̄` are read off from Tau Ceti's `dbarFunction_add`,
+`dbarFunction_const_smul`, `dbarFunction_smul` and `dbarFunction_eq_zero_iff`.
+
 That the Gaussian has model `∂̄` zero rests on the sign convention `ω₀(z, v) = ⟪J₀ z, v⟫`
 (`stdForm_apply_eq_inner`): the derivative `-½ ⟪z, ·⟫ g` of the Gaussian `g`, from Tau Ceti's
 `hasFDerivAt_exp_neg_mul_norm_sub_sq`, and the connection
@@ -99,6 +113,7 @@ gives the factor `k ^ (-1 / 2)` at the cost of the power `(1 + ‖z‖) ^ 3`.
 public section
 
 open Metric TauCeti
+open scoped Manifold
 
 namespace SymplecticGeometry
 
@@ -381,34 +396,67 @@ theorem contDiff_flatDbar {n : ℕ∞} {f : StdSpace ι → ℂ} (hf : ContDiff 
     ContDiff ℝ n (flatDbar f) :=
   contDiff_iff_contDiffAt.2 fun _ ↦ contDiffAt_flatDbar hf.contDiffAt
 
+/-- The **flat `∂̄` is Tau Ceti's `∂̄` on functions**: for the constant smooth almost complex
+structure `J₀` on `StdSpace ι`, `TauCeti.SmoothAlmostComplexStructure.dbarFunction f z` is the flat
+`∂̄` of `f` at `z`, read on the tangent space at `z` through `NormedSpace.fromTangentSpace z`. -/
+theorem dbarFunction_eq_flatDbar_comp (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    (stdComplexStructure ι).constSmooth.dbarFunction f z =
+      flatDbar f z ∘L (NormedSpace.fromTangentSpace (𝕜 := ℝ) z : _ →L[ℝ] StdSpace ι) := by
+  ext v
+  simp [SmoothAlmostComplexStructure.dbarFunction_apply, mvfderiv_eq_fderiv, flatDbar_apply]
+
+/-- The flat `∂̄` of `f` at `z`, applied to `v`, is Tau Ceti's `∂̄` on functions for the constant
+structure `J₀`, applied to `v` read as a tangent vector at `z`. -/
+theorem flatDbar_apply_eq_dbarFunction (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    flatDbar f z v = (stdComplexStructure ι).constSmooth.dbarFunction f z
+      ((NormedSpace.fromTangentSpace z).symm v) := by
+  rw [dbarFunction_eq_flatDbar_comp, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply]
+
+/-- The flat `∂̄` of `f` vanishes at `z` exactly when `df_z` is complex linear for `J₀`:
+`df_z (J₀ v) = i df_z v` for all `v`. -/
+theorem flatDbar_eq_zero_iff (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    flatDbar f z = 0 ↔
+      ∀ v, fderiv ℝ f z (stdComplexStructure ι v) = Complex.I * fderiv ℝ f z v := by
+  have h := (stdComplexStructure ι).constSmooth.dbarFunction_eq_zero_iff f z
+  simp only [mvfderiv_eq_fderiv, smul_eq_mul, ContinuousLinearMap.comp_apply,
+    dbarFunction_eq_flatDbar_comp, ContinuousLinearMap.ext_iff] at h
+  rw [ContinuousLinearMap.ext_iff]
+  refine h.trans (forall_congr' fun v ↦ ?_)
+  -- `v` lies in the type synonym `TangentSpace _ z`, so the lemmas take it explicitly.
+  simp only [ContinuousLinearEquiv.coe_coe, NormedSpace.fromTangentSpace_apply,
+    AlmostComplexStructure.constSmooth_apply _ z v,
+    NormedSpace.fromTangentSpace_apply (𝕜 := ℝ) z ((stdComplexStructure ι).toLinearMap v)]
+
 /-- The flat `∂̄` is additive on functions differentiable at `z`. -/
 theorem flatDbar_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) : flatDbar (f + g) z = flatDbar f z + flatDbar g z := by
-  simp [flatDbar_def, fderiv_add hf hg]
+  ext v
+  simp [flatDbar_apply_eq_dbarFunction, SmoothAlmostComplexStructure.dbarFunction_add _
+    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)]
 
 /-- The flat `∂̄` commutes with complex scalars. -/
 @[simp]
 theorem flatDbar_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
     flatDbar (c • f) z = c • flatDbar f z := by
   ext v
-  simp only [flatDbar_apply, fderiv_const_smul_field, Pi.smul_apply, smul_apply, smul_eq_mul,
-    Complex.real_smul]
-  ring
+  simp [flatDbar_apply_eq_dbarFunction]
 
 @[simp]
 theorem flatDbar_zero (z : StdSpace ι) : flatDbar (0 : StdSpace ι → ℂ) z = 0 := by
-  simp [flatDbar_def]
+  ext v
+  simp [flatDbar_apply_eq_dbarFunction]
 
 /-- The **Leibniz rule** for the flat `∂̄`: for `f` and `g` differentiable at `z`, the flat `∂̄`
 of `f * g` at `z` is `f z` times the flat `∂̄` of `g` plus `g z` times the flat `∂̄` of `f`. -/
 theorem flatDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) :
     flatDbar (fun y ↦ f y * g y) z = f z • flatDbar g z + g z • flatDbar f z := by
+  have h := (stdComplexStructure ι).constSmooth.dbarFunction_smul
+    (mdifferentiableAt_iff_differentiableAt.2 hf) (mdifferentiableAt_iff_differentiableAt.2 hg)
+  simp only [smul_eq_mul] at h
   ext v
-  simp only [add_apply, smul_apply, flatDbar_apply, fderiv_fun_mul hf hg, smul_eq_mul,
-    Complex.real_smul]
-  push_cast
-  ring
+  simp [flatDbar_apply_eq_dbarFunction, ← Pi.mul_def, h, mul_comm]
 
 /-- The flat `∂̄` of the complex coordinate `z_j` vanishes: it is complex linear for `J₀`. -/
 @[simp]
