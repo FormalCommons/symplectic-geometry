@@ -137,6 +137,7 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
 variable [ContMDiffVectorBundle ∞ F V (𝓡 2)] (g : ContMDiffRiemannianMetric (𝓡 2) ∞ F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
 
+open scoped ContMDiffHermitianMetric in
 /-- **Chern–Weil in degree two, over a surface.** Let `M` be a closed connected orientable smooth
 surface, and `V` a smooth complex line bundle over `M` with a smooth Hermitian metric `g`. Then
 the de Rham homomorphism sends the real first Chern class of the circle bundle of unitary frames
@@ -147,12 +148,7 @@ theorem deRhamHom_realFirstChernClass_eq_neg_of_connectedSpace [ConnectedSpace M
       -(TopCat.of M).singularCohomologyRealImageAddMonoidHom 2
         (complexEulerClass (r := 0) F V Fact.out) := by
   rw [ContMDiffRiemannianMetric.realFirstChernClass_def]
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
-    contMDiffFiberBundle_circleFiber g hI
+  let : ContMDiffHermitianMetric (𝓡 2) ∞ F V := ⟨g, hI⟩
   have hE := finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)
   obtain ⟨o⟩ := Orientable.nonempty_orientation (I := 𝓡 2) (M := M)
   rw [hE] at o
