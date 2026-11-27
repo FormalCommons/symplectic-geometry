@@ -15,6 +15,8 @@ public import Mathlib.Analysis.SpecialFunctions.Exp
   with a smaller exponent `c / b ^ 2` and a constant factor. This is how a Gaussian decay in
   the coordinates of a chart becomes one in a distance comparable to them, as in the decay of
   Donaldson's peak sections.
+* `Real.one_add_pow_mul_exp_neg_mul_sq_le_of_le`: for `t ≥ 0`, the weight
+  `(1 + t) ^ N * exp (-c * t ^ 2)` grows with `N` and decreases as `c` grows.
 
 ## References
 
@@ -44,6 +46,15 @@ theorem one_add_pow_mul_exp_neg_mul_sq_le_of_le_mul {t d a b c : ℝ} (N : ℕ) 
   calc (1 + t) ^ N * exp (-c * t ^ 2) ≤ (max a 1 * (1 + d)) ^ N * exp (-(c / b ^ 2) * d ^ 2) :=
         mul_le_mul hpoly hexp (exp_pos _).le (by positivity)
     _ = max a 1 ^ N * (1 + d) ^ N * exp (-(c / b ^ 2) * d ^ 2) := by rw [mul_pow]
+
+/-- For `t ≥ 0`, the weight `(1 + t) ^ N * exp (-c * t ^ 2)` is monotone in `N` and antitone
+in `c`: if `N ≤ N'` and `c' ≤ c`, then
+`(1 + t) ^ N * exp (-c * t ^ 2) ≤ (1 + t) ^ N' * exp (-c' * t ^ 2)`. -/
+theorem one_add_pow_mul_exp_neg_mul_sq_le_of_le {t c c' : ℝ} {N N' : ℕ} (ht : 0 ≤ t)
+    (hN : N ≤ N') (hc : c' ≤ c) :
+    (1 + t) ^ N * exp (-c * t ^ 2) ≤ (1 + t) ^ N' * exp (-c' * t ^ 2) := by
+  gcongr
+  linarith
 
 end Real
 
