@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Algebra.BigOperators.Intervals
 import Mathlib.Data.Nat.Choose.Bounds
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
+import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Bilinear
 
@@ -51,6 +52,9 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 * `SymplecticGeometry.jetNormAt_comp_left_le`: the jet norm of `L ∘ f`, for a continuous linear
   map `L`, is at most `‖L‖` times that of `f`, from Mathlib's
   `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`.
+* `SymplecticGeometry.jetNormAt_comp_const_smul_le`: for `‖a‖ ≤ 1`, the jet norm of
+  `z ↦ f (a • z)` at `z` is at most that of `f` at `a • z`, from Tau Ceti's
+  `TauCeti.norm_iteratedFDeriv_comp_const_smul`.
 * `SymplecticGeometry.jetNormAt_comp_le`: for `f` of class `C^r` at `z` and `g` of class `C^r` at
   `f z`, the jet norm of `g ∘ f` at `z` is at most
   `(r + 1)! * jetNormAt 𝕜 r g (f z) * max 1 (jetNormAt 𝕜 r f z) ^ r`, from Tau Ceti's
@@ -244,6 +248,14 @@ theorem jetNormAt_comp_left_le (L : F →L[𝕜] G) {r : ℕ} {f : E → F} {z :
   simp only [jetNormAt_def, Finset.mul_sum]
   exact Finset.sum_le_sum fun j hj ↦ L.norm_iteratedFDeriv_comp_left hf
     (by exact_mod_cast Nat.lt_succ_iff.1 (Finset.mem_range.1 hj))
+
+/-- The jet norm of the rescaling `z ↦ f (a • z)` at `z` is at most that of `f` at `a • z`, when
+`‖a‖ ≤ 1`, for every `f`. -/
+theorem jetNormAt_comp_const_smul_le (r : ℕ) (f : E → F) {a : 𝕜} (ha : ‖a‖ ≤ 1) (z : E) :
+    jetNormAt 𝕜 r (fun z ↦ f (a • z)) z ≤ jetNormAt 𝕜 r f (a • z) := by
+  simp only [jetNormAt_def, TauCeti.norm_iteratedFDeriv_comp_const_smul]
+  exact Finset.sum_le_sum fun j _ ↦
+    mul_le_of_le_one_left (norm_nonneg _) (pow_le_one₀ (norm_nonneg _) ha)
 
 /-- The **jet norm of a composition**: if `f` is `C^r` at `z` and `g` is `C^r` at `f z`, the
 `r`-jet norm of `g ∘ f` at `z` is at most `(r + 1)!` times the `r`-jet norm of `g` at `f z` times
