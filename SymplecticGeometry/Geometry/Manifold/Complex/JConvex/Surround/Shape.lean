@@ -966,15 +966,24 @@ theorem modelLevel_eq : modelLevel k m = fun p ↦ 1 + modelHandle k m 1 2 p := 
   rw [modelLevel_def, modelHandle_def]
   ring
 
+/-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`, as a function on a
+complex vector space. -/
+theorem isStrictlyPlurisubharmonicAt_modelLevel
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    IsStrictlyPlurisubharmonicAt (modelLevel k m) p := by
+  have h := isStrictlyPlurisubharmonicAt_shape (f := fun s ↦ 1 - s)
+    (g := fun t ↦ 2 * t) (p := p) (by fun_prop) (by fun_prop)
+    (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
+  simpa only [funext modelLevel_def] using h
+
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
       (modelLevel k m) p := by
-  have h := isManifoldStrictlyPlurisubharmonicAt_shape (f := fun s ↦ 1 - s)
-    (g := fun t ↦ 2 * t) (p := p) (by fun_prop) (by fun_prop)
-    (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
-  simpa only [funext modelLevel_def] using h
+  rw [isManifoldStrictlyPlurisubharmonicAt_iff]
+  simpa only [manifoldLeviForm_eq_leviForm, ← isStrictlyPlurisubharmonicAt_iff] using
+    isStrictlyPlurisubharmonicAt_modelLevel p
 
 /-- The only critical point of the model level on `ℂᵏ × ℂᵐ` is `0`. -/
 theorem criticalPoints_modelLevel :
@@ -1031,19 +1040,6 @@ theorem re_leviForm_modelLevel_apply_self
     zero_add, Complex.add_re, Complex.neg_re, smul_eq_mul,
     Complex.re_ofReal_mul, hs, re_leviForm_shape_snd_apply_self]
   ring
-
-/-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`, as a function on a
-complex vector space. -/
-theorem isStrictlyPlurisubharmonicAt_modelLevel
-    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    IsStrictlyPlurisubharmonicAt (modelLevel k m) p := by
-  refine isStrictlyPlurisubharmonicAt_iff.2 fun v hv ↦ ?_
-  rw [re_leviForm_modelLevel_apply_self]
-  rcases eq_or_ne v.1 0 with h1 | h1
-  · have := norm_pos_iff.2 fun h2 ↦ hv (Prod.ext h1 h2)
-    positivity
-  · have := norm_pos_iff.2 h1
-    positivity
 
 /-- **The margin of the model level on bounded sets.** For every `R` there is `c > 0` such that
 at every point `p` with `‖p‖ ≤ R`, the real part of the Levi form of the model level is at

@@ -514,10 +514,7 @@ theorem exists_isOpen_isManifoldStrictlyPlurisubharmonicAt_modelLevel_comp_model
     (isOpen_lt (contDiff_shape (n := 0)).snd.continuous continuous_const).inter
       (isOpen_lt (contDiff_shape (n := 0)).fst.continuous continuous_const)
   have hUs : U ⊆ Φ.source := fun p hp ↦ hsub ⟨hp.1.le, hp.2.le⟩
-  have himage : Φ '' U = Φ.toOpenPartialHomeomorph '' (Φ.toOpenPartialHomeomorph.source ∩ U) := by
-    rw [Φ.toOpenPartialHomeomorph_source, inter_eq_right.2 hUs,
-      PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
-  refine ⟨Φ '' U, himage ▸ Φ.toOpenPartialHomeomorph.isOpen_image_source_inter hU,
+  refine ⟨Φ '' U, Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source hU hUs,
     ?_, ?_, ?_⟩
   · rintro _ ⟨p, hp, rfl⟩
     exact Φ.map_source (hUs hp)
