@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 
-import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.FDeriv.CompCLM
 import Mathlib.Analysis.Normed.Group.Bounded
 
