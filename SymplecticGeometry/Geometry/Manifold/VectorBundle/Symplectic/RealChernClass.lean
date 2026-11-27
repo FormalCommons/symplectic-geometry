@@ -225,11 +225,8 @@ theorem IsNondegenerate.realFirstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
     (h : σ.IsNondegenerate) {J : SmoothAlmostComplexStructure I M} (hJ : σ.Tames J) :
     h.realFirstChernClass G = ContMDiffComplexStructure.realFirstChernClass G
       (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)) := by
-  have hK : (ContMDiffTwoForm.tangentEquiv.symm σ).Tames
-      (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)) := by
-    rw [← ContMDiffTwoForm.tames_tangentEquiv_iff]
-    simpa using hJ
-  exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames G _ hK
+  exact ContMDiffTwoForm.IsNondegenerate.realFirstChernClass_eq_of_tames G _
+    (ContMDiffTwoForm.tames_tangentEquiv_symm_iff.2 hJ)
 
 /-- **On a manifold, the real first Chern class of a nondegenerate `σ` does not depend on the
 complex model** `G` used to compute it. -/

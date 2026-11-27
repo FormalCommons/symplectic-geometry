@@ -88,10 +88,8 @@ theorem localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt {F : Type}
     (ψ : OpenPartialHomeomorph M F) {z : M} (hz : z ∈ ψ.source) {D : E ≃L[ℝ] F}
     (hD : HasFDerivAt (ψ ∘ (extChartAt I z).symm) (D : E →L[ℝ] F) (extChartAt I z z)) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : ψ.source ↦ ψ x - ψ z, ψ.continuousOn.domRestrict.sub continuous_const⟩ :
-          C(ψ.source, F))
-        (S := {⟨z, hz⟩}) (T := {0})
-        (ψ.sourceRestrict_sub_preimage_zero hz).subset (m + 1)
+        (ψ.centeredSourceRestrict z) (S := {⟨z, hz⟩}) (T := {0})
+        (ψ.centeredSourceRestrict_preimage_zero hz).subset (m + 1)
         ((ψ.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv ⟨z, hz⟩ (m + 1)).symm
           (o.toHomologicalOrientation hE z)).val =
       (((o.orientationAt z).map (Fin (m + 1)) D.toLinearEquiv).localOrientation hF).val := by
@@ -112,8 +110,8 @@ theorem localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt {F : Type}
   -- The chart `χ`, centred and followed by `L⁻¹`, carries this local orientation to `D ν`.
   have h₂ := χ.localHomologyMap_chart_localOrientationOfOrientedChart hzχ L.symm ω hF' hF (by
       intro x hx
-      exact (χ.sourceRestrict_sub_preimage_zero hzχ).subset
-        (Set.mem_singleton_iff.2 (L.symm.map_eq_zero_iff.1 (by simpa using hx))))
+      refine (χ.centeredSourceRestrict_preimage_zero hzχ).subset (Set.mem_singleton_iff.2 ?_)
+      simpa using L.symm.map_eq_zero_iff.1 (by simpa using hx))
   have hν : ω.map (Fin (m + 1)) L.symm.toLinearEquiv = ν.map (Fin (m + 1)) D.toLinearEquiv := by
     simp only [ω, ContinuousLinearEquiv.trans_toLinearEquiv, Orientation.map_trans]
     exact Orientation.map_symm_map L.toLinearEquiv _
@@ -134,17 +132,12 @@ under `D`. -/
 theorem localHomologyMap_sub_toHomologicalOrientation_transHomeomorph {F : Type}
     [NormedAddCommGroup F] [NormedSpace ℝ F] (hF : finrank ℝ F = m + 1) (D : E ≃L[ℝ] F) (z : M) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : ((chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph)).source ↦
-            (chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph) x -
-              (chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph) z,
-          ((chartAt H z).transHomeomorph
-            (I.toHomeomorph.trans D.toHomeomorph)).continuousOn.domRestrict.sub
-            continuous_const⟩ :
-          C(((chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph)).source, F))
+        (((chartAt H z).transHomeomorph
+          (I.toHomeomorph.trans D.toHomeomorph)).centeredSourceRestrict z)
         (S := {⟨z, by simp⟩}) (T := {0})
-        (((chartAt H z).transHomeomorph (I.toHomeomorph.trans D.toHomeomorph))
-            |>.sourceRestrict_sub_preimage_zero (by simp)).subset
-        (m + 1)
+        (((chartAt H z).transHomeomorph
+          (I.toHomeomorph.trans D.toHomeomorph)).centeredSourceRestrict_preimage_zero
+          (by simp)).subset (m + 1)
         ((((chartAt H z).transHomeomorph
           (I.toHomeomorph.trans D.toHomeomorph)).open_source.isOpenEmbedding_subtypeVal
           |>.localOrientationEquiv ⟨z, by simp⟩ (m + 1)).symm
@@ -161,15 +154,10 @@ the local orientation of `M` at `z` given by `o` to the local orientation of `E`
 given by `o` at `z`, read in the trivialization of the tangent bundle at `z`. -/
 theorem localHomologyMap_sub_toHomologicalOrientation (z : M) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : ((chartAt H z).transHomeomorph I.toHomeomorph).source ↦
-            (chartAt H z).transHomeomorph I.toHomeomorph x -
-              (chartAt H z).transHomeomorph I.toHomeomorph z,
-          ((chartAt H z).transHomeomorph I.toHomeomorph).continuousOn.domRestrict.sub
-            continuous_const⟩ :
-          C(((chartAt H z).transHomeomorph I.toHomeomorph).source, E))
+        (((chartAt H z).transHomeomorph I.toHomeomorph).centeredSourceRestrict z)
         (S := {⟨z, by simp⟩}) (T := {0})
-        (((chartAt H z).transHomeomorph I.toHomeomorph).sourceRestrict_sub_preimage_zero
-            (by simp)).subset (m + 1)
+        (((chartAt H z).transHomeomorph I.toHomeomorph).centeredSourceRestrict_preimage_zero
+          (by simp)).subset (m + 1)
         ((((chartAt H z).transHomeomorph I.toHomeomorph).open_source.isOpenEmbedding_subtypeVal
           |>.localOrientationEquiv ⟨z, by simp⟩ (m + 1)).symm
           (o.toHomologicalOrientation hE z)).val =
