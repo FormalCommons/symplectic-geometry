@@ -8,8 +8,8 @@ extension for `auxiliary/first-chern-class.md`*, below) proves *First Chern
 class of a complex vector bundle*. It gives *Projective
 hypersurfaces* (part 34) what the page's milestone *Chern classes of projective
 hypersurfaces* needs: Chern classes $c_k$ of complex vector bundles in integral
-cohomology, with the Whitney sum formula, $c_1$ equal to *First Chern number*'s
-`SymplecticGeometry.Bundle.firstChernClass`, the top class equal to Tau Ceti's
+cohomology, with the Whitney sum formula, $c_1$ equal to Tau Ceti's
+`TauCeti.firstChernClass`, the top class equal to Tau Ceti's
 `TauCeti.complexEulerClass`, the cohomology ring of $\mathbb CP^n$, and the
 value of the Euler class of the tangent bundle of a closed oriented manifold
 on its fundamental class.
@@ -56,7 +56,7 @@ $$\sum_{i=0}^{n}\pi^*c_i(E)\,x^{n-i}=0,$$
 
 and $c_k(E)=0$ for $k>n$. For a line bundle $L$, $P(L)=B$ and $S=L$, so the
 relation reads $c_1(L)=-x=e(L_{\mathbb R})$: the normalization agrees with
-Tau Ceti's Euler class and with *First Chern number*'s class on lines.
+Tau Ceti's Euler class and with `TauCeti.firstChernClass` on lines.
 
 The reasons for this choice, against a recursive definition through the
 Gysin sequence (Milnor–Stasheff, §14) or a classifying space:
@@ -181,8 +181,12 @@ need Leray–Hirsch over the same covers, which the plan does not ask for.
 
 *First Chern number*'s `Topology/VectorBundle/Complex/FirstChernClass.lean`
 (#784) does not move into `ChernClass/`. Parts 13, 31 and 32 import it, and
-it needs no projective bundle. The file `ChernClass/FirstChernClass.lean`
-proves that $c_1$ equals it, and so the two stay one notion.
+what it adds to Tau Ceti's `TauCeti.firstChernClass` (invariance under
+isomorphisms between bundles with different models, naturality along any
+`ContinuousMapClass`, the conjugate bundle, the first Chern number) needs no
+projective bundle. The file `ChernClass/FirstChernClass.lean` proves that
+$c_1$ equals `TauCeti.firstChernClass` (`chernClass_one_eq_firstChernClass`),
+and so the two stay one notion.
 
 ### The extension for `auxiliary/first-chern-class.md`
 
@@ -190,7 +194,7 @@ Most of *First Chern class of a complex vector bundle* is merged. What is
 missing is the Whitney formula over a base that is not compact, the value
 of $c_1(T\mathbb CP^{n-1})$, $c_1$ of the tautological line in the form of
 `firstChernClass`, and the page's normalization of $h$ by its value on a
-projective line. The class is *First Chern number*'s `firstChernClass`,
+projective line. The class is Tau Ceti's `TauCeti.firstChernClass`,
 with values in `H²(B; ULift ℤ)` as everywhere in the library; statements
 that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
 `chernClass_one_eq_firstChernClass` does.
@@ -199,9 +203,9 @@ that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
 *Milestone: First Chern class of a complex vector bundle*; together they are
 the page's statement.
 
-- The class: `SymplecticGeometry.Bundle.firstChernClass G E`, defined for a
-  complex vector bundle over any `B : Type` (merged).
-- Naturality: `firstChernClass_pullback` (merged), for every continuous map,
+- The class: Tau Ceti's `TauCeti.firstChernClass G E`, defined for a
+  complex vector bundle over any `B : Type`.
+- Naturality: `firstChernClass_pullback_coe` (merged), for every continuous map,
   so for smooth maps in particular.
 - The Whitney formula: `firstChernClass_prod_of_chartedSpace`, for `B`
   Hausdorff and σ-compact with `[ChartedSpace H B]` and a model
@@ -991,9 +995,8 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only.
   by `chernClass_prod`, the second by Tau Ceti's `TauCeti.DetBundle.prodEquiv`,
   `TauCeti.complexEulerClass_tensorProduct` and `firstChernClass_congr`; on
   lines both are `complexEulerClass` (`firstChernClass_eq_complexEulerClass`).
-  Rank zero: both vanish (`chernClass_eq_zero_of_finrank_lt`, and
-  `firstChernClass_congr` with a fibrewise isomorphism to the trivial
-  bundle, then `firstChernClass_trivial`).
+  Rank zero: both vanish (`chernClass_eq_zero_of_finrank_lt`, and Tau Ceti's
+  `TauCeti.firstChernClass_eq_zero_of_finrank_eq_zero`).
 
 ### `Geometry/Manifold/Orientation/EulerCharacteristic.lean`
 
@@ -1122,7 +1125,7 @@ Whitney formula of the milestone, as stated above: the determinant lines of
 `HasFiniteTrivializingCover.detBundle`, so the proof of
 `firstChernClass_prod` (`TauCeti.DetBundle.prodEquiv` and the tensor formula)
 applies. The issue of this file also adds the milestone line to the
-docstrings of `firstChernClass_pullback` and
+docstrings of `firstChernClass_pullback_coe` and
 `firstChernClass_eq_complexEulerClass`.
 
 #### `Geometry/Manifold/Projectivization/HyperplaneClass.lean`
@@ -1144,10 +1147,10 @@ then imports `ChernClass/FirstChernClass.lean`.
 
 ## What the part uses
 
-- From *First Chern number*: `firstChernClass` with `firstChernClass_congr`,
-  `firstChernClass_trivial` and `firstChernClass_eq_complexEulerClass`
-  (#784), only in `ChernClass/FirstChernClass.lean`; the determinant line is
-  Tau Ceti's `TauCeti.DetBundle`.
+- From *First Chern number*: `firstChernClass_congr` and
+  `firstChernClass_eq_complexEulerClass` (#784), only in
+  `ChernClass/FirstChernClass.lean`; the class `TauCeti.firstChernClass` and
+  the determinant line `TauCeti.DetBundle` are Tau Ceti's.
 - From *First Chern number*: its file
   `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
   `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
@@ -1189,7 +1192,7 @@ orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.
 
 *Complex blowup* computes $c_1$ of a blowup with
-`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback`,
+`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback_coe`,
 `firstChernClass_tautological` and `firstChernClass_tangentSpace`.
 
 ## Issues
