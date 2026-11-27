@@ -12,17 +12,22 @@ import Mathlib.Analysis.Normed.Group.Bounded
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 
 /-!
-# The derivative of `∂̄ (g ∘ D)` after a holomorphic map
+# `∂̄ (g ∘ D)` and its derivative after a holomorphic map
 
 For a real-differentiable map `D : V → W` and a map `g : W → X` that is complex differentiable
 near `D z`, Tau Ceti's `TauCeti.conjWirtingerDeriv_comp` gives `∂̄ (g ∘ D) = dg (D ·) ∘ ∂̄ D`
-near `z`. This file differentiates that identity once more, by the product rule for composition
+near `z`. When `g` is complex `C¹` at `D z`, the norm of `dg` stays below `‖dg (D z)‖ + 1` near
+`z`, so a bound on `‖∂̄ D‖` near `z` gives one of the same form on `‖∂̄ (g ∘ D)‖`.
+
+This file also differentiates that identity once more, by the product rule for composition
 of operators (`HasFDerivAt.clm_comp`), and bounds the result. The defect `∂̄` is taken in the form
 `ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ D z)`, a real-linear map, so that its
 derivative is a real derivative of a map into `V →L[ℝ] W`.
 
 ## Main results
 
+* `TauCeti.eventually_norm_conjWirtingerDeriv_comp_le`: for `g` complex `C¹` at `D z` and a
+  bound `‖∂̄ D‖ ≤ b` near `z`, the bound `‖∂̄ (g ∘ D)‖ ≤ (‖dg (D z)‖ + 1) b` near `z`.
 * `TauCeti.complexAntilinearPartL_fderiv_comp`: `TauCeti.conjWirtingerDeriv_comp` for
   `complexAntilinearPartL` of the real derivative.
 * `TauCeti.hasFDerivAt_complexAntilinearPartL_fderiv_comp`: for `D` real `C²` at `z` and `g`
@@ -152,6 +157,24 @@ theorem exists_norm_fderiv_complexAntilinearPartL_fderiv_comp_le {U : Set V} {O 
   have ha := norm_nonneg (conjWirtingerDeriv D z)
   have hb := norm_nonneg (fderiv ℝ (fun w ↦ complexAntilinearPartL (fderiv ℝ D w)) z)
   nlinarith
+
+/-- **The bound on `∂̄ (g ∘ D)` near a point.** Let `g` be complex `C¹` at `D z`, and let `D` be
+real differentiable near `z`. If `‖∂̄ D‖ ≤ b` near `z`, then
+`‖∂̄ (g ∘ D)‖ ≤ (‖dg (D z)‖ + 1) b` near `z`. -/
+theorem eventually_norm_conjWirtingerDeriv_comp_le (hg : ContDiffAt ℂ 1 g (D z))
+    (hD : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ D w) {b : V → ℝ}
+    (hb : ∀ᶠ w in 𝓝 z, ‖conjWirtingerDeriv D w‖ ≤ b w) :
+    ∀ᶠ w in 𝓝 z, ‖conjWirtingerDeriv (g ∘ D) w‖ ≤ (‖fderiv ℂ g (D z)‖ + 1) * b w := by
+  have hDc : ContinuousAt D z := hD.self_of_nhds.continuousAt
+  have hgd : ∀ᶠ w in 𝓝 z, DifferentiableAt ℂ g (D w) :=
+    hDc.eventually ((hg.eventually (by simp)).mono fun _ hy ↦ hy.differentiableAt one_ne_zero)
+  have hgc : ∀ᶠ w in 𝓝 z, ‖fderiv ℂ g (D w)‖ < ‖fderiv ℂ g (D z)‖ + 1 :=
+    ((hg.continuousAt_fderiv one_ne_zero).comp hDc).norm.eventually (gt_mem_nhds (lt_add_one _))
+  filter_upwards [hgd, hgc, hD, hb] with w hgw hcw hDw hbw
+  rw [conjWirtingerDeriv_comp hgw hDw]
+  refine (opNorm_comp_le _ _).trans ?_
+  calc _ ≤ (‖fderiv ℂ g (D z)‖ + 1) * ‖conjWirtingerDeriv D w‖ := by gcongr
+    _ ≤ _ := by gcongr
 
 end TauCeti
 
