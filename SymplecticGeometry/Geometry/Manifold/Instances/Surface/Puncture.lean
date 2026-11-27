@@ -46,7 +46,8 @@ circle `ClosedSurface.ballCircle g j` runs once around `cⱼ` in the ball `j`, a
 `puncture g n` by restricting their codomain. In genus `g + 1` both are those of the ball `j + 1`
 of genus `g`, in the second summand. In the sphere, the paths are explicit segments in the two
 charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
-`TauCeti.isComplementaryBall_sphereBall`.
+`TauCeti.isComplementaryBall_sphereBall`, which the file names `ClosedSurface.sphereChart` and
+`ClosedSurface.sphereCoChart`.
 
 ## Main definitions
 
@@ -60,6 +61,9 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
   `ballCircle g j`.
 * `SymplecticGeometry.ClosedSurface.puncturedBallCircle g n j`,
   `SymplecticGeometry.ClosedSurface.puncturedBallPath g n j`: the same, in `puncture g n`.
+* `SymplecticGeometry.ClosedSurface.sphereChart`,
+  `SymplecticGeometry.ClosedSurface.sphereCoChart`: the two charts of the sphere `ClosedSurface 0`,
+  about the point opposite its base point and about the base point.
 
 ## Main results
 
@@ -79,6 +83,9 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
   those of the ball `j + 1` of genus `g`, in the second summand of the connected sum.
 * `SymplecticGeometry.ClosedSurface.ballCircle_zero_apply`: the circle of the ball `0` is the
   circle of the neck of the connected sum along that ball, read in the second summand.
+* `SymplecticGeometry.ClosedSurface.ballPath_zero_zero`,
+  `SymplecticGeometry.ClosedSurface.ballPath_zero_succ`: the paths to the balls of the sphere, as
+  segments in its two charts.
 
 ## References
 
@@ -336,7 +343,8 @@ theorem inl_neckInl_circleBasepoint :
       ConnectedSum.inr _ _ ⟨ball g 0 (neckIsometry 1),
         ConnectedSum.mem_puncture.2 (by simp)⟩ := by
   rw [ConnectedSum.inl_neckInl_eq_inr_neckInr _ (isOpenEmbedding_ball 0)]
-  exact congrArg _ (Subtype.ext (ConnectedSum.coe_neckInr_circleBasepoint_one _))
+  exact congrArg _ (Subtype.ext (by
+    rw [ConnectedSum.coe_neckInr_circleBasepoint, inv_one, Complex.ofReal_one]))
 
 /-- The circle of the ball `j` of genus `g + 1` is the circle of the ball `j + 1` of genus `g`,
 in the second summand of the connected sum. -/
@@ -350,15 +358,16 @@ theorem succDiffeomorph_ballCircle_apply (j : ℕ) (t : unitInterval) :
 
 /-! ### The paths to the balls of the sphere
 
-The sphere `ClosedSurface 0` is read in two charts: the ball `sphereBall v` at its base point `v`,
+The sphere `ClosedSurface 0` is read in two charts: the ball `sphereBall v` for its base point `v`,
 through which its balls are defined (`ClosedSurface.zeroDiffeomorph_ball`), and the
 complementary chart `w ↦ -sphereBall v (-w)`, which sends `0` to `v` and agrees with
 `sphereBall v ∘ inversion 0 1` away from `0` (`TauCeti.isComplementaryBall_sphereBall`). In the
 chart `sphereBall v`, the centre of the ball `j` is `j • e`, for `e = (1, 0)`, and the start of its
-circle is `(j + 1 / 4, 1 / 4)`. In the complementary chart, the path to the ball `0` is the
-segment from `0` to the start of its circle. The path to the ball `j + 1` is the segment from `0`
-down to `(0, -1)`, a point that both charts share, then, in the chart `sphereBall v`, the segment
-from `(0, -1)` to `(j + 5 / 4, -1)` and the segment up to `(j + 5 / 4, 1 / 4)`. -/
+circle is `(j + 1 / 4, 1 / 4)`, which is `(2, 2)` in the complementary chart when `j = 0`. In the
+complementary chart, the path to the ball `0` is the segment from `0` to `(2, 2)`. The path to the
+ball `j + 1` is the segment from `0` down to `(0, -1)`, a point that both charts share, then, in
+the chart `sphereBall v`, the segment from `(0, -1)` to `(j + 5 / 4, -1)` and the segment up to
+`(j + 5 / 4, 1 / 4)`. -/
 
 section Sphere
 
@@ -367,32 +376,59 @@ open OpenPartialHomeomorph
 local instance : Fact (Module.finrank ℝ (EuclideanSpace ℝ (Fin 3)) = 2 + 1) :=
   ⟨finrank_euclideanSpace_fin⟩
 
-/-- A point of the sphere, read in the chart `sphereBall v` at its base point `v`. -/
-private def sphereChart (w : EuclideanSpace ℝ (Fin 2)) : ClosedSurface 0 :=
+/-- The **chart of the sphere opposite its base point**: the point of `ClosedSurface 0` that is `w`
+in Tau Ceti's coordinate ball `sphereBall v` of the round sphere, for its base point `v`. That ball
+is centred at `-v`, and the balls of the sphere are defined through it. -/
+def sphereChart (w : EuclideanSpace ℝ (Fin 2)) : ClosedSurface 0 :=
   zeroDiffeomorph.symm (sphereBall (zeroDiffeomorph (basePoint 0)) w)
 
-private theorem continuous_sphereChart : Continuous sphereChart :=
+theorem sphereChart_def (w : EuclideanSpace ℝ (Fin 2)) :
+    sphereChart w = zeroDiffeomorph.symm (sphereBall (zeroDiffeomorph (basePoint 0)) w) :=
+  (rfl)
+
+theorem continuous_sphereChart : Continuous sphereChart :=
   zeroDiffeomorph.symm.continuous.comp (isOpenEmbedding_sphereBall _).continuous
 
-/-- A point of the sphere, read in the chart `w ↦ -sphereBall v (-w)` complementary to
-`sphereBall v`. -/
-private def sphereCoChart (w : EuclideanSpace ℝ (Fin 2)) : ClosedSurface 0 :=
+/-- The **complementary chart of the sphere**: the point of `ClosedSurface 0` that is `w` in the
+chart `w ↦ -sphereBall v (-w)` complementary to `sphereBall v`, in which the base point is `0`
+(`ClosedSurface.sphereCoChart_zero`). -/
+def sphereCoChart (w : EuclideanSpace ℝ (Fin 2)) : ClosedSurface 0 :=
   zeroDiffeomorph.symm (-sphereBall (zeroDiffeomorph (basePoint 0)) (-w))
 
-private theorem continuous_sphereCoChart : Continuous sphereCoChart :=
+theorem sphereCoChart_def (w : EuclideanSpace ℝ (Fin 2)) :
+    sphereCoChart w = zeroDiffeomorph.symm (-sphereBall (zeroDiffeomorph (basePoint 0)) (-w)) :=
+  (rfl)
+
+theorem continuous_sphereCoChart : Continuous sphereCoChart :=
   zeroDiffeomorph.symm.continuous.comp
     (isComplementaryBall_sphereBall _).isOpenEmbedding.continuous
 
-private theorem sphereCoChart_zero : sphereCoChart 0 = basePoint 0 := by
-  rw [sphereCoChart, neg_zero, sphereBall_zero, neg_neg, Diffeomorph.symm_apply_apply]
+/-- The complementary chart sends `0` to the base point of the sphere. -/
+theorem sphereCoChart_zero : sphereCoChart 0 = basePoint 0 := by
+  rw [sphereCoChart_def, neg_zero, sphereBall_zero, neg_neg, Diffeomorph.symm_apply_apply]
 
-private theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
+/-- Away from `0`, the complementary chart is the chart `sphereChart` after the inversion in the
+unit circle. -/
+theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
     sphereCoChart w = sphereChart (EuclideanGeometry.inversion 0 1 w) := by
-  rw [sphereCoChart, sphereChart, ← (isComplementaryBall_sphereBall _).apply_eq_inversion w hw]
+  rw [sphereCoChart_def, sphereChart_def,
+    ← (isComplementaryBall_sphereBall _).apply_eq_inversion w hw]
 
-private theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
+/-- On the unit circle the two charts of the sphere agree. -/
+theorem sphereCoChart_of_norm_eq_one {w : EuclideanSpace ℝ (Fin 2)} (hw : ‖w‖ = 1) :
+    sphereCoChart w = sphereChart w := by
+  rw [sphereCoChart_of_ne (by rintro rfl; simp at hw),
+    EuclideanGeometry.inversion_of_mem_sphere (by simpa using hw)]
+
+/-- The point `(0, -1)` is the same point in both charts of the sphere. -/
+theorem sphereCoChart_zero_neg_one : sphereCoChart !₂[0, -1] = sphereChart !₂[0, -1] :=
+  sphereCoChart_of_norm_eq_one (by simp [EuclideanSpace.norm_eq, Fin.sum_univ_two])
+
+/-- The ball `j` of the sphere, read in the chart `sphereChart`, is the ball of radius `1 / 2`
+about `j • e`, for `e = (1, 0)`. -/
+theorem ball_zero_eq_sphereChart (j : ℕ) (w : EuclideanSpace ℝ (Fin 2)) :
     ball 0 j w = sphereChart (univBall (j • EuclideanSpace.single 0 1) (1 / 2) w) := by
-  rw [sphereChart, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
+  rw [sphereChart_def, ← zeroDiffeomorph_ball, Diffeomorph.symm_apply_apply]
 
 private theorem sphereChart_ne_ball {w : EuclideanSpace ℝ (Fin 2)}
     (hw : ∀ k : ℕ, w ≠ k • EuclideanSpace.single 0 1) (k : ℕ) : sphereChart w ≠ ball 0 k 0 := by
@@ -412,71 +448,79 @@ private theorem univBall_neckIsometry_one (j : ℕ) :
   fin_cases i <;> simp [Real.cos_pi_div_four, Real.sin_pi_div_four] <;> field_simp <;>
     linarith [hs]
 
-/-- The segment in the complementary chart from `0`, the base point, to the point that is `w` in
-the chart `sphereBall v`. -/
-private def sphereRay {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
-    Path (basePoint 0) (sphereChart w) :=
-  ((Path.segment 0 (EuclideanGeometry.inversion 0 1 w)).map continuous_sphereCoChart).cast
-    sphereCoChart_zero.symm
-    (by rw [sphereCoChart_of_ne (by simpa [EuclideanGeometry.inversion_eq_center] using hw),
-      EuclideanGeometry.inversion_inversion _ one_ne_zero])
+/-- In the chart `sphereChart`, the start of the circle of the ball `j` of the sphere is
+`(j + 1 / 4, 1 / 4)`. -/
+theorem ball_zero_neckIsometry_one (j : ℕ) :
+    ball 0 j (neckIsometry 1) = sphereChart !₂[(j : ℝ) + 1 / 4, 1 / 4] := by
+  rw [ball_zero_eq_sphereChart, univBall_neckIsometry_one]
 
-private theorem sphereRay_ne_ball {w : EuclideanSpace ℝ (Fin 2)} (hw : w 1 ≠ 0) (t : unitInterval)
-    (k : ℕ) : sphereRay (w := w) (fun h ↦ hw (by simp [h])) t ≠ ball 0 k 0 := by
-  -- The inversion in the unit circle keeps the sign of the second coordinate.
-  have hinv {x : EuclideanSpace ℝ (Fin 2)} (hx : x 1 ≠ 0) :
-      EuclideanGeometry.inversion 0 1 x 1 ≠ 0 := by
-    have h : x ≠ 0 := fun h ↦ hx (by simp [h])
-    simp [EuclideanGeometry.inversion, h, hx]
-  rcases eq_or_ne (t : ℝ) 0 with ht | ht
-  · rw [sphereRay, Path.cast_coe, Path.map_coe, Function.comp_apply, Path.segment_apply, ht,
-      AffineMap.lineMap_apply_zero, sphereCoChart_zero]
+/-- In the complementary chart, the start of the circle of the ball `0` of the sphere is
+`(2, 2)`. -/
+theorem ball_zero_zero_neckIsometry_one :
+    ball 0 0 (neckIsometry 1) = sphereCoChart !₂[2, 2] := by
+  rw [ball_zero_neckIsometry_one, sphereCoChart_of_ne (by simp)]
+  have hn : dist (!₂[2, 2] : EuclideanSpace ℝ (Fin 2)) 0 = √8 := by
+    rw [dist_zero_right, EuclideanSpace.norm_eq]
+    norm_num [Fin.sum_univ_two]
+  have hs : √8 ^ 2 = 8 := Real.sq_sqrt (by norm_num)
+  rw [EuclideanGeometry.inversion, hn, div_pow, hs]
+  congr 1
+  ext i
+  fin_cases i <;> simp <;> norm_num
+
+/-- A segment from `0` in the complementary chart, in a direction off the real axis, meets no
+centre of a ball. -/
+private theorem sphereCoChart_smul_ne_ball {w : EuclideanSpace ℝ (Fin 2)} (hw : w 1 ≠ 0)
+    (t : ℝ) (k : ℕ) : sphereCoChart (t • w) ≠ ball 0 k 0 := by
+  rcases eq_or_ne t 0 with rfl | ht
+  · rw [zero_smul, sphereCoChart_zero]
     exact fun h ↦ basePoint_notMem_range_ball k ⟨0, h.symm⟩
-  · have h1 : ((t : ℝ) • EuclideanGeometry.inversion 0 1 w) 1 ≠ 0 := by
-      simpa [ht] using hinv hw
-    rw [sphereRay, Path.cast_coe, Path.map_coe, Function.comp_apply, Path.segment_apply,
-      AffineMap.lineMap_apply_module', sub_zero, add_zero,
-      sphereCoChart_of_ne (fun h ↦ h1 (by simp [h]))]
-    refine sphereChart_ne_ball (fun k h ↦ hinv h1 ?_) k
-    simp [h]
+  · -- The inversion in the unit circle keeps the sign of the second coordinate.
+    have h1 : (t • w) 1 ≠ 0 := by simpa [ht] using hw
+    have h0 : t • w ≠ 0 := fun h ↦ h1 (by simp [h])
+    rw [sphereCoChart_of_ne h0]
+    refine sphereChart_ne_ball (fun k h ↦ ?_) k
+    have := congrArg (· 1) h
+    simp [EuclideanGeometry.inversion, h0, ht, hw] at this
 
-/-- The segment from `a` to `b` in the chart `sphereBall v`. -/
-private def sphereSegment (a b : EuclideanSpace ℝ (Fin 2)) : Path (sphereChart a) (sphereChart b) :=
-  (Path.segment a b).map continuous_sphereChart
-
-private theorem sphereSegment_ne_ball {a b : EuclideanSpace ℝ (Fin 2)}
+private theorem sphereChart_segment_ne_ball {a b : EuclideanSpace ℝ (Fin 2)}
     (h : ∀ (t : unitInterval) (k : ℕ),
       AffineMap.lineMap a b (t : ℝ) ≠ k • EuclideanSpace.single 0 1)
-    (t : unitInterval) (k : ℕ) : sphereSegment a b t ≠ ball 0 k 0 := by
-  rw [sphereSegment, Path.map_coe, Function.comp_apply, Path.segment_apply]
+    (t : unitInterval) (k : ℕ) :
+    (Path.segment a b).map continuous_sphereChart t ≠ ball 0 k 0 := by
+  rw [Path.map_coe, Function.comp_apply, Path.segment_apply]
   exact sphereChart_ne_ball (h t) k
 
 /-- The path from the base point of the sphere to the start of the circle of its ball `j`. -/
 private def zeroBallPath : (j : ℕ) → Path (basePoint 0) (ball 0 j (neckIsometry 1))
-  | 0 => (sphereRay (w := univBall ((0 : ℕ) • EuclideanSpace.single 0 1) (1 / 2) (neckIsometry 1))
-      (by rw [univBall_neckIsometry_one]; simp)).cast rfl (ball_zero_eq_sphereChart 0 _)
-  | j + 1 => ((sphereRay (w := !₂[0, -1]) (by simp)).trans
-      ((sphereSegment !₂[0, -1] !₂[((j + 1 : ℕ) : ℝ) + 1 / 4, -1]).trans
-        (sphereSegment !₂[((j + 1 : ℕ) : ℝ) + 1 / 4, -1]
-          !₂[((j + 1 : ℕ) : ℝ) + 1 / 4, 1 / 4]))).cast
-      rfl (by rw [ball_zero_eq_sphereChart, univBall_neckIsometry_one])
+  | 0 => ((Path.segment 0 !₂[2, 2]).map continuous_sphereCoChart).cast sphereCoChart_zero.symm
+      ball_zero_zero_neckIsometry_one
+  | j + 1 => ((((Path.segment 0 !₂[0, -1]).map continuous_sphereCoChart).cast
+        sphereCoChart_zero.symm sphereCoChart_zero_neg_one.symm).trans
+      (((Path.segment !₂[0, -1] !₂[(j : ℝ) + 5 / 4, -1]).map continuous_sphereChart).trans
+        ((Path.segment !₂[(j : ℝ) + 5 / 4, -1] !₂[(j : ℝ) + 5 / 4, 1 / 4]).map
+          continuous_sphereChart))).cast
+      rfl (by rw [ball_zero_neckIsometry_one]; push_cast; ring_nf)
 
 private theorem zeroBallPath_ne_ball (j : ℕ) (t : unitInterval) (k : ℕ) :
     zeroBallPath j t ≠ ball 0 k 0 := by
   cases j with
   | zero =>
-    rw [zeroBallPath, Path.cast_coe]
-    exact sphereRay_ne_ball (by rw [univBall_neckIsometry_one]; simp) t k
+    rw [zeroBallPath, Path.cast_coe, Path.map_coe, Function.comp_apply, Path.segment_apply,
+      AffineMap.lineMap_apply_module', sub_zero, add_zero]
+    exact sphereCoChart_smul_ne_ball (by simp) _ k
   | succ j =>
     suffices ball 0 k 0 ∉ range (zeroBallPath (j + 1)) from fun h ↦ this ⟨t, h⟩
     rw [zeroBallPath, Path.cast_coe, Path.trans_range, Path.trans_range]
     rintro (⟨s, hs⟩ | ⟨s, hs⟩ | ⟨s, hs⟩)
-    · exact sphereRay_ne_ball (w := !₂[0, -1]) (by simp) s k hs
-    · refine sphereSegment_ne_ball (fun s k h ↦ ?_) s k hs
+    · rw [Path.cast_coe, Path.map_coe, Function.comp_apply, Path.segment_apply,
+        AffineMap.lineMap_apply_module', sub_zero, add_zero] at hs
+      exact sphereCoChart_smul_ne_ball (w := !₂[0, -1]) (by simp) _ k hs
+    · refine sphereChart_segment_ne_ball (fun s k h ↦ ?_) s k hs
       have h1 := congrArg (· 1) h
       simp [AffineMap.lineMap_apply_module] at h1
       linarith
-    · refine sphereSegment_ne_ball (fun s k h ↦ ?_) s k hs
+    · refine sphereChart_segment_ne_ball (fun s k h ↦ ?_) s k hs
       have h0 := congrArg (· 0) h
       simp only [AffineMap.lineMap_apply_module, PiLp.add_apply, PiLp.smul_apply,
         smul_eq_mul] at h0
@@ -523,13 +567,34 @@ ball `j + 1` of genus `g`, in the second summand of the connected sum
 `0` and the centre of the ball `j + 1` is `(j + 1)⁻¹ • e`: the path to the ball `0` is the segment
 from `0` at the angle `π / 4` out to the circle of the ball, a circle of radius `2 √2` about `0`,
 and the path to the ball `j + 1` runs from `0` down into the lower half-plane, along it, and up to
-the circle of the ball, crossing the real axis only inside that ball. -/
+the circle of the ball, crossing the real axis only inside that ball
+(`ClosedSurface.ballPath_zero_zero`, `ClosedSurface.ballPath_zero_succ`). -/
 def ballPath (j : ℕ) : Path (basePoint g) (ball g j (neckIsometry 1)) :=
   (ballPathAux g j).val
 
 /-- The path to a ball meets no centre of a ball. -/
 theorem ballPath_ne_ball (j : ℕ) (t : unitInterval) (k : ℕ) : ballPath g j t ≠ ball g k 0 :=
   (ballPathAux g j).property t k
+
+/-- In the sphere, the path to the ball `0` is the segment from `0` to `(2, 2)` in the
+complementary chart `ClosedSurface.sphereCoChart`. -/
+theorem ballPath_zero_zero :
+    ballPath 0 0 = ((Path.segment 0 !₂[2, 2]).map continuous_sphereCoChart).cast
+      sphereCoChart_zero.symm ball_zero_zero_neckIsometry_one :=
+  (rfl)
+
+/-- In the sphere, the path to the ball `j + 1` is the segment from `0` to `(0, -1)` in the
+complementary chart `ClosedSurface.sphereCoChart`, followed, in the chart
+`ClosedSurface.sphereChart`, by the segment from `(0, -1)` to `(j + 5 / 4, -1)` and the segment
+from there to `(j + 5 / 4, 1 / 4)`. -/
+theorem ballPath_zero_succ (j : ℕ) :
+    ballPath 0 (j + 1) = ((((Path.segment 0 !₂[0, -1]).map continuous_sphereCoChart).cast
+        sphereCoChart_zero.symm sphereCoChart_zero_neg_one.symm).trans
+      (((Path.segment !₂[0, -1] !₂[(j : ℝ) + 5 / 4, -1]).map continuous_sphereChart).trans
+        ((Path.segment !₂[(j : ℝ) + 5 / 4, -1] !₂[(j : ℝ) + 5 / 4, 1 / 4]).map
+          continuous_sphereChart))).cast
+      rfl (by rw [ball_zero_neckIsometry_one]; push_cast; ring_nf) :=
+  (rfl)
 
 /-- The path to a ball lies in each `puncture g n`. -/
 @[simp]
