@@ -68,31 +68,13 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
     (hχW : ∀ x : V, (x : M) ∈ W → χ x = 1) :
     ∃ τ : SmoothTwoForm I M, τ.IsNondegenerate ∧ (∀ x ∈ W, τ.val x = η.val x) ∧
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ = hβ.sliceAlong χ hχ := by
-  classical
   set σ := hβ.sliceAlong χ hχ
   -- On `V ∩ W` the slice is `β 1`, the restriction of `η`.
   have hσ : ∀ x : V, (x : M) ∈ W → σ.val x = η.val x := fun x hx ↦ by
     rw [IsSmoothFamily.sliceAlong_val, hχW x hx, hβ₁, SmoothForm.coe_mpullback,
       mpullback_subtype_val_apply]
-  let γ : RoughForm I M ℝ 2 := fun y ↦ if hy : y ∈ V then σ.val ⟨y, hy⟩ else η.val y
-  have hγW : ∀ y ∈ W, γ y = η.val y := fun y hyW ↦ by
-    by_cases hy : y ∈ V
-    · exact (dite_eq_left hy).trans (hσ ⟨y, hy⟩ hyW)
-    · exact dite_eq_right hy
-  have hγV : mpullback I I (Subtype.val : V → M) γ = σ.val :=
-    funext fun x ↦ (mpullback_subtype_val_apply γ x).trans (dite_eq_left x.property)
-  have hγ : IsSmoothForm I ∞ γ := by
-    rw [isSmoothForm_def]
-    intro y
-    by_cases hy : y ∈ V
-    · exact (contMDiffAt_mpullback_subtype_val_iff γ ⟨y, hy⟩).1 (hγV ▸ σ.contMDiff ⟨y, hy⟩)
-    · have hyW : y ∈ W := (hWV.symm.subset (mem_univ y)).resolve_right hy
-      refine (η.contMDiff y).congr_of_eventuallyEq ?_
-      filter_upwards [hW.mem_nhds hyW] with z hz
-      rw [hγW z hz]
-  let τ : SmoothTwoForm I M := ⟨γ, hγ.mem_smoothBundleForms⟩
-  have hτV : SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ = σ :=
-    (SmoothForm.mpullback_eq_iff _).2 hγV
+  obtain ⟨τ, hτW, hτV⟩ :=
+    SmoothForm.exists_forall_eq_and_mpullback_subtype_val_eq hW hWV η σ hσ
   have hnd : ∀ y, (τ.bilinFormAt y).Nondegenerate := fun y ↦ by
     by_cases hy : y ∈ V
     · have hσnd : SmoothTwoForm.IsNondegenerate σ := hβ.isNondegenerate_sliceAlong hχ hχI hβnd
@@ -102,10 +84,10 @@ theorem exists_isNondegenerate_eq_sliceAlong {V : Opens M} {W : Set M} (hW : IsO
       have : τ.bilinFormAt y = η.bilinFormAt y := LinearMap.ext₂ fun v w ↦ by
         rw [SmoothForm.bilinFormAt_apply, SmoothForm.bilinFormAt_apply,
           SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply]
-        exact congrArg (fun a ↦ a ![v, w]) (hγW y hyW)
+        exact congrArg (fun a ↦ a ![v, w]) (hτW y hyW)
       exact this ▸ hη.nondegenerate_bilinFormAt y
   exact ⟨τ, SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun y ↦
-    (hnd y).ker_eq_bot, hγW, hτV⟩
+    (hnd y).ker_eq_bot, hτW, hτV⟩
 
 end Manifold
 
