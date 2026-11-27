@@ -40,7 +40,11 @@ The file also records how time derivatives of slices behave under pullback along
 `f^* α_t` (Tau Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`), and the slice at
 time `t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback along `f` of
 the slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
-`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`.
+`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`. For the segment
+`σ_t = σ₀ + c(t) (σ₁ - σ₀)` (Tau Ceti's `TauCeti.SmoothForm.lineMapFamily`) and a primitive `β`
+of `σ₁ - σ₀`, the slices of `∂_t σ` are the exterior derivatives `d (c'(t) β)`, by Tau Ceti's
+`TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`; Moser's argument uses these as the
+primitives of its velocity.
 
 Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`, the smooth
 section `SymplecticGeometry.timeField` of the tangent bundle. The contraction `ι_{∂_t} σ` of a
@@ -67,6 +71,8 @@ which goes the other way, from a form on `J × M` to its pullback to `ℝ × M` 
   derivative, for a reparametrization `c` of time,
   `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`; the case `c = id` is Tau Ceti's
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`.
+* `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily_eq_mextDeriv`: if
+  `dβ = σ₁ - σ₀`, the slices of the time derivative of `σ₀ + c(t) (σ₁ - σ₀)` are `d (c'(t) β)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
 * `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_eq_mextDeriv_timeInterior`: its slices,
@@ -288,6 +294,33 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
   · rw [map_smul, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
     -- The two functions differ only by `Function.comp` and `id`, which unfold.
     exact Iff.rfl
+
+/-! ### Time derivatives of segments -/
+
+/-- The slices of the time derivative of the segment `α₀ + c(t) (α₁ - α₀)`
+(`TauCeti.SmoothForm.lineMapFamily`), as rough forms: the pullback along `x ↦ (t, x)` of the Lie
+derivative along `∂_t = (1, 0)` is the underlying form of `c'(t) (α₁ - α₀)`. -/
+theorem mpullback_prodMk_mlieDerivForm_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
+    (hc : ContDiff ℝ ∞ c) (t : ℝ) :
+    TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) (lineMapFamily α₀ α₁ hc).val) =
+      (deriv c t • (α₁ - α₀)).val := by
+  rw [← coe_timeDeriv]
+  exact (mpullback_eq_iff _).1 (mpullback_prodMk_timeDeriv_lineMapFamily α₀ α₁ hc t)
+
+/-- **A primitive of the velocity of a segment.** If `dβ = α₁ - α₀`, then at every time `t` the
+slice of the time derivative of the segment `α₀ + c(t) (α₁ - α₀)`
+(`TauCeti.SmoothForm.lineMapFamily`) is the exterior derivative of the slice at `t` of
+`TauCeti.SmoothForm.lineMapFamily 0 β` for the function `c'`, which is `c'(t) β`. -/
+theorem mpullback_prodMk_mlieDerivForm_lineMapFamily_eq_mextDeriv
+    {α₀ α₁ : SmoothForm I M F (k + 1)} {β : SmoothForm I M F k}
+    (hβ : mextDeriv β.val = (α₁ - α₀).val) {c : ℝ → ℝ} (hc : ContDiff ℝ ∞ c) (t : ℝ) :
+    TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) (lineMapFamily α₀ α₁ hc).val) =
+      mextDeriv (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        (lineMapFamily 0 β (contDiff_infty_iff_deriv.1 hc).2)).val := by
+  rw [mpullback_prodMk_mlieDerivForm_lineMapFamily, mpullback_prodMk_lineMapFamily, zero_add,
+    sub_zero, smul_toRoughForm, smul_toRoughForm, mextDeriv_smul, hβ]
 
 end TauCeti.SmoothForm
 
