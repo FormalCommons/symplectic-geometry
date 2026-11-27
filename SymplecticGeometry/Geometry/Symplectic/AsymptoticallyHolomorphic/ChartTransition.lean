@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LeviCivita.Christoffel.Basic
@@ -59,6 +60,11 @@ for it, for `k ≥ k₀`:
   (`SymplecticGeometry.RescaledUnitaryCharts.norm_iteratedFDeriv_associatedBilinFormInChart_le`,
   from `ContinuousLinearMap.norm_iteratedFDeriv_comp_left_le_of_forall_norm_le`); neither
   `D.bound r` nor `ρ₀` depends on `k` or `x`;
+* with these bounds, for each order `r` the `r`-jet norm of `J_x - J₀` at `w` in that ball, for
+  `J₀ = stdComplexStructure ι`, is at most a constant independent of `k` and `x` times
+  `(√k)⁻¹ * (1 + ‖w‖)`
+  (`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_chartPushforward_sub_le`, from
+  `SymplecticGeometry.jetNormAt_le_of_norm_iteratedFDeriv_succ_le`);
 * if `σ` is compatible with `J`, then so is `ω₀` with `J` read in the chart at each point of its
   target, since the chart pulls `ω₀` back to `2π k σ`
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_compatible_chartPushforwardAt`, from
@@ -363,6 +369,43 @@ theorem norm_iteratedFDeriv_comp_chartPushforward_le [I.Boundaryless] {F : Type*
     _ ≤ D.bound r * (√k)⁻¹ := by
         rw [one_mul]
         exact D.iteratedFDeriv_jStruct_le hk hr x w hw
+
+/-- **Jets of `J` read in the charts against `J₀`.** On a boundaryless manifold, for every order
+`r` there is a constant `C`, independent of `k ≥ k₀` and of the centre `x`, such that at every
+point `z` of the ball of radius `ρ₀ * √k`, the `r`-jet norm at `z` of `J_{k,x} - J₀`, for `J_{k,x}`
+the structure `J` read in the chart centred at `x` and `J₀ = stdComplexStructure ι`, is at most
+`C * (√k)⁻¹ * (1 + ‖z‖)`. -/
+theorem exists_jetNormAt_chartPushforward_sub_le [I.Boundaryless] (r : ℕ) :
+    ∃ C : ℝ, ∀ {k : ℕ}, k₀ ≤ k → ∀ (x : M) {z : StdSpace ι}, z ∈ ball 0 (ρ₀ * √k) →
+      jetNormAt ℝ r (fun w ↦ J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w -
+          LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z ≤
+        C * (√k)⁻¹ * (1 + ‖z‖) := by
+  set S : ℝ := ∑ j ∈ Finset.range r, |D.bound (j + 1)|
+  refine ⟨|D.bound 1| + r * S, fun {k} hk x z hz ↦ ?_⟩
+  have hJJ : ContDiffAt ℝ ∞ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) z :=
+    (J.contDiffOn_chartPushforward (D.chart k x).contMDiffOn
+      (D.chart k x).symm.contMDiffOn).contDiffAt
+      ((D.chart k x).open_target.mem_nhds (D.ball_subset_target hk x hz))
+  have hS : ∀ j < r, ‖iteratedFDeriv ℝ (j + 1) (fun w ↦
+      J.chartPushforward (D.chart k x).toOpenPartialHomeomorph w -
+        LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap) z‖ ≤
+      S * (√k)⁻¹ := by
+    intro j hj
+    rw [fun_iteratedFDeriv_sub_apply (hJJ.of_le (by exact_mod_cast le_top)) contDiffAt_const,
+      iteratedFDeriv_succ_const, Pi.zero_apply, sub_zero]
+    refine (D.iteratedFDeriv_jStruct_le hk j.succ_ne_zero x z hz).trans ?_
+    gcongr
+    exact (le_abs_self _).trans (Finset.single_le_sum (f := fun j ↦ |D.bound (j + 1)|)
+      (fun _ _ ↦ abs_nonneg _) (Finset.mem_range.2 hj))
+  refine (jetNormAt_le_of_norm_iteratedFDeriv_succ_le hS).trans ?_
+  have h1 := D.jStruct_sub_le hk x z hz
+  have : 0 ≤ S := Finset.sum_nonneg fun _ _ ↦ abs_nonneg _
+  have hb : D.bound 1 * (√k)⁻¹ * ‖z‖ ≤ |D.bound 1| * (√k)⁻¹ * ‖z‖ := by
+    gcongr; exact le_abs_self _
+  have : 0 ≤ (√k)⁻¹ := by positivity
+  have : 0 ≤ |D.bound 1| * (√k)⁻¹ := by positivity
+  have : 0 ≤ (r : ℝ) * S * (√k)⁻¹ * ‖z‖ := by positivity
+  nlinarith
 
 /-- **Uniform bounds on the derivatives of the forms read in the charts.** On a boundaryless
 manifold, for `k ≥ k₀`, `r ≥ 1` and `w` in the ball of radius `ρ₀ * √k`, the `r`-th iterated
