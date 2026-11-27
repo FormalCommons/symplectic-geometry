@@ -77,14 +77,14 @@ diffeomorphism at each point of `U` (`Diffeomorph.isLocalDiffeomorphAt_of_coe_eq
 
 ## Main results
 
-* `TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff`,
-  `TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff`: a map into an open subset is a local
+* `IsLocalDiffeomorphAt.subtypeVal_comp_iff`,
+  `IsLocalDiffeomorph.subtypeVal_comp_iff`: a map into an open subset is a local
   diffeomorphism exactly when its composite with the inclusion of that subset is.
 * `IsLocalDiffeomorphAt.exists_subtypeVal_comp_eventuallyEq`: a local diffeomorphism at `x`
   that sends `x` into an open subset lifts, near `x`, to a local diffeomorphism into that subset.
 * `IsLocalDiffeomorphOn.mapsToRestrict`: a map that is a local diffeomorphism on an open subset,
   and maps it into an open subset, restricts to a local diffeomorphism between them.
-* `TauCeti.isLocalDiffeomorph_inclusion`: the inclusion `U → W` of open subsets `U ≤ W` is a
+* `isLocalDiffeomorph_inclusion`: the inclusion `U → W` of open subsets `U ≤ W` is a
   `C^n` local diffeomorphism.
 * `PartialDiffeomorph.restrOpen_target_eq_of_subset`: restricting a partial diffeomorphism to the
   preimage of a subset of its target gives one with that subset as target.
@@ -119,7 +119,7 @@ public section
 open TopologicalSpace
 open scoped Manifold Topology
 
-namespace TauCeti
+section SubtypeVal
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
@@ -130,26 +130,26 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 /-- A map `g` into an open subset `W` of `N` is a `C^n` local diffeomorphism at `x` if and only if
 its composite with the inclusion `W → N` is. -/
-theorem isLocalDiffeomorphAt_subtypeVal_comp_iff {W : Opens N} {g : M → W} {x : M} :
+theorem IsLocalDiffeomorphAt.subtypeVal_comp_iff {W : Opens N} {g : M → W} {x : M} :
     IsLocalDiffeomorphAt I J n (Subtype.val ∘ g) x ↔ IsLocalDiffeomorphAt I J n g x :=
-  ⟨fun h ↦ (IsLocalDiffeomorphAt.comp_iff_left (isLocalDiffeomorph_subtype_val _)
+  ⟨fun h ↦ (IsLocalDiffeomorphAt.comp_iff_left (TauCeti.isLocalDiffeomorph_subtype_val _)
       (Topology.IsInducing.subtypeVal.continuousAt_iff.2 h.contMDiffAt.continuousAt)).1 h,
-    fun h ↦ h.comp (hg := isLocalDiffeomorph_subtype_val _)⟩
+    fun h ↦ h.comp (hg := TauCeti.isLocalDiffeomorph_subtype_val _)⟩
 
 /-- A map `g` into an open subset `W` of `N` is a `C^n` local diffeomorphism if and only if its
 composite with the inclusion `W → N` is. -/
-theorem isLocalDiffeomorph_subtypeVal_comp_iff {W : Opens N} {g : M → W} :
+theorem IsLocalDiffeomorph.subtypeVal_comp_iff {W : Opens N} {g : M → W} :
     IsLocalDiffeomorph I J n (Subtype.val ∘ g) ↔ IsLocalDiffeomorph I J n g :=
-  forall_congr' fun _ ↦ isLocalDiffeomorphAt_subtypeVal_comp_iff
+  forall_congr' fun _ ↦ IsLocalDiffeomorphAt.subtypeVal_comp_iff
 
 /-- For open subsets `U ≤ W` of `M`, each charted by the restrictions of the charts of `M`, the
 inclusion `U → W` is a `C^n` local diffeomorphism. -/
 theorem isLocalDiffeomorph_inclusion {U W : Opens M} (h : U ≤ W) :
     IsLocalDiffeomorph I I n (Opens.inclusion h) :=
-  isLocalDiffeomorph_subtypeVal_comp_iff.1
-    ((Set.val_comp_inclusion h).symm ▸ isLocalDiffeomorph_subtype_val)
+  IsLocalDiffeomorph.subtypeVal_comp_iff.1
+    ((Set.val_comp_inclusion h).symm ▸ TauCeti.isLocalDiffeomorph_subtype_val)
 
-end TauCeti
+end SubtypeVal
 
 namespace IsLocalDiffeomorphAt
 
@@ -173,7 +173,7 @@ theorem exists_subtypeVal_comp_eventuallyEq {W : Opens N} {f : M → N} {x : M}
   have hg : Subtype.val ∘ g =ᶠ[𝓝 x] f := by
     filter_upwards [hW'] with y hy
     simp only [g, Function.comp_apply, dite_eq_left hy]
-  exact ⟨g, TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff.1 (hf.congr_of_eventuallyEq hg), hg⟩
+  exact ⟨g, IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 (hf.congr_of_eventuallyEq hg), hg⟩
 
 end IsLocalDiffeomorphAt
 
@@ -191,7 +191,7 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 theorem mapsToRestrict {f : M → N} {U : Opens M} (hf : IsLocalDiffeomorphOn I J n f U)
     {V : Opens N} (h : Set.MapsTo f U V) :
     IsLocalDiffeomorph (M := U) (N := V) I J n (h.restrict f U V) :=
-  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 fun x ↦
+  IsLocalDiffeomorph.subtypeVal_comp_iff.1 fun x ↦
     ((TauCeti.isLocalDiffeomorph_subtype_val (I := I) x).comp (hg := hf x)).congr_of_eventuallyEq
       (Filter.Eventually.of_forall h.val_restrict_apply)
 
@@ -317,7 +317,7 @@ theorem toPartialDiffeomorph_liftOpens_apply_coe (x : U) :
 is a `C^n` local diffeomorphism from `M` to `N`. -/
 theorem isLocalDiffeomorph_subtypeVal_comp (Ψ : M ≃ₘ^n⟮I, J⟯ V) :
     IsLocalDiffeomorph I J n (fun x ↦ (Ψ x : N)) :=
-  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.2 Ψ.isLocalDiffeomorph
+  IsLocalDiffeomorph.subtypeVal_comp_iff.2 Ψ.isLocalDiffeomorph
 
 /-- A map `f : M → N` that agrees on an open subset `U` of `M` with a diffeomorphism `Ψ` from `U`
 onto an open subset `V` of `N` is a `C^n` local diffeomorphism at each point of `U`. -/

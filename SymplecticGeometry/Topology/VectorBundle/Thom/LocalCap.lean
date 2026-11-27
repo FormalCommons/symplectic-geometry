@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
 public import SymplecticGeometry.Topology.VectorBundle.Thom.FiberCoordinate
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChartCap
+public import SymplecticGeometry.Topology.VectorBundle.ZeroSection
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.ProdLocal
 import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
