@@ -62,35 +62,26 @@ def ofComplexManifoldTangentEquiv (n : ℕ∞) (x : M) :
     ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.Fiber x ≃L[ℂ]
       TangentSpace 𝓘(ℂ, E) x :=
   let J := ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure
-  { toFun v := (J.fiberEquiv x v : E)
-    invFun v := (J.fiberEquiv x).symm v
-    map_add' := map_add (J.fiberEquiv x)
-    map_smul' z v := by
-      -- In the fibre `z • v = re z • v + im z • J v`, and `J` is multiplication by `i` on `E`.
-      set w : E := J.fiberEquiv x v
-      have hJ : J x w = Complex.I • w :=
-        ((ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply _ x w).trans
-          (toContMDiff_apply _ n x w)).trans (ofComplexManifold_apply x w)
-      exact (J.fiberEquiv_smul x z v).trans
-        ((congrArg (z.re • w + z.im • ·) hJ).trans (Complex.re_smul_add_im_smul z w))
-    left_inv v := (J.fiberEquiv x).symm_apply_apply v
-    right_inv v := (J.fiberEquiv x).apply_symm_apply v
-    continuous_toFun := (J.fiberEquiv x).continuous
-    continuous_invFun := (J.fiberEquiv x).symm.continuous }
+  -- `J` is multiplication by `i` on `E`, so the real equivalence `J.fiberEquiv x` commutes
+  -- with `I •`.
+  ContinuousLinearEquiv.complexOfMapISmul (W := TangentSpace 𝓘(ℂ, E) x) (J.fiberEquiv x) fun v ↦
+    (J.fiberEquiv_I_smul x v).trans
+      (((ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply _ x _).trans
+        (toContMDiff_apply _ n x _)).trans (ofComplexManifold_apply x _))
 
 @[simp]
 theorem ofComplexManifoldTangentEquiv_apply (n : ℕ∞) (x : M)
     (v : ((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.Fiber x) :
     ofComplexManifoldTangentEquiv n x v =
       (((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.fiberEquiv x v : E) :=
-  (rfl)
+  ContinuousLinearEquiv.complexOfMapISmul_apply _ _ v
 
 @[simp]
 theorem ofComplexManifoldTangentEquiv_symm_apply (n : ℕ∞) (x : M) (v : TangentSpace 𝓘(ℂ, E) x) :
     (ofComplexManifoldTangentEquiv n x).symm v =
       (((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.fiberEquiv x).symm
         (v : E) :=
-  (rfl)
+  ContinuousLinearEquiv.complexOfMapISmul_symm_apply _ _ v
 
 variable [FiniteDimensional ℂ E]
   (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
