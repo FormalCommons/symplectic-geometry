@@ -53,6 +53,8 @@ the case of a point removed from a space.
 * `FundamentalGroup.map_subtypeVal_compl_image_bijective` and
   `FundamentalGroup.complImageMulEquiv`: if the meridian is null-homotopic in `X \ Z`, the
   inclusion is an isomorphism on fundamental groups.
+* `Topology.IsOpenEmbedding.simplyConnectedSpace_compl_image`: if `X` is simply connected and
+  the meridian is null-homotopic in `X \ Z`, then `X \ Z` is simply connected.
 
 ## References
 
@@ -320,5 +322,26 @@ theorem complImageMulEquiv_apply (hf : IsOpenEmbedding f)
   (rfl)
 
 end FundamentalGroup
+
+namespace Topology.IsOpenEmbedding
+
+variable {Q X : Type*} [TopologicalSpace Q] [TopologicalSpace X] {c : ℂ} {R : ℝ}
+  {f : Q × ↥(ball c R) → X}
+
+/-- Let `f : Q × ball c R → X` be an open embedding into a simply connected, locally path
+connected space, with `Q` path connected and `Z = f '' (Q × {c})` closed. If one meridian class
+`hf.meridian q z` is trivial, then `X \ Z` is simply connected. -/
+theorem simplyConnectedSpace_compl_image [PathConnectedSpace Q] [SimplyConnectedSpace X]
+    [LocallyPathConnectedSpace X] (hf : IsOpenEmbedding f)
+    (hZ : IsClosed (f '' {p | (p.2 : ℂ) = c})) {q : Q} {z : ↥(ball c R \ {c})}
+    (h : hf.meridian q z = 1) : SimplyConnectedSpace ↥(f '' {p | (p.2 : ℂ) = c})ᶜ := by
+  have : PathConnectedSpace ↥(f '' {p | (p.2 : ℂ) = c})ᶜ :=
+    isPathConnected_iff_pathConnectedSpace.1
+      (hf.isPathConnected_compl_image hZ (pos_of_mem_ball (mem_of_mem_sdiff z.property)))
+  have := (FundamentalGroup.map_subtypeVal_compl_image_bijective hf hZ q z h).1.subsingleton
+  exact TauCeti.simplyConnectedSpace_of_subsingleton_fundamentalGroup
+    (hf.restrictPuncturedBall (q, z))
+
+end Topology.IsOpenEmbedding
 
 end

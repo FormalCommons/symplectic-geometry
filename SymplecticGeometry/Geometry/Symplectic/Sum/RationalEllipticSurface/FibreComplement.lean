@@ -10,7 +10,6 @@ import Mathlib.Analysis.Convex.Contractible
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.ComplDisc
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Lefschetz
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreNeighborhood
-import TauCeti.AlgebraicTopology.NotSimplyConnected
 
 /-!
 # The complement of the fibre of `E(1)` is simply connected
@@ -29,7 +28,7 @@ Fermat cubic, which is path connected
 connected (`SymplecticGeometry.rationalEllipticSurface.simplyConnectedSpace`), removing the fibre
 `f '' (F × {0})` leaves a simply connected space once a single meridian `t ↦ f (q, w t)`, with
 `w t = z e^{2πit}`, is null-homotopic in the complement
-(`FundamentalGroup.map_subtypeVal_compl_image_bijective`).
+(`Topology.IsOpenEmbedding.simplyConnectedSpace_compl_image`).
 
 Fix the point `P = [0 : 1 : -1]` of the base locus of the pencil. The line `{P} × ℂℙ¹` lies in
 `E(1)` and crosses the fibre only at `(P, [1 : 0])`. For `w` in a small disc around `0`, the point
@@ -52,6 +51,19 @@ open Set Metric Topology Projectivization
 open scoped LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry.rationalEllipticSurface
+
+/-- A map `f : F × ball 0 ε → E(1)`, with `F` the Fermat cubic, that agrees with `fibreEmbedding`
+on `F × {0}` sends `F × {0}` onto the fibre `range fibreEmbedding`. -/
+theorem image_setOfPred_snd_eq_zero_eq_range_fibreEmbedding {ε : ℝ} (hε : 0 < ε)
+    {f : SmoothProjectiveHypersurface.fermat 1 3 × ball (0 : ℂ) ε → rationalEllipticSurface}
+    (hf0 : ∀ x, f (x, ⟨0, mem_ball_self hε⟩) = fibreEmbedding x) :
+    f '' {p | (p.2 : ℂ) = 0} = range fibreEmbedding := by
+  refine Set.ext fun y ↦ ⟨?_, ?_⟩
+  · rintro ⟨⟨x, w⟩, hw, rfl⟩
+    obtain rfl : w = ⟨0, mem_ball_self hε⟩ := Subtype.ext hw
+    exact ⟨x, (hf0 x).symm⟩
+  · rintro ⟨x, rfl⟩
+    exact ⟨_, rfl, hf0 x⟩
 
 /-- Near the fibre, the line `{P} × ℂℙ¹` over a point `P` of the base locus runs through a product
 neighbourhood `f` adapted to the affine coordinate: for `w` in a small disc, `(P, [1 : w])` is
@@ -94,8 +106,7 @@ null-homotopic in the complement of the fibre. -/
 private theorem exists_meridian_eq_one {ε : ℝ} (hε : 0 < ε)
     {f : SmoothProjectiveHypersurface.fermat 1 3 × ball (0 : ℂ) ε → rationalEllipticSurface}
     (hf : IsOpenEmbedding f) (hf0 : ∀ x, f (x, ⟨0, mem_ball_self hε⟩) = fibreEmbedding x)
-    (haff : ∀ p, affineCoordinate (f p) = p.2)
-    (hZ : f '' {p | (p.2 : ℂ) = 0} = range fibreEmbedding) :
+    (haff : ∀ p, affineCoordinate (f p) = p.2) :
     ∃ q z, hf.meridian q z = 1 := by
   set P := Projectivization.mk ℂ ![(0 : ℂ), 1, -1] (fun h ↦ one_ne_zero (congrFun h 1))
   have hP : P ∈ baseLocus := by
@@ -122,7 +133,8 @@ private theorem exists_meridian_eq_one {ε : ℝ} (hε : 0 < ε)
   -- The line through `[u : 1]`, in the complement of the fibre.
   have hHmem (u : ℂ) : (⟨(P, Projectivization.mk ℂ ![u, 1] fun h ↦ one_ne_zero (congrFun h 1)),
       mk_mem_of_mem_baseLocus hP _⟩ : rationalEllipticSurface) ∉ f '' {p | (p.2 : ℂ) = 0} := by
-    rw [hZ, range_fibreEmbedding, mem_ofPred_eq]
+    rw [image_setOfPred_snd_eq_zero_eq_range_fibreEmbedding hε hf0, range_fibreEmbedding,
+      mem_ofPred_eq]
     intro h
     obtain ⟨a, ha⟩ := (Projectivization.mk_eq_mk_iff' ℂ _ _ _ _).1 h.symm
     have h0 := congrFun ha 0
@@ -175,27 +187,13 @@ instance simplyConnectedSpace_compl_range_fibreEmbedding :
   obtain ⟨ε, hε, f, hf, hf0, haff⟩ := exists_isOpenEmbedding_prod_ball
   have := (SmoothProjectiveHypersurface.fermat 1 3).pathConnectedSpace (by norm_num) one_ne_zero
   have := ChartedSpace.locallyPathConnectedSpace (Fin 2 → ℂ) rationalEllipticSurface
-  have hZ : f '' {p | (p.2 : ℂ) = 0} = range fibreEmbedding := by
-    refine Set.ext fun y ↦ ⟨?_, ?_⟩
-    · rintro ⟨⟨x, w⟩, hw, rfl⟩
-      obtain rfl : w = ⟨0, mem_ball_self hε⟩ := Subtype.ext hw
-      exact ⟨x, (hf0 x).symm⟩
-    · rintro ⟨x, rfl⟩
-      exact ⟨_, rfl, hf0 x⟩
-  obtain ⟨q, z, hqz⟩ := exists_meridian_eq_one hε hf hf0 (fun p ↦ (haff p).1) hZ
+  have hZ := image_setOfPred_snd_eq_zero_eq_range_fibreEmbedding hε hf0
+  obtain ⟨q, z, hqz⟩ := exists_meridian_eq_one hε hf hf0 fun p ↦ (haff p).1
   have hZc : IsClosed (f '' {p | (p.2 : ℂ) = 0}) := by
     rw [hZ, range_fibreEmbedding]
     exact isClosed_eq (continuous_snd.comp continuous_subtypeVal) continuous_const
-  have : PathConnectedSpace ↥(f '' {p | (p.2 : ℂ) = 0})ᶜ :=
-    isPathConnected_iff_pathConnectedSpace.1 (hf.isPathConnected_compl_image hZc hε)
-  have : Subsingleton (FundamentalGroup ↥(f '' {p | (p.2 : ℂ) = 0})ᶜ
-      (hf.restrictPuncturedBall (q, z))) :=
-    (FundamentalGroup.map_subtypeVal_compl_image_bijective hf hZc q z hqz).1.subsingleton
   rw [← hZ]
-  exact TauCeti.simplyConnectedSpace_iff_forall_subsingleton_fundamentalGroup.2
-    ⟨inferInstance, fun y ↦
-      (FundamentalGroup.fundamentalGroupMulEquivOfPathConnected y
-        (hf.restrictPuncturedBall (q, z))).injective.subsingleton⟩
+  exact hf.simplyConnectedSpace_compl_image hZc hqz
 
 /-- **The complement of the fibre of `E(1)` is simply connected.** The complement in the rational
 elliptic surface of the set of points over `[1 : 0] ∈ ℂℙ¹` is simply connected. This is

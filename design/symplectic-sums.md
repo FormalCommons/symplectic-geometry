@@ -600,7 +600,7 @@ sums*. Sizes are estimates. "P60" is the issue of *Almost complex spheres*
 | 3 | Product neighbourhoods and the fibre sum; the milestone | `Fibre.lean` | 1, 2 | 500 |
 | 4 | The pointwise obstruction | `Pointwise.lean` | P60 | 450 |
 | 5 | The Hesse pencil surface and its symplectic form | `RationalEllipticSurface/Basic.lean` | — | 350 |
-| 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface/Basic.lean` | 5 | 350 |
+| 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface/Basic.lean`, `RationalEllipticSurface/FibreComplement.lean` | 5 | 350 |
 | 7 | The fibre as a standard torus | `RationalEllipticSurface/Basic.lean` | 5 | 300 |
 | 8 | Closed surfaces of genus $g$ and their fundamental groups | `Surface/` | — | |
 | 9 | The fundamental group of a sum with $E(1)$ | `FundamentalGroup.lean` | 3, 6, 7 | 500 |
