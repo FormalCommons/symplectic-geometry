@@ -119,6 +119,12 @@ theorem annulusToProdBall_injective :
   simp only [coe_annulusToProdBall, Prod.mk.injEq] at h'
   exact Prod.ext h'.1 (Subtype.ext h'.2)
 
+/-- A point `p` of `Q × B²(ε)` whose disc coordinate lies in the annulus `A(δ, ε)` is the image of
+that point of `Q × A(δ, ε)`. -/
+theorem annulusToProdBall_mk (p : prodBall Q ε) (h : (p : Q × ℂ).2 ∈ annulus ℂ δ ε) :
+    annulusToProdBall ((p : Q × ℂ).1, ⟨(p : Q × ℂ).2, h⟩) = p :=
+  Subtype.ext (by simp)
+
 omit [FiniteDimensional ℝ EQ] [IsManifold J ∞ Q] in
 theorem isLocalDiffeomorph_annulusToProdBall :
     IsLocalDiffeomorph (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
