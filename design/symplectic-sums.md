@@ -288,12 +288,13 @@ About 500 lines.
 
 ### `Geometry/Symplectic/Sum/Pointwise.lean`
 
-- `exists_isNondegenerate_of_connectedSum`: for open embeddings
+- `exists_isNondegenerate_sphere_of_connectedSum`: for local diffeomorphisms
   `e₁ : E → M₁`, `e₂ : E → M₂` of `E = EuclideanSpace ℝ (Fin (2 * n))` and
-  radii $\rho_1,\rho_2>0$ with $\rho_1\rho_2<1$, a nondegenerate form on
+  radii $\rho_1,\rho_2>0$ with $\rho_1\rho_2<1$, a two-form on
   `TauCeti.ConnectedSum e₁ e₂` and homotopies through nondegenerate forms
-  to $\omega_1$, $\omega_2$ on the summands with the closed balls removed,
-  the images under `inl` and `inr` of $M_i\setminus e_i(\bar B(\rho_i))$
+  from its pull-backs by `inl`, `inr` to $\omega_1$, $\omega_2$ on open
+  subsets of the punctured summands containing $e_i(\{\rho_i<\|w\|\})$, such as
+  $M_i\setminus e_i(\bar B(\rho_i))$
   (the book's punctured summands; the condition on the radii makes them
   cover the sum, as the book's do), give a nondegenerate form on the
   sphere of dimension $2n$. The sphere is the round one, with its two
