@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
-import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomClass
-import TauCeti.AlgebraicTopology.Cohomology.DegreeZero
+import SymplecticGeometry.Topology.VectorBundle.Thom.SecondCountable
 import TauCeti.Geometry.Manifold.Topology
 
 /-!
@@ -15,17 +14,15 @@ import TauCeti.Geometry.Manifold.Topology
 
 Let `f : Z → X` be a smooth embedding of boundaryless manifolds with closed range, `X` Hausdorff
 and second countable, and `o` an orientation of its normal bundle `ν`, of rank `r`. Every class of
-`Hʳ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` for some `u ∈ Hʳ(ν, ν ∖ 0)`
-(`TauCeti.SmoothEmbedding.surjective_relDualClassOf`, in `DualClass/Basic.lean`).
+`Hʳ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` for exactly one `u ∈ Hʳ(ν, ν ∖ 0)`
+(`TauCeti.SmoothEmbedding.bijective_relDualClassOf`, in `DualClass/Basic.lean`).
 
-When `Z` is connected, the Thom isomorphism
-`TauCeti.SmoothEmbedding.bijective_thomMap_intCanonicalThomClass` identifies `Hʳ(ν, ν ∖ 0; ℤ)`
-with `H⁰(Z; ℤ)`, which is `ℤ`, spanned by the unit class (Tau Ceti's
-`TauCeti.eq_singularCohomologyZeroEval_smul_singularCohomologyZeroOne`); the unit goes to the Thom
-class (`TauCeti.thomMap_one`). So every class of `Hʳ(X, X ∖ f(Z); ℤ)` is an integer multiple of
-the relative dual class (`TauCeti.SmoothEmbedding.exists_eq_zsmul_relDualClass`). By exactness of
-the sequence of the pair `(X, X ∖ f(Z))`, a class of `Hʳ(X; ℤ)` that restricts to zero on
-`X ∖ f(Z)` lifts to `Hʳ(X, X ∖ f(Z); ℤ)`, and so is an integer multiple of the dual class
+When `Z` is connected, every class of `Hʳ(ν, ν ∖ 0; ℤ)` is an integer multiple of the canonical
+Thom class (`TauCeti.IsThomClass.exists_eq_smul`, from the Thom isomorphism). So every
+class of `Hʳ(X, X ∖ f(Z); ℤ)` is an integer multiple of the relative dual class
+(`TauCeti.SmoothEmbedding.exists_eq_zsmul_relDualClass`). By exactness of the sequence of the
+pair `(X, X ∖ f(Z))`, a class of `Hʳ(X; ℤ)` that restricts to zero on `X ∖ f(Z)` lifts
+to `Hʳ(X, X ∖ f(Z); ℤ)`, and so is an integer multiple of the dual class
 (`TauCeti.SmoothEmbedding.exists_eq_zsmul_dualClass_of_restrict_compl`).
 
 ## Main results
@@ -77,22 +74,18 @@ theorem exists_eq_zsmul_relDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (�
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   subst hr
+  have : T2Space Z := f.isEmbedding.t2Space
+  have : SecondCountableTopology Z := f.isEmbedding.secondCountableTopology
+  have : LocallyCompactSpace Z := Manifold.locallyCompact_of_finiteDimensional I
   have : LocallyPathConnectedSpace Z := I.locallyPathConnectedSpace_of_chartedSpace Z
-  have : PathConnectedSpace (TopCat.of Z) := pathConnectedSpace_iff_connectedSpace.2 ‹_›
-  obtain ⟨u, rfl⟩ := surjective_relDualClassOf f hn hdim hf _ c
-  obtain ⟨a, ha⟩ := (bijective_thomMap_intCanonicalThomClass f hn hdim o rfl (ModuleCat.of ℤ ℤ)
-    0 _ (zero_add _)).2 ((thomPair P _).uliftIntegralCohomologyEquiv _ u)
-  refine ⟨singularCohomologyZeroEval (Classical.arbitrary Z) a, ?_⟩
-  -- `thomMap_one` is stated for the class of the constant cocycle with coefficients
-  -- `ModuleCat.of ℤ ℤ`, which is the unit class since `𝟙_ (ModuleCat ℤ)` is that module.
-  have h1 : thomMap P (fun x ↦ f.isImmersion.NormalSpace x hn) (ModuleCat.of ℤ ℤ) _ 0 _
-      (zero_add _) (o.intCanonicalThomClass rfl) (TopCat.of Z).singularCohomologyZeroOne =
-      o.intCanonicalThomClass rfl := by
-    rw [TopCat.singularCohomologyZeroOne_def (k := ℤ)]
-    exact thomMap_one _ _ _ _
-  rw [eq_singularCohomologyZeroEval_smul_singularCohomologyZeroOne (Classical.arbitrary Z) a,
-    LinearMap.map_smul, h1, o.intCanonicalThomClass_def, ← LinearEquiv.map_smul] at ha
-  rw [relDualClass_def, ← (LinearEquiv.injective _) ha]
+  have : PathConnectedSpace Z := pathConnectedSpace_iff_connectedSpace.2 ‹_›
+  obtain ⟨u, rfl⟩ := (bijective_relDualClassOf f hn hdim hf _).surjective c
+  obtain ⟨m, hm⟩ := (o.isThomClass_intCanonicalThomClass rfl).exists_eq_smul
+    ((thomPair P _).uliftIntegralCohomologyEquiv _ u)
+  rw [o.intCanonicalThomClass_def, ← LinearEquiv.map_smul] at hm
+  refine ⟨m, ?_⟩
+  dsimp only
+  rw [relDualClass_def, (LinearEquiv.injective _) hm]
   exact (relDualClassOf_smul f hn hdim hf _ _).trans (int_smul_eq_zsmul _ _ _)
 
 /-- **A class vanishing off a connected submanifold is a multiple of its dual class.** For a

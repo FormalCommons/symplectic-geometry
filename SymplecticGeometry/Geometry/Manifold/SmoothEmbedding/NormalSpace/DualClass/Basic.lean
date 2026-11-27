@@ -59,8 +59,8 @@ property for every normalized tube.
 
 ## Main results
 
-* `TauCeti.SmoothEmbedding.surjective_relDualClassOf`: every relative class of `X` comes from a
-  class of the Thom pair of the normal bundle.
+* `TauCeti.SmoothEmbedding.bijective_relDualClassOf`: the relative classes of `X` correspond
+  one-to-one to the classes of the Thom pair of the normal bundle.
 * `TauCeti.SmoothEmbedding.dualClassOf_restrict_compl`, `dualClass_restrict_compl`: the classes
   vanish off the submanifold.
 * `TauCeti.SmoothEmbedding.dualClassOf_restrict`, `dualClass_restrict`,
@@ -251,19 +251,24 @@ theorem exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf
   obtain ⟨W, Φ, hΦ, h⟩ := exists_relDualClassHom (R := R) (k := k) (M := M) f hn hdim hf
   exact ⟨W, Φ, hΦ, fun n u ↦ by rw [relDualClassOf, ← ConcreteCategory.comp_apply, h]⟩
 
-/-- **Every relative class of `X` comes from the normal bundle**: in every degree `n`, each class
-of `Hⁿ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` for a class `u ∈ Hⁿ(ν, ν ∖ 0)` of the
-Thom pair of the normal bundle. -/
-theorem surjective_relDualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+/-- **Relative classes of `X` are classes of the normal bundle**: in every degree `n`, the map
+`u ↦ relDualClassOf f hn hdim hf u` from `Hⁿ(ν, ν ∖ 0)`, the cohomology of the Thom pair of the
+normal bundle, to `Hⁿ(X, X ∖ f(Z))` is bijective. -/
+theorem bijective_relDualClassOf (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f)) (n : ℕ) :
     letI := f.normalSpaceFiberBundle hn hdim
-    Function.Surjective fun u : (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)
+    Function.Bijective fun u : (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)
         ).singularCohomology R k M n ↦ f.relDualClassOf hn hdim hf u := by
   let := f.normalSpaceFiberBundle hn hdim
   obtain ⟨W, Φ, hΦ, h⟩ :=
     exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf (R := R) (k := k)
       (M := M) f hn hdim hf
-  intro c
+  refine ⟨fun u u' huu' ↦ ?_, fun c ↦ ?_⟩
+  · have := congrArg (TopPair.singularCohomologyMap
+      (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom n) (congrArg (TopPair.singularCohomologyMap
+        (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) n) huu')
+    simpa only [h, ← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id,
+      TopPair.singularCohomologyMap_id, CategoryTheory.id_apply] using this
   refine ⟨TopPair.singularCohomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom n
     (TopPair.singularCohomologyMap
       (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) n c), ?_⟩
