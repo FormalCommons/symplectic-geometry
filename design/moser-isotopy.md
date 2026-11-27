@@ -177,9 +177,9 @@ The file has the name of Tau Ceti's file that defines
 - `mpullback_prodMk_mpullback_prodMap'`: for smooth `c : P' → P` between parameter
   manifolds and `f : M → N`, the slice at `t` of the pullback of a form on
   `P × N` along `Prod.map c f` is the pullback along `f` of its slice at
-  `c t`; with its case `mpullback_prodMk_mpullback_prodMap_id_right`
-  (`f = id`). The case `c = id`, `mpullback_prodMk_mpullback_prodMap`, is
-  Tau Ceti's, in `TauCeti/Geometry/Manifold/DifferentialForm/Flow/Family.lean`.
+  `c t`. Its case `f = id` is Tau Ceti's `mpullback_prodMk_mpullback_prodMap_id`.
+  The case `c = id`, `mpullback_prodMk_mpullback_prodMap`, is Tau Ceti's, in
+  `TauCeti/Geometry/Manifold/DifferentialForm/Flow/Family.lean`.
   They use only the functoriality of the pullback. *Contact geometry* uses
   them in `Flow/Family.lean`, `Contact/Family.lean` and `Contact/Gray.lean`.
 

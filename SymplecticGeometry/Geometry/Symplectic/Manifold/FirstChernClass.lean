@@ -196,7 +196,7 @@ theorem firstChernClass_mpullback_prodMk_eq (σ : SmoothTwoForm (𝓘(ℝ, ℝ).
   -- Reparametrize by a smooth map `ℝ → [0, 1]` fixing `0` and `1`.
   have hρ : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ) ∞ Real.smoothTransition :=
     Real.smoothTransition.contDiff.contMDiff
-  have hs := SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right hρ σ
+  have hs (t : ℝ) := SmoothForm.mpullback_prodMk_mpullback_prodMap_id σ hρ t
   have h' (t : ℝ) := hs t ▸
     h _ ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
   have hc {τ τ' : SmoothTwoForm I M} (hτ : τ.IsNondegenerate) (hτ' : τ'.IsNondegenerate)
