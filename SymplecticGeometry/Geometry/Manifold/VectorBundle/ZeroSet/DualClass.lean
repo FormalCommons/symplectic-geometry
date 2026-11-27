@@ -179,28 +179,11 @@ theorem singularCohomologyMap_normalSlice_thomPairMapOfNeZero
   have h1 := singularCohomologyMap_ofSubsetMap_eq_complZeroPairIso_inv_of_hasFDerivAt e' hx'
     Filter.univ_mem hgS hg0 hgS0 hA L.antilipschitzWith u
   -- Read on `(univ, univ ∖ {0})` through `m`, the normal slice followed by `s` is `g`.
-  have hgi : (TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of F')
-        (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
-        (B' := {0}ᶜ) (fun _ hw h ↦ hw (Subtype.ext (Set.mem_singleton_iff.1 h))) ≫
-        m.complZeroPairIso.hom) ≫
-      (ofTransverseSection hm hsm hs hE).normalSlice hm (Nat.eq_sub_of_add_eq' hE) Φ
-          hΦ.apply_zeroSection x ≫
-        thomPairMapOfNeZero ⟨_, hsm.continuous⟩
-          (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE) =
-      TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of (TotalSpace F' E'))
-        (TopCat.ofHom ⟨univ.domRestrict g, hgS.domRestrict⟩) (B := {⟨0, mem_univ 0⟩}ᶜ)
-        (B' := zeroSectionCompl F' E')
-        fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w w.property fun h ↦ hw (Subtype.ext h)) := by
-    refine TopPair.hom_ext_of_fst _ (ConcreteCategory.hom_ext _ _ fun w ↦ ?_)
-    simp only [TopPair.Hom.fst_comp, ConcreteCategory.comp_apply]
-    -- The points of the pairs are those of `univ`, `F'` and `TotalSpace F' E'` only up to
-    -- unfolding `ofSubset`.
-    erw [TopPair.ofSubsetMap_fst_apply, TopPair.ofSubsetMap_fst_apply]
-    rw [ContinuousLinearEquiv.complZeroPairIso_hom_fst_apply, normalSlice_fst_apply,
-      thomPairMapOfNeZero_fst_apply]
-    -- Both sides are `g w`, with `w` a point of `univ` only up to unfolding `ofSubset`, so
-    -- `Set.domRestrict_apply` does not apply syntactically.
-    rfl
+  have hgi := ofSubsetMap_subtypeVal_comp_complZeroPairIso_hom_comp_normalSlice_comp _ hm
+    (Nat.eq_sub_of_add_eq' hE) Φ hΦ.apply_zeroSection x m (thomPairMapOfNeZero ⟨_, hsm.continuous⟩
+      (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE)) hgS
+    (fun w hw ↦ mem_zeroSectionCompl.2 (hgS0 w (mem_univ w) hw))
+    fun _ ↦ thomPairMapOfNeZero_fst_apply _ _ _
   -- Read in the same way, the fibre inclusion after `ψ` is `L` followed by `ℓ⁻¹`.
   have hLi : (TopPair.ofSubsetMap (X := TopCat.of (univ : Set F')) (Y := TopCat.of F')
         (TopCat.ofHom (ContinuousMap.subtypeVal univ)) (B := {⟨0, mem_univ 0⟩}ᶜ)
@@ -299,29 +282,20 @@ theorem relDualClass_ofTransverseSection {r : ℕ} (o' : VectorBundleOrientation
   let := (ofTransverseSection hm hsm hs hE).normalSpaceVectorBundle (P := F') hm
     (Nat.eq_sub_of_add_eq' hE)
   subst hr
-  -- `relDualClass` takes integral cohomology with the structure `Linear.preadditiveIntLinear` of
-  -- `ModuleCat ℤ`, `relDualClassOf_ofTransverseSection` the structure `ModuleCat.instLinear`;
-  -- they are equal (`Linear.subsingletonInt`) but not by definition.
-  have key (L : Linear ℤ (ModuleCat.{w} ℤ))
-      (u : (thomPair F' E').singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
-        (ModuleCat.of ℤ (ULift.{w} ℤ)) (finrank ℝ F')) :
-      TopPair.singularCohomologyMap (thomPairMapOfNeZero ⟨_, hsm.continuous⟩
-          (snd_ne_zero_of_notMem_range_ofTransverseSection hm hsm hs hE)) _ u =
-        (ofTransverseSection hm hsm hs hE).relDualClassOf hm (Nat.eq_sub_of_add_eq' hE)
-          (isClosed_range_ofTransverseSection hm hsm hs hE)
-          (TopPair.singularCohomologyMap (thomPairMapOfFiberwise
-            (g := (ofTransverseSection hm hsm hs hE).toContinuousMap)
-            (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE)) _ u) := by
-    obtain rfl : L = ModuleCat.instLinear := Subsingleton.elim _ _
-    exact relDualClassOf_ofTransverseSection hm hsm hs hE u
   have hι : Fintype.card (Fin (finrank ℝ F')) = finrank ℝ F' := Fintype.card_fin _
   have h := o'.singularCohomologyMap_thomPairMapOfFiberwise_canonicalThomClass
     (g := (ofTransverseSection hm hsm hs hE).toContinuousMap) rfl
     (normalOrientationOfSection hm hsm hs hE hι o') rfl
     (continuous_normalSpaceEquivOfTransverseSection hm hsm hs hE)
     (map_normalOrientationOfSection_apply hm hsm hs hE hι o')
-  rw [relDualClass_def, ← h]
-  exact key _ _
+  -- `relDualClassOf_ofTransverseSection` is stated for the `ℤ`-linear structure
+  -- `ModuleCat.instLinear`; read the class for that structure.
+  rw [relDualClass_eq_singularCohomologyLinearCongr_relDualClassOf, ← h,
+    TopPair.singularCohomologyLinearCongr_naturality,
+    ← relDualClassOf_ofTransverseSection hm hsm hs hE,
+    TopPair.singularCohomologyLinearCongr_naturality,
+    TopPair.singularCohomologyLinearCongr_apply_apply, TopPair.singularCohomologyLinearCongr_refl,
+    LinearEquiv.refl_apply]
 
 end DualClass
 
