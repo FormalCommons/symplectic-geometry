@@ -26,16 +26,16 @@ the local orientation of `X` at `f z`
 
 Here every class involved is the class of a point with a sign: the classes of `P` and `E` are
 the local orientations at the origin that their orientations select
-(`Orientation.localOrientationOfZeroDim`). The cross product of the classes of
-two points is the class of the pair
-(`SymplecticGeometry.localHomologyCross_tmul_localHomologyPointClass` and Tau Ceti's
-`TauCeti.localHomologyPointClass_map`), and the chart of the total space and the tube carry the
-class of a point to that of its image. The local orientation of `X` at `f z` is Tau Ceti's
+(`Orientation.localOrientationOfZeroDim`). Their cross product is the local orientation of
+`P × E` at the origin selected by the product orientation
+(`Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientationOfZeroDim`), and
+the chart of the total space and the tube carry the class of a point to that of its image. The
+local orientation of `X` at `f z` is Tau Ceti's
 `TauCeti.Manifold.Orientation.toHomologicalOrientationOfZeroDim`, the class of `f z` with the
-sign of the orientation of `X` there. That sign is the product of the other two: in dimension
-zero, `TauCeti.SmoothEmbedding.map_orientationAt_normalTubeChartDeriv` says that the orientation
-of `X` is positive exactly when the orientation of `Z` and the normal orientation have the same
-sign (`Orientation.prod_eq_positiveOrientation_iff`).
+sign of the orientation of `X` there. The two signs agree: in dimension zero,
+`TauCeti.SmoothEmbedding.map_orientationAt_normalTubeChartDeriv` says that the orientation of `X`
+is positive exactly when the orientation of `Z` and the normal orientation have the same sign,
+which is when their product is positive (`Orientation.prod_eq_positiveOrientation_iff`).
 
 ## Main results
 
@@ -149,36 +149,34 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
   set c := centeredExtChartAt I z
   have hb : z ∈ c.source := mem_centeredExtChartAt_source I z
   have hcb : c z = 0 := centeredExtChartAt_self I z
-  -- The cross product of the two point classes is carried to the point class of `f z`.
+  -- The tube, read through the chart, carries the class of the origin of `P × E` to that of `f z`.
   have key : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
         (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
         (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         0
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           hb hcb h0 0).hom
-          ((SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 0 0 rfl).hom
-            (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : P)} 0 1 ⊗ₜ
-              localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : E)} 0 1))) =
+          (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : P × E)} 0 1)) =
       localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} (f z) 1 := by
-    have h1 : (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 0 0 rfl).hom
-        (localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : P)} 0 1 ⊗ₜ
-          localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {(0 : E)} 0 1) =
-        localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {((0, 0) : P × E)} (0, 0) 1 :=
-      (SymplecticGeometry.localHomologyCross_tmul_localHomologyPointClass _ _ 0 _).trans
-        (localHomologyPointClass_map_apply _ _ _ _ _)
-    rw [h1, Trivialization.localHomologyPointClass_comp_localChartLocalHomologyIso_hom_apply]
+    -- The chart is stated at the point `(0, 0)`, which is `(0 : P × E)` only by definition.
+    erw [Trivialization.localHomologyPointClass_comp_localChartLocalHomologyIso_hom_apply]
     exact (localHomologyPointClass_map_apply _ _ _ _ _).trans
       (congrArg (fun y ↦ localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} y 1)
         ((f.tubeMap_apply hn hdim Φ _).trans (hΦ.apply_zeroSection z)))
-  rw [Manifold.Orientation.toHomologicalOrientationOfZeroDim_apply,
+  -- The product orientation is indexed by `Fin (0 + 0)`, which instance search does not reduce.
+  have : IsEmpty (Fin (0 + 0)) := inferInstanceAs (IsEmpty (Fin 0))
+  -- The orientation of `Z` at `z` is one of `E` only by definition, so `rw` does not match.
+  erw [Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientationOfZeroDim
+    hP hE]
+  rw [Orientation.coe_localOrientationOfZeroDim, apply_ite (DFunLike.coe _),
+    apply_ite (DFunLike.coe _), map_neg, map_neg, key,
+    Manifold.Orientation.toHomologicalOrientationOfZeroDim_apply,
     Manifold.Orientation.localOrientationOfZeroDim_coe,
     orientationAt_reindex_eq_positiveOrientation_iff Φ z hΦ hP oX oZ]
-  rw [Orientation.coe_localOrientationOfZeroDim]
-  -- The orientation of `Z` at `z` is one of `E` only by definition, so `rw` does not match.
-  erw [Orientation.coe_localOrientationOfZeroDim]
-  split_ifs <;> first
-    | (exfalso; tauto)
-    | simp only [TensorProduct.neg_tmul, TensorProduct.tmul_neg, map_neg, neg_neg, key]
+  -- The signs agree: a product of orientations in dimension zero is positive exactly when its
+  -- factors have the same sign.
+  congr 1
+  exact propext (Orientation.prod_eq_positiveOrientation_iff (m := 0) (n := 0) _ _ hP hE)
 
 end TauCeti.SmoothEmbedding
 
