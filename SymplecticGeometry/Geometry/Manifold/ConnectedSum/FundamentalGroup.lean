@@ -170,6 +170,13 @@ theorem coe_map_neckInr_circleLoop_apply (h₂ : IsOpenEmbedding e₂) (t : unit
       e₂ (φ (circleMap 0 r⁻¹ (2 * Real.pi * t))) := by
   simp [← φ.map_inversion_zero, inversion_circleMap]
 
+/-- For radius `1`, the inversion fixes the base point of the circle, so in the second punctured
+summand it is `e₂ (φ 1)`. -/
+theorem coe_neckInr_circleBasepoint_one (h₂ : IsOpenEmbedding e₂) :
+    (neckInr h₂ (φ.circleBasepoint one_pos) : N) = e₂ (φ 1) := by
+  rw [coe_neckInr_apply, LinearIsometryEquiv.coe_circleBasepoint,
+    inversion_of_mem_sphere (by simp), Complex.ofReal_one]
+
 end Summands
 
 end TauCeti.ConnectedSum
