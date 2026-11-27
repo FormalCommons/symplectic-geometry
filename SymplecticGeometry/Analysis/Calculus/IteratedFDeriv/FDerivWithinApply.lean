@@ -21,6 +21,9 @@ its iterated derivatives at `(z, v)` by those of `g` at `z` of one order more, w
 
 ## Main results
 
+* `norm_iteratedFDerivWithin_comp_fst_le`: the iterated derivatives of `f ∘ Prod.fst` within
+  `s ×ˢ univ` are bounded by those of `f` within `s`. This is the within-a-set form of Tau Ceti's
+  `Prod.norm_iteratedFDeriv_comp_fst`.
 * `norm_iteratedFDerivWithin_fderivWithin_apply_le`: for `g` of class `C^{j+1}` on a set `s`
   of unique differentiability and `z ∈ s`, the `j`-th derivative of `(z, v) ↦ Dg(z) v` within
   `s ×ˢ univ` at `(z, v)` has norm at most
@@ -38,6 +41,26 @@ open Set
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+
+/-- The iterated derivatives of `f ∘ Prod.fst` within `s ×ˢ univ` at `p`, for `f` of class `C^n`
+on a set `s` of unique differentiability and `p.1 ∈ s`, are bounded, up to order `n`, by those of
+`f` within `s` at `p.1`. -/
+theorem norm_iteratedFDerivWithin_comp_fst_le {f : E → F} {s : Set E} {n : WithTop ℕ∞}
+    (hf : ContDiffOn 𝕜 n f s) (hs : UniqueDiffOn 𝕜 s) {i : ℕ} (hi : i ≤ n) {p : E × G}
+    (hp : p.1 ∈ s) :
+    ‖iteratedFDerivWithin 𝕜 i (f ∘ Prod.fst) (s ×ˢ univ) p‖ ≤
+      ‖iteratedFDerivWithin 𝕜 i f s p.1‖ := by
+  have hpre : (ContinuousLinearMap.fst 𝕜 E G) ⁻¹' s = s ×ˢ univ := by
+    ext; simp
+  have hS : UniqueDiffOn 𝕜 ((ContinuousLinearMap.fst 𝕜 E G) ⁻¹' s) :=
+    hpre ▸ hs.prod uniqueDiffOn_univ
+  rw [← ContinuousLinearMap.coe_fst' (R := 𝕜) (M₂ := G), ← hpre,
+    ContinuousLinearMap.iteratedFDerivWithin_comp_right _ hf hs hS hp hi]
+  refine (ContinuousMultilinearMap.norm_compContinuousLinearMap_le _ _).trans ?_
+  refine mul_le_of_le_one_right (norm_nonneg _) ?_
+  exact Finset.prod_le_one₀ (fun _ _ ↦ norm_nonneg _)
+    fun _ _ ↦ ContinuousLinearMap.norm_fst_le 𝕜 E G
 
 /-- The iterated derivatives of `(z, v) ↦ Dg(z) v` within `s ×ˢ univ` at `(z, v)`, for `g` of
 class `C^{j+1}` on a set `s` of unique differentiability and `z ∈ s`, are bounded by those of `g`
@@ -50,22 +73,16 @@ theorem norm_iteratedFDerivWithin_fderivWithin_apply_le {g : E → F} {s : Set E
       (1 + ‖v‖) * ∑ i ∈ Finset.range (j + 1),
         (j.choose i : ℝ) * ‖iteratedFDerivWithin 𝕜 (i + 1) g s z‖ := by
   have hS : UniqueDiffOn 𝕜 (s ×ˢ (univ : Set E)) := hs.prod uniqueDiffOn_univ
-  have hpre : (ContinuousLinearMap.fst 𝕜 E E) ⁻¹' s = s ×ˢ univ := by
-    ext; simp
   have hzS : (z, v) ∈ s ×ˢ (univ : Set E) := ⟨hz, mem_univ v⟩
   have hDg : ContDiffOn 𝕜 j (fderivWithin 𝕜 g s) s := hg.fderivWithin hs le_rfl
-  have hA : ContDiffOn 𝕜 j (fderivWithin 𝕜 g s ∘ ContinuousLinearMap.fst 𝕜 E E)
-      (s ×ˢ univ) := hpre ▸ hDg.comp_continuousLinearMap _
+  have hA : ContDiffOn 𝕜 j (fderivWithin 𝕜 g s ∘ Prod.fst) (s ×ˢ (univ : Set E)) :=
+    hDg.comp contDiffOn_fst fun _ hq ↦ hq.1
   -- Derivatives of the first factor: those of `Dg` at `z`, hence of `g` of one order more.
   have hAi (i : ℕ) (hi : i ≤ j) :
-      ‖iteratedFDerivWithin 𝕜 i (fderivWithin 𝕜 g s ∘ ContinuousLinearMap.fst 𝕜 E E)
-        (s ×ˢ univ) (z, v)‖ ≤ ‖iteratedFDerivWithin 𝕜 (i + 1) g s z‖ := by
-    rw [← hpre, ContinuousLinearMap.iteratedFDerivWithin_comp_right _ hDg hs (hpre ▸ hS) hz
-      (by exact_mod_cast hi), ← norm_iteratedFDerivWithin_fderivWithin hs hz]
-    refine (ContinuousMultilinearMap.norm_compContinuousLinearMap_le _ _).trans ?_
-    refine mul_le_of_le_one_right (norm_nonneg _) ?_
-    exact Finset.prod_le_one₀ (fun _ _ ↦ norm_nonneg _)
-      fun _ _ ↦ ContinuousLinearMap.norm_fst_le 𝕜 E E
+      ‖iteratedFDerivWithin 𝕜 i (fderivWithin 𝕜 g s ∘ Prod.fst) (s ×ˢ (univ : Set E)) (z, v)‖ ≤
+        ‖iteratedFDerivWithin 𝕜 (i + 1) g s z‖ :=
+    (norm_iteratedFDerivWithin_comp_fst_le hDg hs (by exact_mod_cast hi) hz).trans_eq
+      (norm_iteratedFDerivWithin_fderivWithin hs hz)
   -- Derivatives of the second factor: `v` at order zero, then at most one.
   have hBk (k : ℕ) :
       ‖iteratedFDerivWithin 𝕜 k (Prod.snd : E × E → E) (s ×ˢ univ) (z, v)‖ ≤ 1 + ‖v‖ := by
