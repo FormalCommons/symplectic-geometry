@@ -146,7 +146,7 @@ theorem isPositive_mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_sym
         (fibreEmbedding.contMDiff.comp (fermatCubicTorusDiffeomorph p).symm.contMDiff)
         symplecticForm).val :=
   Manifold.Orientation.isPositive_iff_forall_apply_pos.2 fun x b hb ↦ by
-  have hω := (orientation_eq_orientationAt_torusSymplecticOrientation_iff p b).1 hb
+  have hω := (isPositive_torusSymplecticForm p).apply_pos hb
   obtain ⟨z, rfl⟩ := latticeTorusCover_surjective p fermatPeriodBasis x
   have hωL := eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos p fermatPeriodBasis
     zero_lt_im_conj_mul_fermatPeriodBasis z
@@ -205,8 +205,7 @@ theorem exists_diffeomorph_mpullback_torusScale_smul_eq :
   have hint := integralTopForm_mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_pos p
   refine SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq
     (torusSymplecticOrientation p) ?_ ?_ ?_
-  · rw [torusSymplecticOrientation_def]
-    exact Manifold.Orientation.isPositive_ofTopForm _ _ _
+  · exact isPositive_torusSymplecticForm p
   · rw [map_smul, SetLike.val_smul]
     exact (isPositive_mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm p).smul
       (torusScale_pos p)
