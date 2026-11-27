@@ -25,9 +25,9 @@ suspension `TauCeti.timeDependentSuspensionField X` on `ℝ × G`
 
 When `ξ` is `C^n`, the field `X` is jointly `C^n` by Tau Ceti's
 `contMDiff_mulInvariantVectorField_modelSpace`, hence so is its suspension, and Tau Ceti's
-regularity of integral curves (`TauCeti.Manifold.contMDiff_succ_of_isMIntegralCurve`,
-`TauCeti.Manifold.contMDiff_of_isMIntegralCurve`) shows that the lifted curve, and so `g`, is
-`C^(n + 1)`, or smooth when `ξ` is. No completeness of `E` and no existence theorem is needed:
+regularity of integral curves (`TauCeti.Manifold.contMDiff_succ_of_isMIntegralCurve`) shows
+that the lifted curve, and so `g`, is `C^(n + 1)`. Taking every `n` shows that `g` is smooth
+when `ξ` is. No completeness of `E` and no existence theorem is needed:
 the curve is given.
 
 ## Main results
@@ -100,14 +100,11 @@ theorem contMDiff_of_mfderiv_inv_mul_curveVelocity_eq [ContMDiffMul I ∞ G] {ξ
     (hξ : ContDiff ℝ ∞ ξ) {g : ℝ → G} (hg : ∀ t, MDifferentiableAt 𝓘(ℝ, ℝ) I g t)
     (hgξ : ∀ t, mfderiv I I ((g t)⁻¹ * ·) (g t) (curveVelocity I g t) = ξ t) :
     ContMDiff 𝓘(ℝ, ℝ) I ∞ g := by
-  have hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
-      (fun p : ℝ × G ↦
-        (⟨p.2, mulInvariantVectorField (I := I) (ξ p.1) p.2⟩ : TangentBundle I G)) :=
-    (contMDiff_mulInvariantVectorField_modelSpace (m := ∞) (n := ∞) (by simp)).comp
-      ((hξ.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd)
-  exact contMDiff_snd.comp (contMDiff_of_isMIntegralCurve
-    (isMIntegralCurve_prodMk_timeDependentSuspensionField_mulInvariantVectorField hg hgξ)
-    (contMDiff_timeDependentSuspensionField hX))
+  refine contMDiff_infty.2 fun n ↦ ?_
+  have : ContMDiffMul I (n + 1 : ℕ) G :=
+    ContMDiffMul.of_le (n := ∞) (by exact_mod_cast le_top)
+  exact (contMDiff_succ_of_mfderiv_inv_mul_curveVelocity_eq n
+    (hξ.of_le (by exact_mod_cast le_top)) hg hgξ).of_le (by exact_mod_cast Nat.le_succ n)
 
 end SymplecticGeometry
 
