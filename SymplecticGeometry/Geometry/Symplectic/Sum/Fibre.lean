@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
-import Mathlib.Analysis.Convex.PathConnected
+import SymplecticGeometry.Analysis.Convex.PathConnected
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
@@ -174,27 +174,19 @@ theorem isPathConnected_range_comp_annulusToProdBall [PathConnectedSpace Q] {a :
 
 /-- The range of a product neighbourhood of radius `ε > 0` of a path connected `Q` is path
 connected. -/
-theorem isPathConnected_range [PathConnectedSpace Q] (hε : 0 < ε) : IsPathConnected (range f) := by
-  have h := (isPathConnected_univ (X := Q)).prod
-    ((convex_ball (0 : ℂ) ε).isPathConnected ⟨0, Metric.mem_ball_self hε⟩)
-  have : PathConnectedSpace (prodBall Q ε) :=
-    isPathConnected_iff_pathConnectedSpace.1 (by simpa using h)
-  exact _root_.isPathConnected_range f.isOpenEmbedding.continuous
+theorem isPathConnected_range [PathConnectedSpace Q] (hε : 0 < ε) : IsPathConnected (range f) :=
+  (prodBallHomeomorph Q ε).surjective.range_comp f ▸
+    isPathConnected_range_prod_ball hε (f.continuous.comp (prodBallHomeomorph Q ε).continuous)
 
 /-- A product neighbourhood `f`, as a homeomorphism from `Q × B²(ε)` onto its range. -/
 def rangeHomeomorph : Q × Metric.ball (0 : ℂ) ε ≃ₜ range f :=
-  ({ toFun := fun w ↦ ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩
-     invFun := fun w ↦ ((w : Q × ℂ).1,
-       ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩)
-     left_inv := fun _ ↦ rfl
-     right_inv := fun _ ↦ rfl } : Q × Metric.ball (0 : ℂ) ε ≃ₜ prodBall Q ε).trans
-    f.isOpenEmbedding.isEmbedding.toHomeomorph
+  (prodBallHomeomorph Q ε).trans f.isOpenEmbedding.isEmbedding.toHomeomorph
 
 @[simp]
 theorem coe_rangeHomeomorph_apply (w : Q × Metric.ball (0 : ℂ) ε) :
     (f.rangeHomeomorph w : M) =
       f ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩ :=
-  (rfl)
+  congrArg f (Subtype.ext (coe_prodBallHomeomorph_apply w))
 
 /-- For `0 < ε`, the image of `ι` lies in the range of a product neighbourhood. -/
 theorem range_embedding_subset_range (hε : 0 < ε) : range ι ⊆ range f := by
