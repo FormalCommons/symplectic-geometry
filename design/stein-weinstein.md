@@ -651,7 +651,7 @@ containing `ι '' closedBall 0 1`:
     `0 < d`, `r ↦ ℓ + d * r` at every `r ∈ Ioo 0 (ℓ * d ^ 3)`.
   - (14d4) The crossings of Lemma 4.18 (a)–(c), as statements about the
     real roots of the differences of these three functions;
-    `exists_isConvexShapeAt_eq_sqrt_of_eq_linear` (Lemma 4.19): for
+    `exists_isConvexShapeAt_eq_linear_eq_sqrt` (Lemma 4.19): for
     `1 < a` and `0 < γ` there are `d ∈ Ioo 0 1`, `β ∈ Ioo 0 γ` and a
     smooth `ψ`, convex shape at every `r > 0`, with
     `ψ r = √(1 + a * r ^ 2)` for `γ ≤ r` and `ψ r = 1 + d * r` for
