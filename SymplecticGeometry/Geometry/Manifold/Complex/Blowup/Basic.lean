@@ -11,7 +11,9 @@ public import Mathlib.Analysis.CStarAlgebra.Classes
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -90,6 +92,8 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
 * `SymplecticGeometry.Blowup.contMDiff_blowdown`,
   `SymplecticGeometry.Blowup.blowdown_eq_center_iff`:
   the blowdown is holomorphic, and the preimage of `p₀` is the exceptional divisor.
+* `SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown`: off the divisor, the blowdown is a
+  local biholomorphism.
 
 The Hausdorff property follows from the criterion `SymplecticGeometry.GluedAlong.t2Space_iff`:
 a point `x ≠ p₀` and a point of the divisor are separated by the preimages of disjoint
@@ -706,6 +710,18 @@ theorem coe_blowdownDiffeomorph_apply (z : offDivisorOpens c) :
     (blowdownDiffeomorph c z : M) = blowdown c z := by
   conv_rhs => rw [← (blowdownDiffeomorph c).symm_apply_apply z]
   rw [coe_blowdownDiffeomorph_symm_apply, blowdown_inl]
+
+/-- Off the exceptional divisor, the blowdown `Blowup c → M` is a local biholomorphism. -/
+theorem isLocalDiffeomorphAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) z := by
+  let w : offDivisorOpens c := ⟨z, by simpa using hz⟩
+  -- On the complement of the divisor, the blowdown is `blowdownDiffeomorph c`.
+  have h : IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
+      (blowdown c ∘ Subtype.val) w :=
+    (((blowdownDiffeomorph c).isLocalDiffeomorph w).comp
+      (hg := TauCeti.isLocalDiffeomorph_subtype_val _)).congr_of_eventuallyEq
+      (Filter.Eventually.of_forall fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm)
+  exact (TauCeti.isLocalDiffeomorph_subtype_val w).comp_iff_right.1 h
 
 end Complex
 
