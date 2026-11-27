@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.Flow.Basic
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
+public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
 
 /-!
@@ -34,6 +35,10 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   integral curve, and for `t₀, t ∈ (a, b)` the maximal flow takes `γ t₀` to `γ t` in time
   `t - t₀`, from Tau Ceti's `IsMIntegralCurveOn.subset_maximalIntegralCurveInterval` and
   `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
+* `IsMIntegralCurveOn.globalFlow_sub_eq_Ici`: for a complete field, an integral curve `γ` on the
+  closed ray `[a, ∞)` satisfies `γ t = φ_{t - a} (γ a)` for `t ≥ a`, including the endpoint where
+  `γ` has only a one-sided derivative. It compares `γ` with the flow from each `b ∈ (a, t)` by
+  Tau Ceti's `IsMIntegralCurveOn.eqOn_maximalIntegralCurve_Ici` and lets `b` tend to `a`.
 * `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`: if the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M`
   are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
@@ -142,6 +147,34 @@ theorem _root_.IsMIntegralCurveOn.flowOf_sub_eq [T2Space M] [IsManifold I 1 M]
   rw [flowOf_apply, (hγ.comp_add_Ioo t₀).eqOn_maximalIntegralCurve hv
     ⟨by linarith [ht₀.1], by linarith [ht₀.2]⟩ (by simp) ⟨by linarith [ht.1], by linarith [ht.2]⟩]
   simp
+
+/-- **An integral curve on a closed forward ray is a trajectory of the flow.** On a Hausdorff
+boundaryless manifold, if `γ` is an integral curve of a complete `C¹` vector field `v` on
+`[a, ∞)`, then for every `t ≥ a` the flow of `v` takes `γ a` to `γ t` in time `t - a`. At the
+endpoint `a` the curve has only a one-sided derivative. -/
+theorem _root_.IsMIntegralCurveOn.globalFlow_sub_eq_Ici [CompleteSpace E] [T2Space M]
+    [IsManifold I 1 M] [BoundarylessManifold I M]
+    (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v) (hγ : IsMIntegralCurveOn γ v (Ici a)) (ht : a ≤ t) :
+    globalFlow v hv hcomplete (t - a) (γ a) = γ t := by
+  set φ := globalFlow v hv hcomplete
+  rcases ht.eq_or_lt with rfl | ht
+  · rw [sub_self, Flow.map_zero_apply]
+  -- From each time `b ∈ (a, t)`, the flow runs back from `γ t` to `γ b`.
+  have heq : ∀ b ∈ Ioo a t, φ (b - t) (γ t) = γ b := fun b hb ↦ by
+    have h := hγ.eqOn_maximalIntegralCurve_Ici hv hb.1 (show t - b ∈ Ioi (a - b) by
+      simp only [mem_Ioi]; linarith)
+    rw [Function.comp_apply, sub_add_cancel, ← globalFlow_apply hv hcomplete] at h
+    rw [← h, ← Flow.map_add, sub_add_sub_cancel', sub_self, Flow.map_zero_apply]
+  -- As `b` decreases to `a`, the left side tends to `φ (a - t) (γ t)` and the right side to
+  -- `γ a`, by continuity of `γ` within `[a, ∞)`.
+  have hlim₁ : Tendsto (fun b ↦ φ (b - t) (γ t)) (𝓝[>] a) (𝓝 (φ (a - t) (γ t))) :=
+    ((φ.continuous (continuous_id.sub continuous_const) continuous_const).tendsto a).mono_left
+      nhdsWithin_le_nhds
+  have hlim₂ : Tendsto γ (𝓝[>] a) (𝓝 (γ a)) :=
+    ((hγ a self_mem_Ici).continuousWithinAt.mono Ioi_subset_Ici_self).tendsto
+  have h := tendsto_nhds_unique (hlim₁.congr' (eventually_of_mem (Ioo_mem_nhdsGT ht) heq)) hlim₂
+  rw [← h, ← Flow.map_add, sub_add_sub_cancel', sub_self, Flow.map_zero_apply]
 
 /-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C¹` field `v` on
 `(a, b)` and `t₀, t ∈ (a, b)`, then near `(t, s)` the map `Φ` is the maximal flow of `v` out of the
