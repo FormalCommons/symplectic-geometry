@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
-import Mathlib.Analysis.Normed.Module.FiniteDimension
 import TauCeti.Topology.Algebra.Module.FiniteDimension
 
 /-!
