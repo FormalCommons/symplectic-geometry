@@ -23,9 +23,11 @@ real functions on an interval, with `iteratedDeriv`, is
 
 The approximation itself is Tau Ceti's
 `ContDiffOn.exists_contDiff_hasCompactSupport_tendstoUniformlyOn_iteratedFDeriv` (convolution
-with shrinking bumps). It is glued to a smooth extension of `f` from near `C` by a smooth cutoff
-`χ` equal to `1` near `C`: the error of `g = h + χ • (f - h)` on `K` is `(1 - χ) • (h - f)`,
-whose derivatives the Leibniz rule bounds by a constant times those of `h - f`.
+with shrinking bumps). It is glued to a smooth extension `f₀` of `f` from near `C` by a smooth
+cutoff `χ` equal to `1` near `C` and supported where `f₀` agrees with `f` locally, giving
+`g = h + χ • (f₀ - h)`. Since `χ • (f₀ - f)` vanishes near each point, near `K` the error
+`g - f` equals `(1 - χ) • (h - f)`, whose derivatives the Leibniz rule bounds by a constant
+times those of `h - f`.
 
 ## References
 
@@ -90,9 +92,10 @@ theorem ContDiffOn.exists_contDiff_norm_iteratedFDeriv_sub_lt {f : E → F} {n :
     have hloc : (fun y ↦ g y - f₂ y) =ᶠ[𝓝 x] fun y ↦ φ y • e y := by
       have h0 : ∀ᶠ y in 𝓝 x, χ y • (f₀ y - f y) = 0 := by
         by_cases hxW : x ∈ W
-        · exact (show f₀ =ᶠ[𝓝 x] f from hxW).mono fun y hy ↦ by simp [hy]
+        · simp only [W, mem_ofPred_eq] at hxW
+          exact hxW.mono fun y hy ↦ by simp [hy]
         · exact (notMem_tsupport_iff_eventuallyEq.1 fun hx' ↦ hxW (hχW hx')).mono
-            fun y hy ↦ by simp [show χ y = 0 from hy]
+            fun y hy ↦ by simp [hy]
       filter_upwards [h0, hf₂K x hx] with y hy hy'
       simp only [g, φ, e, sub_smul, one_smul, smul_sub] at hy ⊢
       rw [sub_eq_zero] at hy
