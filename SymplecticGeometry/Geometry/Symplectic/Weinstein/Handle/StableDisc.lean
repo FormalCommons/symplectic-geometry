@@ -41,15 +41,19 @@ field read in that chart, the stable set of `p` near `p` is the image of a disc 
 subspace of the linearization of `X` at `p`, along which the derivative of the flow, read in the
 chart at `p`, stays bounded for all positive times.
 
-This prepares the isotropy of the stable discs of the nondegenerate critical
-points. The conformal scaling `φ_t^* ω = e^t ω` and `φ_t^* (ι_X ω) = e^t ι_X ω` of the flow is
+From this the file proves that the stable sets of the nondegenerate critical points are
+isotropic. The conformal scaling `φ_t^* ω = e^t ω` and `φ_t^* (ι_X ω) = e^t ι_X ω` of the flow is
 Tau Ceti's `TauCeti.IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul` and
 `TauCeti.mpullback_globalFlow_eq_exp_smul_of_interior_eq`. They are stated for `globalFlow`, and
 apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
 `SymplecticGeometry.IsWeinsteinStructure.flow_def`. With them,
 `Flow.mpullback_eq_zero_of_mpullback_eq_exp_smul` shows that a map into the stable set along
 which the derivative of the flow, read in the chart at `p`, stays bounded for all large times
-pulls both forms back to zero.
+pulls both forms back to zero. A map `γ` into the stable set of `p`, differentiable at `y`, has
+such a bound: the orbit of `γ y` enters the part of the stable set covered by the local disc at
+some time `T`, and by continuity so do the orbits of the points `γ z` with `z` near `y`; the left
+inverse of the disc then writes the time-`T` map composed with `γ` near `y` as the disc composed
+with a map differentiable at `y`, and the chain rule carries the bound of the disc over to `γ`.
 
 ## Main declarations
 
@@ -81,12 +85,19 @@ pulls both forms back to zero.
   with injective differential on a ball, whose image there lies in the stable set of `p` and
   contains every point of it near `p` at which `f` is close to `f p`, whose orbits in positive
   time stay in the chart at `p`, and along which the derivative of the flow, read in that chart,
-  exists and is bounded in positive time.
+  exists and is bounded in positive time, with a smooth left inverse on the chart at `p`.
 * `SymplecticGeometry.IsWeinsteinStructure.mpullback_interior_eq_zero_of_bounded` and
   `SymplecticGeometry.IsWeinsteinStructure.mpullback_eq_zero_of_bounded`: a map `γ` with `γ y`
   in the stable set of `p` pulls `ι_X ω` and `ω` back to zero at `y`, if the derivative at `y`
   of `γ` followed by the flow, read in the chart at `p`, is bounded for all large times on each
   tangent vector.
+* `IsWeinsteinStructure.exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet`: that bound
+  holds for every map `γ` into the stable set of a nondegenerate critical point that is
+  differentiable at `y`.
+* `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet` and
+  `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`: for such a
+  map, `ι_X ω` and `ω` vanish at `γ y` on the image of the differential of `γ` at `y`; the
+  stable sets of the nondegenerate critical points are isotropic.
 
 ## Implementation notes
 
@@ -117,7 +128,7 @@ them with the local stable graph, follows the plan of Tau Ceti's
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11; this file prepares Proposition 11.9 (a), the isotropy of the stable manifolds
+  Chapter 11; this file proves Proposition 11.9 (a), the isotropy of the stable manifolds
 * C. Chicone, *Ordinary Differential Equations with Applications*, second edition,
   Springer, 2006, §4.3, for the local stable manifold of a hyperbolic rest point
 -/
@@ -260,7 +271,9 @@ stable subspace of `A` to `M` with `ι 0 = p` and a radius `ρ > 0` such that:
   neighbourhood `U` of `p` and at which `f` exceeds `f p - ε`, for some `ε > 0`;
 * at each point `z` of that ball and each `t ≥ 0`, where `φ` is the flow of the Liouville field,
   the point `φ_t (ι z)` lies in the source of `e`, the map `w ↦ e (φ_t (ι w))` is differentiable
-  at `z`, and its derivative there is bounded independently of `t`. -/
+  at `z`, and its derivative there is bounded independently of `t`;
+* some map `π` from `M` to the stable subspace of `A`, smooth on the source of `e`, satisfies
+  `π (ι z) = z` on that ball. -/
 theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
     {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) {n : ℕ}
     (hn : 1 ≤ n) :
@@ -270,10 +283,13 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
           Injective (mfderiv 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) ι z)) ∧
       ι '' ball 0 ρ ⊆ hW.flow.stableSet p ∧
       (∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ) ∧
-      ∀ z ∈ ball (0 : A.stableSubspace) ρ, ∃ C : ℝ, ∀ t, 0 ≤ t →
+      (∀ z ∈ ball (0 : A.stableSubspace) ρ, ∃ C : ℝ, ∀ t, 0 ≤ t →
         hW.flow t (ι z) ∈ (extChartAt 𝓘(ℝ, E) p).source ∧
           DifferentiableAt ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z ∧
-          ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C := by
+          ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C) ∧
+      ∃ π : M → A.stableSubspace,
+        ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞) π (extChartAt 𝓘(ℝ, E) p).source ∧
+          ∀ z ∈ ball (0 : A.stableSubspace) ρ, π (ι z) = z := by
   have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
       (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
     (hW.contMDiff_field p).mdifferentiableAt (by simp)
@@ -312,7 +328,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     rw [hy0, ← hW.flow_def] at h
     exact h.symm
   refine ⟨ι, ρ, hρ, by simpa [hι, hg0] using e.left_inv (mem_extChartAt_source p),
-    fun z hz ↦ ?_, ?_, ?_, fun z hz ↦ ?_⟩
+    fun z hz ↦ ?_, ?_, ?_, fun z hz ↦ ?_, ?_⟩
   · -- Smoothness and injectivity of the differential.
     obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
     have hq : e p + ((z : E) + g z) ∈ e.target := by simpa [hy0] using (horb z hz 0 le_rfl).1
@@ -393,6 +409,17 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     rw [heq.fderiv_eq, hD.fderiv]
     exact (ContinuousLinearMap.opNorm_comp_le _ _).trans
       ((mul_le_of_le_one_right (norm_nonneg _) (Submodule.norm_subtypeL_le S)).trans (hC t ht))
+  · -- The left inverse `x ↦ P (e x - e p)` of the disc.
+    have hPS' (w : E) : P w ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) w
+    refine ⟨fun x ↦ P.codRestrict S hPS' (e x - e p), ?_, fun z hz ↦ ?_⟩
+    · have h : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞) (fun x ↦ e x - e p) e.source := by
+        rw [he, extChartAt_source]
+        exact contMDiffOn_extChartAt.sub contMDiffOn_const
+      exact (P.codRestrict S hPS').contDiff.contMDiff.comp_contMDiffOn h
+    · obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
+      have hq : e p + ((z : E) + g z) ∈ e.target := by simpa [hy0] using (horb z hz 0 le_rfl).1
+      ext
+      simp [hι, e.right_inv hq, hPg, hPz]
 
 section Bounded
 
@@ -434,6 +461,88 @@ theorem mpullback_eq_zero_of_bounded {p : M} {γ : N → M} {y : N}
   rw [flow_def]
   exact IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul _ _
     ω.mdifferentiable hW.isLiouvilleVectorField t
+
+/-- **Maps into the stable set have a forward derivative bound.** Let `(ω, X, f)` be a Weinstein
+structure with flow `φ`, `p` a nondegenerate critical point of `f`, `e` the extended chart at
+`p`, and `γ : N → M` differentiable at `y`, with range in the stable set of `p`. Then for each
+tangent vector `v` at `y`, the derivative of `z ↦ e (φ_t (γ z))` at `y` on `v` is bounded for all
+large `t`. -/
+theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hs : range γ ⊆ hW.flow.stableSet p)
+    (v : TangentSpace I' y) :
+    ∃ C, ∀ᶠ t in atTop,
+      ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C := by
+  set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p with hA
+  obtain ⟨ι, ρ, -, -, -, -, ⟨U, hU, ε, hε, hcov⟩, hbd, π, hπ, hπι⟩ :=
+    hW.exists_localStableDisc hp hA le_rfl (n := 1)
+  set e := extChartAt 𝓘(ℝ, E) p
+  have hfc : Continuous f := hW.isGeneralizedMorse.contMDiff.continuous
+  -- The orbit of `γ y` enters, at some time `T`, the part of the stable set that the disc covers;
+  -- by continuity, so does the orbit of `γ z` for `z` near `y`.
+  have hV : IsOpen (interior U ∩ {x | f p - ε < f x}) :=
+    isOpen_interior.inter (isOpen_lt continuous_const hfc)
+  obtain ⟨T, hT⟩ := ((Flow.mem_stableSet.1 (hs ⟨y, rfl⟩)).eventually
+    (hV.mem_nhds ⟨mem_interior_iff_mem_nhds.2 hU, by simpa using hε⟩)).exists
+  have hγc : ContinuousAt (fun z ↦ hW.flow T (γ z)) y :=
+    (hW.contMDiff_flow_apply T).continuous.continuousAt.comp hγ.continuousAt
+  have hnear : ∀ᶠ z in 𝓝 y, hW.flow T (γ z) ∈ ι '' ball 0 ρ := by
+    filter_upwards [hγc.preimage_mem_nhds (hV.mem_nhds hT)] with z hz
+    exact hcov ⟨⟨(Flow.apply_mem_stableSet_iff _ _).2 (hs ⟨z, rfl⟩), interior_subset hz.1⟩, hz.2⟩
+  have hιπ (z : N) (hz : hW.flow T (γ z) ∈ ι '' ball 0 ρ) :
+      π (hW.flow T (γ z)) ∈ ball 0 ρ ∧ ι (π (hW.flow T (γ z))) = hW.flow T (γ z) := by
+    obtain ⟨w, hw, hwz⟩ := hz
+    rw [← hwz, hπι w hw]
+    exact ⟨hw, rfl⟩
+  -- Near `y`, `φ_T ∘ γ` is `ι ∘ h` with `h = π ∘ φ_T ∘ γ` differentiable at `y`.
+  obtain ⟨hy0, hy1⟩ := hιπ y hnear.self_of_nhds
+  obtain ⟨C, hC⟩ := hbd _ hy0
+  have hsrc : hW.flow T (γ y) ∈ e.source := by
+    simpa [hy1] using (hC 0 le_rfl).1
+  have hh : MDifferentiableAt I' 𝓘(ℝ, A.stableSubspace) (fun z ↦ π (hW.flow T (γ z))) y :=
+    ((hπ.contMDiffAt ((isOpen_extChartAt_source p).mem_nhds hsrc)).mdifferentiableAt
+      (by simp)).comp y
+      (((hW.contMDiff_flow_apply T).mdifferentiable (by simp)).mdifferentiableAt.comp y hγ)
+  refine ⟨C * ‖mvfderiv I' (fun z ↦ π (hW.flow T (γ z))) y v‖, ?_⟩
+  filter_upwards [eventually_ge_atTop T] with t ht
+  obtain ⟨-, hd, hn⟩ := hC (t - T) (sub_nonneg.2 ht)
+  have heq : (fun z ↦ e (hW.flow t (γ z))) =ᶠ[𝓝 y]
+      (fun w ↦ e (hW.flow (t - T) (ι w))) ∘ fun z ↦ π (hW.flow T (γ z)) := by
+    filter_upwards [hnear] with z hz
+    rw [Function.comp_apply, (hιπ z hz).2, ← Flow.map_add, sub_add_cancel]
+  rw [heq.mvfderiv_eq, mvfderiv_comp_apply y hd.mdifferentiableAt hh, mvfderiv_eq_fderiv_apply,
+    ← mvfderiv_apply_eq_mfderiv_apply]
+  exact ((fderiv ℝ _ _).le_opNorm _).trans (mul_le_mul_of_nonneg_right hn (norm_nonneg _))
+
+/-- **Stable sets are `ι_X ω`-isotropic.** Let `(ω, X, f)` be a Weinstein structure, `p` a
+nondegenerate critical point of `f`, and `γ : N → M` differentiable at `y`, with range in the
+stable set of `p`. Then the one-form `ι_X ω` vanishes at `γ y` on the image of the differential
+of `γ` at `y`.
+
+See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+theorem interior_apply_mfderiv_eq_zero_of_range_subset_stableSet {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hs : range γ ⊆ hW.flow.stableSet p)
+    (v : TangentSpace I' y) :
+    RoughForm.interior X ω.val (γ y) ![mfderiv I' 𝓘(ℝ, E) γ y v] = 0 := by
+  have h := congrArg (· ![v]) (hW.mpullback_interior_eq_zero_of_bounded hγ (hs ⟨y, rfl⟩)
+    (hW.exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet hp hγ hs))
+  simpa [mpullback_apply, Matrix.vec_single_eq_const] using h
+
+/-- **Stable sets are isotropic.** Let `(ω, X, f)` be a Weinstein structure, `p` a nondegenerate
+critical point of `f`, and `γ : N → M` differentiable at `y`, with range in the stable set of
+`p`. Then `ω` vanishes at `γ y` on every pair of vectors in the image of the differential of `γ`
+at `y`.
+
+See [CieliebakEliashberg2012], Proposition 11.9 (a). -/
+theorem apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet {p : M}
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hs : range γ ⊆ hW.flow.stableSet p)
+    (v w : TangentSpace I' y) :
+    ω.val (γ y) ![mfderiv I' 𝓘(ℝ, E) γ y v, mfderiv I' 𝓘(ℝ, E) γ y w] = 0 := by
+  rw [← mpullback_apply_pair, hW.mpullback_eq_zero_of_bounded hγ (hs ⟨y, rfl⟩)
+    (hW.exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet hp hγ hs)]
+  rw [ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 end Bounded
 
