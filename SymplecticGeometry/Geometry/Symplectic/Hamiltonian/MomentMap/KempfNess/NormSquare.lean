@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 
 /-!
 # The norm square of a moment map
@@ -69,10 +70,8 @@ theorem mgradient_momentNormSq
     (x : M) :
     Manifold.mgradient I' (momentNormSq B hB μ) x =
       (-2 : ℝ) • J x (fundamentalVectorField I' (momentSharp B hB μ x) x) := by
-  have hd (ξ : GroupLieAlgebra I G) : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x := by
-    convert (hμ.mdifferentiableAt ξ x).neg using 1
-    ext y
-    simp
+  have hd (ξ : GroupLieAlgebra I G) : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x :=
+    (hμ.contMDiff_of_neg ξ).mdifferentiableAt (by simp)
   rw [neg_smul, ← smul_neg, ← mgradient_moment_apply hμ hg]
   refine ext_inner_right ℝ fun v ↦ ?_
   rw [Manifold.inner_mgradient, mvfderiv_momentNormSq hBs hd, real_inner_smul_left,
