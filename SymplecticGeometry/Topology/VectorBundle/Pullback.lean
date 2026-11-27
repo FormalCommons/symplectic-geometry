@@ -84,8 +84,11 @@ property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`; eac
 `IsModuleTopology R ((f *ᵖ E) y)` is elaborated with depends on the instances of the fibres of
 `E` and on what is imported: it can be that action or Tau Ceti's `Bundle.Pullback.instSMul`.
 The instance for Tau Ceti's action is `Bundle.Pullback.instIsModuleTopologySMul` of
-`SymplecticGeometry/Topology/FiberBundle/Pullback.lean`, which this file imports so that the two
-instances come together.
+`SymplecticGeometry/Topology/FiberBundle/Pullback.lean`. This file imports it with a plain
+`import`, so that a file that imports this one is not given Tau Ceti's action. A file that is not
+a module then sees both instances, but a `module` file in which Tau Ceti's
+`Bundle.Pullback.instSMul` is in scope must import
+`SymplecticGeometry.Topology.FiberBundle.Pullback` itself to get `instIsModuleTopologySMul`.
 
 `Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
 the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
