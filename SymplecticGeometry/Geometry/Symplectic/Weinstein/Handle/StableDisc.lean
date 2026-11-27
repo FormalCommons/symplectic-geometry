@@ -55,10 +55,10 @@ apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
   derivative `df(X)`, which is nonnegative, so it is monotone.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_le_of_mem_stableSet`: `f x ≤ f p` for every `x`
   in the stable set of `p`.
-* `IsWeinsteinStructure.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le`:
-  at a nondegenerate critical point `p`, the orbits of the points of the stable set of `p` that
-  start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a slightly larger
-  ball.
+* `SymplecticGeometry.IsWeinsteinStructure.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le`
+  states that at a nondegenerate critical point `p`, the orbits of the points of the stable set
+  of `p` that start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a
+  slightly larger ball.
 
 ## Implementation notes
 
@@ -180,7 +180,6 @@ theorem apply_le_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) : f
     simpa using hW.monotone_comp_flow x hab
   simpa using Flow.le_of_mem_stableSet_of_antitone hx
     (hW.isGeneralizedMorse.contMDiff.continuous.neg.continuousAt) hanti
-
 
 /-- **Confinement of the stable set in the chart at a critical point.** Let `p` be a
 nondegenerate critical point of the function of a Weinstein structure, and `e` the extended chart

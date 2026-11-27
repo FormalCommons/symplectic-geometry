@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import Mathlib.Analysis.Calculus.MeanValue
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -22,12 +21,15 @@ the chart, then crossing that annulus raises `f` by at least `c (r - s)`. So a c
 in the ball of radius `s` at a value above `f p - c (r - s)` never leaves the chart, and stays in
 its closed ball of radius `r`.
 
-At a point `p` near which `p` is the only critical point of `f`, such a `c > 0` exists on every
-annulus `r / 2 ≤ ‖e y - e p‖ ≤ r` inside the chart, by compactness: there `df(X)` is positive
-and `de(X)` is bounded.
+Suppose moreover that `f` is `C¹`, that `X` is continuous, and that near `p` the function `f` has
+no critical point other than `p`. Then for every small enough `r > 0`, such a `c > 0` exists on
+the annulus `r / 2 ≤ ‖e y - e p‖ ≤ r`, by compactness: there `df(X)` is positive and `de(X)` is
+bounded.
 
 ## Main declarations
 
+* `IsMIntegralCurve.mul_norm_extChartAt_sub_le_sub`: the crossing estimate, for an integral
+  curve along which `c ‖de(X)‖ ≤ df(X)` on a time interval.
 * `TauCeti.IsGradientLike.mem_source_and_norm_extChartAt_sub_le_of_tendsto`: the energy
   barrier, for given `s`, `r` and `c`.
 * `TauCeti.IsGradientLike.exists_forall_mem_source_and_norm_extChartAt_sub_le`: at an isolated
@@ -47,12 +49,42 @@ mean value inequality `image_norm_le_of_norm_deriv_right_le_deriv_boundary`, wit
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
   Chapter 11
+* M. Audin and M. Damian, *Morse Theory and Floer Homology*, Springer Universitext, 2014,
+  Chapter 2.
 -/
 
 public section
 
 open Filter Metric Set
 open scoped ContDiff Manifold Topology
+
+/-- **Crossing estimate.** Let `γ` be an integral curve of a field `X`, `f` a differentiable
+function, and `e` the extended chart at a point `x`. If `γ` stays in the source of `e` on
+`[a, b]` and `c ‖de(X)‖ ≤ df(X)` along `γ` on `[a, b)`, with `c ≥ 0`, then the increase of `f`
+from `γ a` to `γ b` is at least `c` times the displacement of `γ` read in `e`. -/
+theorem IsMIntegralCurve.mul_norm_extChartAt_sub_le_sub {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
+    [IsManifold 𝓘(ℝ, E) 1 M] {f : M → ℝ} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x} {γ : ℝ → M}
+    (hγ : IsMIntegralCurve γ X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f) {x : M} {a b c : ℝ}
+    (hc : 0 ≤ c) (hab : a ≤ b) (hsrc : MapsTo γ (Icc a b) (extChartAt 𝓘(ℝ, E) x).source)
+    (hbound : ∀ τ ∈ Ico a b, c * ‖mvfderiv 𝓘(ℝ, E) (extChartAt 𝓘(ℝ, E) x) (γ τ) (X (γ τ))‖ ≤
+      mvfderiv 𝓘(ℝ, E) f (γ τ) (X (γ τ))) :
+    c * ‖extChartAt 𝓘(ℝ, E) x (γ b) - extChartAt 𝓘(ℝ, E) x (γ a)‖ ≤ f (γ b) - f (γ a) := by
+  set e := extChartAt 𝓘(ℝ, E) x
+  have hderiv (τ : ℝ) (hτ : τ ∈ Icc a b) : HasDerivAt (fun σ ↦ e (γ σ))
+      (mvfderiv 𝓘(ℝ, E) e (γ τ) (X (γ τ))) τ :=
+    TauCeti.Manifold.hasDerivAt_comp_curve (g := e) (mdifferentiableAt_extChartAt
+      (by rw [← extChartAt_source 𝓘(ℝ, E)]; exact hsrc hτ)) (hγ τ)
+  have hmv := image_norm_le_of_norm_deriv_right_le_deriv_boundary
+    (f := fun τ ↦ c • (e (γ τ) - e (γ a)))
+    (f' := fun τ ↦ c • mvfderiv 𝓘(ℝ, E) e (γ τ) (X (γ τ)))
+    (B := fun τ ↦ f (γ τ) - f (γ a)) (B' := fun τ ↦ mvfderiv 𝓘(ℝ, E) f (γ τ) (X (γ τ)))
+    (fun τ hτ ↦ (((hderiv τ hτ).continuousAt.sub continuousAt_const).const_smul
+      c).continuousWithinAt)
+    (fun τ hτ ↦ (((hderiv τ (Ico_subset_Icc_self hτ)).sub_const _).const_smul c).hasDerivWithinAt)
+    (by simp) (fun τ ↦ (TauCeti.Manifold.hasDerivAt_comp_curve (hf (γ τ)) (hγ τ)).sub_const _)
+    (fun τ hτ ↦ by rw [norm_smul, Real.norm_of_nonneg hc]; exact hbound τ hτ) ⟨hab, le_rfl⟩
+  rwa [norm_smul, Real.norm_of_nonneg hc] at hmv
 
 namespace TauCeti
 
@@ -142,24 +174,10 @@ theorem mem_source_and_norm_extChartAt_sub_le_of_tendsto (hX : IsGradientLike f 
     exact hτ.1.not_ge (le_csSup hBbdd ⟨⟨haB.1.1.trans hτ.1.le, hτ.2⟩,
       mem_closedBall_iff_norm.2 (not_le.1 hh).le⟩)
   -- Between `a` and `b`, `γ` crosses the annulus, and `f` rises by `c` times the displacement.
-  have hsub : Icc a b ⊆ Icc 0 b := fun τ hτ ↦ (hafter hτ).1
-  have hderiv (τ : ℝ) (hτ : τ ∈ Icc a b) : HasDerivAt (fun σ ↦ e (γ σ))
-      (mvfderiv 𝓘(ℝ, E) e (γ τ) (X (γ τ))) τ :=
-    Manifold.hasDerivAt_comp_curve (g := e) (mdifferentiableAt_extChartAt
-      (by rw [← extChartAt_source 𝓘(ℝ, E)]; exact (hsrc τ (hsub hτ)).1)) (hγ τ)
-  have hmv := image_norm_le_of_norm_deriv_right_le_deriv_boundary
-    (f := fun τ ↦ c • (e (γ τ) - e (γ a)))
-    (f' := fun τ ↦ c • mvfderiv 𝓘(ℝ, E) e (γ τ) (X (γ τ)))
-    (B := fun τ ↦ f (γ τ) - f (γ a)) (B' := fun τ ↦ mvfderiv 𝓘(ℝ, E) f (γ τ) (X (γ τ)))
-    (((hcont.mono hsub).sub continuousOn_const).const_smul c)
-    (fun τ hτ ↦ (((hderiv τ (Ico_subset_Icc_self hτ)).sub_const _).const_smul c).hasDerivWithinAt)
-    (by simp) (fun τ ↦ (Manifold.hasDerivAt_comp_curve (hf (γ τ)) (hγ τ)).sub_const _)
-    (fun τ hτ ↦ by
-      have hτ' := Ico_subset_Icc_self hτ
-      rw [norm_smul, Real.norm_of_nonneg hc]
-      exact hann _ (hsrc τ (hsub hτ')).1 (hafter hτ').2 (hsrc τ (hsub hτ')).2)
-    ⟨hab.le, le_rfl⟩
-  rw [norm_smul, Real.norm_of_nonneg hc] at hmv
+  have hmv := hγ.mul_norm_extChartAt_sub_le_sub hf hc hab.le
+    (fun τ hτ ↦ (hsrc τ (hafter hτ).1).1) fun τ hτ ↦
+      have hτ' := hafter (Ico_subset_Icc_self hτ)
+      hann _ (hsrc τ hτ'.1).1 hτ'.2 (hsrc τ hτ'.1).2
   have hdisp : r - s ≤ ‖e (γ b) - e (γ a)‖ := by
     have := norm_sub_norm_le (e (γ b) - e p) (e (γ a) - e p)
     rw [sub_sub_sub_cancel_right] at this
