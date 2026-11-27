@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Convex.PathConnected
 import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.Analysis.Normed.Module.Connected
+import TauCeti.Topology.Homeomorph.SetCongr
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.PuncturedDisc
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
@@ -222,10 +223,8 @@ private theorem surjective_and_exists_ker_eq (hf : IsOpenEmbedding f) (q : Q)
       (Homeomorph.setCongr hf.injective.range_comp_prodMap_inclusion_ball_diff_singleton)
   -- `e'` is `f ∘ F` on points, so its basepoint equation is `hx`
   have he' : e' (q, z) = x := Subtype.ext hx.symm
-  -- both sides are `f (F w)`: `Homeomorph.setCongr` has no evaluation lemma, and it does not
-  -- move points
   have hsq : ∀ w, ContinuousMap.inclusion inter_subset_right (e' w) =
-      hf.isEmbedding.toHomeomorph (F w) := fun _ ↦ rfl
+      hf.isEmbedding.toHomeomorph (F w) := fun _ ↦ by ext; simp [e', F]
   refine ⟨(map_surjective_iff_of_homeomorph hsq he').2
       (map_prodMap_inclusion_ball_diff_singleton_surjective q z),
     homeomorphMulEquivOfEq e' he'

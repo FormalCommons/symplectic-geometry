@@ -17,6 +17,7 @@ import SymplecticGeometry.Topology.Homotopy.Annulus
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import TauCeti.Geometry.Manifold.Topology
+import TauCeti.Topology.Homeomorph.SetCongr
 
 /-!
 # The complement of the closed tube of a product neighbourhood
@@ -263,14 +264,13 @@ theorem map_inclusion_inter_range_surjective (hδε : δ < ε)
   let e' : Q × annulus ℂ δ ε ≃ₜ ↥((f.complTube hδε : Set M) ∩ range f) :=
     (f.isOpenEmbedding_comp_annulusToProdBall δ).isEmbedding.toHomeomorph.trans
       (Homeomorph.setCongr (f.complTube_inter_range hδε).symm)
-  -- both sides are `f (annulusToProdBall w)` in `M`; `Homeomorph.setCongr` has no evaluation
-  -- lemma, and the `show` drops it, as it does not move points
   have hsq : ∀ w, ContinuousMap.inclusion inter_subset_right (e' w) =
       ((prodBallHomeomorph Q ε).trans f.isOpenEmbedding.isEmbedding.toHomeomorph)
-        ((ContinuousMap.id Q).prodMap (ContinuousMap.inclusion hsub) w) := fun w ↦ Subtype.ext
-    (show f (annulusToProdBall w) = _ from
-      congrArg f (Subtype.ext (by
-        simpa [coe_annulusToProdBall] using (ContinuousMap.inclusion_apply_coe hsub w.2).symm)))
+        ((ContinuousMap.id Q).prodMap (ContinuousMap.inclusion hsub) w) := fun w ↦ by
+    ext
+    simp only [e', Homeomorph.trans_apply, Homeomorph.setCongr_apply]
+    exact congrArg f (Subtype.ext (by
+      simpa [coe_annulusToProdBall] using (ContinuousMap.inclusion_apply_coe hsub w.2).symm))
   exact (FundamentalGroup.map_surjective_iff_of_homeomorph hsq (Subtype.ext hp)).2
     (FundamentalGroup.map_id_prodMap_surjective _ p.1 p.2)
 

@@ -7,8 +7,6 @@ module
 
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 
-import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
-
 /-!
 # Transporting a map of fundamental groups along homeomorphisms
 
