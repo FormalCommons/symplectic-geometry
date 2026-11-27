@@ -33,7 +33,8 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 
 ## Restriction along `Subtype.val`
 
-* Every form on `U` is the restriction of a form on `M`, its extension by zero
+* A form on `U` extends by zero to a form on `M` (`TauCeti.RoughForm.extendByZeroOfOpens`)
+  whose restriction to `U` is the form, so every form on `U` is the restriction of a form on `M`
   (`TauCeti.mpullback_subtype_val_surjective`).
 * Restricting to an open subset `W` and then to an open subset `V ≤ W` is restricting to `V`
   (`TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
@@ -50,6 +51,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   diffeomorphism.
 * A form that is `C^n` on `U` restricts to a `C^n` form on `U`
   (`TauCeti.isSmoothForm_mpullback_subtype_val_of_contMDiffOn`).
+* The product `f • μ` of a form `μ` whose restriction to `U` is `C^n` with a `C^n` function `f`
+  whose support lies in `U` is a `C^n` form on `M`
+  (`TauCeti.isSmoothForm_fun_smul_of_mpullback_subtype_val`).
 * For a form `γ` and a vector field `Z` that are both `C^n` on `U`, the restriction of `ι_Z γ`
   to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
   `ι_Z γ` need not be smooth on all of `M`. For a smooth form `γ`, this restriction is the smooth
@@ -122,13 +126,57 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
+/-- The extension by zero of a rough form on an open subset `U` to `M`: it agrees with the form at
+the points of `U` and vanishes at the others. Tau Ceti's `TauCeti.RoughForm.extendByZero` extends
+to another open subset of `M` instead. -/
+noncomputable def RoughForm.extendByZeroOfOpens {U : Opens M} (ξ : RoughForm I U F k) :
+    RoughForm I M F k := by
+  classical
+  exact fun x ↦ if hx : x ∈ U then ξ ⟨x, hx⟩ else 0
+
+namespace RoughForm
+
+open scoped Classical in
+/-- The value of the extension by zero of a form on an open subset `U` to `M`. -/
+theorem extendByZeroOfOpens_apply {U : Opens M} (ξ : RoughForm I U F k) (x : M) :
+    extendByZeroOfOpens ξ x = if hx : x ∈ U then ξ ⟨x, hx⟩ else 0 :=
+  (rfl)
+
+/-- The extension by zero of a form on `U` to `M` agrees with the form at the points of `U`. -/
+theorem extendByZeroOfOpens_apply_of_mem {U : Opens M} (ξ : RoughForm I U F k) {x : M}
+    (hx : x ∈ U) : extendByZeroOfOpens ξ x = ξ ⟨x, hx⟩ := by
+  classical
+  rw [extendByZeroOfOpens_apply]
+  exact dite_eq_left hx
+
+/-- At a point `x` of `U`, the extension by zero of a form `ξ` on `U` to `M` takes the value
+`ξ x`. -/
+@[simp]
+theorem extendByZeroOfOpens_coe {U : Opens M} (ξ : RoughForm I U F k) (x : U) :
+    extendByZeroOfOpens ξ (x : M) = ξ x :=
+  extendByZeroOfOpens_apply_of_mem ξ x.property
+
+/-- The extension by zero of a form on `U` to `M` vanishes outside `U`. -/
+theorem extendByZeroOfOpens_apply_of_notMem {U : Opens M} (ξ : RoughForm I U F k) {x : M}
+    (hx : x ∉ U) : extendByZeroOfOpens ξ x = 0 := by
+  classical
+  rw [extendByZeroOfOpens_apply]
+  exact dite_eq_right hx
+
+/-- Restricting to `U` the extension by zero of a form on `U` gives back the form. -/
+@[simp]
+theorem mpullback_subtype_val_extendByZeroOfOpens {U : Opens M} (ξ : RoughForm I U F k) :
+    mpullback I I (Subtype.val : U → M) (extendByZeroOfOpens ξ) = ξ := by
+  funext x
+  rw [mpullback_subtype_val_apply, extendByZeroOfOpens_apply_of_mem ξ x.property]
+
+end RoughForm
+
 /-- Every form on an open subset `U` of `M` is the restriction to `U` of a form on `M`. -/
 theorem mpullback_subtype_val_surjective (U : Opens M) :
-    Function.Surjective (mpullback (F := F) (k := k) I I (Subtype.val : U → M)) := by
-  classical
-  refine fun ξ ↦ ⟨fun y ↦ if hy : y ∈ U then ξ ⟨y, hy⟩ else 0, funext fun x ↦ ?_⟩
-  rw [mpullback_subtype_val_apply]
-  exact dite_eq_left x.property
+    Function.Surjective (mpullback (F := F) (k := k) I I (Subtype.val : U → M)) :=
+  fun ξ ↦
+    ⟨RoughForm.extendByZeroOfOpens ξ, RoughForm.mpullback_subtype_val_extendByZeroOfOpens ξ⟩
 
 /-- Restricting a form on `M` to an open subset `W`, and then to an open subset `V ≤ W`, is
 restricting it to `V`. -/
@@ -173,6 +221,16 @@ theorem isSmoothForm_mpullback_subtype_val_of_contMDiffOn {U : Opens M} {n : Wit
     IsSmoothForm I n (mpullback I I (Subtype.val : U → M) γ) :=
   (isSmoothForm_def n _).mpr fun x ↦ (contMDiffAt_mpullback_subtype_val_iff _ x).2
     (hγ.contMDiffAt (U.isOpen.mem_nhds x.property))
+
+/-- Let `W` be an open set of `M`, `μ` a form on `M` whose restriction to `W` is `C^n`, and `f` a
+`C^n` function whose topological support lies in `W`. Then `f • μ` is a `C^n` form on `M`. -/
+theorem isSmoothForm_fun_smul_of_mpullback_subtype_val {n : WithTop ℕ∞} {W : Opens M}
+    {f : M → ℝ} (hf : ContMDiff I 𝓘(ℝ) n f) (hfW : tsupport f ⊆ W) {μ : RoughForm I M F k}
+    (hμ : IsSmoothForm I n (mpullback I I (Subtype.val : W → M) μ)) :
+    IsSmoothForm I n (fun x ↦ f x • μ x) := by
+  rw [isSmoothForm_def]
+  exact ContMDiffOn.smul_section_of_tsupport hf.contMDiffOn W.isOpen hfW fun x hx ↦
+    ((contMDiffAt_mpullback_subtype_val_iff μ ⟨x, hx⟩).1 (hμ.contMDiff _)).contMDiffWithinAt
 
 /-- **Gluing a form on an open subset with a global form.** Let `M` be covered by an open set `W`
 and an open subset `V`. A smooth form `η` on `M` and a smooth form `σ` on `V` that agree at the
