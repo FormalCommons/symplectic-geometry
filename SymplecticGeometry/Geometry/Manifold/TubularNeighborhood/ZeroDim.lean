@@ -162,7 +162,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
     erw [Trivialization.localHomologyPointClass_comp_localChartLocalHomologyIso_hom_apply]
     exact (localHomologyPointClass_map_apply _ _ _ _ _).trans
       (congrArg (fun y ↦ localHomologyPointClass (ModuleCat.of ℤ (ULift.{0} ℤ)) {f z} y 1)
-        ((f.tubeMap_apply hn hdim Φ _).trans (hΦ.apply_zeroSection z)))
+        (f.tubeMap_zeroSection hn hdim Φ hΦ.apply_zeroSection z))
   -- The product orientation is indexed by `Fin (0 + 0)`, which instance search does not reduce.
   have : IsEmpty (Fin (0 + 0)) := inferInstanceAs (IsEmpty (Fin 0))
   -- The orientation of `Z` at `z` is one of `E` only by definition, so `rw` does not match.

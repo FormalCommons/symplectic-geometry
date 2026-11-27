@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Cap
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.PointFiber
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.ZeroDim
@@ -19,7 +19,7 @@ Let `f : Z → X` be a smooth embedding with normal bundle `π : ν → Z`, `Φ 
 orientation of `X` of dimension `n`. The class `tubeFundamentalClass f hn hdim Φ hΦ oX hnX hK` in
 `Hₙ(ν, ν ∖ 0; ℤ)` is the fundamental class of `W` along `f(Z)`, for `oX` restricted to `W`,
 carried to the normal bundle by the inverse of the pair isomorphism `tubePairIso` of `Φ`: the
-class `μ_Φ` of `Cap.lean`, where it is defined.
+class `μ_Φ` of `TauCeti.SmoothEmbedding.tubeFundamentalClass`.
 
 This file computes its local classes at the points `0_z` of the zero section, its images in
 `Hₙ(ν, ν ∖ 0_z; ℤ)` under `TauCeti.thomPairLocalHomologyRestriction`, for every tube.
@@ -180,7 +180,7 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
   have hpre : g ⁻¹' {f z} = {zeroSection P _ z} := f.tubeMap_preimage_singleton hn hdim Φ hΦ z
   have : IsIso (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) g hpre.subset n) :=
     isIso_localHomologyMap _ g hg hpre isClosed_singleton
-      (singleton_subset_iff.2 ⟨_, (f.tubeMap_apply hn hdim Φ _).trans (hΦ z)⟩) n
+      (singleton_subset_iff.2 ⟨_, f.tubeMap_zeroSection hn hdim Φ hΦ z⟩) n
   have hinj : Function.Injective
       (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) g hpre.subset n) :=
     (ModuleCat.mono_iff_injective _).1 inferInstance

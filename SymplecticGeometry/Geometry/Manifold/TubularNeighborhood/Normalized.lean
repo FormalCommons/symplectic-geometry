@@ -565,6 +565,14 @@ theorem apply_eq_iff_eq_zeroSection_of_apply_zeroSection
   rintro rfl
   exact hΦ x
 
+/-- A tube that equals `f` on the zero section, read as a map into `N`, sends the zero vector
+over `x` to `f x`. -/
+theorem tubeMap_zeroSection
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : N) = f x) (x : M) :
+    f.tubeMap hn hdim Φ (zeroSection P _ x) = f x :=
+  (f.tubeMap_apply hn hdim Φ _).trans (hΦ x)
+
 /-- The preimage of `f x` under a tube that equals `f` on the zero section is the zero vector
 over `x`. -/
 theorem tubeMap_preimage_singleton
@@ -884,8 +892,8 @@ theorem IsNormalizedTube.exists_hasMFDerivAt_apply_mk {f : SmoothEmbedding I J �
     have hs : h w ∈ zeroSectionCompl P (fun x ↦ f.isImmersion.NormalSpace x hn) :=
       mem_zeroSectionCompl.2 (ψ.map_ne_zero_iff.2 hw)
     rw [zeroSectionCompl_eq_compl_range] at hs
-    exact hs ⟨z, ((apply_eq_iff_eq_zeroSection_of_apply_zeroSection f hn hdim Φ
-      hΦ.apply_zeroSection _ z).1 hz.symm).symm⟩
+    exact hs ((apply_mem_range_iff_of_apply_zeroSection f hn hdim Φ hΦ.apply_zeroSection _).1
+      ⟨z, hz⟩)
   -- `h` has derivative `w ↦ (0, ψ' w)` at `0`.
   let L : P →L[ℝ] TangentSpace (I.prod 𝓘(ℝ, P))
       (zeroSection P (fun x ↦ f.isImmersion.NormalSpace x hn) x) :=

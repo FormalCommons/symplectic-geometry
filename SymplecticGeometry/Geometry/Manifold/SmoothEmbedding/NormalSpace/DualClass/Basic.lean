@@ -53,6 +53,9 @@ property for every normalized tube.
   and absolute classes of `X` given by a relative class of the Thom pair of the normal bundle.
 * `TauCeti.SmoothEmbedding.relDualClass`, `TauCeti.SmoothEmbedding.dualClass`: the same for the
   canonical Thom class of a normal orientation.
+* `TauCeti.SmoothEmbedding.tubeFundamentalClass`: the class `μ_Φ ∈ Hₙ(ν, ν ∖ 0; ℤ)` of a tube,
+  which its pair isomorphism carries to the fundamental class of `W` along `f(Z)` for a
+  homological orientation of `X`.
 
 ## Main results
 
@@ -61,6 +64,8 @@ property for every normalized tube.
 * `TauCeti.SmoothEmbedding.dualClassOf_restrict`, `dualClass_restrict`,
   `dualClass_restrict_eq_eulerClass`: their restriction to the submanifold is the Euler class.
 * `TauCeti.SmoothEmbedding.dualClass_neg`: reversing the normal orientation negates the class.
+* `TauCeti.SmoothEmbedding.singularHomologyMap_tubePairIso_hom_tubeFundamentalClass`: the pair
+  isomorphism of the tube carries `μ_Φ` to the fundamental class of `W` along `f(Z)`.
 
 ## References
 
@@ -81,6 +86,8 @@ open scoped Manifold ContDiff
 universe u v w
 
 namespace TauCeti.SmoothEmbedding
+
+section
 
 variable {E H G : Type*} {V P Z X : Type w} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
@@ -556,6 +563,88 @@ theorem dualClass_restrict_eq_eulerClass (f : SmoothEmbedding I J ∞ Z X) (hn :
     VectorBundleOrientation.eulerClass_def]
 
 end DualClass
+
+end
+
+section TubeFundamentalClass
+
+variable {E H G : Type*} {F : Type} {V P Z X : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [FiniteDimensional ℝ E] [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [TopologicalSpace H] [TopologicalSpace G] {I : ModelWithCorners ℝ E H}
+  {J : ModelWithCorners ℝ V G}
+  [TopologicalSpace Z] [ChartedSpace H Z] [IsManifold I ∞ Z]
+  [TopologicalSpace X] [ChartedSpace G X] [IsManifold J ∞ X] [T2Space X] {n : ℕ}
+
+/-- **The fundamental class of a tube.** For a tube `Φ` of `f`, a diffeomorphism of the total
+space of the normal bundle `ν` onto an open set `W` of `X` that is `f` on the zero section, and a
+homological orientation `oX` of `X` of dimension `n`, the class `μ_Φ ∈ Hₙ(ν, ν ∖ 0; ℤ)` that `Φ`
+carries to the fundamental class of `W` along `f(Z)`, for the orientation `oX` restricted to `W`.
+This is the class of `exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass`. -/
+def tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x)
+    [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
+    (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularHomology (C := ModuleCat.{0} ℤ)
+      (ModuleCat.of ℤ (ULift.{0} ℤ)) n :=
+  letI := f.normalSpaceFiberBundle hn hdim
+  (TopPair.singularHomologyMap
+    (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
+      (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
+      (fun _ hx ↦ hx) ≫ (f.tubePairIso hn hdim Φ hΦ).inv)
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
+    ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK)
+
+/-- The class `tubeFundamentalClass` is the image of the fundamental class of `W` along `f(Z)`
+under the identity of `W` followed by the inverse of the pair isomorphism of the tube. -/
+theorem tubeFundamentalClass_def (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {W : TopologicalSpace.Opens X}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x)
+    [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
+    (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK =
+      (TopPair.singularHomologyMap
+        (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
+          (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
+          (fun _ hx ↦ hx) ≫ (f.tubePairIso hn hdim Φ hΦ).inv)
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
+        ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK) :=
+  (rfl)
+
+/-- **The tube carries its fundamental class back to the fundamental class of its image.** The
+pair isomorphism `tubePairIso` of the tube sends `tubeFundamentalClass f hn hdim Φ hΦ oX hnX hK`
+to the fundamental class of `W` along `f(Z)`, for `oX` restricted to `W`, read in the pair
+`(W, W ∖ f(Z))` through the identity of `W`. -/
+theorem singularHomologyMap_tubePairIso_hom_tubeFundamentalClass (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {W : TopologicalSpace.Opens X}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, (Φ (zeroSection P _ x) : X) = f x)
+    [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
+    (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    (TopPair.singularHomologyMap (f.tubePairIso hn hdim Φ hΦ).hom
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom (f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK) =
+      (TopPair.singularHomologyMap (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
+          (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
+          (fun _ hx ↦ hx)) (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
+        ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK) := by
+  rw [tubeFundamentalClass_def, ← LinearMap.comp_apply, ← ModuleCat.hom_comp,
+    ← TopPair.singularHomologyMap_comp, Category.assoc, Iso.inv_hom_id, Category.comp_id]
+
+end TubeFundamentalClass
 
 end TauCeti.SmoothEmbedding
 
