@@ -84,7 +84,7 @@ theorem dense_interior [IsManifold I n M] (hn : n ≠ 0) : Dense (I.interior M) 
   intro x
   rw [mem_closure_iff_nhds]
   intro t ht
-  set e := extChartAt I x with he
+  set e := extChartAt I x
   have hS : e.symm ⁻¹' t ∩ e.target ∈ 𝓝[interior (range I)] e x :=
     nhdsWithin_mono _ interior_subset <| inter_mem
       (by rwa [← map_extChartAt_symm_nhdsWithin_range (I := I) x] at ht)
