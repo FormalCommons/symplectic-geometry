@@ -86,15 +86,21 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   states that at a nondegenerate critical point `p`, the orbits of the points of the stable set
   of `p` that start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a
   slightly larger ball.
-* `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc`: the local stable disc of a
-  nondegenerate critical point `p`, a smooth map from the stable subspace of the linearization
-  with injective differential on a ball, whose image there lies in the stable set of `p` and
-  contains every point of it near `p` at which `f` is close to `f p`, whose orbits in positive
-  time stay in the chart at `p`, and along which the derivative of the flow, read in that chart,
-  exists and is bounded in positive time. The chart image of the disc grows at most linearly
-  near `0`, and the disc has the smooth left inverse `x ↦ Q (e x - e p)` on the chart `e` at
-  `p`, for the projection `Q` onto the stable subspace along the unstable one; orbits of points
-  of the disc close to `p` stay in the disc at small values of that left inverse.
+* `SymplecticGeometry.IsWeinsteinStructure.LocalStableDisc`: a local stable disc of `p`, a
+  smooth map from the stable subspace of an operator `A` with injective differential on a ball,
+  whose image there lies in the stable set of `p` and contains every point of it near `p` at
+  which `f` is close to `f p`, whose orbits in positive time stay in the chart at `p`, and along
+  which the derivative of the flow, read in that chart, exists and is bounded in positive time;
+  it comes with the projection `P` onto the stable subspace along the unstable one, and the
+  corestriction `Q` of `P`, for which `x ↦ Q (e x - e p)` is a left inverse of the disc on the
+  chart `e` at `p`.
+* `SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc`: a nondegenerate critical
+  point `p` has a local stable disc over the stable subspace of the linearization at `p`.
+* `SymplecticGeometry.IsWeinsteinStructure.LocalStableDisc.contMDiffOn_Q_extChartAt_sub`,
+  `.exists_norm_extChartAt_sub_le` and `.exists_forall_Q_flow_mem_ball_and_ι_eq`: the left
+  inverse is smooth on the source of the chart, the chart image of the disc grows at most
+  linearly near `0`, and orbits of points of the disc close to `p` stay in the disc at small
+  values of the left inverse.
 * `SymplecticGeometry.IsWeinsteinStructure.mpullback_interior_eq_zero_of_bounded` and
   `SymplecticGeometry.IsWeinsteinStructure.mpullback_eq_zero_of_bounded`: a map `γ` with `γ y`
   in the stable set of `p` pulls `ι_X ω` and `ω` back to zero at `y`, if the derivative at `y`
@@ -306,26 +312,62 @@ theorem exists_forall_flow_mem_source_and_norm_extChartAt_sub_le {p : M}
     (hW.isMIntegralCurve_flow x) (Flow.mem_stableSet.1 hx) (by rwa [h₀]) (by rwa [h₀])
     (by rwa [h₀]) t ht⟩
 
-/-- The local stable disc with the projection `P` of the dichotomy and its corestriction `Q` to the
-stable subspace, before the forward invariance near `p` and the first-order bound at `0` are
-derived from it in `exists_localStableDisc`. -/
-private theorem exists_localStableDisc_aux {p : M}
-    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+/-- A **local stable disc** of a point `p` for the flow `φ` of a Weinstein structure `(ω, X, f)`,
+over the stable subspace `S` of an operator `A` on `E`, read in the extended chart `e` at `p`.
+It is a map `ι : S → M` with `ι 0 = p` and a radius `ρ > 0` such that:
+* on the ball of radius `ρ`, `ι` is smooth and its differential is injective;
+* `ι` maps that ball into the stable set of `p`;
+* the image of that ball contains every point of the stable set of `p` that lies in some
+  neighbourhood `U` of `p` and at which `f` exceeds `f p - ε`, for some `ε > 0`;
+* at each point `z` of that ball and each `t ≥ 0`, the point `φ_t (ι z)` lies in the source of
+  `e`, the map `w ↦ e (φ_t (ι w))` is differentiable at `z`, and its derivative there is bounded
+  independently of `t`;
+
+together with an idempotent `P : E →L[ℝ] E` commuting with `A`, with range `S` and kernel the
+unstable subspace of `A`, and its corestriction `Q : E →L[ℝ] S`, such that `x ↦ Q (e x - e p)`
+is a left inverse of `ι` on the ball of radius `ρ`.
+
+`IsWeinsteinStructure.exists_localStableDisc` gives one at every nondegenerate critical point
+`p`, for `A` the linearization of the Liouville field at `p`. -/
+@[ext]
+structure LocalStableDisc (hW : IsWeinsteinStructure ω X f) (p : M) (A : E →L[ℝ] E) where
+  /-- The disc, a map from the stable subspace of `A` to `M`. -/
+  ι : A.stableSubspace → M
+  /-- The radius of the ball of the stable subspace on which the disc has its properties. -/
+  ρ : ℝ
+  ρ_pos : 0 < ρ
+  ι_zero : ι 0 = p
+  contMDiffAt_ι : ∀ z ∈ ball (0 : A.stableSubspace) ρ,
+    ContMDiffAt 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) (⊤ : ℕ∞) ι z
+  injective_mfderiv_ι : ∀ z ∈ ball (0 : A.stableSubspace) ρ,
+    Injective (mfderiv 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) ι z)
+  image_ball_subset_stableSet : ι '' ball 0 ρ ⊆ hW.flow.stableSet p
+  exists_stableSet_inter_subset_image_ball :
+    ∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ
+  exists_forall_flow_mem_source_and_norm_fderiv_le : ∀ z ∈ ball (0 : A.stableSubspace) ρ,
+    ∃ C : ℝ, ∀ t, 0 ≤ t →
+      hW.flow t (ι z) ∈ (extChartAt 𝓘(ℝ, E) p).source ∧
+        DifferentiableAt ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z ∧
+        ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C
+  /-- The projection onto the stable subspace of `A` along its unstable subspace. -/
+  P : E →L[ℝ] E
+  isIdempotentElem_P : IsIdempotentElem P
+  commute_P : Commute A P
+  range_P : (P : E →ₗ[ℝ] E).range = A.stableSubspace
+  ker_P : (P : E →ₗ[ℝ] E).ker = A.unstableSubspace
+  /-- The corestriction of `P` to the stable subspace of `A`. -/
+  Q : E →L[ℝ] A.stableSubspace
+  coe_Q_apply : ∀ v, (Q v : E) = P v
+  Q_extChartAt_ι_sub : ∀ z ∈ ball (0 : A.stableSubspace) ρ,
+    Q (extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p) = z
+
+/-- **The local stable disc of a nondegenerate critical point.** Let `p` be a nondegenerate
+critical point of the function of a Weinstein structure, and `A` the linearization of the
+Liouville field at `p`. Then `p` has a local stable disc over the stable subspace of `A`
+(`IsWeinsteinStructure.LocalStableDisc`). -/
+theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
     {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
-    ∃ ι : A.stableSubspace → M, ∃ ρ > 0, ι 0 = p ∧
-      (∀ z ∈ ball (0 : A.stableSubspace) ρ,
-        ContMDiffAt 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) (⊤ : ℕ∞) ι z ∧
-          Injective (mfderiv 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) ι z)) ∧
-      ι '' ball 0 ρ ⊆ hW.flow.stableSet p ∧
-      (∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ) ∧
-      (∀ z ∈ ball (0 : A.stableSubspace) ρ, ∃ C : ℝ, ∀ t, 0 ≤ t →
-        hW.flow t (ι z) ∈ (extChartAt 𝓘(ℝ, E) p).source ∧
-          DifferentiableAt ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z ∧
-          ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C) ∧
-      ∃ P : E →L[ℝ] E, IsIdempotentElem P ∧ Commute A P ∧
-        (P : E →ₗ[ℝ] E).range = A.stableSubspace ∧ ∃ Q : E →L[ℝ] A.stableSubspace,
-          (∀ v, (Q v : E) = P v) ∧ ∀ z ∈ ball (0 : A.stableSubspace) ρ,
-            Q (extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p) = z := by
+    Nonempty (hW.LocalStableDisc p A) := by
   have hXp := hW.mdifferentiableAt_field p
   have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
   have hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) :=
@@ -335,6 +377,11 @@ private theorem exists_localStableDisc_aux {p : M}
     hW.isGradientLike.exists_projection_exponential_bounds hp hXp hA
   have hPS : (P : E →ₗ[ℝ] E).range = A.stableSubspace :=
     ContinuousLinearMap.range_eq_stableSubspace_of_exponential_bounds hα hP hAP hs hu
+  have hPU : (P : E →ₗ[ℝ] E).ker = A.unstableSubspace := by
+    rw [LinearMap.IsIdempotentElem.ker_eq_range
+        (ContinuousLinearMap.IsIdempotentElem.toLinearMap hP),
+      ← ContinuousLinearMap.range_id_sub_eq_unstableSubspace_of_exponential_bounds hα hP hAP hs hu,
+      ContinuousLinearMap.toLinearMap_sub, ContinuousLinearMap.coe_id]
   obtain ⟨r₀, hr₀, hr₀t, hconf⟩ := hW.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le hp
   -- The local stable graph of the coordinate field, with confinement radius at most `r₀`; the
   -- graph map is `C^1` on the ball of radius `ρ`, and `C^m` on a smaller ball for every `m`.
@@ -459,9 +506,9 @@ private theorem exists_localStableDisc_aux {p : M}
       (((hW.contMDiff_flow_apply (-T)).of_le (by exact_mod_cast le_top)).contMDiffAt).comp z
         (hιhz.comp z hhC.contMDiffAt)
     exact hcomp.congr_of_eventuallyEq (hιh.mono fun w hw ↦ by beta_reduce; rw [hw, hinv])
-  refine ⟨ι, ρ, hρ, by simpa [hι, hg0] using e.left_inv (mem_extChartAt_source p),
-    fun z hz ↦ ?_, ?_, ?_, fun z hz ↦ ?_, ?_⟩
-  · -- Smoothness and injectivity of the differential.
+  -- Smoothness and injectivity of the differential.
+  have hιz (z : S) (hz : z ∈ ball (0 : S) ρ) :
+      ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) (⊤ : ℕ∞) ι z ∧ Injective (mfderiv 𝓘(ℝ, S) 𝓘(ℝ, E) ι z) := by
     have hgz : ContDiffAt ℝ 1 g z := by exact_mod_cast hg1 _ (hball z hz).2
     have hinj : Injective (fderiv ℝ (fun w : S ↦ e p + ((w : E) + g w)) z) := by
       rw [fderiv_const_add]
@@ -471,7 +518,8 @@ private theorem exists_localStableDisc_aux {p : M}
       injective_mfderiv_extChartAt_symm_comp (hq z hz)
         ((hF 1 z hgz).differentiableAt one_ne_zero) hinj⟩
     exact (hsmooth (m + 1) m.succ_ne_zero z hz).of_le (by exact_mod_cast m.le_succ)
-  · -- The image lies in the stable set.
+  -- The image lies in the stable set.
+  have hst : ι '' ball 0 ρ ⊆ hW.flow.stableSet p := by
     rintro _ ⟨z, hz, rfl⟩
     obtain ⟨hyi, hymaps, -⟩ := hy z (hball z hz)
     refine Flow.mem_stableSet.2 (Tendsto.congr' (f₁ := fun t ↦ e.symm (e p + y z t)) ?_ ?_)
@@ -480,7 +528,9 @@ private theorem exists_localStableDisc_aux {p : M}
         simpa using (htend _ hyi hymaps).const_add (e p)
       have h := (continuousAt_extChartAt_symm (I := 𝓘(ℝ, E)) p).tendsto.comp h1
       simpa [he, Function.comp_def] using h
-  · -- The image covers the stable set near `p`, at values of `f` close to `f p`.
+  -- The image covers the stable set near `p`, at values of `f` close to `f p`.
+  have hcov : ∃ U ∈ 𝓝 p, ∃ ε > 0,
+      hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ := by
     obtain ⟨ε, hε, hc⟩ := hconf r ⟨hr, hrr₀⟩
     set δ := min (r / 2) (ρ / (‖P‖ + 1))
     have hδ : 0 < δ := lt_min (by positivity) (by positivity)
@@ -510,7 +560,10 @@ private theorem exists_localStableDisc_aux {p : M}
     refine ⟨Q (Y 0), by simpa [hQP] using hPY, ?_⟩
     simp only [hι, hQP]
     rw [← hw, hY0, add_sub_cancel, e.left_inv hxs]
-  · -- The derivative of `w ↦ e (φ_t (ι w))` is bounded in `t ≥ 0`.
+  -- The derivative of `w ↦ e (φ_t (ι w))` is bounded in `t ≥ 0`.
+  have hbd (z : S) (hz : z ∈ ball (0 : S) ρ) : ∃ C : ℝ, ∀ t, 0 ≤ t →
+      hW.flow t (ι z) ∈ e.source ∧ DifferentiableAt ℝ (fun w ↦ e (hW.flow t (ι w))) z ∧
+        ‖fderiv ℝ (fun w ↦ e (hW.flow t (ι w))) z‖ ≤ C := by
     obtain ⟨-, -, -, hyd, C, hC⟩ := hy z (hball z hz)
     refine ⟨C, fun t ht ↦ ?_⟩
     have heq : (fun w ↦ e (hW.flow t (ι w))) =ᶠ[𝓝 z] fun w ↦ e p + y w t := by
@@ -524,78 +577,71 @@ private theorem exists_localStableDisc_aux {p : M}
     rw [heq.fderiv_eq, hD.fderiv]
     exact (ContinuousLinearMap.opNorm_comp_le _ _).trans
       ((mul_le_of_le_one_right (norm_nonneg _) (Submodule.norm_subtypeL_le S)).trans (hC t ht))
-  · -- The projection, and the left inverse `x ↦ Q (e x - e p)` of the disc.
-    exact ⟨P, hP, hAP, hPS, Q, hQP, hQι⟩
+  exact ⟨{
+    ι := ι
+    ρ := ρ
+    ρ_pos := hρ
+    ι_zero := by simpa [hι, hg0] using e.left_inv (mem_extChartAt_source p)
+    contMDiffAt_ι := fun z hz ↦ (hιz z hz).1
+    injective_mfderiv_ι := fun z hz ↦ (hιz z hz).2
+    image_ball_subset_stableSet := hst
+    exists_stableSet_inter_subset_image_ball := hcov
+    exists_forall_flow_mem_source_and_norm_fderiv_le := hbd
+    P := P
+    isIdempotentElem_P := hP
+    commute_P := hAP
+    range_P := hPS
+    ker_P := hPU
+    Q := Q
+    coe_Q_apply := hQP
+    Q_extChartAt_ι_sub := hQι }⟩
 
-/-- **The local stable disc of a nondegenerate critical point.** Let `p` be a nondegenerate
-critical point of the function of a Weinstein structure, `A` the linearization of the Liouville
-field at `p`, `S` its stable subspace, `e` the extended chart at `p` and `φ` the flow of the
-Liouville field. There are a map `ι : S → M` with `ι 0 = p` and a radius `ρ > 0` such that:
-* on the ball of radius `ρ`, `ι` is smooth and its differential is injective;
-* `ι` maps that ball into the stable set of `p`;
-* the image of that ball contains every point of the stable set of `p` that lies in some
-  neighbourhood `U` of `p` and at which `f` exceeds `f p - ε`, for some `ε > 0`;
-* at each point `z` of that ball and each `t ≥ 0`, the point `φ_t (ι z)` lies in the source of
-  `e`, the map `w ↦ e (φ_t (ι w))` is differentiable at `z`, and its derivative there is bounded
-  independently of `t`;
-* near `0`, `‖e (ι z) - e p‖ ≤ C * ‖z‖` for some constant `C`;
-* there are an idempotent `P : E →L[ℝ] E` commuting with `A`, with range `S`, and its
-  corestriction `Q : E →L[ℝ] S`, such that `π x = Q (e x - e p)` is smooth on the source of `e`
-  and satisfies `π (ι z) = z` on the ball of radius `ρ`;
-* the disc is forward invariant near `p`: for every `ρ₁ > 0` there is `ρ₂ ∈ (0, min ρ ρ₁]` such
-  that for `z` in the ball of radius `ρ₂` and `t ≥ 0`, the point `π (φ_t (ι z))` lies in the ball
-  of radius `ρ₁` and `ι (π (φ_t (ι z))) = φ_t (ι z)`. -/
-theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
-    {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) 𝓘(ℝ, E) id X p) :
-    ∃ ι : A.stableSubspace → M, ∃ ρ > 0, ι 0 = p ∧
-      (∀ z ∈ ball (0 : A.stableSubspace) ρ,
-        ContMDiffAt 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) (⊤ : ℕ∞) ι z ∧
-          Injective (mfderiv 𝓘(ℝ, A.stableSubspace) 𝓘(ℝ, E) ι z)) ∧
-      ι '' ball 0 ρ ⊆ hW.flow.stableSet p ∧
-      (∃ U ∈ 𝓝 p, ∃ ε > 0, hW.flow.stableSet p ∩ U ∩ {x | f p - ε < f x} ⊆ ι '' ball 0 ρ) ∧
-      (∀ z ∈ ball (0 : A.stableSubspace) ρ, ∃ C : ℝ, ∀ t, 0 ≤ t →
-        hW.flow t (ι z) ∈ (extChartAt 𝓘(ℝ, E) p).source ∧
-          DifferentiableAt ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z ∧
-          ‖fderiv ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (ι w))) z‖ ≤ C) ∧
-      (∃ C δ : ℝ, 0 < δ ∧ ∀ z ∈ ball (0 : A.stableSubspace) δ,
-        ‖extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p‖ ≤ C * ‖z‖) ∧
-      ∃ P : E →L[ℝ] E, IsIdempotentElem P ∧ Commute A P ∧
-        (P : E →ₗ[ℝ] E).range = A.stableSubspace ∧ ∃ Q : E →L[ℝ] A.stableSubspace,
-          (∀ v, (Q v : E) = P v) ∧
-          ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞)
-            (fun x ↦ Q (extChartAt 𝓘(ℝ, E) p x - extChartAt 𝓘(ℝ, E) p p))
-            (extChartAt 𝓘(ℝ, E) p).source ∧
-          (∀ z ∈ ball (0 : A.stableSubspace) ρ,
-            Q (extChartAt 𝓘(ℝ, E) p (ι z) - extChartAt 𝓘(ℝ, E) p p) = z) ∧
-          ∀ ρ₁ > 0, ∃ ρ₂ ∈ Ioc 0 (min ρ ρ₁), ∀ z ∈ ball (0 : A.stableSubspace) ρ₂, ∀ t, 0 ≤ t →
-            Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (ι z)) - extChartAt 𝓘(ℝ, E) p p) ∈ ball 0 ρ₁ ∧
-            ι (Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (ι z)) - extChartAt 𝓘(ℝ, E) p p)) =
-              hW.flow t (ι z) := by
-  obtain ⟨ι, ρ, hρ, hι0, hιs, hst, ⟨U, hU, ε, hε, hcov⟩, hbd, P, hP, hAP, hPS, Q, hQP, hQι⟩ :=
-    hW.exists_localStableDisc_aux hp hA
-  set e := extChartAt 𝓘(ℝ, E) p with he
-  have hπ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞) (fun x ↦ Q (e x - e p))
-      e.source := by
-    have h : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞) (fun x ↦ e x - e p) e.source := by
-      rw [he, extChartAt_source]
-      exact contMDiffOn_extChartAt.sub contMDiffOn_const
-    exact Q.contDiff.contMDiff.comp_contMDiffOn h
-  -- The first-order bound, from the differentiability of `e ∘ ι` at `0`.
-  have hbound : ∃ C δ : ℝ, 0 < δ ∧ ∀ z ∈ ball (0 : A.stableSubspace) δ,
-      ‖e (ι z) - e p‖ ≤ C * ‖z‖ := by
-    obtain ⟨C, hC⟩ := hbd 0 (mem_ball_self hρ)
-    have hd : DifferentiableAt ℝ (fun w ↦ e (ι w)) 0 := by
-      simpa using (hC 0 le_rfl).2.1
-    obtain ⟨C, hC⟩ := hd.hasFDerivAt.isBigO_sub.bound
-    obtain ⟨δ, hδ, h⟩ := Metric.eventually_nhds_iff_ball.1 hC
-    exact ⟨C, δ, hδ, fun z hz ↦ by simpa [hι0] using h z hz⟩
-  refine ⟨ι, ρ, hρ, hι0, hιs, hst, ⟨U, hU, ε, hε, hcov⟩, hbd, hbound, P, hP, hAP, hPS, Q, hQP,
-    hπ, hQι, fun ρ₁ hρ₁ ↦ ?_⟩
-  -- Forward invariance: a neighbourhood `V` of `p` lies in `U` and is mapped by `π` into the
-  -- ball of radius `ρ₁`; orbits that start near `p`, with `f` close to `f p`, stay in `V`.
-  have hπp : Q (e p - e p) = 0 := by simp
-  have hV : U ∩ (fun x ↦ Q (e x - e p)) ⁻¹' ball 0 ρ₁ ∈ 𝓝 p :=
-    inter_mem hU ((hπ.contMDiffAt ((isOpen_extChartAt_source p).mem_nhds
+namespace LocalStableDisc
+
+variable {hW} {p : M} {A : E →L[ℝ] E} (D : hW.LocalStableDisc p A)
+
+/-- The left inverse `x ↦ Q (e x - e p)` of a local stable disc, for `e` the extended chart at
+`p`, is smooth on the source of `e`. -/
+theorem contMDiffOn_Q_extChartAt_sub :
+    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞)
+      (fun x ↦ D.Q (extChartAt 𝓘(ℝ, E) p x - extChartAt 𝓘(ℝ, E) p p))
+      (extChartAt 𝓘(ℝ, E) p).source := by
+  have h : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) (⊤ : ℕ∞)
+      (fun x ↦ extChartAt 𝓘(ℝ, E) p x - extChartAt 𝓘(ℝ, E) p p) (extChartAt 𝓘(ℝ, E) p).source := by
+    rw [extChartAt_source]
+    exact contMDiffOn_extChartAt.sub contMDiffOn_const
+  exact D.Q.contDiff.contMDiff.comp_contMDiffOn h
+
+/-- **A first-order bound at the centre.** Read in the extended chart `e` at `p`, a local stable
+disc `ι` of `p` satisfies `‖e (ι z) - e p‖ ≤ C * ‖z‖` near `0`, for some constant `C`. -/
+theorem exists_norm_extChartAt_sub_le :
+    ∃ C δ : ℝ, 0 < δ ∧ ∀ z ∈ ball (0 : A.stableSubspace) δ,
+      ‖extChartAt 𝓘(ℝ, E) p (D.ι z) - extChartAt 𝓘(ℝ, E) p p‖ ≤ C * ‖z‖ := by
+  obtain ⟨C, hC⟩ := D.exists_forall_flow_mem_source_and_norm_fderiv_le 0 (mem_ball_self D.ρ_pos)
+  have hd : DifferentiableAt ℝ (fun w ↦ extChartAt 𝓘(ℝ, E) p (D.ι w)) 0 := by
+    simpa using (hC 0 le_rfl).2.1
+  obtain ⟨C, hC⟩ := hd.hasFDerivAt.isBigO_sub.bound
+  obtain ⟨δ, hδ, h⟩ := Metric.eventually_nhds_iff_ball.1 hC
+  exact ⟨C, δ, hδ, fun z hz ↦ by simpa [D.ι_zero] using h z hz⟩
+
+/-- **Forward invariance of a local stable disc near `p`.** Let `ι` be a local stable disc of a
+nondegenerate critical point `p`, with radius `ρ` and left inverse `π x = Q (e x - e p)`, for `e`
+the extended chart at `p`, and `φ` the flow. For every `ρ₁ > 0` there is `ρ₂ ∈ (0, min ρ ρ₁]`
+such that for `z` in the ball of radius `ρ₂` and `t ≥ 0`, the point `π (φ_t (ι z))` lies in the
+ball of radius `ρ₁` and `ι (π (φ_t (ι z))) = φ_t (ι z)`. -/
+theorem exists_forall_Q_flow_mem_ball_and_ι_eq
+    (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {ρ₁ : ℝ} (hρ₁ : 0 < ρ₁) :
+    ∃ ρ₂ ∈ Ioc 0 (min D.ρ ρ₁), ∀ z ∈ ball (0 : A.stableSubspace) ρ₂, ∀ t, 0 ≤ t →
+      D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (D.ι z)) - extChartAt 𝓘(ℝ, E) p p) ∈ ball 0 ρ₁ ∧
+        D.ι (D.Q (extChartAt 𝓘(ℝ, E) p (hW.flow t (D.ι z)) - extChartAt 𝓘(ℝ, E) p p)) =
+          hW.flow t (D.ι z) := by
+  obtain ⟨U, hU, ε, hε, hcov⟩ := D.exists_stableSet_inter_subset_image_ball
+  set e := extChartAt 𝓘(ℝ, E) p
+  -- A neighbourhood `V` of `p` lies in `U` and is mapped by `π` into the ball of radius `ρ₁`;
+  -- orbits that start near `p`, with `f` close to `f p`, stay in `V`.
+  have hπp : D.Q (e p - e p) = 0 := by simp
+  have hV : U ∩ (fun x ↦ D.Q (e x - e p)) ⁻¹' ball 0 ρ₁ ∈ 𝓝 p :=
+    inter_mem hU ((D.contMDiffOn_Q_extChartAt_sub.contMDiffAt ((isOpen_extChartAt_source p).mem_nhds
       (mem_extChartAt_source p))).continuousAt.preimage_mem_nhds
       (by rw [hπp]; exact ball_mem_nhds _ hρ₁))
   obtain ⟨r₀, hr₀, -, hconf⟩ := hW.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le hp
@@ -607,26 +653,31 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
       ((isOpen_lt continuous_const hW.isGeneralizedMorse.contMDiff.continuous).mem_nhds
         (by simp [hε, hε']))
   obtain ⟨δ, hδ, hδW⟩ := Metric.mem_nhds_iff.1
-    ((hιs 0 (mem_ball_self hρ)).1.continuousAt.preimage_mem_nhds (by rwa [hι0]))
-  refine ⟨min δ (min ρ ρ₁), ⟨lt_min hδ (lt_min hρ hρ₁), min_le_right _ _⟩, fun z hz t ht ↦ ?_⟩
+    ((D.contMDiffAt_ι 0 (mem_ball_self D.ρ_pos)).continuousAt.preimage_mem_nhds
+      (by rwa [D.ι_zero]))
+  refine ⟨min δ (min D.ρ ρ₁), ⟨lt_min hδ (lt_min D.ρ_pos hρ₁), min_le_right _ _⟩,
+    fun z hz t ht ↦ ?_⟩
   obtain ⟨hzc, hzf⟩ := hδW (ball_subset_ball (min_le_left _ _) hz)
-  have hzf : f p - min ε ε' < f (ι z) := hzf
+  have hzf : f p - min ε ε' < f (D.ι z) := hzf
   obtain ⟨hzs, hzb⟩ := (mem_chartBall_iff _).1 hzc
   rw [mem_ball, dist_eq_norm] at hzb
-  have hzst : ι z ∈ hW.flow.stableSet p :=
-    hst ⟨z, ball_subset_ball ((min_le_right _ _).trans (min_le_left _ _)) hz, rfl⟩
-  obtain ⟨hts, htb⟩ := hc (ι z) hzst hzs hzb.le
+  have hzst : D.ι z ∈ hW.flow.stableSet p :=
+    D.image_ball_subset_stableSet
+      ⟨z, ball_subset_ball ((min_le_right _ _).trans (min_le_left _ _)) hz, rfl⟩
+  obtain ⟨hts, htb⟩ := hc (D.ι z) hzst hzs hzb.le
     ((sub_le_sub_left (min_le_right _ _) _).trans_lt hzf) t ht
-  have hfle : f (ι z) ≤ f (hW.flow t (ι z)) := by
-    simpa using hW.monotone_comp_flow (ι z) ht
-  have hxV : hW.flow t (ι z) ∈ U ∩ (fun x ↦ Q (e x - e p)) ⁻¹' ball 0 ρ₁ :=
+  have hfle : f (D.ι z) ≤ f (hW.flow t (D.ι z)) := by
+    simpa using hW.monotone_comp_flow (D.ι z) ht
+  have hxV : hW.flow t (D.ι z) ∈ U ∩ (fun x ↦ D.Q (e x - e p)) ⁻¹' ball 0 ρ₁ :=
     hr₁V ((mem_chartBall_iff _).2 ⟨hts, by
       rw [mem_ball, dist_eq_norm]
       linarith [min_le_right r₀ (r₁ / 2)]⟩)
   obtain ⟨w, hw, hwx⟩ := hcov ⟨⟨(Flow.apply_mem_stableSet_iff _ _).2 hzst, hxV.1⟩,
     ((sub_le_sub_left (min_le_left _ _) _).trans_lt hzf).trans_le hfle⟩
   refine ⟨hxV.2, ?_⟩
-  rw [← hwx, hQι w hw]
+  rw [← hwx, D.Q_extChartAt_ι_sub w hw]
+
+end LocalStableDisc
 
 section Bounded
 
@@ -681,13 +732,13 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
     ∃ C, ∀ᶠ t in atTop,
       ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C := by
   set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p with hA
-  obtain ⟨ι, ρ, -, -, -, -, ⟨U, hU, ε, hε, hcov⟩, hbd, -, -, -, -, -, Q, -, hπ, hπι, -⟩ :=
-    hW.exists_localStableDisc hp hA
+  obtain ⟨D⟩ := hW.exists_localStableDisc hp hA
+  obtain ⟨U, hU, ε, hε, hcov⟩ := D.exists_stableSet_inter_subset_image_ball
   set e := extChartAt 𝓘(ℝ, E) p
   obtain ⟨π, hπ, hπι⟩ : ∃ π : M → A.stableSubspace,
       ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞) π e.source ∧
-        ∀ z ∈ ball (0 : A.stableSubspace) ρ, π (ι z) = z :=
-    ⟨_, hπ, hπι⟩
+        ∀ z ∈ ball (0 : A.stableSubspace) D.ρ, π (D.ι z) = z :=
+    ⟨_, D.contMDiffOn_Q_extChartAt_sub, D.Q_extChartAt_ι_sub⟩
   have hfc : Continuous f := hW.isGeneralizedMorse.contMDiff.continuous
   -- The orbit of `γ y` enters, at some time `T`, the part of the stable set that the disc covers;
   -- by continuity, so does the orbit of `γ z` for `z` near `y`.
@@ -697,19 +748,19 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
     (hV.mem_nhds ⟨mem_interior_iff_mem_nhds.2 hU, by simpa using hε⟩)).exists
   have hγc : ContinuousAt (fun z ↦ hW.flow T (γ z)) y :=
     (hW.contMDiff_flow_apply T).continuous.continuousAt.comp hγ.continuousAt
-  have hnear : ∀ᶠ z in 𝓝 y, hW.flow T (γ z) ∈ ι '' ball 0 ρ := by
+  have hnear : ∀ᶠ z in 𝓝 y, hW.flow T (γ z) ∈ D.ι '' ball 0 D.ρ := by
     filter_upwards [hγc.preimage_mem_nhds (hV.mem_nhds hT)] with z hz
     exact hcov ⟨⟨(Flow.apply_mem_stableSet_iff _ _).2 (hs ⟨z, rfl⟩), interior_subset hz.1⟩, hz.2⟩
-  have hιπ (z : N) (hz : hW.flow T (γ z) ∈ ι '' ball 0 ρ) :
-      π (hW.flow T (γ z)) ∈ ball 0 ρ ∧ ι (π (hW.flow T (γ z))) = hW.flow T (γ z) := by
+  have hιπ (z : N) (hz : hW.flow T (γ z) ∈ D.ι '' ball 0 D.ρ) :
+      π (hW.flow T (γ z)) ∈ ball 0 D.ρ ∧ D.ι (π (hW.flow T (γ z))) = hW.flow T (γ z) := by
     obtain ⟨w, hw, hwz⟩ := hz
     rw [← hwz, hπι w hw]
     exact ⟨hw, rfl⟩
-  -- Near `y`, `φ_T ∘ γ` is `ι ∘ h` with `h = π ∘ φ_T ∘ γ` differentiable at `y`.
+  -- Near `y`, `φ_T ∘ γ` is `D.ι ∘ h` with `h = π ∘ φ_T ∘ γ` differentiable at `y`.
   obtain ⟨hy0, hy1⟩ := hιπ y hnear.self_of_nhds
-  obtain ⟨C, hC⟩ := hbd _ hy0
+  obtain ⟨C, hC⟩ := D.exists_forall_flow_mem_source_and_norm_fderiv_le _ hy0
   have hsrc : hW.flow T (γ y) ∈ e.source := by
-    simpa [hy1] using (hC 0 le_rfl).1
+    simpa [hy1, e, extChartAt_source] using (hC 0 le_rfl).1
   have hh : MDifferentiableAt I' 𝓘(ℝ, A.stableSubspace) (fun z ↦ π (hW.flow T (γ z))) y :=
     ((hπ.contMDiffAt ((isOpen_extChartAt_source p).mem_nhds hsrc)).mdifferentiableAt
       (by simp)).comp y
@@ -718,7 +769,7 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
   filter_upwards [eventually_ge_atTop T] with t ht
   obtain ⟨-, hd, hn⟩ := hC (t - T) (sub_nonneg.2 ht)
   have heq : (fun z ↦ e (hW.flow t (γ z))) =ᶠ[𝓝 y]
-      (fun w ↦ e (hW.flow (t - T) (ι w))) ∘ fun z ↦ π (hW.flow T (γ z)) := by
+      (fun w ↦ e (hW.flow (t - T) (D.ι w))) ∘ fun z ↦ π (hW.flow T (γ z)) := by
     filter_upwards [hnear] with z hz
     rw [Function.comp_apply, (hιπ z hz).2, ← Flow.map_add, sub_add_cancel]
   rw [heq.mvfderiv_eq,
