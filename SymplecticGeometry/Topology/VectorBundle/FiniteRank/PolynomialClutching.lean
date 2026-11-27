@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
-public import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentClutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ElementaryClutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
@@ -38,7 +37,8 @@ a polynomial of degree `m - 1` left; so `m` steps make it linear
 ## Main definitions and results
 
 * `TauCeti.FiniteRankBundleCore.polynomialHom n a`: the polynomial family `∑_{i < n} u^i a_i(x)`
-  of morphisms between pullbacks to `X × Circle`;
+  of morphisms between pullbacks to `X × Circle`, as the Laurent family
+  `TauCeti.FiniteRankBundleCore.laurentSumHom` over the exponents `0, …, n - 1`;
 * `TauCeti.FiniteRankBundleCore.exists_iso_clutching_whitneySum_of_hom_eq_add_comp`: one row
   and one column of Hatcher's matrix;
 * `TauCeti.FiniteRankBundleCore.exists_linear_clutching_iso_of_fiberMap_eq_sum`: a polynomial
@@ -76,23 +76,21 @@ variable {A D : FiniteRankBundleCore ℂ X}
 
 /-- The polynomial family `∑_{i < n} a_i(x) u^i` of morphisms `a i : A ⟶ D`: the morphism between
 the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
-`∑ i ∈ Finset.range n, u ^ i • (a i).fiberMap x`. -/
+`∑ i ∈ Finset.range n, u ^ i • (a i).fiberMap x`. It is the Laurent family `laurentSumHom` over
+the exponents `0, …, n - 1`. -/
 def polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) : A.circlePullback ⟶ D.circlePullback :=
-  ∑ i ∈ Finset.range n,
-    ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst
+  laurentSumHom ((Finset.range n).map Nat.castEmbedding) fun i ↦ a i.toNat
 
 theorem polynomialHom_def (n : ℕ) (a : ℕ → (A ⟶ D)) :
-    polynomialHom n a = ∑ i ∈ Finset.range n,
-      ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst :=
+    polynomialHom n a = laurentSumHom ((Finset.range n).map Nat.castEmbedding) fun i ↦ a i.toNat :=
   (rfl)
 
 @[simp]
 theorem fiberMap_polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) (w : X × Circle) :
     (polynomialHom n a).fiberMap w =
       ∑ i ∈ Finset.range n, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
-  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul,
-    ContinuousMap.laurentMonomial_one_apply, zpow_natCast, fiberMap_pullbackMap,
-    ContinuousMap.fst_apply]
+  simp only [polynomialHom_def, fiberMap_laurentSumHom, Finset.sum_map, Nat.castEmbedding_apply,
+    zpow_natCast, Int.toNat_natCast]
 
 @[simp]
 theorem polynomialHom_zero (a : ℕ → (A ⟶ D)) : polynomialHom 0 a = 0 := by
