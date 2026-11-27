@@ -51,8 +51,7 @@ builds the forms upstairs, and carries Tau Ceti's Fubini–Study form over to
 * Under the identification of the unit sphere of `StdSpace (Fin (n + 1))` with that of
   `EuclideanSpace ℂ (Fin (n + 1))` by the inverse of the isometry
   `TauCeti.complexToRealEuclideanIsometry`, `σ` is the pull-back of the restriction of Tau Ceti's
-  `Im ⟪·, ·⟫_ℂ` (`mpullback_unitSphereEquiv_imInnerSymplecticForm`), since that isometry is
-  `StdSpace.complexEuclideanEquiv` (`StdSpace.complexToRealEuclideanIsometry_apply_eq`), which
+  `Im ⟪·, ·⟫_ℂ` (`mpullback_unitSphereEquiv_imInnerSymplecticForm`), since that isometry
   carries `stdForm (Fin (n + 1))` to `Im ⟪·, ·⟫_ℂ` (`stdForm_apply_eq_im_inner`).
 * `SymplecticGeometry.fubiniStudyForm n` is the Fubini–Study form `ω_FS` of `ℂPⁿ`, defined as `π`
   times the pull-back of Tau Ceti's `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` along the
@@ -317,9 +316,7 @@ theorem mpullback_unitSphereEquiv_imInnerSymplecticForm :
     SymplecticForm.eval₂_constSmooth_mfderiv_eq,
     LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv,
     LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, sphereStdForm_apply,
-    imInnerSymplecticForm_apply, ← stdForm_apply_eq_im_inner,
-    ← StdSpace.complexToRealEuclideanIsometry_apply_eq,
-    ← StdSpace.complexToRealEuclideanIsometry_apply_eq, LinearIsometryEquiv.apply_symm_apply,
+    imInnerSymplecticForm_apply, ← stdForm_apply_eq_im_inner, LinearIsometryEquiv.apply_symm_apply,
     LinearIsometryEquiv.apply_symm_apply]
 
 /-- The Fubini–Study form `ω_FS` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`: `π` times Tau Ceti's

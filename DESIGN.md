@@ -656,17 +656,17 @@ parallel transport, principal connections and fibre integrals of parts
   built by *Lagrangian Grassmannian*'s issue on direct sums (#126), which came
   before that part's first issue on direct sums, not by *Standard model*'s
   issues.
-- The complex coordinates: `StdSpace.complexEuclideanEquiv ι :
-  EuclideanSpace ℂ ι ≃L[ℝ] StdSpace ι`, the composite of
-  `PiLp.continuousLinearEquiv 2 ℝ (fun _ : ι ↦ ℂ)` with
-  `TauCeti.complexToRealEuclidean ι`, with `complexEuclideanEquiv_def` and the
-  `@[simp]` lemmas `x_complexEuclideanEquiv` and `y_complexEuclideanEquiv`
-  (the real and imaginary parts of each coordinate), and
-  `stdComplexStructure_complexEuclideanEquiv` (it carries multiplication by
-  `I` to `J₀`). *Lagrangian
+- The complex coordinates: the isometry `TauCeti.complexToRealEuclideanIsometry ι :
+  EuclideanSpace ℂ ι ≃ₗᵢ[ℝ] StdSpace ι` of `Analysis/Complex/Euclidean/Space.lean`,
+  `TauCeti.complexToRealEuclidean ι` read on `EuclideanSpace ℂ ι`, with the
+  lemmas `x_complexToRealEuclideanIsometry` and
+  `y_complexToRealEuclideanIsometry` (the real and imaginary parts of each
+  coordinate), and `stdComplexStructure_complexToRealEuclideanIsometry` (it
+  carries multiplication by `I` to `J₀`). *Lagrangian
   Grassmannian* uses it to compare its subspaces of `StdSpace ι` with Tau
-  Ceti's subspaces of `EuclideanSpace ℂ ι`. It is built by that part's issue
-  on Lagrangian frames (#118), not by *Standard model*'s issues.
+  Ceti's subspaces of `EuclideanSpace ℂ ι`. Its lemmas in `Standard/Basic.lean`
+  are built by that part's issue on Lagrangian frames (#118), not by
+  *Standard model*'s issues.
 - The matrix dictionary: `mem_symplecticGroup_iff_isSymplectomorphism`
   (`A ∈ Matrix.symplecticGroup ι ℝ` if and only if `Matrix.toEuclideanLin A`
   preserves `stdForm ι`), and `mem_GLSymplectic_iff_isSymplectomorphism`, its
@@ -694,7 +694,8 @@ table may fall behind.
   `isSymplectomorphism_piLpCongrLeft_sumCongr` with its coordinates
   `StdSpace.x_piLpCongrLeft_sumCongr` and `StdSpace.y_piLpCongrLeft_sumCongr`,
   `stdDarbouxBasisOf` with its lemmas, `StdSpace.sumEquiv`, and the additions
-  of *Lagrangian Grassmannian*: `StdSpace.complexEuclideanEquiv`, `StdSpace.swap`,
+  of *Lagrangian Grassmannian*: the coordinates of
+  `complexToRealEuclideanIsometry`, `StdSpace.swap`,
   `StdSpace.finSumIsometry`),
   `LinearAlgebra/Symplectic/Standard/Matrix.lean` (the matrix dictionary).
 - **Builds on:** Mathlib, Tau Ceti. `Matrix.lean` also imports two general
@@ -1012,8 +1013,8 @@ it into issues; the overview fixes its folders and its dependencies.
   for any `RCLike 𝕜`: on the compact space `finiteGrassmannian 𝕜 r N`, the
   map to orthogonal projections is a closed embedding; `Finite.lean` uses
   it). The part also adds declarations about `StdSpace ι` alone to
-  *Standard model*'s `Standard/Basic.lean`: `StdSpace.complexEuclideanEquiv`,
-  the map from `EuclideanSpace ℂ ι`; the coordinate swap `StdSpace.swap`;
+  *Standard model*'s `Standard/Basic.lean`: the coordinates and `J₀` of
+  `TauCeti.complexToRealEuclideanIsometry`, the map from `EuclideanSpace ℂ ι`; the coordinate swap `StdSpace.swap`;
   the isometry `StdSpace.finSumIsometry` onto `EuclideanSpace ℝ (Fin (n + n))`;
   and the coordinates `StdSpace.x_piLpCongrLeft_sumCongr` and
   `StdSpace.y_piLpCongrLeft_sumCongr` of the coordinate permutation; the
@@ -1061,7 +1062,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `lagrangianChart S` is maximal totally real and transverse to
   `realSubspace (Fin 2)`, but by `Matrix.lagrangianChart_injective` it is
   the chart of no symmetric matrix. The statement follows from the second
-  graph statement, transferred along `StdSpace.complexEuclideanEquiv n`,
+  graph statement, transferred along `complexToRealEuclideanIsometry n`,
   which carries `TauCeti.realSubspace n` to $V_0$ and
   `lagrangianChart S` to $\{x=Sy\}$.
 - **Graph charts** (`Graph.lean`). For the projection topology (**The
