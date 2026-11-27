@@ -27,10 +27,11 @@ is already holonomic on `Q`.
 
 Let `B` be a closed set of core points, containing the faces of the cube in the directions
 `insert i₀ J'`, such that `(f, G)` is holonomic on an open set `U ⊇ B ×ˢ {0}`. Then there are a
-`δ`-small diffeotopy `h` of `D` that keeps every core coordinate, is the identity near
-`B ×ˢ {0}` and off a compact subset `C` of the `δ`-neighbourhood of `Q`, and a smooth `f'` equal
-to `f` off `C` and near `B ×ˢ {0}`, that is `ε`-close to `(f, G)` in the directions
-`insert i₀ J'` on an open set containing the image of `Q` under `h 1`.
+`δ`-small diffeotopy `h` of `D` that keeps every core coordinate and is the identity off a
+compact subset `C` of the `δ`-neighbourhood of `Q`, and a smooth `f'` equal to `f` off `C`, that
+is `ε`-close to `(f, G)` in the directions `insert i₀ J'` on an open set containing the image of
+`Q` under `h 1`. Moreover `h` is the identity and `f' = f` at every point whose core coordinate
+lies in some neighbourhood `N` of `B`, whatever its transverse part.
 
 The proof glues three earlier results.
 * `SymplecticGeometry.exists_holonomic_approximation_zigzag` gives, at a height `r` below a bound
@@ -42,7 +43,9 @@ The proof glues three earlier results.
   and near `B` it is the identity.
 * A second smooth cutoff `χ` on `D`, `0` near the points over a neighbourhood of `B` and away
   from the cube, and `1` near the points of the cube away from `B` up to the fixed height,
-  glues: `f' := f + χ • (f₀ - f)`. Its derivative is bounded before the accuracy asked of `f₀` is
+  glues: `f' := f + χ • (f₀ - f)`. Since `χ` vanishes off a compact set, a tube lemma
+  (`IsCompact.eventually_forall_of_forall_eventually`) makes it vanish on `N ×ˢ univ` for a
+  neighbourhood `N` of `B`. Its derivative is bounded before the accuracy asked of `f₀` is
   chosen, so that the gluing error `‖D χ‖ ‖f₀ - f‖` is small where `χ` varies; there the
   displaced cube lies in `U`, where `f` itself is holonomic.
 
@@ -69,8 +72,8 @@ namespace SymplecticGeometry
 /-- The gluing cutoff of `exists_holonomic_approximation_direction`: a smooth `χ` on `D` with
 values in `[0, 1]`, `0` near the points over `B` and over the closed `ρ / 4`-neighbourhood of the
 part of `B` in the cube, `1` near the points of the cube off the `ρ / 2`-neighbourhood of that
-part up to height `r₀`, `0` off a compact neighbourhood of the cube of height `2 r₀`, and with
-bounded derivative. -/
+part up to height `r₀`, `0` off a compact neighbourhood of the cube of height `2 r₀`, `0` at
+every height over a neighbourhood of `B`, and with bounded derivative. -/
 private theorem exists_gluing_cutoff {m k : ℕ} {B : Set (Fin m → ℝ)} (hB : IsClosed B)
     {ρ δ r₀ : ℝ} (hρ : 0 < ρ) (hδ : 0 < δ) (hr₀ : 0 < r₀) :
     ∃ χ : (Fin m → ℝ) × (Fin k → ℝ) → ℝ, ContDiff ℝ ∞ χ ∧ (∀ x, χ x ∈ Icc (0 : ℝ) 1) ∧
@@ -79,6 +82,7 @@ private theorem exists_gluing_cutoff {m k : ℕ} {B : Set (Fin m → ℝ)} (hB :
         closedBall 0 r₀), χ x = 1) ∧
       (∀ x ∉ cthickening (δ / 4) (closedBall (0 : Fin m → ℝ) 1) ×ˢ closedBall 0 (2 * r₀),
         χ x = 0) ∧
+      (∀ᶠ u in 𝓝ˢ B, ∀ v, χ (u, v) = 0) ∧
       ∃ L, ∀ x, ‖fderiv ℝ χ x‖ ≤ L := by
   set Q₁ : Set (Fin m → ℝ) := closedBall 0 1
   set B₁ := B ∩ Q₁
@@ -108,7 +112,19 @@ private theorem exists_gluing_cutoff {m k : ℕ} {B : Set (Fin m → ℝ)} (hB :
     (HasCompactSupport.intro ((isCompact_closedBall _ _).cthickening.prod
       (isCompact_closedBall _ _)) hχC).fderiv ℝ
   obtain ⟨L, hL⟩ := (hχ.continuous_fderiv (by simp)).bounded_above_of_compact_support hχs
-  exact ⟨χ, hχ, hχI, hχ0.filter_mono (nhdsSet_mono subset_union_left), hχ1, hχC, L, hL⟩
+  -- Over a point of `B`, `χ` vanishes near the compact set of heights at most `2 r₀`, and
+  -- above them it vanishes anyway.
+  have hχB : ∀ᶠ u in 𝓝ˢ B, ∀ v, χ (u, v) = 0 := by
+    refine eventually_nhdsSet_iff_forall.2 fun u hu ↦ ?_
+    have hK := IsCompact.eventually_forall_of_forall_eventually
+      (isCompact_closedBall (0 : Fin k → ℝ) (2 * r₀)) (x₀ := u) (P := fun u' v ↦ χ (u', v) = 0)
+      fun v _ ↦
+        eventually_nhdsSet_iff_forall.1 hχ0 (u, v) (Or.inl ⟨Or.inl hu, trivial⟩)
+    filter_upwards [hK] with u' hu' v
+    by_cases hv : v ∈ closedBall 0 (2 * r₀)
+    · exact hu' v hv
+    · exact hχC _ fun h ↦ hv h.2
+  exact ⟨χ, hχ, hχI, hχ0.filter_mono (nhdsSet_mono subset_union_left), hχ1, hχC, hχB, L, hL⟩
 
 /-- The estimate of `exists_holonomic_approximation_direction` on `V`: the glued map
 `f + χ • (f₀ - f)` is `ε`-close to `(f, G)`, on the vectors `w` with `P w`, at the points where
@@ -167,12 +183,12 @@ direction and `J'` a set of core directions. Let `(f, G)` be a smooth formal sec
 Let `ε, δ > 0`. There are a diffeotopy `h` of `D`, a smooth map `f'` and an open set `V` such
 that:
 * `h` is the identity and `f'` equals `f` off a compact subset of the `δ`-neighbourhood of `Q`;
-* `h` moves every point by less than `δ`, keeps the core coordinates of every point, and is the
-  identity at all times near `B ×ˢ {0}`;
+* `h` moves every point by less than `δ` and keeps the core coordinates of every point;
 * `V` contains the image of `Q` under `h 1`, and on `V` the map `f'` is `ε`-close to `f`, and
   `(D f' - G) w` has norm at most `ε ‖w‖` for every vector `w` whose core part lies in the
   directions `insert i₀ J'`;
-* `f'` equals `f` near `B ×ˢ {0}`. -/
+* there is a neighbourhood `N` of `B` such that at every point `x` with `x.1 ∈ N`, whatever its
+  transverse part `x.2`, `h` is the identity at all times and `f' x = f x`. -/
 theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
     {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] (i₀ : Fin m) {J' : Finset (Fin m)}
     {f : (Fin m → ℝ) × (Fin k → ℝ) → F}
@@ -190,11 +206,10 @@ theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∀ t x, (h (t, x)).1 = x.1) ∧
-      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' (closedBall 0 1 ×ˢ {0}) ⊆ V ∧ ContDiff ℝ ∞ f' ∧
       (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ∀ w : (Fin m → ℝ) × (Fin k → ℝ),
         (∀ i ∉ insert i₀ J', w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
-      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U' := by
+      ∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x := by
   set j : Fin k := ⟨0, hk⟩
   set Q₁ : Set (Fin m → ℝ) := closedBall 0 1
   set Q : Set ((Fin m → ℝ) × (Fin k → ℝ)) := Q₁ ×ˢ {0} with hQ
@@ -220,7 +235,7 @@ theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
   -- The height bound `r₀`, and the gluing cutoff `χ` on `D`.
   set r₀ := min (r₁ / 4) (δ / 8)
   have hr₀ : 0 < r₀ := lt_min (by positivity) (by positivity)
-  obtain ⟨χ, hχ, hχI, hχ0, hχ1, hχC₂, L, hL⟩ :=
+  obtain ⟨χ, hχ, hχI, hχ0, hχ1, hχC₂, hχB, L, hL⟩ :=
     exists_gluing_cutoff (k := k) hB hr₁ hδ hr₀
   set C₂ : Set ((Fin m → ℝ) × (Fin k → ℝ)) := cthickening (δ / 4) Q₁ ×ˢ closedBall 0 (2 * r₀)
   have hC₂ : IsCompact C₂ := (isCompact_closedBall _ _).cthickening.prod (isCompact_closedBall _ _)
@@ -264,20 +279,15 @@ theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
   refine ⟨h, f', V, ⟨C₁ ∪ C₂, hC₁.union hC₂, union_subset ?_ ?_,
     fun t x hx ↦ hC₁h t x fun h ↦ hx (Or.inl h),
     fun x hx ↦ by simp [f', hχC₂ x fun h ↦ hx (Or.inr h)]⟩,
-    fun t x ↦ (hsmall t x).trans (half_lt_self hδ), hfst, ?_,
+    fun t x ↦ (hsmall t x).trans (half_lt_self hδ), hfst,
     (((hV₀.inter hU).union (hV₀.inter isOpen_interior)).union (hU.inter isOpen_interior)), ?_,
-    hf', fun x hx ↦ ?_, ⟨{x | χ x = 0}, nhdsSet_mono ?_ hχ0, fun x hx ↦ by simp [f', hx.out]⟩⟩
+    hf', fun x hx ↦ ?_, ?_⟩
   · calc C₁ ⊆ thickening (δ / 2) (cthickening (δ / 2) Q) := hC₁K
       _ ⊆ thickening (δ / 2 + δ / 2) Q := thickening_cthickening_subset _ (by positivity) _
       _ = thickening δ Q := by rw [add_halves]
   · rw [hQ, thickening_prod, thickening_singleton]
     exact prod_mono (cthickening_subset_thickening' hδ (by linarith) _)
       (closedBall_subset_ball (by linarith [min_le_right (r₁ / 4) (δ / 8)]))
-  · -- Near `B` the cutoff `ψ`, hence the profile, vanishes, so the diffeotopy is the identity.
-    obtain ⟨O, hO, hBO, hOψ⟩ := eventually_nhdsSet_iff_exists.1 hψ0
-    refine ⟨Prod.fst ⁻¹' O, (hO.preimage continuous_fst).mem_nhdsSet.2 fun x hx ↦ hBO hx.1,
-      fun t x hx ↦ hfix t x ?_⟩
-    simp [φ, ψ, hOψ _ hx]
   · rintro _ ⟨⟨u, v⟩, ⟨hu, hv⟩, rfl⟩
     rw [mem_singleton_iff] at hv
     subst hv
@@ -305,7 +315,14 @@ theorem exists_holonomic_approximation_direction {m k : ℕ} (hk : 0 < k)
         _ ≤ r₀ := by linarith
   · exact glue_estimate (hf.differentiable (by simp)) (hf₀.differentiable (by simp))
       (hχ.differentiable (by simp)) hχI hL hUf hf₀V₀ hε hε₀ε hε₀L hx
-  · exact fun x hx ↦ ⟨Or.inl hx.1, trivial⟩
+  · -- Over a neighbourhood of `B`, the cutoff `ψ`, hence the profile, and the cutoff `χ` vanish
+    -- at every height, so the diffeotopy is the identity and `f' = f` there.
+    obtain ⟨O, hO, hBO, hOψ⟩ := eventually_nhdsSet_iff_exists.1 hψ0
+    refine ⟨O ∩ {u | ∀ v, χ (u, v) = 0}, Filter.inter_mem (hO.mem_nhdsSet.2 hBO) hχB,
+      fun x hx ↦ ⟨fun t ↦ hfix t x ?_, ?_⟩⟩
+    · simp [φ, ψ, hOψ _ hx.1]
+    · have hχx : χ x = 0 := hx.2 x.2
+      simp [f', hχx]
 
 end SymplecticGeometry
 

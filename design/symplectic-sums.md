@@ -419,9 +419,9 @@ $X(g,n)$ for the complement of $c_0,\dots,c_{n-1}$.
   `g` as they are and turns the torus loops into `circleLoop (g + 1) 0 i`,
   by the definition of `summandPath`. So the step is exact, and the
   statement holds for every `g` once it holds for `g = 0`.
-- **The sphere needs explicit balls.** `ClosedSurfaceData.sphere` takes
+- **The sphere needs explicit balls.** `ClosedSurfaceData.sphere` took
   its balls from `exists_pairwise_disjoint_range_subset_compl_sphere` by
-  choice, so nothing says whether they all induce the same orientation.
+  choice, so nothing said whether they all induce the same orientation.
   If two of them induce opposite ones, then on the sphere minus their two
   centres, whose fundamental group is `ℤ`, their circles have the same
   class whatever the connecting paths, while `Orientable 0 2` needs `p`
@@ -430,8 +430,8 @@ $X(g,n)$ for the complement of $c_0,\dots,c_{n-1}$.
   `Orientable g 0`. So a refactor comes first: the balls of the sphere
   become `TauCeti.sphereBall v ∘ OpenPartialHomeomorph.univBall (j • e)
   (1 / 2)`, for the base point `v = (1, 0, 0)` and
-  `e = EuclideanSpace.single 0 1` (the choice the existence proof already
-  makes, with its vector fixed), with a lemma giving
+  `e = EuclideanSpace.single 0 1` (the choice the existence proof made,
+  with its vector fixed), with a lemma giving
   `ClosedSurface.ball 0 j` in this form.
 - **The base case.** For `n = 0` the sphere is simply connected
   (`TauCeti.simplyConnectedSpace_sphere`) and `Orientable 0 0` is trivial.
