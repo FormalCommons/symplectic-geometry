@@ -41,6 +41,9 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   and `4 K δ ≤ (log K) ^ (-3 / 2)`, the solution with `c = 1 + d K δ` is an `i`-convex shape on
   `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value in `[1 + d δ, 1 + d K δ)`,
   and has slope tending to `+∞` at `δ`.
+* `SymplecticGeometry.isConvexShapeAt_sqrt_sub`: the shape `√(a r² - c)` for `a > 1`, at each
+  `r > 0` with `c < a r²`; `√(ℓ² + a r²)` is its case `c = -ℓ²`. Its second derivative,
+  `-a c / √(a r² - c)³`, is `SymplecticGeometry.iteratedDeriv_two_sqrt_sub`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt`, `SymplecticGeometry.isConvexShapeAt_quadratic` and
   `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
   `ℓ + b r + c r² / (2 ℓ)` for `c > 1`, and `ℓ + d r` for `r < ℓ d³`.
@@ -530,50 +533,75 @@ theorem iteratedDeriv_two_quadratic (ℓ b c r : ℝ) :
   simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
   ring
 
+/-- The second derivative of the shape `r ↦ √(a r² - c)`, at a point `r` where `a r² - c > 0`,
+is `-a c / √(a r² - c)³`. -/
+theorem iteratedDeriv_two_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
+    iteratedDeriv 2 (fun r ↦ √(a * r ^ 2 - c)) r = -a * c / √(a * r ^ 2 - c) ^ 3 := by
+  have e : (fun r ↦ √(a * r ^ 2 - c)) = fun r ↦ √(-c + 0 * r + a * r ^ 2) := by
+    ext r
+    ring_nf
+  have hQ : 0 < -c + 0 * r + a * r ^ 2 := by linarith
+  have hR : -c + 0 * r + a * r ^ 2 = a * r ^ 2 - c := by ring
+  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
+  rw [deriv_deriv_sqrt_quadratic hQ, hR, pow_succ _ 2, sq_sqrt h.le]
+  field_simp
+  ring
+
 /-- The second derivative of the shape `r ↦ √(ℓ² + a r²)`, at a point `r` where
 `ℓ² + a r² > 0`, is `a ℓ² / √(ℓ² + a r²)³`. -/
 theorem iteratedDeriv_two_sqrt_quadratic {a ℓ r : ℝ} (h : 0 < ℓ ^ 2 + a * r ^ 2) :
     iteratedDeriv 2 (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) r = a * ℓ ^ 2 / √(ℓ ^ 2 + a * r ^ 2) ^ 3 := by
-  have e : (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
-    simp
-  have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by simpa using h
-  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
-  rw [deriv_deriv_sqrt_quadratic hQ, zero_mul, add_zero, pow_succ _ 2, sq_sqrt h.le]
-  field_simp
+  have e : ∀ r : ℝ, ℓ ^ 2 + a * r ^ 2 = a * r ^ 2 - -ℓ ^ 2 := fun r ↦ by ring
+  simp only [e]
+  rw [iteratedDeriv_two_sqrt_sub (by linarith [e r])]
   ring
+
+/-- **The shape `√(a r² - c)`.** For `1 < a`, `0 < r` and `c < a r²`, `r ↦ √(a r² - c)` is an
+`i`-convex shape at `r`. -/
+theorem isConvexShapeAt_sqrt_sub {a c r : ℝ} (ha : 1 < a) (hr : 0 < r) (hc : c < a * r ^ 2) :
+    IsConvexShapeAt (fun r ↦ √(a * r ^ 2 - c)) r := by
+  -- Write the radicand as Tau Ceti's quadratic `-c + 0 r + a r²`.
+  have e : (fun r ↦ √(a * r ^ 2 - c)) = fun r ↦ √(-c + 0 * r + a * r ^ 2) := by
+    ext r
+    ring_nf
+  rw [e]
+  have hQ : 0 < -c + 0 * r + a * r ^ 2 := by linarith
+  set S := √(-c + 0 * r + a * r ^ 2) with hS_def
+  have hS : 0 < S := sqrt_pos.2 hQ
+  have hSS : S ^ 2 = -c + 0 * r + a * r ^ 2 := sq_sqrt hQ.le
+  have h₁ : deriv (fun r ↦ √(-c + 0 * r + a * r ^ 2)) r = a * r / S := by
+    rw [((hasDerivAt_quadratic _ _ _ r).sqrt hQ.ne').deriv]
+    field_simp
+    ring
+  have h₂ : iteratedDeriv 2 (fun r ↦ √(-c + 0 * r + a * r ^ 2)) r = -a * c / S ^ 3 := by
+    rw [← e, iteratedDeriv_two_sqrt_sub (by linarith), hS_def]
+    ring_nf
+  refine isConvexShapeAt_iff.2 ⟨hr, hS, ?_, ?_⟩
+  · rw [h₁, show a * r / S / r = a / S by field_simp]
+    exact div_lt_div_of_pos_right ha hS
+  · rw [h₁, h₂]
+    have e' : -a * c / S ^ 3 + (a * r / S) ^ 3 / r = (a ^ 3 * r ^ 2 - a * c) / S ^ 3 := by
+      field_simp
+      ring
+    rw [e', div_lt_div_iff₀ hS (by positivity), show S ^ 3 = S * S ^ 2 by ring, hSS]
+    -- `(a - 1) c < (a - 1) a r² < (a³ - a) r²`.
+    have h₃ : (a - 1) * c < (a - 1) * (a * r ^ 2) := mul_lt_mul_of_pos_left hc (by linarith)
+    have h₄ : 0 < (a - 1) * a * a * r ^ 2 := by
+      have : 0 < a - 1 := by linarith
+      have : 0 < a := by linarith
+      positivity
+    have : -c + 0 * r + a * r ^ 2 < a ^ 3 * r ^ 2 - a * c := by nlinarith
+    nlinarith
 
 /-- **The shape `√(ℓ² + a r²)`.** For `1 < a` and any `ℓ`, `r ↦ √(ℓ² + a r²)` is an `i`-convex
 shape at every `r > 0`. -/
 theorem isConvexShapeAt_sqrt {a ℓ r : ℝ} (ha : 1 < a) (hr : 0 < r) :
     IsConvexShapeAt (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) r := by
-  have e : (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
-    simp
+  have e : (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) = fun r ↦ √(a * r ^ 2 - -ℓ ^ 2) := by
+    ext r
+    ring_nf
   rw [e]
-  have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by nlinarith
-  set S := √(ℓ ^ 2 + 0 * r + a * r ^ 2) with hS_def
-  have hS : 0 < S := sqrt_pos.2 hQ
-  have hSS : S ^ 2 = ℓ ^ 2 + 0 * r + a * r ^ 2 := sq_sqrt hQ.le
-  have h₁ : deriv (fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2)) r = a * r / S := by
-    rw [((hasDerivAt_quadratic _ _ _ r).sqrt hQ.ne').deriv]
-    field_simp
-    ring
-  have h₂ : iteratedDeriv 2 (fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2)) r = a * ℓ ^ 2 / S ^ 3 := by
-    rw [← e, iteratedDeriv_two_sqrt_quadratic (by simpa using hQ), hS_def, zero_mul, add_zero]
-  refine isConvexShapeAt_iff.2 ⟨hr, hS, ?_, ?_⟩
-  · rw [h₁, show a * r / S / r = a / S by field_simp]
-    exact div_lt_div_of_pos_right ha hS
-  · rw [h₁, h₂]
-    have e' : a * ℓ ^ 2 / S ^ 3 + (a * r / S) ^ 3 / r = (a * ℓ ^ 2 + a ^ 3 * r ^ 2) / S ^ 3 := by
-      field_simp
-    rw [e', div_lt_div_iff₀ hS (by positivity)]
-    have : S ^ 3 = S * S ^ 2 := by ring
-    rw [this, hSS]
-    have : a * r ^ 2 < a ^ 3 * r ^ 2 := by
-      have : a < a ^ 3 := by
-        nlinarith [mul_pos (by linarith : (0 : ℝ) < a - 1) (by positivity : (0 : ℝ) < a * (a + 1))]
-      exact mul_lt_mul_of_pos_right this (by positivity)
-    have : ℓ ^ 2 ≤ a * ℓ ^ 2 := by nlinarith
-    nlinarith
+  exact isConvexShapeAt_sqrt_sub ha hr (by nlinarith [sq_nonneg ℓ])
 
 /-- **The shape `ℓ + b r + c r² / (2 ℓ)`.** For `0 < ℓ`, `0 ≤ b` and `1 < c`,
 `r ↦ ℓ + b r + c r² / (2 ℓ)` is an `i`-convex shape at every `r > 0`. -/
