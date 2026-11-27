@@ -12,7 +12,6 @@ public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LocalPullback
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
-import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HolomorphicEmbedding
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
@@ -61,7 +60,7 @@ is injective.
   `M` and a holomorphic chart `c`, `J̃` is the structure of the complex manifold `Blowup c`.
 * `SymplecticGeometry.Blowup.mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding`: the
   structure of the complex manifold `Blowup c` preserves the tangent spaces of the exceptional
-  divisor.
+  divisor, as the special case of the almost complex statement.
 
 ## References
 
@@ -430,9 +429,8 @@ theorem mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding (ℓ : ℙ �
         (divisorRealEmbedding c ℓ))
       ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn)
       ((divisorRealEmbedding c).isImmersion.tangentRange ℓ hn) := by
-  rw [divisorRealEmbedding_eq_restrictScalars]
-  exact (divisorEmbedding c).mapsTo_ofComplexManifold_tangentRange_restrictScalars le_top
-    ENat.LEInfty.out hn ℓ
+  rw [← almostComplexStructure_eq_ofComplexManifold]
+  exact mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding c _ _ ℓ
 
 end Complex
 

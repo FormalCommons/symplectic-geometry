@@ -8,17 +8,18 @@ module
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import Mathlib.GroupTheory.QuotientGroup.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Fibre
+public import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import Mathlib.Analysis.Convex.Contractible
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.BasepointChange
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.VanKampen
 import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Topology.Homotopy.Annulus
-import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
-import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
 import TauCeti.Geometry.Manifold.Topology
+import TauCeti.Topology.Homotopy.Path
 
 /-!
 # The complement of the closed tube of a product neighbourhood
@@ -33,15 +34,13 @@ complement of `ι (Q)` is.
 Both are proved with the open sets `f (Q × A(a, ε))`, the images of the products of `Q` with the
 open annuli `a < |z| < ε`. The complement of the tube and the range of `f` cover `M` and meet in
 the collar `f (Q × A(δ, ε))`, which is path connected; so the complement of the tube is path
-connected, as `M` is connected (`IsPreconnected.of_isOpen_of_union_eq_univ`). For the
+connected, as `M` is connected (`IsPathConnected.of_isOpen_of_union_eq_univ`). For the
 fundamental groups, the complement of the tube and `f (Q × A(0, ε))` cover the complement of
-`ι (Q)`, again with the collar as overlap, and van Kampen
-(`TauCeti.isPushout_fundamentalGroup_union`) applies: the inclusion of the collar into
-`f (Q × A(0, ε))` is, through `f`, the product of `Q` with the inclusion of an annulus into the
-punctured disc, a homotopy equivalence (`SymplecticGeometry.annulusHomotopyEquiv`). The leg of a
-pushout opposite an isomorphism is an isomorphism. The argument follows the proof of
-`Topology.IsOpenEmbedding.isPathConnected_compl_image` in
-`AlgebraicTopology/FundamentalGroup/Prod/ComplDisc.lean` for path connectedness.
+`ι (Q)`, again with the collar as overlap, and van Kampen with a bijective leg
+(`FundamentalGroup.map_inclusion_bijective_of_map_inclusion_bijective`) applies: the inclusion of
+the collar into `f (Q × A(0, ε))` is, through `f`, the product of `Q` with the inclusion of an
+annulus into the punctured disc, a homotopy equivalence
+(`SymplecticGeometry.annulusHomotopyEquiv`).
 
 The same cover of `M` by the complement of the tube and the range of `f` describes `π₁(M)` from
 the complement of the tube. Through `f`, the inclusion of the collar into the range of `f` is the
@@ -54,6 +53,14 @@ closure of the image of the collar's group; and the image of `π₁(range f)` in
 the collar's group. Dividing by these normal closures gives an isomorphism of quotients. The
 transport along `f` follows the proof of `FundamentalGroup.map_subtypeVal_compl_image_surjective`
 in `AlgebraicTopology/FundamentalGroup/Prod/ComplDisc.lean`.
+
+At a point `f (q, z)` of the collar, the normal closure `tubeSubgroup` is that of the image of
+`ι_* : π₁(Q, q) → π₁(M, ι q)`, moved along the radial path
+`ProductNeighborhood.radialPath`, `t ↦ f (q, t • z)`. The change of base point commutes with the
+map induced by the inclusion of the range of `f`, which contains the path
+(`FundamentalGroup.basepointChangeSubgroup_map_range`), and `q ↦ f (q, 0)` is onto on
+fundamental groups, as through `f` it is the inclusion of the slice `Q × {0}` into the product
+of `Q` with a simply connected disc (`FundamentalGroup.map_prodMk_const_surjective`).
 
 ## Main results
 
@@ -73,11 +80,17 @@ in `AlgebraicTopology/FundamentalGroup/Prod/ComplDisc.lean`.
   `collarSubgroup` of the image of the collar's fundamental group.
 * `SymplecticGeometry.ProductNeighborhood.complTubeQuotientMulEquiv`: the resulting isomorphism
   of quotients, with its value `complTubeQuotientMulEquiv_mk` on classes of loops.
+* `SymplecticGeometry.ProductNeighborhood.range_map_subtypeVal_eq_range_map_embedding`: the
+  fundamental groups of the range of `f` and of `Q` have the same image in `π₁(M, ι q)`.
+* `SymplecticGeometry.ProductNeighborhood.basepointChangeSubgroup_radialPath`: the change of base
+  point along the radial path carries the normal closure of the image of `ι_*` onto
+  `tubeSubgroup`.
 
 ## References
 
 * A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
-  Cambridge University Press, 2002, Theorem 1.20.
+  Cambridge University Press, 2002, §1.1 (change of base point), Proposition 1.12 and
+  Theorem 1.20.
 * [R. E. Gompf, *A new construction of symplectic manifolds*][Gompf1995]
 -/
 
@@ -175,9 +188,8 @@ theorem isPathConnected_complTube [ConnectedSpace M] (hδ : 0 ≤ δ) (hδε : �
     IsPathConnected (f.complTube hδε : Set M) := by
   have hAB := f.complTube_inter_range hδε ▸ f.isPathConnected_range_comp_annulusToProdBall hδ hδε
   have : LocallyPathConnectedSpace M := I.locallyPathConnectedSpace_of_chartedSpace M
-  refine ((f.complTube hδε).isOpen.isConnected_iff_isPathConnected).1
-    ⟨hAB.nonempty.mono inter_subset_left, hAB.isConnected.isPreconnected.of_isOpen_of_union_eq_univ
-      hAB.nonempty (f.complTube hδε).isOpen f.isOpen_range (f.complTube_union_range hδε)⟩
+  exact hAB.of_isOpen_of_union_eq_univ (f.complTube hδε).isOpen f.isOpen_range
+    (f.complTube_union_range hδε)
 
 omit [PathConnectedSpace Q] in
 /-- The inclusion of the collar `f (Q × A(δ, ε))`, as the intersection of the complement of the
@@ -222,19 +234,11 @@ theorem map_inclusion_complTube_bijective (hδ : 0 ≤ δ) (hδε : δ < ε) (x 
   have hAB := f.complTube_inter_range_comp_annulusToProdBall_zero hδ hδε
   have hABc := hAB ▸ f.isPathConnected_range_comp_annulusToProdBall hδ hδε
   obtain ⟨y, hy⟩ := hABc.nonempty
-  have hP := TauCeti.isPushout_fundamentalGroup_union (f.compl_range_eq_complTube_union hδ hδε)
-    (f.complTube hδε).isOpen (f.isOpenEmbedding_comp_annulusToProdBall 0).isOpen_range
-    (f.isPathConnected_complTube hδ hδε)
-    (f.isPathConnected_range_comp_annulusToProdBall le_rfl (hδ.trans_lt hδε)) hABc y hy.1 hy.2
-  have : CategoryTheory.IsIso (GrpCat.ofHom (FundamentalGroup.map
-      (ContinuousMap.inclusion inter_subset_right) (⟨y, hy⟩ : ↥((f.complTube hδε : Set M) ∩
-        range (f ∘ annulusToProdBall : Q × annulus ℂ 0 ε → M))))) :=
-    (CategoryTheory.ConcreteCategory.isIso_iff_bijective _).2
-      (f.map_inclusion_collar_bijective hδ hδε ⟨y, hy⟩)
-  have hy' := (CategoryTheory.ConcreteCategory.isIso_iff_bijective _).1 hP.isIso_inl_of_isIso
-  have : PathConnectedSpace (f.complTube hδε : Set M) :=
-    isPathConnected_iff_pathConnectedSpace.1 (f.isPathConnected_complTube hδ hδε)
-  exact FundamentalGroup.map_bijective_of_path _ (PathConnectedSpace.somePath _ x) hy'
+  exact FundamentalGroup.map_inclusion_bijective_of_map_inclusion_bijective
+    (f.compl_range_eq_complTube_union hδ hδε) (f.complTube hδε).isOpen
+    (f.isOpenEmbedding_comp_annulusToProdBall 0).isOpen_range (f.isPathConnected_complTube hδ hδε)
+    (f.isPathConnected_range_comp_annulusToProdBall le_rfl (hδ.trans_lt hδε)) hABc hy.1 hy.2
+    (f.map_inclusion_collar_bijective hδ hδε ⟨y, hy⟩) x
 
 /-- For a product neighbourhood `f` of an embedding `ι` of a compact, path connected `Q` into a
 connected Hausdorff manifold `M`, and `0 ≤ δ < ε`, the complement of the closed tube
@@ -273,21 +277,15 @@ theorem map_inclusion_inter_range_surjective (hδε : δ < ε)
   have hsub : (annulus ℂ δ ε : Set ℂ) ⊆ Metric.ball 0 ε := fun z hz ↦
     mem_ball_zero_iff.2 (mem_annulus.1 hz).2
   let F := (ContinuousMap.id Q).prodMap (ContinuousMap.inclusion hsub)
-  let eB : Q × Metric.ball (0 : ℂ) ε ≃ₜ prodBall Q ε :=
-    { toFun := fun w ↦ ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩
-      invFun := fun w ↦ ((w : Q × ℂ).1,
-        ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩)
-      left_inv := fun _ ↦ rfl
-      right_inv := fun _ ↦ rfl }
-  let e : Q × Metric.ball (0 : ℂ) ε ≃ₜ range f :=
-    eB.trans f.isOpenEmbedding.isEmbedding.toHomeomorph
+  let e := f.rangeHomeomorph
   let e' : Q × annulus ℂ δ ε ≃ₜ ↥((f.complTube hδε : Set M) ∩ range f) :=
     (f.isOpenEmbedding_comp_annulusToProdBall δ).isEmbedding.toHomeomorph.trans
       (Homeomorph.setCongr (f.complTube_inter_range hδε).symm)
   -- `e'` and `e ∘ F` are `f` on points, so their basepoint equations are `hp`
   let φ' := FundamentalGroup.homeomorphMulEquivOfEq e' (Subtype.ext hp : e' p = y)
   let φ := FundamentalGroup.homeomorphMulEquivOfEq e
-    (Subtype.ext ((congrArg f (Subtype.ext (coe_annulusToProdBall p).symm)).trans hp) :
+    (Subtype.ext ((f.coe_rangeHomeomorph_apply _).trans ((congrArg f (Subtype.ext
+      (coe_annulusToProdBall p).symm)).trans hp)) :
       e (F p) = ContinuousMap.inclusion inter_subset_right y)
   have : ContractibleSpace (Metric.ball (0 : ℂ) ε) :=
     (convex_ball 0 ε).contractibleSpace ⟨_, (F p).2.property⟩
@@ -305,8 +303,9 @@ theorem map_inclusion_inter_range_surjective (hδε : δ < ε)
           (e' : C(Q × annulus ℂ δ ε, _)) =
         (e : C(Q × Metric.ball (0 : ℂ) ε, range f)).comp F :=
       ContinuousMap.ext fun w ↦ Subtype.ext
-      (show f (annulusToProdBall w) = f (eB (F w)) from
-        congrArg f (Subtype.ext (coe_annulusToProdBall w)))
+      (show f (annulusToProdBall w) = (e (F w) : M) from
+        (congrArg f (Subtype.ext (coe_annulusToProdBall w))).trans
+          (f.coe_rangeHomeomorph_apply _).symm)
     exact FundamentalGroup.mapOfEq_mapOfEq_eq_mapOfEq_mapOfEq hcomp _ _ _ _ γ
   rw [hsq, hγ, MulEquiv.apply_symm_apply]
 
@@ -472,6 +471,69 @@ theorem complTubeQuotientMulEquiv_mk (hδ : 0 ≤ δ) (hδε : δ < ε) (x : f.c
         (FundamentalGroup.map (ContinuousMap.subtypeVal (f.complTube hδε : Set M)) x γ :
           FundamentalGroup M x) :=
   (rfl)
+
+/-! ### The radial change of base point from the collar to the core -/
+
+omit [PathConnectedSpace Q] [ConnectedSpace M] [CompactSpace Q] [T2Space M] in
+/-- The fundamental group of the range of a product neighbourhood `f` and that of `Q` have the
+same image in `π₁(M, ι q)`: the map `Q → range f`, `q ↦ ι q = f (q, 0)`, is onto on fundamental
+groups, since through `f` it is the inclusion of the slice `Q × {0}` into `Q × B²(ε)` and the
+disc is simply connected. -/
+theorem range_map_subtypeVal_eq_range_map_embedding (q : Q) (h : ι q ∈ range f) :
+    Set.range (FundamentalGroup.map (ContinuousMap.subtypeVal (range f)) ⟨ι q, h⟩) =
+      Set.range (FundamentalGroup.map ι.toContinuousMap q) := by
+  have hε : 0 < ε := by
+    obtain ⟨p, -⟩ := h
+    exact (norm_nonneg _).trans_lt (mem_prodBall.1 p.property)
+  have : ContractibleSpace (Metric.ball (0 : ℂ) ε) :=
+    (convex_ball 0 ε).contractibleSpace ⟨0, Metric.mem_ball_self hε⟩
+  let r : C(Q, range f) :=
+    ⟨fun q' ↦ ⟨ι q', f.range_embedding_subset_range hε ⟨q', rfl⟩⟩, by fun_prop⟩
+  let s : C(Q, Q × Metric.ball (0 : ℂ) ε) :=
+    (ContinuousMap.id Q).prodMk (.const Q ⟨0, Metric.mem_ball_self hε⟩)
+  -- `f.rangeHomeomorph ∘ s` is `q ↦ f (q, 0)`, which is `r` only by `apply_mk_zero`
+  have hr : ∀ g : C(Q, range f), (f.rangeHomeomorph : C(_, range f)).comp s = g →
+      Function.Surjective (FundamentalGroup.map g q) := by
+    rintro _ rfl
+    rw [FundamentalGroup.map_comp]
+    exact (f.rangeHomeomorph.toHomotopyEquiv.fundamentalGroup_map_bijective _).2.comp
+      (FundamentalGroup.map_prodMk_const_surjective q _)
+  rw [← (hr r (ContinuousMap.ext fun q' ↦ Subtype.ext ((f.coe_rangeHomeomorph_apply _).trans
+    (f.apply_mk_zero q' _)))).range_comp]
+  -- `subtypeVal ∘ r` is `ι` as a continuous map, by the definition of `r`
+  exact congrArg Set.range
+    (funext fun x ↦ (DFunLike.congr_fun (FundamentalGroup.map_comp _ r q) x).symm)
+
+omit [PathConnectedSpace Q] [ConnectedSpace M] [CompactSpace Q] [T2Space M] in
+/-- **Radial change of base point to the core.** For a product neighbourhood
+`f` of an embedding `ι : Q → M` and a point `p = (q, z)` of `Q × B²(ε)`, the change of base point
+along the radial path from `ι q` to `f p` carries the normal closure of the image of
+`ι_* : π₁(Q, q) → π₁(M, ι q)` onto the normal closure `f.tubeSubgroup (f p) _` of the image of the
+fundamental group of the range of `f`. -/
+theorem basepointChangeSubgroup_radialPath (p : prodBall Q ε) :
+    FundamentalGroup.basepointChangeSubgroup (f.radialPath p) (Subgroup.normalClosure
+      (Set.range (FundamentalGroup.map ι.toContinuousMap (p : Q × ℂ).1))) =
+    f.tubeSubgroup (f p) (mem_range_self p) := by
+  have h : ι (p : Q × ℂ).1 ∈ range f := by
+    rw [← (f.radialPath p).source, radialPath_apply]
+    exact mem_range_self _
+  -- the radial path, as a path in the range of `f`
+  let γ : Path (⟨ι (p : Q × ℂ).1, h⟩ : range f) ⟨f p, mem_range_self p⟩ :=
+    (f.radialPath p).codRestrict fun _ ↦ by simp
+  have hγ : γ.map (ContinuousMap.subtypeVal (range f)).continuous = f.radialPath p :=
+    Path.map_codRestrict _ _
+  -- the base points `subtypeVal ⟨x, _⟩` of the induced maps are `x` only up to unfolding the
+  -- coercion, which `rw` does not do, so the subgroups are related by terms rather than `rw`
+  have key : FundamentalGroup.basepointChangeSubgroup (f.radialPath p)
+      (FundamentalGroup.map (ContinuousMap.subtypeVal (range f)) ⟨_, h⟩).range =
+      (FundamentalGroup.map (ContinuousMap.subtypeVal (range f)) ⟨f p, mem_range_self p⟩).range :=
+    hγ ▸ FundamentalGroup.basepointChangeSubgroup_map_range _ γ
+  replace key := (FundamentalGroup.basepointChangeSubgroup_eq_map (f.radialPath p) _).symm.trans key
+  rw [FundamentalGroup.basepointChangeSubgroup_eq_map, Subgroup.map_normalClosure _ _
+    (FundamentalGroup.fundamentalGroupMulEquivOfPath _).surjective, tubeSubgroup_def,
+    ← f.range_map_subtypeVal_eq_range_map_embedding _ h]
+  exact congrArg _ (((Subgroup.coe_map _ _).symm.trans (congrArg SetLike.coe key)).trans
+    (MonoidHom.coe_range _))
 
 end SymplecticGeometry.ProductNeighborhood
 

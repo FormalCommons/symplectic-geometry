@@ -24,6 +24,8 @@ a time.
 * `FundamentalGroup.prod_ext`: an element of `π₁(X × Y, (x, y))` is determined by its images
   under the two projections, and `FundamentalGroup.map_fst_injective`: by its image under the
   first one if `Y` is simply connected.
+* `FundamentalGroup.map_prodMk_const_surjective`: if `Y` is simply connected, the inclusion of
+  the slice `X × {y}` is onto on fundamental groups.
 * `FundamentalGroup.map_fst_map_prodMap`, `FundamentalGroup.map_snd_map_prodMap`: the
   coordinates of the image of a class under `f.prodMap g` are the images of its coordinates.
 * `FundamentalGroup.ker_map_fst_eq_range`: the classes with trivial first coordinate are those
@@ -75,6 +77,14 @@ theorem map_snd_map_prodMap (f : C(X, X')) (g : C(Y, Y')) (x : X) (y : Y)
 theorem map_fst_injective [SimplyConnectedSpace Y] (x : X) (y : Y) :
     Function.Injective (map (.fst : C(X × Y, X)) (x, y)) :=
   fun _ _ h => prod_ext h (Subsingleton.elim _ _)
+
+/-- If `Y` is simply connected, the inclusion `x' ↦ (x', y)` of the slice `X × {y}` induces a
+surjection `π₁(X, x) → π₁(X × Y, (x, y))`. -/
+theorem map_prodMk_const_surjective [SimplyConnectedSpace Y] (x : X) (y : Y) :
+    Function.Surjective (map ((ContinuousMap.id X).prodMk (.const X y)) x) := fun γ =>
+  ⟨map .fst _ γ, map_fst_injective x y <|
+    (DFunLike.congr_fun (map_comp .fst ((ContinuousMap.id X).prodMk (.const X y)) x) _).symm.trans
+      (DFunLike.congr_fun (map_id x) _)⟩
 
 /-- The kernel of the first coordinate projection on `π₁(X × Y, (x, y))` is the image of
 `π₁(Unit × Y, ((), y))` under the inclusion `(u, y') ↦ (x, y')` of the slice through `x`. -/

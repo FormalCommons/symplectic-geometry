@@ -67,8 +67,8 @@ theorem isMIntegralCurveOn_prodMk_timeDependentSuspensionField_mulInvariantVecto
     (hg : HasLeftTrivializedDerivOn (I := I) g ξ s) :
     IsMIntegralCurveOn (fun t ↦ (t, g t))
       (timeDependentSuspensionField fun t x ↦ mulInvariantVectorField (I := I) (ξ t) x) s :=
-  fun t ht ↦ hasMFDerivWithinAt_prodMk_timeDependentSuspensionField
-    (hasLeftTrivializedDerivOn_iff.mp hg t ht)
+  isMIntegralCurveOn_prodMk_timeDependentSuspensionField_iff.2
+    (hasLeftTrivializedDerivOn_iff.mp hg)
 
 /-- **A curve with left-trivialized derivative `ξ` at every time lifts to an integral curve.**
 If `g : ℝ → G` has left-trivialized derivative `ξ` at every time, then `t ↦ (t, g t)` is an

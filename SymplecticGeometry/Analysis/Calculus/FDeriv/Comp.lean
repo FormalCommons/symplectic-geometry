@@ -30,6 +30,10 @@ with Tau Ceti's `TauCeti.norm_fderiv_fderiv` and Mathlib's
 `‖D²(φ ∘ f)(x)‖ ≤ ‖φ''(f x)‖ ‖Df(x)‖² + ‖φ'(f x)‖ ‖D²f(x)‖`
 (`SymplecticGeometry.norm_fderiv_fderiv_scalar_comp_le`), the norm form of Tau Ceti's
 `TauCeti.fderiv_fderiv_scalar_comp_apply`.
+
+Finally, if `g` is a left inverse of `h` near `x`, and `T` has the same value and derivative as
+`h` at `x`, then `g ∘ T` has derivative the identity at `x`
+(`SymplecticGeometry.fderiv_comp_eq_id_of_eventuallyEq_id`).
 -/
 
 public section
@@ -88,6 +92,15 @@ theorem norm_fderiv_fderiv_scalar_comp_le (hφ : ContDiffAt 𝕜 2 φ (f x))
   rw [← norm_iteratedFDeriv_eq_norm_iteratedDeriv, ← TauCeti.norm_fderiv_fderiv,
     norm_deriv_eq_norm_fderiv]
   exact norm_fderiv_fderiv_comp_le hφ hf
+
+/-- Let `g : F → E` be a left inverse of `h : E → F` near `x`, differentiable at `h x`, and let
+`T : E → F` have the same value and the same derivative as `h` at `x`, with `h` and `T`
+differentiable at `x`. Then `g ∘ T` has derivative the identity at `x`. -/
+theorem fderiv_comp_eq_id_of_eventuallyEq_id {g : F → E} {h T : E → F}
+    (hg : DifferentiableAt 𝕜 g (h x)) (hh : DifferentiableAt 𝕜 h x)
+    (hT : DifferentiableAt 𝕜 T x) (hTx : T x = h x) (hT' : fderiv 𝕜 T x = fderiv 𝕜 h x)
+    (hgh : g ∘ h =ᶠ[nhds x] id) : fderiv 𝕜 (g ∘ T) x = ContinuousLinearMap.id 𝕜 E := by
+  rw [fderiv_comp x (hTx ▸ hg) hT, hT', hTx, ← fderiv_comp x hg hh, hgh.fderiv_eq, fderiv_id]
 
 end SymplecticGeometry
 
