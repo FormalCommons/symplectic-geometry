@@ -16,9 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import SymplecticGeometry.Topology.VectorBundle.Riemannian
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 import TauCeti.Geometry.Manifold.Morse.Bott.Lemma
-import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Topology.Order.Compact
+import TauCeti.Topology.Order.Sublevel
 
 /-!
 # The zero set of a transverse section is a Morse–Bott minimum of `‖s‖²`
@@ -48,13 +46,13 @@ of Morse index `0` (`TauCeti.SmoothEmbedding.manifoldMorseIndex_norm_sq_ofTransv
 A Morse–Bott critical submanifold is isolated in the critical set (Tau Ceti's
 `IsNondegenerateCriticalSubmanifold.exists_isOpen_criticalPoints_inter_eq_range`),
 so an open set `U` cuts the zero set out of the critical set of `‖s‖²`
-(`TauCeti.exists_isOpen_criticalPoints_norm_sq_inter_eq`). If `X` is compact, so is the complement
-of `U`, where `‖s‖²` is positive and hence at least some `ε > 0`; below `ε / 2` every critical
-point of `‖s‖²` is therefore a zero of `s`
-(`TauCeti.exists_pos_forall_notMem_criticalPoints_norm_sq`). Where `s ≠ 0`, `log ‖s‖²` and
-`‖s‖²` have the same critical points, since `log` has a nonzero derivative on `(0, ∞)` (Tau Ceti's
-`TauCeti.mem_criticalPoints_scalar_comp_iff`)
-(`TauCeti.exists_pos_forall_notMem_criticalPoints_log_norm_sq`).
+(`SymplecticGeometry.exists_isOpen_criticalPoints_norm_sq_inter_eq`). If `X` is compact, `‖s‖²`
+is continuous and positive off the zero set, so some sublevel `{‖s‖² ≤ ε}`, `ε > 0`, lies in `U`
+(Tau Ceti's `TauCeti.exists_pos_sublevel_subset_of_mem_nhdsSet`); there every critical point of
+`‖s‖²` is a zero of `s` (`SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_norm_sq`).
+Where `s ≠ 0`, `log ‖s‖²` and `‖s‖²` have the same critical points, since `log` has a nonzero
+derivative on `(0, ∞)` (Tau Ceti's `TauCeti.mem_criticalPoints_scalar_comp_iff`)
+(`SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_log_norm_sq`).
 
 ## Main results
 
@@ -65,9 +63,12 @@ point of `‖s‖²` is therefore a zero of `s`
   zero set of a transverse section is a Morse–Bott critical submanifold of `‖s‖²`.
 * `TauCeti.SmoothEmbedding.manifoldMorseIndex_norm_sq_ofTransverseSection`: its Morse index is
   `0` at every point.
-* `TauCeti.exists_pos_forall_notMem_criticalPoints_norm_sq` and
-  `TauCeti.exists_pos_forall_notMem_criticalPoints_log_norm_sq`: over a compact manifold, neither
-  `‖s‖²` nor `log ‖s‖²` has a critical point where `0 < ‖s‖² ≤ ε₀`, for some `ε₀ > 0`.
+* `SymplecticGeometry.exists_isOpen_criticalPoints_norm_sq_inter_eq`: for a transverse section,
+  some open set meets the critical set of `‖s‖²` exactly in the zero set.
+* `SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_norm_sq` and
+  `SymplecticGeometry.exists_pos_forall_notMem_criticalPoints_log_norm_sq`: over a compact
+  manifold, neither `‖s‖²` nor `log ‖s‖²` has a critical point where `0 < ‖s‖² ≤ ε₀`, for some
+  `ε₀ > 0`.
 
 ## References
 
@@ -206,7 +207,9 @@ theorem manifoldMorseIndex_norm_sq_ofTransverseSection (z : ↥{x : X | s x = 0}
 end TauCeti.SmoothEmbedding
 
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 include hsm hs in
 /-- **Near the zero set of a transverse section, `‖s‖²` is critical only on the zero set.** For a
@@ -221,12 +224,12 @@ theorem exists_isOpen_criticalPoints_norm_sq_inter_eq (hm2 : 2 ≤ m) :
         finrank ℝ V := by
       rw [finrank_euclideanSpace_fin]
       omega
-    let := SymplecticGeometry.transverseZeroSetChartedSpace hm hsm hs hE
+    let := transverseZeroSetChartedSpace hm hsm hs hE
     have : IsManifold J 2 X := IsManifold.of_le hm2
     obtain ⟨U, hU, hUeq⟩ :=
-      (SmoothEmbedding.isNondegenerateCriticalSubmanifold_norm_sq_ofTransverseSection hm hsm hs hE
-        hm2).exists_isOpen_criticalPoints_inter_eq_range hm2
-    exact ⟨U, hU, hUeq.trans (SmoothEmbedding.range_ofTransverseSection hm hsm hs hE)⟩
+      (TauCeti.SmoothEmbedding.isNondegenerateCriticalSubmanifold_norm_sq_ofTransverseSection
+        hm hsm hs hE hm2).exists_isOpen_criticalPoints_inter_eq_range hm2
+    exact ⟨U, hU, hUeq.trans (TauCeti.SmoothEmbedding.range_ofTransverseSection hm hsm hs hE)⟩
   · -- The linearization at a zero maps `V` onto a fibre of rank `finrank F'`, so there is none.
     refine ⟨∅, isOpen_empty, ?_⟩
     rw [inter_empty, eq_comm, eq_empty_iff_forall_notMem]
@@ -246,16 +249,12 @@ theorem exists_pos_forall_notMem_criticalPoints_norm_sq [CompactSpace X] (hm2 : 
     ∃ ε₀ : ℝ, 0 < ε₀ ∧ ∀ x, 0 < ‖s x‖ ^ 2 → ‖s x‖ ^ 2 ≤ ε₀ →
       x ∉ criticalPoints J (fun y ↦ ‖s y‖ ^ 2) := by
   obtain ⟨U, hU, hUeq⟩ := exists_isOpen_criticalPoints_norm_sq_inter_eq hsm hs hm2
-  have hc : Continuous fun y ↦ ‖s y‖ ^ 2 :=
+  obtain ⟨ε, hε, hεU⟩ := exists_pos_sublevel_subset_of_mem_nhdsSet
     ((contMDiff_norm_sq_bundle J m F' E').comp hsm).continuous
-  -- On the compact complement of `U` the function is positive, so it is bounded below there.
-  obtain ⟨ε, hε, hεle⟩ := hU.isClosed_compl.isCompact.exists_forall_le' hc.continuousOn
-    (a := 0) fun x hx ↦ by
-      have hsx : s x ≠ 0 := fun h ↦ hx (hUeq.symm.subset h).2
-      positivity
-  refine ⟨ε / 2, by positivity, fun x hx0 hxε hcrit ↦ ?_⟩
-  have hxU : x ∈ U := by_contra fun h ↦ by linarith [hεle x h]
-  have hsx : s x = 0 := hUeq.subset ⟨hcrit, hxU⟩
+    (A := {x | s x = 0}) (fun x (hx : s x ≠ 0) ↦ pow_pos (norm_pos_iff.2 hx) 2)
+    (hU.mem_nhdsSet.2 fun x hx ↦ (hUeq.symm.subset hx).2)
+  refine ⟨ε, hε, fun x hx0 hxε hcrit ↦ ?_⟩
+  have hsx : s x = 0 := hUeq.subset ⟨hcrit, hεU hxε⟩
   simp [hsx] at hx0
 
 include hsm hs in
@@ -274,6 +273,6 @@ theorem exists_pos_forall_notMem_criticalPoints_log_norm_sq [CompactSpace X] (hm
   exact (mem_criticalPoints_scalar_comp_iff (φ := Real.log) hd
     (by simpa [Real.deriv_log] using hx0.ne')).1 hcrit
 
-end TauCeti
+end SymplecticGeometry
 
 end
