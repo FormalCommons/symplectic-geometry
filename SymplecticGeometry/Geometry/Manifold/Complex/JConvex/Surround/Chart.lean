@@ -8,6 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
+import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -46,10 +48,12 @@ that composing with it changes neither the values nor the differential of `Φ₀
 The last part of the file reads the model space in the coordinates of one complex Euclidean
 space, those of `Surround/AlmostHolomorphic.lean`. Since `ℂᵏ × ℂᵐ` carries the sup norm of the
 product, it is not isometric to `EuclideanSpace ℂ (Fin k ⊕ Fin m)`; Mathlib's continuous complex
-linear equivalence `EuclideanSpace.sumEquivProd` identifies the two. Through its inverse, the
-real points of `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, those with imaginary part `0` for Tau Ceti's
-`TauCeti.complexEuclideanEquivRealProd`, are the points of `ℂᵏ × ℂᵐ` with real coordinates; the
-core is among them, and the imaginary part has norm at most `√(t p)` for the shape coordinate
+linear equivalence `EuclideanSpace.sumEquivProd` identifies the two. Imaginary parts are taken
+with Tau Ceti's `TauCeti.complexEuclideanEquivRealProd`, and the real points through the inverse
+of `sumEquivProd` are described by
+`TauCeti.complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff` from
+`SymplecticGeometry/Analysis/InnerProductSpace/Euclidean/ComplexExtension.lean`. Here the core is
+shown to be real, and the imaginary part to have norm at most `√(t p)` for the shape coordinate
 `t p = (SymplecticGeometry.shape p).2`.
 
 ## Main results
@@ -62,9 +66,8 @@ core is among them, and the imaginary part has norm at most `√(t p)` for the s
 * `SymplecticGeometry.exists_partialDiffeomorph_trans_modelDisc`: precomposing a partial
   diffeomorphism defined near the core with such a map keeps its source, target, values and
   differential along the core.
-* `TauCeti.complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff`: a point `(z, w)`
-  is real in the coordinates of `EuclideanSpace ℂ (ι ⊕ κ)` exactly when all coordinates of `z`
-  and `w` are real.
+* `SymplecticGeometry.complexEuclideanEquivRealProd_sumEquivProd_symm_modelDisc_snd`: in the
+  coordinates of `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, the core is real.
 * `SymplecticGeometry.norm_complexEuclideanEquivRealProd_sumEquivProd_symm_snd_le`: in those
   coordinates, the imaginary part of `p` has norm at most `√(t p)`.
 
@@ -78,65 +81,6 @@ public section
 
 open Manifold Set
 open scoped ContDiff
-
-/-! ### The model space as one complex Euclidean space -/
-
-namespace EuclideanSpace
-
-variable {𝕜 : Type*} [RCLike 𝕜] {ι κ : Type*} [Fintype ι] [Fintype κ]
-
-/-- The coordinate `Sum.inl i` of the point of `EuclideanSpace 𝕜 (ι ⊕ κ)` that corresponds to
-`p` is the coordinate `i` of `p.1`. -/
-theorem sumEquivProd_symm_apply_inl (p : EuclideanSpace 𝕜 ι × EuclideanSpace 𝕜 κ) (i : ι) :
-    sumEquivProd.symm p (Sum.inl i) = p.1 i := by
-  simp
-
-/-- The coordinate `Sum.inr j` of the point of `EuclideanSpace 𝕜 (ι ⊕ κ)` that corresponds to
-`p` is the coordinate `j` of `p.2`. -/
-theorem sumEquivProd_symm_apply_inr (p : EuclideanSpace 𝕜 ι × EuclideanSpace 𝕜 κ) (j : κ) :
-    sumEquivProd.symm p (Sum.inr j) = p.2 j := by
-  simp
-
-/-- The coordinate `i` of the first component of `sumEquivProd z` is the coordinate
-`Sum.inl i` of `z`. -/
-theorem sumEquivProd_apply_fst_apply (z : EuclideanSpace 𝕜 (ι ⊕ κ)) (i : ι) :
-    (sumEquivProd z).1 i = z (Sum.inl i) := by
-  simp
-
-/-- The coordinate `j` of the second component of `sumEquivProd z` is the coordinate
-`Sum.inr j` of `z`. -/
-theorem sumEquivProd_apply_snd_apply (z : EuclideanSpace 𝕜 (ι ⊕ κ)) (j : κ) :
-    (sumEquivProd z).2 j = z (Sum.inr j) := by
-  simp
-
-end EuclideanSpace
-
-namespace TauCeti
-
-variable {ι κ : Type*} [Fintype ι] [Fintype κ]
-
-/-- A point of `ℂⁿ` has imaginary part `0` exactly when it lies in the real subspace `ℝⁿ`. -/
-theorem complexEuclideanEquivRealProd_snd_eq_zero_iff {z : EuclideanSpace ℂ ι} :
-    (complexEuclideanEquivRealProd ι z).2 = 0 ↔ z ∈ realSubspace ι := by
-  rw [mem_realSubspace]
-  constructor
-  · intro h i
-    rw [← complexEuclideanEquivRealProd_apply_snd, h, PiLp.zero_apply]
-  · intro h
-    ext i
-    rw [complexEuclideanEquivRealProd_apply_snd, h i, PiLp.zero_apply]
-
-/-- The point of `EuclideanSpace ℂ (ι ⊕ κ)` that corresponds to `p = (z, w)` has imaginary part
-`0` exactly when all coordinates of `z` and of `w` are real. -/
-theorem complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff
-    {p : EuclideanSpace ℂ ι × EuclideanSpace ℂ κ} :
-    (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p)).2 = 0 ↔
-      (∀ i, (p.1 i).im = 0) ∧ ∀ j, (p.2 j).im = 0 := by
-  rw [complexEuclideanEquivRealProd_snd_eq_zero_iff, mem_realSubspace, Sum.forall]
-  simp only [EuclideanSpace.sumEquivProd_symm_apply_inl,
-    EuclideanSpace.sumEquivProd_symm_apply_inr]
-
-end TauCeti
 
 namespace SymplecticGeometry
 
