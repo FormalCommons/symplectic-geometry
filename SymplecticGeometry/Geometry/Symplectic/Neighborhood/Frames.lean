@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.Distribution.VectorBundle
 import TauCeti.Geometry.Manifold.TwoForm.Kernel
 import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Subbundle
 
 /-!
 # Smooth frames of the splitting along a submanifold
@@ -45,8 +46,7 @@ total spaces. These are the smoothness facts that the extension along a submanif
 ## Construction
 
 * `W` is the range of the derivative of the immersion `f`; its frames are
-  `Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`
-  (`SymplecticGeometry/Geometry/Manifold/VectorBundle/Pullback.lean`).
+  Tau Ceti's `Manifold.IsImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv`.
 * `K` is the image under `df` of the kernels of `f^* σ`, the preimages of `W^ω`
   (`TauCeti.SmoothTwoForm.IsNondegenerate.ker_bilinFormAt_mpullback_eq_comap_orthogonal` of Tau
   Ceti), which form a smooth distribution by Tau Ceti's
@@ -167,6 +167,7 @@ theorem hasLocalContMDiffSubbundleFrames_map_radical (hω : σ.IsNondegenerate)
     LinearMap.ker_eq_bot.mpr (Jc.almostComplexStructureAt (f q)).injective
   exact h ▸ disjoint_bot_right
 
+omit [FiniteDimensional ℝ E] in
 /-- **Frames of `W ⊕ J K`.** If the kernels of `f^* σ` all have dimension `k`, the sums
 `W ⊕ J K` of the tangent images `W` and the images under `J` of their radicals `K` have `C^∞`
 local frames of size `dim Q + k` in the pull-back `f *ᵖ TM`. -/
@@ -178,7 +179,7 @@ theorem hasLocalContMDiffSubbundleFrames_sup_map_radical (hc : σ.Compatible Jc)
       fun q ↦ (mfderiv J I f q).range ⊔ ((mfderiv J I f q).range ⊓
         (hc.isNondegenerate.symplecticFormAt (f q)).orthogonal (mfderiv J I f q).range).map
           (Jc.almostComplexStructureAt (f q)).toLinearMap :=
-  (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion).sup_fin
+  (f.isImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv (by simp) (by simp)).sup_fin
     (f.hasLocalContMDiffSubbundleFrames_map_radical hc.isNondegenerate hk) fun q ↦
       (hc.compatibleAt (f q)).disjoint_map
 
@@ -289,8 +290,8 @@ theorem hasLocalContMDiffSubbundleFrames_radicalComplement (hc : σ.Compatible J
     exact h
   · -- `W = H ⊕ K`, with `dim W = dim Q` and `dim K = k`.
     have hW : finrank ℝ (mfderiv J I f q).range = finrank ℝ E' := by
-      have h := (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f
-        f.isImmersion).hasLocalSubbundleFrames.finrank_eq q
+      have h := (f.isImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv (m := ∞)
+        (by simp) (by simp)).hasLocalSubbundleFrames.finrank_eq q
       rw [Fintype.card_fin] at h
       exact h
     have hK : finrank ℝ (K q) = k := by
@@ -336,7 +337,7 @@ theorem hasLocalContMDiffSubbundleFrames_sup_normalComplement (hc : σ.Compatibl
       fun q ↦ (mfderiv J I f q).range ⊔
         (hc.isNondegenerate.symplecticFormAt (f q)).normalComplement
           (Jc.almostComplexStructureAt (f q)) (mfderiv J I f q).range :=
-  (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion).sup_fin
+  (f.isImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv (by simp) (by simp)).sup_fin
     (f.hasLocalContMDiffSubbundleFrames_normalComplement hc hk) fun q ↦
       (hc.compatibleAt (f q)).isCompl_sup_map_normalComplement.disjoint.mono_left le_sup_left
 
@@ -353,7 +354,7 @@ theorem contMDiff_totalSpace_projection_range_mfderiv (hc : σ.Compatible Jc)
           TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
-  exact (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion)
+  exact (f.isImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv (by simp) (by simp))
     |>.contMDiff_totalSpace_projection_of_isCompl
       (f.hasLocalContMDiffSubbundleFrames_map_radical_sup_normalComplement hc hk) fun q ↦
         (hc.compatibleAt (f q)).isCompl_map_sup_normalComplement

@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Codisc
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Cotangent
 
 /-!
 # Compact sublevel sets of the norm on a cotangent bundle
@@ -57,11 +58,7 @@ by `t`. -/
 theorem norm_snd_vectorBundleFiberScaling (z : CotangentBundle I M) (t : Icc (0 : ℝ) 1) :
     ‖(vectorBundleFiberScaling (E →L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x →L[ℝ] ℝ)
       (z, t)).snd‖ = t * ‖z.snd‖ := by
-  rw [vectorBundleFiberScaling_apply]
-  -- This is `norm_smul`; instance search does not find `NormSMulClass` for covectors of the
-  -- Riemannian fibre norm, so it is supplied from the `NormedSpace` instance, as in Tau Ceti.
-  rw [(NormedSpace.toNormSMulClass (𝕜 := ℝ) (E := TangentSpace I z.proj →L[ℝ] ℝ)).norm_smul,
-    Real.norm_of_nonneg t.property.1]
+  rw [vectorBundleFiberScaling_apply, norm_smul_snd, Real.norm_of_nonneg t.property.1]
 
 end FiberScaling
 
@@ -92,11 +89,8 @@ theorem isCompact_setOfPred_norm_snd_le_inter_preimage_proj {K : Set M} (hK : Is
   · rintro ⟨hz, hzK⟩
     refine ⟨⟨m.symm z, ⟨?_, by simpa [m, vectorBundleScalarDiffeomorph_symm] using hzK⟩,
       m.apply_symm_apply z⟩, hz⟩
-    rw [mem_codiscBundle, vectorBundleScalarDiffeomorph_symm, vectorBundleScalarDiffeomorph_apply]
-    -- This is `norm_smul`; instance search does not find `NormSMulClass` for covectors of the
-    -- Riemannian fibre norm, so it is supplied from the `NormedSpace` instance, as in Tau Ceti.
-    rw [(NormedSpace.toNormSMulClass (𝕜 := ℝ) (E := TangentSpace I z.proj →L[ℝ] ℝ)).norm_smul,
-      Real.norm_of_nonneg (inv_nonneg.2 hc.le), inv_mul_le_one₀ hc]
+    rw [mem_codiscBundle, vectorBundleScalarDiffeomorph_symm, vectorBundleScalarDiffeomorph_apply,
+      norm_smul_snd, Real.norm_of_nonneg (inv_nonneg.2 hc.le), inv_mul_le_one₀ hc]
     exact le_max_of_le_left hz
   · rintro ⟨⟨w, ⟨-, hwK⟩, rfl⟩, hz⟩
     exact ⟨hz, by simpa [m] using hwK⟩

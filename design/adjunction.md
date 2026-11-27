@@ -144,7 +144,7 @@ additivity, which is stated for symplectic bundles, applies to it directly:
    the library's `ContMDiffComplexStructure.exists_compatible`
    (`Symplectic/ComplexStructure/Basic.lean`).
 2. The tangent image $W$ (frames
-   `Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
+   `Manifold.IsImmersion.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
    `Jf`-invariant, so `ω`, which tames `Jf`, is nondegenerate on it, and
    its `ω`-orthogonal
    $W^\omega$ is a complement and is `Jf`-invariant. The library's
@@ -412,8 +412,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   which `Orientation.lean` imports for
   `IsComplexLinearMap.exists_rightInverse_of_surjective`.
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
-  (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
-  `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
+  (`contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
 - *Projective hypersurfaces*: `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean`
   (`tangentNormalEquiv`, whose inverse is `normalSplitting`).
 - *First Chern number*: `Topology/VectorBundle/Complex/FirstChernClass.lean`
