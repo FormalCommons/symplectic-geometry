@@ -1193,7 +1193,7 @@ theorem exists_blowdown {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M} (h
             TotalSpace P₁ (fun q ↦ (zeroSectionRealEmbedding n).isImmersion.NormalSpace q hn))))
     (hΦσ : ∀ q v w,
       0 < f.symplecticNormalForm (hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm
-        hσ.isNondegenerate f.contMDiff hl.ne' hf) q hn v w →
+        hσ.isNondegenerate f.contMDiff (pow_ne_zero 2 hl.ne') hf) q hn v w →
       0 < (zeroSectionRealEmbedding n).symplecticNormalForm
         (hasSymplecticTangentImages_zeroSectionRealEmbedding hl.ne') q hn (Φ q v) (Φ q w)) :
     (∃ ε, ∃ hε : 0 < ε,
