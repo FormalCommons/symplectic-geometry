@@ -7,9 +7,9 @@ module
 
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.InvariantVectorField.Basic
+public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
-import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
 /-!
 # Curves in a Lie group with a prescribed left-trivialized derivative
@@ -255,13 +255,13 @@ theorem HasLeftTrivializedDerivOn.mdifferentiableAt (hg : HasLeftTrivializedDeri
   let ⟨_, hgv, _⟩ := hg t (mem_of_mem_nhds hs)
   (hgv.hasMFDerivAt hs).mdifferentiableAt
 
-/-- At a time `t` of which `s` is a neighbourhood, the velocity `mfderiv 𝓘(ℝ) I g t 1` of a curve
-with left-trivialized derivative `ξ` on `s`, translated to the identity, is `ξ t`. -/
+/-- At a time `t` of which `s` is a neighbourhood, the velocity `Manifold.curveVelocity I g t` of
+a curve with left-trivialized derivative `ξ` on `s`, translated to the identity, is `ξ t`. -/
 theorem HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv (hg : HasLeftTrivializedDerivOn g ξ s)
     {t : ℝ} (hs : s ∈ 𝓝 t) :
-    mfderiv I I ((g t)⁻¹ * ·) (g t) (mfderiv 𝓘(ℝ) I g t (1 : ℝ)) = ξ t := by
+    mfderiv I I ((g t)⁻¹ * ·) (g t) (Manifold.curveVelocity I g t) = ξ t := by
   obtain ⟨v, hgv, hv⟩ := hg t (mem_of_mem_nhds hs)
-  rw [← Manifold.curveVelocity_apply, ← Manifold.curveVelocityWithin_of_mem_nhds hs,
+  rw [← Manifold.curveVelocityWithin_of_mem_nhds hs,
     Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt hgv (uniqueDiffWithinAt_of_mem_nhds hs),
     hv]
 

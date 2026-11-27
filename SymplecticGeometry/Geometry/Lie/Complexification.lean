@@ -16,6 +16,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Lie.Functor
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.RepresentationTheory.InvariantForm
+public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
@@ -577,7 +578,8 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensio
     (h : C.polar.symm (a t) = (η, u)) :
     HasDerivAt (fun s ↦ B (C.polar.symm (a s)).1 (C.polar.symm (a s)).1)
       (2 * B (Lie.tangentAd (I := I) u⁻¹ η)
-        (C.im (mfderiv IC IC ((a t)⁻¹ * ·) (a t) (mfderiv 𝓘(ℝ) IC a t 1)))) t := by
+        (C.im (mfderiv IC IC ((a t)⁻¹ * ·) (a t) (Manifold.curveVelocity IC a t)))) t := by
+  rw [Manifold.curveVelocity_apply]
   have hp : MDifferentiableAt 𝓘(ℝ) (𝓘(ℝ, E).prod I) (fun s ↦ C.polar.symm (a s)) t :=
     (C.polar.symm.contMDiff.mdifferentiableAt (by simp)).comp t ha
   set ξ : ℝ → E := fun s ↦ (C.polar.symm (a s)).1
@@ -586,12 +588,12 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensio
   have hη : ξ t = η := congrArg Prod.fst h
   -- `a = expI ξ * toHom v`, so the derivative of `a` is the one computed above.
   have hv : MDifferentiableAt 𝓘(ℝ) I v t := hp.snd
-  have hkey := C.apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom hB hξ hv 1
+  have hkey := C.apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom hB hξ hv (1 : ℝ)
   have hav : a = fun s ↦ C.expI (ξ s) * C.toHom (v s) :=
     funext fun s ↦ (C.expI_mul_toHom_polar_symm (a s)).symm
   rw [← hav, C.expI_mul_toHom_polar_symm (a t), hη,
     show v t = u from congrArg Prod.snd h] at hkey
-  have hd : mfderiv 𝓘(ℝ) 𝓘(ℝ, E) ξ t 1 = deriv ξ t := by
+  have hd : mfderiv 𝓘(ℝ) 𝓘(ℝ, E) ξ t (1 : ℝ) = deriv ξ t := by
     rw [mfderiv_eq_fderiv]
     -- The two sides differ by the identifications `NormedSpace.fromTangentSpace` of tangent
     -- spaces of normed spaces with the spaces, which are the identity.
