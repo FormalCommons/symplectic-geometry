@@ -224,6 +224,114 @@ theorem radialContraction_radialMap (hr : l + ε < r) (z : puncturedSpace (Fin (
     rw [coe_radialMapDiffeomorph_apply]
     exact hsymm
   rw [hR, coe_complexPartialDiffeomorph, Function.comp_apply]
+
+/-- A point of `ψ(B°(r))` other than `ψ 0`, read in `E` through `ψ`, is not `0`. -/
+theorem complexPartialDiffeomorph_symm_mem_puncturedSpace {q : M}
+    (hq : q ∈ ψ '' ball 0 r ∧ q ≠ ψ 0) :
+    hψ.complexPartialDiffeomorph.symm q ∈ puncturedSpace (Fin (n + 1) → ℂ) := by
+  rw [mem_puncturedSpace]
+  intro h0
+  refine hq.2 ((hψ.complexPartialDiffeomorph.right_inv ?_).symm.trans ?_)
+  · rw [complexPartialDiffeomorph_target]; exact hq.1
+  · rw [coe_complexPartialDiffeomorph, Function.comp_apply]
+    exact (congrArg (fun w ↦ ψ (complexToRealEuclidean (Fin (n + 1)) w)) h0).trans
+      (by rw [map_zero])
+
+open scoped Classical in
+/-- The map `ψ ∘ F_h ∘ ψ⁻¹` of `M`, for the radial map `F_h` of a profile `h` of the blowup of
+weight `l`: on `ψ(B°(r))` minus `ψ 0` it is `ψ ∘ F_h ∘ ψ⁻¹`, and elsewhere the identity. For
+`l + ε < r` it is inverse to `radialContraction` (`radialContraction_radialExpansion`,
+`radialExpansion_radialContraction`). -/
+def radialExpansion (q : M) : M :=
+  if hq : q ∈ ψ '' ball 0 r ∧ q ≠ ψ 0 then
+    hψ.complexPartialDiffeomorph (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs))
+      ⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace hq⟩ : Fin (n + 1) → ℂ)
+  else q
+
+/-- On `ψ(B°(r))` minus `ψ 0`, `radialExpansion` is `ψ ∘ F_h ∘ ψ⁻¹`. -/
+theorem radialExpansion_of_mem {q : M} (hq : q ∈ ψ '' ball 0 r ∧ q ≠ ψ 0) :
+    hψ.radialExpansion hh q =
+      hψ.complexPartialDiffeomorph (radialMap h (fun _ hs ↦ hh.pos (le_of_lt hs))
+        ⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace hq⟩ : Fin (n + 1) → ℂ) :=
+  dite_eq_left hq
+
+/-- `radialExpansion` is the identity off `ψ(B°(r))` minus `ψ 0`. -/
+theorem radialExpansion_of_not {q : M} (hq : ¬(q ∈ ψ '' ball 0 r ∧ q ≠ ψ 0)) :
+    hψ.radialExpansion hh q = q :=
+  dite_eq_right hq
+
+/-- For `l + ε < r`, `radialContraction` undoes `radialExpansion` at every point other than
+`ψ 0`. -/
+theorem radialContraction_radialExpansion (hr : l + ε < r) {q : M} (hq : q ≠ ψ 0) :
+    hψ.radialContraction hh (hψ.radialExpansion hh q) = q := by
+  by_cases hqb : q ∈ ψ '' ball 0 r
+  · have hqt : q ∈ hψ.complexPartialDiffeomorph.target := by
+      rw [complexPartialDiffeomorph_target]; exact hqb
+    have hs : ‖complexToRealEuclidean (Fin (n + 1))
+        (hψ.complexPartialDiffeomorph.symm q)‖ < r := by
+      rw [← hψ.mem_complexPartialDiffeomorph_source_iff]
+      exact hψ.complexPartialDiffeomorph.map_target hqt
+    rw [hψ.radialExpansion_of_mem hh ⟨hqb, hq⟩, coe_complexPartialDiffeomorph,
+      Function.comp_apply, hψ.radialContraction_radialMap hh hr
+        ⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace ⟨hqb, hq⟩⟩ hs]
+    have := hψ.complexPartialDiffeomorph.right_inv hqt
+    rwa [coe_complexPartialDiffeomorph, Function.comp_apply] at this
+  · rw [hψ.radialExpansion_of_not hh fun h ↦ hqb h.1]
+    refine hψ.radialContraction_of_notMem hh fun ⟨z, hz, hzq⟩ ↦ hqb ⟨z, ?_, hzq⟩
+    exact mem_ball_zero_iff.2 ((mem_closedBall_zero_iff.1 hz).trans_lt hr)
+
+/-- For `l + ε < r`, `radialContraction` sends no point off `ψ(B(l))` to `ψ 0`. -/
+theorem radialContraction_ne (hr : l + ε < r) {p : M} (hp : p ∉ ψ '' closedBall 0 l) :
+    hψ.radialContraction hh p ≠ ψ 0 := by
+  by_cases hp' : p ∈ ψ '' ball 0 r ∧ p ∉ ψ '' closedBall 0 l
+  · set z := (hh.radialDiffeomorph n).symm
+      ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp'⟩
+    have hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
+      refine hh.norm_lt_of_norm_radialMap_lt hr ?_
+      rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
+        Diffeomorph.apply_symm_apply, ← hψ.mem_complexPartialDiffeomorph_source_iff]
+      exact hψ.complexPartialDiffeomorph.map_target
+        (by rw [complexPartialDiffeomorph_target]; exact hp'.1)
+    rw [hψ.radialContraction_of_mem hh hp', coe_complexPartialDiffeomorph, Function.comp_apply]
+    intro h0
+    have hr0 : (0 : ℝ) ≤ r := (norm_nonneg _).trans hz.le
+    have := hψ.injOn (mem_closedBall_zero_iff.2 hz.le) (mem_closedBall_self hr0) h0
+    rw [map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective] at this
+    exact mem_puncturedSpace.1 z.property this
+  · rw [hψ.radialContraction_of_not hh hp']
+    rintro rfl
+    exact hp ⟨0, mem_closedBall_self hh.weight_pos.le, rfl⟩
+
+/-- For `l + ε < r`, `radialExpansion` undoes `radialContraction` at every point off `ψ(B(l))`. -/
+theorem radialExpansion_radialContraction (hr : l + ε < r) {p : M}
+    (hp : p ∉ ψ '' closedBall 0 l) :
+    hψ.radialExpansion hh (hψ.radialContraction hh p) = p := by
+  by_cases hp' : p ∈ ψ '' ball 0 r ∧ p ∉ ψ '' closedBall 0 l
+  · set Ψ := hψ.complexPartialDiffeomorph
+    set z := (hh.radialDiffeomorph n).symm
+      ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp'⟩
+    have hpt : p ∈ Ψ.target := by rw [complexPartialDiffeomorph_target]; exact hp'.1
+    have hz : ‖complexToRealEuclidean (Fin (n + 1)) z‖ < r := by
+      refine hh.norm_lt_of_norm_radialMap_lt hr ?_
+      rw [← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _ (fun s _ ↦ hh.deriv_pos s),
+        Diffeomorph.apply_symm_apply, ← hψ.mem_complexPartialDiffeomorph_source_iff]
+      exact Ψ.map_target hpt
+    have hc := hψ.radialContraction_of_mem hh hp'
+    have hzs : (z : Fin (n + 1) → ℂ) ∈ Ψ.source := by
+      rw [mem_complexPartialDiffeomorph_source_iff]; exact hz
+    have hq : hψ.radialContraction hh p ∈ ψ '' ball 0 r ∧ hψ.radialContraction hh p ≠ ψ 0 :=
+      ⟨by rw [← hψ.complexPartialDiffeomorph_target, hc]; exact Ψ.map_source hzs,
+        hψ.radialContraction_ne hh hr hp⟩
+    rw [hψ.radialExpansion_of_mem hh hq]
+    have hsymm : Ψ.symm (hψ.radialContraction hh p) = z := by rw [hc]; exact Ψ.left_inv hzs
+    have hz' : (⟨_, hψ.complexPartialDiffeomorph_symm_mem_puncturedSpace hq⟩ :
+        puncturedSpace (Fin (n + 1) → ℂ)) = z := Subtype.ext hsymm
+    rw [hz', ← coe_radialMapDiffeomorph_apply hh.contDiff.contDiffOn _
+      (fun s _ ↦ hh.deriv_pos s), Diffeomorph.apply_symm_apply]
+    exact Ψ.right_inv hpt
+  · have hpb : p ∉ ψ '' ball 0 r := fun hpb ↦ hp' ⟨hpb, hp⟩
+    rw [hψ.radialContraction_of_not hh hp', hψ.radialExpansion_of_not hh fun h ↦ hpb h.1]
+
 variable [T2Space M]
 
 /-- `radialContraction` is a local diffeomorphism at each point off `ψ(B(l))`, for `l + ε < r`. -/
