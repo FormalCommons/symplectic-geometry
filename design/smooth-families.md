@@ -231,16 +231,20 @@ No statement of this part is one that the authors' errata
 
 ## Files
 
-### `Analysis/SpecialFunctions/SmoothTransition.lean`
+### `Analysis/SpecialFunctions/SmoothTransition/Deriv.lean`
 
-Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`,
-except for the reparametrization, which is in `SymplecticGeometry`, and the
-lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCeti`.
+In Mathlib's namespace `Real.smoothTransition`.
 
 - `Real.smoothTransition.deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) :
   0 < deriv Real.smoothTransition x`, from the quotient
   $f(x)/(f(x)+f(1-x))$ and the positive derivative of
   `expNegInvGlue` on $(0,\infty)$ (Tau Ceti's `expNegInvGlue.hasDerivAt`).
+
+### `Analysis/SpecialFunctions/SmoothTransition/Basic.lean`
+
+The reparametrization is in `SymplecticGeometry`, and the
+lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition` are in `TauCeti`.
+
 - `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo {a b ε : ℝ}
   (hab : a ≤ b) (hε : 0 < ε) : ∃ c : ℝ → ℝ, ContDiff ℝ ∞ c ∧
   Set.EqOn c id (Set.Icc a b) ∧ (∀ t, c t ∈ Set.Ioo (a - ε) (b + ε)) ∧
@@ -578,8 +582,7 @@ centred at the point, used by `Immersion/TangentProjection.lean`: the
   field on a `C^n` manifold, `m + 1 ≤ n`, read in an extended chart, is
   `C^m` on the chart's target; and
   `VectorField.mfderivWithin_extChartAt_symm_mpullbackWithin`: the derivative
-  of the inverse chart sends that expression back to the field. Both are used
-  by `Boundary/Collar/Flow/Local.lean` of *Liouville structures*.
+  of the inverse chart sends that expression back to the field.
 
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 
@@ -891,7 +894,8 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean`. Blocked by 9, 11
     and 12.
 14. **Isotopies over `ℝ` and diffeotopies.**
-    `Analysis/SpecialFunctions/SmoothTransition.lean`,
+    `Analysis/SpecialFunctions/SmoothTransition/Deriv.lean`,
+    `Analysis/SpecialFunctions/SmoothTransition/Basic.lean`,
     `Geometry/Manifold/SmoothTransition.lean`,
     `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
@@ -900,7 +904,7 @@ can start at once; each issue's blockers come before it.
     (for `ofReal`, which `ofContMDiff_eq_ofReal` uses).
 16. **A reparametrization equal to the identity on an interval.**
     `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
-    `Analysis/SpecialFunctions/SmoothTransition.lean`. Blocked by 14, which
+    `Analysis/SpecialFunctions/SmoothTransition/Basic.lean`. Blocked by 14, which
     creates the file. It is much smaller than the others.
 
 ## References

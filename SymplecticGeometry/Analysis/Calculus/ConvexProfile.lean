@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Monotone
 import TauCeti.Analysis.Calculus.Deriv.MeanValue

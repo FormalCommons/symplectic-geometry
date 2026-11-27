@@ -7,10 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
-import TauCeti.Geometry.Manifold.DeRham.Integration.Bijective
-import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
+import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
 
 /-!
 # Integrals of the curvature of circle connections
@@ -83,16 +81,9 @@ theorem IsCircleConnectionForm.isCircleConnectionCurvature_of_integralTopForm_eq
     [PreconnectedSpace B] (hα : IsCircleConnectionForm α) (o : Manifold.Orientation IB B (Fin 2))
     {σ : SmoothForm IB B ℝ 2}
     (hσ : integralTopForm o σ.val = integralTopForm o hα.curvature.val) :
-    IsCircleConnectionCurvature P σ := by
-  let : MeasurableSpace EB := borel EB
-  have : BorelSpace EB := ⟨rfl⟩
-  have hint : integralTopForm o (σ - hα.curvature).val = 0 := by
-    rw [Submodule.coe_sub, integralTopForm_sub_of_compactSpace o (σ.isSmoothForm.of_le (by simp))
-      (hα.curvature.isSmoothForm.of_le (by simp)), hσ, sub_self]
-  have hex := (mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero o
-    (compactlySupportedForms_eq_top (I := IB) (M := B) 2 ▸ Submodule.mem_top)).mpr hint
-  exact hα.isCircleConnectionCurvature_iff_sub_mem_exactForms.2
-    (exactCompactlySupportedForms_le_exactForms IB 2 hex)
+    IsCircleConnectionCurvature P σ :=
+  hα.isCircleConnectionCurvature_iff_sub_mem_exactForms.2
+    ((sub_mem_exactForms_iff_integralTopForm_eq o).2 hσ)
 
 end SymplecticGeometry
 

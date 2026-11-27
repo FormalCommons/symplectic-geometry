@@ -114,21 +114,12 @@ theorem fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X × Circle) 
 theorem zpow_smul_fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X × Circle) :
     (w.2 : ℂ) ^ (N : ℤ) • (laurentHom N a).fiberMap w =
       ∑ j ∈ Finset.range (2 * N + 1), (w.2 : ℂ) ^ j • (a (j - N)).fiberMap w.1 := by
-  rw [fiberMap_laurentHom, Finset.smul_sum]
-  refine Finset.sum_nbij' (fun i ↦ (i + N).toNat) (fun j ↦ (j : ℤ) - N) (fun i hi ↦ ?_)
-    (fun j hj ↦ ?_) (fun i hi ↦ ?_) (fun j _ ↦ by simp) fun i hi ↦ ?_
-  · simp only [Finset.mem_Icc] at hi
-    simp only [Finset.mem_range]
-    omega
-  · simp only [Finset.mem_range] at hj
-    simp only [Finset.mem_Icc]
-    omega
-  · simp only [Finset.mem_Icc] at hi
-    omega
-  · simp only [Finset.mem_Icc] at hi
-    have hi' : (((i + N).toNat : ℕ) : ℤ) = i + N := Int.toNat_of_nonneg (by omega)
-    rw [smul_smul, ← zpow_natCast, hi', ← zpow_add₀ (Circle.coe_ne_zero w.2), add_comm,
-      add_sub_cancel_right]
+  -- `Icc (-N) N` is `range (2 * N + 1)` shifted by `-N`.
+  have hN : ((N : ℤ) + 1 - -(N : ℤ)).toNat = 2 * N + 1 := by omega
+  rw [fiberMap_laurentHom, Int.Icc_eq_finset_map, Finset.sum_map, hN, Finset.smul_sum]
+  refine Finset.sum_congr rfl fun j _ ↦ ?_
+  rw [Function.Embedding.trans_apply, Nat.castEmbedding_apply, addLeftEmbedding_apply, smul_smul,
+    ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel_left, zpow_natCast, neg_add_eq_sub]
 
 /-! ### Twisting a clutching function by a power of the circle coordinate -/
 
