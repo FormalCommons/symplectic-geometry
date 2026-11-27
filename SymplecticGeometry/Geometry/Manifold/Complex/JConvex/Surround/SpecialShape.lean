@@ -28,7 +28,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `r ↦ c + ∫ u in K * δ..r, 1 / √(log (u / δ))`. For `r > δ` its slope is `1 / √(log (r / δ))`
   (`SymplecticGeometry.deriv_struweShape`), and its second derivative is `-χ'³ / (2 r)`
   (`SymplecticGeometry.iteratedDeriv_two_struweShape`), so that it solves Struwe's equation
-  `χ'' + χ'³ / (2 r) = 0`, with an infinite slope at `δ` and the value `c` at `K δ`. It is
+  `χ'' + χ'³ / (2 r) = 0`, with an infinite slope at `δ` and the value `c` and the slope
+  `1 / √(log K)` at `K δ` (`SymplecticGeometry.deriv_struweShape_mul`). It is
   smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
   (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
   `SymplecticGeometry.strictMonoOn_struweShape`).
@@ -74,7 +75,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
 The shapes are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe's shape the two
 inequalities read `r √L < χ` and `2 r √L³ < χ`, with `L = log (r / δ)`; the second follows from
 `4 K δ √(log K)³ ≤ 1`, and the first also uses the lower bound `1 + d δ` of `χ`. That bound
-amounts to `∫ u in δ..K δ, 1 / √(log (u / δ)) ≤ d (K - 1) δ`, which is proved by comparing
+amounts to `∫ u in δ..K δ, 1 / √(log (u / δ)) ≤ d (K - 1) δ`
+(`SymplecticGeometry.integral_one_div_sqrt_log_div_le`), which is proved by comparing
 the integrand minus `d` with its product by `u₀ / u`, where `u₀ = δ exp (1 / d²)` is the point
 where the integrand equals `d`, and integrating the latter exactly.
 
@@ -174,6 +176,11 @@ theorem hasDerivAt_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ}
 theorem deriv_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) {r : ℝ} (hr : δ < r) :
     deriv (struweShape δ K c) r = 1 / √(log (r / δ)) :=
   (hasDerivAt_struweShape hδ hK c hr).deriv
+
+/-- The slope of Struwe's shape at `K δ`, where it takes the value `c`, is `1 / √(log K)`. -/
+theorem deriv_struweShape_mul (hδ : 0 < δ) (hK : 1 < K) (c : ℝ) :
+    deriv (struweShape δ K c) (K * δ) = 1 / √(log K) := by
+  rw [deriv_struweShape hδ hK.le c (lt_mul_of_one_lt_left hδ hK), mul_div_cancel_right₀ _ hδ.ne']
 
 /-- Struwe's equation: the second derivative of Struwe's shape at `r > δ` is `-χ'³ / (2 r)`,
 with `χ' = 1 / √(log (r / δ))`. -/
@@ -317,10 +324,11 @@ private theorem struwe_log_bounds {d : ℝ} (hd : 0 < d) (hK : exp (4 / d ^ 2) �
   linarith
 
 /-- The integral of the integrand of Struwe's shape over `[δ, K δ]` is at most `d (K - 1) δ`
-when `log K ≥ 4 / d²`. The integrand minus `d` is at most its product by `u₀ / u`, where
+when `exp (4 / d²) ≤ K`. The integrand minus `d` is at most its product by `u₀ / u`, where
 `u₀ = δ exp (1 / d²)` is where the integrand equals `d`, and that product integrates to
 `u₀ (2 √(log K) - d log K) ≤ 0`. -/
-private theorem integral_struwe_le {d : ℝ} (hd : 0 < d) (hδ : 0 < δ) (hK : exp (4 / d ^ 2) ≤ K) :
+theorem integral_one_div_sqrt_log_div_le {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
+    (hK : exp (4 / d ^ 2) ≤ K) :
     ∫ u in δ..K * δ, 1 / √(log (u / δ)) ≤ d * (K - 1) * δ := by
   set f : ℝ → ℝ := fun u ↦ 1 / √(log (u / δ)) with hf
   set u₀ := δ * exp (1 / d ^ 2)
@@ -439,7 +447,7 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
     intervalIntegral_pos_of_pos_on hfi (fun u hu ↦
       one_div_pos.2 (sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu.1)))) hδK
   have hval : 1 + d * δ ≤ χ δ := by
-    have := integral_struwe_le hd hδ hK
+    have := integral_one_div_sqrt_log_div_le hd hδ hK
     rw [hχδ]
     nlinarith
   refine ⟨fun r hr ↦ ?_, ?_, ⟨hval, by linarith⟩,
@@ -481,7 +489,7 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
         mul_le_mul hr.2 (pow_le_pow_left₀ ht₀.le hts 3) (by positivity) (by positivity)
       nlinarith
     exact isConvexShapeAt_struweShape_of_lt hδ hK₁ hr.1 h₁ h₂
-  · rw [deriv_struweShape hδ hK₁ _ hδK, mul_div_cancel_right₀ _ hδ.ne', div_le_iff₀ hs₀]
+  · rw [deriv_struweShape_mul hδ hK₁' _, div_le_iff₀ hs₀]
     linarith
 
 end Struwe
