@@ -311,17 +311,18 @@ For connected `G` and a symmetric `Ad`-invariant `B`, so that `B` is also
   critical point of $\|\mu\|^2$.
 
 The moment limit theorem follows, by decision 7, in this order. A *flow
-curve* from `p` is a `g : ℝ → Gc` that is differentiable at each `t ≥ 0`,
-with left-trivialized derivative
-`-2 • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))` there, as
-`exists_mem_orbit_maximalIntegralCurve` gives it; the flow there is that
+curve* from `p` on a set `s` of times is a `g : ℝ → Gc` with
+left-trivialized derivative
+`-2 • C.cplx (C.lieMap (momentSharp B hB μ ((g t)⁻¹ • p)))` on `s`
+(`HasLeftTrivializedDerivOn`), as `exists_mem_orbit_maximalIntegralCurve`
+gives it on `univ`; the flow there is that
 of `momentNormSq`, which is $\|\mu\|^2$ and not $f$, hence the factor 2.
 This is a hypothesis of the statements below, not a definition.
 
 - `hasDerivAt_polar_symm_fst_inv_mul`: for flow curves `g` and `g̃` from
   `p`, with `(η t, u t) = C.polar.symm ((g t)⁻¹ * g̃ t)` and
   `x t = (g t)⁻¹ • p`, the function `t ↦ B (η t) (η t)` has at each
-  `t ≥ 0` the derivative
+  `t` of which `s` is a neighbourhood the derivative
   `4 * (μ (x t) (η t) - μ (C.expI (-η t) • x t) (η t))`. Proof:
   `hasDerivAt_polar_symm_fst_comp`, applied to `g̃ t` as a right factor
   and, through `polar_symm_inv`, to `g t` as a left factor, together with
@@ -330,7 +331,8 @@ This is a hypothesis of the statements below, not a definition.
   the end slopes at `s = 0` and `s = 1` of
   `s ↦ Φ_p (g t * C.expI (s • η t))`.
 - `antitoneOn_polar_symm_fst_inv_mul`: so `t ↦ B (η t) (η t)` is
-  antitone on `Set.Ici 0`, by `antitone_moment_expI`.
+  antitone on `s` for convex `s`, such as `Set.Ici 0`, by
+  `antitone_moment_expI`.
 - `exists_smul_eq_of_mgradient_momentNormSq_eq_zero` (Ness's uniqueness
   theorem): if `y = g₀⁻¹ • x` and `mgradient I' (momentNormSq B hB μ)`
   vanishes at `x` and at `y`, then `y = u • x` for some `u : G`. Proof (the
