@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
+public import Mathlib.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
@@ -30,6 +31,14 @@ the orbit of each point `x` with `a ≤ f x < c` meets `f ⁻¹' {a}` exactly on
 `f ⁻¹' {a}`, and preserves the stable set of every point. Its derivative at a point `x` of that band
 kills exactly the line through `X x`.
 
+Finally, it prepares the sphere that will be the attaching sphere of `p` inside the local stable
+disc. For a disc `ι` with a left inverse on the ball of radius `ρ`, as given by
+`exists_localStableDisc`, an injective continuous linear map `L` and `0 < s` with
+`s * ‖L‖ < ρ`, the map `u ↦ ι (s • L u)` on the unit sphere is a smooth injective immersion
+into the stable set of `p`, below the level `f p`, that meets no critical point. On the stable
+subspace, `L` can be taken from
+`TauCeti.IsGradientLike.exists_continuousLinearEquiv_stableSubspace`.
+
 ## Main declarations
 
 * `SymplecticGeometry.IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`:
@@ -48,6 +57,11 @@ kills exactly the line through `X x`.
   sends a stable set into its part on the lower level.
 * `SymplecticGeometry.IsWeinsteinStructure.ker_mfderiv_flow_levelCrossingTime`: the kernel of the
   derivative of the backward map at `x` is the span of `X x`.
+* `SymplecticGeometry.contMDiff_comp_smul_coe_sphere`, `.injective_comp_smul_coe_sphere` and
+  `.injective_mfderiv_comp_smul_coe_sphere`: a sphere scaled into the ball on which a disc is an
+  immersion with a left inverse is a smooth injective immersion;
+  `SymplecticGeometry.IsWeinsteinStructure.range_comp_smul_coe_sphere_subset`: for the local
+  stable disc, it lies in the stable set, below `f p`, off the critical points.
 
 ## Implementation notes
 
@@ -85,6 +99,12 @@ the implicit function theorem at the regular level `a`, in the form of Tau Ceti'
 The kernel is `TauCeti.ker_mfderiv_flow_levelCrossingTime`, whose hypotheses are checked as for
 the smoothness.
 
+The immersion is the chain rule with Mathlib's `injective_mvfderiv_subtypeVal_sphere` for the
+inclusion of the sphere, and injectivity comes from the left inverse of the disc. That the
+sphere lies below `f p` and off the critical points is
+`SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
+`SymplecticGeometry.IsWeinsteinStructure.notMem_criticalPoints_of_mem_stableSet`.
+
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
@@ -93,7 +113,7 @@ the smoothness.
 
 public section
 
-open Filter Set TauCeti
+open Filter Function Metric Module Set TauCeti
 open scoped Manifold Topology
 
 namespace SymplecticGeometry
@@ -274,6 +294,124 @@ theorem mapsTo_flow_levelCrossingTime_stableSet
     MapsTo (fun y ↦ hW.flow (Flow.levelCrossingTime hW.flow f a y) y)
       (hW.flow.stableSet p ∩ f ⁻¹' Ico a c) (hW.flow.stableSet p ∩ f ⁻¹' {a}) :=
   fun _ hx ↦ ⟨Flow.isInvariant_stableSet _ _ _ hx.1, hW.mapsTo_flow_levelCrossingTime hc hx.2⟩
+
+end IsWeinsteinStructure
+
+/-! ### A sphere in the local stable disc -/
+
+section Sphere
+
+variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type*} [TopologicalSpace HN]
+  {I : ModelWithCorners ℝ EN HN} {N : Type*}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] {n : ℕ}
+  {ι : F → N} {ρ s : ℝ} {L : V →L[ℝ] F}
+
+/-- A point `u` of the unit sphere of `V` is sent by `s • L` into the ball of radius `ρ`, if
+`0 ≤ s` and `s * ‖L‖ < ρ`. -/
+theorem norm_smul_apply_coe_sphere_lt (hs : 0 ≤ s) (hsL : s * ‖L‖ < ρ) (u : sphere (0 : V) 1) :
+    ‖s • L u‖ < ρ :=
+  calc ‖s • L u‖ = s * ‖L u‖ := by rw [norm_smul, Real.norm_of_nonneg hs]
+    _ ≤ s * (‖L‖ * ‖(u : V)‖) := by gcongr; exact L.le_opNorm _
+    _ = s * ‖L‖ := by rw [norm_eq_of_mem_sphere u, mul_one]
+    _ < ρ := hsL
+
+/-- **A scaled sphere in a disc is smooth.** If `ι` is smooth at every point of the ball of
+radius `ρ`, and `0 ≤ s` with `s * ‖L‖ < ρ`, then `u ↦ ι (s • L u)` is smooth on the unit sphere
+of `V`. -/
+theorem contMDiff_comp_smul_coe_sphere [TopologicalSpace N] [ChartedSpace HN N]
+    [Fact (finrank ℝ V = n + 1)]
+    (hι : ∀ z ∈ ball (0 : F) ρ, ContMDiffAt 𝓘(ℝ, F) I (⊤ : ℕ∞) ι z)
+    (hs : 0 ≤ s) (hsL : s * ‖L‖ < ρ) :
+    ContMDiff (𝓡 n) I (⊤ : ℕ∞) fun u : sphere (0 : V) 1 ↦ ι (s • L u) := fun u ↦
+  (hι _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs hsL u))).comp u
+    ((s • L).contDiff.contMDiff.comp contMDiff_coe_sphere u)
+
+/-- **A scaled sphere in a disc is injective.** If `ι` has a left inverse `π` on the ball of
+radius `ρ`, `L` is injective, and `0 < s` with `s * ‖L‖ < ρ`, then `u ↦ ι (s • L u)` is
+injective on the unit sphere of `V`. -/
+theorem injective_comp_smul_coe_sphere {π : N → F} (hπ : ∀ z ∈ ball (0 : F) ρ, π (ι z) = z)
+    (hs : 0 < s) (hsL : s * ‖L‖ < ρ) (hL : Injective L) :
+    Injective fun u : sphere (0 : V) 1 ↦ ι (s • L u) := by
+  intro u v h
+  have h' := congrArg π h
+  simp only at h'
+  rw [hπ _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u)),
+    hπ _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL v))] at h'
+  exact Subtype.ext (hL (smul_right_injective F hs.ne' h'))
+
+/-- **A scaled sphere in a disc is immersed.** If `ι` is differentiable with injective
+differential at every point of the ball of radius `ρ`, `L` is injective, and `0 < s` with
+`s * ‖L‖ < ρ`, then `u ↦ ι (s • L u)` has injective differential at every point of the unit
+sphere of `V`. -/
+theorem injective_mfderiv_comp_smul_coe_sphere [TopologicalSpace N] [ChartedSpace HN N]
+    [Fact (finrank ℝ V = n + 1)]
+    (hι : ∀ z ∈ ball (0 : F) ρ, MDifferentiableAt 𝓘(ℝ, F) I ι z ∧
+      Injective (mfderiv 𝓘(ℝ, F) I ι z))
+    (hs : 0 < s) (hsL : s * ‖L‖ < ρ) (hL : Injective L) (u : sphere (0 : V) 1) :
+    Injective (mfderiv (𝓡 n) I (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) u) := by
+  obtain ⟨hιd, hιi⟩ := hι _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u))
+  have hc : MDifferentiableAt (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u :=
+    (contMDiff_coe_sphere u).mdifferentiableAt one_ne_zero
+  have hg : MDifferentiableAt 𝓘(ℝ, V) 𝓘(ℝ, F) (s • L) (u : V) := (s • L).mdifferentiableAt
+  -- The map is `ι ∘ (s • L) ∘ (↑)` by definition; `mfderiv_comp` needs it written as that
+  -- composite to match.
+  rw [show (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) = ι ∘ (s • L) ∘ (↑) from rfl,
+    mfderiv_comp u hιd (hg.comp u hc), mfderiv_comp u hg hc, ContinuousLinearMap.mfderiv_eq]
+  -- `mvfderiv` of the inclusion is its `mfderiv` followed by the identification of the tangent
+  -- spaces of `V` with `V`.
+  have h1 : Injective (mfderiv (𝓡 n) 𝓘(ℝ, V) ((↑) : sphere (0 : V) 1 → V) u) := by
+    have h := injective_mvfderiv_subtypeVal_sphere (n := n) u
+    rw [mvfderiv, ContinuousLinearMap.coe_comp] at h
+    exact h.of_comp
+  have h2 : Injective (s • L) := fun a b h ↦ hL (smul_right_injective F hs.ne' h)
+  -- The tangent spaces of `V` and `F` are `V` and `F`, so the composition of the differentials is
+  -- that of the underlying maps.
+  exact hιi.comp (h2.comp h1)
+
+/-- **A scaled sphere misses the centre of the disc.** If `ι 0 = p`, `ι` has a left inverse `π`
+on the ball of radius `ρ`, `L` is injective, and `0 < s` with `s * ‖L‖ < ρ`, then
+`ι (s • L u) ≠ p` for every point `u` of the unit sphere of `V`. -/
+theorem comp_smul_coe_sphere_ne {p : N} (hι0 : ι 0 = p) {π : N → F}
+    (hπ : ∀ z ∈ ball (0 : F) ρ, π (ι z) = z) (hs : 0 < s) (hsL : s * ‖L‖ < ρ)
+    (hL : Injective L) (u : sphere (0 : V) 1) : ι (s • L u) ≠ p := by
+  intro h
+  have h' := congrArg π (h.trans hι0.symm)
+  rw [hπ _ (mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u)),
+    hπ _ (mem_ball_self (hsL.trans_le' (by positivity)))] at h'
+  have hu : L u = 0 := (smul_eq_zero.1 h').resolve_left hs.ne'
+  exact ne_zero_of_mem_unit_sphere u (hL (hu.trans L.map_zero.symm))
+
+end Sphere
+
+namespace IsWeinsteinStructure
+
+variable (hW : IsWeinsteinStructure ω X f)
+include hW
+
+/-- **A scaled sphere in a local stable disc.** Let `(ω, X, f)` be a Weinstein structure, and
+`ι : F → M` a map with `ι 0 = p` that sends the ball of radius `ρ` into the stable set of `p`
+and has a left inverse `π` there, as the local stable disc of
+`SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc` does. For `L` injective and
+`0 < s` with `s * ‖L‖ < ρ`, the points `ι (s • L u)`, for `u` on the unit sphere of `V`, lie in
+the stable set of `p`, strictly below the level `f p`, and are not critical points of `f`.
+
+With `exists_localStableDisc`, `contMDiff_comp_smul_coe_sphere`,
+`injective_comp_smul_coe_sphere` and `injective_mfderiv_comp_smul_coe_sphere`, this makes
+`u ↦ ι (s • L u)` an injective immersion of the sphere into the stable set of `p`. -/
+theorem range_comp_smul_coe_sphere_subset {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] {p : M} {ι : F → M} {ρ s : ℝ}
+    {L : V →L[ℝ] F} (hι0 : ι 0 = p) (hιs : ι '' ball 0 ρ ⊆ hW.flow.stableSet p)
+    {π : M → F} (hπ : ∀ z ∈ ball (0 : F) ρ, π (ι z) = z) (hs : 0 < s) (hsL : s * ‖L‖ < ρ)
+    (hL : Injective L) :
+    range (fun u : sphere (0 : V) 1 ↦ ι (s • L u)) ⊆
+      (hW.flow.stableSet p ∩ f ⁻¹' Iio (f p)) \ criticalPoints 𝓘(ℝ, E) f := by
+  rintro _ ⟨u, rfl⟩
+  have hu := mem_ball_zero_iff.2 (norm_smul_apply_coe_sphere_lt hs.le hsL u)
+  have hmem := hιs (mem_image_of_mem ι hu)
+  have hne := comp_smul_coe_sphere_ne hι0 hπ hs hsL hL u
+  exact ⟨⟨hmem, hW.apply_lt_of_mem_stableSet hmem hne⟩,
+    hW.notMem_criticalPoints_of_mem_stableSet hmem hne⟩
 
 end IsWeinsteinStructure
 
