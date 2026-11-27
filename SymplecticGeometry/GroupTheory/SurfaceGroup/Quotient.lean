@@ -29,11 +29,13 @@ quotient is the group presented by the `g` letters and the relators `w j`.
 Both directions come from universal properties: `TauCeti.SurfaceGroup.Orientable.lift` and
 `QuotientGroup.lift` one way, `PresentedGroup.toGroup` the other. This is the group theory of
 Gompf's realization of finitely presented groups as fundamental groups of symplectic
-four-manifolds [Gompf1995, Section 6].
+four-manifolds [Gompf1995]; see [McDuffSalamon2017, Theorem 7.2.8].
 
 ## References
 
-* [R. E. Gompf, *A new construction of symplectic manifolds*][Gompf1995], Section 6.
+* [R. E. Gompf, *A new construction of symplectic manifolds*][Gompf1995]
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
+  Theorem 7.2.8.
 -/
 
 public section
