@@ -48,6 +48,10 @@ coordinate of `D_k s` in the frame, at the image of `z` and on the image of a ve
 derivative of the inverse chart. It follows from the local
 formula `SymplecticGeometry.powerConnection_apply_frame`, applied to the frame, which is smooth on
 the image of that ball, and from `SymplecticGeometry.RescaledUnitaryCharts.connectionForm_eq_model`.
+Since `A₀` is linear in `z`, the `r`-jet norm of the connection reading at `z` is at most a
+constant, depending only on `r`, times `(1 + ‖z‖)` and the `(r + 1)`-jet norm of the reading
+(`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_connectionReading_le`, from
+`SymplecticGeometry.jetNormAt_bilinear_le`).
 The `∂̄` reading `D.dbarReading k x s z` is Tau Ceti's complex-antilinear part
 `TauCeti.complexAntilinearPart` of `D.connectionReading k x s z`, for the structure `J` pushed
 forward by the chart at `z` and multiplication by `i` on `ℂ`. For `k₀ ≤ k`, at a point `z` of the
@@ -508,6 +512,72 @@ theorem contDiffAt_connectionReading {n : ℕ∞} {k : ℕ} {x : M}
   have h := (hs.fderiv_right le_rfl).sub
     (hB.contDiffAt.smulRight ((contDiffAt_const (c := Complex.I)).mul (hs.of_le le_self_add)))
   exact h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ connectionReading_def ..)
+
+/-- The connection read in the chart, as a function:
+`w ↦ df_w - R (ω₀(w, ·) / 2) (i f(w))`, for `f` the reading of the section and `R = ContinuousLinearMap.smulRightL`, a continuous bilinear map. -/
+theorem connectionReading_eq (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) :
+    D.connectionReading k x s = fun w ↦ fderiv ℝ (D.reading k x s) w -
+      ContinuousLinearMap.smulRightL ℝ ℝ ℝ (StdSpace ι) ℂ
+        ((2⁻¹ : ℝ) • (stdForm ι).toBilinForm.toContinuousBilinearMap w)
+        (Complex.I * D.reading k x s w) := by
+  funext w
+  ext v
+  rw [connectionReading_apply]
+  simp only [sub_apply, ContinuousLinearMap.smulRightL_apply_apply,
+    ContinuousLinearMap.smulRight_apply, smul_apply, LinearMap.toContinuousBilinearMap_apply,
+    smul_eq_mul]
+
+/-- **Jets of the connection read in the chart.** For every order `r` there is a constant `C` such
+that, for every `k`, centre `x` and section `s`, at every point `z` where the reading `f` of `s` is
+`C^(r + 1)`, the `r`-jet norm at `z` of the connection read in the chart is at most
+`C * (1 + ‖z‖)` times the `(r + 1)`-jet norm of `f` at `z`. -/
+theorem exists_jetNormAt_connectionReading_le (r : ℕ) :
+    ∃ C : ℝ, ∀ (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) {z : StdSpace ι},
+      ContDiffAt ℝ (r + 1 : ℕ) (D.reading k x s) z →
+        jetNormAt ℝ r (D.connectionReading k x s) z ≤
+          C * (1 + ‖z‖) * jetNormAt ℝ (r + 1) (D.reading k x s) z := by
+  set Ω : StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ :=
+    (2⁻¹ : ℝ) • (stdForm ι).toBilinForm.toContinuousBilinearMap
+  -- Instance search does not find the operator norm on this space of bilinear maps unaided.
+  let : NormedAddCommGroup (ℂ →L[ℝ] StdSpace ι →L[ℝ] ℂ) := ContinuousLinearMap.toNormedAddCommGroup
+  let : NormedSpace ℝ (ℂ →L[ℝ] StdSpace ι →L[ℝ] ℂ) := ContinuousLinearMap.toNormedSpace
+  set R := ContinuousLinearMap.smulRightL ℝ ℝ ℝ (StdSpace ι) ℂ
+  refine ⟨1 + 2 ^ r * ‖R‖ * ‖Ω‖, fun k x s z hs ↦ ?_⟩
+  set g := D.reading k x s
+  set J1 := jetNormAt ℝ (r + 1) g z
+  have hJ1 : 0 ≤ J1 := jetNormAt_nonneg _ _ _
+  have hs' : ContDiffAt ℝ (r + 1) g z := by exact_mod_cast hs
+  have hΩ : jetNormAt ℝ r Ω z ≤ ‖Ω‖ * (1 + ‖z‖) := by
+    have := jetNormAt_continuousLinearMap_le Ω r z
+    have := Ω.le_opNorm z
+    nlinarith [norm_nonneg Ω]
+  have hIg : jetNormAt ℝ r (fun w ↦ Complex.I * g w) z ≤ J1 := by
+    have : jetNormAt ℝ r (Complex.I • g) z = jetNormAt ℝ r g z := by simp
+    exact this.le.trans (jetNormAt_mono g z (Nat.le_succ r))
+  have hIc : ContDiffAt ℝ r (fun w ↦ Complex.I * g w) z :=
+    (contDiffAt_const (c := Complex.I)).mul (hs.of_le (by exact_mod_cast Nat.le_succ r))
+  have hRjet := jetNormAt_bilinear_le R Ω.contDiff.contDiffAt hIc
+  have hd : jetNormAt ℝ r (fderiv ℝ g) z ≤ J1 :=
+    (le_add_of_nonneg_left (norm_nonneg (g z))).trans_eq (jetNormAt_succ r g z).symm
+  have hadd := jetNormAt_add_le (hs'.fderiv_right le_rfl)
+    ((R.contDiff.contDiffAt.comp z Ω.contDiff.contDiffAt).clm_apply hIc).neg
+  have hL : D.connectionReading k x s =
+      fderiv ℝ g + -fun w ↦ R (Ω w) (Complex.I * g w) := by
+    funext w
+    simp only [D.connectionReading_eq, Pi.add_apply, Pi.neg_apply, sub_eq_add_neg, Ω, R, g,
+      smul_apply]
+  rw [hL]
+  refine (hadd.trans_eq (congrArg _
+    (jetNormAt_neg r (fun w ↦ R (Ω w) (Complex.I * g w)) z))).trans ?_
+  have : 0 ≤ ‖R‖ := ContinuousLinearMap.opNorm_nonneg R
+  have : 0 ≤ ‖Ω‖ := Ω.opNorm_nonneg
+  have : 0 ≤ jetNormAt ℝ r Ω z := jetNormAt_nonneg _ _ _
+  have : 0 ≤ jetNormAt ℝ r (fun w ↦ Complex.I * g w) z := jetNormAt_nonneg _ _ _
+  calc _ ≤ J1 + 2 ^ r * ‖R‖ * (‖Ω‖ * (1 + ‖z‖)) * J1 := by
+        refine add_le_add hd (hRjet.trans ?_)
+        gcongr
+    _ ≤ (1 + 2 ^ r * ‖R‖ * ‖Ω‖) * (1 + ‖z‖) * J1 := by
+        nlinarith [mul_nonneg hJ1 (norm_nonneg z)]
 
 /-- On a boundaryless manifold, the `∂̄` reading is `C^n` at a point `z` of the target of the
 chart where the reading of the section is `C^(n + 1)`. -/
