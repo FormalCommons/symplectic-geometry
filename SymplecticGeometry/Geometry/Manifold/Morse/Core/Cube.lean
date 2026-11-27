@@ -40,7 +40,7 @@ Euclidean ball of radius `ρ` of the coordinates of negative weight lies in the 
 
 * `TauCeti.MorseChart.exists_radial_extension_levelCrossingTime` (`Morse/Core/CrossingTime.lean`)
   gives the time function `θ`, equal on the sphere to the crossing time of the level `a'`, for
-  which `r ↦ θ (r • u) + log r` is strictly monotone on `(0, ∞)` for `u ≠ 0`, and
+  which `r ↦ θ (r • u) + log r` is strictly monotone on `(0, ∞)` for every `u`, and
   `1 + dθ_c(c) > 0`. So `F c = Φ (θ c) y_c` sends the sphere to the level `a'`, the closed ball
   above it, and its open ball reaches the part of the unstable set of `p` above `a'`.
 * `F` is injective on the closed ball
@@ -141,8 +141,8 @@ theorem exists_cubeChart_unstableSet
     Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) with hF
   -- `F` is injective on the closed ball, and its thickening is an open embedding near it.
   have hinj : InjOn F (closedBall 0 ρ) :=
-    φ.injOn_globalFlow_toChart_symm_negativeExtend hX hXc hXφ hρ fun u hu ↦
-      (hmono u (norm_pos_iff.1 (hu ▸ hρ0))).mono Ioc_subset_Ioi_self
+    φ.injOn_globalFlow_toChart_symm_negativeExtend hX hXc hXφ hρ fun u _ ↦
+      (hmono u).mono Ioc_subset_Ioi_self
   obtain ⟨V, hBV, -, hΨ, hΨo⟩ :=
     φ.exists_isSmoothEmbedding_globalFlow_toChart_symm hX hXc hXs hXφ hρ hθs (fun c _ ↦ hθρ c)
       hinj
