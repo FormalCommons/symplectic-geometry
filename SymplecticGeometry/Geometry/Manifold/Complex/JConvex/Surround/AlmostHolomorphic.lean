@@ -12,8 +12,10 @@ public import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 import Mathlib.Analysis.Analytic.CPolynomial
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.FDeriv.Analytic
+import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.VanishingJet
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
 
@@ -55,6 +57,12 @@ to `f` on the real points.
   derivative of `∂̄ (taylorExtension N f)` (as the real-linear map
   `ContinuousLinearMap.complexAntilinearPartL` of the derivative) at `x + i y`, for `x ∈ K` and
   `‖y‖ ≤ 1`. The derivative of `∂̄` grows like `‖y‖ ^ N` for large `y`, hence `‖y‖ ≤ 1`.
+* `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero`: a map into a real
+  normed space that is `C^(N + 1)` on an open set `U`, with derivatives of order at most `N` zero
+  at the real points of `U`, has `‖D^j D (x + i y)‖ ≤ C * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` on a
+  neighbourhood of any compact set of real points in `U`. It follows from
+  `SymplecticGeometry.norm_iteratedFDeriv_add_le_of_iteratedFDeriv_eq_zero` along the segment from
+  `x` to `x + i y`.
 
 The formula of `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real` is the standard
 computation for almost analytic extensions: the derivative in the direction `i u` shifts the
@@ -72,7 +80,7 @@ public section
 
 namespace SymplecticGeometry
 
-open TauCeti
+open TauCeti Topology
 
 variable {ι' : Type*} [Fintype ι'] {W : Type*} [NormedAddCommGroup W] [NormedSpace ℂ W]
 
@@ -355,6 +363,55 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le {N : ℕ}
     gcongr
     · exact (hM₂ _ hz).trans (le_max_left _ _)
     · exact re.le_opNorm h
+
+/-- A map `D` that is `C^(N + 1)` over `ℝ` on an open set `U`, and whose derivatives of order at
+most `N` vanish at the real points of `U`, vanishes to order `N + 1` near a compact set `K ⊆ U` of
+real points: there are a neighbourhood `U'` of `K` and a constant `C` with
+`‖D^j D (x + i y)‖ ≤ C * ‖y‖ ^ (N + 1 - j)` for all `x + i y ∈ U'` and `j ≤ N + 1`. -/
+theorem exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {N : ℕ} {D : EuclideanSpace ℂ ι' → F}
+    {U K : Set (EuclideanSpace ℂ ι')} (hU : IsOpen U) (hD : ContDiffOn ℝ (N + 1) D U)
+    (hK : IsCompact K) (hKU : K ⊆ U) (hKre : ∀ z ∈ K, (complexEuclideanEquivRealProd ι' z).2 = 0)
+    (h0 : ∀ x ∈ U, (complexEuclideanEquivRealProd ι' x).2 = 0 →
+      ∀ j ≤ N, iteratedFDeriv ℝ j D x = 0) :
+    ∃ U' ∈ 𝓝ˢ K, ∃ C, ∀ z ∈ U', ∀ j ≤ N + 1,
+      ‖iteratedFDeriv ℝ j D z‖ ≤ C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N + 1 - j) := by
+  set e := complexEuclideanEquivRealProd ι'
+  obtain ⟨δ, hδ, hδU⟩ := hK.exists_cthickening_subset_open hU hKU
+  obtain ⟨M, hM⟩ := (hK.cthickening (r := δ)).exists_bound_of_continuousOn
+    fun w hw ↦ ((hD.contDiffAt (hU.mem_nhds (hδU hw))).continuousAt_iteratedFDeriv
+      le_rfl).continuousWithinAt
+  refine ⟨Metric.thickening δ K, Metric.thickening_mem_nhdsSet K hδ, M, fun z hz j hj ↦ ?_⟩
+  obtain ⟨k, hk, hzk⟩ := Metric.mem_thickening_iff.1 hz
+  -- `z = x + y`, with `x` the real part of `z` and `y` its imaginary part, as points of `ℂⁿ`.
+  set x := e.symm ((e z).1, 0)
+  set y := e.symm (0, (e z).2)
+  have hxy : z = x + y := by simp [x, y, ← map_add]
+  have hnorm (p) : ‖e.symm p‖ = √(‖p.1‖ ^ 2 + ‖p.2‖ ^ 2) := by
+    rw [← norm_complexEuclideanEquivRealProd_symm_sq, Real.sqrt_sq (norm_nonneg _)]
+  have hy : ‖y‖ = ‖(e z).2‖ := by simp [y, hnorm]
+  have hx : x ∈ Metric.ball k δ := by
+    have hk' : k = e.symm ((e k).1, 0) := by
+      rw [← hKre k hk]
+      simp
+    rw [Metric.mem_ball, dist_eq_norm, hk', ← map_sub, Prod.mk_sub_mk, sub_zero, hnorm]
+    simp only [norm_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow, add_zero,
+      Real.sqrt_sq (norm_nonneg _)]
+    refine lt_of_le_of_lt ?_ (dist_eq_norm z k ▸ hzk)
+    simpa using norm_complexEuclideanEquivRealProd_fst_le (z - k)
+  -- The segment from `x` to `z` lies in the ball of radius `δ` about `k`.
+  have hseg (t) (ht : t ∈ Set.Icc (0 : ℝ) 1) : x + t • y ∈ Metric.ball k δ := by
+    have := (convex_ball k δ).add_smul_sub_mem hx (Metric.mem_ball.2 hzk) ht
+    rwa [hxy, add_sub_cancel_left] at this
+  have hU' (t) (ht : t ∈ Set.Icc (0 : ℝ) 1) : x + t • y ∈ U :=
+    hδU (Metric.ball_subset_thickening hk δ |>.trans (Metric.thickening_subset_cthickening _ _)
+      (hseg t ht))
+  rw [← hy]
+  conv_lhs => rw [hxy]
+  refine norm_iteratedFDeriv_add_le_of_iteratedFDeriv_eq_zero hj
+    (fun t ht ↦ hD.contDiffAt (hU.mem_nhds (hU' t ht)))
+    (fun t ht ↦ hM _ (Metric.mem_cthickening_of_dist_le _ k _ _ hk (hseg t ht).le))
+    (h0 x (by simpa using hU' 0 (Set.left_mem_Icc.2 zero_le_one)) (by simp [x]))
 
 end SymplecticGeometry
 
