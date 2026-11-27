@@ -546,12 +546,11 @@ private theorem exists_mulEquiv_fan (hδ : 0 < δ) (k : ι) :
       (FundamentalGroup.map S.toFun x0
         (fromPath (Path.Homotopic.Quotient.mk (Complex.sphereLoop (c k : ℂ) hr)))) =
       fromPath (Path.Homotopic.Quotient.mk σ) := by
-    rw [TauCeti.FundamentalGroup.map_fromPath, FundamentalGroup.homeomorphMulEquivOfEq_apply,
-      FundamentalGroup.mapOfEq_fromPath_mk]
+    rw [TauCeti.FundamentalGroup.map_fromPath, FundamentalGroup.homeomorphMulEquivOfEq_fromPath_mk]
     congr 2
     ext t
     rw [Path.codRestrict_coe, circle_apply, Path.cast_coe, Path.map_coe, Function.comp_apply]
-    simp only [Homeomorph.coe_refl, Path.map_coe, Function.comp_apply, ContinuousMap.id_apply,
+    simp only [Homeomorph.refl_apply, Path.map_coe, Function.comp_apply, id_eq,
       StarConvex.coe_sphereHomotopyEquiv_apply, S]
     exact Complex.coe_sphereLoop_apply _ hr t
   let ρ : Path (⟨-I, negI_mem_fan k⟩ : ↥(fan c δ k \ {(c k : ℂ)})) y :=
