@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreTorus
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.AffineCoordinate
 import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface.FibreComplement
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.SmoothEmbedding
 import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!

@@ -16,6 +16,7 @@ import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Prod.Basic
 import SymplecticGeometry.Geometry.Manifold.GeneralPosition
 import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Orientation
 import SymplecticGeometry.Geometry.Manifold.NullSet
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.SmoothEmbedding
 import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
