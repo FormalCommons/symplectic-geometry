@@ -20,9 +20,11 @@ Hence the derivative is positive on the open interval `(0, 1)` (`Real.smoothTran
 and `8 τ (1 - τ) ≤ τ'`, since `x⁻² + (1 - x)⁻² ≥ 8` on `(0, 1)`
 (`Real.smoothTransition.eight_mul_mul_one_sub_le_deriv`). Since `τ'` vanishes outside `[0, 1]`,
 also `|x τ'(x)| ≤ τ'(x)` (`Real.smoothTransition.abs_mul_deriv_le_deriv`), and `x τ''(x)` is bounded
-(`Real.smoothTransition.exists_forall_norm_mul_deriv_deriv_le`). So the cutoff
-`x ↦ τ ((x - a) / L)` of width `L` has small first derivative, and small second derivative times
-`x`, once `L` is large compared with these bounds (`Real.smoothTransition.abs_deriv_sub_div_le`).
+(`Real.smoothTransition.exists_forall_norm_mul_deriv_deriv_le`). Finally, the quantities
+`τ'((x - a) / L) / L` and `x τ''((x - a) / L) / L²`, which by the chain rule are the first
+derivative and `x` times the second derivative of the cutoff `x ↦ τ ((x - a) / L)` of width `L`,
+are small once `L` is large compared with these bounds
+(`Real.smoothTransition.abs_deriv_sub_div_le`).
 -/
 
 public section
@@ -96,9 +98,10 @@ theorem exists_forall_norm_mul_deriv_deriv_le :
     ).bounded_above_of_compact_support hasCompactSupport_deriv.deriv.mul_left
 
 /-- Let `A`, `B` and `M` bound `|τ'|`, `|τ''|` and `|x τ''(x)|`, for the smooth transition
-function `τ`, and let `0 ≤ a`, `1 ≤ L` and `A + a B + M ≤ ε L`. Then the cutoff
-`x ↦ τ ((x - a) / L)` has derivative at most `ε` in absolute value, and so has its second
-derivative times `x`, at every `x`. -/
+function `τ`, and let `0 ≤ a`, `1 ≤ L` and `A + a B + M ≤ ε L`. Then, at every `x`, both
+`τ'((x - a) / L) / L` and `x τ''((x - a) / L) / L²` are at most `ε` in absolute value. By the chain
+rule these are the first derivative of the cutoff `x ↦ τ ((x - a) / L)` and `x` times its second
+derivative; the statement bounds these expressions, not `deriv` of the cutoff. -/
 theorem abs_deriv_sub_div_le {A B M L a ε : ℝ} (hA : ∀ x, |deriv smoothTransition x| ≤ A)
     (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
     (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M) (ha : 0 ≤ a) (hL₁ : 1 ≤ L)
