@@ -159,12 +159,13 @@ theorem exists_norm_fderiv_complexAntilinearPartL_fderiv_comp_le {U : Set V} {O 
   nlinarith
 
 /-- **The bound on `∂̄ (g ∘ D)` near a point.** Let `g` be complex `C¹` at `D z`, and let `D` be
-continuous at `z` and real differentiable near `z`. If `‖∂̄ D‖ ≤ b` near `z`, then
+real differentiable near `z`. If `‖∂̄ D‖ ≤ b` near `z`, then
 `‖∂̄ (g ∘ D)‖ ≤ (‖dg (D z)‖ + 1) b` near `z`. -/
 theorem eventually_norm_conjWirtingerDeriv_comp_le (hg : ContDiffAt ℂ 1 g (D z))
-    (hDc : ContinuousAt D z) (hD : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ D w) {b : V → ℝ}
+    (hD : ∀ᶠ w in 𝓝 z, DifferentiableAt ℝ D w) {b : V → ℝ}
     (hb : ∀ᶠ w in 𝓝 z, ‖conjWirtingerDeriv D w‖ ≤ b w) :
     ∀ᶠ w in 𝓝 z, ‖conjWirtingerDeriv (g ∘ D) w‖ ≤ (‖fderiv ℂ g (D z)‖ + 1) * b w := by
+  have hDc : ContinuousAt D z := hD.self_of_nhds.continuousAt
   have hgd : ∀ᶠ w in 𝓝 z, DifferentiableAt ℂ g (D w) :=
     hDc.eventually ((hg.eventually (by simp)).mono fun _ hy ↦ hy.differentiableAt one_ne_zero)
   have hgc : ∀ᶠ w in 𝓝 z, ‖fderiv ℂ g (D w)‖ < ‖fderiv ℂ g (D z)‖ + 1 :=

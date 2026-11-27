@@ -543,7 +543,6 @@ private theorem exists_eventually_norm_conjWirtingerDeriv_extChartAt_le {N : ℕ
     simpa only [Lr.apply_symm_apply] using hC _ hw
   refine ⟨(‖fderiv ℂ τ (Y (Lr z₀))‖ + 1) * C, ?_⟩
   filter_upwards [eventually_norm_conjWirtingerDeriv_comp_le (hτ.contDiffAt (hT.mem_nhds hYT))
-      (hY.continuousOn.continuousAt (hU'.mem_nhds hz₀'))
       ((hU'.eventually_mem hz₀').mono fun w hw ↦
         (hY.contDiffAt (hU'.mem_nhds hw)).differentiableAt one_ne_zero) hb,
     hU'.mem_nhds hz₀'] with w hw hwU

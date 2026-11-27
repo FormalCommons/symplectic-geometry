@@ -48,10 +48,7 @@ theorem of_comp_left (hjet : SameJetAt 𝕂 n x (h ∘ f) (h ∘ f'))
     (hf : ContDiffAt 𝕂 n f x) (hf' : ContDiffAt 𝕂 n f' x) (hff' : f x = f' x) :
     SameJetAt 𝕂 n x f f' := by
   rcases Nat.eq_zero_or_pos n with rfl | hn
-  · refine sameJetAt_iff.2 fun i hi ↦ ?_
-    obtain rfl := Nat.le_zero.1 hi
-    ext v
-    simp [hff']
+  · exact sameJetAt_zero_iff.2 hff'
   obtain ⟨A, hA⟩ := hinv
   have hn0 : (n : WithTop ℕ∞) ≠ 0 := by exact_mod_cast hn.ne'
   have hd : HasFDerivAt h (A : F →L[𝕂] G) (f x) := hA ▸ (hh.differentiableAt hn0).hasFDerivAt
