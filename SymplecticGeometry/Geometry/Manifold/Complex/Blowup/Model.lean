@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 public import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 
@@ -71,6 +72,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   same at one point of the source of a chart.
 * `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp`: a map
   into the blowup is `C^r` at a point, for `r ≥ 1`, exactly when its two projections are.
+* `SymplecticGeometry.BlowupModel.contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp`:
+  the same for the real structures, for maps out of a real manifold and every `r`.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
@@ -676,6 +679,32 @@ theorem contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp {F H M : Type*}
         ContMDiffAt I 𝓘(ℂ, Fin (n + 1) → ℂ) r (fun y => (f y).blowdown) x := by
   rw [(isSmoothEmbedding_blowupModel_val hr).contMDiffAt_iff_comp, contMDiffAt_prod_iff]
   simp only [comp_def, ← pr_def, ← blowdown_def]
+
+/-- A map from a real manifold into the blowup is `C^r` at a point, for the real structure of the
+blowup, if and only if its composites with the projection to `ℙ ℂ E` and with the blowdown are,
+for the real structures of `ℙ ℂ E` and `E`. -/
+theorem contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H] {I : ModelWithCorners ℝ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : M → BlowupModel n} {x : M} {r : ℕ∞ω} :
+    ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → ℂ) r f x ↔
+      ContMDiffAt I 𝓘(ℝ, Fin n → ℂ) r (fun y => (f y).pr) x ∧
+        ContMDiffAt I 𝓘(ℝ, Fin (n + 1) → ℂ) r (fun y => (f y).blowdown) x := by
+  refine ⟨fun hf => ⟨((contMDiff_pr r).restrictScalars' ℝ).contMDiffAt.comp x hf,
+    ((contMDiff_blowdown r).restrictScalars' ℝ).contMDiffAt.comp x hf⟩, fun ⟨hpr, hbl⟩ => ?_⟩
+  obtain ⟨i, hi⟩ := exists_mem_affineOpen (f x).pr
+  have hU := (isOpen_affineOpen (K := ℂ) i).mem_nhds hi
+  -- Near `x`, `f` is the inverse of the chart `i` applied to the chart `i` read on `f`.
+  have hL : ContDiff ℝ r fun q : (Fin n → ℂ) × (Fin (n + 1) → ℂ) =>
+      Fin.insertNth (α := fun _ => ℂ) i (q.2 i) q.1 :=
+    ((contDiff_apply ℝ (fun _ => ℂ) i).comp contDiff_snd).finInsertNth (F := fun _ => ℂ) i
+      contDiff_fst
+  have hc : ContMDiffAt I 𝓘(ℝ, Fin n → ℂ) r (fun y => affineChart i (f y).pr) x :=
+    (((contMDiffOn_affineChart i r).restrictScalars' ℝ).contMDiffAt hU).comp x hpr
+  refine ((((contMDiff_blowupModelChart_symm i r).restrictScalars' ℝ).contMDiffAt).comp x
+    (hL.contMDiff.contMDiffAt.comp x (hc.prodMk_space hbl))).congr_of_eventuallyEq ?_
+  filter_upwards [hpr.continuousAt.preimage_mem_nhds hU] with y hy
+  rw [comp_apply, comp_apply, ← blowupModelChart_apply,
+    (blowupModelChart i).left_inv (by rwa [blowupModelChart_source])]
 
 -- Instance search finds the subspace instances of `ℙ ℂ E × E`.
 example : T2Space (BlowupModel n) := inferInstance
