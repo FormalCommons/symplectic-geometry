@@ -130,6 +130,11 @@ def struweShape (δ K c r : ℝ) : ℝ :=
 theorem struweShape_def (δ K c r : ℝ) :
     struweShape δ K c r = c + ∫ u in K * δ..r, 1 / √(log (u / δ)) := (rfl)
 
+/-- Raising the value of Struwe's shape at `K δ` by `a` raises the whole shape by `a`. -/
+theorem struweShape_add (δ K a c r : ℝ) :
+    struweShape δ K (a + c) r = a + struweShape δ K c r := by
+  rw [struweShape_def, struweShape_def, add_assoc]
+
 @[simp]
 theorem struweShape_apply_mul (δ K c : ℝ) : struweShape δ K c (K * δ) = c := by
   simp [struweShape_def]

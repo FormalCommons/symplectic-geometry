@@ -155,7 +155,7 @@ theorem isMIntegralCurveOn_mpullback_subtypeVal_iff {U : Opens M}
     {V : Π x : M, TangentSpace I x} {γ : ℝ → U} {s : Set ℝ} :
     IsMIntegralCurveOn γ (VectorField.mpullback I I Subtype.val V) s ↔
       IsMIntegralCurveOn (Subtype.val ∘ γ) V s := by
-  refine ⟨fun h ↦ h.map_of_mfderiv_eq (fun _ _ ↦ SymplecticGeometry.mdifferentiableAt_subtypeVal)
+  refine ⟨fun h ↦ h.map_of_mfderiv_eq (fun _ _ ↦ mdifferentiableAt_subtypeVal)
     (fun t _ ↦ mfderiv_subtypeVal_mpullback_subtypeVal V (γ t)), fun h ↦ ?_⟩
   exact (TauCeti.isLocalDiffeomorph_subtype_val (n := 1)).isMIntegralCurveOn_of_comp one_ne_zero
     (fun t _ ↦ mfderiv_subtypeVal_mpullback_subtypeVal V (γ t))

@@ -146,9 +146,7 @@ open SmoothAlmostComplexStructure in
 closed, invariant under `i`, and `ω̃_l(v, i v) > 0` for every nonzero tangent vector `v`. -/
 theorem isKahler_blowupForm {l : ℝ} (hl : l ≠ 0) :
     (blowupForm n l).IsKahler (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) := by
-  have hb : IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
-      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
-    isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
+  have hb := isPseudoholomorphic_ofComplexManifold_blowdown (n := n)
   have hp : IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
       (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ))) pr :=
     isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_pr ∞).mdifferentiable (by simp))

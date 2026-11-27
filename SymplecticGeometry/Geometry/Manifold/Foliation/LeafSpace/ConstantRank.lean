@@ -166,7 +166,7 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderiv
           𝓘(ℝ, F) ((A ∘L L) ∘ Subtype.val) u w := by
       rw [hcomp]
     rw [mfderiv_comp u hψu ((hf.mdifferentiableAt h0).comp u hsu),
-      mfderiv_comp u (hf.mdifferentiableAt h0) hsu, mfderiv_modelSpace_comp_subtype_val_apply,
+      mfderiv_comp u (hf.mdifferentiableAt h0) hsu, mfderiv_modelSpace_comp_subtypeVal_apply,
       (A ∘L L).fderiv] at h
     simp only [ContinuousLinearMap.comp_apply, hw, map_zero] at h
     exact h.symm
