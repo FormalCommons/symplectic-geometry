@@ -171,7 +171,8 @@ bound `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖`
   the point with image `z`.
 * `SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`:
   the two bounds together, on the same ball of radius `ρ₁ * √k`: `d_k` from `x` to the point with
-  image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`.
+  image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`; its lower half as a real inequality,
+  `RescaledUnitaryCharts.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm`.
 
 ## References
 
@@ -1065,6 +1066,22 @@ theorem ofReal_mul_riemannianEDist_symm_mem_Icc [T2Space M]
       Set.Icc (ENNReal.ofReal ((√2)⁻¹ * ‖z‖)) (ENNReal.ofReal (√(3 / 2) * ‖z‖)) :=
   ⟨D.ofReal_mul_norm_le_mul_riemannianEDist hg hρ₁₀ hk x hcmp hz,
     D.ofReal_mul_riemannianEDist_symm_le hg hρ₁₀ hk x hcmp hz⟩
+
+/-- The lower bound of `ofReal_mul_riemannianEDist_symm_mem_Icc` as a real inequality: under the
+same hypotheses, `‖z‖ ≤ √2 * d_k(x, (D.chart k x).symm z)`, where the rescaled distance
+`d_k = √(2π k) · d_{g_J}` is taken as a real number. -/
+theorem norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm [T2Space M]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {z : StdSpace ι} (hz : z ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
+    ‖z‖ ≤ √2 * (ENNReal.ofReal √(2 * Real.pi * k) *
+      Manifold.riemannianEDist I x ((D.chart k x).symm z)).toReal := by
+  obtain ⟨hlo, hhi⟩ := D.ofReal_mul_riemannianEDist_symm_mem_Icc hg hρ₁₀ hk x hcmp hz
+  have h := (ENNReal.ofReal_le_iff_le_toReal (ne_top_of_le_ne_top ENNReal.ofReal_ne_top hhi)).1 hlo
+  have h2 : (0 : ℝ) < √2 := by positivity
+  calc ‖z‖ = √2 * ((√2)⁻¹ * ‖z‖) := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
+    _ ≤ _ := mul_le_mul_of_nonneg_left h h2.le
 
 end RiemannianEDist
 
