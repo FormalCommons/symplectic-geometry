@@ -457,7 +457,7 @@ private theorem isLocalDiffeomorph_outerMap :
       Blowup.puncturedOpens hN.blowupChart :=
     fun x ↦ ⟨_, hψ.radialContraction_mem_puncturedOpens hh hε' hε'ε x⟩
   have hk : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ k x :=
-    isLocalDiffeomorphAt_subtypeVal_comp_iff.1 <| IsLocalDiffeomorphAt.comp
+    IsLocalDiffeomorphAt.subtypeVal_comp_iff.1 <| IsLocalDiffeomorphAt.comp
       (hf := isLocalDiffeomorph_subtype_val x)
       (hg := hψ.isSymplecticBallEmbedding.isLocalDiffeomorphAt_radialContraction hh
         hψ.weight_add_width_lt ((WeightBlowup.mem_outerPiece_iff _).1 x.property))

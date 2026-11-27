@@ -358,8 +358,8 @@ def annulusDiffeomorph :
     annulus E (ε ^ 2) 1 ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ overlap ι ε hι.continuous hι.isOpenMap :=
   IsLocalDiffeomorph.diffeomorphOfBijective
     (f := fun ξ ↦ ⟨⟨ι ξ, mem_piece_of_mem_annulus hι.injective ξ.property⟩, ξ, ξ.property, rfl⟩)
-    (TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <|
-      TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <|
+    (IsLocalDiffeomorph.subtypeVal_comp_iff.1 <|
+      IsLocalDiffeomorph.subtypeVal_comp_iff.1 <|
         fun ξ ↦ (TauCeti.isLocalDiffeomorph_subtype_val ξ).comp (hg := hdι ξ))
     ⟨fun _ _ h ↦ Subtype.ext <| hι.injective <| congrArg
         (fun x : overlap ι ε hι.continuous hι.isOpenMap ↦ ((x : piece ι ε hι.continuous) : M)) h,
@@ -703,12 +703,12 @@ def annulusSumDiffeomorph (hε₁ : ε ^ 2 < 1) :
       ⟨y, piece_le_puncture ε (by simp) y.property⟩)
     -- `g₁` and `g₂` are `inl ∘ Opens.inclusion _` and `inr ∘ Opens.inclusion _` by definition of
     -- `Set.inclusion`, so the local-diffeomorphism and injectivity facts below apply to them.
-    (fun x ↦ (TauCeti.isLocalDiffeomorph_inclusion (piece_le_puncture ε (by simp)) x).comp
+    (fun x ↦ (isLocalDiffeomorph_inclusion (piece_le_puncture ε (by simp)) x).comp
       (hg := TauCeti.ConnectedSum.isLocalDiffeomorph_inl (isOpenEmbedding_rescale hι₁ hε)
         (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
         (isLocalDiffeomorph_rescale hdι₁ hε)
         (isLocalDiffeomorph_rescale (hdι₂.comp_linearIsometryEquiv Φ) hε) _))
-    (fun y ↦ (TauCeti.isLocalDiffeomorph_inclusion (piece_le_puncture ε (by simp)) y).comp
+    (fun y ↦ (isLocalDiffeomorph_inclusion (piece_le_puncture ε (by simp)) y).comp
       (hg := TauCeti.ConnectedSum.isLocalDiffeomorph_inr (isOpenEmbedding_rescale hι₁ hε)
         (isOpenEmbedding_rescale (hι₂.comp_linearIsometryEquiv Φ) hε)
         (isLocalDiffeomorph_rescale hdι₁ hε)

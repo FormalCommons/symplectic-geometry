@@ -431,9 +431,9 @@ Smooth families of forms over a parameter manifold `N` (model
 
 ### `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`
 
-Named like Tau Ceti's file; in `TauCeti`.
+Named like Tau Ceti's file; in the root namespace.
 
-- `TauCeti.isLocalDiffeomorph_inclusion`: for open subsets `U ≤ W`, the
+- `isLocalDiffeomorph_inclusion`: for open subsets `U ≤ W`, the
   inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism, for
   restricting families and forms between open subsets.
 
