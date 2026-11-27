@@ -229,7 +229,7 @@ theorem exists_contDiff_glue_modelDisc {ι : Type*}
       (modelDisc k m).continuous) hU hcore hG
     (fun i j z ⟨⟨⟨x, hx⟩, hzi⟩, hzj⟩ ↦ by
       subst hx
-      exact ⟨(hfix i x hzi).trans (hfix j x hzj).symm, (hd i x hzi).trans (hd j x hzj).symm⟩)
+      exact (hd i x hzi).trans (hd j x hzj).symm)
     hw hw₀ (by rintro _ ⟨x, rfl⟩; exact hwcore x) hpair
   have hcore' : ∀ x, ∃ i, modelDisc k m x ∈ U i := fun x ↦ mem_iUnion.1 (hcore (mem_range_self x))
   refine ⟨G', hG', fun x ↦ ?_, fun x ↦ ?_, hbound⟩

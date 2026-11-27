@@ -14,10 +14,11 @@ import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
 import Mathlib.Data.Nat.Choose.Sum
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Topology.Algebra.Support
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
-import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Topology.PartitionOfUnity
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 
 /-!
@@ -48,7 +49,7 @@ imaginary part on `EuclideanSpace ℂ ι'`), then so has `G - f`, with another c
   at `z`, then `G` has the derivative of `f` at `z`;
 * `SymplecticGeometry.exists_contDiff_glue_of_norm_iteratedFDeriv_sub_le`: the global gluing
   along a closed set `S` that need not be compact. Maps `g i`, smooth on open sets `U i` that
-  cover `S`, agreeing in value and derivative on `S` and pairwise to order `N + 1` near the
+  cover `S`, agreeing in derivative on `S` and pairwise to order `N + 1` near the
   compact subsets of `S`, glue to one smooth map with the same value and derivative on `S` that
   agrees with each `g i` to order `N + 1` near the compact subsets of `S ∩ U i`. The map is
   `∑ᶠ i, ρ i • g i` for a smooth partition of unity on a closed neighbourhood of `S`; near a
@@ -266,7 +267,14 @@ private theorem exists_norm_iteratedFDeriv_finsum_smul_sub_le {S s : Set E}
       ((fun y ↦ ∑ᶠ i, ρ i y • g i y) - g i₀) y‖ ≤ C * w y ^ (N + 1 - l) := by
   classical
   obtain ⟨K', hK', hKK'⟩ := exists_compact_superset hK
-  obtain ⟨t, ht⟩ := ρ.exists_finset_finsum_smul_eq_sum_of_isCompact (F := F) hK'
+  -- Near `K'`, the glued map is a sum over one finite set `t` of indices.
+  obtain ⟨t, ht⟩ := ρ.toPartitionOfUnity.exists_finset_finsupport_subset_of_isCompact hK'
+  have hts : ∀ y ∈ K', Function.support (fun i ↦ ρ i y) ⊆ t := fun y hy ↦ by
+    simpa using Finset.coe_subset.2 (ht y hy)
+  have hsum : ∀ y ∈ K', y ∈ s → ∑ j ∈ t, ρ j y = 1 := fun y hy hys ↦
+    ρ.sum_finsupport' y hys fun i hi ↦ hts y hy ((ρ.mem_finsupport y).1 hi)
+  have hfs : ∀ y ∈ K', ∑ᶠ i, ρ i y • g i y = ∑ j ∈ t, ρ j y • g j y := fun y hy ↦
+    finsum_eq_sum_of_support_subset _ ((Function.support_smul_subset_left _ _).trans (hts y hy))
   -- The pairwise bounds near the parts of `K` in the supports of the `ρ j`.
   have hpair' : ∀ j, ∃ C, ∀ᶠ y in 𝓝ˢ (K ∩ tsupport (ρ j)), ∀ l ≤ r,
       ‖iteratedFDeriv ℝ l (g j - g i₀) y‖ ≤ C * w y ^ (N + 1 - l) := fun j ↦
@@ -314,7 +322,7 @@ private theorem exists_norm_iteratedFDeriv_finsum_smul_sub_le {S s : Set E}
     (fun j _ ↦ ((hg j).mono inter_subset_left).of_le hr) ((hg i₀).of_le hr) hK
     (mem_nhdsSet_iff_forall.2 fun y hy ↦ mem_of_superset (hQ.mem_nhds (hKQ hy))
       fun z hz ↦ by
-        rw [mem_ofPred_eq, ← Finset.mul_sum, (ht z (hQK' z hz)).2 (hQs z hz), hQψ z hz, mul_one])
+        rw [mem_ofPred_eq, ← Finset.mul_sum, hsum z (hQK' z hz) (hQs z hz), hQψ z hz, mul_one])
     (mem_nhdsSet_iff_forall.2 fun y hy ↦ mem_of_superset (hO.mem_nhds (hKO hy))
       fun z hz ↦ ⟨hw₀ z, hz.1.2.le⟩)
     (Eventually.of_forall fun y j hj hy _ l hl ↦ (interior_subset hy.2 l hl).trans
@@ -326,21 +334,21 @@ private theorem exists_norm_iteratedFDeriv_finsum_smul_sub_le {S s : Set E}
   have heq : ((fun y ↦ ∑ᶠ i, ρ i y • g i y) - g i₀) =ᶠ[𝓝 y]
       ((fun y ↦ ∑ j ∈ t, (ψ y * ρ j y) • g j y) - g i₀) :=
     mem_of_superset (hQ.mem_nhds hyQ) fun z hz ↦ by
-      simp only [mem_ofPred_eq, Pi.sub_apply, (ht z (hQK' z hz)).1 (g · z), hQψ z hz, one_mul]
+      simp only [mem_ofPred_eq, Pi.sub_apply, hfs z (hQK' z hz), hQψ z hz, one_mul]
   rw [(heq.iteratedFDeriv ℝ l).eq_of_nhds]
   exact hy hyU l hl
 
 /-- **Gluing local maps that agree to order `N + 1` along a closed set.** Let `S` be a closed
 subset of a finite-dimensional real space `E`, covered by open sets `U i`, and let `g i : E → F`
 be smooth on `U i`. Let `w ≥ 0` be a continuous weight vanishing on `S`. Suppose that the `g i`
-agree in value and derivative at the points of `S` where they are defined, and that near every
+agree in derivative at the points of `S` where they are defined, and that near every
 compact `K ⊆ S ∩ U i ∩ U j` the derivatives of order `l ≤ r` of `g i - g j` are bounded by a
 constant times `w ^ (N + 1 - l)`. Then there is a smooth map `G : E → F` with the value and the
 derivative of `g i` at each point of `S ∩ U i`, and such that near every compact
 `K ⊆ S ∩ U i` the derivatives of order `l ≤ r` of `G - g i` have bounds of the same form. -/
 theorem exists_contDiff_glue_of_norm_iteratedFDeriv_sub_le {S : Set E} (hS : IsClosed S)
     (hU : ∀ i, IsOpen (U i)) (hSU : S ⊆ ⋃ i, U i) (hg : ∀ i, ContDiffOn ℝ ∞ (g i) (U i))
-    (hgS : ∀ i j, ∀ z ∈ S ∩ U i ∩ U j, g i z = g j z ∧ fderiv ℝ (g i) z = fderiv ℝ (g j) z)
+    (hgS : ∀ i j, ∀ z ∈ S ∩ U i ∩ U j, fderiv ℝ (g i) z = fderiv ℝ (g j) z)
     {w : E → ℝ} (hw : Continuous w) (hw₀ : ∀ y, 0 ≤ w y) (hwS : ∀ y ∈ S, w y = 0) {N r : ℕ}
     (hpair : ∀ i j K, IsCompact K → K ⊆ S ∩ U i ∩ U j → ∃ C, ∀ᶠ y in 𝓝ˢ K, ∀ l ≤ r,
       ‖iteratedFDeriv ℝ l (g i - g j) y‖ ≤ C * w y ^ (N + 1 - l)) :
@@ -360,24 +368,36 @@ theorem exists_contDiff_glue_of_norm_iteratedFDeriv_sub_le {S : Set E} (hS : IsC
     exact ((hg i).contDiffAt ((hU i).mem_nhds (hρ i hy))).contMDiffAt
   -- Near `z`, the glued map is a finite sum.
   obtain ⟨K', hK', hzK'⟩ := exists_compact_mem_nhds z
-  obtain ⟨t, ht⟩ := ρ.exists_finset_finsum_smul_eq_sum_of_isCompact (F := F) hK'
+  obtain ⟨t, ht⟩ := ρ.toPartitionOfUnity.exists_finset_finsupport_subset_of_isCompact hK'
+  have hts : ∀ y ∈ K', Function.support (fun i ↦ ρ i y) ⊆ t := fun y hy ↦ by
+    simpa using Finset.coe_subset.2 (ht y hy)
   have hn : K' ∩ interior (closure u) ∈ 𝓝 z :=
     inter_mem hzK' (isOpen_interior.mem_nhds (hSs hz.1))
   have heq : (fun y ↦ ∑ᶠ i, ρ i y • g i y) =ᶠ[𝓝 z] fun y ↦ ∑ j ∈ t, ρ j y • g j y :=
-    mem_of_superset hn fun y hy ↦ (ht y hy.1).1 (g · y)
+    mem_of_superset hn fun y hy ↦ finsum_eq_sum_of_support_subset _
+      ((Function.support_smul_subset_left _ _).trans (hts y hy.1))
   have hsum : ∀ᶠ y in 𝓝 z, ∑ j ∈ t, ρ j y = 1 :=
-    mem_of_superset hn fun y hy ↦ (ht y hy.1).2 (interior_subset hy.2)
+    mem_of_superset hn fun y hy ↦
+      ρ.sum_finsupport' y (interior_subset hy.2) fun i hi ↦ hts y hy.1 ((ρ.mem_finsupport y).1 hi)
   have hgi : ContDiffAt ℝ ∞ (g i) z := (hg i).contDiffAt ((hU i).mem_nhds hz.2)
   have h1 : ((1 : ℕ) : WithTop ℕ∞) ≤ ∞ := by exact_mod_cast le_top
-  have hagree : ∀ j ∈ t, z ∈ U j → g j z = g i z ∧ fderiv ℝ (g j) z = fderiv ℝ (g i) z :=
-    fun j _ hzj ↦ hgS j i z ⟨⟨hz.1, hzj⟩, hz.2⟩
+  -- The values agree on `S`, by the pairwise bound of order `0` at a single point.
+  have hval : ∀ j, z ∈ U j → g j z = g i z := by
+    intro j hzj
+    obtain ⟨C, hC⟩ := hpair j i {z} isCompact_singleton
+      (singleton_subset_iff.2 ⟨⟨hz.1, hzj⟩, hz.2⟩)
+    rw [nhdsSet_singleton] at hC
+    have h := hC.self_of_nhds 0 (Nat.zero_le r)
+    rw [norm_iteratedFDeriv_zero, hwS z hz.1, Nat.sub_zero, zero_pow (Nat.succ_ne_zero N),
+      mul_zero, norm_le_zero_iff, Pi.sub_apply, sub_eq_zero] at h
+    exact h
   refine ⟨?_, ?_⟩
   · exact heq.eq_of_nhds.trans <| sum_smul_apply_eq (fun j _ ↦ hρ j) hsum.self_of_nhds
-      fun j hj hzj ↦ (hagree j hj hzj).1
+      fun j _ hzj ↦ hval j hzj
   · rw [heq.fderiv_eq]
     exact fderiv_sum_smul_eq (fun j _ ↦ hU j) (fun j _ ↦ (ρ j).contMDiff.contDiff.of_le h1)
       (fun j _ ↦ hρ j) (fun j _ ↦ (hg j).of_le h1) (hgi.of_le h1) hsum
-      (fun j hj hzj ↦ (hagree j hj hzj).1) fun j hj hzj ↦ (hagree j hj hzj).2
+      (fun j _ hzj ↦ hval j hzj) fun j _ hzj ↦ hgS j i z ⟨⟨hz.1, hzj⟩, hz.2⟩
 
 end Global
 
