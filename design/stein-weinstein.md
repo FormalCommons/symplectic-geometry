@@ -761,11 +761,11 @@ containing `ι '' closedBall 0 1`:
        `isConvexShapeAt_iff`, and `0 < χ`, are an open condition on
        `(χ, χ', χ'', r)`, and the image of `K` is compact. Every later
        step only checks closeness to some member in this sense.
-    2. `exists_contDiff_abs_iteratedDeriv_sub_lt`
-       (`Analysis/Calculus/ContDiff/SmoothApprox.lean`, a statement about
-       real functions): a function `C²` on a neighbourhood of `Icc a b` is,
-       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in value
-       and first two derivatives, and `g` equals it near `Icc c b` if it
+    2. `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt`
+       (`Analysis/Calculus/BumpFunction/SmoothApprox.lean`, a statement about
+       real functions): a function `Cⁿ` on a neighbourhood of `Icc a b` is,
+       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in its
+       derivatives of order at most `n`, and `g` equals it near `Icc c b` if it
        is smooth on a neighbourhood of `Icc c b` (convolution with a
        `ContDiffBump`, glued by a cutoff). It turns finitely many members
        into smooth convex shapes `A i` (step 1).
