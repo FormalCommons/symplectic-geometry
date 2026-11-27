@@ -30,7 +30,8 @@ Away from `0` the function is `θ x = C + χ (log ‖x‖) * (τ (normalize x) -
 `NormedSpace.contDiffAt_normalize`) and a monotone smooth cutoff `χ` in `log ‖x‖`, equal to `0`
 below `log ρ - 1` and to `1` above `log ρ`, built from Mathlib's `Real.smoothTransition`.
 Along the ray through a unit vector `u`, the derivative of
-`θ (r • u) + log r` is `(1 + χ' (log r) * (τ u - C)) / r`, positive since `χ' ≥ 0` (Tau Ceti's
+`θ (r • u) + log r` is `(1 + χ' (log r) * (τ u - C)) / r`, by Tau Ceti's chain rule
+`HasDerivAt.smoothTransition`, positive since `χ' ≥ 0` (Tau Ceti's
 `Real.smoothTransition.deriv_nonneg`) and `τ u ≥ C`.
 
 Such a function serves as a time function in charts of unstable sets of a gradient-like flow
@@ -73,14 +74,15 @@ theorem exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le {n : ℕ�
     have hsu : ‖s • u‖ = s := by rw [norm_smul, hu, mul_one, Real.norm_of_nonneg hs.le]
     simp only [hg, hsu, normalize_smul_of_pos hs, normalize_eq_self_of_norm_eq_one hu]
   classical
-  refine ⟨fun x ↦ if x = 0 then C else g x, ?_, ?_, ?_, ?_⟩
-  · -- Near `0` the function is the constant `C`; away from `0` it is `g`.
-    have h0 : (fun x ↦ if x = 0 then C else g x) =ᶠ[𝓝 (0 : F)] fun _ ↦ C := by
-      filter_upwards [ball_mem_nhds (0 : F) (mul_pos hρ (Real.exp_pos (-1)))] with y hy
-      rw [mem_ball_zero_iff] at hy
-      rcases eq_or_ne y 0 with h | h
-      · simp [h]
-      · simp [h, hsmall h hy]
+  -- Near `0` the function is the constant `C`.
+  have h0 : (fun x ↦ if x = 0 then C else g x) =ᶠ[𝓝 (0 : F)] fun _ ↦ C := by
+    filter_upwards [ball_mem_nhds (0 : F) (mul_pos hρ (Real.exp_pos (-1)))] with y hy
+    rw [mem_ball_zero_iff] at hy
+    rcases eq_or_ne y 0 with h | h
+    · simp [h]
+    · simp [h, hsmall h hy]
+  refine ⟨fun x ↦ if x = 0 then C else g x, ?_, h0.mono fun y hy ↦ by simp [hy], ?_, ?_⟩
+  · -- Away from `0` the function is `g`.
     refine contDiff_iff_contDiffAt.2 fun x ↦ ?_
     rcases eq_or_ne x 0 with rfl | hx
     · exact contDiffAt_const.congr_of_eventuallyEq h0
@@ -92,11 +94,6 @@ theorem exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le {n : ℕ�
           contDiffAt_const).add contDiffAt_const)).mul
       (((hτ _ (norm_normalize_eq_one_iff.2 hx)).comp x (contDiffAt_normalize hx)).sub
         contDiffAt_const)
-  · filter_upwards [ball_mem_nhds (0 : F) (mul_pos hρ (Real.exp_pos (-1)))] with y hy
-    rw [mem_ball_zero_iff] at hy
-    rcases eq_or_ne y 0 with h | h
-    · simp [h]
-    · simp [h, hsmall h hy]
   · intro u hu r hr
     have hr0 : 0 < r := hρ.trans_le hr
     have hne : r • u ≠ 0 := smul_ne_zero hr0.ne' (norm_ne_zero_iff.1 (by simp [hu]))
@@ -108,14 +105,13 @@ theorem exists_contDiff_radial_extension_hasDerivAt_add_log_pos_of_le {n : ℕ�
     have hu0 : u ≠ 0 := norm_ne_zero_iff.1 (by simp [hu])
     have ht : HasDerivAt (fun s ↦ Real.log s - Real.log ρ + 1) r⁻¹ r :=
       ((Real.hasDerivAt_log hr.ne').sub_const _).add_const _
-    have hd := (((((Real.smoothTransition.contDiff (n := 1)).differentiable (by norm_num)
-      _).hasDerivAt.comp r ht).mul_const (τ u - C)).const_add C).add (Real.hasDerivAt_log hr.ne')
+    have hd := ((ht.smoothTransition.mul_const (τ u - C)).const_add C).add
+      (Real.hasDerivAt_log hr.ne')
     refine ⟨_, add_pos_of_nonneg_of_pos (mul_nonneg (mul_nonneg
       (Real.smoothTransition.deriv_nonneg _) (inv_nonneg.2 hr.le)) (sub_nonneg.2 (hC u hu)))
       (inv_pos.2 hr), hd.congr_of_eventuallyEq ?_⟩
     filter_upwards [Ioi_mem_nhds hr] with s (hs : 0 < s)
-    simp only [smul_ne_zero hs.ne' hu0, ↓reduceIte, hray hu hs, hχ, Function.comp_apply,
-      Pi.add_apply]
+    simp only [smul_ne_zero hs.ne' hu0, ↓reduceIte, hray hu hs, hχ, Pi.add_apply]
 
 /-- Let `τ : F → ℝ` be `Cⁿ` at every point of the unit sphere of a finite-dimensional real inner
 product space, and let `ρ > 0`. Then there is a `Cⁿ` function `θ : F → ℝ`, constant near `0`,
