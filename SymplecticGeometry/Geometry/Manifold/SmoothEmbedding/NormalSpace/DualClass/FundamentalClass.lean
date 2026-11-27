@@ -213,7 +213,7 @@ variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topo
   [ChartedSpace H M]
 
 omit [T1Space M] in
-/-- Near a point `x` of a manifold, the centred chart at `x` has a ball `S` about `0` in its
+/-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
 target that its inverse carries into any given neighbourhood `T` of `x`. -/
 theorem exists_ball_mapsTo_centeredExtChartAt_symm (x : M) {T : Set M} (hT : IsOpen T)
     (hx : x ∈ T) : ∃ ε > 0, Metric.ball (0 : E) ε ⊆ (centeredExtChartAt I x).target ∧
