@@ -92,6 +92,14 @@ their types name both fibres as they are written, which `ContinuousLinearEquiv.r
 them does not: since `Bundle.Pullback` is not reducible, the lemmas about `refl` do not apply to it
 when it is used as a map between the two.
 
+Last, for a map `ι : X → M` and a normed space `G`, a family of maps `A x : G → T_(ι x) M` is a
+`Cⁿ` section of the bundle of maps from the trivial bundle `ι *ᵖ G` to `ι *ᵖ TM` exactly when it
+is `Cⁿ` in tangent coordinates
+(`Bundle.Pullback.contMDiffAt_hom_trivial_section_iff_inTangentCoordinates`), by Tau Ceti's
+`Bundle.Pullback.contMDiffAt_hom_section_iff` and Mathlib's `contMDiffAt_hom_bundle`. This is
+the smoothness in which Tau Ceti's `exists_partialDiffeomorph_mfderiv_eq` asks for a prescribed
+differential.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6
@@ -557,5 +565,41 @@ theorem contMDiff_totalSpace_compContinuousLinearMap_mfderiv (f : K)
 end Bundle.Pullback
 
 end MFDerivFamily
+
+section HomTangentSpace
+
+variable {𝕜 E H M G X EX HX K : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
+  {IX : ModelWithCorners 𝕜 EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FunLike K X M] [ContinuousMapClass K X M]
+  {n : WithTop ℕ∞}
+
+namespace Bundle.Pullback
+
+/-- A family of maps `A x : G → T_(ι x) M`, from a normed space `G`, along a map `ι` that is `Cⁿ`
+at `x₀`, is a `Cⁿ` section at `x₀` of the bundle of maps from the trivial bundle `ι *ᵖ G` to
+`ι *ᵖ TM` exactly when it is `Cⁿ` at `x₀` in tangent coordinates. -/
+theorem contMDiffAt_hom_trivial_section_iff_inTangentCoordinates (ι : K) {x₀ : X}
+    (hι : ContMDiffAt IX I n ι x₀) (f : X → G) (A : ∀ x, G →L[𝕜] TangentSpace I (ι x)) :
+    ContMDiffAt IX (IX.prod 𝓘(𝕜, G →L[𝕜] E)) n
+        (fun x ↦ TotalSpace.mk' (G →L[𝕜] E)
+          (E := fun x ↦ ((ι : X → M) *ᵖ (Trivial M G)) x →L[𝕜]
+            ((ι : X → M) *ᵖ (TangentSpace I)) x) x (A x)) x₀ ↔
+      ContMDiffAt IX 𝓘(𝕜, G →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G) I f ι A x₀) x₀ := by
+  refine (Bundle.Pullback.contMDiffAt_hom_section_iff (V := Trivial M G)
+    (W := TangentSpace I) ι hι A).trans ?_
+  rw [contMDiffAt_hom_bundle]
+  simp only [hι, true_and]
+  congr! 2
+  simp [inTangentCoordinates, ContinuousLinearMap.inCoordinates]
+  -- What remains is `φ = φ ∘L 1`, where `1` is the identity of `TangentSpace 𝓘(𝕜, G) (f x)`,
+  -- which is `G` only up to unfolding.
+  rfl
+
+end Bundle.Pullback
+
+end HomTangentSpace
 
 end
