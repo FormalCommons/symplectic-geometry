@@ -425,10 +425,12 @@ For `f : SmoothEmbedding (ℙ ℂ E) M` and the normal bundle isomorphism of
 
 ### `Blowup/Blowdown.lean`
 
-- `blowdown f λ ε`: the manifold glued from `(range f)ᶜ` and the open ball
-  $B^\circ(\sqrt{\lambda^2+\varepsilon^2})$ of `StdSpace`, along the
-  neighbourhood minus $Z$ and the open shell, through
-  `exists_symplectomorphism_blowupModel` and `shellSymplectomorph`; its form
+- `DivisorBlowdown hΨ hf hl hε`, for a partial diffeomorphism `Ψ` from `M` to
+  the model with target `openNbhd n ε` (`hΨ`) and `Ψ (f q) = zeroSection q`
+  (`hf`), taken as data (`exists_symplectomorphism_blowupModel` gives one):
+  the manifold glued from `(range f)ᶜ` and the open ball
+  $B^\circ(\sqrt{\lambda^2+\varepsilon^2})$ of `E` (Euclidean norm), along
+  `Ψ.source ∖ Z` and the open shell, through `Ψ` and `shellSymplectomorph`; its form
   ($\omega$ and $\omega_0$), `isSymplectic_blowdownForm`, and the ball
   embedding `blowdownBall`, an `IsSymplecticBallEmbedding` of radius
   $\lambda$ (indeed of any radius below $\sqrt{\lambda^2+\varepsilon^2}$),
