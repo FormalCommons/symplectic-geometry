@@ -11,6 +11,7 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 import TauCeti.Analysis.Calculus.ParametricFDeriv
+import TauCeti.Analysis.Normed.Operator.Prod
 
 /-!
 # Foliations by `i`-convex shapes and their level functions
@@ -128,9 +129,7 @@ private theorem hasFDerivAt_leafPoint {x : ℝ × ℝ}
   set B := fderiv ℝ (Function.uncurry χ) x (0, 1)
   set c := χ x.1 x.2
   have hDlin (a b : ℝ) : fderiv ℝ (Function.uncurry χ) x (a, b) = a * A + b * B := by
-    have hab : ((a, b) : ℝ × ℝ) = a • ((1 : ℝ), (0 : ℝ)) + b • ((0 : ℝ), (1 : ℝ)) := by
-      ext <;> simp
-    rw [hab, map_add, map_smul, map_smul, smul_eq_mul, smul_eq_mul]
+    rw [ContinuousLinearMap.apply_mk_eq_smul_add_smul, smul_eq_mul, smul_eq_mul]
   let L : ℝ × ℝ →L[ℝ] ℝ × ℝ := ((2 * c) • fderiv ℝ (Function.uncurry χ) x).prod
     ((2 * x.2) • ContinuousLinearMap.snd ℝ ℝ ℝ)
   let L' : ℝ × ℝ →L[ℝ] ℝ × ℝ := ((1 / (2 * c * A)) • ContinuousLinearMap.fst ℝ ℝ ℝ -

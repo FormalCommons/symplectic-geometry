@@ -22,6 +22,7 @@ import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Complex.QuadraticLeviForm
+import TauCeti.Analysis.Normed.Operator.Prod
 import TauCeti.Geometry.Manifold.Morse.Examples.Saddle
 
 /-!
@@ -403,10 +404,10 @@ theorem re_leviForm_comp_shape_apply_self {h : ℝ × ℝ → ℝ}
       a ^ 2 * fderiv ℝ (fderiv ℝ h) (shape p) (1, 0) (1, 0) +
         2 * a * b * fderiv ℝ (fderiv ℝ h) (shape p) (1, 0) (0, 1) +
         b ^ 2 * fderiv ℝ (fderiv ℝ h) (shape p) (0, 1) (0, 1) := by
-    have hab : ((a, b) : ℝ × ℝ) = a • ((1 : ℝ), (0 : ℝ)) + b • ((0 : ℝ), (1 : ℝ)) := by
-      ext <;> simp
-    rw [hab]
-    simp only [map_add, map_smul, add_apply, smul_apply, smul_eq_mul]
+    set B := fderiv ℝ (fderiv ℝ h) (shape p)
+    rw [B.apply_mk_eq_smul_add_smul, add_apply, smul_apply, smul_apply,
+      (B (1, 0)).apply_mk_eq_smul_add_smul a b, (B (0, 1)).apply_mk_eq_smul_add_smul a b]
+    simp only [smul_eq_mul]
     rw [hsymm (0, 1) (1, 0)]
     ring
   have hre {n : ℕ} (u : EuclideanSpace ℂ (Fin n)) : (⟪u, u⟫_ℂ).re = ‖u‖ ^ 2 := by
@@ -527,9 +528,7 @@ theorem re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero {H : ℝ × ℝ → 
   set α := fderiv ℝ H (shape p) (1, 0)
   set β := fderiv ℝ H (shape p) (0, 1)
   have hlin (a b : ℝ) : fderiv ℝ H (shape p) (a, b) = α * a + β * b := by
-    have hab : ((a, b) : ℝ × ℝ) = a • ((1 : ℝ), (0 : ℝ)) + b • ((0 : ℝ), (1 : ℝ)) := by
-      ext <;> simp
-    rw [hab, map_add, map_smul, map_smul, smul_eq_mul, smul_eq_mul]
+    rw [ContinuousLinearMap.apply_mk_eq_smul_add_smul, smul_eq_mul, smul_eq_mul]
     ring
   have hd : DifferentiableAt ℝ H (shape p) := hH.differentiableAt (by norm_num)
   rw [fderiv_comp_shape_apply hd, hlin] at hv₁ hv₂

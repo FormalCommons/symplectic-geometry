@@ -8,6 +8,7 @@ module
 public import TauCeti.Analysis.Complex.LeviForm.Basic
 
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Prod
+import TauCeti.Analysis.Normed.Operator.Prod
 
 /-!
 # The Levi form of a function of two real functions
@@ -57,11 +58,7 @@ theorem re_leviForm_comp_prodMk_apply_self {h : ℝ × ℝ → ℝ} (hh : ContDi
       (hg.differentiableAt (by norm_num)), ContinuousLinearMap.prod_apply]
   have hlin (a : ℝ × ℝ) : fderiv ℝ h (f x, g x) a =
       a.1 * fderiv ℝ h (f x, g x) (1, 0) + a.2 * fderiv ℝ h (f x, g x) (0, 1) := by
-    obtain ⟨a₁, a₂⟩ := a
-    have ha : ((a₁, a₂) : ℝ × ℝ) = a₁ • ((1 : ℝ), (0 : ℝ)) + a₂ • ((0 : ℝ), (1 : ℝ)) := by
-      ext <;> simp
-    rw [ha, map_add, map_smul, map_smul]
-    simp
+    simpa using (fderiv ℝ h (f x, g x)).apply_mk_eq_smul_add_smul a.1 a.2
   have key (u : V) := Function.comp_def h _ ▸
     fderiv_fderiv_comp_apply (f := h) (φ := fun y ↦ (f y, g y)) hh hF u u
   simp only [re_leviForm_apply]
