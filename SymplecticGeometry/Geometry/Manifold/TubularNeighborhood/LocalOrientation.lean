@@ -752,13 +752,9 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
   let x₀ : ψ.source := ⟨f z, hx⟩
   set τ := (normalTubeChart Φ z).centeredSourceRestrict (f z)
   have hτ0 : τ ⁻¹' {0} = {x₀} := (normalTubeChart Φ z).centeredSourceRestrict_preimage_zero hx
-  have : CategoryTheory.IsIso
-      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
-    isIso_localHomologyMap _ τ ((normalTubeChart Φ z).isOpenEmbedding_centeredSourceRestrict _) hτ0
-      isClosed_singleton (singleton_subset_iff.2 ⟨x₀, hτ0.ge rfl⟩) n
-  have hinj : Function.Injective
-      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
-    (ModuleCat.mono_iff_injective _).1 inferInstance
+  have hinj := Topology.IsOpenEmbedding.injective_localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
+    ((normalTubeChart Φ z).isOpenEmbedding_centeredSourceRestrict _) (j := τ) hτ0
+    isClosed_singleton (singleton_subset_iff.2 ⟨x₀, hτ0.ge rfl⟩) n
   have hκ0 : κ ⁻¹' {x₀} ⊆ {⟨(0, 0), mk_mem_prod (mem_univ _) h0⟩} := fun y hy ↦ by
     have h := hψ y
     rw [show (Φ (e.localChart c S y) : X) = f z from congrArg Subtype.val hy, sub_self] at h
