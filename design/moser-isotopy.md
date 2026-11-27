@@ -565,7 +565,7 @@ back to `ω` at `x`, so `ω` needs no hypothesis.
 
 ### `Geometry/Symplectic/Moser/Stability.lean`
 
-In the namespace `TauCeti.SmoothTwoForm`, with `[CompactSpace M]`. Here
+In the namespace `TauCeti.SmoothTwoForm`, with `[CompactSpace M]` for the milestone. Here
 `σ : SmoothTwoForm ((𝓡∂ 1).prod I) (unitInterval × M)` is a family over
 $[0,1]$, as *Manifolds, families and signs* says. It is written with the
 abbreviation `SmoothTwoForm`, so that dot notation reaches this namespace, and
