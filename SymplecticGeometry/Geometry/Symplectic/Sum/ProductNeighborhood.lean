@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Complex.Line
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
+public import TauCeti.Geometry.Symplectic.Lagrangian.Rescale
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import Mathlib.Analysis.CStarAlgebra.Classes
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Symplectic
@@ -73,6 +74,9 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
   isomorphisms of `HasSymplecticTangentImages.exists_symplectomorphism_opens_of_finrank_eq_two`
   (namespace `TauCeti.SmoothTwoForm.IsNondegenerate`, `Geometry/Symplectic/Neighborhood/CodimTwo`),
   with an explicit factor in place of a ratio on a local frame.
+  `SymplecticGeometry.SymplecticFraming.smul` is the framing of `ι` for `c • σ`, `c > 0`, obtained
+  from one for `σ` by first multiplying by `(√c)⁻¹`: the normal form of `ι` for `c • σ` is `c`
+  times that for `σ` (`TauCeti.SmoothEmbedding.symplecticNormalForm_smul`).
 * `SymplecticGeometry.prodBall Q ε`: the open set `Q × B²(ε)` of `Q × ℂ`.
 * `SymplecticGeometry.ProductNeighborhood Φ ε`: product neighbourhoods of radius `ε` adapted to
   the framing `Φ`.
@@ -505,6 +509,55 @@ theorem ofPos_apply
 
 end OfPos
 
+section Smul
+
+variable {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
+  {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+
+/-- **The framing for a constant rescaling of the ambient form.** For a framing `Φ` of `ι` for
+`σ` and `c > 0`, the framing of `ι` for `c • σ` whose isomorphism at `q` multiplies by
+`(√c)⁻¹` and then applies `Φ q`. It carries `ω₀` to the normal form of `ι` for `c • σ`, which is
+`c` times that for `σ` (`TauCeti.SmoothEmbedding.symplecticNormalForm_smul`). -/
+def smul (Φ : SymplecticFraming hι hP) {c : ℝ} (hc : 0 < c) :
+    SymplecticFraming ((hσ.hasSymplecticTangentImages_smul_iff c hc.ne').2 hι) hP where
+  toFun q := (ContinuousLinearEquiv.smulLeft
+    (Units.mk0 (√c)⁻¹ (inv_ne_zero (Real.sqrt_pos.2 hc).ne'))).trans (Φ q)
+  contMDiff_toFun := by
+    let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
+    let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    -- Rescale the `ℂ`-component of the normal bundle of the zero slice read in `Q × ℂ`.
+    refine (Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
+      ((contMDiff_fst.prodMk ((contMDiff_const : ContMDiff (J.prod 𝓘(ℝ, ℂ)) 𝓘(ℝ) ∞
+        fun _ : Q × ℂ ↦ (√c)⁻¹).smul contMDiff_snd)).comp
+        contMDiff_zeroSliceNormalEquiv))).congr fun p ↦ ?_
+    simp only [Function.comp_apply, ContinuousLinearEquiv.trans_apply,
+      ContinuousLinearEquiv.smulLeft_apply_apply, Units.smul_mk0, Pi.smul_apply', map_smul,
+      ContinuousLinearEquiv.symm_apply_apply]
+  symplecticNormalForm_toFun q v w := by
+    simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
+      Units.smul_mk0]
+    -- The normal form of `ι` for `c • σ`, read through `Φ q`, is `c` times `ω₀`.
+    refine LinearMap.apply_inv_sqrt_smul_inv_sqrt_smul ((ι.symplecticNormalForm
+      ((hσ.hasSymplecticTangentImages_smul_iff c hc.ne').2 hι) q _).toBilinForm.compl₁₂
+        (Φ q).toLinearMap (Φ q).toLinearMap) hc ?_
+    simp only [LinearMap.compl₁₂_apply]
+    rw [ι.symplecticNormalForm_smul hι hc.ne']
+    simp only [SymplecticForm.rescale_apply, symplecticNormalForm_zeroSlice]
+    -- A symplectic form applied to two vectors is its bilinear form applied to them.
+    exact congrArg (c * ·)
+      ((Φ.symplecticNormalForm_toFun q v w).trans (symplecticNormalForm_zeroSlice _ q v w))
+
+/-- The framing `Φ.smul hc` sends a normal vector `v` of the zero slice to `Φ q ((√c)⁻¹ • v)`. -/
+@[simp]
+theorem smul_apply (Φ : SymplecticFraming hι hP) {c : ℝ} (hc : 0 < c) (q : Q)
+    (v : (zeroSlice J Q).isImmersion.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) :
+    Φ.smul hc q v = Φ q ((√c)⁻¹ • v) := by
+  simp only [smul, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.smulLeft_apply_apply,
+    Units.smul_mk0]
+
+end Smul
+
 variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
@@ -514,7 +567,7 @@ variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
 `ψ (q, 0) = ι q` and whose derivative maps the symplectic representative of each normal vector `v`
 of the zero slice to that of `Φ q v`. -/
 theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Space Q]
-    [SecondCountableTopology Q] [T2Space M] [SecondCountableTopology M]
+    [SecondCountableTopology Q] [T2Space M]
     (Φ : SymplecticFraming hι hP) :
     ∃ (U₀ : Opens (Q × ℂ)) (U₁ : Opens M) (ψ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), I⟯ U₁),
       (∀ q, ∃ h : zeroSlice J Q q ∈ U₀, (ψ ⟨zeroSlice J Q q, h⟩ : M) = ι q ∧
@@ -712,7 +765,7 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
 
 section Exists
 
-variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M] [SecondCountableTopology M]
+variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M]
   (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}

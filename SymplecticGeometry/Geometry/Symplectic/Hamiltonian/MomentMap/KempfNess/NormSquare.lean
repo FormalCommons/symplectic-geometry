@@ -198,7 +198,7 @@ theorem mgradient_momentNormSq_eq_fundamentalVectorField (h : IsComplexifiedActi
     Manifold.mgradient I' (momentNormSq B hB μ) x =
       fundamentalVectorField I' ((-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x))) x := by
   rw [mgradient_momentNormSq hμ hg hBs, fundamentalVectorField_smul, Pi.smul_apply,
-    h.fundamentalVectorField_cplx, h.fundamentalVectorField_lieMap]
+    h.fundamentalVectorField_cplx_lieMap]
 
 end GradientComplexified
 
