@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import Mathlib.Topology.LocallyConstant.Basic
 import Mathlib.Analysis.Normed.Module.FiniteDimension
+import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 import TauCeti.Geometry.Symplectic.ExistsCompatible
 import TauCeti.Topology.Algebra.Module.BilinearForm
 
@@ -22,16 +23,19 @@ linear equivalence, then every basis `(v₁, J' v₁, …, vₙ, J' vₙ)` of `W
 `TauCeti.SymplecticForm.Tames.orientation_reindex`, applied to the transported form, with the
 naturality `TauCeti.SymplecticForm.IsSymplectomorphism.map_orientation`.
 
-The symplectic orientation is also unchanged along a continuous family of symplectic forms: if
-`x ↦ ω x v w` is continuous for all `v, w`, then `x ↦ (ω x).orientation hk` is locally constant
+The symplectic orientation is also unchanged along a continuous family of symplectic forms. If
+`x ↦ ω x v w` is continuous at `x₀` for all `v, w`, an almost complex structure tamed by
+`ω x₀` is tamed by `ω x` for `x` near `x₀` (`TauCeti.SymplecticForm.eventually_tames`), since
+taming is an open condition (`TauCeti.isOpen_setOf_forall_bilinear_apply_endomorphism_pos`).
+Taking such a structure (`TauCeti.SymplecticForm.exists_tames`), and since forms taming a common
+structure have the same orientation (`TauCeti.SymplecticForm.Tames.orientation_eq`), `ω x` has
+the orientation of `ω x₀` near `x₀` (`TauCeti.SymplecticForm.eventually_orientation_eq`). Under
+continuity everywhere, `x ↦ (ω x).orientation hk` is therefore locally constant
 (`TauCeti.SymplecticForm.isLocallyConstant_orientation`), hence constant over a preconnected
-parameter space (`TauCeti.SymplecticForm.orientation_eq_of_preconnectedSpace`). Near `x₀`, an
-almost complex structure tamed by `ω x₀` (`TauCeti.SymplecticForm.exists_tames`) is still tamed,
-since taming is an open condition (`TauCeti.isOpen_setOf_forall_bilinear_apply_endomorphism_pos`),
-and forms taming a common structure have the same orientation
-(`TauCeti.SymplecticForm.Tames.orientation_eq`). This adapts the proof of Tau Ceti's private
-`eventually_mapOrientation_orientation_eq` (`TauCeti/Geometry/Symplectic/Manifold/Orientation.lean`)
-from the tangent spaces of a manifold to a family of forms on one vector space.
+parameter space (`TauCeti.SymplecticForm.orientation_eq_of_preconnectedSpace`). This adapts the
+proof of Tau Ceti's private `eventually_mapOrientation_orientation_eq`
+(`TauCeti/Geometry/Symplectic/Manifold/Orientation.lean`) from the tangent spaces of a manifold
+to a family of forms on one vector space.
 
 ## References
 
@@ -63,32 +67,40 @@ section Family
 
 variable {X : Type*} [TopologicalSpace X] {ω : X → SymplecticForm V}
 
-/-- Along a family of symplectic forms `ω x` on `V` whose values `ω x v w` depend continuously on
-`x`, the symplectic orientation is locally constant. -/
-theorem isLocallyConstant_orientation (hω : ∀ v w, Continuous fun x ↦ ω x v w)
-    (hk : finrank ℝ V = k) : IsLocallyConstant fun x ↦ (ω x).orientation hk := by
-  refine (IsLocallyConstant.iff_eventually_eq _).2 fun x₀ ↦ ?_
-  obtain ⟨J, hJ⟩ := (ω x₀).exists_tames
+/-- If `ω x₀` tames `J` and the values `ω x v w` depend continuously on `x` at `x₀`, then `ω x`
+tames `J` for all `x` near `x₀`. -/
+theorem eventually_tames {x₀ : X} (hω : ∀ v w, ContinuousAt (fun x ↦ ω x v w) x₀)
+    (hJ : (ω x₀).Tames J) : ∀ᶠ x in 𝓝 x₀, (ω x).Tames J := by
   -- Carry the forms and `J` to a normed space, where taming is an open condition.
   let e := (Module.finBasis ℝ V).equivFun
   let B : X → (Fin (finrank ℝ V) → ℝ) →L[ℝ] (Fin (finrank ℝ V) → ℝ) →L[ℝ] ℝ := fun x ↦
-    LinearMap.toContinuousLinearMap
-      (LinearMap.toContinuousLinearMap.toLinearMap ∘ₗ
-        (ω x).toBilinForm.compl₁₂ e.symm.toLinearMap e.symm.toLinearMap)
-  have hB (x u u') : B x u u' = ω x (e.symm u) (e.symm u') := rfl
+    ((ω x).toBilinForm.compl₁₂ e.symm.toLinearMap e.symm.toLinearMap).toContinuousBilinearMap
+  have hB (x u u') : B x u u' = ω x (e.symm u) (e.symm u') := by simp [B]
   let A := LinearMap.toContinuousLinearMap (e.toLinearMap ∘ₗ J.toLinearMap ∘ₗ e.symm.toLinearMap)
-  have hA (u) : A u = e (J (e.symm u)) := rfl
-  have hc : Continuous fun x ↦ (B x, A) := by
-    refine Continuous.prodMk (continuous_clm_apply.2 fun u ↦ continuous_clm_apply.2 fun u' ↦ ?_)
-      continuous_const
+  have hA (u) : A u = e (J (e.symm u)) := by simp [A]
+  have hc : ContinuousAt (fun x ↦ (B x, A)) x₀ := by
+    refine ContinuousAt.prodMk
+      (continuousAt_clm_apply.2 fun u ↦ continuousAt_clm_apply.2 fun u' ↦ ?_) continuousAt_const
     simpa only [hB] using hω _ _
-  have htame : ∀ᶠ x in 𝓝 x₀, (ω x).Tames J := by
-    refine (hc.continuousAt.eventually_mem
-      (TauCeti.isOpen_setOf_forall_bilinear_apply_endomorphism_pos.mem_nhds fun u hu ↦ ?_)).mono
-      fun x hx v hv ↦ ?_
-    · simpa [hB, hA] using hJ _ ((LinearEquiv.map_ne_zero_iff _).2 hu)
-    · simpa [hB, hA] using hx (e v) ((LinearEquiv.map_ne_zero_iff _).2 hv)
-  exact htame.mono fun x hx ↦ hx.orientation_eq hJ hk
+  refine (hc.eventually_mem
+    (TauCeti.isOpen_setOf_forall_bilinear_apply_endomorphism_pos.mem_nhds fun u hu ↦ ?_)).mono
+    fun x hx v hv ↦ ?_
+  · simpa [hB, hA] using hJ _ ((LinearEquiv.map_ne_zero_iff _).2 hu)
+  · simpa [hB, hA] using hx (e v) ((LinearEquiv.map_ne_zero_iff _).2 hv)
+
+/-- If the values `ω x v w` of a family of symplectic forms depend continuously on `x` at `x₀`,
+then `ω x` has the symplectic orientation of `ω x₀` for all `x` near `x₀`. -/
+theorem eventually_orientation_eq {x₀ : X} (hω : ∀ v w, ContinuousAt (fun x ↦ ω x v w) x₀)
+    (hk : finrank ℝ V = k) : ∀ᶠ x in 𝓝 x₀, (ω x).orientation hk = (ω x₀).orientation hk := by
+  obtain ⟨J, hJ⟩ := (ω x₀).exists_tames
+  exact (eventually_tames hω hJ).mono fun x hx ↦ hx.orientation_eq hJ hk
+
+/-- Along a family of symplectic forms `ω x` on `V` whose values `ω x v w` depend continuously on
+`x`, the symplectic orientation is locally constant. -/
+theorem isLocallyConstant_orientation (hω : ∀ v w, Continuous fun x ↦ ω x v w)
+    (hk : finrank ℝ V = k) : IsLocallyConstant fun x ↦ (ω x).orientation hk :=
+  (IsLocallyConstant.iff_eventually_eq _).2 fun _ ↦
+    eventually_orientation_eq (fun v w ↦ (hω v w).continuousAt) hk
 
 /-- Along a family of symplectic forms over a preconnected parameter space, whose values
 `ω x v w` depend continuously on `x`, the symplectic orientation is constant. -/
