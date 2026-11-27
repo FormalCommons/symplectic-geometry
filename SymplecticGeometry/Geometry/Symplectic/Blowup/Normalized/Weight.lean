@@ -327,7 +327,6 @@ theorem exists_radialContraction_eventuallyEq (hl : l ≤ r) {p : M}
       (∀ᶠ q in 𝓝 p, (g q : Fin (n + 1) → ℂ) = hψ.complexPartialDiffeomorph.symm q) ∧
       hψ.radialContraction hh =ᶠ[𝓝 p] hψ.complexPartialDiffeomorph ∘ Subtype.val ∘
         (hh.radialDiffeomorph n).symm ∘ g := by
-  classical
   let U : Set M := ψ '' ball 0 r ∩ (ψ '' closedBall 0 l)ᶜ
   have hpt : p ∈ hψ.complexPartialDiffeomorph.target := by
     rw [complexPartialDiffeomorph_target]; exact hp.1
@@ -336,19 +335,16 @@ theorem exists_radialContraction_eventuallyEq (hl : l ≤ r) {p : M}
     rw [← hψ.complexPartialDiffeomorph_target]
     exact hψ.complexPartialDiffeomorph.open_target
   have hev : ∀ᶠ q in 𝓝 p, q ∈ U := hUo.mem_nhds hp
-  let g : M → radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s) :=
-    fun q ↦ if hq : q ∈ U then ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hq⟩
-      else ⟨_, hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp⟩
-  have hg : ∀ᶠ q in 𝓝 p, (g q : Fin (n + 1) → ℂ) = hψ.complexPartialDiffeomorph.symm q := by
-    filter_upwards [hev] with q hq
-    simp only [g, dite_eq_left hq]
-  refine ⟨g, ?_, hg, ?_⟩
-  · rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
-    exact (hψ.complexPartialDiffeomorph.symm.isLocalDiffeomorphAt _ _ _ hpt).congr_of_eventuallyEq
-      hg
-  · filter_upwards [hev] with q hq
-    rw [hψ.radialContraction_of_mem hh hq]
-    simp only [g, dite_eq_left hq, Function.comp_apply]
+  obtain ⟨g, hgd, hg⟩ := IsLocalDiffeomorphAt.exists_subtypeVal_comp_eventuallyEq
+    (W := radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s))
+    (hψ.complexPartialDiffeomorph.symm.isLocalDiffeomorphAt _ _ _ hpt)
+    (hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp)
+  refine ⟨g, hgd, hg.mono fun _ hq ↦ by rwa [Function.comp_apply] at hq, ?_⟩
+  filter_upwards [hev, hg] with q hq hgq
+  rw [hψ.radialContraction_of_mem hh hq, Function.comp_apply, Function.comp_apply,
+    Function.comp_apply]
+  rw [Function.comp_apply] at hgq
+  exact congrArg _ (congrArg _ (congrArg _ (Subtype.ext hgq.symm)))
 
 /-- `radialContraction` is a local diffeomorphism at each point off `ψ(B(l))`, for `l + ε < r`. -/
 theorem isLocalDiffeomorphAt_radialContraction (hr : l + ε < r) {p : M}
