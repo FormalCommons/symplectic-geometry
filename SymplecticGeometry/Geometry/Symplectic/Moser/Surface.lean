@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
-import TauCeti.Geometry.Symplectic.Manifold.Surface
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Surface
 import SymplecticGeometry.Geometry.Manifold.DeRham.Integration.Bijective
 
 /-!
@@ -28,9 +28,9 @@ its time-one map `ψ = Ψ_1` is a diffeomorphism of `M` with `ψ^* σ = ω₀`
 
 The proof is Moser's argument along the segment `σ_t = ω₀ + t (σ - ω₀)`, `t ∈ [0, 1]`.
 
-1. Every `σ_t` takes the value `(1 - t) ω₀(b) + t σ(b) > 0` on a positively oriented basis `b`,
-   so it vanishes nowhere, and on a surface a nowhere-vanishing two-form is symplectic
-   (`TauCeti.SmoothTwoForm.isSymplectic_iff_forall_ne_zero_of_finrank_eq_two`).
+1. Every `σ_t` is positive for `o`, as positivity is kept along segments, so it is symplectic
+   (`TauCeti.SmoothTwoForm.isSymplectic_add_smul_sub`): on a surface a nowhere-vanishing
+   two-form is symplectic.
 2. Since `σ` and `ω₀` have the same integral, `σ - ω₀` is exact on the connected closed surface
    (`TauCeti.sub_mem_exactForms_iff_integralTopForm_eq`); hence so is
    `σ_t - σ_0 = t (σ - ω₀)`.
@@ -77,20 +77,11 @@ theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace 
     (hω : o.IsPositive ω₀.val) (hσ : o.IsPositive σ.val)
     (hint : integralTopForm o σ.val = integralTopForm o ω₀.val) :
     ∃ Ψ : Diffeotopy I ∞ M, SmoothForm.mpullback Ψ.final Ψ.final.contMDiff σ = ω₀ := by
-  have hE : Module.finrank ℝ E = 2 := by simpa using o.card_eq.symm
   -- The segment from `ω₀` to `σ`.
   set α : unitInterval → SmoothTwoForm I M := fun t ↦ ω₀ + (t : ℝ) • (σ - ω₀) with hα
   -- Step 1: every form of the segment is symplectic.
-  have hsymp (t : unitInterval) : IsSymplectic (α t) := by
-    refine (isSymplectic_iff_forall_ne_zero_of_finrank_eq_two hE).2 fun x ↦
-      Manifold.Orientation.IsPositiveAt.ne_zero (o := o) <|
-        Manifold.Orientation.isPositiveAt_iff.2 fun b hb ↦ ?_
-    have hval : (α t).val x b = ω₀.val x b + (t : ℝ) * (σ.val x b - ω₀.val x b) := by
-      simp [hα]
-    have hωb := hω.apply_pos hb
-    have hσb := hσ.apply_pos hb
-    nlinarith [mul_nonneg (unitInterval.nonneg t) hσb.le,
-      mul_nonneg (unitInterval.one_sub_nonneg t) hωb.le]
+  have hsymp (t : unitInterval) : IsSymplectic (α t) :=
+    isSymplectic_add_smul_sub hω hσ t.property
   -- Step 2: `σ` and `ω₀` have the same integral, so `σ - ω₀` is exact.
   have hexact : σ - ω₀ ∈ exactForms I M 2 := (sub_mem_exactForms_iff_integralTopForm_eq o).2 hint
   -- Step 3: Moser stability along the segment.

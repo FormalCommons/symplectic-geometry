@@ -1045,7 +1045,8 @@ containing `ι '' closedBall 0 1`:
   write `re z` and `im z` for the real and imaginary parts of
   `z : EuclideanSpace ℂ ι'`, as points of `EuclideanSpace ℝ ι'`, and call
   `z` real when `im z = 0`. Issue 14d13 applies these results to `V`
-  through the complex linear isometry of `V` with
+  through the continuous complex linear equivalence
+  `EuclideanSpace.sumEquivProd.symm` of `V` with
   `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, under which the real points are
   `{Im z = 0, Im w = 0}` and `‖im p‖ ≤ √(t p)`.
   - `taylorExtension N f z = ∑ j ∈ Finset.range (N + 1),
@@ -1666,7 +1667,8 @@ are set on compact manifolds. Three pieces are missing:
   the stable set and contains the points of the stable set near `p` with
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
-  `e` the extended chart at `p`); and the main results
+  `e` the extended chart at `p`, and a left inverse of `ι` on `ball 0 ρ`,
+  smooth on the source of `e`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for

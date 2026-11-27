@@ -18,8 +18,10 @@ and `TauCeti.SmoothEmbedding.compDiffeomorph` reparametrise an immersion or a sm
 corners. This file allows `M'` and `M` to be modelled on different spaces, when the source `M'`
 and the target `N` have no boundary and `N` has a finite-dimensional model: then being an
 immersion is a condition on the differential alone, and the differential of `f ∘ e` is that of
-`f` after the linear isomorphism `de`. On the side of the target,
-`TauCeti.SmoothEmbedding.transDiffeomorphOfBoundaryless` bundles Tau Ceti's
+`f` after the linear isomorphism `de`. In the same setting, a diffeomorphism between two models
+is itself a smooth embedding, by Tau Ceti's `Diffeomorph.isSmoothEmbedding_comp` applied to the
+identity; Tau Ceti's `TauCeti.isSmoothEmbedding_diffeomorph` covers only one model. On the side
+of the target, `TauCeti.SmoothEmbedding.transDiffeomorphOfBoundaryless` bundles Tau Ceti's
 `Diffeomorph.isSmoothEmbedding_comp`, the transport of an embedding by a diffeomorphism of the
 target onto a manifold on another model, as Tau Ceti's `TauCeti.SmoothEmbedding.transDiffeomorph`
 does on one model.
@@ -37,6 +39,8 @@ differential come from Tau Ceti's `Diffeomorph.mfderiv_comp_diffeomorph` and
 * `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless`: precomposing an immersion with a
   diffeomorphism from a manifold on another model gives an immersion.
 * `TauCeti.isSmoothEmbedding_comp_diffeomorph_of_boundaryless`: the same for smooth embeddings.
+* `Diffeomorph.isSmoothEmbedding`: a diffeomorphism between boundaryless manifolds on different
+  models, with a finite-dimensional target model, is a smooth embedding.
 * `TauCeti.SmoothEmbedding.comp_transDiffeomorph_symm`: applying a diffeomorphism `φ` after the
   transport of an embedding by `φ⁻¹` gives back the embedding.
 
@@ -89,6 +93,12 @@ theorem isSmoothEmbedding_comp_diffeomorph_of_boundaryless (e : M' ≃ₘ^n⟮I'
     (h : IsSmoothEmbedding I J n f) : IsSmoothEmbedding I' J n (f ∘ e) :=
   ⟨isImmersion_comp_diffeomorph_of_boundaryless e hn h.isImmersion,
     h.isEmbedding.comp e.toHomeomorph.isEmbedding⟩
+
+/-- A `C^n` diffeomorphism `Φ : M' ≃ N`, `1 ≤ n`, is a smooth embedding, also when `M'` and `N`
+have different models, provided both have no boundary and `N` has a finite-dimensional model. -/
+theorem _root_.Diffeomorph.isSmoothEmbedding (Φ : M' ≃ₘ^n⟮I', J⟯ N) (hn : 1 ≤ n) :
+    IsSmoothEmbedding I' J n Φ :=
+  Φ.isSmoothEmbedding_comp (f := id) hn IsSmoothEmbedding.id
 
 namespace SmoothEmbedding
 
