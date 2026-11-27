@@ -89,7 +89,7 @@ theorem isSmoothForm_mfderiv_family_apply {β : U → RoughForm J F ℝ k}
       funext fun b' ↦ (hB b' y).symm
     dsimp only at heq ⊢
     rw [heq]
-    exact mfderiv_modelSpace_comp_subtype_val_apply a
+    exact mfderiv_modelSpace_comp_subtypeVal_apply a
   refine isSmoothForm_iff_forall_contMDiffAt_trivializationAt_apply.2 fun y₀ v ↦ ?_
   -- In the frame of the trivialization at `y₀`, the form is the partial derivative in the
   -- parameter of the function of `hBv y₀ v`.
