@@ -94,6 +94,8 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
 * `SymplecticGeometry.BlowupModel.shellSymplectomorph n l ε hl hε`: its restriction to a
   diffeomorphism from `openNbhd n ε ∖ Z` onto the open shell `openShell n l ε`,
   `l < |w| < √(l² + ε²)`, carrying `ω̃_l` to `ω₀` (`isSymplectomorphism_shellSymplectomorph`).
+  It maps a point into the ball `|w| < √(l² + δ²)` exactly when the point lies in `openNbhd n δ`
+  (`norm_shellSymplectomorph_lt_iff`).
 
 ## References
 
@@ -613,14 +615,13 @@ open neighbourhood of radius `ε` minus the exceptional divisor onto the open sh
 (`isSymplectomorphism_shellSymplectomorph`). -/
 noncomputable def shellSymplectomorph (l ε : ℝ) (hl : 0 ≤ l) (hε : 0 ≤ ε) :
     openNbhdComplDivisor n ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ openShell n l ε :=
-  (Diffeomorph.nestedOpen (openNbhdComplDivisor_le_offDivisorOpens (n := n) ε)).symm.trans
-    (((radialBlowdownDiffeomorph n l).subtype fun p ↦ by
-        simp only [Opens.mem_comap, ContinuousMap.coe_mk, mem_openNbhdComplDivisor_iff]
-        exact ⟨fun hp ↦ ⟨lt_norm_radialBlowdownDiffeomorph hl p,
-            (mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).1 hp.1⟩,
-          fun hw ↦ ⟨(mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).2 hw.2,
-            mem_offDivisorOpens.1 p.property⟩⟩).trans
-      (Diffeomorph.nestedOpen fun _ hw ↦ (mem_radialShell_add_sq hl).2 hw.1))
+  (radialBlowdownDiffeomorph n l).restrOpens (openNbhdComplDivisor_le_offDivisorOpens ε)
+    (fun _ hw ↦ (mem_radialShell_add_sq hl).2 hw.1) fun p ↦ by
+      rw [mem_openNbhdComplDivisor_iff, mem_openShell_iff]
+      exact ⟨fun hp ↦ ⟨lt_norm_radialBlowdownDiffeomorph hl p,
+          (mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).1 hp.1⟩,
+        fun hw ↦ ⟨(mem_openNbhd_iff_radialBlowdownDiffeomorph l hε p).2 hw.2,
+          mem_offDivisorOpens.1 p.property⟩⟩
 
 @[simp]
 theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε)
@@ -631,6 +632,15 @@ theorem coe_shellSymplectomorph_apply {l ε : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ �
           ⟨p.val, openNbhdComplDivisor_le_offDivisorOpens ε p.property⟩) := by
   simp [shellSymplectomorph]
 
+/-- For `0 ≤ δ`, `shellSymplectomorph` maps a point `p` of `openNbhd n ε ∖ Z` into the open ball
+`|w| < √(l² + δ²)` of `E` exactly when `p` lies in `openNbhd n δ`. -/
+theorem norm_shellSymplectomorph_lt_iff {l ε δ : ℝ} (hl : 0 ≤ l) (hε : 0 ≤ ε) (hδ : 0 ≤ δ)
+    (p : openNbhdComplDivisor n ε) :
+    ‖complexToRealEuclidean (Fin (n + 1)) (shellSymplectomorph n l ε hl hε p)‖ <
+        √(l ^ 2 + δ ^ 2) ↔ (p : BlowupModel n) ∈ openNbhd n δ := by
+  rw [coe_shellSymplectomorph_apply, ← coe_radialBlowdownDiffeomorph_apply]
+  exact (mem_openNbhd_iff_radialBlowdownDiffeomorph l hδ _).symm
+
 /-- **The shell symplectomorphism.** `shellSymplectomorph` carries `ω̃_l` on the open
 neighbourhood of radius `ε` minus the exceptional divisor to `ω₀` on the open shell
 `l < |w| < √(l² + ε²)`. -/
@@ -640,7 +650,7 @@ theorem isSymplectomorphism_shellSymplectomorph {l ε : ℝ} (hl : 0 ≤ l) (hε
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
       (shellSymplectomorph n l ε hl hε) := by
   rw [shellSymplectomorph]
-  exact (isSymplectomorphism_radialBlowdownDiffeomorph l).subtype_nestedOpen _ _ _
+  exact (isSymplectomorphism_radialBlowdownDiffeomorph l).restrOpens _ _ _
 
 /-! ### The inverse of `F_l ∘ π`, extended by the zero section -/
 

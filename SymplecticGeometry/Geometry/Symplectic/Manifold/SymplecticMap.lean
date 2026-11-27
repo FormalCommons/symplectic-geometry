@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -22,8 +22,9 @@ set and with no regularity of `φ`, of Tau Ceti's
 Symplectomorphisms restrict to open subsets that correspond under them, for the restricted forms:
 `TauCeti.SmoothTwoForm.IsSymplectomorphism.subtype`, for Tau Ceti's `Diffeomorph.subtype`;
 `TauCeti.SmoothTwoForm.isSymplectomorphism_nestedOpen`, for Tau Ceti's `Diffeomorph.nestedOpen`;
-and, composing the two, `TauCeti.SmoothTwoForm.IsSymplectomorphism.subtype_nestedOpen`, for a
-symplectomorphism between open subsets restricted to smaller open subsets.
+and, composing the two, `TauCeti.SmoothTwoForm.IsSymplectomorphism.restrOpens`, for
+`Diffeomorph.restrOpens`, a symplectomorphism between open subsets restricted to smaller open
+subsets.
 
 ## References
 
@@ -84,21 +85,19 @@ theorem isSymplectomorphism_nestedOpen (σ : SmoothTwoForm I M) {U D : Opens M} 
 
 /-- **Restricting a symplectomorphism between open subsets.** Let `Φ` be a symplectomorphism from
 `σ|U₀` to `σ'|V₀`, for open subsets `U₀` of `M` and `V₀` of `M'`, and let `U ≤ U₀` and `V ≤ V₀` be
-open subsets that correspond under `Φ`. Then its restriction, the diffeomorphism from `U` onto `V`
-built from `Diffeomorph.subtype` and `Diffeomorph.nestedOpen`, is a symplectomorphism from `σ|U`
+open subsets that correspond under `Φ`. Then its restriction `Diffeomorph.restrOpens`, the
+diffeomorphism from `U` onto `V` that takes the values of `Φ`, is a symplectomorphism from `σ|U`
 to `σ'|V`. -/
-theorem IsSymplectomorphism.subtype_nestedOpen {U₀ U : Opens M} {V₀ V : Opens M'}
+theorem IsSymplectomorphism.restrOpens {U₀ U : Opens M} {V₀ V : Opens M'}
     {Φ : U₀ ≃ₘ⟮I, I'⟯ V₀}
     (hΦ : IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') Φ)
-    (hU : U ≤ U₀) (hV : V ≤ V₀)
-    (h : ∀ x, x ∈ Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ U ↔
-      Φ x ∈ Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ V) :
+    (hU : U ≤ U₀) (hV : V ≤ V₀) (h : ∀ x : U₀, (x : M) ∈ U ↔ (Φ x : M') ∈ V) :
     IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ')
-      ((Diffeomorph.nestedOpen hU).symm.trans ((Φ.subtype h).trans (Diffeomorph.nestedOpen hV))) :=
-  ((isSymplectomorphism_nestedOpen σ hU).symm (by simp)).trans
-    ((hΦ.subtype h).trans (isSymplectomorphism_nestedOpen σ' hV) (by simp)) (by simp)
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ') (Φ.restrOpens hU hV h) := by
+  rw [Diffeomorph.restrOpens_def]
+  exact ((isSymplectomorphism_nestedOpen σ hU).symm (by simp)).trans
+    ((hΦ.subtype _).trans (isSymplectomorphism_nestedOpen σ' hV) (by simp)) (by simp)
 
 end Opens
 

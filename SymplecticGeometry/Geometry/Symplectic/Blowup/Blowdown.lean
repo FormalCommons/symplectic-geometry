@@ -216,17 +216,15 @@ def sourceComplRangeDiffeomorph (hΨ : Ψ.target = openNbhd n ε)
     (hf : ∀ q, f q ∈ Ψ.source ∧ Ψ (f q) = zeroSection q) :
     sourceComplRange hf ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
       openNbhdComplDivisor n ε :=
-  (Diffeomorph.nestedOpen (U := sourceComplRange hf) (D := ⟨Ψ.source, Ψ.open_source⟩)
-      fun _ hx ↦ hx.1).symm.trans
-    ((Ψ.toDiffeomorphSourceTarget.subtype fun x ↦ by
-        simp only [Opens.mem_comap, ContinuousMap.coe_mk,
-          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe]
-        refine ⟨fun hx ↦ apply_mem_openNbhdComplDivisor hΨ hf hx, fun hx ↦ ⟨x.property, ?_⟩⟩
-        exact (apply_mem_exceptionalDivisor_iff hf x.property).not.1
-          (mem_openNbhdComplDivisor_iff.1 hx).2).trans
-      (Diffeomorph.nestedOpen (D := ⟨Ψ.target, Ψ.open_target⟩) fun _ hp ↦ by
-        rw [Opens.mem_mk, hΨ]
-        exact (mem_openNbhdComplDivisor_iff.1 hp).1))
+  Ψ.toDiffeomorphSourceTarget.restrOpens (U := sourceComplRange hf) (fun _ hx ↦ hx.1)
+    (fun _ hp ↦ by
+      rw [Opens.mem_mk, hΨ]
+      exact (mem_openNbhdComplDivisor_iff.1 hp).1)
+    fun x ↦ by
+      rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe]
+      refine ⟨fun hx ↦ apply_mem_openNbhdComplDivisor hΨ hf hx, fun hx ↦ ⟨x.property, ?_⟩⟩
+      exact (apply_mem_exceptionalDivisor_iff hf x.property).not.1
+        (mem_openNbhdComplDivisor_iff.1 hx).2
 
 @[simp]
 theorem coe_sourceComplRangeDiffeomorph_apply (hΨ : Ψ.target = openNbhd n ε)
@@ -358,9 +356,8 @@ instance instT2Space : T2Space (DivisorBlowdown hΨ hf hl hε) := by
     nlinarith
   · have hz : Ψ z.val.val ∈ openNbhd n (ε / 2) := by
       have := hzB
-      rw [mem_preimage, Diffeomorph.coe_toHomeomorph, coe_gluingDiffeomorph_apply,
-        coe_shellSymplectomorph_apply, ← coe_radialBlowdownDiffeomorph_apply] at this
-      exact (mem_openNbhd_iff_radialBlowdownDiffeomorph l hδ.le _).2 this
+      rwa [mem_preimage, Diffeomorph.coe_toHomeomorph, coe_gluingDiffeomorph_apply,
+        mem_ofPred_eq, norm_shellSymplectomorph_lt_iff hl hε.le hδ.le] at this
     refine hzA ⟨Ψ z.val.val, openNbhd_subset_closedNbhd _ hz, ?_⟩
     exact Ψ.toOpenPartialHomeomorph.left_inv ((mem_outerOverlap_iff hf).1 z.property)
 
@@ -478,7 +475,7 @@ theorem isSymplectomorphism_sourceComplRangeDiffeomorph :
     exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hx ↦
       hσ.mpullback_apply hx
   rw [sourceComplRangeDiffeomorph]
-  exact h.subtype_nestedOpen _ _ _
+  exact h.restrOpens _ _ _
 
 include hσ in
 /-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `ω₀`
