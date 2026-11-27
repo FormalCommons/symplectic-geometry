@@ -214,7 +214,7 @@ theorem formCalculus_apply (k : ℕ) :
 theorem formCalculus_apply_val (k : ℕ) (x : M) :
     (formCalculus F hF f τ (2 * k)).val x =
       ((k ! : ℝ)⁻¹ * iteratedDeriv k F (f x)) • (τ.val x).wedgePow k := by
-  rw [formCalculus_apply, SmoothForm.smul_toRoughForm, Pi.smul_apply, SmoothForm.coe_funSMulₗ]
+  rw [formCalculus_apply, SmoothBundleForm.smul_apply, SmoothForm.coe_funSMulₗ]
   beta_reduce
   rw [SmoothForm.wedgePow_apply, formCalculusCoeff_apply, mul_smul]
 
@@ -268,7 +268,7 @@ theorem formCalculus_exp_val_of_eq_add {f' : C^∞⟮I, M; ℝ⟯} {τ' : Smooth
       Real.exp c • (formCalculus Real.exp Real.contDiff_exp f' τ' k).val x := by
   rw [formCalculus_val_congr Real.exp Real.contDiff_exp f τ (f' := f' + ContMDiffMap.const c)
     (by simp [hf]) hτ, formCalculus_exp_add_const, DirectSum.smul_apply,
-    SmoothForm.smul_toRoughForm, Pi.smul_apply]
+    SmoothBundleForm.smul_apply]
 
 /-- The functional calculus of the identity is `f + τ`. -/
 @[simp]

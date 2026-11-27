@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import TauCeti.Topology.MetricSpace.SeparatedBalls
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Symplectic embeddings of closed balls
@@ -447,7 +448,7 @@ private theorem IsSymplecticBallEmbedding.exists_smoothForm_add_mextDeriv_eq_mpu
   refine ⟨βs, hβK, O ∩ ball 0 r, hOo.inter isOpen_ball,
     subset_inter hKO (closedBall_subset_ball (by linarith)), hjU.mono fun z hz ↦ hrU hz.2,
     fun z hz ↦ ?_⟩
-  rw [AddMemClass.coe_add, Pi.add_apply, mextDerivₗ_apply, mextDeriv_eq_extDeriv, hO z hz.1]
+  rw [SmoothBundleForm.add_apply, mextDerivₗ_apply, mextDeriv_eq_extDeriv, hO z hz.1]
   exact add_sub_cancel _ _
 
 /-- **Enlarging a symplectic ball.** For a closed two-form `σ` and `0 < r₀`, a symplectic
@@ -462,7 +463,7 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn [Fini
   obtain ⟨β, hβK, O, hOo, hKO, hjO, hO⟩ := hj.exists_smoothForm_add_mextDeriv_eq_mpullback hσ hr₀
   set σ₁ := ω₀ + mextDerivₗ 𝓘(ℝ, StdSpace (Fin n)) 1 β with hσ₁
   have hσ₁K (z : StdSpace (Fin n)) (hz : z ∈ K) : (σ₁ - ω₀).val z = 0 := by
-    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, hO z (hKO hz),
+    rw [SmoothBundleForm.sub_apply, hO z (hKO hz),
       sub_eq_zero.2 (hj.mpullback_eq_of_mem_closedBall hr₀ hz)]
   -- Along `K` the segment from `ω₀` to `σ₁` is constantly `ω₀`, so it stays nondegenerate.
   have hnd (z : StdSpace (Fin n)) (hz : z ∈ K) (s : ℝ) (_ : s ∈ Icc (0 : ℝ) 1) :
