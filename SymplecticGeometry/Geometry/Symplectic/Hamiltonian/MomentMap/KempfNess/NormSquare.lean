@@ -134,7 +134,7 @@ in place of the distance in `Gc ⧸ G`. At a critical point `x` the gradient
 is antitone, nonnegative since `B` is positive definite, and has derivative `4 F (η, u)` with
 `F (η, u) = μ x η - μ (C.expI (-η) • x) η ≤ 0`. The pairs `(η, u)` with `B η η ≤ N 0` and
 `(C.expI η * C.toHom u)⁻¹ • x = y` form a compact set
-(`LinearMap.BilinForm.isCompact_setOf_apply_self_le`), so `F` has a maximum there; it is `0`,
+(`LinearMap.BilinForm.isCompact_setOfPred_apply_self_le`), so `F` has a maximum there; it is `0`,
 for otherwise `N` would become negative (`nonneg_of_bddBelow_of_hasDerivAt_le`). At a maximum
 `(η, u)`, `C.expI (-η)` fixes `x`
 (`SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`), and `y = u⁻¹ • x`. This replaces
@@ -222,8 +222,7 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 section Gradient
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
@@ -257,8 +256,7 @@ end Gradient
 
 section GradientComplexified
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
@@ -403,18 +401,15 @@ section Flow
 open Set TauCeti.Manifold
 open scoped RealInnerProductSpace
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [FiniteDimensional ℝ E']
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
   [T2Space M] [BoundarylessManifold I' M]
@@ -507,13 +502,11 @@ section PolarRadius
 
 open Topology
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc] [BoundarylessManifold IC Gc]
@@ -591,13 +584,11 @@ end PolarRadius
 
 section PolarRadiusAntitone
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc] [BoundarylessManifold IC Gc]
@@ -657,8 +648,7 @@ section Uniqueness
 
 open Set
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
@@ -759,7 +749,7 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
   have hsmul : Continuous fun p : Gc × M ↦ p.1 • p.2 :=
     (ContMDiffSMul.contMDiff_smul (I := IC) (I' := I') (n := ∞)).continuous
   have hK : IsCompact K :=
-    ((LinearMap.BilinForm.isCompact_setOf_apply_self_le (E := E) hBp _).prod
+    ((LinearMap.BilinForm.isCompact_setOfPred_apply_self_le (E := E) hBp _).prod
       isCompact_univ).inter_right <| isClosed_eq
         (hsmul.comp ((((contMDiff_inv IC 1).continuous.comp C.polar.continuous)).prodMk
           continuous_const)) continuous_const
@@ -809,18 +799,15 @@ section MomentLimit
 
 open Filter Set Topology TauCeti.Manifold
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [CompactSpace G] [T2Space G] [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [FiniteDimensional ℝ E']
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
   [T2Space M]
@@ -868,9 +855,10 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
   have hg₁x (t : ℝ) : (g₁ t)⁻¹ • p = (g' t)⁻¹ • g₀ • p := by
     simp only [g₁, mul_inv_rev, inv_inv, mul_smul]
   have hg₁ : HasLeftTrivializedDerivOn g₁
-      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ := by
-    simp only [hg₁x]
-    exact hg'.const_mul g₀⁻¹
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ :=
+    HasLeftTrivializedDerivOn.const_mul_comp_inv_smul
+      (F := fun x ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))
+      (by simpa only [inv_inv] using hg')
   -- The polar radius of `(g t)⁻¹ * g₁ t` is antitone, so the polar decomposition at integer
   -- times stays in a compact set.
   set N : ℝ → ℝ := fun t ↦
@@ -879,7 +867,7 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
     (antitoneOn_polar_symm_fst_inv_mul h hμ hgm hBs hBG hg hg₁ convex_univ)
   set K : Set (E × G) := {η : E | B η η ≤ N 0} ×ˢ univ
   have hK : IsCompact K :=
-    (LinearMap.BilinForm.isCompact_setOf_apply_self_le (E := E) hBp _).prod isCompact_univ
+    (LinearMap.BilinForm.isCompact_setOfPred_apply_self_le (E := E) hBp _).prod isCompact_univ
   have := Manifold.metrizableSpace I G
   obtain ⟨q, -, φ, hφ, hlim⟩ := hK.tendsto_subseq (x := fun n : ℕ ↦
     C.polar.symm ((g n)⁻¹ * g₁ n)) fun n ↦ ⟨hanti (Nat.cast_nonneg n), mem_univ _⟩
@@ -927,9 +915,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
-    ⟨0, by
-      rintro _ ⟨g, rfl⟩
-      exact momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg)⟩
+    bddBelow_range_momentNormSq_comp (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) (· • p)
   refine le_antisymm (le_ciInf fun g₀ ↦ ?_) ?_
   · -- The flow from `g₀ • p` converges to some `y`, defined for all `t ≥ 0`.
     obtain ⟨hI, y, -, hy, -⟩ :=
@@ -950,7 +936,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     simp only [Function.comp_apply, hgx]
     exact ciInf_le hbdd _
 
-omit [ConnectedSpace G] [FiniteDimensional ℝ EC] [ContMDiffSMul IC I' ∞ Gc M] in
+omit [ConnectedSpace G] [ContMDiffSMul IC I' ∞ Gc M] in
 /-- **The Kempf–Ness function is bounded below along a flow converging to a zero of `μ`.** Let
 `σ` be closed, nondegenerate and `G`-invariant, `-μ` an equivariant moment map for it, and `B`
 nondegenerate and `Ad`-invariant. Let the negative gradient flow of `‖μ‖²` from `p` converge to a

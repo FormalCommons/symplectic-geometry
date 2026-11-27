@@ -419,8 +419,8 @@ atlas and `hJ` as in *Decisions*.
   𝓘(ℝ, E) (Blowup c)`, glued as in *Decisions*, with
   `almostComplexStructure_apply_inl` (through `localPullback_apply`) and
   `almostComplexStructure_lift` (on the domain of `c.lift`);
-  `mfderiv_blowdown_comp_almostComplexStructure`: $d\pi_M\tilde J=J\,d\pi_M$
-  off $Z$; `isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
+  `mfderiv_blowdown_comp_almostComplexStructure`: $d\pi_M\tilde J=J\,d\pi_M$;
+  `isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
   `blowupModelChart i ∘ c.lift` are $\tilde J$-holomorphic; and
   `almostComplexStructure_eq_ofComplexManifold` for a complex `M`.
 

@@ -32,7 +32,7 @@ freedom in the choice.
   constants, and this is Tau Ceti's
   `TauCeti.SmoothTwoForm.IsMomentMap.isMomentMap_iff_exists_eq_add`. For a finite-dimensional
   `𝔤`, it follows that two moment maps of `a` agree on a clopen set
-  (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOf_eq`).
+  (`TauCeti.SmoothTwoForm.IsMomentMap.isClopen_setOfPred_eq`).
 
 Both results are stated in Tau Ceti's convention `ι_{Z_M} σ = d⟨μ, Z⟩`. They hold unchanged in the
 opposite convention `ι_{Z_M} σ = -d⟨μ, Z⟩`, since passing from one convention to the other replaces
@@ -131,7 +131,7 @@ theorem isMomentMap_iff_exists_eq_add_locallyConstant (h : σ.IsMomentMap a μ) 
 
 /-- Two moment maps of the same infinitesimal action of a finite-dimensional Lie algebra agree on
 a clopen set. -/
-theorem isClopen_setOf_eq [FiniteDimensional ℝ 𝔤] (h : σ.IsMomentMap a μ)
+theorem isClopen_setOfPred_eq [FiniteDimensional ℝ 𝔤] (h : σ.IsMomentMap a μ)
     (h' : σ.IsMomentMap a μ') : IsClopen {x | μ x = μ' x} := by
   obtain ⟨c, hc⟩ := h.isMomentMap_iff_exists_eq_add_locallyConstant.1 h'
   let b := Module.finBasis ℝ 𝔤

@@ -16,7 +16,10 @@ Let `K₁` and `K₂` be continuous complex structures on real vector bundles `U
 `U₂` over `B₂`, `g : B₁ → B₂` a map of bases, and `Ψ b : U₁ b ≃ U₂ (g b)` real-linear
 equivalences of the fibres. If `Ψ` intertwines `K₁` with `K₂`, it is a complex-linear
 equivalence `K₁.Fiber b ≃ K₂.Fiber (g b)`
-(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong`).
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAlong`). At each `b` this is the
+pointwise statement: one real-linear equivalence `U₁ b₁ ≃ U₂ b₂` that intertwines `K₁ b₁` with
+`K₂ b₂` is complex linear (`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt`),
+which also serves where such an equivalence is given only at some points.
 
 Now let `J₁` and `J₂` be continuous complex structures on real vector bundles `V₁` and `V₂` over
 the same base, and `Φ x : V₁ x ≃ V₂ x` real-linear equivalences of the fibres.
@@ -87,25 +90,51 @@ variable {B₁ : Type*} [TopologicalSpace B₁] {B₂ : Type*} [TopologicalSpace
   [∀ b, ContinuousSMul ℝ (U₂ b)] [TopologicalSpace (TotalSpace F₂ U₂)]
   [FiberBundle F₂ U₂] [VectorBundle ℝ F₂ U₂]
   (K₁ : ContinuousComplexStructure F₁ U₁) (K₂ : ContinuousComplexStructure F₂ U₂)
-  (g : B₁ → B₂) (Ψ : ∀ b, U₁ b ≃L[ℝ] U₂ (g b)) (hΨ : ∀ b v, Ψ b (K₁ b v) = K₂ (g b) (Ψ b v))
+
+section At
+
+variable {b₁ : B₁} {b₂ : B₂} (e : U₁ b₁ ≃L[ℝ] U₂ b₂) (he : ∀ v, e (K₁ b₁ v) = K₂ b₂ (e v))
+
+/-- A real-linear equivalence `e : U₁ b₁ ≃ U₂ b₂` of two fibres that intertwines `K₁ b₁` with
+`K₂ b₂`, as a complex-linear equivalence `K₁.Fiber b₁ ≃ K₂.Fiber b₂`. -/
+def fiberEquivOfCommuteAt : K₁.Fiber b₁ ≃L[ℂ] K₂.Fiber b₂ :=
+  ((K₁.fiberEquiv b₁).trans (e.trans (K₂.fiberEquiv b₂).symm)).complexOfMapISmul fun v ↦
+    (K₂.fiberEquiv b₂).injective <| by simp [he]
+
+theorem fiberEquivOfCommuteAt_apply (v : K₁.Fiber b₁) :
+    K₁.fiberEquivOfCommuteAt K₂ e he v = (K₂.fiberEquiv b₂).symm (e (K₁.fiberEquiv b₁ v)) := by
+  simp [fiberEquivOfCommuteAt]
+
+@[simp]
+theorem fiberEquiv_fiberEquivOfCommuteAt (v : K₁.Fiber b₁) :
+    K₂.fiberEquiv b₂ (K₁.fiberEquivOfCommuteAt K₂ e he v) = e (K₁.fiberEquiv b₁ v) := by
+  rw [fiberEquivOfCommuteAt_apply, ContinuousLinearEquiv.apply_symm_apply]
+
+end At
+
+variable (g : B₁ → B₂) (Ψ : ∀ b, U₁ b ≃L[ℝ] U₂ (g b)) (hΨ : ∀ b v, Ψ b (K₁ b v) = K₂ (g b) (Ψ b v))
 
 /-- A family of real-linear equivalences `Ψ b : U₁ b ≃ U₂ (g b)` over a map `g` of bases that
-intertwines `K₁` with `K₂`, as complex-linear equivalences `K₁.Fiber b ≃ K₂.Fiber (g b)`. Over
-the identity of the base this is `fiberEquivOfCommute`. -/
+intertwines `K₁` with `K₂`, as complex-linear equivalences `K₁.Fiber b ≃ K₂.Fiber (g b)`: at each
+`b`, this is `fiberEquivOfCommuteAt`. Over the identity of the base this is
+`fiberEquivOfCommute`. -/
 def fiberEquivOfCommuteAlong (b : B₁) : K₁.Fiber b ≃L[ℂ] K₂.Fiber (g b) :=
-  ((K₁.fiberEquiv b).trans ((Ψ b).trans (K₂.fiberEquiv (g b)).symm)).complexOfMapISmul fun v ↦
-    (K₂.fiberEquiv (g b)).injective <| by simp [hΨ]
+  K₁.fiberEquivOfCommuteAt K₂ (Ψ b) (hΨ b)
+
+theorem fiberEquivOfCommuteAlong_eq_fiberEquivOfCommuteAt (b : B₁) :
+    K₁.fiberEquivOfCommuteAlong K₂ g Ψ hΨ b = K₁.fiberEquivOfCommuteAt K₂ (Ψ b) (hΨ b) :=
+  (rfl)
 
 theorem fiberEquivOfCommuteAlong_apply (b : B₁) (v : K₁.Fiber b) :
     K₁.fiberEquivOfCommuteAlong K₂ g Ψ hΨ b v =
       (K₂.fiberEquiv (g b)).symm (Ψ b (K₁.fiberEquiv b v)) := by
-  simp [fiberEquivOfCommuteAlong]
+  rw [fiberEquivOfCommuteAlong_eq_fiberEquivOfCommuteAt, fiberEquivOfCommuteAt_apply]
 
 @[simp]
 theorem fiberEquiv_fiberEquivOfCommuteAlong (b : B₁) (v : K₁.Fiber b) :
     K₂.fiberEquiv (g b) (K₁.fiberEquivOfCommuteAlong K₂ g Ψ hΨ b v) =
       Ψ b (K₁.fiberEquiv b v) := by
-  rw [fiberEquivOfCommuteAlong_apply, ContinuousLinearEquiv.apply_symm_apply]
+  rw [fiberEquivOfCommuteAlong_eq_fiberEquivOfCommuteAt, fiberEquiv_fiberEquivOfCommuteAt]
 
 variable {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
   [FiniteDimensional ℝ F₁] [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
