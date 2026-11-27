@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.NearbyClutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 
 /-!
 # Linear clutching functions with an invertible leading coefficient
@@ -131,13 +132,14 @@ theorem exists_isIso_nonempty_iso_clutching_linear [CompactSpace X] [T2Space X] 
     module
   -- The linear clutching function `u • (a + t b) + (t a + b)`.
   let G : E.circlePullback ⟶ E.circlePullback :=
-    circleCoord X •
+    ContinuousMap.laurentMonomial 1 (1 : C(X, ℂ)) •
         pullbackMap (a + ContinuousMap.const X (t : ℂ) • b) ContinuousMap.fst +
       pullbackMap (ContinuousMap.const X (t : ℂ) • a + b) ContinuousMap.fst
   have hG (w : X × Circle) : G.fiberMap w = (w.2 : ℂ) •
       (a + ContinuousMap.const X (t : ℂ) • b).fiberMap w.1 +
         (ContinuousMap.const X (t : ℂ) • a + b).fiberMap w.1 := by
-    simp only [G, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, circleCoord_apply,
+    simp only [G, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
+      ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, zpow_one, smul_eq_mul, mul_one,
       ContinuousMap.fst_apply]
   have hGm (w : X × Circle) : G.fiberMap w =
       ((w.2 : ℂ) + t) • a.fiberMap w.1 + ((t : ℂ) * w.2 + 1) • b.fiberMap w.1 := by

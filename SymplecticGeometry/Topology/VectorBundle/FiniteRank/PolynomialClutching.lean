@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
+public import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ElementaryClutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
@@ -69,7 +70,7 @@ section Polynomial
 variable {X : Type*} [TopologicalSpace X]
 
 /-- The coordinate `u` of the circle, as a scalar function on `X × Circle`. -/
-local notation "𝔲" => circleCoord X
+local notation "𝔲" => ContinuousMap.laurentMonomial 1 (1 : C(X, ℂ))
 
 variable {A D : FiniteRankBundleCore ℂ X}
 
@@ -77,18 +78,21 @@ variable {A D : FiniteRankBundleCore ℂ X}
 the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
 `∑ i ∈ Finset.range n, u ^ i • (a i).fiberMap x`. -/
 def polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) : A.circlePullback ⟶ D.circlePullback :=
-  ∑ i ∈ Finset.range n, 𝔲 ^ i • pullbackMap (a i) ContinuousMap.fst
+  ∑ i ∈ Finset.range n,
+    ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst
 
 theorem polynomialHom_def (n : ℕ) (a : ℕ → (A ⟶ D)) :
-    polynomialHom n a = ∑ i ∈ Finset.range n, 𝔲 ^ i • pullbackMap (a i) ContinuousMap.fst :=
+    polynomialHom n a = ∑ i ∈ Finset.range n,
+      ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst :=
   (rfl)
 
 @[simp]
 theorem fiberMap_polynomialHom (n : ℕ) (a : ℕ → (A ⟶ D)) (w : X × Circle) :
     (polynomialHom n a).fiberMap w =
       ∑ i ∈ Finset.range n, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
-  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul, ContinuousMap.pow_apply,
-    circleCoord_apply, fiberMap_pullbackMap, ContinuousMap.fst_apply]
+  simp only [polynomialHom_def, fiberMap_sum, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
+    ContinuousMap.one_apply, smul_eq_mul, mul_one, zpow_natCast,
+    fiberMap_pullbackMap, ContinuousMap.fst_apply]
 
 @[simp]
 theorem polynomialHom_zero (a : ℕ → (A ⟶ D)) : polynomialHom 0 a = 0 := by
@@ -101,7 +105,8 @@ theorem polynomialHom_succ (n : ℕ) (a : ℕ → (A ⟶ D)) :
       pullbackMap (a 0) ContinuousMap.fst + 𝔲 • polynomialHom n (fun i ↦ a (i + 1)) :=
   hom_ext fun w ↦ by
     simp only [fiberMap_polynomialHom, fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
-      circleCoord_apply, ContinuousMap.fst_apply, Finset.sum_range_succ', pow_succ', mul_smul,
+      ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, zpow_one, smul_eq_mul, mul_one,
+      ContinuousMap.fst_apply, Finset.sum_range_succ', pow_succ', mul_smul,
       Finset.smul_sum, pow_zero, one_smul]
     abel
 
@@ -114,7 +119,7 @@ section Hatcher
 variable {X : Type*} [TopologicalSpace X] [ParacompactSpace X] [R1Space X]
 
 /-- The coordinate `u` of the circle, as a scalar function on `X × Circle`. -/
-local notation "𝔲" => circleCoord X
+local notation "𝔲" => ContinuousMap.laurentMonomial 1 (1 : C(X, ℂ))
 
 variable {E G : FiniteRankBundleCore ℂ X}
 
@@ -236,7 +241,8 @@ theorem exists_linear_clutching_iso_of_fiberMap_eq_sum (n : ℕ) (a : ℕ → (E
     exists_linear_clutching_iso_of_hom_eq_polynomialHom n p (a 0) 0 (𝟙 E) (𝟙 E) _ hp'
   refine ⟨A, B, L, fun w ↦ ?_, e⟩
   rw [hL]
-  simp only [fiberMap_add, fiberMap_smul, fiberMap_pullbackMap, circleCoord_apply,
+  simp only [fiberMap_add, fiberMap_smul, fiberMap_pullbackMap,
+    ContinuousMap.laurentMonomial_apply, ContinuousMap.one_apply, zpow_one, smul_eq_mul, mul_one,
     ContinuousMap.fst_apply]
   exact add_comm _ _
 

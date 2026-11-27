@@ -11,7 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautolog
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.Algebra.Projectivization
-import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
+import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 
 /-!
 # The clutching construction over `X × ℂP¹`
@@ -33,8 +33,6 @@ and the fibres may be over any nontrivially normed field.
 
 * `TauCeti.FiniteRankBundleCore.circlePullback E`: the pullback of `E` to `X × Circle` along
   `Prod.fst`, on whose automorphisms the clutching functions are.
-* `SymplecticGeometry.circleCoord X`: the coordinate `(x, u) ↦ u` of the circle factor,
-  as a continuous complex function on `X × Circle`.
 * `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
   `SymplecticGeometry.ProjectiveLine.clutchingMap`.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
@@ -575,21 +573,6 @@ theorem nonempty_iso_clutching_pullback (φ : E ≅ E) :
 end TauCeti.FiniteRankBundleCore
 
 /-! ### Multiplying a clutching function by a power of the coordinate -/
-
-namespace SymplecticGeometry
-
-variable {X : Type*} [TopologicalSpace X]
-
-variable (X) in
-/-- The coordinate `u` of the circle factor, as a scalar function on `X × Circle`. -/
-def circleCoord : C(X × Circle, ℂ) :=
-  ⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩
-
-@[simp]
-theorem circleCoord_apply (w : X × Circle) : circleCoord X w = w.2 :=
-  (rfl)
-
-end SymplecticGeometry
 
 namespace TauCeti.FiniteRankBundleCore
 
