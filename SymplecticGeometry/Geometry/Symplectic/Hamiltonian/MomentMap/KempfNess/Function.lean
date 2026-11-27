@@ -90,6 +90,12 @@ the polystable `Gc`-orbits.
   `SymplecticGeometry.kempfNessFunction_sub_sqrt_momentNormSq_mul_sqrt_le`: the tangent line at
   `t = 0` bounds `Φ_p (g * C.expI η * C.toHom u)` below by `Φ_p g + μ (g⁻¹ • p) η`, and by
   Cauchy–Schwarz below by `Φ_p g - √(‖μ (g⁻¹ • p)‖²) * √(B η η)` for a symmetric nonnegative `B`.
+* `SymplecticGeometry.kempfNessFunction_nonneg_of_moment_eq_zero`,
+  `SymplecticGeometry.exists_pos_le_moment_expI_neg_smul_apply`,
+  `SymplecticGeometry.mul_norm_sub_one_le_kempfNessFunction`: at a zero `p` of `μ`, `Φ_p ≥ 0`;
+  if moreover the stabilizer of `p` in the Lie algebra is trivial, the slope
+  `μ (C.expI (-ξ) • p) ξ` is at least some `c > 0` on unit vectors `ξ`, and then
+  `Φ_p (C.expI η * C.toHom u) ≥ c (‖η‖ - 1)`.
 * `SymplecticGeometry.eq_kempfNessFunction_of_mfderiv_eq`,
   `SymplecticGeometry.existsUnique_kempfNessFunction`: `Φ_p` is the only smooth function with this
   differential that vanishes on `G`; a differentiable one with this differential that vanishes at
@@ -565,6 +571,61 @@ theorem kempfNessFunction_nonneg_of_moment_eq_zero [FiniteDimensional ℝ E']
     rw [inv_one, one_smul, hp]
     exact LinearMap.zero_apply _
   rwa [one_mul, C.expI_mul_toHom_polar_symm, kempfNessFunction_one, h0, add_zero] at hle
+
+omit [FiniteDimensional ℝ EC] [ConnectedSpace G] in
+/-- **A uniform positive slope at a zero of the moment map.** For a complexified action, with `-μ`
+a moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let `μ p = 0` and let `0` be the only
+`ξ` whose fundamental vector field vanishes at `p`. Then there is `c > 0` with
+`c ≤ μ (C.expI (-ξ) • p) ξ` for every unit vector `ξ` of the Lie algebra. -/
+theorem exists_pos_le_moment_expI_neg_smul_apply [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hp : μ p = 0)
+    (hξ : ∀ ξ : GroupLieAlgebra I G, fundamentalVectorField I' ξ p = 0 → ξ = 0) :
+    ∃ c > 0, ∀ ξ : E, ‖ξ‖ = 1 → c ≤ μ (C.expI (-ξ) • p) ξ := by
+  have hcont : Continuous fun ξ : E ↦ μ (C.expI (-ξ) • p) ξ := by
+    have := (contDiff_moment_expI_neg_smul_smul_apply C μ p hμ.contMDiff_of_neg).continuous.comp
+      (show Continuous fun ξ : E ↦ (ξ, (1 : ℝ)) by fun_prop)
+    simpa only [Function.comp_def, one_smul] using this
+  have hpos (ξ : E) (h1 : ‖ξ‖ = 1) : 0 < μ (C.expI (-ξ) • p) ξ :=
+    moment_expI_neg_smul_apply_pos h hμ hg hp fun h0 ↦ by
+      have h00 : ξ = (0 : E) := hξ ξ h0
+      simp [h00] at h1
+  rcases (Metric.sphere (0 : E) 1).eq_empty_or_nonempty with he | hne
+  · exact ⟨1, one_pos, fun ξ h1 ↦ absurd (mem_sphere_zero_iff_norm.2 h1) (he ▸ id)⟩
+  obtain ⟨ξ₀, h₀, hmin⟩ := (isCompact_sphere (0 : E) 1).exists_isMinOn hne hcont.continuousOn
+  exact ⟨_, hpos ξ₀ (mem_sphere_zero_iff_norm.1 h₀),
+    fun ξ h1 ↦ hmin (mem_sphere_zero_iff_norm.2 h1)⟩
+
+/-- **Linear growth of the Kempf–Ness function at a zero of the moment map.** In the setting of
+`kempfNessFunction_add_moment_le`, let `μ p = 0` and let `0 ≤ c ≤ μ (C.expI (-ξ) • p) ξ` for every
+unit vector `ξ`. Then `c * (‖η‖ - 1) ≤ Φ_p (C.expI η * C.toHom u)` for all `η` and `u`. -/
+theorem mul_norm_sub_one_le_kempfNessFunction [FiniteDimensional ℝ E']
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hp : μ p = 0)
+    {c : ℝ} (hc0 : 0 ≤ c) (hc : ∀ ξ : E, ‖ξ‖ = 1 → c ≤ μ (C.expI (-ξ) • p) ξ) (η : E) (u : G) :
+    c * (‖η‖ - 1) ≤ kempfNessFunction C μ p (C.expI η * C.toHom u) := by
+  rw [kempfNessFunction_mul_toHom]
+  rcases le_or_gt ‖η‖ 1 with hη | hη
+  · exact (mul_nonpos_of_nonneg_of_nonpos hc0 (by linarith)).trans
+      (kempfNessFunction_nonneg_of_moment_eq_zero C μ p h hμ hg hp _)
+  -- Write `η = ‖η‖ • ξ` with `‖ξ‖ = 1`, and use convexity along `t ↦ C.expI (t • ξ)` at `t = 1`.
+  set ξ : E := ‖η‖⁻¹ • η
+  have hξ : ‖ξ‖ = 1 := norm_smul_inv_norm (norm_ne_zero_iff.1 (zero_lt_one.trans hη).ne')
+  have hηξ : η = ‖η‖ • ξ := (smul_inv_smul₀ (zero_lt_one.trans hη).ne' η).symm
+  have hD := hasDerivAt_kempfNessFunction_geodesic C μ p h hμ hg 1 ξ 1
+  have hle := (convexOn_kempfNessFunction_geodesic C μ p h hμ hg 1 ξ).le_slope_of_hasDerivAt
+    (Set.mem_univ 1) (Set.mem_univ ‖η‖) hη hD
+  simp only [one_smul, inv_one, one_mul, slope_def_field] at hle
+  -- `1 • ξ` carries the scalar action of the Lie algebra, which `rw [one_smul]` does not see
+  -- through `TangentSpace`.
+  erw [one_smul] at hle
+  rw [le_div_iff₀ (by linarith)] at hle
+  have h1 := kempfNessFunction_nonneg_of_moment_eq_zero C μ p h hμ hg hp (C.expI ξ)
+  have := mul_le_mul_of_nonneg_right (hc ξ hξ) (show 0 ≤ ‖η‖ - 1 by linarith)
+  conv_rhs => rw [hηξ]
+  exact this.trans (hle.trans (sub_le_self _ h1))
 
 /-- **Uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a complexified action,
 let `-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. A

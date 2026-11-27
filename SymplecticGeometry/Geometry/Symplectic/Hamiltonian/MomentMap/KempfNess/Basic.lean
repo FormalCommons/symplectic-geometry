@@ -24,6 +24,7 @@ import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import TauCeti.Analysis.Calculus.Deriv.Slope
 
 /-!
 # Complexified actions, stability and the gradient of the moment map
@@ -79,6 +80,8 @@ and the moment weights.
 * `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
   complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
   point, so it is antitone.
+* `SymplecticGeometry.moment_expI_neg_smul_apply_pos`: if moreover `μ p = 0` and `X_ξ(p) ≠ 0`,
+  then `0 < μ (C.expI (-ξ) • p) ξ`.
 * `SymplecticGeometry.maximalIntegralCurve_neg_mgradient_moment`: for a complexified action and
   a `C¹` metric, `t ↦ C.expI (t • ξ) • p` is the maximal integral curve of `-grad ⟨μ, ξ⟩`
   through `p`.
@@ -412,6 +415,31 @@ theorem antitone_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexifica
     Antitone fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ :=
   antitone_of_hasDerivAt_nonpos (hasDerivAt_moment_expI h hμ hg ξ p)
     fun _ ↦ neg_nonpos.2 (sq_nonneg _)
+
+/-- **The slope of `⟨μ, ξ⟩` at a zero of the moment map.** For a complexified action, with `-μ` a
+moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, let `μ p = 0` and let the fundamental
+vector field of `ξ` not vanish at `p`. Then `0 < μ (C.expI (-ξ) • p) ξ`. -/
+theorem moment_expI_neg_smul_apply_pos [ContMDiffSMul IC I' ∞ Gc M]
+    {C : LieComplexification I G IC Gc} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M} (hp : μ p = 0)
+    {ξ : GroupLieAlgebra I G} (hξ : fundamentalVectorField I' ξ p ≠ 0) :
+    0 < μ (C.expI (-ξ) • p) ξ := by
+  -- `t ↦ -μ (C.expI (t • ξ) • p) ξ` vanishes at `0` with derivative `‖X_ξ p‖² > 0` there, so
+  -- `μ (C.expI (t • ξ) • p) ξ` is positive just left of `0`; it is antitone in `t`.
+  have hD := hasDerivAt_moment_expI h hμ hg ξ p 0
+  rw [zero_smul, C.expI_zero, one_smul] at hD
+  have h0 : μ (C.expI ((0 : ℝ) • ξ) • p) ξ = 0 := by
+    rw [zero_smul, C.expI_zero, one_smul, hp, LinearMap.zero_apply]
+  have hpos : 0 < -(-‖fundamentalVectorField I' ξ p‖ ^ 2) := by
+    rw [neg_neg]
+    exact pow_pos (norm_pos_iff.2 hξ) 2
+  obtain ⟨t, ht, hts⟩ := ((hD.neg.hasDerivWithinAt (s := Set.Iio 0)).eventually_nhdsLT_lt_of_pos
+    hpos |>.and (Ioo_mem_nhdsLT (show (-1 : ℝ) < 0 by norm_num))).exists
+  simp only [Pi.neg_apply, h0, neg_zero, neg_lt_zero] at ht
+  have hanti := antitone_moment_expI h hμ hg ξ p hts.1.le
+  simp only [neg_one_smul] at hanti
+  exact ht.trans_le hanti
 
 /-- **The curves `exp(itξ) p` are the negative gradient lines of `⟨μ, ξ⟩`.** For a complexified
 action on a Hausdorff manifold without boundary, with `-μ` a moment map for `σ` and the `C¹` metric
