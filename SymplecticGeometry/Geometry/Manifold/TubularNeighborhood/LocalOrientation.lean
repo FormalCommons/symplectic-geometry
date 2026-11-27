@@ -52,8 +52,9 @@ splitting lemma `Orientation.ofExact_eq_map_prod` and `Orientation.map_prod`. No
 any dimension and codimension, including zero.
 
 When `X` has positive dimension, the local orientation of `X` at `f z` is then read in the chart,
-translated so that `f z` goes to the origin (`centeredNormalTubeChart Φ z`, which vanishes at
-`f z` only and is an open embedding of the source of the chart): it is the local orientation
+translated so that `f z` goes to the origin
+(`(normalTubeChart Φ z).centeredSourceRestrict (f z)`, which vanishes at `f z` only and is an
+open embedding of the source of the chart): it is the local orientation
 of `P × E` selected by the image of the orientation of `X` under the derivative, that is, by the
 exchanged product of the orientation of `Z` and the normal orientation, whatever the dimension
 of `Z`
@@ -96,8 +97,6 @@ Applied to the two cases, it gives `localHomologyMap_localChartLocalHomologyIso_
 
 * `TauCeti.SmoothEmbedding.normalTubeChart`: the chart of `X` at `f z` given by the inverse of a
   tube read in the preferred chart of the normal bundle at `0_z`, normal coordinate first.
-* `TauCeti.SmoothEmbedding.centeredNormalTubeChart`: that chart on its source, translated so
-  that `f z` goes to the origin, as a continuous map.
 * `TauCeti.SmoothEmbedding.normalTubeChartDeriv`: its derivative at `f z`, read in the chart of
   `X` at `f z`.
 
@@ -293,48 +292,6 @@ theorem normalTubeChart_self (hΦ : f.IsNormalizedTube hn hdim Φ) :
     (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).zeroSection ℝ
       (mem_baseSet_trivializationAt P _ z)]
 
-/-- **The centred chart of a tube at a point of the submanifold.** The chart
-`normalTubeChart Φ z`, translated so that `f z` goes to the origin and restricted to its source,
-as a continuous map. For a normalized tube it vanishes at `f z` only
-(`centeredNormalTubeChart_preimage_zero`); it is an open embedding by Tau Ceti's
-`OpenPartialHomeomorph.isOpenEmbedding_sourceRestrict`. -/
-def centeredNormalTubeChart : C((normalTubeChart Φ z).source, P × E) :=
-  ((normalTubeChart Φ z).transHomeomorph
-    (Homeomorph.subRight (normalTubeChart Φ z (f z)))).sourceRestrict
-
-omit [J.Boundaryless] in
-/-- The centred chart of the tube at `z` is the chart followed by the translation by minus its
-value at `f z`, restricted to its source. -/
-theorem centeredNormalTubeChart_def :
-    centeredNormalTubeChart Φ z =
-      ((normalTubeChart Φ z).transHomeomorph
-        (Homeomorph.subRight (normalTubeChart Φ z (f z)))).sourceRestrict :=
-  (rfl)
-
-omit [J.Boundaryless] in
-/-- The value of the centred chart of the tube at `z` at a point of the source of the chart. -/
-@[simp]
-theorem centeredNormalTubeChart_apply (x : (normalTubeChart Φ z).source) :
-    centeredNormalTubeChart Φ z x = normalTubeChart Φ z x - normalTubeChart Φ z (f z) := by
-  -- `sourceRestrict_apply` is stated on the source of the translated chart, which is that of
-  -- `normalTubeChart Φ z` (`transHomeomorph_source`) only up to unfolding, so `simp` cannot
-  -- rewrite with it here.
-  rw [centeredNormalTubeChart_def]
-  refine (OpenPartialHomeomorph.sourceRestrict_apply ((normalTubeChart Φ z).transHomeomorph
-    (Homeomorph.subRight (normalTubeChart Φ z (f z)))) x).trans ?_
-  simp
-
-omit [J.Boundaryless] in
-/-- The centred chart of a normalized tube at `z` vanishes at `f z` only. -/
-theorem centeredNormalTubeChart_preimage_zero (hΦ : f.IsNormalizedTube hn hdim Φ) :
-    centeredNormalTubeChart Φ z ⁻¹' {0} = {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩} := by
-  have h := ((normalTubeChart Φ z).transHomeomorph
-    (Homeomorph.subRight (normalTubeChart Φ z (f z)))).sourceRestrict_preimage_singleton
-      (mem_normalTubeChart_source Φ z hΦ)
-  simp only [OpenPartialHomeomorph.transHomeomorph_apply, Function.comp_apply,
-    Homeomorph.subRight_apply, sub_self] at h
-  exact h
-
 /-- The derivative of the chart of the tube at `z`, read in the chart of `X` at `f z`: the inverse
 of the differential of `Φ` at `0_z`, the factors of `E × P` exchanged
 (`normalTubeChartDeriv_symm_apply`, `hasFDerivAt_normalTubeChart`). -/
@@ -522,8 +479,10 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOr
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredNormalTubeChart Φ z) (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (centeredNormalTubeChart_preimage_zero Φ z hΦ).subset
+        ((normalTubeChart Φ z).centeredSourceRestrict (f z))
+        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        ((normalTubeChart Φ z).centeredSourceRestrict_preimage_zero
+          (mem_normalTubeChart_source Φ z hΦ)).subset
         (d + 1)
         (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (d + 1)).symm
@@ -543,7 +502,6 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_eq_localOr
       hV (oX.reindex (finCongr hd)) hF (normalTubeChart Φ z) (mem_normalTubeChart_source Φ z hΦ)
       (hasFDerivAt_normalTubeChart Φ z hΦ)).trans ?_)
   · congr 3
-    exact ContinuousMap.ext fun x ↦ centeredNormalTubeChart_apply Φ z x
   · -- The tangent space of `X` at `f z` is `V`, and that of `Z` at `z` is `E`, only by
     -- definition, so `rw` does not match these lemmas.
     rw [Manifold.Orientation.orientationAt_reindex]
@@ -568,8 +526,10 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredNormalTubeChart Φ z) (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (centeredNormalTubeChart_preimage_zero Φ z hΦ).subset
+        ((normalTubeChart Φ z).centeredSourceRestrict (f z))
+        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        ((normalTubeChart Φ z).centeredSourceRestrict_preimage_zero
+          (mem_normalTubeChart_source Φ z hΦ)).subset
         (d + 1)
         (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (d + 1)).symm
@@ -622,8 +582,10 @@ theorem localHomologyMap_sub_normalTubeChart_toHomologicalOrientation_of_finrank
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredNormalTubeChart Φ z) (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (centeredNormalTubeChart_preimage_zero Φ z hΦ).subset
+        ((normalTubeChart Φ z).centeredSourceRestrict (f z))
+        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        ((normalTubeChart Φ z).centeredSourceRestrict_preimage_zero
+          (mem_normalTubeChart_source Φ z hΦ)).subset
         (r + 1)
         (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ (r + 1)).symm
@@ -748,8 +710,10 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
     (a : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
       ({0} : Set (P × E)) n)
     (ha : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredNormalTubeChart Φ z) (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
-        (centeredNormalTubeChart_preimage_zero Φ z hΦ).subset
+        ((normalTubeChart Φ z).centeredSourceRestrict (f z))
+        (S := {⟨f z, mem_normalTubeChart_source Φ z hΦ⟩}) (T := {0})
+        ((normalTubeChart Φ z).centeredSourceRestrict_preimage_zero
+          (mem_normalTubeChart_source Φ z hΦ)).subset
         n
         (((normalTubeChart Φ z).open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨f z, mem_normalTubeChart_source Φ z hΦ⟩ n).symm u).val = a) :
@@ -786,11 +750,11 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
     (Trivialization.localChart_preimage_singleton_zeroSection hS hSc hSe hb hcb h0).subset
   -- The centred chart `τ` of the tube at `z` is an open embedding of the source of `ψ`.
   let x₀ : ψ.source := ⟨f z, hx⟩
-  set τ := centeredNormalTubeChart Φ z
-  have hτ0 : τ ⁻¹' {0} = {x₀} := centeredNormalTubeChart_preimage_zero Φ z hΦ
+  set τ := (normalTubeChart Φ z).centeredSourceRestrict (f z)
+  have hτ0 : τ ⁻¹' {0} = {x₀} := (normalTubeChart Φ z).centeredSourceRestrict_preimage_zero hx
   have : CategoryTheory.IsIso
       (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
-    isIso_localHomologyMap _ τ (OpenPartialHomeomorph.isOpenEmbedding_sourceRestrict _) hτ0
+    isIso_localHomologyMap _ τ ((normalTubeChart Φ z).isOpenEmbedding_centeredSourceRestrict _) hτ0
       isClosed_singleton (singleton_subset_iff.2 ⟨x₀, hτ0.ge rfl⟩) n
   have hinj : Function.Injective
       (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) τ hτ0.subset n) :=
@@ -801,7 +765,7 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
     exact Subtype.ext h.symm
   -- `κ`, then `τ`, is the inclusion of `P × S`.
   have hτκ : τ.comp κ = ⟨Subtype.val, continuous_subtypeVal⟩ :=
-    ContinuousMap.ext fun y ↦ (centeredNormalTubeChart_apply Φ z _).trans (hψ y)
+    ContinuousMap.ext fun y ↦ ((normalTubeChart Φ z).centeredSourceRestrict_apply _ _).trans (hψ y)
   have hκs : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) κ hκ0 n
       ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
         ((isOpen_univ.prod hS).isOpenEmbedding_subtypeVal (X := P × E))

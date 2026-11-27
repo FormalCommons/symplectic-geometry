@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.IsManifold.RestrictScalars
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Symplectic.Manifold.Orientation
@@ -71,14 +72,8 @@ theorem localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames
     (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) M ℂ ∞) {z : M} (hz : z ∈ ψ.source)
     (hψ : IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ z) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : ψ.toOpenPartialHomeomorph.source ↦
-            ψ.toOpenPartialHomeomorph x - ψ.toOpenPartialHomeomorph z,
-          ψ.toOpenPartialHomeomorph.continuousOn.domRestrict.sub continuous_const⟩ :
-          C(ψ.toOpenPartialHomeomorph.source, ℂ)) (S := {⟨z, hz⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (ψ.toOpenPartialHomeomorph.injOn x.property hz (sub_eq_zero.1 hx)))
-        (1 + 1)
+        (ψ.toOpenPartialHomeomorph.centeredSourceRestrict z) (S := {⟨z, hz⟩}) (T := {0})
+        (ψ.toOpenPartialHomeomorph.centeredSourceRestrict_preimage_zero hz).subset (1 + 1)
         ((ψ.toOpenPartialHomeomorph.open_source.isOpenEmbedding_subtypeVal.localOrientationEquiv
           ⟨z, hz⟩ (1 + 1)).symm
           (complexManifoldHomologicalOrientation ℂ M (r := 0) (by simp) z)).val =
