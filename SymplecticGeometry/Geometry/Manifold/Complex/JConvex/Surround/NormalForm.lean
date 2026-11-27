@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.UnitSlope
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.InnerProductSpace.NormPow
 
@@ -44,16 +45,32 @@ The coefficients `λ x` and `μ x` depend smoothly on `x` because `x ↦ dφ (ι
 a cutoff in `‖x‖`, the function `χ` needs neither an annulus around the sphere nor care at the
 origin.
 
+The file also builds the radial factor of a reparametrization `x ↦ τ x • x` of the disc that
+makes the radial derivative of `φ ∘ ι` equal to `-2` along the sphere, as in Step 2 of the proof
+of Theorem 8.5 and in Corollary 8.1 of Cieliebak–Eliashberg. For a smooth `g` on a
+finite-dimensional real inner product space `F` with `a y = dg y y < 0` on the unit sphere,
+`SymplecticGeometry.exists_contDiff_fderiv_apply_self_eq_on_sphere` gives
+`τ y = 1 + h (‖y‖ - 1) * b y` with `b = -2 / a - 1`, smooth where `a < 0`, and a profile `h`
+from `SymplecticGeometry.exists_contDiff_deriv_zero_eq_one_abs_le`: `h 0 = 0` and `h' 0 = 1`
+make `dτ x x = b x` on the sphere, and `h` is supported in a thin shell around the sphere where
+`a < 0`, with height and slope error small against the bounds of `b` and `db y y` on that shell,
+so that `τ` and `τ + dτ y y` stay positive. Away from `0` the norm is smooth because `F` has an
+inner product; Tau Ceti's `ContDiffOn.contDiff_smul_of_tsupport_subset` makes `τ` smooth on all
+of `F`.
+
 ## Main results
 
 * `SymplecticGeometry.IsJOrthogonallyAttached.exists_complexFrame_mfderiv_ker`: along a disc
   attached J-orthogonally to `{φ ≤ 0}` there is a frame with the properties of
   `exists_complexFrame_mfderiv` whose second factor lies in the kernel of `dφ` along the sphere.
+* `SymplecticGeometry.exists_contDiff_fderiv_apply_self_eq_on_sphere`: a smooth positive radial
+  factor `τ`, equal to `1` near `0`, on the unit sphere and far out, with `τ + dτ y y > 0` and a
+  prescribed radial derivative `dτ x x = -2 / dg x x - 1` on the sphere.
 
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Step 3 of the proof of Theorem 8.5.
+  Corollary 8.1, and Steps 2 and 3 of the proof of Theorem 8.5.
 -/
 
 public section
@@ -228,23 +245,7 @@ end Frame
 
 section RadialProfile
 
-variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
-
-/-- The radial derivative of `z ↦ 1 + h (‖z‖ - 1) * b z` at a point `y ≠ 0`. -/
-private theorem fderiv_one_add_comp_norm_sub_one_mul_apply_self {h : ℝ → ℝ} {b : F → ℝ} {y : F}
-    (hy : y ≠ 0) (hh : DifferentiableAt ℝ h (‖y‖ - 1)) (hb : DifferentiableAt ℝ b y) :
-    fderiv ℝ (fun z ↦ 1 + h (‖z‖ - 1) * b z) y y =
-      deriv h (‖y‖ - 1) * ‖y‖ * b y + h (‖y‖ - 1) * fderiv ℝ b y y := by
-  have hN := (TauCeti.hasFDerivAt_norm_of_ne hy).sub_const 1
-  have H : HasFDerivAt (fun z ↦ 1 + h (‖z‖ - 1) * b z) _ y :=
-    ((hh.hasDerivAt.comp_hasFDerivAt y hN).mul hb.hasFDerivAt).const_add 1
-  rw [H.fderiv]
-  simp only [add_apply, smul_apply, smul_eq_mul, innerSL_apply_apply, real_inner_self_eq_norm_sq,
-    Function.comp_apply]
-  field_simp
-  ring
-
-variable [FiniteDimensional ℝ F]
+variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
 
 /-- **A radial profile with prescribed radial derivative on the unit sphere.** Let `F` be a
 finite-dimensional real inner product space and `g : F → ℝ` smooth with negative radial
@@ -360,10 +361,19 @@ theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : Con
       continuous_const (by fun_prop)).mem_nhds hy] with z hz
     simp [τ, hhw _ (le_of_lt hz)]
   have hτd : ∀ y ∈ U, fderiv ℝ τ y y =
-      deriv h (‖y‖ - 1) * ‖y‖ * b y + h (‖y‖ - 1) * fderiv ℝ b y y := fun y hy ↦
-    fderiv_one_add_comp_norm_sub_one_mul_apply_self (hU0 y hy)
-      (hh.differentiable (by simp) _) ((hbU.contDiffAt (hU.mem_nhds hy)).differentiableAt
-        (by simp))
+      deriv h (‖y‖ - 1) * ‖y‖ * b y + h (‖y‖ - 1) * fderiv ℝ b y y := fun y hy ↦ by
+    have hy0 := hU0 y hy
+    have hβ : DifferentiableAt ℝ (fun r ↦ h (r - 1)) ‖y‖ :=
+      (hh.differentiable (by simp) _).comp _ (differentiableAt_id.sub_const 1)
+    have hb : DifferentiableAt ℝ b y :=
+      (hbU.contDiffAt (hU.mem_nhds hy)).differentiableAt (by simp)
+    have H : HasFDerivAt τ (ψ y • fderiv ℝ b y + b y • fderiv ℝ ψ y) y :=
+      ((((TauCeti.differentiableAt_comp_norm_iff hy0).2 hβ).hasFDerivAt.mul
+        hb.hasFDerivAt).const_add 1)
+    rw [H.fderiv, add_apply, smul_apply, smul_apply, fderiv_comp_norm_apply hy0 hβ,
+      deriv_comp_sub_const, real_inner_self_eq_norm_sq]
+    field_simp
+    ring
   refine ⟨τ, hτ, fun x ↦ ?_, hτout 0 (by simp; linarith), fun x hx ↦ by simp [τ, hx, hh0],
     ⟨2, fun x hx ↦ by
       have := hhw (‖x‖ - 1) (by rw [abs_of_nonneg (by linarith)]; linarith)

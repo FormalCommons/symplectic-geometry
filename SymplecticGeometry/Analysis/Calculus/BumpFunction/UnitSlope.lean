@@ -18,7 +18,9 @@ For `w > 0` and `η > 0` there is a smooth function `h : ℝ → ℝ` with `h 0 
 vanishing where `w ≤ |s|`, with `|h| ≤ η` and with `h'` taking values in `[-η, 1 + η]`
 (`SymplecticGeometry.exists_contDiff_deriv_zero_eq_one_abs_le`). Such a function rises with
 slope one at the origin, yet its height is small and it comes back to `0` with a slope that is
-small as well: its support is long compared with its height.
+small as well: its support is long compared with its height. It strengthens Tau Ceti's
+`TauCeti.exists_contDiff_hasDerivAt_abs_le`, which gives `h 0 = 0`, `h' 0 = 1` and `|h| ≤ η`
+without compact support or control of `h'`.
 
 It is `h s = ε * arctan (s / ε) * f s` for a bump function `f` equal to `1` near `0` and
 vanishing outside `(-w / 2, w / 2)`, and `ε` small. Then
