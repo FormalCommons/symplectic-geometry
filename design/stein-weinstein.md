@@ -749,11 +749,12 @@ containing `ι '' closedBall 0 1`:
   - In `JConvex/Hypersurface.lean`:
     `exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`
     (the book's Lemma 2.7, on a compact set): let `f : M → ℝ` be `C²`
-    on an open `U`, `K ⊆ U` compact, and the Levi form of `f` positive
+    at each point of a compact `K`, and the Levi form of `f` positive
     on the nonzero `v` with
     `df(v) = df(i v) = 0` at each `x ∈ K`. Then there is `C ≥ 0` such
     that `g ∘ f` is strictly plurisubharmonic at every point of `K`
-    for each `C²` function `g` with `0 < deriv g` and
+    for each `g` that is `C²` at the points of `f '' K`, with
+    `0 < deriv g` and
     `C * deriv g ≤ iteratedDeriv 2 g` on `f '' K`. This is a
     statement about $J$-convex levels and belongs with them.
 
