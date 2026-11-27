@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -93,12 +94,14 @@ theorem mem_source_and_norm_extChartAt_sub_le_of_tendsto (hX : IsGradientLike f 
     by_contra! h
     nlinarith [hle 0]
   -- `b` is the first time at which `γ` leaves the open ball of radius `r` in the chart.
-  set O := e.source ∩ e ⁻¹' ball (e p) r
-  have hO : IsOpen O :=
-    (continuousOn_extChartAt p).isOpen_inter_preimage (isOpen_extChartAt_source p) isOpen_ball
-  have h0O : γ 0 ∈ O := ⟨h₀, mem_ball_iff_norm.2 (hs.trans_lt hsr)⟩
+  set O : Set M := (SymplecticGeometry.chartBall 𝓘(ℝ, E) p r : Set M)
+  have hO : IsOpen O := (SymplecticGeometry.chartBall 𝓘(ℝ, E) p r).isOpen
+  have hmemO {y : M} : y ∈ O ↔ y ∈ e.source ∧ e y ∈ ball (e p) r :=
+    SymplecticGeometry.mem_chartBall_iff _
+  have h0O : γ 0 ∈ O := hmemO.2 ⟨h₀, mem_ball_iff_norm.2 (hs.trans_lt hsr)⟩
   by_contra! hcon
-  have htO : γ t ∉ O := fun h ↦ (mem_ball_iff_norm.1 h.2).not_ge (hcon h.1).le
+  have htO : γ t ∉ O := fun h ↦
+    (mem_ball_iff_norm.1 (hmemO.1 h).2).not_ge (hcon (hmemO.1 h).1).le
   set A := {τ ∈ Icc 0 t | γ τ ∉ O}
   have hAbdd : BddBelow A := ⟨0, fun τ h ↦ h.1.1⟩
   have hbA : sInf A ∈ A :=
@@ -112,7 +115,8 @@ theorem mem_source_and_norm_extChartAt_sub_le_of_tendsto (hX : IsGradientLike f 
   set C := e.symm '' closedBall (e p) r
   have hC : IsClosed C := ((isCompact_closedBall _ _).image_of_continuousOn
     ((continuousOn_extChartAt_symm p).mono hr)).isClosed
-  have hOC : O ⊆ C := fun y hy ↦ ⟨e y, ball_subset_closedBall hy.2, e.left_inv hy.1⟩
+  have hOC : O ⊆ C := fun y hy ↦
+    ⟨e y, ball_subset_closedBall (hmemO.1 hy).2, e.left_inv (hmemO.1 hy).1⟩
   have hIcc : Icc 0 b ⊆ γ ⁻¹' C := by
     rw [← closure_Ico hb0.ne]
     exact closure_minimal (fun τ hτ ↦ hOC (hbefore τ hτ)) (hC.preimage hγc)
@@ -122,7 +126,7 @@ theorem mem_source_and_norm_extChartAt_sub_le_of_tendsto (hX : IsGradientLike f 
     exact ⟨e.map_target (hr hw), mem_closedBall_iff_norm.1 hw⟩
   have hbr : r ≤ ‖e (γ b) - e p‖ := by
     by_contra! h
-    exact hbA.2 ⟨(hsrc b ⟨hb0.le, le_rfl⟩).1, mem_ball_iff_norm.2 h⟩
+    exact hbA.2 (hmemO.2 ⟨(hsrc b ⟨hb0.le, le_rfl⟩).1, mem_ball_iff_norm.2 h⟩)
   -- `a` is the last time before `b` at which `γ` is within `s` of `e p`.
   have hcont : ContinuousOn (fun τ ↦ e (γ τ)) (Icc 0 b) :=
     (continuousOn_extChartAt p).comp hγc.continuousOn fun τ h ↦ (hsrc τ h).1

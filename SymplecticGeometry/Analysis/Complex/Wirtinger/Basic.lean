@@ -192,15 +192,13 @@ theorem norm_conjWirtingerDeriv_le_add_norm_fderiv_sub {e₁ e₂ : V → W}
     (add_le_add le_rfl (fderiv ℝ (e₁ - e₂) x).norm_complexAntilinearPart_le)
 
 /-- The derivative at `x` of the conjugate Wirtinger derivative of `e₂`, in the bundled
-real-linear form `y ↦ complexAntilinearPartL (fderiv ℝ e₂ y)`, is at most that of `e₁` plus
-`‖complexAntilinearPartL‖` times the norm of the second derivative of `e₁ - e₂` at `x`, when both
-maps are `C²` over `ℝ` at `x`. -/
+real-linear form `y ↦ complexAntilinearPartL (fderiv ℝ e₂ y)`, is at most that of `e₁` plus the
+norm of the second derivative of `e₁ - e₂` at `x`, when both maps are `C²` over `ℝ` at `x`. -/
 theorem norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub
     {e₁ e₂ : V → W} (h₁ : ContDiffAt ℝ 2 e₁ x) (h₂ : ContDiffAt ℝ 2 e₂ x) :
     ‖fderiv ℝ (fun y ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₂ y)) x‖ ≤
       ‖fderiv ℝ (fun y ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₁ y)) x‖ +
-        ‖(ContinuousLinearMap.complexAntilinearPartL : (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W)‖ *
-          ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
+        ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
   set P : (V →L[ℝ] W) →L[ℝ] V →L[ℝ] W := ContinuousLinearMap.complexAntilinearPartL
   have hd (g : V → W) (hg : ContDiffAt ℝ 2 g x) : DifferentiableAt ℝ (fderiv ℝ g) x :=
     (hg.fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero
@@ -216,10 +214,11 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub
       sub_sub_cancel]
   rw [hev.fderiv_eq, fderiv_fun_sub (hPd e₁ h₁) (hPd _ h₁₂)]
   have hb : ‖fderiv ℝ (fun y ↦ P (fderiv ℝ (e₁ - e₂) y)) x‖ ≤
-      ‖P‖ * ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
+      ‖iteratedFDeriv ℝ 2 (e₁ - e₂) x‖ := by
     rw [fderiv_fun_comp x P.differentiableAt (hd _ h₁₂), P.fderiv,
       ← norm_iteratedFDeriv_fderiv (n := 1), norm_iteratedFDeriv_one]
-    exact P.opNorm_comp_le _
+    exact (P.opNorm_comp_le _).trans
+      (mul_le_of_le_one_left (norm_nonneg _) ContinuousLinearMap.norm_complexAntilinearPartL_le)
   exact (norm_sub_le (E := V →L[ℝ] V →L[ℝ] W) _ _).trans (add_le_add le_rfl hb)
 
 end Sub

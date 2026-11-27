@@ -133,10 +133,9 @@ theorem isSmoothForm_smul_extendByZeroOfOpens [IsManifold IX 1 X] {n : ℕ∞}
     (hproj : ContMDiff IX IB n proj) (hW : ∀ i, proj ⁻¹' tsupport (ρ i) ⊆ W i)
     {η : ∀ i, RoughForm IX (W i) F k} (hη : ∀ i, IsSmoothForm IX n (η i)) (i : ι) :
     IsSmoothForm IX n (fun y ↦ ρ i (proj y) • extendByZeroOfOpens (η i) y) :=
-  isSmoothForm_fun_smul_of_mpullback_subtype_val (f := ρ i ∘ proj)
+  (hη i).fun_smul_extendByZeroOfOpens (f := ρ i ∘ proj)
     (((ρ i).contMDiff.of_le (by exact_mod_cast le_top)).comp hproj)
     ((tsupport_comp_subset_preimage _ hproj.continuous).trans (hW i))
-    (by rw [mpullback_subtype_val_extendByZeroOfOpens]; exact hη i)
 
 /-- **The glued form is smooth.** Let `ρ` be a smooth partition of unity on `s ⊆ B`,
 `proj : X → B` a `C^n` map, and `η i` a `C^n` form on an open set `W i` of `X` that contains the
@@ -169,12 +168,8 @@ theorem mextDeriv_glueForms_apply_of_mem_ker [IsManifold IX 1 X]
   have hμ := ((contMDiffAt_mpullback_subtype_val_iff (extendByZeroOfOpens (η i)) ⟨x, hx⟩).1
     (by rw [mpullback_subtype_val_extendByZeroOfOpens]; exact (hη i).contMDiff _))
       |>.mdifferentiableAt (by simp)
-  have hd : mextDeriv (extendByZeroOfOpens (η i)) x = mextDeriv (η i) ⟨x, hx⟩ := by
-    have h := congrFun (mpullback_subtype_val_mextDeriv (U := W i)
-      (extendByZeroOfOpens (η i))) ⟨x, hx⟩
-    rwa [mpullback_subtype_val_apply, mpullback_subtype_val_extendByZeroOfOpens] at h
   rw [mextDeriv_fun_smul_comp_apply_of_mem_ker ((ρ i).contMDiff.mdifferentiableAt (by simp))
-    (hproj.mdifferentiableAt (by simp)) hμ hv, hd]
+    (hproj.mdifferentiableAt (by simp)) hμ hv, mextDeriv_extendByZeroOfOpens_coe (η i) ⟨x, hx⟩]
   -- Both sides apply the same form to `v`, read in `TangentSpace IX x` and in the tangent space
   -- of `W i` at `x`, which are the same model space.
   rfl

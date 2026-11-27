@@ -455,6 +455,13 @@ theorem sphereCoChart_of_ne {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
   rw [sphereCoChart_def, sphereChart_def,
     ← (isComplementaryBall_sphereBall _).apply_eq_inversion w hw]
 
+/-- Away from `0`, the complementary chart after the inversion in the unit circle is the chart
+`sphereChart`. -/
+theorem sphereCoChart_inversion {w : EuclideanSpace ℝ (Fin 2)} (hw : w ≠ 0) :
+    sphereCoChart (EuclideanGeometry.inversion 0 1 w) = sphereChart w := by
+  rw [sphereCoChart_of_ne (by simpa [EuclideanGeometry.inversion_eq_center] using hw),
+    EuclideanGeometry.inversion_inversion _ one_ne_zero]
+
 /-- On the unit circle the two charts of the sphere agree. -/
 theorem sphereCoChart_of_norm_eq_one {w : EuclideanSpace ℝ (Fin 2)} (hw : ‖w‖ = 1) :
     sphereCoChart w = sphereChart w := by
