@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Convex.Star
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
@@ -167,26 +168,11 @@ theorem IsSmoothlyContractible.of_starConvex_image_extChartAt [IsManifold I ∞ 
 neighbourhood of `x`. -/
 theorem exists_mem_subset_isSmoothlyContractible [IsManifold I ∞ M] {x : M} {V : Set M}
     (hV : V ∈ 𝓝 x) : ∃ U : Opens M, x ∈ U ∧ (U : Set M) ⊆ V ∧ IsSmoothlyContractible I U := by
-  set e := extChartAt I x
-  obtain ⟨ε, hε, hsub⟩ := Metric.mem_nhdsWithin_iff.1 (Filter.inter_mem
-    (extChartAt_target_mem_nhdsWithin (I := I) x)
-    (mem_nhdsWithin_of_mem_nhds (extChartAt_preimage_mem_nhds (I := I) hV)))
-  let U : Opens M := ⟨e.source ∩ e ⁻¹' Metric.ball (e x) ε,
-    isOpen_extChartAt_preimage' x Metric.isOpen_ball⟩
-  have hxU : x ∈ U := ⟨mem_extChartAt_source x, Metric.mem_ball_self hε⟩
-  have hUV : (U : Set M) ⊆ V := fun y hy ↦ by
-    have h := (hsub ⟨hy.2, extChartAt_target_subset_range x (e.map_source hy.1)⟩).2
-    rwa [mem_preimage, e.left_inv hy.1] at h
-  have himage : e '' U = Metric.ball (e x) ε ∩ range I := by
-    refine Subset.antisymm ?_ fun z hz ↦ ?_
-    · rintro _ ⟨y, hy, rfl⟩
-      exact ⟨hy.2, extChartAt_target_subset_range x (e.map_source hy.1)⟩
-    · have hz' := (hsub hz).1
-      refine ⟨e.symm z, ⟨e.map_target hz', ?_⟩, e.right_inv hz'⟩
-      simpa only [mem_preimage, e.right_inv hz'] using hz.1
-  refine ⟨U, hxU, hUV,
-    .of_starConvex_image_extChartAt (fun y hy ↦ hy.1) (c := e x) ?_ ⟨x, hxU⟩⟩
-  rw [himage]
+  obtain ⟨ε, hε, htarget, hUV⟩ := exists_chartBall_subset I hV
+  refine ⟨chartBall I x ε, mem_chartBall_self I x hε, hUV,
+    .of_starConvex_image_extChartAt (chartBall_subset_source I x ε) (c := extChartAt I x x) ?_
+      ⟨x, mem_chartBall_self I x hε⟩⟩
+  rw [extChartAt_image_chartBall I htarget]
   exact ((convex_ball _ _).inter I.convex_range).starConvex
     ⟨Metric.mem_ball_self hε, mem_range_self _⟩
 

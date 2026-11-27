@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape
+public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
 
 import Mathlib.Analysis.Convex.Deriv
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
@@ -15,6 +15,7 @@ import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import SymplecticGeometry.Analysis.Polynomial.RealCubic
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
+import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import TauCeti.Analysis.Calculus.Deriv.Second
 
 /-!
