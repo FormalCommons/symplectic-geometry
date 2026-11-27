@@ -96,6 +96,12 @@ argument, which defaults to `blowupProfile l ε`, so that `profileForm n l ε` i
   `s > (l + ε)²` (`sq_mul_log_add_profileCorrection_of_ge`); and `π^* ω₀` is that of `s`
   (`radialPotentialForm_id`). That reading of `ω̃_{l,ε}` off `Z` is
   `mpullback_blowdownDiffeomorph_symm_profileForm`.
+* `SymplecticGeometry.BlowupModel.exists_mextDeriv_eq_correctionForm_sub`: for two profiles
+  `h₀ h₁` of weight `l` and collar `ε`, `ω_{q₁} - ω_{q₀} = d β` on `E` for a one-form `β` that
+  vanishes where `|z| > l + ε`: `β = (1/4) J* d (φ₁ - φ₀)`, and `φ₁ - φ₀` is constant there by
+  `sq_mul_log_add_profileCorrection_of_ge`. Its pull-back by the blowdown is a primitive of
+  `profileForm n l ε h₁ - profileForm n l ε h₀` that vanishes off `L(l + ε)`
+  (`exists_mextDeriv_eq_profileForm_sub`).
 * `SymplecticGeometry.BlowupModel.mpullback_radialMap_profileForm`: for a profile `h`, off `Z`
   the form `ω̃_{l,ε}` is the pull-back of `ω₀` along `F_{l,ε} ∘ π`, where `F_{l,ε}` is
   `radialMap` of `h`: by `mpullback_radialMap_stdForm`, since
@@ -709,6 +715,76 @@ theorem profileForm_eq_on_compl {l ε : ℝ} {h : ℝ → ℝ} (hh : IsBlowupPro
     ring
   rw [radialPotentialForm_apply, radialPotentialForm_apply, he.deriv_eq, he.deriv.deriv_eq]
   simp
+
+/-- **A primitive of the difference of two correction forms, supported in a ball.** For two
+profiles `h₀ h₁` of the blowup of weight `l` with collar `ε`, the difference `ω_{q₁} - ω_{q₀}` of
+their correction forms on `E` is `d β` for a one-form `β` that vanishes at every `z` with
+`l + ε < |z|`. One such `β` is `(1/4) J* d (φ₁ - φ₀)`, for the correction potentials `φᵢ`: their
+difference is constant for `|z| ≥ l + ε` (`sq_mul_log_add_profileCorrection_of_ge`). -/
+theorem exists_mextDeriv_eq_correctionForm_sub {l ε : ℝ} {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε h₀) (hh₁ : IsBlowupProfile l ε h₁) :
+    ∃ β : SmoothForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ) ℝ 1,
+      mextDeriv β.val = (correctionForm n l ε h₁ - correctionForm n l ε h₀).val ∧
+      ∀ z, l + ε < ‖complexToRealEuclidean (Fin (n + 1)) z‖ → β.val z = 0 := by
+  set J := ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)
+  set f := SmoothForm.ofFunction (correctionPotential n l ε h₁) -
+    SmoothForm.ofFunction (correctionPotential n l ε h₀)
+  refine ⟨(4 : ℝ)⁻¹ • J.covectorComplexStructure (mextDerivₗ _ 0 f), ?_, fun z hz ↦ ?_⟩
+  · have h : mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1
+        ((4 : ℝ)⁻¹ • J.covectorComplexStructure (mextDerivₗ _ 0 f)) =
+        correctionForm n l ε h₁ - correctionForm n l ε h₀ := by
+      rw [map_smul, correctionForm_def, correctionForm_def, ← map_sub, potentialForm_def]
+    exact (mextDerivₗ_apply _ _ _).symm.trans (congrArg Subtype.val h)
+  -- Near `z`, the difference of the potentials is the constant `c`.
+  set c := profileCorrection l h₁ ((l + ε) ^ 2) - profileCorrection l h₀ ((l + ε) ^ 2)
+  have hU : IsOpen {w : Fin (n + 1) → ℂ | l + ε < ‖complexToRealEuclidean (Fin (n + 1)) w‖} :=
+    isOpen_lt continuous_const (complexToRealEuclidean (Fin (n + 1))).continuous.norm
+  have hf : ∀ᶠ w in nhds z, f.val w =
+      RoughForm.ofFunction 𝓘(ℝ, Fin (n + 1) → ℂ) (fun _ ↦ c) w := by
+    filter_upwards [hU.mem_nhds hz] with w hw
+    have hlε : 0 ≤ l + ε := add_pos hh₀.weight_pos hh₀.collar_pos |>.le
+    have hs : (l + ε) ^ 2 ≤ ‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2 :=
+      pow_le_pow_left₀ hlε hw.le 2
+    ext v
+    simp only [f, Submodule.coe_sub, SmoothForm.coe_ofFunction, Pi.sub_apply,
+      ContinuousAlternatingMap.sub_apply, RoughForm.ofFunction_apply,
+      correctionPotential_apply n hh₀, correctionPotential_apply n hh₁,
+      c]
+    linarith [sq_mul_log_add_profileCorrection_of_ge hh₀ hs,
+      sq_mul_log_add_profileCorrection_of_ge hh₁ hs]
+  have hd : (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 f).val z = 0 := by
+    rw [mextDerivₗ_apply, mextDeriv_congr_of_eventuallyEq hf]
+    rw [mextDeriv_ofFunction]
+    ext v
+    simp [mvfderiv]
+  ext v
+  simp [hd]
+
+/-- **A primitive of the difference of two forms `ω̃_{l,ε}`, supported in `L(l + ε)`.** For two
+profiles `h₀ h₁` of the blowup of weight `l` with collar `ε`, the difference of the forms
+`profileForm n l ε h₁ - profileForm n l ε h₀` on the model blowup is `d β` for a one-form `β`
+that vanishes off `L(l + ε) = closedNbhd n (l + ε)`: the pull-back by the blowdown of the
+primitive of `exists_mextDeriv_eq_correctionForm_sub`, since the two forms differ by the pull-back
+of the difference of their correction forms. -/
+theorem exists_mextDeriv_eq_profileForm_sub {l ε : ℝ} {h₀ h₁ : ℝ → ℝ}
+    (hh₀ : IsBlowupProfile l ε h₀) (hh₁ : IsBlowupProfile l ε h₁) :
+    ∃ β : SmoothForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ℝ 1,
+      mextDeriv β.val = (profileForm n l ε h₁ - profileForm n l ε h₀).val ∧
+      ∀ p ∉ closedNbhd n (l + ε), β.val p = 0 := by
+  obtain ⟨β, hβ, hβ0⟩ := exists_mextDeriv_eq_correctionForm_sub n hh₀ hh₁
+  have hπ := (contMDiff_blowdown (n := n) ∞).restrictScalars' ℝ
+  refine ⟨SmoothForm.mpullback blowdown hπ β, ?_, fun p hp ↦ ?_⟩
+  · have h : mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 1 (SmoothForm.mpullback blowdown hπ β) =
+        profileForm n l ε h₁ - profileForm n l ε h₀ := by
+      rw [SmoothForm.mextDerivₗ_mpullback, profileForm_def, profileForm_def,
+        add_sub_add_left_eq_sub, ← map_sub]
+      exact congrArg _ (Subtype.ext ((mextDerivₗ_apply _ _ _).trans hβ))
+    exact (mextDerivₗ_apply _ _ _).symm.trans (congrArg Subtype.val h)
+  have hp' : l + ε < ‖complexToRealEuclidean (Fin (n + 1)) p.blowdown‖ :=
+    not_le.1 (mt mem_closedNbhd_iff.2 hp)
+  ext v
+  rw [SmoothForm.mpullback_apply, hβ0 _ hp', ContinuousAlternatingMap.coe_zero,
+    Pi.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 /-- The radial map `F_{l,ε} z = √(h(|z|²) / |z|²) z` of a profile `h` of the blowup, composed
 with the blowdown, pulls `ω₀` back to `ω̃_{l,ε}` off the exceptional divisor. -/
