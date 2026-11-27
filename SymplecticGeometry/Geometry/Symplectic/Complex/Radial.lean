@@ -78,6 +78,8 @@ blowup constructions read the forms they build off `Z` in these terms.
   the form is linear in `g`, as `potentialForm` and the radial potential are;
   `SymplecticGeometry.radialPotentialForm_congr`: it depends only on the values of `g` on
   `(0, ∞)`.
+* `SymplecticGeometry.exists_mextDeriv_eq_radialPotentialForm`: the form is `d β` for the one-form
+  `β = (1/4) J* d (g ∘ s)`, which vanishes wherever `g'(|z|²) = 0`.
 
 The second half of the file is about radial maps. For `h : ℝ → ℝ` positive on `(0, ∞)`:
 
@@ -299,6 +301,37 @@ theorem radialPotentialForm_const_mul (c : ℝ) {g : ℝ → ℝ} (hg : ContDiff
       c • radialPotentialForm ι g hg := by
   simp only [radialPotentialForm_def, radialPotential_const_mul c hg,
     SmoothForm.ofFunction_smul, map_smul]
+
+/-- **A primitive of a radial potential form.** The form of the radial potential `g |z|²` is
+`d β` for a one-form `β` on `(ι → ℂ) ∖ 0` that vanishes at every `z` with `g'(|z|²) = 0`. One
+such `β` is `(1/4) J* d (g ∘ s)`, whose value at `z` is `g'(|z|²)` times that of
+`(1/4) J* d s`. -/
+theorem exists_mextDeriv_eq_radialPotentialForm (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
+    ∃ β : SmoothForm 𝓘(ℝ, ι → ℂ) (puncturedSpace (ι → ℂ)) ℝ 1,
+      mextDeriv β.val = (radialPotentialForm ι g hg).val ∧
+      ∀ z : puncturedSpace (ι → ℂ), deriv g (∑ i, ‖(z : ι → ℂ) i‖ ^ 2) = 0 → β.val z = 0 := by
+  set J := ofComplexManifold (ι → ℂ) (puncturedSpace (ι → ℂ))
+  refine ⟨(4 : ℝ)⁻¹ • J.covectorComplexStructure
+    (mextDerivₗ _ 0 (SmoothForm.ofFunction (radialPotential hg))), ?_, fun z hz ↦ ?_⟩
+  · rw [← mextDerivₗ_apply, map_smul, radialPotentialForm_def, potentialForm_def]
+  have hs : 0 < ∑ i, ‖(z : ι → ℂ) i‖ ^ 2 := by
+    simpa only [norm_sq_complexToRealEuclidean] using norm_sq_complexToRealEuclidean_pos z
+  have hgd : HasDerivAt g 0 (‖complexToRealEuclidean ι (z : ι → ℂ)‖ ^ 2) := by
+    rw [norm_sq_complexToRealEuclidean, ← hz]
+    exact ((hg.contDiffAt (Ioi_mem_nhds hs)).differentiableAt (by simp)).hasDerivAt
+  have hf : MDifferentiableAt 𝓘(ℝ, ι → ℂ) 𝓘(ℝ, ℝ)
+      (fun y : puncturedSpace (ι → ℂ) ↦ ‖complexToRealEuclidean ι (y : ι → ℂ)‖ ^ 2) z :=
+    ((contDiff_norm_sq_complexToRealEuclidean (ι := ι) (n := 1)).contMDiff.comp
+      contMDiff_subtypeVal).mdifferentiableAt one_ne_zero
+  have hd : (mextDerivₗ 𝓘(ℝ, ι → ℂ) 0
+      (SmoothForm.ofFunction (radialPotential (ι := ι) hg))).val z = 0 := by
+    rw [mextDerivₗ_apply, SmoothForm.coe_ofFunction, coe_radialPotential,
+      mextDeriv_ofFunction_comp_of_hasDerivAt hf hgd, zero_smul]
+  refine ContinuousAlternatingMap.ext fun v ↦ ?_
+  have hv : v = ![v 0] := funext fun i ↦ by fin_cases i; rfl
+  rw [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply, hv,
+    SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec, hd]
+  simp
 
 /-! ### Radial maps -/
 
