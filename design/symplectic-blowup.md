@@ -480,13 +480,14 @@ Namespace `SymplecticGeometry`, for `M` as in *Setting*, `ω`, `J`, `p₀`,
 
 ### `Blowup/Normalized/Weight.lean`
 
-- (ii) `normalizedBlowupSymplectomorph hψ`: a symplectomorphism from
-  `(Blowup c, normalizedBlowupForm hψ)` onto
-  `(WeightBlowup hψ' hλ hε', WeightBlowup.form)`, for `0 < ε' ≤ ε` with
-  $\sqrt{\lambda^2+\varepsilon'^2}<r$, built as in *Decisions*, with
-  `F_{λ,ε} = radialMap (blowupProfile λ ε)`. It is a bijective local
-  symplectomorphism, so a diffeomorphism by
-  `IsLocalDiffeomorph.diffeomorphOfBijective`.
+- (ii) `normalizedBlowupSymplectomorph hψ hh hε' hε'ε`: a diffeomorphism from
+  `Blowup c` onto `WeightBlowup hψ' hλ hε'`, for a profile `h` with
+  `hh : IsBlowupProfile λ ε h` and `0 < ε' ≤ ε` (so that
+  $\sqrt{\lambda^2+\varepsilon'^2}\le\lambda+\varepsilon<r$), built as in
+  *Decisions*, with `F_{λ,ε} = radialMap h`;
+  `isSymplectomorphism_normalizedBlowupSymplectomorph`: it carries
+  `normalizedBlowupForm hψ h` to `WeightBlowup.form`. It is glued from
+  the two pieces of `WeightBlowup` by `GluedAlong.descDiffeomorph`.
 
 ### `Blowup/Normalized/Family.lean`
 

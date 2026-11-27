@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
+public import SymplecticGeometry.Topology.OpenPartialHomeomorph.SourceRestrict
 
 /-!
 # Local homology along open embeddings
@@ -20,6 +21,11 @@ Tau Ceti's `TauCeti.localHomologyIsoOfIsOpenEmbedding` identifies the local homo
 shows that these isomorphisms are natural along a commuting square `h ∘ ι = ι' ∘ φ` in which
 `ι`, `ι'` and `φ` are open embeddings and `h` is any continuous map.
 
+For an open partial homeomorphism `c : M → Q` and a point `x` of its source, the local homology
+of `M` at `x` can be read in `c`: in the source of `c` first, through the inverse of
+`TauCeti.localHomologyIsoOfIsOpenEmbedding` for the inclusion of the source, and then along
+`c.sourceRestrict`. With coefficients in a module, this reading is injective.
+
 ## Main definitions
 
 * `TauCeti.localHomologyIsoOfIsOpenEmbeddingOfPreimage`: excision along an open embedding, as an
@@ -32,6 +38,8 @@ shows that these isomorphisms are natural along a commuting square `h ∘ ι = �
   by the isomorphism for `ι'`.
 * `TauCeti.localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom`: the isomorphism
   at a point carries the class of the point to the class of its image.
+* `OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`: reading the local homology
+  of `M` at `x` in an open partial homeomorphism, through its source, is injective.
 
 ## References
 
@@ -103,5 +111,30 @@ lemma localHomologyPointClass_comp_localHomologyIsoOfIsOpenEmbedding_hom {ι : M
   exact localHomologyPointClass_map _ _ _ _
 
 end TauCeti
+
+namespace OpenPartialHomeomorph
+
+open TauCeti
+
+variable {S : Type*} [Ring S] (R : ModuleCat.{w} S) {M Q : Type w} [TopologicalSpace M]
+  [TopologicalSpace Q] [T1Space M] [T1Space Q]
+
+/-- Let `c : M → Q` be an open partial homeomorphism between `T₁` spaces and `x` a point of its
+source, with `c x = y`. Reading the local homology of `M` at `x`, with coefficients in a module
+`R`, first in the source of `c` and then in `Q` along `c.sourceRestrict`, is injective. -/
+theorem injective_localHomologyMap_sourceRestrict (c : OpenPartialHomeomorph M Q) {x : M}
+    (hx : x ∈ c.source) {y : Q} (hy : c x = y) (k : ℕ) :
+    Function.Injective fun a ↦ localHomologyMap R c.sourceRestrict
+      (hy ▸ (c.sourceRestrict_preimage_singleton hx).subset) k
+      ((localHomologyIsoOfIsOpenEmbedding R c.open_source.isOpenEmbedding_subtypeVal
+        ⟨x, hx⟩ k).inv a) := by
+  subst hy
+  have := isIso_localHomologyMap R c.sourceRestrict c.isOpenEmbedding_sourceRestrict
+    (c.sourceRestrict_preimage_singleton hx) isClosed_singleton
+    (Set.singleton_subset_iff.2 ⟨_, c.sourceRestrict_apply ⟨x, hx⟩⟩) k
+  exact ((ModuleCat.mono_iff_injective _).1 inferInstance).comp
+    ((ModuleCat.mono_iff_injective _).1 inferInstance)
+
+end OpenPartialHomeomorph
 
 end

@@ -59,6 +59,10 @@ covers the canonical Thom class of a normal orientation and the case of codimens
 * `TauCeti.SmoothEmbedding.exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass`: the
   cap product of `dualClassOf f hn hdim hf u` with the fundamental class of `X` is the push-forward
   along `f ∘ π` of the cap product of `u` with `μ_Φ`.
+* `TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass_of_forall_isNormalizedTube`: the same
+  for the dual class of a normal orientation `o`: `dualClass f hn hdim hf o hr ⌢ [X] = f_* c` for
+  any class `c` that the projection gives from `u ⌢ μ_Φ` for every normalized tube `Φ`, `u` being
+  the canonical Thom class of `o`.
 
 ## References
 
@@ -192,6 +196,49 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
         (ρ_ L).hom p q n h) _), ← hnat₂, ← ConcreteCategory.comp_apply, Category.assoc,
     ← Functor.map_comp, hg, ContinuousMap.singularHomologyFunctor_map_eq_of_homotopic L q hgf]
   exact ConcreteCategory.comp_apply _ _ _
+
+/-- **The cap product of a dual class with the fundamental class, through any tube.** Let
+`f : Z → X` be a smooth embedding with closed range into a compact manifold `X` with a homological
+orientation `oX` of dimension `n`, and let `o` be an orientation of the normal bundle `π : ν → Z`,
+of rank `r`. If a class `c ∈ H_q(Z; ℤ)`, `r + q = n`, is the push-forward along `π` of the cap
+product of the canonical Thom class of `o` with the class `tubeFundamentalClass` of every
+normalized tube `Φ`, then the cap product of `dualClass f hn hdim hf o hr` with the fundamental
+class of `X` is the push-forward of `c` along `f`. -/
+theorem dualClass_cap_fundamentalClass_of_forall_isNormalizedTube (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (hf : IsClosed (range f)) {q r : ℕ} (oX : HomologicalOrientation X F n)
+    (hnX : finrank ℝ F = n)
+    (o : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      VectorBundleOrientation P (fun x ↦ f.isImmersion.NormalSpace x hn) (Fin r))
+    (hr : finrank ℝ P = r) (h : r + q = n)
+    (c : ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).obj
+      (TopCat.of Z))
+    (hc : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      ∀ (W : TopologicalSpace.Opens X)
+        (Φ : TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+        (hΦ : f.IsNormalizedTube hn hdim Φ) (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)),
+        ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+            (TopCat.ofHom ⟨π P _, FiberBundle.continuous_proj P _⟩)
+          (((thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv
+              (ρ_ _).hom r q n h (o.canonicalThomClass hr)).hom
+            (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection oX hnX hK)) = c) :
+    ((TopCat.of X).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h
+        (f.dualClass hn hdim hf o hr)).hom (oX.fundamentalClass hnX) =
+      ((singularHomologyFunctor (ModuleCat.{0} ℤ) q).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+        (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩) c := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  obtain ⟨W, Φ, hΦ, hK, hcap⟩ :=
+    f.exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass hn hdim hf oX hnX
+      (ModuleCat.of ℤ (ULift.{0} ℤ))
+  rw [dualClass_def, hcap, ← hc W Φ hΦ hK]
+  -- The push-forward along `f ∘ π` is that along `π` followed by that along `f`; `f ∘ π` is the
+  -- composite `ContinuousMap.comp` of the two maps by definition.
+  exact (ConcreteCategory.congr_hom (Functor.map_comp _
+    (TopCat.ofHom ⟨π P _, FiberBundle.continuous_proj P _⟩)
+    (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩)) _).trans (ConcreteCategory.comp_apply _ _ _)
 
 end TauCeti.SmoothEmbedding
 
