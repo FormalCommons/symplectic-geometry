@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Sum.GraphTorus
+public import SymplecticGeometry.Topology.Homotopy.AddCircle
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.AddCircle
 import SymplecticGeometry.Geometry.Manifold.GeneralPosition
 import SymplecticGeometry.Geometry.Manifold.NullSet
-import SymplecticGeometry.Topology.Homotopy.AddCircle
 
 /-!
 # Disjoint symplectic tori in `Σ × T` for finitely many loops
@@ -22,6 +22,7 @@ standard torus with one of its coordinates `i`. For finitely many based loops `�
 `exists_graphTorus_family` gives smooth circle maps `h k : AddCircle (p i) → Σ` and a point `z`
 of `Σ` such that
 
+* each `h k` is freely homotopic to the circle map `(γ k).toAddCircle` of `γ k`;
 * the loops of the `h k`, brought to `x` along any paths, normally generate the same subgroup of
   `π₁(Σ, x)` as the `γ k`;
 * the graph tori `y ↦ (h k (y i), y)` (`SymplecticGeometry.graphTorus`) are pairwise disjoint;
@@ -32,7 +33,8 @@ The maps come from the general position of finitely many circle maps
 (`SymplecticGeometry.exists_contMDiff_homotopic_forall_ne_addCircle`), applied to the circle maps
 `(γ k).toAddCircle` of the loops, and `z` from the density of the complement of finitely many
 smooth loops (`SymplecticGeometry.dense_compl_iUnion_range_addCircle`). Free homotopies do not
-change the normal closure (`ContinuousMap.normalClosure_range_toLoop_eq_of_homotopic`).
+change the normal closure
+(`ContinuousMap.normalClosure_range_toLoop_eq_of_homotopic_toAddCircle`).
 
 When `Σ` is a surface with a nondegenerate two-form `σ`, such as an area form of the closed
 surface (`SymplecticGeometry.ClosedSurface.exists_isSymplectic`), the rest is in
@@ -76,6 +78,7 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 at least two, smooth and without boundary, and `γ k`, for `k` in a finite type, loops at `x`.
 Then there are smooth circle maps `h k : AddCircle (p i) → M` and a point `z` of `M` such that
 
+* each `h k` is freely homotopic to the circle map `(γ k).toAddCircle (p i)` of `γ k`;
 * the loops `ψ k · h k · (ψ k)⁻¹` at `x`, for any paths `ψ k` from `x` to `h k 0`, normally
   generate the same subgroup of `π₁(M, x)` as the `γ k`;
 * the graph tori of the `h k` in `M × T` are pairwise disjoint;
@@ -84,6 +87,7 @@ Then there are smooth circle maps `h k : AddCircle (p i) → M` and a point `z` 
 theorem exists_graphTorus_family (hE : 2 ≤ finrank ℝ E) {x : M} {κ : Type*} [Finite κ]
     (γ : κ → Path x x) :
     ∃ (h : κ → C(AddCircle (p i), M)) (hh : ∀ k, ContMDiff 𝓘(ℝ) I ∞ (h k)) (z : M),
+      (∀ k, ((γ k).toAddCircle (p i)).Homotopic (h k)) ∧
       (∀ ψ : ∀ k, Path x (h k 0),
         Subgroup.normalClosure (range fun k ↦ FundamentalGroup.fromPath (.mk ((ψ k).trans
           ((h k).toLoop.trans (ψ k).symm)))) =
@@ -99,23 +103,10 @@ theorem exists_graphTorus_family (hE : 2 ≤ finrank ℝ E) {x : M} {κ : Type*}
   obtain ⟨z, hz⟩ := (dense_compl_iUnion_range_addCircle (I := I) (by omega)
     fun k ↦ (hg k).1.mdifferentiable (by simp)).nonempty
   simp only [mem_compl_iff, mem_iUnion, mem_range, not_exists] at hz
-  refine ⟨g, fun k ↦ (hg k).1, z, fun ψ ↦ ?_, fun k l hkl ↦ ?_, fun k ↦ ?_⟩
-  · -- The loops of the `f k`, read at `x` along constant paths, are the `γ k`.
-    let χ : ∀ k, Path x (f k 0) := fun k ↦ (Path.refl x).cast rfl ((γ k).toAddCircle_zero)
-    have hχ (k : κ) : FundamentalGroup.fromPath (.mk ((χ k).trans ((f k).toLoop.trans
-        (χ k).symm))) = FundamentalGroup.fromPath (.mk (γ k)) := by
-      have hpath : (χ k).trans ((f k).toLoop.trans (χ k).symm) =
-          (Path.refl x).trans ((γ k).trans (Path.refl x).symm) := by
-        rw [ContinuousMap.toLoop_toAddCircle]
-        ext t
-        simp [χ, Path.trans_apply]
-      rw [hpath, Path.refl_symm]
-      exact congrArg _ (Path.Homotopic.Quotient.eq.2 ((Path.Homotopic.refl_trans _).trans
-        (Path.Homotopic.trans_refl _)))
-    rw [← ContinuousMap.normalClosure_range_toLoop_eq_of_homotopic (fun k ↦ (hg k).2) χ ψ]
-    simp_rw [hχ]
-  · exact (disjoint_range_graphTorus_iff _ _).2 (hne k l hkl)
-  · exact (disjoint_range_graphTorus_iff _ _).2 fun t ht ↦ hz k t ht
+  exact ⟨g, fun k ↦ (hg k).1, z, fun k ↦ (hg k).2,
+    ContinuousMap.normalClosure_range_toLoop_eq_of_homotopic_toAddCircle fun k ↦ (hg k).2,
+    fun k l hkl ↦ (disjoint_range_graphTorus_iff _ _).2 (hne k l hkl),
+    fun k ↦ (disjoint_range_graphTorus_iff _ _).2 fun t ht ↦ hz k t ht⟩
 
 end SymplecticGeometry
 
