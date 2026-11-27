@@ -10,9 +10,11 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Euclidean
 public import TauCeti.Algebra.Group.Fin.Tuple
+public import TauCeti.Geometry.Manifold.ConnectedSum.Basic
 public import TauCeti.LinearAlgebra.Projectivization.Basic
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Geometry.Manifold.Complex.Analytic
@@ -68,6 +70,17 @@ given by `(univBall 0 ε).symm` on the blowdown. For `ε = c.ballRadius` it land
 `Blowup.modelOpens c`. This is the map `S` with which the connected sum is identified with the
 blowup on the side of the projective space.
 
+The last section maps the two punctured summands of the connected sum into the blowup, both
+re-modelled on the Hermitian space. The punctured `M` goes in by `GluedAlong.inl`, as the
+complement of the exceptional divisor; the punctured projective space goes in by
+`GluedAlong.inr` after `projectiveBlowupModelDiffeomorph n` and the rescaling `S` for
+`ε = c.ballRadius`. Both maps are injective smooth local diffeomorphisms, their images cover the
+blowup, and they meet exactly at the points that the connected sum glues: for `v ≠ 0`, the
+point `c.symm (ρ v)` of `M` and the point `[u : 1]`, with `u` the inversion of `v` in the unit
+sphere, both go to the point of the blowup over `c.symm (ρ v)`, since the blowdown of
+`projectiveBlowupModelDiffeomorph n [u : 1]` is the inversion of `u`, that is `v`. These are the
+pieces from which the diffeomorphism of the connected sum onto the blowup is glued.
+
 ## Main definitions
 
 * `SymplecticGeometry.BlowupChart.connectedSumBall c`: the ball `e₁` of `M`.
@@ -86,6 +99,8 @@ blowup on the side of the projective space.
   `SymplecticGeometry.BlowupModel.pr_radialRescale`,
   `SymplecticGeometry.BlowupModel.blowdown_radialRescale` and
   `SymplecticGeometry.BlowupModel.blowdown_radialRescale_of_pos`.
+* `SymplecticGeometry.Blowup.connectedSumInl c`, `SymplecticGeometry.Blowup.connectedSumInr c`:
+  the maps of the punctured `M` and of the punctured projective space into the blowup.
 
 ## Main results
 
@@ -105,6 +120,14 @@ blowup on the side of the projective space.
   `SymplecticGeometry.BlowupModel.radialRescale_ballRadius_mem_modelOpens`,
   `SymplecticGeometry.BlowupModel.contMDiff_radialRescale` and
   `SymplecticGeometry.BlowupModel.isLocalDiffeomorph_radialRescale`.
+* `SymplecticGeometry.Blowup.connectedSumInl_injective`,
+  `SymplecticGeometry.Blowup.connectedSumInr_injective`,
+  `SymplecticGeometry.Blowup.isLocalDiffeomorph_connectedSumInl`,
+  `SymplecticGeometry.Blowup.isLocalDiffeomorph_connectedSumInr`: both maps are injective local
+  diffeomorphisms;
+* `SymplecticGeometry.Blowup.connectedSumInl_eq_connectedSumInr_iff`: they agree exactly at glued
+  points, and `SymplecticGeometry.Blowup.range_connectedSumInl_union_range_connectedSumInr`: their
+  ranges cover the blowup.
 
 ## References
 
@@ -202,6 +225,18 @@ theorem connectedSumBall_apply (v : EuclideanSpace ℂ (Fin (n + 1))) :
 theorem connectedSumBall_zero : c.connectedSumBall 0 = remodelHomeomorph _ M p₀ := by
   rw [connectedSumBall_apply, univBall_apply_zero, map_zero, symm_zero]
 
+/-- The point `ρ v` of the ball of radius `c.ballRadius`, read on `Fin (n + 1) → ℂ`, lies in the
+target of `c`. -/
+theorem equiv_univBall_mem_target (v : EuclideanSpace ℂ (Fin (n + 1))) :
+    EuclideanSpace.equiv (Fin (n + 1)) ℂ (univBall 0 c.ballRadius v) ∈ c.target := by
+  have h := (univBall (0 : EuclideanSpace ℂ (Fin (n + 1))) c.ballRadius).map_source
+    (x := v) (by simp)
+  rw [univBall_target 0 c.ballRadius_pos] at h
+  have h' := c.closedBall_ballRadius_subset (ball_subset_closedBall h)
+  rw [euclideanChart_def, remodelChart_target] at h'
+  -- `exact`: the inverse of the identification of the models is `EuclideanSpace.equiv`.
+  exact h'
+
 theorem isOpenEmbedding_connectedSumBall : Topology.IsOpenEmbedding c.connectedSumBall :=
   isOpenEmbedding_symm_comp_univBall c.ballRadius_pos
     (ball_subset_closedBall.trans c.closedBall_ballRadius_subset)
@@ -282,6 +317,16 @@ theorem connectedSumBall_apply (u : EuclideanSpace ℂ (Fin (n + 1))) :
         (Fin.insertNth (α := fun _ ↦ ℂ) (Fin.last (n + 1)) 1 (EuclideanSpace.equiv _ ℂ u))
         (Fin.insertNth_one_ne_zero _ _)) := by
   rw [connectedSumBall_def, lastAffineChart_symm_apply, Projectivization.affineChart_symm_apply]
+
+/-- The centre of the ball `connectedSumBall n` is the point `[0 : ⋯ : 0 : 1]`. -/
+theorem connectedSumBall_zero :
+    connectedSumBall n 0 = remodelHomeomorph _ _
+      (Projectivization.mk ℂ (Pi.single (Fin.last (n + 1)) 1 : Fin (n + 2) → ℂ) (by simp)) := by
+  rw [connectedSumBall_apply]
+  congr 2
+  rw [map_zero, Fin.insertNth_last']
+  ext j
+  induction j using Fin.lastCases <;> simp [Fin.castSucc_ne_last]
 
 theorem isOpenEmbedding_connectedSumBall : Topology.IsOpenEmbedding (connectedSumBall n) :=
   (lastAffineChart n).symm.isOpenEmbedding (by simp)
@@ -670,6 +715,30 @@ theorem blowdown_projectiveBlowupModelDiffeomorph_snoc_one {u : EuclideanSpace �
   simp only [EuclideanGeometry.inversion, dist_zero_right, vsub_eq_sub, sub_zero, vadd_eq_add,
     add_zero, one_div, inv_pow, EuclideanSpace.norm_sq_eq, WithLp.ofLp_smul]
 
+/-- A point of the projective space other than the centre of the ball
+`EuclideanComplexProjectiveSpace.connectedSumBall n` lies off `[0 : ⋯ : 0 : 1]`. -/
+theorem EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens
+    (y : ConnectedSum.puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    (remodelHomeomorph _ _).symm y.val ∈ projectiveBlowupOpens n := by
+  rw [← SetLike.mem_coe, coe_projectiveBlowupOpens, mem_compl_singleton_iff, Ne,
+    Homeomorph.symm_apply_eq, ← EuclideanComplexProjectiveSpace.connectedSumBall_zero]
+  exact ConnectedSum.mem_puncture.1 y.property
+
+/-- For `u ≠ 0`, the blowdown of the image of the point
+`EuclideanComplexProjectiveSpace.connectedSumBall n u = [u : 1]`, read on
+`EuclideanSpace ℂ (Fin (n + 1))`, is the inversion of `u` in the unit sphere. -/
+theorem blowdown_projectiveBlowupModelDiffeomorph_connectedSumBall
+    {u : EuclideanSpace ℂ (Fin (n + 1))} (hu : u ≠ 0)
+    (h : (remodelHomeomorph _ _).symm (EuclideanComplexProjectiveSpace.connectedSumBall n u) ∈
+      projectiveBlowupOpens n) :
+    (projectiveBlowupModelDiffeomorph n ⟨_, h⟩).blowdown =
+      (EuclideanGeometry.inversion 0 1 u).ofLp := by
+  rw [← blowdown_projectiveBlowupModelDiffeomorph_snoc_one hu]
+  congr 3
+  rw [EuclideanComplexProjectiveSpace.connectedSumBall_apply, Homeomorph.symm_apply_apply]
+  congr 1
+  rw [Fin.insertNth_last', EuclideanSpace.equiv, PiLp.coe_continuousLinearEquiv]
+
 end ProjectiveBlowupModel
 
 /-! ## The radial rescaling of the model blowup -/
@@ -850,6 +919,240 @@ theorem isLocalDiffeomorph_radialRescale (hε : 0 < ε) :
 end RadialRescale
 
 end BlowupModel
+
+/-! ## The punctured summands as open pieces of the blowup -/
+
+namespace Blowup
+
+open GluedAlong (inl inr)
+open ConnectedSum (puncture mem_puncture)
+open EuclideanGeometry (inversion)
+open scoped LinearAlgebra.Projectivization
+
+variable (c : BlowupChart (n := n) M p₀)
+
+/-- The punctured projective space, the second summand of the connected sum, as an open piece of
+the blowup, both re-modelled on the Hermitian space: a point `y ≠ [0 : ⋯ : 0 : 1]` goes to the
+point `GluedAlong.inr` of the blowup at `S (projectiveBlowupModelDiffeomorph n y)`, where `S` is
+the radial rescaling `BlowupModel.radialRescale c.ballRadius` of the model blowup. -/
+def connectedSumInr (y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c) :=
+  remodelHomeomorph _ _ (inr (gluingHomeomorph c)
+    ⟨BlowupModel.radialRescale c.ballRadius (projectiveBlowupModelDiffeomorph n
+      ⟨_, EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens y⟩),
+      BlowupModel.radialRescale_ballRadius_mem_modelOpens c _⟩)
+
+theorem connectedSumInr_apply (y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    connectedSumInr c y =
+      remodelHomeomorph _ _ (inr (gluingHomeomorph c)
+        ⟨BlowupModel.radialRescale c.ballRadius (projectiveBlowupModelDiffeomorph n
+          ⟨_, EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens y⟩),
+          BlowupModel.radialRescale_ballRadius_mem_modelOpens c _⟩) :=
+  (rfl)
+
+/-- The punctured projective space is mapped injectively into the blowup. -/
+theorem connectedSumInr_injective : Function.Injective (connectedSumInr c) := by
+  intro y y' h
+  have h' := (projectiveBlowupModelDiffeomorph n).injective <|
+    BlowupModel.radialRescale_injective _ <| congrArg Subtype.val <|
+      GluedAlong.inr_injective _ <| (remodelHomeomorph _ _).injective h
+  exact Subtype.ext ((remodelHomeomorph _ _).symm.injective (congrArg Subtype.val h' :))
+
+variable [T2Space M]
+
+/-- A point of `M` other than the centre `p₀` of the ball `c.connectedSumBall` lies in the first
+piece `M \ {p₀}` of the blowup. -/
+theorem symm_coe_mem_puncturedOpens (x : puncture c.connectedSumBall) :
+    (remodelHomeomorph _ M).symm x.val ∈ puncturedOpens c := by
+  rw [mem_puncturedOpens, Ne, Homeomorph.symm_apply_eq, ← c.connectedSumBall_zero]
+  exact mem_puncture.1 x.property
+
+/-- The punctured `M`, the first summand of the connected sum, as an open piece of the blowup,
+both re-modelled on the Hermitian space: a point `x ≠ p₀` goes to the point `GluedAlong.inl x` of
+the blowup, off the exceptional divisor. -/
+def connectedSumInl (x : puncture c.connectedSumBall) :
+    Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (Blowup c) :=
+  remodelHomeomorph _ _ (inl (gluingHomeomorph c) ⟨_, symm_coe_mem_puncturedOpens c x⟩)
+
+theorem connectedSumInl_apply (x : puncture c.connectedSumBall) :
+    connectedSumInl c x =
+      remodelHomeomorph _ _ (inl (gluingHomeomorph c) ⟨_, symm_coe_mem_puncturedOpens c x⟩) :=
+  (rfl)
+
+/-- The punctured `M` is mapped injectively into the blowup. -/
+theorem connectedSumInl_injective : Function.Injective (connectedSumInl c) := by
+  intro x x' h
+  rw [connectedSumInl_apply, connectedSumInl_apply, (remodelHomeomorph _ _).injective.eq_iff,
+    GluedAlong.inl_inj, Subtype.mk.injEq, (remodelHomeomorph _ M).symm.injective.eq_iff] at h
+  exact Subtype.ext h
+
+section LocalDiffeomorph
+
+open scoped TauCeti.ComplexManifold
+
+variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- For a holomorphic chart `c`, the punctured `M` is mapped into the blowup by a smooth local
+diffeomorphism of the underlying real manifolds. -/
+theorem isLocalDiffeomorph_connectedSumInl :
+    IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1)))
+      ∞ (connectedSumInl c) := by
+  let g : puncture c.connectedSumBall → puncturedOpens c :=
+    fun x ↦ ⟨_, symm_coe_mem_puncturedOpens c x⟩
+  have hg : Subtype.val ∘ g = ⇑(remodelEuclideanRealDiffeomorph n M).symm ∘ Subtype.val := by
+    rw [coe_remodelEuclideanRealDiffeomorph_symm]
+    rfl
+  have hF : connectedSumInl c =
+      ⇑(remodelEuclideanRealDiffeomorph n (Blowup c)) ∘ inl (gluingHomeomorph c) ∘ g := by
+    funext x
+    rw [connectedSumInl_apply, coe_remodelEuclideanRealDiffeomorph]
+    rfl
+  have hg' : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g := by
+    refine TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 ?_
+    rw [hg]
+    exact fun x ↦ (TauCeti.isLocalDiffeomorph_subtype_val x).comp
+      (hg := (remodelEuclideanRealDiffeomorph n M).symm.isLocalDiffeomorph _)
+  rw [hF]
+  exact fun x ↦ ((hg' x).comp (hg := isLocalDiffeomorph_inl_real c (g x))).comp
+    (hg := (remodelEuclideanRealDiffeomorph n (Blowup c)).isLocalDiffeomorph _)
+
+omit [T2Space M] in
+/-- For a holomorphic chart `c`, the punctured projective space is mapped into the blowup by a
+smooth local diffeomorphism of the underlying real manifolds. -/
+theorem isLocalDiffeomorph_connectedSumInr :
+    IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1)))
+      ∞ (connectedSumInr c) := by
+  let k : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n) →
+      projectiveBlowupOpens n :=
+    fun y ↦ ⟨_, EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens y⟩
+  let g : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n) → modelOpens c :=
+    fun y ↦ ⟨BlowupModel.radialRescale c.ballRadius (projectiveBlowupModelDiffeomorph n (k y)),
+      BlowupModel.radialRescale_ballRadius_mem_modelOpens c _⟩
+  have hk : Subtype.val ∘ k =
+      ⇑(remodelEuclideanRealDiffeomorph n (ℙ ℂ (Fin (n + 2) → ℂ))).symm ∘ Subtype.val := by
+    rw [coe_remodelEuclideanRealDiffeomorph_symm]
+    rfl
+  have hk' : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ k := by
+    refine TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 ?_
+    rw [hk]
+    exact fun y ↦ (TauCeti.isLocalDiffeomorph_subtype_val y).comp
+      (hg := (remodelEuclideanRealDiffeomorph n (ℙ ℂ (Fin (n + 2) → ℂ))).symm.isLocalDiffeomorph _)
+  have hg : IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g :=
+    TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 fun y ↦
+      ((hk' y).comp (hg := (projectiveBlowupModelDiffeomorph n).isLocalDiffeomorph _)).comp
+        (hg := BlowupModel.isLocalDiffeomorph_radialRescale c.ballRadius_pos _)
+  have hF : connectedSumInr c =
+      ⇑(remodelEuclideanRealDiffeomorph n (Blowup c)) ∘ inr (gluingHomeomorph c) ∘ g := by
+    funext y
+    rw [connectedSumInr_apply, coe_remodelEuclideanRealDiffeomorph]
+    rfl
+  rw [hF]
+  exact fun y ↦ ((hg y).comp (hg := isLocalDiffeomorph_inr_real c (g y))).comp
+    (hg := (remodelEuclideanRealDiffeomorph n (Blowup c)).isLocalDiffeomorph _)
+
+end LocalDiffeomorph
+
+/-- The two pieces agree on glued points: for `v ≠ 0`, the point `c.connectedSumBall v` of the
+punctured `M` and the point `EuclideanComplexProjectiveSpace.connectedSumBall n (inversion 0 1 v)`
+of the punctured projective space, which the connected sum identifies, go to the same point of the
+blowup. -/
+theorem connectedSumInl_eq_connectedSumInr (v : EuclideanSpace ℂ (Fin (n + 1)))
+    (hx : c.connectedSumBall v ∈ puncture c.connectedSumBall)
+    (hy : EuclideanComplexProjectiveSpace.connectedSumBall n (inversion 0 1 v) ∈
+      puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    connectedSumInl c ⟨_, hx⟩ = connectedSumInr c ⟨_, hy⟩ := by
+  have hv : v ≠ 0 := TauCeti.ConnectedSum.ne_zero_of_apply_mem_puncture hx
+  have hv' : inversion 0 1 v ≠ 0 := by
+    simpa [EuclideanGeometry.inversion_eq_center one_ne_zero] using hv
+  rw [connectedSumInl_apply, connectedSumInr_apply, (remodelHomeomorph _ _).injective.eq_iff,
+    inl_eq_inr_iff]
+  simp only [BlowupChart.connectedSumBall_apply, Homeomorph.symm_apply_apply]
+  refine ⟨c.map_target (c.equiv_univBall_mem_target v), ?_⟩
+  rw [c.right_inv (c.equiv_univBall_mem_target v), BlowupModel.blowdown_radialRescale,
+    blowdown_projectiveBlowupModelDiffeomorph_connectedSumBall hv',
+    EuclideanGeometry.inversion_inversion _ one_ne_zero]
+  simp
+
+/-- **The two pieces meet only at glued points.** A point `x` of the punctured `M` and a point `y`
+of the punctured projective space go to the same point of the blowup exactly when the connected
+sum identifies them: `x = c.connectedSumBall v` and
+`y = EuclideanComplexProjectiveSpace.connectedSumBall n (inversion 0 1 v)` for some `v ≠ 0`. -/
+theorem connectedSumInl_eq_connectedSumInr_iff {x : puncture c.connectedSumBall}
+    {y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)} :
+    connectedSumInl c x = connectedSumInr c y ↔
+      ∃ v ≠ 0, c.connectedSumBall v = x ∧
+        EuclideanComplexProjectiveSpace.connectedSumBall n (inversion 0 1 v) = y := by
+  refine ⟨fun h ↦ ?_, ?_⟩
+  · have h' := h
+    rw [connectedSumInl_apply, connectedSumInr_apply, (remodelHomeomorph _ _).injective.eq_iff,
+      inl_eq_inr_iff, BlowupModel.blowdown_radialRescale] at h'
+    obtain ⟨hsrc, heq⟩ := h'
+    set a := (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm (projectiveBlowupModelDiffeomorph n
+      ⟨_, EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens y⟩).blowdown
+    have hxa : c.connectedSumBall a = x := by
+      rw [BlowupChart.connectedSumBall_apply, ← heq, c.left_inv hsrc,
+        Homeomorph.apply_symm_apply]
+    have ha : a ≠ 0 := by
+      rintro ha
+      exact mem_puncture.1 x.property (by rw [← hxa, ha])
+    have hy' := TauCeti.ConnectedSum.apply_inversion_mem_puncture
+      (EuclideanComplexProjectiveSpace.isOpenEmbedding_connectedSumBall n).injective ha
+    have hF : connectedSumInr c ⟨_, hy'⟩ = connectedSumInr c y := by
+      rw [← h, ← connectedSumInl_eq_connectedSumInr c a (hxa ▸ x.property) hy']
+      congr 1
+      exact Subtype.ext hxa
+    exact ⟨a, ha, hxa, congrArg Subtype.val (connectedSumInr_injective c hF)⟩
+  · rintro ⟨v, -, hx, hy⟩
+    obtain ⟨x, hx'⟩ := x
+    obtain ⟨y, hy'⟩ := y
+    subst hx hy
+    exact connectedSumInl_eq_connectedSumInr c v hx' hy'
+
+/-- The two pieces cover the blowup. -/
+theorem range_connectedSumInl_union_range_connectedSumInr :
+    range (connectedSumInl c) ∪ range (connectedSumInr c) = univ := by
+  have hl (x : puncturedOpens c) :
+      remodelHomeomorph _ _ (inl (gluingHomeomorph c) x) ∈ range (connectedSumInl c) := by
+    refine ⟨⟨remodelHomeomorph _ M x, mem_puncture.2 ?_⟩, ?_⟩
+    · rw [c.connectedSumBall_zero, (remodelHomeomorph _ M).injective.ne_iff]
+      exact (mem_puncturedOpens c).1 x.property
+    · rw [connectedSumInl_apply]
+      congr 2
+      exact Subtype.ext (Homeomorph.symm_apply_apply _ _)
+  refine eq_univ_of_forall fun z ↦ ?_
+  obtain ⟨x, hx⟩ | ⟨q, hq⟩ :=
+    GluedAlong.exists_inl_or_exists_inr (gluingHomeomorph c) ((remodelHomeomorph _ _).symm z)
+  · left
+    rw [← (remodelHomeomorph _ _).apply_symm_apply z, ← hx]
+    exact hl x
+  by_cases hb : (q : BlowupModel n).blowdown = 0
+  · right
+    obtain ⟨q', hq'⟩ : (q : BlowupModel n) ∈ range (BlowupModel.radialRescale c.ballRadius) := by
+      rw [BlowupModel.range_radialRescale c.ballRadius_pos, mem_ofPred_eq, hb, map_zero,
+        norm_zero]
+      exact c.ballRadius_pos
+    set w := (projectiveBlowupModelDiffeomorph n).symm q'
+    have hw : remodelHomeomorph _ _ (w : ℙ ℂ (Fin (n + 2) → ℂ)) ∈
+        puncture (EuclideanComplexProjectiveSpace.connectedSumBall n) := by
+      have := w.property
+      rw [← SetLike.mem_coe, coe_projectiveBlowupOpens, mem_compl_singleton_iff] at this
+      rwa [mem_puncture, EuclideanComplexProjectiveSpace.connectedSumBall_zero,
+        (remodelHomeomorph _ _).injective.ne_iff]
+    refine ⟨⟨_, hw⟩, ?_⟩
+    rw [connectedSumInr_apply, ← (remodelHomeomorph _ _).apply_symm_apply z, ← hq]
+    congr 2
+    refine Subtype.ext ?_
+    simp only [Homeomorph.symm_apply_apply, Subtype.coe_eta, w,
+      Diffeomorph.apply_symm_apply, hq']
+  · left
+    have hq' : q ∈ modelOffDivisorOpens c := (mem_modelOffDivisorOpens c).2 hb
+    rw [← (remodelHomeomorph _ _).apply_symm_apply z, ← hq,
+      ← GluedAlong.inl_symm_apply (gluingHomeomorph c) ⟨q, hq'⟩]
+    exact hl _
+
+
+end Blowup
 
 end SymplecticGeometry
 
