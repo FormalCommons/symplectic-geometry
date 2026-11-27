@@ -7,10 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Fibration.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Closed
-import TauCeti.Geometry.Manifold.RegularValue
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
@@ -33,8 +33,6 @@ all points (`TauCeti.SmoothTwoForm.exists_forall_ge_forall_nondegenerate_add_smu
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_mpullback`: the bilinear form of `τ + K f^* β` at
-  `x` is `τ_x + K β_{f x}(d_x f ·, d_x f ·)`.
 * `TauCeti.MapFiber.Atlas.exists_forall_ge_isSymplectic_add_smul_mpullback`: for compact `M`,
   there is `K₀` such that for every `K ≥ K₀` the form `τ + K π^* β` is symplectic and restricts
   to `σ` along `A`.
@@ -52,28 +50,6 @@ public section
 
 open Bundle
 open scoped Manifold ContDiff
-
-namespace TauCeti.SmoothTwoForm
-
-variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
-  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
-  [ChartedSpace HB B] [IsManifold IB ∞ B]
-  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
-  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
-  [IsManifold IM ∞ M]
-
-/-- The bilinear form of `τ + K f^* β` at `x` is `τ_x + K β_{f x}(d_x f ·, d_x f ·)`. -/
-theorem bilinFormAt_add_smul_mpullback {f : M → B} (hf : ContMDiff IM IB ∞ f)
-    (τ : SmoothTwoForm IM M) (β : SmoothTwoForm IB B) (K : ℝ) (x : M) :
-    (τ + K • SmoothForm.mpullback f hf β).bilinFormAt x =
-      τ.bilinFormAt x + K • (β.bilinFormAt (f x)).comp
-        (mfderiv IM IB f x : TangentSpace IM x →ₗ[ℝ] _) (mfderiv IM IB f x) := by
-  refine LinearMap.ext₂ fun v w ↦ ?_
-  simp only [LinearMap.add_apply, LinearMap.smul_apply, LinearMap.BilinForm.comp_apply,
-    SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_add, SmoothForm.eval₂_smul,
-    SmoothForm.eval₂_mpullback, ContinuousLinearMap.coe_coe]
-
-end TauCeti.SmoothTwoForm
 
 namespace TauCeti.MapFiber.Atlas
 
@@ -99,21 +75,17 @@ theorem exists_forall_ge_isSymplectic_add_smul_mpullback [CompactSpace M]
     ∃ K₀ : ℝ, ∀ K ≥ K₀,
       (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β).IsSymplectic ∧
         A.RestrictsTo σ (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β) := by
-  have hsurj (x : M) : Function.Surjective (mfderiv IM IB proj x) :=
-    TauCeti.isRegularPoint_iff.1 <| Trivialization.isRegularPoint_proj
-      (hA.mdifferentiable_trivAt (by simp) (proj x))
-      ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))
   have hv := hτ.isVerticallyNondegenerate hA hσ
   have hβx := hβ.isNondegenerate.nondegenerate_bilinFormAt
   obtain ⟨K₀, hK₀⟩ := SmoothTwoForm.exists_forall_ge_forall_nondegenerate_add_smul_comp
     (hA.contMDiff_proj.of_le (by simp)) τ β (fun x ↦ hβx (proj x)) fun x ↦
       (LinearMap.BilinForm.nondegenerate_pullbackProd_zero_iff (SmoothForm.isAlt_bilinFormAt τ x)
-        (SmoothForm.isAlt_bilinFormAt β (proj x)) (hβx (proj x)) (hsurj x)).2
+        (SmoothForm.isAlt_bilinFormAt β (proj x)) (hβx (proj x))
+        (hA.surjective_mfderiv (by simp) x)).2
         (SmoothTwoForm.isVerticallyNondegenerate_iff.1 hv x)
   refine ⟨K₀, fun K hK ↦ ⟨⟨hτc.add ((hβ.isClosed.mpullback _ _).smul K),
     SmoothTwoForm.isNondegenerate_def.2 fun x ↦ ?_⟩, hτ.add_mpullback two_ne_zero _ β K⟩⟩
-  rw [SmoothTwoForm.bilinFormAt_add_smul_mpullback]
-  exact hK₀ K hK x
+  simpa using hK₀ K hK x
 
 end TauCeti.MapFiber.Atlas
 
