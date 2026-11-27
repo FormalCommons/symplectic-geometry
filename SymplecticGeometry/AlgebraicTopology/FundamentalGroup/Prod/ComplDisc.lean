@@ -33,7 +33,7 @@ image of `Q × (ball c R \ {c})`, in the form of
 `FundamentalGroup.ker_map_subtypeVal_eq_normalClosure_image`. The map `f` identifies the leg
 `π₁((X \ Z) ∩ range f) → π₁(range f)` with the map computed in
 `FundamentalGroup.ker_map_prodMap_inclusion_ball_diff_singleton_eq_normalClosure`. The complement
-`X \ Z` is path connected by `IsPreconnected.of_isOpen_of_union_eq_univ`, since `X` is connected
+`X \ Z` is path connected by `IsPathConnected.of_isOpen_of_union_eq_univ`, since `X` is connected
 and the range of `f` meets it in a path connected set.
 
 Compare Tau Ceti's `TauCeti.fundamentalGroup_map_subtypeVal_compl_singleton_bijective_of_mem_nhds`,
@@ -185,11 +185,10 @@ theorem isPathConnected_compl_image [PathConnectedSpace Q] [ConnectedSpace X]
     [LocallyPathConnectedSpace X] (hf : IsOpenEmbedding f)
     (hZ : IsClosed (f '' {p | (p.2 : ℂ) = c})) (hR : 0 < R) :
     IsPathConnected (f '' {p | (p.2 : ℂ) = c})ᶜ := by
-  have hAB := hf.injective.isPathConnected_compl_image_inter_range hf.continuous hR
-  exact (hZ.isOpen_compl.isConnected_iff_isPathConnected).1 ⟨hAB.nonempty.mono inter_subset_left,
-    hAB.isConnected.isPreconnected.of_isOpen_of_union_eq_univ hAB.nonempty hZ.isOpen_compl
-      hf.isOpen_range
-      (by rw [← compl_subset_iff_union, compl_compl]; exact image_subset_range _ _)⟩
+  refine (hf.injective.isPathConnected_compl_image_inter_range hf.continuous
+    hR).of_isOpen_of_union_eq_univ hZ.isOpen_compl hf.isOpen_range ?_
+  rw [← compl_subset_iff_union, compl_compl]
+  exact image_subset_range _ _
 
 end Topology.IsOpenEmbedding
 
