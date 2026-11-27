@@ -190,11 +190,11 @@ notes of the approving review of #2280.
    One way: $\phi^*i=i$ makes $\phi$ and $\phi^{-1}$ pseudoholomorphic for
    $i$ (`isPseudoholomorphic_pullback`), hence complex differentiable
    (`isPseudoholomorphic_ofComplexManifold_iff`) and smooth over `ℂ`
-   (`MDifferentiable.contMDiff`), so a complex diffeomorphism; it agrees at
-   $0,1,\infty$ with some $g\in$ `PSL(2, ℂ)`
-   (`OnePoint.existsUnique_psl_smul_zero_one_infty_eq`), and then
-   $g^{-1}\phi$ is the identity
-   (`Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`). The
+   (`MDifferentiable.contMDiff`), so a complex diffeomorphism, which is
+   $x\mapsto g\cdot x$ for some `g : GL (Fin 2) ℂ`
+   (`Diffeomorph.exists_coe_eq_smul`); since `ℂ` is algebraically closed,
+   `g` acts as an element of `PSL(2, ℂ)`
+   (`Matrix.GeneralLinearGroup.exists_psl_forall_smul_eq_smul`). The
    other way: a Möbius transformation is holomorphic, and a holomorphic map
    has a complex linear derivative.
 7. **Uniqueness of $\sigma(J)$** comes from

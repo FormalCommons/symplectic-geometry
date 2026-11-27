@@ -9,10 +9,10 @@ public import TauCeti.Geometry.Diffeomorphism.Group
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Moebius
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
-import Mathlib.Analysis.Complex.Polynomial.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.Pullback
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.Automorphism
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 import TauCeti.Geometry.Manifold.Complex.Analytic
-import TauCeti.Geometry.Manifold.Instances.OnePoint.Automorphism
 
 /-!
 # Möbius transformations as the stabilizer of the complex structure of the sphere
@@ -36,12 +36,8 @@ Möbius group with the diffeomorphisms of this surface that pull `i` back to its
 
 A diffeomorphism with `φ^* i = i` and its inverse are holomorphic
 (`TauCeti.SmoothAlmostComplexStructure.pullback_ofComplexManifold_eq_iff`), so `φ` is a
-biholomorphism of the Riemann sphere. The proof that it is a Möbius transformation follows Tau
-Ceti's `Diffeomorph.exists_coe_eq_smul`, with `PSL(2, ℂ)` in place of `GL(2, ℂ)`: the element of
-`PSL(2, ℂ)` that agrees with `φ` at `0`, `1` and `∞`
-(`OnePoint.existsUnique_psl_smul_zero_one_infty_eq`)
-differs from `φ` by a biholomorphism fixing these three points, which is the identity
-(`Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`).
+biholomorphism of the Riemann sphere, and so `x ↦ g • x` for some `g` in `PSL(2, ℂ)`
+(`Diffeomorph.exists_coe_eq_psl_smul`, from Tau Ceti's `Diffeomorph.exists_coe_eq_smul`).
 
 ## References
 
@@ -88,7 +84,7 @@ noncomputable def mobiusSubgroup : Subgroup (TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoi
   mul_mem' {φ ψ} hφ hψ := by
     simp only [Set.mem_ofPred_eq, Diffeomorph.mul_def, pullback_trans] at hφ hψ ⊢
     rw [hφ, hψ]
-  inv_mem' {φ} hφ := pullback_symm_eq_of_pullback_eq φ hφ
+  inv_mem' {φ} hφ := (pullback_symm_eq_iff φ).2 hφ
 
 /-- A diffeomorphism of the sphere lies in `mobiusSubgroup` exactly when it pulls the almost
 complex structure of the Riemann sphere back to itself. -/
@@ -104,25 +100,14 @@ theorem pullback_ofComplexManifold_onePoint_eq_self_iff
     (ofComplexManifold ℂ (OnePoint ℂ)).pullback φ = ofComplexManifold ℂ (OnePoint ℂ) ↔
       ∃ g, φ = mobiusHom g := by
   refine ⟨fun h ↦ ?_, ?_⟩
-  · -- `φ` is a biholomorphism of the Riemann sphere.
+  · -- `φ` is a biholomorphism of the Riemann sphere, hence a Möbius transformation.
     let f : OnePoint ℂ ≃ₘ^1⟮𝓘(ℂ), 𝓘(ℂ)⟯ OnePoint ℂ :=
       { toEquiv := φ.toEquiv
         contMDiff_toFun := ((pullback_ofComplexManifold_eq_iff φ).1 h).contMDiff
         contMDiff_invFun := (mdifferentiable_symm_of_pullback_eq φ h).contMDiff }
-    have hf (x : OnePoint ℂ) : f x = φ x := rfl
-    obtain ⟨g, ⟨h0, h1, hinf⟩, -⟩ := OnePoint.existsUnique_psl_smul_zero_one_infty_eq
-      (φ.injective.ne (by simp : ((0 : ℂ) : OnePoint ℂ) ≠ (1 : ℂ)))
-      (φ.injective.ne (OnePoint.coe_ne_infty 0)) (φ.injective.ne (OnePoint.coe_ne_infty 1))
-    -- It differs from `g` by a biholomorphism fixing `0`, `1` and `∞`.
-    have hid := (f.trans (Diffeomorph.constSmul 𝓘(ℂ) 1 g⁻¹)).eq_refl_of_apply_zero_one_infty_eq_self
-      one_ne_zero (by simp [hf, inv_smul_eq_iff, h0]) (by simp [hf, inv_smul_eq_iff, h1])
-      (by simp [hf, inv_smul_eq_iff, hinf])
-    refine ⟨g, Diffeomorph.ext fun x ↦ ?_⟩
-    have hx := congr($hid x)
-    simp only [Diffeomorph.coe_trans, Function.comp_apply, Diffeomorph.constSmul_apply,
-      Diffeomorph.coe_refl, id, hf] at hx
-    rw [mobiusHom_apply]
-    exact inv_smul_eq_iff.mp hx
+    obtain ⟨g, hg⟩ := f.exists_coe_eq_psl_smul one_ne_zero
+    have hf : ⇑f = ⇑φ := by rw [← f.coe_toEquiv, ← φ.coe_toEquiv]
+    exact ⟨g, Diffeomorph.ext fun x ↦ by rw [mobiusHom_apply, ← congrFun hg x, hf]⟩
   · -- A Möbius transformation is holomorphic.
     rintro ⟨g, rfl⟩
     rw [pullback_ofComplexManifold_eq_iff, coe_mobiusHom]

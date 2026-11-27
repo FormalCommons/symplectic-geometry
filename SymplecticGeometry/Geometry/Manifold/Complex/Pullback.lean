@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pullback
 
 /-!
 # Pulling back the almost complex structure of a complex manifold
@@ -16,8 +17,8 @@ and let `i` denote their almost complex structures `ofComplexManifold`. The pull
 `i` exactly when `φ` is holomorphic
 (`TauCeti.SmoothAlmostComplexStructure.pullback_ofComplexManifold_eq_iff`); then its inverse is
 holomorphic too (`TauCeti.SmoothAlmostComplexStructure.mdifferentiable_symm_of_pullback_eq`), since
-the inverse of a diffeomorphism pulling `J` back to `K` pulls `K` back to `J`
-(`TauCeti.SmoothAlmostComplexStructure.pullback_symm_eq_of_pullback_eq`).
+the inverse of `φ` then pulls `i` back to `i`
+(`TauCeti.SmoothAlmostComplexStructure.pullback_symm_eq_iff`).
 
 Both directions come from Tau Ceti: a diffeomorphism is pseudoholomorphic from `φ^* i` to `i`
 (`isPseudoholomorphic_pullback`), the pseudoholomorphic maps between complex manifolds are the
@@ -34,23 +35,6 @@ public section
 open scoped Manifold ContDiff TauCeti.ComplexManifold
 
 namespace TauCeti.SmoothAlmostComplexStructure
-
-section Inverse
-
-variable {E H M E' H' N : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
-  [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
-
-/-- If a diffeomorphism `φ` pulls `J` back to `K`, then its inverse pulls `K` back to `J`. -/
-theorem pullback_symm_eq_of_pullback_eq (φ : M ≃ₘ⟮I, I'⟯ N) {J : SmoothAlmostComplexStructure I' N}
-    {K : SmoothAlmostComplexStructure I M} (h : J.pullback φ = K) : K.pullback φ.symm = J := by
-  rw [← h, ← pullback_trans, Diffeomorph.symm_trans_self, pullback_refl]
-
-end Inverse
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) ∞ M]
@@ -75,7 +59,7 @@ holomorphic. -/
 theorem mdifferentiable_symm_of_pullback_eq (φ : M ≃ₘ⟮𝓘(ℝ, E), 𝓘(ℝ, E')⟯ N)
     (h : (ofComplexManifold E' N).pullback φ = ofComplexManifold E M) :
     MDifferentiable 𝓘(ℂ, E') 𝓘(ℂ, E) φ.symm :=
-  (pullback_ofComplexManifold_eq_iff φ.symm).1 (pullback_symm_eq_of_pullback_eq φ h)
+  (pullback_ofComplexManifold_eq_iff φ.symm).1 ((pullback_symm_eq_iff φ).2 h)
 
 end TauCeti.SmoothAlmostComplexStructure
 
