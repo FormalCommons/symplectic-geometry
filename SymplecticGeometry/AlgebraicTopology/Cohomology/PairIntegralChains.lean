@@ -26,10 +26,11 @@ coefficients `ModuleCat.of ℤ (ULift ℤ)`. This is the counterpart for pairs o
   (`SymplecticGeometry.chainComplexMap_f_intCastPairChainMap`).
 * `TopPair.singularCochainComplexIntChainsIso`: the comparison of relative cochains, precomposing
   a cochain with that chain map and identifying the values with the abelian group `k`
-  (`TopPair.singularCochainComplexIntChainsIso_hom_f_apply`). Its components are bijective
-  (`TopPair.bijective_singularCochainComplexIntChainsHom_f`), by the absolute statement for `X`
-  and for `A` and the description of relative cochains as the cochains of `X` vanishing on the
-  chains of `A`.
+  (`TopPair.singularCochainComplexIntChainsHom_f_apply`). It is an isomorphism by the four lemma
+  `CategoryTheory.ShortComplex.epi_of_mono_of_epi_of_mono`, applied to the comparison of the
+  short exact cochain sequences of the pair (Tau Ceti's
+  `TopPair.shortExact_singularCochainComplexShortComplex`) that the absolute comparisons for `X`
+  and for `A` complete.
 * `TopPair.singularCohomologyIntChainsIso : F (Hᵖ(X, A; k)) ≅ Hᵖ(X, A; ℤ, k)`: the induced
   isomorphism of cohomology, natural in maps of pairs
   (`TopPair.singularCohomologyIntChainsIso_hom_naturality`), and compatible with the map to the
@@ -56,6 +57,19 @@ namespace SymplecticGeometry
 
 variable (k : Type) [CommRing k]
 
+/-- Casting the coefficients of the chains of the subspace of a pair `P` of simplicial sets to
+`k`, and then sending them to relative chains, gives zero. -/
+theorem chainComplexMap_intCastChainMap_chainComplexπ (P : SSetPair.{0}) :
+    SSet.chainComplexMap P.hom (ModuleCat.of ℤ (ULift.{0} ℤ)) ≫ intCastChainMap k P.right ≫
+      ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
+        (P.chainComplexπ (ModuleCat.of k k)) = 0 := by
+  ext n : 1
+  have h := chainComplexMap_f_intCastChainMap (k := k) P.hom n
+  simp only [Functor.id_obj] at h
+  rw [HomologicalComplex.comp_f, HomologicalComplex.comp_f, Functor.mapHomologicalComplex_map_f,
+    ← Category.assoc, h, Category.assoc, ← Functor.map_comp, SSetPair.chainComplex_condition_f,
+    Functor.map_zero, comp_zero, HomologicalComplex.zero_f]
+
 /-- The chain map `C(P; ℤ) ⟶ F (C(P; k))` that casts the coefficients of the integral relative
 chains of a pair `P` of simplicial sets to `k`, the target read as a complex of abelian groups
 through the restriction of scalars `F` along `ℤ → k`: the chain map
@@ -68,20 +82,27 @@ def intCastPairChainMap (P : SSetPair.{0}) :
   (P.isColimitCokernelCoforkChainComplex _).desc (CokernelCofork.ofπ
     (intCastChainMap k P.right ≫
       ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
-        (P.chainComplexπ (ModuleCat.of k k))) (by
-    ext n : 1
-    have h := chainComplexMap_f_intCastChainMap (k := k) P.hom n
-    rw [HomologicalComplex.comp_f, HomologicalComplex.comp_f, Functor.mapHomologicalComplex_map_f,
-      ← Category.assoc]
-    erw [h]
-    rw [Category.assoc, ← Functor.map_comp, SSetPair.chainComplex_condition_f, Functor.map_zero,
-      comp_zero, HomologicalComplex.zero_f]))
+        (P.chainComplexπ (ModuleCat.of k k)))
+    (chainComplexMap_intCastChainMap_chainComplexπ k P))
+
+variable {k} in
+/-- The chain map casting integral relative chains to `k` is the map out of the cokernel
+presentation of the relative chains induced by `SymplecticGeometry.intCastChainMap` of the
+ambient simplicial set followed by the quotient map to relative chains. -/
+theorem intCastPairChainMap_def (P : SSetPair.{0}) :
+    intCastPairChainMap k P =
+      (P.isColimitCokernelCoforkChainComplex _).desc (CokernelCofork.ofπ
+        (intCastChainMap k P.right ≫
+          ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
+            (P.chainComplexπ (ModuleCat.of k k)))
+        (chainComplexMap_intCastChainMap_chainComplexπ k P)) :=
+  (rfl)
 
 variable {k}
 
 /-- Casting the coefficients of relative chains to `k` after the quotient map from ambient
 chains is casting the coefficients of the ambient chains, followed by the quotient map. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem chainComplexπ_intCastPairChainMap (P : SSetPair.{0}) :
     P.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ)) ≫ intCastPairChainMap k P =
       intCastChainMap k P.right ≫
@@ -90,7 +111,7 @@ theorem chainComplexπ_intCastPairChainMap (P : SSetPair.{0}) :
   Cofork.IsColimit.π_desc (P.isColimitCokernelCoforkChainComplex _)
 
 /-- `SymplecticGeometry.chainComplexπ_intCastPairChainMap` in degree `n`. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem chainComplexπ_f_intCastPairChainMap_f (P : SSetPair.{0}) (n : ℕ) :
     (P.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f n ≫ (intCastPairChainMap k P).f n =
       (intCastChainMap k P.right).f n ≫
@@ -193,80 +214,6 @@ theorem singularChainComplexπ_f_comp_singularCochainComplexIntChainsHom_f (p : 
     chainComplexπ_f_intCastPairChainMap_f_assoc]
   exact congrArg _ (Functor.map_comp_assoc _ _ _ _).symm
 
-/-- The comparison of relative cochains is bijective in each degree: by the absolute statement
-`TopCat.singularCochainComplexIntChainsIso` for the ambient space and for the subspace, since a
-relative cochain is a cochain of the ambient space vanishing on the chains of the subspace. -/
-theorem bijective_singularCochainComplexIntChainsHom_f (p : ℕ) :
-    Function.Bijective ((P.singularCochainComplexIntChainsHom k).f p) := by
-  have hX := ConcreteCategory.bijective_of_isIso
-    ((HomologicalComplex.eval _ _ p).mapIso (P.fst.singularCochainComplexIntChainsIso k)).hom
-  have hA := ConcreteCategory.bijective_of_isIso
-    ((HomologicalComplex.eval _ _ p).mapIso (P.snd.singularCochainComplexIntChainsIso k)).hom
-  refine ⟨fun ψ ψ' h ↦ ?_, fun χ ↦ ?_⟩
-  · refine (cancel_epi ((P.singularChainComplexπ (ModuleCat.of k k)).f p)).1 (hX.1 ?_)
-    have h' := congrArg ((P.singularChainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫ ·) h
-    exact (singularChainComplexπ_f_comp_singularCochainComplexIntChainsHom_f k P p ψ).symm.trans
-      (h'.trans (singularChainComplexπ_f_comp_singularCochainComplexIntChainsHom_f k P p ψ'))
-  · obtain ⟨ψ₀, hψ₀⟩ : ∃ ψ₀ :
-        ((TopCat.toSSet.obj P.fst).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k,
-        (P.fst.singularCochainComplexIntChainsIso k).hom.f p ψ₀ =
-          (P.singularChainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫ χ :=
-      hX.2 ((P.singularChainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫ χ)
-    -- The ambient cochain `ψ₀` vanishes on the chains of the subspace, as its comparison does.
-    have h₀ :
-        (SSet.chainComplexMap (TopCat.toSSet.map P.map) (ModuleCat.of k k)).f p ≫ ψ₀ = 0 := by
-      have h := TopCat.chainComplexMap_f_singularCochainComplexIntChainsIso_hom_f k
-        (TopCat.toSSet.map P.map) p ψ₀
-      have h' : (SSet.chainComplexMap (TopCat.toSSet.map P.map)
-          (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫
-            (P.fst.singularCochainComplexIntChainsIso k).hom.f p ψ₀ = 0 := by
-        rw [hψ₀]
-        exact (SSetPair.chainComplex_condition_f_assoc (toSSetPair.obj P) _ p χ).trans zero_comp
-      exact hA.1 (((TopCat.singularCochainComplexIntChainsIso_hom_f_apply k P.snd p _).trans
-        (h.symm.trans h')).trans (map_zero _).symm)
-    let ψ : (P.singularChainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k :=
-      (SSetPair.isColimitCokernelCoforkChainComplexX (toSSetPair.obj P) (ModuleCat.of k k) p).desc
-        (CokernelCofork.ofπ (Z := ModuleCat.of k k) ψ₀ h₀)
-    have hψ : (P.singularChainComplexπ (ModuleCat.of k k)).f p ≫ ψ = ψ₀ :=
-      Cofork.IsColimit.π_desc
-        (SSetPair.isColimitCokernelCoforkChainComplexX (toSSetPair.obj P) _ p)
-    refine ⟨ψ, (cancel_epi
-      ((P.singularChainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f p)).1 ?_⟩
-    exact ((singularChainComplexπ_f_comp_singularCochainComplexIntChainsHom_f k P p ψ).trans
-      (congrArg _ hψ)).trans hψ₀
-
-instance : IsIso (P.singularCochainComplexIntChainsHom k) :=
-  have (p : ℕ) : IsIso ((P.singularCochainComplexIntChainsHom k).f p) :=
-    (ConcreteCategory.isIso_iff_bijective _).2
-      (P.bijective_singularCochainComplexIntChainsHom_f k p)
-  HomologicalComplex.Hom.isIso_of_components _
-
-/-- **Relative cochains over `k` as integral relative cochains**: the `k`-linear relative cochains
-`Hom_k(C(X, A; k), k)`, read as abelian groups, are the integral relative cochains
-`Hom_ℤ(C(X, A; ℤ), k)`. A cochain `ψ` goes to `ψ` precomposed with the chain map
-`SymplecticGeometry.intCastPairChainMap` casting integral coefficients to `k`
-(`TopPair.singularCochainComplexIntChainsIso_hom_f_apply`). -/
-def singularCochainComplexIntChainsIso :
-    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
-        (P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)) ≅
-      P.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ k) :=
-  asIso (P.singularCochainComplexIntChainsHom k)
-
-@[simp]
-theorem singularCochainComplexIntChainsIso_hom :
-    (P.singularCochainComplexIntChainsIso k).hom = P.singularCochainComplexIntChainsHom k :=
-  (rfl)
-
-/-- The comparison of relative cochains precomposes a cochain with the chain map casting integral
-coefficients to `k`, and identifies the values with the abelian group `k`. -/
-theorem singularCochainComplexIntChainsIso_hom_f_apply (p : ℕ)
-    (ψ : (P.singularChainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
-    (P.singularCochainComplexIntChainsIso k).hom.f p ψ =
-      (intCastPairChainMap k (toSSetPair.obj P)).f p ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map ψ ≫
-          (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).hom :=
-  (rfl)
-
 variable {P} in
 /-- The comparison of relative cochains commutes with the maps induced by a map of pairs. -/
 @[reassoc]
@@ -306,11 +253,54 @@ theorem singularCochainComplexIntChainsHom_comp_linearYonedaFunctor_map :
   ext p ψ : 3
   -- Both sides apply to `ψ` the comparisons and the maps to ambient cochains, which act on a
   -- cochain by precomposition; the restriction of scalars of a morphism is that morphism.
-  change (P.fst.singularCochainComplexIntChainsIso k).hom.f p
-      ((P.singularChainComplexπ (ModuleCat.of k k)).f p ≫ ψ) =
-    (P.singularChainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫
-      (P.singularCochainComplexIntChainsHom k).f p ψ
   exact (singularChainComplexπ_f_comp_singularCochainComplexIntChainsHom_f k P p ψ).symm
+
+/-- The comparison of relative cochains is an isomorphism, by the four lemma applied to the
+morphism of cochain sequences of the pair given by the comparisons of relative, ambient and
+subspace cochains. -/
+instance : IsIso (P.singularCochainComplexIntChainsHom k) := by
+  let φ : (P.singularCochainComplexShortComplex (ModuleCat.of k k) k (ModuleCat.of k k)).map
+        ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _) ⟶
+      P.singularCochainComplexShortComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+        (ModuleCat.of ℤ k) :=
+    { τ₁ := P.singularCochainComplexIntChainsHom k
+      τ₂ := (P.fst.singularCochainComplexIntChainsIso k).hom
+      τ₃ := (P.snd.singularCochainComplexIntChainsIso k).hom
+      comm₁₂ := (P.singularCochainComplexIntChainsHom_comp_linearYonedaFunctor_map k).symm
+      comm₂₃ := (TopCat.singularCochainComplexIntChainsIso_hom_naturality k P.map).symm }
+  have hS₁ := (P.shortExact_singularCochainComplexShortComplex (ModuleCat.of k k) k
+    (ModuleCat.of k k)).map_of_exact
+      ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _)
+  have hS₂ := P.shortExact_singularCochainComplexShortComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
+    (ModuleCat.of ℤ k)
+  have : Epi φ.τ₁ := ShortComplex.epi_of_mono_of_epi_of_mono φ hS₁.exact hS₂.mono_f
+    (inferInstanceAs (Epi (P.fst.singularCochainComplexIntChainsIso k).hom))
+    (inferInstanceAs (Mono (P.snd.singularCochainComplexIntChainsIso k).hom))
+  have := hS₁.mono_f
+  have : IsIso φ.τ₂ := inferInstanceAs (IsIso (P.fst.singularCochainComplexIntChainsIso k).hom)
+  have : Mono φ.τ₁ := mono_of_mono_fac φ.comm₁₂
+  exact isIso_of_mono_of_epi φ.τ₁
+
+/-- The comparison of relative cochains is bijective in each degree. -/
+theorem bijective_singularCochainComplexIntChainsHom_f (p : ℕ) :
+    Function.Bijective ((P.singularCochainComplexIntChainsHom k).f p) :=
+  ConcreteCategory.bijective_of_isIso ((P.singularCochainComplexIntChainsHom k).f p)
+
+/-- **Relative cochains over `k` as integral relative cochains**: the `k`-linear relative cochains
+`Hom_k(C(X, A; k), k)`, read as abelian groups, are the integral relative cochains
+`Hom_ℤ(C(X, A; ℤ), k)`. A cochain `ψ` goes to `ψ` precomposed with the chain map
+`SymplecticGeometry.intCastPairChainMap` casting integral coefficients to `k`
+(`TopPair.singularCochainComplexIntChainsHom_f_apply`). -/
+def singularCochainComplexIntChainsIso :
+    ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
+        (P.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)) ≅
+      P.singularCochainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ k) :=
+  asIso (P.singularCochainComplexIntChainsHom k)
+
+@[simp]
+theorem singularCochainComplexIntChainsIso_hom :
+    (P.singularCochainComplexIntChainsIso k).hom = P.singularCochainComplexIntChainsHom k :=
+  (rfl)
 
 /-! ### Cohomology -/
 
