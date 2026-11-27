@@ -33,12 +33,13 @@ It follows that of the private lemma `inTangentCoordinates_I_smul_id` of Tau Cet
 `i` on a complex model space.
 
 For a family of maps from a model space into the tangent spaces, the coordinates on the source
-play no role: in tangent coordinates the family is its composite with the tangent coordinate
-changes of `M` (`inTangentCoordinates_eq_tangentCoordChange_comp`). Such a family that is
-continuous as a map `X × G → TM` is continuous in tangent coordinates
+play no role (`inTangentCoordinates_model_space_source`): in tangent coordinates the family is
+its composite with the tangent coordinate changes of `M`
+(`inTangentCoordinates_eq_tangentCoordChange_comp`). Such a family that is continuous as a map
+`X × G → TM` is continuous in tangent coordinates
 (`continuousAt_inTangentCoordinates_of_continuous`, from
-`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). Conversely, along a continuous
-map, a family that is continuous in tangent coordinates is continuous as a map `X × G → TM`
+`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). Conversely, a family that is
+continuous in tangent coordinates is continuous as a map `X × G → TM`
 (`continuous_of_continuousAt_inTangentCoordinates`, from Mathlib's
 `ContinuousAt.clm_apply_of_inCoordinates`), and a fixed map read in one
 chart and carried to the tangent spaces along a `Cⁿ` map by the tangent coordinate changes is
@@ -109,6 +110,20 @@ theorem inTangentCoordinates_eq_tangentCoordChange_comp {G X : Type*} [NormedAdd
   -- unfolding, so `ContinuousLinearMap.comp_id` does not rewrite it.
   rfl
 
+/-- Read in tangent coordinates, a family of maps `ϕ x` from a model space `G` into the tangent
+spaces `T_(g x) M` does not depend on the map `f : X → G` along which the source is read: the
+tangent bundle of a model space is trivialized by the identity. -/
+theorem inTangentCoordinates_model_space_source {G X : Type*} [NormedAddCommGroup G]
+    [NormedSpace 𝕜 G] (f f' : X → G) (g : X → M) (ϕ : ∀ x, G →L[𝕜] TangentSpace I (g x))
+    (x₀ : X) :
+    inTangentCoordinates 𝓘(𝕜, G) I f g ϕ x₀ = inTangentCoordinates 𝓘(𝕜, G) I f' g ϕ x₀ := by
+  ext1 x
+  simp only [inTangentCoordinates, ContinuousLinearMap.inCoordinates,
+    TangentBundle.symmL_model_space]
+  -- Both sides compose with the identity of `TangentSpace 𝓘(𝕜, G)` at `f x` and at `f' x`,
+  -- which are both `G` only up to unfolding.
+  rfl
+
 /-- A family of maps `ϕ x` from a finite-dimensional normed space `G` into the tangent spaces
 `T_(g x) M`, continuous as a map `X × G → TM`, is continuous at `x₀` when read in the tangent
 coordinates at `x₀`. -/
@@ -135,18 +150,21 @@ theorem continuousAt_inTangentCoordinates_of_continuous [CompleteSpace 𝕜] {G 
 
 /-- Conversely, a family of maps `ϕ x` from a normed space `G` into the tangent spaces
 `T_(g x) M`, along a continuous map `g`, that is continuous at each `x₀` when read in the tangent
-coordinates at `x₀` along a continuous map `f`, is continuous as a map `X × G → TM`. -/
+coordinates at `x₀`, is continuous as a map `X × G → TM`. By
+`inTangentCoordinates_model_space_source`, the map `f` along which the source is read plays no
+role. -/
 theorem continuous_of_continuousAt_inTangentCoordinates {G X : Type*} [NormedAddCommGroup G]
     [NormedSpace 𝕜 G] [TopologicalSpace X] {f : X → G} {g : X → M}
-    {ϕ : ∀ x, G →L[𝕜] TangentSpace I (g x)} (hf : Continuous f) (hg : Continuous g)
+    {ϕ : ∀ x, G →L[𝕜] TangentSpace I (g x)} (hg : Continuous g)
     (hϕ : ∀ x₀, ContinuousAt (inTangentCoordinates 𝓘(𝕜, G) I f g ϕ x₀) x₀) :
     Continuous fun q : X × G ↦ (⟨g q.1, ϕ q.1 q.2⟩ : TangentBundle I M) :=
   continuous_iff_continuousAt.2 fun q₀ ↦
     ContinuousAt.clm_apply_of_inCoordinates (F₁ := G) (F₂ := E) (E₁ := TangentSpace 𝓘(𝕜, G))
-      (E₂ := TangentSpace I) (b₁ := fun q : X × G ↦ f q.1) (b₂ := fun q : X × G ↦ g q.1)
-      (v := fun q : X × G ↦ q.2) ((hϕ q₀.1).comp continuousAt_fst)
+      (E₂ := TangentSpace I) (b₁ := fun _ : X × G ↦ (0 : G)) (b₂ := fun q : X × G ↦ g q.1)
+      (v := fun q : X × G ↦ q.2)
+      ((inTangentCoordinates_model_space_source I f 0 g ϕ q₀.1 ▸ hϕ q₀.1).comp continuousAt_fst)
       ((FiberBundle.continuousAt_totalSpace G _).2
-        ⟨(hf.comp continuous_fst).continuousAt, by simpa using continuousAt_snd⟩)
+        ⟨continuousAt_const, by simpa using continuousAt_snd⟩)
       (hg.comp continuous_fst).continuousAt
 
 /-- Carry a fixed map `C : G → E`, read in the chart at `ι x₀`, to the tangent spaces along `ι`:

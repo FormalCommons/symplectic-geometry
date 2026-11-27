@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.IsManifold.ExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
 import SymplecticGeometry.Geometry.Manifold.CoveringDimension
 import SymplecticGeometry.Topology.CoveringDimension.SigmaCompact
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Finite trivializing covers of vector bundles over manifolds
@@ -61,7 +62,7 @@ theorem HasFiniteTrivializingCover.of_chartedSpace (I : ModelWithCorners ℝ EB 
   obtain ⟨κ, c, ρ, hρ, hcard⟩ := exists_isSubordinate_card_finsupport_le
     (fun _ hK ↦ hK.hasCoveringDimensionLE_finrank_of_chartedSpace I)
     (fun x : B ↦ (trivializationAt F E x).baseSet) (fun x ↦ (trivializationAt F E x).open_baseSet)
-    (eq_univ_of_forall fun x ↦ mem_iUnion.2 ⟨x, mem_baseSet_trivializationAt F E x⟩)
+    (FiberBundle.iUnion_baseSet_trivializationAt F E)
   exact .of_card_finsupport_le ρ (fun k ↦ trivializationAt F E (c k)) hρ hcard
 
 end SymplecticGeometry.Bundle
