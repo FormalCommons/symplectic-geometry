@@ -7,9 +7,9 @@ module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
+public import TauCeti.AlgebraicTopology.FundamentalGroup.Product
 
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
-import TauCeti.AlgebraicTopology.FundamentalGroup.Product
 
 /-!
 # Loop classes in a product, coordinate by coordinate
@@ -26,6 +26,8 @@ a time.
   first one if `Y` is simply connected.
 * `FundamentalGroup.map_prodMk_const_surjective`: if `Y` is simply connected, the inclusion of
   the slice `X × {y}` is onto on fundamental groups.
+* `FundamentalGroup.prodMulEquiv_mapOfEq`: the coordinates of the image of a class under a map
+  `f : Z → X × Y` are its images under the two coordinates of `f`.
 * `FundamentalGroup.map_fst_map_prodMap`, `FundamentalGroup.map_snd_map_prodMap`: the
   coordinates of the image of a class under `f.prodMap g` are the images of its coordinates.
 * `FundamentalGroup.ker_map_fst_eq_range`: the classes with trivial first coordinate are those
@@ -71,6 +73,17 @@ theorem map_snd_map_prodMap (f : C(X, X')) (g : C(Y, Y')) (x : X) (y : Y)
     map .snd (f x, g y) (map (f.prodMap g) (x, y) γ) = map g y (map .snd (x, y) γ) :=
   (DFunLike.congr_fun (map_comp .snd (f.prodMap g) (x, y)) γ).symm.trans
     (DFunLike.congr_fun (map_comp g .snd (x, y)) γ)
+
+/-- The image of a loop class under `f : C(Z, X × Y)` with `f z = (x, y)`, split by
+`prodMulEquiv`, is the pair of its images under the two coordinates of `f`. -/
+theorem prodMulEquiv_mapOfEq {Z : Type*} [TopologicalSpace Z] {z : Z} {x : X} {y : Y}
+    (f : C(Z, X × Y)) (hf : f z = (x, y)) (γ : FundamentalGroup Z z) :
+    prodMulEquiv x y (mapOfEq f hf γ) =
+      (mapOfEq (ContinuousMap.fst.comp f) (by simp [hf]) γ,
+        mapOfEq (ContinuousMap.snd.comp f) (by simp [hf]) γ) := by
+  rw [prodMulEquiv_apply, ← mapOfEq_rfl, ← mapOfEq_rfl, mapOfEq_comp, mapOfEq_comp]
+  -- The two sides differ only in the proofs of the base point equations.
+  rfl
 
 /-- If `Y` is simply connected, the first coordinate projection is injective on
 `π₁(X × Y, (x, y))`. -/
