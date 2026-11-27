@@ -64,7 +64,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {f g ρ χ : F �
 
 omit [NormedSpace ℝ F] in
 /-- Near a point where `ρ > δ`, the cutoff `χ * (1 - logCutoffProfile ε δ ∘ ρ)` vanishes. -/
-theorem notMem_tsupport_mul_one_sub_logCutoffProfile_comp (hε : 0 < ε) (h4 : 4 * ε ≤ δ)
+theorem notMem_tsupport_mul_one_sub_logCutoffProfile_comp (hε : 0 < ε) (hεδ : 2 * ε ≤ δ)
     (hρ : ContinuousAt ρ p) (hp : δ < ρ p) :
     p ∉ tsupport (χ * (1 - logCutoffProfile ε δ ∘ ρ)) := by
   refine notMem_tsupport_iff_eventuallyEq.2 ?_
@@ -78,11 +78,11 @@ theorem abs_one_sub_logCutoffProfile_le (hε : 0 < ε) (hεδ : 2 * ε ≤ δ) (
   have h1 := logCutoffProfile_le_one hε hεδ r
   exact abs_le.2 ⟨by linarith, by linarith⟩
 
-/-- **The first derivative of a logarithmic cutoff times a function.** For `0 < 4ε ≤ δ`, `ρ`
+/-- **The first derivative of a logarithmic cutoff times a function.** For `0 < 2ε ≤ δ`, `ρ`
 and `χ` differentiable at `p`, `|χ p| ≤ 1` and `‖Dχ(p)‖ ≤ B`, the derivative of
 `χ * (1 - logCutoffProfile ε δ ∘ ρ)` at `p` has norm at most
 `‖D(logCutoffProfile ε δ ∘ ρ)(p)‖ + B`. -/
-theorem norm_fderiv_mul_one_sub_logCutoffProfile_comp_le (hε : 0 < ε) (h4 : 4 * ε ≤ δ)
+theorem norm_fderiv_mul_one_sub_logCutoffProfile_comp_le (hε : 0 < ε) (hεδ : 2 * ε ≤ δ)
     (hρ : DifferentiableAt ℝ ρ p) (hχ : DifferentiableAt ℝ χ p) (hχ1 : |χ p| ≤ 1)
     (hB : ‖fderiv ℝ χ p‖ ≤ B) :
     ‖fderiv ℝ (χ * (1 - logCutoffProfile ε δ ∘ ρ)) p‖ ≤
@@ -104,12 +104,12 @@ theorem norm_fderiv_mul_one_sub_logCutoffProfile_comp_le (hε : 0 < ε) (h4 : 4 
         gcongr
     _ ≤ _ := by linarith
 
-/-- **The second derivative of a logarithmic cutoff times a function.** For `0 < 4ε ≤ δ`, `ρ`
+/-- **The second derivative of a logarithmic cutoff times a function.** For `0 < 2ε ≤ δ`, `ρ`
 and `χ` of class `C²` at `p`, `|χ p| ≤ 1`, `‖Dχ(p)‖ ≤ B` and `‖D²χ(p)‖ ≤ B`, the second
 derivative of `χ * (1 - logCutoffProfile ε δ ∘ ρ)` at `p` has norm at most
 `‖D²(logCutoffProfile ε δ ∘ ρ)(p)‖ + B + 2 B ‖D(logCutoffProfile ε δ ∘ ρ)(p)‖`. -/
 theorem norm_fderiv_fderiv_mul_one_sub_logCutoffProfile_comp_le (hε : 0 < ε)
-    (h4 : 4 * ε ≤ δ) (hρ : ContDiffAt ℝ 2 ρ p) (hχ : ContDiffAt ℝ 2 χ p) (hχ1 : |χ p| ≤ 1)
+    (hεδ : 2 * ε ≤ δ) (hρ : ContDiffAt ℝ 2 ρ p) (hχ : ContDiffAt ℝ 2 χ p) (hχ1 : |χ p| ≤ 1)
     (hB : ‖fderiv ℝ χ p‖ ≤ B) (hB' : ‖fderiv ℝ (fderiv ℝ χ) p‖ ≤ B) :
     ‖fderiv ℝ (fderiv ℝ (χ * (1 - logCutoffProfile ε δ ∘ ρ))) p‖ ≤
       ‖fderiv ℝ (fderiv ℝ (logCutoffProfile ε δ ∘ ρ)) p‖ + B +
@@ -154,6 +154,7 @@ theorem norm_fderiv_add_logCutoff_mul_sub_sub_le (hε : 0 < ε) (h4 : 4 * ε ≤
           (χ * (1 - logCutoffProfile ε δ ∘ ρ)) p • fderiv ℝ g p)‖ ≤
       logCutoffConst * A ^ 2 * √δ / Real.log (δ / ε) + A * B * δ := by
   set β := χ * (1 - logCutoffProfile ε δ ∘ ρ)
+  have hεδ : 2 * ε ≤ δ := by linarith
   have hβ : DifferentiableAt ℝ β p := hχ.mul ((differentiableAt_const _).sub
     (((contDiff_logCutoffProfile (by linarith)).differentiable (by simp) _).comp p hρ))
   have hΛ : 0 < Real.log (δ / ε) := Real.log_pos ((one_lt_div hε).2 (by linarith))
@@ -166,7 +167,7 @@ theorem norm_fderiv_add_logCutoff_mul_sub_sub_le (hε : 0 < ε) (h4 : 4 * ε ≤
   rw [heq, norm_smul, Real.norm_eq_abs]
   rcases le_or_gt (ρ p) δ with hpδ | hpδ
   · have h1 := sqrt_mul_norm_fderiv_logCutoffProfile_comp_le hε h4 hρ hA0 hDρ
-    have h2 := norm_fderiv_mul_one_sub_logCutoffProfile_comp_le hε h4 hρ hχ hχ1 hB
+    have h2 := norm_fderiv_mul_one_sub_logCutoffProfile_comp_le hε hεδ hρ hχ hχ1 hB
     set s := √(ρ p)
     set a := ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) p‖
     have hρs : ρ p = s * s := (Real.mul_self_sqrt hρ0).symm
@@ -177,8 +178,8 @@ theorem norm_fderiv_add_logCutoff_mul_sub_sub_le (hε : 0 < ε) (h4 : 4 * ε ≤
       _ ≤ A * √δ * (logCutoffConst * A / Real.log (δ / ε)) + A * B * δ := by
           gcongr
       _ = _ := by ring
-  · rw [fderiv_of_notMem_tsupport ℝ (notMem_tsupport_mul_one_sub_logCutoffProfile_comp hε h4
-      hρ.continuousAt hpδ), norm_zero, mul_zero]
+  · rw [fderiv_of_notMem_tsupport ℝ (notMem_tsupport_mul_one_sub_logCutoffProfile_comp hε
+      hεδ hρ.continuousAt hpδ), norm_zero, mul_zero]
     have := logCutoffConst_pos
     have : 0 ≤ δ := by linarith
     positivity
@@ -205,6 +206,7 @@ theorem exists_abs_mul_norm_fderiv_fderiv_logCutoff_add_le :
   set β := χ * (1 - logCutoffProfile ε δ ∘ ρ)
   set K := |c| + 2 * logCutoffConst + 2
   set P := A ^ 2 + A ^ 3 + A ^ 2 * B + A * B
+  have hεδ : 2 * ε ≤ δ := by linarith
   set Λ := Real.log (δ / ε)
   have hΛ : 0 < Λ := Real.log_pos ((one_lt_div hε).2 (by linarith))
   have hA0 : 0 ≤ A := (norm_nonneg (fderiv ℝ (fderiv ℝ ρ) p)).trans hD2ρ
@@ -213,16 +215,17 @@ theorem exists_abs_mul_norm_fderiv_fderiv_logCutoff_add_le :
   have hP : 0 ≤ P := by positivity
   rcases le_or_gt (ρ p) δ with hpδ | hpδ
   swap
-  · have hp := notMem_tsupport_mul_one_sub_logCutoffProfile_comp (χ := χ) hε h4
+  · have hp := notMem_tsupport_mul_one_sub_logCutoffProfile_comp (χ := χ) hε hεδ
       hρ.continuousAt hpδ
     rw [fderiv_of_notMem_tsupport ℝ hp, fderiv_fderiv_of_notMem_tsupport hp]
     simpa [ContinuousLinearMap.opNorm_zero] using by positivity
   have h1 := sqrt_mul_norm_fderiv_logCutoffProfile_comp_le hε h4
     (hρ.differentiableAt (by simp)) hA0 hDρ
   have h2 := hc hε h4 hρ hDρ hD2ρ
-  have hDβ := norm_fderiv_mul_one_sub_logCutoffProfile_comp_le hε h4
+  have hDβ := norm_fderiv_mul_one_sub_logCutoffProfile_comp_le hε hεδ
     (hρ.differentiableAt (by simp)) (hχ.differentiableAt (by simp)) hχ1 hB
-  have hD2β := norm_fderiv_fderiv_mul_one_sub_logCutoffProfile_comp_le hε h4 hρ hχ hχ1 hB hB'
+  have hD2β := norm_fderiv_fderiv_mul_one_sub_logCutoffProfile_comp_le hε hεδ hρ hχ hχ1
+    hB hB'
   set s := √(ρ p)
   set a₁ := ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) p‖
   set a₂ := ‖fderiv ℝ (fderiv ℝ (logCutoffProfile ε δ ∘ ρ)) p‖
