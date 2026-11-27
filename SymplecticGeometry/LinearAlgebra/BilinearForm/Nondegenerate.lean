@@ -57,6 +57,33 @@ theorem IsRefl.nondegenerate_restrict_iff {B : LinearMap.BilinForm R M} (hB : B.
 
 end Restrict
 
+section IsCompl
+
+variable {R M : Type*} [CommRing R] [AddCommGroup M] [Module R M]
+
+/-- Let `W` and `H` be complementary submodules for which the reflexive bilinear form `B` is block
+diagonal: `B w h = 0` for `w ∈ W` and `h ∈ H`. Then `B` is nondegenerate if and only if its
+restrictions to `W` and to `H` both are. -/
+theorem IsRefl.nondegenerate_iff_of_isCompl {B : LinearMap.BilinForm R M} (hB : B.IsRefl)
+    {W H : Submodule R M} (hWH : IsCompl W H) (hB₀ : ∀ w ∈ W, ∀ h ∈ H, B w h = 0) :
+    B.Nondegenerate ↔ (B.restrict W).Nondegenerate ∧ (B.restrict H).Nondegenerate := by
+  have hB₁ : ∀ h ∈ H, ∀ w ∈ W, B h w = 0 := fun h hh w hw ↦ hB _ _ (hB₀ w hw h hh)
+  rw [Nondegenerate, LinearMap.IsRefl.nondegenerate_iff_separatingLeft hB,
+    hB.nondegenerate_restrict_iff, hB.nondegenerate_restrict_iff]
+  constructor
+  · intro h
+    refine ⟨fun u hu hW ↦ h u fun v ↦ ?_, fun u hu hH ↦ h u fun v ↦ ?_⟩ <;>
+      obtain ⟨w, k, hw, hk, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hWH.codisjoint v
+    · rw [map_add, hW w hw, hB₀ u hu k hk, add_zero]
+    · rw [map_add, hB₁ u hu w hw, hH k hk, add_zero]
+  · rintro ⟨hW, hH⟩ v hv
+    obtain ⟨w, k, hw, hk, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hWH.codisjoint v
+    have hw0 : w = 0 := hW w hw fun w' hw' ↦ by simpa [hB₁ k hk w' hw'] using hv w'
+    have hk0 : k = 0 := hH k hk fun k' hk' ↦ by simpa [hB₀ w hw k' hk'] using hv k'
+    rw [hw0, hk0, add_zero]
+
+end IsCompl
+
 variable {R M : Type*} [CommRing R] [NoZeroDivisors R] [AddCommGroup M] [Module R M]
 
 /-- Let `B` be a reflexive bilinear form, and `W` a submodule with `W ⊔ R ∙ e = ⊤`. If the
