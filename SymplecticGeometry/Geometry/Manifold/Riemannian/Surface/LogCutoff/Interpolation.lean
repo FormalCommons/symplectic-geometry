@@ -26,6 +26,8 @@ behaves like a squared distance at `p`, `‖Dρ(p)‖ ≤ A √(ρ p)` and `‖D
 `‖D(g - f)(p)‖ ≤ A √(ρ p)`, this file bounds at `p` the error terms of the interpolation
 `θ = f + β (g - f)`:
 
+* `TauCeti.mul_one_sub_logCutoffProfile_comp_mem_Icc`: for `0 ≤ χ p ≤ 1`, the value `β p` lies in
+  `[0, 1]`;
 * `TauCeti.norm_fderiv_mul_one_sub_logCutoffProfile_comp_le` and
   `TauCeti.norm_fderiv_fderiv_mul_one_sub_logCutoffProfile_comp_le`: the first and second
   derivatives of `β`, by the product rules `SymplecticGeometry.norm_fderiv_mul_le` and
@@ -33,6 +35,8 @@ behaves like a squared distance at `p`, `‖Dρ(p)‖ ≤ A √(ρ p)` and `‖D
 * `TauCeti.norm_fderiv_add_logCutoff_mul_sub_sub_le`: the differential of `θ` at `p` is
   `(1 - β p) Df(p) + β p Dg(p)` up to `(g p - f p) • Dβ(p)`, of norm at most
   `logCutoffConst A² √δ / Λ + A B δ`;
+* `TauCeti.sub_le_norm_fderiv_add_logCutoff_mul_sub`: so, for `0 ≤ χ p ≤ 1`, a lower bound
+  `m ≤ ‖Df(p)‖` gives `m - (A √δ + logCutoffConst A² √δ / Λ + A B δ) ≤ ‖Dθ(p)‖`;
 * `TauCeti.exists_abs_mul_norm_fderiv_fderiv_logCutoff_add_le`: for `δ ≤ 1`, the quantity
   `|g p - f p| ‖D²β(p)‖ + ‖Dβ(p)‖ ‖D(g - f)(p)‖`, the error of the Levi form of `θ` in
   `TauCeti.le_re_leviForm_add_mul_sub_apply_self`, is at most
@@ -77,6 +81,16 @@ theorem abs_one_sub_logCutoffProfile_le (hε : 0 < ε) (hεδ : 2 * ε ≤ δ) (
   have h0 := logCutoffProfile_nonneg hε hεδ r
   have h1 := logCutoffProfile_le_one hε hεδ r
   exact abs_le.2 ⟨by linarith, by linarith⟩
+
+omit [NormedAddCommGroup F] [NormedSpace ℝ F] in
+/-- For `0 < 2ε ≤ δ` and `0 ≤ χ p ≤ 1`, the cutoff `χ * (1 - logCutoffProfile ε δ ∘ ρ)` takes a
+value in `[0, 1]` at `p`. -/
+theorem mul_one_sub_logCutoffProfile_comp_mem_Icc (hε : 0 < ε) (hεδ : 2 * ε ≤ δ) (hχ0 : 0 ≤ χ p)
+    (hχ1 : χ p ≤ 1) : (χ * (1 - logCutoffProfile ε δ ∘ ρ)) p ∈ Set.Icc 0 1 := by
+  have h0 := logCutoffProfile_nonneg hε hεδ (ρ p)
+  have h1 := logCutoffProfile_le_one hε hεδ (ρ p)
+  simp only [Pi.mul_apply, Pi.sub_apply, Pi.one_apply, Function.comp_apply, Set.mem_Icc]
+  exact ⟨mul_nonneg hχ0 (by linarith), by nlinarith⟩
 
 /-- **The first derivative of a logarithmic cutoff times a function.** For `0 < 2ε ≤ δ`, `ρ`
 and `χ` differentiable at `p`, `|χ p| ≤ 1` and `‖Dχ(p)‖ ≤ B`, the derivative of
@@ -183,6 +197,43 @@ theorem norm_fderiv_add_logCutoff_mul_sub_sub_le (hε : 0 < ε) (h4 : 4 * ε ≤
     have := logCutoffConst_pos
     have : 0 ≤ δ := by linarith
     positivity
+
+/-- **A lower bound on the differential of an interpolation with a logarithmic cutoff.** Under
+the hypotheses of `TauCeti.norm_fderiv_add_logCutoff_mul_sub_sub_le`, with `0 ≤ χ p ≤ 1` and
+`‖D(g - f)(p)‖ ≤ A √(ρ p)`, if `m ≤ ‖Df(p)‖` then the differential of `θ = f + β (g - f)` at `p`,
+for `β = χ (1 - logCutoffProfile ε δ ∘ ρ)`, has norm at least
+`m - (A √δ + logCutoffConst A² √δ / log (δ / ε) + A B δ)`. -/
+theorem sub_le_norm_fderiv_add_logCutoff_mul_sub {m : ℝ} (hε : 0 < ε) (h4 : 4 * ε ≤ δ)
+    (hf : DifferentiableAt ℝ f p) (hg : DifferentiableAt ℝ g p) (hρ : DifferentiableAt ℝ ρ p)
+    (hχ : DifferentiableAt ℝ χ p) (hχ0 : 0 ≤ χ p) (hχ1 : χ p ≤ 1) (hB : ‖fderiv ℝ χ p‖ ≤ B)
+    (hρ0 : 0 ≤ ρ p) (hA0 : 0 ≤ A) (hDρ : ‖fderiv ℝ ρ p‖ ≤ A * √(ρ p))
+    (hD : |g p - f p| ≤ A * ρ p) (hDD : ‖fderiv ℝ (g - f) p‖ ≤ A * √(ρ p))
+    (hm : m ≤ ‖fderiv ℝ f p‖) :
+    m - (A * √δ + (logCutoffConst * A ^ 2 * √δ / Real.log (δ / ε) + A * B * δ)) ≤
+      ‖fderiv ℝ (f + χ * (1 - logCutoffProfile ε δ ∘ ρ) * (g - f)) p‖ := by
+  have hεδ : 2 * ε ≤ δ := by linarith
+  have hE := norm_fderiv_add_logCutoff_mul_sub_sub_le hε h4 hf hg hρ hχ (by
+    rw [abs_le]; constructor <;> linarith) hB hρ0 hA0 hDρ hD
+  obtain ⟨hb0, hb1⟩ := mul_one_sub_logCutoffProfile_comp_mem_Icc (ρ := ρ) hε hεδ hχ0 hχ1
+  set b := (χ * (1 - logCutoffProfile ε δ ∘ ρ)) p with hb
+  set Dθ := fderiv ℝ (f + χ * (1 - logCutoffProfile ε δ ∘ ρ) * (g - f)) p
+  -- Where `β p ≠ 0`, `ρ p < δ`, so `β p ‖D(g - f)(p)‖ ≤ A √δ`.
+  have hbD : ‖b • (fderiv ℝ g p - fderiv ℝ f p)‖ ≤ A * √δ := by
+    rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg hb0, ← fderiv_sub hg hf]
+    rcases le_or_gt δ (ρ p) with hδρ | hρδ
+    · have : b = 0 := by
+        simp [hb, logCutoffProfile_eq_one_of_ge hε hεδ hδρ]
+      rw [this, zero_mul]
+      positivity
+    · calc b * ‖fderiv ℝ (g - f) p‖ ≤ 1 * (A * √(ρ p)) := by gcongr
+        _ ≤ A * √δ := by rw [one_mul]; gcongr
+  have hf' : ‖fderiv ℝ f p‖ ≤ ‖(1 - b) • fderiv ℝ f p + b • fderiv ℝ g p‖ +
+      ‖b • (fderiv ℝ g p - fderiv ℝ f p)‖ := by
+    calc ‖fderiv ℝ f p‖ = ‖(1 - b) • fderiv ℝ f p + b • fderiv ℝ g p -
+          b • (fderiv ℝ g p - fderiv ℝ f p)‖ := by congr 1; module
+      _ ≤ _ := norm_sub_le _ _
+  have := norm_le_norm_add_norm_sub Dθ ((1 - b) • fderiv ℝ f p + b • fderiv ℝ g p)
+  linarith
 
 /-- **The error terms of an interpolation with a logarithmic cutoff.** There is an absolute
 constant `K` with the following property. Let `F` be a real normed space, `0 < 4ε ≤ δ ≤ 1`, and
