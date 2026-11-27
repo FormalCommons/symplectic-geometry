@@ -41,8 +41,9 @@ This file computes its local classes at the points `0_z` of the zero section, it
   such a class in each case of dimension: the cross product of a local class of the normal fibre
   with one of `E`, normal factor first. The local class is therefore that cross product, written
   as `SymplecticGeometry.localHomologyCross` applied to a tensor product, the form that the local
-  cap computations of `Topology/VectorBundle/Thom/LocalCap.lean` take. When the normal fibre is
-  a point, the sign of the normal orientation is moved to the second factor.
+  cap computations of `Topology/VectorBundle/Thom/LocalCap.lean` take. A factor of dimension
+  zero is the zero-dimensional local orientation `Orientation.localOrientationOfZeroDim` of the
+  orientation at `z`: that of `Z`, or the normal orientation read in the trivialization.
 
 ## Main definitions
 
@@ -78,6 +79,8 @@ open Bundle CategoryTheory Module Set
 open scoped Manifold ContDiff
 
 namespace TauCeti.SmoothEmbedding
+
+open SymplecticGeometry
 
 variable {H G : Type*} {E F V P Z X : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
@@ -193,9 +196,9 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
       ∀ x, (Φ (zeroSection P _ x) : X) = f x)
     [ChartedSpace F X] (oX : HomologicalOrientation X F n) (hnX : finrank ℝ F = n)
     (hK : IsCompact (Subtype.val ⁻¹' range f : Set W)) (z : Z) {S : Set E} (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S)
     (a : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
@@ -213,13 +216,14 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
           exact Φ.injective (Subtype.ext (hp.trans (hΦ z).symm)))
         n
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-          (by simp) (by simp) h0 n).hom a) = (oX (f z)).val) :
+          (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 n).hom a) =
+        (oX (f z)).val) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-        (by simp) (by simp) h0 n).inv
+        (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 n).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
         (fun x ↦ f.isImmersion.NormalSpace x hn) z n).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ oX hnX hK)) = a := by
@@ -273,9 +277,9 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass
     (hP : finrank ℝ P = r + 1) (hV : finrank ℝ V = d + 1)
     (oX : Manifold.Orientation J X (Fin (m + 1 + finrank ℝ P)))
     (oZ : Manifold.Orientation I Z (Fin (m + 1))) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -283,7 +287,7 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-        (by simp) (by simp) h0 (d + 1)).inv
+        (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (d + 1)).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
         (fun x ↦ f.isImmersion.NormalSpace x hn) z (d + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
@@ -300,22 +304,21 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass
     hΦ.apply_zeroSection _ hV hK z hS hSc hSe h0 _
     (localHomologyMap_localChartLocalHomologyIso_hom_cross Φ z hΦ hE hP hV oX oZ hS hSc hSe h0)
 
-open Classical in
 /-- **The local class of the tube's fundamental class, for a zero-dimensional submanifold.** Let
 `Z` have dimension zero and the normal fibre `P` dimension `r + 1`. In the setting of
 `localChartLocalHomologyIso_inv_tubeFundamentalClass`, the local class at `0_z` of the
 fundamental class of `Φ`, read in the chart of the total space, is the cross product, normal
 factor first, of the local orientation of `P` selected by the normal orientation at `z` read in
-`e` with the class of the origin of `E`, counted positively if the orientation of `Z` at `z` is
-the positive orientation and negatively otherwise. -/
+`e` with the local orientation of `E` at the origin selected by the orientation of `Z` at `z`
+(`Orientation.localOrientationOfZeroDim`). -/
 theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero
     (hΦ : f.IsNormalizedTube hn hdim Φ) {r : ℕ} (hE : finrank ℝ E = 0)
     (hP : finrank ℝ P = r + 1) (hV : finrank ℝ V = r + 1)
     (oX : Manifold.Orientation J X (Fin (0 + finrank ℝ P)))
     (oZ : Manifold.Orientation I Z (Fin 0)) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -323,7 +326,7 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-        (by simp) (by simp) h0 (r + 1)).inv
+        (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (r + 1)).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
         (fun x ↦ f.isImmersion.NormalSpace x hn) z (r + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
@@ -334,33 +337,27 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero
           ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
             (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
             (normalOrientation f hn hdim oX oZ z))).localOrientation hP).val ⊗ₜ
-          (if oZ.orientationAt z = positiveOrientation then
-            (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-              (OpenPartialHomeomorph.mem_refl_source _) hE).val
-          else
-            -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-              (OpenPartialHomeomorph.mem_refl_source _) hE).val)) :=
+          (Orientation.localOrientationOfZeroDim (P := E) (oZ.orientationAt z) hE).val) :=
   localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap f hn hdim Φ
     hΦ.apply_zeroSection _ hV hK z hS hSc hSe h0 _
     (localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_eq_zero Φ z hΦ
       hE hP hV oX oZ hS hSc hSe h0)
 
-open Classical in
 /-- **The local class of the tube's fundamental class, in codimension zero.** Let the normal
 fibre `P` have dimension zero and `Z` dimension `m + 1`. In the setting of
 `localChartLocalHomologyIso_inv_tubeFundamentalClass`, the local class at `0_z` of the
-fundamental class of `Φ`, read in the chart of the total space, is the cross product of the class
-of the origin of `P` with the local orientation of `E` selected by the orientation of `Z` at `z`,
-if the normal orientation at `z` read in `e` is the positive orientation of `P`, and with its
-negative otherwise. -/
+fundamental class of `Φ`, read in the chart of the total space, is the cross product, normal
+factor first, of the local orientation of `P` at the origin selected by the normal orientation at
+`z` read in `e` (`Orientation.localOrientationOfZeroDim`) with the local orientation of `E`
+selected by the orientation of `Z` at `z`. -/
 theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_fiber_eq_zero
     (hΦ : f.IsNormalizedTube hn hdim Φ) {m : ℕ} (hE : finrank ℝ E = m + 1)
     (hP : finrank ℝ P = 0) (hV : finrank ℝ V = m + 1)
     (oX : Manifold.Orientation J X (Fin (m + 1 + finrank ℝ P)))
     (oZ : Manifold.Orientation I Z (Fin (m + 1))) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -368,50 +365,40 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_fiber_eq_
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-        (by simp) (by simp) h0 (m + 1)).inv
+        (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (m + 1)).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
         (fun x ↦ f.isImmersion.NormalSpace x hn) z (m + 1)).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr (by omega))).toHomologicalOrientation hV) hV hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 (m + 1) (m + 1)
           (zero_add _)).hom
-        ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-            (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
-          (if Orientation.reindex ℝ P (finCongr hP)
-              ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
-                (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
-                (normalOrientation f hn hdim oX oZ z)) = positiveOrientation then
-            (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val
-          else
-            -(Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val)) := by
-  have h :=
-    localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_fiber_eq_zero
-      Φ z hΦ hE hP hV oX oZ hS hSc hSe h0
-  refine localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap f hn hdim Φ
-    hΦ.apply_zeroSection _ hV hK z hS hSc hSe h0 _ ?_
-  split_ifs with hc
-  · rwa [ite_eq_left hc] at h
-  · rw [ite_eq_right hc] at h
-    rw [TensorProduct.tmul_neg, map_neg, map_neg, map_neg, h, neg_neg]
+        ((Orientation.localOrientationOfZeroDim (Orientation.reindex ℝ P (finCongr hP)
+            ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+              (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
+              (normalOrientation f hn hdim oX oZ z))) hP).val ⊗ₜ
+          (Orientation.localOrientation (F := E) (oZ.orientationAt z) hE).val) :=
+  localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap f hn hdim Φ
+    hΦ.apply_zeroSection _ hV hK z hS hSc hSe h0 _
+    (localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_finrank_fiber_eq_zero
+      Φ z hΦ hE hP hV oX oZ hS hSc hSe h0)
 
 omit [J.Boundaryless] in
-open Classical in
 /-- **The local class of the tube's fundamental class, in dimension zero.** Let `Z` and the normal
 fibre `P` both have dimension zero, so that `X` has dimension zero too. In the setting of
 `localChartLocalHomologyIso_inv_tubeFundamentalClass`, with the zero-dimensional homological
 orientation `toHomologicalOrientationOfZeroDim` of `oX`, the local class at `0_z` of the
-fundamental class of `Φ`, read in the chart of the total space, is the cross product of the class
-of the origin of `P` with the class of the origin of `E`, counted positively if the orientation of
-`Z` at `z` and the normal orientation at `z` read in `e` are both positive or both negative, and
-negatively otherwise. -/
+fundamental class of `Φ`, read in the chart of the total space, is the cross product, normal
+factor first, of the local orientation of `P` at the origin selected by the normal orientation at
+`z` read in `e` with the local orientation of `E` at the origin selected by the orientation of `Z`
+at `z` (both `Orientation.localOrientationOfZeroDim`). -/
 theorem
     localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero_of_finrank_fiber_eq_zero
     (hΦ : f.IsNormalizedTube hn hdim Φ) (hE : finrank ℝ E = 0) (hP : finrank ℝ P = 0)
     (oX : Manifold.Orientation J X (Fin (0 + finrank ℝ P)))
     (oZ : Manifold.Orientation I Z (Fin 0)) (hS : IsOpen S)
-    (hSc : S ⊆ ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).target)
+    (hSc : S ⊆ (centeredExtChartAt I z).target)
     (hSe : letI := f.normalSpaceFiberBundle hn hdim
-      MapsTo ((chartAt H z).extendTrans I (Homeomorph.subRight (extChartAt I z z))).symm S
+      MapsTo (centeredExtChartAt I z).symm S
         (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).baseSet)
     (h0 : (0 : E) ∈ S) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -419,44 +406,22 @@ theorem
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     (Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
-        (by simp) (by simp) h0 0).inv
+        (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 0).inv
       ((thomPairLocalHomologyRestriction (ModuleCat.of ℤ (ULift.{0} ℤ)) P
         (fun x ↦ f.isImmersion.NormalSpace x hn) z 0).hom
         (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection
           ((oX.reindex (finCongr ((zero_add _).trans hP))).toHomologicalOrientationOfZeroDim)
           (by omega) hK)) =
       (SymplecticGeometry.localHomologyCross (0 : P) (0 : E) 0 0 0 rfl).hom
-        ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-            (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ
-          (if Orientation.reindex ℝ P (finCongr hP)
-              ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
-                (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
-                (normalOrientation f hn hdim oX oZ z)) = positiveOrientation then
-            (if oZ.orientationAt z = positiveOrientation then
-              (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-                (OpenPartialHomeomorph.mem_refl_source _) hE).val
-            else -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-                (OpenPartialHomeomorph.mem_refl_source _) hE).val)
-          else
-            -(if oZ.orientationAt z = positiveOrientation then
-              (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-                (OpenPartialHomeomorph.mem_refl_source _) hE).val
-            else -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl E)
-                (OpenPartialHomeomorph.mem_refl_source _) hE).val))) := by
-  let := f.normalSpaceFiberBundle hn hdim
-  let := f.normalSpaceVectorBundle hn hdim
-  have h := localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
-    Φ z hΦ hE hP oX oZ hS hSc hSe h0
-  refine localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap f hn hdim Φ
-    hΦ.apply_zeroSection _ (by omega) hK z hS hSc hSe h0 _ ?_
-  by_cases hc : Orientation.reindex ℝ P (finCongr hP)
-      ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
-        (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
-        (normalOrientation f hn hdim oX oZ z)) = positiveOrientation
-  · rw [ite_eq_left hc] at h ⊢
-    exact h
-  · rw [ite_eq_right hc] at h ⊢
-    rwa [TensorProduct.tmul_neg, ← TensorProduct.neg_tmul]
+        ((Orientation.localOrientationOfZeroDim (Orientation.reindex ℝ P (finCongr hP)
+            ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).mapOrientation
+              (Fin (finrank ℝ P)) (mem_baseSet_trivializationAt P _ z)
+              (normalOrientation f hn hdim oX oZ z))) hP).val ⊗ₜ
+          (Orientation.localOrientationOfZeroDim (P := E) (oZ.orientationAt z) hE).val) :=
+  localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap f hn hdim Φ
+    hΦ.apply_zeroSection _ (by omega) hK z hS hSc hSe h0 _
+    (localHomologyMap_localChartLocalHomologyIso_hom_cross_of_finrank_eq_zero
+      Φ z hΦ hE hP oX oZ hS hSc hSe h0)
 
 end Cases
 
