@@ -711,8 +711,10 @@ containing `ι '' closedBall 0 1`:
   `(ℓ, r)` and smooth in `r` on `Ioi δ` for each `ℓ`, with every
   `χ ℓ` increasing and a convex shape at every `r > δ`,
   `χ (-8 * δ) r = √(64 * r ^ 2 - 64 * δ ^ 2)`, `χ ℓ r` equal to the
-  standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`, and for all `r > δ`
-  when `ℓ` is near `-8 * δ` (as issue 14d7 needs),
+  standard `√(64 * r ^ 2 + ℓ * |ℓ|)` for `γ ≤ r`, and, for some
+  `r₀ ∈ Ioo δ γ`, for all `r ≥ r₀` when `ℓ` is near `-8 * δ` (as issue
+  14d7 needs; not for all `r > δ`, since for `-8 * δ < ℓ` the standard
+  leaf has a finite slope at `δ`),
   `Tendsto (deriv (χ ℓ)) (𝓝[>] δ) atTop`, `χ ℓ ≤ χ 1` on `Ioi δ` and
   `1 < χ 1 δ < 1 + γ`. The book's family is piecewise smooth in `ℓ`,
   smooth in `(ℓ, r)` on each piece, so the statement asks for `χ`,
@@ -849,8 +851,9 @@ containing `ι '' closedBall 0 1`:
     take the family of `exists_convexShapeFamily_surround`, made smooth
     by `exists_shapeFoliation` (applied in the parameter `u = ℓ * |ℓ|`,
     in which the standard leaves `√(64 * r ^ 2 + u)` have positive
-    `u`-derivative, also at `u = 0`; with the family standard for `ℓ`
-    near `-8 * δ`; and continued a little past `u = 1` by
+    `u`-derivative, also at `u = 0`; on a rectangle whose lower end in
+    `r` lies above the `r₀` of issue 14d5, where the family is standard
+    for `ℓ` near `-8 * δ`; and continued a little past `u = 1` by
     `χ 1 r + √(64 * r ^ 2 + u) - √(64 * r ^ 2 + 1)`, which is standard
     for `γ ≤ r`, so smooth across `u = 1` there, is a convex shape for
     `u` close to `1` by step 1 of `exists_shapeFoliation`, and lies
