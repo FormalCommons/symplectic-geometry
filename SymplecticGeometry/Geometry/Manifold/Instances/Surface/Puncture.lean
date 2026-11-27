@@ -49,6 +49,16 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
 `TauCeti.isComplementaryBall_sphereBall`, which the file names `ClosedSurface.sphereChart` and
 `ClosedSurface.sphereCoChart`.
 
+From these the file builds the loops at the base point whose classes the computation of the
+fundamental group uses. The path `ClosedSurface.summandPath g k` joins the base point to the point
+`0` of the torus summand `k`; `ClosedSurface.circleLoop g k i` runs along it, once around the
+circle `i` of that torus, and back. The loop `ClosedSurface.peripheralLoop g n i` of
+`puncture g n` runs along `ballPath g i.rev`, backwards once around `ballCircle g i.rev`, and back,
+so that the index `i` of a peripheral loop belongs to the ball `i.rev`: the ball `0`, along which
+the next torus is summed, carries the last one. A path of genus `g` that misses the centre of the
+ball `0` is carried to genus `g + 1` through the second summand by `ClosedSurface.succPath`, and
+the paths and loops of genus `g + 1` are related in this way to those of genus `g`.
+
 ## Main definitions
 
 * `SymplecticGeometry.ClosedSurface.puncture g n`: the closed surface of genus `g` with the
@@ -64,6 +74,16 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
 * `SymplecticGeometry.ClosedSurface.sphereChart`,
   `SymplecticGeometry.ClosedSurface.sphereCoChart`: the two charts of the sphere `ClosedSurface 0`,
   about the point opposite its base point and about the base point.
+* `SymplecticGeometry.ClosedSurface.succPath`: a path of genus `g` missing the centre of the
+  ball `0`, carried to genus `g + 1` through the second summand of the connected sum.
+* `SymplecticGeometry.ClosedSurface.summandPath g k`: a path from the base point to the point `0`
+  of the torus summand `k`.
+* `SymplecticGeometry.ClosedSurface.circleLoop g k i`: the circle `i` of the torus summand `k`,
+  as a loop at the base point.
+* `SymplecticGeometry.ClosedSurface.puncturedSummandPath g n k`,
+  `SymplecticGeometry.ClosedSurface.puncturedCircleLoop g n k i`: the same, in `puncture g n`.
+* `SymplecticGeometry.ClosedSurface.peripheralLoop g n i`: the loop of `puncture g n` at the base
+  point about the centre of the ball `i.rev`.
 
 ## Main results
 
@@ -86,6 +106,15 @@ charts `sphereBall v` and `w ↦ -sphereBall v (-w)` of Tau Ceti's
 * `SymplecticGeometry.ClosedSurface.ballPath_zero_zero`,
   `SymplecticGeometry.ClosedSurface.ballPath_zero_succ`: the paths to the balls of the sphere, as
   segments in its two charts.
+* `SymplecticGeometry.ClosedSurface.summandPath_ne_ball`,
+  `SymplecticGeometry.ClosedSurface.circleLoop_ne_ball`: they meet no centre.
+* `SymplecticGeometry.ClosedSurface.summandPath_succ_zero`: the path to the torus summand `0` of
+  genus `g + 1` crosses the neck from the second summand into the torus.
+* `SymplecticGeometry.ClosedSurface.succDiffeomorph_summandPath_succ_apply`,
+  `SymplecticGeometry.ClosedSurface.succDiffeomorph_circleLoop_succ_apply`,
+  `SymplecticGeometry.ClosedSurface.succDiffeomorph_peripheralLoop_apply`: in genus `g + 1`, those
+  of the summand `k + 1` and the peripheral loop `i` are those of the summand `k` and the
+  peripheral loop `Fin.castSucc i` of genus `g`, in the second summand.
 
 ## References
 
@@ -549,6 +578,7 @@ def succPath {x y : ConnectedSum.puncture (ball g 0)} {x' y' : ClosedSurface (g 
 
 /-- Read in the connected sum, a path of genus `g` carried to genus `g + 1` is the path itself,
 in the second summand. -/
+@[simp]
 theorem succDiffeomorph_succPath_apply {x y : ConnectedSum.puncture (ball g 0)}
     {x' y' : ClosedSurface (g + 1)} (γ : Path x.val y.val)
     (hγ : ∀ t, γ t ∈ ConnectedSum.puncture (ball g 0))
@@ -782,8 +812,8 @@ variable (g) in
 /-- The **standard circle** `i` of the torus summand `k` of the closed surface of genus `g`, as a
 loop at the base point: the path `ClosedSurface.summandPath g k` to the point `0` of the summand,
 then the image under the summand of the circle `SymplecticGeometry.EuclideanTorus.circleLoop i`,
-then `summandPath g k` back. These are the standard generators `a k` (`i = 0`) and `b k`
-(`i = 1`) of the fundamental group. -/
+then `summandPath g k` back: for `i = 0` the circle `a k` and for `i = 1` the circle `b k` of the
+surface. -/
 def circleLoop (k : Fin g) (i : Fin 2) : Path (basePoint g) (basePoint g) :=
   ((summandPath g k).trans ((EuclideanTorus.circleLoop i).map (continuous_summand k))).trans
     (summandPath g k).symm
@@ -899,7 +929,7 @@ theorem succDiffeomorph_peripheralLoop_apply (i : Fin n) (t : unitInterval) :
     succDiffeomorph (peripheralLoop (g + 1) n i t : ClosedSurface (g + 1)) =
       ConnectedSum.inr _ _ ⟨(peripheralLoop g (n + 1) (Fin.castSucc i) t : ClosedSurface g),
         ConnectedSum.mem_puncture.2 fun h ↦
-          mem_puncture.1 (peripheralLoop g (n + 1) (Fin.castSucc i) t).2 0 (Nat.succ_pos n)
+          mem_puncture.1 (peripheralLoop g (n + 1) (Fin.castSucc i) t).property 0 (Nat.succ_pos n)
             h⟩ := by
   have hi : ((Fin.castSucc i).rev : ℕ) = i.rev + 1 := by simp; omega
   rw [coe_peripheralLoop_apply]
