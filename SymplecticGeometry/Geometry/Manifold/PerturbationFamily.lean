@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.RegularValue
 import SymplecticGeometry.Data.List.Pi
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Foldr
 import SymplecticGeometry.Geometry.Manifold.RegularValue.Slice
+import SymplecticGeometry.Topology.MetricSpace.Tube
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.Diffeomorph.Perturbation
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -173,14 +174,13 @@ theorem _root_.ContMDiff.exists_isRegularPoint_perturbation {g : N → M} (hg : 
       ((hsingle 0).mdifferentiableAt hn0)
     rwa [Pi.single_zero] at h
   -- The regular slices form an open set containing `N × {0}`, hence `N × B(0, ε)`.
-  obtain ⟨u, v, -, hv, hu, h0v, huv⟩ := generalized_tube_lemma isCompact_univ isCompact_singleton
-    (t := {(0 : Fin m → E)}) (isOpen_setOfPred_isRegularPoint_slice hF hn') fun ⟨x, s⟩ hp ↦ by
+  obtain ⟨ε, hε, hεU⟩ := isCompact_univ.exists_prod_ball_subset (y := (0 : Fin m → E))
+    (isOpen_setOfPred_isRegularPoint_slice hF hn') fun ⟨x, s⟩ hp ↦ by
       obtain ⟨-, rfl⟩ : x ∈ univ ∧ s = 0 := by simpa using hp
       exact hreg0 x
-  obtain ⟨ε, hε, hεv⟩ := Metric.isOpen_iff.1 hv 0 (singleton_subset_iff.1 h0v)
   refine ⟨m, F, ε, hε, hF, hF0, fun x s hs ↦ ?_⟩
   have hslice : IsRegularPoint 𝓘(ℝ, Fin m → E) I (fun s ↦ F (x, s)) s :=
-    huv (show (x, s) ∈ u ×ˢ v from ⟨hu (mem_univ x), hεv hs⟩)
+    hεU (show (x, s) ∈ univ ×ˢ ball 0 ε from ⟨mem_univ x, hs⟩)
   exact ⟨hslice, IsRegularPoint.of_comp (g := fun s : Fin m → E ↦ (x, s)) (p := s) hslice
     ((hF _).mdifferentiableAt hn0)
     ((contMDiff_const.prodMk contMDiff_id).mdifferentiableAt hn0)⟩
