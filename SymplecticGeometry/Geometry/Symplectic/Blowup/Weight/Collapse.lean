@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Basic
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Weight.Volume
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
@@ -18,7 +19,8 @@ Let `ψ` be a symplectic embedding of the closed ball of radius `√(l² + ε²)
 `Blowup/Weight/Basic.lean`. Following McDuff–Salamon, §7.1 (the construction (7.1.14)), the
 blowup is obtained from `M ∖ ψ(B°(l))` by collapsing each Hopf circle of the sphere `ψ(∂B(l))` to
 a point of the divisor. This file defines the collapse map, and shows that it is a quotient map
-with these fibres, so that the blowup is homeomorphic to that quotient.
+with these fibres, so that the blowup is homeomorphic to that quotient. It ends with the
+milestone that collects the properties of the blowup.
 
 ## Main definitions
 
@@ -51,6 +53,11 @@ with these fibres, so that the blowup is homeomorphic to that quotient.
   quotient map. A closed set of `M ∖ ψ(B°(l))` is the union of its part in the compact set
   `ψ(B(√(l² + ε²)))`, whose image is compact, and of its part off `ψ(B°(√(l² + ε²)))`, whose image
   under `inl` is closed, as the image of the model piece does not meet it.
+* `SymplecticGeometry.WeightBlowup.isSymplectic_form_and_divisor`: the blowup along a ball,
+  collecting for symplectic `σ` the symplectic form of `Blowup/Weight/Basic.lean`, the divisor
+  with its form `l² ω_FS` and its normal bundle, the tautological line
+  (`continuous_normalSpaceDivisorEquiv`), the description of the blowup as a quotient above, and
+  the volume identity `liouvilleMeasure_form_add` of `Blowup/Weight/Volume.lean`.
 
 ## References
 
@@ -357,6 +364,73 @@ def collapseHomeomorph :
 theorem collapseHomeomorph_mk (x : ((ψ '' ball 0 l)ᶜ : Set M)) :
     collapseHomeomorph hψ hl hε (Quotient.mk _ x) = collapseMap hψ hl hε x :=
   (rfl)
+
+/-! ### The blowup along a ball -/
+
+open MeasureTheory Module _root_.Bundle in
+/-- **The symplectic blowup along a ball.** Let `σ` be a symplectic form on a boundaryless
+manifold `M` modelled on `ℂⁿ⁺¹`, Hausdorff and second countable, and let `ψ` be a symplectic
+embedding of the closed ball of radius `√(l² + ε²)`, for `0 < l` and `0 < ε`. Then the blowup
+`M̃_ψ` of weight `l`, with its form `ω̃_ψ`, satisfies:
+
+1. `ω̃_ψ` is symplectic;
+2. it pulls back along the divisor `ℙ(ℂⁿ⁺¹) → M̃_ψ` to `l² ω_FS`, and the divisor is a
+   symplectic submanifold;
+3. the normal bundle of the divisor is isomorphic to the tautological line bundle: there are
+   isomorphisms from the normal space of the divisor at each line `ℓ` onto `ℓ` that form a
+   continuous map of total spaces, the normal bundle with Tau Ceti's topology, and that send the
+   normal class of the image under `inr` of a tangent vector `w` of the model at
+   `zeroSection ℓ` to the differential of the blowdown applied to `w`;
+4. the collapse map induces a homeomorphism onto `M̃_ψ` from the quotient of `M ∖ ψ(B°(l))` by
+   its fibres, and these fibres are the points off the sphere `ψ(∂B(l))` and the images under `ψ`
+   of the Hopf circles of that sphere;
+5. the Liouville measure of `M̃_ψ` plus the Lebesgue measure of `B(l)` is the Liouville measure
+   of `M`, where `2 * m` is the real dimension of `M`.
+
+Milestone: *Symplectic blowup along a ball*. -/
+theorem isSymplectic_form_and_divisor [SecondCountableTopology M] [MeasurableSpace M]
+    [BorelSpace M] {m : ℕ} [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * m)]
+    [MeasurableSpace (WeightBlowup hψ hl.le hε)] [BorelSpace (WeightBlowup hψ hl.le hε)]
+    (hσ : σ.IsSymplectic) :
+    ∃ hω : (form hψ hl.le hε).IsSymplectic,
+      SmoothForm.mpullback (divisor hψ hl.le hε) (divisor hψ hl.le hε).contMDiff
+          (form hψ hl.le hε) = l ^ 2 • fubiniStudyForm n ∧
+      hω.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ)
+        (divisor hψ hl.le hε) ∧
+      (∀ hn : (∞ : ℕ∞ω) ≠ 0, ∃ e : ∀ ℓ : ℙ ℂ (Fin (n + 1) → ℂ),
+          (divisor hψ hl.le hε).isImmersion.NormalSpace ℓ hn ≃L[ℝ]
+            Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ,
+        (Continuous fun p : TotalSpace ℂ
+            (fun ℓ ↦ (divisor hψ hl.le hε).isImmersion.NormalSpace ℓ hn) ↦
+          (⟨p.proj, e p.proj p.snd⟩ :
+            TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)))) ∧
+        ∀ (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+          (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (zeroSection ℓ : BlowupModel n)),
+          e ℓ ((divisor hψ hl.le hε).isImmersion.normalClass ℓ hn
+              (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+                (GluedAlong.inr (gluingDiffeomorphSymm hψ hl.le hε).toHomeomorph)
+                ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w)) =
+            ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (zeroSection ℓ) w,
+              mfderiv_blowdown_zeroSection_mem ℓ w⟩) ∧
+      (∃ h : Quotient (Setoid.ker (collapseMap hψ hl hε)) ≃ₜ WeightBlowup hψ hl.le hε,
+        ∀ x, h (Quotient.mk _ x) = collapseMap hψ hl hε x) ∧
+      (∀ x y : ((ψ '' ball 0 l)ᶜ : Set M),
+        collapseMap hψ hl hε x = collapseMap hψ hl hε y ↔ x = y ∨
+          ∃ (v w : StdSpace (Fin (n + 1))) (hv : ‖v‖ = l) (hw : ‖w‖ = l), ψ v = x ∧ ψ w = y ∧
+            sphereHopf n ⟨l⁻¹ • v, inv_smul_mem_sphere_one_of_norm_eq hl hv⟩ =
+              sphereHopf n ⟨l⁻¹ • w, inv_smul_mem_sphere_one_of_norm_eq hl hw⟩) ∧
+      (form hψ hl.le hε).liouvilleMeasure m univ +
+          volume (closedBall (0 : StdSpace (Fin (n + 1))) l) =
+        σ.liouvilleMeasure m univ :=
+  have hω := isSymplectic_form hψ hl.le hε hσ hl.ne'
+  ⟨hω, mpullback_divisor_form hψ hl.le hε,
+    isSymplecticSubmanifoldEmbedding_divisor hψ hl.le hε hω.isNondegenerate hl.ne',
+    fun hn ↦ ⟨normalSpaceDivisorEquiv hψ hl.le hε hn,
+      continuous_normalSpaceDivisorEquiv hψ hl.le hε,
+      normalSpaceDivisorEquiv_normalClass hψ hl.le hε hn⟩,
+    ⟨collapseHomeomorph hψ hl hε, collapseHomeomorph_mk hψ hl hε⟩,
+    fun _ _ ↦ collapseMap_eq_collapseMap_iff hψ hl hε,
+    liouvilleMeasure_form_add hψ hl.le hε⟩
 
 end WeightBlowup
 
