@@ -359,6 +359,18 @@ theorem fderiv_shape_apply (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace �
   rw [fderiv.fst hd, fderiv.snd hd, ContinuousLinearMap.comp_apply,
     ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd']
 
+/-- The chain rule for a function of the shape coordinates: for `H : ℝ × ℝ → ℝ` differentiable
+at `shape p`, the differential of `H ∘ shape` at `p` is `v ↦ dH (ds_p v, dt_p v)`. -/
+theorem fderiv_comp_shape_apply {H : ℝ × ℝ → ℝ}
+    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hH : DifferentiableAt ℝ H (shape p))
+    (v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (H ∘ shape) p v =
+      fderiv ℝ H (shape p) (fderiv ℝ (fun q ↦ (shape q).1) p v,
+        fderiv ℝ (fun q ↦ (shape q).2) p v) := by
+  rw [fderiv_comp p hH ((contDiff_shape (n := 1)).differentiable one_ne_zero p),
+    ContinuousLinearMap.comp_apply, fderiv_shape_apply]
+
 /-- **The Levi form of a function of the shape coordinates.** Let `h : ℝ × ℝ → ℝ` be `C²` at
 `(s, t) = shape p`, with `p = (x + i y, w)`, and write `hₛ`, `hₜ` for its first and `hₛₛ`, `hₛₜ`,
 `hₜₜ` for its second partial derivatives there. For `v = (v₁, v₂)`, put `σ = ∑ⱼ xⱼ v₁ⱼ` and
@@ -408,7 +420,7 @@ theorem re_leviForm_comp_shape_apply_self {h : ℝ × ℝ → ℝ}
   ring_nf
 
 /-- The bound `|σ|² ≤ s |v₁|²` for `σ = ∑ⱼ xⱼ v₁ⱼ`, by Cauchy–Schwarz. -/
-private theorem norm_sum_re_mul_sq_le (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+theorem norm_sum_re_mul_sq_le (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2 ≤ (shape p).1 * ‖v.1‖ ^ 2 := by
   let X : EuclideanSpace ℂ (Fin k) := WithLp.toLp 2 fun j ↦ ((p.1 j).re : ℂ)
   have hX : ⟪X, v.1⟫_ℂ = ∑ j, ((p.1 j).re : ℂ) * v.1 j := by
@@ -474,9 +486,11 @@ theorem ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape {α β : ℝ}
     mul_re, mul_im, I_re, I_im, zero_mul, one_mul, zero_sub, mul_neg, Finset.sum_neg_distrib,
     zero_add] at h₂
   apply Complex.ext
-  · simp [re_sum, im_sum]
+  · simp only [add_re, mul_re, ofReal_re, re_sum, ofReal_im, zero_mul, sub_zero, im_sum, mul_im,
+      add_zero, sub_re, I_re, I_im, one_mul, zero_sub, sub_neg_eq_add, sub_im, zero_add, zero_re]
     linear_combination h₁ / 2
-  · simp [re_sum, im_sum]
+  · simp only [add_im, mul_im, ofReal_re, im_sum, ofReal_im, zero_mul, add_zero, re_sum, mul_re,
+      sub_zero, sub_im, I_re, I_im, one_mul, zero_add, sub_re, zero_sub, sub_neg_eq_add, zero_im]
     linear_combination -h₂ / 2
 
 /-- **Strict plurisubharmonicity of `f(s) + g(t)`**, on `ℂᵏ × ℂᵐ`. Let `f` and `g` be `C²` at
