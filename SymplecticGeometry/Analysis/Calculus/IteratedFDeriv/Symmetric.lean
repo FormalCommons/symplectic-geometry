@@ -11,9 +11,10 @@ import TauCeti.Analysis.Calculus.IteratedFDeriv.SymmetricFinite
 /-!
 # Iterated derivatives on tuples with one entry changed
 
-For `f` of class `C^(k+1)` at `x`, the iterated derivative `D^(k+1) f(x)` is symmetric, so its
-value on the tuple `(y, …, y)` with one entry replaced by `u` does not depend on which entry is
-replaced. Summing over the entries gives the derivative of `y ↦ D^(k+1) f(x) (y, …, y)` in the
+For `f` of class `C^n` at `x` with `minSmoothness 𝕜 (k + 1) ≤ n` (that is, `C^(k+1)` over `ℝ`
+or `ℂ`), the iterated derivative `D^(k+1) f(x)` is symmetric, so its value on the tuple
+`(y, …, y)` with one entry replaced by `u` does not depend on which entry is replaced.
+Summing over the entries gives the derivative of `y ↦ D^(k+1) f(x) (y, …, y)` in the
 direction `u`.
 
 ## Main results
