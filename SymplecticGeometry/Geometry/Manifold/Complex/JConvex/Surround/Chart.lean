@@ -417,10 +417,8 @@ theorem exists_almostHolomorphic_modelDisc {N : ℕ} (hN : 1 ≤ N)
     Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E (Φ₀ p₀)).open_source
   -- `h`: `Φ₀` read in the chart `κ` and in the coordinates of `L`.
   set h : EuclideanSpace ℂ (Fin k ⊕ Fin m) → E := κ ∘ Φ₀ ∘ Lr.symm
-  have hh : ContDiffOn ℝ ∞ h (Lr.symm ⁻¹' S₀) := by
-    have h₁ : ContMDiffOn 𝓘(ℝ, _) 𝓘(ℝ, E) ∞ (κ ∘ Φ₀) S₀ :=
-      contMDiffOn_extChartAt.comp (Φ₀.contMDiffOn.mono inter_subset_left) fun _ hx ↦ hx.2
-    exact h₁.contDiffOn.comp Lr.symm.contDiff.contDiffOn fun _ hx ↦ hx
+  have hh : ContDiffOn ℝ ∞ h (Lr.symm ⁻¹' S₀) :=
+    (Φ₀.contDiffOn_extChartAt_comp _).comp Lr.symm.contDiff.contDiffOn fun _ hx ↦ hx
   obtain ⟨x₀, rfl⟩ := hp₀
   have hp₀S : Lr (modelDisc k m x₀) ∈ Lr.symm ⁻¹' S₀ := by
     rw [mem_preimage, Lr.symm_apply_apply]
@@ -479,15 +477,6 @@ open TauCeti
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   [IsManifold 𝓘(ℝ, E) ∞ M]
-
-omit [IsManifold 𝓘(ℂ, E) 1 M] in
-/-- `Φ₀` read in the chart of `M` at `x` is smooth where it lands in the source of that chart. -/
-private theorem contDiffOn_extChartAt_comp
-    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) 𝓘(ℝ, E)
-      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞) (x : M) :
-    ContDiffOn ℝ ∞ (extChartAt 𝓘(ℝ, E) x ∘ Φ₀) (Φ₀.source ∩ Φ₀ ⁻¹' (chartAt E x).source) :=
-  (contMDiffOn_extChartAt.comp (Φ₀.contMDiffOn.mono inter_subset_left)
-    fun _ hx ↦ hx.2).contDiffOn
 
 /-- Near a point `z₀` where `Φ₀ ∘ G` lands in the source of the chart at `x₁`, the bound
 `C * ‖y‖ ^ N` on `∂̄` of `G` read through `Φ₀` in the chart at `x₂` gives a bound of the same
@@ -557,7 +546,7 @@ private theorem exists_norm_conjWirtingerDeriv_extChartAt_le {N : ℕ}
   have he₂ : DifferentiableAt ℝ (fun w ↦ κ₂ (Φ₀ (G (Lr.symm w)))) (Lr z) := by
     have h₁ : DifferentiableAt ℝ (κ₂ ∘ Φ₀) (G (Lr.symm (Lr z))) := by
       rw [Lr.symm_apply_apply]
-      exact ((contDiffOn_extChartAt_comp Φ₀ x₂).contDiffAt
+      exact ((Φ₀.contDiffOn_extChartAt_comp x₂).contDiffAt
         ((Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage
           (chartAt E x₂).open_source).mem_nhds (hGS ⟨z, hz, rfl⟩))).differentiableAt (by simp)
     have h₂ : DifferentiableAt ℝ G (Lr.symm (Lr z)) := by
@@ -608,7 +597,7 @@ private theorem iteratedFDeriv_sub_comp_eq_zero {N : ℕ}
   have hS₁ : IsOpen S₁ :=
     Φ₀.toOpenPartialHomeomorph.isOpen_inter_preimage (chartAt E x₁).open_source
   set h₁ := extChartAt 𝓘(ℝ, E) x₁ ∘ Φ₀
-  have hh₁ : ContDiffOn ℝ ∞ h₁ S₁ := contDiffOn_extChartAt_comp Φ₀ x₁
+  have hh₁ : ContDiffOn ℝ ∞ h₁ S₁ := Φ₀.contDiffOn_extChartAt_comp x₁
   set O := U₁ ∩ (U₂ ∩ G₂ ⁻¹' S₁)
   have hO : IsOpen O := hU₁.inter (hG₂.continuousOn.isOpen_inter_preimage hU₂ hS₁)
   set g₁ := G₁ ∘ Lr.symm

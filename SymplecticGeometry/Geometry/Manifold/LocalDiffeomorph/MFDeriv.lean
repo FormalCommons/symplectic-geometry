@@ -49,6 +49,8 @@ Tau Ceti's `PartialDiffeomorph.inner_fderiv_comp_symm`, with `B` in place of the
   `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
   `PartialDiffeomorph.det_fderiv_chartAt_symm_trans_ne_zero`: the transitions between `Φ` and a
   chart are smooth, with derivatives of nonzero determinant.
+* `PartialDiffeomorph.contDiffOn_extChartAt_comp`: for `Φ` from a normed space, the reading of
+  `Φ` in a chart of the target is smooth where it is defined.
 * `PartialDiffeomorph.isInvertible_fderiv_extChartAt_comp_comp`: for `Φ` from a normed space, the
   reading of `Φ` in a chart of the target, after a linear equivalence, has invertible derivative.
 * `PartialDiffeomorph.contDiffOn_symm_trans`, `PartialDiffeomorph.differentiableAt_symm_trans`
@@ -166,6 +168,15 @@ theorem det_fderiv_chartAt_symm_trans_ne_zero
   TauCeti.det_fderiv_symm_trans_ne_zero hn (IsManifold.chart_mem_maximalAtlas x)
     (Φ.toOpenPartialHomeomorph.mem_maximalAtlas_of_contMDiffOn Φ.contMDiffOn Φ.symm.contMDiffOn)
     hz
+
+/-- For a `C^n` partial diffeomorphism `Φ` from a normed space `F` to `M'` and `x : M'`, the
+reading `extChartAt x ∘ Φ` of `Φ` in the extended chart at `x` is `C^n` on the set of points of
+the source of `Φ` that `Φ` maps into the source of that chart. -/
+theorem contDiffOn_extChartAt_comp {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    (Φ : PartialDiffeomorph 𝓘(𝕜, F) 𝓘(𝕜, E) F M' n) (x : M') :
+    ContDiffOn 𝕜 n (extChartAt 𝓘(𝕜, E) x ∘ Φ) (Φ.source ∩ Φ ⁻¹' (chartAt E x).source) :=
+  (contMDiffOn_extChartAt.comp (Φ.contMDiffOn.mono Set.inter_subset_left)
+    fun _ hx ↦ hx.2).contDiffOn
 
 end ChartTransition
 
