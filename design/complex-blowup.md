@@ -415,8 +415,8 @@ atlas and `hJ` as in *Decisions*.
   `almostComplexStructure_apply_inl` (through `localPullback_apply`) and
   `almostComplexStructure_lift` (on the domain of `c.lift`);
   `mfderiv_blowdown_comp_almostComplexStructure`: $d\pi_M\tilde J=J\,d\pi_M$
-  off $Z$; `isIntegrable_on`: the charts `blowupModelChart i ∘ c.lift` are
-  $\tilde J$-holomorphic; and
+  off $Z$; `isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
+  `blowupModelChart i ∘ c.lift` are $\tilde J$-holomorphic; and
   `almostComplexStructure_eq_ofComplexManifold` for a complex `M`.
 
 ### `Blowup/SelfIntersection.lean`
@@ -425,16 +425,17 @@ For `n = 1` (the page's complex dimension two).
 
 - `selfIntersectionNumber_zeroSection`: the exceptional divisor of
   `BlowupModel 1` has self-intersection $-1$, *Adjunction*'s
-  `TauCeti.SmoothEmbedding.selfIntersectionNumber` of `zeroSectionEmbedding 1`,
+  `TauCeti.SmoothEmbedding.selfIntersectionNumber` of `zeroSectionRealEmbedding 1`,
   re-modelled on `𝓡 2` with the library's `Remodel`
-  (`Geometry/Manifold/ModelTransport/Remodel.lean`), for
+  (`Geometry/Manifold/ModelTransport/Remodel.lean`) along any diffeomorphism
+  `Φ` of models, for
   `ofComplexManifold` and the complex orientation of `ℙ ℂ (Fin 2 → ℂ)`.
-  Proof: `selfIntersectionNumber_eq_chernNumber`, the real form of
+  Proof: `selfIntersectionNumber_remodel_complexCurveOrientation`, the real form
+  `normalSpaceZeroSectionRealEquiv` of
   `normalSpaceZeroSectionEquiv`, invariance of the Euler class under
-  isomorphism, `complexEulerClass_twistCore_neg_one`, and the value $1$ of
-  $h$ on the fundamental class of $\mathbb CP^1$ (as in the merged
-  `evalFundamentalClass_hyperplaneClass_pow`, `Projectivization/Hypersurface/Degree.lean`,
-  or directly).
+  isomorphism, `hyperplaneClass_def` ($c_1(L)=-h$), and the value $1$ of
+  $h$ on the fundamental class of $\mathbb CP^1$
+  (`complexManifoldEvalFundamentalClass_hyperplaneClass`).
 - `Blowup.selfIntersectionNumber_exceptionalDivisor`: the same for the
   blowup of a complex surface, through `c.lift`, which is a biholomorphism
   near $Z$.
