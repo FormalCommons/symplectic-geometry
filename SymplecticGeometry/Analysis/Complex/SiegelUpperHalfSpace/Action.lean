@@ -17,6 +17,7 @@ import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Data.Matrix.Block
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Transpose
+import TauCeti.LinearAlgebra.SymplecticGroup
 import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
@@ -69,8 +70,10 @@ plane by Möbius transformations.
 ## Implementation notes
 
 The action is (2.5.19) of McDuff–Salamon, and its properties are those of their Exercise 2.5.11.
-All the algebra comes from the two identities above, which use the block relations of Mathlib's
-`SymplecticGroup.fromBlocks_mem_iff`. Transitivity is checked by the explicit matrix above, with
+All the algebra comes from the two identities above, which use the block relations of a
+symplectic matrix as Tau Ceti's `SymplecticGroup.mem_iff_toBlocks` states them for the blocks of
+an arbitrary matrix. Transitivity is checked by the explicit matrix above, whose membership is
+Mathlib's `SymplecticGroup.fromBlocks_mem_iff` applied directly, with
 `G` from Tau Ceti's `Matrix.PosDef.exists_generalLinearGroup_mul_transpose_eq`, so that this file
 does not need the complex structures of `ComplexStructure.lean`. Holomorphy is stated with the
 operator norm on matrices (`Matrix.Norms.Operator`); all norms on matrices give the same
@@ -130,7 +133,7 @@ private theorem blocks_relations {Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} (hΨ 
         (Ψ.toBlocks₂₁.map ofReal)ᵀ * Ψ.toBlocks₁₂.map ofReal = 1 ∧
       (Ψ.toBlocks₂₂.map ofReal)ᵀ * Ψ.toBlocks₁₁.map ofReal -
         (Ψ.toBlocks₁₂.map ofReal)ᵀ * Ψ.toBlocks₂₁.map ofReal = 1 := by
-  rw [← fromBlocks_toBlocks Ψ, SymplecticGroup.fromBlocks_mem_iff] at hΨ
+  rw [SymplecticGroup.mem_iff_toBlocks] at hΨ
   obtain ⟨h₁, h₂, h₃⟩ := hΨ
   have h₄ : Ψ.toBlocks₂₂ᵀ * Ψ.toBlocks₁₁ - Ψ.toBlocks₁₂ᵀ * Ψ.toBlocks₂₁ = 1 := by
     simpa [transpose_sub, transpose_mul] using congrArg transpose h₃
@@ -487,7 +490,7 @@ theorem exists_specialLinearGroup_coe_eq (Ψ : symplecticGroup ι ℝ) :
         (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (Sum.inr default) (Sum.inl default),
         (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (Sum.inr default) (Sum.inr default)] := by
   have h := Ψ.property
-  rw [← fromBlocks_toBlocks (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ), SymplecticGroup.fromBlocks_mem_iff] at h
+  rw [SymplecticGroup.mem_iff_toBlocks] at h
   have h₃ := congrFun (congrFun h.2.2 default) default
   simp only [Matrix.sub_apply, Matrix.mul_apply, Fintype.sum_unique, transpose_apply,
     Matrix.one_apply_eq, toBlocks₁₁, toBlocks₁₂, toBlocks₂₁, toBlocks₂₂, of_apply] at h₃

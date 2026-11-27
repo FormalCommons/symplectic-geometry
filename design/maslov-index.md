@@ -312,8 +312,8 @@ units `Matrix.single`.
 
 ### `LinearAlgebra/Matrix/GeneralLinearGroup/Symplectic/Reindex.lean`
 
-In the namespace `TauCeti.GLSymplectic` (Tau Ceti has a folder of that name,
-without such a file).
+In the namespace `TauCeti.GLSymplectic` (Tau Ceti's file of that path reindexes
+along any `ι ⊕ ι ≃ p` into `GL p`, but has no such isomorphism).
 
 - `reindex (R) (e : ι ≃ κ) : GLSymplectic ι R ≃* GLSymplectic κ R`, the
   restriction of Mathlib's `Matrix.GeneralLinearGroup.reindex R
