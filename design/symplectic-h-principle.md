@@ -1676,8 +1676,8 @@ The cube charts as coordinates for forms, in the namespace
 Holonomic approximation over all cubes of a band core, relative to `N` and
 to `P₀`, in a smooth and a continuous form,
 `BandCore.exists_approximation_family` and
-`BandCore.exists_approximation_continuous_family`. Both return exactly the
-hypotheses of `exists_stagePath` (next file):
+`BandCore.exists_approximation_continuous_family`. Both return the
+hypotheses of `exists_stagePath` and of the lemmas on `stagePath` (next file):
 
 - `S`, a continuous `s : Λ → S` (`S = L` and `s = id` in the smooth form,
   `S = S₀ × ((i : c.ι) → Fin (n i) → ℝ)` and `s l = (s₀ l, fun i ↦ σ i l)`
@@ -1767,17 +1767,14 @@ The shared part of the two forms.
 
 ```lean
 theorem exists_stagePath {Λ S : Type*} [TopologicalSpace Λ] [NormedAddCommGroup S]
-    [NormedSpace ℝ S] [FiniteDimensional ℝ S] (c : BandCore I g a₀ a b) (hg : Continuous g)
-    {K P₀ : Set Λ} (hK : IsCompact K) {s : Λ → S} (hs : Continuous s)
+    [NormedSpace ℝ S] (c : BandCore I g a₀ a b) (hg : Continuous g)
+    {K : Set Λ} (hK : IsCompact K) {s : Λ → S} (hs : Continuous s)
     {ω α : Λ → SmoothTwoForm I M} (hnd : ∀ l ∈ K, (ω l).IsNondegenerate)
-    {B B' : S → SmoothForm I M ℝ 1} (hB' : IsSmoothFamily 𝓘(ℝ, S) B')
+    {B' : S → SmoothForm I M ℝ 1}
     {Φ : (S × unitInterval) × M → M} (hΦ : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ Φ)
     (hΦd : ∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ Φ (p, x)) (hΦ₀ : ∀ q x, Φ ((q, 0), x) = x)
     {N₁ : Set M} (hN₁ : IsOpen N₁) (haN₁ : {x | g x ≤ a} ⊆ N₁)
-    (hΦN₁ : ∀ p, ∀ x ∈ N₁, Φ (p, x) = x) (hB'N₁ : ∀ q, ∀ x ∈ N₁, (B' q).val x = (B q).val x)
-    (hωN₁ : ∀ l, ∀ x ∈ N₁, (ω l).val x = (α l + mextDerivₗ I 1 (B (s l))).val x)
-    (hP₀ : ∀ l ∈ P₀, ω l = α l + mextDerivₗ I 1 (B (s l)) ∧
-      (∀ t x, Φ ((s l, t), x) = x) ∧ B' (s l) = B (s l))
+    (hΦN₁ : ∀ p, ∀ x ∈ N₁, Φ (p, x) = x)
     {U : Set (Λ × M)} (hU : IsOpen U) (hKN₁ : K ×ˢ N₁ ⊆ U)
     (hUc : ∀ l ∈ K, ∀ y ∈ c.cubes, (l, Φ ((s l, 1), y)) ∈ U)
     (hUnd : ∀ p ∈ U, p.1 ∈ K → ∀ r ∈ Icc (0 : ℝ) 1,
@@ -1786,7 +1783,7 @@ theorem exists_stagePath {Λ S : Type*} [TopologicalSpace Λ] [NormedAddCommGrou
     ∃ (e : (S × unitInterval) × M → M) (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e)
       (ρ : M → ℝ) (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) (V N' : Set M),
       (∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ e (p, x)) ∧ (∀ q x, e ((q, 0), x) = x) ∧
-      V ∈ 𝓝ˢ {x | g x ≤ a} ∧ V ⊆ N₁ ∧ (∀ p, ∀ x ∈ V, e (p, x) = x) ∧
+      IsOpen V ∧ V ∈ 𝓝ˢ {x | g x ≤ a} ∧ V ⊆ N₁ ∧ (∀ p, ∀ x ∈ V, e (p, x) = x) ∧
       IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧ (∀ x, ρ x ∈ Icc (0 : ℝ) 1) ∧ (∀ x ∈ N', ρ x = 1) ∧
       ∀ l ∈ K, ∀ t, (stagePath he hρ s ω α B' (l, t)).IsNondegenerate
 ```
@@ -1815,7 +1812,7 @@ on `e`, `ρ`, `V` and `N'` that the theorem provides, so that both forms of
   (Tau Ceti's `SmoothForm.mextDerivₗ_mpullback`).
 - `stagePath_eqOn_nhdsSet`: on `V`, `stagePath (l, t) = ω l`,
   `α' l = α l` and `β'' (s l) = B (s l)`, since the slices of `e` are the
-  identity there and `α l + dβ'_l = ω l` on `N₁` (`hB'N₁`, `hωN₁`).
+  identity there and `α l + dβ'_l = ω l` on `N₁` (hypotheses of the lemma).
 - `stagePath_of_mem`: for `l ∈ P₀` the second term vanishes, since
   `α l + dβ'_l = ω l` on all of `M`; so `stagePath (l, t)` is
   `e_{l,A t}^* ω l`, closed, with `stagePath (l, t) - α l` exact
@@ -1837,7 +1834,7 @@ Proof of `exists_stagePath`:
    the isotopy `F` from the identity to `f`, fixed on a neighbourhood
    `V₀` of `{g ≤ a}`, with `f '' {g ≤ b} ⊆ W`.
 3. *The isotopy of the stage* is `e ((q, t), x) := Φ ((q, t), F (t, x))`:
-   smooth, the identity at `t = 0` and on `V := V₀ ∩ N₁`, with slices
+   smooth, the identity at `t = 0` and on `V := interior V₀ ∩ N₁`, with slices
    local diffeomorphisms (a slice of `F` is a smooth embedding of `M` into
    itself, a local diffeomorphism by Tau Ceti's
    `Manifold.IsImmersion.isLocalDiffeomorph`), and
