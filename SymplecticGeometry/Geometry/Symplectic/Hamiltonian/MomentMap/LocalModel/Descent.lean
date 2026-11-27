@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 
 import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.Descent
@@ -259,9 +260,7 @@ theorem isBasic_form :
     (BalancedProduct.isSubmersion_mk_toRightTranslation.contMDiff.mdifferentiable (by simp))
     (fun k ↦ (contMDiff_mul_right.prodMap (hk k)).mdifferentiable (by simp))
     (fun k ↦ funext fun x ↦ ?_) (fun x y hxy ↦ .inr ?_) D.ker_mfderiv_mk_le_ker_bilinFormAt_form
-    fun k ↦ by
-      simpa only [SmoothForm.coe_mpullback] using
-        congrArg Subtype.val (D.mpullback_prodMap_mul_right_smul_form k)
+    fun k ↦ (SmoothForm.mpullback_eq_iff _).1 (D.mpullback_prodMap_mul_right_smul_form k)
   · -- `[g k⁻¹, k • p] = [g, k⁻¹ • k • p] = [g, p]`.
     simp only [Function.comp_apply, Prod.map_fst, Prod.map_snd]
     rw [← Subgroup.coe_inv, BalancedProduct.mk_toRightTranslation_mul, inv_smul_smul]
