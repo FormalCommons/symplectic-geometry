@@ -17,7 +17,8 @@ modelled on `E`, in the tangent coordinates of a chart.
 
 On the overlap of the charts at `x` and `y`, the tangent coordinate changes from `x` to `y` and
 from `y` to `x` are mutually inverse (`tangentCoordChange_comp_tangentCoordChange`,
-`inverse_tangentCoordChange`), by Tau Ceti's `TauCeti.tangentCoordChange_tangentCoordChange`.
+`isInvertible_tangentCoordChange`, `inverse_tangentCoordChange`), by Tau Ceti's
+`TauCeti.tangentCoordChange_tangentCoordChange`.
 
 A continuous linear endomorphism `J₀` of `E` gives the constant family `y ↦ J₀` of endomorphisms
 of the tangent spaces `T_x M = E`. Read in the tangent coordinates of the chart at a point `x₀`,
@@ -57,7 +58,14 @@ theorem tangentCoordChange_comp_tangentCoordChange {x y z : M}
   ContinuousLinearMap.ext (TauCeti.tangentCoordChange_tangentCoordChange hx hy)
 
 /-- On the overlap of the charts at `x` and `y`, the tangent coordinate change from `x` to `y` is
-invertible, with inverse the tangent coordinate change from `y` to `x`. -/
+invertible. -/
+theorem isInvertible_tangentCoordChange {x y z : M} (hx : z ∈ (extChartAt I x).source)
+    (hy : z ∈ (extChartAt I y).source) : (tangentCoordChange I x y z).IsInvertible :=
+  .of_inverse (tangentCoordChange_comp_tangentCoordChange I hy hx)
+    (tangentCoordChange_comp_tangentCoordChange I hx hy)
+
+/-- On the overlap of the charts at `x` and `y`, the inverse of the tangent coordinate change from
+`x` to `y` is the tangent coordinate change from `y` to `x`. -/
 theorem inverse_tangentCoordChange {x y z : M} (hx : z ∈ (extChartAt I x).source)
     (hy : z ∈ (extChartAt I y).source) :
     (tangentCoordChange I x y z).inverse = tangentCoordChange I y x z :=

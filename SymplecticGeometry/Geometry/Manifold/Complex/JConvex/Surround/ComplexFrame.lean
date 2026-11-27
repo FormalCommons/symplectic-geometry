@@ -249,8 +249,7 @@ private theorem exists_mem_nhds_frame_near [IsManifold 𝓘(ℝ, E) 1 M]
   have hRT (y : X) (hy : y ∈ Ω) : R y ∘L T y = .id ℝ E :=
     tangentCoordChange_comp_tangentCoordChange _ (hsrc y hy).2 (hsrc y hy).1
   have hTinv (y : X) (hy : y ∈ Ω) : (T y).IsInvertible :=
-    .of_inverse (tangentCoordChange_comp_tangentCoordChange _ (hsrc y hy).1 (hsrc y hy).2)
-      (hRT y hy)
+    isInvertible_tangentCoordChange _ (hsrc y hy).2 (hsrc y hy).1
   have hTinverse (y : X) (hy : y ∈ Ω) : (T y).inverse = R y :=
     inverse_tangentCoordChange _ (hsrc y hy).2 (hsrc y hy).1
   have hT₀ : T x₀ = .id ℝ E := by
