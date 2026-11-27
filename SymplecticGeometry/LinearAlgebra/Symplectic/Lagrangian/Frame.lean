@@ -18,6 +18,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 public import Mathlib.Data.Matrix.ColumnRowPartitioned
 import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.Rank
+import SymplecticGeometry.Analysis.Complex.Euclidean.Matrix
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.LinearAlgebra.Matrix.Range
