@@ -742,6 +742,10 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
     have h₂ := hG₀ (t i, r) ⟨htI i, hr⟩
     simp only [iteratedDeriv_one, Real.norm_eq_abs] at h₁ h₂
     linarith [le_abs_self (deriv (χ (t i)) r), le_abs_self G₀]
+  -- The last member is the last smoothed maximum of the stand-ins.
+  have hCb (r : ℝ) (hr : r ∈ Icc r₁ r₂) : shapeChain δ η a h A N b r = smoothedMaxChain δ A N r :=
+    shapeChain_eq_smoothedMaxChain hδ hh
+      (fun i hi ↦ ((hjc r hr).1 i hi).le.trans (le_smoothedMaxChain hδ A i r)) (by linarith)
   refine ⟨shapeChain δ η a h A N, contDiff_shapeChain fun i _ ↦ hAs i, fun x hx ↦ ?_,
     fun x _ ↦ (monotone_shapeChain hh hη.le x.2).deriv_nonneg, ⟨?_, ?_⟩, ?_, fun r hr ↦ ?_,
     fun r hr ↦ ?_, fun x hx k hk ↦ ?_⟩
@@ -764,8 +768,7 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
   · -- The last member lies at most `ε` above some member of `χ`.
     obtain ⟨j, -, hj⟩ := exists_smoothedMaxChain_le_add hδ A N r
     refine ⟨t j, htI j, ?_⟩
-    rw [shapeChain_eq_smoothedMaxChain hδ hh
-      (fun i hi ↦ ((hjc r hr).1 i hi).le.trans (le_smoothedMaxChain hδ A i r)) (by linarith)]
+    rw [hCb r hr]
     have h₁ := (abs_lt.1 (hAθ j 0 (by norm_num) r hr)).2
     simp only [iteratedDeriv_zero] at h₁
     have h₂ : N * δ ≤ ε := by
@@ -775,8 +778,7 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
     linarith
   · -- The last member lies above `A N`, which is within `θ < ε` of `χ b`.
     have htN : t N = b := by rw [ht N le_rfl, hNh]; ring
-    rw [shapeChain_eq_smoothedMaxChain hδ hh
-      (fun i hi ↦ ((hjc r hr).1 i hi).le.trans (le_smoothedMaxChain hδ A i r)) (by linarith)]
+    rw [hCb r hr]
     have h₁ := (abs_lt.1 (hAθ N 0 (by norm_num) r hr)).1
     simp only [iteratedDeriv_zero, htN] at h₁
     linarith [le_smoothedMaxChain hδ A N r]
