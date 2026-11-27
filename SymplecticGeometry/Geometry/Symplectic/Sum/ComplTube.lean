@@ -7,12 +7,11 @@ module
 
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Fibre
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.VanKampen
 import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Topology.Homotopy.Annulus
-import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
-import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
 import TauCeti.Geometry.Manifold.Topology
 
 /-!
@@ -28,15 +27,13 @@ complement of `ι (Q)` is.
 Both are proved with the open sets `f (Q × A(a, ε))`, the images of the products of `Q` with the
 open annuli `a < |z| < ε`. The complement of the tube and the range of `f` cover `M` and meet in
 the collar `f (Q × A(δ, ε))`, which is path connected; so the complement of the tube is path
-connected, as `M` is connected (`IsPreconnected.of_isOpen_of_union_eq_univ`). For the
+connected, as `M` is connected (`IsPathConnected.of_isOpen_of_union_eq_univ`). For the
 fundamental groups, the complement of the tube and `f (Q × A(0, ε))` cover the complement of
-`ι (Q)`, again with the collar as overlap, and van Kampen
-(`TauCeti.isPushout_fundamentalGroup_union`) applies: the inclusion of the collar into
-`f (Q × A(0, ε))` is, through `f`, the product of `Q` with the inclusion of an annulus into the
-punctured disc, a homotopy equivalence (`SymplecticGeometry.annulusHomotopyEquiv`). The leg of a
-pushout opposite an isomorphism is an isomorphism. The argument follows the proof of
-`Topology.IsOpenEmbedding.isPathConnected_compl_image` in
-`AlgebraicTopology/FundamentalGroup/Prod/ComplDisc.lean` for path connectedness.
+`ι (Q)`, again with the collar as overlap, and van Kampen with a bijective leg
+(`FundamentalGroup.map_inclusion_bijective_of_map_inclusion_bijective`) applies: the inclusion of
+the collar into `f (Q × A(0, ε))` is, through `f`, the product of `Q` with the inclusion of an
+annulus into the punctured disc, a homotopy equivalence
+(`SymplecticGeometry.annulusHomotopyEquiv`).
 
 ## Main results
 
@@ -136,9 +133,7 @@ theorem isPathConnected_complTube [ConnectedSpace M] (hδ : 0 ≤ δ) (hδε : �
     IsPathConnected (f.complTube hδε : Set M) := by
   have hAB := f.complTube_inter_range hδε ▸ f.isPathConnected_range_comp_annulusToProdBall hδ hδε
   have : LocallyPathConnectedSpace M := I.locallyPathConnectedSpace_of_chartedSpace M
-  refine ((f.complTube hδε).isOpen.isConnected_iff_isPathConnected).1
-    ⟨hAB.nonempty.mono inter_subset_left, hAB.isConnected.isPreconnected.of_isOpen_of_union_eq_univ
-      hAB.nonempty (f.complTube hδε).isOpen f.isOpen_range ?_⟩
+  refine hAB.of_isOpen_of_union_eq_univ (f.complTube hδε).isOpen f.isOpen_range ?_
   rw [← compl_subset_iff_union]
   intro x hx
   rw [mem_compl_iff, SetLike.mem_coe, mem_complTube, not_not] at hx
@@ -188,19 +183,11 @@ theorem map_inclusion_complTube_bijective (hδ : 0 ≤ δ) (hδε : δ < ε) (x 
   have hAB := f.complTube_inter_range_comp_annulusToProdBall_zero hδ hδε
   have hABc := hAB ▸ f.isPathConnected_range_comp_annulusToProdBall hδ hδε
   obtain ⟨y, hy⟩ := hABc.nonempty
-  have hP := TauCeti.isPushout_fundamentalGroup_union (f.compl_range_eq_complTube_union hδ hδε)
-    (f.complTube hδε).isOpen (f.isOpenEmbedding_comp_annulusToProdBall 0).isOpen_range
-    (f.isPathConnected_complTube hδ hδε)
-    (f.isPathConnected_range_comp_annulusToProdBall le_rfl (hδ.trans_lt hδε)) hABc y hy.1 hy.2
-  have : CategoryTheory.IsIso (GrpCat.ofHom (FundamentalGroup.map
-      (ContinuousMap.inclusion inter_subset_right) (⟨y, hy⟩ : ↥((f.complTube hδε : Set M) ∩
-        range (f ∘ annulusToProdBall : Q × annulus ℂ 0 ε → M))))) :=
-    (CategoryTheory.ConcreteCategory.isIso_iff_bijective _).2
-      (f.map_inclusion_collar_bijective hδ hδε ⟨y, hy⟩)
-  have hy' := (CategoryTheory.ConcreteCategory.isIso_iff_bijective _).1 hP.isIso_inl_of_isIso
-  have : PathConnectedSpace (f.complTube hδε : Set M) :=
-    isPathConnected_iff_pathConnectedSpace.1 (f.isPathConnected_complTube hδ hδε)
-  exact FundamentalGroup.map_bijective_of_path _ (PathConnectedSpace.somePath _ x) hy'
+  exact FundamentalGroup.map_inclusion_bijective_of_map_inclusion_bijective
+    (f.compl_range_eq_complTube_union hδ hδε) (f.complTube hδε).isOpen
+    (f.isOpenEmbedding_comp_annulusToProdBall 0).isOpen_range (f.isPathConnected_complTube hδ hδε)
+    (f.isPathConnected_range_comp_annulusToProdBall le_rfl (hδ.trans_lt hδε)) hABc hy.1 hy.2
+    (f.map_inclusion_collar_bijective hδ hδε ⟨y, hy⟩) x
 
 /-- For a product neighbourhood `f` of an embedding `ι` of a compact, path connected `Q` into a
 connected Hausdorff manifold `M`, and `0 ≤ δ < ε`, the complement of the closed tube

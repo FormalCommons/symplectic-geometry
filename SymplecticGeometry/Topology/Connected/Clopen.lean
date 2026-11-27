@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Connected.Clopen
+public import Mathlib.Topology.Connected.LocallyPathConnected
 public import Mathlib.Topology.Order.Basic
 
 /-!
@@ -33,6 +34,8 @@ with boundary, this shows that the interior of a connected manifold is connected
   the neighbourhoods taken inside `U`.
 * `IsPreconnected.of_isOpen_of_union_eq_univ`: in a preconnected space covered by open sets `s`
   and `t` that meet in a nonempty preconnected set, `s` is preconnected.
+* `IsPathConnected.of_isOpen_of_union_eq_univ`: the same for path connectedness, in a locally
+  path connected space.
 * `Continuous.induction₂_of_mapsTo_nhds`: for a continuous map `γ` from a preconnected linearly
   ordered space, and a neighbourhood `U b` of each point `b` of the target, a transitive relation
   that holds between any two points of each closed interval that `γ` maps into some `U b` holds
@@ -301,6 +304,14 @@ theorem IsPreconnected.of_isOpen_of_union_eq_univ [PreconnectedSpace X] {s t : S
     hdisj' with h | h
   · exact Or.inl (key u v hu hv hsuv hdisj h)
   · exact Or.inr (key v u hv hu (union_comm u v ▸ hsuv) (inter_comm u v ▸ hdisj) h)
+
+/-- In a preconnected, locally path connected space covered by two open sets `s` and `t` whose
+intersection is path connected, `s` is path connected. -/
+theorem IsPathConnected.of_isOpen_of_union_eq_univ [PreconnectedSpace X]
+    [LocallyPathConnectedSpace X] {s t : Set X} (hst : IsPathConnected (s ∩ t)) (hs : IsOpen s)
+    (ht : IsOpen t) (hunion : s ∪ t = univ) : IsPathConnected s :=
+  hs.isConnected_iff_isPathConnected.1 ⟨hst.nonempty.mono inter_subset_left,
+    hst.isConnected.isPreconnected.of_isOpen_of_union_eq_univ hst.nonempty hs ht hunion⟩
 
 open Set Filter Topology in
 /-- **Local-to-global along a continuous map out of an ordered space.** Let `γ` be a continuous
