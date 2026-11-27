@@ -629,6 +629,150 @@ theorem coordForm_liftChart_trans_blowupModelChart (i k : Fin (n + 1)) {z : Blow
 
 end CoordForm
 
+section CanonicalBundleEquiv
+
+open scoped TensorProduct TauCeti.ModuleTopology
+
+variable {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) → ℂ) M]
+  [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] {p₀ : M} (c : BlowupChart (n := n) M p₀)
+  [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- The map `σ ⊗ a ↦ a • σ ∘ L` from the fibre at `z` of `π^*K_M ⊗ 𝒪(nE)` to that of the
+canonical bundle of the blowup, for a linear map `L` from the tangent space at `z` to that at
+the blowdown of `z`. -/
+private def tmulComp (z : Blowup c)
+    (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z)) :
+    (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
+      ((hypersurfaceData c).lineBundleCore n).Fiber z) →ₗ[ℂ]
+      TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z :=
+  TensorProduct.lift ((LinearMap.lsmul ℂ _).flip ∘ₗ
+    ContinuousAlternatingMap.compContinuousLinearMapₗ L)
+
+private theorem tmulComp_tmul (z : Blowup c)
+    (L : TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z))
+    (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) (a : ℂ) :
+    tmulComp c z L (TensorProduct.tmul ℂ
+        (M := Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z)
+        (N := ((hypersurfaceData c).lineBundleCore n).Fiber z) σ a) =
+      a • σ.compContinuousLinearMap L :=
+  (rfl)
+
+/-- The differential of the blowdown in the chart `none`, and in the chart `some i` the
+differential of the chart `χᵢ = blowupModelChart i ∘ liftChart c c` of the blowup followed by
+the inverse of that of `c`. -/
+private def chartDeriv : Option (Fin (n + 1)) → (z : Blowup c) →
+    (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) z →L[ℂ]
+      TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c z))
+  | none, z => mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c) z
+  | some i, z =>
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse ∘L
+      mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+        ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans (blowupModelChart i)) z
+
+/-- A point of the chart `some i` lies in the source of the chart `χᵢ` of the blowup, and its
+blowdown in the source of `c`. -/
+private theorem mem_source_of_mem_U_some {i : Fin (n + 1)} {z : Blowup c}
+    (hz : z ∈ (hypersurfaceData c).U (some i)) :
+    z ∈ ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+      (blowupModelChart i)).source ∧ blowdown c z ∈ c.source ∧ liftChart c c z = lift c z := by
+  rw [hypersurfaceData_U_some] at hz
+  have hx := blowdown_mem_source c hz.1
+  have hl := liftChart_self c hx
+  refine ⟨?_, hx, hl⟩
+  have hs : (liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.source =
+      blowdown c ⁻¹' c.source :=
+    liftChartPartialDiffeomorph_source c c
+  rw [OpenPartialHomeomorph.trans_source, hs]
+  refine ⟨hx, ?_⟩
+  simp only [mem_preimage, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
+    coe_liftChartPartialDiffeomorph, hl]
+  exact hz.2
+
+/-- The differential of a chart of the maximal atlas is invertible on its source. -/
+private theorem isInvertible_mfderiv_of_mem_maximalAtlas {X : Type*} [TopologicalSpace X]
+    [ChartedSpace (Fin (n + 1) → ℂ) X] [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω X]
+    {e : OpenPartialHomeomorph X (Fin (n + 1) → ℂ)}
+    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω X) {x : X} (hx : x ∈ e.source) :
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e x).IsInvertible := by
+  have h := isInvertible_mfderiv_extend (I := 𝓘(ℂ, Fin (n + 1) → ℂ))
+    (IsManifold.maximalAtlas_subset_of_le le_top he) hx
+  rwa [OpenPartialHomeomorph.extend_coe, modelWithCornersSelf_coe, Function.id_comp] at h
+
+/-- On the chart `j`, the map `chartDeriv c j` is invertible. -/
+private theorem isInvertible_chartDeriv {j : Option (Fin (n + 1))} {z : Blowup c}
+    (hz : z ∈ (hypersurfaceData c).U j) : (chartDeriv c j z).IsInvertible := by
+  cases j with
+  | none =>
+    rw [hypersurfaceData_U_none, SetLike.mem_coe, mem_offDivisorOpens] at hz
+    exact (isLocalDiffeomorphAt_blowdown c hz).isInvertible_mfderiv (by simp)
+  | some i =>
+    obtain ⟨hzχ, hx, -⟩ := mem_source_of_mem_U_some c hz
+    exact (isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx).inverse.comp
+      (isInvertible_mfderiv_of_mem_maximalAtlas (liftChart_mem_maximalAtlas c c i) hzχ)
+
+/-- A top-degree form `s` on the model, pulled back by `A`, is `s b` times the determinant form
+of `b` pulled back by `A`. -/
+private theorem compContinuousLinearMap_eq_apply_smul {V : Type*} [AddCommGroup V]
+    [Module ℂ V] [TopologicalSpace V]
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ))
+    (s : (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ)
+    (A : V →L[ℂ] Fin (n + 1) → ℂ) :
+    s.compContinuousLinearMap A = s b • b.continuousDet.compContinuousLinearMap A := by
+  conv_lhs => rw [← b.topFormEquiv.symm_apply_apply s, Module.Basis.topFormEquiv_symm_eq_smul,
+    Module.Basis.topFormEquiv_apply]
+  ext v
+  simp
+
+/-- In the chart `some k`, a form `σ` composed with `chartDeriv c (some k) z` is `μ` times the
+coordinate form of the chart `χₖ`, where `μ` is the value on `b` of `σ` read in the chart `c`. -/
+private theorem compContinuousLinearMap_chartDeriv_some
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) (k : Fin (n + 1))
+    (z : Blowup c) (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) :
+    σ.compContinuousLinearMap (chartDeriv c (some k) z) =
+      σ.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse b •
+        b.continuousDet.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+            ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+              (blowupModelChart k)) z) := by
+  refine Eq.trans ?_ (compContinuousLinearMap_eq_apply_smul b (σ.compContinuousLinearMap
+    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse) _)
+  ext v
+  simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  rfl
+
+/-- In the chart `some i`, a form `σ` composed with the differential of the blowdown is `μ`
+times `(w i) ^ n` times the coordinate form of the chart `χᵢ`, with `μ` as in
+`compContinuousLinearMap_chartDeriv_some`. -/
+private theorem compContinuousLinearMap_chartDeriv_none
+    (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ)) {i : Fin (n + 1)}
+    {z : Blowup c} (hz : z ∈ (hypersurfaceData c).U (some i))
+    (σ : TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M (blowdown c z)) :
+    σ.compContinuousLinearMap (chartDeriv c none z) =
+      σ.compContinuousLinearMap
+          (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).inverse b •
+        ((lift c z).blowdown i ^ n •
+          b.continuousDet.compContinuousLinearMap
+            (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ)
+              ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
+                (blowupModelChart i)) z)) := by
+  obtain ⟨hzχ, hx, hl⟩ := mem_source_of_mem_U_some c hz
+  set D := mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)
+  have hD : D.IsInvertible := isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx
+  have h := coordForm_blowdown c c b i hzχ
+  rw [hl, blowupModelChart_apply_self] at h
+  rw [← h]
+  refine Eq.trans ?_ (compContinuousLinearMap_eq_apply_smul b (σ.compContinuousLinearMap D.inverse)
+    ((mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)).comp
+      (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (blowdown c) z)))
+  ext v
+  simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  exact congrArg σ (funext fun j ↦ (hD.inverse_apply_self _).symm)
+
+end CanonicalBundleEquiv
+
 end Blowup
 
 end SymplecticGeometry
