@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.FiberBundle.Pullback
+public import Mathlib.Topology.Algebra.Module.ModuleTopology
+public import Mathlib.Topology.VectorBundle.Constructions
 
 /-!
 # Maps into a pull-back bundle
@@ -28,6 +30,16 @@ lift to the total space of `V` are. The proof is that of `Bundle.Pullback.contin
 * `Bundle.Pullback.continuous_totalSpaceMk_trivial`: a family of maps from the model fibre `F` to
   the fibres of `V` along `f : X → B`, continuous on `X × F`, is continuous from the trivial
   bundle `Bundle.Trivial X F` to the pull-back `f *ᵖ V`.
+* `Bundle.Pullback.instIsModuleTopologySMul`: a fibre of `f *ᵖ E` carries the module topology
+  for Tau Ceti's scalar action `Bundle.Pullback.instSMul` when the fibre of `E` it comes from
+  does.
+
+Tau Ceti's `Bundle.Pullback.instSMul` gives the fibres of `f *ᵖ E` a scalar action of their own,
+which agrees with the action of their module structure only once instances are unfolded. Where
+it is in scope, as here and in every file that imports this one, `IsModuleTopology R ((f *ᵖ E) y)`
+is stated for that action, and `Bundle.Pullback.instIsModuleTopology` of
+`SymplecticGeometry/Topology/VectorBundle/Pullback.lean`, which is for the action of the module
+structure, is not found for it; `Bundle.Pullback.instIsModuleTopologySMul` covers that case.
 -/
 
 public section
@@ -58,6 +70,15 @@ theorem continuous_totalSpaceMk_trivial {f : X → B} {φ : ∀ y, F → V (f y)
       TotalSpace.mk' F (E := f *ᵖ V) p.proj (φ p.proj p.snd) :=
   Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj F _,
     hφ.comp (Trivial.homeomorphProd X F).continuous⟩
+
+/-- A fibre of the pull-back `f *ᵖ E` carries the module topology, for Tau Ceti's scalar action
+`Bundle.Pullback.instSMul`, when the fibre of `E` it comes from does. The instance for the action
+of the fibre's module structure is `Bundle.Pullback.instIsModuleTopology`. -/
+instance instIsModuleTopologySMul {R : Type*} [Semiring R] [TopologicalSpace R] {E : B → Type*}
+    [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)]
+    (f : X → B) (y : X) [IsModuleTopology R (E (f y))] :
+    @IsModuleTopology R _ ((f *ᵖ E) y) _ (Bundle.Pullback.instSMul f y) _ :=
+  inferInstanceAs (IsModuleTopology R (E (f y)))
 
 end Bundle.Pullback
 

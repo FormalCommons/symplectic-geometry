@@ -79,6 +79,11 @@ continuity of multiplication by a scalar on the fibres, for the action of their 
 `Bundle.Pullback.instT2Space`, `instModuleFinite` and `instIsModuleTopology` carry the Hausdorff
 property, finiteness and the module topology of `E (f y)` to `(f *ᵖ E) y`; each asks for it on
 `E (f y)` alone, so that it applies to tangent spaces, whose instances hold at each point.
+`instIsModuleTopology` is for the action of the fibres' module structure. A file that imports
+`TauCeti.Topology.FiberBundle.Pullback` states `IsModuleTopology` on these fibres for Tau Ceti's
+action `Bundle.Pullback.instSMul` instead; the instance for that action is
+`Bundle.Pullback.instIsModuleTopologySMul` of
+`SymplecticGeometry/Topology/FiberBundle/Pullback.lean`.
 
 `Bundle.Pullback.castEquiv f h χ` carries a continuous linear equivalence `χ : F ≃L[R] E a` to
 the fibre `(f *ᵖ E) b` along an equation `h : a = f b`, as for a frame of `E` at a point read
@@ -386,8 +391,9 @@ instance instModuleFinite {R : Type*} [Semiring R] [∀ b, AddCommMonoid (E b)]
     [∀ b, Module R (E b)] [Module.Finite R (E (f y))] : Module.Finite R ((f *ᵖ E) y) :=
   inferInstanceAs (Module.Finite R (E (f y)))
 
-/-- A fibre of the pull-back `f *ᵖ E` carries the module topology when the fibre of `E` it comes
-from does. -/
+/-- A fibre of the pull-back `f *ᵖ E` carries the module topology, for the scalar action of its
+module structure, when the fibre of `E` it comes from does. The instance for Tau Ceti's action
+`Bundle.Pullback.instSMul` is `Bundle.Pullback.instIsModuleTopologySMul`. -/
 instance instIsModuleTopology {R : Type*} [Semiring R] [TopologicalSpace R]
     [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)] [∀ b, TopologicalSpace (E b)]
     [IsModuleTopology R (E (f y))] : IsModuleTopology R ((f *ᵖ E) y) :=
