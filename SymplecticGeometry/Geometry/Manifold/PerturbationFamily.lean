@@ -6,13 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.RegularValue
-import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
-import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
-import TauCeti.Algebra.Group.Prod
+import SymplecticGeometry.Data.List.Pi
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Foldr
+import SymplecticGeometry.Geometry.Manifold.RegularValue.Slice
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.Diffeomorph.Perturbation
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.RegularValue.Open
 
 /-!
 # Submersive families of perturbations of a map from a compact manifold
@@ -39,10 +38,6 @@ contains `N × B(0, ε)` for some `ε > 0`.
 
 ## Main results
 
-* `TauCeti.isRegularPoint_fst_prodMk_iff`: the map `p ↦ (p.1, F p)` is regular at `p` exactly
-  when the slice `q ↦ F (p.1, q)` is regular at `p.2`.
-* `TauCeti.isOpen_setOf_isRegularPoint_slice`: for a `C¹` map `F : P × Q → M`, the points `p`
-  where the slice `q ↦ F (p.1, q)` is regular form an open set.
 * `SymplecticGeometry.exists_contMDiff_family_isRegularPoint`: a smooth family of maps of `M`,
   equal to the identity at the parameter `0`, which moves every point near a given one in all
   directions.
@@ -61,79 +56,6 @@ public section
 
 open Function Set Metric Topology
 open scoped Manifold ContDiff
-
-namespace List
-
-/-- Applying in turn the maps `φ i (s i)`, for `i` in a duplicate-free list `l`, to `z`, where
-`s` is supported at `k` and every `φ i 0` is the identity, gives `φ k (s k) z` if `k ∈ l` and
-`z` if not. -/
-theorem foldr_pi_single_eq {ι α β : Type*} [DecidableEq ι] [Zero α] {φ : ι → α → β → β}
-    (hφ0 : ∀ i, φ i 0 = id) (k : ι) (d : α) (z : β) {l : List ι} (hl : l.Nodup) :
-    l.foldr (fun i w ↦ φ i (Pi.single (M := fun _ ↦ α) k d i) w) z =
-      if k ∈ l then φ k d z else z := by
-  induction l with
-  | nil => simp
-  | cons i l ih =>
-    rw [List.nodup_cons] at hl
-    rw [List.foldr_cons, ih hl.2]
-    by_cases hik : i = k
-    · subst hik
-      simp [hl.1]
-    · simp [hφ0, Ne.symm hik]
-
-end List
-
-namespace TauCeti
-
-section Slice
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {EP : Type*} [NormedAddCommGroup EP] [NormedSpace 𝕜 EP]
-  {HP : Type*} [TopologicalSpace HP] {IP : ModelWithCorners 𝕜 EP HP}
-  {P : Type*} [TopologicalSpace P] [ChartedSpace HP P]
-  {EQ : Type*} [NormedAddCommGroup EQ] [NormedSpace 𝕜 EQ]
-  {HQ : Type*} [TopologicalSpace HQ] {IQ : ModelWithCorners 𝕜 EQ HQ}
-  {Q : Type*} [TopologicalSpace Q] [ChartedSpace HQ Q]
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- The map `p ↦ (p.1, F p)` is regular at `p` exactly when the slice `q ↦ F (p.1, q)` of `F` is
-regular at `p.2`. -/
-theorem isRegularPoint_fst_prodMk_iff {F : P × Q → M} {p : P × Q}
-    (hF : MDifferentiableAt (IP.prod IQ) I F p) :
-    IsRegularPoint (IP.prod IQ) (IP.prod I) (fun p ↦ (p.1, F p)) p ↔
-      IsRegularPoint IQ I (fun q ↦ F (p.1, q)) p.2 := by
-  obtain ⟨x, q⟩ := p
-  have hslice : mfderiv IQ I (fun q ↦ F (x, q)) q =
-      (mfderiv (IP.prod IQ) I F (x, q)).comp
-        (ContinuousLinearMap.inr 𝕜 (TangentSpace IP x) (TangentSpace IQ q)) := by
-    have h := mfderiv_comp (I := IQ) (I' := IP.prod IQ) (f := fun q : Q ↦ (x, q)) (g := F) q hF
-      (mdifferentiableAt_const.prodMk mdifferentiableAt_id)
-    rw [mfderiv_prod_right] at h
-    exact h
-  rw [isRegularPoint_iff, isRegularPoint_iff, mfderiv_prodMk mdifferentiableAt_fst hF,
-    mfderiv_fst, hslice]
-  exact (mfderiv (IP.prod IQ) I F (x, q)).toLinearMap.toAddMonoidHom.surjective_fst_prod_iff
-
-variable [CompleteSpace 𝕜] [FiniteDimensional 𝕜 EP] [FiniteDimensional 𝕜 E]
-  [IsManifold IP 1 P] [IsManifold IQ 1 Q] [IsManifold I 1 M]
-
-/-- **Regularity of slices is an open condition.** For a `C¹` map `F : P × Q → M`, the points `p`
-of `P × Q` at which the slice `q ↦ F (p.1, q)` is regular form an open set. -/
-theorem isOpen_setOf_isRegularPoint_slice {n : ℕ∞ω} {F : P × Q → M}
-    (hF : ContMDiff (IP.prod IQ) I n F) (hn : 1 ≤ n) :
-    IsOpen {p : P × Q | IsRegularPoint IQ I (fun q ↦ F (p.1, q)) p.2} := by
-  have hF' : ContMDiff (IP.prod IQ) (IP.prod I) n fun p : P × Q ↦ (p.1, F p) :=
-    contMDiff_fst.prodMk hF
-  convert isOpen_setOf_isRegularPoint hF' hn using 1
-  ext p
-  exact (isRegularPoint_fst_prodMk_iff
-    ((hF p).mdifferentiableAt (zero_lt_one.trans_le hn).ne')).symm
-
-end Slice
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -199,26 +121,12 @@ theorem exists_contMDiff_family_isRegularPoint (hn : 1 ≤ n) (y : M) :
     (fun d ↦ S d p.1) p.2}, hO.preimage (continuous_id.prodMk continuous_const), hreg,
     fun d ↦ S d, hS, hS0, fun z hz ↦ hz⟩
 
-omit [FiniteDimensional ℝ E] [T2Space M] [BoundarylessManifold I M] [IsManifold I n M] in
-/-- Applying in turn the maps `φ i (s i)`, for `i` in a list `l`, depends jointly `C^n`-smoothly
-on `s` and the starting point when each `φ i` does. -/
-theorem _root_.List.contMDiff_foldr {ι : Type*} [Fintype ι] {φ : ι → E → M → M}
-    (hφ : ∀ i, ContMDiff (𝓘(ℝ, E).prod I) I n (fun q : E × M ↦ φ i q.1 q.2)) (l : List ι) :
-    ContMDiff (𝓘(ℝ, ι → E).prod I) I n
-      (fun q : (ι → E) × M ↦ l.foldr (fun i w ↦ φ i (q.1 i) w) q.2) := by
-  induction l with
-  | nil => exact contMDiff_snd
-  | cons i l ih =>
-    have hi : ContMDiff (𝓘(ℝ, ι → E).prod I) 𝓘(ℝ, E) n (fun q : (ι → E) × M ↦ q.1 i) :=
-      (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : ι ↦ E) i).contMDiff.comp contMDiff_fst
-    exact (hφ i).comp (hi.prodMk ih)
-
 variable {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
   {HN : Type*} [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN}
-  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [CompactSpace N] [IsManifold J n N]
+  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [CompactSpace N] [IsManifold J 1 N]
 
 /-- **A submersive family of perturbations.** Let `g : N → M` be a `C^n` map, `1 ≤ n`, from a
-compact `C^n` manifold `N` to a Hausdorff boundaryless `C^n` manifold `M`, both modelled on
+compact `C¹` manifold `N` to a Hausdorff boundaryless `C^n` manifold `M`, both modelled on
 finite-dimensional real spaces, `M` on `E`. There are `m : ℕ`, `ε > 0` and a `C^n` map
 `F : N × (Fin m → E) → M` with `F (x, 0) = g x` for every `x`, such that for every `x` and every
 parameter `s` in the ball `B(0, ε)`, the map `s ↦ F (x, s)` is regular at `s`, and so `F` itself
@@ -231,7 +139,6 @@ theorem _root_.ContMDiff.exists_isRegularPoint_perturbation {g : N → M} (hg : 
         IsRegularPoint 𝓘(ℝ, Fin m → E) I (fun s ↦ F (x, s)) s ∧
           IsRegularPoint (J.prod 𝓘(ℝ, Fin m → E)) I F (x, s) := by
   have : IsManifold I 1 M := IsManifold.of_le (n := n) (by exact_mod_cast hn)
-  have : IsManifold J 1 N := IsManifold.of_le (n := n) (by exact_mod_cast hn)
   have hn' : (1 : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
   have hn0 : (n : WithTop ℕ∞) ≠ 0 := (zero_lt_one.trans_le hn').ne'
   -- A family of local motions about each point, and finitely many covering the image of `g`.
@@ -246,11 +153,7 @@ theorem _root_.ContMDiff.exists_isRegularPoint_perturbation {g : N → M} (hg : 
   let F : N × (Fin m → E) → M := fun p ↦ (List.finRange m).foldr (fun i w ↦ ψ i (p.2 i) w) (g p.1)
   have hF : ContMDiff (J.prod 𝓘(ℝ, Fin m → E)) I n F :=
     (List.contMDiff_foldr (fun i ↦ hφ (ys i)) _).comp (contMDiff_snd.prodMk (hg.comp contMDiff_fst))
-  have hF0 (x : N) : F (x, 0) = g x := by
-    simp only [F]
-    induction (List.finRange m) with
-    | nil => rfl
-    | cons i l ih => rw [List.foldr_cons, Pi.zero_apply, hψ0, id, ih]
+  have hF0 (x : N) : F (x, 0) = g x := List.foldr_fixed' (fun i ↦ by simp [hψ0]) _
   -- At the parameter `0`, every slice is regular.
   have hreg0 (x : N) : IsRegularPoint 𝓘(ℝ, Fin m → E) I (fun s ↦ F (x, s)) 0 := by
     obtain ⟨y, hyt, hxy⟩ := mem_iUnion₂.1 (ht (mem_range_self x))
