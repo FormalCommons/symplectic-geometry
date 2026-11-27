@@ -12,6 +12,7 @@ import SymplecticGeometry.Algebra.Order.Ring.Basic
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
+import SymplecticGeometry.Topology.Order.Compact
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.SecondDerivative
 
@@ -74,7 +75,9 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   crossing for the errors of the cube and of the square of the slope, which may have either sign
   (`SymplecticGeometry.abs_mul_pow_three_add_mul_pow_three_sub_pow_three_le`). Both proofs take
   the trade-off between these errors and the curvature from
-  `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt`.
+  `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt`, and the
+  distance between the two functions away from their crossings from
+  `IsCompact.exists_pos_forall_le_abs_sub_of_mem_nhdsSet`.
 
 The proof evaluates `SymplecticGeometry.re_leviForm_comp_shape_apply_self`. On a complex tangency
 `v` the Wirtinger derivatives `σ = ∂s v` and `τ = ∂t v` are proportional, `τ = r / (R χ') σ`, and
@@ -292,19 +295,19 @@ private theorem one_div_smoothedMax_lt_deriv_div {χ₁ χ₂ : ℝ → ℝ} {δ
 
 /-- The second inequality of `isConvexShapeAt_iff` for the smoothed maximum of two `i`-convex
 shapes at `r`, given a margin `a` in it for both, upper bounds `G` and `Q` for the error made by
-the cube of the slope, and `δ`, `ε`, `c` so small that the curvature `c / δ` of `smoothedAbs δ`
-makes up for that error where the weight `smoothedSign δ (χ₁ r - χ₂ r)` is in `[-1 + ε, 1 - ε]`,
-and `ε G < a` where it is not. -/
-private theorem one_div_smoothedMax_lt_iteratedDeriv_add {χ₁ χ₂ : ℝ → ℝ} {δ a G Q c ε : ℝ}
+the cube of the slope, and the bound of
+`exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` at `χ₁ r - χ₂ r`, by which the
+curvature of `smoothedAbs δ` makes up for that error. -/
+private theorem one_div_smoothedMax_lt_iteratedDeriv_add {χ₁ χ₂ : ℝ → ℝ} {δ a G Q : ℝ}
     (h₁ : ContDiff ℝ 2 χ₁) (h₂ : ContDiff ℝ 2 χ₂) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
-    (hc₂ : IsConvexShapeAt χ₂ r) (hε : 0 < ε)
+    (hc₂ : IsConvexShapeAt χ₂ r)
     (ha₁ : a ≤ iteratedDeriv 2 χ₁ r + deriv χ₁ r ^ 3 / r - 1 / χ₁ r)
     (ha₂ : a ≤ iteratedDeriv 2 χ₂ r + deriv χ₂ r ^ 3 / r - 1 / χ₂ r)
     (hG : (deriv χ₁ r - deriv χ₂ r) ^ 2 * ((deriv χ₁ r + deriv χ₂ r) / r) ≤ G)
-    (hQ : (deriv χ₁ r + deriv χ₂ r) / r ≤ Q) (hεG : ε * G < a)
-    (hc : |smoothedSign δ (χ₁ r - χ₂ r)| ≤ 1 - ε →
-      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) (χ₁ r - χ₂ r))
-    (hδQ : δ * Q ≤ c) :
+    (hQ : (deriv χ₁ r + deriv χ₂ r) / r ≤ Q)
+    (hL : ∀ {g T : ℝ}, 0 ≤ g → 0 ≤ T → T ≤ Q → g * T ≤ G →
+      (1 - smoothedSign δ (χ₁ r - χ₂ r) ^ 2) / 2 * (g * T) <
+        a + iteratedDeriv 2 (smoothedAbs δ) (χ₁ r - χ₂ r) * g / 2) :
     1 / smoothedMax δ (χ₁ r) (χ₂ r) < iteratedDeriv 2 (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r +
       deriv (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r ^ 3 / r := by
   have hr := hc₁.pos
@@ -341,27 +344,27 @@ private theorem one_div_smoothedMax_lt_iteratedDeriv_add {χ₁ χ₂ : ℝ → 
     nlinarith [mul_le_mul_of_nonneg_left ha₁ hw₀,
       mul_le_mul_of_nonneg_left ha₂ (sub_nonneg.2 hw₁)]
   have hT : 0 ≤ (x + y) / r := by positivity
-  have h := one_sub_smoothedSign_sq_div_two_mul_lt hδ hε (sq_nonneg (x - y)) hT hQ hG hεG hc hδQ
+  have h := hL (sq_nonneg (x - y)) hT hQ hG
   linarith
 
 /-- The pointwise step of `exists_isConvexShapeAt_eq_max`: at `r`, the smoothed maximum of two
 `i`-convex shapes is one, under the hypotheses of
 `one_div_smoothedMax_lt_iteratedDeriv_add`. -/
-private theorem isConvexShapeAt_smoothedMax_of_le {χ₁ χ₂ : ℝ → ℝ} {δ a G Q c ε : ℝ}
+private theorem isConvexShapeAt_smoothedMax_of_le {χ₁ χ₂ : ℝ → ℝ} {δ a G Q : ℝ}
     (h₁ : ContDiff ℝ 2 χ₁) (h₂ : ContDiff ℝ 2 χ₂) (hδ : 0 < δ) (hc₁ : IsConvexShapeAt χ₁ r)
-    (hc₂ : IsConvexShapeAt χ₂ r) (hε : 0 < ε)
+    (hc₂ : IsConvexShapeAt χ₂ r)
     (ha₁ : a ≤ iteratedDeriv 2 χ₁ r + deriv χ₁ r ^ 3 / r - 1 / χ₁ r)
     (ha₂ : a ≤ iteratedDeriv 2 χ₂ r + deriv χ₂ r ^ 3 / r - 1 / χ₂ r)
     (hG : (deriv χ₁ r - deriv χ₂ r) ^ 2 * ((deriv χ₁ r + deriv χ₂ r) / r) ≤ G)
-    (hQ : (deriv χ₁ r + deriv χ₂ r) / r ≤ Q) (hεG : ε * G < a)
-    (hc : |smoothedSign δ (χ₁ r - χ₂ r)| ≤ 1 - ε →
-      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) (χ₁ r - χ₂ r))
-    (hδQ : δ * Q ≤ c) :
+    (hQ : (deriv χ₁ r + deriv χ₂ r) / r ≤ Q)
+    (hL : ∀ {g T : ℝ}, 0 ≤ g → 0 ≤ T → T ≤ Q → g * T ≤ G →
+      (1 - smoothedSign δ (χ₁ r - χ₂ r) ^ 2) / 2 * (g * T) <
+        a + iteratedDeriv 2 (smoothedAbs δ) (χ₁ r - χ₂ r) * g / 2) :
     IsConvexShapeAt (fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r)) r :=
   isConvexShapeAt_iff.2 ⟨hc₁.pos, hc₁.pos_value.trans_le
     ((le_max_left _ _).trans (max_le_smoothedMax hδ _ _)),
     one_div_smoothedMax_lt_deriv_div h₁ h₂ hδ hc₁ hc₂,
-    one_div_smoothedMax_lt_iteratedDeriv_add h₁ h₂ hδ hc₁ hc₂ hε ha₁ ha₂ hG hQ hεG hc hδQ⟩
+    one_div_smoothedMax_lt_iteratedDeriv_add h₁ h₂ hδ hc₁ hc₂ ha₁ ha₂ hG hQ hL⟩
 
 /-- **The smoothed maximum of two `i`-convex shapes.** Let `χ₁` and `χ₂` be `C²` and `i`-convex
 shapes at every point of `[r₁, r₂]`, and let `O` be a neighbourhood of the set where they cross.
@@ -378,7 +381,6 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
     ∃ χ : ℝ → ℝ, (∀ n : ℕ∞, ContDiff ℝ n χ₁ → ContDiff ℝ n χ₂ → ContDiff ℝ n χ) ∧
       (∀ r ∈ Set.Icc r₁ r₂, IsConvexShapeAt χ r) ∧
       ∀ r ∈ Set.Icc r₁ r₂ \ O, χ r = max (χ₁ r) (χ₂ r) := by
-  obtain ⟨U, hU, hDU, hUO⟩ := mem_nhdsSet_iff_exists.1 hO
   have hd₁ := h₁.continuous_deriv one_le_two
   have hd₂ := h₂.continuous_deriv one_le_two
   have hr₀ : ∀ r ∈ Set.Icc r₁ r₂, r ≠ 0 := fun r hr ↦ (hc₁ r hr).pos.ne'
@@ -401,34 +403,20 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
   obtain ⟨Q, hQ⟩ := isCompact_Icc.exists_bound_of_continuousOn hcq
   obtain ⟨G, hG⟩ := isCompact_Icc.exists_bound_of_continuousOn
     (((hd₁.sub hd₂).pow 2).continuousOn.mul hcq)
-  have hG₀ : 0 ≤ |G| := abs_nonneg G
-  set a := min a₁ a₂
-  have ha : 0 < a := lt_min ha₁ ha₂
-  set ε := a / (2 * (|G| + 1))
-  have hε : 0 < ε := by positivity
-  have hεG : ε * |G| < a := by
-    rw [div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
-    nlinarith
-  obtain ⟨c, hc, hcδ⟩ := exists_pos_div_le_iteratedDeriv_two_smoothedAbs hε
-  -- A lower bound `β` for `|χ₁ - χ₂|` on `[r₁, r₂]` outside `U`.
-  obtain ⟨β, hβ, hβD⟩ := (isCompact_Icc.diff hU).exists_forall_le'
-    ((h₁.continuous.sub h₂.continuous).abs.continuousOn) fun r hr ↦
-      abs_pos.2 (sub_ne_zero.2 fun h ↦ hr.2 (hDU h))
-  set δ := min (c / (|Q| + 1)) β
-  have hδ : 0 < δ := lt_min (by positivity) hβ
+  obtain ⟨δ₀, hδ₀, hL⟩ :=
+    exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt (lt_min ha₁ ha₂) G Q
+  -- A lower bound `β` for `|χ₁ - χ₂|` on `[r₁, r₂]` outside `O`.
+  obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
+    h₁.continuous.continuousOn h₂.continuous.continuousOn hO
+  set δ := min δ₀ β
+  have hδ : 0 < δ := lt_min hδ₀ hβ
   refine ⟨fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r), fun n hn₁ hn₂ ↦
     (contDiff_smoothedMax δ).comp (hn₁.prodMk hn₂), fun r hr ↦ ?_, fun r hr ↦ ?_⟩
-  · refine isConvexShapeAt_smoothedMax_of_le h₁ h₂ hδ (hc₁ r hr) (hc₂ r hr) hε
+  · exact isConvexShapeAt_smoothedMax_of_le h₁ h₂ hδ (hc₁ r hr) (hc₂ r hr)
       ((min_le_left _ _).trans (hA₁ r hr)) ((min_le_right _ _).trans (hA₂ r hr))
-      ((Real.le_norm_self _).trans ((hG r hr).trans (le_abs_self G)))
-      ((Real.le_norm_self _).trans ((hQ r hr).trans (le_abs_self Q))) hεG
-      (hcδ δ hδ _) ?_
-    calc δ * |Q| ≤ c / (|Q| + 1) * |Q| := by gcongr; exact min_le_left _ _
-      _ ≤ c := by
-        rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
-        nlinarith
-  · exact smoothedMax_eq_max hδ ((min_le_right _ _).trans
-      (hβD r ⟨hr.1, fun h ↦ hr.2 (hUO h)⟩))
+      ((Real.le_norm_self _).trans (hG r hr)) ((Real.le_norm_self _).trans (hQ r hr))
+      fun hg hT hTQ hgT ↦ hL δ hδ (min_le_left _ _) hg hT hTQ hgT _
+  · exact smoothedMax_eq_max hδ ((min_le_right _ _).trans (hβD r hr))
 
 /-- The **defining function of a shape** `χ`: `(s, t) ↦ χ (√t) - √s`. Composed with
 `shape`, its zero level near `shape p = (χ r ², r ²)` is the hypersurface `R = χ (r)`, with
@@ -1004,25 +992,23 @@ theorem IsConvexShapeOverRAt.re_leviForm_pos (hρ : ContDiffAt ℝ 2 ρ R)
 /-- The pointwise step of `exists_isConvexShapeOverRAt_eq_min`: at `R`, the smoothed minimum
 `-smoothedMax δ (-ρ₁ R) (-ρ₂ R)` of two shapes over `R` is one, given a common lower bound
 `μ ≥ δ` of `ρ₁ R` and `ρ₂ R`, a margin `a` in the last two inequalities of
-`isConvexShapeOverRAt_iff` for both, and bounds `Q`, `G`, `ε`, `c` for
-`one_sub_smoothedSign_sq_div_two_mul_lt`. -/
-private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → ℝ} {δ μ a G Q c ε : ℝ}
+`isConvexShapeOverRAt_iff` for both, bounds `Q` and `G` for the errors, and the bound of
+`exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` at `-ρ₁ R - -ρ₂ R`. -/
+private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → ℝ} {δ μ a G Q : ℝ}
     (h₁ : ContDiff ℝ 2 ρ₁) (h₂ : ContDiff ℝ 2 ρ₂) (hδ : 0 < δ)
-    (hc₁ : IsConvexShapeOverRAt ρ₁ R) (hc₂ : IsConvexShapeOverRAt ρ₂ R) (hε : 0 < ε)
-    (hμ : 0 < μ) (hμ₁ : μ ≤ ρ₁ R) (hμ₂ : μ ≤ ρ₂ R) (hδμ : δ ≤ μ)
+    (hc₁ : IsConvexShapeOverRAt ρ₁ R) (hc₂ : IsConvexShapeOverRAt ρ₂ R) (hμ : 0 < μ)
+    (hμ₁ : μ ≤ ρ₁ R) (hμ₂ : μ ≤ ρ₂ R) (hδμ : δ ≤ μ)
     (ha₁ : a ≤ 1 / ρ₁ R - deriv ρ₁ R ^ 3 / R - iteratedDeriv 2 ρ₁ R)
     (ha₂ : a ≤ 1 / ρ₂ R - deriv ρ₂ R ^ 3 / R - iteratedDeriv 2 ρ₂ R)
     (hb₁ : a ≤ (1 + deriv ρ₁ R ^ 2) / ρ₁ R - iteratedDeriv 2 ρ₁ R)
     (hb₂ : a ≤ (1 + deriv ρ₂ R ^ 2) / ρ₂ R - iteratedDeriv 2 ρ₂ R)
     (hQ : (|deriv ρ₁ R| + |deriv ρ₂ R|) / R + 1 / μ ≤ Q)
-    (hG : (deriv ρ₁ R - deriv ρ₂ R) ^ 2 * Q ≤ G) (hεG : ε * G < a)
-    (hc : |smoothedSign δ (-ρ₁ R - -ρ₂ R)| ≤ 1 - ε →
-      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) (-ρ₁ R - -ρ₂ R))
-    (hδQ : δ * Q ≤ c) :
+    (hG : (deriv ρ₁ R - deriv ρ₂ R) ^ 2 * Q ≤ G)
+    (hL : ∀ {g T : ℝ}, 0 ≤ g → 0 ≤ T → T ≤ Q → g * T ≤ G →
+      (1 - smoothedSign δ (-ρ₁ R - -ρ₂ R) ^ 2) / 2 * (g * T) <
+        a + iteratedDeriv 2 (smoothedAbs δ) (-ρ₁ R - -ρ₂ R) * g / 2) :
     IsConvexShapeOverRAt (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R := by
   have hR := hc₁.pos
-  have hneg (f : ℝ → ℝ) : iteratedDeriv 2 (fun x ↦ -f x) R = -iteratedDeriv 2 f R := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero, deriv.fun_neg']
   -- The value `v` of the smoothed minimum lies in `[μ / 2, min (ρ₁ R) (ρ₂ R)]`.
   set v := -smoothedMax δ (-ρ₁ R) (-ρ₂ R) with hv
   have hm := max_le_smoothedMax hδ (-ρ₁ R) (-ρ₂ R)
@@ -1050,11 +1036,12 @@ private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → �
   have he : iteratedDeriv 2 (fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R)) R =
       -((-iteratedDeriv 2 ρ₁ R + -iteratedDeriv 2 ρ₂ R +
         s * (-iteratedDeriv 2 ρ₁ R - -iteratedDeriv 2 ρ₂ R) + p * (-x - -y) ^ 2) / 2) := by
-    rw [hneg, iteratedDeriv_two_smoothedMax h₁.neg h₂.neg, hneg, hneg]
+    rw [iteratedDeriv_fun_neg, iteratedDeriv_two_smoothedMax h₁.neg h₂.neg, iteratedDeriv_fun_neg,
+      iteratedDeriv_fun_neg]
     simp only [deriv.fun_neg]
     -- The two sides differ only by the local definitions `x`, `y`, `s` and `p`.
     rfl
-  -- The weights `(1 ± s) / 2` and the error terms of `one_sub_smoothedSign_sq_div_two_mul_lt`.
+  -- The weights `(1 ± s) / 2` and the error terms that `hL` bounds.
   have hw₀ : 0 ≤ (1 + s) / 2 := by linarith
   have hw₁ : 0 ≤ (1 - s) / 2 := by linarith
   have hT₀ : 0 ≤ (|x| + |y|) / R := by positivity
@@ -1062,11 +1049,9 @@ private theorem isConvexShapeOverRAt_smoothedMin_of_le {ρ₁ ρ₂ : ℝ → �
   have hgQ (T : ℝ) (hT : T ≤ Q) : (x - y) ^ 2 * T ≤ G :=
     (mul_le_mul_of_nonneg_left hT (sq_nonneg _)).trans hG
   have hL₁ : (1 - s ^ 2) / 2 * ((x - y) ^ 2 * ((|x| + |y|) / R)) < a + p * (x - y) ^ 2 / 2 :=
-    one_sub_smoothedSign_sq_div_two_mul_lt hδ hε (sq_nonneg (x - y)) hT₀
-    (by linarith) (hgQ _ (by linarith)) hεG hc hδQ
+    hL (sq_nonneg (x - y)) hT₀ (by linarith) (hgQ _ (by linarith))
   have hL₂ : (1 - s ^ 2) / 2 * ((x - y) ^ 2 * (1 / μ)) < a + p * (x - y) ^ 2 / 2 :=
-    one_sub_smoothedSign_sq_div_two_mul_lt hδ hε (sq_nonneg (x - y)) hμ₀
-    (by linarith) (hgQ _ (by linarith)) hεG hc hδQ
+    hL (sq_nonneg (x - y)) hμ₀ (by linarith) (hgQ _ (by linarith))
   rw [isConvexShapeOverRAt_iff]
   rw [hd, he, ← hv]
   refine ⟨hR, hv₀, ?_, ?_, ?_⟩
@@ -1130,7 +1115,6 @@ theorem exists_isConvexShapeOverRAt_eq_min {ρ₁ ρ₂ : ℝ → ℝ} {R₁ R�
     ∃ ρ : ℝ → ℝ, (∀ n : ℕ∞, ContDiff ℝ n ρ₁ → ContDiff ℝ n ρ₂ → ContDiff ℝ n ρ) ∧
       (∀ R ∈ Set.Icc R₁ R₂, IsConvexShapeOverRAt ρ R) ∧
       ∀ R ∈ Set.Icc R₁ R₂ \ O, ρ R = min (ρ₁ R) (ρ₂ R) := by
-  obtain ⟨U, hU, hDU, hUO⟩ := mem_nhdsSet_iff_exists.1 hO
   have hd₁ := (h₁.continuous_deriv one_le_two).continuousOn (s := Set.Icc R₁ R₂)
   have hd₂ := (h₂.continuous_deriv one_le_two).continuousOn (s := Set.Icc R₁ R₂)
   have hR₀ : ∀ R ∈ Set.Icc R₁ R₂, R ≠ 0 := fun R hR ↦ (hc₁ R hR).pos.ne'
@@ -1163,43 +1147,29 @@ theorem exists_isConvexShapeOverRAt_eq_min {ρ₁ ρ₂ : ℝ → ℝ} {R₁ R�
   set Q := |Q₀| + 1 / μ
   have hQ₀' : 0 < Q := by positivity
   set G := |B| * Q
-  have hG₀ : 0 ≤ G := by positivity
   have hQ : ∀ R ∈ Set.Icc R₁ R₂, (|deriv ρ₁ R| + |deriv ρ₂ R|) / R + 1 / μ ≤ Q := fun R hR ↦
     add_le_add_left ((Real.le_norm_self _).trans ((hQ₀ R hR).trans (le_abs_self Q₀))) _
   have hG : ∀ R ∈ Set.Icc R₁ R₂, (deriv ρ₁ R - deriv ρ₂ R) ^ 2 * Q ≤ G := fun R hR ↦
     mul_le_mul_of_nonneg_right ((Real.le_norm_self _).trans ((hB R hR).trans (le_abs_self B)))
       hQ₀'.le
-  set a := min a₁ a₂
-  have ha : 0 < a := lt_min ha₁ ha₂
-  set ε := a / (2 * (G + 1))
-  have hε : 0 < ε := by positivity
-  have hεG : ε * G < a := by
-    rw [div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
-    nlinarith
-  obtain ⟨c, hc, hcδ⟩ := exists_pos_div_le_iteratedDeriv_two_smoothedAbs hε
-  -- A lower bound `β` for `|ρ₁ - ρ₂|` on `[R₁, R₂]` outside `U`.
-  obtain ⟨β, hβ, hβD⟩ := (isCompact_Icc.diff hU).exists_forall_le'
-    ((h₁.continuous.sub h₂.continuous).abs.continuousOn) fun R hR ↦
-      abs_pos.2 (sub_ne_zero.2 fun h ↦ hR.2 (hDU h))
-  set δ := min (min (c / (Q + 1)) β) μ
-  have hδ : 0 < δ := lt_min (lt_min (by positivity) hβ) hμ
+  obtain ⟨δ₀, hδ₀, hL⟩ :=
+    exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt (lt_min ha₁ ha₂) G Q
+  -- A lower bound `β` for `|ρ₁ - ρ₂|` on `[R₁, R₂]` outside `O`.
+  obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
+    h₁.continuous.continuousOn h₂.continuous.continuousOn hO
+  set δ := min (min δ₀ β) μ
+  have hδ : 0 < δ := lt_min (lt_min hδ₀ hβ) hμ
   refine ⟨fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R), fun n hn₁ hn₂ ↦
     ((contDiff_smoothedMax δ).comp (hn₁.neg.prodMk hn₂.neg)).neg, fun R hR ↦ ?_, fun R hR ↦ ?_⟩
-  · refine isConvexShapeOverRAt_smoothedMin_of_le h₁ h₂ hδ (hc₁ R hR) (hc₂ R hR) hε hμ
+  · exact isConvexShapeOverRAt_smoothedMin_of_le h₁ h₂ hδ (hc₁ R hR) (hc₂ R hR) hμ
       ((hμR R hR).trans (min_le_left _ _)) ((hμR R hR).trans (min_le_right _ _))
       (min_le_right _ _) ((min_le_left _ _).trans (hA₁ R hR).1)
       ((min_le_right _ _).trans (hA₂ R hR).1) ((min_le_left _ _).trans (hA₁ R hR).2)
-      ((min_le_right _ _).trans (hA₂ R hR).2) (hQ R hR) (hG R hR) hεG (hcδ δ hδ _) ?_
-    calc δ * Q ≤ c / (Q + 1) * Q := by
-          gcongr
-          exact (min_le_left _ _).trans (min_le_left _ _)
-      _ ≤ c := by
-        rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
-        nlinarith
+      ((min_le_right _ _).trans (hA₂ R hR).2) (hQ R hR) (hG R hR)
+      fun hg hT hTQ hgT ↦ hL δ hδ ((min_le_left _ _).trans (min_le_left _ _)) hg hT hTQ hgT _
   · have h : δ ≤ |-ρ₁ R - -ρ₂ R| := by
       rw [neg_sub_neg, abs_sub_comm]
-      exact (min_le_left _ _).trans ((min_le_right _ _).trans
-        (hβD R ⟨hR.1, fun h ↦ hR.2 (hUO h)⟩))
+      exact (min_le_left _ _).trans ((min_le_right _ _).trans (hβD R hR))
     -- `change` only beta-reduces the application of `fun R ↦ …` to `R`.
     change -smoothedMax δ (-ρ₁ R) (-ρ₂ R) = min (ρ₁ R) (ρ₂ R)
     rw [smoothedMax_eq_max hδ h, max_neg_neg, neg_neg]

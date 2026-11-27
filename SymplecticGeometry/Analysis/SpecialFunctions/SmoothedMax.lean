@@ -47,7 +47,9 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `Real.smoothTransition` where its values stay away from `0` and `1`
   (`Real.smoothTransition.exists_pos_le_deriv`).
   `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
-  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use.
+  of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
+  `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
+  below which that bound holds for given margins and bounds.
 * `SymplecticGeometry.convexOn_smoothedAbs`: convexity.
 * `SymplecticGeometry.smoothedAbs_eq_abs`, `SymplecticGeometry.abs_le_smoothedAbs`,
   `SymplecticGeometry.smoothedAbs_le_abs_add`: comparison with `|t|`.
@@ -253,6 +255,30 @@ theorem one_sub_smoothedSign_sq_div_two_mul_lt {δ ε a c g T Q G t : ℝ} (hδ 
       _ ≤ ε * G := by gcongr
       _ < a := hεG
       _ ≤ a + p * g / 2 := by linarith [mul_nonneg hp hg]
+
+/-- **A uniform choice of the smoothing parameter.** For `a > 0` and bounds `G` and `Q` there is
+`δ₀ > 0` such that for every `δ ∈ (0, δ₀]`, all `g ≥ 0` and `T ∈ [0, Q]` with `g T ≤ G`, and
+all `t`, `(1 - s²) / 2 · g T < a + p g / 2`, where `s = smoothedSign δ t` and
+`p = (smoothedAbs δ)'' t`. -/
+theorem exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt {a : ℝ} (ha : 0 < a) (G Q : ℝ) :
+    ∃ δ₀ > 0, ∀ δ, 0 < δ → δ ≤ δ₀ → ∀ {g T : ℝ}, 0 ≤ g → 0 ≤ T → T ≤ Q → g * T ≤ G → ∀ t,
+      (1 - smoothedSign δ t ^ 2) / 2 * (g * T) <
+        a + iteratedDeriv 2 (smoothedAbs δ) t * g / 2 := by
+  set ε := a / (2 * (|G| + 1))
+  have hε : 0 < ε := by positivity
+  have hεG : ε * G < a := by
+    calc ε * G ≤ ε * |G| := by gcongr; exact le_abs_self G
+      _ < a := by
+        rw [div_mul_eq_mul_div, div_lt_iff₀ (by positivity)]
+        nlinarith [abs_nonneg G]
+  obtain ⟨c, hc, hcδ⟩ := exists_pos_div_le_iteratedDeriv_two_smoothedAbs hε
+  refine ⟨c / (|Q| + 1), by positivity, fun δ hδ hδ₀ g T hg hT hTQ hG t ↦
+    one_sub_smoothedSign_sq_div_two_mul_lt hδ hε hg hT hTQ hG hεG (hcδ δ hδ t) ?_⟩
+  calc δ * Q ≤ δ * |Q| := by gcongr; exact le_abs_self Q
+    _ ≤ c / (|Q| + 1) * |Q| := by gcongr
+    _ ≤ c := by
+      rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
+      nlinarith [abs_nonneg Q]
 
 /-- `smoothedAbs δ t = t` for `t ≥ δ > 0`. -/
 theorem smoothedAbs_of_le (hδ : 0 < δ) {t : ℝ} (ht : δ ≤ t) : smoothedAbs δ t = t := by
