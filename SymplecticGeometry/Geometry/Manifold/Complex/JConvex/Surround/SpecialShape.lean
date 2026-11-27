@@ -885,10 +885,7 @@ private theorem isConvexShapeAt_struweShape_of_le_two_mul {δ K d r : ℝ} (hδ 
 /-- **The surrounding shape** (Cieliebak–Eliashberg, Proposition 4.21, the part about the shape).
 For `1 < a` and `0 < γ` there are `δ ∈ (0, γ)` and a function `χ`, smooth on `(δ, ∞)` and
 continuous on `[δ, ∞)`, that is an `i`-convex shape at every `r > δ`, equals `√(1 + a r²)` on
-`[γ, ∞)`, has slope tending to `+∞` at `δ`, and takes at `δ` a value in `(1, 1 + γ)`.
-
-It is Struwe's shape near `δ`, joined across the point `K δ` where it meets the linear part
-`1 + d r` of the shape of `exists_isConvexShapeAt_eq_linear_eq_sqrt`. -/
+`[γ, ∞)`, has slope tending to `+∞` at `δ`, and takes at `δ` a value in `(1, 1 + γ)`. -/
 theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
     ∃ δ ∈ Ioo 0 γ, ∃ χ : ℝ → ℝ, ContDiffOn ℝ ∞ χ (Ioi δ) ∧ ContinuousOn χ (Ici δ) ∧
       (∀ r, δ < r → IsConvexShapeAt χ r) ∧ (∀ r, γ ≤ r → χ r = √(1 + a * r ^ 2)) ∧
