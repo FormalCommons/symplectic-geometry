@@ -69,6 +69,18 @@ for it, for `k ≥ k₀`:
   and, in the same namespace, `norm_iteratedFDeriv_inverse_associatedBilinFormInChart_le`); both
   bounds on derivatives come from one bound for any such map
   (`SymplecticGeometry.RescaledUnitaryCharts.norm_iteratedFDeriv_comp_chartPushforward_le`);
+* the Christoffel symbols of the second kind `Γ_{k,x}` of `g_{k,x}`, Tau Ceti's
+  `TauCeti.Manifold.christoffelSecondKind`, are smooth on the target of the chart
+  (`RescaledUnitaryCharts.contDiffOn_christoffelSecondKind_associatedBilinFormInChart`, in the
+  namespace `SymplecticGeometry`, from `TauCeti.Manifold.contDiffOn_christoffelSecondKind`), and
+  for each `r` there is a constant `C`, independent of `k` and `x`, with
+  `‖Dʲ Γ_{k,x}(w)‖ ≤ C * (√k)⁻¹` for `j ≤ r`, `k ≥ k₀` and `w` in the ball of radius `ρ₀ * √k`
+  (in the same namespace,
+  `exists_norm_iteratedFDeriv_christoffelSecondKind_associatedBilinFormInChart_le`). This is
+  the Leibniz bound
+  `SymplecticGeometry.exists_norm_iteratedFDeriv_christoffelSecondKind_le` applied to the bounds
+  above on `g_{k,x}` and on its inverses; every term carries a derivative of `g_{k,x}` of positive
+  order, hence the factor `(√k)⁻¹`;
 * with the comparison of `2π k σ(v, J v)` with the norm in the charts
   (`SymplecticGeometry.RescaledUnitaryCharts.exists_forall_isComparisonRadius`), there is a radius
   `ρ₁ > 0` such that the derivative at `0` of the transition from the chart at
