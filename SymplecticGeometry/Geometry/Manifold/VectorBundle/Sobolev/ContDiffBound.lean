@@ -137,26 +137,16 @@ theorem tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection {j : ℕ}
     TendstoLocallyUniformlyOn (fun q ↦ iteratedFDeriv ℝ j (A.coord i (toSection (w q))))
       (iteratedFDeriv ℝ j (A.coord i (toSection w₀))) l (A.image i) := by
   have hrep := HasContinuousRepresentatives.of_finrank_le (A := A) (p := p) (by omega : _ ≤ k)
-  have hopen := (A.image i).isOpen
-  -- The derivatives of the chart readings are additive in the Sobolev section.
-  have hsub (v v' : SobolevSection A volume p k) {y : E} (hy : y ∈ A.image i) :
-      iteratedFDeriv ℝ j (A.coord i (toSection v)) y -
-          iteratedFDeriv ℝ j (A.coord i (toSection v')) y =
-        iteratedFDeriv ℝ j (A.coord i (toSection (v - v'))) y := by
-    have hev : A.coord i (toSection (v - v')) =ᶠ[nhds y]
-        A.coord i (toSection v) - A.coord i (toSection v') :=
-      Filter.eventually_of_mem (hopen.mem_nhds hy) fun z hz ↦ by
-        rw [toSection_sub hrep, A.coord_sub i _ _ hz, Pi.sub_apply]
-    have hd (v : SobolevSection A volume p k) :=
-      (contDiffOn_coord_toSection_of_finrank_add_le hk v i).contDiffAt (hopen.mem_nhds hy)
-    rw [(hev.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hd v) (hd v')]
-  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact hopen]
+  have hd (v : SobolevSection A volume p k) :=
+    contDiffOn_coord_toSection_of_finrank_add_le hk v i
+  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact (A.image i).isOpen]
   intro K hKi hK
   obtain ⟨C, hC⟩ := exists_norm_iteratedFDeriv_coord_toSection_le (p := p) hk i hK hKi
   refine tendstoUniformlyOn_of_dist_le (u := fun q ↦ C * ‖w q - w₀‖) ?_ ?_
   · simpa using (tendsto_iff_norm_sub_tendsto_zero.1 hw).const_mul C
   · refine Filter.Eventually.of_forall fun q y hy ↦ ?_
-    rw [dist_eq_norm, hsub _ _ (hKi hy)]
+    rw [dist_eq_norm, ← A.iteratedFDeriv_coord_sub i (hd _) (hd _) (hKi hy),
+      ← toSection_sub hrep]
     exact hC _ y hy j le_rfl
 
 end SobolevSection

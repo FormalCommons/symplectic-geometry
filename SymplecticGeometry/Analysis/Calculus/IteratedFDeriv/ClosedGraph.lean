@@ -12,6 +12,7 @@ import Mathlib.Analysis.Calculus.UniformLimitsDeriv
 import Mathlib.Analysis.Normed.Operator.Banach
 import Mathlib.Topology.ContinuousMap.Bounded.Normed
 import Mathlib.Topology.Separation.Regular
+import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
 
 /-!
 # Derivative bounds for linear families of `Cʲ` functions
@@ -138,33 +139,6 @@ theorem exists_forall_norm_fderiv_le_of_hasFDerivAt {G : Type*} [NormedAddCommGr
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
   {f : X → E → F} {s : Set E} {j : ℕ}
 
-omit [NormedSpace ℝ X] [CompleteSpace X] [CompleteSpace F] in
-/-- The derivatives of order at most `j` of a family of `Cʲ` functions on an open set `s` that
-depends additively on the parameter at each point of `s` depend additively on it too. -/
-private theorem iteratedFDeriv_add_of_mem (hs : IsOpen s) (hf : ∀ x, ContDiffOn ℝ j (f x) s)
-    (hadd : ∀ x x', ∀ y ∈ s, f (x + x') y = f x y + f x' y) {m : ℕ} (hm : m ≤ j) (x x' : X)
-    {y : E} (hy : y ∈ s) :
-    iteratedFDeriv ℝ m (f (x + x')) y =
-      iteratedFDeriv ℝ m (f x) y + iteratedFDeriv ℝ m (f x') y := by
-  have hev : f (x + x') =ᶠ[𝓝 y] f x + f x' :=
-    eventually_of_mem (hs.mem_nhds hy) fun z hz ↦ hadd x x' z hz
-  have hmj : (m : WithTop ℕ∞) ≤ j := by exact_mod_cast hm
-  rw [(hev.iteratedFDeriv ℝ m).eq_of_nhds]
-  exact iteratedFDeriv_add_apply (((hf x).contDiffAt (hs.mem_nhds hy)).of_le hmj)
-    (((hf x').contDiffAt (hs.mem_nhds hy)).of_le hmj)
-
-omit [CompleteSpace X] [CompleteSpace F] in
-/-- The scalar counterpart of `iteratedFDeriv_add_of_mem`. -/
-private theorem iteratedFDeriv_smul_of_mem (hs : IsOpen s) (hf : ∀ x, ContDiffOn ℝ j (f x) s)
-    (hsmul : ∀ (c : ℝ) x, ∀ y ∈ s, f (c • x) y = c • f x y) {m : ℕ} (hm : m ≤ j) (c : ℝ)
-    (x : X) {y : E} (hy : y ∈ s) :
-    iteratedFDeriv ℝ m (f (c • x)) y = c • iteratedFDeriv ℝ m (f x) y := by
-  have hev : f (c • x) =ᶠ[𝓝 y] c • f x :=
-    eventually_of_mem (hs.mem_nhds hy) fun z hz ↦ hsmul c x z hz
-  have hmj : (m : WithTop ℕ∞) ≤ j := by exact_mod_cast hm
-  rw [(hev.iteratedFDeriv ℝ m).eq_of_nhds]
-  exact iteratedFDeriv_const_smul_apply (((hf x).contDiffAt (hs.mem_nhds hy)).of_le hmj)
-
 /-- **Derivative bounds for linear families of `Cʲ` functions.** Let `X` be a Banach space and
 `f x : E → F`, for `x : X`, functions that are `Cʲ` on an open set `s` and depend linearly on `x`
 at each point of `s`. If on every compact subset of `s` the values of `f x` are bounded by a
@@ -179,6 +153,21 @@ theorem exists_forall_norm_iteratedFDeriv_le [LocallyCompactSpace E] (hs : IsOpe
     {K : Set E} (hK : IsCompact K) (hKs : K ⊆ s) :
     ∃ C, ∀ x, ∀ y ∈ K, ∀ m ≤ j, ‖iteratedFDeriv ℝ m (f x) y‖ ≤ C * ‖x‖ := by
   obtain ⟨U, hU, hKU, hUs, hUc⟩ := exists_open_between_and_isCompact_closure hK hs hKs
+  -- Near each point of `s`, each `f x` is `Cᵐ` for `m ≤ j`, and its derivatives of these orders
+  -- are linear in `x`.
+  have hfa (x : X) {y : E} (hy : y ∈ s) {m : ℕ} (hm : m ≤ j) : ContDiffAt ℝ m (f x) y :=
+    ((hf x).contDiffAt (hs.mem_nhds hy)).of_le (by exact_mod_cast hm)
+  have hadd' {m : ℕ} (hm : m ≤ j) (x x' : X) {y : E} (hy : y ∈ s) :
+      iteratedFDeriv ℝ m (f (x + x')) y =
+        iteratedFDeriv ℝ m (f x) y + iteratedFDeriv ℝ m (f x') y := by
+    rw [Set.EqOn.iteratedFDeriv_of_isOpen (g := f x + f x')
+      (fun z hz ↦ by rw [Pi.add_apply, hadd x x' z hz]) hs m hy,
+      iteratedFDeriv_add_apply (hfa x hy hm) (hfa x' hy hm)]
+  have hsmul' {m : ℕ} (hm : m ≤ j) (c : ℝ) (x : X) {y : E} (hy : y ∈ s) :
+      iteratedFDeriv ℝ m (f (c • x)) y = c • iteratedFDeriv ℝ m (f x) y := by
+    rw [Set.EqOn.iteratedFDeriv_of_isOpen (g := c • f x)
+      (fun z hz ↦ by rw [Pi.smul_apply, hsmul c x z hz]) hs m hy,
+      iteratedFDeriv_const_smul_apply (hfa x hy hm)]
   have : CompactSpace (closure U) := isCompact_iff_compactSpace.1 hUc
   suffices H : ∀ m ≤ j, ∃ C, ∀ k ≤ m, ∀ x, ∀ y ∈ closure U,
       ‖iteratedFDeriv ℝ k (f x) y‖ ≤ C * ‖x‖ by
@@ -207,11 +196,11 @@ theorem exists_forall_norm_iteratedFDeriv_le [LocallyCompactSpace E] (hs : IsOpe
         exact hd.hasFDerivAt)
       (fun x ↦ curry.continuous.comp_continuousOn
         ((ContinuousOn.continuousOn_iteratedFDeriv (hf x) hs (by exact_mod_cast hm)).mono hUs))
-      (fun x x' y hy ↦ iteratedFDeriv_add_of_mem hs hf hadd (by omega) x x' (hUs hy))
+      (fun x x' y hy ↦ hadd' (by omega) x x' (hUs hy))
       (fun x x' y hy ↦ by
-        rw [iteratedFDeriv_add_of_mem hs hf hadd hm x x' (hUs hy), map_add])
+        rw [hadd' hm x x' (hUs hy), map_add])
       (fun c x y hy ↦ by
-        rw [iteratedFDeriv_smul_of_mem hs hf hsmul hm c x (hUs hy), map_smul])
+        rw [hsmul' hm c x (hUs hy), map_smul])
       ⟨C, hC m le_rfl⟩
     refine ⟨max C C', fun k hk x y hy ↦ ?_⟩
     rcases Nat.lt_or_eq_of_le hk with hk | rfl
