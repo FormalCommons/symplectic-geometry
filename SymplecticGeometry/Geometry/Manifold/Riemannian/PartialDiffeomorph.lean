@@ -149,7 +149,7 @@ theorem gramInChart_trans_apply (hn : n ≠ 0) (Θ : PartialDiffeomorph 𝓘(ℝ
   have key (a : E) : mfderiv 𝓘(ℝ, E) I (ψ.trans Θ).symm w (fderiv ℝ Θ (Θ.symm w) a) =
       mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w) a := by
     have h := Θ.mfderiv_symm_trans_apply_mfderiv_apply ψ.symm hn (Θ.map_target hw) hψ a
-    rw [Θ.right_inv hw, mfderiv_eq_fderiv] at h
+    rw [Θ.toPartialEquiv.right_inv hw, mfderiv_eq_fderiv] at h
     rw [coe_trans_symm, ← coe_trans]
     exact h
   rw [gramInChart_apply, gramInChart_apply, key, key]
@@ -269,7 +269,7 @@ theorem exists_norm_mvfderiv_le_mul_norm [FiniteDimensional ℝ E]
   have hx : ψ.symm y ∈ ψ.source := ψ.map_target (hKψ hy)
   -- Apply the lower bound at `ψ (ψ.symm y)` rather than at `y`, so that the differential of
   -- `ψ.symm` there undoes that of `ψ` at `ψ.symm y` without moving between tangent spaces.
-  have hy' : ψ (ψ.symm y) ∈ K := by simpa [ψ.right_inv (hKψ hy)] using hy
+  have hy' : ψ (ψ.symm y) ∈ K := by simpa [ψ.toPartialEquiv.right_inv (hKψ hy)] using hy
   have key : mfderiv 𝓘(ℝ, E) I ψ.symm (ψ (ψ.symm y)) (mvfderiv I ψ (ψ.symm y) w) = w := by
     rw [mvfderiv_apply_eq_mfderiv_apply]
     exact ψ.mfderiv_symm_apply_mfderiv_apply hn hx w

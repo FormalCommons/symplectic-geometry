@@ -551,7 +551,7 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
     simp [T]
   · intro y hy ξ
     rw [hΘ, (hΦ _).1]
-    simp [hFq, chart.left_inv (hΘs.1 hy).1]
+    simp [hFq, chart.toPartialEquiv.left_inv (hΘs.1 hy).1]
 
 open scoped IsMulCommutative in
 /-- **Local convexity of a torus moment map.** Let a compact commutative Lie group `G` act smoothly

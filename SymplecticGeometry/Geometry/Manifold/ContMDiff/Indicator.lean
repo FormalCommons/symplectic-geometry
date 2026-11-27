@@ -168,11 +168,11 @@ theorem contMDiff_indicator_image_comp_symm {F : Type*} [NormedAddCommGroup F]
     · rintro _ ⟨z, hz, rfl⟩
       exact ψ.map_source (hWs hz)
     · rintro _ ⟨z, hz, rfl⟩
-      rw [mem_preimage, symm_toPartialEquiv, ψ.left_inv (hWs hz)]
+      rw [mem_preimage, ψ.left_inv (hWs hz)]
       exact hz
   · obtain ⟨z, hz, rfl⟩ := hxW
     dsimp only
-    rw [symm_toPartialEquiv, ψ.left_inv (hWs hz)]
+    rw [ψ.left_inv (hWs hz)]
     exact hχ0 z hz fun hzC ↦ hxC (mem_image_of_mem _ hzC)
 
 /-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function

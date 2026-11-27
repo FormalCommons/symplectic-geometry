@@ -56,6 +56,9 @@ target of `Λ`, not only at `x`.
   every point that it sends into the interior of its range.
 * `PartialDiffeomorph.contMDiffAt`: a partial diffeomorphism is `C^n` at each point of its
   source.
+* `PartialDiffeomorph.left_inv`, `PartialDiffeomorph.right_inv`: a partial diffeomorphism and
+  its inverse undo each other, on its source and on its target, stated for the coercions of `Φ`
+  and `Φ.symm` to functions.
 * `PartialDiffeomorph.isCompact_image_of_subset_source`: a partial diffeomorphism sends compact
   subsets of its source to compact sets; it is
   `OpenPartialHomeomorph.isCompact_image_of_subset_source` applied to `Φ.toOpenPartialHomeomorph`.
@@ -181,6 +184,18 @@ counterpart of Mathlib's `PartialDiffeomorph.mdifferentiableAt`. -/
 protected theorem PartialDiffeomorph.contMDiffAt (Φ : PartialDiffeomorph I J M N n) {x : M}
     (hx : x ∈ Φ.source) : ContMDiffAt I J n Φ x :=
   Φ.contMDiffOn.contMDiffAt (Φ.open_source.mem_nhds hx)
+
+/-- The inverse of a partial diffeomorphism undoes it on its source. -/
+@[mfld_simps]
+theorem PartialDiffeomorph.left_inv (Φ : PartialDiffeomorph I J M N n) {x : M}
+    (hx : x ∈ Φ.source) : Φ.symm (Φ x) = x :=
+  Φ.toPartialEquiv.left_inv hx
+
+/-- A partial diffeomorphism undoes its inverse on its target. -/
+@[mfld_simps]
+theorem PartialDiffeomorph.right_inv (Φ : PartialDiffeomorph I J M N n) {y : N}
+    (hy : y ∈ Φ.target) : Φ (Φ.symm y) = y :=
+  Φ.toPartialEquiv.right_inv hy
 
 /-- The image of a compact subset of the source of a partial diffeomorphism is compact. -/
 theorem PartialDiffeomorph.isCompact_image_of_subset_source (Φ : PartialDiffeomorph I J M N n)

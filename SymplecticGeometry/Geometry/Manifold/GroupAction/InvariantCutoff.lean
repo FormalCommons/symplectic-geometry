@@ -12,6 +12,8 @@ import TauCeti.Geometry.Manifold.GroupAction.InvariantCutoff
 import TauCeti.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Radial
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 
 /-!
 # Invariant cut-offs
@@ -79,8 +81,8 @@ theorem exists_smul_invariant_cutoff (Φ : PartialDiffeomorph 𝓘(ℝ, V) I V M
   have hmem {g : G} {x : M} (hx : x ∈ Φ.target) :
       g • x ∈ Φ.target ∧ ‖Φ.symm (g • x)‖ = ‖Φ.symm x‖ := by
     obtain ⟨z', hz', hn, hzx⟩ := hΦ g _ (Φ.map_target hx)
-    rw [Φ.right_inv hx] at hzx
-    rw [← hzx, Φ.symm_toPartialEquiv, Φ.left_inv hz']
+    rw [Φ.toPartialEquiv.right_inv hx] at hzx
+    rw [← hzx, Φ.left_inv hz']
     exact ⟨Φ.map_source hz', hn⟩
   -- The radial cut-off of `V` is supported in `closedBall 0 b`.
   have hcb : tsupport (fun z : V ↦ h ‖z‖) ⊆ closedBall 0 b :=
@@ -104,8 +106,9 @@ theorem exists_smul_invariant_cutoff (Φ : PartialDiffeomorph 𝓘(ℝ, V) I V M
       rw [hρ, indicator_of_notMem hxt, indicator_of_notMem hgx]
   · rintro _ ⟨z, hz, rfl⟩
     have hzs : z ∈ Φ.source := hb (closedBall_subset_closedBall hab.le hz)
-    rw [hρ, indicator_of_mem (Φ.map_source hzs), Φ.symm_toPartialEquiv, Φ.left_inv hzs,
-      Pi.one_apply]
+    have hρz := Φ.toPartialEquiv.indicator_target_comp_symm_apply_self (fun z ↦ h ‖z‖) hzs
+    rw [← Φ.symm_toPartialEquiv] at hρz
+    rw [hρ, hρz, Pi.one_apply]
     exact h1 _ (by rw [abs_norm]; exact mem_closedBall_zero_iff.1 hz)
 
 end PartialDiffeomorph

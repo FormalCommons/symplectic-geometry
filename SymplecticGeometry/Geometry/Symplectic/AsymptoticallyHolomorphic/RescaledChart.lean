@@ -592,7 +592,7 @@ theorem IsCircleConnectionForm.exists_mpullback_symm_mpullback_eq_stdConnectionF
   have hθχ : ContMDiffOn I 𝓘(ℝ) ∞ (fun x ↦ θ (χ x)) (χ.symm '' s) :=
     hθ'.contMDiffOn.comp (χ.contMDiffOn.mono hsrc) (by
       rintro _ ⟨z, hz, rfl⟩
-      simpa [χ.right_inv (hsχ hz)] using hz)
+      simpa [χ.toPartialEquiv.right_inv (hsχ hz)] using hz)
   refine ⟨fun x ↦ op (Circle.exp (θ (χ x))) • τ₀ x,
     hτ₀.totalSpaceMk_smul (contMDiff_circleExp.comp_contMDiffOn hθχ), fun z hz ↦ ?_⟩
   have hz' := hsχ hz

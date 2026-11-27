@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Separation
@@ -488,7 +489,9 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
   set c : ℝ := 2 ^ n * ∏ j, k j
   set f : M → ℝ := Φ.target.indicator fun x ↦ c * G (Φ.symm x) with hf_def
   have hfΦ {z : StdSpace (Fin n)} (hz : z ∈ Φ.source) : f (Φ z) = c * G z := by
-    rw [hf_def, indicator_of_mem (Φ.map_source hz), Φ.symm_toPartialEquiv, Φ.left_inv hz]
+    have h := Φ.toPartialEquiv.indicator_target_comp_symm_apply_self (fun z ↦ c * G z) hz
+    rw [← Φ.symm_toPartialEquiv] at h
+    rw [hf_def, h]
   have hf0 {x : M} (hx : x ∉ Φ.target) : f x = 0 := by rw [hf_def, indicator_of_notMem hx]
   have hft {x : M} (hx : x ∈ Φ.target) (hxa : a < ‖Φ.symm x‖) : f x = 0 := by
     rw [hf_def, indicator_of_mem hx, hG0 hxa, mul_zero]
