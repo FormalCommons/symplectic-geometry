@@ -27,8 +27,8 @@ This is the distributional identity `Δ log ‖· - a‖² = 4π δₐ` seen thr
 
 On a bounded open set `Ω ⊆ ℂ` this gives a Green-type identity for a function `h` with finitely
 many logarithmic poles: if `h` is `C²` on `Ω` off a finite set `S ⊆ Ω`, constant near
-`frontier Ω`, and near each `s ∈ S` equal to `c s * log ‖t - s‖²` plus a function `C²` at `s`,
-then `Δh` is integrable on `Ω` and
+`frontier Ω`, and near each `s ∈ S`, except at `s` itself, equal to `c s * log ‖t - s‖²` plus a
+function `C²` at `s`, then `Δh` is integrable on `Ω` and
 
 `∫ t in Ω, Δh t = -4π ∑ s ∈ S, c s`.
 
@@ -60,7 +60,8 @@ remains, `g = h - C - ∑ s, c s * χ s * log ‖· - s‖²` on `Ω` (with `C` 
 `frontier Ω`), extended by `0`, is `C²` with compact support
 (`SymplecticGeometry.exists_laplacian_ae_eq_add_sum_of_log_poles`), so Tau Ceti's
 `integral_laplacian_eq_zero_of_hasCompactSupport` gives `∫ Δg = 0`, and the one-pole identity
-gives the rest.
+gives the rest. The values of `h` on `S` play no part: `h` is first redefined there so that
+the pole form holds on a whole neighbourhood of each `s ∈ S`, which changes `Δh` only on `S`.
 
 ## References
 
@@ -256,11 +257,31 @@ private theorem contDiffAt_sub_sum_mul_log_of_log_poles {z : ℂ} {χ : ℂ → 
         hψ (Finset.mem_of_mem_erase hs) (Finset.ne_of_mem_erase hs).symm)
   · exact (hh hzS).sub (ContDiffAt.sum fun s hs ↦ hψ hs fun h ↦ hzS (h ▸ hs))
 
-/-- Under the hypotheses of `setIntegral_laplacian_eq_of_log_poles`, almost everywhere on `Ω`,
-`Δh = Δg + ∑ s ∈ S, c s * Δ(χ s · log ‖· - s‖²)`, where `g` is `C²` with compact support and
-`Δg` vanishes off `Ω`, and each `χ s` is `C²`, compactly supported in `Ω` and equal to `1` near
-`s`. -/
-theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
+/-- Redefining `h` at its poles: if near each `s ∈ S`, but off `s`, `h` is
+`c s * log ‖· - s‖² + k` with `k` `C²` at `s`, then some `h'` equal to `h` near every point off
+`S` has this form on a whole neighbourhood of each `s ∈ S`. -/
+private theorem exists_eventuallyEq_and_log_poles_nhds
+    (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝[≠] s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+    ∃ h' : ℂ → ℝ, (∀ t ∉ S, h' =ᶠ[𝓝 t] h) ∧ ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝 s, h' t = c s * Real.log (‖t - s‖ ^ 2) + k t := by
+  choose! k hk hkh using hpole
+  refine ⟨fun t ↦ if t ∈ S then k t t else h t, fun t ht ↦ ?_, fun s hs ↦ ⟨k s, hk s hs, ?_⟩⟩
+  · filter_upwards [S.finite_toSet.isClosed.isOpen_compl.mem_nhds ht] with z hz
+    simp only [show z ∉ S from hz, ↓reduceIte]
+  · filter_upwards [eventually_nhdsWithin_iff.1 (hkh s hs),
+      (S.erase s).finite_toSet.isClosed.isOpen_compl.mem_nhds (by simp)] with t h₁ h₂
+    by_cases hts : t = s
+    · subst hts
+      simp [hs]
+    · have htS : t ∉ S := fun htS ↦ h₂ (Finset.mem_erase.2 ⟨hts, htS⟩)
+      simp only [htS, ↓reduceIte]
+      exact h₁ hts
+
+/-- `exists_laplacian_ae_eq_add_sum_of_log_poles`, for poles of the given form on a whole
+neighbourhood of each `s ∈ S`. -/
+private theorem exists_laplacian_ae_eq_add_sum_of_log_poles_nhds (hΩ : IsOpen Ω)
+    (hb : Bornology.IsBounded Ω)
     (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
     (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
     (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
@@ -352,15 +373,45 @@ theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Born
     refine congrArg _ (Finset.sum_congr rfl fun s hs ↦ ?_)
     rw [laplacian_smul _ (hψcd (hne s hs)), smul_eq_mul]
 
+/-- Under the hypotheses of `setIntegral_laplacian_eq_of_log_poles`, almost everywhere on `Ω`,
+`Δh = Δg + ∑ s ∈ S, c s * Δ(χ s · log ‖· - s‖²)`, where `g` is `C²` with compact support and
+`Δg` vanishes off `Ω`, and each `χ s` is `C²`, compactly supported in `Ω` and equal to `1` near
+`s`. -/
+theorem exists_laplacian_ae_eq_add_sum_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
+    (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
+    (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
+    (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
+      ∀ᶠ t in 𝓝[≠] s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+    ∃ (g : ℂ → ℝ) (χ : ℂ → ℂ → ℝ), ContDiff ℝ 2 g ∧ HasCompactSupport g ∧
+      (∀ t ∉ Ω, Δ g t = 0) ∧
+      (∀ s ∈ S, ContDiff ℝ 2 (χ s) ∧ HasCompactSupport (χ s) ∧ χ s =ᶠ[𝓝 s] 1 ∧
+        tsupport (χ s) ⊆ Ω) ∧
+      Δ h =ᵐ[volume.restrict Ω]
+        fun t ↦ Δ g t + ∑ s ∈ S, c s * Δ (fun t ↦ χ s t * Real.log (‖t - s‖ ^ 2)) t := by
+  obtain ⟨h', hh', hpole'⟩ := exists_eventuallyEq_and_log_poles_nhds hpole
+  have hfront {x : ℂ} (hx : x ∈ frontier Ω) : x ∉ S := fun hxS ↦
+    (hΩ.frontier_eq ▸ hx).2 (hS hxS)
+  have hC' : ∀ᶠ t in 𝓝ˢ (frontier Ω), h' t = C := by
+    refine eventually_nhdsSet_iff_forall.2 fun x hx ↦ ?_
+    filter_upwards [eventually_nhdsSet_iff_forall.1 hC x hx, hh' x (hfront hx)] with t h₁ h₂
+    rw [h₂, h₁]
+  obtain ⟨g, χ, hg, hgc, hgΩ, hχ, hae⟩ := exists_laplacian_ae_eq_add_sum_of_log_poles_nhds hΩ hb
+    hS (fun z hz ↦ (hh z hz).congr_of_eventuallyEq (hh' z hz.2)) hC' hpole'
+  refine ⟨g, χ, hg, hgc, hgΩ, hχ, ?_⟩
+  filter_upwards [hae, ae_restrict_of_ae (S.finite_toSet.countable.ae_notMem volume)]
+    with t h₁ h₂
+  rw [← h₁, (laplacian_congr_nhds (hh' t h₂)).eq_of_nhds]
+
 /-- **The integral of the Laplacian of a function with logarithmic poles**, integrability. Let
 `Ω ⊆ ℂ` be bounded and open, `S ⊆ Ω` finite, and `h : ℂ → ℝ` be `C²` on `Ω \ S`, constant near
-`frontier Ω`, and near each `s ∈ S` of the form `c s * log ‖t - s‖² + k t` with `k` `C²` at `s`.
+`frontier Ω`, and on a punctured neighbourhood of each `s ∈ S` of the form
+`c s * log ‖t - s‖² + k t` with `k` `C²` at `s`.
 Then `Δh` is integrable on `Ω`. -/
 theorem integrableOn_laplacian_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
     (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
     (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
     (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
-      ∀ᶠ t in 𝓝 s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+      ∀ᶠ t in 𝓝[≠] s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
     IntegrableOn (Δ h) Ω := by
   obtain ⟨g, χ, hg, hgc, -, hχ, hae⟩ :=
     exists_laplacian_ae_eq_add_sum_of_log_poles hΩ hb hS hh hC hpole
@@ -372,13 +423,14 @@ theorem integrableOn_laplacian_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.Is
 
 /-- **The integral of the Laplacian of a function with logarithmic poles.** Let `Ω ⊆ ℂ` be
 bounded and open, `S ⊆ Ω` finite, and `h : ℂ → ℝ` be `C²` on `Ω \ S`, constant near
-`frontier Ω`, and near each `s ∈ S` of the form `c s * log ‖t - s‖² + k t` with `k` `C²` at `s`.
+`frontier Ω`, and on a punctured neighbourhood of each `s ∈ S` of the form
+`c s * log ‖t - s‖² + k t` with `k` `C²` at `s`.
 Then `∫ t in Ω, Δh t = -4π ∑ s ∈ S, c s`. -/
 theorem setIntegral_laplacian_eq_of_log_poles (hΩ : IsOpen Ω) (hb : Bornology.IsBounded Ω)
     (hS : ↑S ⊆ Ω) (hh : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z)
     (hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C)
     (hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧
-      ∀ᶠ t in 𝓝 s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
+      ∀ᶠ t in 𝓝[≠] s, h t = c s * Real.log (‖t - s‖ ^ 2) + k t) :
     ∫ t in Ω, Δ h t = -(4 * Real.pi) * ∑ s ∈ S, c s := by
   obtain ⟨g, χ, hg, hgc, hgΩ, hχ, hae⟩ :=
     exists_laplacian_ae_eq_add_sum_of_log_poles hΩ hb hS hh hC hpole
