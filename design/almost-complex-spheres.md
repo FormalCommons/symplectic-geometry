@@ -358,11 +358,11 @@ $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 - `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul`:
   for `k ≠ 0`, no continuous complex structure on the tangent bundle of
   `sphere (0 : E) 1` with `finrank ℝ E = 4 * k + 1`.
-- `TauCeti.Bundle.ContinuousComplexStructure.isEmpty_sphere_four_mul_add_two`:
+- `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul_add_two`:
   the same for `finrank ℝ E = 4 * k + 3` and `2 ≤ k`.
-- `TauCeti.Bundle.ContinuousComplexStructure.isEmpty_sphere`: for
+- `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere`: for
   `finrank ℝ E = 2 * n + 1` with `n ≠ 0`, `n ≠ 1`, `n ≠ 3`.
-- `TauCeti.SmoothAlmostComplexStructure.isEmpty_sphere`: the smooth
+- `SymplecticGeometry.isEmpty_smoothAlmostComplexStructure_sphere`: the smooth
   corollary, `IsEmpty (SmoothAlmostComplexStructure (𝓡 (2 * n))
   (sphere (0 : E) 1))` under the same hypotheses; this is what
   *Symplectic sums*' `Pointwise.lean` uses.

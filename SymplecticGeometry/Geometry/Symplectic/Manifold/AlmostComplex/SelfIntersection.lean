@@ -12,7 +12,10 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Subm
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.LinearAlgebra.Orientation.ShortExact
+public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Orientation
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 
 /-!
 # The self-intersection number of a `J`-invariant surface
@@ -45,6 +48,12 @@ orientation of `M`.
   the complex line bundle `ν_J`.
 * `TauCeti.SmoothEmbedding.selfIntersectionNumber_neg_orientation`: reversing the orientation of
   `M` negates the number.
+* `TauCeti.SmoothEmbedding.selfIntersectionNumber_eq_of_comp`: the number depends only on the
+  first-order behaviour of the ambient data along the surface. A map `φ` with `φ ∘ f = f'` that
+  is `C¹` and `(J, J')`-holomorphic, with invertible derivative, at the points of `f(M)` gives
+  equal numbers for `f` and `f'`: its derivative identifies the two complex normal bundles
+  (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`), and Tau Ceti's
+  `TauCeti.complexEulerClass_eq_of_fiberwise` gives equal Euler classes.
 * `TauCeti.SmoothEmbedding.shortExact_orientationAt_normalSpace`: for an embedding of any
   dimension whose tangent spaces `J` preserves, oriented by the structure that `J` induces on it,
   the orientations of the source and of the normal spaces induce that of `J`.
@@ -54,7 +63,7 @@ orientation of `M`.
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
   Example 4.4.5.
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
-  Princeton (1974), §14.
+  Princeton (1974), §9 (naturality of the Euler class) and §14.
 -/
 
 public section
@@ -161,6 +170,60 @@ theorem selfIntersectionNumber_neg_orientation (f : SmoothEmbedding (𝓡 2) I �
     f.selfIntersectionNumber hE J hJ (-o) = -f.selfIntersectionNumber hE J hJ o := by
   rw [selfIntersectionNumber_eq_chernNumber, selfIntersectionNumber_eq_chernNumber,
     Manifold.Orientation.toHomologicalOrientation_neg, chernNumber_neg_orientation]
+
+variable {E' : Type} {H' X' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  [FiniteDimensional ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace X'] [ChartedSpace H' X'] [IsManifold I' ∞ X']
+
+/-- **Locality of the self-intersection number.** Let
+`f : M → X` and `f' : M → X'` embed the same compact surface in two four-manifolds with almost
+complex structures `J` and `J'` that preserve its tangent planes, and let `φ : X → X'` be a map
+with `φ ∘ f = f'` that, at each point `f x`, is `C¹` and `(J, J')`-holomorphic with invertible
+derivative. Then the two self-intersection numbers agree, for every orientation `o` of `M`.
+
+Only the first-order behaviour of `φ` along the surface enters: for instance `φ` may be a
+biholomorphism from a neighbourhood of `f(M)` onto an open set of `X'`, extended arbitrarily.
+The derivative of `φ` induces an isomorphism of the normal bundles that carries the complex
+structure induced by `J` to that induced by `J'`, and isomorphic complex line bundles have the same
+Euler class. -/
+theorem selfIntersectionNumber_eq_of_comp (f : SmoothEmbedding (𝓡 2) I ∞ M X)
+    (f' : SmoothEmbedding (𝓡 2) I' ∞ M X') (hE : finrank ℝ E = 4) (hE' : finrank ℝ E' = 4)
+    (J : SmoothAlmostComplexStructure I X) (J' : SmoothAlmostComplexStructure I' X')
+    (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
+        (f.isImmersion.tangentRange x hn))
+    (hJ' : ∀ x, Set.MapsTo (J' (f' x)) (f'.isImmersion.tangentRange x hn)
+        (f'.isImmersion.tangentRange x hn))
+    {φ : X → X'} (hφ : φ ∘ f = f') (hφ₁ : ∀ x, ContMDiffAt I I' 1 φ (f x))
+    (hφJ : ∀ x, IsPseudoholomorphicAt J J' φ (f x))
+    (hφd : ∀ x, (mfderiv I I' φ (f x)).IsInvertible)
+    (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
+    f.selfIntersectionNumber hE J hJ o = f'.selfIntersectionNumber hE' J' hJ' o := by
+  have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four hE
+  have hdim' := finrank_real_complex_eq_sub_of_finrank_eq_four hE'
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  let := f'.normalSpaceFiberBundle hn hdim'
+  let := f'.normalSpaceVectorBundle hn hdim'
+  -- The derivative of `φ` on normal spaces.
+  let Φ := f.normalSpaceEquivOfComp f' hn hn hφd hφ
+  -- Transport of `J'` between the equal points `φ (f x)` and `f' x`.
+  have hcast : ∀ x (y : X'), y = f' x → ∀ u : TangentSpace I' y,
+      tangentSpaceCast I' y (f' x) (J' y u) = J' (f' x) (tangentSpaceCast I' y (f' x) u) := by
+    rintro x _ rfl u
+    simp only [tangentSpaceCast_self]
+  have hc : ∀ x v, Φ x (f.normalComplexStructure hn J hdim hJ x v) =
+      f'.normalComplexStructure hn J' hdim' hJ' x (Φ x v) := by
+    intro x v
+    obtain ⟨w, rfl⟩ := f.isImmersion.normalClass_surjective x hn v
+    rw [normalComplexStructure_apply, normalComplexStructure_apply,
+      normalComplexStructureAt_normalClass, normalSpaceEquivOfComp_normalClass,
+      normalSpaceEquivOfComp_normalClass, normalComplexStructureAt_normalClass,
+      (hφJ x).mfderiv_apply_commute, hcast x (φ (f x)) (congrFun hφ x)]
+  rw [selfIntersectionNumber_def, selfIntersectionNumber_def,
+    complexEulerClass_eq_of_fiberwise (finrank_self ℂ) (finrank_self ℂ)
+      ((f.normalComplexStructure hn J hdim hJ).continuous_fiberEquivOfCommute
+        (G₁ := ℂ) (G₂ := ℂ) (f'.normalComplexStructure hn J' hdim' hJ') Φ hc
+        (f.continuous_normalSpaceEquivOfComp_of_contMDiffAt f' hn hn hφ₁ hφd hφ))]
 
 end Number
 
