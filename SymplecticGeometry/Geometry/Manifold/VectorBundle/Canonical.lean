@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.TopDegree
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
 import TauCeti.Analysis.Calculus.FDeriv.Det.Basic
 
 /-!
@@ -26,15 +27,17 @@ pulled back by the differential of `f` is `det (DF (χ z))` times the form of `�
 this compares the forms of two charts `e` and `χ` directly
 (`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq`).
 
-The coordinate form of a chart `e` of the maximal atlas of an order `n ≥ k + 1` is a local frame
-of the canonical bundle over `e.source`: it is a `C^k` section there, holomorphic for a complex
-manifold
+For any map `f : M → E` that is `C^n` at `x`, with `k + 1 ≤ n`, the determinant form pulled back
+by the differential of `f` is a section of the canonical bundle that is `C^k` at `x`
+(`TauCeti.CanonicalBundle.contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv`): in the
+trivialization of the tangent bundle at `x`, it is the determinant of the differential of `f` read
+in tangent coordinates, a `C^k` function by Mathlib's `ContMDiffAt.mfderiv_const`, times the
+constant determinant form. So the coordinate form of a chart `e` of the maximal atlas of an order
+`n ≥ k + 1` is a local frame of the canonical bundle over `e.source`: it is a `C^k` section there,
+holomorphic for a complex manifold
 (`TauCeti.CanonicalBundle.contMDiffOn_continuousDet_compContinuousLinearMap_mfderiv_extend`), and
 it vanishes nowhere there, since the differential of the extended chart is invertible
-(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero`). In the
-trivialization of the tangent bundle at a point, it is the determinant of the differential of the
-chart read in tangent coordinates, a `C^k` function by Mathlib's `ContMDiffAt.mfderiv_const`, times
-the constant determinant form.
+(`Module.Basis.continuousDet_compContinuousLinearMap_mfderiv_extend_ne_zero`).
 
 ## References
 
@@ -64,6 +67,37 @@ theorem coordForm_eq_compContinuousLinearMap_mfderiv {x₀ x : M}
   exact (ContinuousAlternatingMap.compContinuousLinearMap_apply (M' := TangentSpace I x)
     (M := E) b.continuousDet _ v).symm
 
+/-- **The pull-back of the determinant form by a `C^n` map is `C^k`.** If `f : M → E` is `C^n` at
+`x` and `k + 1 ≤ n`, then the determinant form of `b` pulled back by the differential of `f` is a
+section of the canonical bundle that is `C^k` at `x`. -/
+theorem contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv {f : M → E} {x : M}
+    {k n : WithTop ℕ∞} (hf : ContMDiffAt I 𝓘(𝕜, E) n f x) (hkn : k + 1 ≤ n)
+    (b : Module.Basis (Fin (Module.finrank 𝕜 E)) 𝕜 E) :
+    ContMDiffAt I (I.prod 𝓘(𝕜, E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)) k
+      (fun x ↦ Bundle.TotalSpace.mk' (E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)
+        (E := CanonicalBundle I M) x
+        (b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) f x))) x := by
+  rw [Bundle.contMDiffAt_section_iff x]
+  -- In the trivialization at `x`, the form is `det D • b.continuousDet`, where `D` is the
+  -- differential of `f` in tangent coordinates at `x`, a `C^k` function.
+  have hD := ContMDiffAt.mfderiv_const hf hkn
+  refine (((ContinuousLinearMap.contDiff_det (𝕜 := 𝕜) (E := E)).smul
+    (contDiff_const (c := b.continuousDet))).contMDiff.contMDiffAt.comp x
+    hD).congr_of_eventuallyEq (Filter.Eventually.of_forall fun y ↦ ?_)
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd, Function.comp_apply,
+    inTangentCoordinates, ContinuousLinearMap.inCoordinates,
+    TangentBundle.continuousLinearMapAt_model_space]
+  ext v
+  rw [Pi.smul_apply', ContinuousAlternatingMap.smul_apply, smul_eq_mul]
+  set L := ((1 : E →L[𝕜] E) ∘SL mfderiv I 𝓘(𝕜, E) f y ∘SL
+    (trivializationAt E (TangentSpace I) (id x)).symmL 𝕜 (id y))
+  have h := congrArg (fun ω ↦ ω v) (b.continuousDet.compContinuousLinearMap_eq_det_smul b L)
+  rw [ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h
+  -- The left side of the goal is that of `h` by the definition of `compContinuousLinearMap`;
+  -- its rewriting lemmas do not unify here, where the tangent spaces are `E` only by
+  -- definition, so the goal is closed by `exact`.
+  exact h
+
 /-- **The coordinate form of a chart of the maximal atlas is `C^k`.** For `e` in the maximal atlas
 of an order `n ≥ k + 1`, the determinant form of `b` pulled back by the differential of the
 extended chart `e.extend I` is a `C^k` section of the canonical bundle over `e.source`; for a
@@ -77,29 +111,9 @@ theorem contMDiffOn_continuousDet_compContinuousLinearMap_mfderiv_extend
       (fun x ↦ Bundle.TotalSpace.mk' (E [⋀^Fin (Module.finrank 𝕜 E)]→L[𝕜] 𝕜)
         (E := CanonicalBundle I M) x
         (b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) (e.extend I) x)))
-      e.source := by
-  intro x hx
-  refine ContMDiffAt.contMDiffWithinAt ?_
-  rw [Bundle.contMDiffAt_section_iff x]
-  -- In the trivialization at `x`, the form is `det D • b.continuousDet`, where `D` is the
-  -- differential of `e.extend I` in tangent coordinates at `x`, a `C^k` function.
-  have hD := ContMDiffAt.mfderiv_const (e.contMDiffAt_extend he hx) hkn
-  refine (((ContinuousLinearMap.contDiff_det (𝕜 := 𝕜) (E := E)).smul
-    (contDiff_const (c := b.continuousDet))).contMDiff.contMDiffAt.comp x
-    hD).congr_of_eventuallyEq (Filter.Eventually.of_forall fun y ↦ ?_)
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd, Function.comp_apply,
-    inTangentCoordinates, ContinuousLinearMap.inCoordinates,
-    TangentBundle.continuousLinearMapAt_model_space]
-  ext v
-  rw [Pi.smul_apply', ContinuousAlternatingMap.smul_apply, smul_eq_mul]
-  set L := ((1 : E →L[𝕜] E) ∘SL mfderiv I 𝓘(𝕜, E) (e.extend I) y ∘SL
-    (trivializationAt E (TangentSpace I) (id x)).symmL 𝕜 (id y))
-  have h := congrArg (fun ω ↦ ω v) (b.continuousDet_compContinuousLinearMap L)
-  rw [ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h
-  -- The left side of the goal is that of `h` by the definition of `compContinuousLinearMap`;
-  -- its rewriting lemmas do not unify here, where the tangent spaces are `E` only by
-  -- definition, so the goal is closed by `exact`.
-  exact h
+      e.source := fun _ hx ↦
+  (contMDiffAt_continuousDet_compContinuousLinearMap_mfderiv (e.contMDiffAt_extend he hx) hkn
+    b).contMDiffWithinAt
 
 end TauCeti.CanonicalBundle
 
