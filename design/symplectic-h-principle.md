@@ -1544,14 +1544,13 @@ Two choices make this invariant easy to keep.
   the parameter, and the primitives $\gamma_l$ are only needed one `l` at a
   time, by issue 9, which sums them (a locally finite sum, since
   $\gamma^{(k)}$ vanishes near $\{g\le e_k\}$) to show that the limit of
-  the $\alpha^{(k)}$ is cohomologous to $\alpha^{(0)}$. The explicit
-  primitive is $\gamma_l=h\bigl(e_l^*\alpha_l\bigr)$ for the homotopy
-  operator `h` and the isotopy $e_l(x,t)=e_{l,t}(x)$ from the identity
-  to $e_{l,1}$:
+  the $\alpha^{(k)}$ is cohomologous to $\alpha^{(0)}$. For the isotopy
+  $e_l(x,t)=e_{l,t}(x)$ from the identity to $e_{l,1}$,
   `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy`
-  (`DifferentialForm/HomotopyOperator.lean`) gives
-  $d\,h(e_l^*\alpha_l)=e_{l,1}^*\alpha_l-\alpha_l$ and the vanishing where
-  the isotopy is the identity.
+  (`DifferentialForm/HomotopyOperator.lean`) gives a primitive $\gamma_l$
+  of $e_{l,1}^*\alpha_l-\alpha_l$ that vanishes where the isotopy is the
+  identity; its proof takes $\gamma_l=h\bigl(e_l^*\alpha_l\bigr)$ for the
+  homotopy operator `h`.
 
 **Parameters.** The two forms of Decision 4 share all of the stage except
 the call to holonomic approximation, which differs in its two versions.
@@ -1816,9 +1815,9 @@ on `e`, `ρ`, `V` and `N'` that the theorem provides, so that both forms of
   (`ω l - α l` is exact, and `mpullback_sub_mem_exactForms_of_homotopy`
   along the isotopy), and `stagePath (l, 1) = α' l + d (β'' (s l))` on all
   of `M`.
-- `exists_mextDerivₗ_eq_endPullback_sub`: for every `l`, the form
-  `γ l := homotopyOperator (e_l^* α l)` of the invariant, with
-  `α' l = α l + d (γ l)` and `γ l = 0` on `V`.
+- `exists_mextDerivₗ_eq_endPullback_sub`: for every `l`, a form `γ l` of
+  the invariant, with `α' l = α l + d (γ l)` and `γ l = 0` on `V` (its
+  proof takes `γ l := homotopyOperator (e_l^* α l)`).
 
 
 Proof of `exists_stagePath`:
