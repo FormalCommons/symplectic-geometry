@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Analysis.Normed.Operator.Bilinear
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.Morse.Submersion
 
@@ -38,8 +37,8 @@ The converse applies this to the local inverse of `φ`, after which `f` is recov
   `f` in its source, the critical Hessian of `f` is the second derivative of `f ∘ Φ.symm` at `Φ x`
   on the images of the vectors under `dΦ`, by the same chain rule. It is the form for partial
   diffeomorphisms of Tau Ceti's `TauCeti.criticalHessian_apply_eq_of_mem_maximalAtlas`, and
-  `PartialDiffeomorph.contMDiffAt_of_contDiffAt_comp_symm`, from Tau Ceti's
-  `IsLocalDiffeomorphAt.contMDiffAt_comp_iff`, gives the `C²` hypothesis on `f` that it needs.
+  `PartialDiffeomorph.contMDiffAt_of_contDiffAt_comp_symm` gives the `C²` hypothesis on `f` that
+  it needs.
 
 ## References
 
@@ -112,19 +111,7 @@ namespace PartialDiffeomorph
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-  {n : WithTop ℕ∞} {f : M → ℝ} {x : M}
-
-/-- If `Φ` is a `C^n` partial diffeomorphism from `M` onto an open subset of a normed space `G`,
-`m ≤ n`, and `g ∘ Φ.symm` is `C^m` at `Φ x` for a point `x` of the source, then `g` is `C^m`
-at `x`. -/
-theorem contMDiffAt_of_contDiffAt_comp_symm {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-    {m : WithTop ℕ∞} {g : M → F} (Φ : PartialDiffeomorph I 𝓘(ℝ, G) M G n) (hm : m ≤ n)
-    (hx : x ∈ Φ.source) (hg : ContDiffAt ℝ m (g ∘ Φ.symm) (Φ x)) :
-    ContMDiffAt I 𝓘(ℝ, F) m g x :=
-  Φ.left_inv hx ▸ ((Φ.symm.isLocalDiffeomorphAt _ _ _ (Φ.map_source hx)).contMDiffAt_comp_iff
-    hm).1 hg.contMDiffAt
-
-variable [I.Boundaryless]
+  {n : WithTop ℕ∞} {f : M → ℝ} {x : M} [I.Boundaryless]
 
 /-- **The critical Hessian read in a partial diffeomorphism onto a normed space.** Let `Φ` be a
 `C^n` partial diffeomorphism from a boundaryless manifold `M` onto an open subset of a normed

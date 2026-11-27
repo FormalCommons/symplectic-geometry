@@ -94,21 +94,6 @@ noncomputable section
 open _root_.Bundle Module
 open scoped Manifold ContDiff
 
-/-- The real dimension of the normal spaces of a surface charted on a two-dimensional space `F`
-in a manifold of real dimension four is that of `ℂ`. -/
-theorem SymplecticGeometry.finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two
-    {E F : Type*} [AddCommGroup E] [Module ℝ E] [AddCommGroup F] [Module ℝ F]
-    (hE : finrank ℝ E = 4) (hF : finrank ℝ F = 2) :
-    finrank ℝ ℂ = finrank ℝ E - finrank ℝ F := by
-  rw [Complex.finrank_real_complex, hE, hF]
-
-/-- The real dimension of the normal spaces of a surface in a manifold of real dimension four is
-that of `ℂ`: this is the dimension hypothesis of Tau Ceti's normal bundle with model fibre `ℂ`. -/
-theorem SymplecticGeometry.finrank_real_complex_eq_sub_of_finrank_eq_four {E : Type*}
-    [AddCommGroup E] [Module ℝ E] (hE : finrank ℝ E = 4) :
-    finrank ℝ ℂ = finrank ℝ E - finrank ℝ (EuclideanSpace ℝ (Fin 2)) :=
-  finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE finrank_euclideanSpace_fin
-
 /-- The real dimension of `ℂ` is twice its complex dimension: the dimension convention of
 complex structures on vector bundles with model fibre `ℂ`, as a `Fact` to enable locally as an
 instance. -/
@@ -148,13 +133,18 @@ def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finran
     (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
         (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) : ℤ :=
-  letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
-  letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
+  letI := f.normalSpaceFiberBundle hn
+    (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+      finrank_euclideanSpace_fin)
+  letI := f.normalSpaceVectorBundle hn
+    (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+      finrank_euclideanSpace_fin)
   ((o.toHomologicalOrientation (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)) :
       HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2).evalFundamentalClass
     finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (ContinuousMap.id M)
     (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-      (finrank_real_complex_eq_sub_of_finrank_eq_four hE) hJ).Fiber
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+        finrank_euclideanSpace_fin) hJ).Fiber
       (finrank_self ℂ))).down
 
 theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finrank ℝ E = 4)
@@ -162,14 +152,19 @@ theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE 
     (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
         (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
-    letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
+    letI := f.normalSpaceFiberBundle hn
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+        finrank_euclideanSpace_fin)
+    letI := f.normalSpaceVectorBundle hn
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+        finrank_euclideanSpace_fin)
     f.selfIntersectionNumber hE J hJ o =
       ((o.toHomologicalOrientation (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)) :
           HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2).evalFundamentalClass
         finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (ContinuousMap.id M)
         (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-          (finrank_real_complex_eq_sub_of_finrank_eq_four hE) hJ).Fiber
+          (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+            finrank_euclideanSpace_fin) hJ).Fiber
           (finrank_self ℂ))).down :=
   (rfl)
 
@@ -180,12 +175,18 @@ theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I �
     (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
         (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
-    letI := f.normalSpaceFiberBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
-    letI := f.normalSpaceVectorBundle hn (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
+    letI := f.normalSpaceFiberBundle hn
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+        finrank_euclideanSpace_fin)
+    letI := f.normalSpaceVectorBundle hn
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+        finrank_euclideanSpace_fin)
     f.selfIntersectionNumber hE J hJ o =
       chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
         finrank_euclideanSpace_fin ℂ
-        (f.normalComplexStructure hn J (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
+        (f.normalComplexStructure hn J
+          (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+            finrank_euclideanSpace_fin)
           hJ).Fiber := by
   rw [selfIntersectionNumber_def, chernNumber_def, firstChernClass_eq_complexEulerClass]
 
@@ -227,8 +228,10 @@ theorem selfIntersectionNumber_eq_of_comp (f : SmoothEmbedding (𝓡 2) I ∞ M 
     (hφd : ∀ x, (mfderiv I I' φ (f x)).IsInvertible)
     (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
     f.selfIntersectionNumber hE J hJ o = f'.selfIntersectionNumber hE' J' hJ' o := by
-  have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four hE
-  have hdim' := finrank_real_complex_eq_sub_of_finrank_eq_four hE'
+  have hdim := Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+      finrank_euclideanSpace_fin
+  have hdim' := Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE'
+      finrank_euclideanSpace_fin
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   let := f'.normalSpaceFiberBundle hn hdim'
@@ -276,23 +279,24 @@ theorem selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm [T2Space M] [C
         (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation 𝓘(ℝ, F) C (Fin 2)) :
     letI := f.normalSpaceFiberBundle hn
-      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     letI := f.normalSpaceVectorBundle hn
-      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     (f.compDiffeomorphOfBoundaryless e.symm (by simp)).selfIntersectionNumber
         hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
         (o.map e hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
         (ContinuousMap.id C)
         (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-          (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF) hJ).Fiber
+          (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF) hJ).Fiber
           (finrank_self ℂ))).down := by
-  have hν := finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF
+  have hν := Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF
   let := f.normalSpaceFiberBundle hn hν
   let := f.normalSpaceVectorBundle hn hν
   rw [selfIntersectionNumber_def,
     complexEulerClass_normalComplexStructure_compDiffeomorphOfBoundaryless f _ (by simp) J hJ hν
-      (finrank_real_complex_eq_sub_of_finrank_eq_four hE) (finrank_self ℂ),
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
+        finrank_euclideanSpace_fin) (finrank_self ℂ),
     Manifold.Orientation.evalFundamentalClass_toHomologicalOrientation_map hF
       finrank_euclideanSpace_fin o e hn,
     ← ModuleCat.comp_apply, ← TopCat.singularCohomologyMap_comp]
@@ -318,16 +322,16 @@ theorem selfIntersectionNumber_remodel
         (f.isImmersion.tangentRange x hn))
     (o : Manifold.Orientation 𝓘(ℝ, F) C (Fin 2)) :
     letI := f.normalSpaceFiberBundle hn
-      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     letI := f.normalSpaceVectorBundle hn
-      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF)
     (f.compDiffeomorphOfBoundaryless (remodelDiffeomorph Φ C).symm (by simp)).selfIntersectionNumber
         hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
         (o.map (remodelDiffeomorph Φ C) hn (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) =
       ((o.toHomologicalOrientation hF).evalFundamentalClass hF (ModuleCat.of ℤ (ULift ℤ))
         (ContinuousMap.id C)
         (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-          (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE hF) hJ).Fiber
+          (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE hF) hJ).Fiber
           (finrank_self ℂ))).down :=
   selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm _ f hE hF J hJ o
 
@@ -356,10 +360,10 @@ theorem selfIntersectionNumber_remodel_complexCurveOrientation
     (hJ : ∀ x, Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hn)
         (f.isImmersion.tangentRange x hn)) :
     letI := f.normalSpaceFiberBundle hn
-      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
         (finrank_real_of_finrank_complex_eq_add_one hG))
     letI := f.normalSpaceVectorBundle hn
-      (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE
+      (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
         (finrank_real_of_finrank_complex_eq_add_one hG))
     (f.compDiffeomorphOfBoundaryless (remodelDiffeomorph Φ C).symm (by simp)).selfIntersectionNumber
         hE J (f.mapsTo_tangentRange_compDiffeomorphOfBoundaryless _ (by simp) hn (A := (J ·)) hJ)
@@ -368,7 +372,7 @@ theorem selfIntersectionNumber_remodel_complexCurveOrientation
       complexManifoldEvalFundamentalClass G C (r := 0) hG
         (((TopCat.of C).uliftIntegralCohomologyIso _).hom
           (complexEulerClass (r := 0) ℂ (f.normalComplexStructure hn J
-            (finrank_real_complex_eq_sub_of_finrank_eq_four_of_finrank_eq_two hE
+            (Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two hE
               (finrank_real_of_finrank_complex_eq_add_one hG)) hJ).Fiber (finrank_self ℂ))) := by
   rw [selfIntersectionNumber_compDiffeomorphOfBoundaryless_symm _ f hE
       (finrank_real_of_finrank_complex_eq_add_one hG) J hJ,

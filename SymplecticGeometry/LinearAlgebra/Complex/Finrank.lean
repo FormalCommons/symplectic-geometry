@@ -25,6 +25,13 @@ so this file states the dimension in the form `2 * r + 1 + 1`.
   of the real dimensions of `Fin (n + 1) → ℂ` and `Fin n → ℂ`.
 * `Complex.finrank_real_eq_finrank_prod_sub`: it is also the difference of the real dimensions
   of `E × F` and `F`, for a real vector space `E` of dimension two.
+* `Complex.finrank_real_eq_finrank_prod_complex_sub`: it is the difference of the real
+  dimensions of `F × ℂ` and `F`.
+* `Complex.finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two`: it is the
+  difference of the real dimensions of a space of dimension four and one of dimension two.
+
+These are codimension hypotheses with model fibre `ℂ`, in the form that Tau Ceti's normal bundles
+of smooth embeddings (`TauCeti.SmoothEmbedding.normalSpaceFiberBundle`) take them.
 -/
 
 public section
@@ -44,9 +51,23 @@ theorem finrank_real_eq_finrank_pi_succ_sub (n : ℕ) :
 /-- If `E` is a real vector space of dimension two, the real dimension `2` of `ℂ` is the difference
 of the real dimensions of `E × F` and `F`, for any finite-dimensional `F`. -/
 theorem finrank_real_eq_finrank_prod_sub {E F : Type*} [AddCommGroup E] [Module ℝ E]
-    [FiniteDimensional ℝ E] [AddCommGroup F] [Module ℝ F] [FiniteDimensional ℝ F]
-    (hE : finrank ℝ E = 2) : finrank ℝ ℂ = finrank ℝ (E × F) - finrank ℝ F := by
+    [AddCommGroup F] [Module ℝ F] [FiniteDimensional ℝ F] (hE : finrank ℝ E = 2) :
+    finrank ℝ ℂ = finrank ℝ (E × F) - finrank ℝ F := by
+  have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hE
   rw [finrank_prod, Nat.add_sub_cancel, hE, Complex.finrank_real_complex]
+
+/-- The real dimension of `ℂ` is the difference of the real dimensions of `F × ℂ` and `F`, for
+any finite-dimensional real vector space `F`. -/
+theorem finrank_real_eq_finrank_prod_complex_sub {F : Type*} [AddCommGroup F] [Module ℝ F]
+    [FiniteDimensional ℝ F] : finrank ℝ ℂ = finrank ℝ (F × ℂ) - finrank ℝ F := by
+  rw [finrank_prod, Nat.add_sub_cancel_left]
+
+/-- The real dimension `2` of `ℂ` is the difference of the real dimensions of a real vector space
+`E` of dimension four and a real vector space `F` of dimension two. -/
+theorem finrank_real_eq_finrank_sub_of_finrank_eq_four_of_finrank_eq_two {E F : Type*}
+    [AddCommGroup E] [Module ℝ E] [AddCommGroup F] [Module ℝ F] (hE : finrank ℝ E = 4)
+    (hF : finrank ℝ F = 2) : finrank ℝ ℂ = finrank ℝ E - finrank ℝ F := by
+  rw [Complex.finrank_real_complex, hE, hF]
 
 end Complex
 
