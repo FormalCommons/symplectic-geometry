@@ -617,7 +617,7 @@ containing `ι '' closedBall 0 1`:
   - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
     interval `Icc r₁ r₂`, and let `O` be a
-    neighbourhood of `{r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
+    neighbourhood of `Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
     `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
     equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`; no transversality
     of the crossings is needed. Condition (4.3) passes to
