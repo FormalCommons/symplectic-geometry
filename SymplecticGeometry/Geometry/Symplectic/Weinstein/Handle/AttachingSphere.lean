@@ -52,7 +52,7 @@ the stable set meets it exactly once.
   cobordism between the levels `a` and `b`, the stable set of a nondegenerate critical point of
   index zero does not meet the lower level `f ⁻¹' {a}`.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_nonpos_flow_apply_eq`,
-  `.subsingleton_setOf_flow_apply_eq` and `.eq_levelCrossingTime_iff`: the orbit of a point of
+  `.subsingleton_setOfPred_flow_apply_eq` and `.eq_levelCrossingTime_iff`: the orbit of a point of
   `f ⁻¹' Ico a c` meets the level `f ⁻¹' {a}` exactly at the time
   `Flow.levelCrossingTime φ f a x`; `.levelCrossingTime_nonpos`: that time is nonpositive;
   `.mvfderiv_apply_pos_flow_levelCrossingTime`: the crossing is transverse.
@@ -103,7 +103,7 @@ nondegeneracy nor the cobordism is needed. The backward orbit reaches the level 
 band `f ⁻¹' Icc a (f x)` is compact, since `f` is proper, and the reversed field `-X` decreases
 `f` on it, so that `SymplecticGeometry.exists_forall_isMIntegralCurve_apply_lt` applies to the
 reversed orbit. It meets the level at most once by
-`IsMIntegralCurve.subsingleton_setOf_apply_eq`, again on the reversed orbit. The smoothness is
+`IsMIntegralCurve.subsingleton_setOfPred_apply_eq`, again on the reversed orbit. The smoothness is
 the implicit function theorem at the regular level `a`, in the form of Tau Ceti's
 `TauCeti.contMDiffOn_flow_levelCrossingTime`, and not the continuity of
 `Flow.levelCrossingTime` on a connecting set.
@@ -223,10 +223,10 @@ theorem exists_nonpos_flow_apply_eq (hc : criticalPoints 𝓘(ℝ, E) f ∩ f �
 
 /-- **An orbit meets a regular level at most once.** For a regular value `a` of the function of a
 Weinstein structure, the orbit of every point meets the level `f ⁻¹' {a}` at most once. -/
-theorem subsingleton_setOf_flow_apply_eq (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) (x : M) :
+theorem subsingleton_setOfPred_flow_apply_eq (ha : IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f a) (x : M) :
     {t | f (hW.flow t x) = a}.Subsingleton := by
   -- Run the orbit backwards, so that `f` decreases along it.
-  have h := (hW.isMIntegralCurve_flow x).comp_neg.subsingleton_setOf_apply_eq (f := f) (c := a)
+  have h := (hW.isMIntegralCurve_flow x).comp_neg.subsingleton_setOfPred_apply_eq (f := f) (c := a)
     (fun _ ↦ hW.isGeneralizedMorse.contMDiff.mdifferentiableAt (by simp))
     (fun s t hst ↦ hW.monotone_comp_flow x (neg_le_neg hst)) fun t ht ↦ by
       rw [Pi.neg_apply, map_neg, neg_ne_zero]
@@ -245,7 +245,7 @@ theorem eq_levelCrossingTime_iff (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹
       eq_empty_iff_forall_notMem.1 hc y ⟨hy, hya.ge, hya.trans_lt (hx.1.trans_lt hx.2)⟩
   obtain ⟨s, -, hs⟩ := hW.exists_nonpos_flow_apply_eq hc hx
   have hlct := Flow.apply_flow_levelCrossingTime ⟨s, hs⟩
-  exact ⟨fun h ↦ h ▸ hlct, fun h ↦ hW.subsingleton_setOf_flow_apply_eq ha x h hlct⟩
+  exact ⟨fun h ↦ h ▸ hlct, fun h ↦ hW.subsingleton_setOfPred_flow_apply_eq ha x h hlct⟩
 
 /-- **The crossing of the lower level is in the past.** If `f` has no critical point in
 `f ⁻¹' Ico a c` and `a ≤ f x < c`, the orbit of `x` crosses the level `f ⁻¹' {a}` at a time
