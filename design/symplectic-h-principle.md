@@ -1326,7 +1326,7 @@ theorem exists_homotopy_exact_of_forall_exact_near_attaching (hK : IsCompact K)
       (∀ l, σ (l, 0) = τ l) ∧
       (∀ l ∈ K, ∀ t, ∀ x ∈ Q, ((σ (l, t)).bilinFormAt x).Nondegenerate) ∧
       (∀ l ∈ K, ∃ W' ∈ 𝓝ˢ A, ∀ t, ∀ x ∈ W', σ (l, t) x = τ l x) ∧
-      -- the last two clauses as in the working lemma
+      -- the last two clauses as in the working lemma, the relative one only for `l ∈ K`
       ...
 ```
 
