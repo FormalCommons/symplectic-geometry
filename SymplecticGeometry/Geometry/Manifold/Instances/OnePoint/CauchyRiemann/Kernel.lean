@@ -9,7 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
-public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
+import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.HomologicalOrientation
 import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
@@ -140,6 +141,9 @@ private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
     finite_setOf_eq_zero_of_mem_twistOneKernel hs hs₀
   choose e he ψ hze hzψ hψ hA ho c hc hc₀ hec using
     fun z ↦ exists_trivialization_analyticAt_of_mem_twistOneKernel hs z
+  have hφ₀ := fun z ↦ localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi
+    (ψ z) (hzψ z) (hψ z z (hzψ z))
+  simp only [OpenPartialHomeomorph.centeredSourceRestrict_def] at hφ₀
   have hcont : Continuous fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x) :=
     ((mem_twistOneKernel_iff J).1 hs).1.continuous
   have hsum := VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt
@@ -150,20 +154,17 @@ private theorem exists_analyticOrderNatAt_eq_one_of_mem_twistOneKernel
     (fun _ ↦ Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
       (complexOrientation ℂ)) (fun z _ ↦ hzψ z) hZ (fun z _ ↦ hze z)
     (fun z _ ↦ .of_forall (ho z))
-    (fun z _ ↦ localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi (ψ z)
-      (hzψ z) (hψ z z (hzψ z)))
-    (fun z _ ↦ hA z)
+    (fun z _ ↦ hφ₀ z) (fun z _ ↦ hA z)
   rw [eulerNumber_twistCore_one] at hsum
   -- Each zero has positive order, since it is an isolated zero.
   have hpos : ∀ z, s z = 0 → 0 < (analyticOrderNatAt (fun w ↦ (e z (TotalSpace.mk' ℂ
       ((ψ z).toOpenPartialHomeomorph.symm w) (s ((ψ z).toOpenPartialHomeomorph.symm w)))).2)
         ((ψ z).toOpenPartialHomeomorph z) : ℤ) := fun z hz ↦ by
-    have hφ := localHomologyMap_sub_complexManifoldHomologicalOrientation_of_tames hJ hi (ψ z)
-      (hzψ z) (hψ z z (hzψ z))
     rw [← VectorBundleOrientation.sectionIndex_eq_analyticOrderNatAt _ _ _ hcont (e z) _ (hze z)
-      (hzψ z) (.of_forall (ho z)) hφ (hA z)]
+      (hzψ z) (.of_forall (ho z)) (hφ₀ z) (hA z)]
     exact VectorBundleOrientation.sectionIndex_pos_of_analyticAt _ _ _ hcont (e z) _ (hze z)
-      (hzψ z) (.of_forall (ho z)) hφ (hA z) hz (eventually_ne_zero_of_mem_twistOneKernel hs hs₀ z)
+      (hzψ z) (.of_forall (ho z)) (hφ₀ z) (hA z) hz
+      (eventually_ne_zero_of_mem_twistOneKernel hs hs₀ z)
   -- A sum of positive integers equal to `1` has one term, equal to `1`.
   have hone : ∀ (T : Finset (OnePoint ℂ)) (f : OnePoint ℂ → ℤ), (∀ z ∈ T, 0 < f z) →
       ∑ z ∈ T, f z = 1 → ∃ z₀, T = {z₀} ∧ f z₀ = 1 := fun T f hf h ↦ by
@@ -208,14 +209,10 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
   set e₀ := (twistCore (𝕜 := ℂ) 1).localTriv z
   -- The holomorphic reading `h` of `s` has order one at `ψ z`, so it vanishes there with a
   -- nonzero complex derivative.
-  have hord' : analyticOrderAt h (ψ.toOpenPartialHomeomorph z) = 1 :=
-    (ENat.toNat_eq_iff one_ne_zero).1 hord
-  have h0 : h (ψ.toOpenPartialHomeomorph z) = 0 :=
-    not_not.1 fun h0 ↦ one_ne_zero (hord'.symm.trans (hA.analyticOrderAt_eq_zero.2 h0))
-  have hd : deriv h (ψ.toOpenPartialHomeomorph z) ≠ 0 := by
-    have := hA.analyticOrderAt_deriv_add_one
-    simp only [h0, sub_zero, hord'] at this
-    exact hA.deriv.analyticOrderAt_eq_zero.1 (by simpa using this)
+  obtain ⟨h0', hd⟩ := (analyticOrderAt_eq_nat_iff_iteratedDeriv_eq_zero hA (n := 1)).1
+    (by simpa using (ENat.toNat_eq_iff one_ne_zero).1 hord)
+  have h0 : h (ψ.toOpenPartialHomeomorph z) = 0 := by simpa using h0' 0 one_pos
+  replace hd : deriv h (ψ.toOpenPartialHomeomorph z) ≠ 0 := by simpa using hd
   -- Near `z`, the coordinate of `s` in `e₀` is `(c x)⁻¹ h (ψ x)`.
   set C : OnePoint ℂ → ℂ →L[ℝ] ℂ := fun x ↦ (c x)⁻¹ • ContinuousLinearMap.id ℝ ℂ
   have hC : ContinuousAt C z := (hc.inv₀ hc₀).smul continuousAt_const
@@ -241,11 +238,7 @@ theorem surjective_sectionLinearization_of_mem_twistOneKernel
     mvfderiv_eq_comp_of_eventuallyEq_clm_apply hu hC hcomp h0, mvfderiv_comp z hhd hψd,
     mvfderiv_eq_fderiv,
     (hA.differentiableAt.hasDerivAt.hasFDerivAt.restrictScalars ℝ).fderiv]
-  obtain ⟨D, hD⟩ := (ψ.isLocalDiffeomorphAt _ _ ∞ hzψ).isInvertible_mfderiv (by simp)
-  have hDs : Function.Surjective (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ψ.toOpenPartialHomeomorph z) := by
-    have h' := D.surjective
-    rw [← ContinuousLinearEquiv.coe_coe, hD] at h'
-    exact h'
+  have hDs := ((ψ.isLocalDiffeomorphAt _ _ ∞ hzψ).isInvertible_mfderiv (by simp)).surjective
   have hCs : Function.Surjective (C z) := fun y ↦ ⟨c z * y, by simp [C, hc₀]⟩
   have hds : Function.Surjective ((ContinuousLinearMap.toSpanSingleton ℂ
       (deriv h (ψ.toOpenPartialHomeomorph z))).restrictScalars ℝ) :=
