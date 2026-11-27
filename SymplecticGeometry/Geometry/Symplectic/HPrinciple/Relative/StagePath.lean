@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -45,7 +46,11 @@ parameter `l` at a time:
   `e_{s l, 1}^* α l` and `e_{s l, 1}^* B' (s l)` are `α l` and `B (s l)`;
 * `SymplecticGeometry.stagePath_of_mem`: if `α l` is closed and `τ l = α l + d (B' (s l))` on all
   of `M`, then the path runs through closed forms cohomologous to `α l` and ends at
-  `e_{s l, 1}^* α l + d (e_{s l, 1}^* B' (s l))`.
+  `e_{s l, 1}^* α l + d (e_{s l, 1}^* B' (s l))`;
+* `SymplecticGeometry.stagePath_isNondegenerate`: if the slices of `e` are local diffeomorphisms,
+  `ρ` takes values in `[0, 1]`, `τ l` is nondegenerate, and the interpolations
+  `τ l + r • (α l + d (B' (s l)) - τ l)`, `r ∈ [0, 1]`, are nondegenerate at `e_{s l, 1} x`
+  wherever `ρ x ≠ 0`, then the path is nondegenerate at all times.
 
 `SymplecticGeometry.exists_stagePath` builds the data `e` and `ρ` of a stage from a band core `c`
 and a family `Φ` of isotopies that displaces the cubes of `c` into a region `U` where every
@@ -53,9 +58,9 @@ interpolation `τ l + r • (α l + d (B' (s l)) - τ l)`, `r ∈ [0, 1]`, is no
 compact set `K`. Its isotopy first compresses `{g ≤ b}` towards `{g ≤ a}` and the cubes
 (`SymplecticGeometry.BandCore.exists_compression_of_subset`), into the open set of points that
 `Φ` sends into `U` for all `l ∈ K` at once, and then applies `Φ`; its cutoff is `1` near
-`{g ≤ b}` and supported where the end of that isotopy lands in `U`. The path is then
-nondegenerate for every `l ∈ K`: at each point it is the pullback, along a local diffeomorphism,
-of `τ l` or of one of these interpolations.
+`{g ≤ b}` and supported where the end of that isotopy lands in `U`, so that the path is
+nondegenerate for every `l ∈ K` by `SymplecticGeometry.stagePath_isNondegenerate`: at each point
+it is the pullback, along a local diffeomorphism, of `τ l` or of one of these interpolations.
 
 The time steps are those of `SymplecticGeometry.exists_homotopy_exact_of_isotopy`
 (`HandleCore/Homotopy.lean`), which uses the same isotopy-then-interpolation scheme. The family
@@ -222,6 +227,51 @@ theorem stagePath_of_mem {l : Λ} (he₀ : ∀ x, e ((s l, 0), x) = x)
     exact LinearMap.mem_range_self _ _
   · rw [hpath, collaredFirstHalf_one, hτ, map_add, SmoothForm.mextDerivₗ_mpullback]
 
+/-- The path is nondegenerate at all times for a parameter `l`, if the slices `e ((s l, t), ·)`
+are local diffeomorphisms, `ρ` takes values in `[0, 1]`, `τ l` is nondegenerate, and at every
+point `x` with `ρ x ≠ 0` each interpolation `τ l + r • (α l + d (B' (s l)) - τ l)`,
+`r ∈ [0, 1]`, is nondegenerate at `e ((s l, 1), x)`. -/
+theorem stagePath_isNondegenerate {l : Λ}
+    (hed : ∀ t, IsLocalDiffeomorph I I ∞ fun x ↦ e ((s l, t), x))
+    (hρI : ∀ x, ρ x ∈ Icc (0 : ℝ) 1) (hnd : (τ l).IsNondegenerate)
+    (hint : ∀ x, ρ x ≠ 0 → ∀ r ∈ Icc (0 : ℝ) 1,
+      ((τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l)).bilinFormAt
+        (e ((s l, 1), x))).Nondegenerate)
+    (t : unitInterval) : (stagePath he hρ s τ α B' (l, t)).IsNondegenerate := by
+  refine SmoothTwoForm.isNondegenerate_def.2 fun x ↦ ?_
+  -- At `x` the path is the pullback along `e_{s l, A t}` of the form `σ`.
+  set A := collaredFirstHalf (n := ∞) le_rfl
+  set C := collaredSecondHalf (n := ∞) le_rfl
+  set r : ℝ := (C t : ℝ) * ρ x with hr_def
+  set σ := τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l) with hσ_def
+  have hAC (h : (C t : ℝ) ≠ 0) : A t = 1 :=
+    collaredFirstHalf_eq_one_of_collaredSecondHalf_ne_zero le_rfl
+      fun h' ↦ h (by rw [h', Set.Icc.coe_zero])
+  have hval : (SmoothForm.mpullback (fun x ↦ e ((s l, A t), x))
+      (he.comp (contMDiff_const.prodMk contMDiff_id)) σ).val x =
+      (stagePath he hρ s τ α B' (l, t)).val x := by
+    rw [stagePath_apply]
+    rcases eq_or_ne (C t : ℝ) 0 with h0 | h0
+    · have hr0 : r = 0 := by rw [hr_def, h0, zero_mul]
+      rw [hσ_def, hr0, zero_smul, add_zero]
+      simp only [A, C, h0, zero_mul, zero_smul, add_zero]
+    · have hA := hAC h0
+      simp only [A] at hA ⊢
+      simp only [hA, hσ_def, hr_def, map_add, map_smul, SmoothBundleForm.add_apply,
+        SmoothBundleForm.smul_apply, map_sub, SmoothBundleForm.sub_apply]
+      abel
+  have hpull : mpullback I I (fun x ↦ e ((s l, A t), x)) σ.val x =
+      (stagePath he hρ s τ α B' (l, t)).val x := by
+    rw [← hval, SmoothForm.coe_mpullback]
+  refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    ((hed (A t) x).isInvertible_mfderiv (by simp)) hpull).1 ?_
+  by_cases hr : r = 0
+  · rw [hσ_def, hr, zero_smul, add_zero]
+    exact SmoothTwoForm.isNondegenerate_def.1 hnd _
+  -- Otherwise `C t ≠ 0`, so `A t = 1`, and `ρ x ≠ 0`.
+  rw [hAC (left_ne_zero_of_mul hr)]
+  exact hint x (right_ne_zero_of_mul hr) r (unitInterval.mul_mem (C t).property (hρI x))
+
 section Exists
 
 variable [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [SigmaCompactSpace M]
@@ -300,45 +350,12 @@ theorem exists_stagePath (c : BandCore I g a₀ a b) (hg : Continuous g) {K : Se
   refine ⟨e, he, θ, θ.contMDiff, interior V₀ ∩ N₁, N', hed, fun q x ↦ ?_, isOpen_interior.inter hN₁,
     inter_mem (isOpen_interior.mem_nhdsSet.2 (subset_interior_iff_mem_nhdsSet.2 hV₀))
       (hN₁.mem_nhdsSet.2 haN₁), inter_subset_right, fun p x hx ↦ ?_, hN', hbN', hθI, hθN',
-    fun l hl t ↦ SmoothTwoForm.isNondegenerate_def.2 fun x ↦ ?_⟩
+    fun l hl t ↦ ?_⟩
   · simp only [he_def, SmoothIsotopy.apply_zero, ContMDiffMap.id_apply, hΦ₀]
   · simp only [he_def, hFV₀ _ x (interior_subset hx.1), hΦN₁ _ x hx.2]
-  -- Step 5: nondegeneracy. At `x` the path is the pullback along `e_{s l, A t}` of the form `σ`.
-  set A := collaredFirstHalf (n := ∞) le_rfl
-  set C := collaredSecondHalf (n := ∞) le_rfl
-  set r : ℝ := (C t : ℝ) * θ x with hr_def
-  set σ := τ l + r • (α l + mextDerivₗ I 1 (B' (s l)) - τ l) with hσ_def
-  -- `C t` leaves `0` only once `A t` has reached `1`.
-  have hAC (h : (C t : ℝ) ≠ 0) : A t = 1 := by
-    refine collaredFirstHalf_eq_one_of_ge le_rfl ?_
-    by_contra ht
-    exact h (by rw [collaredSecondHalf_eq_zero_of_le le_rfl (by linarith), Set.Icc.coe_zero])
-  have hval : (SmoothForm.mpullback (fun x ↦ e ((s l, A t), x))
-      (he.comp (contMDiff_const.prodMk contMDiff_id)) σ).val x =
-      (stagePath he θ.contMDiff s τ α B' (l, t)).val x := by
-    rw [stagePath_apply]
-    rcases eq_or_ne (C t : ℝ) 0 with h0 | h0
-    · have hr0 : r = 0 := by rw [hr_def, h0, zero_mul]
-      rw [hσ_def, hr0, zero_smul, add_zero]
-      simp only [A, C, h0, zero_mul, zero_smul, add_zero]
-    · have hA := hAC h0
-      simp only [A] at hA ⊢
-      simp only [hA, hσ_def, hr_def, map_add, map_smul, SmoothBundleForm.add_apply,
-        SmoothBundleForm.smul_apply, map_sub, SmoothBundleForm.sub_apply]
-      abel
-  have hpull : mpullback I I (fun x ↦ e ((s l, A t), x)) σ.val x =
-      (stagePath he θ.contMDiff s τ α B' (l, t)).val x := by
-    rw [← hval, SmoothForm.coe_mpullback]
-  refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
-    ((hed (s l, A t) x).isInvertible_mfderiv (by simp)) hpull).1 ?_
-  by_cases hr : r = 0
-  · rw [hσ_def, hr, zero_smul, add_zero]
-    exact SmoothTwoForm.isNondegenerate_def.1 (hnd l hl) _
-  -- Otherwise `C t ≠ 0`, so `A t = 1`, and `θ x ≠ 0`, so `x ∈ W₁`.
-  have hC : (C t : ℝ) ≠ 0 := left_ne_zero_of_mul hr
-  have hxW₁ : x ∈ W₁ := hθW₁ (subset_tsupport _ (right_ne_zero_of_mul hr))
-  rw [hAC hC]
-  exact hUnd (l, e ((s l, 1), x)) (hxW₁ l hl) hl r (unitInterval.mul_mem (C t).property (hθI x))
+  -- Step 5: nondegeneracy, where `θ x ≠ 0` puts `x` in `W₁`.
+  exact stagePath_isNondegenerate he θ.contMDiff s τ α B' (fun t ↦ hed (s l, t)) hθI (hnd l hl)
+    (fun x hx r hr ↦ hUnd (l, e ((s l, 1), x)) (hθW₁ (subset_tsupport _ hx) l hl) hl r hr) t
 
 end Exists
 
