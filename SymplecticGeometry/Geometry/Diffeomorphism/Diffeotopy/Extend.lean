@@ -9,12 +9,13 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 
 /-!
-# Moving a compactly supported diffeomorphism along a family of embeddings
+# Moving compactly supported diffeomorphisms and diffeotopies along embeddings
 
 Let `G` be a smooth isotopy of maps `W → M` whose slices `G_t` are local diffeomorphisms, and let
 `Λ` be a diffeomorphism of `W` that fixes every point outside a compact set `K`. Transplanting
@@ -27,6 +28,13 @@ If moreover each `G_t` pulls a form `σ` on `M` back to a form `τ` on `W`, and 
 then `Λ₀` and every `Φ_t` preserve `σ`
 (`TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend_of_isSymplectic`).
 
+A diffeotopy of `N` also extends along one smooth open embedding `χ : N → M` when the points it
+moves map into a closed subset of `range χ`, which need not be compact
+(`TauCeti.Diffeotopy.exists_extend`). For a diffeotopy `h` of `S × N` that moves only points
+over a compact `C ⊆ N`, extending along `id × φ` gives the diffeotopy
+`TauCeti.extendDiffeotopyAlong` of `S × M`: it reads `h` through `φ` and fixes every point
+`(q, y)` with `y ∉ φ '' C`. The parameter space `S` need not be compact.
+
 ## Main results
 
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`: a diffeomorphism `Λ₀` of `M` and a
@@ -37,6 +45,12 @@ then `Λ₀` and every `Φ_t` preserve `σ`
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend_of_isSymplectic`: for a symplectic
   isotopy `G` and a diffeomorphism `Λ` preserving the form on `W`, `Λ₀` and every `Φ_t` preserve
   the form on `M`.
+* `TauCeti.Diffeotopy.exists_extend`: a diffeotopy of `N` that fixes every `z` with `χ z` outside
+  a closed `C ⊆ range χ` extends along `χ` to a diffeotopy of `M` fixing every point outside `C`.
+* `TauCeti.extendDiffeotopyAlong`: the extension along `id × φ` of a diffeotopy of `S × N` that
+  moves only points over a compact subset of `N`, with
+  `TauCeti.extendDiffeotopyAlong_apply_prodMk`, `TauCeti.extendDiffeotopyAlong_apply_of_notMem`
+  and `TauCeti.fst_extendDiffeotopyAlong_apply`.
 
 ## Implementation notes
 
@@ -56,6 +70,11 @@ That `Φ_t ∘ Λ₀` preserves `σ` follows from the lemma on transplants along
 `G_t` (`TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`, in
 `Pullback/LocalDiffeomorph.lean`, with the closed set
 `G_t '' K`); the slice `Φ_t` is then `(Φ_t ∘ Λ₀) ∘ Λ₀⁻¹`.
+
+The proof of `TauCeti.Diffeotopy.exists_extend` is that of Tau Ceti's
+`TauCeti.Diffeotopy.exists_extend_of_isCompact`, with the closed set `univ ×ˢ C` in place of the
+image of a compact set, so that it calls `IsLocalDiffeomorph.exists_diffeomorph_extend` rather
+than its compact form.
 
 ## References
 
@@ -193,5 +212,104 @@ theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ 
   · exact (Subgroup.mul_mem_cancel_right _ hΛ₀).1 (hΛt t)
 
 end TauCeti.SmoothIsotopy
+
+namespace TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {J : ModelWithCorners ℝ E H}
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {J' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H N] {n : ℕ∞ω}
+
+/-- A diffeotopy `Λ` of `N` extends along a smooth open embedding `χ : N → M` by the identity if,
+at all times, it fixes every point `z` with `χ z` outside a closed set `C ⊆ range χ`. The
+extension moves `χ z` as `Λ` moves `z`, and fixes every point outside `C` at all times. -/
+theorem Diffeotopy.exists_extend {χ : N → M} (hχ : IsLocalDiffeomorph J J' n χ)
+    (hχo : IsOpenEmbedding χ) (Λ : Diffeotopy J n N) {C : Set M} (hC : IsClosed C)
+    (hCχ : C ⊆ range χ) (hΛ : ∀ t z, χ z ∉ C → Λ (t, z) = z) :
+    ∃ Φ : Diffeotopy J' n M, (∀ t z, Φ (t, χ z) = χ (Λ (t, z))) ∧
+      ∀ t, ∀ y ∉ C, Φ (t, y) = y := by
+  let χ' : unitInterval × N → unitInterval × M := Prod.map id χ
+  have hχ' : IsLocalDiffeomorph ((𝓡∂ 1).prod J) ((𝓡∂ 1).prod J') n χ' :=
+    (Diffeomorph.refl (𝓡∂ 1) unitInterval n).isLocalDiffeomorph.prodMap hχ
+  have hC' : univ ×ˢ C ⊆ range χ' := by
+    rintro ⟨t, y⟩ ⟨-, hy⟩
+    obtain ⟨z, rfl⟩ := hCχ hy
+    exact ⟨(t, z), rfl⟩
+  obtain ⟨Ψ, hΨχ, hΨC⟩ := hχ'.exists_diffeomorph_extend (IsOpenEmbedding.id.prodMap hχo)
+    Λ.toDiffeomorph (isClosed_univ.prod hC) hC' fun z hz ↦ by
+      rw [Diffeotopy.toDiffeomorph_apply, hΛ z.1 z.2 fun h ↦ hz ⟨mem_univ _, h⟩]
+  -- Off `univ ×ˢ C` the extension is the identity; on it, it is the motion read through `χ'`.
+  have hΨ (p : unitInterval × M) :
+      Ψ p = p ∨ ∃ z : unitInterval × N, p = χ' z ∧ Ψ p = χ' (Λ.toDiffeomorph z) := by
+    by_cases hp : p ∈ univ ×ˢ C
+    · obtain ⟨z, rfl⟩ := hC' hp
+      exact .inr ⟨z, rfl, hΨχ z⟩
+    · exact .inl (hΨC p hp)
+  refine ⟨⟨Ψ, fun p ↦ ?_, fun x ↦ ?_⟩, fun t z ↦ ?_, fun t y hy ↦ ?_⟩
+  · rcases hΨ p with h | ⟨z, rfl, h⟩
+    · rw [h]
+    · simp [h, χ']
+  · rcases hΨ (0, x) with h | ⟨⟨t, w⟩, hz, h⟩
+    · rw [h]
+    · simp only [χ', Prod.map, id, Prod.mk.injEq] at hz
+      obtain ⟨rfl, rfl⟩ := hz
+      simp [h, χ']
+  · rw [Diffeotopy.coe_apply, Diffeotopy.coe_apply]
+    exact congrArg Prod.snd (hΨχ (t, z))
+  · rw [Diffeotopy.coe_apply]
+    exact congrArg Prod.snd (hΨC (t, y) fun h ↦ hy h.2)
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {G : Type*} [TopologicalSpace G] {I : ModelWithCorners ℝ F G}
+  {S : Type*} [TopologicalSpace S] [ChartedSpace G S]
+  [T2Space M] {φ : N → M} (hφ : IsLocalDiffeomorph J J' n φ) (hφo : IsOpenEmbedding φ)
+  (h : Diffeotopy (I.prod J) n (S × N)) {C : Set N} (hC : IsCompact C)
+  (hh : ∀ t p, p.2 ∉ C → h (t, p) = p)
+include hφ hφo hC hh
+
+/-- The diffeotopy that `extendDiffeotopyAlong` chooses. -/
+private theorem exists_extendDiffeotopyAlong :
+    ∃ Φ : Diffeotopy (I.prod J') n (S × M),
+      (∀ t p, Φ (t, Prod.map id φ p) = Prod.map id φ (h (t, p))) ∧
+      ∀ t, ∀ p ∉ univ ×ˢ (φ '' C), Φ (t, p) = p :=
+  Diffeotopy.exists_extend ((Diffeomorph.refl I S n).isLocalDiffeomorph.prodMap hφ)
+    (IsOpenEmbedding.id.prodMap hφo) h (isClosed_univ.prod (hC.image hφo.continuous).isClosed)
+    (fun _ ⟨_, ⟨z, _, hz⟩⟩ ↦ ⟨(_, z), Prod.ext rfl hz⟩)
+    fun t p hp ↦ hh t p fun hpC ↦ hp ⟨mem_univ _, p.2, hpC, rfl⟩
+
+/-- The extension of a family of diffeotopies along a smooth open embedding. Let `φ : N → M` be
+a smooth open embedding into a Hausdorff manifold, and `h` a diffeotopy of `S × N` that fixes
+at all times every point `(q, z)` with `z` outside a compact set `C`. Then
+`extendDiffeotopyAlong hφ hφo h hC hh` is a diffeotopy of `S × M` that moves `(q, φ z)` as `h`
+moves `(q, z)` (`extendDiffeotopyAlong_apply_prodMk`) and fixes every `(q, y)` with
+`y ∉ φ '' C` (`extendDiffeotopyAlong_apply_of_notMem`). If `h` keeps the parameter `q`, so does
+the extension (`fst_extendDiffeotopyAlong_apply`): then at the parameter `q` and time `t` it is
+`φ ∘ h_(q,t) ∘ φ⁻¹` on the range of `φ` and the identity elsewhere. -/
+def extendDiffeotopyAlong : Diffeotopy (I.prod J') n (S × M) :=
+  (exists_extendDiffeotopyAlong hφ hφo h hC hh).choose
+
+/-- The extension of `h` along `φ` moves `(q, φ z)` as `h` moves `(q, z)`. -/
+theorem extendDiffeotopyAlong_apply_prodMk (t : unitInterval) (q : S) (z : N) :
+    extendDiffeotopyAlong hφ hφo h hC hh (t, (q, φ z)) =
+      ((h (t, (q, z))).1, φ (h (t, (q, z))).2) :=
+  (exists_extendDiffeotopyAlong hφ hφo h hC hh).choose_spec.1 t (q, z)
+
+/-- The extension of `h` along `φ` fixes at all times every `(q, y)` with `y ∉ φ '' C`. -/
+theorem extendDiffeotopyAlong_apply_of_notMem (t : unitInterval) (q : S) {y : M}
+    (hy : y ∉ φ '' C) : extendDiffeotopyAlong hφ hφo h hC hh (t, (q, y)) = (q, y) :=
+  (exists_extendDiffeotopyAlong hφ hφo h hC hh).choose_spec.2 t (q, y) fun h ↦ hy h.2
+
+/-- If `h` keeps the parameter, so does its extension along `φ`. -/
+theorem fst_extendDiffeotopyAlong_apply (hfst : ∀ t p, (h (t, p)).1 = p.1) (t : unitInterval)
+    (p : S × M) : (extendDiffeotopyAlong hφ hφo h hC hh (t, p)).1 = p.1 := by
+  obtain ⟨q, y⟩ := p
+  by_cases hy : y ∈ φ '' C
+  · obtain ⟨z, -, rfl⟩ := hy
+    rw [extendDiffeotopyAlong_apply_prodMk, hfst]
+  · rw [extendDiffeotopyAlong_apply_of_notMem hφ hφo h hC hh t q hy]
+
+end TauCeti
 
 end
