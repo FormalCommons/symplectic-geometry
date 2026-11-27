@@ -9,8 +9,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Graph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
 
 /-!
 # Graph tori of circle maps
@@ -19,11 +18,11 @@ Let `Σ` be a finite-dimensional boundaryless manifold, let `T = ∀ i : ι ⊕ 
 the standard torus, let `i : ι ⊕ ι` be one of its coordinates and let `h : AddCircle (p i) → Σ` be
 smooth. The **graph torus** of `h` is the map
 
-`ι_h : T → Σ × T`, `x ↦ (h (x i), x)`,
+`T → Σ × T`, `x ↦ (h (x i), x)`,
 
 the graph of `h ∘ eval i` with its factors exchanged
-(`SymplecticGeometry.graphTorus`). It is a smooth embedding, since it is the image of the graph
-embedding `ContMDiff.isSmoothEmbedding_graph` under the diffeomorphism `Diffeomorph.prodComm`.
+(`SymplecticGeometry.graphTorus`). It is a smooth embedding by
+`ContMDiff.isSmoothEmbedding_graph_swap`.
 
 For a two-form `σ` on `Σ`, the graph torus pulls the product form `pr₁^* σ + pr₂^* ω_T` of
 `Σ × T` back to exactly the standard form `ω_T = TauCeti.torusSymplecticForm p`: its second
@@ -32,7 +31,7 @@ dimension one, so it pulls every two-form back to zero
 (`TauCeti.SmoothForm.eq_zero_of_finrank_lt`). In particular, for a nondegenerate `σ`, the graph
 torus has symplectic tangent images for the product form.
 
-Two graph tori `ι_h` and `ι_h'` have disjoint images exactly when `h t ≠ h' t` for every `t`,
+The graph tori of `h` and `h'` have disjoint images exactly when `h t ≠ h' t` for every `t`,
 since a point of `T` determines its coordinate `t = x i`.
 
 These tori enter the realization of finitely presented groups as fundamental groups of closed
@@ -75,22 +74,13 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {ι : Type*} [Fintype ι] {p : ι ⊕ ι → ℝ} [∀ i, Fact (0 < p i)] {i : ι ⊕ ι}
   {h h' : AddCircle (p i) → M}
 
-/-- The map `x ↦ (h (x i), x)` from the torus `T = ∀ i, AddCircle (p i)` into `M × T` is a smooth
-embedding. -/
-theorem isSmoothEmbedding_graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
-    Manifold.IsSmoothEmbedding (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
-      (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) ∞
-      (fun x : ∀ i, AddCircle (p i) ↦ (h (x i), x)) :=
-  (Diffeomorph.prodComm _ I _ M ∞).isSmoothEmbedding_comp (by simp)
-    (hh.comp (contMDiff_apply (i := i))).isSmoothEmbedding_graph
-
 /-- The **graph torus** of a smooth map `h : AddCircle (p i) → M`: the smooth embedding
 `x ↦ (h (x i), x)` of the torus `∀ i, AddCircle (p i)` into `M × ∀ i, AddCircle (p i)`. -/
 def graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h) :
     SmoothEmbedding (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
       (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) ∞ (∀ i, AddCircle (p i))
       (M × ∀ i, AddCircle (p i)) :=
-  .ofIsSmoothEmbedding _ (isSmoothEmbedding_graphTorus hh)
+  .ofIsSmoothEmbedding _ (hh.comp (contMDiff_apply (i := i))).isSmoothEmbedding_graph_swap
 
 /-- The graph torus of `h` sends `x` to `(h (x i), x)`. -/
 @[simp]
@@ -139,21 +129,14 @@ theorem mpullback_graphTorus_prod_torusSymplecticForm (hh : ContMDiff 𝓘(ℝ) 
     SmoothForm.mpullback (graphTorus hh) (graphTorus hh).contMDiff
         (SmoothTwoForm.prod σ (torusSymplecticForm p)) =
       torusSymplecticForm p := by
-  have he : ContMDiff (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)) 𝓘(ℝ) ∞
-      (fun x : ∀ i, AddCircle (p i) ↦ x i) := contMDiff_apply
-  -- The first component factors through the circle, where every two-form vanishes.
-  have h₁ : SmoothForm.mpullback (Prod.fst ∘ graphTorus hh)
-      (contMDiff_fst.comp (graphTorus hh).contMDiff) σ = 0 := by
-    rw [SmoothForm.mpullback_congr _ (hh.comp he) (fst_comp_graphTorus hh),
-      SmoothForm.mpullback_comp _ _ he hh, LinearMap.comp_apply,
-      SmoothForm.eq_zero_of_finrank_lt (by simp) (SmoothForm.mpullback h hh σ), map_zero]
-  have h₂ : SmoothForm.mpullback (Prod.snd ∘ graphTorus hh)
-      (contMDiff_snd.comp (graphTorus hh).contMDiff) (torusSymplecticForm p) =
-        torusSymplecticForm p := by
-    rw [SmoothForm.mpullback_congr _ contMDiff_id (snd_comp_graphTorus hh),
-      SmoothForm.mpullback_id, LinearMap.id_apply]
-  rw [SmoothTwoForm.prod_def, map_add, ← LinearMap.comp_apply, ← LinearMap.comp_apply,
-    ← SmoothForm.mpullback_comp, ← SmoothForm.mpullback_comp, h₁, h₂, zero_add]
+  -- The first component factors through the circle, where every two-form vanishes, and the
+  -- second is the identity.
+  rw [SmoothTwoForm.prod_def, map_add,
+    SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_apply hh (fst_comp_graphTorus hh),
+    SmoothForm.eq_zero_of_finrank_lt (by simp) (SmoothForm.mpullback h hh σ), map_zero, zero_add,
+    SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_congr _ contMDiff_id (snd_comp_graphTorus hh)]
+  exact LinearMap.congr_fun SmoothForm.mpullback_id _
 
 /-- For a nondegenerate two-form `σ` on `M`, the graph torus has symplectic tangent images for the
 product form `pr₁^* σ + pr₂^* ω_T`. -/
