@@ -155,5 +155,20 @@ jobs:
           address=$(python3 -I .github/lake-cache-address.py "fc-$kind" "$toolchain") ||
             { echo "::error::no address for the mappings of $SHA"; exit 1; }
           [ -n "$LAKE_CACHE_KEY" ] || { echo "::error::the environment lake-cache has no secret LAKE_CACHE_KEY"; exit 1; }
+          # main's latest mappings that the bucket has, for cache-upload.sh to
+          # know which archives are there without asking; see there. Without
+          # them it asks about all.
+          known=$RUNNER_TEMP/known.jsonl
+          if queue=$(python3 -I .github/lake-cache-address.py fc-queue "$toolchain" | sed -n 2p) && [ -n "$queue" ] &&
+            commits=$(timeout 60 gh api "repos/$GITHUB_REPOSITORY/commits?sha=main&per_page=40" --jq '.[].sha'); then
+            for c in $commits; do
+              [[ $c =~ ^[0-9a-f]{40}$ ]] || continue
+              if curl -q -sf --connect-timeout 5 --max-time 30 -o "$known" "$queue/$c.jsonl"; then
+                echo "main's mappings at $c name the archives that are taken to be in the bucket"
+                break
+              fi
+              rm -f "$known"
+            done
+          fi
           printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
-            timeout 8m .github/cache-upload.sh "$RUNNER_TEMP/staged" "$(sed -n 1p <<<"$address")" "$(sed -n 2p <<<"$address")/$SHA.jsonl"
+            timeout 8m .github/cache-upload.sh "$RUNNER_TEMP/staged" "$(sed -n 1p <<<"$address")" "$(sed -n 2p <<<"$address")/$SHA.jsonl" "$known"
