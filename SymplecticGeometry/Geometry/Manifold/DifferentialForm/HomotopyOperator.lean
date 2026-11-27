@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 
@@ -121,10 +122,10 @@ theorem mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ [Complet
         mpullback (fun x : M ↦ (x, (0 : Icc (0 : ℝ) 1))) (contMDiff_id.prodMk contMDiff_const)
           φ := by
   refine Subtype.ext (funext fun x ↦ ?_)
-  rw [Submodule.coe_add, Pi.add_apply, mextDerivₗ_apply, coe_homotopyOperator,
+  rw [SmoothBundleForm.add_apply, mextDerivₗ_apply, coe_homotopyOperator,
     coe_homotopyOperator, mextDerivₗ_apply,
     mextDeriv_homotopyOperator_add_homotopyOperator_mextDeriv (φ.isSmoothForm.of_le (by simp)) x,
-    Submodule.coe_sub, Pi.sub_apply, coe_mpullback, coe_mpullback]
+    SmoothBundleForm.sub_apply, coe_mpullback, coe_mpullback]
 
 /-- **The homotopy formula for closed forms.** For a closed smooth form `φ` on `M × [0, 1]` with
 values in a Banach space, the exterior derivative of `h φ` is the difference `ι₁^* φ - ι₀^* φ`
@@ -346,7 +347,7 @@ theorem exists_mextDerivₗ_eq_sub_homotopyOperator_mpullback_on [CompleteSpace 
     rw [coe_mpullback, coe_mpullback]
     exact mpullback_apply_congr (hβ _ (hW₀ x hx))
   rw [hη, map_add, mextDerivₗ_mpullback]
-  simp only [Submodule.coe_add, Submodule.coe_sub, Pi.add_apply, Pi.sub_apply, hgx]
+  simp only [SmoothBundleForm.add_apply, SmoothBundleForm.sub_apply, hgx]
   abel
 
 end Exact
