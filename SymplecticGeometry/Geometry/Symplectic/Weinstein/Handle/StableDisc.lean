@@ -369,16 +369,15 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     rw [hPu, hu]
   have hinv (T : ℝ) (x : M) : hW.flow (-T) (hW.flow T x) = x := by simp
   have hQ (x : E) : P x ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) x
-  set Q : E →L[ℝ] S := P.codRestrict S hQ with hQdef
+  set Q : E →L[ℝ] S := P.codRestrict S hQ
+  have hQP (x : E) : (Q x : E) = P x := ContinuousLinearMap.coe_codRestrict_apply _ _ _ x
   -- The map `x ↦ Q (e x - e p)` is a left inverse of `ι` on the ball.
   have hQι (z : S) (hz : z ∈ ball (0 : S) ρ) : Q (e (ι z) - e p) = z := by
     ext
-    rw [ContinuousLinearMap.coe_codRestrict_apply]
-    simp only [hι]
-    rw [e.right_inv (hq z hz), add_sub_cancel_left, map_add, hPg, add_zero, hPz]
+    simp [hQP, hι, e.right_inv (hq z hz), hPg, hPz]
   -- Smoothness spreads from a small ball to the ball of radius `ρ` along the flow: for `T`
   -- large, `ι = φ_{-T} ∘ ι ∘ h` near `z`, with `h` landing where `g` is `C^m`, and `h` has the
-  -- `C^m` left inverse `u ↦ P (e (φ_{-T} (ι u)) - e p)`.
+  -- `C^m` left inverse `u ↦ Q (e (φ_{-T} (ι u)) - e p)`.
   have hsmooth (m : ℕ) (hm : m ≠ 0) (z : S) (hz : z ∈ ball (0 : S) ρ) :
       ContMDiffAt 𝓘(ℝ, S) 𝓘(ℝ, E) m ι z := by
     have hm0 : (m : WithTop ℕ∞) ≠ 0 := by exact_mod_cast hm
@@ -392,7 +391,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     have hhd : DifferentiableAt ℝ h z :=
       Q.differentiableAt.comp z ((hyd T hT0).comp (f := S.subtypeL) z S.subtypeL.differentiableAt)
     have hnorm (w : S) : ‖h w‖ = ‖P (y w T)‖ := by
-      rw [← Submodule.norm_coe, ContinuousLinearMap.coe_codRestrict_apply]
+      rw [← Submodule.norm_coe, hQP]
     have hev : ∀ᶠ w in 𝓝 z, w ∈ ball (0 : S) ρ ∧ ‖h w‖ < min ρ ρm :=
       (isOpen_ball.eventually_mem hz).and
         ((continuous_norm.continuousAt.comp hhd.continuousAt).eventually
@@ -409,7 +408,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
         (by simpa using hhw.le.trans (min_le_left _ _))
       simp only [zero_add] at hgw
       rw [(horb w hw T hT0).2, hgw]
-      simp only [hι, hh, hQdef, ContinuousLinearMap.coe_codRestrict_apply]
+      simp only [hι, hh, hQP]
     obtain ⟨-, hhz⟩ := hev.self_of_nhds
     have hhzρ : h z ∈ ball (0 : S) ρ := mem_ball_zero_iff.2 (hhz.trans_le (min_le_left _ _))
     have hgh : ContDiffAt ℝ m g (h z) :=
@@ -483,8 +482,8 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
           exact mul_le_mul_of_nonneg_left (hxb.le.trans (min_le_right _ _)) (norm_nonneg _)
         _ < ρ := h1
     have hw := hgraph Y hYi (fun t ht ↦ by simpa [Y] using (hcx t ht).2) hPY.le
-    refine ⟨⟨P (Y 0), hQ (Y 0)⟩, by simpa using hPY, ?_⟩
-    simp only [hι]
+    refine ⟨Q (Y 0), by simpa [hQP] using hPY, ?_⟩
+    simp only [hι, hQP]
     rw [← hw, hY0, add_sub_cancel, e.left_inv hxs]
   · -- The derivative of `w ↦ e (φ_t (ι w))` is bounded in `t ≥ 0`.
     obtain ⟨-, -, -, hyd, C, hC⟩ := hy z (hball z hz)
