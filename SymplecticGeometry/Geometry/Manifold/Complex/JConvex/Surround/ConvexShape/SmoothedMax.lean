@@ -94,12 +94,9 @@ theorem min_le_deriv_smoothedMax_div_sub_one_div {χ₁ χ₂ : ℝ → ℝ} {δ
   have hinv := one_div_smoothedMax_le hδ hv₁ hv₂
   rw [deriv_smoothedMax_weighted h₁ h₂]
   obtain ⟨hw₀, hw₁⟩ := one_add_smoothedSign_div_two_mem_Icc δ (χ₁ r - χ₂ r)
-  set w := (1 + smoothedSign δ (χ₁ r - χ₂ r)) / 2 with hw
-  rw [show (1 - smoothedSign δ (χ₁ r - χ₂ r)) / 2 = 1 - w by rw [hw]; ring] at hinv
-  have hm₁ := mul_le_mul_of_nonneg_left
-    (min_le_left (deriv χ₁ r / r - 1 / χ₁ r) (deriv χ₂ r / r - 1 / χ₂ r)) hw₀
-  have hm₂ := mul_le_mul_of_nonneg_left
-    (min_le_right (deriv χ₁ r / r - 1 / χ₁ r) (deriv χ₂ r / r - 1 / χ₂ r)) (sub_nonneg.2 hw₁)
+  have hm := Convex.min_le_combo (𝕜 := ℝ) (deriv χ₁ r / r - 1 / χ₁ r)
+    (deriv χ₂ r / r - 1 / χ₂ r) hw₀ (sub_nonneg.2 hw₁) (add_sub_cancel _ _)
+  simp only [smul_eq_mul] at hm
   rw [add_div, mul_div_assoc, mul_div_assoc]
   linarith
 
@@ -196,8 +193,9 @@ theorem min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div {χ�
         ≤ (1 - s ^ 2) / 2 * ((x - y) ^ 2 * (2 / δ)) := by gcongr
       _ = 2 * (1 - s ^ 2) / δ * (x - y) ^ 2 / 2 := by ring
       _ ≤ p * (x - y) ^ 2 / 2 := by gcongr
-  have hm₁ := mul_le_mul_of_nonneg_left (min_le_left A B) (by linarith : 0 ≤ (1 + s) / 2)
-  have hm₂ := mul_le_mul_of_nonneg_left (min_le_right A B) (by linarith : 0 ≤ (1 - s) / 2)
+  have hm := Convex.min_le_combo (𝕜 := ℝ) A B (by linarith : 0 ≤ (1 + s) / 2)
+    (by linarith : 0 ≤ (1 - s) / 2) (by ring)
+  simp only [smul_eq_mul] at hm
   linarith
 
 /-- The second inequality of `isConvexShapeAt_iff` for the smoothed maximum of two `i`-convex
