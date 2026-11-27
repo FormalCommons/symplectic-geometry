@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Contact.StableHamiltonian
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 public import SymplecticGeometry.Geometry.Manifold.Strip
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 import SymplecticGeometry.Geometry.Contact.Symplectization.Basic

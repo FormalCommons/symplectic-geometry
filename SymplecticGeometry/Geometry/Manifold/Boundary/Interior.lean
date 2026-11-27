@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.Geometry.Manifold.Boundary.Interior
-public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
