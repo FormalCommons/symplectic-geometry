@@ -52,6 +52,9 @@ basis, and such a basis always exists
   `det A = p inl * p inr / Im (conj b₀ * b₁)`, which is positive for an oriented basis.
 * `SymplecticGeometry.mpullback_latticeTorusCover_torusSymplecticForm`: the pull-back of the
   torus form along `latticeTorusCover p b` is `det A • ω₀`.
+* `SymplecticGeometry.eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos`: for an oriented
+  basis, the torus form is positive on the images of `1` and `i` under the differential of
+  `latticeTorusCover p b`.
 
 The computation of that pull-back through the derivative of the covering map follows the proof of
 Tau Ceti's `TauCeti.mpullback_complexPiTorusCover_torusSymplecticForm`, and the computation of the
@@ -238,6 +241,29 @@ theorem mpullback_latticeTorusCover_torusSymplecticForm :
   refine (key v w).trans ?_
   rw [← SymplecticForm.constSmooth_apply stdComplexSymplecticForm z v w]
   simp [SmoothBundleForm.eval₂_apply]
+
+/-- For a positively oriented basis `b`, the standard form of the torus is positive on the images
+of `1` and `i` under the differential of `latticeTorusCover p b`. -/
+theorem eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos
+    (hb : 0 < (conj (b 0 : ℂ) * b 1).im) (z : ℂ) :
+    0 < SmoothBundleForm.eval₂ (torusSymplecticForm p) (latticeTorusCover p b z)
+      (mfderiv 𝓘(ℝ, ℂ) (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
+          (latticeTorusCover p b) z (1 : ℂ))
+      (mfderiv 𝓘(ℝ, ℂ) (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
+          (latticeTorusCover p b) z I) := by
+  have h := congr(SmoothBundleForm.eval₂
+    $(mpullback_latticeTorusCover_torusSymplecticForm p b) z (1 : ℂ) I)
+  -- The tangent vectors `1` and `I` are elaborated in `ℂ`, not in `TangentSpace 𝓘(ℝ, ℂ) z`, so
+  -- the evaluation lemmas only match up to that identification.
+  erw [SmoothForm.eval₂_mpullback] at h
+  have hc := SymplecticForm.constSmooth_apply stdComplexSymplecticForm z (1 : ℂ) I
+  erw [SmoothBundleForm.eval₂_apply] at hc
+  rw [h]
+  erw [SmoothBundleForm.eval₂_apply]
+  simp only [SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.coe_smul, hc,
+    stdComplexSymplecticForm_apply, one_re, I_im, mul_one, one_im, I_re, mul_zero, sub_zero,
+    smul_eq_mul]
+  exact det_latticeTorusEquiv_pos p _ hb
 
 /-- The additive isomorphism from `ℂ ⧸ Λ` onto the standard torus induced by
 `latticeTorusCover p b`. -/
