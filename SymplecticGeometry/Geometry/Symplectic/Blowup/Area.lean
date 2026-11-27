@@ -21,18 +21,18 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 /-!
 # The area potential and the area identity of the symplectic blowup
 
-For `0 < l` and `0 < ε`, the area of a holomorphic curve `u` in `E = ℂⁿ⁺¹` for the standard form
-`ω₀` and that of its lift to the model blowup for the form `ω̃_{l,ε}` (`profileForm`) differ, off
-the zeros of `u`, by a quarter of the Laplacian of `φ ∘ u`, with
-`φ(z) = -(l² log |z|² + q(|z|²))` for `q = profileCorrection l (blowupProfile l ε)` and the
-Euclidean norm `|z|`.
+For a profile `h` of the blowup of weight `l` with collar `ε` (`IsBlowupProfile l ε h`), such as
+`blowupProfile l ε`, the area of a holomorphic curve `u` in `E = ℂⁿ⁺¹` for the standard form
+`ω₀` and that of its lift to the model blowup for the form `ω̃_{l,ε} = profileForm n l ε h` differ,
+off the zeros of `u`, by a quarter of the Laplacian of `φ ∘ u`, with
+`φ(z) = -(l² log |z|² + q(|z|²))` for `q = profileCorrection l h` and the Euclidean norm `|z|`.
 In the variable `s = |z|²` this is `s - g(s)`, where `g(s) = s + l² log s + q(s)` is the radial
 potential of `ω̃_{l,ε}` off the divisor and `s` that of `ω₀`.
 
 This file defines that potential and proves the two facts about `φ ∘ u` that the area formula
 uses, before any form enters:
 
-* `SymplecticGeometry.BlowupModel.areaPotential l ε`: the function `φ`.
+* `SymplecticGeometry.BlowupModel.areaPotential l h`: the function `φ`.
 * `SymplecticGeometry.BlowupModel.areaPotential_of_ge`: `φ` is constant on `|z|² ≥ (l + ε)²`,
   by `sq_mul_log_add_profileCorrection_of_ge`; so `φ ∘ u` is locally constant near every point
   where `u` is continuous with `|u| > l + ε` (`areaPotential_comp_eventuallyEq`).
@@ -65,17 +65,17 @@ From these it proves the area identity and the milestone:
 * `SymplecticGeometry.BlowupModel.blowdown_profileForm_area`: for a bounded open `Ω ⊆ ℂ` and a
   curve `u` that is `C¹` near `closure Ω`, holomorphic on `Ω`, with `|u| > l + ε` on
   `frontier Ω` and finitely many zeros in `Ω`, of total order `m`, the area of `u` for `ω₀`
-  over `Ω` is that of any continuous lift `ũ` for `ω̃_{l,ε}` plus `m π l²`. The lift is
-  `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential along `u` is
-  constant near `frontier Ω` and has a pole `-l² k log |t - t₀|²` at a zero of order `k`, so the
-  planar identity `setIntegral_laplacian_eq_of_log_poles` gives `∫ Δ(φ ∘ u) = 4π l² m`; the
-  densities of `u^* ω₀` are integrable, as continuous functions on the compact `closure Ω`
-  (`integrableOn_eval₂_ω₀E_mfderiv`).
+  over `Ω` is that of any continuous lift `ũ` for `ω̃_{l,ε}` plus `m π l²`, for every profile
+  `h`. The lift is `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential
+  along `u` is constant near `frontier Ω` and has a pole `-l² k log |t - t₀|²` at a zero of
+  order `k`, so the planar identity `setIntegral_laplacian_eq_of_log_poles` gives
+  `∫ Δ(φ ∘ u) = 4π l² m`; the densities of `u^* ω₀` are integrable, as continuous functions on
+  the compact `closure Ω` (`integrableOn_eval₂_ω₀E_mfderiv`).
 * `SymplecticGeometry.BlowupModel.kahler_blowupModel`: the conjunction of the Kähler property
   of `ω̃_l` and the area of the lines of the divisor, the Kähler property of pull-backs of `ω₀`
   along radial maps, the identification of `ω̃_l` with `F_l^* ω₀` off the divisor and the shell
   symplectomorphism, the properties of `ω̃_{l,ε}` with their smooth dependence on parameters, and
-  the area identity.
+  the area identity for the default profile `blowupProfile l ε`.
 
 ## References
 
@@ -92,55 +92,53 @@ open scoped ContDiff
 
 namespace SymplecticGeometry.BlowupModel
 
-variable {n : ℕ} {l ε : ℝ}
+variable {n : ℕ} {l ε : ℝ} {h : ℝ → ℝ}
 
-/-- The area potential `φ(z) = -(l² log |z|² + q(|z|²))` on `ℂⁿ⁺¹`, for
-`q = profileCorrection l (blowupProfile l ε)` and `|z|` the Euclidean norm. In the variable
-`s = |z|²` it is `s - g(s)`, for `g(s) = s + l² log s + q(s)` the radial potential of
-`profileForm n l ε` off the exceptional divisor; for `z = 0` the logarithm is
+/-- The area potential `φ(z) = -(l² log |z|² + q(|z|²))` on `ℂⁿ⁺¹` of a profile `h`, for
+`q = profileCorrection l h` and `|z|` the Euclidean norm. In the variable `s = |z|²` it is
+`s - g(s)`, for `g(s) = s + l² log s + q(s)`; for `IsBlowupProfile l ε h`, `g` is the radial
+potential of `profileForm n l ε h` off the exceptional divisor. For `z = 0` the logarithm is
 Lean's `Real.log 0 = 0`. -/
-def areaPotential (l ε : ℝ) (z : Fin (n + 1) → ℂ) : ℝ :=
+def areaPotential (l : ℝ) (h : ℝ → ℝ) (z : Fin (n + 1) → ℂ) : ℝ :=
   -(l ^ 2 * Real.log (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) +
-    profileCorrection l (blowupProfile l ε) (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2))
+    profileCorrection l h (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2))
 
-theorem areaPotential_def (l ε : ℝ) (z : Fin (n + 1) → ℂ) :
-    areaPotential l ε z =
+theorem areaPotential_def (l : ℝ) (h : ℝ → ℝ) (z : Fin (n + 1) → ℂ) :
+    areaPotential l h z =
       -(l ^ 2 * Real.log (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) +
-        profileCorrection l (blowupProfile l ε) (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2)) :=
+        profileCorrection l h (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2)) :=
   (rfl)
 
-/-- Far from the origin the area potential is constant: for `|z|² ≥ (l + ε)²` it takes the value
-`-(l² log (l + ε)² + q((l + ε)²))`. -/
-theorem areaPotential_of_ge (hl : 0 < l) (hε : 0 < ε) {z : Fin (n + 1) → ℂ}
+/-- Far from the origin the area potential of a profile with collar `ε` is constant: for
+`|z|² ≥ (l + ε)²` it takes the value `-(l² log (l + ε)² + q((l + ε)²))`. -/
+theorem areaPotential_of_ge (hh : IsBlowupProfile l ε h) {z : Fin (n + 1) → ℂ}
     (hz : (l + ε) ^ 2 ≤ ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) :
-    areaPotential l ε z =
-      -(l ^ 2 * Real.log ((l + ε) ^ 2) +
-        profileCorrection l (blowupProfile l ε) ((l + ε) ^ 2)) := by
-  rw [areaPotential_def,
-    sq_mul_log_add_profileCorrection_of_ge (isBlowupProfile_blowupProfile hl hε) hz]
+    areaPotential l h z =
+      -(l ^ 2 * Real.log ((l + ε) ^ 2) + profileCorrection l h ((l + ε) ^ 2)) := by
+  rw [areaPotential_def, sq_mul_log_add_profileCorrection_of_ge hh hz]
 
-/-- Along a map `u` continuous at `t` with `|u t| > l + ε`, the area potential is constant near
-`t`. -/
+/-- Along a map `u` continuous at `t` with `|u t| > l + ε`, the area potential of a profile with
+collar `ε` is constant near `t`. -/
 theorem areaPotential_comp_eventuallyEq {X : Type*} [TopologicalSpace X]
-    {u : X → Fin (n + 1) → ℂ} {t : X} (hl : 0 < l) (hε : 0 < ε) (hu : ContinuousAt u t)
+    {u : X → Fin (n + 1) → ℂ} {t : X} (hh : IsBlowupProfile l ε h) (hu : ContinuousAt u t)
     (ht : l + ε < ‖complexToRealEuclidean (Fin (n + 1)) (u t)‖) :
-    areaPotential l ε ∘ u =ᶠ[𝓝 t] fun _ ↦ areaPotential l ε (u t) := by
+    areaPotential l h ∘ u =ᶠ[𝓝 t] fun _ ↦ areaPotential l h (u t) := by
   have hc : ContinuousAt (fun s ↦ ‖complexToRealEuclidean (Fin (n + 1)) (u s)‖) t :=
     ((complexToRealEuclidean (Fin (n + 1))).continuous.norm).continuousAt.comp hu
   have hge : ∀ {z : Fin (n + 1) → ℂ}, l + ε < ‖complexToRealEuclidean (Fin (n + 1)) z‖ →
       (l + ε) ^ 2 ≤ ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 :=
-    fun h ↦ pow_le_pow_left₀ (by positivity) h.le 2
+    fun hz ↦ pow_le_pow_left₀ (add_pos hh.weight_pos hh.collar_pos).le hz.le 2
   filter_upwards [hc.eventually (lt_mem_nhds ht)] with s hs
-  rw [Function.comp_apply, areaPotential_of_ge hl hε (hge hs), areaPotential_of_ge hl hε (hge ht)]
+  rw [Function.comp_apply, areaPotential_of_ge hh (hge hs), areaPotential_of_ge hh (hge ht)]
 
 /-- At a zero of finite order: if `u t = (t - t₀) ^ k • g t` near `t₀`, with `g` analytic at `t₀`
-and `g t₀ ≠ 0`, then off `t₀` and near it the area potential along `u` is
+and `g t₀ ≠ 0`, then off `t₀` and near it the area potential of a profile along `u` is
 `-l² k log |t - t₀|²` plus a function that is smooth at `t₀`. -/
 theorem exists_areaPotential_comp_eq_log_add {u g : ℂ → Fin (n + 1) → ℂ} {t₀ : ℂ} {k : ℕ}
-    (hl : 0 < l) (hε : 0 < ε) (hg : AnalyticAt ℂ g t₀) (hg0 : g t₀ ≠ 0)
+    (hh : IsBlowupProfile l ε h) (hg : AnalyticAt ℂ g t₀) (hg0 : g t₀ ≠ 0)
     (hug : ∀ᶠ t in 𝓝 t₀, u t = (t - t₀) ^ k • g t) :
-    ∃ h : ℂ → ℝ, ContDiffAt ℝ ∞ h t₀ ∧ ∀ᶠ t in 𝓝[≠] t₀,
-      areaPotential l ε (u t) = -(l ^ 2 * k * Real.log (‖t - t₀‖ ^ 2)) + h t := by
+    ∃ ψ : ℂ → ℝ, ContDiffAt ℝ ∞ ψ t₀ ∧ ∀ᶠ t in 𝓝[≠] t₀,
+      areaPotential l h (u t) = -(l ^ 2 * k * Real.log (‖t - t₀‖ ^ 2)) + ψ t := by
   set N : (Fin (n + 1) → ℂ) → ℝ := fun z ↦ ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2
   have hN : ContDiff ℝ ∞ N := contDiff_norm_sq_complexToRealEuclidean
   have hN0 : ∀ {z}, z ≠ 0 → N z ≠ 0 := fun hz ↦
@@ -149,10 +147,10 @@ theorem exists_areaPotential_comp_eq_log_add {u g : ℂ → Fin (n + 1) → ℂ}
     (((analyticAt_id.sub analyticAt_const).pow k).smul hg).congr (hug.mono fun _ h ↦ h.symm)
   have hsmooth : ContDiffAt ℝ ∞
       (fun t ↦ -(l ^ 2 * Real.log (N (g t)) +
-        profileCorrection l (blowupProfile l ε) (N (u t)))) t₀ :=
+        profileCorrection l h (N (u t)))) t₀ :=
     ((contDiffAt_const.mul ((hN.contDiffAt.comp t₀ (hg.contDiffAt.restrict_scalars ℝ)).log
       (hN0 hg0))).add
-        ((contDiff_profileCorrection (isBlowupProfile_blowupProfile hl hε)).contDiffAt.comp t₀
+        ((contDiff_profileCorrection hh).contDiffAt.comp t₀
         (hN.contDiffAt.comp t₀ (hua.contDiffAt.restrict_scalars ℝ)))).neg
   refine ⟨_, hsmooth, ?_⟩
   filter_upwards [nhdsWithin_le_nhds hug, self_mem_nhdsWithin,
@@ -163,9 +161,9 @@ theorem exists_areaPotential_comp_eq_log_add {u g : ℂ → Fin (n + 1) → ℂ}
   have ht0 : ‖t - t₀‖ ^ 2 ≠ 0 := pow_ne_zero 2 (norm_ne_zero_iff.2 (sub_ne_zero.2 htne))
   have hlog : Real.log (N (u t)) = k * Real.log (‖t - t₀‖ ^ 2) + Real.log (N (g t)) := by
     rw [hN_smul, Real.log_mul (pow_ne_zero k ht0) (hN0 hgt), Real.log_pow]
-  calc areaPotential l ε (u t)
-      = -(l ^ 2 * Real.log (N (u t)) + profileCorrection l (blowupProfile l ε) (N (u t))) :=
-        areaPotential_def l ε (u t)
+  calc areaPotential l h (u t)
+      = -(l ^ 2 * Real.log (N (u t)) + profileCorrection l h (N (u t))) :=
+        areaPotential_def l h (u t)
     _ = _ := by rw [hlog]; ring
 
 
@@ -175,57 +173,57 @@ section Density
 
 open scoped Laplacian Manifold TauCeti.ComplexManifold
 
-/-- The density of `(curveLift u)^* ω̃_{l,ε}` at a point `t` off the zeros of `u`, for `0 < l`,
-`0 < ε` and `u : ℂ → ℂⁿ⁺¹` complex differentiable at `t` with `u t ≠ 0`: the value of
-`profileForm n l ε` on the derivatives of the lift along `1` and `i` is
+/-- The density of `(curveLift u)^* ω̃_{l,ε}` at a point `t` off the zeros of `u`, for a profile
+`h` with `IsBlowupProfile l ε h` and `u : ℂ → ℂⁿ⁺¹` complex differentiable at `t` with
+`u t ≠ 0`: the value of `profileForm n l ε h` on the derivatives of the lift along `1` and `i` is
 `g'(s) |v|² + g''(s) |star (u t) ⬝ᵥ v|²`, for `v = u'(t)`, `s = |u t|²` and the radial potential
 `g(s) = s + l² log s + q(s)` of `ω̃_{l,ε}` off the exceptional divisor. -/
-theorem eval₂_profileForm_mfderiv_curveLift (hl : 0 < l) (hε : 0 < ε)
+theorem eval₂_profileForm_mfderiv_curveLift (hh : IsBlowupProfile l ε h)
     {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ} (hu : DifferentiableAt ℂ u t) (h0 : u t ≠ 0) :
-    (profileForm n l ε).eval₂ (curveLift u t)
+    (profileForm n l ε h).eval₂ (curveLift u t)
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) =
-      deriv (fun s ↦ s + l ^ 2 * Real.log s + profileCorrection l (blowupProfile l ε) s)
-            (∑ i, ‖u t i‖ ^ 2) *
+      deriv (fun s ↦ s + l ^ 2 * Real.log s + profileCorrection l h s) (∑ i, ‖u t i‖ ^ 2) *
           ∑ i, ‖deriv u t i‖ ^ 2 +
-        deriv (deriv fun s ↦ s + l ^ 2 * Real.log s + profileCorrection l (blowupProfile l ε) s)
+        deriv (deriv fun s ↦ s + l ^ 2 * Real.log s + profileCorrection l h s)
             (∑ i, ‖u t i‖ ^ 2) * Complex.normSq (star (u t) ⬝ᵥ deriv u t) := by
   -- Off the divisor, read `ω̃_{l,ε}` through the blowdown as a radial potential form.
   have key := SmoothForm.eval₂_mpullback _
     (contMDiff_subtypeVal.comp (blowdownPuncturedDiffeomorph n).symm.contMDiff)
-    (profileForm n l ε) ⟨u t, mem_puncturedSpace.2 h0⟩
+    (profileForm n l ε h) ⟨u t, mem_puncturedSpace.2 h0⟩
     (deriv u t : Fin (n + 1) → ℂ) (Complex.I • deriv u t : Fin (n + 1) → ℂ)
   rw [← SmoothForm.mpullback_mpullback _ _ (blowdownPuncturedDiffeomorph n).symm.contMDiff
     contMDiff_subtypeVal,
-    mpullback_blowdownDiffeomorph_symm_profileForm n (isBlowupProfile_blowupProfile hl hε),
+    mpullback_blowdownDiffeomorph_symm_profileForm n hh,
     radialPotentialForm_apply_I_smul, Function.comp_apply,
     coe_blowdownPuncturedDiffeomorph_symm_apply] at key
   rw [mfderiv_curveLift_of_ne_zero hu h0, mfderiv_curveLift_of_ne_zero hu h0, one_smul,
     curveLift_of_ne_zero h0, ← coe_blowdownPuncturedDiffeomorph_symm]
   exact key.symm
 
-/-- **The two area densities along a curve differ by a quarter Laplacian.** For `0 < l`, `0 < ε`
-and `u : ℂ → ℂⁿ⁺¹` analytic at `t` with `u t ≠ 0`, the density at `t` of `u^* ω₀` minus that of
-`(curveLift u)^* ω̃_{l,ε}`, each read on the derivatives along `1` and `i`, is
-`Δ (φ ∘ u) (t) / 4`, for the area potential `φ = areaPotential l ε` and Mathlib's Laplacian `Δ`. -/
-theorem eval₂_ω₀E_sub_eval₂_profileForm_curveLift (hl : 0 < l) (hε : 0 < ε)
+/-- **The two area densities along a curve differ by a quarter Laplacian.** For a profile `h` with
+`IsBlowupProfile l ε h` and `u : ℂ → ℂⁿ⁺¹` analytic at `t` with `u t ≠ 0`, the density at `t` of
+`u^* ω₀` minus that of `(curveLift u)^* ω̃_{l,ε}`, for `ω̃_{l,ε} = profileForm n l ε h`, each read
+on the derivatives along `1` and `i`, is `Δ (φ ∘ u) (t) / 4`, for the area potential
+`φ = areaPotential l h` and Mathlib's Laplacian `Δ`. -/
+theorem eval₂_ω₀E_sub_eval₂_profileForm_curveLift (hh : IsBlowupProfile l ε h)
     {u : ℂ → Fin (n + 1) → ℂ} {t : ℂ} (hu : AnalyticAt ℂ u t) (h0 : u t ≠ 0) :
     (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) -
-      (profileForm n l ε).eval₂ (curveLift u t)
+      (profileForm n l ε h).eval₂ (curveLift u t)
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I) =
-      Δ (areaPotential l ε ∘ u) t / 4 := by
-  set g : ℝ → ℝ := fun s ↦ s + l ^ 2 * Real.log s + profileCorrection l (blowupProfile l ε) s
+      Δ (areaPotential l h ∘ u) t / 4 := by
+  set g : ℝ → ℝ := fun s ↦ s + l ^ 2 * Real.log s + profileCorrection l h s
   set x := ∑ i, ‖u t i‖ ^ 2
   have hx : 0 < x := sum_norm_sq_pos h0
   -- In the variable `s = |z|²` the area potential is `s - g(s)`.
-  have hφ : areaPotential l ε ∘ u = fun s ↦ (fun r ↦ r - g r) (∑ i, ‖u s i‖ ^ 2) :=
+  have hφ : areaPotential l h ∘ u = fun s ↦ (fun r ↦ r - g r) (∑ i, ‖u s i‖ ^ 2) :=
     funext fun s ↦ by
       simp only [Function.comp_apply, areaPotential_def, norm_sq_complexToRealEuclidean, g]
       ring
   have hg : ContDiffOn ℝ ∞ g (Set.Ioi 0) :=
-    contDiffOn_add_mul_log_add_profileCorrection (isBlowupProfile_blowupProfile hl hε)
+    contDiffOn_add_mul_log_add_profileCorrection hh
   have hg2 : ∀ r ∈ Set.Ioi (0 : ℝ), ContDiffAt ℝ 2 g r :=
     fun r hr ↦ (hg.contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)
   have h1 : deriv (fun r ↦ r - g r) =ᶠ[𝓝 x] fun r ↦ 1 - deriv g r :=
@@ -233,7 +231,7 @@ theorem eval₂_ω₀E_sub_eval₂_profileForm_curveLift (hl : 0 < l) (hε : 0 <
       rw [deriv_fun_sub differentiableAt_fun_id ((hg2 r hr).differentiableAt (by simp)),
         deriv_id'']
   rw [ω₀E_def, eval₂_constSmooth_stdComplexPiSymplecticForm_mfderiv hu.differentiableAt,
-    eval₂_profileForm_mfderiv_curveLift hl hε hu.differentiableAt h0, hφ,
+    eval₂_profileForm_mfderiv_curveLift hh hu.differentiableAt h0, hφ,
     laplacian_comp_sum_norm_sq_div_four (ψ := fun r ↦ r - g r)
       (contDiffAt_id.sub (hg2 x hx)) hu.contDiffAt,
     h1.deriv_eq, h1.eq_of_nhds,
@@ -250,17 +248,16 @@ section AreaIdentity
 open MeasureTheory Set
 open scoped Laplacian Manifold TauCeti.ComplexManifold
 
-/-- Off the origin the area potential is smooth. -/
-theorem contDiffAt_areaPotential (hl : 0 < l) (hε : 0 < ε) {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
-    ContDiffAt ℝ ∞ (areaPotential l ε) z := by
+/-- Off the origin the area potential of a profile is smooth. -/
+theorem contDiffAt_areaPotential (hh : IsBlowupProfile l ε h) {z : Fin (n + 1) → ℂ}
+    (hz : z ≠ 0) : ContDiffAt ℝ ∞ (areaPotential l h) z := by
   have hN : ContDiff ℝ ∞ fun z : Fin (n + 1) → ℂ ↦ ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 :=
     contDiff_norm_sq_complexToRealEuclidean
   have hN0 : ‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2 ≠ 0 :=
     pow_ne_zero 2 (norm_ne_zero_iff.2 ((complexToRealEuclidean _).map_ne_zero_iff.2 hz))
-  rw [show areaPotential (n := n) l ε = _ from funext (areaPotential_def l ε)]
+  rw [show areaPotential (n := n) l h = _ from funext (areaPotential_def l h)]
   exact ((contDiffAt_const.mul (hN.contDiffAt.log hN0)).add
-    ((contDiff_profileCorrection (isBlowupProfile_blowupProfile hl hε)).contDiffAt.comp z
-      hN.contDiffAt)).neg
+    ((contDiff_profileCorrection hh).contDiffAt.comp z hN.contDiffAt)).neg
 
 /-- The density of `u^* ω₀` along a curve that is `C¹` near the compact closure of a bounded set
 `Ω` is integrable on `Ω`. -/
@@ -285,15 +282,16 @@ theorem integrableOn_eval₂_ω₀E_mfderiv {Ω : Set ℂ} (hb : Bornology.IsBou
   exact congrArg₂ (fun v w ↦ (stdComplexPiSymplecticForm _).toBilinForm v w)
     (mvfderiv_eq_fderiv_apply u t _) (mvfderiv_eq_fderiv_apply u t _)
 
-/-- **The area identity of the symplectic blowup.** Let `0 < l`, `0 < ε`, and let `Ω ⊆ ℂ` be a
-bounded open set. Let `u : ℂ → ℂⁿ⁺¹` be `C¹` near every point of `closure Ω` and holomorphic on
-`Ω`, with `|u| > l + ε` on `frontier Ω`, and let `S` be the finite set of its zeros in `Ω`. If
+/-- **The area identity of the symplectic blowup.** Let `h` be a profile of the blowup of weight `l`
+with collar `ε` (`IsBlowupProfile l ε h`), and let `Ω ⊆ ℂ` be a bounded open set. Let
+`u : ℂ → ℂⁿ⁺¹` be `C¹` near every point of `closure Ω` and holomorphic on `Ω`, with
+`|u| > l + ε` on `frontier Ω`, and let `S` be the finite set of its zeros in `Ω`. If
 `ũ : ℂ → BlowupModel n` is continuous on `Ω` and lies over `u` there, then the integral over `Ω`
-of the density of `u^* ω₀` equals that of `ũ^* ω̃_{l,ε}`, for `ω̃_{l,ε} = profileForm n l ε`,
+of the density of `u^* ω₀` equals that of `ũ^* ω̃_{l,ε}`, for `ω̃_{l,ε} = profileForm n l ε h`,
 plus `m π l²`, where `m = ∑ s ∈ S, analyticOrderNatAt u s` is the number of zeros of `u` in `Ω`
 counted with multiplicity. Each density is the value of the form on the derivatives of the curve
 along `1` and `i`, and the integrals are Lebesgue integrals over `Ω`. -/
-theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (hΩ : IsOpen Ω)
+theorem blowdown_profileForm_area (hh : IsBlowupProfile l ε h) {Ω : Set ℂ} (hΩ : IsOpen Ω)
     (hb : Bornology.IsBounded Ω) {u : ℂ → Fin (n + 1) → ℂ}
     (hu : ∀ t ∈ closure Ω, ContDiffAt ℝ 1 u t) (hhol : DifferentiableOn ℂ u Ω)
     (hfr : ∀ t ∈ frontier Ω, l + ε < ‖complexToRealEuclidean (Fin (n + 1)) (u t)‖)
@@ -301,7 +299,7 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
     {ũ : ℂ → BlowupModel n} (hũ : ContinuousOn ũ Ω) (hũu : ∀ t ∈ Ω, (ũ t).blowdown = u t) :
     ∫ t in Ω, (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
         (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) =
-      (∫ t in Ω, (profileForm n l ε).eval₂ (ũ t)
+      (∫ t in Ω, (profileForm n l ε h).eval₂ (ũ t)
           (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t (1 : ℂ))
           (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t Complex.I)) +
         (∑ s ∈ S, analyticOrderNatAt u s) * Real.pi * l ^ 2 := by
@@ -316,28 +314,28 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
   have hlift : EqOn ũ (curveLift u) Ω := eqOn_curveLift_of_blowdown_comp hΩ hua hfin hũ hũu
   -- The smooth parts of the area potential at the zeros.
   have hK : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ ∞ k s ∧ ∀ᶠ t in 𝓝[≠] s,
-      areaPotential l ε (u t) =
+      areaPotential l h (u t) =
         -(l ^ 2 * (analyticOrderNatAt u s : ℕ) * Real.log (‖t - s‖ ^ 2)) + k t := fun s hs ↦ by
     obtain ⟨g, hg, hg0, hug⟩ := (hua s (hSΩ hs)).analyticOrderAt_ne_top.1 (hfin s (hSΩ hs))
-    exact exists_areaPotential_comp_eq_log_add hl hε hg hg0 hug
-  set h : ℂ → ℝ := areaPotential l ε ∘ u with h_def
-  set C := -(l ^ 2 * Real.log ((l + ε) ^ 2) + profileCorrection l (blowupProfile l ε) ((l + ε) ^ 2))
-  have hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), h t = C := by
+    exact exists_areaPotential_comp_eq_log_add hh hg hg0 hug
+  set φ : ℂ → ℝ := areaPotential l h ∘ u with φ_def
+  set C := -(l ^ 2 * Real.log ((l + ε) ^ 2) + profileCorrection l h ((l + ε) ^ 2))
+  have hC : ∀ᶠ t in 𝓝ˢ (frontier Ω), φ t = C := by
     refine eventually_nhdsSet_iff_forall.2 fun x hx ↦ ?_
     have hux : ContinuousAt u x := (hu x (frontier_subset_closure hx)).continuousAt
-    filter_upwards [areaPotential_comp_eventuallyEq hl hε hux (hfr x hx)] with t ht
-    rw [h_def, ht,
-      areaPotential_of_ge hl hε (pow_le_pow_left₀ (by positivity) (hfr x hx).le 2)]
-  have hsm : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 h z := fun z hz ↦ by
+    filter_upwards [areaPotential_comp_eventuallyEq hh hux (hfr x hx)] with t ht
+    rw [φ_def, ht, areaPotential_of_ge hh
+      (pow_le_pow_left₀ (add_pos hh.weight_pos hh.collar_pos).le (hfr x hx).le 2)]
+  have hsm : ∀ z ∈ Ω \ ↑S, ContDiffAt ℝ 2 φ z := fun z hz ↦ by
     have hz0 : u z ≠ 0 := fun h0 ↦ hz.2 ((hmem z).2 ⟨hz.1, h0⟩)
-    exact ((contDiffAt_areaPotential hl hε hz0).comp z
+    exact ((contDiffAt_areaPotential hh hz0).comp z
       ((hua z hz.1).contDiffAt.restrict_scalars ℝ)).of_le (by simp)
   have hpole : ∀ s ∈ S, ∃ k : ℂ → ℝ, ContDiffAt ℝ 2 k s ∧ ∀ᶠ t in 𝓝[≠] s,
-      h t = -(l ^ 2 * (analyticOrderNatAt u s : ℕ)) * Real.log (‖t - s‖ ^ 2) + k t :=
+      φ t = -(l ^ 2 * (analyticOrderNatAt u s : ℕ)) * Real.log (‖t - s‖ ^ 2) + k t :=
     fun s hs ↦ by
       obtain ⟨k, hk, hkeq⟩ := hK s hs
       refine ⟨k, hk.of_le (by simp), hkeq.mono fun t ht ↦ ?_⟩
-      rw [h_def, Function.comp_apply, ht]
+      rw [φ_def, Function.comp_apply, ht]
       ring
   have hΔ := setIntegral_laplacian_eq_of_log_poles hΩ hb hSΩ hsm hC hpole
   have hΔi := integrableOn_laplacian_of_log_poles hΩ hb hSΩ hsm hC hpole
@@ -345,19 +343,19 @@ theorem blowdown_profileForm_area (hl : 0 < l) (hε : 0 < ε) {Ω : Set ℂ} (h�
       -(l ^ 2 * ((∑ s ∈ S, analyticOrderNatAt u s : ℕ) : ℝ)) := by
     push_cast
     rw [Finset.mul_sum, Finset.sum_neg_distrib]
-  -- Off the zeros, the densities differ by a quarter of `Δ h`.
+  -- Off the zeros, the densities differ by a quarter of `Δ φ`.
   have hae : ∀ᵐ t ∂volume.restrict Ω,
-      (profileForm n l ε).eval₂ (ũ t)
+      (profileForm n l ε h).eval₂ (ũ t)
           (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t (1 : ℂ))
           (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t Complex.I) =
         (ω₀E n).eval₂ (u t) (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t (1 : ℂ))
-          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) - Δ h t / 4 := by
+          (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) u t Complex.I) - Δ φ t / 4 := by
     filter_upwards [ae_restrict_mem hΩ.measurableSet,
       ae_restrict_of_ae (S.finite_toSet.countable.ae_notMem volume)] with t htΩ htS
     have hev : ũ =ᶠ[𝓝 t] curveLift u := Filter.mem_of_superset (hΩ.mem_nhds htΩ) hlift
     have ht0 : u t ≠ 0 := fun h0 ↦ htS ((hmem t).2 ⟨htΩ, h0⟩)
-    rw [← eval₂_ω₀E_sub_eval₂_profileForm_curveLift hl hε (hua t htΩ) ht0, hev.mfderiv_eq]
-    exact (SmoothForm.eval₂_tangentSpaceCast (profileForm n l ε) (hlift htΩ).symm
+    rw [← eval₂_ω₀E_sub_eval₂_profileForm_curveLift hh (hua t htΩ) ht0, hev.mfderiv_eq]
+    exact (SmoothForm.eval₂_tangentSpaceCast (profileForm n l ε h) (hlift htΩ).symm
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t (1 : ℂ))
       (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t Complex.I)).trans (by ring)
   have h1 := integral_congr_ae hae
@@ -389,7 +387,8 @@ variable (n) in
   the open shell `l < |w| < √(l² + ε²)` carries `ω̃_l` to `ω₀`.
 * For `0 < l` and `0 < ε`, the form `ω̃_{l,ε} = profileForm n l ε` is Kähler, equal to `ω̃_l` on
   `L(ε)` and to `π^* ω₀` off `L(l + ε)`, and it depends smoothly on smooth positive parameters.
-* The forms `ω̃_{l,ε}` satisfy the area identity `blowdown_profileForm_area`.
+* The forms `ω̃_{l,ε}` satisfy the area identity `blowdown_profileForm_area`, here applied to
+  the default profile `blowupProfile l ε`.
 
 Milestone: *Kähler forms on the blowup of complex space*. -/
 theorem kahler_blowupModel :
@@ -454,7 +453,8 @@ theorem kahler_blowupModel :
     fun hl hε ↦ ⟨isKahler_profileForm n (isBlowupProfile_blowupProfile hl hε),
       profileForm_eq_blowupForm_on n,
       profileForm_eq_on_compl n (isBlowupProfile_blowupProfile hl hε)⟩,
-    isSmoothFamily_profileForm n, blowdown_profileForm_area⟩
+    isSmoothFamily_profileForm n,
+    fun hl hε ↦ blowdown_profileForm_area (isBlowupProfile_blowupProfile hl hε)⟩
 
 end Milestone
 

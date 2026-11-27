@@ -134,7 +134,7 @@ in place of the distance in `Gc ⧸ G`. At a critical point `x` the gradient
 is antitone, nonnegative since `B` is positive definite, and has derivative `4 F (η, u)` with
 `F (η, u) = μ x η - μ (C.expI (-η) • x) η ≤ 0`. The pairs `(η, u)` with `B η η ≤ N 0` and
 `(C.expI η * C.toHom u)⁻¹ • x = y` form a compact set
-(`LinearMap.BilinForm.isCompact_setOf_apply_self_le`), so `F` has a maximum there; it is `0`,
+(`LinearMap.BilinForm.isCompact_setOfPred_apply_self_le`), so `F` has a maximum there; it is `0`,
 for otherwise `N` would become negative (`nonneg_of_bddBelow_of_hasDerivAt_le`). At a maximum
 `(η, u)`, `C.expI (-η)` fixes `x`
 (`SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`), and `y = u⁻¹ • x`. This replaces
@@ -759,7 +759,7 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
   have hsmul : Continuous fun p : Gc × M ↦ p.1 • p.2 :=
     (ContMDiffSMul.contMDiff_smul (I := IC) (I' := I') (n := ∞)).continuous
   have hK : IsCompact K :=
-    ((LinearMap.BilinForm.isCompact_setOf_apply_self_le (E := E) hBp _).prod
+    ((LinearMap.BilinForm.isCompact_setOfPred_apply_self_le (E := E) hBp _).prod
       isCompact_univ).inter_right <| isClosed_eq
         (hsmul.comp ((((contMDiff_inv IC 1).continuous.comp C.polar.continuous)).prodMk
           continuous_const)) continuous_const
@@ -879,7 +879,7 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
     (antitoneOn_polar_symm_fst_inv_mul h hμ hgm hBs hBG hg hg₁ convex_univ)
   set K : Set (E × G) := {η : E | B η η ≤ N 0} ×ˢ univ
   have hK : IsCompact K :=
-    (LinearMap.BilinForm.isCompact_setOf_apply_self_le (E := E) hBp _).prod isCompact_univ
+    (LinearMap.BilinForm.isCompact_setOfPred_apply_self_le (E := E) hBp _).prod isCompact_univ
   have := Manifold.metrizableSpace I G
   obtain ⟨q, -, φ, hφ, hlim⟩ := hK.tendsto_subseq (x := fun n : ℕ ↦
     C.polar.symm ((g n)⁻¹ * g₁ n)) fun n ↦ ⟨hanti (Nat.cast_nonneg n), mem_univ _⟩

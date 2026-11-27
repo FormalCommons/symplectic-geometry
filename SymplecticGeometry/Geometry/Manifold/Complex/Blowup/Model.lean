@@ -336,7 +336,7 @@ theorem openNbhd_subset_closedNbhd (ε : ℝ) : openNbhd n ε ⊆ closedNbhd n �
 
 /-- For a continuous map `f` into the model and a continuous radius `c`, the points `x` with
 `f x ∈ closedNbhd n (c x)` form a closed set. -/
-theorem isClosed_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
+theorem isClosed_setOfPred_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
     {c : X → ℝ} (hf : Continuous f) (hc : Continuous c) :
     IsClosed {x | f x ∈ closedNbhd n (c x)} := by
   simp only [mem_closedNbhd_iff]
@@ -345,7 +345,7 @@ theorem isClosed_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] {f : X �
 
 /-- For a continuous map `f` into the model and a continuous radius `c`, the points `x` with
 `f x ∈ openNbhd n (c x)` form an open set. -/
-theorem isOpen_setOf_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
+theorem isOpen_setOfPred_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → BlowupModel n}
     {c : X → ℝ} (hf : Continuous f) (hc : Continuous c) :
     IsOpen {x | f x ∈ openNbhd n (c x)} := by
   simp only [mem_openNbhd_iff]
@@ -353,10 +353,10 @@ theorem isOpen_setOf_mem_openNbhd {X : Type*} [TopologicalSpace X] {f : X → Bl
     (continuous_blowdown.comp hf)).norm hc
 
 theorem isOpen_openNbhd (ε : ℝ) : IsOpen (openNbhd n ε) :=
-  isOpen_setOf_mem_openNbhd continuous_id continuous_const
+  isOpen_setOfPred_mem_openNbhd continuous_id continuous_const
 
 theorem isClosed_closedNbhd (ε : ℝ) : IsClosed (closedNbhd n ε) :=
-  isClosed_setOf_mem_closedNbhd continuous_id continuous_const
+  isClosed_setOfPred_mem_closedNbhd continuous_id continuous_const
 
 /-- `L(ε)` is compact: it is the part of the closed incidence set lying over a compact subset of
 `ℙ ℂ E × E`. -/
@@ -375,12 +375,12 @@ theorem isCompact_closedNbhd (ε : ℝ) : IsCompact (closedNbhd n ε) := by
 
 /-- Over a compact space `X`, for a continuous radius `c`, the pairs `(x, p)` with
 `p ∈ closedNbhd n (c x)` form a compact subset of `X × BlowupModel n`. -/
-theorem isCompact_setOf_mem_closedNbhd {X : Type*} [TopologicalSpace X] [CompactSpace X]
+theorem isCompact_setOfPred_mem_closedNbhd {X : Type*} [TopologicalSpace X] [CompactSpace X]
     {c : X → ℝ} (hc : Continuous c) :
     IsCompact {q : X × BlowupModel n | q.2 ∈ closedNbhd n (c q.1)} := by
   obtain ⟨C, hC⟩ := (isCompact_range hc).bddAbove
   exact (isCompact_univ.prod (isCompact_closedNbhd (n := n) C)).of_isClosed_subset
-    (isClosed_setOf_mem_closedNbhd continuous_snd (hc.comp continuous_fst))
+    (isClosed_setOfPred_mem_closedNbhd continuous_snd (hc.comp continuous_fst))
     fun q hq ↦ ⟨mem_univ _,
       mem_closedNbhd_iff.2 ((mem_closedNbhd_iff.1 hq).trans (hC ⟨q.1, rfl⟩))⟩
 
