@@ -2665,10 +2665,10 @@ complete target and a function on the whole half-space.
   `Geometry/Manifold/Projectivization/FubiniStudy/`, beside
   Tau Ceti's files on projective space: `Basic.lean`
   ($\rho_{\mathrm{FS}}$ and $\alpha_{\mathrm{FS}}$ on $\mathbb C^{n+1}\setminus0$, their
-  relation to $\omega_0$ through the radial projection, and the descended
-  form $\omega_{\mathrm{FS}}$, by Tau Ceti's
-  `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq` along the
-  Hopf map), `Kahler.lean` (closedness, nondegeneracy, the local potentials
+  relation to $\omega_0$ through the radial projection, and the form
+  $\omega_{\mathrm{FS}}$, carried over from Tau Ceti's
+  `TauCeti.ComplexProjectiveSpace.fubiniStudyForm` by
+  `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization`), `Kahler.lean` (closedness, nondegeneracy, the local potentials
   on the affine charts, compatibility with `ofComplexManifold`, `IsKahler`,
   invariance under $\mathrm U(n+1)$, and with *Complex submanifolds* the
   Kähler structure of every complex submanifold), `Normalization.lean` (the
