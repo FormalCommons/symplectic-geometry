@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Topology.VectorBundle.ContinuousAlternatingMap
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Restriction
 
 /-!
 # Tangent vectors and alternating maps of open subsets, read on the ambient manifold
@@ -33,6 +35,14 @@ maps. Both apply `TauCeti.Manifold.eventually_tangentSpaceOpenEquiv_symmL_trivia
 since such a trivialization precomposes with the inverse trivialization of the tangent bundle;
 here that precomposition is Tau Ceti's
 `FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd`.
+
+A field of endomorphisms `A y` of the tangent spaces of `M` is `C^n` at a point `x` of `U`
+exactly when the field it induces on `U` through the same identification is
+(`TauCeti.Manifold.contMDiffAt_restrictOpen_tangentEnd_iff`): near `x`, the two read alike in
+coordinates (`TauCeti.Manifold.eventually_inCoordinates_openTangentSpaceHom_eq`). The direction
+from `M` to `U` is the argument of Tau Ceti's
+`TauCeti.Manifold.contMDiff_restrictOpenTangentSpaceEnd`, at one point and without a parameter;
+the converse lets a field be built from its values on the sets of an open cover.
 
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
@@ -99,6 +109,37 @@ theorem eventually_trivializationAt_continuousAlternatingMap_tangentSpace_opens_
   exact congrArg φ (funext fun i ↦ hy (v i))
 
 end ContinuousAlternatingMap
+
+section Endomorphism
+
+variable {𝕜 E H M : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I 1 M]
+
+/-- A field `A` of endomorphisms of the tangent spaces of `M` is `C^n` at a point `x` of an
+open subset `U` exactly when the field that it induces on `U`, through the identification
+`tangentSpaceOpenEquiv` of the tangent spaces of `U` with those of `M`, is `C^n` at `x`. -/
+theorem contMDiffAt_restrictOpen_tangentEnd_iff {n : ℕ∞ω}
+    {A : ∀ y : M, TangentSpace I y →L[𝕜] TangentSpace I y} {U : Opens M} {x : U} :
+    ContMDiffAt I (I.prod 𝓘(𝕜, E →L[𝕜] E)) n
+        (fun y : U ↦ TotalSpace.mk' (E →L[𝕜] E)
+          (E := fun y : U ↦ TangentSpace I y →L[𝕜] TangentSpace I y) y
+          ((tangentSpaceOpenEquiv (I := I) y).symm.toContinuousLinearMap.comp
+            ((A y).comp (tangentSpaceOpenEquiv (I := I) y).toContinuousLinearMap))) x ↔
+      ContMDiffAt I (I.prod 𝓘(𝕜, E →L[𝕜] E)) n
+        (fun y : M ↦ TotalSpace.mk' (E →L[𝕜] E)
+          (E := fun y : M ↦ TangentSpace I y →L[𝕜] TangentSpace I y) y (A y)) x := by
+  rw [contMDiffAt_hom_bundle, contMDiffAt_hom_bundle]
+  refine and_congr (iff_of_true contMDiffAt_id contMDiffAt_id) ?_
+  rw [← contMDiffAt_subtype_iff]
+  refine Filter.EventuallyEq.contMDiffAt_iff ?_
+  have hdiag : ContinuousAt (fun y : U ↦ (y, y)) x :=
+    (continuous_id.prodMk continuous_id).continuousAt
+  filter_upwards [hdiag.eventually
+    (eventually_inCoordinates_openTangentSpaceHom_eq (I := I) (I' := I) x x)] with y hy
+  exact hy (A y)
+
+end Endomorphism
 
 end TauCeti.Manifold
 
