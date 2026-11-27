@@ -95,7 +95,7 @@ theorem exists_diffeotopy_mpullback_eq_of_integralTopForm_eq [PreconnectedSpace 
     rw [h0, ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at hval
     nlinarith [hω x b hb, hσ x b hb, mul_nonneg (unitInterval.nonneg t) (hσ x b hb).le,
       mul_nonneg (unitInterval.one_sub_nonneg t) (hω x b hb).le]
-  -- Step 2: `σ - ω₀` has integral zero, so it is exact.
+  -- Step 2: `σ` and `ω₀` have the same integral, so `σ - ω₀` is exact.
   have hexact : σ - ω₀ ∈ exactForms I M 2 := (sub_mem_exactForms_iff_integralTopForm_eq o).2 hint
   -- Step 3: Moser stability along the segment.
   obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp <| (isSmoothFamily_const (J := 𝓡∂ 1) ω₀).add

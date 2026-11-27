@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDim.Basic
 public import TauCeti.Topology.Category.TopPair.ContinuousLinearEquiv
 public import Mathlib.LinearAlgebra.Orientation
 import SymplecticGeometry.Topology.Category.TopPair
@@ -35,6 +36,13 @@ of the empty index type or its negative. It selects the local orientation
 (`Orientation.localOrientationOfZeroDim_map`) and reverses with `ω`
 (`Orientation.localOrientationOfZeroDim_neg`).
 
+Tau Ceti's `TauCeti.Manifold.Orientation.localOrientationOfZeroDim` selects a local orientation
+at each point of a zero-dimensional manifold from a smooth orientation. On the model space `P`
+with the constant orientation `Manifold.Orientation.model ω`, it selects at the origin the same
+class as `ω` does here (`TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`), although
+the two are not equal by definition: the manifold version reads the class in the chart `chartAt`
+and the sign from the tangent orientation.
+
 ## Main definitions
 
 * `Orientation.localOrientationOfZeroDim`: the local orientation at the origin selected by an
@@ -46,6 +54,8 @@ of the empty index type or its negative. It selects the local orientation
   zero-dimensional chart is natural under isomorphisms of pairs.
 * `Orientation.localOrientationOfZeroDim_map`: the local orientation selected by an orientation
   of a zero-dimensional space is natural under continuous linear equivalences.
+* `TauCeti.Manifold.Orientation.localOrientationOfZeroDim_model`: the manifold local orientation
+  of the constant orientation of the model space, at the origin, is the linear one.
 
 ## References
 
@@ -160,5 +170,28 @@ theorem localOrientationOfZeroDim_map (f : P ≃L[ℝ] Q) (ω : Orientation ℝ 
   · rw [LocalOrientation.map_neg, hpt]
 
 end Orientation
+
+namespace TauCeti.Manifold.Orientation
+
+open scoped _root_.Manifold
+
+variable {P : Type w} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+
+/-- On a zero-dimensional real normed space `P`, seen as a manifold modelled on itself, the
+local orientation at the origin selected by the constant orientation `model ω` is the local
+orientation selected by `ω`. -/
+@[simp]
+theorem localOrientationOfZeroDim_model (ω : _root_.Orientation ℝ P (Fin 0))
+    (hι : Fintype.card (Fin 0) = finrank ℝ P) :
+    (model (I := 𝓘(ℝ, P)) ω hι).localOrientationOfZeroDim (0 : P) =
+      ω.localOrientationOfZeroDim (hι.symm.trans (Fintype.card_fin 0)) := by
+  have hP : finrank ℝ P = 0 := hι.symm.trans (Fintype.card_fin 0)
+  rw [localOrientationOfZeroDim_eq_ite _ (OpenPartialHomeomorph.refl P)
+    (OpenPartialHomeomorph.mem_refl_source _) hP, orientationAt_model,
+    _root_.Orientation.localOrientationOfZeroDim_def]
+  -- The left side compares orientations of the tangent space at `0`, which is `P` by definition.
+  congr 1
+
+end TauCeti.Manifold.Orientation
 
 end

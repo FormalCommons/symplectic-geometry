@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Model
 public import Mathlib.Analysis.CStarAlgebra.Classes
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
@@ -90,6 +91,9 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
 * `SymplecticGeometry.Blowup.contMDiff_blowdown`,
   `SymplecticGeometry.Blowup.blowdown_eq_center_iff`:
   the blowdown is holomorphic, and the preimage of `p₀` is the exceptional divisor.
+* `SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown`: off the divisor, the blowdown is a
+  local biholomorphism.
+* `SymplecticGeometry.Blowup.injOn_blowdown`: the blowdown is injective off the divisor.
 
 The Hausdorff property follows from the criterion `SymplecticGeometry.GluedAlong.t2Space_iff`:
 a point `x ≠ p₀` and a point of the divisor are separated by the preimages of disjoint
@@ -188,14 +192,27 @@ def puncturedSourceOpens : Opens (puncturedOpens c) :=
 theorem mem_puncturedSourceOpens {x : puncturedOpens c} :
     x ∈ puncturedSourceOpens c ↔ (x : M) ∈ c.source := Iff.rfl
 
-/-- The overlap in the second piece: its points off the exceptional divisor of the model. -/
+/-- The overlap in the second piece: its points off the exceptional divisor of the model, the
+preimage of `BlowupModel.offDivisorOpens n` under the inclusion of the piece. -/
 def modelOffDivisorOpens : Opens (modelOpens c) :=
-  ⟨{y | (y : BlowupModel n).blowdown ≠ 0},
-    isOpen_ne.preimage (continuous_blowdown.comp continuous_subtypeVal)⟩
+  (BlowupModel.offDivisorOpens n).comap (ContinuousMap.subtypeVal (modelOpens c))
+
+theorem modelOffDivisorOpens_def :
+    modelOffDivisorOpens c =
+      (BlowupModel.offDivisorOpens n).comap (ContinuousMap.subtypeVal (modelOpens c)) :=
+  (rfl)
+
+/-- A point of the second piece is in the overlap exactly when, as a point of the model, it is
+off the exceptional divisor. -/
+theorem mem_modelOffDivisorOpens_iff_mem_offDivisorOpens {y : modelOpens c} :
+    y ∈ modelOffDivisorOpens c ↔ (y : BlowupModel n) ∈ BlowupModel.offDivisorOpens n := by
+  rw [modelOffDivisorOpens_def, Opens.mem_comap, ContinuousMap.subtypeVal_apply]
 
 @[simp]
 theorem mem_modelOffDivisorOpens {y : modelOpens c} :
-    y ∈ modelOffDivisorOpens c ↔ (y : BlowupModel n).blowdown ≠ 0 := Iff.rfl
+    y ∈ modelOffDivisorOpens c ↔ (y : BlowupModel n).blowdown ≠ 0 := by
+  rw [mem_modelOffDivisorOpens_iff_mem_offDivisorOpens, BlowupModel.mem_offDivisorOpens,
+    BlowupModel.mem_exceptionalDivisor_iff]
 
 /-- The point of the model blowup over the image under `c` of a point of the overlap in the
 first piece: `(mk (c x), c x)`, through the inverse of `blowdownDiffeomorph`. -/
@@ -218,16 +235,17 @@ goes to the point of the model over `c x`, and a point `y` of the model off the 
 def gluingHomeomorph : puncturedSourceOpens c ≃ₜ modelOffDivisorOpens c where
   toFun x := ⟨⟨toModel c x, by
       rw [mem_modelOpens, blowdown_toModel]; exact c.map_source x.property⟩, by
-    rw [mem_modelOffDivisorOpens, blowdown_toModel]
-    exact c.apply_ne_zero x.property x.val.property⟩
+    rw [mem_modelOffDivisorOpens_iff_mem_offDivisorOpens]
+    exact ((blowdownDiffeomorph n).symm _).property⟩
   invFun y := ⟨⟨c.symm (y : BlowupModel n).blowdown,
-    c.symm_apply_ne y.val.property y.property⟩, c.map_target y.val.property⟩
+    c.symm_apply_ne y.val.property ((mem_modelOffDivisorOpens c).1 y.property)⟩,
+    c.map_target y.val.property⟩
   left_inv x := by
     ext
     simp [blowdown_toModel, c.left_inv x.property]
   right_inv y := by
     refine Subtype.ext (Subtype.ext (eq_of_blowdown_eq ?_ ?_).symm)
-    · exact y.property
+    · exact (mem_modelOffDivisorOpens c).1 y.property
     · simp [blowdown_toModel, c.right_inv y.val.property]
   continuous_toFun := continuous_induced_rng.2 (continuous_induced_rng.2 (continuous_toModel c))
   continuous_invFun := by
@@ -317,6 +335,9 @@ theorem ofDirection_def (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
 theorem ofDirection_injective : Injective (ofDirection c) := fun _ _ h ↦
   zeroSection_injective (congrArg Subtype.val (GluedAlong.inr_injective (gluingHomeomorph c) h))
 
+/-- The blowup is nonempty: it contains the exceptional divisor. -/
+instance : Nonempty (Blowup c) := ⟨ofDirection c (Classical.arbitrary _)⟩
+
 /-- The exceptional divisor of the blowup: the image of the zero section of the model, a copy
 of `ℙ ℂ (Fin (n + 1) → ℂ)`. -/
 def exceptionalDivisor : Set (Blowup c) := range (ofDirection c)
@@ -361,7 +382,8 @@ theorem range_inl : range (inl (gluingHomeomorph c)) = (exceptionalDivisor c)ᶜ
   rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
   · simp only [mem_range_self, mem_compl_iff, true_iff, mem_exceptionalDivisor_iff, not_exists,
       not_and]
-    exact fun y hy hxy ↦ (GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩ hy
+    exact fun y hy hxy ↦ (mem_modelOffDivisorOpens c).1
+      ((GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩) hy
   · rw [GluedAlong.inr_mem_range_inl_iff, mem_modelOffDivisorOpens, mem_compl_iff,
       inr_mem_exceptionalDivisor_iff]
 
@@ -475,7 +497,7 @@ instance [T2Space M] : T2Space (Blowup c) := by
   refine (GluedAlong.t2Space_iff (gluingHomeomorph c)).2
     ⟨inferInstanceAs (T2Space (puncturedOpens c)), inferInstanceAs (T2Space (modelOpens c)),
       fun x _ y hy ↦ ?_⟩
-  have hy0 : (y : BlowupModel n).blowdown = 0 := of_not_not hy
+  have hy0 : (y : BlowupModel n).blowdown = 0 := by simpa using hy
   -- Separate `x` from `p₀` in `M`, and pull the neighbourhood of `p₀` back to the model.
   obtain ⟨A, B, hA, hB, hxA, hpB, hAB⟩ := t2_separation ((mem_puncturedOpens c).1 x.property)
   have hg : Continuous fun y : modelOpens c ↦ c.symm (y : BlowupModel n).blowdown :=
@@ -616,6 +638,13 @@ def blowdown : C(Blowup c, M) :=
 theorem blowdown_inl (x : puncturedOpens c) : blowdown c (inl (gluingHomeomorph c) x) = x :=
   GluedAlong.desc_inl _ _ x
 
+/-- The blowdown is injective off the exceptional divisor. -/
+theorem injOn_blowdown : InjOn (blowdown c) (exceptionalDivisor c)ᶜ := by
+  rw [← range_inl]
+  rintro _ ⟨x, rfl⟩ _ ⟨x', rfl⟩ h
+  rw [blowdown_inl, blowdown_inl] at h
+  rw [Subtype.ext h]
+
 /-- On the part of the model over the target of `c`, the blowdown is `c.symm ∘ π`. -/
 @[simp]
 theorem blowdown_inr (y : modelOpens c) :
@@ -626,6 +655,15 @@ theorem blowdown_inr (y : modelOpens c) :
 @[simp]
 theorem blowdown_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : blowdown c (ofDirection c ℓ) = p₀ := by
   rw [ofDirection_def, blowdown_inr, blowdown_zeroSection, c.symm_zero]
+
+/-- Over the source of `c`, the map to the model lies over `c`: the blowdown of `lift c z` is `c`
+of the blowdown of `z`. -/
+theorem blowdown_lift {z : Blowup c} (hz : blowdown c z ∈ c.source) :
+    (lift c z).blowdown = c (blowdown c z) := by
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · rw [blowdown_inl] at hz ⊢
+    rw [lift_inl c hz, blowdownDiffeomorph_symm_apply, blowdown_ofNeZero]
+  · rw [lift_inr, blowdown_inr, c.right_inv ((mem_modelOpens c).1 y.property)]
 
 section Smooth
 
@@ -705,6 +743,12 @@ theorem coe_blowdownDiffeomorph_apply (z : offDivisorOpens c) :
     (blowdownDiffeomorph c z : M) = blowdown c z := by
   conv_rhs => rw [← (blowdownDiffeomorph c).symm_apply_apply z]
   rw [coe_blowdownDiffeomorph_symm_apply, blowdown_inl]
+
+/-- Off the exceptional divisor, the blowdown `Blowup c → M` is a local biholomorphism. -/
+theorem isLocalDiffeomorphAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) z :=
+  (blowdownDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
 
 end Complex
 

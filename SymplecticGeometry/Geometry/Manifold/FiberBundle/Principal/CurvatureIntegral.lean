@@ -26,8 +26,9 @@ form `α + π^* a`.
 
 * `SymplecticGeometry.IsCircleConnectionForm.integralTopForm_curvature_eq`: all connection forms
   have curvatures with the same integral.
-* `SymplecticGeometry.IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq`: over a
-  preconnected base, every top form with that integral is the curvature of a connection form.
+* `SymplecticGeometry.IsCircleConnectionForm.isCircleConnectionCurvature_of_integralTopForm_eq`:
+  over a preconnected base, every top form with that integral is the curvature of a connection
+  form.
 
 ## References
 
@@ -76,13 +77,12 @@ theorem IsCircleConnectionForm.integralTopForm_curvature_eq (hα : IsCircleConne
 /-- Over a compact, preconnected, boundaryless, oriented base, every smooth `2`-form whose
 integral is that of the curvature of a connection form `α` is the curvature of a connection
 form. -/
-theorem IsCircleConnectionForm.exists_curvature_eq_of_integralTopForm_eq [PreconnectedSpace B]
-    (hα : IsCircleConnectionForm α) (o : Manifold.Orientation IB B (Fin 2))
+theorem IsCircleConnectionForm.isCircleConnectionCurvature_of_integralTopForm_eq
+    [PreconnectedSpace B] (hα : IsCircleConnectionForm α) (o : Manifold.Orientation IB B (Fin 2))
     {σ : SmoothForm IB B ℝ 2}
     (hσ : integralTopForm o σ.val = integralTopForm o hα.curvature.val) :
-    ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
-      (hβ : IsCircleConnectionForm β), hβ.curvature = σ :=
-  hα.exists_curvature_eq_of_sub_mem_exactForms
+    IsCircleConnectionCurvature P σ :=
+  hα.isCircleConnectionCurvature_iff_sub_mem_exactForms.2
     ((sub_mem_exactForms_iff_integralTopForm_eq o).2 hσ)
 
 end SymplecticGeometry

@@ -10,6 +10,7 @@ public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Newton
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
+import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 
 /-!
 # Newton classes on the K-group of complex bundle cores
@@ -181,7 +182,7 @@ line bundle. -/
 @[simp]
 theorem newtonClassHom_one {j : ℕ} (hj : j ≠ 0) :
     newtonClassHom X j (1 : SplitK0 (FiniteRankBundleCore ℂ X)) = 0 := by
-  rw [SplitK0.one_def]
+  rw [← SplitK0.of_trivial_one]
   exact newtonClassHom_trivial 1 hj
 
 end SymplecticGeometry.Bundle

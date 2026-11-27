@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Contactization
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -45,8 +46,7 @@ theorem mpullback_prodMap_contactization (θ : SmoothForm I W ℝ 1) {ι : S →
       (mpullback ι hι θ).contactization := by
   have hmap : Prod.map ι id = fun p : S × ℝ ↦ ((ι ∘ Prod.fst) p, p.2) :=
     funext fun p ↦ by rw [Prod.map_apply, id_eq, Function.comp_apply]
-  refine Subtype.ext ?_
-  rw [coe_mpullback, hmap, ← coe_mpullback _ ((hι.comp contMDiff_fst).prodMk contMDiff_snd),
+  rw [mpullback_eq_iff, hmap, ← coe_mpullback _ ((hι.comp contMDiff_fst).prodMk contMDiff_snd),
     mpullback_prodMk_contactization θ (hι.comp contMDiff_fst) contMDiff_snd, contactization_def,
     Submodule.coe_sub, mpullback_mpullback, coe_mpullback Prod.snd, mpullback_realLineCoordForm,
     coe_mpullback (ι ∘ Prod.fst)]

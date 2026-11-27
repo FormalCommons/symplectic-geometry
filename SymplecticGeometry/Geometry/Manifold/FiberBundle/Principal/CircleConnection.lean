@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Connection forms on principal circle bundles
@@ -52,6 +53,8 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
 
 * `SymplecticGeometry.IsCircleConnectionForm α`: `α` is a connection form.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature`: the curvature of a connection form.
+* `SymplecticGeometry.IsCircleConnectionCurvature P σ`: the `2`-form `σ` on `B` is the curvature
+  of some connection form on `P`.
 
 ## Main results
 
@@ -318,6 +321,25 @@ theorem IsCircleConnectionForm.curvature_add_mpullback (hα : IsCircleConnection
   rw [curvature_eq_iff, map_add, mpullback_curvature, map_add,
     SmoothForm.mextDerivₗ_mpullback]
 
+variable (P) in
+/-- A `2`-form `σ` on `B` is the curvature of a connection form on the principal `Circle`-bundle
+`P`: some connection form `β` on `P` has `hβ.curvature = σ`. -/
+def IsCircleConnectionCurvature (σ : SmoothForm IB B ℝ 2) : Prop :=
+  ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+    (hβ : IsCircleConnectionForm β), hβ.curvature = σ
+
+variable (P) in
+theorem isCircleConnectionCurvature_def (σ : SmoothForm IB B ℝ 2) :
+    IsCircleConnectionCurvature P σ ↔
+      ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+        (hβ : IsCircleConnectionForm β), hβ.curvature = σ :=
+  Iff.rfl
+
+/-- The curvature of a connection form `α` on `P` satisfies `IsCircleConnectionCurvature P`. -/
+theorem IsCircleConnectionForm.isCircleConnectionCurvature (hα : IsCircleConnectionForm α) :
+    IsCircleConnectionCurvature P hα.curvature :=
+  (isCircleConnectionCurvature_def P _).2 ⟨α, hα, rfl⟩
+
 omit [IB.Boundaryless]
 
 /-! ### Local connection forms -/
@@ -565,8 +587,8 @@ theorem IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback [IB.Bounda
       (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val) x := by
   rw [← mpullback_mextDeriv_at (hσ.of_le (by simp))
     ((α.isSmoothForm.contMDiff _).of_le (by simp))]
-  have h := congrArg Subtype.val hα.mpullback_curvature
-  rw [SmoothForm.coe_mpullback, mextDerivₗ_apply] at h
+  have h := (SmoothForm.mpullback_eq_iff _).1 hα.mpullback_curvature
+  rw [mextDerivₗ_apply] at h
   rw [← h, ManifoldTotalSpace.mpullback_mpullback_proj_apply _ (hσ.mdifferentiableAt (by simp))]
 
 end SymplecticGeometry
