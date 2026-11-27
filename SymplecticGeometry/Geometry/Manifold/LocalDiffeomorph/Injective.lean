@@ -110,7 +110,6 @@ theorem partialDiffeomorphOfInjective_symm_apply (y : N) :
   IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply ..
 
 /-- Its inverse sends `f x` back to `x`. -/
-@[simp]
 theorem partialDiffeomorphOfInjective_symm_apply_apply (x : M) :
     (hf.partialDiffeomorphOfInjective hinj).toPartialEquiv.symm (f x) = x := by
   rw [partialDiffeomorphOfInjective_symm_apply]
