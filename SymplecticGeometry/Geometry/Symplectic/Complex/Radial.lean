@@ -77,7 +77,8 @@ blowup constructions read the forms they build off `Z` in these terms.
 * `SymplecticGeometry.radialPotentialForm_add`, `SymplecticGeometry.radialPotentialForm_const_mul`:
   the form is linear in `g`, as `potentialForm` and the radial potential are;
   `SymplecticGeometry.radialPotentialForm_congr`: it depends only on the values of `g` on
-  `(0, ∞)`.
+  `(0, ∞)`; `SymplecticGeometry.radialPotentialForm_apply_eq_zero`: it vanishes at `z` if `g` is
+  constant near `|z|²`.
 * `SymplecticGeometry.exists_mextDeriv_eq_radialPotentialForm`: the form is `d β` for the one-form
   `β = (1/4) J* d (g ∘ s)`, which vanishes wherever `g'(|z|²) = 0`.
 
@@ -254,6 +255,18 @@ theorem radialPotentialForm_congr {g g' : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ 
   have he : g =ᶠ[nhds (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)] g' :=
     Filter.eventuallyEq_of_mem (Ioi_mem_nhds hz) h
   rw [radialPotentialForm_apply, radialPotentialForm_apply, he.deriv_eq, he.deriv.deriv_eq]
+
+/-- The radial potential form vanishes at every `z` such that the potential is constant near
+`|z|²`. -/
+theorem radialPotentialForm_apply_eq_zero {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0))
+    {z : puncturedSpace (ι → ℂ)} {c : ℝ}
+    (h : g =ᶠ[nhds (∑ i, ‖(z : ι → ℂ) i‖ ^ 2)] fun _ ↦ c) :
+    (radialPotentialForm ι g hg).val z = 0 := by
+  refine ContinuousAlternatingMap.ext fun v ↦ ?_
+  rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm]
+  have hv := radialPotentialForm_apply g hg z (v 0) (v 1)
+  rw [h.deriv_eq, h.deriv.deriv_eq] at hv
+  simpa using hv
 
 /-- For `g = id` the radial potential form is the standard form `ω₀`, restricted to
 `(ι → ℂ) ∖ 0`. -/
