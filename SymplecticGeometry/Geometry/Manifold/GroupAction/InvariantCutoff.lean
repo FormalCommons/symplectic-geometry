@@ -42,8 +42,9 @@ inside `U` (`IsCompact.exists_invariant_contMDiff_eq_one`). The hypothesis on `U
 weakened, since such a neighbourhood contains the orbit of every point of `K`. The cut-off is
 Tau Ceti's invariant cut-off `IsCompact.exists_contMDiff_one_nhds_tsupport_subset_of_smul_mem`
 around the compact saturation `G • K`, and the neighbourhood is the interior of the set where it
-equals `1`. Unlike Tau Ceti's statement, this one asks neither `K` nor `U` to be invariant, and
-it names an invariant open neighbourhood of `K` on which the cut-off is `1`.
+equals `1`. Unlike Tau Ceti's statement, this one does not ask `K` to be invariant, only that
+`U` contain its saturation `G • K`, and it names an invariant open neighbourhood of `K` on which
+the cut-off is `1`.
 
 ## References
 
