@@ -17,7 +17,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Trivialization
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
 import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
 

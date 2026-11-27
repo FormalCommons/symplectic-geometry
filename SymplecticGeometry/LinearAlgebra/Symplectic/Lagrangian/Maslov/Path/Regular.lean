@@ -11,7 +11,7 @@ public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
 import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.RegularPieces
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Concat
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import TauCeti.Analysis.Matrix.ContDiff
 import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Naturality
