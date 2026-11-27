@@ -8,13 +8,12 @@ module
 public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import Mathlib.Topology.LocallyConstant.Basic
-public import Mathlib.Topology.MetricSpace.Pseudo.Defs
 import Mathlib.Analysis.Normed.Module.FiniteDimension
 import TauCeti.Geometry.Symplectic.ExistsCompatible
 import TauCeti.Topology.Algebra.Module.BilinearForm
 
 /-!
-# Adapted bases of a transported almost complex structure
+# Symplectic orientations: transported adapted bases and continuous families
 
 If a symplectic form `ω` on `V` tames an almost complex structure `J`, and `e : V ≃ W` is a
 linear equivalence, then every basis `(v₁, J' v₁, …, vₙ, J' vₙ)` of `W` adapted to the transport
