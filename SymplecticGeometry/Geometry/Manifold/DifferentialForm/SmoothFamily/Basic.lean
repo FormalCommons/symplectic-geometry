@@ -24,6 +24,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 
 /-!
 # Smooth families of forms
@@ -370,14 +371,8 @@ theorem contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFa
   intro p₀
   rw [isSmoothFamily_iff_contMDiff] at h
   have hc := contMDiffAt_sliceSection_iff.mp (h p₀)
-  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
-    TangentBundle.symmL_model_space] at hc
-  refine hc.congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
-  ext v
-  symm
-  -- The trivialization at `p₀` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
-  -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
-  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+  simpa only [sliceSection_apply,
+    FiberBundle.trivializationAt_continuousAlternatingMap_model_space_apply_snd] using hc
 
 /-- **Smooth families from jointly smooth values.** A family `α` of `k`-forms on a normed space
 `E` whose value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends smoothly on `(t, x)` is a
@@ -388,13 +383,8 @@ theorem of_contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k}
     IsSmoothFamily J α := by
   rw [isSmoothFamily_iff_contMDiff]
   refine fun p₀ ↦ contMDiffAt_sliceSection_iff.mpr ?_
-  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
-    TangentBundle.symmL_model_space]
-  refine (h p₀).congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
-  ext v
-  -- As in `SymplecticGeometry.IsSmoothFamily.contMDiff_val`, the trivialization at `p₀` is the
-  -- identity only definitionally.
-  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+  simpa only [sliceSection_apply,
+    FiberBundle.trivializationAt_continuousAlternatingMap_model_space_apply_snd] using h p₀
 
 /-- **Joint continuity of a smooth family.** For a smooth family `α` of `k`-forms on a normed
 space `E`, the value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends continuously on

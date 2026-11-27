@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 import Mathlib.Analysis.Normed.Operator.Mul
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
+import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
 import TauCeti.Analysis.Calculus.ContDiff.Integrable
@@ -107,7 +108,7 @@ theorem eLpNorm_iteratedFDeriv_restrict_congr_of_eqOn {G : Type*} [NormedAddComm
     eLpNorm (iteratedFDeriv ℝ j f) p (μ.restrict s) =
       eLpNorm (iteratedFDeriv ℝ j g) p (μ.restrict s) :=
   eLpNorm_congr_ae ((ae_restrict_mem hs.measurableSet).mono fun _ hx ↦
-    ((h.eventuallyEq_of_mem (hs.mem_nhds hx)).iteratedFDeriv ℝ j).self_of_nhds)
+    h.iteratedFDeriv_of_isOpen hs j hx)
 
 omit [SecondCountableTopology E] in
 /-- On an open set `s` and for `1 ≤ p`, the `Lᵖ(μ|s)` norm of a derivative of order `j ≤ n` of

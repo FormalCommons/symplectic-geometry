@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 
@@ -41,6 +42,10 @@ structure is Tau Ceti's.
   linear.
 * `TauCeti.SmoothEmbedding.normalAlmostComplexStructureAt_eq_iff`: the induced structure is the
   only one for which the normal class map is complex linear.
+* `TauCeti.SmoothEmbedding.normalSpaceEquivOfComp_normalComplexStructureAt`: for `v ∘ f' = f`
+  with `v` pseudoholomorphic at `f' x`, the isomorphism of normal spaces given by the derivative
+  of `v` (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp`) intertwines the two normal complex
+  structures.
 * `TauCeti.SmoothEmbedding.toContinuousComplexStructure_contMDiffNormalComplexStructure`: the
   underlying continuous complex structure is Tau Ceti's `normalComplexStructure`.
 
@@ -135,6 +140,40 @@ theorem normalAlmostComplexStructureAt_eq_iff (f : SmoothEmbedding I' I n M X)
   exact AlmostComplexStructure.quotient_eq_iff _ _ _ K
 
 end Pointwise
+
+section Comp
+
+variable {V G X' : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [TopologicalSpace G]
+  {I'' : ModelWithCorners ℝ V G} [TopologicalSpace X'] [ChartedSpace G X'] [IsManifold I'' ∞ X']
+  {n m : ℕ∞ω} {v : X' → X}
+
+/-- **The derivative of a pseudoholomorphic map is complex linear on normal spaces.** Let
+`f' : M → X'` and `f : M → X` be embeddings with `v ∘ f' = f`, where `v` has invertible
+derivative at each `f' x`, and let `J'`, `J` be almost complex structures on `X'`, `X` for which
+the tangent images of `f'` and `f` at `x` are invariant. If `v` is `(J', J)`-holomorphic at
+`f' x`, the isomorphism `f'.normalSpaceEquivOfComp f` of the normal spaces at `x` intertwines the
+normal complex structures induced by `J'` and `J`. -/
+theorem normalSpaceEquivOfComp_normalComplexStructureAt (f' : SmoothEmbedding I' I'' n M X')
+    (f : SmoothEmbedding I' I m M X) (hn : n ≠ 0) (hm : m ≠ 0)
+    (hv : ∀ x, (mfderiv I'' I v (f' x)).IsInvertible) (h : v ∘ f' = f)
+    {J' : SmoothAlmostComplexStructure I'' X'} {J : SmoothAlmostComplexStructure I X} (x : M)
+    (hJ' : Set.MapsTo (J' (f' x)) (f'.isImmersion.tangentRange x hn)
+      (f'.isImmersion.tangentRange x hn))
+    (hJ : Set.MapsTo (J (f x)) (f.isImmersion.tangentRange x hm) (f.isImmersion.tangentRange x hm))
+    (hvJ : IsPseudoholomorphicAt J' J v (f' x)) (w : f'.isImmersion.NormalSpace x hn) :
+    f'.normalSpaceEquivOfComp f hn hm hv h x (f'.normalComplexStructureAt hn J' x hJ' w) =
+      f.normalComplexStructureAt hm J x hJ (f'.normalSpaceEquivOfComp f hn hm hv h x w) := by
+  -- Transport of `J` between the equal points `v (f' x)` and `f x`.
+  have hcast : ∀ y : X, y = f x → ∀ u : TangentSpace I y,
+      tangentSpaceCast I y (f x) (J y u) = J (f x) (tangentSpaceCast I y (f x) u) := by
+    rintro _ rfl u
+    simp only [tangentSpaceCast_self]
+  obtain ⟨u, rfl⟩ := f'.isImmersion.normalClass_surjective x hn w
+  rw [normalComplexStructureAt_normalClass, normalSpaceEquivOfComp_normalClass,
+    normalSpaceEquivOfComp_normalClass, normalComplexStructureAt_normalClass,
+    hvJ.mfderiv_apply_commute, hcast (v (f' x)) (congrFun h x)]
+
+end Comp
 
 section Smooth
 
