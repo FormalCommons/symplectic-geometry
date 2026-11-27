@@ -12,12 +12,18 @@ public import TauCeti.Geometry.Symplectic.Manifold.Volume
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.FundamentalClass
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivative.Linearization
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
+import SymplecticGeometry.Geometry.Manifold.Orientation.DualClass
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.DualClass
+import SymplecticGeometry.Geometry.Manifold.Orientation.Reindex
 
 /-!
-# Transverse symplectic zero sets
+# Transverse symplectic zero sets and their class
 
 Let `σ` be a smooth two-form on `M` compatible with a smooth almost complex structure `J`, with
 metric `g_J(u, v) = σ(u, J v)` (Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`), and let
@@ -38,7 +44,14 @@ taken for `g_J` and the norm of `L_x`, then
   by the symplectic orientations of `M` and of `Z` (`TauCeti.SmoothEmbedding.normalOrientation`)
   is the one carried from the canonical orientation of `L` by the linearization of `s`
   (`SymplecticGeometry.normalOrientationOfSection`)
-  (`normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`).
+  (`normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`);
+* for such `L`, the dual class of `Z` with this normal orientation is the Euler class
+  `TauCeti.complexEulerClass` of `L` (`dualClass_zeroSet_of_norm_dbar_lt`), and, if `M` is
+  compact, the push-forward of the fundamental class `[Z]` is the cap product of that Euler class
+  with `[M]`, for the homological orientations of the symplectic orientations
+  (`singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt`, and its form
+  `singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finrank_eq_zero` for a
+  surface `M`, whose zero sets are points).
 
 At a zero, `D s(x)` is the intrinsic linearization of `s` for every covariant derivative `D`
 (`CovariantDerivative.apply_eq_sectionLinearization`), so no result asks `D` to be complex
@@ -47,8 +60,8 @@ statements are `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_
 `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt` and
 `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`, applied on
 `(T_x M, σ_x, J_x, g_J)`; the tangent space of the zero set at `x` is the kernel of the
-linearization (`SymplecticGeometry.range_mfderiv_coe_transverseZeroSet`). The results are local:
-`M` need not be compact, and `σ` need not be closed.
+linearization (`SymplecticGeometry.range_mfderiv_coe_transverseZeroSet`). The results up to the
+dual class are local: `M` need not be compact, and `σ` need not be closed.
 
 The orientations are compared fibre by fibre, by
 `SymplecticGeometry.normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff`: it
@@ -60,6 +73,15 @@ and `TauCeti.SymplecticForm.ofExact_orientation_ker_of_norm_complexAntilinearPar
 Both normal orientations put the tangent directions of `Z` first, so no sign appears, and `Z` may
 have dimension zero.
 
+The class of `Z` follows from the normal orientation. The dual class of the zero set of a
+transverse section, with the normal orientation carried from the canonical orientation of `L`, is
+`TauCeti.complexEulerClass`
+(`TauCeti.SmoothEmbedding.dualClass_ofTransverseSection_eq_complexEulerClass`), and the cap
+product of a dual class with `[M]` is the push-forward of `[Z]`
+(`TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass` and its zero-dimensional form). These
+results put every class of the zero set and of `M` in the universe `Type`, so the last section
+does too.
+
 ## Main results
 
 * `SymplecticGeometry.isTransverse_of_norm_dbar_lt`: the linearization of `s` is onto at its
@@ -69,11 +91,19 @@ have dimension zero.
 * `SymplecticGeometry.normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`:
   for a complex line bundle, the normal orientation of the zero set induced by the symplectic
   orientations is the one carried from the complex orientation of `L`.
+* `SymplecticGeometry.dualClass_zeroSet_of_norm_dbar_lt`: its dual class is the Euler class of
+  `L`.
+* `SymplecticGeometry.dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`: on a closed
+  manifold, the four results together; the last is that `[Z]` is Poincaré dual to the Euler
+  class of `L`.
 
 ## References
 
-* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.4.
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.4
+  (Lemma 7.4.2).
 * [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996].
+* [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §6 (the Poincaré
+  dual of the zero set of a transverse section).
 -/
 
 public section
@@ -86,6 +116,8 @@ open scoped Manifold ContDiff
 namespace SymplecticGeometry
 
 open TauCeti
+
+section General
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
@@ -268,5 +300,356 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
     exact (Orientation.reindex_trans _ _ _).symm
 
 end Orientation
+
+end General
+
+section ZeroSetClass
+
+/-! ### The class of the zero set -/
+
+open CategoryTheory MonoidalCategory
+
+attribute [local instance] MonoidalPreadditive.monoidalLinearInt
+
+variable {E H M : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  [SecondCountableTopology M]
+  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F] [FiniteDimensional ℂ F]
+  {L : M → Type} [TopologicalSpace (TotalSpace F L)] [∀ x, NormedAddCommGroup (L x)]
+  [∀ x, NormedSpace ℝ (L x)] [∀ x, NormedSpace ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
+  [FiberBundle F L] [VectorBundle ℝ F L] [VectorBundle ℂ F L] [ContMDiffVectorBundle ∞ F L I]
+  {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} {s : Π x, L x}
+  {E' : Type} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+
+/-- **The dual class of a symplectic zero set is the Euler class.** In the setting of
+`normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt`, orient `M` and the zero
+set `Z` of `s` by their symplectic orientations. The dual class of `Z` for the normal orientation
+that these induce, read in degree `2` along `Fin (finrank ℝ F) ≃ Fin 2`, is the Euler class
+`TauCeti.complexEulerClass` of the complex line bundle `L`. -/
+theorem dualClass_zeroSet_of_norm_dbar_lt (hc : σ.Compatible J) (hF : finrank ℂ F = 1)
+    (D : CovariantDerivative I F L)
+    (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
+    (hdom : ∀ x, s x = 0 →
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
+        ‖LinearMap.toContinuousLinearMap (complexLinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+    (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
+    letI := transverseZeroSetChartedSpace (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI := isManifold_transverseZeroSet (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceFiberBundle (P := F)
+      (by simp) (Nat.eq_sub_of_add_eq' hE)
+    letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceVectorBundle (P := F)
+      (by simp) (Nat.eq_sub_of_add_eq' hE)
+    (SmoothEmbedding.ofTransverseSection (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).dualClass (by simp)
+        (Nat.eq_sub_of_add_eq' hE)
+        (SmoothEmbedding.isClosed_range_ofTransverseSection (by simp) hs
+          (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+            (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE)
+        (VectorBundleOrientation.reindex
+          (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]))
+          ((SmoothEmbedding.ofTransverseSection (by simp) hs
+            (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF)
+              D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalOrientation
+            (by simp) (Nat.eq_sub_of_add_eq' hE)
+            ((hc.tames.isNondegenerate.volumeOrientation (n := k + 1)
+              (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)).reindex
+                (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]; ring)))
+            ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+              (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+                hE).isNondegenerate_mpullback.volumeOrientation hk)))
+        (by rw [finrank_real_eq_two_mul_finrank_complex, hF]) =
+      complexEulerClass F L (r := 0) hF := by
+  have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
+  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
+    hdom
+  rw [normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt hc hF D hs hdom hE
+    hk, ← normalOrientationOfSection_reindex, ← VectorBundleOrientation.reindex_trans]
+  exact SmoothEmbedding.dualClass_ofTransverseSection_eq_complexEulerClass (by simp) hs hT hE hF
+
+
+/-- **The fundamental class of a symplectic zero set.** In the setting of
+`dualClass_zeroSet_of_norm_dbar_lt`, let `M` be compact, and let the zero set `Z` of `s` have
+positive dimension `2 (j + 1)`. For the fundamental classes of the homological orientations
+(`toHomologicalOrientation`) of the symplectic orientations of `M` and of `Z`, the push-forward of
+`[Z]` along the inclusion is the cap product of the Euler class `TauCeti.complexEulerClass` of `L`
+with `[M]`: `[Z]` is Poincaré dual to the Euler class of `L`. -/
+theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt [CompactSpace M]
+    [ChartedSpace E M] (hc : σ.Compatible J) (hF : finrank ℂ F = 1)
+    (D : CovariantDerivative I F L)
+    (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
+    (hdom : ∀ x, s x = 0 →
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
+        ‖LinearMap.toContinuousLinearMap (complexLinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+    (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {j : ℕ}
+    (hk : finrank ℝ E' = 2 * (j + 1)) :
+    letI := transverseZeroSetChartedSpace (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI := isManifold_transverseZeroSet (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI : CompactSpace ↥{x : M | s x = 0} :=
+      (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
+        hs.continuous).isClosedEmbedding_subtypeVal.compactSpace
+    ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ _).hom 2 (2 * j + 1 + 1) (2 * j + 3 + 1)
+        (by omega) (complexEulerClass F L (r := 0) hF)).hom
+      (((hc.tames.isNondegenerate.volumeOrientation (n := j + 2)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)
+          ).toHomologicalOrientation (n := 2 * j + 3)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)).fundamentalClass
+        (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)) =
+      (((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+            hE).isNondegenerate_mpullback.volumeOrientation hk).toHomologicalOrientation
+          (n := 2 * j + 1) (by omega)).mapFundamentalClass (by omega)
+        ⟨Subtype.val, continuous_subtypeVal⟩ := by
+  have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
+  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
+    hdom
+  have hm : (∞ : ℕ∞ω) ≠ 0 := by simp
+  let := transverseZeroSetChartedSpace hm hs hT hE
+  have := isManifold_transverseZeroSet hm hs hT hE
+  have hF2 : finrank ℝ F = 2 := by rw [finrank_real_eq_two_mul_finrank_complex, hF]
+  rw [← dualClass_zeroSet_of_norm_dbar_lt hc hF D hs hdom hE hk,
+    SmoothEmbedding.singularCap_dualClass_reindex_finCongr (h' := by omega)]
+  have h := SmoothEmbedding.dualClass_cap_fundamentalClass
+    (SmoothEmbedding.ofTransverseSection hm hs hT hE) hm (Nat.eq_sub_of_add_eq' hE)
+    (SmoothEmbedding.isClosed_range_ofTransverseSection hm hs hT hE) (m := 2 * j + 1)
+    (d := 2 * j + 3) (by omega) (by omega)
+    ((hc.tames.isNondegenerate.volumeOrientation (n := j + 2)
+      (by rw [← hE, hk, hF2]; ring)).reindex (finCongr (by rw [hF2]; ring)))
+    ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc hL D hs hdom
+      hE).isNondegenerate_mpullback.volumeOrientation hk)
+  rw [Manifold.Orientation.reindex_finCongr_reindex_finCongr] at h
+  refine h.trans (congrArg _ (ContinuousMap.ext fun z ↦ ?_))
+  exact congrFun (SmoothEmbedding.coe_ofTransverseSection hm hs hT hE) z
+
+/-- **The fundamental class of a symplectic set of points.** In the setting of
+`dualClass_zeroSet_of_norm_dbar_lt`, let `M` be a compact surface, so that the zero set `Z` of `s`
+is a finite set of points, each with the sign of the symplectic orientation of `Z`. For the
+fundamental class of the homological orientation of the symplectic orientation of `M` and that of
+the zero-dimensional homological orientation (`toHomologicalOrientationOfZeroDim`) of `Z`, the
+push-forward of `[Z]` along the inclusion is the cap product of the Euler class
+`TauCeti.complexEulerClass` of `L` with `[M]`. -/
+theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finrank_eq_zero
+    [CompactSpace M] [ChartedSpace E M] (hc : σ.Compatible J) (hF : finrank ℂ F = 1)
+    (D : CovariantDerivative I F L)
+    (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
+    (hdom : ∀ x, s x = 0 →
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
+        ‖LinearMap.toContinuousLinearMap (complexLinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+    (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) (hk : finrank ℝ E' = 0) :
+    letI := transverseZeroSetChartedSpace (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI := isManifold_transverseZeroSet (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI : CompactSpace ↥{x : M | s x = 0} :=
+      (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
+        hs.continuous).isClosedEmbedding_subtypeVal.compactSpace
+    ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ _).hom 2 0 (1 + 1) (by omega)
+        (complexEulerClass F L (r := 0) hF)).hom
+      (((hc.tames.isNondegenerate.volumeOrientation (n := 1)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF])
+          ).toHomologicalOrientation (n := 1)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF])).fundamentalClass
+        (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF])) =
+      ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+            hE).isNondegenerate_mpullback.volumeOrientation (n := 0)
+          hk).toHomologicalOrientationOfZeroDim.mapFundamentalClass hk
+        ⟨Subtype.val, continuous_subtypeVal⟩ := by
+  have hL : ∀ x, finrank ℂ (L x) = 1 := fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF
+  have hT := isTransverse_of_norm_dbar_lt hc hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp))
+    hdom
+  have hm : (∞ : ℕ∞ω) ≠ 0 := by simp
+  let := transverseZeroSetChartedSpace hm hs hT hE
+  have := isManifold_transverseZeroSet hm hs hT hE
+  have hF2 : finrank ℝ F = 2 := by rw [finrank_real_eq_two_mul_finrank_complex, hF]
+  rw [← dualClass_zeroSet_of_norm_dbar_lt hc hF D hs hdom hE (k := 0) hk,
+    SmoothEmbedding.singularCap_dualClass_reindex_finCongr (h' := by omega)]
+  have h := SmoothEmbedding.dualClass_cap_fundamentalClass_of_finrank_eq_zero
+    (SmoothEmbedding.ofTransverseSection hm hs hT hE) hm (Nat.eq_sub_of_add_eq' hE)
+    (SmoothEmbedding.isClosed_range_ofTransverseSection hm hs hT hE) (d := 1) hk
+    (by rw [← hE, hk, hF2])
+    ((hc.tames.isNondegenerate.volumeOrientation (n := 1)
+      (by rw [← hE, hk, hF2])).reindex (finCongr (by rw [hF2])))
+    ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc hL D hs hdom
+      hE).isNondegenerate_mpullback.volumeOrientation (n := 0) hk)
+  rw [Manifold.Orientation.reindex_finCongr_reindex_finCongr] at h
+  refine h.trans (congrArg _ (ContinuousMap.ext fun z ↦ ?_))
+  exact congrFun (SmoothEmbedding.coe_ofTransverseSection hm hs hT hE) z
+
+/-- **Symplectic zero sets of sections with dominant holomorphic derivative.** Let `M` be a
+closed manifold with a two-form `σ` compatible with an almost complex structure `J`, let `L → M`
+be a complex line bundle whose fibres carry norms, and let `D` be a covariant derivative on `L`.
+Let `s` be a smooth section such that, at each zero `x` of `s`, the complex-antilinear part of
+`D s(x)` has smaller operator norm than its complex-linear part, for the metric `σ(·, J ·)` on
+`T_x M`. Then:
+
+1. `s` is transverse to the zero section (`isTransverse_of_norm_dbar_lt`);
+2. its zero set `Z` is a symplectic submanifold
+   (`isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`);
+3. with the symplectic orientations of `M` and of `Z`, the dual class of `Z` is the Euler class
+   `TauCeti.complexEulerClass` of `L` (`dualClass_zeroSet_of_norm_dbar_lt`);
+4. for the fundamental classes of the homological orientations of these orientations, the
+   push-forward of `[Z]` is the cap product of the Euler class of `L` with `[M]`: `Z` represents
+   the Poincaré dual of `c₁(L)`, read as the Euler class of `L` with its complex orientation.
+   This is
+   `singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt` when `Z` has positive
+   dimension and
+   `singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finrank_eq_zero` when `M`
+   is a surface.
+
+The covariant derivative need not be complex linear or metric, nor the norms of `L` Hermitian:
+at a zero, `D s(x)` is the linearization of `s` for every `D`.
+
+Milestone: *Symplectic zero set criterion for a line bundle section*. -/
+theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
+    [ChartedSpace E M] (hc : σ.Compatible J) (hF : finrank ℂ F = 1)
+    (D : CovariantDerivative I F L)
+    (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
+    (hdom : ∀ x, s x = 0 →
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖ <
+        ‖LinearMap.toContinuousLinearMap (complexLinearPart
+          (J.almostComplexStructureAt x).toLinearMap
+          (AlmostComplexStructure.ofComplexModule (L x)).toLinearMap
+          (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
+    (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
+    (∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x)) ∧
+    (letI := transverseZeroSetChartedSpace (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    hc.tames.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, E')
+      (SmoothEmbedding.ofTransverseSection (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE)) ∧
+    (∀ {k : ℕ} (hk : finrank ℝ E' = 2 * k),
+      letI := transverseZeroSetChartedSpace (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+      haveI := isManifold_transverseZeroSet (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+      letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceFiberBundle (P := F)
+        (by simp) (Nat.eq_sub_of_add_eq' hE)
+      letI := (SmoothEmbedding.ofTransverseSection (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalSpaceVectorBundle (P := F)
+        (by simp) (Nat.eq_sub_of_add_eq' hE)
+      (SmoothEmbedding.ofTransverseSection (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).dualClass (by simp)
+          (Nat.eq_sub_of_add_eq' hE)
+          (SmoothEmbedding.isClosed_range_ofTransverseSection (by simp) hs
+            (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+              (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE)
+          (VectorBundleOrientation.reindex
+            (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]))
+            ((SmoothEmbedding.ofTransverseSection (by simp) hs
+              (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF)
+                D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE).normalOrientation
+              (by simp) (Nat.eq_sub_of_add_eq' hE)
+              ((hc.tames.isNondegenerate.volumeOrientation (n := k + 1)
+                (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)).reindex
+                  (finCongr (by rw [finrank_real_eq_two_mul_finrank_complex, hF]; ring)))
+              ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+                (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+                  hE).isNondegenerate_mpullback.volumeOrientation hk)))
+          (by rw [finrank_real_eq_two_mul_finrank_complex, hF]) =
+        complexEulerClass F L (r := 0) hF) ∧
+    (∀ {j : ℕ} (hk : finrank ℝ E' = 2 * (j + 1)),
+      letI := transverseZeroSetChartedSpace (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+      haveI := isManifold_transverseZeroSet (by simp) hs
+        (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+      haveI : CompactSpace ↥{x : M | s x = 0} :=
+        (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
+          hs.continuous).isClosedEmbedding_subtypeVal.compactSpace
+      ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ _).hom 2 (2 * j + 1 + 1) (2 * j + 3 + 1)
+          (by omega) (complexEulerClass F L (r := 0) hF)).hom
+        (((hc.tames.isNondegenerate.volumeOrientation (n := j + 2)
+            (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)
+            ).toHomologicalOrientation (n := 2 * j + 3)
+            (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)).fundamentalClass
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF]; ring)) =
+        (((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+            (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+              hE).isNondegenerate_mpullback.volumeOrientation hk).toHomologicalOrientation
+            (n := 2 * j + 1) (by omega)).mapFundamentalClass (by omega)
+          ⟨Subtype.val, continuous_subtypeVal⟩) ∧
+    ∀ hk : finrank ℝ E' = 0,
+    letI := transverseZeroSetChartedSpace (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI := isManifold_transverseZeroSet (by simp) hs
+      (isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
+    haveI : CompactSpace ↥{x : M | s x = 0} :=
+      (VectorBundle.isClosed_setOfPred_eq_zero ℝ (b := _root_.id)
+        hs.continuous).isClosedEmbedding_subtypeVal.compactSpace
+    ((TopCat.of M).singularCap ℤ (ρ_ _).inv (ρ_ _).hom 2 0 (1 + 1) (by omega)
+        (complexEulerClass F L (r := 0) hF)).hom
+      (((hc.tames.isNondegenerate.volumeOrientation (n := 1)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF])
+          ).toHomologicalOrientation (n := 1)
+          (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF])).fundamentalClass
+        (by rw [← hE, hk, finrank_real_eq_two_mul_finrank_complex, hF])) =
+      ((isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+          (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom
+            hE).isNondegenerate_mpullback.volumeOrientation (n := 0)
+          hk).toHomologicalOrientationOfZeroDim.mapFundamentalClass hk
+        ⟨Subtype.val, continuous_subtypeVal⟩ :=
+  ⟨isTransverse_of_norm_dbar_lt hc (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D
+      (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom,
+    isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt hc
+      (fun x ↦ (VectorBundle.finrank_eq ℂ F L x).trans hF) D hs hdom hE,
+    dualClass_zeroSet_of_norm_dbar_lt hc hF D hs hdom hE,
+    singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt hc hF D hs hdom hE,
+    singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finrank_eq_zero hc hF D hs
+      hdom hE⟩
+
+end ZeroSetClass
 
 end SymplecticGeometry
