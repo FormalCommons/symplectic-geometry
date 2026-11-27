@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Canonical
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # The coordinate form of a chart as a pull-back
@@ -85,23 +86,22 @@ theorem continuousDet_compContinuousLinearMap_mfderiv_comp (b : Module.Basis ι 
   -- `exact`.
   exact h
 
-/-- **The chain rule for the coordinate forms of two charts.** Let `e, χ : M → E` be
-differentiable at `z`, and `F : E → E` differentiable at `χ z`, with `e` equal to `F ∘ χ` near
-`z`. Then the determinant form of `b` pulled back by the differential of `e` at `z` is
-`det (DF (χ z))` times the determinant form of `b` pulled back by the differential of `χ` at `z`.
+/-- **The chain rule for the coordinate forms of two charts.** Let `χ : M → E` be differentiable
+at `z`, `F : E → E` differentiable at `χ z`, and `e : M → E` equal to `F ∘ χ` near `z`. Then the
+determinant form of `b` pulled back by the differential of `e` at `z` is `det (DF (χ z))` times
+the determinant form of `b` pulled back by the differential of `χ` at `z`.
 This is `continuousDet_compContinuousLinearMap_mfderiv_comp` with `f` the identity. -/
 theorem continuousDet_compContinuousLinearMap_mfderiv_of_eventuallyEq (b : Module.Basis ι 𝕜 E)
-    {e χ : M → E} {F : E → E} {z : M} (he : MDifferentiableAt I 𝓘(𝕜, E) e z)
-    (hχ : MDifferentiableAt I 𝓘(𝕜, E) χ z) (hF : DifferentiableAt 𝕜 F (χ z))
-    (heq : e =ᶠ[nhds z] F ∘ χ) :
+    {e χ : M → E} {F : E → E} {z : M} (hχ : MDifferentiableAt I 𝓘(𝕜, E) χ z)
+    (hF : DifferentiableAt 𝕜 F (χ z)) (heq : e =ᶠ[nhds z] F ∘ χ) :
     b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) e z) =
       LinearMap.det (fderiv 𝕜 F (χ z) : E →ₗ[𝕜] E) •
         b.continuousDet.compContinuousLinearMap (mfderiv I 𝓘(𝕜, E) χ z) := by
+  have he : MDifferentiableAt I 𝓘(𝕜, E) e z :=
+    (hF.mdifferentiableAt.comp z hχ).congr_of_eventuallyEq heq
   rw [← b.continuousDet_compContinuousLinearMap_mfderiv_comp he mdifferentiableAt_id hχ hF heq,
     mfderiv_id]
-  ext v
-  rw [ContinuousAlternatingMap.compContinuousLinearMap_apply]
-  exact congrArg _ (funext fun i ↦ ContinuousLinearMap.id_apply (R₁ := 𝕜) (v i))
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_id _).symm
 
 end Module.Basis
 
