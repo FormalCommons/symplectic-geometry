@@ -66,6 +66,21 @@ public section
 
 open Metric Set Topology
 
+namespace Set
+
+/-- For `f : Q × ball c R → X`, the image of `Q × {c}` is the range of `q ↦ f (q, c)`. -/
+theorem image_setOfPred_snd_eq {Q X : Type*} {c : ℂ} {R : ℝ} (hR : 0 < R)
+    (f : Q × ↥(ball c R) → X) :
+    f '' {p | (p.2 : ℂ) = c} = range fun q ↦ f (q, ⟨c, mem_ball_self hR⟩) := by
+  refine Set.ext fun y ↦ ⟨?_, ?_⟩
+  · rintro ⟨⟨x, w⟩, hw, rfl⟩
+    obtain rfl : w = ⟨c, mem_ball_self hR⟩ := Subtype.ext hw
+    exact ⟨x, rfl⟩
+  · rintro ⟨x, rfl⟩
+    exact ⟨_, rfl, rfl⟩
+
+end Set
+
 namespace Function.Injective
 
 variable {Q X : Type*} {c : ℂ} {R : ℝ} {f : Q × ↥(ball c R) → X}

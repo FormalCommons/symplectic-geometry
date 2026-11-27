@@ -52,19 +52,6 @@ open scoped LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry.rationalEllipticSurface
 
-/-- A map `f : F × ball 0 ε → E(1)`, with `F` the Fermat cubic, that agrees with `fibreEmbedding`
-on `F × {0}` sends `F × {0}` onto the fibre `range fibreEmbedding`. -/
-theorem image_setOfPred_snd_eq_zero_eq_range_fibreEmbedding {ε : ℝ} (hε : 0 < ε)
-    {f : SmoothProjectiveHypersurface.fermat 1 3 × ball (0 : ℂ) ε → rationalEllipticSurface}
-    (hf0 : ∀ x, f (x, ⟨0, mem_ball_self hε⟩) = fibreEmbedding x) :
-    f '' {p | (p.2 : ℂ) = 0} = range fibreEmbedding := by
-  refine Set.ext fun y ↦ ⟨?_, ?_⟩
-  · rintro ⟨⟨x, w⟩, hw, rfl⟩
-    obtain rfl : w = ⟨0, mem_ball_self hε⟩ := Subtype.ext hw
-    exact ⟨x, (hf0 x).symm⟩
-  · rintro ⟨x, rfl⟩
-    exact ⟨_, rfl, hf0 x⟩
-
 /-- Near the fibre, the line `{P} × ℂℙ¹` over a point `P` of the base locus runs through a product
 neighbourhood `f` adapted to the affine coordinate: for `w` in a small disc, `(P, [1 : w])` is
 `f (k w)` for a continuous `k` with second coordinate `w`. -/
@@ -133,8 +120,7 @@ private theorem exists_meridian_eq_one {ε : ℝ} (hε : 0 < ε)
   -- The line through `[u : 1]`, in the complement of the fibre.
   have hHmem (u : ℂ) : (⟨(P, Projectivization.mk ℂ ![u, 1] fun h ↦ one_ne_zero (congrFun h 1)),
       mk_mem_of_mem_baseLocus hP _⟩ : rationalEllipticSurface) ∉ f '' {p | (p.2 : ℂ) = 0} := by
-    rw [image_setOfPred_snd_eq_zero_eq_range_fibreEmbedding hε hf0, range_fibreEmbedding,
-      mem_ofPred_eq]
+    rw [image_setOfPred_snd_eq hε, funext hf0, range_fibreEmbedding, mem_ofPred_eq]
     intro h
     obtain ⟨a, ha⟩ := (Projectivization.mk_eq_mk_iff' ℂ _ _ _ _).1 h.symm
     have h0 := congrFun ha 0
@@ -187,7 +173,8 @@ instance simplyConnectedSpace_compl_range_fibreEmbedding :
   obtain ⟨ε, hε, f, hf, hf0, haff⟩ := exists_isOpenEmbedding_prod_ball
   have := (SmoothProjectiveHypersurface.fermat 1 3).pathConnectedSpace (by norm_num) one_ne_zero
   have := ChartedSpace.locallyPathConnectedSpace (Fin 2 → ℂ) rationalEllipticSurface
-  have hZ := image_setOfPred_snd_eq_zero_eq_range_fibreEmbedding hε hf0
+  have hZ : f '' {p | (p.2 : ℂ) = 0} = range fibreEmbedding := by
+    rw [image_setOfPred_snd_eq hε, funext hf0]
   obtain ⟨q, z, hqz⟩ := exists_meridian_eq_one hε hf hf0 fun p ↦ (haff p).1
   have hZc : IsClosed (f '' {p | (p.2 : ℂ) = 0}) := by
     rw [hZ, range_fibreEmbedding]
