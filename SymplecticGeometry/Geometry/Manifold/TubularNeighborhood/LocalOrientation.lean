@@ -802,12 +802,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         n
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 n).hom a) =
@@ -865,12 +861,10 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_of_normalTubeChart
   -- The tube after the chart of the total space is `κ` followed by the inclusion of the source.
   have hval : ((⟨Subtype.val, ψ.open_source.isOpenEmbedding_subtypeVal.continuous⟩ :
       C(ψ.source, X)) ⁻¹' {f z}) ⊆ {x₀} := fun x hx ↦ Subtype.ext hx
-  have hcomp : (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-        C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X)).comp
-        ⟨e.localChart c S, hι.continuous⟩ =
+  have hcomp : (f.tubeMap hn hdim Φ).comp ⟨e.localChart c S, hι.continuous⟩ =
       (⟨Subtype.val, ψ.open_source.isOpenEmbedding_subtypeVal.continuous⟩ :
         C(ψ.source, X)).comp κ :=
-    ContinuousMap.ext fun _ ↦ rfl
+    ContinuousMap.ext fun _ ↦ f.tubeMap_apply hn hdim Φ _
   rw [localHomologyMap_congr _ hcomp, ← localHomologyMap_comp _ κ _ hκ0 hval,
     CategoryTheory.ConcreteCategory.comp_apply, hκs]
   exact ψ.open_source.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm x₀ _
@@ -901,12 +895,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_cross
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         (d + 1)
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (d + 1)).hom
@@ -947,12 +937,8 @@ theorem localHomologyMap_localChartLocalHomologyIso_hom_localHomologyCross_of_fi
     haveI : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
       Φ.toHomeomorph.isEmbedding.t1Space
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun p ↦ (Φ p : X), continuous_subtypeVal.comp Φ.continuous⟩ :
-          C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X))
-        (S := {zeroSection P _ z}) (T := {f z})
-        (by
-          rintro p hp
-          exact Φ.injective (Subtype.ext (hp.trans (hΦ.apply_zeroSection z).symm)))
+        (f.tubeMap hn hdim Φ) (S := {zeroSection P _ z}) (T := {f z})
+        (f.tubeMap_preimage_singleton hn hdim Φ hΦ.apply_zeroSection z).subset
         (r + 1)
         ((Trivialization.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe
           (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0 (r + 1)).hom
