@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.DifferentialForm.Basic
 public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
 # The formal primitive of a two-form
@@ -30,6 +31,10 @@ says that the alternation of `curryLeft a` is `2 • a`). Then:
 * the alternation of `G x` is `τ x`, and `G x = fderiv ℝ β x` wherever `dβ x = τ x`, so the datum
   is holonomic, the derivative of its zeroth-order part, on every set on which `β` is a primitive
   of `τ`;
+* in particular, for forms `σ`, `α`, `β` on a manifold `M` read along a smooth map `φ : E → M`,
+  the formal primitive of the reading of `σ - α` with zeroth-order part the reading of `β` is
+  holonomic at every `x` with `σ = α + dβ` at `φ x`, since pullback commutes with `d` (Tau Ceti's
+  `TauCeti.SmoothForm.mextDerivₗ_mpullback`);
 * if the derivative of a one-form `f` is within `ε` of `G x` at `x`, then `df` is within `2 * ε`
   of `τ` at `x`, by Mathlib's bound `ContinuousAlternatingMap.norm_alternatizeUncurryFin_le` on
   the alternation;
@@ -49,6 +54,8 @@ proof of the handle-core lemma and of Gromov's theorem on symplectic forms on op
 
 * `SymplecticGeometry.alternatizeUncurryFin_formalPrimitive`: its alternation is `τ`.
 * `SymplecticGeometry.formalPrimitive_eq_fderiv`: it is the derivative of `β` where `dβ = τ`.
+* `SymplecticGeometry.formalPrimitive_mpullback_eq_fderiv`: the same for forms on a manifold read
+  along a smooth map.
 * `SymplecticGeometry.norm_extDeriv_sub_le_of_norm_fderiv_sub_formalPrimitive_le`: a derivative
   within `ε` of it has exterior derivative within `2 * ε` of `τ`.
 * `SymplecticGeometry.contMDiff_formalPrimitive`: it is smooth in the parameter and the point
@@ -98,6 +105,23 @@ theorem formalPrimitive_eq_fderiv {x : E} (hx : extDeriv β x = τ x) :
     formalPrimitive τ β x = fderiv ℝ β x := by
   rw [formalPrimitive_def, hx, sub_self, curryLeft_zero]
   exact (congrArg _ (smul_zero (2 : ℝ)⁻¹)).trans (add_zero _)
+
+/-- **The formal primitive of a reading is holonomic where the reading is a primitive.** Let
+`φ : E → M` be smooth, and `σ`, `α` two-forms and `β` a one-form on `M` with `σ = α + dβ` at
+`φ x`. Then, at `x`, the formal primitive of the pullback of `σ - α` along `φ`, with zeroth-order
+part the pullback of `β`, is the derivative of the pullback of `β`. -/
+theorem formalPrimitive_mpullback_eq_fderiv {EM H M : Type*} [NormedAddCommGroup EM]
+    [NormedSpace ℝ EM] [TopologicalSpace H] [TopologicalSpace M] [ChartedSpace H M]
+    {I : ModelWithCorners ℝ EM H} [IsManifold I ∞ M]
+    {φ : E → M} (hφ : ContMDiff 𝓘(ℝ, E) I ∞ φ) {σ α : SmoothForm I M F 2}
+    {β : SmoothForm I M F 1} {x : E} (hx : σ.val (φ x) = (α + mextDerivₗ I 1 β).val (φ x)) :
+    formalPrimitive (SmoothForm.mpullback φ hφ (σ - α)).val (SmoothForm.mpullback φ hφ β).val x =
+      fderiv ℝ (SmoothForm.mpullback φ hφ β).val x := by
+  refine formalPrimitive_eq_fderiv ?_
+  rw [← mextDeriv_eq_extDeriv, ← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback,
+    SmoothForm.coe_mpullback, SmoothForm.coe_mpullback]
+  refine mpullback_apply_congr ?_
+  rw [Submodule.coe_sub, Pi.sub_apply, hx, Submodule.coe_add, Pi.add_apply, add_sub_cancel_left]
 
 /-- **Approximating the formal primitive.** If the derivative of a one-form `f` at `x` is within
 `ε` of the formal primitive of `τ`, then the exterior derivative of `f` at `x` is within `2 * ε`
