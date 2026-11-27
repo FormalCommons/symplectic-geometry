@@ -101,13 +101,8 @@ theorem complexExtension_apply_I_smul (f : EuclideanSpace ℝ ι →L[ℝ] F)
 @[simp]
 theorem complexExtension_apply_smul (f : EuclideanSpace ℝ ι →L[ℝ] F) (c : ℂ)
     (z : EuclideanSpace ℂ ι) :
-    complexExtension ι F f (c • z) = c • complexExtension ι F f z := by
-  -- Write `c • w` as `re c • w + im c • (i • w)`, with real scalars, in both spaces.
-  have hE : ∀ w : EuclideanSpace ℂ ι, c • w = c.re • w + c.im • (Complex.I • w) := fun w ↦ by
-    rw [← Complex.coe_smul, ← Complex.coe_smul, smul_smul, ← add_smul, Complex.re_add_im]
-  have hF : ∀ w : F, c • w = c.re • w + c.im • (Complex.I • w) := fun w ↦ by
-    rw [← Complex.coe_smul, ← Complex.coe_smul, smul_smul, ← add_smul, Complex.re_add_im]
-  rw [hE, map_add, map_smul, map_smul, complexExtension_apply_I_smul, ← hF]
+    complexExtension ι F f (c • z) = c • complexExtension ι F f z :=
+  (complexExtension ι F f).toLinearMap.map_smul_of_map_I_smul (complexExtension_apply_I_smul f) c z
 
 /-- The complex-linear extension of `f` is the only real-linear map `ℂⁿ → F` that commutes with
 multiplication by `i` and agrees with `f` on the real points `x + i 0`. -/
