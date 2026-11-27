@@ -48,9 +48,9 @@ origin.
 
 The file also builds the radial factor of a reparametrization `x ↦ τ x • x` of the disc that
 makes the radial derivative of `φ ∘ ι` equal to `-2` along the sphere, as in Step 2 of the proof
-of Theorem 8.5 and in Corollary 8.1 of Cieliebak–Eliashberg. For a smooth `g` on a
-finite-dimensional real inner product space `F` with `a y = dg y y < 0` on the unit sphere,
-`SymplecticGeometry.exists_contDiff_fderiv_apply_self_eq_on_sphere` gives
+of Theorem 8.5 and in Corollary 8.1 of Cieliebak–Eliashberg. Let `F` be a real inner product
+space of finite dimension and `g : F → ℝ` smooth with `a y = dg y y < 0` on the unit sphere.
+Then `SymplecticGeometry.exists_contDiff_fderiv_apply_self_eq_on_sphere` gives
 `τ y = 1 + h (‖y‖ - 1) * b y` with `b = -2 / a - 1`, smooth where `a < 0`, and a profile `h`
 from `SymplecticGeometry.exists_contDiff_deriv_zero_eq_one_abs_le`: `h 0 = 0` and `h' 0 = 1`
 make `dτ x x = b x` on the sphere, and `h` is supported in a thin shell around the sphere where
