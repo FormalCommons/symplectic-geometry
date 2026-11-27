@@ -505,15 +505,8 @@ theorem isSymplectomorphism_sourceComplRangeDiffeomorph :
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
       (sourceComplRangeDiffeomorph hΨ hf) := by
-  have h : SmoothTwoForm.IsSymplectomorphism
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (blowupForm n l))
-      Ψ.toDiffeomorphSourceTarget := by
-    rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
-    exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hx ↦
-      hσ.mpullback_apply hx
   rw [sourceComplRangeDiffeomorph]
-  exact h.restrOpens _ _ _
+  exact hσ.isSymplectomorphism_toDiffeomorphSourceTarget.restrOpens _ _ _
 
 include hσ in
 /-- **The gluing map is a symplectomorphism**: `gluingDiffeomorph` pulls the restriction of `ω₀`
@@ -999,8 +992,7 @@ theorem mem_outerPiece_divisor_iff (x : WeightBlowup hψ hl hε) :
 private def outerDiffeomorph :
     outerPiece (WeightBlowup.divisor_mem_modelChart_source hψ hl hε) ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ),
       𝓘(ℝ, Fin (n + 1) → ℂ)⟯ WeightBlowup.outerPiece hψ :=
-  ((Diffeomorph.refl _ _ _).subtype fun x ↦ by
-      rw [Diffeomorph.coe_refl, id_eq, mem_outerPiece_divisor_iff]).trans
+  (Diffeomorph.setCongr (SetLike.ext (mem_outerPiece_divisor_iff hψ hl hε))).trans
     (WeightBlowup.complDivisorSymplectomorph hψ hl hε)
 
 private theorem inl_outerDiffeomorph
@@ -1008,38 +1000,36 @@ private theorem inl_outerDiffeomorph
     GluedAlong.inl (WeightBlowup.gluingDiffeomorphSymm hψ hl hε).toHomeomorph
       (outerDiffeomorph hψ hl hε x) = x := by
   rw [outerDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
-    WeightBlowup.inl_complDivisorSymplectomorph_apply, Diffeomorph.subtype_apply_coe,
-    Diffeomorph.coe_refl, id_eq]
+    WeightBlowup.inl_complDivisorSymplectomorph_apply, Diffeomorph.coe_setCongr_apply]
 
 private theorem isSymplectomorphism_outerDiffeomorph :
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (WeightBlowup.form hψ hl hε))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (outerDiffeomorph hψ hl hε) :=
-  ((SmoothTwoForm.isSymplectomorphism_refl _).subtype _).trans
+  (SmoothTwoForm.isSymplectomorphism_setCongr _ _).trans
     (WeightBlowup.isSymplectomorphism_complDivisorSymplectomorph hψ hl hε) (by simp)
 
 /-- The ball piece of the blowdown, read in `M`: `ψ ∘ complexToRealEuclidean`. -/
 private def ballDiffeomorph :
     ballPiece n l ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯
       (⟨_, hψ.complexPartialDiffeomorph.open_target⟩ : Opens M) :=
-  ((Diffeomorph.refl _ _ _).subtype fun w ↦ by
-      rw [Diffeomorph.coe_refl, id_eq]
-      exact mem_ballPiece_iff.trans hψ.mem_complexPartialDiffeomorph_source_iff.symm).trans
+  (Diffeomorph.setCongr (SetLike.ext fun _ ↦
+      mem_ballPiece_iff.trans hψ.mem_complexPartialDiffeomorph_source_iff.symm)).trans
     hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget
 
 omit [T2Space M] in
 private theorem coe_ballDiffeomorph_apply (w : ballPiece n l ε) :
     (ballDiffeomorph hψ w : M) = ψ (complexToRealEuclidean (Fin (n + 1)) w) := by
   simp only [ballDiffeomorph, Diffeomorph.coe_trans, Function.comp_apply,
-    PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph]
-  rw [Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id_eq]
+    PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph,
+    Diffeomorph.coe_setCongr_apply]
 
 omit [T2Space M] in
 private theorem isSymplectomorphism_ballDiffeomorph :
     SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (ballDiffeomorph (l := l) hψ) :=
-  ((SmoothTwoForm.isSymplectomorphism_refl _).subtype _).trans
+  (SmoothTwoForm.isSymplectomorphism_setCongr _ _).trans
     (ω₀E_def n ▸ hψ.isSymplecticMapOn_complexPartialDiffeomorph
       ).isSymplectomorphism_toDiffeomorphSourceTarget (by simp)
 
@@ -1130,7 +1120,7 @@ theorem blowdown_weightBlowup :
   · rw [GluedAlong.descDiffeomorph_inl, Function.comp_apply, outerDiffeomorph,
       Diffeomorph.coe_trans, Function.comp_apply]
     exact congrArg (fun z ↦ (WeightBlowup.complDivisorSymplectomorph hψ hl hε z : M))
-      (Subtype.ext (by rw [Diffeomorph.subtype_apply_coe, Diffeomorph.coe_refl, id_eq]))
+      (Subtype.ext (Diffeomorph.coe_setCongr_apply _ _))
   · rw [blowdownBall_of_norm_lt _ _ hl hε hw, GluedAlong.descDiffeomorph_inr, Function.comp_apply,
       coe_ballDiffeomorph_apply, ContinuousLinearEquiv.apply_symm_apply]
 
