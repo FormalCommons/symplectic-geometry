@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
+import TauCeti.Geometry.Manifold.VectorBundle.LocalFrame
 
 /-!
 # Fibrewise linear maps as sections of hom bundles
@@ -36,6 +38,17 @@ point `a` of the base, it is read in the trivializations at `a` as a family of c
 maps of the models that is `C^n` at `a` (`Bundle.contMDiff_bundleMap_of_coordinates`). The proof
 is that of Tau Ceti's `TauCeti.contMDiff_bundleMap_of_constant_coordinates`, for a fixed linear
 map, with the family in place of that map.
+
+Out of a bundle `V` whose model fibre has dimension one, a family `A x : V x →L V' x` can be
+tested on a single section `s` that is `C^n` and nowhere zero on an open set `u`: if
+`x ↦ A x (s x)` is `C^n` on `u`, then `A` is a `C^n` section of the hom bundle on `u`
+(`ContMDiffOn.hom_bundle_of_finrank_eq_one`), and its map of total spaces is `C^n` over `u`
+(`ContMDiffOn.bundleMap_of_finrank_eq_one`). The section `s` is a one-element local frame on
+`u` (Tau Ceti's `IsLocalFrameOn.of_linearIndependent_of_card_eq_finrank`); each vector of the
+local frame of a trivialization is its coefficient in `s` times `s`, a coefficient that is `C^n`
+by Tau Ceti's `IsLocalFrameOn.contMDiffOn_coeff`. So `A` is `C^n` on that frame, and Tau Ceti's
+`TauCeti.Manifold.contMDiffOn_hom_of_localFrame` and `TauCeti.contMDiffAt_hom_bundle_iff`
+conclude.
 -/
 
 public section
@@ -204,5 +217,82 @@ theorem Bundle.contMDiff_bundleMap_of_coordinates (φ : ∀ x, E₁ x → E₂ x
   exact hφA q.proj hq q.snd
 
 end Coordinates
+
+section LineBundle
+
+variable {𝕜 B EB HB F F' : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
+  [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
+  {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module 𝕜 (V x)]
+  [∀ x, TopologicalSpace (V x)] [TopologicalSpace (TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle 𝕜 F V]
+  {V' : B → Type*} [∀ x, AddCommGroup (V' x)] [∀ x, Module 𝕜 (V' x)]
+  [∀ x, TopologicalSpace (V' x)] [∀ x, IsTopologicalAddGroup (V' x)]
+  [∀ x, ContinuousSMul 𝕜 (V' x)] [TopologicalSpace (TotalSpace F' V')]
+  [FiberBundle F' V'] [VectorBundle 𝕜 F' V'] {n : WithTop ℕ∞}
+  [ContMDiffVectorBundle n F V IB] [ContMDiffVectorBundle n F' V' IB]
+
+/-- **Testing a hom-bundle section out of a line bundle on one section.** Let `V` have model
+fibre `F` of dimension one, and let `s` be a section of `V` that is `C^n` and nowhere zero on an
+open set `u`. A family `A x : V x →L V' x` is a `C^n` section of the hom bundle on `u` as soon as
+`x ↦ A x (s x)` is `C^n` on `u`. -/
+theorem ContMDiffOn.hom_bundle_of_finrank_eq_one (hF : Module.finrank 𝕜 F = 1)
+    {u : Set B} (hu : IsOpen u) {s : ∀ x, V x}
+    (hs : ContMDiffOn IB (IB.prod 𝓘(𝕜, F)) n (fun x ↦ TotalSpace.mk' F x (s x)) u)
+    (hs₀ : ∀ x ∈ u, s x ≠ 0) {A : ∀ x, V x →L[𝕜] V' x}
+    (hA : ContMDiffOn IB (IB.prod 𝓘(𝕜, F')) n (fun x ↦ TotalSpace.mk' F' x (A x (s x))) u) :
+    ContMDiffOn IB (IB.prod 𝓘(𝕜, F →L[𝕜] F')) n
+      (fun x ↦ TotalSpace.mk' (F →L[𝕜] F') (E := fun x ↦ V x →L[𝕜] V' x) x (A x)) u := by
+  have : FiniteDimensional 𝕜 F := Module.finite_of_finrank_eq_succ hF
+  -- The section `s`, indexed by `Unit`, is a local frame on `u`.
+  have hfr : IsLocalFrameOn IB F n (fun _ : Unit ↦ s) u :=
+    .of_linearIndependent_of_card_eq_finrank (by simp [hF]) (fun _ ↦ hs)
+      fun x hx ↦ linearIndependent_unique_iff.2 (hs₀ x hx)
+  intro x hx
+  let e := trivializationAt F V x
+  let e' := trivializationAt F' V' x
+  let b := Module.finBasis 𝕜 F
+  set W := u ∩ e.baseSet ∩ e'.baseSet
+  have hW : IsOpen W := (hu.inter e.open_baseSet).inter e'.open_baseSet
+  have hxW : x ∈ W := ⟨⟨hx, FiberBundle.mem_baseSet_trivializationAt' x⟩,
+    FiberBundle.mem_baseSet_trivializationAt' x⟩
+  refine ((TauCeti.Manifold.contMDiffOn_hom_of_localFrame b (e' := e') (f := id) (u := W)
+    contMDiffOn_id (fun y hy ↦ ⟨hy.1.2, hy.2⟩) fun j ↦ ?_).contMDiffAt
+      (hW.mem_nhds hxW)).contMDiffWithinAt
+  -- On `W`, the frame vector of `e` is its coefficient in `s` times `s`, so `A` sends it to
+  -- that coefficient times `A (s y)`.
+  have hfrU := hfr.mono (Set.inter_subset_left (t := e.baseSet))
+  have hc : ContMDiffOn IB 𝓘(𝕜) n (fun y ↦ hfrU.coeff () y (e.localFrame b j y))
+      (u ∩ e.baseSet) :=
+    hfrU.contMDiffOn_coeff (hu.inter e.open_baseSet) le_rfl
+      ((e.contMDiffOn_localFrame_baseSet n b j).mono Set.inter_subset_right) ()
+  refine ((hc.mono fun y (hy : y ∈ W) ↦ hy.1).smul_section
+    (hA.mono fun y (hy : y ∈ W) ↦ hy.1.1)).congr fun y hy ↦ ?_
+  have h := hfrU.coeff_sum_eq (e.localFrame b j) hy.1
+  simp only [Finset.univ_unique, PUnit.default_eq_unit, Finset.sum_singleton] at h
+  simp only [id, Pi.smul_apply']
+  nth_rw 1 [h]
+  rw [map_smul]
+
+/-- **Testing a map out of a line bundle on one section.** Let `V` have model fibre `F` of
+dimension one, and let `s` be a section of `V` that is `C^n` and nowhere zero on an open set `u`.
+For a family `A x : V x →L V' x` such that `x ↦ A x (s x)` is `C^n` on `u`, the map of total spaces
+`⟨x, v⟩ ↦ ⟨x, A x v⟩` is `C^n` over `u`. -/
+theorem ContMDiffOn.bundleMap_of_finrank_eq_one (hF : Module.finrank 𝕜 F = 1)
+    {u : Set B} (hu : IsOpen u) {s : ∀ x, V x}
+    (hs : ContMDiffOn IB (IB.prod 𝓘(𝕜, F)) n (fun x ↦ TotalSpace.mk' F x (s x)) u)
+    (hs₀ : ∀ x ∈ u, s x ≠ 0) {A : ∀ x, V x →L[𝕜] V' x}
+    (hA : ContMDiffOn IB (IB.prod 𝓘(𝕜, F')) n (fun x ↦ TotalSpace.mk' F' x (A x (s x))) u) :
+    ContMDiffOn (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, F')) n
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F' p.proj (A p.proj p.snd))
+      (TotalSpace.proj ⁻¹' u) := by
+  have : FiniteDimensional 𝕜 F := Module.finite_of_finrank_eq_succ hF
+  intro p hp
+  exact ((TauCeti.contMDiffAt_hom_bundle_iff A p.proj).1
+    ((hs.hom_bundle_of_finrank_eq_one hF hu hs₀ hA).contMDiffAt (hu.mem_nhds hp))
+      p.snd).contMDiffWithinAt
+
+end LineBundle
 
 end
