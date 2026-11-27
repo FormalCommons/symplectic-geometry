@@ -352,7 +352,9 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 - `Blowup.liftChart c φ` (in `Blowup/Chart.lean`): for any
   `φ : BlowupChart M p₀` in the same maximal atlas, $\tilde\phi$ of `φ` on
   `Blowup c`, `liftMap` of
-  `φ ∘ c.symm` composed with `c.lift`; `liftChart_inl`, and `liftChart_ofDirection`:
+  `φ ∘ c.symm` composed with `c.lift` over `blowdown c ⁻¹' (c.source ∩ φ.source)`,
+  and `ofNeZero ∘ φ ∘ blowdown c` over `φ.source \ c.source`, which misses `p₀`;
+  `liftChart_inl`, and `liftChart_ofDirection`:
   on `ℓ` it is `(map (d(φ ∘ c⁻¹)(0)) ℓ, 0)`, which under
   `directionEquiv` is the page's $([d\phi(p_0)v],0)$.
   `liftChart_mem_maximalAtlas`: it is a holomorphic chart, a biholomorphism
