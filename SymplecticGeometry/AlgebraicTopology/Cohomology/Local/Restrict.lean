@@ -15,7 +15,8 @@ Let `Y` be a `T1` space, `B ⊆ Y` and `y ∈ B`. The relative singular cohomolo
 `(B, B ∖ {y})` is determined by any open set of `Y` around `y` inside `B`: for an open `O ⊆ Y`
 with `y ∈ O ⊆ B`, the inclusion `(O, O ∖ {y}) ⟶ (B, B ∖ {y})` is an isomorphism on cohomology, in
 every degree and for all coefficients
-(`TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`). As `{y}` is closed, this is
+(`TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`), and so injective there
+(`TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion`). As `{y}` is closed, this is
 excision of `B ∖ O` from `(B, B ∖ {y})`, composed with the homeomorphism between `O` and the
 preimage of `O` in `B`.
 
@@ -29,6 +30,8 @@ after composing with any isomorphism of pairs
 * `TopPair.isIso_singularCohomologyMap_ofSubsetMap_inclusion`: in a `T1` space, restriction
   from `(B, B ∖ {y})` to `(O, O ∖ {y})`, for `O` open in `Y` with `y ∈ O ⊆ B`, is an isomorphism
   on relative cohomology.
+* `TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion`: that restriction is, in
+  particular, injective on relative cohomology.
 * `TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp`: the inclusion
   `(univ, univ ∖ {y}) ⟶ (Y, Y ∖ {y})`, followed by an isomorphism of pairs, is injective on
   cohomology.
@@ -89,6 +92,19 @@ theorem isIso_singularCohomologyMap_ofSubsetMap_inclusion {Y : Type w} [Topologi
     (hO.preimage continuous_subtypeVal) isClosed_singleton (singleton_subset_iff.2 hy) n
   rw [← hfac, singularCohomologyMap_comp]
   infer_instance
+
+/-- **Restriction to a smaller open neighbourhood is injective on local cohomology.** In a `T1`
+space `Y`, let `O ⊆ B` with `O` open and `y ∈ O`. The inclusion of pairs
+`(O, O ∖ {y}) ⟶ (B, B ∖ {y})` induces injective maps `Hⁿ(B, B ∖ {y}) ⟶ Hⁿ(O, O ∖ {y})`. -/
+theorem injective_singularCohomologyMap_ofSubsetMap_inclusion {Y : Type w} [TopologicalSpace Y]
+    [T1Space Y] {O B : Set Y} (hO : IsOpen O) (hOB : O ⊆ B) {y : Y} (hy : y ∈ O) (n : ℕ) :
+    Function.Injective (ConcreteCategory.hom (TopPair.singularCohomologyMap (R := R) (k := k)
+      (M := M) (ofSubsetMap (X := TopCat.of O) (Y := TopCat.of B)
+        (TopCat.ofHom ⟨Set.inclusion hOB, continuous_inclusion hOB⟩)
+        (B := {⟨y, hy⟩}ᶜ) (B' := {⟨y, hOB hy⟩}ᶜ)
+        fun _ hw h ↦ hw (Set.inclusion_injective hOB h)) n)) :=
+  have := isIso_singularCohomologyMap_ofSubsetMap_inclusion R k M hO hOB hy n
+  ConcreteCategory.injective_of_mono_of_preservesPullback _
 
 /-- **The whole space as a neighbourhood of a point.** For a point `y` of `Y` and an isomorphism
 of pairs `i` out of `(Y, Y ∖ {y})`, the inclusion `(univ, univ ∖ {y}) ⟶ (Y, Y ∖ {y})` followed by

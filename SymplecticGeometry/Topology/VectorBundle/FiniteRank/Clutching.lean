@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautolog
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.Algebra.Projectivization
+import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
 
 /-!
 # The clutching construction over `X × ℂP¹`
@@ -67,7 +68,8 @@ and the fibres may be over any nontrivially normed field.
   (`nonempty_iso_clutching_pullback`). The pullback extends over the whole product, so this is
   `nonempty_iso_clutching_of_fiberMap_comp_eq` with the identity on one side, with no homotopy.
 * `TauCeti.FiniteRankBundleCore.circleZPowSMul m f`: for complex `E`, the family `u ^ m • f`
-  whose fibre map at `(x, u)` is `u ^ m` times that of `f`.
+  whose fibre map at `(x, u)` is `u ^ m` times that of `f`, with `u ^ m` the Laurent monomial
+  `ContinuousMap.laurentMonomial m 1`.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
   `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`, that is `u ^ n` times the
   identity (`circleZPowIso_def`); for `n = 0` it is the identity (`circleZPowIso_zero`).
@@ -145,7 +147,7 @@ theorem pullback_fst_pullback_subtypeVal_eq_pullback_clutchingMap
     (E : FiniteRankBundleCore 𝕜 X) :
     (E.pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).pullback
         (ContinuousMap.subtypeVal (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc)) =
-      (E.pullback (ContinuousMap.fst : C(X × Circle, X))).pullback (clutchingMap X) := by
+      E.circlePullback.pullback (clutchingMap X) := by
   rw [pullback_comp, pullback_comp, fst_comp_clutchingMap]
 
 /-- The automorphism of the pullback of `E` to the product of `X` with the annulus by which the
@@ -602,14 +604,16 @@ variable {E : FiniteRankBundleCore ℂ X}
 def circleZPowSMul (m : ℤ)
     (f : E.circlePullback ≅ E.circlePullback) :
     E.circlePullback ≅ E.circlePullback where
-  hom := (⟨fun w ↦ ((w.2 ^ m : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.hom
-  inv := (⟨fun w ↦ ((w.2 ^ (-m) : Circle) : ℂ), by fun_prop⟩ : C(X × Circle, ℂ)) • f.inv
+  hom := ContinuousMap.laurentMonomial m (1 : C(X, ℂ)) • f.hom
+  inv := ContinuousMap.laurentMonomial (-m) (1 : C(X, ℂ)) • f.inv
   hom_inv_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.coe_mk, Circle.coe_zpow,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
+      ContinuousMap.one_apply, smul_eq_mul, mul_one,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_hom_inv_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel, zpow_zero, one_smul]
   inv_hom_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.coe_mk, Circle.coe_zpow,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
+      ContinuousMap.one_apply, smul_eq_mul, mul_one,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_inv_hom_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), neg_add_cancel, zpow_zero, one_smul]
 

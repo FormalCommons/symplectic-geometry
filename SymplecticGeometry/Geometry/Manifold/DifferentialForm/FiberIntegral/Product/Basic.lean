@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
-import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
+public import SymplecticGeometry.Analysis.Normed.Module.Alternating.AppendLeft
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Coefficient
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
@@ -40,7 +40,7 @@ of the integrand at `b` is that of `α` at the chart point of `b`, with the firs
 the coordinate vectors of `v` in the tangent trivialization at `b₀`
 (`SymplecticGeometry.inChartAt_prodFiberIntegrand`, from
 `TauCeti.RoughForm.inChartAt_prod_apply_append`). For fixed `b` and `v` this is a fixed continuous
-linear map of the coordinates of `α`, and the proof of
+linear map of the coordinates of `α` (`SymplecticGeometry.prodFiberIntegrandCLM`), and the proof of
 `SymplecticGeometry.isSmoothForm_prodFiberIntegrand` follows that of
 `TauCeti.IsSmoothForm.contDiffOn_inChartAt_mpullback_prodMk`, which treats the slices themselves,
 the case `r = 0`. When `b = g p` and `v = X p` vary smoothly with a parameter `p`, the coordinate
@@ -69,6 +69,10 @@ are smooth there by the previous result.
 * `SymplecticGeometry.prodFiberIntegrand α b v`: the integrand on `F`.
 * `SymplecticGeometry.prodFiberIntegrandAlternatingMap α b`: the same, as an alternating map
   of `v`.
+* `SymplecticGeometry.prodFiberIntegrandCLM E' m u`: the continuous linear map that sends an
+  alternating map `φ` of `r + m` vectors of `E × E'` to
+  `w ↦ φ ((u₁, 0), …, (uᵣ, 0), (0, w₁), …, (0, wₘ))`; it reads the integrand off the coordinate
+  expression of `α`.
 * `SymplecticGeometry.prodFiberIntegralAlternatingMap o α b`: the alternating map
   `v ↦ ∫_F prodFiberIntegrand α b v`.
 * `SymplecticGeometry.prodFiberIntegral o`: the fibre integral, a linear map from smooth
@@ -246,6 +250,32 @@ theorem prodFiberIntegrand_eq_zero_of_eq (α : RoughForm (I.prod J) (B × F) ℝ
     prodFiberIntegrand α b v = 0 := by
   rw [← prodFiberIntegrandAlternatingMap_apply, AlternatingMap.map_eq_zero_of_eq _ v hv hij]
 
+variable (E') in
+/-- The continuous linear map that reads an integrand off a coordinate expression: for
+`u₁, …, uᵣ ∈ E`, it sends an alternating map `φ` of `r + m` vectors of `E × E'` to the alternating
+map `w ↦ φ ((u₁, 0), …, (uᵣ, 0), (0, w₁), …, (0, wₘ))` of `m` vectors of `E'`. -/
+def prodFiberIntegrandCLM (m : ℕ) (u : Fin r → E) :
+    (E × E') [⋀^Fin (r + m)]→L[ℝ] ℝ →L[ℝ] E' [⋀^Fin m]→L[ℝ] ℝ :=
+  (ContinuousAlternatingMap.compContinuousLinearMapCLM (ContinuousLinearMap.inr ℝ E E')).comp
+    (ContinuousAlternatingMap.appendLeftCLM ℝ ℝ m fun i ↦ (u i, 0))
+
+theorem prodFiberIntegrandCLM_def (u : Fin r → E) :
+    prodFiberIntegrandCLM E' m u =
+      (ContinuousAlternatingMap.compContinuousLinearMapCLM (ContinuousLinearMap.inr ℝ E E')).comp
+        (ContinuousAlternatingMap.appendLeftCLM ℝ ℝ m fun i ↦ (u i, 0)) := (rfl)
+
+/-- `prodFiberIntegrandCLM E' m u φ` takes `w` to
+`φ ((u₁, 0), …, (uᵣ, 0), (0, w₁), …, (0, wₘ))`. -/
+@[simp]
+theorem prodFiberIntegrandCLM_apply (u : Fin r → E) (φ : (E × E') [⋀^Fin (r + m)]→L[ℝ] ℝ)
+    (w : Fin m → E') :
+    prodFiberIntegrandCLM E' m u φ w = φ (Fin.append (fun i ↦ (u i, 0)) fun j ↦ (0, w j)) := by
+  simp only [prodFiberIntegrandCLM_def, ContinuousLinearMap.comp_apply,
+    ContinuousAlternatingMap.compContinuousLinearMapCLM_apply,
+    ContinuousAlternatingMap.appendLeftCLM_apply,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply,
+    ContinuousAlternatingMap.appendLeft_apply, Function.comp_def, ContinuousLinearMap.inr_apply]
+
 /-- **The integrand in chart coordinates.** Let `b` lie in the chart of `B` at `b₀`, and `z` in
 the target of the chart of `F` at `y₀`. At `z`, the coordinate expression of
 `prodFiberIntegrand α b v` in the chart at `y₀` is that of `α` in the product chart at
@@ -256,14 +286,12 @@ theorem inChartAt_prodFiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F]
     (α : RoughForm (I.prod J) (B × F) ℝ (r + m)) {b₀ b : B} (hb : b ∈ (extChartAt I b₀).source)
     (v : Fin r → TangentSpace I b) (y₀ : F) {z : E'} (hz : z ∈ (extChartAt J y₀).target) :
     (prodFiberIntegrand α b v).inChartAt y₀ z =
-      ((α.inChartAt (b₀, y₀) (extChartAt I b₀ b, z)).appendLeft fun i ↦
-        ((trivializationAt E (TangentSpace I) b₀ ⟨b, v i⟩).2, (0 : E'))).compContinuousLinearMap
-          (ContinuousLinearMap.inr ℝ E E') := by
+      prodFiberIntegrandCLM E' m (fun i ↦ (trivializationAt E (TangentSpace I) b₀ ⟨b, v i⟩).2)
+        (α.inChartAt (b₀, y₀) (extChartAt I b₀ b, z)) := by
   have hb' : b ∈ (chartAt H b₀).source := by rwa [extChartAt_source] at hb
   have hbt : extChartAt I b₀ b ∈ (extChartAt I b₀).target := (extChartAt I b₀).map_source hb
   ext w
-  rw [ContinuousAlternatingMap.compContinuousLinearMap_apply,
-    ContinuousAlternatingMap.appendLeft_apply, RoughForm.inChartAt_apply, prodFiberIntegrand_apply]
+  rw [prodFiberIntegrandCLM_apply, RoughForm.inChartAt_apply, prodFiberIntegrand_apply]
   refine Eq.trans ?_ (RoughForm.inChartAt_prod_apply_append α rfl b₀ y₀ hbt hz
     (fun i ↦ (trivializationAt E (TangentSpace I) b₀ ⟨b, v i⟩).2) w).symm
   refine α.apply_congr (by rw [(extChartAt I b₀).left_inv hb]) fun p ↦ ?_
@@ -287,9 +315,7 @@ theorem isSmoothForm_prodFiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F]
   refine IsSmoothForm.of_contDiffWithinAt_inChartAt_self fun y₀ ↦ ?_
   -- In the product chart at `(b, y₀)`, the integrand is read off the coordinate expression of `α`
   -- on the slice through the chart point of `b` by a fixed continuous linear map.
-  let L : (E × E') [⋀^Fin (r + m)]→L[ℝ] ℝ →L[ℝ] E' [⋀^Fin m]→L[ℝ] ℝ :=
-    (ContinuousAlternatingMap.compContinuousLinearMapCLM (ContinuousLinearMap.inr ℝ E E')).comp
-      (ContinuousAlternatingMap.appendLeftCLM ℝ ℝ m fun i ↦ ((v i : E), (0 : E')))
+  let L := prodFiberIntegrandCLM (E := E) E' m v
   have hslice : ContDiffWithinAt ℝ n (fun z ↦ α.inChartAt (b, y₀) (extChartAt I b b, z))
       (range J) (extChartAt J y₀ y₀) := by
     refine (hα.contDiffWithinAt_inChartAt_self (b, y₀)).comp_of_eq (extChartAt J y₀ y₀)
@@ -301,9 +327,7 @@ theorem isSmoothForm_prodFiberIntegrand [IsManifold I 1 B] [IsManifold J 1 F]
         (L ∘ fun z ↦ α.inChartAt (b, y₀) (extChartAt I b b, z)) z := by
     intro z hz
     simp only [inChartAt_prodFiberIntegrand α (mem_extChartAt_source b) v y₀ hz,
-      TangentBundle.trivializationAt_apply_self_snd, comp_apply,
-      L, ContinuousLinearMap.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply,
-      ContinuousAlternatingMap.appendLeftCLM_apply]
+      TangentBundle.trivializationAt_apply_self_snd, comp_apply, L]
   exact (L.contDiff.comp_contDiffWithinAt hslice).congr_of_eventuallyEq
     (Filter.eventually_of_mem (extChartAt_target_mem_nhdsWithin y₀) heq)
     (heq _ (mem_extChartAt_target y₀))
@@ -344,11 +368,9 @@ theorem contMDiff_prodFiberIntegrand {EP HP P : Type*} [NormedAddCommGroup EP] [
   have hc (i : Fin r) : ContMDiffAt (K.prod J) 𝓘(ℝ, E) n (c i) q₀ :=
     (contMDiffAt_totalSpace_iff.1 (hX i q₀.1)).2.comp q₀ contMDiffAt_fst
   have hG : ContMDiffAt (K.prod J) 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ) n (fun q ↦
-      ((A q).appendLeft fun i ↦ (c i q, (0 : E'))).compContinuousLinearMap
-        (ContinuousLinearMap.inr ℝ E E')) q₀ := by
+      prodFiberIntegrandCLM E' m (fun i ↦ c i q) (A q)) q₀ := by
     refine contMDiffAt_continuousAlternatingMap_apply.2 fun w ↦ ?_
-    simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply,
-      ContinuousAlternatingMap.appendLeft_apply]
+    simp only [prodFiberIntegrandCLM_apply]
     refine hA.continuousAlternatingMap_apply fun p ↦ Fin.addCases (fun i ↦ ?_) (fun j ↦ ?_) p
     · simpa only [Fin.append_left] using (hc i).prodMk_space contMDiffAt_const
     · simpa only [Fin.append_right] using contMDiffAt_const

@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
+public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
@@ -22,12 +23,11 @@ coefficients in `k`, read as abelian groups through the restriction of scalars `
 Here integral chains have coefficients `ModuleCat.of ℤ (ULift ℤ)`, as those of Tau Ceti's
 fundamental class.
 
-* `SymplecticGeometry.intCastCoeff k : ULift ℤ → k`: the cast of integers, as a map of
-  coefficients. It is Tau Ceti's `TauCeti.intToRealCoeff` with any commutative ring `k` in
-  place of `ℝ`, and serves for `k = ℚ` as well as `k = ℝ`.
 * `SymplecticGeometry.intCastChainMap k S : C(S; ℤ) ⟶ F (C(S; k))`: the chain map that casts
   the coefficients of the integral chains of a simplicial set `S` to `k`, the change of
-  coefficients `SSet.restrictScalarsChainMap` along `intCastCoeff k`; on simplices it is
+  coefficients `SSet.restrictScalarsChainMap` along the cast of integers
+  `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) : ULift ℤ ⟶ F k` of Tau Ceti, which
+  serves for `k = ℚ` as well as `k = ℝ`; on simplices it is
   `SymplecticGeometry.ιChainComplex_intCastChainMap_f`, on an element it is
   `SymplecticGeometry.intCastChainMap_f_ιChainComplex`, and followed by a cochain it is
   `SymplecticGeometry.intCastChainMap_f_comp_apply`.
@@ -36,7 +36,8 @@ fundamental class.
   `SymplecticGeometry.intCastCyclesMap_eq_cyclesMap` writes with `HomologicalComplex.cyclesMap`
   and `SymplecticGeometry.intCastCyclesMap_iCycles` relates to `intCastChainMap` on chains.
 * `TopCat.singularCochainComplexRestrictScalarsIso`: the restricted `k`-linear cochains are the
-  same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`.
+  same morphisms, with the action of `ℤ` of the `ℤ`-linear category `ModuleCat k`, by Tau Ceti's
+  `RingHom.restrictScalarsIsoOfAddEquiv` in each degree.
 * `TopCat.singularCochainComplexIntChainsIso`: the comparison of cochains, the composite of the
   previous one with Tau Ceti's `TauCeti.singularCochainComplexIntegralIso` and with the change
   of chain coefficients along `TauCeti.uliftIntIso`. It takes a cochain `φ` to the integral
@@ -72,34 +73,26 @@ namespace SymplecticGeometry
 
 variable (k : Type) [CommRing k]
 
-/-- The coefficient map `ULift ℤ → k` of abelian groups given by the cast of integers. -/
-def intCastCoeff : ModuleCat.of ℤ (ULift.{0} ℤ) ⟶ ModuleCat.of ℤ k :=
-  ModuleCat.ofHom ((Int.castAddHom k).toIntLinearMap ∘ₗ ULift.moduleEquiv.toLinearMap)
-
-/-- The coefficient map `ULift ℤ → k` is the cast of integers. -/
-@[simp]
-theorem intCastCoeff_apply (m : ULift.{0} ℤ) : intCastCoeff k m = (m.down : k) :=
-  (rfl)
-
 /-- The chain map `C(S; ℤ) ⟶ F (C(S; k))` that casts the coefficients of the integral chains of
 a simplicial set `S` to `k`, the target read as a complex of abelian groups through the
 restriction of scalars `F` along `ℤ → k`: the change of coefficients
-`SSet.restrictScalarsChainMap` along `SymplecticGeometry.intCastCoeff k`. -/
+`SSet.restrictScalarsChainMap` along the cast `ULift ℤ → k` of integers into the restricted
+`k`-module `k`. -/
 def intCastChainMap (S : SSet.{0}) :
     S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟶
       ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
         (S.chainComplex (ModuleCat.of k k)) :=
   SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-    (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv) S
+    (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) S
 
 variable {k} in
 /-- The chain map casting integral chains to `k` is the change of coefficients
-`SSet.restrictScalarsChainMap` along `SymplecticGeometry.intCastCoeff k`, followed by the
-identification of the abelian group `k` with the restricted `k`-module `k`. -/
+`SSet.restrictScalarsChainMap` along `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)`,
+the cast of integers into the restricted `k`-module `k`. -/
 theorem intCastChainMap_def (S : SSet.{0}) :
     intCastChainMap k S =
       SSet.restrictScalarsChainMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-        (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv) S :=
+        (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) S :=
   (rfl)
 
 variable {k} in
@@ -108,10 +101,10 @@ to `k`. -/
 @[reassoc (attr := simp)]
 theorem ιChainComplex_intCastChainMap_f (S : SSet.{0}) {n : ℕ} (σ : S _⦋n⦌) :
     S.ιChainComplex σ ≫ (intCastChainMap k S).f n =
-      intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv ≫
+      ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k) ≫
         (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
           (S.ιChainComplex (R := ModuleCat.of k k) σ) := by
-  rw [intCastChainMap_def, SSet.ιChainComplex_restrictScalarsChainMap_f, Category.assoc]
+  rw [intCastChainMap_def, SSet.ιChainComplex_restrictScalarsChainMap_f]
 
 variable {k} in
 /-- The chain map casting integral chains to `k` sends the simplex `σ` with integral coefficient
@@ -119,8 +112,8 @@ variable {k} in
 theorem intCastChainMap_f_ιChainComplex (S : SSet.{0}) {n : ℕ} (σ : S _⦋n⦌) (a : ULift.{0} ℤ) :
     (intCastChainMap k S).f n (S.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ a) =
       S.ιChainComplex (R := ModuleCat.of k k) σ (a.down : k) := by
-  rw [intCastChainMap_def, SSet.restrictScalarsChainMap_f_ιChainComplex, ModuleCat.comp_apply,
-    intCastCoeff_apply, ModuleCat.restrictScalarsAlgebraMapIso_inv_apply]
+  rw [intCastChainMap_def, SSet.restrictScalarsChainMap_f_ιChainComplex,
+    ModuleCat.uliftUnitToRestrictScalars_apply, eq_intCast]
 
 variable {k} in
 /-- Casting coefficients to `k` commutes with the chain maps induced by maps of simplicial sets. -/
@@ -154,22 +147,22 @@ theorem intCastChainMap_f_comp_apply (S : SSet.{0}) {n : ℕ}
 /-- The map `Z_n(S; ℤ) ⟶ F (Z_n(S; k))` that casts the coefficients of the integral `n`-cycles
 of a simplicial set `S` to `k`, the target read as an abelian group through the restriction of
 scalars `F` along `ℤ → k`: the change of coefficients `SSet.restrictScalarsCyclesMap` along
-`SymplecticGeometry.intCastCoeff k`. -/
+the cast `ULift ℤ → k` of integers into the restricted `k`-module `k`. -/
 def intCastCyclesMap (S : SSet.{0}) (n : ℕ) :
     (S.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles n ⟶
       (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
         ((S.chainComplex (ModuleCat.of k k)).cycles n) :=
   SSet.restrictScalarsCyclesMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-    (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv) S n
+    (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)) S n
 
 variable {k} in
 /-- The map casting integral cycles to `k` is the change of coefficients
-`SSet.restrictScalarsCyclesMap` along `SymplecticGeometry.intCastCoeff k`, followed by the
-identification of the abelian group `k` with the restricted `k`-module `k`. -/
+`SSet.restrictScalarsCyclesMap` along `ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k)`,
+the cast of integers into the restricted `k`-module `k`. -/
 theorem intCastCyclesMap_def (S : SSet.{0}) (n : ℕ) :
     intCastCyclesMap k S n =
       SSet.restrictScalarsCyclesMap (algebraMap ℤ k) (N := ModuleCat.of k k)
-        (intCastCoeff k ≫ (ModuleCat.restrictScalarsAlgebraMapIso (R := ℤ) (S := k) k).inv)
+        (ModuleCat.uliftUnitToRestrictScalars (algebraMap ℤ k))
         S n :=
   (rfl)
 
@@ -204,41 +197,45 @@ variable (k : Type) [CommRing k] (X : TopCat.{0})
 /-! ### Cochains -/
 
 /-- The `k`-linear singular cochains, read as abelian groups, are the same morphisms with the
-action of `ℤ` of the `ℤ`-linear category `ModuleCat k`. -/
+action of `ℤ` of the `ℤ`-linear category `ModuleCat k`: in each degree, Tau Ceti's
+`RingHom.restrictScalarsIsoOfAddEquiv` for the identity of cochains. -/
 def singularCochainComplexRestrictScalarsIso :
     ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
         (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)) ≅
       X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k) :=
   HomologicalComplex.Hom.isoOfComponents
-    (fun p ↦ LinearEquiv.toModuleIso
-      ({ toFun φ := φ
-         invFun φ := φ
-         map_add' _ _ := rfl
-         map_smul' a φ := by
-           -- `ℤ` acts on the restricted module through `algebraMap ℤ k`.
-           change (algebraMap ℤ k a) • φ = a • φ
-           rw [algebraMap_int_eq, eq_intCast]
-           exact Int.cast_smul_eq_zsmul k a φ
-         left_inv _ := rfl
-         right_inv _ := rfl } :
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).obj
-          ((X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p) ≃ₗ[ℤ]
-        (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p))
-    fun _ _ _ ↦ rfl
+    (fun p ↦ (algebraMap ℤ k).restrictScalarsIsoOfAddEquiv
+      (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
+      (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
+      (AddEquiv.refl _) fun a φ ↦ algebraMap_smul k a φ)
+    fun _ _ _ ↦ by
+      ext φ
+      -- The cochains of the restricted complex have the type of its objects, which `rw` does not
+      -- identify with the carrier in the evaluation lemmas.
+      erw [ModuleCat.comp_apply, ModuleCat.comp_apply,
+        RingHom.restrictScalarsIsoOfAddEquiv_hom_apply,
+        RingHom.restrictScalarsIsoOfAddEquiv_hom_apply]
+      rfl
 
 /-- The identification of restricted `k`-linear cochains with `k`-linear cochains under the
 action of `ℤ` is the identity on cochains. -/
 theorem singularCochainComplexRestrictScalarsIso_hom_f_apply (p : ℕ)
     (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
     (X.singularCochainComplexRestrictScalarsIso k).hom.f p φ = φ :=
-  (rfl)
+  RingHom.restrictScalarsIsoOfAddEquiv_hom_apply (algebraMap ℤ k)
+    (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
+    (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
+    (AddEquiv.refl _) _ φ
 
 /-- The inverse identification of `k`-linear cochains under the action of `ℤ` with restricted
 `k`-linear cochains is the identity on cochains. -/
 theorem singularCochainComplexRestrictScalarsIso_inv_f_apply (p : ℕ)
     (φ : ((toSSet.obj X).chainComplex (ModuleCat.of k k)).X p ⟶ ModuleCat.of k k) :
     (X.singularCochainComplexRestrictScalarsIso k).inv.f p φ = φ :=
-  (rfl)
+  RingHom.restrictScalarsIsoOfAddEquiv_inv_apply (algebraMap ℤ k)
+    (Z := (X.singularCochainComplex (ModuleCat.of k k) k (ModuleCat.of k k)).X p)
+    (W := (X.singularCochainComplex (ModuleCat.of k k) ℤ (ModuleCat.of k k)).X p)
+    (AddEquiv.refl _) _ φ
 
 /-- **Cochains over `k` as integral cochains**: the `k`-linear cochains `Hom_k(C(X; k), k)`,
 read as abelian groups, are the integral cochains `Hom_ℤ(C(X; ℤ), k)`. A cochain `φ` goes to
@@ -278,7 +275,11 @@ theorem singularCochainComplexIntChainsIso_hom_f_apply_ιChainComplex {p : ℕ}
   -- with the chain map induced by `ULift ℤ ≅ ℤ`, which takes `a σ` to `a.down σ`.
   have e : (X.singularCochainComplexIntChainsIso k).hom.f p φ =
       (((SSet.chainComplexFunctor _).map uliftIntIso.hom).app (toSSet.obj X)).f p ≫
-        (singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ :=
+        (singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ := by
+    -- The cochains of the restricted complex and their image under the first isomorphism have
+    -- different types, which `rw` does not identify.
+    rw [singularCochainComplexIntChainsIso_def, Iso.trans_hom, HomologicalComplex.comp_f]
+    erw [ConcreteCategory.comp_apply, singularCochainComplexRestrictScalarsIso_hom_f_apply]
     rfl
   have h := SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc uliftIntIso.hom σ
     ((singularCochainComplexIntegralIso k (ModuleCat.of k k) X).hom.f p φ)
