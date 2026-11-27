@@ -1167,12 +1167,13 @@ containing `ι '' closedBall 0 1`:
     property of `exists_complexFrame_mfderiv` and
     `mvfderiv 𝓘(ℝ, E) φ (ι x) (A x (0, w)) = 0` for `‖x‖ = 1` and all `w`.
     From the frame `A` of 14d9, put
-    `A' x (z, w) = A x (z - χ ‖x‖ • ℓ x w, w)` with
+    `A' x (z, w) = A x (z - χ x • ℓ x w, w)` with
     `ℓ x w = (λ x ((modelDisc k m x).1))⁻¹ * μ x w • (modelDisc k m x).1`,
     where `λ x` and `μ x` are the complex-linear extensions
     (`StrongDual.extendRCLike`) of `z ↦ dφ (A x (z, 0))` and
-    `w ↦ dφ (A x (0, w))`, and `χ` is a cutoff equal to `1` near `1` and
-    supported where `λ x ((modelDisc k m x).1) ≠ 0`. On the sphere that
+    `w ↦ dφ (A x (0, w))`, and `χ : ℝᵏ → ℝ` is smooth, equal to `1` on the
+    sphere and to `0` near the points where `λ x ((modelDisc k m x).1)` has
+    non-negative real part. On the sphere that
     number is `dφ (dι x x) - i dφ (J dι x x)`, negative and real by
     `mvfderiv_mfderiv_self_neg` and `mvfderiv_I_smul_mfderiv`. `A' x`
     agrees with `A x` on the first factor and is `A x` composed with a

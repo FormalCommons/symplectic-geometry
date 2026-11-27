@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
+import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import SymplecticGeometry.Topology.VectorBundle.Frame
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
@@ -41,6 +43,10 @@ map, a family that is continuous in tangent coordinates is continuous as a map `
 `ContinuousAt.clm_apply_of_inCoordinates`), and a fixed map read in one
 chart and carried to the tangent spaces along a `Cⁿ` map by the tangent coordinate changes is
 `Cⁿ` in tangent coordinates (`contMDiffAt_inTangentCoordinates_tangentCoordChange_comp`).
+
+A family of maps `A x : G → T_(g x) M`, `Cⁿ` in tangent coordinates, composed with the
+differential of a `Cⁿ⁺¹` function `φ : M → 𝕜`, is a `Cⁿ` family of linear forms on `G`
+(`contMDiffAt_mvfderiv_comp_of_inTangentCoordinates`), from Mathlib's `ContMDiffAt.mfderiv`.
 -/
 
 public section
@@ -169,6 +175,35 @@ theorem contMDiffAt_inTangentCoordinates_tangentCoordChange_comp {n : WithTop �
   exact tangentCoordChange_comp (w := ι x₀) (x := ι y) (y := ι y₁)
     ⟨⟨by rw [extChartAt_source]; exact hy.1, mem_extChartAt_source (ι y)⟩,
       by rw [extChartAt_source]; exact hy.2⟩
+
+/-- Let `A x : G → T_(g x) M` be a family of maps along a map `g : F → M`, `Cⁿ` at `x₀` when
+read in tangent coordinates, and `φ : M → 𝕜` a function `Cⁿ⁺¹` at `g x₀`. Then the composition
+`x ↦ dφ (g x) ∘ A x`, a family of linear forms on `G`, is `Cⁿ` at `x₀`. -/
+theorem contMDiffAt_mvfderiv_comp_of_inTangentCoordinates {n : WithTop ℕ∞}
+    [IsManifold I (n + 1) M] {F G : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    [NormedAddCommGroup G] [NormedSpace 𝕜 G] {φ : M → 𝕜} {g : F → M} {f : F → G}
+    {A : ∀ x, G →L[𝕜] TangentSpace I (g x)} {x₀ : F}
+    (hφ : ContMDiffAt I 𝓘(𝕜) (n + 1) φ (g x₀)) (hg : ContMDiffAt 𝓘(𝕜, F) I n g x₀)
+    (hA : ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, G →L[𝕜] E) n (inTangentCoordinates 𝓘(𝕜, G) I f g A x₀) x₀) :
+    ContMDiffAt 𝓘(𝕜, F) 𝓘(𝕜, G →L[𝕜] 𝕜) n (fun x ↦ (mvfderiv I φ (g x)).comp (A x)) x₀ := by
+  have hdφ := ContMDiffAt.mfderiv (I' := 𝓘(𝕜)) (fun _ ↦ φ) g
+    (hφ.comp (x₀, g x₀) contMDiffAt_snd) hg le_rfl
+  refine (hdφ.clm_comp hA).congr_of_eventuallyEq ?_
+  have hnear : ∀ᶠ x in 𝓝 x₀, g x ∈ (chartAt H (g x₀)).source :=
+    hg.continuousAt.preimage_mem_nhds
+      ((chartAt H (g x₀)).open_source.mem_nhds (mem_chart_source H (g x₀)))
+  filter_upwards [hnear] with x hx
+  have e1 := inTangentCoordinates_eq_tangentCoordChange_comp I (f := f) A hx
+  have e2 := inTangentCoordinates_eq (I := I) (I' := 𝓘(𝕜)) g (fun x ↦ φ (g x))
+    (fun x ↦ mfderiv I 𝓘(𝕜) φ (g x)) hx (by simp)
+  ext v
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, e1, e2]
+  simp only [ContinuousLinearMap.comp_apply, tangentBundleCore_coordChange_model_space]
+  -- `d% φ` is `mfderiv φ` read in `𝕜`, and the two coordinate changes cancel.
+  exact (congrArg (fun w : E ↦ mfderiv I 𝓘(𝕜) φ (g x) w)
+    (TauCeti.tangentCoordChange_tangentCoordChange (by simp) (by simpa using hx)
+      (show E from A x v))).symm
+
 
 end SymplecticGeometry
 
