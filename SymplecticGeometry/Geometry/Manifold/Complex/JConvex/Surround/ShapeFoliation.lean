@@ -63,6 +63,23 @@ The file also gives one step of a weakly increasing chain of shapes:
   `A` less `η / (A (A - η))` (`SymplecticGeometry.deriv_sub_const_div_sub_one_div_sub_const`),
   which lets a caller choose `η` from a margin of `A`.
 
+These paths, between consecutive members `M i` and `M (i + 1)` of the chain of smoothed maxima
+`M = SymplecticGeometry.smoothedMaxChain δ A`, string together into one family:
+
+* `SymplecticGeometry.shapeChain δ η a h A N`: on the mesh `a + i h`, `i ≤ N`, the sum of `M 0`
+  and, for each `i < N`, the increment of the `i`-th path at the parameter `(ℓ - a - i h) / h`
+  over its value at `0`. Written as a sum rather than glued piece by piece, it is smooth on all of
+  `ℝ²` (`SymplecticGeometry.contDiff_shapeChain`), monotone in `ℓ` for `h > 0` and `η ≥ 0`
+  (`SymplecticGeometry.monotone_shapeChain`), `A 0` up to `ℓ = a + h / 4`
+  (`SymplecticGeometry.shapeChain_of_le`) and constant in `ℓ` from `ℓ = a + (N - 1 / 4) h` on
+  (`SymplecticGeometry.shapeChain_eq_of_ge`). Where the joints match,
+  `A (i + 1) - η + δ ≤ M i` for `i < N`, the sum telescopes: between `a + j h` and
+  `a + (j + 1) h` it is the `j`-th path (`SymplecticGeometry.shapeChain_eq_smoothedMaxPath`), and
+  from `a + N h` on it is `M N` (`SymplecticGeometry.shapeChain_eq_smoothedMaxChain`), also as
+  germs along a filter on which the joints eventually match
+  (`SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxPath`,
+  `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`).
+
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
@@ -440,6 +457,12 @@ theorem smoothedMaxPath_of_ge (hσ : 3 / 4 ≤ σ) :
   rw [smoothedMaxPath_def, collaredSmoothTransition_eq_one_of_ge hσ, sub_self, zero_mul,
     sub_zero]
 
+/-- From `σ = 3 / 4` on, the path from the `i`-th member of the chain of smoothed maxima towards
+`A (i + 1)` is the `(i + 1)`-st member. -/
+theorem smoothedMaxPath_smoothedMaxChain_of_ge {A : ℕ → ℝ → ℝ} {i : ℕ} (hσ : 3 / 4 ≤ σ) :
+    smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) σ = smoothedMaxChain δ A (i + 1) := by
+  rw [smoothedMaxPath_of_ge hσ, smoothedMaxChain_succ]
+
 /-- Up to `σ = 1 / 4`, the path is `M` wherever `A - η` lies at least `δ` below `M`. -/
 theorem smoothedMaxPath_eq_left (hδ : 0 < δ) (hσ : σ ≤ 1 / 4) (h : A r - η + δ ≤ M r) :
     smoothedMaxPath δ η M A σ r = M r := by
@@ -514,6 +537,156 @@ theorem min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div (
   have hb : 1 / (A r - c) ≤ 1 / (A r - η) := one_div_le_one_div_of_le (by linarith) (by linarith)
   rw [he]
   exact (min_le_min_left _ (by linarith)).trans h
+
+/-! ### A chain of paths between smoothed maxima -/
+
+section shapeChain
+
+variable {a h ℓ ℓ' : ℝ} {A : ℕ → ℝ → ℝ} {N : ℕ}
+
+/-- The **chain of paths between smoothed maxima** on the mesh `a + i h`, `i ≤ N`: the family
+`(ℓ, r) ↦ shapeChain δ η a h A N ℓ r`, starting from `smoothedMaxChain δ A 0 = A 0`, that adds for
+each `i < N` the increment of the path `smoothedMaxPath δ η (M i) (A (i + 1))` at the parameter
+`(ℓ - a - i h) / h` over its value at the start, where `M = smoothedMaxChain δ A`. For `h > 0`,
+each increment vanishes up to `ℓ = a + (i + 1 / 4) h` and is constant in `ℓ` from
+`ℓ = a + (i + 3 / 4) h` on, and where the joints match the family runs along the path from `M j`
+to `M (j + 1)` while `ℓ` runs from `a + j h` to `a + (j + 1) h`
+(`shapeChain_eq_smoothedMaxPath`). -/
+def shapeChain (δ η a h : ℝ) (A : ℕ → ℝ → ℝ) (N : ℕ) (ℓ r : ℝ) : ℝ :=
+  smoothedMaxChain δ A 0 r + ∑ i ∈ Finset.range N,
+    (smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) ((ℓ - a - i * h) / h) r -
+      smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r - η))
+
+theorem shapeChain_def (δ η a h : ℝ) (A : ℕ → ℝ → ℝ) (N : ℕ) (ℓ r : ℝ) :
+    shapeChain δ η a h A N ℓ r = smoothedMaxChain δ A 0 r + ∑ i ∈ Finset.range N,
+      (smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) ((ℓ - a - i * h) / h) r -
+        smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r - η)) :=
+  (rfl)
+
+/-- The chain of paths between smoothed maxima of `Cⁿ` functions is `Cⁿ` in `(ℓ, r)`. -/
+theorem contDiff_shapeChain {n : ℕ∞} (hA : ∀ i ≤ N, ContDiff ℝ n (A i)) :
+    ContDiff ℝ n (Function.uncurry (shapeChain δ η a h A N)) := by
+  have hM {i : ℕ} (hi : i ≤ N) : ContDiff ℝ n (smoothedMaxChain δ A i) :=
+    contDiff_smoothedMaxChain δ fun j hj ↦ hA j (hj.trans hi)
+  have hσ (i : ℕ) : ContDiff ℝ n fun x : ℝ × ℝ ↦ ((x.1 - a - i * h) / h, x.2) :=
+    (((contDiff_fst.sub contDiff_const).sub contDiff_const).div_const h).prodMk contDiff_snd
+  have key : ContDiff ℝ n fun x : ℝ × ℝ ↦ smoothedMaxChain δ A 0 x.2 + ∑ i ∈ Finset.range N,
+      (Function.uncurry (smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)))
+          ((x.1 - a - i * h) / h, x.2) -
+        smoothedMax δ (smoothedMaxChain δ A i x.2) (A (i + 1) x.2 - η)) :=
+    ((hM (Nat.zero_le N)).comp contDiff_snd).add (ContDiff.sum fun i hi ↦ by
+      have hi : i < N := Finset.mem_range.1 hi
+      exact ((contDiff_smoothedMaxPath (hM hi.le) (hA (i + 1) hi)).comp (hσ i)).sub
+        ((contDiff_smoothedMax δ).comp (((hM hi.le).comp contDiff_snd).prodMk
+          (((hA (i + 1) hi).comp contDiff_snd).sub contDiff_const))))
+  convert key using 1
+  funext ⟨ℓ, r⟩
+  simp only [Function.uncurry_apply_pair, shapeChain_def]
+
+/-- For `h > 0` and `η ≥ 0`, the chain of paths between smoothed maxima is monotone in `ℓ` at each
+`r`; so its `ℓ`-derivative is nonnegative (`Monotone.deriv_nonneg`). -/
+theorem monotone_shapeChain (hh : 0 < h) (hη : 0 ≤ η) (r : ℝ) :
+    Monotone fun ℓ ↦ shapeChain δ η a h A N ℓ r := fun ℓ ℓ' hℓ ↦ by
+  simp only [shapeChain_def]
+  gcongr with i
+  exact monotone_smoothedMaxPath hη r (div_le_div_of_nonneg_right
+    (sub_le_sub_right (sub_le_sub_right hℓ a) _) hh.le)
+
+/-- For `h > 0`, the chain of paths between smoothed maxima is `A 0` up to `ℓ = a + h / 4`. -/
+theorem shapeChain_of_le (hh : 0 < h) (hℓ : ℓ ≤ a + h / 4) :
+    shapeChain δ η a h A N ℓ = A 0 := by
+  funext r
+  rw [shapeChain_def, smoothedMaxChain_zero, add_eq_left]
+  refine Finset.sum_eq_zero fun i _ ↦ ?_
+  have hi := mul_nonneg i.cast_nonneg hh.le
+  rw [smoothedMaxPath_of_le ((div_le_iff₀ hh).2 (by linarith)), sub_self]
+
+/-- For `h > 0`, the chain of paths between smoothed maxima does not depend on `ℓ` from
+`ℓ = a + (N - 1 / 4) h` on. -/
+theorem shapeChain_eq_of_ge (hh : 0 < h) (hℓ : a + (N - 1 / 4) * h ≤ ℓ)
+    (hℓ' : a + (N - 1 / 4) * h ≤ ℓ') :
+    shapeChain δ η a h A N ℓ = shapeChain δ η a h A N ℓ' := by
+  funext r
+  simp only [shapeChain_def]
+  congr 1
+  refine Finset.sum_congr rfl fun i hi ↦ ?_
+  have hiN : (i : ℝ) + 1 ≤ N := by exact_mod_cast Finset.mem_range.1 hi
+  have hle : a + (i + 3 / 4) * h ≤ a + (N - 1 / 4) * h := by nlinarith
+  rw [smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by linarith)),
+    smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by linarith))]
+
+/-- **The local form of the chain of paths.** For `δ > 0` and `h > 0`, at an `r` where the joints
+match, `A (i + 1) r - η + δ ≤ M i r` for `i < N` with `M = smoothedMaxChain δ A`, the chain of
+paths between smoothed maxima is, for `ℓ ∈ [a + j h, a + (j + 1) h]` and `j < N`, the path from
+`M j` to `M (j + 1)` at the parameter `(ℓ - a - j h) / h`. -/
+theorem shapeChain_eq_smoothedMaxPath (hδ : 0 < δ) (hh : 0 < h)
+    (hJ : ∀ i < N, A (i + 1) r - η + δ ≤ smoothedMaxChain δ A i r) {j : ℕ} (hj : j < N)
+    (hℓ : ℓ ∈ Icc (a + j * h) (a + (j + 1) * h)) :
+    shapeChain δ η a h A N ℓ r =
+      smoothedMaxPath δ η (smoothedMaxChain δ A j) (A (j + 1)) ((ℓ - a - j * h) / h) r := by
+  set P := smoothedMaxPath δ η (smoothedMaxChain δ A j) (A (j + 1)) ((ℓ - a - j * h) / h) r
+  obtain ⟨g, hg₁, hg₂⟩ : ∃ g : ℕ → ℝ,
+      (∀ i ≤ j, g i = smoothedMaxChain δ A i r) ∧ ∀ i, j < i → g i = P :=
+    ⟨fun i ↦ if i ≤ j then smoothedMaxChain δ A i r else P, fun i hi ↦ by simp [hi],
+      fun i hi ↦ by simp [show ¬i ≤ j by omega]⟩
+  have key : ∀ i ∈ Finset.range N,
+      smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) ((ℓ - a - i * h) / h) r -
+        smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r - η) = g (i + 1) - g i := by
+    intro i hi
+    have hJi := hJ i (Finset.mem_range.1 hi)
+    rw [smoothedMax_eq_left hδ hJi]
+    rcases lt_trichotomy i j with hij | rfl | hij
+    · have hij' : (i : ℝ) + 1 ≤ j := by exact_mod_cast hij
+      rw [smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by nlinarith [hℓ.1])),
+        hg₁ _ hij, hg₁ _ hij.le]
+    · rw [hg₂ _ (Nat.lt_succ_self _), hg₁ _ le_rfl]
+    · have hij' : (j : ℝ) + 1 ≤ i := by exact_mod_cast hij
+      have hσ : (ℓ - a - i * h) / h ≤ 1 / 4 := (div_le_iff₀ hh).2 (by nlinarith [hℓ.2])
+      rw [smoothedMaxPath_eq_left hδ hσ hJi, hg₂ _ (by omega), hg₂ _ hij, sub_self,
+        sub_self]
+  rw [shapeChain_def, Finset.sum_congr rfl key, Finset.sum_range_sub, hg₂ _ hj,
+    hg₁ _ (Nat.zero_le j)]
+  ring
+
+/-- For `δ > 0` and `h > 0`, at an `r` where the joints match, `A (i + 1) r - η + δ ≤ M i r` for
+`i < N` with `M = smoothedMaxChain δ A`, the chain of paths between smoothed maxima is `M N` from
+`ℓ = a + N h` on. -/
+theorem shapeChain_eq_smoothedMaxChain (hδ : 0 < δ) (hh : 0 < h)
+    (hJ : ∀ i < N, A (i + 1) r - η + δ ≤ smoothedMaxChain δ A i r) (hℓ : a + N * h ≤ ℓ) :
+    shapeChain δ η a h A N ℓ r = smoothedMaxChain δ A N r := by
+  have key : ∀ i ∈ Finset.range N,
+      smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) ((ℓ - a - i * h) / h) r -
+        smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r - η) =
+          smoothedMaxChain δ A (i + 1) r - smoothedMaxChain δ A i r := by
+    intro i hi
+    have hiN : (i : ℝ) + 1 ≤ N := by exact_mod_cast Finset.mem_range.1 hi
+    rw [smoothedMax_eq_left hδ (hJ i (Finset.mem_range.1 hi)),
+      smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by nlinarith))]
+  rw [shapeChain_def, Finset.sum_congr rfl key,
+    Finset.sum_range_sub fun i ↦ smoothedMaxChain δ A i r]
+  ring
+
+/-- For `δ > 0` and `h > 0`, along a filter on which the joints eventually match,
+`A (i + 1) - η + δ ≤ M i` for `i < N` with `M = smoothedMaxChain δ A`, the shape of the chain of
+paths between smoothed maxima at `ℓ ∈ [a + j h, a + (j + 1) h]`, `j < N`, is eventually that of
+the path from `M j` to `M (j + 1)` at the parameter `(ℓ - a - j h) / h`. -/
+theorem shapeChain_eventuallyEq_smoothedMaxPath {l : Filter ℝ} (hδ : 0 < δ) (hh : 0 < h)
+    (hJ : ∀ᶠ r in l, ∀ i < N, A (i + 1) r - η + δ ≤ smoothedMaxChain δ A i r) {j : ℕ}
+    (hj : j < N) (hℓ : ℓ ∈ Icc (a + j * h) (a + (j + 1) * h)) :
+    shapeChain δ η a h A N ℓ =ᶠ[l]
+      smoothedMaxPath δ η (smoothedMaxChain δ A j) (A (j + 1)) ((ℓ - a - j * h) / h) :=
+  hJ.mono fun _ hr ↦ shapeChain_eq_smoothedMaxPath hδ hh hr hj hℓ
+
+/-- For `δ > 0` and `h > 0`, along a filter on which the joints eventually match,
+`A (i + 1) - η + δ ≤ M i` for `i < N` with `M = smoothedMaxChain δ A`, the shape of the chain of
+paths between smoothed maxima at `ℓ ≥ a + N h` is eventually `M N`. -/
+theorem shapeChain_eventuallyEq_smoothedMaxChain {l : Filter ℝ} (hδ : 0 < δ) (hh : 0 < h)
+    (hJ : ∀ᶠ r in l, ∀ i < N, A (i + 1) r - η + δ ≤ smoothedMaxChain δ A i r)
+    (hℓ : a + N * h ≤ ℓ) :
+    shapeChain δ η a h A N ℓ =ᶠ[l] smoothedMaxChain δ A N :=
+  hJ.mono fun _ hr ↦ shapeChain_eq_smoothedMaxChain hδ hh hr hℓ
+
+end shapeChain
 
 end SymplecticGeometry
 
