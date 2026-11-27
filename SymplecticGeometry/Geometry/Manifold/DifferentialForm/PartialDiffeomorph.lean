@@ -61,10 +61,12 @@ which is meaningful on `ψ.target`.
   (`PartialDiffeomorph.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart`), and in a
   chart in which `J` is constant it carries `𝒥 φ` to the derivation of `J (ψ.symm y)`
   (`PartialDiffeomorph.symbolInChart_realAlternatingDerivation_apply`).
-* `TauCeti.RoughForm.extendByZeroAlong ψ a`: the form on `M` that is the pullback along `ψ` of a
-  flat form `a` on the source of `ψ`, and zero elsewhere; `TauCeti.mpullback_symm_extendByZeroAlong`
-  recovers `a` on `ψ.target`. When `a` is smooth with compact support in `ψ.target`, the
-  extension is smooth (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
+* `TauCeti.RoughForm.extendByZeroAlong ψ a`: for a partial diffeomorphism `ψ` from `M` to any
+  real normed space `D`, not only to `E`, the form on `M` that is the pullback along `ψ` of a
+  flat form `a` on `D` on the source of `ψ`, and zero elsewhere;
+  `TauCeti.mpullback_symm_extendByZeroAlong` recovers `a` on `ψ.target`. When `a` is smooth
+  with compact support in `ψ.target`, the extension is smooth
+  (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
   `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
   (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
 * `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
@@ -318,26 +320,26 @@ end Readings
 
 section ExtendByZero
 
-variable {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n)
-  (a : E → E [⋀^Fin k]→L[ℝ] F)
+variable {D : Type*} [NormedAddCommGroup D] [NormedSpace ℝ D] {n : WithTop ℕ∞}
+  (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D n) (a : D → D [⋀^Fin k]→L[ℝ] F)
 
 open Classical in
-/-- The extension by zero along a partial diffeomorphism `ψ` from `M` to `E` of a flat form `a`
-on `E`: on the source of `ψ` it is the pullback of `a` along `ψ`, and outside it is zero. -/
+/-- The extension by zero along a partial diffeomorphism `ψ` from `M` to `D` of a flat form `a`
+on `D`: on the source of `ψ` it is the pullback of `a` along `ψ`, and outside it is zero. -/
 def RoughForm.extendByZeroAlong : RoughForm I M F k :=
-  ψ.source.piecewise (mpullback I 𝓘(ℝ, E) ψ a) 0
+  ψ.source.piecewise (mpullback I 𝓘(ℝ, D) ψ a) 0
 
 namespace RoughForm
 
 open Classical in
 theorem extendByZeroAlong_def :
-    extendByZeroAlong ψ a = ψ.source.piecewise (mpullback I 𝓘(ℝ, E) ψ a) 0 :=
+    extendByZeroAlong ψ a = ψ.source.piecewise (mpullback I 𝓘(ℝ, D) ψ a) 0 :=
   (rfl)
 
 variable {ψ} {x : M}
 
 theorem extendByZeroAlong_apply_of_mem (hx : x ∈ ψ.source) :
-    extendByZeroAlong ψ a x = mpullback I 𝓘(ℝ, E) ψ a x := by
+    extendByZeroAlong ψ a x = mpullback I 𝓘(ℝ, D) ψ a x := by
   classical
   exact Set.piecewise_eq_of_mem _ _ _ hx
 
@@ -349,23 +351,23 @@ theorem extendByZeroAlong_apply_of_notMem (hx : x ∉ ψ.source) :
 /-- The extension by zero of the zero flat form is zero. -/
 @[simp]
 theorem extendByZeroAlong_zero :
-    extendByZeroAlong ψ (0 : E → E [⋀^Fin k]→L[ℝ] F) = (0 : RoughForm I M F k) := by
+    extendByZeroAlong ψ (0 : D → D [⋀^Fin k]→L[ℝ] F) = (0 : RoughForm I M F k) := by
   classical
   rw [extendByZeroAlong_def]
   exact (congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
-    (mpullback_zero (I := I) (I' := 𝓘(ℝ, E)) (F := F) (k := k) ψ)).trans
+    (mpullback_zero (I := I) (I' := 𝓘(ℝ, D)) (F := F) (k := k) ψ)).trans
     (Set.piecewise_same ψ.source (0 : RoughForm I M F k))
 
 /-- Extension by zero along `ψ` is additive. -/
 @[simp]
-theorem extendByZeroAlong_add (b : E → E [⋀^Fin k]→L[ℝ] F) :
+theorem extendByZeroAlong_add (b : D → D [⋀^Fin k]→L[ℝ] F) :
     extendByZeroAlong ψ (a + b) =
       (extendByZeroAlong ψ a + extendByZeroAlong ψ b : RoughForm I M F k) := by
   classical
   rw [extendByZeroAlong_def, extendByZeroAlong_def, extendByZeroAlong_def,
     ← Set.piecewise_add, add_zero]
   exact congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
-    (mpullback_add (I := I) (I' := 𝓘(ℝ, E)) ψ (a : RoughForm 𝓘(ℝ, E) E F k) b)
+    (mpullback_add (I := I) (I' := 𝓘(ℝ, D)) ψ (a : RoughForm 𝓘(ℝ, D) D F k) b)
 
 /-- Extension by zero along `ψ` commutes with multiplication by a real constant. -/
 @[simp]
@@ -374,7 +376,7 @@ theorem extendByZeroAlong_smul (c : ℝ) :
   classical
   rw [extendByZeroAlong_def, extendByZeroAlong_def, ← Set.piecewise_smul, smul_zero]
   exact congrArg (ψ.source.piecewise · (0 : RoughForm I M F k))
-    (mpullback_smul (I := I) (I' := 𝓘(ℝ, E)) ψ c (a : RoughForm 𝓘(ℝ, E) E F k))
+    (mpullback_smul (I := I) (I' := 𝓘(ℝ, D)) ψ c (a : RoughForm 𝓘(ℝ, D) D F k))
 
 /-- Extension by zero along `ψ` commutes with negation. -/
 @[simp]
@@ -384,7 +386,7 @@ theorem extendByZeroAlong_neg :
 
 /-- Extension by zero along `ψ` commutes with subtraction. -/
 @[simp]
-theorem extendByZeroAlong_sub (b : E → E [⋀^Fin k]→L[ℝ] F) :
+theorem extendByZeroAlong_sub (b : D → D [⋀^Fin k]→L[ℝ] F) :
     extendByZeroAlong ψ (a - b) =
       (extendByZeroAlong ψ a - extendByZeroAlong ψ b : RoughForm I M F k) := by
   rw [sub_eq_add_neg, extendByZeroAlong_add, extendByZeroAlong_neg, ← sub_eq_add_neg]
@@ -425,12 +427,12 @@ theorem isCompact_tsupport_extendByZeroAlong [T2Space M]
 end RoughForm
 
 /-- Read through `ψ`, the extension by zero of `a` along `ψ` is `a` on the target of `ψ`. -/
-theorem mpullback_symm_extendByZeroAlong (hn : n ≠ 0) {y : E} (hy : y ∈ ψ.target) :
-    (mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y :
-      E [⋀^Fin k]→L[ℝ] F) = a y := by
+theorem mpullback_symm_extendByZeroAlong (hn : n ≠ 0) {y : D} (hy : y ∈ ψ.target) :
+    (mpullback 𝓘(ℝ, D) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y :
+      D [⋀^Fin k]→L[ℝ] F) = a y := by
   have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
-  have h : mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y =
-      mpullback 𝓘(ℝ, E) I ψ.symm (mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E F k)) y :=
+  have h : mpullback 𝓘(ℝ, D) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y =
+      mpullback 𝓘(ℝ, D) I ψ.symm (mpullback I 𝓘(ℝ, D) ψ (a : RoughForm 𝓘(ℝ, D) D F k)) y :=
     mpullback_apply_congr (RoughForm.extendByZeroAlong_apply_of_mem a hx)
   rw [h]
   exact ψ.mpullback_symm_mpullback_apply hn _ hy
@@ -438,11 +440,11 @@ theorem mpullback_symm_extendByZeroAlong (hn : n ≠ 0) {y : E} (hy : y ∈ ψ.t
 /-- On a Hausdorff manifold, the extension by zero along a smooth chart `ψ` of a smooth flat form
 with compact support in the target of `ψ` is smooth. -/
 theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
-    {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞} {a : E → E [⋀^Fin k]→L[ℝ] F}
+    {ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞} {a : D → D [⋀^Fin k]→L[ℝ] F}
     (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
     (hs : tsupport a ⊆ ψ.target) :
     IsSmoothForm I ∞ (RoughForm.extendByZeroAlong ψ a) := by
-  have ha' : IsSmoothForm 𝓘(ℝ, E) ∞ (a : RoughForm 𝓘(ℝ, E) E F k) :=
+  have ha' : IsSmoothForm 𝓘(ℝ, D) ∞ (a : RoughForm 𝓘(ℝ, D) D F k) :=
     isSmoothForm_modelSpace_iff.mpr ha
   rw [isSmoothForm_def]
   refine ψ.toOpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl hc hs
@@ -459,14 +461,14 @@ theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
 /-- The extension by zero along a smooth chart `ψ`, on a Hausdorff manifold, of a smooth flat form
 `a` with compact support in the target of `ψ`, as a smooth form. -/
 def SmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (a : E → E [⋀^Fin k]→L[ℝ] F)
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (a : D → D [⋀^Fin k]→L[ℝ] F)
     (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
     (hs : tsupport a ⊆ ψ.target) : SmoothForm I M F k :=
   ⟨RoughForm.extendByZeroAlong ψ a, (IsSmoothForm.extendByZeroAlong ha hc hs).mem_smoothBundleForms⟩
 
 @[simp]
 theorem SmoothForm.coe_extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (a : E → E [⋀^Fin k]→L[ℝ] F)
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (a : D → D [⋀^Fin k]→L[ℝ] F)
     (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
     (hs : tsupport a ⊆ ψ.target) :
     (SmoothForm.extendByZeroAlong ψ a ha hc hs).val = RoughForm.extendByZeroAlong ψ a :=
@@ -474,14 +476,14 @@ theorem SmoothForm.coe_extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
 
 section SmoothForm
 
-variable [T2Space M] [IsManifold I ∞ M] {ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞}
-  {a b : E → E [⋀^Fin k]→L[ℝ] F}
+variable [T2Space M] [IsManifold I ∞ M] {ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞}
+  {a b : D → D [⋀^Fin k]→L[ℝ] F}
 
 /-- The extension by zero along `ψ` of the zero flat form is the zero smooth form. -/
 @[simp]
-theorem SmoothForm.extendByZeroAlong_zero (h : ContDiff ℝ ∞ (0 : E → E [⋀^Fin k]→L[ℝ] F))
-    (hc : HasCompactSupport (0 : E → E [⋀^Fin k]→L[ℝ] F))
-    (hs : tsupport (0 : E → E [⋀^Fin k]→L[ℝ] F) ⊆ ψ.target) :
+theorem SmoothForm.extendByZeroAlong_zero (h : ContDiff ℝ ∞ (0 : D → D [⋀^Fin k]→L[ℝ] F))
+    (hc : HasCompactSupport (0 : D → D [⋀^Fin k]→L[ℝ] F))
+    (hs : tsupport (0 : D → D [⋀^Fin k]→L[ℝ] F) ⊆ ψ.target) :
     SmoothForm.extendByZeroAlong ψ 0 h hc hs = 0 :=
   Subtype.ext RoughForm.extendByZeroAlong_zero
 
