@@ -185,15 +185,17 @@ notes of the approving review of #2280.
    This is the page's step 3, with the degree argument replaced by the zero
    count of part 45, which already gives that each zero is simple.
 6. **The bridge between the real and the complex settings** is
-   `pullback_eq_self_iff`: a real diffeomorphism $\phi$ of the sphere has
+   `pullback_ofComplexManifold_onePoint_eq_self_iff`: a real diffeomorphism
+   $\phi$ of the sphere has
    $\phi^*i=i$ exactly when it is a Möbius transformation of `PSL(2, ℂ)`.
    One way: $\phi^*i=i$ makes $\phi$ and $\phi^{-1}$ pseudoholomorphic for
    $i$ (`isPseudoholomorphic_pullback`), hence complex differentiable
    (`isPseudoholomorphic_ofComplexManifold_iff`) and smooth over `ℂ`
    (`MDifferentiable.contMDiff`), so a complex diffeomorphism, which is
    $x\mapsto g\cdot x$ for some `g : GL (Fin 2) ℂ`
-   (`Diffeomorph.exists_coe_eq_smul`); dividing a matrix by a square root of
-   its determinant gives an element of `SL(2, ℂ)` with the same action. The
+   (`Diffeomorph.exists_coe_eq_smul`); since `ℂ` is algebraically closed,
+   `g` acts as an element of `PSL(2, ℂ)`
+   (`Matrix.GeneralLinearGroup.exists_psl_forall_smul_eq_smul`). The
    other way: a Möbius transformation is holomorphic, and a holomorphic map
    has a complex linear derivative.
 7. **Uniqueness of $\sigma(J)$** comes from
@@ -322,10 +324,10 @@ Issue 3:
 
 - `mobiusHom : PSL(2, ℂ) →* TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoint ℂ) ∞`, with
   `mobiusHom_apply : mobiusHom g x = g • x` and `mobiusHom_injective`
-  (from `OnePoint.existsUnique_psl_smul_zero_one_infty_eq`).
-- `mobiusSubgroup`, the `φ` with `φ.pullback i = i`, with
+  (from `Diffeomorph.constSmul_injective`, the action being faithful).
+- `mobiusSubgroup`, the `φ` with `i.pullback φ = i`, with
   `mem_mobiusSubgroup_iff`.
-- `pullback_eq_self_iff : φ.pullback i = i ↔ ∃ g, φ = mobiusHom g`
+- `pullback_ofComplexManifold_onePoint_eq_self_iff : i.pullback φ = i ↔ ∃ g, φ = mobiusHom g`
   (Decision 6), and `mobiusSubgroup_eq_range : mobiusSubgroup = mobiusHom.range`.
 
 About 300 lines.

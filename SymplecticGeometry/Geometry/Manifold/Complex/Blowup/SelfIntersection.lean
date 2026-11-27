@@ -11,7 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.SelfIntersection
 import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
-import TauCeti.Topology.Algebra.Module.ComplexSmulI
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 
 /-!
@@ -42,8 +42,9 @@ By `TauCeti.SmoothEmbedding.selfIntersectionNumber_remodel_complexCurveOrientati
 the Euler class of the complex normal bundle of the zero section, evaluated on the fundamental
 class of `ℂℙ¹` for its complex orientation. The isomorphisms
 `BlowupModel.normalSpaceZeroSectionRealEquiv` carry the complex structure of the normal bundle to
-multiplication by `Complex.I`, so they are complex-linear isomorphisms onto the tautological line,
-continuous on total spaces; by Tau Ceti's `TauCeti.complexEulerClass_eq_of_fiberwise` the two Euler
+multiplication by `Complex.I`, so they are complex-linear isomorphisms onto the tautological line
+(`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI`), continuous on total spaces;
+by Tau Ceti's `TauCeti.complexEulerClass_eq_of_fiberwise` the two Euler
 classes agree. The Euler class of the tautological line is minus the hyperplane class
 (`Projectivization.hyperplaneClass_def`), which takes the value `1` on `[ℂℙ¹]`
 (`Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass`).
@@ -103,25 +104,17 @@ theorem selfIntersectionNumber_zeroSection
   set J := (zeroSectionRealEmbedding 1).normalComplexStructure hn
     (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (BlowupModel 1)) hdim
     mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding with hJdef
-  -- The normal isomorphisms, complex-linear for the complex structure `J` of the normal bundle.
-  let φ (ℓ : ℙ ℂ (Fin 2 → ℂ)) : J.Fiber ℓ ≃L[ℂ] Projectivization.Tautological ℂ (Fin 2 → ℂ) ℓ :=
-    ((J.fiberEquiv ℓ).trans (normalSpaceZeroSectionRealEquiv 1 hn ℓ)).complexOfMapISmul fun v ↦ by
-      have h := normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure hdim ℓ
-        (J.fiberEquiv ℓ v)
-      rw [SmoothEmbedding.contMDiffNormalComplexStructure_apply] at h
-      rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
-        J.fiberEquiv_I_smul, hJdef, SmoothEmbedding.normalComplexStructure_apply, h]
-  have hφ : Continuous fun p : TotalSpace ℂ J.Fiber ↦
-      TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin 2 → ℂ)) p.proj
-        (φ p.proj p.snd) :=
-    ((continuous_normalSpaceZeroSectionRealEquiv hn).comp
-      (J.totalSpaceHomeomorph ℂ).continuous).congr fun p ↦ by
-        rw [Function.comp_apply, Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
-        simp only [φ, ContinuousLinearEquiv.complexOfMapISmul_apply,
-          ContinuousLinearEquiv.trans_apply]
+  -- The normal isomorphisms carry the complex structure `J` of the normal bundle to `I`.
+  have he (ℓ : ℙ ℂ (Fin 2 → ℂ)) (w) :
+      normalSpaceZeroSectionRealEquiv 1 hn ℓ (J ℓ w) =
+        Complex.I • normalSpaceZeroSectionRealEquiv 1 hn ℓ w := by
+    have h := normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure hdim ℓ w
+    rw [SmoothEmbedding.contMDiffNormalComplexStructure_apply] at h
+    rw [hJdef, SmoothEmbedding.normalComplexStructure_apply, h]
   rw [SmoothEmbedding.selfIntersectionNumber_remodel_complexCurveOrientation (finrank_fin_fun ℂ)
       (hJ := mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding),
-    complexEulerClass_eq_of_fiberwise (finrank_self ℂ) (finrank_self ℂ) hφ,
+    complexEulerClass_eq_of_fiberwise (finrank_self ℂ) (finrank_self ℂ)
+      (J.continuous_fiberEquivOfCommuteI _ he ℂ (continuous_normalSpaceZeroSectionRealEquiv hn)),
     ← neg_neg (((TopCat.of _).uliftIntegralCohomologyIso _).hom _),
     ← Projectivization.hyperplaneClass_def, map_neg,
     Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass]

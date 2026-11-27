@@ -266,10 +266,9 @@ complex ones that `chernNumber_congr` takes.
 - Tau Ceti's, in `TauCeti/Topology/Algebra/Module/ComplexSmulI.lean`: a
   continuous real-linear equivalence of complex modules that commutes with
   multiplication by `I`, as a continuous complex-linear one.
-  `Structure.lean` builds its equivalences with it, and so does
-  `pullbackFiberEquiv` in
+  `Structure.lean` builds its equivalences with it; `pullbackFiberEquiv` in
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` of *Symplectic
-  vector bundles*.
+  vector bundles* is one of them, `fiberEquivOfCommuteAt` at the identity.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`
 
