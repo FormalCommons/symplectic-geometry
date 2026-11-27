@@ -737,9 +737,10 @@ containing `ι '' closedBall 0 1`:
     being graphs over `R` near that line, and the building issue states
     that second form with the criterion of 14d1 rewritten for it.
   - `exists_contDiff_shapeLevel` (the function of a foliation): a family
-    as above defines, by the implicit function theorem (Mathlib's
-    `HasStrictFDerivAt.implicitFunction`), a smooth `H : ℝ × ℝ → ℝ` on
-    the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = -ℓ`,
+    as above, on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂` and with `0 < ∂χ/∂ℓ`, defines,
+    by the inverse function theorem for `(ℓ, r) ↦ (χ ℓ r ^ 2, r ^ 2)`
+    (Mathlib's `ContDiffAt.to_localInverse`), an `H : ℝ × ℝ → ℝ`
+    smooth at each point of the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = -ℓ`,
     `∂H/∂t > 0` and `∂H/∂s < 0` there (the leaves rise with `ℓ`, so
     `H` falls as `s` grows and rises as `t` grows); `dH` is then a
     positive multiple of the differential of `shapeGraph (χ ℓ) ∘ shape`,
@@ -749,11 +750,12 @@ containing `ι '' closedBall 0 1`:
   - In `JConvex/Hypersurface.lean`:
     `exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`
     (the book's Lemma 2.7, on a compact set): let `f : M → ℝ` be `C²`
-    on an open `U`, `K ⊆ U` compact, `mvfderiv 𝓘(ℝ, E) f x ≠ 0` for
-    `x ∈ K`, and the Levi form of `f` positive on the nonzero `v` with
+    at each point of a compact `K`, and the Levi form of `f` positive
+    on the nonzero `v` with
     `df(v) = df(i v) = 0` at each `x ∈ K`. Then there is `C ≥ 0` such
     that `g ∘ f` is strictly plurisubharmonic at every point of `K`
-    for each `C²` function `g` with `0 < deriv g` and
+    for each `g` that is `C²` at the points of `f '' K`, with
+    `0 < deriv g` and
     `C * deriv g ≤ iteratedDeriv 2 g` on `f '' K`. This is a
     statement about $J$-convex levels and belongs with them.
 
