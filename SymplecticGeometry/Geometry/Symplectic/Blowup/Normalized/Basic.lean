@@ -11,6 +11,9 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # Normalized ball embeddings and their blowup charts
@@ -45,6 +48,15 @@ under which `Blowup.almostComplexStructure` puts an almost complex structure on 
   smooth maximal atlas of `M`.
 * `SymplecticGeometry.IsNormalizedAt.blowupChart_isHolomorphic`: the blowup chart is
   pseudoholomorphic on its source from `J` to the complex structure of `Fin (n + 1) → ℂ`.
+* `SymplecticGeometry.exists_isNormalizedAt`: on a Hausdorff σ-compact manifold, a symplectic
+  form is normalized at every point, for some compatible `J`, radius and map. The map is the
+  inverse of a Darboux chart onto `StdSpace (Fin (n + 1))`
+  (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`), restricted to a closed ball
+  in its target; `J` is a compatible structure that the derivative of the chart carries to `J₀`
+  on the image of that ball
+  (`TauCeti.SmoothAlmostComplexStructure.exists_compatible_mfderiv_apply_eq`, which rests on Tau
+  Ceti's `TauCeti.SmoothTwoForm.Compatible.exists_compatible_eqOn`). This is McDuff–Salamon,
+  Remark 7.1.18 (i).
 
 ## Implementation notes
 
@@ -54,7 +66,8 @@ definition asks for `0 < δ`, without which the open ball is empty and `ψ₀` g
 
 ## References
 
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
+  Definition 7.1.17 and Remark 7.1.18.
 -/
 
 public section
@@ -212,6 +225,42 @@ theorem blowupChart_isHolomorphic :
     ((isOpen_ball.preimage (complexToRealEuclidean _).continuous).mem_nhds hw)
 
 end IsNormalizedAt
+
+/-- **Every symplectic manifold is normalized at every point.** Let `σ` be a symplectic form on
+a Hausdorff σ-compact manifold `M` modelled on `Fin (n + 1) → ℂ`. At every point `p₀` there are
+an almost complex structure `J` compatible with `σ`, a radius `δ > 0` and a map `ψ₀` that
+normalizes `(σ, J)` at `p₀` on the ball of radius `δ`. The form `σ` itself is not changed. -/
+theorem exists_isNormalizedAt [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymplectic) (p₀ : M) :
+    ∃ (J : SmoothAlmostComplexStructure 𝓘(ℝ, Fin (n + 1) → ℂ) M) (δ : ℝ)
+      (ψ₀ : StdSpace (Fin (n + 1)) → M), IsNormalizedAt σ J p₀ δ ψ₀ := by
+  have hE : Module.finrank ℝ (Fin (n + 1) → ℂ) = 2 * Fintype.card (Fin (n + 1)) := by
+    simp [Module.finrank_pi_fintype, mul_comm]
+  -- A Darboux chart `χ` onto `StdSpace (Fin (n + 1))` centred at `p₀`, and a closed ball `B(δ)`
+  -- inside its target. The inverse of `χ` is a symplectic embedding of `B(δ)`.
+  obtain ⟨χ, hp, -, hp0, hχ⟩ := hσ.exists_darbouxChart_stdForm hE (s := univ) Filter.univ_mem
+  obtain ⟨ε, hε, hεt⟩ := isOpen_iff.1 χ.open_target 0 (hp0 ▸ χ.map_source hp)
+  have hδt : closedBall (0 : StdSpace (Fin (n + 1))) (ε / 2) ⊆ χ.target :=
+    (closedBall_subset_ball (by linarith)).trans hεt
+  have hψ : IsSymplecticBallEmbedding σ (ε / 2) χ.symm := (isSymplecticBallEmbedding_def _ _ _).2
+    ⟨⟨χ.target, χ.open_target, hδt, χ.symm.contMDiffOn⟩, χ.symm.injOn.mono hδt,
+      fun z hz ↦ SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ
+        (hδt (ball_subset_closedBall hz))⟩
+  -- A compatible `J` that `dχ` carries to `J₀` on the image of `B(δ)`.
+  obtain ⟨J, hJ, hJχ⟩ := SmoothAlmostComplexStructure.exists_compatible_mfderiv_apply_eq
+    hσ.isNondegenerate hχ stdForm_compatible (hψ.isCompact_image_closedBall le_rfl).isClosed
+    (by rintro _ ⟨z, hz, rfl⟩; exact χ.map_target (hδt hz))
+  refine ⟨J, ε / 2, χ.symm, hJ, by positivity, hψ, by rw [← hp0]; exact χ.left_inv hp,
+    isPseudoholomorphicOn_iff.2 fun z hz ↦ ?_⟩
+  have hzt := hδt (ball_subset_closedBall hz)
+  refine IsPseudoholomorphicAt.isPseudoholomorphicWithinAt
+    (isPseudoholomorphicAt_iff_mfderiv.2 ⟨χ.symm.mdifferentiableAt (by simp) hzt, fun w ↦ ?_⟩)
+  -- Both sides have the same image under the injective derivative of `χ` at `χ⁻¹ z`.
+  refine (χ.isInvertible_mfderiv (by simp) (χ.map_target hzt)).injective ?_
+  exact (χ.mfderiv_apply_mfderiv_symm_apply (by simp) hzt _).trans
+    ((AlmostComplexStructure.constSmooth_apply _ z w).trans
+      ((congrArg (stdComplexStructure (Fin (n + 1)))
+        (χ.mfderiv_apply_mfderiv_symm_apply (by simp) hzt w).symm).trans
+        (hJχ _ ⟨z, ball_subset_closedBall hz, rfl⟩ _).symm))
 
 end SymplecticGeometry
 
