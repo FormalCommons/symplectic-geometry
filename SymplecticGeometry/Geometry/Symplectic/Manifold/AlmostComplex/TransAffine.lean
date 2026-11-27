@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.ArrowCongr
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
@@ -30,9 +31,9 @@ at the corresponding point.
   for a compact set `K` in the source of `φ` and maps `A x` bounded with their inverses on `K`,
   one radius and, for each order, one bound for the charts `φ.transAffine (φ x) (A x)`, `x ∈ K`.
 
-The formula is the change of chart rule of Tau Ceti,
-`ContMDiffAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`, for the transition map
-from `φ` to `φ.transAffine p A`. The bound is
+The formula is the change of chart rule
+`TauCeti.SmoothAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`, for the transition
+map from `φ` to `φ.transAffine p A`. The bound is
 `ContinuousLinearEquiv.norm_iteratedFDeriv_arrowCongr_comp_le`, for `e₁ = e₂ = A`.
 
 ## References
@@ -81,13 +82,8 @@ theorem chartPushforward_transAffine {z : G} (hz : z ∈ (φ.transAffine p A).ta
       PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm,
       PartialDiffeomorph.toOpenPartialHomeomorph_source, ψ, PartialDiffeomorph.transAffine_source]
     exact ⟨hu, φ.map_target hu⟩
-  have h := (J.toContMDiff ⊤).chartPushforward_symm_trans_comp_fderiv (hΘdef ▸ hw)
-    (φ.mdifferentiableAt (by simp) (φ.map_target hu))
-    (by
-      rw [hΘdef, hΘz, PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm]
-      exact ψ.symm.mdifferentiableAt (by simp) hz)
-    (hΘdef ▸ hΘd.differentiableAt)
-  rw [hΘdef, toContMDiff_chartPushforward, toContMDiff_chartPushforward, hΘd.fderiv, hΘz] at h
+  have h := J.chartPushforward_symm_trans_comp_fderiv φ ψ (hΘdef ▸ hw)
+  rw [hΘdef, hΘd.fderiv, hΘz] at h
   ext w
   have hw' := DFunLike.congr_fun h (A.symm w)
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
