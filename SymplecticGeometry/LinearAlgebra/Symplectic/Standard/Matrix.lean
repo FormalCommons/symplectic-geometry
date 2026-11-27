@@ -16,6 +16,7 @@ import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.Block
 import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Action
+import TauCeti.LinearAlgebra.Matrix.SesquilinearForm
 
 /-!
 # The matrix dictionary for the standard model
@@ -116,24 +117,14 @@ theorem stdForm_toEuclideanLin_toEuclideanLin {κ μ : Type*} [Fintype κ] [Deci
 theorem mem_symplecticGroup_iff_forall_stdForm {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ} :
     A ∈ symplecticGroup ι ℝ ↔
       ∀ v w, stdForm ι (A.toEuclideanLin v) (A.toEuclideanLin w) = stdForm ι v w := by
-  have key : ∀ (B : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) (v w : StdSpace ι),
-      stdForm ι (B.toEuclideanLin v) (B.toEuclideanLin w) =
-        toBilin' (Bᵀ * (-J ι ℝ * B)) v.ofLp w.ofLp := fun B v w ↦ by
-    rw [stdForm_apply_toEuclideanLin, Matrix.toBilin'_apply', ← Matrix.mulVec_mulVec _ Bᵀ,
-      Matrix.dotProduct_mulVec v.ofLp Bᵀ, Matrix.vecMul_transpose]
-    simp
-  have base : ∀ v w : StdSpace ι, stdForm ι v w = toBilin' (-J ι ℝ) v.ofLp w.ofLp :=
-    fun v w ↦ by simpa using key 1 v w
-  have hA : Aᵀ * (-J ι ℝ * A) = -J ι ℝ ↔ Aᵀ * J ι ℝ * A = J ι ℝ := by
-    rw [Matrix.neg_mul, Matrix.mul_neg, neg_inj, Matrix.mul_assoc]
-  rw [SymplecticGroup.mem_iff', ← hA]
-  constructor
-  · intro h v w
-    rw [key, base, h]
-  · intro h
-    refine (Matrix.toBilin' (R₁ := ℝ)).injective (LinearMap.ext₂ fun v w ↦ ?_)
-    have := h (WithLp.toLp 2 v) (WithLp.toLp 2 w)
-    rwa [key, base] at this
+  have h := transpose_map_mul_mul_eq_self_iff (σ := RingHom.id ℝ) (Q := -J ι ℝ) (g := A)
+  rw [RingHom.coe_id, map_id, Matrix.mul_neg, Matrix.neg_mul, neg_inj] at h
+  rw [SymplecticGroup.mem_iff', h, (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).symm.forall_congr_left]
+  refine forall_congr' fun v ↦ (WithLp.linearEquiv 2 ℝ (ι ⊕ ι → ℝ)).symm.forall_congr_left.trans
+    (forall_congr' fun w ↦ ?_)
+  have base (v w : StdSpace ι) : stdForm ι v w = v.ofLp ⬝ᵥ (-J ι ℝ *ᵥ w.ofLp) := by
+    simpa using stdForm_apply_toEuclideanLin 1 v w
+  simp [base, toLpLin_apply]
 
 /-- A real matrix `A` indexed by `ι ⊕ ι` is symplectic if and only if its continuous linear map
 `Matrix.toEuclideanCLM A` preserves the standard symplectic form: `ω₀(A v, A w) = ω₀(v, w)` for
