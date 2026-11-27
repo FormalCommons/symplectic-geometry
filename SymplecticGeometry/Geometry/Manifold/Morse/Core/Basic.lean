@@ -299,21 +299,26 @@ theorem ofDiffeomorph_ι (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ 
 
 /-- The cubes of `c.ofDiffeomorph Φ` have the dimensions of those of `c`. -/
 @[simp]
-theorem ofDiffeomorph_dim (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) (i : c.ι) :
+theorem ofDiffeomorph_dim (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι) :
     (c.ofDiffeomorph Φ).dim i = c.dim i := (rfl)
 
 /-- The charts of `c.ofDiffeomorph Φ` are those of `c` followed by `Φ.symm`. -/
-theorem ofDiffeomorph_chart (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) (i : c.ι) :
+theorem ofDiffeomorph_chart (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι) :
     (c.ofDiffeomorph Φ).chart i = Φ.symm ∘ c.chart i := (rfl)
 
 /-- At each point, the chart of `c.ofDiffeomorph Φ` is `Φ.symm` of the chart of `c`. -/
 @[simp]
-theorem ofDiffeomorph_chart_apply (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) (i : c.ι)
-    (x : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) :
+theorem ofDiffeomorph_chart_apply (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι)
+    (x : (Fin ((c.ofDiffeomorph Φ).dim i) → ℝ) ×
+      (Fin (Module.finrank ℝ E - (c.ofDiffeomorph Φ).dim i) → ℝ)) :
     (c.ofDiffeomorph Φ).chart i x = Φ.symm (c.chart i x) := (rfl)
 
 /-- The cube `i` of `c.ofDiffeomorph Φ` is the cube `i` of `c` moved by `Φ.symm`. -/
-theorem image_chart_ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) (i : c.ι) :
+theorem image_chart_ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b)
+    (i : (c.ofDiffeomorph Φ).ι) :
     (c.ofDiffeomorph Φ).chart i '' (Metric.closedBall 0 1 ×ˢ {0}) =
       Φ.symm '' (c.chart i '' (Metric.closedBall 0 1 ×ˢ {0})) :=
   image_comp Φ.symm (c.chart i) _
@@ -324,7 +329,7 @@ theorem image_chart_ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore 
 theorem cubes_ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) :
     (c.ofDiffeomorph Φ).cubes = Φ.symm '' c.cubes := by
   rw [cubes_def, cubes_def, image_iUnion]
-  exact iUnion_congr fun i ↦ image_comp Φ.symm (c.chart i) _
+  exact iUnion_congr (image_chart_ofDiffeomorph Φ c)
 
 end ofDiffeomorph
 
