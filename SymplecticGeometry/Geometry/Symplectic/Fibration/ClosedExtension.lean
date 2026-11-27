@@ -11,6 +11,8 @@ public import TauCeti.Geometry.Manifold.DeRham.Map
 public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.DeRham
 import TauCeti.Geometry.Manifold.DeRham.HomotopyInvariance
+import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 
 /-!
 # Closed extensions of the fibre forms
@@ -42,6 +44,19 @@ the base.
   `x ↦ (e x).2` differ by an exact form. Contracting `U` deforms the inclusion of `W` into the
   fibre coordinate followed by a fibre inclusion, and homotopy invariance of de Rham cohomology
   concludes. This is the local step of the construction of a closed extension with a given class.
+* `TauCeti.MapFiber.Atlas.exists_isClosed_restricts_of_map_eq`: for a smooth atlas whose
+  coordinate changes preserve a closed form `σ` of positive degree, over a Hausdorff σ-compact
+  base of finite dimension, a class that every fibre inclusion sends to the class of `σ` is the
+  class of a closed extension. Write the class as `[τ₀]`, cover the base by smoothly contractible
+  open sets `U b`, each inside the base set of the chart `A.trivAt b`, and take a smooth partition
+  of unity `ρ` subordinate to them. Over `U b` the local step gives `η b` with
+  `dη b = θ b - τ₀`, where `θ b` is the pull-back of `σ` along the fibre coordinate of
+  `A.trivAt b`. Glue the `η b` into `Λ` with the weights `ρ b ∘ proj`
+  (`SmoothPartitionOfUnity.glueForms`); then `τ = τ₀ + dΛ` has class `[τ₀]`, and on vertical
+  vectors it is the average of the `θ b`
+  (`SmoothPartitionOfUnity.mextDeriv_glueForms_apply_of_mem_ker`), each of which restricts to `σ`.
+* `TauCeti.MapFiber.Atlas.exists_isClosed_restricts_iff`: under the same hypotheses, a closed
+  extension exists if and only if such a class does.
 
 ## References
 
@@ -202,5 +217,137 @@ theorem mpullback_snd_sub_mem_exactForms_of_map_eq [IsManifold IF ∞ F] [IsMani
   simpa using this
 
 end Bundle.Trivialization
+
+namespace TauCeti.MapFiber.Atlas
+
+open Set TopologicalSpace
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
+  [ChartedSpace HB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*} [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  [IsManifold IF ∞ F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  [IsManifold IM ∞ M]
+  {proj : M → B} {A : Atlas F proj} {k : ℕ} {σ : SmoothForm IF F ℝ (k + 1)}
+
+/-- A form that, on vertical vectors, is the average of the pull-backs of `σ` along the fibre
+coordinates of the charts `A.trivAt c`, with the weights `ρ c ∘ proj` of a partition of unity of
+the base subordinate to their base sets, restricts to `σ` along `A`. -/
+private theorem restrictsTo_of_apply_eq_sum (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
+    {ρ : SmoothPartitionOfUnity B IB B univ} (hρ : ρ.IsSubordinate fun c ↦ (A.trivAt c).baseSet)
+    {τ : SmoothForm IM M ℝ (k + 1)}
+    (hτ : ∀ (x : M) {u : Fin (k + 1) → TangentSpace IM x},
+      (∀ i, u i ∈ (mfderiv IM IB proj x).ker) → τ.val x u = ∑ c ∈ ρ.fintsupport (proj x),
+        ρ c (proj x) * TauCeti.mpullback IM IF (fun y ↦ (A.trivAt c y).2) σ.val x u) :
+    A.RestrictsTo σ τ := by
+  refine restrictsTo_iff.2 fun b b' hb' ↦ funext fun v ↦ ?_
+  ext w
+  set j := (A.trivAt b).fiberInclusionMap hb'
+  have hp : proj (j v) = b' := (A.trivAt b).proj_fiberInclusionMap hb' v
+  have hu : ∀ i, mfderiv IF IM j v (w i) ∈ (mfderiv IM IB proj (j v)).ker := fun i ↦
+    TauCeti.range_mfderiv_le_ker_mfderiv_of_eventually_eq
+      (Filter.Eventually.of_forall ((A.trivAt b).proj_fiberInclusionMap hb')) ⟨w i, rfl⟩
+  -- Each term pulls back to `σ` along `j`, and the weights sum to one.
+  have hterm : ∀ c ∈ ρ.fintsupport b', ρ c b' * TauCeti.mpullback IM IF
+      (fun y ↦ (A.trivAt c y).2) σ.val (j v) (fun i ↦ mfderiv IF IM j v (w i)) =
+        ρ c b' * σ.val v w := fun c hc ↦ by
+    rw [← TauCeti.mpullback_apply, mpullback_fiberInclusionMap_mpullback_snd_trivAt hA hH
+      (hρ c ((ρ.mem_fintsupport_iff b' c).1 hc)) hb']
+  rw [TauCeti.mpullback_apply, hτ _ hu, hp, Finset.sum_congr rfl hterm, ← Finset.sum_mul,
+    ρ.sum_finsupport' _ (mem_univ b') (ρ.finsupport_subset_fintsupport _), one_mul]
+
+/-- **Closed extensions with a given class.** Let `A` be a smooth atlas of `proj`, over a
+Hausdorff, σ-compact base modelled on a finite-dimensional space, whose coordinate changes
+preserve a closed form `σ` of positive degree on the fibre. If a de Rham class `a` on `M` is sent
+to the class of `σ` by the fibre inclusion `v ↦ (A.trivAt b)⁻¹ (b', v)` of every chart over every
+point of its base set, then `a` is the class of a closed form `τ` that restricts to `σ` along
+`A`. -/
+theorem exists_isClosed_restricts_of_map_eq [IsManifold IB ∞ B] [FiniteDimensional ℝ EB]
+    [T2Space B] [SigmaCompactSpace B] (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsClosed)
+    {a : deRhamCohomology IM M (k + 1)}
+    (h : ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
+      deRhamCohomology.map ((A.trivAt b).fiberInclusionMap hb')
+          ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') (k + 1)
+          a =
+        deRhamCohomology.mk IF (k + 1) ⟨σ, hσ.mem_closedForms⟩) :
+    ∃ τ : SmoothForm IM M ℝ (k + 1), ∃ hτ : τ.IsClosed, A.RestrictsTo σ τ ∧
+      deRhamCohomology.mk IM (k + 1) ⟨τ, hτ.mem_closedForms⟩ = a := by
+  obtain ⟨⟨τ₀, hτ₀⟩, rfl⟩ := deRhamCohomology.mk_surjective IM (k + 1) a
+  have hτ₀c : τ₀.IsClosed := (SmoothForm.isClosed_def τ₀).2 ((mem_closedForms IM τ₀).1 hτ₀)
+  have hproj := hA.contMDiff_proj
+  -- A cover of `B` by smoothly contractible open sets `U b ⊆ (A.trivAt b).baseSet`, and a
+  -- partition of unity subordinate to it.
+  choose U hbU hUe hUc using fun b ↦ SymplecticGeometry.exists_mem_subset_isSmoothlyContractible
+    (I := IB) ((A.trivAt b).open_baseSet.mem_nhds (A.mem_baseSet_trivAt b))
+  obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
+    (fun b ↦ (U b : Set B)) (fun b ↦ (U b).isOpen) fun b _ ↦ mem_iUnion.2 ⟨b, hbU b⟩
+  let W : B → Opens M := fun b ↦ ⟨proj ⁻¹' U b, (U b).isOpen.preimage hproj.continuous⟩
+  have hW : ∀ b, proj ⁻¹' tsupport (ρ b) ⊆ W b := fun b ↦ preimage_mono (hρ b)
+  -- The pull-back of `σ` along the fibre coordinate of the chart `A.trivAt b`.
+  set θ : B → RoughForm IM M ℝ (k + 1) := fun b ↦
+    TauCeti.mpullback IM IF (fun y ↦ (A.trivAt b y).2) σ.val
+  -- Over `U b`, it differs from `τ₀` by the derivative of a form `η b`.
+  have hex := fun b ↦ (A.trivAt b).mpullback_snd_sub_mem_exactForms_of_map_eq
+    (hA.contMDiffOn_trivAt b) (hA.contMDiffOn_trivAt_symm b) (hUe b) (hUc b) (W := W b)
+    subset_rfl hσ hτ₀c (hbU b) (h b b _)
+  simp only [exactForms_succ, LinearMap.mem_range] at hex
+  choose η hη using hex
+  let Λ : SmoothForm IM M ℝ k := ⟨ρ.glueForms proj W fun b ↦ (η b).val,
+    (ρ.isSmoothForm_glueForms hproj hW fun b ↦ (η b).isSmoothForm).mem_smoothBundleForms⟩
+  set τ := τ₀ + mextDerivₗ IM k Λ with hτ
+  have hτc : τ.IsClosed := (SmoothForm.isClosed_def τ).2 ((mem_closedForms IM τ).1
+    (add_mem hτ₀ (mextDerivₗ_mem_closedForms IM k Λ)))
+  -- On vertical vectors, `τ` is the average of the forms `θ b` with the weights `ρ b ∘ proj`.
+  have hval : ∀ (x : M) {u : Fin (k + 1) → TangentSpace IM x},
+      (∀ i, u i ∈ (mfderiv IM IB proj x).ker) →
+      τ.val x u = ∑ b ∈ ρ.fintsupport (proj x), ρ b (proj x) * θ b x u := by
+    intro x u hu
+    have hterm : ∀ (b : B) (hx : x ∈ W b), mextDeriv (η b).val ⟨x, hx⟩ u = θ b x u - τ₀.val x u :=
+      fun b hx ↦ by
+        rw [← mextDerivₗ_apply, hη b, Submodule.coe_sub, Pi.sub_apply]
+        refine (ContinuousAlternatingMap.sub_apply _ _ _).trans ?_
+        rw [SmoothForm.coe_mpullback_subtype_val_apply]
+        congr 1
+        -- The fibre coordinate on `W b` is `(fun y ↦ (A.trivAt b y).2) ∘ Subtype.val`.
+        exact (SmoothForm.mpullback_comp_subtypeVal_apply (f := fun y ↦ (A.trivAt b y).2) _ σ
+          _ u).trans (TauCeti.mpullback_apply (fun y ↦ (A.trivAt b y).2) σ.val x u).symm
+    rw [hτ, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply, mextDerivₗ_apply,
+      ρ.mextDeriv_glueForms_apply_of_mem_ker (hproj.of_le (by simp)) hW
+        (fun b ↦ (η b).isSmoothForm.of_le (by simp)) x hu]
+    simp only [hterm]
+    rw [Finset.sum_attach (ρ.fintsupport (proj x))
+        fun b ↦ ρ b (proj x) * (θ b x u - τ₀.val x u)]
+    simp only [mul_sub, Finset.sum_sub_distrib, ← Finset.sum_mul,
+      ρ.sum_finsupport' _ (mem_univ _) (ρ.finsupport_subset_fintsupport _), one_mul]
+    abel
+  refine ⟨τ, hτc, restrictsTo_of_apply_eq_sum hA hH (fun c ↦ (hρ c).trans (hUe c)) hval, ?_⟩
+  rw [deRhamCohomology.mk_eq_mk_iff]
+  simp [hτ]
+
+/-- **Existence of closed extensions.** For a smooth atlas `A` of `proj`, over a Hausdorff,
+σ-compact base modelled on a finite-dimensional space, whose coordinate changes preserve a closed
+form `σ` of positive degree on the fibre, some closed form on `M` restricts to `σ` along `A` if
+and only if some de Rham class on `M` is sent to the class of `σ` by the fibre inclusion of
+every chart over every point of its base set. -/
+theorem exists_isClosed_restricts_iff [IsManifold IB ∞ B] [FiniteDimensional ℝ EB]
+    [T2Space B] [SigmaCompactSpace B] (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsClosed) :
+    (∃ τ : SmoothForm IM M ℝ (k + 1), τ.IsClosed ∧ A.RestrictsTo σ τ) ↔
+      ∃ a : deRhamCohomology IM M (k + 1), ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
+        deRhamCohomology.map ((A.trivAt b).fiberInclusionMap hb')
+            ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') (k + 1)
+            a =
+          deRhamCohomology.mk IF (k + 1) ⟨σ, hσ.mem_closedForms⟩ := by
+  refine ⟨fun ⟨τ, hτc, hτ⟩ ↦ ⟨_, fun b b' hb' ↦ map_eq_of_restricts hA hτ hτc hb'⟩,
+    fun ⟨a, ha⟩ ↦ ?_⟩
+  obtain ⟨τ, hτc, hτ, -⟩ := exists_isClosed_restricts_of_map_eq hA hH hσ ha
+  exact ⟨τ, hτc, hτ⟩
+
+end TauCeti.MapFiber.Atlas
 
 end
