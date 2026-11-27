@@ -9,7 +9,10 @@ public import Mathlib.Algebra.Notation.Indicator
 public import Mathlib.Logic.Equiv.PartialEquiv
 
 /-!
-# Transporting a function along a partial equivalence
+# Partial equivalences: ranges, and transport of functions
+
+A partial equivalence `e` defined on all of `α` has its target as range
+(`PartialEquiv.range_eq_target_of_source_eq_univ`).
 
 For a partial equivalence `e : PartialEquiv α β` and a function `χ` on `α`, the function
 `χ ∘ e.symm` on `e '' W`, extended by `0` off `e '' W`, takes the value `χ z` at `e z` for each
@@ -25,6 +28,10 @@ open Set
 namespace PartialEquiv
 
 variable {α β M : Type*} [Zero M] (e : PartialEquiv α β)
+
+/-- A partial equivalence whose source is all of `α` has its target as range. -/
+theorem range_eq_target_of_source_eq_univ (h : e.source = univ) : range e = e.target := by
+  rw [← image_univ, ← h, e.image_source_eq_target]
 
 /-- The function `χ ∘ e.symm` on `e '' W`, extended by `0` off `e '' W`, takes the value `χ z`
 at `e z` for each `z ∈ W` in the source of `e`. -/
