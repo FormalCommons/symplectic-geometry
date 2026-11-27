@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Transitions between rescaled unitary charts
@@ -19,7 +19,6 @@ partial homeomorphism of `StdSpace ι`. This file proves what the defining prope
 for it, for `k ≥ k₀`:
 * it is smooth on its source, which is open; for `y` in the source of `D.chart k x`, its source
   contains `0` and it sends `0` to `D.chart k x y`, which is `z` for `y = (D.chart k x)⁻¹ z`;
-  of `D.chart k x`, its source contains `0` and it sends `0` to `z`;
 * its derivative preserves `stdForm ι`, since both charts pull `stdForm ι` back to `2π k σ`
   (`SymplecticGeometry.RescaledUnitaryCharts.stdForm_fderiv_chartTransition`);
 * its derivative intertwines `J` read in the chart at `y` with `J` read in the chart at `x`
@@ -88,16 +87,9 @@ theorem mem_chartTransition_source_iff {k : ℕ} {x y : M} {w : StdSpace ι} :
 
 /-- The transition between two charts is smooth on its source. -/
 theorem contDiffOn_chartTransition (k : ℕ) (x y : M) :
-    ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source := by
-  have hs : (D.chartTransition k x y).source =
-      ((D.chart k y).symm.trans (D.chart k x)).source := by
-    ext w
-    simp [mem_chartTransition_source_iff]
-  have hf : ⇑(D.chartTransition k x y) = ⇑((D.chart k y).symm.trans (D.chart k x)) := by
-    funext w
-    simp
-  rw [hs, hf]
-  exact contMDiffOn_iff_contDiffOn.1 ((D.chart k y).symm.trans (D.chart k x)).contMDiffOn
+    ContDiffOn ℝ ∞ (D.chartTransition k x y) (D.chartTransition k x y).source :=
+  OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn (D.chart k x).contMDiffOn
+    (D.chart k y).symm.contMDiffOn
 
 /-- The transition between two charts is differentiable at each point of its source. -/
 theorem differentiableAt_chartTransition {k : ℕ} {x y : M} {w : StdSpace ι}
@@ -196,39 +188,43 @@ theorem stdForm_fderiv_chartTransition_chartPushforward {k : ℕ} (hk : k₀ ≤
   rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply] at h
   rw [h, D.stdForm_fderiv_chartTransition hk hw]
 
+/-- At the centre `x` of the chart `D.chart k x`, for `k ≥ k₀`, the quadratic form
+`2π k σ(v, J v)` of a tangent vector `v` at `x` is `‖u‖ ^ 2`, for `u` the image of `v` under the
+derivative of the chart. -/
+theorem eval₂_apply_self_eq_norm_sq {k : ℕ} (hk : k₀ ≤ k) (x : M) (v : TangentSpace I x) :
+    2 * Real.pi * k * σ.eval₂ x v (J x v) = ‖mvfderiv I (D.chart k x) x v‖ ^ 2 := by
+  rw [D.eval₂_eq hk x x (D.mem_source hk x), mvfderiv_apply_eq_mfderiv_apply (v := J x v),
+    J.mfderiv_apply_eq_chartPushforward_apply _ (D.mem_source hk x),
+    ← mvfderiv_apply_eq_mfderiv_apply, D.apply_self hk, D.chartPushforward_zero hk,
+    stdForm_apply_stdComplexStructure, real_inner_self_eq_norm_sq]
+
 /-- **The derivative at the centre of a transition, on a comparison radius.** Let `k ≥ k₀`, let
-`ρ₁ ≤ ρ₀` be a comparison radius for the chart centred at `x` (`IsComparisonRadius`), and let `y`
-be a point of the source of that chart whose image lies in the ball of radius `ρ₁ * √k`. Then the
+`ρ₁` be a comparison radius for the chart centred at `x` (`IsComparisonRadius`), and let `y` be a
+point of the source of that chart whose image lies in the ball of radius `ρ₁ * √k`. Then the
 derivative at `0` of the transition from the chart centred at `y` to the chart centred at `x` has
 norm at most `√2`. -/
-theorem norm_fderiv_chartTransition_zero_le {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀) {k : ℕ} (hk : k₀ ≤ k)
-    {x : M} (hcmp : D.IsComparisonRadius k x ρ₁) {y : M} (hy : y ∈ (D.chart k x).source)
+theorem norm_fderiv_chartTransition_zero_le {ρ₁ : ℝ} {k : ℕ} (hk : k₀ ≤ k) {x : M}
+    (hcmp : D.IsComparisonRadius k x ρ₁) {y : M} (hy : y ∈ (D.chart k x).source)
     (hyB : D.chart k x y ∈ ball (0 : StdSpace ι) (ρ₁ * √k)) :
     ‖fderiv ℝ (D.chartTransition k x y) 0‖ ≤ √2 := by
   have h0 := D.zero_mem_chartTransition_source hk hy
   have h0y : (0 : StdSpace ι) ∈ (D.chart k y).target := (D.mem_chartTransition_source_iff.1 h0).1
   have hy0 : (D.chart k y).symm 0 = y := D.chart_symm_zero hk y
-  have hρk : 0 < ρ₀ * √k :=
-    ((norm_nonneg _).trans_lt (mem_ball_zero_iff.1 hyB)).trans_le (by gcongr)
+  -- The derivative of the chart at `y`, at its centre `y`, and the chain rule there.
+  have hinv := (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) h0y
+  have hT := D.mvfderiv_chart_eq_fderiv_chartTransition_comp h0
+  rw [hy0] at hinv hT
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-  -- The tangent vector `v` at `p = y` that the chart at `y` sends to `u`.
-  set p := (D.chart k y).symm 0
-  set v := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm 0 u
-  have hu : mvfderiv I (D.chart k y) p v = u := by
+  -- The tangent vector `v` at `y` that the chart at `y` sends to `u`.
+  set v : TangentSpace I y := mfderiv 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm 0 u
+  have hu : mvfderiv I (D.chart k y) y v = u := by
     rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact (D.chart k y).mfderiv_apply_mfderiv_symm_apply (by simp) h0y u
+    exact hinv u
   -- In the chart at `x`, the image of `v` is `T u`, for `T` the derivative of the transition.
-  have hTu : mvfderiv I (D.chart k x) p v = fderiv ℝ (D.chartTransition k x y) 0 u := by
-    rw [D.mvfderiv_chart_eq_fderiv_chartTransition_comp h0, ContinuousLinearMap.comp_apply, hu]
-  -- In the chart at `y`, whose centre is `p = y`, the quadratic form of `v` is `‖u‖ ^ 2`.
-  have hpy : D.chart k y p = 0 := by rw [hy0, D.apply_self hk]
-  have hcen := D.abs_eval₂_apply_sub_norm_sq_le hk y
-    (by convert D.mem_source hk y using 1)
-    (by rw [hpy]; exact mem_ball_self hρk) v
-  rw [hpy, norm_zero, mul_zero, zero_mul, hu, abs_nonpos_iff, sub_eq_zero] at hcen
-  have hcmpy := (hcmp.mem_Icc (by convert hy using 1)
-    (by convert hyB using 2) v).1
-  rw [hcen, hTu] at hcmpy
+  have hTu : mvfderiv I (D.chart k x) y v = fderiv ℝ (D.chartTransition k x y) 0 u := by
+    rw [hT, ContinuousLinearMap.comp_apply, hu]
+  have hcmpy := (hcmp.mem_Icc hy hyB v).1
+  rw [D.eval₂_apply_self_eq_norm_sq hk y v, hu, hTu] at hcmpy
   refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
   rw [mul_pow, Real.sq_sqrt zero_le_two]
   linarith
@@ -245,7 +241,7 @@ theorem exists_forall_norm_fderiv_chartTransition_zero_le (hρ₀ : 0 < ρ₀) :
   refine ⟨ρ₁, hρ₁, hρ₁₀, fun {k} hk x z hz ↦ ?_⟩
   have hzt : z ∈ (D.chart k x).target :=
     (ball_subset_ball (by gcongr)).trans (D.ball_subset_target hk x) hz
-  refine D.norm_fderiv_chartTransition_zero_le hρ₁₀ hk (hcmp hk x)
+  refine D.norm_fderiv_chartTransition_zero_le hk (hcmp hk x)
     ((D.chart k x).map_target hzt) ?_
   convert hz using 2
   exact (D.chart k x).right_inv hzt
