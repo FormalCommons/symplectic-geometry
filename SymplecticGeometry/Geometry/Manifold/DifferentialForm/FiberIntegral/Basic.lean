@@ -62,6 +62,16 @@ of variables along these diffeomorphisms of `F`
 the integral over `F` of the integrand does not depend on the chart that reads it
 (`TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`).
 
+The argument for a change of trivialization also gives the integrand of a pull-back along a map
+of fibrations (`Bundle.Trivialization.fiberIntegrand_mpullback`). Let `g : M₁ → M` cover
+`f : B₁ → B`, and let `e₁` and `e` be trivializations at `b₁` and at `f b₁`. Near the fibre over
+`b₁`, the map `g ∘ e₁⁻¹` agrees with `e⁻¹ ∘ Prod.map f id ∘ Φ`, where
+`Φ (b, y) = (b, (e (g (e₁⁻¹ (b, y)))).2)` covers the identity of `B₁`. So
+`SymplecticGeometry.prodFiberIntegrand_mpullback_of_fst_eq` and
+`SymplecticGeometry.prodFiberIntegrand_mpullback_prodMap` make the integrand of `g^* α` over
+`b₁`, read through `e₁`, the pull-back along the fibre map `y ↦ (e (g (e₁⁻¹ (b₁, y)))).2` of the
+integrand of `α` over `f b₁`, read through `e`.
+
 For a smooth atlas whose coordinate changes preserve `o`, with `F` compact and Hausdorff and `B`
 boundaryless, the fibre integral `TauCeti.MapFiber.Atlas.fiberIntegral A hA ho` sends a smooth
 form `α` of degree `r + m` on `M` to the `r`-form on `B` whose value at `b` on `v` is the integral
@@ -96,6 +106,8 @@ smooth, smoothness of a form being local (`TauCeti.contMDiffAt_mpullback_subtype
   `TauCeti.MapFiber.Atlas.fiberIntegrand_degree_zero`: the integrand in degree `m`.
 * `Bundle.Trivialization.fiberIntegrand_eq_mpullback_coordChange`: the integrands read through
   two trivializations differ by the coordinate change.
+* `Bundle.Trivialization.fiberIntegrand_mpullback`: the integrand of a pull-back along a map of
+  fibrations.
 * `TauCeti.MapFiber.Atlas.integralTopForm_fiberIntegrand_trivAt`: for an oriented atlas, the
   integral of the integrand does not depend on the chart.
 * `TauCeti.MapFiber.Atlas.isSmoothForm_fiberIntegrand`: the integrand of a smooth form is smooth.
@@ -346,6 +358,75 @@ theorem fiberIntegrand_eq_mpullback_coordChange [FiniteDimensional ℝ E']
   rw [prodFiberIntegrand_apply, prodFiberIntegrand_apply, ← mpullback_comp_at (hd y)
     (he.mdifferentiableAt_symm (e.mem_target.2 hb)),
     mpullback_apply_eq_of_mfderiv_eq (hev y).eq_of_nhds (hev y).mfderiv_eq]
+
+variable {E₁ H₁ EM₁ HM₁ B₁ M₁ : Type*} [NormedAddCommGroup E₁] [NormedSpace ℝ E₁]
+  [TopologicalSpace H₁] {I₁ : ModelWithCorners ℝ E₁ H₁} [TopologicalSpace B₁]
+  [ChartedSpace H₁ B₁] [NormedAddCommGroup EM₁] [NormedSpace ℝ EM₁] [TopologicalSpace HM₁]
+  {IM₁ : ModelWithCorners ℝ EM₁ HM₁} [TopologicalSpace M₁] [ChartedSpace HM₁ M₁]
+  {proj₁ : M₁ → B₁}
+
+/-- **The integrand of a pull-back along a map of fibrations.** Let `e₁` be a trivialization of
+`proj₁ : M₁ → B₁` with model fibre `F` whose inverse is differentiable on its target, and `e` a
+trivialization of `proj : M → B` with model fibre `F`, differentiable with differentiable inverse.
+Let `g : M₁ → M` be differentiable and cover `f : B₁ → B`, `proj ∘ g = f ∘ proj₁`, with `f`
+differentiable at `b₁`, and let `b₁` lie in the base set of `e₁` and `f b₁` in that of `e`. If the
+model space of `F` has dimension at most `m`, the integrand over `b₁` on `v` of the pull-back of
+`α` along `g`, read through `e₁`, is the pull-back of the integrand over `f b₁` on `df v`, read
+through `e`, along the fibre map `y ↦ (e (g (e₁⁻¹ (b₁, y)))).2`. -/
+theorem fiberIntegrand_mpullback [FiniteDimensional ℝ E'] {e₁ : Trivialization F proj₁}
+    {e : Trivialization F proj}
+    (he₁ : MDifferentiableOn (I₁.prod J) IM₁ e₁.toOpenPartialHomeomorph.symm e₁.target)
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (I.prod J)) {f : B₁ → B} {g : M₁ → M}
+    (hg : MDifferentiable IM₁ IM g) (hfg : proj ∘ g = f ∘ proj₁) {b₁ : B₁}
+    (hf : MDifferentiableAt I₁ I f b₁) (hb₁ : b₁ ∈ e₁.baseSet) (hb : f b₁ ∈ e.baseSet)
+    (hm : Module.finrank ℝ E' ≤ m) (α : RoughForm IM M ℝ (r + m))
+    (v : Fin r → TangentSpace I₁ b₁) :
+    e₁.fiberIntegrand (mpullback IM₁ IM g α) b₁ v =
+      mpullback J J (fun y ↦ (e (g (e₁.toOpenPartialHomeomorph.symm (b₁, y)))).2)
+        (e.fiberIntegrand α (f b₁) fun i ↦ mfderiv I₁ I f b₁ (v i)) := by
+  -- `Φ` covers the identity of `B₁`; over `b₁` its slice is the fibre map read in `e₁` and `e`.
+  let Φ : B₁ × F → B₁ × F := fun p ↦ (p.1, (e (g (e₁.toOpenPartialHomeomorph.symm p))).2)
+  have hproj {p : B₁ × F} (hp : p.1 ∈ e₁.baseSet) :
+      proj (g (e₁.toOpenPartialHomeomorph.symm p)) = f p.1 := by
+    rw [← comp_apply (f := proj), hfg, comp_apply, e₁.proj_symm_apply' hp]
+  have hsrc {p : B₁ × F} (hp : p.1 ∈ e₁.baseSet) (hp' : f p.1 ∈ e.baseSet) :
+      g (e₁.toOpenPartialHomeomorph.symm p) ∈ e.source := by
+    rw [e.mem_source, hproj hp]
+    exact hp'
+  have hsymm₁ (y : F) :
+      MDifferentiableAt (I₁.prod J) IM₁ e₁.toOpenPartialHomeomorph.symm (b₁, y) :=
+    (he₁ _ (e₁.mem_target.2 hb₁)).mdifferentiableAt (e₁.open_target.mem_nhds (e₁.mem_target.2 hb₁))
+  have hΦ (y : F) : MDifferentiableAt (I₁.prod J) (I₁.prod J) Φ (b₁, y) :=
+    mdifferentiableAt_fst.prodMk ((he.mdifferentiableAt (hsrc hb₁ hb)).comp (b₁, y)
+      ((hg _).comp (b₁, y) (hsymm₁ y))).snd
+  have hd (y : F) : MDifferentiableAt (I₁.prod J) (I.prod J) (Prod.map f id) (b₁, y) :=
+    hf.prodMap mdifferentiableAt_id
+  have hsymm (y : F) : MDifferentiableAt (I.prod J) IM e.toOpenPartialHomeomorph.symm (f b₁, y) :=
+    he.mdifferentiableAt_symm (e.mem_target.2 hb)
+  -- Near the fibre over `b₁`, `g ∘ e₁⁻¹` is `e⁻¹ ∘ Prod.map f id ∘ Φ`.
+  have hev (y : F) : (g ∘ e₁.toOpenPartialHomeomorph.symm) =ᶠ[nhds (b₁, y)]
+      (e.toOpenPartialHomeomorph.symm ∘ Prod.map f id) ∘ Φ := by
+    filter_upwards [(e₁.open_baseSet.preimage continuous_fst).mem_nhds hb₁,
+      continuousAt_fst.preimage_mem_nhds
+        (hf.continuousAt.preimage_mem_nhds (e.open_baseSet.mem_nhds hb))] with p hp hp'
+    simp only [comp_apply, Prod.map_apply, id_eq, Φ]
+    rw [← hproj hp, e.symm_apply_mk_proj (hsrc hp hp')]
+  have h1 : e₁.fiberIntegrand (mpullback IM₁ IM g α) b₁ v = prodFiberIntegrand
+      (mpullback (I₁.prod J) (I₁.prod J) Φ
+        (mpullback (I₁.prod J) IM (e.toOpenPartialHomeomorph.symm ∘ Prod.map f id) α)) b₁ v := by
+    funext y
+    rw [fiberIntegrand_def, prodFiberIntegrand_def, prodFiberIntegrand_def,
+      ← mpullback_comp_at (hsymm₁ y) (hg _),
+      mpullback_apply_eq_of_mfderiv_eq (hev y).eq_of_nhds (hev y).mfderiv_eq,
+      mpullback_comp_at (hΦ y) ((hsymm _).comp (b₁, (Φ (b₁, y)).2) (hd _))]
+  have h2 : prodFiberIntegrand
+      (mpullback (I₁.prod J) IM (e.toOpenPartialHomeomorph.symm ∘ Prod.map f id) α) b₁ v =
+      prodFiberIntegrand (mpullback (I₁.prod J) (I.prod J) (Prod.map f id)
+        (mpullback (I.prod J) IM e.toOpenPartialHomeomorph.symm α)) b₁ v := by
+    funext y
+    rw [prodFiberIntegrand_def, prodFiberIntegrand_def, mpullback_comp_at (hd y) (hsymm y)]
+  rw [h1, prodFiberIntegrand_mpullback_of_fst_eq (Φ := Φ) rfl hΦ hm, h2,
+    prodFiberIntegrand_mpullback_prodMap hf, ← fiberIntegrand_def]
 
 end Bundle.Trivialization
 
