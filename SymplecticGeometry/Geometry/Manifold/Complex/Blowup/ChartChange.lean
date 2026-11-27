@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Chart
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!
 # The change of chart between blowups
@@ -160,9 +161,7 @@ private theorem contMDiff_chartChangeMap :
     let F : U → modelOpens c' := fun w ↦
       ⟨liftChart c c' w, liftChart_mem_modelOpens c c' w.property⟩
     have hF : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω F ⟨z, hzU⟩ := by
-      -- Mathlib's `ContMDiffAt.subtypeVal_comp_iff` is stated only at `∞`; its proof,
-      -- `ChartedSpace.liftPropWithinAt_subtypeVal_comp_iff`, holds at every order.
-      refine (ChartedSpace.liftPropWithinAt_subtypeVal_comp_iff F _ _).1 ?_
+      refine (TauCeti.ContMDiffAt.subtypeVal_comp_iff _ F _).1 ?_
       exact contMDiffAt_subtype_iff.2
         (((isLocalDiffeomorphOn_liftChart c c') ⟨z, hzU⟩).contMDiffAt)
     have h : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
@@ -217,9 +216,25 @@ theorem blowdown_chartChange (z : Blowup c) :
   rw [coe_chartChange, blowdown_chartChangeMap]
 
 /-- The change of chart sends the exceptional divisor of `Blowup c` onto that of `Blowup c'`. -/
+@[simp]
 theorem chartChange_mem_exceptionalDivisor_iff {z : Blowup c} :
     chartChange c c' z ∈ exceptionalDivisor c' ↔ z ∈ exceptionalDivisor c := by
   rw [coe_chartChange, chartChangeMap_mem_exceptionalDivisor_iff]
+
+/-- Over the source of `c'`, the change of chart is the lifted chart `liftChart c c'`, read in the
+second piece of `Blowup c'`. -/
+theorem chartChange_of_mem {z : Blowup c} (hz : blowdown c z ∈ c'.source) :
+    chartChange c c' z =
+      inr (gluingHomeomorph c') ⟨liftChart c c' z, liftChart_mem_modelOpens c c' hz⟩ := by
+  rw [coe_chartChange, chartChangeMap_of_mem hz]
+
+/-- Off the exceptional divisor, the change of chart is the identity of `M \ {p₀}`, read in the
+first piece of `Blowup c'`. -/
+theorem chartChange_of_notMem {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    chartChange c c' z =
+      inl (gluingHomeomorph c')
+        ⟨blowdown c z, (mem_puncturedOpens c').2 ((blowdown_eq_center_iff c).not.2 hz)⟩ := by
+  rw [coe_chartChange, chartChangeMap_of_notMem c c' hz]
 
 /-- On the first piece, the change of chart is the identity of `M \ {p₀}`. -/
 @[simp]
