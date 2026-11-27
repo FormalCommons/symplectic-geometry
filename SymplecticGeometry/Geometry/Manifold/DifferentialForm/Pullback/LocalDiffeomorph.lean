@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.Algebra.SMul
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -490,7 +491,7 @@ theorem exists_mpullback_sub_eq_mextDerivₗ_of_partialDiffeomorph [IsManifold I
   -- `K` is `k ∘ e⁻¹` on `e '' W`, extended by `0`.
   set K₀ : M' → ℝ := (e '' W).indicator fun y ↦ k (e.symm y)
   have hK₀e : ∀ z ∈ W, K₀ (e z) = k z := fun z hz ↦
-    e.indicator_image_comp_symm_apply_self k hz (hWe hz)
+    e.toPartialEquiv.indicator_image_comp_symm_apply_self k hz (hWe hz)
   have hK₀C : ∀ x ∉ e '' C, K₀ x = 0 := fun x hx ↦ by
     by_cases hxW : x ∈ e '' W
     · obtain ⟨z, hz, rfl⟩ := hxW

@@ -42,8 +42,7 @@ other way:
 * `PartialDiffeomorph.contMDiff_indicator_image_comp_symm`: the same for a function that is only
   `C^n` on an open `W ⊆ ψ.source` and vanishes on `W` outside a subset `C` whose image `ψ '' C`
   is closed, transported to `ψ '' W` and extended by zero off it. Here `N` need not be
-  Hausdorff. Its value at `ψ z`, for `z ∈ W`, is `χ z`
-  (`PartialDiffeomorph.indicator_image_comp_symm_apply_self`).
+  Hausdorff.
 -/
 
 public section
@@ -152,13 +151,6 @@ theorem continuous_indicator_comp_symm [TopologicalSpace F] (hχc : Continuous �
     ((tsupport_indicator_comp_symm_subset hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
 
 end Zero
-
-/-- The function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0` off `ψ '' W`, takes the value `χ z`
-at `ψ z` for each `z ∈ W` in the source of `ψ`. -/
-theorem indicator_image_comp_symm_apply_self {F : Type*} [Zero F] (χ : M → F) {W : Set M}
-    {z : M} (hz : z ∈ W) (hzs : z ∈ ψ.source) :
-    (ψ '' W).indicator (fun y ↦ χ (ψ.symm y)) (ψ z) = χ z := by
-  rw [indicator_of_mem (mem_image_of_mem _ hz), symm_toPartialEquiv, ψ.left_inv hzs]
 
 /-- Let `W ⊆ ψ.source` be open and `C ⊆ W` a set whose image `ψ '' C` is closed. If `χ` is `C^n`
 on `W` and vanishes on `W` outside `C`, the function `χ ∘ ψ.symm` on `ψ '' W`, extended by `0`
