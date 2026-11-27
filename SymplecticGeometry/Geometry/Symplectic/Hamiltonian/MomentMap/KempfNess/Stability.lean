@@ -12,6 +12,8 @@ import SymplecticGeometry.Analysis.Normed.Module.Ball.Pointwise
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import TauCeti.LinearAlgebra.BilinearForm.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 
 /-!
 # Stability and the Kempf–Ness function
@@ -86,12 +88,16 @@ of [GeorgoulasRobbinSalamon2021], Theorem 7.3 (with Theorem 4.3 there for the cr
   Kempf–Ness function is bounded below and proper is stable.
 * `SymplecticGeometry.isStable_iff_bddBelow_and_isProperMap_kempfNessFunction`: `p` is stable
   exactly when its Kempf–Ness function is bounded below and proper.
+* `SymplecticGeometry.kempfNess`: for a Kähler pair `(σ, J)`, with the metric of the pair, the
+  conjunction of these criteria with the existence, uniqueness, descent, convexity and critical
+  points of `Φ_p` and the bijection of orbit sets, from `KempfNess/Function.lean`.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
 * [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
-  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Theorems 4.3 and 7.3.
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], Lemma 2.1 and Theorems 4.1, 4.3
+  and 7.3.
 -/
 
 public section
@@ -430,6 +436,72 @@ theorem isStable_iff_bddBelow_and_isProperMap_kempfNessFunction (h : IsComplexif
     fun ⟨hb, hpr⟩ ↦ isStable_of_bddBelow_of_isProperMap_kempfNessFunction h hμ hgm hb hpr⟩
 
 end Proper
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] in
+/-- **The Kempf–Ness correspondence.** Let `G` be a compact connected Lie group with
+complexification `C : LieComplexification I G IC Gc`, acting on a compact manifold `M` without
+boundary that carries a Kähler pair `(σ, J)`, with each `g • ·` preserving `σ`, and let the action
+of `Gc` be a complexified action. Let `-μ` be an equivariant moment map for `σ` (the library's
+sign convention for the `μ` of the Kempf–Ness picture), and let `B` be a symmetric, positive
+definite, `Ad`-invariant form on the Lie algebra of `G`. Then for every `p : M`:
+
+* the Kempf–Ness function `Φ_p` is the unique smooth function on `Gc` whose differential at `g`
+  is `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` and which vanishes on `G`;
+* `Φ_p (g * C.toHom u) = Φ_p g`, so `Φ_p` descends to `Gc ⧸ G` (`kempfNessFunctionQuotient`),
+  and `t ↦ Φ_p (g * C.expI (t • ξ))` is convex for all `g` and `ξ`;
+* the differential of `Φ_p` vanishes at `g` exactly when `μ (g⁻¹ • p) = 0`;
+* `p` is semistable exactly when `Φ_p` is bounded below, polystable exactly when `Φ_p` has a
+  critical point, and stable exactly when `Φ_p` is bounded below and proper;
+* any two zeros of `μ` in the `Gc`-orbit of `p` differ by an element of `G`.
+
+Moreover the map from the `G`-orbits of the zero level of `μ` to the `Gc`-orbits of polystable
+points, induced by the inclusion, is bijective.
+
+The metric `σ(·, J ·)` that the proofs use is that of the compatible pair, so no hypothesis
+mentions it. The statement needs neither the invariance of `J` under `G` nor the connectedness
+of `M`.
+
+This is [GeorgoulasRobbinSalamon2021], Lemma 2.1 and Theorems 4.1, 4.3 and 7.3; see also
+[McDuffSalamon2017], §5.7.
+
+Milestone: *Kempf–Ness correspondence*. -/
+theorem kempfNess (h : IsComplexifiedAction C J) (hK : σ.IsKahler J)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) :
+    (∀ p : M,
+      (∃! f : Gc → ℝ, ContMDiff IC 𝓘(ℝ) ∞ f ∧
+        (∀ (g : Gc) (ĝ : TangentSpace IC g),
+          mfderiv IC 𝓘(ℝ) f g ĝ = μ (g⁻¹ • p) (C.im (mfderiv IC IC (g⁻¹ * ·) g ĝ))) ∧
+        ∀ u : G, f (C.toHom u) = 0) ∧
+      (∀ (g : Gc) (u : G), kempfNessFunction C μ p (g * C.toHom u) = kempfNessFunction C μ p g) ∧
+      (∀ (g : Gc) (ξ : GroupLieAlgebra I G),
+        ConvexOn ℝ univ fun t : ℝ ↦ kempfNessFunction C μ p (g * C.expI (t • ξ))) ∧
+      (∀ g : Gc, mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) g = 0 ↔ μ (g⁻¹ • p) = 0) ∧
+      (IsSemistable C μ p ↔ BddBelow (range (kempfNessFunction C μ p))) ∧
+      (IsPolystable C μ p ↔ ∃ g : Gc, mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) g = 0) ∧
+      (IsStable C μ p ↔
+        BddBelow (range (kempfNessFunction C μ p)) ∧ IsProperMap (kempfNessFunction C μ p)) ∧
+      ∀ x ∈ MulAction.orbit Gc p, ∀ y ∈ MulAction.orbit Gc p, μ x = 0 → μ y = 0 →
+        ∃ u : G, u • x = y) ∧
+    Function.Bijective (zeroLevelToPolystable C h hμ).orbitRelQuotientMap := by
+  -- Install the metric `σ(·, J ·)` of the compatible pair.
+  let : RiemannianBundle (fun x : M ↦ TangentSpace I' x) :=
+    ⟨hK.compatible.metric.toRiemannianMetric⟩
+  have hgm := hK.compatible.inner_eq_eval₂
+  have hσc := hK.isClosed
+  have hσ := hK.isNondegenerate
+  refine ⟨fun p ↦ ⟨existsUnique_kempfNessFunction C μ p h hμ hgm,
+    kempfNessFunction_mul_toHom C μ p, convexOn_kempfNessFunction_geodesic C μ p h hμ hgm,
+    mfderiv_kempfNessFunction_eq_zero_iff C μ p h hμ hgm,
+    isSemistable_iff_bddBelow_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG p,
+    isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero C μ p h hμ hgm,
+    isStable_iff_bddBelow_and_isProperMap_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG p,
+    fun x hx y hy hx0 hy0 ↦ exists_smul_eq_of_moment_eq_zero h hμ hgm hx hy hx0 hy0⟩,
+    bijective_zeroLevelOrbit_polystableOrbit h hμ hgm⟩
 
 end SymplecticGeometry
 

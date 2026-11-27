@@ -380,7 +380,9 @@ This is a hypothesis of the statements below, not a definition.
 - `kempfNess`: the milestone, the conjunction of the existence and
   uniqueness of $\Phi_p$, its descent and convexity, its critical points,
   the three characterizations and the bijection of orbit sets, in the
-  setting above. Milestone: *Kempf–Ness correspondence*.
+  setting above, without the invariance of `J` under `G` and the
+  connectedness of `M`, which it does not use. Milestone: *Kempf–Ness
+  correspondence*.
 
 ### `HilbertMumford.lean`
 
