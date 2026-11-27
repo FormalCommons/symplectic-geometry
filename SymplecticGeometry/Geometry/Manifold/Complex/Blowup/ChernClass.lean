@@ -251,7 +251,7 @@ theorem firstChernClass_restrict_divisor :
       (n : ℤ) • Projectivization.hyperplaneClass (Fin (n + 1) → ℂ) := by
   have : Fact (finrank ℝ (Fin n → ℂ) = 2 * finrank ℂ (Fin n → ℂ)) :=
     ⟨finrank_real_of_complex _⟩
-  have : Fact (finrank ℝ ℂ = 2 * finrank ℂ ℂ) := ⟨by simp⟩
+  have := Complex.finrank_real_complex_eq_two_mul_finrank_fact
   -- `ι^* c₁(T Blowup c) = c₁(Tℙ) + c₁(ν) = (n + 1) h - h`.
   rw [(divisorRealEmbedding c).firstChernClass_pullback_eq_add (hn := by simp)
       (Complex.finrank_real_eq_finrank_pi_succ_sub n)
