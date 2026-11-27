@@ -75,6 +75,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `Filter.EventuallyEq.mpullback_apply_eq_self`, and its smooth case
   `TauCeti.SmoothForm.mpullback_apply_eq_self_of_eventuallyEq_id`: pulling back along a map that
   is the identity near `x` does not change the value of a form at `x`.
+* `TauCeti.SmoothForm.mpullback_eq_self_of_eq_id`: pulling a smooth form back along a smooth
+  map equal to the identity gives the form back.
 * `TauCeti.mpullback_apply_basis_map`: the pullback at `x` on a basis `c` is `φ (f x)` on the
   image of `c` under the differential, when that is a linear equivalence.
 * `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`: if a smooth form agrees near `x` with
@@ -259,6 +261,11 @@ same value as `θ` at `x`. -/
 theorem mpullback_apply_eq_self_of_eventuallyEq_id {f : M → M} (hf : ContMDiff I I ∞ f) {x : M}
     (h : f =ᶠ[𝓝 x] id) (θ : SmoothForm I M F k) : (mpullback f hf θ).val x = θ.val x := by
   rw [coe_mpullback, h.mpullback_apply_eq_self]
+
+/-- Pulling a smooth form back along a smooth map equal to the identity gives the form back. -/
+theorem mpullback_eq_self_of_eq_id {f : M → M} (hf : ContMDiff I I ∞ f) (h : f = id)
+    (θ : SmoothForm I M F k) : mpullback f hf θ = θ := by
+  rw [mpullback_congr _ contMDiff_id h, mpullback_id, LinearMap.id_apply]
 
 /-- The smooth pullbacks of `φ` along `f` and of `ψ` along `g` agree exactly when the rough
 pullbacks of the underlying rough forms agree. -/
