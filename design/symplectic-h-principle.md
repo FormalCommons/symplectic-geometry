@@ -706,9 +706,9 @@ all the proof uses.
 
 Proof, from the smooth version, by a partition of unity on `P`:
 
-1. *Uniform control on a compact set.* Let `K_D := cthickening 1 Q` and
-   `e l x := G l x - fderiv ℝ (f l) x`, jointly continuous. By the tube
-   lemma for the compact `P` (`generalized_tube_lemma`), there is an open
+1. *Uniform control on a compact set.* Let `K_D := closedBall 0 2` and
+   `e l x := G l x - fderiv ℝ (f l) x`, jointly continuous. As `P` is compact,
+   the projection to `D` is closed (`isClosedMap_snd_of_compactSpace`), so there is an open
    `O ⊆ D` with `B ×ˢ {0} ⊆ O` and `univ ×ˢ O ⊆ U`, so every `e l` vanishes
    on `O`; and for the compact `K_D`, an open `O₀ ⊇ P₀` with
    `‖e l x‖ < ε / 4` for `l ∈ O₀`, `x ∈ K_D`, since `e` vanishes on
@@ -724,15 +724,15 @@ Proof, from the smooth version, by a partition of unity on `P`:
    `χ : ℝ → [0, 1]`, `0` on `(-∞, 1/2]` and `1` on `[1, ∞)` (from
    `Real.smoothTransition`).
 4. *The finite-dimensional datum.* With `n := n' + 1`,
-   `σ l := Fin.snoc (fun i ↦ ρ i l) (τ l)`, and for `s : Fin n → ℝ`,
-   `F (s, x) := ∑ i, s i • f (l i) x` and
-   `G' (s, x) := ∑ i, s i • (fderiv ℝ (f (l i)) x + χ (s (Fin.last n')) • e (l i) x)`:
-   smooth, and holonomic on the open set where `s (Fin.last n') < 1/2` or
+   `σ l := Fin.cons (τ l) (fun i ↦ ρ i l)`, and for `s : Fin n → ℝ`,
+   `F (s, x) := ∑ i, s i.succ • f (l i) x` and
+   `G' (s, x) := ∑ i, s i.succ • (fderiv ℝ (f (l i)) x + χ (s 0) • e (l i) x)`:
+   smooth, and holonomic on the open set where `s 0 < 1/2` or
    `x ∈ O`. Apply the smooth version with `L := Fin n → ℝ`,
    `K := closedBall 0 1` (it contains the range of `σ`),
-   `P₀' := {s | s (Fin.last n') ≤ 1/4}`, `B`, `ε / 2` and `min δ 1`; it
+   `P₀' := {s | s 0 ≤ 1/4}`, `B`, `ε / 2` and `min δ 1`; it
    gives `h`, `f''` and `V''`. Put `g := f'' - F`, and
-   `V := {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ interior K_D`, open as `σ` is
+   `V := {p | (σ p.1, p.2) ∈ V''} ∩ univ ×ˢ ball 0 2`, open as `σ` is
    continuous; it contains the images of `Q`, since they lie within `1` of
    `Q`. The clauses for `C` (its image under `Prod.snd`), `N` and `P₀` (where
    `σ l ∈ P₀'`) are those of the smooth version.
