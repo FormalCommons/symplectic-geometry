@@ -510,8 +510,8 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
       (fun w ↦ e (hW.flow (t - T) (ι w))) ∘ fun z ↦ π (hW.flow T (γ z)) := by
     filter_upwards [hnear] with z hz
     rw [Function.comp_apply, (hιπ z hz).2, ← Flow.map_add, sub_add_cancel]
-  rw [heq.mvfderiv_eq, mvfderiv_comp_apply y hd.mdifferentiableAt hh, mvfderiv_eq_fderiv_apply,
-    ← mvfderiv_apply_eq_mfderiv_apply]
+  rw [heq.mvfderiv_eq,
+    mvfderiv_comp_apply_of_differentiableAt (M := N) (g := fun z ↦ π (hW.flow T (γ z))) hd hh v]
   exact ((fderiv ℝ _ _).le_opNorm _).trans (mul_le_mul_of_nonneg_right hn (norm_nonneg _))
 
 /-- **Stable sets are `ι_X ω`-isotropic.** Let `(ω, X, f)` be a Weinstein structure, `p` a
@@ -525,9 +525,9 @@ theorem interior_apply_mfderiv_eq_zero_of_range_subset_stableSet {p : M}
     (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hs : range γ ⊆ hW.flow.stableSet p)
     (v : TangentSpace I' y) :
     RoughForm.interior X ω.val (γ y) ![mfderiv I' 𝓘(ℝ, E) γ y v] = 0 := by
-  have h := congrArg (· ![v]) (hW.mpullback_interior_eq_zero_of_bounded hγ (hs ⟨y, rfl⟩)
-    (hW.exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet hp hγ hs))
-  simpa [mpullback_apply, Matrix.vec_single_eq_const] using h
+  rw [← mpullback_apply_one, hW.mpullback_interior_eq_zero_of_bounded hγ (hs ⟨y, rfl⟩)
+    (hW.exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet hp hγ hs)]
+  rw [ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 /-- **Stable sets are isotropic.** Let `(ω, X, f)` be a Weinstein structure, `p` a nondegenerate
 critical point of `f`, and `γ : N → M` differentiable at `y`, with range in the stable set of
