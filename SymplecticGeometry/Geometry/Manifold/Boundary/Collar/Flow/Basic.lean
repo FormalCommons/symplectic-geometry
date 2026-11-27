@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import Mathlib.Geometry.Manifold.IntegralCurve.Transform
 import TauCeti.Geometry.Manifold.Boundary.BoundaryFlow.Basic
 import TauCeti.Geometry.Manifold.Boundary.BoundaryFlow.LocalDiffeomorph

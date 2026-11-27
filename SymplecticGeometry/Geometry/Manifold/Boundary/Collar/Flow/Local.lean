@@ -43,8 +43,8 @@ a while forward, since its velocity there within `[t, ∞)` would be outward, wh
 
 public section
 
-open Set Filter Function Topology
-open scoped Manifold ContDiff
+open Set Function Topology
+open scoped Manifold
 
 namespace TauCeti
 
