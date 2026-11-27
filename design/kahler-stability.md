@@ -468,8 +468,8 @@ proof that needs it as a `Submodule` builds it there.
   neighbourhood of `1` contains `g ^ n` for some `n > 0`. Proof: the powers
   `g ^ n` have a cluster point, so two of them, `g ^ k` and `g ^ l` with
   `k < l`, lie in one translate `x * W` of a neighbourhood `W` with
-  `W⁻¹ * W ⊆ V`. Neither Mathlib nor Tau Ceti has it at the pinned
-  versions.
+  `W⁻¹ * W ⊆ V`. No such lemma turned up in Mathlib or Tau Ceti at the
+  pinned versions; its building issue searches again first.
 - `mem_closure_smul_nonzeroPeriods` (`Geometry/Lie/Exponential/Periods.lean`):
   for compact `G` and `ξ ≠ 0`, `ξ` lies in the closure of the positive
   multiples `c • λ` of the elements `λ ∈ nonzeroPeriods I G ∩ 𝔞 ξ`. Proof,
