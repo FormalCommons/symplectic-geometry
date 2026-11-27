@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Symplectic.HPrinciple.CollarPrimitive
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.Approximation
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.Collar
 import SymplecticGeometry.Geometry.Symplectic.HPrinciple.HandleCore.CompressionIsotopy
+import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
 # The handle-core lemma
@@ -312,30 +313,22 @@ theorem exists_homotopy_exact_of_forall_exact_near_attaching (hk : 0 < k) {K : S
     exists_homotopy_exact_of_exact_near_attaching hk hK (hτ.sub hη)
       (fun l hl x hx ↦ by simpa using (hηK l hl).2.1 1 ⟨zero_le_one, le_rfl⟩ x hx) hβ hW hAW
       hτβ
-  -- The smooth steps in time: first `a` runs the line from `τ` to `τ - η`, then `b` runs the
+  -- The smooth steps in time: first `a` runs the line from `τ` to `τ - η`, then `b'` runs the
   -- working lemma's homotopy.
-  set a : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ))
-  set b : unitInterval → ℝ := fun t ↦ Real.smoothTransition (2 * (t : ℝ) - 1)
+  set a : unitInterval → ℝ := fun t ↦ (collaredFirstHalf le_rfl t : ℝ)
+  set b' : unitInterval → unitInterval := ⇑(collaredSecondHalf (n := ∞) le_rfl)
   have ha : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ a :=
-    (Real.smoothTransition.contDiff.comp (contDiff_const.mul contDiff_id)).contMDiff.comp
-      contMDiff_subtypeVal_Icc
-  have hb : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ b :=
-    (Real.smoothTransition.contDiff.comp ((contDiff_const.mul contDiff_id).sub
-      contDiff_const)).contMDiff.comp contMDiff_subtypeVal_Icc
-  set b' : unitInterval → unitInterval := fun t ↦
-    ⟨b t, Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
-  have hb' : ContMDiff (𝓡∂ 1) (𝓡∂ 1) ∞ b' :=
-    contMDiff_iff_comp_subtypeVal_Icc.2 ⟨hb.continuous.subtype_mk _, hb⟩
-  have ha₀ (t : unitInterval) : a t ∈ Icc (0 : ℝ) 1 :=
-    ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
+    contMDiff_subtypeVal_Icc.comp (collaredFirstHalf le_rfl).contMDiff
+  have hb' : ContMDiff (𝓡∂ 1) (𝓡∂ 1) ∞ b' := (collaredSecondHalf le_rfl).contMDiff
+  have ha₀ (t : unitInterval) : a t ∈ Icc (0 : ℝ) 1 := (collaredFirstHalf le_rfl t).property
   have hab (t : unitInterval) : b' t = 0 ∨ a t = 1 := by
-    by_cases h : 2 * (t : ℝ) - 1 ≤ 0
-    · exact Or.inl (Subtype.ext (Real.smoothTransition.zero_of_nonpos h))
-    · exact Or.inr (Real.smoothTransition.one_of_one_le (by linarith))
+    rcases le_total (t : ℝ) (1 / 2) with h | h
+    · exact Or.inl (collaredSecondHalf_eq_zero_of_le le_rfl (by linarith))
+    · exact Or.inr (congrArg Subtype.val (collaredFirstHalf_eq_one_of_ge le_rfl (by linarith)))
   set σ : L × unitInterval →
       SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin k → ℝ)) ((Fin m → ℝ) × (Fin k → ℝ)) :=
     fun p ↦ σ' (p.1, b' p.2) + (1 - a p.2) • η p.1 with hσdef
-  -- Before `b` starts, `σ` is the line from `τ` to `τ - η`; once `a` is done, it is `σ'`.
+  -- Before `b'` starts, `σ` is the line from `τ` to `τ - η`; once `a` is done, it is `σ'`.
   have hσline (l : L) {t : unitInterval} (h : b' t = 0) : σ (l, t) = τ l - a t • η l := by
     simp only [hσdef, h, hσ'0]
     module
@@ -345,9 +338,8 @@ theorem exists_homotopy_exact_of_forall_exact_near_attaching (hk : 0 < k) {K : S
       (hb'.comp contMDiff_snd))).add ((hη.comp Prod.fst contMDiff_fst).fun_smul
       (contMDiff_const.sub (ha.comp contMDiff_snd))), fun l ↦ ?_, fun l hl t x hx ↦ ?_,
     fun l hl ↦ ?_, fun l ↦ ?_, fun l hl hQ t ↦ ?_⟩
-  · have ha0 : a 0 = 0 := Real.smoothTransition.zero_of_nonpos (by simp)
-    rw [hσline l (Subtype.ext (Real.smoothTransition.zero_of_nonpos (by simp))), ha0,
-      zero_smul, sub_zero]
+  · have ha0 : a 0 = 0 := congrArg Subtype.val (collaredFirstHalf_zero le_rfl)
+    rw [hσline l (collaredSecondHalf_zero le_rfl), ha0, zero_smul, sub_zero]
   · rcases hab t with h | h
     · rw [hσline l h]
       exact (hηK l hl).2.1 (a t) (ha₀ t) x hx
@@ -358,8 +350,8 @@ theorem exists_homotopy_exact_of_forall_exact_near_attaching (hk : 0 < k) {K : S
     have h0 : (η l).val x = 0 := hx.2
     simp only [hσdef, SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply,
       hσ'W' l hl _ x hx.1, SmoothBundleForm.sub_apply, h0, smul_zero, sub_zero, add_zero]
-  · have hb1 : b' 1 = 1 := Subtype.ext (Real.smoothTransition.one_of_one_le (by norm_num))
-    rw [hσwork l (Real.smoothTransition.one_of_one_le (by norm_num)), hb1]
+  · have hb1 : b' 1 = 1 := collaredSecondHalf_one le_rfl
+    rw [hσwork l (congrArg Subtype.val (collaredFirstHalf_one le_rfl)), hb1]
     exact hσ'1 l
   · rcases hab t with h | h
     · rw [hσline l h]
