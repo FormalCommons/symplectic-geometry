@@ -37,7 +37,7 @@ the differential of the inclusion, `TauCeti.Manifold.mfderiv_inclusion_apply`.
 On an open subset of a normed space with its model `𝓘(𝕜, E)`, the differential of the restriction
 of a map `f` is the Fréchet derivative of `f`
 (`TauCeti.Manifold.mfderiv_modelSpace_comp_subtype_val_apply`): Tau Ceti's
-`TauCeti.Manifold.mvfderiv_comp_subtype_val` followed by `mvfderiv_eq_fderiv_apply`.
+`TauCeti.Manifold.mvfderiv_comp_subtype_val` followed by `TauCeti.mvfderiv_eq_fderiv_apply`.
 -/
 
 public section
