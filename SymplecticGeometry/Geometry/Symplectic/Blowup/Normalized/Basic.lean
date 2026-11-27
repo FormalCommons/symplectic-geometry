@@ -521,10 +521,10 @@ private theorem isLocalDiffeomorphAt_ballLiftExt_of_mem {y : BlowupModel n}
     (hy : y ∈ openNbhd n ε) :
     IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt y := by
   have hev : ∀ᶠ y' in 𝓝 y, y' ∈ openNbhd n ε := (isOpen_openNbhd ε).mem_nhds hy
-  obtain ⟨g, hg, hgv⟩ := TauCeti.exists_isLocalDiffeomorphAt_subtypeVal_comp_eventuallyEq
+  obtain ⟨g, hg, hgv⟩ := IsLocalDiffeomorphAt.exists_subtypeVal_comp_eventuallyEq
     (W := Blowup.modelOpens hN.blowupChart)
     ((Diffeomorph.refl 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ∞).isLocalDiffeomorph y)
-    (hev.mono fun _ ↦ hψ.mem_modelOpens)
+    (hψ.mem_modelOpens hy)
   refine (IsLocalDiffeomorphAt.comp (hf := hg)
     (hg := Blowup.isLocalDiffeomorph_inr_real _ (g y))).congr_of_eventuallyEq ?_
   filter_upwards [hev, hgv] with y' hy' hgy'
@@ -550,9 +550,8 @@ private theorem isLocalDiffeomorphAt_ballLiftExt_of_blowdown_ne_zero {y : Blowup
       (hx := by simpa [e] using hy)
     rw [IsSymplecticBallEmbedding.coe_complexPartialDiffeomorph] at hΦ
     exact IsLocalDiffeomorphAt.comp (hf := hb) (hg := hΦ)
-  obtain ⟨g, hg, hgv⟩ := TauCeti.exists_isLocalDiffeomorphAt_subtypeVal_comp_eventuallyEq
-    (W := Blowup.puncturedOpens hN.blowupChart) hφ
-    (hev.mono fun _ h ↦ hψ.apply_blowdown_mem_puncturedOpens h.1 h.2)
+  obtain ⟨g, hg, hgv⟩ := hφ.exists_subtypeVal_comp_eventuallyEq
+    (W := Blowup.puncturedOpens hN.blowupChart) (hψ.apply_blowdown_mem_puncturedOpens hy hy0)
   refine (IsLocalDiffeomorphAt.comp (hf := hg)
     (hg := Blowup.isLocalDiffeomorph_inl_real _ (g y))).congr_of_eventuallyEq ?_
   filter_upwards [hev, hgv] with y' hy' hgy'

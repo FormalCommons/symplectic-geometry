@@ -335,10 +335,10 @@ theorem exists_radialContraction_eventuallyEq (hl : l ≤ r) {p : M}
     rw [← hψ.complexPartialDiffeomorph_target]
     exact hψ.complexPartialDiffeomorph.open_target
   have hev : ∀ᶠ q in 𝓝 p, q ∈ U := hUo.mem_nhds hp
-  obtain ⟨g, hgd, hg⟩ := TauCeti.exists_isLocalDiffeomorphAt_subtypeVal_comp_eventuallyEq
+  obtain ⟨g, hgd, hg⟩ := IsLocalDiffeomorphAt.exists_subtypeVal_comp_eventuallyEq
     (W := radialShell (Fin (n + 1)) h hh.contDiff.contDiffOn (fun s _ ↦ hh.deriv_pos s))
     (hψ.complexPartialDiffeomorph.symm.isLocalDiffeomorphAt _ _ _ hpt)
-    (hev.mono fun _ hq ↦ hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hq)
+    (hψ.complexPartialDiffeomorph_symm_mem_radialShell hh hp)
   refine ⟨g, hgd, hg.mono fun _ hq ↦ by rwa [Function.comp_apply] at hq, ?_⟩
   filter_upwards [hev, hg] with q hq hgq
   rw [hψ.radialContraction_of_mem hh hq, Function.comp_apply, Function.comp_apply,
