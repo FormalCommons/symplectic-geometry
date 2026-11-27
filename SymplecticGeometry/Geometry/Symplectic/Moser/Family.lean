@@ -400,10 +400,9 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   -- primitive `β_t` constant in `s`.
   have hYt : Y t = moserField (SmoothForm.lineMapFamily ω₀ (σ' t) contDiff_id)
       (SmoothForm.mpullback Prod.snd contMDiff_snd (β' t)) fun q ↦ ρ ((t, q.1), q.2) := by
-    funext s y
-    rw [moserField_def, SmoothForm.mpullback_prodMk_lineMapFamily, id, ← hΩ ((t : ℝ), s),
-      SmoothForm.mpullback_prodMk_mpullback_snd, ← hB ((t : ℝ), s)]
-    exact moserField_def Ω B ρ _ y
+    funext s
+    exact moserField_congr (by rw [hΩ, SmoothForm.mpullback_prodMk_lineMapFamily, id])
+      (by rw [hB, SmoothForm.mpullback_prodMk_mpullback_snd]) fun _ ↦ rfl
   have hYt' := hYτ t
   have hct := hc t
   rw [hYt] at hYt' hct
