@@ -13,6 +13,7 @@ import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import Mathlib.Analysis.Calculus.Deriv.Prod
+import SymplecticGeometry.Analysis.SpecialFunctions.Log.Unbounded
 
 /-!
 # The unstable set near a critical point where the field is linear
@@ -49,9 +50,10 @@ positive weight: each point of the ball is moved along its flow line for the tim
 * `TauCeti.MorseChart.mapsTo_globalFlow_closedBall_unstableSet`: `F` maps the ball into the
   unstable set of `p`;
 * `TauCeti.MorseChart.globalFlow_mem_image_closedBall` and
-  `TauCeti.MorseChart.globalFlow_mem_image_ball`: for `θ` continuous, `‖u‖ = ρ` and `s ≤ θ u`
-  (resp. `s < θ u`), the point `Φ s y_u` is the image under `F` of a point of the closed (resp.
-  open) ball, found by the intermediate value theorem `Real.exists_mem_Ioc_add_log_eq`. With
+  `TauCeti.MorseChart.globalFlow_mem_image_ball`: for `θ` continuous on the closed ball, `‖u‖ ≤ ρ`
+  and `s ≤ θ u` (resp. `s < θ u`), the point `Φ s y_u` is the image under `F` of a point of
+  the closed (resp. open) ball, found by the intermediate value theorem
+  `Real.exists_mem_Ioc_add_log_eq`. With
   `TauCeti.MorseChart.exists_globalFlow_eq_of_mem_unstableSet`, this describes which points of
   the unstable set `F` reaches.
 
@@ -439,8 +441,8 @@ theorem injOn_globalFlow_toChart_symm_negativeExtend
     have hn : 0 < ‖c‖ := norm_pos_iff.2 hc0
     have hρ0 : 0 < ρ := hn.trans_le hc
     refine ⟨?_, ?_, div_pos hn hρ0, (div_le_one hρ0).2 hc⟩
-    · rw [norm_smul, Real.norm_eq_abs, abs_of_pos (div_pos hρ0 hn), div_mul_cancel₀ _ hn.ne']
-    · rw [smul_smul, div_mul_div_comm, mul_comm ‖c‖ ρ, div_self (mul_pos hρ0 hn).ne', one_smul]
+    · simpa [div_eq_mul_inv] using norm_smul_inv_norm' (𝕜 := ℝ) hρ0.le hc0
+    · rw [← inv_div, inv_smul_smul₀ (div_pos hρ0 hn).ne']
   -- The image of a nonzero point `c` of the ball, through the point of the sphere on its ray.
   have hray {c : EuclideanSpace ℝ {i // φ.weight i < 0}} (hc0 : c ≠ 0) (hc : ‖c‖ ≤ ρ) :
       Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) =
@@ -493,66 +495,60 @@ theorem mapsTo_globalFlow_closedBall_unstableSet (hXφ : ∀ y ∈ φ.toChart.so
       (Metric.closedBall 0 ρ) (Flow.unstableSet (globalFlow X hX hXc) p) := fun _ hc ↦
   (Flow.apply_mem_unstableSet_iff _ _).2 (φ.mapsTo_closedBall_unstableSet hX hXc hXφ hρ hc)
 
-/-- If `f` is continuous on `[0, 1]` and `s ≤ f 1`, then `f r + log r = s` for some `r ∈ (0, 1]`:
-the left side tends to `-∞` as `r → 0⁺`. -/
-theorem _root_.Real.exists_mem_Ioc_add_log_eq {f : ℝ → ℝ} (hf : ContinuousOn f (Icc 0 1))
-    {s : ℝ} (hs : s ≤ f 1) : ∃ r ∈ Ioc (0 : ℝ) 1, f r + Real.log r = s := by
-  have hg : ContinuousOn (fun r ↦ f r + Real.log r) (Ioc 0 1) :=
-    (hf.mono Ioc_subset_Icc_self).add (Real.continuousOn_log.mono fun _ hr ↦ hr.1.ne')
-  have htend : Tendsto (fun r ↦ f r + Real.log r) (𝓝[>] 0) atBot :=
-    ((hf.continuousWithinAt (left_mem_Icc.2 zero_le_one)).mono_of_mem_nhdsWithin
-      (mem_of_superset (Ioo_mem_nhdsGT one_pos) Ioo_subset_Icc_self)).tendsto.add_atBot
-      Real.tendsto_log_nhdsGT_zero
-  obtain ⟨r₀, hr₀s, hr₀⟩ :=
-    ((htend.eventually (eventually_lt_atBot s)).and (Ioo_mem_nhdsGT one_pos)).exists
-  obtain ⟨r, hr, hgr⟩ := intermediate_value_Icc hr₀.2.le
-    (hg.mono fun x hx ↦ ⟨hr₀.1.trans_le hx.1, hx.2⟩) ⟨hr₀s.le, by simpa using hs⟩
-  exact ⟨r, ⟨hr₀.1.trans_le hr.1, hr.2⟩, hgr⟩
-
 /-- **The time-`θ` flow-out of a ball of negative coordinates sweeps the unstable set.** Let `X` be
 the linear field of the Morse chart `φ` at `p` on its source, `Φ` its flow, and let the closed
 Euclidean ball of radius `ρ` in the coordinates of negative weight lie in the chart. Let `θ` be a
-continuous function on these coordinates, and write `y_c` for the point with coordinates `c` of
-negative weight and `0` of positive weight. If `‖u‖ = ρ` and `s ≤ θ u`, then `Φ s y_u` is
-`Φ (θ c) y_c` for some `c` in the closed ball of radius `ρ`. -/
+function on these coordinates, continuous on the closed ball of radius `ρ`, and write `y_c` for
+the point with coordinates `c` of negative weight and `0` of positive weight. If `‖u‖ ≤ ρ` and
+`s ≤ θ u`, then `Φ s y_u` is `Φ (θ c) y_c` for some `c` in the closed ball of radius `ρ`. -/
 theorem globalFlow_mem_image_closedBall (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y)
     (hρ : ∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ ≤ ρ →
       φ.negativeExtend c.ofLp ∈ φ.toChart.target)
-    {θ : EuclideanSpace ℝ {i // φ.weight i < 0} → ℝ} (hθ : Continuous θ)
-    {u : EuclideanSpace ℝ {i // φ.weight i < 0}} (hu : ‖u‖ = ρ) {s : ℝ} (hs : s ≤ θ u) :
+    {θ : EuclideanSpace ℝ {i // φ.weight i < 0} → ℝ}
+    (hθ : ContinuousOn θ (Metric.closedBall 0 ρ))
+    {u : EuclideanSpace ℝ {i // φ.weight i < 0}} (hu : ‖u‖ ≤ ρ) {s : ℝ} (hs : s ≤ θ u) :
     globalFlow X hX hXc s (φ.toChart.symm (φ.negativeExtend u.ofLp)) ∈
       (fun c ↦ globalFlow X hX hXc (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp))) ''
         Metric.closedBall 0 ρ := by
+  -- For `r ∈ [0, 1]`, the point `r • u` stays in the closed ball.
+  have hmem {r : ℝ} (hr : r ∈ Icc 0 1) : r • u ∈ Metric.closedBall 0 ρ :=
+    (convex_closedBall 0 ρ).smul_mem_of_zero_mem
+      (Metric.mem_closedBall_self ((norm_nonneg u).trans hu)) (mem_closedBall_zero_iff.2 hu) hr
   obtain ⟨r, hr, hrs⟩ := Real.exists_mem_Ioc_add_log_eq (f := fun r ↦ θ (r • u))
-    (hθ.comp (continuous_id.smul continuous_const)).continuousOn (by simpa using hs)
+    (hθ.comp (continuous_id.smul continuous_const).continuousOn fun _ ↦ hmem) (by simpa using hs)
   refine ⟨r • u, ?_, ?_⟩
-  · rw [mem_closedBall_zero_iff, norm_smul, Real.norm_of_nonneg hr.1.le, ← hu]
-    exact mul_le_of_le_one_left (norm_nonneg u) hr.2
+  · exact hmem (Ioc_subset_Icc_self hr)
   · dsimp only
-    rw [φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu.le hr.1 hr.2, hrs]
+    rw [φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu hr.1 hr.2, hrs]
 
 /-- **The time-`θ` flow-out of an open ball of negative coordinates.** Let `X` be the linear field
 of the Morse chart `φ` at `p` on its source, `Φ` its flow, and let the closed Euclidean ball of
-radius `ρ` in the coordinates of negative weight lie in the chart. Let `θ` be a continuous function
-on these coordinates, and write `y_c` for the point with coordinates `c` of negative weight and `0`
-of positive weight. If `‖u‖ = ρ` and `s < θ u`, then `Φ s y_u` is `Φ (θ c) y_c` for some `c` in the
-open ball of radius `ρ`. -/
+radius `ρ` in the coordinates of negative weight lie in the chart. Let `θ` be a function on these
+coordinates, continuous on the closed ball of radius `ρ`, and write `y_c` for the point with
+coordinates `c` of negative weight and `0` of positive weight. If `‖u‖ ≤ ρ` and `s < θ u`, then
+`Φ s y_u` is `Φ (θ c) y_c` for some `c` in the open ball of radius `ρ`. -/
 theorem globalFlow_mem_image_ball (hXφ : ∀ y ∈ φ.toChart.source, X y = φ.field y) (hρ0 : 0 < ρ)
     (hρ : ∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ ≤ ρ →
       φ.negativeExtend c.ofLp ∈ φ.toChart.target)
-    {θ : EuclideanSpace ℝ {i // φ.weight i < 0} → ℝ} (hθ : Continuous θ)
-    {u : EuclideanSpace ℝ {i // φ.weight i < 0}} (hu : ‖u‖ = ρ) {s : ℝ} (hs : s < θ u) :
+    {θ : EuclideanSpace ℝ {i // φ.weight i < 0} → ℝ}
+    (hθ : ContinuousOn θ (Metric.closedBall 0 ρ))
+    {u : EuclideanSpace ℝ {i // φ.weight i < 0}} (hu : ‖u‖ ≤ ρ) {s : ℝ} (hs : s < θ u) :
     globalFlow X hX hXc s (φ.toChart.symm (φ.negativeExtend u.ofLp)) ∈
       (fun c ↦ globalFlow X hX hXc (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp))) ''
         Metric.ball 0 ρ := by
+  -- For `r ∈ [0, 1]`, the point `r • u` stays in the closed ball.
+  have hmem {r : ℝ} (hr : r ∈ Icc 0 1) : r • u ∈ Metric.closedBall 0 ρ :=
+    (convex_closedBall 0 ρ).smul_mem_of_zero_mem
+      (Metric.mem_closedBall_self ((norm_nonneg u).trans hu)) (mem_closedBall_zero_iff.2 hu) hr
   obtain ⟨r, hr, hrs⟩ := Real.exists_mem_Ioc_add_log_eq (f := fun r ↦ θ (r • u))
-    (hθ.comp (continuous_id.smul continuous_const)).continuousOn (by simpa using hs.le)
+    (hθ.comp (continuous_id.smul continuous_const).continuousOn fun _ ↦ hmem)
+    (by simpa using hs.le)
   have hr1 : r < 1 := hr.2.lt_of_ne fun h ↦ hs.ne <| by simpa [h] using hrs.symm
   refine ⟨r • u, ?_, ?_⟩
-  · rw [mem_ball_zero_iff, norm_smul, Real.norm_of_nonneg hr.1.le, hu]
-    exact mul_lt_of_lt_one_left hρ0 hr1
+  · rw [mem_ball_zero_iff, norm_smul, Real.norm_of_nonneg hr.1.le]
+    exact (mul_le_mul_of_nonneg_left hu hr.1.le).trans_lt (mul_lt_of_lt_one_left hρ0 hr1)
   · dsimp only
-    rw [φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu.le hr.1 hr.2, hrs]
+    rw [φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu hr.1 hr.2, hrs]
 
 end MorseChart
 
