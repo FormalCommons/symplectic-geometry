@@ -66,6 +66,11 @@ the strict plurisubharmonicity of `f(s) + g(t)`.
   `h ∘ shape` on `v` in terms of the partial derivatives of `h` and of
   `σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, which are the Wirtinger derivatives
   `∂s v` and `∂t v`.
+* `SymplecticGeometry.re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero`: on a complex
+  tangency `v` of a level of `h ∘ shape` at which `∂ₜh ≠ 0`, `τ = c σ` for the real `c` with
+  `∂ₛh + c ∂ₜh = 0`, so that the real part of the Levi form is a multiple of `|σ|²` plus terms
+  in `|v₁|²` and `|v₂|²`, and `|σ|²` has the Cauchy–Schwarz bounds `|σ|² ≤ s |v₁|²` and
+  `(t + c² s) |σ|² ≤ s t |v|²`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_shape`: with `u⁻ = min u 0`, if
   `f' + g' + 2 f''⁻ s + 2 g''⁻ t > 0` and, when `m ≠ 0`, `g' + 2 g''⁻ t > 0`, then
   `f(s) + g(t)` is strictly plurisubharmonic. The flat form is
@@ -492,6 +497,80 @@ theorem ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape {α β : ℝ}
   · simp only [add_im, mul_im, ofReal_re, im_sum, ofReal_im, zero_mul, add_zero, re_sum, mul_re,
       sub_zero, sub_im, I_re, I_im, one_mul, zero_add, sub_re, zero_sub, sub_neg_eq_add, zero_im]
     linear_combination -h₂ / 2
+
+/-- **The Levi form of a function of the shape coordinates on a complex tangency.** Let `H` be
+`C²` at `(s, t) = shape p`, with `p = (x + i y, w)`, and write `Hₛ`, `Hₜ` for its first and
+`Hₛₛ`, `Hₛₜ`, `Hₜₜ` for its second partial derivatives there. Let `Hₜ ≠ 0` and `Hₛ + c Hₜ = 0`,
+and let `v` satisfy `d(H ∘ shape)_p v = 0` and `d(H ∘ shape)_p (i v) = 0`. With
+`σ = ∑ⱼ xⱼ v₁ⱼ` and `τ = ⟪w, v₂⟫ - i ∑ⱼ yⱼ v₁ⱼ`, then `τ = c σ`, the real part of the Levi form
+of `H ∘ shape` at `p` on `v` is
+`Hₛ |v₁|² / 2 + Hₜ (|v₁|² / 2 + |v₂|²) + (Hₛₛ + 2 c Hₛₜ + c² Hₜₜ) |σ|²`, and `|σ|²` satisfies
+the Cauchy–Schwarz bounds `|σ|² ≤ s |v₁|²` and `(t + c² s) |σ|² ≤ s t (|v₁|² + |v₂|²)`. -/
+theorem re_leviForm_comp_shape_apply_self_of_fderiv_eq_zero {H : ℝ × ℝ → ℝ}
+    {p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hH : ContDiffAt ℝ 2 H (shape p))
+    {c : ℝ} (hβ : fderiv ℝ H (shape p) (0, 1) ≠ 0)
+    (hc : fderiv ℝ H (shape p) (1, 0) + c * fderiv ℝ H (shape p) (0, 1) = 0)
+    (hv₁ : fderiv ℝ (H ∘ shape) p v = 0) (hv₂ : fderiv ℝ (H ∘ shape) p (I • v) = 0) :
+    ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j = (c : ℂ) * ∑ j, ((p.1 j).re : ℂ) * v.1 j ∧
+      (leviForm (H ∘ shape) p v v).re =
+        fderiv ℝ H (shape p) (1, 0) * (‖v.1‖ ^ 2 / 2) +
+          fderiv ℝ H (shape p) (0, 1) * (‖v.1‖ ^ 2 / 2 + ‖v.2‖ ^ 2) +
+          (fderiv ℝ (fderiv ℝ H) (shape p) (1, 0) (1, 0) +
+            2 * c * fderiv ℝ (fderiv ℝ H) (shape p) (1, 0) (0, 1) +
+            c ^ 2 * fderiv ℝ (fderiv ℝ H) (shape p) (0, 1) (0, 1)) *
+            ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2 ∧
+      ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2 ≤ (shape p).1 * ‖v.1‖ ^ 2 ∧
+      ((shape p).2 + c ^ 2 * (shape p).1) * ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2 ≤
+        (shape p).1 * (shape p).2 * (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2) := by
+  set σ := ∑ j, ((p.1 j).re : ℂ) * v.1 j with hσ
+  set τ := ⟪p.2, v.2⟫_ℂ - I * ∑ j, ((p.1 j).im : ℂ) * v.1 j with hτ
+  set α := fderiv ℝ H (shape p) (1, 0)
+  set β := fderiv ℝ H (shape p) (0, 1)
+  have hlin (a b : ℝ) : fderiv ℝ H (shape p) (a, b) = α * a + β * b := by
+    have hab : ((a, b) : ℝ × ℝ) = a • ((1 : ℝ), (0 : ℝ)) + b • ((0 : ℝ), (1 : ℝ)) := by
+      ext <;> simp
+    rw [hab, map_add, map_smul, map_smul, smul_eq_mul, smul_eq_mul]
+    ring
+  have hd : DifferentiableAt ℝ H (shape p) := hH.differentiableAt (by norm_num)
+  rw [fderiv_comp_shape_apply hd, hlin] at hv₁ hv₂
+  -- The tangency gives `α σ + β τ = 0`, and `α = -c β`.
+  have h := ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape hv₁ hv₂
+  have hc' : (α : ℂ) + (c : ℂ) * (β : ℂ) = 0 := by exact_mod_cast hc
+  have hτσ : τ = (c : ℂ) * σ := by
+    have h0 : (β : ℂ) * (τ - (c : ℂ) * σ) = 0 := by linear_combination h - σ * hc'
+    rcases mul_eq_zero.1 h0 with h0 | h0
+    · exact absurd (ofReal_eq_zero.1 h0) hβ
+    · exact sub_eq_zero.1 h0
+  refine ⟨hτσ, ?_, norm_sum_re_mul_sq_le p v, ?_⟩
+  · rw [re_leviForm_comp_shape_apply_self hH v, ← hσ, ← hτ, hτσ]
+    have e₁ : (conj σ * ((c : ℂ) * σ)).re = c * ‖σ‖ ^ 2 := by
+      rw [mul_left_comm, mul_comm (conj σ), Complex.mul_conj, ← ofReal_mul, ofReal_re,
+        Complex.normSq_eq_norm_sq]
+    have e₂ : ‖(c : ℂ) * σ‖ ^ 2 = c ^ 2 * ‖σ‖ ^ 2 := by
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs]
+    rw [e₁, e₂]
+    ring
+  · -- Cauchy–Schwarz for `t σ + c s τ = (t + c² s) σ`.
+    have hCS := norm_ofReal_mul_add_ofReal_mul_sq_le (shape p).2 (c * (shape p).1) p v
+    rw [← hσ, ← hτ, hτσ] at hCS
+    have e : ((shape p).2 : ℂ) * σ + ((c * (shape p).1 : ℝ) : ℂ) * ((c : ℂ) * σ) =
+        (((shape p).2 + c ^ 2 * (shape p).1 : ℝ) : ℂ) * σ := by
+      push_cast
+      ring
+    rw [e, norm_mul, Complex.norm_real, Real.norm_eq_abs, mul_pow, sq_abs] at hCS
+    have hs := shape_fst_nonneg p
+    have ht := shape_snd_nonneg p
+    have hq : 0 ≤ (shape p).2 + c ^ 2 * (shape p).1 := by positivity
+    rcases hq.eq_or_lt with hq | hq
+    · rw [← hq, zero_mul]
+      positivity
+    · refine le_of_mul_le_mul_left ?_ hq
+      calc ((shape p).2 + c ^ 2 * (shape p).1) * (((shape p).2 + c ^ 2 * (shape p).1) * ‖σ‖ ^ 2)
+          = ((shape p).2 + c ^ 2 * (shape p).1) ^ 2 * ‖σ‖ ^ 2 := by ring
+        _ ≤ ((shape p).2 ^ 2 * (shape p).1 + (c * (shape p).1) ^ 2 * (shape p).2) *
+            (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2) := hCS
+        _ = ((shape p).2 + c ^ 2 * (shape p).1) *
+            ((shape p).1 * (shape p).2 * (‖v.1‖ ^ 2 + ‖v.2‖ ^ 2)) := by ring
 
 /-- **Strict plurisubharmonicity of `f(s) + g(t)`**, on `ℂᵏ × ℂᵐ`. Let `f` and `g` be `C²` at
 `s = (shape p).1` and at `t = (shape p).2`, and write `u⁻ = min u 0`. If

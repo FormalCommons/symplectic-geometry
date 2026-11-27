@@ -14,8 +14,11 @@ public import TauCeti.Topology.Algebra.Module.Equiv.Fin
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Analysis.Calculus.FDeriv.Equiv
 import Mathlib.Analysis.Normed.Group.Bounded
+import Mathlib.Analysis.Normed.Module.Ball.Pointwise
+import SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OfContMDiff
+import SymplecticGeometry.Topology.MetricSpace.Thickening
 import TauCeti.Analysis.Calculus.ContDiff.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 
@@ -23,11 +26,14 @@ import TauCeti.Analysis.Calculus.FDeriv.Prod
 # Holonomic approximation for families over a finite-dimensional space
 
 A family of data on `D = (Fin m → ℝ) × (Fin k → ℝ)` over a finite-dimensional real normed space
-`L` is a datum on `L × D`. This file sets up the coordinates in which such a family becomes a
-datum over the cube of
-`SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube`, following the parametric
-form of the holonomic approximation theorem in [EliashbergMishachev2002], Theorem 4.7.4, where
-the parameters are treated as extra core coordinates that are not approximated.
+`L` is a datum on `L × D`. This file proves the holonomic approximation theorem for such
+families, `SymplecticGeometry.exists_holonomic_approximation_family`, the parametric form of
+[EliashbergMishachev2002], Theorem 4.7.4, in coordinates. It sets up the coordinates in which
+such a family becomes a datum over the cube of
+`SymplecticGeometry.Analysis.Calculus.HolonomicApproximation.Cube`, where the parameters are
+treated as extra core coordinates that are not approximated, applies the cube theorem
+`SymplecticGeometry.exists_holonomic_approximation_cube_directions` there, and carries the
+result back.
 
 With `p = Module.finrank ℝ L` and the coordinates `e = (Module.finBasis ℝ L).equivFun`, the
 continuous linear equivalence `SymplecticGeometry.familyCubeEquiv L m k hR`, for `R ≠ 0`, sends
@@ -39,6 +45,13 @@ those of `D`; those outside `J` record the parameter.
 
 ## Main results
 
+* `SymplecticGeometry.exists_holonomic_approximation_family`: for a smooth family over `L` of
+  formal sections on `D`, holonomic near `B ×ˢ {0}` for a closed `B ⊇ sphere 0 1` and everywhere
+  over a closed set `P₀` of parameters, a family of diffeotopies of `D` and a smooth `f'`,
+  unchanged over a neighbourhood of `B` in the core, over `P₀` and off a compact set near the
+  cube, with `f'` holonomically `ε`-close to the datum near the moved cube for the parameters in
+  a compact `K`. The neighbourhood of `B` comes from the one of the cube theorem by
+  `SymplecticGeometry.exists_mem_nhdsSet_familyCubeEquiv_fst_mem`.
 * `SymplecticGeometry.familyCubeEquiv_apply`, `SymplecticGeometry.familyCubeEquiv_symm_apply`:
   the values of the equivalence and of its inverse.
 * `SymplecticGeometry.mapsTo_familyCubeEquiv`: for `R > 0` bounding `‖e l‖` on `K`, the
@@ -60,6 +73,12 @@ those of `D`; those outside `J` record the parameter.
   (`SymplecticGeometry.mem_familyRelativeSet_of_abs_eq_one`), and its product with `{0}` lies in
   the image of any `U` that contains `univ ×ˢ (B ×ˢ {0})` and `P₀ ×ˢ univ`
   (`SymplecticGeometry.familyRelativeSet_prod_zero_subset_image`).
+* `SymplecticGeometry.exists_mem_nhdsSet_familyCubeEquiv_fst_mem`: a neighbourhood of
+  `familyRelativeSet L R B P₀` gives, by `generalized_tube_lemma`, a neighbourhood `N` of `B`
+  such that each point over `N` whose image under `familyCubeEquiv` lies within `r` of the cube
+  has the core part of that image in the given neighbourhood. Near the cube, the scaled
+  parameter coordinates and the core part have norm less than `1 + r`
+  (`SymplecticGeometry.norm_lt_of_familyCubeEquiv_mem_thickening`).
 * `SymplecticGeometry.familyFDeriv f G`: for a family of data `(f (l, ·), G (l, ·))` on a space
   `E`, the datum on `L × E` that completes `G` by the derivative of `f` in the parameter. It is
   smooth when `f` and `G` are (`ContDiff.familyFDeriv`).
@@ -242,6 +261,19 @@ theorem mem_thickening_of_familyCubeEquiv_mem_thickening (hR : R ≠ 0) {δ : �
   rw [mem_thickening_iff_infDist_lt ⟨0, by simp⟩] at hp ⊢
   exact (infDist_le_infDist_familyCubeEquiv hR p).trans_lt hp
 
+/-- A point whose image under `familyCubeEquiv` lies within `r > 0` of the cube of
+`(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)` has scaled parameter coordinates
+`R⁻¹ • e p.1` and core part `p.2.1` of norm less than `1 + r`, where
+`e = (Module.finBasis ℝ L).equivFun`. -/
+theorem norm_lt_of_familyCubeEquiv_mem_thickening (hR : R ≠ 0) {r : ℝ} (hr : 0 < r)
+    {p : L × (Fin m → ℝ) × (Fin k → ℝ)}
+    (hp : familyCubeEquiv L m k hR p ∈ thickening r (closedBall 0 1 ×ˢ {0})) :
+    ‖R⁻¹ • (finBasis ℝ L).equivFun p.1‖ < 1 + r ∧ ‖p.2.1‖ < 1 + r := by
+  rw [thickening_prod, thickening_closedBall hr zero_le_one] at hp
+  have hn := hp.1
+  rw [mem_ball, dist_zero_right, familyCubeEquiv_apply, Fin.norm_append, add_comm] at hn
+  exact ⟨(le_max_left _ _).trans_lt hn, (le_max_right _ _).trans_lt hn⟩
+
 variable (L) in
 /-- The relative set, in the core of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`, for
 `B ⊆ Fin m → ℝ` and a set of parameters `P₀ ⊆ L`: the points `Fin.append s u` with `u ∈ B`, or
@@ -319,6 +351,39 @@ theorem familyRelativeSet_prod_zero_subset_image (hR : R ≠ 0) {B : Set (Fin m 
       LinearEquiv.symm_apply_apply]
     exact hl
 
+open scoped Topology in
+/-- For a neighbourhood `N''` of `familyRelativeSet L R B P₀` with `B` closed and `0 < r`,
+there is a neighbourhood `N` of `B` such that every point `p` with core part in `N` either has
+the core part of its image under `familyCubeEquiv` in `N''`, or has its image at distance at
+least `r` from the cube `closedBall 0 1 ×ˢ {0}` of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`. -/
+theorem exists_mem_nhdsSet_familyCubeEquiv_fst_mem (hR : R ≠ 0) {B : Set (Fin m → ℝ)}
+    (hB : IsClosed B) {P₀ : Set L} {N'' : Set (Fin (finrank ℝ L + m) → ℝ)}
+    (hN'' : N'' ∈ 𝓝ˢ (familyRelativeSet L R B P₀)) {r : ℝ} (hr : 0 < r) :
+    ∃ N ∈ 𝓝ˢ B, ∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.2.1 ∈ N →
+      (familyCubeEquiv L m k hR p).1 ∈ N'' ∨
+        familyCubeEquiv L m k hR p ∉ thickening r (closedBall 0 1 ×ˢ {0}) := by
+  have hB'N'' : familyRelativeSet L R B P₀ ⊆ interior N'' :=
+    subset_interior_iff_mem_nhdsSet.2 hN''
+  obtain ⟨U₁, N₁, -, hN₁, hU₁, hBN₁, hUN₁⟩ := generalized_tube_lemma
+    (isCompact_closedBall (0 : Fin (finrank ℝ L) → ℝ) (1 + r))
+    ((isCompact_closedBall (0 : Fin m → ℝ) (1 + r)).inter_left hB)
+    (isOpen_interior.preimage (splitCoords (𝕜 := ℝ) (finrank ℝ L) m).symm.continuous)
+    (fun su hsu ↦ hB'N'' (mem_familyRelativeSet_iff.2 (Or.inl (by simpa using hsu.2.1))))
+  refine ⟨N₁ ∪ (closedBall 0 (1 + r))ᶜ,
+    (hN₁.union isClosed_closedBall.isOpen_compl).mem_nhdsSet.2 fun u hu ↦ ?_, fun p hp ↦ ?_⟩
+  · by_cases hu2 : u ∈ closedBall 0 (1 + r)
+    · exact Or.inl (hBN₁ ⟨hu, hu2⟩)
+    · exact Or.inr hu2
+  · by_cases hpC : familyCubeEquiv L m k hR p ∈ thickening r (closedBall 0 1 ×ˢ {0})
+    · obtain ⟨hs, hu⟩ := norm_lt_of_familyCubeEquiv_mem_thickening hR hr hpC
+      rcases hp with hp | hp
+      · have hmem := hUN₁ (show (_, p.2.1) ∈ U₁ ×ˢ N₁ from
+          ⟨hU₁ (mem_closedBall_zero_iff.2 hs.le), hp⟩)
+        rw [mem_preimage, splitCoords_symm_apply] at hmem
+        exact Or.inl (interior_subset (by simpa using hmem))
+      · exact absurd (mem_closedBall_zero_iff.2 hu.le) hp
+    · exact Or.inr hpC
+
 section Datum
 
 variable {L E E' F : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [NormedAddCommGroup E]
@@ -377,7 +442,7 @@ end Datum
 
 section Conjugation
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
@@ -503,6 +568,88 @@ theorem exists_holonomic_approximation_family_of_cube (hR : 0 < R) {K : Set L}
     rw [ContinuousLinearEquiv.symm_apply_apply] at h₁ h₂
     exact ⟨h₁, norm_fderiv_comp_familyCubeEquiv_sub_le hR.ne'
       ((norm_nonneg _).trans_lt h₁).le (hf''.differentiable (by simp) _) h₂⟩
+
+/-- Holonomic approximation for a smooth family over a finite-dimensional real normed space `L`,
+in coordinates ([EliashbergMishachev2002], Theorem 4.7.4). Let `(f (l, ·), G (l, ·))` be a
+smooth family of formal sections on `D = (Fin m → ℝ) × (Fin k → ℝ)`, `0 < k`, holonomic on an
+open `U ⊆ L × D` that contains every point `(l, (u, 0))` with `u` in a closed `B ⊇ sphere 0 1`
+and every point over a closed set `P₀` of parameters. Then for `ε, δ > 0` and a compact `K ⊆ L`
+there are a diffeotopy `h` of `L × D` keeping the parameter and moving points by less than `δ`,
+a smooth `f'` and an open `V` such that `h` is the identity and `f' = f` off a compact set whose
+points have space part within `δ` of the cube `Q = closedBall 0 1 ×ˢ {0}`, over a neighbourhood
+of `B` in the core and over `P₀`; `V` contains `h (1, (l, y))` for `l ∈ K` and `y ∈ Q`; and on
+`V`, `f'` is `ε`-close to `f` and its derivative in the space variable is `ε`-close to `G`. -/
+theorem exists_holonomic_approximation_family (hk : 0 < k)
+    {f : L × (Fin m → ℝ) × (Fin k → ℝ) → F}
+    {G : L × (Fin m → ℝ) × (Fin k → ℝ) → (Fin m → ℝ) × (Fin k → ℝ) →L[ℝ] F}
+    (hf : ContDiff ℝ ∞ f) (hG : ContDiff ℝ ∞ G) {K P₀ : Set L} (hK : IsCompact K)
+    (hP₀ : IsClosed P₀) {B : Set (Fin m → ℝ)} (hB : IsClosed B) (hSB : sphere 0 1 ⊆ B)
+    {U : Set (L × (Fin m → ℝ) × (Fin k → ℝ))} (hU : IsOpen U) (hBU : univ ×ˢ (B ×ˢ {0}) ⊆ U)
+    (hP₀U : P₀ ×ˢ univ ⊆ U) (hUf : ∀ p ∈ U, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p)
+    {ε δ : ℝ} (hε : 0 < ε) (hδ : 0 < δ) :
+    ∃ (h : Diffeotopy 𝓘(ℝ, L × (Fin m → ℝ) × (Fin k → ℝ)) ∞ (L × (Fin m → ℝ) × (Fin k → ℝ)))
+      (f' : L × (Fin m → ℝ) × (Fin k → ℝ) → F) (V : Set (L × (Fin m → ℝ) × (Fin k → ℝ))),
+      (∀ t p, (h (t, p)).1 = p.1) ∧ ContDiff ℝ ∞ f' ∧
+      (∃ C, IsCompact C ∧
+        (∀ p ∈ C, p.2 ∈ thickening δ (closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)})) ∧
+        ∀ p ∉ C, (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      (∀ t p, dist (h (t, p)) p < δ) ∧
+      (∃ N ∈ 𝓝ˢ B, ∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.2.1 ∈ N →
+        (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      (∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.1 ∈ P₀ → (∀ t, h (t, p) = p) ∧ f' p = f p) ∧
+      IsOpen V ∧ (∀ l ∈ K, ∀ y ∈ closedBall (0 : Fin m → ℝ) 1 ×ˢ {(0 : Fin k → ℝ)},
+        h (1, (l, y)) ∈ V) ∧
+      ∀ p ∈ V, ‖f' p - f p‖ < ε ∧ ‖fderiv ℝ (fun x ↦ f' (p.1, x)) p.2 - G p‖ < ε := by
+  -- step 1: the coordinates `Ψ`
+  obtain ⟨R, hR, hRK⟩ := exists_pos_norm_finBasis_equivFun_lt hK
+  set Ψ := familyCubeEquiv L m k hR.ne'
+  -- step 2: the transported datum, holonomic on `Ψ '' U`
+  set G'' : (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) →
+      (Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ) →L[ℝ] F := fun q ↦
+    familyFDeriv f G (Ψ.symm q) ∘L (Ψ.symm : _ →L[ℝ] L × (Fin m → ℝ) × (Fin k → ℝ))
+  have hG'' : ContDiff ℝ ∞ G'' :=
+    ((hf.familyFDeriv hG (by simp)).comp Ψ.symm.contDiff).clm_comp contDiff_const
+  have hUf'' : ∀ x ∈ Ψ '' U, fderiv ℝ (f ∘ Ψ.symm) x = G'' x := by
+    rintro _ ⟨q, hq, rfl⟩
+    have := (fderiv_comp_symm_eq_familyFDeriv_comp_iff (G := G) Ψ
+      (hf.differentiable (by simp) q)).2 (hUf q hq)
+    simpa [G''] using this
+  -- steps 3 and 4: the cube theorem in the directions of the space, relative to
+  -- `familyRelativeSet L R B P₀`
+  obtain ⟨h'', f'', V'', ⟨C'', hC'', hC''Q, hhC'', hfC''⟩, hdist, hJ, hV'', hQV'', hf'', happrox,
+      N'', hN'', hN''h⟩ :=
+    exists_holonomic_approximation_cube_directions hk (Finset.univ.map (Fin.natAddEmb _))
+      (hf.comp Ψ.symm.contDiff) hG'' (isClosed_familyRelativeSet R hB hP₀)
+      (fun u hu hi ↦ mem_familyRelativeSet_of_abs_eq_one R P₀ hSB u hu hi)
+      (Ψ.isOpenMap _ hU) (familyRelativeSet_prod_zero_subset_image hR.ne' hBU hP₀U) hUf''
+      (half_pos hε) (lt_min hδ one_pos)
+  -- step 5: back to `L × D`
+  obtain ⟨h, f', V, hh, hf', hfst, hf'c, ⟨C, hC, hCQ, hCfix⟩, hdist', hV, hKV, happrox'⟩ :=
+    exists_holonomic_approximation_family_of_cube hR (fun l hl ↦ (hRK l hl).le) h'' hC''
+      hC''Q hhC'' hfC'' hdist hJ hV'' hQV'' hf'' happrox
+  -- a point whose image has core part in `N''`, or lies off `C''`, is fixed
+  have hfix : ∀ p, (Ψ p).1 ∈ N'' → (∀ t, h (t, p) = p) ∧ f' p = f p := fun p hp ↦ by
+    obtain ⟨h₁, h₂⟩ := hN''h (Ψ p) hp
+    refine ⟨fun t ↦ ?_, ?_⟩
+    · rw [hh, h₁, ContinuousLinearEquiv.symm_apply_apply]
+    · rw [hf', h₂, Function.comp_apply, ContinuousLinearEquiv.symm_apply_apply]
+  have hfixC : ∀ p, Ψ p ∉ C'' → (∀ t, h (t, p) = p) ∧ f' p = f p := fun p hp ↦ by
+    refine ⟨fun t ↦ ?_, ?_⟩
+    · rw [hh, hhC'' t _ hp, ContinuousLinearEquiv.symm_apply_apply]
+    · rw [hf', hfC'' _ hp, Function.comp_apply, ContinuousLinearEquiv.symm_apply_apply]
+  -- step 6: the neighbourhood of `B`, by the tube lemma
+  obtain ⟨N, hN, hNfix⟩ := exists_mem_nhdsSet_familyCubeEquiv_fst_mem (k := k) hR.ne' hB hN''
+    (lt_min hδ one_pos)
+  refine ⟨h, f', V, hfst, hf'c,
+    ⟨C, hC, fun p hp ↦ thickening_mono (min_le_left δ 1) _ (hCQ p hp), hCfix⟩,
+    fun t p ↦ (hdist' t p).trans_le (min_le_left δ 1),
+    ⟨N, hN, fun p hp ↦ (hNfix p hp).elim (hfix p) fun hpC ↦ hfixC p fun h' ↦ hpC (hC''Q h')⟩,
+    fun p hp ↦ hfix p (interior_subset (subset_interior_iff_mem_nhdsSet.2 hN'' ?_)), hV, hKV,
+    fun p hp ↦ ⟨(happrox' p hp).1.trans (half_lt_self hε),
+      (happrox' p hp).2.trans_lt (half_lt_self hε)⟩⟩
+  refine mem_familyRelativeSet_iff.2 (Or.inr ⟨p.1, hp, ?_⟩)
+  ext i
+  simp [Ψ]
 
 end Conjugation
 
