@@ -96,6 +96,7 @@ theorem firstChernClass_congr
 
 /-- **The determinant line has the same first Chern class as the bundle**:
 `c₁(det E) = c₁(E)`, where `det E` is the complex line bundle `TauCeti.DetBundle ℂ G E`. -/
+@[simp]
 theorem firstChernClass_detBundle :
     firstChernClass ℂ (DetBundle ℂ G E) = firstChernClass G E := by
   rw [firstChernClass_eq_lineFirstChernClass (finrank_self ℂ), firstChernClass_def]
@@ -205,6 +206,7 @@ theorem chernNumber_congr
 
 /-- **The determinant line has the same first Chern number as the bundle**:
 `⟨c₁(det E), [M]⟩ = ⟨c₁(E), [M]⟩`, where `det E` is `TauCeti.DetBundle ℂ G E`. -/
+@[simp]
 theorem chernNumber_detBundle :
     chernNumber o hn ℂ (DetBundle ℂ G E) = chernNumber o hn G E := by
   rw [chernNumber_def, chernNumber_def, firstChernClass_detBundle]
