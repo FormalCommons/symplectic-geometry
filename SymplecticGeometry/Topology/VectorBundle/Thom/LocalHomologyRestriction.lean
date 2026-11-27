@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChartCap
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.System
 public import TauCeti.Topology.VectorBundle.EulerClass
 
@@ -30,6 +29,8 @@ space is `zeroSectionCompl`, not the complement of a set), so this map is define
 
 ## Main results
 
+* `Bundle.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
+  of `0_b`.
 * `TauCeti.singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction`: reading a class of
   the Thom pair relative to `E ∖ 0 ∪ E ∖ E_b` factors through its local class at `0_b`, since
   that set is the complement of `0_b`
@@ -45,9 +46,31 @@ public section
 
 noncomputable section
 
-open Bundle CategoryTheory Limits Set
+open Bundle CategoryTheory Limits Set TauCeti
 
 universe w v u
+
+namespace Bundle
+
+variable {B : Type*} {P : Type*} {E : B → Type*} [∀ b, Zero (E b)]
+
+/-- The points of the total space that are nonzero vectors or lie off the fibre over `b` are
+the points other than the zero vector `0_b`. -/
+theorem zeroSectionCompl_union_compl_preimage_singleton (b : B) :
+    zeroSectionCompl P E ∪ (π P E ⁻¹' {b})ᶜ = {zeroSection P E b}ᶜ := by
+  ext ⟨b', v⟩
+  simp only [mem_union, mem_zeroSectionCompl, mem_compl_iff, mem_preimage, mem_singleton_iff,
+    zeroSection, TotalSpace.mk.injEq, not_and]
+  constructor
+  · rintro (hv | hb) rfl
+    exacts [fun h ↦ hv (eq_of_heq h), (hb rfl).elim]
+  · intro h
+    by_cases hb : b' = b
+    · subst hb
+      exact Or.inl fun hv ↦ h rfl (heq_of_eq hv)
+    · exact Or.inr hb
+
+end Bundle
 
 namespace TauCeti
 
