@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Lift
 import TauCeti.Geometry.Symplectic.JHolomorphic.RiemannSurface
 import TauCeti.Geometry.Manifold.Complex.Analytic
 import TauCeti.Geometry.Manifold.ChartedSpace
+import TauCeti.Geometry.Manifold.Complex.Chart
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 
@@ -166,7 +167,7 @@ open scoped TauCeti.ComplexManifold in
 /-- The fibres of a nonconstant holomorphic map from a connected Riemann surface are discrete:
 this is Tau Ceti's `TauCeti.setOf_ne_mem_codiscrete_of_isPseudoholomorphic` for the almost
 complex structures of the two complex manifolds. -/
-private theorem setOf_ne_mem_codiscrete [ConnectedSpace S]
+private theorem setOf_ne_mem_codiscrete [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂) (p : M) :
     {y | u y ≠ p} ∈ codiscrete S :=
   setOf_ne_mem_codiscrete_of_isPseudoholomorphic (J := ofComplexManifold (Fin (n + 1) → ℂ) M)
@@ -175,7 +176,7 @@ private theorem setOf_ne_mem_codiscrete [ConnectedSpace S]
 
 /-- Near a point `x` of the fibre over `p₀`, the points of `S` other than `x` are off the fibre,
 and all are mapped by `u` into the source of `c`. -/
-private theorem eventually_eq_or_ne [ConnectedSpace S]
+private theorem eventually_eq_or_ne [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂)
     (h : u x = p₀) : ∀ᶠ y in 𝓝 x, (y = x ∨ u y ≠ p₀) ∧ u y ∈ c.source := by
   have hdisc := mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOf_ne_mem_codiscrete hu hne p₀) x
@@ -184,44 +185,36 @@ private theorem eventually_eq_or_ne [ConnectedSpace S]
   filter_upwards [eventually_nhdsWithin_iff.1 hdisc, hsrc] with y hy hyc
   exact ⟨(em (y = x)).imp_right hy, hyc⟩
 
+omit [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M] in
 /-- The coordinate expression of a holomorphic `u` is analytic at the point of the chart. -/
 private theorem analyticAt_coordCurve
     [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hx : u x ∈ c.source) :
     AnalyticAt ℂ (coordCurve c u x) (chartAt ℂ x x) := by
-  have hφ : ContMDiffAt 𝓘(ℂ) 𝓘(ℂ) ω (chartAt ℂ x).symm (chartAt ℂ x x) :=
-    (contMDiffOn_chart_symm (I := 𝓘(ℂ))).contMDiffAt
-      ((chartAt ℂ x).open_target.mem_nhds (mem_chart_target ℂ x))
-  rw [← (chartAt ℂ x).left_inv (mem_chart_source ℂ x)] at hx
-  have hc' : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω c
-      (u ((chartAt ℂ x).symm (chartAt ℂ x x))) :=
-    (contMDiffOn_of_mem_maximalAtlas hc.out).contMDiffAt (c.open_source.mem_nhds hx)
-  have hcomp := hc'.comp (chartAt ℂ x x) (((hu.contMDiff (n := ω)) _).comp (chartAt ℂ x x) hφ)
-  exact (contMDiffAt_iff_contDiffAt.1 hcomp).analyticAt
+  have hsrc : ∀ᶠ y in 𝓝 x, u y ∈ c.source :=
+    hu.continuous.continuousAt.preimage_mem_nhds (c.open_source.mem_nhds hx)
+  rw [coordCurve_def]
+  refine TauCeti.analyticAt_comp_chartAt_symm (g := fun y ↦ c (u y)) (hsrc.mono fun y hy ↦ ?_)
+  exact ((contMDiffAt_of_mem_maximalAtlas hc.out hy).mdifferentiableAt (by simp)).comp y (hu y)
 
 /-- The coordinate expression of `u` at a point of the fibre over `p₀` does not vanish
 identically near the point of the chart, since the fibre is discrete. -/
-private theorem analyticOrderAt_coordCurve_ne_top [ConnectedSpace S]
+private theorem analyticOrderAt_coordCurve_ne_top [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂)
     (h : u x = p₀) : analyticOrderAt (coordCurve c u x) (chartAt ℂ x x) ≠ ⊤ := by
   intro htop
-  set φ := chartAt ℂ x
-  have hφ : Tendsto φ.symm (𝓝 (φ x)) (𝓝 x) := by
-    have := φ.continuousAt_symm (mem_chart_target ℂ x)
-    rwa [ContinuousAt, φ.left_inv (mem_chart_source ℂ x)] at this
-  have hfalse : ∀ᶠ _ in 𝓝[≠] (φ x), False := by
+  have hfalse : ∀ᶠ _ in 𝓝[≠] (chartAt ℂ x x), False := by
     filter_upwards [nhdsWithin_le_nhds (analyticOrderAt_eq_top.1 htop),
-      nhdsWithin_le_nhds (hφ.eventually (eventually_eq_or_ne (c := c) hu hne h)),
-      nhdsWithin_le_nhds (φ.open_target.mem_nhds (mem_chart_target ℂ x)),
-      self_mem_nhdsWithin] with t h0 ⟨hxt, hct⟩ ht hne'
-    rcases hxt with hxt | hxt
-    · exact hne' (show t = φ x by rw [← hxt, φ.right_inv ht])
-    · exact c.apply_ne_zero hct hxt h0
+      TauCeti.tendsto_chartAt_symm_nhdsNE (H := ℂ) x <|
+        inter_mem (mem_codiscrete_iff_forall_mem_nhdsNE.1 (setOf_ne_mem_codiscrete hu hne p₀) x)
+          (nhdsWithin_le_nhds (hu.continuous.continuousAt.preimage_mem_nhds
+            (c.open_source.mem_nhds (h ▸ c.mem_source))))] with t h0 ⟨hne', hct⟩
+    exact c.apply_ne_zero hct hne' h0
   exact hfalse.exists.elim fun _ h ↦ h
 
 /-- Near a point `x` of the fibre over `p₀`, the lift of `u` is `inr` of the model's lift of the
 coordinate expression of `u` at `x`. -/
-private theorem eventually_curveLift_eq_inr [ConnectedSpace S]
+private theorem eventually_curveLift_eq_inr [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂)
     (h : u x = p₀) :
     ∀ᶠ y in 𝓝 x, ∃ hy : BlowupModel.curveLift (coordCurve c u x) (chartAt ℂ x y) ∈ modelOpens c,
@@ -238,7 +231,7 @@ private theorem eventually_curveLift_eq_inr [ConnectedSpace S]
 /-- Near a point `x` of the fibre over `p₀`, the lift of a nonconstant holomorphic curve `u`, read
 through `Blowup.lift c`, is the model's lift of the coordinate expression `t ↦ c (u (φ.symm t))`
 of `u` in the preferred chart `φ` of `S` at `x`. -/
-theorem eventually_lift_curveLift [ConnectedSpace S]
+theorem eventually_lift_curveLift [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂)
     (h : u x = p₀) :
     ∀ᶠ y in 𝓝 x, lift c (curveLift c u y) =
@@ -252,7 +245,7 @@ variable [T2Space M]
 
 /-- The lift of a nonconstant holomorphic curve on a connected Riemann surface is `C^r` for every
 `r`, analytic included. -/
-theorem contMDiff_curveLift [ConnectedSpace S] {r : ℕ∞ω}
+theorem contMDiff_curveLift [PreconnectedSpace S] {r : ℕ∞ω}
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂) :
     ContMDiff 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (curveLift c u) := by
   intro x
@@ -261,8 +254,8 @@ theorem contMDiff_curveLift [ConnectedSpace S] {r : ℕ∞ω}
         (fun y ↦ BlowupModel.curveLift (coordCurve c u x) (chartAt ℂ x y)) x :=
       (BlowupModel.contMDiffAt_curveLift (analyticAt_coordCurve hu (h ▸ c.mem_source))
         (analyticOrderAt_coordCurve_ne_top hu hne h)).comp x
-        ((contMDiffOn_chart (I := 𝓘(ℂ))).contMDiffAt
-          ((chartAt ℂ x).open_source.mem_nhds (mem_chart_source ℂ x)))
+        (contMDiffAt_of_mem_maximalAtlas (IsManifold.chart_mem_maximalAtlas x)
+          (mem_chart_source ℂ x))
     exact contMDiffAt_of_eventually_eq_comp (((isLocalDiffeomorph_inr c).contMDiff).of_le le_top)
       hG (eventually_curveLift_eq_inr hu hne h)
   · have hev : ∀ᶠ y in 𝓝 x, u y ≠ p₀ := hu.continuous.continuousAt.eventually_ne h
@@ -272,14 +265,14 @@ theorem contMDiff_curveLift [ConnectedSpace S] {r : ℕ∞ω}
 
 /-- **Lifts of holomorphic curves are holomorphic.** The lift of a nonconstant holomorphic curve
 on a connected Riemann surface to the blowup is holomorphic. -/
-theorem mdifferentiable_curveLift [ConnectedSpace S]
+theorem mdifferentiable_curveLift [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂) :
     MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (curveLift c u) :=
   (contMDiff_curveLift (r := 1) hu hne).mdifferentiable one_ne_zero
 
 /-- **Uniqueness of lifts of holomorphic curves.** A continuous map `v : S → Blowup c` over a
 nonconstant holomorphic curve `u` on a connected Riemann surface is the lift of `u`. -/
-theorem curveLift_unique [ConnectedSpace S]
+theorem curveLift_unique [PreconnectedSpace S]
     (hu : MDifferentiable 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) u) (hne : ∃ x₁ x₂, u x₁ ≠ u x₂)
     {v : S → Blowup c} (hv : Continuous v) (hvu : blowdown c ∘ v = u) : v = curveLift c u := by
   have : PerfectSpace S := ChartedSpace.perfectSpace (H := ℂ)

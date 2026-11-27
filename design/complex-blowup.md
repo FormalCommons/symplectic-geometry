@@ -382,7 +382,7 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 ### `Blowup/Curve.lean`
 
 For a connected Riemann surface `Σ` (`[ChartedSpace ℂ Σ]
-[IsManifold 𝓘(ℂ) ω Σ] [ConnectedSpace Σ] [T2Space Σ]`) and `[T2Space M]`.
+[IsManifold 𝓘(ℂ) ω Σ] [PreconnectedSpace Σ]`) and `[T2Space M]`.
 
 - The fibres of a nonconstant holomorphic map from a connected Riemann
   surface are discrete: Tau Ceti's
