@@ -88,12 +88,10 @@ theorem coe_tailPuncture :
 
 variable {g n}
 
-@[simp]
 theorem mem_puncture {x : ClosedSurface g} : x ∈ puncture g n ↔ ∀ j < n, x ≠ ball g j 0 := by
   rw [← SetLike.mem_coe, coe_puncture]
   simp [eq_comm]
 
-@[simp]
 theorem mem_tailPuncture {x : ClosedSurface g} :
     x ∈ tailPuncture g n ↔ ∀ j < n, x ≠ ball g (j + 1) 0 := by
   rw [← SetLike.mem_coe, coe_tailPuncture]
@@ -104,13 +102,13 @@ variable (g) in
 @[simp]
 theorem puncture_zero : puncture g 0 = ⊤ := by
   ext x
-  simp
+  simp [mem_puncture]
 
 variable (g) in
 /-- With one centre removed, `puncture g 1` is the punctured summand
 `TauCeti.ConnectedSum.puncture (ball g 0)`, along which the next torus is summed. -/
 theorem puncture_one : puncture g 1 = ConnectedSum.puncture (ball g 0) :=
-  SetLike.ext fun x ↦ by simp
+  SetLike.ext fun x ↦ by simp [mem_puncture]
 
 variable (g) in
 /-- Removing more centres gives a smaller set. -/
@@ -119,15 +117,43 @@ theorem puncture_antitone : Antitone (puncture g) :=
 
 /-- The base point lies in each `puncture g n`. For `n = 1` this is
 `ClosedSurface.basePoint_mem_puncture`, read along `ClosedSurface.puncture_one`. -/
+@[simp]
 theorem basePoint_mem_puncture' : basePoint g ∈ puncture g n :=
   mem_puncture.2 fun j _ h ↦ basePoint_notMem_range_ball j ⟨0, h.symm⟩
+
+/-- A point `ball g j v` lies in `puncture g n` exactly when it is not a centre, or its ball is
+not among the balls `0, …, n - 1`. -/
+@[simp]
+theorem ball_mem_puncture_iff {j : ℕ} {v : EuclideanSpace ℝ (Fin 2)} :
+    ball g j v ∈ puncture g n ↔ v ≠ 0 ∨ n ≤ j := by
+  simp only [mem_puncture, ne_eq, ball_eq_ball_iff, not_and]
+  constructor
+  · intro h
+    by_contra! hc
+    exact h j hc.2 rfl hc.1
+  · rintro (hv | hn) k hk rfl
+    · exact hv
+    · omega
+
+/-- A point `ball g j v` lies in `tailPuncture g n` exactly when it is not a centre, or its ball
+is not among the balls `1, …, n`. -/
+@[simp]
+theorem ball_mem_tailPuncture_iff {j : ℕ} {v : EuclideanSpace ℝ (Fin 2)} :
+    ball g j v ∈ tailPuncture g n ↔ v ≠ 0 ∨ j = 0 ∨ n < j := by
+  simp only [mem_tailPuncture, ne_eq, ball_eq_ball_iff, not_and]
+  constructor
+  · intro h
+    by_contra! hc
+    exact h (j - 1) (by omega) (by omega) hc.1
+  · rintro (hv | hj | hn) k hk rfl
+    · exact hv
+    · omega
+    · omega
 
 /-- The ball `0` lies in `tailPuncture g n`. -/
 theorem ball_zero_mem_tailPuncture (v : EuclideanSpace ℝ (Fin 2)) :
     ball g 0 v ∈ tailPuncture g n :=
-  mem_tailPuncture.2 fun j _ h ↦
-    disjoint_left.1 (pairwise_disjoint_range_ball (g := g) (i := 0) (j := j + 1) (by omega))
-      ⟨v, rfl⟩ ⟨0, h.symm⟩
+  ball_mem_tailPuncture_iff.2 (Or.inr (Or.inl rfl))
 
 /-- Removing the centre of the ball `0` from `tailPuncture g n` gives `puncture g (n + 1)`. -/
 theorem puncture_succ_eq_tailPuncture_inf :

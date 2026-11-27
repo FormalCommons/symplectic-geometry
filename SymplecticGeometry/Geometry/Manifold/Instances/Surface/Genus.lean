@@ -521,6 +521,15 @@ theorem isLocalDiffeomorph_ball (j : ℕ) : IsLocalDiffeomorph (𝓡 2) (𝓡 2)
 theorem pairwise_disjoint_range_ball : Pairwise (Disjoint on fun j ↦ range (ball g j)) :=
   (closedSurfaceData g).pairwise_disjoint_range_ball
 
+/-- Two points of coordinate balls agree exactly when they are the same point of the same
+ball. -/
+theorem ball_eq_ball_iff {i j : ℕ} {v w : EuclideanSpace ℝ (Fin 2)} :
+    ball g i v = ball g j w ↔ i = j ∧ v = w := by
+  refine ⟨fun h ↦ ?_, fun ⟨hij, hvw⟩ ↦ hij ▸ hvw ▸ rfl⟩
+  obtain rfl : i = j := by_contra fun hij ↦
+    disjoint_left.1 (pairwise_disjoint_range_ball hij) ⟨v, rfl⟩ ⟨w, h.symm⟩
+  exact ⟨rfl, (isOpenEmbedding_ball i).injective h⟩
+
 /-- The base point lies on no coordinate ball. -/
 theorem basePoint_notMem_range_ball (j : ℕ) : basePoint g ∉ range (ball g j) :=
   (closedSurfaceData g).basePoint_notMem_range_ball j
