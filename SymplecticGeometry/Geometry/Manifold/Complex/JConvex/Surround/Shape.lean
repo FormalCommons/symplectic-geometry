@@ -125,6 +125,12 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
   (`SymplecticGeometry.criticalPoints_modelLevel`), where it takes the value `1`
   (`SymplecticGeometry.modelLevel_zero`), so its zero level is a J-convex level
   (`SymplecticGeometry.isJConvexLevel_modelLevel`).
+  The real part of its Levi form on `v = (v₁, v₂)` is `|v₁|² / 2 + 2 |v₂|²` at every point
+  (`SymplecticGeometry.re_leviForm_modelLevel_apply_self`), while its first and second
+  derivatives are bounded on bounded sets, so on such a set its Levi form is at least a fixed
+  multiple of `max ‖D²φ₀‖ ‖Dφ₀‖ ‖v‖²`
+  (`SymplecticGeometry.exists_pos_mul_max_norm_le_re_leviForm_modelLevel`), the kind of margin
+  that `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm` takes.
 * `SymplecticGeometry.isJOrthogonallyAttached_model`: the model disc is attached J-orthogonally
   to `{φ₀ ≤ 0}`, the model case of `SymplecticGeometry.IsJOrthogonallyAttached`. Along the disc
   `φ₀ (ι₀ x) = 1 - |x|²` (`SymplecticGeometry.modelLevel_modelDisc`), and the differential of
@@ -967,15 +973,24 @@ theorem contDiff_modelLevel {n : WithTop ℕ∞} : ContDiff ℝ n (modelLevel k 
   exact (contDiff_const.sub (contDiff_fst.comp contDiff_shape)).add
     (contDiff_const.mul (contDiff_snd.comp contDiff_shape))
 
+/-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`, as a function on a
+complex vector space. -/
+theorem isStrictlyPlurisubharmonicAt_modelLevel
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    IsStrictlyPlurisubharmonicAt (modelLevel k m) p := by
+  have h := isStrictlyPlurisubharmonicAt_shape (f := fun s ↦ 1 - s)
+    (g := fun t ↦ 2 * t) (p := p) (by fun_prop) (by fun_prop)
+    (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
+  simpa only [funext modelLevel_def] using h
+
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
       (modelLevel k m) p := by
-  have h := isManifoldStrictlyPlurisubharmonicAt_shape (f := fun s ↦ 1 - s)
-    (g := fun t ↦ 2 * t) (p := p) (by fun_prop) (by fun_prop)
-    (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
-  simpa only [funext modelLevel_def] using h
+  rw [isManifoldStrictlyPlurisubharmonicAt_iff]
+  simpa only [manifoldLeviForm_eq_leviForm, ← isStrictlyPlurisubharmonicAt_iff] using
+    isStrictlyPlurisubharmonicAt_modelLevel p
 
 /-- The only critical point of the model level on `ℂᵏ × ℂᵐ` is `0`. -/
 theorem criticalPoints_modelLevel :
@@ -1000,6 +1015,61 @@ theorem isJConvexLevel_modelLevel :
   subst hp
   rw [modelLevel_zero] at hp0
   exact one_ne_zero hp0
+
+/-- The Levi form of the model level `φ₀ = 1 - s + 2 t` on `v = (v₁, v₂)` has real part
+`|v₁|² / 2 + 2 |v₂|²`, at every point. -/
+theorem re_leviForm_modelLevel_apply_self
+    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    (leviForm (modelLevel k m) p v v).re = ‖v.1‖ ^ 2 / 2 + 2 * ‖v.2‖ ^ 2 := by
+  have h : modelLevel k m = (fun _ ↦ (1 : ℝ)) +
+      (-(fun q ↦ (shape q).1) + (2 : ℝ) • fun q ↦ (shape q).2) := by
+    funext q
+    simp only [modelLevel_def, Pi.add_apply, Pi.neg_apply, Pi.smul_apply, smul_eq_mul]
+    ring
+  have h₁ : ContDiffAt ℝ 2 (fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (shape q).1) p := contDiff_shape.fst.contDiffAt
+  have h₂ : ContDiffAt ℝ 2 (fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (shape q).2) p := contDiff_shape.snd.contDiffAt
+  have h₃ : ContDiffAt ℝ 2 (-(fun q ↦ (shape q).1) + (2 : ℝ) • fun q ↦ (shape q).2) p :=
+    h₁.neg.add (h₂.const_smul (2 : ℝ))
+  rw [h, leviForm_add contDiffAt_const h₃, leviForm_add (f := -(fun q ↦ (shape q).1))
+    (g := (2 : ℝ) • fun q ↦ (shape q).2) h₁.neg (h₂.const_smul (2 : ℝ)),
+    leviForm_const, leviForm_neg, leviForm_smul]
+  have hs : (leviForm (fun q ↦ (shape q).1) p v v).re = ‖v.1‖ ^ 2 / 2 := by
+    rw [leviForm_shape_fst_apply, Complex.div_ofNat_re, ← RCLike.re_to_complex,
+      inner_self_eq_norm_sq]
+  simp only [LinearMap.add_apply, LinearMap.neg_apply, LinearMap.smul_apply,
+    zero_add, Complex.add_re, Complex.neg_re, smul_eq_mul,
+    Complex.re_ofReal_mul, hs, re_leviForm_shape_snd_apply_self]
+  ring
+
+/-- **The margin of the model level on bounded sets.** For every `R` there is `c > 0` such that
+at every point `p` with `‖p‖ ≤ R`, the real part of the Levi form of the model level is at
+least `c max ‖D²φ₀ p‖ ‖Dφ₀ p‖ ‖v‖²`. -/
+theorem exists_pos_mul_max_norm_le_re_leviForm_modelLevel (R : ℝ) :
+    ∃ c > 0, ∀ p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m), ‖p‖ ≤ R → ∀ v,
+      c * max ‖fderiv ℝ (fderiv ℝ (modelLevel k m)) p‖ ‖fderiv ℝ (modelLevel k m) p‖ *
+        ‖v‖ ^ 2 ≤ (leviForm (modelLevel k m) p v v).re := by
+  have h := contDiff_modelLevel (k := k) (m := m) (n := ∞)
+  have hc : Continuous fun p ↦
+      max ‖fderiv ℝ (fderiv ℝ (modelLevel k m)) p‖ ‖fderiv ℝ (modelLevel k m) p‖ :=
+    ((h.fderiv_right (m := 1) (by simp)).continuous_fderiv (by simp)).norm.max
+      (h.continuous_fderiv (by simp)).norm
+  obtain ⟨B, hB⟩ := (isCompact_closedBall (0 : EuclideanSpace ℂ (Fin k) ×
+    EuclideanSpace ℂ (Fin m)) R).exists_bound_of_continuousOn hc.continuousOn
+  refine ⟨(2 * (|B| + 1))⁻¹, by positivity, fun p hp v ↦ ?_⟩
+  have hpB := hB p (mem_closedBall_zero_iff.2 hp)
+  rw [Real.norm_of_nonneg (le_max_of_le_right (norm_nonneg _))] at hpB
+  have hmax : (2 * (|B| + 1))⁻¹ *
+      max ‖fderiv ℝ (fderiv ℝ (modelLevel k m)) p‖ ‖fderiv ℝ (modelLevel k m) p‖ ≤ 1 / 2 := by
+    rw [inv_mul_le_iff₀ (by positivity)]
+    linarith [le_abs_self B]
+  have hv : ‖v‖ ^ 2 ≤ ‖v.1‖ ^ 2 + ‖v.2‖ ^ 2 := by
+    rw [Prod.norm_def]
+    rcases max_cases ‖v.1‖ ‖v.2‖ with ⟨h', -⟩ | ⟨h', -⟩ <;> rw [h'] <;>
+      nlinarith [sq_nonneg ‖v.1‖, sq_nonneg ‖v.2‖]
+  rw [re_leviForm_modelLevel_apply_self]
+  nlinarith [mul_le_mul_of_nonneg_right hmax (sq_nonneg ‖v‖), sq_nonneg ‖v.2‖]
 
 /-- On the model disc, the model level is `φ₀ (ι₀ x) = 1 - |x|²`. -/
 theorem modelLevel_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
