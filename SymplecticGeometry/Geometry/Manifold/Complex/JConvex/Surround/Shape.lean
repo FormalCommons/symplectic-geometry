@@ -737,9 +737,8 @@ theorem isManifoldStrictlyPlurisubharmonicAt_shape {f g : ℝ → ℝ}
     (h₂ : m ≠ 0 →
       0 < deriv g (shape p).2 + 2 * min (iteratedDeriv 2 g (shape p).2) 0 * (shape p).2) :
     IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      (fun q ↦ f (shape q).1 + g (shape q).2) p := by
-  rw [isManifoldStrictlyPlurisubharmonicAt_iff]
-  simpa only [manifoldLeviForm_eq_leviForm, ← isStrictlyPlurisubharmonicAt_iff] using
+      (fun q ↦ f (shape q).1 + g (shape q).2) p :=
+  isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt.2 <|
     isStrictlyPlurisubharmonicAt_shape hf hg h₁ h₂
 
 end Shape
@@ -987,9 +986,8 @@ theorem isStrictlyPlurisubharmonicAt_modelLevel
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      (modelLevel k m) p := by
-  rw [isManifoldStrictlyPlurisubharmonicAt_iff]
-  simpa only [manifoldLeviForm_eq_leviForm, ← isStrictlyPlurisubharmonicAt_iff] using
+      (modelLevel k m) p :=
+  isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt.2 <|
     isStrictlyPlurisubharmonicAt_modelLevel p
 
 /-- The only critical point of the model level on `ℂᵏ × ℂᵐ` is `0`. -/
