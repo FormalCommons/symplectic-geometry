@@ -45,6 +45,17 @@ of `‖μ‖²` from `p` (`SymplecticGeometry.exists_mem_orbit_maximalIntegralCu
 This is the proof of [GeorgoulasRobbinSalamon2021], Theorem 7.3, with the distance in `Gc ⧸ G`
 replaced by the polar radius, as in `KempfNess/NormSquare.lean`.
 
+The Kempf–Ness function of a stable point `p` is moreover proper
+(`SymplecticGeometry.IsStable.isProperMap_kempfNessFunction`). By the cocycle identity it suffices
+to treat a zero `q` of `μ` in the orbit, whose stabilizer in `Gc` is still discrete, so that no
+nonzero `ξ` has `X_ξ(q) = 0`. Then `t ↦ μ (C.expI (-(t • ξ)) • q) ξ`, the derivative of
+`t ↦ Φ_q (C.expI (t • ξ))`, vanishes at `0` and has positive derivative `‖X_ξ(q)‖²` there, so it
+is positive at `t = 1`; by compactness of the unit sphere it is at least some `c > 0` there for
+all unit `ξ`. Convexity then gives `Φ_q (C.expI η * C.toHom u) ≥ c (‖η‖ - 1)`, and since
+`C.polar` is a homeomorphism and `G` is compact, the sublevel sets of `Φ_q` are compact. This is
+the properness half of [GeorgoulasRobbinSalamon2021], Theorem 7.3, with the polar radius in place
+of the distance in `Gc ⧸ G`.
+
 ## Main results
 
 * `SymplecticGeometry.isSemistable_iff_bddBelow_kempfNessFunction`: `p` is semistable exactly
@@ -55,6 +66,8 @@ replaced by the polar radius, as in `KempfNess/NormSquare.lean`.
   bounded below along the flow curve `g`, then the limit of the flow is a zero of `μ`.
 * `SymplecticGeometry.mem_lowerBounds_range_kempfNessFunction`: if the flow converges to a zero
   of `μ`, a lower bound of `Φ_p ∘ g` on `[0, ∞)` bounds `Φ_p` on all of `Gc`.
+* `SymplecticGeometry.IsStable.isProperMap_kempfNessFunction`: the Kempf–Ness function of a stable
+  point is proper.
 
 ## References
 
@@ -270,6 +283,60 @@ theorem isSemistable_iff_bddBelow_kempfNessFunction (h : IsComplexifiedAction C 
     refine isSemistable_iff.2 ⟨x, mem_closure_of_tendsto hx (Eventually.of_forall fun t ↦ ?_), hx0⟩
     rw [hgx]
     exact MulAction.mem_orbit p (g t)⁻¹
+
+section Proper
+
+omit [I.Boundaryless] [T2Space G] [CompactSpace M]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] in
+/-- The Kempf–Ness function at a zero `q` of the moment map with discrete stabilizer in `Gc` is
+proper, in the setting of `kempfNessFunction_add_moment_le`. -/
+theorem isProperMap_kempfNessFunction_of_moment_eq_zero (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {q : M} (hq : μ q = 0)
+    [DiscreteTopology (MulAction.stabilizer Gc q)] :
+    IsProperMap (kempfNessFunction C μ q) := by
+  obtain ⟨c, hc0, hc⟩ := exists_pos_le_moment_expI_neg_smul_apply C μ q h hμ.toIsMomentMap hgm hq
+    ((h.discreteTopology_stabilizer_iff_of_moment_eq_zero hμ hgm hq).1 ‹_›)
+  have hcont : Continuous (kempfNessFunction C μ q) :=
+    (contMDiff_kempfNessFunction C μ q hμ.toIsMomentMap.contMDiff_of_neg).continuous
+  refine isProperMap_iff_isCompact_preimage.2 ⟨hcont, fun K hK ↦ ?_⟩
+  obtain ⟨L, hL⟩ := hK.bddAbove
+  -- The preimage of `K` lies in the image under `C.polar` of `closedBall 0 (L / c + 1) × G`.
+  refine (((isCompact_closedBall (0 : E) (L / c + 1)).prod isCompact_univ).image
+    C.polar.continuous).of_isClosed_subset (hK.isClosed.preimage hcont) fun g hg ↦
+      ⟨C.polar.symm g, ⟨?_, mem_univ _⟩, C.polar.apply_symm_apply g⟩
+  have hgrow := mul_norm_sub_one_le_kempfNessFunction C μ q h hμ hgm hq hc0.le hc
+    (C.polar.symm g).1 (C.polar.symm g).2
+  rw [C.expI_mul_toHom_polar_symm] at hgrow
+  have hle : ‖(C.polar.symm g).1‖ - 1 ≤ L / c := (le_div_iff₀' hc0).2 (hgrow.trans (hL hg))
+  rw [mem_closedBall_zero_iff]
+  linarith
+
+omit [I.Boundaryless] [T2Space G] [CompactSpace M]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)] in
+/-- **The Kempf–Ness function of a stable point is proper.** For a complexified action, with `-μ`
+an equivariant moment map for `σ` and the metric `σ(·, J ·)`, the Kempf–Ness function
+`Φ_p : Gc → ℝ` of a stable point `p` is a proper map.
+
+This is one half of [GeorgoulasRobbinSalamon2021], Theorem 7.3. -/
+theorem IsStable.isProperMap_kempfNessFunction (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {p : M}
+    (hp : IsStable C μ p) : IsProperMap (kempfNessFunction C μ p) := by
+  obtain ⟨g, hg0⟩ := isPolystable_iff_exists_smul.1 hp.isPolystable
+  have := topologicalGroup_of_lieGroup (G := Gc) IC ∞
+  have := ((isStable_smul_iff g).2 hp).discreteTopology_stabilizer
+  have hq := isProperMap_kempfNessFunction_of_moment_eq_zero h hμ hgm hg0
+  -- By the cocycle identity, `Φ_p x = Φ_p g⁻¹ + Φ_{g • p} (g * x)`.
+  have heq : kempfNessFunction C μ p = (kempfNessFunction C μ p g⁻¹ + ·) ∘
+      kempfNessFunction C μ (g • p) ∘ (g * ·) := funext fun x ↦ by
+    have := kempfNessFunction_mul C μ p h hμ hgm g⁻¹ (g * x)
+    rwa [inv_mul_cancel_left, inv_inv] at this
+  rw [heq]
+  exact (Homeomorph.addLeft (kempfNessFunction C μ p g⁻¹)).isProperMap.comp
+    (hq.comp (Homeomorph.mulLeft g).isProperMap)
+
+end Proper
 
 end SymplecticGeometry
 
