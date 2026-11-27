@@ -34,6 +34,8 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
 ## Main definitions and results
 
 * `SymplecticGeometry.moserField`: the cut-off Moser field of a family of two-forms.
+* `SymplecticGeometry.moserField_congr`: the field at time `t` depends only on the slices of
+  `σ` and `β` at `t` and on `ρ (t, ·)`.
 * `SymplecticGeometry.interior_moserField`, `SymplecticGeometry.interior_moserField_eq`:
   the identity `ι_{X_t} σ_t = -ρ(t, ·) β_t`.
 * `SymplecticGeometry.exists_isCompact_moserField_eq_zero`: for a cutoff with compact support,
@@ -113,6 +115,23 @@ theorem moserField_def (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
           (-SmoothForm.degreeOneEquiv
             (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β) x) :=
   (rfl)
+
+/-- The Moser field at time `t` depends only on the slices of `σ` and `β` at `t` and on
+`ρ (t, ·)`: families over two parameter manifolds `N` and `N'` whose slices at `t` and `t'`
+agree, with cutoffs that agree there, have the same Moser fields at `t` and `t'`. -/
+theorem moserField_congr {EN' HN' N' : Type*} [NormedAddCommGroup EN'] [NormedSpace ℝ EN']
+    [TopologicalSpace HN'] {J' : ModelWithCorners ℝ EN' HN'} [TopologicalSpace N']
+    [ChartedSpace HN' N'] [IsManifold J' ∞ N']
+    {σ' : SmoothForm (J'.prod I) (N' × M) ℝ 2} {β' : SmoothForm (J'.prod I) (N' × M) ℝ 1}
+    {ρ' : N' × M → ℝ} {t : N} {t' : N'}
+    (hσ : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ =
+      SmoothForm.mpullback (Prod.mk t') (contMDiff_const.prodMk contMDiff_id) σ')
+    (hβ : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
+      SmoothForm.mpullback (Prod.mk t') (contMDiff_const.prodMk contMDiff_id) β')
+    (hρ : ∀ x, ρ (t, x) = ρ' (t', x)) :
+    moserField σ β ρ t = moserField σ' β' ρ' t' := by
+  funext x
+  rw [moserField_def, moserField_def, hσ, hβ, hρ]
 
 /-- The Moser field vanishes where the slice of the one-form `β` does. -/
 theorem moserField_eq_zero_of_apply_eq_zero {t : N} {x : M}
@@ -382,10 +401,11 @@ theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
       (SmoothForm.mpullback Prod.snd contMDiff_snd γ) ρ =
       moserField (SmoothForm.lineMapFamily ω₀ α contDiff_id)
         (SmoothForm.lineMapFamily 0 γ hc') ρ := by
-    funext s y
-    rw [moserField_def, moserField_def, SmoothForm.mpullback_prodMk_mpullback_snd,
-      SmoothForm.mpullback_prodMk_lineMapFamily 0 γ hc', deriv_id, one_smul, sub_zero,
-      zero_add]
+    funext s
+    exact moserField_congr rfl (by
+      rw [SmoothForm.mpullback_prodMk_mpullback_snd,
+        SmoothForm.mpullback_prodMk_lineMapFamily 0 γ hc', deriv_id, one_smul, sub_zero,
+        zero_add]) fun _ ↦ rfl
   rw [hX'] at hX hc hx ⊢
   exact mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply_of_contDiff hω₀ hγ
     contDiff_id rfl rfl hX hc hx

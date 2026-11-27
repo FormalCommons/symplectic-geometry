@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
+public import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 
 import Mathlib.Analysis.Analytic.CPolynomial
 import Mathlib.Analysis.Calculus.ContDiff.Operations
@@ -15,8 +16,8 @@ import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.VanishingOrder
-import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Flat
 import TauCeti.Analysis.Calculus.IteratedFDeriv.SymmetricFinite
@@ -44,6 +45,11 @@ to `f` on the real points.
 * `SymplecticGeometry.fderiv_taylorExtension_apply_real`,
   `SymplecticGeometry.fderiv_taylorExtension_apply_imag`: its real derivative at `x + i y` in a
   real direction `u` and in the imaginary direction `i u`, for `f` of class `C^(N + 1)`;
+* `SymplecticGeometry.fderiv_taylorExtension_ofReal`: for `1 ≤ N`, its real derivative at a real
+  point `x + i 0` is the complex-linear extension of the derivative of `f` at `x`;
+* `SymplecticGeometry.fderiv_taylorExtension_comp_ofReal`: if `f` is the restriction to the real
+  points of a map `h` whose derivative at a real point `x + i 0` commutes with multiplication by
+  `i`, and `1 ≤ N`, then `taylorExtension N f` and `h` have the same derivative at `x + i 0`;
 * `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real`: in a real direction `u`,
   the conjugate Wirtinger derivative of `taylorExtension N f` at `x + i y` is
   `(2⁻¹ * i ^ N / N!) • D^(N+1) f(x) (u, y, …, y)`, so it vanishes to order `N` on the real
@@ -73,7 +79,12 @@ to `f` on the real points.
 * `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`: the two
   results above together. If `D` is moreover `C^(N + 1)`, then
   `‖D^j D (x + i y)‖ ≤ C' * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` near any compact set of real
-  points in `U`.
+  points in `U`;
+* `SymplecticGeometry.exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le`: if the
+  first two derivatives of `e₁ - e₂` are `O(‖y‖ ^ (N + 1 - j))` on an open set, as
+  `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le` gives them
+  for `1 ≤ N`, then the bounds `C₁ * ‖y‖ ^ N` on `∂̄ e₁` and `C₁ * ‖y‖ ^ (N - 1)` on its
+  derivative pass to `e₂`, with another constant.
 
 For `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, fix a real point
 `x` of `U`. The iterated derivative `D^j D(x)` vanishes on real arguments, since `D` vanishes on
@@ -222,6 +233,56 @@ theorem fderiv_taylorExtension_apply_imag {N : ℕ} {f : EuclideanSpace ℝ ι' 
   congr 1
   push_cast
   field_simp
+
+/-- At a real point `x + i 0`, the real derivative of the truncated Taylor extension of order
+`N ≥ 1` of a `C^(N + 1)` map `f` is the complex-linear extension of the derivative of `f` at `x`.
+For `N = 0` this fails: the extension is then constant in the imaginary directions. -/
+theorem fderiv_taylorExtension_ofReal {N : ℕ} (hN : 1 ≤ N) {f : EuclideanSpace ℝ ι' → W}
+    (hf : ContDiff ℝ (N + 1) f) (x : EuclideanSpace ℝ ι') :
+    fderiv ℝ (taylorExtension N f) ((complexEuclideanEquivRealProd ι').symm (x, 0)) =
+      ContinuousLinearMap.complexExtension ι' W (fderiv ℝ f x) := by
+  set e := complexEuclideanEquivRealProd ι'
+  -- At `y = 0`, only the first-order term of each sum survives.
+  have hsum (M : ℕ) (c : ℕ → ℂ) (hM : 0 < M) (u : EuclideanSpace ℝ ι') :
+      ∑ j ∈ Finset.range M, c j • iteratedFDeriv ℝ (j + 1) f x (Fin.cons u fun _ ↦ 0) =
+        c 0 • fderiv ℝ f x u := by
+    rw [Finset.sum_eq_single_of_mem 0 (Finset.mem_range.2 hM)]
+    · simp
+    · intro j _ hj
+      obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hj
+      rw [(iteratedFDeriv ℝ (k + 2) f x).map_coord_zero (1 : Fin (k + 2)) (by simp), smul_zero]
+  ext z
+  obtain ⟨⟨u, v⟩, rfl⟩ := e.symm.surjective z
+  rw [ContinuousLinearMap.complexExtension_apply_symm,
+    show e.symm (u, v) = e.symm (u, 0) + e.symm (0, v) by rw [← map_add]; simp, map_add,
+    fderiv_taylorExtension_apply_real hf, fderiv_taylorExtension_apply_imag hf,
+    hsum _ _ (Nat.succ_pos N), hsum _ _ hN]
+  simp
+
+/-- Let `h : ℂⁿ → W` be real differentiable at a real point `x + i 0`, with a derivative there
+that commutes with multiplication by `i`, and let its restriction `y ↦ h (y + i 0)` to the real
+points be `C^(N + 1)` with `1 ≤ N`. Then the truncated Taylor extension of order `N` of this
+restriction has the same real derivative as `h` at `x + i 0`. (Their values there agree by
+`taylorExtension_ofReal`.) For `N = 0` this fails: the extension is then constant in the
+imaginary directions. -/
+theorem fderiv_taylorExtension_comp_ofReal {N : ℕ} (hN : 1 ≤ N) {h : EuclideanSpace ℂ ι' → W}
+    (hf : ContDiff ℝ (N + 1) fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
+    {x : EuclideanSpace ℝ ι'}
+    (hx : DifferentiableAt ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)))
+    (hI : ∀ v, fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) (Complex.I • v) =
+      Complex.I • fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) v) :
+    fderiv ℝ (taylorExtension N fun y ↦ h ((complexEuclideanEquivRealProd ι').symm (y, 0)))
+        ((complexEuclideanEquivRealProd ι').symm (x, 0)) =
+      fderiv ℝ h ((complexEuclideanEquivRealProd ι').symm (x, 0)) := by
+  set e := complexEuclideanEquivRealProd ι'
+  rw [fderiv_taylorExtension_ofReal hN hf]
+  refine (ContinuousLinearMap.complexExtension_unique _ hI fun u ↦ ?_).symm
+  -- The derivative of `h ∘ ofReal` is that of `h` in the real directions.
+  have hline : HasFDerivAt (fun x' ↦ e.symm (x', 0))
+      (e.symm.toContinuousLinearMap.comp (.inl ℝ _ _)) x :=
+    e.symm.hasFDerivAt.comp x (hasFDerivAt_prodMk_left x 0)
+  rw [HasFDerivAt.fderiv (f := fun y ↦ h (e.symm (y, 0))) (hx.hasFDerivAt.comp x hline)]
+  simp [e]
 
 /-- The conjugate Wirtinger derivative of the truncated Taylor extension of a `C^(N + 1)` map
 at `x + i y`, in a real direction `u`: only the term of order `N + 1` survives, and it is
@@ -513,6 +574,54 @@ theorem exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le {N : ℕ} {C
   exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hU hD hK hKU hKre
     fun _ hxU hx _ hj ↦ iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le hU
       (hD.of_le (by exact_mod_cast N.le_succ)) hD0 hC hxU hx hj
+
+/-- **Agreement of order `N + 1` carries the `∂̄` bounds.** Let `e₁ e₂` be `C²` over `ℝ` on an
+open set `U`, with `‖D^j (e₁ - e₂) (x + i y)‖ ≤ C * ‖y‖ ^ (N + 1 - j)` on `U` for `j = 1, 2`.
+If `‖∂̄ e₁ (x + i y)‖ ≤ C₁ * ‖y‖ ^ N` and the derivative of `∂̄ e₁` (in the bundled real-linear
+form `ContinuousLinearMap.complexAntilinearPartL` of the derivative) is at most
+`C₁ * ‖y‖ ^ (N - 1)` on `U`, then `e₂` has the same two bounds on `U` with some constant `C₂`. -/
+theorem exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le {N : ℕ} {C C₁ : ℝ}
+    {e₁ e₂ : EuclideanSpace ℂ ι' → W} {U : Set (EuclideanSpace ℂ ι')} (hU : IsOpen U)
+    (he₁ : ContDiffOn ℝ 2 e₁ U) (he₂ : ContDiffOn ℝ 2 e₂ U)
+    (hC : ∀ z ∈ U, ∀ j ∈ Finset.Icc 1 2, ‖iteratedFDeriv ℝ j (e₁ - e₂) z‖ ≤
+      C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N + 1 - j))
+    (hC₁ : ∀ z ∈ U,
+      ‖conjWirtingerDeriv e₁ z‖ ≤ C₁ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N)
+    (hC₁' : ∀ z ∈ U,
+      ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₁ w)) z‖ ≤
+        C₁ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1)) :
+    ∃ C₂, ∀ z ∈ U,
+      ‖conjWirtingerDeriv e₂ z‖ ≤ C₂ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N ∧
+      ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₂ w)) z‖ ≤
+        C₂ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1) := by
+  set P : (EuclideanSpace ℂ ι' →L[ℝ] W) →L[ℝ] EuclideanSpace ℂ ι' →L[ℝ] W :=
+    ContinuousLinearMap.complexAntilinearPartL
+  set t := fun z ↦ ‖(complexEuclideanEquivRealProd ι' z).2‖
+  refine ⟨C₁ + max 1 ‖P‖ * max C 0, fun z hz ↦ ?_⟩
+  have h₁ := he₁.contDiffAt (hU.mem_nhds hz)
+  have h₂ := he₂.contDiffAt (hU.mem_nhds hz)
+  have hC' : C ≤ max C 0 := le_max_left _ _
+  have hP : 1 ≤ max 1 ‖P‖ := le_max_left _ _
+  have hP' : ‖P‖ ≤ max 1 ‖P‖ := le_max_right _ _
+  have h1 := hC z hz 1 (by simp)
+  rw [norm_iteratedFDeriv_one, Nat.add_sub_cancel] at h1
+  have h2 := hC z hz 2 (by simp)
+  rw [show N + 1 - 2 = N - 1 by omega] at h2
+  constructor
+  · calc _ ≤ _ := norm_conjWirtingerDeriv_le_add_norm_fderiv_sub
+          (h₁.differentiableAt two_ne_zero) (h₂.differentiableAt two_ne_zero)
+      _ ≤ C₁ * t z ^ N + 1 * (max C 0 * t z ^ N) := by
+        rw [one_mul]
+        gcongr
+        · exact hC₁ z hz
+        · exact h1.trans (by gcongr)
+      _ ≤ _ := by rw [add_mul, mul_assoc]; gcongr
+  · calc _ ≤ _ := norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub h₁ h₂
+      _ ≤ C₁ * t z ^ (N - 1) + ‖P‖ * (max C 0 * t z ^ (N - 1)) := by
+        gcongr
+        · exact hC₁' z hz
+        · exact h2.trans (by gcongr)
+      _ ≤ _ := by rw [add_mul, mul_assoc]; gcongr
 
 end SymplecticGeometry
 

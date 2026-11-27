@@ -1123,9 +1123,33 @@ when `g` is smooth and the band `g⁻¹[a, b]` is compact with no critical
 point (for any `a₀`). Its compression is `TauCeti.Diffeotopy.smoothIsotopy`
 of the diffeotopy `TauCeti.exists_diffeotopy_mapsTo_of_sublevel_subset`.
 
+Band cores move along diffeomorphisms, which may change the model but not
+the model vector space: for `I : ModelWithCorners ℝ E H` and
+`J : ModelWithCorners ℝ E H'`, both boundaryless, `Φ : M ≃ₘ^∞⟮I, J⟯ N` and
+a band core `c : BandCore J g a₀ a b` of `g : N → ℝ`,
+
+```lean
+def BandCore.ofDiffeomorph (Φ : M ≃ₘ^∞⟮I, J⟯ N) (c : BandCore J g a₀ a b) :
+    BandCore I (g ∘ Φ) a₀ a b
+```
+
+has the charts `Φ.symm ∘ c.chart i` (smooth embeddings by Tau Ceti's
+`Diffeomorph.isSmoothEmbedding_comp`, `Geometry/Manifold/SmoothEmbedding/Diffeomorph.lean`)
+and, for an open `U ⊆ M`, the compression of `c` for `Φ '' U` conjugated
+by `Φ`, `(t, x) ↦ Φ.symm (F (t, Φ x))`, built with this library's
+`TauCeti.SmoothIsotopy.precompSmoothEmbedding` and
+`postcompSmoothEmbedding` (`Geometry/Manifold/SmoothIsotopy/Basic.lean`).
+The cubes keep their dimensions, since both models are on `E`. Its API is
+`cubes_ofDiffeomorph : (c.ofDiffeomorph Φ).cubes = Φ.symm '' c.cubes`.
+
 #### `Morse/Core/Cube.lean`
 
-The cube at one critical point, in the namespace `TauCeti.MorseChart`. Tau Ceti's flow
+The cube at one critical point, in the namespace `TauCeti.MorseChart`, for
+a manifold `M` modelled on `E` itself (`[ChartedSpace E M]` with
+`𝓘(ℝ, E)`), the model of Tau Ceti's `MorseChart E g p` and its `field`, of
+the pseudo-gradients of `Morse/PseudoGradient/Existence.lean`, and of
+`TauCeti.globalFlow`; `Compression.lean` says how a general boundaryless
+model comes down to it. Tau Ceti's flow
 of an adapted pseudo-gradient (`Morse/PseudoGradient/Flow.lean`) needs
 `[CompactSpace M]`, so this file uses a compactly supported smooth field `X`
 with `dg(X) ≤ 0`, `dg(X) < 0` on the band off the critical points, and equal
@@ -1181,6 +1205,31 @@ theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
       g x = v ∧ manifoldMorseIndex I g x < Module.finrank ℝ E) :
     Nonempty (BandCore I g a₀ a b)
 ```
+
+**Models.** The tools below, `Cube.lean`, Tau Ceti's pseudo-gradients and
+`TauCeti.globalFlow`, are stated for manifolds modelled on `E` with
+`𝓘(ℝ, E)`. So the file first proves the theorem for such an `M`, with
+`I := 𝓘(ℝ, E)`, as a lemma of its own, and gets the general statement
+from it through Tau Ceti's `BoundarylessModel I M`
+(`Geometry/Manifold/ModelTransport/Boundaryless.lean`): `M` with the same
+topology and the charts composed with `I`, a manifold modelled on `E`,
+with the diffeomorphism
+`BoundarylessModel.diffeomorph I ∞ : M ≃ₘ^∞⟮I, 𝓘(ℝ, E)⟯ BoundarylessModel I M`
+whose underlying map is the identity (`coe_diffeomorph`). The lemma is
+applied to `g' := g ∘ (BoundarylessModel.homeomorph I M).symm`:
+
+- `IsMorse`, `criticalPoints` and `manifoldMorseIndex` are carried by
+  `BoundarylessModel.isMorse_iff`, `criticalPoints_eq` and
+  `manifoldMorseIndex_eq` (`Geometry/Manifold/Morse/ModelTransport.lean`),
+  which give `hg` and `hcrit` for `g'`;
+- `IsProperMap g'` and `BddBelow (Set.range g')` hold since `g'` is `g`
+  composed with a homeomorphism; `T2Space` has an instance on
+  `BoundarylessModel I M`, and `SigmaCompactSpace`, which the
+  pseudo-gradients need, is a local instance by `inferInstanceAs`;
+- the band core of `g'` comes back to `M` as
+  `BandCore.ofDiffeomorph (BoundarylessModel.diffeomorph I ∞)` of it
+  (`Basic.lean`), a band core of `g' ∘ diffeomorph I ∞ = g`, and that
+  definition carries its smooth embeddings and smooth isotopies.
 
 The cubes are those of `Cube.lean` at the finitely many critical points of
 the level `v` (`TauCeti.IsMorse.finite_criticalPoints_inter`), all for the
@@ -1774,15 +1823,17 @@ Each is a few hundred lines; each issue's blockers come before it.
    - 4f. **The theorem.** `Geometry/Manifold/Morse/OpenManifold.lean`:
      `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`. Blocked by
      4a, 4c, 4d and 4e.
-5. **The band cores**, `Geometry/Manifold/Morse/Core/`, in four building
+5. **The band cores**, `Geometry/Manifold/Morse/Core/`, in these building
    issues, in this order:
    - 5a. **The structure.** `Morse/Core/Basic.lean`: `BandCore`, its API
      and `BandCore.ofNoCriticalPoint`. Blocked by nothing.
+   - 5a′. **Band cores along diffeomorphisms.** `Morse/Core/Basic.lean`:
+     `BandCore.ofDiffeomorph` and `cubes_ofDiffeomorph`. Blocked by 5a.
    - 5b. **The cube at a critical point.** `Morse/Core/Cube.lean`:
      `TauCeti.MorseChart.exists_cubeChart_unstableSet`. Blocked by nothing.
    - 5c. **Compression across one critical level.**
      `Morse/Core/Compression.lean`: `TauCeti.IsMorse.exists_bandCore`.
-     Blocked by 5a and 5b.
+     Blocked by 5a, 5a′ and 5b.
    - 5d. **The band cores of an open manifold.** `Morse/Core/Exhaustion.lean`:
      `TauCeti.exists_isMorse_bandCore_seq`. Blocked by 4 and 5c.
 6. **Smooth families of primitives over a manifold parameter**
