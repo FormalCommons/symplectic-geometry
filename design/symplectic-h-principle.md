@@ -643,8 +643,13 @@ Proof, from the strengthened `exists_holonomic_approximation_cube_directions`:
 4. *Approximation.* `exists_holonomic_approximation_cube_directions` with
    `J`, `B'`, `ε / 2` and `min δ 1` gives `h''`, `f''`, `V''`, `C''` and
    `N''`.
-5. *Back to `L × D`.* `h := TauCeti.Diffeotopy.transDiffeomorph
-   Ψ.symm.toDiffeomorph h''` (`ContinuousLinearEquiv.toDiffeomorph`),
+5. *Back to `L × D`.* `h := TauCeti.Diffeotopy.ofContMDiff ψ hψ h₀`
+   (`Diffeotopy/OfContMDiff.lean`) for the conjugated slices
+   `ψ t := Ψ.toDiffeomorph.trans ((h''.timeSlice t).trans Ψ.symm.toDiffeomorph)`
+   (`ContinuousLinearEquiv.toDiffeomorph`). Tau Ceti's `transDiffeomorph`
+   does not apply here, since it keeps the model and `Ψ` changes it. `hψ`
+   is `Ψ.symm.toDiffeomorph.contMDiff` composed with `h''.contMDiff` and
+   `Ψ` on the space factor, and `h₀` is `apply_zero`. Further,
    `f' := f'' ∘ Ψ`, `V := Ψ ⁻¹' V''` and `C := Ψ.symm '' C''`. The `L`
    coordinate is kept because `h''` keeps the coordinates outside `J`;
    displacements and the distance to `Q` are measured in the space part,
