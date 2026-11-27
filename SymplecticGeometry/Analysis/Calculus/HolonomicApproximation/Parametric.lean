@@ -828,7 +828,7 @@ theorem exists_holonomic_approximation_continuous_family [CompactSpace P] [T2Spa
     exact hp (hBU ⟨mem_univ _, hx⟩)
   set O₀ : Set P := {l | ∀ x ∈ closedBall (0 : (Fin m → ℝ) × (Fin k → ℝ)) 2,
     ‖G l x - fderiv ℝ (f l) x‖ < ε / 4}
-  have hO₀ : IsOpen O₀ := (isCompact_closedBall _ _).isOpen_setOf_forall_norm_sub_lt
+  have hO₀ : IsOpen O₀ := (isCompact_closedBall _ _).isOpen_setOfPred_forall_norm_sub_lt
     (f := fun p : P × (Fin m → ℝ) × (Fin k → ℝ) ↦ G p.1 p.2) hcG hdf _
   have hP₀O₀ : P₀ ⊆ O₀ := fun l hl x _ ↦ by
     simpa [hUf (l, x) (hP₀U ⟨hl, mem_univ x⟩)] using hε
