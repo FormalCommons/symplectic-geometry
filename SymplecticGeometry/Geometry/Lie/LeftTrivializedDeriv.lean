@@ -25,12 +25,16 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
 
 ## Main results
 
+* `SymplecticGeometry.hasLeftTrivializedDerivOn_iff_of_isOpen`,
+  `SymplecticGeometry.hasLeftTrivializedDerivOn_univ_iff`: on an open set, the condition with the
+  derivative at each point.
 * `SymplecticGeometry.hasLeftTrivializedDerivOn_iff`: the condition in terms of Mathlib's
   `mulInvariantVectorField`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul`: left translates `t ↦ a * g t` of
   such a curve have the same left-trivialized derivative.
-* `HasMFDerivWithinAt.mul_inv_of_eq_one`: two curves through `1` at `t` with the same derivative
-  there; then `u ↦ φ u * (ψ u)⁻¹` has zero derivative at `t`.
+* `HasMFDerivWithinAt.mul_inv_of_eq_one`: if two maps from a manifold into a Lie group take the
+  value `1` at `x` with the same derivative there, then `u ↦ φ u * (ψ u)⁻¹` has zero
+  derivative at `x`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.eqOn`: two curves with the same left-trivialized
   derivative on a preconnected set that agree at one of its points agree on it. Neither
   continuity of `ξ` nor completeness of the model is needed.
@@ -41,7 +45,8 @@ The derivative is taken within `s`, as in Mathlib's `IsMIntegralCurveOn`; on an 
 particular on `Set.univ`, this is the derivative at each point.
 
 The proof of `const_mul` follows that of Tau Ceti's `IsMIntegralCurveOn.map_of_mfderiv_eq`, with
-Tau Ceti's `mfderiv_mul_left_mulInvariantVectorField` for the vector fields.
+Tau Ceti's `mfderiv_mul_left_mulInvariantVectorField` for the vector fields; so does the private
+step that translates a curve to pass through `1`.
 
 For uniqueness, at a time `t` both curves are first translated to pass through `1`, as
 `φ u = (g t)⁻¹ * g u` and `ψ u = (h t)⁻¹ * h u`; both then have derivative `ξ t` at `t`. By Tau
@@ -55,6 +60,42 @@ public section
 
 open Set TauCeti
 open scoped Manifold
+
+section MulInv
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E H : Type*} [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} {G : Type*}
+  [TopologicalSpace G] [ChartedSpace H G] [Group G] {E' H' : Type*} [NormedAddCommGroup E']
+  [NormedSpace 𝕜 E'] [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'} {M : Type*}
+  [TopologicalSpace M] [ChartedSpace H' M]
+
+/-- If two maps `φ`, `ψ` into a Lie group take the value `1` at `x` and have the same derivative
+within `s` there, then `u ↦ φ u * (ψ u)⁻¹` has zero derivative within `s` at `x`. -/
+theorem HasMFDerivWithinAt.mul_inv_of_eq_one [LieGroup I 1 G] {φ ψ : M → G} {s : Set M}
+    {x : M} {f' : E' →L[𝕜] E} (hφ : HasMFDerivWithinAt I' I φ s x f')
+    (hψ : HasMFDerivWithinAt I' I ψ s x f') (hφ1 : φ x = 1) (hψ1 : ψ x = 1) :
+    HasMFDerivWithinAt I' I (fun u ↦ φ u * (ψ u)⁻¹) s x 0 := by
+  have hψi := ((contMDiff_inv I 1).mdifferentiableAt
+    one_ne_zero).hasMFDerivAt.comp_hasMFDerivWithinAt x hψ
+  have hm := ((contMDiff_mul I 1).mdifferentiableAt
+    one_ne_zero).hasMFDerivAt.comp_hasMFDerivWithinAt x (hφ.prodMk hψi)
+  refine hm.congr_mfderiv ?_
+  -- The derivatives at the identity are stated at `1`; the base points here are only
+  -- propositionally equal to it, so generalize them before substituting.
+  have key : ∀ (X : GroupLieAlgebra I G) (a b : G), a = 1 → b = 1 →
+      mfderiv (I.prod I) I (fun p : G × G ↦ p.1 * p.2) (a, b⁻¹)
+        (X, mfderiv I I (·⁻¹) b X) = 0 := by
+    rintro X a b rfl rfl
+    rw [GroupLieAlgebra.mfderiv_inv_one_apply]
+    have h1 : ∀ z : G, z = 1 →
+        mfderiv (I.prod I) I (fun p : G × G ↦ p.1 * p.2) (1, z) (X, -X) = 0 := by
+      rintro z rfl
+      exact (mfderiv_mul_apply_one X (-X)).trans (add_neg_cancel X)
+    exact h1 _ inv_one
+  ext v
+  exact key (f' v : GroupLieAlgebra I G) _ _ hφ1 hψ1
+
+end MulInv
 
 namespace SymplecticGeometry
 
@@ -77,6 +118,22 @@ theorem hasLeftTrivializedDerivOn_def :
       HasMFDerivWithinAt 𝓘(ℝ) I g s t ((1 : ℝ →L[ℝ] ℝ).smulRight v) ∧
         mfderiv I I ((g t)⁻¹ * ·) (g t) v = ξ t :=
   Iff.rfl
+
+/-- On an open set of times, the condition takes the derivative at each point instead of the
+derivative within the set. -/
+theorem hasLeftTrivializedDerivOn_iff_of_isOpen (hs : IsOpen s) :
+    HasLeftTrivializedDerivOn g ξ s ↔ ∀ t ∈ s, ∃ v : TangentSpace I (g t),
+      HasMFDerivAt 𝓘(ℝ) I g t ((1 : ℝ →L[ℝ] ℝ).smulRight v) ∧
+        mfderiv I I ((g t)⁻¹ * ·) (g t) v = ξ t :=
+  forall₂_congr fun _ ht ↦ exists_congr fun _ ↦ and_congr_left' ⟨fun h ↦
+    h.hasMFDerivAt (hs.mem_nhds ht), HasMFDerivAt.hasMFDerivWithinAt⟩
+
+/-- On all times, the condition takes the derivative at each time. -/
+theorem hasLeftTrivializedDerivOn_univ_iff :
+    HasLeftTrivializedDerivOn g ξ univ ↔ ∀ t, ∃ v : TangentSpace I (g t),
+      HasMFDerivAt 𝓘(ℝ) I g t ((1 : ℝ →L[ℝ] ℝ).smulRight v) ∧
+        mfderiv I I ((g t)⁻¹ * ·) (g t) v = ξ t := by
+  simp [hasLeftTrivializedDerivOn_iff_of_isOpen isOpen_univ]
 
 /-- A curve has left-trivialized derivative `ξ` on `s` if and only if, at each `t ∈ s`, its
 derivative within `s` is the value at `g t` of the left-invariant vector field of `ξ t`. -/
@@ -128,37 +185,6 @@ private theorem HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_mul [ContMDiffM
     -- codomain; both are the model space.
     rfl
   exact (mdifferentiableAt_mul_left.hasMFDerivAt.comp_hasMFDerivWithinAt t hgv).congr_mfderiv hder
-
-/-- If two curves `φ`, `ψ` in a Lie group pass through `1` at `t` with the same derivative
-there, then `u ↦ φ u * (ψ u)⁻¹` has zero derivative at `t`. -/
-theorem _root_.HasMFDerivWithinAt.mul_inv_of_eq_one [LieGroup I 1 G] {φ ψ : ℝ → G} {t : ℝ}
-    {X : GroupLieAlgebra I G}
-    (hφ : HasMFDerivWithinAt 𝓘(ℝ) I φ s t ((1 : ℝ →L[ℝ] ℝ).smulRight X))
-    (hψ : HasMFDerivWithinAt 𝓘(ℝ) I ψ s t ((1 : ℝ →L[ℝ] ℝ).smulRight X))
-    (hφ1 : φ t = 1) (hψ1 : ψ t = 1) :
-    HasMFDerivWithinAt 𝓘(ℝ) I (fun u ↦ φ u * (ψ u)⁻¹) s t 0 := by
-  have hψi := ((contMDiff_inv I 1).mdifferentiableAt
-    one_ne_zero).hasMFDerivAt.comp_hasMFDerivWithinAt t hψ
-  have hm := ((contMDiff_mul I 1).mdifferentiableAt
-    one_ne_zero).hasMFDerivAt.comp_hasMFDerivWithinAt t (hφ.prodMk hψi)
-  refine hm.congr_mfderiv ?_
-  -- The derivatives at the identity are stated at `1`; the base points here are only
-  -- propositionally equal to it, so generalize them before substituting.
-  have key : ∀ x y : G, x = 1 → y = 1 →
-      mfderiv (I.prod I) I (fun p : G × G ↦ p.1 * p.2) (x, y⁻¹)
-        (X, mfderiv I I (·⁻¹) y X) = 0 := by
-    rintro x y rfl rfl
-    rw [GroupLieAlgebra.mfderiv_inv_one_apply]
-    have h1 : ∀ z : G, z = 1 →
-        mfderiv (I.prod I) I (fun p : G × G ↦ p.1 * p.2) (1, z) (X, -X) = 0 := by
-      rintro z rfl
-      exact (mfderiv_mul_apply_one X (-X)).trans (add_neg_cancel X)
-    exact h1 _ inv_one
-  ext
-  refine (congrArg (mfderiv (I.prod I) I (fun p : G × G ↦ p.1 * p.2) (φ t, (ψ t)⁻¹)) ?_).trans
-    (key _ _ hφ1 hψ1)
-  exact Prod.ext (one_smul ℝ X)
-    (congrArg (mfderiv I I (fun x : G ↦ x⁻¹) (ψ t)) (one_smul ℝ X))
 
 /-- **Uniqueness.** Two curves with the same left-trivialized derivative on a preconnected set
 `s` of times that agree at one point of `s` agree on all of `s`. -/
