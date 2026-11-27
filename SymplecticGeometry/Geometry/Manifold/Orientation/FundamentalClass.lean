@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-import TauCeti.Geometry.Manifold.Degree.Homological
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!
 # Fundamental classes carried along a diffeomorphism
@@ -21,9 +21,9 @@ the fundamental class of `o.map e` is evaluating its pullback along `e` on that 
 
 No connectedness is assumed. The proof checks the defining property of the fundamental class of
 `N` (`TauCeti.HomologicalOrientation.eq_fundamentalClass`) one point at a time: at `e x`, the
-only preimage is `x`, and the local index of `e` at `x` is the orientation sign of `e`, which is
-`1` because `e` preserves orientation from `o` to `o.map e`
-(`TauCeti.Manifold.Orientation.localIndex_toHomologicalOrientation`). The argument follows Tau
+only preimage is `x`, and since `e` preserves orientation from `o` to `o.map e` there, the map it
+induces on local homology at `x` carries the local orientation of `o` to that of `o.map e`
+(`TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`). The argument follows Tau
 Ceti's `TauCeti.HomologicalOrientation.mapFundamentalClass_comap`, which treats a homeomorphism
 and an orientation pulled back along it on one model space.
 
@@ -70,22 +70,16 @@ theorem mapFundamentalClass_toHomologicalOrientation_map (o : Orientation I M (F
     (o.toHomologicalOrientation hE).mapFundamentalClass hE (e.toHomeomorph : C(M, N)) =
       ((o.map e hk ((Fintype.card_fin _).trans hF.symm)).toHomologicalOrientation hF
         ).fundamentalClass hF := by
-  set o' := o.map e hk ((Fintype.card_fin _).trans hF.symm)
-  refine (o'.toHomologicalOrientation hF).eq_fundamentalClass hF fun y ↦ ?_
+  refine ((o.map e hk ((Fintype.card_fin _).trans hF.symm)).toHomologicalOrientation hF
+    ).eq_fundamentalClass hF fun y ↦ ?_
   obtain ⟨x, rfl⟩ : ∃ x, (e.toHomeomorph : C(M, N)) x = y := e.surjective y
   have hx : (e.toHomeomorph : C(M, N)) ⁻¹' {(e.toHomeomorph : C(M, N)) x} ⊆ {x} :=
     fun z hz ↦ e.injective hz
-  -- The local index of `e` at `x` is its orientation sign, which is `1`.
-  have hindex : (o.toHomologicalOrientation hE).localIndex (o'.toHomologicalOrientation hF)
-      (e.toHomeomorph : C(M, N)) x = 1 := by
-    have he : ⇑(e.toHomeomorph : C(M, N)) = e := e.coe_toHomeomorph
-    rw [localIndex_toHomologicalOrientation hE hF o o' _ (he ▸ e.isInvertible_mfderiv hk), he]
-    exact orientationSign_of_isOrientationPreservingAt (isOrientationPreservingAt_map o e hk _ x)
   rw [HomologicalOrientation.mapFundamentalClass_def, singularHomologyFunctor_obj_map_hom_apply,
     singularHomologyToLocalHomology_singularHomologyMap _ _ hx,
-    HomologicalOrientation.singularHomologyToLocalHomology_fundamentalClass,
-    ((o.toHomologicalOrientation hE).localIndex_eq_iff_of_preimage_subset _ hF _ rfl hx).1
-      hindex, one_zsmul]
+    HomologicalOrientation.singularHomologyToLocalHomology_fundamentalClass]
+  exact localHomologyMap_toHomologicalOrientation hE hF _ hx
+    (isOrientationPreservingAt_map o e hk _ x)
 
 /-- **Evaluation on the carried fundamental class.** For a `C^k` diffeomorphism `e : M → N`,
 `k ≠ 0`, of compact manifolds of dimension `n + 1` and an orientation `o` of `M`, evaluating a
