@@ -17,16 +17,15 @@ of the frame `D.frame k x` and of `f z`, and it is zero elsewhere. Its reading i
 is `f` on `B`. The peak sections of Donaldson's construction are built this way from cut-off
 Gaussians.
 
-When `f` has compact support in `B`, the section vanishes outside the image `K` of that support
-under the inverse of the chart, a compact and so, in a Hausdorff `M`, closed set. So at a point
-`y ∉ K` its readings and `∂̄` readings in the chart at `y` vanish near `0`, and so do all its jet
-norms at `y`. At a point `y ∈ K`, the transition from the chart at `y` to the chart at `x` is
+When the closed support of `f` lies in `B`, it is compact, and the section vanishes outside its
+image `K` under the inverse of the chart, a compact and so, in a Hausdorff `M`, closed set. So at a
+point `y ∉ K` its readings and `∂̄` readings in the chart at `y` vanish near `0`, and so do all its
+jet norms at `y`. At a point `y ∈ K`, the transition from the chart at `y` to the chart at `x` is
 defined near `0` with values in `B`, and there the reading at `y` is the change of frame times `f`
 composed with the transition
-(`SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`); the change of frame and
-the transition are smooth. So, when
-`f` is moreover smooth on `B`, the readings at every point are smooth at `0`, and so are, on a
-boundaryless manifold, the `∂̄` readings
+(`SymplecticGeometry.RescaledUnitaryCharts.reading_eq_frameChange_mul`); the change of frame and the
+transition are smooth. So, when `f` is moreover smooth on `B`, the readings at every point are
+smooth at `0`, and so are, on a boundaryless manifold, the `∂̄` readings
 (`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_dbarReading`): this is the smoothness that
 `SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic` asks for.
 
@@ -43,7 +42,7 @@ boundaryless manifold, the `∂̄` readings
   vanish away from the image of the support of `f`.
 * `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_sectionOfReading` and
   `SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_dbarReading_sectionOfReading`: for `f`
-  with compact support in `B` and `C^n` there (`C^(n + 1)` for `∂̄`), its readings (`∂̄`
+  with closed support in `B` and `C^n` there (`C^(n + 1)` for `∂̄`), its readings (`∂̄`
   readings) at every point are `C^n` at the centre; for smooth `f`, both are smooth
   (`SymplecticGeometry.RescaledUnitaryCharts.contDiffAt_reading_and_dbarReading_sectionOfReading`).
 
@@ -150,7 +149,7 @@ theorem sectionOfReading_smul (k : ℕ) (x : M) (c : ℂ) (f : StdSpace ι → �
 
 /-- The section extended by zero from `f` vanishes outside the image of the support of `f` under
 the inverse of the chart. -/
-theorem sectionOfReading_eq_zero {k : ℕ} {x : M} {f : StdSpace ι → ℂ} {y : M}
+theorem sectionOfReading_apply_eq_zero_of_notMem_image {k : ℕ} {x : M} {f : StdSpace ι → ℂ} {y : M}
     (hy : y ∉ (D.chart k x).symm '' Function.support f) :
     D.sectionOfReading k x f y = 0 := by
   rw [sectionOfReading_def]
@@ -163,30 +162,33 @@ theorem sectionOfReading_eq_zero {k : ℕ} {x : M} {f : StdSpace ι → ℂ} {y 
 
 /-! ### Vanishing away from the support -/
 
-/-- Let `k₀ ≤ k` and let `f` have compact support in the ball of radius `ρ₀ * √k`. At a point `y`
-outside the image of that support under the inverse of the chart at `x`, the reading in the chart
-at `y` of the section extended by zero from `f` vanishes near `0`. -/
+/-- Let `k₀ ≤ k` and let the closed support of `f` lie in the ball of radius `ρ₀ * √k`. At a point
+`y` outside the image of that support under the inverse of the chart at `x`, the reading in the
+chart at `y` of the section extended by zero from `f` vanishes near `0`. -/
 theorem reading_sectionOfReading_eventuallyEq_zero [T2Space M] {k : ℕ} (hk : k₀ ≤ k) {x : M}
-    {f : StdSpace ι → ℂ} (hf : HasCompactSupport f) (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
+    {f : StdSpace ι → ℂ} (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
     {y : M} (hy : y ∉ (D.chart k x).symm '' tsupport f) :
     D.reading k y (D.sectionOfReading k x f) =ᶠ[𝓝 0] 0 := by
-  have hK := (D.isCompact_chart_symm_image hk x hf.isCompact hfb).isClosed
+  -- The support of `f` is compact, as a closed subset of a closed ball.
+  have hfc : IsCompact (tsupport f) := (isCompact_closedBall 0 _).of_isClosed_subset
+    (isClosed_tsupport f) (hfb.trans ball_subset_closedBall)
+  have hK := (D.isCompact_chart_symm_image hk x hfc hfb).isClosed
   have hc : ContinuousAt (D.chart k y).symm 0 :=
     (D.chart k y).toOpenPartialHomeomorph.continuousAt_symm (D.zero_mem_chart_target hk y)
   have hmem : (D.chart k y).symm ⁻¹' ((D.chart k x).symm '' tsupport f)ᶜ ∈ 𝓝 0 :=
     hc.preimage_mem_nhds (hK.isOpen_compl.mem_nhds (by rwa [D.chart_symm_zero hk y]))
   filter_upwards [hmem] with w hw
-  rw [reading_def, D.sectionOfReading_eq_zero fun h ↦ hw (Set.image_mono (subset_tsupport f) h),
-    map_zero, map_zero, Pi.zero_apply]
+  rw [reading_def, D.sectionOfReading_apply_eq_zero_of_notMem_image
+    fun h ↦ hw (Set.image_mono (subset_tsupport f) h), map_zero, map_zero, Pi.zero_apply]
 
 /-- Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.reading_sectionOfReading_eventuallyEq_zero`, the `∂̄`
 reading in the chart at `y` vanishes near `0`. -/
 theorem dbarReading_sectionOfReading_eventuallyEq_zero [T2Space M] {k : ℕ} (hk : k₀ ≤ k) {x : M}
-    {f : StdSpace ι → ℂ} (hf : HasCompactSupport f) (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
+    {f : StdSpace ι → ℂ} (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
     {y : M} (hy : y ∉ (D.chart k x).symm '' tsupport f) :
     D.dbarReading k y (D.sectionOfReading k x f) =ᶠ[𝓝 0] 0 :=
-  (D.dbarReading_eventuallyEq ((D.reading_sectionOfReading_eventuallyEq_zero hk hf hfb hy).trans
+  (D.dbarReading_eventuallyEq ((D.reading_sectionOfReading_eventuallyEq_zero hk hfb hy).trans
     (Filter.EventuallyEq.of_eq (D.reading_zero k y).symm))).trans
     (Filter.Eventually.of_forall (D.dbarReading_zero k y))
 
@@ -194,29 +196,29 @@ theorem dbarReading_sectionOfReading_eventuallyEq_zero [T2Space M] {k : ℕ} (hk
 `SymplecticGeometry.RescaledUnitaryCharts.reading_sectionOfReading_eventuallyEq_zero`, the jet
 norms at `y` of the section extended by zero vanish. -/
 theorem jetNorm_sectionOfReading_eq_zero [T2Space M] {k : ℕ} (hk : k₀ ≤ k) (r : ℕ) {x : M}
-    {f : StdSpace ι → ℂ} (hf : HasCompactSupport f) (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
+    {f : StdSpace ι → ℂ} (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
     {y : M} (hy : y ∉ (D.chart k x).symm '' tsupport f) :
     D.jetNorm k r (D.sectionOfReading k x f) y = 0 := by
   rw [jetNorm_def, jetNormAt_congr_of_eventuallyEq r
-    (D.reading_sectionOfReading_eventuallyEq_zero hk hf hfb hy), jetNormAt_zero_fun]
+    (D.reading_sectionOfReading_eventuallyEq_zero hk hfb hy), jetNormAt_zero_fun]
 
 /-- Under the hypotheses of
 `SymplecticGeometry.RescaledUnitaryCharts.reading_sectionOfReading_eventuallyEq_zero`, the jet
 norms at `y` of `∂̄` of the section extended by zero vanish. -/
 theorem dbarJetNorm_sectionOfReading_eq_zero [T2Space M] {k : ℕ} (hk : k₀ ≤ k) (r : ℕ) {x : M}
-    {f : StdSpace ι → ℂ} (hf : HasCompactSupport f) (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
+    {f : StdSpace ι → ℂ} (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
     {y : M} (hy : y ∉ (D.chart k x).symm '' tsupport f) :
     D.dbarJetNorm k r (D.sectionOfReading k x f) y = 0 := by
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r
-    (D.dbarReading_sectionOfReading_eventuallyEq_zero hk hf hfb hy), jetNormAt_zero_fun]
+    (D.dbarReading_sectionOfReading_eventuallyEq_zero hk hfb hy), jetNormAt_zero_fun]
 
 /-! ### Smoothness -/
 
-/-- Let `k₀ ≤ k` and let `f` be `C^n` on the ball of radius `ρ₀ * √k`, with compact support in it.
-Then at every point `y`, the reading in the chart at `y` of the section extended by zero from `f`
-is `C^n` at `0`. -/
+/-- Let `k₀ ≤ k` and let `f` be `C^n` on the ball of radius `ρ₀ * √k`, with its closed support in
+it. Then at every point `y`, the reading in the chart at `y` of the section extended by zero from
+`f` is `C^n` at `0`. -/
 theorem contDiffAt_reading_sectionOfReading [T2Space M] {n : ℕ∞} {k : ℕ} (hk : k₀ ≤ k) (x : M)
-    {f : StdSpace ι → ℂ} (hf : HasCompactSupport f) (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
+    {f : StdSpace ι → ℂ} (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k))
     (hfs : ContDiffOn ℝ n f (ball 0 (ρ₀ * √k))) (y : M) :
     ContDiffAt ℝ n (D.reading k y (D.sectionOfReading k x f)) 0 := by
   by_cases hy : y ∈ (D.chart k x).symm '' tsupport f
@@ -234,30 +236,30 @@ theorem contDiffAt_reading_sectionOfReading [T2Space M] {n : ℕ∞} {k : ℕ} (
       D.reading_sectionOfReading hk x f (D.mem_chartTransitionDomain_iff.1 hw).2.2,
       Function.comp_apply]
   · exact contDiffAt_const.congr_of_eventuallyEq
-      (D.reading_sectionOfReading_eventuallyEq_zero hk hf hfb hy)
+      (D.reading_sectionOfReading_eventuallyEq_zero hk hfb hy)
 
 /-- On a boundaryless manifold, let `k₀ ≤ k` and let `f` be `C^(n + 1)` on the ball of radius
-`ρ₀ * √k`, with compact support in it. Then at every point `y`, the `∂̄` reading in the chart at
+`ρ₀ * √k`, with its closed support in it. Then at every point `y`, the `∂̄` reading in the chart at
 `y` of the section extended by zero from `f` is `C^n` at `0`. -/
 theorem contDiffAt_dbarReading_sectionOfReading [T2Space M] [I.Boundaryless] {n : ℕ∞} {k : ℕ}
-    (hk : k₀ ≤ k) (x : M) {f : StdSpace ι → ℂ} (hf : HasCompactSupport f)
+    (hk : k₀ ≤ k) (x : M) {f : StdSpace ι → ℂ}
     (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k)) (hfs : ContDiffOn ℝ (n + 1) f (ball 0 (ρ₀ * √k)))
     (y : M) :
     ContDiffAt ℝ n (D.dbarReading k y (D.sectionOfReading k x f)) 0 := by
-  have h := D.contDiffAt_reading_sectionOfReading (n := n + 1) hk x hf hfb (by exact_mod_cast hfs) y
+  have h := D.contDiffAt_reading_sectionOfReading (n := n + 1) hk x hfb (by exact_mod_cast hfs) y
   exact D.contDiffAt_dbarReading (D.zero_mem_chart_target hk y) (by exact_mod_cast h)
 
 /-- On a boundaryless manifold, let `k₀ ≤ k` and let `f` be smooth on the ball of radius
-`ρ₀ * √k`, with compact support in it. Then at every point `y`, the reading and the `∂̄` reading
+`ρ₀ * √k`, with its closed support in it. Then at every point `y`, the reading and the `∂̄` reading
 in the chart at `y` of the section extended by zero from `f` are smooth at `0`, as
 `SymplecticGeometry.RescaledUnitaryCharts.IsAsymptoticallyHolomorphic` asks. -/
 theorem contDiffAt_reading_and_dbarReading_sectionOfReading [T2Space M] [I.Boundaryless]
-    {k : ℕ} (hk : k₀ ≤ k) (x : M) {f : StdSpace ι → ℂ} (hf : HasCompactSupport f)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) {f : StdSpace ι → ℂ}
     (hfb : tsupport f ⊆ ball 0 (ρ₀ * √k)) (hfs : ContDiffOn ℝ ∞ f (ball 0 (ρ₀ * √k))) (y : M) :
     ContDiffAt ℝ ∞ (D.reading k y (D.sectionOfReading k x f)) 0 ∧
       ContDiffAt ℝ ∞ (D.dbarReading k y (D.sectionOfReading k x f)) 0 :=
-  ⟨D.contDiffAt_reading_sectionOfReading hk x hf hfb hfs y,
-    D.contDiffAt_dbarReading_sectionOfReading (n := ⊤) hk x hf hfb (hfs.of_le (by simp)) y⟩
+  ⟨D.contDiffAt_reading_sectionOfReading hk x hfb hfs y,
+    D.contDiffAt_dbarReading_sectionOfReading (n := ⊤) hk x hfb (hfs.of_le (by simp)) y⟩
 
 end RescaledUnitaryCharts
 
