@@ -178,12 +178,8 @@ theorem localChartLocalHomologyIso_inv_tubeFundamentalClass_of_localHomologyMap
   -- The tube is an open embedding, so it induces an isomorphism of local homology at `0_z`.
   have hg : Topology.IsOpenEmbedding g := f.isOpenEmbedding_tubeMap hn hdim Φ
   have hpre : g ⁻¹' {f z} = {zeroSection P _ z} := f.tubeMap_preimage_singleton hn hdim Φ hΦ z
-  have : IsIso (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) g hpre.subset n) :=
-    isIso_localHomologyMap _ g hg hpre isClosed_singleton
-      (singleton_subset_iff.2 ⟨_, f.tubeMap_zeroSection hn hdim Φ hΦ z⟩) n
-  have hinj : Function.Injective
-      (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) g hpre.subset n) :=
-    (ModuleCat.mono_iff_injective _).1 inferInstance
+  have hinj := hg.injective_localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) (j := g) hpre
+    isClosed_singleton (singleton_subset_iff.2 ⟨_, f.tubeMap_zeroSection hn hdim Φ hΦ z⟩) n
   rw [← hinj (ha.trans (f.localHomologyMap_tubeFundamentalClass hn hdim Φ hΦ oX hnX hK z).symm)]
   exact Iso.hom_inv_id_apply _ _
 
