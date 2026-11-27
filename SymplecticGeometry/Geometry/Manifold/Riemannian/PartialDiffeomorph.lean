@@ -149,7 +149,7 @@ theorem gramInChart_trans_apply (hn : n ≠ 0) (Θ : PartialDiffeomorph 𝓘(ℝ
   have key (a : E) : mfderiv 𝓘(ℝ, E) I (ψ.trans Θ).symm w (fderiv ℝ Θ (Θ.symm w) a) =
       mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w) a := by
     have h := Θ.mfderiv_symm_trans_apply_mfderiv_apply ψ.symm hn (Θ.map_target hw) hψ a
-    rw [Θ.toPartialEquiv.right_inv hw, mfderiv_eq_fderiv] at h
+    rw [Θ.right_inv hw, mfderiv_eq_fderiv] at h
     rw [coe_trans_symm, ← coe_trans]
     exact h
   rw [gramInChart_apply, gramInChart_apply, key, key]

@@ -197,6 +197,12 @@ theorem PartialDiffeomorph.right_inv (Φ : PartialDiffeomorph I J M N n) {y : N}
     (hy : y ∈ Φ.target) : Φ (Φ.symm y) = y :=
   Φ.toPartialEquiv.right_inv hy
 
+/-- The inverse of a partial diffeomorphism sends its target into its source. -/
+@[mfld_simps]
+theorem PartialDiffeomorph.map_target (Φ : PartialDiffeomorph I J M N n) {y : N}
+    (hy : y ∈ Φ.target) : Φ.symm y ∈ Φ.source :=
+  Φ.toPartialEquiv.map_target hy
+
 /-- The image of a compact subset of the source of a partial diffeomorphism is compact. -/
 theorem PartialDiffeomorph.isCompact_image_of_subset_source (Φ : PartialDiffeomorph I J M N n)
     {K : Set M} (hK : IsCompact K) (hKs : K ⊆ Φ.source) : IsCompact (Φ '' K) := by

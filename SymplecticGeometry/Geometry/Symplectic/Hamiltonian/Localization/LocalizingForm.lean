@@ -278,7 +278,7 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
   have hcomm {x : M} (hx : x ∈ Φ.target) : (Φ.symm ∘ fun x ↦ g • x) =ᶠ[𝓝 x] R ∘ Φ.symm := by
     filter_upwards [Φ.open_target.mem_nhds hx] with y hy
     obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hy)
-    rw [Φ.toPartialEquiv.right_inv hy] at h₂
+    rw [Φ.right_inv hy] at h₂
     rw [Function.comp_apply, Function.comp_apply, ← h₂, Φ.left_inv h₁,
       Φ.symm_toPartialEquiv]
   have hφ (x : M) (hx : ρ x ≠ 0) :
@@ -288,7 +288,7 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
     have hxt : x ∈ Φ.target := hs (subset_tsupport ρ hx)
     have hgx : g • x ∈ Φ.target := by
       obtain ⟨h₁, h₂⟩ := hR (Φ.map_target hxt)
-      rw [Φ.toPartialEquiv.right_inv hxt] at h₂
+      rw [Φ.right_inv hxt] at h₂
       exact h₂ ▸ Φ.map_source h₁
     have hθ := congrArg Subtype.val
       (mpullback_weightRotation_weightOneForm k fun j ↦ Complex.arg (χ j g))
