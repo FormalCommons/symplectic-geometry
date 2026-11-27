@@ -352,34 +352,33 @@ theorem familyRelativeSet_prod_zero_subset_image (hR : R ≠ 0) {B : Set (Fin m 
     exact hl
 
 open scoped Topology in
-/-- For a neighbourhood `N''` of `familyRelativeSet L R B P₀` with `B` closed and `0 < r ≤ 1`,
+/-- For a neighbourhood `N''` of `familyRelativeSet L R B P₀` with `B` closed and `0 < r`,
 there is a neighbourhood `N` of `B` such that every point `p` with core part in `N` either has
-the core part of its image under `familyCubeEquiv` in `N''`, or has its image farther than `r`
-from the cube `closedBall 0 1 ×ˢ {0}` of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`. -/
+the core part of its image under `familyCubeEquiv` in `N''`, or has its image at distance at
+least `r` from the cube `closedBall 0 1 ×ˢ {0}` of `(Fin (finrank ℝ L + m) → ℝ) × (Fin k → ℝ)`. -/
 theorem exists_mem_nhdsSet_familyCubeEquiv_fst_mem (hR : R ≠ 0) {B : Set (Fin m → ℝ)}
     (hB : IsClosed B) {P₀ : Set L} {N'' : Set (Fin (finrank ℝ L + m) → ℝ)}
-    (hN'' : N'' ∈ 𝓝ˢ (familyRelativeSet L R B P₀)) {r : ℝ} (hr : 0 < r) (hr1 : r ≤ 1) :
+    (hN'' : N'' ∈ 𝓝ˢ (familyRelativeSet L R B P₀)) {r : ℝ} (hr : 0 < r) :
     ∃ N ∈ 𝓝ˢ B, ∀ p : L × (Fin m → ℝ) × (Fin k → ℝ), p.2.1 ∈ N →
       (familyCubeEquiv L m k hR p).1 ∈ N'' ∨
         familyCubeEquiv L m k hR p ∉ thickening r (closedBall 0 1 ×ˢ {0}) := by
   have hB'N'' : familyRelativeSet L R B P₀ ⊆ interior N'' :=
     subset_interior_iff_mem_nhdsSet.2 hN''
   obtain ⟨U₁, N₁, -, hN₁, hU₁, hBN₁, hUN₁⟩ := generalized_tube_lemma
-    (isCompact_closedBall (0 : Fin (finrank ℝ L) → ℝ) 2)
-    ((isCompact_closedBall (0 : Fin m → ℝ) 2).inter_left hB)
+    (isCompact_closedBall (0 : Fin (finrank ℝ L) → ℝ) (1 + r))
+    ((isCompact_closedBall (0 : Fin m → ℝ) (1 + r)).inter_left hB)
     (isOpen_interior.preimage (splitCoords (𝕜 := ℝ) (finrank ℝ L) m).symm.continuous)
     (fun su hsu ↦ hB'N'' (mem_familyRelativeSet_iff.2 (Or.inl (by simpa using hsu.2.1))))
   refine ⟨N₁ ∪ (closedBall 0 (1 + r))ᶜ,
     (hN₁.union isClosed_closedBall.isOpen_compl).mem_nhdsSet.2 fun u hu ↦ ?_, fun p hp ↦ ?_⟩
   · by_cases hu2 : u ∈ closedBall 0 (1 + r)
-    · refine Or.inl (hBN₁ ⟨hu, closedBall_subset_closedBall ?_ hu2⟩)
-      linarith
+    · exact Or.inl (hBN₁ ⟨hu, hu2⟩)
     · exact Or.inr hu2
   · by_cases hpC : familyCubeEquiv L m k hR p ∈ thickening r (closedBall 0 1 ×ˢ {0})
     · obtain ⟨hs, hu⟩ := norm_lt_of_familyCubeEquiv_mem_thickening hR hr hpC
       rcases hp with hp | hp
       · have hmem := hUN₁ (show (_, p.2.1) ∈ U₁ ×ˢ N₁ from
-          ⟨hU₁ (mem_closedBall_zero_iff.2 (by linarith)), hp⟩)
+          ⟨hU₁ (mem_closedBall_zero_iff.2 hs.le), hp⟩)
         rw [mem_preimage, splitCoords_symm_apply] at hmem
         exact Or.inl (interior_subset (by simpa using hmem))
       · exact absurd (mem_closedBall_zero_iff.2 hu.le) hp
@@ -640,7 +639,7 @@ theorem exists_holonomic_approximation_family (hk : 0 < k)
     · rw [hf', hfC'' _ hp, Function.comp_apply, ContinuousLinearEquiv.symm_apply_apply]
   -- step 6: the neighbourhood of `B`, by the tube lemma
   obtain ⟨N, hN, hNfix⟩ := exists_mem_nhdsSet_familyCubeEquiv_fst_mem (k := k) hR.ne' hB hN''
-    (lt_min hδ one_pos) (min_le_right δ 1)
+    (lt_min hδ one_pos)
   refine ⟨h, f', V, hfst, hf'c,
     ⟨C, hC, fun p hp ↦ thickening_mono (min_le_left δ 1) _ (hCQ p hp), hCfix⟩,
     fun t p ↦ (hdist' t p).trans_le (min_le_left δ 1),
