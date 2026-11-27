@@ -215,31 +215,33 @@ theorem localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomCla
       (ConcreteCategory.hom_ext _ _ fun _ ↦ rfl))
 
 /-- **The local cap computation at a point of the zero section**, in positive rank. Let `e` be a
-linear trivialization of an oriented real vector bundle `E → B` of rank `k + 1` with model fibre
-`P`, `c` a chart of the base with `c b = 0`, and `S` a contractible open subset of the target of
-`c` containing `0` that `c.symm` carries into the base set of `e`. Let `μ ∈ Hₙ(E, E ∖ 0_b)` be a
-class that the chart `Bundle.Trivialization.localChartLocalHomologyIso` reads as the local cross
-product, normal factor `P` first, of the local orientation of `P` selected by the orientation `o b`
-read in `e` with a class `ζ ∈ H_q(Q, Q ∖ 0)`, in any degree `q`. Cap `μ`, read relative to
-`E ∖ 0 ∪ E ∖ E_b`, with the canonical Thom class by the cap product of the excisive couple
-`(E ∖ 0, E ∖ E_b)`, and push the result forward along the projection to `H_q(B, B ∖ b)`. The chart
-`c` reads the result as `ζ`.
+linear trivialization of an oriented real vector bundle `E → B` of rank `r = k + 1` with model
+fibre `P`, the orientation `o` being indexed by `Fin r`, `c` a chart of the base with `c b = 0`,
+and `S` a contractible open subset of the target of `c` containing `0` that `c.symm` carries into
+the base set of `e`. Let `μ ∈ Hₙ(E, E ∖ 0_b)` be a class that the chart
+`Bundle.Trivialization.localChartLocalHomologyIso` reads as the local cross product, normal factor
+`P` first, of the local orientation of `P` selected by the orientation `o b` read in `e` and
+reindexed along `Fin r ≃ Fin (k + 1)`, with a class `ζ ∈ H_q(Q, Q ∖ 0)`, in any degree `q`. Cap
+`μ`, read relative to `E ∖ 0 ∪ E ∖ E_b`, with the canonical Thom class by the cap product of the
+excisive couple `(E ∖ 0, E ∖ E_b)`, and push the result forward along the projection to
+`H_q(B, B ∖ b)`. The chart `c` reads the result as `ζ`.
 
 The chart puts the fibre factor first, so no exchange of factors enters here; for a class read as
 the local orientation of an orientation that puts the base factor first, the exchange is made by
 `Orientation.singularRelativeCap_modelThomGenerator_localOrientation_map_prodComm`. -/
 theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation {k : ℕ}
-    (o : VectorBundleOrientation P E (Fin (k + 1))) (hr : finrank ℝ P = k + 1)
-    (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S) (hSc : S ⊆ c.target)
+    (hk : r = k + 1) (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S)
+    (hSc : S ⊆ c.target)
     (hSe : MapsTo c.symm S e.baseSet) {b : B} (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) {q n : ℕ} (hn : k + 1 + q = n)
+    (h0 : (0 : Q) ∈ S) {q n : ℕ} (hn : r + q = n)
     (ζ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q)
     (μ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
       {zeroSection P E b} n)
     (hμ : (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).inv
-        μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) (k + 1) q n hn).hom
-          (((e.mapOrientation (Fin (k + 1)) (c.mem_of_mapsTo_symm hb hcb hSe h0)
-            (o b)).localOrientation hr).val ⊗ₜ ζ)) :
+        μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) (k + 1) q n (hk ▸ hn)).hom
+          (((Orientation.reindex ℝ P (finCongr hk)
+            (e.mapOrientation (Fin r) (c.mem_of_mapsTo_symm hb hcb hSe h0)
+            (o b))).localOrientation (hr.trans hk)).val ⊗ₜ ζ)) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
         (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q
         ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
@@ -252,10 +254,12 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientat
                 ({b}ᶜ : Set (TopCat.of B)))
               ((isOpen_zeroSectionCompl P E).preimage continuous_subtypeVal)
               ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
-                continuous_subtypeVal) (k + 1) q n hn (o.canonicalThomClass hr)
+                continuous_subtypeVal) r q n hn (o.canonicalThomClass hr)
               (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
                 (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
                 (ModuleCat.of ℤ (ULift.{0} ℤ)) n μ)))) = ζ := by
+  subst hk
+  simp only [finCongr_refl, Orientation.reindex_refl] at hμ
   have h := ConcreteCategory.congr_hom
     (localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomClass o hr e hS hSc hSe
       hb hcb h0 (ρ_ _).inv (ρ_ _).hom hn)
@@ -266,27 +270,30 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientat
     hr hn _ ζ
 
 /-- **The local cap computation at a point of the zero section**, in rank zero. Let `e` be a
-linear trivialization of an oriented real vector bundle `E → B` of rank `0` with model fibre `P`,
-`c` a chart of the base with `c b = 0`, and `S` a contractible open subset of the target of `c`
-containing `0` that `c.symm` carries into the base set of `e`. Let `μ ∈ H_q(E, E ∖ 0_b)` be a
-class that the chart `Bundle.Trivialization.localChartLocalHomologyIso` reads as the local cross
-product, normal factor `P` first, of the local orientation of `P` at `0` selected by the orientation
-`o b`, read in `e` (`Orientation.localOrientationOfZeroDim`), with a class `ζ ∈ H_q(Q, Q ∖ 0)`. Cap
+linear trivialization of an oriented real vector bundle `E → B` of rank `r = 0` with model fibre
+`P`, the orientation `o` being indexed by `Fin r`, `c` a chart of the base with `c b = 0`, and
+`S` a contractible open subset of the target of `c` containing `0` that `c.symm` carries into the
+base set of `e`. For `r + q = n`, let `μ ∈ Hₙ(E, E ∖ 0_b)` be a class that the chart
+`Bundle.Trivialization.localChartLocalHomologyIso` reads as the local cross product, normal factor
+`P` first, of the local orientation of `P` at `0` selected by the orientation `o b`, read in `e`
+and reindexed along `Fin r ≃ Fin 0` (`Orientation.localOrientationOfZeroDim`), with a class
+`ζ ∈ H_q(Q, Q ∖ 0)`. Cap
 `μ`, read relative to `E ∖ 0 ∪ E ∖ E_b`, with the canonical Thom class by the cap product of the
 excisive couple `(E ∖ 0, E ∖ E_b)`, and push the result forward along the projection to
 `H_q(B, B ∖ b)`. The chart `c` reads the result as `ζ`. -/
 theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero
-    (o : VectorBundleOrientation P E (Fin 0)) (hr : finrank ℝ P = 0)
-    (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S) (hSc : S ⊆ c.target)
+    (hk : r = 0) (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S)
+    (hSc : S ⊆ c.target)
     (hSe : MapsTo c.symm S e.baseSet) {b : B} (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) {q : ℕ}
+    (h0 : (0 : Q) ∈ S) {q n : ℕ} (hn : r + q = n)
     (ζ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q)
     (μ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
-      {zeroSection P E b} q)
-    (hμ : (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 q).inv
-        μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) 0 q q (zero_add q)).hom
-          (((e.mapOrientation (Fin 0) (c.mem_of_mapsTo_symm hb hcb hSe h0)
-            (o b)).localOrientationOfZeroDim hr).val ⊗ₜ ζ)) :
+      {zeroSection P E b} n)
+    (hμ : (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).inv
+        μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) 0 q n (hk ▸ hn)).hom
+          (((Orientation.reindex ℝ P (finCongr hk)
+            (e.mapOrientation (Fin r) (c.mem_of_mapsTo_symm hb hcb hSe h0)
+            (o b))).localOrientationOfZeroDim (hr.trans hk)).val ⊗ₜ ζ)) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
         (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q
         ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
@@ -299,10 +306,13 @@ theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_ze
                 ({b}ᶜ : Set (TopCat.of B)))
               ((isOpen_zeroSectionCompl P E).preimage continuous_subtypeVal)
               ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
-                continuous_subtypeVal) 0 q q (zero_add q) (o.canonicalThomClass hr)
+                continuous_subtypeVal) r q n hn (o.canonicalThomClass hr)
               (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
                 (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
-                (ModuleCat.of ℤ (ULift.{0} ℤ)) q μ)))) = ζ := by
+                (ModuleCat.of ℤ (ULift.{0} ℤ)) n μ)))) = ζ := by
+  subst hk
+  obtain rfl : q = n := by omega
+  simp only [finCongr_refl, Orientation.reindex_refl] at hμ
   have h := ConcreteCategory.congr_hom
     (localChartLocalHomologyIso_hom_comp_singularRelativeCap_canonicalThomClass o hr e hS hSc hSe
       hb hcb h0 (ρ_ _).inv (ρ_ _).hom (zero_add q))
