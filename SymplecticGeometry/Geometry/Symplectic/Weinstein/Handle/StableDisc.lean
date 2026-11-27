@@ -565,7 +565,7 @@ theorem exists_eventually_norm_mvfderiv_le_of_range_subset_stableSet {p : M}
       ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C := by
   set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p with hA
   obtain ⟨ι, ρ, -, -, -, -, ⟨U, hU, ε, hε, hcov⟩, hbd, π, hπ, hπι⟩ :=
-    hW.exists_localStableDisc hp hA le_rfl (n := 1)
+    hW.exists_localStableDisc hp hA
   set e := extChartAt 𝓘(ℝ, E) p
   have hfc : Continuous f := hW.isGeneralizedMorse.contMDiff.continuous
   -- The orbit of `γ y` enters, at some time `T`, the part of the stable set that the disc covers;
