@@ -33,9 +33,9 @@ coefficients of the family in place of those of the fixed form.
 * `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
   `TauCeti.SmoothForm.lineMapFamily`, stated for the underlying rough forms.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
-  for a smooth map `c` of parameter manifolds, with its case `f = id`,
-  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`; the case `c = id` is Tau
-  Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
+  for a smooth map `c` of parameter manifolds. Its case `f = id` is Tau Ceti's
+  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id`, and its case `c = id` is Tau Ceti's
+  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
 * `ContMDiffAt.mpullback_form_family_of_family`: the pullbacks `(f p)^* (φ p)` of a smooth
   family of forms along a smooth family of maps form a smooth section.
 -/
@@ -84,21 +84,6 @@ theorem mpullback_prodMk_mpullback_prodMap' {EP HP P EP' HP' P' : Type*}
   -- The square `Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f` commutes by definition.
   mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id) (hc.prodMap hf) hf
     (contMDiff_const.prodMk contMDiff_id) rfl α
-
-/-- The slice at `t` of the pullback of a form `α` on `P × M` along `c × id`, for a smooth map
-`c : P' → P` of parameter manifolds, is the slice of `α` at `c t`. -/
-theorem mpullback_prodMk_mpullback_prodMap_id_right {EP HP P EP' HP' P' : Type*}
-    [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
-    {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P] [IsManifold K 1 P]
-    [NormedAddCommGroup EP'] [NormedSpace ℝ EP'] [TopologicalSpace HP']
-    {K' : ModelWithCorners ℝ EP' HP'} [TopologicalSpace P'] [ChartedSpace HP' P']
-    [IsManifold K' 1 P'] {c : P' → P} (hc : ContMDiff K' K ∞ c)
-    (α : SmoothForm (K.prod I) (P × M) F k) (t : P') :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map c id) (hc.prodMap contMDiff_id) α) =
-      mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α := by
-  rw [mpullback_prodMk_mpullback_prodMap' hc id contMDiff_id]
-  exact LinearMap.congr_fun SmoothForm.mpullback_id _
 
 end prodMap
 

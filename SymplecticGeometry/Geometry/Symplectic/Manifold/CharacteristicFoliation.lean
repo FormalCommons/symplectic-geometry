@@ -22,6 +22,7 @@ import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Topology.LocallyConstant.ConnectedComponents
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -284,13 +285,13 @@ theorem isBasic (hp : IsCharacteristicSubmersion IB σ p) (hσ : σ.IsClosed) :
   -- `fibreForm` is locally constant along each fibre, which is preconnected.
   have hconst (b : B) (y : M) (hy : p y = b) (y' : M) (hy' : p y' = b) :
       hp.fibreForm y = hp.fibreForm y' := by
-    have := isPreconnected_iff_preconnectedSpace.1 (hp.isPreconnected_preimage_singleton b)
-    have hlc : IsLocallyConstant fun z : p ⁻¹' {b} ↦ hp.fibreForm z := by
+    have hlc : IsLocallyConstant ((p ⁻¹' {b}).domRestrict hp.fibreForm) := by
       refine (IsLocallyConstant.iff_eventually_eq _).2 fun z ↦ ?_
       filter_upwards [(continuous_subtypeVal.tendsto z).eventually
         (hp.eventually_fibreForm_eq hσ z)] with z' hz'
       exact hz' (z'.prop.trans z.prop.symm)
-    exact hlc.apply_eq_of_preconnectedSpace ⟨y, hy⟩ ⟨y', hy'⟩
+    exact hlc.apply_eq_of_isPreconnected_of_subset (hp.isPreconnected_preimage_singleton b)
+      subset_rfl hy hy'
   refine RoughForm.isBasic_iff.2 fun x y hxy v w hvw ↦ ?_
   rw [← hp.fibreForm_mfderiv x v, ← hp.fibreForm_mfderiv y w, hconst (p y) x hxy y rfl]
   simp only [hvw, tangentSpaceCast_apply]

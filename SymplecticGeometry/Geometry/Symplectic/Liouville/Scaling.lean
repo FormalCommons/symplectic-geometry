@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.ModelTransport.Interior
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Liouville scaling along integral curves
@@ -219,7 +220,7 @@ theorem mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
       SmoothForm.mpullback _ hΦ₀ (σ.interiorₗ ⟨Y, hY⟩) := by
     -- `β₁` is the pullback of `ι_Y σ` along the inclusion, as a smooth form.
     rw [show β₁ = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (σ.interiorₗ ⟨Y, hY⟩) from
-      Subtype.ext (hβ₁.trans (SmoothForm.coe_mpullback _ _ _).symm)]
+      ((SmoothForm.mpullback_eq_iff _).2 hβ₁.symm).symm]
     simp only [SmoothForm.mpullback_mpullback, comp_def, hΦ₁ (p := (t₀, _)) ht₀]
   -- `Φ` is `Φ₁` read back in `W`, near `(t, s)`.
   have hΦeq : Φ =ᶠ[𝓝 (t, s)] Subtype.val ∘ Φ₁ := by

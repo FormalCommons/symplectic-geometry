@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDimChart
 import SymplecticGeometry.LinearAlgebra.Orientation.Prod
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePoint
 import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
@@ -40,25 +41,18 @@ the two classes is the class of a point in degree zero, Tau Ceti's `localHomolog
   (`TauCeti.LocalOrientation.coe_map_uniqueProd_symm_complZeroPairIso`, and
   `TauCeti.LocalOrientation.coe_map_prodUnique_symm_complZeroPairIso` for a factor on the right).
 
-In terms of orientations, the local orientation of the identity chart of a zero-dimensional
-space is the class of the origin (`TauCeti.localOrientationOfZeroDimChart_coe`), and a space of
-dimension zero has two orientations, `positiveOrientation` and its negative. The product
-orientation with the positive one is the image under the inclusion of the other factor
+In terms of orientations, a space of dimension zero has two orientations, `positiveOrientation`
+and its negative, and an orientation `ω` of it selects the local orientation
+`Orientation.localOrientationOfZeroDim`: the class of the origin, with the sign of `ω`. The
+product orientation with the positive one is the image under the inclusion of the other factor
 (`Orientation.prod_positiveOrientation_right`). Hence:
 
-* the class of the origin of `P` times the local orientation of `ω'` is the local orientation of
-  `ω'.prod ω`, carried to `P × Q` by the exchange of factors, when `ω` is the positive orientation
-  of `P`, and its negative otherwise
-  (`Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation`);
-* the local orientation of `ω` times the class of the origin of `Q` is the local orientation of
-  `ω.prod ω'`, when `ω'` is the positive orientation of `Q`, and its negative otherwise
-  (`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart`); put
-  the other way, the local orientation of `ω` times the class of the origin of `Q`, taken with
-  that sign, is the local orientation of `ω.prod ω'`
-  (`Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`).
-
-The sign is that of `ω` (or `ω'`), as in
-`Orientation.singularRelativeCap_modelThomGenerator_localHomologyCross_of_zero`.
+* the local orientation selected by `ω` on `P` times the local orientation of `ω'` is the local
+  orientation of `ω'.prod ω`, carried to `P × Q` by the exchange of factors
+  (`Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientation`);
+* the local orientation of `ω` times the local orientation selected by `ω'` on `Q` is the local
+  orientation of `ω.prod ω'`
+  (`Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim`).
 
 ## Main results
 
@@ -68,12 +62,9 @@ The sign is that of `ω` (or `ω'`), as in
   local orientation with the class of the origin of a zero-dimensional space on the left.
 * `SymplecticGeometry.eq_one_of_localHomologyCross_tmul_zsmul_eq`: crossing with a local
   orientation tells apart the multiples of a local orientation.
-* `Orientation.localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation`,
-  `Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart`: the same
-  for the local orientations selected by orientations, with the sign of the zero-dimensional
-  orientation.
-* `Orientation.localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart`: the
-  product orientation from the class of the origin taken with that sign.
+* `Orientation.localHomologyCross_localOrientationOfZeroDim_tmul_localOrientation`,
+  `Orientation.localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim`: the same
+  for the local orientations selected by orientations.
 
 ## References
 
@@ -318,108 +309,70 @@ open SymplecticGeometry
 variable {P Q : Type} [NormedAddCommGroup P] [NormedSpace ℝ P] [NormedAddCommGroup Q]
   [NormedSpace ℝ Q] {m : ℕ}
 
-open Classical in
-/-- **The cross product with the point class of a zero-dimensional space, on the left.** Let `P`
-have dimension zero, with an orientation `ω`, and `Q` dimension `m + 1`, with an orientation
-`ω'`. The cross product of the local orientation of the identity chart of `P` at the origin, the
-class of the origin, with the local orientation of `ω'` is the local orientation of the product
-orientation `ω'.prod ω` of `Q × P`, carried to `P × Q` by the exchange of factors, if `ω` is the
-positive orientation, and its negative otherwise. -/
-theorem localHomologyCross_localOrientationOfZeroDimChart_tmul_localOrientation
+/-- **The cross product with a zero-dimensional local orientation, on the left.** Let `P` have
+dimension zero, with an orientation `ω`, and `Q` dimension `m + 1`, with an orientation `ω'`. The
+cross product of the local orientation `ω.localOrientationOfZeroDim hP` with the local orientation
+of `ω'` is the local orientation of the product orientation `ω'.prod ω` of `Q × P`, carried to
+`P × Q` by the exchange of factors. -/
+theorem localHomologyCross_localOrientationOfZeroDim_tmul_localOrientation
     [FiniteDimensional ℝ P] [FiniteDimensional ℝ Q] (hP : finrank ℝ P = 0)
     (hQ : finrank ℝ Q = m + 1) (ω : Orientation ℝ P (Fin 0)) (ω' : Orientation ℝ Q (Fin (m + 1))) :
     (localHomologyCross (0 : P) (0 : Q) 0 (m + 1) (m + 1) (zero_add _)).hom
-        ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-          (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ (ω'.localOrientation hQ).val) =
-      if ω = positiveOrientation then
-        (((ω'.prod ω hQ hP).map (Fin (m + 1)) (LinearEquiv.prodComm ℝ Q P)).localOrientation
-          (by rw [Module.finrank_prod, hP, hQ, zero_add])).val
-      else
-        -(((ω'.prod ω hQ hP).map (Fin (m + 1)) (LinearEquiv.prodComm ℝ Q P)).localOrientation
-          (by rw [Module.finrank_prod, hP, hQ, zero_add])).val := by
+        ((ω.localOrientationOfZeroDim hP).val ⊗ₜ (ω'.localOrientation hQ).val) =
+      (((ω'.prod ω hQ hP).map (Fin (m + 1)) (LinearEquiv.prodComm ℝ Q P)).localOrientation
+        (by rw [Module.finrank_prod, hP, hQ, zero_add])).val := by
   have : Subsingleton P := Module.finrank_zero_iff.1 hP
   let := uniqueOfSubsingleton (0 : P)
   have hPQ : finrank ℝ (P × Q) = m + 1 := by rw [Module.finrank_prod, hP, hQ, zero_add]
   let J : Q ≃L[ℝ] P × Q := (ContinuousLinearEquiv.uniqueProd ℝ Q P).symm
-  -- The point class times `ω'` is the local orientation of `ω'` carried to `P × Q` by `J`.
+  -- The class of the origin times `ω'` is the local orientation of `ω'` carried to `P × Q` by `J`.
   have hJω : (localHomologyCross (0 : P) (0 : Q) 0 (m + 1) (m + 1) (zero_add _)).hom
-      ((localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
-        (OpenPartialHomeomorph.mem_refl_source _) hP).val ⊗ₜ (ω'.localOrientation hQ).val) =
+      (((positiveOrientation : Orientation ℝ P (Fin 0)).localOrientationOfZeroDim hP).val ⊗ₜ
+        (ω'.localOrientation hQ).val) =
       ((ω'.map (Fin (m + 1)) J.toLinearEquiv).localOrientation hPQ).val := by
-    rw [localOrientationOfZeroDimChart_coe, localHomologyCross_localHomologyPointClass_tmul hP hQ,
-      localOrientation_map J ω' hQ hPQ]
+    rw [localOrientationOfZeroDim_positiveOrientation, localOrientationOfZeroDimChart_coe,
+      localHomologyCross_localHomologyPointClass_tmul hP hQ, localOrientation_map J ω' hQ hPQ]
     exact (LocalOrientation.coe_map_uniqueProd_symm_complZeroPairIso _).symm
   -- Linear algebra: `J` is the inclusion `Q → Q × P` followed by the exchange of factors.
   have hlin : (ω'.prod positiveOrientation hQ hP).map (Fin (m + 1)) (LinearEquiv.prodComm ℝ Q P) =
       ω'.map (Fin (m + 1)) J.toLinearEquiv := by
     rw [prod_positiveOrientation_right, ← Orientation.map_trans]
     congr 1
-  rw [hJω]
-  rcases (Module.finBasisOfFinrankEq ℝ P hP).orientation_eq_or_eq_neg ω with h | h <;>
-    rw [Basis.orientation_isEmpty] at h <;> subst h
-  · rw [ite_eq_left rfl, hlin]
-  · rw [ite_eq_right (Module.Ray.ne_neg_self _).symm, prod_neg_right, Orientation.map_neg,
-      localOrientation_neg, LocalOrientation.coe_neg, neg_neg, hlin]
+  rcases eq_or_eq_neg_of_isEmpty ω with rfl | rfl
+  · rw [hJω, hlin]
+  · rw [localOrientationOfZeroDim_neg, LocalOrientation.coe_neg, TensorProduct.neg_tmul, map_neg,
+      hJω, prod_neg_right, Orientation.map_neg, localOrientation_neg, LocalOrientation.coe_neg,
+      hlin]
 
-open Classical in
-/-- **The cross product with the point class of a zero-dimensional space, on the right.** Let `P`
-have dimension `m + 1`, with an orientation `ω`, and `Q` dimension zero, with an orientation
-`ω'`. The cross product of the local orientation of `ω` with the local orientation of the
-identity chart of `Q` at the origin, the class of the origin, is the local orientation of the
-product orientation `ω.prod ω'` if `ω'` is the positive orientation, and its negative
-otherwise. -/
-theorem localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart
+/-- **The cross product with a zero-dimensional local orientation, on the right.** Let `P` have
+dimension `m + 1`, with an orientation `ω`, and `Q` dimension zero, with an orientation `ω'`. The
+cross product of the local orientation of `ω` with the local orientation
+`ω'.localOrientationOfZeroDim hQ` is the local orientation of the product orientation
+`ω.prod ω'`. -/
+theorem localHomologyCross_localOrientation_tmul_localOrientationOfZeroDim
     [FiniteDimensional ℝ P] [FiniteDimensional ℝ Q] (hP : finrank ℝ P = m + 1)
     (hQ : finrank ℝ Q = 0) (ω : Orientation ℝ P (Fin (m + 1))) (ω' : Orientation ℝ Q (Fin 0)) :
     (localHomologyCross (0 : P) (0 : Q) (m + 1) 0 (m + 1) (add_zero _)).hom
-        ((ω.localOrientation hP).val ⊗ₜ (localOrientationOfZeroDimChart
-          (OpenPartialHomeomorph.refl Q) (OpenPartialHomeomorph.mem_refl_source _) hQ).val) =
-      if ω' = positiveOrientation then
-        ((ω.prod ω' hP hQ).localOrientation (by rw [Module.finrank_prod, hP, hQ, add_zero])).val
-      else
-        -((ω.prod ω' hP hQ).localOrientation
-          (by rw [Module.finrank_prod, hP, hQ, add_zero])).val := by
+        ((ω.localOrientation hP).val ⊗ₜ (ω'.localOrientationOfZeroDim hQ).val) =
+      ((ω.prod ω' hP hQ).localOrientation (by rw [Module.finrank_prod, hP, hQ, add_zero])).val := by
   have : Subsingleton Q := Module.finrank_zero_iff.1 hQ
   let := uniqueOfSubsingleton (0 : Q)
   have hPQ : finrank ℝ (P × Q) = m + 1 := by rw [Module.finrank_prod, hP, hQ, add_zero]
   let J : P ≃L[ℝ] P × Q := (ContinuousLinearEquiv.prodUnique ℝ P Q).symm
+  -- `ω` times the class of the origin is the local orientation of `ω` carried to `P × Q` by `J`.
   have hJω : (localHomologyCross (0 : P) (0 : Q) (m + 1) 0 (m + 1) (add_zero _)).hom
-      ((ω.localOrientation hP).val ⊗ₜ (localOrientationOfZeroDimChart
-        (OpenPartialHomeomorph.refl Q) (OpenPartialHomeomorph.mem_refl_source _) hQ).val) =
+      ((ω.localOrientation hP).val ⊗ₜ
+        ((positiveOrientation : Orientation ℝ Q (Fin 0)).localOrientationOfZeroDim hQ).val) =
       ((ω.map (Fin (m + 1)) J.toLinearEquiv).localOrientation hPQ).val := by
-    rw [localOrientationOfZeroDimChart_coe, localHomologyCross_tmul_localHomologyPointClass,
-      localOrientation_map J ω hP hPQ]
+    rw [localOrientationOfZeroDim_positiveOrientation, localOrientationOfZeroDimChart_coe,
+      localHomologyCross_tmul_localHomologyPointClass, localOrientation_map J ω hP hPQ]
     exact (LocalOrientation.coe_map_prodUnique_symm_complZeroPairIso _).symm
   -- `J` is `LinearEquiv.prodUnique` inverted, as a continuous linear equivalence.
   have hJ' : J.toLinearEquiv = (LinearEquiv.prodUnique (R := ℝ) (M := P) (M₂ := Q)).symm := rfl
-  rw [hJω, hJ']
-  rcases (Module.finBasisOfFinrankEq ℝ Q hQ).orientation_eq_or_eq_neg ω' with h | h <;>
-    rw [Basis.orientation_isEmpty] at h <;> subst h
-  · rw [ite_eq_left rfl, prod_positiveOrientation_right]
-  · rw [ite_eq_right (Module.Ray.ne_neg_self _).symm, prod_neg_right, localOrientation_neg,
-      LocalOrientation.coe_neg, neg_neg, prod_positiveOrientation_right]
-
-open Classical in
-/-- **The product orientation from the point class of a zero-dimensional space, with its sign.**
-Let `P` have dimension `m + 1`, with an orientation `ω`, and `Q` dimension zero, with an
-orientation `ω'`. The cross product of the local orientation of `ω` with the class of the origin
-of `Q`, taken with the sign `+` if `ω'` is the positive orientation and `-` otherwise, is the
-local orientation of the product orientation `ω.prod ω'`. -/
-theorem localHomologyCross_localOrientation_tmul_ite_localOrientationOfZeroDimChart
-    [FiniteDimensional ℝ P] [FiniteDimensional ℝ Q] (hP : finrank ℝ P = m + 1)
-    (hQ : finrank ℝ Q = 0) (ω : Orientation ℝ P (Fin (m + 1))) (ω' : Orientation ℝ Q (Fin 0)) :
-    (localHomologyCross (0 : P) (0 : Q) (m + 1) 0 (m + 1) (add_zero _)).hom
-        ((ω.localOrientation hP).val ⊗ₜ
-          (if ω' = positiveOrientation then
-            (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl Q)
-              (OpenPartialHomeomorph.mem_refl_source _) hQ).val
-          else
-            -(localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl Q)
-              (OpenPartialHomeomorph.mem_refl_source _) hQ).val)) =
-      ((ω.prod ω' hP hQ).localOrientation (by rw [Module.finrank_prod, hP, hQ, add_zero])).val := by
-  have h := localHomologyCross_localOrientation_tmul_localOrientationOfZeroDimChart hP hQ ω ω'
-  split_ifs at h ⊢
-  · exact h
-  · rw [TensorProduct.tmul_neg, map_neg, h, neg_neg]
+  rcases eq_or_eq_neg_of_isEmpty ω' with rfl | rfl
+  · rw [hJω, hJ', prod_positiveOrientation_right]
+  · rw [localOrientationOfZeroDim_neg, LocalOrientation.coe_neg, TensorProduct.tmul_neg, map_neg,
+      hJω, hJ', prod_neg_right, localOrientation_neg, LocalOrientation.coe_neg,
+      prod_positiveOrientation_right]
 
 end Orientation

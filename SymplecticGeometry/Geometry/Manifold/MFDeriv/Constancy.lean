@@ -12,6 +12,7 @@ import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
+import TauCeti.Topology.LocallyConstant.ConnectedComponents
 
 /-!
 # Locally constant maps and vanishing differentials
@@ -100,13 +101,12 @@ theorem apply_eq_of_hasMFDerivWithinAt_zero (hs : Convex ℝ s)
     rw [zero_mul, norm_le_zero_iff, sub_eq_zero] at h
     exact d.injOn (hball hw') (hball hz') h
   -- A locally constant map on the preconnected set `s` is constant.
-  have : PreconnectedSpace s := isPreconnected_iff_preconnectedSpace.mp hs.isPreconnected
   have hlc : IsLocallyConstant (s.domRestrict g) :=
     (IsLocallyConstant.iff_eventually_eq _).mpr fun z ↦ by
       have h := hloc z z.property
       rw [nhdsWithin_eq_map_subtypeVal z.property, eventually_map] at h
       exact h
-  exact hlc.apply_eq_of_preconnectedSpace ⟨x, hx⟩ ⟨y, hy⟩
+  exact hlc.apply_eq_of_isPreconnected_of_subset hs.isPreconnected subset_rfl hx hy
 
 end Convex
 

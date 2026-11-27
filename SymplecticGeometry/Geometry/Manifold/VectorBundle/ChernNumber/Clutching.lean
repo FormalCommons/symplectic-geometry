@@ -49,7 +49,7 @@ circle.
 
 The disc clutching formula, `chernNumber_eq_sum_degree_clutching`, follows when `M` is compact:
 the first Chern number of `E` is the sum over `i` of these degrees. The first Chern class is the
-Euler class of the determinant line (`firstChernClass_eq_complexEulerClass_detBundle`), and Tau
+Euler class of the determinant line (`TauCeti.firstChernClass_def`), and Tau
 Ceti evaluates it on the fundamental class as the sum of the local indices of the section at its
 zeros (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`), as
 in `chernNumber_eq_sum_sectionIndex` for line bundles; the zeros are indexed by `ι`, since distinct
@@ -458,7 +458,7 @@ theorem chernNumber_eq_sum_degree_clutching [Fintype ι] [CompactSpace M] (hn : 
       (continuous_normalizedDet_clutchingTransition hφ hΦ hΦout i)).toBasedLoop := by
   obtain ⟨s, hs, hZ, hind⟩ := exists_detBundle_section_clutching hφ hΦ hΦout hn
   have hfin : {x | s x = 0}.Finite := hZ ▸ finite_range _
-  rw [chernNumber_def, firstChernClass_eq_complexEulerClass_detBundle, complexEulerClass_def,
+  rw [chernNumber_def, firstChernClass_def, lineFirstChernClass_def, complexEulerClass_def,
     VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ o hs hn hfin]
   have hset : hfin.toFinset =
       Finset.univ.map ⟨_, injective_apply_zero_of_pairwise_disjoint φ hφ⟩ := by

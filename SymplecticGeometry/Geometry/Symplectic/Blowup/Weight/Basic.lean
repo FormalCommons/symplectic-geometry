@@ -7,13 +7,17 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Complex
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
+import SymplecticGeometry.Analysis.Real.Sqrt
+import SymplecticGeometry.Geometry.Symplectic.Blowup.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Geometry.Symplectic.Manifold.Opens
@@ -95,8 +99,8 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 * `SymplecticGeometry.WeightBlowup.range_divisor`: the image of the divisor is the complement of
   `complDivisor`.
 * `SymplecticGeometry.WeightBlowup.mpullback_divisor_form`: `ω̃_ψ` pulls back along the divisor
-  to `l² ω_FS`, by `BlowupModel.mpullback_zeroSection_blowupForm`; so, for `l ≠ 0`, the divisor
-  is a symplectic submanifold
+  to `l² ω_FS`, by `BlowupModel.mpullback_zeroSectionRealEmbedding_blowupForm`; so, for
+  `l ≠ 0`, the divisor is a symplectic submanifold
   (`SymplecticGeometry.WeightBlowup.isSymplecticSubmanifoldEmbedding_divisor`).
 * `SymplecticGeometry.WeightBlowup.normalSpaceDivisorEquiv_normalClass`,
   `normalSpaceDivisorEquiv_symm_apply`: the isomorphism of normal spaces sends the class of the
@@ -104,6 +108,12 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
   of the blowdown applied to `w`. It is `BlowupModel.normalSpaceZeroSectionRealEquiv` of
   `Geometry/Manifold/Complex/Blowup/Tautological.lean`, carried through `inr` by Tau Ceti's
   `SmoothEmbedding.normalSpaceEquiv`, since `inr` is a local diffeomorphism.
+* `SymplecticGeometry.WeightBlowup.continuous_normalSpaceDivisorEquiv`: these isomorphisms
+  form a continuous map from the total space of the normal bundle of the divisor to that of the
+  tautological line. As for `BlowupModel.continuous_normalSpaceZeroSectionRealEquiv`, its values on
+  ambient tangent vectors are differentials along the divisor of a map that is smooth near it,
+  here the blowdown read through a left inverse of `inr`, and these are continuous on the
+  pulled-back tangent bundle.
 
 The gluing follows the other uses of `GluedAlong` in the library, the capped surface of
 `Geometry/Manifold/Gluing/CapDiscs/Basic.lean` and the fiber sum of
@@ -137,31 +147,12 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M} {ψ : StdSpace (Fin (n + 1)) → M} {l ε : ℝ}
 
-/-- `ψ` read on `E` through `complexToRealEuclidean`, as a partial diffeomorphism of `E` into `M`
-on the preimage of the open ball of radius `√(l² + ε²)`. -/
-private def complexPartialDiffeomorph
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ) M ∞ :=
-  (complexToRealEuclidean (Fin (n + 1))).toPartialDiffeomorph.trans
-    (hψ.toPartialDiffeomorph (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm)
-
-private theorem coe_complexPartialDiffeomorph
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    ⇑(complexPartialDiffeomorph hψ) = ψ ∘ complexToRealEuclidean (Fin (n + 1)) := by
-  simp [complexPartialDiffeomorph]
-
-private theorem mem_complexPartialDiffeomorph_source_iff
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {w : Fin (n + 1) → ℂ} :
-    w ∈ (complexPartialDiffeomorph hψ).source ↔
-      ‖complexToRealEuclidean (Fin (n + 1)) w‖ < √(l ^ 2 + ε ^ 2) := by
-  simp [complexPartialDiffeomorph]
-
 variable [T2Space M]
 
 /-- The first piece of the blowup: the open subset `M ∖ ψ(B(l))` of `M`. -/
 def outerPiece (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) : Opens M :=
   ⟨(ψ '' closedBall 0 l)ᶜ,
-    (hψ.isCompact_image_closedBall (Real.le_sqrt_of_sq_le (by nlinarith))).isClosed.isOpen_compl⟩
+    (hψ.isCompact_image_closedBall (Real.le_sqrt_sq_add_sq l ε)).isClosed.isOpen_compl⟩
 
 @[simp]
 theorem mem_outerPiece_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {x : M} :
@@ -183,7 +174,7 @@ open ball of radius `√(l² + ε²)` that are not in `ψ(B(l))`. -/
 def shellImage (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) : Opens M :=
   ⟨ψ '' ball 0 √(l ^ 2 + ε ^ 2) \ ψ '' closedBall 0 l,
     (hψ.isOpen_image_ball (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm
-      ).sdiff (hψ.isCompact_image_closedBall (Real.le_sqrt_of_sq_le (by nlinarith))).isClosed⟩
+      ).sdiff (hψ.isCompact_image_closedBall (Real.le_sqrt_sq_add_sq l ε)).isClosed⟩
 
 @[simp]
 theorem mem_shellImage_iff (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {x : M} :
@@ -204,7 +195,7 @@ theorem mem_openShell_iff_mem_shellImage (hψ : IsSymplecticBallEmbedding σ (�
   refine ⟨fun h ↦ ⟨⟨_, mem_ball_zero_iff.2 hw, rfl⟩, ?_⟩, fun h ↦ ⟨?_, hw⟩⟩
   · rintro ⟨v, hv, hvw⟩
     have hle : v ∈ closedBall 0 √(l ^ 2 + ε ^ 2) :=
-      closedBall_subset_closedBall (Real.le_sqrt_of_sq_le (by nlinarith)) hv
+      closedBall_subset_closedBall (Real.le_sqrt_sq_add_sq l ε) hv
     rw [hψ.injOn hle (ball_subset_closedBall (mem_ball_zero_iff.2 hw)) hvw,
       mem_closedBall_zero_iff] at hv
     exact h.1.not_ge hv
@@ -215,29 +206,29 @@ theorem mem_openShell_iff_mem_shellImage (hψ : IsSymplecticBallEmbedding σ (�
 def shellDiffeomorph (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     openShell n l ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ shellImage hψ :=
   (Diffeomorph.nestedOpen
-      (U := openShell n l ε) (D := ⟨_, (complexPartialDiffeomorph hψ).open_source⟩) fun _ hw ↦
-        (mem_complexPartialDiffeomorph_source_iff hψ).2 (mem_openShell_iff.1 hw).2).symm.trans
-    (((complexPartialDiffeomorph hψ).toDiffeomorphSourceTarget.subtype fun w ↦ by
+      (U := openShell n l ε) (D := ⟨_, hψ.complexPartialDiffeomorph.open_source⟩) fun _ hw ↦
+        hψ.mem_complexPartialDiffeomorph_source_iff.2 (mem_openShell_iff.1 hw).2).symm.trans
+    ((hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget.subtype fun w ↦ by
         simp only [Opens.mem_comap, ContinuousMap.coe_mk,
-          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, coe_complexPartialDiffeomorph,
+          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph,
           Function.comp_apply]
         exact mem_openShell_iff_mem_shellImage hψ
-          ((mem_complexPartialDiffeomorph_source_iff hψ).1 w.property)).trans
+          (hψ.mem_complexPartialDiffeomorph_source_iff.1 w.property)).trans
       (Diffeomorph.nestedOpen fun _ hx ↦ by
         obtain ⟨⟨v, hv, rfl⟩, -⟩ := hx
         have hv' : (complexToRealEuclidean (Fin (n + 1))).symm v ∈
-            (complexPartialDiffeomorph hψ).source := by
-          rw [mem_complexPartialDiffeomorph_source_iff]
+            hψ.complexPartialDiffeomorph.source := by
+          rw [hψ.mem_complexPartialDiffeomorph_source_iff]
           simpa using hv
-        have := (complexPartialDiffeomorph hψ).map_source hv'
-        rwa [coe_complexPartialDiffeomorph, Function.comp_apply,
+        have := hψ.complexPartialDiffeomorph.map_source hv'
+        rwa [hψ.coe_complexPartialDiffeomorph, Function.comp_apply,
           ContinuousLinearEquiv.apply_symm_apply] at this))
 
 @[simp]
 theorem coe_shellDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ)
     (w : openShell n l ε) :
     (shellDiffeomorph hψ w : M) = ψ (complexToRealEuclidean (Fin (n + 1)) w) := by
-  simp [shellDiffeomorph, coe_complexPartialDiffeomorph]
+  simp [shellDiffeomorph]
 
 variable (n ε) in
 /-- `openNbhd n ε ∖ Z` lies in the model piece. -/
@@ -414,8 +405,9 @@ omit [T2Space M] in
 /-- `ψ ∘ complexToRealEuclidean` is a symplectic map from `ω₀` on `E` to `σ` on its source. -/
 private theorem isSymplecticMapOn_complexPartialDiffeomorph
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    (ω₀E n).IsSymplecticMapOn σ (complexPartialDiffeomorph hψ)
-      (complexPartialDiffeomorph hψ).source := by
+    (ω₀E n).IsSymplecticMapOn σ hψ.complexPartialDiffeomorph
+      hψ.complexPartialDiffeomorph.source := by
+  rw [hψ.complexPartialDiffeomorph_def]
   refine PartialDiffeomorph.isSymplecticMapOn_trans (σ := (stdForm (Fin (n + 1))).constSmooth)
     _ _ ?_ ?_ (by simp)
   · have h : (ω₀E n).IsSymplecticMap (stdForm (Fin (n + 1))).constSmooth
@@ -437,7 +429,7 @@ theorem isSymplectomorphism_shellDiffeomorph
   have h : SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      (complexPartialDiffeomorph hψ).toDiffeomorphSourceTarget := by
+      hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget := by
     rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
     exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hw ↦
       (isSymplecticMapOn_complexPartialDiffeomorph hψ).mpullback_apply hw
@@ -597,14 +589,12 @@ theorem isSymplectomorphism_complDivisorSymplectomorph :
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (form hψ hl hε))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
       (complDivisorSymplectomorph hψ hl hε) := by
-  -- The inverse of `complDivisorSymplectomorph` followed by the inclusion is `inl`; the `show`
-  -- states this as an equality of functions, the form `SmoothForm.mpullback_congr` takes.
+  -- The inverse of `complDivisorSymplectomorph` is the diffeomorphism of `inl` onto its image,
+  -- which is `complDivisor` by definition.
   rw [← SmoothTwoForm.isSymplectomorphism_symm_iff (by simp),
-    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq,
-    SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr _
-      (GluedAlong.isLocalDiffeomorph_inl _).contMDiff
-      (show Subtype.val ∘ (complDivisorSymplectomorph hψ hl hε).symm = GluedAlong.inl _ from
-        funext (coe_complDivisorSymplectomorph_symm_apply hψ hl hε)), mpullback_inl_form]
+    SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq, ← mpullback_inl_form]
+  exact SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+    (GluedAlong.isLocalDiffeomorph_inl _) (GluedAlong.inl_injective _) _
 
 /-! ### The divisor and its normal bundle -/
 
@@ -692,18 +682,18 @@ theorem mpullback_divisor_form :
       (coe_divisor hψ hl hε),
     ← SmoothForm.mpullback_mpullback _ _ (zeroSectionModelPiece hε).contMDiff hr,
     mpullback_inr_form, SmoothForm.mpullback_mpullback,
-    SmoothForm.mpullback_congr _ ((contMDiff_zeroSection ∞).restrictScalars' ℝ)
-      ((val_comp_zeroSectionModelPiece hε).trans (coe_zeroSectionRealEmbedding n)),
-    mpullback_zeroSection_blowupForm]
+    SmoothForm.mpullback_congr _ (zeroSectionRealEmbedding n).contMDiff
+      (val_comp_zeroSectionModelPiece hε),
+    mpullback_zeroSectionRealEmbedding_blowupForm]
 
 /-- **The divisor is a symplectic submanifold**: for `l ≠ 0` and a nondegenerate form `ω̃_ψ`, as
 for symplectic `σ` (`isSymplectic_form`), the divisor is a symplectic submanifold embedding. -/
 theorem isSymplecticSubmanifoldEmbedding_divisor (hω : (form hψ hl hε).IsNondegenerate)
-    (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) := by
-  rw [hω.isSymplecticSubmanifoldEmbedding_iff_isNondegenerate_mpullback
-    (divisor hψ hl hε).isSmoothEmbedding]
-  convert (isSymplectic_fubiniStudyForm n).isNondegenerate.smul _ (pow_ne_zero 2 hl₀)
-  exact mpullback_divisor_form hψ hl hε
+    (hl₀ : l ≠ 0) : hω.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, Fin n → ℂ) (divisor hψ hl hε) :=
+  (hω.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
+    (divisor hψ hl hε).isSmoothEmbedding).2 <|
+      hasSymplecticTangentImages_of_mpullback_eq_smul_fubiniStudyForm hω _ hl₀
+        (mpullback_divisor_form hψ hl hε)
 
 variable (hn : (∞ : ℕ∞ω) ≠ 0)
 
@@ -791,6 +781,80 @@ theorem normalSpaceDivisorEquiv_symm_apply (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
           (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph)
           ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩ w) := by
   rw [ContinuousLinearEquiv.symm_apply_eq, normalSpaceDivisorEquiv_normalClass]
+
+/-- Near the divisor, `blowdown` read through `inr`: a map on the blowup, smooth on the image of
+`inr`, that `inr` pulls back to `blowdown` on the model piece. -/
+private theorem exists_contMDiffAt_comp_inr_eq_blowdown [Nonempty (modelPiece n ε)] :
+    ∃ g : WeightBlowup hψ hl hε → Fin (n + 1) → ℂ,
+      (∀ y, ContMDiffAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g
+        (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph y)) ∧
+      g ∘ GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph =
+        blowdown ∘ Subtype.val := by
+  have hi := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
+    (n := ∞)).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn isOpen_univ
+    (GluedAlong.inr_injective _).injOn
+  rw [image_univ] at hi
+  refine ⟨blowdown ∘ Subtype.val ∘
+    Function.invFunOn (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) univ,
+    fun y ↦ ?_, ?_⟩
+  · exact (((contMDiff_blowdown ∞).restrictScalars' ℝ).contMDiffAt.comp _
+      contMDiff_subtypeVal.contMDiffAt).comp _
+      (hi.contMDiffAt ((GluedAlong.isOpen_range_inr _).mem_nhds (mem_range_self y)))
+  · funext y
+    simp only [Function.comp_apply,
+      (GluedAlong.inr_injective _).injOn.leftInvOn_invFunOn (mem_univ y)]
+
+open _root_.Bundle in
+variable {hn} in
+/-- The isomorphisms `normalSpaceDivisorEquiv hψ hl hε hn ℓ` form a continuous map from the total
+space of the normal bundle of the divisor to the total space of the tautological line bundle
+`Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)` over `ℙ ℂ (Fin (n + 1) → ℂ)`. The normal
+bundle carries Tau Ceti's topology, the quotient topology from the ambient tangent bundle. The
+type `K` only labels the total space and does not change its topology, so the theorem holds for
+every `K`. When `K` has real dimension 2, such as `ℂ`, this quotient topology is that of the
+bundle structure `SmoothEmbedding.normalSpaceFiberBundle`. -/
+theorem continuous_normalSpaceDivisorEquiv {K : Type*} :
+    Continuous fun p : TotalSpace K (fun ℓ => (divisor hψ hl hε).isImmersion.NormalSpace ℓ hn) =>
+      (⟨p.proj, normalSpaceDivisorEquiv hψ hl hε hn p.proj p.snd⟩ :
+        TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
+  rw [SmoothEmbedding.continuous_normalBundle_iff,
+    Projectivization.continuous_totalSpace_tautological_iff]
+  simp only [Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
+  refine ⟨FiberBundle.continuous_proj _ _, continuous_iff_continuousAt.2 fun q ↦ ?_⟩
+  have : Nonempty (modelPiece n ε) := ⟨⟨zeroSection q.proj, zeroSection_mem_modelPiece hε _⟩⟩
+  -- The values are the differentials, along the divisor, of `blowdown` read through `inr`.
+  obtain ⟨g, hg, hgr⟩ := exists_contMDiffAt_comp_inr_eq_blowdown hψ hl hε
+  refine (_root_.Bundle.Pullback.continuousAt_mfderiv_apply (divisor hψ hl hε)
+    (by rw [divisor_apply]; exact hg _) (by norm_num)).congr
+      (Filter.Eventually.of_forall fun p ↦ ?_)
+  obtain ⟨ℓ, v⟩ := p
+  let x : modelPiece n ε := ⟨zeroSection ℓ, zeroSection_mem_modelPiece hε ℓ⟩
+  obtain ⟨w, rfl⟩ := ((GluedAlong.isLocalDiffeomorph_inr (gluingDiffeomorphSymm hψ hl hε)
+    (n := ∞)).isInvertible_mfderiv hn x).bijective.2 v
+  have hb : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
+      (x : BlowupModel n) := (contMDiff_blowdown 1).mdifferentiableAt one_ne_zero
+  have hr : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+      (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x :=
+    (GluedAlong.isLocalDiffeomorph_inr _ (n := ∞)).mdifferentiable hn x
+  -- The differential of `g` at `divisor ℓ`, which is `inr x`, read through `inr`.
+  have key : ∀ z, z = GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph x →
+      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) g z
+          (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ)
+            (GluedAlong.inr (gluingDiffeomorphSymm hψ hl hε).toHomeomorph) x w) =
+        mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown (x : BlowupModel n) w := by
+    rintro _ rfl
+    refine (mfderiv_comp_apply x ((hg x).mdifferentiableAt (by simp)) hr w).symm.trans ?_
+    rw [hgr]
+    refine (mfderiv_comp_apply x
+      (((contMDiff_blowdown 1).restrictScalars' ℝ).mdifferentiableAt one_ne_zero)
+      (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero) w).trans ?_
+    rw [Manifold.mfderiv_subtype_val_apply]
+    exact hb.mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ w
+  dsimp only
+  rw [SmoothEmbedding.normalQuotientMap_apply]
+  dsimp only
+  exact (key _ (divisor_apply hψ hl hε ℓ)).trans
+    (congrArg Subtype.val (normalSpaceDivisorEquiv_normalClass hψ hl hε hn ℓ w).symm)
 
 end Divisor
 
