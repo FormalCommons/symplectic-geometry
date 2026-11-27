@@ -62,8 +62,9 @@ The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
 
 When `V` is a complement of `𝔤 · x`, the tube map is a local diffeomorphism at `[1, 0]`: its
 differential there is onto by the above, and injective because `dπ` is onto and kills `𝔤_x × 0`,
-along which `t ↦ (exp (t ξ), 0)` stays in the class `[1, 0]`. The inverse function theorem
-(Tau Ceti's `TauCeti.isLocalDiffeomorphAt_iff_exists_mfderiv_eq`) applies. Local diffeomorphy of
+along which `t ↦ (exp (t ξ), 0)` stays in the class `[1, 0]`. The inverse function theorem for a
+bijective differential (`TauCeti.isLocalDiffeomorphAt_of_bijective_mfderiv`, in
+`SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic`) applies. Local diffeomorphy of
 the equivariant tube map is `G`-invariant (`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`),
 so it holds at every `[g, v]` with `v` in a smaller slice domain `U'` around `0`; `U` itself
 need not be small.
