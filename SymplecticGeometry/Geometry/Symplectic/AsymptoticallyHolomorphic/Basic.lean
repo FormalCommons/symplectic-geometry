@@ -514,7 +514,8 @@ theorem contDiffAt_connectionReading {n : ℕ∞} {k : ℕ} {x : M}
   exact h.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w ↦ connectionReading_def ..)
 
 /-- The connection read in the chart, as a function:
-`w ↦ df_w - R (ω₀(w, ·) / 2) (i f(w))`, for `f` the reading of the section and `R = ContinuousLinearMap.smulRightL`, a continuous bilinear map. -/
+`w ↦ df_w - R (ω₀(w, ·) / 2) (i f(w))`, for `f` the reading of the section and
+`R = ContinuousLinearMap.smulRightL`, a continuous bilinear map. -/
 theorem connectionReading_eq (k : ℕ) (x : M) (s : Π y, PowerBundle P k y) :
     D.connectionReading k x s = fun w ↦ fderiv ℝ (D.reading k x s) w -
       ContinuousLinearMap.smulRightL ℝ ℝ ℝ (StdSpace ι) ℂ

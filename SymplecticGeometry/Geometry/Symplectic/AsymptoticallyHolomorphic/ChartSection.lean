@@ -59,9 +59,9 @@ The `∂̄` reading of a section in the chart at `x` is the antilinear part of i
 (`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_chartPushforward_sub_le`), and those
 of `L` of size `1 + ‖z‖` times the jets of the reading
 (`SymplecticGeometry.RescaledUnitaryCharts.exists_jetNormAt_connectionReading_le`), so the Leibniz
-bound `SymplecticGeometry.jetNormAt_bilinear_le` bounds the `r`-jet norm of the `∂̄` reading by that of
-the model `∂̄` plus `C * (1 + ‖z‖) ^ 2 / √k` times the `(r + 1)`-jet norm of the reading, with `C`
-independent of `k`, `x` and the section.
+bound `SymplecticGeometry.jetNormAt_bilinear_le` bounds the `r`-jet norm of the `∂̄` reading by
+that of the model `∂̄` plus `C * (1 + ‖z‖) ^ 2 / √k` times the `(r + 1)`-jet norm of the reading,
+with `C` independent of `k`, `x` and the section.
 
 ## Main definitions
 
