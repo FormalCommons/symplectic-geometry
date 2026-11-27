@@ -33,6 +33,10 @@ It also records two facts about the real part of the Levi form on the diagonal:
   `df(v)² + df(i v)²` is added. This is Tau Ceti's Finsler lemma
   `IsCompact.eventually_exists_pos_forall_mul_norm_sq_le_mul_add` for one pair of forms.
 
+On a complex normed space `E` seen as a manifold modelled on itself,
+`TauCeti.isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt` says that strict
+plurisubharmonicity is that of the Levi form on `E`.
+
 ## References
 
 * [K. Cieliebak, Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
@@ -45,6 +49,22 @@ open Filter Topology
 open scoped Manifold ContDiff
 
 namespace TauCeti
+
+section ModelSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+
+/-- On a complex normed space `E`, seen as a complex manifold modelled on itself, strict
+plurisubharmonicity of `u : E → ℝ` at `z` is strict plurisubharmonicity in the sense of complex
+vector spaces: positive definiteness of the Levi form `leviForm u z`. -/
+@[simp]
+theorem isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt
+    {u : E → ℝ} {z : E} :
+    IsManifoldStrictlyPlurisubharmonicAt E u z ↔ IsStrictlyPlurisubharmonicAt u z := by
+  rw [isManifoldStrictlyPlurisubharmonicAt_iff, isStrictlyPlurisubharmonicAt_iff]
+  simp only [manifoldLeviForm_eq_leviForm]
+
+end ModelSpace
 
 section Diagonal
 

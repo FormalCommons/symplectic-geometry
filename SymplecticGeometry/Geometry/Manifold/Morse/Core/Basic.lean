@@ -206,6 +206,11 @@ theorem exists_compression_of_subset (c : BandCore I g a₀ a b) {U : Set M} (hU
       (∃ V ∈ 𝓝ˢ {x | g x ≤ a}, ∀ t, ∀ x ∈ V, F (t, x) = x) ∧ MapsTo f {x | g x ≤ b} U :=
   c.exists_compression U hU (by rwa [← cubes_def])
 
+/-- Each chart of a band core is an open embedding. -/
+theorem isOpenEmbedding_chart (c : BandCore I g a₀ a b) (i : c.ι) :
+    IsOpenEmbedding (c.chart i) :=
+  ⟨(c.isSmoothEmbedding_chart i).isEmbedding, c.isOpen_range_chart i⟩
+
 /-- A point lies in the cubes when some chart sends a point of the unit cube to it. -/
 theorem mem_cubes_iff (c : BandCore I g a₀ a b) {x : M} :
     x ∈ c.cubes ↔ ∃ i, ∃ v ∈ Metric.closedBall 0 1 ×ˢ {0}, c.chart i v = x := by

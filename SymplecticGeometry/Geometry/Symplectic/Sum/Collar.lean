@@ -30,10 +30,12 @@ neighbourhoods of `Q`.
 
 * `SymplecticGeometry.annulusMap δ ε`: the map `a`, with `norm_annulusMap`,
   `annulusMap_annulusMap` (it is an involution of the annulus), `mapsTo_annulusMap`, and
-  `norm_annulusMap_eq_norm_iff`: it fixes exactly the radius `√((δ² + ε²) / 2)`.
+  `norm_annulusMap_eq_norm_iff`: it fixes exactly the radius `√((δ² + ε²) / 2)`, and
+  `le_norm_annulusMap`: it sends smaller radii to radii at least that one.
 * `SymplecticGeometry.annulusPartialDiffeomorph δ ε`: `a` as a partial diffeomorphism of `ℂ`
   with source and target the annulus, and `SymplecticGeometry.annulusDiffeomorph δ ε`, the
-  diffeomorphism of the annulus that it gives.
+  diffeomorphism of the annulus that it gives, an involution (`annulusDiffeomorph_symm`,
+  `annulusDiffeomorph_apply_apply`).
 * `SymplecticGeometry.annulusMap_eventuallyEq_weightedSliceTransitionBranch`: near a point
   `z ≠ 0`, `a` is Tau Ceti's `TauCeti.Toric.weightedSliceTransitionBranch 1 1 ((ε² + δ²) / 2) z`,
   so that its smoothness (`contDiffAt_annulusMap`) and
@@ -131,6 +133,15 @@ theorem norm_annulusMap_eq_norm_iff (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
   refine ⟨fun h ↦ absurd h.symm (norm_ne_zero_iff.2 hz), fun h ↦ ?_⟩
   rw [h, Real.sq_sqrt (by positivity)] at hzr
   nlinarith [sq_nonneg δ, sq_nonneg ε]
+
+/-- Away from `0`, the annulus map sends a radius below `√((δ² + ε²) / 2)`, the radius that it
+fixes, to a radius at least `√((δ² + ε²) / 2)`. -/
+theorem le_norm_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) (h : ‖z‖ < √((δ ^ 2 + ε ^ 2) / 2)) :
+    √((δ ^ 2 + ε ^ 2) / 2) ≤ ‖annulusMap δ ε z‖ := by
+  have hsq : √((δ ^ 2 + ε ^ 2) / 2) ^ 2 = (δ ^ 2 + ε ^ 2) / 2 := Real.sq_sqrt (by positivity)
+  have := pow_lt_pow_left₀ h (norm_nonneg _) two_ne_zero
+  rw [norm_annulusMap δ ε hz]
+  exact Real.le_sqrt_of_sq_le (by linarith)
 
 /-- Away from `0`, the annulus map agrees with Tau Ceti's branch near `z` of the change of
 slices, for the weights `a = b = 1` and the level `(ε² + δ²) / 2`. -/
@@ -239,6 +250,11 @@ theorem annulusDiffeomorph_symm (δ ε : ℝ) (hδ : 0 ≤ δ) :
     (((annulusPartialDiffeomorph δ ε hδ).toDiffeomorphSourceTarget_symm_apply_coe z).trans
       (coe_annulusDiffeomorph_apply δ ε hδ z).symm)
 
+@[simp]
+theorem annulusDiffeomorph_apply_apply (δ ε : ℝ) (hδ : 0 ≤ δ) (z : annulus ℂ δ ε) :
+    annulusDiffeomorph δ ε hδ (annulusDiffeomorph δ ε hδ z) = z := by
+  simpa only [annulusDiffeomorph_symm] using (annulusDiffeomorph δ ε hδ).symm_apply_apply z
+
 /-- **The annulus map preserves the area form.** The diffeomorphism `annulusDiffeomorph` pulls
 the restriction to the annulus of the constant form `ω₀` of `TauCeti.stdComplexSymplecticForm`
 back to itself. -/
@@ -283,6 +299,10 @@ theorem prodAnnulusDiffeomorph_symm (δ ε : ℝ) (hδ : 0 ≤ δ) :
     (prodAnnulusDiffeomorph (I := I) Q δ ε hδ).symm = prodAnnulusDiffeomorph Q δ ε hδ := by
   rw [prodAnnulusDiffeomorph, Diffeomorph.prodCongr_symm, Diffeomorph.symm_refl,
     annulusDiffeomorph_symm]
+
+theorem prodAnnulusDiffeomorph_apply_apply (δ ε : ℝ) (hδ : 0 ≤ δ) (p : Q × annulus ℂ δ ε) :
+    prodAnnulusDiffeomorph (I := I) Q δ ε hδ (prodAnnulusDiffeomorph (I := I) Q δ ε hδ p) = p := by
+  simp
 
 variable {Q} [IsManifold I ∞ Q]
 

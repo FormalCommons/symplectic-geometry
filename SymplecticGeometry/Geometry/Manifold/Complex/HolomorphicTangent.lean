@@ -86,9 +86,7 @@ theorem ofComplexManifoldTangentEquiv_symm_apply (n : ℕ∞) (x : M) (v : Tange
     (ofComplexManifoldTangentEquiv n x).symm v =
       (((ofComplexManifold E M).toContMDiff n).toContinuousComplexStructure.fiberEquiv x).symm
         (v : E) :=
-  (ofComplexManifoldTangentEquiv n x).symm_apply_eq.2 <|
-    ((ofComplexManifoldTangentEquiv_apply n x _).trans
-      (ContinuousLinearEquiv.apply_symm_apply _ (v : E))).symm
+  Bundle.ContinuousComplexStructure.fiberEquivOfCommuteI_symm_apply _ _ _ x v
 
 variable [FiniteDimensional ℂ E]
   (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
