@@ -16,7 +16,9 @@ In a proper real normed space, every open set `V` that contains the sphere of ra
 about the origin contains a closed shell `{y | |‖y‖ - r| ≤ w}` for some `0 < w < r`
 (`Metric.exists_abs_norm_sub_le_subset_of_sphere_subset`). The sphere is compact, so `V`
 contains one of its thickenings (`IsCompact.exists_thickening_subset_open`), and a point `y ≠ 0`
-is at distance `|‖y‖ - r|` from the point `(r / ‖y‖) • y` of the sphere.
+is at distance `|‖y‖ - r|` from the point `(r / ‖y‖) • y` of the sphere. In a proper normed
+group such a shell is compact (`Metric.isCompact_setOf_abs_norm_sub_le`): it is closed and lies
+in a closed ball.
 -/
 
 public section
@@ -25,7 +27,18 @@ open Set
 
 namespace Metric
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {E : Type*} [NormedAddCommGroup E]
+
+/-- In a proper normed group, the closed shell `{y | |‖y‖ - r| ≤ w}` is compact. -/
+theorem isCompact_setOf_abs_norm_sub_le [ProperSpace E] (r w : ℝ) :
+    IsCompact {y : E | |‖y‖ - r| ≤ w} := by
+  refine (isCompact_closedBall (0 : E) (r + w)).of_isClosed_subset
+    (isClosed_le (by fun_prop) continuous_const) fun y hy ↦ ?_
+  rw [mem_closedBall_zero_iff]
+  rw [mem_ofPred_eq, abs_le] at hy
+  linarith [hy.2]
+
+variable [NormedSpace ℝ E]
 
 /-- A nonzero vector `y` is at distance `|‖y‖ - r|` from `(r / ‖y‖) • y`. For `r > 0` this is the
 point of the sphere of radius `r` on the ray through `y`. -/

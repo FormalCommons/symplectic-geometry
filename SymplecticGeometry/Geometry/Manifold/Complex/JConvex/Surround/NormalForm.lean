@@ -246,6 +246,34 @@ end Frame
 
 section RadialProfile
 
+/-- If `|x| ≤ η`, `|y| ≤ M` and `η * M < 1`, then `0 < 1 + x * y`. -/
+theorem one_add_mul_pos_of_abs_le {x y η M : ℝ} (hx : |x| ≤ η) (hy : |y| ≤ M) (h : η * M < 1) :
+    0 < 1 + x * y := by
+  have h1 : |x * y| ≤ η * M := by
+    rw [abs_mul]
+    exact mul_le_mul hx hy (abs_nonneg _) ((abs_nonneg _).trans hx)
+  linarith [neg_abs_le (x * y)]
+
+/-- Let `m ≤ 1` and `m ≤ 1 + p`. If `|H| ≤ η`, `-η ≤ H' ≤ 1 + η`, `|p| + |B| + |D| ≤ M` and
+`η * M < m`, then `0 < 1 + H' * p + H * B + H * D`. -/
+theorem one_add_mul_add_mul_add_mul_pos_of_abs_le {p B D H H' η M m : ℝ} (hm1 : m ≤ 1)
+    (hmp : m ≤ 1 + p) (hH : |H| ≤ η) (hH' : H' ∈ Icc (-η) (1 + η)) (hM : |p| + |B| + |D| ≤ M)
+    (hηM : η * M < m) : 0 < 1 + H' * p + H * B + H * D := by
+  have hη : 0 ≤ η := (abs_nonneg _).trans hH
+  -- The term `H' * p` is at least `-η * |p|` for `p ≥ 0`, and at least `(1 + η) * p` for `p ≤ 0`.
+  have k1 : m - η * |p| ≤ 1 + H' * p := by
+    rcases le_total 0 p with hp | hp
+    · rw [abs_of_nonneg hp]
+      nlinarith [hH'.1]
+    · rw [abs_of_nonpos hp]
+      nlinarith [hH'.2]
+  have k2 : |H * B| ≤ η * |B| := by
+    rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
+  have k3 : |H * D| ≤ η * |D| := by
+    rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
+  have k4 : η * (|p| + |B| + |D|) ≤ η * M := mul_le_mul_of_nonneg_left hM hη
+  linarith [neg_abs_le (H * B), neg_abs_le (H * D)]
+
 variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
 
 /-- **A radial profile with prescribed radial derivative on the unit sphere.** Let `F` be a
@@ -290,12 +318,7 @@ theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : Con
   -- A closed shell `K` of width `w` around the sphere lies in `V`.
   obtain ⟨w, hw0, hw1, hKV⟩ := exists_abs_norm_sub_le_subset_of_sphere_subset one_pos hV hSV
   set K : Set F := {y | |‖y‖ - 1| ≤ w}
-  have hKc : IsCompact K := by
-    refine (isCompact_closedBall (0 : F) 2).of_isClosed_subset
-      (isClosed_le (by fun_prop) continuous_const) fun y hy ↦ ?_
-    rw [mem_closedBall_zero_iff]
-    have := (abs_le.1 (show |‖y‖ - 1| ≤ w from hy)).2
-    linarith
+  have hKc : IsCompact K := isCompact_setOf_abs_norm_sub_le 1 w
   -- Bounds on the shell.
   obtain ⟨m, hm0, hm⟩ := hKc.exists_forall_le' (f := fun y ↦ 1 + ‖y‖ * b y)
     (hq.mono (hKV.trans inter_subset_left)) fun y hy ↦ (hKV hy).2
@@ -351,9 +374,8 @@ theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : Con
     have H : HasFDerivAt τ (ψ y • fderiv ℝ b y + b y • fderiv ℝ ψ y) y :=
       ((((TauCeti.differentiableAt_comp_norm_iff hy0).2 hβ).hasFDerivAt.mul
         hb.hasFDerivAt).const_add 1)
-    rw [H.fderiv, add_apply, smul_apply, smul_apply, fderiv_comp_norm_apply hy0 hβ,
-      deriv_comp_sub_const, real_inner_self_eq_norm_sq]
-    field_simp
+    rw [H.fderiv, add_apply, smul_apply, smul_apply, fderiv_comp_norm_apply_self hy0 hβ,
+      deriv_comp_sub_const, smul_eq_mul, smul_eq_mul, smul_eq_mul]
     ring
   refine ⟨τ, hτ, fun x ↦ ?_, hτout 0 (by simp; linarith), fun x hx ↦ by simp [τ, hx, hh0],
     ⟨2, fun x hx ↦ by
@@ -362,50 +384,19 @@ theorem exists_contDiff_fderiv_apply_self_eq_on_sphere {g : F → ℝ} (hg : Con
     fun x ↦ ?_, fun x hx ↦ ?_⟩
   · -- positivity of `τ`
     by_cases hx : |‖x‖ - 1| ≤ w / 2
-    · have hxK : x ∈ K := hx.trans (by linarith)
-      have hB := hbound x hxK
-      have h1 : |h (‖x‖ - 1) * b x| ≤ η * M' := by
-        rw [abs_mul]
-        have h0 := abs_nonneg (‖x‖ * b x)
-        have h0' := abs_nonneg (fderiv ℝ b x x)
-        exact mul_le_mul (hhb _) (by linarith) (abs_nonneg _) hη.le
-      have := neg_abs_le (h (‖x‖ - 1) * b x)
-      have := min_le_right m 1
-      simp only [τ]
-      linarith
+    · have hB := hbound x (hx.trans (by linarith))
+      have hbx : |b x| ≤ M' := by
+        linarith [abs_nonneg (‖x‖ * b x), abs_nonneg (fderiv ℝ b x x)]
+      exact one_add_mul_pos_of_abs_le (hhb _) hbx (hηM.trans_le (min_le_right m 1))
     · simp [τ, hhw _ (by linarith : w / 2 ≤ |‖x‖ - 1|)]
   · -- positivity of `τ + dτ (x) x`
     by_cases hx : |‖x‖ - 1| ≤ w / 2
     · have hxK : x ∈ K := hx.trans (by linarith)
-      have hxU : x ∈ U := (hKV hxK).1
-      rw [hτd x hxU]
-      have hB := hbound x hxK
-      have hmx : m ≤ 1 + ‖x‖ * b x := hm x hxK
-      set r := ‖x‖
-      set B := b x
-      set D := fderiv ℝ b x x
-      set H := h (r - 1)
-      set H' := deriv h (r - 1)
-      have hH : |H| ≤ η := hhb _
-      have hH' := hhd (r - 1)
-      have k1 : m' - η * |r * B| ≤ 1 + H' * (r * B) := by
-        rcases le_total 0 (r * B) with hp | hn
-        · rw [abs_of_nonneg hp]
-          nlinarith [min_le_right m 1, hH'.1]
-        · rw [abs_of_nonpos hn]
-          nlinarith [min_le_left m 1, hH'.2]
-      have k2 : |H * B| ≤ η * |B| := by
-        rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
-      have k3 : |H * D| ≤ η * |D| := by
-        rw [abs_mul]; exact mul_le_mul_of_nonneg_right hH (abs_nonneg _)
-      have k4 : η * (|r * B| + |B| + |D|) ≤ η * M' := mul_le_mul_of_nonneg_left hB hη.le
-      have := neg_abs_le (H * B)
-      have := neg_abs_le (H * D)
-      have hsplit : 1 + H * B + (H' * r * B + H * D) = 1 + H' * (r * B) + H * B + H * D := by
-        ring
+      rw [hτd x (hKV hxK).1]
+      have := one_add_mul_add_mul_add_mul_pos_of_abs_le (min_le_right m 1)
+        ((min_le_left m 1).trans (hm x hxK)) (hhb (‖x‖ - 1)) (hhd (‖x‖ - 1)) (hbound x hxK) hηM
       simp only [τ]
-      rw [hsplit]
-      nlinarith
+      linarith
     · rw [(hτout x (not_le.1 hx)).fderiv_eq]
       simp [τ, hhw _ (by linarith : w / 2 ≤ |‖x‖ - 1|)]
   · -- the radial derivative on the sphere
