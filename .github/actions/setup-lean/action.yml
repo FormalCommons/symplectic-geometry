@@ -128,7 +128,11 @@ runs:
         LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
         TAUCETI_CACHE_BUILD_LIMIT: 90m
         TAUCETI_BUCKET_MAPPINGS: ${{ inputs.bucket == 'true' && format('{0}/tauceti-bucket/mappings.jsonl', runner.temp) || '' }}
-        TAUCETI_MAPPINGS_OUT: ${{ inputs.bucket == 'true' && format('{0}/tauceti-mappings.jsonl', runner.temp) || '' }}
+        # Not for a pull request from a fork, which hands nothing over.
+        TAUCETI_MAPPINGS_OUT: >-
+          ${{ inputs.bucket == 'true' &&
+          (github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository) &&
+          format('{0}/tauceti-mappings.jsonl', runner.temp) || '' }}
       run: |
         .github/tauceti-cache.sh
         [ ! -s "$TAUCETI_MAPPINGS_OUT" ] || echo "mappings=true" >> "$GITHUB_OUTPUT"

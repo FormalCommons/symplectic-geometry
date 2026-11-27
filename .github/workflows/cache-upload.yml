@@ -61,9 +61,10 @@ name: cache-upload
 # the library imports, and hands them over as a second artifact,
 # `lake-cache-tauceti`. They go into the bucket by the same rules, from the
 # same runs, checked by the same script: the archives under `a/`, and the
-# mappings beside the library's, as `<commit>.tauceti.jsonl`. So a move's
-# later runs, and the merge queue's run for it, do not compile them again;
-# see tauceti-bucket.sh for who reads which.
+# mappings beside the library's, as `<commit>.tauceti.jsonl`. So once a run
+# of a move has passed and its upload is done, the move's later runs and
+# the merge queue's run for it do not compile them again; see
+# tauceti-bucket.sh for who reads which, and for what that trusts.
 on:
   workflow_run:
     workflows: [ci]
@@ -131,9 +132,11 @@ jobs:
           RUN: ${{ github.event.workflow_run.id }}
         run: |
           set -o pipefail
-          count=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" -f name=lake-cache |
-            jq '[.artifacts[] | select(.name == "lake-cache" and (.expired | not))] | length') ||
-            { echo "::warning::could not ask GitHub for the staged build of run $RUN"; exit 0; }
+          # One list of the run's artifacts, for this step and the next.
+          timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" -F per_page=100 > "$RUNNER_TEMP/artifacts.json" ||
+            { rm -f "$RUNNER_TEMP/artifacts.json"; echo "::warning::could not ask GitHub for the staged build of run $RUN"; exit 0; }
+          count=$(jq '[.artifacts[] | select(.name == "lake-cache" and (.expired | not))] | length' "$RUNNER_TEMP/artifacts.json") ||
+            { echo "::warning::could not read GitHub's list of the artifacts of run $RUN"; exit 0; }
           [ "$count" -gt 0 ] || { echo "run $RUN handed over no staged build"; exit 0; }
           if timeout 120 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache --dir "$RUNNER_TEMP/staged"; then
             echo "found=true" >> "$GITHUB_OUTPUT"
@@ -149,9 +152,9 @@ jobs:
           RUN: ${{ github.event.workflow_run.id }}
         run: |
           set -o pipefail
-          count=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/artifacts" -f name=lake-cache-tauceti |
-            jq '[.artifacts[] | select(.name == "lake-cache-tauceti" and (.expired | not))] | length') ||
-            { echo "::warning::could not ask GitHub for the Tau Ceti modules of run $RUN"; exit 0; }
+          [ -s "$RUNNER_TEMP/artifacts.json" ] || { echo "no list of the artifacts of run $RUN"; exit 0; }
+          count=$(jq '[.artifacts[] | select(.name == "lake-cache-tauceti" and (.expired | not))] | length' "$RUNNER_TEMP/artifacts.json") ||
+            { echo "::warning::could not read GitHub's list of the artifacts of run $RUN"; exit 0; }
           [ "$count" -gt 0 ] || { echo "run $RUN handed over no Tau Ceti modules"; exit 0; }
           if timeout 300 gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --name lake-cache-tauceti --dir "$RUNNER_TEMP/tauceti"; then
             echo "found=true" >> "$GITHUB_OUTPUT"

@@ -9,7 +9,8 @@
 # It reads GH_TOKEN, and from the run: OWN_REPO (`true` for a branch of this
 # repository), PR (the pull request's number) and QUEUE_REF (the merge
 # group's ref). If GitHub does not answer, it gives a warning and prints
-# nothing, and the run goes on with main's mappings alone.
+# what it got until then, mostly nothing, and the run goes on with main's
+# mappings and those.
 set -uo pipefail
 [ "${OWN_REPO:-}" = true ] || exit 0
 if [ "${GITHUB_EVENT_NAME:-}" = pull_request ]; then

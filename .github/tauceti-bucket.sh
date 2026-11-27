@@ -18,17 +18,30 @@
 # (TAUCETI_BUCKET_MAPPINGS) and writes the mappings of what it built
 # (TAUCETI_MAPPINGS_OUT).
 #
-# Which files a run may read is what ci.yml says of the library's mappings,
-# at the step that fetches from the bucket, and for the same reasons: first
-# those of its own commits under `r/pr/` (own-commits.sh), then those of the
-# commits of main under `r/queue/`, here the 100 commits before the one that
-# is checked out. The file of a commit is `<commit>.tauceti.jsonl`, beside
-# the library's `<commit>.jsonl`, which is the name Lake itself reads.
+# A run reads one file: main's latest for these dependencies under
+# `r/queue/`, or without one the latest of its own commits under `r/pr/`
+# (own-commits.sh, which says whose those are). The file of a commit is
+# `<commit>.tauceti.jsonl`, beside the library's `<commit>.jsonl`, which is
+# the name Lake itself reads. main's are looked for at the commit that is
+# checked out and the 99 before it, as `git rev-list` orders them; in a pull
+# request's merge those are the branch's commits and main's, mixed. A commit
+# whose lean-toolchain or lake-manifest.json differs from those checked out
+# is passed over: its file was written for other dependencies and would
+# cover nothing here. main's come first, so that where main has a file a
+# pull request's own never stands in for it.
 #
-# A file that was written for other dependencies, say before an earlier
-# move, does no harm: a mapping covers a module only for the inputs it
-# names, so Lake fetches archives that the build does not use, and the
-# modules are compiled as without the bucket.
+# What this trusts. Unlike the library's modules, Tau Ceti's do not change
+# with main, so a run of the merge queue that reads the file of the pull
+# request it merges compiles none of these modules itself, and what it
+# writes becomes main's file, which the runs after it read. That is the case
+# for a move of Tau Ceti, where main has no file yet. What stands behind
+# those modules is the review's own build of the pull request and main's
+# save of the dependencies, neither of which reads the bucket; until main
+# has that save, the runs of CI take the modules on the word of the move's
+# own run.
+#
+# The search gives up after two minutes, and the run goes on without the
+# bucket.
 #
 # `stage` makes OUT, the directory that CI hands to the workflow
 # cache-upload as the artifact `lake-cache-tauceti`: OUT/staged, with
@@ -62,23 +75,41 @@ find_mappings() {
   # take KIND ADDRESS COMMIT: downloads the commit's file if the bucket has it.
   take() {
     [[ $3 =~ ^[0-9a-f]{40}$ ]] || return 1
-    curl -q -sf --connect-timeout 5 --max-time 60 -o "$dir/mappings.jsonl" "$2/$3.tauceti.jsonl" ||
+    curl -q -sf --connect-timeout 5 --max-time 30 -o "$dir/mappings.jsonl" "$2/$3.tauceti.jsonl" ||
       { rm -f "$dir/mappings.jsonl"; return 1; }
     echo "$1 $3" > "$dir/from"
     say "the bucket has Tau Ceti modules for the commit $3 (r/$1): $(($(wc -l < "$dir/mappings.jsonl") - 1)) mappings"
   }
-  for c in $("$here/own-commits.sh"); do
-    take pr "$pr" "$c" && return 0
-  done
+  SECONDS=0
+  late() {
+    [ "$SECONDS" -lt 120 ] && return 1
+    say "the search of the bucket took more than two minutes; going on without it"
+  }
+  # It must go on after a commit with other dependencies: in a pull
+  # request's merge, the branch's commits from before a move stand among
+  # main's.
   for c in $(git rev-list -n 100 HEAD 2>/dev/null); do
+    late && return 0
+    git diff --quiet "$c" HEAD -- lean-toolchain lake-manifest.json 2>/dev/null || continue
     take queue "$queue" "$c" && return 0
   done
-  say "the bucket has no Tau Ceti modules for this run's own commits or the 100 commits of main before it"
+  for c in $("$here/own-commits.sh"); do
+    late && return 0
+    take pr "$pr" "$c" && return 0
+  done
+  say "the bucket has no Tau Ceti modules for these dependencies among main's commits or this run's own"
 }
 
 stage() {
   local mappings=$1 dir=$2 out=$3 new
   [ -s "$mappings" ] || { say "the build of the Tau Ceti modules wrote no mappings; nothing to hand over"; return 1; }
+  # A run that found nothing when it started looks again now, an hour or
+  # more later: an earlier run's modules have often reached the bucket
+  # meanwhile. Then this run hands over only its mappings and what that
+  # file lacks, and cache-upload does not ask the bucket about some
+  # thousands of archives, as every run of a move that started together
+  # would.
+  [ -s "$dir/from" ] || find_mappings "$dir"
   rm -rf "$out"
   mkdir -p "$out/staged" || return 1
   new=$(mktemp) || return 1

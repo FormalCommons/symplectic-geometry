@@ -25,7 +25,10 @@
 # hand over what it built; see tauceti-bucket.sh, which finds the mappings
 # file that this script is given as TAUCETI_BUCKET_MAPPINGS. Lake fetches
 # the archives that the file names before the build, and the build takes
-# from them every module whose inputs are as the file has them. With
+# from them every module whose inputs are as the file has them. (An archive
+# that is not one, though its name is the hash of its content, fails that
+# build and the library's after it; cache-upload.sh cannot tell, and the
+# library's archives are no different in this.) With
 # TAUCETI_MAPPINGS_OUT the build writes the mappings of the Tau Ceti modules
 # it built to that file, for which Lake packs an archive of each module
 # that has none yet. The agents' jobs set neither, and the script is for
@@ -182,7 +185,10 @@ if [ -s "${TAUCETI_BUCKET_MAPPINGS:-}" ]; then
   fi
 fi
 out=()
-[ -z "${TAUCETI_MAPPINGS_OUT:-}" ] || out=(-o "$TAUCETI_MAPPINGS_OUT" --package TauCeti)
+if [ -n "${TAUCETI_MAPPINGS_OUT:-}" ]; then
+  rm -f "$TAUCETI_MAPPINGS_OUT"
+  out=(-o "$TAUCETI_MAPPINGS_OUT" --package TauCeti)
+fi
 limit=${TAUCETI_CACHE_BUILD_LIMIT:-60m}
 mapfile -t modules < <(sed 's/^/+/' "$tmp/missing.txt")
 say "building ${#modules[@]} imported Tau Ceti modules $with (after ${SECONDS}s); after a move of Tau Ceti this can take 40 minutes, and longer from source"
@@ -192,6 +198,9 @@ if LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true run timeout "$limit" lak
   say "done after ${SECONDS}s: $(grep -c 'Built TauCeti\.' "$tmp/build.log") modules compiled here, the others fetched or already present"
 else
   tail -n 5 "$tmp/build.log"
+  # Lake writes the mappings of a failed build too, of the modules it got
+  # to. In the bucket such a file would be found before fuller ones.
+  [ -z "${TAUCETI_MAPPINGS_OUT:-}" ] || rm -f "$TAUCETI_MAPPINGS_OUT"
   warn "the build of the Tau Ceti modules $with failed or took more than $limit; the build that follows compiles what is missing"
 fi
 exit 0

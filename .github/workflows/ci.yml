@@ -470,7 +470,12 @@ jobs:
           (github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository)
         continue-on-error: true
         timeout-minutes: 10
+        # The first four are for the script's second look into the bucket.
         env:
+          GH_TOKEN: ${{ github.token }}
+          OWN_REPO: 'true'
+          PR: ${{ github.event.pull_request.number }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
           LAKE_ARTIFACT_CACHE: 'true'
           LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
         run: >-
