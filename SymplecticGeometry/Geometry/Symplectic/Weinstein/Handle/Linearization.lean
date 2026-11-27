@@ -204,8 +204,7 @@ theorem IsGradientLike.exists_pos_mul_norm_sq_le_hessian (hX : IsGradientLike f 
     have := mdifferentiableAt_section_iff_differentiableAt_mpullbackWithin_extChartAt_symm.1 hXp
     rwa [𝓘(ℝ, E).range_eq_univ, VectorField.mpullbackWithin_univ] at this
   have hY₀ : Y (φ p) = 0 := by
-    have hXp0 : X p = 0 := hX.eq_zero_iff.2 (by
-      rw [mvfderiv_eq_fderiv_comp_extChartAt_symm]; exact hp'.fderiv_eq_zero)
+    have hXp0 : X p = 0 := hX.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
     simp only [Y, VectorField.mpullback_apply]
     rw [φ.left_inv (mem_extChartAt_source p), hXp0, map_zero]
   -- The inequality at second order, for every `v` and every `e` with `‖e‖ ≤ 1`.
