@@ -14,7 +14,8 @@ on:
 # run for the same pull request kept, and downloads it. A run whose build
 # passed also hands over its build in the form of Lake's remote cache, as
 # the artifact `lake-cache`, unless it is a pull request's run that got
-# nothing from the bucket (see the build step); the workflow cache-upload,
+# nothing from the bucket but restored a save of main's (see the build
+# step); the workflow cache-upload,
 # which is not this one and holds the key that this one must not have, puts
 # it into a bucket. Every run reads that bucket, which needs no key; see the
 # step that does.
@@ -400,8 +401,10 @@ jobs:
       # - A run of the merge queue, always. Its mappings are main's, and if
       #   the bucket has fallen behind main by more than the fetch step
       #   looks back, say because cache-upload did not run for some hours,
-      #   only such a run brings it back: one run pays the minutes, and the
-      #   runs after it fetch.
+      #   only such a run brings it back. Each run of the merge queue pays
+      #   the minutes until the first one's upload has reached the bucket,
+      #   which at busy times is more than half an hour; the runs after
+      #   that fetch.
       # - A run for a pull request that got something from the bucket.
       # - A run for a pull request that restored no save of main's, as the
       #   runs of a move of Tau Ceti: what it hands over is what the merge
