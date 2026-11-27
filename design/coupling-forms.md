@@ -408,7 +408,7 @@ The corollary. About 150 lines.
   moreover `B` is compact and connected with a symplectic form, some
   symplectic `ω` has `A.RestrictsTo σ ω`, by step 2 of Thurston's theorem
   in *Compatible symplectic forms* (`Thurston.lean`,
-  `exists_forall_le_isSymplectic_add_smul_mpullback` in its design). The
+  `exists_forall_ge_isSymplectic_add_smul_mpullback` in its design). The
   docstrings of both end with "Milestone: *Compatible symplectic forms for
   fibrations with simply connected fibre*." The page's compact fibre
   follows from the compact total space (see *Setting*).

@@ -616,9 +616,9 @@ private theorem homeomorphMulEquivOfEq_symm_circleLoop (i : Fin 2) :
           (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (circleLoop i)))) =
       FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (torusCircleLoop i)) := by
   rw [← MulEquiv.eq_symm_apply, MulEquiv.symm_apply_eq, circlesFundamentalGroupMulEquiv_apply,
-    FundamentalGroup.homeomorphMulEquivOfEq_symm_apply, ← FundamentalGroup.mapOfEq_rfl,
-    FundamentalGroup.mapOfEq_comp, FundamentalGroup.mapOfEq_fromPath_mk, circleLoop]
-  -- `FundamentalGroup.fromPath` is the abbreviation `CategoryTheory.End.of`.
+    FundamentalGroup.homeomorphMulEquivOfEq_symm_fromPath_mk]
+  -- `circleLoop i` is by definition this loop, mapped by `circlesInclusion` and cast to the base
+  -- point `⟨0, _⟩`, which `circlesInclusion ⟨0, _⟩` equals only by unfolding.
   rfl
 
 /-- The isomorphism sends the class of `circleLoop i` to the image of the generator
