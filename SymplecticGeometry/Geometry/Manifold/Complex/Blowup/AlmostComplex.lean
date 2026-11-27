@@ -323,6 +323,15 @@ theorem isPseudoholomorphicOn_lift :
   isPseudoholomorphicOn_iff.2 fun _ hz ↦
     (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
 
+/-- At each point of the exceptional divisor `divisorRealEmbedding c`, the map `lift c` is
+pseudoholomorphic from the almost complex blowup to the structure of the complex manifold
+`BlowupModel n`. -/
+theorem isPseudoholomorphicAt_lift_divisorRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ)
+      (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) (lift c)
+      (divisorRealEmbedding c ℓ) :=
+  isPseudoholomorphicAt_lift c J hJ (divisorRealEmbedding_mem_range_inr c ℓ)
+
 /-- Off the exceptional divisor, the blowdown is pseudoholomorphic from the almost complex
 blowup to `J`. -/
 theorem isPseudoholomorphicAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
@@ -339,12 +348,10 @@ theorem isPseudoholomorphic_divisorRealEmbedding :
     IsPseudoholomorphic (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)))
       (almostComplexStructure c J hJ) (divisorRealEmbedding c) := by
   refine isPseudoholomorphic_iff.2 fun ℓ ↦ ?_
-  have hmem : divisorRealEmbedding c ℓ ∈ range (inr (gluingHomeomorph c)) := by
-    rw [coe_divisorRealEmbedding]
-    exact ofDirection_mem_range_inr c ℓ
   -- After `lift c`, which is pseudoholomorphic with invertible differential there, the divisor
   -- is the holomorphic zero section of the model.
-  refine IsPseudoholomorphicAt.of_comp ?_ (isPseudoholomorphicAt_lift c J hJ hmem)
+  refine IsPseudoholomorphicAt.of_comp ?_
+    (isPseudoholomorphicAt_lift_divisorRealEmbedding c J hJ ℓ)
     (isInvertible_mfderiv_lift_divisorRealEmbedding c ℓ).injective
     ((divisorRealEmbedding c).contMDiff.mdifferentiableAt (by simp))
   rw [lift_comp_divisorRealEmbedding, isPseudoholomorphicAt_ofComplexManifold_iff]
