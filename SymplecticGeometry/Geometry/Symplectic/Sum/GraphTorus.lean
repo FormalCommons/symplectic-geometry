@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
@@ -35,6 +36,11 @@ torus has symplectic tangent images for the product form.
 The graph tori of `h` and `h'` have disjoint images exactly when `h t ≠ h' t` for every `t`,
 since a point of `T` determines its coordinate `t = x i`.
 
+The horizontal vectors `(v, 0)`, `v ∈ T_{h (x i)} Σ`, give the normal spaces of the graph torus:
+a tangent vector `(dh (w i), w)` of the graph torus with torus component zero vanishes, so `(v, 0)`
+is tangent only for `v = 0`, and the normal space has dimension `dim Σ`. So `v ↦ [(v, 0)]` is a
+linear isomorphism onto the normal space at `x`.
+
 These tori enter the realization of finitely presented groups as fundamental groups of closed
 symplectic four-manifolds: the torus of a loop `h` in a surface `Σ` lies in `Σ × T²` and is
 symplectic for the product form.
@@ -43,6 +49,8 @@ symplectic for the product form.
 
 * `SymplecticGeometry.graphTorus`: the graph torus `x ↦ (h (x i), x)` of a smooth circle map `h`,
   as a smooth embedding.
+* `SymplecticGeometry.graphTorusHorizontalNormalEquiv`: the isomorphism `v ↦ [(v, 0)]` from
+  `T_{h (x i)} Σ` to the normal space of the graph torus at `x`.
 
 ## Main results
 
@@ -52,6 +60,8 @@ symplectic for the product form.
   the product form.
 * `SymplecticGeometry.disjoint_range_graphTorus_iff`: two graph tori are disjoint exactly when the
   circle maps differ at every point.
+* `SymplecticGeometry.normalClass_graphTorus_horizontal_eq_zero_iff`: a horizontal vector `(v, 0)`
+  is tangent to the graph torus only for `v = 0`.
 
 ## References
 
@@ -151,5 +161,79 @@ theorem hasSymplecticTangentImages_graphTorus {σ : SmoothTwoForm I M} (hσ : σ
     (graphTorus hh).contMDiff).1
   rw [mpullback_graphTorus_prod_torusSymplecticForm] at hpull
   exact (hpull (isSymplectic_torusSymplecticForm p).isNondegenerate).1
+
+/-- The torus component of the differential of the graph torus is the identity: the differential
+sends a tangent vector `w` of the torus to a vector whose torus component is `w`. -/
+theorem snd_tangentSpaceProdEquiv_mfderiv_graphTorus (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (x : ∀ i, AddCircle (p i)) (w : TangentSpace (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)) x) :
+    (Manifold.tangentSpaceProdEquiv (graphTorus hh x)
+      (mfderiv (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
+        (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) (graphTorus hh) x w)).2 = w := by
+  have hcomp := mfderiv_comp x mdifferentiableAt_snd
+    ((graphTorus hh).contMDiff.mdifferentiableAt (by simp))
+  rw [snd_comp_graphTorus, mfderiv_id, mfderiv_snd] at hcomp
+  rw [Manifold.tangentSpaceProdEquiv_apply]
+  exact (DFunLike.congr_fun hcomp w).symm
+
+/-- A horizontal tangent vector `(v, 0)` at a point of the graph torus has zero normal class
+exactly when `v = 0`, since a tangent vector of the graph torus with torus component zero
+vanishes. -/
+theorem normalClass_graphTorus_horizontal_eq_zero_iff (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (x : ∀ i, AddCircle (p i)) (v : TangentSpace I (h (x i))) :
+    (graphTorus hh).isImmersion.normalClass x (by simp)
+        ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm (v, 0)) = 0 ↔ v = 0 := by
+  refine ⟨fun hv ↦ ?_, fun hv ↦ ?_⟩
+  · obtain ⟨w, hw⟩ := ((graphTorus hh).isImmersion.normalClass_eq_zero_iff x _ _).1 hv
+    rw [ContinuousLinearMap.coe_coe] at hw
+    have hw₂ := congrArg (fun u ↦ (Manifold.tangentSpaceProdEquiv (graphTorus hh x) u).2) hw
+    simp only [snd_tangentSpaceProdEquiv_mfderiv_graphTorus,
+      ContinuousLinearEquiv.apply_symm_apply] at hw₂
+    -- `hw₂` lives in the tangent space of the torus at `(graphTorus hh x).2`, which is the tangent
+    -- space at `x` once `TangentSpace` is unfolded.
+    have hw₀ : w = 0 := hw₂
+    rw [hw₀, map_zero] at hw
+    have hv₁ := congrArg (fun u ↦ (Manifold.tangentSpaceProdEquiv (graphTorus hh x) u).1) hw
+    simp only [ContinuousLinearEquiv.apply_symm_apply, map_zero, Prod.fst_zero] at hv₁
+    exact hv₁.symm
+  · subst hv
+    exact (congrArg _ ((congrArg _ Prod.mk_zero_zero).trans (map_zero _))).trans (map_zero _)
+
+/-- The **horizontal normal equivalence** of the graph torus `x ↦ (h (x i), x)` at `x`: the real
+linear isomorphism from `T_{h (x i)} M` to the normal space of the graph torus at `x` that sends
+`v` to the normal class of the horizontal vector `(v, 0)`. -/
+def graphTorusHorizontalNormalEquiv (hh : ContMDiff 𝓘(ℝ) I ∞ h) (x : ∀ i, AddCircle (p i)) :
+    TangentSpace I (h (x i)) ≃L[ℝ] (graphTorus hh).isImmersion.NormalSpace x (by simp) :=
+  -- The normal class of the horizontal vector `(v, 0)`, as a continuous linear map of `v`.
+  let L : TangentSpace I (h (x i)) →L[ℝ] (graphTorus hh).isImmersion.NormalSpace x (by simp) :=
+    ((graphTorus hh).isImmersion.normalClassL x (by simp)).comp
+      ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm.toContinuousLinearMap.comp
+        (ContinuousLinearMap.inl ℝ _ _))
+  -- This holds by unfolding `L`, since the tangent spaces at `h (x i)` and at
+  -- `(graphTorus hh x).1` agree once `TangentSpace` is unfolded.
+  have hL : ∀ v, L v = (graphTorus hh).isImmersion.normalClass x (by simp)
+      ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm (v, 0)) := fun v ↦
+    (graphTorus hh).isImmersion.normalClassL_apply x _
+      ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm (v, 0))
+  have hinj : Function.Injective L := (injective_iff_map_eq_zero L).2 fun v hv ↦
+    (normalClass_graphTorus_horizontal_eq_zero_iff hh x v).1 ((hL v).symm.trans hv)
+  have hdim : Module.finrank ℝ (TangentSpace I (h (x i))) =
+      Module.finrank ℝ ((graphTorus hh).isImmersion.NormalSpace x (by simp)) := by
+    rw [(graphTorus hh).isImmersion.finrank_normalSpace x _, TauCeti.finrank_tangentSpace,
+      TauCeti.finrank_tangentSpace, TauCeti.finrank_tangentSpace, Module.finrank_prod]
+    omega
+  (L.toLinearMap.linearEquivOfInjective hinj hdim).toContinuousLinearEquiv
+
+/-- The horizontal normal equivalence sends `v` to the normal class of `(v, 0)`. -/
+@[simp]
+theorem graphTorusHorizontalNormalEquiv_apply (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (x : ∀ i, AddCircle (p i)) (v : TangentSpace I (h (x i))) :
+    graphTorusHorizontalNormalEquiv hh x v =
+      (graphTorus hh).isImmersion.normalClass x (by simp)
+        ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm (v, 0)) := by
+  rw [graphTorusHorizontalNormalEquiv, LinearEquiv.coe_toContinuousLinearEquiv',
+    LinearMap.linearEquivOfInjective_apply, ContinuousLinearMap.coe_coe]
+  -- What remains is the value of the composite map, as in `hL` of the definition.
+  exact (graphTorus hh).isImmersion.normalClassL_apply x _
+    ((Manifold.tangentSpaceProdEquiv (graphTorus hh x)).symm (v, 0))
 
 end SymplecticGeometry
