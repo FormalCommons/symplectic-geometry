@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.ContMDiff.Defs
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -23,7 +23,7 @@ vanishes off the image of the support of `χ`.
 When `N` is boundaryless and has the same finite dimension as `M`, `Φ` is a local
 diffeomorphism (`TauCeti.SmoothEmbedding.isLocalDiffeomorph`). Being injective, it is then a
 partial diffeomorphism from `univ` onto its range whose inverse is `invFunOn Φ univ`
-(`IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn`). If moreover `χ` is supported in a set `K`
+(`IsLocalDiffeomorph.partialDiffeomorphOfInjective`). If moreover `χ` is supported in a set `K`
 whose image `Φ '' K` is closed in `M`, the extension by zero is smooth, by
 `PartialDiffeomorph.contMDiff_indicator_image_comp_symm` for that partial diffeomorphism. Unlike
 `PartialDiffeomorph.contMDiff_indicator_comp_symm`, no compactness of the support is needed.
@@ -78,15 +78,15 @@ theorem contMDiff_indicator_range_comp_invFunOn [FiniteDimensional 𝕜 E] [IsMa
     (hχK : support χ ⊆ K) :
     ContMDiff I 𝓘(𝕜, F) n ((range Φ).indicator (χ ∘ invFunOn Φ univ)) := by
   -- `Φ` as a partial diffeomorphism from `univ` onto its range, with inverse `invFunOn Φ univ`.
-  set ψ := ((Φ.isLocalDiffeomorph hd hn).isLocalDiffeomorphOn univ).partialDiffeomorphOfInjOn
-    isOpen_univ Φ.isSmoothEmbedding.isEmbedding.injective.injOn
-  have hψ : ⇑ψ = Φ := IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn ..
+  set ψ := (Φ.isLocalDiffeomorph hd hn).partialDiffeomorphOfInjective
+    Φ.isSmoothEmbedding.isEmbedding.injective
+  have hψ : ⇑ψ = Φ := IsLocalDiffeomorph.coe_partialDiffeomorphOfInjective ..
   have h := ψ.contMDiff_indicator_image_comp_symm hχ.contMDiffOn (hψ ▸ hK) isOpen_univ
-    (subset_univ K) (IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source ..).ge
+    (subset_univ K) (IsLocalDiffeomorph.partialDiffeomorphOfInjective_source ..).ge
     (inter_subset_right.trans hχK)
-  simp only [ψ, IsLocalDiffeomorphOn.coe_partialDiffeomorphOfInjOn,
+  simp only [ψ, IsLocalDiffeomorph.coe_partialDiffeomorphOfInjective,
     PartialDiffeomorph.symm_toPartialEquiv,
-    IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply,
+    IsLocalDiffeomorph.partialDiffeomorphOfInjective_symm_apply,
     image_univ] at h
   exact h
 
