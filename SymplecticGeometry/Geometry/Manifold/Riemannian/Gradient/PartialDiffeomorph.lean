@@ -84,12 +84,9 @@ theorem eventually_norm_fderiv_le_mul_norm_mgradient (e : PartialDiffeomorph I �
     simp [T, φ', φ]
   have hTtgt : ∀ w, w ∈ T.target ↔ w ∈ φ.target ∧ φ.symm w ∈ e.source := fun w ↦ by
     simp [T, φ', φ, I.range_eq_univ]
-  have hψ : ContDiffOn ℝ 1 T T.source :=
-    OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn φ'.contMDiffOn
-      (e.symm.contMDiffOn.of_le hn)
-  have hχ : ContDiffOn ℝ 1 T.symm T.target :=
-    OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn (ψ₁ := φ'.toOpenPartialHomeomorph)
-      (e.contMDiffOn.of_le hn) φ'.symm.contMDiffOn
+  obtain ⟨hψ, hχ⟩ : ContDiffOn ℝ 1 T T.source ∧ ContDiffOn ℝ 1 T.symm T.target :=
+    OpenPartialHomeomorph.contDiffOn_symm_trans_and_symm_of_contMDiffOn
+      (e.contMDiffOn.of_le hn) (e.symm.contMDiffOn.of_le hn) φ'.contMDiffOn φ'.symm.contMDiffOn
   have hep : e p ∈ T.source :=
     (hTsrc _).2 ⟨e.map_source hp, by rw [hl _ hp]; exact mem_extChartAt_source p⟩
   -- The derivative of `T` is bounded by `K` near `e p`.

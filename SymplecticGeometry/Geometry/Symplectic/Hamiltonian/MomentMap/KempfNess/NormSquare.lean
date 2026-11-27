@@ -7,9 +7,9 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalNormalForm
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
-import SymplecticGeometry.Analysis.Calculus.Gradient.Basic
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
+import TauCeti.Analysis.Calculus.Gradient
 
 /-!
 # The norm square of a moment map
@@ -90,7 +90,7 @@ theorem exists_lojasiewicz_momentNormSq [RiemannianBundle (fun x : M ↦ Tangent
   obtain ⟨θ, hθ, c, hc, hL⟩ := P.exists_lojasiewicz_gradient (e p)
   refine ⟨θ, hθ, e.exists_mul_abs_sub_rpow_le_norm_mgradient (by simp) hp
     (g := fun z ↦ MvPolynomial.eval z P) hP hc ?_⟩
-  simpa only [norm_gradient] using hL
+  simpa only [TauCeti.norm_gradient_eq_norm_fderiv] using hL
 
 end SymplecticGeometry
 
