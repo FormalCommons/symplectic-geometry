@@ -12,7 +12,9 @@ public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import SymplecticGeometry.Algebra.BigOperators.Module
+import SymplecticGeometry.Algebra.Order.Floor.Semiring
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.SmoothApprox
+import SymplecticGeometry.Analysis.Calculus.Deriv.Rectangle
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
@@ -80,7 +82,9 @@ These paths, between consecutive members `M i` and `M (i + 1)` of the chain of s
   from `a + N h` on it is `M N` (`SymplecticGeometry.shapeChain_eq_smoothedMaxChain`), also as
   germs along a filter on which the joints eventually match
   (`SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxPath`,
-  `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`). Its members are then
+  `SymplecticGeometry.shapeChain_eventuallyEq_smoothedMaxChain`); for continuous `A i`, the
+  joints match near `r` once they match strictly at `r`
+  (`SymplecticGeometry.eventually_forall_sub_add_le_smoothedMaxChain`). Its members are then
   `i`-convex shapes at each `r` where the joints match nearby, the `A i` are `C²` and `i`-convex
   shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, and the `A (i + 1) - η` are `i`-convex
   shapes at `r` (`SymplecticGeometry.isConvexShapeAt_shapeChain`): `A 0` before the mesh, `M N`
@@ -100,6 +104,24 @@ The members `A i` of such a chain are smooth stand-ins for members `χ ℓ` of a
   `[r₃, r₂]`, and equal to `χ a` near all of `[r₁, r₂]` when `ℓ = a`. It applies
   `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt_of_contDiffAt` to the slice of the open
   set at `ℓ`.
+
+Together they give the chain itself:
+
+* `SymplecticGeometry.exists_monotone_shapeChain`: for a family `χ` of `i`-convex shapes on
+  `[a, b] × [r₁, r₂]`, smooth near the band `[a, b] × [r₃, r₂]` with `∂χ/∂ℓ > 0` on it, a family
+  `C` smooth on `ℝ²`, of `i`-convex shapes and weakly increasing in `ℓ` there, constant in `ℓ`
+  near `a` and `b` with `C a` equal to `χ a` near `[r₁, r₂]`, with `C b` at most `ε` above the
+  members of `χ`, and within `τ` of `χ` in value and two `r`-derivatives on the band. It is the
+  `shapeChain` of the stand-ins of `χ (a + i h)` on a mesh of size `h = (b - a) / N` with width
+  `δ = c h`: first the margin of stability of the shapes (step 1 of the design,
+  `SymplecticGeometry.exists_forall_isConvexShapeAt_of_abs_sub_lt`) fixes the lowering `η` and
+  the error of the stand-ins, so that the joints match and the stand-ins and their lowerings are
+  convex shapes, then `c` is taken below the rate of increase of `χ` on the band
+  (`IsCompact.exists_pos_mul_sub_le_sub_of_deriv_pos`), and last `h` small by uniform continuity
+  in `ℓ` (`IsCompact.exists_pos_abs_sub_lt_of_continuousOn`) and against the Lipschitz constant
+  of `∂χ/∂r` in `ℓ` (`IsCompact.exists_abs_deriv_sub_le_mul`), which makes the curvature term
+  of `SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le` of order `h / c`. The mesh cell of
+  a point of `[a, b]` comes from `SymplecticGeometry.exists_lt_mem_Icc_add_mul`.
 
 ## References
 
@@ -435,7 +457,6 @@ theorem exists_contDiff_shapeLevel
   exact fun p hp v hv hv₁ hv₂ ↦
     re_leviForm_shapeLevelFun_comp_shape_pos hχ hconv hmono hℓ hr hp hv hv₁ hv₂
 
-
 /-! ### The path between consecutive smoothed maxima -/
 
 /-- The **path between consecutive smoothed maxima**: for `σ` from `0` to `1`, the shape
@@ -692,6 +713,19 @@ theorem shapeChain_eventuallyEq_smoothedMaxChain {l : Filter ℝ} (hδ : 0 < δ)
     shapeChain δ η a h A N ℓ =ᶠ[l] smoothedMaxChain δ A N :=
   hJ.mono fun _ hr ↦ shapeChain_eq_smoothedMaxChain hδ hh hr hℓ
 
+/-- For `δ > 0`, if the `A i`, `i ≤ N`, are continuous at `r` and the joints match strictly at
+`r`, `A (i + 1) r - η + δ < A i r` for `i < N`, then the joints match near `r`:
+`A (i + 1) - η + δ ≤ M i` for `i < N` with `M = smoothedMaxChain δ A`. -/
+theorem eventually_forall_sub_add_le_smoothedMaxChain (hδ : 0 < δ)
+    (hA : ∀ i ≤ N, ContinuousAt (A i) r) (hJ : ∀ i < N, A (i + 1) r - η + δ < A i r) :
+    ∀ᶠ r' in 𝓝 r, ∀ i < N, A (i + 1) r' - η + δ ≤ smoothedMaxChain δ A i r' := by
+  have h : ∀ᶠ r' in 𝓝 r, ∀ i ∈ Iio N, A (i + 1) r' - η + δ < A i r' :=
+    (finite_Iio N).eventually_all.2 fun i hi ↦
+      (((hA (i + 1) hi).sub continuousAt_const).add continuousAt_const).eventually_lt
+        (hA i hi.le) (hJ i hi)
+  filter_upwards [h] with r' hr' i hi
+  exact (hr' i hi).le.trans (le_smoothedMaxChain hδ A i r')
+
 /-- **The chain of paths consists of `i`-convex shapes.** For `δ, h > 0` and `η ≥ 0`, let the
 `A i`, `i ≤ N`, be `C²` and `i`-convex shapes at `r` with `deriv (A i) r ≤ G` and `δ G ≤ r`, let
 the `A (i + 1) - η`, `i < N`, be `i`-convex shapes at `r`, and let the joints match near `r`:
@@ -713,14 +747,11 @@ theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 
   rcases le_or_gt (a + N * h) ℓ with hℓN | hℓN
   · exact (hM le_rfl).congr_of_eventuallyEq
       (shapeChain_eventuallyEq_smoothedMaxChain hδ hh hJ hℓN)
-  -- `ℓ` lies in the `j`-th interval of the mesh, for `j = ⌊(ℓ - a) / h⌋₊ < N`.
-  set j := ⌊(ℓ - a) / h⌋₊
-  have hx : 0 ≤ (ℓ - a) / h := div_nonneg (by linarith) hh.le
-  have hj₁ : (j : ℝ) * h ≤ ℓ - a := (le_div_iff₀ hh).1 (Nat.floor_le hx)
-  have hj₂ : ℓ - a < (j + 1) * h := (div_lt_iff₀ hh).1 (Nat.lt_floor_add_one _)
-  have hj : j < N := (Nat.floor_lt hx).2 ((div_lt_iff₀ hh).2 (by linarith))
+  -- `ℓ` lies in the `j`-th interval of the mesh for some `j < N`.
+  have hN : 0 < N := Nat.pos_of_ne_zero fun h0 ↦ by simp [h0] at hℓN; linarith
+  obtain ⟨j, hj, hℓj⟩ := exists_lt_mem_Icc_add_mul hh hN ⟨hℓa.le, hℓN.le⟩
   refine IsConvexShapeAt.congr_of_eventuallyEq ?_
-    (shapeChain_eventuallyEq_smoothedMaxPath hδ hh hJ hj ⟨by linarith, by linarith⟩)
+    (shapeChain_eventuallyEq_smoothedMaxPath hδ hh hJ hj hℓj)
   have hd : ∀ i ≤ j, DifferentiableAt ℝ (A i) r := fun i hi ↦
     ((hA i (hi.trans hj.le)).differentiable two_ne_zero).differentiableAt
   have hdM := deriv_smoothedMaxChain_le δ hd fun i hi ↦ hG i (hi.trans hj.le)
@@ -814,6 +845,285 @@ theorem exists_contDiff_abs_iteratedDeriv_sub_lt_of_mem_Icc {a b r₃ ℓ θ : �
       fun _ ↦ hgc.filter_mono (nhdsSet_mono (Icc_subset_Icc_left (min_le_left _ _)))⟩
   · obtain ⟨g, hg, hgθ, hgc⟩ := key r₃ fun r hr ↦ hEU (Or.inr ⟨hℓ, hr⟩)
     exact ⟨g, hg, hgθ, hgc, fun h ↦ absurd h ha⟩
+
+/-- A step of `exists_monotone_shapeChain`, at a point `r`: let the `A i` be within `θ` in value
+and first two derivatives of members `χ (t i)` whose `C²`-neighbourhoods of radius `η₁` at `r`
+consist of `i`-convex shapes at `r`, let consecutive members differ at `r` by less than `ε₀`, and
+let `θ + η < η₁` and `2 θ + ε₀ + δ ≤ η` with `η > 0`. Then the joints match strictly at `r`,
+`A (i + 1) r - η + δ < A i r` for `i < N`, and each `A i` and each `A i - η` is an `i`-convex
+shape at `r`. -/
+private theorem sub_add_lt_and_isConvexShapeAt_of_abs_iteratedDeriv_sub_lt
+    {A : ℕ → ℝ → ℝ} {t : ℕ → ℝ} {N : ℕ} {r θ η δ η₁ ε₀ : ℝ}
+    (hstab : ∀ i, ∀ g : ℝ → ℝ,
+      (∀ k ≤ 2, |iteratedDeriv k g r - iteratedDeriv k (χ (t i)) r| < η₁) → IsConvexShapeAt g r)
+    (hAθ : ∀ i, ∀ k ≤ 2, |iteratedDeriv k (A i) r - iteratedDeriv k (χ (t i)) r| < θ)
+    (hu : ∀ i < N, |χ (t (i + 1)) r - χ (t i) r| < ε₀) (hη : 0 < η) (hθη₁ : θ + η < η₁)
+    (hJη : 2 * θ + ε₀ + δ ≤ η) :
+    (∀ i < N, A (i + 1) r - η + δ < A i r) ∧ (∀ i, IsConvexShapeAt (A i) r) ∧
+      ∀ i, IsConvexShapeAt (fun r ↦ A i r - η) r := by
+  refine ⟨fun i hi ↦ ?_, fun i ↦ hstab i _ fun k hk ↦ (hAθ i k hk).trans (by linarith),
+    fun i ↦ hstab i _ fun k hk ↦ ?_⟩
+  · have h₁ := (abs_lt.1 (hAθ (i + 1) 0 (by norm_num))).2
+    have h₂ := (abs_lt.1 (hAθ i 0 (by norm_num))).1
+    have h₃ := (abs_lt.1 (hu i hi)).2
+    simp only [iteratedDeriv_zero] at h₁ h₂
+    linarith
+  · have h := hAθ i k hk
+    interval_cases k
+    · simp only [iteratedDeriv_zero] at h ⊢
+      have h' : |A i r - η - χ (t i) r| ≤ |A i r - χ (t i) r| + η := by
+        rw [sub_right_comm]
+        exact (abs_sub _ _).trans (by rw [abs_of_pos hη])
+      linarith
+    · simp only [iteratedDeriv_one, deriv_sub_const] at h ⊢
+      linarith
+    · rw [iteratedDeriv_sub_const two_pos]
+      linarith
+
+/-- A step of `exists_monotone_shapeChain`, on the band `[a, b] × [r₃, r₂]`: let `δ, h > 0`,
+`η ≥ 0`, let the `A i` be `C²` and equal to `χ (t i)` near `[r₃, r₂]`, on the mesh
+`t i = a + i h`, `i ≤ N`, with `a + N h = b`, and let the joints match near `r`. Let `χ` climb in
+`ℓ` at rate at least `m` on the band, with `δ < m h`, let `∂χ/∂r` be `L`-Lipschitz in `ℓ` there,
+let `Q / δ` bound the curvature of `smoothedAbs δ`, with `Q L² h² ≤ τ δ`, and let the value and
+first two derivatives of `χ` vary by less than `ε₀` over steps in `ℓ` of at most `h`. If
+`ε₀, η, δ ≤ τ / 4`, then at each point of the band the members of `shapeChain δ η a h A N` are
+within `τ` of those of `χ` in value and first two derivatives. -/
+private theorem abs_iteratedDeriv_shapeChain_sub_lt_of_mem_band {A : ℕ → ℝ → ℝ} {t : ℕ → ℝ}
+    {N k : ℕ} {a b r₃ δ η h m L Q ε₀ τ ℓ r : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 0 ≤ η)
+    (hN : 0 < N) (hNh : a + N * h = b) (ht : ∀ i ≤ N, t i = a + i * h)
+    (hA : ∀ i, ContDiff ℝ 2 (A i)) (hAb : ∀ i, A i =ᶠ[𝓝ˢ (Icc r₃ r₂)] χ (t i))
+    (hJ : ∀ᶠ r' in 𝓝 r, ∀ i < N, A (i + 1) r' - η + δ ≤ smoothedMaxChain δ A i r')
+    (hrate : ∀ r ∈ Icc r₃ r₂, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b, ℓ ≤ ℓ' →
+      m * (ℓ' - ℓ) ≤ χ ℓ' r - χ ℓ r) (hδm : δ < m * h)
+    (hL : ∀ r ∈ Icc r₃ r₂, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b,
+      |deriv (χ ℓ') r - deriv (χ ℓ) r| ≤ L * |ℓ' - ℓ|)
+    (hQ : 0 ≤ Q) (hQδ : ∀ s, iteratedDeriv 2 (smoothedAbs δ) s ≤ Q / δ)
+    (hQL : Q * L ^ 2 * h ^ 2 ≤ τ * δ)
+    (hu : ∀ k ≤ 2, ∀ r ∈ Icc r₃ r₂, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b, |ℓ' - ℓ| ≤ h →
+      |iteratedDeriv k (χ ℓ') r - iteratedDeriv k (χ ℓ) r| < ε₀)
+    (hε₀ : ε₀ ≤ τ / 4) (hητ : η ≤ τ / 4) (hδτ : δ ≤ τ / 4)
+    (hℓ : ℓ ∈ Icc a b) (hr : r ∈ Icc r₃ r₂) (hk : k ≤ 2) :
+    |iteratedDeriv k (shapeChain δ η a h A N ℓ) r - iteratedDeriv k (χ ℓ) r| < τ := by
+  have htI (i : ℕ) (hi : i ≤ N) : t i ∈ Icc a b := by
+    have : (i : ℝ) ≤ N := by exact_mod_cast hi
+    rw [ht i hi]
+    exact ⟨le_add_of_nonneg_right (by positivity), by nlinarith⟩
+  have hstep (i : ℕ) (hi : i < N) : t (i + 1) - t i = h := by
+    rw [ht _ hi, ht _ hi.le]
+    push_cast
+    ring
+  obtain ⟨j, hj, hℓj⟩ := exists_lt_mem_Icc_add_mul hh hN ⟨hℓ.1, by linarith [hℓ.2]⟩
+  have hAe (i : ℕ) : A i =ᶠ[𝓝 r] χ (t i) := (hAb i).filter_mono (nhds_le_nhdsSet hr)
+  -- Near `r`, the stand-ins climb by more than `δ` up to the `j`-th one.
+  have hup : ∀ᶠ r' in 𝓝 r, ∀ i < j, A i r' + δ ≤ A (i + 1) r' := by
+    have h : ∀ᶠ r' in 𝓝 r, ∀ i ∈ Iio j, A i r' + δ < A (i + 1) r' :=
+      (finite_Iio j).eventually_all.2 fun i hi ↦
+        ((hA i).continuous.add continuous_const).continuousAt.eventually_lt
+          (hA (i + 1)).continuous.continuousAt (by
+            have hiN : i < N := lt_trans hi hj
+            simp only [Pi.add_apply]
+            rw [(hAe i).eq_of_nhds, (hAe (i + 1)).eq_of_nhds]
+            have h₁ := hrate r hr (t i) (htI i hiN.le) (t (i + 1)) (htI _ hiN)
+              (by linarith [hstep i hiN])
+            rw [hstep i hiN] at h₁
+            linarith)
+    filter_upwards [h] with r' hr' i hi using (hr' i hi).le
+  obtain ⟨e₀, e₁, e₂⟩ := abs_iteratedDeriv_shapeChain_sub_le hδ hh hη (hA j) (hA (j + 1))
+    hJ hup hQδ hj hℓj (fun k ↦ iteratedDeriv k (χ ℓ) r)
+  rw [(hAe j).eq_of_nhds, (hAe (j + 1)).eq_of_nhds] at e₀
+  rw [(hAe j).deriv_eq, (hAe (j + 1)).deriv_eq] at e₁ e₂
+  rw [(hAe j).iteratedDeriv_eq 2, (hAe (j + 1)).iteratedDeriv_eq 2] at e₂
+  -- The ends `t j` and `t (j + 1)` of the interval of the mesh that contains `ℓ` are within `h`
+  -- of `ℓ`.
+  have hjh : ((j : ℝ) + 1) * h = j * h + h := by ring
+  have hj₁ : |t j - ℓ| ≤ h := by
+    rw [ht j hj.le, abs_le]
+    constructor <;> linarith [hℓj.1, hℓj.2, hjh]
+  have hj₂ : |t (j + 1) - ℓ| ≤ h := by
+    rw [ht (j + 1) hj, abs_le]
+    push_cast
+    constructor <;> linarith [hℓj.1, hℓj.2, hjh]
+  have a₁ := hu k hk r hr ℓ hℓ (t j) (htI j hj.le) hj₁
+  have a₂ := hu k hk r hr ℓ hℓ (t (j + 1)) (htI _ hj) hj₂
+  simp only [iteratedDeriv_zero] at e₀
+  simp only [iteratedDeriv_one] at e₁
+  interval_cases k
+  · simp only [iteratedDeriv_zero] at a₁ a₂ ⊢
+    linarith [max_lt a₁ a₂]
+  · simp only [iteratedDeriv_one] at a₁ a₂ ⊢
+    linarith [max_lt a₁ a₂]
+  · -- The curvature term is at most `τ / 2`.
+    have hd := hL r hr (t (j + 1)) (htI _ hj) (t j) (htI j hj.le)
+    rw [abs_sub_comm (t j), hstep j hj, abs_of_pos hh] at hd
+    have hd2 : (deriv (χ (t j)) r - deriv (χ (t (j + 1))) r) ^ 2 ≤ (L * h) ^ 2 := by
+      rw [← sq_abs]
+      exact pow_le_pow_left₀ (abs_nonneg _) hd 2
+    have hLh : Q * (L * h) ^ 2 = Q * L ^ 2 * h ^ 2 := by ring
+    have hkey : Q * (deriv (χ (t j)) r - deriv (χ (t (j + 1))) r) ^ 2 / (2 * δ) ≤ τ / 2 := by
+      rw [div_le_iff₀ (by positivity)]
+      linarith [mul_le_mul_of_nonneg_left hd2 hQ, hLh]
+    linarith [max_lt a₁ a₂]
+
+/-- **A smooth weakly increasing chain of `i`-convex shapes.** Let `χ ℓ`, `ℓ ∈ [a, b]`, be
+`i`-convex shapes on `[r₁, r₂]`, `r₁ > 0`, `C²` there with value and first two derivatives
+continuous in `(ℓ, r)`, and let the family be smooth on an open set `U` that contains
+`{a} × [r₁, r₂]` and the band `[a, b] × [r₃, r₂]`, `r₁ ≤ r₃`, with `∂χ/∂ℓ > 0` on the band.
+Then for all `τ, ε > 0` there is a family `C`, smooth on all of `ℝ²`, such that on
+`[a, b] × [r₁, r₂]` each `C ℓ` is an `i`-convex shape and `∂C/∂ℓ ≥ 0`; `C` is constant in `ℓ`
+near `a` and near `b`, and `C a` equals `χ a` near `[r₁, r₂]`; at each `r ∈ [r₁, r₂]`, `C b r`
+is at most `ε` above some `χ ℓ r`, `ℓ ∈ [a, b]`; and on the band, `C ℓ` is within `τ` of `χ ℓ`
+in value and first two derivatives. -/
+theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)} (hr₁ : 0 < r₁)
+    (hab : a < b) (hr₁₃ : r₁ ≤ r₃)
+    (hC2 : ∀ x ∈ Icc a b ×ˢ Icc r₁ r₂, ContDiffAt ℝ 2 (χ x.1) x.2)
+    (hc : ∀ x ∈ Icc a b ×ˢ Icc r₁ r₂, IsConvexShapeAt (χ x.1) x.2)
+    (hcont : ∀ k ≤ 2, ContinuousOn (fun x : ℝ × ℝ ↦ iteratedDeriv k (χ x.1) x.2)
+      (Icc a b ×ˢ Icc r₁ r₂))
+    (hU : IsOpen U) (hEU : {a} ×ˢ Icc r₁ r₂ ∪ Icc a b ×ˢ Icc r₃ r₂ ⊆ U)
+    (hsmooth : ContDiffOn ℝ ∞ (Function.uncurry χ) U)
+    (hmono : ∀ x ∈ Icc a b ×ˢ Icc r₃ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' x.2) x.1)
+    (hτ : 0 < τ) (hε : 0 < ε) :
+    ∃ C : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry C) ∧
+      (∀ x ∈ Icc a b ×ˢ Icc r₁ r₂, IsConvexShapeAt (C x.1) x.2) ∧
+      (∀ x ∈ Icc a b ×ˢ Icc r₁ r₂, 0 ≤ deriv (fun ℓ' ↦ C ℓ' x.2) x.1) ∧
+      ((∀ᶠ ℓ in 𝓝 a, C ℓ = C a) ∧ C a =ᶠ[𝓝ˢ (Icc r₁ r₂)] χ a) ∧
+      (∀ᶠ ℓ in 𝓝 b, C ℓ = C b) ∧
+      (∀ r ∈ Icc r₁ r₂, ∃ ℓ ∈ Icc a b, C b r ≤ χ ℓ r + ε) ∧
+      ∀ x ∈ Icc a b ×ˢ Icc r₃ r₂, ∀ k ≤ 2,
+        |iteratedDeriv k (C x.1) x.2 - iteratedDeriv k (χ x.1) x.2| < τ := by
+  have hK : IsCompact (Icc a b ×ˢ Icc r₁ r₂) := isCompact_Icc.prod isCompact_Icc
+  have hband : Icc a b ×ˢ Icc r₃ r₂ ⊆ U := fun x hx ↦ hEU (Or.inr hx)
+  have hsub : Icc r₃ r₂ ⊆ Icc r₁ r₂ := Icc_subset_Icc_left hr₁₃
+  have hba : 0 < b - a := sub_pos.2 hab
+  -- The margin of stability of the convex shapes `χ ℓ` on the rectangle, a bound for their
+  -- slopes there, and on the band a rate of increase in `ℓ` and a Lipschitz bound in `ℓ` for
+  -- the slopes; last, a bound `C₀ / δ` for the curvature of `smoothedAbs δ`.
+  obtain ⟨η₁, hη₁, hstab⟩ := exists_forall_isConvexShapeAt_of_abs_sub_lt hK hc hcont
+  obtain ⟨G₀, hG₀⟩ := hK.exists_bound_of_continuousOn (hcont 1 (by norm_num))
+  obtain ⟨m, hm, hrate⟩ := isCompact_Icc.exists_pos_mul_sub_le_sub_of_deriv_pos hU hband
+    (hsmooth.of_le (by norm_cast)) hmono
+  obtain ⟨L, hL⟩ := isCompact_Icc.exists_abs_deriv_sub_le_mul hU hband
+    (hsmooth.of_le (by norm_cast))
+  obtain ⟨C₀, hC₀⟩ := exists_forall_iteratedDeriv_two_smoothedAbs_le
+  set G := |G₀| + 1
+  have hG : 0 < G := by positivity
+  set Q := max C₀ 0
+  have hQ : 0 ≤ Q := le_max_right _ _
+  -- The constants: the lowering `η`, the error `θ` of the smooth stand-ins, the ratio `c` of the
+  -- width `δ = c h` to the mesh `h`, and the error `ε₀` of uniform continuity in `ℓ`, up to a
+  -- step `w` in `ℓ`.
+  obtain ⟨η, hη, hηη₁, hητ⟩ : ∃ η > 0, η ≤ η₁ / 2 ∧ η ≤ τ / 4 :=
+    ⟨min (η₁ / 2) (τ / 4), by positivity, min_le_left _ _, min_le_right _ _⟩
+  obtain ⟨θ, hθ, hθε, hθη, hθ1⟩ : ∃ θ > 0, θ ≤ ε / 2 ∧ θ ≤ η / 8 ∧ θ ≤ 1 :=
+    ⟨min (ε / 2) (min (η / 8) 1), by positivity, by simp⟩
+  obtain ⟨c, hc0, hcm, hcε, hcG, hcη⟩ :
+      ∃ c > 0, c ≤ m / 2 ∧ c ≤ ε / (b - a) ∧ c ≤ r₁ / G ∧ c ≤ η / 4 :=
+    ⟨min (min (m / 2) (ε / (b - a))) (min (r₁ / G) (η / 4)), by positivity, by simp⟩
+  obtain ⟨ε₀, hε₀, hε₀η, hε₀τ⟩ : ∃ ε₀ > 0, ε₀ ≤ η / 2 ∧ ε₀ ≤ τ / 4 :=
+    ⟨min (η / 2) (τ / 4), by positivity, min_le_left _ _, min_le_right _ _⟩
+  obtain ⟨w, hw, hu⟩ : ∃ w > 0, ∀ k ≤ 2, ∀ r ∈ Icc r₁ r₂, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b,
+      |ℓ' - ℓ| ≤ w → |iteratedDeriv k (χ ℓ') r - iteratedDeriv k (χ ℓ) r| < ε₀ := by
+    choose! w hw hu using fun k (hk : k ≤ 2) ↦
+      isCompact_Icc.exists_pos_abs_sub_lt_of_continuousOn (hcont k hk) hε₀
+    refine ⟨min (w 0) (min (w 1) (w 2)),
+      lt_min (hw 0 (by norm_num)) (lt_min (hw 1 (by norm_num)) (hw 2 le_rfl)),
+      fun k hk r hr ℓ hℓ ℓ' hℓ' hl ↦ hu k hk r hr ℓ hℓ ℓ' hℓ' (hl.trans ?_)⟩
+    interval_cases k <;> simp
+  obtain ⟨h₀, hh₀, hh₀w, hh₀1, hh₀τ⟩ :
+      ∃ h₀ > 0, h₀ ≤ w ∧ h₀ ≤ 1 ∧ h₀ ≤ τ * c / (Q * L ^ 2 + 1) :=
+    ⟨min w (min 1 (τ * c / (Q * L ^ 2 + 1))), by positivity, by simp⟩
+  -- The mesh `t i = a + i h`, `i ≤ N`, of size `h = (b - a) / N < h₀`, and the width `δ = c h`.
+  obtain ⟨N, hN⟩ := exists_nat_gt ((b - a) / h₀)
+  have hN0 : 0 < N := by exact_mod_cast (div_pos hba hh₀).trans hN
+  have hN0' : (0 : ℝ) < N := by exact_mod_cast hN0
+  set h := (b - a) / N with hh_def
+  have hh : 0 < h := div_pos hba hN0'
+  have hNh : (N : ℝ) * h = b - a := by rw [hh_def]; field_simp
+  have hhh₀ : h < h₀ := by
+    rw [hh_def, div_lt_iff₀ hN0']
+    rw [div_lt_iff₀ hh₀] at hN
+    linarith
+  set δ := c * h with hδ_def
+  have hδ : 0 < δ := mul_pos hc0 hh
+  have hδc : δ ≤ c := mul_le_of_le_one_right hc0.le (hhh₀.le.trans hh₀1)
+  set t : ℕ → ℝ := fun i ↦ a + (min i N : ℕ) * h with ht_def
+  have ht (i : ℕ) (hi : i ≤ N) : t i = a + i * h := by simp [ht_def, hi]
+  have htI (i : ℕ) : t i ∈ Icc a b := by
+    have h₁ : ((min i N : ℕ) : ℝ) ≤ N := by exact_mod_cast min_le_right i N
+    have h₂ : (0 : ℝ) ≤ (min i N : ℕ) := Nat.cast_nonneg _
+    simp only [ht_def]
+    exact ⟨le_add_of_nonneg_right (mul_nonneg h₂ hh.le),
+      by linarith [mul_le_mul_of_nonneg_right h₁ hh.le]⟩
+  have ht0 : t 0 = a := by simp [ht_def]
+  have hstep (i : ℕ) (hi : i < N) : t (i + 1) - t i = h := by
+    rw [ht _ hi, ht _ hi.le]
+    push_cast
+    ring
+  -- The smooth stand-ins `A i` for the members `χ (t i)`.
+  choose A hAs hAθ hAb hAa using fun i ↦
+    exists_contDiff_abs_iteratedDeriv_sub_lt_of_mem_Icc hC2 hU hEU hsmooth (htI i) hθ
+  have hA2 (i : ℕ) : ContDiff ℝ 2 (A i) := (hAs i).of_le (by norm_cast)
+  -- On `[r₁, r₂]` the joints match, near each point, and the stand-ins and their lowerings by
+  -- `η` are convex shapes, with slopes at most `G`.
+  have hjc (r : ℝ) (hr : r ∈ Icc r₁ r₂) :=
+    sub_add_lt_and_isConvexShapeAt_of_abs_iteratedDeriv_sub_lt (χ := χ) (A := A) (N := N)
+      (θ := θ) (η := η) (δ := δ) (η₁ := η₁) (ε₀ := ε₀)
+      (fun i g hg ↦ hstab g (t i, r) ⟨htI i, hr⟩ hg) (fun i k hk ↦ hAθ i k hk r hr)
+      (fun i hi ↦ by
+        simpa only [iteratedDeriv_zero] using hu 0 (by norm_num) r hr (t i) (htI i) (t (i + 1))
+          (htI _) (by rw [hstep i hi, abs_of_pos hh]; linarith))
+      hη (by linarith) (by linarith)
+  have hJ (r : ℝ) (hr : r ∈ Icc r₁ r₂) :=
+    eventually_forall_sub_add_le_smoothedMaxChain hδ (fun i _ ↦ (hAs i).continuous.continuousAt)
+      (hjc r hr).1
+  have hGA (i : ℕ) (r : ℝ) (hr : r ∈ Icc r₁ r₂) : deriv (A i) r ≤ G := by
+    have h₁ := (abs_lt.1 (hAθ i 1 (by norm_num) r hr)).2
+    have h₂ := hG₀ (t i, r) ⟨htI i, hr⟩
+    simp only [iteratedDeriv_one, Real.norm_eq_abs] at h₁ h₂
+    linarith [le_abs_self (deriv (χ (t i)) r), le_abs_self G₀]
+  refine ⟨shapeChain δ η a h A N, contDiff_shapeChain fun i _ ↦ hAs i, fun x hx ↦ ?_,
+    fun x _ ↦ (monotone_shapeChain hh hη.le x.2).deriv_nonneg, ⟨?_, ?_⟩, ?_, fun r hr ↦ ?_,
+    fun x hx k hk ↦ ?_⟩
+  · -- The members are convex shapes.
+    have hδG : δ * G ≤ x.2 := by
+      have := (le_div_iff₀ hG).1 hcG
+      linarith [hx.2.1, mul_le_mul_of_nonneg_right hδc hG.le]
+    exact isConvexShapeAt_shapeChain hδ hh hη.le (fun i _ ↦ hA2 i) (hJ x.2 hx.2)
+      (fun i _ ↦ (hjc x.2 hx.2).2.1 i) (fun i _ ↦ (hjc x.2 hx.2).2.2 (i + 1))
+      (fun i _ ↦ hGA i x.2 hx.2) hδG x.1
+  · -- Flat near `a`.
+    filter_upwards [Iio_mem_nhds (by linarith : a < a + h / 4)] with ℓ hℓ
+    rw [shapeChain_of_le hh hℓ.le, shapeChain_of_le hh (by linarith)]
+  · rw [shapeChain_of_le hh (by linarith)]
+    exact hAa 0 ht0
+  · -- Flat near `b`.
+    have he : a + (N - 1 / 4) * h = b - h / 4 := by linear_combination hNh
+    filter_upwards [Ioi_mem_nhds (by linarith : b - h / 4 < b)] with ℓ hℓ
+    exact shapeChain_eq_of_ge hh (by rw [he]; exact hℓ.le) (by rw [he]; linarith)
+  · -- The last member lies at most `ε` above some member of `χ`.
+    obtain ⟨j, -, hj⟩ := exists_smoothedMaxChain_le_add hδ A N r
+    refine ⟨t j, htI j, ?_⟩
+    rw [shapeChain_eq_smoothedMaxChain hδ hh
+      (fun i hi ↦ ((hjc r hr).1 i hi).le.trans (le_smoothedMaxChain hδ A i r)) (by linarith)]
+    have h₁ := (abs_lt.1 (hAθ j 0 (by norm_num) r hr)).2
+    simp only [iteratedDeriv_zero] at h₁
+    have h₂ : N * δ ≤ ε := by
+      have := (le_div_iff₀ hba).1 hcε
+      rw [hδ_def, mul_left_comm, hNh]
+      linarith
+    linarith
+  · -- On the band, the chain follows `χ`.
+    have hδm : δ < m * h := by linarith [mul_le_mul_of_nonneg_right hcm hh.le, mul_pos hm hh]
+    have hX : h * (Q * L ^ 2 + 1) ≤ τ * c := (le_div_iff₀ (by positivity)).1 (hhh₀.le.trans hh₀τ)
+    have hQL : Q * L ^ 2 * h ^ 2 ≤ τ * δ := by
+      rw [hδ_def]
+      nlinarith [mul_le_mul_of_nonneg_right hX hh.le, sq_nonneg h]
+    exact abs_iteratedDeriv_shapeChain_sub_lt_of_mem_band hδ hh hη.le hN0 (by linarith) ht hA2
+      hAb (hJ x.2 (hsub hx.2)) hrate hδm hL hQ
+      (fun s ↦ (hC₀ δ hδ s).trans (div_le_div_of_nonneg_right (le_max_left _ _) hδ.le)) hQL
+      (fun k hk r hr ℓ hℓ ℓ' hℓ' hl ↦
+        hu k hk r (hsub hr) ℓ hℓ ℓ' hℓ' (hl.trans (hhh₀.le.trans hh₀w)))
+      hε₀τ hητ (by linarith) hx.1 hx.2 hk
 
 end SymplecticGeometry
 

@@ -22,11 +22,13 @@ the fact that a smooth map pulls closed forms back to closed forms,
 `TauCeti.closedForms.mpullback`. Also the form-level consequence of homotopy invariance,
 `TauCeti.SmoothForm.mpullback_sub_mem_exactForms_of_homotopy`: smoothly homotopic maps pull a
 closed form back to forms that differ by an exact form, and its case for the slices of a smooth
-isotopy, `TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms`, through the
-homotopy `(x, s) ↦ h (s t, x)`. Finally, the class-level form of an identity of pull-backs,
-`TauCeti.deRhamCohomology.map_mk_eq_mk_of_mpullback_eq`: a smooth map that pulls a closed form
-`α` back to a closed form `β` sends the class of `α` to that of `β`; in particular, a
-diffeomorphism in the stabilizer of a closed form fixes its class,
+map `F : [0, 1] × M → M'`,
+`TauCeti.SmoothForm.mpullback_slice_zero_sub_mpullback_slice_mem_exactForms`, through the
+homotopy `(x, s) ↦ F (s t, x)`; in particular for the slices of a smooth isotopy,
+`TauCeti.SmoothForm.mpullback_sub_mpullback_timeSlice_mem_exactForms`. Finally, the class-level
+form of an identity of pull-backs, `TauCeti.deRhamCohomology.map_mk_eq_mk_of_mpullback_eq`: a
+smooth map that pulls a closed form `α` back to a closed form `β` sends the class of `α` to that
+of `β`; in particular, a diffeomorphism in the stabilizer of a closed form fixes its class,
 `TauCeti.deRhamCohomology.map_mk_of_mem_diffeomorphStabilizer`.
 
 ## References
@@ -71,6 +73,20 @@ theorem mpullback_sub_mem_exactForms_of_homotopy [IsManifold I ∞ M] {f g : M �
   rw [deRhamCohomology.mk_eq_mk_iff] at h
   simpa using h
 
+/-- The slices of a smooth map `F : [0, 1] × M → M'` pull a closed form `γ` back into one
+class: for every time `t`, the difference `F(0, ·)^* γ - F(t, ·)^* γ` is exact. -/
+theorem mpullback_slice_zero_sub_mpullback_slice_mem_exactForms [IsManifold I ∞ M]
+    {F : unitInterval × M → M'} (hF : ContMDiff ((𝓡∂ 1).prod I) I' ∞ F) (t : unitInterval)
+    {k : ℕ} {γ : SmoothForm I' M' ℝ k} (hγ : γ ∈ closedForms I' M' k) :
+    SmoothForm.mpullback (fun x ↦ F (0, x)) (hF.comp (contMDiff_const.prodMk contMDiff_id)) γ -
+        SmoothForm.mpullback (fun x ↦ F (t, x)) (hF.comp (contMDiff_const.prodMk contMDiff_id))
+          γ ∈
+      exactForms I M k :=
+  mpullback_sub_mem_exactForms_of_homotopy _ _
+    (F := fun q : M × Set.Icc (0 : ℝ) 1 ↦ F (Set.Icc.convexComb 0 t q.2, q.1))
+    (hF.comp ((contMDiff_const.convexComb contMDiff_const contMDiff_snd).prodMk
+      contMDiff_fst)) (fun x ↦ by simp) (fun x ↦ by simp) hγ
+
 /-- The slices of a smooth isotopy `h` from `f₀` pull a closed form `γ` back into one class:
 for every time `t`, the difference `f₀^* γ - (h_t)^* γ` is exact, where `h_t` is the slice of
 `h` at time `t`. -/
@@ -79,11 +95,12 @@ theorem mpullback_sub_mpullback_timeSlice_mem_exactForms [IsManifold I ∞ M]
     {γ : SmoothForm I' M' ℝ k} (hγ : γ ∈ closedForms I' M' k) :
     SmoothForm.mpullback f₀ f₀.contMDiff γ -
         SmoothForm.mpullback (h.timeSlice t) (h.timeSlice t).contMDiff γ ∈
-      exactForms I M k :=
-  mpullback_sub_mem_exactForms_of_homotopy _ _
-    (F := fun q : M × Set.Icc (0 : ℝ) 1 ↦ h (Set.Icc.convexComb 0 t q.2, q.1))
-    (h.contMDiff.comp ((contMDiff_const.convexComb contMDiff_const contMDiff_snd).prodMk
-      contMDiff_fst)) (fun x ↦ by simp) (fun x ↦ by simp) hγ
+      exactForms I M k := by
+  rw [SmoothForm.mpullback_congr _ (h.contMDiff.comp (contMDiff_const.prodMk contMDiff_id))
+      (funext fun x ↦ (h.apply_zero x).symm),
+    SmoothForm.mpullback_congr _ (h.contMDiff.comp (contMDiff_const.prodMk contMDiff_id))
+      (funext (h.timeSlice_apply t))]
+  exact mpullback_slice_zero_sub_mpullback_slice_mem_exactForms h.contMDiff t hγ
 
 end TauCeti.SmoothForm
 

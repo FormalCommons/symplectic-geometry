@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincar
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
@@ -173,8 +174,8 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
     rw [← hψf q] at hd
     have hcomp := mpullback_comp_at (F := F) (k := 1) hψq hΦq
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ).val
-    rw [mpullback_apply_congr hd, SmoothForm.coe_mpullback, ← hcomp, hid.mpullback_eq,
-      mpullback_id]
+    rw [mpullback_apply_congr hd, SmoothForm.coe_mpullback, ← hcomp,
+      hid.mpullback_apply_eq_self]
 
 end SmoothEmbedding
 
