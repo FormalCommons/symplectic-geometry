@@ -16,7 +16,6 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Symplectic.Orientation
 import SymplecticGeometry.Geometry.Symplectic.Fibration.ClosedExtension
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
@@ -38,14 +37,14 @@ form `LinearMap.BilinForm.pullbackProd` of these data at the parameter `0` is no
 in the point and the parameter, together with the compactness of `M`, gives one bound `K₀` for
 all points (`TauCeti.SmoothTwoForm.exists_forall_ge_forall_nondegenerate_add_smul_comp`). Only
 the vertical nondegeneracy of `τ` is used for this
-(`TauCeti.MapFiber.Atlas.exists_forall_ge_forall_nondegenerate_add_smul_comp`).
+(`IsVerticallyNondegenerate.exists_forall_ge_forall_nondegenerate_add_smul_comp`).
 
 The same bound makes the forms compatible with an oriented atlas, in the sense of
 `TauCeti.MapFiber.Atlas.IsOrientedCompatible`, when the fibre pull-backs of `τ` have the
 orientation `oF` of the model fibre and the base carries the orientation of `β`. The fibre
-pull-backs of `τ + K π^* β` are those of `τ`
-(`Bundle.Trivialization.mpullback_fiberInclusionMap_add_smul_mpullback`). At a point `x` of a
-chart, the derivative of the chart is a linear equivalence `T_x M ≃ T B × T F` whose first
+pull-backs of `τ + K π^* β` are those of `τ`, as `π^* β` pulls back to zero on the fibres
+(`Bundle.Trivialization.smoothForm_mpullback_fiberInclusionMap_mpullback_eq_zero`). At a point `x`
+of a chart, the derivative of the chart is a linear equivalence `T_x M ≃ T B × T F` whose first
 component is `d_x π` and which carries `τ_x` on the vertical vectors to the fibre pull-back of
 `τ`. As the form stays nondegenerate for every `K ≥ K₀`, the library's
 `TauCeti.SymplecticForm.map_orientation_of_forall_ge_nondegenerate_add_smul_comp` shows that the
@@ -99,24 +98,6 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimens
   [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM ∞ M]
   {proj : M → B} {A : Atlas F proj} {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
 
-omit [IsManifold IF ∞ F] in
-/-- **Thurston's forms are pointwise nondegenerate for large `K`.** Let `A` be a smooth atlas of
-`proj : M → B` with `M` compact, `τ` a two-form on `M` that is vertically nondegenerate for
-`proj`, and `β` a nondegenerate two-form on `B`. Then there is `K₀` such that, for every `K ≥ K₀`
-and every point `x`, the bilinear form `τ_x + K β_{proj x}(d_x proj ·, d_x proj ·)` is
-nondegenerate. -/
-theorem exists_forall_ge_forall_nondegenerate_add_smul_comp [CompactSpace M]
-    (hA : A.IsContMDiff ∞ IB IF IM) (hv : SmoothTwoForm.IsVerticallyNondegenerate IB proj τ)
-    {β : SmoothTwoForm IB B} (hβ : β.IsNondegenerate) :
-    ∃ K₀ : ℝ, ∀ K ≥ K₀, ∀ x, (τ.bilinFormAt x + K • (β.bilinFormAt (proj x)).comp
-      (mfderiv IM IB proj x : TangentSpace IM x →ₗ[ℝ] _) (mfderiv IM IB proj x)).Nondegenerate :=
-  SmoothTwoForm.exists_forall_ge_forall_nondegenerate_add_smul_comp
-    (hA.contMDiff_proj.of_le (by simp)) τ β (fun x ↦ hβ.nondegenerate_bilinFormAt (proj x))
-      fun x ↦ (LinearMap.BilinForm.nondegenerate_pullbackProd_zero_iff
-        (SmoothForm.isAlt_bilinFormAt τ x) (SmoothForm.isAlt_bilinFormAt β (proj x))
-        (hβ.nondegenerate_bilinFormAt (proj x)) (hA.surjective_mfderiv (by simp) x)).2
-        (SmoothTwoForm.isVerticallyNondegenerate_iff.1 hv x)
-
 /-- **Thurston's forms are symplectic for large `K`.** Let `A` be a smooth atlas of
 `proj : M → B` with `M` compact, `σ` a nondegenerate two-form on the model fibre, and `τ` a closed
 two-form on `M` that restricts to `σ` along `A`. For a symplectic form `β` on `B` there is `K₀`
@@ -128,16 +109,18 @@ theorem exists_forall_ge_isSymplectic_add_smul_mpullback [CompactSpace M]
     ∃ K₀ : ℝ, ∀ K ≥ K₀,
       (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β).IsSymplectic ∧
         A.RestrictsTo σ (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β) := by
-  obtain ⟨K₀, hK₀⟩ := exists_forall_ge_forall_nondegenerate_add_smul_comp hA
-    (hτ.isVerticallyNondegenerate hA hσ) hβ.isNondegenerate
+  obtain ⟨K₀, hK₀⟩ :=
+    (hτ.isVerticallyNondegenerate hA hσ).exists_forall_ge_forall_nondegenerate_add_smul_comp
+      (hA.contMDiff_proj.of_le (by simp)) (hA.surjective_mfderiv (by simp)) hβ.isNondegenerate
   refine ⟨K₀, fun K hK ↦ ⟨⟨hτc.add ((hβ.isClosed.mpullback _ _).smul K),
     SmoothTwoForm.isNondegenerate_def.2 fun x ↦ ?_⟩, hτ.add_mpullback two_ne_zero _ β K⟩⟩
   simpa using hK₀ K hK x
 
 /-- At a point of the source of a chart, the chart carries the symplectic orientation of a
 nondegenerate form `τ + K proj^* β` with `K ≥ K₀`, where `K₀` is as in
-`exists_forall_ge_forall_nondegenerate_add_smul_comp`, to the product of the symplectic
-orientation of `β` and the symplectic orientation of the fibre pull-back of `τ`. -/
+`IsVerticallyNondegenerate.exists_forall_ge_forall_nondegenerate_add_smul_comp`, to the product
+of the symplectic orientation of `β` and the symplectic orientation of the fibre pull-back of
+`τ`. -/
 private theorem isOrientationPreservingAt_add_smul_mpullback [FiniteDimensional ℝ EF] {m k : ℕ}
     (hA : A.IsContMDiff ∞ IB IF IM) {oF : TauCeti.Manifold.Orientation IF F (Fin k)}
     (hτ : ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
@@ -215,13 +198,16 @@ theorem exists_forall_ge_isOrientedCompatible_add_smul_mpullback [FiniteDimensio
     (hm : Module.finrank ℝ EB = m) :
     ∃ K₀ : ℝ, ∀ K ≥ K₀, A.IsOrientedCompatible hA (hβ.isNondegenerate.orientation hm) oF
       (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β) := by
-  obtain ⟨K₀, hK₀⟩ := exists_forall_ge_forall_nondegenerate_add_smul_comp hA
-    (isVerticallyNondegenerate_of_isNondegenerate_mpullback hA fun b ↦
-      hτ b b (A.mem_baseSet_trivAt b)) hβ.isNondegenerate
-  have hfib (K : ℝ) (b b' : B) (hb' : b' ∈ (A.trivAt b).baseSet) :=
-    (A.trivAt b).mpullback_fiberInclusionMap_add_smul_mpullback hb'
-      ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') two_ne_zero
-      hA.contMDiff_proj τ β K
+  obtain ⟨K₀, hK₀⟩ := (isVerticallyNondegenerate_of_isNondegenerate_mpullback hA fun b ↦
+    hτ b b (A.mem_baseSet_trivAt b)).exists_forall_ge_forall_nondegenerate_add_smul_comp
+      (hA.contMDiff_proj.of_le (by simp)) (hA.surjective_mfderiv (by simp)) hβ.isNondegenerate
+  have hfib (K : ℝ) (b b' : B) (hb' : b' ∈ (A.trivAt b).baseSet) :
+      SmoothForm.mpullback ((A.trivAt b).fiberInclusionMap hb')
+          ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb')
+          (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β) =
+        SmoothForm.mpullback ((A.trivAt b).fiberInclusionMap hb')
+          ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') τ := by
+    simp
   have hω (K : ℝ) (hK : K ≥ K₀) :
       (τ + K • SmoothForm.mpullback proj hA.contMDiff_proj β).IsNondegenerate :=
     SmoothTwoForm.isNondegenerate_def.2 fun x ↦ by simpa using hK₀ K hK x
