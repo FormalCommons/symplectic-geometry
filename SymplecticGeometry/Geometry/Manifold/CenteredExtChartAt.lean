@@ -24,7 +24,8 @@ built with Tau Ceti's `OpenPartialHomeomorph.extendTrans`. Its source is that of
 `x` (`centeredExtChartAt_source`), that is, that of the extended chart at `x`
 (`centeredExtChartAt_source_eq_extChartAt_source`), it sends `y` to
 `extChartAt I x y - extChartAt I x x` (`centeredExtChartAt_apply`), its inverse and target are
-given by `centeredExtChartAt_symm_apply` and `centeredExtChartAt_target`, it is smooth on its
+given by `centeredExtChartAt_symm_apply`, `centeredExtChartAt_target` and
+`mem_centeredExtChartAt_target_iff`, it is smooth on its
 source (`contMDiffOn_centeredExtChartAt`, a case of Tau Ceti's
 `OpenPartialHomeomorph.contMDiffOn_extendTrans`) and so at each of its points
 (`contMDiffAt_centeredExtChartAt'`, a case of Tau Ceti's
@@ -125,6 +126,12 @@ theorem centeredExtChartAt_target :
     (centeredExtChartAt I x).target = (· + extChartAt I x x) ⁻¹' (extChartAt I x).target := by
   ext v
   simp [centeredExtChartAt_def, I.range_eq_univ]
+
+/-- A vector `w` lies in the target of the centred chart at `x` if and only if `w` plus the
+coordinate of `x` lies in the target of the extended chart at `x`. -/
+theorem mem_centeredExtChartAt_target_iff {w : E} :
+    w ∈ (centeredExtChartAt I x).target ↔ w + extChartAt I x x ∈ (extChartAt I x).target := by
+  rw [centeredExtChartAt_target, mem_preimage]
 
 /-- On its source, the centred chart at `x` vanishes at `x` only. -/
 theorem sourceRestrict_centeredExtChartAt_preimage_zero :
