@@ -186,11 +186,17 @@ theorem mem_modelOpens {y : BlowupModel n} : y ∈ modelOpens c ↔ y.blowdown �
 
 /-- The overlap in the first piece: the punctured source of `c`. -/
 def puncturedSourceOpens : Opens (puncturedOpens c) :=
-  ⟨Subtype.val ⁻¹' c.source, c.open_source.preimage continuous_subtypeVal⟩
+  (⟨c.source, c.open_source⟩ : Opens M).comap (ContinuousMap.subtypeVal (puncturedOpens c))
+
+theorem puncturedSourceOpens_def :
+    puncturedSourceOpens c =
+      (⟨c.source, c.open_source⟩ : Opens M).comap (ContinuousMap.subtypeVal (puncturedOpens c)) :=
+  (rfl)
 
 @[simp]
 theorem mem_puncturedSourceOpens {x : puncturedOpens c} :
-    x ∈ puncturedSourceOpens c ↔ (x : M) ∈ c.source := Iff.rfl
+    x ∈ puncturedSourceOpens c ↔ (x : M) ∈ c.source := by
+  rw [puncturedSourceOpens_def, Opens.mem_comap, ContinuousMap.subtypeVal_apply, Opens.mem_mk]
 
 /-- The overlap in the second piece: its points off the exceptional divisor of the model, the
 preimage of `BlowupModel.offDivisorOpens n` under the inclusion of the piece. -/
@@ -211,14 +217,15 @@ theorem mem_modelOffDivisorOpens_iff_mem_offDivisorOpens {y : modelOpens c} :
 @[simp]
 theorem mem_modelOffDivisorOpens {y : modelOpens c} :
     y ∈ modelOffDivisorOpens c ↔ (y : BlowupModel n).blowdown ≠ 0 := by
-  rw [mem_modelOffDivisorOpens_iff_mem_offDivisorOpens, BlowupModel.mem_offDivisorOpens,
-    BlowupModel.mem_exceptionalDivisor_iff]
+  rw [mem_modelOffDivisorOpens_iff_mem_offDivisorOpens,
+    BlowupModel.mem_offDivisorOpens_iff_blowdown_ne_zero]
 
 /-- The point of the model blowup over the image under `c` of a point of the overlap in the
 first piece: `(mk (c x), c x)`, through the inverse of `blowdownDiffeomorph`. -/
 private def toModel (x : puncturedSourceOpens c) : BlowupModel n :=
   (blowdownDiffeomorph n).symm
-    ⟨c x, TauCeti.mem_puncturedSpace.2 (c.apply_ne_zero x.property x.val.property)⟩
+    ⟨c x, TauCeti.mem_puncturedSpace.2
+      (c.apply_ne_zero ((mem_puncturedSourceOpens c).1 x.property) x.val.property)⟩
 
 private theorem blowdown_toModel (x : puncturedSourceOpens c) :
     (toModel c x).blowdown = c x := by
@@ -227,22 +234,23 @@ private theorem blowdown_toModel (x : puncturedSourceOpens c) :
 private theorem continuous_toModel : Continuous (toModel c) :=
   continuous_subtypeVal.comp <| (blowdownDiffeomorph n).symm.continuous.comp <|
     (c.continuousOn.comp_continuous (continuous_subtypeVal.comp continuous_subtypeVal)
-      fun x ↦ x.property).subtype_mk _
+      fun x ↦ (mem_puncturedSourceOpens c).1 x.property).subtype_mk _
 
 /-- The homeomorphism along which the blowup is glued: a point `x ≠ p₀` of the source of `c`
 goes to the point of the model over `c x`, and a point `y` of the model off the divisor goes to
 `c.symm (π y)`. -/
 def gluingHomeomorph : puncturedSourceOpens c ≃ₜ modelOffDivisorOpens c where
   toFun x := ⟨⟨toModel c x, by
-      rw [mem_modelOpens, blowdown_toModel]; exact c.map_source x.property⟩, by
+      rw [mem_modelOpens, blowdown_toModel]
+      exact c.map_source ((mem_puncturedSourceOpens c).1 x.property)⟩, by
     rw [mem_modelOffDivisorOpens_iff_mem_offDivisorOpens]
     exact ((blowdownDiffeomorph n).symm _).property⟩
   invFun y := ⟨⟨c.symm (y : BlowupModel n).blowdown,
     c.symm_apply_ne y.val.property ((mem_modelOffDivisorOpens c).1 y.property)⟩,
-    c.map_target y.val.property⟩
+    (mem_puncturedSourceOpens c).2 (c.map_target y.val.property)⟩
   left_inv x := by
     ext
-    simp [blowdown_toModel, c.left_inv x.property]
+    simp [blowdown_toModel, c.left_inv ((mem_puncturedSourceOpens c).1 x.property)]
   right_inv y := by
     refine Subtype.ext (Subtype.ext (eq_of_blowdown_eq ?_ ?_).symm)
     · exact (mem_modelOffDivisorOpens c).1 y.property
@@ -282,7 +290,7 @@ theorem coe_gluingHomeomorph_eq_iff {x : puncturedSourceOpens c} {y : modelOpens
   refine ⟨?_, fun hxy ↦ Subtype.ext (eq_of_blowdown_eq ?_ ?_)⟩
   · rintro rfl
     exact (blowdown_gluingHomeomorph c x).symm
-  · simpa using c.apply_ne_zero x.property x.val.property
+  · simpa using c.apply_ne_zero ((mem_puncturedSourceOpens c).1 x.property) x.val.property
   · simpa using hxy
 
 end Blowup
@@ -475,7 +483,8 @@ theorem lift_inl {x : puncturedOpens c} (hx : (x : M) ∈ c.source) :
       (blowdownDiffeomorph n).symm
         ⟨c x, TauCeti.mem_puncturedSpace.2 <|
           c.apply_ne_zero hx ((mem_puncturedOpens c).1 x.property)⟩ := by
-  rw [← GluedAlong.inr_apply (gluingHomeomorph c) ⟨x, hx⟩, lift_inr, coe_gluingHomeomorph]
+  rw [← GluedAlong.inr_apply (gluingHomeomorph c) ⟨x, (mem_puncturedSourceOpens c).2 hx⟩, lift_inr,
+    coe_gluingHomeomorph]
 
 /-- On the range of `inr`, the map to the model lands over the target of `c`. -/
 theorem lift_mem_modelOpens {z : Blowup c} (hz : z ∈ range (inr (gluingHomeomorph c))) :
@@ -506,7 +515,7 @@ instance [T2Space M] : T2Space (Blowup c) := by
   refine ⟨Subtype.val ⁻¹' A, (hA.preimage continuous_subtypeVal).mem_nhds hxA,
     _, (hB.preimage hg).mem_nhds (by simpa [hy0] using hpB), fun z hzA hzB ↦ ?_⟩
   have hzB' : ((z : puncturedOpens c) : M) ∈ B := by
-    simpa [c.left_inv z.property] using hzB
+    simpa [c.left_inv ((mem_puncturedSourceOpens c).1 z.property)] using hzB
   exact hAB.ne_of_mem hzA hzB' rfl
 
 /-! ### The manifold structures -/
@@ -523,9 +532,11 @@ theorem contMDiff_gluingHomeomorph
     ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r (gluingHomeomorph c) := by
   have hc' : ContMDiff 𝓘(𝕜, Fin (n + 1) → ℂ) 𝓘(𝕜, Fin (n + 1) → ℂ) r
       fun x : puncturedSourceOpens c ↦ (⟨c x, TauCeti.mem_puncturedSpace.2 <|
-        c.apply_ne_zero x.property x.val.property⟩ : TauCeti.puncturedSpace (Fin (n + 1) → ℂ)) :=
+        c.apply_ne_zero ((mem_puncturedSourceOpens c).1 x.property) x.val.property⟩ :
+          TauCeti.puncturedSpace (Fin (n + 1) → ℂ)) :=
     (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 <|
-      hc.comp_contMDiff (contMDiff_subtypeVal.comp contMDiff_subtypeVal) fun x ↦ x.property
+      hc.comp_contMDiff (contMDiff_subtypeVal.comp contMDiff_subtypeVal)
+        fun x ↦ (mem_puncturedSourceOpens c).1 x.property
   refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_
   refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ (Subtype.val ∘ gluingHomeomorph c)).1 ?_
   convert contMDiff_subtypeVal.comp (hb.comp hc') using 1
@@ -631,7 +642,7 @@ def blowdown : C(Blowup c, M) :=
         fun y ↦ y.property⟩
     fun x ↦ by
       rw [ContinuousMap.coe_mk, ContinuousMap.coe_mk, blowdown_gluingHomeomorph]
-      exact c.left_inv x.property
+      exact c.left_inv ((mem_puncturedSourceOpens c).1 x.property)
 
 /-- Off the exceptional divisor, the blowdown is the identity of `M \ {p₀}`. -/
 @[simp]
