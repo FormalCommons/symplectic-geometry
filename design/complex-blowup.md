@@ -123,7 +123,7 @@ maps out of the blowup, such as $\pi_M$, `GluedAlong.t2Space_iff` and the
 For a smooth manifold `M` charted on `E`, with
 `J : TauCeti.SmoothAlmostComplexStructure 𝓘(ℝ, E) M` and a chart `c` in the
 real maximal atlas that is $J$-holomorphic on its source
-(`hJ : ∀ x ∈ c.source, mfderiv … c x ∘L J x = (Complex.I • ·) ∘L mfderiv … c x`),
+(`hJ : IsPseudoholomorphicOn J (SmoothAlmostComplexStructure.ofComplexManifold E E) c c.source`),
 the structure $\tilde J$ on `Blowup c` is glued from two pieces that agree
 on the overlap:
 
@@ -393,7 +393,8 @@ For a connected Riemann surface `Σ` (`[ChartedSpace ℂ Σ]
   read through `c.lift` near each point of it; `mdifferentiable_curveLift`,
   `blowdown_curveLift`, and `curveLift_unique`, by density of the
   complement of the discrete set and the Hausdorff property.
-- **Milestone** `Blowup.complexBlowup`, for a complex manifold `M`, `p₀` and
+- **Milestone** `Blowup.contMDiff_blowdown_and_properties`, for
+  a complex manifold `M`, `p₀` and
   `c` in the complex atlas: the conjunction of `contMDiff_blowdown`,
   `blowdownDiffeomorph`, the charts (for every holomorphic chart `φ` with
   `φ p₀ = 0`, `liftChart c φ` is in the maximal atlas of `Blowup c`, with

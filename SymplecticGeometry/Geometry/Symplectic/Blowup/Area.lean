@@ -263,8 +263,7 @@ theorem integrableOn_eval₂_ω₀E_mfderiv {Ω : Set ℂ} (hb : Bornology.IsBou
       (stdComplexPiSymplecticForm (Fin (n + 1))).toBilinForm.toContinuousBilinearMap
         (fderiv ℝ u t (1 : ℂ)) (fderiv ℝ u t Complex.I)) (closure Ω) :=
     fun t ht ↦ by
-      have h : ContinuousAt (fderiv ℝ u) t :=
-        ((hu t ht).fderiv_right (m := 0) (by simp)).continuousAt
+      have h : ContinuousAt (fderiv ℝ u) t := (hu t ht).continuousAt_fderiv one_ne_zero
       exact ((stdComplexPiSymplecticForm _).toBilinForm.toContinuousBilinearMap.continuous₂
         |>.continuousAt.comp ((h.clm_apply continuousAt_const).prodMk
           (h.clm_apply continuousAt_const))).continuousWithinAt

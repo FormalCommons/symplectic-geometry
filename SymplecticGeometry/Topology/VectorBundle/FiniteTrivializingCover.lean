@@ -8,6 +8,7 @@ module
 public import TauCeti.Topology.VectorBundle.Countable
 public import TauCeti.Topology.VectorBundle.TrivialEmbedding
 public import TauCeti.Topology.VectorBundle.Transfer
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Finite trivializing covers of vector bundles
@@ -133,7 +134,7 @@ theorem HasFiniteTrivializingCover.of_compactSpace [CompactSpace B] [VectorBundl
   obtain ⟨t, ht⟩ := isCompact_univ.elim_finite_subcover
     (fun x : B ↦ (trivializationAt F E x).baseSet)
     (fun x ↦ (trivializationAt F E x).open_baseSet)
-    fun x _ ↦ mem_iUnion.2 ⟨x, mem_baseSet_trivializationAt F E x⟩
+    (FiberBundle.iUnion_baseSet_trivializationAt F E).ge
   refine .of_finite (fun y : t ↦ trivializationAt F E (y : B))
     (eq_univ_of_forall fun x ↦ ?_)
   obtain ⟨y, hy, hxy⟩ := mem_iUnion₂.1 (ht (mem_univ x))
