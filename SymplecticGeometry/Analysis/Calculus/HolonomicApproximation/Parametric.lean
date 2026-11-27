@@ -102,14 +102,14 @@ those of `D`; those outside `J` record the parameter.
   `TauCeti.Diffeotopy.ofContMDiff`, since Tau Ceti's `TauCeti.Diffeotopy.transDiffeomorph` keeps
   the model and `familyCubeEquiv` changes it. It keeps the parameter, and the bound on the space
   derivative is `SymplecticGeometry.norm_fderiv_comp_familyCubeEquiv_sub_le`.
-* `SymplecticGeometry.exists_contDiff_fderiv_eq_of_prod_subset`: a datum on `L × E` that is
-  holonomic on an open `U ⊇ K ×ˢ S`, for a compact `K` and a closed `S`, becomes holonomic on an
-  open set containing `U` and `univ ×ˢ S` when `G` is replaced by `G + χ • (∂ₓf - G)`, with `χ`
-  a smooth cutoff on `E` equal to `1` near `S` and to `0` near the points `x` with
-  `K ×ˢ {x} ⊄ U` (Mathlib's `exists_contMDiffMap_zero_one_nhds_of_isClosed`, and
-  `generalized_tube_lemma`, by which the other points form an open set). Nothing changes on
-  `U` or over `K`, so the output meets the hypotheses of `exists_holonomic_approximation_family`
-  for a datum that is holonomic near `B ×ˢ {0}` only over `K`.
+* `SymplecticGeometry.exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod`: a datum on `L × E`
+  that is holonomic on `K ×ˢ W`, for a set `K` of parameters and an open `W` containing a
+  closed `S`, becomes holonomic on an open set containing `univ ×ˢ S` when `G` is replaced by
+  `G + χ • (∂ₓf - G)`, with `χ` a smooth cutoff on `E` equal to `1` near `S` and to `0` near the
+  complement of `W` (Mathlib's `exists_contMDiffMap_zero_one_nhds_of_isClosed`). Nothing changes
+  where the datum is already holonomic or over `K`, so the output meets the hypotheses of
+  `exists_holonomic_approximation_family` for a datum that is holonomic near `B ×ˢ {0}` only
+  over `K`.
 * `SymplecticGeometry.exists_holonomic_approximation_continuous_family`: the same theorem for a
   family over a compact Hausdorff space `P`, continuous in the parameter together with the first
   space derivatives. The result is stated through a continuous `σ : P → Fin n → ℝ` and a smooth
@@ -688,32 +688,26 @@ variable {L E F : Type*} [NormedAddCommGroup L] [NormedSpace ℝ L] [NormedAddCo
   [NormedSpace ℝ E] [FiniteDimensional ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 /-- A cutoff in space makes a family of data holonomic near a closed set `S` for every
-parameter, without changing it over a compact set `K` of parameters. Let `f : L × E → F` be
-`Cᵐ` and `G : L × E → E →L[ℝ] F` be `Cⁿ`, with `n + 1 ≤ m` and `n ≤ ∞`, and let the derivative
-of `f` in the space variable equal `G` on an open `U` containing `K ×ˢ S`. Then there are a `Cⁿ`
-map `G'` and an open set `U'` containing `U` and `univ ×ˢ S` such that the derivative of `f` in
-the space variable equals `G'` on `U'`, `G'` equals `G` on `U`, and `G' (l, x) = G (l, x)` for
-every `l ∈ K` and every `x`.
+parameter, without changing it over a set `K` of parameters. Let `f : L × E → F` be `Cᵐ` and
+`G : L × E → E →L[ℝ] F` be `Cⁿ`, with `n + 1 ≤ m` and `n ≤ ∞`, and let the derivative of `f` in
+the space variable equal `G` on `K ×ˢ W`, for an open `W` containing `S`. Then there are a `Cⁿ`
+map `G'` and an open set `U'` containing `univ ×ˢ S` such that the derivative of `f` in the
+space variable equals `G'` on `U'`, `G'` equals `G` at every point where the derivative of `f`
+in the space variable is `G`, and `G' (l, x) = G (l, x)` for every `l ∈ K` and every `x`.
 
-With `S := B ×ˢ {0}`, the output fits the hypotheses `hBU`, `hP₀U` and `hUf` of
+With `S := B ×ˢ {0}` and `P₀ := ∅`, the output fits the hypotheses `hBU`, `hP₀U` and `hUf` of
 `exists_holonomic_approximation_family`, and its approximation bounds over `K` are then bounds
 against `G`. -/
-theorem exists_contDiff_fderiv_eq_of_prod_subset {m n : WithTop ℕ∞} {f : L × E → F}
-    {G : L × E → E →L[ℝ] F} (hf : ContDiff ℝ m f) (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m)
-    (hn : n ≤ ∞) {K : Set L} (hK : IsCompact K) {S : Set E} (hS : IsClosed S)
-    {U : Set (L × E)} (hU : IsOpen U) (hKS : K ×ˢ S ⊆ U)
-    (hUf : ∀ p ∈ U, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p) :
+theorem exists_contDiff_fderiv_eq_of_fderiv_eq_on_prod {m n : WithTop ℕ∞}
+    {f : L × E → F} {G : L × E → E →L[ℝ] F} (hf : ContDiff ℝ m f)
+    (hG : ContDiff ℝ n G) (hnm : n + 1 ≤ m) (hn : n ≤ ∞) {K : Set L} {S W : Set E}
+    (hS : IsClosed S) (hW : IsOpen W) (hSW : S ⊆ W)
+    (hWf : ∀ l ∈ K, ∀ x ∈ W, fderiv ℝ (fun y ↦ f (l, y)) x = G (l, x)) :
     ∃ G' : L × E → E →L[ℝ] F, ContDiff ℝ n G' ∧
-      (∃ U' : Set (L × E), IsOpen U' ∧ U ⊆ U' ∧ univ ×ˢ S ⊆ U' ∧
+      (∃ U' : Set (L × E), IsOpen U' ∧ univ ×ˢ S ⊆ U' ∧
         ∀ p ∈ U', fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G' p) ∧
-      (∀ p ∈ U, G' p = G p) ∧ ∀ l ∈ K, ∀ x, G' (l, x) = G (l, x) := by
-  -- the points `x` with `K ×ˢ {x} ⊆ U` form an open set `W ⊇ S`, by the tube lemma
-  set W : Set E := {x | ∀ l ∈ K, (l, x) ∈ U}
-  have hW : IsOpen W := isOpen_iff_forall_mem_open.2 fun x hx ↦ by
-    obtain ⟨u, v, -, hv, hKu, hxv, huv⟩ := generalized_tube_lemma hK isCompact_singleton hU
-      fun p hp ↦ by obtain ⟨hp₁, rfl : p.2 = x⟩ := hp; exact hx p.1 hp₁
-    exact ⟨v, fun y hy l hl ↦ huv ⟨hKu hl, hy⟩, hv, hxv rfl⟩
-  have hSW : S ⊆ W := fun x hx l hl ↦ hKS ⟨hl, hx⟩
+      (∀ p, fderiv ℝ (fun x ↦ f (p.1, x)) p.2 = G p → G' p = G p) ∧
+      ∀ l ∈ K, ∀ x, G' (l, x) = G (l, x) := by
   -- a smooth cutoff `χ`, zero near `Wᶜ` and one near `S`
   obtain ⟨χ, hχ0, hχ1, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed
     (I := 𝓘(ℝ, E)) (n := ⊤) hW.isClosed_compl hS (disjoint_compl_left_iff_subset.2 hSW)
@@ -724,18 +718,16 @@ theorem exists_contDiff_fderiv_eq_of_prod_subset {m n : WithTop ℕ∞} {f : L �
   have hd : ContDiff ℝ n d :=
     ContDiff.fderiv (f := fun (p : L × E) (x : E) ↦ f (p.1, x))
       (hf.comp ((contDiff_fst.comp contDiff_fst).prodMk contDiff_snd)) contDiff_snd hnm
-  have hGU : ∀ p ∈ U, G p + χ p.2 • (d p - G p) = G p := fun p hp ↦ by
-    rw [show d p = G p from hUf p hp, sub_self, smul_zero, add_zero]
+  have hGd : ∀ p, d p = G p → G p + χ p.2 • (d p - G p) = G p := fun p hp ↦ by
+    rw [hp, sub_self, smul_zero, add_zero]
   refine ⟨fun p ↦ G p + χ p.2 • (d p - G p),
     hG.add ((hχ.comp contDiff_snd).smul (hd.sub hG)),
-    ⟨U ∪ univ ×ˢ O, hU.union (isOpen_univ.prod hO), subset_union_left,
-      fun p hp ↦ Or.inr ⟨mem_univ _, hSO hp.2⟩, fun p hp ↦ ?_⟩, hGU, fun l hl x ↦ ?_⟩
-  · rcases hp with hp | ⟨-, hp⟩
-    · exact (hUf p hp).trans (hGU p hp).symm
-    · beta_reduce
-      rw [hOχ hp, one_smul, add_sub_cancel, hd_def]
+    ⟨univ ×ˢ O, isOpen_univ.prod hO, fun p hp ↦ ⟨mem_univ _, hSO hp.2⟩, fun p hp ↦ ?_⟩,
+    hGd, fun l hl x ↦ ?_⟩
+  · beta_reduce
+    rw [hOχ hp.2, one_smul, add_sub_cancel, hd_def]
   · by_cases hx : x ∈ W
-    · exact hGU _ (hx l hl)
+    · exact hGd _ (hWf l hl x hx)
     · beta_reduce
       rw [hχ0.self_of_nhdsSet x hx, zero_smul, add_zero]
 
