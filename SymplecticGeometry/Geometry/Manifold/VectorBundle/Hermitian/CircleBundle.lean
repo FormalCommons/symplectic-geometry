@@ -74,9 +74,10 @@ a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, wh
 their norms and Hermitian products from `g` through three local instances (written with `letI` in
 the statements). The class `SymplecticGeometry.Bundle.ContMDiffHermitianMetric` holds `g` and
 `hI`; its scoped instances give these three and the smooth principal bundle structure below,
-so that a proof installs them all with one `let`, and the lemmas in its namespace, such as
-`SymplecticGeometry.Bundle.ContMDiffHermitianMetric.inner_eq`, express the inner products and
-norms through `g`.
+so that a proof installs them all with one `let`. Under the class, Tau Ceti's
+`Bundle.ContMDiffRiemannianMetric.inner_eq`, `Bundle.ContMDiffRiemannianMetric.norm_sq` and
+`Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`, applied to `g`, express the
+inner products and norms through `g`.
 The unit vector `σ 1` of a local unitary frame is then a smooth local section
 (`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`, a case of the smoothness of local
 unitary frames in any rank,
@@ -513,24 +514,6 @@ scoped instance innerProductSpace (x : B) : InnerProductSpace ℂ (V x) :=
 scoped instance isContinuousRiemannianBundle : IsContinuousRiemannianBundle F V :=
   instIsContinuousRiemannianBundle h.metric.toContinuousRiemannianMetric
 
-/-- The real inner product on a fibre is the metric. -/
-@[simp]
-theorem real_inner_eq (x : B) (v w : V x) : ⟪v, w⟫_ℝ = h.metric.inner x v w :=
-  h.metric.inner_eq x v w
-
--- Not `@[simp]`: Tau Ceti's `ContMDiffRiemannianMetric.complexInnerProductSpace_inner` already
--- rewrites the left side.
-/-- The Hermitian product on a fibre: its real part is the metric, and its imaginary part the
-metric after multiplying the first vector by `Complex.I`. -/
-theorem inner_eq (x : B) (v w : V x) :
-    ⟪v, w⟫_ℂ = (h.metric.inner x v w : ℂ) + Complex.I * (h.metric.inner x (Complex.I • v) w : ℂ) :=
-  h.metric.complexInnerProductSpace_inner h.inner_I_smul x v w
-
-/-- The norm on a fibre is the square root of the metric on the diagonal. -/
-@[simp]
-theorem norm_eq (x : B) (v : V x) : ‖v‖ = √(h.metric.inner x v v) := by
-  rw [norm_eq_sqrt_real_inner, real_inner_eq]
-
 end ContMDiffHermitianMetric
 
 end SymplecticGeometry.Bundle
@@ -579,8 +562,9 @@ open scoped ContMDiffHermitianMetric in
 example (x : B) (v w : V x) : True := by
   let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   have : ⟪v, w⟫_ℂ = (g.inner x v w : ℂ) + Complex.I * (g.inner x (Complex.I • v) w : ℂ) :=
-    ContMDiffHermitianMetric.inner_eq x v w
-  have : ‖v‖ = √(g.inner x v v) := ContMDiffHermitianMetric.norm_eq x v
+    g.complexInnerProductSpace_inner hI x v w
+  have : ⟪v, w⟫_ℝ = g.inner x v w := g.inner_eq x v w
+  have : ‖v‖ ^ 2 = g.inner x v v := g.norm_sq x v
   trivial
 
 variable [Fact (finrank ℂ F = 1)]
