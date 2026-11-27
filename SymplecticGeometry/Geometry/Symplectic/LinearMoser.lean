@@ -13,6 +13,7 @@ public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Analysis.ODE.DysonSeries
 import SymplecticGeometry.Analysis.ODE.DysonSeries
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothSegmentPath
 import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -323,17 +324,6 @@ theorem isUnit_segmentMoserFlow (hp : (a, b) ∈ invertibleSegments V) :
   isUnit_dysonSeriesLeft (continuous_moserGenerator (TauCeti.contDiff_smoothSegmentPath a b)
     (isInvertible_segmentPath hp)) 1
 
-omit [CompleteSpace V] in
-/-- The family of paths of `segmentMoserFlow`, as a function of the pair of forms and the time,
-is smooth. -/
-private theorem contDiff_segmentFamily :
-    ContDiff ℝ (⊤ : ℕ∞) (Function.uncurry fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ))
-      (t : ℝ) ↦ TauCeti.smoothSegmentPath p.1 p.2 t) := by
-  have hβ : ContDiff ℝ (⊤ : ℕ∞) fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
-      q.2.smoothTransition := Real.smoothTransition.contDiff.comp contDiff_snd
-  simp only [Function.uncurry_def, TauCeti.smoothSegmentPath_def]
-  exact contDiff_fst.fst.add (hβ.smul (contDiff_fst.snd.sub contDiff_fst.fst))
-
 /-- The linear Moser flow of a segment is smooth in the pair of forms, on the open set
 `invertibleSegments V`. -/
 theorem contDiffOn_segmentMoserFlow {n : ℕ∞} :
@@ -343,7 +333,7 @@ theorem contDiffOn_segmentMoserFlow {n : ℕ∞} :
       fun (p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) (t : ℝ) ↦
         TauCeti.smoothSegmentPath p.1 p.2 t)
       (invertibleSegments V ×ˢ Set.univ) :=
-    (contDiff_segmentFamily.of_le (by simp)).contDiffOn
+    (contDiff_fst.fst.smoothSegmentPath contDiff_fst.snd contDiff_snd).contDiffOn
   have h := contDiffOn_parametric_dysonSeriesLeft_moserGenerator (n := ⊤)
     isOpen_invertibleSegments hω fun p hp t ↦ isInvertible_segmentPath hp t
   have h1 : ContDiffOn ℝ (⊤ : ℕ∞)
@@ -363,7 +353,7 @@ theorem segmentMoserFlow_conj {W : Type*} [NormedAddCommGroup W] [NormedSpace �
     (TauCeti.contDiff_smoothSegmentPath a b) (isInvertible_segmentPath hp)]
   congr 2
   ext1 t
-  simp [TauCeti.smoothSegmentPath_def]
+  rw [TauCeti.map_smoothSegmentPath]
 
 end Segment
 
