@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
-public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
+public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 
 /-!
 # Slices of a diffeotopy that keeps a parameter
@@ -18,15 +17,9 @@ diffeomorphism of `M` (`TauCeti.Diffeotopy.slice`), the slice at `q` of the time
 (`TauCeti.Diffeotopy.contMDiff_slice`) that is the identity at time `0`
 (`TauCeti.Diffeotopy.slice_zero`).
 
-A diffeotopy of a product `A × B` of normed spaces for the self-model `𝓘(ℝ, A × B)` is also one
-for the product `𝓘(ℝ, A).prod 𝓘(ℝ, B)` of the self-models, with the same underlying map
-(`TauCeti.Diffeotopy.toProdModel`), so that it has slices too.
-
 ## Main definitions
 
 * `TauCeti.Diffeotopy.slice Φ hΦ q t`: the diffeomorphism `x ↦ (Φ (t, (q, x))).2` of `M`.
-* `TauCeti.Diffeotopy.toProdModel Φ`: a diffeotopy of `A × B` for `𝓘(ℝ, A × B)`, read for
-  `𝓘(ℝ, A).prod 𝓘(ℝ, B)`.
 
 ## Main results
 
@@ -93,47 +86,6 @@ theorem contMDiff_slice :
     (contMDiff_fst.fst.prodMk contMDiff_snd)))
 
 end slice
-
-section prodModel
-
-variable {A B : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [NormedAddCommGroup B]
-  [NormedSpace ℝ B] (Φ : Diffeotopy 𝓘(ℝ, A × B) n (A × B))
-
-/-- A diffeotopy of a product `A × B` of normed spaces for the self-model `𝓘(ℝ, A × B)`, as a
-diffeotopy for the product `𝓘(ℝ, A).prod 𝓘(ℝ, B)` of the self-models. It has the same underlying
-map (`TauCeti.Diffeotopy.toProdModel_apply`). -/
-def toProdModel : Diffeotopy (𝓘(ℝ, A).prod 𝓘(ℝ, B)) n (A × B) where
-  toDiffeomorph :=
-    ((Diffeomorph.reflProdCongr unitInterval (Diffeomorph.prodModelSelf ℝ A B)).symm.trans
-      Φ.toDiffeomorph).trans (Diffeomorph.reflProdCongr unitInterval
-        (Diffeomorph.prodModelSelf ℝ A B))
-  fst_apply p := by
-    simp only [Diffeomorph.coe_trans, Diffeomorph.reflProdCongr_symm,
-      Diffeomorph.coe_reflProdCongr, Diffeomorph.coe_prodModelSelf,
-      Diffeomorph.coe_prodModelSelf_symm, Prod.map_id, Function.id_comp, Function.comp_id]
-    exact Φ.fst_apply p
-  snd_apply_zero' x := by
-    simp only [Diffeomorph.coe_trans, Diffeomorph.reflProdCongr_symm,
-      Diffeomorph.coe_reflProdCongr, Diffeomorph.coe_prodModelSelf,
-      Diffeomorph.coe_prodModelSelf_symm, Prod.map_id, Function.id_comp, Function.comp_id]
-    exact Φ.apply_zero x
-
-/-- The diffeotopy `Φ.toProdModel` has the same underlying map as `Φ`. -/
-@[simp]
-theorem toProdModel_apply (p : unitInterval × A × B) : Φ.toProdModel p = Φ p := by
-  simp only [toProdModel, coe_apply, Diffeomorph.coe_trans, Diffeomorph.reflProdCongr_symm,
-    Diffeomorph.coe_reflProdCongr, Diffeomorph.coe_prodModelSelf,
-    Diffeomorph.coe_prodModelSelf_symm, Prod.map_id, Function.id_comp, Function.comp_id]
-
-/-- The time slices of `Φ.toProdModel` are those of `Φ`, read for the product of the
-self-models (`Diffeomorph.prodModelEquiv`). -/
-@[simp]
-theorem timeSlice_toProdModel (t : unitInterval) :
-    Φ.toProdModel.timeSlice t = Diffeomorph.prodModelEquiv (Φ.timeSlice t) :=
-  Diffeomorph.ext fun x ↦ by
-    rw [timeSlice_apply, toProdModel_apply, Diffeomorph.coe_prodModelEquiv, timeSlice_apply]
-
-end prodModel
 
 end TauCeti.Diffeotopy
 
