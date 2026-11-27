@@ -22,7 +22,7 @@ import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
-import SymplecticGeometry.Geometry.Lie.MaurerCartan
+import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
 import TauCeti.Geometry.Lie.Adjoint.InvariantForm
 import Mathlib.Analysis.Calculus.Deriv.Mul
@@ -112,7 +112,7 @@ The conjugation formula combines Tau Ceti's `TauCeti.Lie.conj_mulInvariantExp`, 
 `Ad` of the connected group `Gc` (`TauCeti.Lie.map_tangentAd_apply_of_map_lie`).
 
 The Gauss lemma differentiates `a = exp (cplx (lieMap η)) * toHom u` by the left-trivialized
-product rule (`mfderiv_inv_mul_mfderiv_mul`) and the derivative of the exponential through the
+product rule (`Lie.mfderiv_inv_mul_mfderiv_mul`) and the derivative of the exponential through the
 series `(1 - e^{-z}) / z` of `ad` (`mfderiv_inv_mul_mfderiv_mulInvariantExp_comp`, from Tau Ceti's
 `LeftInvariantDerivation.hasMFDerivAt_lieExp`). The `toHom u` factor contributes nothing to `im`,
 the `Ad`-invariance of `B` removes `Ad u⁻¹`, and the functional `y ↦ B η (im y)` vanishes on the
@@ -493,7 +493,7 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
     ((C.toHom.contMDiff_toFun.mdifferentiable (by simp)) (v z)).comp z hv
   -- The product rule splits the left-trivialized derivative into the part of `exp` and the part
   -- of `toHom ∘ v`, whose component `im` vanishes.
-  have hprod := mfderiv_inv_mul_mfderiv_mul (I := IC) (G := Gc)
+  have hprod := Lie.mfderiv_inv_mul_mfderiv_mul (I := IC) (G := Gc)
     (a := fun z ↦ mulInvariantExp (L (ξ z) : GroupLieAlgebra IC Gc)) (b := fun z ↦ C.toHom (v z))
     ((contMDiff_mulInvariantExp (I := IC) (G := Gc)).mdifferentiableAt (by simp) |>.comp z hX) hb w
   have hv0 := C.im_mfderiv_inv_mul_mfderiv_toHom_comp hv w
@@ -578,6 +578,7 @@ theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensio
   change B (ξ t) _ + B _ (ξ t) = _
   rw [hη, two_mul]
   exact congrArg (B η _ + ·) (hBs.eq _ _)
+
 end LieComplexification
 
 end SymplecticGeometry
