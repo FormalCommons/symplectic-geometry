@@ -32,10 +32,10 @@ transport exists. Around each point `b` of `B`, transport along the rays of a ch
 (`TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`); since `τ` is
 vertically closed, transport preserves the forms on the fibres
 (`TauCeti.SmoothTwoForm.IsVerticallyClosed.mpullback_parallelTransportIn`), so every fibre
-inclusion of this trivialization pulls `τ` back to the form on the fibre over `b`. So the points
-whose fibre forms are related by a diffeomorphism of `F` form the classes of an equivalence
-relation whose classes are open, and the base, the image of the connected `M`, is connected:
-all fibre forms are diffeomorphic to the one `σ` over a chosen point. Composing each radial
+inclusion of this trivialization pulls `τ` back to the form on the fibre over `b`. So the
+relation "the fibre forms over two points differ by a diffeomorphism of `F`" has open classes,
+and the base, the image of the connected `M`, is connected: all fibre forms are carried by
+diffeomorphisms of `F` to the one `σ` over a chosen point. Composing each radial
 trivialization in the fibre with such a diffeomorphism gives the charts of the new atlas.
 
 ## Main results
@@ -169,8 +169,8 @@ theorem IsVerticallyClosed.isClosed_mpullback_fiberInclusionMap
         mfderiv IF IM (e.fiberInclusionMap hb) v (w 2)] := by
     ext i
     fin_cases i <;> rfl
-  rw [h3, isVerticallyClosed_iff.1 h _ _ (hw 0) _ (hw 1)]
-  rfl
+  rw [h3, isVerticallyClosed_iff.1 h _ _ (hw 0) _ (hw 1), Pi.zero_apply,
+    ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 /-- The local step: around each point `b`, transport along the rays of a chart of `B` from `b`
 gives a smooth trivialization whose fibre inclusions all pull a vertically closed `τ` back to its
