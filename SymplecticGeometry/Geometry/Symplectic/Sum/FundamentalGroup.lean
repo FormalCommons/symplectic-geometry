@@ -35,6 +35,16 @@ For `M₂` the rational elliptic surface `E(1)` on the model and in the universe
 gives `fibreSum_fundamentalGroupMulEquiv`: `π₁` of the sum of `X` with `E(1)` along a framed
 symplectic embedding `ι` of `T` is `π₁(X, ι t) ⧸ ⟨⟨ι_* π₁(T, t)⟩⟩`.
 
+An embedding `ι : Q' → M₁` that misses the closed tube is carried into the sum by `inl`
+(`FiberSum.inlEmbedding`). The embedding and the one carried into the sum both factor
+through the complement of the tube, so `FiberSum.fundamentalGroupMulEquiv_mk` shows that the
+isomorphism, after the quotient map, sends the normal closure of `ι_* π₁(Q', q')` to the normal
+closure of the image of the carried embedding
+(`FiberSum.map_normalClosure_basepointChangeSubgroup_range_map`). Both are moved to the base
+points of the isomorphism along paths, and since normal closures of moved subgroups do not depend
+on the path (`FundamentalGroup.normalClosure_basepointChangeSubgroup_eq`), the paths are
+arbitrary. This is what lets one sum again along a second embedding after a first sum.
+
 ## Main results
 
 * `SymplecticGeometry.FiberSum.instPathConnectedSpace`: the fibre sum is path connected.
@@ -45,6 +55,10 @@ symplectic embedding `ι` of `T` is `π₁(X, ι t) ⧸ ⟨⟨ι_* π₁(T, t)�
 * `SymplecticGeometry.fibreSum_fundamentalGroupMulEquiv` and
   `SymplecticGeometry.fibreSum_fundamentalGroupMulEquiv_mk`: the case of the sum with the rational
   elliptic surface.
+* `SymplecticGeometry.FiberSum.map_normalClosure_basepointChangeSubgroup_range_map` and
+  `SymplecticGeometry.fibreSum_map_normalClosure_basepointChangeSubgroup_range_map`: the
+  isomorphisms carry the normal closure of the image of an embedding that misses the tube onto
+  that of the embedding carried to the sum.
 
 ## References
 
@@ -156,6 +170,81 @@ theorem fundamentalGroupMulEquiv_mk (p : Q × annulus ℂ δ ε)
     (MulEquiv.apply_symm_apply _ _))).trans
       (fundamentalGroupMulEquivCollar_mk f₁ f₂ hδ hδε ⟨_, f₁.collarMap_mem_collar hδε p⟩ γ)
 
+
+section Embedding
+
+variable {EQ' HQ' : Type*} [NormedAddCommGroup EQ'] [NormedSpace ℝ EQ'] [TopologicalSpace HQ']
+  {J' : ModelWithCorners ℝ EQ' HQ'} {Q' : Type*} [TopologicalSpace Q'] [ChartedSpace HQ' Q']
+  (ι : SmoothEmbedding J' I ∞ Q' M₁) (hι : ∀ q, ι q ∈ f₁.complTube hδε)
+
+/-- **Fundamental groups of embeddings carried to the fibre sum.** Let `ι : Q' → M₁` be an
+embedding that misses the closed tube, and `inlEmbedding f₂ hδ ι hι` the embedding it gives into
+the fibre sum. Move the image of `ι_* π₁(Q', q')` to `ι₁ q` along any path `γ`, and that of the
+carried embedding to the collar point `f₁ (q, z)` along any path `η`, for `p = (q, z)`. Then
+`FiberSum.fundamentalGroupMulEquiv`, after the quotient map, carries the normal closure of the
+first onto the normal closure of the second. -/
+theorem map_normalClosure_basepointChangeSubgroup_range_map (p : Q × annulus ℂ δ ε) (q' : Q')
+    (γ : Path (ι q') (ι₁ p.1))
+    (η : Path (inlEmbedding f₂ hδ ι hι q')
+      (GluedAlong.inlContinuousMap _ (f₁.collarMap hδε p))) :
+    (Subgroup.normalClosure (FundamentalGroup.basepointChangeSubgroup γ
+        (FundamentalGroup.map ι.toContinuousMap q').range :
+          Set (FundamentalGroup M₁ (ι₁ p.1)))).map
+        ((fundamentalGroupMulEquiv f₁ f₂ hδ hδε p).toMonoidHom.comp (QuotientGroup.mk' _)) =
+      Subgroup.normalClosure (FundamentalGroup.basepointChangeSubgroup η
+        (FundamentalGroup.map (inlEmbedding f₂ hδ ι hι).toContinuousMap q').range) := by
+  have := isPathConnected_iff_pathConnectedSpace.1 (f₁.isPathConnected_complTube hδ hδε)
+  -- both embeddings factor through the restriction of `ι` to the complement of the
+  -- tube
+  have hv : ι.toContinuousMap =
+      (ContinuousMap.subtypeVal (f₁.complTube hδε : Set M₁)).comp
+        (ι.codRestrict (f₁.complTube hδε) hι).toContinuousMap :=
+    ContinuousMap.ext fun q ↦ (ι.val_codRestrict_apply _ hι q).symm
+  have hu : (inlEmbedding f₂ hδ ι hι).toContinuousMap =
+      (GluedAlong.inlContinuousMap (fiberSumGluing f₁ f₂ hδ hδε).toHomeomorph).comp
+        (ι.codRestrict (f₁.complTube hδε) hι).toContinuousMap :=
+    ContinuousMap.ext fun q ↦ congrFun (coe_inlEmbedding ι hι) q
+  -- `L`: the image on `π₁` of that restriction, moved to the collar point in the complement
+  obtain ⟨L, hL⟩ : ∃ L, L = FundamentalGroup.basepointChangeSubgroup
+      (PathConnectedSpace.somePath _ (f₁.collarMap hδε p))
+      (FundamentalGroup.map (ι.codRestrict (f₁.complTube hδε) hι).toContinuousMap q').range :=
+    ⟨_, rfl⟩
+  -- on the side of `M₁`, `γ` is moved on to the collar point along the radial path
+  have hR : Subgroup.normalClosure (FundamentalGroup.basepointChangeSubgroup
+      (γ.trans (f₁.collarRadialPath hδε p)) (FundamentalGroup.map ι.toContinuousMap q').range :
+        Set (FundamentalGroup M₁ (f₁.collarMap hδε p : M₁))) =
+      Subgroup.normalClosure (SetLike.coe (L.map (FundamentalGroup.map
+        (ContinuousMap.subtypeVal (f₁.complTube hδε : Set M₁)) (f₁.collarMap hδε p)))) := by
+    rw [hL]
+    exact FundamentalGroup.normalClosure_basepointChangeSubgroup_range_eq_of_eq_comp _ _ hv _ _
+  -- on loops of the complement of the tube, the isomorphism is induced by `inl`
+  have hΨ : (((fundamentalGroupMulEquiv f₁ f₂ hδ hδε p).toMonoidHom.comp
+      (QuotientGroup.mk' _)).comp (FundamentalGroup.fundamentalGroupMulEquivOfPath
+        (f₁.collarRadialPath hδε p)).symm.toMonoidHom).comp
+          (FundamentalGroup.map (ContinuousMap.subtypeVal (f₁.complTube hδε : Set M₁))
+            (f₁.collarMap hδε p)) =
+      FundamentalGroup.map (GluedAlong.inlContinuousMap _) (f₁.collarMap hδε p) :=
+    MonoidHom.ext (fundamentalGroupMulEquiv_mk f₁ f₂ hδ hδε p)
+  have hsurj : Function.Surjective (((fundamentalGroupMulEquiv f₁ f₂ hδ hδε p).toMonoidHom.comp
+      (QuotientGroup.mk' _)).comp (FundamentalGroup.fundamentalGroupMulEquivOfPath
+        (f₁.collarRadialPath hδε p)).symm.toMonoidHom) :=
+    (fundamentalGroupMulEquiv f₁ f₂ hδ hδε p).surjective.comp
+      ((QuotientGroup.mk'_surjective _).comp (MulEquiv.surjective _))
+  rw [FundamentalGroup.normalClosure_basepointChangeSubgroup_range_eq_of_eq_comp _ _ hu η
+      (PathConnectedSpace.somePath _ (f₁.collarMap hδε p)), ← hL,
+    FundamentalGroup.normalClosure_basepointChangeSubgroup_eq γ
+      ((γ.trans (f₁.collarRadialPath hδε p)).trans (f₁.collarRadialPath hδε p).symm),
+    FundamentalGroup.basepointChangeSubgroup_trans,
+    FundamentalGroup.basepointChangeSubgroup_eq_map,
+    FundamentalGroup.fundamentalGroupMulEquivOfPath_symm, Subgroup.coe_map,
+    ← Subgroup.map_normalClosure _ _ (MulEquiv.surjective _), Subgroup.map_map, hR]
+  refine (Subgroup.map_normalClosure _ _ hsurj).trans ?_
+  rw [← hΨ]
+  exact congrArg Subgroup.normalClosure ((Subgroup.coe_map _ _).symm.trans
+    (congrArg SetLike.coe (Subgroup.map_map _ _ _)))
+
+end Embedding
+
 end FiberSum
 
 section RationalEllipticSurface
@@ -204,6 +293,28 @@ theorem fibreSum_fundamentalGroupMulEquiv_mk (w : (∀ i, AddCircle (p i)) × an
           (FundamentalGroup.map (ContinuousMap.subtypeVal (f₁.complTube hδε : Set X)) _ γ))) =
       FundamentalGroup.map (GluedAlong.inlContinuousMap _) _ γ :=
   FiberSum.fundamentalGroupMulEquiv_mk f₁ f₂ hδ hδε w γ
+
+/-- The analogue of `FiberSum.map_normalClosure_basepointChangeSubgroup_range_map` for the sum
+with the rational elliptic surface: for an embedding `ι' : Q' → X` that misses the closed tube,
+`fibreSum_fundamentalGroupMulEquiv`, after the quotient map, carries the normal closure of
+`ι'_* π₁(Q', q')` moved to `ι t` along any path `γ` onto the normal closure of the image of the
+embedding carried to the sum, moved to the collar point `f₁ (t, z)` along any path `η`, for
+`w = (t, z)`. -/
+theorem fibreSum_map_normalClosure_basepointChangeSubgroup_range_map {EQ' HQ' : Type*}
+    [NormedAddCommGroup EQ'] [NormedSpace ℝ EQ'] [TopologicalSpace HQ']
+    {J' : ModelWithCorners ℝ EQ' HQ'} {Q' : Type*} [TopologicalSpace Q'] [ChartedSpace HQ' Q']
+    (ι' : SmoothEmbedding J' 𝓘(ℝ, V) ∞ Q' X) (hι' : ∀ q, ι' q ∈ f₁.complTube hδε)
+    (w : (∀ i, AddCircle (p i)) × annulus ℂ δ ε) (q' : Q') (γ : Path (ι' q') (ι w.1))
+    (η : Path (FiberSum.inlEmbedding f₂ hδ ι' hι' q')
+      (GluedAlong.inlContinuousMap _ (f₁.collarMap hδε w))) :
+    (Subgroup.normalClosure (FundamentalGroup.basepointChangeSubgroup γ
+        (FundamentalGroup.map ι'.toContinuousMap q').range :
+          Set (FundamentalGroup X (ι w.1)))).map
+        ((fibreSum_fundamentalGroupMulEquiv e p f₁ f₂ hδ hδε w).toMonoidHom.comp
+          (QuotientGroup.mk' _)) =
+      Subgroup.normalClosure (FundamentalGroup.basepointChangeSubgroup η
+        (FundamentalGroup.map (FiberSum.inlEmbedding f₂ hδ ι' hι').toContinuousMap q').range) :=
+  FiberSum.map_normalClosure_basepointChangeSubgroup_range_map f₁ f₂ hδ hδε ι' hι' w q' γ η
 
 end RationalEllipticSurface
 
