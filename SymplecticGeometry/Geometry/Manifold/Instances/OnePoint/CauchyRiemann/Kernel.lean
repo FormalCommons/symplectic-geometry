@@ -31,7 +31,6 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 import TauCeti.Topology.Algebra.Module.ComplexSmulI
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContDiffBound
 
 /-!
@@ -66,9 +65,9 @@ This file is about the kernels of the real Cauchy–Riemann operators `D_J` on t
 * `SymplecticGeometry.exists_twistOneKernelFamily`: near a structure `J₀` tamed by `σ`, complex
   linear maps `T J` from `twistOneKernel J₀` onto `twistOneKernel J`, the inclusion at `J₀`, such
   that `J ↦ T J s` is continuous at `J₀` into `W^{k+1,2}` for every order `k`.
-* `SymplecticGeometry.exists_continuousAt_twistOneKernelFamily`: the same maps, with `J ↦ T J s`
-  continuous at `J₀` into the smooth sections of `𝒪(1)` with `ContMDiffSection.frameTopology`,
-  for every frame system.
+* `SymplecticGeometry.exists_continuousAt_twistOneKernelFamily`: maps as in
+  `exists_twistOneKernelFamily`, with `J ↦ T J s` continuous at `J₀` into the smooth sections of
+  `𝒪(1)` with `ContMDiffSection.frameTopology`, for every frame system.
 
 ## Proof
 
@@ -132,10 +131,9 @@ the complex linear map `SymplecticGeometry.twistOneKernelTransfer`. Its values a
 `ContinuousLinearMap.kerSection` of the pair, the same smooth section at every order
 (`SymplecticGeometry.kerSection_twistOneDelBarSobolev_toOrderOne`), which depends continuously on
 `J` at each order (`ContinuousAt.kerSection`). For the `C^∞` topology, fix a chart of the atlas
-`twistCoreAtlas 1` and an order `j`. On a compact subset of the chart image, the `W^{j+2,2}` norm
-bounds the derivatives of order `j` of the chart readings of continuous representatives
-(`TauCeti.SobolevSection.exists_norm_iteratedFDeriv_coord_toSection_le`), so continuity into
-`W^{j+2,2}` makes these derivatives converge locally uniformly, and
+`twistCoreAtlas 1` and an order `j`. Continuity into `W^{j+2,2}` makes the derivatives of order
+`j` of the chart readings of continuous representatives converge locally uniformly on the chart
+image (`TauCeti.SobolevSection.tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection`), and
 `TauCeti.FiniteBundleAtlas.tendsto_frameTopology_of_tendstoLocallyUniformlyOn` gives convergence
 in the frame topology of every frame system.
 
@@ -818,46 +816,18 @@ theorem exists_continuousAt_twistOneKernelFamily (hcover : ∀ x, ∃ i, x ∈ U
   let A := twistCoreAtlas 1
   refine FiniteBundleAtlas.tendsto_frameTopology_of_tendstoLocallyUniformlyOn A
     fun i j _ ↦ ?_
-  -- At order `j + 1`, the `W^{j+2,2}` norm bounds the derivatives of order `j` of the chart
-  -- readings on compact sets.
+  -- At order `j + 1`, convergence in `W^{j+2,2}` makes the derivatives of order `j` of the chart
+  -- readings converge locally uniformly.
   have hk : finrank ℝ ℂ + j ≤ j + 1 + 1 := by rw [Complex.finrank_real_complex]; omega
-  have hrep : SobolevSection.HasContinuousRepresentatives A volume 2 (j + 1 + 1) :=
-    SobolevSection.HasContinuousRepresentatives.of_finrank_le (by omega)
   obtain ⟨w, hwc, hwS⟩ := hw (j + 1) s
   have hSw : ∀ᶠ J in 𝓝 ⟨J₀, hJ₀⟩, ⇑(S J) = SobolevSection.toSection (w J) := by
     filter_upwards [hS, hwS] with J h₁ h₂
     rw [h₁, h₂]
-  have hSw₀ := hSw.self_of_nhds
-  have hopen := (A.image i).isOpen
-  -- The derivatives of the chart readings are additive in the Sobolev section.
-  have hsub (v v' : SobolevSection A volume 2 (j + 1 + 1)) {y : ℂ} (hy : y ∈ A.image i) :
-      iteratedFDeriv ℝ j (A.coord i (SobolevSection.toSection v)) y -
-          iteratedFDeriv ℝ j (A.coord i (SobolevSection.toSection v')) y =
-        iteratedFDeriv ℝ j (A.coord i (SobolevSection.toSection (v - v'))) y := by
-    have hev : A.coord i (SobolevSection.toSection (v - v')) =ᶠ[𝓝 y]
-        A.coord i (SobolevSection.toSection v) - A.coord i (SobolevSection.toSection v') :=
-      Filter.eventually_of_mem (hopen.mem_nhds hy) fun z hz ↦ by
-        rw [SobolevSection.toSection_sub hrep, A.coord_sub i _ _ hz, Pi.sub_apply]
-    have hd (v : SobolevSection A volume 2 (j + 1 + 1)) :=
-      (SobolevSection.contDiffOn_coord_toSection_of_finrank_add_le hk v i).contDiffAt
-        (hopen.mem_nhds hy)
-    rw [(hev.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hd v) (hd v')]
-  rw [tendstoLocallyUniformlyOn_iff_forall_isCompact hopen]
-  intro K hKi hK
-  obtain ⟨C, hC⟩ :=
-    SobolevSection.exists_norm_iteratedFDeriv_coord_toSection_le (p := 2) hk i hK hKi
-  have hlim : Filter.Tendsto (fun J ↦ ‖w J - w ⟨J₀, hJ₀⟩‖) (𝓝 ⟨J₀, hJ₀⟩) (𝓝 0) :=
-    tendsto_iff_norm_sub_tendsto_zero.1 hwc
-  rw [Metric.tendstoUniformlyOn_iff]
-  intro ε hε
-  have hδ : 0 < ε / (|C| + 1) := by positivity
-  filter_upwards [hSw, hlim.eventually (gt_mem_nhds hδ)] with J hJ hJε y hy
-  rw [hJ, hSw₀, dist_eq_norm, hsub _ _ (hKi hy)]
-  calc _ ≤ C * ‖w ⟨J₀, hJ₀⟩ - w J‖ := hC _ y hy j le_rfl
-    _ ≤ (|C| + 1) * ‖w J - w ⟨J₀, hJ₀⟩‖ := by
-      rw [norm_sub_rev]
-      exact mul_le_mul_of_nonneg_right ((le_abs_self C).trans (by linarith)) (norm_nonneg _)
-    _ < ε := by rwa [lt_div_iff₀' (by positivity)] at hJε
+  rw [hSw.self_of_nhds]
+  refine (SobolevSection.tendstoLocallyUniformlyOn_iteratedFDeriv_coord_toSection hk i
+    hwc).congr_inseparable ?_
+  filter_upwards [hSw] with J hJ y _
+  exact .of_eq (by rw [hJ])
 
 end Family
 
