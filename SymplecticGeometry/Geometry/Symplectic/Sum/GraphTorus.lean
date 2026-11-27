@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 
@@ -169,11 +170,9 @@ theorem snd_tangentSpaceProdEquiv_mfderiv_graphTorus (hh : ContMDiff 𝓘(ℝ) I
     (Manifold.tangentSpaceProdEquiv (graphTorus hh x)
       (mfderiv (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))
         (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ))) (graphTorus hh) x w)).2 = w := by
-  have hcomp := mfderiv_comp x mdifferentiableAt_snd
-    ((graphTorus hh).contMDiff.mdifferentiableAt (by simp))
-  rw [snd_comp_graphTorus, mfderiv_id, mfderiv_snd] at hcomp
-  rw [Manifold.tangentSpaceProdEquiv_apply]
-  exact (DFunLike.congr_fun hcomp w).symm
+  rw [Manifold.tangentSpaceProdEquiv_apply, coe_graphTorus]
+  exact Manifold.mfderiv_graph_swap_snd_apply
+    ((hh.comp (contMDiff_apply (i := i))).mdifferentiable (by simp) x) w
 
 /-- A horizontal tangent vector `(v, 0)` at a point of the graph torus has zero normal class
 exactly when `v = 0`, since a tangent vector of the graph torus with torus component zero
