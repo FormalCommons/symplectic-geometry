@@ -15,6 +15,7 @@ import SymplecticGeometry.Analysis.Calculus.SliceLowerBound
 import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
 import SymplecticGeometry.Geometry.Manifold.Immersion.Complement
 import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
+import TauCeti.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.Immersion.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -326,10 +327,9 @@ theorem exists_eventually_abs_comp_symm_le_mul_infDist_sq [FiniteDimensional ℝ
   obtain ⟨O, hOsub, hOo, hyO⟩ := mem_nhds_iff.1 (inter_mem hD hO')
   set U := e.target ∩ e.symm ⁻¹' O
   have hz₀U : e (ι y) ∈ U := ⟨e.map_source hy, by simpa [e.left_inv hy] using hyO⟩
-  have hgU : ContDiffOn ℝ 2 (D ∘ e.symm) U := fun z hz ↦ by
-    have := (contMDiffAt_iff_contDiffAt_comp_extend_symm he (e.map_target hz.1)).1 (hOsub hz.2).1
-    rw [hsymm, hext, e.right_inv hz.1] at this
-    exact this.contDiffWithinAt
+  have hgU : ContDiffOn ℝ 2 (D ∘ e.symm) U :=
+    ContMDiffOn.contDiffOn_comp_symm_of_mem_maximalAtlas
+      (fun x hx ↦ (hOsub hx).1.contMDiffWithinAt) he
   have hZU : ∀ z ∈ Z ∩ U, ∃ y', e.symm z = ι y' ∧ ι y' ∈ e.source ∧ z = e (ι y') ∧
       D (ι y') = 0 ∧ mvfderiv 𝓘(ℝ, E) D (ι y') = 0 := by
     rintro z ⟨⟨x, ⟨hxs, y', rfl⟩, rfl⟩, -, hzO⟩
