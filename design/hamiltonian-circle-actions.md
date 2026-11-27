@@ -321,7 +321,8 @@ Each is a few hundred lines at most; each is blocked by the issues it
 names.
 
 1. **Nondegeneracy of the pairing in degrees $(1,m-1)$, and closed wedge
-   powers.** `PoincarePairing/Nondegenerate.lean` and `DeRham/Wedge.lean`.
+   powers.** `PoincarePairing/Nondegenerate.lean`; the wedge powers are
+   Tau Ceti's `DeRham/Wedge.lean`.
    About 170 lines. No blockers.
 2. **Invariant representatives of closed one-forms.**
    `DifferentialForm/Average.lean` and `GroupAction/InvariantForm.lean`.

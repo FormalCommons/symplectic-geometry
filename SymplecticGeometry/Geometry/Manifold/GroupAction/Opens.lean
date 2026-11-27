@@ -27,7 +27,8 @@ set under a compact group (`TopologicalSpace.Opens.invariantCore`). If the actio
 so is the action on `U`, jointly or for each element, since the inclusion of an open set is a
 smooth embedding (`Manifold.IsSmoothEmbedding.of_opens`). Tau Ceti's
 `ContRepresentation.contMDiffConstSMul_mulActionOpens` is the case of a linear representation on
-an invariant open subset of its space.
+an invariant open subset of its space, and Tau Ceti's
+`TopologicalSpace.Opens.contMDiffSMul_invariantCore` the joint case on an invariant core.
 
 Pulling back along a smooth map keeps invariance of forms, one element at a time: if
 `f : N → M` is smooth with `f (g • x) = g • f x` for some `g`, and a form on `M` is invariant
@@ -107,11 +108,6 @@ theorem contMDiffConstSMul_of_coe_smul {Γ : Type*} [SMul Γ M] [ContMDiffConstS
   (IsSmoothEmbedding.of_opens U).contMDiffConstSMul id h
 
 variable [Monoid G] [MulAction G M] [CompactSpace G] [ContinuousSMul G M]
-
-/-- A `C^n` action of a compact group restricts to a `C^n` action on the invariant core of an
-open set. -/
-instance [ContMDiffSMul I I' n G M] : ContMDiffSMul I I' n G (U.invariantCore G) :=
-  contMDiffSMul_of_coe_smul (coe_smul_invariantCore U)
 
 /-- An action of a compact group by `C^n` maps restricts to an action by `C^n` maps on the
 invariant core of an open set. -/

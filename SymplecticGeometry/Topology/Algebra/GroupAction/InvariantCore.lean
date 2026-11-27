@@ -41,6 +41,7 @@ section Core
 variable {G : Type*} {X : Type*} [TopologicalSpace G] [CompactSpace G] [TopologicalSpace X]
   [SMul G X] [ContinuousSMul G X]
 
+/-- The invariant core of `U` is the set of points whose whole orbit lies in `U`. -/
 theorem coe_invariantCore (U : Opens X) :
     (U.invariantCore G : Set X) = {x | ∀ g : G, g • x ∈ U} :=
   Set.ext fun _ ↦ mem_invariantCore
