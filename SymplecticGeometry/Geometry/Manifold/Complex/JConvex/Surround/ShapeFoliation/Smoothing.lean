@@ -41,6 +41,16 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   `ContDiffOn.exists_contDiff_eventuallyEq_on_isCompact`). The family is `M + q ℓ` near
   `ℓ = b` and `χ` near `ℓ = ℓ₁`, and at each point it is the smoothed maximum of `M + q ℓ` and a
   member of `χ`, which bounds its value and its first two `r`-derivatives by theirs.
+* `SymplecticGeometry.exists_comp_add_shapeFamily`: the piece next to the end `ℓ₀` of the
+  parameter interval `[ℓ₀, a]`. It is `T ℓ r = χ (λ ℓ) r + q ℓ`, where `q` is smooth,
+  nondecreasing, `0` near `ℓ₀` and with `q' > 0` on `[a₁, a]`, and `λ` is a smooth monotone map
+  that is the identity up to a point of `(ℓ₀, a₁)`, equal to `a` from a point `a'' ∈ (a₁, a)`
+  on, and with positive derivative below `a''`
+  (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le`). The members are shapes
+  by `SymplecticGeometry.IsConvexShapeAt.add_const`, since `q ≥ 0` on `[ℓ₀, ∞)`; the
+  `ℓ`-derivative `∂χ/∂ℓ (λ ℓ) · λ' ℓ + q' ℓ` is positive, by its first term below `a''` and by
+  its second on `[a'', a]`. The family is `χ` near `ℓ = ℓ₀` and `χ a + q ℓ` near `ℓ = a`, where
+  it meets the family of `SymplecticGeometry.exists_monotone_shapeChain`.
 * `SymplecticGeometry.exists_blend_shapeFamily`: the blend with `χ` near the end `r₂` of the
   `r`-interval. On a band `[ℓ₀, ℓ₁] × [r₃, r₂]` where `χ` is a smooth family of shapes with
   `∂χ/∂ℓ > 0`, a cutoff `ρ` in `r`, `1` up to `r₃` and `0` near `r₂`
@@ -256,6 +266,109 @@ theorem exists_smoothedMax_shapeFamily {χ : ℝ → ℝ → ℝ} {M q : ℝ →
       exact deriv_smoothedMax_le_max hdiffM hdiffA
     · rw [← hd2M, ← hd2A]
       exact min_iteratedDeriv_two_le_iteratedDeriv_two_smoothedMax (hM2 x.1) (hA2 x.1) hδ.le x.2
+
+/-- **The piece of a strictly increasing family of `i`-convex shapes next to `ℓ₀`.** Let
+`χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on an open set containing `[ℓ₀, a] × [r₁, r₂]`, with
+`χ ℓ` an `i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the rectangle, and let `q` be
+a smooth nondecreasing function that vanishes near `ℓ₀` and has `q' > 0` on `[a₁, a]`, where
+`ℓ₀ < a₁ < a`. Then there is `T : ℝ → ℝ → ℝ`, smooth on `ℝ²`, such that on the rectangle `T ℓ`
+is an `i`-convex shape at `r` with `∂T/∂ℓ > 0`; `T` equals `χ` near `{ℓ₀} × [r₁, r₂]` and
+`χ a r + q ℓ` near `{a} × [r₁, r₂]`; and at each point `(ℓ, r)` of the rectangle, `T ℓ` agrees
+near `r` with `χ ℓ' + q ℓ` for some `ℓ' ∈ [ℓ₀, a]`. -/
+theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ} {U : Set (ℝ × ℝ)}
+    {ℓ₀ a₁ a r₁ r₂ : ℝ} (hℓa₁ : ℓ₀ < a₁) (ha₁a : a₁ < a) (hU : IsOpen U)
+    (hRU : Icc ℓ₀ a ×ˢ Icc r₁ r₂ ⊆ U) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) U)
+    (hχc : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, IsConvexShapeAt (χ x.1) x.2)
+    (hχℓ : ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1)
+    (hq : ContDiff ℝ ∞ q) (hqm : Monotone q) (hq₀ : q =ᶠ[𝓝 ℓ₀] fun _ ↦ 0)
+    (hqa : ∀ ℓ ∈ Icc a₁ a, 0 < deriv q ℓ) :
+    ∃ T : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry T) ∧
+      (∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, IsConvexShapeAt (T x.1) x.2) ∧
+      (∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ T ℓ x.2) x.1) ∧
+      Function.uncurry T =ᶠ[𝓝ˢ ({ℓ₀} ×ˢ Icc r₁ r₂)] Function.uncurry χ ∧
+      Function.uncurry T =ᶠ[𝓝ˢ ({a} ×ˢ Icc r₁ r₂)] (fun x ↦ χ a x.2 + q x.1) ∧
+      ∀ x ∈ Icc ℓ₀ a ×ˢ Icc r₁ r₂, ∃ ℓ' ∈ Icc ℓ₀ a,
+        T x.1 =ᶠ[𝓝 x.2] fun r ↦ χ ℓ' r + q x.1 := by
+  -- A globally smooth `χ'` that agrees with `uncurry χ` on an open set `O` containing the
+  -- rectangle.
+  obtain ⟨χ', hχ', -, -, -, hχ'eq⟩ := hχ.exists_contDiff_eventuallyEq_on_isCompact
+    (isCompact_Icc.prod isCompact_Icc) hU hRU
+  set O := interior {x | χ' x = Function.uncurry χ x}
+  have hO : IsOpen O := isOpen_interior
+  have hRO : Icc ℓ₀ a ×ˢ Icc r₁ r₂ ⊆ O := fun x hx ↦ mem_interior_iff_mem_nhds.2 (hχ'eq x hx)
+  have hloc : ∀ x ∈ O, χ' =ᶠ[𝓝 x] Function.uncurry χ := fun x hx ↦
+    mem_interior_iff_mem_nhds.1 hx
+  have hval : ∀ x ∈ O, χ' x = χ x.1 x.2 := fun x hx ↦ interior_subset hx
+  have hsliceR : ∀ x ∈ O, (fun r ↦ χ' (x.1, r)) =ᶠ[𝓝 x.2] χ x.1 := fun x hx ↦
+    (hloc x hx).comp_tendsto (Continuous.tendsto (by fun_prop) x.2)
+  have hsliceL : ∀ x ∈ O, (fun ℓ ↦ χ' (ℓ, x.2)) =ᶠ[𝓝 x.1] fun ℓ ↦ χ ℓ x.2 := fun x hx ↦
+    (hloc x hx).comp_tendsto (Continuous.tendsto (by fun_prop) x.1)
+  -- The reparametrization `L`: the identity up to `a'`, equal to `a` from `a''` on.
+  set a' := (ℓ₀ + a₁) / 2 with ha'
+  set a'' := (a₁ + a) / 2 with ha''
+  have hℓa' : ℓ₀ < a' := by linarith [ha']
+  have ha'a'' : a' < a'' := by linarith [ha', ha'']
+  have ha₁a'' : a₁ < a'' := by linarith [ha'']
+  obtain ⟨L, hLs, hLm, hLid, hLa, hLle, hL'⟩ :=
+    Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le ha'a''
+      (show a'' ≤ a by linarith [ha''])
+  have hLℓ₀ : L ℓ₀ = ℓ₀ := hLid (mem_Iic.2 hℓa'.le)
+  have hLmem : ∀ ℓ ∈ Icc ℓ₀ a, L ℓ ∈ Icc ℓ₀ a := fun ℓ hℓ ↦
+    ⟨hLℓ₀ ▸ hLm hℓ.1, hLle ℓ⟩
+  have hqnn : ∀ ℓ, ℓ₀ ≤ ℓ → 0 ≤ q ℓ := fun ℓ hℓ ↦ hq₀.eq_of_nhds ▸ hqm hℓ
+  refine ⟨fun ℓ r ↦ χ' (L ℓ, r) + q ℓ,
+    (hχ'.comp ((hLs.comp contDiff_fst).prodMk contDiff_snd)).add (hq.comp contDiff_fst),
+    fun x hx ↦ ?_, fun x hx ↦ ?_, ?_, ?_, fun x hx ↦ ⟨L x.1, hLmem x.1 hx.1, ?_⟩⟩
+  · -- The members are `i`-convex shapes.
+    have hx₁ : (L x.1, x.2) ∈ O := hRO ⟨hLmem x.1 hx.1, hx.2⟩
+    exact ((hχc (L x.1, x.2) ⟨hLmem x.1 hx.1, hx.2⟩).congr_of_eventuallyEq
+      (hsliceR _ hx₁)).add_const (hqnn x.1 hx.1.1)
+  · -- The `ℓ`-derivative.
+    obtain ⟨⟨hℓ₀x, hxa⟩, hr'⟩ := hx
+    have hx₁ : (L x.1, x.2) ∈ O := hRO ⟨hLmem x.1 ⟨hℓ₀x, hxa⟩, hr'⟩
+    have hχd : HasDerivAt (fun ℓ ↦ χ' (ℓ, x.2)) (deriv (fun ℓ ↦ χ ℓ x.2) (L x.1)) (L x.1) := by
+      have hd : DifferentiableAt ℝ (fun ℓ ↦ χ' (ℓ, x.2)) (L x.1) :=
+        (hχ'.comp (contDiff_id.prodMk contDiff_const)).differentiable (by simp) _
+      rw [← (hsliceL _ hx₁).deriv_eq]
+      exact hd.hasDerivAt
+    have hpos : 0 < deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) :=
+      hχℓ (L x.1, x.2) ⟨hLmem x.1 ⟨hℓ₀x, hxa⟩, hr'⟩
+    have hd : HasDerivAt (fun ℓ ↦ χ' (L ℓ, x.2) + q ℓ)
+        (deriv (fun ℓ ↦ χ ℓ x.2) (L x.1) * deriv L x.1 + deriv q x.1) x.1 :=
+      (hχd.comp x.1 (hLs.differentiable (by simp) x.1).hasDerivAt).add
+        (hq.differentiable (by simp) x.1).hasDerivAt
+    beta_reduce
+    rw [hd.deriv]
+    rcases lt_or_ge x.1 a'' with h | h
+    · exact add_pos_of_pos_of_nonneg (mul_pos hpos (hL' _ h)) hqm.deriv_nonneg
+    · exact add_pos_of_nonneg_of_pos (mul_nonneg hpos.le hLm.deriv_nonneg)
+        (hqa x.1 ⟨ha₁a''.le.trans h, hxa⟩)
+  · -- Near `ℓ₀`, the family is `χ`.
+    obtain ⟨t, htq, ht, hℓ₀t⟩ := eventually_nhds_iff.1 hq₀
+    have hsub : {ℓ₀} ×ˢ Icc r₁ r₂ ⊆ (t ∩ Iio a') ×ˢ univ ∩ O := by
+      rintro ⟨ℓ, r⟩ ⟨hx₁, hx₂⟩
+      rw [mem_singleton_iff] at hx₁
+      subst hx₁
+      exact ⟨⟨⟨hℓ₀t, hℓa'⟩, mem_univ _⟩, hRO ⟨left_mem_Icc.2 (by linarith), hx₂⟩⟩
+    filter_upwards [(((ht.inter isOpen_Iio).prod isOpen_univ).inter hO).mem_nhdsSet.2 hsub]
+      with x hx
+    simp only [Function.uncurry_def]
+    rw [hLid (mem_Iic.2 hx.1.1.2.le), id, htq _ hx.1.1.1, add_zero]
+    exact hval x hx.2
+  · -- Near `a`, the family is `χ a + q`.
+    have hsub : {a} ×ˢ Icc r₁ r₂ ⊆ Ioi a'' ×ˢ {r | (a, r) ∈ O} := by
+      rintro ⟨ℓ, r⟩ ⟨hx₁, hx₂⟩
+      rw [mem_singleton_iff] at hx₁
+      subst hx₁
+      exact ⟨show a'' < ℓ by linarith [ha''], hRO ⟨right_mem_Icc.2 (by linarith), hx₂⟩⟩
+    filter_upwards [(isOpen_Ioi.prod (hO.preimage (by fun_prop))).mem_nhdsSet.2 hsub]
+      with x hx
+    simp only [Function.uncurry_def]
+    rw [hLa (mem_Ici.2 (le_of_lt hx.1))]
+    exact congrArg (· + q x.1) (hval _ hx.2)
+  · -- At each point, the family is a member of `χ` raised by `q ℓ`.
+    exact (hsliceR (L x.1, x.2) (hRO ⟨hLmem x.1 hx.1, hx.2⟩)).mono fun r hr' ↦
+      congrArg (· + q x.1) hr'
 
 /-- **Blending a family of `i`-convex shapes with `χ` near `r₂`.** Let `χ : ℝ → ℝ → ℝ` be
 smooth in `(ℓ, r)` on an open set `V` containing the band `[ℓ₀, ℓ₁] × [r₃, r₂]`, with `χ ℓ` an
