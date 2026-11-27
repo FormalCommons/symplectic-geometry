@@ -48,6 +48,18 @@ separate hypotheses.
   at `0`.
 * `SymplecticGeometry.IsJOrthogonallyAttached.comp_linearIsometry`: it persists under
   precomposition of the disc with a linear isometry.
+* `SymplecticGeometry.IsJOrthogonallyAttached.comp_of_mfderiv_apply_self_eq_smul`: it persists
+  under precomposition with a map `σ : F → F` that maps the open unit ball into itself, fixes the
+  unit sphere pointwise and whose differential sends each point `x` of the sphere to a positive
+  multiple of `x`, such as `x ↦ τ x • x` for a differentiable `τ` equal to `1` on the sphere,
+  with `0 < 1 + dτ_x x` there and `‖τ x • x‖ < 1` on the open ball.
+* `Equiv.image_closedBall_eq_of_eqOn_sphere`: such a `σ`, if it is a bijection that maps the
+  open ball onto itself, maps the closed ball onto itself, so the disc `ι ∘ σ` is the disc `ι`.
+
+For a diffeomorphism `σ`, Tau Ceti already gives the other properties of `ι ∘ σ` that a
+reparametrization needs: it is a smooth embedding when `ι` is
+(`TauCeti.isSmoothEmbedding_comp_diffeomorph`), and its tangent images are those of `ι`
+(`Diffeomorph.range_mfderiv_comp_diffeomorph`).
 
 The model case, `SymplecticGeometry.isJOrthogonallyAttached_model`, is in
 `SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape`, with the model disc and
@@ -209,7 +221,60 @@ theorem comp_linearIsometry (h : IsJOrthogonallyAttached E φ ι) {F' : Type*}
   · have hx' : ‖e x‖ = 1 := by simpa using hx
     exact key hx v ▸ h.mvfderiv_I_smul_mfderiv (e x) hx' (e v)
 
+/-- **Reparametrizing the disc by a radial map.** Let `σ : F → F` map the open unit ball into
+itself, fix the unit sphere pointwise, and have, at each point `x` of the sphere, a differential
+that sends the radial vector `x` to a positive multiple of itself. Then a disc attached
+J-orthogonally stays so after precomposition with `σ`. -/
+theorem comp_of_mfderiv_apply_self_eq_smul (h : IsJOrthogonallyAttached E φ ι) {σ : F → F}
+    (hball : ∀ x : F, ‖x‖ < 1 → ‖σ x‖ < 1) (hsphere : ∀ x : F, ‖x‖ = 1 → σ x = x)
+    (hrad : ∀ x : F, ‖x‖ = 1 → ∃ c : ℝ, 0 < c ∧ mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x x = c • x) :
+    IsJOrthogonallyAttached E φ (ι ∘ σ) := by
+  -- Along the sphere, `d(ι ∘ σ)_x = dι_{σ x} ∘ dσ_x`.
+  have key {x : F} (hx : ‖x‖ = 1) (v : TangentSpace 𝓘(ℝ, F) x) :
+      mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) (ι ∘ σ) x v =
+        mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x v) := by
+    have hσ : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, F) σ x := by
+      by_contra hσ
+      obtain ⟨c, hc, hcx⟩ := hrad x hx
+      rw [mfderiv_zero_of_not_mdifferentiableAt hσ] at hcx
+      have h0 : c • x = 0 := hcx.symm
+      simp [hc.ne'] at h0
+      simp [h0] at hx
+    have hι : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) := by
+      rw [hsphere x hx]
+      exact h.mdifferentiableAt hx
+    exact mfderiv_comp_apply x hι hσ v
+  refine ⟨fun x hx ↦ h.pos (σ x) (hball x hx), fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx v ↦ ?_⟩
+  · simpa [hsphere x hx] using h.eq_zero x hx
+  · obtain ⟨c, hc, hcx⟩ := hrad x hx
+    have t : mvfderiv 𝓘(ℝ, E) φ (ι (σ x))
+        (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x x)) < 0 := by
+      -- `hcx` gives `c • x` with the scalar action of `F`, not of the tangent space.
+      have e : mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (c • x : F) =
+          c • mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) x :=
+        (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x)).map_smul c x
+      rw [hcx, e, map_smul, smul_eq_mul, hsphere x hx]
+      exact mul_neg_of_pos_of_neg hc (h.mvfderiv_mfderiv_self_neg x hx)
+    exact key hx x ▸ t
+  · have t : mvfderiv 𝓘(ℝ, E) φ (ι (σ x)) (Complex.I • (show E from
+        mfderiv 𝓘(ℝ, F) 𝓘(ℝ, E) ι (σ x) (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x v))) = 0 := by
+      generalize mfderiv 𝓘(ℝ, F) 𝓘(ℝ, F) σ x v = w
+      rw [hsphere x hx]
+      exact h.mvfderiv_I_smul_mfderiv x hx w
+    exact key hx v ▸ t
+
 end IsJOrthogonallyAttached
+
+/-- A bijection of a metric space that maps the open ball `ball a r` onto itself and fixes the
+sphere `sphere a r` pointwise maps the closed ball `closedBall a r` onto itself. -/
+theorem _root_.Equiv.image_closedBall_eq_of_eqOn_sphere {X : Type*} [PseudoMetricSpace X]
+    (σ : X ≃ X) {a : X} {r : ℝ} (hball : ∀ x, σ x ∈ ball a r ↔ x ∈ ball a r)
+    (hsphere : EqOn σ id (sphere a r)) : σ '' closedBall a r = closedBall a r := by
+  have hb : σ '' ball a r = ball a r := by
+    rw [σ.image_eq_preimage_symm]
+    ext y
+    simpa using (hball (σ.symm y)).symm
+  rw [← ball_union_sphere, image_union, hb, hsphere.image_eq_self]
 
 end SymplecticGeometry
 
