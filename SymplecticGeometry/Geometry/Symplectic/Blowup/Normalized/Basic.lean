@@ -431,10 +431,6 @@ private theorem ballLiftExt_of_mem {y : BlowupModel n} (h : y ∈ openNbhd n r) 
     hψ.ballLiftExt y = hψ.ballLift ⟨y, h⟩ :=
   dite_eq_left h
 
-private theorem mem_openNbhd_radius {y : BlowupModel n} (h : y ∈ openNbhd n ε) :
-    y ∈ openNbhd n r :=
-  mem_openNbhd_iff.2 ((mem_openNbhd_iff.1 h).trans hψ.width_lt_radius)
-
 /-- Near a point of `openNbhd n ε`, the lift is `inr` composed with the inclusion. -/
 private theorem isLocalDiffeomorphAt_ballLiftExt_of_mem {y : BlowupModel n}
     (hy : y ∈ openNbhd n ε) :
@@ -452,7 +448,7 @@ private theorem isLocalDiffeomorphAt_ballLiftExt_of_mem {y : BlowupModel n}
   refine (IsLocalDiffeomorphAt.comp (hf := hg)
     (hg := Blowup.isLocalDiffeomorph_inr_real _ (g y))).congr_of_eventuallyEq ?_
   filter_upwards [hev] with y' hy'
-  rw [hψ.ballLiftExt_of_mem (hψ.mem_openNbhd_radius hy'),
+  rw [hψ.ballLiftExt_of_mem (openNbhd_mono hψ.width_lt_radius.le hy'),
     hψ.ballLift_of_mem_openNbhd _ hy', Function.comp_apply]
   simp only [g, dite_eq_left hy']
 
@@ -525,13 +521,9 @@ theorem ballLiftPartialDiffeomorph_apply (y : openNbhd n r) :
 @[simp]
 theorem ballLiftPartialDiffeomorph_target :
     hψ.ballLiftPartialDiffeomorph.target = range hψ.ballLift := by
-  rw [ballLiftPartialDiffeomorph, IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target]
-  ext x
-  constructor
-  · rintro ⟨y, hy, rfl⟩
-    exact ⟨⟨y, hy⟩, (hψ.ballLiftExt_of_mem hy).symm⟩
-  · rintro ⟨y, rfl⟩
-    exact ⟨y, y.property, hψ.ballLiftExt_of_mem y.property⟩
+  rw [ballLiftPartialDiffeomorph, IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target,
+    ← Set.range_domRestrict]
+  exact congrArg range (funext fun y ↦ hψ.ballLiftExt_of_mem y.property)
 
 /-- The lift of a normalized ball embedding is an open embedding of `openNbhd n r` into the
 blowup. -/
