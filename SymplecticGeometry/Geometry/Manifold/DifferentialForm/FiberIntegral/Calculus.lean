@@ -62,7 +62,7 @@ variable {E H E' H' EM HM B F M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ
   {J : ModelWithCorners ℝ E' H'} [TopologicalSpace F] [ChartedSpace H' F] [IsManifold J ∞ F]
   [BoundarylessManifold J F] [T2Space F] [CompactSpace F]
   [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
-  {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM 2 M]
+  {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM 1 M]
   {proj : M → B} {r m : ℕ}
 
 namespace TauCeti.MapFiber.Atlas
@@ -77,7 +77,7 @@ coordinate changes preserve the orientation `o` of the compact, Hausdorff, bound
 fibre `F`, with `B` boundaryless. For a smooth form `α` of degree `r + m` on `M`, the fibre
 integral of `dα`, its degree cast along `(r + m) + 1 = (r + 1) + m`, is `d` of the fibre integral
 of `α`. -/
-theorem fiberIntegral_mextDeriv (α : SmoothForm IM M ℝ (r + m)) :
+theorem fiberIntegral_mextDeriv [IsManifold IM 2 M] (α : SmoothForm IM M ℝ (r + m)) :
     A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm IM M ℝ k)
         (by omega : r + m + 1 = r + 1 + m) (mextDerivₗ IM (r + m) α)) =
       mextDerivₗ I r (A.fiberIntegral hA ho α) := by
@@ -93,7 +93,7 @@ theorem fiberIntegral_mextDeriv (α : SmoothForm IM M ℝ (r + m)) :
 /-- **The fibre integral of a closed form is closed.** Under the hypotheses of
 `TauCeti.MapFiber.Atlas.fiberIntegral_mextDeriv`, the fibre integral of a closed form of degree
 `r + m` on `M` is a closed `r`-form on `B`. -/
-theorem fiberIntegral_mem_closedForms {α : SmoothForm IM M ℝ (r + m)}
+theorem fiberIntegral_mem_closedForms [IsManifold IM 2 M] {α : SmoothForm IM M ℝ (r + m)}
     (hα : α ∈ closedForms IM M (r + m)) : A.fiberIntegral hA ho α ∈ closedForms I B r := by
   rw [mem_closedForms_iff_mextDerivₗ_eq_zero] at hα ⊢
   rw [← fiberIntegral_mextDeriv, hα, map_zero, map_zero]
