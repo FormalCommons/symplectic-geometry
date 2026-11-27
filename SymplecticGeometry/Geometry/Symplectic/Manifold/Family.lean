@@ -10,6 +10,7 @@ import Mathlib.Topology.Compactness.Compact
 import Mathlib.Topology.Maps.Proper.Basic
 import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Openness of nondegeneracy for families of two-forms
@@ -182,7 +183,7 @@ theorem bilinFormAt_add_smul_sub_of_eq {σ₀ σ₁ : SmoothTwoForm I M} {x : M}
     (σ₀ + s • (σ₁ - σ₀)).bilinFormAt x = σ₀.bilinFormAt x := by
   ext v w
   simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
-    SmoothForm.add_toRoughForm, Pi.add_apply, SetLike.val_smul, Pi.smul_apply, h, smul_zero,
+    SmoothBundleForm.add_apply, SmoothBundleForm.smul_apply, h, smul_zero,
     add_zero]
 
 /-- At a point where `σ₀` and `σ₁` agree and `σ₀` is nondegenerate, every form

@@ -10,6 +10,8 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.RepresentationTheory.InvariantForm
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
@@ -181,43 +183,37 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
     (hμ : ∀ ξ, MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) x) :
     mvfderiv I' (momentNormSq B hB μ) x =
       (2 : ℝ) • mvfderiv I' (fun y ↦ μ y (momentSharp B hB μ x)) x := by
-  let b := Module.finBasis ℝ (GroupLieAlgebra I G)
-  let c : Fin _ → GroupLieAlgebra I G := fun i ↦ (B.toDual hB).symm (b.coord i)
+  -- Read `μ` as a family `L` of continuous linear forms, and `μ♯` as `Φ ∘ L` for the continuous
+  -- linear map `Φ` that inverts `B.toDual hB`; the norm square is then `y ↦ L y (Φ (L y))`.
+  set L : M → E →L[ℝ] ℝ := fun y ↦ LinearMap.toContinuousLinearMap (μ y)
+  have hL : MDifferentiableAt I' 𝓘(ℝ, E →L[ℝ] ℝ) L x := mdifferentiableAt_clm_apply.2 hμ
+  let Φ : (E →L[ℝ] ℝ) →L[ℝ] E := LinearMap.toContinuousLinearMap
+    ((B.toDual hB).symm.toLinearMap ∘ₗ ContinuousLinearMap.coeLM ℝ)
+  -- The Lie algebra carries no normed instances, so `Φ` is stated on `E`; Mathlib's lemmas for
+  -- the composite do not rewrite across that identification, and `Φ f` unfolds by definition.
+  have hΦ (f : E →L[ℝ] ℝ) : Φ f = (B.toDual hB).symm (f : E →ₗ[ℝ] ℝ) := rfl
+  have hLx (y : M) : (L y : E →ₗ[ℝ] ℝ) = μ y := LinearMap.coe_toContinuousLinearMap _
+  have hsq : momentNormSq B hB μ = fun y ↦ L y (Φ (L y)) := by
+    funext y
+    rw [momentNormSq_eq_apply_momentSharp, momentSharp_def, hΦ, hLx]
+    exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ y)) _).symm
+  have h₁ : Φ (L x) = momentSharp B hB μ x := by rw [hΦ, hLx, momentSharp_def]
+  -- For symmetric `B`, `μ x (Φ f) = B (μ♯ x) (Φ f) = B (Φ f) (μ♯ x) = f (μ♯ x)`.
+  have h₂ (f : E →L[ℝ] ℝ) : L x (Φ f) = f (momentSharp B hB μ x) := by
+    have h (g : Module.Dual ℝ (GroupLieAlgebra I G)) :
+        μ x ((B.toDual hB).symm g) = g (momentSharp B hB μ x) := by
+      rw [← apply_momentSharp, hBs.eq, LinearMap.BilinForm.apply_toDual_symm_apply]
+    rw [hΦ]
+    exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ x)) _).trans
+      (h (f : E →ₗ[ℝ] ℝ))
   ext v
-  -- The derivative at `x` along `v` of the component `y ↦ μ y ξ` is linear in `ξ`; the `show`s
-  -- write the pointwise sum and multiple of components as sums and multiples of functions.
-  let ℓ : GroupLieAlgebra I G →ₗ[ℝ] ℝ :=
-    { toFun ξ := mvfderiv I' (fun y ↦ μ y ξ) x v
-      map_add' ξ η := by
-        simp only [map_add]
-        rw [show (fun y ↦ μ y ξ + μ y η) = (fun y ↦ μ y ξ) + fun y ↦ μ y η from rfl,
-          mvfderiv_add (hμ ξ) (hμ η), add_apply]
-      map_smul' a ξ := by
-        simp only [map_smul, smul_eq_mul, RingHom.id_apply]
-        rw [show (fun y ↦ a * μ y ξ) = a • fun y ↦ μ y ξ from rfl, mvfderiv_const_smul_field,
-          smul_apply, smul_eq_mul] }
-  have hℓ (ξ : GroupLieAlgebra I G) : mvfderiv I' (fun y ↦ μ y ξ) x v = ℓ ξ := rfl
-  have hmul (i) : mvfderiv I' (fun y ↦ μ y (b i) * μ y (c i)) x =
-      μ x (b i) • mvfderiv I' (fun y ↦ μ y (c i)) x +
-        μ x (c i) • mvfderiv I' (fun y ↦ μ y (b i)) x :=
-    mvfderiv_mul (hμ _) (hμ _)
-  have h₁ : momentSharp B hB μ x = ∑ i, μ x (b i) • c i := by
-    rw [momentSharp_def]
-    conv_lhs => rw [← b.sum_dual_apply_smul_coord (μ x)]
-    rw [map_sum]
-    simp only [map_smul, c]
-  have h₂ : momentSharp B hB μ x = ∑ i, μ x (c i) • b i := by
-    conv_lhs => rw [← b.sum_repr (momentSharp B hB μ x)]
-    refine Finset.sum_congr rfl fun i _ ↦ ?_
-    rw [← apply_momentSharp, hBs.eq, LinearMap.BilinForm.apply_toDual_symm_apply,
-      Module.Basis.coord_apply]
-  have hsum : momentNormSq B hB μ = fun y ↦ ∑ i, μ y (b i) * μ y (c i) :=
-    funext fun y ↦ momentNormSq_eq_sum b
-  rw [hsum, mvfderiv_fun_sum (f := fun i y ↦ μ y (b i) * μ y (c i)) fun i _ ↦ (hμ _).mul (hμ _)]
-  simp only [FunLike.coe_sum, Finset.sum_apply, hmul, add_apply, smul_apply, smul_eq_mul, hℓ,
-    Finset.sum_add_distrib]
-  calc _ = ℓ (∑ i, μ x (b i) • c i) + ℓ (∑ i, μ x (c i) • b i) := by simp [map_sum]
-    _ = _ := by rw [← h₁, ← h₂]; ring
+  have h₃ : mvfderiv I' L x v (momentSharp B hB μ x) =
+      mvfderiv I' (fun y ↦ μ y (momentSharp B hB μ x)) x v :=
+    mvfderiv_toContinuousLinearMap_apply (E := E) hμ v _
+  have hΦL := Φ.mvfderiv_comp_apply hL v
+  rw [Function.comp_def] at hΦL
+  rw [hsq, mvfderiv_clm_apply (p := fun y ↦ Φ (L y)) hL (Φ.mdifferentiableAt.comp x hL) v, hΦL,
+    h₁, h₂, h₃, smul_apply, two_smul]
 
 end MomentSharp
 

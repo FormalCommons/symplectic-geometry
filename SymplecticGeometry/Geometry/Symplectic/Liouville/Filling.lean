@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Scaling
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Strong fillings, their boundary contact form and their Liouville collar
@@ -385,8 +386,9 @@ theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).
   refine ⟨ε, Φ, c, hε, hΦ0, hΦY, hc, hcU, fun p hp ↦ ?_, fun p hp ↦ ?_⟩
   · ext w
     have hw := congrArg (fun φ ↦ φ ![w]) (hβα p hp)
-    simp only [SmoothForm.symplectization_apply, NegMemClass.coe_neg] at hw ⊢
-    simp only [mpullback_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply] at hw ⊢
+    simp only [SmoothForm.symplectization_apply] at hw ⊢
+    simp only [mpullback_apply, SmoothBundleForm.neg_apply,
+      ContinuousAlternatingMap.neg_apply] at hw ⊢
     rw [hw]
     simp
   · obtain ⟨t, x⟩ := p
