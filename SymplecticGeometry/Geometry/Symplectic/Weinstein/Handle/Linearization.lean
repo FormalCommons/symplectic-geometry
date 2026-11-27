@@ -12,6 +12,10 @@ public import TauCeti.Geometry.Manifold.Morse.Index
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
+public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Basic
+import Mathlib.Analysis.Normed.Module.Alternating.Curry
+import SymplecticGeometry.Analysis.ODE.Linear
+import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -38,7 +42,11 @@ Morse index.
 At a zero `p` of a Liouville vector field `Z` of a two-form `σ`, the condition `L_Z σ = σ`, read
 at `p`, says that the linearization `A` of `Z` satisfies `σ_p (A u, v) + σ_p (u, A v) = σ_p (u, v)`.
 The Lie derivative at a zero of the field involves only the derivative of the field
-(`TauCeti.mlieDerivForm_apply_of_eq_zero`), so no regularity of `Z` or `σ` is needed.
+(`TauCeti.mlieDerivForm_apply_of_eq_zero`), so no regularity of `Z` or `σ` is needed. Along the
+flow of `A` the form `σ_p` then grows like `e ^ t`, so it vanishes on the stable subspace of `A`.
+For a Weinstein structure, whose form is symplectic, the stable subspace at a nondegenerate
+critical point is thus isotropic, and its dimension, the Morse index, is at most half the
+dimension of the manifold.
 
 ## Main results
 
@@ -52,6 +60,10 @@ The Lie derivative at a zero of the field involves only the derivative of the fi
   `p`.
 * `TauCeti.IsLiouvilleVectorField.apply_sectionLinearization_add`: the linearized Liouville
   identity at a zero of a Liouville field.
+* `TauCeti.IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`: at a zero of a Liouville
+  field, the form vanishes on the stable subspace of the linearization.
+* `SymplecticGeometry.IsWeinsteinStructure.two_mul_manifoldMorseIndex_le`: at a nondegenerate
+  critical point of a Weinstein structure, twice the Morse index is at most the dimension.
 
 In the dichotomy and index statements `A : E →L[ℝ] E` comes with a hypothesis
 `A = sectionLinearization …`, since the linearization itself is a map between tangent spaces,
@@ -74,7 +86,7 @@ inertia theorem to bilinear forms on a normed space.
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  Chapter 11
+  Chapter 11; Proposition 11.9 (a) for the isotropy of the stable subspace and the index bound
 -/
 
 public section
@@ -328,6 +340,67 @@ theorem IsLiouvilleVectorField.apply_sectionLinearization_add {σ : RoughForm I 
   -- tangent vectors at `p`, which `simp` does not match against vectors of `E`.
   congr 2 <;> funext i <;> fin_cases i <;> rfl
 
+omit [FiniteDimensional ℝ E] in
+/-- **The stable subspace at a zero of a Liouville field is isotropic.** Let `Z` be a Liouville
+vector field of a two-form `σ` on a boundaryless manifold, let `p` be a zero of `Z`, and let `A`
+be the linearization of `Z` at `p`. Then `σ_p (u, v) = 0` for all `u`, `v` in the stable
+subspace of `A`. -/
+theorem IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace [CompleteSpace E]
+    {σ : RoughForm I N ℝ 2} {Z : (x : N) → TangentSpace I x} (hZ : IsLiouvilleVectorField σ Z)
+    {p : N} (hp : Z p = 0) {A : E →L[ℝ] E} (hA : A = sectionLinearization (F := E) I id Z p)
+    {u v : E} (hu : u ∈ A.stableSubspace) (hv : v ∈ A.stableSubspace) : σ p ![u, v] = 0 := by
+  subst hA
+  -- The value of `σ` at `p`, an alternating map on the tangent space `E` at `p`, curried into a
+  -- continuous bilinear map.
+  let σ₀ : E [⋀^Fin 2]→L[ℝ] ℝ := σ p
+  let B : E →L[ℝ] E →L[ℝ] ℝ :=
+    (ContinuousAlternatingMap.ofSubsingletonLIE (𝕜 := ℝ) (E := E) (F := ℝ) (ι := Fin 1)
+      0).symm.toContinuousLinearEquiv.toContinuousLinearMap ∘L σ₀.curryLeft
+  have hB (u v : E) : B u v = σ p ![u, v] := by
+    simp only [B, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+      LinearIsometryEquiv.coe_toContinuousLinearEquiv,
+      ContinuousAlternatingMap.ofSubsingletonLIE_symm_apply,
+      ContinuousAlternatingMap.ofSubsingleton_symm_apply_apply]
+    refine (σ₀.curryLeft_apply_apply u _).trans (congrArg σ₀ ?_)
+    ext i
+    fin_cases i <;> simp
+  rw [← hB]
+  refine ContinuousLinearMap.apply_eq_zero_of_mem_stableSubspace (fun u v ↦ ?_) hu hv
+  simp only [hB]
+  exact hZ.apply_sectionLinearization_add hp u v
+
 end Liouville
 
 end TauCeti
+
+/-! ### The index bound for a Weinstein structure -/
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
+  {σ : SmoothTwoForm 𝓘(ℝ, E) M} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x} {f : M → ℝ}
+
+/-- **The index bound for a Weinstein structure.** At a nondegenerate critical point `p` of the
+function of a Weinstein structure on a manifold modelled on `E`, twice the Morse index is at most
+`dim E`: the stable subspace of the linearization of the field at `p` is isotropic for the
+symplectic form, and has dimension the Morse index. -/
+theorem IsWeinsteinStructure.two_mul_manifoldMorseIndex_le (hW : IsWeinsteinStructure σ X f)
+    {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) :
+    2 * manifoldMorseIndex 𝓘(ℝ, E) f p ≤ finrank ℝ E := by
+  have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
+      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
+    (hW.contMDiff_field p).mdifferentiableAt (by simp)
+  have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (by
+    rw [mvfderiv_eq_fderiv_comp_extChartAt_symm]
+    exact ((isManifoldNondegenerateCriticalPoint_iff _).1 hp).fderiv_eq_zero)
+  rw [← hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl]
+  refine LinearMap.BilinForm.two_mul_finrank_le_finrank_of_le_orthogonal
+    (hW.isSymplectic.isNondegenerate.nondegenerate_bilinFormAt p) fun w hw ↦
+      LinearMap.BilinForm.mem_orthogonal_iff.2 fun v hv ↦ ?_
+  rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply]
+  exact hW.isLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace hp0 rfl hv hw
+
+end SymplecticGeometry
