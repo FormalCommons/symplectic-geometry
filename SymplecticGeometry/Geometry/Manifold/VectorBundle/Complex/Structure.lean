@@ -8,9 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import Mathlib.Geometry.Manifold.VectorBundle.Hom
-import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import all TauCeti.Topology.VectorBundle.Complex.Structure
+import TauCeti.Geometry.Manifold.ContMDiff.ContinuousLinearEquiv
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Topology.Algebra.Module.ContinuousLinearMap.Invertible
 
 /-!
 # The complex bundle of a smooth complex structure is smooth
@@ -33,8 +34,9 @@ since `J` is a `Cⁿ` section of the endomorphism bundle; hence so do the comple
 changes of the complex trivializations of `K.Fiber` are built from these and from the coordinate
 changes of `V`, which gives the smoothness of the bundle. These proofs are the `Cⁿ` versions of
 Tau Ceti's proofs of `TauCeti.Bundle.ContinuousComplexStructure.continuousOn_coord`,
-`continuousOn_complexLinearPart`, `continuousOn_inverse_complexLinearPart` and of the continuity
-of the coordinate changes in `TauCeti/Topology/VectorBundle/Complex/Structure.lean`. The
+`continuousOn_complexLinearPart`, `continuousOn_inverse_complexLinearPart` and
+`continuousOn_realCoordChange` in `TauCeti/Topology/VectorBundle/Complex/Structure.lean`; the
+smoothness of the inverses comes from Tau Ceti's `ContMDiffOn.clm_inverse`. The
 smoothness of the identification of total spaces then follows from Tau Ceti's
 `TauCeti.contMDiff_hom_bundle_iff` and `TauCeti.contMDiff_bundle_symm`.
 
@@ -49,6 +51,8 @@ changes are Tau Ceti's private `realCoordChange`, which is used here rather than
   read in a trivialization of `V`, of its complex-linear parts, and of their inverses.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiffVectorBundle`: the complex bundle
   of `J` is a `Cⁿ` real vector bundle.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_fiberEquiv`: the identity of the
+  fibres, from the complex bundle to `V`, is a `Cⁿ` section of the bundle of real linear maps.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_totalSpaceHomeomorph`,
   `contMDiff_totalSpaceHomeomorph_symm`: the identification of its total space with that of `V`
   is `Cⁿ` in both directions.
@@ -109,25 +113,20 @@ theorem contMDiffOn_complexLinearPart (b₀ : M) :
   exact h.congr fun b _ ↦ ContinuousLinearMap.ext fun w ↦ by
     simp [TauCeti.Bundle.ContinuousComplexStructure.complexLinearPart_apply]
 
-variable [FiniteDimensional ℝ F]
-
 /-- Where the complex-linear parts `J.toContinuousComplexStructure.complexLinearPart b₀ b` are
 invertible, their inverses depend `Cⁿ` on `b`. -/
-theorem contMDiffOn_inverse_complexLinearPart (b₀ : M) :
+theorem contMDiffOn_inverse_complexLinearPart [CompleteSpace F] (b₀ : M) :
     ContMDiffOn I 𝓘(ℝ, F →L[ℝ] F) n
       (fun b ↦ Ring.inverse (J.toContinuousComplexStructure.complexLinearPart b₀ b))
       (J.toContinuousComplexStructure.unitSet b₀) := by
-  have := FiniteDimensional.completeSpace ℝ F
-  intro b hb
-  obtain ⟨u, hu⟩ := (J.toContinuousComplexStructure.mem_unitSet_iff.1 hb).2
-  have hc : ContMDiffAt 𝓘(ℝ, F →L[ℝ] F) 𝓘(ℝ, F →L[ℝ] F) n Ring.inverse
-      (J.toContinuousComplexStructure.complexLinearPart b₀ b) :=
-    hu ▸ (contDiffAt_ringInverse ℝ u).contMDiffAt
-  exact hc.comp_contMDiffWithinAt b
-    ((J.contMDiffOn_complexLinearPart b₀).mono
-      (J.toContinuousComplexStructure.unitSet_subset b₀) b hb)
+  simp_rw [ContinuousLinearMap.ringInverse_eq_inverse]
+  exact ((J.contMDiffOn_complexLinearPart b₀).mono
+    (J.toContinuousComplexStructure.unitSet_subset b₀)).clm_inverse
+      fun b hb ↦ ContinuousLinearMap.isInvertible_iff_isUnit.2 hb.2
 
 /-! ### The complex bundle -/
+
+variable [FiniteDimensional ℝ F]
 
 variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   [Fact (finrank ℝ F = 2 * finrank ℂ G)]
@@ -140,6 +139,7 @@ private theorem contMDiffOn_realCoordChange (b₀ b₁ : M) :
       (J.toContinuousComplexStructure.realCoordChange G b₀ b₁)
       (J.toContinuousComplexStructure.unitSet b₀ ∩
         J.toContinuousComplexStructure.unitSet b₁) := by
+  have := FiniteDimensional.completeSpace ℝ F
   set K := J.toContinuousComplexStructure
   have hsub : K.unitSet b₀ ∩ K.unitSet b₁ ⊆
       (trivializationAt F V b₀).baseSet ∩ (trivializationAt F V b₁).baseSet :=
@@ -157,7 +157,9 @@ instance contMDiffVectorBundle :
     ContMDiffVectorBundle n G J.toContinuousComplexStructure.Fiber I where
   contMDiffOn_coordChangeL := by
     rintro _ _ ⟨_, ⟨b₀, rfl⟩, rfl⟩ ⟨_, ⟨b₁, rfl⟩, rfl⟩
-    -- Every trivialization in the atlas is the complex trivialization at some point.
+    -- Stated with `trivializationOfMemPretrivializationAtlas`, the goal does not find the
+    -- `Trivialization.IsLinear ℝ` instance. Those trivializations are by definition
+    -- `trivializationAt` at `b₀` and `b₁`, with base sets `unitSet b₀` and `unitSet b₁`.
     change ContMDiffOn I 𝓘(ℝ, G →L[ℝ] G) n
       (fun b ↦ ((trivializationAt G J.toContinuousComplexStructure.Fiber b₀).coordChangeL ℝ
         (trivializationAt G J.toContinuousComplexStructure.Fiber b₁) b : G →L[ℝ] G))
@@ -169,7 +171,7 @@ instance contMDiffVectorBundle :
 
 /-- The identity of the fibres, from `J.toContinuousComplexStructure.Fiber` to `V`, is a `Cⁿ`
 section of the bundle of real linear maps between them. -/
-private theorem contMDiff_fiberEquiv :
+theorem contMDiff_fiberEquiv :
     ContMDiff I (I.prod 𝓘(ℝ, G →L[ℝ] F)) n fun x ↦ TotalSpace.mk' (G →L[ℝ] F)
       (E := fun x ↦ J.toContinuousComplexStructure.Fiber x →L[ℝ] V x)
         x (J.toContinuousComplexStructure.fiberEquiv x : _ →L[ℝ] V x) := by
