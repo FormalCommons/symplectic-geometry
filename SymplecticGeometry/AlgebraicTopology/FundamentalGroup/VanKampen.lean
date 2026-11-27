@@ -8,11 +8,13 @@ module
 public import Mathlib.AlgebraicTopology.FundamentalGroupoid.SimplyConnected
 public import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 
+import Mathlib.CategoryTheory.ConcreteCategory.EpiMono
 import SymplecticGeometry.Algebra.Category.Grp.Pushout
+import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import TauCeti.AlgebraicTopology.FundamentalGroup.VanKampen.Basic
 
 /-!
-# Van Kampen with a surjective leg
+# Van Kampen with a surjective or bijective leg
 
 Let the interiors of `A` and `B` cover a space `X`, with `A`, `B` and `A ∩ B` path connected and
 containing `x`. If the inclusion `A ∩ B → B` induces a surjection of fundamental groups at `x`,
@@ -25,6 +27,12 @@ These follow from Tau Ceti's `TauCeti.isPushout_fundamentalGroup`, read with `A`
 exchanged, together with `CategoryTheory.IsPushout.surjective_inr_of_surjective` and
 `CategoryTheory.IsPushout.ker_inr_eq_normalClosure_image_of_ker_eq`.
 
+For an open cover `C = A ∪ B` of a subset, with the same sets path connected, a bijective leg
+`A ∩ B → B` makes `A → C` bijective on fundamental groups, at every point of `A`: the pushout
+of `TauCeti.isPushout_fundamentalGroup_union` has the leg opposite an isomorphism an isomorphism
+(`CategoryTheory.IsPushout.isIso_inl_of_isIso`), and bijectivity moves along paths in `A`
+(`FundamentalGroup.map_bijective_of_path`).
+
 ## Main results
 
 * `FundamentalGroup.map_subtypeVal_surjective_of_map_inclusion_surjective`: surjectivity.
@@ -32,6 +40,8 @@ exchanged, together with `CategoryTheory.IsPushout.surjective_inr_of_surjective`
 * `FundamentalGroup.map_subtypeVal_surjective_of_simplyConnectedSpace`,
   `FundamentalGroup.ker_map_subtypeVal_eq_normalClosure_range_of_simplyConnectedSpace`: the case
   of a simply connected `B`.
+* `FundamentalGroup.map_inclusion_bijective_of_map_inclusion_bijective`: for an open cover
+  `C = A ∪ B`, a bijective leg `A ∩ B → B` gives a bijective `A → C` at every point of `A`.
 
 ## References
 
@@ -101,6 +111,24 @@ theorem ker_map_subtypeVal_eq_normalClosure_range_of_simplyConnectedSpace [Simpl
     (fun _ ↦ ⟨1, Subsingleton.elim _ _⟩) (S := univ)
     ((eq_top_iff.2 fun _ _ ↦ Subsingleton.elim _ _).trans
       (eq_top_iff.2 fun g _ ↦ Subgroup.subset_normalClosure (mem_univ g)).symm), image_univ]
+
+/-- **Van Kampen with a bijective overlap leg.** Let `C = A ∪ B` with `A` and `B` open and `A`,
+`B` and `A ∩ B` path connected. If the inclusion `A ∩ B → B` induces a bijection of fundamental
+groups at some point `y` of `A ∩ B`, then the inclusion `A → C` induces a bijection of
+fundamental groups at every point of `A`. -/
+theorem map_inclusion_bijective_of_map_inclusion_bijective {A B C : Set X} (hC : C = A ∪ B)
+    (hAo : IsOpen A) (hBo : IsOpen B) (hA : IsPathConnected A) (hB : IsPathConnected B)
+    (hAB : IsPathConnected (A ∩ B)) {y : X} (hyA : y ∈ A) (hyB : y ∈ B)
+    (h : Function.Bijective
+      (map (ContinuousMap.inclusion inter_subset_right) (⟨y, hyA, hyB⟩ : ↥(A ∩ B)))) (x : A) :
+    Function.Bijective (map (ContinuousMap.inclusion (hC.symm ▸ subset_union_left : A ⊆ C)) x) := by
+  have hP := TauCeti.isPushout_fundamentalGroup_union hC hAo hBo hA hB hAB y hyA hyB
+  have : CategoryTheory.IsIso (GrpCat.ofHom
+      (map (ContinuousMap.inclusion inter_subset_right) (⟨y, hyA, hyB⟩ : ↥(A ∩ B)))) :=
+    (CategoryTheory.ConcreteCategory.isIso_iff_bijective _).2 h
+  have := isPathConnected_iff_pathConnectedSpace.1 hA
+  exact map_bijective_of_path _ (PathConnectedSpace.somePath _ x)
+    ((CategoryTheory.ConcreteCategory.isIso_iff_bijective _).1 hP.isIso_inl_of_isIso)
 
 end FundamentalGroup
 
