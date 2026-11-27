@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 public import TauCeti.AlgebraicTopology.FundamentalGroup.PuncturedStarConvex
+public import TauCeti.Topology.Homotopy.Path
 
-import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
-import TauCeti.Topology.Homotopy.Path
 
 /-!
 # The fundamental group of a punctured plane
@@ -83,11 +83,15 @@ noncomputable def circleLoop : Path (φ.circleBasepoint hr) (φ.circleBasepoint 
     (by simp [circleMap_zero]))
     fun t ↦ by simpa using hr.ne'
 
+theorem circleLoop_def :
+    φ.circleLoop hr = Path.codRestrict (((circlePath 0 r 0).map φ.continuous).cast
+      (by simp [circleMap_zero]) (by simp [circleMap_zero])) fun _ ↦ by simpa using hr.ne' :=
+  (rfl)
+
 @[simp]
 theorem coe_circleLoop_apply (t : unitInterval) :
     (φ.circleLoop hr t : E) = φ (circleMap 0 r (2 * Real.pi * t)) := by
-  rw [circleLoop, Path.codRestrict_coe, Path.cast_coe, Path.map_coe, Function.comp_apply,
-    circlePath_apply, zero_add]
+  simp [circleLoop_def]
 
 /-- `ℂ ∖ {0}`, written as Tau Ceti's `StarConvex` API writes it, is homeomorphic to `E ∖ {0}` by
 `φ`. -/

@@ -17,8 +17,11 @@ The circle `circleMap z₀ r`, run once counterclockwise from a given angle, is 
 
 Between the angles `0` and `π`, the circle `circleMap z₀ r` of radius `r ≥ 0` runs in the
 closed half-plane above its centre, and between `π` and `2π` in the closed half-plane below it.
-Tau Ceti's `TauCeti.im_le_circleMap_im_iff` gives the first for `r > 0` as an equivalence, for
-angles in `(-π, π]`; `im_le_circleMap_im` states it as an implication, also for `r = 0`.
+Tau Ceti has the first: `TauCeti.circleMap_mem_upperHalfAnnulus` gives it for `r ≥ 0`, as one
+conjunct of a statement about an annulus, and `TauCeti.im_le_circleMap_im_iff` gives it for
+`r > 0` as an equivalence, for angles in `(-π, π]`. Here `im_le_circleMap_im` takes the first
+conjunct of `TauCeti.circleMap_mem_upperHalfAnnulus` and states it as `circleMap_im_le_im` states
+the second.
 
 ## Main definitions
 
@@ -55,9 +58,8 @@ theorem circlePath_apply (z₀ : ℂ) (r θ : ℝ) (t : unitInterval) :
 
 /-- Between the angles `0` and `π`, a circle of radius `r ≥ 0` lies on or above its centre. -/
 theorem im_le_circleMap_im {z₀ : ℂ} {r θ : ℝ} (hr : 0 ≤ r) (hθ : θ ∈ Icc 0 π) :
-    z₀.im ≤ (circleMap z₀ r θ).im := by
-  rw [TauCeti.circleMap_im, le_add_iff_nonneg_right]
-  exact mul_nonneg hr (sin_nonneg_of_nonneg_of_le_pi hθ.1 hθ.2)
+    z₀.im ≤ (circleMap z₀ r θ).im :=
+  (TauCeti.circleMap_mem_upperHalfAnnulus hr ⟨le_rfl, le_rfl⟩ hθ).1
 
 /-- Between the angles `π` and `2π`, a circle of radius `r ≥ 0` lies on or below its centre. -/
 theorem circleMap_im_le_im {z₀ : ℂ} {r θ : ℝ} (hr : 0 ≤ r) (hθ : θ ∈ Icc π (2 * π)) :
