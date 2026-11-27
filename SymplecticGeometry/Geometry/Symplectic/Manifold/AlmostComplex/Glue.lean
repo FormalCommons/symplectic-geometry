@@ -56,6 +56,14 @@ def AgreeOnOverlaps : Prop :=
       Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hj⟩ : U j)
         (J j ⟨x, hj⟩ ((Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hj⟩ : U j)).symm v))
 
+theorem agreeOnOverlaps_iff :
+    AgreeOnOverlaps U J ↔ ∀ i j (x : M) (hi : x ∈ U i) (hj : x ∈ U j) (v : TangentSpace I x),
+      Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)
+          (J i ⟨x, hi⟩ ((Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hi⟩ : U i)).symm v)) =
+        Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hj⟩ : U j)
+          (J j ⟨x, hj⟩ ((Manifold.tangentSpaceOpenEquiv (I := I) (⟨x, hj⟩ : U j)).symm v)) :=
+  Iff.rfl
+
 variable {U}
 
 /-- The tangent endomorphism field of the glued structure: at `x`, the value of `J i` for the

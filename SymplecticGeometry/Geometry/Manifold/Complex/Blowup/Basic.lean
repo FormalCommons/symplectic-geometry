@@ -790,6 +790,13 @@ theorem coe_blowdownRealDiffeomorph_apply (z : offDivisorOpens c) :
   conv_rhs => rw [← (blowdownRealDiffeomorph c).symm_apply_apply z]
   rw [coe_blowdownRealDiffeomorph_symm_apply, blowdown_inl]
 
+/-- Off the exceptional divisor, the blowdown `Blowup c → M` is a local diffeomorphism of real
+manifolds. -/
+theorem isLocalDiffeomorphAt_blowdown_real {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (blowdown c) z :=
+  (blowdownRealDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
+    (fun v ↦ (coe_blowdownRealDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
+
 end Real
 
 /-! ### The exceptional divisor as a submanifold -/
