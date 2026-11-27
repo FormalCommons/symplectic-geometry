@@ -37,6 +37,9 @@ of `-(2π)⁻¹ F_α` is the first Chern number of `V`
 * `SymplecticGeometry.IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff`: two
   closed `2`-forms differ in cohomology by `c` times the class exactly when
   `ω₁ - ω₂ + c (2π)⁻¹ F_α` is exact.
+* `SymplecticGeometry.IsCircleConnectionForm.exists_curvature_eq_of_sub_mem_exactForms`: if
+  `σ - F_α` is exact, then `σ` is the curvature of the connection form `α + π^* a`, for a
+  primitive `a` of `σ - F_α`.
 * `SymplecticGeometry.exists_isCircleConnectionForm_curvature_eq_iff`: a closed `2`-form `σ` is
   the curvature of a connection form exactly when `-(2π)⁻¹ [σ]` is the real first Chern class.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback`,
@@ -99,6 +102,17 @@ theorem IsCircleConnectionForm.deRhamCohomology_mk_curvature_eq (hα : IsCircleC
     exactForms_succ]
   exact LinearMap.mem_range_self _ a
 
+/-- If `σ - F_α` is exact for a connection form `α`, then `σ` is the curvature of a connection
+form, namely of `α + π^* a` for a primitive `a` of `σ - F_α`. -/
+theorem IsCircleConnectionForm.exists_curvature_eq_of_sub_mem_exactForms
+    (hα : IsCircleConnectionForm α) {σ : SmoothForm IB B ℝ 2}
+    (h : σ - hα.curvature ∈ exactForms IB B 2) :
+    ∃ (β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
+      (hβ : IsCircleConnectionForm β), hβ.curvature = σ := by
+  rw [exactForms_succ] at h
+  obtain ⟨a, ha⟩ := h
+  exact ⟨_, hα.add_mpullback a, by rw [hα.curvature_add_mpullback, ha, add_sub_cancel]⟩
+
 variable [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]
 
 variable (IB P) in
@@ -148,9 +162,8 @@ theorem exists_isCircleConnectionForm_curvature_eq_iff {σ : SmoothForm IB B ℝ
   obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (IB := IB) (P := P)
   rw [hα.realFirstChernClass_eq] at h
   have hmk := smul_right_injective _ (by simp [Real.pi_ne_zero] : -(2 * Real.pi)⁻¹ ≠ 0) h
-  rw [deRhamCohomology.mk_eq_mk_iff, Submodule.coe_mk, Submodule.coe_mk, exactForms_succ] at hmk
-  obtain ⟨a, ha⟩ := hmk
-  exact ⟨_, hα.add_mpullback a, by rw [hα.curvature_add_mpullback, ha, add_sub_cancel]⟩
+  rw [deRhamCohomology.mk_eq_mk_iff, Submodule.coe_mk, Submodule.coe_mk] at hmk
+  exact hα.exists_curvature_eq_of_sub_mem_exactForms hmk
 
 /-! ### Naturality under maps of principal bundles -/
 
