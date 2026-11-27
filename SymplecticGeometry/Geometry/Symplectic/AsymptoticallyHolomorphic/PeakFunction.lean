@@ -366,7 +366,9 @@ theorem modelDbar_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
   push_cast
   linear_combination (-(4⁻¹ : ℂ) * f z * (inner ℝ z v : ℂ)) * Complex.I_sq
 
-/-- The model `∂̄` obeys the Leibniz rule. -/
+/-- The **Leibniz rule** for the model `∂̄`: for `f` and `g` differentiable at `z`, the model `∂̄` of
+`f * g` at `z` is `f z` times the model `∂̄` of `g` plus `g z` times the flat `∂̄` of `f`, the
+complex-antilinear part for `J₀` of `fderiv ℝ f z`. -/
 theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
     (hg : DifferentiableAt ℝ g z) :
     modelDbar (fun y ↦ f y * g y) z = f z • modelDbar g z +
@@ -464,7 +466,8 @@ theorem modelDbar_coord_mul {f : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Di
   ext v
   simp
 
-/-- **`z_j` times the Gaussian is model-holomorphic**. -/
+/-- **`z_j` times the Gaussian is model-holomorphic**: the model `∂̄` of
+`z ↦ z_j * exp (-‖z‖ ^ 2 / 4)` vanishes. -/
 theorem modelDbar_coord_mul_gaussian (j : ι) :
     modelDbar (fun z : StdSpace ι ↦
       (complexToRealEuclidean ι).symm z j * (Real.exp (-‖z‖ ^ 2 / 4) : ℂ)) = 0 := by
