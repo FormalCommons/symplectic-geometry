@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.CategoryTheory.GrothendieckGroup.Monoidal.Basic
 public import TauCeti.CategoryTheory.GrothendieckGroup.Split
 public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
+public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
@@ -38,6 +40,12 @@ the sum of the classes.
 * `TauCeti.SplitK0.of_whitneySum`: in the split Grothendieck group of cores, the class of a
   Whitney sum is the sum of the classes, and `TauCeti.SplitK0.of_whitneySumIter` that of an
   iterated one;
+* `TauCeti.FiniteRankBundleCore.trivialAddIso a b`: the Whitney sum of the trivial cores
+  of ranks `a` and `b` is the trivial core of rank `a + b`, so that the class of the trivial core
+  of rank `n` is `n` times that of the trivial line (`TauCeti.SplitK0.of_trivial`), which is the
+  unit (`TauCeti.SplitK0.of_trivial_one`);
+* `TauCeti.SplitK0.mapRingHom_pullbackFunctor_mapRingHom_pullbackFunctor`: on the split
+  Grothendieck groups of cores, pulling back twice is pulling back along the composite;
 * `TauCeti.FiniteRankBundleCore.whitneyMapIsoPullback e₁ e₂`: the direct sum of isomorphisms
   between two pullbacks, read through Tau Ceti's `pullback_whitneySum` as an isomorphism between
   the pullbacks of the Whitney sums;
@@ -46,6 +54,11 @@ the sum of the classes.
   isomorphisms: the direct sum of morphisms between two pullbacks, read through Tau Ceti's
   `pullback_whitneySum` as a morphism between the pullbacks of the Whitney sums, is block
   diagonal in each fibre.
+
+`TauCeti.FiniteRankBundleCore.trivialAddIso` is the version for cores of Tau Ceti's
+`TauCeti.FiniteRankAtlas.trivialAddIso`, and
+`TauCeti.SplitK0.mapRingHom_pullbackFunctor_mapRingHom_pullbackFunctor` that of Tau Ceti's
+`TauCeti.TopologicalKZero.pullback_pullback`.
 
 The proof of `inChartCoordinates_whitneySum_prodMap` follows Tau Ceti's
 `TauCeti.FiniteRankBundleCore.inChartCoordinates_tensor_kronecker`, which computes the chart
@@ -288,6 +301,36 @@ end Pullback
 
 end TauCeti.FiniteRankBundleCore
 
+/-! ### Whitney sums of trivial cores -/
+
+namespace TauCeti.FiniteRankBundleCore
+
+variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
+
+/-- The Whitney sum of the trivial cores of ranks `a` and `b` is isomorphic to the trivial core
+of rank `a + b`, by the identity of `Fin (a + b) → 𝕜` in each fibre. -/
+def trivialAddIso (a b : ℕ) :
+    whitneySum (trivial 𝕜 B a) (trivial 𝕜 B b) ≅ trivial 𝕜 B (a + b) :=
+  isoTrivialOfCoordChangeEqId (r := a + b) _ (ContinuousLinearEquiv.refl 𝕜 (Fin (a + b) → 𝕜))
+    fun i j x _ _ ↦ by
+      ext v : 1
+      apply (splitCoords (𝕜 := 𝕜) (trivial 𝕜 B a).rank (trivial 𝕜 B b).rank).injective
+      exact (splitCoords_coordChange_whitneySum _ _ i j x v).trans rfl
+
+@[simp]
+theorem fiberMap_trivialAddIso_hom (a b : ℕ) (x : B) :
+    (trivialAddIso (𝕜 := 𝕜) (B := B) a b).hom.fiberMap x =
+      ContinuousLinearMap.id 𝕜 (Fin (a + b) → 𝕜) :=
+  fiberMap_isoTrivialOfCoordChangeEqId_hom _ _ _ x
+
+@[simp]
+theorem fiberMap_trivialAddIso_inv (a b : ℕ) (x : B) :
+    (trivialAddIso (𝕜 := 𝕜) (B := B) a b).inv.fiberMap x =
+      ContinuousLinearMap.id 𝕜 (Fin (a + b) → 𝕜) :=
+  fiberMap_isoTrivialOfCoordChangeEqId_inv _ _ _ x
+
+end TauCeti.FiniteRankBundleCore
+
 /-! ### The class of a Whitney sum -/
 
 namespace TauCeti.SplitK0
@@ -313,6 +356,44 @@ theorem of_whitneySumIter {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [Topol
   | succ n ih =>
     rw [FiniteRankBundleCore.whitneySumIter_succ, ih, of_whitneySum, succ_nsmul]
     abel
+
+/-- In the split Grothendieck group of finite-rank cores over `B`, the class of the trivial core
+of rank `n` is `n` times the class of the trivial line. -/
+theorem of_trivial {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B] (n : ℕ) :
+    (of (FiniteRankBundleCore.trivial 𝕜 B n) : SplitK0 (FiniteRankBundleCore 𝕜 B)) =
+      n • of (FiniteRankBundleCore.trivial 𝕜 B 1) := by
+  induction n with
+  | zero =>
+    rw [zero_smul,
+      of_eq_zero_of_isZero (FiniteRankBundleCore.isZero_trivial_zero (𝕜 := 𝕜) (B := B))]
+  | succ n ih =>
+    rw [← of_congr (FiniteRankBundleCore.trivialAddIso (𝕜 := 𝕜) (B := B) n 1),
+      of_whitneySum, ih, succ_nsmul]
+
+/-- In the split Grothendieck group of finite-rank cores over `B`, the class of the trivial line
+is the unit. -/
+@[simp]
+theorem of_trivial_one {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B] :
+    (of (FiniteRankBundleCore.trivial 𝕜 B 1) : SplitK0 (FiniteRankBundleCore 𝕜 B)) = 1 :=
+  -- The unit `𝟙_` of Tau Ceti's monoidal structure on cores is `trivial 𝕜 B 1` by definition.
+  one_def.symm
+
+/-- On the split Grothendieck groups of finite-rank cores, pulling back along `g` and then along
+`f` is pulling back along `g.comp f`. -/
+@[simp]
+theorem mapRingHom_pullbackFunctor_mapRingHom_pullbackFunctor {𝕜 X Y Z : Type*}
+    [NontriviallyNormedField 𝕜] [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
+    (f : C(X, Y)) (g : C(Y, Z)) (x : SplitK0 (FiniteRankBundleCore 𝕜 Z)) :
+    mapRingHom (FiniteRankBundleCore.pullbackFunctor f)
+        (mapRingHom (FiniteRankBundleCore.pullbackFunctor g) x) =
+      mapRingHom (FiniteRankBundleCore.pullbackFunctor (g.comp f)) x :=
+  RingHom.congr_fun (ringHom_ext
+    (f := (mapRingHom (FiniteRankBundleCore.pullbackFunctor f)).comp
+      (mapRingHom (FiniteRankBundleCore.pullbackFunctor g)))
+    (g := mapRingHom (FiniteRankBundleCore.pullbackFunctor (g.comp f))) fun A ↦ by
+      rw [RingHom.comp_apply, mapRingHom_of, mapRingHom_of, mapRingHom_of,
+        FiniteRankBundleCore.pullbackFunctor_obj, FiniteRankBundleCore.pullbackFunctor_obj,
+        FiniteRankBundleCore.pullbackFunctor_obj, FiniteRankBundleCore.pullback_comp]) x
 
 end TauCeti.SplitK0
 
