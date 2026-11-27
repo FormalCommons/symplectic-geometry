@@ -53,6 +53,8 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `TauCeti.MapFiber.Atlas.mpullback_snd_trivAt_apply_eq`: when the coordinate changes preserve
   `σ`, the pull-backs of `σ` along the fibre coordinates of any two charts agree on vertical
   vectors.
+* `TauCeti.MapFiber.Atlas.RestrictsTo.mpullback_fiberInclusionMap_eq`: along a smooth atlas, the
+  smooth pull-back of a form that restricts to `σ` along each fibre inclusion is `σ`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.mextDeriv_apply_eq_zero`: a form that restricts to a closed
   form along a smooth atlas has exterior derivative zero on tuples of vertical vectors.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.isClosed`: a form on `F` to which a closed form restricts
@@ -268,6 +270,15 @@ theorem restrictsTo_iff :
       TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') τ.val = σ.val :=
   Iff.rfl
 
+/-- **The smooth pull-back to a fibre.** If `τ` restricts to `σ` along a smooth atlas `A`, then
+the smooth pull-back of `τ` along the fibre inclusion `v ↦ (A.trivAt b)⁻¹ (b', v)` of every chart
+`A.trivAt b`, over every point `b'` of its base set, is `σ`. -/
+theorem RestrictsTo.mpullback_fiberInclusionMap_eq (hA : A.IsContMDiff ∞ IB IF IM)
+    (hτ : A.RestrictsTo σ τ) {b b' : B} (hb' : b' ∈ (A.trivAt b).baseSet) :
+    SmoothForm.mpullback _
+      ((A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb') τ = σ :=
+  (SmoothForm.mpullback_eq_iff _).2 (restrictsTo_iff.1 hτ b b' hb')
+
 /-- **Forms restricting to a closed form are closed on vertical vectors.** If `τ` restricts to a
 closed form `σ` along a smooth atlas, then at every point the exterior derivative of `τ` vanishes
 on every tuple of vertical vectors: its pull-back to each fibre is the derivative of `σ`. -/
@@ -288,10 +299,8 @@ theorem RestrictsTo.isClosed [IsManifold IF 2 F] [IsManifold IM 2 M] [Nonempty B
     (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) (hτc : τ.IsClosed) :
     σ.IsClosed := by
   obtain ⟨b⟩ := ‹Nonempty B›
-  have hb := A.mem_baseSet_trivAt b
-  have hj := (A.trivAt b).contMDiff_fiberInclusionMap (hA.contMDiffOn_trivAt_symm b) hb
-  rw [← (SmoothForm.mpullback_eq_iff hj).2 (restrictsTo_iff.1 hτ b b hb)]
-  exact hτc.mpullback _ hj
+  rw [← hτ.mpullback_fiberInclusionMap_eq hA (A.mem_baseSet_trivAt b)]
+  exact hτc.mpullback _ _
 
 /-- **One chart at each point suffices.** For a smooth atlas whose coordinate changes preserve
 `σ`, a form `τ` restricts to `σ` exactly when, for each point `b'` of the base, some chart whose
