@@ -517,8 +517,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
   milestone, and the integral side is $2$ by the computation in
   *Conventions*. With the opposite orientation the left side would be $-2$.
 - `Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integralTopForm_eq`: if `M`
-  is connected, every smooth
-  real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
+  is connected, every smooth real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
   (o.toHomologicalOrientation hn) hn F V` is the curvature of a
   connection form, `g.IsConnectionCurvature hI σ`. Proof: `σ - hα₀.curvature`
   has integral $0$, so it is exact by
