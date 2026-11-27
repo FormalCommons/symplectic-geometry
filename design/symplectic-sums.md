@@ -450,23 +450,44 @@ $X(g,n)$ for the complement of $c_0,\dots,c_{n-1}$.
   and up to the circle; for `j = 0` the segment from `0` at the angle
   `π / 4` out to the large circle. Through
   `TauCeti.SurfaceGroup.Orientable.equivFreeGroup 0 (n - 1)` the statement
-  becomes two facts about the plane minus a finite set `s` of positive
-  reals, based at `0`: the counterclockwise loops about the points of `s`,
-  reached from below the axis, are a free basis of the fundamental group;
-  and a counterclockwise circle about `0` enclosing `s`, reached along a
-  ray in the upper half-plane, is homotopic to these loops run one after
-  the other, from the largest point of `s` to the smallest. In Mathlib's
+  becomes two facts about the plane minus real points, based at `0`. The
+  first is step 8b, for any index type `ι` and `c : ι → ℝ` with
+  `hδ : 0 < δ`, `hc : Pairwise fun i j ↦ δ ≤ |c i - c j|` and
+  `h0 : ∀ i, c i ≠ 0`:
+  `PlaneMinusRealPoints.fundamentalGroupMulEquiv hδ hc h0` identifies the
+  fundamental group of `(range fun i ↦ (c i : ℂ))ᶜ` at `0` with
+  `FreeGroup ι`, and `fundamentalGroupMulEquiv_loop` says that it sends the
+  class of `PlaneMinusRealPoints.loop hδ hc h0 k` to `FreeGroup.of k`. That
+  loop is `loopInPlane (c k) (δ / 4)`: down from `0` to `-i`, horizontally
+  to `c k + δ / 4 - i`, up to `c k + δ / 4`, once counterclockwise around
+  the circle of radius `δ / 4` about `c k`, and back the same way. The
+  second is step 8c, for finitely many positive points listed from the
+  largest to the smallest, with the same `hδ`, `hc` and `h0`: a
+  counterclockwise circle about `0` enclosing the points, reached along a
+  ray in the upper half-plane, is homotopic to the loops
+  `loop hδ hc h0 k` run one after the other, from the largest point to the
+  smallest. In Mathlib's
   `FundamentalGroup` a product `x * y` runs `y` first, so the relation
   `p₀ ⋯ p_{n-1} = 1` says that the clockwise large circle followed by the
   loops about `1, 1/2, …, 1/(n - 1)` is trivial, which is the second fact.
-  Tau Ceti proves both facts for two points
-  (`TauCeti.ThricePuncturedSphere.fundamentalGroupMulEquivFreeGroup`, by
-  `TauCeti.vanKampenEquiv` for two half-planes meeting in a strip, and
-  `TauCeti.ThricePuncturedSphere.αPlus_trans_δ_trans_symm_homotopic_γ0_trans_γ1`);
-  the general case inducts on the number of points with the same cover,
-  cut by a vertical line between the two smallest points. Tau Ceti's
-  `TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup` gives no
-  generators and does not serve. The inverted ball circles are compared
+  Step 8f takes `ι = Fin (n - 1)`, `c j = 1 / (j + 1)` and a `δ > 0` no
+  larger than the smallest gap between these points, such as `1 / n ^ 2`.
+  Step 8b does not induct on the number of points. It takes the route of
+  Tau Ceti's `TauCeti.nonempty_fundamentalGroup_compl_mulEquiv_freeGroup`
+  with a cover of its own, since that theorem names no generators and its
+  cover is private: one deformation, moving points vertically towards the
+  line `Im z = -1` with a weight that vanishes near the vertical lines
+  through the points, retracts the punctured plane, in the weak sense,
+  onto the lower half-plane together with the vertical strips of width `δ`
+  about the points, minus the points. `TauCeti.vanKampenWideEquiv` at
+  `-i` then applies to that set, with one piece for each point, the lower
+  half-plane together with its strip, punctured at the point and
+  star-convex about it, whose generator is the circle about the point
+  (`StarConvex.fundamentalGroupMulEquivInt_sphereLoop`). Tau Ceti proves
+  both facts for two points
+  (`TauCeti.ThricePuncturedSphere.fundamentalGroupMulEquivFreeGroup` and
+  `TauCeti.ThricePuncturedSphere.αPlus_trans_δ_trans_symm_homotopic_γ0_trans_γ1`),
+  a model for step 8c. The inverted ball circles are compared
   with these loops in the punctured discs that the balls cover, since
   both wind once about the centre, as in
   `TauCeti/AlgebraicTopology/ThricePuncturedSphere/ZeroOneGenerators.lean`
@@ -478,7 +499,7 @@ are merged):
 | Step | Content | File | After | Size |
 |---|---|---|---|---|
 | 8a | Explicit balls of the sphere (a refactor) | `Surface/Genus.lean` | — | 100 |
-| 8b | The plane minus finitely many positive reals: free basis of loops | `AlgebraicTopology/FundamentalGroup/PlaneMinusRealPoints.lean` | — | 350 |
+| 8b | The plane minus real points: free basis of loops | `AlgebraicTopology/FundamentalGroup/PlaneMinusRealPoints.lean` | — | 680 |
 | 8c | The same: the large circle as a product of the loops | `AlgebraicTopology/FundamentalGroup/PlaneMinusRealPoints.lean` | 8b | 250 |
 | 8d | A pushout square in `GrpCat` as `Monoid.PushoutI` over `Bool` | `Algebra/Category/Grp/Pushout.lean` | — | 100 |
 | 8e | `puncture`, the sum with `U`, `ballCircle`, the paths and the loops | `Surface/Puncture.lean` | 8a | 400 |
