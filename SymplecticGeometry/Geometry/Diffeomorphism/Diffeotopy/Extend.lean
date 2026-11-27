@@ -291,6 +291,7 @@ def extendDiffeotopyAlong : Diffeotopy (I.prod J') n (S × M) :=
   (exists_extendDiffeotopyAlong hφ hφo h hC hh).choose
 
 /-- The extension of `h` along `φ` moves `(q, φ z)` as `h` moves `(q, z)`. -/
+@[simp]
 theorem extendDiffeotopyAlong_apply_prodMk (t : unitInterval) (q : S) (z : N) :
     extendDiffeotopyAlong hφ hφo h hC hh (t, (q, φ z)) =
       ((h (t, (q, z))).1, φ (h (t, (q, z))).2) :=
