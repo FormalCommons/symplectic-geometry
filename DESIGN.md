@@ -1507,7 +1507,7 @@ it into issues; the overview fixes its folders and its dependencies.
   upstream),
   `Topology/FiberBundle/Basic.lean` (a fibrewise open condition on a fibre
   bundle gives an open set of the total space, in Mathlib's namespace),
-  `Topology/FiberBundle/ChangeModelFiber.lean` (trivializations read through
+  `Topology/FiberBundle/Trivialization.lean` (trivializations read through
   homeomorphisms of the model fibre or of the total space, in Mathlib's
   namespaces),
   `Topology/FiberBundle/Principal/ChangeGroup.lean` (the change of structure group

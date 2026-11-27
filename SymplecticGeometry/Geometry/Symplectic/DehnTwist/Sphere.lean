@@ -865,7 +865,8 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
   have hτd := τ.contMDiff.mdifferentiable (by simp)
   have hk : ContMDiff (𝓣 n) 𝓘(ℝ) ∞ k :=
     (contMDiff_twistPrimitive (n := n) hR).add ((hg.comp τ.contMDiff).sub hg)
-  have hk0 (z : 𝕋 n) (hz : z ∉ {z | cotangentNorm z ≤ r₀}) : k z = 0 := by
+  have hk0 : Function.support k ⊆ {z | cotangentNorm z ≤ r₀} := by
+    refine fun z hkz ↦ by_contra fun hz ↦ hkz ?_
     have hz' : r₀ ≤ cotangentNorm z := (lt_of_not_ge hz).le
     simp only [hk_def, τ, Pi.add_apply, Pi.sub_apply, Function.comp_apply,
       twistPrimitive_of_le hR hz', modelTwist_apply_of_le hR hz', zero_add, sub_self]
@@ -893,7 +894,7 @@ theorem exists_mpullback_dehnTwist_sub_eq [IsManifold I ∞ M] {σ : SmoothTwoFo
       fun z hz ↦ hes (hU hz)).isClosed
     hWo (fun z hz ↦ lt_of_le_of_lt hz hr₁) (fun z hz ↦ hes (hWU (subset_closure hz)))
     (fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU (by rwa [← himage])) hk.contMDiffOn
-    (fun z _ hz ↦ hk0 z hz) hθk
+    (inter_subset_right.trans hk0) hθk
   exact ⟨K, fun x hx ↦ hK0 x (by rwa [himage]), hK⟩
 
 /-- **The twist along a Lagrangian sphere of dimension at least two is exact.** Let `ι` be a
