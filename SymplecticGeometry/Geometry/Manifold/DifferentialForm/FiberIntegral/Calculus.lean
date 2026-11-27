@@ -43,7 +43,6 @@ This is the argument of Bott–Tu, §6, that integration along the fibre commute
 
 public section
 
-open TopologicalSpace
 open scoped Manifold ContDiff
 
 variable {E H E' H' EM HM B F M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -72,11 +71,7 @@ theorem fiberIntegral_mextDeriv (α : SmoothForm IM M ℝ (r + m)) :
     A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm IM M ℝ k)
         (by omega : r + m + 1 = r + 1 + m) (mextDerivₗ IM (r + m) α)) =
       mextDerivₗ I r (A.fiberIntegral hA ho α) := by
-  refine SmoothForm.ext_of_mpullback_subtype_val
-    (U := fun b' ↦ (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ : Opens B))
-    (IsOpenCover.of_sets (fun b' ↦ (A.trivAt b').open_baseSet)
-      (Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩))
-    fun b' ↦ ?_
+  refine SmoothForm.ext_of_mpullback_subtype_val A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
   rw [mpullback_subtype_val_fiberIntegral, SmoothForm.mpullback_cast,
     ← SmoothForm.mextDerivₗ_mpullback, prodFiberIntegral_mextDeriv,
     ← SmoothForm.mextDerivₗ_mpullback, mpullback_subtype_val_fiberIntegral]
