@@ -42,10 +42,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `SymplecticGeometry.iteratedDeriv_two_smoothedAbs_nonneg`: smoothness, the first two
   derivatives, and bounds on them.
 * `SymplecticGeometry.exists_pos_div_le_iteratedDeriv_two_smoothedAbs`: for each `ε > 0` there is
-  `c > 0` such that `c / δ ≤ (smoothedAbs δ)''(t)` wherever `|smoothedSign δ t| ≤ 1 - ε`. It
-  follows from the positive lower bound, by compactness, on the derivative of
-  `Real.smoothTransition` where its values stay away from `0` and `1`
-  (`Real.smoothTransition.exists_pos_le_deriv`).
+  `c > 0` such that `c / δ ≤ (smoothedAbs δ)''(t)` wherever `|smoothedSign δ t| ≤ 1 - ε`; it is
+  a consequence of the lower bound of the next item, with `c = 2 min ε 1`.
   `SymplecticGeometry.one_sub_smoothedSign_sq_div_two_mul_lt` turns it into the bound on the error
   of a smoothing that the smoothed maximum and minimum of two `i`-convex shapes use, and
   `SymplecticGeometry.exists_pos_forall_one_sub_smoothedSign_sq_div_two_mul_lt` gives a `δ₀ > 0`
@@ -216,21 +214,6 @@ theorem iteratedDeriv_two_smoothedAbs (δ t : ℝ) :
       deriv Real.smoothTransition ((t + δ) / (2 * δ)) / δ := by
   rw [iteratedDeriv_two, deriv_smoothedAbs, deriv_smoothedSign]
 
-/-- Away from the ends `±1` of its slope, `smoothedAbs δ` curves at a rate of order `1 / δ`: for
-each `ε > 0` there is `c > 0` such that `c / δ ≤ (smoothedAbs δ)''(t)` for all `δ > 0` and all
-`t` with `|smoothedSign δ t| ≤ 1 - ε`. -/
-theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε) :
-    ∃ c > 0, ∀ δ > 0, ∀ t, |smoothedSign δ t| ≤ 1 - ε →
-      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
-  obtain ⟨c, hc, hcK⟩ := Real.smoothTransition.exists_pos_le_deriv (half_pos hε)
-  refine ⟨c, hc, fun δ hδ t ht ↦ ?_⟩
-  rw [iteratedDeriv_two_smoothedAbs]
-  have hu : Real.smoothTransition ((t + δ) / (2 * δ)) ∈ Icc (ε / 2) (1 - ε / 2) := by
-    rw [smoothedSign_def, abs_le] at ht
-    constructor <;> linarith
-  gcongr
-  exact hcK _ hu
-
 /-- The curvature of `smoothedAbs δ` is at least `2 (1 - s²) / δ`, where `s = smoothedSign δ t` is
 its slope: a lower bound of order `1 / δ` that degrades only as fast as `1 - s²` where the slope
 nears `±1`. -/
@@ -239,6 +222,24 @@ theorem two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs (h�
   rw [iteratedDeriv_two_smoothedAbs, smoothedSign_def]
   gcongr
   linarith [Real.smoothTransition.eight_mul_mul_one_sub_le_deriv ((t + δ) / (2 * δ))]
+
+/-- Away from the ends `±1` of its slope, `smoothedAbs δ` curves at a rate of order `1 / δ`: for
+each `ε > 0` there is `c > 0`, for instance `c = 2 min ε 1`, such that
+`c / δ ≤ (smoothedAbs δ)''(t)` for all `δ > 0` and all `t` with `|smoothedSign δ t| ≤ 1 - ε`. -/
+theorem exists_pos_div_le_iteratedDeriv_two_smoothedAbs {ε : ℝ} (hε : 0 < ε) :
+    ∃ c > 0, ∀ δ > 0, ∀ t, |smoothedSign δ t| ≤ 1 - ε →
+      c / δ ≤ iteratedDeriv 2 (smoothedAbs δ) t := by
+  refine ⟨2 * min ε 1, by positivity, fun δ hδ t ht ↦ ?_⟩
+  refine le_trans ?_ (two_mul_one_sub_smoothedSign_sq_div_le_iteratedDeriv_two_smoothedAbs hδ t)
+  -- With `e = min ε 1 ∈ (0, 1]`, `|s| ≤ 1 - e` gives `1 - s² ≥ e (2 - e) ≥ e`.
+  have he₀ : 0 < min ε 1 := lt_min hε one_pos
+  have he₁ : min ε 1 ≤ 1 := min_le_right ε 1
+  have hs : |smoothedSign δ t| ≤ 1 - min ε 1 := ht.trans (by linarith [min_le_left ε 1])
+  have hsq : smoothedSign δ t ^ 2 ≤ (1 - min ε 1) ^ 2 := by
+    rw [← sq_abs]
+    exact pow_le_pow_left₀ (abs_nonneg _) hs 2
+  gcongr
+  nlinarith
 
 /-- The curvature of `smoothedAbs δ` is at most of order `1 / δ`: there is `C` with
 `(smoothedAbs δ)''(t) ≤ C / δ` for all `δ > 0` and all `t`. -/
