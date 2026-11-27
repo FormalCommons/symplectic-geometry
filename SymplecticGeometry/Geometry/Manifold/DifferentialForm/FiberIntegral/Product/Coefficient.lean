@@ -8,9 +8,9 @@ module
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
-import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Deriv
 
 /-!
@@ -46,7 +46,7 @@ for the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`.
   a map is that of the same map on `EB` (`TauCeti.Manifold.mfderiv_comp_subtype_val_apply`).
 * `TauCeti.isSmoothForm_mfderiv_family_apply`: for a smooth family over an oriented Hausdorff
   σ-compact `F`, `D` is a smooth `m`-form, since the partial derivative of the coefficient is
-  smooth in `y` (`ContMDiffAt.fderiv_right`).
+  smooth in `y` (`ContMDiffAt.fderiv_left`).
 * `TauCeti.mfderiv_integralTopForm_apply`: for `F` compact and Hausdorff and a `C^n` family with
   `1 ≤ n`, the derivative of `b' ↦ ∫_F β b'` at `b` in the direction `a` is `∫_F D`; that this
   map is differentiable is `TauCeti.contMDiff_integralTopForm` with `P := U`. As in the proof
@@ -217,11 +217,8 @@ theorem isSmoothForm_mfderiv_family_apply [T2Space F] [SigmaCompactSpace F]
       (by simp)).differentiableAt (fun b' ↦ hβc b' y) a]
   refine (isSmoothForm_riemannianVolumeForm o).fun_smul ?_
   -- The derivative in the parameter of the coefficient is smooth in the fibre variable.
-  have hd : ContMDiff J 𝓘(ℝ, EB →L[ℝ] ℝ) ∞ fun y ↦ fderiv ℝ (fun z ↦ c z y) b := fun y ↦ by
-    have hg : ContMDiffAt (J.prod 𝓘(ℝ, EB)) 𝓘(ℝ) ∞ (uncurry fun (y : F) (z : EB) ↦ c z y)
-        (y, b) :=
-      (hcy y).comp (y, (b : EB)) (contMDiffAt_snd.prodMk contMDiffAt_fst)
-    exact (hg.fderiv_right (n := ∞) (by simp)).comp y (contMDiffAt_id.prodMk contMDiffAt_const)
+  have hd : ContMDiff J 𝓘(ℝ, EB →L[ℝ] ℝ) ∞ fun y ↦ fderiv ℝ (fun z ↦ c z y) b := fun y ↦
+    ((hcy y).fderiv_left (n := ∞) (by simp)).comp y (contMDiffAt_const.prodMk contMDiffAt_id)
   exact hd.clm_apply contMDiff_const
 
 variable [T2Space F] [CompactSpace F]
