@@ -19,8 +19,6 @@ import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Prod
 
 public section
 
-open Topology
-
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {P : Type*} [NormedAddCommGroup P]
   [NormedSpace 𝕜 P] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
 

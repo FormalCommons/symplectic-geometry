@@ -518,8 +518,7 @@ end Struwe
 
 /-- The second derivative of the linear shape `r ↦ ℓ + d r` is `0`. -/
 theorem iteratedDeriv_two_linear (ℓ d r : ℝ) : iteratedDeriv 2 (fun r ↦ ℓ + d * r) r = 0 := by
-  have hd' : deriv (fun r ↦ ℓ + d * r) = fun _ ↦ d := funext fun x ↦ by simp
-  simp [iteratedDeriv_succ, hd']
+  simpa [smul_eq_mul, mul_comm] using congrFun (iteratedDeriv_two_const_add_smul (𝕜 := ℝ) ℓ d) r
 
 /-- The second derivative of the quadratic shape `r ↦ ℓ + b r + c r² / (2 ℓ)` is `c / ℓ`. -/
 theorem iteratedDeriv_two_quadratic (ℓ b c r : ℝ) :
@@ -608,8 +607,7 @@ at every `r ∈ (0, ℓ d³)`. -/
 theorem isConvexShapeAt_linear {ℓ d r : ℝ} (hℓ : 0 < ℓ) (hd : 0 < d) (hr : r ∈ Ioo 0 (ℓ * d ^ 3)) :
     IsConvexShapeAt (fun r ↦ ℓ + d * r) r := by
   obtain ⟨hr₀, hr₁⟩ := hr
-  have hd' : deriv (fun r ↦ ℓ + d * r) = fun _ ↦ d := funext fun x ↦ by simp
-  have h₁ : deriv (fun r ↦ ℓ + d * r) r = d := by rw [hd']
+  have h₁ : deriv (fun r ↦ ℓ + d * r) r = d := by simp
   have h₂ : iteratedDeriv 2 (fun r ↦ ℓ + d * r) r = 0 := iteratedDeriv_two_linear ℓ d r
   have hχ : 0 < ℓ + d * r := by positivity
   refine isConvexShapeAt_iff.2 ⟨hr₀, hχ, ?_, ?_⟩

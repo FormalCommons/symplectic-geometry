@@ -22,8 +22,6 @@ import TauCeti.Analysis.Calculus.IteratedFDeriv.Prod
 
 public section
 
-open Topology
-
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {P : Type*} [NormedAddCommGroup P]
   [NormedSpace 𝕜 P] {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*}
   [NormedAddCommGroup F] [NormedSpace 𝕜 F]
