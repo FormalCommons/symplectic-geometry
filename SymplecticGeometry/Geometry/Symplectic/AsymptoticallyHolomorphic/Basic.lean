@@ -25,9 +25,9 @@ reading at the centre `0` of the chart: the sum, over the orders `j ≤ r`, of t
 `j`-th derivatives (Mathlib's `iteratedFDeriv`) of the reading there. Its lemmas come from those
 of `jetNormAt`. It is nonnegative and monotone in `r`; for `k₀ ≤ k` its order `0` is the norm of
 `s x`, since the chart sends `x` to `0` (`SymplecticGeometry.RescaledUnitaryCharts.chart_symm_zero`)
-and the frame is unitary; it vanishes on the zero section and is unchanged by negation; and for
-sections whose readings are `C^r` at `0` it satisfies the triangle inequality and scales by `‖c‖`
-under multiplication by `c : ℂ`.
+and the frame is unitary; it vanishes on the zero section, is unchanged by negation, and scales
+by `‖c‖` under multiplication by `c : ℂ`; and for sections whose readings are `C^r` at `0` it
+satisfies the triangle inequality.
 
 These are the chart norms by which the estimates on asymptotically holomorphic sequences of
 sections are stated, in the rescaled metrics `k ω(·, J ·)`.
@@ -157,11 +157,11 @@ theorem jetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
     D.jetNorm k r (s + t) x ≤ D.jetNorm k r s x + D.jetNorm k r t x := by
   simpa only [jetNorm_def, reading_add] using jetNormAt_add_le hs ht
 
-/-- The jet norm of a complex multiple of a section whose reading is `C^r` at `0`. -/
-theorem jetNorm_smul {k r : ℕ} {s : Π y, PowerBundle P k y} {x : M}
-    (hs : ContDiffAt ℝ r (D.reading k x s) 0) (c : ℂ) :
+/-- The jet norm of a complex multiple `c • s` is `‖c‖` times that of `s`. -/
+@[simp]
+theorem jetNorm_smul (k r : ℕ) (s : Π y, PowerBundle P k y) (x : M) (c : ℂ) :
     D.jetNorm k r (c • s) x = ‖c‖ * D.jetNorm k r s x := by
-  rw [jetNorm_def, jetNorm_def, reading_smul, jetNormAt_smul hs]
+  rw [jetNorm_def, jetNorm_def, reading_smul, jetNormAt_smul]
 
 end RescaledUnitaryCharts
 

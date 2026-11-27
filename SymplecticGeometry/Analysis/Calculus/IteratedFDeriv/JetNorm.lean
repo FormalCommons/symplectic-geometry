@@ -21,8 +21,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 * `SymplecticGeometry.jetNormAt_zero`: the jet norm of order `0` is `‖f z‖`.
 * `SymplecticGeometry.jetNormAt_add_le`: the triangle inequality, for functions that are `C^r`
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
-* `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for `f`
-  of class `C^r` at `z`, from Mathlib's `iteratedFDeriv_const_smul_apply`.
+* `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for every
+  `f`, from Mathlib's `ContinuousLinearEquiv.iteratedFDeriv_comp_left`.
 
 ## References
 
@@ -82,15 +82,24 @@ theorem jetNormAt_add_le {r : ℕ} {f g : E → F} {z : E} (hf : ContDiffAt 𝕜
   rw [iteratedFDeriv_add_apply (hf.of_le hjr) (hg.of_le hjr)]
   exact norm_add_le _ _
 
-/-- The jet norm of a scalar multiple, for a function of class `C^r` at `z`. -/
+/-- The jet norm of a scalar multiple `c • f` is `‖c‖` times that of `f`, for every `f`. -/
+@[simp]
 theorem jetNormAt_smul {R : Type*} [NormedField R] [NormedSpace R F] [SMulCommClass 𝕜 R F]
-    {r : ℕ} {f : E → F} {z : E} (hf : ContDiffAt 𝕜 r f z) (c : R) :
+    (r : ℕ) (f : E → F) (z : E) (c : R) :
     jetNormAt 𝕜 r (c • f) z = ‖c‖ * jetNormAt 𝕜 r f z := by
-  simp only [jetNormAt_def, Finset.mul_sum]
-  refine Finset.sum_congr rfl fun j hj ↦ ?_
-  have hjr : (j : WithTop ℕ∞) ≤ r := by
-    exact_mod_cast Nat.lt_succ_iff.1 (Finset.mem_range.1 hj)
-  rw [iteratedFDeriv_const_smul_apply (hf.of_le hjr), norm_smul]
+  rcases eq_or_ne c 0 with rfl | hc
+  · simp [jetNormAt_def]
+  -- For `c ≠ 0`, multiplication by `c` is a continuous linear equivalence over `𝕜`, and iterated
+  -- derivatives commute with it with no smoothness assumption.
+  let L : F ≃L[𝕜] F := .ofContinuousLinearMap (c • .id 𝕜 F) (c⁻¹ • .id 𝕜 F)
+    (by ext; simp [smul_smul, mul_inv_cancel₀ hc]) (by ext; simp [smul_smul, inv_mul_cancel₀ hc])
+  have hL : c • f = L ∘ f := by ext; simp [L]
+  simp only [jetNormAt_def, Finset.mul_sum, hL, L.iteratedFDeriv_comp_left]
+  refine Finset.sum_congr rfl fun j _ ↦ ?_
+  have : L.toContinuousLinearMap.compContinuousMultilinearMap (iteratedFDeriv 𝕜 j f z) =
+      c • iteratedFDeriv 𝕜 j f z := by
+    ext; simp [L]
+  rw [this, norm_smul]
 
 end SymplecticGeometry
 
