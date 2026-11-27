@@ -217,7 +217,6 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
   push_cast
   ring
 
-attribute [local instance] finrank_real_complex_fact' in
 /-- **Covariance of the connection read in the charts.** Let `α` be a connection form, `k ≥ k₀`,
 and `τ` the transition from the chart centred at `y` to the chart centred at `x`. At a point `w`
 of `D.chartTransitionDomain k x y`, for a section `s` of `PowerBundle P k` whose reading in the
@@ -248,12 +247,8 @@ theorem connectionReading_eq_frameChange_smul_comp (hα : IsCircleConnectionForm
   ext v
   rw [smul_apply, ContinuousLinearMap.comp_apply, connectionReading_apply,
     connectionReading_apply, heq.fderiv_eq,
-    fderiv_fun_mul he hfτ, fderiv_fun_comp w hs hτ,
-    add_apply, smul_apply, smul_apply,
-    ContinuousLinearMap.comp_apply, D.fderiv_frameChange_apply hα hk hw v,
-    D.reading_eq_frameChange_mul hws s]
-  simp only [smul_eq_mul, Complex.real_smul]
-  push_cast
+    fderiv_fun_mul he hfτ, fderiv_fun_comp w hs hτ]
+  simp [D.fderiv_frameChange_apply hα hk hw v, D.reading_eq_frameChange_mul hws s]
   ring
 
 end RescaledUnitaryCharts
