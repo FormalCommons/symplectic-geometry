@@ -114,9 +114,12 @@ theorem stdForm_fderiv_chartTransition {k : ℕ} (hk : k₀ ≤ k) {x y : M} {w 
     stdForm ι (fderiv ℝ (D.chartTransition k x y) w u) (fderiv ℝ (D.chartTransition k x y) w v) =
       stdForm ι u v := by
   rw [chartTransition_def] at hw ⊢
-  exact (D.chart k y).apply_fderiv_symm_trans_eq_of_mvfderiv (D.chart k x) (by simp)
-    (stdForm ι · ·) (fun p u v ↦ 2 * Real.pi * k * σ.eval₂ p u v) (D.eval₂_eq hk y)
-    (D.eval₂_eq hk x) hw u v
+  have hw' : w ∈ (D.chart k y).target ∧ (D.chart k y).symm w ∈ (D.chart k x).source := by
+    simpa using hw
+  refine (D.chart k y).apply_fderiv_symm_trans_eq_of_mvfderiv (D.chart k x) (by simp)
+    (stdForm ι · ·) hw (fun u v ↦ ?_) u v
+  exact (D.eval₂_eq hk x _ hw'.2 u v).symm.trans
+    (D.eval₂_eq hk y _ ((D.chart k y).map_target hw'.1) u v)
 
 /-- **Transitions are isometries of the metrics read in the charts.** For `k ≥ k₀` and `w` in the
 source of the transition `τ` from the chart centred at `y` to the chart centred at `x`, the
