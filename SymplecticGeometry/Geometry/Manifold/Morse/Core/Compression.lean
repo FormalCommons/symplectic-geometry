@@ -9,7 +9,6 @@ public import Mathlib.Dynamics.OmegaLimit
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import SymplecticGeometry.Dynamics.Flow.OmegaLimit
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
-import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
 /-!
 # Compression of a sublevel along a descending flow
@@ -76,13 +75,8 @@ theorem exists_mapClusterPt_atBot_globalFlow_of_mem_omegaLimit
   obtain ⟨horb, z, hzS, hz, hle, hconst⟩ :=
     Flow.exists_mapClusterPt_atBot_of_mem_omegaLimit hS hmaps hg.continuous (hanti y) hy
   refine ⟨horb, z, hzS, hz, hle, hconst, ?_⟩
-  -- `g` is constant along the orbit of `z`, an integral curve of `Y` through `z` at time `0`.
-  have hd := Manifold.hasDerivAt_comp_curve (hg _) (isMIntegralCurve_globalFlow hY hc z 0)
-  have hconst' : (g ∘ fun t ↦ globalFlow Y hY hc t z) = fun _ ↦ g z := funext hconst
-  rw [hconst'] at hd
-  have h := hd.unique (hasDerivAt_const 0 (g z))
-  -- The coercion of a `Flow` is its `toFun` field, so its time-zero law is `map_zero'`.
-  beta_reduce at h
-  rwa [(globalFlow Y hY hc).map_zero' z] at h
+  have h := ((isMIntegralCurve_globalFlow hY hc z).isMIntegralCurveAt 0
+    ).mfderiv_apply_eq_zero_of_eventuallyEq_const (hg _) (.of_forall hconst)
+  rwa [Flow.map_zero_apply] at h
 
 end TauCeti
