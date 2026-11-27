@@ -330,11 +330,10 @@ theorem exists_holonomic_approximation_cube_directions {m k : ℕ} (hk : 0 < k)
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
       (∀ t x, ∀ i ∉ J, (h (t, x)).1 i = x.1 i) ∧
-      (∃ W ∈ 𝓝ˢ (B ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' Q ⊆ V ∧ ContDiff ℝ ∞ f' ∧
       (∀ x ∈ V, ‖f' x - f x‖ < ε ∧
         ∀ w : D, (∀ i ∉ J, w.1 i = 0) → ‖(fderiv ℝ f' x - G x) w‖ ≤ ε * ‖w‖) ∧
-      ∃ U' ∈ 𝓝ˢ (B ×ˢ {0}), EqOn f' f U'
+      ∃ N ∈ 𝓝ˢ B, ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x
 ```
 
 Here `B` is a closed set of core points near which the datum is already
@@ -343,8 +342,10 @@ holonomic. It must contain the faces of the cube in the directions `J`
 points whose parameters lie in a closed set. The clauses are those of the
 merged `exists_holonomic_approximation_segment`, with three additions: `f'`
 equals `f` outside the same compact `C` as the diffeotopy, the diffeotopy
-keeps the parameter coordinates, and the relative clauses are about `B`
-instead of the end points. The `C¹` estimate is stated vector by vector so
+keeps the parameter coordinates, and the two relative clauses of the
+segment become one clause about a neighbourhood `N` of `B` in the core:
+`h` and `f'` are unchanged at every point `x` with `x.1 ∈ N`, whatever its
+transverse part. The `C¹` estimate is stated vector by vector so
 that it can be restricted to the directions `J`. Smoothness of `G` is
 needed from `m = 2` on, since the Taylor maps of a step depend on the
 parameters through `G`.
@@ -366,10 +367,9 @@ theorem exists_holonomic_approximation_cube {m k : ℕ} (hk : 0 < k)
       (∃ C, IsCompact C ∧ C ⊆ thickening δ Q ∧
         (∀ t, ∀ x ∉ C, h (t, x) = x) ∧ ∀ x ∉ C, f' x = f x) ∧
       (∀ t x, dist (h (t, x)) x < δ) ∧
-      (∃ W ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), ∀ t, ∀ x ∈ W, h (t, x) = x) ∧
       IsOpen V ∧ (fun x ↦ h (1, x)) '' Q ⊆ V ∧
       ContDiff ℝ ∞ f' ∧ (∀ x ∈ V, ‖f' x - f x‖ < ε ∧ ‖fderiv ℝ f' x - G x‖ < ε) ∧
-      ∃ U' ∈ 𝓝ˢ (sphere 0 1 ×ˢ {0}), EqOn f' f U'
+      ∃ N ∈ 𝓝ˢ (sphere 0 1), ∀ x, x.1 ∈ N → (∀ t, h (t, x) = x) ∧ f' x = f x
 ```
 
 The condition `0 < k` is the positive codimension. The relative form that
@@ -433,8 +433,9 @@ needed for it.
      lies in `V¹`. Then: smallness by the triangle inequality and the
      Lipschitz bound; support in `C₁ ∪ Φ '' C₂ ⊆ thickening δ Q`; the
      coordinates outside `insert i₀ J'` are kept by `Φ` and `h²`;
-     `h = id` and `f' = f` near `B ×ˢ {0}`; and for `w` in the directions
-     `insert i₀ J'`, `(fderiv ℝ f' y - G¹ y) w` is
+     `h = id` and `f' = f` at the points over `N¹ ∩ N²`, at every height,
+     since `Φ` fixes them; and for `w` in the directions `insert i₀ J'`,
+     `(fderiv ℝ f' y - G¹ y) w` is
      `(fderiv ℝ f²' z - G² z) (fderiv ℝ Φ.symm y w)` with `y = Φ z`, so
      the error is at most `ε₂ L ‖w‖ + ε₁ ‖w‖`.
 3. *The one-direction lemma* (`exists_holonomic_approximation_direction`,
@@ -508,8 +509,9 @@ coordinates outside `J`, rescale a compact parameter set into the cube, and
 put the parameters already holonomic into `B`. A diffeotopy of `D` keeping
 these coordinates is a family of diffeotopies smooth in the parameter. A
 general compact parameter space, or a parameter manifold `L` that is not an
-open subset of a Euclidean space, is not needed by the induction and stays
-with the design of `Parametric.lean`.
+open subset of a Euclidean space, is not needed: neither the induction nor,
+as the `Parametric.lean` section explains, any use of the theorem asks for
+one.
 
 **Building issues of issue 2**, in this order:
 
