@@ -6,6 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Algebra.BigOperators.Intervals
+import Mathlib.Data.Nat.Choose.Bounds
+import TauCeti.Analysis.Calculus.ContDiff.Bounds
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Bilinear
 
 /-!
 # The jet norm of a function at a point
@@ -30,6 +34,15 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
 * `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for every
   `f`.
+* `SymplecticGeometry.jetNormAt_comp_le`: for `f` of class `C^r` at `z` and `g` of class `C^r` at
+  `f z`, the jet norm of `g ∘ f` at `z` is at most
+  `(r + 1)! * jetNormAt 𝕜 r g (f z) * max 1 (jetNormAt 𝕜 r f z) ^ r`, from Tau Ceti's
+  `TauCeti.norm_iteratedFDeriv_comp_le_of_contDiffAt` (the Faà di Bruno bound at a point).
+* `SymplecticGeometry.jetNormAt_bilinear_le`: for a continuous bilinear map `B` and `f`, `g` of
+  class `C^r` at `z`, the jet norm of `w ↦ B (f w) (g w)` at `z` is at most
+  `2 ^ r * ‖B‖ * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z`, from Tau Ceti's
+  `ContinuousLinearMap.norm_iteratedFDeriv_le_of_bilinear_of_contDiffAt` (the Leibniz bound at a
+  point).
 
 ## References
 
@@ -127,6 +140,83 @@ theorem jetNormAt_smul {R : Type*} [NormedField R] [NormedSpace R F] [SMulCommCl
     (r : ℕ) (f : E → F) (z : E) (c : R) :
     jetNormAt 𝕜 r (c • f) z = ‖c‖ * jetNormAt 𝕜 r f z := by
   simp [jetNormAt_def, Finset.mul_sum, iteratedFDeriv_const_smul_apply_of_field, norm_smul]
+
+section Bounds
+
+variable {G H : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [NormedAddCommGroup H]
+  [NormedSpace 𝕜 H]
+
+open scoped Nat
+
+/-- The **jet norm of a composition**: if `f` is `C^r` at `z` and `g` is `C^r` at `f z`, the
+`r`-jet norm of `g ∘ f` at `z` is at most `(r + 1)!` times the `r`-jet norm of `g` at `f z` times
+`max 1 (jetNormAt 𝕜 r f z) ^ r`. -/
+theorem jetNormAt_comp_le {r : ℕ} {g : F → G} {f : E → F} {z : E}
+    (hg : ContDiffAt 𝕜 r g (f z)) (hf : ContDiffAt 𝕜 r f z) :
+    jetNormAt 𝕜 r (g ∘ f) z ≤
+      (r + 1)! * jetNormAt 𝕜 r g (f z) * max 1 (jetNormAt 𝕜 r f z) ^ r := by
+  set D := max 1 (jetNormAt 𝕜 r f z)
+  have hD : 1 ≤ D := le_max_left _ _
+  have hC := jetNormAt_nonneg (𝕜 := 𝕜) r g (f z)
+  rw [jetNormAt_def]
+  calc ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv 𝕜 j (g ∘ f) z‖
+      ≤ ∑ _j ∈ Finset.range (r + 1), (r ! * jetNormAt 𝕜 r g (f z) * D ^ r : ℝ) := by
+        refine Finset.sum_le_sum fun j hj ↦ ?_
+        have hjr : j ≤ r := Nat.lt_succ_iff.1 (Finset.mem_range.1 hj)
+        refine (TauCeti.norm_iteratedFDeriv_comp_le_of_contDiffAt (D := D)
+          (hg.of_le (by exact_mod_cast hjr)) (hf.of_le (by exact_mod_cast hjr))
+          (fun i hi ↦ norm_iteratedFDeriv_le_jetNormAt (hi.trans hjr) g (f z))
+          (fun i hi₁ hi ↦ ?_)).trans ?_
+        · calc ‖iteratedFDeriv 𝕜 i f z‖ ≤ jetNormAt 𝕜 r f z :=
+                norm_iteratedFDeriv_le_jetNormAt (hi.trans hjr) f z
+            _ ≤ D := le_max_right _ _
+            _ ≤ D ^ i := le_self_pow₀ hD (by omega)
+        · gcongr
+    _ = (r + 1)! * jetNormAt 𝕜 r g (f z) * D ^ r := by
+        rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul, Nat.factorial_succ]
+        push_cast
+        ring
+
+/-- The **jet norm of a bilinear combination**: for a continuous bilinear map `B` and maps `f`,
+`g` that are `C^r` at `z`, the `r`-jet norm of `w ↦ B (f w) (g w)` at `z` is at most
+`2 ^ r * ‖B‖` times the product of the `r`-jet norms of `f` and `g` at `z`. -/
+theorem jetNormAt_bilinear_le (B : F →L[𝕜] G →L[𝕜] H) {r : ℕ} {f : E → F} {g : E → G} {z : E}
+    (hf : ContDiffAt 𝕜 r f z) (hg : ContDiffAt 𝕜 r g z) :
+    jetNormAt 𝕜 r (fun w ↦ B (f w) (g w)) z ≤
+      2 ^ r * ‖B‖ * jetNormAt 𝕜 r f z * jetNormAt 𝕜 r g z := by
+  set a : ℕ → ℝ := fun i ↦ ‖iteratedFDeriv 𝕜 i f z‖
+  set b : ℕ → ℝ := fun i ↦ ‖iteratedFDeriv 𝕜 i g z‖
+  have ha : ∀ i, 0 ≤ a i := fun _ ↦ norm_nonneg _
+  have hb : ∀ i, 0 ≤ b i := fun _ ↦ norm_nonneg _
+  simp only [jetNormAt_def]
+  calc ∑ n ∈ Finset.range (r + 1), ‖iteratedFDeriv 𝕜 n (fun w ↦ B (f w) (g w)) z‖
+      ≤ ∑ n ∈ Finset.range (r + 1), ‖B‖ * ∑ i ∈ Finset.range (n + 1),
+          (n.choose i : ℝ) * a i * b (n - i) := by
+        refine Finset.sum_le_sum fun n hn ↦ ?_
+        have hnr : n ≤ r := Nat.lt_succ_iff.1 (Finset.mem_range.1 hn)
+        exact B.norm_iteratedFDeriv_le_of_bilinear_of_contDiffAt hf hg (by exact_mod_cast hnr)
+    _ ≤ ∑ n ∈ Finset.range (r + 1), ‖B‖ * ∑ i ∈ Finset.range (n + 1),
+          2 ^ r * (a i * b (n - i)) := by
+        refine Finset.sum_le_sum fun n hn ↦ mul_le_mul_of_nonneg_left
+          (Finset.sum_le_sum fun i _ ↦ ?_) (norm_nonneg B)
+        have hc : (n.choose i : ℝ) ≤ 2 ^ r := by
+          exact_mod_cast (Nat.choose_le_two_pow n i).trans
+            (Nat.pow_le_pow_right two_pos (Nat.lt_succ_iff.1 (Finset.mem_range.1 hn)))
+        rw [mul_assoc]
+        exact mul_le_mul_of_nonneg_right hc (mul_nonneg (ha i) (hb _))
+    _ = 2 ^ r * ‖B‖ * ∑ m ∈ Finset.range (r + 1), a m * ∑ k ∈ Finset.range (r + 1 - m), b k := by
+        simp_rw [← Finset.mul_sum, Finset.sum_range_diag_flip (r + 1) fun m k ↦ a m * b k,
+          ← Finset.mul_sum]
+        ring
+    _ ≤ 2 ^ r * ‖B‖ * ∑ m ∈ Finset.range (r + 1), a m * ∑ k ∈ Finset.range (r + 1), b k := by
+        refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun m _ ↦ ?_) (by positivity)
+        exact mul_le_mul_of_nonneg_left (Finset.sum_le_sum_of_subset_of_nonneg
+          (Finset.range_subset_range.2 (by omega)) fun k _ _ ↦ hb k) (ha m)
+    _ = 2 ^ r * ‖B‖ * (∑ m ∈ Finset.range (r + 1), a m) * ∑ k ∈ Finset.range (r + 1), b k := by
+        rw [← Finset.sum_mul]
+        ring
+
+end Bounds
 
 end SymplecticGeometry
 
