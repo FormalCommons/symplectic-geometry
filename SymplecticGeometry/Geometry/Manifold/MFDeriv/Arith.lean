@@ -19,14 +19,16 @@ For a map `f : M → E'` from a manifold to a normed space and a constant `c : E
   `fun y ↦ f y - c`.
 * `mdifferentiableWithinAt_sub_const_iff`, `mdifferentiableAt_sub_const_iff`: `fun y ↦ f y - c`
   is differentiable exactly where `f` is.
-* `mfderiv_sub_const`: `mfderiv I 𝓘(𝕜, E') (fun y ↦ f y - c) x = mfderiv I 𝓘(𝕜, E') f x`, with
-  no differentiability hypothesis; `mfderivWithin_sub_const` is its form within a set with unique
-  derivatives at `x`, which Mathlib's `mfderivWithin_neg` assumes too.
+* `mfderivWithin_sub_const`, `mfderiv_sub_const`:
+  `mfderiv I 𝓘(𝕜, E') (fun y ↦ f y - c) x = mfderiv I 𝓘(𝕜, E') f x`, and its form within a set,
+  with no hypothesis on `f` or on the set.
 
 These are the manifold analogues of Mathlib's `HasFDerivAt.sub_const`, `fderiv_sub_const` and
 `fderivWithin_sub_const`, and of its `differentiableAt_add_const_iff` for subtraction
 (`Mathlib/Analysis/Calculus/FDeriv/Add.lean`). The proofs follow those of Mathlib's
-`mfderivWithin_neg` and `mfderiv_neg`, splitting on whether `f` is differentiable.
+`mfderivWithin_neg` and `mfderiv_neg`, splitting on whether `f` is differentiable; in the
+differentiable case, `mfderivWithin_sub_const` reduces to Mathlib's `fderivWithin_sub_const` in
+the chart. Tau Ceti's `TauCeti.mvfderiv_add_const` is the analogous statement for its `mvfderiv`.
 -/
 
 public section
@@ -51,6 +53,7 @@ theorem HasMFDerivAt.sub_const (hf : HasMFDerivAt I 𝓘(𝕜, E') f x f') (c : 
   (hf.sub (hasMFDerivAt_const c x)).congr_mfderiv (sub_zero f')
 
 /-- A map is differentiable within a set exactly when it is after subtracting a constant. -/
+@[simp]
 theorem mdifferentiableWithinAt_sub_const_iff (c : E') :
     MDifferentiableWithinAt I 𝓘(𝕜, E') (fun y ↦ f y - c) s x ↔
       MDifferentiableWithinAt I 𝓘(𝕜, E') f s x := by
@@ -59,16 +62,19 @@ theorem mdifferentiableWithinAt_sub_const_iff (c : E') :
   rwa [show ((fun y ↦ f y - c) + fun _ ↦ c) = f from funext fun y ↦ sub_add_cancel (f y) c] at h'
 
 /-- A map is differentiable at a point exactly when it is after subtracting a constant. -/
+@[simp]
 theorem mdifferentiableAt_sub_const_iff (c : E') :
     MDifferentiableAt I 𝓘(𝕜, E') (fun y ↦ f y - c) x ↔ MDifferentiableAt I 𝓘(𝕜, E') f x := by
   simp only [← mdifferentiableWithinAt_univ, mdifferentiableWithinAt_sub_const_iff]
 
-/-- Subtracting a constant does not change the derivative within a set at a point where the set
-has unique derivatives. -/
-theorem mfderivWithin_sub_const (hs : UniqueMDiffWithinAt I s x) (c : E') :
+/-- Subtracting a constant does not change the derivative within a set. -/
+theorem mfderivWithin_sub_const (c : E') :
     mfderivWithin I 𝓘(𝕜, E') (fun y ↦ f y - c) s x = mfderivWithin I 𝓘(𝕜, E') f s x := by
   by_cases hf : MDifferentiableWithinAt I 𝓘(𝕜, E') f s x
-  · exact (hf.hasMFDerivWithinAt.sub_const c).mfderivWithin hs
+  · have hf' := (mdifferentiableWithinAt_sub_const_iff c).2 hf
+    simp only [mfderivWithin, hf, hf', ite_true, writtenInExtChartAt, extChartAt_model_space_eq_id,
+      PartialEquiv.refl_coe]
+    exact fderivWithin_sub_const (f := f ∘ (extChartAt I x).symm) c
   · exact (mfderivWithin_zero_of_not_mdifferentiableWithinAt
       ((mdifferentiableWithinAt_sub_const_iff c).not.2 hf)).trans
       (mfderivWithin_zero_of_not_mdifferentiableWithinAt hf).symm
@@ -77,7 +83,6 @@ theorem mfderivWithin_sub_const (hs : UniqueMDiffWithinAt I s x) (c : E') :
 `fderiv_sub_const`. -/
 theorem mfderiv_sub_const (c : E') :
     mfderiv I 𝓘(𝕜, E') (fun y ↦ f y - c) x = mfderiv I 𝓘(𝕜, E') f x := by
-  rw [← mfderivWithin_univ, mfderivWithin_sub_const (uniqueMDiffWithinAt_univ I),
-    mfderivWithin_univ]
+  rw [← mfderivWithin_univ, mfderivWithin_sub_const, mfderivWithin_univ]
 
 end
