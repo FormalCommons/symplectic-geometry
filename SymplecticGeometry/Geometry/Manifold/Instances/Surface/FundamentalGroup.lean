@@ -695,6 +695,7 @@ theorem puncturedFundamentalGroupMulEquiv_symm_peripheral (i : Fin n) :
 
 /-- The classes of the standard circles and of the peripheral loops generate the fundamental group
 of `puncture g n`: two homomorphisms out of it that agree on them are equal. -/
+@[ext]
 theorem puncturedFundamentalGroup_hom_ext {G : Type*} [Group G]
     {f f' : FundamentalGroup (puncture g n) ⟨basePoint g, basePoint_mem_puncture⟩ →* G}
     (ha : ∀ k : Fin g, f (FundamentalGroup.fromPath
