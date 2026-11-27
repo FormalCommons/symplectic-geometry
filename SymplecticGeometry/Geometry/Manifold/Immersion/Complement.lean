@@ -12,16 +12,18 @@ import Mathlib.LinearAlgebra.Dimension.Constructions
 /-!
 # The complement of an immersion
 
-An immersion `f : M → N` of a nonempty manifold comes with a linear equivalence `E × F ≃ E'`
-between the product of the model space `E` of `M` with the chosen complement `F` and the model
-space `E'` of `N` (`Manifold.IsImmersionAtOfComplement.equiv`). So if `F` were trivial, `E` and
-`E'` would have the same rank: when `E'` has larger rank than `E`, the complement is nontrivial.
-The same equivalence embeds `F` linearly into `E'`, so `F` is finite-dimensional when `E'` is.
+An immersion `f : M → N` at a point with complement `F` comes with a linear equivalence
+`E × F ≃ E'` between the product of the model space `E` of `M` with `F` and the model space `E'`
+of `N` (`Manifold.IsImmersionAtOfComplement.equiv`). So if `F` were trivial, `E` and `E'` would
+have the same rank: when `E'` has larger rank than `E`, the complement is nontrivial. The same
+equivalence embeds `F` linearly into `E'`, so `F` is finite-dimensional when `E'` is.
 
 ## Main results
 
-* `Manifold.IsImmersion.nontrivial_complement`: the complement of an immersion of a nonempty
-  manifold into one whose model space has larger rank is nontrivial.
+* `Manifold.IsImmersionAtOfComplement.nontrivial_complement`: the complement `F` of an
+  immersion at a point into a manifold whose model space has larger rank is nontrivial.
+* `Manifold.IsImmersion.nontrivial_complement`: the same for the complement chosen by an
+  immersion of a nonempty manifold.
 * `Manifold.IsImmersionAtOfComplement.finiteDimensional_complement`: the complement `F` of an
   immersion at a point into a manifold with finite-dimensional model space is finite-dimensional.
 * `Manifold.IsImmersionAt.finiteDimensional_complement`: the same for the complement chosen by
@@ -44,27 +46,21 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {J : ModelWithCorners 𝕜 E' H'} [TopologicalSpace N] [ChartedSpace H' N]
   {n : WithTop ℕ∞} {f : M → N}
 
-namespace Manifold.IsImmersion
-
-/-- If `f : M → N` is an immersion of a nonempty manifold, and the model space `E'` of `N` has
-larger rank than the model space `E` of `M`, then the complement chosen by the immersion is
-nontrivial. -/
-theorem nontrivial_complement [Nonempty M] (h : IsImmersion I J n f)
-    (hE : Cardinal.lift.{v} (Module.rank 𝕜 E) < Cardinal.lift.{u} (Module.rank 𝕜 E')) :
-    Nontrivial h.complement := by
-  obtain ⟨x⟩ := ‹Nonempty M›
-  by_contra hF
-  rw [not_nontrivial_iff_subsingleton] at hF
-  have : Unique h.complement := uniqueOfSubsingleton 0
-  have := ((LinearEquiv.prodUnique (R := 𝕜) (M := E) (M₂ := h.complement)).symm.trans
-    (h.isImmersionOfComplement_complement x).equiv.toLinearEquiv).lift_rank_eq
-  exact hE.ne (by simpa using this)
-
-end Manifold.IsImmersion
-
 namespace Manifold.IsImmersionAtOfComplement
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- If `f : M → N` is an immersion at `x` with complement `F`, and the model space `E'` of `N` has
+larger rank than the model space `E` of `M`, then `F` is nontrivial. -/
+theorem nontrivial_complement {x : M} (h : IsImmersionAtOfComplement F I J n f x)
+    (hE : Cardinal.lift.{v} (Module.rank 𝕜 E) < Cardinal.lift.{u} (Module.rank 𝕜 E')) :
+    Nontrivial F := by
+  by_contra hF
+  rw [not_nontrivial_iff_subsingleton] at hF
+  have : Unique F := uniqueOfSubsingleton 0
+  have := ((LinearEquiv.prodUnique (R := 𝕜) (M := E) (M₂ := F)).symm.trans
+    h.equiv.toLinearEquiv).lift_rank_eq
+  exact hE.ne (by simpa using this)
 
 /-- If `f : M → N` is an immersion at `x` with complement `F`, and the model space `E'` of `N` is
 finite-dimensional, then `F` is finite-dimensional. -/
@@ -85,5 +81,17 @@ theorem finiteDimensional_complement [FiniteDimensional 𝕜 E'] {x : M}
   h.isImmersionAtOfComplement_complement.finiteDimensional_complement
 
 end Manifold.IsImmersionAt
+
+namespace Manifold.IsImmersion
+
+/-- If `f : M → N` is an immersion of a nonempty manifold, and the model space `E'` of `N` has
+larger rank than the model space `E` of `M`, then the complement chosen by the immersion is
+nontrivial. -/
+theorem nontrivial_complement [Nonempty M] (h : IsImmersion I J n f)
+    (hE : Cardinal.lift.{v} (Module.rank 𝕜 E) < Cardinal.lift.{u} (Module.rank 𝕜 E')) :
+    Nontrivial h.complement :=
+  (h.isImmersionOfComplement_complement (Classical.arbitrary M)).nontrivial_complement hE
+
+end Manifold.IsImmersion
 
 end
