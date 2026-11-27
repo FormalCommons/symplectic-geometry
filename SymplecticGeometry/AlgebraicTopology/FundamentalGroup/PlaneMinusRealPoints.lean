@@ -10,6 +10,7 @@ public import Mathlib.AlgebraicTopology.FundamentalGroupoid.FundamentalGroup
 public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Analysis.Convex.PathConnected
 public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
+public import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 public import TauCeti.Topology.Homotopy.Path
 
 import Mathlib.Analysis.Complex.Convex
@@ -18,7 +19,6 @@ import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import Mathlib.Topology.MetricSpace.HausdorffDistance
 import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
-import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleMap
 import TauCeti.AlgebraicTopology.FundamentalGroup.Basic
 import TauCeti.Analysis.SpecialFunctions.Complex.CircleMap
 import TauCeti.CategoryTheory.Groupoid.SingleObj
@@ -49,8 +49,6 @@ loops: run one after the other from the largest point to the smallest, they are 
 
 ## Main definitions
 
-* `SymplecticGeometry.PlaneMinusRealPoints.circlePath z₀ r θ`: the circle `circleMap z₀ r`, run
-  once counterclockwise from the angle `θ`.
 * `SymplecticGeometry.PlaneMinusRealPoints.approach x r`, `circle x r` and `loopInPlane x r`:
   the loop in `ℂ` about `x` of radius `r`, based at `0`, and the pieces it is made of.
 * `SymplecticGeometry.PlaneMinusRealPoints.loop hδ hc h0 k`: the loop about `c k`, based at `0`, in
@@ -141,18 +139,6 @@ theorem approach_def (x r : ℝ) :
     approach x r =
       (Path.segment (-I) ((x + r : ℝ) - I)).trans
         (Path.segment ((x + r : ℝ) - I) ((x + r : ℝ) : ℂ)) :=
-  (rfl)
-
-/-- The circle `circleMap z₀ r` about `z₀` of radius `r`, run once counterclockwise from the
-angle `θ`: the loop `t ↦ circleMap z₀ r (θ + 2πt)` based at `circleMap z₀ r θ`. -/
-def circlePath (z₀ : ℂ) (r θ : ℝ) : Path (circleMap z₀ r θ) (circleMap z₀ r θ) where
-  toFun t := circleMap z₀ r (θ + 2 * Real.pi * t)
-  continuous_toFun := by simp only [circleMap]; fun_prop
-  source' := by simp
-  target' := by simpa using periodic_circleMap z₀ r θ
-
-theorem circlePath_apply (z₀ : ℂ) (r θ : ℝ) (t : unitInterval) :
-    circlePath z₀ r θ t = circleMap z₀ r (θ + 2 * Real.pi * t) :=
   (rfl)
 
 /-- The circle about `x` of radius `r`, run once counterclockwise from `x + r`: the path
