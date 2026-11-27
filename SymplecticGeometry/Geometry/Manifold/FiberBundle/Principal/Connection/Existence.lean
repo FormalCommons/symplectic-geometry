@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # Existence of connection forms
@@ -128,7 +129,7 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
   obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
     (fun b : B ↦ (trivializationAt G P b).baseSet)
     (fun b ↦ (trivializationAt G P b).open_baseSet)
-    (fun b _ ↦ Set.mem_iUnion.2 ⟨b, FiberBundle.mem_baseSet_trivializationAt' b⟩)
+    (FiberBundle.iUnion_baseSet_trivializationAt G P).ge
   set p := ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG with hp
   have hpc : ContMDiff (IB.prod IG) IB ∞ p := p.contMDiff
   have hθd (b : B) (x : ManifoldTotalSpace G P) (hx : p x ∈ (trivializationAt G P b).baseSet) :
