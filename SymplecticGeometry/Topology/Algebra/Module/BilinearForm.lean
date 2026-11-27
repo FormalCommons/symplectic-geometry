@@ -15,8 +15,9 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 /-!
 # Continuous bilinear forms
 
-This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, and one
-about the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors.
+This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, one about
+the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors, and one
+about the continuous inverse of a nondegenerate bilinear form.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
@@ -43,9 +44,14 @@ For continuous bilinear forms `β₀` on `V₀` and `β₁` on `V₁` and a cont
 `β₁ (A u) y = β₀ u (T y)`, so `A` and `T` form an adjoint pair. In finite dimensions, for `β₁`
 nondegenerate, it is the linear map `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 
-Finally, a continuous alternating map `A` of two vectors gives the bilinear form
+A continuous alternating map `A` of two vectors gives the bilinear form
 `(v, w) ↦ A ![v, w]`. On a finite-dimensional normed space, the maps whose form is
 nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate`.
+
+For a nondegenerate bilinear form `B` on a finite-dimensional space, the map
+`B.toContinuousBilinearMap` to the continuous dual is invertible, by Tau Ceti's
+`TauCeti.isInvertible_toContinuousBilinearMap_iff_separatingLeft`, and its inverse is that of
+`B.toDual hB`, applied to continuous linear forms.
 
 ## Main definitions
 
@@ -86,6 +92,8 @@ nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate
   `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 * `ContinuousAlternatingMap.isOpen_setOfPred_nondegenerate_toBilinMap`: in finite dimension, the
   continuous alternating maps of two vectors with nondegenerate bilinear form are an open set.
+* `LinearMap.BilinForm.toContinuousBilinearMap_inverse_apply`: for nondegenerate `B` in finite
+  dimension, `B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f`.
 -/
 
 public section
@@ -377,5 +385,22 @@ theorem isOpen_setOfPred_nondegenerate_toBilinMap {𝕜 E : Type*} [Nontrivially
     simpa using continuous_eval_const ![v, w]
 
 end ContinuousAlternatingMap
+
+namespace LinearMap.BilinForm
+
+variable {𝕜 V : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
+  [AddCommGroup V] [Module 𝕜 V] [TopologicalSpace V] [IsTopologicalAddGroup V]
+  [ContinuousSMul 𝕜 V] [T2Space V] [FiniteDimensional 𝕜 V] {B : LinearMap.BilinForm 𝕜 V}
+
+/-- For a nondegenerate bilinear form `B` in finite dimension, the inverse of the continuous map
+`v ↦ B v` to the continuous dual sends a continuous linear form `f` to `(B.toDual hB).symm f`. -/
+theorem toContinuousBilinearMap_inverse_apply (hB : B.Nondegenerate) (f : StrongDual 𝕜 V) :
+    B.toContinuousBilinearMap.inverse f = (B.toDual hB).symm f := by
+  have h : B.toContinuousBilinearMap.IsInvertible := by simpa using hB.1
+  refine h.inverse_apply_eq.2 ?_
+  ext w
+  simp
+
+end LinearMap.BilinForm
 
 end
