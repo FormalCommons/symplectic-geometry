@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.Dual
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
@@ -13,6 +14,7 @@ public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
 public import TauCeti.Geometry.Symplectic.Complex.ImInner.Basic
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
+public import TauCeti.Geometry.Symplectic.Duality
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
@@ -61,7 +63,14 @@ The main facts fixing the conventions are `stdForm_apply`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`), by which the map
 `stdFormCompRightL ι`, `A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms, does not increase
-norms (`norm_stdFormCompRightL_apply_le`). The rotation
+norms (`norm_stdFormCompRightL_apply_le`). Since `ω₀(u, ·) = ⟪J₀ u, ·⟫`, the inverse of `ω₀` as a
+map to the dual is `φ ↦ -J₀ φ'`, `φ'` the vector dual to `φ` for the inner product
+(`stdForm_flatEquiv_symm_apply`), and it preserves norms (`norm_stdForm_flatEquiv_symm_apply`).
+For `A` with `A² = -1`, the form `stdFormCompRightL ι A` is then invertible as a map to the dual
+(`isInvertible_stdFormCompRightL_apply`), with inverse `φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, the image of
+`A` under the continuous linear map `stdFormCompRightInverseL ι`
+(`inverse_stdFormCompRightL_apply`), which does not increase norms
+(`norm_stdFormCompRightInverseL_apply_le`). The rotation
 `stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
 (`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
 through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
@@ -435,6 +444,11 @@ theorem inner_stdComplexStructure_stdComplexStructure (z w : StdSpace ι) :
     inner ℝ (stdComplexStructure ι z) (stdComplexStructure ι w) = inner ℝ z w := by
   rw [← stdForm_apply_eq_inner, stdForm_apply_stdComplexStructure]
 
+/-- `J₀` preserves norms: `‖J₀ z‖ = ‖z‖`. -/
+@[simp]
+theorem norm_stdComplexStructure (z : StdSpace ι) : ‖stdComplexStructure ι z‖ = ‖z‖ :=
+  AlmostComplexStructure.norm_apply inner_stdComplexStructure_stdComplexStructure z
+
 /-- `ω₀(z, w) = (⟪J₀ z, w⟫ - ⟪z, J₀ w⟫) / 2`: the form of the Euclidean inner product and `J₀`
 is `ω₀`. -/
 theorem stdForm_apply_eq_inner_sub_inner (z w : StdSpace ι) :
@@ -502,6 +516,83 @@ theorem norm_stdFormCompRightL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) 
   calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
     _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
     _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
+
+/-- The inverse of `ω₀` as a map to the dual sends `φ` to `-J₀ φ'`, `φ'` the vector that the
+inner product makes dual to `φ`. -/
+theorem stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
+    (stdForm ι).flatEquiv.symm φ =
+      -stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm φ) := by
+  rw [ContinuousLinearEquiv.symm_apply_eq]
+  ext v
+  rw [SymplecticForm.flatEquiv_apply, stdForm_apply_eq_inner, map_neg,
+    AlmostComplexStructure.apply_apply, neg_neg, InnerProductSpace.toDual_symm_apply]
+
+/-- The inverse of `ω₀` as a map to the dual preserves norms. -/
+@[simp]
+theorem norm_stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
+    ‖(stdForm ι).flatEquiv.symm φ‖ = ‖φ‖ := by
+  rw [stdForm_flatEquiv_symm_apply, norm_neg, norm_stdComplexStructure,
+    LinearIsometryEquiv.norm_map]
+
+variable (ι) in
+/-- The continuous linear map that sends an endomorphism `A` of `StdSpace ι` to
+`φ ↦ -ω₀♭⁻¹ (φ ∘ A)`, `ω₀♭ : u ↦ ω₀(u, ·)`. When `A² = -1`, `stdFormCompRightInverseL ι A` is the
+inverse of the form `ω₀(·, A ·)` as a map to the dual (`inverse_stdFormCompRightL_apply`). -/
+noncomputable def stdFormCompRightInverseL :
+    (StdSpace ι →L[ℝ] StdSpace ι) →L[ℝ] (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι :=
+  ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
+      (-((stdForm ι).flatEquiv.symm : (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι)) ∘L
+    (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip
+
+variable (ι) in
+theorem stdFormCompRightInverseL_def :
+    stdFormCompRightInverseL ι =
+      ContinuousLinearMap.compL ℝ (StdSpace ι →L[ℝ] ℝ) (StdSpace ι →L[ℝ] ℝ) (StdSpace ι)
+          (-((stdForm ι).flatEquiv.symm : (StdSpace ι →L[ℝ] ℝ) →L[ℝ] StdSpace ι)) ∘L
+        (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip :=
+  (rfl)
+
+@[simp]
+theorem stdFormCompRightInverseL_apply (A : StdSpace ι →L[ℝ] StdSpace ι)
+    (φ : StdSpace ι →L[ℝ] ℝ) :
+    stdFormCompRightInverseL ι A φ = -(stdForm ι).flatEquiv.symm (φ ∘L A) := by
+  simp [stdFormCompRightInverseL_def]
+
+/-- The map `φ ↦ -ω₀♭⁻¹ (φ ∘ A)` has norm at most `‖A‖`. -/
+theorem norm_stdFormCompRightInverseL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    ‖stdFormCompRightInverseL ι A‖ ≤ ‖A‖ :=
+  ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun φ ↦ by
+    rw [stdFormCompRightInverseL_apply, norm_neg, norm_stdForm_flatEquiv_symm_apply, mul_comm]
+    exact φ.opNorm_comp_le A
+
+/-- The form `ω₀(·, A ·)`, as a map to the dual, is `ω₀♭ : u ↦ ω₀(u, ·)` followed by
+`φ ↦ φ ∘ A`. -/
+theorem stdFormCompRightL_apply_eq_comp (A : StdSpace ι →L[ℝ] StdSpace ι) :
+    stdFormCompRightL ι A =
+      (ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A ∘L
+        ((stdForm ι).flatEquiv : StdSpace ι →L[ℝ] StdSpace ι →L[ℝ] ℝ) := by
+  ext u v
+  simp
+
+/-- For `A` with `A² = -1`, the form `ω₀(·, A ·)` is invertible as a map to the dual. -/
+theorem isInvertible_stdFormCompRightL_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    (stdFormCompRightL ι A).IsInvertible := by
+  rw [stdFormCompRightL_apply_eq_comp, ContinuousLinearMap.isInvertible_comp_equiv]
+  exact .of_inverse (g := -(ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A)
+    (by ext φ v; simp [hA]) (by ext φ v; simp [hA])
+
+/-- For `A` with `A² = -1`, the inverse of the form `ω₀(·, A ·)`, as a map to the dual, is
+`φ ↦ -ω₀♭⁻¹ (φ ∘ A)`. -/
+theorem inverse_stdFormCompRightL_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    (stdFormCompRightL ι A).inverse = stdFormCompRightInverseL ι A := by
+  rw [stdFormCompRightL_apply_eq_comp, ContinuousLinearMap.inverse_comp_equiv,
+    ContinuousLinearMap.inverse_eq
+      (g := -(ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A)
+      (by ext φ v; simp [hA]) (by ext φ v; simp [hA])]
+  ext φ : 1
+  simp
 
 variable (ι) in
 /-- The rotation `z ↦ cos t • z + sin t • J₀ z` of `StdSpace ι`, a linear isometry: through

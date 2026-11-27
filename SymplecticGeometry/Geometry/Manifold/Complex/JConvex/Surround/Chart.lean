@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gluing
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
@@ -66,6 +67,11 @@ shown to be real, and the imaginary part to have norm at most `√(t p)` for the
 * `SymplecticGeometry.exists_partialDiffeomorph_trans_modelDisc`: precomposing a partial
   diffeomorphism defined near the core with such a map keeps its source, target, values and
   differential along the core.
+* `SymplecticGeometry.exists_contDiff_glue_modelDisc`: local maps of the model space that fix
+  the core to first order and agree with each other to order `N + 1` near its compact subsets
+  glue to one such map on the whole space, agreeing with each to the same order. This is the
+  gluing along the core, which is not compact, of the proof of Proposition 5.55; it is the case
+  of the core of `SymplecticGeometry.exists_contDiff_glue_of_norm_iteratedFDeriv_sub_le`.
 * `SymplecticGeometry.complexEuclideanEquivRealProd_sumEquivProd_symm_modelDisc_snd`: in the
   coordinates of `EuclideanSpace ℂ (Fin k ⊕ Fin m)`, the core is real.
 * `SymplecticGeometry.norm_complexEuclideanEquivRealProd_sumEquivProd_symm_snd_le`: in those
@@ -79,7 +85,7 @@ shown to be real, and the imaginary part to have norm at most `√(t p)` for the
 
 public section
 
-open Manifold Set
+open Filter Manifold Set Topology
 open scoped ContDiff
 
 namespace SymplecticGeometry
@@ -205,6 +211,49 @@ theorem exists_partialDiffeomorph_trans_modelDisc
   · rw [PartialDiffeomorph.mfderiv_trans Ψ Φ₀ (by simp) (hsrc' (mem_range_self x)),
       mfderiv_eq_fderiv, hΨ, hd, hfix]
     exact ContinuousLinearMap.comp_id _
+
+/-- **Gluing local corrections along the core.** Let the open sets `U i` of `ℂᵏ × ℂᵐ` cover the
+core `ι₀ (ℝᵏ)`, where `ι₀ = modelDisc k m`, and let `G i` be smooth on `U i`, fixing the points
+of the core in `U i` with the identity as differential there. Let `w ≥ 0` be a continuous weight
+vanishing on the core, and suppose that near every compact subset of the core inside `U i ∩ U j`
+the derivatives of order `l ≤ r` of `G i - G j` are bounded by a constant times
+`w ^ (N + 1 - l)`. Then there is a smooth `G` fixing the core with the identity as differential
+there, such that near every compact subset of the core inside `U i` the derivatives of order
+`l ≤ r` of `G - G i` have bounds of the same form. Such a `G` is what
+`exists_partialDiffeomorph_trans_modelDisc` takes, with `W = univ`. -/
+theorem exists_contDiff_glue_modelDisc {ι : Type*}
+    {U : ι → Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hU : ∀ i, IsOpen (U i))
+    (hcore : range (modelDisc k m) ⊆ ⋃ i, U i)
+    {G : ι → EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    (hG : ∀ i, ContDiffOn ℝ ∞ (G i) (U i))
+    (hfix : ∀ i x, modelDisc k m x ∈ U i → G i (modelDisc k m x) = modelDisc k m x)
+    (hd : ∀ i x, modelDisc k m x ∈ U i →
+      fderiv ℝ (G i) (modelDisc k m x) = ContinuousLinearMap.id ℝ _)
+    {w : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → ℝ} (hw : Continuous w)
+    (hw₀ : ∀ y, 0 ≤ w y) (hwcore : ∀ x, w (modelDisc k m x) = 0) {N r : ℕ}
+    (hpair : ∀ i j K, IsCompact K → K ⊆ range (modelDisc k m) ∩ U i ∩ U j →
+      ∃ C, ∀ᶠ y in 𝓝ˢ K, ∀ l ≤ r,
+        ‖iteratedFDeriv ℝ l (G i - G j) y‖ ≤ C * w y ^ (N + 1 - l)) :
+    ∃ G' : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+        EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m),
+      ContDiff ℝ ∞ G' ∧ (∀ x, G' (modelDisc k m x) = modelDisc k m x) ∧
+        (∀ x, fderiv ℝ G' (modelDisc k m x) = ContinuousLinearMap.id ℝ _) ∧
+        ∀ i K, IsCompact K → K ⊆ range (modelDisc k m) ∩ U i → ∃ C, ∀ᶠ y in 𝓝ˢ K, ∀ l ≤ r,
+          ‖iteratedFDeriv ℝ l (G' - G i) y‖ ≤ C * w y ^ (N + 1 - l) := by
+  obtain ⟨G', hG', hval, hbound⟩ := exists_contDiff_glue_of_norm_iteratedFDeriv_sub_le
+    (leftInverse_modelDiscProj.isClosed_range (modelDiscProj k m).continuous
+      (modelDisc k m).continuous) hU hcore hG
+    (fun i j z ⟨⟨⟨x, hx⟩, hzi⟩, hzj⟩ ↦ by
+      subst hx
+      exact (hd i x hzi).trans (hd j x hzj).symm)
+    hw hw₀ (by rintro _ ⟨x, rfl⟩; exact hwcore x) hpair
+  have hcore' : ∀ x, ∃ i, modelDisc k m x ∈ U i := fun x ↦ mem_iUnion.1 (hcore (mem_range_self x))
+  refine ⟨G', hG', fun x ↦ ?_, fun x ↦ ?_, hbound⟩
+  · obtain ⟨i, hi⟩ := hcore' x
+    exact ((hval i _ ⟨mem_range_self x, hi⟩).1).trans (hfix i x hi)
+  · obtain ⟨i, hi⟩ := hcore' x
+    exact ((hval i _ ⟨mem_range_self x, hi⟩).2).trans (hd i x hi)
 
 end Correction
 

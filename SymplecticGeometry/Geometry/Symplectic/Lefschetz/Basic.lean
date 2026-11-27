@@ -414,9 +414,9 @@ theorem manifoldMorseIndex_comp [I.Boundaryless]
   have hpe : π p ∈ (affineOpenPartialHomeomorph (K := ℂ) (n := 1) i).source := by
     simpa using hφ.source_subset hφ.mem_source
   have hμe : ContDiffAt ℝ 2 (μ ∘ (affineChart i).symm) a := by
-    simpa [a, affineOpenPartialHomeomorph_extend_apply] using
-      (contMDiffAt_iff_contDiffAt_comp_extend_symm
-        (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe).1 hμ
+    simpa only [coe_affineOpenPartialHomeomorph, coe_affineOpenPartialHomeomorph_symm] using
+      hμ.contDiffAt_comp_symm_of_mem_maximalAtlas
+        (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe
   have hdμe : fderiv ℝ (μ ∘ (affineChart i).symm) a ≠ 0 := by
     have := mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero (I := 𝓘(ℝ, Fin 1 → ℂ))
       (f := μ) (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe
