@@ -620,7 +620,8 @@ containing `ι '' closedBall 0 1`:
     interval `Icc r₁ r₂`, and let `O` be a
     neighbourhood of `Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
     `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
-    equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`; no transversality
+    equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`, with
+    `0 ≤ iteratedDeriv 2 χ r` wherever both `χᵢ` have it; no transversality
     of the crossings is needed. Condition (4.3) passes to
     `smoothedMax δ (χ₁ r) (χ₂ r)` (`Analysis/SpecialFunctions/SmoothedMax.lean`),
     whose value is at least each `χᵢ r` and whose slope is a convex
@@ -655,8 +656,8 @@ containing `ι '' closedBall 0 1`:
     `exists_isConvexShapeAt_eq_linear_eq_sqrt` (Lemma 4.19): for
     `1 < a` and `0 < γ` there are `d ∈ Ioo 0 1`, `β ∈ Ioo 0 γ` and a
     smooth `ψ`, convex shape at every `r > 0`, with
-    `ψ r = √(1 + a * r ^ 2)` for `γ ≤ r` and `ψ r = 1 + d * r` for
-    `r ≤ β`; Remark 4.20's admissible constants
+    `ψ r = √(1 + a * r ^ 2)` for `γ ≤ r`, `ψ r = 1 + d * r` for
+    `r ≤ β` and `r * deriv ψ r < ψ r` for `0 ≤ r`; Remark 4.20's admissible constants
     (`c = (1 + a) / 2`, `b = γ * (a - 1) / 16`), which §4.7 needs.
   - `exists_convexShape_surround` (14d4; Proposition 4.21, which is
     Theorem 4.1 (i)–(iii) in terms of the shape): for `1 < a` and
