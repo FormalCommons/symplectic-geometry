@@ -12,6 +12,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.Deriv.Prod
 
 /-!
@@ -151,15 +152,11 @@ theorem field_toChart_symm {z : E} (hz : z ∈ φ.toChart.target) :
     φ.field (φ.toChart.symm z) = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm z
       (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i)) := by
   refine (φ.eq_field_of_coord_mfderiv (φ.toChart.map_target hz) ?_).symm
-  set v : TangentSpace 𝓘(ℝ, E) z := φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i) with hv
-  have h : mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart (φ.toChart.symm z)
-      (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm z v) = v := by
-    rw [← ContinuousLinearMap.comp_apply,
-      (mdifferentiable_of_mem_maximalAtlas φ.mem_maximalAtlas_one).comp_symm_deriv hz]
-    -- The tangent spaces at `z` and at `φ.toChart (φ.toChart.symm z)` are both `E`, so `rw`
-    -- cannot match `ContinuousLinearMap.id_apply` between them.
-    exact ContinuousLinearMap.id_apply v
-  rw [h, hv, φ.toChart.right_inv hz, LinearEquiv.apply_symm_apply]
+  have hmd := mdifferentiable_of_mem_maximalAtlas φ.mem_maximalAtlas_one
+  rw [φ.toChart.mfderiv_apply_mfderiv_symm_apply hz
+    (hmd.mdifferentiableAt (φ.toChart.map_target hz)) (hmd.mdifferentiableAt_symm hz)
+    (φ.coord.symm fun i ↦ -(φ.weight i * φ.coord z i) : E),
+    φ.toChart.right_inv hz, LinearEquiv.apply_symm_apply]
 
 /-- **The field of a Morse chart on the coordinates of negative weight.** At the point of the
 chart with coordinates `c` of negative weight and `0` of positive weight, the field of the Morse

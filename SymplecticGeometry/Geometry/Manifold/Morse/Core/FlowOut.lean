@@ -179,9 +179,7 @@ theorem mfderiv_globalFlow_toChart_symm_apply (hXφ : ∀ y ∈ φ.toChart.sourc
     hθ.hasFDerivAt.comp (c, 0) hasFDerivAt_fst
   have hτw : mvfderiv 𝓘(ℝ, EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace)
       (θ ∘ Prod.fst) (c, 0) w = fderiv ℝ θ c w.1 := by
-    rw [mvfderiv_eq_fderiv, hτ.fderiv]
-    -- `fromTangentSpace` is the identity of the model space, which has no rewriting lemma here.
-    rfl
+    rw [mvfderiv_eq_fderiv_apply, hτ.fderiv]; exact ContinuousLinearMap.comp_apply _ _ w
   have h := mfderiv_flowOf_comp_prodMk_apply hX (τ := θ ∘ Prod.fst)
     (f := fun q ↦ φ.toChart.symm (T q)) hτ.differentiableAt.mdifferentiableAt
     (hsymm.comp (c, 0) T.mdifferentiableAt) (hXc.mem_flowDomain _ _) w
