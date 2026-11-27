@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
 public import TauCeti.Topology.VectorBundle.Determinant
 import TauCeti.Topology.VectorBundle.Trivialization
+import all TauCeti.Topology.VectorBundle.Determinant
 
 /-!
 # Trivializations of the determinant line from arbitrary linear trivializations
@@ -22,6 +23,11 @@ at a point, it is multiplication by the determinant of the coordinate change of 
 continuous since the model is finite-dimensional
 (`Bundle.Trivialization.continuousOn_coordChangeL`).
 
+Conversely, every trivialization in the atlas of the determinant line is
+`TauCeti.DetBundle.trivialization e` for some `e` in the atlas of `E`. Tau Ceti does not expose
+the atlas of its prebundle `TauCeti.DetBundle.vectorPrebundle`, so this file imports all of
+`TauCeti.Topology.VectorBundle.Determinant` to read it off.
+
 ## Main definitions and results
 
 * `TauCeti.DetBundle.trivializationOfIsLinear e`: the trivialization of `det E` over the base set
@@ -31,6 +37,8 @@ continuous since the model is finite-dimensional
   (`TauCeti.DetBundle.trivializationOfIsLinear_eq_trivialization`).
 * `TauCeti.DetBundle.coordChangeL_trivializationOfIsLinear`: the coordinate changes of these
   trivializations are the determinants of those of `E`.
+* `TauCeti.DetBundle.exists_eq_trivialization`: every trivialization in the atlas of `det E` is
+  `TauCeti.DetBundle.trivialization e` for some `e` in the atlas of `E`.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detBundle`: if `E` has a finite
   trivializing cover, so does its determinant line, with model `𝕜`.
 
@@ -133,7 +141,7 @@ theorem trivializationOfIsLinear_toPretrivialization (e : Trivialization F (π F
 @[simp]
 theorem trivializationOfIsLinear_baseSet (e : Trivialization F (π F E)) [e.IsLinear 𝕜] :
     (trivializationOfIsLinear (𝕜 := 𝕜) e).baseSet = e.baseSet :=
-  pretrivialization_baseSet e
+  pretrivialization_baseSet (𝕜 := 𝕜) e
 
 /-- Over its base set, the trivialization induced by a linear trivialization `e` reads the
 determinant line in the chart coordinate of `e`. -/
@@ -171,6 +179,16 @@ theorem trivializationOfIsLinear_eq_trivialization (e : Trivialization F (π F E
   Trivialization.toPretrivialization_injective <|
     (trivializationOfIsLinear_toPretrivialization e).trans
       (trivialization_toPretrivialization e).symm
+
+/-- Every trivialization in the atlas of the determinant line is induced by a trivialization in
+the atlas of `E`. -/
+theorem exists_eq_trivialization (e : Trivialization 𝕜 (π 𝕜 (DetBundle 𝕜 F E)))
+    [he : MemTrivializationAtlas e] :
+    ∃ (e₀ : Trivialization F (π F E)) (_ : MemTrivializationAtlas e₀), e = trivialization e₀ := by
+  obtain ⟨_, he', rfl⟩ := he.out
+  obtain ⟨e₀, he₀, rfl⟩ : ∃ (e₀ : Trivialization F (π F E)) (_ : MemTrivializationAtlas e₀),
+      _ = pretrivialization e₀ := he'
+  exact ⟨e₀, he₀, rfl⟩
 
 end TauCeti.DetBundle
 

@@ -85,14 +85,15 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {g : M → ℝ} {p : M} {X : (x : M) → TangentSpace 𝓘(ℝ, E) x}
   (φ : MorseChart E g p)
 
-/-- The linear map `(c, y) ↦ c + y` from the coordinates of negative weight and the stable
-subspace to the model space. -/
+/-- The continuous linear map `(c, y) ↦ c + y` from the coordinates of negative weight and the
+stable subspace to the model space. -/
 private noncomputable def thicken :
-    (EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) →ₗ[ℝ] E :=
-  (φ.negativeExtend ∘ₗ (WithLp.linearEquiv 2 ℝ _).toLinearMap).coprod φ.stableSubspace.subtype
+    (EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) →L[ℝ] E :=
+  φ.negativeExtendL.coprod φ.stableSubspace.subtypeL
 
 private theorem thicken_apply (q : EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) :
-    φ.thicken q = φ.negativeExtend q.1.ofLp + q.2 := rfl
+    φ.thicken q = φ.negativeExtend q.1.ofLp + q.2 := by
+  simp [thicken]
 
 private theorem negativeCoord_thicken
     (q : EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) :
@@ -140,8 +141,8 @@ theorem contMDiffOn_globalFlow_toChart_symm [IsManifold 𝓘(ℝ, E) ∞ M]
       (fun q : EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace ↦
         globalFlow X hX hXc (θ q.1) (φ.toChart.symm (φ.negativeExtend q.1.ofLp + q.2)))
       {q | φ.negativeExtend q.1.ofLp + q.2 ∈ φ.toChart.target} := by
-  have := φ.finiteDimensional
-  set T := LinearMap.toContinuousLinearMap φ.thicken
+  simp_rw [← thicken_apply]
+  set T := φ.thicken
   have hsymm : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ φ.toChart.symm φ.toChart.target :=
     contMDiffOn_symm_of_mem_maximalAtlas φ.mem_maximalAtlas
   have hι : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) 𝓘(ℝ, E) ∞
@@ -168,10 +169,14 @@ theorem mfderiv_globalFlow_toChart_symm_apply (hXφ : ∀ y ∈ φ.toChart.sourc
         (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm (φ.negativeExtend c.ofLp)
           (fderiv ℝ θ c w.1 • φ.negativeExtend c.ofLp +
             (φ.negativeExtend w.1.ofLp + (w.2 : E)))) := by
-  have := φ.finiteDimensional
-  set T := LinearMap.toContinuousLinearMap φ.thicken
+  set T := φ.thicken
+  have hΨ : (fun q : EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace ↦
+      globalFlow X hX hXc (θ q.1) (φ.toChart.symm (φ.negativeExtend q.1.ofLp + q.2))) =
+      fun q ↦ globalFlow X hX hXc (θ q.1) (φ.toChart.symm (T q)) := by
+    simp_rw [T, thicken_apply]
+  rw [hΨ, ← φ.thicken_apply w]
   have hT0 : T (c, 0) = φ.negativeExtend c.ofLp := by
-    rw [LinearMap.coe_toContinuousLinearMap', thicken_apply]; simp
+    rw [thicken_apply]; simp
   have hsymm : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm (T (c, 0)) := by
     rw [hT0]; exact mdifferentiableAt_symm_of_mem_maximalAtlas φ.mem_maximalAtlas_one hc
   have hτ : HasFDerivAt (θ ∘ Prod.fst) ((fderiv ℝ θ c).comp (ContinuousLinearMap.fst ℝ _ _))
@@ -196,8 +201,6 @@ theorem mfderiv_globalFlow_toChart_symm_apply (hXφ : ∀ y ∈ φ.toChart.sourc
   set dΦ := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) (globalFlow X hX hXc (θ c))
     (φ.toChart.symm (φ.negativeExtend c.ofLp))
   set D := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) φ.toChart.symm (φ.negativeExtend c.ofLp)
-  -- `T w` is `φ.negativeExtend w.1.ofLp + w.2` by `thicken_apply`; it is left as it is, since `w`
-  -- is a tangent vector and `rw` does not see through `TangentSpace`.
   exact ((congrArg (· + dΦ (D (T w))) (dΦ.map_smul _ (D _)).symm).trans
     (dΦ.map_add _ _).symm).trans
     (congrArg dΦ ((congrArg (· + D (T w)) (D.map_smul _ _).symm).trans (D.map_add _ _).symm))
@@ -257,8 +260,9 @@ theorem exists_isSmoothEmbedding_globalFlow_toChart_symm [IsManifold 𝓘(ℝ, E
     globalFlow X hX hXc (θ q.1) (φ.toChart.symm (φ.negativeExtend q.1.ofLp + q.2))
   set O := {q : EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace |
     φ.negativeExtend q.1.ofLp + q.2 ∈ φ.toChart.target}
-  have hO : IsOpen O := φ.toChart.open_target.preimage
-    (LinearMap.toContinuousLinearMap φ.thicken).continuous
+  have hO : IsOpen O := by
+    simp_rw [O, ← thicken_apply]
+    exact φ.toChart.open_target.preimage φ.thicken.continuous
   have hΨ : ContMDiffOn _ _ ∞ Ψ O := φ.contMDiffOn_globalFlow_toChart_symm hX hXc hXs hθ
   set L := {q | IsLocalDiffeomorphAt
     𝓘(ℝ, EuclideanSpace ℝ {i // φ.weight i < 0} × φ.stableSubspace) 𝓘(ℝ, E) ∞ Ψ q}
