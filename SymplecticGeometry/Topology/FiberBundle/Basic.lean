@@ -157,6 +157,7 @@ variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalS
   {proj : Z → B} (A : Atlas F proj)
 
 /-- The base sets of the trivializations of an atlas cover the base. -/
+@[simp]
 theorem iUnion_baseSet_trivAt : ⋃ b, (A.trivAt b).baseSet = Set.univ :=
   Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩
 
