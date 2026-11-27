@@ -42,7 +42,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value in `[1 + d δ, 1 + d K δ)`,
   and has slope tending to `+∞` at `δ`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt_sub`: the shape `√(a r² - c)` for `a > 1`, at each
-  `r > 0` with `c < a r²`; `√(ℓ² + a r²)` is its case `c = -ℓ²`.
+  `r > 0` with `c < a r²`; `√(ℓ² + a r²)` is its case `c = -ℓ²`. Its second derivative,
+  `-a c / √(a r² - c)³`, is `SymplecticGeometry.iteratedDeriv_two_sqrt_sub`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt`, `SymplecticGeometry.isConvexShapeAt_quadratic` and
   `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
   `ℓ + b r + c r² / (2 ℓ)` for `c > 1`, and `ℓ + d r` for `r < ℓ d³`.
@@ -532,16 +533,27 @@ theorem iteratedDeriv_two_quadratic (ℓ b c r : ℝ) :
   simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
   ring
 
+/-- The second derivative of the shape `r ↦ √(a r² - c)`, at a point `r` where `a r² - c > 0`,
+is `-a c / √(a r² - c)³`. -/
+theorem iteratedDeriv_two_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
+    iteratedDeriv 2 (fun r ↦ √(a * r ^ 2 - c)) r = -a * c / √(a * r ^ 2 - c) ^ 3 := by
+  have e : (fun r ↦ √(a * r ^ 2 - c)) = fun r ↦ √(-c + 0 * r + a * r ^ 2) := by
+    ext r
+    ring_nf
+  have hQ : 0 < -c + 0 * r + a * r ^ 2 := by linarith
+  have hR : -c + 0 * r + a * r ^ 2 = a * r ^ 2 - c := by ring
+  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
+  rw [deriv_deriv_sqrt_quadratic hQ, hR, pow_succ _ 2, sq_sqrt h.le]
+  field_simp
+  ring
+
 /-- The second derivative of the shape `r ↦ √(ℓ² + a r²)`, at a point `r` where
 `ℓ² + a r² > 0`, is `a ℓ² / √(ℓ² + a r²)³`. -/
 theorem iteratedDeriv_two_sqrt_quadratic {a ℓ r : ℝ} (h : 0 < ℓ ^ 2 + a * r ^ 2) :
     iteratedDeriv 2 (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) r = a * ℓ ^ 2 / √(ℓ ^ 2 + a * r ^ 2) ^ 3 := by
-  have e : (fun r ↦ √(ℓ ^ 2 + a * r ^ 2)) = fun r ↦ √(ℓ ^ 2 + 0 * r + a * r ^ 2) := by
-    simp
-  have hQ : 0 < ℓ ^ 2 + 0 * r + a * r ^ 2 := by simpa using h
-  simp only [e, iteratedDeriv_succ, iteratedDeriv_zero]
-  rw [deriv_deriv_sqrt_quadratic hQ, zero_mul, add_zero, pow_succ _ 2, sq_sqrt h.le]
-  field_simp
+  have e : ∀ r : ℝ, ℓ ^ 2 + a * r ^ 2 = a * r ^ 2 - -ℓ ^ 2 := fun r ↦ by ring
+  simp only [e]
+  rw [iteratedDeriv_two_sqrt_sub (by linarith [e r])]
   ring
 
 /-- **The shape `√(a r² - c)`.** For `1 < a`, `0 < r` and `c < a r²`, `r ↦ √(a r² - c)` is an
@@ -562,10 +574,8 @@ theorem isConvexShapeAt_sqrt_sub {a c r : ℝ} (ha : 1 < a) (hr : 0 < r) (hc : c
     field_simp
     ring
   have h₂ : iteratedDeriv 2 (fun r ↦ √(-c + 0 * r + a * r ^ 2)) r = -a * c / S ^ 3 := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero]
-    rw [deriv_deriv_sqrt_quadratic hQ, ← hS_def, ← hSS]
-    field_simp
-    ring
+    rw [← e, iteratedDeriv_two_sqrt_sub (by linarith), hS_def]
+    ring_nf
   refine isConvexShapeAt_iff.2 ⟨hr, hS, ?_, ?_⟩
   · rw [h₁, show a * r / S / r = a / S by field_simp]
     exact div_lt_div_of_pos_right ha hS
