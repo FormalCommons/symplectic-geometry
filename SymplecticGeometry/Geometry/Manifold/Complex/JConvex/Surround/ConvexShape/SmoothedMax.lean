@@ -9,8 +9,8 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
-import SymplecticGeometry.Topology.Order.Compact
 import SymplecticGeometry.Order.Interval.Set.Piecewise
+import SymplecticGeometry.Topology.Order.Compact
 import SymplecticGeometry.Topology.Order.Piecewise
 import TauCeti.Order.Interval.Set.Piecewise
 
