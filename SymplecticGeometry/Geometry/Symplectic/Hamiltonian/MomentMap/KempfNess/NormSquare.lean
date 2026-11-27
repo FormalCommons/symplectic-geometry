@@ -329,11 +329,11 @@ theorem exists_mem_orbit_maximalIntegralCurve (h : IsComplexifiedAction C J)
   -- The derivative of `Φ_p` along `g` is `μ (g⁻¹ p) (C.im (g⁻¹ ġ))`.
   obtain ⟨w, hw', hwξ⟩ := hasLeftTrivializedDerivOn_univ_iff.mp hgξ t
   have hΦ := hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hw'.mdifferentiableAt
-  have hw1 : mfderiv 𝓘(ℝ) IC g t 1 = w := by
+  have hw1 : mfderiv 𝓘(ℝ) IC g t (1 : ℝ) = w := by
     rw [hw'.mfderiv]
     exact one_smul ℝ w
   refine hΦ.congr_deriv ?_
-  erw [hw1, hwξ]
+  rw [hw1, hwξ]
   rw [map_smul, C.im_cplx_lieMap, map_smul, smul_eq_mul, heq, momentNormSq_eq_apply_momentSharp]
 
 end Flow
