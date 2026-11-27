@@ -209,7 +209,7 @@ and the note of the review of #3195.
 `DESIGN.md` is corrected in the same pull request, in part 62, the table
 of milestones and the convention *The rational elliptic surface*:
 `Gompf.lean` becomes `FinitelyPresented.lean` (Decision 11);
-`RationalEllipticSurface.lean` no longer uses *Complex blowup*'s
+`RationalEllipticSurface/Basic.lean` no longer uses *Complex blowup*'s
 `ConnectedSum.lean` (Decision 6), so *Builds on* and the build-order row
 drop *Complex blowup*; `Fibre.lean` glues along open collars rather than at
 the fixed radius (Decision 2); `Pointwise.lean` works with nondegenerate
@@ -508,7 +508,7 @@ are merged):
 
 Step 8d first searches Mathlib and Tau Ceti for that comparison.
 
-### `Geometry/Symplectic/Sum/RationalEllipticSurface.lean`
+### `Geometry/Symplectic/Sum/RationalEllipticSurface/Basic.lean`
 
 - `rationalEllipticSurface`, the set of Decision 4, a compact complex
   surface with charts from the atlas of bihomogeneous zero sets in
@@ -535,7 +535,7 @@ About 900 lines, in three issues.
   as `Subgroup.normalClosure` of the range of the induced map, and $X'$ is
   connected. By `TauCeti.isPushout_fundamentalGroup` for the two pieces,
   whose overlap is $T^2\times A(\delta,\varepsilon)$, with
-  $\pi_1(E(1)\setminus T)=1$ from `RationalEllipticSurface.lean`, and the same
+  $\pi_1(E(1)\setminus T)=1$ from `RationalEllipticSurface/Basic.lean`, and the same
   theorem for $X$ covered by the complement of the closed tube and the open
   tube. Milestone: *Fundamental group after summing with the rational
   elliptic surface*.
@@ -593,9 +593,9 @@ sums*. Sizes are estimates. "P60" is the issue of *Almost complex spheres*
 | 2 | The annulus map and product collars | `Collar.lean` | — | 250 |
 | 3 | Product neighbourhoods and the fibre sum; the milestone | `Fibre.lean` | 1, 2 | 500 |
 | 4 | The pointwise obstruction | `Pointwise.lean` | P60 | 450 |
-| 5 | The Hesse pencil surface and its symplectic form | `RationalEllipticSurface.lean` | — | 350 |
-| 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface.lean` | 5 | 350 |
-| 7 | The fibre as a standard torus | `RationalEllipticSurface.lean` | 5 | 300 |
+| 5 | The Hesse pencil surface and its symplectic form | `RationalEllipticSurface/Basic.lean` | — | 350 |
+| 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface/Basic.lean` | 5 | 350 |
+| 7 | The fibre as a standard torus | `RationalEllipticSurface/Basic.lean` | 5 | 300 |
 | 8 | Closed surfaces of genus $g$ and their fundamental groups | `Surface/` | — | |
 | 9 | The fundamental group of a sum with $E(1)$ | `FundamentalGroup.lean` | 3, 6, 7 | 500 |
 | 10 | Tori in $F\times T^2$ | `FinitelyPresented.lean` | 3, 8 | 300 |
