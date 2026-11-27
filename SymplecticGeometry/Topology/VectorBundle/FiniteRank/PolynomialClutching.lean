@@ -5,8 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
-public import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.LaurentClutching
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ElementaryClutching
