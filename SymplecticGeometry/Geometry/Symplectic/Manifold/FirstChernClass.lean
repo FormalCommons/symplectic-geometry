@@ -100,11 +100,8 @@ theorem IsNondegenerate.firstChernClass_eq_of_tames {σ : SmoothTwoForm I M}
     (h : σ.IsNondegenerate) {J : SmoothAlmostComplexStructure I M} (hJ : σ.Tames J) :
     h.firstChernClass G = TauCeti.firstChernClass G
       (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber := by
-  have hK : (ContMDiffTwoForm.tangentEquiv.symm σ).Tames
-      (ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)) := by
-    rw [← ContMDiffTwoForm.tames_tangentEquiv_iff]
-    simpa using hJ
-  rw [h.firstChernClass_eq_of_tangentEquiv_symm_tames G hK,
+  rw [h.firstChernClass_eq_of_tangentEquiv_symm_tames G
+      (ContMDiffTwoForm.tames_tangentEquiv_symm_iff.2 hJ),
     ContMDiffComplexStructure.toContinuousComplexStructure_tangentEquiv_symm]
 
 /-- **The first Chern class of a nondegenerate two-form is that of any compatible almost complex

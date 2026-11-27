@@ -35,8 +35,8 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   `mulInvariantVectorField`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.continuousOn`: such a curve is continuous on `s`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.mdifferentiableAt`,
-  `SymplecticGeometry.HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv`: at a time of which `s`
-  is a neighbourhood, the curve is differentiable, and its velocity translated to the identity
+  `SymplecticGeometry.HasLeftTrivializedDerivOn.mfderiv_inv_mul_curveVelocity`: at a time of which
+  `s` is a neighbourhood, the curve is differentiable, and its velocity translated to the identity
   is `ξ t`.
 * `SymplecticGeometry.hasLeftTrivializedDerivOn_mulInvariantExp_smul`: the one-parameter subgroup
   `t ↦ exp (t • v)` has constant left-trivialized derivative `v`.
@@ -269,8 +269,8 @@ theorem HasLeftTrivializedDerivOn.mdifferentiableAt (hg : HasLeftTrivializedDeri
 
 /-- At a time `t` of which `s` is a neighbourhood, the velocity `Manifold.curveVelocity I g t` of
 a curve with left-trivialized derivative `ξ` on `s`, translated to the identity, is `ξ t`. -/
-theorem HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv (hg : HasLeftTrivializedDerivOn g ξ s)
-    {t : ℝ} (hs : s ∈ 𝓝 t) :
+theorem HasLeftTrivializedDerivOn.mfderiv_inv_mul_curveVelocity
+    (hg : HasLeftTrivializedDerivOn g ξ s) {t : ℝ} (hs : s ∈ 𝓝 t) :
     mfderiv I I ((g t)⁻¹ * ·) (g t) (Manifold.curveVelocity I g t) = ξ t := by
   obtain ⟨v, hgv, hv⟩ := hg t (mem_of_mem_nhds hs)
   rw [← Manifold.curveVelocityWithin_of_mem_nhds hs,
