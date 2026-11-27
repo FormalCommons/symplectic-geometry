@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
-import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
+import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.VectorField.ModelChart
 import SymplecticGeometry.Topology.Order.Sublevel
 
@@ -24,10 +24,12 @@ the sublevel `{f ≤ a}`, there is a smooth diffeotopy of `M` that does not move
 
 The flows of `TauCeti.exists_flow_apply_eq_sub` and `TauCeti.exists_diffeomorph_sublevel` move
 points of `{f ≤ a}` too. Here the descending field is multiplied by a smooth function of `f` that
-vanishes on `{f ≤ a + ε / 3}` and is `1` on `{f ≥ a + 2 ε / 3}`, where `{f ≤ a + ε} ⊆ U`
-(`exists_pos_sublevel_subset_of_isCompact_preimage_Icc`), and the cut-off field is run for the
-time `b - a` by `TauCeti.compactlySupportedFlowDiffeotopy`. A point of `{f ≤ b}` whose orbit
-stayed above `a + 2 ε / 3` would descend at unit speed all that time, ending below `a`.
+vanishes on `{f ≤ a + ε / 3}` and is `1` on `{f ≥ a + 2 ε / 3}`, where `ε ≤ b - a` and
+`{f ≤ a + ε} ⊆ U` (`exists_pos_sublevel_subset_of_isCompact_preimage_Icc`), and the cut-off field
+is run for the time `b - a` by `TauCeti.compactlySupportedFlowDiffeotopy`. On the band
+`f⁻¹[a + 2 ε / 3, b]` the cut-off field descends at unit speed, so every orbit starting in
+`{f ≤ b}` leaves it downwards within the time `b - a`
+(`IsMIntegralCurve.apply_lt_of_mvfderiv_apply_le_neg`).
 The descending field is `TauCeti.exists_vectorField_mvfderiv_eq_neg_one_of_boundaryless`.
 
 A band core `SymplecticGeometry.BandCore I g a₀ a b` of `g : M → ℝ` is a finite family of pairwise
@@ -84,9 +86,13 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
     rw [Diffeotopy.final_apply, Diffeotopy.refl_apply]
     exact hsub ((show f x ≤ b from hx).trans hba)
   have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
-  obtain ⟨ε, hε, hεU⟩ :=
+  obtain ⟨ε', hε', hεU'⟩ :=
     exists_pos_sublevel_subset_of_isCompact_preimage_Icc hf.continuous hab hcompact
       (hU.mem_nhdsSet.2 hsub)
+  -- Take `ε ≤ b - a`, so that the level `a + 2 ε / 3` is in the band.
+  obtain ⟨ε, hε, hεb, hεU⟩ : ∃ ε > 0, ε ≤ b - a ∧ {x | f x ≤ a + ε} ⊆ U :=
+    ⟨min ε' (b - a), lt_min hε' (by linarith), min_le_right _ _,
+      fun x hx ↦ hεU' ((show f x ≤ a + min ε' (b - a) from hx).trans (by simp))⟩
   -- The cutoff `ρ ∘ f` vanishes below `c = a + ε / 3` and is `1` above `d = a + 2 ε / 3`.
   set c := a + ε / 3 with hc
   set d := a + 2 * ε / 3 with hd
@@ -100,7 +106,7 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
       (by linarith))
   have hρ1 : ∀ s, d ≤ s → ρ s = 1 := fun s hs ↦
     Real.smoothTransition.one_of_one_le ((one_le_div (by linarith)).2 (by linarith))
-  obtain ⟨X, hX, hXle, ⟨W, -, hKW, hXW⟩, C, hC, hXC⟩ :=
+  obtain ⟨X, hX, -, ⟨W, -, hKW, hXW⟩, C, hC, hXC⟩ :=
     exists_vectorField_mvfderiv_eq_neg_one_of_boundaryless hf hcompact
       fun x hx ↦ hreg x hx.1 hx.2
   -- The cut-off field `Y = (ρ ∘ f) • X`.
@@ -110,9 +116,6 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
   have hYzero : ∀ x ∉ C, Y x = 0 := fun x hx ↦ by simp [hY, hXC x hx]
   have hdY : ∀ x, mvfderiv I f x (Y x) = ρ (f x) * mvfderiv I f x (X x) := fun x ↦
     (map_smul (mvfderiv I f x) (ρ (f x)) (X x)).trans (smul_eq_mul _ _)
-  have hYle : ∀ x, mvfderiv I f x (Y x) ≤ 0 := fun x ↦ by
-    rw [hdY]
-    exact mul_nonpos_of_nonneg_of_nonpos (Real.smoothTransition.nonneg _) (hXle x)
   have hYW : ∀ x ∈ W ∩ {x | d ≤ f x}, mvfderiv I f x (Y x) = -1 := fun x hx ↦ by
     rw [hdY, hρ1 _ hx.2, hXW x hx.1, one_mul]
   have hY1 : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle I M)) :=
@@ -124,27 +127,18 @@ theorem exists_diffeotopy_mapsTo_of_sublevel_subset (hf : ContMDiff I 𝓘(ℝ) 
     fun x hx ↦ ?_⟩
   · refine compactlySupportedFlowDiffeotopy_apply_of_eq_zero _ hYC hC hYzero _ ?_ t
     simp [hY, hρ0 _ (show f x < c from hx).le]
-  -- A point of `{f ≤ b}` whose orbit stayed above `d` would descend at unit speed for the time
-  -- `b - a`, ending below `a`.
+  -- A point of `{f ≤ b}` whose orbit stayed in the band `f⁻¹[d, b]` would descend at unit
+  -- speed for the time `b - a`, ending below `a`.
   rw [Diffeotopy.final_apply, compactlySupportedFlowDiffeotopy_apply, Set.Icc.coe_one, mul_one,
     ← globalFlow_apply hY1 hcomplete]
-  set γ : ℝ → M := fun s ↦ globalFlow Y hY1 hcomplete s x
-  have hanti : Antitone (f ∘ γ) :=
-    (isMIntegralCurve_globalFlow hY1 hcomplete x).antitone_comp
-      (fun _ ↦ hf.mdifferentiableAt (by simp)) fun _ ↦ hYle _
-  refine hεU (show f (γ (b - a)) ≤ a + ε from ?_)
-  by_contra! h
-  have hγ0 : γ 0 = x := Flow.map_zero_apply _ x
-  have hseg : ∀ w ∈ uIcc 0 (b - a), γ w ∈ W ∩ {x | d ≤ f x} := by
-    intro w hw
-    rw [uIcc_of_le (by linarith)] at hw
-    have h1 : f (γ (b - a)) ≤ f (γ w) := hanti hw.2
-    have h2 : f (γ w) ≤ f (γ 0) := hanti hw.1
-    rw [hγ0] at h2
-    exact ⟨hKW ⟨by linarith, h2.trans hx⟩, show d ≤ f (γ w) by linarith⟩
-  have := apply_globalFlow_eq_sub_of_forall_mem hY1 hcomplete hYW hseg
-  have hxb : f x ≤ b := hx
-  linarith
+  have hx0 : f (globalFlow Y hY1 hcomplete 0 x) ≤ b := by
+    rw [Flow.map_zero_apply]
+    exact hx
+  refine hεU (show f (globalFlow Y hY1 hcomplete (b - a) x) ≤ a + ε from
+    (((isMIntegralCurve_globalFlow hY1 hcomplete x).apply_lt_of_mvfderiv_apply_le_neg
+      (fun _ ↦ hf.mdifferentiableAt (by simp)) (by linarith : d ≤ b)
+      (fun u hdu hub ↦ (hYW _ ⟨hKW ⟨by linarith, hub⟩, hdu⟩).le) (ε := 1) hx0
+      (by linarith) (by linarith)).trans_le (by linarith)).le)
 
 end TauCeti
 
