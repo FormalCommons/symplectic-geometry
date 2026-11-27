@@ -92,14 +92,13 @@ theorem of_tensorTautological (T : Finset (Fin m)) :
   conv_rhs => rw [← Finset.sort_toFinset T (· ≤ ·)]
   rw [List.prod_toFinset _ (Finset.sort_nodup T (· ≤ ·)), tensorTautological_def]
   induction T.sort (· ≤ ·) with
-  -- The unit `𝟙_` of the monoidal category of cores is the trivial line by definition.
   | nil => exact SplitK0.one_def.symm
   | cons i l ih => rw [List.foldr_cons, ← SplitK0.of_mul_of, ih, List.map_cons, List.prod_cons]
 
 /-- The class of the pullback of `L_T` along a continuous map `f : Y → (ℂP¹)^m` is the product of
 the classes of the pullbacks of the tautological line along the components `f_i` of `f`, for
 `i ∈ T`. -/
-theorem of_pullback_tensorTautological {Y : Type} [TopologicalSpace Y]
+theorem of_pullback_tensorTautological {Y : Type*} [TopologicalSpace Y]
     (f : C(Y, Fin m → ℙ ℂ (Fin 2 → ℂ))) (T : Finset (Fin m)) :
     (SplitK0.of ((tensorTautological T).pullback f) : SplitK0 (FiniteRankBundleCore ℂ Y)) =
       ∏ i ∈ T, SplitK0.of ((Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback
@@ -118,9 +117,7 @@ private theorem closure_range_of_tensorTautological_eq_top_zero :
   have h1 : (SplitK0.of (FiniteRankBundleCore.trivial ℂ (Fin 0 → ℙ ℂ (Fin 2 → ℂ)) 1) :
       SplitK0 (FiniteRankBundleCore ℂ (Fin 0 → ℙ ℂ (Fin 2 → ℂ)))) = SplitK0.of
         (tensorTautological ∅) := by
-    rw [of_tensorTautological, Finset.prod_empty]
-    -- The unit `𝟙_` of the monoidal category of cores is the trivial line by definition.
-    exact SplitK0.one_def.symm
+    rw [of_tensorTautological, Finset.prod_empty, SplitK0.of_trivial_one]
   have hA := FiniteRankBundleCore.pullback_const A (X := Fin 0 → ℙ ℂ (Fin 2 → ℂ)) default
   rw [show ContinuousMap.const _ default = ContinuousMap.id _ from
     ContinuousMap.ext fun _ ↦ Subsingleton.elim _ _, FiniteRankBundleCore.pullback_id] at hA
@@ -154,23 +151,26 @@ theorem closure_range_of_tensorTautological_eq_top (m : ℕ) :
     set S := AddSubgroup.closure (Set.range fun T : Finset (Fin (m + 1)) ↦
       (SplitK0.of (tensorTautological T) :
         SplitK0 (FiniteRankBundleCore ℂ (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ)))))
-    -- Pulling back to `Fin (m + 1) → P` along the first `m` coordinates, and multiplying by
-    -- `[H_m]`, both take `K((ℂP¹)^m)` into `S`, since they take `L_T` to `L_{T'}`.
+    -- `Ψ` is the pullback along `ψ`, and `Φ` the pullback along the first `m` coordinates.
+    let Ψ : SplitK0 (FiniteRankBundleCore ℂ ((Fin m → ℙ ℂ (Fin 2 → ℂ)) × ℙ ℂ (Fin 2 → ℂ))) →+*
+        SplitK0 (FiniteRankBundleCore ℂ (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ))) :=
+      SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor ψ)
     let Φ : SplitK0 (FiniteRankBundleCore ℂ (Fin m → ℙ ℂ (Fin 2 → ℂ))) →+*
         SplitK0 (FiniteRankBundleCore ℂ (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ))) :=
-      SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor (ContinuousMap.fst.comp ψ))
+      Ψ.comp (SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor ContinuousMap.fst))
     have hΦ (T : Finset (Fin m)) :
         Φ (SplitK0.of (tensorTautological T)) =
           SplitK0.of (tensorTautological (T.map Fin.castSuccEmb)) := by
-      rw [SplitK0.mapRingHom_of, FiniteRankBundleCore.pullbackFunctor_obj,
+      rw [RingHom.comp_apply, SplitK0.mapRingHom_pullbackFunctor_mapRingHom_pullbackFunctor,
+        SplitK0.mapRingHom_of, FiniteRankBundleCore.pullbackFunctor_obj,
         of_pullback_tensorTautological, of_tensorTautological, Finset.prod_map]
       simp only [hfst, Fin.coe_castSuccEmb]
-    have hH : (SplitK0.of ((Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback
-        (ContinuousMap.eval (Fin.last m))) :
-          SplitK0 (FiniteRankBundleCore ℂ (Fin (m + 1) → ℙ ℂ (Fin 2 → ℂ)))) =
-          SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor ψ)
-            (SplitK0.of ((Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback
-              ContinuousMap.snd)) := by
+    -- `Ψ` sends the class `[H]` of the tautological line pulled back from the factor `P` to
+    -- `[H_m]`.
+    have hH : Ψ (SplitK0.of ((Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback
+        ContinuousMap.snd)) =
+          SplitK0.of ((Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback
+            (ContinuousMap.eval (Fin.last m))) := by
       rw [SplitK0.mapRingHom_of, FiniteRankBundleCore.pullbackFunctor_obj,
         FiniteRankBundleCore.pullback_comp, hsnd]
     have hΦH (T : Finset (Fin m)) :
@@ -180,6 +180,8 @@ theorem closure_range_of_tensorTautological_eq_top (m : ℕ) :
           SplitK0.of (tensorTautological ((T.map Fin.castSuccEmb).cons (Fin.last m)
             (by simp [Fin.castSucc_ne_last]))) := by
       rw [hΦ, of_tensorTautological, of_tensorTautological, Finset.prod_cons, mul_comm]
+    -- `Φ`, and `Φ` followed by the multiplication by `[H_m]`, take `K((ℂP¹)^m)` into `S`, since
+    -- they take `L_T` to `L_{T'}`.
     have h₀ (x) : Φ x ∈ S := by
       refine (AddSubgroup.closure_le (S.comap Φ.toAddMonoidHom)).2 ?_ (ih ▸ AddSubgroup.mem_top x)
       rintro _ ⟨T, rfl⟩
@@ -194,30 +196,24 @@ theorem closure_range_of_tensorTautological_eq_top (m : ℕ) :
     -- theorem writes in terms of the classes `[p*A]` and `[p*A] * [H]`.
     rw [eq_top_iff]
     rintro x -
-    have hx : x = SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor ψ)
-        (SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor φ) x) := by
-      induction x using SplitK0.induction_on with
-      | zero => simp
-      | of A => rw [SplitK0.mapRingHom_of, SplitK0.mapRingHom_of,
-          FiniteRankBundleCore.pullbackFunctor_obj, FiniteRankBundleCore.pullbackFunctor_obj,
-          FiniteRankBundleCore.pullback_comp, hφψ, FiniteRankBundleCore.pullback_id]
-      | add x y hx hy => rw [map_add, map_add, ← hx, ← hy]
-      | neg x hx => rw [map_neg, map_neg, ← hx]
-    have hgen := SplitK0.closure_range_of_pullback_fst_union_mul_eq_top
-      (X := Fin m → ℙ ℂ (Fin 2 → ℂ))
+    have hx : x = Ψ (SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor φ) x) :=
+      RingHom.congr_fun (SplitK0.ringHom_ext (f := RingHom.id _)
+        (g := Ψ.comp (SplitK0.mapRingHom (FiniteRankBundleCore.pullbackFunctor φ))) fun A ↦ by
+          rw [RingHom.id_apply, RingHom.comp_apply,
+            SplitK0.mapRingHom_pullbackFunctor_mapRingHom_pullbackFunctor, hφψ,
+            SplitK0.mapRingHom_of, FiniteRankBundleCore.pullbackFunctor_obj,
+            FiniteRankBundleCore.pullback_id]) x
     rw [hx]
-    refine (AddSubgroup.closure_le (S.comap (SplitK0.mapRingHom
-      (FiniteRankBundleCore.pullbackFunctor ψ)).toAddMonoidHom)).2 ?_
-      (hgen ▸ AddSubgroup.mem_top _)
+    refine (AddSubgroup.closure_le (S.comap Ψ.toAddMonoidHom)).2 ?_
+      (SplitK0.closure_range_of_pullback_fst_union_mul_eq_top (X := Fin m → ℙ ℂ (Fin 2 → ℂ)) ▸
+        AddSubgroup.mem_top _)
     rintro _ (⟨A, rfl⟩ | ⟨A, rfl⟩)
-    · have := h₀ (SplitK0.of A)
-      rwa [SplitK0.mapRingHom_of, FiniteRankBundleCore.pullbackFunctor_obj,
-        ← FiniteRankBundleCore.pullback_comp, ← FiniteRankBundleCore.pullbackFunctor_obj,
-        ← SplitK0.mapRingHom_of] at this
-    · have := h₁ (SplitK0.of A)
-      rwa [hH, SplitK0.mapRingHom_of, FiniteRankBundleCore.pullbackFunctor_obj,
-        ← FiniteRankBundleCore.pullback_comp, ← FiniteRankBundleCore.pullbackFunctor_obj,
-        ← SplitK0.mapRingHom_of, ← map_mul] at this
+    · simpa only [SetLike.mem_coe, AddSubgroup.mem_comap, RingHom.toAddMonoidHom_eq_coe,
+        AddMonoidHom.coe_ofClass, Φ, RingHom.comp_apply, SplitK0.mapRingHom_of,
+        FiniteRankBundleCore.pullbackFunctor_obj] using h₀ (SplitK0.of A)
+    · simpa only [SetLike.mem_coe, AddSubgroup.mem_comap, RingHom.toAddMonoidHom_eq_coe,
+        AddMonoidHom.coe_ofClass, map_mul, hH, Φ, RingHom.comp_apply, SplitK0.mapRingHom_of,
+        FiniteRankBundleCore.pullbackFunctor_obj] using h₁ (SplitK0.of A)
 
 end SymplecticGeometry.Bundle
 
