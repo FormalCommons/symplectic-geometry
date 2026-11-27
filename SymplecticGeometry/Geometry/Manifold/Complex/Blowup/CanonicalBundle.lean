@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ChartChange
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.TopDegree
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Canonical
 
 /-!
@@ -57,12 +58,23 @@ The Jacobian of a chart change of the model is computed from that of the blowdow
 change intertwines the blowdowns read in the two charts, which gives the determinant where
 `w i ≠ 0`, and continuity extends it to the whole source of the chart change.
 
+Finally the file defines the isomorphism `K ≅ π^*K_M ⊗ 𝒪(nE)` of canonical bundles fibre by
+fibre. Since the pull-back of a form by the blowdown vanishes on the exceptional divisor for
+`n > 0`, it is not defined as that pull-back, but chart by chart: at `z`, in the preferred chart
+of `hypersurfaceData c`, its inverse sends `σ ⊗ a` to `a` times `σ` pulled back by the
+differential of the blowdown (chart `none`), or by that of the chart `blowupModelChart i ∘ lift c`
+followed by the inverse of that of `c` (chart `some i`). The Jacobians above show that these
+maps differ, from one chart to another, exactly by the transition functions of `𝒪(nE)`, so that
+the value in every chart containing `z` is the same.
+
 ## Main definitions
 
 * `SymplecticGeometry.Blowup.hypersurfaceData c`: the local equations of the exceptional divisor.
   Its cover, local equations and transition functions are given by `hypersurfaceData_U_none`,
   `hypersurfaceData_U_some`, `hypersurfaceData_f_none`, `hypersurfaceData_f_some` and the lemmas
   `hypersurfaceData_g_*`.
+* `SymplecticGeometry.Blowup.canonicalBundleEquiv c z`: the fibrewise isomorphism of the
+  canonical bundle of the blowup with `π^*K_M ⊗ 𝒪(nE)`.
 
 ## Main results
 
@@ -80,6 +92,9 @@ change intertwines the blowdowns read in the two charts, which gives the determi
   of the charts `i` and `k` of the blowup differ by the factor `g⁻ⁿ`, with `g` the transition
   function `(hypersurfaceData c).g (some k) (some i)`. Unlike `coordForm_blowdown`, this
   compares the two coordinate forms on the exceptional divisor too.
+* `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_tmul_none` and
+  `SymplecticGeometry.Blowup.canonicalBundleEquiv_symm_tmul_some`: the inverse of
+  `canonicalBundleEquiv` in the charts `none` and `some i`, at every point of these charts.
 
 ## References
 
@@ -692,16 +707,6 @@ private theorem mem_source_of_mem_U_some {i : Fin (n + 1)} {z : Blowup c}
     coe_liftChartPartialDiffeomorph, hl]
   exact hz.2
 
-/-- The differential of a chart of the maximal atlas is invertible on its source. -/
-private theorem isInvertible_mfderiv_of_mem_maximalAtlas {X : Type*} [TopologicalSpace X]
-    [ChartedSpace (Fin (n + 1) → ℂ) X] [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω X]
-    {e : OpenPartialHomeomorph X (Fin (n + 1) → ℂ)}
-    (he : e ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω X) {x : X} (hx : x ∈ e.source) :
-    (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) e x).IsInvertible := by
-  have h := isInvertible_mfderiv_extend (I := 𝓘(ℂ, Fin (n + 1) → ℂ))
-    (IsManifold.maximalAtlas_subset_of_le le_top he) hx
-  rwa [OpenPartialHomeomorph.extend_coe, modelWithCornersSelf_coe, Function.id_comp] at h
-
 /-- On the chart `j`, the map `chartDeriv c j` is invertible. -/
 private theorem isInvertible_chartDeriv {j : Option (Fin (n + 1))} {z : Blowup c}
     (hz : z ∈ (hypersurfaceData c).U j) : (chartDeriv c j z).IsInvertible := by
@@ -711,8 +716,10 @@ private theorem isInvertible_chartDeriv {j : Option (Fin (n + 1))} {z : Blowup c
     exact (isLocalDiffeomorphAt_blowdown c hz).isInvertible_mfderiv (by simp)
   | some i =>
     obtain ⟨hzχ, hx, -⟩ := mem_source_of_mem_U_some c hz
-    exact (isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx).inverse.comp
-      (isInvertible_mfderiv_of_mem_maximalAtlas (liftChart_mem_maximalAtlas c c i) hzχ)
+    exact ((c.isLocalDiffeomorphAt_of_mem_maximalAtlas hc.out hx).isInvertible_mfderiv
+      (by simp)).inverse.comp
+      ((OpenPartialHomeomorph.isLocalDiffeomorphAt_of_mem_maximalAtlas _
+        (liftChart_mem_maximalAtlas c c i) hzχ).isInvertible_mfderiv (by simp))
 
 /-- The value on `b` of a form at the blowdown of `z`, read in the chart `c`. -/
 private def chartCoeff (b : Basis (Fin (finrank ℂ (Fin (n + 1) → ℂ))) ℂ (Fin (n + 1) → ℂ))
@@ -739,6 +746,8 @@ private theorem compContinuousLinearMap_chartDeriv_some
         (Fin (n + 1) → ℂ) [⋀^Fin (finrank ℂ (Fin (n + 1) → ℂ))]→L[ℂ] ℂ) b _)
   ext v
   simp only [chartDeriv, ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  -- Both sides apply `σ` to the vectors `dc⁻¹ (dχₖ (v j))`, read once through the tangent spaces
+  -- and once through `Fin (n + 1) → ℂ`, which they are by definition; `simp` does not see that.
   rfl
 
 /-- In the chart `some i`, a form `σ` composed with the differential of the blowdown is `μ`
@@ -757,7 +766,8 @@ private theorem compContinuousLinearMap_chartDeriv_none
                 (blowupModelChart i)) z)) := by
   obtain ⟨hzχ, hx, hl⟩ := mem_source_of_mem_U_some c hz
   set D := mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) c (blowdown c z)
-  have hD : D.IsInvertible := isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx
+  have hD : D.IsInvertible :=
+    (c.isLocalDiffeomorphAt_of_mem_maximalAtlas hc.out hx).isInvertible_mfderiv (by simp)
   have h := coordForm_blowdown c c b i hzχ
   rw [hl, blowupModelChart_apply_self] at h
   rw [← h]
@@ -879,9 +889,8 @@ Off the divisor its inverse sends `σ ⊗ a` to `a` times the pull-back of `σ` 
 of the chart `blowupModelChart i ∘ lift c` (`canonicalBundleEquiv_symm_tmul_some`). For `n = 0`
 the line bundle is trivial and this is the pull-back `K ≅ π^*K_M`.
 
-This is the identity `K = π^*K_M ⊗ 𝒪(nE)` of canonical bundles of the milestone
-*First Chern class of a blowup at a point*; its Chern class part is
-`Blowup/ChernClass.lean`. -/
+This is the identity `K = π^*K_M ⊗ 𝒪(nE)` of canonical bundles that is part of the milestone
+*First Chern class of a blowup at a point*. -/
 def canonicalBundleEquiv (z : Blowup c) :
     TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) (Blowup c) z ≃L[ℂ]
       (Bundle.Pullback (blowdown c) (TauCeti.CanonicalBundle 𝓘(ℂ, Fin (n + 1) → ℂ) M) z ⊗[ℂ]
@@ -959,7 +968,8 @@ theorem canonicalBundleEquiv_symm_tmul_some {i : Fin (n + 1)} {z : Blowup c}
           ((liftChartPartialDiffeomorph c c).toOpenPartialHomeomorph.trans
             (blowupModelChart i)) z) := by
   obtain ⟨-, hx, -⟩ := mem_source_of_mem_U_some c hz
-  have hD := isInvertible_mfderiv_of_mem_maximalAtlas hc.out hx
+  have hD := (c.isLocalDiffeomorphAt_of_mem_maximalAtlas hc.out hx).isInvertible_mfderiv
+    (by simp)
   rw [canonicalBundleEquiv_symm_tmul_localTriv_symm c hz]
   congr 1
   ext v
