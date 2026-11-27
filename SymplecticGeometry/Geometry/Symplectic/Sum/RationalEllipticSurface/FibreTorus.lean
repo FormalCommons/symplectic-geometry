@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Sum.FermatCubic
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import SymplecticGeometry.LinearAlgebra.Alternating.Sign
 
 /-!
@@ -25,17 +26,16 @@ The proof compares both forms with the complex structure of `ℂ`. Let `π` be t
 `SymplecticGeometry.latticeTorusCover p b` of `T` by `ℂ`, for the positively oriented basis
 `b = fermatPeriodBasis` of the period lattice, and let `z ∈ ℂ` lie over a point `x` of `T`.
 
-* `π` pulls the standard form back to `det A • ω₀`, with `det A > 0`
-  (`SymplecticGeometry.mpullback_latticeTorusCover_torusSymplecticForm` and
-  `SymplecticGeometry.det_latticeTorusEquiv_pos`), so the standard form is positive on the pair
-  `(dπ 1, dπ i)`.
+* `π` pulls the standard form back to `det A • ω₀`, with `det A > 0`, so the standard form is
+  positive on the pair `(dπ 1, dπ i)`
+  (`SymplecticGeometry.eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos`).
 * `φ⁻¹ ∘ π` is the class map `ℂ → ℂ / Λ` followed by the uniformization and the inverse of
-  `fermatCubicDiffeomorph`, so `H = fibreEmbedding ∘ φ⁻¹ ∘ π` is holomorphic and its real
-  differential commutes with multiplication by `i`
-  (`MDifferentiableAt.mfderiv_ofComplexManifold_apply`). Since `H` is an immersion, the form of
-  `E(1)`, which tames the complex structure
-  (`SymplecticGeometry.rationalEllipticSurface.tames_symplecticForm`), is positive on
-  `(dH 1, dH i) = (dH 1, J dH 1)`; that is, `σ` is positive on `(dπ 1, dπ i)`.
+  `fermatCubicDiffeomorph`, so `H = fibreEmbedding ∘ φ⁻¹ ∘ π` is holomorphic, hence
+  pseudoholomorphic for the complex structures (`isPseudoholomorphicAt_ofComplexManifold_iff`).
+  Since `H` is an immersion, and the form of `E(1)` tames the complex structure
+  (`SymplecticGeometry.rationalEllipticSurface.tames_symplecticForm`), its pull-back along `H` is
+  positive on `(1, i)` (`TauCeti.SmoothTwoForm.Tames.eval₂_mpullback_pos`); that is, `σ` is
+  positive on `(dπ 1, dπ i)`.
 
 Two alternating forms on the plane `T_x T` that are positive on one pair have the same sign on
 every basis (`AlternatingMap.pos_apply_basis_of_pos`), which gives the claim.
@@ -61,28 +61,6 @@ namespace SymplecticGeometry
 namespace rationalEllipticSurface
 
 variable (p : Unit ⊕ Unit → ℝ) [∀ i, Fact (0 < p i)]
-
-/-- The standard form of the torus is positive on the images of `1` and `i` under the
-differential of the covering map `latticeTorusCover p fermatPeriodBasis`. -/
-private theorem eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos (z : ℂ) :
-    0 < SmoothBundleForm.eval₂ (torusSymplecticForm p) (latticeTorusCover p fermatPeriodBasis z)
-      (mfderiv 𝓘(ℝ, ℂ) (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
-          (latticeTorusCover p fermatPeriodBasis) z (1 : ℂ))
-      (mfderiv 𝓘(ℝ, ℂ) (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ))
-          (latticeTorusCover p fermatPeriodBasis) z I) := by
-  have h := congr(SmoothBundleForm.eval₂
-    $(mpullback_latticeTorusCover_torusSymplecticForm p fermatPeriodBasis) z (1 : ℂ) I)
-  -- The tangent vectors `1` and `I` are elaborated in `ℂ`, not in `TangentSpace 𝓘(ℝ, ℂ) z`, so
-  -- the evaluation lemmas only match up to that identification.
-  erw [SmoothForm.eval₂_mpullback] at h
-  have hc := SymplecticForm.constSmooth_apply stdComplexSymplecticForm z (1 : ℂ) I
-  erw [SmoothBundleForm.eval₂_apply] at hc
-  rw [h]
-  erw [SmoothBundleForm.eval₂_apply]
-  simp only [SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.coe_smul, hc,
-    stdComplexSymplecticForm_apply, one_re, I_im, mul_one, one_im, I_re, mul_zero, sub_zero,
-    smul_eq_mul]
-  exact det_latticeTorusEquiv_pos p _ zero_lt_im_conj_mul_fermatPeriodBasis
 
 /-- The pull-back of the form of `E(1)` along `fibreEmbedding ∘ φ⁻¹` is positive on the images
 of `1` and `i` under the differential of the covering map `latticeTorusCover p fermatPeriodBasis`:
@@ -133,12 +111,11 @@ private theorem eval₂_mpullback_fibreEmbedding_mfderiv_latticeTorusCover_pos (
     (SmoothForm.mpullback (fibreEmbedding ∘ φ.symm)
       (fibreEmbedding.contMDiff.comp φ.symm.contMDiff) symplecticForm) z (1 : ℂ) I
   rw [← h, SmoothForm.mpullback_mpullback]
-  -- As in `eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos`, `1` and `I` are in `ℂ`.
-  erw [SmoothForm.eval₂_mpullback]
-  have hJ := hhol.mfderiv_ofComplexManifold_apply (1 : ℂ)
-  rw [SmoothAlmostComplexStructure.ofComplexManifold_apply, smul_eq_mul, mul_one] at hJ
-  rw [hJ]
-  exact SmoothTwoForm.tames_iff.1 tames_symplecticForm _ _ hne
+  have h2 := tames_symplecticForm.eval₂_mpullback_pos
+    (J := SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ)
+    (isPseudoholomorphicAt_ofComplexManifold_iff.2 hhol)
+    ((fibreEmbedding.contMDiff.comp φ.symm.contMDiff).comp hπ.contMDiff) hne
+  rwa [SmoothAlmostComplexStructure.ofComplexManifold_apply, smul_eq_mul, mul_one] at h2
 
 /-- **The form of `E(1)` on its fibre is positive for the orientation of the standard torus.**
 Let `φ = fermatCubicTorusDiffeomorph p` identify the Fermat cubic, the fibre of the rational
@@ -157,7 +134,8 @@ theorem mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos
       symplecticForm).val x b := by
   have hω := (Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff _ _ _ b).1 hb
   obtain ⟨z, rfl⟩ := latticeTorusCover_surjective p fermatPeriodBasis x
-  have hωL := eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos p z
+  have hωL := eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos p fermatPeriodBasis
+    zero_lt_im_conj_mul_fermatPeriodBasis z
   have hσL := eval₂_mpullback_fibreEmbedding_mfderiv_latticeTorusCover_pos p z
   rw [SmoothBundleForm.eval₂_apply] at hωL hσL
   exact AlternatingMap.pos_apply_basis_of_pos
