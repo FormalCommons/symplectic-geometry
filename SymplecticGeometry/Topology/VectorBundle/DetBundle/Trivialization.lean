@@ -28,6 +28,12 @@ Conversely, every trivialization in the atlas of the determinant line is
 the atlas of its prebundle `TauCeti.DetBundle.vectorPrebundle`, so this file imports all of
 `TauCeti.Topology.VectorBundle.Determinant` to read it off.
 
+For a continuous map `f : B' → B`, the preferred trivializations of the pull-back of `det E` and
+of the determinant line of `f *ᵖ E` both read a fibre in the chart coordinate of the
+trivialization of `E` at the image point, so Tau Ceti's `TauCeti.DetBundle.pullbackEquiv` keeps
+that coordinate. The proof is the step of Tau Ceti's proof of the continuity of
+`TauCeti.DetBundle.pullbackHomeomorph`, from `TauCeti.DetBundle.chartCoord_pullbackEquiv`.
+
 ## Main definitions and results
 
 * `TauCeti.DetBundle.trivializationOfIsLinear e`: the trivialization of `det E` over the base set
@@ -39,6 +45,9 @@ the atlas of its prebundle `TauCeti.DetBundle.vectorPrebundle`, so this file imp
   trivializations are the determinants of those of `E`.
 * `TauCeti.DetBundle.exists_eq_trivialization`: every trivialization in the atlas of `det E` is
   `TauCeti.DetBundle.trivialization e` for some `e` in the atlas of `E`.
+* `TauCeti.DetBundle.snd_trivializationAt_pullbackEquiv`: in the preferred trivializations,
+  Tau Ceti's map `TauCeti.DetBundle.pullbackEquiv` from the pull-back of `det E` to the
+  determinant line of the pull-back keeps the coordinate.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.detBundle`: if `E` has a finite
   trivializing cover, so does its determinant line, with model `𝕜`.
 
@@ -189,6 +198,39 @@ theorem exists_eq_trivialization (e : Trivialization 𝕜 (π 𝕜 (DetBundle �
   obtain ⟨e₀, he₀, rfl⟩ : ∃ (e₀ : Trivialization F (π F E)) (_ : MemTrivializationAtlas e₀),
       _ = pretrivialization e₀ := he'
   exact ⟨e₀, he₀, rfl⟩
+
+
+section Pullback
+
+variable {B' : Type*} [TopologicalSpace B'] {K : Type*} [FunLike K B' B]
+  [ContinuousMapClass K B' B] (f : K)
+
+/-- Read in the preferred trivializations at a point, the map `TauCeti.DetBundle.pullbackEquiv`
+from the pull-back of `det E` to the determinant line of `f *ᵖ E` keeps the coordinate. -/
+theorem snd_trivializationAt_pullbackEquiv {a y : B'}
+    (hy : y ∈ (trivializationAt 𝕜 ((f : B' → B) *ᵖ (DetBundle 𝕜 F E)) a).baseSet)
+    (v : ((f : B' → B) *ᵖ (DetBundle 𝕜 F E)) y) :
+    (trivializationAt 𝕜 (DetBundle 𝕜 F ((f : B' → B) *ᵖ E)) a
+        ⟨y, pullbackEquiv (f : B' → B) y v⟩).2 =
+      (trivializationAt 𝕜 ((f : B' → B) *ᵖ (DetBundle 𝕜 F E)) a ⟨y, v⟩).2 := by
+  have ht : trivializationAt 𝕜 ((f : B' → B) *ᵖ (DetBundle 𝕜 F E)) a =
+      (trivializationAt 𝕜 (DetBundle 𝕜 F E) (f a)).pullback f :=
+    FiberBundle.pullback_trivializationAt' f a
+  rw [ht, Trivialization.pullback_baseSet, mem_preimage, trivializationAt_eq,
+    trivialization_baseSet] at hy
+  have hy' : y ∈ (trivializationAt F ((f : B' → B) *ᵖ E) a).baseSet := by
+    rw [show trivializationAt F ((f : B' → B) *ᵖ E) a =
+      (trivializationAt F E (f a)).pullback f from FiberBundle.pullback_trivializationAt' f a,
+      Trivialization.pullback_baseSet]
+    exact hy
+  rw [ht, Trivialization.pullback_apply, trivializationAt_eq, trivializationAt_eq,
+    trivialization_apply_mk _ hy']
+  -- `Pullback.lift f ⟨y, v⟩` is `⟨f y, v⟩` (`Pullback.lift_mk`), but `v` lies in the fibre of the
+  -- type alias `f *ᵖ det E`, so rewriting by it does not typecheck; `exact` sees through the alias.
+  exact (chartCoord_pullbackEquiv _ f hy' v).trans
+    (congrArg Prod.snd (trivialization_apply_mk _ hy v)).symm
+
+end Pullback
 
 end TauCeti.DetBundle
 
