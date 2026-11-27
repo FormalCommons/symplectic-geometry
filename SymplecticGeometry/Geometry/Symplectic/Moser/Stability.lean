@@ -17,6 +17,9 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Moser.Local
 import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Compact
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
+import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # Moser stability
@@ -53,12 +56,25 @@ The same computation over all of `ℝ`, with Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, gives a Moser isotopy of a closed form on
 `ℝ × M` with symplectic slices (`TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq`).
 
+On a manifold that need not be compact, a segment `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, of
+symplectic forms whose difference `σ₁ - σ₀ = dβ` has a primitive `β` supported in a compact set
+`K` is joined by a diffeotopy fixed outside `K`
+(`TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub`). It applies Tau
+Ceti's `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact` to the path
+`σ₀ + c(t) (σ₁ - σ₀)` (`TauCeti.SmoothForm.lineMapFamily`), `c = Real.smoothTransition`, whose
+velocity has the primitive `c'(t) β`, as the proof of the local version
+`TauCeti.SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub` does, and
+restricts the isotopy to `[0, 1]`.
+
 ## Main results
 
 * `TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq`: a closed two-form on `ℝ × M` whose
   slices are symplectic, on a closed manifold, has an isotopy `ψ_t` with `ψ_t^* ρ_t = ρ_0`.
 * `TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq`: Moser stability for a family of
   cohomologous symplectic forms over `[0, 1]` on a closed manifold.
+* `TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub`: Moser's theorem for
+  a segment of symplectic forms with a compactly supported primitive of the difference, as a
+  diffeotopy fixed outside the support.
 
 ## References
 
@@ -175,6 +191,61 @@ theorem exists_diffeotopy_mpullback_eq (σ : SmoothTwoForm ((𝓡∂ 1).prod I) 
   have h := hψρ t (by rw [uIcc_of_le zero_le_one]; exact t.property)
   rw [hres, hres] at h
   simpa [hτI t, h₀] using h
+
+end TauCeti.SmoothTwoForm
+
+namespace TauCeti.SmoothTwoForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+
+/-- **Moser's theorem for a segment with a compactly supported primitive.** Let `σ₀`, `σ₁` be
+two-forms on a boundaryless manifold `M` such that every form `σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, is
+symplectic, and let `β` be a primitive of `σ₁ - σ₀` that vanishes outside a compact set `K`. Then
+there is a diffeotopy `Φ` of `M` that fixes every point outside `K` at all times, and whose final
+map pulls `σ₁` back to `σ₀`. -/
+theorem exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub {σ₀ σ₁ : SmoothTwoForm I M}
+    (hσ : ∀ s ∈ Icc (0 : ℝ) 1, IsSymplectic (σ₀ + s • (σ₁ - σ₀)))
+    {β : SmoothForm I M ℝ 1} (hβ : mextDeriv β.val = (σ₁ - σ₀).val) {K : Set M}
+    (hK : IsCompact K) (hβK : ∀ x ∉ K, β.val x = 0) :
+    ∃ Φ : Diffeotopy I ∞ M, (∀ t, ∀ x ∉ K, Φ (t, x) = x) ∧
+      SmoothForm.mpullback Φ.final Φ.final.contMDiff σ₁ = σ₀ := by
+  have hc' : ContDiff ℝ ∞ (deriv Real.smoothTransition) :=
+    (contDiff_infty_iff_deriv.1 Real.smoothTransition.contDiff).2
+  -- The path `σ_t = σ₀ + c(t) (σ₁ - σ₀)` on `ℝ × M`, `c = Real.smoothTransition`, and the
+  -- one-form `α` with slices `c'(t) β`.
+  set σ := SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff
+  set α := SmoothForm.lineMapFamily (0 : SmoothForm I M ℝ 1) β hc'
+  have hαt (t : ℝ) : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α =
+      deriv Real.smoothTransition t • β := by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, zero_add, sub_zero]
+  -- Since `c(t) ∈ [0, 1]`, every slice `σ_t` is symplectic.
+  have hσt (t : ℝ) : IsSymplectic
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) := by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily]
+    exact hσ _ ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
+  -- The velocity `c'(t) (σ₁ - σ₀)` of `σ_t` is the differential of `c'(t) β`.
+  have hvel (t : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
+      (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) =
+      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val := by
+    have h := (SmoothForm.mpullback_eq_iff _).1
+      (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff t)
+    rw [SmoothForm.coe_timeDeriv] at h
+    rw [h, hαt, SmoothForm.smul_toRoughForm, SmoothForm.smul_toRoughForm, mextDeriv_smul, hβ]
+  have hαK (t : ℝ) (x : M) (hx : x ∉ K) :
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val x = 0 := by
+    rw [hαt, SmoothBundleForm.smul_apply, hβK x hx, smul_zero]
+  obtain ⟨ψ, hψ, hψ₀, hψK, hψσ⟩ :=
+    exists_isotopy_mpullback_eq_of_isCompact σ α hσt hvel hK hαK
+  refine ⟨Diffeotopy.ofReal ψ hψ hψ₀, fun t x hx ↦ ?_, ?_⟩
+  · rw [Diffeotopy.ofReal_apply]
+    exact hψK t x fun u ↦ hαK u x hx
+  · have h := hψσ 1
+    simp only [σ, SmoothForm.mpullback_prodMk_lineMapFamily, Real.smoothTransition.one,
+      Real.smoothTransition.zero, one_smul, zero_smul, add_zero, add_sub_cancel] at h
+    rw [Diffeotopy.final_ofReal]
+    exact h
 
 end TauCeti.SmoothTwoForm
 
