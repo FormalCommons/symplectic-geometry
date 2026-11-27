@@ -82,6 +82,12 @@ defined by this last description, without choosing `g`.
   complex differentiable with `u t ≠ 0`, the real derivative of the lift along `c` is that of the
   inverse of the blowdown off the divisor (`blowdownDiffeomorph`) at `u t` along
   `c • u'(t)`, since near `t` the lift is `u` followed by that inverse.
+* `SymplecticGeometry.BlowupModel.mfderiv_blowdown_mfderiv_curveLift`: wherever the lift is real
+  differentiable, the differential of the blowdown sends its derivative along `c` to `c • u'(t)`.
+* `SymplecticGeometry.BlowupModel.curveLift_smul_zero`, `pr_curveLift_smul` and
+  `contMDiff_curveLift_smul`: for `v ≠ 0`, the lift of the line `t ↦ t • v` is a holomorphic curve
+  that stays on the line `ℓ` spanned by `v`, the fibre over `ℓ` of the tautological line, and
+  passes through the divisor at `zeroSection ℓ` for `t = 0`.
 * `SymplecticGeometry.BlowupModel.curveLift_eq_of_blowdown_comp`: the lift of a curve is unique.
   On an open set where `u` is analytic of finite order at every point, a continuous map lying
   over `u` is its lift, since the zeros of `u` there are isolated and the blowdown is injective
@@ -398,6 +404,11 @@ theorem blowdown_curveLift (u : ℂ → Fin (n + 1) → ℂ) (t : ℂ) :
     split_ifs <;> exact blowdown_zeroSection _
   · rw [curveLift_of_ne_zero h, blowdown_ofNeZero]
 
+/-- The lift of `u` meets the exceptional divisor exactly over the zeros of `u`. -/
+theorem curveLift_mem_exceptionalDivisor_iff :
+    curveLift u t ∈ exceptionalDivisor n ↔ u t = 0 := by
+  rw [mem_exceptionalDivisor_iff, blowdown_curveLift]
+
 /-- At a zero `t₀` of order `k` of an analytic curve `u`, the lift is the point of the exceptional
 divisor on the line of the first nonvanishing derivative `iteratedDeriv k u t₀`, which is nonzero
 by Mathlib's `analyticOrderAt_eq_nat_iff_iteratedDeriv_eq_zero`. -/
@@ -532,6 +543,64 @@ theorem mfderiv_curveLift_of_ne_zero (hu : DifferentiableAt ℂ u t) (h0 : u t �
   exact (DFunLike.congr_fun h₁ c).trans ((ContinuousLinearMap.comp_apply
     (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) Ψ (ũ t))
     (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ũ t) c).trans (congrArg _ h₂))
+
+open TauCeti in
+/-- The chain rule for `blowdown ∘ curveLift u = u`: at `t` where `u` is complex differentiable
+and its lift is real differentiable, the real differential of `blowdown` at `curveLift u t` sends
+the derivative of the lift along `c` to `c • u'(t)`. -/
+theorem mfderiv_blowdown_mfderiv_curveLift (hu : DifferentiableAt ℂ u t)
+    (hlift : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t) (c : ℂ) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown (curveLift u t)
+        (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (curveLift u) t c) =
+      (c • deriv u t : Fin (n + 1) → ℂ) := by
+  have hb : MDifferentiableAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) blowdown
+      (curveLift u t) :=
+    ((contMDiff_blowdown (n := n) 1).restrictScalars' ℝ).mdifferentiableAt one_ne_zero
+  have hfun : blowdown ∘ curveLift u = u := funext (blowdown_curveLift u)
+  -- The tangent spaces of `ℂ` and of `E` are `ℂ` and `E`.
+  exact (mfderiv_comp_apply t hb hlift c).symm.trans
+    ((congrArg (fun g ↦ mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) g t c) hfun).trans
+      ((mvfderiv_apply_eq_mfderiv_apply u t c).symm.trans
+        ((mvfderiv_eq_fderiv_apply u t c).trans (hu.fderiv_restrictScalars_eq_smul_deriv ℝ c))))
+
+/-! ### The lift of a line through the origin -/
+
+variable {v : Fin (n + 1) → ℂ}
+
+/-- The lift of the line `t ↦ t • v` sends `0` to the point `zeroSection ℓ` of the exceptional
+divisor over the line `ℓ` spanned by `v`. -/
+theorem curveLift_smul_zero (hv : v ≠ 0) :
+    curveLift (· • v) (0 : ℂ) = zeroSection (mk ℂ v hv) := by
+  classical
+  -- The line `t ↦ t • v` has a simple zero at `0`.
+  have h1 : analyticOrderAt (fun t : ℂ ↦ t • v) 0 = (1 : ℕ) := by
+    rw [analyticOrderAt_fun_smul_const (f := fun t : ℂ ↦ t) analyticAt_id, ite_eq_right hv]
+    exact analyticOrderAt_id
+  rw [curveLift_apply_self (by fun_prop) (zero_smul ℂ v) h1]
+  congr 1
+  rw [mk_eq_mk_iff' ℂ _ _ _ hv]
+  exact ⟨1, by simp [iteratedDeriv_one, deriv_smul_const]⟩
+
+/-- The lift of the line `t ↦ t • v` lies, at every `t`, on the line `ℓ` spanned by `v`. -/
+@[simp]
+theorem pr_curveLift_smul (hv : v ≠ 0) (t : ℂ) :
+    (curveLift (· • v) t).pr = mk ℂ v hv := by
+  rcases eq_or_ne t 0 with rfl | ht
+  · rw [curveLift_smul_zero hv, pr_zeroSection]
+  · rw [pr_curveLift_of_ne_zero (smul_ne_zero ht hv), mk_eq_mk_iff' ℂ _ _ _ hv]
+    exact ⟨t, rfl⟩
+
+/-- The lift of the line `t ↦ t • v` through a nonzero `v` is holomorphic. -/
+theorem contMDiff_curveLift_smul (hv : v ≠ 0) {r : ℕ∞ω} :
+    ContMDiff 𝓘(ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (curveLift (· • v)) := fun t ↦
+  contMDiffAt_curveLift (by fun_prop)
+    ((AnalyticOnNhd.analyticOrderAt_eq_top_iff_eq_zero t fun _ ↦ by fun_prop).not.2
+      fun h ↦ hv (by simpa using congrFun h 1))
+
+/-- The lift of the line `t ↦ t • v` through a nonzero `v` is smooth over `ℝ`. -/
+theorem contMDiff_curveLift_smul_real (hv : v ≠ 0) {r : ℕ∞ω} :
+    ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) r (curveLift (· • v)) :=
+  ContMDiff.restrictScalars' ℝ (contMDiff_curveLift_smul hv)
 
 end Curve
 
