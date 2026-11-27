@@ -121,13 +121,14 @@ For the crossing, take the left inverse `π x = Q (e x - e p)` of the disc and `
 from `EuclideanSpace ℝ (Fin (m + 1))` with the inner product `-H` on the stable subspace, so that
 `-H (π y) (π y) = ‖L⁻¹ (π y)‖ ^ 2`. Two crossings are impossible because `-H ∘ π` decreases
 strictly along the orbits of the disc near `p`
-(`SymplecticGeometry.IsWeinsteinStructure.exists_localStableDisc_strictAntiOn`). Transversality
-holds for the same reason: `-H ∘ π` is constant on the sphere, so its differential vanishes on the
-tangent vectors of the sphere (`TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const`),
-while it is negative on `X`. For the existence of a
-crossing, the orbit of `x` ends in the part of the disc strictly inside the sphere, and its
-backward orbit leaves the compact cap bounded by the sphere: `f` increases at a rate bounded below
-along it on that cap, which has no critical point below `f p`, while `f` is bounded below there.
+(`SymplecticGeometry.IsWeinsteinStructure.LocalStableDisc.exists_forall_flow_strictAntiOn`).
+Transversality holds for the same reason: `-H ∘ π` is constant on the sphere, so its
+differential vanishes on the tangent vectors of the sphere
+(`TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const`), while it is negative on
+`X`. For the existence of a crossing, the orbit of `x` ends in the part of the disc strictly
+inside the sphere, and its backward orbit leaves the compact cap bounded by the sphere: `f`
+increases at a rate bounded below along it on that cap, which has no critical point below `f p`,
+while `f` is bounded below there.
 Since an interval is connected, the orbit meets the sphere between a time at which it is outside
 the cap and a later time at which it is strictly inside the sphere.
 
@@ -528,8 +529,21 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   set V := EuclideanSpace ℝ (Fin (m + 1))
   set A : E →L[ℝ] E := sectionLinearization (F := E) 𝓘(ℝ, E) id X p with hA
   set S := A.stableSubspace
-  obtain ⟨ι, ρ, hρ, hι0, hιs, hst, ⟨U, hU, ε, hε, hcov⟩, Q, hπ, hQι, ρ', ⟨hρ', hρ'ρ⟩, hdec⟩ :=
-    hW.exists_localStableDisc_strictAntiOn hp hA
+  obtain ⟨D⟩ := hW.exists_localStableDisc hp hA
+  obtain ⟨ρ', ⟨hρ', hρ'ρ⟩, hdec⟩ := D.exists_forall_flow_strictAntiOn hp hA
+  obtain ⟨U, hU, ε, hε, hcov⟩ := D.exists_stableSet_inter_subset_image_ball
+  have hρ := D.ρ_pos
+  have hι0 := D.ι_zero
+  have hιs (z : S) (hz : z ∈ ball 0 D.ρ) := And.intro (D.contMDiffAt_ι z hz)
+    (D.injective_mfderiv_ι z hz)
+  have hst := D.image_ball_subset_stableSet
+  have hπ := D.contMDiffOn_Q_extChartAt_sub
+  have hQι (z : S) (hz : z ∈ ball 0 D.ρ) := D.Q_extChartAt_ι_sub hz
+  -- Only these properties of the disc are used below, so its data become plain variables.
+  set ι := D.ι
+  set ρ := D.ρ
+  set Q := D.Q
+  clear_value ι ρ Q
   obtain ⟨L, hL⟩ := hW.isGradientLike.exists_continuousLinearEquiv_stableSubspace hp
     (hW.mdifferentiableAt_field p) hA hm
   set e := extChartAt 𝓘(ℝ, E) p
