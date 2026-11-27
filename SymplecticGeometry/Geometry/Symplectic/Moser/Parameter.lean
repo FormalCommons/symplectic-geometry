@@ -150,10 +150,10 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
     -- primitives `c'(s) β_p`.
     have hYp' : Y p = moserField (SmoothForm.lineMapFamily ω₀ (σ' p) hc)
         (SmoothForm.lineMapFamily 0 (β' p) (contDiff_infty_iff_deriv.mp hc).2) fun _ ↦ 1 := by
-      funext s y
-      rw [moserField_def, SmoothForm.mpullback_prodMk_lineMapFamily, ← hΩ (p, s),
-        SmoothForm.mpullback_prodMk_lineMapFamily, sub_zero, zero_add, ← hB (p, s)]
-      exact moserField_def Ω B _ _ y
+      funext s
+      exact moserField_congr (by rw [hΩ, SmoothForm.mpullback_prodMk_lineMapFamily])
+        (by rw [hB, SmoothForm.mpullback_prodMk_lineMapFamily, sub_zero, zero_add])
+        fun _ ↦ rfl
     have hX := hYp p
     have hcp := hcY p
     rw [hYp'] at hX hcp
