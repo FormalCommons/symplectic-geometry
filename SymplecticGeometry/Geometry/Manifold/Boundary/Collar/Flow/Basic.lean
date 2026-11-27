@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
 import SymplecticGeometry.Topology.Compactness.SigmaCompact
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The collar of a compact boundary along an outward field
