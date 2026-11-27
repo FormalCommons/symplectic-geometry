@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.InnerProductSpace.Dual
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
@@ -61,7 +62,11 @@ The main facts fixing the conventions are `stdForm_apply`
 (`ω₀ = -Matrix.toBilin' (Matrix.J ι ℝ)` in coordinates), and `stdForm_compatible`, with the
 Cauchy–Schwarz inequality `abs_stdForm_apply_le` (`|ω₀(z, w)| ≤ ‖z‖ ‖w‖`), by which the map
 `A ↦ ω₀(·, A ·)` from endomorphisms to bilinear forms does not increase norms
-(`norm_precompR_stdForm_flip_apply_le`). The rotation
+(`norm_precompR_stdForm_flip_apply_le`). For `A` with `A² = -1`, the form `ω₀(·, A ·)` is
+invertible as a map to the dual, with inverse `φ ↦ J₀ φ'`, `φ'` the vector dual to `φ ∘ A` for the
+inner product (`inverse_precompR_stdForm_flip_apply_apply`), which does not increase norms either
+(`norm_inverse_precompR_stdForm_flip_apply_le`), since `J₀` preserves norms
+(`norm_stdComplexStructure`). The rotation
 `stdRotation ι t`, `z ↦ cos t • z + sin t • J₀ z`, is a linear isometry, since `J₀` is orthogonal
 (`inner_stdComplexStructure_stdComplexStructure`), that preserves `ω₀` (`stdForm_stdRotation`);
 through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
@@ -435,6 +440,13 @@ theorem inner_stdComplexStructure_stdComplexStructure (z w : StdSpace ι) :
     inner ℝ (stdComplexStructure ι z) (stdComplexStructure ι w) = inner ℝ z w := by
   rw [← stdForm_apply_eq_inner, stdForm_apply_stdComplexStructure]
 
+/-- `J₀` preserves norms: `‖J₀ z‖ = ‖z‖`. -/
+@[simp]
+theorem norm_stdComplexStructure (z : StdSpace ι) : ‖stdComplexStructure ι z‖ = ‖z‖ := by
+  have h := inner_stdComplexStructure_stdComplexStructure z z
+  rw [real_inner_self_eq_norm_sq, real_inner_self_eq_norm_sq] at h
+  exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1 h
+
 /-- `ω₀(z, w) = (⟪J₀ z, w⟫ - ⟪z, J₀ w⟫) / 2`: the form of the Euclidean inner product and `J₀`
 is `ω₀`. -/
 theorem stdForm_apply_eq_inner_sub_inner (z w : StdSpace ι) :
@@ -486,6 +498,92 @@ theorem norm_precompR_stdForm_flip_apply_le (A : StdSpace ι →L[ℝ] StdSpace 
   calc _ ≤ ‖u‖ * ‖A v‖ := abs_stdForm_apply_le u (A v)
     _ ≤ ‖u‖ * (‖A‖ * ‖v‖) := by gcongr; exact A.le_opNorm v
     _ = ‖A‖ * ‖u‖ * ‖v‖ := by ring
+
+/-- The map `φ ↦ J₀ φ'`, `φ'` the vector that the inner product makes dual to `φ ∘ A`, has norm
+at most `‖A‖`. -/
+theorem norm_stdComplexStructure_toDual_symm_comp_le (A : StdSpace ι →L[ℝ] StdSpace ι)
+    (φ : StdSpace ι →L[ℝ] ℝ) :
+    ‖stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm (φ ∘L A))‖ ≤
+      ‖A‖ * ‖φ‖ := by
+  rw [norm_stdComplexStructure, LinearIsometryEquiv.norm_map, mul_comm]
+  exact φ.opNorm_comp_le A
+
+/-- For `A` with `A² = -1`, the map `φ ↦ J₀ φ'`, `φ'` the vector that the inner product makes
+dual to `φ ∘ A`, is a right inverse of `u ↦ ω₀(u, A ·)`. -/
+theorem precompR_stdForm_flip_apply_comp_eq_id {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    (ContinuousLinearMap.precompR (StdSpace ι)
+        (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A ∘L
+        ((LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap).comp
+          ((ContinuousLinearEquiv.toContinuousLinearMap
+              (InnerProductSpace.toDual ℝ (StdSpace ι)).symm.toContinuousLinearEquiv).comp
+            ((ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A))) =
+      .id ℝ _ := by
+  ext φ v
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply,
+    ContinuousLinearMap.flip_apply, ContinuousLinearMap.precompR_apply,
+    ContinuousLinearMap.compL_apply, LinearMap.toContinuousBilinearMap_apply,
+    stdForm_apply_eq_inner, LinearMap.coe_toContinuousLinearMap', LinearIsometryEquiv.coe_coe'',
+    ← mul_apply_eq_comp, AlmostComplexStructure.toLinearMap_mul_self, LinearMap.neg_apply,
+    one_apply_eq_self, inner_neg_left, InnerProductSpace.toDual_symm_apply, hA, map_neg, neg_neg]
+
+/-- For `A` with `A² = -1`, the map `φ ↦ J₀ φ'`, `φ'` the vector that the inner product makes
+dual to `φ ∘ A`, is a left inverse of `u ↦ ω₀(u, A ·)`. -/
+theorem comp_precompR_stdForm_flip_apply_eq_id {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    ((LinearMap.toContinuousLinearMap (stdComplexStructure ι).toLinearMap).comp
+          ((ContinuousLinearEquiv.toContinuousLinearMap
+              (InnerProductSpace.toDual ℝ (StdSpace ι)).symm.toContinuousLinearEquiv).comp
+            ((ContinuousLinearMap.compL ℝ (StdSpace ι) (StdSpace ι) ℝ).flip A))) ∘L
+        (ContinuousLinearMap.precompR (StdSpace ι)
+          (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A =
+      .id ℝ _ := by
+  refine ContinuousLinearMap.ext fun u ↦ ?_
+  have h : (InnerProductSpace.toDual ℝ (StdSpace ι)).symm
+      (ContinuousLinearMap.precompR (StdSpace ι)
+        (stdForm ι).toBilinForm.toContinuousBilinearMap u A ∘L A) =
+        -stdComplexStructure ι u := by
+    rw [LinearIsometryEquiv.symm_apply_eq]
+    ext v
+    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.precompR_apply,
+      ContinuousLinearMap.compL_apply,
+      LinearMap.toContinuousBilinearMap_apply, hA, map_neg, stdForm_apply_eq_inner, neg_apply,
+      InnerProductSpace.toDual_apply_apply]
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.id_apply,
+    LinearMap.coe_toContinuousLinearMap', ContinuousLinearMap.flip_apply,
+    ContinuousLinearMap.compL_apply, LinearIsometryEquiv.coe_coe'', h, map_neg,
+    AlmostComplexStructure.apply_apply, neg_neg]
+
+/-- For `A` with `A² = -1`, the form `ω₀(·, A ·)` is invertible as a map to the dual. -/
+theorem isInvertible_precompR_stdForm_flip_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    ((ContinuousLinearMap.precompR (StdSpace ι)
+      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A).IsInvertible :=
+  .of_inverse (precompR_stdForm_flip_apply_comp_eq_id hA)
+    (comp_precompR_stdForm_flip_apply_eq_id hA)
+
+/-- For `A` with `A² = -1`, the inverse of the form `ω₀(·, A ·)`, as a map to the dual, sends
+`φ` to `J₀ φ'`, `φ'` the vector that the inner product makes dual to `φ ∘ A`. -/
+theorem inverse_precompR_stdForm_flip_apply_apply {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) (φ : StdSpace ι →L[ℝ] ℝ) :
+    ((ContinuousLinearMap.precompR (StdSpace ι)
+      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A).inverse φ =
+      stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm (φ ∘L A)) := by
+  rw [ContinuousLinearMap.inverse_eq (precompR_stdForm_flip_apply_comp_eq_id hA)
+    (comp_precompR_stdForm_flip_apply_eq_id hA)]
+  simp only [ContinuousLinearMap.comp_apply, LinearMap.coe_toContinuousLinearMap',
+    ContinuousLinearMap.flip_apply, ContinuousLinearMap.compL_apply,
+    LinearIsometryEquiv.coe_coe'']
+
+/-- For `A` with `A² = -1`, the inverse of the form `ω₀(·, A ·)`, as a map to the dual, has norm
+at most `‖A‖`. -/
+theorem norm_inverse_precompR_stdForm_flip_apply_le {A : StdSpace ι →L[ℝ] StdSpace ι}
+    (hA : ∀ v, A (A v) = -v) :
+    ‖((ContinuousLinearMap.precompR (StdSpace ι)
+      (stdForm ι).toBilinForm.toContinuousBilinearMap).flip A).inverse‖ ≤ ‖A‖ :=
+  ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg _) fun φ ↦ by
+    rw [inverse_precompR_stdForm_flip_apply_apply hA]
+    exact norm_stdComplexStructure_toDual_symm_comp_le A φ
 
 variable (ι) in
 /-- The rotation `z ↦ cos t • z + sin t • J₀ z` of `StdSpace ι`, a linear isometry: through
