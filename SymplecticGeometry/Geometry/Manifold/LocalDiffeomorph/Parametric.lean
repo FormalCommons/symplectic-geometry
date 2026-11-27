@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.MFDeriv.Defs
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Topology.MetricSpace.Tube
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem.Parametric
@@ -117,8 +118,8 @@ theorem exists_contMDiffOn_apply_eq_apply_zero {e : unitInterval × F → M} {U 
       (contMDiffAt_prod_modelWithCornersSelf_iff.2
         (hG.contDiffAt (hO.mem_nhds hq)).contMDiffAt).mdifferentiableAt (by simp)
     have := hGd.injective_mfderiv_fst_prod_iff
-    rwa [← modelWithCornersSelf_prod, ← modelWithCornersSelf_prod, chartedSpaceSelf_prod,
-      chartedSpaceSelf_prod] at this
+    rwa [mfderiv_prod_modelWithCornersSelf_source, mfderiv_prod_modelWithCornersSelf_target]
+      at this
   have hfin : Module.finrank ℝ (ℝ × F) = Module.finrank ℝ (ℝ × E) := by
     simp [Module.finrank_prod, hdim]
   -- `Φ` is a local diffeomorphism at each point of `[0, 1] × {x₀}`.

@@ -14,7 +14,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Boundary
-import SymplecticGeometry.Analysis.Calculus.FDeriv.Uncurry
+import SymplecticGeometry.Geometry.Manifold.Boundary.Model
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
@@ -45,7 +45,8 @@ reading of `p`, its derivative sends `(u, σ)` to `σ 0 • v` plus `u` inserted
 coordinate `0`, where `v = -f (φ p)` is the velocity of `t ↦ Ψ (φ p) t` at `0`, since
 `Ψ x 0 = x` (`DifferentiableAt.hasFDerivAt_uncurry_zero`). It is injective since `v` is
 transverse to the boundary hyperplane
-(`TauCeti.injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam`). Near that point `G`
+(`TauCeti.injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam`, in
+`Geometry/Manifold/Boundary/Model.lean`). Near that point `G`
 sends exactly the points of `ℝⁿ × [0, ∞)` into the half-space, by the monotonicity of the zeroth
 coordinate, so Tau Ceti's inverse function theorem at boundary points,
 `TauCeti.isLocalDiffeomorphAt_of_injective_fderiv_of_mem_range_iff`, makes the flow from the
@@ -66,9 +67,6 @@ a while forward, since its velocity there within `[t, ∞)` would be outward, wh
 
 ## Main results
 
-* `TauCeti.injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam`: a family `Ψ x t`
-  with `Ψ x 0 = x` whose velocity at time `0` is transverse to the boundary hyperplane has, out of
-  that hyperplane, injective derivative.
 * `TauCeti.exists_isMIntegralCurveOn_of_isOutwardPointing`: integral curves of an outward field
   entering from the boundary near `p`, forming a local diffeomorphism `∂W × [0, η) → W`.
 
@@ -110,51 +108,6 @@ theorem _root_.IsMIntegralCurveOn.mem_interior_of_isOutwardPointing
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
 variable {Ψ : EuclideanSpace ℝ (Fin (n + 1)) → ℝ → EuclideanSpace ℝ (Fin (n + 1))}
-
-/-- Let `Ψ x t` be a family of points of `ℝⁿ⁺¹` with `Ψ x 0 = x` for `x` near `y₀`,
-differentiable at `(y₀, 0)`, where `y₀` is the point `z₀ ∈ ℝⁿ` of the boundary hyperplane, such
-that the curve `t ↦ Ψ y₀ t` has at time `0` a velocity `v` with `v 0 ≠ 0`. Then the flow-out map
-`(z, τ) ↦ Ψ (z in the hyperplane) (τ 0)` on `ℝⁿ × ℝ¹` has injective derivative at `(z₀, 0)`. -/
-theorem injective_fderiv_flowOut_euclideanHalfSpaceBoundaryParam
-    {z₀ : EuclideanSpace ℝ (Fin n)}
-    (hΨ : DifferentiableAt ℝ (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2)
-      (euclideanHalfSpaceBoundaryParam n z₀, 0))
-    (hΨ0 : ∀ᶠ x in 𝓝 (euclideanHalfSpaceBoundaryParam n z₀), Ψ x 0 = x)
-    {v : EuclideanSpace ℝ (Fin (n + 1))}
-    (hv : HasDerivAt (Ψ (euclideanHalfSpaceBoundaryParam n z₀)) v 0) (hv0 : v 0 ≠ 0) :
-    Injective (fderiv ℝ (fun q : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) ↦
-      Ψ (euclideanHalfSpaceBoundaryParam n q.1) (q.2 0)) (z₀, 0)) := by
-  set ι := euclideanHalfSpaceBoundaryParam n
-  set L := ι.prodMap (EuclideanSpace.proj (𝕜 := ℝ) (0 : Fin 1))
-  have hLz₀ : L (z₀, 0) = (ι z₀, 0) := by
-    simp [L]
-  -- The derivative `D` of `Ψ` at `(ι z₀, 0)` is the identity in space and `v` in time.
-  set D : EuclideanSpace ℝ (Fin (n + 1)) × ℝ →L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) :=
-    ContinuousLinearMap.fst ℝ _ ℝ + (ContinuousLinearMap.snd ℝ _ ℝ).smulRight v
-  have hD : HasFDerivAt (fun p : EuclideanSpace ℝ (Fin (n + 1)) × ℝ ↦ Ψ p.1 p.2) D (ι z₀, 0) :=
-    hΨ.hasFDerivAt_uncurry_zero hΨ0 hv
-  have hDapply (u : EuclideanSpace ℝ (Fin (n + 1))) (σ : ℝ) : D (u, σ) = u + σ • v := by
-    simp [D]
-  have hGd : HasFDerivAt (fun q : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1) ↦
-      Ψ (ι q.1) (q.2 0)) (D.comp L) (z₀, 0) := by
-    rw [← hLz₀] at hD
-    exact hD.comp (z₀, 0) L.hasFDerivAt
-  -- So that derivative is injective, since `v` leaves the hyperplane.
-  rw [hGd.fderiv, injective_iff_map_eq_zero]
-  rintro ⟨dz, dτ⟩ h
-  simp only [L, ContinuousLinearMap.coe_comp, comp_apply, ContinuousLinearMap.coe_prodMap',
-    Prod.map_apply, PiLp.proj_apply, hDapply] at h
-  have h0 := congrArg (fun y : EuclideanSpace ℝ (Fin (n + 1)) ↦ y 0) h
-  simp only [PiLp.add_apply, PiLp.smul_apply, smul_eq_mul, ι,
-    euclideanHalfSpaceBoundaryParam_apply_zero, zero_add, PiLp.zero_apply, mul_eq_zero, hv0,
-    or_false] at h0
-  have hτ : dτ = 0 := by
-    ext i
-    fin_cases i
-    simpa using h0
-  rw [h0, zero_smul, add_zero] at h
-  have hz : dz = 0 := euclideanHalfSpaceBoundaryParam_injective n (by simpa [ι] using h)
-  simp [hz, hτ]
 
 /-- Let `Ψ` be a smooth family on `U × (-ε, ε)`, `U` a neighbourhood of the chart reading `φ p` of
 a boundary point `p`, with `Ψ x 0 = x`, whose curves from the boundary hyperplane are, at times
