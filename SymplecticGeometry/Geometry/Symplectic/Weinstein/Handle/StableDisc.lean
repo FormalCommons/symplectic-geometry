@@ -95,8 +95,12 @@ graph map `g` and the confined forward solutions over `range P`. The disc is
 `z ↦ e.symm (e p + z + g z)`. Its orbits are the solutions read back through `e`, by
 `TauCeti.extChartAt_symm_add_eq_globalFlow`; the covering statement combines the confinement of
 the stable set with the description of the confined solutions as the graph, and the differential
-is injective since `P ∘ g = 0`.
-is injective since `P ∘ g = 0`.
+is injective since `P ∘ g = 0`, by
+`ContinuousLinearMap.contDiffAt_and_injective_fderiv_const_add_add`.
+The covering step, which first confines the orbits of the stable set near `p` and then identifies
+them with the local stable graph, follows the plan of Tau Ceti's
+`TauCeti.IsNondegenerateCriticalPoint.eventually_forall_dist_le_of_mem_stableSet`
+(`TauCeti.Analysis.Calculus.Morse.GlobalChart`), for negative gradient flows on a vector space.
 
 ## References
 
@@ -275,10 +279,9 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
       (hA ▸ hXp.hasFDerivAt_mpullback_extChartAt_symm) hr₀
   set e := extChartAt 𝓘(ℝ, E) p with he
   set S := A.stableSubspace
-  have hPP (w : E) : P (P w) = P w := by simpa using congrArg (· w) hP.eq
-  have hPz (z : S) : P z = z := by
-    obtain ⟨w, hw⟩ : (z : E) ∈ (P : E →ₗ[ℝ] E).range := hPS.symm ▸ z.property
-    rw [← hw, ContinuousLinearMap.coe_coe, hPP]
+  have hPz (z : S) : P z = z :=
+    (LinearMap.IsIdempotentElem.mem_range_iff
+      (ContinuousLinearMap.IsIdempotentElem.toLinearMap hP)).1 (hPS.ge z.property)
   have hball (z : S) (hz : z ∈ ball (0 : S) ρ) : (z : E) ∈ Set.range P ∩ closedBall 0 ρ :=
     ⟨⟨z, hPz z⟩, by simpa using (mem_ball_zero_iff.1 hz).le⟩
   set ι : S → M := fun z ↦ e.symm (e p + ((z : E) + g z)) with hι
@@ -298,31 +301,15 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
   · -- Smoothness and injectivity of the differential.
     obtain ⟨-, -, hy0, -⟩ := hy z (hball z hz)
     have hq : e p + ((z : E) + g z) ∈ e.target := by simpa [hy0] using (horb z hz 0 le_rfl).1
-    set h : S → E := fun w ↦ e p + ((w : E) + g w)
-    have hgz := hgn _ (hball z hz).2
-    have hhd : ContDiffAt ℝ n h z :=
-      contDiffAt_const.add (S.subtypeL.contDiff.contDiffAt.add
-        (hgz.comp (f := S.subtypeL) z S.subtypeL.contDiff.contDiffAt))
-    have hsymm : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E) n e.symm (h z) :=
+    have hn0 : (n : WithTop ℕ∞) ≠ 0 := by exact_mod_cast (Nat.one_le_iff_ne_zero.1 hn)
+    obtain ⟨hhd, hinj⟩ := P.contDiffAt_and_injective_fderiv_const_add_add hP hPS.ge hPg hn0
+      (hgn _ (hball z hz).2) (e p)
+    have hsymm : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E) n e.symm (e p + ((z : E) + g z)) :=
       ((contMDiffOn_extChartAt_symm (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) p).of_le
         (by exact_mod_cast le_top)).contMDiffAt
         ((isOpen_extChartAt_target p).mem_nhds hq)
-    refine ⟨hsymm.comp z hhd.contMDiffAt, ?_⟩
-    have hn0 : (n : WithTop ℕ∞) ≠ 0 := by exact_mod_cast (Nat.one_le_iff_ne_zero.1 hn)
-    have hgd : HasFDerivAt g (fderiv ℝ g z) z := (hgz.differentiableAt hn0).hasFDerivAt
-    have hPdg (u : E) : P (fderiv ℝ g z u) = 0 := by
-      have h1 : HasFDerivAt (fun w ↦ P (g w)) (P.comp (fderiv ℝ g z)) z :=
-        P.hasFDerivAt.comp _ hgd
-      have h2 : HasFDerivAt (fun w ↦ P (g w)) (0 : E →L[ℝ] E) z := by
-        simpa [hPg] using hasFDerivAt_const (0 : E) (z : E)
-      simpa using congrArg (· u) (h1.unique h2)
-    have hhD : HasFDerivAt h (S.subtypeL + (fderiv ℝ g z).comp S.subtypeL) z :=
-      (S.subtypeL.hasFDerivAt.add (hgd.comp (f := S.subtypeL) z S.subtypeL.hasFDerivAt)).const_add
-        _
-    have hDinj : Injective (S.subtypeL + (fderiv ℝ g z).comp S.subtypeL) := fun u v huv ↦
-      Subtype.ext (by simpa [hPz, hPdg] using congrArg P huv)
-    exact injective_mfderiv_extChartAt_symm_comp hq (hhd.differentiableAt hn0)
-      (hhD.fderiv ▸ hDinj)
+    exact ⟨hsymm.comp z hhd.contMDiffAt,
+      injective_mfderiv_extChartAt_symm_comp hq (hhd.differentiableAt hn0) hinj⟩
   · -- The image lies in the stable set.
     rintro _ ⟨z, hz, rfl⟩
     obtain ⟨hyi, hymaps, -⟩ := hy z (hball z hz)
@@ -366,7 +353,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     obtain ⟨_, ⟨⟨w, rfl⟩, -⟩, hw⟩ := hmem
     simp only at hw
     have hPw : P (Y 0) = P w := by
-      rw [← hw, map_add, hPg, add_zero, hPP]
+      rw [← hw, map_add, hPg, add_zero, ← mul_apply_eq_comp, hP.eq]
     have hwS : P w ∈ S := hPS ▸ LinearMap.mem_range_self (P : E →ₗ[ℝ] E) w
     refine ⟨⟨P w, hwS⟩, by simpa [← hPw] using hPY, ?_⟩
     simp only [hι]

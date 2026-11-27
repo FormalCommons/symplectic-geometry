@@ -12,7 +12,10 @@ import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 
 /-!
-# Differentials of maps into normed spaces, read in a chart
+# Differentials read in a chart
+
+This file reads differentials in an extended chart, in both directions: for maps from a manifold
+into a normed space, and for maps from a normed space into a manifold through the inverse chart.
 
 For a map `f : M → F` into a normed space and a point `y` of the source of the extended chart at
 `x`, which need not be centred at `y`, the range of `mvfderiv I f y` is the range of the Fréchet
@@ -20,6 +23,11 @@ derivative of the coordinate expression `f ∘ (extChartAt I x).symm` at the cha
 This is the off-centre form of Tau Ceti's
 `TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`, and its proof reads `mvfderiv I f y`
 in the chart by Tau Ceti's `TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt`.
+
+For a map `h` from a normed space into the target of the extended chart at `x`, the differential
+of `(extChartAt I x).symm ∘ h` is the derivative of `h` followed by the differential of the
+inverse chart, which is invertible by Tau Ceti's `TauCeti.isInvertible_mfderiv_extChartAt_symm`;
+so it is injective where the derivative of `h` is.
 
 ## Main results
 
@@ -65,11 +73,11 @@ theorem injective_mfderiv_extChartAt_symm_comp [I.Boundaryless] [IsManifold I 1 
     (hinj : Function.Injective (fderiv 𝕜 h z)) :
     Function.Injective (mfderiv 𝓘(𝕜, F) I (fun w ↦ (extChartAt I x).symm (h w)) z) := by
   obtain ⟨L, hL⟩ := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) hz
-  have hd : MDifferentiableAt 𝓘(𝕜, E) I (extChartAt I x).symm (h z) :=
-    ((contMDiffOn_extChartAt_symm (n := 1) x).contMDiffAt
-      ((isOpen_extChartAt_target x).mem_nhds hz)).mdifferentiableAt one_ne_zero
+  -- `show` puts the map in the form `(extChartAt I x).symm ∘ h`, the composite for which
+  -- `mfderiv_comp` is stated.
   rw [show (fun w ↦ (extChartAt I x).symm (h w)) = (extChartAt I x).symm ∘ h from rfl,
-    mfderiv_comp z hd hh.mdifferentiableAt, mfderiv_eq_fderiv, ← hL]
+    mfderiv_comp z (mdifferentiableAt_of_isInvertible_mfderiv ⟨L, hL⟩) hh.mdifferentiableAt,
+    mfderiv_eq_fderiv, ← hL]
   exact L.injective.comp hinj
 
 end SymplecticGeometry

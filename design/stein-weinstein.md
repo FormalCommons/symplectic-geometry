@@ -1669,7 +1669,9 @@ are set on compact manifolds. Three pieces are missing:
   `hW.flow.stableSet p ∩ f ⁻¹' {a}`, horizontal for the contact form of
   that boundary. The sphere is first a small level of $-H$ in the local
   disc, which every orbit of the disc other than `p` crosses once and
-  transversally; it is then carried back to the level `a`, which every
+  transversally. That disc must be smooth, while `exists_localStableDisc`
+  gives a `C^n` disc for each finite `n`, on a ball that depends on `n`;
+  the smooth local disc is issue #6754. The sphere is then carried back to the level `a`, which every
   backward orbit of the stable set reaches since the cobordism is
   elementary, at a time that Tau Ceti's `Flow.levelCrossingTime`
   (`Dynamics/Flow/LevelCrossing.lean`) gives as a continuous function and
