@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # Global sections with a prescribed value and derivative
@@ -122,8 +123,7 @@ theorem exists_mfderiv_eq (q : M) (p : V q) (ξ : E →L[ℝ] ℝ) (b : F) :
     ((hf.sub contMDiff_const) q).mdifferentiableAt (by simp)
   have hd : mvfderiv I (fun y ↦ (e ⟨q, p⟩).2 + (f y - f q) • b) q u = ξ u • b := by
     rw [TauCeti.mvfderiv_const_add, mvfderiv_fun_smul hfd mdifferentiableAt_const, mvfderiv_const,
-      mvfderiv_fun_sub (hf q |>.mdifferentiableAt (by simp)) mdifferentiableAt_const,
-      mvfderiv_const, sub_zero, SmoothBumpFunction.mvfderiv_bumpCovector, smul_zero, zero_add]
+      mvfderiv_sub_const, SmoothBumpFunction.mvfderiv_bumpCovector, smul_zero, zero_add]
     -- `ξ` is a covector on the model space, read on the tangent space `TangentSpace I q = E`.
     exact ContinuousLinearMap.smulRight_apply (M₁ := E) (c := ξ) (f := b) (x := u)
   rw [← hev.mvfderiv_eq] at hd

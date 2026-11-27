@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
-# Products with values in a normed algebra
+# Products with values in a normed algebra, and subtracting a constant
 
 Mathlib's `MDifferentiableAt.smul` needs the scalar factor to take values in the base field. Here
 `MDifferentiableWithinAt.smul_algebra` and its forms at a point, on a set and on the whole
@@ -28,6 +28,11 @@ this rule for `HasMFDerivAt` as `HasMFDerivAt.mul'`
 
 It is Tau Ceti's Leibniz rule `TauCeti.mvfderiv_smul_algebra`, for the algebra acting on itself by
 left multiplication, evaluated at a tangent vector.
+
+`mvfderiv_sub_const` says that subtracting a constant does not change `mvfderiv`, with no
+hypothesis on the function. It is the form for subtraction of Tau Ceti's
+`TauCeti.mvfderiv_add_const`, from which it follows, and the manifold version of Mathlib's
+`fderiv_sub_const`.
 -/
 
 public section
@@ -79,6 +84,25 @@ theorem MDifferentiable.smul_algebra (ha : MDifferentiable I 𝓘(𝕜, 𝕜') a
   fun y ↦ (ha y).smul_algebra (hg y)
 
 end SMulAlgebra
+
+section SubConst
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+/-- Subtracting a constant does not change the derivative of a vector-valued function, read in
+the target space. No differentiability is needed. This is the manifold version of
+`fderiv_sub_const`. -/
+@[simp]
+theorem mvfderiv_sub_const (g : M → F) (c : F) (x : M) :
+    mvfderiv I (fun y ↦ g y - c) x = mvfderiv I g x := by
+  simp_rw [sub_eq_add_neg]
+  exact TauCeti.mvfderiv_add_const g (-c) x
+
+end SubConst
 
 namespace SymplecticGeometry
 
