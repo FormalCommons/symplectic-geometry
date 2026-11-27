@@ -16,6 +16,7 @@ import TauCeti.Analysis.Calculus.ContDiff.Differentiable
 import SymplecticGeometry.Analysis.InnerProductSpace.Laplacian.LogarithmicPole
 import TauCeti.Analysis.Calculus.FDeriv.RestrictScalars
 import TauCeti.Analysis.Analytic.Order
+import SymplecticGeometry.Analysis.Analytic.Order
 import Mathlib.Analysis.Complex.CauchyIntegral
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Integrability
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -399,7 +400,7 @@ theorem setIntegral_ball_eval₂_profileForm_sub_mpullback_blowdown_curveLift_sm
       Finset.coe_singleton, mem_singleton_iff, u]
     exact ⟨And.right, fun ht ↦ ⟨by simpa [ht] using hr0, ht⟩⟩
   have h1 : analyticOrderNatAt u 0 = 1 := by
-    simp [analyticOrderNatAt, u, analyticOrderAt_smul_const_id hv]
+    simp [analyticOrderNatAt, u, hv]
   have harea := blowdown_profileForm_area hh Metric.isOpen_ball Metric.isBounded_ball
     (u := u) (fun t _ ↦ by fun_prop) (by fun_prop) (fun t ht ↦ by
       rw [frontier_ball 0 hr0.ne', mem_sphere_zero_iff_norm] at ht
