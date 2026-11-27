@@ -368,7 +368,7 @@ This is a hypothesis of the statements below, not a definition.
   in one `Gc`-orbit, so by Ness's theorem and `momentNormSq_smul`,
   `momentNormSq x∞ = momentNormSq x̃∞`. This is at most
   `momentNormSq (g₀⁻¹ • p)`, because `momentNormSq` decreases along its
-  negative gradient flow (`TauCeti.antitoneOn_comp_maximalIntegralCurve_neg_mgradient`).
+  negative gradient flow (`TauCeti.mapsTo_maximalIntegralCurve_neg_mgradient_preimage_Iic`).
 - `exists_smul_limit_eq_of_mem_orbit`: the same argument shows that the
   `G`-orbit of `x∞` depends only on the `Gc`-orbit of `p`: the limit of the
   flow from `g₀ • p` is `u • x∞` for some `u : G`.
