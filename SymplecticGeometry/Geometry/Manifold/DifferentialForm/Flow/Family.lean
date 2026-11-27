@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
@@ -281,7 +282,7 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
         (mfderiv I J f x : E →L[ℝ] E') (γ.val (f x)) := by
     rw [coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM]
   have hs (u : ℝ) := congrArg (fun γ ↦ γ.val x) (mpullback_prodMk_mpullback_prodMap' hc f hf α u)
-  simp only [hs, hx, Submodule.coe_smul, Pi.smul_apply] at h₁ h₂ ⊢
+  simp only [hs, hx, SmoothBundleForm.smul_apply] at h₁ h₂ ⊢
   refine h₁.unique ?_
   convert h₂ using 1
   · rw [map_smul, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]

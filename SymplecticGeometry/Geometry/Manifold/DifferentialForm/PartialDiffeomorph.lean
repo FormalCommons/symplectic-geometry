@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
@@ -719,7 +720,7 @@ theorem sum_extendByZeroAlong_localize [T2Space M] {ι : Type*} [Fintype ι]
       ((α.tsupport_localize_subset (ψ i) (hK i) (hρ i)).trans
         ((ψ i).mapsTo.mono_left (hρ i)).image_subset) = α := by
   refine Subtype.ext (funext fun x ↦ ?_)
-  rw [Submodule.coe_sum, Finset.sum_apply]
+  rw [SmoothBundleForm.sum_apply]
   simp only [SmoothForm.coe_extendByZeroAlong]
   rw [Finset.sum_congr rfl fun i _ ↦ extendByZeroAlong_localize_apply (ψ i) α (hρ i) x,
     ← Finset.sum_smul, ← finsum_eq_sum_of_fintype, ρ.sum_eq_one (mem_univ x), one_smul]
