@@ -292,9 +292,7 @@ theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici {c b : ℝ} (hcb : c
 
 /-- For `c < b ≤ d` there is a smooth monotone function `φ : ℝ → ℝ` that is the identity on
 `(-∞, c]`, equal to `d` on `[b, ∞)`, at most `d` everywhere, and with positive derivative on
-`(-∞, b)`. For `d = b` this is `Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`; in
-general it is that map for `c < d`, composed with `x ↦ x + (d - b) * σ x`, where `σ` is a
-smooth step from `0` on `(-∞, c]` to `1` on `[b, ∞)`. -/
+`(-∞, b)`. For `d = b` this is `Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`. -/
 theorem exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici_of_le {c b d : ℝ} (hcb : c < b)
     (hbd : b ≤ d) :
     ∃ φ : ℝ → ℝ, ContDiff ℝ ∞ φ ∧ Monotone φ ∧ EqOn φ id (Iic c) ∧
