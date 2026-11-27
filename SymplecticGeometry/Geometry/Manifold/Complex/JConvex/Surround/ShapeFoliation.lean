@@ -457,6 +457,12 @@ theorem smoothedMaxPath_of_ge (hσ : 3 / 4 ≤ σ) :
   rw [smoothedMaxPath_def, collaredSmoothTransition_eq_one_of_ge hσ, sub_self, zero_mul,
     sub_zero]
 
+/-- From `σ = 3 / 4` on, the path from the `i`-th member of the chain of smoothed maxima towards
+`A (i + 1)` is the `(i + 1)`-st member. -/
+theorem smoothedMaxPath_smoothedMaxChain_of_ge {A : ℕ → ℝ → ℝ} {i : ℕ} (hσ : 3 / 4 ≤ σ) :
+    smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) σ = smoothedMaxChain δ A (i + 1) := by
+  rw [smoothedMaxPath_of_ge hσ, smoothedMaxChain_succ]
+
 /-- Up to `σ = 1 / 4`, the path is `M` wherever `A - η` lies at least `δ` below `M`. -/
 theorem smoothedMaxPath_eq_left (hδ : 0 < δ) (hσ : σ ≤ 1 / 4) (h : A r - η + δ ≤ M r) :
     smoothedMaxPath δ η M A σ r = M r := by
@@ -558,20 +564,21 @@ theorem shapeChain_def (δ η a h : ℝ) (A : ℕ → ℝ → ℝ) (N : ℕ) (�
   (rfl)
 
 /-- The chain of paths between smoothed maxima of `Cⁿ` functions is `Cⁿ` in `(ℓ, r)`. -/
-theorem contDiff_shapeChain {n : ℕ∞} (hA : ∀ i, ContDiff ℝ n (A i)) :
+theorem contDiff_shapeChain {n : ℕ∞} (hA : ∀ i ≤ N, ContDiff ℝ n (A i)) :
     ContDiff ℝ n (Function.uncurry (shapeChain δ η a h A N)) := by
-  have hM (i : ℕ) : ContDiff ℝ n (smoothedMaxChain δ A i) :=
-    contDiff_smoothedMaxChain δ fun j _ ↦ hA j
+  have hM {i : ℕ} (hi : i ≤ N) : ContDiff ℝ n (smoothedMaxChain δ A i) :=
+    contDiff_smoothedMaxChain δ fun j hj ↦ hA j (hj.trans hi)
   have hσ (i : ℕ) : ContDiff ℝ n fun x : ℝ × ℝ ↦ ((x.1 - a - i * h) / h, x.2) :=
     (((contDiff_fst.sub contDiff_const).sub contDiff_const).div_const h).prodMk contDiff_snd
   have key : ContDiff ℝ n fun x : ℝ × ℝ ↦ smoothedMaxChain δ A 0 x.2 + ∑ i ∈ Finset.range N,
       (Function.uncurry (smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)))
           ((x.1 - a - i * h) / h, x.2) -
         smoothedMax δ (smoothedMaxChain δ A i x.2) (A (i + 1) x.2 - η)) :=
-    ((hM 0).comp contDiff_snd).add (ContDiff.sum fun i _ ↦
-      ((contDiff_smoothedMaxPath (hM i) (hA (i + 1))).comp (hσ i)).sub
-        ((contDiff_smoothedMax δ).comp (((hM i).comp contDiff_snd).prodMk
-          (((hA (i + 1)).comp contDiff_snd).sub contDiff_const))))
+    ((hM (Nat.zero_le N)).comp contDiff_snd).add (ContDiff.sum fun i hi ↦ by
+      have hi : i < N := Finset.mem_range.1 hi
+      exact ((contDiff_smoothedMaxPath (hM hi.le) (hA (i + 1) hi)).comp (hσ i)).sub
+        ((contDiff_smoothedMax δ).comp (((hM hi.le).comp contDiff_snd).prodMk
+          (((hA (i + 1) hi).comp contDiff_snd).sub contDiff_const))))
   convert key using 1
   funext ⟨ℓ, r⟩
   simp only [Function.uncurry_apply_pair, shapeChain_def]
@@ -594,14 +601,6 @@ theorem shapeChain_of_le (hh : 0 < h) (hℓ : ℓ ≤ a + h / 4) :
   have hi := mul_nonneg i.cast_nonneg hh.le
   rw [smoothedMaxPath_of_le ((div_le_iff₀ hh).2 (by linarith)), sub_self]
 
-/-- From `ℓ = a + (i + 3 / 4) h` on, the `i`-th path of the chain has reached the next member of
-the chain of smoothed maxima. -/
-private theorem smoothedMaxPath_shapeChain_of_ge (hh : 0 < h) {i : ℕ}
-    (hℓ : a + (i + 3 / 4) * h ≤ ℓ) :
-    smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) ((ℓ - a - i * h) / h) r =
-      smoothedMaxChain δ A (i + 1) r := by
-  rw [smoothedMaxPath_of_ge ((le_div_iff₀ hh).2 (by linarith)), smoothedMaxChain_succ_apply]
-
 /-- For `h > 0`, the chain of paths between smoothed maxima does not depend on `ℓ` from
 `ℓ = a + (N - 1 / 4) h` on. -/
 theorem shapeChain_eq_of_ge (hh : 0 < h) (hℓ : a + (N - 1 / 4) * h ≤ ℓ)
@@ -613,8 +612,8 @@ theorem shapeChain_eq_of_ge (hh : 0 < h) (hℓ : a + (N - 1 / 4) * h ≤ ℓ)
   refine Finset.sum_congr rfl fun i hi ↦ ?_
   have hiN : (i : ℝ) + 1 ≤ N := by exact_mod_cast Finset.mem_range.1 hi
   have hle : a + (i + 3 / 4) * h ≤ a + (N - 1 / 4) * h := by nlinarith
-  rw [smoothedMaxPath_shapeChain_of_ge hh (hle.trans hℓ),
-    smoothedMaxPath_shapeChain_of_ge hh (hle.trans hℓ')]
+  rw [smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by linarith)),
+    smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by linarith))]
 
 /-- **The local form of the chain of paths.** For `δ > 0` and `h > 0`, at an `r` where the joints
 match, `A (i + 1) r - η + δ ≤ M i r` for `i < N` with `M = smoothedMaxChain δ A`, the chain of
@@ -638,8 +637,8 @@ theorem shapeChain_eq_smoothedMaxPath (hδ : 0 < δ) (hh : 0 < h)
     rw [smoothedMax_eq_left hδ hJi]
     rcases lt_trichotomy i j with hij | rfl | hij
     · have hij' : (i : ℝ) + 1 ≤ j := by exact_mod_cast hij
-      rw [smoothedMaxPath_shapeChain_of_ge hh (by nlinarith [hℓ.1]), hg₁ _ hij,
-        hg₁ _ hij.le]
+      rw [smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by nlinarith [hℓ.1])),
+        hg₁ _ hij, hg₁ _ hij.le]
     · rw [hg₂ _ (Nat.lt_succ_self _), hg₁ _ le_rfl]
     · have hij' : (j : ℝ) + 1 ≤ i := by exact_mod_cast hij
       have hσ : (ℓ - a - i * h) / h ≤ 1 / 4 := (div_le_iff₀ hh).2 (by nlinarith [hℓ.2])
@@ -662,7 +661,7 @@ theorem shapeChain_eq_smoothedMaxChain (hδ : 0 < δ) (hh : 0 < h)
     intro i hi
     have hiN : (i : ℝ) + 1 ≤ N := by exact_mod_cast Finset.mem_range.1 hi
     rw [smoothedMax_eq_left hδ (hJ i (Finset.mem_range.1 hi)),
-      smoothedMaxPath_shapeChain_of_ge hh (by nlinarith)]
+      smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by nlinarith))]
   rw [shapeChain_def, Finset.sum_congr rfl key,
     Finset.sum_range_sub fun i ↦ smoothedMaxChain δ A i r]
   ring
