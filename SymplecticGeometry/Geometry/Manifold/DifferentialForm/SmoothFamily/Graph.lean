@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The slice of a smooth family along a smooth function of the point
@@ -155,12 +156,7 @@ theorem isNondegenerate_sliceAlong_iff (hα : IsSmoothFamily J α) {χ : M → N
     (hχ : ContMDiff I J ∞ χ) :
     SmoothTwoForm.IsNondegenerate (hα.sliceAlong χ hχ) ↔
       ∀ x, ((α (χ x)).bilinFormAt x).Nondegenerate := by
-  refine ⟨fun h x ↦ bilinFormAt_sliceAlong hα hχ x ▸ h.nondegenerate_bilinFormAt x, fun h ↦ ?_⟩
-  rw [SmoothTwoForm.isNondegenerate_iff_separatingLeft]
-  intro x v hv
-  refine (h x).1 v fun w ↦ ?_
-  rw [← bilinFormAt_sliceAlong hα hχ x, SmoothForm.bilinFormAt_apply]
-  exact hv w
+  simp only [SmoothTwoForm.isNondegenerate_def, bilinFormAt_sliceAlong hα hχ]
 
 /-- The slice of a smooth family of two-forms along a map `χ` with values in a set `s` is
 nondegenerate when every `α t` with `t ∈ s` is. -/
