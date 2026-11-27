@@ -63,6 +63,9 @@ instance [CompactSpace M] : CompactSpace (Remodel Φ M) := inferInstanceAs (Comp
 
 instance [Nonempty M] : Nonempty (Remodel Φ M) := inferInstanceAs (Nonempty M)
 
+instance [PreconnectedSpace M] : PreconnectedSpace (Remodel Φ M) :=
+  inferInstanceAs (PreconnectedSpace M)
+
 instance [ConnectedSpace M] : ConnectedSpace (Remodel Φ M) := inferInstanceAs (ConnectedSpace M)
 
 instance [PathConnectedSpace M] : PathConnectedSpace (Remodel Φ M) :=
@@ -94,6 +97,29 @@ theorem remodelHomeomorph_symm_apply (x : Remodel Φ M) :
     (remodelHomeomorph Φ M).symm x = (x : M) := (rfl)
 
 variable [ChartedSpace H M]
+
+/-- A chart `c` of the maximal `C^n` atlas of `M`, followed by `Φ`, is a chart of the maximal
+`C^n` atlas of `Remodel Φ M`. -/
+theorem trans_mem_maximalAtlas_remodel {c : OpenPartialHomeomorph M H}
+    (hc : c ∈ IsManifold.maximalAtlas I n M) :
+    (c.trans Φ.toHomeomorph.toOpenPartialHomeomorph : OpenPartialHomeomorph (Remodel Φ M) H') ∈
+      IsManifold.maximalAtlas I' n (Remodel Φ M) := by
+  -- The same statement on `M` itself, carrying the charts of `Remodel Φ M`, as Tau Ceti states
+  -- its lemmas on `Φ.toHomeomorph.chartedSpaceComp M`.
+  let := Φ.toHomeomorph.chartedSpaceComp M
+  suffices c.trans Φ.toHomeomorph.toOpenPartialHomeomorph ∈
+      (contDiffGroupoid n I').maximalAtlas M from this
+  rw [IsManifold.maximalAtlas, mem_maximalAtlas_iff] at hc
+  rw [mem_maximalAtlas_iff, Φ.toHomeomorph.atlas_chartedSpaceComp M]
+  rintro _ ⟨d, hd, rfl⟩
+  obtain ⟨h₁, h₂⟩ := hc d hd
+  constructor
+  · rw [OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm, OpenPartialHomeomorph.trans_assoc,
+      ← OpenPartialHomeomorph.trans_assoc c.symm]
+    exact Φ.symm_trans_trans_mem_contDiffGroupoid h₁
+  · rw [OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm, OpenPartialHomeomorph.trans_assoc,
+      ← OpenPartialHomeomorph.trans_assoc d.symm]
+    exact Φ.symm_trans_trans_mem_contDiffGroupoid h₂
 
 /-- The identity of `M`, as a `C^n` diffeomorphism from `M`, modelled on `I`, to `Remodel Φ M`,
 modelled on `I'`. -/
