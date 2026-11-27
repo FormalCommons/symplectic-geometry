@@ -73,6 +73,8 @@ constant family), which contains a larger closed ball
   symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on all of `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.subtype_of_eqOn`: a map into an open subset
   that agrees near `B(r)` with a symplectic embedding is one for the restricted form.
+* `SymplecticGeometry.IsSymplecticBallEmbedding.apply_ne_apply_zero`: it sends no nonzero point
+  of `B(r)` to the image of the origin.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.isCompact_image_closedBall`: it maps each closed
   ball `B(r')` with `r' ≤ r` onto a compact set.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`: for `0 < r`, it is an
@@ -168,6 +170,12 @@ theorem exists_contMDiffOn (hj : IsSymplecticBallEmbedding σ r j) :
 /-- A symplectic embedding of `B(r)` is injective on `B(r)`. -/
 theorem injOn (hj : IsSymplecticBallEmbedding σ r j) : InjOn j (closedBall 0 r) :=
   hj.2.1
+
+/-- A symplectic embedding of `B(r)` sends no nonzero point of `B(r)` to the image of the
+origin. -/
+theorem apply_ne_apply_zero (hj : IsSymplecticBallEmbedding σ r j) {z : StdSpace (Fin n)}
+    (hz : z ∈ closedBall 0 r) (hz0 : z ≠ 0) : j z ≠ j 0 :=
+  (hj.injOn.ne_iff hz (mem_closedBall_self (nonempty_closedBall.1 ⟨z, hz⟩))).2 hz0
 
 /-- A symplectic embedding of `B(r)` pulls `σ` back to `ω₀` on the open ball. -/
 theorem mpullback_eq (hj : IsSymplecticBallEmbedding σ r j) {z : StdSpace (Fin n)}
