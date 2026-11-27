@@ -187,7 +187,7 @@ fibrewise diffeomorphisms.
 
 About 300 lines.
 
-### `Geometry/Manifold/DifferentialForm/FiberIntegral/Product/ExtDeriv.lean`
+### `Geometry/Manifold/DifferentialForm/FiberIntegral/Product/ExtDeriv/Basic.lean`
 
 - `prodFiberIntegral_mextDeriv`:
   `prodFiberIntegral o (cast (mextDerivₗ (I.prod J) (r + m) α)) = mextDerivₗ I r (prodFiberIntegral o α)`,
@@ -283,7 +283,7 @@ order; each waits only for those it names.
 2. **`FiberIntegral/Product/Naturality.lean`**: base pull-back, projection
    formula, invariance under fibrewise orientation-preserving
    diffeomorphisms. Waits for issue 1.
-3. **`FiberIntegral/Product/ExtDeriv.lean`**: `prodFiberIntegral_mextDeriv`.
+3. **`FiberIntegral/Product/ExtDeriv/Basic.lean`**: `prodFiberIntegral_mextDeriv`.
    Waits for issues 1 and 2.
 4. **`FiberIntegral/Basic.lean`**: `TauCeti.MapFiber.Atlas.fiberIntegral`,
    independence of the chart and of the lifts, the integral over each fibre,
