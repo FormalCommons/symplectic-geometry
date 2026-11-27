@@ -46,9 +46,7 @@ homologically oriented surface `M`, the integer `⟨c₁(E), [M]⟩`.
 ## Implementation notes
 
 Tau Ceti's Euler classes take the fibres in the universe of the base, so the fibres `E x` are in
-`Type`, like the base. The argument `r := 0` of `complexEulerClass` is given explicitly where it
-appears: otherwise elaborating against the expected degree `2` must solve `2 * ?r + 2 = 2`, which
-does not terminate quickly.
+`Type`, like the base.
 
 ## References
 

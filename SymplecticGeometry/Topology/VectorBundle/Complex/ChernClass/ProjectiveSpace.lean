@@ -66,7 +66,7 @@ the cohomology vanishes (`Projectivization.isZero_integralCohomology_of_lt`).
 ## Implementation notes
 
 The Euler class is that of a line, `r = 0`, of degree `2 * 0 + 2`, which is `2` by computation;
-as in `Topology/VectorBundle/Complex/FirstChernClass.lean`, `r := 0` is given explicitly.
+`r := 0` is given explicitly.
 
 ## References
 

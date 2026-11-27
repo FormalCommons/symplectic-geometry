@@ -56,7 +56,7 @@ $$\sum_{i=0}^{n}\pi^*c_i(E)\,x^{n-i}=0,$$
 
 and $c_k(E)=0$ for $k>n$. For a line bundle $L$, $P(L)=B$ and $S=L$, so the
 relation reads $c_1(L)=-x=e(L_{\mathbb R})$: the normalization agrees with
-Tau Ceti's Euler class and with *First Chern number*'s class on lines.
+Tau Ceti's Euler class and with `TauCeti.firstChernClass` on lines.
 
 The reasons for this choice, against a recursive definition through the
 Gysin sequence (Milnor–Stasheff, §14) or a classifying space:
@@ -181,8 +181,12 @@ need Leray–Hirsch over the same covers, which the plan does not ask for.
 
 *First Chern number*'s `Topology/VectorBundle/Complex/FirstChernClass.lean`
 (#784) does not move into `ChernClass/`. Parts 13, 31 and 32 import it, and
-it needs no projective bundle. The file `ChernClass/FirstChernClass.lean`
-proves that $c_1$ equals it, and so the two stay one notion.
+what it adds to Tau Ceti's `TauCeti.firstChernClass` (invariance under
+isomorphisms between bundles with different models, naturality along any
+`ContinuousMapClass`, the conjugate bundle, the first Chern number) needs no
+projective bundle. The file `ChernClass/FirstChernClass.lean` proves that
+$c_1$ equals `TauCeti.firstChernClass` (`chernClass_one_eq_firstChernClass`),
+and so the two stay one notion.
 
 ### The extension for `auxiliary/first-chern-class.md`
 

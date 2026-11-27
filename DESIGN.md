@@ -2798,9 +2798,8 @@ complete target and a function on the whole half-space.
   isotopy*.
 - **Milestones:** *First Chern class of a nondegenerate two-form*, on a
   Hausdorff σ-compact manifold (for the existence of a compatible $J$). The
-  integral class is *First Chern number*'s, the Euler class of the
-  determinant line, as `design/first-chern-number.md` plans it for this
-  page. No design file is needed.
+  integral class is Tau Ceti's `TauCeti.firstChernClass`, the Euler class
+  of the determinant line. No design file is needed.
 
 ### 32. Adjunction (needs `design/adjunction.md`)
 
