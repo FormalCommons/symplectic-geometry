@@ -128,7 +128,7 @@ holds for every `m`, `m = 0` included.
 Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_tangentSpace :
     ((TopCat.of (ℙ ℂ (Fin (m + 1) → ℂ))).uliftIntegralCohomologyIso 2).hom
-        (firstChernClass (Fin m → ℂ)
+        (TauCeti.firstChernClass (Fin m → ℂ)
           (TangentSpace 𝓘(ℂ, Fin m → ℂ) : ℙ ℂ (Fin (m + 1) → ℂ) → Type)) =
       ((m + 1 : ℕ) : ℤ) • hyperplaneClass (Fin (m + 1) → ℂ) := by
   rw [← chernClass_one_eq_firstChernClass, ← totalChernClass_apply, totalChernClass_tangentSpace,

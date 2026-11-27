@@ -36,7 +36,7 @@ under `SymplecticGeometry/`.
   theorem.
 - **The canonical class.** $K=-c_1(TM,J)$, where $J$ is any structure
   compatible with $\omega$,
-  with $c_1$ *First Chern number*'s `SymplecticGeometry.Bundle.firstChernClass`
+  with $c_1$ Tau Ceti's `TauCeti.firstChernClass`
   of the complex tangent bundle, exactly as in `design/adjunction.md`. Only
   this $J$ enters $K$; the pencil carries its own tame structure.
 - **Euler characteristic and genus.** $\chi(M)$ is Tau Ceti's
@@ -467,8 +467,8 @@ a fibre.
   `Orientation/DualClass.lean`.
 - *Parallel transport*: `RadialTrivialization.lean`.
 - Merged: *Adjunction* (`adjunction_formula`), *First Chern number*
-  (`firstChernClass`), *First Chern class of nondegenerate forms* (invariance
-  of $c_1$), *Complex projective space* (`fubiniStudyForm`), the library's
+  (`chernNumber`, on Tau Ceti's `TauCeti.firstChernClass`), *First Chern
+  class of nondegenerate forms* (invariance of $c_1$), *Complex projective space* (`fubiniStudyForm`), the library's
   `Topology/VectorBundle/Orientation/Whitney.lean`.
 
 Mathlib, Tau Ceti and this library were searched at the pinned versions for
