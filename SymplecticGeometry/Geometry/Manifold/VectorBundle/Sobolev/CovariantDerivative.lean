@@ -348,8 +348,7 @@ theorem chartValueL_sobolevL_ofContMDiffSection_ae
       =ᵐ[μ.restrict (A.image i)] A.tangentHom.coord i (cov s) := by
   have hcoord := SobolevSection.chartValueL_ofContMDiffSection_ae A μ p (k + 1) s i
   have hc : ContDiffOn ℝ 1 (A.coord i s) (A.image i) :=
-    ((A.contDiffOn_coord s.contMDiff i).of_le (by exact_mod_cast Nat.le_add_left 1 k)).mono
-      (A.image_subset_target_inter_preimage_baseSet i)
+    (A.contDiffOn_coord_image s.contMDiff i).of_le (by exact_mod_cast Nat.le_add_left 1 k)
   filter_upwards [hcov.chartValueL_sobolevL_ae A hcovs μ p k _
       ((hc.hasWeakFDerivOn_fderiv (μ := μ) (Ω := A.image i)).congr_ae hcoord.symm),
     hcoord, ae_restrict_mem (A.image i).isOpen.measurableSet] with y h hc' hy
