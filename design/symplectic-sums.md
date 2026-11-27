@@ -525,8 +525,8 @@ Step 8d first searches Mathlib and Tau Ceti for that comparison.
   with a symplectic framing from the base; `torusDiffeomorph` from Tau
   Ceti's standard symplectic torus (Decision 8), in
   `Sum/RationalEllipticSurface/FibreTorus.lean`.
-- `simplyConnectedSpace` (Decision 6) and
-  `simplyConnectedSpace_compl_fibre` (Decision 7).
+- `simplyConnectedSpace` (Decision 6); `simplyConnectedSpace_compl_fibre`
+  (Decision 7) is in `Sum/RationalEllipticSurface/FibreComplement.lean`.
 
 About 900 lines, in three issues.
 
@@ -541,7 +541,7 @@ About 900 lines, in three issues.
   as `Subgroup.normalClosure` of the range of the induced map, and $X'$ is
   connected. By `TauCeti.isPushout_fundamentalGroup` for the two pieces,
   whose overlap is $T^2\times A(\delta,\varepsilon)$, with
-  $\pi_1(E(1)\setminus T)=1$ from `RationalEllipticSurface/Basic.lean`, and the same
+  $\pi_1(E(1)\setminus T)=1$ from `RationalEllipticSurface/FibreComplement.lean`, and the same
   theorem for $X$ covered by the complement of the closed tube and the open
   tube. Milestone: *Fundamental group after summing with the rational
   elliptic surface*.
