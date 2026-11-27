@@ -232,7 +232,7 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
   `exceptionalDivisor_eq_range`: it is the image of `ℓ ↦ (ℓ, 0)`, the map
   `BlowupModel.zeroSection`.
 - `blowdownDiffeomorph n`: $\pi$ as a biholomorphism from the complement of
-  the divisor onto `{z : E | z ≠ 0}`, both as open subsets, with inverse
+  the divisor onto `TauCeti.puncturedSpace E`, both as open subsets, with inverse
   `z ↦ (mk z, z)`; `coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`.
 
 ### `Blowup/Tautological.lean`
