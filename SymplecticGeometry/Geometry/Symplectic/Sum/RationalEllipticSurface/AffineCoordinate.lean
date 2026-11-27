@@ -35,6 +35,8 @@ rescaling of that trivialization is a symplectic framing of the fibre.
   smooth over `ℝ` at the points of the fibre.
 * `SymplecticGeometry.rationalEllipticSurface.affineCoordinate_fibreEmbedding`: it vanishes on the
   fibre.
+* `SymplecticGeometry.rationalEllipticSurface.mem_range_fibreEmbedding_iff`: the fibre is the set
+  of points over the affine open `s ≠ 0` where it vanishes.
 * `SymplecticGeometry.rationalEllipticSurface.isRegularPoint_affineCoordinate`: its complex
   differential is onto at every point of the fibre, and
   `SymplecticGeometry.rationalEllipticSurface.isRegularPoint_restrictScalars_affineCoordinate`:
@@ -135,6 +137,31 @@ theorem contMDiffAt_affineCoordinate {p : rationalEllipticSurface}
 theorem snd_fibreEmbedding_mem_affineOpen (x : SmoothProjectiveHypersurface.fermat 1 3) :
     (fibreEmbedding x : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0 := by
   simp [coe_fibreEmbedding_apply]
+
+/-- A point over the affine open `s ≠ 0` is determined over `ℂℙ¹` by its affine coordinate. -/
+theorem snd_eq_affineChart_symm_affineCoordinate {p : rationalEllipticSurface}
+    (hp : (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0) :
+    (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 =
+      (affineChart 0).symm (fun _ ↦ affineCoordinate p) := by
+  have h : (fun _ : Fin 1 ↦ affineCoordinate p) =
+      affineChart 0 (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 := by
+    funext k
+    rw [Subsingleton.elim k 0, affineCoordinate_def]
+  rw [h, (affineChart 0).left_inv (by rwa [affineChart_source])]
+
+/-- A point of the rational elliptic surface lies on the fibre over `[1 : 0]` exactly when it lies
+over the affine open `s ≠ 0` of `ℂℙ¹` and its affine coordinate vanishes. -/
+theorem mem_range_fibreEmbedding_iff {p : rationalEllipticSurface} :
+    p ∈ range fibreEmbedding ↔
+      (p : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)).2 ∈ affineOpen 0 ∧ affineCoordinate p = 0 := by
+  refine ⟨?_, fun ⟨hp, h⟩ ↦ ?_⟩
+  · rintro ⟨x, rfl⟩
+    exact ⟨snd_fibreEmbedding_mem_affineOpen x, affineCoordinate_fibreEmbedding x⟩
+  rw [range_fibreEmbedding, mem_ofPred_eq, snd_eq_affineChart_symm_affineCoordinate hp, h,
+    ← Pi.zero_def, affineChart_symm_zero]
+  congr 1
+  funext k
+  fin_cases k <;> simp
 
 /-- The affine coordinate is smooth, over `ℝ`, at every point of the fibre over `[1 : 0]`. -/
 theorem contMDiffAt_affineCoordinate_fibreEmbedding (x : SmoothProjectiveHypersurface.fermat 1 3) :
