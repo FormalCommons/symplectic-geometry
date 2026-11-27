@@ -48,7 +48,7 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   support lies in `U` is `C^n` when the form is
   (`TauCeti.IsSmoothForm.fun_smul_extendByZeroOfOpens`).
 * Restricting to an open subset `W` and then to an open subset `V ≤ W` is restricting to `V`
-  (`TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
+  (Tau Ceti's `TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
   `TauCeti.SmoothForm.mpullback_inclusion_mpullback_subtype_val` for smooth forms).
 * A closed smooth form on `U` agrees, on a set whose closure lies in `U`, with a smooth form on
   `M` that is closed there (`TauCeti.exists_isSmoothForm_eq_on_of_closure_subset`): extend the
@@ -226,17 +226,6 @@ theorem mpullback_subtype_val_surjective (U : Opens M) :
     Function.Surjective (mpullback (F := F) (k := k) I I (Subtype.val : U → M)) :=
   fun ξ ↦
     ⟨RoughForm.extendByZeroOfOpens ξ, RoughForm.mpullback_subtype_val_extendByZeroOfOpens ξ⟩
-
-/-- Restricting a form on `M` to an open subset `W`, and then to an open subset `V ≤ W`, is
-restricting it to `V`. -/
-@[simp]
-theorem mpullback_inclusion_mpullback_subtype_val {V W : Opens M} (h : V ≤ W)
-    (γ : RoughForm I M F k) :
-    mpullback I I (Opens.inclusion h) (mpullback I I (Subtype.val : W → M) γ) =
-      mpullback I I (Subtype.val : V → M) γ := by
-  funext x
-  rw [mpullback_inclusion_apply, mpullback_subtype_val_apply, mpullback_subtype_val_apply,
-    Set.coe_inclusion h]
 
 /-- At a point of an open subset `U`, a form on `M` is `C^n` exactly when its restriction to `U`
 is. -/

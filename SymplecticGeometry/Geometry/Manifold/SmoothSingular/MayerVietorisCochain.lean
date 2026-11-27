@@ -8,7 +8,6 @@ module
 public import TauCeti.Geometry.Manifold.SmoothSingular.MayerVietoris
 public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
 public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Basic
-import SymplecticGeometry.AlgebraicTopology.Cohomology.MayerVietoris.SmallSubcomplex
 
 /-!
 # Small smooth singular cochains and the Mayer–Vietoris connecting map
@@ -21,13 +20,9 @@ statements of Tau Ceti's `Geometry/Manifold/SmoothSingular/MayerVietoris.lean`.
 * For a Hausdorff `σ`-compact smooth manifold with a finite-dimensional model, an open cover `S`
   and a projective coefficient object `R`, restricting singular cochains of `M` to the small
   smooth simplices is a quasi-isomorphism
-  (`TauCeti.quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι`): it is restriction to
-  smooth simplices, a quasi-isomorphism by the smoothing theorem, followed by restriction to the
-  smooth simplices subordinate to `S`
-  (`TauCeti.quasiIso_cochainComplexMap_homOfLE_inf_smallSingularSubcomplex`). The induced
-  isomorphism on cohomology is `TauCeti.smallSmoothSingularCohomologyIso`. These follow Tau
-  Ceti's `TauCeti.quasiIso_cochainComplexMap_smallSingularSubcomplex_ι` and
-  `TauCeti.smallSingularCohomologyIso`.
+  (Tau Ceti's `TauCeti.quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι`). The induced
+  isomorphism on cohomology is `TauCeti.smallSmoothSingularCohomologyIso`, which follows Tau
+  Ceti's `TauCeti.smallSingularCohomologyIso`.
 * For open sets `U`, `V` with `U ⊔ V = ⊤`, under these restrictions the singular Mayer–Vietoris
   connecting map `TopCat.singularCohomologyMayerVietorisδ` becomes the connecting map
   `SSet.mayerVietorisCochainδ` of the pushout square
@@ -71,28 +66,6 @@ variable [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [IsManifold
 
 include hS hcov
 
-/-- For an open cover `S` of a Hausdorff `σ`-compact smooth manifold `M`, restricting singular
-cochains of `M` to the smooth singular simplices lying in some `S i` is a quasi-isomorphism, when
-the coefficient object `R` is projective. -/
-theorem quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι :
-    QuasiIso (SSet.cochainComplexMap (R := R) (k := k) (M := Y)
-      (smallSmoothSingularSubcomplex I S).ι) := by
-  -- The small smooth subcomplex is the meet of the smooth subcomplex with the small one. The
-  -- equation is stated for an arbitrary subcomplex `T` and substituted by `rfl`, since
-  -- `rw [smallSmoothSingularSubcomplex_eq]` fails on the proof of `≤` that `homOfLE` depends on.
-  have key : ∀ {T : (TopCat.toSSet.obj (TopCat.of M)).Subcomplex}
-      (hT : T ≤ smoothSingularSubcomplex I M),
-      T = smoothSingularSubcomplex I M ⊓ (TopCat.of M).smallSingularSubcomplex S →
-      QuasiIso (SSet.cochainComplexMap (R := R) (k := k) (M := Y) (homOfLE hT)) := by
-    rintro _ _ rfl
-    exact quasiIso_cochainComplexMap_homOfLE_inf_smallSingularSubcomplex R k Y
-      (smoothSingularSubcomplex I M) S hS hcov
-  have := key (smallSmoothSingularSubcomplex_le_smoothSingularSubcomplex I _)
-    (smallSmoothSingularSubcomplex_eq _)
-  rw [← homOfLE_ι (smallSmoothSingularSubcomplex_le_smoothSingularSubcomplex I _),
-    SSet.cochainComplexMap_comp]
-  infer_instance
-
 /-- For an open cover `S` of a Hausdorff `σ`-compact smooth manifold `M` and a projective
 coefficient object `R`, the isomorphism from the singular cohomology of `M` to the cohomology of
 the cochains on the smooth singular simplices lying in some `S i`, induced by restriction. -/
@@ -100,7 +73,8 @@ def smallSmoothSingularCohomologyIso (n : ℕ) :
     (TopCat.of M).singularCohomology R k Y n ≅
       (((smallSmoothSingularSubcomplex I S : SSet).chainComplex R).linearYonedaObj k Y).homology
         n :=
-  have := quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι I R k Y S hS hcov
+  have := quasiIso_cochainComplexMap_smallSmoothSingularSubcomplex_ι (I := I) (R := R) (k := k)
+    (Y := Y) S hS hcov
   asIso (HomologicalComplex.homologyMap
     (SSet.cochainComplexMap (smallSmoothSingularSubcomplex I S).ι) n)
 

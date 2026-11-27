@@ -141,7 +141,7 @@ theorem exists_norm_contDiffOnSMulL_le (k : ℕ) :
       have h₁ := hC hU hΩ hΩU hpsi (fun j hj => hM j (by omega)) (lineDerivL (b i) k u)
       have h₂ := hC hU hΩ hΩU ((hpsi.fderivWithin hU (by simp)).clm_apply
         (contDiffOn_const (c := b i))) (hφ i) (lowerOrder k u)
-      have h₃ := norm_lineDerivL_apply_le (b i) k u
+      have h₃ := norm_lineDerivL_apply_le_succ_mul (b i) k u
       rw [b.norm_eq_one, mul_one] at h₃
       have h₄ := norm_lowerOrder_le k u
       have : 0 ≤ C * M := mul_nonneg hC0 hMnn
