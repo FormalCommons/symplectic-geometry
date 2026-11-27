@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import Mathlib.Geometry.Manifold.VectorBundle.Hom
 import all TauCeti.Topology.VectorBundle.Complex.Structure
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousLinearEquiv
@@ -61,6 +62,9 @@ changes are Tau Ceti's private `realCoordChange`, which is used here rather than
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_pullbackFiberEquiv`: along a
   `Cⁿ` map, the identification of the complex bundle of the pull-back of `J` with the pull-back
   of the complex bundle of `J` is `Cⁿ` on total spaces.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_fiberEquivOfCommute`: a `Cⁿ`
+  isomorphism of real bundles that carries `J` to a second `Cⁿ` complex structure is `Cⁿ` as an
+  isomorphism of their complex bundles.
 
 ## References
 
@@ -241,6 +245,35 @@ theorem contMDiff_pullbackFiberEquiv {EN HN N : Type*} [NormedAddCommGroup EN]
   simp [pullbackFiberEquiv_apply]
   -- `rfl` identifies the base point `(Pullback.lift f ⟨p.proj, _⟩).proj` with `f p.proj`.
   rfl
+
+/-- **A smooth isomorphism that carries `J` to `J'` is a smooth isomorphism of complex bundles.**
+Let `J` and `J'` be `Cⁿ` complex structures on `V` and on a second `Cⁿ` real vector bundle `V'`,
+with complex models `G` and `G'`. If real-linear isomorphisms `Φ x : V x ≃ V' x` that carry `J`
+to `J'` are `Cⁿ` on total spaces, then so are the complex-linear isomorphisms
+`TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommute` that they give from the complex
+bundle of `J` to that of `J'`. -/
+theorem contMDiff_fiberEquivOfCommute {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℝ F']
+    [FiniteDimensional ℝ F'] {V' : M → Type*} [∀ x, AddCommGroup (V' x)] [∀ x, Module ℝ (V' x)]
+    [∀ x, TopologicalSpace (V' x)] [∀ x, IsTopologicalAddGroup (V' x)]
+    [∀ x, ContinuousSMul ℝ (V' x)] [TopologicalSpace (TotalSpace F' V')]
+    [FiberBundle F' V'] [VectorBundle ℝ F' V'] [ContMDiffVectorBundle n F' V' I]
+    (J' : ContMDiffComplexStructure I n F' V')
+    (G' : Type*) [NormedAddCommGroup G'] [NormedSpace ℂ G'] [FiniteDimensional ℂ G']
+    [Fact (finrank ℝ F' = 2 * finrank ℂ G')] (Φ : ∀ x, V x ≃L[ℝ] V' x)
+    (hΦ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F')) n
+      (fun p : TotalSpace F V ↦ TotalSpace.mk' F' p.proj (Φ p.proj p.snd)))
+    (hJ : ∀ x v, Φ x (J.toContinuousComplexStructure x v) =
+      J'.toContinuousComplexStructure x (Φ x v)) :
+    ContMDiff (I.prod 𝓘(ℝ, G)) (I.prod 𝓘(ℝ, G')) n
+      fun p : TotalSpace G J.toContinuousComplexStructure.Fiber ↦
+        TotalSpace.mk' G' p.proj (J.toContinuousComplexStructure.fiberEquivOfCommute
+          J'.toContinuousComplexStructure Φ hJ p.proj p.snd) :=
+  ((J'.contMDiff_totalSpaceHomeomorph_symm G').comp
+    (hΦ.comp (J.contMDiff_totalSpaceHomeomorph G))).congr fun p ↦ by
+      rw [Function.comp_apply, Function.comp_apply,
+        TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply,
+        TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply,
+        TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommute_apply]
 
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 

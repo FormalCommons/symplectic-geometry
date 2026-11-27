@@ -20,6 +20,7 @@ public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
 public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.LinearAlgebra.Symplectic.InnerProductSpace
 
 /-!
 # The standard model `(ℝ²ⁿ, ω₀, J₀)`
@@ -521,18 +522,14 @@ theorem norm_stdFormCompRightL_apply_le (A : StdSpace ι →L[ℝ] StdSpace ι) 
 inner product makes dual to `φ`. -/
 theorem stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
     (stdForm ι).flatEquiv.symm φ =
-      -stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm φ) := by
-  rw [ContinuousLinearEquiv.symm_apply_eq]
-  ext v
-  rw [SymplecticForm.flatEquiv_apply, stdForm_apply_eq_inner, map_neg,
-    AlmostComplexStructure.apply_apply, neg_neg, InnerProductSpace.toDual_symm_apply]
+      -stdComplexStructure ι ((InnerProductSpace.toDual ℝ (StdSpace ι)).symm φ) :=
+  SymplecticForm.flatEquiv_symm_apply_of_apply_eq_inner stdForm_apply_eq_inner φ
 
 /-- The inverse of `ω₀` as a map to the dual preserves norms. -/
 @[simp]
 theorem norm_stdForm_flatEquiv_symm_apply (φ : StdSpace ι →L[ℝ] ℝ) :
-    ‖(stdForm ι).flatEquiv.symm φ‖ = ‖φ‖ := by
-  rw [stdForm_flatEquiv_symm_apply, norm_neg, norm_stdComplexStructure,
-    LinearIsometryEquiv.norm_map]
+    ‖(stdForm ι).flatEquiv.symm φ‖ = ‖φ‖ :=
+  SymplecticForm.norm_flatEquiv_symm_apply_of_apply_eq_inner stdForm_apply_eq_inner φ
 
 variable (ι) in
 /-- The continuous linear map that sends an endomorphism `A` of `StdSpace ι` to

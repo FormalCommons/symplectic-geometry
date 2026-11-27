@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.ModelChart
@@ -261,9 +261,9 @@ and its compression for an open `U ⊆ M` is the compression `F` of `c` for `Φ 
     exact (disjoint_image_iff Φ.symm.injective).2 (c.pairwise_disjoint hij)
   exists_compression U hU hsub := by
     have hΦ : Manifold.IsSmoothEmbedding I J ∞ Φ :=
-      Φ.isSmoothEmbedding_comp (f := id) (by simp) Manifold.IsSmoothEmbedding.id
+      Φ.isSmoothEmbedding (by simp)
     have hΦs : Manifold.IsSmoothEmbedding J I ∞ Φ.symm :=
-      Φ.symm.isSmoothEmbedding_comp (f := id) (by simp) Manifold.IsSmoothEmbedding.id
+      Φ.symm.isSmoothEmbedding (by simp)
     have hsub' : {y | g y ≤ a} ∪ ⋃ i, c.chart i '' Metric.closedBall 0 1 ×ˢ {0} ⊆ Φ '' U := by
       rw [Φ.image_eq_preimage_symm]
       rintro y (hy | hy)
