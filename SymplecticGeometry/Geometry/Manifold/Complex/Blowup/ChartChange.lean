@@ -36,6 +36,10 @@ lifted chart, and off it, by `Blowup.blowdownDiffeomorph`.
 * `SymplecticGeometry.Blowup.chartChange_symm`, `SymplecticGeometry.Blowup.chartChange_self`:
   its inverse is the change of chart the other way, and the change of chart from `c` to itself
   is the identity.
+* `SymplecticGeometry.Blowup.chartChange_trans`: the cocycle condition.
+* `SymplecticGeometry.Blowup.chartChange_ofDirection_directionEquiv`: on the lines of the tangent
+  space at the centre, read through `directionEquiv`, the change of chart is independent of the
+  charts.
 
 ## References
 
@@ -266,6 +270,48 @@ theorem chartChange_ofDirection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     chartChange c c' (ofDirection c ℓ) =
       ofDirection c' ((c.fderivTransEquiv c').mapProjectivization ℓ) := by
   rw [coe_chartChange, chartChangeMap_ofDirection]
+
+/-- On the exceptional divisor, read as the lines of the tangent space of `M` at the centre
+through `directionEquiv`, the change of chart does not depend on the charts: it sends the point
+over a line `ℓ` of `T_{p₀}M` in `Blowup c` to the point over `ℓ` in `Blowup c'`. -/
+@[simp high]
+theorem chartChange_ofDirection_directionEquiv
+    (ℓ : ℙ ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) p₀)) :
+    chartChange c c' (ofDirection c (directionEquiv c ℓ)) =
+      ofDirection c' (directionEquiv c' ℓ) := by
+  rw [chartChange_ofDirection]
+  congr 1
+  induction ℓ using Projectivization.ind with | h v hv =>
+  rw [directionEquiv_def, directionEquiv_def, LinearEquiv.mapProjectivization_mk,
+    LinearEquiv.mapProjectivization_mk, ContinuousLinearEquiv.mapProjectivization_mk]
+  congr 1
+  simpa using BlowupChart.fderivTransEquiv_mfderiv c c' v
+
+section Trans
+
+variable (c'' : BlowupChart (n := n) M p₀)
+  [Fact (c''.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- **The cocycle condition.** The change of chart from `c` to `c'` followed by the change of
+chart from `c'` to `c''` is the change of chart from `c` to `c''`. -/
+@[simp]
+theorem chartChange_trans :
+    (chartChange c c').trans (chartChange c' c'') = chartChange c c'' := by
+  refine Diffeomorph.ext fun z ↦ ?_
+  rw [Diffeomorph.coe_trans, Function.comp_apply]
+  by_cases hz : z ∈ exceptionalDivisor c
+  · rw [exceptionalDivisor_def] at hz
+    obtain ⟨ℓ, rfl⟩ := hz
+    rw [chartChange_ofDirection, chartChange_ofDirection, chartChange_ofDirection,
+      ← Homeomorph.trans_apply, ← ContinuousLinearEquiv.mapProjectivization_trans,
+      BlowupChart.fderivTransEquiv_trans]
+  · refine injOn_blowdown c'' ?_ ?_ (by rw [blowdown_chartChange, blowdown_chartChange,
+      blowdown_chartChange])
+    · rwa [Set.mem_compl_iff, chartChange_mem_exceptionalDivisor_iff,
+        chartChange_mem_exceptionalDivisor_iff]
+    · rwa [Set.mem_compl_iff, chartChange_mem_exceptionalDivisor_iff]
+
+end Trans
 
 end Blowup
 

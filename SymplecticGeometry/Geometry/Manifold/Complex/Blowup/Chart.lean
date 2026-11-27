@@ -269,6 +269,16 @@ theorem fderivTransEquiv_self : fderivTransEquiv c c = ContinuousLinearEquiv.ref
   ext v
   simp [fderivTransEquiv_eq]
 
+/-- The chain rule at the centre: the derivative at `0` of `φ ∘ c⁻¹` followed by that of
+`ψ ∘ φ⁻¹` is the derivative at `0` of `ψ ∘ c⁻¹`. -/
+@[simp]
+theorem fderivTransEquiv_trans (ψ : BlowupChart (n := n) M p₀)
+    [Fact (ψ.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)] :
+    (fderivTransEquiv c φ).trans (fderivTransEquiv φ ψ) = fderivTransEquiv c ψ := by
+  rw [fderivTransEquiv_eq, fderivTransEquiv_eq, fderivTransEquiv_eq]
+  exact ContinuousLinearEquiv.ext <| funext fun v ↦ by
+    simp only [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.symm_apply_apply]
+
 end BlowupChart
 
 namespace Blowup
@@ -494,8 +504,7 @@ theorem liftChart_image_preimage_source :
     liftChart c φ '' (blowdown c ⁻¹' φ.source) = BlowupModel.blowdown ⁻¹' φ.target := by
   refine Set.Subset.antisymm ?_ fun p hp ↦ ?_
   · rintro _ ⟨z, hz, rfl⟩
-    rw [Set.mem_preimage, blowdown_liftChart c φ hz]
-    exact φ.map_source hz
+    exact (mem_modelOpens φ).1 (liftChart_mem_modelOpens c φ hz)
   have hx : φ.symm p.blowdown ∈ φ.source := φ.map_target hp
   by_cases hp0 : p.blowdown = 0
   · refine ⟨ofDirection c ((c.fderivTransEquiv φ).symm.mapProjectivization p.pr), ?_, ?_⟩
