@@ -35,8 +35,8 @@ For now it contains two steps shared by the smooth and the continuous form.
   `W i` with pairwise disjoint images, the composite acts on `c.chart i '' W i` as `h i` read
   through the chart (`TauCeti.Diffeotopy.list_prod_map_apply_of_mem`), and it fixes every point
   outside the images of the `C i`. Its slice at a parameter and a time is the diffeomorphism of
-  `M` that the time slice of the composite, a diffeomorphism of `S × M` keeping the parameter,
-  induces (`Diffeomorph.slice`).
+  `M` that the time slice of the composite, a diffeomorphism of `S × M` keeping the parameter
+  (`TauCeti.Diffeotopy.list_prod_map_apply_fst`), induces (`Diffeomorph.slice`).
 
 ## Main declarations
 
@@ -111,11 +111,8 @@ theorem exists_diffeotopy_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
       (∀ i q t, ∀ z ∈ W i, Φ ((q, t), c.chart i z) = c.chart i (h i (t, (q, z))).2) ∧
       (∀ p, ∀ x ∉ ⋃ i, c.chart i '' C i, Φ (p, x) = x) ∧
       ∀ q, (∀ i t z, h i (t, (q, z)) = (q, z)) → ∀ t x, Φ ((q, t), x) = x := by
-  have hφo (i : c.ι) : IsOpenEmbedding (c.chart i) :=
-    .of_isEmbedding_isOpenMap (c.isSmoothEmbedding_chart i).isEmbedding
-      (c.isLocalDiffeomorph_chart i).isOpenMap
-  let Ψ (i : c.ι) := TauCeti.extendDiffeotopyAlong (c.isLocalDiffeomorph_chart i) (hφo i) (h i)
-    (hC i) (hh i)
+  let Ψ (i : c.ι) := TauCeti.extendDiffeotopyAlong (c.isLocalDiffeomorph_chart i)
+    (c.isOpenEmbedding_chart i) (h i) (hC i) (hh i)
   have hΨ (i : c.ι) (t : unitInterval) (q : S) (z) :
       Ψ i (t, (q, c.chart i z)) = (q, c.chart i (h i (t, (q, z))).2) := by
     rw [TauCeti.extendDiffeotopyAlong_apply_prodMk, hfst]
@@ -125,15 +122,9 @@ theorem exists_diffeotopy_of_cubes (c : BandCore I g a₀ a b) {S : Type*}
   let l := (Finset.univ : Finset c.ι).toList
   have hl (i : c.ι) : i ∈ l := Finset.mem_toList.2 (Finset.mem_univ i)
   let P := (l.map Ψ).prod
-  -- Each extension keeps the parameter, and so does their composite.
-  have hPfst (t : unitInterval) (p : S × M) : (P (t, p)).1 = p.1 := by
-    suffices ∀ l' : List c.ι, ((l'.map Ψ).prod (t, p)).1 = p.1 from this l
-    intro l'
-    induction l' with
-    | nil => rw [List.map_nil, List.prod_nil, TauCeti.Diffeotopy.one_apply]
-    | cons j l' ih =>
-      rw [List.map_cons, List.prod_cons, TauCeti.Diffeotopy.mul_apply,
-        TauCeti.fst_extendDiffeotopyAlong_apply _ _ _ _ _ (hfst j), ih]
+  have hPfst (t : unitInterval) (p : S × M) : (P (t, p)).1 = p.1 :=
+    TauCeti.Diffeotopy.list_prod_map_apply_fst
+      (fun j _ ↦ TauCeti.fst_extendDiffeotopyAlong_apply _ _ _ _ _ (hfst j)) t p
   have hslice (t : unitInterval) (p : S × M) : (P.timeSlice t p).1 = p.1 := by
     rw [TauCeti.Diffeotopy.timeSlice_apply, hPfst]
   let f (p : S × unitInterval) : M ≃ₘ⟮I, I⟯ M := (P.timeSlice p.2).slice (hslice p.2) p.1
