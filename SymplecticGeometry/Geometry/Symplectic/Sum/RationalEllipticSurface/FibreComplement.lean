@@ -53,6 +53,42 @@ open scoped LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry.rationalEllipticSurface
 
+/-- Near the fibre, the line `{P} × ℂℙ¹` over a point `P` of the base locus runs through a product
+neighbourhood `f` adapted to the affine coordinate: for `w` in a small disc, `(P, [1 : w])` is
+`f (k w)` for a continuous `k` with second coordinate `w`. -/
+private theorem exists_continuous_lift_line {ε : ℝ} (hε : 0 < ε)
+    {f : SmoothProjectiveHypersurface.fermat 1 3 × ball (0 : ℂ) ε → rationalEllipticSurface}
+    (hf : IsOpenEmbedding f) (hf0 : ∀ x, f (x, ⟨0, mem_ball_self hε⟩) = fibreEmbedding x)
+    (haff : ∀ p, affineCoordinate (f p) = p.2) {P : ℙ ℂ (Fin 3 → ℂ)} (hP : P ∈ baseLocus) :
+    ∃ δ, 0 < δ ∧ δ ≤ ε ∧
+      ∃ k : ball (0 : ℂ) δ → SmoothProjectiveHypersurface.fermat 1 3 × ball (0 : ℂ) ε,
+        Continuous k ∧ ∀ w, ((f (k w) : ℙ ℂ (Fin 3 → ℂ) × ℙ ℂ (Fin 2 → ℂ)) =
+          (P, Projectivization.mk ℂ ![1, (w : ℂ)] fun h ↦ one_ne_zero (congrFun h 0)) ∧
+          ((k w).2 : ℂ) = w) := by
+  set s : ℂ → rationalEllipticSurface := fun w ↦
+    ⟨(P, Projectivization.mk ℂ ![1, w] fun h ↦ one_ne_zero (congrFun h 0)),
+      mk_mem_of_mem_baseLocus hP _⟩
+  have hs : Continuous s :=
+    (continuous_const.prodMk (continuous_mk (by fun_prop) _)).subtype_mk _
+  have haffs (w : ℂ) : affineCoordinate (s w) = w := by
+    rw [affineCoordinate_mk_snd _ rfl]
+    simp
+  -- At `w = 0` the line meets the fibre, inside the open range of `f`.
+  have hs0 : s 0 ∈ range f := by
+    obtain ⟨x, hx⟩ : s 0 ∈ range fibreEmbedding := by
+      rw [range_fibreEmbedding]
+      rfl
+    exact ⟨_, (hf0 x).trans hx⟩
+  obtain ⟨δ', hδ', hδ's⟩ := Metric.isOpen_iff.1 (hf.isOpen_range.preimage hs) 0 hs0
+  have hsδ (w : ball (0 : ℂ) (min δ' ε)) : s w ∈ range f :=
+    hδ's (ball_subset_ball (min_le_left _ _) w.property)
+  set e := hf.isEmbedding.toHomeomorph
+  refine ⟨min δ' ε, lt_min hδ' hε, min_le_right _ _, fun w ↦ e.symm ⟨s w, hsδ w⟩,
+    e.symm.continuous.comp ((hs.comp continuous_subtypeVal).subtype_mk _), fun w ↦ ?_⟩
+  have hfk : f (e.symm ⟨s w, hsδ w⟩) = s w :=
+    congrArg Subtype.val (e.apply_symm_apply ⟨s w, hsδ w⟩)
+  exact ⟨congrArg Subtype.val hfk, by rw [← haff, hfk, haffs]⟩
+
 /-- Some meridian of the fibre in a product neighbourhood `f` adapted to the affine coordinate is
 null-homotopic in the complement of the fibre. -/
 private theorem exists_meridian_eq_one {ε : ℝ} (hε : 0 < ε)
@@ -65,36 +101,8 @@ private theorem exists_meridian_eq_one {ε : ℝ} (hε : 0 < ε)
   have hP : P ∈ baseLocus := by
     rw [mk_mem_baseLocus_iff]
     norm_num
-  -- The line `{P} × ℂℙ¹`, through the points `[1 : w]`.
-  set s : ℂ → rationalEllipticSurface := fun w ↦
-    ⟨(P, Projectivization.mk ℂ ![1, w] fun h ↦ one_ne_zero (congrFun h 0)),
-      mk_mem_of_mem_baseLocus hP _⟩
-  have hs : Continuous s :=
-    (continuous_const.prodMk (continuous_mk (by fun_prop) _)).subtype_mk _
-  have haffs (w : ℂ) : affineCoordinate (s w) = w := by
-    rw [affineCoordinate_mk_snd _ rfl]
-    simp
-  -- Near `w = 0` the line runs through the range of `f`.
-  have hs0 : s 0 ∈ range f := by
-    obtain ⟨x, hx⟩ : s 0 ∈ range fibreEmbedding := by
-      rw [range_fibreEmbedding]
-      rfl
-    exact ⟨_, (hf0 x).trans hx⟩
-  obtain ⟨δ', hδ', hδ's⟩ := Metric.isOpen_iff.1 (hf.isOpen_range.preimage hs) 0 hs0
-  set δ := min δ' ε
-  have hδ : 0 < δ := lt_min hδ' hε
-  have hδε : ball (0 : ℂ) δ ⊆ ball 0 ε := ball_subset_ball (min_le_right _ _)
-  have hsδ (w : ball (0 : ℂ) δ) : s w ∈ range f :=
-    hδ's (ball_subset_ball (min_le_left _ _) w.property)
-  set e := hf.isEmbedding.toHomeomorph
-  set k : ball (0 : ℂ) δ → SmoothProjectiveHypersurface.fermat 1 3 × ball (0 : ℂ) ε :=
-    fun w ↦ e.symm ⟨s w, hsδ w⟩
-  have hk : Continuous k :=
-    e.symm.continuous.comp ((hs.comp continuous_subtypeVal).subtype_mk _)
-  have hfk (w : ball (0 : ℂ) δ) : f (k w) = s w :=
-    congrArg Subtype.val (e.apply_symm_apply ⟨s w, hsδ w⟩)
-  have hk2 (w : ball (0 : ℂ) δ) : ((k w).2 : ℂ) = w := by
-    rw [← haff, hfk, haffs]
+  obtain ⟨δ, hδ, hδε', k, hk, hfk⟩ := exists_continuous_lift_line hε hf hf0 haff hP
+  have hδε : ball (0 : ℂ) δ ⊆ ball 0 ε := ball_subset_ball hδε'
   -- A loop around `0` in the small disc.
   have hz₀ : ((δ / 2 : ℝ) : ℂ) ∈ ball (0 : ℂ) δ \ {0} := by
     refine ⟨?_, ?_⟩
@@ -151,9 +159,8 @@ private theorem exists_meridian_eq_one {ε : ℝ} (hε : 0 < ε)
     simp only [Path.map_coe, Function.comp_apply, Path.prod_coe,
       Topology.IsOpenEmbedding.coe_restrictPuncturedBall_apply]
     refine Eq.trans (congrArg f (?_ : _ = k (i (ℓ t)))) ?_
-    · exact Prod.ext rfl (Subtype.ext (hk2 (i (ℓ t))).symm)
-    rw [hfk]
-    refine Subtype.ext (Prod.ext rfl ?_)
+    · exact Prod.ext rfl (Subtype.ext (hfk (i (ℓ t))).2.symm)
+    refine Subtype.ext ((hfk _).1.trans (Prod.ext rfl ?_))
     have hw : ((ℓ t : ℂ)) ≠ 0 := (ℓ t).property.2
     refine (Projectivization.mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨ℓ t, funext fun m ↦ ?_⟩
     fin_cases m <;> simp [i, hw]
