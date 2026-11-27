@@ -40,6 +40,16 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   of `ℓ ψ (r / ℓ)` is `ψ s - s ψ' s` at `s = r / ℓ`, which is positive since every tangent of
   `ψ` at `s ≥ 0` meets the vertical axis above `0`.
 
+* `SymplecticGeometry.exists_convexShapeFamily_struweShape`: given a family `φ` with the
+  properties of the previous one, linear of slope `d` for `r ≤ ℓ β`, and `K ≥ exp (4 / d²)`,
+  `K > 4`, the leaves `ℓ ≥ ℓ₁` over the cylinder of radius `δ`, for `ℓ₁ ≥ C δ`. The leaf `ℓ₁` is
+  the function of `SymplecticGeometry.exists_isConvexShapeAt_eq_struweShape_eq_linear`, a
+  Struwe shape near the cylinder joined to the line `ℓ₁ + d r`, up to `2 K δ`, and `φ ℓ₁` beyond;
+  the leaf `ℓ` is that leaf raised by `ℓ - ℓ₁` up to `2 K δ` and `φ ℓ` beyond. The two pieces
+  are both the line `ℓ + d r` on `[3 K δ / 2, 2 K δ]`, so that the family is smooth in
+  `(ℓ, r)`; near the cylinder every leaf is a Struwe shape
+  (`SymplecticGeometry.struweShape_add`).
+
 * `SymplecticGeometry.sqrtSubLeaf` and `SymplecticGeometry.exists_isConvexShapeAt_sqrtSubLeaf`:
   the leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`. They do not come from
   bending linear shapes, as in Cieliebak and Eliashberg's Lemma 4.25, but have a closed form:
@@ -71,7 +81,7 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
 ## References
 
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
-  §4.5: Lemma 4.19; §4.6: Lemma 4.23 and Lemma 4.26.
+  §4.5: Lemma 4.19; §4.6: Lemma 4.23, Lemma 4.26 and Proposition 4.27.
 -/
 
 public section
@@ -200,6 +210,124 @@ theorem exists_convexShapeFamily_sqrt {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
   · have hr' : r / ℓ ≤ β := (div_le_iff₀ hℓ).2 (by linarith)
     rw [hχne' hℓ.ne', abs_of_pos hℓ, hψL _ hr']
     field_simp
+
+/-- **Struwe shapes on the square-root family** (the leaves `ℓ ≥ ℓ₁` of Cieliebak–Eliashberg's
+family of Proposition 4.27). Let `0 < d`, `exp (4 / d²) ≤ K`, `4 < K`, `0 < β`, and let `φ` be a
+family as in `exists_convexShapeFamily_sqrt`: jointly smooth on `[0, ∞) × (0, ∞)`, with
+`i`-convex members `φ ℓ`, `ℓ ≥ 0`, strictly increasing in `ℓ ≥ 0`, and with `φ ℓ r = ℓ + d r` for
+`ℓ > 0` and `r ≤ ℓ β`. Then there is `C > 0` such that for all `δ > 0` and `ℓ₁ ≥ C δ` there is a
+family `F` with:
+* `(ℓ, r) ↦ F ℓ r` smooth at every point of `[ℓ₁, ∞) × (δ, ∞)`;
+* each `F ℓ`, `ℓ ≥ ℓ₁`, an `i`-convex shape at every `r > δ`;
+* at each `r > δ`, `F ℓ r` strictly increasing in `ℓ ≥ ℓ₁`;
+* for every `ℓ`, `F ℓ` the Struwe shape `ℓ + struweShape δ K (d K δ)` on `(-∞, 3 K δ / 4]`, so
+  that its slope tends to `+∞` at `δ`;
+* for every `ℓ`, `F ℓ r = F ℓ₁ r + (ℓ - ℓ₁)` for `r < 2 K δ`;
+* for `ℓ ≥ ℓ₁`, `F ℓ = φ ℓ` on `[3 K δ / 2, ∞)`. -/
+theorem exists_convexShapeFamily_struweShape {d K β : ℝ} (hd : 0 < d)
+    (hK : exp (4 / d ^ 2) ≤ K) (hK₄ : 4 < K) (hβ : 0 < β) {φ : ℝ → ℝ → ℝ}
+    (hφs : ∀ q ∈ Ici 0 ×ˢ Ioi 0, ContDiffAt ℝ ∞ (Function.uncurry φ) q)
+    (hφc : ∀ ℓ, 0 ≤ ℓ → ∀ r, 0 < r → IsConvexShapeAt (φ ℓ) r)
+    (hφm : ∀ ℓ₁ ℓ₂, 0 ≤ ℓ₁ → ℓ₁ < ℓ₂ → ∀ r, 0 < r → φ ℓ₁ r < φ ℓ₂ r)
+    (hφL : ∀ ℓ, 0 < ℓ → ∀ r ≤ ℓ * β, φ ℓ r = ℓ + d * r) :
+    ∃ C, 0 < C ∧ ∀ δ, 0 < δ → ∀ ℓ₁, C * δ ≤ ℓ₁ → ∃ F : ℝ → ℝ → ℝ,
+      (∀ q ∈ Ici ℓ₁ ×ˢ Ioi δ, ContDiffAt ℝ ∞ (Function.uncurry F) q) ∧
+      (∀ ℓ, ℓ₁ ≤ ℓ → ∀ r, δ < r → IsConvexShapeAt (F ℓ) r) ∧
+      (∀ r, δ < r → StrictMonoOn (fun ℓ ↦ F ℓ r) (Ici ℓ₁)) ∧
+      (∀ ℓ, ∀ r ≤ 3 * K * δ / 4, F ℓ r = ℓ + struweShape δ K (d * K * δ) r) ∧
+      (∀ ℓ, Tendsto (deriv (F ℓ)) (𝓝[>] δ) atTop) ∧
+      (∀ ℓ r, r < 2 * K * δ → F ℓ r = F ℓ₁ r + (ℓ - ℓ₁)) ∧
+      ∀ ℓ, ℓ₁ ≤ ℓ → ∀ r, 3 * K * δ / 2 ≤ r → F ℓ r = φ ℓ r := by
+  have hK₁ : 1 < K := by linarith
+  set s := √(log (2 * K))
+  have hd3 : 0 < d ^ 3 := pow_pos hd 3
+  set C := 2 * K * s + 4 * K * s ^ 3 + 2 * K / d ^ 3 + 2 * K / β + 1
+  have hC₁ : 2 * K * s ≤ C := by
+    have : 0 ≤ 4 * K * s ^ 3 := by positivity
+    have : 0 ≤ 2 * K / d ^ 3 := by positivity
+    have : 0 ≤ 2 * K / β := by positivity
+    linarith
+  have hC₂ : 4 * K * s ^ 3 ≤ C := by
+    have : 0 ≤ 2 * K * s := by positivity
+    have : 0 ≤ 2 * K / d ^ 3 := by positivity
+    have : 0 ≤ 2 * K / β := by positivity
+    linarith
+  have hC₃ : 2 * K < C * d ^ 3 := by
+    have : 0 ≤ 2 * K * s + 4 * K * s ^ 3 + 2 * K / β := by positivity
+    have e : 2 * K / d ^ 3 * d ^ 3 = 2 * K := div_mul_cancel₀ _ hd3.ne'
+    nlinarith
+  have hC₄ : 2 * K < C * β := by
+    have : 0 ≤ 2 * K * s + 4 * K * s ^ 3 + 2 * K / d ^ 3 := by positivity
+    have e : 2 * K / β * β = 2 * K := div_mul_cancel₀ _ hβ.ne'
+    nlinarith
+  refine ⟨C, pos_of_mul_pos_left (by linarith) hβ.le, fun δ hδ ℓ₁ hℓ₁ ↦ ?_⟩
+  obtain ⟨G, hGs, hGc, hGS, hGL⟩ := exists_isConvexShapeAt_eq_struweShape_eq_linear hd hδ hK hK₄
+    (ℓ := ℓ₁) (by nlinarith) (by nlinarith) (by nlinarith)
+  have hℓ₁β : 2 * K * δ < ℓ₁ * β := by nlinarith
+  have hℓβ {ℓ : ℝ} (hℓ : ℓ₁ ≤ ℓ) : 2 * K * δ < ℓ * β :=
+    hℓ₁β.trans_le (mul_le_mul_of_nonneg_right hℓ hβ.le)
+  have hℓ₀ {ℓ : ℝ} (hℓ : ℓ₁ ≤ ℓ) : 0 ≤ ℓ := by
+    have := pos_of_mul_pos_left ((by positivity : 0 < 2 * K * δ).trans hℓ₁β) hβ.le
+    linarith
+  have hKδ : 0 < K * δ := by positivity
+  -- Below `2 K δ` the leaf `ℓ` is `G` raised by `ℓ - ℓ₁`; from there on it is `φ ℓ`.
+  set F : ℝ → ℝ → ℝ := fun ℓ r ↦ if r < 2 * K * δ then G r + (ℓ - ℓ₁) else φ ℓ r
+  have hFG {ℓ r : ℝ} (hr : r < 2 * K * δ) : F ℓ r = G r + (ℓ - ℓ₁) := by
+    simp [F, hr]
+  -- Where both pieces are lines, they agree.
+  have hFφ {ℓ r : ℝ} (hℓ : 2 * K * δ < ℓ * β) (hr : 3 * K * δ / 2 ≤ r) : F ℓ r = φ ℓ r := by
+    have hℓ0 : 0 < ℓ := pos_of_mul_pos_left (by linarith) hβ.le
+    by_cases h : r < 2 * K * δ
+    · rw [hFG h, hGL r hr, hφL ℓ hℓ0 r (by linarith)]
+      ring
+    · simp [F, h]
+  have hFS (ℓ : ℝ) {r : ℝ} (hr : r ≤ 3 * K * δ / 4) :
+      F ℓ r = struweShape δ K (ℓ + d * K * δ) r := by
+    rw [hFG (by linarith), hGS r hr, struweShape_add, struweShape_add]
+    ring
+  have hFφ' {ℓ r : ℝ} (hℓ : ℓ₁ ≤ ℓ) (hr : 2 * K * δ ≤ r) :
+      F ℓ =ᶠ[𝓝 r] φ ℓ := by
+    filter_upwards [Ioi_mem_nhds (show 3 * K * δ / 2 < r by linarith)] with y hy
+    exact hFφ (hℓβ hℓ) (mem_Ioi.1 hy).le
+  refine ⟨F, ?_, fun ℓ hℓ r hr ↦ ?_, fun r hr ↦ ?_, fun ℓ r hr ↦ ?_, fun ℓ ↦ ?_,
+    fun ℓ r hr ↦ by rw [hFG hr, hFG hr]; ring, fun ℓ hℓ r hr ↦ hFφ (hℓβ hℓ) hr⟩
+  · rintro ⟨ℓ, r⟩ ⟨hℓ, hr⟩
+    rw [mem_Ici] at hℓ
+    rw [mem_Ioi] at hr
+    rcases lt_or_ge r (2 * K * δ) with h | h
+    · -- Near `(ℓ, r)` the family is `G r + (ℓ - ℓ₁)`.
+      have he : Function.uncurry F =ᶠ[𝓝 (ℓ, r)] fun q ↦ G q.2 + (q.1 - ℓ₁) := by
+        filter_upwards [(isOpen_lt continuous_snd continuous_const).mem_nhds h] with q hq
+        exact hFG hq
+      refine ContDiffAt.congr_of_eventuallyEq ?_ he
+      exact ((hGs.contDiffAt (Ioi_mem_nhds hr)).comp _ contDiffAt_snd).add
+        (contDiffAt_fst.sub contDiffAt_const)
+    · -- Near `(ℓ, r)` the family is `φ`.
+      have he : Function.uncurry F =ᶠ[𝓝 (ℓ, r)] Function.uncurry φ := by
+        filter_upwards [(isOpen_lt continuous_const (continuous_fst.mul continuous_const)).mem_nhds
+          (hℓβ hℓ), (isOpen_lt continuous_const continuous_snd).mem_nhds
+          (show 3 * K * δ / 2 < r by linarith)] with q hq hq'
+        exact hFφ hq hq'.le
+      exact (hφs (ℓ, r) ⟨mem_Ici.2 (hℓ₀ hℓ), mem_Ioi.2 (by linarith)⟩).congr_of_eventuallyEq
+        he
+  · rcases lt_or_ge r (2 * K * δ) with h | h
+    · refine ((hGc r ⟨hr, h.le⟩).add_const (sub_nonneg.2 hℓ)).congr_of_eventuallyEq ?_
+      filter_upwards [Iio_mem_nhds h] with y hy
+      exact hFG hy
+    · exact (hφc ℓ (hℓ₀ hℓ) r (by linarith)).congr_of_eventuallyEq (hFφ' hℓ h)
+  · intro ℓ hℓ ℓ' hℓ' hlt
+    rw [mem_Ici] at hℓ hℓ'
+    rcases lt_or_ge r (2 * K * δ) with h | h
+    · simp only [hFG h]
+      linarith
+    · simp only [(hFφ' hℓ h).eq_of_nhds, (hFφ' hℓ' h).eq_of_nhds]
+      exact hφm ℓ ℓ' (hℓ₀ hℓ) hlt r (by linarith)
+  · rw [hFS ℓ hr, struweShape_add]
+  · refine (tendsto_deriv_struweShape hδ hK₁.le (ℓ + d * K * δ)).congr' ?_
+    filter_upwards [Ioo_mem_nhdsGT (show δ < 3 * K * δ / 4 by nlinarith)] with x hx
+    refine (Filter.EventuallyEq.deriv_eq ?_).symm
+    filter_upwards [Iio_mem_nhds hx.2] with y hy
+    exact hFS ℓ (mem_Iio.1 hy).le
 
 /-! ### The explicit leaves below the cone -/
 
