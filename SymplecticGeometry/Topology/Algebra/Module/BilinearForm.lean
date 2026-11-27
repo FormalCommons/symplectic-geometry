@@ -15,8 +15,9 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 /-!
 # Continuous bilinear forms
 
-This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, and one
-about the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors.
+This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, one about
+the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors, and one
+about the continuous inverse of a nondegenerate bilinear form.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
@@ -43,14 +44,14 @@ For continuous bilinear forms `β₀` on `V₀` and `β₁` on `V₁` and a cont
 `β₁ (A u) y = β₀ u (T y)`, so `A` and `T` form an adjoint pair. In finite dimensions, for `β₁`
 nondegenerate, it is the linear map `(β₁.toDual)⁻¹ ∘ T.dualMap ∘ β₀`.
 
+A continuous alternating map `A` of two vectors gives the bilinear form
+`(v, w) ↦ A ![v, w]`. On a finite-dimensional normed space, the maps whose form is
+nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate`.
+
 For a nondegenerate bilinear form `B` on a finite-dimensional space, the map
 `B.toContinuousBilinearMap` to the continuous dual is invertible, by Tau Ceti's
 `TauCeti.isInvertible_toContinuousBilinearMap_iff_separatingLeft`, and its inverse is that of
 `B.toDual hB`, applied to continuous linear forms.
-
-Finally, a continuous alternating map `A` of two vectors gives the bilinear form
-`(v, w) ↦ A ![v, w]`. On a finite-dimensional normed space, the maps whose form is
-nondegenerate are an open set, by Tau Ceti's `TauCeti.isOpen_setOf_nondegenerate`.
 
 ## Main definitions
 

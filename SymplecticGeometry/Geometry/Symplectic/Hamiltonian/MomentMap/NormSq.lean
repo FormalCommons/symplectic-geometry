@@ -10,8 +10,9 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Dual.Form
 public import TauCeti.RepresentationTheory.InvariantForm
-public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
+public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
