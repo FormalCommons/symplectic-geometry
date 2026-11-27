@@ -1256,9 +1256,9 @@ theorem range_connectedSumInl_union_range_connectedSumInr :
   · right
     obtain ⟨q, hb, hq⟩ := (mem_exceptionalDivisor_iff c).1 hz
     obtain ⟨q', hq'⟩ : (q : BlowupModel n) ∈ range (BlowupModel.radialRescale c.ballRadius) := by
-      rw [BlowupModel.range_radialRescale c.ballRadius_pos, mem_ofPred_eq, hb, map_zero,
-        norm_zero]
-      exact c.ballRadius_pos
+      rw [BlowupModel.range_radialRescale c.ballRadius_pos]
+      exact BlowupModel.exceptionalDivisor_subset_openNbhd c.ballRadius_pos
+        (BlowupModel.mem_exceptionalDivisor_iff.2 hb)
     set w := (projectiveBlowupModelDiffeomorph n).symm q'
     have hw : remodelHomeomorph _ _ (w : ℙ ℂ (Fin (n + 2) → ℂ)) ∈
         puncture (EuclideanComplexProjectiveSpace.connectedSumBall n) := by
