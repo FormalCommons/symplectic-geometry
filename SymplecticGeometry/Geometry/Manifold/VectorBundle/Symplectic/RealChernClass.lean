@@ -39,6 +39,8 @@ counterpart of the integral class
 * `TauCeti.SmoothTwoForm.IsNondegenerate.realFirstChernClass G h`: the de Rham first Chern class
   of a manifold with a nondegenerate two-form, that of the corresponding form on the tangent
   bundle.
+* `Module.fact_finrank_fin_fun`: the instance `Fact (finrank R (Fin n → R) = m)` from
+  `Fact (n = m)`, the rank hypothesis of the class for a bundle with model fibre `Fin n → ℝ`.
 
 ## Main results
 
@@ -91,6 +93,13 @@ noncomputable section
 open _root_.Bundle Module
 open TauCeti (deRhamCohomology integralTopForm surfaceGenus SmoothTwoForm SmoothForm)
 open scoped Manifold ContDiff
+
+/-- The space `Fin n → R` has rank `m` whenever `n = m`, the equation given by a `Fact`. This
+gives the rank hypothesis of the real first Chern class of a bundle with model fibre `Fin n → ℝ`
+from one about `n` alone. -/
+instance Module.fact_finrank_fin_fun {R : Type*} [Semiring R] [StrongRankCondition R] {n m : ℕ}
+    [h : Fact (n = m)] : Fact (finrank R (Fin n → R) = m) :=
+  ⟨(finrank_fin_fun R).trans h.out⟩
 
 namespace SymplecticGeometry.Bundle.ContMDiffTwoForm
 
