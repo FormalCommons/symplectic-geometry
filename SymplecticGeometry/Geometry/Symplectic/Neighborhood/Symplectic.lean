@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
@@ -55,10 +55,6 @@ tangent space of `f₁` being symplectic, the difference vanishes.
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens`:
   the symplectic neighbourhood theorem.
-* `TauCeti.SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.transDiffeomorphOfBoundaryless`:
-  a diffeomorphism pulling one form back to another, possibly between manifolds on different
-  models, carries embeddings with symplectic tangent images to such embeddings; this is Tau
-  Ceti's `hasSymplecticTangentImages_diffeomorph_comp_iff` for the bundled transport.
 * `TauCeti.SmoothEmbedding.symplecticNormalForm_congr`: the normal symplectic form depends only
   on the ambient form.
 * `TauCeti.SmoothEmbedding.contMDiffAt_symplecticNormalForm`: the normal symplectic form,
@@ -130,31 +126,6 @@ end
 end TauCeti.SmoothEmbedding
 
 namespace TauCeti.SmoothTwoForm.IsNondegenerate
-
-section Transport
-
-variable {EQ HQ Q EN HN N EN' HN' N' : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ]
-  [TopologicalSpace HQ] {J : ModelWithCorners ℝ EQ HQ} [J.Boundaryless] [TopologicalSpace Q]
-  [ChartedSpace HQ Q] [IsManifold J ∞ Q] [NormedAddCommGroup EN] [NormedSpace ℝ EN]
-  [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
-  [ChartedSpace HN N] [IsManifold K ∞ N] [NormedAddCommGroup EN'] [NormedSpace ℝ EN']
-  [FiniteDimensional ℝ EN'] [TopologicalSpace HN'] {K' : ModelWithCorners ℝ EN' HN'}
-  [K'.Boundaryless] [TopologicalSpace N'] [ChartedSpace HN' N'] [IsManifold K' ∞ N']
-  {σ : SmoothTwoForm K N} {hσ : σ.IsNondegenerate} {σ' : SmoothTwoForm K' N'}
-  (hσ' : σ'.IsNondegenerate)
-
-/-- If a diffeomorphism `ψ : N ≃ N'`, possibly between manifolds on different models, pulls `σ'`
-back to `σ`, then the transport `ψ ∘ f` of an embedding `f` with symplectic tangent images for `σ`
-has symplectic tangent images for `σ'`. -/
-theorem HasSymplecticTangentImages.transDiffeomorphOfBoundaryless
-    {f : SmoothEmbedding J K ∞ Q N} (h : hσ.HasSymplecticTangentImages J f)
-    (ψ : N ≃ₘ⟮K, K'⟯ N') (hψ : SmoothForm.mpullback ψ ψ.contMDiff σ' = σ)
-    (hn : 1 ≤ (∞ : ℕ∞ω)) :
-    hσ'.HasSymplecticTangentImages J (f.transDiffeomorphOfBoundaryless ψ hn) := by
-  rw [SmoothEmbedding.coe_transDiffeomorphOfBoundaryless]
-  exact (hasSymplecticTangentImages_diffeomorph_comp_iff ψ hψ).2 h
-
-end Transport
 
 variable {EQ₀ EQ₁ E₀ E₁ P₀ P₁ HQ₀ HQ₁ H₀ H₁ Q₀ Q₁ M₀ M₁ : Type*}
   [NormedAddCommGroup EQ₀] [NormedSpace ℝ EQ₀] [FiniteDimensional ℝ EQ₀]

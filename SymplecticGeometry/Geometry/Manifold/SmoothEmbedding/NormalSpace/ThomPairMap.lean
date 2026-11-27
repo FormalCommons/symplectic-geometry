@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Map
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Thom.FiberwiseEquiv
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Map
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 
 /-!
@@ -25,7 +26,9 @@ fibre over `x` it is the isomorphism of fibre pairs of the equivalence at `x`
 
 The two ambient manifolds may have different models and the embeddings different orders of
 smoothness. The main examples are a diffeomorphism `φ : X' ≃ X` with `f' = φ⁻¹ ∘ f`, and the
-inclusion of an open set `X' ⊆ X` that contains the range of `f`.
+inclusion of an open set `X' ⊆ X` that contains the range of `f`. The identification and its
+regularity hold for any universes; only the Thom-pair map puts `Z` and both models in one
+universe.
 
 ## Main definitions
 
@@ -41,6 +44,9 @@ inclusion of an open set `X' ⊆ X` that contains the range of `f`.
 * `TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfComp`: its total-space map is continuous.
   This holds as soon as `v` is `C¹` at the points `f' x`
   (`TauCeti.SmoothEmbedding.continuous_normalSpaceEquivOfComp_of_contMDiffAt`).
+* `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfComp`: for finite-dimensional models and
+  `v` of class `C^(r + 1)`, its total-space map is `C^r` for the vector bundle structures of the
+  normal bundles, by Tau Ceti's `contMDiff_normalBundleMap`.
 * `TauCeti.SmoothEmbedding.fiberThomPairMap_comp_thomPairMapOfComp`: on the fibre over `x`, the
   map of Thom pairs is the fibre-pair isomorphism of the derivative.
 -/
@@ -56,7 +62,9 @@ universe w
 
 namespace TauCeti.SmoothEmbedding
 
-variable {E H G G' : Type*} {V V' Z : Type w} {X X' : Type*} [NormedAddCommGroup E]
+section NormalSpaceEquivOfComp
+
+variable {E H G G' V V' Z X X' : Type*} [NormedAddCommGroup E]
   [NormedSpace ℝ E]
   [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup V'] [NormedSpace ℝ V']
   [TopologicalSpace H] [TopologicalSpace G] [TopologicalSpace G'] {I : ModelWithCorners ℝ E H}
@@ -96,6 +104,8 @@ theorem normalSpaceEquivOfComp_normalClass (f' : SmoothEmbedding I J' n Z X')
           (mfderiv J' J v (f' x) w)) :=
   normalSpaceEquiv_normalClass _ _ _ _ _ _ _ w
 
+section Continuous
+
 variable [IsManifold J' 1 X'] [IsManifold J 1 X] {K K' : Type*}
 
 /-- If `v` is `C¹` at each point `f' x`, the total-space map `w ↦ (w.proj, dv w)` of
@@ -126,6 +136,54 @@ theorem continuous_normalSpaceEquivOfComp (f' : SmoothEmbedding I J' n Z X')
       TotalSpace.mk' K' (E := fun x ↦ f.isImmersion.NormalSpace x hm) w.proj
         (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) :=
   f'.continuous_normalSpaceEquivOfComp_of_contMDiffAt f hn hm (fun _ ↦ hv₁.contMDiffAt) hv h
+
+end Continuous
+
+/-- For `v` and the two embeddings of class `C^(r + 1)`, the total-space map
+`w ↦ (w.proj, dv w)` of `normalSpaceEquivOfComp`, from the normal bundle of `f'` to that of `f`,
+is `C^r` for their vector bundle structures with model fibres `P` and `P'`. -/
+theorem contMDiff_normalSpaceEquivOfComp [FiniteDimensional ℝ E] [FiniteDimensional ℝ V]
+    [FiniteDimensional ℝ V'] {P P' : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P]
+    [FiniteDimensional ℝ P] [NormedAddCommGroup P'] [NormedSpace ℝ P'] [FiniteDimensional ℝ P']
+    {r : ℕ∞ω} [IsManifold I (r + 1) Z] [IsManifold J' (r + 1) X'] [IsManifold J (r + 1) X]
+    (f' : SmoothEmbedding I J' n Z X') (f : SmoothEmbedding I J m Z X) (hn : n ≠ 0) (hm : m ≠ 0)
+    (hrn : r + 1 ≤ n) (hrm : r + 1 ≤ m)
+    (hdim' : Module.finrank ℝ P = Module.finrank ℝ V' - Module.finrank ℝ E)
+    (hdim : Module.finrank ℝ P' = Module.finrank ℝ V - Module.finrank ℝ E)
+    (hv₁ : ContMDiff J' J (r + 1) v) (hv : ∀ x, (mfderiv J' J v (f' x)).IsInvertible)
+    (h : v ∘ f' = f) :
+    haveI : IsManifold I 1 Z := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold J' 1 X' := .of_le (n := r + 1) le_add_self
+    haveI : IsManifold J 1 X := .of_le (n := r + 1) le_add_self
+    letI := f'.normalSpaceFiberBundle hn hdim'
+    letI := f.normalSpaceFiberBundle hm hdim
+    ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, P')) r
+      fun w : TotalSpace P (fun x ↦ f'.isImmersion.NormalSpace x hn) ↦
+        TotalSpace.mk' P' (E := fun x ↦ f.isImmersion.NormalSpace x hm) w.proj
+          (f'.normalSpaceEquivOfComp f hn hm hv h w.proj w.snd) := by
+  have : IsManifold I 1 Z := .of_le (n := r + 1) le_add_self
+  have : IsManifold J' 1 X' := .of_le (n := r + 1) le_add_self
+  have : IsManifold J 1 X := .of_le (n := r + 1) le_add_self
+  convert f'.contMDiff_normalBundleMap f hn hm hrn hrm hdim' hdim (u := _root_.id) hv₁ h using 1
+  funext w
+  rw [normalBundleMap_apply, normalSpaceEquivOfComp_def,
+    ← normalSpaceEquiv_toContinuousLinearMap]
+  -- As in `continuous_normalSpaceEquivOfComp_of_contMDiffAt`: the base points are `w.proj` and
+  -- `_root_.id w.proj`, and the coercion of the equivalence to a continuous linear map applies it.
+  rfl
+
+end NormalSpaceEquivOfComp
+
+section ThomPairMapOfComp
+
+variable {E H G G' : Type*} {V V' Z : Type w} {X X' : Type*} [NormedAddCommGroup E]
+  [NormedSpace ℝ E]
+  [NormedAddCommGroup V] [NormedSpace ℝ V] [NormedAddCommGroup V'] [NormedSpace ℝ V']
+  [TopologicalSpace H] [TopologicalSpace G] [TopologicalSpace G'] {I : ModelWithCorners ℝ E H}
+  {J : ModelWithCorners ℝ V G} {J' : ModelWithCorners ℝ V' G'}
+  [TopologicalSpace Z] [ChartedSpace H Z] [TopologicalSpace X] [ChartedSpace G X]
+  [TopologicalSpace X'] [ChartedSpace G' X'] {n m : ℕ∞ω} {v : X' → X}
+  [IsManifold J' 1 X'] [IsManifold J 1 X] {K K' : Type*}
 
 /-- **The map of Thom pairs of normal bundles of a commuting triangle.** For a `C¹` map `v : X' → X`
 with `v ∘ f' = f` and invertible derivative at each point `f' x`, the map
@@ -174,6 +232,8 @@ theorem fiberThomPairMap_comp_thomPairMapOfComp [TopologicalSpace K] [Topologica
       (f'.normalSpaceEquivOfComp f hn hm hv h x).complZeroPairIso.hom ≫
         fiberThomPairMap K' (fun x ↦ f.isImmersion.NormalSpace x hm) x :=
   fiberThomPairMap_comp_thomPairMapOfFiberwise (g := ContinuousMap.id Z) _ x
+
+end ThomPairMapOfComp
 
 end TauCeti.SmoothEmbedding
 
