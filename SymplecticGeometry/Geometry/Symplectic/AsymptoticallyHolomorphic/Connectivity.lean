@@ -10,7 +10,9 @@ public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 import SymplecticGeometry.Geometry.Manifold.Morse.ComplexIndex
+import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartHessian
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
@@ -43,8 +45,8 @@ centred at `x`, the reading `F` of `s k` has `|F 0| ≥ η` and a bounded first 
 `∂̄` reading, with its first derivative, and the derivative of the pushed-forward almost complex
 structure are `O(k ^ (-1/2))`. So the chart estimate
 `SymplecticGeometry.fderiv_fderiv_log_norm_sq_add_stdComplexStructure_le` bounds the sum by a
-negative multiple of the square norm. The critical Hessian is carried to the chart by Tau Ceti's
-second-order chain rule `TauCeti.criticalHessian_comp_apply`, and the derivative of the chart
+negative multiple of the square norm. The critical Hessian is carried to the chart by
+`PartialDiffeomorph.criticalHessian_apply_eq_fderiv_fderiv`, and the derivative of the chart
 carries `J` at `x` to the standard structure. The Morse index of `f` at `x` is then at least
 half the dimension of `M`
 (`SymplecticGeometry.IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`), by
@@ -77,16 +79,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
   {α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1} {k₀ : ℕ} {ρ₀ : ℝ}
 
-/-- For every constant `C` and every `ε > 0`, `C * k ^ (-1/2) < ε` for `k` large. -/
-private theorem eventually_mul_rpow_neg_half_lt (C : ℝ) {ε : ℝ} (hε : 0 < ε) :
-    ∀ᶠ k : ℕ in Filter.atTop, C * (k : ℝ) ^ (-1 / 2 : ℝ) < ε := by
-  have h := ((tendsto_rpow_neg_atTop (by norm_num : (0 : ℝ) < 1 / 2)).comp
-    tendsto_natCast_atTop_atTop).const_mul C
-  rw [mul_zero] at h
-  have h' : Filter.Tendsto (fun k : ℕ ↦ C * (k : ℝ) ^ (-1 / 2 : ℝ)) Filter.atTop (nhds 0) := by
-    convert h using 4
-    norm_num
-  exact h'.eventually (gt_mem_nhds hε)
 
 /-- **Uniformly transverse sequences have norm at least `η` at the critical points of
 `log |s_k|²`.** Let `M` be compact, with a continuous Riemannian metric, `σ` compatible with `J`,
@@ -106,7 +98,7 @@ theorem IsUniformlyTransverse.le_norm_of_mem_criticalPoints
   rcases le_or_gt η 0 with hη | hη
   · exact Filter.Eventually.of_forall fun k x _ _ _ ↦ hη.trans (norm_nonneg _)
   obtain ⟨C, hC⟩ := D.exists_rpow_mul_norm_zeroOnePart_powerConnection_le hJ hα hρ₀ hs
-  have hsmall := eventually_mul_rpow_neg_half_lt C hη
+  have hsmall := Real.eventually_mul_rpow_neg_half_lt C hη
   filter_upwards [isUniformlyTransverse_def.1 ht, hC, hsmall] with k hk hCk hsk x hdiff hx hcrit
   have heq := (isMetricCompatible_powerConnection α k).norm_oneZeroPart_eq_norm_zeroOnePart_of_log
     J (PowerBundle.finrank_eq_one P k x) hdiff hx (mem_criticalPoints.1 hcrit)
@@ -141,42 +133,68 @@ private theorem criticalHessian_add_criticalHessian_eq [I.Boundaryless]
   set g : StdSpace ι → ℝ := fun z ↦ Real.log (‖D.reading k x s z‖ ^ 2)
   have hx0 : D.chart k x x = 0 := D.apply_self hk x
   have hsrc : x ∈ (D.chart k x).source := D.mem_source hk x
-  have hφx : (D.chart k x).symm (D.chart k x x) = x := (D.chart k x).left_inv hsrc
-  have htgt : D.chart k x x ∈ (D.chart k x).target := (D.chart k x).map_source hsrc
   have hfg : f ∘ (D.chart k x).symm = g := funext fun z ↦ by
     simp only [f, g, Function.comp_apply, D.norm_reading]
   have hF0 : D.reading k x s 0 ≠ 0 := by
     rw [← norm_ne_zero_iff, D.norm_reading, D.chart_symm_zero hk x]
     exact norm_ne_zero_iff.2 hx
-  have hg : ContDiffAt ℝ 2 g (D.chart k x x) :=
-    hx0 ▸ (Real.contDiffAt_log.2 (by positivity)).comp _ (hF.norm_sq ℝ)
-  have hf : ContMDiffAt I 𝓘(ℝ) 2 f x := by
-    have h1 : ContMDiffAt I 𝓘(ℝ, StdSpace ι) 2 (D.chart k x) x :=
-      ((D.chart k x).contMDiffOn.contMDiffAt ((D.chart k x).open_source.mem_nhds hsrc)).of_le
-        (by simp)
-    refine (hg.contMDiffAt.comp x h1).congr_of_eventuallyEq ?_
-    filter_upwards [(D.chart k x).open_source.mem_nhds hsrc] with y hy
-    simp only [← hfg, Function.comp_apply]
-    exact congrArg f ((D.chart k x).left_inv hy).symm
-  have hφ : ContMDiffAt 𝓘(ℝ, StdSpace ι) I 2 (D.chart k x).symm (D.chart k x x) :=
-    ((D.chart k x).symm.contMDiffOn.contMDiffAt ((D.chart k x).open_target.mem_nhds htgt)).of_le
-      (by simp)
+  have hg : ContDiffAt ℝ 2 (f ∘ (D.chart k x).symm) (D.chart k x x) := by
+    rw [hfg, hx0]
+    exact (Real.contDiffAt_log.2 (by positivity)).comp _ (hF.norm_sq ℝ)
   have hH (w : TangentSpace I x) :
       criticalHessian I f x w w = fderiv ℝ (fderiv ℝ g) 0
         (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x w)
         (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x w) := by
-    have h := criticalHessian_comp_apply hφx hf hφ hcrit
-      (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x w)
-      (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x w)
-    rw [(D.chart k x).mfderiv_symm_apply_mfderiv_apply (by simp) hsrc w, hfg,
-      criticalHessian_modelSpace, hx0] at h
-    exact h.symm
+    rw [(D.chart k x).criticalHessian_apply_eq_fderiv_fderiv (by simp) hsrc hg hcrit, hfg, hx0]
   have hJv : stdComplexStructure ι (mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x v) =
       mfderiv I 𝓘(ℝ, StdSpace ι) (D.chart k x) x (J x v) := by
     refine (D.chartPushforward_zero hk x _).symm.trans (Eq.trans (α := StdSpace ι) ?_
       (J.mfderiv_apply_eq_chartPushforward_apply (D.chart k x) hsrc v).symm)
     rw [hx0]
   rw [hH, hH, hJv]
+
+omit [FiniteDimensional ℝ E] [CompactSpace M] [∀ x, Nonempty (P x)]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] in
+/-- If the `1`-jet norm of the reading `F` of `s` in the chart centred at `x` is at most `C`, that
+of its `∂̄` reading `G` at most `C * k ^ (-1/2)`, and `η ≤ ‖F 0‖` with `η > 0`, then the error term
+of the chart estimate `fderiv_fderiv_log_norm_sq_add_stdComplexStructure_le` is at most
+`(C / η + B * C / η + C * C / η ^ 2) * k ^ (-1/2)`, for `B` the bound of order `1` on the
+derivative of the pushed-forward almost complex structure. -/
+private theorem chartError_le (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hρ₀ : 0 < ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (hk1 : 1 ≤ k) {x : M} {s : Π y, PowerBundle P k y} {C η : ℝ}
+    (hη : 0 < η) (hjet : D.jetNorm k 1 s x ≤ C)
+    (hdbar : D.dbarJetNorm k 1 s x ≤ C * (k : ℝ) ^ (-1 / 2 : ℝ))
+    (hFη : η ≤ ‖D.reading k x s 0‖) :
+    ‖fderiv ℝ (D.dbarReading k x s) 0‖ / ‖D.reading k x s 0‖ +
+        ‖fderiv ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0‖ *
+          ‖fderiv ℝ (D.reading k x s) 0‖ / ‖D.reading k x s 0‖ +
+        ‖D.dbarReading k x s 0‖ * ‖fderiv ℝ (D.reading k x s) 0‖ / ‖D.reading k x s 0‖ ^ 2 ≤
+      (C / η + D.bound 1 * C / η + C * C / η ^ 2) * (k : ℝ) ^ (-1 / 2 : ℝ) := by
+  set t : ℝ := (k : ℝ) ^ (-1 / 2 : ℝ)
+  rw [D.dbarJetNorm_def] at hdbar
+  rw [D.jetNorm_def] at hjet
+  have hdG := (norm_fderiv_le_jetNormAt le_rfl _ _).trans hdbar
+  have hG0 := (norm_le_jetNormAt 1 _ _).trans hdbar
+  have hdF := (norm_fderiv_le_jetNormAt le_rfl _ _).trans hjet
+  have hball : (0 : StdSpace ι) ∈ Metric.ball 0 (ρ₀ * √k) :=
+    Metric.mem_ball_self (by positivity)
+  have hJ1 := D.iteratedFDeriv_jStruct_le hk one_ne_zero x 0 hball
+  rw [Real.inv_sqrt_eq_rpow] at hJ1
+  -- Read off the sign from the iterated form: the norm on the space of bilinear maps that the
+  -- form with `fderiv` has takes instance search past its default limit.
+  have hbt : 0 ≤ D.bound 1 * t := hJ1.trans' (norm_nonneg _)
+  have hdJ : ‖fderiv ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0‖ ≤
+      D.bound 1 * t := by
+    rwa [norm_iteratedFDeriv_one] at hJ1
+  have hCt : 0 ≤ C * t := hG0.trans' (norm_nonneg _)
+  have hC0 : 0 ≤ C := hdF.trans' (norm_nonneg _)
+  have h₁ := div_le_div₀ hCt hdG hη hFη
+  have h₂ := div_le_div₀ (mul_nonneg hbt hC0) (mul_le_mul hdJ hdF (norm_nonneg _) hbt) hη hFη
+  have h₃ := div_le_div₀ (mul_nonneg hCt hC0) (mul_le_mul hG0 hdF (norm_nonneg _) hCt)
+    (by positivity) (pow_le_pow_left₀ hη.le hFη 2)
+  calc _ ≤ C * t / η + D.bound 1 * t * C / η + C * t * C / η ^ 2 := by gcongr
+    _ = _ := by ring
 
 /-- **The critical Hessian of `log |s_k|²` is negative in complex directions.** In the setting of
 `SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a boundaryless
@@ -197,8 +215,8 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
           criticalHessian I (fun y ↦ Real.log (‖s k y‖ ^ 2)) x (J x v) (J x v) < 0 := by
   obtain ⟨hreg, hjets⟩ := (D.isAsymptoticallyHolomorphic_def s).1 hs
   obtain ⟨C, hC⟩ := hjets 1
-  set K := C / η + D.bound 1 * C / η + C * C / η ^ 2
-  have hsmall := eventually_mul_rpow_neg_half_lt K (by norm_num : (0 : ℝ) < 1 / 4)
+  have hsmall := Real.eventually_mul_rpow_neg_half_lt (C / η + D.bound 1 * C / η + C * C / η ^ 2)
+    (by norm_num : (0 : ℝ) < 1 / 4)
   filter_upwards [hreg, hC, ht.le_norm_of_mem_criticalPoints D hJ hα hρ₀ hs, hsmall,
     Filter.eventually_ge_atTop k₀, Filter.eventually_ge_atTop 1]
     with k hregk hCk hle hsk hk hk1 x hdiff hx hcrit v hv
@@ -207,8 +225,6 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
   have hsrc := D.mem_source hk x
   have h0 : (0 : StdSpace ι) ∈ (D.chart k x).target :=
     D.apply_self hk x ▸ (D.chart k x).map_source hsrc
-  have hball : (0 : StdSpace ι) ∈ Metric.ball 0 (ρ₀ * √k) :=
-    Metric.mem_ball_self (by positivity)
   have hF0 : ‖D.reading k x (s k) 0‖ = ‖s k x‖ := by
     rw [D.norm_reading, D.chart_symm_zero hk x]
   have hJd : DifferentiableAt ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0 :=
@@ -225,49 +241,8 @@ theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundar
     (D.chartPushforward_zero hk x) (hGd.differentiableAt (by simp))
     (Filter.Eventually.of_forall fun z ↦ by rw [D.dbarReading_def, D.connectionReading_def])
     (norm_ne_zero_iff.1 (hF0 ▸ norm_ne_zero_iff.2 hx)) _).trans_lt ?_
-  -- The error term is at most `K * k ^ (-1/2)`, which is below `1 / 4`.
-  set t : ℝ := (k : ℝ) ^ (-1 / 2 : ℝ)
-  have ht0 : 0 ≤ t := by positivity
-  have hsqrt : (√(k : ℝ))⁻¹ = t := Real.inv_sqrt_eq_rpow _
-  rw [D.dbarJetNorm_def] at hdbar
-  rw [D.jetNorm_def] at hjet
-  have hdG : ‖fderiv ℝ (D.dbarReading k x (s k)) 0‖ ≤ C * t := by
-    have h := norm_iteratedFDeriv_le_jetNormAt (𝕜 := ℝ) (j := 1) (r := 1) le_rfl
-      (D.dbarReading k x (s k)) 0
-    rw [norm_iteratedFDeriv_one] at h
-    exact h.trans hdbar
-  have hG0 : ‖D.dbarReading k x (s k) 0‖ ≤ C * t := by
-    have h := norm_iteratedFDeriv_le_jetNormAt (𝕜 := ℝ) zero_le_one (D.dbarReading k x (s k)) 0
-    rw [norm_iteratedFDeriv_zero] at h
-    exact h.trans hdbar
-  have hdF : ‖fderiv ℝ (D.reading k x (s k)) 0‖ ≤ C := by
-    have h := norm_iteratedFDeriv_le_jetNormAt (𝕜 := ℝ) (j := 1) (r := 1) le_rfl
-      (D.reading k x (s k)) 0
-    rw [norm_iteratedFDeriv_one] at h
-    exact h.trans hjet
-  have hdJ : ‖fderiv ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0‖ ≤
-      D.bound 1 * t := by
-    have h := D.iteratedFDeriv_jStruct_le hk one_ne_zero x 0 hball
-    rwa [norm_iteratedFDeriv_one, hsqrt] at h
-  have hFη : η ≤ ‖D.reading k x (s k) 0‖ := hF0 ▸ hle x hdiff hx hcrit
-  have hCt : 0 ≤ C * t := hG0.trans' (norm_nonneg _)
-  have hC0 : 0 ≤ C := hdF.trans' (norm_nonneg _)
-  have hbt : 0 ≤ D.bound 1 * t := by
-    have h := D.iteratedFDeriv_jStruct_le hk one_ne_zero x 0 hball
-    rw [hsqrt] at h
-    exact h.trans' (norm_nonneg _)
-  have hε : ‖fderiv ℝ (D.dbarReading k x (s k)) 0‖ / ‖D.reading k x (s k) 0‖ +
-      ‖fderiv ℝ (J.chartPushforward (D.chart k x).toOpenPartialHomeomorph) 0‖ *
-        ‖fderiv ℝ (D.reading k x (s k)) 0‖ / ‖D.reading k x (s k) 0‖ +
-      ‖D.dbarReading k x (s k) 0‖ * ‖fderiv ℝ (D.reading k x (s k)) 0‖ /
-        ‖D.reading k x (s k) 0‖ ^ 2 ≤ K * t := by
-    have h₁ := div_le_div₀ hCt hdG hη hFη
-    have h₂ := div_le_div₀ (mul_nonneg hbt hC0)
-      (mul_le_mul hdJ hdF (norm_nonneg _) hbt) hη hFη
-    have h₃ := div_le_div₀ (mul_nonneg hCt hC0) (mul_le_mul hG0 hdF (norm_nonneg _) hCt)
-      (by positivity) (pow_le_pow_left₀ hη.le hFη 2)
-    calc _ ≤ C * t / η + D.bound 1 * t * C / η + C * t * C / η ^ 2 := by gcongr
-      _ = K * t := by simp only [K]; ring
+  -- The error term is at most a constant times `k ^ (-1/2)`, which is below `1 / 4`.
+  have hε := chartError_le D hρ₀ hk hk1 hη hjet hdbar (hF0 ▸ hle x hdiff hx hcrit)
   refine mul_neg_of_neg_of_pos ?_ (pow_pos ((@norm_pos_iff (StdSpace ι) _).2 hu) 2)
   linarith
 
