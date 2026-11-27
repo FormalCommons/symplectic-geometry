@@ -171,7 +171,7 @@ theorem image_sphereCoChart_compl_range_puncturedSpherePoint :
         omega
       rw [← hk, ← sphereCoChart_puncturedSpherePoint k]
       exact fun h ↦ hz k (Complex.orthonormalBasisOneI.repr.injective
-        (injective_sphereCoChart h)).symm
+        (isComplementaryBall_sphereChart.isOpenEmbedding.injective h)).symm
   · intro hx
     obtain ⟨w, rfl⟩ : x ∈ range sphereCoChart := by
       rw [range_sphereCoChart]
@@ -188,7 +188,7 @@ centres of the balls `0, …, n`, given by the complementary chart `ClosedSurfac
 after the identification `Complex.orthonormalBasisOneI.repr` of `ℂ` with the Euclidean plane. -/
 def puncturedSphereHomeomorph :
     ((range fun k ↦ (puncturedSpherePoint n k : ℂ))ᶜ : Set ℂ) ≃ₜ puncture 0 (n + 1) :=
-  ((isOpenEmbedding_sphereCoChart.comp
+  ((isComplementaryBall_sphereChart.isOpenEmbedding.comp
       Complex.orthonormalBasisOneI.repr.toHomeomorph.isOpenEmbedding).isEmbedding.homeomorphImage
       _).trans
     (Homeomorph.setCongr image_sphereCoChart_compl_range_puncturedSpherePoint)
