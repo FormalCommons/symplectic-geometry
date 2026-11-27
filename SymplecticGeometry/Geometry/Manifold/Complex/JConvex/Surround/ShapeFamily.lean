@@ -307,12 +307,12 @@ private theorem sqrtSubLeaf_one_eq (L m : ℝ) : sqrtSubLeaf L 1 m = fun x ↦
   simp only [sqrtSubLeaf_def, one_pow, mul_one]
   ring_nf
 
-/-- The radicand of the leaf `m` for `δ = 1` is positive at `x > 1`. -/
+/-- For `m ^ 2 ≤ 64`, the radicand of the leaf `m` for `δ = 1` is positive at `x > 1`. -/
 private theorem sqrtSubLeaf_one_radicand_pos {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
     0 < 64 * x ^ 2 - 64 + (64 - m ^ 2) * smoothTransition ((x - 2) / L) := by
   nlinarith [mul_nonneg (sub_nonneg.2 hm) (smoothTransition.nonneg ((x - 2) / L))]
 
-/-- The slope of the leaf `m` for `δ = 1` at `x > 1`. -/
+/-- The slope of the leaf `m` for `δ = 1` at `x > 1`, for `m ^ 2 ≤ 64`. -/
 private theorem deriv_sqrtSubLeaf_one {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
     deriv (sqrtSubLeaf L 1 m) x =
       -((m + 8) / 64) * (deriv smoothTransition ((x - 2) / L) / L) +
@@ -327,7 +327,7 @@ private theorem deriv_sqrtSubLeaf_one {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 
   simp only [Pi.add_apply, Nat.cast_ofNat, Nat.reduceSub, pow_one]
   ring
 
-/-- The second derivative of the leaf `m` for `δ = 1` at `x > 1`. -/
+/-- The second derivative of the leaf `m` for `δ = 1` at `x > 1`, for `m ^ 2 ≤ 64`. -/
 private theorem iteratedDeriv_two_sqrtSubLeaf_one {L m x : ℝ} (hm : m ^ 2 ≤ 64) (hx : 1 < x) :
     iteratedDeriv 2 (sqrtSubLeaf L 1 m) x =
       -((m + 8) / 64) * (deriv (deriv smoothTransition) ((x - 2) / L) / L ^ 2) +
