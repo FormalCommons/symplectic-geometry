@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Hypersurface.LineBundle
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 
+import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
+
 /-!
 # The canonical bundle of the blowup
 
@@ -159,10 +161,8 @@ private theorem divisorG_ne_zero {i j : Option (Fin (n + 1))} {z : Blowup c}
     cases j with
     | none => exact divisorF_some_ne_zero c hi hj
     | some j =>
-      have hi' := (mem_affineOpen_iff i _).1 (mem_affineOpen_of_mem_divisorU c hi)
-      have hj' := (mem_affineOpen_iff j _).1 (mem_affineOpen_of_mem_divisorU c hj)
-      simp only [divisorG, twistTransition_def, zpow_neg, zpow_one]
-      exact inv_ne_zero (div_ne_zero hj' hi')
+      exact twistTransition_ne_zero (-1) (mem_affineOpen_of_mem_divisorU c hj)
+        (mem_affineOpen_of_mem_divisorU c hi)
 
 private theorem divisorG_mul_divisorG {i j k : Option (Fin (n + 1))} {z : Blowup c}
     (hi : z ∈ divisorU c i) (hj : z ∈ divisorU c j) (hk : z ∈ divisorU c k) :
@@ -256,6 +256,7 @@ def hypersurfaceData :
   f_eq_g_mul := divisorF_eq_divisorG_mul c
 
 /-- The chart `none` is the complement of the exceptional divisor. -/
+@[simp]
 theorem hypersurfaceData_U_none :
     (hypersurfaceData c).U none = offDivisorOpens c :=
   (rfl)
@@ -292,15 +293,10 @@ theorem hypersurfaceData_f_none (z : Blowup c) : (hypersurfaceData c).f none z =
 
 /-- The local equation of the chart `some i` is the coordinate `i` of the point of `E` under
 the point of the model, which is the coordinate `w i` of the chart `blowupModelChart i`. -/
+@[simp]
 theorem hypersurfaceData_f_some (i : Fin (n + 1)) (z : Blowup c) :
     (hypersurfaceData c).f (some i) z = (lift c z).blowdown i :=
   (rfl)
-
-@[simp]
-theorem hypersurfaceData_f_some_inr (i : Fin (n + 1)) (y : modelOpens c) :
-    (hypersurfaceData c).f (some i) (inr (gluingHomeomorph c) y) =
-      (y : BlowupModel n).blowdown i := by
-  rw [hypersurfaceData_f_some, lift_inr]
 
 /-- The local equation of the chart `some i` is the coordinate `w i` of the chart
 `blowupModelChart i ∘ lift c`. -/
@@ -314,12 +310,14 @@ theorem hypersurfaceData_g_none_none (z : Blowup c) : (hypersurfaceData c).g non
 
 /-- The transition function from the chart `none` to the chart `some i` is the inverse of the
 local equation of `some i`. -/
+@[simp]
 theorem hypersurfaceData_g_none_some (i : Fin (n + 1)) (z : Blowup c) :
     (hypersurfaceData c).g none (some i) z = ((lift c z).blowdown i)⁻¹ :=
   (rfl)
 
 /-- The transition function from the chart `some i` to the chart `none` is the local equation
 of `some i`. -/
+@[simp]
 theorem hypersurfaceData_g_some_none (i : Fin (n + 1)) (z : Blowup c) :
     (hypersurfaceData c).g (some i) none z = (lift c z).blowdown i :=
   (rfl)
@@ -328,6 +326,7 @@ theorem hypersurfaceData_g_some_none (i : Fin (n + 1)) (z : Blowup c) :
 function of `𝒪(-1)` from the chart `j` to the chart `i` at the line of the point of the model,
 that is, the ratio `v i / v j` of its homogeneous coordinates
 (`hypersurfaceData_g_some_some_eq`). -/
+@[simp]
 theorem hypersurfaceData_g_some_some (i j : Fin (n + 1)) (z : Blowup c) :
     (hypersurfaceData c).g (some i) (some j) z = twistTransition (-1) j i (lift c z).pr :=
   (rfl)

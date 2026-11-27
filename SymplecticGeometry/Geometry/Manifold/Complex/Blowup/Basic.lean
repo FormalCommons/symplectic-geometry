@@ -772,13 +772,13 @@ inverts `inr (gluingHomeomorph c)`. -/
 theorem contMDiffOn_lift :
     ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (lift c)
       (range (inr (gluingHomeomorph c))) := by
+  have hinj := (GluedAlong.inr_injective (gluingHomeomorph c)).injOn (s := univ)
+  have h := ((isLocalDiffeomorph_inr c).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn
+    isOpen_univ hinj
+  rw [image_univ] at h
+  refine (contMDiff_subtypeVal.comp_contMDiffOn h).congr ?_
   rintro _ ⟨y, rfl⟩
-  have h := isLocalDiffeomorph_inr c y
-  refine ((contMDiff_subtypeVal.contMDiffAt.comp _
-    h.contMDiffAt_localInverse).congr_of_eventuallyEq ?_).contMDiffWithinAt
-  filter_upwards [h.localInverse_open_source.mem_nhds h.localInverse_mem_source] with w hw
-  conv_lhs => rw [← h.localInverse_right_inv hw]
-  rw [lift_inr, Function.comp_apply]
+  rw [lift_inr, Function.comp_apply, hinj.leftInvOn_invFunOn (mem_univ y)]
 
 end Complex
 
