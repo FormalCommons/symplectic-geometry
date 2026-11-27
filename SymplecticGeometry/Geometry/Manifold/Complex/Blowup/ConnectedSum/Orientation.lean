@@ -222,10 +222,7 @@ theorem isOrientationReversingAt_projectiveBlowupModelDiffeomorph (x : projectiv
   set Φ := projectiveBlowupModelDiffeomorph n
   have h₀ := isOrientationReversingAt_projectiveBlowupModelDiffeomorph_symm_chart (n := n)
   rw [← isOrientationPreservingAt_neg_right] at h₀ ⊢
-  exact (isPreconnected_univ.isOrientationPreservingAt_iff
-    (fun y _ ↦ (Φ.contMDiff.of_le (by simp)).contMDiffAt)
-    (fun y _ ↦ ⟨_, (Φ.isLocalDiffeomorph y).mfderivToContinuousLinearEquiv_coe (by simp)⟩)
-    _ _ (mem_univ _) (mem_univ _)).1 h₀
+  exact (Φ.isLocalDiffeomorph.isOrientationPreservingAt_iff (by simp) _ _ _ _).1 h₀
 
 end ProjectiveBlowupModel
 
@@ -319,10 +316,7 @@ theorem isOrientationPreservingAt_radialRescale (hε : 0 < ε) (p : BlowupModel 
   rw [complexManifoldOrientationOfFinrank_def]
   refine IsOrientationPreservingAt.reindex ?_ _
   have hR := isLocalDiffeomorph_radialRescale (n := n) hε
-  exact (isPreconnected_univ.isOrientationPreservingAt_iff
-    (fun y _ ↦ ((contMDiff_radialRescale ε).of_le (by simp)).contMDiffAt)
-    (fun y _ ↦ ⟨_, (hR y).mfderivToContinuousLinearEquiv_coe (by simp)⟩)
-    _ _ (mem_univ _) (mem_univ _)).1
+  exact (hR.isOrientationPreservingAt_iff (by simp) _ _ _ _).1
     (isOrientationPreservingAt_radialRescale_blowupModelChart_symm_zero hε 0)
 
 end BlowupModel
