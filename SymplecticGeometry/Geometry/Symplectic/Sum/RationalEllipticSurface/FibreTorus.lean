@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Sum.FermatCubic
 public import SymplecticGeometry.Geometry.Symplectic.Sum.RationalEllipticSurface
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
-public import SymplecticGeometry.Geometry.Symplectic.Moser.Surface
+import SymplecticGeometry.Geometry.Symplectic.Moser.Surface
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Torus.Area
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Pseudoholomorphic
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Positivity
@@ -54,7 +54,9 @@ the same integral, and Moser's theorem gives a diffeomorphism `χ` of `T` with
 
 * `mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos`:
   `σ` is positive on the positively oriented tangent bases of the standard torus.
-* `torusScale_pos`: the constant `torusScale p` is positive.
+* `torusScale p`: the constant `p inl * p inr / A` by which the form of `E(1)` is rescaled, and
+  `torusScale_pos`: it is positive.
+* `torusDiffeomorph p`: the diffeomorphism `φ⁻¹ ∘ χ` from the standard torus onto the fibre.
 * `mpullback_fibreEmbedding_comp_torusDiffeomorph`: `fibreEmbedding ∘ torusDiffeomorph p` pulls
   `torusScale p` times the form of `E(1)` back to `torusSymplecticForm p`.
 
@@ -225,9 +227,7 @@ theorem exists_diffeomorph_mpullback_torusScale_smul_eq :
       (isSymplectic_torusSymplecticForm p).isNondegenerate.apply_ne_zero)
     (fun x b hb ↦ ?_) (fun x b hb ↦ ?_) ?_
   · exact (Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff _ _ _ b).1 hb
-  · rw [map_smul, SetLike.val_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
-      smul_eq_mul]
-    exact mul_pos (torusScale_pos p) (hpos x b hb)
+  · simpa using mul_pos (torusScale_pos p) (hpos x b hb)
   · rw [map_smul, SetLike.val_smul, integralTopForm_smul, integralTopForm_torusSymplecticForm,
       torusScale_def, div_mul_cancel₀ _ hint.ne']
 
