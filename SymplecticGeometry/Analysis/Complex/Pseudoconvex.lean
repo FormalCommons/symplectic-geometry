@@ -17,10 +17,16 @@ near `x`, and so does strict plurisubharmonicity:
 * `TauCeti.IsStronglyPseudoconvexAt.eventually`,
 * `TauCeti.IsStrictlyPlurisubharmonicAt.eventually`.
 
+On a compact set at every point of which `f` is `C²` and strictly plurisubharmonic, its Levi form
+is at least `c * ‖v‖ ^ 2` for a single `c > 0`:
+
+* `IsCompact.exists_pos_mul_sq_norm_le_re_leviForm_of_isStrictlyPlurisubharmonicAt`.
+
 The second derivative of `f` is continuous at `x` (Tau Ceti's
 `ContDiffAt.continuousAt_fderiv_fderiv`), and the bilinear forms whose Levi form is positive on a
 subspace of codimension at most `q` form an open set
-(`TauCeti.isOpen_setOf_re_leviForm_posOnSubspace`).
+(`TauCeti.isOpen_setOf_re_leviForm_posOnSubspace`). The bound on a compact set is Tau Ceti's
+`IsCompact.exists_pos_mul_sq_norm_le_re_leviForm` applied to the second derivative of `f`.
 
 ## References
 
@@ -54,6 +60,20 @@ theorem IsStrictlyPlurisubharmonicAt.eventually (h : IsStrictlyPlurisubharmonicA
     (hf : ContDiffAt ℝ 2 f x) : ∀ᶠ y in 𝓝 x, IsStrictlyPlurisubharmonicAt f y := by
   simpa only [isStronglyPseudoconvexAt_zero_iff] using
     (h.isStronglyPseudoconvexAt 0).eventually hf
+
+/-- **Uniform strict plurisubharmonicity on compact sets.** If `f` is `C²` and strictly
+plurisubharmonic at every point of a compact set `K`, then there is `c > 0` with
+`c * ‖v‖ ^ 2 ≤ (leviForm f z v v).re` for all `z ∈ K` and all vectors `v`. -/
+theorem _root_.IsCompact.exists_pos_mul_sq_norm_le_re_leviForm_of_isStrictlyPlurisubharmonicAt
+    {K : Set V} (hK : IsCompact K) (hf : ∀ z ∈ K, ContDiffAt ℝ 2 f z)
+    (hfs : ∀ z ∈ K, IsStrictlyPlurisubharmonicAt f z) :
+    ∃ c > 0, ∀ z ∈ K, ∀ v, c * ‖v‖ ^ 2 ≤ (leviForm f z v v).re := by
+  simp only [leviForm_def]
+  refine hK.exists_pos_mul_sq_norm_le_re_leviForm
+    (fun z hz ↦ ((hf z hz).continuousAt_fderiv_fderiv le_rfl).continuousWithinAt)
+    fun z hz v hv ↦ ?_
+  rw [← leviForm_def]
+  exact isStrictlyPlurisubharmonicAt_iff.1 (hfs z hz) v hv
 
 end TauCeti
 
