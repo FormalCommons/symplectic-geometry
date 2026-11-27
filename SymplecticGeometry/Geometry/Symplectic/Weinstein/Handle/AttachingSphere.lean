@@ -9,12 +9,15 @@ public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Cobordism
 public import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.StableDisc
 public import TauCeti.Dynamics.Flow.LevelCrossing
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 import SymplecticGeometry.Dynamics.Flow.Stable
 import SymplecticGeometry.Geometry.Manifold.Flow.BandCrossing
 import SymplecticGeometry.Geometry.Manifold.Flow.LevelCrossing
+import SymplecticGeometry.Geometry.Manifold.RegularValue.SublevelBoundary
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
+import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -56,6 +59,10 @@ Last, for a regular value `a`, the boundary of the Weinstein domain `{x | f x �
 contact form `fillingContactForm` of its filling. Any map into that boundary whose image in `M`
 lies in the stable set of `p` is horizontal for the kernel of this contact form.
 
+Together, these give the attaching sphere of `p` in an elementary cobordism: a smooth embedding
+of the sphere into the boundary of `{x | f x ≤ a}`, onto the part of the stable set of `p` on
+that level, and horizontal for its contact form.
+
 ## Main declarations
 
 * `SymplecticGeometry.IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zero`:
@@ -96,6 +103,10 @@ lies in the stable set of `p` is horizontal for the kernel of this contact form.
   `isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet`: a map into the
   boundary of a regular sublevel, with image in the stable set of a nondegenerate critical point,
   is horizontal for the contact form of that boundary.
+* `SymplecticGeometry.IsElementaryWeinsteinCobordism.exists_attachingSphere`: in an elementary
+  Weinstein cobordism between `a` and `b`, a nondegenerate critical point of index `m + 1` has an
+  attaching sphere, a smooth embedding of the unit sphere into the boundary of `{x | f x ≤ a}`
+  whose image in `M` is its stable set on the level `a`, horizontal for the contact form.
 
 ## Implementation notes
 
@@ -172,6 +183,12 @@ the differential of `ι` is invertible, it sends `Y w` to `X (ι w)`, so `ι_Y �
 tangent vector of the map is `ι_X ω` on its image in `M`, which vanishes by
 `SymplecticGeometry.IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`.
 No smoothness of the map is needed: where it is not differentiable, its differential is zero.
+
+The attaching sphere lifts the injective immersion `τ` into the level `a` to the boundary of the
+sublevel, which is that level (`TauCeti.boundary_scalarRegularSublevel`). Tau Ceti's
+`ContMDiff.isImmersion_of_injective_mfderiv` makes `τ` an immersion, and since the sphere is
+compact, the lift is a smooth embedding by
+`TauCeti.isSmoothEmbedding_of_isImmersion_comp_coe_boundary_scalarRegularSublevel`.
 
 ## References
 
@@ -878,6 +895,55 @@ theorem exists_sphere_range_eq_stableSet_inter_preimage {a b : ℝ}
   have hpc : f p = c := hsub ⟨hp.mem_criticalPoints, hpab⟩
   exact hW.isWeinsteinStructure.exists_sphere_range_eq_stableSet_inter_preimage hp hm
     (hW.criticalPoints_inter_subset_preimage_Ioo ⟨hp.mem_criticalPoints, hpab⟩).1 (hpc ▸ hc)
+
+/-- **The attaching sphere.** Let `(ω, X, f)` be an elementary Weinstein cobordism between the
+levels `a` and `b` on a manifold `M` of dimension `n + 1`, and `p` a nondegenerate critical point
+of `f` in the region `f ⁻¹' Icc a b`, of Morse index `m + 1`. Give the sublevel
+`W = {x | f x ≤ a}` the structure of a Weinstein domain of
+`IsWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel`, and its boundary `∂W` the contact
+form `α = fillingContactForm σ Y` of that filling. Then there is a smooth embedding `γ` of the
+unit sphere of `EuclideanSpace ℝ (Fin (m + 1))` into `∂W` whose image in `M` is the set of points
+of the lower level `f ⁻¹' {a}` whose orbits tend to `p`, and which is horizontal for the kernel
+distribution of `α`.
+
+See [CieliebakEliashberg2012], Proposition 11.9. -/
+theorem exists_attachingSphere {a b : ℝ} (hW : IsElementaryWeinsteinCobordism ω X f a b) {n : ℕ}
+    (hn : finrank ℝ E = n + 1) {p : M} (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p)
+    (hpab : f p ∈ Icc a b) {m : ℕ} (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) :
+    letI := scalarRegularSublevelChartedSpace
+      (hW.isWeinsteinStructure.isGeneralizedMorse.contMDiff.of_le (by simp))
+      hW.isRegularValue_lower hn
+    haveI := isManifold_scalarRegularSublevel hW.isRegularValue_lower hn (by simp)
+      hW.isWeinsteinStructure.isGeneralizedMorse.contMDiff
+    ∃ γ : sphere (0 : EuclideanSpace ℝ (Fin (m + 1))) 1 → (𝓡∂ (n + 1)).boundary {x | f x ≤ a},
+      Manifold.IsSmoothEmbedding (𝓡 m) 𝓘(ℝ, EuclideanSpace ℝ (Fin n)) (⊤ : ℕ∞) γ ∧
+      range (fun u ↦ ((γ u : {x | f x ≤ a}) : M)) =
+        hW.isWeinsteinStructure.flow.stableSet p ∩ f ⁻¹' {a} ∧
+      IsHorizontalMap (𝓡 m) (SmoothForm.kerDistribution (fillingContactForm
+        (SmoothForm.mpullback Subtype.val (contMDiff_subtypeVal_scalarRegularSublevel
+          hW.isRegularValue_lower hn (by simp)
+          hW.isWeinsteinStructure.isGeneralizedMorse.contMDiff) ω)
+        ⟨VectorField.mpullback (𝓡∂ (n + 1)) 𝓘(ℝ, E) Subtype.val X,
+          (hW.isWeinsteinStructure.isWeinsteinDomain_scalarRegularSublevel hn
+            hW.isRegularValue_lower).isStrongFilling.isOutwardPointingField.contMDiff⟩)) γ := by
+  have hf := hW.isWeinsteinStructure.isGeneralizedMorse.contMDiff
+  have ha := hW.isRegularValue_lower
+  let := scalarRegularSublevelChartedSpace (hf.of_le (by simp)) ha hn
+  have := isManifold_scalarRegularSublevel ha hn (by simp) hf
+  obtain ⟨τ, hτ, hτi, hτd, hτr⟩ := hW.exists_sphere_range_eq_stableSet_inter_preimage hp hpab hm
+  have hτa (u) : f (τ u) = a := (hτr.le ⟨u, rfl⟩).2
+  -- The lift of `τ` to the boundary of the sublevel, which is the level `f ⁻¹' {a}`.
+  have hbd := boundary_scalarRegularSublevel ha hn (by simp) hf
+  let γ : sphere (0 : EuclideanSpace ℝ (Fin (m + 1))) 1 → (𝓡∂ (n + 1)).boundary {x | f x ≤ a} :=
+    fun u ↦ ⟨⟨τ u, (hτa u).le⟩, hbd ▸ hτa u⟩
+  have hγ : (fun u ↦ ((γ u : {x | f x ≤ a}) : M)) = τ := rfl
+  refine ⟨γ, ?_, hγ ▸ hτr, ?_⟩
+  · refine isSmoothEmbedding_of_isImmersion_comp_coe_boundary_scalarRegularSublevel ha hn
+      (by simp) hf (by simp) le_rfl ?_ (hγ ▸ hτi)
+    exact hγ ▸ ContMDiff.isImmersion_of_injective_mfderiv hτ (by simp) hτd
+  · exact hW.isWeinsteinStructure
+      |>.isHorizontalMap_kerDistribution_fillingContactForm_of_range_subset_stableSet hn ha hp
+        (hγ ▸ hτr.le.trans inter_subset_left)
 
 end IsElementaryWeinsteinCobordism
 
