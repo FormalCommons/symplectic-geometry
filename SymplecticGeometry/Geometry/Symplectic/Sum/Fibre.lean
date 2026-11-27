@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Sum.Collar
 public import SymplecticGeometry.Geometry.Symplectic.Sum.ProductNeighborhood
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Analysis.Complex.ClosedAnnulus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
@@ -227,10 +228,10 @@ theorem mpullback_collarDiffeomorph (hδε : δ < ε) :
       SmoothTwoForm.prod (SmoothForm.mpullback ι ι.contMDiff σ)
         (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
           stdComplexSymplecticForm.constSmooth) := by
-  rw [SmoothForm.mpullback_mpullback,
-    SmoothForm.mpullback_congr (f := Subtype.val ∘ f.collarDiffeomorph hδε) _
-      (f.isLocalDiffeomorph_collarMap hδε).contMDiff
-      (funext fun p ↦ f.coe_collarDiffeomorph_apply hδε p), f.mpullback_collarMap]
+  -- `f.collar hδε` is by definition the image of the collar map, so the general lemma applies.
+  exact (SmoothForm.mpullback_diffeomorphOfInjective_mpullback_subtype_val
+    (f.isLocalDiffeomorph_collarMap hδε) (f.collarMap_injective hδε) _).trans
+      (f.mpullback_collarMap hδε)
 
 /-- A product neighbourhood cannot send a filter of collar points to a point outside the closed
 tube while the collar coordinates cluster at a point `w` of the tube. -/
