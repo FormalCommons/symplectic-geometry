@@ -33,6 +33,8 @@ in a chart.
 * `SymplecticGeometry.fderiv_extChartAt_comp_I_smul`: if the real differential of a map
   `f : V → M` from a complex normed space commutes with multiplication by `i` at a point, so does
   the derivative there of `f` read in a chart of `M`.
+* `SymplecticGeometry.fderiv_extChartAt_comp_comp_I_smul`: the same for `f` after a
+  complex-linear map.
 
 ## References
 
@@ -102,5 +104,27 @@ theorem fderiv_extChartAt_comp_I_smul {V : Type*} [NormedAddCommGroup V] [Normed
     extChartAt_coe, modelWithCornersSelf_coe, Function.id_comp,
     mfderiv_chartAt_eq_tangentCoordChange hx]
   exact tangentCoordChange_complex_smul ⟨mem_chart_source E (f q), hx⟩ _ _
+
+/-- Let `f : V → M` be a map from a complex normed space into the complex manifold `M`,
+differentiable at `L q` for a complex-linear map `L : W →L[ℂ] V`, whose real differential at
+`L q` commutes with multiplication by `i`. Then the derivative at `q` of `f ∘ L` read in the chart
+of `M` at `x₀`, whose source contains `f (L q)`, also commutes with multiplication by `i`. -/
+theorem fderiv_extChartAt_comp_comp_I_smul {V W : Type*} [NormedAddCommGroup V]
+    [NormedSpace ℂ V] [NormedAddCommGroup W] [NormedSpace ℂ W] {f : V → M} (L : W →L[ℂ] V)
+    {q : W} (hf : MDifferentiableAt 𝓘(ℝ, V) 𝓘(ℝ, E) f (L q))
+    (hfI : ∀ v : V, mfderiv 𝓘(ℝ, V) 𝓘(ℝ, E) f (L q) (Complex.I • v) =
+      Complex.I • (show E from mfderiv 𝓘(ℝ, V) 𝓘(ℝ, E) f (L q) v))
+    {x₀ : M} (hx : f (L q) ∈ (chartAt E x₀).source) (v : W) :
+    fderiv ℝ (extChartAt 𝓘(ℝ, E) x₀ ∘ f ∘ L) q (Complex.I • v) =
+      Complex.I • fderiv ℝ (extChartAt 𝓘(ℝ, E) x₀ ∘ f ∘ L) q v := by
+  have hL : HasFDerivAt L (L.restrictScalars ℝ) q := (L.restrictScalars ℝ).hasFDerivAt
+  have hd (w : W) : mfderiv 𝓘(ℝ, W) 𝓘(ℝ, E) (f ∘ L) q w =
+      mfderiv 𝓘(ℝ, V) 𝓘(ℝ, E) f (L q) (L w) := by
+    rw [mfderiv_comp q hf hL.differentiableAt.mdifferentiableAt, mfderiv_eq_fderiv, hL.fderiv]
+    -- `mfderiv_eq_fderiv` only inserts the identifications of the tangent spaces of a normed
+    -- space with the space itself, which are the identity.
+    rfl
+  exact fderiv_extChartAt_comp_I_smul (hf.continuousAt.comp L.continuous.continuousAt)
+    (fun w ↦ by rw [hd, hd, map_smul, hfI]) hx v
 
 end SymplecticGeometry

@@ -8,9 +8,10 @@ module
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import SymplecticGeometry.Geometry.Manifold.CenteredExtChartAt
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Trivialization
 
 /-!
 # Local orientations of a manifold in its charts
@@ -36,6 +37,12 @@ identity, the result is the local orientation of `E` selected by the orientation
   the image of `o` at `z` under `D`.
 * `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`: the case of the
   identity of `E`, with the orientation at `z` read in the trivialization of the tangent bundle.
+* `TauCeti.Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation`:
+  in the centred extended chart `SymplecticGeometry.centeredExtChartAt I z`, whose derivative in
+  the preferred chart is the identity, the local orientation at `z` becomes the local orientation
+  of `E` at the origin selected by `o.orientationAt z`. The chart is read on its source, through
+  `TauCeti.localHomologyIsoOfIsOpenEmbedding`, as in the local cap computation of
+  `SymplecticGeometry.Topology.VectorBundle.Thom.LocalCap`.
 
 ## Implementation notes
 
@@ -58,7 +65,7 @@ public section
 
 noncomputable section
 
-open TauCeti Module
+open TauCeti Module SymplecticGeometry
 
 namespace TauCeti.Manifold.Orientation
 
@@ -182,9 +189,8 @@ theorem localHomologyMap_sub_toHomologicalOrientation (z : M) :
     have hid : (trivializationAt E (TangentSpace I) z).linearEquivAt ℝ z
         (FiberBundle.mem_baseSet_trivializationAt' z) = LinearEquiv.refl ℝ E :=
       LinearEquiv.ext fun v ↦ by
-        rw [Trivialization.linearEquivAt_apply, ← Trivialization.continuousLinearMapAt_apply_of_mem
-          ℝ _ (FiberBundle.mem_baseSet_trivializationAt' z)]
-        exact continuousLinearMapAt_trivializationAt_self z v
+        rw [Trivialization.linearEquivAt_apply]
+        exact TangentBundle.trivializationAt_apply_self_snd z v
     rw [hid, ContinuousLinearEquiv.toLinearEquiv_refl]
     -- The two sides differ only in reading the tangent space at `z` as `E`.
     rfl
@@ -193,5 +199,35 @@ theorem localHomologyMap_sub_toHomologicalOrientation (z : M) :
   -- The chart followed by the identity of `E` is the chart, by definition of `Homeomorph.trans`;
   -- the proofs in the statement depend on the chart, so `rw` cannot replace it.
   congr 3
+
+/-- In the extended chart of `M` at `z` translated so that `z` goes to the origin
+(`SymplecticGeometry.centeredExtChartAt I z`), the local orientation of `M` at `z` given by `o`,
+carried back to the source of the chart and then forward by the chart, is the local orientation
+of `E` at the origin selected by `o.orientationAt z`. -/
+theorem localHomologyMap_centeredExtChartAt_toHomologicalOrientation (z : M) :
+    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) (centeredExtChartAt I z).sourceRestrict
+        (sourceRestrict_centeredExtChartAt_preimage_zero I z).subset (m + 1)
+        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
+          (centeredExtChartAt I z).open_source.isOpenEmbedding_subtypeVal
+          ⟨z, mem_centeredExtChartAt_source I z⟩ (m + 1)).inv
+          (o.toHomologicalOrientation hE z).val) =
+      (Orientation.localOrientation (F := E) (o.orientationAt z) hE).val := by
+  -- Read in the preferred chart, the centred chart is a translation near the point.
+  have hD : HasFDerivAt (centeredExtChartAt I z ∘ (extChartAt I z).symm)
+      ((ContinuousLinearEquiv.refl ℝ E : E ≃L[ℝ] E) : E →L[ℝ] E) (extChartAt I z z) := by
+    refine ((hasFDerivAt_id _).sub_const (extChartAt I z z)).congr_of_eventuallyEq ?_
+    filter_upwards [extChartAt_target_mem_nhds (I := I) z] with y hy
+    simp only [Function.comp_apply, centeredExtChartAt_apply, (extChartAt I z).right_inv hy, id]
+  have h := localHomologyMap_sub_toHomologicalOrientation_of_hasFDerivAt hE o hE
+    (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) hD
+  rw [Topology.IsOpenEmbedding.coe_localOrientationEquiv_symm] at h
+  refine Eq.trans ?_ (h.trans ?_)
+  · -- The centred chart vanishes at `z`, so subtracting its value there changes nothing.
+    congr 3
+    ext x
+    simp
+  · rw [ContinuousLinearEquiv.toLinearEquiv_refl, Orientation.map_refl]
+    -- The orientation at `z` is one of `TangentSpace I z`, which is `E` only by definition.
+    rfl
 
 end TauCeti.Manifold.Orientation

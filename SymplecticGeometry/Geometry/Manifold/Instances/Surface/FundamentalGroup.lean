@@ -8,13 +8,21 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Puncture
 public import Mathlib.Algebra.Category.Grp.Basic
 public import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Defs
+public import TauCeti.GroupTheory.SurfaceGroup.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.IsPullback.Basic
 import Mathlib.Topology.Homeomorph.Lemmas
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.FundamentalGroup
 import SymplecticGeometry.Geometry.Manifold.ConnectedSum.Restrict
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Topology.Maps.Embedding
+import SymplecticGeometry.Algebra.Category.Grp.Pushout
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.Basic
+import SymplecticGeometry.AlgebraicTopology.FundamentalGroup.PuncturedPlane
+import SymplecticGeometry.Geometry.Manifold.Instances.Surface.PuncturedTorus
+import SymplecticGeometry.GroupTheory.SurfaceGroup.Basic
+import TauCeti.AlgebraicTopology.FundamentalGroup.BasepointChange
 import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
+import TauCeti.GroupTheory.SurfaceGroup.Gluing
 
 /-!
 # The fundamental groups of the punctured closed surfaces
@@ -23,7 +31,10 @@ The closed surface of genus `g + 1` is the connected sum of the torus with the c
 genus `g` along its ball `0` (`ClosedSurface.succDiffeomorph`). This file computes the
 fundamental group of `ClosedSurface.puncture (g + 1) n` as a pushout of those of its two pieces:
 the punctured torus `TauCeti.ConnectedSum.puncture EuclideanTorus.ball` and
-`ClosedSurface.puncture g (n + 1)`, glued along the neck `{0}ᶜ` of the plane.
+`ClosedSurface.puncture g (n + 1)`, glued along the neck `{0}ᶜ` of the plane, and from it proves
+the step of the induction on the genus: an isomorphism of the fundamental group of
+`puncture g (n + 1)` with `TauCeti.SurfaceGroup.Orientable g (n + 1)`, with given values on the
+standard loops, gives one for `puncture (g + 1) n` and `Orientable (g + 1) n`.
 
 ## Main definitions
 
@@ -43,6 +54,13 @@ the punctured torus `TauCeti.ConnectedSum.puncture EuclideanTorus.ball` and
   is a pushout in `GrpCat`.
 * `SymplecticGeometry.ClosedSurface.map_puncturedNeckInr_circleLoop`: the circle of the neck goes
   to the circle `puncturedBallCircle g (n + 1) 0` of the ball `0`.
+* `SymplecticGeometry.ClosedSurface.puncturedSuccInr_puncturedCircleLoop_apply`,
+  `SymplecticGeometry.ClosedSurface.puncturedSuccInr_peripheralLoop_apply`: `puncturedSuccInr`
+  sends the circles of the summand `k` and the peripheral loop `Fin.castSucc i` of genus `g` to
+  those of the summand `k + 1` and the peripheral loop `i` of genus `g + 1`.
+* `SymplecticGeometry.ClosedSurface.exists_puncturedFundamentalGroupMulEquiv_succ`: the step from
+  genus `g` with `n + 1` punctures to genus `g + 1` with `n` punctures, for an isomorphism with
+  `Orientable` sending `puncturedCircleLoop` to `a` and `b` and `peripheralLoop` to `peripheral`.
 
 ## Implementation notes
 
@@ -55,6 +73,17 @@ its punctured second summand onto `puncture g (n + 1)`
 The transport along these homeomorphisms by `CategoryTheory.IsPushout.of_iso'` follows the proof of
 `TauCeti.ConnectedSum.isPushout_fundamentalGroup`, which transports Tau Ceti's
 `TauCeti.isPushout_fundamentalGroup` in the same way.
+
+For the step, the pieces are read in surface groups at the neck point: the punctured torus by
+`EuclideanTorus.puncturedFundamentalGroupMulEquiv`, moved along `EuclideanTorus.peripheralPath`,
+and `puncture g (n + 1)` by the given isomorphism, moved along `ballPath g 0`. The neck circle
+then goes to `peripheral 1 1 0` and to the inverse of the last peripheral generator, so the square
+is one of the homomorphisms `TauCeti.SurfaceGroup.Orientable.gluingMaps 1 0 g n`, and is identified
+with `Monoid.PushoutI` by `CategoryTheory.IsPushout.mulEquivPushoutI`. Tau Ceti's
+`TauCeti.SurfaceGroup.Orientable.equivPushoutI 1 0 g n` and the renaming
+`TauCeti.SurfaceGroup.Orientable.congr` give `Orientable (g + 1) n`, and the base point is moved
+back along the image of `ballPath g 0`. Since the torus piece has no other peripheral generator,
+no generator of genus `g` is conjugated.
 
 ## References
 
@@ -123,6 +152,37 @@ theorem coe_puncturedNeckInr_apply (v : ({0}ᶜ : Set (EuclideanSpace ℝ (Fin 2
   (rfl)
 
 variable {g n}
+
+/-- The base point of genus `g` goes to the base point of genus `g + 1`. -/
+@[simp]
+theorem puncturedSuccInr_basePoint :
+    puncturedSuccInr g n ⟨basePoint g, basePoint_mem_puncture⟩ =
+      ⟨basePoint (g + 1), basePoint_mem_puncture⟩ :=
+  Subtype.ext <| by
+    have hinj : Injective (succDiffeomorph (g := g)) := succDiffeomorph.injective
+    refine hinj ?_
+    rw [succDiffeomorph_puncturedSuccInr_apply, succDiffeomorph_basePoint]
+
+/-- The standard circle `i` of the torus summand `k` of genus `g` goes to the circle `i` of the
+summand `k + 1` of genus `g + 1`. -/
+theorem puncturedSuccInr_puncturedCircleLoop_apply (k : Fin g) (i : Fin 2) (t : unitInterval) :
+    puncturedSuccInr g n (puncturedCircleLoop g (n + 1) k i t) =
+      puncturedCircleLoop (g + 1) n k.succ i t :=
+  Subtype.ext <| by
+    have hinj : Injective (succDiffeomorph (g := g)) := succDiffeomorph.injective
+    refine (hinj ?_).symm
+    rw [succDiffeomorph_puncturedSuccInr_apply, coe_puncturedCircleLoop_apply,
+      succDiffeomorph_circleLoop_succ_apply]
+    exact congrArg _ (Subtype.ext (coe_puncturedCircleLoop_apply k i t).symm)
+
+/-- The peripheral loop `Fin.castSucc i` of `puncture g (n + 1)` goes to the peripheral loop `i`
+of `puncture (g + 1) n`. -/
+theorem puncturedSuccInr_peripheralLoop_apply (i : Fin n) (t : unitInterval) :
+    puncturedSuccInr g n (peripheralLoop g (n + 1) i.castSucc t) = peripheralLoop (g + 1) n i t :=
+  Subtype.ext <| by
+    have hinj : Injective (succDiffeomorph (g := g)) := succDiffeomorph.injective
+    refine hinj ?_
+    rw [succDiffeomorph_puncturedSuccInr_apply, succDiffeomorph_peripheralLoop_apply]
 
 /-- The neck point goes to the start of the circle of the ball `0`. -/
 theorem puncturedNeckInr_circleBasepoint :
@@ -269,6 +329,281 @@ theorem isPushout_fundamentalGroup_puncture_succ :
       ConnectedSum.coe_restrictRightHomeomorph_inr, succDiffeomorph_puncturedSuccInr_apply]
     exact congrArg _ (Subtype.ext (by
       rw [ConnectedSum.coe_punctureMap, coe_coe_puncturedSummandHomeomorph_apply]))
+
+/-! ### The step of the induction -/
+
+/-- The fundamental group of the punctured torus at the neck point, moved there from `0` along
+`EuclideanTorus.peripheralPath`, is `Orientable 1 1`. -/
+private def torusNeckMulEquiv :
+    FundamentalGroup (ConnectedSum.puncture EuclideanTorus.ball)
+        (ConnectedSum.neckInl EuclideanTorus.isOpenEmbedding_ball
+          (neckIsometry.circleBasepoint one_pos)) ≃* SurfaceGroup.Orientable 1 1 :=
+  (FundamentalGroup.fundamentalGroupMulEquivOfPath EuclideanTorus.peripheralPath).symm.trans
+    EuclideanTorus.puncturedFundamentalGroupMulEquiv
+
+private theorem torusNeckMulEquiv_neckLoop :
+    torusNeckMulEquiv (FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk EuclideanTorus.neckLoop)) =
+      SurfaceGroup.Orientable.peripheral 1 1 0 := by
+  rw [torusNeckMulEquiv, MulEquiv.trans_apply,
+    FundamentalGroup.fundamentalGroupMulEquivOfPath_symm_fromPath_mk,
+    ← EuclideanTorus.puncturedFundamentalGroupMulEquiv_peripheralLoop,
+    EuclideanTorus.peripheralLoop_def]
+  simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.trans_assoc]
+
+variable (n) in
+/-- The fundamental group of `puncture g (n + 1)` at the start of the circle of the ball `0`,
+moved there from the base point along `ballPath g 0`, read through `e`. -/
+private def neckMulEquiv
+    (e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1)) :
+    FundamentalGroup (puncture g (n + 1))
+        ⟨ball g 0 (neckIsometry 1), ball_neckIsometry_one_mem_puncture 0⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1) :=
+  (FundamentalGroup.fundamentalGroupMulEquivOfPath (puncturedBallPath g (n + 1) 0)).symm.trans e
+
+private theorem neckMulEquiv_puncturedBallCircle
+    {e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1)}
+    (he : e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+      (peripheralLoop g (n + 1) (Fin.last n)))) =
+        SurfaceGroup.Orientable.peripheral g (n + 1) (Fin.last n)) :
+    neckMulEquiv n e (FundamentalGroup.fromPath
+        (Path.Homotopic.Quotient.mk (puncturedBallCircle g (n + 1) 0))) =
+      (SurfaceGroup.Orientable.peripheral g (n + 1) (Fin.last n))⁻¹ := by
+  rw [neckMulEquiv, MulEquiv.trans_apply,
+    FundamentalGroup.fundamentalGroupMulEquivOfPath_symm_fromPath_mk, ← he, ← map_inv,
+    peripheralLoop_eq_puncturedBallPath_trans, Fin.rev_last, Fin.val_zero,
+    ← FundamentalGroup.fromPath_symm, ← Path.Homotopic.Quotient.mk_symm]
+  simp only [Path.trans_symm, Path.symm_symm, Path.Homotopic.Quotient.mk_trans,
+    Path.Homotopic.Quotient.mk_symm]
+
+variable (n) in
+/-- The square of fundamental groups of `ClosedSurface.isPushout_fundamentalGroup_puncture_succ`,
+with its two pieces read through `torusNeckMulEquiv` and `neckMulEquiv n e`, and its neck through
+`ℤ`: a pushout of the homomorphisms `gluingMaps 1 0 g n`. -/
+private theorem isPushout_gluingMaps
+    {e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1)}
+    (he : e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+      (peripheralLoop g (n + 1) (Fin.last n)))) =
+        SurfaceGroup.Orientable.peripheral g (n + 1) (Fin.last n)) :
+    IsPushout (GrpCat.ofHom (SurfaceGroup.Orientable.gluingMaps 1 0 g n false))
+      (GrpCat.ofHom (SurfaceGroup.Orientable.gluingMaps 1 0 g n true))
+      (GrpCat.ofHom ((FundamentalGroup.map (puncturedSuccInl g n)
+        (ConnectedSum.neckInl EuclideanTorus.isOpenEmbedding_ball
+          (neckIsometry.circleBasepoint one_pos))).comp torusNeckMulEquiv.symm.toMonoidHom))
+      (GrpCat.ofHom ((FundamentalGroup.mapOfEq (puncturedSuccInr g n)
+        puncturedSuccInr_ball_neckIsometry_one).comp (neckMulEquiv n e).symm.toMonoidHom)) := by
+  refine (isPushout_fundamentalGroup_puncture_succ g n).of_iso
+    (neckIsometry.fundamentalGroupComplSingletonMulEquivInt one_pos).toGrpIso
+    torusNeckMulEquiv.toGrpIso (neckMulEquiv n e).toGrpIso (Iso.refl _) ?_ ?_ ?_ ?_
+  · refine GrpCat.hom_ext (neckIsometry.fundamentalGroupComplSingleton_hom_ext one_pos ?_)
+    simp only [GrpCat.hom_comp, GrpCat.hom_ofHom, MonoidHom.coe_comp, Function.comp_apply,
+      MulEquiv.toGrpIso_hom, MulEquiv.coe_toMonoidHom]
+    rw [LinearIsometryEquiv.fundamentalGroupComplSingletonMulEquivInt_circleLoop,
+      SurfaceGroup.Orientable.gluingMaps_false, zpowersHom_apply, toAdd_ofAdd, zpow_one,
+      TauCeti.FundamentalGroup.map_fromPath,
+      ← EuclideanTorus.neckLoop_def]
+    -- `Fin.last 0` is `0`, and `peripheral 1 (0 + 1)` is `peripheral 1 1`, by `Nat` arithmetic.
+    exact torusNeckMulEquiv_neckLoop
+  · refine GrpCat.hom_ext (neckIsometry.fundamentalGroupComplSingleton_hom_ext one_pos ?_)
+    simp only [GrpCat.hom_comp, GrpCat.hom_ofHom, MonoidHom.coe_comp, Function.comp_apply,
+      MulEquiv.toGrpIso_hom, MulEquiv.coe_toMonoidHom]
+    rw [LinearIsometryEquiv.fundamentalGroupComplSingletonMulEquivInt_circleLoop,
+      SurfaceGroup.Orientable.gluingMaps_true, zpowersHom_apply, toAdd_ofAdd, zpow_one,
+      FundamentalGroup.mapOfEq_fromPath_mk, map_puncturedNeckInr_circleLoop]
+    -- `Path.cast` keeps the underlying map, so the cast circle is `puncturedBallCircle` itself.
+    exact neckMulEquiv_puncturedBallCircle he
+  · refine GrpCat.ext fun x ↦ ?_
+    simp
+  · refine GrpCat.ext fun x ↦ ?_
+    simp
+
+variable (n) in
+/-- The fundamental group of `puncture (g + 1) n` at the neck point is `Orientable (g + 1) n`:
+the pushout of `isPushout_gluingMaps`, then Tau Ceti's `equivPushoutI 1 0 g n`, then the renaming
+of `Orientable (1 + g) (0 + n)`. -/
+private def neckSuccMulEquiv
+    {e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1)}
+    (he : e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+      (peripheralLoop g (n + 1) (Fin.last n)))) =
+        SurfaceGroup.Orientable.peripheral g (n + 1) (Fin.last n)) :
+    FundamentalGroup (puncture (g + 1) n) (puncturedSuccInl g n
+        (ConnectedSum.neckInl EuclideanTorus.isOpenEmbedding_ball
+          (neckIsometry.circleBasepoint one_pos))) ≃* SurfaceGroup.Orientable (g + 1) n :=
+  (isPushout_gluingMaps n he).mulEquivPushoutI.trans
+    ((SurfaceGroup.Orientable.equivPushoutI 1 0 g n).symm.trans
+      (SurfaceGroup.Orientable.congr (add_comm 1 g) (zero_add n)))
+
+private theorem neckSuccMulEquiv_map_puncturedSuccInl
+    {e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1)}
+    (he : e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+      (peripheralLoop g (n + 1) (Fin.last n)))) =
+        SurfaceGroup.Orientable.peripheral g (n + 1) (Fin.last n)) (x) :
+    neckSuccMulEquiv n he (FundamentalGroup.map (puncturedSuccInl g n) _ x) =
+      SurfaceGroup.Orientable.congr (add_comm 1 g) (zero_add n)
+        ((SurfaceGroup.Orientable.equivPushoutI 1 0 g n).symm
+          (Monoid.PushoutI.of false (torusNeckMulEquiv x))) := by
+  have := (isPushout_gluingMaps n he).mulEquivPushoutI_ofHom_inl (torusNeckMulEquiv x)
+  simp only [MonoidHom.coe_comp, MulEquiv.coe_toMonoidHom, Function.comp_apply,
+    MulEquiv.symm_apply_apply] at this
+  rw [neckSuccMulEquiv, MulEquiv.trans_apply, this, MulEquiv.trans_apply]
+
+private theorem neckSuccMulEquiv_mapOfEq_puncturedSuccInr
+    {e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+      SurfaceGroup.Orientable g (n + 1)}
+    (he : e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+      (peripheralLoop g (n + 1) (Fin.last n)))) =
+        SurfaceGroup.Orientable.peripheral g (n + 1) (Fin.last n)) (x) :
+    neckSuccMulEquiv n he
+        (FundamentalGroup.mapOfEq (puncturedSuccInr g n) puncturedSuccInr_ball_neckIsometry_one x) =
+      SurfaceGroup.Orientable.congr (add_comm 1 g) (zero_add n)
+        ((SurfaceGroup.Orientable.equivPushoutI 1 0 g n).symm
+          (Monoid.PushoutI.of true (neckMulEquiv n e x))) := by
+  have := (isPushout_gluingMaps n he).mulEquivPushoutI_ofHom_inr (neckMulEquiv n e x)
+  simp only [MonoidHom.coe_comp, MulEquiv.coe_toMonoidHom, Function.comp_apply,
+    MulEquiv.symm_apply_apply] at this
+  rw [neckSuccMulEquiv, MulEquiv.trans_apply, this, MulEquiv.trans_apply]
+
+variable (g n) in
+/-- The path from the base point of `puncture (g + 1) n` to the neck point: the path to the
+ball `0` of genus `g`, in the second summand. -/
+private def neckPath :
+    Path (⟨basePoint (g + 1), basePoint_mem_puncture⟩ : puncture (g + 1) n)
+      (puncturedSuccInl g n (ConnectedSum.neckInl EuclideanTorus.isOpenEmbedding_ball
+        (neckIsometry.circleBasepoint one_pos))) :=
+  ((puncturedBallPath g (n + 1) 0).map (puncturedSuccInr g n).continuous).cast
+    puncturedSuccInr_basePoint.symm puncturedSuccInr_ball_neckIsometry_one.symm
+
+private theorem neckPath_apply (t : unitInterval) :
+    neckPath g n t = puncturedSuccInr g n (puncturedBallPath g (n + 1) 0 t) :=
+  (rfl)
+
+private theorem succDiffeomorph_neckPath_apply (t : unitInterval) :
+    succDiffeomorph (neckPath g n t : ClosedSurface (g + 1)) =
+      ConnectedSum.inr _ _ ⟨ballPath g 0 t,
+        ConnectedSum.mem_puncture.2 (ballPath_ne_ball 0 t 0)⟩ := by
+  rw [neckPath_apply, succDiffeomorph_puncturedSuccInr_apply]
+  exact congrArg _ (Subtype.ext (coe_puncturedBallPath_apply 0 t))
+
+/-- The standard circle `i` of the torus summand `0` of genus `g + 1` is `neckPath`, then the
+reverse of `EuclideanTorus.peripheralPath` and the circle `EuclideanTorus.circleLoop i` in the
+punctured torus, and back. -/
+private theorem puncturedCircleLoop_zero (i : Fin 2) :
+    puncturedCircleLoop (g + 1) n 0 i =
+      (((neckPath g n).trans (EuclideanTorus.peripheralPath.symm.map
+        (puncturedSuccInl g n).continuous)).trans
+          ((EuclideanTorus.circleLoop i).map (puncturedSuccInl g n).continuous)).trans
+        ((neckPath g n).trans (EuclideanTorus.peripheralPath.symm.map
+          (puncturedSuccInl g n).continuous)).symm := by
+  have hinj : Injective (succDiffeomorph (g := g)) := succDiffeomorph.injective
+  ext t
+  rw [coe_puncturedCircleLoop_apply, circleLoop_def, summandPath_succ_zero]
+  simp only [Path.trans_apply, Path.symm_apply, Path.map_coe, Function.comp_apply]
+  -- On the torus pieces both sides are `summand 0` of the same point, by the definition of
+  -- `puncturedSuccInl`; on the path to the ball, compare the images under `succDiffeomorph`.
+  split_ifs <;> first
+    | rfl
+    | (refine hinj ?_; rw [succDiffeomorph_succPath_apply, succDiffeomorph_neckPath_apply])
+
+/-- Moved to the neck point along `neckPath`, the standard circle `i` of the torus summand `0` of
+genus `g + 1` is the image of the circle `EuclideanTorus.circleLoop i` of the punctured torus
+moved to the neck point along `EuclideanTorus.peripheralPath`. -/
+private theorem fundamentalGroupMulEquivOfPath_neckPath_puncturedCircleLoop_zero (i : Fin 2) :
+    FundamentalGroup.fundamentalGroupMulEquivOfPath (neckPath g n)
+        (FundamentalGroup.fromPath
+          (Path.Homotopic.Quotient.mk (puncturedCircleLoop (g + 1) n 0 i))) =
+      FundamentalGroup.map (puncturedSuccInl g n) _
+        (FundamentalGroup.fundamentalGroupMulEquivOfPath EuclideanTorus.peripheralPath
+          (FundamentalGroup.fromPath
+            (Path.Homotopic.Quotient.mk (EuclideanTorus.circleLoop i)))) := by
+  rw [FundamentalGroup.fundamentalGroupMulEquivOfPath_fromPath_mk,
+    FundamentalGroup.fundamentalGroupMulEquivOfPath_fromPath_mk,
+    TauCeti.FundamentalGroup.map_fromPath, puncturedCircleLoop_zero]
+  simp only [Path.map_trans, Path.map_symm, Path.trans_symm, Path.symm_symm,
+    Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
+    Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.symm_trans_trans,
+    Path.Homotopic.Quotient.trans_refl, Path.Homotopic.Quotient.symm_trans]
+
+/-- **The induction step for the punctured closed surfaces.** If the fundamental group of the
+closed surface of genus `g` with `n + 1` centres removed is `Orientable g (n + 1)`, by an
+isomorphism sending the standard circles `circleLoop g k 0` and `circleLoop g k 1` to `a k` and
+`b k` and the peripheral loops to the peripheral generators, then the same holds for genus
+`g + 1` and `n` centres removed. -/
+theorem exists_puncturedFundamentalGroupMulEquiv_succ
+    (h : ∃ e : FundamentalGroup (puncture g (n + 1)) ⟨basePoint g, basePoint_mem_puncture⟩ ≃*
+        SurfaceGroup.Orientable g (n + 1),
+      (∀ k : Fin g, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop g (n + 1) k 0))) = SurfaceGroup.Orientable.a g (n + 1) k) ∧
+      (∀ k : Fin g, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop g (n + 1) k 1))) = SurfaceGroup.Orientable.b g (n + 1) k) ∧
+      ∀ i, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (peripheralLoop g (n + 1) i))) = SurfaceGroup.Orientable.peripheral g (n + 1) i) :
+    ∃ e : FundamentalGroup (puncture (g + 1) n) ⟨basePoint (g + 1), basePoint_mem_puncture⟩ ≃*
+        SurfaceGroup.Orientable (g + 1) n,
+      (∀ k : Fin (g + 1), e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop (g + 1) n k 0))) = SurfaceGroup.Orientable.a (g + 1) n k) ∧
+      (∀ k : Fin (g + 1), e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (puncturedCircleLoop (g + 1) n k 1))) = SurfaceGroup.Orientable.b (g + 1) n k) ∧
+      ∀ i, e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+          (peripheralLoop (g + 1) n i))) = SurfaceGroup.Orientable.peripheral (g + 1) n i := by
+  obtain ⟨e, ha, hb, hp⟩ := h
+  let E := (FundamentalGroup.fundamentalGroupMulEquivOfPath (neckPath g n)).trans
+    (neckSuccMulEquiv n (hp (Fin.last n)))
+  -- A loop of genus `g` carried into the second summand.
+  have hinr : ∀ L L', (∀ t, puncturedSuccInr g n (L t) = L' t) →
+      E (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk L')) =
+        SurfaceGroup.Orientable.congr (add_comm 1 g) (zero_add n)
+          ((SurfaceGroup.Orientable.equivPushoutI 1 0 g n).symm
+            (Monoid.PushoutI.of true (e (FundamentalGroup.fromPath
+              (Path.Homotopic.Quotient.mk L))))) := by
+    intro L L' hL
+    have hx : e (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk L)) =
+        neckMulEquiv n e (FundamentalGroup.fundamentalGroupMulEquivOfPath
+          (puncturedBallPath g (n + 1) 0)
+          (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk L))) := by
+      rw [neckMulEquiv, MulEquiv.trans_apply, MulEquiv.symm_apply_apply]
+    rw [hx, ← neckSuccMulEquiv_mapOfEq_puncturedSuccInr (hp (Fin.last n)),
+      FundamentalGroup.mapOfEq_fundamentalGroupMulEquivOfPath _ puncturedSuccInr_basePoint,
+      FundamentalGroup.mapOfEq_fromPath_mk, MulEquiv.trans_apply]
+    congr 4
+    ext t
+    exact congrArg Subtype.val (hL t).symm
+  have htorus : ∀ i : Fin 2, E (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+      (puncturedCircleLoop (g + 1) n 0 i))) =
+        SurfaceGroup.Orientable.congr (add_comm 1 g) (zero_add n)
+          ((SurfaceGroup.Orientable.equivPushoutI 1 0 g n).symm
+            (Monoid.PushoutI.of false (EuclideanTorus.puncturedFundamentalGroupMulEquiv
+              (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk
+                (EuclideanTorus.circleLoop i)))))) := by
+    intro i
+    rw [MulEquiv.trans_apply, fundamentalGroupMulEquivOfPath_neckPath_puncturedCircleLoop_zero,
+      neckSuccMulEquiv_map_puncturedSuccInl,
+      torusNeckMulEquiv, MulEquiv.trans_apply, MulEquiv.symm_apply_apply]
+  refine ⟨E, fun k ↦ ?_, fun k ↦ ?_, fun i ↦ ?_⟩
+  · cases k using Fin.cases with
+    | zero =>
+      rw [htorus, EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_zero]
+      simp only [SurfaceGroup.Orientable.equivPushoutI_symm_of_false_a,
+        SurfaceGroup.Orientable.congr_a]
+      congr 1
+    | succ k =>
+      rw [hinr _ _ (puncturedSuccInr_puncturedCircleLoop_apply k 0), ha]
+      simp
+  · cases k using Fin.cases with
+    | zero =>
+      rw [htorus, EuclideanTorus.puncturedFundamentalGroupMulEquiv_circleLoop_one]
+      simp only [SurfaceGroup.Orientable.equivPushoutI_symm_of_false_b,
+        SurfaceGroup.Orientable.congr_b]
+      congr 1
+    | succ k =>
+      rw [hinr _ _ (puncturedSuccInr_puncturedCircleLoop_apply k 1), hb]
+      simp
+  · rw [hinr _ _ (puncturedSuccInr_peripheralLoop_apply i), hp]
+    simp
 
 end SymplecticGeometry.ClosedSurface
 
