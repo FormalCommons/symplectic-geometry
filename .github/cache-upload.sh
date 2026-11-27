@@ -105,7 +105,7 @@ while read -r code url; do
     404)
       [ -f "$dir/$hash.ltar" ] || fail "the mappings name the archive $hash, which is neither staged nor in the bucket"
       send=$((send + 1))
-      printf 'upload-file = "%s"\nurl = "%s"\n' "$dir/$hash.ltar" "$url" >> "$work/put.cfg" ;;
+      printf 'upload-file = "%s"\nurl = "%s"\noutput = "/dev/null"\n' "$dir/$hash.ltar" "$url" >> "$work/put.cfg" ;;
     *) fail "the bucket answered $code for an archive" ;;
   esac
 done < "$work/head.out"
@@ -115,13 +115,16 @@ echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(com
 # broken connection too. An answer such as 403 or 412 is no error to curl
 # without `--fail`, so it is not tried again. 412 means that the name was
 # taken meanwhile, also by this upload's own first try, which is as good as
-# uploaded. The tries are few and bounded in time: a run's work that does
+# uploaded. Each upload's answer goes to /dev/null by a line of its own in
+# the config: one `-o` on the command line serves only the first, and the
+# text of a 412 among the status codes failed uploads that had lost a race
+# for an archive, as two runs of one batch of the merge queue do. The tries are few and bounded in time: a run's work that does
 # not reach the bucket costs a later build some compiling, and an upload
 # that hangs costs a runner that a build is waiting for. Two of the first
 # uploads hung for the job's whole 20 minutes.
 if [ "$send" -gt 0 ]; then
   { printf '%s\n' "$key"; cat "$work/put.cfg"; } |
-    curl -q -sS -Z --parallel-max 16 --retry 4 --retry-all-errors --retry-max-time 90 --max-time 120 -o /dev/null -w '%{http_code}\n' \
+    curl -q -sS -Z --parallel-max 16 --retry 4 --retry-all-errors --retry-max-time 90 --max-time 120 -w '%{http_code}\n' \
       --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.artifact' \
       -H 'If-None-Match: *' -K - > "$work/put.out" || fail "could not upload the archives"
   if grep -qvE '^(200|412)$' "$work/put.out"; then
