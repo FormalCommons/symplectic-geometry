@@ -675,6 +675,235 @@ theorem fundamentalGroupMulEquiv_loop (k : ι) :
 
 end Main
 
+/-! ### The large circle -/
+
+/-- The circle about `0` of radius `R`, run once counterclockwise from `R e^{iθ}`. -/
+def outerCircle (R θ : ℝ) : Path (circleMap 0 R θ) (circleMap 0 R θ) where
+  toFun t := R * exp ((θ + 2 * Real.pi * t : ℝ) * I)
+  continuous_toFun := by fun_prop
+  source' := by simp [circleMap]
+  target' := by simpa [circleMap] using periodic_circleMap 0 R θ
+
+theorem outerCircle_apply (R θ : ℝ) (t : unitInterval) :
+    outerCircle R θ t = circleMap 0 R (θ + 2 * Real.pi * t) := by
+  simp only [circleMap, zero_add]
+  rfl
+
+/-- The loop in `ℂ` based at `0` that runs along the ray at the angle `θ` out to the circle about
+`0` of radius `R`, once counterclockwise around that circle, and back along the ray. -/
+def outerLoopInPlane (R θ : ℝ) : Path (0 : ℂ) 0 :=
+  (Path.segment 0 (circleMap 0 R θ)).trans
+    ((outerCircle R θ).trans (Path.segment 0 (circleMap 0 R θ)).symm)
+
+theorem outerLoopInPlane_def (R θ : ℝ) :
+    outerLoopInPlane R θ =
+      (Path.segment 0 (circleMap 0 R θ)).trans
+        ((outerCircle R θ).trans (Path.segment 0 (circleMap 0 R θ)).symm) :=
+  (rfl)
+
+variable {R θ : ℝ}
+
+private theorem segment_zero_circleMap_mem_compl_range (h0 : ∀ i, c i ≠ 0)
+    (hθ₀ : 0 < θ) (hθπ : θ < Real.pi) (t : unitInterval) :
+    Path.segment 0 (circleMap 0 R θ) t ∈ (range fun i ↦ (c i : ℂ))ᶜ := by
+  rintro ⟨i, hi⟩
+  have hR : R ≠ 0 := by
+    rintro rfl
+    exact h0 i (by simpa [AffineMap.lineMap_apply_module'] using hi)
+  have him := congrArg im hi
+  have hsin : 0 < Real.sin θ := Real.sin_pos_of_pos_of_lt_pi hθ₀ hθπ
+  simp only [ofReal_im, Path.segment_apply, AffineMap.lineMap_apply_module',
+    sub_zero] at him
+  simp [circleMap, hR, hsin.ne'] at him
+  rcases him with rfl
+  exact h0 i (by simpa [AffineMap.lineMap_apply_module'] using hi)
+
+private theorem circleMap_zero_mem_compl_range (hR : ∀ i, |c i| < R) (φ : ℝ) :
+    circleMap 0 R φ ∈ (range fun i ↦ (c i : ℂ))ᶜ := by
+  rintro ⟨i, hi⟩
+  have h := congrArg norm hi
+  rw [norm_circleMap_zero, norm_real, Real.norm_eq_abs, abs_of_pos ((abs_nonneg _).trans_lt
+    (hR i))] at h
+  exact (hR i).ne h
+
+theorem outerLoopInPlane_mem_compl_range (h0 : ∀ i, c i ≠ 0) (hR : ∀ i, |c i| < R)
+    (hθ₀ : 0 < θ) (hθπ : θ < Real.pi) (t : unitInterval) :
+    outerLoopInPlane R θ t ∈ (range fun i ↦ (c i : ℂ))ᶜ := by
+  suffices h : range (outerLoopInPlane R θ) ⊆ (range fun i ↦ (c i : ℂ))ᶜ from
+    h (mem_range_self t)
+  rw [outerLoopInPlane_def, Path.trans_range, Path.trans_range, Path.symm_range,
+    union_subset_iff, union_subset_iff, range_subset_iff, range_subset_iff]
+  exact ⟨segment_zero_circleMap_mem_compl_range h0 hθ₀ hθπ,
+    fun t ↦ outerCircle_apply R θ t ▸ circleMap_zero_mem_compl_range hR _,
+    segment_zero_circleMap_mem_compl_range h0 hθ₀ hθπ⟩
+
+/-- The loop based at `0` in the plane minus the real points `c i`, all of absolute value less
+than `R`, that runs along the ray at the angle `θ ∈ (0, π)` out to the circle about `0` of radius
+`R`, once counterclockwise around it, and back along the ray. -/
+def outerLoop (h0 : ∀ i, c i ≠ 0) (hR : ∀ i, |c i| < R) (hθ₀ : 0 < θ) (hθπ : θ < Real.pi) :
+    Path (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ)
+      ⟨0, zero_mem_compl_range h0⟩ :=
+  (outerLoopInPlane R θ).codRestrict (outerLoopInPlane_mem_compl_range h0 hR hθ₀ hθπ)
+
+theorem outerLoop_def (h0 : ∀ i, c i ≠ 0) (hR : ∀ i, |c i| < R) (hθ₀ : 0 < θ)
+    (hθπ : θ < Real.pi) :
+    outerLoop h0 hR hθ₀ hθπ =
+      (outerLoopInPlane R θ).codRestrict (outerLoopInPlane_mem_compl_range h0 hR hθ₀ hθπ) :=
+  (rfl)
+
+@[simp]
+theorem coe_outerLoop_apply (h0 : ∀ i, c i ≠ 0) (hR : ∀ i, |c i| < R) (hθ₀ : 0 < θ)
+    (hθπ : θ < Real.pi) (t : unitInterval) :
+    (outerLoop h0 hR hθ₀ hθπ t : ℂ) = outerLoopInPlane R θ t := by
+  rw [outerLoop_def, Path.codRestrict_coe]
+
+/-! ### The closed half-planes -/
+
+private theorem mem_compl_range_inter_halfPlane (h0 : ∀ i, c i ≠ 0) (ε : ℝ) :
+    (0 : ℂ) ∈ (range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im} :=
+  ⟨zero_mem_compl_range h0, by simp⟩
+
+private theorem convex_halfPlane (ε : ℝ) : Convex ℝ {z : ℂ | 0 ≤ ε * z.im} := by
+  intro x hx y hy a b ha hb _
+  simp only [mem_ofPred_eq, add_im, smul_im, smul_eq_mul] at hx hy ⊢
+  nlinarith [mul_nonneg ha hx, mul_nonneg hb hy]
+
+/-- The closed upper (`ε > 0`) or lower (`ε < 0`) half-plane minus the real points `c i` is
+star-convex about `ε i`. -/
+private theorem starConvex_halfPlane {ε : ℝ} (hε : ε ≠ 0) :
+    StarConvex ℝ (ε * I) ((range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im}) := by
+  have hmem : (ε * I : ℂ) ∈ (range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im} := by
+    refine ⟨?_, by simpa using mul_self_nonneg ε⟩
+    rintro ⟨i, hi⟩
+    exact hε (by simpa using congrArg im hi.symm)
+  refine (starConvex_iff_forall_pos hmem).2 fun z hz a b ha hb _ ↦ ?_
+  have h2 : 0 ≤ ε * z.im := hz.2
+  have hpos : 0 < ε * (a • (ε * I) + b • z).im := by
+    have : ε * (a • (ε * I) + b • z).im = a * ε ^ 2 + b * (ε * z.im) := by
+      simp only [add_im, smul_im, mul_im, ofReal_re, I_im, ofReal_im, I_re]
+      ring
+    rw [this]
+    have : 0 < ε ^ 2 := by positivity
+    positivity
+  refine ⟨?_, hpos.le⟩
+  rintro ⟨i, hi⟩
+  rw [← hi, ofReal_im, mul_zero] at hpos
+  exact lt_irrefl _ hpos
+
+variable (c) in
+/-- The points of the plane minus the real points `c i` in the closed upper (`ε > 0`) or lower
+(`ε < 0`) half-plane. -/
+private def half (ε : ℝ) : Set ↥(range fun i ↦ (c i : ℂ))ᶜ := {z | 0 ≤ ε * (z : ℂ).im}
+
+private theorem isPathHomotopyTrivial_half {ε : ℝ} (hε : ε ≠ 0) :
+    IsPathHomotopyTrivial (half c ε) := by
+  refine IsSimplyConnected.isPathHomotopyTrivial ?_
+  rw [← Topology.IsEmbedding.subtypeVal.isSimplyConnected_image]
+  have himage : ((↑) : ↥(range fun i ↦ (c i : ℂ))ᶜ → ℂ) '' half c ε =
+      (range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im} :=
+    Subtype.image_preimage_coe _ {z : ℂ | 0 ≤ ε * z.im}
+  rw [himage]
+  have hne : ((range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im}).Nonempty := by
+    refine ⟨ε * I, ?_, by simpa using mul_self_nonneg ε⟩
+    rintro ⟨i, hi⟩
+    exact hε (by simpa using congrArg im hi.symm)
+  have := (starConvex_halfPlane (c := c) hε).contractibleSpace hne
+  exact SimplyConnectedSpace.ofContractible _
+
+private theorem range_codRestrict_subset_half {ε : ℝ} {a b : ↥(range fun i ↦ (c i : ℂ))ᶜ}
+    {γ : Path (a : ℂ) b} (hγ : ∀ t, γ t ∈ (range fun i ↦ (c i : ℂ))ᶜ)
+    (h : range γ ⊆ {z : ℂ | 0 ≤ ε * z.im}) : range (γ.codRestrict hγ) ⊆ half c ε := by
+  rintro _ ⟨t, rfl⟩
+  exact h ⟨t, (Path.codRestrict_coe _ _ t).symm⟩
+
+/-! ### Paths read in the fundamental group -/
+
+section Telescope
+
+open FundamentalGroup (ofPath)
+
+variable (h0 : ∀ i, c i ≠ 0)
+
+include h0 in
+private theorem range_segment_trans_segment_subset {ε : ℝ} (hε : ε ≠ 0)
+    (z : ↥(range fun i ↦ (c i : ℂ))ᶜ) (hz : z ∈ half c ε) :
+    range ((Path.segment (0 : ℂ) (ε * I)).trans (Path.segment (ε * I) (z : ℂ))) ⊆
+      (range fun i ↦ (c i : ℂ))ᶜ ∩ {z | 0 ≤ ε * z.im} := by
+  rw [Path.trans_range, Path.range_segment, Path.range_segment, segment_symm]
+  exact union_subset ((starConvex_halfPlane hε).segment_subset
+    (mem_compl_range_inter_halfPlane h0 ε)) ((starConvex_halfPlane hε).segment_subset ⟨z.2, hz⟩)
+
+/-- The path from `0` straight to `ε i` and on straight to `z`, a point of the closed half-plane
+of `ε`. -/
+private def via {ε : ℝ} (hε : ε ≠ 0) (z : ↥(range fun i ↦ (c i : ℂ))ᶜ) (hz : z ∈ half c ε) :
+    Path (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ) z :=
+  ((Path.segment (0 : ℂ) (ε * I)).trans (Path.segment (ε * I) (z : ℂ))).codRestrict fun t ↦
+    (range_segment_trans_segment_subset h0 hε z hz (mem_range_self t)).1
+
+private theorem range_via_subset {ε : ℝ} (hε : ε ≠ 0) (z : ↥(range fun i ↦ (c i : ℂ))ᶜ)
+    (hz : z ∈ half c ε) : range (via h0 hε z hz) ⊆ half c ε := by
+  exact range_codRestrict_subset_half _ fun _ hx ↦ (range_segment_trans_segment_subset h0 hε z hz hx).2
+open Classical in
+/-- The class in the fundamental group of `via`, or `1` off the half-plane. -/
+private def V (ε : ℝ) (z : ↥(range fun i ↦ (c i : ℂ))ᶜ) :
+    FundamentalGroup ↥(range fun i ↦ (c i : ℂ))ᶜ ⟨0, zero_mem_compl_range h0⟩ :=
+  if h : ε ≠ 0 ∧ z ∈ half c ε then ofPath _ (via h0 h.1 z h.2) else 1
+
+/-- A path in a closed half-plane is read in the fundamental group through `via`. -/
+private theorem ofPath_eq_V {ε : ℝ} (hε : ε ≠ 0) {z w : ↥(range fun i ↦ (c i : ℂ))ᶜ}
+    (p : Path z w) (hp : range p ⊆ half c ε) :
+    ofPath _ p = V h0 ε w * (V h0 ε z)⁻¹ := by
+  have hz : z ∈ half c ε := hp ⟨0, p.source⟩
+  have hw : w ∈ half c ε := hp ⟨1, p.target⟩
+  have h := FundamentalGroup.ofPath_congr (x := ⟨0, zero_mem_compl_range h0⟩)
+    (isPathHomotopyTrivial_def.mp (isPathHomotopyTrivial_half (c := c) hε) ((via h0 hε z hz).trans p) (via h0 hε w hw)
+      (by rw [Path.trans_range]; exact union_subset (range_via_subset h0 hε z hz) hp)
+      (range_via_subset h0 hε w hw))
+  rw [FundamentalGroup.ofPath_trans] at h
+  rw [V, V, dite_eq_left ⟨hε, hw⟩, dite_eq_left ⟨hε, hz⟩, ← h, mul_inv_cancel_right]
+
+private theorem V_zero {ε : ℝ} (hε : ε ≠ 0) : V h0 ε ⟨0, zero_mem_compl_range h0⟩ = 1 := by
+  have hmem : (⟨0, zero_mem_compl_range h0⟩ : ↥(range fun i ↦ (c i : ℂ))ᶜ) ∈ half c ε :=
+    (mem_compl_range_inter_halfPlane h0 ε).2
+  rw [V, dite_eq_left ⟨hε, hmem⟩, ← FundamentalGroup.ofPath_refl (x := _) ⟨0, _⟩]
+  exact FundamentalGroup.ofPath_congr (isPathHomotopyTrivial_def.mp (isPathHomotopyTrivial_half (c := c) hε) _ _
+    (range_via_subset h0 hε _ hmem) (by rw [Path.refl_range]; exact singleton_subset_iff.2 hmem))
+
+/-- The class of the loop from `0` to a point `z` through the lower half-plane and back through
+the upper one. -/
+private def g (z : ↥(range fun i ↦ (c i : ℂ))ᶜ) :
+    FundamentalGroup ↥(range fun i ↦ (c i : ℂ))ᶜ ⟨0, zero_mem_compl_range h0⟩ :=
+  (V h0 1 z)⁻¹ * V h0 (-1) z
+
+private theorem g_zero : g h0 ⟨0, zero_mem_compl_range h0⟩ = 1 := by
+  rw [g, V_zero h0 one_ne_zero, V_zero h0 (neg_ne_zero.2 one_ne_zero), inv_one, one_mul]
+
+/-- `g` is constant along a path on the real axis. -/
+private theorem g_eq_of_path {z w : ↥(range fun i ↦ (c i : ℂ))ᶜ} (σ : Path z w)
+    (hσ : ∀ t, (σ t : ℂ).im = 0) : g h0 z = g h0 w := by
+  have h1 := ofPath_eq_V h0 one_ne_zero σ (by rintro _ ⟨t, rfl⟩; simp [half, hσ t])
+  have h2 := ofPath_eq_V h0 (neg_ne_zero.2 one_ne_zero) σ (by rintro _ ⟨t, rfl⟩; simp [half, hσ t])
+  rw [eq_mul_inv_iff_mul_eq] at h1 h2
+  rw [g, g, ← h1, ← h2, mul_inv_rev, mul_assoc, inv_mul_cancel_left]
+
+/-- `g` takes the same value at two real points with no point `c i` between them. -/
+private theorem g_eq_of_forall_notMem {z w : ↥(range fun i ↦ (c i : ℂ))ᶜ} {x y : ℝ}
+    (hz : (z : ℂ) = x) (hw : (w : ℂ) = y) (h : ∀ i, c i ∉ uIcc x y) : g h0 z = g h0 w := by
+  have hσ (t : unitInterval) : Path.segment (z : ℂ) w t = (((1 - t) * x + t * y : ℝ) : ℂ) := by
+    rw [hz, hw, Path.segment_apply, AffineMap.lineMap_apply_module, Complex.real_smul,
+      Complex.real_smul]
+    push_cast
+    ring
+  refine g_eq_of_path h0 ((Path.segment (z : ℂ) w).codRestrict fun t ↦ ?_) fun t ↦ ?_
+  · rintro ⟨i, hi⟩
+    rw [hσ, ofReal_inj] at hi
+    refine h i (hi ▸ segment_subset_uIcc x y
+      ⟨1 - (t : ℝ), t, sub_nonneg.2 t.2.2, t.2.1, by ring, ?_⟩)
+    simp only [smul_eq_mul]
+  · rw [Path.codRestrict_coe, hσ, ofReal_im]
+
+end Telescope
+
 end PlaneMinusRealPoints
 
 end SymplecticGeometry

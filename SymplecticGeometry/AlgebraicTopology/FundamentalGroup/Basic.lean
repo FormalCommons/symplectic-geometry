@@ -65,6 +65,74 @@ theorem fromPath_symm (γ : Path.Homotopic.Quotient x x) :
     fromPath γ.symm = (fromPath γ)⁻¹ :=
   (rfl)
 
+section OfPath
+
+variable (x) {x₁ x₂ x₃ : X}
+
+open Classical in
+/-- The class in `π₁(X, x)` of a path `p` from `x₁` to `x₂`: the loop that runs from `x` to `x₁`
+along a chosen path, then along `p`, and back from `x₂` to `x` along a chosen path. It is `1` if
+`x₁` is not joined to `x`. It turns concatenation into multiplication, in the reverse order
+(`ofPath_trans`), and depends only on the homotopy class of `p` (`ofPath_congr`); on loops at
+`x` it is a conjugation of the class of the loop (`ofPath_loop`). So equations between
+concatenations of paths with different end points can be read as equations in `π₁(X, x)`. -/
+noncomputable def ofPath (p : Path x₁ x₂) : FundamentalGroup X x :=
+  if h : Joined x x₁ then
+    fromPath ((Path.Homotopic.Quotient.mk h.somePath).trans
+      ((Path.Homotopic.Quotient.mk p).trans
+        (Path.Homotopic.Quotient.mk (h.trans ⟨p⟩).somePath).symm))
+  else 1
+
+variable {x}
+
+theorem ofPath_congr {p q : Path x₁ x₂} (hpq : p.Homotopic q) : ofPath x p = ofPath x q := by
+  unfold ofPath
+  rw [Path.Homotopic.Quotient.eq.2 hpq]
+
+theorem ofPath_trans (p : Path x₁ x₂) (q : Path x₂ x₃) :
+    ofPath x (p.trans q) = ofPath x q * ofPath x p := by
+  unfold ofPath
+  by_cases h : Joined x x₁
+  · rw [dite_eq_left h, dite_eq_left h, dite_eq_left (h.trans ⟨p⟩), ← fromPath_trans,
+      Path.Homotopic.Quotient.mk_trans]
+    have key {a b c : X} (u : Path.Homotopic.Quotient b a) (v : Path.Homotopic.Quotient a c) :
+        u.symm.trans (u.trans v) = v := by
+      rw [← Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.symm_trans,
+        Path.Homotopic.Quotient.refl_trans]
+    simp only [Path.Homotopic.Quotient.trans_assoc, key]
+  · have h₂ : ¬ Joined x x₂ := fun h₂ ↦ h (h₂.trans ⟨p.symm⟩)
+    rw [dite_eq_right h, dite_eq_right h, dite_eq_right h₂, one_mul]
+
+@[simp]
+theorem ofPath_refl (x₁ : X) : ofPath x (Path.refl x₁) = 1 := by
+  unfold ofPath
+  split_ifs with h
+  · rw [Path.Homotopic.Quotient.mk_refl, Path.Homotopic.Quotient.refl_trans,
+      Path.Homotopic.Quotient.trans_symm]
+    rfl
+  · rfl
+
+theorem ofPath_symm (p : Path x₁ x₂) : ofPath x p.symm = (ofPath x p)⁻¹ := by
+  rw [eq_inv_iff_mul_eq_one, ← ofPath_trans, ofPath_congr (Path.Homotopic.trans_symm p),
+    ofPath_refl]
+
+@[simp]
+theorem ofPath_cast {y₁ y₂ : X} (p : Path x₁ x₂) (h₁ : y₁ = x₁) (h₂ : y₂ = x₂) :
+    ofPath x (p.cast h₁ h₂) = ofPath x p := by
+  subst h₁ h₂
+  rfl
+
+/-- On a loop `γ` at `x`, `ofPath x` is the conjugate of the class of `γ` by the class of the
+chosen loop at `x`. -/
+theorem ofPath_loop (γ : Path x x) :
+    ofPath x γ = MulAut.conj (fromPath (Path.Homotopic.Quotient.mk (Joined.refl x).somePath))⁻¹
+      (fromPath (Path.Homotopic.Quotient.mk γ)) := by
+  unfold ofPath
+  rw [dite_eq_left (Joined.refl x), fromPath_trans, fromPath_trans, fromPath_symm,
+    MulAut.conj_apply, inv_inv, mul_assoc]
+
+end OfPath
+
 end FundamentalGroup
 
 end
