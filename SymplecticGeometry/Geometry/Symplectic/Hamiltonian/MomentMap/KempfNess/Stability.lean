@@ -193,7 +193,7 @@ theorem mem_lowerBounds_range_kempfNessFunction (h : IsComplexifiedAction C J)
   set g₁ : ℝ → Gc := fun t ↦ a * g' t
   have hg₁ : HasLeftTrivializedDerivOn g₁
       (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ :=
-    hg'.const_mul_of_inv_smul
+    hg'.const_mul_comp_inv_smul (F := fun x ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))
   -- `Φ_p ∘ g₁` stays below `Φ_p a`, by the cocycle identity.
   have hup (t : ℝ) (ht : 0 ≤ t) : kempfNessFunction C μ p (g₁ t) ≤ kempfNessFunction C μ p a := by
     have hanti : Antitone fun s ↦ kempfNessFunction C μ (a⁻¹ • p) (g' s) :=

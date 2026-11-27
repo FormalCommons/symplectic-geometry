@@ -515,20 +515,6 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
 
-omit [ConnectedSpace G] in
-/-- **Left translates of flow curves.** If `g'` has left-trivialized derivative
-`-2 i μ♯((g' t)⁻¹ • a⁻¹ • p)` on `s`, as a flow curve from `a⁻¹ • p` does, then its left
-translate `t ↦ a * g' t` has left-trivialized derivative `-2 i μ♯((a * g' t)⁻¹ • p)` on `s`, as a
-flow curve from `p` does. -/
-theorem HasLeftTrivializedDerivOn.const_mul_of_inv_smul {p : M} {a : Gc} {g' : ℝ → Gc}
-    {s : Set ℝ}
-    (hg' : HasLeftTrivializedDerivOn g'
-      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g' t)⁻¹ • a⁻¹ • p)))) s) :
-    HasLeftTrivializedDerivOn (fun t ↦ a * g' t)
-      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((a * g' t)⁻¹ • p)))) s := by
-  simp only [mul_inv_rev, mul_smul]
-  exact hg'.const_mul a
-
 /-- **The derivative of the polar radius between two flow curves.** Let `B` be a symmetric
 `Ad`-invariant form on the Lie algebra of the connected group `G`, nondegenerate so that `μ♯`
 is defined, and let `μ` be equivariant along `C.toHom`. Let `g` and `g'` be curves in `Gc` with
@@ -870,7 +856,9 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
     simp only [g₁, mul_inv_rev, inv_inv, mul_smul]
   have hg₁ : HasLeftTrivializedDerivOn g₁
       (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ :=
-    HasLeftTrivializedDerivOn.const_mul_of_inv_smul (by simpa only [inv_inv] using hg')
+    HasLeftTrivializedDerivOn.const_mul_comp_inv_smul
+      (F := fun x ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ x)))
+      (by simpa only [inv_inv] using hg')
   -- The polar radius of `(g t)⁻¹ * g₁ t` is antitone, so the polar decomposition at integer
   -- times stays in a compact set.
   set N : ℝ → ℝ := fun t ↦
