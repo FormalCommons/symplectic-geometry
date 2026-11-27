@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.Instances.ComplexProjectiveSpace.Symplectic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
@@ -50,8 +51,8 @@ builds the forms upstairs, and carries Tau Ceti's Fubini–Study form over to
 * Under the identification of the unit sphere of `StdSpace (Fin (n + 1))` with that of
   `EuclideanSpace ℂ (Fin (n + 1))` by the inverse of the isometry
   `TauCeti.complexToRealEuclideanIsometry`, `σ` is the pull-back of the restriction of Tau Ceti's
-  `Im ⟪·, ·⟫_ℂ` (`mpullback_unitSphereEquiv_mpullback_coe_sphere`), since `ω₀` is the transport of
-  `stdComplexPiSymplecticForm`.
+  `Im ⟪·, ·⟫_ℂ` (`mpullback_unitSphereEquiv_imInnerSymplecticForm`), since that isometry pulls
+  `stdForm (Fin (n + 1))` back to `Im ⟪·, ·⟫_ℂ` (`stdForm_complexToRealEuclideanIsometry`).
 * `SymplecticGeometry.fubiniStudyForm n` is the Fubini–Study form `ω_FS` of `ℂPⁿ`, defined as `π`
   times the pull-back of Tau Ceti's `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` along the
   inverse of the diffeomorphism `TauCeti.ComplexProjectiveSpace.diffeomorphProjectivization n`.
@@ -302,7 +303,7 @@ theorem fubiniStudyLift_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
 `EuclideanSpace ℂ (Fin (n + 1))` by the inverse of `complexToRealEuclideanIsometry`, the
 restriction of Tau Ceti's form `imInnerSymplecticForm`, `Im ⟪·, ·⟫_ℂ`, to the unit sphere of
 `EuclideanSpace ℂ (Fin (n + 1))` pulls back to `σ`. -/
-theorem mpullback_unitSphereEquiv_mpullback_coe_sphere :
+theorem mpullback_unitSphereEquiv_imInnerSymplecticForm :
     SmoothForm.mpullback (complexToRealEuclideanIsometry (Fin (n + 1))).symm.unitSphereEquiv
       (LinearIsometryEquiv.contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1) _)
       (SmoothForm.mpullback
@@ -315,10 +316,8 @@ theorem mpullback_unitSphereEquiv_mpullback_coe_sphere :
     SymplecticForm.eval₂_constSmooth_mfderiv_eq,
     LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv,
     LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, sphereStdForm_apply,
-    imInnerSymplecticForm_euclideanSpace_apply, complexToRealEuclideanIsometry_symm_apply,
-    complexToRealEuclideanIsometry_symm_apply, WithLp.ofLp_toLp, WithLp.ofLp_toLp,
-    ← stdForm_complexToRealEuclidean, ContinuousLinearEquiv.apply_symm_apply,
-    ContinuousLinearEquiv.apply_symm_apply]
+    ← stdForm_complexToRealEuclideanIsometry, LinearIsometryEquiv.apply_symm_apply,
+    LinearIsometryEquiv.apply_symm_apply]
 
 /-- The Fubini–Study form `ω_FS` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`: `π` times Tau Ceti's
 Fubini–Study form `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` of the quotient of the unit
@@ -361,21 +360,15 @@ theorem mpullback_sphereHopf_fubiniStudyForm :
       (LinearIsometryEquiv.contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1) _)
       (ComplexProjectiveSpace.contMDiff_mk ∞) hcomp,
     ComplexProjectiveSpace.mpullback_mk_fubiniStudyForm, SmoothForm.mpullback_smul, smul_smul,
-    mul_inv_cancel₀ Real.pi_ne_zero, one_smul, mpullback_unitSphereEquiv_mpullback_coe_sphere]
+    mul_inv_cancel₀ Real.pi_ne_zero, one_smul, mpullback_unitSphereEquiv_imInnerSymplecticForm]
 
 /-- The Fubini–Study form is symplectic: it is a nonzero multiple of the pull-back of Tau Ceti's
 symplectic form `TauCeti.ComplexProjectiveSpace.fubiniStudyForm n` along a diffeomorphism. -/
 theorem isSymplectic_fubiniStudyForm : (fubiniStudyForm n).IsSymplectic := by
-  -- The diffeomorphism is analytic; `IsLocalDiffeomorph.isSymplectic_mpullback_iff` asks for a
-  -- smooth one.
-  let Φ : ℙ ℂ (Fin (n + 1) → ℂ) ≃ₘ⟮𝓘(ℝ, Fin n → ℂ), 𝓘(ℝ, Fin n → ℂ)⟯ ComplexProjectiveSpace n :=
-    { toEquiv := (ComplexProjectiveSpace.diffeomorphProjectivization n).symm.toEquiv
-      contMDiff_toFun :=
-        (ComplexProjectiveSpace.diffeomorphProjectivization n).symm.contMDiff.of_le le_top
-      contMDiff_invFun :=
-        (ComplexProjectiveSpace.diffeomorphProjectivization n).contMDiff.of_le le_top }
   rw [fubiniStudyForm_def]
-  exact ((Φ.isLocalDiffeomorph.isSymplectic_mpullback_iff Φ.surjective).2
+  exact ((((ComplexProjectiveSpace.diffeomorphProjectivization n).symm.isLocalDiffeomorph.of_le
+    le_top).isSymplectic_mpullback_iff
+    (ComplexProjectiveSpace.diffeomorphProjectivization n).symm.surjective).2
     ComplexProjectiveSpace.isSymplectic_fubiniStudyForm).smul _ Real.pi_ne_zero
 
 /-- The pull-back of the Fubini–Study form along the projection `ℂⁿ⁺¹ ∖ 0 → ℂPⁿ` is `ρ`. -/

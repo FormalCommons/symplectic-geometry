@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
+public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # The standard model `(ℝ²ⁿ, ω₀, J₀)`
@@ -332,6 +333,14 @@ theorem stdForm_complexToRealEuclidean (u v : ι → ℂ) :
     stdForm ι (complexToRealEuclidean ι u) (complexToRealEuclidean ι v) =
       stdComplexPiSymplecticForm ι u v :=
   SymplecticForm.transport_apply_apply _ _ u v
+
+/-- The isometry `complexToRealEuclideanIsometry ι : EuclideanSpace ℂ ι → EuclideanSpace ℝ (ι ⊕ ι)`
+pulls `ω₀` back to Tau Ceti's form `imInnerSymplecticForm`, `Im ⟪·, ·⟫_ℂ`. -/
+theorem stdForm_complexToRealEuclideanIsometry (v w : EuclideanSpace ℂ ι) :
+    stdForm ι (complexToRealEuclideanIsometry ι v) (complexToRealEuclideanIsometry ι w) =
+      imInnerSymplecticForm (EuclideanSpace ℂ ι) v w := by
+  rw [complexToRealEuclideanIsometry_apply, complexToRealEuclideanIsometry_apply,
+    stdForm_complexToRealEuclidean, imInnerSymplecticForm_euclideanSpace_apply]
 
 variable (ι) in
 /-- `complexToRealEuclidean ι` is a symplectomorphism from `(ι → ℂ, stdComplexPiSymplecticForm ι)`

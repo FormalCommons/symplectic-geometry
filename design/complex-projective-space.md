@@ -82,7 +82,10 @@ Tau Ceti already has:
   `ι → AddCircle p` with its charts (`Geometry/Manifold/Instances/AddCircle.lean`,
   `AddCircle/Torus.lean`).
 
-Tau Ceti has no Fubini–Study form for $n\ge2$, no $\rho_{\mathrm{FS}}$, no
+Tau Ceti's Fubini–Study form for $n\ge2$,
+`TauCeti.ComplexProjectiveSpace.fubiniStudyForm`, lives on its own quotient
+of the sphere and carries a factor $\pi^{-1}$; this part carries it to
+`ℙ ℂ (Fin (n + 1) → ℂ)`, times $\pi$. Tau Ceti has no $\rho_{\mathrm{FS}}$, no
 smooth Hopf map, no integral of a form over $\mathbb CP^1$, and none of the
 Darboux charts or Lagrangian examples (the correspondence list of
 `atlas/almost-complex-structures-lean.md`, rows 4.3.3–4.3.5, says the same).
@@ -113,13 +116,17 @@ This part adds them.
   `sphereContactForm` applies to it with no transport, and the Darboux
   charts land in the model of the linear theory, so that "symplectomorphic
   to the ball in $(\mathbb R^{2n},\omega_0)$" uses `stdForm` itself. The
-  model `EuclideanSpace ℂ` of Tau Ceti's sphere quotient is not used; the
-  part needs neither that quotient nor its homeomorphism with
-  `ℙ ℂ (Fin (n + 1) → ℂ)`.
+  sphere of `EuclideanSpace ℂ (Fin (n + 1))`, the model of Tau Ceti's sphere
+  quotient, enters only to carry Tau Ceti's form over: the inverse of
+  `complexToRealEuclideanIsometry`, restricted by `unitSphereEquiv`,
+  identifies the two spheres, and Tau Ceti's
+  `ComplexProjectiveSpace.diffeomorphProjectivization` identifies the
+  quotient with `ℙ ℂ (Fin (n + 1) → ℂ)`.
 
 ### The route
 
-The page's advice is followed: the form is built on the sphere and descends.
+The forms upstairs are built on the sphere and on $\mathbb C^{n+1}\setminus0$;
+the form on $\mathbb CP^n$ is carried over from Tau Ceti's.
 
 1. On $\mathbb C^{n+1}\setminus0$, $\alpha_{\mathrm{FS}}$ is defined as the
    pull-back of Tau Ceti's `sphereContactForm` along the radial projection
@@ -640,7 +647,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | P | Kähler potentials: $\tfrac i2\partial\bar\partial f=\tfrac14 d(J^*df)$ for $N_J=0$ | `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean` | — | 150 |
 | H | The Hopf maps as smooth submersions | `Geometry/Manifold/Projectivization/Hopf.lean` | — | 350 |
 | B1 | $\alpha_{\mathrm{FS}}$, $\rho_{\mathrm{FS}}$ and the restricted form on the sphere | `FubiniStudy/Basic.lean` (up to `mpullback_radialProjection_sphereStdForm`) | P, H | 300 |
-| B2 | The descended form and its uniqueness | `FubiniStudy/Basic.lean` (from `fubiniStudyForm`) | B1 | 250 |
+| B2 | The form carried over from Tau Ceti and its uniqueness | `FubiniStudy/Basic.lean` (from `fubiniStudyForm`) | B1 | 250 |
 | K1 | Unitary invariance, compatibility, the Kähler property and the local potentials | `FubiniStudy/Kahler.lean` (all but `isKahler_mpullback_fubiniStudyForm`) | B2 | 350 |
 | K2 | Complex submanifolds of $\mathbb CP^n$ | `FubiniStudy/Kahler.lean` (`isKahler_mpullback_fubiniStudyForm`) | K1, #864 | 80 |
 | N1 | The affine formula, the comparison with `OnePoint.fubiniStudyForm`, and the stereographic map as a composite of Tau Ceti's diffeomorphisms, with its two formulas and its pull-back of the form | `FubiniStudy/Normalization.lean` (up to `mpullback_sphereToProjectiveLine_fubiniStudyForm`) | B2 | 300 |
