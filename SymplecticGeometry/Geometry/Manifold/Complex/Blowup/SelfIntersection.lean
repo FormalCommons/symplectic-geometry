@@ -5,6 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.SelfIntersection
 import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
@@ -18,7 +20,8 @@ import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
 The exceptional divisor of the model blowup `BlowupModel 1` of `ℂ²` at the origin is the zero
 section `zeroSectionRealEmbedding 1` of the tautological line over `ℙ ℂ (Fin 2 → ℂ) = ℂℙ¹`. This
 file shows that its self-intersection number, for the almost complex structure of the complex
-surface `BlowupModel 1` and the complex orientation of `ℂℙ¹`, is `-1`.
+surface `BlowupModel 1` and the complex orientation of `ℂℙ¹`, is `-1`. It then transfers this
+to the exceptional divisor of the blowup `Blowup c` of a complex surface at a point.
 
 ## Main results
 
@@ -26,6 +29,9 @@ surface `BlowupModel 1` and the complex orientation of `ℂℙ¹`, is `-1`.
   number `TauCeti.SmoothEmbedding.selfIntersectionNumber` of the zero section of `BlowupModel 1`,
   re-modelled on `𝓡 2` along any diffeomorphism `Φ` of models (`SymplecticGeometry.Remodel`), is
   `-1`.
+* `SymplecticGeometry.Blowup.selfIntersectionNumber_exceptionalDivisor`: the same for the
+  exceptional divisor `divisorRealEmbedding c` of the blowup of a complex surface, for the
+  complex structure of `Blowup c`.
 
 ## Proof
 
@@ -38,6 +44,11 @@ continuous on total spaces; by Tau Ceti's `TauCeti.complexEulerClass_eq_of_fiber
 classes agree. The Euler class of the tautological line is minus the hyperplane class
 (`Projectivization.hyperplaneClass_def`), which takes the value `1` on `[ℂℙ¹]`
 (`Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass`).
+
+For the blowup, the map `Blowup.lift c` is holomorphic with invertible differential along the
+exceptional divisor, which it sends onto the zero section of the model. So
+`TauCeti.SmoothEmbedding.selfIntersectionNumber_eq_of_comp` gives the same number as for the
+model.
 
 ## References
 
@@ -110,6 +121,57 @@ theorem selfIntersectionNumber_zeroSection
     Projectivization.complexManifoldEvalFundamentalClass_hyperplaneClass]
 
 end BlowupModel
+
+namespace Blowup
+
+variable {M : Type} [TopologicalSpace M] [ChartedSpace (Fin 2 → ℂ) M]
+  [IsManifold 𝓘(ℂ, Fin 2 → ℂ) ω M] {p₀ : M} (c : BlowupChart (n := 1) M p₀)
+  [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin 2 → ℂ) ω M)]
+
+/-- **The exceptional divisor of the blowup of a complex surface has self-intersection `-1`.**
+Let `M` be a complex surface, `c` a holomorphic chart of `M` centred at `p₀`, and `Φ` any
+diffeomorphism from the model `𝓘(ℝ, Fin 1 → ℂ)` of `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)` to `𝓡 2`.
+Re-model `ℂℙ¹` on `𝓡 2` along `Φ`, give it its complex orientation carried along, and embed it
+in the blowup `Blowup c` of `M` at `p₀` as the exceptional divisor
+(`divisorRealEmbedding c`). For the almost complex structure of the complex surface `Blowup c`,
+the self-intersection number of the exceptional divisor is `-1`. -/
+theorem selfIntersectionNumber_exceptionalDivisor
+    (Φ : (Fin 1 → ℂ) ≃ₘ^∞⟮𝓘(ℝ, Fin 1 → ℂ), 𝓡 2⟯ EuclideanSpace ℝ (Fin 2)) :
+    ((divisorRealEmbedding c).compDiffeomorphOfBoundaryless
+        (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))).symm (by simp)).selfIntersectionNumber
+        (by simp [Module.finrank_pi_fintype])
+        (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (Blowup c))
+        ((divisorRealEmbedding c).mapsTo_tangentRange_compDiffeomorphOfBoundaryless _
+          (by simp) (by simp) (A := (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ)
+            (Blowup c) ·))
+          (mapsTo_ofComplexManifold_tangentRange_divisorRealEmbedding c))
+        ((complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (finrank_fin_fun ℂ)).map
+          (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))) (by simp)
+          (by rw [Fintype.card_fin, finrank_euclideanSpace_fin])) = -1 := by
+  rw [← BlowupModel.selfIntersectionNumber_zeroSection Φ]
+  -- Near the exceptional divisor, `lift c` is a biholomorphism onto a neighbourhood of the
+  -- model's zero section, which it sends the divisor to.
+  have hmem (x : Remodel Φ (ℙ ℂ (Fin 2 → ℂ))) :
+      (divisorRealEmbedding c).compDiffeomorphOfBoundaryless
+          (remodelDiffeomorph Φ (ℙ ℂ (Fin 2 → ℂ))).symm (by simp) x ∈
+        Set.range (GluedAlong.inr (gluingHomeomorph c)) := by
+    rw [SmoothEmbedding.compDiffeomorphOfBoundaryless_apply, coe_divisorRealEmbedding,
+      ofDirection_def]
+    exact Set.mem_range_self _
+  refine SmoothEmbedding.selfIntersectionNumber_eq_of_comp _ _ _ _ _ _ _ _ (φ := lift c) ?_
+    (fun x ↦ ?_) (fun x ↦ ?_) (fun x ↦ ?_) _
+  · funext x
+    rw [Function.comp_apply, SmoothEmbedding.compDiffeomorphOfBoundaryless_apply,
+      SmoothEmbedding.compDiffeomorphOfBoundaryless_apply, coe_divisorRealEmbedding,
+      lift_ofDirection, BlowupModel.coe_zeroSectionRealEmbedding]
+  · exact (isLocalDiffeomorphAt_lift c (hmem x)).contMDiffAt.of_le ENat.LEInfty.out
+  · rw [isPseudoholomorphicAt_ofComplexManifold_iff]
+    exact ((contMDiffOn_lift c).contMDiffAt
+      ((GluedAlong.isOpenEmbedding_inr (gluingHomeomorph c)).isOpen_range.mem_nhds
+        (hmem x))).mdifferentiableAt (by simp)
+  · exact (isLocalDiffeomorphAt_lift c (hmem x)).isInvertible_mfderiv (by simp)
+
+end Blowup
 
 end SymplecticGeometry
 
