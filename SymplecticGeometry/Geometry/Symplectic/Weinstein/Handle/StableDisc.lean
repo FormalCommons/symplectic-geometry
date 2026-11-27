@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Analysis.ODE.Linear
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 import TauCeti.Dynamics.Flow.Lyapunov
+import SymplecticGeometry.Dynamics.Flow.Stable
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Manifold.Morse.EnergyBarrier
@@ -82,7 +83,9 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   in the stable set of `p`.
 * `SymplecticGeometry.IsWeinsteinStructure.apply_lt_of_mem_stableSet` and
   `SymplecticGeometry.IsWeinsteinStructure.notMem_criticalPoints_of_mem_stableSet`: a point
-  `x ≠ p` of the stable set of `p` has `f x < f p` and is not a critical point.
+  `x ≠ p` of the stable set of `p` has `f x < f p` and is not a critical point;
+  `SymplecticGeometry.IsWeinsteinStructure.strictMono_comp_flow_of_mem_stableSet`: `f` increases
+  strictly along its orbit.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_forall_flow_mem_source_and_norm_extChartAt_sub_le`
   states that at a nondegenerate critical point `p`, the orbits of the points of the stable set
   of `p` that start in a small ball of the chart at `p`, with `f` close to `f p`, stay in a
@@ -288,20 +291,22 @@ theorem notMem_criticalPoints_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.sta
     (hxp : x ≠ p) : x ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
   hxp (Flow.eq_of_mem_stableSet (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 h)) hx)
 
+/-- **The function increases strictly along an orbit of a stable set.** If the orbit of `x ≠ p`
+under the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f` is strictly increasing
+along it. -/
+theorem strictMono_comp_flow_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p)
+    (hxp : x ≠ p) : StrictMono fun t ↦ f (hW.flow t x) :=
+  -- The orbit of `x` never reaches the rest point `p`, so it meets no critical point.
+  hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) fun t h ↦
+    hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx)
+      (Flow.apply_ne_of_mem_stableSet hx hxp t) (mem_criticalPoints.2 h)
+
 /-- **The function is strictly below its limit on a stable set.** If the orbit of `x ≠ p` under
 the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f x < f p`. -/
 theorem apply_lt_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) (hxp : x ≠ p) :
-    f x < f p := by
-  -- The orbit of `x` never reaches the rest point `p`, so it meets no critical point.
-  have hcrit (t : ℝ) : mvfderiv 𝓘(ℝ, E) f (hW.flow t x) ≠ 0 := fun h ↦ by
-    refine hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx)
-      (fun hpt ↦ hxp ?_) (mem_criticalPoints.2 h)
-    have hfix := Flow.fixed_of_mem_stableSet hx (-t)
-    rw [← hpt, ← Flow.map_add, neg_add_cancel, Flow.map_zero_apply] at hfix
-    exact hfix.trans hpt
+    f x < f p :=
   calc f x = f (hW.flow 0 x) := by rw [Flow.map_zero_apply]
-    _ < f (hW.flow 1 x) :=
-      hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) hcrit one_pos
+    _ < f (hW.flow 1 x) := hW.strictMono_comp_flow_of_mem_stableSet hx hxp one_pos
     _ ≤ f p := hW.apply_le_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ 1).2 hx)
 
 /-- **Confinement of the stable set in the chart at a critical point.** Let `p` be a
