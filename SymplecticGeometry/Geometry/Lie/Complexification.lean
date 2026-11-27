@@ -73,6 +73,10 @@ The complex structure `cplx` is not determined by the other fields.
   embedding.
 * `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
   by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
+* `SymplecticGeometry.LieComplexification.tangentAd_toHom_apply`,
+  `SymplecticGeometry.LieComplexification.re_tangentAd_toHom`,
+  `SymplecticGeometry.LieComplexification.im_tangentAd_toHom`: for connected `G`, `Ad (toHom u)`
+  acts componentwise, so `re (Ad (toHom u) x) = Ad u (re x)`, and the same for `im`.
 * `SymplecticGeometry.LieComplexification.polar_symm_inv`: for connected `G`, if
   `polar.symm a = (η, u)` then `polar.symm a⁻¹ = (-Ad u⁻¹ η, u⁻¹)`.
 * `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
@@ -380,6 +384,35 @@ theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u 
   rw [expI_def, expI_def, Lie.conj_mulInvariantExp, lieMap_def,
     ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def,
     Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie]
+
+/-- For connected `G`, the adjoint action of `toHom u` acts on the decomposition
+`x = lieMap (re x) + cplx (lieMap (im x))` componentwise, through the adjoint action of `u`:
+`Ad (toHom u) x = lieMap (Ad u (re x)) + cplx (lieMap (Ad u (im x)))`. -/
+theorem tangentAd_toHom_apply [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+    (u : G) (x : GroupLieAlgebra IC Gc) :
+    Lie.tangentAd (I := IC) (C.toHom u) x =
+      C.lieMap (Lie.tangentAd (I := I) u (C.re x)) +
+        C.cplx (C.lieMap (Lie.tangentAd (I := I) u (C.im x))) := by
+  have := C.connectedSpace
+  conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
+  rw [map_add, lieMap_def, ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd,
+    ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def]
+  congr 1
+  exact (Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie _ _).symm
+
+/-- For connected `G`, the component `re` commutes with the adjoint actions:
+`re (Ad (toHom u) x) = Ad u (re x)`. -/
+theorem re_tangentAd_toHom [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+    (u : G) (x : GroupLieAlgebra IC Gc) :
+    C.re (Lie.tangentAd (I := IC) (C.toHom u) x) = Lie.tangentAd (I := I) u (C.re x) := by
+  rw [tangentAd_toHom_apply, map_add, re_lieMap, re_cplx_lieMap, add_zero]
+
+/-- For connected `G`, the component `im` commutes with the adjoint actions:
+`im (Ad (toHom u) x) = Ad u (im x)`. -/
+theorem im_tangentAd_toHom [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+    (u : G) (x : GroupLieAlgebra IC Gc) :
+    C.im (Lie.tangentAd (I := IC) (C.toHom u) x) = Lie.tangentAd (I := I) u (C.im x) := by
+  rw [tangentAd_toHom_apply, map_add, im_lieMap, im_cplx_lieMap, zero_add]
 
 /-- For connected `G`, the polar decomposition of an inverse: if it reads `a` as `(η, u)`, then
 it reads `a⁻¹` as `(-Ad u⁻¹ η, u⁻¹)`, that is, `a⁻¹ = expI (-Ad u⁻¹ η) * toHom u⁻¹`. -/
