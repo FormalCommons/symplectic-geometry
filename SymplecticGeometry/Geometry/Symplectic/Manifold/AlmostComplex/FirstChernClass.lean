@@ -34,7 +34,9 @@ The class `f^* c₁(TX, J)` is that of the pull-back `Jf` of `J` to `f *ᵖ TX`
 two-form `ω` compatible with `Jf`
 (`SymplecticGeometry.Bundle.ContMDiffComplexStructure.exists_compatible`).
 The splitting along the `ω`-orthogonal of the tangent images is smooth, and transports `Jf` to
-the direct sum of `j` and of the normal structure, so these have the same class
+the direct sum of `j` and of the normal structure
+(`TauCeti.SmoothEmbedding.pushforward_pullbackComplexStructure_normalSplitting`), so these have
+the same class
 (`SymplecticGeometry.Bundle.ContMDiffComplexStructure.firstChernClass_pushforward`). The
 complex bundle of a direct sum of structures is the direct sum of their complex bundles
 (`SymplecticGeometry.Bundle.ContMDiffComplexStructure.prodFiberEquiv`), and the Whitney formula

@@ -647,8 +647,7 @@ theorem pushforward_pullbackComplexStructure_normalSplitting
   refine ContMDiffComplexStructure.ext fun x v ↦ ?_
   rw [ContMDiffComplexStructure.pushforward_apply,
     ← SmoothAlmostComplexStructure.apply_eq_pullbackComplexStructure_apply]
-  -- The vector `(Φ x).symm v` of the pull-back fibre is one of `TangentSpace I (f x)`.
-  erw [normalSplitting_apply_almostComplexStructure hJ hf hω x
+  rw [normalSplitting_apply_almostComplexStructure hJ hf hω x
     ((f.normalSplitting hJ ω hω.tames x).symm v)]
   rw [ContinuousLinearEquiv.apply_symm_apply, ContMDiffComplexStructure.prod_apply,
     ContMDiffComplexStructure.tangentEquiv_symm_apply,
