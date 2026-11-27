@@ -13,7 +13,6 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Analysis.Real.Sqrt
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Comp
-import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Complex
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 import TauCeti.Geometry.Symplectic.Manifold.Opens
@@ -95,8 +94,8 @@ symplectomorphic to `M ∖ Z`.
   is a symplectic embedding of the closed ball of every radius `r < √(l² + ε²)`, and so of
   radius `l` (`isSymplecticBallEmbedding_blowdownBall_weight`). It is `inr ∘ toBallPiece`, and
   `toBallPiece` is one into the ball piece (`isSymplecticBallEmbedding_toBallPiece`), by
-  `isSymplecticBallEmbedding_complexToRealEuclidean_symm` and
-  `IsSymplecticBallEmbedding.subtype_of_eqOn`.
+  `TauCeti.SymplecticForm.IsSymplectomorphism.isSymplecticBallEmbedding` for the inverse of
+  `complexToRealEuclidean` and `IsSymplecticBallEmbedding.subtype_of_eqOn`.
 * `SymplecticGeometry.DivisorBlowdown.mem_complBall_iff`,
   `isSymplectomorphism_complBallSymplectomorph`: the complement of the image of the closed ball
   of radius `l` with the form of the blowdown is symplectomorphic to `M ∖ Z` with `σ`.
@@ -571,7 +570,8 @@ theorem isSymplecticBallEmbedding_toBallPiece {r : ℝ} (hr : r < √(l ^ 2 + ε
     IsSymplecticBallEmbedding (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n)) r
       (toBallPiece n l hε) := by
   rw [ω₀E_def]
-  exact (isSymplecticBallEmbedding_complexToRealEuclidean_symm r).subtype_of_eqOn isOpen_ball
+  exact ((isSymplectomorphism_complexToRealEuclidean (Fin (n + 1))).symm.isSymplecticBallEmbedding
+    r).subtype_of_eqOn isOpen_ball
     (closedBall_subset_ball hr) fun w hw ↦ coe_toBallPiece_of_norm_lt hε (mem_ball_zero_iff.1 hw)
 
 /-- **The ball embedding of the blowdown is symplectic**: `blowdownBall` is a symplectic

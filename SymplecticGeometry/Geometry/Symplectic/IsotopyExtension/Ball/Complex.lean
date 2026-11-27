@@ -25,12 +25,6 @@ so the source of the chart is the preimage of a Euclidean ball, not a sup-norm b
   `ψ ∘ complexToRealEuclidean (Fin m)` as a partial diffeomorphism from the preimage in
   `Fin m → ℂ` of the open ball of radius `r` onto the image under `ψ` of that ball.
 
-## Main results
-
-* `SymplecticGeometry.isSymplecticBallEmbedding_complexToRealEuclidean_symm`: the inverse of
-  `complexToRealEuclidean (Fin m)` is a symplectic embedding of every closed ball into
-  `Fin m → ℂ` with the constant form `stdComplexPiSymplecticForm (Fin m)`.
-
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1.
@@ -90,23 +84,6 @@ theorem complexPartialDiffeomorph_target (hψ : IsSymplecticBallEmbedding σ r �
   simp [complexPartialDiffeomorph]
 
 end IsSymplecticBallEmbedding
-
-open TauCeti in
-/-- The inverse of `complexToRealEuclidean (Fin m)` is a symplectic embedding of the closed ball
-`B(r)` of `StdSpace (Fin m)` into `Fin m → ℂ` with the constant form
-`stdComplexPiSymplecticForm (Fin m)`, for every radius `r`. -/
-theorem isSymplecticBallEmbedding_complexToRealEuclidean_symm {m : ℕ} (r : ℝ) :
-    IsSymplecticBallEmbedding (stdComplexPiSymplecticForm (Fin m)).constSmooth r
-      (complexToRealEuclidean (Fin m)).symm := by
-  set e := complexToRealEuclidean (Fin m)
-  refine (isSymplecticBallEmbedding_def _ _ _).2
-    ⟨⟨univ, isOpen_univ, subset_univ _, e.symm.contDiff.contMDiff.contMDiffOn⟩,
-      e.symm.injective.injOn, fun z _ ↦ ?_⟩
-  rw [← (isSymplectomorphism_complexToRealEuclidean (Fin m)).mpullback_constSmooth,
-    SmoothForm.coe_mpullback, ContinuousLinearEquiv.coe_toDiffeomorph,
-    ← mpullback_comp_at ((e.symm.contDiff (n := 1)).contMDiff.mdifferentiableAt one_ne_zero)
-      ((e.contDiff (n := 1)).contMDiff.mdifferentiableAt one_ne_zero)]
-  simp [e]
 
 end SymplecticGeometry
 
