@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.IsInvertible
 
 /-!
 # Differentials of maps into normed spaces, read in a chart
@@ -26,6 +27,8 @@ in the chart by Tau Ceti's `TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt`.
   range of `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
 * `ContMDiff.contDiffOn_comp_extChartAt_symm`: a `C^n` map into a normed space is `C^n` in every
   chart.
+* `SymplecticGeometry.injective_mfderiv_extChartAt_symm_comp`: a map into the chart target with
+  injective derivative, composed with the inverse chart, has injective differential.
 -/
 
 public section
@@ -53,6 +56,21 @@ theorem range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source [IsMan
   rw [show mvfderiv I f y = _ from
     TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt hy hf, ← hL]
   exact LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.mpr L.surjective)
+
+/-- On a boundaryless model, let `h` map a normed space `F` into the target of the extended chart
+at `x`. If `h` is differentiable at `z` with injective derivative, then the map
+`w ↦ (extChartAt I x).symm (h w)` into `M` has injective differential at `z`. -/
+theorem injective_mfderiv_extChartAt_symm_comp [I.Boundaryless] [IsManifold I 1 M] {h : F → E}
+    {z : F} (hz : h z ∈ (extChartAt I x).target) (hh : DifferentiableAt 𝕜 h z)
+    (hinj : Function.Injective (fderiv 𝕜 h z)) :
+    Function.Injective (mfderiv 𝓘(𝕜, F) I (fun w ↦ (extChartAt I x).symm (h w)) z) := by
+  obtain ⟨L, hL⟩ := TauCeti.isInvertible_mfderiv_extChartAt_symm (I := I) hz
+  have hd : MDifferentiableAt 𝓘(𝕜, E) I (extChartAt I x).symm (h z) :=
+    ((contMDiffOn_extChartAt_symm (n := 1) x).contMDiffAt
+      ((isOpen_extChartAt_target x).mem_nhds hz)).mdifferentiableAt one_ne_zero
+  rw [show (fun w ↦ (extChartAt I x).symm (h w)) = (extChartAt I x).symm ∘ h from rfl,
+    mfderiv_comp z hd hh.mdifferentiableAt, mfderiv_eq_fderiv, ← hL]
+  exact L.injective.comp hinj
 
 end SymplecticGeometry
 

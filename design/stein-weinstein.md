@@ -1527,7 +1527,8 @@ are set on compact manifolds. Three pieces are missing:
   namespace `ContinuousLinearMap`, under the hypotheses of
   `exists_localStableGraph_of_contDiffAt`:
   `exists_localStableGraph_of_contDiffAt_fderiv` gives that theorem's
-  `r`, `ρ` and `g` with its conclusions, and moreover a family
+  `r`, `ρ` and `g` with its conclusions, with `r` at most any given
+  `r₀ > 0`, and moreover a family
   `y : E → ℝ → E` such that, for `z ∈ range P ∩ closedBall 0 ρ`,
   `y z` is a confined forward integral curve of `fun _ w ↦ V (x + w)` with
   `y z 0 = z + g z`, each `fun w ↦ y w t` (`t ≥ 0`) is differentiable at
@@ -1557,10 +1558,11 @@ are set on compact manifolds. Three pieces are missing:
 - Issue 15d, `Weinstein/Handle/StableDisc.lean`: `IsWeinsteinStructure.flow`
   and `flow_apply`; `IsWeinsteinStructure.apply_le_of_mem_stableSet`
   (`f ≤ f p` on the stable set); `IsWeinsteinStructure.exists_localStableDisc`
-  (a map `ι : E → M` with `ι 0 = p`, smooth with injective `mfderiv` on
-  `range P ∩ ball 0 ρ`, whose image there lies in the stable set and
-  contains the points of the stable set near `p` with `f` near `f p`, and
-  with `d(φ_t ∘ ι)` bounded in `t ≥ 0`); and the main results
+  (for each `n ≥ 1`, a map `ι : A.stableSubspace → M` with `ι 0 = p`,
+  `C^n` with injective `mfderiv` on `ball 0 ρ`, whose image there lies in
+  the stable set and contains the points of the stable set near `p` with
+  `f` near `f p`, and with `d(e ∘ φ_t ∘ ι)` bounded in `t ≥ 0`, `e` the
+  extended chart at `p`); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for
