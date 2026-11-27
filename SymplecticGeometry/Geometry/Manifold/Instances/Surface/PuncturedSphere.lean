@@ -297,10 +297,7 @@ complementary chart after the inversion in the unit circle is the chart `sphereC
 theorem sphereCoChart_repr_inversion {u : ℂ} (hu : u ≠ 0) :
     sphereCoChart (Complex.orthonormalBasisOneI.repr (inversion 0 1 u)) =
       sphereChart (Complex.orthonormalBasisOneI.repr u) := by
-  rw [sphereCoChart_of_ne, LinearIsometryEquiv.map_inversion_zero,
-    EuclideanGeometry.inversion_inversion _ one_ne_zero]
-  rw [LinearIsometryEquiv.map_inversion_zero]
-  simpa [EuclideanGeometry.inversion_eq_center] using hu
+  rw [LinearIsometryEquiv.map_inversion_zero, sphereCoChart_inversion (by simpa using hu)]
 
 /-- The circle of the ball `j` of the sphere, in the chart `sphereChart`. -/
 theorem ballCircle_zero_apply_eq_sphereChart (j : ℕ) (t : unitInterval) :

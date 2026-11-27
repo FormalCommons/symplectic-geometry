@@ -86,8 +86,9 @@ a single chart, where it is smooth by
 `TauCeti.IsEhresmannConnection.contMDiffOn_compContinuousLinearMap_verticalProjection`.
 
 The vertically closed form is glued from the pull-backs `θ_i` of `σ` along the fibre coordinates
-of the charts by a partition of unity `ρ` of the base, and is smooth by Tau Ceti's
-`TauCeti.isSmoothForm_sum_finsupport_smul_mpullback`. As `σ` is closed, the derivative of the sum
+of the charts by a partition of unity `ρ` of the base (`TauCeti.MapFiber.Atlas.glueForm`). It is
+smooth and restricts to `σ` (`TauCeti.MapFiber.Atlas.isSmoothForm_glueForm`,
+`TauCeti.MapFiber.Atlas.restrictsTo_glueForm`). As `σ` is closed, the derivative of the sum
 at `x` is `∑ᵢ d(ρᵢ ∘ proj) ∧ θ_i` (`TauCeti.mextDeriv_sum_finsupport_smul_mpullback_apply`). On
 two vertical vectors each `θ_i` takes the value of the pull-back along the chart at `proj x`, and
 the one-forms `d(ρᵢ ∘ proj)` are semibasic and sum to zero, which gives vertical closedness.
@@ -502,60 +503,20 @@ variable {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
   [ChartedSpace HF F] [IsManifold IF ∞ F]
   {A : MapFiber.Atlas F proj} {σ : SmoothTwoForm IF F}
 
-variable (A σ) in
-/-- The form of `exists_restrictsTo_isVerticallyClosed`: the sum, over a partition of unity `ρ`
-of the base, of the pull-backs of `σ` along the fibre coordinates of the charts `A.trivAt i`,
-weighted by `ρ i ∘ proj`. -/
-private def connectionForm (ρ : SmoothPartitionOfUnity B IB B univ) : RoughForm IM M ℝ 2 :=
-  fun x ↦ ∑ i ∈ ρ.finsupport (proj x),
-    ρ i (proj x) • TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ.val x
-
-omit [IsManifold IM ∞ M] in
-private theorem connectionForm_apply (ρ : SmoothPartitionOfUnity B IB B univ) (x : M) :
-    connectionForm A σ ρ x = ∑ i ∈ ρ.finsupport (proj x),
-      ρ i (proj x) • TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ.val x :=
-  (rfl)
-
-private theorem isSmoothForm_connectionForm [IsManifold IB ∞ B] (hA : A.IsContMDiff ∞ IB IF IM)
-    {ρ : SmoothPartitionOfUnity B IB B univ}
-    (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet) :
-    IsSmoothForm IM ∞ (connectionForm A σ ρ) :=
-  isSmoothForm_sum_finsupport_smul_mpullback hρ (fun i ↦ (A.trivAt i).open_baseSet)
-    hA.contMDiff_proj (fun _ _ ↦ hA.contMDiffAt_snd_trivAt) σ
-
-private theorem restrictsTo_connectionForm (hA : A.IsContMDiff ∞ IB IF IM)
-    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
-    {ρ : SmoothPartitionOfUnity B IB B univ}
-    (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet) {τ : SmoothTwoForm IM M}
-    (hτ : τ.val = connectionForm A σ ρ) : A.RestrictsTo σ τ := by
-  refine MapFiber.Atlas.restrictsTo_iff.2 fun b b' hb' ↦ funext fun v ↦ ?_
-  ext w
-  set ι := (A.trivAt b).fiberInclusionMap hb'
-  have hp : proj (ι v) = b' := (A.trivAt b).proj_fiberInclusionMap hb' v
-  rw [TauCeti.mpullback_apply, hτ, connectionForm_apply, hp, ContinuousAlternatingMap.sum_apply]
-  -- Each chart of the sum pulls back to `σ` along `ι`, and the weights sum to one.
-  have hterm : ∀ i ∈ ρ.finsupport b',
-      (ρ i b' • TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ.val (ι v))
-        (fun j ↦ mfderiv IF IM ι v (w j)) = ρ i b' • σ.val v w := fun i hi ↦ by
-    rw [ContinuousAlternatingMap.smul_apply, ← TauCeti.mpullback_apply,
-      MapFiber.Atlas.mpullback_fiberInclusionMap_mpullback_snd_trivAt hA hH
-        (hρ i (subset_tsupport _ ((ρ.mem_finsupport b').1 hi))) hb']
-  rw [Finset.sum_congr rfl hterm, ← Finset.sum_smul, ρ.sum_finsupport (x₀ := b') (mem_univ _),
-    one_smul]
-
-private theorem isVerticallyClosed_connectionForm [IsManifold IB ∞ B]
+private theorem isVerticallyClosed_glueForm [IsManifold IB ∞ B]
     (hA : A.IsContMDiff ∞ IB IF IM)
     (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ)) (hσ : σ.IsClosed)
     {ρ : SmoothPartitionOfUnity B IB B univ}
     (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet) {τ : SmoothTwoForm IM M}
-    (hτ : τ.val = connectionForm A σ ρ) : IsVerticallyClosed IB proj τ := by
+    (hτ : τ.val = MapFiber.Atlas.glueForm A ρ σ.val) : IsVerticallyClosed IB proj τ := by
   refine isVerticallyClosed_iff.2 fun x η₁ hη₁ η₂ hη₂ v ↦ ?_
   have hproj : ContMDiff IM IB ∞ proj := hA.contMDiff_proj
   set θ : B → RoughForm IM M ℝ 2 := fun i ↦
     TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ.val
   set dρ : B → RoughForm IM M ℝ (0 + 1) := fun i ↦
     mextDeriv (RoughForm.ofFunction IM (ρ i ∘ proj))
-  rw [hτ, funext (connectionForm_apply ρ), mextDeriv_sum_finsupport_smul_mpullback_apply hρ
+  rw [hτ, funext (MapFiber.Atlas.glueForm_apply ρ σ.val),
+    mextDeriv_sum_finsupport_smul_mpullback_apply hρ
     (fun i ↦ (A.trivAt i).open_baseSet) hproj (g := fun i y ↦ (A.trivAt i y).2)
     (fun _ _ ↦ hA.contMDiffAt_snd_trivAt)
     σ.isSmoothForm ((SmoothForm.isClosed_def σ).1 hσ) x]
@@ -594,9 +555,10 @@ theorem exists_restrictsTo_isVerticallyClosed [IsManifold IB ∞ B] [FiniteDimen
     (fun i ↦ (A.trivAt i).baseSet) (fun i ↦ (A.trivAt i).open_baseSet)
     A.iUnion_baseSet_trivAt.ge
   let τ : SmoothTwoForm IM M :=
-    ⟨connectionForm A σ ρ, (isSmoothForm_connectionForm hA hρ).mem_smoothBundleForms⟩
-  exact ⟨τ, restrictsTo_connectionForm hA hH hρ rfl,
-    isVerticallyClosed_connectionForm hA hH hσ hρ rfl⟩
+    ⟨MapFiber.Atlas.glueForm A ρ σ.val,
+      (MapFiber.Atlas.isSmoothForm_glueForm hA hρ σ).mem_smoothBundleForms⟩
+  exact ⟨τ, MapFiber.Atlas.restrictsTo_glueForm hA hH hρ rfl,
+    isVerticallyClosed_glueForm hA hH hσ hρ rfl⟩
 
 end ConnectionTwoForm
 

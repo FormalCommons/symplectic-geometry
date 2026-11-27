@@ -9,8 +9,11 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
+public import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.PartitionOfUnity
 
 /-!
 # Forms that restrict to the fibre forms
@@ -37,6 +40,9 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 
 * `TauCeti.MapFiber.Atlas.RestrictsTo A σ τ`: the form `τ` on `M` pulls back to `σ` along every
   fibre inclusion of the atlas `A`.
+* `TauCeti.MapFiber.Atlas.glueForm A ρ σ`: the form on `M` glued from the pull-backs of a form `σ`
+  on `F` along the fibre coordinates of the charts `A.trivAt i`, with the weights `ρ i ∘ proj` of
+  a partition of unity `ρ` of the base.
 
 ## Main results
 
@@ -76,6 +82,12 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `Bundle.Trivialization.mextDeriv_apply_eq_zero_of_isSemibasic`: the exterior derivative of a
   `C¹` form of positive degree semibasic for `proj` vanishes on tuples of vertical vectors, as
   its pull-back to each fibre is zero.
+* `TauCeti.MapFiber.Atlas.isSmoothForm_glueForm`: along a smooth atlas, with `ρ` subordinate to
+  the base sets of the charts, the glued form of a smooth form is smooth.
+* `TauCeti.MapFiber.Atlas.mpullback_fiberInclusionMap_glueForm`: along a smooth atlas, the glued
+  form pulls back to the fibre over `b'` of a chart as the combination, with the weights at `b'`,
+  of the pull-backs of `σ` along the coordinate changes over `b'`. So when the coordinate changes
+  preserve `σ`, the glued form restricts to `σ` (`TauCeti.MapFiber.Atlas.restrictsTo_glueForm`).
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
   and `TauCeti.MapFiber.Atlas.convex_setOfPred_restrictsTo`: the affine structure of the forms that
   restrict to `σ`.
@@ -85,6 +97,8 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 The predicate is stated with Tau Ceti's rough pull-back `TauCeti.mpullback`, so that it needs no
 proof that the fibre inclusions are smooth. The results that compare two fibre inclusions use the
 chain rule, and so take the smoothness of the atlas as a hypothesis.
+
+The glued form is smooth by Tau Ceti's `TauCeti.isSmoothForm_sum_finsupport_smul_mpullback`.
 
 ## References
 
@@ -363,6 +377,81 @@ theorem RestrictsTo.hasStructureGroup (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A
   rw [hφe, ← hτ b' x hb', ← (A.trivAt b).mpullback_fiberInclusionMap_eq_mpullback_coordChange
       (hA.mdifferentiable_trivAt (by simp) b') hb hb' (hφe ▸ φ.mdifferentiable (by simp)),
     hτ b x hb, hτ b' x hb']
+
+/-! ### Forms glued from the fibre coordinates -/
+
+section GlueForm
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+
+variable (A) in
+/-- The form on `M` glued from a form `σ` on the model fibre by a partition of unity `ρ` of the
+base: at `x`, the sum over `i` of `ρ i (proj x)` times the pull-back of `σ` along the fibre
+coordinate `y ↦ (A.trivAt i y).2` of the chart `A.trivAt i`. -/
+noncomputable def glueForm (ρ : SmoothPartitionOfUnity B IB B univ)
+    (σ : TauCeti.RoughForm IF F V k) : TauCeti.RoughForm IM M V k :=
+  fun x ↦ ∑ i ∈ ρ.finsupport (proj x),
+    ρ i (proj x) • TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ x
+
+omit [IsManifold IF 1 F] [IsManifold IM 1 M] in
+theorem glueForm_apply (ρ : SmoothPartitionOfUnity B IB B univ)
+    (σ : TauCeti.RoughForm IF F V k) (x : M) :
+    glueForm A ρ σ x = ∑ i ∈ ρ.finsupport (proj x),
+      ρ i (proj x) • TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ x :=
+  (rfl)
+
+/-- **The glued form is smooth.** Along a smooth atlas, for a partition of unity of the base
+subordinate to the base sets of the charts, the form glued from a smooth form on the fibre is
+smooth. -/
+theorem isSmoothForm_glueForm [IsManifold IB ∞ B] [IsManifold IF ∞ F] [IsManifold IM ∞ M]
+    (hA : A.IsContMDiff ∞ IB IF IM) {ρ : SmoothPartitionOfUnity B IB B univ}
+    (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet) (σ : SmoothForm IF F V k) :
+    TauCeti.IsSmoothForm IM ∞ (glueForm A ρ σ.val) :=
+  TauCeti.isSmoothForm_sum_finsupport_smul_mpullback hρ (fun i ↦ (A.trivAt i).open_baseSet)
+    hA.contMDiff_proj (fun _ _ ↦ hA.contMDiffAt_snd_trivAt) σ
+
+omit [IsManifold IF 1 F] [IsManifold IM 1 M] in
+/-- **The glued form on a fibre.** Along a smooth atlas, for a partition of unity `ρ` of the base
+subordinate to the base sets of the charts, the pull-back of the glued form along the fibre
+inclusion of `A.trivAt b` over `b'` is the sum over `i` of `ρ i b'` times the pull-back of `σ`
+along the coordinate change from `A.trivAt b` to `A.trivAt i` over `b'`. -/
+theorem mpullback_fiberInclusionMap_glueForm (hA : A.IsContMDiff ∞ IB IF IM)
+    {ρ : SmoothPartitionOfUnity B IB B univ} (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet)
+    (σ : TauCeti.RoughForm IF F V k) {b b' : B} (hb' : b' ∈ (A.trivAt b).baseSet) :
+    TauCeti.mpullback IF IM ((A.trivAt b).fiberInclusionMap hb') (glueForm A ρ σ) =
+      ∑ i ∈ ρ.finsupport b',
+        ρ i b' • TauCeti.mpullback IF IF ((A.trivAt b).coordChange (A.trivAt i) b') σ := by
+  set ι := (A.trivAt b).fiberInclusionMap hb'
+  -- Each term of the sum is the pull-back along a coordinate change.
+  have hterm : ∀ i ∈ ρ.finsupport b',
+      TauCeti.mpullback IF IM ι (TauCeti.mpullback IM IF (fun y ↦ (A.trivAt i y).2) σ) =
+        TauCeti.mpullback IF IF ((A.trivAt b).coordChange (A.trivAt i) b') σ := fun i hi ↦ by
+    have hi' : b' ∈ (A.trivAt i).baseSet := hρ.mem_of_mem_finsupport hi
+    have he := hA.mdifferentiable_trivAt (by simp) i
+    rw [(A.trivAt b).mpullback_fiberInclusionMap_eq_mpullback_coordChange he hb' hi'
+      (((A.trivAt b).contMDiff_coordChange (A.trivAt i) (hA.contMDiffOn_trivAt_symm b)
+        (hA.contMDiffOn_trivAt i) hb' hi').mdifferentiable (by simp)),
+      (A.trivAt i).mpullback_fiberInclusionMap_mpullback_snd he hi']
+  rw [funext (glueForm_apply ρ σ), TauCeti.mpullback_sum_smul]
+  funext v
+  rw [(A.trivAt b).proj_fiberInclusionMap hb' v, Finset.sum_apply]
+  refine Finset.sum_congr rfl fun i hi ↦ ?_
+  rw [Pi.smul_apply, ← hterm i hi]
+
+/-- **The glued form restricts to `σ`.** Along a smooth atlas whose coordinate changes preserve
+`σ`, for a partition of unity of the base subordinate to the base sets of the charts, a form
+whose values are those of the glued form of `σ` restricts to `σ`. -/
+theorem restrictsTo_glueForm (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ))
+    {ρ : SmoothPartitionOfUnity B IB B univ} (hρ : ρ.IsSubordinate fun i ↦ (A.trivAt i).baseSet)
+    (hτ : τ.val = glueForm A ρ σ.val) : A.RestrictsTo σ τ := fun b b' hb' ↦ by
+  rw [hτ, mpullback_fiberInclusionMap_glueForm hA hρ]
+  refine ρ.sum_finsupport_smul_eq_of_forall_eq (mem_univ _) fun i hi ↦ ?_
+  obtain ⟨φ, hφ, hφe⟩ := hasStructureGroup_iff.1 hH b i b' hb' (hρ.mem_of_mem_finsupport hi)
+  rw [← hφe]
+  exact funext (SmoothForm.mem_diffeomorphStabilizer_iff_forall.1 hφ)
+
+end GlueForm
 
 /-! ### The affine structure -/
 
