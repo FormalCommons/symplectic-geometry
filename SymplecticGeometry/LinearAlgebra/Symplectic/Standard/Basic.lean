@@ -18,6 +18,7 @@ public import TauCeti.Geometry.Symplectic.Duality
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
+public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.Geometry.Symplectic.Transport
 public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.LinearAlgebra.Symplectic.InnerProductSpace
@@ -409,6 +410,23 @@ theorem stdComplexStructure_complexToRealEuclidean (v : ι → ℂ) :
       complexToRealEuclidean ι (Complex.I • v) := by
   rw [stdComplexStructure_def, AlmostComplexStructure.transport_apply]
   simp [AlmostComplexStructure.ofComplexModule_apply]
+
+/-- `(complexToRealEuclidean ι).symm` carries `J₀` to multiplication by `I` on `ι → ℂ`. -/
+@[simp]
+theorem complexToRealEuclidean_symm_stdComplexStructure (v : StdSpace ι) :
+    (complexToRealEuclidean ι).symm (stdComplexStructure ι v) =
+      Complex.I • (complexToRealEuclidean ι).symm v := by
+  rw [(complexToRealEuclidean ι).symm_apply_eq, ← stdComplexStructure_complexToRealEuclidean,
+    ContinuousLinearEquiv.apply_symm_apply]
+
+/-- The `j`-th complex coordinate `z_j` of `StdSpace ι` is complex linear, from `J₀` to
+multiplication by `I` on `ℂ`. -/
+theorem isComplexLinear_complexToRealEuclideanCoord (j : ι) :
+    IsComplexLinear (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      (complexToRealEuclideanCoord ι j : StdSpace ι →ₗ[ℝ] ℂ) :=
+  isComplexLinear_of_apply fun v ↦ by
+    simp [complexToRealEuclideanCoord_apply, AlmostComplexStructure.ofComplexModule_apply]
 
 /-- The standard symplectic form of `ι → ℂ` is the imaginary part of the Hermitian product:
 `ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/

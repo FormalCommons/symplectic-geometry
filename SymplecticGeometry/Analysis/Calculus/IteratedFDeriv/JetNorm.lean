@@ -47,7 +47,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
   times `1 + ‖f z‖`, and `SymplecticGeometry.jetNormAt_fderiv_le_of_norm_iteratedFDeriv_succ_le`,
   the bound of the `r`-jet norm of `fderiv 𝕜 f` by those of orders `1` to `r + 1`.
 * `SymplecticGeometry.jetNormAt_continuousLinearMap_le`: the `r`-jet norm of a continuous linear
-  map `L` at `z` is at most `‖L z‖ + ‖L‖`.
+  map `L` at `z` is at most `‖L z‖ + ‖L‖`, so at most `1 + ‖z‖` if `‖L‖ ≤ 1`
+  (`SymplecticGeometry.jetNormAt_continuousLinearMap_le_one_add_norm`).
 * `SymplecticGeometry.jetNormAt_comp_fst`: the jet norm of `f ∘ Prod.fst` at `p` is that of `f`
   at `p.1`, from Tau Ceti's `Prod.norm_iteratedFDeriv_comp_fst`.
 * `SymplecticGeometry.jetNormAt_comp_left_le`: the jet norm of `L ∘ f`, for a continuous linear
@@ -230,6 +231,14 @@ theorem jetNormAt_continuousLinearMap_le (L : E →L[𝕜] F) (r : ℕ) (z : E) 
   | zero => simp
   | succ r =>
     rw [jetNormAt_succ, funext fun x ↦ L.fderiv (x := x), jetNormAt_const]
+
+/-- The `r`-jet norm at `z` of a continuous linear map `L` of operator norm at most `1` is at most
+`1 + ‖z‖`. -/
+theorem jetNormAt_continuousLinearMap_le_one_add_norm {L : E →L[𝕜] F} (hL : ‖L‖ ≤ 1) (r : ℕ)
+    (z : E) : jetNormAt 𝕜 r L z ≤ 1 + ‖z‖ := by
+  have := L.le_opNorm z
+  have := mul_le_mul_of_nonneg_right hL (norm_nonneg z)
+  linarith [jetNormAt_continuousLinearMap_le L r z]
 
 /-- The jet norm of a scalar multiple `c • f` is `‖c‖` times that of `f`, for every `f`. -/
 @[simp]
