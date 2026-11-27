@@ -958,10 +958,12 @@ containing `ι '' closedBall 0 1`:
     (`conjWirtingerDeriv_taylorExtension_apply_real`, for `f` of class
     `C^(N + 1)`),
     the terms of lower order cancelling in pairs, and it is
-    conjugate linear. Hence `norm_dbar_taylorExtension_le`: on
+    conjugate linear. Hence `norm_conjWirtingerDeriv_taylorExtension_le`: on
     `{z | re z ∈ K}`, `K` compact, `‖∂̄ (taylorExtension N f) z‖ ≤
-    C * ‖im z‖ ^ N` and, for `1 ≤ N`, the same for its derivative with
-    `‖im z‖ ^ (N - 1)`. This is the almost analytic extension of a
+    C * ‖im z‖ ^ N`, and `norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le`:
+    for `f` of class `C^(N + 2)`, the same for the derivative of
+    `z ↦ complexAntilinearPartL (fderiv ℝ (taylorExtension N f) z)` with
+    `‖im z‖ ^ (N - 1)`, where also `‖im z‖ ≤ 1`. This is the almost analytic extension of a
     smooth function, truncated at order `N`.
   - (14d12) `norm_iteratedFDeriv_le_of_norm_dbar_le`: if
     `D : EuclideanSpace ℂ ι' → W`
