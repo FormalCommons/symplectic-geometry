@@ -150,8 +150,8 @@ theorem fundamentalGroupComplSingletonMulEquivInt_circleLoop :
 
 /-- Two homomorphisms out of `π₁(E ∖ {0}, φ r)` are equal once they agree on the class of
 `circleLoop φ hr`, which generates it. -/
-theorem fundamentalGroupComplSingleton_hom_ext {G : Type*} [Group G]
-    {f f' : FundamentalGroup ({0}ᶜ : Set E) (φ.circleBasepoint hr) →* G}
+theorem fundamentalGroupComplSingleton_hom_ext {M : Type*} [Monoid M]
+    {f f' : FundamentalGroup ({0}ᶜ : Set E) (φ.circleBasepoint hr) →* M}
     (h : f (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (φ.circleLoop hr))) =
       f' (FundamentalGroup.fromPath (Path.Homotopic.Quotient.mk (φ.circleLoop hr)))) :
     f = f' := by

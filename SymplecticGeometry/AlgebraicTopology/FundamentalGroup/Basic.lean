@@ -62,12 +62,8 @@ theorem fundamentalGroupMulEquivOfPath_fromPath_mk {x₀ x₁ : X} (γ : Path x�
     (g : Path x₀ x₀) :
     fundamentalGroupMulEquivOfPath γ (fromPath (Path.Homotopic.Quotient.mk g)) =
       fromPath (Path.Homotopic.Quotient.mk (γ.symm.trans (g.trans γ))) := by
-  rw [← MulEquiv.eq_symm_apply, fundamentalGroupMulEquivOfPath_symm_fromPath_mk]
-  simp only [Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm,
-    Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.trans_symm,
-    Path.Homotopic.Quotient.trans_refl]
-  rw [← Path.Homotopic.Quotient.trans_assoc, Path.Homotopic.Quotient.trans_symm,
-    Path.Homotopic.Quotient.refl_trans]
+  rw [fundamentalGroupMulEquivOfPath_apply, Path.Homotopic.Quotient.mk_trans,
+    Path.Homotopic.Quotient.mk_trans, Path.Homotopic.Quotient.mk_symm]
 
 /-- The concatenation `γ · δ` of two classes of loops is their product in the fundamental group, in
 the reverse order: in Mathlib's `FundamentalGroup`, `g * h` is `h` followed by `g`. -/
