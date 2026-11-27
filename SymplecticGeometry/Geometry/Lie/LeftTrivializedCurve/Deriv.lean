@@ -38,6 +38,8 @@ vector field `(t, x) ↦ dL_x (ξ t)`.
   `SymplecticGeometry.HasLeftTrivializedDerivOn.mfderiv_inv_mul_mfderiv`: at a time of which `s`
   is a neighbourhood, the curve is differentiable, and its velocity translated to the identity
   is `ξ t`.
+* `SymplecticGeometry.hasLeftTrivializedDerivOn_mulInvariantExp_smul`: the one-parameter subgroup
+  `t ↦ exp (t • v)` has constant left-trivialized derivative `v`.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.const_mul`: left translates `t ↦ a * g t` of
   such a curve have the same left-trivialized derivative.
 * `SymplecticGeometry.HasLeftTrivializedDerivOn.piecewise`: two such curves on open sets with a
@@ -189,6 +191,16 @@ theorem HasLeftTrivializedDerivOn.const_mul [ContMDiffMul I 1 G]
       ContinuousLinearMap.comp_toSpanSingleton, mfderiv_mul_left_mulInvariantVectorField]
   exact (mdifferentiableAt_mul_left.hasMFDerivAt.comp_hasMFDerivWithinAt t (hg t ht)).congr_mfderiv
     hder
+
+/-- The one-parameter subgroup `t ↦ exp (t • v)` has the constant left-trivialized derivative
+`v` at every time. -/
+theorem hasLeftTrivializedDerivOn_mulInvariantExp_smul [CompleteSpace E]
+    [LieGroup I (minSmoothness ℝ 3) G] [T2Space G] [BoundarylessManifold I G]
+    (v : GroupLieAlgebra I G) :
+    HasLeftTrivializedDerivOn (fun t : ℝ ↦ mulInvariantExp (I := I) (t • v)) (fun _ ↦ v) univ :=
+  have : LieGroup I 1 G := LieGroup.of_le (n := minSmoothness ℝ 3) (by norm_num)
+  hasLeftTrivializedDerivOn_iff.2 fun t _ ↦
+    (hasMFDerivAt_mulInvariantExp_smul v t).hasMFDerivWithinAt
 
 /-- Translated to pass through `1` at `t`, a curve with left-trivialized derivative `ξ` has
 derivative `ξ t` there. -/
