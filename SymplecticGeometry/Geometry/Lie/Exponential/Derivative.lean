@@ -24,7 +24,7 @@ applied to the derivative of `X`.
 
 * `curveVelocity_mul_mulInvariantExp_smul`: the velocity of `s ↦ g * exp (s • X)` at `t` is the
   value of the left-invariant vector field of `X` at `g * exp (t • X)`.
-* `mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul`: translated back to the identity by
+* `mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul`: translated back to the identity by
   `(g * exp (t • X))⁻¹`, that velocity is `X`.
 * `hasMFDerivAt_mulInvariantExp_modelSpace_zero`: read on the model space, the exponential has
   derivative the identity at `0`.
@@ -84,7 +84,7 @@ theorem curveVelocity_mul_mulInvariantExp_smul (g : G) (X : GroupLieAlgebra I G)
 
 /-- The left-trivialized velocity of the left-translated exponential line `s ↦ g * exp (s • X)`
 is `X` at every time `t`. -/
-theorem mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul (g : G) (X : GroupLieAlgebra I G)
+theorem mfderiv_inv_mul_curveVelocity_mul_mulInvariantExp_smul (g : G) (X : GroupLieAlgebra I G)
     (t : ℝ) :
     mfderiv I I ((g * mulInvariantExp (t • X))⁻¹ * ·) (g * mulInvariantExp (t • X))
       (curveVelocity I (fun s : ℝ ↦ g * mulInvariantExp (s • X)) t) = X := by
