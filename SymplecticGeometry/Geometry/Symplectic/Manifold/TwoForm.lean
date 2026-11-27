@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Opens
 
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -142,8 +143,7 @@ theorem IsNondegenerate.symplecticFormAt_mfderiv_mfderiv {ω₁ : SmoothTwoForm 
     (v w : TangentSpace I₀ x₀) :
     hω₁.symplecticFormAt (f x₀) (mfderiv I₀ I₁ f x₀ v) (mfderiv I₀ I₁ f x₀ w) =
       (SmoothForm.mpullback f hf ω₁).bilinFormAt x₀ v w := by
-  rw [IsNondegenerate.symplecticFormAt_apply, SmoothForm.bilinFormAt_apply,
-    SmoothForm.eval₂_mpullback]
+  simp [IsNondegenerate.symplecticFormAt_apply]
 
 end TauCeti.SmoothTwoForm
 
