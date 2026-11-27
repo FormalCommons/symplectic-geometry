@@ -35,6 +35,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `SymplecticGeometry.strictMonoOn_struweShape`).
 * `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
   `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
+  On a whole interval `(δ, R]` it suffices that its value at `δ` bounds both quantities at `R`
+  (`SymplecticGeometry.isConvexShapeAt_struweShape_of_le_of_mem_Ioc`).
 * `SymplecticGeometry.isConvexShapeAt_struweShape`: for `0 < d`, `0 < δ`, `exp (4 / d²) ≤ K`
   and `4 K δ ≤ (log K) ^ (-3 / 2)`, the solution with `c = 1 + d K δ` is an `i`-convex shape on
   `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value in `[1 + d δ, 1 + d K δ)`,
@@ -76,7 +78,8 @@ The shapes are checked with `SymplecticGeometry.isConvexShapeAt_iff`. For Struwe
 inequalities read `r √L < χ` and `2 r √L³ < χ`, with `L = log (r / δ)`; the second follows from
 `4 K δ √(log K)³ ≤ 1`, and the first also uses the lower bound `1 + d δ` of `χ`. That bound
 amounts to `∫ u in δ..K δ, 1 / √(log (u / δ)) ≤ d (K - 1) δ`
-(`SymplecticGeometry.integral_one_div_sqrt_log_div_le`), which is proved by comparing
+(`SymplecticGeometry.integral_one_div_sqrt_log_div_le`, and in terms of the value at `δ`,
+`SymplecticGeometry.sub_le_struweShape`), which is proved by comparing
 the integrand minus `d` with its product by `u₀ / u`, where `u₀ = δ exp (1 / d²)` is the point
 where the integrand equals `d`, and integrating the latter exactly.
 
@@ -324,12 +327,13 @@ private theorem struwe_log_bounds {d : ℝ} (hd : 0 < d) (hK : exp (4 / d ^ 2) �
   linarith
 
 /-- The integral of the integrand of Struwe's shape over `[δ, K δ]` is at most `d (K - 1) δ`
-when `exp (4 / d²) ≤ K`. The integrand minus `d` is at most its product by `u₀ / u`, where
-`u₀ = δ exp (1 / d²)` is where the integrand equals `d`, and that product integrates to
-`u₀ (2 √(log K) - d log K) ≤ 0`. -/
+when `exp (4 / d²) ≤ K`. -/
 theorem integral_one_div_sqrt_log_div_le {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
     (hK : exp (4 / d ^ 2) ≤ K) :
     ∫ u in δ..K * δ, 1 / √(log (u / δ)) ≤ d * (K - 1) * δ := by
+  -- The integrand minus `d` is at most its product by `u₀ / u`, where `u₀ = δ exp (1 / d²)` is
+  -- the point where the integrand equals `d`, and that product integrates to
+  -- `u₀ (2 √(log K) - d log K) ≤ 0`.
   set f : ℝ → ℝ := fun u ↦ 1 / √(log (u / δ)) with hf
   set u₀ := δ * exp (1 / d ^ 2)
   obtain ⟨hK₁, hlog₀, hs⟩ := struwe_log_bounds hd hK
@@ -408,6 +412,14 @@ theorem integral_one_div_sqrt_log_div_le {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
   rw [hlhs, hrhs] at hmono
   nlinarith
 
+/-- Struwe's shape with value `c` at `K δ` takes at `δ` a value at least `c - d (K - 1) δ` when
+`exp (4 / d²) ≤ K`. -/
+theorem sub_le_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ) (hK : exp (4 / d ^ 2) ≤ K)
+    (c : ℝ) : c - d * (K - 1) * δ ≤ struweShape δ K c δ := by
+  have h := integral_one_div_sqrt_log_div_le hd hδ hK
+  rw [struweShape_def, intervalIntegral.integral_symm]
+  linarith
+
 /-- **Struwe's solutions as `i`-convex shapes.** Let `0 < d`, `0 < δ`, `exp (4 / d²) ≤ K` and
 `4 K δ ≤ (log K) ^ (-3 / 2)`. Struwe's shape with value `1 + d K δ` at `K δ` is an `i`-convex
 shape at every point of `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value at least
@@ -447,9 +459,8 @@ theorem isConvexShapeAt_struweShape {d : ℝ} (hd : 0 < d) (hδ : 0 < δ)
     intervalIntegral_pos_of_pos_on hfi (fun u hu ↦
       one_div_pos.2 (sqrt_pos.2 (log_pos ((one_lt_div hδ).2 hu.1)))) hδK
   have hval : 1 + d * δ ≤ χ δ := by
-    have := integral_one_div_sqrt_log_div_le hd hδ hK
-    rw [hχδ]
-    nlinarith
+    have := sub_le_struweShape hd hδ hK (1 + d * K * δ)
+    linarith
   refine ⟨fun r hr ↦ ?_, ?_, ⟨hval, by linarith⟩,
     tendsto_deriv_struweShape hδ hK₁ _⟩
   · have hr₀ : 0 < r := hδ.trans hr.1
@@ -832,23 +843,22 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ 
     ⟨hβ.1, hβ.2.trans_le hγγ'⟩, ψ, hψs, hψc, fun r hr ↦ by simpa using hψS r (hγγ'.trans hr),
     hψL⟩
 
-/-- Struwe's shape with value `1 + d K δ` at `K δ`, if it is at least `1 + d δ` at `δ`, is an
-`i`-convex shape at every point of `(δ, 2 K δ]` once `2 K δ √M < 1` and `4 K δ √M³ < 1`, where
-`M = log (2 K)`. -/
-private theorem isConvexShapeAt_struweShape_of_le_two_mul {δ K d r : ℝ} (hδ : 0 < δ)
-    (hd : 0 < d) (hK : 1 < K) (h : 1 + d * δ ≤ struweShape δ K (1 + d * K * δ) δ)
-    (h₁ : 2 * K * δ * √(log (2 * K)) < 1) (h₂ : 4 * K * δ * √(log (2 * K)) ^ 3 < 1)
-    (hr : r ∈ Ioc δ (2 * K * δ)) : IsConvexShapeAt (struweShape δ K (1 + d * K * δ)) r := by
-  have hS : 1 < struweShape δ K (1 + d * K * δ) r :=
-    ((by nlinarith : 1 < 1 + d * δ).trans_le h).trans (strictMonoOn_struweShape hδ hK.le _
-      (mem_Ici.2 le_rfl) (mem_Ici.2 hr.1.le) hr.1)
+/-- Struwe's shape is an `i`-convex shape at every point of `(δ, R]` if its value at `δ` is at
+least `m`, `R √(log (R / δ)) ≤ m` and `2 R √(log (R / δ))³ ≤ m`. -/
+theorem isConvexShapeAt_struweShape_of_le_of_mem_Ioc {δ K c m R r : ℝ} (hδ : 0 < δ)
+    (hK : 1 ≤ K) (h : m ≤ struweShape δ K c δ) (h₁ : R * √(log (R / δ)) ≤ m)
+    (h₂ : 2 * R * √(log (R / δ)) ^ 3 ≤ m) (hr : r ∈ Ioc δ R) :
+    IsConvexShapeAt (struweShape δ K c) r := by
+  have hS : m < struweShape δ K c r := h.trans_lt (strictMonoOn_struweShape hδ hK _
+    (mem_Ici.2 le_rfl) (mem_Ici.2 hr.1.le) hr.1)
   have hr₀ : 0 < r := hδ.trans hr.1
+  have hR : 0 ≤ R := hr₀.le.trans hr.2
   have ht₀ : 0 ≤ √(log (r / δ)) := sqrt_nonneg _
-  have ht : √(log (r / δ)) ≤ √(log (2 * K)) :=
-    sqrt_le_sqrt (log_le_log (div_pos hr₀ hδ) ((div_le_iff₀ hδ).2 hr.2))
-  refine isConvexShapeAt_struweShape_of_lt hδ hK.le hr.1 ?_ ?_
-  · nlinarith [mul_le_mul hr.2 ht ht₀ (by positivity)]
-  · nlinarith [mul_le_mul hr.2 (pow_le_pow_left₀ ht₀ ht 3) (by positivity) (by positivity)]
+  have ht : √(log (r / δ)) ≤ √(log (R / δ)) :=
+    sqrt_le_sqrt (log_le_log (div_pos hr₀ hδ) (div_le_div_of_nonneg_right hr.2 hδ.le))
+  refine isConvexShapeAt_struweShape_of_lt hδ hK hr.1 ?_ ?_
+  · nlinarith [mul_le_mul hr.2 ht ht₀ hR]
+  · nlinarith [mul_le_mul hr.2 (pow_le_pow_left₀ ht₀ ht 3) (by positivity) hR]
 
 /-- **The surrounding shape** (Cieliebak–Eliashberg, Proposition 4.21, the part about the shape).
 For `1 < a` and `0 < γ` there are `δ ∈ (0, γ)` and a function `χ`, smooth on `(δ, ∞)` and
@@ -872,9 +882,11 @@ theorem exists_convexShape_surround {a γ : ℝ} (ha : 1 < a) (hγ : 0 < γ) :
   have hδ : 0 < δ := hδ
   set S := struweShape δ K (1 + d * K * δ)
   obtain ⟨-, -, ⟨hlow, hup⟩, htend⟩ := isConvexShapeAt_struweShape hd.1 hδ hKd.ge hδK.le
-  have hSc : ∀ r ∈ Ioc δ (2 * K * δ), IsConvexShapeAt S r :=
-    fun r hr ↦ isConvexShapeAt_struweShape_of_le_two_mul hδ hd.1 hK hlow (by linarith)
-      (by linarith) hr
+  have hSc : ∀ r ∈ Ioc δ (2 * K * δ), IsConvexShapeAt S r := by
+    have e : 2 * K * δ / δ = 2 * K := mul_div_cancel_right₀ _ hδ.ne'
+    have := hd.1
+    exact fun r hr ↦ isConvexShapeAt_struweShape_of_le_of_mem_Ioc hδ hK.le hlow
+      (by rw [e]; nlinarith) (by rw [e]; nlinarith) hr
   -- The windows around the crossing `K δ = δ + e` of `S` and `1 + d r`.
   set e := (K - 1) * δ
   have he : 0 < e := mul_pos (by linarith) hδ
