@@ -32,6 +32,10 @@ along `N`; its smoothness is that of the slice section of `α`
 * `SymplecticGeometry.IsSmoothFamily.coe_sliceAlong`: it is the pullback of the vertical form of
   the family along the graph map.
 * `SymplecticGeometry.IsSmoothFamily.sliceAlong_const`: along a constant map `t`, it is `α t`.
+* `SymplecticGeometry.IsSmoothFamily.mpullback_sliceAlong`: its pullback along a smooth map `f`
+  is the slice of the pulled-back family along `χ ∘ f`.
+* `SymplecticGeometry.IsSmoothFamily.sliceAlong_comp`: the slice of the reparametrized family
+  `fun s ↦ α (φ s)` along `χ` is the slice of `α` along `φ ∘ χ`.
 * `SymplecticGeometry.IsSmoothFamily.mpullback_subtype_val_sliceAlong`: on an open set where `χ`
   is constantly `t`, its restriction is that of `α t`.
 * `SymplecticGeometry.IsSmoothFamily.isNondegenerate_sliceAlong_iff`: a family of two-forms
@@ -42,7 +46,7 @@ along `N`; its smoothness is that of the slice section of `α`
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.2
-  (the symplectic connected sum).
+  (the symplectic connected sum: Exercise 7.2.1 and Lemma 7.2.2).
 -/
 
 public section
@@ -95,27 +99,40 @@ theorem coe_sliceAlong (hα : IsSmoothFamily J α) (χ : M → N) (hχ : ContMDi
   rw [sliceAlong_val]
   exact (congrFun (mpullback_id (I := I) (F := F) (k := k) (α (χ x)).val) x).symm
 
-/-- At a point where `χ` takes the value `t`, the slice of `α` along `χ` has the value of
-`α t`. -/
-theorem sliceAlong_val_of_eq (hα : IsSmoothFamily J α) {χ : M → N} (hχ : ContMDiff I J ∞ χ)
-    {x : M} {t : N} (hx : χ x = t) : (hα.sliceAlong χ hχ).val x = (α t).val x := by
-  rw [sliceAlong_val, hx]
-
 /-- Along a constant map `t`, the slice of `α` is `α t`. -/
 @[simp]
 theorem sliceAlong_const (hα : IsSmoothFamily J α) (t : N) :
     hα.sliceAlong (fun _ ↦ t) contMDiff_const = α t :=
   Subtype.ext (funext fun x ↦ sliceAlong_val hα _ _ x)
 
+/-- The pullback of the slice of `α` along `χ` by a smooth map `f : M' → M` is the slice of the
+pulled-back family `fun t ↦ f^* (α t)` along `χ ∘ f`. -/
+theorem mpullback_sliceAlong {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [TopologicalSpace H'] [TopologicalSpace M'] [ChartedSpace H' M']
+    {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M'] (hα : IsSmoothFamily J α) {χ : M → N}
+    (hχ : ContMDiff I J ∞ χ) (f : M' → M) (hf : ContMDiff I' I ∞ f) :
+    SmoothForm.mpullback f hf (hα.sliceAlong χ hχ) =
+      (hα.mpullback f hf).sliceAlong (χ ∘ f) (hχ.comp hf) :=
+  Subtype.ext <| funext fun x ↦ by ext v; simp
+
+/-- The slice of the reparametrized family `fun s ↦ α (φ s)` along `χ` is the slice of `α`
+along `φ ∘ χ`. -/
+theorem sliceAlong_comp {EN' HN' N' : Type*} [NormedAddCommGroup EN'] [NormedSpace ℝ EN']
+    [TopologicalSpace HN'] [TopologicalSpace N'] [ChartedSpace HN' N']
+    {J' : ModelWithCorners ℝ EN' HN'} [IsManifold J' 1 N'] (hα : IsSmoothFamily J α)
+    (φ : N' → N) (hφ : ContMDiff J' J ∞ φ) {χ : M → N'} (hχ : ContMDiff I J' ∞ χ) :
+    (hα.comp φ hφ).sliceAlong χ hχ = hα.sliceAlong (φ ∘ χ) (hφ.comp hχ) :=
+  Subtype.ext (funext fun x ↦ by simp)
+
 /-- **Locality.** On an open set `U` where `χ` is constantly `t`, the restriction of the slice of
 `α` along `χ` is the restriction of `α t`. -/
 theorem mpullback_subtype_val_sliceAlong (hα : IsSmoothFamily J α) {χ : M → N}
     (hχ : ContMDiff I J ∞ χ) {U : Opens M} {t : N} (hU : ∀ x ∈ U, χ x = t) :
     SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal (hα.sliceAlong χ hχ) =
-      SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal (α t) :=
-  Subtype.ext <| funext fun x ↦ by
-    rw [SmoothForm.coe_mpullback_subtype_val_apply, SmoothForm.coe_mpullback_subtype_val_apply,
-      sliceAlong_val_of_eq hα hχ (hU x x.property)]
+      SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal (α t) := by
+  rw [hα.mpullback_sliceAlong]
+  have : χ ∘ (Subtype.val : U → M) = fun _ ↦ t := funext fun x ↦ hU x x.property
+  simp only [this, sliceAlong_const]
 
 end
 
