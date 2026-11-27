@@ -1012,8 +1012,8 @@ theorem compatible_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile 
       rw [SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
         hψ.normalizedBlowupForm_eq_on_compl x hx]
     refine ⟨fun v w ↦ ?_, fun v hv0 ↦ ?_⟩
-    · rw [heval, heval, SmoothForm.eval₂_mpullback, SmoothForm.eval₂_mpullback,
-        hv.mfderiv_apply_commute, hv.mfderiv_apply_commute, hN.compatible.invariant.apply]
+    · rw [heval, heval]
+      exact hN.compatible.invariant.eval₂_mpullback hv _ v w
     · rw [heval]
       exact hN.compatible.tames.eval₂_mpullback_pos hv _
         ((map_ne_zero_iff _ (hπ.isInvertible_mfderiv (by simp)).injective).2 hv0)
