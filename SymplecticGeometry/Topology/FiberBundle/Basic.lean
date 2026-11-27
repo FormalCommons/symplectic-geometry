@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.FiberBundle.Basic
+public import Mathlib.Topology.Sets.OpenCover
 public import TauCeti.Topology.FiberBundle.MapFiber
 import SymplecticGeometry.Topology.FiberBundle.Trivialization
 
@@ -43,6 +44,9 @@ two trivializations, these inclusions differ by the coordinate change.
 * `Bundle.Trivialization.compTotalSpaceHomeomorph_refl`: a trivialization transported by Tau
   Ceti's `Bundle.Trivialization.compTotalSpaceHomeomorph` along the identity of the total space
   is itself.
+* `TauCeti.MapFiber.Atlas.iUnion_baseSet_trivAt` and
+  `TauCeti.MapFiber.Atlas.isOpenCover_baseSet_trivAt`: the base sets of the trivializations of an
+  atlas cover the base, as sets and as an open cover.
 * `TauCeti.MapFiber.Atlas.trivializationAt_fiberBundleOfHomeomorph_refl` and
   `TauCeti.MapFiber.Atlas.mem_trivializationAtlas_fiberBundleOfHomeomorph_refl_iff`: for an atlas
   of a bundle and the identity of its total space, the fibre bundle structure of Tau Ceti's
@@ -159,6 +163,25 @@ theorem compTotalSpaceHomeomorph_refl {E : B → Type*} [TopologicalSpace (Total
 end Bundle.Trivialization
 
 namespace TauCeti.MapFiber.Atlas
+
+section Cover
+
+variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
+  {proj : Z → B} (A : Atlas F proj)
+
+/-- The base sets of the trivializations of an atlas cover the base. -/
+@[simp]
+theorem iUnion_baseSet_trivAt : ⋃ b, (A.trivAt b).baseSet = Set.univ :=
+  Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩
+
+/-- The base sets of the trivializations of an atlas, as open sets of the base, form an open
+cover of it. -/
+theorem isOpenCover_baseSet_trivAt :
+    TopologicalSpace.IsOpenCover fun b ↦
+      (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ : TopologicalSpace.Opens B) :=
+  .of_sets (fun b ↦ (A.trivAt b).open_baseSet) A.iUnion_baseSet_trivAt
+
+end Cover
 
 variable {B F : Type*} [TopologicalSpace B] [TopologicalSpace F] {E : B → Type*}
   [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]

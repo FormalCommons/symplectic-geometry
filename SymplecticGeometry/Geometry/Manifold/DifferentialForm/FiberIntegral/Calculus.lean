@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Components
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.ExtDeriv.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Product.Naturality
+import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -35,6 +36,19 @@ commutes with the wedge product (`TauCeti.SmoothForm.mpullback_wedge`), `proj �
 first projection on `U × F`, and on a product the statement is
 `SymplecticGeometry.prodFiberIntegral_wedge_mpullback_fst`.
 
+The fibre integral is natural along maps of fibrations
+(`TauCeti.MapFiber.Atlas.fiberIntegral_mpullback`): for a second such atlas `A₁` of
+`proj₁ : M₁ → B₁`, oriented by the same `o`, and smooth maps `g : M₁ → M` and `f : B₁ → B` with
+`proj ∘ g = f ∘ proj₁` whose fibre maps, read in the charts at `b₁` and at `f b₁`, are
+diffeomorphisms of `F` preserving `o`, the fibre integral of `g^* α` is `f^*` of the fibre
+integral of `α`. At each point `b₁`, the integrand of `g^* α` read in the chart at `b₁` is the
+pull-back along the fibre map of the integrand of `α` over `f b₁` read in the chart at `f b₁`
+(`Bundle.Trivialization.fiberIntegrand_mpullback`, in
+`SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Basic`), and change of
+variables over `F`
+(`Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`) ends the
+proof.
+
 This is the argument of Bott–Tu, §6, that integration along the fibre commutes with `d`, and their
 reduction of the projection formula to a product.
 
@@ -44,6 +58,7 @@ reduction of the projection formula to a product.
 * `TauCeti.MapFiber.Atlas.fiberIntegral_mem_closedForms`: the fibre integral of a closed form is
   closed.
 * `TauCeti.MapFiber.Atlas.fiberIntegral_wedge_mpullback`: the projection formula.
+* `TauCeti.MapFiber.Atlas.fiberIntegral_mpullback`: naturality along maps of fibrations.
 
 ## References
 
@@ -52,7 +67,6 @@ reduction of the projection formula to a product.
 
 public section
 
-open TopologicalSpace
 open scoped Manifold ContDiff
 
 variable {E H E' H' EM HM B F M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -81,11 +95,7 @@ theorem fiberIntegral_mextDeriv [IsManifold IM 2 M] (α : SmoothForm IM M ℝ (r
     A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun k ↦ SmoothForm IM M ℝ k)
         (by omega : r + m + 1 = r + 1 + m) (mextDerivₗ IM (r + m) α)) =
       mextDerivₗ I r (A.fiberIntegral hA ho α) := by
-  refine SmoothForm.ext_of_mpullback_subtype_val
-    (U := fun b' ↦ (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ : Opens B))
-    (IsOpenCover.of_sets (fun b' ↦ (A.trivAt b').open_baseSet)
-      (Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩))
-    fun b' ↦ ?_
+  refine SmoothForm.ext_of_mpullback_subtype_val A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
   rw [mpullback_subtype_val_fiberIntegral, SmoothForm.mpullback_cast,
     ← SmoothForm.mextDerivₗ_mpullback, prodFiberIntegral_mextDeriv,
     ← SmoothForm.mextDerivₗ_mpullback, mpullback_subtype_val_fiberIntegral]
@@ -110,11 +120,7 @@ theorem fiberIntegral_wedge_mpullback {p q : ℕ} (β : SmoothForm I B ℝ p)
         (Nat.add_assoc p q m).symm
         (SmoothForm.wedge (SmoothForm.mpullback proj hA.contMDiff_proj β) α)) =
       SmoothForm.wedge β (A.fiberIntegral hA ho α) := by
-  refine SmoothForm.ext_of_mpullback_subtype_val
-    (U := fun b' ↦ (⟨(A.trivAt b').baseSet, (A.trivAt b').open_baseSet⟩ : Opens B))
-    (IsOpenCover.of_sets (fun b' ↦ (A.trivAt b').open_baseSet)
-      (Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩))
-    fun b' ↦ ?_
+  refine SmoothForm.ext_of_mpullback_subtype_val A.isOpenCover_baseSet_trivAt fun b' ↦ ?_
   rw [mpullback_subtype_val_fiberIntegral, SmoothForm.mpullback_cast, SmoothForm.mpullback_wedge,
     SmoothForm.mpullback_mpullback_of_comp_eq ((A.trivAt b').contMDiff_symm_val_prod
       (hA.contMDiffOn_trivAt_symm b') subset_rfl) hA.contMDiff_proj contMDiff_fst
@@ -122,6 +128,55 @@ theorem fiberIntegral_wedge_mpullback {p q : ℕ} (β : SmoothForm I B ℝ p)
         ((A.trivAt b').mem_target.2 x.1.property)),
     prodFiberIntegral_wedge_mpullback_fst, SmoothForm.mpullback_wedge,
     mpullback_subtype_val_fiberIntegral]
+
+end TauCeti.MapFiber.Atlas
+
+/-! ### Naturality along maps of fibrations -/
+
+variable {E₁ H₁ EM₁ HM₁ B₁ M₁ : Type*} [NormedAddCommGroup E₁] [NormedSpace ℝ E₁]
+  [TopologicalSpace H₁] {I₁ : ModelWithCorners ℝ E₁ H₁} [TopologicalSpace B₁]
+  [ChartedSpace H₁ B₁] [NormedAddCommGroup EM₁] [NormedSpace ℝ EM₁] [TopologicalSpace HM₁]
+  {IM₁ : ModelWithCorners ℝ EM₁ HM₁} [TopologicalSpace M₁] [ChartedSpace HM₁ M₁]
+  {proj₁ : M₁ → B₁}
+
+namespace TauCeti.MapFiber.Atlas
+
+open SymplecticGeometry
+
+variable [FiniteDimensional ℝ E₁] [IsManifold I₁ ∞ B₁] [BoundarylessManifold I₁ B₁]
+  [IsManifold IM₁ 1 M₁] {A : Atlas F proj} {o : Manifold.Orientation J F (Fin m)}
+  (hA : A.IsContMDiff ∞ I J IM) {hn : (∞ : ℕ∞ω) ≠ 0}
+  (ho : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
+
+omit [BoundarylessManifold J F] in
+/-- **Naturality of the fibre integral along maps of fibrations.** Let `A₁` and `A` be smooth
+atlases of `proj₁ : M₁ → B₁` and `proj : M → B` whose coordinate changes preserve the same
+orientation `o` of the compact Hausdorff model fibre `F`, with `B₁` and `B` boundaryless. Let
+`g : M₁ → M` be a smooth map covering a smooth map `f : B₁ → B`, `proj ∘ g = f ∘ proj₁`, such
+that for every `b₁` the fibre map `y ↦ (e (g (e₁⁻¹ (b₁, y)))).2`, read in the charts
+`e₁ = A₁.trivAt b₁` and `e = A.trivAt (f b₁)`, is a diffeomorphism of `F` preserving `o`. Then
+the fibre integral of the pull-back of a smooth form `α` along `g` is the pull-back along `f` of
+the fibre integral of `α`. -/
+theorem fiberIntegral_mpullback {A₁ : Atlas F proj₁} (hA₁ : A₁.IsContMDiff ∞ I₁ J IM₁)
+    (ho₁ : A₁.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup hn o))
+    {f : B₁ → B} (hf : ContMDiff I₁ I ∞ f) {g : M₁ → M} (hg : ContMDiff IM₁ IM ∞ g)
+    (hfg : proj ∘ g = f ∘ proj₁)
+    (hfib : ∀ b₁, ∃ φ ∈ Diffeomorph.orientationPreservingSubgroup hn o, ⇑φ = fun y ↦
+      (A.trivAt (f b₁) (g ((A₁.trivAt b₁).toOpenPartialHomeomorph.symm (b₁, y)))).2)
+    (α : SmoothForm IM M ℝ (r + m)) :
+    A₁.fiberIntegral hA₁ ho₁ (SmoothForm.mpullback g hg α) =
+      SmoothForm.mpullback f hf (A.fiberIntegral hA ho α) :=
+  SmoothBundleForm.ext fun b₁ v ↦ by
+    obtain ⟨φ, hφ, hφg⟩ := hfib b₁
+    rw [fiberIntegral_apply, SmoothForm.mpullback_apply, fiberIntegral_apply, fiberIntegrand_def,
+      fiberIntegrand_def, SmoothForm.coe_mpullback,
+      Bundle.Trivialization.fiberIntegrand_mpullback
+        ((hA₁.contMDiffOn_trivAt_symm b₁).mdifferentiableOn (by simp))
+        (hA.mdifferentiable_trivAt (by simp) (f b₁)) (hg.mdifferentiable (by simp)) hfg
+        ((hf b₁).mdifferentiableAt (by simp)) (A₁.mem_baseSet_trivAt b₁)
+        (A.mem_baseSet_trivAt (f b₁)) (by simpa using o.card_eq.symm.le), ← hφg]
+    exact φ.toHomeomorph.isOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt
+      (Diffeomorph.mem_orientationPreservingSubgroup_iff.mp hφ) (by simp)
 
 end TauCeti.MapFiber.Atlas
 
