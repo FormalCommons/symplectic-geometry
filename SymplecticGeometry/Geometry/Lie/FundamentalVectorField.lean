@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.FundamentalVectorField.Right
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Fundamental vector fields under equivariant maps
