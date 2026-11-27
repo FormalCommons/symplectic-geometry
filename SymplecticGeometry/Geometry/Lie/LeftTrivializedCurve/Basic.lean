@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.LeftTrivializedDeriv
+public import TauCeti.Geometry.Lie.IntegralCurve
 import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.LocalExistence
 
 /-!
@@ -32,6 +33,8 @@ that curve, `leftTrivializedCurve ξ g₀`.
 * `SymplecticGeometry.eq_leftTrivializedCurve`: every curve with these two properties is it.
 * `SymplecticGeometry.leftTrivializedCurve_mul`: the curve from `a * g₀` is the left translate by
   `a` of the curve from `g₀`.
+* `SymplecticGeometry.leftTrivializedCurve_const`: for a constant `ξ = v`, the curve is Tau Ceti's
+  `mulInvariantIntegralCurve v g₀`, the integral curve of the left-invariant vector field of `v`.
 
 ## Implementation notes
 
@@ -218,6 +221,17 @@ theorem leftTrivializedCurve_mul (hn : 2 ≤ n) (hξ : Continuous ξ) (a g₀ : 
 theorem leftTrivializedCurve_apply_eq_mul (hn : 2 ≤ n) (hξ : Continuous ξ) (g₀ : G) (t : ℝ) :
     leftTrivializedCurve ξ g₀ t = g₀ * leftTrivializedCurve ξ 1 t := by
   rw [← congrFun (leftTrivializedCurve_mul hn hξ g₀ 1) t, mul_one]
+
+/-- For a constant curve `ξ = v` in the Lie algebra, `leftTrivializedCurve` is Tau Ceti's
+`mulInvariantIntegralCurve v g₀`, the integral curve through `g₀` of the left-invariant vector
+field of `v`. -/
+theorem leftTrivializedCurve_const [LieGroup I (minSmoothness ℝ 3) G] [T2Space G]
+    (v : GroupLieAlgebra I G) (g₀ : G) :
+    leftTrivializedCurve (fun _ ↦ v) g₀ = mulInvariantIntegralCurve v g₀ := by
+  have : LieGroup I 1 G := LieGroup.of_le (n := minSmoothness ℝ 3) (by norm_num)
+  refine (eq_leftTrivializedCurve (n := minSmoothness ℝ 3) (by norm_num) continuous_const
+    (mulInvariantIntegralCurve_zero v g₀) (hasLeftTrivializedDerivOn_iff.2 fun t _ ↦ ?_)).symm
+  exact (isMIntegralCurve_mulInvariantIntegralCurve v g₀ t).hasMFDerivWithinAt
 
 end SymplecticGeometry
 
