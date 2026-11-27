@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
+public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens.ModelSpace
 
 /-!
 # The exterior derivative of functions, and in a chart
@@ -37,6 +39,13 @@ coordinate expression of `φ` in the directions `Vₚ`, evaluated on the other v
 (`TauCeti.mextDeriv_apply_eq_sum_fderivWithin`): Tau Ceti's `TauCeti.mextDeriv_def` followed by
 Mathlib's `extDerivWithin_apply`.
 
+On an open subset `U` of a normed space `E`, with the model `𝓘(ℝ, E)`, the exterior derivative of
+a `C^1` form `ω` at `b` on `v₀, …, vₖ ∈ E` is the alternating sum of the derivatives at `b`, in
+the directions `vᵢ`, of the functions `b' ↦ ω b' (v without vᵢ)` on `U`
+(`TauCeti.mextDeriv_opens_apply`). It is Tau Ceti's `TauCeti.mextDeriv_opens_eq_extDeriv`,
+applied to an ambient representative of `ω` (`TauCeti.IsSmoothForm.exists_contDiffOn_opens`),
+followed by Mathlib's `extDeriv_apply`.
+
 ## Main results
 
 * `TauCeti.mextDeriv_ofFunction_add_apply`, `TauCeti.mextDeriv_ofFunction_sub_apply`:
@@ -47,6 +56,7 @@ Mathlib's `extDerivWithin_apply`.
   space.
 * `TauCeti.mextDeriv_apply_eq_sum_fderivWithin`: the coordinate formula for `dφ` in the chart at
   `x`.
+* `TauCeti.mextDeriv_opens_apply`: the formula for `dω` on an open subset of a normed space.
 
 ## References
 
@@ -131,6 +141,30 @@ theorem mextDeriv_ofFunction_modelSpace_apply (f : E → F) (x : E)
     mextDeriv (RoughForm.ofFunction 𝓘(ℝ, E) f) x v = fderiv ℝ f x (v 0) := by
   rw [mextDeriv_ofFunction, ContinuousAlternatingMap.ofSubsingleton_apply_apply,
     mvfderiv_eq_fderiv_apply]
+
+/-- **The exterior derivative on an open subset of a normed space.** Let `U` be an open subset of
+`E`, with the model `𝓘(ℝ, E)`, and `ω` a `C^1` form of degree `k` on `U`. At `b ∈ U`, on
+`v₀, …, vₖ ∈ E`, `dω` is the alternating sum over `i` of the derivatives at `b`, in the direction
+`vᵢ`, of `b' ↦ ω b' (Fin.removeNth i v)`. -/
+theorem mextDeriv_opens_apply {U : TopologicalSpace.Opens E} {k : ℕ}
+    {ω : RoughForm 𝓘(ℝ, E) U F k} (hω : IsSmoothForm 𝓘(ℝ, E) 1 ω) (b : U)
+    (v : Fin (k + 1) → E) :
+    mextDeriv ω b v = ∑ i, (-1) ^ i.val •
+      mfderiv 𝓘(ℝ, E) 𝓘(ℝ, F) (fun b' : U ↦ ω b' (i.removeNth v)) b (v i) := by
+  obtain ⟨ω₀, h₀, hω₀⟩ := hω.exists_contDiffOn_opens
+  have hd : DifferentiableAt ℝ ω₀ b :=
+    (h₀.differentiableOn one_ne_zero).differentiableAt (U.isOpen.mem_nhds b.property)
+  refine (congrArg (fun φ : E [⋀^Fin (k + 1)]→L[ℝ] F ↦ φ v)
+    (mextDeriv_opens_eq_extDeriv hω₀ b)).trans ?_
+  rw [extDeriv_apply hd]
+  refine Finset.sum_congr rfl fun i _ ↦ congrArg _ ?_
+  have h : (fun b' : U ↦ ω b' (i.removeNth v)) = (fun e ↦ ω₀ e (i.removeNth v)) ∘ Subtype.val :=
+    funext fun b' ↦ congrArg (fun φ : E [⋀^Fin k]→L[ℝ] F ↦ φ (i.removeNth v)) (hω₀ b')
+  rw [h]
+  refine Eq.symm ((Manifold.mfderiv_comp_subtype_val_apply (v i)).trans ?_)
+  rw [mfderiv_eq_fderiv]
+  -- `NormedSpace.fromTangentSpace` is the identity of `E` and of `F`.
+  rfl
 
 end NormedSpace
 
