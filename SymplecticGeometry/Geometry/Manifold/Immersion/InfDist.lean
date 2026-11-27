@@ -104,9 +104,7 @@ theorem exists_eventually_infDist_sq_le_mul (h : IsImmersionAtOfComplement F I' 
       (h.domChart.isOpen_extend_target).mem_nhds ((h.domChart.extend I').map_source
         (by rw [h.domChart.extend_source]; exact h.mem_domChart_source))
     filter_upwards [hmem] with a ha
-    obtain ⟨hsrc, hext, -, -⟩ := h.mem_codChart_source_and_extend_eq ha
-    exact ⟨(h.domChart.extend I').symm a, by
-      rw [← hext]; exact (h.codChart.extend_left_inv hsrc).symm⟩
+    exact ⟨_, (h.mem_codChart_source_and_extend_eq ha).2.2.1.symm⟩
   have hmk : Tendsto (fun a : E' ↦ ((a, 0) : E' × F)) (𝓝 a₀) (𝓝 (a₀, 0)) :=
     (continuous_id.prodMk continuous_const).tendsto a₀
   -- `g` is nonnegative near `(a₀, 0)` and vanishes on the slice, so it is critical there.
