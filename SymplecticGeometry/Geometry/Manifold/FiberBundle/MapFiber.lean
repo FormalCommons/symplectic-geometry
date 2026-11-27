@@ -33,6 +33,8 @@ homeomorphism is `Bundle.Trivialization.mapFiberHomeomorph`.
 
 ## Main definitions
 
+* `Bundle.Trivialization.mfderivFiberInclusionMapEquiv`: the derivative of a fibre inclusion, as
+  a linear isomorphism from the tangent space of the model fibre onto the vertical space.
 * `Bundle.Trivialization.coordChangeDiffeomorph`: the coordinate change between two smooth
   trivializations over a point of both base sets, as a diffeomorphism of the model fibre.
 * `Bundle.Trivialization.mapFiberDiffeomorph`: the fibre coordinate of a smooth trivialization,
@@ -214,6 +216,36 @@ theorem range_mfderiv_fiberInclusionMap
   conv_rhs => rw [← L.symm_apply_apply u]
   rw [he.coe_mfderiv_symm, he.coe_mfderiv, coe_coe, hev]
   exact congrArg _ (Prod.ext hu.symm rfl)
+
+/-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
+derivative at `v` of the fibre inclusion over `b`, as a linear isomorphism from the tangent space
+of the model fibre at `v` onto the vertical space at its image, the kernel of the derivative of
+`proj` there. -/
+noncomputable def mfderivFiberInclusionMapEquiv
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) :
+    TangentSpace IF v ≃ₗ[𝕜] (mfderiv IM IB proj (e.fiberInclusionMap hb v)).ker :=
+  (LinearEquiv.ofInjective _ (injective_mfderiv_fiberInclusionMap he hb v)).trans
+    (LinearEquiv.ofEq _ _ (range_mfderiv_fiberInclusionMap he hb v))
+
+theorem mfderivFiberInclusionMapEquiv_def
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) :
+    mfderivFiberInclusionMapEquiv he hb v =
+      (LinearEquiv.ofInjective _ (injective_mfderiv_fiberInclusionMap he hb v)).trans
+        (LinearEquiv.ofEq _ _ (range_mfderiv_fiberInclusionMap he hb v)) :=
+  (rfl)
+
+/-- `mfderivFiberInclusionMapEquiv he hb v` sends `w` to the image of `w` under the derivative
+of the fibre inclusion over `b` at `v`. -/
+@[simp]
+theorem coe_mfderivFiberInclusionMapEquiv_apply
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) (hb : b ∈ e.baseSet)
+    (v : F) (w : TangentSpace IF v) :
+    (mfderivFiberInclusionMapEquiv he hb v w : TangentSpace IM (e.fiberInclusionMap hb v)) =
+      mfderiv IF IM (e.fiberInclusionMap hb) v w := by
+  rw [mfderivFiberInclusionMapEquiv_def, LinearEquiv.trans_apply, LinearEquiv.coe_ofEq_apply,
+    LinearEquiv.ofInjective_apply, ContinuousLinearMap.coe_coe]
 
 /-- For a trivialization `e` of `proj` that is differentiable with differentiable inverse, the
 derivative of `proj` sends the image of a tangent vector `u` of `B × F` at `(b, v)` under the

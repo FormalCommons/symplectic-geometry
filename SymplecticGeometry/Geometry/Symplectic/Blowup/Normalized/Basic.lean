@@ -1053,14 +1053,13 @@ theorem isPseudoholomorphicAt_ballLiftPartialDiffeomorph {y : BlowupModel n}
     have hπ := Blowup.isLocalDiffeomorphAt_blowdown_real hN.blowupChart hz
     have hb : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
         (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown y :=
-      (isPseudoholomorphic_ofComplexManifold_iff.2
-        ((contMDiff_blowdown ∞).mdifferentiable (by simp))).isPseudoholomorphicAt y
+      isPseudoholomorphic_ofComplexManifold_blowdown.isPseudoholomorphicAt y
     have heb : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
         (stdComplexStructure (Fin (n + 1))).constSmooth (e ∘ blowdown) y :=
       ((isPseudoholomorphic_complexToRealEuclidean (Fin (n + 1))).isPseudoholomorphicAt
         y.blowdown).comp hb
     refine IsPseudoholomorphicAt.of_comp (v := Blowup.blowdown hN.blowupChart) ?_
-      (Blowup.isPseudoholomorphicAt_blowdown _ J _ hz)
+      (Blowup.isPseudoholomorphicAt_blowdown _ J _ _)
       (hπ.isInvertible_mfderiv (by simp)).injective hΦ
     refine (IsPseudoholomorphicAt.comp (u := e ∘ blowdown) (v := ψ) hJψ
       heb).congr_of_eventuallyEq ?_
@@ -1114,7 +1113,7 @@ theorem compatible_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile 
         (openNbhd_subset_closedNbhd ε hy), rfl⟩
     have hπ := Blowup.isLocalDiffeomorphAt_blowdown_real hN.blowupChart hZ
     have hv := Blowup.isPseudoholomorphicAt_blowdown hN.blowupChart J
-      hN.blowupChart_isHolomorphic hZ
+      hN.blowupChart_isHolomorphic x
     have heval (a b : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) x) : τ.eval₂ x a b =
         (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
           (Blowup.contMDiff_blowdown_real _) σ).eval₂ x a b := by
