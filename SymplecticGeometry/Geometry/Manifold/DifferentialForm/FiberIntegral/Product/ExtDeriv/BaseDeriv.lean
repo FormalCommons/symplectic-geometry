@@ -53,13 +53,14 @@ open TauCeti
 
 variable {E E' H' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace F] [ChartedSpace H' F] [IsManifold J ∞ F]
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace F] [ChartedSpace H' F]
   {U : Opens E} {r m : ℕ}
 
-/-- **The integrand along constant vectors is jointly smooth.** Let `α` be a `C^n` form of degree
-`r + m` on `U × F`. For `u₁, …, uᵣ ∈ E`, the integrands `prodFiberIntegrand α b u`, as `b` runs
-over `U`, form a `C^n` section of the bundle of `m`-forms on `F` along `(b, y) ↦ y`. -/
-theorem contMDiff_prodFiberIntegrand_const {n : WithTop ℕ∞}
+/-- **The integrand along constant vectors is jointly smooth.** Let `F` be a `C^1` manifold and
+let `α` be a `C^n` form of degree `r + m` on `U × F`. For `u₁, …, uᵣ ∈ E`, the
+integrands `prodFiberIntegrand α b u`, as `b` runs over `U`, form a `C^n` section of the bundle
+of `m`-forms on `F` along `(b, y) ↦ y`. -/
+theorem contMDiff_prodFiberIntegrand_const [IsManifold J 1 F] {n : WithTop ℕ∞}
     {α : RoughForm (𝓘(ℝ, E).prod J) (U × F) ℝ (r + m)} (hα : IsSmoothForm (𝓘(ℝ, E).prod J) n α)
     (u : Fin r → E) :
     ContMDiff (𝓘(ℝ, E).prod J) (J.prod 𝓘(ℝ, E' [⋀^Fin m]→L[ℝ] ℝ)) n
@@ -69,6 +70,8 @@ theorem contMDiff_prodFiberIntegrand_const {n : WithTop ℕ∞}
   contMDiff_prodFiberIntegrand (g := id) hα contMDiff_id fun i b ↦
     Manifold.contMDiffAt_tangentBundle_opens_iff.2
       ((contMDiff_tangentBundle_mk_const (u i) (b : E)).comp b contMDiff_subtypeVal.contMDiffAt)
+
+variable [IsManifold J ∞ F]
 
 /-- **The base derivative of the integrand is a smooth form.** Let `F` be Hausdorff and
 σ-compact, with an orientation `o`, and let `α` be a smooth form of degree `r + m` on `U × F`.
