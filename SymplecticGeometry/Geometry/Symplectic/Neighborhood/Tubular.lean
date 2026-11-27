@@ -79,16 +79,15 @@ variable {EQ E₀ E₁ HQ H₀ H₁ Q M₀ M₁ : Type*}
   [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁] [T2Space M₁]
 
 /-- **Symplectomorphisms of neighbourhoods with a prescribed derivative.** Let `f₀ : Q → M₀` and
-`f₁ : Q → M₁` be smooth embeddings into second countable Hausdorff manifolds without boundary,
-with symplectic forms `ω₀` and `ω₁`, and let `A q : T_{f₀ q} M₀ ≃L[ℝ] T_{f₁ q} M₁` be linear
-symplectomorphisms forming a smooth section over `Q` of the bundle of linear maps between the
-pull-backs `f₀ *ᵖ TM₀` and `f₁ *ᵖ TM₁`, with `A q (df₀ q v) = df₁ q v`. Then there are open sets
-`U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁` such that, for every `q`,
-`f₀ q ∈ U₀`, `ψ (f₀ q) = f₁ q` and the derivative of `ψ` at `f₀ q` is `A q`, and `ψ` pulls the
-restriction of `ω₁` to `U₁` back to the restriction of `ω₀` to `U₀`. Neither compactness of `Q`
-nor closedness of the images is assumed. -/
+`f₁ : Q → M₁` be smooth embeddings into Hausdorff manifolds without boundary, `M₀` second
+countable, with symplectic forms `ω₀` and `ω₁`, and let `A q : T_{f₀ q} M₀ ≃L[ℝ] T_{f₁ q} M₁`
+be linear symplectomorphisms forming a smooth section over `Q` of the bundle of linear maps
+between the pull-backs `f₀ *ᵖ TM₀` and `f₁ *ᵖ TM₁`, with `A q (df₀ q v) = df₁ q v`. Then
+there are open sets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` and a diffeomorphism `ψ : U₀ ≃ U₁` such that, for
+every `q`, `f₀ q ∈ U₀`, `ψ (f₀ q) = f₁ q` and the derivative of `ψ` at `f₀ q` is `A q`, and `ψ`
+pulls the restriction of `ω₁` to `U₁` back to the restriction of `ω₀` to `U₀`. Neither
+compactness of `Q` nor closedness of the images is assumed. -/
 theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
-    [SecondCountableTopology M₁]
     (f₀ : SmoothEmbedding J I₀ ∞ Q M₀) (f₁ : SmoothEmbedding J I₁ ∞ Q M₁)
     {ω₀ : SmoothTwoForm I₀ M₀} {ω₁ : SmoothTwoForm I₁ M₁}
     (hω₀ : ω₀.IsSymplectic) (hω₁ : ω₁.IsSymplectic)
