@@ -42,7 +42,8 @@ subspace, `L` can be taken from
 
 With that choice, at index `m + 1`, the sphere is the level `-H = s ^ 2` of the Hessian form `H`
 of `f` at `p`, read on the disc; `X` is transverse to it, and the orbit of every point `x ≠ p` of
-the stable set meets it exactly once.
+the stable set meets it exactly once. Taking `s` small enough puts the sphere above any given
+level `a < f p`, so that the backward map to the level `a` is smooth near it.
 
 ## Main declarations
 
@@ -68,8 +69,9 @@ the stable set meets it exactly once.
   `SymplecticGeometry.IsWeinsteinStructure.range_comp_smul_coe_sphere_subset`: for the local
   stable disc, it lies in the stable set, below `f p`, off the critical points.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_sphere_existsUnique_flow_apply_mem_range`: at
-  index `m + 1`, a smoothly immersed sphere in the stable set, transverse to `X`, that every orbit
-  of the stable set other than `p` meets exactly once.
+  index `m + 1` and for each level `a < f p`, a smoothly immersed sphere in the stable set
+  above `a`, transverse to `X`, that every orbit of the stable set other than `p` meets exactly
+  once.
 * `SymplecticGeometry.IsWeinsteinStructure.exists_le_flow_apply_notMem_of_isCompact` and
   `.exists_flow_apply_mem_diff_of_isCompact`: the backward orbit of a point `x ≠ p` of the stable
   set leaves each compact part `K` of it, so an orbit that reaches an open set `G` whose points
@@ -130,7 +132,9 @@ inside the sphere, and its backward orbit leaves the compact cap bounded by the 
 increases at a rate bounded below along it on that cap, which has no critical point below `f p`,
 while `f` is bounded below there.
 Since an interval is connected, the orbit meets the sphere between a time at which it is outside
-the cap and a later time at which it is strictly inside the sphere.
+the cap and a later time at which it is strictly inside the sphere. The sphere lies above the
+level `a` because `ι` is continuous at `0`, with `ι 0 = p` and `a < f p`, so that a small
+enough scale keeps it in the open set `f ⁻¹' Ioi a`.
 
 ## References
 
@@ -507,21 +511,21 @@ theorem exists_flow_apply_mem_diff_of_isCompact {p x : M} {K G : Set M} (hK : Is
   exact h₁ (hGK ⟨(Flow.apply_mem_stableSet_iff _ t).2 hx, h₂⟩)
 
 /-- **A sphere in the local stable disc crossed once by each orbit.** Let `(ω, X, f)` be a
-Weinstein structure with flow `φ`, and `p` a nondegenerate critical point of `f` of Morse index
-`m + 1`. There is a smooth injective immersion `σ` of the unit sphere of
+Weinstein structure with flow `φ`, `p` a nondegenerate critical point of `f` of Morse index
+`m + 1`, and `a < f p`. There is a smooth injective immersion `σ` of the unit sphere of
 `EuclideanSpace ℝ (Fin (m + 1))` into `M` such that:
-* its image lies in the stable set of `p`, strictly below the level `f p`, and contains no
-  critical point of `f`;
+* its image lies in the stable set of `p`, strictly between the levels `a` and `f p`, and
+  contains no critical point of `f`;
 * `X` is transverse to it: at no point `u` is `X (σ u)` in the range of the differential of `σ`;
 * the orbit of every point `x ≠ p` of the stable set of `p` meets the image of `σ` at exactly
   one time. -/
 theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     (hp : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, E) f p) {m : ℕ}
-    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) :
+    (hm : manifoldMorseIndex 𝓘(ℝ, E) f p = m + 1) {a : ℝ} (ha : a < f p) :
     ∃ σ : sphere (0 : EuclideanSpace ℝ (Fin (m + 1))) 1 → M,
       ContMDiff (𝓡 m) 𝓘(ℝ, E) (⊤ : ℕ∞) σ ∧ Injective σ ∧
       (∀ u, Injective (mfderiv (𝓡 m) 𝓘(ℝ, E) σ u)) ∧
-      range σ ⊆ (hW.flow.stableSet p ∩ f ⁻¹' Iio (f p)) \ criticalPoints 𝓘(ℝ, E) f ∧
+      range σ ⊆ (hW.flow.stableSet p ∩ f ⁻¹' Ioo a (f p)) \ criticalPoints 𝓘(ℝ, E) f ∧
       (∀ u, X (σ u) ∉ range (mfderiv (𝓡 m) 𝓘(ℝ, E) σ u)) ∧
       ∀ x ∈ hW.flow.stableSet p, x ≠ p → ∃! t, hW.flow t x ∈ range σ := by
   have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin (m + 1))) = m + 1) :=
@@ -559,8 +563,12 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
   have hWcov {y : M} (hy : y ∈ hW.flow.stableSet p) (hyW : y ∈ W) : ι (π y) = y := by
     obtain ⟨z, hz, rfl⟩ := hcov ⟨⟨hy, interior_subset hyW.1.1⟩, hyW.2⟩
     rw [hπι z hz]
+  -- A radius `δ` such that `ι` maps the ball of radius `δ` into `W`, above the level `a`.
+  have hWa : IsOpen (W ∩ {y | a < f y}) :=
+    hWo.inter (isOpen_lt continuous_const hW.isGeneralizedMorse.contMDiff.continuous)
   obtain ⟨δ, hδ, hδW⟩ := Metric.mem_nhds_iff.1
-    ((hιs 0 (mem_ball_self hρ)).1.continuousAt.preimage_mem_nhds (hWo.mem_nhds (hι0 ▸ hpW)))
+    ((hιs 0 (mem_ball_self hρ)).1.continuousAt.preimage_mem_nhds
+      (hWa.mem_nhds (hι0 ▸ ⟨hpW, ha⟩ : ι 0 ∈ W ∩ {y | a < f y})))
   -- The scale `s`, so small that `L'` maps the closed ball of radius `s` into the balls of radii
   -- `δ` and `ρ'`.
   set r := min δ ρ'
@@ -576,8 +584,9 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
       (by rw [mul_comm]; exact hsL))
   have hLρ' {v : V} (hv : ‖v‖ ≤ s) : L' v ∈ ball 0 ρ' :=
     mem_ball_zero_iff.2 ((hLv hv).trans_le (min_le_right _ _))
-  have hLW {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W :=
+  have hLWa {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W ∩ {y | a < f y} :=
     hδW (mem_ball_zero_iff.2 ((hLv hv).trans_le (min_le_left _ _)))
+  have hLW {v : V} (hv : ‖v‖ ≤ s) : ι (L' v) ∈ W := (hLWa hv).1
   have hπL {v : V} (hv : ‖v‖ ≤ s) : π (ι (L' v)) = L' v :=
     hπι _ (ball_subset_ball hρ'ρ (hLρ' hv))
   have hL0 {v : V} (hv : ‖v‖ = s) : L' v ≠ 0 := fun h ↦ by
@@ -601,8 +610,12 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     injective_comp_smul_coe_sphere hπι hs hsLρ L.injective,
     injective_mfderiv_comp_smul_coe_sphere
       (fun z hz ↦ ⟨(hιs z hz).1.mdifferentiableAt (by simp), (hιs z hz).2⟩) hs hsLρ L.injective,
-    hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ
-      L.injective, ?_, ?_⟩
+    fun y hy ↦ ?_, ?_, ?_⟩
+  · -- The sphere lies above the level `a` by the choice of `δ`.
+    obtain ⟨⟨hys, hyp⟩, hyc⟩ := hW.range_comp_smul_coe_sphere_subset hι0 hst hπι hs hsLρ
+      L.injective hy
+    obtain ⟨v, hv, rfl⟩ := (hrange y).1 hy
+    exact ⟨⟨hys, (hLWa hv.le).2, hyp⟩, hyc⟩
   · -- Transversality: `-H ∘ π` is constant on the sphere, but decreases strictly along `X`.
     intro u
     set z := s • L' (u : V)
