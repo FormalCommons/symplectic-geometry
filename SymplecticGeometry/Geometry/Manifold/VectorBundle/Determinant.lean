@@ -11,8 +11,8 @@ public import TauCeti.Topology.VectorBundle.Determinant
 public import Mathlib.Geometry.Manifold.VectorBundle.Riemannian
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 import Mathlib.Analysis.Normed.Operator.Mul
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Complex.Structure
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import SymplecticGeometry.Topology.VectorBundle.DetBundle.Trivialization
