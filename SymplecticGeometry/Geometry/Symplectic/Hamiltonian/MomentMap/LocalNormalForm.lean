@@ -24,6 +24,7 @@ import SymplecticGeometry.Geometry.Symplectic.Moser.Equivariant
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 
 /-!
 # The local normal form near an orbit
@@ -97,8 +98,8 @@ inverse of `Ψ ∘ s`, followed by a linear isomorphism onto a Euclidean space, 
 * `SymplecticGeometry.LocalModelData.exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
   the local normal form at a point `x` of a Hamiltonian `G`-manifold, for the local model
   `SymplecticGeometry.LocalModelData.ofPoint` at `x`.
-* `SymplecticGeometry.LocalModelData.exists_partialDiffeomorph_momentNormSq_eq_eval`: around every
-  point, a smooth chart into a Euclidean space in which the norm square of `μ` is a polynomial.
+* `SymplecticGeometry.exists_partialDiffeomorph_momentNormSq_eq_eval`: around every point, a
+  smooth chart into a Euclidean space in which the norm square of `μ` is a polynomial.
 
 ## References
 
@@ -390,9 +391,9 @@ end LocalModelData
 
 end Model
 
-namespace LocalModelData
-
 variable {σ : SmoothTwoForm I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+namespace LocalModelData
 
 /-- **The local normal form at a point of a Hamiltonian `G`-manifold.** Let a compact Hausdorff
 Lie group `G` act smoothly on `M`, let `σ` be a closed nondegenerate `G`-invariant two-form on
@@ -481,6 +482,10 @@ theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ
   exact D.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap hσc hσG hμ
     (ofPoint_τ hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA) T hTσ hTk hTξ
 
+end LocalModelData
+
+open LocalModelData
+
 open scoped GroupLieAlgebra in
 /-- **The norm square of a moment map is a polynomial in a chart.** Let a compact Hausdorff Lie
 group `G` act smoothly on `M`, let `σ` be a closed nondegenerate `G`-invariant two-form on `M` with
@@ -550,8 +555,7 @@ theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
       (r.open_source.mem_nhds hval.localInverse_mem_source))
   have ht : IsOpen (e₀.source ∩ e₀ ⁻¹' t) :=
     e₀.contMDiffOn.continuousOn.isOpen_inter_preimage e₀.open_source isOpen_interior
-  let L := ContinuousLinearEquiv.ofFinrankEq
-    (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := Module.finrank ℝ (𝔠 × (A × V)))).symm
+  let L := toEuclidean (E := 𝔠 × (A × V))
   let e := (e₀.restrOpen _ ht).trans (L.toPartialDiffeomorph (n := ∞))
   have he : ∀ y, y ∈ e.source ↔ y ∈ e₀.source ∧ e₀ y ∈ t := fun y ↦ by
     rw [PartialDiffeomorph.trans_toPartialDiffeomorph_source, PartialDiffeomorph.restrOpen_source,
@@ -577,8 +581,6 @@ theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
   have hb : ((EuclideanSpace.basisFun _ ℝ).repr (L (e₀ y))).ofLp = (L (e₀ y)).ofLp :=
     funext (EuclideanSpace.basisFun_repr _ ℝ _)
   simpa [hb] using (hP (L (e₀ y))).symm
-
-end LocalModelData
 
 end SymplecticGeometry
 
