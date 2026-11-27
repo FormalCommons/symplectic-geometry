@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Descent
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LocalPullback
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.NormalBundle
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
