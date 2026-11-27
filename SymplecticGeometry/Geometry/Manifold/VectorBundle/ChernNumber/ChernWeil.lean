@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Circle
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.RealChernClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+public import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CurvatureIntegral
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.StandardTransition
 import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
@@ -46,6 +47,8 @@ converse follows from the statement for one connection form and
 
 * `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`: the Chern number is
   `-(2π)⁻¹ ∫_M F_α` for every connection form `α`.
+* `Bundle.ContMDiffRiemannianMetric.integral_realFirstChernClass`: the integral of the real first
+  Chern class of `V` is its Chern number.
 * `Bundle.ContMDiffRiemannianMetric.isConnectionCurvature_of_integralTopForm_eq`: over a connected
   surface, every `2`-form with integral `-2π` times the Chern number is a curvature.
 * `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature_and_exists`: the two together.
@@ -125,6 +128,26 @@ theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (
   rw [hα₁.integralTopForm_curvature_eq hα o, hint, ← hsum, Finset.sum_neg_distrib]
   push_cast
   field_simp
+
+/-- **The real first Chern class integrates to the Chern number.** Let `M` be a closed smooth
+surface with an orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth
+Hermitian metric `g`. The integral over `M` of the real first Chern class of `V` is the first
+Chern number of `V`, for the homological orientation of `o`. -/
+theorem _root_.Bundle.ContMDiffRiemannianMetric.integral_realFirstChernClass
+    (o : Manifold.Orientation (𝓡 2) M (Fin 2)) :
+    deRhamCohomology.integral o (g.realFirstChernClass hI) =
+      chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
+        finrank_euclideanSpace_fin F V := by
+  rw [ContMDiffRiemannianMetric.realFirstChernClass_def]
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) (𝓡 2) (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g hI
+  obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (P := Fiber ℂ F V ℂ) (IB := 𝓡 2)
+  rw [hα.realFirstChernClass_eq, _root_.map_smul, deRhamCohomology.integral_mk,
+    chernNumber_eq_integral_curvature g hI o hα, smul_eq_mul]
 
 /-- **Curvatures with a given integral.** Let `M` be a closed connected smooth surface with an
 orientation `o`, and `V` a smooth complex line bundle over `M` with a smooth Hermitian metric `g`.

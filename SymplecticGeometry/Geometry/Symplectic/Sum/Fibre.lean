@@ -50,6 +50,9 @@ sum, which is symplectic when `σ₁` and `σ₂` are.
 
 ## Main definitions
 
+* `SymplecticGeometry.ProductNeighborhood.rangeHomeomorph`: a product neighbourhood as a
+  homeomorphism onto its range, and `SymplecticGeometry.ProductNeighborhood.radialPath`, the
+  path `t ↦ f (q, t • z)` from `ι q` to `f (q, z)`.
 * `SymplecticGeometry.ProductNeighborhood.complTube`: the open complement of the closed tube.
 * `SymplecticGeometry.ProductNeighborhood.collarMap`: the collar `(q, z) ↦ f (q, z)` on
   `Q × A(δ, ε)`, as a map into the complement of the tube;
@@ -177,6 +180,41 @@ theorem isPathConnected_range [PathConnectedSpace Q] (hε : 0 < ε) : IsPathConn
   have : PathConnectedSpace (prodBall Q ε) :=
     isPathConnected_iff_pathConnectedSpace.1 (by simpa using h)
   exact _root_.isPathConnected_range f.isOpenEmbedding.continuous
+
+/-- A product neighbourhood `f`, as a homeomorphism from `Q × B²(ε)` onto its range. -/
+def rangeHomeomorph : Q × Metric.ball (0 : ℂ) ε ≃ₜ range f :=
+  ({ toFun := fun w ↦ ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩
+     invFun := fun w ↦ ((w : Q × ℂ).1,
+       ⟨(w : Q × ℂ).2, mem_ball_zero_iff.2 (mem_prodBall.1 w.property)⟩)
+     left_inv := fun _ ↦ rfl
+     right_inv := fun _ ↦ rfl } : Q × Metric.ball (0 : ℂ) ε ≃ₜ prodBall Q ε).trans
+    f.isOpenEmbedding.isEmbedding.toHomeomorph
+
+@[simp]
+theorem coe_rangeHomeomorph_apply (w : Q × Metric.ball (0 : ℂ) ε) :
+    (f.rangeHomeomorph w : M) =
+      f ⟨(w.1, w.2), mem_prodBall.2 (mem_ball_zero_iff.1 w.2.property)⟩ :=
+  (rfl)
+
+/-- For `0 < ε`, the image of `ι` lies in the range of a product neighbourhood. -/
+theorem range_embedding_subset_range (hε : 0 < ε) : range ι ⊆ range f := by
+  rintro _ ⟨q, rfl⟩
+  exact ⟨⟨(q, 0), mem_prodBall.2 (by simpa using hε)⟩, f.apply_mk_zero q _⟩
+
+/-- The radial path `t ↦ f (q, t • z)` in `M`, from `ι q` to `f (q, z)`, for a point
+`p = (q, z)` of `Q × B²(ε)`. -/
+def radialPath (p : prodBall Q ε) : Path (ι (p : Q × ℂ).1) (f p) where
+  toFun t := f ⟨_, mk_smul_mem_prodBall p t⟩
+  continuous_toFun := f.continuous.comp <| Continuous.subtype_mk
+    (continuous_const.prodMk (continuous_subtypeVal.smul continuous_const)) _
+  source' := by simp
+  target' := by simp
+
+/-- The radial path takes the value `f (q, t • z)` at time `t`. -/
+@[simp]
+theorem radialPath_apply (p : prodBall Q ε) (t : unitInterval) :
+    f.radialPath p t = f ⟨((p : Q × ℂ).1, (t : ℝ) • (p : Q × ℂ).2), mk_smul_mem_prodBall p t⟩ :=
+  (rfl)
 
 /-- A point `f p` lies in `f (Q × A(a, ε))` exactly when `a < |p.2|`. -/
 theorem apply_mem_range_comp_annulusToProdBall_iff {a : ℝ} {p : prodBall Q ε} :
