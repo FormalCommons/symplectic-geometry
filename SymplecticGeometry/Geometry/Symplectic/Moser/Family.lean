@@ -361,7 +361,8 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
   have hψ (τ : ℝ) (x : N) : ψ τ x = timeDependentFlowOf (Y τ) 0 1 x :=
     timeDependentFlowDiffeomorph_apply _ _ _ _ _ _
   have hψs : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × N ↦ ψ p.1 p.2) :=
-    contMDiff_timeDependentFlowDiffeomorph_param le_top hY hc 0 1
+    (contMDiff_timeDependentFlowDiffeomorph_param le_top hY hc 0).comp
+      (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))
   have hψ0 (τ : ℝ) (x : N) (h : ∀ s, Y τ s x = 0) : ψ τ x = x := by
     rw [hψ]
     exact timeDependentFlowOf_eq_self_of_forall_eq_zero ((hYτ τ).of_le (by simp)) h 0 1

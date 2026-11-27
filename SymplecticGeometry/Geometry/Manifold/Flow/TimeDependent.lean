@@ -86,8 +86,9 @@ neighbourhood of `a₀` with the interval.
 * `TauCeti.contMDiff_timeDependentFlowOf_param`: the time-dependent flows of a jointly `C^n`
   family of fields with complete suspensions are `C^n` in the parameter, both times and the
   initial point.
-* `TauCeti.contMDiff_timeDependentFlowDiffeomorph_param`: for two fixed times, the flow
-  diffeomorphisms of such a family are jointly `C^n` in the parameter and the point.
+* `TauCeti.contMDiff_timeDependentFlowDiffeomorph_param`: for a fixed initial time, the flow
+  diffeomorphisms of such a family are jointly `C^n` in the parameter, the final time and the
+  point.
 * `TauCeti.hasMFDerivWithinAt_prodMk_timeDependentSuspensionField` and
   `TauCeti.contMDiffAt_timeDependentSuspensionField`: a solution lifted through its clock is an
   integral curve of the suspension, and the suspension of a field `C^n` at a point is `C^n` there.
@@ -177,21 +178,22 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
 
 /-- **The flow diffeomorphisms of a family are jointly smooth.** For a family `X a` of
 time-dependent vector fields as in `TauCeti.contMDiff_timeDependentFlowOf_param`, jointly `C^n`
-in `(a, t, x)`, `1 ≤ n`, with complete suspensions, and two times `s` and `t`, the
-diffeomorphisms `timeDependentFlowDiffeomorph` of the fields `X a` from `s` to `t` form a family
-`N → M ≃ₘ M` for which `(a, x) ↦ timeDependentFlowDiffeomorph … s t x` is `C^n`. -/
+in `(a, t, x)`, `1 ≤ n`, with complete suspensions, and an initial time `s`, the map
+`(a, t, x) ↦ timeDependentFlowDiffeomorph … s t x`, the flow of `X a` from `s` to `t` applied
+to `x`, is `C^n`. -/
 theorem contMDiff_timeDependentFlowDiffeomorph_param [FiniteDimensional ℝ E] [T2Space M]
     [BoundarylessManifold I M] [IsManifold I 1 M] [IsManifold J 1 N] {n : ℕ∞} (hn : 1 ≤ n)
     [IsManifold I n M] [IsManifold J n N] {X : N → ℝ → (x : M) → TangentSpace I x}
     (hX : ContMDiff ((J.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
       (fun p : (N × ℝ) × M ↦ (⟨p.2, X p.1.1 p.1.2 p.2⟩ : TangentBundle I M)))
-    (hc : ∀ a, IsCompleteVectorField (timeDependentSuspensionField (X a))) (s t : ℝ) :
-    ContMDiff (J.prod I) I n (fun p : N × M ↦ timeDependentFlowDiffeomorph (hc p.1) hn
-      (hX.comp ((contMDiff_const (c := p.1).prodMk contMDiff_fst).prodMk contMDiff_snd)) s t
-        p.2) :=
+    (hc : ∀ a, IsCompleteVectorField (timeDependentSuspensionField (X a))) (s : ℝ) :
+    ContMDiff (J.prod (𝓘(ℝ, ℝ).prod I)) I n (fun p : N × ℝ × M ↦
+      timeDependentFlowDiffeomorph (hc p.1) hn
+        (hX.comp ((contMDiff_const (c := p.1).prodMk contMDiff_fst).prodMk contMDiff_snd))
+        s p.2.1 p.2.2) :=
   (contMDiff_timeDependentFlowOf_param hn hX hc).comp
-    ((contMDiff_fst.prodMk (contMDiff_const (c := (s, t)))).prodMk contMDiff_snd) |>.congr
-      fun _ ↦ timeDependentFlowDiffeomorph_apply ..
+    ((contMDiff_fst.prodMk ((contMDiff_const (c := s)).prodMk contMDiff_snd.fst)).prodMk
+      contMDiff_snd.snd) |>.congr fun _ ↦ timeDependentFlowDiffeomorph_apply ..
 
 end Param
 

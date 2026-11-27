@@ -139,8 +139,8 @@ theorem exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub
   have hχ (p : P) (x : N) : χ p x = timeDependentFlowOf (Y p) 0 1 x :=
     timeDependentFlowDiffeomorph_apply _ _ _ _ _ _
   let Φ : (P × N) ≃ₘ⟮IP.prod I, IP.prod I⟯ (P × N) :=
-    Diffeomorph.prodCongrRight χ (contMDiff_timeDependentFlowDiffeomorph_param le_top hY hcY 0 1)
-      (by simp)
+    Diffeomorph.prodCongrRight χ ((contMDiff_timeDependentFlowDiffeomorph_param le_top hY hcY
+      0).comp (contMDiff_fst.prodMk (contMDiff_const.prodMk contMDiff_snd))) (by simp)
   refine ⟨Φ, χ, fun q ↦ Diffeomorph.prodCongrRight_apply _ _ _ .., fun p ↦ ?_,
     fun p x hx ↦ ?_⟩
   · -- For this `p`, `Y p` is the Moser field of the family `ω₀ + c(s) (σ_p - ω₀)`, with the
