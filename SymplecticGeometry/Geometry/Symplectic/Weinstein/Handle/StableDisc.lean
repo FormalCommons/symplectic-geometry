@@ -25,13 +25,15 @@ points whose orbits tend to `p`, the function `f` is at most `f p`.
 This is the first step towards the isotropy of the stable discs of the nondegenerate critical
 points. The conformal scaling `φ_t^* ω = e^t ω` and `φ_t^* (ι_X ω) = e^t ι_X ω` of the flow is
 Tau Ceti's `TauCeti.IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul` and
-`TauCeti.mpullback_globalFlow_eq_exp_smul_of_interior_eq`, which apply to
-`SymplecticGeometry.IsWeinsteinStructure.flow` as they are.
+`TauCeti.mpullback_globalFlow_eq_exp_smul_of_interior_eq`. They are stated for `globalFlow`, and
+apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
+`SymplecticGeometry.IsWeinsteinStructure.flow_def`.
 
 ## Main declarations
 
 * `SymplecticGeometry.IsWeinsteinStructure.flow`: the flow of the Liouville field, Tau Ceti's
-  `TauCeti.globalFlow`, with `SymplecticGeometry.IsWeinsteinStructure.flow_apply`.
+  `TauCeti.globalFlow`, with `SymplecticGeometry.IsWeinsteinStructure.flow_def` and
+  `SymplecticGeometry.IsWeinsteinStructure.flow_apply`.
 * `SymplecticGeometry.IsWeinsteinStructure.isMIntegralCurve_flow` and
   `SymplecticGeometry.IsWeinsteinStructure.flow_apply_eq_of_isMIntegralCurve`: the orbits are
   integral curves of `X`, and every integral curve of `X` is an orbit.
@@ -84,9 +86,14 @@ noncomputable def flow (hW : IsWeinsteinStructure ω X f) : Flow ℝ M :=
 
 variable (hW : IsWeinsteinStructure ω X f)
 
+/-- The flow of a Weinstein structure is Tau Ceti's global flow of its Liouville field. -/
+theorem flow_def :
+    hW.flow = globalFlow X (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField :=
+  (rfl)
+
 /-- The flow at time `t` is the maximal integral curve of the Liouville field at time `t`. -/
 theorem flow_apply (t : ℝ) (y : M) : hW.flow t y = maximalIntegralCurve X y t := by
-  rw [flow, globalFlow_apply]
+  rw [flow_def, globalFlow_apply]
 
 /-- The orbits of the flow are integral curves of the Liouville field. -/
 theorem isMIntegralCurve_flow (y : M) : IsMIntegralCurve (fun t ↦ hW.flow t y) X :=
@@ -112,16 +119,22 @@ the time-`(-t)` map. -/
 noncomputable def flowDiffeomorph (t : ℝ) : M ≃ₘ^(⊤ : ℕ∞)⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M :=
   globalFlowDiffeomorph hW.isCompleteVectorField (n := ⊤) le_top hW.contMDiff_field t
 
+/-- The diffeomorphism `flowDiffeomorph t` is Tau Ceti's global flow diffeomorphism at time `t`. -/
+theorem flowDiffeomorph_def (t : ℝ) :
+    hW.flowDiffeomorph t =
+      globalFlowDiffeomorph hW.isCompleteVectorField (n := ⊤) le_top hW.contMDiff_field t :=
+  (rfl)
+
 /-- The diffeomorphism `flowDiffeomorph t` is the time-`t` map of the flow. -/
 @[simp]
 theorem flowDiffeomorph_apply (t : ℝ) (y : M) : hW.flowDiffeomorph t y = hW.flow t y := by
-  rw [flowDiffeomorph, globalFlowDiffeomorph_apply, hW.flow_apply, globalFlow_apply]
+  rw [flowDiffeomorph_def, globalFlowDiffeomorph_apply, hW.flow_apply, globalFlow_apply]
 
 /-- The inverse of `flowDiffeomorph t` is the time-`(-t)` map of the flow. -/
 @[simp]
 theorem flowDiffeomorph_symm_apply (t : ℝ) (y : M) :
     (hW.flowDiffeomorph t).symm y = hW.flow (-t) y := by
-  rw [flowDiffeomorph, globalFlowDiffeomorph_symm_apply, hW.flow_apply, globalFlow_apply]
+  rw [flowDiffeomorph_def, globalFlowDiffeomorph_symm_apply, hW.flow_apply, globalFlow_apply]
 
 /-- **The flow preserves the Liouville field.** The differential of the time-`t` map of the flow
 carries `X y` to `X` at the image of `y`. -/
