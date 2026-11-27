@@ -400,7 +400,7 @@ theorem isConvexShapeAt_shapeChain {G : ℝ} (hδ : 0 < δ) (hh : 0 < h) (hη : 
     (hG : ∀ i ≤ N, deriv (A i) r ≤ G) (hδG : δ * G ≤ r) (ℓ : ℝ) :
     IsConvexShapeAt (shapeChain δ η a h A N ℓ) r := by
   have hM {j : ℕ} (hj : j ≤ N) : IsConvexShapeAt (smoothedMaxChain δ A j) r :=
-    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ hA i (hi.trans hj))
+    isConvexShapeAt_smoothedMaxChain hδ (fun i hi ↦ (hA i (hi.trans hj)).contDiffAt)
       (fun i hi ↦ hc i (hi.trans hj)) (fun i hi ↦ hG i (hi.trans hj)) hδG
   rcases le_or_gt ℓ a with hℓa | hℓa
   · rw [shapeChain_of_le hh (by linarith)]

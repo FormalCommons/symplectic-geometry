@@ -81,7 +81,8 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   smoothed maximum.
 * `SymplecticGeometry.smoothedMaxChain δ A`: the chain whose first member is `A 0` and whose
   `(i + 1)`-th member is the smoothed maximum of the `i`-th one and `A (i + 1)`. Its members are
-  as smooth as the `A j` (`contDiff_smoothedMaxChain`), increase along the chain
+  as smooth as the `A j`, globally or at a point (`contDiff_smoothedMaxChain`,
+  `contDiffAt_smoothedMaxChain`), increase along the chain
   (`monotone_smoothedMaxChain`), lie above the `A j` they are built from
   (`le_smoothedMaxChain_of_le`) and at most `i δ / 2` above one of them
   (`exists_smoothedMaxChain_le_add`), keep the bounds of the slopes of the `A j`
@@ -791,6 +792,17 @@ theorem contDiff_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, Con
   | succ i ih =>
     rw [smoothedMaxChain_succ]
     exact (contDiff_smoothedMax δ).comp
+      ((ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).prodMk (hA (i + 1) le_rfl))
+
+/-- A member of the chain of smoothed maxima is `Cⁿ` at `r` if the functions it is built from
+are. -/
+theorem contDiffAt_smoothedMaxChain {n : ℕ∞} (δ : ℝ) (hA : ∀ j ≤ i, ContDiffAt ℝ n (A j) r) :
+    ContDiffAt ℝ n (smoothedMaxChain δ A i) r := by
+  induction i with
+  | zero => rw [smoothedMaxChain_zero]; exact hA 0 le_rfl
+  | succ i ih =>
+    rw [smoothedMaxChain_succ]
+    exact (contDiff_smoothedMax δ).contDiffAt.comp r
       ((ih fun j hj ↦ hA j (Nat.le_succ_of_le hj)).prodMk (hA (i + 1) le_rfl))
 
 /-- A member of the chain of smoothed maxima is differentiable at `r` if the functions it is
