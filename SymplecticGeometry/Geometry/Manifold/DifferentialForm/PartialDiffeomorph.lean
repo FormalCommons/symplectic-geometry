@@ -35,13 +35,8 @@ import TauCeti.Topology.Algebra.Support
 
 Let `ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞` be a chart of `M` with values in a real normed
 space `D`. A form `φ` on `M` is read in `ψ` as the flat form `mpullback 𝓘(ℝ, D) I ψ.symm φ` on
-`D`, which is meaningful on `ψ.target`. The extension by zero `extendByZeroAlong`, the
-localization `localize` with its lemmas, and `contDiffAt_mpullback_symm`,
-`differentiableAt_mpullback_symm` and `contDiffOn_fderiv_mpullback_symm_apply` allow any `D`.
-The other results take for `D` the model vector space `E` of `M`: those on the atlas chart, on
-the exterior derivative and on the derivation along an almost complex structure, and the values
-and derivatives of readings in a chart (`symbolInChart`, the Leibniz rule
-`fderiv_mpullback_symm_wedge_apply` and the rest of `section Readings`).
+`D`, which is meaningful on `ψ.target`. Every result allows any `D` except the one on the atlas
+chart, `mpullback_symm_eq_inChartAt`, where `D` is the model vector space `E` of `M`.
 
 ## Main declarations
 
@@ -113,9 +108,9 @@ open scoped Manifold Topology ContDiff
 
 namespace TauCeti
 
-variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+variable {E H M F D : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup D] [NormedSpace ℝ D] {k : ℕ}
 
 /-! ### The atlas chart -/
 
@@ -134,27 +129,27 @@ theorem mpullback_symm_eq_inChartAt {n : WithTop ℕ∞} [IsManifold I n M] (φ 
 
 /-! ### The exterior derivative -/
 
-/-- On the target of a partial diffeomorphism `ψ` onto an open subset of `E`, the exterior
+/-- On the target of a partial diffeomorphism `ψ` onto an open subset of `D`, the exterior
 derivative of a smooth form, read through `ψ`, is the flat exterior derivative of its reading. -/
-theorem mpullback_symm_mextDerivₗ [IsManifold I ∞ M] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : SmoothForm I M F k) {y : E} (hy : y ∈ ψ.target) :
-    (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k φ).val y : E [⋀^Fin (k + 1)]→L[ℝ] F) =
-      extDeriv (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] F) y := by
+theorem mpullback_symm_mextDerivₗ [IsManifold I ∞ M] (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    (φ : SmoothForm I M F k) {y : D} (hy : y ∈ ψ.target) :
+    (mpullback 𝓘(ℝ, D) I ψ.symm (mextDerivₗ I k φ).val y : D [⋀^Fin (k + 1)]→L[ℝ] F) =
+      extDeriv (mpullback 𝓘(ℝ, D) I ψ.symm φ.val : D → D [⋀^Fin k]→L[ℝ] F) y := by
   rw [mextDerivₗ_apply, mpullback_mextDeriv_at
     ((ψ.symm.contMDiffAt hy).of_le (by simp))
     ((φ.contMDiff _).of_le (by simp)), mextDeriv_eq_extDeriv]
 
 /-! ### The derivation along an almost complex structure -/
 
-/-- Read through a chart `ψ` with values in the model space, the real derivation of a smooth form
+/-- Read through a chart `ψ` into a real normed space, the real derivation of a smooth form
 `φ` along an almost complex structure `J` is the derivation of the reading of `φ` along the
 structure `J.chartPushforward` that `J` induces on `ψ.target`. -/
 theorem mpullback_symm_realAlternatingDerivation [IsManifold I ∞ M]
-    (J : SmoothAlmostComplexStructure I M) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target)
-    (v : Fin k → TangentSpace 𝓘(ℝ, E) y) :
-    mpullback 𝓘(ℝ, E) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val y v =
-      ∑ i, mpullback 𝓘(ℝ, E) I ψ.symm φ.val y
+    (J : SmoothAlmostComplexStructure I M) (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    (φ : SmoothForm I M ℝ k) {y : D} (hy : y ∈ ψ.target)
+    (v : Fin k → TangentSpace 𝓘(ℝ, D) y) :
+    mpullback 𝓘(ℝ, D) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val y v =
+      ∑ i, mpullback 𝓘(ℝ, D) I ψ.symm φ.val y
         (Function.update v i (J.chartPushforward ψ.toOpenPartialHomeomorph y (v i))) := by
   have hJ := J.mfderiv_symm_apply_chartPushforward_apply ψ hy
   simp only [mpullback_apply, ContMDiffSection.realAlternatingDerivation_apply]
@@ -173,10 +168,10 @@ section Readings
 the differential of `ψ`. This is `PartialDiffeomorph.mpullback_mpullback_symm_apply` at `ψ.symm y`,
 with the reading taken at `y` rather than at `ψ (ψ.symm y)`. -/
 theorem mpullback_symm_compContinuousLinearMap_mfderiv {n : WithTop ℕ∞}
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n) (hn : n ≠ 0) (φ : RoughForm I M F k) {y : E}
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D n) (hn : n ≠ 0) (φ : RoughForm I M F k) {y : D}
     (hy : y ∈ ψ.target) :
-    (mpullback 𝓘(ℝ, E) I ψ.symm φ y : E [⋀^Fin k]→L[ℝ] F).compContinuousLinearMap
-        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) =
+    (mpullback 𝓘(ℝ, D) I ψ.symm φ y : D [⋀^Fin k]→L[ℝ] F).compContinuousLinearMap
+        (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] D) =
       φ (ψ.symm y) := by
   ext v
   -- The left side evaluated at `v` is the pullback evaluated at the images of `v`.
@@ -189,54 +184,54 @@ space at `ψ.symm y` along the differential of `ψ`: the continuous linear map t
 derivative of the reading in the direction `dψ v`, pulled back along `dψ`. At `ψ.symm y`, the
 exterior derivative `dφ` is its alternation
 (`PartialDiffeomorph.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart`). -/
-def _root_.PartialDiffeomorph.symbolInChart (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : RoughForm I M F k) (y : E) :
+def _root_.PartialDiffeomorph.symbolInChart (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    (φ : RoughForm I M F k) (y : D) :
     TangentSpace I (ψ.symm y) →L[ℝ] TangentSpace I (ψ.symm y) [⋀^Fin k]→L[ℝ] F :=
   ContinuousAlternatingMap.compContinuousLinearMapCLM
-      (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) ∘L
-    fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, E) I ψ.symm φ) y ∘L
-      (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E)
+      (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] D) ∘L
+    fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, D) I ψ.symm φ) y ∘L
+      (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] D)
 
-theorem _root_.PartialDiffeomorph.symbolInChart_def (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : RoughForm I M F k) (y : E) :
+theorem _root_.PartialDiffeomorph.symbolInChart_def (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    (φ : RoughForm I M F k) (y : D) :
     ψ.symbolInChart φ y =
       ContinuousAlternatingMap.compContinuousLinearMapCLM
-          (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) ∘L
-        fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, E) I ψ.symm φ) y ∘L
-          (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) :=
+          (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] D) ∘L
+        fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, D) I ψ.symm φ) y ∘L
+          (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] D) :=
   (rfl)
 
-theorem _root_.PartialDiffeomorph.symbolInChart_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (φ : RoughForm I M F k) (y : E) (v : TangentSpace I (ψ.symm y)) :
+theorem _root_.PartialDiffeomorph.symbolInChart_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    (φ : RoughForm I M F k) (y : D) (v : TangentSpace I (ψ.symm y)) :
     ψ.symbolInChart φ y v =
-      (fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, E) I ψ.symm φ) y
-        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) v)).compContinuousLinearMap
-        (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) :=
+      (fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, D) I ψ.symm φ) y
+        (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) v)).compContinuousLinearMap
+        (mfderiv I 𝓘(ℝ, D) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] D) :=
   (rfl)
 
 variable [IsManifold I ∞ M]
 
 /-- **The Leibniz rule in a chart**: on the target of a chart, the derivative of the reading of
 `β ∧ σ` is `Dβ ∧ σ + β ∧ Dσ`, in terms of the readings of `β` and `σ`. -/
-theorem fderiv_mpullback_symm_wedge_apply {l : ℕ} (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (β : SmoothForm I M ℝ k) (σ : SmoothForm I M ℝ l) {y : E} (hy : y ∈ ψ.target) (v : E) :
-    fderiv ℝ (F := E [⋀^Fin (k + l)]→L[ℝ] ℝ)
-        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.wedge β σ).val) y v =
+theorem fderiv_mpullback_symm_wedge_apply {l : ℕ} (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    (β : SmoothForm I M ℝ k) (σ : SmoothForm I M ℝ l) {y : D} (hy : y ∈ ψ.target) (v : D) :
+    fderiv ℝ (F := D [⋀^Fin (k + l)]→L[ℝ] ℝ)
+        (mpullback 𝓘(ℝ, D) I ψ.symm (SmoothForm.wedge β σ).val) y v =
       ContinuousAlternatingMap.wedge
-          (fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm β.val) y v)
-          (mpullback 𝓘(ℝ, E) I ψ.symm σ.val y : E [⋀^Fin l]→L[ℝ] ℝ) +
-        ContinuousAlternatingMap.wedge (mpullback 𝓘(ℝ, E) I ψ.symm β.val y : E [⋀^Fin k]→L[ℝ] ℝ)
-          (fderiv ℝ (F := E [⋀^Fin l]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) y v) := by
+          (fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, D) I ψ.symm β.val) y v)
+          (mpullback 𝓘(ℝ, D) I ψ.symm σ.val y : D [⋀^Fin l]→L[ℝ] ℝ) +
+        ContinuousAlternatingMap.wedge (mpullback 𝓘(ℝ, D) I ψ.symm β.val y : D [⋀^Fin k]→L[ℝ] ℝ)
+          (fderiv ℝ (F := D [⋀^Fin l]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, D) I ψ.symm σ.val) y v) := by
   have hT := ψ.open_target.mem_nhds hy
-  have hd {j : ℕ} (φ : SmoothForm I M ℝ j) : DifferentiableAt ℝ (F := E [⋀^Fin j]→L[ℝ] ℝ)
-      (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y :=
+  have hd {j : ℕ} (φ : SmoothForm I M ℝ j) : DifferentiableAt ℝ (F := D [⋀^Fin j]→L[ℝ] ℝ)
+      (mpullback 𝓘(ℝ, D) I ψ.symm φ.val) y :=
     ((φ.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).contDiffAt hT).differentiableAt
       (by simp)
   rw [SmoothForm.coe_wedge, mpullback_wedge, RoughForm.wedge_def,
-    show RoughForm.wedgeWith (ContinuousLinearMap.mul ℝ ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm β.val)
-      (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) = fun z ↦ _ from
+    show RoughForm.wedgeWith (ContinuousLinearMap.mul ℝ ℝ) (mpullback 𝓘(ℝ, D) I ψ.symm β.val)
+      (mpullback 𝓘(ℝ, D) I ψ.symm σ.val) = fun z ↦ _ from
       funext (RoughForm.wedgeWith_apply' _ _ _)]
-  refine (fderiv_pairedWedge_apply (μ := fun _ : E ↦ ContinuousLinearMap.mul ℝ ℝ)
+  refine (fderiv_pairedWedge_apply (μ := fun _ : D ↦ ContinuousLinearMap.mul ℝ ℝ)
       (differentiableAt_const _) (hd β) (hd σ) v).trans ?_
   simp only [fderiv_fun_const, Pi.zero_apply, zero_apply]
   -- The forms read in the chart have the fibres of the pullback as their types, so the term of
@@ -249,24 +244,24 @@ theorem fderiv_mpullback_symm_wedge_apply {l : ℕ} (ψ : PartialDiffeomorph I �
 `𝒥 φ` is `D_{A₀}` applied to the derivative of the reading of `φ`, where `D_{A₀}` is the
 derivation of `A₀` on forms. -/
 theorem fderiv_mpullback_symm_realAlternatingDerivation_apply
-    (J : SmoothAlmostComplexStructure I M) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    {A₀ : E →L[ℝ] E}
+    (J : SmoothAlmostComplexStructure I M) (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    {A₀ : D →L[ℝ] D}
     (hψ : ∀ p ∈ ψ.target, ∀ w, J.chartPushforward ψ.toOpenPartialHomeomorph p w = A₀ w)
-    (φ : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) (v : E) :
-    fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ)
-        (mpullback 𝓘(ℝ, E) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val) y v =
-      (fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y
-        v).fderivCompContinuousLinearMap (.id ℝ E) A₀ := by
+    (φ : SmoothForm I M ℝ k) {y : D} (hy : y ∈ ψ.target) (v : D) :
+    fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] ℝ)
+        (mpullback 𝓘(ℝ, D) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val) y v =
+      (fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, D) I ψ.symm φ.val) y
+        v).fderivCompContinuousLinearMap (.id ℝ D) A₀ := by
   set L := (ContinuousAlternatingMap.fderivCompContinuousLinearMapCLM ℝ (ι := Fin k)
-    (.id ℝ E)).flip A₀
+    (.id ℝ D)).flip A₀
   have hT := ψ.open_target.mem_nhds hy
-  have hd : DifferentiableAt ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ)
-      (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y :=
+  have hd : DifferentiableAt ℝ (F := D [⋀^Fin k]→L[ℝ] ℝ)
+      (mpullback 𝓘(ℝ, D) I ψ.symm φ.val) y :=
     ((φ.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).contDiffAt hT).differentiableAt
       (by simp)
-  have hev : (fun z ↦ L (mpullback 𝓘(ℝ, E) I ψ.symm φ.val z)) =ᶠ[𝓝 y]
-      (mpullback 𝓘(ℝ, E) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val :
-        E → E [⋀^Fin k]→L[ℝ] ℝ) := by
+  have hev : (fun z ↦ L (mpullback 𝓘(ℝ, D) I ψ.symm φ.val z)) =ᶠ[𝓝 y]
+      (mpullback 𝓘(ℝ, D) I ψ.symm (J.toEndomorphism.realAlternatingDerivation φ).val :
+        D → D [⋀^Fin k]→L[ℝ] ℝ) := by
     filter_upwards [hT] with z hz
     ext w
     refine Eq.trans ?_ (mpullback_symm_realAlternatingDerivation J ψ φ hz w).symm
@@ -284,34 +279,34 @@ variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 /-- At `ψ.symm y`, the exterior derivative of a smooth form is the alternation of the derivative
 of its reading in the chart, carried to the tangent space by `symbolInChart`. -/
 theorem _root_.PartialDiffeomorph.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (φ : SmoothForm I M F k) {y : E}
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞) (φ : SmoothForm I M F k) {y : D}
     (hy : y ∈ ψ.target) :
     (mextDerivₗ I k φ).val (ψ.symm y) =
       ContinuousAlternatingMap.alternatizeUncurryFin (ψ.symbolInChart φ.val y) := by
   rw [← mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp) (mextDerivₗ I k φ).val hy,
     mpullback_symm_mextDerivₗ ψ φ hy]
   -- `extDeriv` is the alternation of the derivative.
-  exact ContinuousAlternatingMap.alternatizeUncurryFin_compContinuousLinearMap (𝕜 := ℝ) (E := E)
-    (fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, E) I ψ.symm φ.val) y) _
+  exact ContinuousAlternatingMap.alternatizeUncurryFin_compContinuousLinearMap (𝕜 := ℝ) (E := D)
+    (fderiv ℝ (F := D [⋀^Fin k]→L[ℝ] F) (mpullback 𝓘(ℝ, D) I ψ.symm φ.val) y) _
 
 /-- In a chart in which `J` is a constant endomorphism `A₀`, `symbolInChart` carries `𝒥 φ` to
 the derivation of `J (ψ.symm y)` applied to `symbolInChart` of `φ`. -/
 theorem _root_.PartialDiffeomorph.symbolInChart_realAlternatingDerivation_apply
-    (J : SmoothAlmostComplexStructure I M) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    {A₀ : E →L[ℝ] E}
+    (J : SmoothAlmostComplexStructure I M) (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D ∞)
+    {A₀ : D →L[ℝ] D}
     (hψ : ∀ p ∈ ψ.target, ∀ w, J.chartPushforward ψ.toOpenPartialHomeomorph p w = A₀ w)
-    (φ : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) (v : TangentSpace I (ψ.symm y)) :
+    (φ : SmoothForm I M ℝ k) {y : D} (hy : y ∈ ψ.target) (v : TangentSpace I (ψ.symm y)) :
     ψ.symbolInChart (J.toEndomorphism.realAlternatingDerivation φ).val y v =
       (ψ.symbolInChart φ.val y v).fderivCompContinuousLinearMap (.id ℝ _)
         (J.toEndomorphism (ψ.symm y)) := by
-  -- The step on `E`, for a map `T` that intertwines `A₀` and `J`.
-  have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E)
-      (hT : A₀ ∘L T = T ∘L J.toEndomorphism (ψ.symm y)) (D D' : E →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ)
-      (hD : ∀ u, D' u = (D u).fderivCompContinuousLinearMap (.id ℝ E) A₀) :
-      (D' (T v)).compContinuousLinearMap T =
-        ((D (T v)).compContinuousLinearMap T).fderivCompContinuousLinearMap (.id ℝ _)
+  -- The step on `D`, for a map `T` that intertwines `A₀` and `J`.
+  have key (T : TangentSpace I (ψ.symm y) →L[ℝ] D)
+      (hT : A₀ ∘L T = T ∘L J.toEndomorphism (ψ.symm y)) (L L' : D →L[ℝ] D [⋀^Fin k]→L[ℝ] ℝ)
+      (hL : ∀ u, L' u = (L u).fderivCompContinuousLinearMap (.id ℝ D) A₀) :
+      (L' (T v)).compContinuousLinearMap T =
+        ((L (T v)).compContinuousLinearMap T).fderivCompContinuousLinearMap (.id ℝ _)
           (J.toEndomorphism (ψ.symm y)) := by
-    rw [hD, ContinuousAlternatingMap.compContinuousLinearMap_fderivCompContinuousLinearMap_id _ hT]
+    rw [hL, ContinuousAlternatingMap.compContinuousLinearMap_fderivCompContinuousLinearMap_id _ hT]
   rw [PartialDiffeomorph.symbolInChart_apply, PartialDiffeomorph.symbolInChart_apply]
   refine key _ ?_ _ _ (fderiv_mpullback_symm_realAlternatingDerivation_apply J ψ hψ φ hy)
   ext u
@@ -326,7 +321,7 @@ end Readings
 
 section ExtendByZero
 
-variable {D : Type*} [NormedAddCommGroup D] [NormedSpace ℝ D] {n : WithTop ℕ∞}
+variable {n : WithTop ℕ∞}
   (ψ : PartialDiffeomorph I 𝓘(ℝ, D) M D n) (a : D → D [⋀^Fin k]→L[ℝ] F)
 
 open Classical in
@@ -534,8 +529,6 @@ end ExtendByZero
 /-! ### Localization of a smooth form to a chart -/
 
 namespace SmoothForm
-
-variable {D : Type*} [NormedAddCommGroup D] [NormedSpace ℝ D]
 
 section Localize
 

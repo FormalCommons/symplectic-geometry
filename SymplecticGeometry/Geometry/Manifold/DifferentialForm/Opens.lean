@@ -363,7 +363,7 @@ theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
   have hmf : mfderivWithin 𝓘(ℝ, E) I (Subtype.val ∘ (extChartAt I x).symm) (range I) z =
       mfderivWithin 𝓘(ℝ, E) I (extChartAt I (x : M)).symm (range I) z :=
     hev.symm.mfderivWithin_eq h0
-  rw [inChartAt_mpullback γ _ x hz SymplecticGeometry.mdifferentiableAt_subtypeVal, hmf,
+  rw [inChartAt_mpullback γ _ x hz mdifferentiableAt_subtypeVal, hmf,
     ← Function.comp_apply (f := Subtype.val), h0]
   ext v
   exact (inChartAt_apply γ (x : M) z v).symm
