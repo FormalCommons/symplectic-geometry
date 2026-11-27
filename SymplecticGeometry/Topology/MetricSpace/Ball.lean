@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Logic.Equiv.Set
+import Mathlib.Logic.Equiv.Set
 public import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 /-!
