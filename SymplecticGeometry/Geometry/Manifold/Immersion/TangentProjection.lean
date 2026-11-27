@@ -14,6 +14,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Topology.Compactness.Compact
 import SymplecticGeometry.Analysis.Calculus.TangentGraphChart
+import SymplecticGeometry.Geometry.Manifold.IsManifold.ChartBall
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 
@@ -211,8 +212,8 @@ variable [IsManifold I ∞ M] [BoundarylessManifold I M]
 
 /-- **The chart at a point near `x₀`.** Read in the extended chart at `x₀`, where `e` becomes `g`,
 the coordinate data of `ContDiffOn.exists_uniform_inverse_starProjection` at
-`w' = extChartAt I x₀ x` give a tangent projection chart at `x` whose source is the preimage of
-the ball of radius `ε`, whose target contains a ball of radius `η / (‖S‖ + 1)`, and whose inverse
+`w' = extChartAt I x₀ x` give a tangent projection chart at `x` whose source is the chart ball
+`chartBall I x₀ ε`, whose target contains a ball of radius `η / (‖S‖ + 1)`, and whose inverse
 has derivatives bounded in terms of `S` and `C`. -/
 private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I 𝓘(ℝ, F) ∞ e)
     (hinj : ∀ x, Injective (mfderiv I 𝓘(ℝ, F) e x)) {x₀ x : M} {g : E → F}
@@ -232,7 +233,7 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
         (g w - g (extChartAt I x₀ x))) = v) :
     ∃ Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞,
       (∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) ∧
-      Φ.source = (extChartAt I x₀).source ∩ extChartAt I x₀ ⁻¹' ball (extChartAt I x₀ x₀) ε ∧
+      Φ.source = chartBall I x₀ ε ∧
       ball 0 (η / (‖S‖ + 1)) ⊆ Φ.target ∧
       ∀ u ∈ Φ.target, ∀ j,
         ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ (‖S‖ + 1) ^ j * max (C j) 0 := by
@@ -240,7 +241,8 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
   set c := extChartAt I x₀
   set w' := c x
   set s := c.source ∩ c ⁻¹' ball (c x₀) ε
-  have hs : IsOpen s := isOpen_extChartAt_preimage' x₀ isOpen_ball
+  have hsb : (chartBall I x₀ ε : Set M) = s := coe_chartBall I x₀ ε
+  have hs : IsOpen s := hsb ▸ (chartBall I x₀ ε).isOpen
   have hgd : ∀ z ∈ s, DifferentiableAt ℝ (e ∘ c.symm) (c z) := fun z hz ↦
     (((he.contDiffOn_comp_extChartAt_symm x₀).mono interior_subset).contDiffAt
       (isOpen_interior.mem_nhds (hεU hz.2))).differentiableAt (by simp)
@@ -321,7 +323,8 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
     IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_target hloc hs hinjOn
   have hΦsymm : ∀ y, Φ.symm y = invFunOn φ s y :=
     IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_symm_apply hloc hs hinjOn
-  refine ⟨Φ, fun z _ ↦ hΦ z, IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source hloc hs hinjOn,
+  refine ⟨Φ, fun z _ ↦ hΦ z,
+    (IsLocalDiffeomorphOn.partialDiffeomorphOfInjOn_source hloc hs hinjOn).trans hsb.symm,
     fun u hu ↦ hΦt ▸ ?_, hΦt ▸ ?_⟩
   · -- The target contains a ball around `0`: its points come from `hsurj`.
     have hTu : T u ∈ ball (0 : E) η := by
@@ -379,9 +382,9 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     rwa [c.right_inv hw'] at h
   obtain ⟨S, ε, hε, η, hη, C, h, hηε, hεU, hmain⟩ :=
     hg.exists_uniform_inverse_starProjection isOpen_interior hw₀ hinjg
-  set s := c.source ∩ c ⁻¹' ball (c x₀) ε
-  have hs : IsOpen s := isOpen_extChartAt_preimage' x₀ isOpen_ball
-  have hx₀s : x₀ ∈ s := ⟨mem_extChartAt_source x₀, mem_ball_self hε⟩
+  set s : Set M := (chartBall I x₀ ε : Set M)
+  have hs : IsOpen s := (chartBall I x₀ ε).isOpen
+  have hx₀s : x₀ ∈ s := mem_chartBall_self I x₀ hε
   -- Points whose images are close to that of a point near `x₀` lie in `s`.
   obtain ⟨W, hW, r, hr, hWr⟩ :
       ∃ W ∈ 𝓝 x₀, ∃ r > 0, ∀ x ∈ W, ∀ z, dist (e z) (e x) < r → z ∈ s := by
@@ -394,11 +397,10 @@ private theorem exists_uniform_tangentProjectionChart_nhds [CompactSpace M]
     rw [mem_preimage, mem_ball] at hx ⊢
     linarith [dist_triangle (e z) (e x) (e x₀)]
   have hρ : 0 < η / (‖S‖ + 1) := div_pos hη (by positivity)
-  refine ⟨W ∩ (c.source ∩ c ⁻¹' ball (c x₀) η),
-    inter_mem hW ((isOpen_extChartAt_preimage' x₀ isOpen_ball).mem_nhds
-      ⟨mem_extChartAt_source x₀, mem_ball_self hη⟩),
+  refine ⟨W ∩ chartBall I x₀ η, inter_mem hW (chartBall_mem_nhds I x₀ hη),
     min r (η / (‖S‖ + 1)), lt_min hr hρ, fun j ↦ (‖S‖ + 1) ^ j * max (C j) 0,
-    fun x ⟨hxW, hxc, hxη⟩ ↦ ?_⟩
+    fun x ⟨hxW, hx⟩ ↦ ?_⟩
+  obtain ⟨hxc, hxη⟩ := (mem_chartBall_iff I).1 hx
   obtain ⟨hmain', hsurj⟩ := hmain (c x) hxη
   obtain ⟨Φ, h₁, h₂, h₃, h₄⟩ := exists_partialDiffeomorph_of_uniformInverse he hinj hgdef
     hεU hxc (ball_subset_ball hηε hxη) hmain' hsurj
