@@ -7,8 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
+import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
 
 /-!
 # Families of normalized ball embeddings, their lifts and their forms
@@ -27,6 +29,10 @@ a single normalized ball embedding `ψ` until `B(l + ε)` lies where `ψ = ψ₀
 then joins `ω̃_{ψ,l,ε}`, through symplectic forms, to a form compatible with the almost complex
 blowup of `J` (Theorem 7.1.21 (vi)).
 
+Finally, for two profiles `h₀ h₁` of the same weight and collar, the forms `ω̃_{ψ,l,ε}` of `h₀`
+and `h₁` are related by a diffeotopy of the blowup supported in the lifted ball (Theorem 7.1.21
+(vii)), by Moser's argument along the segment of profiles.
+
 ## Main results
 
 * `SymplecticGeometry.IsNormalizedBallEmbedding.contMDiff_ballLift_family`: the lifts of the
@@ -42,6 +48,9 @@ blowup of `J` (Theorem 7.1.21 (vi)).
 * `SymplecticGeometry.IsNormalizedBallEmbedding.exists_path_compatible`: `ω̃_{ψ,l,ε}` is joined,
   through a smooth path of symplectic two-forms of the blowup, to a form compatible with the
   almost complex blowup of `J`.
+* `SymplecticGeometry.IsNormalizedBallEmbedding.exists_diffeotopy_normalizedBlowupForm_of_profile`:
+  the forms of two profiles are related by a diffeotopy fixed off the image of
+  `closedNbhd n (l + ε)`.
 
 ## Implementation notes
 
@@ -63,10 +72,16 @@ it the family is the constant family `blowdown^* σ`. The theorem for `ω̃_{ψ_
 gluing step with `P t = profileForm n (l t) (ε t)`, smooth by
 `BlowupModel.isSmoothFamily_profileForm`, and `c = l + ε`.
 
+For two profiles, the segment `(1 - s) • h₀ + s • h₁` consists of profiles, and its forms are the
+segment between the two forms (`normalizedBlowupForm_one_sub_smul_add_smul`), each symplectic
+(`isSymplectic_normalizedBlowupForm`). Their difference has a primitive vanishing off the compact
+image of `closedNbhd n (l + ε)` (`exists_mextDeriv_eq_normalizedBlowupForm_sub`), so
+`TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub` gives the diffeotopy.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §7.1,
-  Theorem 7.1.21 (iii) and (vi).
+  Theorem 7.1.21 (iii), (vi) and (vii).
 -/
 
 public section
@@ -338,6 +353,33 @@ theorem exists_path_compatible [T2Space M] {ψ : StdSpace (Fin (n + 1)) → M} {
   rw [mem_ball_zero_iff]
   simp only [L, W, Set.Icc.coe_one] at hz
   linarith
+
+/-! ### Two profiles give isotopic forms -/
+
+/-- **The forms of two profiles are isotopic** (McDuff–Salamon, Theorem 7.1.21 (vii)). Let `M` be
+Hausdorff, `σ` symplectic, and `ψ` a normalized ball embedding of radius `r`, weight `l` and width
+`ε`. For two profiles `h₀ h₁` of the blowup of weight `l` with collar `ε`, there is a diffeotopy
+`Φ` of the blowup that fixes, at all times, every point off the image under the lift `ψ̃` of the
+compact set `L(l + ε) = closedNbhd n (l + ε)`, and whose final map pulls `ω̃_{ψ,l,ε}` for `h₁`
+back to `ω̃_{ψ,l,ε}` for `h₀`. -/
+theorem exists_diffeotopy_normalizedBlowupForm_of_profile [T2Space M]
+    {ψ : StdSpace (Fin (n + 1)) → M} {r l ε : ℝ} (hψ : IsNormalizedBallEmbedding hN ψ r l ε)
+    (hσ : σ.IsSymplectic) {h₀ h₁ : ℝ → ℝ} (hh₀ : IsBlowupProfile l ε h₀)
+    (hh₁ : IsBlowupProfile l ε h₁) :
+    ∃ Φ : Diffeotopy 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (Blowup hN.blowupChart),
+      (∀ t, ∀ x ∉ hψ.ballLiftPartialDiffeomorph '' closedNbhd n (l + ε), Φ (t, x) = x) ∧
+      SmoothForm.mpullback Φ.final Φ.final.contMDiff (hψ.normalizedBlowupForm h₁) =
+        hψ.normalizedBlowupForm h₀ := by
+  obtain ⟨β, hβ, hβK⟩ := hψ.exists_mextDeriv_eq_normalizedBlowupForm_sub hh₀ hh₁
+  refine SmoothTwoForm.exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub (fun s hs ↦ ?_) hβ
+    (hψ.isCompact_ballLiftPartialDiffeomorph_image_closedNbhd hψ.weight_add_width_lt) hβK
+  -- The segment between the two forms is the form of the segment between the two profiles.
+  have hseg : hψ.normalizedBlowupForm h₀ + s • (hψ.normalizedBlowupForm h₁ -
+      hψ.normalizedBlowupForm h₀) = hψ.normalizedBlowupForm ((1 - s) • h₀ + s • h₁) := by
+    rw [hψ.normalizedBlowupForm_one_sub_smul_add_smul hh₀ hh₁ hs.1 hs.2]
+    module
+  rw [hseg]
+  exact hψ.isSymplectic_normalizedBlowupForm (hh₀.one_sub_smul_add_smul hh₁ hs.1 hs.2) hσ
 
 end IsNormalizedBallEmbedding
 

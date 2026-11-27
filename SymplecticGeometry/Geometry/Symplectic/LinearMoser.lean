@@ -22,6 +22,7 @@ import TauCeti.Analysis.Calculus.FDeriv.Mul
 import TauCeti.Analysis.Calculus.MeanValue
 import TauCeti.Analysis.ODE.Regularity
 import SymplecticGeometry.Analysis.Normed.Operator.BoundedSMul
+import SymplecticGeometry.Topology.Compactness.Compact
 
 /-!
 # The linear Moser lemma
@@ -276,13 +277,12 @@ theorem mem_invertibleSegments_iff {p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L
 /-- On a Banach space, the pairs of bilinear forms whose segment consists of invertible forms
 form an open set. -/
 theorem isOpen_invertibleSegments : IsOpen (invertibleSegments V) := by
-  refine isOpen_iff_eventually.2 fun p hp ↦
-    isCompact_Icc.eventually_forall_of_forall_eventually fun s hs ↦ ?_
   have hc : ContDiff ℝ 0 fun q : ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) × ℝ ↦
       (1 - q.2) • q.1.1 + q.2 • q.1.2 :=
     ((contDiff_const.sub contDiff_snd).smul contDiff_fst.fst).add
       (contDiff_snd.smul contDiff_fst.snd)
-  exact hc.continuous.continuousAt.eventually (hp s hs).eventually_nhds
+  exact isCompact_Icc.isOpen_setOfPred_forall_prodMk_mem
+    (ContinuousLinearMap.isOpen_setOfPred_isInvertible.preimage hc.continuous)
 
 /-- The time-one linear Moser flow from `a` to `b`: the propagator at time `1` of the Moser
 generator of the path `TauCeti.smoothSegmentPath a b`, that is `t ↦ a + β t • (b - a)`, where `β`
