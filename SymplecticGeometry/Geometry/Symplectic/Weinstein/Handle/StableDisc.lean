@@ -299,9 +299,7 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
       ∃ π : M → A.stableSubspace,
         ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, A.stableSubspace) (⊤ : ℕ∞) π (extChartAt 𝓘(ℝ, E) p).source ∧
           ∀ z ∈ ball (0 : A.stableSubspace) ρ, π (ι z) = z := by
-  have hXp : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent
-      (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) p :=
-    (hW.contMDiff_field p).mdifferentiableAt (by simp)
+  have hXp := hW.mdifferentiableAt_field p
   have hp0 : X p = 0 := hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.1 hp.mem_criticalPoints)
   have hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 1 (fun x ↦ (X x : TangentBundle 𝓘(ℝ, E) M)) :=
     hW.contMDiff_field.of_le (by simp)
