@@ -302,7 +302,8 @@ universes as parameters.
 ### `Geometry/Symplectic/Moser/Parameter.lean`
 
 On a closed manifold `N` (compact, boundaryless), with a parameter manifold
-`P` (model `IP`, any):
+`P` (model `IP` complete, Hausdorff and boundaryless, as
+`TauCeti.contMDiff_timeDependentFlowOf_param` needs):
 
 - `TauCeti.SmoothTwoForm.exists_diffeomorph_prod_mpullback_eq_of_mextDeriv_eq_sub`:
   let `ω₀` be a closed two-form on `N`, `σ` a two-form and `β` a one-form on
