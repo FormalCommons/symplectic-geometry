@@ -878,15 +878,10 @@ theorem normalizedBlowupForm_one_sub_smul_add_smul {h₀ h₁ : ℝ → ℝ}
       (1 - t) • hψ.normalizedBlowupForm h₀ + t • hψ.normalizedBlowupForm h₁ := by
   refine (hψ.eq_normalizedBlowupForm (hh₀.one_sub_smul_add_smul hh₁ ht₀ ht₁)
     (fun y hy ↦ ?_) fun x hx ↦ ?_).symm
-  · rw [profileForm_one_sub_smul_add_smul n hh₀ hh₁ ht₀ ht₁, Submodule.coe_add,
-      SetLike.val_smul, SetLike.val_smul, TauCeti.mpullback_add, TauCeti.mpullback_smul,
-      TauCeti.mpullback_smul, Pi.add_apply, Pi.smul_apply, Pi.smul_apply,
-      hψ.normalizedBlowupForm_eq_on_ballLift hh₀ y hy,
-      hψ.normalizedBlowupForm_eq_on_ballLift hh₁ y hy, Submodule.coe_add, SetLike.val_smul,
-      SetLike.val_smul, Pi.add_apply, Pi.smul_apply, Pi.smul_apply]
-  · rw [Submodule.coe_add, SetLike.val_smul, SetLike.val_smul, Pi.add_apply, Pi.smul_apply,
-      Pi.smul_apply, hψ.normalizedBlowupForm_eq_on_compl x hx,
-      hψ.normalizedBlowupForm_eq_on_compl x hx, ← add_smul, sub_add_cancel, one_smul]
+  · simp [profileForm_one_sub_smul_add_smul n hh₀ hh₁ ht₀ ht₁, TauCeti.mpullback_add,
+      TauCeti.mpullback_smul, hψ.normalizedBlowupForm_eq_on_ballLift hh₀ y hy,
+      hψ.normalizedBlowupForm_eq_on_ballLift hh₁ y hy]
+  · simp [hψ.normalizedBlowupForm_eq_on_compl x hx, ← add_smul]
 
 /-- On `L(ε) = closedNbhd n ε`, the lift `ψ̃` pulls `ω̃_{ψ,l,ε}` back to the form
 `ω̃_l = blowupForm n l` of the model (McDuff–Salamon, Theorem 7.1.21 (i)). -/

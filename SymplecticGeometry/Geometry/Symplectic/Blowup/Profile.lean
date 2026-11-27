@@ -352,13 +352,7 @@ theorem convex_setOfPred_isBlowupProfile :
   · simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, hh₀.eq_of_ge hs, hh₁.eq_of_ge hs]
     linear_combination s * hab
   · rw [(((hd₀ s).hasDerivAt.const_smul a).add ((hd₁ s).hasDerivAt.const_smul b)).deriv]
-    have h₀ := hh₀.deriv_pos s
-    have h₁ := hh₁.deriv_pos s
-    simp only [smul_eq_mul]
-    rcases ha.eq_or_lt with rfl | ha
-    · rw [zero_add] at hab
-      simpa [hab] using h₁
-    · positivity
+    exact convex_Ioi (0 : ℝ) (hh₀.deriv_pos s) (hh₁.deriv_pos s) ha hb hab
 
 namespace IsBlowupProfile
 
