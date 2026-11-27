@@ -281,14 +281,14 @@ theorem blowupChart_isHolomorphic :
     ⟨Φ.mdifferentiableOn (by simp), Φ.symm.mdifferentiableOn (by simp)⟩
   rw [isPseudoholomorphicOn_iff]
   intro y hy
-  rw [blowupChart_source, ← hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_target,
+  rw [blowupChart_source] at hy
+  have hw : Φ.symm y ∈ complexToRealEuclidean (Fin (n + 1)) ⁻¹' ball 0 δ :=
+    mem_ball_zero_iff.2 (hN.isSymplecticBallEmbedding.norm_complexPartialDiffeomorph_symm_lt hy)
+  rw [← hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_target,
     ← PartialDiffeomorph.toOpenPartialHomeomorph_target] at hy
   refine IsPseudoholomorphicAt.isPseudoholomorphicWithinAt ?_
   rw [blowupChart_toOpenPartialHomeomorph]
   refine hΦ.isPseudoholomorphicAt_symm hy ?_
-  have hw := Φ.toOpenPartialHomeomorph.map_target hy
-  rw [PartialDiffeomorph.toOpenPartialHomeomorph_source,
-    hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_source] at hw
   rw [PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
     hN.isSymplecticBallEmbedding.coe_complexPartialDiffeomorph]
   exact (hN.isPseudoholomorphicOn_comp_complexToRealEuclidean.isPseudoholomorphicWithinAt hw
