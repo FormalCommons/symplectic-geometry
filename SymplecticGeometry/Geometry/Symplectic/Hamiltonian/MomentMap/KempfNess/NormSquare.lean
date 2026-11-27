@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Riemannian.PathELength
-public import SymplecticGeometry.Geometry.Lie.LeftTrivializedDeriv
+public import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Deriv
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalNormalForm
