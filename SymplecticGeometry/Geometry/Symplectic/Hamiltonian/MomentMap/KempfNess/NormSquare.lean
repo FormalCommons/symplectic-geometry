@@ -149,7 +149,7 @@ times it converges, to `(η, u)` say, and passing to the limit gives
 `y = (C.expI η * C.toHom u)⁻¹ • x`. Both limits are critical points, so Ness's theorem puts them
 in one `G`-orbit (`SymplecticGeometry.exists_smul_limit_eq_of_mem_orbit`). Since `‖μ‖²` is
 `G`-invariant and does not increase along its negative gradient flow
-(`TauCeti.mapsTo_maximalIntegralCurve_neg_mgradient_preimage_Iic`),
+(`TauCeti.le_comp_maximalIntegralCurve_neg_mgradient`),
 `‖μ x‖² = ‖μ y‖² ≤ ‖μ (g₀ • p)‖²`;
 and `‖μ x‖²` is a limit of values of `‖μ‖²` on the `Gc`-orbit of `p`. So `‖μ x‖²` is the
 infimum of `‖μ‖²` over that orbit (`SymplecticGeometry.momentNormSq_limit_eq_iInf`). This is the
@@ -794,12 +794,7 @@ Kähler setting of `exists_mem_orbit_maximalIntegralCurve`, with `σ` closed, no
 `Ad`-invariant: if the negative gradient flow of `‖μ‖²` from `p` converges to `x` and the one from
 `g₀ • p` converges to `y`, then `y = u • x` for some `u : G`.
 
-This is the second half of the proof of [GeorgoulasRobbinSalamon2021], Theorem 6.4: the flow from
-`g₀ • p` is `(g₀⁻¹ * g' t)⁻¹ • p` for a flow curve `g'`, the polar radius of
-`(g t)⁻¹ * g₀⁻¹ * g' t` stays bounded (`antitoneOn_polar_symm_fst_inv_mul`), so along a sequence
-of times the polar decomposition converges and `y` lies in the `Gc`-orbit of `x`, and Ness's
-theorem `exists_smul_eq_of_mgradient_momentNormSq_eq_zero` applies to the two critical
-points. -/
+This is a step of the proof of [GeorgoulasRobbinSalamon2021], Theorem 6.4. -/
 theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc : σ.IsClosed)
     (hσ : σ.IsNondegenerate)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
@@ -875,10 +870,7 @@ positive definite and `Ad`-invariant: if the negative gradient flow of `‖μ‖
 to `x`, then `‖μ x‖²` is the infimum of `‖μ‖²` over the `Gc`-orbit of `p`. Both norms are
 those of `B`.
 
-This is [GeorgoulasRobbinSalamon2021], Theorem 6.4. The infimum is at most `‖μ x‖²` since the flow
-stays in the orbit (`exists_mem_orbit_maximalIntegralCurve`); it is at least `‖μ x‖²` since the
-limit of the flow from `g • p` is `u • x` for some `u : G` (`exists_smul_limit_eq_of_mem_orbit`),
-`‖μ‖²` is `G`-invariant, and `‖μ‖²` decreases along its negative gradient flow. -/
+This is [GeorgoulasRobbinSalamon2021], Theorem 6.4. -/
 theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsClosed)
     (hσ : σ.IsNondegenerate)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
@@ -892,9 +884,6 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     momentNormSq B hB μ x = ⨅ g : Gc, momentNormSq B hB μ (g • p) := by
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
     (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff_of_neg ξ).of_le (by norm_cast)
-  have hfx (q z : M) (hz : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) q)
-      atTop (𝓝 z)) :=
-    (hf.continuous.tendsto z).comp hz
   have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
     ⟨0, by
       rintro _ ⟨g, rfl⟩
@@ -912,12 +901,12 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
       rw [← h.toHom_smul, h.moment_toHom_smul hμ]
     rw [← momentNormSq_smul hBG hμG u x]
     -- `‖μ‖²` does not increase along the flow from `g₀ • p`.
-    refine le_of_tendsto (hfx _ _ hy) (eventually_atTop.2 ⟨0, fun t ht ↦ ?_⟩)
-    exact TauCeti.mapsTo_maximalIntegralCurve_neg_mgradient_preimage_Iic hf ⟨hI ht, ht⟩
+    simpa only [maximalIntegralCurve_zero] using
+      TauCeti.le_comp_maximalIntegralCurve_neg_mgradient hf hI hy.mapClusterPt le_rfl
   · -- The flow from `p` stays in the `Gc`-orbit of `p`.
     obtain ⟨g, -, -, hgx, -⟩ :=
       exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hgm hBs p
-    refine ge_of_tendsto (hfx _ _ hx) (Eventually.of_forall fun t ↦ ?_)
+    refine ge_of_tendsto ((hf.continuous.tendsto x).comp hx) (Eventually.of_forall fun t ↦ ?_)
     simp only [Function.comp_apply, hgx]
     exact ciInf_le hbdd _
 
