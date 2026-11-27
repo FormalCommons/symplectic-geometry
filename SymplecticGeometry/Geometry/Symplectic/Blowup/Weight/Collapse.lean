@@ -162,14 +162,14 @@ is `inr` of `shellPoint l` of the preimage under `ψ`, read in `ℂⁿ⁺¹`
 private theorem continuousOn_collapseMap_image_ball :
     ContinuousOn (collapseMap hψ hl hε) (Subtype.val ⁻¹' (ψ '' ball 0 √(l ^ 2 + ε ^ 2))) := by
   -- The inverse `Φ.symm` of `ψ ∘ complexToRealEuclidean` on its image.
-  set Φ := complexPartialDiffeomorph hψ
+  set Φ := hψ.complexPartialDiffeomorph
   rw [continuousOn_iff_continuous_domRestrict]
   set W := Subtype.val ⁻¹' (ψ '' ball 0 √(l ^ 2 + ε ^ 2))
   have htarget : ∀ y : W, ((y : ((ψ '' ball 0 l)ᶜ : Set M)) : M) ∈ Φ.target := fun y ↦ by
-    rw [complexPartialDiffeomorph_target]
+    rw [hψ.complexPartialDiffeomorph_target]
     exact y.property
   have hlt : ∀ y : W, ‖complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)‖ < √(l ^ 2 + ε ^ 2) :=
-    fun y ↦ (mem_complexPartialDiffeomorph_source_iff hψ).1 (Φ.map_target (htarget y))
+    fun y ↦ hψ.mem_complexPartialDiffeomorph_source_iff.1 (Φ.map_target (htarget y))
   have hψz : ∀ y : W, ψ (complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)) = y := fun y ↦ by
     simpa [Φ] using Φ.right_inv (htarget y)
   have hge : ∀ y : W, l ≤ ‖complexToRealEuclidean (Fin (n + 1)) (Φ.symm y)‖ := fun y ↦

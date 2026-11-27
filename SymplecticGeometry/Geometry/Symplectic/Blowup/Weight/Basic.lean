@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Complex
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
@@ -46,9 +46,6 @@ the divisor `Z`, the blowup is the image of `inl`, and so symplectomorphic to `M
 
 ## Main definitions
 
-* `SymplecticGeometry.WeightBlowup.complexPartialDiffeomorph hψ`: the map
-  `ψ ∘ complexToRealEuclidean` as a partial diffeomorphism from the preimage in `E` of the open
-  ball of radius `√(l² + ε²)` onto its image under `ψ`.
 * `SymplecticGeometry.WeightBlowup.outerPiece hψ`: the open subset `M ∖ ψ(B(l))` of `M`.
 * `SymplecticGeometry.WeightBlowup.modelPiece n ε`: the open subset `openNbhd n ε` of the model.
 * `SymplecticGeometry.WeightBlowup.shellImage hψ`: the image under `ψ` of the open shell
@@ -141,43 +138,6 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
   [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   {σ : SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) M} {ψ : StdSpace (Fin (n + 1)) → M} {l ε : ℝ}
 
-/-- `ψ` read on `E` through `complexToRealEuclidean`, as a partial diffeomorphism of `E` into `M`
-on the preimage of the open ball of radius `√(l² + ε²)`. -/
-def complexPartialDiffeomorph
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    PartialDiffeomorph 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ) M ∞ :=
-  (complexToRealEuclidean (Fin (n + 1))).toPartialDiffeomorph.trans
-    (hψ.toPartialDiffeomorph (complexToRealEuclidean (Fin (n + 1))).toLinearEquiv.finrank_eq.symm)
-
-@[simp]
-theorem coe_complexPartialDiffeomorph
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    ⇑(complexPartialDiffeomorph hψ) = ψ ∘ complexToRealEuclidean (Fin (n + 1)) := by
-  simp [complexPartialDiffeomorph]
-
-/-- The source of `complexPartialDiffeomorph hψ` is the preimage of the open ball of radius
-`√(l² + ε²)`. -/
-@[simp]
-theorem complexPartialDiffeomorph_source
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    (complexPartialDiffeomorph hψ).source =
-      complexToRealEuclidean (Fin (n + 1)) ⁻¹' ball 0 √(l ^ 2 + ε ^ 2) := by
-  simp [complexPartialDiffeomorph]
-
-theorem mem_complexPartialDiffeomorph_source_iff
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) {w : Fin (n + 1) → ℂ} :
-    w ∈ (complexPartialDiffeomorph hψ).source ↔
-      ‖complexToRealEuclidean (Fin (n + 1)) w‖ < √(l ^ 2 + ε ^ 2) := by
-  simp
-
-/-- The target of `complexPartialDiffeomorph hψ` is the image under `ψ` of the open ball of radius
-`√(l² + ε²)`. -/
-@[simp]
-theorem complexPartialDiffeomorph_target
-    (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    (complexPartialDiffeomorph hψ).target = ψ '' ball 0 √(l ^ 2 + ε ^ 2) := by
-  simp [complexPartialDiffeomorph]
-
 variable [T2Space M]
 
 /-- The first piece of the blowup: the open subset `M ∖ ψ(B(l))` of `M`. -/
@@ -237,29 +197,29 @@ theorem mem_openShell_iff_mem_shellImage (hψ : IsSymplecticBallEmbedding σ (�
 def shellDiffeomorph (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
     openShell n l ε ≃ₘ⟮𝓘(ℝ, Fin (n + 1) → ℂ), 𝓘(ℝ, Fin (n + 1) → ℂ)⟯ shellImage hψ :=
   (Diffeomorph.nestedOpen
-      (U := openShell n l ε) (D := ⟨_, (complexPartialDiffeomorph hψ).open_source⟩) fun _ hw ↦
-        (mem_complexPartialDiffeomorph_source_iff hψ).2 (mem_openShell_iff.1 hw).2).symm.trans
-    (((complexPartialDiffeomorph hψ).toDiffeomorphSourceTarget.subtype fun w ↦ by
+      (U := openShell n l ε) (D := ⟨_, hψ.complexPartialDiffeomorph.open_source⟩) fun _ hw ↦
+        hψ.mem_complexPartialDiffeomorph_source_iff.2 (mem_openShell_iff.1 hw).2).symm.trans
+    ((hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget.subtype fun w ↦ by
         simp only [Opens.mem_comap, ContinuousMap.coe_mk,
-          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, coe_complexPartialDiffeomorph,
+          PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hψ.coe_complexPartialDiffeomorph,
           Function.comp_apply]
         exact mem_openShell_iff_mem_shellImage hψ
-          ((mem_complexPartialDiffeomorph_source_iff hψ).1 w.property)).trans
+          (hψ.mem_complexPartialDiffeomorph_source_iff.1 w.property)).trans
       (Diffeomorph.nestedOpen fun _ hx ↦ by
         obtain ⟨⟨v, hv, rfl⟩, -⟩ := hx
         have hv' : (complexToRealEuclidean (Fin (n + 1))).symm v ∈
-            (complexPartialDiffeomorph hψ).source := by
-          rw [mem_complexPartialDiffeomorph_source_iff]
+            hψ.complexPartialDiffeomorph.source := by
+          rw [hψ.mem_complexPartialDiffeomorph_source_iff]
           simpa using hv
-        have := (complexPartialDiffeomorph hψ).map_source hv'
-        rwa [coe_complexPartialDiffeomorph, Function.comp_apply,
+        have := hψ.complexPartialDiffeomorph.map_source hv'
+        rwa [hψ.coe_complexPartialDiffeomorph, Function.comp_apply,
           ContinuousLinearEquiv.apply_symm_apply] at this))
 
 @[simp]
 theorem coe_shellDiffeomorph_apply (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ)
     (w : openShell n l ε) :
     (shellDiffeomorph hψ w : M) = ψ (complexToRealEuclidean (Fin (n + 1)) w) := by
-  simp [shellDiffeomorph, coe_complexPartialDiffeomorph]
+  simp [shellDiffeomorph]
 
 variable (n ε) in
 /-- `openNbhd n ε ∖ Z` lies in the model piece. -/
@@ -436,8 +396,9 @@ omit [T2Space M] in
 /-- `ψ ∘ complexToRealEuclidean` is a symplectic map from `ω₀` on `E` to `σ` on its source. -/
 private theorem isSymplecticMapOn_complexPartialDiffeomorph
     (hψ : IsSymplecticBallEmbedding σ (√(l ^ 2 + ε ^ 2)) ψ) :
-    (ω₀E n).IsSymplecticMapOn σ (complexPartialDiffeomorph hψ)
-      (complexPartialDiffeomorph hψ).source := by
+    (ω₀E n).IsSymplecticMapOn σ hψ.complexPartialDiffeomorph
+      hψ.complexPartialDiffeomorph.source := by
+  rw [hψ.complexPartialDiffeomorph_def]
   refine PartialDiffeomorph.isSymplecticMapOn_trans (σ := (stdForm (Fin (n + 1))).constSmooth)
     _ _ ?_ ?_ (by simp)
   · have h : (ω₀E n).IsSymplecticMap (stdForm (Fin (n + 1))).constSmooth
@@ -459,7 +420,7 @@ theorem isSymplectomorphism_shellDiffeomorph
   have h : SmoothTwoForm.IsSymplectomorphism
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (ω₀E n))
       (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
-      (complexPartialDiffeomorph hψ).toDiffeomorphSourceTarget := by
+      hψ.complexPartialDiffeomorph.toDiffeomorphSourceTarget := by
     rw [SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq]
     exact (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun _ hw ↦
       (isSymplecticMapOn_complexPartialDiffeomorph hψ).mpullback_apply hw
