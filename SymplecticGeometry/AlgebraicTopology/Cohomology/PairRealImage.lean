@@ -29,6 +29,9 @@ with values in `ℝ`, as a class computed from real chains, through the inverse 
 
 * `TopPair.singularCohomologyRealImage_comp_singularCohomologyIntChainsIso_hom`: computed from
   integral chains, the real image is the change of values along `ℤ → ℝ`.
+* `TopPair.singularCohomologyRealImage_neg`: the real image commutes with negation.
+* `TopPair.singularKronecker_singularCohomologyRealImage`: read through integral chains, the real
+  image pairs with integral homology as the integral class does, followed by the cast `ℤ → ℝ`.
 * `TopPair.singularCohomologyRealImage_naturality`: the real image commutes with the maps
   induced by maps of pairs.
 * `TopPair.singularCohomologyπ_singularCohomologyRealImage`: the real image commutes with the
@@ -79,6 +82,26 @@ theorem singularCohomologyRealImage_comp_singularCohomologyIntChainsIso_hom :
     P.singularCohomologyRealImage n ≫ (P.singularCohomologyIntChainsIso ℝ n).hom =
       P.singularCohomologyValueMap (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ intToRealCoeff n := by
   rw [singularCohomologyRealImage_def, Category.assoc, Iso.inv_hom_id, Category.comp_id]
+
+/-- The real image of the negative of an integral class is the negative, in real cohomology, of
+its real image. -/
+theorem singularCohomologyRealImage_neg
+    (x : P.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    P.singularCohomologyRealImage n (-x) =
+      Neg.neg (α := P.singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) n)
+        (P.singularCohomologyRealImage n x) :=
+  -- The negation of `(ModuleCat.restrictScalars _).obj _` is that of real cohomology.
+  map_neg _ x
+
+/-- **The real image under the Kronecker pairing.** Read through integral chains, the real image
+of an integral class `x` of a pair evaluates on integral relative homology as `x` does, followed by
+the cast `ℤ → ℝ`. -/
+theorem singularKronecker_singularCohomologyRealImage
+    (x : P.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    P.singularKronecker ℤ n ((P.singularCohomologyIntChainsIso ℝ n).hom
+        (P.singularCohomologyRealImage n x)) =
+      P.singularKronecker ℤ n x ≫ intToRealCoeff := by
+  simp [singularKronecker_singularCohomologyValueMap]
 
 variable {P} in
 /-- **Naturality of the real image of a pair**: for a map of pairs `f : P ⟶ P'`, the real image

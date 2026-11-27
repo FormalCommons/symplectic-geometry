@@ -26,14 +26,15 @@ The key fact is about the model pair `(P, P ∖ {0})` of a real normed space `P`
 the real image of the integral generator `Orientation.modelThomGenerator ω hP` generates
 `Hʳ(P, P ∖ {0}; ℝ)` (`Orientation.span_singularCohomologyRealImage_modelThomGenerator`), in
 every rank, `r = 0` included. The integral generator pairs to `1` with a local orientation, a
-class of `Hᵣ(P, P ∖ {0}; ℤ)`; the change of values along `ℤ → ℝ` commutes with the Kronecker
-pairing (`TopPair.singularKronecker_singularCohomologyValueMap`), so its real image pairs to `1`
-as well and is not zero. Since Tau Ceti's `TauCeti.singularCohomologyComplSingletonFinrankEquivSelf`
-identifies `Hʳ(P, P ∖ {0}; ℝ)` with `ℝ`, a nonzero class generates it. The bundle statement then
-follows on each fibre from the naturality of the real image
+class of `Hᵣ(P, P ∖ {0}; ℤ)`; read through integral chains, the real image pairs as the integral
+class does, followed by the cast `ℤ → ℝ`
+(`TopPair.singularKronecker_singularCohomologyRealImage`), so it pairs to `1` as well and is not
+zero. Since Tau Ceti's `TauCeti.singularCohomologyComplSingletonFinrankEquivSelf` identifies
+`Hʳ(P, P ∖ {0}; ℝ)` with `ℝ`, a nonzero class generates it. The bundle statement then follows on
+each fibre from the naturality of the real image
 (`TopPair.singularCohomologyRealImage_naturality`) and the fibre restrictions of the canonical
 class (`TauCeti.VectorBundleOrientation.singularCohomologyMap_fiberThomPairMap_canonicalThomClass`),
-as in the proof of `TauCeti.VectorBundleOrientation.isThomClass_canonicalThomClass`.
+by `TauCeti.isThomClass_of_forall_span_fiber`, as for the integral class.
 
 ## Main definitions
 
@@ -50,8 +51,9 @@ as in the proof of `TauCeti.VectorBundleOrientation.isThomClass_canonicalThomCla
   class is a Thom class with coefficients `ℝ`.
 * `TauCeti.VectorBundleOrientation.realCanonicalThomClass_neg`: reversing the orientation negates
   it.
-* `VectorBundleOrientation.singularCohomologyMap_thomPairMapOfFiberwise_realCanonicalThomClass`:
-  an orientation-preserving fibrewise isomorphism pulls it back to the real canonical Thom class.
+* `singularCohomologyMap_thomPairMapOfFiberwise_realCanonicalThomClass`, in the namespace
+  `TauCeti.VectorBundleOrientation`: an orientation-preserving fibrewise isomorphism pulls it
+  back to the real canonical Thom class.
 
 ## References
 
@@ -98,16 +100,10 @@ theorem span_singularCohomologyRealImage_modelThomGenerator {r : ℕ}
   have hne : ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularCohomologyRealImage r
       (ω.modelThomGenerator hP) : (TopPair.ofSubset (X := TopCat.of P)
         ({0}ᶜ : Set P)).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) r) ≠ 0 := by
-    have hx := ConcreteCategory.congr_hom
-      (TopPair.singularCohomologyRealImage_comp_singularCohomologyIntChainsIso_hom
-        (TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)) r) (ω.modelThomGenerator hP)
-    rw [ConcreteCategory.comp_apply] at hx
-    have hk := congrArg (fun x : (TopPair.ofSubset (X := TopCat.of P)
-        ({0}ᶜ : Set P)).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ ℝ) r ↦
-      ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ r x).hom z) hx
-    simp only [TopPair.singularKronecker_singularCohomologyValueMap, ModuleCat.hom_comp,
-      LinearMap.comp_apply, hz] at hk
     intro h
+    have hk := congrArg (fun f ↦ f.hom z)
+      (TopPair.singularKronecker_singularCohomologyRealImage _ r (ω.modelThomGenerator hP))
+    simp only [ModuleCat.hom_comp, LinearMap.comp_apply, hz] at hk
     rw [h, map_zero, map_zero] at hk
     exact zero_ne_one (hk.trans ((intToRealCoeff_apply 1).trans (by simp)))
   -- `Hʳ(P, P ∖ {0}; ℝ)` is a copy of `ℝ`, where a nonzero vector generates.
@@ -162,34 +158,17 @@ degree `finrank ℝ F = r`, it restricts to a generator of the real cohomology o
 pair. -/
 theorem isThomClass_realCanonicalThomClass :
     IsThomClass F E (hr ▸ o.realCanonicalThomClass hr :
-      (thomPair F E).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) (finrank ℝ F)) := by
-  -- Transport along `finrank ℝ F = d` commutes with the fibre restrictions.
-  have key {d : ℕ} (hd : finrank ℝ F = d)
-      (x : (thomPair F E).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) d)
-      (hx : ∀ b, Submodule.span ℝ
-        {(TopPair.singularCohomologyMap (fiberThomPairMap F E b) d x)} = ⊤) :
-      IsThomClass F E (hd ▸ x : (thomPair F E).singularCohomology
-        (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) (finrank ℝ F)) := by
-    subst hd
-    exact isThomClass_iff.2 ⟨inferInstance, hx⟩
-  refine key hr _ fun b ↦ ?_
-  have hb := FiberBundle.mem_baseSet_trivializationAt' (F := F) (E := E) b
-  rw [o.singularCohomologyMap_fiberThomPairMap_realCanonicalThomClass hr _ hb]
-  -- An isomorphism of pairs induces a linear isomorphism in cohomology, carrying generators to
-  -- generators.
-  exact ((TopPair.singularCohomologyFunctor (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) r).mapIso
-      ((trivializationAt F E b).continuousLinearEquivAt ℝ b hb).complZeroPairIso.op
-    ).toLinearEquiv.span_singleton_apply_eq_top_iff.2
-      (Orientation.span_singularCohomologyRealImage_modelThomGenerator (P := F) _ hr)
+      (thomPair F E).singularCohomology (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) (finrank ℝ F)) :=
+  isThomClass_of_forall_span_fiber hr _ fun _ ↦
+    ⟨_, Orientation.span_singularCohomologyRealImage_modelThomGenerator _ hr,
+      o.singularCohomologyMap_fiberThomPairMap_realCanonicalThomClass hr _ _⟩
 
 /-- Reversing the orientation negates the real canonical Thom class. -/
 @[simp]
 theorem realCanonicalThomClass_neg :
     (-o).realCanonicalThomClass hr = -o.realCanonicalThomClass hr := by
-  rw [realCanonicalThomClass_def, realCanonicalThomClass_def, canonicalThomClass_neg, map_neg]
-  -- The negation of the real image is taken in its restriction of scalars to `ℤ`, whose additive
-  -- group is that of real cohomology.
-  rfl
+  rw [realCanonicalThomClass_def, realCanonicalThomClass_def, canonicalThomClass_neg,
+    TopPair.singularCohomologyRealImage_neg]
 
 section BaseMap
 
