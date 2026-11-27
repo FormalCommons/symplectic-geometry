@@ -224,7 +224,7 @@ private theorem mfderiv_bandAffine {a b : ℝ} {s₀ : bandInterval} (h : a + b 
     (v : TangentSpace 𝓘(ℝ) s₀) : mfderiv 𝓘(ℝ) 𝓘(ℝ) (bandAffine a b) s₀ v = b • v := by
   have hd : HasFDerivAt (fun r : ℝ ↦ a + b * r) (b • ContinuousLinearMap.id ℝ ℝ) s₀ := by
     simpa [smul_eq_mul] using ((hasFDerivAt_id (s₀ : ℝ)).const_smul b).const_add a
-  rw [TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eventuallyEq
+  rw [mfderiv_apply_of_subtype_val_comp_eventuallyEq
     (eventuallyEq_bandAffine h) v, mfderiv_eq_fderiv, hd.fderiv]
   rfl
 
