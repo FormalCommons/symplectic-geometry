@@ -172,6 +172,8 @@ theorem momentNormSq_eq_clm_apply :
   funext fun y ↦ by
     rw [ContinuousLinearEquiv.coe_coe, LinearMap.BilinForm.toStrongDual_symm_apply,
       momentNormSq_eq_apply_momentSharp, momentSharp_def, LinearMap.coe_toContinuousLinearMap]
+    -- The `show` reads `μ y` as a linear form on the model space `E`, the type that
+    -- `LinearMap.toContinuousLinearMap` takes here.
     exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ y)) _).symm
 
 /-- If every component `x ↦ μ x ξ` of the moment map is `C^n`, so is its norm square. -/
@@ -206,6 +208,8 @@ theorem mvfderiv_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] (hBs : B.
     rw [hΦ]
     exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from μ x)) _).trans
       (h (f : E →ₗ[ℝ] ℝ))
+  -- `momentNormSq_eq_clm_apply` with `L` and `Φ` folded, checked by definitional equality;
+  -- rewriting with the theorem itself leaves terms that the rewrites below do not match.
   have hN : momentNormSq B hB μ = fun y ↦ L y (Φ (L y)) := momentNormSq_eq_clm_apply
   ext v
   have h₃ : mvfderiv I' L x v (momentSharp B hB μ x) =
