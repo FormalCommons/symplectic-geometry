@@ -14,7 +14,7 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernCla
 
 Over a Hausdorff, σ-compact space `B` charted on `H`, with a model with corners
 `I : ModelWithCorners ℝ EB H` and `EB` finite-dimensional, the first Chern class
-`SymplecticGeometry.Bundle.firstChernClass` is additive on direct sums of complex vector bundles
+`TauCeti.firstChernClass` is additive on direct sums of complex vector bundles
 (`SymplecticGeometry.Bundle.firstChernClass_prod_of_chartedSpace`). Neither smoothness nor
 compactness is assumed, and the model may have corners.
 
@@ -38,6 +38,7 @@ since it is locally compact, σ-compact and Hausdorff, hence paracompact.
 public section
 
 open Bundle
+open TauCeti (firstChernClass)
 
 namespace SymplecticGeometry.Bundle
 

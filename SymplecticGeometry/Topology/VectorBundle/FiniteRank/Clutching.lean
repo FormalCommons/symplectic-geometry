@@ -11,7 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautolog
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 import SymplecticGeometry.Topology.Algebra.Projectivization
-import SymplecticGeometry.Topology.ContinuousMap.LaurentApproximation
+import SymplecticGeometry.Topology.ContinuousMap.LaurentMonomial
 
 /-!
 # The clutching construction over `X × ℂP¹`
@@ -33,8 +33,6 @@ and the fibres may be over any nontrivially normed field.
 
 * `TauCeti.FiniteRankBundleCore.circlePullback E`: the pullback of `E` to `X × Circle` along
   `Prod.fst`, on whose automorphisms the clutching functions are.
-* `SymplecticGeometry.circleCoord X`: the coordinate `(x, u) ↦ u` of the circle factor,
-  as a continuous complex function on `X × Circle`.
 * `TauCeti.FiniteRankBundleCore.clutchingAut E f`: the pullback of `f` along
   `SymplecticGeometry.ProjectiveLine.clutchingMap`.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
@@ -576,21 +574,6 @@ end TauCeti.FiniteRankBundleCore
 
 /-! ### Multiplying a clutching function by a power of the coordinate -/
 
-namespace SymplecticGeometry
-
-variable {X : Type*} [TopologicalSpace X]
-
-variable (X) in
-/-- The coordinate `u` of the circle factor, as a scalar function on `X × Circle`. -/
-def circleCoord : C(X × Circle, ℂ) :=
-  ⟨fun w ↦ (w.2 : ℂ), by fun_prop⟩
-
-@[simp]
-theorem circleCoord_apply (w : X × Circle) : circleCoord X w = w.2 :=
-  (rfl)
-
-end SymplecticGeometry
-
 namespace TauCeti.FiniteRankBundleCore
 
 variable {X : Type*} [TopologicalSpace X]
@@ -607,13 +590,11 @@ def circleZPowSMul (m : ℤ)
   hom := ContinuousMap.laurentMonomial m (1 : C(X, ℂ)) • f.hom
   inv := ContinuousMap.laurentMonomial (-m) (1 : C(X, ℂ)) • f.inv
   hom_inv_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-      ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_one_apply,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_hom_inv_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), add_neg_cancel, zpow_zero, one_smul]
   inv_hom_id := hom_ext fun w ↦ by
-    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_apply,
-      ContinuousMap.one_apply, smul_eq_mul, mul_one,
+    simp only [fiberMap_comp, fiberMap_smul, ContinuousMap.laurentMonomial_one_apply,
       ContinuousLinearMap.comp_smul, ContinuousLinearMap.smul_comp, fiberMap_inv_hom_id, smul_smul,
       fiberMap_id, ← zpow_add₀ (Circle.coe_ne_zero w.2), neg_add_cancel, zpow_zero, one_smul]
 
@@ -838,27 +819,26 @@ private theorem glueCocycle_smul_discSection (s t : Bool) (b : X × ℙ ℂ (Fin
     (ht : b.2 ∈ bif t then innerDisc else outerDisc) (a : Fin 1 → ℂ) :
     glueCocycle (clutchingAut (trivial ℂ X 1) (circleZPowIso X (-1))) s t b a (0 : Fin 1) •
         discSection t b.2 = a 0 • discSection s b.2 := by
+  -- Name the vector and its coordinate in the fibres of the pullbacks of the trivial line, whose
+  -- ranks are `1` only up to unfolding, so that the lemmas about these fibres apply to them.
+  set v : Fin ((trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × ℙ ℂ (Fin 2 → ℂ), X))).rank → ℂ :=
+    a
+  set i : Fin (trivial ℂ X 1).circlePullback.rank := (0 : Fin 1)
   cases s <;> cases t
   · rw [glueCocycle_self]; rfl
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨ht, hs⟩
-    rw [glueCocycle_false_true _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
-      from hb)]
-    rw [fiberMap_clutchingAut_hom, fiberMap_circleZPowIso_hom, clutchingMap_apply]
-    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
-    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
-    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    have hb' : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨ht, hs⟩
+    simp only [glueCocycle_false_true _ hb', fiberMap_clutchingAut_hom,
+      fiberMap_circleZPowIso_hom, smul_apply, id_apply_coords, Pi.smul_apply, clutchingMap_apply]
     simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul]
     have hu := Circle.coe_ne_zero (annulusToCircle ⟨b.2, hb⟩)
     congr 1
     field_simp
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨hs, ht⟩
-    rw [glueCocycle_true_false _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
-      from hb)]
-    rw [fiberMap_clutchingAut_inv, fiberMap_circleZPowIso_inv, clutchingMap_apply]
-    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
-    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
-    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    have hb' : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hs, ht⟩
+    simp only [glueCocycle_true_false _ hb', fiberMap_clutchingAut_inv,
+      fiberMap_circleZPowIso_inv, smul_apply, id_apply_coords, Pi.smul_apply, clutchingMap_apply]
     simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one, inv_inv]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul, mul_comm]
   · rw [glueCocycle_self]; rfl
