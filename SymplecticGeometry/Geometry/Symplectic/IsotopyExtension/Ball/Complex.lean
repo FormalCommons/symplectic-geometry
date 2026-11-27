@@ -14,8 +14,10 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 Let `M` be a manifold modelled on `Fin m → ℂ` and `ψ : StdSpace (Fin m) → M` a symplectic
 embedding of the closed ball of radius `r`. Precomposing the partial diffeomorphism
-`IsSymplecticBallEmbedding.toPartialDiffeomorph` with Tau Ceti's linear isometry
-`complexToRealEuclidean (Fin m) : (Fin m → ℂ) ≃L[ℝ] StdSpace (Fin m)` reads `ψ` on `Fin m → ℂ`.
+`IsSymplecticBallEmbedding.toPartialDiffeomorph` with Tau Ceti's real continuous linear
+equivalence `complexToRealEuclidean (Fin m) : (Fin m → ℂ) ≃L[ℝ] StdSpace (Fin m)` reads `ψ` on
+`Fin m → ℂ`. This equivalence is not an isometry for the sup norm of `Fin m → ℂ` when `m ≥ 2`,
+so the source of the chart is the preimage of a Euclidean ball, not a sup-norm ball.
 
 ## Main definitions
 
