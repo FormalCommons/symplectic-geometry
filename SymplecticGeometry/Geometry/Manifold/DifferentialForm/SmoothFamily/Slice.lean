@@ -80,6 +80,21 @@ theorem sliceSection_snd (β : P → RoughForm J F G k) (q : P × F) :
     (sliceSection β q).snd = β q.1 q.2 :=
   (rfl)
 
+variable {EP HP : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
+  {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
+
+/-- The slice section of `β` is `C^n` at `q₀` if and only if its fibre coordinate in the
+trivialization at `q₀.2` of the bundle of `k`-forms of `F` is `C^n` at `q₀`. -/
+theorem contMDiffAt_sliceSection_iff [IsManifold J 1 F] {n : WithTop ℕ∞}
+    {β : P → RoughForm J F G k} {q₀ : P × F} :
+    ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) n (sliceSection β) q₀ ↔
+      ContMDiffAt (K.prod J) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G) n
+        (fun q ↦ (trivializationAt (E [⋀^Fin k]→L[ℝ] G)
+          (fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y) q₀.2
+          (sliceSection β q)).2) q₀ := by
+  rw [contMDiffAt_totalSpace_iff]
+  simp [contMDiffAt_snd]
+
 end SymplecticGeometry
 
 open SymplecticGeometry
@@ -101,10 +116,9 @@ theorem roughForm_family_apply [IsManifold J 1 F] {n : WithTop ℕ∞}
     (hβ : ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) n (sliceSection β) q₀) :
     ContMDiffAt K 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G) n
       (fun p ↦ show E [⋀^Fin k]→L[ℝ] G from β p q₀.2) q₀.1 := by
-  rw [sliceSection_def] at hβ
-  have hc := (contMDiffAt_totalSpace_iff.1 (hβ.comp q₀.1
+  have hc := (contMDiffAt_sliceSection_iff.1 hβ).comp q₀.1
     (contMDiffAt_id.prodMk contMDiffAt_const :
-      ContMDiffAt K (K.prod J) n (fun p ↦ (p, q₀.2)) q₀.1))).2
+      ContMDiffAt K (K.prod J) n (fun p ↦ (p, q₀.2)) q₀.1)
   -- Undo the trivialization at `q₀.2` of the bundle of forms by its inverse on the fibre.
   have hb := mem_baseSet_trivializationAt (E [⋀^Fin k]→L[ℝ] G)
     (fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y) q₀.2
@@ -130,9 +144,8 @@ theorem roughForm_family_apply_trivializationAt [IsManifold J 1 F] {n : WithTop 
     ContMDiffAt (K.prod J) 𝓘(ℝ, G) n
       (fun q : P × F ↦ β q.1 q.2 ((trivializationAt E (TangentSpace J) q₀.2).symmL ℝ q.2 ∘ v))
       q₀ := by
-  rw [sliceSection_def] at hβ
-  have h := (contMDiffAt_totalSpace_iff.1 hβ).2
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+  have h := contMDiffAt_sliceSection_iff.1 hβ
+  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
     contMDiffAt_continuousAlternatingMap_apply,
     ContinuousAlternatingMap.compContinuousLinearMap_apply] at h
   exact h v

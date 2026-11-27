@@ -97,10 +97,14 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
 Seeley's extension of `t ↦ Ω_t(x)` at `s` is smooth. -/
 private theorem contMDiff_timeExtend_slice (Ω : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) F k) :
     ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : ℝ × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        (SymplecticGeometry.timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (fun q : unitInterval × M ↦
-          (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) p)) := by
+      (SymplecticGeometry.sliceSection (J := I) (G := F) fun s ↦ (fun x ↦
+        SymplecticGeometry.timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (fun q : unitInterval × M ↦
+          (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) (s, x) :
+          RoughForm I M F k)) := by
+  -- `rw [sliceSection_def]` fails here: its motive is not type-correct, since the values of the
+  -- slices are read in the model fibre.
+  refine (congrArg (ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞)
+    (SymplecticGeometry.sliceSection_def _)).mpr ?_
   set g : unitInterval × M → E [⋀^Fin k]→L[ℝ] F := fun q ↦
     (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2
   have hS : ContMDiff ((𝓡∂ 1).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
@@ -137,8 +141,10 @@ the slice of `Ω` at `t`. -/
 def timeExtendSlice (s : ℝ) : SmoothForm I M F k :=
   ⟨fun x ↦ SymplecticGeometry.timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (fun q : unitInterval × M ↦
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) (s, x),
-    IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def _ _).mpr <|
-      (contMDiff_timeExtend_slice Ω).comp (contMDiff_const.prodMk contMDiff_id)⟩
+    IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def _ _).mpr <| by
+      have h := (congrArg (ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞)
+        (SymplecticGeometry.sliceSection_def _)).mp (contMDiff_timeExtend_slice Ω)
+      exact h.comp (contMDiff_const.prodMk contMDiff_id)⟩
 
 /-- The value at `x` of `TauCeti.SmoothForm.timeExtendSlice Ω s` is the time extension, at
 `(s, x)`, of the values of the slices of `Ω`. -/
@@ -193,7 +199,6 @@ theorem timeExtendSlice_smul (c : ℝ) (s : ℝ) :
 theorem contMDiff_timeExtendSlice :
     ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
       (SymplecticGeometry.sliceSection fun s ↦ (timeExtendSlice Ω s).val) := by
-  rw [SymplecticGeometry.sliceSection_def]
   simpa only [coe_timeExtendSlice] using contMDiff_timeExtend_slice Ω
 
 /-- **The time extension of forms.** On a manifold `M`, the linear map that sends a

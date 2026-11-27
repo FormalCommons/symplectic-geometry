@@ -359,9 +359,9 @@ theorem contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFa
     ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
       fun p : N × E ↦ (α p.1).val p.2 := by
   intro p₀
-  rw [isSmoothFamily_iff_contMDiff, sliceSection_def] at h
-  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (h p₀)).2
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+  rw [isSmoothFamily_iff_contMDiff] at h
+  have hc := contMDiffAt_sliceSection_iff.mp (h p₀)
+  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
     TangentBundle.symmL_model_space] at hc
   refine hc.congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
   ext v
@@ -377,10 +377,9 @@ theorem of_contMDiff_val {α : N → SmoothForm 𝓘(ℝ, E) E F k}
     (h : ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) (J.prod 𝓘(ℝ, E)) 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞
       fun p : N × E ↦ (α p.1).val p.2) :
     IsSmoothFamily J α := by
-  rw [isSmoothFamily_iff_contMDiff, sliceSection_def]
-  refine fun p₀ ↦
-    Bundle.contMDiffAt_totalSpace_iff.mpr ⟨contMDiffAt_snd, ?_⟩
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+  rw [isSmoothFamily_iff_contMDiff]
+  refine fun p₀ ↦ contMDiffAt_sliceSection_iff.mpr ?_
+  simp only [sliceSection_apply, FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
     TangentBundle.symmL_model_space]
   refine (h p₀).congr_of_eventuallyEq (Filter.Eventually.of_forall fun p ↦ ?_)
   ext v
