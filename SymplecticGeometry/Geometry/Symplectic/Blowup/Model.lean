@@ -39,9 +39,9 @@ to the exceptional divisor `Z`, sets up the neighbourhoods `L(ε)` of `Z`, and i
 ## Main definitions and results
 
 * `SymplecticGeometry.BlowupModel.ω₀E n`: the standard symplectic form `ω₀` of `E`, as a constant
-  smooth form; `SymplecticGeometry.constSmooth_stdComplexPiSymplecticForm_eq`
-  (`Geometry/Symplectic/Complex/Radial.lean`) identifies it with the pull-back of the constant
-  form `stdForm` along `complexToRealEuclidean`.
+  smooth form. It is the pull-back of the constant form `stdForm` along `complexToRealEuclidean`,
+  by `TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth` applied to
+  `SymplecticGeometry.isSymplectomorphism_complexToRealEuclidean`.
 * `SymplecticGeometry.BlowupModel.closedNbhd n ε` and `SymplecticGeometry.BlowupModel.openNbhd n ε`:
   the points whose blowdown has Euclidean norm `≤ ε`, resp. `< ε`; the first is compact
   (`isCompact_closedNbhd`, since `ℙ ℂ E` is compact and the model is closed in `ℙ ℂ E × E`), the

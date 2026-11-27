@@ -559,11 +559,13 @@ For a complex manifold `M` and `c` in the complex atlas.
 - `Blowup.hypersurfaceData c : HypersurfaceData 𝓘(ℂ, E) (Blowup c) (Option (Fin (n + 1)))`:
   the coordinate `w i` on the domain of `blowupModelChart i ∘ c.lift`, and
   `1` off $Z$; its support is the exceptional divisor.
-- `coordForm_blowdown`: in the chart `i`, the pull-back by $\pi$ of the
+- `Blowup.coordForm_blowdown`: in the chart `i`, the pull-back by $\pi$ of the
   coordinate form $dz_1\wedge\dots\wedge dz_{n+1}$ is $w_i^{\,n}$ times the
   coordinate form of the chart, by the Jacobian of
-  $(w)\mapsto(w_iw_j, w_i)$, with Tau Ceti's
-  `TauCeti.CanonicalBundle.coordForm` and its change of charts.
+  $(w)\mapsto(w_iw_j, w_i)$. It is stated for the chart `liftChart c φ`
+  followed by `blowupModelChart i`, with the coordinate form of a chart of the
+  maximal atlas written as `b.continuousDet` pulled back by its differential,
+  which for `chartAt` is Tau Ceti's `TauCeti.CanonicalBundle.coordForm`.
 - `Blowup.canonicalBundleEquiv c`: a fibrewise complex-linear isomorphism
   from `TauCeti.CanonicalBundle 𝓘(ℂ, E) (Blowup c)` to the tensor product of
   the pull-back along $\pi_M$ of `TauCeti.CanonicalBundle 𝓘(ℂ, E) M` with
