@@ -58,7 +58,9 @@ compose to a smooth diffeomorphism of real manifolds from the Fermat cubic onto 
   its value on a representative and `coe_fermatCubicDiffeomorph_symm_apply` its inverse.
 * `SymplecticGeometry.fermatUniformization`: a biholomorphism from `ℂ / Λ` onto the points of
   `fermatWeierstrassCurve` that is an additive isomorphism, chosen from Tau Ceti's
-  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`.
+  `WeierstrassCurve.exists_continuousAddEquiv_periodLattice_contMDiff`
+  (`SymplecticGeometry.fermatUniformization_add` and
+  `SymplecticGeometry.fermatUniformization_symm_add`).
 * `SymplecticGeometry.fermatPeriodBasis`: a `ℤ`-basis `b₀, b₁` of `Λ` with
   `0 < Im (conj b₀ * b₁)` (`SymplecticGeometry.zero_lt_im_conj_mul_fermatPeriodBasis`).
 * `SymplecticGeometry.fermatCubicTorusDiffeomorph p`: the smooth diffeomorphism of real manifolds
@@ -254,10 +256,19 @@ theorem coe_fermatUniformization :
 
 /-- `fermatUniformization` is additive: it sends a sum of classes in `ℂ / Λ` to the sum of their
 images in the group of points of `fermatWeierstrassCurve`. -/
+@[simp]
 theorem fermatUniformization_add (z w : ℂ ⧸ fermatWeierstrassCurve.periodLattice.toAddSubgroup) :
     fermatUniformization (z + w) = fermatUniformization z + fermatUniformization w := by
   rw [coe_fermatUniformization]
   exact map_add _ z w
+
+/-- The inverse of `fermatUniformization` is additive: it sends a sum of points of
+`fermatWeierstrassCurve` to the sum of their classes in `ℂ / Λ`. -/
+@[simp]
+theorem fermatUniformization_symm_add (P Q : fermatWeierstrassCurve.toProjective.Point) :
+    fermatUniformization.symm (P + Q) =
+      fermatUniformization.symm P + fermatUniformization.symm Q :=
+  fermatUniformization.injective <| by simp
 
 /-- A positively oriented `ℤ`-basis `b₀, b₁` of the period lattice of `fermatWeierstrassCurve`:
 one with `0 < Im (conj b₀ * b₁)`, chosen by `ZLattice.exists_basis_zero_lt_im_conj_mul`. -/
@@ -304,6 +315,16 @@ theorem fermatCubicTorusDiffeomorph_apply (x : SmoothProjectiveHypersurface.ferm
         (fermatUniformization.symm (fermatCubicDiffeomorph x)) := by
   simp only [fermatCubicTorusDiffeomorph_def, Diffeomorph.coe_trans, Diffeomorph.coe_ofLE,
     Diffeomorph.coe_restrictScalars', Function.comp_apply]
+
+/-- The inverse of `fermatCubicTorusDiffeomorph p` sends a point `y` of the standard torus to the
+point of the Fermat cubic whose image under `fermatCubicDiffeomorph` is the image under
+`fermatUniformization` of `(latticeTorusDiffeomorph p fermatPeriodBasis).symm y`. -/
+@[simp]
+theorem fermatCubicTorusDiffeomorph_symm_apply (y : ∀ i, AddCircle (p i)) :
+    (fermatCubicTorusDiffeomorph p).symm y =
+      fermatCubicDiffeomorph.symm
+        (fermatUniformization ((latticeTorusDiffeomorph p fermatPeriodBasis).symm y)) := by
+  simp [fermatCubicTorusDiffeomorph_def]
 
 end SymplecticGeometry
 
