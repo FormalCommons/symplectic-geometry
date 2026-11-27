@@ -87,9 +87,10 @@ let the maximal integral curve `γ` of `-grad f` through `x` be defined for all 
 and for all large `t` the Riemannian distance from `γ t` to `p` is at most
 `(f (γ t) - f p) ^ (1 - θ) / (c * (1 - θ))`.
 
-A trajectory whose forward part lies in a compact set, for instance any trajectory on a compact
-manifold, is defined for all positive time
-(`TauCeti.Ici_subset_maximalIntegralCurveInterval_neg_mgradient`) and has a cluster point. -/
+For a trajectory whose forward part lies in a compact set, for instance any trajectory on a
+compact manifold, use
+`SymplecticGeometry.exists_tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`, which
+needs neither global existence nor a cluster point as a hypothesis. -/
 theorem tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz (hf : ContMDiff I 𝓘(ℝ) 2 f)
     (hx : Ici 0 ⊆ maximalIntegralCurveInterval (-mgradient I f) x)
     (hp : MapClusterPt p atTop (maximalIntegralCurve (-mgradient I f) x)) (hc : 0 < c)

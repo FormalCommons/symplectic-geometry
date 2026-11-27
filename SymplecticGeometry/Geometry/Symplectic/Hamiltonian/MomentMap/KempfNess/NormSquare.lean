@@ -16,7 +16,6 @@ import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.Gradient
-import TauCeti.Geometry.Manifold.Morse.GradientFlow
 
 /-!
 # The norm square of a moment map
