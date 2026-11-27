@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.LocalPullback
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 
 /-!
 # The almost complex blowup
@@ -44,6 +45,13 @@ is injective.
   pullback of multiplication by `i` along `lift`.
 * `SymplecticGeometry.Blowup.mfderiv_blowdown_comp_almostComplexStructure`: off the exceptional
   divisor, `dπ ∘ J̃ = J ∘ dπ`.
+* `SymplecticGeometry.Blowup.isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
+  `blowupModelChart i ∘ lift c` near the exceptional divisor are pseudoholomorphic from `J̃` to
+  the standard structure of `ℂⁿ⁺¹`.
+* `SymplecticGeometry.Blowup.isIntegrable_restrictOpen_rangeInr`: `J̃` is integrable on the range
+  of `inr`, an open neighbourhood of the exceptional divisor.
+* `SymplecticGeometry.Blowup.almostComplexStructure_eq_ofComplexManifold`: for a complex manifold
+  `M` and a holomorphic chart `c`, `J̃` is the structure of the complex manifold `Blowup c`.
 
 ## References
 
@@ -87,6 +95,8 @@ private theorem isOpenCover_cover : IsOpenCover (cover c) := by
     (mem_univ z) with h | h
   · exact ⟨false, (mem_offDivisorOpens c).2 (by rwa [range_inl] at h)⟩
   · exact ⟨true, (mem_cover_true c).2 h⟩
+
+section Smooth
 
 variable [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
   [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
@@ -282,6 +292,92 @@ theorem almostComplexStructure_lift {z : Blowup c} (hz : z ∈ range (inr (gluin
   rw [almostComplexStructure, glue_apply _ _ true z hz', Manifold.tangentSpaceOpenEquiv_apply,
     Manifold.tangentSpaceOpenEquiv_symm_apply]
   exact mfderiv_lift_rangeInrStructure c ⟨z, hz'⟩ v
+
+/-! ### Holomorphic charts near the exceptional divisor -/
+
+/-- On the range of `inr`, the map `lift c` to the model is pseudoholomorphic from the almost
+complex blowup to the structure of the complex manifold `BlowupModel n`. -/
+theorem isPseudoholomorphicAt_lift {z : Blowup c} (hz : z ∈ range (inr (gluingHomeomorph c))) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ)
+      (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) (lift c) z :=
+  isPseudoholomorphicAt_iff_mfderiv.2
+    ⟨(isLocalDiffeomorphAt_lift c hz).mdifferentiableAt (by simp),
+      almostComplexStructure_lift c J hJ hz⟩
+
+/-- The map `lift c` to the model is pseudoholomorphic on the range of `inr`, from the almost
+complex blowup to the structure of the complex manifold `BlowupModel n`. -/
+theorem isPseudoholomorphicOn_lift :
+    IsPseudoholomorphicOn (almostComplexStructure c J hJ)
+      (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) (lift c)
+      (range (inr (gluingHomeomorph c))) :=
+  isPseudoholomorphicOn_iff.2 fun _ hz ↦
+    (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
+
+/-- **The charts of the blowup near the exceptional divisor are holomorphic.** The chart
+`blowupModelChart i ∘ lift c` is pseudoholomorphic, from the almost complex blowup to the
+standard structure of `ℂⁿ⁺¹`, on the set of points of the range of `inr` that `lift c` maps into
+the source of `blowupModelChart i`. -/
+theorem isPseudoholomorphicOn_blowupModelChart_comp_lift (i : Fin (n + 1)) :
+    IsPseudoholomorphicOn (almostComplexStructure c J hJ)
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) (blowupModelChart i ∘ lift c)
+      (range (inr (gluingHomeomorph c)) ∩ lift c ⁻¹' (blowupModelChart i).source) :=
+  (isPseudoholomorphicOn_ofComplexManifold_iff.2
+    ((contMDiffOn_blowupModelChart i ω).mdifferentiableOn (by simp))).comp
+    ((isPseudoholomorphicOn_lift c J hJ).mono inter_subset_left) fun _ hz ↦ hz.2
+
+/-- **The almost complex blowup is integrable near the exceptional divisor**: its restriction to
+the range of `inr`, an open set that contains the exceptional divisor, is integrable. -/
+theorem isIntegrable_restrictOpen_rangeInr :
+    ((almostComplexStructure c J hJ).restrictOpen
+      (GluedAlong.rangeInr (gluingHomeomorph c))).IsIntegrable := by
+  set D := GluedAlong.rangeInrDiffeomorph (isCompatible_real c hc.out)
+  -- There the structure is the pullback, along the diffeomorphism `D` onto the part of the
+  -- model over the target of `c`, of the structure of that complex manifold.
+  have h : coverStructure c J true =
+      pullback D (ofComplexManifold (Fin (n + 1) → ℂ) (modelOpens c)) :=
+    ((eq_localPullback_iff_isPseudoholomorphic _ _ _).2
+      ((isPseudoholomorphic_ofComplexManifold_subtype_val (modelOpens c)).comp
+        (isPseudoholomorphic_pullback D _))).symm
+  -- The open set `cover c true` of the gluing is the range of `inr` by definition.
+  rw [show GluedAlong.rangeInr (gluingHomeomorph c) = cover c true from rfl, almostComplexStructure,
+    restrictOpen_glue, h]
+  exact isIntegrable_ofComplexManifold.pullback D
+
+end Smooth
+
+/-! ### The complex case -/
+
+section Complex
+
+variable [IsManifold 𝓘(ℂ, Fin (n + 1) → ℂ) ω M]
+  [hc : Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℂ, Fin (n + 1) → ℂ) ω M)]
+
+/-- **The almost complex blowup of a complex manifold is the complex blowup.** For a complex
+manifold `M` and a chart `c` of its complex atlas, the almost complex blowup of the structure of
+`M` is the structure of the complex manifold `Blowup c`. Being holomorphic, `c` is
+pseudoholomorphic for the structure of `M`, and it is a chart of the smooth atlas of `M`
+(`Blowup.instFactMemMaximalAtlasReal`), so the almost complex blowup is defined. -/
+theorem almostComplexStructure_eq_ofComplexManifold :
+    almostComplexStructure c (ofComplexManifold (Fin (n + 1) → ℂ) M)
+        (isPseudoholomorphicOn_ofComplexManifold_iff.2
+          ((contMDiffOn_of_mem_maximalAtlas hc.out).mdifferentiableOn (by simp))) =
+      ofComplexManifold (Fin (n + 1) → ℂ) (Blowup c) := by
+  ext z v
+  rcases (Set.ext_iff.1 (GluedAlong.range_inl_union_range_inr (gluingHomeomorph c)) z).2
+    (mem_univ z) with h | h
+  · -- Off the exceptional divisor, the blowdown carries both to the structure of `M`.
+    rw [range_inl] at h
+    refine ((isLocalDiffeomorphAt_blowdown_real c h).isInvertible_mfderiv (by simp)).injective ?_
+    rw [mfderiv_blowdown_almostComplexStructure_apply c _ _ h,
+      ((contMDiff_blowdown c).mdifferentiableAt (by simp)).mfderiv_ofComplexManifold_apply]
+  · -- On the range of `inr`, `lift c` carries both to the structure of the model.
+    have hl : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (lift c) z :=
+      ((contMDiffOn_lift c).contMDiffAt
+        ((GluedAlong.isOpen_range_inr _).mem_nhds h)).mdifferentiableAt (by simp)
+    refine ((isLocalDiffeomorphAt_lift c h).isInvertible_mfderiv (by simp)).injective ?_
+    rw [almostComplexStructure_lift c _ _ h, hl.mfderiv_ofComplexManifold_apply]
+
+end Complex
 
 end Blowup
 
