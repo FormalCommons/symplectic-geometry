@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import Mathlib.Analysis.Convex.Basic
 import TauCeti.LinearAlgebra.Orientation.Basis
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Top forms positive for an orientation
@@ -234,19 +235,6 @@ theorem IsPositive.add_smul_sub (hφ : IsPositive o φ) (hψ : IsPositive o ψ) 
   fun x ↦ (hφ x).add_smul_sub (hψ x) hs
 
 end Positive
-
-/-- The pull-back `f^* φ` at `x`, evaluated on a basis `c` of the tangent space at `x`, is `φ` at
-`f x` evaluated on the image of `c` under a linear equivalence `e` whose underlying map is the
-derivative of `f` at `x`. -/
-theorem mpullback_apply_basis_map {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-    {f : M → M'} {x : M} {e : TangentSpace I x ≃L[ℝ] TangentSpace I' (f x)}
-    (he : (e : TangentSpace I x →L[ℝ] TangentSpace I' (f x)) = mfderiv I I' f x)
-    (φ : RoughForm I' M' F k) (c : Module.Basis (Fin k) ℝ (TangentSpace I x)) :
-    mpullback I I' f φ x c = φ (f x) (c.map e.toLinearEquiv) := by
-  rw [mpullback_apply]
-  congr 1
-  funext i
-  simp [← he]
 
 variable [FiniteDimensional ℝ E] [IsManifold I 1 M] [FiniteDimensional ℝ E'] [IsManifold I' 1 M']
   [NeZero k]
