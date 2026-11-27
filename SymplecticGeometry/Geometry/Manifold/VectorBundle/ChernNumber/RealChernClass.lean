@@ -32,6 +32,9 @@ made here.
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_eq_of_metric`: it is
   the real first Chern class of the unitary frame bundle of the determinant line for every smooth
   Hermitian metric on that line.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.realFirstChernClass_pullback`: the real
+  first Chern class of the pull-back of `J` along a smooth map `f` is the pull-back along `f` of
+  that of `J`.
 
 ## References
 
@@ -44,7 +47,7 @@ public section
 
 noncomputable section
 
-open Bundle Module TauCeti
+open Bundle Module TauCeti TauCeti.OrthonormalFrameBundle
 open scoped Manifold ContDiff VectorBundle.ComplexToReal
 
 namespace SymplecticGeometry.Bundle.ContMDiffComplexStructure
@@ -89,6 +92,57 @@ theorem realFirstChernClass_eq_of_metric (J : ContMDiffComplexStructure I ⊤ F 
     realFirstChernClass G J = g.realFirstChernClass hI :=
   ContMDiffRiemannianMetric.realFirstChernClass_eq_of_metric _ _ g hI
 
+
+section Pullback
+
+variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
+  [TopologicalSpace HN] {I' : ModelWithCorners ℝ EN HN} [I'.Boundaryless] [TopologicalSpace N]
+  [ChartedSpace HN N] [IsManifold I' ∞ N] [T2Space N] [SigmaCompactSpace N]
+  {K : Type*} [FunLike K N M] [ContinuousMapClass K N M]
+
+/-- **The real first Chern class of a smooth complex vector bundle is natural under pull-back.**
+For a smooth complex structure `J` on `V` over `M` and a smooth map `f : N → M`, the real first
+Chern class of the pull-back `J.pullback f hf`, a complex structure on `f *ᵖ V`, is the pull-back
+along `f` of the real first Chern class of `J`. -/
+theorem realFirstChernClass_pullback (J : ContMDiffComplexStructure I ⊤ F V) (f : K)
+    (hf : ContMDiff I' I ∞ f) :
+    haveI := Pullback.contMDiffVectorBundle (F := F) (E := V) hf
+    realFirstChernClass G (J.pullback f hf) =
+      deRhamCohomology.map f hf 2 (realFirstChernClass G J) := by
+  have := Pullback.contMDiffVectorBundle (F := F) (E := V) hf
+  obtain ⟨g', hI'⟩ := exists_hermitianMetric_detBundle G (J.pullback f hf)
+  obtain ⟨g, hI⟩ := exists_hermitianMetric_detBundle G J
+  rw [realFirstChernClass_eq_of_metric G _ g' hI', realFirstChernClass_eq_of_metric G J g hI,
+    ContMDiffRiemannianMetric.realFirstChernClass_def g' hI']
+  set L' := DetBundle ℂ G (J.pullback f hf).toContinuousComplexStructure.Fiber
+  let : RiemannianBundle L' := ⟨g'.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (L' x) := g'.complexInnerProductSpace hI'
+  let : IsContinuousRiemannianBundle ℂ L' :=
+    instIsContinuousRiemannianBundle g'.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ ℂ L' ℂ) I' (𝓡 1) :=
+    contMDiffFiberBundle_circleFiber g' hI'
+  -- The determinant line of `J.pullback f hf` at `y` is that of `J` at `f y`: transport along
+  -- `pullbackFiberEquiv`, then the determinant line of a pull-back is the pull-back of the
+  -- determinant line.
+  let e (y : N) : L' y ≃L[ℂ] DetBundle ℂ G J.toContinuousComplexStructure.Fiber (f y) :=
+    (DetBundle.congrModelEquiv (F₁ := G) (F' := G) (J.pullbackFiberEquiv f hf) y).trans
+      (DetBundle.pullbackEquiv (f : N → M) y).symm
+  -- A unitary frame `φ` of `L'` goes to the image under `e` of its unit vector `φ 1`.
+  refine Bundle.realFirstChernClass_eq_map_of_equivariant g hI hf (fun y φ ↦ e y (φ.frame 1)) ?_
+    (fun _ φ ↦ (e _).map_ne_zero_iff.2 (φ.frame.map_ne_zero_iff.2 one_ne_zero)) fun z _ φ ↦ ?_
+  · refine ((((Pullback.contMDiff_lift f hf).comp
+      (DetBundle.contMDiff_pullbackHomeomorph_symm (n := ∞) (G := G)
+        (E := J.toContinuousComplexStructure.Fiber) f)).comp
+      (DetBundle.contMDiff_congrModelHomeomorph _
+        (J.contMDiff_pullbackFiberEquiv G f hf))).comp
+      (contMDiff_circleFiber_frame_one g' hI')).congr fun q ↦ ?_
+    simp only [Function.comp_apply, DetBundle.congrModelHomeomorph_apply,
+      DetBundle.pullbackHomeomorph_symm_apply, e]
+    exact (Pullback.lift_mk (F := ℂ) _ _ _).symm
+  · rw [Fiber.frame_op_circle_smul_apply, mul_one, ← (e _).map_smul]
+    simpa using congrArg (e _) (φ.frame.map_smul (z : ℂ) 1)
+
+end Pullback
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 
 end

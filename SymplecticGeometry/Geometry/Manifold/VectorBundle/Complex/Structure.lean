@@ -38,7 +38,9 @@ Tau Ceti's proofs of `TauCeti.Bundle.ContinuousComplexStructure.continuousOn_coo
 `continuousOn_realCoordChange` in `TauCeti/Topology/VectorBundle/Complex/Structure.lean`; the
 smoothness of the inverses comes from Tau Ceti's `ContMDiffOn.clm_inverse`. The
 smoothness of the identification of total spaces then follows from Tau Ceti's
-`TauCeti.contMDiff_hom_bundle_iff` and `TauCeti.contMDiff_bundle_symm`.
+`TauCeti.contMDiff_hom_bundle_iff` and `TauCeti.contMDiff_bundle_symm`, and that of the
+identification along a pull-back from Tau Ceti's `Bundle.Pullback.contMDiff_iff`, as in the proof
+of `SymplecticGeometry.Bundle.ContMDiffComplexStructure.continuous_pullbackFiberEquiv`.
 
 The file imports all of Tau Ceti's `TauCeti.Topology.VectorBundle.Complex.Structure`: the atlas of
 the complex trivializations, in the body of `vectorPrebundle`, is not exposed, and the coordinate
@@ -56,6 +58,9 @@ changes are Tau Ceti's private `realCoordChange`, which is used here rather than
 * `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_totalSpaceHomeomorph`,
   `contMDiff_totalSpaceHomeomorph_symm`: the identification of its total space with that of `V`
   is `Cⁿ` in both directions.
+* `SymplecticGeometry.Bundle.ContMDiffComplexStructure.contMDiff_pullbackFiberEquiv`: along a
+  `Cⁿ` map, the identification of the complex bundle of the pull-back of `J` with the pull-back
+  of the complex bundle of `J` is `Cⁿ` on total spaces.
 
 ## References
 
@@ -216,6 +221,32 @@ theorem contMDiff_totalSpaceHomeomorph_symm :
     (((TauCeti.contMDiff_hom_bundle_iff _).1 (J.contMDiff_fiberEquiv G)).congr fun _ ↦ by
       simp only [ContinuousLinearEquiv.coe_coe])
   exact this.congr fun p ↦ by simp
+
+omit J in
+/-- Along a `Cⁿ` map `f : N → M`, the identification
+`SymplecticGeometry.Bundle.ContMDiffComplexStructure.pullbackFiberEquiv` of the complex bundle of
+`J.pullback f hf` with the pull-back of the complex bundle of `J` is `Cⁿ` on total spaces. -/
+theorem contMDiff_pullbackFiberEquiv {EN HN N : Type*} [NormedAddCommGroup EN]
+    [NormedSpace ℝ EN] [TopologicalSpace HN] {I' : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
+    [ChartedSpace HN N] {K : Type*} [FunLike K N M] [ContinuousMapClass K N M]
+    (J : ContMDiffComplexStructure I n F V) (f : K) (hf : ContMDiff I' I n f) :
+    ContMDiff (I'.prod 𝓘(ℝ, G)) (I'.prod 𝓘(ℝ, G)) n
+      fun p : TotalSpace G (J.pullback f hf).toContinuousComplexStructure.Fiber ↦
+        TotalSpace.mk' G (E := (f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) p.proj
+          (J.pullbackFiberEquiv f hf p.proj p.snd) := by
+  have := Pullback.contMDiffVectorBundle (F := F) (E := V) hf
+  refine (Pullback.contMDiff_iff f hf).2 ⟨contMDiff_proj _,
+    ((J.contMDiff_totalSpaceHomeomorph_symm G).comp ((Pullback.contMDiff_lift f hf).comp
+      ((J.pullback f hf).contMDiff_totalSpaceHomeomorph G))).congr fun p ↦ ?_⟩
+  erw [Pullback.lift_mk]
+  rw [Function.comp_apply, Function.comp_apply, Homeomorph.eq_symm_apply,
+    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply,
+    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
+  erw [Pullback.lift_mk]
+  simp only [pullbackFiberEquiv_apply]
+  -- The fibres of `f *ᵖ V` at `p.proj` are those of `V` at `f p.proj`, as which `exact` reads them.
+  exact congrArg (TotalSpace.mk' F (f p.proj))
+    ((J.toContinuousComplexStructure.fiberEquiv (f p.proj)).apply_symm_apply _)
 
 end SymplecticGeometry.Bundle.ContMDiffComplexStructure
 
