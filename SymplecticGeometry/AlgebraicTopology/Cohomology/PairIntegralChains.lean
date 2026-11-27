@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralChains
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.Relative.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.Relative
 
 /-!
@@ -17,18 +18,12 @@ For a commutative ring `k` and a topological pair `P = (X, A)`, the `k`-linear r
 coefficients `ModuleCat.of ℤ (ULift ℤ)`. This is the counterpart for pairs of
 `TopCat.singularCohomologyIntChainsIso` (`IntegralChains.lean`).
 
-* `SSetPair.intCastChainMap k P : C(P; ℤ) ⟶ F (C(P; k))`: for a pair of simplicial
-  sets, the chain map casting the coefficients of integral relative chains to `k`, obtained from
-  `SSet.intCastChainMap` of the ambient simplicial set by passing to the cokernel
-  `SSetPair.isColimitCokernelCoforkChainComplex`. It is characterized by its composite with the
-  quotient map from ambient chains (`SSetPair.chainComplexπ_intCastChainMap`), and
-  commutes with the chain maps of maps of pairs
-  (`SSetPair.chainComplexMap_f_intCastChainMap`).
 * `TopPair.singularCochainComplexIntChainsIso`: the comparison of relative cochains, precomposing
-  a cochain with that chain map and identifying the values with the abelian group `k`
-  (`TopPair.singularCochainComplexIntChainsHom_f_apply`). It is an isomorphism by the four lemma
-  `CategoryTheory.ShortComplex.epi_of_mono_of_epi_of_mono`, applied to the comparison of the
-  short exact cochain sequences of the pair (Tau Ceti's
+  a cochain with the chain map `SSetPair.intCastChainMap` that casts integral relative chains to
+  `k` (`SimplicialSet/Homology/Relative/RestrictScalars.lean`) and identifying the values with
+  the abelian group `k` (`TopPair.singularCochainComplexIntChainsHom_f_apply`). It is an
+  isomorphism by the four lemma `CategoryTheory.ShortComplex.epi_of_mono_of_epi_of_mono`,
+  applied to the comparison of the short exact cochain sequences of the pair (Tau Ceti's
   `TopPair.shortExact_singularCochainComplexShortComplex`) that the absolute comparisons for `X`
   and for `A` complete.
 * `TopPair.singularCohomologyIntChainsIso : F (Hᵖ(X, A; k)) ≅ Hᵖ(X, A; ℤ, k)`: the induced
@@ -52,91 +47,6 @@ public section
 noncomputable section
 
 open CategoryTheory Limits TauCeti
-
-namespace SSetPair
-
-variable (k : Type) [CommRing k]
-
-/-- Casting the coefficients of the chains of the subspace of a pair `P` of simplicial sets to
-`k`, and then sending them to relative chains, gives zero. -/
-theorem chainComplexMap_intCastChainMap_chainComplexπ (P : SSetPair.{0}) :
-    SSet.chainComplexMap P.hom (ModuleCat.of ℤ (ULift.{0} ℤ)) ≫ SSet.intCastChainMap k P.right ≫
-      ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
-        (P.chainComplexπ (ModuleCat.of k k)) = 0 := by
-  ext n : 1
-  have h := SSet.chainComplexMap_f_intCastChainMap (k := k) P.hom n
-  simp only [Functor.id_obj] at h
-  rw [HomologicalComplex.comp_f, HomologicalComplex.comp_f, Functor.mapHomologicalComplex_map_f,
-    ← Category.assoc, h, Category.assoc, ← Functor.map_comp, SSetPair.chainComplex_condition_f,
-    Functor.map_zero, comp_zero, HomologicalComplex.zero_f]
-
-/-- The chain map `C(P; ℤ) ⟶ F (C(P; k))` that casts the coefficients of the integral relative
-chains of a pair `P` of simplicial sets to `k`, the target read as a complex of abelian groups
-through the restriction of scalars `F` along `ℤ → k`: the chain map
-`SSet.intCastChainMap` of the ambient simplicial set, followed by the quotient map
-to relative chains, descended along the cokernel presentation of the relative chains. -/
-def intCastChainMap (P : SSetPair.{0}) :
-    P.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟶
-      ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).obj
-        (P.chainComplex (ModuleCat.of k k)) :=
-  (P.isColimitCokernelCoforkChainComplex _).desc (CokernelCofork.ofπ
-    (SSet.intCastChainMap k P.right ≫
-      ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
-        (P.chainComplexπ (ModuleCat.of k k)))
-    (chainComplexMap_intCastChainMap_chainComplexπ k P))
-
-variable {k} in
-/-- The chain map casting integral relative chains to `k` is the map out of the cokernel
-presentation of the relative chains induced by `SSet.intCastChainMap` of the
-ambient simplicial set followed by the quotient map to relative chains. -/
-theorem intCastChainMap_def (P : SSetPair.{0}) :
-    SSetPair.intCastChainMap k P =
-      (P.isColimitCokernelCoforkChainComplex _).desc (CokernelCofork.ofπ
-        (SSet.intCastChainMap k P.right ≫
-          ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
-            (P.chainComplexπ (ModuleCat.of k k)))
-        (chainComplexMap_intCastChainMap_chainComplexπ k P)) :=
-  (rfl)
-
-variable {k}
-
-/-- Casting the coefficients of relative chains to `k` after the quotient map from ambient
-chains is casting the coefficients of the ambient chains, followed by the quotient map. -/
-@[reassoc (attr := simp)]
-theorem chainComplexπ_intCastChainMap (P : SSetPair.{0}) :
-    P.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ)) ≫ SSetPair.intCastChainMap k P =
-      SSet.intCastChainMap k P.right ≫
-        ((ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).mapHomologicalComplex _).map
-          (P.chainComplexπ (ModuleCat.of k k)) :=
-  Cofork.IsColimit.π_desc (P.isColimitCokernelCoforkChainComplex _)
-
-/-- `SSetPair.chainComplexπ_intCastChainMap` in degree `n`. -/
-@[reassoc (attr := simp)]
-theorem chainComplexπ_f_intCastChainMap_f (P : SSetPair.{0}) (n : ℕ) :
-    (P.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f n ≫ (SSetPair.intCastChainMap k P).f n =
-      (SSet.intCastChainMap k P.right).f n ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          ((P.chainComplexπ (ModuleCat.of k k)).f n) := by
-  rw [← HomologicalComplex.comp_f, SSetPair.chainComplexπ_intCastChainMap,
-    HomologicalComplex.comp_f, Functor.mapHomologicalComplex_map_f]
-
-/-- Casting the coefficients of relative chains to `k` commutes with the chain maps induced by
-maps of pairs of simplicial sets. -/
-@[reassoc]
-theorem chainComplexMap_f_intCastChainMap {P Q : SSetPair.{0}} (f : P ⟶ Q) (n : ℕ) :
-    (SSetPair.chainComplexMap f (ModuleCat.of ℤ (ULift.{0} ℤ))).f n ≫
-        (SSetPair.intCastChainMap k Q).f n =
-      (SSetPair.intCastChainMap k P).f n ≫
-        (ModuleCat.restrictScalars.{0} (algebraMap ℤ k)).map
-          ((SSetPair.chainComplexMap f (ModuleCat.of k k)).f n) := by
-  refine (cancel_epi ((P.chainComplexπ (ModuleCat.of ℤ (ULift.{0} ℤ))).f n)).1 ?_
-  rw [← HomologicalComplex.comp_f_assoc, ← SSetPair.chainComplexπ_naturality,
-    HomologicalComplex.comp_f_assoc, SSetPair.chainComplexπ_f_intCastChainMap_f,
-    SSetPair.chainComplexπ_f_intCastChainMap_f_assoc, SSet.chainComplexMap_f_intCastChainMap_assoc,
-    ← Functor.map_comp, ← Functor.map_comp, ← HomologicalComplex.comp_f,
-    ← HomologicalComplex.comp_f, SSetPair.chainComplexπ_naturality]
-
-end SSetPair
 
 namespace TopPair
 
