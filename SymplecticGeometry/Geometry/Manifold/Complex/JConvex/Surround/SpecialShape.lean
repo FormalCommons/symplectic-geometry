@@ -42,7 +42,9 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `(δ, K δ]`, has slope at most `d` at `K δ`, takes at `δ` a value in `[1 + d δ, 1 + d K δ)`,
   and has slope tending to `+∞` at `δ`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt_sub`: the shape `√(a r² - c)` for `a > 1`, at each
-  `r > 0` with `c < a r²`; `√(ℓ² + a r²)` is its case `c = -ℓ²`. Its second derivative,
+  `r > 0` with `c < a r²`; `√(ℓ² + a r²)` is its case `c = -ℓ²`. Its derivative
+  `a r / √(a r² - c)` is `SymplecticGeometry.deriv_sqrt_sub` (with
+  `SymplecticGeometry.hasDerivAt_sqrt_sub`), and its second derivative,
   `-a c / √(a r² - c)³`, is `SymplecticGeometry.iteratedDeriv_two_sqrt_sub`.
 * `SymplecticGeometry.isConvexShapeAt_sqrt`, `SymplecticGeometry.isConvexShapeAt_quadratic` and
   `SymplecticGeometry.isConvexShapeAt_linear`: the shapes `√(ℓ² + a r²)` for `a > 1`,
@@ -533,6 +535,21 @@ theorem iteratedDeriv_two_quadratic (ℓ b c r : ℝ) :
   simp only [e, iteratedDeriv_succ, iteratedDeriv_zero, deriv_deriv_quadratic]
   ring
 
+/-- The shape `r ↦ √(a r² - c)` has derivative `a r / √(a r² - c)` at a point `r` where
+`a r² - c > 0`. -/
+theorem hasDerivAt_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
+    HasDerivAt (fun r ↦ √(a * r ^ 2 - c)) (a * r / √(a * r ^ 2 - c)) r := by
+  have hq : HasDerivAt (fun r ↦ a * r ^ 2 - c) (a * (2 * r)) r := by
+    simpa using ((hasDerivAt_pow 2 r).const_mul a).sub_const c
+  convert hq.sqrt h.ne' using 1
+  field_simp
+
+/-- The derivative of the shape `r ↦ √(a r² - c)`, at a point `r` where `a r² - c > 0`, is
+`a r / √(a r² - c)`. -/
+theorem deriv_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
+    deriv (fun r ↦ √(a * r ^ 2 - c)) r = a * r / √(a * r ^ 2 - c) :=
+  (hasDerivAt_sqrt_sub h).deriv
+
 /-- The second derivative of the shape `r ↦ √(a r² - c)`, at a point `r` where `a r² - c > 0`,
 is `-a c / √(a r² - c)³`. -/
 theorem iteratedDeriv_two_sqrt_sub {a c r : ℝ} (h : 0 < a * r ^ 2 - c) :
@@ -560,22 +577,12 @@ theorem iteratedDeriv_two_sqrt_quadratic {a ℓ r : ℝ} (h : 0 < ℓ ^ 2 + a * 
 `i`-convex shape at `r`. -/
 theorem isConvexShapeAt_sqrt_sub {a c r : ℝ} (ha : 1 < a) (hr : 0 < r) (hc : c < a * r ^ 2) :
     IsConvexShapeAt (fun r ↦ √(a * r ^ 2 - c)) r := by
-  -- Write the radicand as Tau Ceti's quadratic `-c + 0 r + a r²`.
-  have e : (fun r ↦ √(a * r ^ 2 - c)) = fun r ↦ √(-c + 0 * r + a * r ^ 2) := by
-    ext r
-    ring_nf
-  rw [e]
-  have hQ : 0 < -c + 0 * r + a * r ^ 2 := by linarith
-  set S := √(-c + 0 * r + a * r ^ 2) with hS_def
+  have hQ : 0 < a * r ^ 2 - c := by linarith
+  have h₁ := deriv_sqrt_sub hQ
+  have h₂ := iteratedDeriv_two_sqrt_sub hQ
+  set S := √(a * r ^ 2 - c)
   have hS : 0 < S := sqrt_pos.2 hQ
-  have hSS : S ^ 2 = -c + 0 * r + a * r ^ 2 := sq_sqrt hQ.le
-  have h₁ : deriv (fun r ↦ √(-c + 0 * r + a * r ^ 2)) r = a * r / S := by
-    rw [((hasDerivAt_quadratic _ _ _ r).sqrt hQ.ne').deriv]
-    field_simp
-    ring
-  have h₂ : iteratedDeriv 2 (fun r ↦ √(-c + 0 * r + a * r ^ 2)) r = -a * c / S ^ 3 := by
-    rw [← e, iteratedDeriv_two_sqrt_sub (by linarith), hS_def]
-    ring_nf
+  have hSS : S ^ 2 = a * r ^ 2 - c := sq_sqrt hQ.le
   refine isConvexShapeAt_iff.2 ⟨hr, hS, ?_, ?_⟩
   · rw [h₁, show a * r / S / r = a / S by field_simp]
     exact div_lt_div_of_pos_right ha hS
@@ -590,7 +597,7 @@ theorem isConvexShapeAt_sqrt_sub {a c r : ℝ} (ha : 1 < a) (hr : 0 < r) (hc : c
       have : 0 < a - 1 := by linarith
       have : 0 < a := by linarith
       positivity
-    have : -c + 0 * r + a * r ^ 2 < a ^ 3 * r ^ 2 - a * c := by nlinarith
+    have : a * r ^ 2 - c < a ^ 3 * r ^ 2 - a * c := by nlinarith
     nlinarith
 
 /-- **The shape `√(ℓ² + a r²)`.** For `1 < a` and any `ℓ`, `r ↦ √(ℓ² + a r²)` is an `i`-convex
@@ -930,12 +937,12 @@ theorem exists_isConvexShapeAt_eq_linear_eq_sqrt {a γ : ℝ} (ha : 1 < a) (hγ 
   set t := max r γ + 1
   have hrt : r ≤ t := by linarith [le_max_left r γ]
   have ht : γ < t := by linarith [le_max_right r γ]
-  have hQ : 0 < 1 + 0 * t + a * t ^ 2 := by nlinarith
-  have hS : ψ =ᶠ[𝓝 t] fun r ↦ √(1 + 0 * r + a * r ^ 2) := by
+  have hQ : 0 < a * t ^ 2 - -1 := by nlinarith
+  have hS : ψ =ᶠ[𝓝 t] fun r ↦ √(a * r ^ 2 - -1) := by
     filter_upwards [lt_mem_nhds ht] with r hr
-    simpa using hψS' r hr.le
-  have hd : deriv ψ t = (0 + 2 * a * t) / (2 * √(1 + 0 * t + a * t ^ 2)) := by
-    rw [hS.deriv_eq, ((hasDerivAt_quadratic _ _ _ t).sqrt hQ.ne').deriv]
+    rw [hψS' r hr.le, sub_neg_eq_add, add_comm]
+  have hd : deriv ψ t = a * t / √(a * t ^ 2 - -1) := by
+    rw [hS.deriv_eq, deriv_sqrt_sub hQ]
   have hpos : 0 < ψ t - t * deriv ψ t := by
     have hRR := sq_sqrt hQ.le
     rw [hd, hS.eq_of_nhds, sub_pos, mul_div_assoc', div_lt_iff₀ (by positivity)]
