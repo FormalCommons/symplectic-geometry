@@ -132,6 +132,7 @@ theorem hasDerivAt_smoothedSign (δ s : ℝ) :
 
 /-- The derivative of `smoothedSign δ` is `s ↦ ψ'((s + δ) / (2 δ)) / δ`, with
 `ψ = Real.smoothTransition`. -/
+@[simp]
 theorem deriv_smoothedSign (δ : ℝ) :
     deriv (smoothedSign δ) = fun s ↦ deriv Real.smoothTransition ((s + δ) / (2 * δ)) / δ :=
   funext fun s ↦ (hasDerivAt_smoothedSign δ s).deriv
