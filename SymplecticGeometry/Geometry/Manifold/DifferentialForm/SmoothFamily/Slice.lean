@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
+import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # The slice section of a family of forms, and smoothness at a point and in a frame
@@ -18,6 +20,10 @@ in the fibre over `y` of the bundle of `k`-forms of `F`; it is a section along t
 `TauCeti.contMDiff_mpullback_prodMk_form` for the slices of a form on a product, where the
 section is written out. A slice section that vanishes near a point is smooth there
 (`SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_zero`), as the zero section is.
+A slice section that agrees near a point with the pullbacks of one form `Ω` along a jointly
+smooth family of maps `g p : F → M` is smooth there
+(`SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_mpullback`), by Tau Ceti's
+`ContMDiffAt.mpullback_form_family`.
 Suppose that the slice section is `C^n`.
 
 * `ContMDiffAt.roughForm_family_apply`: at a fixed `y₀`, the value `β p y₀` is `C^n` in `p`. The
@@ -106,6 +112,26 @@ theorem contMDiffAt_sliceSection_of_eventually_eq_zero [IsManifold J 1 F] {n : W
     (fun y : F ↦ TangentSpace J y [⋀^Fin k]→L[ℝ] Trivial F G y)).comp contMDiff_snd q₀)
     |>.congr_of_eventuallyEq (h.mono fun q hq ↦ ?_)
   simp [sliceSection_apply, hq, zeroSection]
+
+/-- The slice section of `β` is `C^m` at `q₀` if, for every `(p, y)` near `q₀`, `β p y` is the
+value at `y` of the pullback of a form `Ω` on `M` along `g p : F → M`, where `g` is jointly `C^n`
+at `q₀` with `m + 1 ≤ n` and `Ω` is `C^m` at `g q₀.1 q₀.2`. -/
+theorem contMDiffAt_sliceSection_of_eventually_eq_mpullback [IsManifold J 1 F]
+    [IsManifold K 1 P] {E' H' M : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M]
+    [ChartedSpace H' M] [IsManifold I' 1 M] {m n : WithTop ℕ∞} {Ω : RoughForm I' M G k}
+    {g : P → F → M} {β : P → RoughForm J F G k} {q₀ : P × F}
+    (hΩ : ContMDiffAt I' (I'.prod 𝓘(ℝ, E' [⋀^Fin k]→L[ℝ] G)) m
+      (fun z ↦ TotalSpace.mk' (E' [⋀^Fin k]→L[ℝ] G) z (Ω z)) (g q₀.1 q₀.2))
+    (hg : ContMDiffAt (K.prod J) I' n (Function.uncurry g) q₀) (hmn : m + 1 ≤ n)
+    (h : ∀ᶠ q in 𝓝 q₀, β q.1 q.2 = mpullback J I' (g q.1) Ω q.2) :
+    ContMDiffAt (K.prod J) (J.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] G)) m (sliceSection β) q₀ := by
+  refine (ContMDiffAt.mpullback_form_family (J := K.prod J) (f := fun q ↦ g q.1)
+    (g := Prod.snd) (p₀ := q₀) hΩ
+    (hg.comp (f := fun r : (P × F) × F ↦ (r.1.1, r.2)) (q₀, q₀.2)
+      ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd).contMDiffAt)
+    contMDiffAt_snd hmn).congr_of_eventuallyEq (h.mono fun q hq ↦ ?_)
+  rw [sliceSection_apply, hq]
 
 /-- If the slice section of `β` is `C^n` and `χ : F → P` is `C^n`, then the rough form
 `y ↦ β (χ y) y`, the slice of `β` along `χ`, is `C^n`. -/
