@@ -97,7 +97,7 @@ open scoped Manifold ContDiff
 /-- The space `Fin n → R` has rank `m` whenever `n = m`, the equation given by a `Fact`. This
 gives the rank hypothesis of the real first Chern class of a bundle with model fibre `Fin n → ℝ`
 from one about `n` alone. -/
-instance Module.fact_finrank_fin_fun {R : Type*} [Ring R] [StrongRankCondition R] {n m : ℕ}
+instance Module.fact_finrank_fin_fun {R : Type*} [Semiring R] [StrongRankCondition R] {n m : ℕ}
     [h : Fact (n = m)] : Fact (finrank R (Fin n → R) = m) :=
   ⟨(finrank_fin_fun R).trans h.out⟩
 
