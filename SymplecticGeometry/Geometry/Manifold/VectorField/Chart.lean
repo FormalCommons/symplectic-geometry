@@ -33,7 +33,7 @@ where the pullback within the model range is the pullback, together with
 
 ## References
 
-* J. M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer, 2012, Chapter 8
+* J. M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer GTM 218 (2013), Chapter 8
   (vector fields in coordinates).
 -/
 

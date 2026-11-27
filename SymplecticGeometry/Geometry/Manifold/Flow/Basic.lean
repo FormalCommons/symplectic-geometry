@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
+import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
 # Maximal flows: time-map differentials, integral curves, equivariance, translation
@@ -37,8 +38,9 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   `IsMIntegralCurveOn.eqOn_maximalIntegralCurve`.
 * `IsMIntegralCurveOn.globalFlow_sub_eq_Ici`: for a complete field, an integral curve `γ` on the
   closed ray `[a, ∞)` satisfies `γ t = φ_{t - a} (γ a)` for `t ≥ a`, including the endpoint where
-  `γ` has only a one-sided derivative. It compares `γ` with the flow from each `b ∈ (a, t)` by
-  Tau Ceti's `IsMIntegralCurveOn.eqOn_maximalIntegralCurve_Ici` and lets `b` tend to `a`.
+  `γ` has only a one-sided derivative. The shifted flow line and `γ` are integral curves on the
+  preconnected set `[a, ∞)` that agree at `a`, so they agree by Tau Ceti's
+  `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
 * `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`: if the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M`
   are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
@@ -157,24 +159,11 @@ theorem _root_.IsMIntegralCurveOn.globalFlow_sub_eq_Ici [CompleteSpace E] [T2Spa
     (hv : ContMDiff I I.tangent 1 (fun y ↦ (⟨y, v y⟩ : TangentBundle I M)))
     (hcomplete : IsCompleteVectorField v) (hγ : IsMIntegralCurveOn γ v (Ici a)) (ht : a ≤ t) :
     globalFlow v hv hcomplete (t - a) (γ a) = γ t := by
-  set φ := globalFlow v hv hcomplete
-  rcases ht.eq_or_lt with rfl | ht
-  · rw [sub_self, Flow.map_zero_apply]
-  -- From each time `b ∈ (a, t)`, the flow runs back from `γ t` to `γ b`.
-  have heq : ∀ b ∈ Ioo a t, φ (b - t) (γ t) = γ b := fun b hb ↦ by
-    have h := hγ.eqOn_maximalIntegralCurve_Ici hv hb.1 (show t - b ∈ Ioi (a - b) by
-      simp only [mem_Ioi]; linarith)
-    rw [Function.comp_apply, sub_add_cancel, ← globalFlow_apply hv hcomplete] at h
-    rw [← h, ← Flow.map_add, sub_add_sub_cancel', sub_self, Flow.map_zero_apply]
-  -- As `b` decreases to `a`, the left side tends to `φ (a - t) (γ t)` and the right side to
-  -- `γ a`, by continuity of `γ` within `[a, ∞)`.
-  have hlim₁ : Tendsto (fun b ↦ φ (b - t) (γ t)) (𝓝[>] a) (𝓝 (φ (a - t) (γ t))) :=
-    ((φ.continuous (continuous_id.sub continuous_const) continuous_const).tendsto a).mono_left
-      nhdsWithin_le_nhds
-  have hlim₂ : Tendsto γ (𝓝[>] a) (𝓝 (γ a)) :=
-    ((hγ a self_mem_Ici).continuousWithinAt.mono Ioi_subset_Ici_self).tendsto
-  have h := tendsto_nhds_unique (hlim₁.congr' (eventually_of_mem (Ioo_mem_nhdsGT ht) heq)) hlim₂
-  rw [← h, ← Flow.map_add, sub_add_sub_cancel', sub_self, Flow.map_zero_apply]
+  have hφ : IsMIntegralCurveOn (fun s ↦ globalFlow v hv hcomplete (s - a) (γ a)) v (Ici a) :=
+    (((isMIntegralCurve_globalFlow hv hcomplete (γ a)).comp_add (-a)).isMIntegralCurveOn _).congr
+      (fun s _ ↦ by simp [sub_eq_add_neg])
+  exact hφ.eqOn_of_isPreconnected hγ isPreconnected_Ici self_mem_Ici
+    (fun s _ ↦ hv.contMDiffAt) (by simp) ht
 
 /-- If the lines `t ↦ Φ (t, s)` of `Φ : ℝ × S → M` are integral curves of the `C¹` field `v` on
 `(a, b)` and `t₀, t ∈ (a, b)`, then near `(t, s)` the map `Φ` is the maximal flow of `v` out of the
