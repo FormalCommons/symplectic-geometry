@@ -154,10 +154,7 @@ theorem exists_norm_iteratedFDeriv_sum_smul_sub_le (hU : ∀ i ∈ s, IsOpen (U 
         C' * w y ^ (N + 1 - j) := by
   -- A bound on the derivatives of the `ρ i` near `K`.
   set Φ : E → ℝ := fun y ↦ ∑ i ∈ s, jetNormAt ℝ r (ρ i) y
-  have hΦ : Continuous Φ := continuous_finsetSum _ fun i hi ↦ by
-    rw [show jetNormAt ℝ r (ρ i) = _ from funext (jetNormAt_def ℝ r (ρ i))]
-    exact continuous_finsetSum _ fun l hl ↦ ((hρ i hi).continuous_iteratedFDeriv (by
-      exact_mod_cast Nat.lt_succ_iff.mp (Finset.mem_range.mp hl))).norm
+  have hΦ : Continuous Φ := continuous_finsetSum _ fun i hi ↦ continuous_jetNormAt (hρ i hi)
   obtain ⟨M, hM⟩ := hK.exists_bound_of_continuousOn hΦ.continuousOn
   have hΦM : ∀ᶠ y in 𝓝ˢ K, Φ y < max M 0 + 1 :=
     (isOpen_lt hΦ continuous_const).mem_nhdsSet.mpr fun y hy ↦
