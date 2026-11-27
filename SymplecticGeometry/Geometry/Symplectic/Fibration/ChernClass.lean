@@ -253,8 +253,7 @@ theorem map_realFirstChernClass_vertical [FiniteDimensional ℝ EF] [IF.Boundary
   conv_rhs => rw [← hτj, SmoothForm.bilinFormAt_mpullback]
   -- The fibre `(j *ᵖ V) y` is `V (j y)` only by definition, so `restrict_apply` does not match
   -- the left side as it is stated.
-  change SmoothForm.bilinFormAt _ (j y) (Subtype.val (Φ y v))
-    (Subtype.val (Φ y w)) = _
+  change SmoothForm.bilinFormAt _ (j y) (Subtype.val (Φ y v)) (Subtype.val (Φ y w)) = _
   rw [hΦv, hΦv, LinearMap.BilinForm.comp_apply, ContinuousLinearMap.coe_coe]
 
 end TauCeti.MapFiber.Atlas
