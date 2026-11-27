@@ -146,7 +146,7 @@ $d_k(x,y)$. Here $d_k=\sqrt{2\pi k}\,d_{g_J}$, with $d_{g_J}$ Mathlib's
 With these, a sequence $(s_k)_{k}$ of sections of `L k` is **asymptotically
 holomorphic** (`IsAsymptoticallyHolomorphic`) when for every $r$ there is a
 $C$ with, for large $k$ and every $x$, `jetNorm k r (s k) x ≤ C` and
-`jetNorm k r (∂̄ (s k)) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
+`dbarJetNorm k r (s k) x ≤ C * k ^ (-1/2 : ℝ)`. It is **uniformly
 transverse** with constant $\eta>0$ (`IsUniformlyTransverse η`) when for
 large $k$ and every $x$,
 $\max(|s_k(x)|,(2\pi k)^{-1/2}\|\partial s_k(x)\|)\ge\eta$. These pointwise

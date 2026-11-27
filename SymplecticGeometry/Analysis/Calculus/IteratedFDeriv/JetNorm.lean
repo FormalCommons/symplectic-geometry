@@ -22,6 +22,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 * `SymplecticGeometry.jetNormAt_nonneg` and `SymplecticGeometry.jetNormAt_mono`: the jet norm is
   nonnegative and monotone in the order.
 * `SymplecticGeometry.jetNormAt_zero`: the jet norm of order `0` is `‖f z‖`.
+* `SymplecticGeometry.jetNormAt_congr_of_eventuallyEq`: the jet norm at `z` depends only on the
+  germ of the function at `z`.
 * `SymplecticGeometry.jetNormAt_add_le`: the triangle inequality, for functions that are `C^r`
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
 * `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for every
@@ -33,6 +35,8 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 -/
 
 public section
+
+open scoped Topology
 
 /-- The iterated derivative of `c • f` is `c` times that of `f`, for every `f`, when `c` lies in a
 normed field: unlike `iteratedFDeriv_const_smul_apply`, no smoothness of `f` is assumed. -/
@@ -91,6 +95,11 @@ theorem jetNormAt_zero_fun (r : ℕ) (z : E) : jetNormAt 𝕜 r (0 : E → F) z 
 theorem jetNormAt_neg (r : ℕ) (f : E → F) (z : E) :
     jetNormAt 𝕜 r (-f) z = jetNormAt 𝕜 r f z := by
   simp only [jetNormAt_def, iteratedFDeriv_neg_apply, norm_neg]
+
+/-- The jet norm at `z` depends only on the germ of the function at `z`. -/
+theorem jetNormAt_congr_of_eventuallyEq (r : ℕ) {f g : E → F} {z : E} (h : f =ᶠ[𝓝 z] g) :
+    jetNormAt 𝕜 r f z = jetNormAt 𝕜 r g z := by
+  simp only [jetNormAt_def, (h.iteratedFDeriv 𝕜 _).eq_of_nhds]
 
 /-- The **triangle inequality for jet norms**, for functions of class `C^r` at `z`. -/
 theorem jetNormAt_add_le {r : ℕ} {f g : E → F} {z : E} (hf : ContDiffAt 𝕜 r f z)
