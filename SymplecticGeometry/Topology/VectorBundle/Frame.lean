@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Analysis.Normed.Module.ContinuousInverse
 public import TauCeti.Topology.VectorBundle.Contractible
+import TauCeti.Topology.VectorBundle.Hom
 
 /-!
 # Transition maps of frames of a vector bundle
@@ -32,7 +33,14 @@ the transition and its inverse are continuous on the preimage of the base set
 (`Bundle.Trivialization.continuousOn_frameTransition`,
 `Bundle.Trivialization.continuousOn_frameTransition_symm`), for fibres that are groups. Over the
 base set the transition is the frame read in `e`, which is continuous there by Tau Ceti's
-`TauCeti.continuousOn_continuousLinearMapAt_comp`.
+`TauCeti.continuousOn_continuousLinearMapAt_comp`. More generally, a family of linear maps
+`L y : G → E (f y)` from a finite-dimensional space that is continuous into the total space is,
+read in `e`, continuous on the preimage of the base set
+(`Bundle.Trivialization.continuousOn_continuousLinearMapAt_comp`). It is the case of Tau Ceti's
+`TauCeti.continuousOn_continuousLinearMapAt_comp_symmL` whose source is the trivial bundle with
+fibre `G`. Composing the inverse of a frame with such a family gives a continuous family of
+maps `G → F` (`SymplecticGeometry.Bundle.continuous_frame_symm_comp`); the proof follows that
+of Tau Ceti's `TauCeti.continuous_trans_symm_of_continuous_frame_aux`.
 
 ## References
 
@@ -172,3 +180,56 @@ theorem continuousOn_frameTransition_symm (e : Trivialization F (π F E)) [e.IsL
   fun y hy ↦ (continuousOn_frameTransition hψ e y hy).continuousLinearEquiv_symm
 
 end Bundle.Trivialization
+
+namespace Bundle.Trivialization
+
+variable {R : Type*} [NontriviallyNormedField R] [CompleteSpace R] {B X : Type*}
+  [TopologicalSpace B] [TopologicalSpace X] {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
+  {E : X → Type*} [∀ x, AddCommMonoid (E x)] [∀ x, Module R (E x)] [∀ x, TopologicalSpace (E x)]
+  [TopologicalSpace (TotalSpace F E)] [FiberBundle F E] {f : B → X}
+
+/-- Let `L y : G → E (f y)` be linear maps from a finite-dimensional space `G`, continuous as a
+map `B × G → TotalSpace F E`. Read in a linear trivialization `e`, they form a family of maps
+`G → F` that is continuous on the preimage of the base set of `e`. -/
+theorem continuousOn_continuousLinearMapAt_comp {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace R G] [FiniteDimensional R G] {L : ∀ y, G →L[R] E (f y)}
+    (hL : Continuous fun q : B × G ↦ TotalSpace.mk' F (f q.1) (L q.1 q.2))
+    (e : Trivialization F (π F E)) [e.IsLinear R] :
+    ContinuousOn (fun y ↦ (e.continuousLinearMapAt R (f y)).comp (L y)) (f ⁻¹' e.baseSet) := by
+  simpa using TauCeti.continuousOn_continuousLinearMapAt_comp_symmL (E' := Bundle.Trivial B G)
+    (g := f) (φ := L) (hL.comp (Bundle.Trivial.homeomorphProd B G).continuous) e
+    (Bundle.Trivial.trivialization B G)
+
+end Bundle.Trivialization
+
+namespace SymplecticGeometry.Bundle
+
+variable {R : Type*} [NontriviallyNormedField R] [CompleteSpace R] {B X : Type*}
+  [TopologicalSpace B] [TopologicalSpace X] {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
+  [FiniteDimensional R F] {E : X → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module R (E x)]
+  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
+  [VectorBundle R F E] {f : B → X}
+
+/-- Let `φ y : F ≃ E (f y)` be a continuous frame of a finite-rank vector bundle `E` along `f`,
+with the model fibre as its source, and let `L y : G → E (f y)` be linear maps from a
+finite-dimensional space `G`, continuous as a map `B × G → TotalSpace F E`. Then the maps
+`(φ y)⁻¹ ∘ L y : G → F` depend continuously on `y`. -/
+theorem continuous_frame_symm_comp {G : Type*} [NormedAddCommGroup G] [NormedSpace R G]
+    [FiniteDimensional R G] {φ : ∀ y, F ≃L[R] E (f y)}
+    (hφ : Continuous fun q : B × F ↦ TotalSpace.mk' F (f q.1) (φ q.1 q.2))
+    {L : ∀ y, G →L[R] E (f y)}
+    (hL : Continuous fun q : B × G ↦ TotalSpace.mk' F (f q.1) (L q.1 q.2)) :
+    Continuous fun y ↦ ((φ y).symm : E (f y) →L[R] F).comp (L y) := by
+  refine continuous_iff_continuousAt.2 fun y₀ ↦ ?_
+  let e := trivializationAt F E (f y₀)
+  have hU : f ⁻¹' e.baseSet ∈ nhds y₀ :=
+    (TauCeti.continuous_of_continuous_frame hφ).continuousAt.preimage_mem_nhds
+      (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' (f y₀)))
+  refine ((Bundle.Trivialization.continuousOn_frameTransition_symm hφ e).clm_comp
+    (e.continuousOn_continuousLinearMapAt_comp hL)).continuousAt hU |>.congr_of_eventuallyEq ?_
+  filter_upwards [hU] with y (hy : f y ∈ e.baseSet)
+  ext v
+  simp [Bundle.Trivialization.frameTransition_of_mem hy, e.coe_linearMapAt_of_mem hy,
+    e.symm_apply_apply_mk hy]
+
+end SymplecticGeometry.Bundle
