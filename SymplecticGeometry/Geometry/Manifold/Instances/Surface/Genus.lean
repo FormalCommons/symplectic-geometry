@@ -481,6 +481,11 @@ instance : ChartedSpace (EuclideanSpace ℝ (Fin 2)) (ClosedSurface g) :=
 
 instance : IsManifold (𝓡 2) ∞ (ClosedSurface g) := (closedSurfaceData g).isManifold
 
+/-- The closed surface of genus `g` is second countable, being compact and charted on the
+plane. -/
+instance : SecondCountableTopology (ClosedSurface g) :=
+  ChartedSpace.secondCountable_of_sigmaCompact (EuclideanSpace ℝ (Fin 2)) _
+
 /-- **The closed surface of genus `g` is the connected sum of `g` tori.** Its summand `0` is the
 torus summed last. -/
 theorem isIteratedConnectedSum :

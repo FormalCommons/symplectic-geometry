@@ -31,6 +31,12 @@ With naturality alone, when `f` maps `s` into `t`, a form that is exact on a nei
 pulls back to one that is exact on a neighbourhood of `s`
 (`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
 
+For a two-form, the value of `f^* φ` at `g x` on two vectors in the image of `dg` is, by the chain
+rule, the value of `φ` on their images under `du`, wherever `f ∘ g = u` near `x`
+(`TauCeti.SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq`). Tau Ceti's
+`TauCeti.Geometry.Contact.Symplectization.Annihilator` proves a case of it, for the pullback of
+`dλ` along a map of the cotangent bundle, in a private lemma.
+
 If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` agrees with `φ` where
 `ρ` does not vanish, then `f` pulls `ρ • φ` back to itself
 (`TauCeti.mpullback_fun_smul_eq_self`): a form cut off by an invariant function is invariant as
@@ -83,6 +89,9 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   `f^* α`, its exterior derivative at `x` is `dα` at `f x` composed with `mfderiv f x`.
 * `TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`: a form exact near `t` pulls
   back along a map from `s` into `t` to a form exact near `s`.
+* `TauCeti.SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq`: if `f ∘ g = u` near `x`,
+  the value of `f^* φ` at `g x` on the images of two vectors under `dg` is the value of `φ` at
+  `u x` on their images under `du`.
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.isSmoothForm_fun_smul_mpullback`: a `C^m` function times the pullback of a `C^m` form
@@ -255,6 +264,24 @@ theorem mpullback_eq_iff {f : M → M'} (hf : ContMDiff I I' ∞ f) {φ : Smooth
     {ψ : SmoothForm I M F k} :
     mpullback f hf φ = ψ ↔ TauCeti.mpullback (F := F) I I' f φ.val = ψ.val := by
   rw [← coe_mpullback _ hf, Subtype.ext_iff]
+
+omit [IsManifold I 1 M] in
+/-- **Chain rule for the value of a pulled-back two-form.** Let `f` be smooth, `g`
+differentiable at `x`, and `f ∘ g` equal to `u` near `x`. Then the pullback of `φ` along `f`,
+evaluated at `g x` on the images of `v` and `w` under the differential of `g` at `x`, is `φ`
+evaluated at `u x` on the images of `v` and `w` under the differential of `u` at `x`. -/
+theorem eval₂_mpullback_mfderiv_of_comp_eventuallyEq {E'' H'' M'' : Type*}
+    [NormedAddCommGroup E''] [NormedSpace ℝ E''] [TopologicalSpace H''] [TopologicalSpace M'']
+    [ChartedSpace H'' M''] {I'' : ModelWithCorners ℝ E'' H''} [IsManifold I'' 1 M'']
+    {f : M' → M''} (hf : ContMDiff I' I'' ∞ f) (φ : SmoothForm I'' M'' F 2) {g : M → M'}
+    {u : M → M''} {x : M} (hg : MDifferentiableAt I I' g x) (hu : f ∘ g =ᶠ[𝓝 x] u)
+    (v w : TangentSpace I x) :
+    (mpullback f hf φ).eval₂ (g x) (mfderiv I I' g x v) (mfderiv I I' g x w) =
+      φ.eval₂ (u x) (mfderiv I I'' u x v) (mfderiv I I'' u x w) := by
+  have hf' : MDifferentiableAt I' I'' f (g x) := (hf (g x)).mdifferentiableAt (by simp)
+  rw [eval₂_mpullback, ← mfderiv_comp_apply x hf' hg, ← mfderiv_comp_apply x hf' hg,
+    hu.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply]
+  exact eval₂_tangentSpaceCast φ hu.eq_of_nhds.symm _ _
 
 /-- A smooth map that is the identity near `x` pulls a smooth form `θ` back to a form with the
 same value as `θ` at `x`. -/

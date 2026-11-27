@@ -17,7 +17,12 @@ and second countable, and `o` an orientation of its normal bundle `ν`, of rank 
 `Hʳ(X, X ∖ f(Z))` is `relDualClassOf f hn hdim hf u` for exactly one `u ∈ Hʳ(ν, ν ∖ 0)`
 (`TauCeti.SmoothEmbedding.bijective_relDualClassOf`, in `DualClass/Basic.lean`).
 
-When `Z` is connected, every class of `Hʳ(ν, ν ∖ 0; ℤ)` is an integer multiple of the canonical
+When `Z` is connected and `K` is a commutative ring, every class of `Hʳ(ν, ν ∖ 0; K)` is a
+multiple of a given Thom class `u` (`TauCeti.IsThomClass.exists_eq_smul`), so every class of
+`Hʳ(X, X ∖ f(Z); K)` is a multiple of `relDualClassOf f hn hdim hf u`
+(`TauCeti.SmoothEmbedding.exists_eq_smul_relDualClassOf`).
+
+In particular, every class of `Hʳ(ν, ν ∖ 0; ℤ)` is an integer multiple of the canonical
 Thom class (`TauCeti.IsThomClass.exists_eq_smul`, from the Thom isomorphism). So every
 class of `Hʳ(X, X ∖ f(Z); ℤ)` is an integer multiple of the relative dual class
 (`TauCeti.SmoothEmbedding.exists_eq_zsmul_relDualClass`). By exactness of the sequence of the
@@ -27,6 +32,9 @@ to `Hʳ(X, X ∖ f(Z); ℤ)`, and so is an integer multiple of the dual class
 
 ## Main results
 
+* `TauCeti.SmoothEmbedding.exists_eq_smul_relDualClassOf`: for connected `Z` and a Thom class `u`
+  with coefficients in a commutative ring `K`, every class of `Hʳ(X, X ∖ f(Z); K)` is a multiple
+  of `relDualClassOf f hn hdim hf u`.
 * `TauCeti.SmoothEmbedding.exists_eq_zsmul_relDualClass`: for connected `Z`, every class of
   `Hʳ(X, X ∖ f(Z); ℤ)` is an integer multiple of the relative dual class.
 * `TauCeti.SmoothEmbedding.exists_eq_zsmul_dualClass_of_restrict_compl`: for connected `Z`, every
@@ -58,6 +66,33 @@ variable {E H G : Type*} {V P Z X : Type} [NormedAddCommGroup E] [NormedSpace �
   [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology X] [ConnectedSpace Z]
   {r : ℕ}
 
+/-- **The classes of a connected submanifold are multiples of the class of a Thom class.** For a
+smooth embedding `f : Z → X` with closed range and connected (so nonempty) source, a commutative
+ring `K`, and a Thom class `u ∈ Hʳ(ν, ν ∖ 0; K)` of its normal bundle `ν` of rank
+`r = finrank ℝ P`, every class of `Hʳ(X, X ∖ f(Z); K)` is `m • relDualClassOf f hn hdim hf u` for
+some `m : K`. -/
+theorem exists_eq_smul_relDualClassOf {K : Type} [CommRing K] (f : SmoothEmbedding I J ∞ Z X)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (hf : IsClosed (range f))
+    {u : letI := f.normalSpaceFiberBundle hn hdim
+      (thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCohomology
+        (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ P)}
+    (hu : letI := f.normalSpaceFiberBundle hn hdim
+      letI := f.normalSpaceVectorBundle hn hdim
+      IsThomClass P (fun x ↦ f.isImmersion.NormalSpace x hn) u)
+    (c : (TopPair.ofSubset (X := TopCat.of X) (range f)ᶜ).singularCohomology
+      (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ P)) :
+    ∃ m : K, c = m • f.relDualClassOf hn hdim hf u := by
+  let := f.normalSpaceFiberBundle hn hdim
+  let := f.normalSpaceVectorBundle hn hdim
+  have : T2Space Z := f.isEmbedding.t2Space
+  have : SecondCountableTopology Z := f.isEmbedding.secondCountableTopology
+  have : LocallyCompactSpace Z := Manifold.locallyCompact_of_finiteDimensional I
+  have : PathConnectedSpace Z := I.pathConnectedSpace Z
+  obtain ⟨v, rfl⟩ := (bijective_relDualClassOf f hn hdim hf _).surjective c
+  obtain ⟨m, rfl⟩ := hu.exists_eq_smul v
+  exact ⟨m, relDualClassOf_smul f hn hdim hf _ _⟩
+
 /-- **The relative dual class of a connected submanifold generates.** For a smooth embedding
 `f : Z → X` with closed range and connected (so nonempty) source, and an orientation `o` of its
 normal bundle of rank `r`, every class of `Hʳ(X, X ∖ f(Z); ℤ)` is `m • relDualClass f hn hdim hf
@@ -77,8 +112,7 @@ theorem exists_eq_zsmul_relDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (�
   have : T2Space Z := f.isEmbedding.t2Space
   have : SecondCountableTopology Z := f.isEmbedding.secondCountableTopology
   have : LocallyCompactSpace Z := Manifold.locallyCompact_of_finiteDimensional I
-  have : LocallyPathConnectedSpace Z := I.locallyPathConnectedSpace_of_chartedSpace Z
-  have : PathConnectedSpace Z := pathConnectedSpace_iff_connectedSpace.2 ‹_›
+  have : PathConnectedSpace Z := I.pathConnectedSpace Z
   obtain ⟨u, rfl⟩ := (bijective_relDualClassOf f hn hdim hf _).surjective c
   obtain ⟨m, hm⟩ := (o.isThomClass_intCanonicalThomClass rfl).exists_eq_smul
     ((thomPair P _).uliftIntegralCohomologyEquiv _ u)
