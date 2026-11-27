@@ -481,7 +481,7 @@ has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`
 theorem mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom [FiniteDimensional ℝ EC] [ConnectedSpace G]
     (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
     mfderiv IC IC ((C.expI (t • ξ) * C.toHom u)⁻¹ * ·) (C.expI (t • ξ) * C.toHom u)
-        (mfderiv 𝓘(ℝ) IC (fun τ : ℝ ↦ C.expI (τ • ξ) * C.toHom u) t (1 : ℝ)) =
+        (Manifold.curveVelocity IC (fun τ : ℝ ↦ C.expI (τ • ξ) * C.toHom u) t) =
       C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ)) := by
   -- Conjugating by `toHom u` turns the curve into a left-translated exponential line.
   have h (τ : ℝ) : C.expI (τ • ξ) * C.toHom u =
