@@ -225,19 +225,12 @@ theorem exists_diffeotopy_mpullback_eq_of_mextDeriv_eq_sub {σ₀ σ₁ : Smooth
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) := by
     rw [SmoothForm.mpullback_prodMk_lineMapFamily]
     exact hσ _ ⟨Real.smoothTransition.nonneg _, Real.smoothTransition.le_one _⟩
-  -- The velocity `c'(t) (σ₁ - σ₀)` of `σ_t` is the differential of `c'(t) β`.
-  have hvel (t : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
-      (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) =
-      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val := by
-    have h := (SmoothForm.mpullback_eq_iff _).1
-      (SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff t)
-    rw [SmoothForm.coe_timeDeriv] at h
-    rw [h, hαt, SmoothForm.smul_toRoughForm, SmoothForm.smul_toRoughForm, mextDeriv_smul, hβ]
   have hαK (t : ℝ) (x : M) (hx : x ∉ K) :
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val x = 0 := by
     rw [hαt, SmoothBundleForm.smul_apply, hβK x hx, smul_zero]
   obtain ⟨ψ, hψ, hψ₀, hψK, hψσ⟩ :=
-    exists_isotopy_mpullback_eq_of_isCompact σ α hσt hvel hK hαK
+    exists_isotopy_mpullback_eq_of_isCompact σ α hσt
+      (SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily_eq_mextDeriv hβ _) hK hαK
   refine ⟨Diffeotopy.ofReal ψ hψ hψ₀, fun t x hx ↦ ?_, ?_⟩
   · rw [Diffeotopy.ofReal_apply]
     exact hψK t x fun u ↦ hαK u x hx
