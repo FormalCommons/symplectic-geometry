@@ -76,11 +76,11 @@ the statements). The class `SymplecticGeometry.Bundle.ContMDiffHermitianMetric` 
 `SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian` holds `g` and `hI`, and
 its scoped instances give these three; this file adds the scoped instance
 `SymplecticGeometry.Bundle.ContMDiffHermitianMetric.contMDiffFiberBundle` for the smooth principal
-bundle structure below, so that a proof installs them all with one `let`. Under the class,
-Tau Ceti's `Bundle.ContMDiffRiemannianMetric.inner_eq`,
-`Bundle.ContMDiffRiemannianMetric.norm_sq` and
-`Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace_inner`, applied to `g`, express the
-inner products and norms through `g`.
+bundle structure below, so that a proof installs them all with one `let`. Under the class, its
+lemmas `SymplecticGeometry.Bundle.ContMDiffHermitianMetric.real_inner_eq`,
+`SymplecticGeometry.Bundle.ContMDiffHermitianMetric.norm_sq_eq` and
+`SymplecticGeometry.Bundle.ContMDiffHermitianMetric.inner_eq` express the inner products and
+norms through `g`.
 The unit vector `σ 1` of a local unitary frame is then a smooth local section
 (`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`, a case of the smoothness of local
 unitary frames in any rank,
@@ -502,9 +502,9 @@ open scoped ContMDiffHermitianMetric in
 example (x : B) (v w : V x) : True := by
   let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
   have : ⟪v, w⟫_ℂ = (g.inner x v w : ℂ) + Complex.I * (g.inner x (Complex.I • v) w : ℂ) :=
-    g.complexInnerProductSpace_inner hI x v w
-  have : ⟪v, w⟫_ℝ = g.inner x v w := g.inner_eq x v w
-  have : ‖v‖ ^ 2 = g.inner x v v := g.norm_sq x v
+    ContMDiffHermitianMetric.inner_eq x v w
+  have : ⟪v, w⟫_ℝ = g.inner x v w := ContMDiffHermitianMetric.real_inner_eq x v w
+  have : ‖v‖ ^ 2 = g.inner x v v := ContMDiffHermitianMetric.norm_sq_eq x v
   trivial
 
 variable [Fact (finrank ℂ F = 1)]

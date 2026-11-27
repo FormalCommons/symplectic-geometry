@@ -18,7 +18,11 @@ it. Its scoped instances `riemannianBundle`, `innerProductSpace` and
 `isContinuousRiemannianBundle` give the fibres of `V` the norms and real inner products of `g`
 and the Hermitian products `g.complexInnerProductSpace hI`, and make the fibre metric continuous,
 so that a proof about `(g, hI)` installs all of them with one `let`. Statements spell these
-instances out with `letI`, in terms of `g` and `hI`.
+instances out with `letI`, in terms of `g` and `hI`. The lemmas `riemannianBundle_def` and
+`innerProductSpace_def` state what the instances are, and `real_inner_eq`, `inner_eq` and
+`norm_sq_eq` give the real inner products, Hermitian products and norms of the fibres in terms
+of the underlying real metric; two instances of the class are equal when their metrics are
+(`ContMDiffHermitianMetric.ext`).
 
 For a smooth `i`-invariant real metric `g` on a complex vector bundle `V`, Tau Ceti's
 `Bundle.ContMDiffRiemannianMetric.contMDiff_hermitianPairing` says that the Hermitian product
@@ -38,7 +42,7 @@ open scoped Manifold ContDiff
 
 section HermitianMetric
 
-open scoped VectorBundle.ComplexToReal
+open scoped VectorBundle.ComplexToReal InnerProductSpace
 
 namespace SymplecticGeometry.Bundle
 
@@ -50,6 +54,7 @@ the fibres of `V` the norms and real inner products of `metric` and the Hermitia
 installs them with `let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩`. The model `I`, the
 smoothness `n` and the model fibre `F` are `outParam`s, since the goals of these instances
 mention only `V`. -/
+@[ext]
 class ContMDiffHermitianMetric {EB HB : outParam Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
     [TopologicalSpace HB] (I : outParam (ModelWithCorners ℝ EB HB)) {B : Type*}
     [TopologicalSpace B] [ChartedSpace HB B] (n : outParam ℕ∞ω) (F : outParam Type*)
@@ -90,6 +95,30 @@ noncomputable scoped instance innerProductSpace (x : B) : InnerProductSpace ℂ 
 /-- The fibre metric of a smooth Hermitian metric is continuous. -/
 scoped instance isContinuousRiemannianBundle : IsContinuousRiemannianBundle F V :=
   instIsContinuousRiemannianBundle h.metric.toContinuousRiemannianMetric
+
+/-- The fibre metric of a smooth Hermitian metric is that of its underlying real metric. -/
+theorem riemannianBundle_def :
+    (riemannianBundle : RiemannianBundle V) = ⟨h.metric.toRiemannianMetric⟩ := (rfl)
+
+/-- The Hermitian products of a smooth Hermitian metric are those that Tau Ceti's
+`Bundle.ContMDiffRiemannianMetric.complexInnerProductSpace` builds from its underlying real
+metric. -/
+theorem innerProductSpace_def (x : B) :
+    innerProductSpace x = h.metric.complexInnerProductSpace h.inner_I_smul x := (rfl)
+
+/-- The real inner product of two vectors of a fibre is the value of the underlying metric. -/
+theorem real_inner_eq (x : B) (v w : V x) : ⟪v, w⟫_ℝ = h.metric.inner x v w :=
+  h.metric.inner_eq x v w
+
+/-- The Hermitian product of `v` and `w` is `g(v, w) + i g(i v, w)`, for the underlying real
+metric `g`. -/
+theorem inner_eq (x : B) (v w : V x) :
+    ⟪v, w⟫_ℂ = (h.metric.inner x v w : ℂ) + Complex.I * (h.metric.inner x (Complex.I • v) w : ℂ) :=
+  h.metric.complexInnerProductSpace_inner h.inner_I_smul x v w
+
+/-- The squared norm of a vector of a fibre is the value of the underlying metric on it. -/
+theorem norm_sq_eq (x : B) (v : V x) : ‖v‖ ^ 2 = h.metric.inner x v v :=
+  h.metric.norm_sq x v
 
 end ContMDiffHermitianMetric
 
@@ -133,12 +162,12 @@ theorem contMDiffWithinAt_hermitianPairing (g : ContMDiffRiemannianMetric IB n F
   have him := ((contMDiffWithinAt_const (c := Complex.I)).smul_totalSpace hv).inner_bundle hw
   have hh := (Complex.ofRealCLM.contMDiff.contMDiffAt.comp_contMDiffWithinAt x hre).add
     (him.smul (contMDiffWithinAt_const (I' := 𝓘(ℝ, ℂ)) (c := Complex.I)))
-  have hreal (x : B) (v w : V x) : Inner.inner ℝ v w = g.inner x v w := g.inner_eq x v w
   have heq (m : M) : Inner.inner ℂ (v m) (w m) =
       Complex.ofRealCLM (Inner.inner ℝ (v m) (w m)) +
         Inner.inner ℝ (Complex.I • v m) (w m) • Complex.I := by
-    rw [g.complexInnerProductSpace_inner hI]
-    simp [hreal, Complex.real_smul, mul_comm]
+    rw [SymplecticGeometry.Bundle.ContMDiffHermitianMetric.inner_eq]
+    simp [SymplecticGeometry.Bundle.ContMDiffHermitianMetric.real_inner_eq, Complex.real_smul,
+      mul_comm]
   exact hh.congr (fun m _ ↦ heq m) (heq x)
 
 /-- The Hermitian product of two maps into the total space over a common base map is `C^n` on a
