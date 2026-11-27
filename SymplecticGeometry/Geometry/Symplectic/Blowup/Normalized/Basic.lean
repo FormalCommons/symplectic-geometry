@@ -761,15 +761,6 @@ private theorem outerOpens_union_targetOpens :
   exact hx.2 (hψ.ballLiftPartialDiffeomorph.map_source
     (hψ.closedNbhd_subset_source hψ.weight_add_width_lt hy))
 
-omit [T2Space M] in
-/-- The lift maps the inverse of its restriction to its source and image, at a point `x` of the
-image, back to `x`. -/
-private theorem ballLiftPartialDiffeomorph_toDiffeomorphSourceTarget_symm (x : hψ.targetOpens) :
-    hψ.ballLiftPartialDiffeomorph
-      (hψ.ballLiftPartialDiffeomorph.toDiffeomorphSourceTarget.symm x) = x := by
-  rw [PartialDiffeomorph.toDiffeomorphSourceTarget_symm_apply_coe]
-  exact hψ.ballLiftPartialDiffeomorph.right_inv x.property
-
 /-- The pull-back of `σ` by the blowdown, off the image of `closedNbhd n (l + ε)`, and the
 push-forward of `ω̃_{l,ε}` by the lift, on its image, glue to a two-form on the blowup. -/
 private theorem exists_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProfile l ε h) :
@@ -798,7 +789,7 @@ private theorem exists_normalizedBlowupForm {h : ℝ → ℝ} (hh : IsBlowupProf
     congr 1
     rw [← SmoothForm.coe_mpullback]
     exact profileForm_eq_on_compl n hh _ fun hK ↦
-      hx ⟨_, hK, hψ.ballLiftPartialDiffeomorph_toDiffeomorphSourceTarget_symm x⟩
+      hx ⟨_, hK, hψ.ballLiftPartialDiffeomorph.apply_toDiffeomorphSourceTarget_symm x⟩
 
 open scoped Classical in
 /-- **The form `ω̃_{ψ,l,ε}` of the blowup** (McDuff–Salamon, §7.1), for a profile `h` of the
@@ -981,7 +972,7 @@ theorem exists_mextDeriv_eq_normalizedBlowupForm_sub {h₀ h₁ : ℝ → ℝ}
       (SmoothForm.mpullback (Subtype.val : hψ.sourceOpens → BlowupModel n) contMDiff_subtypeVal α))
     fun x hx ↦ by
       have h0 : α.val (D.symm x) = 0 := hα0 _ fun hK ↦
-        hx ⟨_, hK, hψ.ballLiftPartialDiffeomorph_toDiffeomorphSourceTarget_symm x⟩
+        hx ⟨_, hK, hψ.ballLiftPartialDiffeomorph.apply_toDiffeomorphSourceTarget_symm x⟩
       simp only [SmoothForm.coe_mpullback]
       exact TauCeti.mpullback_apply_eq_zero (TauCeti.mpullback_apply_eq_zero h0)
   have hβ0 : ∀ x ∉ Φ '' closedNbhd n (l + ε), β.val x = 0 := fun x hx ↦ by
