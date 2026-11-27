@@ -35,12 +35,13 @@ design file once it exists.
 - **Product model.** For a symplectic manifold $(Q,\tau)$ the product
   $Q\times B^2(\varepsilon)$ carries $\tau\oplus\omega_0$, Tau Ceti's
   `TauCeti.SmoothTwoForm.IsSymplectic.prod`.
-- **Homotopy through nondegenerate forms.** As in the merged
-  `firstChernClass_mpullback_prodMk_eq`, a homotopy from $\sigma_0$ to
-  $\sigma_1$ on $U$ is a smooth two-form on `ℝ × U` whose slices
-  `mpullback (Prod.mk t)` are nondegenerate for $t\in[0,1]$ and equal
-  $\sigma_0$, $\sigma_1$ at $t=0,1$. No new predicate is introduced: the
-  milestone writes these conditions out.
+- **Homotopy through nondegenerate forms.** Following the convention
+  *Families and isotopies* of `DESIGN.md`, a homotopy from $\sigma_0$ to
+  $\sigma_1$ on $U$ is a family `β : unitInterval → SmoothTwoForm I U` with
+  `IsSmoothFamily (𝓡∂ 1) β`, each `β t` nondegenerate, `β 0 = σ₀` and
+  `β 1 = σ₁`. The proof works with families over `ℝ`, nondegenerate for
+  $t\in[0,1]$, into which `IsSmoothFamily.exists_extend` turns these. No new
+  predicate is introduced: the milestone writes these conditions out.
 - **Framings.** A symplectic framing of the normal bundle of a symplectic
   embedding $\iota:Q\to M$, `SymplecticFraming` in
   `Geometry/Symplectic/Sum/ProductNeighborhood.lean`, is a family of
@@ -306,8 +307,9 @@ About 500 lines.
   $x\mapsto\sigma_{(\chi(x),x)}$ restricted to the $M$-directions, not the
   pull-back along $(\chi,\mathrm{id})$, which would add $d\chi$ terms.
 - `not_exists_isSymplectic_connectedSum`: the milestone, for $n\ne0$ and
-  $2n\notin\{2,6\}$ (Decision 12), by part 60's theorem that the sphere has
-  no almost complex structure and Tau Ceti's
+  $2n\notin\{2,6\}$ (Decision 12), with homotopies over `unitInterval`,
+  each extended to `ℝ` by `IsSmoothFamily.exists_extend`, by part 60's
+  theorem that the sphere has no almost complex structure and Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`. Milestone:
   *Pointwise connected-sum obstruction for symplectic forms*.
 
