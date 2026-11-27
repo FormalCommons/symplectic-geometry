@@ -16,13 +16,16 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 
 ## Main results
 
+* `iteratedFDeriv_const_smul_apply_of_field`: the iterated derivative of `c • f` is `c` times
+  that of `f`, with no smoothness assumption, from Mathlib's
+  `ContinuousLinearEquiv.iteratedFDeriv_comp_left` applied to `ContinuousLinearEquiv.smulLeft`.
 * `SymplecticGeometry.jetNormAt_nonneg` and `SymplecticGeometry.jetNormAt_mono`: the jet norm is
   nonnegative and monotone in the order.
 * `SymplecticGeometry.jetNormAt_zero`: the jet norm of order `0` is `‖f z‖`.
 * `SymplecticGeometry.jetNormAt_add_le`: the triangle inequality, for functions that are `C^r`
   at `z`, from Mathlib's `iteratedFDeriv_add_apply`.
 * `SymplecticGeometry.jetNormAt_smul`: the jet norm of `c • f` is `‖c‖` times that of `f`, for every
-  `f`, from Mathlib's `ContinuousLinearEquiv.iteratedFDeriv_comp_left`.
+  `f`.
 
 ## References
 
@@ -30,6 +33,24 @@ norms `‖iteratedFDeriv 𝕜 j f z‖` of the derivatives of `f` at `z`.
 -/
 
 public section
+
+/-- The iterated derivative of `c • f` is `c` times that of `f`, for every `f`, when `c` lies in a
+normed field: unlike `iteratedFDeriv_const_smul_apply`, no smoothness of `f` is assumed. -/
+theorem iteratedFDeriv_const_smul_apply_of_field {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+    {E F : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {R : Type*} [NormedField R] [NormedSpace R F] [SMulCommClass 𝕜 R F]
+    (i : ℕ) (f : E → F) (x : E) (c : R) :
+    iteratedFDeriv 𝕜 i (c • f) x = c • iteratedFDeriv 𝕜 i f x := by
+  rcases eq_or_ne c 0 with rfl | hc
+  · simp
+  -- `ContinuousLinearEquiv.smulLeft` asks for `SMulCommClass Rˣ 𝕜 F`.
+  have := SMulCommClass.symm 𝕜 R F
+  -- For `c ≠ 0`, multiplication by `c` is a continuous linear equivalence over `𝕜`, and iterated
+  -- derivatives commute with such a map with no smoothness assumption.
+  have hL : c • f = ContinuousLinearEquiv.smulLeft (R₁ := 𝕜) (Units.mk0 c hc) ∘ f := by
+    ext; simp
+  rw [hL, ContinuousLinearEquiv.iteratedFDeriv_comp_left]
+  ext; simp
 
 namespace SymplecticGeometry
 
@@ -87,19 +108,7 @@ theorem jetNormAt_add_le {r : ℕ} {f g : E → F} {z : E} (hf : ContDiffAt 𝕜
 theorem jetNormAt_smul {R : Type*} [NormedField R] [NormedSpace R F] [SMulCommClass 𝕜 R F]
     (r : ℕ) (f : E → F) (z : E) (c : R) :
     jetNormAt 𝕜 r (c • f) z = ‖c‖ * jetNormAt 𝕜 r f z := by
-  rcases eq_or_ne c 0 with rfl | hc
-  · simp [jetNormAt_def]
-  -- For `c ≠ 0`, multiplication by `c` is a continuous linear equivalence over `𝕜`, and iterated
-  -- derivatives commute with it with no smoothness assumption.
-  let L : F ≃L[𝕜] F := .ofContinuousLinearMap (c • .id 𝕜 F) (c⁻¹ • .id 𝕜 F)
-    (by ext; simp [smul_smul, mul_inv_cancel₀ hc]) (by ext; simp [smul_smul, inv_mul_cancel₀ hc])
-  have hL : c • f = L ∘ f := by ext; simp [L]
-  simp only [jetNormAt_def, Finset.mul_sum, hL, L.iteratedFDeriv_comp_left]
-  refine Finset.sum_congr rfl fun j _ ↦ ?_
-  have : L.toContinuousLinearMap.compContinuousMultilinearMap (iteratedFDeriv 𝕜 j f z) =
-      c • iteratedFDeriv 𝕜 j f z := by
-    ext; simp [L]
-  rw [this, norm_smul]
+  simp [jetNormAt_def, Finset.mul_sum, iteratedFDeriv_const_smul_apply_of_field, norm_smul]
 
 end SymplecticGeometry
 
