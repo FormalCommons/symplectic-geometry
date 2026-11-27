@@ -10,8 +10,11 @@ public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
 public import TauCeti.Geometry.Manifold.Submersion.Basic
+import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
+import TauCeti.LinearAlgebra.LinearMap.Comp
+import TauCeti.LinearAlgebra.Submodule.Compl
 
 /-!
 # The vertical directions of the projection `G × Z → G ×_K Z`
@@ -56,6 +59,16 @@ lift is `G`-equivariant, the points where it is a local diffeomorphism are `G`-i
 (`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`); so it is one at `[g, z]` exactly when it is
 one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
 
+At a point `z` fixed by `K`, the balanced product has exponential coordinates near `[1, z]`: for
+an injective linear map `j : C → Lie(G)` whose image is a complement of the Lie algebra of `K`,
+the map `(w, p) ↦ [exp (j w), p]` from `C × Z` is a local diffeomorphism at `(0, z)`. It is `π`
+after `(w, p) ↦ (exp (j w), p)`, whose differential at `(0, z)` is `(w, q) ↦ (j w, q)`, since the
+exponential has differential the identity at `0` (`hasMFDerivAt_mulInvariantExp_modelSpace_zero`).
+At such a `z`, the kernel of `dπ` at `(1, z)` is `𝔨 × 0`, where `𝔨` is the image of `Lie(K)` in
+`Lie(G)`, and the image `j C × T_z Z` of that differential is a complement of it. Since `dπ` is
+onto, their composite is bijective by Tau Ceti's `LinearMap.bijective_comp_iff`, and the inverse
+function theorem applies again.
+
 ## Main results
 
 * `TauCeti.BalancedProduct.secondCountableTopology_rightTranslation`: `G ×_K Z` is second
@@ -75,12 +88,17 @@ one at `[1, z]`, and the set of such `z` is open and `K`-invariant.
   the lift at `[1, z]`, composed with `dπ`, is `(ξ, v) ↦ ξ_M(ι z) + dι v`.
 * `TauCeti.BalancedProduct.mfderiv_quotientMk_apply_eq_zero_of_forall_mem`: at a `K`-fixed point,
   `dπ` kills the directions of `Lie(G)` whose one-parameter subgroups lie in `K`.
+* `TauCeti.BalancedProduct.ker_mfderiv_mk_toRightTranslation_one_of_forall_smul_eq`: at a
+  `K`-fixed point `z`, the kernel of `dπ` at `(1, z)` on `G × Z` is `𝔨 × 0`, with `𝔨` the image of
+  `Lie(K)`.
 * `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one`: the inverse
   function theorem for the lift at `[1, z]`, in terms of its differential composed with `dπ`.
 * `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_iff`,
   `TauCeti.BalancedProduct.isLocalDiffeomorphAt_liftRightTranslation_mk_one_smul_iff`,
   `TauCeti.BalancedProduct.isOpen_setOfPred_isLocalDiffeomorphAt_liftRightTranslation_mk_one`: where
   the lift is a local diffeomorphism.
+* `TauCeti.BalancedProduct.isLocalDiffeomorphAt_mk_mulInvariantExp`: exponential coordinates
+  `(w, p) ↦ [exp (j w), p]` near `[1, z]`, for `z` fixed by `K`.
 
 ## References
 
@@ -329,6 +347,26 @@ theorem mfderiv_quotientMk_apply_eq_zero_of_forall_mem [T2Space G] (hz : ∀ k :
   exact congrArg _ (Prod.ext (one_smul ℝ ξ).symm rfl)
 
 variable (F) in
+/-- **The vertical space at a fixed point.** If `z` is fixed by `K`, the kernel of the
+differential at `(1, z)` of the projection `G × Z → G ×_K Z` is `𝔨 × 0`, where `𝔨` is the image
+of the Lie algebra of `K` in `Lie(G)`: the fundamental vector fields of `K` on `Z` vanish at `z`. -/
+theorem ker_mfderiv_mk_toRightTranslation_one_of_forall_smul_eq (hz : ∀ k : K, k • z = z) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    (mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ))
+      (fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2) ((1 : G), z)).ker =
+      (LinearMap.range (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap).prod ⊥ := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  ext u
+  rw [mem_ker_mfderiv_mk_toRightTranslation_iff]
+  simp only [mulInvariantVectorField_one, fundamentalVectorField_eq_zero_of_forall_smul_eq hz]
+  constructor
+  · rintro ⟨ξ, rfl⟩
+    exact ⟨neg_mem ⟨ξ, rfl⟩, (Submodule.mem_bot ℝ).2 rfl⟩
+  · rintro ⟨⟨ξ, hξ⟩, hb⟩
+    refine ⟨-ξ, Prod.ext ?_ ((Submodule.mem_bot ℝ).1 hb)⟩
+    rw [map_neg, neg_neg, ← hξ, ContinuousLinearMap.coe_coe]
+
+variable (F) in
 /-- **The inverse function theorem for the lift at `[1, z]`.** Let `z` be fixed by `K`, and let the
 `K`-equivariant map `ι` be smooth on an open neighbourhood of `z`. If the differential of the lift
 `[g, z] ↦ g • ι z` at `[1, z]`, composed with that of the projection `π : G × Z → G ×_K Z` at
@@ -434,6 +472,82 @@ theorem isOpen_setOfPred_isLocalDiffeomorphAt_liftRightTranslation_mk_one :
   exact (SymplecticGeometry.isOpen_setOfPred_isLocalDiffeomorphAt _ _ _ _).preimage hc
 
 end Lift
+
+/-! ### Exponential coordinates near `[1, z]` -/
+
+section ExpCoordinates
+
+variable {C : Type*} [NormedAddCommGroup C] [NormedSpace ℝ C]
+  {j : C →L[ℝ] E} {z : Z}
+
+variable (F) in
+/-- **Exponential coordinates on the balanced product near `[1, z]`.** Let `z` be fixed by `K`,
+and let `j : C → Lie(G)` be an injective linear map whose image is a complement of the Lie algebra
+of `K` in `Lie(G)`. Then `(w, p) ↦ [exp (j w), p]` is a local diffeomorphism at `(0, z)` from
+`C × Z` to `G ×_K Z`. -/
+theorem isLocalDiffeomorphAt_mk_mulInvariantExp [T2Space G] (hj : Injective j)
+    (hcompl : IsCompl (LinearMap.range (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap)
+      (LinearMap.range j.toLinearMap))
+    (hz : ∀ k : K, k • z = z) :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    IsLocalDiffeomorphAt (𝓘(ℝ, C).prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) ∞
+      (fun p : C × Z ↦
+        mk K (K.toRightTranslation (mulInvariantExp (I := I) (j p.1 : GroupLieAlgebra I G))) p.2)
+      (0, z) := by
+  let _ := rightTranslationChartedSpace K Z I IZ F
+  have := isManifold_rightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ) (F := F)
+  have hπ := isSubmersion_mk_toRightTranslation (K := K) (Z := Z) (I := I) (IZ := IZ) (F := F)
+  have := FiniteDimensional.of_injective j.toLinearMap hj
+  set π : G × Z → BalancedProduct K K.RightTranslation Z :=
+    fun p ↦ mk K (K.toRightTranslation p.1) p.2
+  -- The map is `π` after `φ : (w, p) ↦ (exp (j w), p)`, whose derivative at `(0, z)` is
+  -- `(w, q) ↦ (j w, q)`.
+  set φ : C × Z → G × Z :=
+    fun p ↦ (mulInvariantExp (I := I) (G := G) (j p.1 : GroupLieAlgebra I G), p.2)
+  have hφ : ContMDiff (𝓘(ℝ, C).prod IZ) (I.prod IZ) ∞ φ :=
+    (((contMDiff_mulInvariantExp (I := I) (G := G)).comp j.contDiff.contMDiff).comp
+      contMDiff_fst).prodMk contMDiff_snd
+  have hφ0 : φ (0, z) = (1, z) := by
+    simp only [φ, map_zero]
+    exact congrArg (·, z) (mulInvariantExp_zero (I := I) (G := G))
+  have hexp : HasMFDerivAt 𝓘(ℝ, C) I
+      (fun w : C ↦ mulInvariantExp (I := I) (G := G) (j w : GroupLieAlgebra I G)) 0 j := by
+    have h := hasMFDerivAt_mulInvariantExp_modelSpace_zero (I := I) (G := G)
+    rw [← map_zero j] at h
+    -- The identity composed with `j` is `j`.
+    exact h.comp 0 j.hasMFDerivAt
+  have hφd : HasMFDerivAt (𝓘(ℝ, C).prod IZ) (I.prod IZ) φ (0, z)
+      (j.prodMap (ContinuousLinearMap.id ℝ EZ)) := by
+    rw [ContinuousLinearMap.prodMap, ContinuousLinearMap.id_comp]
+    exact (hexp.comp (0, z) (hasMFDerivAt_fst (I := 𝓘(ℝ, C)) (I' := IZ) (0, z))).prodMk
+      (hasMFDerivAt_snd (I := 𝓘(ℝ, C)) (I' := IZ) (0, z))
+  set P := mfderiv (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) π (1, z)
+  have hπd : HasMFDerivAt (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) π
+      (φ (0, z)) P := by
+    rw [hφ0]
+    exact (hπ.contMDiff.mdifferentiableAt (by simp)).hasMFDerivAt
+  -- The derivative `(w, q) ↦ (j w, q)` of `φ` has image `j C × T_z Z`, a complement of the kernel
+  -- `𝔨 × 0` of the surjective map `P`.
+  have hbij : Bijective (P.comp (j.prodMap (ContinuousLinearMap.id ℝ EZ))) := by
+    -- As a linear map, `P.comp (j.prodMap id)` is `P ∘ₗ (j.prodMap id)`
+    -- (`ContinuousLinearMap.coe_comp`). The domain of `P` is the tangent space, a type synonym of
+    -- `E × EZ`, so `rw` cannot rewrite the range of `j.prodMap id` or the kernel of `P` inside
+    -- `IsCompl`; `erw` can.
+    refine LinearMap.bijective_comp_iff.2 ⟨hj.prodMap injective_id, ?_,
+      hπ.surjective_mfderiv (by simp) ((1 : G), z)⟩
+    erw [ContinuousLinearMap.coe_prodMap, ContinuousLinearMap.coe_id, LinearMap.range_prodMap,
+      LinearMap.range_id, ker_mfderiv_mk_toRightTranslation_one_of_forall_smul_eq F hz]
+    exact hcompl.symm.prod isCompl_top_bot
+  refine (isLocalDiffeomorphAt_iff_exists_mfderiv_eq (hπ.contMDiff.comp hφ).contMDiffOn
+    isOpen_univ (mem_univ _) BoundarylessManifold.isInteriorPoint (by simp)).2
+    ⟨(LinearEquiv.ofBijective _ hbij).toContinuousLinearEquiv, ?_⟩
+  rw [(hπd.comp (0, z) hφd).mfderiv]
+  ext w
+  -- `LinearEquiv.ofBijective_apply` does not match here, as the tangent spaces are type synonyms
+  -- of the model spaces; the equivalence applies the composite by definition.
+  rfl
+
+end ExpCoordinates
 
 end TauCeti.BalancedProduct
 
