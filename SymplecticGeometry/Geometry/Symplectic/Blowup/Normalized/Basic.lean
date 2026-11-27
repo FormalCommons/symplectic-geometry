@@ -541,36 +541,28 @@ private theorem ballLiftExt_of_mem {y : BlowupModel n} (h : y ∈ openNbhd n r) 
 private theorem isLocalDiffeomorphAt_ballLiftExt_of_mem {y : BlowupModel n}
     (hy : y ∈ openNbhd n ε) :
     IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt y := by
-  classical
-  let g : BlowupModel n → Blowup.modelOpens hN.blowupChart := fun y' ↦
-    if h : y' ∈ openNbhd n ε then ⟨y', hψ.mem_modelOpens h⟩ else ⟨y, hψ.mem_modelOpens hy⟩
   have hev : ∀ᶠ y' in 𝓝 y, y' ∈ openNbhd n ε := (isOpen_openNbhd ε).mem_nhds hy
-  have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g y := by
-    rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
-    refine ((Diffeomorph.refl 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ∞).isLocalDiffeomorph
-      y).congr_of_eventuallyEq ?_
-    filter_upwards [hev] with y' hy'
-    simp only [g, dite_eq_left hy', Function.comp_apply, Diffeomorph.coe_refl, id]
+  obtain ⟨g, hg, hgv⟩ := IsLocalDiffeomorphAt.exists_subtypeVal_comp_eventuallyEq
+    (W := Blowup.modelOpens hN.blowupChart)
+    ((Diffeomorph.refl 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n) ∞).isLocalDiffeomorph y)
+    (hψ.mem_modelOpens hy)
   refine (IsLocalDiffeomorphAt.comp (hf := hg)
     (hg := Blowup.isLocalDiffeomorph_inr_real _ (g y))).congr_of_eventuallyEq ?_
-  filter_upwards [hev] with y' hy'
+  filter_upwards [hev, hgv] with y' hy' hgy'
   rw [hψ.ballLiftExt_of_mem (openNbhd_mono hψ.width_lt_radius.le hy'),
     hψ.ballLift_of_mem_openNbhd _ hy', Function.comp_apply]
-  simp only [g, dite_eq_left hy']
+  rw [Function.comp_apply, Diffeomorph.coe_refl, id_eq] at hgy'
+  exact congrArg _ (Subtype.ext hgy'.symm)
 
 /-- Near a point of `openNbhd n r` off the exceptional divisor, the lift is `inl ∘ ψ ∘ π`. -/
 private theorem isLocalDiffeomorphAt_ballLiftExt_of_blowdown_ne_zero {y : BlowupModel n}
     (hy : y ∈ openNbhd n r) (hy0 : y.blowdown ≠ 0) :
     IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt y := by
-  classical
   set e := complexToRealEuclidean (Fin (n + 1))
   let U : Set (BlowupModel n) := openNbhd n r ∩ {y' | y'.blowdown ≠ 0}
   have hU : IsOpen U := (isOpen_openNbhd r).inter (isOpen_ne_fun continuous_blowdown
     continuous_const)
   have hev : ∀ᶠ y' in 𝓝 y, y' ∈ U := hU.mem_nhds ⟨hy, hy0⟩
-  let g : BlowupModel n → Blowup.puncturedOpens hN.blowupChart := fun y' ↦
-    if h : y' ∈ U then ⟨ψ (e y'.blowdown), hψ.apply_blowdown_mem_puncturedOpens h.1 h.2⟩
-    else ⟨ψ (e y.blowdown), hψ.apply_blowdown_mem_puncturedOpens hy hy0⟩
   have hφ : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
       (ψ ∘ e ∘ BlowupModel.blowdown) y := by
     have hb := ((BlowupModel.isLocalDiffeomorphAt_blowdown hy0).restrictScalars ℝ).of_le
@@ -579,17 +571,14 @@ private theorem isLocalDiffeomorphAt_ballLiftExt_of_blowdown_ne_zero {y : Blowup
       (hx := by simpa [e] using hy)
     rw [IsSymplecticBallEmbedding.coe_complexPartialDiffeomorph] at hΦ
     exact IsLocalDiffeomorphAt.comp (hf := hb) (hg := hΦ)
-  have hg : IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ g y := by
-    rw [← isLocalDiffeomorphAt_subtypeVal_comp_iff]
-    refine hφ.congr_of_eventuallyEq ?_
-    filter_upwards [hev] with y' hy'
-    simp only [g, dite_eq_left hy', Function.comp_apply]
+  obtain ⟨g, hg, hgv⟩ := hφ.exists_subtypeVal_comp_eventuallyEq
+    (W := Blowup.puncturedOpens hN.blowupChart) (hψ.apply_blowdown_mem_puncturedOpens hy hy0)
   refine (IsLocalDiffeomorphAt.comp (hf := hg)
     (hg := Blowup.isLocalDiffeomorph_inl_real _ (g y))).congr_of_eventuallyEq ?_
-  filter_upwards [hev] with y' hy'
+  filter_upwards [hev, hgv] with y' hy' hgy'
   rw [hψ.ballLiftExt_of_mem hy'.1, hψ.ballLift_of_blowdown_ne_zero _ hy'.2, Function.comp_apply]
-  simp only [g, dite_eq_left hy']
-  rfl
+  rw [Function.comp_apply, Function.comp_apply] at hgy'
+  exact congrArg _ (Subtype.ext hgy'.symm)
 
 private theorem isLocalDiffeomorphOn_ballLiftExt :
     IsLocalDiffeomorphOn 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ hψ.ballLiftExt

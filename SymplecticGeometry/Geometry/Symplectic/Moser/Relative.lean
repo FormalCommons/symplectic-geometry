@@ -184,10 +184,7 @@ private theorem exists_moserField {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ�
   funext y
   have hvel : mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
       (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) y = deriv c t • (σ₁ - σ₀).val y := by
-    have h₀ := SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily σ₀ σ₁
-      Real.smoothTransition.contDiff t
-    have h := congrFun ((SmoothForm.mpullback_eq_iff _).1 h₀) y
-    simpa only [SmoothForm.coe_timeDeriv, SmoothBundleForm.smul_apply] using h
+    rw [SmoothForm.mpullback_prodMk_mlieDerivForm_lineMapFamily, SmoothBundleForm.smul_apply]
   have h := (hσ t).mlieDerivForm_interiorEquiv_symm
     (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)
   have hd : mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
