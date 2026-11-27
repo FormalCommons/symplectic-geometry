@@ -28,7 +28,9 @@ once the derivatives of order `m` are bounded: uniform convergence of the deriva
 `m + 1` on `U`, with pointwise convergence of those of order `m`, identifies the limit as the
 derivative (`hasFDerivAt_of_tendstoUniformlyOn`), and continuous functions on `L` that agree on `U`
 are equal. The closed graph step is stated on its own for any linear family of continuous
-functions on a compact set (`SymplecticGeometry.exists_norm_le_of_tendstoUniformly`).
+functions on a compact set (`SymplecticGeometry.exists_norm_le_of_tendstoUniformly`), and so is
+the step from the values to the first derivative
+(`SymplecticGeometry.exists_forall_norm_fderiv_le_of_hasFDerivAt`).
 
 ## References
 
@@ -92,8 +94,8 @@ be functions on `E` that depend linearly on `x` on the closure of an open set `U
 compact, with derivatives `g' x` on `U` that are continuous and linear in `x` on the closure. If the
 values of `g x` on the closure of `U` are bounded by a constant multiple of `‖x‖`, then so are the
 derivatives `g' x`. -/
-private theorem exists_norm_fderiv_le {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-    [CompleteSpace G] {U : Set E} (hU : IsOpen U) [CompactSpace (closure U)]
+theorem exists_forall_norm_fderiv_le_of_hasFDerivAt {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] [CompleteSpace G] {U : Set E} (hU : IsOpen U) [CompactSpace (closure U)]
     (g : X → E → G) (g' : X → E → E →L[ℝ] G)
     (hg : ∀ x, ∀ y ∈ U, HasFDerivAt (g x) (g' x y) y)
     (hc : ∀ x, ContinuousOn (g' x) (closure U))
@@ -195,7 +197,8 @@ theorem exists_forall_norm_iteratedFDeriv_le [LocallyCompactSpace E] (hs : IsOpe
     obtain ⟨C, hC⟩ := ih (by omega)
     have hlt : (m : WithTop ℕ∞) < j := by exact_mod_cast hm
     let curry := continuousMultilinearCurryLeftEquiv ℝ (fun _ : Fin (m + 1) ↦ E) F
-    obtain ⟨C', hC'⟩ := exists_norm_fderiv_le hU (fun x ↦ iteratedFDeriv ℝ m (f x))
+    obtain ⟨C', hC'⟩ := exists_forall_norm_fderiv_le_of_hasFDerivAt hU
+      (fun x ↦ iteratedFDeriv ℝ m (f x))
       (fun x y ↦ curry (iteratedFDeriv ℝ (m + 1) (f x) y))
       (fun x y hy ↦ by
         have hd := ((hf x).contDiffAt
