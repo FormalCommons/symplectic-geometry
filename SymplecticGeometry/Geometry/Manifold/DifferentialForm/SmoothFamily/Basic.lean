@@ -670,18 +670,12 @@ protected theorem extendByZero_smul {U W : Opens M} (h : U ≤ W)
       (fun s y ↦ g (Opens.inclusion h y) • (α s).val y) _).mp ?_
     simpa only [verticalForm_fun_smul] using hgα.contMDiff (t, ⟨x, hx⟩)
   · -- Near `x`, every `β s` vanishes.
-    have hev : ∀ᶠ q : N × W in 𝓝 (t, x), ∀ s, (β s).val q.2 = 0 := by
-      have hy : ∀ᶠ y in 𝓝 x, ∀ s, (β s).val y = 0 := by
-        filter_upwards [(hzero x hx).eventually_nhds] with y hy s
-        rw [hβ]
-        exact (RoughForm.eventually_extendByZero_smul_eq_zero h (α s).val hy).self_of_nhds
-      exact (continuous_snd.tendsto (t, x)).eventually hy
-    refine ((contMDiff_zeroSection ℝ (fun y : W ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] F)).comp
-      contMDiff_snd (t, x)).congr_of_eventuallyEq ?_
-    filter_upwards [hev] with q hq
-    rw [sliceSection_apply, hq q.1]
-    -- The zero section takes the value `0` at every point.
-    rfl
+    refine contMDiffAt_sliceSection_of_eventually_eq_zero ?_
+    have hy : ∀ᶠ y in 𝓝 x, ∀ s, (β s).val y = 0 := by
+      filter_upwards [(hzero x hx).eventually_nhds] with y hy s
+      rw [hβ]
+      exact (RoughForm.eventually_extendByZero_smul_eq_zero h (α s).val hy).self_of_nhds
+    exact ((continuous_snd.tendsto (t, x)).eventually hy).mono fun q hq ↦ hq q.1
 
 end IsSmoothFamily
 
