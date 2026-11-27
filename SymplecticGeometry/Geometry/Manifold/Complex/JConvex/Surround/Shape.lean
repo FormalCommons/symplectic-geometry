@@ -142,18 +142,17 @@ variable (k m : ℕ)
 first factor, as a real continuous linear map. -/
 def modelDisc :
     EuclideanSpace ℝ (Fin k) →L[ℝ] EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) :=
-  LinearMap.toContinuousLinearMap
-    { toFun x := (WithLp.toLp 2 fun j ↦ (x j : ℂ), 0)
-      map_add' x y := by ext j <;> simp
-      map_smul' c x := by ext j <;> simp [Complex.real_smul] }
+  (ContinuousLinearMap.inl ℝ _ _).comp
+    ((complexEuclideanEquivRealProd (Fin k)).symm.toContinuousLinearMap.comp
+      (ContinuousLinearMap.inl ℝ _ _))
 
 variable {k m}
 
 /-- The model disc sends `x` to the point with coordinates `(x j : ℂ)` in the first factor and
 `0` in the second. -/
 theorem modelDisc_apply (x : EuclideanSpace ℝ (Fin k)) :
-    modelDisc k m x = (WithLp.toLp 2 fun j ↦ (x j : ℂ), 0) :=
-  (rfl)
+    modelDisc k m x = (WithLp.toLp 2 fun j ↦ (x j : ℂ), 0) := by
+  ext j <;> simp [modelDisc]
 
 /-- The `j`-th coordinate of the first component of `ι₀ x` is `x j`. -/
 @[simp]
@@ -456,7 +455,7 @@ theorem re_leviForm_comp_shape_apply_self {h : ℝ × ℝ → ℝ}
 /-- The bound `|σ|² ≤ s |v₁|²` for `σ = ∑ⱼ xⱼ v₁ⱼ`, by Cauchy–Schwarz. -/
 theorem norm_sum_re_mul_sq_le (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     ‖∑ j, ((p.1 j).re : ℂ) * v.1 j‖ ^ 2 ≤ (shape p).1 * ‖v.1‖ ^ 2 := by
-  let X : EuclideanSpace ℂ (Fin k) := WithLp.toLp 2 fun j ↦ ((p.1 j).re : ℂ)
+  let X := (modelDisc k m (modelDiscProj k m p)).1
   have hX : ⟪X, v.1⟫_ℂ = ∑ j, ((p.1 j).re : ℂ) * v.1 j := by
     simp [X, PiLp.inner_apply, mul_comm]
   have hXn : ‖X‖ ^ 2 = (shape p).1 := by
@@ -739,7 +738,7 @@ def modelHandleSplitting {a b : ℝ} (ha : 0 < a) (hb : 0 < b) :
 
 theorem modelHandleSplitting_apply {a b : ℝ} (ha : 0 < a) (hb : 0 < b)
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    modelHandleSplitting ha hb p = (√a • WithLp.toLp 2 fun j ↦ (p.1 j).re,
+    modelHandleSplitting ha hb p = (√a • modelDiscProj k m p,
         √b • WithLp.toLp 2 (WithLp.toLp 2 fun j ↦ (p.1 j).im, p.2)) := by
   ext j
   · simp [modelHandleSplitting]
