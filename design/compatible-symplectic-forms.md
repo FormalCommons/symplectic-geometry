@@ -230,8 +230,7 @@ Over a base `M` as in *Setting*, for `J : ContMDiffComplexStructure I ∞ F V`:
 - `integralTopForm_realFirstChernClass`: over a closed surface with
   orientation `o`, the integral of any closed representative of the class
   of `J` is the Chern number `chernNumber` of `J.toContinuousComplexStructure.Fiber`
-  (by `realFirstChernClass_eq_of_finrank_eq_one` in rank one, through the
-  determinant line in general, and `chernNumber_eq_integral_curvature`).
+  (through the determinant line and `chernNumber_eq_integral_curvature`).
   This is the comparison with the integral class.
 
 About 400 lines.

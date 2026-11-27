@@ -756,6 +756,13 @@ theorem coe_prodBall (ε : ℝ) : (prodBall Q ε : Set (Q × ℂ)) = Set.univ ×
 theorem mem_prodBall {ε : ℝ} {p : Q × ℂ} : p ∈ prodBall Q ε ↔ ‖p.2‖ < ε := by
   simp [← SetLike.mem_coe]
 
+/-- For a point `(q, z)` of `Q × B²(ε)` and `t ∈ [0, 1]`, the point `(q, t • z)` is in
+`Q × B²(ε)` too. -/
+theorem mk_smul_mem_prodBall {ε : ℝ} (p : prodBall Q ε) (t : unitInterval) :
+    ((p : Q × ℂ).1, (t : ℝ) • (p : Q × ℂ).2) ∈ prodBall Q ε := by
+  rw [mem_prodBall, norm_smul, Real.norm_eq_abs, abs_of_nonneg t.property.1]
+  exact (mul_le_of_le_one_left (norm_nonneg _) t.property.2).trans_lt (mem_prodBall.1 p.property)
+
 /-- A **product neighbourhood** of radius `ε` of a smooth embedding `ι` with symplectic tangent
 images, adapted to a symplectic framing `Φ`: an open embedding `f` of `Q × B²(ε)` into `M` that is
 a local diffeomorphism, with `f (q, 0) = ι q`, pulling `σ` back to `ι^* σ ⊕ ω₀`, and whose
