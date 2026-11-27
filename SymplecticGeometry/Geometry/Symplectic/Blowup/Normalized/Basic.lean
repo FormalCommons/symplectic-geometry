@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Blowup.Model
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Complex
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
@@ -212,6 +213,183 @@ theorem blowupChart_isHolomorphic :
     ((isOpen_ball.preimage (complexToRealEuclidean _).continuous).mem_nhds hw)
 
 end IsNormalizedAt
+
+/-! ### Normalized ball embeddings and their lifts -/
+
+/-- `ψ` is a normalized ball embedding of radius `r`, weight `l` and width `ε` for the
+normalization `hN : IsNormalizedAt σ J p₀ δ ψ₀`: a symplectic embedding of the closed ball `B(r)`
+with `0 < l`, `0 < ε < 1`, `l + ε < r` and `ε < δ`, which agrees with `ψ₀` on the closed ball
+`B(ε)` (McDuff–Salamon, Definition 7.1.20). -/
+def IsNormalizedBallEmbedding (_hN : IsNormalizedAt σ J p₀ δ ψ₀)
+    (ψ : StdSpace (Fin (n + 1)) → M) (r l ε : ℝ) : Prop :=
+  IsSymplecticBallEmbedding σ r ψ ∧ 0 < l ∧ 0 < ε ∧ ε < 1 ∧ l + ε < r ∧ ε < δ ∧
+    EqOn ψ ψ₀ (closedBall 0 ε)
+
+variable {hN : IsNormalizedAt σ J p₀ δ ψ₀} {ψ : StdSpace (Fin (n + 1)) → M} {r l ε : ℝ}
+
+theorem isNormalizedBallEmbedding_def :
+    IsNormalizedBallEmbedding hN ψ r l ε ↔
+      IsSymplecticBallEmbedding σ r ψ ∧ 0 < l ∧ 0 < ε ∧ ε < 1 ∧ l + ε < r ∧ ε < δ ∧
+        EqOn ψ ψ₀ (closedBall 0 ε) :=
+  Iff.rfl
+
+namespace IsNormalizedBallEmbedding
+
+open BlowupModel
+
+open GluedAlong (inl inr)
+
+open Blowup (gluingHomeomorph)
+
+variable (hψ : IsNormalizedBallEmbedding hN ψ r l ε)
+include hψ
+
+/-- A normalized ball embedding of radius `r` is a symplectic embedding of the closed ball
+`B(r)`. -/
+theorem isSymplecticBallEmbedding : IsSymplecticBallEmbedding σ r ψ := hψ.1
+
+/-- The weight of a normalized ball embedding is positive. -/
+theorem weight_pos : 0 < l := hψ.2.1
+
+/-- The width of a normalized ball embedding is positive. -/
+theorem width_pos : 0 < ε := hψ.2.2.1
+
+/-- The width of a normalized ball embedding is less than `1`. -/
+theorem width_lt_one : ε < 1 := hψ.2.2.2.1
+
+/-- The weight and the width of a normalized ball embedding add up to less than its radius. -/
+theorem weight_add_width_lt : l + ε < r := hψ.2.2.2.2.1
+
+/-- The width of a normalized ball embedding is less than the radius `δ` of the
+normalization. -/
+theorem width_lt : ε < δ := hψ.2.2.2.2.2.1
+
+/-- A normalized ball embedding agrees with the normalization on the closed ball of radius its
+width. -/
+theorem eqOn : EqOn ψ ψ₀ (closedBall 0 ε) := hψ.2.2.2.2.2.2
+
+/-- The width of a normalized ball embedding is less than its radius. -/
+theorem width_lt_radius : ε < r := by
+  linarith [hψ.weight_pos, hψ.weight_add_width_lt]
+
+/-- A normalized ball embedding for a normalization at `p₀` sends the origin to `p₀`. -/
+theorem map_zero : ψ 0 = p₀ :=
+  (hψ.eqOn (mem_closedBall_self hψ.width_pos.le)).trans hN.map_zero
+
+/-- A normalized ball embedding of radius `r` sends no nonzero point of the closed ball `B(r)`
+to `p₀`. -/
+theorem apply_ne_center {z : StdSpace (Fin (n + 1))} (hz : z ∈ closedBall 0 r) (hz0 : z ≠ 0) :
+    ψ z ≠ p₀ := fun h ↦
+  hz0 <| hψ.isSymplecticBallEmbedding.injOn hz
+    (mem_closedBall_self (hψ.width_pos.trans hψ.width_lt_radius).le)
+    (h.trans hψ.map_zero.symm)
+
+/-- On the preimage of the open ball of radius `ε`, the blowup chart inverts
+`ψ ∘ complexToRealEuclidean (Fin (n + 1))`. -/
+theorem blowupChart_apply {w : Fin (n + 1) → ℂ}
+    (hw : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < ε) :
+    hN.blowupChart (ψ (complexToRealEuclidean (Fin (n + 1)) w)) = w := by
+  have hwt : w ∈ hN.blowupChart.target := by
+    rw [hN.blowupChart_target, mem_preimage, mem_ball_zero_iff]
+    exact hw.trans hψ.width_lt
+  rw [hψ.eqOn (mem_closedBall_zero_iff.2 hw.le), ← Function.comp_apply (f := ψ₀),
+    ← hN.coe_blowupChart_symm]
+  exact hN.blowupChart.right_inv hwt
+
+/-- On the preimage of the open ball of radius `ε`, `ψ ∘ complexToRealEuclidean (Fin (n + 1))`
+takes values in the source of the blowup chart. -/
+theorem apply_mem_blowupChart_source {w : Fin (n + 1) → ℂ}
+    (hw : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < ε) :
+    ψ (complexToRealEuclidean (Fin (n + 1)) w) ∈ hN.blowupChart.source := by
+  rw [hN.blowupChart_source, hψ.eqOn (mem_closedBall_zero_iff.2 hw.le)]
+  exact mem_image_of_mem _ (mem_ball_zero_iff.2 (hw.trans hψ.width_lt))
+
+/-- A point of `openNbhd n ε` lies over the target of the blowup chart. -/
+theorem mem_modelOpens {y : BlowupModel n} (hy : y ∈ openNbhd n ε) :
+    y ∈ Blowup.modelOpens hN.blowupChart := by
+  rw [Blowup.mem_modelOpens, hN.blowupChart_target, mem_preimage, mem_ball_zero_iff]
+  exact (mem_openNbhd_iff.1 hy).trans hψ.width_lt
+
+/-- `ψ ∘ π` sends a point of `openNbhd n r` off the exceptional divisor to a point other than
+`p₀`. -/
+theorem apply_blowdown_mem_puncturedOpens {y : BlowupModel n} (hy : y ∈ openNbhd n r)
+    (hy0 : y.blowdown ≠ 0) :
+    ψ (complexToRealEuclidean (Fin (n + 1)) y.blowdown) ∈
+      Blowup.puncturedOpens hN.blowupChart := by
+  rw [Blowup.mem_puncturedOpens]
+  refine hψ.apply_ne_center (mem_closedBall_zero_iff.2 (mem_openNbhd_iff.1 hy).le) ?_
+  rwa [Ne, map_eq_zero_iff _ (complexToRealEuclidean (Fin (n + 1))).injective]
+
+/-- A point outside `openNbhd n ε` is off the exceptional divisor. -/
+theorem blowdown_ne_zero_of_notMem {y : BlowupModel n} (hy : y ∉ openNbhd n ε) :
+    y.blowdown ≠ 0 := fun h ↦ hy <| by
+  rw [mem_openNbhd_iff, h, _root_.map_zero, norm_zero]
+  exact hψ.width_pos
+
+open scoped Classical in
+/-- The lift `ψ̃` of a normalized ball embedding, from the neighbourhood `openNbhd n r` of the
+exceptional divisor of the model to the blowup `Blowup hN.blowupChart`: on `openNbhd n ε` it is
+the inclusion `inr` of the model piece, and elsewhere it is `inl ∘ ψ ∘ π`, for the blowdown `π`
+read on `StdSpace` through `complexToRealEuclidean`. The two descriptions agree off the divisor
+(`ballLift_of_blowdown_ne_zero`), since `ψ = ψ₀` on `B(ε)`. -/
+def ballLift (y : openNbhd n r) : Blowup hN.blowupChart :=
+  if h : (y : BlowupModel n) ∈ openNbhd n ε then
+    inr (gluingHomeomorph hN.blowupChart) ⟨y, hψ.mem_modelOpens h⟩
+  else
+    inl (gluingHomeomorph hN.blowupChart)
+      ⟨ψ (complexToRealEuclidean (Fin (n + 1)) (y : BlowupModel n).blowdown),
+        hψ.apply_blowdown_mem_puncturedOpens y.property (hψ.blowdown_ne_zero_of_notMem h)⟩
+
+/-- On `openNbhd n ε`, the lift is the inclusion of the model piece. -/
+theorem ballLift_of_mem_openNbhd (y : openNbhd n r) (hy : (y : BlowupModel n) ∈ openNbhd n ε) :
+    hψ.ballLift y = inr (gluingHomeomorph hN.blowupChart) ⟨y, hψ.mem_modelOpens hy⟩ :=
+  dite_eq_left hy
+
+/-- Off the exceptional divisor, the lift is `inl ∘ ψ ∘ π`. -/
+theorem ballLift_of_blowdown_ne_zero (y : openNbhd n r) (hy : (y : BlowupModel n).blowdown ≠ 0) :
+    hψ.ballLift y = inl (gluingHomeomorph hN.blowupChart)
+      ⟨ψ (complexToRealEuclidean (Fin (n + 1)) (y : BlowupModel n).blowdown),
+        hψ.apply_blowdown_mem_puncturedOpens y.property hy⟩ := by
+  by_cases h : (y : BlowupModel n) ∈ openNbhd n ε
+  · rw [hψ.ballLift_of_mem_openNbhd y h, Blowup.inr_eq_inl_iff]
+    have hc := hψ.blowupChart_apply (mem_openNbhd_iff.1 h)
+    exact ⟨hψ.apply_mem_blowupChart_source (mem_openNbhd_iff.1 h), hc⟩
+  · exact dite_eq_right h
+
+/-- The lift lies over `ψ`: the blowdown of `ψ̃ y` is `ψ` of the blowdown of `y`. -/
+@[simp]
+theorem blowdown_ballLift (y : openNbhd n r) :
+    Blowup.blowdown hN.blowupChart (hψ.ballLift y) =
+      ψ (complexToRealEuclidean (Fin (n + 1)) (y : BlowupModel n).blowdown) := by
+  by_cases h : (y : BlowupModel n) ∈ openNbhd n ε
+  · rw [hψ.ballLift_of_mem_openNbhd y h, Blowup.blowdown_inr, hN.coe_blowupChart_symm,
+      Function.comp_apply, hψ.eqOn (mem_closedBall_zero_iff.2 (mem_openNbhd_iff.1 h).le)]
+  · rw [hψ.ballLift_of_blowdown_ne_zero y (hψ.blowdown_ne_zero_of_notMem h), Blowup.blowdown_inl]
+
+/-- The lift of a normalized ball embedding is injective. -/
+theorem injective_ballLift : Function.Injective hψ.ballLift := by
+  intro y y' h
+  have hb : (y : BlowupModel n).blowdown = (y' : BlowupModel n).blowdown := by
+    have := congrArg (Blowup.blowdown hN.blowupChart) h
+    rw [hψ.blowdown_ballLift, hψ.blowdown_ballLift] at this
+    exact (complexToRealEuclidean (Fin (n + 1))).injective <|
+      hψ.isSymplecticBallEmbedding.injOn
+        (mem_closedBall_zero_iff.2 (mem_openNbhd_iff.1 y.property).le)
+        (mem_closedBall_zero_iff.2 (mem_openNbhd_iff.1 y'.property).le) this
+  by_cases h0 : (y : BlowupModel n).blowdown = 0
+  · have hy : (y : BlowupModel n) ∈ openNbhd n ε := by
+      by_contra hy
+      exact hψ.blowdown_ne_zero_of_notMem hy h0
+    have hy' : (y' : BlowupModel n) ∈ openNbhd n ε := by
+      by_contra hy'
+      exact hψ.blowdown_ne_zero_of_notMem hy' (hb ▸ h0)
+    rw [hψ.ballLift_of_mem_openNbhd y hy, hψ.ballLift_of_mem_openNbhd y' hy'] at h
+    have h2 := GluedAlong.inr_injective (gluingHomeomorph hN.blowupChart) h
+    rw [Subtype.mk.injEq] at h2
+    exact Subtype.ext h2
+  · exact Subtype.ext (eq_of_blowdown_eq h0 hb)
+
+end IsNormalizedBallEmbedding
 
 end SymplecticGeometry
 
