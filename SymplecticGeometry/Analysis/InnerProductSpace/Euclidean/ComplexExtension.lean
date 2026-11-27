@@ -9,6 +9,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Topology.Algebra.Module.Multilinear.Basic
 public import TauCeti.Analysis.InnerProductSpace.Euclidean.Complex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 
 import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 
@@ -47,7 +48,10 @@ and imaginary parts, and `TauCeti.norm_complexEuclideanEquivRealProd_fst_le`,
 `TauCeti.norm_complexEuclideanEquivRealProd_snd_le` bound their norms by that of the point, and
 `TauCeti.norm_complexEuclideanEquivRealProd_symm_mk_zero` and
 `TauCeti.norm_complexEuclideanEquivRealProd_symm_zero_mk` give the norms of the points `x + i 0`
-and `0 + i y`.
+and `0 + i y`. Finally `TauCeti.complexEuclideanEquivRealProd_snd_eq_zero_iff` says that the
+points with imaginary part `0` are those of Tau Ceti's `TauCeti.realSubspace`, and
+`TauCeti.complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff` reads this through
+`EuclideanSpace.sumEquivProd` as the vanishing of the imaginary parts of all coordinates.
 
 ## References
 
@@ -142,6 +146,19 @@ theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_symm_zero_mk
   have h := norm_complexEuclideanEquivRealProd_symm_sq (ι := ι) (0, y)
   rw [norm_zero, zero_pow two_ne_zero, zero_add] at h
   exact (pow_left_inj₀ (norm_nonneg _) (norm_nonneg _) two_ne_zero).1 h
+
+/-- A point of `ℂⁿ` has imaginary part `0` exactly when it lies in the real subspace `ℝⁿ`. -/
+theorem _root_.TauCeti.complexEuclideanEquivRealProd_snd_eq_zero_iff {z : EuclideanSpace ℂ ι} :
+    (complexEuclideanEquivRealProd ι z).2 = 0 ↔ z ∈ realSubspace ι := by
+  simp [PiLp.ext_iff]
+
+/-- The point of `EuclideanSpace ℂ (ι ⊕ κ)` that corresponds to `p = (z, w)` has imaginary part
+`0` exactly when all coordinates of `z` and of `w` are real. -/
+theorem _root_.TauCeti.complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff
+    {κ : Type*} [Fintype κ] {p : EuclideanSpace ℂ ι × EuclideanSpace ℂ κ} :
+    (complexEuclideanEquivRealProd _ (EuclideanSpace.sumEquivProd.symm p)).2 = 0 ↔
+      (∀ i, (p.1 i).im = 0) ∧ ∀ j, (p.2 j).im = 0 := by
+  simp [PiLp.ext_iff]
 
 /-- The complex-linear extension of `f` commutes with multiplication by `i`. -/
 theorem complexExtension_apply_I_smul (f : EuclideanSpace ℝ ι →L[ℝ] F)
