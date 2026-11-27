@@ -9,11 +9,13 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.DualClass.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomPairMap
 public import TauCeti.AlgebraicTopology.Cohomology.Kronecker
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
 
 /-!
@@ -37,7 +39,8 @@ can use it with no conversion.
 ## Main definitions
 
 * `SymplecticGeometry.Blowup.divisorNormalEquiv c`: the isomorphism of the normal bundle of the
-  exceptional divisor with the tautological line.
+  exceptional divisor with the tautological line, with its value on normal classes
+  `SymplecticGeometry.Blowup.divisorNormalEquiv_normalClass`.
 * `SymplecticGeometry.Blowup.divisorNormalOrientation c`: the orientation of the normal bundle
   that this isomorphism carries from the complex orientation of the tautological line.
 * `SymplecticGeometry.Blowup.exceptionalClass c`: the exceptional class, with
@@ -65,18 +68,6 @@ noncomputable section
 open AlgebraicTopology Bundle CategoryTheory Module Set TauCeti
 open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
 
-namespace Complex
-
-/-- The real dimension `2` of `ℂ` is the difference of the real dimensions of `ℂⁿ⁺¹` and `ℂⁿ`:
-the real codimension of the exceptional divisor of a blowup. -/
-theorem finrank_real_eq_finrank_pi_succ_sub (n : ℕ) :
-    finrank ℝ ℂ = finrank ℝ (Fin (n + 1) → ℂ) - finrank ℝ (Fin n → ℂ) := by
-  simp only [finrank_pi_fintype, Complex.finrank_real_complex, Finset.sum_const,
-    Finset.card_univ, Fintype.card_fin, smul_eq_mul]
-  omega
-
-end Complex
-
 namespace SymplecticGeometry
 
 namespace Blowup
@@ -88,19 +79,6 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 /-- The order `∞` of smoothness is not zero, as Tau Ceti's normal spaces ask. -/
 local notation "hn" => (Iff.mpr WithTop.coe_ne_zero ENat.top_ne_zero : (∞ : ℕ∞ω) ≠ 0)
 
-/-- Along the exceptional divisor, `lift c` has invertible real differential. -/
-theorem isInvertible_mfderiv_lift_divisorRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
-    (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
-      (divisorRealEmbedding c ℓ)).IsInvertible := by
-  rw [coe_divisorRealEmbedding]
-  exact (isLocalDiffeomorphAt_lift c (ofDirection_mem_range_inr c ℓ)).isInvertible_mfderiv
-    (by simp)
-
-/-- `lift c` sends the exceptional divisor onto the zero section of the model. -/
-theorem lift_comp_divisorRealEmbedding :
-    lift c ∘ divisorRealEmbedding c = BlowupModel.zeroSectionRealEmbedding n := by
-  rw [coe_divisorRealEmbedding, lift_comp_ofDirection, BlowupModel.coe_zeroSectionRealEmbedding]
-
 /-- **The normal bundle of the exceptional divisor is the tautological line.** At a point `ℓ` of
 the exceptional divisor, the isomorphism from the normal space of `divisorRealEmbedding c` onto
 the line `ℓ`: the differential of `lift c`, onto the normal space of the zero section of the
@@ -110,7 +88,8 @@ def divisorNormalEquiv (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
       Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
   ((divisorRealEmbedding c).normalSpaceEquivOfComp (BlowupModel.zeroSectionRealEmbedding n)
       hn hn (isInvertible_mfderiv_lift_divisorRealEmbedding c)
-      (lift_comp_divisorRealEmbedding c) ℓ).trans
+      ((lift_comp_divisorRealEmbedding c).trans
+        (BlowupModel.coe_zeroSectionRealEmbedding (n := n)).symm) ℓ).trans
     (BlowupModel.normalSpaceZeroSectionRealEquiv n hn ℓ)
 
 /-- `divisorNormalEquiv c`, unfolded. -/
@@ -118,9 +97,26 @@ theorem divisorNormalEquiv_def (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
     divisorNormalEquiv c ℓ =
       ((divisorRealEmbedding c).normalSpaceEquivOfComp (BlowupModel.zeroSectionRealEmbedding n)
           hn hn (isInvertible_mfderiv_lift_divisorRealEmbedding c)
-          (lift_comp_divisorRealEmbedding c) ℓ).trans
+          ((lift_comp_divisorRealEmbedding c).trans
+            (BlowupModel.coe_zeroSectionRealEmbedding (n := n)).symm) ℓ).trans
         (BlowupModel.normalSpaceZeroSectionRealEquiv n hn ℓ) :=
   (rfl)
+
+/-- `divisorNormalEquiv c ℓ` sends the normal class of a tangent vector `w` of the blowup at
+`divisorRealEmbedding c ℓ` to the differential of `blowdown` at `zeroSection ℓ` applied to the
+image of `w` under the differential of `lift c`, as a vector of the line `ℓ`. -/
+@[simp]
+theorem divisorNormalEquiv_normalClass (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
+    (w : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (divisorRealEmbedding c ℓ)) :
+    divisorNormalEquiv c ℓ ((divisorRealEmbedding c).isImmersion.normalClass ℓ hn w) =
+      ⟨mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) BlowupModel.blowdown
+          (BlowupModel.zeroSection ℓ)
+          (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
+            (divisorRealEmbedding c ℓ) w),
+        BlowupModel.mfderiv_blowdown_zeroSection_mem ℓ _⟩ := by
+  rw [divisorNormalEquiv_def, ContinuousLinearEquiv.trans_apply,
+    SmoothEmbedding.normalSpaceEquivOfComp_normalClass,
+    BlowupModel.normalSpaceZeroSectionRealEquiv_normalClass, tangentSpaceCast_apply]
 
 /-- The isomorphisms `divisorNormalEquiv c ℓ` form a continuous map from the total space of the
 normal bundle of the exceptional divisor to that of the tautological line. -/
@@ -131,11 +127,10 @@ theorem continuous_divisorNormalEquiv {K : Type*} :
         TotalSpace ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ))) := by
   have h₁ := (divisorRealEmbedding c).continuous_normalSpaceEquivOfComp_of_contMDiffAt (K := K)
     (K' := K) (BlowupModel.zeroSectionRealEmbedding n) hn hn
-    (fun ℓ ↦ by
-      rw [coe_divisorRealEmbedding]
-      exact (isLocalDiffeomorphAt_lift c (ofDirection_mem_range_inr c ℓ)).contMDiffAt.of_le
-        ENat.LEInfty.out)
-    (isInvertible_mfderiv_lift_divisorRealEmbedding c) (lift_comp_divisorRealEmbedding c)
+    (fun ℓ ↦ (isLocalDiffeomorphAt_lift_divisorRealEmbedding c ℓ).contMDiffAt.of_le
+      ENat.LEInfty.out)
+    (isInvertible_mfderiv_lift_divisorRealEmbedding c) ((lift_comp_divisorRealEmbedding c).trans
+      (BlowupModel.coe_zeroSectionRealEmbedding (n := n)).symm)
   exact (BlowupModel.continuous_normalSpaceZeroSectionRealEquiv (n := n) hn).comp h₁
 
 /-- **The normal orientation of the exceptional divisor.** The orientation of the normal bundle of

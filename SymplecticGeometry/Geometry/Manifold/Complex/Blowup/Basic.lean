@@ -935,6 +935,33 @@ theorem range_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) �
     range (divisorRealEmbedding c) = exceptionalDivisor c := by
   rw [coe_divisorRealEmbedding, exceptionalDivisor_def]
 
+open scoped TauCeti.ComplexManifold in
+/-- At each point of the exceptional divisor, `lift c` is a local diffeomorphism of real
+manifolds. -/
+theorem isLocalDiffeomorphAt_lift_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
+    (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    IsLocalDiffeomorphAt 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (lift c)
+      (divisorRealEmbedding c ℓ) := by
+  rw [coe_divisorRealEmbedding]
+  exact isLocalDiffeomorphAt_lift c (ofDirection_mem_range_inr c ℓ)
+
+open scoped TauCeti.ComplexManifold in
+/-- Along the exceptional divisor, `lift c` has invertible real differential. -/
+theorem isInvertible_mfderiv_lift_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)]
+    (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c)
+      (divisorRealEmbedding c ℓ)).IsInvertible :=
+  (isLocalDiffeomorphAt_lift_divisorRealEmbedding c ℓ).isInvertible_mfderiv (by simp)
+
+open scoped TauCeti.ComplexManifold in
+/-- `lift c` sends the exceptional divisor onto the zero section of the model. -/
+theorem lift_comp_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    lift c ∘ divisorRealEmbedding c = zeroSection := by
+  rw [coe_divisorRealEmbedding, lift_comp_ofDirection]
+
 end Blowup
 
 end SymplecticGeometry
