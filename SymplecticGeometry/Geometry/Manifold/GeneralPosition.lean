@@ -7,7 +7,9 @@ module
 
 public import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.Sard.Transversality
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diagonal
 import SymplecticGeometry.Geometry.Manifold.PerturbationFamily
 import SymplecticGeometry.Geometry.Manifold.RegularValue.Prod
 
@@ -68,13 +70,14 @@ So `γ` can be transverse to `g` only where it misses the range of `g`. -/
 theorem range_mfderiv_sup_ne_top_of_finrank_lt {EZ : Type*} [NormedAddCommGroup EZ]
     [NormedSpace ℝ EZ] [FiniteDimensional ℝ EZ] {HZ : Type*} [TopologicalSpace HZ]
     {IZ : ModelWithCorners ℝ EZ HZ} {Z : Type*} [TopologicalSpace Z] [ChartedSpace HZ Z]
-    {EP : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP] [FiniteDimensional ℝ EP]
+    {EP : Type*} [NormedAddCommGroup EP] [NormedSpace ℝ EP]
     {HP : Type*} [TopologicalSpace HP] {IP : ModelWithCorners ℝ EP HP} {P : Type*}
     [TopologicalSpace P] [ChartedSpace HP P]
     (hdim : finrank ℝ EN + finrank ℝ EZ < finrank ℝ EP) (γ : N → P) (g : Z → P) (x : N) (z : Z) :
     (mfderiv J IP γ x).range ⊔
       (((tangentSpaceCast IP (g z) (γ x)).toContinuousLinearMap).comp
         (mfderiv IZ IP g z)).range ≠ ⊤ := by
+  have : FiniteDimensional ℝ EP := Module.finite_of_finrank_pos (by omega)
   intro h
   -- The tangent spaces are the model spaces by definition.
   have : FiniteDimensional ℝ (TangentSpace IZ z) := inferInstanceAs (FiniteDimensional ℝ EZ)
@@ -85,43 +88,13 @@ theorem range_mfderiv_sup_ne_top_of_finrank_lt {EZ : Type*} [NormedAddCommGroup 
   have h3 := Submodule.finrank_add_le_finrank_add_finrank (mfderiv J IP γ x).range
     (((tangentSpaceCast IP (g z) (γ x)).toContinuousLinearMap).comp (mfderiv IZ IP g z)).range
   rw [h, finrank_top] at h3
-  -- As above, the tangent spaces are the model spaces by definition.
-  change finrank ℝ EP ≤ _ at h3
-  change _ ≤ finrank ℝ EN at h1
-  change _ ≤ finrank ℝ EZ at h2
+  rw [finrank_tangentSpace] at h1 h2 h3
   omega
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-
-/-- For `i ≠ j`, the map `s ↦ (f i (s i), f j (s j))` on a product of normed spaces is regular
-at `s` when `f i` is regular at `s i` and `f j` at `s j`. -/
-private theorem isRegularPoint_apply_prodMk_apply {ι : Type*} [Fintype ι]
-    {V : ι → Type*} [∀ k, NormedAddCommGroup (V k)] [∀ k, NormedSpace ℝ (V k)]
-    {f : ∀ k, V k → M} {i j : ι} (hij : i ≠ j) {s : ∀ k, V k}
-    (hi : IsRegularPoint 𝓘(ℝ, V i) I (f i) (s i)) (hj : IsRegularPoint 𝓘(ℝ, V j) I (f j) (s j))
-    (hdi : MDifferentiableAt 𝓘(ℝ, V i) I (f i) (s i))
-    (hdj : MDifferentiableAt 𝓘(ℝ, V j) I (f j) (s j)) :
-    IsRegularPoint 𝓘(ℝ, ∀ k, V k) (I.prod I) (fun s ↦ (f i (s i), f j (s j))) s := by
-  classical
-  -- The coordinates `i` and `j`, as a surjective linear map.
-  let π : (∀ k, V k) →L[ℝ] V i × V j :=
-    (ContinuousLinearMap.proj i).prod (ContinuousLinearMap.proj j)
-  have hπ : IsRegularPoint 𝓘(ℝ, ∀ k, V k) (𝓘(ℝ, V i).prod 𝓘(ℝ, V j)) π s := by
-    rw [isRegularPoint_iff, ← modelWithCornersSelf_prod, chartedSpaceSelf_prod, π.mfderiv_eq]
-    -- The tangent spaces of the model spaces are these spaces by definition.
-    change Surjective (π : (∀ k, V k) → V i × V j)
-    rintro ⟨a, b⟩
-    refine ⟨update (update 0 i a) j b, Prod.ext ?_ ?_⟩
-    · exact (ContinuousLinearMap.proj_apply (R := ℝ) (φ := V) i _).trans
-        (by rw [update_of_ne hij, update_self])
-    · exact (ContinuousLinearMap.proj_apply (R := ℝ) (φ := V) j _).trans (update_self _ _ _)
-  have hprod := hi.prodMap hj hdi hdj
-  rw [show (s i, s j) = π s by simp [π]] at hprod
-  exact hprod.comp hπ
-
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] [J.Boundaryless]
+  [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [IsManifold I ∞ M] [J.Boundaryless]
   [CompactSpace N] [T2Space N] [IsManifold J ∞ N]
 
 /-- **General position of finitely many maps.** Let `N` be a compact Hausdorff manifold and `M`
@@ -134,7 +107,6 @@ theorem exists_contMDiff_homotopic_forall_ne (hdim : finrank ℝ EN < finrank �
       ∀ i j, i ≠ j → ∀ x, g i x ≠ g j x := by
   classical
   have := Fintype.ofFinite ι
-  have : IsManifold J 1 N := IsManifold.of_le (n := ∞) (by simp)
   -- Smooth approximations of the `f i`, and their families of perturbations.
   choose g₀ hg₀ hfg₀ using fun i ↦ (f i).exists_contMDiff_homotopic_of_isCompact_closure_range
     (I := J) (J := I) ⊤ (by
@@ -171,7 +143,7 @@ theorem exists_contMDiff_homotopic_forall_ne (hdim : finrank ℝ EN < finrank �
   -- The diagonal of `M`.
   have hδ : ContMDiff I (I.prod I) ∞ fun z : M ↦ (z, z) := contMDiff_id.prodMk contMDiff_id
   have hδe : Topology.IsEmbedding fun z : M ↦ (z, z) :=
-    .of_comp (continuous_id.prodMk continuous_id) continuous_fst .id
+    SmoothEmbedding.coe_diagonal (I := I) (M := M) ▸ SmoothEmbedding.isEmbedding _
   -- The parameters whose slice is not transverse to the diagonal form a null set.
   borelize P
   have hnull : IsNullSet 𝓘(ℝ, P) (⋃ p : {p : ι × ι // p.1 ≠ p.2}, {s : U | ∃ q : N × M,
