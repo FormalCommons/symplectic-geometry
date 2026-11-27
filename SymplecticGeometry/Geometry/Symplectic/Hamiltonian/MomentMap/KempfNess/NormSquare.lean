@@ -405,7 +405,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
@@ -506,7 +506,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc] [BoundarylessManifold IC Gc]
@@ -535,6 +535,7 @@ theorem hasDerivAt_polar_symm_fst_inv_mul (hBs : B.IsSymm)
     (hηu : C.polar.symm ((g t)⁻¹ * g' t) = (η, u)) :
     HasDerivAt (fun r ↦ B (C.polar.symm ((g r)⁻¹ * g' r)).1 (C.polar.symm ((g r)⁻¹ * g' r)).1)
       (4 * (μ ((g t)⁻¹ • p) η - μ (C.expI (-η) • (g t)⁻¹ • p) η)) t := by
+  have := C.finiteDimensional
   have := C.connectedSpace
   have hgt := hg.mdifferentiableAt hs
   have hgt' := hg'.mdifferentiableAt hs
@@ -588,7 +589,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc] [BoundarylessManifold IC Gc]
@@ -696,7 +697,7 @@ through the monotonicity of the distance between two flow lines (Lemma A.2 there
 `antitoneOn_polar_symm_fst_inv_mul`. It extends `exists_smul_eq_of_moment_eq_zero` from zeros
 of `μ` to critical points of `‖μ‖²`. -/
 theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [ConnectedSpace G]
-    [FiniteDimensional ℝ EC] (h : IsComplexifiedAction C J)
+    (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
     (hBp : B.toQuadraticMap.PosDef)
@@ -803,7 +804,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [CompactSpace G] [T2Space G] [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
