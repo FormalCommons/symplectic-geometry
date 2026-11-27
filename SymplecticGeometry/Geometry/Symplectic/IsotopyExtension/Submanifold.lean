@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Family
@@ -232,16 +233,11 @@ theorem exists_isSymplectic_extension_of_mpullback_eq [SigmaCompactSpace M]
     (fun t q ↦ hψe t q (mem_univ q))
   -- The neighbourhood `U ⊆ W` of `i(Q)` on which `Ψ` corrects the pullbacks.
   obtain ⟨V, hV, hfV, hVΨ⟩ := eventually_nhdsSet_iff_exists.1 hΨ
-  set U : Opens M := ⟨Subtype.val '' V, Wo.isOpen.isOpenMap_subtypeVal V hV⟩
-  have hUW : U ≤ Wo := by
-    rintro _ ⟨w, -, rfl⟩
-    exact w.property
+  set U : Opens M := Opens.imageVal ⟨V, hV⟩
+  have hUW : U ≤ Wo := Opens.imageVal_le _
   set incl : U → Wo := Opens.inclusion hUW
   have hincl : ContMDiff I I ∞ incl := contMDiff_inclusion hUW
-  have hinclV (x : U) : incl x ∈ V := by
-    obtain ⟨w, hw, hwx⟩ := x.property
-    convert hw
-    exact Subtype.ext hwx.symm
+  have hinclV (x : U) : incl x ∈ V := (Opens.mem_imageVal.1 x.property).2
   have hemb_incl : IsSmoothEmbedding I I ∞ incl :=
     isSmoothEmbedding_subtypeVal_comp_iff.mp (IsSmoothEmbedding.id.comp_subtypeVal U)
   -- The isotopy `F_t = ψ_t ∘ Ψ_t` of `U`.
@@ -259,7 +255,8 @@ theorem exists_isSymplectic_extension_of_mpullback_eq [SigmaCompactSpace M]
       (isSmoothEmbedding_diffeomorph_comp hemb_incl (Ψ.timeSlice t))) (ψ t)
   set g : unitInterval → C^∞⟮I, U; I, M⟯ := fun t ↦
     ⟨fun x ↦ m (t, x), hm.comp (contMDiff_const.prodMk contMDiff_id)⟩
-  refine ⟨U, fun _ ⟨q, hq⟩ ↦ hq ▸ ⟨f q, hfV ⟨q, rfl⟩, hfi q⟩, g 0, g 1, fun x ↦ ?_,
+  refine ⟨U, fun _ ⟨q, hq⟩ ↦ hq ▸ hfi q ▸ Opens.coe_mem_imageVal _ ⟨f q, hfV ⟨q, rfl⟩⟩,
+    g 0, g 1, fun x ↦ ?_,
     ⟨⟨m, hm⟩, fun _ ↦ rfl, fun _ ↦ rfl, hemb⟩, isSymplectic_def.2 fun t ↦ ?_,
     fun t q ↦ ?_⟩
   · simp [g, m, Diffeotopy.apply_zero, hψ₀, incl]
