@@ -235,19 +235,11 @@ theorem selfIntersectionNumber_eq_of_comp (f : SmoothEmbedding (𝓡 2) I ∞ M 
   let := f'.normalSpaceVectorBundle hn hdim'
   -- The derivative of `φ` on normal spaces.
   let Φ := f.normalSpaceEquivOfComp f' hn hn hφd hφ
-  -- Transport of `J'` between the equal points `φ (f x)` and `f' x`.
-  have hcast : ∀ x (y : X'), y = f' x → ∀ u : TangentSpace I' y,
-      tangentSpaceCast I' y (f' x) (J' y u) = J' (f' x) (tangentSpaceCast I' y (f' x) u) := by
-    rintro x _ rfl u
-    simp only [tangentSpaceCast_self]
   have hc : ∀ x v, Φ x (f.normalComplexStructure hn J hdim hJ x v) =
-      f'.normalComplexStructure hn J' hdim' hJ' x (Φ x v) := by
-    intro x v
-    obtain ⟨w, rfl⟩ := f.isImmersion.normalClass_surjective x hn v
-    rw [normalComplexStructure_apply, normalComplexStructure_apply,
-      normalComplexStructureAt_normalClass, normalSpaceEquivOfComp_normalClass,
-      normalSpaceEquivOfComp_normalClass, normalComplexStructureAt_normalClass,
-      (hφJ x).mfderiv_apply_commute, hcast x (φ (f x)) (congrFun hφ x)]
+      f'.normalComplexStructure hn J' hdim' hJ' x (Φ x v) := fun x v ↦ by
+    rw [normalComplexStructure_apply, normalComplexStructure_apply]
+    exact normalSpaceEquivOfComp_normalComplexStructureAt f f' hn hn hφd hφ x (hJ x) (hJ' x)
+      (hφJ x) v
   rw [selfIntersectionNumber_def, selfIntersectionNumber_def,
     complexEulerClass_eq_of_fiberwise (finrank_self ℂ) (finrank_self ℂ)
       ((f.normalComplexStructure hn J hdim hJ).continuous_fiberEquivOfCommute

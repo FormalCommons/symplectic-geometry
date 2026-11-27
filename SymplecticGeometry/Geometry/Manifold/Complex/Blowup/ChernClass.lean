@@ -8,7 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FirstChernClass
+public import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.ExceptionalClass
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.HyperplaneClass
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
+import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
+import TauCeti.Topology.Algebra.Module.ComplexSmulI
 
 /-!
 # The first Chern class of the blowup
@@ -16,8 +22,9 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 Let `M` be a smooth manifold modelled on `E = ℂⁿ⁺¹` with a smooth almost complex structure `J`,
 `c` a chart of `M` at `p₀` that is `J`-holomorphic on its source, and `J̃` the almost complex
 structure of the blowup `Blowup c` (`SymplecticGeometry.Blowup.almostComplexStructure`). The
-first Chern classes below are Tau Ceti's `TauCeti.firstChernClass` of the complex tangent bundles
-`(T Blowup c, J̃)` and `(TM, J)`, with any complex model `G`.
+first Chern classes below are Tau Ceti's `TauCeti.firstChernClass`: of the complex tangent bundles
+`(T Blowup c, J̃)` and `(TM, J)`, with any complex model `G`, and of the normal bundle of the
+exceptional divisor with the complex structure induced by `J̃`, with complex model `ℂ`.
 
 ## Main results
 
@@ -29,10 +36,25 @@ first Chern classes below are Tau Ceti's `TauCeti.firstChernClass` of the comple
   isomorphism of the tangent bundle of the complement with the pull-back of `(TM, J)`, and the
   naturality of the first Chern class
   (`TauCeti.firstChernClass_eq_singularCohomologyMap_of_fiberwise`) applies.
+* `SymplecticGeometry.Blowup.divisorNormalEquiv_normalComplexStructureAt`: the isomorphism
+  `SymplecticGeometry.Blowup.divisorNormalEquiv` from the normal spaces of the exceptional divisor
+  onto the tautological line takes the normal complex structure induced by `J̃` to
+  multiplication by `Complex.I`. Near the divisor `lift c` is pseudoholomorphic
+  (`SymplecticGeometry.Blowup.isPseudoholomorphicAt_lift_divisorRealEmbedding`), so its
+  differential is complex linear on normal spaces
+  (`TauCeti.SmoothEmbedding.normalSpaceEquivOfComp_normalComplexStructureAt`), and on the model
+  the normal structure is `Complex.I`
+  (`BlowupModel.normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure`).
+* `SymplecticGeometry.Blowup.firstChernClass_normalComplexStructure_divisorRealEmbedding`: so the
+  normal bundle of the exceptional divisor, with the complex structure induced by `J̃`, is
+  isomorphic to the tautological line, and its first Chern class is `-h`, with `h` the
+  hyperplane class (`Projectivization.firstChernClass_tautological`). The complex isomorphism
+  is built as in the proof of `SymplecticGeometry.BlowupModel.selfIntersectionNumber_zeroSection`.
 
-This is the first of three steps towards the formula `c₁(T Blowup c) = π^* c₁(TM) - n e`, where
-`e` is `SymplecticGeometry.Blowup.exceptionalClass` and Lean's `n` is the complex dimension of
-`M` minus one; McDuff–Salamon use this formula, (7.1.31), without proving it.
+The first result is step 1, and the last two are part of step 3, of the proof of the formula
+`c₁(T Blowup c) = π^* c₁(TM) - n e`, where `e` is `SymplecticGeometry.Blowup.exceptionalClass`
+and Lean's `n` is the complex dimension of `M` minus one; McDuff–Salamon use this formula,
+(7.1.31), without proving it.
 
 The private steps of the proof adapt Tau Ceti's `mfderivFiberEquiv` and
 `continuous_mfderivFiberRealEquiv` (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Chern.lean`)
@@ -42,13 +64,13 @@ tangent bundle of the target to its pull-back.
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
-  §7.1, (7.1.31), p. 311.
+  §7.1, (7.1.31), p. 311, and Example 4.4.3.
 -/
 
 public section
 
 open Bundle Module Set TauCeti TauCeti.SmoothAlmostComplexStructure
-open scoped Manifold ContDiff TauCeti.ComplexManifold
+open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
 
 noncomputable section
 
@@ -135,6 +157,66 @@ theorem firstChernClass_restrict_compl :
     CategoryTheory.ConcreteCategory.comp_apply] at h
   rw [TopPair.ofSubset_map]
   exact h
+
+
+/-! ### The normal bundle of the exceptional divisor -/
+
+/-- **`divisorNormalEquiv` is complex linear.** On the normal space of the exceptional divisor at
+`ℓ`, the isomorphism `divisorNormalEquiv c ℓ` onto the line `ℓ` carries the complex structure that
+the almost complex blowup `J̃ = almostComplexStructure c J hJ` induces on normal spaces to
+multiplication by `Complex.I`. -/
+theorem divisorNormalEquiv_normalComplexStructureAt {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) (w : (divisorRealEmbedding c).isImmersion.NormalSpace ℓ hn) :
+    divisorNormalEquiv c ℓ ((divisorRealEmbedding c).normalComplexStructureAt hn
+        (almostComplexStructure c J hJ) ℓ
+        (mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding c J hJ ℓ) w) =
+      Complex.I • divisorNormalEquiv c ℓ w := by
+  -- `lift c` is pseudoholomorphic along the divisor, and the model's normal structure is `I`.
+  have h := BlowupModel.normalSpaceZeroSectionRealEquiv_contMDiffNormalComplexStructure (hn := hn)
+    (P := ℂ) (Complex.finrank_real_eq_finrank_pi_succ_sub n) ℓ
+  simp only [SmoothEmbedding.contMDiffNormalComplexStructure_apply] at h
+  rw [divisorNormalEquiv_def, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    SmoothEmbedding.normalSpaceEquivOfComp_normalComplexStructureAt _ _ _ _ _ _ ℓ _
+      (BlowupModel.mapsTo_ofComplexManifold_tangentRange_zeroSectionRealEmbedding ℓ)
+      (isPseudoholomorphicAt_lift_divisorRealEmbedding c J hJ ℓ), h]
+
+/-- **The normal bundle of the exceptional divisor has first Chern class `-h`.** The normal
+bundle of the exceptional divisor `divisorRealEmbedding c`, with model fibre `P` of dimension
+`hdim` and the complex structure that the almost complex blowup
+`J̃ = almostComplexStructure c J hJ` induces on it, has first Chern class, with complex model
+`ℂ` and read in integral cohomology, minus the hyperplane class of `ℙ ℂ (Fin (n + 1) → ℂ)`. -/
+theorem firstChernClass_normalComplexStructure_divisorRealEmbedding {hn : (∞ : ℕ∞ω) ≠ 0}
+    {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+    [Fact (finrank ℝ P = 2 * finrank ℂ ℂ)]
+    (hdim : finrank ℝ P = finrank ℝ (Fin (n + 1) → ℂ) - finrank ℝ (Fin n → ℂ)) :
+    letI := (divisorRealEmbedding c).normalSpaceFiberBundle hn hdim
+    letI := (divisorRealEmbedding c).normalSpaceVectorBundle hn hdim
+    ((TopCat.of (ℙ ℂ (Fin (n + 1) → ℂ))).uliftIntegralCohomologyIso 2).hom
+        (firstChernClass ℂ ((divisorRealEmbedding c).normalComplexStructure hn
+          (almostComplexStructure c J hJ) hdim
+          (mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding c J hJ)).Fiber) =
+      -Projectivization.hyperplaneClass (Fin (n + 1) → ℂ) := by
+  let := (divisorRealEmbedding c).normalSpaceFiberBundle hn hdim
+  let := (divisorRealEmbedding c).normalSpaceVectorBundle hn hdim
+  set ν := (divisorRealEmbedding c).normalComplexStructure hn (almostComplexStructure c J hJ) hdim
+    (mapsTo_almostComplexStructure_tangentRange_divisorRealEmbedding c J hJ) with hν
+  -- The isomorphisms `divisorNormalEquiv c`, complex linear for `ν`.
+  let φ (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+      ν.Fiber ℓ ≃L[ℂ] Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ :=
+    ((ν.fiberEquiv ℓ).trans (divisorNormalEquiv c ℓ)).complexOfMapISmul fun v ↦ by
+      rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+        ν.fiberEquiv_I_smul, hν, SmoothEmbedding.normalComplexStructure_apply,
+        divisorNormalEquiv_normalComplexStructureAt]
+  have hφ : Continuous fun p : TotalSpace ℂ ν.Fiber ↦
+      TotalSpace.mk' ℂ (E := Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) p.proj
+        (φ p.proj p.snd) :=
+    ((continuous_divisorNormalEquiv c).comp (ν.totalSpaceHomeomorph ℂ).continuous).congr
+      fun p ↦ by
+        rw [Function.comp_apply, Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
+        simp only [φ, ContinuousLinearEquiv.complexOfMapISmul_apply,
+          ContinuousLinearEquiv.trans_apply]
+  rw [SymplecticGeometry.Bundle.firstChernClass_congr φ hφ,
+    Projectivization.firstChernClass_tautological]
 
 end Blowup
 
