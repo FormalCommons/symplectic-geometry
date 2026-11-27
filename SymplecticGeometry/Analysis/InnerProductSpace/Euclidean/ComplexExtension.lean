@@ -49,7 +49,9 @@ and imaginary parts, and `TauCeti.norm_complexEuclideanEquivRealProd_fst_le`,
 `TauCeti.norm_complexEuclideanEquivRealProd_symm_mk_zero` and
 `TauCeti.norm_complexEuclideanEquivRealProd_symm_zero_mk` give the norms of the points `x + i 0`
 and `0 + i y`. Finally `TauCeti.complexEuclideanEquivRealProd_snd_eq_zero_iff` says that the
-points with imaginary part `0` are those of Tau Ceti's `TauCeti.realSubspace`, and
+points with imaginary part `0` are those of Tau Ceti's `TauCeti.realSubspace`,
+`TauCeti.complexEuclideanEquivRealProd_symm_fst_zero_of_snd_eq_zero` that such a point is the
+point `x + i 0` of its real part `x`, and
 `TauCeti.complexEuclideanEquivRealProd_sumEquivProd_symm_snd_eq_zero_iff` reads this through
 `EuclideanSpace.sumEquivProd` as the vanishing of the imaginary parts of all coordinates.
 
@@ -151,6 +153,13 @@ theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_symm_zero_mk
 theorem _root_.TauCeti.complexEuclideanEquivRealProd_snd_eq_zero_iff {z : EuclideanSpace ℂ ι} :
     (complexEuclideanEquivRealProd ι z).2 = 0 ↔ z ∈ realSubspace ι := by
   simp [PiLp.ext_iff]
+
+/-- A point `z` of `ℂⁿ` with imaginary part `0` is the point `x + i 0` of its real part `x`. -/
+theorem _root_.TauCeti.complexEuclideanEquivRealProd_symm_fst_zero_of_snd_eq_zero
+    {z : EuclideanSpace ℂ ι} (hz : (complexEuclideanEquivRealProd ι z).2 = 0) :
+    (complexEuclideanEquivRealProd ι).symm ((complexEuclideanEquivRealProd ι z).1, 0) = z := by
+  rw [← hz]
+  simp
 
 /-- The point of `EuclideanSpace ℂ (ι ⊕ κ)` that corresponds to `p = (z, w)` has imaginary part
 `0` exactly when all coordinates of `z` and of `w` are real. -/
