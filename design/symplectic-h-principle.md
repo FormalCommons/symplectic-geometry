@@ -1637,17 +1637,13 @@ The cube charts as coordinates for forms, in the namespace
   `B' q := B q + ∑ i, extendByZeroAlong (c.chartPartialDiffeomorph i) (a i (q, ·))`
   read as `f + a i` in the chart of `i`, wherever the other corrections
   vanish.
-- *Diffeotopies back to `M`.* `extendDiffeotopyAlong`: for a smooth open
-  embedding `φ : D → M` of a normed space and a smooth
-  `h : (S × unitInterval) × D → D`, with slices diffeomorphisms, `h ((q, 0), ·) = id`,
-  and `h` the identity off `univ ×ˢ C` for a compact `C ⊆ D`, the map equal
-  to `φ ∘ h ((q, t), ·) ∘ φ⁻¹` on the range of `φ` and to the identity
-  elsewhere is smooth on `(S × unitInterval) × M`, with slices
-  diffeomorphisms (their inverses are built from those of `h`), the
-  identity at `t = 0` and off `φ '' C`. It is a lemma about smooth open
-  embeddings, so it goes in `Geometry/Manifold/SmoothIsotopy/Chart.lean`,
-  in the namespace `TauCeti`, with `Diffeotopy` slices as in
-  `SmoothIsotopy/Diffeotopy.lean`. The cubes' diffeotopies have disjoint
+- *Diffeotopies back to `M`.* `TauCeti.extendDiffeotopyAlong`: for a smooth
+  open embedding `φ : N → M` into a Hausdorff manifold and a diffeotopy `h`
+  of `S × N` that fixes every `(q, z)` with `z` off a compact `C ⊆ N`, the
+  diffeotopy of `S × M` that moves `(q, φ z)` as `h` moves `(q, z)` and
+  fixes every `(q, y)` with `y ∉ φ '' C`; it keeps the parameter when `h`
+  does. It goes in `Geometry/Diffeomorphism/Diffeotopy/Extend.lean`, in the
+  namespace `TauCeti`. The cubes' diffeotopies have disjoint
   supports, so the stage composes their extensions in the order of
   `(Finset.univ : Finset c.ι).toList`, and each point of a cube is moved
   only by the extension of its own cube.
@@ -1677,8 +1673,8 @@ The cube charts as coordinates for forms, in the namespace
 Holonomic approximation over all cubes of a band core, relative to `N` and
 to `P₀`, in a smooth and a continuous form,
 `BandCore.exists_approximation_family` and
-`BandCore.exists_approximation_continuous_family`. Both return exactly the
-hypotheses of `exists_stagePath` (next file):
+`BandCore.exists_approximation_continuous_family`. Both return the
+hypotheses of `exists_stagePath` and of the lemmas on `stagePath` (next file):
 
 - `S`, a continuous `s : Λ → S` (`S = L` and `s = id` in the smooth form,
   `S = S₀ × ((i : c.ι) → Fin (n i) → ℝ)` and `s l = (s₀ l, fun i ↦ σ i l)`
@@ -1768,17 +1764,14 @@ The shared part of the two forms.
 
 ```lean
 theorem exists_stagePath {Λ S : Type*} [TopologicalSpace Λ] [NormedAddCommGroup S]
-    [NormedSpace ℝ S] [FiniteDimensional ℝ S] (c : BandCore I g a₀ a b) (hg : Continuous g)
-    {K P₀ : Set Λ} (hK : IsCompact K) {s : Λ → S} (hs : Continuous s)
+    [NormedSpace ℝ S] (c : BandCore I g a₀ a b) (hg : Continuous g)
+    {K : Set Λ} (hK : IsCompact K) {s : Λ → S} (hs : Continuous s)
     {ω α : Λ → SmoothTwoForm I M} (hnd : ∀ l ∈ K, (ω l).IsNondegenerate)
-    {B B' : S → SmoothForm I M ℝ 1} (hB' : IsSmoothFamily 𝓘(ℝ, S) B')
+    {B' : S → SmoothForm I M ℝ 1}
     {Φ : (S × unitInterval) × M → M} (hΦ : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ Φ)
     (hΦd : ∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ Φ (p, x)) (hΦ₀ : ∀ q x, Φ ((q, 0), x) = x)
     {N₁ : Set M} (hN₁ : IsOpen N₁) (haN₁ : {x | g x ≤ a} ⊆ N₁)
-    (hΦN₁ : ∀ p, ∀ x ∈ N₁, Φ (p, x) = x) (hB'N₁ : ∀ q, ∀ x ∈ N₁, (B' q).val x = (B q).val x)
-    (hωN₁ : ∀ l, ∀ x ∈ N₁, (ω l).val x = (α l + mextDerivₗ I 1 (B (s l))).val x)
-    (hP₀ : ∀ l ∈ P₀, ω l = α l + mextDerivₗ I 1 (B (s l)) ∧
-      (∀ t x, Φ ((s l, t), x) = x) ∧ B' (s l) = B (s l))
+    (hΦN₁ : ∀ p, ∀ x ∈ N₁, Φ (p, x) = x)
     {U : Set (Λ × M)} (hU : IsOpen U) (hKN₁ : K ×ˢ N₁ ⊆ U)
     (hUc : ∀ l ∈ K, ∀ y ∈ c.cubes, (l, Φ ((s l, 1), y)) ∈ U)
     (hUnd : ∀ p ∈ U, p.1 ∈ K → ∀ r ∈ Icc (0 : ℝ) 1,
@@ -1787,7 +1780,7 @@ theorem exists_stagePath {Λ S : Type*} [TopologicalSpace Λ] [NormedAddCommGrou
     ∃ (e : (S × unitInterval) × M → M) (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e)
       (ρ : M → ℝ) (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) (V N' : Set M),
       (∀ p, IsLocalDiffeomorph I I ∞ fun x ↦ e (p, x)) ∧ (∀ q x, e ((q, 0), x) = x) ∧
-      V ∈ 𝓝ˢ {x | g x ≤ a} ∧ V ⊆ N₁ ∧ (∀ p, ∀ x ∈ V, e (p, x) = x) ∧
+      IsOpen V ∧ V ∈ 𝓝ˢ {x | g x ≤ a} ∧ V ⊆ N₁ ∧ (∀ p, ∀ x ∈ V, e (p, x) = x) ∧
       IsOpen N' ∧ {x | g x ≤ b} ⊆ N' ∧ (∀ x, ρ x ∈ Icc (0 : ℝ) 1) ∧ (∀ x ∈ N', ρ x = 1) ∧
       ∀ l ∈ K, ∀ t, (stagePath he hρ s ω α B' (l, t)).IsNondegenerate
 ```
@@ -1816,7 +1809,7 @@ on `e`, `ρ`, `V` and `N'` that the theorem provides, so that both forms of
   (Tau Ceti's `SmoothForm.mextDerivₗ_mpullback`).
 - `stagePath_eqOn_nhdsSet`: on `V`, `stagePath (l, t) = ω l`,
   `α' l = α l` and `β'' (s l) = B (s l)`, since the slices of `e` are the
-  identity there and `α l + dβ'_l = ω l` on `N₁` (`hB'N₁`, `hωN₁`).
+  identity there and `α l + dβ'_l = ω l` on `N₁` (hypotheses of the lemma).
 - `stagePath_of_mem`: for `l ∈ P₀` the second term vanishes, since
   `α l + dβ'_l = ω l` on all of `M`; so `stagePath (l, t)` is
   `e_{l,A t}^* ω l`, closed, with `stagePath (l, t) - α l` exact
@@ -1838,7 +1831,7 @@ Proof of `exists_stagePath`:
    the isotopy `F` from the identity to `f`, fixed on a neighbourhood
    `V₀` of `{g ≤ a}`, with `f '' {g ≤ b} ⊆ W`.
 3. *The isotopy of the stage* is `e ((q, t), x) := Φ ((q, t), F (t, x))`:
-   smooth, the identity at `t = 0` and on `V := V₀ ∩ N₁`, with slices
+   smooth, the identity at `t = 0` and on `V := interior V₀ ∩ N₁`, with slices
    local diffeomorphisms (a slice of `F` is a smooth embedding of `M` into
    itself, a local diffeomorphism by Tau Ceti's
    `Manifold.IsImmersion.isLocalDiffeomorph`), and
@@ -2282,7 +2275,7 @@ Each is a few hundred lines; each issue's blockers come before it.
      and `IsSmoothFamily.extendByZeroAlong` in
      `DifferentialForm/SmoothFamily/PartialDiffeomorph.lean`. Blocked by
      nothing.
-   - 8b. **Diffeotopies along a chart.** `SmoothIsotopy/Chart.lean`:
+   - 8b. **Diffeotopies along a chart.** `Diffeotopy/Extend.lean`:
      `TauCeti.extendDiffeotopyAlong`. Blocked by nothing.
    - 8c. **The continuous version's clauses at every point.** The `C`, `N`
      and displacement clauses of

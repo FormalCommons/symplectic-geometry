@@ -26,6 +26,8 @@ unit interval, Tau Ceti's `TauCeti.collaredFirstHalf` composed with the clamp `S
 is `t ↦ collaredSmoothTransitionUnit (2 * t)` on all of `ℝ` (`TauCeti.collaredFirstHalf_projIcc`),
 and `collaredFirstHalf` is `0` near time `0` and `1` near time `1`
 (`TauCeti.eventually_collaredFirstHalf_eq_zero`, `TauCeti.eventually_collaredFirstHalf_eq_one`).
+The second half `TauCeti.collaredSecondHalf` leaves `0` only once the first half has reached
+`1` (`TauCeti.collaredFirstHalf_eq_one_of_collaredSecondHalf_ne_zero`).
 -/
 
 public noncomputable section
@@ -102,6 +104,14 @@ theorem eventually_collaredFirstHalf_eq_one {n : ℕ∞ω} (hn : n ≤ ∞) :
   filter_upwards [(continuous_subtypeVal.tendsto 1).eventually
     (lt_mem_nhds (by norm_num : (3 / 8 : ℝ) < ((1 : unitInterval) : ℝ)))] with t ht
   exact collaredFirstHalf_eq_one_of_ge hn ht.le
+
+/-- The second half of a stationary-time concatenation leaves `0` only once the first half has
+reached `1`. -/
+theorem collaredFirstHalf_eq_one_of_collaredSecondHalf_ne_zero {n : ℕ∞ω} (hn : n ≤ ∞)
+    {t : unitInterval} (h : collaredSecondHalf hn t ≠ 0) : collaredFirstHalf hn t = 1 := by
+  refine collaredFirstHalf_eq_one_of_ge hn ?_
+  by_contra ht
+  exact h (collaredSecondHalf_eq_zero_of_le hn (by linarith))
 
 end TauCeti
 

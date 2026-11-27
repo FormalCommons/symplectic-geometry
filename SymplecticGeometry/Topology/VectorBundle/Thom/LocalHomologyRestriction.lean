@@ -32,12 +32,12 @@ space is `zeroSectionCompl`, not the complement of a set), so this map is define
 
 * `TauCeti.zeroSectionCompl_subset_compl_singleton_zeroSection`: the nonzero vectors lie off
   `0_b`.
-* `Bundle.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
+* `TauCeti.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
   of `0_b`.
 * `SymplecticGeometry.thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap`:
   for a set `S` containing the complement of `0_b`, reading a class of the Thom pair relative to
   `S` factors through its local class at `0_b`. With `S = E ∖ 0 ∪ E ∖ E_b`
-  (`Bundle.zeroSectionCompl_union_compl_preimage_singleton`), this reads a class of the Thom pair
+  (`TauCeti.zeroSectionCompl_union_compl_preimage_singleton`), this reads a class of the Thom pair
   near the fibre over `b`.
 
 ## References
@@ -54,13 +54,12 @@ open Bundle CategoryTheory Limits Set TauCeti
 
 universe w v u
 
-namespace Bundle
-
-variable {B : Type*} {P : Type*} {E : B → Type*} [∀ b, Zero (E b)]
+namespace TauCeti
 
 /-- The points of the total space that are nonzero vectors or lie off the fibre over `b` are
 the points other than the zero vector `0_b`. -/
-theorem zeroSectionCompl_union_compl_preimage_singleton (b : B) :
+theorem zeroSectionCompl_union_compl_preimage_singleton {B : Type*} {P : Type*}
+    {E : B → Type*} [∀ b, Zero (E b)] (b : B) :
     zeroSectionCompl P E ∪ (π P E ⁻¹' {b})ᶜ = {zeroSection P E b}ᶜ := by
   ext ⟨b', v⟩
   simp only [mem_union, mem_zeroSectionCompl, mem_compl_iff, mem_preimage, mem_singleton_iff,
@@ -73,10 +72,6 @@ theorem zeroSectionCompl_union_compl_preimage_singleton (b : B) :
     · subst hb
       exact Or.inl fun hv ↦ h rfl (heq_of_eq hv)
     · exact Or.inr hb
-
-end Bundle
-
-namespace TauCeti
 
 /-- The nonzero vectors of a bundle lie in the complement of the point `0_b` of the zero
 section. -/
