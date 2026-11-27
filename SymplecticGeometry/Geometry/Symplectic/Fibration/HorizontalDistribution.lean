@@ -592,7 +592,7 @@ theorem exists_restrictsTo_isVerticallyClosed [IsManifold IB ∞ B] [FiniteDimen
     ∃ τ : SmoothTwoForm IM M, A.RestrictsTo σ τ ∧ IsVerticallyClosed IB proj τ := by
   obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
     (fun i ↦ (A.trivAt i).baseSet) (fun i ↦ (A.trivAt i).open_baseSet)
-    fun b _ ↦ mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩
+    A.iUnion_baseSet_trivAt.ge
   let τ : SmoothTwoForm IM M :=
     ⟨connectionForm A σ ρ, (isSmoothForm_connectionForm hA hρ).mem_smoothBundleForms⟩
   exact ⟨τ, restrictsTo_connectionForm hA hH hρ rfl,
