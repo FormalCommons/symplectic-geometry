@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
 # The model Dehn twist on the cotangent bundle of the sphere
@@ -868,7 +869,7 @@ theorem mpullback_modelTwist_liouvilleForm {R : ℝ → ℝ} {r₀ : ℝ} (hR : 
   have hτz : cotangentCoord (modelTwist hR z) = twistCoord C S (cotangentCoord z) :=
     congrFun hτ z
   rw [SmoothForm.coe_mpullback, mpullback_liouvilleForm_apply_eq_inner_cotangentCoord
-    ((modelTwist hR).contMDiff.mdifferentiableAt (by simp)), AddMemClass.coe_add, Pi.add_apply,
+    ((modelTwist hR).contMDiff.mdifferentiableAt (by simp)), SmoothBundleForm.add_apply,
     ContinuousAlternatingMap.add_apply, liouvilleForm_apply_eq_inner_cotangentCoord, hdK, hK,
     mvfderiv_comp_cotangentNorm_sq (hkd.of_le (by simp)), Matrix.cons_val_zero, hdq, hτz,
     cotangentNorm_def]
