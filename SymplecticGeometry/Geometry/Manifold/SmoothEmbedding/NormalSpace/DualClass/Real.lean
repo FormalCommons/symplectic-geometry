@@ -39,11 +39,10 @@ orientation `ν` of `Q` to `o x`, the class pulled back along `m` and the normal
 criterion `eq_relDualClassOf_iff_forall_slice` reduces it to the fibre restriction of the real
 Thom class, and the naturality of the model generators under linear isomorphisms
 (`Orientation.singularCohomologyMap_modelThomGenerator`) moves it from the trivialization at `x`
-to `m`. In rank two, with `Q = ℝ²` oriented by its standard basis, a smooth `2`-simplex of `ℝ²`
-that is positively oriented around `0` has as class in `H₂(ℝ², ℝ² ∖ {0}; ℤ)` minus the local
-orientation of `ℝ²` at `0` (`TauCeti.SmoothSimplex.relativeClass_eq_fundamentalClassOn`), while
-the generator pairs to `1` with that local orientation. So the slice of the real relative dual
-class pairs with such a simplex to `-1`
+to `m`. In rank two, with `Q = ℝ²` oriented by its standard basis, the generator pairs to `-1`
+with the class of a smooth `2`-simplex of `ℝ²` that is positively oriented around `0`
+(`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`), and the real image
+pairs as its cast. So the slice of the real relative dual class pairs with such a simplex to `-1`
 (`TauCeti.SmoothEmbedding.singularKronecker_normalSlice_realRelDualClass_relClass`).
 
 When `Z` is connected, the real canonical Thom class is a Thom class with coefficients `ℝ`
@@ -258,8 +257,7 @@ slice of `Φ` at `x`. Let `σ` be a smooth `2`-simplex of `ℝ²`, the restricti
 `Δ²`, with `0 ∈ g (interior Δ²)`. Then the pulled-back class, read through integral chains, pairs
 with the class of `σ` in `H₂(ℝ², ℝ² ∖ {0}; ℤ)` to `-1`.
 
-The sign is that of Tau Ceti's local orientations, which are minus the classes of positively
-oriented simplices (`TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation`). -/
+The sign is that of `TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`. -/
 theorem singularKronecker_normalSlice_realRelDualClass_relClass
     (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
@@ -292,21 +290,11 @@ theorem singularKronecker_normalSlice_realRelDualClass_relClass
         (SmoothSimplex.range_toSSetObjEquiv_δ_subset_compl σ hU hgσ hg
           (singleton_subset_iff.2 h0)) 1) = -1 := by
   have hE : finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2 := finrank_euclideanSpace_fin
-  -- The class of `σ` is minus the local orientation of `ℝ²` at `0`.
   rw [singularCohomologyMap_normalSlice_realRelDualClass f hn hdim hf o hr hΦ x _ hE m hm,
     TopPair.singularKronecker_singularCohomologyRealImage,
-    SmoothSimplex.relativeClass_eq_fundamentalClassOn σ hU hgσ hg hE _ ho isCompact_singleton
-      (singleton_subset_iff.2 h0),
-    HomologicalOrientation.fundamentalClassOn_singleton,
-    Manifold.Orientation.toHomologicalOrientation_neg, HomologicalOrientation.neg_apply,
-    LocalOrientation.coe_neg, Manifold.Orientation.toHomologicalOrientation_apply,
-    localOrientationOfManifoldOrientation_eq, Manifold.Orientation.orientationAt_euclideanSpace]
-  -- The chart of `ℝ²` at `0` is the identity, on which a proof depends.
-  simp only [chartAt_self_eq]
-  -- The generator pairs to `1` with the local orientation of the standard orientation.
-  rw [← Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl,
     Orientation.modelThomGenerator_eq_localCohomologyClass, ModuleCat.hom_comp,
-    LinearMap.comp_apply, map_neg, Orientation.kronecker_localCohomologyClass, map_neg,
+    LinearMap.comp_apply,
+    SmoothSimplex.singularKronecker_localCohomologyClass_relClass σ hU hgσ hg ho h0, map_neg,
     intToRealCoeff_apply, ULift.one_down, Int.cast_one]
 
 section Connected
