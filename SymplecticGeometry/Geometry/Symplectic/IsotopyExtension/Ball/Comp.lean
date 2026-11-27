@@ -26,6 +26,9 @@ equivalence).
   for a smooth injective `f` with `f^* τ = σ`.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.diffeotopy_comp`: `z ↦ Φ (s, j z)` is a
   symplectic ball embedding when the slice `Φ_s` preserves `σ`.
+* `TauCeti.SymplecticForm.IsSymplectomorphism.isSymplecticBallEmbedding`: a continuous linear
+  equivalence `e : StdSpace (Fin n) ≃L[ℝ] W` that pulls a symplectic form `σ` on `W` back to the
+  standard form is a symplectic embedding of every closed ball for the constant form of `σ`.
 
 ## References
 
@@ -75,6 +78,19 @@ theorem IsSymplecticBallEmbedding.diffeotopy_comp (hj : IsSymplecticBallEmbeddin
     (by rw [← SmoothForm.coe_mpullback _ (Φ.timeSlice s).contMDiff,
       SmoothForm.mem_diffeomorphStabilizer.1 hΦ])
   simpa only [comp_def, Diffeotopy.timeSlice_apply] using h
+
+/-- A continuous linear equivalence `e : StdSpace (Fin n) ≃L[ℝ] W` that pulls a symplectic form
+`σ` on `W` back to the standard form is a symplectic embedding of the closed ball `B(r)` into `W`
+with the constant form of `σ`, for every radius `r`. -/
+theorem _root_.TauCeti.SymplecticForm.IsSymplectomorphism.isSymplecticBallEmbedding
+    {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
+    {σ : SymplecticForm W} {e : StdSpace (Fin n) ≃L[ℝ] W}
+    (he : (stdForm (Fin n)).IsSymplectomorphism σ e.toLinearEquiv) (r : ℝ) :
+    IsSymplecticBallEmbedding σ.constSmooth r e :=
+  (isSymplecticBallEmbedding_id r).comp e.contDiff.contMDiff e.injective
+    (by
+      rw [← he.mpullback_constSmooth (e := e), SmoothForm.coe_mpullback,
+        ContinuousLinearEquiv.coe_toDiffeomorph])
 
 end SymplecticGeometry
 

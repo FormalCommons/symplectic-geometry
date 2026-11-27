@@ -41,7 +41,7 @@ subset of the source onto a set of the same Liouville measure
 `∫ f dλ_σ = ∫_{Φ.source} f ∘ Φ dλ_τ` for every `f` vanishing outside the target
 (`TauCeti.SmoothTwoForm.IsSymplecticMapOn.integral_liouvilleMeasure`). The manifolds `N` and `M`
 may be modelled on different spaces of the same dimension; the proof restricts `Φ` to its open
-source and applies `MeasurableEmbedding.map_measure_mpullback` there. On the standard
+source and applies `MeasurableEmbedding.map_liouvilleMeasure` there. On the standard
 space `StdSpace ι` with the constant form `ω₀ = stdForm ι`, the Liouville measure is Lebesgue
 measure (`SymplecticGeometry.liouvilleMeasure_constSmooth_stdForm`), so a symplectic chart from
 `StdSpace (Fin n)` turns a Liouville integral into a Lebesgue integral over the chart's source
@@ -160,9 +160,8 @@ theorem IsSymplecticMapOn.map_comap_subtypeVal_liouvilleMeasure
   have h : mpullback J I g σ.val =
       (SmoothForm.mpullback (Subtype.val : U → N) contMDiff_subtypeVal τ).val := by
     rw [← hpull, SmoothForm.coe_mpullback]
-  have hmap := hg.map_measure_mpullback (hgs.mdifferentiable (by simp)) (σ.volumeForm n).val
-  rw [mpullback_volumeForm h, ← liouvilleMeasure_def, liouvilleMeasure_mpullback_subtypeVal,
-    ← liouvilleMeasure_def] at hmap
+  have hmap := hg.map_liouvilleMeasure (n := n) (hgs.mdifferentiable (by simp)) h
+  rw [liouvilleMeasure_mpullback_subtypeVal] at hmap
   rwa [show range g = Φ.target from
     (range_domRestrict _ _).trans Φ.toPartialEquiv.image_source_eq_target] at hmap
 
