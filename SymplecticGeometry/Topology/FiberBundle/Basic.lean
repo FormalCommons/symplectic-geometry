@@ -8,7 +8,7 @@ module
 public import Mathlib.Topology.FiberBundle.Basic
 public import Mathlib.Topology.Sets.OpenCover
 public import TauCeti.Topology.FiberBundle.MapFiber
-import SymplecticGeometry.Topology.FiberBundle.Trivialization
+public import SymplecticGeometry.Topology.FiberBundle.Trivialization
 
 /-!
 # Fibre bundles read in their trivializations
@@ -41,6 +41,12 @@ two trivializations, these inclusions differ by the coordinate change.
   functions.
 * `Bundle.Trivialization.coe_fiberInclusionMap_transFiberHomeomorph`: changing the fibre of a
   trivialization by a homeomorphism `h` composes its fibre inclusions with the inverse of `h`.
+* `Bundle.Trivialization.fiberInclusionMap_transFiberwiseHomeomorph_apply`: following a
+  trivialization by a homeomorphism `Φ` of `U × F` over `U` composes its fibre inclusion over
+  `b ∈ U` with the fibre of `Φ⁻¹` over `b`.
+* `Bundle.Trivialization.coe_fiberInclusionMap_transFiberwiseHomeomorph_symm`: for
+  `Φ (p, v) = (p, χ p v)`, following a trivialization by `Φ⁻¹` composes its fibre inclusion over
+  `b ∈ U` with `χ b`.
 * `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
   homeomorphism leaves their coordinate change unchanged.
 * `Bundle.Trivialization.compTotalSpaceHomeomorph_refl`: a trivialization transported by Tau
@@ -154,6 +160,31 @@ theorem coe_fiberInclusionMap_transFiberHomeomorph {F' : Type*} [TopologicalSpac
   funext fun v ↦ by
     rw [fiberInclusionMap_apply, transFiberHomeomorph_symm_apply, Function.comp_apply,
       fiberInclusionMap_apply]
+
+/-- The fibre inclusion over `b ∈ U` of a trivialization `e` followed by a homeomorphism `Φ` of
+`U × F` over `U` (`Bundle.Trivialization.transFiberwiseHomeomorph`) is the fibre of `Φ⁻¹` over `b`
+followed by the fibre inclusion of `e`. -/
+theorem fiberInclusionMap_transFiberwiseHomeomorph_apply (e : Trivialization F proj)
+    {U : TopologicalSpace.Opens B} (hU : (U : Set B) ⊆ e.baseSet) (Φ : U × F ≃ₜ U × F)
+    (hΦ : ∀ q, (Φ q).1 = q.1) {b : B} (hb : b ∈ U) (v : F) :
+    (e.transFiberwiseHomeomorph hU Φ hΦ).fiberInclusionMap (b := b)
+      (by rwa [transFiberwiseHomeomorph_baseSet]) v =
+      e.fiberInclusionMap (hU hb) (Φ.symm (⟨b, hb⟩, v)).2 := by
+  rw [fiberInclusionMap_apply, transFiberwiseHomeomorph_symm_apply, fiberInclusionMap_apply]
+
+/-- If `Φ (p, v) = (p, χ p v)` for a family `χ` of homeomorphisms of `F`, the fibre inclusion
+over `b ∈ U` of `e` followed by the inverse of `Φ` is `χ b` followed by the fibre inclusion of
+`e`. -/
+theorem coe_fiberInclusionMap_transFiberwiseHomeomorph_symm (e : Trivialization F proj)
+    {U : TopologicalSpace.Opens B} (hU : (U : Set B) ⊆ e.baseSet) {Φ : U × F ≃ₜ U × F}
+    {χ : U → F ≃ₜ F} (hχ : ∀ q, Φ q = (q.1, χ q.1 q.2)) {b : B} (hb : b ∈ U) :
+    ⇑(fiberInclusionMap (b := b)
+      (e.transFiberwiseHomeomorph hU Φ.symm (Homeomorph.fst_symm_apply_of_apply_eq_prodMk hχ))
+      (by rwa [transFiberwiseHomeomorph_baseSet])) =
+      e.fiberInclusionMap (hU hb) ∘ χ ⟨b, hb⟩ :=
+  funext fun v ↦ by
+    rw [fiberInclusionMap_transFiberwiseHomeomorph_apply, Homeomorph.symm_symm, hχ,
+      Function.comp_apply]
 
 /-- Precomposing two trivializations with a homeomorphism does not change their coordinate
 changes. -/
