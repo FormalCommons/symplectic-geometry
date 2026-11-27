@@ -61,6 +61,7 @@ theorem mfderiv_apply_localPullback_subtypeVal_comp (Ψ : U ≃ₘ^∞⟮I, I'�
 /-- The pullback of a structure `K` of `Y` along a diffeomorphism `Ψ` from `U` onto an open set
 `V`, followed by the inclusion of `V`, is the pullback along `Ψ` of the restriction of `K` to
 `V`. -/
+@[simp]
 theorem localPullback_subtypeVal_comp_eq_pullback [FiniteDimensional ℝ E']
     (Ψ : U ≃ₘ^∞⟮I, I'⟯ V) (K : SmoothAlmostComplexStructure I' Y) :
     localPullback Ψ.isLocalDiffeomorph_subtypeVal_comp K = pullback Ψ (K.restrictOpen V) :=
