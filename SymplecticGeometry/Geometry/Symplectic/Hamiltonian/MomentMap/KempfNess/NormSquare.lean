@@ -13,14 +13,15 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 public import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
+import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
-import SymplecticGeometry.Analysis.Normed.Module.BilinForm
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Regularity
@@ -131,7 +132,8 @@ is antitone, nonnegative since `B` is positive definite, and has derivative `4 F
 `F (η, u) = μ x η - μ (C.expI (-η) • x) η ≤ 0`. The pairs `(η, u)` with `B η η ≤ N 0` and
 `(C.expI η * C.toHom u)⁻¹ • x = y` form a compact set
 (`LinearMap.BilinForm.isCompact_setOf_apply_self_le`), so `F` has a maximum there; it is `0`,
-for otherwise `N` would become negative. At a maximum `(η, u)`, `C.expI (-η)` fixes `x`
+for otherwise `N` would become negative (`nonneg_of_bddBelow_of_hasDerivAt_le`). At a maximum
+`(η, u)`, `C.expI (-η)` fixes `x`
 (`SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`), and `y = u⁻¹ • x`. This replaces
 the sequence and subsequence of the published proof by one maximum on a compact set.
 
@@ -636,8 +638,8 @@ points of `‖μ‖²` in one `Gc`-orbit lie in one `G`-orbit.
 
 This is [GeorgoulasRobbinSalamon2021], Theorem 6.3, by the proof of Calabi and Chen given there,
 through the monotonicity of the distance between two flow lines (Lemma A.2 there), here
-`antitoneOn_polar_symm_fst_inv_mul`. It generalizes `exists_smul_eq_of_moment_eq_zero`, where
-`μ` vanishes at both points. -/
+`antitoneOn_polar_symm_fst_inv_mul`. It extends `exists_smul_eq_of_moment_eq_zero` from zeros
+of `μ` to critical points of `‖μ‖²`. -/
 theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [ConnectedSpace G]
     [FiniteDimensional ℝ EC] (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
@@ -705,7 +707,7 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
   have hF : Continuous F := by
     let L : Module.Dual ℝ (GroupLieAlgebra I G) →ₗ[ℝ] (E →L[ℝ] ℝ) :=
       (LinearMap.toContinuousLinearMap : (E →ₗ[ℝ] ℝ) ≃ₗ[ℝ] (E →L[ℝ] ℝ)).toLinearMap
-    have hL := (hμm.contMDiff_linearMap_comp L).continuous
+    have hL := hμm.continuous_linearMap_comp L
     have hz : Continuous fun q : E × G ↦ C.expI (-(q.1 : GroupLieAlgebra I G)) • x :=
       hsmul.comp ((C.contMDiff_expI.continuous.comp continuous_fst.neg).prodMk continuous_const)
     have h₁ : Continuous fun q : E × G ↦ μ x q.1 :=
@@ -721,24 +723,10 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
   -- The maximum of `F` on `K` is `0`: otherwise `N` would decrease at a rate bounded below and
   -- become negative.
   have hF0 : 0 ≤ F (ξ, u) := by
-    by_contra! hneg
-    have hle (t : ℝ) (ht : 0 ≤ t) : N t ≤ N 0 + 4 * F (ξ, u) * t := by
-      have := (convex_Ici (0 : ℝ)).image_sub_le_mul_sub_of_deriv_le
-        (fun s _ ↦ (hN s).continuousAt.continuousWithinAt)
-        (fun s _ ↦ (hN s).differentiableAt.differentiableWithinAt)
-        (fun s hs ↦ by
-          rw [interior_Ici, mem_Ioi] at hs
-          rw [(hN s).deriv]
-          exact mul_le_mul_of_nonneg_left (isMaxOn_iff.1 hqmax _ (hmem hs.le)) (by norm_num))
-        0 (mem_Ici.2 le_rfl) t ht ht
-      linarith
-    have ht : 0 ≤ (N 0 + 1) / (-(4 * F (ξ, u))) := div_nonneg
-      (add_nonneg (hBp.nonneg _) zero_le_one) (by linarith)
-    have := (hBp.nonneg _).trans (hle _ ht)
-    have h4 : 4 * F (ξ, u) * ((N 0 + 1) / -(4 * F (ξ, u))) = -(N 0 + 1) := by
-      field_simp [hneg.ne]
+    have := nonneg_of_bddBelow_of_hasDerivAt_le ⟨0, by rintro _ ⟨t, -, rfl⟩; exact hBp.nonneg _⟩
+      (fun t _ ↦ hN t) fun t ht ↦ mul_le_mul_of_nonneg_left
+        (isMaxOn_iff.1 hqmax _ (hmem (mem_Ici.1 ht))) (by norm_num : (0 : ℝ) ≤ 4)
     linarith
-  -- So `⟨μ, -η⟩` does not decrease from `x` to `C.expI (-η) • x`, which is then `x`.
   -- So `⟨μ, -η⟩` does not decrease from `x` to `C.expI (-η) • x`, which is then `x`.
   have hfixη := expI_smul_eq_self_of_moment_apply_le h hμm hgm (ξ := -ξ) (x := x) <| by
     rw [map_neg, map_neg, neg_le_neg_iff]
