@@ -267,16 +267,13 @@ private theorem exists_eventuallyEq_and_log_poles_nhds
       ∀ᶠ t in 𝓝 s, h' t = c s * Real.log (‖t - s‖ ^ 2) + k t := by
   choose! k hk hkh using hpole
   refine ⟨fun t ↦ if t ∈ S then k t t else h t, fun t ht ↦ ?_, fun s hs ↦ ⟨k s, hk s hs, ?_⟩⟩
-  · filter_upwards [S.finite_toSet.isClosed.isOpen_compl.mem_nhds ht] with z hz
+  · filter_upwards [S.finite_toSet.isClosed.compl_mem_nhds ht] with z hz
     simp only [show z ∉ S from hz, ↓reduceIte]
-  · filter_upwards [eventually_nhdsWithin_iff.1 (hkh s hs),
-      (S.erase s).finite_toSet.isClosed.isOpen_compl.mem_nhds (by simp)] with t h₁ h₂
-    by_cases hts : t = s
-    · subst hts
-      simp [hs]
-    · have htS : t ∉ S := fun htS ↦ h₂ (Finset.mem_erase.2 ⟨hts, htS⟩)
-      simp only [htS, ↓reduceIte]
-      exact h₁ hts
+  · refine eventuallyEq_nhds_of_eventuallyEq_nhdsNE ?_ (by simp [hs])
+    filter_upwards [hkh s hs, self_mem_nhdsWithin,
+      nhdsWithin_le_nhds ((S.erase s).finite_toSet.isClosed.compl_mem_nhds (by simp))]
+      with t h₁ hts h₂
+    simp [show t ∉ S from fun htS ↦ h₂ (Finset.mem_erase.2 ⟨hts, htS⟩), h₁]
 
 /-- `exists_laplacian_ae_eq_add_sum_of_log_poles`, for poles of the given form on a whole
 neighbourhood of each `s ∈ S`. -/

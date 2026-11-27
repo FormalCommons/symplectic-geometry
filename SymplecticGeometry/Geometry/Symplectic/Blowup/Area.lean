@@ -65,11 +65,10 @@ From these it proves the area identity and the milestone:
   curve `u` that is `C¹` near `closure Ω`, holomorphic on `Ω`, with `|u| > l + ε` on
   `frontier Ω` and finitely many zeros in `Ω`, of total order `m`, the area of `u` for `ω₀`
   over `Ω` is that of any continuous lift `ũ` for `ω̃_{l,ε}` plus `m π l²`. The lift is
-  `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential along `u`,
-  changed at the zeros where only its Laplacian off them matters, is constant near `frontier Ω`
-  and has a pole `-l² k log |t - t₀|²` at a zero of order `k`, so the planar identity
-  `setIntegral_laplacian_eq_of_log_poles` gives `∫ Δ(φ ∘ u) = 4π l² m`; the densities of
-  `u^* ω₀` are integrable, as continuous functions on the compact `closure Ω`
+  `curveLift u` on `Ω` (`eqOn_curveLift_of_blowdown_comp`). The area potential along `u` is
+  constant near `frontier Ω` and has a pole `-l² k log |t - t₀|²` at a zero of order `k`, so the
+  planar identity `setIntegral_laplacian_eq_of_log_poles` gives `∫ Δ(φ ∘ u) = 4π l² m`; the
+  densities of `u^* ω₀` are integrable, as continuous functions on the compact `closure Ω`
   (`integrableOn_eval₂_ω₀E_mfderiv`).
 * `SymplecticGeometry.BlowupModel.kahler_blowupModel`: the conjunction of the Kähler property
   of `ω̃_l` and the area of the lines of the divisor, the Kähler property of pull-backs of `ω₀`
