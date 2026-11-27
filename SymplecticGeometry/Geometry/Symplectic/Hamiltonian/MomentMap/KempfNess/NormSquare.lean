@@ -222,8 +222,7 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 section Gradient
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
@@ -257,8 +256,7 @@ end Gradient
 
 section GradientComplexified
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
@@ -403,18 +401,15 @@ section Flow
 open Set TauCeti.Manifold
 open scoped RealInnerProductSpace
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [FiniteDimensional ℝ E']
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
   [T2Space M] [BoundarylessManifold I' M]
@@ -507,13 +502,11 @@ section PolarRadius
 
 open Topology
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc] [BoundarylessManifold IC Gc]
@@ -521,6 +514,20 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   {C : LieComplexification I G IC Gc}
   {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+omit [ConnectedSpace G] in
+/-- **Left translates of flow curves.** If `g'` has left-trivialized derivative
+`-2 i μ♯((g' t)⁻¹ • a⁻¹ • p)` on `s`, as a flow curve from `a⁻¹ • p` does, then its left
+translate `t ↦ a * g' t` has left-trivialized derivative `-2 i μ♯((a * g' t)⁻¹ • p)` on `s`, as a
+flow curve from `p` does. -/
+theorem HasLeftTrivializedDerivOn.const_mul_of_inv_smul {p : M} {a : Gc} {g' : ℝ → Gc}
+    {s : Set ℝ}
+    (hg' : HasLeftTrivializedDerivOn g'
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g' t)⁻¹ • a⁻¹ • p)))) s) :
+    HasLeftTrivializedDerivOn (fun t ↦ a * g' t)
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((a * g' t)⁻¹ • p)))) s := by
+  simp only [mul_inv_rev, mul_smul]
+  exact hg'.const_mul a
 
 /-- **The derivative of the polar radius between two flow curves.** Let `B` be a symmetric
 `Ad`-invariant form on the Lie algebra of the connected group `G`, nondegenerate so that `μ♯`
@@ -591,13 +598,11 @@ end PolarRadius
 
 section PolarRadiusAntitone
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc] [BoundarylessManifold IC Gc]
@@ -657,8 +662,7 @@ section Uniqueness
 
 open Set
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
@@ -809,18 +813,15 @@ section MomentLimit
 
 open Filter Set Topology TauCeti.Manifold
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [CompactSpace G] [T2Space G] [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [FiniteDimensional ℝ E']
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
   [T2Space M]
@@ -868,9 +869,8 @@ theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc :
   have hg₁x (t : ℝ) : (g₁ t)⁻¹ • p = (g' t)⁻¹ • g₀ • p := by
     simp only [g₁, mul_inv_rev, inv_inv, mul_smul]
   have hg₁ : HasLeftTrivializedDerivOn g₁
-      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ := by
-    simp only [hg₁x]
-    exact hg'.const_mul g₀⁻¹
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ :=
+    HasLeftTrivializedDerivOn.const_mul_of_inv_smul (by simpa only [inv_inv] using hg')
   -- The polar radius of `(g t)⁻¹ * g₁ t` is antitone, so the polar decomposition at integer
   -- times stays in a compact set.
   set N : ℝ → ℝ := fun t ↦
@@ -927,9 +927,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
-    ⟨0, by
-      rintro _ ⟨g, rfl⟩
-      exact momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg)⟩
+    bddBelow_range_momentNormSq_comp (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) (· • p)
   refine le_antisymm (le_ciInf fun g₀ ↦ ?_) ?_
   · -- The flow from `g₀ • p` converges to some `y`, defined for all `t ≥ 0`.
     obtain ⟨hI, y, -, hy, -⟩ :=
@@ -950,7 +948,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
     simp only [Function.comp_apply, hgx]
     exact ciInf_le hbdd _
 
-omit [ConnectedSpace G] [FiniteDimensional ℝ EC] [ContMDiffSMul IC I' ∞ Gc M] in
+omit [ConnectedSpace G] [ContMDiffSMul IC I' ∞ Gc M] in
 /-- **The Kempf–Ness function is bounded below along a flow converging to a zero of `μ`.** Let
 `σ` be closed, nondegenerate and `G`-invariant, `-μ` an equivariant moment map for it, and `B`
 nondegenerate and `Ad`-invariant. Let the negative gradient flow of `‖μ‖²` from `p` converge to a

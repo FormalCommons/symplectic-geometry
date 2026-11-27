@@ -74,18 +74,15 @@ namespace SymplecticGeometry
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [CompactSpace G] [T2Space G] [ConnectedSpace G]
-  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
-  [FiniteDimensional ℝ EC]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [FiniteDimensional ℝ EC]
   {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
   {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
   [T2Space Gc]
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [FiniteDimensional ℝ E']
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
   [T2Space M]
@@ -97,17 +94,15 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
 
-omit [I.Boundaryless] [CompactSpace G] [T2Space G] [ConnectedSpace G] [FiniteDimensional ℝ EC]
-  [CompactSpace M] [T2Space M] [MulAction G M] in
+omit [I.Boundaryless] [CompactSpace G] [T2Space G] [ConnectedSpace G] [CompactSpace M]
+  [T2Space M] [MulAction G M] in
 /-- At a semistable point `p`, the infimum of `‖μ‖²` over the orbit of `p` is `0`, for a
 nonnegative form `B` and a continuous `‖μ‖²`. -/
 theorem IsSemistable.iInf_momentNormSq_smul_eq_zero {hB : B.Nondegenerate} {p : M}
     (hp : IsSemistable C μ p) (hpos : B.IsNonneg) (hf : Continuous (momentNormSq B hB μ)) :
     ⨅ a : Gc, momentNormSq B hB μ (a • p) = 0 := by
   have hbdd : BddBelow (range fun a : Gc ↦ momentNormSq B hB μ (a • p)) :=
-    ⟨0, by
-      rintro _ ⟨a, rfl⟩
-      exact momentNormSq_nonneg hpos⟩
+    bddBelow_range_momentNormSq_comp hpos (· • p)
   obtain ⟨y, hy, hy0⟩ := isSemistable_iff.1 hp
   have hsub : closure (MulAction.orbit Gc p) ⊆
       {z | ⨅ a : Gc, momentNormSq B hB μ (a • p) ≤ momentNormSq B hB μ z} :=
@@ -118,7 +113,7 @@ theorem IsSemistable.iInf_momentNormSq_smul_eq_zero {hB : B.Nondegenerate} {p : 
 
 variable {hB : B.Nondegenerate}
 
-omit [ConnectedSpace G] [FiniteDimensional ℝ EC] [ContMDiffSMul IC I' ∞ Gc M] in
+omit [ConnectedSpace G] [ContMDiffSMul IC I' ∞ Gc M] in
 /-- Let `g : ℝ → Gc` be a curve with `g 0 = 1` such that `(g t)⁻¹ • p` is the negative gradient
 flow of `‖μ‖²` from `p` at time `t`, and `t ↦ Φ_p (g t)` has derivative `-2 ‖μ ((g t)⁻¹ • p)‖²`;
 for a complexified action, `exists_mem_orbit_maximalIntegralCurve` gives such a curve. If
@@ -197,9 +192,8 @@ theorem mem_lowerBounds_range_kempfNessFunction (h : IsComplexifiedAction C J)
     exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hgm hBs (a⁻¹ • p)
   set g₁ : ℝ → Gc := fun t ↦ a * g' t
   have hg₁ : HasLeftTrivializedDerivOn g₁
-      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ := by
-    simp only [g₁, mul_inv_rev, mul_smul]
-    exact hg'.const_mul a
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ :=
+    hg'.const_mul_of_inv_smul
   -- `Φ_p ∘ g₁` stays below `Φ_p a`, by the cocycle identity.
   have hup (t : ℝ) (ht : 0 ≤ t) : kempfNessFunction C μ p (g₁ t) ≤ kempfNessFunction C μ p a := by
     have hanti : Antitone fun s ↦ kempfNessFunction C μ (a⁻¹ • p) (g' s) :=
