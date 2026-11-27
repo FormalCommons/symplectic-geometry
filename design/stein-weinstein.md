@@ -659,13 +659,13 @@ containing `ι '' closedBall 0 1`:
     (`c = (1 + a) / 2`, `b = γ * (a - 1) / 16`), which §4.7 needs.
   - `exists_convexShape_surround` (14d4; Proposition 4.21, which is
     Theorem 4.1 (i)–(iii) in terms of the shape): for `1 < a` and
-    `γ ∈ Ioo 0 1` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
+    `0 < γ` there are `δ ∈ Ioo 0 γ` and `χ : ℝ → ℝ`, smooth on
     `Ioi δ` and continuous on `Ici δ`, with `IsConvexShapeAt χ r` for
     all `r > δ`, `χ r = √(1 + a * r ^ 2)` for `γ ≤ r`,
     `Tendsto (deriv χ) (𝓝[>] δ) atTop` and `1 < χ δ < 1 + γ`. The
     hypersurface of Theorem 4.1 is
     $\Sigma=\{t=\delta^2,\ \sqrt s\le\chi(\delta)\}\cup\{t>\delta^2,\ \sqrt s=\chi(\sqrt t)\}$;
-    the statement records (ii) and (iii) as
+    theorems about this `χ` record (ii) and (iii) as
     `Σ ∩ {p | γ ^ 2 ≤ t p} = {p | a * t p - s p = -1} ∩ {p | γ ^ 2 ≤ t p}`
     and `Σ ∩ {p | s p ≤ 1} = {p | t p = δ ^ 2 ∧ s p ≤ 1}`, and (i) by
     `IsConvexShapeAt.re_leviForm_pos` on the curved part and
@@ -1251,8 +1251,9 @@ containing `ι '' closedBall 0 1`:
 
 - `Surround/NormalForm.lean` (issues 14d18 and 14d19), with `V`,
   `modelDisc k m` and `finrank ℂ E = k + m` as for issues 14d9–14d15.
-  - `IsJOrthogonallyAttached.exists_comp_radial` (14d18): for `φ`, `ι`
-    smooth, `F` finite-dimensional and `h : IsJOrthogonallyAttached E φ ι`,
+  - `IsJOrthogonallyAttached.exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`
+    (14d18): for `φ`, `ι` smooth, `F` a finite-dimensional real inner
+    product space and `h : IsJOrthogonallyAttached E φ ι`,
     there is a smooth `τ : F → ℝ`, positive, equal to `1` near `0` and
     on the sphere, such that `σ x = τ x • x` is a smooth diffeomorphism
     of `F` (`F ≃ₘ^∞⟮𝓘(ℝ, F), 𝓘(ℝ, F)⟯ F`) with `‖σ x‖ < 1 ↔ ‖x‖ < 1`, and
@@ -1285,7 +1286,8 @@ containing `ι '' closedBall 0 1`:
     `{x | φ x ≤ 0}`, `ι` a disc as in 14d9 with
     `IsJOrthogonallyAttached E φ ι`, `[T2Space M]`, `O ⊇ range ι` and
     `U ⊇ ι '' sphere 0 1` open, and `2 ≤ N`. There are `σ` as in
-    `exists_comp_radial`; `Φ` from `exists_modelChart` for `ι ∘ σ`,
+    `exists_smul_self_diffeomorph_mvfderiv_comp_eq_neg_two`;
+    `Φ` from `exists_modelChart` for `ι ∘ σ`,
     `O`, `N` and the frame of `exists_complexFrame_mfderiv_ker` for
     `ι ∘ σ`; open `V ⊆ W ⊆ U ∩ Φ.target` with `ι '' sphere 0 1 ⊆ V`; and a smooth
     `θ : M → ℝ` with `θ = modelLevel k m ∘ Φ.symm` on `V`,

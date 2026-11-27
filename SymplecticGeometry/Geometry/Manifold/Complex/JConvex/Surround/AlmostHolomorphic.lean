@@ -16,6 +16,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Basic
 import SymplecticGeometry.Analysis.Complex.Wirtinger.VanishingOrder
 import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
 import TauCeti.Analysis.Calculus.IteratedFDeriv.Flat
@@ -78,7 +79,12 @@ to `f` on the real points.
 * `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`: the two
   results above together. If `D` is moreover `C^(N + 1)`, then
   `‖D^j D (x + i y)‖ ≤ C' * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` near any compact set of real
-  points in `U`.
+  points in `U`;
+* `SymplecticGeometry.exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le`: if the
+  first two derivatives of `e₁ - e₂` are `O(‖y‖ ^ (N + 1 - j))` on an open set, as
+  `SymplecticGeometry.exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le` gives them
+  for `1 ≤ N`, then the bounds `C₁ * ‖y‖ ^ N` on `∂̄ e₁` and `C₁ * ‖y‖ ^ (N - 1)` on its
+  derivative pass to `e₂`, with another constant.
 
 For `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, fix a real point
 `x` of `U`. The iterated derivative `D^j D(x)` vanishes on real arguments, since `D` vanishes on
@@ -568,6 +574,54 @@ theorem exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le {N : ℕ} {C
   exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero hU hD hK hKU hKre
     fun _ hxU hx _ hj ↦ iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le hU
       (hD.of_le (by exact_mod_cast N.le_succ)) hD0 hC hxU hx hj
+
+/-- **Agreement of order `N + 1` carries the `∂̄` bounds.** Let `e₁ e₂` be `C²` over `ℝ` on an
+open set `U`, with `‖D^j (e₁ - e₂) (x + i y)‖ ≤ C * ‖y‖ ^ (N + 1 - j)` on `U` for `j = 1, 2`.
+If `‖∂̄ e₁ (x + i y)‖ ≤ C₁ * ‖y‖ ^ N` and the derivative of `∂̄ e₁` (in the bundled real-linear
+form `ContinuousLinearMap.complexAntilinearPartL` of the derivative) is at most
+`C₁ * ‖y‖ ^ (N - 1)` on `U`, then `e₂` has the same two bounds on `U` with some constant `C₂`. -/
+theorem exists_norm_conjWirtingerDeriv_le_of_norm_iteratedFDeriv_sub_le {N : ℕ} {C C₁ : ℝ}
+    {e₁ e₂ : EuclideanSpace ℂ ι' → W} {U : Set (EuclideanSpace ℂ ι')} (hU : IsOpen U)
+    (he₁ : ContDiffOn ℝ 2 e₁ U) (he₂ : ContDiffOn ℝ 2 e₂ U)
+    (hC : ∀ z ∈ U, ∀ j ∈ Finset.Icc 1 2, ‖iteratedFDeriv ℝ j (e₁ - e₂) z‖ ≤
+      C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N + 1 - j))
+    (hC₁ : ∀ z ∈ U,
+      ‖conjWirtingerDeriv e₁ z‖ ≤ C₁ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N)
+    (hC₁' : ∀ z ∈ U,
+      ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₁ w)) z‖ ≤
+        C₁ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1)) :
+    ∃ C₂, ∀ z ∈ U,
+      ‖conjWirtingerDeriv e₂ z‖ ≤ C₂ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ N ∧
+      ‖fderiv ℝ (fun w ↦ ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ e₂ w)) z‖ ≤
+        C₂ * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1) := by
+  set P : (EuclideanSpace ℂ ι' →L[ℝ] W) →L[ℝ] EuclideanSpace ℂ ι' →L[ℝ] W :=
+    ContinuousLinearMap.complexAntilinearPartL
+  set t := fun z ↦ ‖(complexEuclideanEquivRealProd ι' z).2‖
+  refine ⟨C₁ + max 1 ‖P‖ * max C 0, fun z hz ↦ ?_⟩
+  have h₁ := he₁.contDiffAt (hU.mem_nhds hz)
+  have h₂ := he₂.contDiffAt (hU.mem_nhds hz)
+  have hC' : C ≤ max C 0 := le_max_left _ _
+  have hP : 1 ≤ max 1 ‖P‖ := le_max_left _ _
+  have hP' : ‖P‖ ≤ max 1 ‖P‖ := le_max_right _ _
+  have h1 := hC z hz 1 (by simp)
+  rw [norm_iteratedFDeriv_one, Nat.add_sub_cancel] at h1
+  have h2 := hC z hz 2 (by simp)
+  rw [show N + 1 - 2 = N - 1 by omega] at h2
+  constructor
+  · calc _ ≤ _ := norm_conjWirtingerDeriv_le_add_norm_fderiv_sub
+          (h₁.differentiableAt two_ne_zero) (h₂.differentiableAt two_ne_zero)
+      _ ≤ C₁ * t z ^ N + 1 * (max C 0 * t z ^ N) := by
+        rw [one_mul]
+        gcongr
+        · exact hC₁ z hz
+        · exact h1.trans (by gcongr)
+      _ ≤ _ := by rw [add_mul, mul_assoc]; gcongr
+  · calc _ ≤ _ := norm_fderiv_complexAntilinearPartL_fderiv_le_add_norm_iteratedFDeriv_sub h₁ h₂
+      _ ≤ C₁ * t z ^ (N - 1) + ‖P‖ * (max C 0 * t z ^ (N - 1)) := by
+        gcongr
+        · exact hC₁' z hz
+        · exact h2.trans (by gcongr)
+      _ ≤ _ := by rw [add_mul, mul_assoc]; gcongr
 
 end SymplecticGeometry
 
