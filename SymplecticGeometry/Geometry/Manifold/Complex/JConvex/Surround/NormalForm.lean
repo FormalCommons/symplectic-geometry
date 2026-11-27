@@ -107,7 +107,7 @@ reparametrization `σ`, take the adapted frame along `ι ∘ σ` and a chart `Φ
 differential (`SymplecticGeometry.exists_modelChart`). On the sphere, `φ` and
 `ψ = modelLevel k m ∘ Φ⁻¹` have the same 1-jet, and both are strictly plurisubharmonic there:
 `ψ` by the previous paragraph, `φ` because the sphere lies in `{φ = 0}`. The sphere, embedded by
-`ι ∘ σ`, is a compact totally real submanifold (`SymplecticGeometry.isSmoothEmbedding_coe_sphere`,
+`ι ∘ σ`, is a compact totally real submanifold (`isSmoothEmbedding_coe_sphere`,
 `TauCeti.IsTotallyReal.range_mfderiv_comp`), so the interpolation along it,
 `Manifold.IsSmoothEmbedding.exists_isManifoldStrictlyPlurisubharmonicAt_interpolate` (the route of
 Proposition 3.26 of Cieliebak–Eliashberg), gives `θ` equal to `ψ` near the sphere and to `φ` away
