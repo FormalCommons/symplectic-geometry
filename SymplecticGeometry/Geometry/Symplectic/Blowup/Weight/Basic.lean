@@ -528,12 +528,12 @@ theorem mem_complDivisor_iff {z : WeightBlowup hψ hl hε} :
   rw [← SetLike.mem_coe, coe_complDivisor]
   constructor
   · rintro ⟨x, rfl⟩ ⟨y, hy, hxy⟩
-    obtain ⟨h, -⟩ := (inl_eq_inr_iff hψ hl hε).1 hxy.symm
-    exact mem_modelOverlap_iff.1 h hy
+    exact mem_modelOverlap_iff.1 ((GluedAlong.inr_mem_range_inl_iff _).1 ⟨x, hxy.symm⟩) hy
   · intro hz
     rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, hx⟩ | ⟨y, rfl⟩
     · exact ⟨x, hx⟩
-    · exact ⟨_, inl_gluingDiffeomorph hψ hl hε ⟨y, mem_modelOverlap_iff.2 fun h ↦ hz ⟨y, h, rfl⟩⟩⟩
+    · exact (GluedAlong.inr_mem_range_inl_iff _).2
+        (mem_modelOverlap_iff.2 fun h ↦ hz ⟨y, h, rfl⟩)
 
 /-- **The complement of the divisor**: the diffeomorphism from the complement of `inr(Z)` in the
 blowup onto `M ∖ ψ(B(l))`, the inverse of `inl`. It pulls `σ` back to `ω̃_ψ`
