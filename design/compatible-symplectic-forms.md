@@ -200,7 +200,7 @@ is a complex bundle), the determinant line `TauCeti.DetBundle ℂ G _`:
   (`circleBundleDiffeomorph`, `contMDiffFiberBundle_circleFiber`): a smooth
   real metric that multiplication by `Complex.I` preserves, from Tau Ceti's
   `TauCeti.exists_contMDiffRiemannianMetric_inner_smul_I`;
-- `TauCeti.DetBundle.oneHomeomorph` is smooth for a line bundle.
+- `TauCeti.DetBundle.lineHomeomorph` is smooth for a line bundle.
 
 About 300 lines. The coordinate changes of `TauCeti.DetBundle` are the
 determinants of those of `V` (`TauCeti.DetBundle.coordChangeL_trivialization`),
@@ -226,7 +226,7 @@ Over a base `M` as in *Setting*, for `J : ContMDiffComplexStructure I ∞ F V`:
   bundle map over `f`).
 - `realFirstChernClass_eq_of_finrank_eq_one`: for a line bundle with a
   smooth Hermitian metric, the class is `realFirstChernClass` of its own
-  unit circle bundle (through the smooth `TauCeti.DetBundle.oneHomeomorph`).
+  unit circle bundle (through the smooth `TauCeti.DetBundle.lineHomeomorph`).
 - `integralTopForm_realFirstChernClass`: over a closed surface with
   orientation `o`, the integral of any closed representative of the class
   of `J` is the Chern number `chernNumber` of `J.toContinuousComplexStructure.Fiber`
