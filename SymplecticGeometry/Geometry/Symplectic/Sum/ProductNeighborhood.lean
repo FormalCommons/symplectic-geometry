@@ -526,8 +526,8 @@ identifies the normal space of the zero slice of `Q' × ℂ` with `ℂ` and then
 of the zero slice of `Q × ℂ` at `χ q'` (`zeroSliceNormalEquiv`), applies `Φ (χ q')`, and
 identifies the normal space of `ι` at `χ q'` with that of `ι ∘ χ` at `q'`
 (`TauCeti.SmoothEmbedding.normalSpaceEquivCompDiffeomorphOfBoundaryless`). The hypothesis `hι'`
-follows from `hι` by Tau Ceti's
-`TauCeti.SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_comp_diffeomorph_iff`, and `hP'`
+follows from `hι` by
+`TauCeti.SmoothEmbedding.hasSymplecticTangentImages_compDiffeomorphOfBoundaryless_iff`, and `hP'`
 from `hP` when `Q'` is nonempty. -/
 def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃ₘ⟮J', J⟯ Q)
     (hι' : hσ.HasSymplecticTangentImages J' (ι.compDiffeomorphOfBoundaryless χ (by simp)))
@@ -543,8 +543,8 @@ def compDiffeomorphOfBoundaryless (Φ : SymplecticFraming hι hP) (χ : Q' ≃�
     let := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     -- Read through the identification of normal spaces, the framing is `Φ` over `χ`, after the
     -- identifications of the normal bundles of the zero slices with `Q' × ℂ` and `Q × ℂ`.
-    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ _ hP hP' le_rfl
-      (u := TotalSpace.proj)).2 ?_
+    refine (ι.contMDiff_normalSpaceEquivCompDiffeomorphOfBoundaryless_symm_iff χ _ _ (by simp) hP
+      hP' le_rfl (u := TotalSpace.proj)).2 ?_
     exact Φ.contMDiff_toFun.comp (contMDiff_zeroSliceNormalEquiv_symm.comp
       (((χ.contMDiff.comp contMDiff_fst).prodMk contMDiff_snd).comp
         contMDiff_zeroSliceNormalEquiv))
