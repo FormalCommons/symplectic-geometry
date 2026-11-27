@@ -40,6 +40,10 @@ clutching is a polynomial clutching tensored with the clutching of the trivial l
 
 ## Main definitions and results
 
+* `TauCeti.FiniteRankBundleCore.laurentSumHom s a`: the Laurent family `∑_{i ∈ s} a_i(x) u^i`
+  over a finite set `s` of exponents, and its fibre map
+  (`TauCeti.FiniteRankBundleCore.fiberMap_laurentSumHom`); the polynomial families of
+  `SymplecticGeometry.Topology.VectorBundle.FiniteRank.PolynomialClutching` are among them;
 * `TauCeti.FiniteRankBundleCore.laurentHom N a`: the Laurent family `∑_{|i| ≤ N} a_i(x) u^i`;
 * `TauCeti.FiniteRankBundleCore.fiberMap_laurentHom`: its fibre map at `(x, u)`;
 * `TauCeti.FiniteRankBundleCore.zpow_smul_fiberMap_laurentHom`: `u ^ N` times it is the
@@ -65,26 +69,45 @@ namespace TauCeti.FiniteRankBundleCore
 
 variable {X : Type*} [TopologicalSpace X] {A D : FiniteRankBundleCore ℂ X}
 
+/-- The Laurent family `∑_{i ∈ s} a_i(x) u^i` of morphisms `a i : A ⟶ D`, over a finite set `s`
+of exponents: the morphism between the pullbacks of `A` and `D` to `X × Circle` whose fibre map
+at `(x, u)` is `∑ i ∈ s, u ^ i • (a i).fiberMap x`. -/
+def laurentSumHom (s : Finset ℤ) (a : ℤ → (A ⟶ D)) :
+    A.circlePullback ⟶ D.circlePullback :=
+  ∑ i ∈ s, ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst
+
+theorem laurentSumHom_def (s : Finset ℤ) (a : ℤ → (A ⟶ D)) :
+    laurentSumHom s a =
+      ∑ i ∈ s,
+        ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst :=
+  (rfl)
+
+@[simp]
+theorem fiberMap_laurentSumHom (s : Finset ℤ) (a : ℤ → (A ⟶ D)) (w : X × Circle) :
+    (laurentSumHom s a).fiberMap w = ∑ i ∈ s, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
+  simp only [laurentSumHom_def, fiberMap_sum, fiberMap_smul,
+    ContinuousMap.laurentMonomial_one_apply, fiberMap_pullbackMap, ContinuousMap.fst_apply]
+
+@[simp]
+theorem laurentSumHom_empty (a : ℤ → (A ⟶ D)) : laurentSumHom ∅ a = 0 := by
+  simp [laurentSumHom_def]
+
 /-- The Laurent family `∑_{|i| ≤ N} a_i(x) u^i` of morphisms `a i : A ⟶ D`: the morphism between
 the pullbacks of `A` and `D` to `X × Circle` whose fibre map at `(x, u)` is
 `∑ i ∈ Finset.Icc (-N) N, u ^ i • (a i).fiberMap x`. -/
 def laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) :
     A.circlePullback ⟶ D.circlePullback :=
-  ∑ i ∈ Finset.Icc (-(N : ℤ)) N,
-    ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst
+  laurentSumHom (Finset.Icc (-(N : ℤ)) N) a
 
 theorem laurentHom_def (N : ℕ) (a : ℤ → (A ⟶ D)) :
-    laurentHom N a = ∑ i ∈ Finset.Icc (-(N : ℤ)) N,
-      ContinuousMap.laurentMonomial i (1 : C(X, ℂ)) • pullbackMap (a i) ContinuousMap.fst :=
+    laurentHom N a = laurentSumHom (Finset.Icc (-(N : ℤ)) N) a :=
   (rfl)
 
 @[simp]
 theorem fiberMap_laurentHom (N : ℕ) (a : ℤ → (A ⟶ D)) (w : X × Circle) :
     (laurentHom N a).fiberMap w =
       ∑ i ∈ Finset.Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • (a i).fiberMap w.1 := by
-  simp only [laurentHom_def, fiberMap_sum, fiberMap_smul,
-    ContinuousMap.laurentMonomial_one_apply,
-    fiberMap_pullbackMap, ContinuousMap.fst_apply]
+  rw [laurentHom_def, fiberMap_laurentSumHom]
 
 /-- The Laurent family `∑_{|i| ≤ N} a_i(x) u^i`, multiplied by `u ^ N`, is the polynomial family
 `∑_{0 ≤ j ≤ 2N} a_{j - N}(x) u^j`, fibre by fibre. -/
