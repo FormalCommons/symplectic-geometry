@@ -62,6 +62,8 @@ The complex structure `cplx` is not determined by the other fields.
 
 ## Main results
 
+* `SymplecticGeometry.LieComplexification.finiteDimensional`: the Lie algebra of `Gc` is
+  finite-dimensional if that of `G` is.
 * `SymplecticGeometry.LieComplexification.toHom_mulInvariantExp`: `toHom` intertwines the
   exponentials through `lieMap`.
 * `SymplecticGeometry.LieComplexification.lieMap_injective`: `lieMap` is injective.
@@ -210,6 +212,17 @@ theorem isCompl_range_lieMap : IsCompl (LinearMap.range C.lieMap.toLinearMap)
   rw [LinearMap.range_comp]
   exact C.isMaximalTotallyReal_range_lieMap.isCompl
 
+/-- The Lie algebra of a complexification of a finite-dimensional Lie group is
+finite-dimensional: it is the sum of the images of `lieMap` and `cplx ∘ lieMap`. This is not an
+instance, since instance search cannot find `C`; use it as `have := C.finiteDimensional`. -/
+theorem finiteDimensional (C : LieComplexification I G IC Gc) [FiniteDimensional ℝ E] :
+    FiniteDimensional ℝ EC := by
+  -- The Lie algebra of `G` is the model space `E` by definition.
+  have : FiniteDimensional ℝ (GroupLieAlgebra I G) := inferInstanceAs (FiniteDimensional ℝ E)
+  have hs : Surjective (C.lieMap.toLinearMap.coprod (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)) :=
+    LinearMap.range_eq_top.1 (by rw [LinearMap.range_coprod, C.isCompl_range_lieMap.sup_eq_top])
+  exact Module.Finite.of_surjective _ hs
+
 /-- The complex structure also commutes with brackets on the right: `cplx ⁅x, y⁆ = ⁅cplx x, y⁆`.
 -/
 theorem cplx_lie' (x y : GroupLieAlgebra IC Gc) : C.cplx ⁅x, y⁆ = ⁅C.cplx x, y⁆ := by
@@ -236,17 +249,19 @@ theorem lie_lieMap_add_cplx_lieMap (a b c d : GroupLieAlgebra I G) :
 
 section FiniteDimensional
 
-variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+variable [FiniteDimensional ℝ E]
 
 /-- The inclusion of `G` into its complexification intertwines the exponentials:
 `toHom (exp ξ) = exp (lieMap ξ)`. -/
 theorem toHom_mulInvariantExp [T2Space G] [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) :
-    C.toHom (mulInvariantExp ξ) = mulInvariantExp (C.lieMap ξ) :=
-  C.toHom.map_mulInvariantExp ξ
+    C.toHom (mulInvariantExp ξ) = mulInvariantExp (C.lieMap ξ) := by
+  have := C.finiteDimensional
+  exact C.toHom.map_mulInvariantExp ξ
 
 /-- The Lie algebra map of the inclusion of `G` into its complexification is injective. -/
-theorem lieMap_injective : Injective C.lieMap :=
-  C.toHom.groupLieAlgebraLieHom_injective C.toHom_injective
+theorem lieMap_injective : Injective C.lieMap := by
+  have := C.finiteDimensional
+  exact C.toHom.groupLieAlgebraLieHom_injective C.toHom_injective
 
 theorem cplx_comp_lieMap_injective : Injective (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap) :=
   C.cplx.injective.comp C.lieMap_injective
@@ -417,12 +432,13 @@ theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u 
 /-- For connected `G`, the adjoint action of `toHom u` acts on the decomposition
 `x = lieMap (re x) + cplx (lieMap (im x))` componentwise, through the adjoint action of `u`:
 `Ad (toHom u) x = lieMap (Ad u (re x)) + cplx (lieMap (Ad u (im x)))`. -/
-theorem tangentAd_toHom_apply [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+theorem tangentAd_toHom_apply [FiniteDimensional ℝ E] [ConnectedSpace G]
     (u : G) (x : GroupLieAlgebra IC Gc) :
     Lie.tangentAd (I := IC) (C.toHom u) x =
       C.lieMap (Lie.tangentAd (I := I) u (C.re x)) +
         C.cplx (C.lieMap (Lie.tangentAd (I := I) u (C.im x))) := by
   have := C.connectedSpace
+  have := C.finiteDimensional
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
   rw [map_add, lieMap_def, ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd,
     ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def]
@@ -431,14 +447,14 @@ theorem tangentAd_toHom_apply [FiniteDimensional ℝ E] [FiniteDimensional ℝ E
 
 /-- For connected `G`, the component `re` commutes with the adjoint actions:
 `re (Ad (toHom u) x) = Ad u (re x)`. -/
-theorem re_tangentAd_toHom [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+theorem re_tangentAd_toHom [FiniteDimensional ℝ E] [ConnectedSpace G]
     (u : G) (x : GroupLieAlgebra IC Gc) :
     C.re (Lie.tangentAd (I := IC) (C.toHom u) x) = Lie.tangentAd (I := I) u (C.re x) := by
   rw [tangentAd_toHom_apply, map_add, re_lieMap, re_cplx_lieMap, add_zero]
 
 /-- For connected `G`, the component `im` commutes with the adjoint actions:
 `im (Ad (toHom u) x) = Ad u (im x)`. -/
-theorem im_tangentAd_toHom [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+theorem im_tangentAd_toHom [FiniteDimensional ℝ E] [ConnectedSpace G]
     (u : G) (x : GroupLieAlgebra IC Gc) :
     C.im (Lie.tangentAd (I := IC) (C.toHom u) x) = Lie.tangentAd (I := I) u (C.im x) := by
   rw [tangentAd_toHom_apply, map_add, im_lieMap, im_cplx_lieMap, zero_add]
@@ -498,7 +514,7 @@ has a left-trivialized derivative `(g z)⁻¹ dg_z w` whose component `im` pairs
 `Ad (v z)⁻¹ (ξ z)` under `B` as `dξ_z w` pairs with `ξ z`:
 `B (Ad (v z)⁻¹ (ξ z)) (im ((g z)⁻¹ dg_z w)) = B (ξ z) (dξ_z w)`. -/
 theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E]
-    [FiniteDimensional ℝ EC] [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
     (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
     {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
@@ -509,6 +525,7 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
           (mfderiv IM IC (fun z ↦ C.expI (ξ z) * C.toHom (v z)) z w))) =
       B (ξ z) (mfderiv IM 𝓘(ℝ, E) ξ z w) := by
   have := C.connectedSpace
+  have := C.finiteDimensional
   -- The imaginary direction `z ↦ cplx (lieMap (ξ z))`, read in the model space `EC`.
   let L : E →L[ℝ] EC :=
     LinearMap.toContinuousLinearMap (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)
@@ -571,7 +588,7 @@ theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E
 `C.polar.symm (a t) = (η, u)`: the polar radius `s ↦ B (η s) (η s)`, where `η s` is the first
 component of `C.polar.symm (a s)`, has at `t` the derivative `2 * B (Ad u⁻¹ η) (im (a⁻¹ ȧ))`,
 where `a⁻¹ ȧ` is the velocity of `a` at `t` translated back to the identity. -/
-theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E]
     [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} (hBs : B.IsSymm)
     (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     {a : ℝ → Gc} {t : ℝ} (ha : MDifferentiableAt 𝓘(ℝ) IC a t) {η : GroupLieAlgebra I G} {u : G}
