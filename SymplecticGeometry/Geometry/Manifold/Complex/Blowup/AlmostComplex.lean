@@ -345,10 +345,9 @@ theorem isPseudoholomorphic_divisorRealEmbedding :
   -- After `lift c`, which is pseudoholomorphic with invertible differential there, the divisor
   -- is the holomorphic zero section of the model.
   refine IsPseudoholomorphicAt.of_comp ?_ (isPseudoholomorphicAt_lift c J hJ hmem)
-    ((isLocalDiffeomorphAt_lift c hmem).isInvertible_mfderiv (by simp)).injective
+    (isInvertible_mfderiv_lift_divisorRealEmbedding c ℓ).injective
     ((divisorRealEmbedding c).contMDiff.mdifferentiableAt (by simp))
-  rw [coe_divisorRealEmbedding, lift_comp_ofDirection,
-    isPseudoholomorphicAt_ofComplexManifold_iff]
+  rw [lift_comp_divisorRealEmbedding, isPseudoholomorphicAt_ofComplexManifold_iff]
   exact (contMDiff_zeroSection ω).mdifferentiableAt (by simp)
 
 /-- The almost complex blowup preserves the tangent spaces of the exceptional divisor
