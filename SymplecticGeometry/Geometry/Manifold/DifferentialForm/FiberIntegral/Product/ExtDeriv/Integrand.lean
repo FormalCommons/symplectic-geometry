@@ -172,7 +172,7 @@ theorem mfderiv_prodFiberIntegrand_apply (α : RoughForm (𝓘(ℝ, E).prod J) (
     rw [prodFiberIntegrand_apply_eq_inChartAt_self α b b' u y w', Function.comp_apply,
       prodFiberIntegrandCLM_apply]
   dsimp only at heq ⊢
-  have hmf := Manifold.mfderiv_modelSpace_comp_subtype_val_apply (𝕜 := ℝ) (U := U)
+  have hmf := mfderiv_modelSpace_comp_subtype_val_apply (𝕜 := ℝ) (U := U)
     (f := fun e : E ↦ L (α.inChartAt (b, y) (e, extChartAt J y y))) (x := b) a
   rw [hcomp.fderiv] at hmf
   rw [heq]

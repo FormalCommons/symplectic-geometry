@@ -10,6 +10,7 @@ import Mathlib.Tactic.Module
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Topology.UnitInterval
 
@@ -99,11 +100,9 @@ theorem exists_homotopy_exact_of_isotopy {τ : L → SmoothTwoForm 𝓘(ℝ, E) 
   set c := collaredSecondHalf (n := ∞) le_rfl
   set b : unitInterval → ℝ := fun t ↦ (c t : ℝ) with hbdef
   have hb : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ b := contMDiff_subtypeVal_Icc.comp c.contMDiff
-  have hab (t : unitInterval) (h : b t ≠ 0) : a t = 1 := by
-    refine collaredFirstHalf_eq_one_of_ge le_rfl ?_
-    by_contra ht
-    have hc : c t = 0 := collaredSecondHalf_eq_zero_of_le le_rfl (by linarith)
-    exact h (by simp only [hbdef, hc, Set.Icc.coe_zero])
+  have hab (t : unitInterval) (h : b t ≠ 0) : a t = 1 :=
+    collaredFirstHalf_eq_one_of_collaredSecondHalf_ne_zero le_rfl fun (hc : c t = 0) ↦
+      h (by simp only [hbdef, hc, Set.Icc.coe_zero])
   have hb₁ (t : unitInterval) : |b t| ≤ 1 := unitInterval.abs_coe_le_one (c t)
   -- The isotopies, run at the speed `a`, as one smooth map of the parameter and the point.
   set f : (L × unitInterval) × E → E := fun q ↦ e ((q.1.1, a q.1.2), q.2) with hfdef
