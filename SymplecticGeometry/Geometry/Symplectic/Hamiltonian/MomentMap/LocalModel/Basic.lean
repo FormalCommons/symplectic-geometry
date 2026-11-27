@@ -5,47 +5,25 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
-public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Induced
-public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
-public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
+public import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Induced
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The two-form of the local model of a Hamiltonian action near an orbit
 
-Let `G` be a real Lie group with Lie algebra `𝔤`, `N` a manifold and `ν : N → 𝔤*` a family of
-covectors whose components `p ↦ ν p ξ` are smooth, so that `ν` is a smooth map to the continuous
-linear forms on `𝔤` (`SymplecticGeometry.contMDiff_toContinuousLinearMap_of_contMDiff_apply`).
-For a two-form `β` on `N`, Tau Ceti's induced form (`TauCeti.CotangentBundle.inducedForm`) is the
-two-form
+Let `G` be a real Lie group with Lie algebra `𝔤`. The Marle–Guillemin–Sternberg local model of a
+Hamiltonian action near an orbit carries, on `G × (A × V)` with `A ≃ 𝔪*` and `(V, σ)` a
+symplectic vector space, Tau Ceti's induced form (`TauCeti.CotangentBundle.inducedForm`)
 
-`-d⟨ν, θ⟩ + pr_N^* β`
+`-d⟨ν, θ⟩ + pr_V^* σ`
 
-on `G × N`, with `θ` the left-invariant Maurer–Cartan form. Tau Ceti proves that it is closed when
-`β` is, that it is invariant under left translation of the factor `G` and, under a condition on
-`ν`, under right translation, and computes it on tangent vectors in terms of the derivative of
-`ν`. This file adds the value on a slice `G × {p}` and the values on tangent vectors in terms of
-the derivatives of the components `p ↦ ν p ξ`.
-
-The Marle–Guillemin–Sternberg local model of a Hamiltonian action near an orbit takes
-`N = 𝔪* × V` and `ν (η, v) = τ + η + μ_V(v)`; the last part of the file builds its two-form from
-linear data.
+of the covectors `ν (η, v) = τ + η + μ_V(v)`, with `θ` the left-invariant Maurer–Cartan form.
+This file builds these covectors and this two-form from linear data, and computes the form on
+left-trivialized tangent vectors.
 
 ## Main results
 
-* `SymplecticGeometry.mpullback_prodMk_inducedForm`: on the slice `G × {p}`, the induced form is
-  the left-invariant Kirillov form of `ν p`.
-* `SymplecticGeometry.eval₂_inducedForm_of_contMDiff_apply`: at `(g, p)` the form pairs
-  `(v₁, w₁)` and `(v₂, w₂)` to
-  `(ν p).kirillovForm ξ₁ ξ₂ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`, where
-  `ξᵢ = d(L_{g⁻¹})_g vᵢ`.
-* `SymplecticGeometry.eval₂_inducedForm_prodVectorField`: on product vector fields
-  `(X_{ξᵢ}, Yᵢ)`, with `X_{ξᵢ}` left-invariant, the form at `(g, p)` is
-  `ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p (Y₁ p) + d(ν · ξ₁)_p (Y₂ p) + β_p (Y₁ p, Y₂ p)`.
-* `SymplecticGeometry.eval₂_inducedForm_of_tangentSpaceProdEquiv_eq`: for `N` a normed space, the
-  same value with Fréchet derivatives on tangent vectors `(d(L_g) ξᵢ, wᵢ)`.
 * `SymplecticGeometry.localModelCovector`: the covectors `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` on
   `A × V`, given linear maps `ι𝔪 : A → 𝔤*` and `ι𝔥 : 𝔥* → 𝔤*` and the moment map
   `μ_V = σ.linearMomentMapComp ρ` of a linear map `ρ : 𝔥 → sp(V, σ)`, whose components are smooth
@@ -64,9 +42,12 @@ linear data.
   at `(1, η, v)`, the form pairs `(d(L_g) ξᵢ, aᵢ, bᵢ)` to
   `ν ⁅ξ₁, ξ₂⁆ - (ι𝔪 a₁ + ι𝔥 (dμ_V(v) b₁)) ξ₂ + (ι𝔪 a₂ + ι𝔥 (dμ_V(v) b₂)) ξ₁ + σ (b₁, b₂)`.
 
-The values of the form come from Tau Ceti's `TauCeti.CotangentBundle.eval₂_inducedForm`, its
-closedness from `TauCeti.CotangentBundle.isClosed_inducedForm`, and its invariance under left
-translation from `TauCeti.CotangentBundle.mpullback_prodMap_mul_left_inducedForm`.
+The values of the form come from
+`TauCeti.CotangentBundle.eval₂_inducedForm_of_tangentSpaceProdEquiv_eq`, with the value of
+`pr_V^* σ` from `TauCeti.SymplecticForm.eval₂_mpullback_snd_constSmooth`. Its slices come from
+`TauCeti.CotangentBundle.mpullback_prodMk_inducedForm`, its closedness from
+`TauCeti.CotangentBundle.isClosed_inducedForm`, and its invariance under left translation from
+`TauCeti.CotangentBundle.mpullback_prodMap_mul_left_inducedForm`.
 
 ## References
 
@@ -81,111 +62,6 @@ open Bundle TauCeti TauCeti.Manifold TauCeti.CotangentBundle
 open scoped Manifold ContDiff
 
 noncomputable section
-
-namespace SymplecticGeometry
-
-attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
-  {N : Type*} {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
-  -- `GroupLieAlgebra I G` is `E` by definition but carries no normed instances. So the casts
-  -- `show E →ₗ[ℝ] ℝ from ν p` below read `ν p` as a linear form on the normed space `E`, and the
-  -- uses of `contMDiff_toContinuousLinearMap_of_contMDiff_apply` give `(E := E)` explicitly.
-  {ν : N → Module.Dual ℝ (GroupLieAlgebra I G)}
-
-variable [IsManifold J ∞ N]
-
-/-- On the slice `G × {p}`, Tau Ceti's induced form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` of the
-covectors `ν` is the left-invariant Kirillov form of `ν p`: the term `pr_N^* β` vanishes there, as
-`pr_N` is constant on the slice. -/
-@[simp]
-theorem mpullback_prodMk_inducedForm (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
-    (β : SmoothForm J N ℝ 2) (p : N) :
-    SmoothForm.mpullback (fun g : G ↦ (g, p)) (contMDiff_id.prodMk contMDiff_const)
-        (inducedForm I G β (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν)) =
-      (ν p).leftInvariantKirillovForm := by
-  -- `Φ (g, ν p)` and the left-invariant covector field of `ν p` at `g` are covectors at `g` with
-  -- the values `ν p (d(L_{g⁻¹})_g v)`.
-  have h : (leftTrivialization I G ∘ Prod.map id
-      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) ∘ (fun g : G ↦ (g, p)) =
-      (ν p).leftInvariantCovector :=
-    funext fun g ↦ CotangentBundle.ext (by simp) fun v ↦
-      (leftTrivialization_snd_apply _ v).trans ((ν p).leftInvariantCovector_snd_apply g v).symm
-  rw [inducedForm_def, neg_mextDerivₗ_inducedLiouvilleForm, map_add,
-    SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero,
-    Module.Dual.leftInvariantKirillovForm_eq_mpullback_symplecticForm]
-  simp only [SmoothForm.mpullback_mpullback, h]
-
-/-! ### The form on tangent vectors -/
-
-/-- **The induced form `-d⟨ν, θ⟩ + pr_N^* β` on tangent vectors, by components.** At `(g, p)` it
-pairs the tangent vectors `uᵢ = (vᵢ, wᵢ)` to
-`(ν p).kirillovForm ξ₁ ξ₂ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`, where
-`ξᵢ = d(L_{g⁻¹})_g vᵢ` and `(ν p).kirillovForm ξ₁ ξ₂ = ν p ⁅ξ₁, ξ₂⁆`. -/
-theorem eval₂_inducedForm_of_contMDiff_apply
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) (g : G) (p : N)
-    (u₁ u₂ : TangentSpace (I.prod J) (g, p)) :
-    (inducedForm I G β (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν)).eval₂
-        (g, p) u₁ u₂ =
-      (ν p).kirillovForm (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)
-          (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₂).1) -
-        mvfderiv J (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₂).1)) p
-          (tangentSpaceProdEquiv (g, p) u₁).2 +
-        mvfderiv J (fun y ↦ ν y (mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, p) u₁).1)) p
-          (tangentSpaceProdEquiv (g, p) u₂).2 +
-        β.eval₂ p (tangentSpaceProdEquiv (g, p) u₁).2 (tangentSpaceProdEquiv (g, p) u₂).2 := by
-  have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
-  have hf := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν
-  have hd (ξ : GroupLieAlgebra I G) (w : TangentSpace J p) :
-      mvfderiv J (fun y ↦ ν y ξ) p w =
-        mvfderiv J (fun y ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν y)) p w ξ :=
-    mvfderiv_clm_apply_const ((hf p).mdifferentiableAt (by simp)) ξ w
-  have hk : Module.Dual.kirillovForm (L := GroupLieAlgebra I G)
-      (LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) : E →ₗ[ℝ] ℝ) =
-      (ν p).kirillovForm :=
-    congrArg _ (LinearMap.coe_toContinuousLinearMap _)
-  rw [eval₂_inducedForm hf, tangentSpaceProdEquiv_apply, tangentSpaceProdEquiv_apply]
-  linear_combination hd (mfderiv I I (g⁻¹ * ·) g u₂.1) u₁.2 -
-    hd (mfderiv I I (g⁻¹ * ·) g u₁.1) u₂.2 +
-    LinearMap.congr_fun (LinearMap.congr_fun hk (mfderiv I I (g⁻¹ * ·) g u₁.1))
-      (mfderiv I I (g⁻¹ * ·) g u₂.1)
-
-/-- The induced form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` on the product vector fields `(X_{ξᵢ}, Yᵢ)`
-of left-invariant vector fields `X_{ξᵢ}` on `G` and vector fields `Yᵢ` on `N`: at `(g, p)` it is
-`ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p (Y₁ p) + d(ν · ξ₁)_p (Y₂ p) + β_p (Y₁ p, Y₂ p)`. -/
-theorem eval₂_inducedForm_prodVectorField
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) (g : G) (p : N)
-    (ξ₁ ξ₂ : GroupLieAlgebra I G) (Y₁ Y₂ : Π y : N, TangentSpace J y) :
-    (inducedForm I G β (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν)).eval₂
-        (g, p) (prodVectorField (mulInvariantVectorField ξ₁) Y₁ (g, p))
-        (prodVectorField (mulInvariantVectorField ξ₂) Y₂ (g, p)) =
-      ν p ⁅ξ₁, ξ₂⁆ - mvfderiv J (fun p ↦ ν p ξ₂) p (Y₁ p) +
-        mvfderiv J (fun p ↦ ν p ξ₁) p (Y₂ p) + β.eval₂ p (Y₁ p) (Y₂ p) := by
-  rw [eval₂_inducedForm_of_contMDiff_apply hν, tangentSpaceProdEquiv_prodVectorField,
-    tangentSpaceProdEquiv_prodVectorField, mfderiv_inv_mul_mulInvariantVectorField,
-    mfderiv_inv_mul_mulInvariantVectorField, Module.Dual.kirillovForm_apply]
-
-/-- **The induced form `-d⟨ν, θ⟩ + pr_N^* β` on left-trivialized tangent vectors.** For `N` a
-normed space `F`, at `(g, p)` the form pairs the tangent vectors `(d(L_g) ξᵢ, wᵢ)` to
-`ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`. -/
-theorem eval₂_inducedForm_of_tangentSpaceProdEquiv_eq {F : Type*}
-    [NormedAddCommGroup F] [NormedSpace ℝ F] {ν : F → Module.Dual ℝ (GroupLieAlgebra I G)}
-    (hν : ∀ ξ, ContMDiff 𝓘(ℝ, F) 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm 𝓘(ℝ, F) F ℝ 2)
-    {g : G} {p : F} {u₁ u₂ : TangentSpace (I.prod 𝓘(ℝ, F)) (g, p)} {ξ₁ ξ₂ : GroupLieAlgebra I G}
-    {w₁ w₂ : F} (hu₁ : tangentSpaceProdEquiv (g, p) u₁ = (mulInvariantVectorField ξ₁ g, w₁))
-    (hu₂ : tangentSpaceProdEquiv (g, p) u₂ = (mulInvariantVectorField ξ₂ g, w₂)) :
-    (inducedForm I G β (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν)).eval₂
-        (g, p) u₁ u₂ =
-      ν p ⁅ξ₁, ξ₂⁆ - fderiv ℝ (fun p ↦ ν p ξ₂) p w₁ + fderiv ℝ (fun p ↦ ν p ξ₁) p w₂ +
-        β.eval₂ p w₁ w₂ := by
-  rw [eval₂_inducedForm_of_contMDiff_apply hν, hu₁, hu₂, mfderiv_inv_mul_mulInvariantVectorField,
-    mfderiv_inv_mul_mulInvariantVectorField, Module.Dual.kirillovForm_apply,
-    mvfderiv_eq_fderiv_apply, mvfderiv_eq_fderiv_apply]
-
-end SymplecticGeometry
 
 /-! ### The local model from linear data -/
 
@@ -312,8 +188,8 @@ theorem mpullback_prodMk_localModelForm (p : A × V) :
     SmoothForm.mpullback (fun g : G ↦ (g, p)) (contMDiff_id.prodMk contMDiff_const)
         (localModelForm σ ρ τ ι𝔪 ι𝔥) =
       (localModelCovector σ ρ τ ι𝔪 ι𝔥 p).leftInvariantKirillovForm := by
-  rw [localModelForm_def,
-    mpullback_prodMk_inducedForm (contMDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥)]
+  rw [localModelForm_def, mpullback_prodMk_inducedForm]
+  exact congrArg _ (LinearMap.coe_toContinuousLinearMap _)
 
 /-- **The two-form of the local model on left-trivialized tangent vectors.** At `(g, η, v)`, with
 `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v)`, the form pairs the tangent vectors
@@ -329,19 +205,11 @@ theorem eval₂_localModelForm_of_tangentSpaceProdEquiv_eq {g : G} {η : A} {v :
       localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v) ⁅ξ₁, ξ₂⁆ -
         (ι𝔪 a₁ + ι𝔥 (σ.linearMomentMapCompPolar ρ v b₁)) ξ₂ +
         (ι𝔪 a₂ + ι𝔥 (σ.linearMomentMapCompPolar ρ v b₂)) ξ₁ + σ b₁ b₂ := by
-  -- The term `pr_V^* σ` pairs `(a₁, b₁)` and `(a₂, b₂)` to `σ (b₁, b₂)`.
-  have hσ : (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff σ.constSmooth).eval₂ (η, v)
-      (a₁, b₁) (a₂, b₂) = σ b₁ b₂ := by
-    have hd (w : TangentSpace 𝓘(ℝ, A × V) (η, v)) :
-        mvfderiv 𝓘(ℝ, A × V) Prod.snd (η, v) w = w.2 :=
-      (mvfderiv_eq_fderiv_apply _ _ w).trans (by rw [fderiv_snd, ContinuousLinearMap.coe_snd'])
-    refine (SmoothForm.eval₂_mpullback _ _ _ _ _ _).trans
-      ((σ.eval₂_constSmooth_mfderiv_eq _ _ _ _).trans ?_)
-    exact congrArg₂ (fun x y ↦ σ x y) (hd (a₁, b₁)) (hd (a₂, b₂))
   rw [localModelForm_def,
     eval₂_inducedForm_of_tangentSpaceProdEquiv_eq (contMDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥)
       _ hu₁ hu₂,
-    fderiv_localModelCovector_apply, fderiv_localModelCovector_apply, hσ]
+    fderiv_localModelCovector_apply, fderiv_localModelCovector_apply,
+    SymplecticForm.eval₂_mpullback_snd_constSmooth]
 
 /-- The two-form of the local model at `(1, η, v)`: with
 `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v)`, it pairs the tangent vectors `(ξᵢ, aᵢ, bᵢ)` to

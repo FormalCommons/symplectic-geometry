@@ -11,6 +11,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 
 import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
 import TauCeti.Geometry.Manifold.Algebra.SMul
+import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.Descent
 
 /-!
@@ -26,17 +28,18 @@ second, and then descends the form.
 
 By `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`, the vertical vectors at
 `(g, p)` are `(-d(L_g) ξ', X)`, where `ξ` is in the Lie algebra of `K`, `ξ' ∈ 𝔥` is its image in
-`𝔤`, and `X = (a, ρ ξ' v)` is the fundamental vector field of `ξ` at `p = (η, v)`. Against a
-tangent vector `(d(L_g) ζ, a₂, b₂)`, the form takes the value of
-`SymplecticGeometry.eval₂_localModelForm_of_tangentSpaceProdEquiv_eq`, and its terms cancel in two
-pairs:
+`𝔤`, and `X = (a, ρ ξ' v)` is the fundamental vector field of `ξ` at `p = (η, v)`. Such a
+vector lies in the kernel of the form by Tau Ceti's
+`TauCeti.CotangentBundle.eval₂_inducedForm_eq_zero`, applied with `-ξ'`, whose two conditions on
+`X` hold here:
 
 * the derivative of `ν` along `X` is the infinitesimal coadjoint action, `dν_p(X) ζ = ν p ⁅ζ, ξ'⁆`,
-  which cancels the term `ν p ⁅-ξ', ζ⁆`. This is the derivative at `1` of the equivariance
+  which is `ν p ⁅-ξ', ζ⁆`. This is the derivative at `1` of the equivariance
   `ν (k • p) = Ad*_k (ν p)` (`SymplecticGeometry.LocalModelData.covector_smul`), computed with
   `TauCeti.Lie.mvfderiv_coadjointRepresentation_subtype_apply_one`;
-* `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and the moment identity `dμ_V(v) b₂ ξ' = σ (ρ ξ' v, b₂)` cancels the
-  term `σ (ρ ξ' v, b₂)` of `pr_V^* σ`.
+* `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and the moment identity `dμ_V(v) b₂ ξ' = σ (ρ ξ' v, b₂)` gives
+  `pr_V^* σ (X, (a₂, b₂)) = d(ν · ξ')_p (a₂, b₂)`, with the value of `pr_V^* σ` from
+  `TauCeti.SymplecticForm.eval₂_mpullback_snd_constSmooth`.
 
 The descended form `ω` on `G ×_K (A × V)` is then Tau Ceti's `TauCeti.SmoothForm.descendedForm`
 along the surjective submersion `(g, p) ↦ [g, p]`. It is closed because `D.form` is, and it is
@@ -78,7 +81,7 @@ follows `Module.Dual.coadjointOrbitForm`, `mpullback_mk_descendedForm` follows
 
 public section
 
-open TauCeti TauCeti.Lie TauCeti.Manifold
+open TauCeti TauCeti.CotangentBundle TauCeti.Lie TauCeti.Manifold
 open scoped Manifold ContDiff
 
 noncomputable section
@@ -147,52 +150,54 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
   refine LinearMap.ext fun w ↦ ?_
   rw [SmoothForm.bilinFormAt_apply, LinearMap.zero_apply]
   -- `ξ'` is the image of `ξ` in `𝔤`, which lies in `𝔥`; `X = (a, b)` is the infinitesimal action of
-  -- `ξ` at `(η, v)`, with `b = ρ ξ' v`; and `w = (d(L_g) ζ, a₂, b₂)`.
+  -- `ξ` at `(η, v)`, with `b = ρ ξ' v`. The vector `u` is `(-ξ'^L(g), X)`.
   set ξ' := K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ
   have hξ' : ξ' ∈ D.𝔥 := D.groupLieAlgebraMap_subtype_mem_𝔥 ξ
   set X : A × V := fundamentalVectorField 𝓘(ℝ, A × V) ξ (η, v) with hX
   have hb : X.2 = (D.ρ ⟨ξ', hξ'⟩ : Module.End ℝ V) v := by
     rw [hX, fundamentalVectorField_apply, mfderiv_fiberDistribMulAction_smul_apply]
-  set ζ : GroupLieAlgebra I G := mfderiv I I (g⁻¹ * ·) g (tangentSpaceProdEquiv (g, (η, v)) w).1
-  have hu₁ :
-      tangentSpaceProdEquiv (g, (η, v)) u = (mulInvariantVectorField (-ξ') g, (X.1, X.2)) := by
-    rw [tangentSpaceProdEquiv_apply, hξ, ← neg_one_smul ℝ ξ', mulInvariantVectorField_smul,
-      Pi.smul_apply, neg_one_smul]
-    -- The sides differ only in writing `X` as `(X.1, X.2)`, a tangent vector at `(η, v)`.
-    rfl
-  have hu₂ : tangentSpaceProdEquiv (g, (η, v)) w =
-      (mulInvariantVectorField ζ g, ((tangentSpaceProdEquiv (g, (η, v)) w).2.1,
-        (tangentSpaceProdEquiv (g, (η, v)) w).2.2)) :=
-    Prod.ext (mulInvariantVectorField_mfderiv_inv_mul _).symm rfl
+  -- The covectors `ν`, read as continuous linear forms, and the derivatives of their components.
+  -- The value `toContinuousLinearMap (ν y) ζ` is `ν y ζ` by definition; the statement of
+  -- `LinearMap.coe_toContinuousLinearMap'` cannot be rewritten under `fderiv` here, as
+  -- `GroupLieAlgebra I G` carries no normed instances.
+  have hf := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E)
+    (contMDiff_localModelCovector_apply D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥)
+  have hd (ζ : GroupLieAlgebra I G) (w : TangentSpace 𝓘(ℝ, A × V) (η, v)) :
+      _ = fderiv ℝ (fun y ↦ localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 y ζ) (η, v) w :=
+    (mvfderiv_clm_apply_const ((hf (η, v)).mdifferentiableAt (by simp)) ζ w).symm.trans
+      (mvfderiv_eq_fderiv_apply _ _ w)
   -- The derivative of `ν` along `X` is the infinitesimal coadjoint action of `ξ'`.
-  have h₁ := D.mvfderiv_covector_apply_fundamentalVectorField (η, v) ξ ζ
-  simp only [covector_def] at h₁
-  rw [mvfderiv_eq_fderiv_apply] at h₁
-  -- `X` is `(X.1, X.2)`, the form in which `fderiv_localModelCovector_apply` takes it.
-  replace h₁ : fderiv ℝ (fun y ↦ localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 y ζ) (η, v)
-      (X.1, X.2) = localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 (η, v) ⁅ζ, ξ'⁆ := h₁
-  rw [fderiv_localModelCovector_apply] at h₁
-  -- `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and `ι𝔥 (dμ_V(v) b₂) ξ' = σ (ρ ξ' v, b₂)`.
+  have h₁ (ζ : GroupLieAlgebra I G) :
+      fderiv ℝ (fun y ↦ localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 y ζ) (η, v) X =
+        localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 (η, v) ⁅-ξ', ζ⁆ := by
+    have h := D.mvfderiv_covector_apply_fundamentalVectorField (η, v) ξ ζ
+    simp only [covector_def] at h
+    rw [mvfderiv_eq_fderiv_apply] at h
+    rw [h, neg_lie, ← lie_skew]
+  -- `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and `ι𝔥 (dμ_V(v) b) ξ' = σ (ρ ξ' v, b)`.
   have h₂ (a : A) : D.ι𝔪 a ξ' = 0 := D.ι𝔪_apply_of_mem_sup a (Submodule.mem_sup_left hξ')
   have h₃ (b : V) : D.ι𝔥 (D.σ.linearMomentMapCompPolar D.ρ v b) ξ' =
       D.σ ((D.ρ ⟨ξ', hξ'⟩ : Module.End ℝ V) v) b :=
     (D.ι𝔥_apply_coe _ ⟨ξ', hξ'⟩).trans (SymplecticForm.linearMomentMapCompPolar_apply _ _ _ _ _)
-  rw [form_def, eval₂_localModelForm_of_tangentSpaceProdEquiv_eq _ _ _ _ _ hu₁ hu₂]
-  -- The components of `w` are tangent vectors at `(η, v)`; read them in `A` and `V`.
-  suffices h : ∀ (a₂ : A) (b₂ : V),
-      localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 (η, v) ⁅-ξ', ζ⁆ -
-        (D.ι𝔪 X.1 + D.ι𝔥 (D.σ.linearMomentMapCompPolar D.ρ v X.2)) ζ +
-        (D.ι𝔪 a₂ + D.ι𝔥 (D.σ.linearMomentMapCompPolar D.ρ v b₂)) (-ξ') + D.σ X.2 b₂ = 0 from
-    h _ _
-  intro a₂ b₂
-  have hA : localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 (η, v) ⁅-ξ', ζ⁆ =
-      localModelCovector D.σ D.ρ D.τ D.ι𝔪 D.ι𝔥 (η, v) ⁅ζ, ξ'⁆ := by
-    rw [neg_lie, ← lie_skew, neg_neg]
-  have hB : (D.ι𝔪 a₂ + D.ι𝔥 (D.σ.linearMomentMapCompPolar D.ρ v b₂)) (-ξ') =
-      -D.σ X.2 b₂ := by
-    rw [map_neg, LinearMap.add_apply, h₂, h₃, zero_add, hb]
-  rw [hA, h₁, hB]
-  ring
+  rw [form_def, localModelForm_def]
+  refine eval₂_inducedForm_eq_zero hf (ξ := -ξ') ?_ (fun ζ ↦ ?_) (fun w ↦ ?_) w
+  · have h : mulInvariantVectorField (-ξ') g = -mulInvariantVectorField ξ' g := by
+      have h := mulInvariantVectorField_smul (I := I) (G := G) (-1 : ℝ) ξ'
+      rw [neg_one_smul, neg_one_smul] at h
+      rw [h, Pi.neg_apply]
+    rw [hξ, h]
+  · rw [hξ]
+    dsimp only
+    refine (hd ζ X).trans ((h₁ ζ).trans ?_)
+    exact (congrFun (LinearMap.coe_toContinuousLinearMap' (show E →ₗ[ℝ] ℝ from _)) _).symm
+  · -- The components of `w` are vectors of `A` and `V`; read them there.
+    obtain ⟨a₂, b₂⟩ := w
+    rw [hξ]
+    dsimp only
+    rw [← Prod.mk.eta (p := X), SymplecticForm.eval₂_mpullback_snd_constSmooth]
+    refine Eq.trans ?_ (congrArg Neg.neg (hd (-ξ') (a₂, b₂))).symm
+    rw [fderiv_localModelCovector_apply, map_neg, LinearMap.add_apply, h₂, h₃, zero_add, hb,
+      neg_neg]
 
 /-- **The vertical space at `(1, 0, 0)`.** A tangent vector at `(1, 0, 0)` lies in the kernel of
 the differential of the projection `(g, p) ↦ [g, p]` onto `G ×_K (A × V)` exactly when it is

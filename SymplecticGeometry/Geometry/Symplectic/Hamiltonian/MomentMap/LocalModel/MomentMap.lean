@@ -7,36 +7,19 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Descent
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.MomentMap
-import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Lie.ProdFstMulAction
 
 /-!
 # The moment map of the local model, on `G × (A × V)` and on `G ×_K (A × V)`
 
-Let `G` be a real Lie group with Lie algebra `𝔤`, `N` a manifold and `ν : N → 𝔤*` a family of
-covectors with smooth components. Let `G` act smoothly on `G × N` by left multiplication of the
-first factor, `g • (h, p) = (g * h, p)`: the statements take any such action, together with this
-equation, and `SymplecticGeometry.prodFstMulAction` is one. This file proves that
-`μ (g, p) = Ad*_g (ν p)` is a coadjoint-equivariant moment map of this action for the
-two-form `-d⟨ν, θ⟩ + pr_N^* β` of Tau Ceti's `TauCeti.CotangentBundle.inducedForm`, whatever the
-two-form `β` on `N`, and specializes this to the two-form of the Marle–Guillemin–Sternberg local
-model on `G × (A × V)`, whose covectors are `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)`.
-Tau Ceti's `TauCeti.CotangentBundle.isMomentMap_inducedForm` gives the moment map equation for
-the infinitesimal action of `𝔤` by the fundamental vector fields of the first factor; the
-statement here adds the equivariance, for an action of the group.
-
-The first summand `-d⟨ν, θ⟩` of the form is the pullback of the canonical form of `T*G` along
-`Φ ∘ (id × ν)` (`TauCeti.CotangentBundle.neg_mextDerivₗ_inducedLiouvilleForm`), with `Φ` Tau
-Ceti's left trivialization; this map intertwines the action on
-`G × N` with the cotangent lift of left multiplication
-(`TauCeti.CotangentBundle.leftTrivialization_mul`), so Tau Ceti's cotangent moment map
-`TauCeti.CotangentBundle.isEquivariantMomentMap_momentMap` pulls back to a moment map of this
-summand (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.mpullback`), which is `μ` by
-`TauCeti.CotangentBundle.momentMap_leftTrivialization`. This argument adapts the proof of Tau
-Ceti's `TauCeti.Module.Dual.isEquivariantMomentMap_leftInvariantKirillovForm`, the case of `N` a
-point. The second summand `pr_N^* β` pairs the fundamental vector fields, which project to zero
-on `N` (`TauCeti.mfderiv_snd_fundamentalVectorField_of_smul_eq`), with every tangent vector to
-zero, so it does not change the moment map.
+Let `G` be a real Lie group with Lie algebra `𝔤`, acting on `G × (A × V)` by left multiplication
+of the first factor, `g • (h, p) = (g * h, p)`: the statements take any such action, together
+with this equation, and `SymplecticGeometry.prodFstMulAction` is one. For the covectors
+`ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` of the Marle–Guillemin–Sternberg local model, the map
+`μ (g, p) = Ad*_g (ν p)` is a coadjoint-equivariant moment map of the local model's two-form on
+`G × (A × V)`. This is the case of the local model of
+`TauCeti.CotangentBundle.isEquivariantMomentMap_inducedForm`, in
+`SymplecticGeometry/Geometry/Symplectic/Cotangent/Bundle/Induced.lean`.
 
 The last part of the file descends this moment map to the balanced product `G ×_K (A × V)`.
 Since `ν (k • p) = Ad*_k (ν p)` for `k ∈ K`, the map `(g, p) ↦ Ad*_g (ν p)` is constant on the
@@ -50,8 +33,6 @@ are smooth by `Manifold.IsSubmersion.contMDiff_comp_iff`.
 
 ## Main results
 
-* `SymplecticGeometry.isEquivariantMomentMap_inducedForm`: `(g, p) ↦ Ad*_g (ν p)`
-  is an equivariant moment map of `-d⟨ν, θ⟩ + pr_N^* β`.
 * `SymplecticGeometry.isEquivariantMomentMap_localModelForm`,
   `SymplecticGeometry.LocalModelData.isEquivariantMomentMap_form`: the cases of the local model's
   form, from linear data and from `SymplecticGeometry.LocalModelData`.
@@ -81,60 +62,11 @@ noncomputable section
 
 namespace SymplecticGeometry
 
-/-! ### The moment map of `-d⟨ν, θ⟩ + pr_N^* β` -/
-
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
-
-section CovectorMap
-
-variable {N : Type*} {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
-  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
-  [IsManifold J ∞ N] {ν : N → Module.Dual ℝ (GroupLieAlgebra I G)}
-
-/-- **The moment map of `-d⟨ν, θ⟩ + pr_N^* β`.** For an action of `G` on `G × N` by left
-multiplication of the first factor, `g • (h, p) = (g * h, p)`, the map `(g, p) ↦ Ad*_g (ν p)` is
-a coadjoint-equivariant moment map of the two-form `-d⟨ν, θ⟩ + pr_N^* β` of
-`TauCeti.CotangentBundle.inducedForm`, for every two-form `β` on `N`. -/
-theorem isEquivariantMomentMap_inducedForm [T2Space G] [I.Boundaryless]
-    [MulAction G (G × N)] [ContMDiffSMul I (I.prod J) ∞ G (G × N)]
-    (hsmul : ∀ (g : G) (q : G × N), g • q = (g * q.1, q.2))
-    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) :
-    SmoothTwoForm.IsEquivariantMomentMap
-        (inducedForm I G β (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν))
-      fun q : G × N ↦ coadjointRepresentation ℝ I G q.1 (ν q.2) := by
-  have : CompleteSpace E := FiniteDimensional.completeSpace ℝ E
-  have hf := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν
-  have hφ := (leftTrivialization I G).contMDiff.comp (contMDiff_id.prodMap hf)
-  -- The map `Φ ∘ (id × ν)` intertwines the action on `G × N` with the cotangent-lifted action, so
-  -- the cotangent moment map pulls back along it.
-  have h := (isEquivariantMomentMap_momentMap (IG := I) (G := G) (I := I) (M := G)).mpullback hφ
-    fun g q ↦ by
-      rw [Function.comp_apply, Function.comp_apply, hsmul]
-      exact leftTrivialization_mul g q.1 _
-  -- `GroupLieAlgebra I G` is `E` by definition but has no normed instances, so `ν p` is read as
-  -- a linear form on the normed space `E` to make it a continuous linear map.
-  have hμ : momentMap I G ∘ (leftTrivialization I G ∘ Prod.map id
-      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) =
-        fun q : G × N ↦ coadjointRepresentation ℝ I G q.1 (ν q.2) :=
-    funext fun q ↦ (momentMap_leftTrivialization _).trans
-      (congrArg _ (LinearMap.coe_toContinuousLinearMap _))
-  rw [hμ] at h
-  rw [inducedForm_def, neg_mextDerivₗ_inducedLiouvilleForm, SmoothForm.mpullback_mpullback]
-  -- The summand `pr_N^* β` pairs the fundamental vector fields with every vector to zero.
-  exact
-    { contMDiff := h.contMDiff
-      isHamiltonianVectorField ξ := (h.isHamiltonianVectorField ξ).add_of_eval₂_eq_zero
-        fun q v ↦ by
-          rw [InfinitesimalAction.fundamental_apply, SmoothForm.eval₂_mpullback,
-            mfderiv_snd_fundamentalVectorField_of_smul_eq hsmul,
-            SmoothBundleForm.eval₂_zero_left]
-      apply_smul := h.apply_smul }
-
-end CovectorMap
 
 /-! ### The local model -/
 

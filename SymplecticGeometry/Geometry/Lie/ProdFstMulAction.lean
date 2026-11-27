@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.FundamentalVectorField
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # The action of a group on `G × N` through the first factor
@@ -22,9 +23,13 @@ left multiplication on `G`:
 * `TauCeti.mfderiv_fst_fundamentalVectorField_of_smul_eq`: its first component is `ξ_G`, by Tau
   Ceti's `TauCeti.mfderiv_fundamentalVectorField_of_map_smul`;
 * `TauCeti.mfderiv_snd_fundamentalVectorField_of_smul_eq`: its second component is zero, by Tau
-  Ceti's `TauCeti.mfderiv_fundamentalVectorField_eq_zero_of_smul_invariant`.
+  Ceti's `TauCeti.mfderiv_fundamentalVectorField_eq_zero_of_smul_invariant`;
+* `TauCeti.InfinitesimalAction.fundamental_eq_prod_zero_of_smul_eq`: so the infinitesimal action
+  by fundamental vector fields is the product of that of left multiplication on `G` with the zero
+  infinitesimal action on `N`, the infinitesimal action of Tau Ceti's
+  `TauCeti.CotangentBundle.isMomentMap_inducedForm`.
 
-These two are stated for any such action, as Tau Ceti's
+These are stated for any such action, as Tau Ceti's
 `TauCeti.fundamentalVectorField_prod_of_smul_eq` is, so that they apply to an action that is not
 definitionally `prodFstMulAction`.
 -/
@@ -75,6 +80,8 @@ end SymplecticGeometry
 
 namespace TauCeti
 
+section Field
+
 variable {G N : Type*} [Group G]
   {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E H : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H]
@@ -104,6 +111,41 @@ theorem mfderiv_snd_fundamentalVectorField_of_smul_eq
   mfderiv_fundamentalVectorField_eq_zero_of_smul_invariant mdifferentiableAt_snd
     ((ContMDiffSMul.contMDiff_smul_const (n := 1) q).mdifferentiableAt one_ne_zero)
     (fun g ↦ by rw [hsmul]) ξ
+
+end Field
+
+section InfinitesimalAction
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable {G N : Type*} [Group G]
+  {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace G] [ChartedSpace H G]
+  [LieGroup I ∞ G]
+  {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+  [IsManifold J ∞ N] [MulAction G (G × N)] [ContMDiffSMul I (I.prod J) ∞ G (G × N)]
+
+/-- For an action of `G` on `G × N` by `g • q = (g * q.1, q.2)`, the infinitesimal action by
+fundamental vector fields is the product of that of left multiplication on `G` with the zero
+infinitesimal action on `N`. -/
+theorem InfinitesimalAction.fundamental_eq_prod_zero_of_smul_eq
+    (hsmul : ∀ (g : G) (q : G × N), g • q = (g * q.1, q.2)) :
+    InfinitesimalAction.fundamental I G (I.prod J) (G × N) =
+      (InfinitesimalAction.fundamental I G I G).prod
+        (0 : InfinitesimalAction (GroupLieAlgebra I G) J N) := by
+  have : ContMDiffSMul I (I.prod J) 1 G (G × N) :=
+    ContMDiffSMul.of_le (M := G × N) ENat.LEInfty.out
+  ext ξ q
+  rw [InfinitesimalAction.prod_apply, InfinitesimalAction.zero_apply,
+    InfinitesimalAction.fundamental_apply, InfinitesimalAction.fundamental_apply]
+  refine Prod.ext ?_ ?_
+  · rw [Manifold.prodVectorField_fst,
+      ← mfderiv_fst_fundamentalVectorField_of_smul_eq (J := J) hsmul ξ q, mfderiv_fst_apply]
+  · rw [Manifold.prodVectorField_snd, Pi.zero_apply,
+      ← mfderiv_snd_fundamentalVectorField_of_smul_eq (J := J) hsmul ξ q, mfderiv_snd_apply]
+
+end InfinitesimalAction
 
 end TauCeti
 

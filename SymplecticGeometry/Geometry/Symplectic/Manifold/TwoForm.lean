@@ -44,6 +44,8 @@ a vector space.
 * `TauCeti.SymplecticForm.mpullback_constSmooth_apply_eq_iff`: between two vector spaces with
   constant symplectic forms, a map pulls one form back to the other at a point if and only if its
   derivative there carries the first form to the second.
+* `TauCeti.SymplecticForm.eval₂_mpullback_snd_constSmooth`: the pullback of a constant form along
+  the projection `A × V → V` pairs two vectors by the form on their components in `V`.
 
 ## References
 
@@ -165,6 +167,18 @@ theorem mpullback_constSmooth_apply_eq_iff (σ₁ : SymplecticForm V) (σ₂ : S
     refine ContinuousAlternatingMap.ext_fin_two fun v w ↦ ?_
     rw [mpullback_apply_pair, mfderiv_eq_fderiv, hσ₂, hσ₁]
     simpa using h _ _
+
+/-- The pullback of the constant form `σ.constSmooth` along the projection `A × V → V` pairs two
+vectors `(a₁, b₁)` and `(a₂, b₂)` to `σ b₁ b₂`. -/
+theorem eval₂_mpullback_snd_constSmooth {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A]
+    (σ : SymplecticForm V) (p : A × V) (a₁ a₂ : A) (b₁ b₂ : V) :
+    (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff σ.constSmooth).eval₂ p (a₁, b₁)
+      (a₂, b₂) = σ b₁ b₂ := by
+  have hd (w : TangentSpace 𝓘(ℝ, A × V) p) : mvfderiv 𝓘(ℝ, A × V) Prod.snd p w = w.2 :=
+    (mvfderiv_eq_fderiv_apply _ _ w).trans (by rw [fderiv_snd, ContinuousLinearMap.coe_snd'])
+  refine (SmoothForm.eval₂_mpullback _ _ _ _ _ _).trans
+    ((σ.eval₂_constSmooth_mfderiv_eq _ _ _ _).trans ?_)
+  exact congrArg₂ (fun x y ↦ σ x y) (hd (a₁, b₁)) (hd (a₂, b₂))
 
 end TauCeti.SymplecticForm
 
