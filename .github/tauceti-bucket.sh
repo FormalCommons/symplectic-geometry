@@ -42,13 +42,17 @@
 # has that save, the runs of CI take the modules on the word of the move's
 # own run.
 #
-# The search gives up after two minutes, and the run goes on without the
-# bucket.
+# The search asks for no further file once two minutes have passed, and the
+# run goes on without the bucket. With the request that is under way then,
+# that is two and a half minutes at most.
 #
 # `stage` makes OUT, the directory that CI hands to the workflow
-# cache-upload as the artifact `lake-cache-tauceti`: OUT/staged, with
-# MAPPINGS as outputs.jsonl and the archives that MAPPINGS names and the
-# file that `find` found does not, and OUT/from, a copy of DIR/from. The
+# cache-upload as the artifact `lake-cache-tauceti`. If `find` found
+# nothing at the run's start, `stage` first looks again, in the same way:
+# DIR/mappings.jsonl and DIR/from are then of a file that the build did not
+# start from. OUT/staged has MAPPINGS as outputs.jsonl and the archives
+# that MAPPINGS names and the found file does not, and OUT/from is a copy
+# of DIR/from. The
 # archives that the found file names are in the bucket already, since
 # mappings are uploaded after their archives and nothing there is deleted.
 # cache-upload reads OUT/from only to fetch that file from the bucket
@@ -95,7 +99,8 @@ find_mappings() {
     git diff --quiet "$c" HEAD -- lean-toolchain lake-manifest.json 2>/dev/null || continue
     take queue "$queue" "$c" && return 0
   done
-  for c in $("$here/own-commits.sh"); do
+  late && return 0
+  for c in $(timeout 20 "$here/own-commits.sh"); do
     late && return 0
     take pr "$pr" "$c" && return 0
   done

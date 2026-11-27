@@ -223,8 +223,9 @@ jobs:
           printf 'user = "%s"\n' "$LAKE_CACHE_KEY" |
             timeout 8m .github/cache-upload.sh "$RUNNER_TEMP/staged" "$ARTIFACTS" "$MAPPINGS.jsonl" "$known"
       # The run handed over a directory `staged`, as the library's, and may
-      # have handed over a file `from`: where in the bucket it found the
-      # mappings it started from, as `pr <commit>` or `queue <commit>`. That
+      # have handed over a file `from`: where in the bucket it found a
+      # mappings file of Tau Ceti modules, at its start or, failing that,
+      # just before it staged, as `pr <commit>` or `queue <commit>`. That
       # line is not trusted and need not be: it only chooses which mappings
       # file is fetched from the bucket, here, as the one whose archives are
       # taken to be there, and that holds for every mappings file the bucket
