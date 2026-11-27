@@ -53,6 +53,12 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   jointly continuous in the parameter, since the margins and bounds above are then uniform.
   `SymplecticGeometry.exists_pos_forall_isConvexShapeAt_smoothedMax` is the pointwise statement
   behind both: `δ₀` depends only on the margin and the two bounds, not on the shapes.
+* `SymplecticGeometry.exists_isConvexShapeAt_eqOn_Iic_Ici`: the same smoothing, for shapes that
+  cross only inside `(u, v) ⊆ [r₁, r₂]`, continued by the first shape to the left of `u` and the
+  second to the right of `v`, which gives an `i`-convex shape that passes from one to the other,
+  and stays one outside `[r₁, r₂]` wherever the shape it equals there is.
+  It glues by `SymplecticGeometry.IsConvexShapeAt.congr_of_eventuallyEq`: being an `i`-convex
+  shape at `r` only depends on the germ at `r`.
 * `SymplecticGeometry.shapeGraph χ`: the function `(s, t) ↦ χ (√t) - √s`, whose zero level,
   composed with `shape`, is the hypersurface of the shape. Its partial derivatives use
   `Real.iteratedDeriv_two_sqrt` for the second derivative of `√·`, and
@@ -231,6 +237,12 @@ theorem isConvexShapeAt_of_iteratedDeriv_two_nonpos (hr : 0 < r) (hχ : 0 < χ r
     linarith
 
 namespace IsConvexShapeAt
+
+/-- Being an `i`-convex shape at `r` only depends on the germ of the shape at `r`. -/
+theorem congr_of_eventuallyEq {ψ : ℝ → ℝ} (h : IsConvexShapeAt χ r) (hψ : ψ =ᶠ[𝓝 r] χ) :
+    IsConvexShapeAt ψ r := by
+  rw [isConvexShapeAt_iff, hψ.eq_of_nhds, hψ.deriv_eq, hψ.iteratedDeriv_eq 2]
+  exact isConvexShapeAt_iff.1 h
 
 /-- A shape stays `i`-convex when it is shifted up: `χ + c` is an `i`-convex shape at `r` if `χ`
 is and `0 ≤ c`. -/
@@ -483,6 +495,90 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
     (contDiff_smoothedMax δ).comp (hn₁.prodMk hn₂), fun r hr ↦
     h δ ⟨hδ, min_le_left _ _⟩ () (Set.mem_univ _) r hr, fun r hr ↦ ?_⟩
   exact smoothedMax_eq_max hδ ((min_le_right _ _).trans (hβD r hr))
+
+open Set in
+/-- **Passing from one `i`-convex shape to another.** Let `χ₁` and `χ₂` be `Cⁿ`, `n ≥ 2`, and
+`i`-convex shapes at every point of `[r₁, r₂]`, and let `r₁ < u < v < r₂`. Suppose that `χ₁` is
+at least `χ₂` on `[r₁, u]`, at most `χ₂` on `[v, r₂]`, and that they cross in `[r₁, r₂]` only
+inside `(u, v)`. Then some `Cⁿ` function `χ`, an `i`-convex shape at every point of `[r₁, r₂]`,
+equals `χ₁` on `(-∞, u]` and `χ₂` on `[v, ∞)`. Outside `[r₁, r₂]` it is still an `i`-convex
+shape where `χ₁` is, left of `u`, and where `χ₂` is, right of `v`.
+
+It is the smoothed maximum of `exists_isConvexShapeAt_eq_max` on `[r₁, r₂]`, continued by `χ₁` to
+the left and by `χ₂` to the right. -/
+theorem exists_isConvexShapeAt_eqOn_Iic_Ici {χ₁ χ₂ : ℝ → ℝ} {n : ℕ∞} {r₁ u v r₂ : ℝ}
+    (hn : 2 ≤ n) (h₁ : ContDiff ℝ n χ₁) (h₂ : ContDiff ℝ n χ₂) (hr₁ : r₁ < u) (huv : u < v)
+    (hr₂ : v < r₂) (hc₁ : ∀ r ∈ Icc r₁ r₂, IsConvexShapeAt χ₁ r)
+    (hc₂ : ∀ r ∈ Icc r₁ r₂, IsConvexShapeAt χ₂ r) (hle₁ : ∀ r ∈ Icc r₁ u, χ₂ r ≤ χ₁ r)
+    (hle₂ : ∀ r ∈ Icc v r₂, χ₁ r ≤ χ₂ r)
+    (hcross : ∀ r ∈ Icc r₁ r₂, χ₁ r = χ₂ r → r ∈ Ioo u v) :
+    ∃ χ : ℝ → ℝ, ContDiff ℝ n χ ∧ (∀ r ∈ Icc r₁ r₂, IsConvexShapeAt χ r) ∧
+      EqOn χ χ₁ (Iic u) ∧ EqOn χ χ₂ (Ici v) ∧
+      (∀ r < u, IsConvexShapeAt χ₁ r → IsConvexShapeAt χ r) ∧
+      (∀ r, v < r → IsConvexShapeAt χ₂ r → IsConvexShapeAt χ r) := by
+  have hn' : ((2 : ℕ∞) : WithTop ℕ∞) ≤ n := WithTop.coe_le_coe.2 hn
+  obtain ⟨χ, hχs, hχc, hχ⟩ := exists_isConvexShapeAt_eq_max (O := Iio r₁ ∪ Ioo u v ∪ Ioi r₂)
+    (h₁.of_le hn') (h₂.of_le hn') hc₁ hc₂
+    (((isOpen_Iio.union isOpen_Ioo).union isOpen_Ioi).mem_nhdsSet.2 fun r (hr : χ₁ r = χ₂ r) ↦ by
+      rcases lt_or_ge r r₁ with h | h
+      · exact Or.inl (Or.inl h)
+      rcases le_or_gt r r₂ with h' | h'
+      · exact Or.inl (Or.inr (hcross r ⟨h, h'⟩ hr))
+      · exact Or.inr h')
+  replace hχs := hχs n h₁ h₂
+  have hnot : ∀ r ∈ Icc r₁ r₂, (r ≤ u ∨ v ≤ r) → r ∉ Iio r₁ ∪ Ioo u v ∪ Ioi r₂ := by
+    intro r hr h
+    simp only [mem_union, mem_Iio, mem_Ioo, mem_Ioi]
+    rintro ((h' | ⟨h', h''⟩) | h') <;> rcases h with h | h <;> linarith [hr.1, hr.2]
+  have hχ₁ : ∀ r ∈ Icc r₁ u, χ r = χ₁ r := fun r hr ↦ by
+    have hr' : r ∈ Icc r₁ r₂ := ⟨hr.1, by linarith [hr.2]⟩
+    rw [hχ r ⟨hr', hnot r hr' (Or.inl hr.2)⟩, max_eq_left (hle₁ r hr)]
+  have hχ₂ : ∀ r ∈ Icc v r₂, χ r = χ₂ r := fun r hr ↦ by
+    have hr' : r ∈ Icc r₁ r₂ := ⟨by linarith [hr.1], hr.2⟩
+    rw [hχ r ⟨hr', hnot r hr' (Or.inr hr.1)⟩, max_eq_right (hle₂ r hr)]
+  -- Outside `[r₁, r₂]`, replace `χ` by `χ₁` on the left and by `χ₂` on the right.
+  set ψ : ℝ → ℝ := fun r ↦ if r ≤ (r₁ + u) / 2 then χ₁ r else if r ≤ (v + r₂) / 2 then χ r
+    else χ₂ r with hψ
+  have e₁ : EqOn ψ χ₁ (Iic u) := fun r (hr : r ≤ u) ↦ by
+    simp only [hψ]
+    split_ifs with h h'
+    · rfl
+    · exact hχ₁ r ⟨by linarith, hr⟩
+    · exfalso; linarith
+  have e₂ : EqOn ψ χ₂ (Ici v) := fun r (hr : v ≤ r) ↦ by
+    simp only [hψ]
+    split_ifs with h h'
+    · exfalso; linarith
+    · exact hχ₂ r ⟨hr, by linarith⟩
+    · rfl
+  have e : EqOn ψ χ (Ioo r₁ r₂) := fun r hr ↦ by
+    simp only [hψ]
+    split_ifs with h h'
+    · exact (hχ₁ r ⟨hr.1.le, by linarith⟩).symm
+    · rfl
+    · exact (hχ₂ r ⟨by linarith, hr.2.le⟩).symm
+  have key : ∀ r, (ψ =ᶠ[𝓝 r] χ₁ ∧ r < u) ∨ (ψ =ᶠ[𝓝 r] χ ∧ r ∈ Ioo r₁ r₂) ∨
+      (ψ =ᶠ[𝓝 r] χ₂ ∧ v < r) := fun r ↦ by
+    rcases lt_or_ge r u with h | h
+    · exact Or.inl ⟨(e₁.mono Iio_subset_Iic_self).eventuallyEq_of_mem (isOpen_Iio.mem_nhds h), h⟩
+    rcases le_or_gt r v with h' | h'
+    · have hr : r ∈ Ioo r₁ r₂ := ⟨by linarith, by linarith⟩
+      exact Or.inr (Or.inl ⟨e.eventuallyEq_of_mem (isOpen_Ioo.mem_nhds hr), hr⟩)
+    · exact Or.inr (Or.inr
+        ⟨(e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds h'), h'⟩)
+  refine ⟨ψ, contDiff_iff_contDiffAt.2 fun r ↦ ?_, fun r hr ↦ ?_, e₁, e₂,
+    fun r hr h ↦ h.congr_of_eventuallyEq
+      ((e₁.mono Iio_subset_Iic_self).eventuallyEq_of_mem (isOpen_Iio.mem_nhds hr)),
+    fun r hr h ↦ h.congr_of_eventuallyEq
+      ((e₂.mono Ioi_subset_Ici_self).eventuallyEq_of_mem (isOpen_Ioi.mem_nhds hr))⟩
+  · rcases key r with ⟨he, -⟩ | ⟨he, -⟩ | ⟨he, -⟩
+    · exact h₁.contDiffAt.congr_of_eventuallyEq he
+    · exact hχs.contDiffAt.congr_of_eventuallyEq he
+    · exact h₂.contDiffAt.congr_of_eventuallyEq he
+  · rcases key r with ⟨he, -⟩ | ⟨he, h⟩ | ⟨he, -⟩
+    · exact (hc₁ r hr).congr_of_eventuallyEq he
+    · exact (hχc r (Ioo_subset_Icc_self h)).congr_of_eventuallyEq he
+    · exact (hc₂ r hr).congr_of_eventuallyEq he
 
 /-- The **defining function of a shape** `χ`: `(s, t) ↦ χ (√t) - √s`. Composed with
 `shape`, its zero level near `shape p = (χ r ², r ²)` is the hypersurface `R = χ (r)`, with
