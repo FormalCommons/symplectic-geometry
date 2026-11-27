@@ -31,7 +31,12 @@ it.
 `TauCeti.MorseChart.exists_radial_extension_levelCrossingTime` gives a smooth `θ : N → ℝ`, equal
 on the sphere of radius `ρ` to the time `Flow.levelCrossingTime Φ g a` at which the flow line of
 `y_c` crosses the level `{g = a}`, such that `r ↦ θ (r • u) + log r` has a positive derivative for
-every `u ≠ 0`. The map `F c = Φ (θ c) y_c` then sends the sphere of radius `ρ` into the level
+every `u ≠ 0`. It states this in the two forms that the next steps use: that function is strictly
+monotone on `(0, ∞)`, which gives the hypothesis of
+`TauCeti.MorseChart.injOn_globalFlow_toChart_symm_negativeExtend`, and `1 + dθ_c(c) > 0` (its
+derivative at `r = 1` for `u = c`), the hypothesis of
+`TauCeti.MorseChart.exists_isSmoothEmbedding_globalFlow_toChart_symm`. The map
+`F c = Φ (θ c) y_c` then sends the sphere of radius `ρ` into the level
 `{g = a}` and the closed ball into `{a ≤ g}`, and its image of the open ball contains every point
 of the unstable set of `p` above the level `a`.
 
@@ -91,8 +96,9 @@ coordinates `c` of negative weight and `0` of positive weight, and let the close
 `‖c‖ = ρ`, and let the band `g⁻¹[a, b]` be compact with `dg(X) < 0` on it.
 
 Then there is a smooth `θ`, equal for `‖c‖ = ρ` to the time at which the flow line of `y_c`
-crosses the level `{g = a}`, such that `r ↦ θ (r • u) + log r` has a positive derivative at every
-`r > 0` for every `u ≠ 0`, and such that `F c = Φ (θ c) y_c` maps the sphere of radius `ρ` into
+crosses the level `{g = a}`, such that `r ↦ θ (r • u) + log r` is strictly monotone on `(0, ∞)`
+for every `u ≠ 0`, such that `1 + dθ_c(c) > 0` for every `c`, and such that `F c = Φ (θ c) y_c`
+maps the sphere of radius `ρ` into
 `{g = a}` and the closed ball into `{a ≤ g}`, and reaches, from the open ball, every point `x` of
 the unstable set of `p` with `a < g x`. -/
 theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M]
@@ -110,8 +116,9 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
       (∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, ‖c‖ = ρ →
         θ c = Flow.levelCrossingTime (globalFlow X hX hXc) g a
           (φ.toChart.symm (φ.negativeExtend c.ofLp))) ∧
-      (∀ u : EuclideanSpace ℝ {i // φ.weight i < 0}, u ≠ 0 → ∀ r, 0 < r →
-        ∃ d, 0 < d ∧ HasDerivAt (fun r ↦ θ (r • u) + Real.log r) d r) ∧
+      (∀ u : EuclideanSpace ℝ {i // φ.weight i < 0}, u ≠ 0 →
+        StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Ioi 0)) ∧
+      (∀ c : EuclideanSpace ℝ {i // φ.weight i < 0}, 0 < 1 + fderiv ℝ θ c c) ∧
       MapsTo (fun c ↦ globalFlow X hX hXc (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)))
         (sphere 0 ρ) {x | g x = a} ∧
       MapsTo (fun c ↦ globalFlow X hX hXc (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)))
@@ -121,7 +128,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
           ball 0 ρ := by
   set Φ := globalFlow X hX hXc
   set ι : EuclideanSpace ℝ {i // φ.weight i < 0} → M :=
-    fun c ↦ φ.toChart.symm (φ.negativeExtend c.ofLp) with hι
+    fun c ↦ φ.toChart.symm (φ.negativeExtend c.ofLp)
   have hgd (y : M) : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) g y := (hg y).mdifferentiableAt (by simp)
   -- Along each flow line `g` is antitone, and it meets the level `a` at most once.
   have hanti (y : M) : Antitone fun t ↦ g (Φ t y) :=
@@ -189,16 +196,31 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     simp only [comp_apply, smul_smul, mul_comm ‖u‖ s, mul_assoc, mul_inv_cancel₀ hn.ne', mul_one,
       Real.log_mul hs.ne' hn.ne']
     ring
+  -- So that function is strictly monotone on each ray.
+  have hmono (u : EuclideanSpace ℝ {i // φ.weight i < 0}) (hu : u ≠ 0) :
+      StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Ioi 0) :=
+    StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0) (hθd u hu)
+  -- Its derivative at `r = 1` for `u = c` is `1 + dθ_c(c)`.
+  have hθc (c : EuclideanSpace ℝ {i // φ.weight i < 0}) : 0 < 1 + fderiv ℝ θ c c := by
+    rcases eq_or_ne c 0 with rfl | hc0
+    · simp
+    obtain ⟨d, hd, hdd⟩ := hθd c hc0 1 one_pos
+    have h : HasDerivAt (fun r : ℝ ↦ θ (r • c) + Real.log r) (fderiv ℝ θ c c + 1) 1 := by
+      have hθc : HasFDerivAt θ (fderiv ℝ θ c) ((1 : ℝ) • c) := by
+        rw [one_smul]; exact ((hθs.differentiable (by simp)) c).hasFDerivAt
+      have h1 := hθc.comp_hasDerivAt (1 : ℝ) ((hasDerivAt_id (1 : ℝ)).smul_const c)
+      simp only [one_smul] at h1
+      exact h1.add (by simpa using Real.hasDerivAt_log one_ne_zero)
+    rw [add_comm, h.unique hdd]
+    exact hd
   -- The centre of the ball goes to `p`.
-  have hF0 : Φ (θ 0) (ι 0) = p := by
-    simp only [hι, WithLp.ofLp_zero, map_zero, φ.toChart_symm_zero]
-    exact φ.globalFlow_self hX hXc hXφ _
+  have hF0 : Φ (θ 0) (ι 0) = p := φ.globalFlow_toChart_symm_negativeExtend_zero hX hXc hXφ (θ 0)
   -- On the sphere, `F` lands on the level `a`.
   have hsph (c : EuclideanSpace ℝ {i // φ.weight i < 0}) (hc : ‖c‖ = ρ) :
       g (Φ (θ c) (ι c)) = a := by
     rw [hθτ c hc]
     exact Flow.apply_flow_levelCrossingTime (hreach c hc)
-  refine ⟨θ, hθs, hθτ, hθd, fun c hc ↦ hsph c (mem_sphere_zero_iff_norm.1 hc), ?_, ?_⟩
+  refine ⟨θ, hθs, hθτ, hmono, hθc, fun c hc ↦ hsph c (mem_sphere_zero_iff_norm.1 hc), ?_, ?_⟩
   · intro c hc
     rw [mem_closedBall_zero_iff] at hc
     rcases eq_or_ne c 0 with rfl | hc0
@@ -218,8 +240,7 @@ theorem exists_radial_extension_levelCrossingTime [IsManifold 𝓘(ℝ, E) ∞ M
     -- The time `θ (r • u) + log r` is at most `θ u`, by monotonicity along the ray.
     have hle : θ (r • u) + Real.log r ≤ θ u := by
       have hu0 : u ≠ 0 := norm_pos_iff.1 (hu ▸ hρ0)
-      simpa using (StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0)
-        (hθd u hu0)).monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
+      simpa using (hmono u hu0).monotoneOn hr0 (show (0 : ℝ) < 1 from one_pos) hr1
     simp only [mem_ofPred_eq]
     rw [← hru, φ.globalFlow_toChart_symm_negativeExtend_smul hX hXc hXφ hρ hu.le hr0 hr1]
     calc a = g (Φ (θ u) (ι u)) := (hsph u hu).symm
