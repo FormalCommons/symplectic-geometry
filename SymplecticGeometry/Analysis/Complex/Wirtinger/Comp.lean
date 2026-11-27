@@ -214,7 +214,7 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_comp_continuousLinearEquiv_le
   have hLc : ((L.restrictScalars' ℝ : V ≃L[ℝ] W) : V →L[ℝ] W) =
       (L : V →L[ℂ] W).restrictScalars ℝ := by
     ext v
-    simp [hLr]
+    simp
   set F : W → W →L[ℝ] X := fun w ↦ complexAntilinearPartL (fderiv ℝ g w)
   have hf : (fun y ↦ complexAntilinearPartL (fderiv ℝ (g ∘ L) y)) =
       fun y ↦ Lr.arrowCongr (.refl ℝ X) (F (Lr.symm y + 0)) := by

@@ -11,7 +11,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Topology.Algebra.Lie.Bracket
-public import TauCeti.Geometry.Manifold.DifferentialForm.GaugeCurvature
+public import TauCeti.Geometry.Manifold.DifferentialForm.Gauge.Curvature
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.GaugeCurvature
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.LinearAlgebra.Alternating.Conormal

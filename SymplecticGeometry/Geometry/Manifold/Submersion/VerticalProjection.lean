@@ -10,7 +10,7 @@ public import Mathlib.Topology.VectorBundle.ContinuousAlternatingMap
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Topology.Algebra.Module.FiniteDimension
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 
 /-!

@@ -15,7 +15,7 @@ import SymplecticGeometry.Topology.Sets.Opens.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Neighborhood
 import TauCeti.Geometry.Manifold.IsManifold.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.VectorBundle.Hom.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 
 /-!

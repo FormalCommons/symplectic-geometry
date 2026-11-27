@@ -761,8 +761,8 @@ table may fall behind.
   symplectic iff $(JP)^2=-1$), and, over a commutative star ring,
   `SymplecticGroup.star_mem` and `SymplecticGroup.star_mem_iff`),
   `Analysis/Matrix/Polar/Basic.lean` (the general right polar decomposition
-  of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms:
-  `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul` and
+  of `GL n 𝕜` over `RCLike 𝕜`, beside Tau Ceti's left forms and its
+  `Matrix.GeneralLinearGroup.posDef_sqrt_star_mul`:
   `Matrix.GeneralLinearGroup.existsUnique_unitary_mul_posDef`, and the
   unitary factor as $A(A^*A)^{-1/2}$,
   `Matrix.GeneralLinearGroup.coe_polarUnitary_eq_mul_rpow`),
