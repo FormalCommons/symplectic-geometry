@@ -321,54 +321,37 @@ theorem exists_path_compatible [T2Space M] {ψ : StdSpace (Fin (n + 1)) → M} {
   set W : unitInterval → ℝ := fun t ↦ (1 - t) * ε + t * (ε / 3)
   have hl := hψ.weight_pos
   have hε := hψ.width_pos
-  have hε₁ := hψ.width_lt_one
   have hlr := hψ.weight_add_width_lt
-  have hεδ := hψ.width_lt
   have hψt (t : unitInterval) :
       IsNormalizedBallEmbedding hN (fun z ↦ ψ ((t, z) : unitInterval × _).2) r (L t) (W t) := by
     have h₀ := unitInterval.nonneg t
-    have h₁ := unitInterval.le_one t
-    have h₂ : 0 ≤ (1 - t : ℝ) := sub_nonneg.2 h₁
-    have hWε : W t ≤ ε := by simp only [W]; nlinarith
-    have hL : 0 < L t := by
-      rcases h₀.eq_or_lt with h | h
+    have h₂ : 0 ≤ (1 - t : ℝ) := sub_nonneg.2 (unitInterval.le_one t)
+    refine hψ.of_width_le ?_ ?_ ?_ ?_
+    · rcases h₀.eq_or_lt with h | h
       · simp only [L, ← h]
         linarith
       · simp only [L]
         nlinarith [mul_nonneg h₂ hl.le, mul_pos h hε]
-    refine isNormalizedBallEmbedding_def.2 ⟨hψ.isSymplecticBallEmbedding, hL, ?_, ?_, ?_, ?_,
-      hψ.eqOn.mono (Metric.closedBall_subset_closedBall hWε)⟩ <;> simp only [L, W] <;>
-      nlinarith [mul_nonneg h₂ hε.le, mul_nonneg h₀ hε.le]
+    all_goals simp only [L, W]; nlinarith [mul_nonneg h₂ hε.le, mul_nonneg h₀ hε.le]
   have hsmooth (a b : ℝ) : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t : unitInterval ↦ (1 - t) * a + t * b :=
     (((contDiff_const.sub contDiff_id).mul contDiff_const).add
       (contDiff_id.mul contDiff_const)).contMDiff.comp contMDiff_subtypeVal_Icc
-  have hcongr {l₁ ε₁ l₂ ε₂ : ℝ} (h₁ : IsNormalizedBallEmbedding hN ψ r l₁ ε₁)
-      (h₂ : IsNormalizedBallEmbedding hN ψ r l₂ ε₂) (hl : l₁ = l₂) (hε : ε₁ = ε₂) :
-      h₁.normalizedBlowupForm = h₂.normalizedBlowupForm := by
-    subst hl hε
-    rfl
   refine ⟨fun t ↦ (hψt t).normalizedBlowupForm,
     isSmoothFamily_normalizedBlowupForm hψt
       (isSymplecticBallFamily_const hψ.isSymplecticBallEmbedding) (hsmooth l (ε / 3))
       (hsmooth ε (ε / 3)),
     fun t ↦ (hψt t).isSymplectic_normalizedBlowupForm
       (isBlowupProfile_blowupProfile (hψt t).weight_pos (hψt t).width_pos) hσ,
-    hcongr _ _ (by simp [L]) (by simp [W]), ?_⟩
-  refine (hψt 1).compatible_normalizedBlowupForm
-    (isBlowupProfile_blowupProfile (hψt 1).weight_pos (hψt 1).width_pos) fun z hz ↦ ?_
+    by congr! <;> simp [L, W], ?_⟩
   -- At the end, `B(L 1 + W 1)` lies in the open ball `B°(ε)`, where `ψ = ψ₀` is
   -- pseudoholomorphic.
-  have hzε : z ∈ Metric.ball 0 ε := by
-    rw [mem_closedBall_zero_iff] at hz
-    rw [mem_ball_zero_iff]
-    simp only [L, W, Set.Icc.coe_one] at hz
-    linarith
-  have hzδ : z ∈ Metric.ball 0 δ := Metric.ball_subset_ball hεδ.le hzε
-  have hψ₀ := hN.isPseudoholomorphicOn.isPseudoholomorphicWithinAt hzδ
-  refine (hψ₀.isPseudoholomorphicAt_of_mem_nhds
-    (Metric.isOpen_ball.mem_nhds hzδ)).congr_of_eventuallyEq ?_
-  filter_upwards [Metric.isOpen_ball.mem_nhds hzε] with w hw
-  exact hψ.eqOn (Metric.ball_subset_closedBall hw)
+  refine (hψt 1).compatible_normalizedBlowupForm
+    (isBlowupProfile_blowupProfile (hψt 1).weight_pos (hψt 1).width_pos) fun z hz ↦
+      hψ.isPseudoholomorphicAt ?_
+  rw [mem_closedBall_zero_iff] at hz
+  rw [mem_ball_zero_iff]
+  simp only [L, W, Set.Icc.coe_one] at hz
+  linarith
 
 end IsNormalizedBallEmbedding
 
