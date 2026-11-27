@@ -9,6 +9,10 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Section
 
 /-!
 # The first-order chart along a disc
@@ -31,11 +35,24 @@ The statement holds for any real manifold `M` modelled on a finite-dimensional s
 frame needs no complex linearity; the complex manifolds of the surrounding are the case of a
 complex `E`, through the real manifold structure of Tau Ceti.
 
+The chart of higher order replaces `Φ₀` by `Φ₀ ∘ G` for a map `G` of the model space that fixes
+the core pointwise and has the identity as differential there. The second part of the file shows
+that such a `G` is a partial diffeomorphism near the core, by the inverse function theorem
+`TauCeti.isLocalDiffeomorphAt_of_fderiv_eq` at each core point and Tau Ceti's assembly
+`TauCeti.exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt` along the section
+`ι₀`, whose left inverse is the real part of the first factor; and that composing with it changes
+neither the values nor the differential of `Φ₀` along the core.
+
 ## Main results
 
 * `SymplecticGeometry.exists_partialDiffeomorph_modelDisc`: a partial diffeomorphism from the
   model space to `M`, defined near the core, that restricts to `ι` on the model disc and has the
   prescribed differential `A x` at each point `ι₀ x`.
+* `SymplecticGeometry.exists_partialDiffeomorph_of_fderiv_modelDisc_eq_id`: a map of the model
+  space fixing the core with identity differential there is a partial diffeomorphism near it.
+* `SymplecticGeometry.exists_partialDiffeomorph_trans_modelDisc`: precomposing a partial
+  diffeomorphism defined near the core with such a map keeps its source, target, values and
+  differential along the core.
 
 ## References
 
@@ -50,7 +67,11 @@ open scoped ContDiff
 
 namespace SymplecticGeometry
 
-variable {k m : ℕ} {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {k m : ℕ}
+
+section FirstOrder
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M] [T2Space M]
 
 /-- **The first-order chart along a disc.** Let `ι : ℝᵏ → M` be a smooth map that induces the
@@ -85,6 +106,95 @@ theorem exists_partialDiffeomorph_modelDisc {ι : EuclideanSpace ℝ (Fin k) →
   obtain ⟨Φ₀, hsrc, -, htgt, hval, hd⟩ := i₀.exists_partialDiffeomorph_mfderiv_eq' hι hιi
     (A := A) (hi₀ ▸ hA) hAinv (hi₀ ▸ hAι) isOpen_univ (subset_univ _) hO hιO
   exact ⟨Φ₀, hi₀ ▸ hsrc, htgt, hi₀ ▸ hval, hi₀ ▸ hd⟩
+
+end FirstOrder
+
+section Correction
+
+/-! ### Correcting the first-order chart near the core -/
+
+
+/-- **A map that fixes the core to first order is a diffeomorphism near it.** Let
+`G : ℂᵏ × ℂᵐ → ℂᵏ × ℂᵐ` be smooth on an open neighbourhood `W` of the core `ι₀ (ℝᵏ)`, where
+`ι₀ = modelDisc k m`, with `G (ι₀ x) = ι₀ x` and `dG (ι₀ x) = id` for all `x`. Then, for every
+open neighbourhood `O'` of the core, there is a smooth partial diffeomorphism `Ψ` with forward map
+`G` whose source contains the core and lies in `W`, and whose target lies in `O'`. -/
+theorem exists_partialDiffeomorph_of_fderiv_modelDisc_eq_id
+    {G : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    {W : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hW : IsOpen W)
+    (hcore : range (modelDisc k m) ⊆ W) (hG : ContDiffOn ℝ ∞ G W)
+    (hfix : ∀ x, G (modelDisc k m x) = modelDisc k m x)
+    (hd : ∀ x, fderiv ℝ G (modelDisc k m x) = ContinuousLinearMap.id ℝ _)
+    {O' : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hO' : IsOpen O')
+    (hcoreO' : range (modelDisc k m) ⊆ O') :
+    ∃ Ψ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ∞,
+      ⇑Ψ = G ∧ range (modelDisc k m) ⊆ Ψ.source ∧ Ψ.source ⊆ W ∧ Ψ.target ⊆ O' := by
+  -- The real part of the first factor is a continuous left inverse of `ι₀`.
+  let π : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) → EuclideanSpace ℝ (Fin k) :=
+    fun p ↦ WithLp.toLp 2 fun j ↦ (p.1 j).re
+  have hπ : Continuous π := by fun_prop
+  have hsect : Function.LeftInverse π (modelDisc k m) := fun x ↦ by
+    ext j
+    simp [π, modelDisc_apply_fst_apply]
+  have hGs : G ∘ modelDisc k m = modelDisc k m := funext hfix
+  obtain ⟨Ψ, hsrc, hsrcW, htgt, -, hΨ⟩ :=
+    TauCeti.exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt
+      (fun x ↦ TauCeti.isLocalDiffeomorphAt_of_fderiv_eq hG hW (hcore (mem_range_self x))
+        (by simp) (e := ContinuousLinearEquiv.refl ℝ _) (hd x).symm)
+      hW hcore hO' (by rwa [hGs]) (modelDisc k m).continuous π hπ hsect
+      (by rw [hGs]; exact (hsect.isEmbedding hπ (modelDisc k m).continuous).isInducing)
+  exact ⟨Ψ, hΨ, hsrc, hsrcW, htgt⟩
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- **The corrected chart keeps the first-order data along the core.** Let `Φ₀` be a smooth
+partial diffeomorphism from `ℂᵏ × ℂᵐ` to `M` whose source contains the core `ι₀ (ℝᵏ)`, where
+`ι₀ = modelDisc k m`, such as the chart of `exists_partialDiffeomorph_modelDisc`, and let `G` be
+as in `exists_partialDiffeomorph_of_fderiv_modelDisc_eq_id`. Then there is a smooth partial
+diffeomorphism `Ψ` with forward map `G`, source in `W` and target in the source of `Φ₀`, such
+that the composite `Φ₀ ∘ Ψ` has source containing the core and target in that of `Φ₀`, and
+agrees with `Φ₀` at each `ι₀ x` in value and in differential. -/
+theorem exists_partialDiffeomorph_trans_modelDisc
+    (Φ₀ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) I
+      (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) M ∞)
+    (hΦ₀ : range (modelDisc k m) ⊆ Φ₀.source)
+    {G : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) →
+      EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)}
+    {W : Set (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))} (hW : IsOpen W)
+    (hcore : range (modelDisc k m) ⊆ W) (hG : ContDiffOn ℝ ∞ G W)
+    (hfix : ∀ x, G (modelDisc k m x) = modelDisc k m x)
+    (hd : ∀ x, fderiv ℝ G (modelDisc k m x) = ContinuousLinearMap.id ℝ _) :
+    ∃ Ψ : PartialDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+        (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) ∞,
+      ⇑Ψ = G ∧ Ψ.source ⊆ W ∧ Ψ.target ⊆ Φ₀.source ∧
+        range (modelDisc k m) ⊆ (Ψ.trans Φ₀).source ∧ (Ψ.trans Φ₀).target ⊆ Φ₀.target ∧
+        (∀ x, Ψ.trans Φ₀ (modelDisc k m x) = Φ₀ (modelDisc k m x)) ∧
+        ∀ x, mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) I (Ψ.trans Φ₀)
+          (modelDisc k m x) =
+          mfderiv 𝓘(ℝ, EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) I Φ₀
+            (modelDisc k m x) := by
+  obtain ⟨Ψ, hΨ, hsrc, hsrcW, htgt⟩ := exists_partialDiffeomorph_of_fderiv_modelDisc_eq_id
+    hW hcore hG hfix hd Φ₀.open_source hΦ₀
+  have hsrc' : range (modelDisc k m) ⊆ (Ψ.trans Φ₀).source := by
+    rw [PartialDiffeomorph.trans_source]
+    exact fun p hp ↦ ⟨hsrc hp, htgt (Ψ.map_source (hsrc hp))⟩
+  have hval : ∀ x, Ψ.trans Φ₀ (modelDisc k m x) = Φ₀ (modelDisc k m x) := fun x ↦ by
+    rw [PartialDiffeomorph.coe_trans, Function.comp_apply, hΨ, hfix]
+  refine ⟨Ψ, hΨ, hsrcW, htgt, hsrc', ?_, hval, fun x ↦ ?_⟩
+  · rw [PartialDiffeomorph.trans_target]
+    exact inter_subset_left
+  · rw [PartialDiffeomorph.mfderiv_trans Ψ Φ₀ (by simp) (hsrc' (mem_range_self x)),
+      mfderiv_eq_fderiv, hΨ, hd, hfix]
+    exact ContinuousLinearMap.comp_id _
+
+end Correction
 
 end SymplecticGeometry
 
