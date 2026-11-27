@@ -23,9 +23,11 @@ set and with no regularity of `φ`, of Tau Ceti's
 Symplectomorphisms restrict to open subsets that correspond under them, for the restricted forms:
 `TauCeti.SmoothTwoForm.IsSymplectomorphism.subtype`, for Tau Ceti's `Diffeomorph.subtype`;
 `TauCeti.SmoothTwoForm.isSymplectomorphism_nestedOpen`, for Tau Ceti's `Diffeomorph.nestedOpen`;
-and, composing the two, `TauCeti.SmoothTwoForm.IsSymplectomorphism.restrOpens`, for
-`Diffeomorph.restrOpens`, a symplectomorphism between open subsets restricted to smaller open
-subsets. A partial diffeomorphism that is symplectic on its source is a symplectomorphism from its
+`TauCeti.SmoothTwoForm.isSymplectomorphism_setCongr`, for `Diffeomorph.setCongr`, the
+identity between equal open subsets; and, composing the first two,
+`TauCeti.SmoothTwoForm.IsSymplectomorphism.restrOpens`, for `Diffeomorph.restrOpens`,
+a symplectomorphism between open subsets restricted to smaller open subsets. A partial
+diffeomorphism that is symplectic on its source is a symplectomorphism from its
 source onto its target, for Tau Ceti's `PartialDiffeomorph.toDiffeomorphSourceTarget`
 (`TauCeti.SmoothTwoForm.IsSymplecticMapOn.isSymplectomorphism_toDiffeomorphSourceTarget`).
 
@@ -85,6 +87,15 @@ theorem isSymplectomorphism_nestedOpen (σ : SmoothTwoForm I M) {U D : Opens M} 
   rw [isSymplectomorphism_iff_mpullback_eq]
   exact SmoothForm.mpullback_mpullback_of_comp_eq _ _ contMDiff_subtypeVal contMDiff_subtypeVal
     (funext fun x ↦ by simp only [Function.comp_apply, Diffeomorph.nestedOpen_apply]) σ
+
+/-- For equal open subsets `U = V` of `M`, the identity `Diffeomorph.setCongr` from `U` to `V`
+is a symplectomorphism from the restriction of `σ` to `U` to its restriction to `V`. -/
+theorem isSymplectomorphism_setCongr (σ : SmoothTwoForm I M) {U V : Opens M} (h : U = V) :
+    IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+      (Diffeomorph.setCongr (I := I) (n := ∞) h) := by
+  rw [Diffeomorph.setCongr_def]
+  exact (isSymplectomorphism_refl σ).subtype _
 
 /-- **Restricting a symplectomorphism between open subsets.** Let `Φ` be a symplectomorphism from
 `σ|U₀` to `σ'|V₀`, for open subsets `U₀` of `M` and `V₀` of `M'`, and let `U ≤ U₀` and `V ≤ V₀` be

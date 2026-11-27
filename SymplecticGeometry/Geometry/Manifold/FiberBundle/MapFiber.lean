@@ -45,6 +45,9 @@ from the fibre onto `F`, and its underlying homeomorphism is
   smooth inverse is smooth.
 * `Bundle.Trivialization.contMDiff_symm_val_prod`: on an open set `U` of the base set,
   `(b, v) ↦ e⁻¹ (b, v)` is a smooth map `U × F → M`.
+* `Bundle.Trivialization.contMDiffOn_snd` and `Bundle.Trivialization.contMDiff_snd_subtypeVal`:
+  the fibre coordinate of a trivialization that is smooth on its source is smooth on the source
+  and on every open set inside it.
 * `Bundle.Trivialization.mfderiv_proj_apply` and
   `Bundle.Trivialization.mfderiv_fiberInclusionMap_apply`: the derivative of `proj` is the first
   coordinate of the derivative of `e`, and the derivative of a fibre inclusion is that of the
@@ -114,6 +117,19 @@ theorem contMDiff_symm_val_prod
     ContMDiff (IB.prod IF) IM n fun p : U × F ↦ e.toOpenPartialHomeomorph.symm (p.1, p.2) :=
   he.comp_contMDiff ((contMDiff_subtypeVal.comp contMDiff_fst).prodMk contMDiff_snd)
     fun p ↦ e.mem_target.2 (hU p.1.property)
+
+/-- The fibre coordinate `x ↦ (e x).2` of a trivialization that is `C^n` on its source is `C^n`
+on that source. -/
+theorem contMDiffOn_snd (he : ContMDiffOn IM (IB.prod IF) n e e.source) :
+    ContMDiffOn IM IF n (fun x ↦ (e x).2) e.source :=
+  contMDiff_snd.comp_contMDiffOn he
+
+/-- The fibre coordinate `x ↦ (e x).2` of a trivialization that is `C^n` on its source is `C^n`
+on every open set `W` of `M` inside that source. -/
+theorem contMDiff_snd_subtypeVal (he : ContMDiffOn IM (IB.prod IF) n e e.source)
+    {W : TopologicalSpace.Opens M} (hW : (W : Set M) ⊆ e.source) :
+    ContMDiff IM IF n fun x : W ↦ (e x).2 :=
+  (e.contMDiffOn_snd he).comp_contMDiff contMDiff_subtypeVal fun x ↦ hW x.property
 
 variable {e}
 
@@ -328,7 +344,7 @@ theorem IsContMDiff.mdifferentiable_trivAt (hA : A.IsContMDiff n IB IF IM) (hn :
 source of the chart. -/
 theorem IsContMDiff.contMDiffOn_snd_trivAt (hA : A.IsContMDiff n IB IF IM) (b : B) :
     ContMDiffOn IM IF n (fun y ↦ (A.trivAt b y).2) (A.trivAt b).source :=
-  contMDiff_snd.comp_contMDiffOn (hA.contMDiffOn_trivAt b)
+  (A.trivAt b).contMDiffOn_snd (hA.contMDiffOn_trivAt b)
 
 /-- The fibre coordinate `y ↦ (A.trivAt b y).2` of a chart of a `C^n` atlas is `C^n` at every
 point of `M` over the base set of the chart. -/
