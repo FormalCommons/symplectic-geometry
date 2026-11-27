@@ -9,6 +9,8 @@ public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothedMax
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.Basic
 
 import TauCeti.Analysis.Calculus.BumpFunction.FiniteDimension
+import TauCeti.Analysis.Calculus.ContDiff.Prod
+import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
@@ -49,6 +51,15 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   `ℓ`-derivative `∂χ/∂ℓ (λ ℓ) · λ' ℓ + q' ℓ` is positive, by its first term below `a''` and by
   its second on `[a'', a]`. The family is `χ` near `ℓ = ℓ₀` and `χ a + q ℓ` near `ℓ = a`, where
   it meets the family of `SymplecticGeometry.exists_monotone_shapeChain`.
+* `SymplecticGeometry.exists_blend_shapeFamily`: the blend with `χ` near the end `r₂` of the
+  `r`-interval. On a band `[ℓ₀, ℓ₁] × [r₃, r₂]` where `χ` is a smooth family of shapes with
+  `∂χ/∂ℓ > 0`, a cutoff `ρ` in `r`, `1` up to `r₃` and `0` near `r₂`
+  (`SymplecticGeometry.exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv`), and a
+  tolerance `τ > 0` are chosen first. Then any smooth family
+  `ψ₀` of shapes with `∂ψ₀/∂ℓ > 0` that is `τ`-close to `χ` on the band, in value and first
+  `r`-derivative and from below in second `r`-derivative, gives the family
+  `ρ r * ψ₀ ℓ r + (1 - ρ r) * χ ℓ r`. Its members are shapes by the one-sided blend lemma of
+  `ConvexShape/Basic.lean`, and its `ℓ`-derivative is a convex combination of `∂ψ₀/∂ℓ` and `∂χ/∂ℓ`.
 
 ## References
 
@@ -358,5 +369,77 @@ theorem exists_comp_add_shapeFamily {χ : ℝ → ℝ → ℝ} {q : ℝ → ℝ}
   · -- At each point, the family is a member of `χ` raised by `q ℓ`.
     exact (hsliceR (L x.1, x.2) (hRO ⟨hLmem x.1 hx.1, hx.2⟩)).mono fun r hr' ↦
       congrArg (· + q x.1) hr'
+
+/-- **Blending a family of `i`-convex shapes with `χ` near `r₂`.** Let `χ : ℝ → ℝ → ℝ` be
+smooth in `(ℓ, r)` on an open set `V` containing the band `[ℓ₀, ℓ₁] × [r₃, r₂]`, with `χ ℓ` an
+`i`-convex shape at `r` and `∂χ/∂ℓ > 0` at each point of the band, where `r₃ < r₂`. Then there
+are a smooth cutoff `ρ` with values in `[0, 1]`, equal to `1` on `(-∞, r₃]` and to `0` near
+`r₂`, and a tolerance `τ > 0`, such that the following holds for every family `ψ₀` smooth on
+`ℝ²` whose members are `i`-convex shapes with `∂ψ₀/∂ℓ > 0` on `[ℓ₀, ℓ₁] × [r₁, r₂]`, and
+which on the band is within `τ` of `χ` in value and first `r`-derivative and has second
+`r`-derivative greater than that of `χ` minus `τ`. The blend
+`ψ ℓ r = ρ r * ψ₀ ℓ r + (1 - ρ r) * χ ℓ r` is smooth on `(ℝ × (-∞, r₃)) ∪ V`, and on
+`[ℓ₀, ℓ₁] × [r₁, r₂]` its members are `i`-convex shapes and `∂ψ/∂ℓ > 0`. The cutoff and the
+tolerance depend only on `χ` and the band, not on `ψ₀`. -/
+theorem exists_blend_shapeFamily {χ : ℝ → ℝ → ℝ} {V : Set (ℝ × ℝ)}
+    {ℓ₀ ℓ₁ r₁ r₃ r₂ : ℝ} (hr₃₂ : r₃ < r₂) (hV : IsOpen V)
+    (hBV : Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂ ⊆ V) (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) V)
+    (hχc : ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂, IsConvexShapeAt (χ x.1) x.2)
+    (hχℓ : ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂, 0 < deriv (fun ℓ ↦ χ ℓ x.2) x.1) :
+    ∃ ρ : ℝ → ℝ, ContDiff ℝ ∞ ρ ∧ (∀ r, ρ r ∈ Icc 0 1) ∧ EqOn ρ 1 (Iic r₃) ∧
+      ρ =ᶠ[𝓝 r₂] 0 ∧ ∃ τ > 0, ∀ ψ₀ : ℝ → ℝ → ℝ, ContDiff ℝ ∞ (Function.uncurry ψ₀) →
+        (∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂, IsConvexShapeAt (ψ₀ x.1) x.2) →
+        (∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂, 0 < deriv (fun ℓ ↦ ψ₀ ℓ x.2) x.1) →
+        (∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂, |ψ₀ x.1 x.2 - χ x.1 x.2| < τ ∧
+          |deriv (ψ₀ x.1) x.2 - deriv (χ x.1) x.2| < τ ∧
+          iteratedDeriv 2 (χ x.1) x.2 - τ < iteratedDeriv 2 (ψ₀ x.1) x.2) →
+        ContDiffOn ℝ ∞ (fun x : ℝ × ℝ ↦ ρ x.2 * ψ₀ x.1 x.2 + (1 - ρ x.2) * χ x.1 x.2)
+            (univ ×ˢ Iio r₃ ∪ V) ∧
+          (∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂,
+            IsConvexShapeAt (fun r ↦ ρ r * ψ₀ x.1 r + (1 - ρ r) * χ x.1 r) x.2) ∧
+          ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₁ r₂,
+            0 < deriv (fun ℓ ↦ ρ x.2 * ψ₀ ℓ x.2 + (1 - ρ x.2) * χ ℓ x.2) x.1 := by
+  -- The cutoff: `1` up to `r₃`, `0` from the midpoint of `[r₃, r₂]` on.
+  obtain ⟨ρ, hρs, hρI, -, hρ1, hρ0, -⟩ :=
+    exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv
+      (show r₃ < (r₃ + r₂) / 2 by linarith)
+  replace hρ0 : ρ =ᶠ[𝓝 r₂] 0 :=
+    eventually_of_mem (Ici_mem_nhds (show (r₃ + r₂) / 2 < r₂ by linarith)) hρ0
+  -- The tolerance, from the one-sided blend lemma on the band.
+  have hK : IsCompact (Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂) := isCompact_Icc.prod isCompact_Icc
+  have hχx : ∀ x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂, ContDiffAt ℝ ∞ (Function.uncurry χ) x :=
+    fun x hx ↦ hχ.contDiffAt (hV.mem_nhds (hBV hx))
+  obtain ⟨τ, hτ, hblend⟩ :=
+    exists_forall_isConvexShapeAt_mul_add_one_sub_mul_of_sub_lt_iteratedDeriv_two hK hχc
+      (fun _ _ x hx ↦ ((hχx x hx).continuousAt_iteratedDeriv_prod_right
+        (by exact_mod_cast le_top)).continuousWithinAt)
+      (hρs.of_le (by simp)) fun x _ ↦ (hρI x.2).1
+  refine ⟨ρ, hρs, hρI, hρ1, hρ0, τ, hτ, fun ψ₀ hψ₀ hψ₀c hψ₀ℓ hclose ↦ ⟨?_, ?_, ?_⟩⟩
+  · -- Smoothness: below `r₃` the blend is `ψ₀`, and on `V` both terms are smooth.
+    refine fun x hx ↦ ContDiffAt.contDiffWithinAt ?_
+    rcases hx with ⟨-, hx⟩ | hx
+    · refine hψ₀.contDiffAt.congr_of_eventuallyEq ?_
+      filter_upwards [(isOpen_univ.prod isOpen_Iio).mem_nhds ⟨mem_univ x.1, hx⟩] with y hy
+      simp [hρ1 (mem_Iic.2 (mem_Iio.1 hy.2).le), Function.uncurry_def]
+    · have hχV : ContDiffAt ℝ ∞ (Function.uncurry χ) x := hχ.contDiffAt (hV.mem_nhds hx)
+      have hρ' : ContDiffAt ℝ ∞ (fun y : ℝ × ℝ ↦ ρ y.2) x := (hρs.comp contDiff_snd).contDiffAt
+      exact (hρ'.mul hψ₀.contDiffAt).add ((contDiffAt_const.sub hρ').mul hχV)
+  · -- Convexity: below `r₃` the blend is `ψ₀` near `r`; on the band, the blend lemma.
+    intro x hx
+    rcases lt_or_ge x.2 r₃ with h | h
+    · refine (hψ₀c x hx).congr_of_eventuallyEq ?_
+      filter_upwards [Iio_mem_nhds h] with r hr
+      simp [hρ1 (mem_Iic.2 (mem_Iio.1 hr).le)]
+    · have hxK : x ∈ Icc ℓ₀ ℓ₁ ×ˢ Icc r₃ r₂ := ⟨hx.1, h, hx.2.2⟩
+      obtain ⟨h₀, h₁, h₂⟩ := hclose x hxK
+      exact hblend (ψ₀ x.1) x hxK (hψ₀.contDiffAt.uncurry_left.of_le (by simp))
+        ((hχx x hxK).uncurry_left.of_le (by simp)) h₀ h₁ h₂
+  · -- The `ℓ`-derivative: below `r₃` it is that of `ψ₀`; on the band, a convex combination of
+    -- two positive numbers.
+    intro x hx
+    rcases lt_or_ge x.2 r₃ with h | h
+    · simpa [hρ1 (mem_Iic.2 h.le)] using hψ₀ℓ x hx
+    · exact deriv_mul_add_one_sub_mul_pos (hψ₀ℓ x hx) (hχℓ x ⟨hx.1, h, hx.2.2⟩) (hρI x.2).1
+        (hρI x.2).2
 
 end SymplecticGeometry
