@@ -11,9 +11,9 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Positivity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
-import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
@@ -55,6 +55,11 @@ preserving `o`. The new chart is `e` followed by its inverse
 (`Bundle.Trivialization.transFiberwiseHomeomorph`), and its coordinate changes with the charts
 of `A` preserve `o`, since those of `A` and the `χ_p` do.
 
+Taking one such chart at each point of the base gives a smooth atlas with the base sets of `A`
+along which `τ` restricts to `σ₀` (`TauCeti.MapFiber.Atlas.exists_symplecticAtlas_of_oriented`).
+Its coordinate changes then preserve `σ₀` (`TauCeti.MapFiber.Atlas.RestrictsTo.hasStructureGroup`):
+for an area form `σ₀`, it is a symplectic atlas.
+
 ## Main results
 
 * `TauCeti.MapFiber.Atlas.exists_restricts_isPositive_area`: some two-form on `M` pulls back
@@ -62,6 +67,9 @@ of `A` preserve `o`, since those of `A` and the `χ_p` do.
 * `TauCeti.MapFiber.Atlas.exists_trivialization_mpullback_fiberInclusionMap_eq`: near each point
   of the base, a smooth chart along whose fibre inclusions such a form pulls back to `σ₀`, with
   coordinate changes with the charts of `A` that preserve `o`.
+* `TauCeti.MapFiber.Atlas.exists_symplecticAtlas_of_oriented`: a smooth atlas with the base sets
+  of `A` and structure group the stabilizer of `σ₀`, along which such a form restricts to `σ₀`,
+  and whose coordinate changes with `A` preserve `o`.
 
 ## References
 
@@ -217,6 +225,37 @@ theorem exists_trivialization_mpullback_fiberInclusionMap_eq [T2Space B]
     · rw [Trivialization.coordChange_transFiberwiseHomeomorph_symm_right e hU
         (χ := fun p ↦ (χ p).toHomeomorph) hΦ' _ hx hc,
         Diffeomorph.coe_mul, Diffeomorph.coe_inv, hψ'e, Diffeomorph.coe_toHomeomorph_symm]
+
+/-- **A symplectic atlas for an oriented surface fibration.** Let `A` be a smooth atlas of
+`proj : M → B`, over a Hausdorff boundaryless base modelled on a finite-dimensional space, whose
+model fibre is a closed surface `F`, connected or empty, with an orientation `o`, and whose
+coordinate changes preserve `o`. Let `σ₀` be a two-form on `F` positive for `o`, and `τ` a
+two-form on `M` whose pull-backs along the fibre inclusions of every chart of `A` are positive for
+`o` with the integral of `σ₀`, such as the form of `exists_restricts_isPositive_area` when `σ₀`
+has integral one. Then there is a smooth atlas `A'` of `proj`, with the same base set as `A` at
+each point, whose coordinate changes preserve `σ₀`, along which `τ` restricts to `σ₀`, and whose
+coordinate changes with the charts of `A` are diffeomorphisms of `F` preserving `o`. -/
+theorem exists_symplecticAtlas_of_oriented [T2Space B] [BoundarylessManifold IB B]
+    [IF.Boundaryless] [T2Space F] [CompactSpace F] [PreconnectedSpace F]
+    (hA : A.IsContMDiff ∞ IB IF IM)
+    (hH : A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o))
+    {σ₀ : SmoothTwoForm IF F} (hσ₀ : o.IsPositive σ₀.val) {τ : SmoothTwoForm IM M}
+    (hτ : ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet),
+      o.IsPositive (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
+          (hA.contMDiffOn_trivAt_symm b) hb') τ).val ∧
+      integralTopForm o (SmoothForm.mpullback _ ((A.trivAt b).contMDiff_fiberInclusionMap
+          (hA.contMDiffOn_trivAt_symm b) hb') τ).val = integralTopForm o σ₀.val) :
+    ∃ A' : Atlas F proj, A'.IsContMDiff ∞ IB IF IM ∧
+      A'.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ₀) ∧ A'.RestrictsTo σ₀ τ ∧
+      A.CoordChangeMem A' (Diffeomorph.orientationPreservingSubgroup (n := ∞) (by simp) o) ∧
+      ∀ b, (A'.trivAt b).baseSet = (A.trivAt b).baseSet := by
+  choose e he he_symm hbase hτe hce using fun b ↦
+    exists_trivialization_mpullback_fiberInclusionMap_eq hA hH hσ₀ b (hτ b)
+  let A' : Atlas F proj := ⟨e, fun b ↦ hbase b ▸ A.mem_baseSet_trivAt b⟩
+  have hA' : A'.IsContMDiff ∞ IB IF IM := ⟨he, he_symm⟩
+  have hτ' : A'.RestrictsTo σ₀ τ := restrictsTo_iff.2 hτe
+  exact ⟨A', hA', hτ'.hasStructureGroup hA', hτ',
+    coordChangeMem_iff.2 fun c b x hc hb ↦ (hce b c x hb hc).2, hbase⟩
 
 end TauCeti.MapFiber.Atlas
 

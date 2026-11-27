@@ -11,14 +11,16 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Dynamics.Flow.OmegaLimit
+public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
-import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
+import SymplecticGeometry.Geometry.Manifold.ModelTransport.Boundaryless
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Cube
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.PseudoGradient
 import SymplecticGeometry.Topology.Maps.Proper
 import SymplecticGeometry.Topology.Order.Sublevel
 import TauCeti.Geometry.Manifold.Flow.Locality
 import TauCeti.Geometry.Manifold.IntegralCurve.Monotone
+import TauCeti.Geometry.Manifold.Morse.ModelTransport
 import TauCeti.Topology.OmegaLimit
 
 /-!
@@ -67,6 +69,14 @@ points of the level `v`, disjoint because they lie in the unstable sets of disti
 contains the parts above `a` of those unstable sets, so the diffeotopy above gives a compression
 (`TauCeti.Diffeotopy.exists_smoothIsotopy_id_of_mapsTo_final`).
 
+For a general boundaryless model `I`, the band core comes from that of `g` read on Tau Ceti's
+copy `TauCeti.BoundarylessModel I M`, a manifold modelled on `E` with the same topology, where
+`g` stays a proper Morse function with the same critical points and indices
+(`TauCeti/Geometry/Manifold/Morse/ModelTransport.lean`). It is pulled back to `M` along the
+identity diffeomorphism `TauCeti.BoundarylessModel.diffeomorph` by
+`SymplecticGeometry.BandCore.ofDiffeomorph`, as Tau Ceti's
+`TauCeti.exists_flow_apply_eq_sub_of_isCompact` brings its flow back from that copy.
+
 ## Main results
 
 * `TauCeti.mapsTo_globalFlow_preimage_Iic`: the flow maps each sublevel `{g ≤ b}` into itself in
@@ -87,6 +97,9 @@ contains the parts above `a` of those unstable sets, so the diffeotopy above giv
 * `TauCeti.exists_diffeotopy_mapsTo_of_unstableSet_subset`: a diffeotopy fixed near `{g ≤ a}`
   carrying `{g ≤ b}` into an open set containing `{g ≤ a}` and the parts above `a` of the
   unstable sets of the critical points of one level.
+* `TauCeti.IsMorse.exists_bandCore`: a proper Morse function, bounded below, whose critical
+  points in `g⁻¹[a₀, b]` lie on one level `v` with `a < v < b` and have index less than
+  `dim E`, has a band core for the levels `a₀`, `a`, `b`.
 
 The topological part is `Flow.exists_mapClusterPt_atBot_of_mem_omegaLimit`
 (`SymplecticGeometry/Dynamics/Flow/OmegaLimit.lean`); the convergence of a backward orbit
@@ -419,6 +432,35 @@ private theorem IsMorse.exists_bandCore_modelSpace (hg : IsMorse 𝓘(ℝ, E) g)
         exact hy.1
       exact hsub (Or.inr (mem_iUnion.2 ⟨e ⟨p, hpP⟩, hχu _ ⟨hyu, (show a < g y from hy.2).le⟩⟩))
   exact Φ.exists_smoothIsotopy_id_of_mapsTo_final hΦV hΦ
+
+variable {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [T2Space M] [SigmaCompactSpace M] {g : M → ℝ}
+
+/-- **Band cores across one critical level.** Let `g` be a proper Morse function, bounded below,
+on a boundaryless manifold, and let `a₀ < a < v < b` be levels such that every critical point of
+`g` in `g⁻¹[a₀, b]` lies on the level `v` and has Morse index less than `dim E`. Then `g` has a
+band core for the levels `a₀`, `a`, `b`. -/
+theorem IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
+    (hbdd : BddBelow (range g))
+    {a₀ a v b : ℝ} (ha₀ : a₀ < a) (ha : a < v) (hb : v < b)
+    (hcrit : ∀ x ∈ criticalPoints I g, a₀ ≤ g x → g x ≤ b →
+      g x = v ∧ manifoldMorseIndex I g x < Module.finrank ℝ E) :
+    Nonempty (SymplecticGeometry.BandCore I g a₀ a b) := by
+  -- Work on the copy of `M` modelled on `E` itself, with the function `g' = g ∘ e.symm`.
+  set e := BoundarylessModel.homeomorph I M
+  set g' : BoundarylessModel I M → ℝ := g ∘ e.symm with hg'
+  obtain ⟨c⟩ := IsMorse.exists_bandCore_modelSpace ((BoundarylessModel.isMorse_iff I g).2 hg)
+    (hp.comp e.symm.isProperMap) (hbdd.mono (range_comp_subset_range _ _)) ha₀ ha hb
+    fun x hx h₀ hb' ↦ by
+      rw [BoundarylessModel.manifoldMorseIndex_eq]
+      rw [BoundarylessModel.criticalPoints_eq] at hx
+      exact hcrit _ hx h₀ hb'
+  -- Pull the band core back along the diffeomorphism `M ≃ BoundarylessModel I M`.
+  have hcomp : g' ∘ BoundarylessModel.diffeomorph I ∞ = g := by
+    rw [BoundarylessModel.coe_diffeomorph, hg', Function.comp_assoc, e.symm_comp_self,
+      Function.comp_id]
+  exact ⟨hcomp ▸ c.ofDiffeomorph (BoundarylessModel.diffeomorph I ∞)⟩
 
 end BandCore
 
