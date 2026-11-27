@@ -35,9 +35,10 @@ slice section `(t, y) ↦ σ t y` (`SymplecticGeometry.sliceSection σ`).
 
 ## Implementation notes
 
-The direct direction of `TauCeti.contMDiffAt_verticalForm_iff` is Tau Ceti's
-`ContMDiffAt.mpullback_form_family`, applied to the family of inclusions `y ↦ (t, y)`; the converse
-one is `ContMDiffAt.mpullback_form_family_of_family`, applied to the projection.
+The direct direction of `TauCeti.contMDiffAt_verticalForm_iff` is
+`SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_mpullback`, applied to the family
+of inclusions `y ↦ (t, y)`; the converse one is `ContMDiffAt.mpullback_form_family_of_family`,
+applied to the projection.
 -/
 
 public section
@@ -115,13 +116,12 @@ theorem contMDiffAt_verticalForm_iff {m : WithTop ℕ∞} (β : N → RoughForm 
         (fun q ↦ TotalSpace.mk' ((EN × E) [⋀^Fin k]→L[ℝ] F) q (verticalForm J β q)) p ↔
       ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
         (SymplecticGeometry.sliceSection β) p := by
-  rw [SymplecticGeometry.sliceSection_def]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-  · have := ContMDiffAt.mpullback_form_family (hφ := h) (f := fun q : N × M ↦ Prod.mk q.1)
-      (g := Prod.snd) (n := ω) (p₀ := p)
-      ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd).contMDiffAt contMDiffAt_snd le_top
-    simpa only [mpullback_prodMk_verticalForm] using this
-  · have := ContMDiffAt.mpullback_form_family_of_family (φ := fun q : N × M ↦ β q.1)
+  · exact SymplecticGeometry.contMDiffAt_sliceSection_of_eventually_eq_mpullback
+      (g := Prod.mk) (n := ω) h contMDiffAt_id le_top
+      (Eventually.of_forall fun q ↦ by rw [mpullback_prodMk_verticalForm])
+  · rw [SymplecticGeometry.sliceSection_def] at h
+    have := ContMDiffAt.mpullback_form_family_of_family (φ := fun q : N × M ↦ β q.1)
       (f := fun _ ↦ Prod.snd) (g := id) (n := ω) h
       (contMDiff_snd.comp contMDiff_snd).contMDiffAt contMDiffAt_id le_top
     refine this.congr_of_eventuallyEq (Eventually.of_forall fun q ↦ ?_)
