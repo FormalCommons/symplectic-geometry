@@ -115,6 +115,12 @@ for one `k`, one point `x` and a radius `ρ₁` on which the comparison above ho
 where the ball must lie in the target of the chart. Together the two halves give the two-sided
 bound `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖`
 (`SymplecticGeometry.RescaledUnitaryCharts.ofReal_mul_riemannianEDist_symm_mem_Icc`).
+Conversely, a point `y` that is not `(D.chart k x).symm z` for any `z` in that ball has
+`ρ₁ * √k / √2 ≤ d_k(x, y)`, since a path from `x` to `y` must leave the ball, and the same
+stretching bound makes the part of it inside the ball long
+(`SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_mul_riemannianEDist_of_notMem`,
+from `PartialDiffeomorph.ofReal_le_mul_riemannianEDist_of_notMem`). So every `y` with
+`d_k(x, y) < R ≤ ρ₁ * √k / √2` is `(D.chart k x).symm z` for some `z` with `‖z‖ < √2 * R`.
 
 ## Main definitions
 
@@ -173,6 +179,11 @@ bound `‖z‖ / √2 ≤ d_k(x, (D.chart k x).symm z) ≤ √(3 / 2) * ‖z‖`
   the two bounds together, on the same ball of radius `ρ₁ * √k`: `d_k` from `x` to the point with
   image `z` lies between `‖z‖ / √2` and `√(3 / 2) * ‖z‖`; its lower half as a real inequality,
   `RescaledUnitaryCharts.norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm`.
+* `SymplecticGeometry.RescaledUnitaryCharts.ofReal_le_mul_riemannianEDist_of_notMem` and
+  `SymplecticGeometry.RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_riemannianEDist_lt`:
+  the points outside the image of the ball of radius `ρ₁ * √k` are at rescaled distance at least
+  `ρ₁ * √k / √2` from `x`, so the points at rescaled distance less than `R ≤ ρ₁ * √k / √2` are
+  images of points of norm less than `√2 * R`.
 
 ## References
 
@@ -1003,7 +1014,41 @@ theorem ofReal_mul_riemannianEDist_symm_le
     _ = ENNReal.ofReal (√(3 / 2) * ‖z‖) := by
         rw [← ENNReal.ofReal_mul hs.le, mul_div_cancel₀ _ hs.ne']
 
-open scoped NNReal in
+open scoped ENNReal NNReal in
+/-- A step shared by the lower bounds for `d_k` below: a bound `a ≤ C · d` that holds for every
+nonzero `C` with which the chart `D.chart k x` satisfies the hypotheses of
+`PartialDiffeomorph.ofReal_norm_sub_le_mul_riemannianEDist` on the ball of radius `ρ₁ * √k`
+gives `a / √2 ≤ √(2π k) · d`, the chart stretching `g_J`-norms by at most `√2 * √(2π k)` there
+(`norm_mvfderiv_le_mul`). -/
+private theorem ofReal_inv_sqrt_two_mul_le_of_forall
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (hk0 : 0 < (k : ℝ)) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {a : ℝ} {d : ℝ≥0∞}
+    (h : ∀ C : ℝ≥0, C ≠ 0 → ball (D.chart k x x) (ρ₁ * √k) ⊆ (D.chart k x).target →
+      (∀ y ∈ (D.chart k x).source, D.chart k x y ∈ ball (D.chart k x x) (ρ₁ * √k) →
+        ∀ v : TangentSpace I y, ‖mvfderiv I (D.chart k x) y v‖ ≤ C * ‖v‖) →
+      ENNReal.ofReal a ≤ C * d) :
+    ENNReal.ofReal ((√2)⁻¹ * a) ≤ ENNReal.ofReal √(2 * Real.pi * k) * d := by
+  set s := √(2 * Real.pi * k)
+  have hC := h (√2 * s).toNNReal (by rw [Ne, Real.toNNReal_eq_zero, not_le]; positivity)
+    (by
+      rw [D.apply_self hk x]
+      exact (ball_subset_ball (mul_le_mul_of_nonneg_right hρ₁₀ (Real.sqrt_nonneg _))).trans
+        (D.ball_subset_target hk x))
+    (fun y hy hyB v ↦ by
+      rw [D.apply_self hk x] at hyB
+      rw [Real.coe_toNNReal _ (by positivity)]
+      exact D.norm_mvfderiv_le_mul hg x hcmp hy hyB v)
+  rw [ENNReal.ofNNReal_toNNReal] at hC
+  calc ENNReal.ofReal ((√2)⁻¹ * a) = ENNReal.ofReal (√2)⁻¹ * ENNReal.ofReal a :=
+        ENNReal.ofReal_mul (by positivity)
+    _ ≤ ENNReal.ofReal (√2)⁻¹ * (ENNReal.ofReal (√2 * s) * d) := by gcongr
+    _ = ENNReal.ofReal ((√2)⁻¹ * (√2 * s)) * d := by
+        rw [ENNReal.ofReal_mul (p := (√2)⁻¹) (by positivity), mul_assoc (ENNReal.ofReal _)]
+    _ = ENNReal.ofReal s * d := by
+        rw [← mul_assoc, inv_mul_cancel₀ (by positivity), one_mul]
+
 /-- **Rescaled distances bound chart distances from below.** Let `M` be Hausdorff, with a Riemannian
 metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J` of a compatible pair
 (`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`), let `k ≥ k₀`, let `x` be a point, and let
@@ -1021,34 +1066,10 @@ theorem ofReal_mul_norm_le_mul_riemannianEDist [T2Space M]
   have hR : 0 < ρ₁ * √k := (norm_nonneg z).trans_lt (mem_ball_zero_iff.1 hz)
   have hk0 : 0 < (k : ℝ) := Real.sqrt_pos.1
     (pos_of_mul_pos_right hR (pos_of_mul_pos_left hR (Real.sqrt_nonneg _)).le)
-  set s := √(2 * Real.pi * k)
-  -- On the ball of radius `ρ₁ * √k`, the chart stretches `g_J`-norms by at most `√2 * s`.
-  set C : ℝ≥0 := ⟨√2 * s, by positivity⟩
-  have hCdef : (C : ℝ) = √2 * s := NNReal.coe_mk _ _
-  have hC0 : C ≠ 0 := by
-    rw [← NNReal.coe_ne_zero, hCdef]
-    exact (mul_pos (by positivity) (Real.sqrt_pos.2 (by positivity))).ne'
-  have hC : ∀ y ∈ (D.chart k x).source, D.chart k x y ∈ ball (D.chart k x x) (ρ₁ * √k) →
-      ∀ v : TangentSpace I y, ‖mvfderiv I (D.chart k x) y v‖ ≤ C * ‖v‖ := by
-    intro y hy hyB v
-    rw [D.apply_self hk x] at hyB
-    rw [hCdef]
-    exact D.norm_mvfderiv_le_mul hg x hcmp hy hyB v
-  have hball : ball (D.chart k x x) (ρ₁ * √k) ⊆ (D.chart k x).target := by
-    rw [D.apply_self hk x]
-    exact (ball_subset_ball (mul_le_mul_of_nonneg_right hρ₁₀ (Real.sqrt_nonneg _))).trans
-      (D.ball_subset_target hk x)
+  refine D.ofReal_inv_sqrt_two_mul_le_of_forall hg hρ₁₀ hk hk0 x hcmp fun C hC0 hball hC ↦ ?_
   have h := (D.chart k x).ofReal_norm_sub_le_mul_riemannianEDist (by norm_cast)
     (D.mem_source hk x) hball hC0 hC (by rwa [D.apply_self hk x])
-  rw [D.apply_self hk x, sub_zero] at h
-  calc ENNReal.ofReal ((√2)⁻¹ * ‖z‖) = ENNReal.ofReal (√2)⁻¹ * ENNReal.ofReal ‖z‖ :=
-        ENNReal.ofReal_mul (by positivity)
-    _ ≤ ENNReal.ofReal (√2)⁻¹ * (C * Manifold.riemannianEDist I x ((D.chart k x).symm z)) := by
-        gcongr
-    _ = ENNReal.ofReal ((√2)⁻¹ * C) * Manifold.riemannianEDist I x ((D.chart k x).symm z) := by
-        rw [ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_coe_nnreal, mul_assoc]
-    _ = _ := by
-        rw [hCdef, ← mul_assoc, inv_mul_cancel₀ (by positivity), one_mul]
+  rwa [D.apply_self hk x, sub_zero] at h
 
 /-- **Rescaled distances compared with chart distances.** Let `M` be Hausdorff, with a Riemannian
 metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, such as the metric `g_J` of a compatible pair
@@ -1082,6 +1103,56 @@ theorem norm_le_sqrt_two_mul_toReal_ofReal_mul_riemannianEDist_symm [T2Space M]
   have h2 : (0 : ℝ) < √2 := by positivity
   calc ‖z‖ = √2 * ((√2)⁻¹ * ‖z‖) := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
     _ ≤ _ := mul_le_mul_of_nonneg_left h h2.le
+
+/-- **Points far from the centre in the chart are far for `d_k`.** Let `M` be Hausdorff, with a
+Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `x` be a point,
+and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`). Every point
+`y` that is not `(D.chart k x).symm z` for any `z` in the ball of radius `ρ₁ * √k` is at
+rescaled distance `d_k = √(2π k) · d_{g_J}` at least `ρ₁ * √k / √2` from `x`. -/
+theorem ofReal_le_mul_riemannianEDist_of_notMem [T2Space M]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {y : M} (hy : y ∉ (D.chart k x).symm '' ball 0 (ρ₁ * √k)) :
+    ENNReal.ofReal ((√2)⁻¹ * (ρ₁ * √k)) ≤
+      ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y := by
+  rcases le_or_gt (ρ₁ * √k) 0 with hR | hR
+  · rw [ENNReal.ofReal_of_nonpos (mul_nonpos_of_nonneg_of_nonpos (by positivity) hR)]
+    exact zero_le
+  have hk0 : 0 < (k : ℝ) := Real.sqrt_pos.1
+    (pos_of_mul_pos_right hR (pos_of_mul_pos_left hR (Real.sqrt_nonneg _)).le)
+  have hy' : y ∉ (D.chart k x).source ∩ D.chart k x ⁻¹' ball (D.chart k x x) (ρ₁ * √k) := by
+    rintro ⟨hys, hyB⟩
+    rw [Set.mem_preimage, D.apply_self hk x] at hyB
+    exact hy ⟨D.chart k x y, hyB, (D.chart k x).left_inv hys⟩
+  exact D.ofReal_inv_sqrt_two_mul_le_of_forall hg hρ₁₀ hk hk0 x hcmp fun C hC0 hball hC ↦
+    (D.chart k x).ofReal_le_mul_riemannianEDist_of_notMem (by norm_cast) (D.mem_source hk x)
+      hball hC0 hC hy'
+
+/-- **Points close to the centre for `d_k` lie in the rescaled chart.** Let `M` be Hausdorff,
+with a Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, let `k ≥ k₀`, let `x` be a
+point, and let `ρ₁ ≤ ρ₀` be a comparison radius for `D.chart k x` (`IsComparisonRadius`). If the
+rescaled distance `d_k = √(2π k) · d_{g_J}` from `x` to `y` is less than `R`, with
+`R ≤ ρ₁ * √k / √2`, then `y = (D.chart k x).symm z` for some `z` with `‖z‖ < √2 * R`. -/
+theorem exists_norm_lt_symm_eq_of_riemannianEDist_lt [T2Space M]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    {ρ₁ : ℝ} (hρ₁₀ : ρ₁ ≤ ρ₀)
+    {k : ℕ} (hk : k₀ ≤ k) (x : M) (hcmp : D.IsComparisonRadius k x ρ₁)
+    {R : ℝ} (hRρ : R ≤ (√2)⁻¹ * (ρ₁ * √k)) {y : M}
+    (hy : ENNReal.ofReal √(2 * Real.pi * k) * Manifold.riemannianEDist I x y <
+      ENNReal.ofReal R) :
+    ∃ z, ‖z‖ < √2 * R ∧ (D.chart k x).symm z = y := by
+  by_cases hmem : y ∈ (D.chart k x).symm '' ball 0 (ρ₁ * √k)
+  · obtain ⟨z, hz, rfl⟩ := hmem
+    have h := (D.ofReal_mul_norm_le_mul_riemannianEDist hg hρ₁₀ hk x hcmp hz).trans_lt hy
+    have hR : 0 < R := ENNReal.ofReal_pos.1 (zero_le.trans_lt h)
+    rw [ENNReal.ofReal_lt_ofReal_iff hR] at h
+    refine ⟨z, ?_, rfl⟩
+    have h2 : (0 : ℝ) < √2 := by positivity
+    calc ‖z‖ = √2 * ((√2)⁻¹ * ‖z‖) := by rw [← mul_assoc, mul_inv_cancel₀ h2.ne', one_mul]
+      _ < √2 * R := by gcongr
+  · exact absurd ((D.ofReal_le_mul_riemannianEDist_of_notMem hg hρ₁₀ hk x hcmp
+      hmem).trans_lt hy) (not_lt.2 (ENNReal.ofReal_le_ofReal hRρ))
 
 end RiemannianEDist
 

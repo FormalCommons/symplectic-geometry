@@ -973,11 +973,9 @@ theorem bddBelow_kempfNessFunction_image_Ici (hσc : σ.IsClosed) (hσ : σ.IsNo
   -- The derivative `t ↦ -2 ‖μ ((g t)⁻¹ • p)‖²` is integrable on `(0, ∞)`.
   have hint : MeasureTheory.IntegrableOn
       (fun t ↦ -2 * momentNormSq B hB μ ((g t)⁻¹ • p)) (Ioi 0) := by
-    have hneg : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
-      funext fun _ ↦ momentNormSq_neg
     have := integrableOn_Ioi_momentNormSq_maximalIntegralCurve hσc hσ hσG hμ hB hBG
-      (hneg ▸ hx) (by simp [hx0])
-    simp only [hneg, hgx] at this
+      (by rwa [momentNormSq_neg']) (by simp [hx0])
+    simp only [momentNormSq_neg', hgx] at this
     exact this.const_mul (-2)
   exact MeasureTheory.bddBelow_image_Ici_of_hasDerivAt_of_integrableOn_Ioi (fun t _ ↦ hgd t) hint
 
