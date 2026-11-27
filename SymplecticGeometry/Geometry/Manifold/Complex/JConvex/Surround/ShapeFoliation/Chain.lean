@@ -95,10 +95,11 @@ Together they give the chain itself:
   stand-ins and their lowerings are convex shapes, then `c` is taken below the rate of increase
   of `χ` on the band
   (`IsCompact.exists_pos_mul_sub_le_sub_of_deriv_pos`), and last `h` small by uniform continuity
-  in `ℓ` (`IsCompact.exists_pos_abs_sub_lt_of_continuousOn`) and against the Lipschitz constant
-  of `∂χ/∂r` in `ℓ` (`IsCompact.exists_abs_deriv_sub_le_mul`), which makes the curvature term
-  of `SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le` of order `h / c`. The mesh cell of
-  a point of `[a, b]` comes from `SymplecticGeometry.exists_lt_mem_Icc_add_mul`.
+  in `ℓ` (`IsCompact.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn`) and against the
+  Lipschitz constant of `∂χ/∂r` in `ℓ` (`IsCompact.exists_abs_deriv_sub_le_mul`), which makes
+  the curvature term of `SymplecticGeometry.abs_iteratedDeriv_shapeChain_sub_le` of order
+  `h / c`. The mesh cell of a point of `[a, b]` comes from
+  `SymplecticGeometry.exists_lt_mem_Icc_add_mul`.
 
 ## References
 
@@ -682,14 +683,8 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
     ⟨min (min (m / 2) (ε / (b - a))) (min (r₁ / G) (η / 4)), by positivity, by simp⟩
   obtain ⟨ε₀, hε₀, hε₀η, hε₀τ⟩ : ∃ ε₀ > 0, ε₀ ≤ η / 2 ∧ ε₀ ≤ τ / 4 :=
     ⟨min (η / 2) (τ / 4), by positivity, min_le_left _ _, min_le_right _ _⟩
-  obtain ⟨w, hw, hu⟩ : ∃ w > 0, ∀ k ≤ 2, ∀ r ∈ Icc r₁ r₂, ∀ ℓ ∈ Icc a b, ∀ ℓ' ∈ Icc a b,
-      |ℓ' - ℓ| ≤ w → |iteratedDeriv k (χ ℓ') r - iteratedDeriv k (χ ℓ) r| < ε₀ := by
-    choose! w hw hu using fun k (hk : k ≤ 2) ↦
-      isCompact_Icc.exists_pos_abs_sub_lt_of_continuousOn (hcont k hk) hε₀
-    refine ⟨min (w 0) (min (w 1) (w 2)),
-      lt_min (hw 0 (by norm_num)) (lt_min (hw 1 (by norm_num)) (hw 2 le_rfl)),
-      fun k hk r hr ℓ hℓ ℓ' hℓ' hl ↦ hu k hk r hr ℓ hℓ ℓ' hℓ' (hl.trans ?_)⟩
-    interval_cases k <;> simp
+  obtain ⟨w, hw, hu⟩ :=
+    isCompact_Icc.exists_pos_abs_iteratedDeriv_sub_lt_of_continuousOn (n := 2) hcont hε₀
   obtain ⟨h₀, hh₀, hh₀w, hh₀1, hh₀τ⟩ :
       ∃ h₀ > 0, h₀ ≤ w ∧ h₀ ≤ 1 ∧ h₀ ≤ τ * c / (Q * L ^ 2 + 1) :=
     ⟨min w (min 1 (τ * c / (Q * L ^ 2 + 1))), by positivity, by simp⟩
