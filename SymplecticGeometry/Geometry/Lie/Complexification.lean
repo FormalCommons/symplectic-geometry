@@ -14,12 +14,19 @@ public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Lie.Functor
+public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
+public import TauCeti.RepresentationTheory.InvariantForm
 import SymplecticGeometry.Geometry.Lie.Exponential.Units
 import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
+import SymplecticGeometry.Geometry.Lie.MaurerCartan
+import SymplecticGeometry.Analysis.Normed.Algebra.OneSubExpNegDivSelf
+import TauCeti.Geometry.Lie.Adjoint.InvariantForm
+import Mathlib.Analysis.Calculus.Deriv.Mul
+import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 
 /-!
 # Complexifications of Lie groups
@@ -82,6 +89,13 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
   connected `G`, the left-trivialized velocity of `τ ↦ expI (τ • ξ) * toHom u` is
   `cplx (lieMap (Ad u⁻¹ ξ))` at every time.
+* `SymplecticGeometry.LieComplexification.apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom`: for
+  connected `G`, an `Ad`-invariant form `B` and `g = expI ξ * toHom v` with `ξ`, `v` differentiable,
+  `B (Ad v⁻¹ ξ) (im (g⁻¹ dg w)) = B ξ (dξ w)`.
+* `SymplecticGeometry.LieComplexification.hasDerivAt_polar_symm_fst_comp`: the Gauss lemma for the
+  polar decomposition. For connected `G` and a symmetric `Ad`-invariant form `B`, the polar radius
+  `B η η` of a differentiable curve `a = expI η * toHom u` has derivative
+  `2 B (Ad u⁻¹ η) (im (a⁻¹ ȧ))`.
 * `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
   `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
   `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
@@ -96,6 +110,16 @@ The complex structure `cplx` is not determined by the other fields.
 The conjugation formula combines Tau Ceti's `TauCeti.Lie.conj_mulInvariantExp`, the naturality of
 `Ad` along `toHom`, and the fact that `cplx`, which commutes with every `ad`, commutes with every
 `Ad` of the connected group `Gc` (`TauCeti.Lie.map_tangentAd_apply_of_map_lie`).
+
+The Gauss lemma differentiates `a = exp (cplx (lieMap η)) * toHom u` by the left-trivialized
+product rule (`mfderiv_inv_mul_mfderiv_mul`) and the derivative of the exponential through the
+series `(1 - e^{-z}) / z` of `ad` (`mfderiv_inv_mul_mfderiv_mulInvariantExp_comp`, from Tau Ceti's
+`LeftInvariantDerivation.hasMFDerivAt_lieExp`). The `toHom u` factor contributes nothing to `im`,
+the `Ad`-invariance of `B` removes `Ad u⁻¹`, and the functional `y ↦ B η (im y)` vanishes on the
+image of `ad (cplx (lieMap η))`, since `im ⁅cplx (lieMap η), y⁆ = ⁅η, re y⁆` and `B` is
+`ad`-invariant (Tau Ceti's `TauCeti.Lie.lieInvariant_of_isInvariantForm_adjointRepresentation`), so
+it sees only the constant term of the series
+(`ContinuousLinearMap.apply_oneSubExpNegDivSelf_apply_of_comp_eq_zero`).
 
 The proof that the image of the Lie algebra of `Circle` is maximal totally real counts
 dimensions, by Tau Ceti's `TauCeti.IsTotallyReal.isMaximalTotallyReal`.
@@ -441,6 +465,119 @@ theorem mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom [FiniteDimensional ℝ EC] [
   rw [funext h, h t]
   exact mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul _ _ t
 
+/-- For connected `G` and an `Ad`-invariant form `B` on its Lie algebra, a map
+`g z = expI (ξ z) * toHom (v z)` from a manifold into `Gc`, with `ξ` and `v` differentiable at `z`,
+has a left-trivialized derivative `(g z)⁻¹ dg_z w` whose component `im` pairs with
+`Ad (v z)⁻¹ (ξ z)` under `B` as `dξ_z w` pairs with `ξ z`:
+`B (Ad (v z)⁻¹ (ξ z)) (im ((g z)⁻¹ dg_z w)) = B (ξ z) (dξ_z w)`. -/
+theorem apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom [FiniteDimensional ℝ E]
+    [FiniteDimensional ℝ EC] [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)}
+    (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
+    {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+    {ξ : M → E} {v : M → G} {z : M} (hξ : MDifferentiableAt IM 𝓘(ℝ, E) ξ z)
+    (hv : MDifferentiableAt IM I v z) (w : TangentSpace IM z) :
+    B (Lie.tangentAd (I := I) (v z)⁻¹ (ξ z))
+        (C.im (mfderiv IC IC ((C.expI (ξ z) * C.toHom (v z))⁻¹ * ·) (C.expI (ξ z) * C.toHom (v z))
+          (mfderiv IM IC (fun z ↦ C.expI (ξ z) * C.toHom (v z)) z w))) =
+      B (ξ z) (mfderiv IM 𝓘(ℝ, E) ξ z w) := by
+  have := C.connectedSpace
+  -- The imaginary direction `z ↦ cplx (lieMap (ξ z))`, read in the model space `EC`.
+  let L : E →L[ℝ] EC :=
+    LinearMap.toContinuousLinearMap (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)
+  have hL (x : E) : L x = C.cplx (C.lieMap x) := rfl
+  have hexp (z : M) : C.expI (ξ z) = mulInvariantExp (I := IC) (L (ξ z) : GroupLieAlgebra IC Gc) :=
+    (C.expI_def _).trans (congrArg _ (hL _).symm)
+  have hX : MDifferentiableAt IM 𝓘(ℝ, EC) (fun z ↦ L (ξ z)) z := L.mdifferentiableAt.comp z hξ
+  have hb : MDifferentiableAt IM IC (fun z ↦ C.toHom (v z)) z :=
+    ((C.toHom.contMDiff_toFun.mdifferentiable (by simp)) (v z)).comp z hv
+  -- The product rule splits the left-trivialized derivative into the part of `exp` and the part
+  -- of `toHom ∘ v`, whose component `im` vanishes.
+  have hprod := mfderiv_inv_mul_mfderiv_mul (I := IC) (G := Gc)
+    (a := fun z ↦ mulInvariantExp (L (ξ z) : GroupLieAlgebra IC Gc)) (b := fun z ↦ C.toHom (v z))
+    ((contMDiff_mulInvariantExp (I := IC) (G := Gc)).mdifferentiableAt (by simp) |>.comp z hX) hb w
+  have hv0 := C.im_mfderiv_inv_mul_mfderiv_toHom_comp hv w
+  rw [Function.comp_def] at hv0
+  have hAd (y : GroupLieAlgebra IC Gc) : C.im (Lie.adjointContinuousLinearMap (C.toHom (v z)⁻¹) y) =
+      Lie.tangentAd (I := I) (v z)⁻¹ (C.im y) := by
+    rw [← Lie.tangentAd_apply, im_tangentAd_toHom]
+  have hBAd (g : G) (x y : GroupLieAlgebra I G) :
+      B (Lie.tangentAd (I := I) g x) (Lie.tangentAd (I := I) g y) = B x y := by
+    rw [Lie.tangentAd_apply, Lie.tangentAd_apply, ← Lie.adjointRepresentation_apply,
+      ← Lie.adjointRepresentation_apply, hB.apply]
+  have hg : (fun z ↦ C.expI (ξ z) * C.toHom (v z)) =
+      fun z ↦ mulInvariantExp (I := IC) (L (ξ z) : GroupLieAlgebra IC Gc) * C.toHom (v z) :=
+    funext fun z ↦ congrArg (· * C.toHom (v z)) (hexp z)
+  rw [hg, hexp, hprod, map_add]
+  -- `dsimp only` drops the `show` that types the second summand of `hprod` in the Lie algebra.
+  dsimp only
+  rw [hv0, add_zero, ← map_inv]
+  -- The terms below mix `E` and `GroupLieAlgebra I G`, which are the same type only up to
+  -- unfolding, so the equalities are chained as terms.
+  refine (congrArg (B _) (hAd _)).trans ((hBAd _ _ _).trans ?_)
+  refine (congrArg (fun y ↦ B (ξ z) (C.im y))
+    (mfderiv_inv_mul_mfderiv_mulInvariantExp_comp hX w)).trans ?_
+  -- The functional `y ↦ B (ξ z) (im y)` vanishes on the image of `ad (L (ξ z))`, by
+  -- `im ⁅cplx (lieMap η), y⁆ = ⁅η, re y⁆` and the `ad`-invariance of `B`, so it sees only the
+  -- constant term of the series.
+  let φ : EC →L[ℝ] ℝ := LinearMap.toContinuousLinearMap (B (ξ z) ∘ₗ C.im)
+  have hφ : φ ∘L Module.End.toContinuousLinearMap EC
+      ((groupLieAlgebraEquivModelVectorSpace (I := IC) (G := Gc)).conj
+        (LieAlgebra.ad ℝ (GroupLieAlgebra IC Gc) (L (ξ z)))) = 0 := by
+    ext y₀
+    obtain ⟨y, rfl⟩ : ∃ y : GroupLieAlgebra IC Gc, y = y₀ := ⟨y₀, rfl⟩
+    let η : GroupLieAlgebra I G := ξ z
+    have hl := Lie.lieInvariant_of_isInvariantForm_adjointRepresentation hB η η (C.re y)
+    rw [lie_self, map_zero, LinearMap.zero_apply, eq_comm, neg_eq_zero] at hl
+    -- `φ`, the conjugation by the identity `groupLieAlgebraEquivModelVectorSpace` and `L` are
+    -- unfolded to state the value in the Lie algebra.
+    change B η (C.im ⁅C.cplx (C.lieMap η), y⁆) = 0
+    rw [im_lie, re_cplx_lieMap, im_cplx_lieMap, zero_lie, zero_add]
+    exact hl
+  refine (φ.apply_oneSubExpNegDivSelf_apply_of_comp_eq_zero hφ _).trans ?_
+  have hd : mfderiv IM 𝓘(ℝ, EC) (fun z ↦ L (ξ z)) z w = L (mfderiv IM 𝓘(ℝ, E) ξ z w) :=
+    congrArg (· w) (L.hasMFDerivAt.comp z hξ.hasMFDerivAt).mfderiv
+  exact (congrArg (fun y ↦ B (ξ z) (C.im y)) hd).trans (congrArg (B (ξ z)) (C.im_cplx_lieMap _))
+
+/-- **The Gauss lemma for the polar decomposition.** For connected `G`, a symmetric
+`Ad`-invariant form `B` on its Lie algebra, and a curve `a` in `Gc` differentiable at `t`, with
+`C.polar.symm (a t) = (η, u)`: the polar radius `s ↦ B (η s) (η s)`, where `η s` is the first
+component of `C.polar.symm (a s)`, has at `t` the derivative `2 * B (Ad u⁻¹ η) (im (a⁻¹ ȧ))`,
+where `a⁻¹ ȧ` is the velocity of `a` at `t` translated back to the identity. -/
+theorem hasDerivAt_polar_symm_fst_comp [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+    [ConnectedSpace G] {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} (hBs : B.IsSymm)
+    (hB : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {a : ℝ → Gc} {t : ℝ} (ha : MDifferentiableAt 𝓘(ℝ) IC a t) {η : GroupLieAlgebra I G} {u : G}
+    (h : C.polar.symm (a t) = (η, u)) :
+    HasDerivAt (fun s ↦ B (C.polar.symm (a s)).1 (C.polar.symm (a s)).1)
+      (2 * B (Lie.tangentAd (I := I) u⁻¹ η)
+        (C.im (mfderiv IC IC ((a t)⁻¹ * ·) (a t) (mfderiv 𝓘(ℝ) IC a t 1)))) t := by
+  have hp : MDifferentiableAt 𝓘(ℝ) (𝓘(ℝ, E).prod I) (fun s ↦ C.polar.symm (a s)) t :=
+    (C.polar.symm.contMDiff.mdifferentiableAt (by simp)).comp t ha
+  set ξ : ℝ → E := fun s ↦ (C.polar.symm (a s)).1
+  set v : ℝ → G := fun s ↦ (C.polar.symm (a s)).2
+  have hξ : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, E) ξ t := hp.fst
+  have hη : ξ t = η := congrArg Prod.fst h
+  -- `a = expI ξ * toHom v`, so the derivative of `a` is the one computed above.
+  have hv : MDifferentiableAt 𝓘(ℝ) I v t := hp.snd
+  have hkey := C.apply_im_mfderiv_inv_mul_mfderiv_expI_mul_toHom hB hξ hv 1
+  have hav : a = fun s ↦ C.expI (ξ s) * C.toHom (v s) :=
+    funext fun s ↦ (C.expI_mul_toHom_polar_symm (a s)).symm
+  rw [← hav, C.expI_mul_toHom_polar_symm (a t), hη,
+    show v t = u from congrArg Prod.snd h] at hkey
+  have hd : mfderiv 𝓘(ℝ) 𝓘(ℝ, E) ξ t 1 = deriv ξ t := by
+    rw [mfderiv_eq_fderiv]
+    -- The two sides differ by the identifications `NormedSpace.fromTangentSpace` of tangent
+    -- spaces of normed spaces with the spaces, which are the identity.
+    exact fderiv_apply_one_eq_deriv (𝕜 := ℝ) (f := ξ) (x := t)
+  let Bc : E →L[ℝ] E →L[ℝ] ℝ := LinearMap.toContinuousBilinearMap B
+  have hξd : HasDerivAt ξ (deriv ξ t) t := (mdifferentiableAt_iff_differentiableAt.1 hξ).hasDerivAt
+  refine (Bc.hasDerivAt_of_bilinear (fun _ ↦ hξd) (fun _ ↦ hξd)).congr_deriv ?_
+  rw [hkey, ← hd]
+  -- `Bc` is `B`, read on the model space `E`.
+  change B (ξ t) _ + B _ (ξ t) = _
+  rw [hη, two_mul]
+  exact congrArg (B η _ + ·) (hBs.eq _ _)
 end LieComplexification
 
 end SymplecticGeometry
