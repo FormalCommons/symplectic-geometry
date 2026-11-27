@@ -29,7 +29,7 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   the identity from `b'` on, and has positive derivative on `(b, ∞)`
   (`TauCeti.deriv_smoothLowerTruncation_pos`). The `ℓ`-derivative of `T` is a convex combination
   of `q'` and `∂χ/∂ℓ · λ'` (`SymplecticGeometry.hasDerivAt_smoothedMax_weighted`), positive
-  because on `(b, c]` both terms are, on `[c, ℓ₁]`, where `χ ℓ > M + q ℓ`, the second term has
+  because on `(b, c]` both terms are, on `(c, ℓ₁]`, where `χ ℓ > M + q ℓ`, the second term has
   weight at least `1 / 2`, and at `b`, where `M + q b` exceeds `χ b` by more than `δ`, the first
   term has weight `1`. For small `δ` the members are `i`-convex shapes by
   `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, applied to a globally smooth
