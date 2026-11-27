@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Contact.Distribution
 import TauCeti.Geometry.Contact.Family
 public import TauCeti.Geometry.Contact.Gray
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
-import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Contact.Levi
 import SymplecticGeometry.Geometry.Contact.Moser
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family

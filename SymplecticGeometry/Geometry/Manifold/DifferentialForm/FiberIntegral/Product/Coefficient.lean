@@ -8,7 +8,6 @@ module
 public import TauCeti.Geometry.Manifold.Riemannian.HodgeStar
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ParametricIntegral
 import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Deriv
@@ -46,14 +45,14 @@ for the derivative at `b`, in the direction `a`, of `b' ↦ β b' y`.
   `y`, with `c` differentiable at `b`, then `D y = (∂c/∂b)(b) a • ν y`. On `U` the derivative of
   a map is the Fréchet derivative of the same map on `EB`
   (`TauCeti.Manifold.mfderiv_modelSpace_comp_subtype_val_apply`).
-* `TauCeti.isSmoothForm_mfderiv_family_apply`: for a smooth family over an oriented Hausdorff
-  σ-compact `F`, `D` is a smooth `m`-form, since the partial derivative of the coefficient is
-  smooth in `y` (`ContMDiffAt.fderiv_left`).
 * `TauCeti.mfderiv_integralTopForm_apply`: for `F` compact and Hausdorff and a `C^n` family with
   `1 ≤ n`, the derivative of `b' ↦ ∫_F β b'` at `b` in the direction `a` is `∫_F D`; that this
   map is differentiable is `TauCeti.contMDiff_integralTopForm` with `P := U`. As in the proof
   of that lemma, the integral is that of the coefficient against the Riemannian measure, and
   `TauCeti.hasFDerivAt_integral_of_contMDiffOn` differentiates it under the integral sign.
+
+That `D` is a smooth form, for forms of every degree and with no orientation on `F`, is
+`TauCeti.isSmoothForm_mfderiv_family_apply` (`DifferentialForm/SmoothFamily/Deriv.lean`).
 
 These give the smoothness in the base of the fibre integral on a product `B × F`, as in Bott–Tu,
 §6, where the integrand is written as a function times a fixed volume form on the fibre.
@@ -190,39 +189,7 @@ theorem mfderiv_family_apply_eq_fderiv_smul {β : U → RoughForm J F ℝ m} (ν
   rw [hF.fderiv]
   exact ContinuousLinearMap.smulRight_apply (M₁ := EB) (M₂ := E [⋀^Fin m]→L[ℝ] ℝ) (x := a)
 
-variable [IsManifold J ∞ F]
-
-/-- **The derivative in the parameter of a smooth family of forms is a smooth form.** On an
-oriented, Hausdorff, σ-compact manifold `F`, let `β b` be an `m`-form on `F` for each `b` in an
-open subset `U` of a normed space `EB`, such that `(b, y) ↦ β b y` is a smooth section of the
-bundle of `m`-forms along `(b, y) ↦ y`. For `b ∈ U` and `a ∈ EB`, the `m`-form on `F` whose value
-at `y` is the derivative at `b`, in the direction `a`, of `b' ↦ β b' y` is smooth. -/
-theorem isSmoothForm_mfderiv_family_apply [T2Space F] [SigmaCompactSpace F]
-    (o : Manifold.Orientation J F (Fin m)) {β : U → RoughForm J F ℝ m}
-    (hβ : ContMDiff (𝓘(ℝ, EB).prod J) (J.prod 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)) ∞
-      (fun q : U × F ↦ TotalSpace.mk' (E [⋀^Fin m]→L[ℝ] ℝ)
-        (E := fun y : F ↦ TangentSpace J y [⋀^Fin m]→L[ℝ] Trivial F ℝ y) q.2 (β q.1 q.2)))
-    (b : U) (a : EB) :
-    IsSmoothForm J ∞ (fun y ↦ show E [⋀^Fin m]→L[ℝ] ℝ from
-      mfderiv 𝓘(ℝ, EB) 𝓘(ℝ, E [⋀^Fin m]→L[ℝ] ℝ)
-        (fun b' : U ↦ show E [⋀^Fin m]→L[ℝ] ℝ from β b' y) b a) := by
-  obtain ⟨g⟩ := nonempty_contMDiffRiemannianMetric (IB := J) (n := ⊤) (F := E)
-    (E := fun y : F ↦ TangentSpace J y)
-  let : RiemannianBundle (fun y : F ↦ TangentSpace J y) := ⟨g.toRiemannianMetric⟩
-  obtain ⟨c, hc, hβc⟩ := RoughForm.exists_contMDiffOn_opens_eq_smul_riemannianVolumeForm o hβ
-  -- At each `y`, the coefficient is `C^∞` jointly, near `(b, y)`.
-  have hcy (y : F) : ContMDiffAt (𝓘(ℝ, EB).prod J) 𝓘(ℝ) ∞ (uncurry c) ((b : EB), y) :=
-    hc.contMDiffAt ((U.isOpen.prod isOpen_univ).mem_nhds ⟨b.property, mem_univ y⟩)
-  rw [funext fun y ↦ mfderiv_family_apply_eq_fderiv_smul _
-    (((hcy y).comp (b : EB) (contMDiffAt_id.prodMk contMDiffAt_const)).mdifferentiableAt
-      (by simp)).differentiableAt (fun b' ↦ hβc b' y) a]
-  refine (isSmoothForm_riemannianVolumeForm o).fun_smul ?_
-  -- The derivative in the parameter of the coefficient is smooth in the fibre variable.
-  have hd : ContMDiff J 𝓘(ℝ, EB →L[ℝ] ℝ) ∞ fun y ↦ fderiv ℝ (fun z ↦ c z y) b := fun y ↦
-    ((hcy y).fderiv_left (n := ∞) (by simp)).comp y (contMDiffAt_const.prodMk contMDiffAt_id)
-  exact hd.clm_apply contMDiff_const
-
-variable [T2Space F] [CompactSpace F]
+variable [IsManifold J ∞ F] [T2Space F] [CompactSpace F]
 
 /-- **The derivative in the parameter passes under the integral.** On a compact Hausdorff
 manifold `F` with an orientation `o`, let `β b` be an `m`-form on `F` for each `b` in an open

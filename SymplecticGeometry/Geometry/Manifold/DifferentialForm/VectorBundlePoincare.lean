@@ -11,6 +11,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Homoto
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The relative Poincaré operator at the zero section, on fibrewise star-shaped sets, for families
@@ -187,9 +188,8 @@ theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection
   -- The slice of `Ω` at `t`, as a function, is the relative Poincaré operator of `η_t`.
   have hG (t : ℝ) : RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (fun v ↦ Ω.val (t, v) 0) =
       vectorBundlePoincareHomotopy (ηt t).val := by
-    have h := congrArg Subtype.val (hΩ t)
-    rw [SmoothForm.coe_mpullback, SmoothForm.coe_homotopyOperator,
-      SmoothForm.coe_mpullback] at h
+    have h := (SmoothForm.mpullback_eq_iff _).1 (hΩ t)
+    rw [SmoothForm.coe_homotopyOperator, SmoothForm.coe_mpullback] at h
     rw [vectorBundlePoincareHomotopy_def, ← h]
     funext v
     ext w

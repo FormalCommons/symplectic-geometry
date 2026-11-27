@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
 public import TauCeti.Geometry.Manifold.Submersion.Descent
 import Mathlib.Geometry.Manifold.Instances.Real
 import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.ConstantRank.Basic
 
 /-!
@@ -165,8 +166,8 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderiv
           𝓘(ℝ, F) ((A ∘L L) ∘ Subtype.val) u w := by
       rw [hcomp]
     rw [mfderiv_comp u hψu ((hf.mdifferentiableAt h0).comp u hsu),
-      mfderiv_comp u (hf.mdifferentiableAt h0) hsu, mfderiv_comp_subtype_val_apply,
-      (A ∘L L).mfderiv_eq] at h
+      mfderiv_comp u (hf.mdifferentiableAt h0) hsu, mfderiv_modelSpace_comp_subtype_val_apply,
+      (A ∘L L).fderiv] at h
     simp only [ContinuousLinearMap.comp_apply, hw, map_zero] at h
     exact h.symm
   -- In the coordinate `ψ`, `f ∘ s` is `A ∘ L`, which is injective.

@@ -13,9 +13,12 @@ on:
 # run that finds no build of main's: it looks for the build that an earlier
 # run for the same pull request kept, and downloads it. A run whose build
 # passed also hands over its build in the form of Lake's remote cache, as
-# the artifact `lake-cache`; the workflow cache-upload, which is not this
-# one and holds the key that this one must not have, puts it into a bucket.
-# Every run reads that bucket, which needs no key; see the step that does.
+# the artifact `lake-cache`, unless it is a pull request's run that got
+# nothing from the bucket but restored a save of main's (see the build
+# step); the workflow cache-upload,
+# which is not this one and holds the key that this one must not have, puts
+# it into a bucket. Every run reads that bucket, which needs no key; see the
+# step that does.
 permissions:
   contents: read
   actions: read
@@ -39,11 +42,13 @@ jobs:
       # branch, with the two commits that were merged, which the next step
       # compares. The depth is for the step that fetches from the bucket:
       # Lake looks for main's mappings at the commit that is checked out and
-      # then at the commits before it, and main's latest commits may have
-      # none yet.
+      # then at the commits before it, and main's latest commits have none
+      # yet: cache-upload's jobs wait for a runner like any other, at busy
+      # times for more than half an hour, in which main gains some dozens of
+      # commits.
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 20
+          fetch-depth: 100
       # A run for a pull request builds the merge of its branch with the base
       # branch as that is when the run starts. For a move of Tau Ceti this
       # costs much. No build of main's exists for the new dependencies, and
@@ -101,7 +106,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 20
+          fetch-depth: 100
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
       # but for Tau Ceti's rev; lean-toolchain, and every other package in
       # lake-manifest.json, must be as Tau Ceti has them at that commit. So a
@@ -273,9 +278,10 @@ jobs:
       # archives. With a commit's mappings in Lake's cache, the build below
       # takes from an archive every module whose source, imports, toolchain
       # and options are as the mappings have them, and compiles the others.
-      # Unlike a save of `.lake/build`, which is some commits behind main,
-      # the mappings of a commit of main are there a minute or two after the
-      # merge queue has built it. This step fetches mappings and archives
+      # The mappings of a commit of main are there once cache-upload has run
+      # for the merge queue's build of it: a minute or two after that build
+      # when a runner is free, more than half an hour at busy times. This
+      # step fetches mappings and archives
       # into Lake's cache. `lake cache get` takes the mappings of the commit
       # that is checked out or, if there are none, of the nearest commit
       # before it that has some, and Lake checks every archive against the
@@ -327,6 +333,7 @@ jobs:
       # step fails or finds nothing, the build goes on from main's saved
       # build alone, as before.
       - name: fetch the library's build from the bucket
+        id: bucket
         continue-on-error: true
         timeout-minutes: 15
         env:
@@ -346,6 +353,7 @@ jobs:
             log=$RUNNER_TEMP/lake-get-$name.log
             if timeout 5m lake cache get --package=SymplecticGeometry "$@" > "$log" 2>&1; then
               echo "$name: $(grep -c 'downloaded artifact' "$log") archives fetched, for $(grep -o 'revision [0-9a-f]*' "$log" | tail -n 1)"
+              echo "got=true" >> "$GITHUB_OUTPUT"
             else
               echo "$name: nothing taken: $(tail -n 1 "$log")"
             fi
@@ -374,30 +382,65 @@ jobs:
               rm -rf "$LAKE_CACHE_DIR/revisions"
             fi
           fi
-          get main --service=fc-queue --max-revs=20
+          get main --service=fc-queue --max-revs=100
       # --wfail fails the build on any warning, including a `sorry`.
       #
-      # The build keeps its outputs in Lake's cache as well as in
+      # With Lake's cache, the build keeps its outputs there as well as in
       # `.lake/build`, and `-o` writes its mappings: for each module, which
       # archive it builds to. The next two steps hand both to the workflow
       # cache-upload, which puts them into the bucket. This job holds no key
       # to the bucket; see cache-upload for why. Lake's cache is then on for
       # the dependencies' modules too, as it is in the agents' jobs.
+      #
+      # To write mappings, Lake packs an archive for every module that has
+      # none in its cache. After a fetch from the bucket those are the
+      # modules that the run compiled. Without one they are all of them,
+      # which takes a runner 5 to 7 minutes. Which runs build with Lake's
+      # cache:
+      #
+      # - A run of the merge queue, always. Its mappings are main's, and if
+      #   the bucket has fallen behind main by more than the fetch step
+      #   looks back, say because cache-upload did not run for some hours,
+      #   only such a run brings it back. Each run of the merge queue pays
+      #   the minutes until the first one's upload has reached the bucket,
+      #   which at busy times is more than half an hour; the runs after
+      #   that fetch.
+      # - A run for a pull request that got something from the bucket.
+      # - A run for a pull request that restored no save of main's, as the
+      #   runs of a move of Tau Ceti: what it hands over is what the merge
+      #   queue's run for that pull request reads. Its first run compiles
+      #   everything anyway. A later one that took the earlier run's build
+      #   but got nothing from the bucket, because that run's upload is
+      #   still waiting, packs every module too.
+      #
+      # Any other run for a pull request, one that got nothing from the
+      # bucket but restored a save of main's, builds as CI did before there
+      # was a bucket and hands nothing over: its mappings would gain little
+      # for the minutes.
       - name: build
         id: build
         env:
           LAKE_CONFIG: ${{ github.workspace }}/.github/lake-config.toml
-          LAKE_ARTIFACT_CACHE: 'true'
-          LAKE_RESTORE_ARTIFACTS: 'true'
           LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
-        run: lake build --wfail -o "$RUNNER_TEMP/lake-mappings.jsonl"
-      # After a build that passed, in a run for a branch of this repository.
-      # If either step fails, the run is as good as before: only the bucket
-      # goes without this run's work.
+          WITH_CACHE: ${{ github.event_name == 'merge_group' || steps.bucket.outputs.got == 'true' || steps.library.outputs.cache-matched-key == '' }}
+          GOT: ${{ steps.bucket.outputs.got }}
+        run: |
+          if [ "$WITH_CACHE" = true ]; then
+            [ "$GOT" = true ] || [ "$GITHUB_EVENT_NAME" != merge_group ] ||
+              echo "::warning::this run of the merge queue got nothing from the bucket, so it packs an archive for every module; if that goes on, see whether the workflow cache-upload runs"
+            echo "mappings=true" >> "$GITHUB_OUTPUT"
+            LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true lake build --wfail -o "$RUNNER_TEMP/lake-mappings.jsonl"
+          else
+            echo "nothing from the bucket: building from main's saved build alone, and handing nothing over"
+            lake build --wfail
+          fi
+      # After a build that passed with Lake's cache, in a run for a branch of
+      # this repository. If either step fails, the run is as good as before:
+      # only the bucket goes without this run's work.
       - name: stage the build for the bucket
         id: stage
         if: >-
-          steps.build.outcome == 'success' &&
+          steps.build.outcome == 'success' && steps.build.outputs.mappings == 'true' &&
           (github.event_name == 'merge_group' || github.event.pull_request.head.repo.full_name == github.repository)
         continue-on-error: true
         timeout-minutes: 10

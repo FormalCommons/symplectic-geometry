@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Topology
