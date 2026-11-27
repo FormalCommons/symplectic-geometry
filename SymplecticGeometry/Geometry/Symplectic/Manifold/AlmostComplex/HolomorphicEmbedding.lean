@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Level
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
@@ -36,6 +37,15 @@ commute with multiplication by `i`, and it is the complex derivative of `f`
 (`TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalars`,
 `TauCeti.SmoothEmbedding.coe_mfderiv_restrictScalarsProd`).
 
+When a complex valued `g : N → V` cuts out the image of such an embedding near a point `f x`,
+its real differential identifies the normal space at `x` with `V`
+(`TauCeti.SmoothEmbedding.normalSpaceEquivOfLevel`). If `g` is holomorphic at `f x`, this
+identification carries the complex structure that `N` induces on the normal space
+(`TauCeti.SmoothEmbedding.normalComplexStructureAt`) to multiplication by `i`: the normal
+complex structure is `[v] ↦ [i v]` (`TauCeti.SmoothEmbedding.normalComplexStructureAt_normalClass`),
+and the real differential of `g` commutes with `i`
+(`MDifferentiableAt.mfderiv_ofComplexManifold_apply`).
+
 ## Main results
 
 * `TauCeti.SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars`: the
@@ -43,6 +53,8 @@ commute with multiplication by `i`, and it is the complex derivative of `f`
   structure of the target.
 * `TauCeti.SmoothEmbedding.mapsTo_prod_ofComplexManifold_tangentRange_restrictScalarsProd`: the
   same for a holomorphic embedding into a product and the product almost complex structure.
+* `TauCeti.SmoothEmbedding.normalComplexStructureAt_normalSpaceEquivOfLevel_symm`: the normal
+  trivialization by the real differential of a holomorphic defining function is complex linear.
 * `TauCeti.SmoothEmbedding.restrict_ofComplexManifold`: the almost complex structure of the
   target restricts along the real form to that of the source.
 * `TauCeti.SmoothEmbedding.restrict_prod_ofComplexManifold`: the same for a holomorphic
@@ -95,6 +107,43 @@ theorem restrict_ofComplexManifold [CompleteSpace E] [IsManifold 𝓘(ℂ, E) �
     (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E') (f.restrictScalars ℝ hnm (by simp)) x v)
   rw [hJ, h, coe_mfderiv_restrictScalars]
   exact (mfderiv _ _ f x).map_smul Complex.I v
+
+section NormalSpaceEquivOfLevel
+
+variable {F H : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ F H} {P : Type*} [TopologicalSpace P] [ChartedSpace H P]
+  {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V]
+
+omit [IsManifold 𝓘(ℝ, E') n N] in
+/-- **The normal trivialization by a holomorphic defining function is complex linear.** Let `f`
+be an embedding into a complex manifold `N` whose tangent range at `x` is invariant under the
+complex structure of `N`, and let `g : N → V` be constant near `x` on the image of `f`, with
+onto real differential at `f x` and complementary dimension, so that its real differential
+induces an isomorphism `e` of the normal space at `x` with `V`
+(`TauCeti.SmoothEmbedding.normalSpaceEquivOfLevel`). If `g` is complex differentiable at `f x`,
+then the complex structure that `N` induces on the normal space sends `e⁻¹ z` to `e⁻¹ (i • z)`.
+This applies to the real form of a holomorphic embedding, by
+`TauCeti.SmoothEmbedding.mapsTo_ofComplexManifold_tangentRange_restrictScalars`. -/
+theorem normalComplexStructureAt_normalSpaceEquivOfLevel_symm
+    (f : SmoothEmbedding I 𝓘(ℝ, E') n P N) (hn₀ : n ≠ 0) (x : P)
+    (hJ : Set.MapsTo (ofComplexManifold E' N (f x)) (f.isImmersion.tangentRange x hn₀)
+      (f.isImmersion.tangentRange x hn₀))
+    {g : N → V} {c : V} (hgf : ∀ᶠ y in nhds x, g (f y) = c)
+    (hsurj : IsRegularPoint 𝓘(ℝ, E') 𝓘(ℝ, V) g (f x))
+    (hdim : Module.finrank ℝ F + Module.finrank ℝ V = Module.finrank ℝ E')
+    (hg : MDifferentiableAt 𝓘(ℂ, E') 𝓘(ℂ, V) g (f x)) (z : V) :
+    f.normalComplexStructureAt hn₀ (ofComplexManifold E' N) x hJ
+        ((f.normalSpaceEquivOfLevel x hn₀ hgf hsurj hdim).symm z) =
+      (f.normalSpaceEquivOfLevel x hn₀ hgf hsurj hdim).symm (Complex.I • z) := by
+  obtain ⟨w, rfl⟩ := (f.normalSpaceEquivOfLevel x hn₀ hgf hsurj hdim).surjective z
+  obtain ⟨v, rfl⟩ := f.isImmersion.normalClass_surjective x hn₀ w
+  rw [ContinuousLinearEquiv.symm_apply_apply, normalComplexStructureAt_normalClass,
+    ContinuousLinearEquiv.eq_symm_apply, normalSpaceEquivOfLevel_normalClass,
+    normalSpaceEquivOfLevel_normalClass, hg.mfderiv_ofComplexManifold_apply]
+  -- The structure of `V` as a complex manifold is multiplication by `i`.
+  exact ofComplexManifold_apply _ _
+
+end NormalSpaceEquivOfLevel
 
 variable {F' : Type*} [NormedAddCommGroup F'] [NormedSpace ℂ F'] [FiniteDimensional ℂ F']
   {N' : Type*} [TopologicalSpace N'] [ChartedSpace F' N'] [IsManifold 𝓘(ℂ, F') ∞ N']

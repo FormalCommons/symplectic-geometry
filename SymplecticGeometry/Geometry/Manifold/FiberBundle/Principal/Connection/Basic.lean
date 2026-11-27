@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -347,8 +348,7 @@ theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ
       (ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff.mp h.isSemibasic),
     fun h ↦ ⟨fun g ↦ ?_, ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff.mp h.isSemibasic⟩⟩
   rw [hAd]
-  apply Subtype.ext
-  rw [SmoothForm.coe_mpullback]
+  rw [SmoothForm.mpullback_eq_iff]
   exact h.mpullback_eq ManifoldTotalSpace.mdifferentiable_projContMDiffMap
     ((contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
     (PrincipalBundle.proj_comp_op_smul g)

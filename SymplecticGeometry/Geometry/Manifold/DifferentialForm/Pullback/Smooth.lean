@@ -237,8 +237,7 @@ theorem diffeomorphStabilizer_neg (σ : SmoothForm I M F k) :
 @[simp]
 theorem mpullback_const (c : M') (hc : ContMDiff I I' ∞ fun _ : M ↦ c)
     (φ : SmoothForm I' M' F (k + 1)) : mpullback (fun _ : M ↦ c) hc φ = 0 := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, TauCeti.mpullback_const k.succ_ne_zero, ZeroMemClass.coe_zero]
+  rw [mpullback_eq_iff, TauCeti.mpullback_const k.succ_ne_zero, ZeroMemClass.coe_zero]
 
 /-- The slice `x ↦ (x, p)` of the pullback of a smooth `(k + 1)`-form `β` on `M'` along the
 projection `M × M' → M'` is zero, since the projection is constant on the slice. -/

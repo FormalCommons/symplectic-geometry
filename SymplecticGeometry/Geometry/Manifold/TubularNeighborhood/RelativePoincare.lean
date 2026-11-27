@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Relative primitives near an embedded submanifold
@@ -128,8 +129,7 @@ theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedd
       SmoothForm.mpullback (f.codRestrict W hfW) (f.codRestrict W hfW).contMDiff ξ = β := by
   let βM := SmoothForm.mpullback ρ hρ β
   have hfβM : SmoothForm.mpullback f f.contMDiff βM = β := by
-    refine Subtype.ext ?_
-    rw [SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback, hρf, mpullback_id]
+    rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_eq_iff, hρf, mpullback_id]
   -- The closed forms `θ` and `d(ρ^* β)` have the same pullback `dβ` along `f`, so on a tube `W`
   -- their difference has a primitive `μ` vanishing along `f`.
   obtain ⟨W, -, hfW, μ, hdμ, hμ0, -⟩ := f.exists_smoothForm_relative_primitive_sub
@@ -145,9 +145,7 @@ theorem exists_mextDerivₗ_eq_and_mpullback_eq_of_leftInverse (f : SmoothEmbedd
   · rw [map_add, SmoothForm.mpullback_mpullback]
     simp only [f.val_comp_codRestrict W hf']
     rw [hfβM, add_eq_left]
-    refine Subtype.ext (funext fun x ↦ ?_)
-    rw [SmoothForm.coe_mpullback]
-    refine mpullback_apply_eq_zero ?_
+    refine (SmoothForm.mpullback_eq_iff _).2 (funext fun x ↦ mpullback_apply_eq_zero ?_)
     rw [show f.codRestrict W hf' x = ⟨f x, hf' x⟩ from Subtype.ext (f.val_codRestrict_apply ..),
       hμ0]
 
