@@ -81,8 +81,8 @@ band `f ⁻¹' Icc a (f x)` is compact, since `f` is proper, and the reversed fi
 `f` on it, so that `SymplecticGeometry.exists_forall_isMIntegralCurve_apply_lt` applies to the
 reversed orbit. It meets the level at most once by
 `IsMIntegralCurve.subsingleton_setOf_apply_eq`, again on the reversed orbit. The smoothness is
-the implicit function theorem at the regular level `a`, in the form of Tau Ceti's
-`TauCeti.contMDiffOn_flow_levelCrossingTime`, and not the continuity of
+the implicit function theorem at the regular level `a`, in the form of
+`TauCeti.contMDiffOn_levelCrossingTime` for the crossing time, and not the continuity of
 `Flow.levelCrossingTime` on a connecting set.
 
 For the kernel, Tau Ceti's `TauCeti.mfderiv_flowOf_comp_prodMk_apply` writes the derivative of
@@ -239,7 +239,7 @@ theorem mvfderiv_apply_pos_flow_levelCrossingTime
 `f ⁻¹' Ico a c`, the time `Flow.levelCrossingTime φ f a` at which the orbit of a point crosses the
 level `f ⁻¹' {a}`, for `φ` the flow, is smooth on `f ⁻¹' Ioo a c`.
 
-The proof uses the implicit function theorem at the regular level `a`, through Tau Ceti's
+The proof uses the implicit function theorem at the regular level `a`, through
 `TauCeti.contMDiffOn_levelCrossingTime`. -/
 theorem contMDiffOn_levelCrossingTime (hc : criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Ico a c = ∅) :
     ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) (⊤ : ℕ∞) (Flow.levelCrossingTime hW.flow f a)
