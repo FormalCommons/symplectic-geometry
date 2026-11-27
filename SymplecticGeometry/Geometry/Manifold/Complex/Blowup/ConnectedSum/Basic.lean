@@ -117,7 +117,10 @@ sum in the same way with `IsLocalDiffeomorph.diffeomorphOfBijective`.
   the maps of the punctured `M` and of the punctured projective space into the blowup. They
   factor (`connectedSumInl_eq_comp`, `connectedSumInr_eq_comp`) through
   `SymplecticGeometry.Blowup.connectedSumInlOpens c`, into `puncturedOpens c`, and
-  `SymplecticGeometry.Blowup.connectedSumInrModel c`, into `modelOpens c`.
+  `SymplecticGeometry.Blowup.connectedSumInrModel c`, into `modelOpens c`, which is
+  `SymplecticGeometry.Blowup.connectedSumInrOpens`, into `projectiveBlowupOpens n`, followed by
+  `projectiveBlowupModelDiffeomorph n` and the radial rescaling. Their values are given by
+  `coe_connectedSumInlOpens`, `coe_connectedSumInrOpens` and `coe_connectedSumInrModel`.
 * `SymplecticGeometry.Blowup.connectedSumDiffeomorph c`: the diffeomorphism from the connected sum
   of `M` and the projective space along the two balls onto the blowup, as real manifolds modelled
   on the Hermitian space, with `SymplecticGeometry.Blowup.coe_connectedSumDiffeomorph`,
@@ -978,6 +981,12 @@ def connectedSumInrOpens (y : puncture (EuclideanComplexProjectiveSpace.connecte
     projectiveBlowupOpens n :=
   ⟨_, EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens y⟩
 
+@[simp]
+theorem coe_connectedSumInrOpens
+    (y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    (connectedSumInrOpens y : ℙ ℂ (Fin (n + 2) → ℂ)) = (remodelHomeomorph _ _).symm y.val :=
+  (rfl)
+
 /-- The punctured projective space mapped into the open set `modelOpens c` of the model blowup:
 `connectedSumInrOpens`, then `projectiveBlowupModelDiffeomorph n`, then the radial rescaling. -/
 def connectedSumInrModel (y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
@@ -985,7 +994,14 @@ def connectedSumInrModel (y : puncture (EuclideanComplexProjectiveSpace.connecte
   ⟨BlowupModel.radialRescale c.ballRadius (projectiveBlowupModelDiffeomorph n
     (connectedSumInrOpens y)), BlowupModel.radialRescale_ballRadius_mem_modelOpens c _⟩
 
-theorem coe_connectedSumInrModel :
+@[simp]
+theorem coe_connectedSumInrModel
+    (y : puncture (EuclideanComplexProjectiveSpace.connectedSumBall n)) :
+    (connectedSumInrModel c y : BlowupModel n) = BlowupModel.radialRescale c.ballRadius
+      (projectiveBlowupModelDiffeomorph n (connectedSumInrOpens y)) :=
+  (rfl)
+
+theorem val_comp_connectedSumInrModel :
     Subtype.val ∘ connectedSumInrModel c = BlowupModel.radialRescale c.ballRadius ∘
       projectiveBlowupModelDiffeomorph n ∘ connectedSumInrOpens :=
   (rfl)
@@ -1027,6 +1043,11 @@ space, as a point of the open set `puncturedOpens c` of `M`. -/
 def connectedSumInlOpens (x : puncture c.connectedSumBall) : puncturedOpens c :=
   ⟨_, symm_coe_mem_puncturedOpens c x⟩
 
+@[simp]
+theorem coe_connectedSumInlOpens (x : puncture c.connectedSumBall) :
+    (connectedSumInlOpens c x : M) = (remodelHomeomorph _ M).symm x.val :=
+  (rfl)
+
 theorem connectedSumInl_eq_comp :
     connectedSumInl c = remodelHomeomorph _ _ ∘ inl (gluingHomeomorph c) ∘ connectedSumInlOpens c :=
   (rfl)
@@ -1043,7 +1064,7 @@ theorem isLocalDiffeomorph_connectedSumInlOpens :
   have hmaps : MapsTo R.symm (puncture c.connectedSumBall) (puncturedOpens c) :=
     fun x hx ↦ by simpa [R] using symm_coe_mem_puncturedOpens c ⟨x, hx⟩
   have hF : connectedSumInlOpens c = hmaps.restrict _ _ _ :=
-    funext fun x ↦ Subtype.ext (by simp [R, connectedSumInlOpens])
+    funext fun x ↦ Subtype.ext (by simp [R])
   exact hF ▸ (R.symm.isLocalDiffeomorph.isLocalDiffeomorphOn _).mapsToRestrict hmaps
 
 omit [T2Space M] in
@@ -1057,7 +1078,7 @@ theorem isLocalDiffeomorph_connectedSumInrOpens :
       (projectiveBlowupOpens n) := fun y hy ↦ by
     simpa [R] using EuclideanComplexProjectiveSpace.symm_coe_mem_projectiveBlowupOpens ⟨y, hy⟩
   have hF : connectedSumInrOpens = hmaps.restrict _ _ _ :=
-    funext fun y ↦ Subtype.ext (by simp [R, connectedSumInrOpens])
+    funext fun y ↦ Subtype.ext (by simp [R])
   exact hF ▸ (R.symm.isLocalDiffeomorph.isLocalDiffeomorphOn _).mapsToRestrict hmaps
 
 omit [T2Space M] in
@@ -1066,7 +1087,7 @@ manifolds. -/
 theorem isLocalDiffeomorph_connectedSumInrModel :
     IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℂ (Fin (n + 1))) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞
       (connectedSumInrModel c) :=
-  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <| coe_connectedSumInrModel c ▸ fun y ↦
+  TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <| val_comp_connectedSumInrModel c ▸ fun y ↦
     (((isLocalDiffeomorph_connectedSumInrOpens y).restrictScalars ℝ).comp
       (hg := (projectiveBlowupModelDiffeomorph n).isLocalDiffeomorph _)).comp
       (hg := BlowupModel.isLocalDiffeomorph_radialRescale c.ballRadius_pos _)

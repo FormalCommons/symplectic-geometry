@@ -386,7 +386,7 @@ theorem isOrientationPreservingAt_connectedSumInr
       ← Manifold.Orientation.isOrientationPreservingAt_neg_right,
       ← Manifold.Orientation.restrict_neg,
       Manifold.Orientation.isOrientationPreservingAt_restrict_iff,
-      Manifold.Orientation.isOrientationPreservingAt_neg_right, coe_connectedSumInrModel]
+      Manifold.Orientation.isOrientationPreservingAt_neg_right, val_comp_connectedSumInrModel]
     exact (BlowupModel.isOrientationPreservingAt_radialRescale c.ballRadius_pos _).comp_reversing
       ((isOrientationReversingAt_projectiveBlowupModelDiffeomorph _).comp_preserving
         ((isLocalDiffeomorph_connectedSumInrOpens y
