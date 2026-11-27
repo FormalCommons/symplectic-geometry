@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 import Mathlib.Topology.MetricSpace.Thickening
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.Calculus.FDeriv.Prod
@@ -296,9 +297,7 @@ theorem iteratedDeriv_two_sub_const_add_pow_three_div_sub_one_div_sub_const {c :
     (hχ : χ r ≠ 0) (hc : χ r - c ≠ 0) :
     iteratedDeriv 2 (fun r ↦ χ r - c) r + deriv (fun r ↦ χ r - c) r ^ 3 / r - 1 / (χ r - c) =
       iteratedDeriv 2 χ r + deriv χ r ^ 3 / r - 1 / χ r - c / (χ r * (χ r - c)) := by
-  have h₂ : iteratedDeriv 2 (fun r ↦ χ r - c) r = iteratedDeriv 2 χ r := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero, deriv_sub_const_fun]
-  rw [h₂, deriv_sub_const]
+  rw [iteratedDeriv_sub_const two_pos, deriv_sub_const]
   field_simp
   ring
 
@@ -316,12 +315,10 @@ theorem add_const {c : ℝ} (hc : 0 ≤ c) (h : IsConvexShapeAt χ r) :
     IsConvexShapeAt (fun r ↦ χ r + c) r := by
   have hχ := h.pos_value
   have hle : 1 / (χ r + c) ≤ 1 / χ r := one_div_le_one_div_of_le hχ (by linarith)
-  have h₂ : iteratedDeriv 2 (fun r ↦ χ r + c) r = iteratedDeriv 2 χ r := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero, deriv_add_const']
   refine isConvexShapeAt_iff.2 ⟨h.pos, by linarith, ?_, ?_⟩
   · rw [deriv_add_const]
     exact hle.trans_lt h.one_div_lt_deriv_div
-  · rw [deriv_add_const, h₂]
+  · rw [deriv_add_const, iteratedDeriv_add_const two_pos]
     exact hle.trans_lt h.one_div_lt_iteratedDeriv_add
 
 /-- A shape stays `i`-convex when it is lowered a little: `χ - c` is an `i`-convex shape at `r`

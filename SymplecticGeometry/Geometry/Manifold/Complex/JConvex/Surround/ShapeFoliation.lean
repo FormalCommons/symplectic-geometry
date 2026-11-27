@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
@@ -52,7 +53,7 @@ The file also gives one step of a weakly increasing chain of shapes:
   (`SymplecticGeometry.monotone_smoothedMaxPath`, so `Monotone.deriv_nonneg` makes its
   `σ`-derivative nonnegative), since `smoothedMax` is monotone in its second
   argument and `ρ` is monotone (`TauCeti.monotone_collaredSmoothTransition`). It consists of
-  `i`-convex shapes where `M` and the `A - c`, `c ∈ [0, η]`, are and `δ (M' + A') ≤ 2 r`
+  `i`-convex shapes where `M` and `A - η` are and `δ (M' + A') ≤ 2 r`
   (`SymplecticGeometry.isConvexShapeAt_smoothedMaxPath`, from
   `SymplecticGeometry.isConvexShapeAt_smoothedMax`), with margins at least the smaller of those
   of `M` and of `A - η` (`SymplecticGeometry.min_le_deriv_smoothedMaxPath_div_sub_one_div`,
@@ -460,16 +461,19 @@ theorem exists_mem_Icc_smoothedMaxPath_eq (hη : 0 ≤ η) (σ : ℝ) :
   ⟨_, one_sub_collaredSmoothTransition_mul_mem_Icc hη σ,
     funext fun r ↦ smoothedMaxPath_def δ η M A σ r⟩
 
-/-- The path consists of `i`-convex shapes at `r` if `M` and every `A - c`, `c ∈ [0, η]`, are
-`C²` and `i`-convex shapes at `r`, and `δ (M' r + A' r) ≤ 2 r`. -/
+/-- For `η ≥ 0`, the path consists of `i`-convex shapes at `r` if `M` and `A` are `C²`, `M` and
+`A - η` are `i`-convex shapes at `r`, and `δ (M' r + A' r) ≤ 2 r`. -/
 theorem isConvexShapeAt_smoothedMaxPath (hδ : 0 < δ) (hη : 0 ≤ η) (hM : ContDiff ℝ 2 M)
     (hA : ContDiff ℝ 2 A) (hcM : IsConvexShapeAt M r)
-    (hcA : ∀ c ∈ Icc 0 η, IsConvexShapeAt (fun r ↦ A r - c) r)
+    (hcA : IsConvexShapeAt (fun r ↦ A r - η) r)
     (hδr : δ * (deriv M r + deriv A r) ≤ 2 * r) (σ : ℝ) :
     IsConvexShapeAt (smoothedMaxPath δ η M A σ) r := by
   obtain ⟨c, hc, he⟩ := exists_mem_Icc_smoothedMaxPath_eq (δ := δ) (M := M) (A := A) hη σ
   rw [he]
-  exact isConvexShapeAt_smoothedMax hM (hA.sub contDiff_const) hδ hcM (hcA c hc)
+  have hAc : IsConvexShapeAt (fun r ↦ A r - c) r := by
+    convert hcA.add_const (c := η - c) (by linarith [hc.2]) using 2
+    ring
+  exact isConvexShapeAt_smoothedMax hM (hA.sub contDiff_const) hδ hcM hAc
     (by rwa [deriv_sub_const])
 
 /-- **The path keeps the smaller margin in (4.3).** For `δ > 0`, `0 ≤ η < A r`, `M r > 0` and
@@ -506,9 +510,7 @@ theorem min_le_iteratedDeriv_two_smoothedMaxPath_add_pow_three_div_sub_one_div (
   have hAc : 0 < A r - c := by linarith
   have h := min_le_iteratedDeriv_two_smoothedMax_add_pow_three_div_sub_one_div hM
     (hA.sub contDiff_const) hδ hr hM₀ hAc hMd (by rwa [deriv_sub_const]) (by rwa [deriv_sub_const])
-  have h₂ : iteratedDeriv 2 (fun r ↦ A r - c) r = iteratedDeriv 2 A r := by
-    simp only [iteratedDeriv_succ, iteratedDeriv_zero, deriv_sub_const_fun]
-  rw [deriv_sub_const, h₂] at h
+  rw [deriv_sub_const, iteratedDeriv_sub_const two_pos] at h
   have hb : 1 / (A r - c) ≤ 1 / (A r - η) := one_div_le_one_div_of_le (by linarith) (by linarith)
   rw [he]
   exact (min_le_min_left _ (by linarith)).trans h
