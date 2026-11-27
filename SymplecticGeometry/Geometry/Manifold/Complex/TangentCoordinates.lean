@@ -13,7 +13,7 @@ import TauCeti.Geometry.Manifold.ModelWithCorners.RestrictScalars.Tangent.CoordC
 /-!
 # Tangent coordinates on a complex manifold
 
-On a complex manifold `M` modelled on `E`, viewed as a real manifold, the changes of tangent
+Regard a complex manifold `M`, with model space `E`, also as a real one. Its changes of tangent
 coordinates are differentials of holomorphic chart transitions: the real ones agree with the
 complex ones (Tau Ceti's `TauCeti.tangentCoordChange_modelWithCornersSelf_restrictScalars_apply`),
 so they are complex linear. This file records a consequence for reading families of maps into
