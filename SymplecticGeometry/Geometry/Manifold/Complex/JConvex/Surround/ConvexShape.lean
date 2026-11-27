@@ -409,7 +409,7 @@ theorem exists_isConvexShapeAt_eq_max {χ₁ χ₂ : ℝ → ℝ} {r₁ r₂ : �
   -- A lower bound `β` for `|χ₁ - χ₂|` on `[r₁, r₂]` outside `O`.
   obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
     h₁.continuous.continuousOn h₂.continuous.continuousOn
-    (nhdsSet_mono inter_subset_right hO)
+    (nhdsSet_mono Set.inter_subset_right hO)
   set δ := min δ₀ β
   have hδ : 0 < δ := lt_min hδ₀ hβ
   refine ⟨fun r ↦ smoothedMax δ (χ₁ r) (χ₂ r), fun n hn₁ hn₂ ↦
@@ -1081,7 +1081,7 @@ theorem exists_isConvexShapeOverRAt_eq_min {ρ₁ ρ₂ : ℝ → ℝ} {R₁ R�
   -- A lower bound `β` for `|ρ₁ - ρ₂|` on `[R₁, R₂]` outside `O`.
   obtain ⟨β, hβ, hβD⟩ := isCompact_Icc.exists_pos_forall_le_abs_sub_of_mem_nhdsSet
     h₁.continuous.continuousOn h₂.continuous.continuousOn
-    (nhdsSet_mono inter_subset_right hO)
+    (nhdsSet_mono Set.inter_subset_right hO)
   set δ := min (min δ₀ β) μ
   have hδ : 0 < δ := lt_min (lt_min hδ₀ hβ) hμ
   refine ⟨fun R ↦ -smoothedMax δ (-ρ₁ R) (-ρ₂ R), fun n hn₁ hn₂ ↦
