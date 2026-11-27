@@ -196,9 +196,7 @@ the source of the transition from the chart at `y` to the chart at `x`. -/
 theorem zero_mem_chartTransition_source {k : ℕ} (hk : k₀ ≤ k) {x y : M}
     (hy : y ∈ (D.chart k x).source) : 0 ∈ (D.chartTransition k x y).source := by
   rw [mem_chartTransition_source_iff, D.chart_symm_zero hk]
-  refine ⟨?_, hy⟩
-  rw [← D.apply_self hk y]
-  exact (D.chart k y).map_source (D.mem_source hk y)
+  exact ⟨D.zero_mem_chart_target hk y, hy⟩
 
 /-- The transition from the chart centred at `y` to the chart centred at `x` sends `0` to the
 image of `y` in the chart at `x`. -/
@@ -794,7 +792,7 @@ theorem exists_forall_norm_iteratedFDeriv_chartTransition_zero_le [I.Boundaryles
   have h0 : (0 : StdSpace ι) ∈ ball (0 : StdSpace ι) (ρ₀ * √k) :=
     mem_ball_self (pos_of_mem_ball hz₀)
   have hzt : z ∈ (D.chart k x).target := D.ball_subset_target hk x hz₀
-  have h0t : (0 : StdSpace ι) ∈ (D.chart k y).target := D.ball_subset_target hk y h0
+  have h0t : (0 : StdSpace ι) ∈ (D.chart k y).target := D.zero_mem_chart_target hk y
   have h0s : (0 : StdSpace ι) ∈ (D.chartTransition k x y).source :=
     D.zero_mem_chartTransition_source hk ((D.chart k x).map_target hzt)
   have hτ0 : D.chartTransition k x y 0 = z := D.chartTransition_symm_zero hk hzt
