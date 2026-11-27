@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.D
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalCap
 public import TauCeti.AlgebraicTopology.Cohomology.Cap.Relative
 public import TauCeti.CategoryTheory.Monoidal.Preadditive
-import Mathlib.Analysis.Normed.Module.Connected
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.ZeroDimChart
 import SymplecticGeometry.Topology.VectorBundle.Thom.FundamentalClass
@@ -41,8 +40,9 @@ push-forward along `π` of a cap product, that image is computed from the local 
 `OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`), this gives the pointwise
 criterion
 `HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`
-(`Topology/VectorBundle/Thom/FundamentalClass.lean`). At each `z`, on a small ball about `0`
-in that chart:
+(`Topology/VectorBundle/Thom/FundamentalClass.lean`), and its form
+`HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_nhds` checks it on an open
+contractible set `S ∋ 0` of that chart whose image lies over a trivializing set. On such an `S`:
 
 * `DualClass/LocalClass.lean` reads the local class of `μ_Φ` in the chart of the total space as a
   cross product, normal factor first, of the local orientation of the normal fibre with that of
@@ -128,19 +128,16 @@ theorem map_proj_singularCap_tubeFundamentalClass
   have : T2Space Z := f.isEmbedding.t2Space
   have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
     Φ.toHomeomorph.isEmbedding.t1Space
-  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
-    (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
-      (mem_baseSet_trivializationAt P _ z))
-  have := Metric.contractibleSpace_ball (x := (0 : E)) hε
+  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_nhds (I := I) _ hE
+    _ _ _ (fun z ↦ (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
+      |>.mem_nhds (mem_baseSet_trivializationAt P _ z)) fun z S _ hS hSc hSe h0 ↦ ?_
   rw [Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation hE oZ z]
   exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation
-    _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
-    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
+    _ rfl hP (trivializationAt P _ z) hS hSc hSe
+    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0
     _ _ _
     (localChartLocalHomologyIso_inv_tubeFundamentalClass Φ hK z hΦ hE hP hV oX oZ
-      Metric.isOpen_ball hSc hSe (Metric.mem_ball_self hε))
+      hS hSc hSe h0)
 
 /-- **The projection carries the cap product of the Thom class with the tube's class to the
 fundamental class of the submanifold**, in codimension zero. In the setting of
@@ -168,19 +165,16 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_fiber_eq_zero
   have : T2Space Z := f.isEmbedding.t2Space
   have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
     Φ.toHomeomorph.isEmbedding.t1Space
-  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
-    (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
-      (mem_baseSet_trivializationAt P _ z))
-  have := Metric.contractibleSpace_ball (x := (0 : E)) hε
+  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_nhds (I := I) _ hE
+    _ _ _ (fun z ↦ (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
+      |>.mem_nhds (mem_baseSet_trivializationAt P _ z)) fun z S _ hS hSc hSe h0 ↦ ?_
   rw [Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation hE oZ z]
   exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero
-    _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
-    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
+    _ rfl hP (trivializationAt P _ z) hS hSc hSe
+    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0
     _ _ _
     (localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_fiber_eq_zero Φ hK z hΦ hE hP
-      hV oX oZ Metric.isOpen_ball hSc hSe (Metric.mem_ball_self hε))
+      hV oX oZ hS hSc hSe h0)
 
 /-- **The projection carries the cap product of the Thom class with the tube's class to the
 fundamental class of the submanifold**, for `Z` of dimension zero. In the setting of
@@ -209,20 +203,17 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_eq_zero
   have : T2Space Z := f.isEmbedding.t2Space
   have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
     Φ.toHomeomorph.isEmbedding.t1Space
-  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
-    (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
-      (mem_baseSet_trivializationAt P _ z))
-  have := Metric.contractibleSpace_ball (x := (0 : E)) hε
+  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_nhds (I := I) _ hE
+    _ _ _ (fun z ↦ (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
+      |>.mem_nhds (mem_baseSet_trivializationAt P _ z)) fun z S _ hS hSc hSe h0 ↦ ?_
   rw [Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim oZ
       (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z)]
   exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation
-    _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
-    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
+    _ rfl hP (trivializationAt P _ z) hS hSc hSe
+    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0
     _ _ _
     (localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero Φ hK z hΦ hE hP hV oX
-      oZ Metric.isOpen_ball hSc hSe (Metric.mem_ball_self hε))
+      oZ hS hSc hSe h0)
 
 omit [J.Boundaryless] in
 /-- **The projection carries the cap product of the Thom class with the tube's class to the
@@ -254,20 +245,17 @@ theorem
   have : T2Space Z := f.isEmbedding.t2Space
   have : T1Space (TotalSpace P fun x ↦ f.isImmersion.NormalSpace x hn) :=
     Φ.toHomeomorph.isEmbedding.t1Space
-  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt
-    (I := I) _ hE _ _ _ fun z ↦ ?_
-  obtain ⟨ε, hε, hSc, hSe⟩ := exists_ball_mapsTo_centeredExtChartAt_symm I z
-    ((trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet.mem_nhds
-      (mem_baseSet_trivializationAt P _ z))
-  have := Metric.contractibleSpace_ball (x := (0 : E)) hε
+  refine HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_nhds (I := I) _ hE
+    _ _ _ (fun z ↦ (trivializationAt P (fun x ↦ f.isImmersion.NormalSpace x hn) z).open_baseSet
+      |>.mem_nhds (mem_baseSet_trivializationAt P _ z)) fun z S _ hS hSc hSe h0 ↦ ?_
   rw [Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim oZ
       (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z)]
   exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero
-    _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
-    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
+    _ rfl hP (trivializationAt P _ z) hS hSc hSe
+    (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) h0
     _ _ _
     (localChartLocalHomologyIso_inv_tubeFundamentalClass_of_finrank_eq_zero_of_finrank_fiber_eq_zero
-      Φ hK z hΦ hE hP oX oZ Metric.isOpen_ball hSc hSe (Metric.mem_ball_self hε))
+      Φ hK z hΦ hE hP oX oZ hS hSc hSe h0)
 
 end TauCeti.SmoothEmbedding
 

@@ -231,11 +231,10 @@ def blowupChart : BlowupChart (n := n) M p₀ where
       IsSymplecticBallEmbedding.complexPartialDiffeomorph_target]
     exact ⟨0, mem_ball_self hN.pos, hN.map_zero⟩
   map_center := by
-    have hp := congrFun hN.isSymplecticBallEmbedding.coe_complexPartialDiffeomorph 0
-    rw [Function.comp_apply, _root_.map_zero, hN.map_zero,
-      ← PartialDiffeomorph.toFun'_toOpenPartialHomeomorph] at hp
-    exact (congrArg _ hp.symm).trans (OpenPartialHomeomorph.left_inv _
-      (by simpa using hN.pos))
+    have h0 := IsSymplecticBallEmbedding.complexPartialDiffeomorph_symm_apply_complexToRealEuclidean
+      hN.isSymplecticBallEmbedding (w := 0) (by simpa using hN.pos)
+    rwa [_root_.map_zero, hN.map_zero,
+      ← PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm] at h0
 
 /-- The underlying open partial homeomorphism of the blowup chart is the inverse of
 `ψ₀ ∘ complexToRealEuclidean (Fin (n + 1))` on the open ball. -/
@@ -426,12 +425,10 @@ theorem apply_ne_center {z : StdSpace (Fin (n + 1))} (hz : z ∈ closedBall 0 r)
 theorem blowupChart_apply {w : Fin (n + 1) → ℂ}
     (hw : ‖complexToRealEuclidean (Fin (n + 1)) w‖ < ε) :
     hN.blowupChart (ψ (complexToRealEuclidean (Fin (n + 1)) w)) = w := by
-  have hwt : w ∈ hN.blowupChart.target := by
-    rw [hN.blowupChart_target, mem_preimage, mem_ball_zero_iff]
-    exact hw.trans hψ.width_lt
-  rw [hψ.eqOn (mem_closedBall_zero_iff.2 hw.le), ← Function.comp_apply (f := ψ₀),
-    ← hN.coe_blowupChart_symm]
-  exact hN.blowupChart.right_inv hwt
+  rw [hψ.eqOn (mem_closedBall_zero_iff.2 hw.le), hN.blowupChart_toOpenPartialHomeomorph,
+    PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm]
+  exact hN.isSymplecticBallEmbedding.complexPartialDiffeomorph_symm_apply_complexToRealEuclidean
+    (hw.trans hψ.width_lt)
 
 /-- On the preimage of the open ball of radius `ε`, `ψ ∘ complexToRealEuclidean (Fin (n + 1))`
 takes values in the source of the blowup chart. -/

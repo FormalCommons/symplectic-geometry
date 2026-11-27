@@ -14,8 +14,9 @@ public import TauCeti.Topology.VectorBundle.EulerClass
 For a bundle `E → B` and a point `b` of the base, every nonzero vector differs from the point
 `0_b` of the zero section, so the identity of the total space is a map of pairs from the Thom
 pair `(E, E₀)` to `(E, E ∖ 0_b)`. The induced map
-`TauCeti.thomPairLocalHomologyRestriction : Hₖ(E, E₀) ⟶ Hₖ(E, E ∖ 0_b)` takes a class of the Thom
-pair to its local class at `0_b`, an element of the local homology of the total space at `0_b`.
+`SymplecticGeometry.thomPairLocalHomologyRestriction : Hₖ(E, E₀) ⟶ Hₖ(E, E ∖ 0_b)` takes a
+class of the Thom pair to its local class at `0_b`, an element of the local homology of the total
+space at `0_b`.
 
 Tau Ceti's `TauCeti.localHomologyRestriction` restricts local homology along an inclusion of
 sets, but the Thom pair is not written as the local homology along the zero section (its second
@@ -23,18 +24,21 @@ space is `zeroSectionCompl`, not the complement of a set), so this map is define
 
 ## Main definitions
 
-* `TauCeti.thomPairLocalHomologyRestriction`: the map from the homology of the Thom pair to the
-  local homology of the total space at `0_b`, unfolded by
-  `TauCeti.thomPairLocalHomologyRestriction_def`.
+* `SymplecticGeometry.thomPairLocalHomologyRestriction`: the map from the homology of the Thom
+  pair to the local homology of the total space at `0_b`, unfolded by
+  `SymplecticGeometry.thomPairLocalHomologyRestriction_def`.
 
 ## Main results
 
+* `TauCeti.zeroSectionCompl_subset_compl_singleton_zeroSection`: the nonzero vectors lie off
+  `0_b`.
 * `Bundle.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
   of `0_b`.
-* `TauCeti.singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction`: reading a class of
-  the Thom pair relative to `E ∖ 0 ∪ E ∖ E_b` factors through its local class at `0_b`, since
-  that set is the complement of `0_b`
-  (`Bundle.zeroSectionCompl_union_compl_preimage_singleton`).
+* `SymplecticGeometry.thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap`:
+  for a set `S` containing the complement of `0_b`, reading a class of the Thom pair relative to
+  `S` factors through its local class at `0_b`. With `S = E ∖ 0 ∪ E ∖ E_b`
+  (`Bundle.zeroSectionCompl_union_compl_preimage_singleton`), this reads a class of the Thom pair
+  near the fibre over `b`.
 
 ## References
 
@@ -82,6 +86,10 @@ theorem zeroSectionCompl_subset_compl_singleton_zeroSection {B : Type*} (F : Typ
   rw [zeroSectionCompl_eq_compl_range]
   exact compl_subset_compl.2 (singleton_subset_iff.2 (mem_range_self b))
 
+end TauCeti
+
+namespace SymplecticGeometry
+
 variable {A : Type u} [Category.{v} A] [HasCoproducts.{w} A] [Abelian A] (R : A)
   {B : Type w} (F : Type*) (E : B → Type w) [∀ b, Zero (E b)] [TopologicalSpace (TotalSpace F E)]
 
@@ -101,31 +109,19 @@ theorem thomPairLocalHomologyRestriction_def (b : B) (k : ℕ) :
         (zeroSectionCompl_subset_compl_singleton_zeroSection F E b)) R k :=
   (rfl)
 
-section
-
-variable {B : Type} [TopologicalSpace B] {F : Type} [TopologicalSpace F] {E : B → Type}
-  [∀ b, Zero (E b)] [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
-  [FiberBundle F E]
-
-/-- Reading a class of the Thom pair `Hₖ(E, E ∖ 0)` relative to `E ∖ 0 ∪ E ∖ E_b` is reading its
-local class at `0_b` (`thomPairLocalHomologyRestriction`) relative to that set, since that set is
-the complement of `0_b`. -/
-theorem singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction (R : ModuleCat.{0} ℤ)
-    (b : B) (k : ℕ) (γ : ((thomPair F E).singularHomology R k : ModuleCat.{0} ℤ)) :
-    TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-        (zeroSectionCompl_union_compl_preimage_singleton (P := F) b).superset hv) R k
-        ((thomPairLocalHomologyRestriction R F E b k).hom γ) =
+/-- For a set `S` containing every point other than `0_b`, reading a class of the Thom pair
+relative to `S` is reading its local class at `0_b` (`thomPairLocalHomologyRestriction`)
+relative to `S`: both are induced by the identity of the total space. -/
+theorem thomPairLocalHomologyRestriction_comp_singularHomologyMap_ofSubsetMap (b : B) (k : ℕ)
+    {S : Set (TopCat.of (TotalSpace F E))} (hS : {zeroSection F E b}ᶜ ⊆ S) :
+    thomPairLocalHomologyRestriction R F E b k ≫
+        TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) hS) R k =
       TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of (TotalSpace F E)))
-        (B := zeroSectionCompl F E)
-        (B' := zeroSectionCompl F E ∪ TopCat.ofHom ⟨π F E, FiberBundle.continuous_proj F E⟩ ⁻¹'
-          ({b}ᶜ : Set (TopCat.of B))) fun _ hx ↦ Or.inl hx) R k γ := by
-  rw [thomPairLocalHomologyRestriction_def, ← ConcreteCategory.comp_apply,
-    ← TopPair.singularHomologyMap_comp]
-  exact congrArg (fun g ↦ TopPair.singularHomologyMap g R k γ)
+        ((zeroSectionCompl_subset_compl_singleton_zeroSection F E b).trans hS)) R k := by
+  rw [thomPairLocalHomologyRestriction_def, ← TopPair.singularHomologyMap_comp]
+  exact congrArg (fun g ↦ TopPair.singularHomologyMap g R k)
     (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ (Category.comp_id _))
 
-end
-
-end TauCeti
+end SymplecticGeometry
 
 end

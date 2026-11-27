@@ -28,7 +28,7 @@ builds the reduced space `Q / G` and compares it with `P / G`.
 * `orbitLevelQuotientDiffeomorph`, `orbitLevelQuotientDiffeomorph_mk`: the graph descends to a
   diffeomorphism `Q / G ≃ P / G` (Tau Ceti's `ProperSMul.orbitRelQuotientDiffeomorph`).
 * `mpullback_orbitLevelGraph_prod`: the product form pulls back along the graph to
-  `i^* σ + (orbitLevelProj)^* ω_O`, by `TauCeti.SmoothTwoForm.prod_def`.
+  `i^* σ + (orbitLevelProj)^* ω_O`, by `TauCeti.SmoothTwoForm.mpullback_prod`.
 * `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel_eq_mpullback_add_mpullback`: `Q / G`
   carries a unique symplectic form `ω_red` with `π^* ω_red = i^* σ + (orbitLevelProj)^* ω_O`. It is
   the pullback along the diffeomorphism of the reduced form of `P / G`, and
@@ -120,8 +120,7 @@ theorem mpullback_orbitLevelGraph_prod :
   let := h.zeroLevelProdChartedSpace hσ hfree hm
   have := h.isManifold_orbitLevel hemb hσ hfree hm
   have := h.isManifold_zeroLevelProd hσ hfree hm
-  refine (congrArg (SmoothForm.mpullback _ _) (prod_def σ η.coadjointOrbitForm)).trans ?_
-  rw [map_add, SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback]
+  rw [SmoothTwoForm.mpullback_prod]
   simp only [Function.comp_def, coe_orbitLevelGraph]
 
 /-! ### The quotients by `G` -/
