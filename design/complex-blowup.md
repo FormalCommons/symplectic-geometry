@@ -481,14 +481,15 @@ is not), with its complex orientation carried along.
   `EuclideanSpace ℂ (Fin (n + 1))`. `e₁` preserves the orientation of `M`,
   and `e₂`, being holomorphic, reverses that of $\overline{\mathbb CP}{}^n$,
   as Tau Ceti's `nonempty_diffeomorph_of_isOrientationReversingAt` asks.
-- **Milestone, second statement** `Blowup.nonempty_orientationPreserving_diffeomorph_connectedSum`:
+- **Milestone, second statement** `Blowup.nonempty_orientationPreserving_diffeomorph_connectedSum`
+  (in `ConnectedSum/Orientation.lean`):
   `Blowup c`, re-modelled likewise, is diffeomorphic to
   `TauCeti.OrientedConnectedSum` of `M` and
   $\overline{\mathbb CP}{}^n$ by an orientation-preserving diffeomorphism,
   composing `connectedSumDiffeomorph` with *Connected sums*' orientation
   preserving independence (`ConnectedSum/OrientationPreserving.lean`).
-  Hypotheses: `M` connected, Hausdorff, second countable, as Tau Ceti's
-  connected sum needs.
+  Hypotheses: `M` connected and Hausdorff, as Tau Ceti's connected sum
+  needs.
 
 ### `Blowup/ExceptionalClass.lean`
 
