@@ -9,9 +9,9 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Complex.OperatorNorm
-import TauCeti.Analysis.Calculus.IteratedFDeriv.CompLinear
-import TauCeti.Analysis.PDE.HeatKernel.Bounds
-import TauCeti.Analysis.InnerProductSpace.NormPow
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # Cut-off Gaussians and their uniform jet bounds
@@ -45,8 +45,6 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   on the closed unit ball, for `k ≥ 1`.
 * `SymplecticGeometry.exists_jetNormAt_peakCutoff_norm_div_le`: the jet norms of the cut-offs
   `z ↦ χ (‖z‖ / s)` are bounded uniformly in `s ≥ 1`.
-* `SymplecticGeometry.exists_jetNormAt_exp_neg_norm_sq_div_four_le`: the jet norms of the
-  Gaussian `exp (-‖z‖ ^ 2 / 4)` are at most a constant times `exp (-‖z‖ ^ 2 / 8)`.
 * `SymplecticGeometry.exists_jetNormAt_peakFunction_le`,
   `SymplecticGeometry.exists_jetNormAt_peakFunction_mul_le`: the **uniform Gaussian jet bounds**,
   `jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N * exp (-c * ‖z‖ ^ 2)` with `C`, `N` and
@@ -54,17 +52,19 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
 
 ## Implementation notes
 
-The cut-off part `z ↦ χ (‖z‖ / s)` is the fixed compactly supported smooth function
-`u ↦ χ ‖u‖` precomposed with the scaling `z ↦ s⁻¹ • z`. For `s ≥ 1` the scaling has norm at most
-`1`, so Tau Ceti's `ContinuousLinearMap.norm_iteratedFDeriv_comp_right_le` bounds its jet norms
-by those of `u ↦ χ ‖u‖`, uniformly in `s`. The Gaussian is a constant multiple of Tau Ceti's heat
-kernel `TauCeti.heatKernel 1`, whose derivatives `TauCeti.exists_norm_iteratedFDeriv_heatKernel_le`
-bounds by the heat kernel at time `2`. Products are bounded by `jetNormAt_fun_smul_le`.
+The radial cut-off `u ↦ χ ‖u‖` is smooth by `ContDiff.comp_norm_of_eventuallyEq_const`, since
+`χ` is constant near `0`. The cut-off part `z ↦ χ (‖z‖ / s)` is that function precomposed with
+the scaling `z ↦ s⁻¹ • z`. For `s = 0` or `s ≥ 1` the scalar has norm at most `1`, so
+`jetNormAt_comp_const_smul_le` bounds its jet norms by those of `u ↦ χ ‖u‖`, uniformly in `s`.
+The jet norms of the Gaussian are bounded by `exists_jetNormAt_exp_neg_mul_norm_sq_le`, and
+products by `jetNormAt_fun_smul_le`. The complex coordinates are Tau Ceti's
+`complexToRealEuclidean` followed by a projection, `TauCeti.complexToRealEuclideanCoord`.
 
 ## References
 
+* [D. Auroux, *A remark about Donaldson's construction of symplectic submanifolds*][Auroux2002],
+  Lemmas 1–2
 * [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996]
-* [D. Auroux, *Asymptotically holomorphic families of symplectic submanifolds*][Auroux1997]
 -/
 
 public section
@@ -105,15 +105,11 @@ section Radial
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- The radial cut-off `u ↦ χ ‖u‖` is smooth: `χ - 1` vanishes near `0`, so Tau Ceti's
-`ContDiff.comp_norm` applies to it. -/
-theorem contDiff_peakCutoff_norm {n : ℕ∞} : ContDiff ℝ n fun u : E ↦ peakCutoff ‖u‖ := by
-  have h0 : (0 : ℝ) ∉ tsupport fun t ↦ peakCutoff t - 1 := by
-    refine notMem_tsupport_iff_eventuallyEq.2 ?_
+/-- The radial cut-off `u ↦ χ ‖u‖` is smooth, since `χ` is constant near `0`. -/
+theorem contDiff_peakCutoff_norm {n : ℕ∞} : ContDiff ℝ n fun u : E ↦ peakCutoff ‖u‖ :=
+  contDiff_peakCutoff.comp_norm_of_eventuallyEq_const <| by
     filter_upwards [Iio_mem_nhds one_pos] with t ht
-    simp [peakCutoff_of_le_one (le_of_lt ht)]
-  simpa using (((contDiff_peakCutoff (n := n)).sub contDiff_const).comp_norm (E := E) h0).add
-    (contDiff_const (c := (1 : ℝ)))
+    rw [peakCutoff_of_le_one ht.le, peakCutoff_of_le_one zero_le_one]
 
 /-- The radial cut-off `u ↦ χ ‖u‖` vanishes outside the closed ball of radius `2`. -/
 theorem hasCompactSupport_peakCutoff_norm [FiniteDimensional ℝ E] :
@@ -142,56 +138,18 @@ theorem exists_jetNormAt_peakCutoff_norm_div_le [FiniteDimensional ℝ E] (r : �
       (contDiff_peakCutoff_norm (E := E)) r
   refine ⟨(r + 1) * C, fun s hs z ↦ ?_⟩
   have hs0 : 0 ≤ s := by rcases hs with rfl | hs <;> linarith
-  have hs1 : s⁻¹ ≤ 1 := by
+  have hs1 : ‖s⁻¹‖ ≤ 1 := by
+    rw [Real.norm_eq_abs, abs_inv, abs_of_nonneg hs0]
     rcases hs with rfl | hs
     · simp
     · exact inv_le_one_of_one_le₀ hs
-  set L : E →L[ℝ] E := s⁻¹ • ContinuousLinearMap.id ℝ E
-  have hL : ‖L‖ ≤ 1 := by
-    refine (norm_smul_le s⁻¹ (ContinuousLinearMap.id ℝ E)).trans ?_
-    rw [Real.norm_eq_abs, abs_inv, abs_of_nonneg hs0]
-    exact (mul_le_mul hs1 ContinuousLinearMap.norm_id_le (norm_nonneg _) zero_le_one).trans_eq
-      (one_mul 1)
-  have hf : (fun z : E ↦ peakCutoff (‖z‖ / s)) = (fun u : E ↦ peakCutoff ‖u‖) ∘ L := by
-    ext z
-    simp [L, peakCutoff_norm_div hs0]
-  rw [hf, jetNormAt_def]
-  calc ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv ℝ j ((fun u : E ↦ peakCutoff ‖u‖) ∘ L) z‖
-      ≤ ∑ _j ∈ Finset.range (r + 1), C := by
-        refine Finset.sum_le_sum fun j hj ↦ ?_
-        refine (L.norm_iteratedFDeriv_comp_right_le (contDiff_peakCutoff_norm (n := ⊤)) z
-          (by exact_mod_cast le_top)).trans ?_
-        exact (mul_le_of_le_one_right (norm_nonneg _) (pow_le_one₀ (norm_nonneg _) hL)).trans
-          (hC j (Nat.lt_succ_iff.1 (Finset.mem_range.1 hj)) _)
+  simp_rw [peakCutoff_norm_div hs0]
+  refine (jetNormAt_comp_const_smul_le r (fun u : E ↦ peakCutoff ‖u‖) hs1 z).trans ?_
+  rw [jetNormAt_def]
+  calc ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv ℝ j (fun u : E ↦ peakCutoff ‖u‖) (s⁻¹ • z)‖
+      ≤ ∑ _j ∈ Finset.range (r + 1), C :=
+        Finset.sum_le_sum fun j hj ↦ hC j (Nat.lt_succ_iff.1 (Finset.mem_range.1 hj)) _
     _ = (r + 1) * C := by simp
-
-/-! ### Jet norms of the Gaussian -/
-
-/-- The jet norms of the Gaussian `z ↦ exp (-‖z‖ ^ 2 / 4)` decay like the Gaussian
-`exp (-‖z‖ ^ 2 / 8)`. -/
-theorem exists_jetNormAt_exp_neg_norm_sq_div_four_le (r : ℕ) :
-    ∃ C, ∀ z : E, jetNormAt ℝ r (fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4)) z ≤
-      C * Real.exp (-‖z‖ ^ 2 / 8) := by
-  -- The Gaussian is a multiple of the heat kernel at time `1`, whose derivatives Tau Ceti bounds
-  -- by the heat kernel at time `2`.
-  set a : ℝ := (4 * Real.pi * 1) ^ (-(Module.finrank ℝ E : ℝ) / 2)
-  set b : ℝ := (4 * Real.pi * 2) ^ (-(Module.finrank ℝ E : ℝ) / 2)
-  have ha : 0 < a := by positivity
-  have hK : (fun z : E ↦ Real.exp (-‖z‖ ^ 2 / 4)) = a⁻¹ • TauCeti.heatKernel 1 := by
-    ext z
-    rw [Pi.smul_apply, TauCeti.heatKernel_apply, smul_eq_mul, inv_mul_cancel_left₀ ha.ne',
-      mul_one]
-  have h2 (z : E) : TauCeti.heatKernel (2 * 1) z = b * Real.exp (-‖z‖ ^ 2 / 8) := by
-    rw [TauCeti.heatKernel_apply]
-    norm_num [b]
-  choose C _ hC using fun j ↦ TauCeti.exists_norm_iteratedFDeriv_heatKernel_le (E := E) one_pos j
-  refine ⟨a⁻¹ * (∑ j ∈ Finset.range (r + 1), C j) * b, fun z ↦ ?_⟩
-  rw [hK, jetNormAt_smul, jetNormAt_def, Real.norm_eq_abs, abs_of_pos (inv_pos.2 ha)]
-  calc a⁻¹ * ∑ j ∈ Finset.range (r + 1), ‖iteratedFDeriv ℝ j (TauCeti.heatKernel 1) z‖
-      ≤ a⁻¹ * ∑ j ∈ Finset.range (r + 1), C j * TauCeti.heatKernel (2 * 1) z := by
-        gcongr with j
-        exact hC j z
-    _ = _ := by rw [← Finset.sum_mul, h2]; ring
 
 end Radial
 
@@ -263,7 +221,13 @@ theorem exists_jetNormAt_peakFunction_le [InnerProductSpace ℝ E] [FiniteDimens
     ∃ C N, ∃ c > 0, ∀ (k : ℕ) (z : E),
       jetNormAt ℝ r (peakFunction k) z ≤ C * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2) := by
   obtain ⟨A, hA⟩ := exists_jetNormAt_peakCutoff_norm_div_le (E := E) r
-  obtain ⟨B, hB⟩ := exists_jetNormAt_exp_neg_norm_sq_div_four_le (E := E) r
+  obtain ⟨B, hB⟩ := exists_jetNormAt_exp_neg_mul_norm_sq_le (E := E) r (a := 1 / 4) (by norm_num)
+  have hG : (fun z : E ↦ Real.exp (-(1 / 4 * ‖z‖ ^ 2))) = fun z ↦ Real.exp (-‖z‖ ^ 2 / 4) := by
+    ext z
+    ring_nf
+  have hG' (z : E) : Real.exp (-(1 / 4 * ‖z‖ ^ 2) / 2) = Real.exp (-‖z‖ ^ 2 / 8) := by
+    ring_nf
+  simp_rw [hG, hG'] at hB
   refine ⟨2 ^ r * A * B, 0, 1 / 8, by norm_num, fun k z ↦ ?_⟩
   set s := (k : ℝ) ^ (1 / 6 : ℝ)
   have hs : s = 0 ∨ 1 ≤ s := by
@@ -300,30 +264,16 @@ theorem peakFunction_mul_def (k : ℕ) (j : ι) (z : StdSpace ι) :
     peakFunction_mul k j z = (TauCeti.complexToRealEuclidean ι).symm z j * peakFunction k z :=
   (rfl)
 
-/-- The `j`-th complex coordinate on `StdSpace ι`, as a real continuous linear map. -/
-private noncomputable def complexCoord (j : ι) : StdSpace ι →L[ℝ] ℂ :=
-  PiLp.proj (𝕜 := ℝ) 2 (fun _ : ι ↦ ℂ) j ∘L
-    (TauCeti.complexToRealEuclideanIsometry ι).symm.toContinuousLinearEquiv.toContinuousLinearMap
-
-private theorem complexCoord_apply (j : ι) (z : StdSpace ι) :
-    complexCoord j z = (TauCeti.complexToRealEuclidean ι).symm z j := by
-  simp [complexCoord]
-
-private theorem norm_complexCoord_apply_le (j : ι) (z : StdSpace ι) :
-    ‖complexCoord j z‖ ≤ ‖z‖ := by
-  have h := PiLp.norm_apply_le ((TauCeti.complexToRealEuclideanIsometry ι).symm z) j
-  rw [LinearIsometryEquiv.norm_map] at h
-  simpa [complexCoord] using h
-
 private theorem peakFunction_mul_eq (k : ℕ) (j : ι) :
-    peakFunction_mul k j = fun z ↦ complexCoord j z • peakFunction k z := by
+    peakFunction_mul k j =
+      fun z ↦ TauCeti.complexToRealEuclideanCoord ι j z • peakFunction k z := by
   ext z
-  rw [peakFunction_mul_def, complexCoord_apply, smul_eq_mul]
+  rw [peakFunction_mul_def, TauCeti.complexToRealEuclideanCoord_apply, smul_eq_mul]
 
 theorem contDiff_peakFunction_mul {n : ℕ∞} (k : ℕ) (j : ι) :
     ContDiff ℝ n (peakFunction_mul k j) := by
   rw [peakFunction_mul_eq]
-  exact (complexCoord j).contDiff.smul (contDiff_peakFunction k)
+  exact (TauCeti.complexToRealEuclideanCoord ι j).contDiff.smul (contDiff_peakFunction k)
 
 /-- The support of `peakFunction_mul k j` lies in the closed ball of radius `2 * k ^ (1 / 6)`, for
 `k ≠ 0`. -/
@@ -345,16 +295,17 @@ theorem exists_jetNormAt_peakFunction_mul_le (r : ℕ) :
       jetNormAt ℝ r (peakFunction_mul k j) z ≤ C * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2) := by
   obtain ⟨C, N, c, hc, h⟩ := exists_jetNormAt_peakFunction_le (E := StdSpace ι) r
   refine ⟨2 ^ r * C, N + 1, c, hc, fun k j z ↦ ?_⟩
-  have hL : jetNormAt ℝ r (complexCoord j) z ≤ 1 + ‖z‖ := by
+  set L := TauCeti.complexToRealEuclideanCoord ι j
+  have hL : jetNormAt ℝ r L z ≤ 1 + ‖z‖ := by
     refine (jetNormAt_continuousLinearMap_le _ r z).trans ?_
-    have : ‖complexCoord j‖ ≤ 1 :=
-      (complexCoord j).opNorm_le_bound zero_le_one fun z ↦ by
-        simpa using norm_complexCoord_apply_le j z
-    linarith [norm_complexCoord_apply_le j z]
+    have := TauCeti.norm_complexToRealEuclidean_symm_apply_le z j
+    have := TauCeti.norm_complexToRealEuclideanCoord_le (ι := ι) j
+    simp only [L, TauCeti.complexToRealEuclideanCoord_apply]
+    linarith
   rw [peakFunction_mul_eq]
-  refine (jetNormAt_fun_smul_le (complexCoord j).contDiff.contDiffAt
+  refine (jetNormAt_fun_smul_le L.contDiff.contDiffAt
     (contDiff_peakFunction k).contDiffAt).trans ?_
-  calc (2 : ℝ) ^ r * jetNormAt ℝ r (complexCoord j) z * jetNormAt ℝ r (peakFunction k) z
+  calc (2 : ℝ) ^ r * jetNormAt ℝ r L z * jetNormAt ℝ r (peakFunction k) z
       ≤ 2 ^ r * (1 + ‖z‖) * (C * (1 + ‖z‖) ^ N * Real.exp (-c * ‖z‖ ^ 2)) := by
         exact mul_le_mul (mul_le_mul_of_nonneg_left hL (by positivity)) (h k z)
           (jetNormAt_nonneg _ _ _) (by positivity)
