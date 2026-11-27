@@ -20,7 +20,7 @@ Let `φ = SymplecticGeometry.fermatCubicTorusDiffeomorph p` be the diffeomorphis
 cubic, the fibre of the rational elliptic surface `E(1)` over `[1 : 0]`, onto Tau Ceti's standard
 torus `T = ∀ i : Unit ⊕ Unit, AddCircle (p i)`. Pulling the symplectic form of `E(1)` back along
 `fibreEmbedding ∘ φ⁻¹` gives a two-form `σ` on `T`. This file shows that `σ` is positive on every
-tangent basis of `T` that is positive for `TauCeti.torusOrientation p`, the orientation of
+tangent basis of `T` that is positive for `TauCeti.torusSymplecticOrientation p`, the orientation of
 `TauCeti.torusSymplecticForm p`. So `σ` and the standard form satisfy the hypotheses on signs of
 Moser's theorem for area forms,
 `TauCeti.SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq`.
@@ -44,7 +44,7 @@ Two alternating forms on the plane `T_x T` that are positive on one pair have th
 every basis (`AlternatingMap.pos_apply_basis_of_pos`), which gives the claim.
 
 Then the file identifies the fibre with the standard symplectic torus. Since `σ` is positive,
-its integral `A` over `T` for the orientation `TauCeti.torusOrientation p` is positive
+its integral `A` over `T` for the orientation `TauCeti.torusSymplecticOrientation p` is positive
 (`TauCeti.integralTopForm_pos_of_forall_pos`), and the standard form has integral
 `p inl * p inr` (`TauCeti.integralTopForm_torusSymplecticForm`). So for
 `c = torusScale p = p inl * p inr / A > 0`, the forms `c • σ` and `torusSymplecticForm p` have
@@ -142,11 +142,11 @@ orientation of the standard form `torusSymplecticForm p`. -/
 theorem mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos
     (x : ∀ i, AddCircle (p i))
     (b : Module.Basis (Fin 2) ℝ (TangentSpace (ModelWithCorners.pi fun _ : Unit ⊕ Unit ↦ 𝓘(ℝ)) x))
-    (hb : b.orientation = (torusOrientation p).orientationAt x) :
+    (hb : b.orientation = (torusSymplecticOrientation p).orientationAt x) :
     0 < (SmoothForm.mpullback (fibreEmbedding ∘ (fermatCubicTorusDiffeomorph p).symm)
       (fibreEmbedding.contMDiff.comp (fermatCubicTorusDiffeomorph p).symm.contMDiff)
       symplecticForm).val x b := by
-  have hω := (orientation_eq_orientationAt_torusOrientation_iff p b).1 hb
+  have hω := (orientation_eq_orientationAt_torusSymplecticOrientation_iff p b).1 hb
   obtain ⟨z, rfl⟩ := latticeTorusCover_surjective p fermatPeriodBasis x
   have hωL := eval₂_torusSymplecticForm_mfderiv_latticeTorusCover_pos p fermatPeriodBasis
     zero_lt_im_conj_mul_fermatPeriodBasis z
@@ -162,7 +162,7 @@ theorem mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos
 /-- The pull-back of the form of `E(1)` to the standard torus has positive integral over it,
 for the orientation of the standard form `torusSymplecticForm p`. -/
 theorem integralTopForm_mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_pos :
-    0 < integralTopForm (torusOrientation p)
+    0 < integralTopForm (torusSymplecticOrientation p)
       (SmoothForm.mpullback (fibreEmbedding ∘ (fermatCubicTorusDiffeomorph p).symm)
         (fibreEmbedding.contMDiff.comp (fermatCubicTorusDiffeomorph p).symm.contMDiff)
         symplecticForm).val :=
@@ -177,14 +177,14 @@ divided by the integral of the pull-back of the form of `E(1)` along
 `torusSymplecticForm p`. -/
 noncomputable def torusScale : ℝ :=
   p (.inl ()) * p (.inr ()) /
-    integralTopForm (torusOrientation p)
+    integralTopForm (torusSymplecticOrientation p)
       (SmoothForm.mpullback (fibreEmbedding ∘ (fermatCubicTorusDiffeomorph p).symm)
         (fibreEmbedding.contMDiff.comp (fermatCubicTorusDiffeomorph p).symm.contMDiff)
         symplecticForm).val
 
 theorem torusScale_def :
     torusScale p = p (.inl ()) * p (.inr ()) /
-      integralTopForm (torusOrientation p)
+      integralTopForm (torusSymplecticOrientation p)
         (SmoothForm.mpullback (fibreEmbedding ∘ (fermatCubicTorusDiffeomorph p).symm)
           (fibreEmbedding.contMDiff.comp (fermatCubicTorusDiffeomorph p).symm.contMDiff)
           symplecticForm).val := (rfl)
@@ -206,9 +206,9 @@ theorem exists_diffeomorph_mpullback_torusScale_smul_eq :
   have hint := integralTopForm_mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_pos p
   have hpos := mpullback_fibreEmbedding_comp_fermatCubicTorusDiffeomorph_symm_apply_pos p
   refine SmoothTwoForm.exists_diffeomorph_mpullback_eq_of_integralTopForm_eq
-    (torusOrientation p)
+    (torusSymplecticOrientation p)
     (fun x b hb ↦ ?_) (fun x b hb ↦ ?_) ?_
-  · exact (orientation_eq_orientationAt_torusOrientation_iff p b).1 hb
+  · exact (orientation_eq_orientationAt_torusSymplecticOrientation_iff p b).1 hb
   · simpa using mul_pos (torusScale_pos p) (hpos x b hb)
   · rw [map_smul, SetLike.val_smul, integralTopForm_smul, integralTopForm_torusSymplecticForm,
       torusScale_def, div_mul_cancel₀ _ hint.ne']
