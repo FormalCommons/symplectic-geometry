@@ -46,6 +46,12 @@ continuity parts are matched on the subtype, and the coordinate parts agree near
 `TauCeti.Manifold.contMDiff_restrictOpenTangentSpaceEnd` gives the direction from `M` to `U`
 for a whole field; the converse lets a field be built from its values on an open cover.
 
+Likewise, a family of linear maps into the tangent spaces along a map `g` into `U`, continuous at
+`x₀`, reads near `x₀` the same in the tangent coordinates of `U` as in those of `M`
+(`TauCeti.Manifold.inTangentCoordinates_subtypeVal_comp_eventuallyEq`), since the tangent
+trivializations of `U` and of `M` agree near each point of `U` (Tau Ceti's
+`TauCeti.Manifold.eventually_trivializationAt_tangentSpace_opens_eq`).
+
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
 `TauCeti/Geometry/Contact/Gray/Distribution.lean`. Both proofs read the open subset of the
@@ -142,6 +148,42 @@ theorem contMDiffAt_restrictOpen_tangentEnd_iff {n : ℕ∞ω}
   exact hy (A y)
 
 end Endomorphism
+
+section InTangentCoordinates
+
+variable {𝕜 E H M E' H' N X : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E]
+  [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I 1 M] [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+  [IsManifold I' 1 N] [TopologicalSpace X]
+
+/-- A family of linear maps `ϕ x` into the tangent spaces of `M` along a map `g` into an open
+subset `U` of `M`, continuous at `x₀`, reads near `x₀` the same in the tangent coordinates of `U`
+as in those of `M`. -/
+theorem inTangentCoordinates_subtypeVal_comp_eventuallyEq {U : Opens M} {f : X → N} {g : X → U}
+    (ϕ : ∀ x, TangentSpace I' (f x) →L[𝕜] TangentSpace I (g x : M)) {x₀ : X}
+    (hg : ContinuousAt g x₀) :
+    inTangentCoordinates I' I f g ϕ x₀ =ᶠ[𝓝 x₀]
+      inTangentCoordinates I' I f (fun x ↦ (g x : M)) ϕ x₀ := by
+  have hU : ∀ᶠ x in 𝓝 x₀,
+      g x ∈ (trivializationAt E (TangentSpace I : U → Type _) (g x₀)).baseSet :=
+    hg.eventually ((trivializationAt E (TangentSpace I : U → Type _) (g x₀)).open_baseSet.mem_nhds
+      (mem_baseSet_trivializationAt E (TangentSpace I : U → Type _) (g x₀)))
+  have hM : ∀ᶠ x in 𝓝 x₀,
+      (g x : M) ∈ (trivializationAt E (TangentSpace I : M → Type _) (g x₀ : M)).baseSet :=
+    (continuousAt_subtypeVal.comp hg).eventually
+      ((trivializationAt E (TangentSpace I : M → Type _) (g x₀ : M)).open_baseSet.mem_nhds
+        (mem_baseSet_trivializationAt E (TangentSpace I : M → Type _) (g x₀ : M)))
+  filter_upwards [hg.eventually (eventually_trivializationAt_tangentSpace_opens_eq (I := I) (g x₀)),
+    hU, hM] with x hx hxU hxM
+  refine ContinuousLinearMap.ext fun v ↦ ?_
+  simp only [inTangentCoordinates, ContinuousLinearMap.inCoordinates]
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
+    Trivialization.continuousLinearMapAt_apply_of_mem (R := 𝕜) _ hxU,
+    Trivialization.continuousLinearMapAt_apply_of_mem (R := 𝕜) _ hxM]
+  exact hx _
+
+end InTangentCoordinates
 
 end TauCeti.Manifold
 

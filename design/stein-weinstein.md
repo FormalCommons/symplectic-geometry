@@ -984,12 +984,13 @@ containing `ι '' closedBall 0 1`:
 
 - `Surround/Chart.lean` (issues 14d10 and 14d13): the chart along the
   disc.
-  - `exists_partialDiffeomorph_modelDisc` (14d10): for `ι` as in 14d9
+  - `exists_partialDiffeomorph_modelDisc` (14d10): for `ι` smooth and
+    inducing (as in 14d9)
     and an open `O ⊇ range ι`, there is
     `Φ₀ : PartialDiffeomorph 𝓘(ℝ, V) 𝓘(ℝ, E) V M ∞` with
     `range (modelDisc k m) ⊆ Φ₀.source`, `Φ₀.target ⊆ O`,
     `Φ₀ (modelDisc k m x) = ι x` and `mfderiv _ _ Φ₀ (modelDisc k m x) = A x`
-    (so complex linear) for all `x`. It is Tau Ceti's
+    (so complex linear when `A` is) for all `x`. It is Tau Ceti's
     `SmoothEmbedding.exists_partialDiffeomorph_mfderiv_eq` with
     `i = modelDisc k m`, `g = ι` and a frame `A` with the properties
     that 14d9 gives (that of 14d9, or the adapted one of 14d18), applied on an
