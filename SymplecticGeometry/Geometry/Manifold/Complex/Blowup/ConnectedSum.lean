@@ -127,6 +127,7 @@ private theorem mem_blowupModel_blowdownCoord {v : Fin (n + 2) → ℂ} (hz : Fi
   rw [mem_blowupModel_iff, submodule_mk, blowdownCoord_eq]
   exact Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self _)
 
+/-- The point `[z : c]` lies off `[0 : ⋯ : 0 : 1]` when `z ≠ 0`. -/
 theorem mk_snoc_mem_projectiveBlowupOpens {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) (c : ℂ) :
     mk ℂ (Fin.snoc z c : Fin (n + 2) → ℂ) (Fin.snoc_ne_zero_iff.2 (Or.inl hz)) ∈
       projectiveBlowupOpens n := by
@@ -352,8 +353,8 @@ theorem projectiveBlowupModelDiffeomorph_apply {v : Fin (n + 2) → ℂ} (hv : v
         ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) =
       (mk ℂ (Fin.init v) ((mk_mem_projectiveBlowupOpens hv).1 h),
         (∑ i, ‖Fin.init v i‖ ^ 2)⁻¹ • conj (v (Fin.last _)) • Fin.init v) := by
-    rw [coe_projectiveBlowupModelDiffeomorph]
-    exact toFun_eq hv rfl _
+  rw [coe_projectiveBlowupModelDiffeomorph]
+  exact toFun_eq hv rfl _
 
 /-- The inverse sends `(ℓ, t • z)`, for a nonzero `z` spanning `ℓ`, to `[z : t̄ |z|²]`. -/
 theorem projectiveBlowupModelDiffeomorph_symm_apply {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) (t : ℂ)
@@ -362,8 +363,8 @@ theorem projectiveBlowupModelDiffeomorph_symm_apply {z : Fin (n + 1) → ℂ} (h
         ℙ ℂ (Fin (n + 2) → ℂ)) =
       mk ℂ (Fin.snoc z (conj t * ((∑ i, ‖z i‖ ^ 2 : ℝ) : ℂ)) : Fin (n + 2) → ℂ)
         (Fin.snoc_ne_zero_iff.2 (Or.inl hz)) := by
-    rw [coe_projectiveBlowupModelDiffeomorph_symm]
-    exact invFun_eq hz (BlowupModel.pr_mk _ _ h) (BlowupModel.blowdown_mk _ _ h)
+  rw [coe_projectiveBlowupModelDiffeomorph_symm]
+  exact invFun_eq hz (BlowupModel.pr_mk _ _ h) (BlowupModel.blowdown_mk _ _ h)
 
 /-- The point `[u : 1]`, for `u ≠ 0`, goes to `([u], u / |u|²)`. -/
 theorem projectiveBlowupModelDiffeomorph_apply_snoc_one {u : Fin (n + 1) → ℂ} (hu : u ≠ 0) :

@@ -72,6 +72,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   same at one point of the source of a chart.
 * `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp`: a map
   into the blowup is `C^r` at a point, for `r ≥ 1`, exactly when its two projections are.
+* `SymplecticGeometry.BlowupModel.contMDiffAt_real_iff_contMDiffAt_pr_comp_and_blowdown_comp`:
+  the same for the real structures, for maps out of a real manifold and every `r`.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
