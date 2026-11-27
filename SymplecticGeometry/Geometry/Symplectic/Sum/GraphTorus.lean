@@ -7,12 +7,15 @@ module
 
 public import TauCeti.Geometry.Manifold.Immersion.NormalSpace.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.SymplecticTangent
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.Torus.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Graph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
+import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
 # Graph tori of circle maps
@@ -37,10 +40,16 @@ torus has symplectic tangent images for the product form.
 The graph tori of `h` and `h'` have disjoint images exactly when `h t ≠ h' t` for every `t`,
 since a point of `T` determines its coordinate `t = x i`.
 
-The horizontal vectors `(v, 0)`, `v ∈ T_{h (x i)} Σ`, give the normal spaces of the graph torus:
-a tangent vector `(dh (w i), w)` of the graph torus with torus component zero vanishes, so `(v, 0)`
-is tangent only for `v = 0`, and the normal space has dimension `dim Σ`. So `v ↦ [(v, 0)]` is a
-linear isomorphism onto the normal space at `x`.
+A tangent vector `v` of `Σ` at `h (x i)` gives the horizontal vector `(v, 0)` of `Σ × T` at
+`(h (x i), x)`, and so a normal class of the graph torus at `x`. For a family of vectors `v` that
+depends smoothly on `x` and on a parameter, these classes form a smooth map into the normal bundle,
+since the vectors `(v, 0)` form a smooth map into the pulled-back tangent bundle of `Σ × T` and
+taking normal classes is smooth (`TauCeti.SmoothEmbedding.contMDiff_normalQuotientMap`).
+
+These horizontal vectors give the normal spaces of the graph torus: a tangent vector
+`(dh (w i), w)` of the graph torus with torus component zero vanishes, so `(v, 0)` is tangent only
+for `v = 0`, and the normal space has dimension `dim Σ`. So `v ↦ [(v, 0)]` is a linear isomorphism
+onto the normal space at `x`.
 
 These tori enter the realization of finitely presented groups as fundamental groups of closed
 symplectic four-manifolds: the torus of a loop `h` in a surface `Σ` lies in `Σ × T²` and is
@@ -61,6 +70,8 @@ symplectic for the product form.
   the product form.
 * `SymplecticGeometry.disjoint_range_graphTorus_iff`: two graph tori are disjoint exactly when the
   circle maps differ at every point.
+* `SymplecticGeometry.contMDiff_normalClass_graphTorus_horizontal`: the normal classes of a smooth
+  family of horizontal vectors `(v, 0)` form a smooth map into the normal bundle of the graph torus.
 * `SymplecticGeometry.normalClass_graphTorus_horizontal_eq_zero_iff`: a horizontal vector `(v, 0)`
   is tangent to the graph torus only for `v = 0`.
 
@@ -75,7 +86,7 @@ public section
 
 noncomputable section
 
-open Set Function TauCeti
+open Set Function TauCeti Bundle Module
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -162,6 +173,49 @@ theorem hasSymplecticTangentImages_graphTorus {σ : SmoothTwoForm I M} (hσ : σ
     (graphTorus hh).contMDiff).1
   rw [mpullback_graphTorus_prod_torusSymplecticForm] at hpull
   exact (hpull (isSymplectic_torusSymplecticForm p).isNondegenerate).1
+section NormalClass
+
+variable {F H' Z : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H']
+  {K : ModelWithCorners ℝ F H'} [TopologicalSpace Z] [ChartedSpace H' Z]
+  {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
+
+/-- **Horizontal normal classes of a graph torus are smooth.** Let `(x, z) ↦ u x z` be a family of
+tangent vectors `u x z ∈ T_{h (x i)} M`, parametrized by a point `x` of the torus and a point `z` of
+a manifold `Z`, that is smooth as a map into the tangent bundle of `M`. Then the normal classes
+`(x, z) ↦ [(u x z, 0)] ∈ N_x` of the horizontal vectors `(u x z, 0)` at `(h (x i), x)` form a
+smooth map into the normal bundle of the graph torus. -/
+theorem contMDiff_normalClass_graphTorus_horizontal (hh : ContMDiff 𝓘(ℝ) I ∞ h)
+    (hP : finrank ℝ P = finrank ℝ (E × (ι ⊕ ι → ℝ)) - finrank ℝ (ι ⊕ ι → ℝ))
+    {u : ∀ x : ∀ i, AddCircle (p i), Z → TangentSpace I (h (x i))}
+    (hu : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K) I.tangent ∞
+      fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨h (y.1 i), u y.1 y.2⟩ : TangentBundle I M)) :
+    letI := (graphTorus hh).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+    ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K)
+      ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, P)) ∞
+      fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨y.1, (graphTorus hh).isImmersion.normalClass y.1
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero) (u y.1 y.2, 0)⟩ :
+        TotalSpace P fun x ↦ (graphTorus hh).isImmersion.NormalSpace x
+          (WithTop.coe_ne_zero.2 ENat.top_ne_zero)) := by
+  let f := graphTorus hh
+  let := f.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
+  -- The ambient vectors `(u x z, 0)` along the graph torus form a smooth map into the pulled-back
+  -- tangent bundle, and taking normal classes is smooth.
+  have hg : ContMDiff ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod K)
+      ((ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)).prod 𝓘(ℝ, E × (ι ⊕ ι → ℝ))) ∞
+      fun y : (∀ i, AddCircle (p i)) × Z ↦ (⟨y.1, ((u y.1 y.2 : E), (0 : ι ⊕ ι → ℝ))⟩ :
+        TotalSpace (E × (ι ⊕ ι → ℝ)) ((f : _ → M × ∀ i, AddCircle (p i)) *ᵖ
+          (TangentSpace (I.prod (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)))))) := by
+    refine (Pullback.contMDiff_iff f f.contMDiff).2 ⟨contMDiff_fst, ?_⟩
+    refine (contMDiff_equivTangentBundleProd_symm.comp
+      (hu.prodMk ((contMDiff_zeroSection ℝ (TangentSpace _)).comp contMDiff_fst))).congr
+      fun y ↦ ?_
+    -- The base points agree by `graphTorus_apply`; the fibres agree as the zero vector of a
+    -- tangent space is the zero of its model space.
+    exact TotalSpace.ext (by simp [Pullback.lift, f]) HEq.rfl
+  exact ((f.contMDiff_normalQuotientMap (m := ∞) _ le_rfl hP).comp hg).congr fun y ↦ by
+    rw [comp_apply, SmoothEmbedding.normalQuotientMap_apply]
+
+end NormalClass
 
 /-- The torus component of the differential of the graph torus is the identity: the differential
 sends a tangent vector `w` of the torus to a vector whose torus component is `w`. -/
