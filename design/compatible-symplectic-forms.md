@@ -398,17 +398,19 @@ For a symplectic atlas `A` for $(F,\sigma)$:
   `RestrictsTo.isNondegenerate_restrictTwoForm`, and
   `RestrictsTo.restrictTwoForm_eq`: every form that restricts to the fibre
   forms has this restriction to $\mathrm{Ver}$;
-- `realFirstChernClass_vertical A : deRhamCohomology IM M 2`, the class of
+- `A.realFirstChernClass_vertical G hA hH hσ : deRhamCohomology IM M 2`, the class of
   `RestrictsTo.isNondegenerate_restrictTwoForm` (layer 3 above), with `_def`;
 - `map_realFirstChernClass_vertical`: for a chart `e` and `b ∈ e.baseSet`,
-  `map (j e b) _ 2 (realFirstChernClass_vertical A) = hσ.realFirstChernClass`.
+  `map (j e b) _ 2 (A.realFirstChernClass_vertical G hA hH hσ) =
+  hσ.isNondegenerate.realFirstChernClass G'`, for complex models `G`, `G'` of the
+  vertical bundle and of `TF`.
   The differential of $j_{e,b}$ is an isomorphism from `TF` onto the
   pull-back of $\mathrm{Ver}$ that carries $\sigma$ to the pull-back of
   `hD.restrictTwoForm τ`; then `realFirstChernClass_pullback` and
   `realFirstChernClass_pushforward` for forms;
 - `map_inv_smul_realFirstChernClass_vertical` (milestone): if
   `hσ.isNondegenerate.realFirstChernClass = λ • [σ]` with `λ ≠ 0`, then
-  `a := λ⁻¹ • realFirstChernClass_vertical A` satisfies
+  `a := λ⁻¹ • A.realFirstChernClass_vertical G hA hH hσ` satisfies
   `map (j e b) _ 2 a = [σ]` for every chart and base point; and
   `exists_isSymplectic_compatible_of_realFirstChernClass_eq`: if moreover
   `M` is compact and `B` compact, connected and symplectic, a compatible
