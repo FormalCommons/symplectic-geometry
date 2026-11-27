@@ -389,6 +389,14 @@ theorem blowupModelChart_source : (blowupModelChart i).source = pr ⁻¹' affine
 theorem blowupModelChart_target : (blowupModelChart (n := n) i).target = Set.univ :=
   (rfl)
 
+/-- On the source of the chart `i`, the point of `E` under a point of the model is `0` exactly
+when its coordinate `i`, which is the coordinate `i` of the chart, vanishes. -/
+theorem blowdown_apply_eq_zero_iff {p : BlowupModel n} (hp : p ∈ (blowupModelChart i).source) :
+    p.blowdown i = 0 ↔ p.blowdown = 0 := by
+  refine ⟨fun h ↦ ?_, fun h ↦ by rw [h, Pi.zero_apply]⟩
+  rw [← (blowupModelChart i).left_inv hp, blowdown_blowupModelChart_symm_apply,
+    blowupModelChart_apply_self, h, zero_smul]
+
 /-! ### Transitions between the charts -/
 
 /-- The transition from the chart `i` to the chart `k` is defined where `update w i 1` has a

@@ -107,8 +107,9 @@ theorem exists_smoothForm_relative_primitive_sub (f : SmoothEmbedding J I ∞ Q 
           (0 : E →L[ℝ] E [⋀^Fin k]→L[ℝ] F)
           (extChartAt I (⟨f q, hfW (mem_range_self q)⟩ : W) ⟨f q, hfW (mem_range_self q)⟩) := by
   have hf0 : mpullback (F := F) J I f (η₁ - η₀).val = 0 := by
-    have h := congrArg Subtype.val (sub_eq_zero.2 hf)
-    rwa [← map_sub, SmoothForm.coe_mpullback] at h
+    have h := (SmoothForm.mpullback_eq_iff f.contMDiff (φ := η₁ - η₀) (ψ := 0)).1 <| by
+      rw [map_sub, sub_eq_zero.2 hf]
+    rwa [ZeroMemClass.coe_zero] at h
   obtain ⟨W, hWO, hfW, hprim⟩ := f.exists_isSmoothForm_relative_primitive (F := F) hO hfO
   obtain ⟨β, hβ, hdβ, hβ0, hβ1⟩ := hprim (r := ⊤) le_top (η₁ - η₀).isSmoothForm
     ((SmoothForm.isClosed_def _).1 (h₁.sub h₀)) hf0

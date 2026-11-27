@@ -223,9 +223,10 @@ private theorem exists_eq_fillingContactForm (h : IsStrongFilling σ U Y) :
     h.isSymplectic (.ofIsSmoothEmbedding _ (isSmoothEmbedding_subtypeVal_boundary W)) (by simp)
     h.isOpen (by simpa [hι] using h.boundary_subset) h.isOutwardPointingField.contMDiff.contMDiffOn
     h.mlieDerivForm_eq (by rw [hι]; exact h.isOutwardPointingField.isTransverseAlong_subtypeVal)
-  refine ⟨α, Subtype.ext ?_, hc, hd.trans (congrArg _ ((SmoothForm.mpullback_eq_iff _).2 ?_))⟩
+  refine ⟨α, Subtype.ext ?_, hc,
+    hd.trans (congrArg _ ((SmoothForm.mpullback_eq_mpullback_iff _ _).2 ?_))⟩
   · rw [coe_fillingContactForm, hα, hι, ContMDiffSection.coeFn_mk]
-  · rw [SmoothForm.coe_mpullback, hι]
+  · rw [hι]
 
 /-- **The contact form of a strong filling.** For a strong filling, `-ι^*(ι_Y σ)` is a contact
 form on the boundary. -/

@@ -382,15 +382,13 @@ Namespace `SymplecticGeometry`, for `M : Type` with `[TopologicalSpace M]
 ### `Blowup/Curve.lean`
 
 For a connected Riemann surface `Σ` (`[ChartedSpace ℂ Σ]
-[IsManifold 𝓘(ℂ) ω Σ] [ConnectedSpace Σ] [T2Space Σ]`) and `[T2Space M]`.
+[IsManifold 𝓘(ℂ) ω Σ] [PreconnectedSpace Σ]`) and `[T2Space M]`.
 
-- `MDifferentiable.isClosed_discrete_preimage` (in a general file of
-  `Geometry/Manifold/Complex/`, unless either library has it): the preimage
-  of a point under a nonconstant holomorphic map from a connected Riemann
-  surface is discrete, from Mathlib's
-  `AnalyticOnNhd.eqOn_of_preconnected_of_frequently_eq` in charts and
-  connectedness.
-- `Blowup.curveLift c u hu`: the lift of a nonconstant holomorphic
+- The fibres of a nonconstant holomorphic map from a connected Riemann
+  surface are discrete: Tau Ceti's
+  `TauCeti.setOf_ne_mem_codiscrete_of_isPseudoholomorphic`, through
+  `isPseudoholomorphic_ofComplexManifold_iff`.
+- `Blowup.curveLift c u`: the lift of a nonconstant holomorphic
   `u : Σ → M`, equal to `inl ∘ u` off `u ⁻¹' {p₀}` and to `BlowupModel.curveLift`
   read through `c.lift` near each point of it; `mdifferentiable_curveLift`,
   `blowdown_curveLift`, and `curveLift_unique`, by density of the
@@ -559,11 +557,13 @@ For a complex manifold `M` and `c` in the complex atlas.
 - `Blowup.hypersurfaceData c : HypersurfaceData 𝓘(ℂ, E) (Blowup c) (Option (Fin (n + 1)))`:
   the coordinate `w i` on the domain of `blowupModelChart i ∘ c.lift`, and
   `1` off $Z$; its support is the exceptional divisor.
-- `coordForm_blowdown`: in the chart `i`, the pull-back by $\pi$ of the
+- `Blowup.coordForm_blowdown`: in the chart `i`, the pull-back by $\pi$ of the
   coordinate form $dz_1\wedge\dots\wedge dz_{n+1}$ is $w_i^{\,n}$ times the
   coordinate form of the chart, by the Jacobian of
-  $(w)\mapsto(w_iw_j, w_i)$, with Tau Ceti's
-  `TauCeti.CanonicalBundle.coordForm` and its change of charts.
+  $(w)\mapsto(w_iw_j, w_i)$. It is stated for the chart `liftChart c φ`
+  followed by `blowupModelChart i`, with the coordinate form of a chart of the
+  maximal atlas written as `b.continuousDet` pulled back by its differential,
+  which for `chartAt` is Tau Ceti's `TauCeti.CanonicalBundle.coordForm`.
 - `Blowup.canonicalBundleEquiv c`: a fibrewise complex-linear isomorphism
   from `TauCeti.CanonicalBundle 𝓘(ℂ, E) (Blowup c)` to the tensor product of
   the pull-back along $\pi_M$ of `TauCeti.CanonicalBundle 𝓘(ℂ, E) M` with

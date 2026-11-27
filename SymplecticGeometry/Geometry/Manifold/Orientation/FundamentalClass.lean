@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Homeomorph
 import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!
@@ -19,13 +20,11 @@ with boundaryless models of real dimension `n + 1`, possibly on different model 
 class of the carried orientation `o.map e` of `N`, and so evaluating a cohomology class of `N` on
 the fundamental class of `o.map e` is evaluating its pullback along `e` on that of `o`.
 
-No connectedness is assumed. The proof checks the defining property of the fundamental class of
-`N` (`TauCeti.HomologicalOrientation.eq_fundamentalClass`) one point at a time: at `e x`, the
-only preimage is `x`, and since `e` preserves orientation from `o` to `o.map e` there, the map it
-induces on local homology at `x` carries the local orientation of `o` to that of `o.map e`
-(`TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`). The argument follows Tau
-Ceti's `TauCeti.HomologicalOrientation.mapFundamentalClass_comap`, which treats a homeomorphism
-and an orientation pulled back along it on one model space.
+No connectedness is assumed. Since `e` preserves orientation from `o` to `o.map e` at every
+point, the map it induces on local homology at `x` carries the local orientation of `o` to that
+of `o.map e` (`TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`), and a
+homeomorphism that does so carries the fundamental class of the one to that of the other
+(`TauCeti.HomologicalOrientation.mapFundamentalClass_homeomorph_of_localHomologyMap`).
 
 ## Main results
 
@@ -69,17 +68,10 @@ theorem mapFundamentalClass_toHomologicalOrientation_map (o : Orientation I M (F
     (e : M ≃ₘ^k⟮I, J⟯ N) (hk : k ≠ 0) :
     (o.toHomologicalOrientation hE).mapFundamentalClass hE (e.toHomeomorph : C(M, N)) =
       ((o.map e hk ((Fintype.card_fin _).trans hF.symm)).toHomologicalOrientation hF
-        ).fundamentalClass hF := by
-  refine ((o.map e hk ((Fintype.card_fin _).trans hF.symm)).toHomologicalOrientation hF
-    ).eq_fundamentalClass hF fun y ↦ ?_
-  obtain ⟨x, rfl⟩ : ∃ x, (e.toHomeomorph : C(M, N)) x = y := e.surjective y
-  have hx : (e.toHomeomorph : C(M, N)) ⁻¹' {(e.toHomeomorph : C(M, N)) x} ⊆ {x} :=
-    fun z hz ↦ e.injective hz
-  rw [HomologicalOrientation.mapFundamentalClass_def, singularHomologyFunctor_obj_map_hom_apply,
-    singularHomologyToLocalHomology_singularHomologyMap _ _ hx,
-    HomologicalOrientation.singularHomologyToLocalHomology_fundamentalClass]
-  exact localHomologyMap_toHomologicalOrientation hE hF _ hx
-    (isOrientationPreservingAt_map o e hk _ x)
+        ).fundamentalClass hF :=
+  HomologicalOrientation.mapFundamentalClass_homeomorph_of_localHomologyMap hE hF _ _
+    e.toHomeomorph fun x hx ↦ localHomologyMap_toHomologicalOrientation hE hF _ hx
+      (isOrientationPreservingAt_map o e hk _ x)
 
 /-- **Evaluation on the carried fundamental class.** For a `C^k` diffeomorphism `e : M → N`,
 `k ≠ 0`, of compact manifolds of dimension `n + 1` and an orientation `o` of `M`, evaluating a

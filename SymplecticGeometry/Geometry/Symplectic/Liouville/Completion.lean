@@ -711,9 +711,9 @@ theorem eventually_mpullback_completionEnd_completionPrimitive
 theorem mpullback_toCompletion_completionPrimitive_apply (p : W) :
     mpullback (𝓡∂ (n + 1)) (𝓡 (n + 1)) h.toCompletion h.completionPrimitive.val p =
       -RoughForm.interior Y σ.val p := by
-  have := congrArg (fun φ : SmoothForm (𝓡∂ (n + 1)) W ℝ 1 ↦ φ.val p)
-    h.mpullback_toCompletion_completionPrimitive
-  simpa only [SmoothForm.coe_mpullback, SmoothBundleForm.neg_apply, SmoothTwoForm.coe_interiorₗ,
+  have := congrFun
+    ((SmoothForm.mpullback_eq_iff _).1 h.mpullback_toCompletion_completionPrimitive) p
+  simpa only [SmoothBundleForm.neg_apply, SmoothTwoForm.coe_interiorₗ,
     ContMDiffSection.coeFn_mk] using this
 
 private theorem isClosed_completionForm : h.completionForm.IsClosed := by

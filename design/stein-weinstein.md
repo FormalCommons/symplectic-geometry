@@ -643,8 +643,8 @@ containing `ι '' closedBall 0 1`:
     `1 + d * δ ≤ struweShape δ K c δ < 1 + d * K * δ`, and its derivative
     tends to `atTop` along `𝓝[>] δ`. The rescaled forms of the lemma
     follow by `IsConvexShapeAt.rescale`.
-  - `isConvexShapeAt_sqrt` (14d3; Lemma 4.17 (a)): for `1 < a` and
-    `0 ≤ ℓ`, `r ↦ √(ℓ ^ 2 + a * r ^ 2)` is a convex shape at every
+  - `isConvexShapeAt_sqrt` (14d3; Lemma 4.17 (a)): for `1 < a` and any
+    `ℓ`, `r ↦ √(ℓ ^ 2 + a * r ^ 2)` is a convex shape at every
     `r > 0`; `isConvexShapeAt_quadratic` (Lemma 4.17 (b)): for `0 < ℓ`,
     `0 ≤ b`, `1 < c`, `r ↦ ℓ + b * r + c * r ^ 2 / (2 * ℓ)` at every
     `r > 0`; `isConvexShapeAt_linear` (Lemma 4.17 (e)): for `0 < ℓ`,
@@ -737,9 +737,10 @@ containing `ι '' closedBall 0 1`:
     being graphs over `R` near that line, and the building issue states
     that second form with the criterion of 14d1 rewritten for it.
   - `exists_contDiff_shapeLevel` (the function of a foliation): a family
-    as above defines, by the implicit function theorem (Mathlib's
-    `HasStrictFDerivAt.implicitFunction`), a smooth `H : ℝ × ℝ → ℝ` on
-    the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = -ℓ`,
+    as above, on `Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂` and with `0 < ∂χ/∂ℓ`, defines,
+    by the inverse function theorem for `(ℓ, r) ↦ (χ ℓ r ^ 2, r ^ 2)`
+    (Mathlib's `ContDiffAt.to_localInverse`), an `H : ℝ × ℝ → ℝ`
+    smooth at each point of the region it sweeps out, with `H (χ ℓ r ^ 2, r ^ 2) = -ℓ`,
     `∂H/∂t > 0` and `∂H/∂s < 0` there (the leaves rise with `ℓ`, so
     `H` falls as `s` grows and rises as `t` grows); `dH` is then a
     positive multiple of the differential of `shapeGraph (χ ℓ) ∘ shape`,
@@ -749,11 +750,12 @@ containing `ι '' closedBall 0 1`:
   - In `JConvex/Hypersurface.lean`:
     `exists_isManifoldStrictlyPlurisubharmonicAt_comp_of_isCompact`
     (the book's Lemma 2.7, on a compact set): let `f : M → ℝ` be `C²`
-    on an open `U`, `K ⊆ U` compact, `mvfderiv 𝓘(ℝ, E) f x ≠ 0` for
-    `x ∈ K`, and the Levi form of `f` positive on the nonzero `v` with
+    at each point of a compact `K`, and the Levi form of `f` positive
+    on the nonzero `v` with
     `df(v) = df(i v) = 0` at each `x ∈ K`. Then there is `C ≥ 0` such
     that `g ∘ f` is strictly plurisubharmonic at every point of `K`
-    for each `C²` function `g` with `0 < deriv g` and
+    for each `g` that is `C²` at the points of `f '' K`, with
+    `0 < deriv g` and
     `C * deriv g ≤ iteratedDeriv 2 g` on `f '' K`. This is a
     statement about $J$-convex levels and belongs with them.
 
@@ -920,10 +922,13 @@ containing `ι '' closedBall 0 1`:
   weak sense, there is `A : ∀ x, V →L[ℝ] TangentSpace 𝓘(ℝ, E) (ι x)`,
   smooth in tangent coordinates (`inTangentCoordinates`, as Tau Ceti's
   `exists_partialDiffeomorph_mfderiv_eq` asks), with each `A x`
-  invertible, complex linear (`A x (Complex.I • v) = Complex.I • A x v`)
+  invertible, complex linear (`A x (Complex.I • v) = ofComplexManifold E M (ι x) (A x v)`)
   and `(A x).comp (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin k)) 𝓘(ℝ, V)
-  (modelDisc k m) x) = mfderiv _ _ ι x`. On the first factor `A x` is the
-  complex-linear extension of `dι x`, injective by weak total reality;
+  (modelDisc k m) x) = mfderiv _ _ ι x`. The theorem itself asks only
+  that `ι` be a smooth immersion (`IsImmersion`), which a smooth embedding
+  is. On the first factor `A x` is the
+  complex-linear extension of `dι x`, injective since `dι x` is and its
+  image is totally real;
   the second factor needs a frame of a complex complement, which exists
   because the base is contractible: Tau Ceti's
   `ContMDiffAlmostComplexStructure.exists_continuous_frame` and

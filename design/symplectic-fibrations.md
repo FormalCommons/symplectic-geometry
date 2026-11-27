@@ -387,7 +387,7 @@ constant fields `∂ i := bs i`.
 The first milestone, by the page's second route. Waits for *Parallel
 transport*, including its radial trivializations. About 400 lines.
 
-- `exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed`: let `M` be
+- `TauCeti.SmoothTwoForm.exists_hasStructureGroup_restrictsTo_of_isVerticallyClosed`: let `M` be
   compact and connected, `hA` hold, and let `τ` be vertically closed and
   vertically nondegenerate. Then there are `σ : SmoothTwoForm IF F` with
   `σ.IsSymplectic` and a smooth atlas `A'` of `π` with
@@ -407,14 +407,14 @@ transport*, including its radial trivializations. About 400 lines.
   `Bundle.Trivialization.transFiberHomeomorph`, smooth with smooth
   inverse), is the chart of `A'` at `b`. `RestrictsTo.hasStructureGroup`
   gives the structure group.
-- The milestone, `exists_hasStructureGroup_restrictsTo`: the case of a
+- The milestone, `TauCeti.SmoothTwoForm.exists_hasStructureGroup_restrictsTo`: the case of a
   symplectic `ω` with `ω.IsVerticallyNondegenerate IB π`, that is, every fibre
   a symplectic submanifold. Its docstring ends with "Milestone:
   *Fibrations with symplectic fibres are symplectic fibrations*." The atlas
   `A'` is compatible with `A` through the whole group by
   `coordChangeMem_top`, so it is a reduction of `A` in the page's sense.
-- `IsOrientedCompatible.exists_hasStructureGroup_restrictsTo`: the same
-  for a form compatible with an oriented atlas, which parts 49 and 56 use.
+- `TauCeti.MapFiber.Atlas.IsOrientedCompatible.exists_hasStructureGroup_restrictsTo`: the same
+  for a form compatible with an oriented atlas.
 
 ## What other parts use
 

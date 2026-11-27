@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.Complex.Blowup.Tautological
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -92,6 +93,8 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
   the blowdown is holomorphic, and the preimage of `p₀` is the exceptional divisor.
 * `SymplecticGeometry.Blowup.isLocalDiffeomorphAt_blowdown`: off the divisor, the blowdown is a
   local biholomorphism.
+* `SymplecticGeometry.Blowup.contMDiffOn_lift`: the map to the model is holomorphic on the image
+  of the model.
 * `SymplecticGeometry.Blowup.injOn_blowdown`: the blowdown is injective off the divisor.
 
 The Hausdorff property follows from the criterion `SymplecticGeometry.GluedAlong.t2Space_iff`:
@@ -759,6 +762,19 @@ theorem isLocalDiffeomorphAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivi
     IsLocalDiffeomorphAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (blowdown c) z :=
   (blowdownDiffeomorph c).isLocalDiffeomorphAt_of_coe_eq
     (fun v ↦ (coe_blowdownDiffeomorph_apply c v).symm) ⟨z, by simpa using hz⟩
+
+/-- The map `Blowup.lift c` to the model is holomorphic on the image of the model, where it
+inverts `inr (gluingHomeomorph c)`. -/
+theorem contMDiffOn_lift :
+    ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) ω (lift c)
+      (range (inr (gluingHomeomorph c))) := by
+  have hinj := (GluedAlong.inr_injective (gluingHomeomorph c)).injOn (s := univ)
+  have h := ((isLocalDiffeomorph_inr c).isLocalDiffeomorphOn univ).contMDiffOn_invFunOn
+    isOpen_univ hinj
+  rw [image_univ] at h
+  refine (contMDiff_subtypeVal.comp_contMDiffOn h).congr ?_
+  rintro _ ⟨y, rfl⟩
+  rw [lift_inr, Function.comp_apply, hinj.leftInvOn_invFunOn (mem_univ y)]
 
 end Complex
 

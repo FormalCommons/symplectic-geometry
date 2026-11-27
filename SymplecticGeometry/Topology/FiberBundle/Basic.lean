@@ -6,7 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.FiberBundle.Basic
+public import Mathlib.Topology.Sets.OpenCover
 public import TauCeti.Topology.FiberBundle.MapFiber
+import SymplecticGeometry.Topology.FiberBundle.Trivialization
 
 /-!
 # Fibre bundles read in their trivializations
@@ -35,11 +37,16 @@ two trivializations, these inclusions differ by the coordinate change.
   its fibre inclusion are inverse to each other.
 * `Bundle.Trivialization.fiberInclusionMap_coordChange`: the inclusions of a fibre through two
   trivializations differ by their coordinate change.
+* `Bundle.Trivialization.coe_fiberInclusionMap_transFiberHomeomorph`: changing the fibre of a
+  trivialization by a homeomorphism `h` composes its fibre inclusions with the inverse of `h`.
 * `Bundle.Trivialization.coordChange_compHomeomorph`: precomposing two trivializations with a
   homeomorphism leaves their coordinate change unchanged.
 * `Bundle.Trivialization.compTotalSpaceHomeomorph_refl`: a trivialization transported by Tau
   Ceti's `Bundle.Trivialization.compTotalSpaceHomeomorph` along the identity of the total space
   is itself.
+* `TauCeti.MapFiber.Atlas.iUnion_baseSet_trivAt` and
+  `TauCeti.MapFiber.Atlas.isOpenCover_baseSet_trivAt`: the base sets of the trivializations of an
+  atlas cover the base, as sets and as an open cover.
 * `TauCeti.MapFiber.Atlas.trivializationAt_fiberBundleOfHomeomorph_refl` and
   `TauCeti.MapFiber.Atlas.mem_trivializationAtlas_fiberBundleOfHomeomorph_refl_iff`: for an atlas
   of a bundle and the identity of its total space, the fibre bundle structure of Tau Ceti's
@@ -127,6 +134,16 @@ lemma fiberInclusionMap_coordChange (e₁ e₂ : Trivialization F proj) {b : B} 
   rw [fiberInclusionMap_apply, fiberInclusionMap_apply, e₁.mk_coordChange e₂ h₁ h₂]
   exact e₂.toOpenPartialHomeomorph.left_inv (e₂.mem_source.2 (by rwa [e₁.proj_symm_apply' h₁]))
 
+/-- The fibre inclusion of a trivialization whose fibre is changed by a homeomorphism `h` is the
+fibre inclusion of the original trivialization after the inverse of `h`. -/
+theorem coe_fiberInclusionMap_transFiberHomeomorph {F' : Type*} [TopologicalSpace F']
+    (e : Trivialization F proj) (h : F ≃ₜ F') {b : B} (hb : b ∈ e.baseSet) :
+    ⇑((e.transFiberHomeomorph h).fiberInclusionMap (b := b)
+      (by rwa [transFiberHomeomorph_baseSet])) = e.fiberInclusionMap hb ∘ h.symm :=
+  funext fun v ↦ by
+    rw [fiberInclusionMap_apply, transFiberHomeomorph_symm_apply, Function.comp_apply,
+      fiberInclusionMap_apply]
+
 /-- Precomposing two trivializations with a homeomorphism does not change their coordinate
 changes. -/
 @[simp]
@@ -146,6 +163,25 @@ theorem compTotalSpaceHomeomorph_refl {E : B → Type*} [TopologicalSpace (Total
 end Bundle.Trivialization
 
 namespace TauCeti.MapFiber.Atlas
+
+section Cover
+
+variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
+  {proj : Z → B} (A : Atlas F proj)
+
+/-- The base sets of the trivializations of an atlas cover the base. -/
+@[simp]
+theorem iUnion_baseSet_trivAt : ⋃ b, (A.trivAt b).baseSet = Set.univ :=
+  Set.eq_univ_of_forall fun b ↦ Set.mem_iUnion.2 ⟨b, A.mem_baseSet_trivAt b⟩
+
+/-- The base sets of the trivializations of an atlas, as open sets of the base, form an open
+cover of it. -/
+theorem isOpenCover_baseSet_trivAt :
+    TopologicalSpace.IsOpenCover fun b ↦
+      (⟨(A.trivAt b).baseSet, (A.trivAt b).open_baseSet⟩ : TopologicalSpace.Opens B) :=
+  .of_sets (fun b ↦ (A.trivAt b).open_baseSet) A.iUnion_baseSet_trivAt
+
+end Cover
 
 variable {B F : Type*} [TopologicalSpace B] [TopologicalSpace F] {E : B → Type*}
   [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
