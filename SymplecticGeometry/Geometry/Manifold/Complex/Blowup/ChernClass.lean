@@ -63,6 +63,20 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
   (hJ : IsPseudoholomorphicOn J (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c
     c.source)
 
+/-- `dπ` intertwines `J̃` with `J` off the exceptional divisor, read on the differential of the
+blowdown as a real-linear isomorphism. -/
+private theorem mfderivToContinuousLinearEquiv_blowdown_apply (z : ↥(exceptionalDivisor c)ᶜ)
+    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (z : Blowup c)) :
+    (isLocalDiffeomorphAt_blowdown_real c z.property).mfderivToContinuousLinearEquiv (by simp)
+        (((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure z v) =
+      (J.toContMDiff ⊤).toContinuousComplexStructure (blowdown c z)
+        ((isLocalDiffeomorphAt_blowdown_real c z.property).mfderivToContinuousLinearEquiv
+          (by simp) v) := by
+  simp only [toContMDiff_apply, ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply]
+  rw [← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
+  -- `J̃ z` and `J (blowdown c z)` are applied through `toEndomorphism`, their coercion.
+  exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z _
+
 /-- Off the exceptional divisor, the differential of the blowdown, as a complex-linear
 isomorphism of the fibres of the complex tangent bundles `(T Blowup c, J̃)` and `(TM, J)`. -/
 private def mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ) :
@@ -71,24 +85,7 @@ private def mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ) :
       (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber (blowdown c z) :=
   Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt _ _
     ((isLocalDiffeomorphAt_blowdown_real c z.property).mfderivToContinuousLinearEquiv (by simp))
-    fun v ↦ by
-      simp only [toContMDiff_apply,
-        ContMDiffAlmostComplexStructure.toContinuousComplexStructure_apply]
-      rw [← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
-      -- `J̃ z` and `J (blowdown c z)` are applied through `toEndomorphism`, their coercion.
-      exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z _
-
-/-- `mfderivBlowdownEquiv` is the differential of the blowdown on the underlying real vectors. -/
-private theorem fiberEquiv_mfderivBlowdownEquiv (z : ↥(exceptionalDivisor c)ᶜ)
-    (v : ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber
-      (z : Blowup c)) :
-    (J.toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv (blowdown c z)
-        (mfderivBlowdownEquiv c J hJ z v) =
-      mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
-        (((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.fiberEquiv
-          z v) := by
-  rw [mfderivBlowdownEquiv, Bundle.ContinuousComplexStructure.fiberEquiv_fiberEquivOfCommuteAt,
-    ← ContinuousLinearEquiv.coe_coe, IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe]
+    (mfderivToContinuousLinearEquiv_blowdown_apply c J hJ z)
 
 variable (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   [Fact (finrank ℝ (Fin (n + 1) → ℂ) = 2 * finrank ℂ G)]
@@ -100,19 +97,17 @@ private theorem continuous_mfderivBlowdownEquiv :
         ((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure.Fiber) ↦
       TotalSpace.mk' G (E := (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)
         (blowdown c v.proj) (mfderivBlowdownEquiv c J hJ v.proj v.snd) := by
-  -- The map is `tangentMap (blowdown c)`, read through the complex tangent bundles.
-  refine (((J.toContMDiff ⊤).toContinuousComplexStructure.totalSpaceHomeomorph
-      G).symm.continuous.comp (((contMDiff_blowdown_real c).continuous_tangentMap (by simp)).comp
-    ((((almostComplexStructure c J hJ).toContMDiff ⊤).toContinuousComplexStructure
-      |>.totalSpaceHomeomorph G).continuous.comp (Pullback.continuous_lift G _ _)))).congr
-    fun v ↦ ?_
-  rw [Function.comp_apply, Function.comp_apply, Function.comp_apply, Homeomorph.symm_apply_eq,
-    Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply,
-    Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
-  -- `tangentMap` and `Pullback.lift` are read at `v` by unfolding: the fibres of the pull-back
-  -- are aliases of those of the bundle, at which their rewriting lemmas cannot be stated.
-  exact congrArg (TotalSpace.mk' _ (blowdown c v.proj))
-    (fiberEquiv_mfderivBlowdownEquiv c J hJ v.proj v.snd).symm
+  simp only [mfderivBlowdownEquiv]
+  refine Bundle.ContinuousComplexStructure.continuous_fiberEquivOfCommuteAt_pullback _ _
+    (X := ↥(exceptionalDivisor c)ᶜ) (ContinuousMap.subtypeVal _) (fun z ↦ blowdown c z) _
+    (mfderivToContinuousLinearEquiv_blowdown_apply c J hJ)
+    ((((contMDiff_blowdown_real c).continuous_tangentMap (by simp)).comp
+      (Pullback.continuous_lift _ _ _)).congr fun v ↦ ?_)
+  rw [Function.comp_apply]
+  -- The map is `tangentMap (blowdown c)` after `Pullback.lift`. Neither has a lemma that reads it
+  -- at `v`, and `IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe` cannot be rewritten at
+  -- the fibre of the pull-back that `v.snd` lies in, so all three are unfolded.
+  rfl
 
 /-- **The first Chern class of the blowup off the exceptional divisor.** On the complement of
 the exceptional divisor, the first Chern class of the complex tangent bundle of the blowup, with

@@ -17,6 +17,7 @@ public import TauCeti.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Data.Bundle
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
+import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 import SymplecticGeometry.Topology.VectorBundle.Pullback
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Topology.FiberBundle.Pullback
@@ -512,30 +513,21 @@ def pullbackFiberEquiv (J : ContMDiffComplexStructure I n F V) (f : K)
     (hf : ContMDiff I' I n f) (y : N) :
     (J.pullback f hf).toContinuousComplexStructure.Fiber y ≃L[ℂ]
       ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y :=
-  -- The fibres of `(f *ᵖ J.toContinuousComplexStructure.Fiber) y` are, by definition, those of
-  -- `J.toContinuousComplexStructure.Fiber (f y)`, which the closing `exact`s use.
-  ContinuousLinearEquiv.complexOfMapISmul
-    (W := ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y)
-    (((J.pullback f hf).toContinuousComplexStructure.fiberEquiv y).trans
-      (J.toContinuousComplexStructure.fiberEquiv (f y)).symm) fun v ↦
-    (J.toContinuousComplexStructure.fiberEquiv (f y)).injective <| by
-      have h₁ := (J.pullback f hf).toContinuousComplexStructure.fiberEquiv_I_smul y v
-      have h₂ (w : V (f y)) : J.toContinuousComplexStructure.fiberEquiv (f y)
-          (Complex.I • (J.toContinuousComplexStructure.fiberEquiv (f y)).symm w) = J (f y) w := by
-        rw [TauCeti.Bundle.ContinuousComplexStructure.fiberEquiv_I_smul,
-          ContinuousLinearEquiv.apply_symm_apply, toContinuousComplexStructure_apply]
-      rw [toContinuousComplexStructure_apply, coe_pullback] at h₁
-      exact (((J.toContinuousComplexStructure.fiberEquiv (f y)).apply_symm_apply _).trans
-        h₁).trans (h₂ _).symm
+  TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt _
+    J.toContinuousComplexStructure (b₂ := f y) (ContinuousLinearEquiv.refl ℝ (V (f y)))
+    -- `J.pullback f hf y` is `J (f y)` on `V (f y)`; `coe_pullback` states this only for maps on
+    -- `(f *ᵖ V) y`, where `ContinuousLinearEquiv.refl_apply` does not apply, so `rfl` is used.
+    fun _ ↦ rfl
 
 theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : K)
     (hf : ContMDiff I' I n f) (y : N)
     (v : (J.pullback f hf).toContinuousComplexStructure.Fiber y) :
     J.pullbackFiberEquiv f hf y v = (J.toContinuousComplexStructure.fiberEquiv (f y)).symm
       ((J.pullback f hf).toContinuousComplexStructure.fiberEquiv y v) := by
-  -- As in `pullbackFiberEquiv`, the `exact` reads the pull-back fibre as `V (f y)`.
   rw [pullbackFiberEquiv]
-  exact ContinuousLinearEquiv.complexOfMapISmul_apply _ _ v
+  -- As in `pullbackFiberEquiv`, `ContinuousLinearEquiv.refl_apply` cannot be rewritten at a vector
+  -- of `(f *ᵖ V) y`, so the `exact` reads `refl` as the identity.
+  exact TauCeti.Bundle.ContinuousComplexStructure.fiberEquivOfCommuteAt_apply _ _ _ _ v
 
 /-- `pullbackFiberEquiv` is continuous on total spaces, for any complex model `G`. -/
 theorem continuous_pullbackFiberEquiv [FiniteDimensional ℝ F] (G : Type*) [NormedAddCommGroup G]
