@@ -15,7 +15,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Analysis.Normed.Module.Conjugate
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Sphere
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.EulerCharacteristic
-import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere
+import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complexification.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complexification.ComplexStructure
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass

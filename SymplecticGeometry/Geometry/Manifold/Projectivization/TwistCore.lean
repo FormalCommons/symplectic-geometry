@@ -56,8 +56,6 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
 * `Projectivization.twistSumCoreCongr k e x`: the isomorphism
   `⨁_{a : κ} 𝒪(k (e a)) ≅ ⨁_{b : κ'} 𝒪(k b)` that reindexes the coordinates along `e : κ ≃ κ'`,
   continuous on total spaces, so that `Option (Fin r)` above can be read as `Fin (r + 1)`.
-* `Projectivization.twistSumCoreTrivializationOfIsEmpty`: for empty `κ`, `⨁ₗ 𝒪(k l)` has rank
-  zero and is trivial.
 * `Projectivization.twistScalarCocycle`: the scalar cocycle of the line bundles `𝒪(k)`, with
   `twistCore k` equal to its line bundle `lineBundleCore k`
   (`Projectivization.twistCore_eq_lineBundleCore`).
@@ -341,32 +339,6 @@ theorem continuous_twistSumCoreOptionEquiv_symm :
   exact (ContinuousLinearEquiv.continuous _).continuousAt.comp
     (continuous_snd.continuousAt.comp
       ((trivializationAt _ _ q₀.proj).continuousAt FiberBundle.mem_trivializationAt_proj_source))
-
-variable (k : κ → ℤ)
-
-/-- For empty `κ`, the rank-zero bundle `⨁ₗ 𝒪(k l)` is trivial: its total space is the product
-of the base with the zero-dimensional space `κ → 𝕜`. -/
-def twistSumCoreTrivializationOfIsEmpty [IsEmpty κ] :
-    Trivialization (κ → 𝕜) (π (κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber) :=
-  (twistSumCore k).globalTrivializationOfCoordChangeEqId fun _ _ _ _ _ ↦ Subsingleton.elim _ _
-
-/-- The trivialization `twistSumCoreTrivializationOfIsEmpty` is defined over the whole base. -/
-@[simp]
-theorem twistSumCoreTrivializationOfIsEmpty_baseSet [IsEmpty κ] :
-    (twistSumCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k).baseSet = univ :=
-  VectorBundleCore.globalTrivializationOfCoordChangeEqId_baseSet _ _
-
-/-- The trivialization `twistSumCoreTrivializationOfIsEmpty` keeps the base point and the
-coordinate in the preferred chart. -/
-@[simp]
-theorem twistSumCoreTrivializationOfIsEmpty_apply [IsEmpty κ]
-    (p : TotalSpace (κ → 𝕜) (twistSumCore (𝕜 := 𝕜) (n := n) k).Fiber) :
-    twistSumCoreTrivializationOfIsEmpty k p = (p.proj, p.snd) :=
-  VectorBundleCore.globalTrivializationOfCoordChangeEqId_apply _ _ p
-
-/-- The trivialization `twistSumCoreTrivializationOfIsEmpty` is linear on fibres. -/
-instance [IsEmpty κ] : (twistSumCoreTrivializationOfIsEmpty (𝕜 := 𝕜) (n := n) k).IsLinear 𝕜 :=
-  VectorBundleCore.globalTrivializationOfCoordChangeEqId_isLinear _ _
 
 /-- The fibrewise isomorphism `⨁_{a : κ} 𝒪(k (e a)) ≅ ⨁_{b : κ'} 𝒪(k b)` induced by a bijection
 `e : κ ≃ κ'`, which moves the coordinate at `a` to `e a`. It is continuous on total spaces

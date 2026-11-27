@@ -29,7 +29,8 @@ statement only asserts that some normalized tube has this property),
 where `μ_Φ ∈ Hₙ(ν, ν ∖ 0)` is the fundamental class of `W` along `f(Z)`, for the orientation of
 `W` restricted from `oX` (Tau Ceti's `HomologicalOrientation.comap` and
 `HomologicalOrientation.fundamentalClassOn`), carried to the normal bundle by the pair isomorphism
-`TauCeti.SmoothEmbedding.tubePairIso` of `Φ`.
+`TauCeti.SmoothEmbedding.tubePairIso` of `Φ`: the class
+`TauCeti.SmoothEmbedding.tubeFundamentalClass` of the tube.
 
 The proof has three steps.
 
@@ -96,9 +97,10 @@ normalized tube `Φ` of `f` onto an open set `W ⊆ X` such that, for every clas
 
 `dualClassOf f hn hdim hf u ⌢ [X] = (f ∘ π)_* (u ⌢ μ_Φ)` in `H_q(X; L)`,
 
-where `μ_Φ ∈ Hₙ(ν, ν ∖ 0; ℤ)` is the fundamental class of `W` along `f(Z)`, for the orientation
-`oX` restricted to `W`, carried to the normal bundle by the pair isomorphism `tubePairIso` of
-`Φ` (after the identity of `W`, which writes `W ∖ f(Z)` as the preimage of `X ∖ f(Z)`). -/
+where `μ_Φ ∈ Hₙ(ν, ν ∖ 0; ℤ)`, the class `tubeFundamentalClass` of `Φ`, is the fundamental
+class of `W` along `f(Z)`, for the orientation `oX` restricted to `W`, carried to the normal
+bundle by the pair isomorphism `tubePairIso` of `Φ` (after the identity of `W`, which writes
+`W ∖ f(Z)` as the preimage of `X ∖ f(Z)`). -/
 theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
     (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
@@ -118,12 +120,7 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
             (((thomPair P (fun x ↦ f.isImmersion.NormalSpace x hn)).singularCap ℤ (ρ_ _).inv
                 (ρ_ L).hom
               p q n h u).hom
-              ((TopPair.singularHomologyMap
-                (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
-                  (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
-                  (fun _ hx ↦ hx) ≫ (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).inv)
-                (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
-                ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK))) := by
+              (f.tubeFundamentalClass hn hdim Φ hΦ.apply_zeroSection oX hnX hK)) := by
   let := f.normalSpaceFiberBundle hn hdim
   obtain ⟨W, Φ, hΦ, hrel⟩ :=
     f.exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf
@@ -155,29 +152,16 @@ theorem exists_isNormalizedTube_singularCap_dualClassOf_fundamentalClass
     exact oX.localHomologyMap_fundamentalClassOn_comap_preimage hnX W.isOpenEmbedding'
       (j := ⟨Subtype.val, continuous_subtypeVal⟩) hf.isCompact (by simpa using hfW) hK
   -- The class `μ_Φ` is carried back to the class of `W` by the tube.
-  have hμ : (TopPair.singularHomologyMap (TopPair.ofSubsetMap (X := TopCat.of W)
-      (Y := TopCat.of W) (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ)
-      (𝟙 _) (fun _ hx ↦ hx)) (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
-        ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK) =
-      (TopPair.singularHomologyMap (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
-        ((TopPair.singularHomologyMap
-          (TopPair.ofSubsetMap (X := TopCat.of W) (Y := TopCat.of W)
-            (B := (Subtype.val ⁻¹' range f)ᶜ) (B' := Subtype.val ⁻¹' (range f)ᶜ) (𝟙 _)
-            (fun _ hx ↦ hx) ≫ (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).inv)
-          (ModuleCat.of ℤ (ULift.{0} ℤ)) n).hom
-          ((oX.comap W.isOpenEmbedding').fundamentalClassOn hnX hK)) := by
-    rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp, ← TopPair.singularHomologyMap_comp,
-      Category.assoc, Iso.inv_hom_id, Category.comp_id]
+  have hμ := (f.singularHomologyMap_tubePairIso_hom_tubeFundamentalClass hn hdim Φ
+    hΦ.apply_zeroSection oX hnX hK).symm
   -- The tube, followed by the inclusion of `W`, is homotopic to `f ∘ π`, as `Φ` is `f` on the
   -- zero section and the zero section after `π` is homotopic to the identity.
   let := f.normalSpaceVectorBundle hn hdim
-  let g : C(TotalSpace P (fun x ↦ f.isImmersion.NormalSpace x hn), X) :=
-    ⟨fun v ↦ (Φ v : X), continuous_subtypeVal.comp Φ.continuous⟩
+  let g := f.tubeMap hn hdim Φ
   have hgf : g.Homotopic ⟨fun v ↦ f v.proj,
       f.isEmbedding.continuous.comp (FiberBundle.continuous_proj P _)⟩ :=
     VectorBundle.homotopic_comp_zeroSection_proj g (f := ⟨f, f.isEmbedding.continuous⟩)
-      hΦ.apply_zeroSection
+      (f.tubeMap_zeroSection hn hdim Φ hΦ.apply_zeroSection)
   have hg : TopPair.Hom.fst (f.tubePairIso hn hdim Φ hΦ.apply_zeroSection).hom ≫
       TopPair.Hom.fst (TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ) =
       TopCat.ofHom g :=
