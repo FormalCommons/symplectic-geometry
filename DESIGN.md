@@ -4181,7 +4181,7 @@ manifolds and characteristic classes*).
 | Milestone | Where |
 |---|---|
 | *Compatible and tame almost complex structures on manifolds* | *Almost complex manifolds*. Existing: the bundle statement `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames` of *Symplectic vector bundles*, and Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`. |
-| *First Chern class of a nondegenerate two-form* | *First Chern class of nondegenerate forms*, with the integral class of *First Chern number*. |
+| *First Chern class of a nondegenerate two-form* | *First Chern class of nondegenerate forms*, with Tau Ceti's integral class `TauCeti.firstChernClass`. |
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
