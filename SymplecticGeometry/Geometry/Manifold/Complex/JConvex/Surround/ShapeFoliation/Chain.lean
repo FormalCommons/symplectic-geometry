@@ -87,12 +87,13 @@ Together they give the chain itself:
   `[a, b] × [r₁, r₂]`, smooth near the band `[a, b] × [r₃, r₂]` with `∂χ/∂ℓ > 0` on it, a family
   `C` smooth on `ℝ²`, of `i`-convex shapes and weakly increasing in `ℓ` there, constant in `ℓ`
   near `a` and `b` with `C a` equal to `χ a` near `[r₁, r₂]`, with `C b` at most `ε` above the
-  members of `χ`, and within `τ` of `χ` in value and two `r`-derivatives on the band. It is the
-  `shapeChain` of the stand-ins of `χ (a + i h)` on a mesh of size `h = (b - a) / N` with width
-  `δ = c h`: first the margin of stability of the shapes (step 1 of the design,
-  `SymplecticGeometry.exists_forall_isConvexShapeAt_of_abs_sub_lt`) fixes the lowering `η` and
-  the error of the stand-ins, so that the joints match and the stand-ins and their lowerings are
-  convex shapes, then `c` is taken below the rate of increase of `χ` on the band
+  members of `χ` and less than `ε` below `χ b`, and within `τ` of `χ` in value and two
+  `r`-derivatives on the band. It is the `shapeChain` of the stand-ins of `χ (a + i h)` on a
+  mesh of size `h = (b - a) / N` with width `δ = c h`: first the margin of stability of the
+  shapes (step 1 of the design, `SymplecticGeometry.exists_forall_isConvexShapeAt_of_abs_sub_lt`)
+  fixes the lowering `η` and the error of the stand-ins, so that the joints match and the
+  stand-ins and their lowerings are convex shapes, then `c` is taken below the rate of increase
+  of `χ` on the band
   (`IsCompact.exists_pos_mul_sub_le_sub_of_deriv_pos`), and last `h` small by uniform continuity
   in `ℓ` (`IsCompact.exists_pos_abs_sub_lt_of_continuousOn`) and against the Lipschitz constant
   of `∂χ/∂r` in `ℓ` (`IsCompact.exists_abs_deriv_sub_le_mul`), which makes the curvature term
@@ -630,8 +631,8 @@ continuous in `(ℓ, r)`, and let the family be smooth on an open set `U` that c
 Then for all `τ, ε > 0` there is a family `C`, smooth on all of `ℝ²`, such that on
 `[a, b] × [r₁, r₂]` each `C ℓ` is an `i`-convex shape and `∂C/∂ℓ ≥ 0`; `C` is constant in `ℓ`
 near `a` and near `b`, and `C a` equals `χ a` near `[r₁, r₂]`; at each `r ∈ [r₁, r₂]`, `C b r`
-is at most `ε` above some `χ ℓ r`, `ℓ ∈ [a, b]`; and on the band, `C ℓ` is within `τ` of `χ ℓ`
-in value and first two derivatives. -/
+is at most `ε` above some `χ ℓ r`, `ℓ ∈ [a, b]`, and more than `χ b r - ε`; and on the band,
+`C ℓ` is within `τ` of `χ ℓ` in value and first two derivatives. -/
 theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)} (hr₁ : 0 < r₁)
     (hab : a < b) (hr₁₃ : r₁ ≤ r₃)
     (hC2 : ∀ x ∈ Icc a b ×ˢ Icc r₁ r₂, ContDiffAt ℝ 2 (χ x.1) x.2)
@@ -648,6 +649,7 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
       ((∀ᶠ ℓ in 𝓝 a, C ℓ = C a) ∧ C a =ᶠ[𝓝ˢ (Icc r₁ r₂)] χ a) ∧
       (∀ᶠ ℓ in 𝓝 b, C ℓ = C b) ∧
       (∀ r ∈ Icc r₁ r₂, ∃ ℓ ∈ Icc a b, C b r ≤ χ ℓ r + ε) ∧
+      (∀ r ∈ Icc r₁ r₂, χ b r - ε < C b r) ∧
       ∀ x ∈ Icc a b ×ˢ Icc r₃ r₂, ∀ k ≤ 2,
         |iteratedDeriv k (C x.1) x.2 - iteratedDeriv k (χ x.1) x.2| < τ := by
   have hK : IsCompact (Icc a b ×ˢ Icc r₁ r₂) := isCompact_Icc.prod isCompact_Icc
@@ -740,9 +742,13 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
     have h₂ := hG₀ (t i, r) ⟨htI i, hr⟩
     simp only [iteratedDeriv_one, Real.norm_eq_abs] at h₁ h₂
     linarith [le_abs_self (deriv (χ (t i)) r), le_abs_self G₀]
+  -- The last member is the last smoothed maximum of the stand-ins.
+  have hCb (r : ℝ) (hr : r ∈ Icc r₁ r₂) : shapeChain δ η a h A N b r = smoothedMaxChain δ A N r :=
+    shapeChain_eq_smoothedMaxChain hδ hh
+      (fun i hi ↦ ((hjc r hr).1 i hi).le.trans (le_smoothedMaxChain hδ A i r)) (by linarith)
   refine ⟨shapeChain δ η a h A N, contDiff_shapeChain fun i _ ↦ hAs i, fun x hx ↦ ?_,
     fun x _ ↦ (monotone_shapeChain hh hη.le x.2).deriv_nonneg, ⟨?_, ?_⟩, ?_, fun r hr ↦ ?_,
-    fun x hx k hk ↦ ?_⟩
+    fun r hr ↦ ?_, fun x hx k hk ↦ ?_⟩
   · -- The members are convex shapes.
     have hδG : δ * G ≤ x.2 := by
       have := (le_div_iff₀ hG).1 hcG
@@ -762,8 +768,7 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
   · -- The last member lies at most `ε` above some member of `χ`.
     obtain ⟨j, -, hj⟩ := exists_smoothedMaxChain_le_add hδ A N r
     refine ⟨t j, htI j, ?_⟩
-    rw [shapeChain_eq_smoothedMaxChain hδ hh
-      (fun i hi ↦ ((hjc r hr).1 i hi).le.trans (le_smoothedMaxChain hδ A i r)) (by linarith)]
+    rw [hCb r hr]
     have h₁ := (abs_lt.1 (hAθ j 0 (by norm_num) r hr)).2
     simp only [iteratedDeriv_zero] at h₁
     have h₂ : N * δ ≤ ε := by
@@ -771,6 +776,12 @@ theorem exists_monotone_shapeChain {a b r₃ τ ε : ℝ} {U : Set (ℝ × ℝ)}
       rw [hδ_def, mul_left_comm, hNh]
       linarith
     linarith
+  · -- The last member lies above `A N`, which is within `θ < ε` of `χ b`.
+    have htN : t N = b := by rw [ht N le_rfl, hNh]; ring
+    rw [hCb r hr]
+    have h₁ := (abs_lt.1 (hAθ N 0 (by norm_num) r hr)).1
+    simp only [iteratedDeriv_zero, htN] at h₁
+    linarith [le_smoothedMaxChain hδ A N r]
   · -- On the band, the chain follows `χ`.
     have hδm : δ < m * h := by linarith [mul_le_mul_of_nonneg_right hcm hh.le, mul_pos hm hh]
     have hX : h * (Q * L ^ 2 + 1) ≤ τ * c := (le_div_iff₀ (by positivity)).1 (hhh₀.le.trans hh₀τ)
