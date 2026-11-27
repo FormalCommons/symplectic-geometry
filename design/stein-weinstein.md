@@ -617,7 +617,7 @@ containing `ι '' closedBall 0 1`:
   - `exists_isConvexShapeAt_eq_max` (14d2; Lemma 4.13 (d)): let `χ₁`,
     `χ₂` be `C²` with `IsConvexShapeAt` at every point of a compact
     interval `Icc r₁ r₂`, and let `O` be a
-    neighbourhood of `{r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
+    neighbourhood of `Icc r₁ r₂ ∩ {r | χ₁ r = χ₂ r}`. Then there is a `C²` (smooth if
     `χ₁`, `χ₂` are) `χ`, a convex shape at every point of `Icc r₁ r₂`,
     equal to `max (χ₁ r) (χ₂ r)` on `Icc r₁ r₂` off `O`; no transversality
     of the crossings is needed. Condition (4.3) passes to
@@ -752,19 +752,20 @@ containing `ι '' closedBall 0 1`:
 
     The proof is in five steps, each a building issue of 14d6.
     1. `exists_forall_isConvexShapeAt_of_abs_sub_lt`
-       (`Surround/ShapeFoliation.lean`): under the hypotheses on `Q`
-       above, there is `η > 0` such that every `φ : ℝ → ℝ`, `ℓ ∈ Icc ℓ₀ ℓ₁`
-       and `r ∈ Icc r₁ r₂` with `|iteratedDeriv k φ r -
+       (`Surround/ConvexShape.lean`): for a compact `K ⊆ ℝ × ℝ` with
+       `IsConvexShapeAt (χ ℓ) r` and the joint continuity above on `K`,
+       there is `η > 0` such that every `φ : ℝ → ℝ` and `(ℓ, r) ∈ K`
+       with `|iteratedDeriv k φ r -
        iteratedDeriv k (χ ℓ) r| < η` for `k ≤ 2` give
        `IsConvexShapeAt φ r`. The two strict inequalities of
        `isConvexShapeAt_iff`, and `0 < χ`, are an open condition on
-       `(χ, χ', χ'', r)`, and the image of `Q` is compact. Every later
+       `(χ, χ', χ'', r)`, and the image of `K` is compact. Every later
        step only checks closeness to some member in this sense.
-    2. `exists_contDiff_abs_iteratedDeriv_sub_lt`
-       (`Analysis/Calculus/ContDiff/SmoothApprox.lean`, a statement about
-       real functions): a function `C²` on a neighbourhood of `Icc a b` is,
-       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in value
-       and first two derivatives, and `g` equals it near `Icc c b` if it
+    2. `ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt`
+       (`Analysis/Calculus/BumpFunction/SmoothApprox.lean`, a statement about
+       real functions): a function `Cⁿ` on a neighbourhood of `Icc a b` is,
+       for each `ε > 0`, within `ε` on `Icc a b` of a smooth `g` in its
+       derivatives of order at most `n`, and `g` equals it near `Icc c b` if it
        is smooth on a neighbourhood of `Icc c b` (convolution with a
        `ContDiffBump`, glued by a cutoff). It turns finitely many members
        into smooth convex shapes `A i` (step 1).
@@ -860,7 +861,8 @@ containing `ι '' closedBall 0 1`:
     for `ℓ` near `-8 * δ`; and continued a little past `u = 1` by
     `χ 1 r + √(64 * r ^ 2 + u) - √(64 * r ^ 2 + 1)`, which is standard
     for `γ ≤ r`, so smooth across `u = 1` there, is a convex shape for
-    `u` close to `1` by step 1 of `exists_shapeFoliation`, and lies
+    `u` close to `1` by
+    `exists_forall_isConvexShapeAt_of_abs_sub_lt`, and lies
     strictly above `χ 1`, hence above every earlier member), and write its leaf `ℓ` near the line
     `r = δ` as `r = ρ ℓ R` over `R ≥ 0`, with `ρ ℓ = δ` on
     `Icc 0 (χ ℓ δ)`. For `δ' < δ` close to `δ` there are `r₁ ∈ Ioo δ γ`,

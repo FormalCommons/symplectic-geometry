@@ -526,8 +526,8 @@ Step 8d first searches Mathlib and Tau Ceti for that comparison.
   with a symplectic framing from the base; `torusDiffeomorph` from Tau
   Ceti's standard symplectic torus (Decision 8), in
   `Sum/RationalEllipticSurface/FibreTorus.lean`.
-- `simplyConnectedSpace` (Decision 6) and
-  `simplyConnectedSpace_compl_fibre` (Decision 7).
+- `simplyConnectedSpace` (Decision 6); `simplyConnectedSpace_compl_fibre`
+  (Decision 7) is in `Sum/RationalEllipticSurface/FibreComplement.lean`.
 
 About 900 lines, in three issues.
 
@@ -542,7 +542,7 @@ About 900 lines, in three issues.
   as `Subgroup.normalClosure` of the range of the induced map, and $X'$ is
   connected. By `TauCeti.isPushout_fundamentalGroup` for the two pieces,
   whose overlap is $T^2\times A(\delta,\varepsilon)$, with
-  $\pi_1(E(1)\setminus T)=1$ from `RationalEllipticSurface/Basic.lean`, and the same
+  $\pi_1(E(1)\setminus T)=1$ from `RationalEllipticSurface/FibreComplement.lean`, and the same
   theorem for $X$ covered by the complement of the closed tube and the open
   tube. Milestone: *Fundamental group after summing with the rational
   elliptic surface*.
@@ -601,7 +601,7 @@ sums*. Sizes are estimates. "P60" is the issue of *Almost complex spheres*
 | 3 | Product neighbourhoods and the fibre sum; the milestone | `Fibre.lean` | 1, 2 | 500 |
 | 4 | The pointwise obstruction | `Pointwise.lean` | P60 | 450 |
 | 5 | The Hesse pencil surface and its symplectic form | `RationalEllipticSurface/Basic.lean` | — | 350 |
-| 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface/Basic.lean` | 5 | 350 |
+| 6 | Simple connectivity of $E(1)$ and of the fibre complement | `RationalEllipticSurface/Basic.lean`, `RationalEllipticSurface/FibreComplement.lean` | 5 | 350 |
 | 7 | The fibre as a standard torus | `RationalEllipticSurface/Basic.lean` | 5 | 300 |
 | 8 | Closed surfaces of genus $g$ and their fundamental groups | `Surface/` | — | |
 | 9 | The fundamental group of a sum with $E(1)$ | `FundamentalGroup.lean` | 3, 6, 7 | 500 |
