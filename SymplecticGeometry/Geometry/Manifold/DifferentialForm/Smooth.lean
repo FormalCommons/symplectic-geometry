@@ -26,8 +26,10 @@ Tau Ceti's `TauCeti.SmoothForm.bilinFormAt` reads the value at `x` of a real smo
 `σ` on `M` as a bilinear form `σ_x` on the tangent space `T_x M`. This file shows that the map
 `σ ↦ σ_x` is compatible with the module structure of the smooth two-forms: it sends sums,
 real multiples, zero, negatives and differences of two-forms to the same operations on their
-bilinear forms. All these lemmas are `@[simp]`. Before them, `TauCeti.SmoothForm.bilinFormAt_def`
-states the definition of `σ_x`: the bilinear form of the value `σ x`.
+bilinear forms. It also sends the pullback `f^* β` along a smooth map `f` to `β_{f x}` composed
+with `d_x f` on both sides. All these lemmas are `@[simp]`. Before them,
+`TauCeti.SmoothForm.bilinFormAt_def` states the definition of `σ_x`: the bilinear form of the
+value `σ x`.
 
 The same family exists for the two-forms on a vector bundle of this library, in
 `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/Basic.lean`
@@ -60,6 +62,8 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
 * `TauCeti.SmoothForm.bilinFormAt_add`, `TauCeti.SmoothForm.bilinFormAt_smul`,
   `TauCeti.SmoothForm.bilinFormAt_zero`, `TauCeti.SmoothForm.bilinFormAt_neg`,
   `TauCeti.SmoothForm.bilinFormAt_sub`.
+* `TauCeti.SmoothForm.bilinFormAt_mpullback`: the bilinear form of `f^* β` at `x` is that of `β`
+  at `f x` composed with `d_x f` on both sides.
 * `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
   `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
 * `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
@@ -168,6 +172,24 @@ theorem bilinFormAt_sub (σ τ : SmoothForm I M ℝ 2) (x : M) :
     (σ - τ).bilinFormAt x = σ.bilinFormAt x - τ.bilinFormAt x := by
   ext v w
   simp [SmoothBundleForm.eval₂_apply]
+
+section Pullback
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M']
+
+/-- The bilinear form at `x` of the pullback `f^* β` of a two-form along a smooth map `f` is the
+bilinear form of `β` at `f x` composed on both sides with the derivative `d_x f`. -/
+@[simp]
+theorem bilinFormAt_mpullback {f : M → M'} (hf : ContMDiff I I' ∞ f) (β : SmoothForm I' M' ℝ 2)
+    (x : M) :
+    (mpullback f hf β).bilinFormAt x = (β.bilinFormAt (f x)).comp
+      (mfderiv I I' f x : TangentSpace I x →ₗ[ℝ] _) (mfderiv I I' f x) := by
+  refine LinearMap.ext₂ fun v w ↦ ?_
+  simp only [LinearMap.BilinForm.comp_apply, bilinFormAt_apply, eval₂_mpullback,
+    ContinuousLinearMap.coe_coe]
+
+end Pullback
 
 
 section FunSMul

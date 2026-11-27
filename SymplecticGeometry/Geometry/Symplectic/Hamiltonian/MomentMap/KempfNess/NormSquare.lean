@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Local
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormSq
 public import TauCeti.Geometry.Manifold.IntegralCurve.Maximal
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
+import Mathlib.Geometry.Manifold.Metrizable
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Analysis.Calculus.Lojasiewicz.Polynomial
 import SymplecticGeometry.Geometry.Lie.Adjoint.Differential
@@ -24,6 +25,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
+import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import TauCeti.Geometry.Manifold.IntegralCurve.Regularity
 
 /-!
@@ -137,6 +139,23 @@ for otherwise `N` would become negative (`nonneg_of_bddBelow_of_hasDerivAt_le`).
 (`SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`), and `y = u⁻¹ • x`. This replaces
 the sequence and subsequence of the published proof by one maximum on a compact set.
 
+## The moment limit theorem
+
+Let `x` be the limit of the flow from `p` and `y` that of the flow from `g₀ • p`, with flow
+curves `g` from `p` and `g'` from `g₀ • p`, as above. Then `g₁ t = g₀⁻¹ * g' t` is a flow curve
+from `p` with `(g₁ t)⁻¹ • p` the flow from `g₀ • p`, so the polar radius of `(g t)⁻¹ * g₁ t` is
+antitone, and its polar decomposition stays in a compact set. Along a subsequence of integer
+times it converges, to `(η, u)` say, and passing to the limit gives
+`y = (C.expI η * C.toHom u)⁻¹ • x`. Both limits are critical points, so Ness's theorem puts them
+in one `G`-orbit (`SymplecticGeometry.exists_smul_limit_eq_of_mem_orbit`). Since `‖μ‖²` is
+`G`-invariant and does not increase along its negative gradient flow
+(`TauCeti.le_comp_maximalIntegralCurve_neg_mgradient`),
+`‖μ x‖² = ‖μ y‖² ≤ ‖μ (g₀ • p)‖²`;
+and `‖μ x‖²` is a limit of values of `‖μ‖²` on the `Gc`-orbit of `p`. So `‖μ x‖²` is the
+infimum of `‖μ‖²` over that orbit (`SymplecticGeometry.momentNormSq_limit_eq_iInf`). This is the
+proof of [GeorgoulasRobbinSalamon2021], Theorem 6.4, with the polar radius in place of the
+distance in `Gc ⧸ G`.
+
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
@@ -156,6 +175,10 @@ the sequence and subsequence of the published proof by one maximum on a compact 
   `(g t)⁻¹ * g' t` for two such curves in `Gc`, and its monotonicity.
 * `SymplecticGeometry.exists_smul_eq_of_mgradient_momentNormSq_eq_zero`: Ness's uniqueness
   theorem, two critical points of `‖μ‖²` in one `Gc`-orbit lie in one `G`-orbit.
+* `SymplecticGeometry.exists_smul_limit_eq_of_mem_orbit`: the limits of the flows from two points
+  of one `Gc`-orbit lie in one `G`-orbit.
+* `SymplecticGeometry.momentNormSq_limit_eq_iInf`: the moment limit theorem, the norm square at
+  the limit of the flow from `p` is the infimum of `‖μ‖²` over the `Gc`-orbit of `p`.
 
 ## References
 
@@ -735,6 +758,159 @@ theorem exists_smul_eq_of_mgradient_momentNormSq_eq_zero [CompactSpace G] [Conne
     mul_smul, ← C.expI_neg, hfixη, ← map_inv, h.toHom_smul]
 
 end Uniqueness
+
+section MomentLimit
+
+/-! ### The moment limit theorem -/
+
+open Filter Set Topology TauCeti.Manifold
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [CompactSpace G] [T2Space G] [ConnectedSpace G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  [FiniteDimensional ℝ EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC} [IC.Boundaryless]
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [CompactSpace M]
+  [T2Space M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  [IsContMDiffRiemannianBundle I' 1 E' (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {C : LieComplexification I G IC Gc}
+  {B : LinearMap.BilinForm ℝ (GroupLieAlgebra I G)} {hB : B.Nondegenerate}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **The limit of the flow of `‖μ‖²` depends only on the complex orbit, up to `G`.** In the
+Kähler setting of `exists_mem_orbit_maximalIntegralCurve`, with `σ` closed, nondegenerate and
+`G`-invariant, `G` compact and connected, and `B` symmetric, positive definite and
+`Ad`-invariant: if the negative gradient flow of `‖μ‖²` from `p` converges to `x` and the one from
+`g₀ • p` converges to `y`, then `y = u • x` for some `u : G`.
+
+This is a step of the proof of [GeorgoulasRobbinSalamon2021], Theorem 6.4. -/
+theorem exists_smul_limit_eq_of_mem_orbit (h : IsComplexifiedAction C J) (hσc : σ.IsClosed)
+    (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {p x y : M} (g₀ : Gc)
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x))
+    (hy : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) (g₀ • p)) atTop
+      (𝓝 y)) :
+    ∃ u : G, u • x = y := by
+  -- The limits are critical points of `‖μ‖²`.
+  have hneg : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
+    funext fun _ ↦ momentNormSq_neg
+  have hcrit {q z : M}
+      (hz : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) q) atTop (𝓝 z)) :
+      mgradient I' (momentNormSq B hB μ) z = 0 := by
+    obtain ⟨-, z', hz', hconv, -⟩ :=
+      tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG q
+    rw [hneg] at hz' hconv
+    rwa [tendsto_nhds_unique hz hconv]
+  -- The flow curves `g` from `p` and `g'` from `g₀ • p`, and the flow curve `g₁ = g₀⁻¹ * g'`
+  -- from `p`, along which `(g₁ t)⁻¹ • p` is the flow from `g₀ • p`.
+  obtain ⟨g, -, hg, hgx, -⟩ := exists_mem_orbit_maximalIntegralCurve h hμ hgm hBs p
+  obtain ⟨g', -, hg', hg'x, -⟩ := exists_mem_orbit_maximalIntegralCurve h hμ hgm hBs (g₀ • p)
+  set g₁ : ℝ → Gc := fun t ↦ g₀⁻¹ * g' t
+  have hg₁x (t : ℝ) : (g₁ t)⁻¹ • p = (g' t)⁻¹ • g₀ • p := by
+    simp only [g₁, mul_inv_rev, inv_inv, mul_smul]
+  have hg₁ : HasLeftTrivializedDerivOn g₁
+      (fun t ↦ (-2 : ℝ) • C.cplx (C.lieMap (momentSharp B hB μ ((g₁ t)⁻¹ • p)))) univ := by
+    simp only [hg₁x]
+    exact hg'.const_mul g₀⁻¹
+  -- The polar radius of `(g t)⁻¹ * g₁ t` is antitone, so the polar decomposition at integer
+  -- times stays in a compact set.
+  set N : ℝ → ℝ := fun t ↦
+    B (C.polar.symm ((g t)⁻¹ * g₁ t)).1 (C.polar.symm ((g t)⁻¹ * g₁ t)).1
+  have hanti : Antitone N := antitoneOn_univ.1
+    (antitoneOn_polar_symm_fst_inv_mul h hμ hgm hBs hBG hg hg₁ convex_univ)
+  set K : Set (E × G) := {η : E | B η η ≤ N 0} ×ˢ univ
+  have hK : IsCompact K :=
+    (LinearMap.BilinForm.isCompact_setOf_apply_self_le (E := E) hBp _).prod isCompact_univ
+  have := Manifold.metrizableSpace I G
+  obtain ⟨q, -, φ, hφ, hlim⟩ := hK.tendsto_subseq (x := fun n : ℕ ↦
+    C.polar.symm ((g n)⁻¹ * g₁ n)) fun n ↦ ⟨hanti (Nat.cast_nonneg n), mem_univ _⟩
+  have hφt : Tendsto (fun n ↦ ((φ n : ℕ) : ℝ)) atTop atTop :=
+    tendsto_natCast_atTop_atTop.comp hφ.tendsto_atTop
+  -- The flow from `g₀ • p` is the flow from `p` acted on by the inverse polar decomposition.
+  have hflow (t : ℝ) :
+      maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) (g₀ • p) t =
+        (C.polar (C.polar.symm ((g t)⁻¹ * g₁ t)))⁻¹ •
+          maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p t := by
+    rw [hg'x, hgx, C.polar.apply_symm_apply, mul_inv_rev, inv_inv, mul_smul, smul_inv_smul,
+      hg₁x]
+  have hsmul : Continuous fun a : Gc × M ↦ a.1 • a.2 :=
+    (ContMDiffSMul.contMDiff_smul (I := IC) (I' := I') (n := ∞)).continuous
+  have hcont : Continuous fun a : (E × G) × M ↦ (C.polar a.1)⁻¹ • a.2 :=
+    hsmul.comp (((contMDiff_inv IC 1).continuous.comp
+      (C.polar.continuous.comp continuous_fst)).prodMk continuous_snd)
+  have hyx : y = (C.polar q)⁻¹ • x := by
+    refine tendsto_nhds_unique (hy.comp hφt) ?_
+    refine ((hcont.tendsto (q, x)).comp (hlim.prodMk_nhds (hx.comp hφt))).congr fun n ↦ ?_
+    simp only [Function.comp_apply]
+    rw [hflow]
+  obtain ⟨u, hu⟩ := exists_smul_eq_of_mgradient_momentNormSq_eq_zero h hμ hgm hBs hBp hBG
+    (C.polar q) (hcrit hx) (hyx ▸ hcrit hy)
+  exact ⟨u, hu.trans hyx.symm⟩
+
+/-- **The moment limit theorem.** In the Kähler setting of `exists_mem_orbit_maximalIntegralCurve`,
+with `σ` closed, nondegenerate and `G`-invariant, `G` compact and connected, and `B` symmetric,
+positive definite and `Ad`-invariant: if the negative gradient flow of `‖μ‖²` from `p` converges
+to `x`, then `‖μ x‖²` is the infimum of `‖μ‖²` over the `Gc`-orbit of `p`. Both norms are
+those of `B`.
+
+This is [GeorgoulasRobbinSalamon2021], Theorem 6.4. -/
+theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsClosed)
+    (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
+    {p x : M}
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq B hB μ)) p) atTop (𝓝 x)) :
+    momentNormSq B hB μ x = ⨅ g : Gc, momentNormSq B hB μ (g • p) := by
+  have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
+    (contMDiff_momentNormSq fun ξ ↦ hμ.toIsMomentMap.contMDiff_of_neg ξ).of_le (by norm_cast)
+  have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq B hB μ (g • p)) :=
+    ⟨0, by
+      rintro _ ⟨g, rfl⟩
+      exact momentNormSq_nonneg (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg)⟩
+  refine le_antisymm (le_ciInf fun g₀ ↦ ?_) ?_
+  · -- The flow from `g₀ • p` converges to some `y`, defined for all `t ≥ 0`.
+    obtain ⟨hI, y, -, hy, -⟩ :=
+      tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG (g₀ • p)
+    have hneg : momentNormSq B hB (fun x ↦ -μ x) = momentNormSq B hB μ :=
+      funext fun _ ↦ momentNormSq_neg
+    rw [hneg] at hI hy
+    obtain ⟨u, rfl⟩ :=
+      exists_smul_limit_eq_of_mem_orbit h hσc hσ hσG hμ hgm hBs hBp hBG g₀ hx hy
+    have hμG (v : G) (z : M) : μ (v • z) = Lie.coadjointRepresentation ℝ I G v (μ z) := by
+      rw [← h.toHom_smul, h.moment_toHom_smul hμ]
+    rw [← momentNormSq_smul hBG hμG u x]
+    -- `‖μ‖²` does not increase along the flow from `g₀ • p`.
+    simpa only [maximalIntegralCurve_zero] using
+      TauCeti.le_comp_maximalIntegralCurve_neg_mgradient hf hI hy.mapClusterPt le_rfl
+  · -- The flow from `p` stays in the `Gc`-orbit of `p`.
+    obtain ⟨g, -, -, hgx, -⟩ :=
+      exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hgm hBs p
+    refine ge_of_tendsto ((hf.continuous.tendsto x).comp hx) (Eventually.of_forall fun t ↦ ?_)
+    simp only [Function.comp_apply, hgx]
+    exact ciInf_le hbdd _
+
+end MomentLimit
 
 end SymplecticGeometry
 

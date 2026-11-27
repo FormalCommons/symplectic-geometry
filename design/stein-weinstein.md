@@ -1180,7 +1180,8 @@ containing `ι '' closedBall 0 1`:
     `chartAt` need not vary continuously. Proof as in *Route* above:
     the local maps `G = h⁻¹ ∘ taylorExtension N (h ∘ ofReal)`,
     `h = κ ∘ Φ₀`, agree pairwise to order `N + 1` by
-    `exists_norm_iteratedFDeriv_le_of_norm_conjWirtingerDeriv_le`, a smooth partition of
+    `iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le` and
+    `exists_norm_iteratedFDeriv_le_of_iteratedFDeriv_eq_zero`, a smooth partition of
     unity on `V` glues them to a `G` with `G = id` on real points and
     differential the identity on the core, Tau Ceti's
     `exists_partialDiffeomorph_near_section_of_isLocalDiffeomorphAt`
@@ -1734,8 +1735,12 @@ are set on compact manifolds. Three pieces are missing:
   the stable set and contains the points of the stable set near `p` with
   `f` near `f p`, and with `φ_t (ι z)` in the source of `e` and
   `e ∘ φ_t ∘ ι` differentiable at `z`, with derivative bounded in `t ≥ 0`,
-  `e` the extended chart at `p`, and a left inverse of `ι` on `ball 0 ρ`,
-  smooth on the source of `e`); and the main results
+  `e` the extended chart at `p`, with `‖e (ι z) - e p‖ ≤ C * ‖z‖` near `0`,
+  and with the left inverse `x ↦ Q (e x - e p)` of `ι` on `ball 0 ρ`,
+  smooth on the source of `e`, for an idempotent `P` commuting with `A`
+  with range `A.stableSubspace` and its corestriction `Q`, under which
+  the forward orbits of the points of a small ball stay on the disc over
+  any given ball); and the main results
   `IsWeinsteinStructure.interior_apply_mfderiv_eq_zero_of_range_subset_stableSet`
   and `IsWeinsteinStructure.apply_mfderiv_mfderiv_eq_zero_of_range_subset_stableSet`.
 - Issue 15e, `Weinstein/Handle/AttachingSphere.lean`, for

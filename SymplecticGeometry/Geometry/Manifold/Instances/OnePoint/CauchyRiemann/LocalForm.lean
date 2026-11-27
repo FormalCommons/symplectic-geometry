@@ -19,6 +19,7 @@ import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Holomorphic
+import TauCeti.Topology.DiscreteSubset
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Topology.FiberBundle.Trivialization
@@ -156,7 +157,8 @@ operator is the space `twistOneKernel J` of smooth solutions.
 * `SymplecticGeometry.exists_trivialization_analyticAt_of_mem_twistOneKernel`: at every point, a
   smooth element of the kernel of `D_J` is complex analytic in an isothermal chart and a real
   linear trivialization of `𝒪(1)` that reads the canonical orientation of the fibres as that of
-  `ℂ`.
+  `ℂ`, and whose fibre coordinate differs from that of `(twistCore 1).localTriv z` by a factor
+  continuous and nonzero at the point.
 * `SymplecticGeometry.eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel`: near
   each point, a smooth kernel element vanishes identically or has no zero on a punctured
   neighbourhood.
@@ -164,6 +166,8 @@ operator is the space `twistOneKernel J` of smooth solutions.
   continuation.
 * `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
   kernel element are isolated.
+* `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: a nonzero smooth kernel
+  element has finitely many zeros.
 * `SymplecticGeometry.exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero`:
   the chart data of a Sobolev element of the kernel of `D_J`, read through an isothermal chart,
   satisfy the weak equation `∂v/∂w̄ = a v` with `a` smooth.
@@ -388,9 +392,11 @@ of the kernel of `D_J` on `𝒪(1)` and a point `z` of the sphere, there are a r
 trivialization `e` of `𝒪(1)` over a neighbourhood of `z` and a smooth partial diffeomorphism
 `ψ : OnePoint ℂ → ℂ` with `z` in its source, whose derivative carries `J` to multiplication by `i`
 at every point of its source, such that the coordinate `w ↦ (e ⟨ψ⁻¹ w, s (ψ⁻¹ w)⟩).2` of `s` is
-complex analytic at `ψ z`, and
+complex analytic at `ψ z`,
 `e` reads the canonical orientation `TauCeti.VectorBundleOrientation.complex` of every fibre over
-its base set as the canonical orientation of `ℂ`, both indexed by `Fin (1 + 1)`. -/
+its base set as the canonical orientation of `ℂ`, both indexed by `Fin (1 + 1)`, and the fibre
+coordinate of `e` is that of the trivialization `(twistCore 1).localTriv z` times a factor `c x`,
+continuous and nonzero at `z`. -/
 theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
     ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber)) (_ : e.IsLinear ℝ)
@@ -400,11 +406,15 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
       AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
         (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
         (ψ.toOpenPartialHomeomorph z) ∧
-      ∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx
+      (∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx
           (VectorBundleOrientation.reindex (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
             (VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber) x) =
         Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
-          (complexOrientation ℂ) := by
+          (complexOrientation ℂ)) ∧
+      ∃ c : OnePoint ℂ → ℂ, ContinuousAt c z ∧ c z ≠ 0 ∧
+        ∀ x (v : (twistCore (𝕜 := ℂ) 1).Fiber x),
+          (e (TotalSpace.mk' ℂ x v)).2 =
+            c x * ((twistCore (𝕜 := ℂ) 1).localTriv z (TotalSpace.mk' ℂ x v)).2 := by
   obtain ⟨ψ, hzψ, hψ⟩ := J.exists_isothermal_partialDiffeomorph (by simp) z
   obtain ⟨U, hU, hzU, a, ha, hv, heq⟩ :=
     exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel hψ hzψ
@@ -436,7 +446,8 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
   have hze : z ∈ e.baseSet := by
     rw [Trivialization.baseSet_transFiberwiseLinear, Trivialization.restrOpen_baseSet]
     exact ⟨by simp [e₀, OnePoint.twistCore_localTriv_baseSet], hzψ⟩
-  refine ⟨e, this, ψ, hze, hzψ, hψ, ?_, fun x hx ↦ ?_⟩
+  refine ⟨e, this, ψ, hze, hzψ, hψ, ?_, fun x hx ↦ ?_,
+    c, hc.continuousAt (ψ.open_source.mem_nhds hzψ), Complex.exp_ne_zero _, fun x v ↦ ?_⟩
   · -- Over the target of `ψ`, the coordinate of `s` in `e` is `exp (-g)` times the one in `e₀`.
     refine hA.congr ?_
     filter_upwards [ψ.open_target.mem_nhds (ψ.map_source hzψ)] with w hw
@@ -452,6 +463,8 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
     rw [hr, mul_comm]
   · rw [VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
       VectorBundleOrientation.mapOrientation_complex_of_isLinear e hx]
+  · rw [Trivialization.transFiberwiseLinear_apply]
+    simp [e₁, e₀, m, mul_comm]
 
 /-- **Zeros of a smooth kernel element are isolated or interior.** Let `s` be a smooth section
 of `𝒪(1)` with `D_J s = 0`. At each point `z` of the sphere, either `s` vanishes on a
@@ -478,6 +491,14 @@ theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 :=
   (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs z).resolve_left
     fun h ↦ hs₀ (eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel hs h)
+
+/-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
+of `𝒪(1)` with `D_J s = 0`, then the set of zeros of `s` on the sphere is finite. -/
+theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {x | s x = 0}.Finite :=
+  finite_setOf_eq_zero_of_forall_eventually
+    (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs)
+    (Function.ne_iff.1 hs₀)
 
 /-- The coefficient of the weak equation in an isothermal chart is smooth: for a map `T` smooth on
 an open set `Ω` with values in the image of chart `i`, and the zeroth-order term `Γ` of the
