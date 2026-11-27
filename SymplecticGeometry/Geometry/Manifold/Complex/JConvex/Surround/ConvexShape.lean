@@ -54,6 +54,17 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
 * `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos`: if `χ` is `C²` at `r` and
   `IsConvexShapeAt χ r`, then at every `p` with `shape p = (χ r ², r ²)` the Levi form of
   `shapeGraph χ ∘ shape` is positive on the nonzero complex tangencies of its level set.
+* Near the cylinder `r = δ` the shapes have vertical tangents and are graphs `r = ρ(R)` over `R`.
+  `SymplecticGeometry.shapeGraphOverR ρ` is the function `(s, t) ↦ √t - ρ (√s)`, which has the
+  sign of `shapeGraph χ` when `ρ` is the inverse of an increasing `χ`.
+  `SymplecticGeometry.IsConvexShapeOverRAt ρ R` asks that the real part of the Levi form of
+  `shapeGraphOverR ρ ∘ shape`, as `re_leviForm_comp_shape_apply_self` writes it on a complex
+  tangency, be positive under the Cauchy–Schwarz bound. `isConvexShapeOverRAt_iff` reduces it to
+  `ρ' / R < 1 / ρ`, `ρ'' < 1 / ρ - ρ'³ / R` and `ρ'' < (2 + ρ'²) / ρ + ρ' / R` at `R`, the last
+  of which follows from the second when `ρ' ≥ -R / ρ`. For the inverse of a shape the first two
+  are (4.3) and the case `σ = r` of (4.4). Unlike the slope of a shape, `ρ'` may vanish, as on
+  the cylinder itself. `SymplecticGeometry.IsConvexShapeOverRAt.re_leviForm_pos` is its Levi
+  theorem, at `R > 0`.
 
 The proof evaluates `SymplecticGeometry.re_leviForm_comp_shape_apply_self`. On a complex tangency
 `v` the Wirtinger derivatives `σ = ∂s v` and `τ = ∂t v` are proportional, `τ = r / (R χ') σ`, and
@@ -61,7 +72,9 @@ the Cauchy–Schwarz bound `SymplecticGeometry.norm_ofReal_mul_add_ofReal_mul_sq
 combination of `σ` and `τ` bounds `|σ|²` by `|v|²`; this takes the
 place of the book's splitting of the complex tangency into the two parts on which it computes
 the Levi form separately, and of its passage from `k = n` to `k < n`, where the extra directions
-only need `χ' > 0`.
+only need `χ' > 0`. The proof over `R` is the same computation, with the relation
+`τ = (r ρ' / R) σ` from `SymplecticGeometry.ofReal_mul_add_ofReal_mul_eq_zero_of_fderiv_shape`,
+which allows `ρ' = 0`.
 
 ## References
 
