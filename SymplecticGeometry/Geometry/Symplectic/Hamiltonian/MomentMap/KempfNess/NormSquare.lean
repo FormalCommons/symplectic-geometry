@@ -357,7 +357,7 @@ theorem tendsto_maximalIntegralCurve_momentNormSq [CompactSpace M]
   have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace I' x) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I') (n := 1)
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq B hB μ) :=
-    hμ.toIsMomentMap.contMDiff_momentNormSq.of_le (by norm_cast)
+    hμ.toIsMomentMap.contMDiff_momentNormSq_bilinForm.of_le (by norm_cast)
   have hL (q : M) := exists_lojasiewicz_momentNormSq hσc hσ hσG hμ hB hBG q
   -- The forward trajectory stays in the compact space `M`.
   obtain ⟨hx, p, hpc, hconv, hdist⟩ :=
