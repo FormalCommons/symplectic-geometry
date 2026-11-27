@@ -4452,9 +4452,12 @@ Both milestones, proved in full. Their parts wait for no part of
   hypothesis; building the signature theorem would need cobordism or index
   theory, far beyond this page.
 - **Betti numbers.** In the Hodge milestone they are dimensions of de Rham
-  cohomology, since Tau Ceti has no de Rham theorem with singular
-  cohomology; the book's use of the result, the first Betti number of the
-  Kodaira–Thurston manifold, is computed in de Rham cohomology by Tau Ceti.
+  cohomology, since the decomposition is one of de Rham classes by
+  harmonic forms; on a closed manifold these are the dimensions of real
+  singular cohomology by the library's de Rham theorem
+  (`TauCeti.bijective_deRhamHom_of_compactSpace`), so nothing is lost. The
+  book's use of the result, the first Betti number of the Kodaira–Thurston
+  manifold, is computed in de Rham cohomology by Tau Ceti.
 - **Signs on `atlas/symplectic-group-actions.md`.** This page uses the
   Hamiltonian sign of `auxiliary/02-signs.md` and the usual bracket, unlike
   `atlas/symplectic-manifolds.md`, and its circles have period one, unlike
@@ -4492,11 +4495,15 @@ Both milestones, proved in full. Their parts wait for no part of
   $\mathrm{Symp}(F,\sigma)$, which the page calls motivation only, is not
   built.
 - **Real Chern classes.** The page uses only the image of $c_1(\mathrm{Ver})$
-  in real cohomology, which it identifies with de Rham cohomology. Tau
-  Ceti maps de Rham classes to singular ones but has no de Rham theorem
-  back, so the library builds the real class directly as a de Rham class by
-  Chern–Weil, instead of taking the image of the integral class, and
-  compares the two over closed oriented surfaces, through Chern numbers.
+  in real cohomology, which it identifies with de Rham cohomology. The
+  library builds the real class directly as a de Rham class by Chern–Weil,
+  instead of carrying the integral class back through the de Rham theorem,
+  which the library proves only on manifolds with a finite good cover
+  (`SymplecticGeometry.HasFiniteGoodCover.bijective_deRhamHom`, compact
+  ones among them): the Chern–Weil class is
+  defined over every Hausdorff $\sigma$-compact base and comes with the
+  curvature form that represents it, which the constructions use. The two
+  are compared over closed oriented surfaces, through Chern numbers.
   *Asymptotically holomorphic sections* also compares them for the
   Hermitian line bundles pulled back from `Projectivization.twistCore 1`
   along smooth maps, which on a compact manifold realize every integral
