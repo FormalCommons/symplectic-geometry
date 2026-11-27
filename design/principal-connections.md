@@ -252,7 +252,7 @@ This file names it as a form.
   formula with $A(\xi^\sharp)=\xi$ constant gives
   $\iota_{\xi^\sharp}dA=-[\xi,A]$, which the bracket term cancels.
   Together with equivariance, `IsConnectionForm.isTensorialForm_gaugeCurvature`.
-- `TauCeti.gaugeCurvature_apply_horizontal`, stated for any skew bracket in
+- `TauCeti.gaugeCurvature_apply_horizontal`, stated for any bracket in
   `Geometry/Manifold/DifferentialForm/GaugeCurvature.lean`: for vector
   fields $X,Y$ horizontal near $x$,
   $F_A(X,Y)(x)=-A_x([X,Y](x))$ with `VectorField.mlieBracket`, from

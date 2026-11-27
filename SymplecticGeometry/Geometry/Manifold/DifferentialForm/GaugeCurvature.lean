@@ -28,8 +28,8 @@ identities of `β` that it uses.
   that carries the bracket `β` to the bracket `β'`, `F_{L ∘ A} = L ∘ F_A`.
 * `TauCeti.gaugeCurvature_mapCoeff_toSpanSingleton`: for a real one-form `α` and `ξ ∈ 𝔨` with
   `β ξ ξ = 0`, the curvature of `α ξ` is `(d α) ξ`.
-* `TauCeti.gaugeCurvature_apply_horizontal`: for a skew-symmetric bracket, the structure equation
-  `F_A(X, Y) = -A([X, Y])` at a point near which `A` vanishes on the vector fields `X` and `Y`.
+* `TauCeti.gaugeCurvature_apply_horizontal`: the structure equation `F_A(X, Y) = -A([X, Y])` at a
+  point near which `A` vanishes on the vector fields `X` and `Y`.
   The bracket `[X, Y]` is Mathlib's `VectorField.mlieBracket`, as in Guillemin–Lerman–Sternberg.
   McDuff–Salamon's bracket of vector fields is its negative, so their structure equation has no
   minus sign; the formula `F_A = d A + ½ [A ∧ A]` is the same in both conventions.
@@ -94,19 +94,22 @@ theorem gaugeCurvature_mapCoeff_toSpanSingleton {ξ : 𝔨} (hξ : β ξ ξ = 0)
     simp [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
   rw [gaugeCurvature_def, hwedge, smul_zero, add_zero, SmoothForm.mextDerivₗ_mapCoeff]
 
-/-- **The structure equation.** For a skew-symmetric bracket `β`, if the vector fields `X` and
-`Y` are differentiable at `x` and `A` vanishes on them near `x`, then the curvature of `A` on
+/-- **The structure equation.** For any bracket `β`, if the vector fields `X` and `Y` are
+differentiable at `x` and `A` vanishes on them near `x`, then the curvature of `A` on
 them at `x` is `-A([X, Y](x))`. Here `[X, Y]` is the usual bracket, Mathlib's `mlieBracket`, as
 in Guillemin–Lerman–Sternberg; McDuff–Salamon's bracket is its negative, so their structure
 equation has no minus sign. -/
-theorem gaugeCurvature_apply_horizontal (hβ : ∀ a b, β a b = -β b a) (A : SmoothForm I M 𝔨 1)
+theorem gaugeCurvature_apply_horizontal (A : SmoothForm I M 𝔨 1)
     {X Y : (y : M) → TangentSpace I y} {x : M}
     (hX : MDifferentiableAt I I.tangent (fun y ↦ (X y : TangentBundle I M)) x)
     (hY : MDifferentiableAt I I.tangent (fun y ↦ (Y y : TangentBundle I M)) x)
     (hXh : ∀ᶠ y in 𝓝 x, A.val y ![X y] = 0) (hYh : ∀ᶠ y in 𝓝 x, A.val y ![Y y] = 0) :
     (gaugeCurvature β A).val x ![X x, Y x] = -A.val x ![mlieBracket I X Y x] := by
-  rw [gaugeCurvature_val β hβ, SmoothForm.mextDeriv_apply_one hX hY, hXh.self_of_nhds,
-    hYh.self_of_nhds, map_zero, add_zero,
+  simp only [gaugeCurvature_def, Submodule.coe_add, Submodule.coe_smul, Pi.add_apply,
+    Pi.smul_apply, ContinuousAlternatingMap.add_apply, ContinuousAlternatingMap.smul_apply,
+    mextDerivₗ_apply, SmoothForm.wedgeWith_apply_one_one]
+  rw [SmoothForm.mextDeriv_apply_one hX hY, hXh.self_of_nhds, hYh.self_of_nhds, map_zero,
+    sub_zero, smul_zero, add_zero,
     Filter.EventuallyEq.mvfderiv_eq (f := fun _ ↦ (0 : 𝔨)) hYh,
     Filter.EventuallyEq.mvfderiv_eq (f := fun _ ↦ (0 : 𝔨)) hXh, mvfderiv_const]
   simp
