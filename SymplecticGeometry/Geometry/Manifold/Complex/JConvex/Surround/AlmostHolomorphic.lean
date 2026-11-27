@@ -75,13 +75,13 @@ to `f` on the real points.
   `‖D^j D (x + i y)‖ ≤ C' * ‖y‖ ^ (N + 1 - j)` for `j ≤ N + 1` near any compact set of real
   points in `U`.
 
-For the last result, fix a real point `x` of `U`. The iterated derivative `D^j D(x)` vanishes on
-real arguments, since `D` vanishes on the real points of `U`. In its last argument it is
-`D^(j-1) (DD)(x)`, and the complex antilinear part of `DD`, which is `∂̄ D`, is `O(‖z - x‖ ^ N)`,
-so its derivatives of order `j - 1 < N` vanish at `x`
-(`ContDiffAt.iteratedFDeriv_fderiv_apply_I_smul_of_isBigO_conjWirtingerDeriv`): hence `D^j D(x)`
-is complex linear in its last argument, and by symmetry in each argument. Such a multilinear map
-is zero (`ContinuousMultilinearMap.eq_zero_of_map_update_I_smul`).
+For `SymplecticGeometry.iteratedFDeriv_eq_zero_of_norm_conjWirtingerDeriv_le`, fix a real point
+`x` of `U`. The iterated derivative `D^j D(x)` vanishes on real arguments, since `D` vanishes on
+the real points of `U`. In its last argument it is `D^(j-1) (DD)(x)`, and the complex antilinear
+part of `DD`, which is `∂̄ D`, is `O(‖z - x‖ ^ N)`, so its derivatives of order `j - 1 < N`
+vanish at `x` (`ContDiffAt.iteratedFDeriv_fderiv_apply_I_smul_of_isBigO_conjWirtingerDeriv`):
+hence `D^j D(x)` is complex linear in its last argument, and by symmetry in each argument. Such a
+multilinear map is zero (`ContinuousMultilinearMap.eq_zero_of_map_update_I_smul`).
 
 The formula of `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real` is the standard
 computation for almost analytic extensions: the derivative in the direction `i u` shifts the
