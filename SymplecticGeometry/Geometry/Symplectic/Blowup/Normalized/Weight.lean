@@ -443,14 +443,14 @@ variable {n : ℕ} {M : Type} [TopologicalSpace M] [ChartedSpace (Fin (n + 1) �
 variable (hψ : IsNormalizedBallEmbedding hN ψ r l ε)
 include hψ
 
-/-- For `ε' ≤ ε`, the radius `√(l² + ε'²)` of the blowup of weight `l` with collar `ε'` is at
-most the radius `r` of a normalized ball embedding of weight `l` and width `ε`. -/
+/-- For `0 ≤ ε' ≤ ε`, the radius `√(l² + ε'²)` of the blowup of weight `l` with collar `ε'`
+is at most the radius `r` of a normalized ball embedding of weight `l` and width `ε`. -/
 theorem sqrt_le_radius (hε' : 0 ≤ ε') (hε'ε : ε' ≤ ε) : √(l ^ 2 + ε' ^ 2) ≤ r := by
   have hl := hψ.weight_pos
   have hlε := hψ.weight_add_width_lt
   refine (Real.sqrt_le_iff.2 ⟨by linarith, by nlinarith⟩).trans hlε.le
 
-/-- For `ε' ≤ ε`, a normalized ball embedding of weight `l` and width `ε` is a symplectic
+/-- For `0 < ε' ≤ ε`, a normalized ball embedding of weight `l` and width `ε` is a symplectic
 embedding of the closed ball of radius `√(l² + ε'²)`, along which the blowup of weight `l` with
 collar `ε'` is defined. -/
 theorem isSymplecticBallEmbedding_sqrt (hε' : 0 < ε') (hε'ε : ε' ≤ ε) :
