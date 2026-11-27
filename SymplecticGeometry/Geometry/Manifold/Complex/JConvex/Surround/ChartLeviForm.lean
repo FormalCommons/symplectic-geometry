@@ -11,8 +11,6 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shape
 
 import SymplecticGeometry.Analysis.Complex.LeviForm.CompSymm
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
-import TauCeti.Analysis.Calculus.FDeriv.Equiv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
@@ -27,7 +25,7 @@ form is at least `c γ ^ N₀ max ‖D²u‖ ‖Du‖ ‖v‖²` has `u ∘ Φ�
 as soon as `N₀ + 2 ≤ N`.
 
 The handles shrink to the compact disc `ι₀ (closedBall 0 1)` as `γ → 0`
-(`SymplecticGeometry.iInter_setOf_shape_le_subset`), so for small `γ` they lie in finitely many
+(`SymplecticGeometry.iInter_setOf_shape_le_eq`), so for small `γ` they lie in finitely many
 of the neighbourhoods where the bounds hold, which gives uniform constants there. The comparison
 of Levi forms through a chart that is not holomorphic, `TauCeti.le_re_leviForm_comp_symm` of
 `SymplecticGeometry/Analysis/Complex/LeviForm/CompSymm.lean`, then bounds the loss by a constant
@@ -37,10 +35,6 @@ plurisubharmonicity on `M` is read in the chart at `Φ p₀` by Tau Ceti's
 
 ## Main results
 
-* `SymplecticGeometry.isCompact_setOf_shape_le`: the sets `{t ≤ a, s ≤ b}` are compact.
-* `SymplecticGeometry.setOf_shape_le_subset_setOf_shape_le`: the handles grow with `γ`.
-* `SymplecticGeometry.iInter_setOf_shape_le_subset`: the handles `{t ≤ γ², s ≤ (1 + γ)²}`,
-  `0 < γ < 1`, have their intersection in the model disc `ι₀ (closedBall 0 1)`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm`: the margin
   carried to `M` by the chart.
 
@@ -59,90 +53,6 @@ open scoped ContDiff
 namespace SymplecticGeometry
 
 variable {k m : ℕ}
-
-section Handle
-
-/-- The sets `{p | t p ≤ a ∧ s p ≤ b}` of the shape coordinates `(s, t) = shape p` are compact. -/
-theorem isCompact_setOf_shape_le (a b : ℝ) :
-    IsCompact {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
-      (shape p).2 ≤ a ∧ (shape p).1 ≤ b} := by
-  have hc := (contDiff_shape (k := k) (m := m) (n := 0)).continuous
-  refine Metric.isCompact_of_isClosed_isBounded
-    ((isClosed_le (continuous_snd.comp hc) continuous_const).inter
-      (isClosed_le (continuous_fst.comp hc) continuous_const))
-    ((isBounded_closedBall (x := 0) (r := √(|a| + |b|))).subset fun p hp ↦ ?_)
-  obtain ⟨ha, hb⟩ := hp
-  have hs := shape_fst_nonneg p
-  have ht := shape_snd_nonneg p
-  rw [shape_fst] at hs hb
-  rw [shape_snd] at ht ha
-  rw [mem_closedBall, dist_zero_right, Prod.norm_def, max_le_iff]
-  constructor <;> refine Real.le_sqrt_of_sq_le ?_
-  · have hn : ‖p.1‖ ^ 2 = ∑ j, ((p.1 j).re ^ 2 + (p.1 j).im ^ 2) := by
-      rw [EuclideanSpace.norm_sq_eq]
-      exact Finset.sum_congr rfl fun j _ ↦ by rw [Complex.sq_norm, Complex.normSq_apply]; ring
-    rw [hn, Finset.sum_add_distrib]
-    have : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
-    have : 0 ≤ ‖p.2‖ ^ 2 := by positivity
-    linarith [le_abs_self a, le_abs_self b]
-  · have : 0 ≤ ∑ j, (p.1 j).im ^ 2 := by positivity
-    linarith [le_abs_self a, le_abs_self b, abs_nonneg a, abs_nonneg b]
-
-/-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` for `0 < γ < 1` have their intersection in
-the model disc `ι₀ (closedBall 0 1)`. -/
-theorem iInter_setOf_shape_le_subset :
-    ⋂ γ : Ioo (0 : ℝ) 1, {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
-      (shape p).2 ≤ (γ : ℝ) ^ 2 ∧ (shape p).1 ≤ (1 + (γ : ℝ)) ^ 2} ⊆
-      modelDisc k m '' closedBall 0 1 := by
-  intro p hp
-  simp only [mem_iInter, mem_ofPred_eq, Subtype.forall, mem_Ioo] at hp
-  have ht : (shape p).2 ≤ 0 := by
-    refine le_of_forall_pos_lt_add fun ε hε ↦ ?_
-    obtain ⟨γ, hγ0, hγ1, hγε⟩ : ∃ γ : ℝ, 0 < γ ∧ γ < 1 ∧ γ ^ 2 < ε :=
-      ⟨min (1 / 2) (√ε / 2), by positivity, by
-        exact (min_le_left _ _).trans_lt (by norm_num), by
-        have h1 : min (1 / 2) (√ε / 2) ≤ √ε / 2 := min_le_right _ _
-        calc min (1 / 2) (√ε / 2) ^ 2 ≤ (√ε / 2) ^ 2 := by gcongr
-          _ = ε / 4 := by rw [div_pow, Real.sq_sqrt hε.le]; ring
-          _ < ε := by linarith⟩
-    linarith [(hp γ ⟨hγ0, hγ1⟩).1]
-  have hs : (shape p).1 ≤ 1 := by
-    refine le_of_forall_pos_lt_add fun ε hε ↦ ?_
-    set γ := min (1 / 2) (ε / 4)
-    have hγ0 : 0 < γ := by positivity
-    have hγ1 : γ ≤ 1 / 2 := min_le_left _ _
-    have hγε : γ ≤ ε / 4 := min_le_right _ _
-    have := (hp γ ⟨hγ0, by linarith⟩).2
-    nlinarith
-  rw [shape_snd] at ht
-  have him : ∀ j, (p.1 j).im = 0 := fun j ↦ by
-    have : (p.1 j).im ^ 2 ≤ ∑ i, (p.1 i).im ^ 2 :=
-      Finset.single_le_sum (f := fun i ↦ (p.1 i).im ^ 2) (fun _ _ ↦ by positivity)
-        (Finset.mem_univ j)
-    have : 0 ≤ ‖p.2‖ ^ 2 := by positivity
-    exact pow_eq_zero_iff (n := 2) (by norm_num) |>.1 (by nlinarith [sq_nonneg (p.1 j).im])
-  have h2 : p.2 = 0 := by
-    have : 0 ≤ ∑ i, (p.1 i).im ^ 2 := by positivity
-    exact norm_eq_zero.1 (pow_eq_zero_iff (n := 2) (by norm_num) |>.1
-      (le_antisymm (by linarith) (by positivity)))
-  refine ⟨WithLp.toLp 2 fun j ↦ (p.1 j).re, ?_, ?_⟩
-  · rw [mem_closedBall, dist_zero_right]
-    refine (sq_le_one_iff₀ (norm_nonneg _)).1 ?_
-    rw [EuclideanSpace.norm_sq_eq]
-    simpa [shape_fst] using hs
-  · ext j
-    · simp only [modelDisc_apply_fst_apply]
-      exact Complex.ext (by simp) (by simp [him j])
-    · simp [h2]
-
-/-- The handles `{p | t p ≤ γ ^ 2 ∧ s p ≤ (1 + γ) ^ 2}` grow with `γ ≥ 0`. -/
-theorem setOf_shape_le_subset_setOf_shape_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) :
-    {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) |
-      (shape p).2 ≤ a ^ 2 ∧ (shape p).1 ≤ (1 + a) ^ 2} ⊆
-      {p | (shape p).2 ≤ b ^ 2 ∧ (shape p).1 ≤ (1 + b) ^ 2} :=
-  fun _ hp ↦ ⟨hp.1.trans (by gcongr), hp.2.trans (by gcongr)⟩
-
-end Handle
 
 section Chart
 
@@ -190,8 +100,7 @@ private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ,
       contMDiffOn_chart_symm
     rwa [OpenPartialHomeomorph.symm_symm] at h
   have hw (x : V) : writtenInExtChartAt 𝓘(ℝ, V) 𝓘(ℝ, E) x Φ = e x := by
-    rw [writtenInExtChartAt_model_space_left, OpenPartialHomeomorph.coe_trans, extChartAt_coe,
-      modelWithCornersSelf_coe, Function.id_comp, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
+    simp [e]
   -- The neighbourhoods of the bounds, and closed balls inside them.
   choose! U hU hUs hUc C hC using hΦ
   have hball : ∀ x ∈ range (modelDisc k m), ∃ r > 0, closedBall x r ⊆ U x := fun x hx ↦
@@ -205,6 +114,8 @@ private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ,
     fun x hx ↦ ball_mem_nhds x (hr x (hKr hx))
   have hsub : ∀ x ∈ t, closedBall x (r x) ⊆ (e x).source := fun x hx q hq ↦ by
     have := hrU x (hKr (htK x hx)) hq
+    rw [OpenPartialHomeomorph.trans_source, Φ.toOpenPartialHomeomorph_source,
+      PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
     exact ⟨hUs x (hKr (htK x hx)) this, hUc x (hKr (htK x hx)) this⟩
   -- Bounds on the derivatives of the charts on the closed balls.
   have hbd : ∀ x ∈ t, ∃ B, ∀ q ∈ closedBall x (r x),
@@ -233,7 +144,7 @@ private theorem exists_uniform_bounds_modelChart {N : ℕ} [IsManifold 𝓘(ℝ,
     (fun _ ↦ isCompact_setOf_shape_le _ _) (fun _ ↦ (isCompact_setOf_shape_le _ _).isClosed)
     (U := ⋃ x ∈ t, ball x (r x))
     (mem_nhdsSet_iff_forall.2 fun p hp ↦ (isOpen_biUnion fun x _ ↦ isOpen_ball).mem_nhds
-      (hKt (iInter_setOf_shape_le_subset hp)))
+      (hKt (iInter_setOf_shape_le_eq.subset hp)))
   -- The constants are sums over the finitely many balls.
   have hle {f : V → ℝ} {x : V} (hx : x ∈ t) : f x ≤ ∑ x ∈ t, |f x| :=
     (le_abs_self _).trans (Finset.single_le_sum (f := fun x ↦ |f x|) (fun _ _ ↦ abs_nonneg _) hx)
@@ -298,21 +209,25 @@ theorem isManifoldStrictlyPlurisubharmonicAt_comp_modelChart_symm [IsManifold �
   have hcov' (p) (ht : (shape p).2 ≤ γ ^ 2) (hs : (shape p).1 ≤ (1 + γ) ^ 2) :=
     hcov p (setOf_shape_le_subset_setOf_shape_le hγ.1.le hγγ₁ ⟨ht, hs⟩).1
       (setOf_shape_le_subset_setOf_shape_le hγ.1.le hγγ₁ ⟨ht, hs⟩).2
+  have hmem {y : M} {p} (hp : p ∈ (Φ.toOpenPartialHomeomorph.trans (chartAt E y)).source) :
+      p ∈ Φ.source ∧ Φ p ∈ (chartAt E y).source := by
+    simpa only [OpenPartialHomeomorph.trans_source, Φ.toOpenPartialHomeomorph_source,
+      PartialDiffeomorph.toFun'_toOpenPartialHomeomorph, mem_inter_iff, mem_preimage] using hp
   refine ⟨fun p hp ↦ ?_, fun u hu hmargin p ht hs ↦ ?_⟩
   · obtain ⟨y, hpS, -⟩ := hcov' p hp.1 hp.2
-    exact hpS.1
+    exact (hmem hpS).1
   obtain ⟨y, hpS, hcd, hcds, hK₁, hK₂, hK₃, ha, hb⟩ := hcov' p ht hs
   set e := Φ.toOpenPartialHomeomorph.trans (chartAt E y)
-  have hΦp : Φ p ∈ Φ.target := Φ.toOpenPartialHomeomorph.map_source hpS.1
+  have hΦp : Φ p ∈ Φ.target := Φ.map_source (hmem hpS).1
   -- `u ∘ Φ⁻¹` is `C²` at `Φ p`, and its Levi form is read in the chart at `y`.
   have hu' : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 (u ∘ Φ.symm) (Φ p) :=
     hu.contMDiff.contMDiffAt.comp _
       ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hΦp)).of_le (by simp))
   rw [isManifoldStrictlyPlurisubharmonicAt_iff_of_mem_maximalAtlas
-    (IsManifold.chart_mem_maximalAtlas y) (x := Φ p) hpS.2 hu']
-  -- The inverse of `Φ.toOpenPartialHomeomorph` is `Φ.symm` by definition, and Mathlib states no
-  -- lemma for it, hence `rfl`.
-  have hsymm : (u ∘ Φ.symm) ∘ (chartAt E y).symm = u ∘ e.symm := rfl
+    (IsManifold.chart_mem_maximalAtlas y) (x := Φ p) (hmem hpS).2 hu']
+  have hsymm : (u ∘ Φ.symm) ∘ (chartAt E y).symm = u ∘ e.symm := by
+    rw [OpenPartialHomeomorph.coe_trans_symm, Φ.coe_toOpenPartialHomeomorph_symm,
+      Function.comp_assoc]
   rw [hsymm, ← PartialDiffeomorph.toFun'_toOpenPartialHomeomorph Φ,
     ← OpenPartialHomeomorph.trans_apply, isStrictlyPlurisubharmonicAt_iff]
   intro w hw
