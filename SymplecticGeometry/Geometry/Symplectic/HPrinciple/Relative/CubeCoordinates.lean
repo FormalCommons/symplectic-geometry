@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Topology.MetricSpace.Thickening
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Injective
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 public import SymplecticGeometry.Geometry.Symplectic.HPrinciple.FormalPrimitive
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 
@@ -38,7 +39,11 @@ empty, needs no separate case.
 The forms of a stage are read in the chart of a cube by pullback along it, and give the cube a
 formal datum: the reading of the one-form, with the formal primitive (`FormalPrimitive.lean`) of
 the reading of the difference of the two-forms. It is holonomic at the points that the chart sends
-to where the forms are related, and smooth for smooth families.
+to where the forms are related, and smooth for smooth families. For families of two-forms that
+are only continuous in the parameter, for the frame topology, and one-forms pulled back from a
+smooth family along a continuous map, each reading is smooth in the point, and the derivative of
+the one-form part and the formal primitive are continuous in the parameter and the point together:
+the regularity that the continuous version of holonomic approximation asks of a formal datum.
 
 ## Main declarations
 
@@ -52,6 +57,13 @@ to where the forms are related, and smooth for smooth families.
 * `SymplecticGeometry.BandCore.contDiff_mpullback_chart`,
   `SymplecticGeometry.BandCore.contDiff_formalPrimitive_mpullback_chart`: for smooth families of
   forms, it is smooth in the parameter and the point together.
+* `SymplecticGeometry.BandCore.contDiff_val_mpullback_chart`,
+  `SymplecticGeometry.BandCore.contDiff_formalPrimitive_val_mpullback_chart`: for single forms, it
+  is smooth in the point.
+* `SymplecticGeometry.BandCore.continuous_fderiv_mpullback_chart`,
+  `SymplecticGeometry.BandCore.continuous_formalPrimitive_mpullback_chart`: for continuous
+  families of two-forms in the frame topology and one-forms `B (s l)`, the derivative of its
+  one-form part and its formal primitive are continuous in the parameter and the point.
 
 ## References
 
@@ -276,6 +288,137 @@ theorem contDiff_formalPrimitive_mpullback_chart (c : BandCore I g a₀ a b) (i 
     (hβ.mpullback _ (c.isSmoothEmbedding_chart i).contMDiff)
 
 end Readings
+
+section ContinuousReadings
+
+/-! ### The formal datum of a cube for continuous families
+
+In the continuous form of the h-principle the two-forms `σ l`, `α l` depend continuously on a
+parameter `l` in a topological space `P`, for the frame topology of a covering frame system read
+through `tangentEquiv`, and the one-forms are `B (s l)` for a smooth family `B` over a normed
+space `S` and a continuous `s : P → S`. The formal datum of a cube then has the regularity that
+`SymplecticGeometry.exists_holonomic_approximation_continuous_family` asks of it: each reading is
+smooth in the point, and the derivative of the reading of the one-forms and the formal primitive
+are continuous in the parameter and the point together.
+-/
+
+open TauCeti _root_.Bundle
+
+variable [IsManifold I ∞ M] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- **The reading of a form is smooth.** The value of the reading
+`mpullback (c.chart i) β` of a `k`-form `β` on `M` in the chart of cube `i` is a smooth function
+of the point. -/
+theorem contDiff_val_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι) {k : ℕ}
+    (β : SmoothForm I M F k) :
+    ContDiff
+      (F := ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin k]→L[ℝ] F)
+      ℝ ∞
+      (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff β).val :=
+  (c.contDiff_mpullback_chart i (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) β)).comp
+    ((contDiff_const (c := (0 : ℝ))).prodMk contDiff_id)
+
+/-- **The formal primitive of the readings of forms is smooth.** For two-forms `σ`, `α` and a
+one-form `β` on `M`, the formal primitive of the reading of `σ - α` in the chart of cube `i`,
+with zeroth-order part the reading of `β`, is a smooth function of the point. -/
+theorem contDiff_formalPrimitive_val_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι)
+    (σ α : SmoothForm I M F 2) (β : SmoothForm I M F 1) :
+    ContDiff ℝ ∞
+      (formalPrimitive (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (σ - α)).val
+        (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff β).val) :=
+  (c.contDiff_formalPrimitive_mpullback_chart i (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) σ)
+    (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) α)
+    (isSmoothFamily_const (J := 𝓘(ℝ, ℝ)) β)).comp
+    ((contDiff_const (c := (0 : ℝ))).prodMk contDiff_id)
+
+variable {P S : Type*} [TopologicalSpace P] [NormedAddCommGroup S] [NormedSpace ℝ S]
+
+/-- **The derivative of the reading of a family of forms is continuous.** For a smooth family
+`B` of `k`-forms on `M` over a normed space `S` and a continuous `s : P → S`, the derivative in
+the point of the reading of `B (s l)` in the chart of cube `i` is continuous in `(l, x)`. -/
+theorem continuous_fderiv_mpullback_chart (c : BandCore I g a₀ a b) (i : c.ι) {k : ℕ}
+    {B : S → SmoothForm I M F k} (hB : IsSmoothFamily 𝓘(ℝ, S) B) {s : P → S}
+    (hs : Continuous s) :
+    Continuous fun p : P × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
+      fderiv ℝ (F := ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
+          [⋀^Fin k]→L[ℝ] F)
+        (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff
+          (B (s p.1))).val p.2 := by
+  set b : S → (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
+      ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) [⋀^Fin k]→L[ℝ] F :=
+    fun q ↦ (SmoothForm.mpullback (c.chart i) (c.isSmoothEmbedding_chart i).contMDiff (B q)).val
+  have h : ContDiff ℝ ∞
+      fun p : S × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
+      b p.1 p.2 :=
+    c.contDiff_mpullback_chart i hB
+  have hd := ContDiff.fderiv
+    (f := fun (q : S × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) y ↦ b q.1 y)
+    (h.comp (contDiff_fst.fst.prodMk contDiff_snd)) contDiff_snd (n := 0) (by simp)
+  exact hd.continuous.comp (hs.prodMap continuous_id)
+
+variable {ι : Type*}
+  (e : ι → Trivialization (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (E [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (e j)]
+  (W : ι → TopologicalSpace.Opens M) (hW : ∀ j, (W j : Set M) ⊆ (e j).baseSet)
+
+/-- **The formal primitive of the readings of continuous families is continuous.** Let `σ`, `α`
+be families of two-forms on `M` over a topological space `P`, continuous through `tangentEquiv`
+into the frame topology of a covering frame system, and let `B` be a smooth family of one-forms
+on `M` over a normed space `S` and `s : P → S` continuous. Then the formal primitive of the
+reading of `σ l - α l` in the chart of cube `i`, with zeroth-order part the reading of
+`B (s l)`, is continuous in `(l, x)`. -/
+theorem continuous_formalPrimitive_mpullback_chart [FiniteDimensional ℝ E]
+    (c : BandCore I g a₀ a b) (i : c.ι) (hcover : ∀ x, ∃ j, x ∈ W j)
+    {σ α : P → SmoothTwoForm I M}
+    (hσ : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (σ l))
+    (hα : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (α l))
+    {B : S → SmoothForm I M ℝ 1} (hB : IsSmoothFamily 𝓘(ℝ, S) B) {s : P → S}
+    (hs : Continuous s) :
+    Continuous fun p : P × (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
+      formalPrimitive (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (σ p.1 - α p.1)).val
+        (SmoothForm.mpullback (c.chart i)
+          (c.isSmoothEmbedding_chart i).contMDiff (B (s p.1))).val p.2 := by
+  refine continuous_formalPrimitive (τ := fun l ↦ (SmoothForm.mpullback (c.chart i)
+    (c.isSmoothEmbedding_chart i).contMDiff (σ l - α l)).val)
+    (β := fun l ↦ (SmoothForm.mpullback (c.chart i)
+    (c.isSmoothEmbedding_chart i).contMDiff (B (s l))).val) ?_
+    (c.continuous_fderiv_mpullback_chart i hB hs)
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  have _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  -- The two-forms on the chart's domain carry the frame topology of the trivializations at its
+  -- points.
+  let eD : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) → _ := fun x ↦
+    trivializationAt (((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ))
+        [⋀^Fin 2]→L[ℝ] ℝ)
+      (fun y : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) ↦
+        TangentSpace 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) y
+          [⋀^Fin 2]→L[ℝ]
+          Trivial ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) ℝ y) x
+  let WD : (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ) →
+      TopologicalSpace.Opens ((Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)) :=
+    fun x ↦ ⟨_, (eD x).open_baseSet⟩
+  have hD : ∀ x, ∃ y, x ∈ WD y := fun x ↦ ⟨x, FiberBundle.mem_baseSet_trivializationAt' x⟩
+  let _ := ContMDiffSection.frameTopology
+    (I := 𝓘(ℝ, (Fin (c.dim i) → ℝ) × (Fin (Module.finrank ℝ E - c.dim i) → ℝ)))
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) eD WD fun _ ↦ subset_rfl
+  have h₁ : Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (σ l - α l) :=
+    (hσ.sub hα).congr fun l ↦ (map_sub _ _ _).symm
+  have h₂ := (Bundle.ContMDiffTwoForm.continuous_tangentEquiv_val eD WD (fun _ ↦ subset_rfl)
+    hD).comp
+    (((Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_of_contMDiff e W hW eD WD
+      (fun _ ↦ subset_rfl) (c.isSmoothEmbedding_chart i).contMDiff hcover).comp h₁).prodMap
+      continuous_id)
+  simp only [Function.comp_def, LinearEquiv.apply_symm_apply] at h₂
+  exact h₂.congr fun p ↦ congrArg (fun σ' : SmoothTwoForm _ _ ↦ σ'.val p.2)
+    (LinearEquiv.apply_symm_apply _ _)
+
+end ContinuousReadings
 
 end BandCore
 

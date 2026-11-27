@@ -29,7 +29,8 @@ of maps, such as the time slices of a smooth isotopy, is jointly continuous in t
 parameter, and that pulling them back along a single smooth map, such as the inclusion of an
 open subset, is continuous. Near each point of an open subset, the frame coordinates of a two-form
 and of its restriction agree. A smooth family of two-forms is continuous in its parameter, and
-multiplication by a fixed smooth function is continuous.
+multiplication by a fixed smooth function is continuous. On a normed space, the value of a
+two-form at a point depends continuously on the form and the point together.
 
 ## Main results
 
@@ -57,6 +58,9 @@ multiplication by a fixed smooth function is continuous.
 * `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_smul`: for any frame system, the map
   `σ ↦ tangentEquiv.symm (funSMulₗ ρ (tangentEquiv σ))` is continuous, for a fixed smooth
   function `ρ`.
+* `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_val`: for a covering frame system of the
+  two-forms on a locally compact normed space `E`, the value of a two-form at a point, in
+  `E [⋀^Fin 2]→L[ℝ] ℝ`, is jointly continuous in the form and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_tangentEquiv_symm`: a smooth family `τ` of
   two-forms on `M` over a manifold `N`, both with finite-dimensional models, gives a continuous
   map `t ↦ tangentEquiv.symm (τ t)` into the frame topology of any frame system.
@@ -371,6 +375,42 @@ theorem continuous_tangentEquiv_symm_smul (ρ : C^∞⟮I, M; ℝ⟯) :
     ContMDiffSection.continuous_smul_function_frameTopology e W hW ρ
 
 end FunSMul
+
+section ModelSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [LocallyCompactSpace E] {ι : Type*}
+  (e : ι → Trivialization (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (E [⋀^Fin 2]→L[ℝ] ℝ) (fun x : E ↦ TangentSpace 𝓘(ℝ, E) x [⋀^Fin 2]→L[ℝ] Trivial E ℝ x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (W : ι → Opens E) (hW : ∀ i, (W i : Set E) ⊆ (e i).baseSet)
+
+/-- For a covering frame system of the smooth two-forms on a locally compact normed space `E`,
+the value `(tangentEquiv ω).val x`, an element of `E [⋀^Fin 2]→L[ℝ] ℝ`, is continuous jointly in
+the two-form `ω`, for the frame topology, and the point `x`. -/
+theorem continuous_tangentEquiv_val (hcover : ∀ x, ∃ i, x ∈ W i) :
+    let _ := ContMDiffSection.frameTopology (I := 𝓘(ℝ, E)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+    Continuous (Y := E [⋀^Fin 2]→L[ℝ] ℝ)
+      fun p : ContMDiffTwoForm 𝓘(ℝ, E) ⊤ E (TangentSpace 𝓘(ℝ, E) (M := E)) × E ↦
+        (tangentEquiv p.1).val p.2 := by
+  let _ := ContMDiffSection.frameTopology (I := 𝓘(ℝ, E)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW
+  have h : Continuous fun p : ContMDiffTwoForm 𝓘(ℝ, E) ⊤ E (TangentSpace 𝓘(ℝ, E) (M := E)) × E ↦
+      TotalSpace.mk' (E [⋀^Fin 2]→L[ℝ] ℝ)
+        (E := fun x : E ↦ TangentSpace 𝓘(ℝ, E) x [⋀^Fin 2]→L[ℝ] Trivial E ℝ x) p.2 (p.1 p.2) :=
+    ContMDiffSection.continuous_totalSpace_eval (I := 𝓘(ℝ, E))
+      (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) e W hW hcover
+  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
+  have hp := ((FiberBundle.continuousAt_totalSpace (E [⋀^Fin 2]→L[ℝ] ℝ) _).1
+    (h.continuousAt (x := p₀))).2
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    TangentBundle.symmL_model_space] at hp
+  refine hp.congr (Filter.Eventually.of_forall fun p ↦ ?_)
+  ext v
+  -- The trivialization at `p₀.2` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
+  -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans
+    (DFunLike.congr_fun (tangentEquiv_apply p.1 p.2) v).symm
+
+end ModelSpace
 
 end Bundle.ContMDiffTwoForm
 
