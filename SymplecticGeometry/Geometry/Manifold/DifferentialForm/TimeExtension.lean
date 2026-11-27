@@ -97,10 +97,10 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
 Seeley's extension of `t ↦ Ω_t(x)` at `s` is smooth. -/
 private theorem contMDiff_timeExtend_slice (Ω : SmoothForm ((𝓡∂ 1).prod I) (unitInterval × M) F k) :
     ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : ℝ × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        (SymplecticGeometry.timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (fun q : unitInterval × M ↦
-          (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) p)) := by
+      (SymplecticGeometry.sliceSection (J := I) (G := F) fun s ↦ (fun x ↦
+        SymplecticGeometry.timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (fun q : unitInterval × M ↦
+          (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) (s, x) :
+          RoughForm I M F k)) := by
   set g : unitInterval × M → E [⋀^Fin k]→L[ℝ] F := fun q ↦
     (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2
   have hS : ContMDiff ((𝓡∂ 1).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
@@ -116,8 +116,7 @@ private theorem contMDiff_timeExtend_slice (Ω : SmoothForm ((𝓡∂ 1).prod I)
     e.mem_source.mpr hq.2).mp hS.contMDiffOn).2.timeExtend e.open_baseSet
   have hU : univ ×ˢ e.baseSet ∈ 𝓝 p₀ :=
     prod_mem_nhds univ_mem (e.open_baseSet.mem_nhds (FiberBundle.mem_baseSet_trivializationAt' _))
-  refine (e.contMDiffAt_iff (e.mem_source.mpr
-    (FiberBundle.mem_baseSet_trivializationAt' _))).mpr ⟨contMDiffAt_snd, ?_⟩
+  refine SymplecticGeometry.contMDiffAt_sliceSection_iff.mpr ?_
   refine (hh.contMDiffAt hU).congr_of_eventuallyEq (Eventually.of_forall fun q ↦ ?_)
   -- At `q`, both sides precompose with the inverse tangent trivialization at `q.2`, which
   -- does not depend on the time. The fibres are read as the model fibre.
@@ -126,6 +125,7 @@ private theorem contMDiff_timeExtend_slice (Ω : SmoothForm ((𝓡∂ 1).prod I)
       (e ⟨y, φ⟩).2 = φ.compContinuousLinearMap (L y) := fun y φ ↦
     FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd (𝕜 := ℝ) (F₁ := E)
       (V := TangentSpace I) (F := F) (ι := Fin k) p₀.2 (x := y) φ
+  refine (congrArg (fun z ↦ (e z).2) (SymplecticGeometry.sliceSection_apply _ q)).trans ?_
   refine (he q.2 (SymplecticGeometry.timeExtend g q)).trans ?_
   refine ((ContinuousAlternatingMap.compContinuousLinearMapₗ (L q.2)).map_timeExtend g q).trans ?_
   exact SymplecticGeometry.timeExtend_congr (fun s ↦ (he q.2 (g (s, q.2))).symm) q.1
@@ -137,8 +137,8 @@ the slice of `Ω` at `t`. -/
 def timeExtendSlice (s : ℝ) : SmoothForm I M F k :=
   ⟨fun x ↦ SymplecticGeometry.timeExtend (F := E [⋀^Fin k]→L[ℝ] F) (fun q : unitInterval × M ↦
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) (s, x),
-    IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def _ _).mpr <|
-      (contMDiff_timeExtend_slice Ω).comp (contMDiff_const.prodMk contMDiff_id)⟩
+    IsSmoothForm.mem_smoothBundleForms <| SymplecticGeometry.isSmoothForm_of_contMDiff_sliceSection
+      (contMDiff_timeExtend_slice Ω) (χ := fun _ ↦ s) contMDiff_const⟩
 
 /-- The value at `x` of `TauCeti.SmoothForm.timeExtendSlice Ω s` is the time extension, at
 `(s, x)`, of the values of the slices of `Ω`. -/
@@ -192,9 +192,7 @@ theorem timeExtendSlice_smul (c : ℝ) (s : ℝ) :
 `ℝ × M`. -/
 theorem contMDiff_timeExtendSlice :
     ContMDiff (𝓘(ℝ, ℝ).prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
-      (fun p : ℝ × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
-        ((timeExtendSlice Ω p.1).val p.2)) := by
+      (SymplecticGeometry.sliceSection fun s ↦ (timeExtendSlice Ω s).val) := by
   simpa only [coe_timeExtendSlice] using contMDiff_timeExtend_slice Ω
 
 /-- **The time extension of forms.** On a manifold `M`, the linear map that sends a
