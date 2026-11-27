@@ -8,7 +8,6 @@ module
 public import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 public import TauCeti.Geometry.Manifold.Morse.Stable.Manifold
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
-import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.Coordinates
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.CrossingTime
 import SymplecticGeometry.Geometry.Manifold.Morse.Core.FlowOut
@@ -41,9 +40,9 @@ Euclidean ball of radius `ρ` of the coordinates of negative weight lies in the 
 
 * `TauCeti.MorseChart.exists_radial_extension_levelCrossingTime` (`Morse/Core/CrossingTime.lean`)
   gives the time function `θ`, equal on the sphere to the crossing time of the level `a'`, for
-  which `r ↦ θ (r • u) + log r` has a positive derivative. So `F c = Φ (θ c) y_c` sends the sphere
-  to the level `a'`, the closed ball above it, and its open ball reaches the part of the unstable
-  set of `p` above `a'`.
+  which `r ↦ θ (r • u) + log r` is strictly monotone on `(0, ∞)` for `u ≠ 0`, and
+  `1 + dθ_c(c) > 0`. So `F c = Φ (θ c) y_c` sends the sphere to the level `a'`, the closed ball
+  above it, and its open ball reaches the part of the unstable set of `p` above `a'`.
 * `F` is injective on the closed ball
   (`TauCeti.MorseChart.injOn_globalFlow_toChart_symm_negativeExtend`), and its thickening
   in the coordinates of positive weight is a smooth embedding with open image near the ball
@@ -132,7 +131,7 @@ theorem exists_cubeChart_unstableSet
   set a' := (a₀ + a) / 2
   have ha₀' : a₀ < a' := by simp only [a']; linarith
   have ha' : a' < a := by simp only [a']; linarith
-  obtain ⟨θ, hθs, -, hθd, hsph, hball, hreach⟩ :=
+  obtain ⟨θ, hθs, -, hmono, hθρ, hsph, hball, hreach⟩ :=
     φ.exists_radial_extension_levelCrossingTime hX hXc hXs hXφ hg hgX hρ0 hρ
       (ha'.trans ha) (ha'.trans hab).le hb
       ((hcompact b hbp).of_isClosed_subset
@@ -141,27 +140,12 @@ theorem exists_cubeChart_unstableSet
   set F := fun c : EuclideanSpace ℝ {i // φ.weight i < 0} ↦
     Φ (θ c) (φ.toChart.symm (φ.negativeExtend c.ofLp)) with hF
   -- `F` is injective on the closed ball, and its thickening is an open embedding near it.
-  have hmono (u : EuclideanSpace ℝ {i // φ.weight i < 0}) (hu : ‖u‖ = ρ) :
-      StrictMonoOn (fun r ↦ θ (r • u) + Real.log r) (Ioc 0 1) :=
-    (StrictMonoOn.of_forall_hasDerivAt_pos (convex_Ioi 0)
-      (hθd u (norm_pos_iff.1 (hu ▸ hρ0)))).mono Ioc_subset_Ioi_self
   have hinj : InjOn F (closedBall 0 ρ) :=
-    φ.injOn_globalFlow_toChart_symm_negativeExtend hX hXc hXφ hρ hmono
-  have hθρ (c : EuclideanSpace ℝ {i // φ.weight i < 0}) (_ : ‖c‖ ≤ ρ) :
-      0 < 1 + fderiv ℝ θ c c := by
-    rcases eq_or_ne c 0 with rfl | hc0
-    · simp
-    obtain ⟨d, hd, hdd⟩ := hθd c hc0 1 one_pos
-    have h : HasDerivAt (fun r : ℝ ↦ θ (r • c) + Real.log r) (fderiv ℝ θ c c + 1) 1 := by
-      have hθc : HasFDerivAt θ (fderiv ℝ θ c) ((1 : ℝ) • c) := by
-        rw [one_smul]; exact ((hθs.differentiable (by simp)) c).hasFDerivAt
-      have h1 := hθc.comp_hasDerivAt (1 : ℝ) ((hasDerivAt_id (1 : ℝ)).smul_const c)
-      simp only [one_smul] at h1
-      exact h1.add (by simpa using Real.hasDerivAt_log one_ne_zero)
-    rw [add_comm, h.unique hdd]
-    exact hd
+    φ.injOn_globalFlow_toChart_symm_negativeExtend hX hXc hXφ hρ fun u hu ↦
+      (hmono u (norm_pos_iff.1 (hu ▸ hρ0))).mono Ioc_subset_Ioi_self
   obtain ⟨V, hBV, -, hΨ, hΨo⟩ :=
-    φ.exists_isSmoothEmbedding_globalFlow_toChart_symm hX hXc hXs hXφ hρ hθs hθρ hinj
+    φ.exists_isSmoothEmbedding_globalFlow_toChart_symm hX hXc hXs hXφ hρ hθs (fun c _ ↦ hθρ c)
+      hinj
   -- The compact set `K` of points of the closed ball sent at level at least `a`.
   have hFc : ContinuousOn F (closedBall 0 ρ) := by
     have h1 : ContinuousOn (fun c : EuclideanSpace ℝ {i // φ.weight i < 0} ↦
@@ -182,16 +166,13 @@ theorem exists_cubeChart_unstableSet
     rw [h1] at h2
     exact absurd h2 (not_le.2 ha')
   -- The cube coordinates.
-  have hm : Module.finrank ℝ (EuclideanSpace ℝ {i // φ.weight i < 0}) =
-      manifoldMorseIndex 𝓘(ℝ, E) g p := by
-    rw [finrank_euclideanSpace, ← Module.finrank_fintype_fun_eq_card (R := ℝ),
-      φ.finrank_negativeWeight_fun]
   have hk : Module.finrank ℝ φ.stableSubspace =
       Module.finrank ℝ E - manifoldMorseIndex 𝓘(ℝ, E) g p := by
     have := φ.finrank_stableSubspace_add_manifoldMorseIndex
     omega
   obtain ⟨χ, hχ, hχo, hχ0, hχc, hχs, hχK⟩ :=
-    SymplecticGeometry.exists_cubeChart_of_isSmoothEmbedding hm hk hΨ hΨo hρ0 hBV hK hKρ
+    SymplecticGeometry.exists_cubeChart_of_isSmoothEmbedding φ.finrank_euclideanSpace_negativeWeight
+      hk hΨ hΨo hρ0 hBV hK hKρ
   -- The thickened map at `(c, 0)` is `F c`.
   have hΨF {S : Set (EuclideanSpace ℝ {i // φ.weight i < 0})} :
       (fun q : V ↦ Φ (θ q.val.1) (φ.toChart.symm (φ.negativeExtend q.val.1.ofLp + q.val.2))) ''
@@ -201,7 +182,7 @@ theorem exists_cubeChart_unstableSet
     exact ⟨c, hc, by simp [hF]⟩
   refine ⟨χ, hχ, hχo, ?_, fun x hx ↦ ?_, fun x hx ↦ ?_, fun x hx ↦ ?_⟩
   · rw [hχ0]
-    simpa using φ.globalFlow_self hX hXc hXφ _
+    simpa using φ.globalFlow_toChart_symm_negativeExtend_zero hX hXc hXφ (θ 0)
   · obtain ⟨c, hc, hcx⟩ := hΨF (hχc hx)
     rw [← hcx]
     exact ⟨φ.mapsTo_globalFlow_closedBall_unstableSet hX hXc hXφ hρ θ (ball_subset_closedBall hc),

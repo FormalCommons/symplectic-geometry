@@ -54,7 +54,8 @@ with the time extension of `SmoothIsotopy/Extension.lean` in place of Tau Ceti's
    `Q × M` along the motion. Its `M`-component at `(q, y)` is a field `Y q` on `M`, jointly smooth
    in `(q, t, y)`. Since the motion keeps `q` fixed, the `M`-component of the motion is a solution
    of `Y q`, so it is the flow of `Y q` (`TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`);
-   the flows are jointly smooth in the parameter by `TauCeti.contMDiff_timeDependentFlowOf_param`.
+   the flows are jointly smooth in the parameter by
+   `TauCeti.contMDiff_timeDependentFlowDiffeomorph_param`.
 
 The parametric flows need a boundaryless parameter manifold, so the case of the parameter
 `unitInterval` (`ContMDiff.exists_contMDiff_diffeomorph_unitInterval_family_forall_apply_eq`)
@@ -169,11 +170,8 @@ theorem exists_contMDiff_diffeomorph_family_of_graph {ER HR R : Type*}
     rfl
   have hcomplete (q : Q) :=
     isCompleteVectorField_timeDependentSuspensionField (hYq₁ q) hC (hYC q)
-  have hflow := contMDiff_timeDependentFlowOf_param le_top hY hcomplete
   refine ⟨fun q t ↦ timeDependentFlowDiffeomorph (hcomplete q) le_top (hYq q) 0 t,
-    (hflow.comp ((contMDiff_fst.prodMk ((contMDiff_const (c := (0 : ℝ))).prodMk
-      contMDiff_snd.fst)).prodMk contMDiff_snd.snd)).congr fun p ↦
-        timeDependentFlowDiffeomorph_apply ..,
+    contMDiff_timeDependentFlowDiffeomorph_param le_top hY hcomplete 0,
     fun q y ↦ (timeDependentFlowDiffeomorph_apply ..).trans (timeDependentFlowOf_self _ 0 y),
     C, hC, fun q t y hy ↦ (timeDependentFlowDiffeomorph_apply ..).trans
       (timeDependentFlowOf_eq_self_of_forall_eq_zero (hYq₁ q) (fun u ↦ hYC q u y hy) 0 t),
