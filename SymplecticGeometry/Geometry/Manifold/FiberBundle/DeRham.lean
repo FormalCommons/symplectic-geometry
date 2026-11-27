@@ -31,6 +31,9 @@ cohomological counterparts of the pull-back identities of
   trivialization over nearby points of its base set induce the same map on cohomology, since
   they are homotopic along a short smooth curve in the base set
   (`TauCeti.eventually_exists_contMDiff_curve`, `TauCeti.deRhamCohomology.map_eq_of_homotopy`).
+* `Bundle.Trivialization.map_fiberInclusionMap_eq_comp`: over a point of two base sets, the map
+  induced by the fibre inclusion of one chart factors through that of the other chart and the
+  map induced by their coordinate change.
 * `Bundle.Trivialization.map_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer`: the fibre
   inclusions of two charts over a point, whose coordinate change preserves `σ`, send a class to
   the class of `σ` together.
@@ -81,9 +84,27 @@ theorem eventually_map_fiberInclusionMap_eq [IsManifold IB ∞ B] [IsManifold IF
   · simp [h₁ 1 le_rfl, fiberInclusionMap_apply]
 
 /-- **Fibre inclusions through two charts in cohomology.** Let `e` and `e'` be trivializations
-of `proj` with smooth inverses, whose coordinate change over `b` is a diffeomorphism `φ` of the
-fibre that preserves a closed form `σ`. If the fibre inclusion of `e'` over `b` sends a class
-`a` to the class of `σ`, so does that of `e`. -/
+of `proj` with smooth inverses, and `φ` a diffeomorphism of the fibre that is their coordinate
+change over `b`. The map on de Rham cohomology induced by the fibre inclusion of `e` over `b` is
+that of the fibre inclusion of `e'` over `b` followed by the map that `φ` induces. -/
+theorem map_fiberInclusionMap_eq_comp [IsManifold IF 2 F] {e e' : Trivialization F proj}
+    (he : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
+    (he' : ContMDiffOn (IB.prod IF) IM ∞ e'.toOpenPartialHomeomorph.symm e'.target) {b : B}
+    (hb : b ∈ e.baseSet) (hb' : b ∈ e'.baseSet) {φ : F ≃ₘ⟮IF, IF⟯ F}
+    (hφe : ⇑φ = e.coordChange e' b) (k : ℕ) :
+    deRhamCohomology.map (e.fiberInclusionMap hb) (e.contMDiff_fiberInclusionMap he hb) k =
+      deRhamCohomology.map φ φ.contMDiff k ∘ₗ
+        deRhamCohomology.map (e'.fiberInclusionMap hb') (e'.contMDiff_fiberInclusionMap he' hb')
+          k := by
+  rw [← deRhamCohomology.map_comp]
+  congr 1
+  rw [hφe]
+  exact e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb'
+
+/-- **Charts related by a stabilizing coordinate change, in cohomology.** Let `e` and `e'` be
+trivializations of `proj` with smooth inverses, whose coordinate change over `b` is a
+diffeomorphism `φ` of the fibre that preserves a closed form `σ`. If the fibre inclusion of `e'`
+over `b` sends a class `a` to the class of `σ`, so does that of `e`. -/
 theorem map_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer [IsManifold IF 2 F]
     {e e' : Trivialization F proj}
     (he : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target)
@@ -95,16 +116,7 @@ theorem map_fiberInclusionMap_eq_of_mem_diffeomorphStabilizer [IsManifold IF 2 F
         k a = deRhamCohomology.mk IF k ⟨σ, hσ.mem_closedForms⟩) :
     deRhamCohomology.map (e.fiberInclusionMap hb) (e.contMDiff_fiberInclusionMap he hb) k a =
       deRhamCohomology.mk IF k ⟨σ, hσ.mem_closedForms⟩ := by
-  have hj : ⇑(e.fiberInclusionMap hb) = e'.fiberInclusionMap hb' ∘ φ := by
-    rw [hφe, e.coe_fiberInclusionMap_eq_comp_coordChange e' hb hb']
-  -- The induced map depends only on the function, not on the proof of its smoothness.
-  have hmap : ∀ {f g : F → M} (hf : ContMDiff IF IM ∞ f) (hg : ContMDiff IF IM ∞ g), f = g →
-      deRhamCohomology.map (I := IF) (I' := IM) f hf k = deRhamCohomology.map g hg k := by
-    rintro f _ hf hg rfl
-    rfl
-  rw [hmap _ ((e'.contMDiff_fiberInclusionMap he' hb').comp φ.contMDiff) hj,
-    deRhamCohomology.map_comp _ _ φ.contMDiff (e'.contMDiff_fiberInclusionMap he' hb'),
-    LinearMap.comp_apply, h]
+  rw [map_fiberInclusionMap_eq_comp he he' hb hb' hφe, LinearMap.comp_apply, h]
   exact deRhamCohomology.map_mk_of_mem_diffeomorphStabilizer hφ
 
 end Bundle.Trivialization
