@@ -1053,8 +1053,7 @@ theorem isPseudoholomorphicAt_ballLiftPartialDiffeomorph {y : BlowupModel n}
     have hπ := Blowup.isLocalDiffeomorphAt_blowdown_real hN.blowupChart hz
     have hb : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
         (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown y :=
-      (isPseudoholomorphic_ofComplexManifold_iff.2
-        ((contMDiff_blowdown ∞).mdifferentiable (by simp))).isPseudoholomorphicAt y
+      isPseudoholomorphic_ofComplexManifold_blowdown.isPseudoholomorphicAt y
     have heb : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
         (stdComplexStructure (Fin (n + 1))).constSmooth (e ∘ blowdown) y :=
       ((isPseudoholomorphic_complexToRealEuclidean (Fin (n + 1))).isPseudoholomorphicAt

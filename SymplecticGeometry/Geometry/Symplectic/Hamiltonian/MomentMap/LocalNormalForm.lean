@@ -379,7 +379,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
   refine ⟨N', Ψ ∘ Opens.inclusion hN'N, hΨ.comp (contMDiff_inclusion hN'N),
     fun g ↦ Opens.mem_imageVal.2 ⟨hN0 g, ?_⟩, fun g y ↦ Opens.smul_mem_imageVal hcN hVG g,
     fun g y h ↦ hΨG g (Opens.inclusion hN'N y) (hN'N h), fun g h ↦ hΨ0 g (hN'N h),
-    fun y ↦ (TauCeti.isLocalDiffeomorph_inclusion hN'N y).comp (hg := hΨd _), ?_,
+    fun y ↦ (isLocalDiffeomorph_inclusion hN'N y).comp (hg := hΨd _), ?_,
     fun ⟨y, hy⟩ ↦ (Opens.mem_imageVal.1 hy).2⟩
   · -- The zero section: there both maps are `Ad*_g τ`.
     simp only [V, Opens.mem_mk, Set.mem_ofPred_eq]

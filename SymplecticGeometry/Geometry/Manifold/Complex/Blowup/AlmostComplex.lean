@@ -80,6 +80,19 @@ noncomputable section
 
 namespace SymplecticGeometry
 
+namespace BlowupModel
+
+open TauCeti TauCeti.SmoothAlmostComplexStructure
+
+/-- The blowdown of the model is pseudoholomorphic, from the structure of the complex manifold
+`BlowupModel n` to that of `ℂⁿ⁺¹`. -/
+theorem isPseudoholomorphic_ofComplexManifold_blowdown {n : ℕ} :
+    IsPseudoholomorphic (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) blowdown :=
+  isPseudoholomorphic_ofComplexManifold_iff.2 ((contMDiff_blowdown ∞).mdifferentiable (by simp))
+
+end BlowupModel
+
 namespace Blowup
 
 open BlowupModel TauCeti TauCeti.SmoothAlmostComplexStructure
@@ -198,10 +211,7 @@ private theorem offDivisorStructure_apply_eq
   set B := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
   set D := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) BlowupModel.blowdown (lift c z)
   set L := mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (lift c) z
-  -- Near `z`, `c ∘ blowdown c` is `BlowupModel.blowdown ∘ lift c`.
-  have hEq : c ∘ blowdown c =ᶠ[𝓝 z] BlowupModel.blowdown ∘ lift c := by
-    filter_upwards [(GluedAlong.rangeInr (gluingHomeomorph c)).isOpen.mem_nhds h₁] with w hw
-    exact (blowdown_lift c (blowdown_mem_source c (hr hw))).symm
+  have hEq := comp_blowdown_eventuallyEq_blowdown_comp_lift c (hr h₁)
   have hd : ∀ w, A (B w) = D (L w) := fun w ↦
     (mfderiv_comp_apply z (hc'.mdifferentiableAt (by simp)) (hπ.mdifferentiableAt (by simp))
       w).symm.trans ((DFunLike.congr_fun hEq.mfderiv_eq w).trans
@@ -288,6 +298,15 @@ theorem isPseudoholomorphicOn_lift :
   isPseudoholomorphicOn_iff.2 fun _ hz ↦
     (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
 
+/-- At each point of the exceptional divisor `divisorRealEmbedding c`, the map `lift c` is
+pseudoholomorphic from the almost complex blowup to the structure of the complex manifold
+`BlowupModel n`. -/
+theorem isPseudoholomorphicAt_lift_divisorRealEmbedding (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ)
+      (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n)) (lift c)
+      (divisorRealEmbedding c ℓ) :=
+  isPseudoholomorphicAt_lift c J hJ (divisorRealEmbedding_mem_range_inr c ℓ)
+
 /-! ### The blowdown -/
 
 /-- Off the exceptional divisor, the blowdown is pseudoholomorphic from `J̃` to `J`: there `J̃` is
@@ -312,16 +331,11 @@ private theorem isPseudoholomorphicAt_blowdown_of_mem_range_inr {z : Blowup c}
   have hc' := c.toOpenPartialHomeomorph.isLocalDiffeomorphAt_of_mem_maximalAtlas hc.out hsrc
   have hJ' := (hJ.isPseudoholomorphicWithinAt hsrc).isPseudoholomorphicAt_of_mem_nhds
     (c.open_source.mem_nhds hsrc)
-  have hbd : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
-      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) BlowupModel.blowdown (lift c z) :=
-    isPseudoholomorphicAt_ofComplexManifold_iff.2
-      ((BlowupModel.contMDiff_blowdown (n := n) ω).mdifferentiableAt (by simp))
-  -- Near `z`, `c ∘ blowdown c` is `BlowupModel.blowdown ∘ lift c`.
-  have hEq : c ∘ blowdown c =ᶠ[𝓝 z] BlowupModel.blowdown ∘ lift c := by
-    filter_upwards [(GluedAlong.isOpen_range_inr _).mem_nhds hz] with w hw
-    exact (blowdown_lift c (blowdown_mem_source c hw)).symm
+  have hbd := (isPseudoholomorphic_ofComplexManifold_blowdown (n := n)).isPseudoholomorphicAt
+    (lift c z)
   exact IsPseudoholomorphicAt.of_comp
-    ((hbd.comp (isPseudoholomorphicAt_lift c J hJ hz)).congr_of_eventuallyEq hEq) hJ'
+    ((hbd.comp (isPseudoholomorphicAt_lift c J hJ hz)).congr_of_eventuallyEq
+      (comp_blowdown_eventuallyEq_blowdown_comp_lift c hz)) hJ'
     (hc'.isInvertible_mfderiv (by simp)).injective
     ((contMDiff_blowdown_real c).mdifferentiableAt (by simp))
 
@@ -380,12 +394,10 @@ theorem isPseudoholomorphic_divisorRealEmbedding :
     IsPseudoholomorphic (ofComplexManifold (Fin n → ℂ) (ℙ ℂ (Fin (n + 1) → ℂ)))
       (almostComplexStructure c J hJ) (divisorRealEmbedding c) := by
   refine isPseudoholomorphic_iff.2 fun ℓ ↦ ?_
-  have hmem : divisorRealEmbedding c ℓ ∈ range (inr (gluingHomeomorph c)) := by
-    rw [coe_divisorRealEmbedding]
-    exact ofDirection_mem_range_inr c ℓ
   -- After `lift c`, which is pseudoholomorphic with invertible differential there, the divisor
   -- is the holomorphic zero section of the model.
-  refine IsPseudoholomorphicAt.of_comp ?_ (isPseudoholomorphicAt_lift c J hJ hmem)
+  refine IsPseudoholomorphicAt.of_comp ?_
+    (isPseudoholomorphicAt_lift_divisorRealEmbedding c J hJ ℓ)
     (isInvertible_mfderiv_lift_divisorRealEmbedding c ℓ).injective
     ((divisorRealEmbedding c).contMDiff.mdifferentiableAt (by simp))
   rw [lift_comp_divisorRealEmbedding, isPseudoholomorphicAt_ofComplexManifold_iff]
