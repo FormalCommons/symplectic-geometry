@@ -24,6 +24,8 @@ import SymplecticGeometry.Analysis.Calculus.FDeriv.Graph
 import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import TauCeti.Analysis.ODE.ExponentialDichotomy
 import Mathlib.Analysis.ODE.Transform
+import TauCeti.Geometry.Symplectic.Liouville.Scaling
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Stable
 
 /-!
 # The flow of a Weinstein structure and its stable sets
@@ -46,7 +48,10 @@ points. The conformal scaling `φ_t^* ω = e^t ω` and `φ_t^* (ι_X ω) = e^t �
 Tau Ceti's `TauCeti.IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul` and
 `TauCeti.mpullback_globalFlow_eq_exp_smul_of_interior_eq`. They are stated for `globalFlow`, and
 apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
-`SymplecticGeometry.IsWeinsteinStructure.flow_def`.
+`SymplecticGeometry.IsWeinsteinStructure.flow_def`. With them,
+`Flow.mpullback_eq_zero_of_mpullback_eq_exp_smul` shows that a map into the stable set along
+which the derivative of the flow, read in the chart at `p`, stays bounded for all large times
+pulls both forms back to zero.
 
 ## Main declarations
 
@@ -79,6 +84,11 @@ apply to `SymplecticGeometry.IsWeinsteinStructure.flow` after a rewrite with
   contains every point of it near `p` at which `f` is close to `f p`, whose orbits in positive
   time stay in the chart at `p`, and along which the derivative of the flow, read in that chart,
   exists and is bounded in positive time.
+* `SymplecticGeometry.IsWeinsteinStructure.mpullback_interior_eq_zero_of_bounded` and
+  `SymplecticGeometry.IsWeinsteinStructure.mpullback_eq_zero_of_bounded`: a map `γ` with `γ y`
+  in the stable set of `p` pulls `ι_X ω` and `ω` back to zero at `y`, if the derivative at `y`
+  of `γ` followed by the flow, read in the chart at `p`, is bounded for all large times on each
+  tangent vector.
 
 ## Implementation notes
 
@@ -476,6 +486,49 @@ theorem exists_localStableDisc {p : M} (hp : IsManifoldNondegenerateCriticalPoin
     rw [heq.fderiv_eq, hD.fderiv]
     exact (ContinuousLinearMap.opNorm_comp_le _ _).trans
       ((mul_le_of_le_one_right (norm_nonneg _) (Submodule.norm_subtypeL_le S)).trans (hC t ht))
+
+section Bounded
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- **A forward derivative bound makes `ι_X ω` vanish.** Let `(ω, X, f)` be a Weinstein
+structure with flow `φ`, `e` the extended chart at `p`, and `γ : N → M` differentiable at `y`,
+with `γ y` in the stable set of `p`. If for each tangent vector `v` at `y` the derivative of
+`z ↦ e (φ_t (γ z))` at `y` on `v` is bounded for all large `t`, then the pullback of the one-form
+`ι_X ω` by `γ` vanishes at `y`. -/
+theorem mpullback_interior_eq_zero_of_bounded {p : M} {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hy : γ y ∈ hW.flow.stableSet p)
+    (hb : ∀ v : TangentSpace I' y, ∃ C, ∀ᶠ t in atTop,
+      ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C) :
+    mpullback I' 𝓘(ℝ, E) γ (RoughForm.interior X ω.val) y = 0 := by
+  have hα : IsSmoothForm 𝓘(ℝ, E) (⊤ : ℕ∞) (RoughForm.interior X ω.val) :=
+    (ω.isSmoothForm.of_le (by simp)).interior hW.contMDiff_field
+  refine hW.flow.mpullback_eq_zero_of_mpullback_eq_exp_smul
+    (fun t ↦ (hW.contMDiff_flow_apply t).mdifferentiable (by simp)) (hα.of_le (by simp))
+    (fun t ↦ ?_) hγ hy hb
+  rw [flow_def]
+  exact mpullback_globalFlow_eq_exp_smul_of_interior_eq _ _
+    (hα.contMDiff.mdifferentiable (by simp)) hW.mextDeriv_interior rfl t
+
+/-- **A forward derivative bound makes `ω` vanish.** Let `(ω, X, f)` be a Weinstein structure
+with flow `φ`, `e` the extended chart at `p`, and `γ : N → M` differentiable at `y`, with `γ y`
+in the stable set of `p`. If for each tangent vector `v` at `y` the derivative of
+`z ↦ e (φ_t (γ z))` at `y` on `v` is bounded for all large `t`, then the pullback of `ω` by `γ`
+vanishes at `y`. -/
+theorem mpullback_eq_zero_of_bounded {p : M} {γ : N → M} {y : N}
+    (hγ : MDifferentiableAt I' 𝓘(ℝ, E) γ y) (hy : γ y ∈ hW.flow.stableSet p)
+    (hb : ∀ v : TangentSpace I' y, ∃ C, ∀ᶠ t in atTop,
+      ‖mvfderiv I' (fun z ↦ extChartAt 𝓘(ℝ, E) p (hW.flow t (γ z))) y v‖ ≤ C) :
+    mpullback I' 𝓘(ℝ, E) γ ω.val y = 0 := by
+  refine hW.flow.mpullback_eq_zero_of_mpullback_eq_exp_smul
+    (fun t ↦ (hW.contMDiff_flow_apply t).mdifferentiable (by simp))
+    (ω.isSmoothForm.of_le (by simp)) (fun t ↦ ?_) hγ hy hb
+  rw [flow_def]
+  exact IsLiouvilleVectorField.mpullback_globalFlow_eq_exp_smul _ _
+    ω.mdifferentiable hW.isLiouvilleVectorField t
+
+end Bounded
 
 end IsWeinsteinStructure
 
