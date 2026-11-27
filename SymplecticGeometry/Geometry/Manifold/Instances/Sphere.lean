@@ -16,9 +16,9 @@ import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Instances.Sphere
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
 /-!
 # Maps into a unit sphere that are smooth within a set, on a set or at a point
