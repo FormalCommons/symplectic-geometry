@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Shap
 
 import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import Mathlib.Analysis.InnerProductSpace.ProdL2
+import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import TauCeti.Analysis.Calculus.Deriv.Second
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.SecondDerivative
@@ -31,8 +32,8 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
 * `SymplecticGeometry.isConvexShapeAt_of_iteratedDeriv_two_nonpos`: a sufficient condition for
   a shape with `χ'' ≤ 0`. `SymplecticGeometry.IsConvexShapeAt.add_const` and
   `SymplecticGeometry.IsConvexShapeAt.rescale`: `χ + c` for `c ≥ 0`, and `ℓ χ (· / ℓ)` at `ℓ r`
-  for `ℓ > 0`, are again `i`-convex shapes. The derivatives of the rescaled shape come from Tau
-  Ceti's `TauCeti.iteratedDeriv_comp_mul_left`, with no differentiability assumption on `χ`.
+  for `ℓ > 0`, are again `i`-convex shapes. The derivatives of the rescaled shape come from
+  `iteratedDeriv_comp_div_const`, with no differentiability assumption on `χ`.
 * `SymplecticGeometry.shapeGraph χ`: the function `(s, t) ↦ χ (√t) - √s`, whose zero level,
   composed with `shape`, is the hypersurface of the shape. Its partial derivatives use Tau Ceti's
   `TauCeti.deriv_deriv_sqrt_quadratic` for the second derivative of `√·`, and
@@ -159,15 +160,18 @@ theorem isConvexShapeAt_iff :
       linarith
   linarith
 
-/-- **A sufficient condition for a concave shape.** If `0 < r`, `0 < χ r`, `0 < χ' r`,
-`χ'' r ≤ 0` and `(1 + χ' r ²) / χ r < χ'' r + χ' r ³ / r`, then `χ` is an `i`-convex shape at
-`r`. -/
+/-- **A sufficient condition for a concave shape.** If `0 < r`, `0 < χ r`, `χ'' r ≤ 0` and
+`(1 + χ' r ²) / χ r < χ'' r + χ' r ³ / r`, then `χ` is an `i`-convex shape at `r`. -/
 theorem isConvexShapeAt_of_iteratedDeriv_two_nonpos (hr : 0 < r) (hχ : 0 < χ r)
-    (hd : 0 < deriv χ r) (he : iteratedDeriv 2 χ r ≤ 0)
+    (he : iteratedDeriv 2 χ r ≤ 0)
     (h : (1 + deriv χ r ^ 2) / χ r < iteratedDeriv 2 χ r + deriv χ r ^ 3 / r) :
     IsConvexShapeAt χ r := by
   set d := deriv χ r
   have hd₁ : 0 < 1 + d ^ 2 := by positivity
+  -- The hypotheses give `0 < χ' r ³ / r`, hence `0 < χ' r`.
+  have hd : 0 < d := by
+    have : 0 < d ^ 3 / r := by linarith [div_pos hd₁ hχ]
+    exact (Odd.pow_pos_iff (by decide)).1 ((div_pos_iff_of_pos_right hr).1 this)
   refine isConvexShapeAt_iff.2 ⟨hr, hχ, ?_, ?_⟩
   · -- `χ'' ≤ 0` and `χ'³ < χ' (1 + χ'²)` give `(1 + χ'²) / χ < χ' (1 + χ'²) / r`.
     have h₁ : d ^ 3 / r < (1 + d ^ 2) * (d / r) := by
@@ -206,11 +210,8 @@ theorem rescale {ℓ : ℝ} (hℓ : 0 < ℓ) (h : IsConvexShapeAt χ r) :
   -- The derivatives of `r ↦ ℓ χ (r / ℓ)`, which need no differentiability of `χ`.
   have hn (n : ℕ) : iteratedDeriv n (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) =
       ℓ * (ℓ⁻¹ ^ n * iteratedDeriv n χ r) := by
-    have e : (fun r ↦ ℓ * χ (r / ℓ)) = fun r ↦ ℓ * (χ <| ℓ⁻¹ * ·) r := by
-      funext x
-      rw [div_eq_inv_mul]
-    rw [e, iteratedDeriv_const_mul_field, iteratedDeriv_comp_mul_left]
-    simp only [smul_eq_mul, inv_mul_cancel_left₀ hℓ.ne']
+    rw [iteratedDeriv_const_mul_field, iteratedDeriv_comp_div_const]
+    simp only [mul_div_cancel_left₀ r hℓ.ne', smul_eq_mul]
   have h₁ : deriv (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) = deriv χ r := by
     simpa [iteratedDeriv_one, hℓ.ne'] using hn 1
   have h₂ : iteratedDeriv 2 (fun r ↦ ℓ * χ (r / ℓ)) (ℓ * r) = iteratedDeriv 2 χ r / ℓ := by
