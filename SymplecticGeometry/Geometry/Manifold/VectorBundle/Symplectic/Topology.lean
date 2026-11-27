@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
+import SymplecticGeometry.Topology.Compactness.Compact
 
 /-!
 # Two-forms in the frame topology
@@ -133,8 +134,8 @@ theorem isOpen_setOfPred_forall_mem_nondegenerate [LocallyCompactSpace EB] [Fini
   let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
   have hS := (isOpen_setOfPred_nondegenerate (F := F) (V := V)).preimage
     (ContMDiffSection.continuous_totalSpace_eval (I := I) (n := n) e U hU hcover)
-  simp_rw [isOpen_iff_mem_nhds, bilinFormAt_def]
-  exact fun ω hω ↦ hK.eventually_forall_of_forall_eventually fun x hx ↦ hS.mem_nhds (hω x hx)
+  simp_rw [bilinFormAt_def]
+  exact hK.isOpen_setOfPred_forall_prodMk_mem hS
 
 end Nondegenerate
 

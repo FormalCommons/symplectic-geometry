@@ -618,8 +618,8 @@ and the prerequisites, placed by topic.
   $u_j\le u_{j-1}+C_3+p\log(u_{j-1}+\log A)$. The file proves, as a separate
   lemma about real sequences, that such sequences grow at most like
   $(j+1)\log(j+2)$.
-- `Connectivity.lean`: `criticalPoint_norm_ge` (at critical points of
-  $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
+- `Connectivity.lean`: `IsUniformlyTransverse.le_norm_of_mem_criticalPoints`
+  (at critical points of $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
   `hessian_add_hessian_J_neg`, `morseIndex_ge`, and the milestone
   `exists_relCWComplex_homotopyEquiv_zeroSet`: for nonempty $Z_k$ and large
   $k$, $M$ has the homotopy type of a CW complex relative to $Z_k$ whose
