@@ -44,9 +44,12 @@ is injective.
   `J̃` is `(dπ)⁻¹ ∘ J ∘ dπ`, for the blowdown `π`.
 * `SymplecticGeometry.Blowup.almostComplexStructure_lift`: on the range of `inr`, `J̃` is the
   pullback of multiplication by `i` along `lift`.
-* `SymplecticGeometry.Blowup.mfderiv_blowdown_comp_almostComplexStructure`: off the exceptional
-  divisor, `dπ ∘ J̃ = J ∘ dπ`; so there the blowdown is pseudoholomorphic from `J̃` to `J`
-  (`SymplecticGeometry.Blowup.isPseudoholomorphicAt_blowdown`).
+* `SymplecticGeometry.Blowup.isPseudoholomorphic_blowdown`: the blowdown is pseudoholomorphic
+  from `J̃` to `J`, that is `dπ ∘ J̃ = J ∘ dπ` at every point
+  (`SymplecticGeometry.Blowup.mfderiv_blowdown_comp_almostComplexStructure`). Off the exceptional
+  divisor this holds by the construction of `J̃`. On the range of `inr`, `c ∘ π` is the model
+  blowdown after `lift c`, and `c` is pseudoholomorphic with injective differential, so Tau Ceti's
+  `TauCeti.IsPseudoholomorphicAt.of_comp` gives it.
 * `SymplecticGeometry.Blowup.isPseudoholomorphicOn_blowupModelChart_comp_lift`: the charts
   `blowupModelChart i ∘ lift c` near the exceptional divisor are pseudoholomorphic from `J̃` to
   the standard structure of `ℂⁿ⁺¹`.
@@ -251,44 +254,6 @@ def almostComplexStructure
 variable (hJ : IsPseudoholomorphicOn J (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) c
   c.source)
 
-/-- Off the exceptional divisor, the differential of the blowdown is complex linear for the
-almost complex blowup and `J`: `dπ (J̃ v) = J (dπ v)`. -/
-theorem mfderiv_blowdown_almostComplexStructure_apply {z : Blowup c}
-    (hz : z ∉ exceptionalDivisor c) (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
-    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
-        (almostComplexStructure c J hJ z v) =
-      J (blowdown c z)
-        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z v) := by
-  have hz' : z ∈ cover c false := (mem_offDivisorOpens c).2 hz
-  rw [almostComplexStructure, glue_apply _ _ false z hz', Manifold.tangentSpaceOpenEquiv_apply,
-    Manifold.tangentSpaceOpenEquiv_symm_apply]
-  exact mfderiv_blowdown_offDivisorStructure c J ⟨z, hz'⟩ v
-
-/-- Off the exceptional divisor, `dπ ∘ J̃ = J ∘ dπ` for the blowdown `π` and the almost complex
-blowup `J̃`. -/
-theorem mfderiv_blowdown_comp_almostComplexStructure {z : Blowup c}
-    (hz : z ∉ exceptionalDivisor c) :
-    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z ∘L
-        (almostComplexStructure c J hJ).toEndomorphism z =
-      J.toEndomorphism (blowdown c z) ∘L
-        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z := by
-  ext1 v
-  exact mfderiv_blowdown_almostComplexStructure_apply c J hJ hz v
-
-/-- Off the exceptional divisor, the almost complex blowup is the pullback of `J` by the
-blowdown `π`: at `inl x`, `J̃ v = (dπ)⁻¹ (J (dπ v))`, where `dπ` is invertible. -/
-theorem almostComplexStructure_apply_inl (x : puncturedOpens c)
-    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (inl (gluingHomeomorph c) x)) :
-    almostComplexStructure c J hJ (inl (gluingHomeomorph c) x) v =
-      ((isLocalDiffeomorphAt_blowdown_real c
-          (inl_notMem_exceptionalDivisor c x)).mfderivToContinuousLinearEquiv (by simp)).symm
-        (J (blowdown c (inl (gluingHomeomorph c) x))
-          (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c)
-            (inl (gluingHomeomorph c) x) v)) := by
-  rw [ContinuousLinearEquiv.eq_symm_apply, ← ContinuousLinearEquiv.coe_coe,
-    IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe,
-    mfderiv_blowdown_almostComplexStructure_apply c J hJ (inl_notMem_exceptionalDivisor c x)]
-
 /-- On the range of `inr`, the domain of `lift c`, the differential of `lift c` is complex
 linear for the almost complex blowup and the structure of the complex manifold `BlowupModel n`,
 which is multiplication by `i` (`TauCeti.SmoothAlmostComplexStructure.ofComplexManifold_apply`). -/
@@ -323,13 +288,89 @@ theorem isPseudoholomorphicOn_lift :
   isPseudoholomorphicOn_iff.2 fun _ hz ↦
     (isPseudoholomorphicAt_lift c J hJ hz).isPseudoholomorphicWithinAt
 
-/-- Off the exceptional divisor, the blowdown is pseudoholomorphic from the almost complex
-blowup to `J`. -/
-theorem isPseudoholomorphicAt_blowdown {z : Blowup c} (hz : z ∉ exceptionalDivisor c) :
-    IsPseudoholomorphicAt (almostComplexStructure c J hJ) J (blowdown c) z :=
-  isPseudoholomorphicAt_iff_mfderiv.2
-    ⟨(isLocalDiffeomorphAt_blowdown_real c hz).mdifferentiableAt (by simp),
-      mfderiv_blowdown_almostComplexStructure_apply c J hJ hz⟩
+/-! ### The blowdown -/
+
+/-- Off the exceptional divisor, the blowdown is pseudoholomorphic from `J̃` to `J`: there `J̃` is
+the pullback of `J` by the blowdown. -/
+private theorem isPseudoholomorphicAt_blowdown_of_notMem {z : Blowup c}
+    (hz : z ∉ exceptionalDivisor c) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ) J (blowdown c) z := by
+  have hz' : z ∈ cover c false := (mem_offDivisorOpens c).2 hz
+  refine isPseudoholomorphicAt_iff_mfderiv.2
+    ⟨(isLocalDiffeomorphAt_blowdown_real c hz).mdifferentiableAt (by simp), fun v ↦ ?_⟩
+  rw [almostComplexStructure, glue_apply _ _ false z hz', Manifold.tangentSpaceOpenEquiv_apply,
+    Manifold.tangentSpaceOpenEquiv_symm_apply]
+  exact mfderiv_blowdown_offDivisorStructure c J ⟨z, hz'⟩ v
+
+/-- On the range of `inr`, the chart `c` composed with the blowdown is the model blowdown composed
+with `lift c`, which is pseudoholomorphic; since `c` is pseudoholomorphic with injective
+differential, so is the blowdown. -/
+private theorem isPseudoholomorphicAt_blowdown_of_mem_range_inr {z : Blowup c}
+    (hz : z ∈ range (inr (gluingHomeomorph c))) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ) J (blowdown c) z := by
+  have hsrc := blowdown_mem_source c hz
+  have hc' := c.toOpenPartialHomeomorph.isLocalDiffeomorphAt_of_mem_maximalAtlas hc.out hsrc
+  have hJ' := (hJ.isPseudoholomorphicWithinAt hsrc).isPseudoholomorphicAt_of_mem_nhds
+    (c.open_source.mem_nhds hsrc)
+  have hbd : IsPseudoholomorphicAt (ofComplexManifold (Fin (n + 1) → ℂ) (BlowupModel n))
+      (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)) BlowupModel.blowdown (lift c z) :=
+    isPseudoholomorphicAt_ofComplexManifold_iff.2
+      ((BlowupModel.contMDiff_blowdown (n := n) ω).mdifferentiableAt (by simp))
+  -- Near `z`, `c ∘ blowdown c` is `BlowupModel.blowdown ∘ lift c`.
+  have hEq : c ∘ blowdown c =ᶠ[𝓝 z] BlowupModel.blowdown ∘ lift c := by
+    filter_upwards [(GluedAlong.isOpen_range_inr _).mem_nhds hz] with w hw
+    exact (blowdown_lift c (blowdown_mem_source c hw)).symm
+  exact IsPseudoholomorphicAt.of_comp
+    ((hbd.comp (isPseudoholomorphicAt_lift c J hJ hz)).congr_of_eventuallyEq hEq) hJ'
+    (hc'.isInvertible_mfderiv (by simp)).injective
+    ((contMDiff_blowdown_real c).mdifferentiableAt (by simp))
+
+/-- The blowdown is pseudoholomorphic at every point, from the almost complex blowup to `J`. -/
+theorem isPseudoholomorphicAt_blowdown (z : Blowup c) :
+    IsPseudoholomorphicAt (almostComplexStructure c J hJ) J (blowdown c) z := by
+  rcases GluedAlong.exists_inl_or_exists_inr _ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · exact isPseudoholomorphicAt_blowdown_of_notMem c J hJ (inl_notMem_exceptionalDivisor c x)
+  · exact isPseudoholomorphicAt_blowdown_of_mem_range_inr c J hJ (mem_range_self y)
+
+/-- **The blowdown is pseudoholomorphic**, from the almost complex blowup to `J`. -/
+theorem isPseudoholomorphic_blowdown :
+    IsPseudoholomorphic (almostComplexStructure c J hJ) J (blowdown c) :=
+  isPseudoholomorphic_iff.2 (isPseudoholomorphicAt_blowdown c J hJ)
+
+/-- The differential of the blowdown is complex linear for the almost complex blowup and `J`:
+`dπ (J̃ v) = J (dπ v)`. -/
+theorem mfderiv_blowdown_almostComplexStructure_apply (z : Blowup c)
+    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z
+        (almostComplexStructure c J hJ z v) =
+      J (blowdown c z)
+        (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z v) :=
+  (isPseudoholomorphicAt_blowdown c J hJ z).mfderiv_apply_commute v
+
+/-- `dπ ∘ J̃ = J ∘ dπ` at every point, for the blowdown `π` and the almost complex blowup `J̃`. -/
+theorem mfderiv_blowdown_comp_almostComplexStructure (z : Blowup c) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z ∘L
+        (almostComplexStructure c J hJ).toEndomorphism z =
+      J.toEndomorphism (blowdown c z) ∘L
+        mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c) z := by
+  ext1 v
+  exact mfderiv_blowdown_almostComplexStructure_apply c J hJ z v
+
+/-- Off the exceptional divisor, the almost complex blowup is the pullback of `J` by the
+blowdown `π`: at `inl x`, `J̃ v = (dπ)⁻¹ (J (dπ v))`, where `dπ` is invertible. -/
+theorem almostComplexStructure_apply_inl (x : puncturedOpens c)
+    (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) (inl (gluingHomeomorph c) x)) :
+    almostComplexStructure c J hJ (inl (gluingHomeomorph c) x) v =
+      ((isLocalDiffeomorphAt_blowdown_real c
+          (inl_notMem_exceptionalDivisor c x)).mfderivToContinuousLinearEquiv (by simp)).symm
+        (J (blowdown c (inl (gluingHomeomorph c) x))
+          (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (blowdown c)
+            (inl (gluingHomeomorph c) x) v)) := by
+  rw [ContinuousLinearEquiv.eq_symm_apply, ← ContinuousLinearEquiv.coe_coe,
+    IsLocalDiffeomorphAt.mfderivToContinuousLinearEquiv_coe,
+    mfderiv_blowdown_almostComplexStructure_apply c J hJ]
+
+/-! ### The exceptional divisor -/
 
 /-- **The exceptional divisor is `J̃`-holomorphic.** The real embedding
 `divisorRealEmbedding c` of `ℙ ℂ (Fin (n + 1) → ℂ)` as the exceptional divisor is
@@ -409,7 +450,7 @@ theorem almostComplexStructure_eq_ofComplexManifold :
   · -- Off the exceptional divisor, the blowdown carries both to the structure of `M`.
     rw [range_inl] at h
     refine ((isLocalDiffeomorphAt_blowdown_real c h).isInvertible_mfderiv (by simp)).injective ?_
-    rw [mfderiv_blowdown_almostComplexStructure_apply c _ _ h,
+    rw [mfderiv_blowdown_almostComplexStructure_apply c _ _ z,
       ((contMDiff_blowdown c).mdifferentiableAt (by simp)).mfderiv_ofComplexManifold_apply]
   · -- On the range of `inr`, `lift c` carries both to the structure of the model.
     have hl : MDifferentiableAt 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) (lift c) z :=
