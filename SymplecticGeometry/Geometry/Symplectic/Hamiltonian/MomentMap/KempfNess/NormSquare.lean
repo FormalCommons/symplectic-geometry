@@ -77,6 +77,24 @@ with `K = M`; the bound uses the exponent `θ ∈ [1/2, 1)` of the inequality at
 Lerman's argument; no particular metric is needed, so it applies to the metric `σ(·, J ·)` of a
 compatible almost complex structure.
 
+## The flow stays in the complex orbit
+
+Back in the Kähler setting, with a complexified action of `Gc` (`IsComplexifiedAction C J`), an
+equivariant moment map `-μ`, a compact `M` and a `C¹` metric `σ(·, J ·)`, the negative gradient
+flow `x` of `f` from `p` is `x t = (g t)⁻¹ • p` for a curve `g` in `Gc` with `g 0 = 1` and
+left-trivialized derivative `-2 i μ♯(x t)`, and the Kempf–Ness function decreases along `g` at the
+rate `2 f (x t)` (`SymplecticGeometry.exists_mem_orbit_maximalIntegralCurve`). The factor `2`
+comes from the flow of `‖μ‖²` rather than of `½ ‖μ‖²`.
+
+The flow is global since `M` is compact, and `C¹`, so `ξ t = -2 i μ♯(x t)` is a `C¹` curve in the
+Lie algebra of `Gc`, and `g = SymplecticGeometry.leftTrivializedCurve ξ 1`. The orbit curve
+`y t = (g t)⁻¹ • p` has velocity `-X_{ξ t}(y t)`
+(`SymplecticGeometry.HasLeftTrivializedDerivOn.hasMFDerivWithinAt_inv_smul`), and so has `x`, by
+`mgradient_momentNormSq` and `X_{iη} = J X_η`. The time-dependent field `(t, z) ↦ -X_{ξ t}(z)` is
+`C¹` (`ContMDiff.contMDiff_prod_fundamentalVectorField`), so `x = y` by Tau Ceti's uniqueness of
+solutions, `TauCeti.timeDependentFlowOf_eq_of_forall_hasMFDerivAt`. The derivative of the
+Kempf–Ness function along `g` is `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`.
+
 ## Main results
 
 * `SymplecticGeometry.mgradient_momentNormSq`: the gradient of `‖μ‖²` at `x` is
@@ -86,6 +104,9 @@ compatible almost complex structure.
   the norm square of a moment map.
 * `SymplecticGeometry.tendsto_maximalIntegralCurve_momentNormSq`: on a compact manifold, the
   negative gradient flow of the norm square of a moment map converges to a critical point.
+* `SymplecticGeometry.exists_mem_orbit_maximalIntegralCurve`: for a complexified action, that
+  flow stays in the `Gc`-orbit of its start, along a curve in `Gc` on which the Kempf–Ness
+  function has derivative `-2 ‖μ‖²`.
 
 ## References
 
