@@ -58,7 +58,7 @@ a local diffeomorphism defined on all of `M`, to a chart defined on an open subs
   pushforward of `J` at every point of its target.
 * `TauCeti.SmoothAlmostComplexStructure.contMDiffOn_mfderiv_symm_comp_comp_mfderiv`: the pullback
   `dψ⁻¹ ∘ K ∘ dψ` of a smooth almost complex structure `K` on `G` is smooth on the source of `ψ`.
-* `TauCeti.SmoothAlmostComplexStructure.exists_compatible_mfderiv_apply_eq`: if `ψ` pulls a
+* `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible_mfderiv_apply_eq`: if `ψ` pulls a
   symplectic form `form₀` on `G` back to `σ`, then for every structure `J₀` compatible with
   `form₀` and every closed set `A` in the source of `ψ`, some structure on `M` compatible with `σ`
   is carried to `J₀` by the derivative of `ψ` along `A`. It extends the pullback of `J₀` with Tau
@@ -275,6 +275,14 @@ theorem contMDiffOn_mfderiv_symm_comp_comp_mfderiv [FiniteDimensional ℝ E]
     (ψ.open_source.mem_nhds hx₀)] with ⟨x, v⟩ hx
   exact Bundle.TotalSpace.ext (ψ.left_inv hx).symm HEq.rfl
 
+end SmoothAlmostComplexStructure
+
+namespace SmoothTwoForm.IsNondegenerate
+
+variable {E H M G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [NormedAddCommGroup G] [NormedSpace ℝ G]
+
 /-- Let `σ` be a fiberwise nondegenerate two-form on a Hausdorff σ-compact manifold `M`, and `ψ`
 a smooth chart of `M` into `G` that pulls a symplectic form `form₀` on `G` back to `σ` on its
 source. For every almost complex structure `J₀` on `G` compatible with `form₀` and every closed
@@ -319,7 +327,8 @@ theorem exists_compatible_mfderiv_apply_eq [FiniteDimensional ℝ E] [FiniteDime
       (fun x ↦ Bundle.TotalSpace.mk' (E →L[ℝ] E)
         (E := fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x) x
         (LinearMap.toContinuousLinearMap (K x).toLinearMap)) ψ.source := by
-    refine (contMDiffOn_mfderiv_symm_comp_comp_mfderiv ψ J₀.constSmooth).congr fun x hx ↦ ?_
+    refine (SmoothAlmostComplexStructure.contMDiffOn_mfderiv_symm_comp_comp_mfderiv ψ
+      J₀.constSmooth).congr fun x hx ↦ ?_
     refine congrArg (Bundle.TotalSpace.mk' _ x) (ContinuousLinearMap.ext fun v ↦ ?_)
     -- Turning `(K x).toLinearMap` into a continuous linear map keeps its values.
     exact (hK x hx v).trans (congrArg _ (J₀.constSmooth_apply (ψ x) _).symm)
@@ -331,7 +340,7 @@ theorem exists_compatible_mfderiv_apply_eq [FiniteDimensional ℝ E] [FiniteDime
   exact (congrArg _ (AlmostComplexStructure.transport_apply _ _ v)).trans
     (IsLocalDiffeomorphAt.mfderiv_mfderivToContinuousLinearEquiv_symm_apply _ _ _)
 
-end SmoothAlmostComplexStructure
+end SmoothTwoForm.IsNondegenerate
 
 end TauCeti
 

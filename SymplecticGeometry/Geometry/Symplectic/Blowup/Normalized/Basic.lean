@@ -13,7 +13,6 @@ public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # Normalized ball embeddings and their blowup charts
@@ -54,7 +53,7 @@ under which `Blowup.almostComplexStructure` puts an almost complex structure on 
   (`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`), restricted to a closed ball
   in its target; `J` is a compatible structure that the derivative of the chart carries to `J₀`
   on the image of that ball
-  (`TauCeti.SmoothAlmostComplexStructure.exists_compatible_mfderiv_apply_eq`, which rests on Tau
+  (`TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible_mfderiv_apply_eq`, which rests on Tau
   Ceti's `TauCeti.SmoothTwoForm.Compatible.exists_compatible_eqOn`). This is McDuff–Salamon,
   Remark 7.1.18 (i).
 
@@ -246,21 +245,16 @@ theorem exists_isNormalizedAt [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymp
       fun z hz ↦ SmoothTwoForm.mpullback_symm_apply_eq_constSmooth hχ
         (hδt (ball_subset_closedBall hz))⟩
   -- A compatible `J` that `dχ` carries to `J₀` on the image of `B(δ)`.
-  obtain ⟨J, hJ, hJχ⟩ := SmoothAlmostComplexStructure.exists_compatible_mfderiv_apply_eq
-    hσ.isNondegenerate hχ stdForm_compatible (hψ.isCompact_image_closedBall le_rfl).isClosed
+  obtain ⟨J, hJ, hJχ⟩ := hσ.isNondegenerate.exists_compatible_mfderiv_apply_eq hχ
+    stdForm_compatible (hψ.isCompact_image_closedBall le_rfl).isClosed
     (by rintro _ ⟨z, hz, rfl⟩; exact χ.map_target (hδt hz))
   refine ⟨J, ε / 2, χ.symm, hJ, by positivity, hψ, by rw [← hp0]; exact χ.left_inv hp,
     isPseudoholomorphicOn_iff.2 fun z hz ↦ ?_⟩
   have hzt := hδt (ball_subset_closedBall hz)
-  refine IsPseudoholomorphicAt.isPseudoholomorphicWithinAt
-    (isPseudoholomorphicAt_iff_mfderiv.2 ⟨χ.symm.mdifferentiableAt (by simp) hzt, fun w ↦ ?_⟩)
-  -- Both sides have the same image under the injective derivative of `χ` at `χ⁻¹ z`.
-  refine (χ.isInvertible_mfderiv (by simp) (χ.map_target hzt)).injective ?_
-  exact (χ.mfderiv_apply_mfderiv_symm_apply (by simp) hzt _).trans
-    ((AlmostComplexStructure.constSmooth_apply _ z w).trans
-      ((congrArg (stdComplexStructure (Fin (n + 1)))
-        (χ.mfderiv_apply_mfderiv_symm_apply (by simp) hzt w).symm).trans
-        (hJχ _ ⟨z, ball_subset_closedBall hz, rfl⟩ _).symm))
+  refine ((χ.toOpenPartialHomeomorph_mdifferentiable (by simp)).isPseudoholomorphicAt_symm hzt
+    (isPseudoholomorphicAt_iff_mfderiv.2 ⟨χ.mdifferentiableAt (by simp) (χ.map_target hzt),
+      fun w ↦ (hJχ _ ⟨z, ball_subset_closedBall hz, rfl⟩ w).trans
+        (AlmostComplexStructure.constSmooth_apply _ _ _).symm⟩)).isPseudoholomorphicWithinAt
 
 end SymplecticGeometry
 
