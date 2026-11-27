@@ -34,7 +34,8 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   `1 / √(log K)` at `K δ` (`SymplecticGeometry.deriv_struweShape_mul`). It is
   smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
   (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
-  `SymplecticGeometry.strictMonoOn_struweShape`).
+  `SymplecticGeometry.strictMonoOn_struweShape`). For `δ ≠ 0` it is the shape of width `1`
+  rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`).
 * `SymplecticGeometry.isConvexShapeAt_struweShape_of_lt`: at `r > δ`, Struwe's shape is an
   `i`-convex shape once its value at `r` exceeds `r √L` and `2 r √L³`, with `L = log (r / δ)`.
   On a whole interval `(δ, R]` it suffices that its value at `δ` bounds both quantities at `R`
@@ -135,6 +136,14 @@ theorem struweShape_add (δ K a c r : ℝ) :
 @[simp]
 theorem struweShape_apply_mul (δ K c : ℝ) : struweShape δ K c (K * δ) = c := by
   simp [struweShape_def]
+
+/-- For `δ ≠ 0`, Struwe's shape of width `δ` is the one of width `1` rescaled by `δ`. -/
+theorem struweShape_eq_mul_struweShape_one {δ : ℝ} (hδ : δ ≠ 0) (K c : ℝ) :
+    struweShape δ K c = fun r ↦ δ * struweShape 1 K (c / δ) (r / δ) := by
+  ext r
+  have h := integral_comp_div (fun u ↦ 1 / √(log u)) hδ (a := K * δ) (b := r)
+  simp only [struweShape_def, mul_one, div_one]
+  rw [h, mul_div_cancel_right₀ _ hδ, smul_eq_mul, mul_add, mul_div_cancel₀ _ hδ]
 
 section Struwe
 

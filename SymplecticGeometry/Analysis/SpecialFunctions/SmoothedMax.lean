@@ -67,6 +67,14 @@ two strictly plurisubharmonic functions is strictly plurisubharmonic.
   `min_deriv_le_deriv_smoothedMax` and `deriv_smoothedMax_le_max`, `smoothedMax_eq_max`,
   `smoothedMax_eq_left`, `smoothedMax_eq_right`, `max_le_smoothedMax`, `smoothedMax_le_max_add`
   and `one_div_smoothedMax_le`.
+* `SymplecticGeometry.smoothedSign_eq_smoothedSign_one`,
+  `SymplecticGeometry.smoothedAbs_eq_mul_smoothedAbs_one` and
+  `SymplecticGeometry.smoothedMax_eq_mul_smoothedMax_one`: for `δ ≠ 0`, each is its width-`1`
+  version rescaled by `δ`. Since `s ↦ smoothedAbs 1 s - s` is nonnegative and nonincreasing on
+  `[0, ∞)`, the rescaling gives `SymplecticGeometry.monotoneOn_smoothedAbs_width` and
+  `SymplecticGeometry.monotoneOn_smoothedMax_width`: both grow with the width `δ > 0`.
+* `SymplecticGeometry.smoothedMax_add_add_right`: a common shift of the two arguments shifts the
+  smoothed maximum.
 * `SymplecticGeometry.smoothedMaxChain δ A`: the chain whose first member is `A 0` and whose
   `(i + 1)`-th member is the smoothed maximum of the `i`-th one and `A (i + 1)`. Its members are
   as smooth as the `A j` (`contDiff_smoothedMaxChain`), increase along the chain
@@ -172,6 +180,13 @@ theorem smoothedSign_nonneg (hδ : 0 < δ) {s : ℝ} (hs : 0 ≤ s) : 0 ≤ smoo
   have := monotone_smoothedSign hδ.le (neg_le_self hs)
   rw [smoothedSign_neg hδ] at this
   linarith
+
+/-- For `δ ≠ 0`, `smoothedSign δ` is `smoothedSign 1` rescaled by `δ`. -/
+theorem smoothedSign_eq_smoothedSign_one (hδ : δ ≠ 0) (s : ℝ) :
+    smoothedSign δ s = smoothedSign 1 (s / δ) := by
+  rw [smoothedSign_def, smoothedSign_def]
+  congr 3
+  field_simp
 
 /-! ### The smoothed absolute value -/
 
@@ -393,6 +408,35 @@ theorem smoothedAbs_le_abs_add (hδ : 0 < δ) (t : ℝ) : smoothedAbs δ t ≤ |
   · rw [abs_of_nonneg h]; exact key h
   · rw [abs_of_nonpos h, ← smoothedAbs_neg hδ]; exact key (neg_nonneg.2 h)
 
+/-- For `δ ≠ 0`, `smoothedAbs δ` is `smoothedAbs 1` rescaled by `δ`. -/
+theorem smoothedAbs_eq_mul_smoothedAbs_one (hδ : δ ≠ 0) (t : ℝ) :
+    smoothedAbs δ t = δ * smoothedAbs 1 (t / δ) := by
+  have h (b : ℝ) : (∫ s in (0 : ℝ)..b, smoothedSign δ s) =
+      δ * ∫ s in (0 : ℝ)..b / δ, smoothedSign 1 s := by
+    simp_rw [smoothedSign_eq_smoothedSign_one hδ]
+    rw [integral_comp_div (smoothedSign 1) hδ, zero_div, smul_eq_mul]
+  rw [smoothedAbs_def, smoothedAbs_def, h, h, div_self hδ]
+  ring
+
+/-- The value of `smoothedAbs δ` at a point does not decrease as the width `δ > 0` grows. -/
+theorem monotoneOn_smoothedAbs_width (t : ℝ) : MonotoneOn (fun δ ↦ smoothedAbs δ t) (Ioi 0) := by
+  have key {t : ℝ} (ht : 0 ≤ t) : MonotoneOn (fun δ ↦ smoothedAbs δ t) (Ioi 0) := by
+    intro δ (hδ : 0 < δ) δ' (hδ' : 0 < δ') hle
+    have h₁ : t / δ' ≤ t / δ := div_le_div_of_nonneg_left ht hδ hle
+    have h₂ := antitone_smoothedAbs_sub_id 1 h₁
+    have h₃ : 0 ≤ smoothedAbs 1 (t / δ) - t / δ := by
+      linarith [abs_le_smoothedAbs one_pos (t / δ), le_abs_self (t / δ)]
+    have h₄ := mul_le_mul hle h₂ h₃ hδ'.le
+    rw [mul_sub, mul_sub, mul_div_cancel₀ _ hδ.ne', mul_div_cancel₀ _ hδ'.ne'] at h₄
+    simp only [smoothedAbs_eq_mul_smoothedAbs_one hδ.ne',
+      smoothedAbs_eq_mul_smoothedAbs_one hδ'.ne']
+    linarith
+  rcases le_total 0 t with ht | ht
+  · exact key ht
+  · intro δ hδ δ' hδ' hle
+    simpa only [smoothedAbs_neg (mem_Ioi.1 hδ), smoothedAbs_neg (mem_Ioi.1 hδ')] using
+      key (neg_nonneg.2 ht) hδ hδ' hle
+
 /-! ### The smoothed maximum -/
 
 /-- The **smoothed maximum** `(a + b + smoothedAbs δ (a - b)) / 2` of two real numbers. For
@@ -548,6 +592,24 @@ theorem iteratedDeriv_two_smoothedMax_nonneg {f g : ℝ → ℝ} (hf : ContDiff 
   have h₃ := mul_nonneg (iteratedDeriv_two_smoothedAbs_nonneg hδ (f x - g x))
     (sq_nonneg (deriv f x - deriv g x))
   linarith
+
+/-- For `δ ≠ 0`, `smoothedMax δ` is `smoothedMax 1` rescaled by `δ`. -/
+theorem smoothedMax_eq_mul_smoothedMax_one (hδ : δ ≠ 0) (a b : ℝ) :
+    smoothedMax δ a b = δ * smoothedMax 1 (a / δ) (b / δ) := by
+  rw [smoothedMax_def, smoothedMax_def, smoothedAbs_eq_mul_smoothedAbs_one hδ, ← sub_div]
+  field_simp
+
+/-- Adding the same number to both arguments of the smoothed maximum adds it to the value. -/
+theorem smoothedMax_add_add_right (δ a b c : ℝ) :
+    smoothedMax δ (a + c) (b + c) = smoothedMax δ a b + c := by
+  rw [smoothedMax_def, smoothedMax_def, add_sub_add_right_eq_sub]
+  ring
+
+/-- The smoothed maximum of two numbers does not decrease as the width `δ > 0` grows. -/
+theorem monotoneOn_smoothedMax_width (a b : ℝ) :
+    MonotoneOn (fun δ ↦ smoothedMax δ a b) (Ioi 0) := fun δ hδ δ' hδ' hle ↦ by
+  simp only [smoothedMax_def]
+  linarith [monotoneOn_smoothedAbs_width (a - b) hδ hδ' hle]
 
 theorem smoothedMax_comm (hδ : 0 < δ) (a b : ℝ) : smoothedMax δ a b = smoothedMax δ b a := by
   rw [smoothedMax_def, smoothedMax_def, ← neg_sub, smoothedAbs_neg hδ, add_comm a]
