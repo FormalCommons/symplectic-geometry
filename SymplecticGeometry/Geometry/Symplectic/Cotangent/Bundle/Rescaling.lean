@@ -385,7 +385,7 @@ private theorem exists_symm_comp_of_apply_zeroSection_eq (hc : c ≠ 0)
   have hzW : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ W := by
     rintro _ ⟨x, rfl⟩
     exact Opens.mem_imageVal.2 ⟨hU₀ (mem_range_self x),
-      show (ι₀ _ : M) ∈ V₁ from (h x).symm ▸ (ι₁ _).property⟩
+      Opens.mem_mk.2 <| mem_preimage.2 <| (h x).symm ▸ (ι₁ _).property⟩
   let k : W → V₁ := fun z ↦ ⟨ι₀ (Opens.inclusion hW z), (Opens.mem_imageVal.1 z.property).2⟩
   have hk : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ k := by
     have h₀k : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) I ∞ fun z : W ↦ (ι₀ (Opens.inclusion hW z) : M) :=
