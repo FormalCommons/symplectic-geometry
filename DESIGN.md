@@ -3010,8 +3010,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   (`TauCeti.deRhamHom` in
   `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the base
   cases of the de Rham theorem in
-  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the general
-  theorem is planned in *Asymptotically holomorphic sections*, in
+  `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`; the compact case
+  is the merged `TauCeti.bijective_deRhamHom_of_compactSpace` of
+  *Asymptotically holomorphic sections*, in
   `SmoothSingular/DeRham/MayerVietoris/Induction.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
@@ -3914,10 +3915,14 @@ hypersurface theorem.
   Hermitian line bundle with real Chern class $a$ and a unitary connection of curvature
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
-  *Minimal coupling*, corrected by an imaginary one-form; the de Rham
-  theorem, that every integral class of degree two is $c_1$ of some line
-  bundle, and the comparison of that class with the Chern–Weil one are not
-  in either library, and the design file plans them as prerequisite issues), `ZeroSet.lean`
+  *Minimal coupling*, corrected by an imaginary one-form; it uses the merged
+  prerequisites `TauCeti.injective_deRhamHom` (the de Rham theorem, in
+  `SmoothSingular/DeRham/MayerVietoris/Induction.lean`),
+  `exists_hermitianLineBundle_complexEulerClass_eq` (every integral class of
+  degree two is the Euler class of a line bundle, in
+  `VectorBundle/Hermitian/Realization.lean`) and
+  `Bundle.deRhamHom_realFirstChernClass_eq_neg` (its comparison with the
+  Chern–Weil class, in `VectorBundle/Hermitian/ChernWeil.lean`)), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
