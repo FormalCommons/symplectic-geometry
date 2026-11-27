@@ -10,6 +10,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Basi
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Localization
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Maslov.Multiplicity
 public import TauCeti.LinearAlgebra.TotallyReal.Maslov.Transverse
+import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 
@@ -331,7 +332,7 @@ theorem exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex {Λ Λ' : �
   refine ⟨U, U', δ, fun t ↦ (hδ t).2, pathMaslovIndex_horizontal_eq_maslovIndex γ δ fun t ↦ ?_⟩
   rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, (hδ t).1, hγ,
     ← StdSpace.range_toEuclideanLin_fromRows_one_eq_graph,
-    StdSpace.range_toEuclideanLin_fromRows_eq_map_realImage, Matrix.map_ofReal_one]
+    Matrix.range_toEuclideanLin_fromRows, Matrix.map_ofReal_one]
 
 /-- **Localization.** Let `γ` be a path of Lagrangians that are the graphs `{(x, A t x)}` of real
 matrices `A t`; then `t ↦ A t` is continuous and each `A t` is symmetric. The index of `γ`
