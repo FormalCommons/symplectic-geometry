@@ -11,6 +11,7 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Analysis.ODE.ExponentialDichotomy
 import SymplecticGeometry.Analysis.ODE.Linear
+import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import TauCeti.Analysis.InnerProductSpace.LyapunovForm.Inertia
 import TauCeti.Analysis.ODE.ExponentialDichotomy.Hyperbolic
 import TauCeti.LinearAlgebra.QuadraticForm.Signature
@@ -23,7 +24,9 @@ continuous bilinear form on `X` with `c * ‖v‖ ^ 2 ≤ B v (A v)` for some `c
 `exp (t • A)` the quadratic form `v ↦ B v v` then increases. This is Tau Ceti's notion of a
 Lyapunov form (`ContinuousLinearMap.HasLyapunovForm`) without a choice of inner product: on an
 inner product space, `B v w = ⟪S v, w⟫` for a symmetric `S`. This file transfers Tau Ceti's
-inertia theorem to this setting.
+inertia theorem to this setting. It also holds a local estimate near a rest point of a nonlinear
+map `Y` whose derivative at `0` is `A`, on any real normed space: there `B (P w) (P (Y w))`
+bounds a multiple of `‖P w‖ ^ 2` on cones, for an operator `P` commuting with `A`.
 
 ## Main results
 
@@ -36,6 +39,11 @@ inertia theorem to this setting.
   stable subspace and positive definite on the unstable one.
 * `ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`: the negative index of
   inertia of `v ↦ B v v` is the dimension of the stable subspace of `A`.
+* `ContinuousLinearMap.exists_forall_half_mul_norm_sq_le_apply`: for a map `Y` with derivative
+  `A` at a zero `0` and an operator `P` commuting with `A`, the bound
+  `c / 2 * ‖P w‖ ^ 2 ≤ B (P w) (P (Y w))` on each cone `‖w‖ ≤ C * ‖P w‖` near `0`.
+* `ContinuousLinearMap.hasDerivAt_neg_apply_self_comp`: the derivative of `-B (P w) (P w)` along
+  a curve `w`.
 
 ## Implementation notes
 
@@ -77,6 +85,54 @@ theorem eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul_of_le_apply (hB : ∀ u v,
   have hv0 : ‖v‖ ^ 2 = 0 := by nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖w‖]
   have hw0 : ‖w‖ ^ 2 = 0 := by nlinarith [sq_nonneg ‖v‖, sq_nonneg ‖w‖]
   simpa using And.intro hv0 hw0
+
+/-- **The projected quadratic form near a rest point.** Let `Y` vanish at `0` with derivative `A`
+there, let `P` commute with `A`, and let `c * ‖v‖ ^ 2 ≤ B v (A v)` with `c > 0`. Then for each
+`C` there is `δ > 0` such that `c / 2 * ‖P w‖ ^ 2 ≤ B (P w) (P (Y w))` for every `w` with
+`‖w‖ < δ` in the cone `‖w‖ ≤ C * ‖P w‖`. -/
+theorem exists_forall_half_mul_norm_sq_le_apply (hc : 0 < c)
+    (hcB : ∀ v, c * ‖v‖ ^ 2 ≤ B v (A v)) {P : X →L[ℝ] X} (hAP : Commute A P) {Y : X → X}
+    (hY0 : Y 0 = 0) (hY : HasFDerivAt Y A 0) (C : ℝ) :
+    ∃ δ > 0, ∀ w, ‖w‖ < δ → ‖w‖ ≤ C * ‖P w‖ → c / 2 * ‖P w‖ ^ 2 ≤ B (P w) (P (Y w)) := by
+  set M := ‖B‖ * ‖P‖ * max C 0
+  have hM : 0 ≤ M := by positivity
+  set ε := c / (2 * (M + 1))
+  have hε : 0 < ε := by positivity
+  have hεM : M * ε ≤ c / 2 := by
+    rw [show M * ε = c / 2 * (M / (M + 1)) by simp only [ε]; field_simp]
+    exact mul_le_of_le_one_right (by positivity) ((div_le_one (by positivity)).2 (by linarith))
+  obtain ⟨δ, hδ, hδY⟩ :=
+    Metric.eventually_nhds_iff.1 ((hasFDerivAt_iff_isLittleO_nhds_zero.1 hY).def hε)
+  refine ⟨δ, hδ, fun w hw hwC ↦ ?_⟩
+  have hYw : ‖Y w - A w‖ ≤ ε * ‖w‖ := by
+    simpa [hY0] using hδY (by simpa using hw)
+  have hPA : P (A w) = A (P w) := by simpa using DFunLike.congr_fun hAP.eq.symm w
+  have hsplit : B (P w) (P (Y w)) = B (P w) (A (P w)) + B (P w) (P (Y w - A w)) := by
+    rw [map_sub, hPA, map_sub, add_sub_cancel]
+  have herr : |B (P w) (P (Y w - A w))| ≤ c / 2 * ‖P w‖ ^ 2 :=
+    calc |B (P w) (P (Y w - A w))| ≤ ‖B‖ * ‖P w‖ * (‖P‖ * ‖Y w - A w‖) := by
+          rw [← Real.norm_eq_abs]
+          exact (B.le_opNorm₂ _ _).trans (by gcongr; exact P.le_opNorm _)
+      _ ≤ ‖B‖ * ‖P w‖ * (‖P‖ * (ε * (max C 0 * ‖P w‖))) := by
+          gcongr
+          exact hYw.trans (mul_le_mul_of_nonneg_left
+            (hwC.trans (by gcongr; exact le_max_left C 0)) hε.le)
+      _ = M * ε * ‖P w‖ ^ 2 := by simp only [M]; ring
+      _ ≤ c / 2 * ‖P w‖ ^ 2 := by gcongr
+  have := hcB (P w)
+  have := neg_abs_le (B (P w) (P (Y w - A w)))
+  rw [hsplit]
+  linarith
+
+/-- The derivative of `s ↦ -B (P (w s)) (P (w s))` at `t`, along a curve `w` with derivative `w'`
+at `t`, is `-2 * B (P (w t)) (P w')`, for a symmetric bilinear form `B` and an operator `P`. -/
+theorem hasDerivAt_neg_apply_self_comp (hB : ∀ u v, B u v = B v u) (P : X →L[ℝ] X)
+    {w : ℝ → X} {w' : X} {t : ℝ} (hw : HasDerivAt w w' t) :
+    HasDerivAt (fun s ↦ -B (P (w s)) (P (w s))) (-2 * B (P (w t)) (P w')) t := by
+  have h := (hasDerivAt_const t B).clm_apply_self (P.hasFDerivAt.comp_hasDerivAt t hw) hB
+  rw [zero_apply, zero_apply, zero_add] at h
+  rw [neg_mul]
+  exact h.neg
 
 variable [FiniteDimensional ℝ X]
 

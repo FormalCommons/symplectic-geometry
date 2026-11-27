@@ -12,8 +12,10 @@ import Mathlib.Analysis.Calculus.IteratedDeriv.FaaDiBruno
 import TauCeti.Analysis.Calculus.Deriv.Second
 
 /-!
-# The second derivative of the square root
+# Derivatives of the square root
 
+* `Real.hasDerivAt_sqrt_sub` and `Real.deriv_sqrt_sub`: the map `r ↦ √(a r² - c)` has
+  derivative `a r / √(a r² - c)` at each `r` with `a r² - c ≠ 0`.
 * `Real.iteratedDeriv_two_sqrt`: the second derivative of `√·` at `x > 0` is
   `-1 / (4 x √x)`. It is the case `a = c = 0`, `b = 1` of Tau Ceti's
   `TauCeti.deriv_deriv_sqrt_quadratic`.
@@ -26,6 +28,23 @@ public section
 namespace Real
 
 open TauCeti
+
+/-- The map `r ↦ √(a r² - c)` has derivative `a r / √(a r² - c)` at each `r` with
+`a r² - c ≠ 0`. -/
+theorem hasDerivAt_sqrt_sub {a c r : ℝ} (h : a * r ^ 2 - c ≠ 0) :
+    HasDerivAt (fun r ↦ √(a * r ^ 2 - c)) (a * r / √(a * r ^ 2 - c)) r := by
+  have hq : HasDerivAt (fun r ↦ a * r ^ 2 - c) (a * (2 * r)) r := by
+    simpa using ((hasDerivAt_pow 2 r).const_mul a).sub_const c
+  convert hq.sqrt h using 1
+  rcases h.lt_or_gt with h | h
+  · simp [sqrt_eq_zero'.2 h.le]
+  · field_simp
+
+/-- The derivative of `r ↦ √(a r² - c)` at each `r` with `a r² - c ≠ 0` is
+`a r / √(a r² - c)`. -/
+theorem deriv_sqrt_sub {a c r : ℝ} (h : a * r ^ 2 - c ≠ 0) :
+    deriv (fun r ↦ √(a * r ^ 2 - c)) r = a * r / √(a * r ^ 2 - c) :=
+  (hasDerivAt_sqrt_sub h).deriv
 
 /-- The second derivative of `√·` at `x > 0` is `-1 / (4 x √x)`. -/
 theorem iteratedDeriv_two_sqrt {x : ℝ} (hx : 0 < x) :

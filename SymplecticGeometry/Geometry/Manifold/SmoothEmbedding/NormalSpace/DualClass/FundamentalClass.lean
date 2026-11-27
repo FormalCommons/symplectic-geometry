@@ -38,7 +38,7 @@ The proof is local on `Z`. By the library's criterion
 fundamental class once its image in `H_m(Z, Z ∖ z)` is the local orientation at each `z`; for a
 push-forward along `π` of a cap product, that image is computed from the local class of `μ_Φ` at
 `0_z`. Read in the centred chart of `Z` at `z` (which detects classes of local homology at `z`,
-`SymplecticGeometry.injective_localHomologyMap_centeredExtChartAt`), this gives the pointwise
+`OpenPartialHomeomorph.injective_localHomologyMap_sourceRestrict`), this gives the pointwise
 criterion
 `HomologicalOrientation.map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt`.
 At each `z`, on a small ball about `0` in that chart:
@@ -52,10 +52,9 @@ At each `z`, on a small ball about `0` in that chart:
 * `OrientedChart.lean` and `Orientation/ZeroDimChart.lean` identify that factor with the local
   orientation of `oZ` at `z`, read in the same chart.
 
-The normal orientation is indexed by `Fin (finrank ℝ P)`, while the local cap computations are
-stated for `Fin (k + 1)` or `Fin 0`; the lemmas `VectorBundleOrientation.…` named
-`localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation_reindex`
-and `…_of_finrank_eq_zero_reindex` state them for any index `Fin r` with `r = k + 1` or `r = 0`.
+The normal orientation is indexed by `Fin (finrank ℝ P)`. The local cap computations take an
+orientation indexed by any `Fin r` together with an equation `r = k + 1` or `r = 0`, so they
+apply to it directly.
 
 ## Main results
 
@@ -84,100 +83,6 @@ open Bundle CategoryTheory MonoidalCategory Module Set AlgebraicTopology
 open scoped Manifold ContDiff
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
-
-namespace TauCeti.VectorBundleOrientation
-
-variable {B : Type} [TopologicalSpace B] [T1Space B] {P : Type} [NormedAddCommGroup P]
-  [NormedSpace ℝ P] [FiniteDimensional ℝ P] {E : B → Type} [TopologicalSpace (TotalSpace P E)]
-  [T1Space (TotalSpace P E)] [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)]
-  [∀ b, TopologicalSpace (E b)] [FiberBundle P E] [VectorBundle ℝ P E] {r : ℕ}
-  (o : VectorBundleOrientation P E (Fin r)) (hr : finrank ℝ P = r) {Q : Type}
-  [NormedAddCommGroup Q] {c : OpenPartialHomeomorph B Q} {S : Set Q} [ContractibleSpace S]
-
-/-- **The local cap computation at a point of the zero section**, in positive rank, for an
-orientation `o` indexed by `Fin r` with `r = k + 1`. This is
-`localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation`, with the
-orientation `o b` read in `e` reindexed along `Fin r ≃ Fin (k + 1)` to select the local
-orientation of `P`: if the chart reads `μ ∈ Hₙ(E, E ∖ 0_b)` as the cross product of that local
-orientation with `ζ ∈ H_q(Q, Q ∖ 0)`, then the cap product of `μ` with the canonical Thom class,
-pushed forward to the base and read in `c`, is `ζ`. -/
-theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation_reindex
-    {k : ℕ} (hk : r = k + 1)
-    (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S) (hSc : S ⊆ c.target)
-    (hSe : MapsTo c.symm S e.baseSet) {b : B} (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) {q n : ℕ} (hn : r + q = n)
-    (ζ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q)
-    (μ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
-      {zeroSection P E b} n)
-    (hμ : (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).inv
-        μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) (k + 1) q n (hk ▸ hn)).hom
-          (((Orientation.reindex ℝ P (finCongr hk)
-            (e.mapOrientation (Fin r) (c.mem_of_mapsTo_symm hb hcb hSe h0)
-            (o b))).localOrientation (hr.trans hk)).val ⊗ₜ ζ)) :
-    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
-        (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q
-        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-          c.open_source.isOpenEmbedding_subtypeVal ⟨b, hb⟩ q).inv
-          (TopPair.singularHomologyMap
-            (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩)
-              (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) (ModuleCat.of ℤ (ULift.{0} ℤ)) q
-            (TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom _
-              (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹'
-                ({b}ᶜ : Set (TopCat.of B)))
-              ((isOpen_zeroSectionCompl P E).preimage continuous_subtypeVal)
-              ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
-                continuous_subtypeVal) r q n hn (o.canonicalThomClass hr)
-              (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-                (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
-                (ModuleCat.of ℤ (ULift.{0} ℤ)) n μ)))) = ζ := by
-  subst hk
-  simp only [finCongr_refl, Orientation.reindex_refl] at hμ
-  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation o hr e hS hSc
-    hSe hb hcb h0 hn ζ μ hμ
-
-/-- **The local cap computation at a point of the zero section**, in rank zero, for an
-orientation `o` indexed by `Fin r` with `r = 0`. This is
-`localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero`, with the
-orientation `o b` read in `e` reindexed along `Fin r ≃ Fin 0` to select the local orientation
-`Orientation.localOrientationOfZeroDim` of `P`: if the chart reads `μ ∈ Hₙ(E, E ∖ 0_b)` as the
-cross product of that local orientation with `ζ ∈ H_q(Q, Q ∖ 0)`, then the cap product of `μ`
-with the canonical Thom class, pushed forward to the base and read in `c`, is `ζ`. -/
-theorem localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero_reindex
-    (hk : r = 0)
-    (e : Trivialization P (π P E)) [e.IsLinear ℝ] (hS : IsOpen S) (hSc : S ⊆ c.target)
-    (hSe : MapsTo c.symm S e.baseSet) {b : B} (hb : b ∈ c.source) (hcb : c b = 0)
-    (h0 : (0 : Q) ∈ S) {q n : ℕ} (hn : r + q = n)
-    (ζ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({0} : Set Q) q)
-    (μ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
-      {zeroSection P E b} n)
-    (hμ : (e.localChartLocalHomologyIso (ModuleCat.of ℤ (ULift.{0} ℤ)) hS hSc hSe hb hcb h0 n).inv
-        μ = (SymplecticGeometry.localHomologyCross (0 : P) (0 : Q) 0 q n (hk ▸ hn)).hom
-          (((Orientation.reindex ℝ P (finCongr hk)
-            (e.mapOrientation (Fin r) (c.mem_of_mapsTo_symm hb hcb hSe h0)
-            (o b))).localOrientationOfZeroDim (hr.trans hk)).val ⊗ₜ ζ)) :
-    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) c.sourceRestrict
-        (hcb ▸ (c.sourceRestrict_preimage_singleton hb).subset) q
-        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-          c.open_source.isOpenEmbedding_subtypeVal ⟨b, hb⟩ q).inv
-          (TopPair.singularHomologyMap
-            (TopPair.ofSubsetMap (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩)
-              (mapsTo_preimage _ ({b}ᶜ : Set (TopCat.of B)))) (ModuleCat.of ℤ (ULift.{0} ℤ)) q
-            (TopCat.singularRelativeCap ℤ (ρ_ _).inv (ρ_ _).hom _
-              (TopCat.ofHom ⟨π P E, FiberBundle.continuous_proj P E⟩ ⁻¹'
-                ({b}ᶜ : Set (TopCat.of B)))
-              ((isOpen_zeroSectionCompl P E).preimage continuous_subtypeVal)
-              ((isOpen_compl_singleton.preimage (FiberBundle.continuous_proj P E)).preimage
-                continuous_subtypeVal) r q n hn (o.canonicalThomClass hr)
-              (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 _) fun _ hv ↦
-                (zeroSectionCompl_union_compl_preimage_singleton b).superset hv)
-                (ModuleCat.of ℤ (ULift.{0} ℤ)) n μ)))) = ζ := by
-  subst hk
-  obtain rfl : q = n := by omega
-  simp only [finCongr_refl, Orientation.reindex_refl] at hμ
-  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero o hr e hS hSc
-    hSe hb hcb h0 ζ μ hμ
-
-end TauCeti.VectorBundleOrientation
 
 namespace TauCeti
 
@@ -209,10 +114,9 @@ namespace SymplecticGeometry
 open TauCeti
 
 variable {E : Type} {H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [I.Boundaryless] {M : Type} [TopologicalSpace M] [T1Space M]
+  {I : ModelWithCorners ℝ E H} [I.Boundaryless] {M : Type} [TopologicalSpace M]
   [ChartedSpace H M]
 
-omit [T1Space M] in
 /-- Near a point `x` of a manifold, the centred chart at `x` has a ball about `0` in its
 target that its inverse carries into any given neighbourhood `T` of `x`. -/
 theorem exists_ball_mapsTo_centeredExtChartAt_symm (x : M) {T : Set M} (hT : IsOpen T)
@@ -227,23 +131,6 @@ theorem exists_ball_mapsTo_centeredExtChartAt_symm (x : M) {T : Set M} (hT : IsO
       by rwa [mem_preimage, c.left_inv (mem_centeredExtChartAt_source I x)]⟩
   obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 hO 0 h0
   exact ⟨ε, hε, fun _ hy ↦ (hball hy).1, fun _ hy ↦ (hball hy).2⟩
-
-/-- Reading local homology at `x` in the centred chart at `x`, by the source of the chart and
-then the chart, is injective. -/
-theorem injective_localHomologyMap_centeredExtChartAt (x : M) (q : ℕ) :
-    Function.Injective fun a ↦ localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-      (centeredExtChartAt I x).sourceRestrict
-      (sourceRestrict_centeredExtChartAt_preimage_zero I x).subset q
-      ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (centeredExtChartAt I x).open_source.isOpenEmbedding_subtypeVal
-        ⟨x, mem_centeredExtChartAt_source I x⟩ q).inv a) := by
-  have hpre := sourceRestrict_centeredExtChartAt_preimage_zero I x
-  have : IsIso (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-      (centeredExtChartAt I x).sourceRestrict hpre.subset q) :=
-    isIso_localHomologyMap _ _ (centeredExtChartAt I x).isOpenEmbedding_sourceRestrict hpre
-      isClosed_singleton (singleton_subset_iff.2 ⟨_, hpre.ge rfl⟩) _
-  exact ((ModuleCat.mono_iff_injective _).1 inferInstance).comp
-    ((ModuleCat.mono_iff_injective _).1 inferInstance)
 
 end SymplecticGeometry
 
@@ -301,7 +188,8 @@ theorem map_proj_singularCap_eq_fundamentalClass_of_centeredExtChartAt {q : ℕ}
       (((thomPair P V).singularCap ℤ (ρ_ _).inv (ρ_ _).hom r q n h u).hom γ) =
       o.fundamentalClass hq :=
   o.map_singularCap_eq_fundamentalClass ℤ hq _ _ _ (isOpen_zeroSectionCompl P V) r n h u γ
-    fun b ↦ injective_localHomologyMap_centeredExtChartAt b q (by
+    fun b ↦ (centeredExtChartAt I b).injective_localHomologyMap_sourceRestrict _
+      (mem_centeredExtChartAt_source I b) (centeredExtChartAt_self I b) q (by
       rw [← singularHomologyMap_ofSubsetMap_thomPairLocalHomologyRestriction]
       exact hγ b)
 
@@ -360,7 +248,7 @@ theorem map_proj_singularCap_tubeFundamentalClass
     (mem_baseSet_trivializationAt P _ z)
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation hE oZ z]
-  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation_reindex
+  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation
     _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
     (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
     _ _ _
@@ -400,7 +288,7 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_fiber_eq_zero
     (mem_baseSet_trivializationAt P _ z)
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_centeredExtChartAt_toHomologicalOrientation hE oZ z]
-  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero_reindex
+  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero
     _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
     (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
     _ _ _
@@ -442,7 +330,7 @@ theorem map_proj_singularCap_tubeFundamentalClass_of_finrank_eq_zero
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim oZ
       (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z)]
-  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation_reindex
+  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_localOrientation
     _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
     (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
     _ _ _
@@ -487,7 +375,7 @@ theorem
   have := Metric.contractibleSpace_ball (x := (0 : E)) hε
   rw [Manifold.Orientation.localHomologyMap_sourceRestrict_toHomologicalOrientationOfZeroDim oZ
       (centeredExtChartAt I z) (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z)]
-  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero_reindex
+  exact localHomologyMap_singularRelativeCap_canonicalThomClass_of_finrank_eq_zero
     _ rfl hP (trivializationAt P _ z) Metric.isOpen_ball hSc hSe
     (mem_centeredExtChartAt_source I z) (centeredExtChartAt_self I z) (Metric.mem_ball_self hε)
     _ _ _
