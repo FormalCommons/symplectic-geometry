@@ -18,6 +18,7 @@ import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
 /-!
@@ -33,7 +34,8 @@ apply to maps into `Circle`.
 It also shows that the inclusion `sphere 0 1 → E` of the unit sphere of an `(n + 1)`-dimensional
 space is a smooth embedding at every order (`isSmoothEmbedding_coe_sphere`): a topological
 embedding, and an immersion by Tau Ceti's `ContMDiff.isImmersion_of_injective_mfderiv`, its
-derivative being injective by Mathlib's `injective_mvfderiv_subtypeVal_sphere`.
+derivative being injective by Mathlib's `injective_mvfderiv_subtypeVal_sphere` and Tau Ceti's
+`TauCeti.injective_mvfderiv_iff`.
 
 Next, it shows that `Circle.exp : ℝ → S¹` is an analytic local diffeomorphism
 (`isLocalDiffeomorph_circleExp`), by Tau Ceti's inverse function theorem for manifolds
@@ -106,13 +108,9 @@ theorem isSmoothEmbedding_coe_sphere {n : ℕ} [Fact (finrank ℝ E = n + 1)] :
     Manifold.IsSmoothEmbedding (𝓡 n) 𝓘(ℝ, E) m ((↑) : sphere (0 : E) 1 → E) := by
   have : FiniteDimensional ℝ E := .of_fact_finrank_eq_succ n
   refine Manifold.IsSmoothEmbedding.of_le (m := ω)
-    ⟨(contMDiff_coe_sphere (n := n)).isImmersion_of_injective_mfderiv (by simp) fun v ↦ ?_,
+    ⟨(contMDiff_coe_sphere (n := n)).isImmersion_of_injective_mfderiv (by simp)
+      fun v ↦ TauCeti.injective_mvfderiv_iff.mp (injective_mvfderiv_subtypeVal_sphere v),
       Topology.IsEmbedding.subtypeVal⟩ le_top
-  -- `mvfderiv` of the inclusion is its `mfderiv` followed by the identification of the tangent
-  -- spaces of `E` with `E`.
-  have h := injective_mvfderiv_subtypeVal_sphere (n := n) v
-  rw [mvfderiv, ContinuousLinearMap.coe_comp] at h
-  exact h.of_comp
 
 attribute [local instance] finrank_real_complex_fact'
 
