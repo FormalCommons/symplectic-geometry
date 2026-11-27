@@ -237,7 +237,7 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
   have := isManifold_transverseZeroSet hm hs hT hE
   rw [normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff hm hs hT hE hk]
   intro z
-  have hv := coe_tangentSpaceEquivKerOfTransverseSection hm hs hT hE z
+  have hv := coe_tangentSpaceEquivKerOfTransverseSection_apply hm hs hT hE z
   set f := SmoothEmbedding.ofTransverseSection hm hs hT hE
   have hz0 : s (f z) = 0 := SmoothEmbedding.ofTransverseSection_apply_eq_zero hm hs hT hE z
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩

@@ -170,7 +170,8 @@ theorem normalSpaceEquivOfTransverseSection_symm_apply (z : ↥{x : X | s x = 0}
 /-- **The tangent space of the zero set as the kernel of the linearization.** At a point `z` of
 the zero set of a transverse section `s`, the differential of the inclusion of the zero set at `z`
 is a linear equivalence from the tangent space of the zero set at `z` onto the kernel of the
-linearization of `s` at `z` (`SymplecticGeometry.coe_tangentSpaceEquivKerOfTransverseSection`). -/
+linearization of `s` at `z`
+(`SymplecticGeometry.coe_tangentSpaceEquivKerOfTransverseSection_apply`). -/
 noncomputable def tangentSpaceEquivKerOfTransverseSection (z : ↥{x : X | s x = 0}) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     TangentSpace 𝓘(𝕜, E) z ≃ₗ[𝕜] LinearMap.ker (sectionLinearization (F := F') J _root_.id s
@@ -183,7 +184,7 @@ noncomputable def tangentSpaceEquivKerOfTransverseSection (z : ↥{x : X | s x =
 /-- The equivalence `SymplecticGeometry.tangentSpaceEquivKerOfTransverseSection` sends a tangent
 vector `v` of the zero set at `z` to its image under the differential of the inclusion. -/
 @[simp]
-theorem coe_tangentSpaceEquivKerOfTransverseSection (z : ↥{x : X | s x = 0})
+theorem coe_tangentSpaceEquivKerOfTransverseSection_apply (z : ↥{x : X | s x = 0})
     (v : letI := transverseZeroSetChartedSpace hm hsm hs hE; TangentSpace 𝓘(𝕜, E) z) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     (tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z v :
@@ -371,7 +372,7 @@ theorem normalOrientation_ofTransverseSection_eq_normalOrientationOfSection_iff 
     (hs _ (ofTransverseSection_apply_eq_zero hm hsm hs hE z))
     (tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z) (LinearEquiv.refl ℝ _)
     (normalSpaceEquivOfTransverseSection hm hsm hs hE z).toLinearEquiv
-    (fun v ↦ (coe_tangentSpaceEquivKerOfTransverseSection hm hsm hs hE z v).symm)
+    (fun v ↦ (coe_tangentSpaceEquivKerOfTransverseSection_apply hm hsm hs hE z v).symm)
     (fun v ↦ normalSpaceEquivOfTransverseSection_normalClass hm hsm hs hE z v)
     (oZ.orientationAt z) (normalOrientationOfSection hm hsm hs hE (Fintype.card_fin _) o' z) hk hr
   rw [Orientation.map_refl, Equiv.refl_apply, map_normalOrientationOfSection_apply] at key
