@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
+import SymplecticGeometry.Algebra.BigOperators.Module
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Hypersurface
@@ -624,29 +625,14 @@ theorem shapeChain_eq_smoothedMaxPath (hδ : 0 < δ) (hh : 0 < h)
     (hℓ : ℓ ∈ Icc (a + j * h) (a + (j + 1) * h)) :
     shapeChain δ η a h A N ℓ r =
       smoothedMaxPath δ η (smoothedMaxChain δ A j) (A (j + 1)) ((ℓ - a - j * h) / h) r := by
-  set P := smoothedMaxPath δ η (smoothedMaxChain δ A j) (A (j + 1)) ((ℓ - a - j * h) / h) r
-  obtain ⟨g, hg₁, hg₂⟩ : ∃ g : ℕ → ℝ,
-      (∀ i ≤ j, g i = smoothedMaxChain δ A i r) ∧ ∀ i, j < i → g i = P :=
-    ⟨fun i ↦ if i ≤ j then smoothedMaxChain δ A i r else P, fun i hi ↦ by simp [hi],
-      fun i hi ↦ by simp [show ¬i ≤ j by omega]⟩
-  have key : ∀ i ∈ Finset.range N,
-      smoothedMaxPath δ η (smoothedMaxChain δ A i) (A (i + 1)) ((ℓ - a - i * h) / h) r -
-        smoothedMax δ (smoothedMaxChain δ A i r) (A (i + 1) r - η) = g (i + 1) - g i := by
-    intro i hi
-    have hJi := hJ i (Finset.mem_range.1 hi)
-    rw [smoothedMax_eq_left hδ hJi]
-    rcases lt_trichotomy i j with hij | rfl | hij
-    · have hij' : (i : ℝ) + 1 ≤ j := by exact_mod_cast hij
-      rw [smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by nlinarith [hℓ.1])),
-        hg₁ _ hij, hg₁ _ hij.le]
-    · rw [hg₂ _ (Nat.lt_succ_self _), hg₁ _ le_rfl]
-    · have hij' : (j : ℝ) + 1 ≤ i := by exact_mod_cast hij
-      have hσ : (ℓ - a - i * h) / h ≤ 1 / 4 := (div_le_iff₀ hh).2 (by nlinarith [hℓ.2])
-      rw [smoothedMaxPath_eq_left hδ hσ hJi, hg₂ _ (by omega), hg₂ _ hij, sub_self,
-        sub_self]
-  rw [shapeChain_def, Finset.sum_congr rfl key, Finset.sum_range_sub, hg₂ _ hj,
-    hg₁ _ (Nat.zero_le j)]
-  ring
+  rw [shapeChain_def, Finset.add_sum_range_eq_of_lt (v := fun i ↦ smoothedMaxChain δ A i r) hj
+    (fun i hij ↦ ?_) (fun i hij hiN ↦ ?_), smoothedMax_eq_left hδ (hJ j hj), add_sub_cancel]
+  · have hij' : (i : ℝ) + 1 ≤ j := by exact_mod_cast hij
+    rw [smoothedMax_eq_left hδ (hJ i (hij.trans hj)),
+      smoothedMaxPath_smoothedMaxChain_of_ge ((le_div_iff₀ hh).2 (by nlinarith [hℓ.1]))]
+  · have hij' : (j : ℝ) + 1 ≤ i := by exact_mod_cast hij
+    have hσ : (ℓ - a - i * h) / h ≤ 1 / 4 := (div_le_iff₀ hh).2 (by nlinarith [hℓ.2])
+    rw [smoothedMaxPath_eq_left hδ hσ (hJ i hiN), smoothedMax_eq_left hδ (hJ i hiN), sub_self]
 
 /-- For `δ > 0` and `h > 0`, at an `r` where the joints match, `A (i + 1) r - η + δ ≤ M i r` for
 `i < N` with `M = smoothedMaxChain δ A`, the chain of paths between smoothed maxima is `M N` from

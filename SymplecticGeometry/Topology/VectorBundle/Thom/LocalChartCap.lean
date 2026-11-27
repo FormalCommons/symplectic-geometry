@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Excisive
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalChart
+public import SymplecticGeometry.Topology.VectorBundle.Thom.LocalHomologyRestriction
 
 /-!
 # The cap product of an excisive couple, read in a local chart of the total space
@@ -41,8 +42,6 @@ bundle is the second projection.
 
 ## Main results
 
-* `Bundle.zeroSectionCompl_union_compl_preimage_singleton`: `E ∖ 0 ∪ E ∖ E_b` is the complement
-  of `0_b`.
 * `Bundle.Trivialization.localChartLocalHomologyIso_hom_comp_singularRelativeCap`: the cap product
   of the excisive couple carried through the chart.
 
@@ -59,28 +58,6 @@ public section
 noncomputable section
 
 open Bundle CategoryTheory MonoidalCategory CartesianMonoidalCategory Limits Set Topology TauCeti
-
-namespace Bundle
-
-variable {B : Type*} {P : Type*} {E : B → Type*} [∀ b, Zero (E b)]
-
-/-- The points of the total space that are nonzero vectors or lie off the fibre over `b` are
-the points other than the zero vector `0_b`. -/
-theorem zeroSectionCompl_union_compl_preimage_singleton (b : B) :
-    zeroSectionCompl P E ∪ (π P E ⁻¹' {b})ᶜ = {zeroSection P E b}ᶜ := by
-  ext ⟨b', v⟩
-  simp only [mem_union, mem_zeroSectionCompl, mem_compl_iff, mem_preimage, mem_singleton_iff,
-    zeroSection, TotalSpace.mk.injEq, not_and]
-  constructor
-  · rintro (hv | hb) rfl
-    exacts [fun h ↦ hv (eq_of_heq h), (hb rfl).elim]
-  · intro h
-    by_cases hb : b' = b
-    · subst hb
-      exact Or.inl fun hv ↦ h rfl (heq_of_eq hv)
-    · exact Or.inr hb
-
-end Bundle
 
 namespace Bundle.Trivialization
 
