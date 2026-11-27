@@ -6,12 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
-public import TauCeti.Geometry.Manifold.Morse.Generic.Relative
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Manifold.Morse.Index
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
 import SymplecticGeometry.Geometry.Manifold.Morse.ComplexIndex
 import SymplecticGeometry.Topology.Compactness.Compact
+import TauCeti.Geometry.Manifold.Morse.Generic.Relative
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
 /-!
@@ -25,8 +25,8 @@ in the weak Whitney topology, at each of the critical points of `g` in `K`
 (`TauCeti.SmoothAlmostComplexStructure.eventually_criticalHessian_add_neg`). By
 `TauCeti.AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg`
 the Morse index at such a critical point is at least the complex dimension, that is half the
-real dimension (`TauCeti.SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex`),
-so a small perturbation, such as the one of
+real dimension (`TauCeti.SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex`,
+in the same file as that bound), so a small perturbation, such as the one of
 `ContMDiffMap.exists_isMorseOn_hasCompactSupport_sub_compl`, keeps this lower
 bound on `K`. Thus `f` can be made Morse on `K` by a compactly supported change
 that vanishes near a closed set `C` on which it is already Morse, keeping complex negativity
@@ -173,23 +173,6 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
   · simp only [h0, not_true_eq_false, false_or, true_implies]
     exact (hhess (hcrit.mpr h0)).symm
   · exact iff_of_true (Or.inl h0) fun h ↦ absurd h h0
-
-omit [I.Boundaryless] in
-/-- If `Hess f(v, v) + Hess f(Jv, Jv) < 0` for every nonzero tangent vector `v` at `x`, for a
-smooth almost complex structure `J`, then the Morse index of `f` at `x` is at least half the
-dimension of the model space. -/
-theorem SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex
-    (J : SmoothAlmostComplexStructure I M) (f : M → ℝ) (x : M)
-    (h : ∀ v : TangentSpace I x, v ≠ 0 →
-      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0) :
-    Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I f x := by
-  have hE : Module.finrank ℝ E = 2 * (J.almostComplexStructureAt x).complexFinrank :=
-    (J.almostComplexStructureAt x).finrank_real_eq_two_mul_complexFinrank
-  rw [hE, Nat.mul_div_cancel_left _ two_pos]
-  refine AlmostComplexStructure.complexFinrank_le_manifoldMorseIndex_of_criticalHessian_add_neg
-    (J.almostComplexStructureAt x) (I := I) f x fun v hv ↦ ?_
-  rw [SmoothAlmostComplexStructure.almostComplexStructureAt_toLinearMap]
-  exact h v hv
 
 variable [FiniteDimensional ℝ E] [T2Space M]
 
