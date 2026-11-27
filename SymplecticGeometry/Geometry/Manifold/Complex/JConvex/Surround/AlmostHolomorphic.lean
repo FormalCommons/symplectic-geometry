@@ -15,6 +15,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Analytic
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Symmetric
 import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousMultilinearMap
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
+import SymplecticGeometry.Analysis.Normed.Module.Multilinear.Basic
 
 /-!
 # Almost holomorphic Taylor extensions
@@ -46,15 +47,19 @@ to `f` on the real points.
   direction, by conjugate linearity;
 * `SymplecticGeometry.norm_conjWirtingerDeriv_taylorExtension_le`: for `K` compact, there is `C`
   with `‖∂̄ (taylorExtension N f) (x + i y)‖ ≤ C * ‖y‖ ^ N` for `x ∈ K`;
+* `SymplecticGeometry.complexAntilinearPartL_fderiv_taylorExtension`: the same defect, as the
+  real-linear map `ContinuousLinearMap.complexAntilinearPartL` of the derivative, is a fixed
+  real-linear map applied to `D^(N+1) f(x) (·, y, …, y)`;
 * `SymplecticGeometry.norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le`: for `f` of
   class `C^(N + 2)` and `K` compact, there is `C` with a bound `C * ‖y‖ ^ (N - 1)` on the
   derivative of `∂̄ (taylorExtension N f)` (as the real-linear map
   `ContinuousLinearMap.complexAntilinearPartL` of the derivative) at `x + i y`, for `x ∈ K` and
   `‖y‖ ≤ 1`. The derivative of `∂̄` grows like `‖y‖ ^ N` for large `y`, hence `‖y‖ ≤ 1`.
 
-The last formula is the standard computation for almost analytic extensions: the derivative in
-the direction `i u` shifts the order of each term down by one, by the symmetry of the iterated
-derivatives of `f` (`ContDiffAt.sum_iteratedFDeriv_update_const`), so that in
+The formula of `SymplecticGeometry.conjWirtingerDeriv_taylorExtension_apply_real` is the standard
+computation for almost analytic extensions: the derivative in the direction `i u` shifts the
+order of each term down by one, by the symmetry of the iterated derivatives of `f`
+(`ContDiffAt.sum_iteratedFDeriv_update_const`), so that in
 `Df(z) u + i • Df(z) (i u)` every term but the one with `D^(N+1) f` cancels.
 
 ## References
@@ -200,7 +205,7 @@ theorem conjWirtingerDeriv_taylorExtension_apply_real {N : ℕ} {f : EuclideanSp
         ((complexEuclideanEquivRealProd ι').symm (u, 0)) =
       ((2 : ℂ)⁻¹ * Complex.I ^ N / N.factorial) •
         iteratedFDeriv ℝ (N + 1) f x (Fin.cons u fun _ ↦ y) := by
-  rw [conjWirtingerDeriv_apply, I_smul_complexEuclideanEquivRealProd_symm_mk_zero,
+  rw [conjWirtingerDeriv_apply, I_smul_complexEuclideanEquivRealProd_symm, neg_zero,
     fderiv_taylorExtension_apply_real hf, fderiv_taylorExtension_apply_imag hf,
     Finset.sum_range_succ, Finset.smul_sum, add_right_comm, ← Finset.sum_add_distrib,
     Finset.sum_eq_zero, zero_add, smul_smul]
@@ -225,7 +230,7 @@ theorem conjWirtingerDeriv_taylorExtension_apply {N : ℕ} {f : EuclideanSpace �
               fun _ ↦ (complexEuclideanEquivRealProd ι' z).2)) := by
   set e := complexEuclideanEquivRealProd ι'
   have hv : v = e.symm ((e v).1, 0) + Complex.I • e.symm ((e v).2, 0) := by
-    rw [I_smul_complexEuclideanEquivRealProd_symm_mk_zero, ← map_add, Prod.mk_add_mk, add_zero,
+    rw [I_smul_complexEuclideanEquivRealProd_symm, neg_zero, ← map_add, Prod.mk_add_mk, add_zero,
       zero_add, ContinuousLinearEquiv.symm_apply_apply]
   have hz : z = e.symm ((e z).1, (e z).2) := by simp
   conv_lhs => rw [hv, map_add, map_smulₛₗ, hz, conjWirtingerDeriv_taylorExtension_apply_real hf,
@@ -249,9 +254,8 @@ theorem norm_conjWirtingerDeriv_taylorExtension_le {N : ℕ} {f : EuclideanSpace
   refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun v ↦ ?_
   have hD : ∀ a, ‖iteratedFDeriv ℝ (N + 1) f (e z).1 (Fin.cons a fun _ ↦ (e z).2)‖ ≤
       max M 0 * (‖a‖ * ‖(e z).2‖ ^ N) := fun a ↦ by
-    refine ((iteratedFDeriv ℝ (N + 1) f (e z).1).le_opNorm _).trans ?_
-    simp only [Fin.prod_univ_succ, Fin.cons_zero, Fin.cons_succ]
-    rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
+    refine ((iteratedFDeriv ℝ (N + 1) f (e z).1).norm_map_cons_le _ _).trans ?_
+    rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin, mul_assoc]
     gcongr
     exact (hM _ hz).trans (le_max_left _ _)
   rw [conjWirtingerDeriv_taylorExtension_apply hf, norm_smul]
@@ -266,6 +270,25 @@ theorem norm_conjWirtingerDeriv_taylorExtension_le {N : ℕ} {f : EuclideanSpace
         · exact norm_complexEuclideanEquivRealProd_fst_le v
         · exact norm_complexEuclideanEquivRealProd_snd_le v
     _ = _ := by ring
+
+/-- The bundled conjugate Wirtinger derivative of the truncated Taylor extension of a
+`C^(N + 1)` map at `z = x + i y` is `c • (L ∘ re - i • L ∘ im)`, where `c = 2⁻¹ * i ^ N / N!`,
+`re` and `im` are the real and imaginary parts, and `L` is the real-linear map
+`D^(N+1) f(x) (·, y, …, y)`. -/
+theorem complexAntilinearPartL_fderiv_taylorExtension {N : ℕ} {f : EuclideanSpace ℝ ι' → W}
+    (hf : ContDiff ℝ (N + 1) f) (z : EuclideanSpace ℂ ι') :
+    ContinuousLinearMap.complexAntilinearPartL (fderiv ℝ (taylorExtension N f) z) =
+      ((2 : ℂ)⁻¹ * Complex.I ^ N / N.factorial) •
+        (((iteratedFDeriv ℝ (N + 1) f (complexEuclideanEquivRealProd ι' z).1).curryLeft
+            |>.flipMultilinear fun _ ↦ (complexEuclideanEquivRealProd ι' z).2) ∘L
+            (.fst ℝ _ _ ∘L (complexEuclideanEquivRealProd ι').toContinuousLinearMap) -
+          Complex.I • ((iteratedFDeriv ℝ (N + 1) f (complexEuclideanEquivRealProd ι' z).1).curryLeft
+            |>.flipMultilinear fun _ ↦ (complexEuclideanEquivRealProd ι' z).2) ∘L
+            (.snd ℝ _ _ ∘L (complexEuclideanEquivRealProd ι').toContinuousLinearMap)) := by
+  ext v
+  rw [← conjWirtingerDeriv_apply_eq_complexAntilinearPartL,
+    conjWirtingerDeriv_taylorExtension_apply hf]
+  simp [smul_sub]
 
 /-- The derivative of the conjugate Wirtinger derivative of the truncated Taylor extension of
 order `N` of a `C^(N + 2)` map, taken in the bundled real-linear form
@@ -283,50 +306,32 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le {N : ℕ}
         C * ‖(complexEuclideanEquivRealProd ι' z).2‖ ^ (N - 1) := by
   set e := complexEuclideanEquivRealProd ι'
   have hf1 : ContDiff ℝ (N + 1) f := hf.of_le (by norm_cast; omega)
-  set c : ℂ := (2 : ℂ)⁻¹ * Complex.I ^ N / N.factorial
   set re : EuclideanSpace ℂ ι' →L[ℝ] EuclideanSpace ℝ ι' := .fst ℝ _ _ ∘L e.toContinuousLinearMap
   set im : EuclideanSpace ℂ ι' →L[ℝ] EuclideanSpace ℝ ι' := .snd ℝ _ _ ∘L e.toContinuousLinearMap
   -- `A L` is the map `v ↦ c • (L (re v) - i • L (im v))`.
   set A : (EuclideanSpace ℝ ι' →L[ℝ] W) →L[ℝ] EuclideanSpace ℂ ι' →L[ℝ] W :=
-    c • ((ContinuousLinearMap.compL ℝ _ _ W).flip re -
+    ((2 : ℂ)⁻¹ * Complex.I ^ N / N.factorial) • ((ContinuousLinearMap.compL ℝ _ _ W).flip re -
       Complex.I • (ContinuousLinearMap.compL ℝ _ _ W).flip im)
   -- `Φ M` is `M` with its first argument split off and moved to the values.
-  set Φ : ContinuousMultilinearMap ℝ (fun _ : Fin (N + 1) ↦ EuclideanSpace ℝ ι') W →L[ℝ]
-      ContinuousMultilinearMap ℝ (fun _ : Fin N ↦ EuclideanSpace ℝ ι')
-        (EuclideanSpace ℝ ι' →L[ℝ] W) :=
-    (ContinuousLinearMap.flipMultilinearEquiv ℝ _ _ W).toContinuousLinearMap ∘L
-      (continuousMultilinearCurryLeftEquiv ℝ (fun _ : Fin (N + 1) ↦ EuclideanSpace ℝ ι')
-        W).toContinuousLinearEquiv.toContinuousLinearMap
+  set Φ := (ContinuousLinearMap.flipMultilinearEquiv ℝ (fun _ : Fin N ↦ EuclideanSpace ℝ ι')
+      (EuclideanSpace ℝ ι') W).toContinuousLinearMap ∘L
+    (continuousMultilinearCurryLeftEquiv ℝ (fun _ : Fin (N + 1) ↦ EuclideanSpace ℝ ι')
+      W).toContinuousLinearEquiv.toContinuousLinearMap
+  have hΦ (M) : ‖Φ M‖ ≤ ‖M‖ :=
+    (ContinuousLinearMap.norm_flipMultilinear_le _).trans M.curryLeft_norm.le
   set D := iteratedFDeriv ℝ (N + 1) f
-  have hD : Differentiable ℝ D := by
-    refine hf.differentiable_iteratedFDeriv ?_
-    norm_cast
-    exact_mod_cast Nat.lt_succ_self _
+  have hD : Differentiable ℝ D := hf.differentiable_iteratedFDeriv (by norm_cast; omega)
   have hQ : (fun z ↦ ContinuousLinearMap.complexAntilinearPartL
       (fderiv ℝ (taylorExtension N f) z)) = fun z ↦ A (Φ (D (re z)) fun _ ↦ im z) := by
-    ext z v
-    rw [← conjWirtingerDeriv_apply_eq_complexAntilinearPartL,
-      conjWirtingerDeriv_taylorExtension_apply hf1]
-    simp [A, Φ, re, im, D, c, e, smul_sub]
+    funext z
+    rw [complexAntilinearPartL_fderiv_taylorExtension hf1]
+    ext1 v
+    simp [A, Φ, re, im, D, e]
   obtain ⟨M₁, hM₁⟩ := hK.exists_bound_of_continuousOn
     (hf1.continuous_iteratedFDeriv le_rfl).continuousOn
-  obtain ⟨M₂, hM₂⟩ := hK.exists_bound_of_continuousOn
-    ((hf.iteratedFDeriv_right (i := N + 1) (m := 1)
-      (le_of_eq (by push_cast; ring))).continuous_fderiv
-      one_ne_zero).continuousOn
+  obtain ⟨M₂, hM₂⟩ := hK.exists_bound_of_continuousOn ((hf.iteratedFDeriv_right (i := N + 1)
+    (m := 1) (le_of_eq (by push_cast; ring))).continuous_fderiv one_ne_zero).continuousOn
   refine ⟨‖A‖ * (max M₂ 0 * ‖re‖ + N * (max M₁ 0 * ‖im‖)), fun z hz hy ↦ ?_⟩
-  have hΦ (M : ContinuousMultilinearMap ℝ (fun _ : Fin (N + 1) ↦ EuclideanSpace ℝ ι') W) :
-      ‖Φ M‖ ≤ ‖M‖ := by
-    refine ContinuousMultilinearMap.opNorm_le_bound (norm_nonneg _) fun m ↦ ?_
-    refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun u ↦ ?_
-    simp only [Φ, ContinuousLinearEquiv.comp_coe, ContinuousLinearEquiv.coe_coe,
-      ContinuousLinearEquiv.trans_apply, LinearIsometryEquiv.coe_toContinuousLinearEquiv,
-      ContinuousLinearMap.coe_flipMultilinearEquiv, ContinuousLinearMap.flipMultilinear_apply_apply,
-      continuousMultilinearCurryLeftEquiv_apply]
-    refine (M.le_opNorm _).trans_eq ?_
-    rw [Fin.prod_univ_succ]
-    simp only [Fin.cons_zero, Fin.cons_succ]
-    ring
   have hR : HasFDerivAt (fun z ↦ Φ (D (re z))) (Φ ∘L (fderiv ℝ D (re z) ∘L re)) z :=
     Φ.hasFDerivAt.comp z ((hD (re z)).hasFDerivAt.comp z re.hasFDerivAt)
   have hQd : DifferentiableAt ℝ (fun z ↦ Φ (D (re z)) fun _ ↦ im z) z :=
@@ -336,8 +341,7 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le {N : ℕ}
   rw [hQ, hA.fderiv]
   refine (A.opNorm_comp_le _).trans ?_
   have hb := hR.norm_fderiv_continuousMultilinearMap_apply_le im.hasFDerivAt
-  have h2 : ‖Φ (D (re z))‖ ≤ max M₁ 0 :=
-    (hΦ _).trans ((hM₁ _ hz).trans (le_max_left _ _))
+  have h2 : ‖Φ (D (re z))‖ ≤ max M₁ 0 := (hΦ _).trans ((hM₁ _ hz).trans (le_max_left _ _))
   have him : im z = (e z).2 := by simp [im]
   have h3 : ‖im z‖ ^ N ≤ ‖im z‖ ^ (N - 1) := pow_le_pow_of_le_one (norm_nonneg _) hy (by omega)
   rw [← him, mul_assoc]
@@ -346,8 +350,7 @@ theorem norm_fderiv_complexAntilinearPartL_fderiv_taylorExtension_le {N : ℕ}
     N * (max M₁ 0 * ‖im z‖ ^ (N - 1) * ‖im‖)) ?_ (by ring)
   gcongr ?_ * ?_ + _ * (?_ * _ * _)
   · refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun h ↦ ?_
-    refine (hΦ _).trans ?_
-    refine ((fderiv ℝ D (re z)).le_opNorm _).trans ?_
+    refine (hΦ _).trans (((fderiv ℝ D (re z)).le_opNorm _).trans ?_)
     rw [mul_assoc]
     gcongr
     · exact (hM₂ _ hz).trans (le_max_left _ _)

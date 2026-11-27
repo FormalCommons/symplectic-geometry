@@ -38,8 +38,8 @@ linear map in `f`, and gives its basic properties.
   is totally real (Tau Ceti's `TauCeti.IsTotallyReal`) is injective.
 
 Along the way, `TauCeti.complexEuclideanEquivRealProd_I_smul` and
-`TauCeti.I_smul_complexEuclideanEquivRealProd_symm_mk_zero` say how multiplication by `i` acts
-on real and imaginary parts, and `TauCeti.norm_complexEuclideanEquivRealProd_fst_le`,
+`TauCeti.I_smul_complexEuclideanEquivRealProd_symm` say how multiplication by `i` acts on real
+and imaginary parts, and `TauCeti.norm_complexEuclideanEquivRealProd_fst_le`,
 `TauCeti.norm_complexEuclideanEquivRealProd_snd_le` bound their norms by that of the point.
 
 ## References
@@ -95,13 +95,14 @@ theorem _root_.TauCeti.complexEuclideanEquivRealProd_I_smul (z : EuclideanSpace 
       (-(complexEuclideanEquivRealProd ι z).2, (complexEuclideanEquivRealProd ι z).1) := by
   ext i <;> simp
 
-/-- Multiplication by `i` on `ℂⁿ` sends the real point `x + i 0` to `0 + i x`. -/
-theorem _root_.TauCeti.I_smul_complexEuclideanEquivRealProd_symm_mk_zero
-    (x : EuclideanSpace ℝ ι) :
-    Complex.I • (complexEuclideanEquivRealProd ι).symm (x, 0) =
-      (complexEuclideanEquivRealProd ι).symm (0, x) := by
+/-- Multiplication by `i` on `ℂⁿ` sends `x + i y` to `-y + i x`. -/
+theorem _root_.TauCeti.I_smul_complexEuclideanEquivRealProd_symm
+    (p : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :
+    Complex.I • (complexEuclideanEquivRealProd ι).symm p =
+      (complexEuclideanEquivRealProd ι).symm (-p.2, p.1) := by
   ext i
-  simp [mul_comm]
+  simp
+  linear_combination (↑(p.2.ofLp i) : ℂ) * Complex.I_sq
 
 /-- The real part of a point of `ℂⁿ` has norm at most the norm of the point. -/
 theorem _root_.TauCeti.norm_complexEuclideanEquivRealProd_fst_le (z : EuclideanSpace ℂ ι) :
