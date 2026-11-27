@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.LinearAlgebra.FiniteDimensional.Defs
 import TauCeti.Analysis.Calculus.ContDiff.Bounds
+import TauCeti.Analysis.Calculus.ContDiff.IsOpen
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Calculus.BumpFunction.DerivativeApproximation
 
@@ -154,6 +155,5 @@ theorem ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt_of_contDiffAt {f : �
     ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧
       (∀ k ≤ n, ∀ x ∈ Icc a b, |iteratedDeriv k g x - iteratedDeriv k f x| < ε) ∧
       g =ᶠ[𝓝ˢ (Icc c b)] f :=
-  ContDiffOn.exists_contDiff_abs_iteratedDeriv_sub_lt
-    (mem_nhdsSet_iff_forall.2 fun x hx ↦ (hf x hx).eventually (by simp))
-    (fun _ hx ↦ ContDiffAt.contDiffWithinAt hx) (hV.mem_nhdsSet.2 hcV) hfV hε
+  let ⟨_, hU, haU, hfU⟩ := TauCeti.exists_isOpen_superset_contDiffOn (by simp) hf
+  hfU.exists_contDiff_abs_iteratedDeriv_sub_lt (hU.mem_nhdsSet.2 haU) (hV.mem_nhdsSet.2 hcV) hfV hε
