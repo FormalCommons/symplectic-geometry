@@ -315,7 +315,7 @@ private theorem exists_primitive_invariantCore_of_eq_along [ContinuousSMul G M]
     f.exists_smoothForm_relative_primitive_sub_of_eq_along h₀ h₁ hnd heq
   -- Its restriction to the invariant core `V` of `W`, which still contains `f(Q)`.
   set V := W.invariantCore G
-  have hVW : V ≤ W := Opens.invariantCore_le W
+  have hVW : V ≤ W := Opens.invariantCore_le G W
   have hfV : range f ⊆ V := Opens.subset_invariantCore (by
     rintro g _ ⟨q, rfl⟩
     exact hfW (hfG g q))
@@ -367,7 +367,7 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
       (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x) (contMDiff_const_smul g)
         (SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ) =
       SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ :=
-    SmoothForm.mpullback_smul_mpullback contMDiff_subtypeVal (Opens.coe_smul_invariantCore g)
+    SmoothForm.mpullback_smul_mpullback contMDiff_subtypeVal (Opens.coe_smul_invariantCore W g)
       (hσ g)
   -- The average `γ` of `β` over `G` is an invariant primitive, still vanishing with its first jet
   -- along the invariant set `f(Q)`.
@@ -376,7 +376,7 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
       ∃ q', g • (⟨f q, hfV (mem_range_self q)⟩ : W.invariantCore G) =
         ⟨f q', hfV (mem_range_self q')⟩ := by
     obtain ⟨q', hq'⟩ := hfG g q
-    exact ⟨q', Subtype.ext ((Opens.coe_smul_invariantCore g _).trans hq'.symm)⟩
+    exact ⟨q', Subtype.ext ((Opens.coe_smul_invariantCore W g _).trans hq'.symm)⟩
   have hdγ : mextDeriv γ.val = (τ₁ - τ₀).val := by
     have hβₗ : mextDerivₗ I 1 β = τ₁ - τ₀ := Subtype.ext (by rw [mextDerivₗ_apply, hdβ])
     have hτG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)
@@ -394,7 +394,7 @@ private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousS
       (fun x s hs ↦ by
         rw [← map_sub, ← map_smul, ← map_add]
         exact (nondegenerate_bilinFormAt_mpullback_subtype_val_iff x).2
-          (hWO (Opens.invariantCore_le W x.property) s hs))
+          (hWO (Opens.invariantCore_le G W x.property) s hs))
       (hτ σ₀ hσ₀) (hτ σ₁ hσ₁) hγG
   refine ⟨W, Φ, fun q ↦ ?_, fun x hx ↦ ?_, hsrc, hΦG⟩
   · have hγ0 : γ.val ⟨f q, hfV (mem_range_self q)⟩ = 0 :=
@@ -458,9 +458,9 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
   -- source and the target of `Ψ`; both are invariant, and `Ψ` is equivariant.
   set Ψ := Φ.liftOpens hV hV
   have hsrcG (g : G) : ∀ x ∈ Ψ.source, g • x ∈ Ψ.source := fun _ ↦
-    Φ.smul_mem_liftOpens_source Opens.coe_smul_invariantCore hV hV (fun g x ↦ (hsrc g x).2) g
+    Φ.smul_mem_liftOpens_source (Opens.coe_smul_invariantCore _) hV hV (fun g x ↦ (hsrc g x).2) g
   have hΨG (g : G) : ∀ x ∈ Ψ.source, Ψ (g • x) = g • Ψ x :=
-    Φ.liftOpens_smul Opens.coe_smul_invariantCore Opens.coe_smul_invariantCore hV hV
+    Φ.liftOpens_smul (Opens.coe_smul_invariantCore _) (Opens.coe_smul_invariantCore _) hV hV
       (fun g x _ ↦ hΦG g x) g
   refine ⟨_, _, Ψ.toDiffeomorphSourceTarget, hsrcG,
     fun g _ hy ↦ (Ψ.toPartialEquiv.symm_map_of_intertwines (f := (g • ·)) (A := (g • ·))
