@@ -597,7 +597,7 @@ theorem exists_sphere_existsUnique_flow_apply_mem_range {p : M}
     (D.injective_mfderiv_ι z hz)
   have hst := D.image_ball_subset_stableSet
   have hπ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, S) (⊤ : ℕ∞) D.π (extChartAt 𝓘(ℝ, E) p).source := by
-    simpa only [extChartAt_source, centeredExtChartAt_source] using D.contMDiffOn_π
+    simpa only [← centeredExtChartAt_source_eq_extChartAt_source] using D.contMDiffOn_π
   have hπι (z : S) (hz : z ∈ ball 0 D.ρ) := D.π_ι hz
   have hπp := D.π_self
   -- Only these properties of the disc are used below, so its data become plain variables.
