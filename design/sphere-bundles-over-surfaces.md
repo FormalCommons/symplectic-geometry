@@ -10,9 +10,9 @@ second. The input from differential topology is Smale's theorem
 [Smale1959], from part 46. The handle induction follows Milnor's *Morse
 theory* (1963), §3. The de Rham Leray–Hirsch theorem is read off the
 singular one, Hatcher, *Algebraic Topology*, Theorem 4D.1, through the de
-Rham theorem; Bott–Tu [BottTu1982], §14, state the de Rham form and prove
-it with the Čech–de Rham spectral sequence, a proof that is not followed
-here.
+Rham theorem. Bott–Tu [BottTu1982], Theorem 5.11, prove the de Rham form
+directly, by a Mayer–Vietoris induction over a good cover; that proof is
+not followed here.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
 written with another one. Paths of new files are under `SymplecticGeometry/`.
@@ -269,37 +269,55 @@ notes of the reviews of #2280 and #2445.
      so $\deg f=\pm1$, with no computation on the torus.
      `TauCeti.Manifold.Orientation.degree_toHomologicalOrientation_eq_degree`
      turns this into the smooth degree of `symplecticChernNumber_pullback`.
-   - *The flat bundle over the torus.* $\ell$ is Tau Ceti's Möbius line
-     bundle `TauCeti.moebiusCore` over `Circle`, smooth because its
-     transitions are locally constant, with the fibre inner product it
-     has. Over the torus put
-     $E=\mathrm{pr}_1^*\ell\oplus\mathrm{pr}_2^*\ell\oplus m^*\ell$, for $m$
-     the product of the two coordinates. Its transitions are
-     $\mathrm{diag}(\varepsilon_1,\varepsilon_2,\varepsilon_1\varepsilon_2)$,
-     $\varepsilon_i=\pm1$: the Klein four-group of commuting half-turns of
-     Exercise 6.2.8, in $\mathrm{SO}(3)$. Its unit sphere bundle is
+   - *The flat bundle over the torus.* It is built from Tau Ceti's
+     bundles associated with a covering, not from line bundles. Let
+     $p\colon T^2\to T^2$ be $(w_1,w_2)\mapsto(w_1^2,w_2^2)$, the square
+     map of the group `Circle × Circle`. Its kernel
+     $K=\{\pm1\}\times\{\pm1\}$ is finite, so $p$ is a quotient covering
+     map for $K$, by
+     `Topology.IsQuotientMap.isQuotientCoveringMap_of_isDiscrete_ker_monoidHom`
+     as in the proof of Mathlib's `Circle.isQuotientCoveringMap_npow`, and
+     it is a local diffeomorphism. Let
+     $\rho\colon K\to\mathrm{GL}(\mathbb R^3)$ be
+     $\rho(\varepsilon_1,\varepsilon_2)=\mathrm{diag}(\varepsilon_1,\varepsilon_2,\varepsilon_1\varepsilon_2)$:
+     the Klein four-group of commuting half-turns of Exercise 6.2.8, in
+     $\mathrm{SO}(3)$. Put $E$ = `hp.associatedCore ρ`
+     (`Topology/Covering/AssociatedBundle.lean`), with fibre
+     `EuclideanSpace ℝ (Fin 3)`; it is smooth by
+     `IsQuotientCoveringMap.isContMDiff_associatedCore`. Its transitions
+     are the values of $\rho$, which are orthogonal and locally constant,
+     so the Euclidean inner product of the fibre is a smooth fibre metric:
+     neither Mathlib nor Tau Ceti has this, and the issue proves Mathlib's
+     `IsContMDiffRiemannianBundle` for `associatedCore` of any
+     representation by isometries, reading the metric in a chart, where it
+     is constant. This is
+     the metric that `TauCeti.sphereBundleChartedSpace` needs; a Whitney
+     sum of line bundles would not serve, since Mathlib's fibres of `×ᵇ`
+     carry the sup norm. The unit sphere bundle of $E$ is
      `TauCeti.sphereBundle`, charted by `TauCeti.sphereBundleChartedSpace`
      and smooth by `TauCeti.isManifold_sphereBundle`; read on `OnePoint ℂ`
      by `roundSphereDiffeomorph` of part 46, the half-turns are
      $z\mapsto\pm z$ and $z\mapsto\pm1/z$, so it is an oriented
      $S^2$-bundle. The flat model over `S` is the unit sphere bundle of
-     $f^*E=u^*\ell\oplus v^*\ell\oplus(uv)^*\ell$.
-   - *Two sections.* For $c\in\mathbb C$, $\sigma_c$ is the section of
-     $\ell$ whose coordinate at $e^{i\vartheta}$, $|\vartheta|<\pi$, in the
-     chart `true` of `TauCeti.moebiusCore` is
-     $\operatorname{Re}(c\,e^{-i\vartheta/2})$: the projection of $c$ to
-     the line $\mathbb R\sqrt z$. Take
-     $s=(\sigma_i\circ\mathrm{pr}_1,\sigma_i\circ\mathrm{pr}_2,\sigma_1\circ m)$
-     and $t=(\sigma_1\circ\mathrm{pr}_1,\sigma_1\circ\mathrm{pr}_2,0)$, in
-     coordinates $s=(\sin\pi x,\sin\pi y,\cos\pi(x+y))$ and
+     $f^*E$.
+   - *Two sections.* By `IsQuotientCoveringMap.associatedSectionEquiv` a
+     section of $E$ is a $\rho$-equivariant function on the cover, and by
+     `IsQuotientCoveringMap.contMDiff_section_associatedCore_iff` it is
+     smooth when that function is. Take
+     $s(w)=(\operatorname{Im}w_1,\operatorname{Im}w_2,\operatorname{Re}w_1w_2)$
+     and $t(w)=(\operatorname{Re}w_1,\operatorname{Re}w_2,0)$, which are
+     equivariant. With $w_1=e^{i\pi x}$, $w_2=e^{i\pi y}$, so that
+     $z_1=w_1^2$ and $z_2=w_2^2$, they are
+     $s=(\sin\pi x,\sin\pi y,\cos\pi(x+y))$ and
      $t=(\cos\pi x,\cos\pi y,0)$. Then $s$ vanishes nowhere: where its
      first two coordinates vanish, $x$ and $y$ are integers and the third
-     is $\pm1$. The metric is that of $\ell$, fixed once, so the
+     is $\pm1$. The metric is the Euclidean one, fixed once, so the
      normalization $\hat s=s/|s|$ carries no choice.
    - *Nontriviality.* The vertical bundle along $\hat s$ is
      $\hat s^\perp\subset E$, with the complex structure
      $w\mapsto\hat s\times w$; the cross product is defined because the
-     transitions lie in $\mathrm{SO}(3)$. The projection of $t$ to
+     transitions lie in $\mathrm{SO}(3)$, and it is computed upstairs on
+     the equivariant functions. The projection of $t$ to
      $\hat s^\perp$ vanishes where $s\times t=0$, and
      $s\times t=(-\cos\pi(x+y)\cos\pi y,\ \cos\pi(x+y)\cos\pi x,\ \sin\pi(x-y))$.
      So its zeros are $(z_1,z_2)=(i,i),(-1,-1),(-i,-i)$, and at each of
@@ -334,17 +352,17 @@ notes of the reviews of #2280 and #2445.
 
 ## Departures from `DESIGN.md`
 
-`DESIGN.md` is corrected in the same pull request, in one place: in part
-56, *Builds on* and the build-order row gain part 50,
-*Principal connections*, only for `Fibration/Associated.lean`, which
-`RuledSurface.lean` uses (Decision 8), and they name the files of part 46
-before `Smale.lean` that `diffPlus`, `mobiusSubgroup` and
-`mobiusSubgroup_le_diffPlus` come from. Part 50 is at level 0, so part 56
-stays at level 2. Of part 48 the part uses `MapFiber.lean`,
-`StructureGroup.lean` and `Basic.lean`, which `DESIGN.md` already allows.
-The new blocker of the building issue is proposed in an issue. In bringing
-the singular Leray–Hirsch theorem to de Rham classes, the part now follows
-`DESIGN.md`.
+`DESIGN.md` is corrected in two places. In part 56, *Builds on* and the
+build-order row gain part 50, *Principal connections*, only for
+`Fibration/Associated.lean`, which `RuledSurface.lean` uses (Decision 8),
+and they name the files of part 46 before `Smale.lean` that `diffPlus`,
+`mobiusSubgroup` and `mobiusSubgroup_le_diffPlus` come from. Part 50 is at
+level 0, so part 56 stays at level 2. Of part 48 the part uses
+`MapFiber.lean`, `StructureGroup.lean` and `Basic.lean`, which `DESIGN.md`
+already allows. The new blocker of the building issue is proposed in an
+issue. And part 56's *The design file decides* no longer lists how the
+singular Leray–Hirsch theorem is brought to de Rham classes, which
+Decision 7 settles.
 
 ## Files
 
@@ -454,19 +472,20 @@ The bridge is one issue.
   (Decision 9), with the lemma that reads the class pulled back from the
   angular class of `Circle` as the period homomorphism of the map.
 
-### `Geometry/Manifold/VectorBundle/Moebius.lean`
+### `Geometry/Manifold/VectorBundle/Riemannian/AssociatedBundle.lean`
 
-- The smooth structure of Tau Ceti's `TauCeti.moebiusCore` (its
-  transitions are locally constant), and the sections `moebiusSection c`
-  for `c : ℂ` of Decision 9, with their coordinates in the two charts.
-  The flat line bundles over a manifold are its pull-backs along smooth
-  maps to `Circle`; this file has nothing of sphere bundles.
+- For `hp : IsQuotientCoveringMap p G` and a representation `ρ` of `G` by
+  isometries of a real inner product space `F`, the fibres of
+  `hp.associatedCore ρ` with the inner product of `F`, and
+  `IsContMDiffRiemannianBundle` for them (Decision 9). The statements are
+  about Tau Ceti's notions, in the namespace `IsQuotientCoveringMap`; this
+  file has nothing of sphere bundles.
 
 ### `Geometry/Manifold/FiberBundle/SphereBundle/Flat.lean`
 
-- `flatSphereBundle`: the unit sphere bundle of
-  $\mathrm{pr}_1^*\ell\oplus\mathrm{pr}_2^*\ell\oplus m^*\ell$ over the
-  torus, its atlas with fibre `OnePoint ℂ` and its structure group in
+- `flatSphereBundle`: the unit sphere bundle of `hp.associatedCore ρ`
+  over the torus, for the square map `p` and the representation `ρ` of
+  Decision 9, its atlas with fibre `OnePoint ℂ` and its structure group in
   `diffPlus`, and its pull-back along a smooth map to the torus.
 - `odd_verticalChernNumber_flatSphereBundle`: the number of the vertical
   bundle along $\hat s$ is odd, by the three transverse zeros of
@@ -541,13 +560,15 @@ form. Over issues 9, 10 and 13.
   sublevel deformations (`Geometry/Manifold/Morse/`), Ehresmann
   connections, associated bundles, de Rham cohomology (homotopy
   invariance, spheres, top degree), smooth approximation, circle-valued
-  maps with prescribed periods; and for the flat model the Möbius line
-  bundle (`Topology/VectorBundle/Moebius.lean`), sphere bundles
+  maps with prescribed periods; and for the flat model the bundles
+  associated with a covering (`Topology/Covering/AssociatedBundle.lean`,
+  `Geometry/Manifold/Quotient/AssociatedBundle.lean`), sphere bundles
   (`Geometry/Manifold/VectorBundle/Riemannian/Sphere.lean`), the torus
   charts and orientations, mapping degrees (`Geometry/Manifold/Degree/`),
   integral Poincaré duality
   (`AlgebraicTopology/Cohomology/CompactSupport/Duality/`) and angular
-  classes of circles.
+  classes of circles. From Mathlib, the covering criterion
+  `Topology.IsQuotientMap.isQuotientCoveringMap_of_isDiscrete_ker_monoidHom`.
 
 ## Building issues
 
@@ -571,8 +592,8 @@ issue `n` of `design/symplectic-fibrations.md`; "P50" is the issue of
 | 9 | $H^2(X_B)$, the coefficients and part 1 | `RuledSurface.lean` | 7, 8; P48-3; P50 | 350 |
 | 10 | Part 2: Weinstein's form | `RuledSurface.lean` | 9 | 250 |
 | 11 | A map of degree ±1 onto the torus | `Degree/Torus.lean` | — | 250 |
-| 12 | The flat model over the torus and its nontriviality | `VectorBundle/Moebius.lean`, `SphereBundle/Flat.lean` | 7, 11 | 450 |
-| 13 | Part 3 on the flat model; the milestone | `RuledSurface.lean` | 9, 12 | 300 |
+| 12 | The flat model over the torus and its nontriviality | `Riemannian/AssociatedBundle.lean`, `SphereBundle/Flat.lean` | 7, 11 | 450 |
+| 13 | Part 3 on the flat model; the milestone | `RuledSurface.lean` | 10, 12 | 300 |
 
 Issues 1 and 11 can start at once, and issue 8 once P48-2 and P46-1 are
 merged. Issues 2 to 7, and so 9, 10, 12 and 13, wait for part 46 up to its
