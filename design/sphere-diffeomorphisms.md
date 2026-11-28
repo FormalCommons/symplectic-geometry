@@ -343,6 +343,7 @@ Issue 4:
   `ProjectiveSpecialLinearGroup.polarHomotopy (Fin 2) ℂ` carried to
   `mobiusSubgroup` by `mobiusEquiv`: a homotopy relative to the rotations
   from the identity to a retraction onto them.
+- `mobiusSubgroup_le_diffPlus` (Decision 1).
 
 About 250 lines.
 
@@ -392,7 +393,6 @@ About 350 lines.
 
 Issue 7:
 
-- `mobiusSubgroup_le_diffPlus` (Decision 1).
 - `diffPlusTrivialization : diffPlus ≃ₜ 𝒥 × mobiusSubgroup`,
   for every covering frame system, $\phi\mapsto(\phi^*i,\ \phi\,\sigma(\phi^*i)^{-1})$,
   with inverse $(J,g)\mapsto g\,\sigma(J)$; `diffPlusTrivialization_apply_fst`,
@@ -468,10 +468,10 @@ issues that build the results named.
 | 1 | $\mathrm{Diff}^+(S^2)$, the space $\mathcal J$ and the map $\phi\mapsto\phi^*i$ | `ComplexStructure.lean` | — | 350 |
 | 2 | The contraction of $\mathcal J$ onto $i$ | `ComplexStructure.lean` | 1 | 200 |
 | 3 | Möbius transformations as the stabilizer of $i$ | `Mobius.lean` | — | 300 |
-| 4 | The Möbius group as a topological group, and its retraction onto the rotations | `Mobius.lean` | 3 | 250 |
+| 4 | The Möbius group as a topological group, and its retraction onto the rotations | `Mobius.lean` | 1, 3 | 250 |
 | 5 | The uniformizing diffeomorphism $\sigma(J)$ | `Uniformization.lean` | 1, 3; P45 (zero count, $\dim E_J=2$) | 450 |
 | 6 | Continuity of $\sigma$ | `Uniformization.lean` | 5; P45 (continuous family) | 350 |
-| 7 | The trivialization of $\mathrm{Diff}^+(S^2)$ over $\mathcal J$ | `Trivialization.lean` | 6 | 250 |
+| 7 | The trivialization of $\mathrm{Diff}^+(S^2)$ over $\mathcal J$ | `Trivialization.lean` | 4, 6 | 250 |
 | 8 | The round sphere: $\mathrm{Diff}^+$ and the rotations | `Smale.lean` | 1, 4 | 300 |
 | 9 | Smale's theorem | `Smale.lean` | 2, 7, 8 | 300 |
 

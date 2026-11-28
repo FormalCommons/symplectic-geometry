@@ -3260,9 +3260,9 @@ Differential topology and complex analysis only; it waits for no part of
   $(S^2,J)\to(S^2,i)$ fixing $0,1,\infty$, from the zero count of $E_J$
   and Tau Ceti's
   `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`), `Mobius.lean`
-  ($\mathrm{PSL}(2,\mathbb C)$ as the stabilizer of $i$ in $\mathrm{Diff}^+$,
+  ($\mathrm{PSL}(2,\mathbb C)$ as the stabilizer of $i$ in $\mathrm{Diff}$,
   from `Diffeomorph.exists_coe_eq_smul`, with its subspace topology equal
-  to its Lie group topology, and its deformation retraction onto
+  to Tau Ceti's quotient topology, and its deformation retraction onto
   $\mathrm{SO}(3)$ by the polar decomposition), `Trivialization.lean` (the
   homeomorphism $\mathrm{Diff}^+(S^2)\cong\mathcal J\times\mathrm{PSL}(2,\mathbb
   C)$ over $\mathcal J$) and `Smale.lean` (sharing its name with Tau
