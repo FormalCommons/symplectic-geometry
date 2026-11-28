@@ -16,7 +16,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 import TauCeti.Geometry.Symplectic.ExistsCompatible
 
 /-!
-# The parametric relative h-principle for symplectic forms, smooth version
+# The parametric relative h-principle for symplectic forms
 
 Let `M` be a manifold without boundary none of whose connected components is compact, `L` a
 finite-dimensional normed space, `K ⊆ L` compact and `P₀ ⊆ L` closed. Given a smooth family `τ`
@@ -33,23 +33,39 @@ For a family over `[0, 1]`, the corollary
 them is a family `α` for `P₀ = {0, 1}`
 (`SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends`).
 
+The continuous version (`SymplecticGeometry.exists_continuousMap_homotopy_closed`) is the same
+statement for a compact Hausdorff space `P` of parameters, with the smooth two-forms on the
+tangent bundle of `M` given the frame topology of a covering frame system: a continuous family
+`τ : C(P, X)` into the space `X` of nondegenerate two-forms, and a family `α` continuous into the
+frame topology, give a homotopy `H : C(P × [0, 1], X)`.
+
 ## Proof
 
 `SymplecticGeometry.exists_isMorse_bandCore_seq` gives a proper Morse function `g` and levels
 `d k < e k < d (k + 1)` tending to infinity, with band cores for `(d k, e k, e (k + 1))`. The data
 carried from stage to stage are the families `τ`, `α`, `β` of the stages of `Relative/Stage.lean`,
 the open set `N ⊇ {g ≤ e k}` on which `τ = α + d β`, and a one-form `δ` with `α = αs + d δ` for
-the starting family `αs`. Stage `k` is `SymplecticGeometry.BandCore.exists_stage_family`; it
-changes nothing near `{g ≤ e k}`. The stages, run on the times `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹]`, are
-concatenated by `SymplecticGeometry.exists_isSmoothFamily_infiniteConcat` over the open cover by
-the sets `{g < e (k + 1)}`. Its end agrees on `{g < e (k + 1)}` with the end of stage `k`, which
-is `αs + d (δ + β)` there; the one-forms `δ + β` settle on that cover too, and their limit
-(`TauCeti.SmoothForm.exists_eq_limit`) writes the end as `αs + d θ`. Over `P₀` every stage runs
-through closed forms in the class.
+the starting family `αs`; each version adds the regularity of these families in the parameter.
+Stage `k` is `SymplecticGeometry.BandCore.exists_stage_family`, or
+`SymplecticGeometry.BandCore.exists_stage_continuous_family`; it changes nothing near
+`{g ≤ e k}`. The stages, run on the times `[1 - 2⁻ᵏ, 1 - 2⁻ᵏ⁻¹]`, settle on the open cover by
+the sets `{g < e (k + 1)}`, and the end of stage `k` is `αs + d (δ + β)` there. The one-forms
+`δ + β` settle on that cover too, and their limit `θ` (`TauCeti.SmoothForm.exists_eq_limit`)
+gives the end `αs + d θ` of the concatenation, closed and in the class. Over `P₀` every stage
+runs through closed forms in the class. The recursion and this argument do not depend on the
+regularity, and are shared by both versions. The concatenation is smooth by
+`SymplecticGeometry.IsSmoothFamily.infiniteConcat`, and continuous into the frame topology by
+`SymplecticGeometry.Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_infiniteConcat`.
 
-When `M` is empty or `K` is empty, the constant homotopy works. Otherwise a nondegenerate form at
-a point makes the dimension even (`TauCeti.SymplecticForm.even_finrank`), as
-`SymplecticGeometry.exists_isMorse_bandCore_seq` requires.
+In the continuous version the one-forms of each stage are `B (u l)`, for a smooth family `B`
+over a finite-dimensional normed space and a continuous `u`. Each stage enlarges that space, so
+the recursion carries it as `Fin m → ℝ`, identified with the space that the stage returns by
+`ContinuousLinearEquiv.ofFinrankEq`.
+
+When `M` is empty or there are no parameters to make nondegenerate, the constant homotopy works.
+Otherwise a nondegenerate form at a point makes the dimension even
+(`TauCeti.SymplecticForm.even_finrank`), as `SymplecticGeometry.exists_isMorse_bandCore_seq`
+requires.
 
 ## Main results
 
@@ -59,6 +75,8 @@ a point makes the dimension even (`TauCeti.SymplecticForm.even_finrank`), as
   over `[0, 1]`.
 * `SymplecticGeometry.exists_isSmoothFamily_homotopy_closed_unitInterval_of_ends`: the case of a
   path whose ends are closed in the class of `α₀`, with `P₀ = {0, 1}`.
+* `SymplecticGeometry.exists_continuousMap_homotopy_closed`: the continuous version, over a
+  compact Hausdorff space.
 
 ## References
 
