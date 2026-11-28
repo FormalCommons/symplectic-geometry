@@ -28,8 +28,8 @@
 # from a machine as far from the bucket as a runner, runners ask about a
 # hundred archives in a second or two, and the script printed nothing while
 # it asked. When Hetzner has too many requests it holds them for five
-# seconds and answers 503, and curl tries them again without a word; the
-# script now counts those.
+# seconds and answers 503, and curl tried them again without a word under
+# `-s`; the script now counts those.
 #
 # Without KNOWN, every staged archive is sent, bodies and all. For the Tau
 # Ceti modules of a move that is the first upload, and the bucket has none.
@@ -45,8 +45,10 @@
 # again.
 #
 # The script says after each part how many seconds have passed since its
-# start, and how many requests curl made more than once, so that a slow
-# upload shows where its time went.
+# start, and how often curl tried a request again, so that a slow upload
+# shows where its time went. curl says each such try on its standard error
+# when only its progress meter is turned off, in every version: the count
+# of tries that `--write-out` has is too new for the runners' curl.
 #
 # DIR comes from a build, which ran the code of a pull request, so nothing in
 # it is trusted and nothing from it is run:
@@ -78,6 +80,11 @@ key=$(cat)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 fail() { echo "::error::$1"; exit 1; }
+# What curl wrote to its standard error, in a file. Each try of a request
+# after the first is a line that ends in `retries left.` or `retry left.`:
+# `again` counts those, and `said` shows the first lines of the rest.
+again() { grep -cE 'retr(y|ies) left' "$1" || true; }
+said() { grep -vE 'retr(y|ies) left' "$1" | head -n 20 >&2 || true; }
 
 [ -f "$dir/outputs.jsonl" ] && [ ! -L "$dir/outputs.jsonl" ] || fail "the staged build has no mappings file"
 
@@ -126,13 +133,16 @@ while read -r hash; do
   printf 'url = "%s/%s.art"\noutput = "/dev/null"\n' "$artifacts" "$hash"
 done < "$work/ask" > "$work/head.cfg"
 if [ -s "$work/head.cfg" ]; then
-  curl -q -sS -Z --parallel-max 32 --retry 3 --retry-all-errors --retry-max-time 60 --max-time 30 -I \
-    -w '%{http_code} %{url_effective} %{num_retries}\n' -K "$work/head.cfg" > "$work/head.out" || fail "could not ask the bucket which archives it has"
+  curl -q --no-progress-meter -Z --parallel-max 32 --retry 3 --retry-all-errors --retry-max-time 60 --max-time 30 -I \
+    -w '%{http_code} %{url_effective}\n' -K "$work/head.cfg" > "$work/head.out" 2> "$work/head.err" ||
+    { said "$work/head.err"; fail "could not ask the bucket which archives it has"; }
+  said "$work/head.err"
 fi
 : >> "$work/head.out"
+: >> "$work/head.err"
 [ "$(wc -l < "$work/head.out")" -eq "$(wc -l < "$work/ask")" ] ||
   fail "curl answered for $(wc -l < "$work/head.out") of the $(wc -l < "$work/ask") archives asked about"
-while read -r code url _; do
+while read -r code url; do
   hash=${url##*/}; hash=${hash%.art}
   case $code in
     200) ;;
@@ -141,7 +151,7 @@ while read -r code url _; do
   esac
 done < "$work/head.out"
 send=$(wc -l < "$work/send")
-echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(comm -12 "$work/named" "$work/known" | wc -l), asked about and there: $(wc -l < "$work/ask") ($(awk '$3 > 0' "$work/head.out" | wc -l) asked more than once), to send: $send (after ${SECONDS}s)"
+echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(comm -12 "$work/named" "$work/known" | wc -l), asked about and there: $(wc -l < "$work/ask") (curl tried again $(again "$work/head.err") times), to send: $send (after ${SECONDS}s)"
 
 # Hetzner answers 503 to many uploads at once; curl tries those again, and a
 # broken connection too. An answer such as 403 or 412 is no error to curl
@@ -159,6 +169,7 @@ echo "archives named: $(wc -l < "$work/named"), known to be in the bucket: $(com
 # The archives go a thousand at a time, and the script says so after each
 # thousand.
 : > "$work/put.out"
+: > "$work/put.err"
 split -l 1000 -d -a 4 "$work/send" "$work/send."
 sent=0
 for part in "$work"/send.[0-9]*; do
@@ -167,18 +178,21 @@ for part in "$work"/send.[0-9]*; do
     while read -r hash; do
       printf 'upload-file = "%s"\nurl = "%s/%s.art"\noutput = "/dev/null"\n' "$dir/$hash.ltar" "$artifacts" "$hash"
     done < "$part"; } |
-    curl -q -sS -Z --parallel-max 16 --retry 4 --retry-all-errors --retry-max-time 90 --max-time 120 -w '%{http_code} %{num_retries}\n' \
+    curl -q --no-progress-meter -Z --parallel-max 16 --retry 4 --retry-all-errors --retry-max-time 90 --max-time 120 -w '%{http_code}\n' \
       --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.artifact' \
-      -H 'If-None-Match: *' -K - >> "$work/put.out" || fail "could not upload the archives"
-  if grep -qvE '^(200|412) ' "$work/put.out"; then
-    fail "the bucket answered $(grep -vE '^(200|412) ' "$work/put.out" | cut -d ' ' -f 1 | sort | uniq -c | tr -s ' \n' ' ') to uploads of archives"
+      -H 'If-None-Match: *' -K - >> "$work/put.out" 2> "$work/put.err.part" ||
+    { said "$work/put.err.part"; fail "could not upload the archives"; }
+  said "$work/put.err.part"
+  cat "$work/put.err.part" >> "$work/put.err"
+  if grep -qvE '^(200|412)$' "$work/put.out"; then
+    fail "the bucket answered $(grep -vE '^(200|412)$' "$work/put.out" | sort | uniq -c | tr -s ' \n' ' ') to uploads of archives"
   fi
   sent=$((sent + $(wc -l < "$part")))
   [ "$(wc -l < "$work/put.out")" -eq "$sent" ] || fail "curl answered for $(wc -l < "$work/put.out") of the $sent archives sent"
-  echo "sent $sent of $send archives after ${SECONDS}s, $(awk '$2 > 0' "$work/put.out" | wc -l) of them more than once"
+  echo "sent $sent of $send archives after ${SECONDS}s; curl tried again $(again "$work/put.err") times so far"
 done
 [ "$send" -eq 0 ] ||
-  echo "of the $send archives sent, the bucket took $(grep -c '^200 ' "$work/put.out") and had $(grep -c '^412 ' "$work/put.out") already"
+  echo "of the $send archives sent, the bucket took $(grep -c '^200$' "$work/put.out") and had $(grep -c '^412$' "$work/put.out") already"
 code=$(printf '%s\n' "$key" |
   curl -q -sS --retry 4 --retry-all-errors --retry-max-time 60 --max-time 60 -o /dev/null -w '%{http_code}' \
     --aws-sigv4 aws:amz:auto:s3 -H 'Content-Type: application/vnd.reservoir.outputs+json-lines' \
