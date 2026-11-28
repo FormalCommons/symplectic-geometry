@@ -83,7 +83,8 @@ The isotropy algebra in `Gc` is read off from
 vector field of `ζ` vanishes at `x` exactly when those of `C.re ζ` and `C.im ζ` do. The structures
 on `Gc₀` and `H₀` are taken for any embedded Lie subgroup structures, those of
 `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed` being one choice. The complex structure is
-`C.cplx` carried through `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`; its
+`C.cplx` carried through `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy` by
+`TauCeti.AlmostComplexStructure.transport`; its
 compatibility with brackets, and maximal total reality, are tested after the injective
 differential of the inclusion `Gc₀ → Gc`, which preserves brackets
 (`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraLieHom_subtypeVal`), using the commuting
@@ -394,15 +395,8 @@ noncomputable def IsComplexifiedAction.stabilizerCplx (h : IsComplexifiedAction 
     AlmostComplexStructure
       (GroupLieAlgebra 𝓘(ℝ, F) (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne) :=
   let _ := d.chartedSpace
-  let e := d.groupLieAlgebraEquivIsotropy (I' := I')
-  let J₀ := C.cplx.restrict _ fun _ hζ ↦ h.cplx_mem_isotropy_of_moment_eq_zero hμ hg hx hζ
-  { toLinearMap := e.symm.toLinearMap ∘ₗ J₀.toLinearMap ∘ₗ e.toLinearMap
-    square_neg := by
-      ext ζ
-      simp only [LinearMap.comp_apply, LinearEquiv.coe_coe, LinearEquiv.apply_symm_apply,
-        LinearMap.neg_apply, LinearMap.id_apply]
-      rw [← LinearMap.comp_apply J₀.toLinearMap, J₀.square_neg, LinearMap.neg_apply,
-        LinearMap.id_apply, map_neg, LinearEquiv.symm_apply_apply] }
+  (C.cplx.restrict _ fun _ hζ ↦ h.cplx_mem_isotropy_of_moment_eq_zero hμ hg hx hζ).transport
+    (d.groupLieAlgebraEquivIsotropy (I' := I')).symm
 
 /-- The inclusion of the identity component `Gc₀` of `Gc_x` intertwines
 `IsComplexifiedAction.stabilizerCplx` with `C.cplx`: the differential at `1` of `Gc₀ → Gc` sends
@@ -421,7 +415,7 @@ theorem IsComplexifiedAction.groupLieAlgebraMap_subtype_stabilizerCplx
   intro ζ
   rw [← d.coe_groupLieAlgebraEquivIsotropy (I' := I'),
     ← d.coe_groupLieAlgebraEquivIsotropy (I' := I')]
-  simp only [stabilizerCplx, LinearMap.coe_comp, LinearEquiv.coe_coe, Function.comp_apply,
+  simp only [stabilizerCplx, AlmostComplexStructure.transport_apply, LinearEquiv.symm_symm,
     LinearEquiv.apply_symm_apply, AlmostComplexStructure.coe_restrict_apply]
 
 /-- `IsComplexifiedAction.stabilizerCplx` commutes with brackets:
