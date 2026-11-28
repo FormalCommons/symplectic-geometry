@@ -50,6 +50,15 @@ tends to `+∞` at `δ` (`SymplecticGeometry.tendsto_deriv_struweShape`).
   `(ℓ, r)`; near the cylinder every leaf is a Struwe shape
   (`SymplecticGeometry.struweShape_add`).
 
+* `SymplecticGeometry.exists_convexShapeFamily_struweShape_sqrt`: the previous construction on
+  the square-root family with `a = 64` and `γ' = min γ (1 / 16)`, for `K = exp (4 / d²)` and the
+  base point `ℓ₀ = C δ`, with what the bridge family of `Surround/BridgeLeaf.lean` and the
+  leaves `ℓ ≥ 2 ℓ₀` of Proposition 4.27 use: every leaf is a constant plus `struweShape δ 4 0`
+  up to `9 δ / 2` (`SymplecticGeometry.struweShape_eq_struweShape_apply_mul`), each leaf
+  `ℓ ≥ ℓ₀` lies above `ℓ` and is standard from `ℓ γ'` on, the slopes of the leaves
+  `ℓ ∈ [ℓ₀, 2 ℓ₀]` are bounded on `[3 δ, ℓ / 4]` (a continuous function on a compact set), and
+  the top leaf has height between `1` and `1 + γ`.
+
 * `SymplecticGeometry.sqrtSubLeaf` and `SymplecticGeometry.exists_isConvexShapeAt_sqrtSubLeaf`:
   the leaves `ℓ ∈ [-8 δ, 0]` of the family over the cylinder of radius `δ`. They do not come from
   bending linear shapes, as in Cieliebak and Eliashberg's Lemma 4.25, but have a closed form: the
@@ -324,6 +333,122 @@ theorem exists_convexShapeFamily_struweShape {d K β : ℝ} (hd : 0 < d)
   · rw [hFS ℓ hr, struweShape_add]
   · exact tendsto_deriv_of_eqOn_struweShape hδ hK₁.le (show δ < 3 * K * δ / 4 by nlinarith)
       fun x hx ↦ hFS ℓ hx.2.le
+
+/-- **The leaves `ℓ ≥ ℓ₀` of the surrounding family** (Cieliebak–Eliashberg, Proposition 4.27).
+For `0 < γ` there is `C ≥ 24` such that for every `δ > 0` with `2 C δ ≤ 1`, writing
+`ℓ₀ = C δ` and `γ' = min γ (1 / 16)`, there are a family `F` and a bound `M ≥ 8` with:
+* `(ℓ, r) ↦ F ℓ r` smooth at every point of `[ℓ₀, ∞) × (δ, ∞)`, so each `F ℓ`, `ℓ ≥ ℓ₀`,
+  smooth on `(δ, ∞)`;
+* each `F ℓ`, `ℓ ≥ ℓ₀`, an `i`-convex shape at every `r > δ`, and, at each `r > δ`, `F ℓ r`
+  strictly increasing in `ℓ ≥ ℓ₀`;
+* every `F ℓ` a constant plus `struweShape δ 4 0` on `[δ, 9 δ / 2]`, with slope tending to `+∞`
+  at `δ`;
+* each `F ℓ`, `ℓ ≥ ℓ₀`, continuous on `[δ, ∞)` and above `ℓ` there;
+* each `F ℓ`, `ℓ ≥ ℓ₀`, the standard leaf `√(64 r² + ℓ²)` for `r ≥ ℓ γ'`, hence for `r ≥ ℓ / 4`;
+* `|∂F/∂r| ≤ M` on the leaves `ℓ ∈ [ℓ₀, 2 ℓ₀]` over `[3 δ, ℓ / 4]`;
+* the top leaf has height `1 < F 1 δ < 1 + γ`.
+
+The family is that of `exists_convexShapeFamily_struweShape` on the square-root family
+`exists_convexShapeFamily_sqrt` with `a = 64` and `γ'`, for `K = exp (4 / d²)` and the base
+point `ℓ₀`. -/
+theorem exists_convexShapeFamily_struweShape_sqrt {γ : ℝ} (hγ : 0 < γ) :
+    ∃ C, 24 ≤ C ∧ ∀ δ, 0 < δ → 2 * C * δ ≤ 1 → ∃ F : ℝ → ℝ → ℝ, ∃ M, 8 ≤ M ∧
+      (∀ q ∈ Ici (C * δ) ×ˢ Ioi δ, ContDiffAt ℝ ∞ (Function.uncurry F) q) ∧
+      (∀ ℓ, C * δ ≤ ℓ → ContDiffOn ℝ ∞ (F ℓ) (Ioi δ)) ∧
+      (∀ ℓ, C * δ ≤ ℓ → ∀ r, δ < r → IsConvexShapeAt (F ℓ) r) ∧
+      (∀ r, δ < r → StrictMonoOn (fun ℓ ↦ F ℓ r) (Ici (C * δ))) ∧
+      (∀ ℓ, ∃ c, ∀ r ∈ Icc δ (9 * δ / 2), F ℓ r = c + struweShape δ 4 0 r) ∧
+      (∀ ℓ, Tendsto (deriv (F ℓ)) (𝓝[>] δ) atTop) ∧
+      (∀ ℓ, C * δ ≤ ℓ → ContinuousOn (F ℓ) (Ici δ)) ∧
+      (∀ ℓ, C * δ ≤ ℓ → ∀ r, δ ≤ r → ℓ < F ℓ r) ∧
+      (∀ ℓ, C * δ ≤ ℓ → ∀ r, ℓ * min γ (1 / 16) ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2)) ∧
+      (∀ ℓ, C * δ ≤ ℓ → ∀ r, ℓ / 4 ≤ r → F ℓ r = √(64 * r ^ 2 + ℓ ^ 2)) ∧
+      (∀ ℓ ∈ Icc (C * δ) (2 * (C * δ)), ∀ r ∈ Icc (3 * δ) (ℓ / 4), |deriv (F ℓ) r| ≤ M) ∧
+      1 < F 1 δ ∧ F 1 δ < 1 + γ := by
+  set γ' := min γ (1 / 16)
+  have hγ'₀ : 0 < γ' := lt_min hγ (by norm_num)
+  have hγ'γ : γ' ≤ γ := min_le_left _ _
+  have hγ'16 : γ' ≤ 1 / 16 := min_le_right _ _
+  obtain ⟨d, ⟨hd₀, hd₁⟩, β, ⟨hβ₀, -⟩, φ, -, hφc, hφs, -, hφm, hφS, hφL, -⟩ :=
+    exists_convexShapeFamily_sqrt (a := 64) (by norm_num) hγ'₀
+  set K := exp (4 / d ^ 2)
+  -- `K ≥ exp 4 = exp 2 ^ 2 ≥ 9`.
+  have hK₉ : 9 ≤ K := by
+    have h2 : 3 ≤ exp 2 := by linarith [add_one_le_exp (2 : ℝ)]
+    have h4 : (4 : ℝ) ≤ 4 / d ^ 2 :=
+      (le_div_iff₀ (by positivity)).2 (by nlinarith [mul_pos hd₀ hd₀])
+    calc (9 : ℝ) ≤ exp 2 * exp 2 := by nlinarith
+      _ = exp 4 := by rw [← exp_add]; norm_num
+      _ ≤ K := exp_le_exp.2 h4
+  obtain ⟨C₀, hC₀, hF⟩ := exists_convexShapeFamily_struweShape hd₀ le_rfl (by linarith) hβ₀
+    hφs hφc hφm hφL
+  set C := max C₀ (max 24 (3 * K / (2 * γ')))
+  have hC₀C : C₀ ≤ C := le_max_left _ _
+  have hC24 : 24 ≤ C := (le_max_left _ _).trans (le_max_right _ _)
+  have hCK : 3 * K / (2 * γ') ≤ C := (le_max_right _ _).trans (le_max_right _ _)
+  refine ⟨C, hC24, fun δ hδ hCδ ↦ ?_⟩
+  set ℓ₀ := C * δ with hℓ₀
+  have hℓ₀pos : 0 < ℓ₀ := by positivity
+  -- The far part of every leaf `ℓ ≥ ℓ₀` starts before `ℓ γ'`.
+  have hKℓ : 3 * K * δ / 2 ≤ ℓ₀ * γ' := by
+    have := mul_le_mul_of_nonneg_right hCK (by positivity : 0 ≤ δ * γ')
+    rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)] at this
+    rw [hℓ₀]
+    nlinarith
+  obtain ⟨F, hFs, hFc, hFm, hFS, hFt, -, hFφ⟩ :=
+    hF δ hδ ℓ₀ (mul_le_mul_of_nonneg_right hC₀C hδ.le)
+  have hS₀ : d * δ ≤ struweShape δ K (d * K * δ) δ := by
+    have := sub_le_struweShape hd₀ hδ le_rfl (d * K * δ)
+    linarith
+  -- Near the cylinder every leaf is `ℓ` plus `S₀ = struweShape δ K (d K δ)`.
+  have hFδ (ℓ : ℝ) : F ℓ δ = ℓ + struweShape δ K (d * K * δ) δ := hFS ℓ δ (by nlinarith)
+  have hcont {ℓ : ℝ} (hℓ : ℓ₀ ≤ ℓ) : ContDiffOn ℝ ∞ (F ℓ) (Ioi δ) := fun r hr ↦
+    ((hFs (ℓ, r) ⟨hℓ, hr⟩).comp r (contDiffAt_const.prodMk contDiffAt_id)).contDiffWithinAt
+  have hcontI {ℓ : ℝ} (hℓ : ℓ₀ ≤ ℓ) : ContinuousOn (F ℓ) (Ici δ) := by
+    refine continuousOn_Ici_of_eqOn_struweShape hδ (K := K) (c := ℓ + d * K * δ) (by linarith)
+      (hcont hℓ).continuousOn (show δ < 3 * K * δ / 4 by nlinarith) fun r hr ↦ ?_
+    rw [hFS ℓ r hr.2.le, struweShape_add]
+  have hstd {ℓ : ℝ} (hℓ : ℓ₀ ≤ ℓ) {r : ℝ} (hr : ℓ * γ' ≤ r) :
+      F ℓ r = √(64 * r ^ 2 + ℓ ^ 2) := by
+    have : ℓ₀ * γ' ≤ ℓ * γ' := mul_le_mul_of_nonneg_right hℓ hγ'₀.le
+    rw [hFφ ℓ hℓ r (by linarith), hφS ℓ (by linarith) r hr, add_comm]
+  -- A bound of `∂F/∂r` on a compact set inside `[ℓ₀, ∞) × (δ, ∞)`.
+  have hd : ContinuousOn (fun q : ℝ × ℝ ↦ iteratedDeriv 1 (fun y ↦ Function.uncurry F (q.1, y)) q.2)
+      (Icc ℓ₀ (2 * ℓ₀) ×ˢ Icc (3 * δ) (2 * ℓ₀ / 4)) := fun q hq ↦ by
+    have hq₂ : δ < q.2 := by linarith [hq.2.1]
+    exact ((hFs q ⟨hq.1.1, hq₂⟩).continuousAt_iteratedDeriv_prod_right
+      (by exact_mod_cast le_top)).continuousWithinAt
+  obtain ⟨B, hB⟩ := (isCompact_Icc.prod isCompact_Icc).exists_bound_of_continuousOn hd
+  refine ⟨F, max 8 B, le_max_left _ _, hFs, fun ℓ hℓ ↦ hcont hℓ, hFc, hFm, fun ℓ ↦ ?_, hFt,
+    fun ℓ hℓ ↦ hcontI hℓ, fun ℓ hℓ r hr ↦ ?_, fun ℓ hℓ r hr ↦ hstd hℓ hr,
+    fun ℓ hℓ r hr ↦ hstd hℓ ?_, fun ℓ hℓ r hr ↦ ?_, ?_, ?_⟩
+  · -- All Struwe shapes at `δ` differ by constants.
+    refine ⟨ℓ + struweShape δ K (d * K * δ) (4 * δ), fun r hr ↦ ?_⟩
+    rw [hFS ℓ r (by nlinarith [hr.2]), struweShape_eq_struweShape_apply_mul hδ (by linarith)
+      (by norm_num : (1 : ℝ) ≤ 4) _ hr.1, ← add_zero (struweShape δ K (d * K * δ) (4 * δ)),
+      struweShape_add, add_zero, add_assoc]
+  · have h := hFδ ℓ
+    rcases hr.eq_or_lt with rfl | hr
+    · nlinarith
+    · have := strictMonoOn_Ici_of_isConvexShapeAt (hcontI hℓ) (hFc ℓ hℓ) self_mem_Ici
+        (mem_Ici.2 hr.le) hr
+      nlinarith
+  · have : 0 ≤ ℓ := by linarith
+    nlinarith
+  · have hle := hB (ℓ, r) ⟨hℓ, hr.1, by linarith [hr.2, hℓ.2]⟩
+    rw [Real.norm_eq_abs] at hle
+    simp only [Function.uncurry_apply_pair, iteratedDeriv_one] at hle
+    exact hle.trans (le_max_right _ _)
+  · have h := hFδ 1
+    nlinarith
+  · -- `S₀ δ < S₀ (K δ) = d K δ < 3 K δ / 2 ≤ ℓ₀ γ' ≤ γ / 2`.
+    have hlt := strictMonoOn_struweShape hδ (K := K) (by linarith) (d * K * δ) self_mem_Ici
+      (mem_Ici.2 (by nlinarith : δ ≤ K * δ)) (by nlinarith)
+    rw [struweShape_apply_mul] at hlt
+    have h := hFδ 1
+    have : ℓ₀ ≤ 1 / 2 := by rw [hℓ₀]; linarith
+    have : ℓ₀ * γ' ≤ γ' / 2 := by nlinarith
+    nlinarith
 
 /-! ### The explicit leaves below the cone -/
 

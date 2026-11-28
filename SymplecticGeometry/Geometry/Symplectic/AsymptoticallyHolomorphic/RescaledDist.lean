@@ -40,6 +40,9 @@ version on any manifold, but for the real version only on a preconnected one
   the rescaled distances for two powers are proportional.
 * `SymplecticGeometry.rescaledEDist_ne_top` and `SymplecticGeometry.ofReal_rescaledDist`: on a
   preconnected manifold, the rescaled distance is finite, and its real version recovers it.
+* `SymplecticGeometry.ofReal_le_rescaledEDist_iff` and
+  `SymplecticGeometry.rescaledEDist_le_ofReal_iff`: on a preconnected manifold, bounds by
+  `ENNReal.ofReal r` on the extended distance are bounds by `r` on the real one.
 * `SymplecticGeometry.exists_sum_one_add_rescaledDist_pow_mul_exp_le`: over a finite set with
   polynomially many points in each rescaled ball about `y`, the sums of Gaussians in the rescaled
   distance to `y` are bounded uniformly in `k`, `y` and the set, with Gaussian decay for the part
@@ -141,6 +144,21 @@ theorem ofReal_rescaledDist [PreconnectedSpace M] [IsManifold I 1 M]
     [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] (k : ℕ) (x y : M) :
     ENNReal.ofReal (rescaledDist I k x y) = rescaledEDist I k x y := by
   rw [rescaledDist_def, ENNReal.ofReal_toReal (rescaledEDist_ne_top k x y)]
+
+/-- On a preconnected manifold, a lower bound `ENNReal.ofReal r` on the rescaled extended distance
+is the lower bound `r` on the real rescaled distance. -/
+theorem ofReal_le_rescaledEDist_iff [PreconnectedSpace M] [IsManifold I 1 M]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] {k : ℕ} {x y : M} {r : ℝ} :
+    ENNReal.ofReal r ≤ rescaledEDist I k x y ↔ r ≤ rescaledDist I k x y := by
+  rw [rescaledDist_def, ENNReal.ofReal_le_iff_le_toReal (rescaledEDist_ne_top k x y)]
+
+/-- On a preconnected manifold, for `0 ≤ r`, an upper bound `ENNReal.ofReal r` on the rescaled
+extended distance is the upper bound `r` on the real rescaled distance. -/
+theorem rescaledEDist_le_ofReal_iff [PreconnectedSpace M] [IsManifold I 1 M]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] {k : ℕ} {x y : M} {r : ℝ}
+    (hr : 0 ≤ r) :
+    rescaledEDist I k x y ≤ ENNReal.ofReal r ↔ rescaledDist I k x y ≤ r := by
+  rw [← ofReal_rescaledDist, ENNReal.ofReal_le_ofReal_iff hr]
 
 /-- The triangle inequality for the real rescaled distance, on a preconnected manifold. Without
 that hypothesis it can fail, since the real distance is `0` between points at infinite distance. -/
