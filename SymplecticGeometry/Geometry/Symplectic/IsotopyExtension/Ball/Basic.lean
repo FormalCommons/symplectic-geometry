@@ -22,6 +22,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
 import TauCeti.Topology.MetricSpace.SeparatedBalls
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Symplectic embeddings of closed balls
@@ -216,7 +217,7 @@ theorem subtype_of_eqOn (hj : IsSymplecticBallEmbedding σ r j) {U : Topological
     have hgz : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) I g z :=
       (hg.contMDiffAt ((hW.inter hV).mem_nhds hz')).mdifferentiableAt (by simp)
     rw [SmoothForm.coe_mpullback,
-      ← mpullback_comp_at hgz ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero),
+      ← mpullback_comp_at hgz mdifferentiableAt_subtypeVal,
       (eventuallyEq_of_mem (hV.mem_nhds hz'.2) hgj).mpullback_eq]
     exact hpull z hz
 
