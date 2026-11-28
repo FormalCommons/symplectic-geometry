@@ -181,6 +181,7 @@ fit Tau Ceti's without a change of sign.
 | `Geometry/Symplectic/Weinstein/Basic.lean` | Weinstein structures and domains | 5 |
 | `Geometry/Symplectic/Weinstein/Completion.lean` | the completion of a Weinstein domain | 6 |
 | `Geometry/Symplectic/Weinstein/Homotopy.lean` | Weinstein homotopies | 7 |
+| `Geometry/Symplectic/Weinstein/Rescale.lean` | rescaling the Liouville form | 18a |
 | `Geometry/Symplectic/Weinstein/OfStein.lean` | the Weinstein structure of a Stein function | 8, 9 |
 | `Geometry/Symplectic/Weinstein/Stein.lean` | the converse and the first milestone | 21 |
 | `Geometry/Manifold/Complex/JConvex/` | the $J$-convex toolkit of the converse | 10–14e |
@@ -2062,15 +2063,14 @@ Weinstein theory before Theorem 13.9.
   the standard Weinstein handle of index `k` on `ℂᵏ × ℂᵐ`, and the
   attachment of handles, stated inside one manifold; see *Handles and
   attachment* below.
-- `Homotopy.lean` (issues 17 and 18): normal forms of Weinstein
-  homotopies: two Weinstein structures on an elementary
-  cobordism with the same function and isotopic attaching spheres are
-  homotopic; creation and cancellation of critical points; a Weinstein
-  structure is homotopic to one adjusted to a handle decomposition. Issue
-  17 is its design issue.
+- `Homotopy/` (issues 17 and 18): normal forms of Weinstein
+  homotopies near a critical point and near a stable disc, and the
+  removal of birth–death points; with `Weinstein/Rescale.lean`, the
+  rescaling of the Liouville form. Issue 17 is its design issue; see
+  *Normal forms of homotopies* below.
 
-Expected size: 450 lines for issue 15; issue 18 is sized by issue 17,
-and issues 15b–15e and 16b–16d by the table.
+Expected size: 450 lines for issue 15; issues 15b–15e, 16b–16d and
+18a–18g are sized by the table.
 
 #### Stable discs
 
@@ -2330,7 +2330,9 @@ theorem IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq
     (hgX : ∀ x, g x = 0 → 0 < mvfderiv 𝓘(ℝ, E) g x (X x))
     (hK : K ⊆ {x | g x < 0}) (hgb : ∀ x, g x ≤ 0 → f x < b) :
     ∃ τ : M → ℝ, ContMDiff 𝓘(ℝ, E) 𝓘(ℝ) ∞ τ ∧ (∀ x, 0 ≤ τ x) ∧
-      (∀ x, f x ≤ a → τ x = 0) ∧ HasCompactSupport τ ∧
+      (∀ x, f x ≤ a → τ x = 0) ∧
+      (∀ x ∈ ⋃ p ∈ criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Icc a b,
+        hW.isWeinsteinStructure.flow.stableSet p, τ x = 0) ∧ HasCompactSupport τ ∧
       ∃ Ψ : M ≃ₘ⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M,
         (∀ x, Ψ x = hW.isWeinsteinStructure.flow (τ x) x) ∧
         Ψ '' {x | g x ≤ 0} = {x | f x ≤ b}
@@ -2338,7 +2340,8 @@ theorem IsWeinsteinCobordism.exists_diffeomorph_image_sublevel_eq
 
 So any sublevel `{g ≤ 0}` with `X` pointing out along its boundary, that
 contains `K` in its interior and stays below `b`, is moved onto
-`{f ≤ b}` along the orbits of `X`, without moving `{f ≤ a}`. This is the
+`{f ≤ b}` along the orbits of `X`, without moving `{f ≤ a}` or the stable
+sets in `K`. This is the
 form in which issue 19 can say that the domain a surrounding produces is
 the lower domain with the handles attached (the note of the review of
 #6050). The proof uses `ω` only through the flow and the gradient-like
@@ -2383,17 +2386,16 @@ make a Weinstein structure standard near a nondegenerate critical point
 through a chart `Φ` with `Φ 0 = p`, with the constant form above,
 `modelHandleField k m` and `f p + modelHandle k m a b`. That is a statement
 about homotopies, so issue 17 designs it with the rest of
-`Handle/Homotopy.lean`, and issue 16b gives it its target.
+`Handle/Homotopy/` (18d), and issue 16b gives it its target.
 
 **The framing.** No statement of issue 16 takes a framing. Inside one
 manifold the handle is already there, and its attaching sphere is the
 one of 15e. A framing of the conformal symplectic normal bundle (Tau
 Ceti's `Geometry/Contact/ConformalSymplecticNormal.lean`) is what tells
 two attachments along the same isotropic sphere apart when the index is
-below half the dimension. So it enters only where two cobordisms are
-compared, in issue 18's statement that structures with the same function
-and isotopic attaching spheres are homotopic; issue 17 decides there
-whether the isotopy must also match the framings. In the model, at each
+below half the dimension. So it would enter only where two cobordisms
+are compared, and issue 17 plans no such statement (*Normal forms of
+homotopies*). In the model, at each
 point of the attaching sphere the factor `ℂᵐ` lies in the contact
 hyperplane, is `ω`-orthogonal to the sphere, and is symplectic. So it
 represents the conformal symplectic normal space, of real rank `2m`, the
@@ -2415,6 +2417,264 @@ against the book, so each building issue looks them up and cites them,
 and records in `ERRATA.md` any error it finds. The attachment theorem is
 the Weinstein form of the handle-attachment theorem of Morse theory
 (Milnor, *Morse Theory*, §3).
+
+#### Normal forms of homotopies
+
+Issue 17, the design issue of `Handle/Homotopy/`, fixed this subsection.
+It splits issue 18 (#3542) into 18a–18g.
+
+**What the converse needs.** The statements of Cieliebak–Eliashberg's
+Chapter 12 that their proof of Theorem 13.9 uses are few. Theorem 13.9
+follows from the cobordism version, Theorem 13.4, by induction over
+sublevels, and Theorem 13.4 from Proposition 13.12. Its proof uses
+Corollary 12.13 (from Proposition 12.12: near a critical point, a
+Weinstein structure can be made equal to any local one with the same
+critical value and index), Proposition 12.14 (the same near a stable
+disc, for a local structure that agrees with the given one on the disc),
+and Lemma 12.1 (i) with Corollary 12.3 (i) (rescaling the Liouville form
+by a positive function, with fixed function). Their proofs rest on
+Lemmas 12.8 and 12.9 and on Proposition 9.23 (a). The other statements
+of the chapter serve their Chapter 14 on flexible structures, which no
+milestone of this part needs, and are not planned:
+
+- two structures with the same function and isotopic attaching spheres
+  (Lemmas 12.18 and 12.23, through the holonomy of Lemmas 12.5–12.7): the
+  proof of Proposition 13.12 never compares two cobordisms, so no
+  statement takes a framing either;
+- creation and cancellation of pairs of critical points
+  (Propositions 12.21 and 12.22, through Lemma 12.10);
+- a structure adjusted to a handle decomposition: the decomposition that
+  Proposition 13.12 uses is a choice of regular levels with at most one
+  critical value between neighbours. It needs no homotopy: regular values
+  exist in every interval (`IsGeneralizedMorse.exists_isRegularValue_mem_Ioo`),
+  and `IsWeinsteinCobordism.isElementary_iff` makes each piece
+  elementary. Reordering critical values (Lemma 12.20) is not used.
+
+One statement is added that the book does not need: the library's
+Weinstein structures allow birth–death points, theirs do not
+(Definition 11.10). So a structure is first made Morse by a homotopy
+(issue 18g); issue 20 or 21 applies it before the induction.
+
+**Barriers.** Every homotopy below either keeps the function fixed, or
+changes it only on a compact set, with values within a given `ε > 0` of
+the values of `f` at the critical point `p` it is about (in 18f, on
+the disc). The conclusions say which, so that every regular value of
+`f` farther than `ε` from those values stays a regular value of every
+`f t`: a regular barrier of the constant family `fun _ ↦ f` that
+keeps that distance is one of the homotopy, and steps glue by `.trans`
+at those levels, as *Decisions* asks (the note of the review of #5426).
+Each statement of 18c–18g that changes the function gives this as a
+conclusion, near a point in the form
+`∀ c, IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) f c → c ∉ Ioo (f p - ε) (f p + ε) →
+∀ t, IsRegularValue 𝓘(ℝ, E) 𝓘(ℝ) (g t) c` for the family `g`; with the
+function fixed, it says `∀ t, g t = f`.
+
+**Local structures.** As for the model of 16b, a structure near a point
+is stated field by field, on an open set `U : Opens M` as a manifold: a
+symplectic form on `U`, a smooth Liouville field of it, gradient-like for
+a function on `U` (Tau Ceti's `IsLiouvilleVectorField` and the library's
+`IsGradientLike` on the manifold `U`). It is not complete and its
+function is not proper, so it is not an `IsWeinsteinStructure`; no
+predicate is added. That the homotopy ends at a structure equal to the
+local one near `p` means that their restrictions to some open `U' ∋ p`
+agree (forms pulled back by `Subtype.val`).
+
+**Lemma list.**
+
+- **Issue 18a** (`Weinstein/Rescale.lean`; Lemma 12.1 (i), Remark 12.2 (a),
+  Corollary 12.3 (i)). For `hW : IsWeinsteinStructure ω X f` and a smooth
+  `h : M → ℝ` with `0 < h` and `0 ≤ dh(X)`:
+  `IsWeinsteinStructure.rescaledForm hW hh`, the form `mextDerivₗ 𝓘(ℝ, E) 1`
+  of the smooth 1-form `h • ι_X ω`, with `rescaledForm_def`;
+  `rescaledField X h`, the field `x ↦ (h x / (h x + dh(X x))) • X x`, with
+  `rescaledField_apply`; `IsWeinsteinStructure.rescale`
+  (`IsWeinsteinStructure (hW.rescaledForm hh) (rescaledField X h) f`; its
+  primitive is `h • ι_X ω`: `interior_rescaledField_rescaledForm`); and
+  `IsWeinsteinStructure.isWeinsteinHomotopy_rescale`, the family
+  `t ↦` rescaling by `1 - t + t h`, a Weinstein homotopy from `(ω, X, f)`
+  to the rescaled structure with function `f` at every time. The form is
+  nondegenerate since its top power is `h ^ (n - 1) (h + dh(X))` times
+  that of `ω`; pointwise, the building issue may argue on the kernel
+  instead. The field is `X` times a function with values in `(0, 1]`, so
+  it is complete; if neither library has that fact for a field multiplied
+  by a bounded positive function, it is added with Tau Ceti's flows.
+  Issue 19 uses 18a for `h = g' ∘ f` with `g'' ≥ 0`, the Liouville form of
+  `W(J, g ∘ f)` near the boundary of the surrounding (Proposition 13.12,
+  step 4), and again for the chain of homotopies that ends the proof of
+  Theorem 13.4. Expected size: 350 lines.
+- **Issue 18b** (`Handle/Homotopy/LiouvilleField.lean`; Lemma 12.9 for an
+  isotropic submanifold that is a point, its steps 1 and 2). With `ω` and
+  `f` fixed: if `X` and `X'` are Liouville fields of `ω` on `M` and on an
+  open `U ∋ p`, both gradient-like for `f` near `p`, where `p` is a
+  nondegenerate critical point of `f` or the centre of a birth–death
+  chart, then there is a family `Y t` of Liouville fields of `ω`, each
+  gradient-like for `f`, equal to `X` off a compact subset of `U` and at
+  `t = 0`, and to `X'` near `p` at `t = 1`. So
+  `IsWeinsteinHomotopy (fun _ ↦ ω) Y (fun _ ↦ f)` when `(ω, X, f)` is a
+  Weinstein structure (completeness: the fields equal `X` off a compact
+  set). The proof writes `X' - X` as the Hamiltonian field of a function
+  `H` on a ball around `p` vanishing at `p` (by a Poincaré lemma on a
+  ball; Mathlib, Tau Ceti and the library are searched for one first), and
+  cuts `t H` off; the estimate $|H|\le\alpha\,r\,|df|$ holds in a Morse or
+  birth–death chart, where $|df(sv)|\le|df(v)|$ for $0\le s\le1$; for
+  `X'` far from `X` the book takes finitely many small steps.
+  Name: `IsWeinsteinStructure.exists_isWeinsteinHomotopy_field_eq_nhds`.
+  Expected size: 400 lines.
+- **Issue 18c** (`Handle/Homotopy/Function.lean`; Proposition 9.23 (a), the
+  Weinstein case). With `ω` and `X` fixed: if `X` is gradient-like for
+  `f` and, on an open `U ∋ p`, for `f'` with `f' p = f p`, where `p` is a
+  critical point of `f` and of `f'` as in 18b, then for every `ε > 0`
+  there is a homotopy `f t` of functions for which `X` is gradient-like, equal to `f` off a
+  compact subset of `U` and at `t = 0`, to `f'` near `p` at `t = 1`, with
+  values in `Ioo (f p - ε) (f p + ε)` where it differs from `f`, and with
+  no critical point there but `p`. Each `f t` is generalized Morse, so
+  `(ω, X, f t)` is a Weinstein homotopy with the barriers of *Barriers*.
+  Name: `IsWeinsteinStructure.exists_isWeinsteinHomotopy_function_eq_nhds`.
+  Expected size: 350 lines.
+- **Issue 18d** (`Handle/Homotopy/CriticalPoint.lean`; Proposition 12.12,
+  hyperbolic case, and Corollary 12.13). The local normal form: for
+  `hW : IsWeinsteinStructure ω X f`, `p` a nondegenerate critical point
+  of `f` of index `k`, and a local structure `(ω', X', f')` on an open
+  `U ∋ p` with `p` a nondegenerate critical point of `f'` of value `f p`
+  and index `k`, and `ε > 0`, there is a Weinstein homotopy
+  `(ω t, X t, f t)` starting at `(ω, X, f)`, equal to it off a compact
+  subset of `U`, with `p` the only zero of `X t` in `U` and nondegenerate,
+  ending equal to `(ω', X', f')` near `p`, with the barriers of *Barriers*;
+  if `ω' = ω` on `U` then `ω t = ω`, and if `f' = f` on `U` then
+  `f t = f`. The proof follows the book, with a linear step that 18b
+  and 18c do not give. Darboux charts for `ω` and `ω'` at `p` (Tau Ceti's
+  `IsSymplectic.exists_standardDarbouxChart`) let the local structure be
+  pulled back so that `ω' = ω` is the constant form near `p` in one
+  chart. There let `A` and `A'` be the linearizations of `X` and `X'` at
+  `p`, and `Q` and `Q'` the Hessians of `f` and `f'`. Each of `A`, `A'`
+  is a linear Liouville field of the constant form (`A - ½ I` lies in
+  the symplectic Lie algebra), hyperbolic with a stable subspace of
+  dimension `k` (15c's `IsGradientLike.exists_projection_exponential_bounds`
+  and the isotropy of `IsLiouvilleVectorField.apply_eq_zero_of_mem_stableSubspace`),
+  and the Hessian is a Lyapunov form of it (`Handle/Linearization.lean`).
+  Two such fields need not have a common Lyapunov form, and 18b keeps
+  the function while 18c keeps the field, so neither applies to
+  `(X, f)` and `(X', f')` at once. The steps:
+  1. 18b replaces `X` near `p` by its linearization `A`, both being
+     gradient-like for `f` near `p`; then 18c replaces `f` by `f p + Q`,
+     for which `A` is gradient-like too. At the end the same two steps,
+     in the other order, go from `(A', f p + Q')` to `(X', f')`.
+  2. A path `A t` from `A` to `A'` of hyperbolic linear Liouville fields
+     of the constant form, each with a stable subspace of dimension `k`.
+     The form `ω` pairs generalized eigenvectors of eigenvalues `λ` and
+     `μ` only if `λ + μ = 1`, so the sums of the generalized eigenspaces
+     of real part below `0`, above `1`, and in `(0, 1)` are isotropic,
+     isotropic and symplectic, the first two paired by `ω` and both
+     `ω`-orthogonal to the third. A path in `Matrix.symplecticGroup`
+     (Tau Ceti's `isPathConnected_symplecticGroup`) conjugates the field
+     to a block form `C ⊕ (I - Cᵀ) ⊕ (½ I + B)`, with `C` of eigenvalues
+     of negative real part and `B` in the symplectic Lie algebra, of
+     eigenvalues of real part in `(-½, ½)`. The segments from `C` to `-I`
+     and from `B` to `0` stay among such fields and end at
+     `modelHandleField k m`, so `A` and `A'` are both joined to it.
+  3. Each `A t` has a Lyapunov form (Tau Ceti's
+     `hasLyapunovForm_iff_forall_eq_zero_of_apply_eq_neg_smul_of_apply_eq_smul`),
+     its negative index is `k`
+     (`ContinuousLinearMap.sigNeg_toQuadraticMap_eq_finrank_stableSubspace`),
+     and it serves all fields near `A t`
+     (`HasLyapunovForm.exists_eventually_nhds`). By compactness there
+     are times `0 = t₀ < … < t_N = 1` and forms `R_i` such that `R_i` is
+     a Lyapunov form of `A t` for all `t` in `[t_i, t_{i+1}]`.
+  4. 18c moves the function from `f p + Q` to `f p + R_0` with the field
+     `A` fixed. Then for each `i`, 18b moves the field near `p` from
+     `A t_i` to `A t_{i+1}` with the function `f p + R_i` fixed, and 18c
+     moves the function from `f p + R_i` to `f p + R_{i+1}` with the field
+     `A t_{i+1}` fixed; the last move goes to `f p + Q'`. The homotopies
+     glue by `IsWeinsteinHomotopy.trans` at the barriers of *Barriers*.
+  The linear steps 2 and 3 are lemmas about operators on the model
+  space, stated in the same file. The target
+  of 16b is the case `(ω', X', f')` = the constant form, `modelHandleField
+  k m` and `f p + modelHandle k m a b` read through the chart: the
+  corollary `IsWeinsteinStructure.exists_isWeinsteinHomotopy_eq_modelHandle_nhds`.
+  Name of the theorem:
+  `IsWeinsteinStructure.exists_isWeinsteinHomotopy_eq_nhds_of_isManifoldNondegenerateCriticalPoint`.
+  Expected size: 600 lines.
+- **Issue 18e** (`Handle/Homotopy/IsotropicLift.lean`; Lemma 12.8). In the
+  model `ℂᵏ × ℂᵐ` with the constant form of 16b, a smooth field `Y` on
+  `ℝᵏ` (the core `range (modelDisc k m)`) extends to the Liouville field
+  $\hat Y(x+iy,w)=Y(x)+i\,(y-DY(x)^{T}y)+w/2$, tangent to the core and
+  equal to `Y` there, so its zeros on the core are those of `Y`. Let `K`
+  be a compact subset of `ℝᵏ` and `P` a positive definite symmetric form
+  on `ℝᵏ` such that, at every zero $x_0$ of `Y` in `K`, the form
+  $y\mapsto P(y,\,y-DY(x_0)^{T}y)$ is positive definite. Then, on a
+  neighbourhood of `K` in the model, the zeros of $\hat Y$ are those of
+  `Y` on the core; at each, the linearization of $\hat Y$ is block
+  triangular with diagonal blocks $DY(x_0)$, $I-DY(x_0)^{T}$ and
+  $\tfrac12 I$, and `P` is a Lyapunov form of the middle block, whose
+  eigenvalues thus have positive real part. So the nullity and the
+  dimension of the stable subspace are those of `Y` at $x_0$. If moreover
+  `Y` is gradient-like for `ψ` near `K`, then $\hat Y$ is gradient-like
+  for $\hat\psi=\psi(x)+P(y,y)+|w|^2$ near `K`. The hypothesis on `P` is
+  needed. For `P` the standard form it says that the symmetric part of
+  $DY(x_0)$ is below `I`; for `k = 2` the field `Y x = M x` with
+  $M=\begin{pmatrix}1/2&3\\0&1/2\end{pmatrix}$ is gradient-like for a
+  quadratic form `ψ`, yet $\psi+|y|^2+|w|^2$ decreases along $\hat Y$ at
+  $y=\varepsilon(1,1)$. An eigenvalue `1` of $DY(x_0)$ gives zeros off the
+  core, and an eigenvalue of real part above `1` a larger stable
+  subspace. For one zero, a `P` exists exactly when the eigenvalues of
+  $DY(x_0)$ have real part below `1`. For `Y = -x` and `P` the standard
+  form, $\hat Y$ is `modelHandleField k m` on the first factor, which
+  serves as a check. Names: `isotropicLiftField`,
+  `isotropicLiftField_apply`, `isLiouvilleVectorField_isotropicLiftField`,
+  `isotropicLiftField_apply_of_mem_range_modelDisc`,
+  `exists_nhds_isGradientLike_isotropicLiftField`. Carried to a manifold
+  by the library's isotropic neighbourhood theorem
+  (`Neighborhood/Isotropic.lean`, `IsIsotropicMap.exists_symplectomorphism_opens`).
+  Expected size: 400 lines.
+- **Issue 18f** (`Handle/Homotopy/StableDisc.lean`; Lemma 12.9 for a disc,
+  its step 3, and Proposition 12.14). For `hW : IsWeinsteinStructure ω X f`,
+  `p` nondegenerate of index `k`, an embedded closed `k`-disc `Δ` in the
+  stable set of `p` containing `p` (15d's `LocalStableDisc` and 15e give
+  them), and a local structure on an open `U ⊇ Δ` that agrees with
+  `(ω, X, f)` on `Δ` and near `∂Δ`, there is a Weinstein homotopy fixed
+  off a compact subset of `U` and where the two agree, ending equal to the
+  local structure near `Δ`, with `ω t = ω` if `ω' = ω` on `U`, and with
+  barriers as in *Barriers*: the function changes only near `Δ`, with
+  values within `ε` of `f '' Δ`, so every regular value of `f` farther
+  than `ε` from `f '' Δ` stays regular. It applies 18e with `K = Δ` to
+  the field `Y` that `X` induces on `Δ`, read through the isotropic
+  neighbourhood theorem, and to `ψ = f` on `Δ`, and the hypothesis of
+  18e holds there: the only zero of `Y` in `Δ` is `p`, a nondegenerate
+  maximum of `ψ`, and $\mathrm{Hess}\,\psi(p)$ is a Lyapunov form of
+  $DY(p)$, the stable part of the linearization. With
+  $S=-\mathrm{Hess}\,\psi(p)$, positive definite, take for `P` the
+  inverse form of `S` on the `y` coordinates: for $y=Sv$,
+  $P(y,DY(p)^{T}y)=S(v,DY(p)v)<0$, so $P(y,\,y-DY(p)^{T}y)>0$.
+  Name: `IsWeinsteinStructure.exists_isWeinsteinHomotopy_eq_nhds_of_subset_stableSet`.
+  Issue 19 uses it in step 3 of Proposition 13.12, where the local
+  structure is the one of a $J$-convex function on a neighbourhood of the
+  disc. Expected size: 450 lines.
+- **Issue 18g** (`Handle/Homotopy/BirthDeath.lean`): removing birth–death
+  points. For `hW : IsWeinsteinStructure ω X f` there is a Weinstein
+  homotopy from `(ω, X, f)` to a structure whose function is Morse
+  (`IsMorse`), changing the structure only on disjoint compact
+  neighbourhoods of the birth–death points (a closed discrete set, by
+  `IsGeneralizedMorse.isDiscrete_criticalPoints`), each within `ε` of the
+  value of its point, so with the barriers of *Barriers* for every regular
+  value at distance at least `ε` from those values. Near one point, the
+  normal form of Proposition 12.12 in its embryonic case brings the
+  structure to the model on `ℂ × ℂᵏ × ℂᵐ` whose first factor carries the
+  field `x² ∂ₓ + (1 - 2x) y ∂_y`, Liouville for the standard area form
+  (its divergence is `1`), and the function `x³/3 + y²`; the family that
+  adds `s x` to the function and `s` to the first component of the field
+  stays Liouville and removes the critical point for `s > 0`. The
+  embryonic case needs the stable half-disc of the book's Lemma 9.35, which 15d does not give; the issue begins by checking that
+  the steps of 18b–18d carry over (18b and 18c already allow birth–death
+  points), and is split by a design issue of its own if they do not.
+  Name: `IsWeinsteinStructure.exists_isWeinsteinHomotopy_isMorse`.
+  Expected size: 400 lines.
+
+Sources: Cieliebak–Eliashberg [CieliebakEliashberg2012], Lemma 12.1 and
+Remark 12.2, Corollary 12.3, Lemmas 12.8 and 12.9, Proposition 12.12 and
+Corollary 12.13, Proposition 12.14, Proposition 9.23, and the proof of
+Proposition 13.12, whose statement numbers this design checked against the
+book. Each building issue cites them and records in `ERRATA.md` any error
+it finds.
 
 ### `Geometry/Symplectic/Weinstein/SteinHandle.lean`
 
@@ -2599,7 +2859,14 @@ In this order; each is blocked by the ones listed. All are parts of
 | 16d | The upper sublevel is the lower domain with handles attached | `Handle/Attachment.lean` | 16c | 400 |
 | 16 | Standard Weinstein handles and their attachment | `Handle/Model.lean`, `Handle/Attachment.lean` | 16b, 16d | — |
 | 17 | Design: normal forms of Weinstein homotopies | this file | 16 | — |
-| 18 | Normal forms of Weinstein homotopies | `Handle/Homotopy.lean` | 17 | by 17 |
+| 18a | Rescaling the Liouville form | `Weinstein/Rescale.lean` | 17 | 350 |
+| 18b | Interpolating Liouville fields near a critical point | `Handle/Homotopy/LiouvilleField.lean` | 17 | 400 |
+| 18c | Changing the function near a critical point | `Handle/Homotopy/Function.lean` | 17 | 350 |
+| 18d | The normal form near a nondegenerate critical point | `Handle/Homotopy/CriticalPoint.lean` | 18b, 18c | 600 |
+| 18e | Liouville fields extending a field on an isotropic disc | `Handle/Homotopy/IsotropicLift.lean` | 17 | 400 |
+| 18f | The normal form near a stable disc | `Handle/Homotopy/StableDisc.lean` | 18b, 18c, 18e | 450 |
+| 18g | Removing birth–death points | `Handle/Homotopy/BirthDeath.lean` | 18d | 400 |
+| 18 | Normal forms of Weinstein homotopies | `Weinstein/Rescale.lean`, `Handle/Homotopy/` | 18a, 18d, 18f, 18g | — |
 | 19 | A Stein structure across one critical level | `SteinHandle.lean` | 9, 14e, 18 | 500 |
 | 20 | Stein structures on Weinstein manifolds | `SteinHandle.lean` | 19 | 500 |
 | 21 | From Weinstein to Stein up to homotopy; first milestone | `Weinstein/Stein.lean` | 9, 20 | 400 |
@@ -2618,7 +2885,8 @@ their pull requests extend this file by the lemma lists of issues 14 and
 18 and split them into issues of a few hundred lines; issue 13 has split
 issue 14 (#3538) into 14a–14e. Issue 15a is a design issue too: it split
 the stable discs of issue 15 into 15b–15e, and issue 16a splits issue 16
-(#3540) into 16b–16d, which are its parts. Issues 22–29 wait
+(#3540) into 16b–16d, which are its parts, and issue 17 splits issue 18
+(#3542) into 18a–18g, which are its parts. Issues 22–29 wait
 for the design file of *Asymptotically holomorphic sections*, which fixes
 the hypersurfaces that issue 28 states its result for; issues 22 and 24
 are written after it.

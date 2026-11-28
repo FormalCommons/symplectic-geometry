@@ -23,6 +23,7 @@ import SymplecticGeometry.Geometry.Lie.LeftTrivializedCurve.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.Lojasiewicz
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Gradient.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nonneg
 import SymplecticGeometry.MeasureTheory.Integral.IntegralEqImproper
 import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 import TauCeti.Analysis.Calculus.Gradient
@@ -978,7 +979,7 @@ theorem momentNormSq_limit_eq_iInf (h : IsComplexifiedAction C J) (hσc : σ.IsC
   have hf : ContMDiff I' 𝓘(ℝ) 2 (momentNormSq μ (B.toDual hB).symm) :=
     hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.of_le (by norm_cast)
   have hbdd : BddBelow (range fun g : Gc ↦ momentNormSq μ (B.toDual hB).symm (g • p)) :=
-    bddBelow_range_momentNormSq_comp (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg) (· • p)
+    bddBelow_range_momentNormSq_comp (LinearMap.BilinForm.isNonneg_of_posDef hBp) (· • p)
   refine le_antisymm (le_ciInf fun g₀ ↦ ?_) ?_
   · -- The flow from `g₀ • p` converges to some `y`, defined for all `t ≥ 0`.
     obtain ⟨hI, y, -, hy, -⟩ :=

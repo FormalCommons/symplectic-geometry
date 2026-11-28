@@ -83,8 +83,8 @@ divisor is the image of the holomorphic (resp. smooth) embedding `Blowup.divisor
 * `SymplecticGeometry.Blowup.isClosed_exceptionalDivisor`,
   `SymplecticGeometry.Blowup.dense_exceptionalDivisor_compl`: the divisor is closed, and its
   complement is dense.
-* The instance `T2Space (Blowup c)` when `M` is Hausdorff, and the instance
-  `SigmaCompactSpace (Blowup c)` when `M` is σ-compact.
+* The instance `T2Space (Blowup c)` when `M` is Hausdorff, and the instances
+  `SecondCountableTopology (Blowup c)` and `SigmaCompactSpace (Blowup c)` when `M` is σ-compact.
 * `SymplecticGeometry.Blowup.isCompatible_complex`, `SymplecticGeometry.Blowup.isCompatible_real`:
   the gluing is holomorphically, resp. smoothly, compatible, and the instances
   `IsManifold 𝓘(ℂ, E) ω (Blowup c)` and `IsManifold 𝓘(ℝ, E) ∞ (Blowup c)`.
@@ -534,10 +534,15 @@ instance [T2Space M] : T2Space (Blowup c) := by
 
 /-! ### Countability -/
 
-/-- The blowup of a σ-compact space is σ-compact: such an `M`, charted on `ℂⁿ⁺¹`, is second
-countable, hence so is the blowup, which is locally compact as a space charted on `ℂⁿ⁺¹`. -/
-instance [SigmaCompactSpace M] : SigmaCompactSpace (Blowup c) := by
+/-- The blowup of a σ-compact space is second countable: such an `M`, charted on `ℂⁿ⁺¹`, is
+second countable, hence so is the blowup. -/
+instance [SigmaCompactSpace M] : SecondCountableTopology (Blowup c) := by
   have := ChartedSpace.secondCountable_of_sigmaCompact (Fin (n + 1) → ℂ) M
+  infer_instance
+
+/-- The blowup of a σ-compact space is σ-compact: it is second countable, and locally compact as
+a space charted on `ℂⁿ⁺¹`. -/
+instance [SigmaCompactSpace M] : SigmaCompactSpace (Blowup c) := by
   have := ChartedSpace.locallyCompactSpace (Fin (n + 1) → ℂ) (Blowup c)
   infer_instance
 
@@ -962,6 +967,21 @@ theorem range_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) �
     [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
     range (divisorRealEmbedding c) = exceptionalDivisor c := by
   rw [coe_divisorRealEmbedding, exceptionalDivisor_def]
+
+/-- The real embedding of the divisor has closed range, the exceptional divisor. -/
+theorem isClosed_range_divisorRealEmbedding [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    IsClosed (range (divisorRealEmbedding c)) := by
+  rw [range_divisorRealEmbedding]
+  exact isClosed_exceptionalDivisor c
+
+/-- The complement of the exceptional divisor is the complement of the range of the real
+embedding of the divisor. -/
+theorem coe_offDivisorOpens_eq_compl_range_divisorRealEmbedding
+    [IsManifold 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M]
+    [Fact (c.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ M)] :
+    (offDivisorOpens c : Set (Blowup c)) = (range (divisorRealEmbedding c))ᶜ := by
+  rw [coe_offDivisorOpens, range_divisorRealEmbedding]
 
 open scoped TauCeti.ComplexManifold in
 /-- At each point of the exceptional divisor, `lift c` is a local diffeomorphism of real

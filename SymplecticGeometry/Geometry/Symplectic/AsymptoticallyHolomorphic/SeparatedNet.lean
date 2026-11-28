@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.RescaledChart
+import SymplecticGeometry.Combinatorics.SeparatedSet
+import SymplecticGeometry.Combinatorics.SimpleGraph.GreedyColoring
 import TauCeti.Analysis.Normed.Module.CoveringNumber
 
 /-!
@@ -30,6 +32,13 @@ of `S` in a `d_k`-ball of radius `r` once `r` is a fixed multiple of `√k`; sma
 covered by the local count. Each count is proved for the extended distance `rescaledEDist`, and
 then deduced for the real one `rescaledDist` on a preconnected manifold.
 
+Finally it builds the net of centres. Since the size of a separated set is bounded for each `k`,
+a separated set that cannot be enlarged exists (`Finset.exists_separated_forall_exists_lt`);
+every point is then at `d_k` less than `r₀` from one of its points, so lies in the image of a
+closed unit ball of the chart at that point
+(`RescaledUnitaryCharts.exists_norm_lt_symm_eq_of_rescaledEDist_lt`), once `√2 * r₀ ≤ 1`. The
+colouring is the greedy one of `Finset.exists_coloring_le_of_card_le_mul_pow`, fed by the count.
+
 ## Main results
 
 * `SymplecticGeometry.RescaledUnitaryCharts.card_filter_rescaledEDist_le`: if the distinct points
@@ -46,6 +55,11 @@ then deduced for the real one `rescaledDist` on a preconnected manifold.
   compact manifold, at most `C * (1 + r) ^ dim` of its points lie in a `d_k`-ball of radius `r`,
   with `C` independent of `k`, of the ball and of `r`; `exists_forall_card_filter_rescaledDist_le`
   is the same for the real rescaled distance, on a compact preconnected manifold.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_separated_chart_cover_coloring`: for all
+  `k ≥ max k₀ 1`, a finite `r₀`-separated set of centres whose closed unit balls in the charts
+  `D.chart k x` cover `M`, with the counting bound above and, for every `R ≥ 1`, a colouring by
+  `O(R ^ dim)` colours of which each colour class is `R`-separated; `r₀` and the constant do not
+  depend on `k` or `R`.
 
 ## References
 
@@ -316,6 +330,75 @@ theorem exists_forall_card_filter_rescaledDist_le [CompactSpace M] [T2Space M]
   have h := hC hk S (fun x hx x' hx' hne ↦ ofReal_le_rescaledEDist_iff.2 (hS x hx x' hx' hne)) y hr
   convert h using 4 with x
   exact (rescaledEDist_le_ofReal_iff hr).symm
+
+include D in
+/-- **A coloured separated net of rescaled unit balls.** Let `M` be compact, Hausdorff and
+preconnected, with a Riemannian metric whose inner product is `⟪u, w⟫ = σ(u, J w)`, and let the
+rescaled unitary charts have radius `ρ₀ > 0`. There are `r₀ > 0` and `C` such that for every
+`k ≥ max k₀ 1` there is a finite set `S` of centres with:
+
+* its distinct points at rescaled distance `rescaledDist I k` at least `r₀`;
+* every point of `M` of the form `(D.chart k x).symm z` with `x ∈ S` and `‖z‖ ≤ 1`;
+* for every `y` and `r ≥ 0`, at most `C * (1 + r) ^ dim` points of `S` at rescaled distance at
+  most `r` from `y`;
+* for every `R ≥ 1`, a colouring `c : M → Fin N` with `N ≤ C * R ^ dim` colours in which
+  distinct points of `S` of the same colour are at rescaled distance at least `R`.
+
+Here `dim` is the real dimension of `StdSpace ι`, and `r₀`, `C` depend neither on `k` nor on
+`R`. -/
+theorem exists_separated_chart_cover_coloring [CompactSpace M] [T2Space M]
+    [PreconnectedSpace M] [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hρ₀ : 0 < ρ₀) :
+    ∃ r₀ > 0, ∃ C, ∀ {k : ℕ}, max k₀ 1 ≤ k → ∃ S : Finset M,
+      (∀ x ∈ S, ∀ x' ∈ S, x ≠ x' → r₀ ≤ rescaledDist I k x x') ∧
+      (∀ y : M, ∃ x ∈ S, ∃ z ∈ closedBall (0 : StdSpace ι) 1, (D.chart k x).symm z = y) ∧
+      (∀ (y : M) {r : ℝ}, 0 ≤ r →
+        ((S.filter fun x ↦ rescaledDist I k x y ≤ r).card : ℝ) ≤
+          C * (1 + r) ^ finrank ℝ (StdSpace ι)) ∧
+      ∀ {R : ℝ}, 1 ≤ R → ∃ N : ℕ, (N : ℝ) ≤ C * R ^ finrank ℝ (StdSpace ι) ∧
+        ∃ c : M → Fin N, ∀ x ∈ S, ∀ x' ∈ S, x ≠ x' → c x = c x' → R ≤ rescaledDist I k x x' := by
+  classical
+  obtain ⟨ρ₁, hρ₁, hρ₁₀, hcmp⟩ := D.exists_forall_isComparisonRadius hρ₀
+  set n := finrank ℝ (StdSpace ι)
+  have h2 : (0 : ℝ) < √2 := by positivity
+  set r₀ := (√2)⁻¹ * min 1 ρ₁ with hr₀_def
+  have hr₀ : 0 < r₀ := by positivity
+  have hr₀1 : √2 * r₀ ≤ 1 := by
+    rw [hr₀_def, mul_inv_cancel_left₀ h2.ne']
+    exact min_le_left _ _
+  obtain ⟨A, hA⟩ := D.exists_forall_card_le_of_le_rescaledDist hg hρ₀ hr₀
+  obtain ⟨B, hB⟩ := D.exists_forall_card_filter_rescaledDist_le hg hρ₀ hr₀
+  set B' := max B 0
+  refine ⟨r₀, hr₀, 2 ^ n * B' + 1, fun {k} hk ↦ ?_⟩
+  have hk₀ : k₀ ≤ k := (le_max_left _ _).trans hk
+  have hk1 : 1 ≤ √(k : ℝ) :=
+    Real.one_le_sqrt.2 (by exact_mod_cast (le_max_right k₀ 1).trans hk)
+  have hr₀ρ : r₀ ≤ (√2)⁻¹ * (ρ₁ * √k) := by
+    rw [hr₀_def]
+    gcongr
+    exact (min_le_right _ _).trans (le_mul_of_one_le_right hρ₁.le hk1)
+  -- A separated set that cannot be enlarged, since the separated sets have bounded size.
+  obtain ⟨S, hS, hmax⟩ := Finset.exists_separated_forall_exists_lt (rescaledDist_comm (I := I) k)
+    (fun x ↦ by rw [rescaledDist_self]; exact hr₀)
+    (K := ⌊A * (1 + √(k : ℝ)) ^ n⌋₊) fun S hS ↦ Nat.le_floor (hA hk S hS)
+  have hcount (y : M) {r : ℝ} (hr : 0 ≤ r) :
+      ((S.filter fun x ↦ rescaledDist I k x y ≤ r).card : ℝ) ≤ B' * (1 + r) ^ n :=
+    (hB hk S hS y hr).trans (by gcongr; exact le_max_left _ _)
+  refine ⟨S, hS, fun y ↦ ?_, fun y r hr ↦ (hcount y hr).trans ?_, fun {R} hR ↦ ?_⟩
+  · -- The cover, from maximality and the comparison of `d_k` with the chart norm.
+    obtain ⟨x, hx, hxy⟩ := hmax y
+    rw [← ENNReal.ofReal_lt_ofReal_iff hr₀, ofReal_rescaledDist] at hxy
+    obtain ⟨z, hz, rfl⟩ :=
+      D.exists_norm_lt_symm_eq_of_rescaledEDist_lt hg hρ₁₀ hk₀ x (hcmp hk₀ x) hr₀ρ hxy
+    exact ⟨x, hx, z, mem_closedBall_zero_iff.2 (hz.le.trans hr₀1), rfl⟩
+  · gcongr
+    have h1 : B' ≤ 2 ^ n * B' :=
+      le_mul_of_one_le_left (le_max_right B 0) (one_le_pow₀ one_le_two)
+    linarith
+  · -- The colouring, by the greedy colouring of the graph of nearby centres.
+    exact Finset.exists_coloring_le_of_card_le_mul_pow (rescaledDist_comm (I := I) k) S
+      (le_max_right B 0) (fun y _ r hr ↦ hcount y hr) hR
 
 end RescaledUnitaryCharts
 
