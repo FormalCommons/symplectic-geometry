@@ -695,17 +695,24 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
   (hD : IsEhresmannConnection I J n f D)
 
 /-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
-`γ` a `C^(n+1)` curve in `B`. Parallel transport along `γ` from `s` to `t` maps the fibre over
-`γ s` into the fibre over `γ t`. -/
-theorem parallelTransport_mem_preimage (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+`γ` a `C^(n+1)` curve in `B`. If `x` lies over `γ s`, its parallel transport along `γ` from `s`
+to `t` lies over `γ t`. -/
+theorem apply_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
     (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P}
-    (hx : f x = γ s) (t : ℝ) : hD.parallelTransport γ s t x ∈ f ⁻¹' {γ t} := by
+    (hx : f x = γ s) (t : ℝ) : f (hD.parallelTransport γ s t x) = γ t := by
   obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
   have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
   have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
   rw [hD.parallelTransport_eq_of_comp_eq hn' (hf.of_le h2) (hγ.of_le h2)
-    (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc, mem_preimage, mem_singleton_iff,
-    ← hγc, comp_apply]
+    (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc, ← hγc, comp_apply]
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. Parallel transport along `γ` from `s` to `t` maps the fibre over
+`γ s` into the fibre over `γ t`. -/
+theorem parallelTransport_mem_preimage (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P}
+    (hx : f x = γ s) (t : ℝ) : hD.parallelTransport γ s t x ∈ f ⁻¹' {γ t} :=
+  mem_singleton_iff.2 (hD.apply_parallelTransport hn hf hfp hγ hx t)
 
 /-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
 `γ` a `C^(n+1)` curve in `B`. On the fibre over `γ s`, parallel transport along `γ` from `s` to

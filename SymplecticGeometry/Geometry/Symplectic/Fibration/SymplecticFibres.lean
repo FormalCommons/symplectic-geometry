@@ -106,10 +106,10 @@ private theorem exists_trivialization_mpullback_fiberInclusionMap (hfp : IsPrope
     simp only [zero_smul, add_zero, extChartAt_to_inv]
   -- The curve ends at `b'`, as transport along it carries the fibre over `b` to that over `b'`.
   have hγ1 : γ 1 = b' := by
-    have h1 := hD.parallelTransport_mem_preimage le_top hf hfp hγ'
+    have h1 := hD.apply_parallelTransport le_top hf hfp hγ'
       (x := (A.trivAt b).toOpenPartialHomeomorph.symm (b, v₀))
       (((A.trivAt b).proj_symm_apply' (A.mem_baseSet_trivAt b)).trans hγ0.symm) 1
-    rw [← hsymm v₀, mem_preimage, mem_singleton_iff, e.proj_symm_apply' hb'] at h1
+    rw [← hsymm v₀, e.proj_symm_apply' hb'] at h1
     exact h1.symm
   have hs₁ : γ 0 ∈ (A.trivAt b).baseSet := hγ0 ▸ A.mem_baseSet_trivAt b
   have ht₂ : γ 1 ∈ (A.trivAt b').baseSet := hγ1 ▸ A.mem_baseSet_trivAt b'
