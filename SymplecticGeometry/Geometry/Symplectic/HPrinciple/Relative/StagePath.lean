@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Morse.Core.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Topology
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.Instances.Icc
@@ -57,6 +59,15 @@ parameter `l` at a time:
   `e_{s l, 1}^* α l - α l = d γ` for a one-form `γ` that vanishes on every set fixed by all slices
   `e_{s l, t}`; it is `TauCeti.SmoothForm.exists_mextDerivₗ_eq_mpullback_sub_of_homotopy` for
   the isotopy `(x, t) ↦ e_{s l, t} x`.
+
+Two lemmas give the regularity of the path in the parameter `(l, t)`, for a smooth family `B'`
+over `S`:
+
+* `SymplecticGeometry.isSmoothFamily_stagePath`: the path is a smooth family over `L × [0, 1]`
+  when `L` is a manifold, `τ` and `α` are smooth families over `L` and `s` is smooth;
+* `SymplecticGeometry.continuous_tangentEquiv_symm_stagePath`: the path is continuous into the
+  frame topology of a covering frame system of the two-forms when `τ` and `α` are, `s` is
+  continuous, and `M` and `S` have finite-dimensional models.
 
 `SymplecticGeometry.exists_stagePath` builds the data `e` and `ρ` of a stage from a band core `c`
 and a family `Φ` of isotopies that displaces the cubes of `c` into a region `U` where every
@@ -287,6 +298,100 @@ theorem exists_mextDerivₗ_eq_endPullback_sub {l : Λ} (he₀ : ∀ x, e ((s l,
     (he.comp (contMDiff_const.prodMk contMDiff_id))
     (he.comp ((contMDiff_const.prodMk contMDiff_snd).prodMk contMDiff_fst)) he₀ (fun _ ↦ rfl) hα
   exact ⟨γ, hγ, fun x hx ↦ hγ0 x fun t ↦ heV t x hx⟩
+
+section Smooth
+
+variable {EL HL L : Type*} [NormedAddCommGroup EL] [NormedSpace ℝ EL] [TopologicalSpace HL]
+  {J : ModelWithCorners ℝ EL HL} [TopologicalSpace L] [ChartedSpace HL L] [IsManifold J ∞ L]
+
+/-- The path of a stage is a smooth family over `L × [0, 1]`, for a manifold `L` of parameters,
+when `τ` and `α` are smooth families over `L`, `B'` is a smooth family over `S` and `s : L → S`
+is smooth. -/
+theorem isSmoothFamily_stagePath {e : (S × unitInterval) × M → M}
+    (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e) {ρ : M → ℝ}
+    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) {s : L → S} (hs : ContMDiff J 𝓘(ℝ, S) ∞ s)
+    {τ α : L → SmoothTwoForm I M} (hτ : IsSmoothFamily J τ)
+    (hα : IsSmoothFamily J α) {B' : S → SmoothForm I M ℝ 1}
+    (hB' : IsSmoothFamily 𝓘(ℝ, S) B') :
+    IsSmoothFamily (J.prod (𝓡∂ 1)) (stagePath he hρ s τ α B') := by
+  have hA := (collaredFirstHalf (n := ∞) le_rfl).contMDiff
+  have hC : ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ fun t ↦ (collaredSecondHalf (n := ∞) le_rfl t : ℝ) :=
+    contMDiff_subtypeVal_Icc.comp (collaredSecondHalf (n := ∞) le_rfl).contMDiff
+  have hs' : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ, S) ∞ fun p : L × unitInterval ↦ s p.1 :=
+    hs.comp contMDiff_fst
+  -- The first term: `τ l` pulled back along the isotopy run at the speed `A`.
+  have h₁ := (hτ.comp Prod.fst contMDiff_fst).mpullback_family
+    (f := fun q : (L × unitInterval) × M ↦
+      e ((s q.1.1, collaredFirstHalf (n := ∞) le_rfl q.1.2), q.2))
+    (he.comp (((hs'.comp contMDiff_fst).prodMk
+      (hA.comp (contMDiff_snd.comp contMDiff_fst))).prodMk contMDiff_snd))
+  -- The second term: the correction pulled back along the end of the isotopy, cut off by `ρ`.
+  have h₂ := ((((hα.comp Prod.fst contMDiff_fst).add
+      (hB'.mextDeriv.comp (fun p : L × unitInterval ↦ s p.1) hs')).sub
+      (hτ.comp Prod.fst contMDiff_fst)).mpullback_family
+    (f := fun q : (L × unitInterval) × M ↦ e ((s q.1.1, 1), q.2))
+    (he.comp (((hs'.comp contMDiff_fst).prodMk contMDiff_const).prodMk
+      contMDiff_snd))).funSMul ⟨ρ, hρ⟩ |>.fun_smul (hC.comp contMDiff_snd)
+  convert h₁.add h₂ using 1
+  exact funext (stagePath_def he hρ s τ α B')
+
+end Smooth
+
+section Continuous
+
+open _root_.Bundle
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ S] [TopologicalSpace Λ] {ι : Type*}
+  (fr : ι → Trivialization (E [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (E [⋀^Fin 2]→L[ℝ] ℝ) (fun x : M ↦ TangentSpace I x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (fr j)]
+  (W : ι → TopologicalSpace.Opens M) (hW : ∀ j, (W j : Set M) ⊆ (fr j).baseSet)
+
+/-- The path of a stage is continuous into the frame topology of a covering frame system of the
+two-forms on `M`, when `M` and `S` have finite-dimensional models, `τ` and `α` are continuous into
+that topology, `s : Λ → S` is continuous and `B'` is a smooth family over `S`. -/
+theorem continuous_tangentEquiv_symm_stagePath (hcover : ∀ x, ∃ j, x ∈ W j)
+    {e : (S × unitInterval) × M → M}
+    (he : ContMDiff ((𝓘(ℝ, S).prod (𝓡∂ 1)).prod I) I ∞ e) {ρ : M → ℝ}
+    (hρ : ContMDiff I 𝓘(ℝ) ∞ ρ) {s : Λ → S} (hs : Continuous s)
+    {τ α : Λ → SmoothTwoForm I M}
+    (hτ : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (τ l))
+    (hα : let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+      Continuous fun l ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (α l))
+    {B' : S → SmoothForm I M ℝ 1} (hB' : IsSmoothFamily 𝓘(ℝ, S) B') :
+    let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+    Continuous fun p ↦ Bundle.ContMDiffTwoForm.tangentEquiv.symm (stagePath he hρ s τ α B' p) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let _ := ContMDiffSection.continuousSMul_frameTopology (𝕜 := ℝ) (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let F : C^∞⟮(𝓘(ℝ, S).prod (𝓡∂ 1)).prod I, (S × unitInterval) × M; I, M⟯ := ⟨e, he⟩
+  have hT := Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback_prod fr W hW fr W hW
+    F hcover
+  have hA := (collaredFirstHalf (n := ∞) le_rfl).contMDiff.continuous
+  have hC : Continuous fun t ↦ (collaredSecondHalf (n := ∞) le_rfl t : ℝ) :=
+    continuous_subtypeVal.comp (collaredSecondHalf (n := ∞) le_rfl).contMDiff.continuous
+  -- The first term, `τ l` pulled back along the isotopy run at the speed `A`.
+  have h₁ := hT.comp ((hτ.comp continuous_fst).prodMk
+    ((hs.comp continuous_fst).prodMk (hA.comp continuous_snd)))
+  -- The correction `α l - τ l + d (B' (s l))`, pulled back along the end of the isotopy.
+  have h₂ := hT.comp (((hα.sub hτ).comp continuous_fst).prodMk
+    ((hs.comp continuous_fst).prodMk
+      (continuous_const (X := Λ × unitInterval) (y := (1 : unitInterval)))))
+  have he₁ : ContMDiff (𝓘(ℝ, S).prod I) I ∞ fun q : S × M ↦ e ((q.1, 1), q.2) :=
+    he.comp ((contMDiff_fst.prodMk contMDiff_const).prodMk contMDiff_snd)
+  have h₃ := ((hB'.mextDeriv.mpullback_family he₁).continuous_tangentEquiv_symm fr W hW).comp
+    (hs.comp (continuous_fst (X := Λ) (Y := unitInterval)))
+  refine (h₁.add ((hC.comp continuous_snd).smul
+    ((Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_smul fr W hW ⟨ρ, hρ⟩).comp
+      (h₂.add h₃)))).congr fun p ↦ ?_
+  simp only [Pi.add_apply, Pi.smul_apply', Pi.sub_apply, Function.comp_apply, stagePath_def,
+    map_add, map_sub, map_smul, LinearEquiv.apply_symm_apply, F, ContMDiffMap.coeFn_mk]
+  abel_nf
+
+end Continuous
 
 section Exists
 
