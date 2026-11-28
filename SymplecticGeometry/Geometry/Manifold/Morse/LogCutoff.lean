@@ -9,12 +9,11 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.FDeriv.Defs
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Topology.Algebra.Support
-public import TauCeti.Geometry.Manifold.Riemannian.Surface.LogCutoff.Profile
+import TauCeti.Geometry.Manifold.Riemannian.Surface.LogCutoff.Profile
 import Mathlib.Analysis.Calculus.FDeriv.Add
 import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.InnerProductSpace.EuclideanDist
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Tactic.Module
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Surface.LogCutoff.Comp
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Surface.LogCutoff.Interpolation
