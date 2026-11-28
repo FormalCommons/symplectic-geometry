@@ -385,8 +385,7 @@ noncomputable def compatibleTangentEquiv (J : 𝒥) :
     (mfderiv_compatibleCLM_mem J)
   have hf : Function.Injective f := fun _ _ h =>
     injective_mfderiv_compatibleCLM J (congrArg Subtype.val h)
-  (LinearEquiv.ofBijective f ⟨hf, (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
-    (finrank_compatibleModel_eq J)).1 hf⟩).toContinuousLinearEquiv
+  (f.linearEquivOfInjective hf (finrank_compatibleModel_eq J)).toContinuousLinearEquiv
 
 @[simp]
 theorem coe_compatibleTangentEquiv_apply (J : 𝒥) (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :

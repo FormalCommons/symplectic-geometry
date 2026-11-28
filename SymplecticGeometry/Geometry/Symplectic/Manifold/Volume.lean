@@ -43,6 +43,9 @@ this is the outward-normal orientation.
   `volumeOrientation_eq_orientation`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_of_isPositive`: on a surface, an
   orientation for which `σ` is positive is the symplectic orientation of `σ`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_iff_isPositive`,
+  `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_iff_isPositive`: on a surface, an
+  orientation is the symplectic orientation of `σ` exactly when `σ` is positive for it.
 * `Orientation.volumeOrientation_sphereVolumeForm`: the symplectic orientation of the volume form
   of the unit two-sphere is its outward-normal orientation.
 
@@ -115,6 +118,34 @@ theorem IsNondegenerate.volumeOrientation_eq_of_isPositive (h : σ.IsNondegenera
   have hv := h.isPositive_volumeForm (n := 1) hE
   rw [volumeForm_one] at hv
   exact hv.eq ho
+
+/-- On a manifold modelled on a plane, an orientation `o` is the symplectic orientation of a
+fiberwise nondegenerate two-form `σ` if and only if `σ` is positive for `o`. -/
+theorem IsNondegenerate.volumeOrientation_eq_iff_isPositive (h : σ.IsNondegenerate)
+    (hE : finrank ℝ E = 2) {o : Manifold.Orientation I M (Fin 2)} :
+    h.volumeOrientation (n := 1) hE = o ↔ o.IsPositive σ.val := by
+  refine ⟨?_, h.volumeOrientation_eq_of_isPositive hE⟩
+  rintro rfl
+  have hv := h.isPositive_volumeForm (n := 1) hE
+  rwa [volumeForm_one] at hv
+
+/-- On a manifold modelled on a plane, an orientation `o` is Tau Ceti's symplectic orientation
+`IsNondegenerate.orientation` of a fiberwise nondegenerate two-form `σ` if and only if `σ` is
+positive for `o`. -/
+theorem IsNondegenerate.orientation_eq_iff_isPositive (h : σ.IsNondegenerate)
+    (hE : finrank ℝ E = 2) {o : Manifold.Orientation I M (Fin 2)} :
+    h.orientation hE = o ↔ o.IsPositive σ.val := by
+  -- After the rewrites the two sides differ only in the index `2 * 1` against `2` of
+  -- `Fin`, which `rw` closes by `rfl`.
+  rw [← h.volumeOrientation_eq_iff_isPositive hE, h.volumeOrientation_eq_orientation (n := 1) hE]
+
+/-- On a manifold modelled on a plane, if a fiberwise nondegenerate two-form `σ` is positive for
+an orientation `o`, then `o` is Tau Ceti's symplectic orientation `IsNondegenerate.orientation`
+of `σ`. -/
+theorem IsNondegenerate.orientation_eq_of_isPositive (h : σ.IsNondegenerate)
+    (hE : finrank ℝ E = 2) {o : Manifold.Orientation I M (Fin 2)} (ho : o.IsPositive σ.val) :
+    h.orientation hE = o :=
+  (h.orientation_eq_iff_isPositive hE).2 ho
 
 end SmoothTwoForm
 

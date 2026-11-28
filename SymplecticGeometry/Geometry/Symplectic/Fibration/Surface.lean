@@ -137,9 +137,8 @@ theorem exists_isSymplectic_compatible_oriented [CompactSpace M] [CompactSpace B
     exact (Diffeomorph.mem_orientationPreservingSubgroup_iff_isPositive_mpullback hσ₀).1 hφ
   obtain ⟨K₀, hK₀⟩ := exists_forall_ge_isOrientedCompatible_add_smul_mpullback hA
     (fun b b' hb' ↦ (hpos b b' hb').isSymplectic.isNondegenerate)
-    (fun b b' hb' ↦ by
-      rw [← SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_orientation (n := 1)]
-      exact SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_of_isPositive _ _ (hpos b b' hb'))
+    (fun b b' hb' ↦
+      SmoothTwoForm.IsNondegenerate.orientation_eq_of_isPositive _ _ (hpos b b' hb'))
     hθ.isClosed hβ rfl
   exact ⟨_, hK₀ K₀ le_rfl⟩
 
