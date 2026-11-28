@@ -16,6 +16,8 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Topology
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.LinearAlgebra.Complex.Orientation
+import TauCeti.LinearAlgebra.Complex.Orientation
 import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
 
 /-!
@@ -48,6 +50,11 @@ can use it with no conversion.
 
 ## Main results
 
+* `SymplecticGeometry.Blowup.orientation_map_eq_divisorNormalOrientation`: a complex-linear
+  isomorphism `ℂ ≃ ℓ`, read on `ℝ²` through `Complex.orthonormalBasisOneI` and carried to the
+  normal space by `divisorNormalEquiv c ℓ`, takes the standard orientation of `ℝ²` to
+  `divisorNormalOrientation c ℓ`; `orientation_map_eq_divisorNormalOrientation_mk` is the case
+  `z ↦ z • v` for `ℓ = [v]`.
 * `SymplecticGeometry.Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul`:
   a curve that `lift c` reads near `0` as the lift of the line `t ↦ t • v` crosses the exceptional
   divisor with normal velocity `v`.
@@ -206,6 +213,55 @@ theorem divisorNormalOrientation_def :
         (finCongr Complex.two_mul_finrank_self : Fin (2 * finrank ℂ ℂ) ≃ Fin 2)).comap
         (g := ContinuousMap.id _) (by simp) (continuous_divisorNormalEquiv c) :=
   (rfl)
+
+/-- **A complex identification of the line `ℓ` orients the normal space.** Let
+`e : ℂ ≃ ℓ` be a complex-linear isomorphism onto the line `ℓ`, and let
+`m : ℝ² ≃ ν_ℓ` be the real-linear isomorphism onto the normal space of the exceptional divisor at
+`ℓ` that `divisorNormalEquiv c ℓ` turns into `e`, with `w ∈ ℝ²` read in `ℂ` by
+`Complex.orthonormalBasisOneI.repr.symm`. Then `m` carries the standard orientation of `ℝ²` to
+`divisorNormalOrientation c ℓ`. -/
+theorem orientation_map_eq_divisorNormalOrientation {ℓ : ℙ ℂ (Fin (n + 1) → ℂ)}
+    (e : ℂ ≃ₗ[ℂ] Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) ℓ)
+    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] (divisorRealEmbedding c).isImmersion.NormalSpace ℓ hn)
+    (hm : ∀ w, divisorNormalEquiv c ℓ (m w) = e (Complex.orthonormalBasisOneI.repr.symm w)) :
+    (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
+      divisorNormalOrientation c ℓ := by
+  let := (divisorRealEmbedding c).normalSpaceFiberBundle hn
+    (Complex.finrank_real_eq_finrank_pi_succ_sub n)
+  let := (divisorRealEmbedding c).normalSpaceVectorBundle hn
+    (Complex.finrank_real_eq_finrank_pi_succ_sub n)
+  let : VectorBundle ℝ ℂ (Projectivization.Tautological ℂ (Fin (n + 1) → ℂ)) :=
+    VectorBundle.restrictScalars ℝ ℂ ℂ _
+  have hm' : m.toLinearEquiv = (Complex.orthonormalBasisOneI.repr.symm.toLinearEquiv.trans
+      (e.restrictScalars ℝ)).trans (divisorNormalEquiv c ℓ).symm.toLinearEquiv := by
+    ext w
+    exact (ContinuousLinearEquiv.eq_symm_apply _).2 (hm w)
+  rw [hm', Orientation.map_trans, Orientation.map_trans,
+    Complex.orientation_map_orthonormalBasisOneI_repr_symm, divisorNormalOrientation_def]
+  refine Eq.trans ?_ (VectorBundleOrientation.comap_apply (g := ContinuousMap.id _) _ _
+    (continuous_divisorNormalEquiv c) ℓ).symm
+  rw [VectorBundleOrientation.reindex_apply, VectorBundleOrientation.complex_apply,
+    ← reindex_complexOrientation_complex, Orientation.map_reindex, e.map_complexOrientation]
+  simp only [← Orientation.reindex_trans, ContinuousLinearEquiv.toLinearEquiv_symm]
+  congr 1
+
+/-- **The line through `v` orients the normal space.** For `v ≠ 0`, a real-linear isomorphism
+`m : ℝ² ≃ ν_ℓ` onto the normal space of the exceptional divisor at `ℓ = [v]` that
+`divisorNormalEquiv c ℓ` turns into `w ↦ w • v`, with `w ∈ ℝ²` read in `ℂ` by
+`Complex.orthonormalBasisOneI.repr.symm`, carries the standard orientation of `ℝ²` to
+`divisorNormalOrientation c ℓ`. -/
+theorem orientation_map_eq_divisorNormalOrientation_mk {v : Fin (n + 1) → ℂ} (hv : v ≠ 0)
+    (m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ]
+      (divisorRealEmbedding c).isImmersion.NormalSpace (Projectivization.mk ℂ v hv) hn)
+    (hm : ∀ w, (divisorNormalEquiv c _ (m w) : Fin (n + 1) → ℂ) =
+      Complex.orthonormalBasisOneI.repr.symm w • v) :
+    (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation.map (Fin 2) m.toLinearEquiv =
+      divisorNormalOrientation c (Projectivization.mk ℂ v hv) :=
+  orientation_map_eq_divisorNormalOrientation c
+    ((LinearEquiv.toSpanNonzeroSingleton ℂ _ v hv).trans
+      (LinearEquiv.ofEq _ _ (Projectivization.submodule_mk v hv).symm)) m fun w ↦ Subtype.ext <| by
+      simp only [hm, LinearEquiv.trans_apply, LinearEquiv.coe_ofEq_apply,
+        LinearEquiv.toSpanNonzeroSingleton_apply]
 
 variable [T2Space M] [SecondCountableTopology M]
 
