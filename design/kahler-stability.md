@@ -340,7 +340,7 @@ so no statement takes it.
   `C.parabolicSubspace ξ` is the sum of the eigenspaces of `A` with
   eigenvalue `≤ 0`, once `A` is diagonalizable with real eigenvalues
   (next item).
-- `isSymm_ad_cplx_lieMap`: for the form
+- `isSelfAdjoint_ad_cplx_lieMap` (`Geometry/Lie/Complexification.lean`): for the form
   `Bc x y := B (C.re x) (C.re y) + B (C.im x) (C.im y)`, symmetric and
   positive definite because `lieMap_re_add_cplx_lieMap_im` splits
   `GroupLieAlgebra IC Gc`, the operator `A` is `Bc`-symmetric. Proof: by
@@ -998,7 +998,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
     and 12.10.
 13. **The parabolic subgroup.** `Geometry/Lie/Subgroup/Parabolic.lean`:
     `C.parabolic ξ`, `C.parabolicLimit ξ` and `C.parabolicSubspace ξ` with
-    their API, `tangentAd_expI_smul`, `isSymm_ad_cplx_lieMap`,
+    their API, `tangentAd_expI_smul`, `isSelfAdjoint_ad_cplx_lieMap` (in
+    `Complexification.lean`),
     `parabolicSubspace_sup_range_lieMap` and `mulInvariantExp_mem_parabolic`.
     Blocked by 1.
 14. **$G^{\mathbb C}=P(\xi)G$.** The rest of `Parabolic.lean`, from
