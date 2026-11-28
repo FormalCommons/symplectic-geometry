@@ -77,7 +77,7 @@ with a map differentiable at `y`, and the chain rule carries the bound of the di
   and each time map is a diffeomorphism, with inverse the map at the opposite time.
 * `SymplecticGeometry.IsWeinsteinStructure.mfderiv_flow_apply_self`: the differential of each time
   map carries `X` to `X`.
-* `SymplecticGeometry.IsWeinsteinStructure.flow_apply_of_mvfderiv_eq_zero`: the critical points of
+* `SymplecticGeometry.IsWeinsteinStructure.flow_apply_of_mem_criticalPoints`: the critical points of
   `f` are rest points of the flow.
 * `SymplecticGeometry.IsWeinsteinStructure.mem_stableSet_self`: a critical point of `f` lies in
   its own stable set.
@@ -279,16 +279,16 @@ theorem mfderiv_flow_apply_self (t : ℝ) (y : M) :
 
 /-- The critical points of `f` are rest points of the flow, since the gradient-like field `X`
 vanishes there. -/
-theorem flow_apply_of_mvfderiv_eq_zero {x : M} (hx : mvfderiv 𝓘(ℝ, E) f x = 0) (t : ℝ) :
+theorem flow_apply_of_mem_criticalPoints {x : M} (hx : x ∈ criticalPoints 𝓘(ℝ, E) f) (t : ℝ) :
     hW.flow t x = x :=
   (forall_globalFlow_eq_self_iff _ hW.isCompleteVectorField x).2
-    (hW.isGradientLike.eq_zero_iff.2 (mem_criticalPoints.2 hx)) t
+    (hW.isGradientLike.eq_zero_iff.2 hx) t
 
 /-- A critical point of `f` lies in the stable set of itself under the flow of a Weinstein
 structure, since it is a rest point. -/
 theorem mem_stableSet_self {p : M} (hp : p ∈ criticalPoints 𝓘(ℝ, E) f) :
     p ∈ hW.flow.stableSet p :=
-  Flow.self_mem_stableSet_iff.2 (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp))
+  Flow.self_mem_stableSet_iff.2 (hW.flow_apply_of_mem_criticalPoints hp)
 
 /-- The derivative along an orbit of the flow of a function `g`, differentiable at the point
 `hW.flow t y` of the orbit, is `dg(X)` at that point. -/
@@ -349,7 +349,7 @@ theorem apply_le_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p) : f
 of `p` under the flow of a Weinstein structure `(ω, X, f)` is not a critical point of `f`. -/
 theorem notMem_criticalPoints_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stableSet p)
     (hxp : x ≠ p) : x ∉ criticalPoints 𝓘(ℝ, E) f := fun h ↦
-  hxp (Flow.eq_of_mem_stableSet (hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 h)) hx)
+  hxp (Flow.eq_of_mem_stableSet (hW.flow_apply_of_mem_criticalPoints h) hx)
 
 /-- **The function increases strictly along an orbit of a stable set.** If the orbit of `x ≠ p`
 under the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f` is strictly increasing
@@ -359,7 +359,7 @@ theorem strictMono_comp_flow_of_mem_stableSet {p x : M} (hx : x ∈ hW.flow.stab
   -- The orbit of `x` never reaches the rest point `p`, so it meets no critical point.
   hW.isGradientLike.strictMono_comp (hW.isMIntegralCurve_flow x) fun t h ↦
     hW.notMem_criticalPoints_of_mem_stableSet ((Flow.apply_mem_stableSet_iff _ t).2 hx)
-      (Flow.apply_ne_of_mem_stableSet hx hxp t) (mem_criticalPoints.2 h)
+      (Flow.apply_ne_of_mem_stableSet hx hxp t) h
 
 /-- **The function is strictly below its limit on a stable set.** If the orbit of `x ≠ p` under
 the flow of a Weinstein structure `(ω, X, f)` tends to `p`, then `f x < f p`. -/
@@ -890,7 +890,7 @@ theorem exists_forall_flow_strictAntiOn
       have hxp : hW.flow t (D.ι z) = p := by rw [← (hinv' t ht).2, h0, D.ι_zero]
       have hzp : D.ι z = p := by
         rw [← hW.flow.map_neg_apply_map t (D.ι z), hxp,
-          hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp.mem_criticalPoints)]
+          hW.flow_apply_of_mem_criticalPoints hp.mem_criticalPoints]
       apply hz0
       rw [← D.π_ι hzρ, hzp, D.π_self]
     rw [hwζ, hPw]
