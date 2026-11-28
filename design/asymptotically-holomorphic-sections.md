@@ -620,7 +620,7 @@ and the prerequisites, placed by topic.
   $(j+1)\log(j+2)$.
 - `Connectivity.lean`: `IsUniformlyTransverse.le_norm_of_mem_criticalPoints`
   (at critical points of $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
-  `IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg`,
+  `IsUniformlyTransverse.isComplexNegativeAt_log_norm_sq`,
   `IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`, and the milestone
   `exists_relCWComplex_homotopyEquiv_zeroSet`: for nonempty $Z_k$ and large
   $k$, $M$ has the homotopy type of a CW complex relative to $Z_k$ whose

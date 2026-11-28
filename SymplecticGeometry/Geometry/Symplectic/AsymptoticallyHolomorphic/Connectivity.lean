@@ -45,7 +45,7 @@ On a boundaryless manifold and for `η > 0`, this gives the second step: for `k`
 a point `f = log ‖s k‖²` is complex negative for `J`
 (`TauCeti.SmoothAlmostComplexStructure.IsComplexNegativeAt`):
 `Hess f (v, v) + Hess f (J v, J v) < 0` for every nonzero tangent vector `v`
-(`SymplecticGeometry.IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg`). In the chart
+(`SymplecticGeometry.IsUniformlyTransverse.isComplexNegativeAt_log_norm_sq`). In the chart
 centred at `x`, the reading `F` of `s k` has `|F 0| ≥ η` and a bounded first derivative, while its
 `∂̄` reading, with its first derivative, and the derivative of the pushed-forward almost complex
 structure are `O(k ^ (-1/2))`. So the chart estimate
@@ -55,14 +55,14 @@ negative multiple of the square norm. The critical Hessian is carried to the cha
 carries `J` at `x` to the standard structure. The Morse index of `f` at `x` is then at least
 half the dimension of `M`
 (`SymplecticGeometry.IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex`), by
-`TauCeti.SmoothAlmostComplexStructure.finrank_div_two_le_manifoldMorseIndex`.
+`TauCeti.SmoothAlmostComplexStructure.IsComplexNegativeAt.finrank_div_two_le_manifoldMorseIndex`.
 
 When each `s k` is smooth, the negativity above passes to the critical points of the smooth
 function `Bundle.logNormSq`, which is `y ↦ log ‖s k y‖²` on the open submanifold
 `Bundle.nonzeroOpens` where `s k` does not vanish, for the restricted almost complex
 structure `J.restrictOpen`
-(`SymplecticGeometry.IsUniformlyTransverse.criticalHessian_logNormSq_add_neg`),
-by `TauCeti.SmoothAlmostComplexStructure.criticalHessian_comp_subtypeVal_add_neg`.
+(`SymplecticGeometry.IsUniformlyTransverse.isComplexNegativeAt_logNormSq`),
+by `TauCeti.SmoothAlmostComplexStructure.IsComplexNegativeAt.comp_subtypeVal`.
 
 These are the first steps of the Morse theory of `log |s_k|²` away from the zero set.
 
@@ -214,7 +214,7 @@ manifold and with `η > 0`: for `k` large, at every point `x` where `s k` is dif
 does not vanish and which is a critical point of `f = log (‖s k‖ ^ 2)`, the function `f` is
 complex negative for `J`: `Hess f (v, v) + Hess f (J v, J v) < 0` for every nonzero tangent vector
 `v` at `x`. -/
-theorem IsUniformlyTransverse.criticalHessian_add_criticalHessian_neg [I.Boundaryless]
+theorem IsUniformlyTransverse.isComplexNegativeAt_log_norm_sq [I.Boundaryless]
     (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
     (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
     {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
@@ -271,9 +271,9 @@ theorem IsUniformlyTransverse.finrank_div_two_le_manifoldMorseIndex [I.Boundaryl
         (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y)) x → s k x ≠ 0 →
       x ∈ criticalPoints I (fun y ↦ Real.log (‖s k y‖ ^ 2)) →
       Module.finrank ℝ E / 2 ≤ manifoldMorseIndex I (fun y ↦ Real.log (‖s k y‖ ^ 2)) x := by
-  filter_upwards [ht.criticalHessian_add_criticalHessian_neg D hJ hα hρ₀ hη hs]
+  filter_upwards [ht.isComplexNegativeAt_log_norm_sq D hJ hα hρ₀ hη hs]
     with k hk x hdiff hx hcrit
-  exact J.finrank_div_two_le_manifoldMorseIndex _ x (hk x hdiff hx hcrit)
+  exact (hk x hdiff hx hcrit).finrank_div_two_le_manifoldMorseIndex
 
 /-- **The critical Hessian of `log |s_k|²` on `{s_k ≠ 0}` is negative in complex directions.**
 In the setting of `SymplecticGeometry.IsUniformlyTransverse.le_norm_of_mem_criticalPoints`, on a
@@ -281,7 +281,7 @@ boundaryless manifold, with `η > 0` and each `s k` smooth: for `k` large, at ev
 `x` of `g = logNormSq (hsm k)` on `U = nonzeroOpens (hsm k)`, the function `g` is complex
 negative for `J_U = J.restrictOpen U`: `Hess g (v, v) + Hess g (J_U v, J_U v) < 0` for every
 nonzero tangent vector `v` at `x`. -/
-theorem IsUniformlyTransverse.criticalHessian_logNormSq_add_neg [I.Boundaryless]
+theorem IsUniformlyTransverse.isComplexNegativeAt_logNormSq [I.Boundaryless]
     (D : RescaledUnitaryCharts P σ J α ι k₀ ρ₀) (hJ : σ.Compatible J)
     (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {η : ℝ} (hη : 0 < η)
     {s : ∀ k : ℕ, Π y, PowerBundle P k y} (hs : D.IsAsymptoticallyHolomorphic s)
@@ -290,15 +290,15 @@ theorem IsUniformlyTransverse.criticalHessian_logNormSq_add_neg [I.Boundaryless]
       (fun y ↦ TotalSpace.mk' (PowerModel k) y (s k y))) :
     ∀ᶠ k : ℕ in Filter.atTop, ∀ x ∈ criticalPoints I (logNormSq (hsm k)),
       (J.restrictOpen (nonzeroOpens (hsm k))).IsComplexNegativeAt (logNormSq (hsm k)) x := by
-  filter_upwards [ht.criticalHessian_add_criticalHessian_neg D hJ hα hρ₀ hη hs]
+  filter_upwards [ht.isComplexNegativeAt_log_norm_sq D hJ hα hρ₀ hη hs]
     with k hk x hx
   rw [coe_logNormSq] at hx ⊢
   have hcrit := mem_criticalPoints_comp_subtypeVal.1 hx
   have hs0 : s k x ≠ 0 := mem_nonzeroOpens.1 x.property
   have hf := ((contMDiff_norm_sq_bundle I ∞ (PowerModel k) (PowerBundle P k)).comp
     (hsm k)).contMDiffAt.log (pow_ne_zero 2 (norm_ne_zero_iff.2 hs0))
-  exact J.criticalHessian_comp_subtypeVal_add_neg (hf.of_le (by simp)) hcrit
-    (hk x ((hsm k).mdifferentiableAt (by simp)) hs0 hcrit)
+  exact (hk x ((hsm k).mdifferentiableAt (by simp)) hs0 hcrit).comp_subtypeVal
+    (hf.of_le (by simp)) hcrit
 
 end SymplecticGeometry
 
