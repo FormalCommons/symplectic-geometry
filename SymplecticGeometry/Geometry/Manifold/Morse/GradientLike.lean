@@ -28,6 +28,7 @@ import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import TauCeti.Topology.VectorBundle.Riemannian.Comparison
 import TauCeti.Dynamics.Flow.Lyapunov
 import TauCeti.Topology.OmegaLimit
+import SymplecticGeometry.Geometry.Manifold.Riemannian.NormedSpace
 import SymplecticGeometry.Algebra.Order.Field.Basic
 import SymplecticGeometry.Dynamics.Flow.OmegaLimit
 import SymplecticGeometry.Analysis.Convex.Mul
@@ -83,8 +84,8 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.isGradientLike_mgradient`: the gradient of `f` for any smooth metric is gradient-like
   for `f`, with `δ = 1 / 2`.
 * `TauCeti.isGradientLike_of_mul_le`: on a finite-dimensional normed space, a constant `c > 0`
-  with `c (‖X‖² + ‖df‖²) ≤ df(X)` everywhere suffices, for the metric carried over by
-  `toEuclidean`.
+  with `c (‖X‖² + ‖df‖²) ≤ df(X)` everywhere suffices, for the metric
+  `SymplecticGeometry.riemannianMetricToEuclidean` carried over by `toEuclidean`.
 * `TauCeti.IsGradientLikeAt f X x`: `X` is gradient-like for `f` near `x`, that is, the inequality
   holds on a neighbourhood of `x` for some metric and some constant `c > 0`; with
   `TauCeti.isGradientLikeAt_def`.
@@ -415,18 +416,9 @@ theorem isGradientLike_of_mul_le {f : E → ℝ} {X : E → E} {c : ℝ} (hc : 0
     IsGradientLike f (fun x ↦ X x : (x : E) → TangentSpace 𝓘(ℝ, E) x) := by
   -- The metric is the Euclidean one carried over by `toEuclidean`.
   set e := toEuclidean (E := E)
-  have he : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) (∞ + 1) e :=
-    e.contDiff.contMDiff
-  have hinj (x : E) : Function.Injective
-      (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) e x) := by
-    rw [e.mfderiv_eq]
-    exact e.injective
-  set g := ((riemannianMetricVectorSpace _).ofLE le_top).pullback e he hinj
-  have hg (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g.inner x v w = inner ℝ (e v) (e w) := by
-    simp only [g]
-    rw [ContMDiffRiemannianMetric.pullback_inner, ContMDiffRiemannianMetric.ofLE_inner,
-      riemannianMetricVectorSpace_inner, e.mfderiv_eq]
-    rfl
+  set g := riemannianMetricToEuclidean E
+  have hg (x : E) (v w : TangentSpace 𝓘(ℝ, E) x) : g.inner x v w = inner ℝ (e v) (e w) :=
+    riemannianMetricToEuclidean_inner x v w
   obtain ⟨L, hL⟩ : ∃ L, ∀ v, ‖e v‖ ≤ L * ‖v‖ :=
     ⟨_, e.toContinuousLinearMap.le_opNorm⟩
   obtain ⟨K, hK0, hK⟩ : ∃ K, 0 ≤ K ∧ ∀ v, ‖v‖ ≤ K * ‖e v‖ :=
