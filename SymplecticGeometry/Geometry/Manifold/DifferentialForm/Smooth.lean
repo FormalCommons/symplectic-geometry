@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
@@ -46,8 +47,8 @@ smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version
 about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
 
 A smooth two-form evaluated on two vector fields that are differentiable at `x` is a function
-differentiable at `x` (`TauCeti.SmoothForm.mdifferentiableAt_apply_two`), by Tau Ceti's
-`TauCeti.SmoothForm.mdifferentiableAt_apply_vectorField` for the pair of fields.
+differentiable at `x` (`TauCeti.SmoothForm.mdifferentiableAt_apply_two`), by
+`TauCeti.RoughForm.mdifferentiableAt_apply_two` for the underlying rough form.
 
 Finally, the smooth `F`-valued `0`-forms are the smooth `F`-valued functions:
 `TauCeti.SmoothForm.ofFunctionEquiv` is the linear equivalence that sends a function `f` to
@@ -272,11 +273,8 @@ theorem mdifferentiableAt_apply_two (φ : SmoothForm I M F 2)
     {A B : (y : M) → TangentSpace I y} {x : M}
     (hA : MDifferentiableAt I I.tangent (fun y ↦ (A y : TangentBundle I M)) x)
     (hB : MDifferentiableAt I I.tangent (fun y ↦ (B y : TangentBundle I M)) x) :
-    MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ.val y ![A y, B y]) x := by
-  have hev (y : M) : (fun k ↦ ![A, B] k y) = ![A y, B y] := by
-    funext k; fin_cases k <;> simp
-  simpa [hev] using φ.mdifferentiableAt_apply_vectorField (V := ![A, B])
-    (fun k ↦ by fin_cases k; exacts [hA, hB])
+    MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ φ.val y ![A y, B y]) x :=
+  RoughForm.mdifferentiableAt_apply_two (φ.mdifferentiableAt x) hA hB
 
 end Evaluation
 
