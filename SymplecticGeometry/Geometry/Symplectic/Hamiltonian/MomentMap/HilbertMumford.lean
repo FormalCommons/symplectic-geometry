@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
+public import SymplecticGeometry.Geometry.Lie.Exponential.Periods
 public import SymplecticGeometry.Geometry.Lie.Subgroup.Parabolic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Analysis.Calculus.Deriv.MeanValue
@@ -71,12 +72,21 @@ a bounded amount, since the conjugates of `q⁻¹` converge and so have bounded 
 (`abs_kempfNessFunction_expI_mul_toHom_le`, `exists_eventually_abs_kempfNessFunction_le`); so
 `w_μ(q x, ξ) = w_μ(x, ξ)` (`momentWeight_smul_of_mem_parabolic`).
 
+With these transformation rules one proves steps 6 and 7 of the sufficiency half of the
+polystability criterion in [GeorgoulasRobbinSalamon2021] (arXiv v2, Theorem 12.5). Suppose
+`exp (i t ζ) y` tends to a zero `x` of `μ` outside the orbit of `p`, for a period `ζ` and
+`p = g y`. Write `g = u q` with `u : G` and `q` in `C.parabolic ζ`. Then `ξ = Ad u ζ` has
+`w_μ(p, ξ) = w_μ(y, ζ) = μ x ζ = 0`, and `p⁺_ξ = u q₊ x`, where `q₊` is `C.parabolicLimit ζ q`.
+That point is in the orbit of `x`, hence not in the orbit of `p`
+(`exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`).
+
 The weight is positively homogeneous in `ξ` (`momentWeight_smul_of_nonneg`), by a change of time.
 It is unchanged when `p` moves by `exp (i η)` with `⁅η, ξ⁆ = 0`
 (`momentWeight_expI_smul_of_lie_eq_zero`): the one-parameter subgroups of `η` and `ξ` commute
-(`LieComplexification.commute_expI_of_lie_eq_zero`), so the limit point moves by `exp (i η)`;
-every `exp (i t ξ)` fixes it, and so every point `exp (i s η) p⁺_ξ`, where `X_ξ` therefore
-vanishes; by `hasDerivAt_moment_apply_expI`, `⟨μ, ξ⟩` is then constant along `s ↦ exp (i s η) p⁺_ξ`.
+(`LieComplexification.commute_expI_of_lie_eq_zero`), so the limit point moves by `exp (i η)`
+(`limitPoint_expI_smul_of_lie_eq_zero`); every `exp (i t ξ)` fixes it (`expI_smul_limitPoint`),
+and so every point `exp (i s η) p⁺_ξ`, where `X_ξ` therefore vanishes; by
+`hasDerivAt_moment_apply_expI`, `⟨μ, ξ⟩` is then constant along `s ↦ exp (i s η) p⁺_ξ`.
 On a subspace `𝔞` of pairwise commuting elements, `w_μ(p, ξ)` is then the minimum of `⟨μ y, ξ⟩`
 over the closure of the points `exp (i η) p` with `η ∈ 𝔞`, which is compact, so it is continuous
 in `ξ ∈ 𝔞` (`continuousOn_momentWeight`, by `IsCompact.continuous_sInf`). This follows the proof
@@ -101,6 +111,9 @@ of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
 * `SymplecticGeometry.limitPoint_mem_criticalPoints`: the limit point is a critical point of
   `x ↦ ⟨μ x, ξ⟩`.
 * `SymplecticGeometry.momentWeight_eq_moment_limitPoint`: `w_μ(p, ξ) = ⟨μ (p⁺_ξ), ξ⟩`.
+* `SymplecticGeometry.expI_smul_limitPoint`: `exp (i t ξ)` fixes `p⁺_ξ`.
+* `SymplecticGeometry.limitPoint_expI_smul_of_lie_eq_zero`: `(exp (i η) p)⁺_ξ = exp (i η) p⁺_ξ`
+  when `⁅η, ξ⁆ = 0`.
 * `SymplecticGeometry.momentWeight_expI_smul_of_lie_eq_zero`: `w_μ(exp (i η) p, ξ) = w_μ(p, ξ)`
   when `⁅η, ξ⁆ = 0`.
 * `SymplecticGeometry.continuousOn_momentWeight`: `ξ ↦ w_μ(p, ξ)` is continuous on every subspace
@@ -124,6 +137,9 @@ of Theorem 11.1 in [GeorgoulasRobbinSalamon2021].
   `Gc`, `Φ_p` is eventually bounded, uniformly in `p`.
 * `SymplecticGeometry.IsSemistable.momentWeight_nonpos`: at a semistable point every moment weight
   is nonpositive.
+* `SymplecticGeometry.exists_momentWeight_eq_zero_limitPoint_not_mem_orbit`: a period `ζ` along
+  which a point of the orbit of `p` flows to a zero of `μ` outside that orbit gives a period
+  `ξ` with `w_μ(p, ξ) = 0` and `p⁺_ξ` outside the orbit.
 
 ## References
 
@@ -396,6 +412,32 @@ theorem limitPoint_smul_of_mem_parabolic (h : IsComplexifiedAction C J)
     (tendsto_limitPoint h hμ hg x ξ)).congr fun t ↦ ?_)
   rw [smul_smul, C.expI_neg, inv_mul_cancel_right, mul_smul]
 
+/-- **Limit points are fixed by the flow.** Under the hypotheses of `tendsto_limitPoint`,
+`exp (i t ξ)` fixes the limit point `p⁺_ξ` for every `t`. -/
+theorem expI_smul_limitPoint (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) (ξ : GroupLieAlgebra I G) (t : ℝ) :
+    C.expI (t • ξ) • limitPoint C p ξ = limitPoint C p ξ := by
+  have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := 𝓘(ℝ, E')) ∞
+  have hlim := tendsto_limitPoint h hμ hg p ξ
+  refine tendsto_nhds_unique (hlim.const_smul _) (hlim.comp
+    (tendsto_atTop_add_const_left _ t tendsto_id) |>.congr fun s ↦ ?_)
+  rw [Function.comp_apply, id_eq, smul_smul, ← C.expI_add_smul]
+
+/-- **Limit points along a commuting direction.** Under the hypotheses of `tendsto_limitPoint`,
+if `⁅η, ξ⁆ = 0` then `(exp (i η) p)⁺_ξ = exp (i η) p⁺_ξ`. -/
+theorem limitPoint_expI_smul_of_lie_eq_zero (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {η ξ : GroupLieAlgebra I G} (hηξ : ⁅η, ξ⁆ = 0) (p : M) :
+    limitPoint C (C.expI η • p) ξ = C.expI η • limitPoint C p ξ := by
+  have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := 𝓘(ℝ, E')) ∞
+  refine limitPoint_eq_of_tendsto (((tendsto_limitPoint h hμ hg p ξ).const_smul
+    (C.expI η)).congr fun t ↦ ?_)
+  have hηtξ : ⁅η, t • ξ⁆ = 0 := by rw [lie_smul t η ξ, hηξ, smul_zero]
+  rw [smul_smul, smul_smul, (C.commute_expI_of_lie_eq_zero hηtξ).eq]
+
 /-- **Moment weights along a commuting direction.** Under the hypotheses of
 `tendsto_limitPoint`, if `⁅η, ξ⁆ = 0` then `w_μ(exp (i η) p, ξ) = w_μ(p, ξ)`. -/
 theorem momentWeight_expI_smul_of_lie_eq_zero (h : IsComplexifiedAction C J)
@@ -403,31 +445,21 @@ theorem momentWeight_expI_smul_of_lie_eq_zero (h : IsComplexifiedAction C J)
     (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {η ξ : GroupLieAlgebra I G} (hηξ : ⁅η, ξ⁆ = 0) (p : M) :
     momentWeight C μ (C.expI η • p) ξ = momentWeight C μ p ξ := by
-  have : ContinuousSMul Gc M := ContMDiffSMul.continuousSMul (I := IC) (I' := 𝓘(ℝ, E')) ∞
-  have hcomm (s t : ℝ) : Commute (C.expI (s • η)) (C.expI (t • ξ)) :=
-    C.commute_expI_of_lie_eq_zero (by rw [smul_lie, lie_smul, hηξ, smul_zero, smul_zero])
   set x := limitPoint C p ξ
-  have hlim := tendsto_limitPoint h hμ hg p ξ
-  -- `C.expI (t • ξ)` fixes the limit point `x`, and so every `C.expI (s • η) • x`.
-  have hfix (t : ℝ) : C.expI (t • ξ) • x = x := by
-    refine tendsto_nhds_unique (hlim.const_smul _) (hlim.comp
-      (tendsto_atTop_add_const_left _ t tendsto_id) |>.congr fun s ↦ ?_)
-    rw [Function.comp_apply, id_eq, smul_smul, ← C.expI_add_smul]
+  -- Every `C.expI (t • ξ)` fixes `x`, and so, by commutation, every `C.expI (s • η) • x`.
   have hX (s : ℝ) : fundamentalVectorField 𝓘(ℝ, E') ξ (C.expI (s • η) • x) = 0 :=
     h.expI_smul_smul_eq_self_iff.1 fun t ↦ by
-      rw [smul_smul, ← (hcomm s t).eq, mul_smul, hfix]
+      rw [smul_smul, ← (C.commute_expI_of_lie_eq_zero
+        (by rw [smul_lie, lie_smul, hηξ, smul_zero, smul_zero])).eq, mul_smul,
+        expI_smul_limitPoint h hμ hg]
   -- So `s ↦ μ (C.expI (s • η) • x) ξ` has derivative zero, and is constant.
   have hconst := is_const_of_deriv_eq_zero
     (fun s ↦ (hasDerivAt_moment_apply_expI h hμ hg ξ η x s).differentiableAt)
     (fun s ↦ by rw [(hasDerivAt_moment_apply_expI h hμ hg ξ η x s).deriv, hX, inner_zero_left,
       neg_zero]) 1 0
-  -- The limit point of `C.expI η • p` is `C.expI η • x`.
-  have hlimη : limitPoint C (C.expI η • p) ξ = C.expI η • x := by
-    refine limitPoint_eq_of_tendsto ((hlim.const_smul (C.expI η)).congr fun t ↦ ?_)
-    rw [smul_smul, smul_smul, ← one_smul ℝ η, (hcomm 1 t).eq]
   simp only [one_smul, zero_smul, C.expI_zero] at hconst
-  rw [momentWeight_eq_moment_limitPoint h hμ hg, momentWeight_eq_moment_limitPoint h hμ hg, hlimη,
-    hconst]
+  rw [momentWeight_eq_moment_limitPoint h hμ hg, momentWeight_eq_moment_limitPoint h hμ hg,
+    limitPoint_expI_smul_of_lie_eq_zero h hμ hg hηξ, hconst]
 
 /-- **Moment weights are continuous along commuting directions.** Under the hypotheses of
 `tendsto_limitPoint`, for a subspace `𝔞` of pairwise commuting elements of the Lie algebra, the
@@ -438,8 +470,8 @@ theorem continuousOn_momentWeight (h : IsComplexifiedAction C J)
     (p : M) {𝔞 : Submodule ℝ (GroupLieAlgebra I G)} (h𝔞 : ∀ η ∈ 𝔞, ∀ ξ ∈ 𝔞, ⁅η, ξ⁆ = 0) :
     ContinuousOn (momentWeight C μ p) 𝔞 := by
   have : FiniteDimensional ℝ (GroupLieAlgebra I G) := inferInstanceAs (FiniteDimensional ℝ E)
-  have hc (ξ : GroupLieAlgebra I G) : Continuous fun x : M ↦ μ x ξ := by
-    simpa using (hμ.contMDiff ξ).continuous.neg
+  have hc (ξ : GroupLieAlgebra I G) : Continuous fun x : M ↦ μ x ξ :=
+    (hμ.contMDiff_of_neg ξ).continuous
   -- `(ξ, y) ↦ μ y ξ` is continuous, since `μ` is continuous as a map to `E →L[ℝ] ℝ`; the Lie
   -- algebra `GroupLieAlgebra I G` is the model space `E` by definition.
   have hμ' : (-σ).IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) μ := by
@@ -717,6 +749,63 @@ theorem IsSemistable.momentWeight_nonpos (h : IsComplexifiedAction C J)
     ((isSemistable_iff_bddBelow_kempfNessFunction h hσc hσ hσG hμ hgm hBs hBp hBG p).1 hp)
 
 end Semistable
+
+/-! ### A weight-zero direction whose limit point leaves the orbit -/
+
+section Polystable
+
+open _root_.Bundle
+open scoped RealInnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [CompactSpace G] [T2Space G] [ConnectedSpace G] [BoundarylessManifold I G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E' M] [IsManifold 𝓘(ℝ, E') ∞ M] [T2Space M]
+  [CompactSpace M]
+  [MulAction G M] [MulAction Gc M] [ContMDiffSMul I 𝓘(ℝ, E') ∞ G M]
+  [ContMDiffSMul IC 𝓘(ℝ, E') ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x)]
+  [IsContMDiffRiemannianBundle 𝓘(ℝ, E') 1 E' (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x)]
+  {σ : SmoothTwoForm 𝓘(ℝ, E') M} {J : SmoothAlmostComplexStructure 𝓘(ℝ, E') M}
+  {C : LieComplexification I G IC Gc} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **A weight-zero direction whose limit point leaves the orbit.** Under the hypotheses of
+`tendsto_limitPoint`, with `-μ` equivariant and `G` connected, suppose that some `y` in the
+`Gc`-orbit of `p` and some `ζ ∈ nonzeroPeriods I G` have `C.expI (t • ζ) • y → x` as `t → ∞`,
+where `μ x = 0` and `x` is not in the orbit of `p`. Then some `ξ ∈ nonzeroPeriods I G` has
+`w_μ(p, ξ) = 0` and its limit point `p⁺_ξ` is not in the orbit of `p`. -/
+theorem exists_momentWeight_eq_zero_limitPoint_not_mem_orbit (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {p x y : M} (hy : y ∈ MulAction.orbit Gc p) {ζ : GroupLieAlgebra I G}
+    (hζ : ζ ∈ nonzeroPeriods I G) (hlim : Tendsto (fun t : ℝ ↦ C.expI (t • ζ) • y) atTop (𝓝 x))
+    (hx : μ x = 0) (hxp : x ∉ MulAction.orbit Gc p) :
+    ∃ ξ ∈ nonzeroPeriods I G,
+      momentWeight C μ p ξ = 0 ∧ limitPoint C p ξ ∉ MulAction.orbit Gc p := by
+  obtain ⟨g, hgy⟩ := MulAction.mem_orbit_iff.1 hy
+  -- Write `g⁻¹ = C.toHom u * q` with `q` in the parabolic subgroup of `ζ`, so `p = u q y`.
+  obtain ⟨u, q, hq, hgq⟩ := C.exists_toHom_mul_mem_parabolic ζ g⁻¹
+  have hp : p = C.toHom u • ((⟨q, hq⟩ : C.parabolic ζ) : Gc) • y := by
+    rw [smul_smul, ← hgq, ← hgy, inv_smul_smul]
+  have hxy : limitPoint C y ζ = x := limitPoint_eq_of_tendsto hlim
+  refine ⟨Lie.tangentAd (I := I) u ζ, tangentAd_mem_nonzeroPeriods hζ u, ?_, ?_⟩
+  · rw [hp, momentWeight_toHom_smul h hμ, momentWeight_smul_of_mem_parabolic h hμ hg,
+      momentWeight_eq_moment_limitPoint h hμ.toIsMomentMap hg, hxy, hx, LinearMap.zero_apply]
+  · -- The limit point lies in the orbit of `x`, which is disjoint from that of `p`.
+    have hpx : limitPoint C p (Lie.tangentAd (I := I) u ζ) =
+        (C.toHom u * C.parabolicLimit ζ ⟨q, hq⟩) • x := by
+      rw [hp, limitPoint_toHom_smul h hμ.toIsMomentMap hg,
+        limitPoint_smul_of_mem_parabolic h hμ.toIsMomentMap hg, hxy, mul_smul]
+    rw [hpx, ← MulAction.orbit_eq_iff, MulAction.orbit_smul, MulAction.orbit_eq_iff]
+    exact hxp
+
+end Polystable
 
 end SymplecticGeometry
 

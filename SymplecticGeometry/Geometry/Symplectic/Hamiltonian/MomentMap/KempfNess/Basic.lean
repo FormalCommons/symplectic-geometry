@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import Mathlib.Analysis.CStarAlgebra.Classes
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
@@ -411,10 +412,8 @@ theorem hasDerivAt_moment_apply_expI [ContMDiffSMul IC I' ∞ Gc M]
     HasDerivAt (fun s : ℝ ↦ μ (C.expI (s • η) • p) ξ)
       (-⟪fundamentalVectorField I' ξ (C.expI (t • η) • p),
         fundamentalVectorField I' η (C.expI (t • η) • p)⟫) t := by
-  have hd : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) (C.expI (t • η) • p) := by
-    convert (hμ.mdifferentiableAt ξ (C.expI (t • η) • p)).neg using 1
-    funext y
-    simp
+  have hd : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) (C.expI (t • η) • p) :=
+    (hμ.contMDiff_of_neg ξ).mdifferentiableAt (by simp)
   have hD := Manifold.hasDerivAt_comp_curve hd (h.isMIntegralCurve_expI_smul η p t)
   rwa [← Manifold.inner_mgradient, mgradient_moment_apply hμ hg, inner_neg_left,
     SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg] at hD
