@@ -24,6 +24,12 @@ This file shows that `hD` has Hamiltonian curvature (`HasHamiltonianCurvature`) 
 every such chart and base chart, at every point `x = φ b` of the patch and for all `i j`, the
 one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` is the differential of a smooth function on `F`.
 
+## Main definitions
+
+* `TauCeti.MapFiber.Atlas.HasExactMixedCurl`: at every point of every patch, each one-form
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F` (`TauCeti.RoughForm.mixedCurl` of `ψ^* τ`) is the differential of
+  a smooth function on `F`.
+
 ## Main results
 
 * `TauCeti.IsEhresmannConnection.hasHamiltonianCurvature_iff_local`: the equivalence.
@@ -56,20 +62,53 @@ noncomputable section
 open Set
 open scoped Manifold ContDiff Topology
 
-namespace TauCeti.IsEhresmannConnection
+namespace TauCeti
 
 variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
-  [FiniteDimensional ℝ EB] {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
-  [IB.Boundaryless] {B : Type*} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B]
   {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF]
-  [FiniteDimensional ℝ EF] {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
-  {F : Type*} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
-  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [CompleteSpace EM] {HM : Type*}
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF}
+  {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*}
   [TopologicalSpace HM] {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M]
   [ChartedSpace HM M] [IsManifold IM ∞ M]
   {proj : M → B} {A : MapFiber.Atlas F proj}
 
 attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
+
+namespace MapFiber.Atlas
+
+variable (A) (IB IF) {ι : Type*}
+
+/-- The local form of Hamiltonian curvature: for every chart `e = A.trivAt b'` of `A`, every
+extended chart `φ` of `B` at a point `b₀`, every `b` in the base set of `e` and in the source of
+the chart at `b₀`, and all `i j`, the one-form `∂ᵢαⱼ(φ b) - ∂ⱼαᵢ(φ b)` on `F` is the
+differential of a smooth function `g : F → ℝ`. Here `αₖ` are the mixed components, for `bs`, of
+the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)`, and their curl is
+`TauCeti.RoughForm.mixedCurl`. -/
+def HasExactMixedCurl (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) : Prop :=
+  ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
+    ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
+      mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
+        (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+          ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w
+
+theorem hasExactMixedCurl_def (τ : SmoothTwoForm IM M) (bs : Module.Basis ι ℝ EB) :
+    A.HasExactMixedCurl IB IF τ bs ↔
+      ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
+        ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
+          mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
+            (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+              ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w :=
+  Iff.rfl
+
+end MapFiber.Atlas
+
+variable [FiniteDimensional ℝ EB] [IB.Boundaryless] [IsManifold IB ∞ B] [FiniteDimensional ℝ EF]
+  [IsManifold IF ∞ F] [CompleteSpace EM]
+
+namespace IsEhresmannConnection
 
 /-- At a point `b` of a patch, the curvature read in the chart is the fibre part of a combination
 of the curvatures `Ω'ᵢⱼ` of a connection on `EB × F` on the constant fields, and each `Ω'ᵢⱼ` is
@@ -92,15 +131,9 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
       ∀ i j, (∃ f : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ f ∧ σ.IsHamiltonianVectorField f
           fun y ↦ (hD'.curvature (fun _ ↦ bs i) (fun _ ↦ bs j) (extChartAt IB b₀ b, y)).2) ↔
         ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-          mvfderiv IF g y w =
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-              (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-                ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs j x' y ![w])
-              (extChartAt IB b₀ b) (bs i) -
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-              (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-                ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i x' y ![w])
-              (extChartAt IB b₀ b) (bs j) := by
+          mvfderiv IF g y w = RoughForm.mixedCurl (mpullback (𝓘(ℝ, EB).prod IF) IM
+            (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
+              ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i j (extChartAt IB b₀ b) y w := by
   obtain ⟨U, hU, hbU, τ', hfib, hτ'c, hτ'ψ, hτ'τ⟩ :=
     hA.exists_isVerticallyClosed_eq_mpullback_symm_extChartAt_symm hτ hτσ hb
   have hnd : SmoothTwoForm.IsVerticallyNondegenerate 𝓘(ℝ, EB) Prod.fst τ' :=
@@ -123,7 +156,8 @@ private theorem exists_curvature_of_mem_patch {τ : SmoothTwoForm IM M} {n : ℕ
   rw [hfib] at h
   refine h.trans (exists_congr fun g ↦ and_congr_right fun _ ↦
     forall_congr' fun y ↦ forall_congr' fun w ↦ ?_)
-  rw [(hmix j y w).fderiv_eq, (hmix i y w).fderiv_eq]
+  rw [RoughForm.mixedCurl_def, RoughForm.mixedCurl_def, (hmix j y w).fderiv_eq,
+    (hmix i y w).fderiv_eq]
 
 /-- **Hamiltonian curvature in local coordinates.** Let `A` be a smooth atlas of `proj : M → B`
 with fibre `F`, over a Hausdorff base without boundary modelled on a finite-dimensional space
@@ -133,27 +167,17 @@ form a `C^n` Ehresmann connection `hD`, `1 ≤ n`. Fix a basis `bs` of `EB`. The
 Hamiltonian curvature exactly when, for every chart `e = A.trivAt b'`, every extended chart `φ`
 of `B` at a point `b₀`, every `b` in the base set of `e` and in the source of the chart at `b₀`,
 and all `i j`, some smooth `g : F → ℝ` has as differential the one-form `∂ᵢαⱼ(φ b) - ∂ⱼαᵢ(φ b)`
-on `F`. Here `αₖ(x)` is the mixed component, for `bs`, of the pull-back of `τ` by
-`ψ q = e⁻¹ (φ⁻¹ q.1, q.2)`, and `∂ᵢ` differentiates in `x` along `bs i`. -/
+on `F`: the condition `MapFiber.Atlas.HasExactMixedCurl`. Here `αₖ(x)` is the mixed component,
+for `bs`, of the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)`, and `∂ᵢ` differentiates in `x`
+along `bs i`. -/
 theorem hasHamiltonianCurvature_iff_local [T2Space B] {τ : SmoothTwoForm IM M} {n : ℕ∞ω}
     (hD : IsEhresmannConnection IM IB n proj (SmoothTwoForm.horizontalDistribution IB proj τ))
     (hn : 1 ≤ n) (hA : A.IsContMDiff ∞ IB IF IM) {σ : SmoothTwoForm IF F}
     (hσ : σ.IsNondegenerate) (hτ : SmoothTwoForm.IsVerticallyClosed IB proj τ)
     (hτσ : A.RestrictsTo σ τ) {ι : Type*} [Finite ι] (bs : Module.Basis ι ℝ EB) :
-    hD.HasHamiltonianCurvature A σ ↔
-      ∀ b' b₀ b, b ∈ (A.trivAt b').baseSet ∩ (chartAt HB b₀).source → ∀ i j,
-        ∃ g : F → ℝ, ContMDiff IF 𝓘(ℝ) ∞ g ∧ ∀ (y : F) (w : TangentSpace IF y),
-          mvfderiv IF g y w =
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-              (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-                ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs j x' y ![w])
-              (extChartAt IB b₀ b) (bs i) -
-            fderiv ℝ (fun x' ↦ RoughForm.mixedComponent (mpullback (𝓘(ℝ, EB).prod IF) IM
-              (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-                ((extChartAt IB b₀).symm q.1, q.2)) τ.val) bs i x' y ![w])
-              (extChartAt IB b₀ b) (bs j) := by
+    hD.HasHamiltonianCurvature A σ ↔ A.HasExactMixedCurl IB IF τ bs := by
   have := Fintype.ofFinite ι
-  rw [hasHamiltonianCurvature_def]
+  rw [hasHamiltonianCurvature_def, MapFiber.Atlas.hasExactMixedCurl_def]
   constructor
   · intro H b' b₀ b hb i j
     obtain ⟨τ', hD', hsum, hiff⟩ := exists_curvature_of_mem_patch hD hn hA hσ hτ hτσ bs hb
@@ -210,6 +234,8 @@ theorem hasHamiltonianCurvature_iff_local [T2Space B] {τ : SmoothTwoForm IM M} 
         fun j _ ↦ (hcf i j).mdifferentiable (by simp)
     · exact (hcs i).mdifferentiable (by simp)
 
-end TauCeti.IsEhresmannConnection
+end IsEhresmannConnection
+
+end TauCeti
 
 end

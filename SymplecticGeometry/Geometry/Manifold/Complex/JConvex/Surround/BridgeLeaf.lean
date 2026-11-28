@@ -471,7 +471,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
   have hr₀ : 0 < r := hδ.trans hr
   have hη : (0 : ℝ) < δ / 200 := by positivity
   have hAc : ContDiffAt ℝ 2 (sqrtAddLeaf L δ ℓ) r :=
-    ((contDiffOn_sqrtAddLeaf L hδ.le ℓ).contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)
+    (contDiffOn_sqrtAddLeaf L hδ.le ℓ).contDiffAt (Ioi_mem_nhds hr)
   have hPc : ContDiffAt ℝ 2 (fun x ↦ struweLineShape δ x + t) r :=
     (((contDiffOn_struweLineShape hδ).contDiffAt (Ioi_mem_nhds hr)).of_le (by simp)).add
       contDiffAt_const
@@ -1152,7 +1152,7 @@ theorem contDiffOn_bridgeFamily {n : ℕ∞} {L ℓ₀ M ℓ : ℝ} (hδ : 0 < �
   rw [bridgeFamily_def]
   split_ifs with h15 h0
   · exact contDiffOn_bridgeLeaf hδ _
-      ((contDiffOn_sqrtAddLeaf L hδ.le ℓ).of_le (by exact_mod_cast le_top)) _
+      (contDiffOn_sqrtAddLeaf L hδ.le ℓ) _
   · refine contDiffOn_bridgeLeaf hδ _ (fun r hr ↦ ?_) _
     have hr : 0 < r := hδ.trans hr
     exact (ContDiffAt.sqrt (by fun_prop) (by positivity)).contDiffWithinAt

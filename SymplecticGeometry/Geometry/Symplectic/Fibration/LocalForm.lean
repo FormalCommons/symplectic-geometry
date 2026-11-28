@@ -73,6 +73,8 @@ since it inverts the flat maps of the smooth family `σ`.
 
 * `TauCeti.RoughForm.fiberComponent τ x`: the slice of `τ` over `x`.
 * `TauCeti.RoughForm.mixedComponent τ bs i x`: the one-form `αᵢ(x)` on `F`.
+* `TauCeti.RoughForm.mixedCurl τ bs i j x y w`: the value at `w ∈ T_y F` of the one-form
+  `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F`.
 * `TauCeti.RoughForm.baseComponent τ bs i j x`: the function `f_{ij}(x)` on `F`.
 * `TauCeti.RoughForm.fderivFiberComponent τ x v`: the derivative `∂_v σ(x)` of the slices along
   `v ∈ EB`, a two-form on `F`.
@@ -282,6 +284,30 @@ theorem mixedComponent_apply (i : ι) (x : EB) (y : F) (w : TangentSpace IF y) :
     Prod.ext (Manifold.prodVectorField_fst _ _ _) (Manifold.prodVectorField_snd _ _ _)
   rw [hX]
   exact (τ (x, y)).apply_vecCons_swap _ _
+
+/-- The **mixed curl** of a two-form `τ` on `EB × F`, for the basis `bs` of `EB`: the value at
+`w ∈ T_y F` of the one-form `∂ᵢαⱼ(x) - ∂ⱼαᵢ(x)` on `F`, where `αₖ` is the mixed component
+`mixedComponent τ bs k` and `∂ₖ` differentiates in `x` along `bs k`. -/
+def mixedCurl (i j : ι) (x : EB) (y : F) (w : TangentSpace IF y) : ℝ :=
+  fderiv ℝ (fun x' ↦ τ.mixedComponent bs j x' y ![w]) x (bs i) -
+    fderiv ℝ (fun x' ↦ τ.mixedComponent bs i x' y ![w]) x (bs j)
+
+theorem mixedCurl_def (i j : ι) (x : EB) (y : F) (w : TangentSpace IF y) :
+    τ.mixedCurl bs i j x y w =
+      fderiv ℝ (fun x' ↦ τ.mixedComponent bs j x' y ![w]) x (bs i) -
+        fderiv ℝ (fun x' ↦ τ.mixedComponent bs i x' y ![w]) x (bs j) :=
+  (rfl)
+
+/-- The mixed curl is antisymmetric in `i` and `j`. -/
+theorem mixedCurl_swap (i j : ι) (x : EB) (y : F) (w : TangentSpace IF y) :
+    τ.mixedCurl bs j i x y w = -τ.mixedCurl bs i j x y w := by
+  rw [mixedCurl_def, mixedCurl_def, neg_sub]
+
+/-- The mixed curl vanishes on the diagonal. -/
+@[simp]
+theorem mixedCurl_self (i : ι) (x : EB) (y : F) (w : TangentSpace IF y) :
+    τ.mixedCurl bs i i x y w = 0 := by
+  rw [mixedCurl_def, sub_self]
 
 /-- The **base component** `f_{ij}(x)` of a two-form `τ` on `EB × F`, for the basis `bs` of
 `EB`: the function on `F` whose value at `y` is `τ` at `(x, y)` on the fields `(bs i, 0)` and
