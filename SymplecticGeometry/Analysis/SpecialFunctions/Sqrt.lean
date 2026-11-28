@@ -69,11 +69,7 @@ theorem deriv_sqrt_mul_sq_add_le {a c r : ℝ} (ha : 0 ≤ a) (hc : 0 ≤ c) :
   · -- Where `a r² + c = 0` the map has a local minimum, so its slope there is `0`.
     have hmin : IsLocalMin (fun r ↦ √(a * r ^ 2 + c)) r :=
       Filter.Eventually.of_forall fun x ↦ by simp only [← h, sqrt_zero, sqrt_nonneg]
-    by_cases hd : DifferentiableAt ℝ (fun r ↦ √(a * r ^ 2 + c)) r
-    · rw [hmin.deriv_eq_zero]
-      exact sqrt_nonneg a
-    · rw [deriv_zero_of_not_differentiableAt hd]
-      exact sqrt_nonneg a
+    exact hmin.deriv_eq_zero ▸ sqrt_nonneg a
 
 /-- The second derivative of `r ↦ √(a r² - c)` at each `r` with `a r² - c > 0` is
 `-a c / √(a r² - c)³`. -/
