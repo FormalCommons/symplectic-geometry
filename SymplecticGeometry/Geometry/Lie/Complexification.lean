@@ -316,11 +316,9 @@ def im : GroupLieAlgebra IC Gc →ₗ[ℝ] GroupLieAlgebra I G :=
 theorem re_lieMap (ξ : GroupLieAlgebra I G) : C.re (C.lieMap ξ) = ξ :=
   LinearMap.linearProjOfIsCompl_apply_left _ _ _ _ ξ
 
-@[simp]
 theorem re_cplx_lieMap (ξ : GroupLieAlgebra I G) : C.re (C.cplx (C.lieMap ξ)) = 0 :=
   LinearMap.linearProjOfIsCompl_apply_right' _ _ _ _ _ ⟨ξ, rfl⟩
 
-@[simp]
 theorem im_cplx_lieMap (ξ : GroupLieAlgebra I G) : C.im (C.cplx (C.lieMap ξ)) = ξ :=
   LinearMap.linearProjOfIsCompl_apply_left _ _ _ _ ξ
 
@@ -351,7 +349,7 @@ theorem lieMap_re_add_cplx_lieMap_im (x : GroupLieAlgebra IC Gc) :
     C.lieMap (C.re x) + C.cplx (C.lieMap (C.im x)) = x := by
   obtain ⟨_, ⟨ξ, rfl⟩, _, ⟨η, rfl⟩, rfl⟩ :=
     Submodule.mem_sup.1 (C.isCompl_range_lieMap.sup_eq_top ▸ Submodule.mem_top (x := x))
-  simp
+  simp [re_cplx_lieMap, im_cplx_lieMap]
 
 /-- The real part of a bracket: `re ⁅x, y⁆ = ⁅re x, re y⁆ - ⁅im x, im y⁆`. -/
 @[simp]
@@ -382,12 +380,14 @@ theorem im_lie_cplx_lieMap (ξ : GroupLieAlgebra I G) (x : GroupLieAlgebra IC Gc
   rw [im_lie, re_cplx_lieMap, im_cplx_lieMap, zero_lie, zero_add]
 
 /-- The real part of an image under the complex structure: `re (cplx x) = -im x`. -/
+@[simp]
 theorem re_cplx (x : GroupLieAlgebra IC Gc) : C.re (C.cplx x) = -C.im x := by
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
   rw [map_add, AlmostComplexStructure.apply_apply, map_add, map_neg, re_cplx_lieMap, re_lieMap,
     zero_add]
 
 /-- The imaginary part of an image under the complex structure: `im (cplx x) = re x`. -/
+@[simp]
 theorem im_cplx (x : GroupLieAlgebra IC Gc) : C.im (C.cplx x) = C.re x := by
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x]
   rw [map_add, AlmostComplexStructure.apply_apply, map_add, map_neg, im_cplx_lieMap, im_lieMap,
