@@ -26,12 +26,18 @@ degree `k`:
   every `n` (from Tau Ceti's `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`), and
   `MemTrivializationAtlas` for its local trivializations `(twistCore k).localTriv y`;
 * `OnePoint.twistTransition_ne_zero`: the transition functions do not vanish on chart overlaps;
+* `OnePoint.mdifferentiableAt_div_twistCore`: the quotient of two sections of `𝒪(k)` that are
+  real differentiable at a point is real differentiable there where the denominator is nonzero;
 * `OnePoint.twistCore_localTriv_symmL_apply`: over the chart at `y`, the real frame of the
   trivialization at `y` is multiplication by a transition function;
 * `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars;
 * `OnePoint.contMDiff_div_smul_twistCore_hom`: multiplying a `C^n` one-form with values in `𝒪(k)`
   by `χ / σ`, for a `C^n` real function `χ` and a `C^n` section `σ` of `𝒪(k)` that does not
   vanish on the closed support of `χ`, gives a `C^n` complex valued one-form.
+
+The proof of `OnePoint.mdifferentiableAt_div_twistCore` reads the quotient as the quotient of
+coordinates in a trivialization, as in the differentiability step of Tau Ceti's
+`TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul`.
 
 Files using the real structure `open scoped VectorBundle.ComplexToReal`.
 -/
@@ -91,6 +97,35 @@ theorem twistCore_localTriv_symmL_smul (y x : OnePoint ℂ) (c w : ℂ) :
       ← Trivialization.symmL_apply (R := ℂ) _ hb, ← Trivialization.symmL_apply (R := ℂ) _ hb,
       map_smul]
   · simp [Trivialization.symmL_apply_of_notMem _ hb]
+
+/-- The quotient `p ↦ s p / t p` of two sections of `𝒪(k)` that are real differentiable at `x`
+is real differentiable at `x` if `t x ≠ 0`. The quotient is a function, since `s p` and `t p`
+lie in the same fibre. -/
+theorem mdifferentiableAt_div_twistCore (k : ℤ) {s t : OnePoint ℂ → ℂ} {x : OnePoint ℂ}
+    (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (s p)) x)
+    (ht : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) x)
+    (hx : t x ≠ 0) :
+    MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ s p / t p) x := by
+  -- The coordinates of `s` and `t` in the trivialization at `x`.
+  have hxx : x ∈ ((twistCore (𝕜 := ℂ) k).localTriv x).baseSet := by simp
+  have hcs := ((twistCore (𝕜 := ℂ) k).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) s
+    hxx |>.1 hs
+  have hct := ((twistCore (𝕜 := ℂ) k).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
+    hxx |>.1 ht
+  simp only [twistCore_localTriv_apply] at hcs hct
+  have hct0 : twistTransition k x x x * t x ≠ 0 := by
+    rwa [twistTransition_self, one_mul]
+  have hinv : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ)
+      (fun p ↦ (twistTransition k p x p * t p)⁻¹) x :=
+    (differentiableAt_inv (𝕜 := ℝ) hct0).comp_mdifferentiableAt
+      (f := fun p ↦ twistTransition k p x p * t p) hct
+  -- Near `x` the quotient is the quotient of the coordinates.
+  refine (hcs.mul hinv).congr_of_eventuallyEq ?_
+  filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
+  rw [Pi.mul_apply, ← div_eq_mul_inv, mul_div_mul_left _ _
+    (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)]
 
 open scoped TauCeti.ComplexManifold in
 /-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section

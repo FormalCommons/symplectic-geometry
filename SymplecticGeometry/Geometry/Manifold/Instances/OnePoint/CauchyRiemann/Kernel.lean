@@ -32,6 +32,7 @@ import TauCeti.Topology.Algebra.Module.ComplexSmulI
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Topology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.FrameTopology
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.ContDiffBound
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.Basic
 
 /-!
 # Kernels of Cauchy–Riemann operators on `𝒪(1)` over the sphere
@@ -106,13 +107,16 @@ derivative of the coordinate is invertible, and so is the linearization
 (`TauCeti.surjective_sectionLinearization_iff`).
 
 For the quotient `u = s / t` of two kernel elements near a point where `t ≠ 0`, `u` is the
-quotient of the coordinates of `s` and `t` in the frame of the chart, hence differentiable, and
-`s = u • t` near the point. Since `D_J` is complex linear, Tau Ceti's Leibniz rule
-`TauCeti.IsRealCauchyRiemannOperator.leibniz_complex` gives `0 = D_J s = u D_J t + (∂bar_J u) ⊗ t`,
-which is `(∂bar_J u) ⊗ t`; as `t ≠ 0` there, `∂bar_J u = 0`
-(`TauCeti.SmoothAlmostComplexStructure.zeroOnePart_smulRight_eq_zero_iff`), which is the
-pseudoholomorphy of `u`
-(`TauCeti.SmoothAlmostComplexStructure.dbarFunction_eq_zero_iff_isPseudoholomorphicAt`).
+quotient of the coordinates of `s` and `t` in the frame of the chart, hence differentiable
+(`OnePoint.mdifferentiableAt_div_twistCore`), and `s = u • t` near the point, so that
+`D_J (u • t) = D_J s = 0` there by locality
+(`TauCeti.IsRealCauchyRiemannOperator.apply_eq_of_eventuallyEq`). As `D_J` is complex linear,
+`t ≠ 0` and `D_J t = 0`, this is the pseudoholomorphy of `u`
+(`TauCeti.IsRealCauchyRiemannOperator.apply_smul_eq_zero_iff_isPseudoholomorphicAt`, from the
+Leibniz rule `TauCeti.IsRealCauchyRiemannOperator.leibniz_complex`). This adapts Tau Ceti's
+`TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul` and
+`TauCeti.IsRealCauchyRiemannOperator.apply_smul_eq_zero_iff`, stated over a complex manifold, to
+an arbitrary structure `J` on the sphere.
 
 For the index, give the structures tamed by `σ` the `C^∞` topology in the preferred frames of the
 endomorphism bundle of the tangent bundle. There they form a contractible space
@@ -357,44 +361,23 @@ theorem isPseudoholomorphicAt_div_of_mem_twistOneKernel {s t : OnePoint ℂ → 
   obtain ⟨ht₁, ht₂⟩ := (mem_twistOneKernel_iff J).1 ht
   have hsx := hs₁.mdifferentiableAt (x := x) (by simp)
   have htx := ht₁.mdifferentiableAt (x := x) (by simp)
-  -- The coordinates of `s` and `t` in the frame of the chart at `x`.
-  have hxx : x ∈ ((twistCore (𝕜 := ℂ) 1).localTriv x).baseSet := by simp
-  have hcs := ((twistCore (𝕜 := ℂ) 1).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) s
-    hxx |>.1 hsx
+  have hu := OnePoint.mdifferentiableAt_div_twistCore 1 hsx htx hx
+  -- Near `x`, `s` is the quotient times `t`.
+  -- `t` does not vanish near `x`, since its coordinate in the frame at `x` does not.
   have hct := ((twistCore (𝕜 := ℂ) 1).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
-    hxx |>.1 htx
-  simp only [OnePoint.twistCore_localTriv_apply] at hcs hct
+    (by simp) |>.1 htx
+  simp only [OnePoint.twistCore_localTriv_apply] at hct
   have hct0 : OnePoint.twistTransition 1 x x x * t x ≠ 0 := by
     rwa [OnePoint.twistTransition_self, one_mul]
-  have hU : ∀ᶠ p in 𝓝 x,
-      p ∈ (chartAt ℂ x).source ∧ OnePoint.twistTransition 1 p x p * t p ≠ 0 :=
-    ((chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)).and
-      (hct.continuousAt.eventually_ne hct0)
-  -- Near `x` the quotient is the quotient of the coordinates, so it is differentiable at `x`.
-  have hu : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ s p / t p) x := by
-    have hinv : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ)
-        (fun p ↦ (OnePoint.twistTransition 1 p x p * t p)⁻¹) x :=
-      (differentiableAt_inv (𝕜 := ℝ) hct0).comp_mdifferentiableAt
-        (f := fun p ↦ OnePoint.twistTransition 1 p x p * t p) hct
-    refine (hcs.mul hinv).congr_of_eventuallyEq ?_
-    filter_upwards [hU] with p hp
-    rw [Pi.mul_apply, ← div_eq_mul_inv, mul_div_mul_left _ _
-      (OnePoint.twistTransition_ne_zero 1 (mem_chart_source ℂ p) hp.1)]
-  -- Near `x`, `s` is the quotient times `t`; the Leibniz rule then leaves `∂bar` of the quotient.
   let t' : Π p, (twistCore (𝕜 := ℂ) 1).Fiber p := t
   have hst : ∀ᶠ p in 𝓝 x, ((fun p ↦ s p / t p) • t') p = s p := by
-    filter_upwards [hU] with p hp
+    filter_upwards [hct.continuousAt.eventually_ne hct0] with p hp
     -- The fibres of `𝒪(1)` are `ℂ`, with its multiplication as scalar action.
-    exact div_mul_cancel₀ (s p) (right_ne_zero_of_mul hp.2)
+    exact div_mul_cancel₀ (s p) (right_ne_zero_of_mul hp)
   have hD := isRealCauchyRiemannOperator_twistOneDelBar J
-  have h : twistOneDelBar J ((fun p ↦ s p / t p) • t') x = twistOneDelBar J s x :=
-    hD.apply_eq_of_eventuallyEq hsx hst
-  rw [hD.leibniz_complex (isComplexLinearOperator_twistOneDelBar J) htx hu, congrFun hs₂ x,
-    congrFun ht₂ x, Pi.zero_apply, smul_zero, zero_add] at h
-  rw [← SmoothAlmostComplexStructure.dbarFunction_eq_zero_iff_isPseudoholomorphicAt _ hu,
-    SmoothAlmostComplexStructure.dbarFunction_eq_zero_iff]
-  simpa only [smul_eq_mul] using (SmoothAlmostComplexStructure.zeroOnePart_smulRight_eq_zero_iff
-    (V := (twistCore (𝕜 := ℂ) 1).Fiber) _ (w := t' x) hx).1 h
+  rw [← (hD.apply_smul_eq_zero_iff_isPseudoholomorphicAt (isComplexLinearOperator_twistOneDelBar J)
+    htx hx (congrFun ht₂ x) hu), hD.apply_eq_of_eventuallyEq hsx hst, congrFun hs₂ x,
+    Pi.zero_apply]
 
 /-- **The quotient of two kernel elements on `𝒪(1)` is `J`-holomorphic.** For smooth sections
 `s` and `t` of `𝒪(1)` with `D_J s = D_J t = 0`, the function `p ↦ s p / t p` is
