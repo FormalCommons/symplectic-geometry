@@ -191,7 +191,7 @@ Horizontal lifts of curves and parallel transport.
   where needed:
   - `parallelTransport_eq` (`hD.parallelTransport γ s t x = c t` for every
     such lift `c`; the characterization, used instead of the definition),
-    `parallelTransport_mem_preimage` (it lies over `γ t`),
+    `apply_parallelTransport` (it lies over `γ t`),
     `parallelTransport_self` (`s = t` gives `x`, with no hypothesis),
     `parallelTransport_parallelTransport` (from `s` to `t`, then from `t` to
     `u`, is from `s` to `u`), and so `bijOn_parallelTransport` and

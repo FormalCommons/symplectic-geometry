@@ -11,12 +11,14 @@ import Mathlib.Analysis.Calculus.ContDiff.Operations
 import TauCeti.Analysis.Calculus.ContDiff.Prod
 
 /-!
-# Smoothness of the partial derivative in the first variable
+# Smoothness of the partial derivatives of a map on a product
 
-`ContDiffAt.fderiv_slice_left`: if `f : P × E → X` is `Cⁿ` at `(p, x)` and `m + 1 ≤ n`, then
-the partial derivative of `f` in the first variable, `q ↦ fderiv 𝕜 (fun l ↦ f (l, q.2)) q.1`,
-is `Cᵐ` at `(p, x)`. This is the first-variable counterpart of Tau Ceti's
-`ContDiffAt.fderiv_slice`, from which it follows by swapping the two factors.
+* `ContDiffAt.fderiv_slice_left`: if `f : P × E → X` is `Cⁿ` at `(p, x)` and `m + 1 ≤ n`, then
+  the partial derivative of `f` in the first variable, `q ↦ fderiv 𝕜 (fun l ↦ f (l, q.2)) q.1`,
+  is `Cᵐ` at `(p, x)`. This is the first-variable counterpart of Tau Ceti's
+  `ContDiffAt.fderiv_slice`, from which it follows by swapping the two factors.
+* `ContDiff.fderiv_slice_left` and `ContDiff.fderiv_slice`: the global forms, for a map that is
+  `Cⁿ` everywhere, of the partial derivatives in the first and in the second variable.
 -/
 
 public section
@@ -37,5 +39,28 @@ theorem fderiv_slice_left {n m : WithTop ℕ∞} {f : P × E → X} {p : P} {x :
     (contDiffAt_snd.prodMk contDiffAt_fst)
 
 end ContDiffAt
+
+namespace ContDiff
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {P : Type*} [NormedAddCommGroup P] [NormedSpace 𝕜 P]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {X : Type*} [NormedAddCommGroup X] [NormedSpace 𝕜 X]
+
+/-- The partial derivative in the first variable of a `Cⁿ` map on a product is `Cᵐ`, jointly in
+both variables, for `m + 1 ≤ n`. -/
+theorem fderiv_slice_left {n m : WithTop ℕ∞} {f : P × E → X} (hf : ContDiff 𝕜 n f)
+    (hmn : m + 1 ≤ n) :
+    ContDiff 𝕜 m (fun q : P × E ↦ fderiv 𝕜 (fun l ↦ f (l, q.2)) q.1) :=
+  contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.fderiv_slice_left hmn
+
+/-- The partial derivative in the second variable of a `Cⁿ` map on a product is `Cᵐ`, jointly in
+both variables, for `m + 1 ≤ n`. -/
+theorem fderiv_slice {n m : WithTop ℕ∞} {f : P × E → X} (hf : ContDiff 𝕜 n f)
+    (hmn : m + 1 ≤ n) :
+    ContDiff 𝕜 m (fun q : P × E ↦ fderiv 𝕜 (fun y ↦ f (q.1, y)) q.2) :=
+  contDiff_iff_contDiffAt.2 fun _ ↦ hf.contDiffAt.fderiv_slice hmn
+
+end ContDiff
 
 end

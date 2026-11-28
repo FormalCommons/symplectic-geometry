@@ -463,9 +463,8 @@ theorem twistOneKernelEval_injective (hJ : σ.Tames J) (hi : σ.Tames 𝒊) :
   by_contra hs₀
   have h0 : s.val ((0 : ℂ) : OnePoint ℂ) = 0 := congrArg Prod.fst hs
   have hinf : s.val OnePoint.infty = 0 := congrArg Prod.snd hs
-  obtain ⟨z, -, hz⟩ := existsUnique_eq_zero_of_mem_twistOneKernel hJ hi s.property
-    (fun h ↦ hs₀ (Subtype.ext h))
-  exact OnePoint.coe_ne_infty _ ((hz _ h0).trans (hz _ hinf).symm)
+  exact OnePoint.coe_ne_infty _ (eq_of_mem_twistOneKernel_of_eq_zero hJ hi s.property
+    (fun h ↦ hs₀ (Subtype.ext h)) h0 hinf)
 
 /-- The complex dimension of `twistOneKernel J` is at most two, by
 `twistOneKernelEval_injective`. -/
@@ -531,15 +530,14 @@ theorem exists_smul_eq_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames �
     ∃ c : ℂ, c • s = t := by
   -- At a second point `y`, the section `s` does not vanish; match `t` there.
   obtain ⟨y, hyx⟩ : ∃ y : OnePoint ℂ, y ≠ x := exists_ne x
-  have hsy : s y ≠ 0 := fun h ↦
-    hyx ((existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hs hs₀).unique h hsx)
+  have hsy : s y ≠ 0 := fun h ↦ hyx (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hs hs₀ h hsx)
   refine ⟨t y / s y, ?_⟩
   by_contra hne
   have hu : t - (t y / s y) • s ∈ twistOneKernel J := sub_mem ht (Submodule.smul_mem _ _ hs)
   have hu₀ : t - (t y / s y) • s ≠ 0 := sub_ne_zero.2 (Ne.symm hne)
   have hux : (t - (t y / s y) • s) x = 0 := by simp [hsx, htx]
   have huy : (t - (t y / s y) • s) y = 0 := by simp [div_mul_cancel₀ _ hsy]
-  exact hyx ((existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hu hu₀).unique huy hux)
+  exact hyx (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hu hu₀ huy hux)
 
 /-- **The kernel elements vanishing at a point form a complex line.** Let a two-form `σ` on the
 sphere tame both `J` and the standard structure `i`. Then for every point `x` of the sphere, the

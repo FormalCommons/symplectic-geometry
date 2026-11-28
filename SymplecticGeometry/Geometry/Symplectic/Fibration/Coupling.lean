@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.FiberIntegral.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.RestrictsTo
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import SymplecticGeometry.Geometry.Symplectic.Fibration.HorizontalDistribution
@@ -12,10 +13,12 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 import SymplecticGeometry.Geometry.Symplectic.Fibration.Curvature
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
 import SymplecticGeometry.Topology.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
@@ -54,6 +57,17 @@ For compact `F`, the integral is additive in `τ` (`fiberMean_add`), and adding 
 two-form `β` on `B` adds `V • β(w₁, w₂)`, where `V` is the integral of `σᵏ / k!` over `F`
 (`fiberMean_add_mpullback`), since the horizontal lifts project to `w₁` and `w₂`; `V` is positive
 when `F` is nonempty (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`).
+
+Let now `τ` restrict to `σ` on the fibres and have `D` as its horizontal distribution, and let
+the atlas preserve the symplectic orientation of `F`. The fibre integral of `τ ^ (k + 1)`, a form
+of degree `2 + 2 * k` after the cast `2 * (k + 1) = 2 + 2 * k`, takes the value
+`(k + 1) * k! * fiberMean τ b w₁ w₂` at `b` on `w₁, w₂` (`fiberIntegral_wedgePow_apply`). It is
+computed from `MapFiber.Atlas.fiberIntegral_apply_of_lift` with the horizontal lifts as the lifts
+of `w₁` and `w₂`: these are `τ`-orthogonal to the tangent spaces of the fibres, so
+`ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero` turns the integrand into
+`(k + 1) τ(w₁♯, w₂♯) σᵏ`, and `σᵏ = k! • σᵏ / k!`. So the fibre integral of `τ ^ (k + 1)`
+vanishes exactly when `fiberMean τ` does (`fiberIntegral_wedgePow_eq_zero_iff`); this is how
+[McDuffSalamon2017], equations (6.4.3) and (6.4.4), relate the two normalizations.
 
 ## Closed forms with the same fibres and connection
 
@@ -103,6 +117,10 @@ smooth form `β` on `B` with `τ' - τ = proj^* β`, by Tau Ceti's
 * `TauCeti.IsEhresmannConnection.fiberMean_add`: additivity in `τ`.
 * `TauCeti.IsEhresmannConnection.fiberMean_add_mpullback`: the effect of adding a pull-back from
   the base.
+* `TauCeti.IsEhresmannConnection.fiberIntegral_wedgePow_apply`: the fibre integral of
+  `τ ^ (k + 1)` is `(k + 1) * k!` times `fiberMean τ`.
+* `TauCeti.IsEhresmannConnection.fiberIntegral_wedgePow_eq_zero_iff`: it vanishes exactly when
+  `fiberMean τ` does.
 * `TauCeti.MapFiber.Atlas.isSemibasic_sub_of_horizontalDistribution_eq`: the difference of two
   forms with the same restriction to the fibres and the same connection is semibasic.
 * `TauCeti.MapFiber.Atlas.isBasic_sub_of_horizontalDistribution_eq`: the difference of two closed
@@ -271,6 +289,80 @@ theorem fiberMean_add_mpullback [CompactSpace F] [IsManifold IB ∞ B]
   congr 1
   funext y
   rw [hβ, Pi.smul_apply]
+
+variable [IsManifold IB ∞ B] [FiniteDimensional ℝ EB] [BoundarylessManifold IB B] [CompactSpace F]
+  [T2Space F]
+
+omit [IsManifold IB 1 B] in
+/-- **The fibre integral of the top wedge power.** Let `τ` restrict to `σ` along a smooth atlas `A`
+of `proj` whose coordinate changes preserve the symplectic orientation of `F`, and let `D` be the
+horizontal distribution of `τ`. Then the fibre integral of `τ ^ (k + 1)`, read in degree
+`2 + 2 * k`, takes the value `(k + 1) * k! * fiberMean τ b w₁ w₂` at `b` on `w₁, w₂`. -/
+theorem fiberIntegral_wedgePow_apply {A : MapFiber.Atlas F proj} (hA : A.IsContMDiff ∞ IB IF IM)
+    (hσ : σ.IsNondegenerate) (hk : finrank ℝ EF = 2 * k) {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ho : A.HasStructureGroup
+      (Diffeomorph.orientationPreservingSubgroup hn (hσ.volumeOrientation hk)))
+    {τ : SmoothTwoForm IM M} (hτ : A.RestrictsTo σ τ)
+    (hτD : SmoothTwoForm.horizontalDistribution IB proj τ = D) (b : B)
+    (w₁ w₂ : TangentSpace IB b) :
+    (A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun q ↦ SmoothForm IM M ℝ q)
+        (by ring : 2 * (k + 1) = 2 + 2 * k) (τ.wedgePow (k + 1)))).val b ![w₁, w₂] =
+      (k + 1) * k.factorial * hD.fiberMean A hσ hk τ b w₁ w₂ := by
+  have hb := A.mem_baseSet_trivAt b
+  rw [MapFiber.Atlas.fiberIntegral_apply_of_lift _ hA ho _ hb ![w₁, w₂]
+    (X := fun i y ↦ (hD.horizontalLift _ (![w₁, w₂] i)).val)
+    (fun i y ↦ hD.mfderiv_horizontalLift _ _), fiberMean_def, ← integralTopForm_smul]
+  congr 1
+  funext y
+  ext v
+  set x := (A.trivAt b).toOpenPartialHomeomorph.symm (b, y)
+  set dι := mfderiv IF IM (fun y ↦ (A.trivAt b).toOpenPartialHomeomorph.symm (b, y)) y
+  -- On the fibre, `τ ^ k` is `σ ^ k`, since `τ` restricts to `σ`.
+  have hσk : (σ.val y).wedgePow k v = (τ.val x).wedgePow k (fun i ↦ dι (v i)) := by
+    rw [← MapFiber.Atlas.restrictsTo_iff.1 hτ b b hb, ← TauCeti.mpullback_wedgePow_apply,
+      TauCeti.mpullback_apply, SmoothForm.wedgePow_apply, Trivialization.coe_fiberInclusionMap]
+  -- The horizontal lift of `w₁` pairs to zero with every vector tangent to the fibre.
+  have hlift (j : Fin (2 * k)) : τ.val x ![(hD.horizontalLift x w₁).val, dι (v j)] = 0 := by
+    have hη := (A.trivAt b).mfderiv_proj_mfderiv_fiberInclusionMap_apply (IM := IM) (IB := IB)
+      hb y (v j)
+    rw [Trivialization.coe_fiberInclusionMap] at hη
+    subst hτD
+    exact SmoothTwoForm.val_eq_zero_of_mem_horizontalDistribution_of_mem_ker
+      (hD.horizontalLift _ w₁).property hη
+  rw [ContinuousAlternatingMap.compContinuousLinearMap_apply,
+    ContinuousAlternatingMap.appendLeft_apply, SmoothForm.cast_apply, SmoothForm.wedgePow_apply,
+    ContinuousAlternatingMap.wedgePow_succ_apply_append_of_eq_zero _ hlift]
+  have hu : (fun i ↦ (hD.horizontalLift x (![w₁, w₂] i)).val) =
+      ![(hD.horizontalLift x w₁).val, (hD.horizontalLift x w₂).val] := by
+    ext i
+    fin_cases i <;> simp
+  rw [Function.comp_def, ← hσk, hu, ← SmoothForm.wedgePow_apply,
+    SmoothTwoForm.wedgePow_eq_factorial_smul_volumeForm]
+  simp only [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, Submodule.coe_smul, smul_eq_mul]
+  ring
+
+omit [IsManifold IB 1 B] in
+/-- **The normalization in terms of `fiberMean`.** Under the hypotheses of
+`fiberIntegral_wedgePow_apply`, the fibre integral of `τ ^ (k + 1)` vanishes exactly when
+`fiberMean τ b w₁ w₂` vanishes for every point `b` and all tangent vectors `w₁ w₂` at `b`. -/
+theorem fiberIntegral_wedgePow_eq_zero_iff {A : MapFiber.Atlas F proj}
+    (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsNondegenerate) (hk : finrank ℝ EF = 2 * k)
+    {hn : (∞ : ℕ∞ω) ≠ 0}
+    (ho : A.HasStructureGroup
+      (Diffeomorph.orientationPreservingSubgroup hn (hσ.volumeOrientation hk)))
+    {τ : SmoothTwoForm IM M} (hτ : A.RestrictsTo σ τ)
+    (hτD : SmoothTwoForm.horizontalDistribution IB proj τ = D) :
+    A.fiberIntegral hA ho (LinearEquiv.cast (R := ℝ) (M := fun q ↦ SmoothForm IM M ℝ q)
+        (by ring : 2 * (k + 1) = 2 + 2 * k) (τ.wedgePow (k + 1))) = 0 ↔
+      ∀ b w₁ w₂, hD.fiberMean A hσ hk τ b w₁ w₂ = 0 := by
+  have hc : ((k : ℝ) + 1) * k.factorial ≠ 0 := by positivity
+  refine ⟨fun h b w₁ w₂ ↦ ?_, fun h ↦ SmoothBundleForm.ext fun b v ↦ ?_⟩
+  · have hb := hD.fiberIntegral_wedgePow_apply hA hσ hk ho hτ hτD b w₁ w₂
+    rw [h] at hb
+    exact (mul_eq_zero.1 hb.symm).resolve_left hc
+  · rw [show v = ![v 0, v 1] from (FinVec.etaExpand_eq v).symm,
+      hD.fiberIntegral_wedgePow_apply hA hσ hk ho hτ hτD, h, mul_zero,
+      SmoothBundleForm.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
 
 end TauCeti.IsEhresmannConnection
 
