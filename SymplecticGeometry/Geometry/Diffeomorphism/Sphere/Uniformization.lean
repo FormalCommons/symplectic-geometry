@@ -575,28 +575,25 @@ theorem exists_continuousAt_mem_twistOneKernel_eq_zero (hcover : ∀ x, ∃ i, x
     convert v.linearIndependent
     ext i
     fin_cases i <;> rfl
-  -- Evaluation at `p` is continuous for the frame system of the trivializations at each point,
-  -- so `J ↦ T J s p` is continuous at `J₀`.
-  let e₁ (x : ULift.{u} (OnePoint ℂ)) := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber x.down
-  let U₁ (x : ULift.{u} (OnePoint ℂ)) : TopologicalSpace.Opens (OnePoint ℂ) :=
-    ⟨_, (e₁ x).open_baseSet⟩
+  -- Evaluation at `p` is continuous for the frame at `p` alone, so `J ↦ T J s p` is continuous
+  -- at `J₀`.
+  let e₁ (_ : PUnit.{u + 1}) := trivializationAt ℂ (twistCore (𝕜 := ℂ) 1).Fiber p
+  let U₁ (_ : PUnit.{u + 1}) : TopologicalSpace.Opens (OnePoint ℂ) := ⟨_, (e₁ ⟨⟩).open_baseSet⟩
   have hU₁ : ∀ x, (U₁ x : Set (OnePoint ℂ)) ⊆ (e₁ x).baseSet := fun _ ↦ subset_rfl
   have hev (s : twistOneKernel J₀) : ContinuousAt (fun J ↦ T J s p) ⟨J₀, hJ₀⟩ := by
     obtain ⟨S', hS', hS'c⟩ := hS s
     let := ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))
       e₁ U₁ hU₁
-    refine (((ContMDiffSection.continuous_eval_const e₁ U₁ hU₁
-      (fun x ↦ ⟨⟨x⟩, mem_baseSet_trivializationAt _ _ x⟩) p).continuousAt).comp
-        (hS'c e₁ U₁ hU₁)).congr ?_
+    refine (((ContMDiffSection.continuous_eval_const_of_mem e₁ U₁ hU₁ ⟨⟩
+      (mem_baseSet_trivializationAt _ _ p)).continuousAt).comp (hS'c e₁ U₁ hU₁)).congr ?_
     filter_upwards [hS'] with J hJ using congrFun hJ p
-  -- At `J₀`, `a` and `b` do not both vanish at `p`, since they are not proportional.
+  -- At `J₀`, `a` and `b` do not both vanish at `p`, since they are independent.
   have hl₀ : (T ⟨J₀, hJ₀⟩ (v 0) p, T ⟨J₀, hJ₀⟩ (v 1) p) ≠ 0 := by
     rw [hT₀, hT₀]
-    intro h
-    obtain ⟨c, hc⟩ := exists_smul_eq_of_mem_twistOneKernel hJ₀ hi (v 0).property (v 1).property
-      (fun h₀ ↦ v.ne_zero 0 (Subtype.ext h₀)) (congrArg Prod.fst h) (congrArg Prod.snd h)
-    have h₁ := LinearIndependent.pair_iff.1 hv c (-1) (Subtype.ext (by simp [hc]))
-    exact one_ne_zero (neg_eq_zero.1 h₁.2)
+    refine prodMk_apply_ne_zero_of_mem_twistOneKernel hJ₀ hi (v 0).property (v 1).property ?_ p
+    convert hv.map' _ (twistOneKernel J₀).ker_subtype
+    ext i
+    fin_cases i <;> rfl
   obtain ⟨Sa, hSa, hSac⟩ := hS (v 0)
   obtain ⟨Sb, hSb, hSbc⟩ := hS (v 1)
   let S (J : {J // σ.Tames J}) :
