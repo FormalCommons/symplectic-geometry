@@ -16,6 +16,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Darboux.Immersion
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
@@ -263,10 +264,8 @@ theorem exists_darbouxChart_inter_range_eq_of_chart (hσ : σ.IsNondegenerate)
     filter_upwards [c.open_target.mem_nhds h0t] with s hs
     exact f.contMDiff.contMDiffAt.comp s
       (c.symm.contMDiffAt hs)
-  have hinj : Injective (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) 0) := by
-    rw [mfderiv_comp 0 (f.contMDiff.mdifferentiableAt (by simp))
-      (c.symm.mdifferentiableAt (by simp) (by simpa using h0t))]
-    exact (f.isImmersion.mfderiv_injective (by simp) _).comp
+  have hinj : Injective (mfderiv 𝓘(ℝ, E') I (f ∘ c.symm) 0) :=
+    TauCeti.injective_mfderiv_comp (f.isImmersion.mfderiv_injective (by simp) _)
       (c.symm.isInvertible_mfderiv (by simp) (by simpa using h0t)).injective
   -- Extend `f ∘ c⁻¹` along `ι`, then correct the extension to `H`, with `H^* σ = stdForm`.
   have hdim : finrank ℝ (StdSpace (Fin n)) = finrank ℝ E := by

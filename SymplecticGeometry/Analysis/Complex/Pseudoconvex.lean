@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Analysis.Complex.Pseudoconvex
 
+import SymplecticGeometry.Analysis.Complex.LeviForm.Basic
+
 /-!
 # Strong pseudoconvexity persists near a point
 
@@ -21,6 +23,9 @@ On a compact set at every point of which `f` is `C²` and strictly plurisubharmo
 is at least `c * ‖v‖ ^ 2` for a single `c > 0`:
 
 * `IsCompact.exists_pos_mul_sq_norm_le_re_leviForm_of_isStrictlyPlurisubharmonicAt`.
+
+Adding a constant to `f` does not change whether it is strictly plurisubharmonic, in any dimension
+(`TauCeti.isStrictlyPlurisubharmonicAt_const_add_iff`).
 
 The second derivative of `f` is continuous at `x` (Tau Ceti's
 `ContDiffAt.continuousAt_fderiv_fderiv`), and the bilinear forms whose Levi form is positive on a
@@ -40,6 +45,18 @@ open Filter Topology
 open scoped ContDiff
 
 namespace TauCeti
+
+section Const
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V]
+
+/-- Adding a constant to a function does not change whether it is strictly plurisubharmonic. -/
+@[simp]
+theorem isStrictlyPlurisubharmonicAt_const_add_iff (c : ℝ) (f : V → ℝ) (x : V) :
+    IsStrictlyPlurisubharmonicAt (fun y ↦ c + f y) x ↔ IsStrictlyPlurisubharmonicAt f x := by
+  simp only [isStrictlyPlurisubharmonicAt_iff, leviForm_const_add]
+
+end Const
 
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V] [FiniteDimensional ℂ V]
   {f : V → ℝ} {x : V}

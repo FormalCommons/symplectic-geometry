@@ -13,7 +13,6 @@ public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
@@ -477,8 +476,8 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn [Fini
   -- Along `K` the segment from `ω₀` to `σ₁` is constantly `ω₀`, so it stays nondegenerate.
   have hnd (z : StdSpace (Fin n)) (hz : z ∈ K) (s : ℝ) (_ : s ∈ Icc (0 : ℝ) 1) :
       ((ω₀ + s • (σ₁ - ω₀)).bilinFormAt z).Nondegenerate :=
-    SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq (hσ₁K z hz)
-      ((SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z) s
+    SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq (sub_eq_zero.mp (hσ₁K z hz)) s ▸
+      (SymplecticForm.isNondegenerate_constSmooth _).nondegenerate_bilinFormAt z
   -- Relative Moser: `Φ` fixes `K` and pulls `σ₁` back to `ω₀` on an open `N ⊇ K`.
   obtain ⟨Φ, hΦK, -, hΦ, -⟩ :=
     SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub

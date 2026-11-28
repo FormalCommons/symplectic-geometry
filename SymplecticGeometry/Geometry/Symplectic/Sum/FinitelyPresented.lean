@@ -485,7 +485,7 @@ theorem mpullback_graphTorus_prodForm (hh : ContMDiff 𝓘(ℝ) I ∞ h)
     (σ : SmoothTwoForm I M) :
     SmoothForm.mpullback (graphTorus I L hh) (graphTorus I L hh).contMDiff
       (prodForm I L σ) = torusSymplecticForm p := by
-  rw [graphTorus_def, SmoothEmbedding.mpullback_transDiffeomorphOfBoundaryless _ _ _
+  rw [graphTorus_def, SmoothEmbedding.mpullback_transDiffeomorphOfBoundaryless _ _
     (mpullback_diffeomorph_prodForm I L σ), mpullback_graphTorus_prod_torusSymplecticForm hh σ]
 
 /-- For a nondegenerate two-form `σ` on `M`, the embedded torus has symplectic tangent images for
@@ -496,7 +496,7 @@ theorem hasSymplecticTangentImages_graphTorus {σ : SmoothTwoForm I M} (hσ : σ
       (ModelWithCorners.pi fun _ : ι ⊕ ι ↦ 𝓘(ℝ)) (graphTorus I L hh) := by
   rw [graphTorus_def]
   exact (SmoothEmbedding.hasSymplecticTangentImages_transDiffeomorphOfBoundaryless_iff _
-    (diffeomorph I L) _ (mpullback_diffeomorph_prodForm I L σ)).2
+    (diffeomorph I L) (mpullback_diffeomorph_prodForm I L σ)).2
     (SymplecticGeometry.hasSymplecticTangentImages_graphTorus hσ hh)
 
 /-- **The embedded tori are symplectically framed.** For a nondegenerate two-form `σ` on a
