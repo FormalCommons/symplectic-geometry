@@ -561,16 +561,13 @@ instance [CompactSpace M] : CompactSpace (Blowup c) := by
       exact c.zero_mem_target
   set U : Set M := c.source ∩ c ⁻¹' {z | ‖e z‖ < ε}
   have hp₀ : p₀ ∈ U := ⟨c.mem_source, by simpa [c.map_center] using hε⟩
-  have hA : IsCompact (Subtype.val ⁻¹' Uᶜ : Set (puncturedOpens c)) := by
-    rw [Subtype.isCompact_iff, image_preimage_eq_inter_range, Subtype.range_coe_subtype,
-      inter_eq_left.2]
-    · exact (c.isOpen_inter_preimage (isOpen_lt (by fun_prop) continuous_const)).isClosed_compl
-        |>.isCompact
-    · exact fun x hx ↦ (mem_puncturedOpens c).2 fun h ↦ hx (h ▸ hp₀)
-  have hB : IsCompact (Subtype.val ⁻¹' closedNbhd n ε : Set (modelOpens c)) := by
-    rw [Subtype.isCompact_iff, image_preimage_eq_inter_range, Subtype.range_coe_subtype]
-    convert isCompact_closedNbhd (n := n) ε using 1
-    exact inter_eq_left.2 hεU
+  have hUc : IsCompact Uᶜ :=
+    (c.isOpen_inter_preimage (isOpen_lt (by fun_prop) continuous_const)).isClosed_compl.isCompact
+  have hA : IsCompact (Subtype.val ⁻¹' Uᶜ : Set (puncturedOpens c)) :=
+    IsInducing.subtypeVal.isCompact_preimage' hUc fun x hx ↦ by
+      rw [Subtype.range_coe]; exact (mem_puncturedOpens c).2 fun h ↦ hx (h ▸ hp₀)
+  have hB : IsCompact (Subtype.val ⁻¹' closedNbhd n ε : Set (modelOpens c)) :=
+    IsInducing.subtypeVal.isCompact_preimage' (isCompact_closedNbhd ε) (by rwa [Subtype.range_coe])
   refine GluedAlong.compactSpace_of_isCompact _ hA hB (fun x hx ↦ ?_) fun y hy ↦ ?_
   · -- A point `x` of `U` is glued to a point of the model over `c x`.
     have hxU : (x : M) ∈ U := not_not.1 hx
