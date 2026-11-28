@@ -380,8 +380,6 @@ theorem ker_mfderiv_blowdown_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
           (zeroSection ℓ)).toLinearMap := by
     rintro _ ⟨v, rfl⟩
     exact congrArg (· v) (mfderiv_blowdown_comp_mfderiv_zeroSection ℓ)
-  have : FiniteDimensional ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
-    inferInstanceAs (FiniteDimensional ℂ (Fin (n + 1) → ℂ))
   have hrk := finrank_range_add_finrank_ker_mfderiv_blowdown ℓ
   have h₁ := one_le_finrank_range_mfderiv_blowdown ℓ
   have h₂ := finrank_range_mfderiv_zeroSection n ℓ
@@ -398,8 +396,6 @@ theorem range_mfderiv_blowdown_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ))
       (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) blowdown
         (zeroSection ℓ)).toLinearMap := fun z hz =>
     (exists_mfderiv_blowdown_zeroSection_eq ℓ hz).imp fun _ h => h
-  have : FiniteDimensional ℂ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ) (zeroSection ℓ)) :=
-    inferInstanceAs (FiniteDimensional ℂ (Fin (n + 1) → ℂ))
   have hrk := finrank_range_add_finrank_ker_mfderiv_blowdown ℓ
   rw [ker_mfderiv_blowdown_zeroSection, finrank_range_mfderiv_zeroSection n ℓ] at hrk
   have h₁ : Module.finrank ℂ (LinearMap.range

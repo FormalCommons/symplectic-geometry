@@ -500,9 +500,8 @@ theorem map_mfderiv_horizontalDistribution {EB' : Type*} [NormedAddCommGroup EB'
 complement of the vertical space. -/
 theorem IsVerticallyNondegenerate.isCompl_horizontalDistribution [FiniteDimensional ℝ EM]
     (hτ : IsVerticallyNondegenerate IB proj τ) (x : M) :
-    IsCompl (horizontalDistribution IB proj τ x) (mfderiv IM IB proj x).ker := by
-  have : FiniteDimensional ℝ (TangentSpace IM x) := inferInstanceAs (FiniteDimensional ℝ EM)
-  exact (LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate
+    IsCompl (horizontalDistribution IB proj τ x) (mfderiv IM IB proj x).ker :=
+  (LinearMap.BilinForm.isCompl_orthogonal_of_restrict_nondegenerate
     (SmoothForm.isAlt_bilinFormAt τ x).isRefl (isVerticallyNondegenerate_iff.1 hτ x)).symm
 
 /-- For a smooth submersion `proj` from a manifold modelled on a finite-dimensional space and a
