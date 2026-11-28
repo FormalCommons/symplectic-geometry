@@ -8,13 +8,14 @@ module
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Jet
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Topology.Compactness.Compact
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
 /-!
-# Complex negativity of critical Hessians is an open condition
+# Complex negativity of critical Hessians: openness and pull-back
 
 Let `J` be a smooth almost complex structure on a boundaryless finite-dimensional manifold `M`,
 `K ⊆ M` compact, and `f : M → ℝ` smooth. Say that `f` is *complex negative* at a critical point
@@ -33,6 +34,15 @@ the chart derivative, and that derivative carries `J` to `J.inChart a`. So the c
 the point of `M` over `z` exactly when the triple formed by the first and second coordinate
 derivatives of `f` at `z` and `J.inChart a z` lies in a set of triples `(D¹, D², A)` which is open:
 either `D¹ ≠ 0`, or `D²(w, w) + D²(Aw, Aw) < 0` on the unit sphere, which is compact.
+
+Complex negativity also pulls back: if `φ : M' → M` is `C²` and pseudoholomorphic at `y` for
+`J'` and `J`, with injective derivative there, and `f` is complex negative at the critical point
+`φ y`, then `f ∘ φ` is complex negative at `y` for `J'`
+(`TauCeti.IsPseudoholomorphicAt.criticalHessian_comp_add_neg`). By the second-order chain rule
+at a critical point, Tau Ceti's `TauCeti.criticalHessian_comp_apply`, the critical Hessian of
+`f ∘ φ` is that of `f` on the images under `dφ`, and `dφ` carries `J'` to `J`. The inclusion of
+an open submanifold `U` is such a map for `J.restrictOpen U`
+(`TauCeti.SmoothAlmostComplexStructure.criticalHessian_comp_subtypeVal_add_neg`).
 
 ## Implementation notes
 
@@ -152,6 +162,48 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
     simpa using h (T.symm w) (by simpa using hw)
   simp only [NegJets, mem_ofPred_eq, ne_eq, ← imp_iff_not_or, ← hcrit]
   exact imp_congr_right fun hx ↦ (hhess hx).symm
+
+section Pullback
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless] [TopologicalSpace M'] [ChartedSpace H' M']
+  [IsManifold I' ∞ M'] {J' : SmoothAlmostComplexStructure I' M'}
+  {J : SmoothAlmostComplexStructure I M} {φ : M' → M} {y : M'} {f : M → ℝ}
+
+/-- **Complex negativity pulls back along pseudoholomorphic immersions.** Let `φ : M' → M` be
+`C²` at `y`, pseudoholomorphic at `y` for `J'` and `J`, with injective derivative there, and let
+`f` be `C²` at the critical point `φ y`, where `Hess f(v, v) + Hess f(Jv, Jv) < 0` for every
+nonzero `v`. Then `Hess (f ∘ φ)(v, v) + Hess (f ∘ φ)(J'v, J'v) < 0` at `y` for every nonzero
+tangent vector `v` at `y`. The point `y` is a critical point of `f ∘ φ` by
+`TauCeti.mem_criticalPoints_comp`. -/
+theorem IsPseudoholomorphicAt.criticalHessian_comp_add_neg (hJ : IsPseudoholomorphicAt J' J φ y)
+    (hφ : ContMDiffAt I' I 2 φ y) (hinj : Function.Injective (mfderiv I' I φ y))
+    (hf : ContMDiffAt I 𝓘(ℝ) 2 f (φ y)) (hcrit : φ y ∈ criticalPoints I f)
+    (hneg : ∀ v : TangentSpace I (φ y), v ≠ 0 →
+      criticalHessian I f (φ y) v v + criticalHessian I f (φ y) (J (φ y) v) (J (φ y) v) < 0)
+    (v : TangentSpace I' y) (hv : v ≠ 0) :
+    criticalHessian I' (f ∘ φ) y v v + criticalHessian I' (f ∘ φ) y (J' y v) (J' y v) < 0 := by
+  rw [criticalHessian_comp_apply rfl hf hφ hcrit, criticalHessian_comp_apply rfl hf hφ hcrit,
+    hJ.mfderiv_apply_commute]
+  exact hneg _ fun h ↦ hv (hinj (h.trans (map_zero _).symm))
+
+/-- **Complex negativity restricts to open submanifolds.** If `x ∈ U` is a critical point of a
+function `f` that is `C²` there, and `Hess f(v, v) + Hess f(Jv, Jv) < 0` at `x` for every nonzero
+`v`, then the restriction of `f` to `U` has the same property at `x` for the restricted structure
+`J.restrictOpen U`. The point `x` is a critical point of the restriction by
+`TauCeti.mem_criticalPoints_comp_subtypeVal`. -/
+theorem SmoothAlmostComplexStructure.criticalHessian_comp_subtypeVal_add_neg
+    (J : SmoothAlmostComplexStructure I M) {U : TopologicalSpace.Opens M} {x : U}
+    (hf : ContMDiffAt I 𝓘(ℝ) 2 f x) (hcrit : (x : M) ∈ criticalPoints I f)
+    (hneg : ∀ v : TangentSpace I (x : M), v ≠ 0 →
+      criticalHessian I f x v v + criticalHessian I f x (J x v) (J x v) < 0)
+    (v : TangentSpace I x) (hv : v ≠ 0) :
+    criticalHessian I (f ∘ Subtype.val) x v v +
+      criticalHessian I (f ∘ Subtype.val) x (J.restrictOpen U x v) (J.restrictOpen U x v) < 0 :=
+  ((J.isPseudoholomorphic_subtype_val U).isPseudoholomorphicAt x).criticalHessian_comp_add_neg
+    contMDiff_subtypeVal.contMDiffAt (Manifold.mfderiv_subtype_val_injective x) hf hcrit hneg v hv
+
+end Pullback
 
 variable [FiniteDimensional ℝ E] [T2Space M]
 
