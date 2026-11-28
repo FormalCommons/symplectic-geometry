@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
+import TauCeti.Geometry.Manifold.MFDeriv.Translation
 
 /-!
 # Horizontality is a local property
@@ -19,6 +20,13 @@ of `s` (`TauCeti.IsHorizontalMap.piecewise`, whose proof follows that of Mathlib
 `ContMDiff.piecewise`). This is how curves glued from horizontal pieces are seen to be horizontal.
 The file also notes that a constant map is horizontal (`TauCeti.isHorizontalMap_const`), since
 its tangent maps vanish.
+
+For a map `f` on a normed space, the derivative `df_z w` is the velocity at `0` of the line
+`r ↦ f (z + r • w)`. So it lies in `D (f z)` as soon as that line is horizontal
+(`TauCeti.IsHorizontalMap.mfderiv_apply_mem_of_line`); no differentiability of `f` is needed,
+since its derivative is zero where `f` is not differentiable. A translate `w ↦ f (w + c)` of a
+horizontal map on a real normed space is horizontal (`TauCeti.IsHorizontalMap.comp_add_right`),
+since its derivatives are those of `f` (Tau Ceti's `TauCeti.mfderiv_comp_add_right`).
 -/
 
 public section
@@ -66,6 +74,53 @@ theorem IsHorizontalMap.piecewise {g : N → M} {s : Set N} [DecidablePred (· �
   · refine ⟨g, hg, ?_⟩
     filter_upwards [isClosed_closure.isOpen_compl.mem_nhds hy'] with z hz
     exact Set.piecewise_eq_of_notMem _ _ _ fun hzs ↦ hz (subset_closure hzs)
+
+section Line
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace 𝕜 V]
+
+/-- If the line `r ↦ f (z + r • w)` of a map `f` on a normed space is horizontal for `D`, then
+the derivative of `f` at `z` in the direction `w` lies in `D (f z)`. -/
+theorem IsHorizontalMap.mfderiv_apply_mem_of_line {f : V → M} {z w : V}
+    (hf : IsHorizontalMap 𝓘(𝕜, 𝕜) D fun r : 𝕜 ↦ f (z + r • w)) :
+    mfderiv 𝓘(𝕜, V) I f z w ∈ D (f z) := by
+  by_cases hd : MDifferentiableAt 𝓘(𝕜, V) I f z
+  swap
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hd]
+    exact (D _).zero_mem
+  have hc : HasMFDerivAt 𝓘(𝕜, 𝕜) 𝓘(𝕜, V) (fun r : 𝕜 ↦ z + r • w) 0
+      ((1 : 𝕜 →L[𝕜] 𝕜).smulRight w) :=
+    (((hasFDerivAt_id (0 : 𝕜)).smul_const w).const_add z).hasMFDerivAt
+  have h0 : z + (0 : 𝕜) • w = z := by simp
+  have hw : mfderiv 𝓘(𝕜, 𝕜) 𝓘(𝕜, V) (fun r : 𝕜 ↦ z + r • w) 0 (1 : 𝕜) = w := by
+    rw [hc.mfderiv]
+    -- Read the tangent spaces of the model spaces as the model spaces.
+    change ((1 : 𝕜 →L[𝕜] 𝕜).smulRight w) (1 : 𝕜) = w
+    simp
+  have key := mfderiv_comp_apply_of_eq (0 : 𝕜) hd hc.mdifferentiableAt h0 (1 : 𝕜)
+  rw [hw] at key
+  have h := hf.mfderiv_mem 0 (1 : 𝕜)
+  rw [h0] at h
+  rw [← key]
+  exact h
+
+end Line
+
+section Translate
+
+variable {M : Type*} [TopologicalSpace M] {F H : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ F H} [ChartedSpace H M]
+  {D : Π x : M, Submodule ℝ (TangentSpace I x)}
+  {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+
+/-- A translate `w ↦ f (w + c)` of a horizontal map `f` on a real normed space is horizontal. -/
+theorem IsHorizontalMap.comp_add_right {f : V → M} (hf : IsHorizontalMap 𝓘(ℝ, V) D f) (c : V) :
+    IsHorizontalMap 𝓘(ℝ, V) D fun w ↦ f (w + c) :=
+  isHorizontalMap_iff.2 fun y v ↦ by
+    rw [mfderiv_comp_add_right]
+    exact hf.mfderiv_mem (y + c) v
+
+end Translate
 
 end TauCeti
 
