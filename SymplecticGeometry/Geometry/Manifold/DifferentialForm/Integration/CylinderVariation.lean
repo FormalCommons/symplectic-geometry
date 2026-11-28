@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Homotopy
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Analysis.Calculus.DifferentialForm.Basic
@@ -39,11 +40,18 @@ the pullback under the period, as in the proof of Tau Ceti's
 `TauCeti.hasDerivAt_rectangleIntegral_comp_prodMap_affine`, which differentiates the integral over
 a family of rectangles in two parameters, to a third parameter.
 
+The derivative at `s₀` depends only on `u` near the slice at `s₀`: composing `u` in `s` with a
+smooth map of `ℝ` into a neighbourhood of `s₀` that is the identity near `s₀`, built from a
+`ContDiffBump`, gives the formula for `u` smooth only near that slice
+(`TauCeti.hasDerivAt_rectangleIntegral_slice_of_contMDiffOn`).
+
 ## Main results
 
 * `TauCeti.fderiv_mpullback_apply_eq_mextDeriv_add_sub`: the pointwise formula.
 * `TauCeti.hasDerivAt_rectangleIntegral_slice`: the derivative of the integral of `τ` over the
   cylinders `(t, θ) ↦ u (s, t, θ)`.
+* `TauCeti.hasDerivAt_rectangleIntegral_slice_of_contMDiffOn`: the same derivative at `s₀`, for
+  `u` that is `C²` and periodic only for `s` near `s₀`.
 
 ## References
 
@@ -53,8 +61,8 @@ a family of rectangles in two parameters, to a third parameter.
 
 public section
 
-open Set MeasureTheory
-open scoped Manifold Interval ContDiff
+open Set MeasureTheory Function
+open scoped Manifold Interval ContDiff Topology
 
 namespace TauCeti
 
@@ -197,5 +205,46 @@ theorem hasDerivAt_rectangleIntegral_slice [CompleteSpace F] {τ : RoughForm I M
   exact (intervalIntegral.hasDerivAt_integral_integral_of_contDiff (hg ![(0, 1, 0), (0, 0, 1)])
     0 1 0 1
     s₀).congr_deriv key
+/-- **The first variation of the area of a family of cylinders, from smoothness near a slice.**
+The derivative at `s₀` in `TauCeti.hasDerivAt_rectangleIntegral_slice` only needs `u` to be `C²`,
+and `1`-periodic in its last coordinate, for `s` in a neighbourhood `U` of `s₀`. -/
+theorem hasDerivAt_rectangleIntegral_slice_of_contMDiffOn [CompleteSpace F]
+    {τ : RoughForm I M F 2} (hτ : IsSmoothForm I 1 τ) {u : ℝ × ℝ × ℝ → M} {U : Set ℝ} {s₀ : ℝ}
+    (hU : U ∈ 𝓝 s₀) (hu : ContMDiffOn 𝓘(ℝ, ℝ × ℝ × ℝ) I 2 u (U ×ˢ univ))
+    (hper : ∀ s ∈ U, ∀ t θ, u (s, t, θ + 1) = u (s, t, θ)) :
+    HasDerivAt (fun s ↦ rectangleIntegral τ (fun z ↦ u (s, z)) (0, 0) (1, 1))
+      ((∫ t in 0..1, ∫ θ in 0..1, mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u (mextDeriv τ) (s₀, t, θ)
+          ![(1, 0, 0), (0, 1, 0), (0, 0, 1)]) +
+        ∫ θ in 0..1, (mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ (s₀, 1, θ) ![(1, 0, 0), (0, 0, 1)] -
+          mpullback 𝓘(ℝ, ℝ × ℝ × ℝ) I u τ (s₀, 0, θ) ![(1, 0, 0), (0, 0, 1)])) s₀ := by
+  obtain ⟨δ, hδ, hball⟩ := Metric.mem_nhds_iff.1 hU
+  -- A smooth map `ρ` of `ℝ` into the ball of radius `δ` about `s₀`, the identity near `s₀`.
+  let f : ContDiffBump s₀ := ⟨δ / 2, δ, half_pos hδ, half_lt_self hδ⟩
+  set ρ : ℝ → ℝ := fun r ↦ s₀ + f r * (r - s₀)
+  have hρ : ContDiff ℝ 2 ρ := contDiff_const.add (f.contDiff.mul (contDiff_id.sub contDiff_const))
+  have hρU (r : ℝ) : ρ r ∈ U := by
+    refine hball ?_
+    rw [Metric.mem_ball, Real.dist_eq, add_sub_cancel_left, abs_mul, abs_of_nonneg f.nonneg]
+    by_cases hr : dist r s₀ < δ
+    · exact (mul_le_of_le_one_left (abs_nonneg _) f.le_one).trans_lt (by rwa [← Real.dist_eq])
+    · rw [f.zero_of_le_dist (not_lt.1 hr), zero_mul]
+      exact hδ
+  have hρs : ρ =ᶠ[𝓝 s₀] id := by
+    filter_upwards [Metric.closedBall_mem_nhds s₀ (half_pos hδ)] with r hr
+    simp [ρ, f.one_of_mem_closedBall hr]
+  -- `u` reparametrized by `ρ` in `s` is smooth everywhere, and agrees with `u` near `s₀`.
+  set w : ℝ × ℝ × ℝ → M := fun p ↦ u (ρ p.1, p.2)
+  have hw : ContMDiff 𝓘(ℝ, ℝ × ℝ × ℝ) I 2 w :=
+    hu.comp_contMDiff ((hρ.comp contDiff_fst).prodMk contDiff_snd).contMDiff
+      fun p ↦ ⟨hρU p.1, mem_univ _⟩
+  have hwu (t θ : ℝ) : w =ᶠ[𝓝 (s₀, t, θ)] u := by
+    filter_upwards [hρs.comp_tendsto (continuous_fst.tendsto (s₀, t, θ))] with p hp
+    simp only [w, comp_apply, id] at hp ⊢
+    rw [hp]
+  have key := hasDerivAt_rectangleIntegral_slice hτ hw (fun s t θ ↦ hper (ρ s) (hρU s) t θ) s₀
+  simp only [(hwu _ _).mpullback_eq] at key
+  refine key.congr_of_eventuallyEq ?_
+  filter_upwards [hρs] with s hs
+  simp only [w, hs, id]
 
 end TauCeti
