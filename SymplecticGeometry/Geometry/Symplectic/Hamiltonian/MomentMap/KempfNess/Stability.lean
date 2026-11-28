@@ -77,6 +77,13 @@ of [GeorgoulasRobbinSalamon2021], Theorem 7.3 (with Theorem 4.3 there for the cr
   when its Kempf–Ness function is bounded below.
 * `SymplecticGeometry.IsSemistable.iInf_momentNormSq_smul_eq_zero`: at a semistable point, the
   infimum of `‖μ‖²` over the orbit is `0`.
+* `SymplecticGeometry.isSemistable_of_iInf_momentNormSq_smul_eq_zero`: conversely, a point at
+  which that infimum is `0` is semistable, since the limit of the flow, which lies in the closure
+  of the orbit (`SymplecticGeometry.mem_closure_orbit_of_tendsto_maximalIntegralCurve`), is then
+  a zero of `μ` by the moment limit theorem; this follows [GeorgoulasRobbinSalamon2021],
+  Theorem 7.3.
+* `SymplecticGeometry.isSemistable_iff_iInf_momentNormSq_smul_eq_zero`: the two directions
+  together.
 * `SymplecticGeometry.moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici`: if `Φ_p` is
   bounded below along the flow curve `g`, then the limit of the flow is a zero of `μ`.
 * `SymplecticGeometry.mem_lowerBounds_range_kempfNessFunction`: if the flow converges to a zero
@@ -263,6 +270,57 @@ theorem mem_lowerBounds_range_kempfNessFunction (h : IsComplexifiedAction C J)
     simpa using this.const_sub L
   exact le_of_tendsto hlim ((eventually_ge_atTop 0).mono hlow)
 
+omit [I.Boundaryless] [CompactSpace G] [T2Space G] in
+/-- For a complexified action, with `-μ` an equivariant moment map, the metric `σ(·, J ·)` and
+`B` symmetric, the limit `x` of the negative gradient flow of `‖μ‖²` from `p` lies in the closure
+of the `Gc`-orbit of `p`, since the flow runs inside that orbit. -/
+theorem mem_closure_orbit_of_tendsto_maximalIntegralCurve (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    {p x : M}
+    (hx : Tendsto (maximalIntegralCurve (-mgradient I' (momentNormSq μ (B.toDual hB).symm)) p)
+        atTop (𝓝 x)) :
+    x ∈ closure (MulAction.orbit Gc p) := by
+  obtain ⟨g, -, -, hgx, -⟩ := exists_mem_orbit_maximalIntegralCurve (hB := hB) h hμ hgm hBs p
+  refine mem_closure_of_tendsto hx (Eventually.of_forall fun t ↦ ?_)
+  rw [hgx]
+  exact MulAction.mem_orbit p (g t)⁻¹
+
+/-- In the Kähler setting of `momentNormSq_limit_eq_iInf`, if the infimum of `‖μ‖²` over the
+`Gc`-orbit of `p` is `0`, then `p` is semistable: the limit of the negative gradient flow of
+`‖μ‖²` from `p` is a zero of `μ` in the closure of the orbit.
+
+This follows the proof of [GeorgoulasRobbinSalamon2021], Theorem 7.3. -/
+theorem isSemistable_of_iInf_momentNormSq_smul_eq_zero (h : IsComplexifiedAction C J)
+    (hσc : σ.IsClosed) (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) {p : M}
+    (h0 : ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0) : IsSemistable C μ p := by
+  obtain ⟨-, x, -, hx, -⟩ := tendsto_maximalIntegralCurve_momentNormSq hσc hσ hσG hμ hB hBG p
+  rw [momentNormSq_neg'] at hx
+  refine isSemistable_iff.2 ⟨x, mem_closure_orbit_of_tendsto_maximalIntegralCurve h hμ hgm hBs hx,
+    (momentNormSq_eq_zero_iff (hB := hB) hBp.anisotropic).1 ?_⟩
+  rw [momentNormSq_limit_eq_iInf h hσc hσ hσG hμ hgm hBs hBp hBG hx, h0]
+
+/-- In the Kähler setting of `momentNormSq_limit_eq_iInf`, a point `p` is semistable exactly when
+the infimum of `‖μ‖²` over its `Gc`-orbit is `0`. -/
+theorem isSemistable_iff_iInf_momentNormSq_smul_eq_zero (h : IsComplexifiedAction C J)
+    (hσc : σ.IsClosed) (hσ : σ.IsNondegenerate)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hgm : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (hBs : B.IsSymm)
+    (hBp : B.toQuadraticMap.PosDef)
+    (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B) (p : M) :
+    IsSemistable C μ p ↔ ⨅ g : Gc, momentNormSq μ (B.toDual hB).symm (g • p) = 0 :=
+  ⟨fun hp ↦ hp.iInf_momentNormSq_smul_eq_zero (LinearMap.BilinForm.isNonneg_def.2 hBp.nonneg)
+      hμ.toIsMomentMap.contMDiff_momentNormSq_of_neg.continuous,
+    isSemistable_of_iInf_momentNormSq_smul_eq_zero h hσc hσ hσG hμ hgm hBs hBp hBG⟩
+
 /-- **Semistability is boundedness below of the Kempf–Ness function.** In the Kähler setting of
 `momentNormSq_limit_eq_iInf`, with `σ` closed, nondegenerate and `G`-invariant, `G` compact and
 connected, `-μ` an equivariant moment map for a complexified action, the metric `σ(·, J ·)`, and
@@ -298,9 +356,8 @@ theorem isSemistable_iff_bddBelow_kempfNessFunction (h : IsComplexifiedAction C 
   · intro hL
     have hx0 := moment_eq_zero_of_bddBelow_kempfNessFunction_image_Ici hσc hσ hσG hμ hBp hBG hx
       hgx hgd (hL.mono (by rintro _ ⟨t, -, rfl⟩; exact ⟨g t, rfl⟩))
-    refine isSemistable_iff.2 ⟨x, mem_closure_of_tendsto hx (Eventually.of_forall fun t ↦ ?_), hx0⟩
-    rw [hgx]
-    exact MulAction.mem_orbit p (g t)⁻¹
+    exact isSemistable_iff.2
+      ⟨x, mem_closure_orbit_of_tendsto_maximalIntegralCurve h hμ hgm hBs hx, hx0⟩
 
 section Proper
 
