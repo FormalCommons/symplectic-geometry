@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
-import TauCeti.Geometry.Manifold.IntegralCurve.Flow
+import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IntegralCurve.Reparam
 
@@ -148,16 +148,13 @@ theorem of_eqOn_compl [CompleteSpace E] {v w : (x : M) → TangentSpace I x}
   have hK' : IsClosed (insert x K) := (hK.insert x).isClosed
   have hvw' : EqOn w v (insert x K)ᶜ := hvw.mono (compl_subset_compl.2 (subset_insert x K))
   -- The flow of `v`, as a function of time and initial point, is continuous.
-  have hΦ : Continuous fun p : ℝ × M ↦ flowOf v p.1 p.2 :=
-    continuous_iff_continuousAt.2 fun p ↦ by
-      simpa only [flowOf_apply, Function.comp_def, Prod.fst_swap, Prod.snd_swap] using
-        (continuousAt_maximalIntegralCurve hvd (p := (p.2, p.1))
-        (hv.mem_maximalIntegralCurveInterval _ _)).comp (f := Prod.swap)
-          continuous_swap.continuousAt
+  have hΦ : Continuous fun p : ℝ × M ↦ flowOf v p.1 p.2 := by
+    rw [flowOf_eq_globalFlow hvd hv]
+    exact (globalFlow v hvd hv).continuous continuous_fst continuous_snd
   -- The trajectories of `v` are global integral curves.
   have hδ (y : M) : IsMIntegralCurve (fun s ↦ flowOf v s y) v := by
-    rw [isMIntegralCurve_iff_isMIntegralCurveOn]
-    simpa [hv.mem_flowDomain] using isMIntegralCurveOn_flowOf hvd y
+    rw [flowOf_eq_globalFlow hvd hv]
+    exact isMIntegralCurve_globalFlow hvd hv y
   have hγ := isMIntegralCurveOn_maximalIntegralCurve (x := x) hwd
   have h0 := zero_mem_maximalIntegralCurveInterval (x := x) hwd.contMDiffAt
   refine maximalIntegralCurveInterval_eq_univ_of_forall_isCompact_mapsTo hwd fun T ↦
