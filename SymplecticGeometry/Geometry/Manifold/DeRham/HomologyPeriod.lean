@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
+public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.AlgebraicTopology.Singular.ChainsDesc
@@ -56,6 +57,8 @@ classes then follow as before, the periods along the simplices being continuous 
   differences of their periods.
 * `TauCeti.homologyPeriodHom_mpullback_eq_of_homotopic`: homotopic maps pull a closed one-form
   back to forms with the same periods.
+* `TauCeti.SmoothIsotopy.homologyPeriodHom_mpullback_eq`: the slices of a smooth isotopy are
+  homotopic to its start, so they pull a closed one-form back to forms with the same periods.
 * `TauCeti.homologyPeriodHom_mpullback_loopClass`: the period of a pullback `f^* θ` on the class
   of a `C¹` loop `c` is the line integral of `θ` along `f ∘ c`.
 
@@ -101,6 +104,29 @@ theorem homologyPeriodHom_mpullback_eq_of_homotopic {E' H' : Type*} [NormedAddCo
   rw [← homologyPeriodHom_singularHomologyMap hf hθ hcl,
     ← homologyPeriodHom_singularHomologyMap hg hθ hcl,
     ContinuousMap.singularHomologyMap_eq_of_homotopic ℤ 1 hfg]
+
+/-- **The slices of a smooth isotopy pull closed one-forms back to forms with the same periods.**
+For a smooth isotopy `φ` starting at `f₀` and a closed `C¹` one-form `θ`, the periods on
+`H₁(P; ℤ)` of `φ (t, ·)^* θ` are those of `f₀^* θ`, since the slice is homotopic to `f₀`. -/
+theorem SmoothIsotopy.homologyPeriodHom_mpullback_eq {E' H' : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [FiniteDimensional ℝ E'] [TopologicalSpace H']
+    {J : ModelWithCorners ℝ E' H'} {P : Type} [TopologicalSpace P] [ChartedSpace H' P]
+    [IsManifold J ∞ P] [T2Space P] {f₀ f₁ : C^∞⟮J, P; I, M⟯}
+    (φ : SmoothIsotopy f₀ f₁) {θ : RoughForm I M F 1} (hθ : IsSmoothForm I 1 θ)
+    (hcl : mextDeriv θ = 0) (t : unitInterval) :
+    homologyPeriodHom (mpullback J I (fun x ↦ φ (t, x)) θ) =
+      homologyPeriodHom (mpullback J I f₀ θ) := by
+  have hφt : ContMDiff J I ∞ fun x ↦ φ (t, x) :=
+    φ.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)
+  -- The homotopy `(s, x) ↦ φ (s t, x)` from `f₀` to the slice at `t`.
+  let K : _root_.ContinuousMap.Homotopy (⟨f₀, f₀.contMDiff.continuous⟩ : C(P, M))
+      ⟨fun x ↦ φ (t, x), hφt.continuous⟩ :=
+    { toFun := fun p ↦ φ (p.1 * t, p.2)
+      continuous_toFun := φ.contMDiff.continuous.comp (by fun_prop)
+      map_zero_left := fun x ↦ by simp [φ.apply_zero]
+      map_one_left := fun x ↦ by simp }
+  exact (homologyPeriodHom_mpullback_eq_of_homotopic (f₀.contMDiff.of_le (by simp))
+    (hφt.of_le (by simp)) ⟨K⟩ hθ hcl).symm
 
 /-- **The period of a pullback on the class of a loop.** Let `γ` be a loop in `P` that agrees on
 `[0, 1]` with a `C¹` curve `c : ℝ → P`. For a `C²` map `f : P → M` and a closed `C¹` one-form `θ`
