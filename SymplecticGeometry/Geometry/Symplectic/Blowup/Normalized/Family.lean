@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Pushforward
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 import SymplecticGeometry.Geometry.Symplectic.Moser.Stability
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
@@ -67,14 +68,13 @@ asked of the weights. The second result is
 `ContMDiff.isLocalDiffeomorph_prodMk_unitInterval`, each slice being a local diffeomorphism by
 `IsNormalizedBallEmbedding.isLocalDiffeomorph_ballLift`.
 
-For the gluing step, at a point `(t₀, ψ̃_{t₀} y₀)` of the image of a lift, smoothness comes from
-the model through the local diffeomorphism `(t, y) ↦ (t, ψ̃_t y)`
-(`IsSmoothFamily.contMDiffAt_of_mpullback_family`). At any other point `(t₀, x₀)`, the points
-`(t, ψ̃_t y)` with `y ∈ closedNbhd n (c t)` form a compact set, the image of a compact subset of
-`unitInterval × openNbhd n r`, hence a closed one since the blowup is Hausdorff when `M` is; off
-it the family is the constant family `blowdown^* σ`. The theorem for `ω̃_{ψ_t, l t, ε t}` is the
-gluing step with `P t = profileForm n (l t) (ε t)`, smooth by
-`BlowupModel.isSmoothFamily_profileForm`, and `c = l + ε`.
+For the gluing step, the differences `β t - blowdown^* σ` vanish off the images under the lifts
+of `closedNbhd n (c t)`, the slices of a compact subset of `unitInterval × openNbhd n r`, and
+the lifts pull them back to `P t - ψ̃_t^* (blowdown^* σ)`, a smooth family. So they are smooth by
+`IsSmoothFamily.of_mpullback_family_of_eq_zero`, applied with the local diffeomorphism
+`(t, y) ↦ (t, ψ̃_t y)`, and adding back the constant family `blowdown^* σ` gives `β`. The
+theorem for `ω̃_{ψ_t, l t, ε t}` is the gluing step with `P t = profileForm n (l t) (ε t)`,
+smooth by `BlowupModel.isSmoothFamily_profileForm`, and `c = l + ε`.
 
 For two profiles, the segment `(1 - s) • h₀ + s • h₁` consists of profiles, and its forms are the
 segment between the two forms (`normalizedBlowupForm_one_sub_smul_add_smul`), each symplectic
@@ -197,38 +197,6 @@ theorem isLocalDiffeomorph_prodMk_ballLift_family
 
 /-! ### Smooth families of forms on the blowup -/
 
-/-- On the image of the lifts, a family of forms that the lifts pull back to a smooth family of
-forms of the model is smooth: its slice section is smooth at each point `(t₀, ψ̃_{t₀} y₀)`. -/
-private theorem contMDiffAt_of_eq_on_ballLift
-    (hψ : ∀ t, IsNormalizedBallEmbedding hN (fun z ↦ ψ (t, z)) r (l t) (ε t))
-    (hψf : IsSymplecticBallFamily σ r ψ) (hε : Continuous ε)
-    {P : unitInterval → SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (BlowupModel n)}
-    (hP : IsSmoothFamily (𝓡∂ 1) P)
-    {β : unitInterval → SmoothTwoForm 𝓘(ℝ, Fin (n + 1) → ℂ) (Blowup hN.blowupChart)}
-    (hβP : ∀ t, ∀ y ∈ openNbhd n r, TauCeti.mpullback 𝓘(ℝ, Fin (n + 1) → ℂ)
-      𝓘(ℝ, Fin (n + 1) → ℂ) (hψ t).ballLiftPartialDiffeomorph (β t).val y = (P t).val y)
-    (p : unitInterval × openNbhdOpens n r) :
-    ContMDiffAt ((𝓡∂ 1).prod 𝓘(ℝ, Fin (n + 1) → ℂ))
-      (𝓘(ℝ, Fin (n + 1) → ℂ).prod 𝓘(ℝ, (Fin (n + 1) → ℂ) [⋀^Fin 2]→L[ℝ] ℝ)) ∞
-      (SymplecticGeometry.sliceSection fun t ↦ (β t).val)
-      (p.1, (hψ p.1).ballLift ⟨p.2, mem_openNbhdOpens_iff.1 p.2.property⟩) := by
-  refine IsSmoothFamily.contMDiffAt_of_mpullback_family (contMDiff_ballLift_family hψ hψf hε)
-    (isLocalDiffeomorph_prodMk_ballLift_family hψ hψf hε p) ?_
-  -- The lifts pull the `β t` back to the restrictions of the `P t` to `openNbhd n r`.
-  convert hP.mpullback (Subtype.val : openNbhdOpens n r → BlowupModel n) contMDiff_subtypeVal
-    using 2 with t
-  refine Subtype.ext (funext fun y ↦ ?_)
-  have hy := mem_openNbhdOpens_iff.1 y.property
-  have hfun :
-      (fun x : openNbhdOpens n r ↦ (hψ t).ballLift ⟨x, mem_openNbhdOpens_iff.1 x.property⟩) =
-      (hψ t).ballLiftPartialDiffeomorph ∘ Subtype.val :=
-    funext fun x ↦ ((hψ t).ballLiftPartialDiffeomorph_apply _).symm
-  have hΦ := (hψ t).ballLiftPartialDiffeomorph.mdifferentiableAt (by simp)
-    (show (y : BlowupModel n) ∈ (hψ t).ballLiftPartialDiffeomorph.source by simpa using hy)
-  simp only [SmoothForm.coe_mpullback]
-  rw [hfun, mpullback_comp_at mdifferentiableAt_subtypeVal hΦ,
-    mpullback_subtype_val_apply, mpullback_subtype_val_apply, hβP t y hy]
-
 /-- **Gluing a smooth family of forms on the blowup.** Let `M` be Hausdorff, and `ψ` a smooth
 family of symplectic ball embeddings of radius `r` whose slices are normalized ball embeddings
 of weight `l t` and width `ε t`, with `ε` continuous, and `P` a smooth family of two-forms on
@@ -248,47 +216,46 @@ theorem isSmoothFamily_of_eq_on_ballLift [T2Space M]
       (β t).val x = (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
         (Blowup.contMDiff_blowdown_real _) σ).val x) :
     IsSmoothFamily (𝓡∂ 1) β := by
-  rw [isSmoothFamily_iff_contMDiff]
-  rintro ⟨t₀, x₀⟩
-  by_cases hx₀ : x₀ ∈ range (hψ t₀).ballLift
-  · obtain ⟨y₀, rfl⟩ := hx₀
-    exact contMDiffAt_of_eq_on_ballLift hψ hψf hε hP hβP
-      (t₀, ⟨y₀, mem_openNbhdOpens_iff.2 y₀.property⟩)
-  -- Off the image of the lift at `t₀`, the family is the constant family `blowdown^* σ` near
-  -- `(t₀, x₀)`, since the points `(t, ψ̃_t y)` with `y ∈ closedNbhd n (c t)` form a compact set.
+  set c₀ := SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
+    (Blowup.contMDiff_blowdown_real _) σ
+  have he := contMDiff_ballLift_family hψ hψf hε
   have hmem {t : unitInterval} {y : BlowupModel n} (hy : y ∈ closedNbhd n (c t)) :
       y ∈ openNbhd n r :=
     closedNbhd_subset_openNbhd (hcr t) hy
-  let S : Set (unitInterval × openNbhdOpens n r) :=
-    {q | (q.2 : BlowupModel n) ∈ closedNbhd n (c q.1)}
-  have hS : IsCompact S := by
+  -- The points `(t, y)` with `y ∈ closedNbhd n (c t)` form a compact set.
+  have hS : IsCompact {q : unitInterval × openNbhdOpens n r |
+      (q.2 : BlowupModel n) ∈ closedNbhd n (c q.1)} := by
     rw [(IsEmbedding.id.prodMap IsEmbedding.subtypeVal).isCompact_iff]
-    have himage : Prod.map id Subtype.val '' S =
-        {q : unitInterval × BlowupModel n | q.2 ∈ closedNbhd n (c q.1)} := by
-      refine Subset.antisymm ?_ fun q hq ↦ ?_
-      · rintro _ ⟨q, hq, rfl⟩
-        exact hq
-      · exact ⟨(q.1, ⟨q.2, mem_openNbhdOpens_iff.2 (hmem hq)⟩), hq, rfl⟩
-    rw [himage]
-    exact isCompact_setOfPred_mem_closedNbhd hc
-  have hK : IsClosed ((fun q ↦ (q.1, (hψ q.1).ballLift
-      ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩)) '' S) :=
-    (hS.image (continuous_fst.prodMk
-      (contMDiff_ballLift_family hψ hψf hε).continuous)).isClosed
-  have hnot : (t₀, x₀) ∉ (fun q ↦ (q.1, (hψ q.1).ballLift
-      ⟨q.2, mem_openNbhdOpens_iff.1 q.2.property⟩)) '' S := by
-    rintro ⟨q, -, hq⟩
-    obtain ⟨rfl, rfl⟩ := Prod.ext_iff.1 hq
-    exact hx₀ ⟨_, rfl⟩
-  refine ((isSmoothFamily_iff_contMDiff.1 (isSmoothFamily_const (J := 𝓡∂ 1) (N := unitInterval)
-    (SmoothForm.mpullback (Blowup.blowdown hN.blowupChart)
-      (Blowup.contMDiff_blowdown_real _) σ))) (t₀, x₀)).congr_of_eventuallyEq ?_
-  filter_upwards [hK.isOpen_compl.mem_nhds hnot] with q hq
-  obtain ⟨t, x⟩ := q
-  rw [SymplecticGeometry.sliceSection_apply, SymplecticGeometry.sliceSection_apply, hβσ t x ?_]
-  rintro ⟨y, hy, rfl⟩
-  exact hq ⟨(t, ⟨y, mem_openNbhdOpens_iff.2 (hmem hy)⟩), hy,
-    Prod.ext rfl ((hψ t).ballLiftPartialDiffeomorph_apply ⟨y, hmem hy⟩).symm⟩
+    convert isCompact_setOfPred_mem_closedNbhd (n := n) hc using 1
+    refine Subset.antisymm ?_ fun q hq ↦ ?_
+    · rintro _ ⟨q, hq, rfl⟩
+      exact hq
+    · exact ⟨(q.1, ⟨q.2, mem_openNbhdOpens_iff.2 (hmem hq)⟩), hq, rfl⟩
+  -- The family `β t - blowdown^* σ` is pushed forward from the model along the lifts.
+  have hsub : IsSmoothFamily (𝓡∂ 1) fun t ↦ β t - c₀ := by
+    refine IsSmoothFamily.of_mpullback_family_of_eq_zero he
+      (isLocalDiffeomorph_prodMk_ballLift_family hψ hψf hε) ?_ hS fun t x hx ↦ ?_
+    · convert (hP.mpullback (Subtype.val : openNbhdOpens n r → BlowupModel n)
+        contMDiff_subtypeVal).sub ((isSmoothFamily_const c₀).mpullback_family he) using 2 with t
+      rw [map_sub]
+      congr 1
+      -- The lifts pull the `β t` back to the restrictions of the `P t` to `openNbhd n r`.
+      refine Subtype.ext (funext fun y ↦ ?_)
+      have hy := mem_openNbhdOpens_iff.1 y.property
+      have hfun :
+          (fun x : openNbhdOpens n r ↦ (hψ t).ballLift ⟨x, mem_openNbhdOpens_iff.1 x.property⟩) =
+          (hψ t).ballLiftPartialDiffeomorph ∘ Subtype.val :=
+        funext fun x ↦ ((hψ t).ballLiftPartialDiffeomorph_apply _).symm
+      have hΦ := (hψ t).ballLiftPartialDiffeomorph.mdifferentiableAt (by simp)
+        (show (y : BlowupModel n) ∈ (hψ t).ballLiftPartialDiffeomorph.source by simpa using hy)
+      simp only [SmoothForm.coe_mpullback]
+      rw [hfun, mpullback_comp_at mdifferentiableAt_subtypeVal hΦ,
+        mpullback_subtype_val_apply, mpullback_subtype_val_apply, hβP t y hy]
+    · rw [Submodule.coe_sub, Pi.sub_apply, hβσ t x ?_, sub_self]
+      rintro ⟨y, hy, rfl⟩
+      exact hx ⟨⟨y, mem_openNbhdOpens_iff.2 (hmem hy)⟩, hy,
+        ((hψ t).ballLiftPartialDiffeomorph_apply ⟨y, hmem hy⟩).symm⟩
+  simpa only [sub_add_cancel] using hsub.add (isSmoothFamily_const c₀)
 
 /-- **The forms `ω̃_{ψ_t, l t, ε t}` form a smooth family** (McDuff–Salamon, Theorem 7.1.21
 (iii)). Let `M` be Hausdorff, and `ψ` a smooth family of symplectic ball embeddings of radius `r`
