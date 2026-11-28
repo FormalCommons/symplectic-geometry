@@ -229,6 +229,12 @@ theorem mdifferentiableAt_chart_symm {v : E'} (hv : v ∈ e.chart.target) :
     MDifferentiableAt 𝓘(ℝ, E') I' e.chart.symm v :=
   e.toPartialDiffeomorph.symm.mdifferentiableAt (by simp) hv
 
+/-- The differential of the inverse of a linearizing chart is invertible at each point of its
+target. -/
+theorem isInvertible_mfderiv_chart_symm {v : E'} (hv : v ∈ e.chart.target) :
+    (mfderiv 𝓘(ℝ, E') I' e.chart.symm v).IsInvertible :=
+  e.toPartialDiffeomorph.symm.isInvertible_mfderiv (by simp) hv
+
 /-- The origin lies in the target of a linearizing chart. -/
 theorem zero_mem_target : (0 : E') ∈ e.chart.target :=
   e.chart_apply_self ▸ e.chart.map_source e.mem_chart_source

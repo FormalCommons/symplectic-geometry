@@ -438,9 +438,7 @@ theorem powerConnection_chart_symm_apply [∀ y, Nonempty (P y)] (hα : IsCircle
   set ψ := D.chart k x
   have hzt : z ∈ ψ.target := D.ball_subset_target hk x hz
   have hψz : ψ (ψ.symm z) = z := ψ.right_inv hzt
-  have hU : IsOpen (ψ.symm '' ball 0 (ρ₀ * √k)) :=
-    ψ.toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target isOpen_ball
-      (D.ball_subset_target hk x)
+  have hU : IsOpen (ψ.symm '' ball 0 (ρ₀ * √k)) := D.isOpen_image_symm_ball hk x
   -- The coordinate of `s` in the frame, as a function on `M` with values in `PowerModel k`, is
   -- `g ∘ ψ`, with `g` the reading followed by the real-linear equivalence `L`.
   set L : ℂ ≃L[ℝ] PowerModel k :=
@@ -732,11 +730,7 @@ theorem contMDiffAt_of_contDiffAt_reading (hρ₀ : 0 < ρ₀) {n : ℕ∞} {k :
     ContMDiffAt I (I.prod 𝓘(ℝ, PowerModel k)) n
       (fun y ↦ TotalSpace.mk' (PowerModel k) y (s y)) x := by
   set ψ := D.chart k x
-  have hU : ψ.symm '' ball 0 (ρ₀ * √k) ∈ 𝓝 x :=
-    (ψ.toOpenPartialHomeomorph.isOpen_image_symm_of_subset_target isOpen_ball
-      (D.ball_subset_target hk x)).mem_nhds
-      ⟨0, mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0))),
-        D.chart_symm_zero hk x⟩
+  have hU : ψ.symm '' ball 0 (ρ₀ * √k) ∈ 𝓝 x := D.image_symm_ball_mem_nhds hρ₀ hk hk0 x
   -- The frame is smooth at `x`, and so is the reading composed with the chart.
   have hF : ContMDiffAt I (I.prod (𝓡 1)) n
       (fun y ↦ ManifoldTotalSpace.homeomorph Circle P ⟨y, D.frame k x y⟩) x :=
@@ -1100,7 +1094,7 @@ theorem norm_zeroOnePart_powerConnection_apply [∀ y, Nonempty (P y)]
     ‖J.zeroOnePart (powerConnection α k s x) v‖ =
       ‖D.dbarReading k x s 0 (mvfderiv I (D.chart k x) x v)‖ := by
   have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
-    mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+    mem_ball_self (by positivity)
   have h := D.zeroOnePart_powerConnection_chart_symm_apply hα hk hz hs
     (mvfderiv I (D.chart k x) x v)
   rw [D.mfderiv_chart_symm_zero_apply_mvfderiv_apply hk x, D.chart_symm_zero hk x] at h
@@ -1119,7 +1113,7 @@ theorem norm_oneZeroPart_powerConnection_apply [∀ y, Nonempty (P y)]
     ‖J.oneZeroPart (powerConnection α k s x) v‖ =
       ‖modelDel (D.reading k x s) 0 (mvfderiv I (D.chart k x) x v)‖ := by
   have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
-    mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+    mem_ball_self (by positivity)
   have h := D.norm_oneZeroPart_powerConnection_chart_symm_apply hα hk hz hs
     (mvfderiv I (D.chart k x) x v)
   -- At the centre, the structure pushed forward by the chart is `J₀`.
@@ -1333,7 +1327,7 @@ theorem rpow_mul_norm_oneZeroPart_powerConnection_eq
           ContinuousLinearMap.le_opNorm _ _
       _ = _ := by rw [D.norm_mvfderiv_chart_apply_self hg hk]; ring
   · have hz : (0 : StdSpace ι) ∈ ball 0 (ρ₀ * √k) :=
-      mem_ball_self (mul_pos hρ₀ (Real.sqrt_pos.2 (by exact_mod_cast Nat.pos_of_ne_zero hk0)))
+      mem_ball_self (by positivity)
     have h := D.norm_modelDel_reading_le_of_inner_eq hg hα hk hz hs
     rwa [D.chart_symm_zero hk x, norm_zero, mul_zero, zero_div, add_zero, one_mul, mul_zero,
       zero_mul, add_zero] at h

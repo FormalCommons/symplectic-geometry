@@ -64,6 +64,9 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
   smooth pull-back of a form that restricts to `σ` along each fibre inclusion is `σ`.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.apply_eq`: two forms that restrict to the same `σ` along a
   smooth atlas agree on tuples of vertical vectors.
+* `TauCeti.MapFiber.Atlas.RestrictsTo.apply_eq_mpullback_snd_trivAt`: on vertical vectors, a form
+  that restricts to `σ` along a smooth atlas is the pull-back of `σ` by the fibre coordinate of
+  any chart over the point.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.mextDeriv_apply_eq_zero`: a form that restricts to a closed
   form along a smooth atlas has exterior derivative zero on tuples of vertical vectors.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.isClosed`: a form on `F` to which a closed form restricts
@@ -330,6 +333,19 @@ theorem RestrictsTo.apply_eq (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.Restrict
   (A.trivAt (proj x)).apply_eq_of_mpullback_fiberInclusionMap_eq
     (hA.mdifferentiable_trivAt (by simp) _) (A.mem_baseSet_trivAt (proj x))
     ((restrictsTo_iff.1 hτ _ _ _).trans (restrictsTo_iff.1 hτ' _ _ _).symm) hu
+
+/-- **On vertical vectors, a form is the pull-back of its fibre form by a fibre coordinate.** If
+`τ` restricts to `σ` along a smooth atlas, then at every point `x` such that `proj x` lies in the
+base set of the chart `A.trivAt b`, `τ` and the pull-back of `σ` along the fibre coordinate
+`y ↦ (A.trivAt b y).2` take the same value on every tuple of vertical vectors. -/
+theorem RestrictsTo.apply_eq_mpullback_snd_trivAt (hA : A.IsContMDiff ∞ IB IF IM)
+    (hτ : A.RestrictsTo σ τ) {b : B} {x : M} (hx : proj x ∈ (A.trivAt b).baseSet)
+    {u : Fin k → TangentSpace IM x} (hu : ∀ i, u i ∈ (mfderiv IM IB proj x).ker) :
+    τ.val x u = TauCeti.mpullback IM IF (fun y ↦ (A.trivAt b y).2) σ.val x u := by
+  have he := hA.mdifferentiable_trivAt (by simp) b
+  exact (A.trivAt b).apply_eq_of_mpullback_fiberInclusionMap_eq he hx
+    ((restrictsTo_iff.1 hτ b _ hx).trans
+      ((A.trivAt b).mpullback_fiberInclusionMap_mpullback_snd he hx σ.val).symm) hu
 
 /-- **Forms restricting to a closed form are closed on vertical vectors.** If `τ` restricts to a
 closed form `σ` along a smooth atlas, then at every point the exterior derivative of `τ` vanishes

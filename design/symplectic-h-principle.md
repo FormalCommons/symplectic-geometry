@@ -2173,7 +2173,7 @@ For the spaces of `FormSpaces.lean`:
 - `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`: for
   covering frames `e U hU` and open `M`, the inclusion is a
   `ContinuousMap.IsWeakHomotopyEquivalence`, from the continuous engine
-  with `P` a disc and `P₀` its boundary sphere, and `P` a point. Its
+  with `P` a cube and `P₀` its boundary, and `P` a point. Its
   docstring ends with the milestone line (Decision 5, `ERRATA.md`).
 - `exists_homotopyEquiv_symplecticFormsInClass`: for covering frames, open
   `M`, `hα : α ∈ closedForms I M 2`, and, for every
