@@ -22,6 +22,8 @@ import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ShapeFoliation.Chain
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ShapeFoliation.Smoothing
 import SymplecticGeometry.Topology.Constructions.SumProd
+import SymplecticGeometry.Topology.Order.Compact
+import SymplecticGeometry.Topology.UniformSpace.HeineCantor
 
 /-!
 # Strictly monotone families of shapes over `R`

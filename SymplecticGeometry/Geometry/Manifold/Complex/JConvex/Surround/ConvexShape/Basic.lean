@@ -14,6 +14,7 @@ import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Comp
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Normed.Group.Prod
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
+import SymplecticGeometry.Topology.Algebra.Module.Equiv.Prod
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.SecondDerivative
 
@@ -754,9 +755,7 @@ theorem fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ : Diffe
     fderiv ℝ (shapeGraphOverR ρ) (s, t) (a, b) =
       -a * deriv ρ (√s) / (2 * √s) + b / (2 * √t) := by
   -- The swap as the continuous linear equivalence `prodComm`, to differentiate through it.
-  have hswap : (Prod.swap : ℝ × ℝ → ℝ × ℝ) = ContinuousLinearEquiv.prodComm ℝ ℝ ℝ :=
-    funext fun q ↦ (ContinuousLinearEquiv.prodComm_apply ℝ ℝ ℝ q).symm
-  rw [shapeGraphOverR_eq_neg_comp_swap, hswap, fderiv_neg,
+  rw [shapeGraphOverR_eq_neg_comp_swap, ← ContinuousLinearEquiv.coe_prodComm ℝ ℝ ℝ, fderiv_neg,
     ContinuousLinearEquiv.comp_right_fderiv]
   simp [fderiv_shapeGraph_apply hρ ht hs]
   ring

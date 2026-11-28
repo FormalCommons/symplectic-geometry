@@ -614,9 +614,9 @@ and the prerequisites, placed by topic.
   by `peakSection` (`exists_local_correction`), and the iteration over
   colours (`exists_isUniformlyTransverse`, the milestone). The logarithms
   $u_j=\log(1/b_j)$ of the lower bounds obey a recurrence
-  $u_j\le u_{j-1}+C_3+p\log(u_{j-1}+\log A)$. The file proves, as a separate
-  lemma about real sequences, that such sequences grow at most like
-  $(j+1)\log(j+2)$.
+  $u_j\le u_{j-1}+C_3+p\log(u_{j-1}+\log A)$. Such real sequences grow at
+  most like $(j+1)\log(j+2)$ (`Real.le_mul_mul_log_of_le_add_log`, in the
+  general file `Analysis/SpecialFunctions/Log/Recurrence.lean`).
 - `Connectivity.lean`: `IsUniformlyTransverse.le_norm_of_mem_criticalPoints`
   (at critical points of $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
   `IsUniformlyTransverse.isComplexNegativeAt_log_norm_sq`,

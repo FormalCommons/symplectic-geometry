@@ -21,6 +21,7 @@ import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ShapeFoliation.Chain
 import SymplecticGeometry.Topology.Constructions.SumProd
 import SymplecticGeometry.Topology.Order.Compact
+import SymplecticGeometry.Topology.UniformSpace.HeineCantor
 
 /-!
 # Smooth, strictly increasing families of `i`-convex shapes
