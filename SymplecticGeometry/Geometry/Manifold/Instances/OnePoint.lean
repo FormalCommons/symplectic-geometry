@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 import TauCeti.Analysis.InnerProductSpace.Euclidean.CoordinateHyperplane
 import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
@@ -156,7 +157,7 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
         (hpt v).symm
   · -- The tangent spaces are `ℂ` and `Fin 1 → ℂ`, so the statement is read on those.
     have key : Orientation.map (Fin 2) (Lc.restrictScalars' ℝ).toLinearEquiv
-        (Orientation.reindex ℝ ℂ (finCongr (m := 2) (by simp)) (complexOrientation ℂ)) =
+        (Orientation.reindex ℝ ℂ (finCongr Complex.two_mul_finrank_self) (complexOrientation ℂ)) =
           Orientation.reindex ℝ (Fin 1 → ℂ) (finCongr (by simp))
             (complexOrientation (Fin 1 → ℂ)) := by
       rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
