@@ -801,9 +801,11 @@ of `hJi` besides the statements that pass it on).
   subgroup theorem. The average keeps `J` constant because each `h ∈ H` is
   `J`-holomorphic near `x`, by the invariance of `J`; that `dh_x` is
   `J`-linear would not be enough. The averaging lemma that Tau Ceti's
-  proof uses is private there, so this file proves the step it needs
-  (differentiation under the integral sign of a family of maps with
-  `J x`-linear derivatives) and credits Tau Ceti's theorem.
+  proof uses is private there; the library proves the step it needs
+  (differentiation under the integral sign) in
+  `Geometry/Manifold/GroupAction/EquivariantAverage.lean`, which credits
+  Tau Ceti's theorem, and this file deduces from it that the average has
+  `J x`-linear derivatives.
 - `fundamentalVectorField_chart_symm`: for `ξ, η ∈ 𝔥`,
   `Z = C.lieMap ξ + C.cplx (C.lieMap η)` and `v` in the target of `e`,
   `X_Z (e.symm v) = mfderiv (e.symm) v (A ξ v + J x (A η v))`, where `A ξ`
