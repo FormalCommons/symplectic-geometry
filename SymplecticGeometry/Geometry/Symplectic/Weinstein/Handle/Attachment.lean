@@ -258,6 +258,15 @@ theorem attachmentTime_of_forall_ne {x : M} (hx : ∀ t, g (hW.flow t x) ≠ 0) 
   rintro ⟨t, ht⟩
   exact hx t ht
 
+/-- **The time function on the orbits of `g ⁻¹' {0}`.** If the orbit of `x` under the flow `Φ`
+meets `g ⁻¹' {0}`, then, with `c = Flow.levelCrossingTime Φ g 0 x`, the time function at `x` is
+`Flow.levelCrossingTime Φ f b (Φ c x) * μ (-c)`. -/
+theorem attachmentTime_of_exists {x : M} (hx : ∃ t, g (hW.flow t x) = 0) :
+    hW.attachmentTime g b μ x =
+      Flow.levelCrossingTime hW.flow f b (hW.flow (Flow.levelCrossingTime hW.flow g 0 x) x) *
+        μ (-Flow.levelCrossingTime hW.flow g 0 x) := by
+  rw [attachmentTime_def, indicator_of_mem hx]
+
 /-- **The time function along an orbit crossing `g ⁻¹' {0}`.** Let `g` be differentiable with
 `dg(X) > 0` on `g ⁻¹' {0}`, and let `y` lie on `g ⁻¹' {0}`. Then the time function at the point
 `Φ s y` of the orbit of `y` is `T y * μ s`, where `T y = Flow.levelCrossingTime Φ f b y` is the
@@ -265,16 +274,14 @@ time from `y` to the level `f ⁻¹' {b}`. -/
 theorem attachmentTime_flow_apply (hg : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) g)
     (hgX : ∀ y, g y = 0 → 0 < mvfderiv 𝓘(ℝ, E) g y (X y)) {y : M} (hy : g y = 0) (s : ℝ) :
     hW.attachmentTime g b μ (hW.flow s y) = Flow.levelCrossingTime hW.flow f b y * μ s := by
-  have hback : hW.flow (-s) (hW.flow s y) = y := by
-    rw [← Flow.map_add, neg_add_cancel, Flow.map_zero_apply]
+  have hback : hW.flow (-s) (hW.flow s y) = y := hW.flow.map_neg_apply_map s y
   -- The orbit meets `g ⁻¹' {0}` only once, at `y`, so its crossing time from `Φ s y` is `-s`.
   have hc : Flow.levelCrossingTime hW.flow g 0 (hW.flow s y) = -s :=
     Flow.levelCrossingTime_eq_of_subsingleton
-      ((hW.isMIntegralCurve_flow _).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos
-        (hg.continuous.comp (hW.isMIntegralCurve_flow _).continuous) fun _ h ↦ ⟨hg _, hgX _ h⟩)
+      (_root_.TauCeti.subsingleton_setOf_flow_apply_eq_of_mvfderiv_pos
+        (hW.contMDiff_field.of_le (by simp)) hW.isCompleteVectorField hW.flowOf_eq_flow hg hgX _)
       (by rwa [hback])
-  rw [attachmentTime_def, indicator_of_mem, hc, hback, neg_neg]
-  exact ⟨-s, by rwa [hback]⟩
+  rw [hW.attachmentTime_of_exists ⟨-s, by rwa [hback]⟩, hc, hback, neg_neg]
 
 /-- **The time function is nonnegative.** If `f < b` on `g ⁻¹' {0}` and `μ ≥ 0`, then
 `0 ≤ hW.attachmentTime g b μ x` for every `x`: the level `f ⁻¹' {b}` is crossed in the future of
@@ -292,12 +299,14 @@ Then `hW.attachmentTime g b μ x = 0` whenever `f x ≤ a`. -/
 theorem attachmentTime_eq_zero_of_le {a δ : ℝ}
     (hδ : ∀ y, g y = 0 → ∀ s, -δ ≤ s → a < f (hW.flow s y)) (hμ : ∀ s ≤ -δ, μ s = 0) {x : M}
     (hx : f x ≤ a) : hW.attachmentTime g b μ x = 0 := by
-  rw [attachmentTime_def]
-  refine indicator_apply_eq_zero.2 fun h ↦ ?_
+  by_cases h : ∃ t, g (hW.flow t x) = 0
+  swap
+  · exact hW.attachmentTime_of_forall_ne fun t ht ↦ h ⟨t, ht⟩
+  rw [hW.attachmentTime_of_exists h]
   -- `x = Φ (-c) y` with `y` on `g ⁻¹' {0}` and `f x ≤ a`, so the time `-c` is before `-δ`.
   have hle : -Flow.levelCrossingTime hW.flow g 0 x ≤ -δ := by
     refine le_of_not_gt fun hlt ↦ (hx.trans_lt ?_).false
-    simpa only [← Flow.map_add, neg_add_cancel, Flow.map_zero_apply] using
+    simpa only [Flow.map_neg_apply_map] using
       hδ _ (Flow.apply_flow_levelCrossingTime h) _ hlt.le
   rw [hμ _ hle, mul_zero]
 
