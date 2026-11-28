@@ -13,6 +13,7 @@ public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.RepresentationTheory.Continuous.Unitary.Basic
 import Mathlib.Analysis.InnerProductSpace.Projection.Basic
 import TauCeti.RepresentationTheory.Continuous.InvariantComplement
+import SymplecticGeometry.Geometry.Manifold.GroupAction.TangentRepresentation.AlmostComplex
 
 /-!
 # The normal space of the complex orbit at a zero of the moment map
@@ -33,8 +34,9 @@ For a complexified action of a complexification `Gc` of `G`, `T` is the orbit ta
 since `X_ζ = X_{re ζ} + J X_{im ζ}`. If `-μ` is an equivariant moment map and `μ x = 0`, the
 orbit through `x` is isotropic, `σ_x(X_ξ, X_η) = -μ x ⁅ξ, η⁆ = 0`, so `W` and `J x W` are
 orthogonal for `g`
-(`SymplecticGeometry.inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero`), and
-in particular `W` is totally real for `J x`: it meets `J x W` only in `0`
+(`SymplecticGeometry.inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero`, in
+`KempfNess/Basic.lean`), and in particular `W` is totally real for `J x`: it meets
+`J x W` only in `0`
 (`SymplecticGeometry.isTotallyReal_orbitTangent_of_moment_eq_zero`).
 
 The space `S` is a complement of `T` (`SymplecticGeometry.isCompl_complexOrbitTangent`) and is
@@ -80,8 +82,6 @@ that `T` meets `S` only in `0`; surjectivity, that `K` maps onto `W`.
 
 * `SymplecticGeometry.IsComplexifiedAction.orbitTangent_eq_complexOrbitTangent`: for a
   complexified action, the orbit tangent space of `Gc` is `W + J x W`.
-* `SymplecticGeometry.inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero`: at
-  a zero of the moment map, `W` and `J x W` are orthogonal.
 * `SymplecticGeometry.isTotallyReal_orbitTangent_of_moment_eq_zero`: at a zero of the moment map,
   `W` is totally real for `J x`.
 * `SymplecticGeometry.isCompl_complexOrbitTangent`: `T` and `S` are complementary.
@@ -236,21 +236,6 @@ theorem mem_complexOrbitNormal_iff {J : SmoothAlmostComplexStructure I' M} {x : 
 
 variable [FiniteDimensional ℝ E]
 
-/-- **The orbit through a zero of the moment map is isotropic.** If `-μ` is an equivariant moment
-map for `σ`, the metric is `g(u, w) = σ(u, J w)` and `μ x = 0`, then `X_ξ x` and `J x (X_η x)`
-are orthogonal for all `ξ, η`. -/
-theorem inner_fundamentalVectorField_almostComplex_eq_zero_of_moment_eq_zero
-    {σ : SmoothTwoForm I' M}
-    {J : SmoothAlmostComplexStructure I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
-    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
-    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0)
-    (ξ η : GroupLieAlgebra I G) :
-    ⟪fundamentalVectorField I' ξ x, J x (fundamentalVectorField I' η x)⟫ = 0 := by
-  have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero x) η ξ
-  simp only [InfinitesimalAction.fundamental_apply, hx, neg_zero, LinearMap.zero_apply] at hcoc
-  rw [real_inner_comm, SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hg]
-  exact hcoc
-
 /-- **The orbit tangent space is totally real at a zero of the moment map**: if `-μ` is an
 equivariant moment map for `σ`, the metric is `g(u, w) = σ(u, J w)` and `μ x = 0`, then the
 orbit tangent space `W` meets its image under `J x` only in `0`. -/
@@ -318,12 +303,11 @@ theorem isUnitary_tangentRepresentation {σ : SmoothTwoForm I' M}
   refine (ContRepresentation.isUnitary_iff_norm_map _).2 fun k ↦
     (LinearMap.norm_map_iff_inner_map_map (tangentRepresentation hd k)).2 fun u w ↦ ?_
   have hkx : (k : G) • x = x := k.property
-  have hJ := hJG k k.property w
-  rw [hkx] at hJ
+  have hJ := tangentRepresentation_apply_almostComplex hd (hJG k k.property) w
   have h := SmoothForm.eval₂_mpullback (fun y : M ↦ (k : G) • y)
     (ContMDiffSMul.contMDiff_const_smul (I := I) (k : G)) σ x u (J x w)
-  rw [hσG k k.property, hkx, hJ] at h
-  rw [hg, hg, h, tangentRepresentation_apply]
+  rw [hσG k k.property, hkx] at h
+  rw [hg, hg, ← hJ, h, tangentRepresentation_apply]
 
 omit [FiniteDimensional ℝ E] in
 /-- **The complex orbit normal space is invariant under the stabilizer.** Let the stabilizer of
@@ -347,11 +331,8 @@ theorem mfderiv_smul_apply_mem_complexOrbitNormal {σ : SmoothTwoForm I' M}
     fun g _ ↦ ContMDiffSMul.mdifferentiable_const_smul (I := I) (n := ∞) (by simp) g x
   set ρ := tangentRepresentation hd
   -- Each `ρ k = dk_x` commutes with `J x`.
-  have hJ (k : stabilizer G x) (u : TangentSpace I' x) : ρ k (J x u) = J x (ρ k u) := by
-    have h := hJG k k.property u
-    rw [show (k : G) • x = x from k.property] at h
-    rw [tangentRepresentation_apply]
-    exact h
+  have hJ (k : stabilizer G x) (u : TangentSpace I' x) : ρ k (J x u) = J x (ρ k u) :=
+    tangentRepresentation_apply_almostComplex hd (hJG k k.property) u
   -- Each `ρ k` preserves the complex orbit tangent space.
   have hT (k : stabilizer G x) {u : TangentSpace I' x} (hu : u ∈ complexOrbitTangent I G J x) :
       (ρ k u : TangentSpace I' x) ∈ complexOrbitTangent I G J x := by

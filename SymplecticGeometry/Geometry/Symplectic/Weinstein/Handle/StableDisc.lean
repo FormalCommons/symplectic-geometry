@@ -23,6 +23,7 @@ import SymplecticGeometry.Geometry.Manifold.Flow.Chart
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 import SymplecticGeometry.Geometry.Manifold.VectorField.Chart
 import SymplecticGeometry.Geometry.Symplectic.Weinstein.Handle.Linearization
+import SymplecticGeometry.Geometry.Manifold.Morse.Linearization
 import SymplecticGeometry.Analysis.ODE.LyapunovPerron.ParameterDerivative
 import SymplecticGeometry.Analysis.ODE.LyapunovBilinForm
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Graph
