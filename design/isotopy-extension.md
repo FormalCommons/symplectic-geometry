@@ -1022,11 +1022,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Symplectic/Manifold/TwoForm.lean`, for
   `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq` (a map
   pulling a form back to a nondegenerate one is an immersion), which the
-  pull request of `Ball/Basic.lean` adds there, and
-  `Geometry/Symplectic/Manifold/Family.lean`, for
-  `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
-  segment between two forms that agree at a point is constant there), which
-  that pull request also adds.
+  pull request of `Ball/Basic.lean` adds there, and Tau Ceti's
+  `Geometry/Symplectic/Manifold/RelativeMoser.lean`, for
+  `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq` (the segment between
+  two forms that agree at a point is constant there).
   `IsotopyExtension/Ball/Moser.lean` imports `Ball/Basic.lean`,
   `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean`,
   *Smooth families*' `DifferentialForm/SmoothFamily/Poincare.lean`, and
