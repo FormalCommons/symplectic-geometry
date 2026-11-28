@@ -353,8 +353,10 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
   -- Both frames are smooth near `p`, on the images of the balls under the inverse charts.
   have hpy : p ∈ (D.chart k y).symm '' ball 0 (ρ₀ * √k) := ⟨w, hwB, rfl⟩
   have hpx' : p ∈ (D.chart k x).symm '' ball 0 (ρ₀ * √k) := ⟨τ w, hτB, hpx⟩
-  have hFy := (D.contMDiffOn_frame hk y).contMDiffAt ((D.isOpen_image_symm_ball hk y).mem_nhds hpy)
-  have hFx := (D.contMDiffOn_frame hk x).contMDiffAt ((D.isOpen_image_symm_ball hk x).mem_nhds hpx')
+  have hFy := (D.contMDiffOn_frame hk y).contMDiffAt
+    ((D.isOpen_image_symm_ball hk y le_rfl).mem_nhds hpy)
+  have hFx := (D.contMDiffOn_frame hk x).contMDiffAt
+    ((D.isOpen_image_symm_ball hk x le_rfl).mem_nhds hpx')
   have hg : MDifferentiableAt I (𝓡 1) g p := (hFy.division hFx).mdifferentiableAt (by simp)
   have hsymm : MDifferentiableAt 𝓘(ℝ, StdSpace ι) I (D.chart k y).symm w :=
     (D.chart k y).symm.mdifferentiableAt (by simp) (by simpa using hwt)
@@ -365,7 +367,7 @@ theorem fderiv_frameChange_apply (hα : IsCircleConnectionForm α) {k : ℕ} (hk
     D.mfderiv_chart_symm_chartTransition hws v
   -- The change of section: `σ_x^* α = g^* dθ + σ_y^* α` at `p`.
   have hA := congrArg (· ![u]) (hα.mpullback_apply_eq_mpullback_division_add
-    (D.isOpen_image_symm_ball hk y) (D.contMDiffOn_frame hk y) hpy
+    (D.isOpen_image_symm_ball hk y le_rfl) (D.contMDiffOn_frame hk y) hpy
     (hFx.mdifferentiableAt (by simp)))
   simp only [ContinuousAlternatingMap.add_apply] at hA
   -- The model forms in the two charts.

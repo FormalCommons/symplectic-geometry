@@ -697,11 +697,12 @@ theorem contMDiffOn_normalizedFrame {b : M → B} {s : ∀ m, V (b m)} {U : Set 
     ContMDiffOn IM (I.prod (𝓡 1)) n (fun m ↦ ManifoldTotalSpace.homeomorph Circle
       (Fiber ℂ F V ℂ) ⟨b m, normalizedFrame (F := F) (s m)⟩) U := by
   let : ContMDiffHermitianMetric I n F V := ⟨g, hI⟩
-  have hnorm : ContMDiffOn IM 𝓘(ℝ, ℂ) n (fun m ↦ ((‖s m‖⁻¹ : ℝ) : ℂ)) U :=
-    Complex.ofRealCLM.contMDiff.comp_contMDiffOn
-      ((hs.norm_bundle h0).inv₀ fun m hm ↦ norm_ne_zero_iff.2 (h0 m hm))
-  refine (contMDiffOn_circleFiber_iff g hI hU _).2 ((hnorm.smul_totalSpace hs).congr fun m hm ↦ ?_)
-  rw [frame_normalizedFrame_one (h0 m hm), Complex.ofReal_inv]
+  refine (contMDiffOn_circleFiber_iff g hI hU _).2
+    ((hs.inv_norm_smul_bundle h0).congr fun m hm ↦ ?_)
+  rw [frame_normalizedFrame_one (h0 m hm), RCLike.real_smul_eq_coe_smul (K := ℂ), RCLike.ofReal_inv]
+  -- The two sides differ only in how scalar multiplication by `ℂ` is found: through the
+  -- bundle's `Module ℂ`, or through `g.complexInnerProductSpace hI`, which keeps it.
+  rfl
 
 open scoped ContMDiffHermitianMetric in
 /-- **Every point has a smooth local section of the circle bundle.** Every point `x₀` of the base
