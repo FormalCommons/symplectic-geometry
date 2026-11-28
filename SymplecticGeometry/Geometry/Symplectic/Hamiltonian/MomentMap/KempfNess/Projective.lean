@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Lie.Exponential.Units
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.HilbertMumford
 import SymplecticGeometry.Analysis.Matrix.HermitianExp
 import SymplecticGeometry.Analysis.Matrix.Spectrum
+import TauCeti.LinearAlgebra.Eigenspace.Anticommute
 
 /-!
 # Complexified linear actions on complex projective space
@@ -68,19 +69,23 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   rule (`SymplecticGeometry.mfderiv_coe_apply_lieMap`), since `φ` is smooth into the unitary
   group (`TauCeti.Lie.contMDiff_unitarySubgroup_iff`), with derivative read as a matrix by
   `TauCeti.Lie.mfderiv_coe_eq_matrixUnitaryLieAlgebraEquiv`.
-* `SymplecticGeometry.tendsto_smul_zero_of_momentWeight_pos`: if `Gc` acts on `ℂⁿ⁺¹` through
-  `ρ` and the moment weight of `[v]` along `ξ` is positive, then `v` lies in the sum of the
-  eigenspaces of `-i • X` for positive eigenvalues, and `ρ (C.expI (t • ξ)) v` tends to `0` with
-  antitone norm as `t → ∞`. With `A = i • X`, the curve is `exp (t • A) v` by
-  `coe_apply_expI_smul`, and `projectivizationMoment_mk_apply` makes the moment along it minus
-  half the Rayleigh quotient of `A`. That quotient tends to the largest eigenvalue `a` of `A` on
-  which `v` has a nonzero coordinate
+* `SymplecticGeometry.projectivizationMoment_mk_apply_eq_rayleighQuotient`: the same component is
+  `-1/2` times the Rayleigh quotient at `v` of the Hermitian matrix `i • X`.
+* `SymplecticGeometry.momentWeight_projectivizationMoment_mk`: if `Gc` acts on `ℂⁿ⁺¹` through
+  `ρ`, the moment weight of `[v]` along `ξ` is `-a / 2`, where `a` is the largest eigenvalue of
+  `A = i • X` on which `v` has a nonzero coordinate. The curve `C.expI (t • ξ) • v` is
+  `exp (t • A) v` by `coe_apply_expI_smul`, the Rayleigh quotient of `A` along it tends to `a`
   (`Matrix.IsHermitian.tendsto_rayleighQuotient_toEuclideanLin_exp_smul_sup'`), and the moment
-  weight, a `limUnder`, is `-a / 2` by `Filter.Tendsto.limUnder_eq`. So a positive weight makes
-  every such eigenvalue negative, and `Matrix.IsHermitian.antitone_norm_toEuclideanLin_exp_smul`,
-  `Matrix.IsHermitian.tendsto_toEuclideanLin_exp_smul_zero` and
-  `Matrix.IsHermitian.mem_iSup_eigenspace` conclude. The sign is always the same: the decay is
-  along `ξ` itself.
+  weight is a `limUnder`, so `Filter.Tendsto.limUnder_eq` gives it.
+* `SymplecticGeometry.tendsto_smul_zero_of_momentWeight_pos`: if the moment weight of `[v]` along
+  `ξ` is positive, then `v` lies in the sum of the eigenspaces of `-i • X` for positive
+  eigenvalues, and `ρ (C.expI (t • ξ)) v` tends to `0` with antitone norm as `t → ∞`. By the
+  previous item every eigenvalue of `A` on which `v` has a nonzero coordinate is negative, and
+  `Matrix.IsHermitian.antitone_norm_toEuclideanLin_exp_smul`,
+  `Matrix.IsHermitian.tendsto_toEuclideanLin_exp_smul_zero`,
+  `Matrix.IsHermitian.mem_iSup_eigenspace`
+  and Tau Ceti's `Module.End.genEigenspace_neg` conclude. The sign is always the same: the decay
+  is along `ξ` itself.
 
 ## References
 
@@ -163,6 +168,24 @@ theorem projectivizationMoment_mk_apply (φ : G →* unitarySubgroup (GL (Fin (n
         ((matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
           Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ v)⟫_ℂ).im / (2 * ‖WithLp.toLp 2 v‖ ^ 2) := by
   rw [projectivizationMoment_apply, unitaryProjectivizationMoment_mk_apply]
+
+/-- **The moment map as a Rayleigh quotient.** For a nonzero vector `v` of `ℂⁿ⁺¹`, the component
+of `projectivizationMoment I φ [v]` along `ξ` is `-1/2` times the Rayleigh quotient at `v` of
+`i • X`, for the Hermitian inner product of `EuclideanSpace ℂ (Fin (n + 1))`, where `X` is the
+skew-Hermitian matrix of `dφ ξ` (through `matrixUnitaryLieAlgebraEquiv`). -/
+theorem projectivizationMoment_mk_apply_eq_rayleighQuotient
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ)) (ξ : GroupLieAlgebra I G)
+    {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) :
+    projectivizationMoment I φ (mk ℂ v hv) ξ =
+      -(1 / 2) * (toEuclideanCLM (n := Fin (n + 1)) (𝕜 := ℂ) (Complex.I •
+        (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
+          Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))).rayleighQuotient (WithLp.toLp 2 v) := by
+  rw [projectivizationMoment_mk_apply, ContinuousLinearMap.rayleighQuotient,
+    ContinuousLinearMap.reApplyInnerSelf_apply, toEuclideanCLM_apply, map_smul,
+    LinearMap.smul_apply, toLpLin_toLp, toLin'_apply, inner_smul_left, ← inner_conj_symm]
+  simp only [Complex.conj_I, RCLike.re_to_complex, Complex.mul_re, Complex.neg_re,
+    Complex.I_re, Complex.neg_im, Complex.I_im, Complex.conj_im]
+  ring
 
 variable {I} [CompleteSpace E] [LieGroup I ∞ G]
   [DistribMulAction G (Fin (n + 1) → ℂ)] [SMulCommClass G ℂ (Fin (n + 1) → ℂ)]
@@ -271,6 +294,42 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   [T2Space Gc] [BoundarylessManifold IC Gc]
   [DistribMulAction Gc (Fin (n + 1) → ℂ)] [SMulCommClass Gc ℂ (Fin (n + 1) → ℂ)]
 
+/-- **The moment weight on `ℂPⁿ`.** In the setting of `coe_apply_expI_smul`, let `Gc` act on
+`ℂⁿ⁺¹` through `ρ`, and let `X` be the skew-Hermitian matrix of `dφ ξ`. For a nonzero vector `v`,
+the moment weight of `[v]` along `ξ` for `projectivizationMoment I φ` is `-1/2` times the largest
+eigenvalue `hA.eigenvalues i` of the Hermitian matrix `i • X` with `v_i ≠ 0`, `v_i` the
+coordinates of `v` in the eigenvector basis. -/
+theorem momentWeight_projectivizationMoment_mk (C : LieComplexification I G IC Gc)
+    (ρ : ContMDiffMonoidMorphism IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) ∞ Gc
+      (GL (Fin (n + 1)) ℂ))
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (hφ : ∀ g, (φ g : GL (Fin (n + 1)) ℂ) = ρ (C.toHom g))
+    (hρ : ∀ Z : GroupLieAlgebra IC Gc,
+      mfderiv IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+          (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 (C.cplx Z) =
+        Complex.I • (show Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ from
+          mfderiv IC 𝓘(ℝ, Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)
+            (fun g ↦ (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)) 1 Z))
+    (hsmul : ∀ (g : Gc) (v : Fin (n + 1) → ℂ),
+      g • v = (ρ g : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ v)
+    (ξ : GroupLieAlgebra I G) {v : Fin (n + 1) → ℂ} (hv : v ≠ 0)
+    (hA : (Complex.I •
+      (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
+        Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ)).IsHermitian)
+    (hs : {i | hA.eigenvectorBasis.repr (WithLp.toLp 2 v) i ≠ 0}.toFinset.Nonempty) :
+    momentWeight C (projectivizationMoment I φ) (mk ℂ v hv) ξ =
+      -(1 / 2) * {i | hA.eigenvectorBasis.repr (WithLp.toLp 2 v) i ≠ 0}.toFinset.sup' hs
+        hA.eigenvalues := by
+  rw [momentWeight_def]
+  refine Tendsto.limUnder_eq <|
+    ((hA.tendsto_rayleighQuotient_toEuclideanLin_exp_smul_sup' hs).const_mul (-(1 / 2))).congr
+      fun t ↦ ?_
+  rw [smul_mk, projectivizationMoment_mk_apply_eq_rayleighQuotient, hsmul,
+    coe_apply_expI_smul C ρ φ hφ hρ ξ t, toLpLin_toLp, toLin'_apply]
+  -- The sides agree only up to unfolding: the limit of the Rayleigh quotient is stated over a
+  -- general `RCLike` field.
+  congr 1
+
 /-- **A positive moment weight on `ℂPⁿ`.** In the setting of `coe_apply_expI_smul`, let `Gc`
 act on `ℂⁿ⁺¹` through `ρ`, and let `X` be the skew-Hermitian matrix of `dφ ξ`, so that
 `ρ (C.expI (t • ξ))` is the exponential of `-t` times the Hermitian matrix `-i • X`. If the
@@ -306,21 +365,6 @@ theorem tendsto_smul_zero_of_momentWeight_pos (C : LieComplexification I G IC Gc
     exact (unitaryLieAlgebraEquivSelfAdjoint _ Y).property.isHermitian
   have hA : (Complex.I • X).IsHermitian := by simpa only [neg_smul, _root_.neg_neg] using hB.neg
   set x := WithLp.toLp 2 v
-  have hcurve (t : ℝ) : WithLp.toLp 2
-      ((ρ (C.expI (t • ξ)) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ v) =
-      toEuclideanLin (NormedSpace.exp (t • (Complex.I • X))) x := by
-    rw [coe_apply_expI_smul C ρ φ hφ hρ ξ t, toLpLin_toLp, toLin'_apply]
-  -- The moment along the curve is minus half the Rayleigh quotient of `i • X`.
-  have hmom (t : ℝ) : projectivizationMoment I φ (C.expI (t • ξ) • mk ℂ v hv) ξ =
-      -(1 / 2) * (toEuclideanCLM (n := Fin (n + 1)) (𝕜 := ℂ) (Complex.I • X)).rayleighQuotient
-        (toEuclideanLin (NormedSpace.exp (t • (Complex.I • X))) x) := by
-    rw [smul_mk, projectivizationMoment_mk_apply, hsmul, ← hcurve,
-      ContinuousLinearMap.rayleighQuotient, ContinuousLinearMap.reApplyInnerSelf_apply,
-      toEuclideanCLM_apply, map_smul, LinearMap.smul_apply, toLpLin_toLp, toLin'_apply,
-      inner_smul_left, ← inner_conj_symm]
-    simp only [Complex.conj_I, RCLike.re_to_complex, Complex.mul_re, Complex.neg_re,
-      Complex.I_re, Complex.neg_im, Complex.I_im, Complex.conj_im]
-    ring
   have hs : {i | hA.eigenvectorBasis.repr x i ≠ 0}.toFinset.Nonempty := by
     by_contra h
     refine hv ?_
@@ -330,24 +374,22 @@ theorem tendsto_smul_zero_of_momentWeight_pos (C : LieComplexification I G IC Gc
       by_contra hi
       exact h ⟨i, by simpa using hi⟩
     simpa [x] using hx
-  set a := {i | hA.eigenvectorBasis.repr x i ≠ 0}.toFinset.sup' hs hA.eigenvalues
-  have hw : momentWeight C (projectivizationMoment I φ) (mk ℂ v hv) ξ = -(1 / 2) * a := by
-    rw [momentWeight_def]
-    refine Tendsto.limUnder_eq ?_
-    exact Tendsto.congr (fun t ↦ (hmom t).symm)
-      ((hA.tendsto_rayleighQuotient_toEuclideanLin_exp_smul_sup' hs).const_mul (-(1 / 2)))
+  rw [momentWeight_projectivizationMoment_mk C ρ φ hφ hρ hsmul ξ hv hA hs] at hpos
   have hlt (i) (hi : hA.eigenvectorBasis.repr x i ≠ 0) : hA.eigenvalues i < 0 :=
     (Finset.le_sup' (s := {i | hA.eigenvectorBasis.repr x i ≠ 0}.toFinset) hA.eigenvalues
       (by simpa using hi)).trans_lt (by linarith)
+  have hcurve (t : ℝ) : WithLp.toLp 2
+      ((ρ (C.expI (t • ξ)) : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ v) =
+      toEuclideanLin (NormedSpace.exp (t • (Complex.I • X))) x := by
+    rw [coe_apply_expI_smul C ρ φ hφ hρ ξ t, toLpLin_toLp, toLin'_apply]
   refine ⟨?_, fun s t hst ↦ ?_, ?_⟩
-  · refine IsConcreteLE.le_iff.mp (iSup₂_le fun μ (hμ : μ ∈ Set.Iio 0) ↦ ?_)
+  · -- The eigenspaces of `-(i • X)` are those of `i • X` at the negated eigenvalues.
+    refine IsConcreteLE.le_iff.mp (iSup₂_le fun μ (hμ : μ ∈ Set.Iio 0) ↦ ?_)
       (hA.mem_iSup_eigenspace (S := Set.Iio 0) hlt)
-    intro y hy
-    refine Submodule.mem_iSup_of_mem (-μ) (Submodule.mem_iSup_of_mem
-      (Set.mem_Ioi.mpr (neg_pos.mpr hμ)) ?_)
-    rw [Module.End.mem_eigenspace_iff] at hy ⊢
-    rw [neg_smul, map_neg, LinearMap.neg_apply, hy, Complex.ofReal_neg]
-    exact (neg_smul (μ : ℂ) y).symm
+    rw [neg_smul, map_neg]
+    refine le_iSup₂_of_le (-μ) (Set.mem_Ioi.mpr (neg_pos.mpr hμ)) ?_
+    exact (Module.End.genEigenspace_neg _ _ 1).ge.trans_eq'
+      (by simp)
   · dsimp only
     rw [hcurve, hcurve]
     exact hA.antitone_norm_toEuclideanLin_exp_smul (fun i hi ↦ (hlt i hi).le) hst
