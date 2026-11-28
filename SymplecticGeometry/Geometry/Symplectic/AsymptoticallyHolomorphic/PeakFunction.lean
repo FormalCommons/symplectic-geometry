@@ -13,6 +13,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
 import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Symplectic
+import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
 public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
@@ -42,6 +43,9 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.modelDbarWith` for the constant structure `J₀`. Its smoothness,
   linearity and Leibniz rule come from those of `modelDbarWith`; it differs from the flat `∂̄`
   `SymplecticGeometry.flatDbar` by the connection term.
+* `SymplecticGeometry.modelDel`: the model `∂`, the complex-linear part for `J₀` of the model
+  connection. With the model `∂̄` it adds up to the model connection
+  (`SymplecticGeometry.modelDel_add_modelDbar`).
 * `SymplecticGeometry.gaussianConnectionForm`: the form `v ↦ -(⟪z, v⟫ + i ω₀(z, v)) / 2`, which
   is the model connection of the Gaussian `exp (-‖z‖ ^ 2 / 4)` at `z` divided by its value
   (`SymplecticGeometry.modelConnection_gaussian`). It is complex linear for `J₀`
@@ -75,9 +79,12 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
   `SymplecticGeometry.modelDbar_add`, `SymplecticGeometry.modelDbar_smul`: it is additive and
   commutes with complex scalars.
 * `SymplecticGeometry.modelDbar_mul`, `SymplecticGeometry.modelDbar_coord_mul`: the Leibniz rule
-  for the model `∂̄`, and its form for a product with a complex coordinate.
+  for the model `∂̄`, and its form for a product with a complex coordinate;
+  `SymplecticGeometry.modelDel_mul`: the Leibniz rule for the model `∂`.
 * `SymplecticGeometry.modelDbar_gaussian`, `SymplecticGeometry.modelDbar_coord_mul_gaussian`: the
-  Gaussian `exp (-‖z‖ ^ 2 / 4)` and `z_j` times it have model `∂̄` zero.
+  Gaussian `exp (-‖z‖ ^ 2 / 4)` and `z_j` times it have model `∂̄` zero;
+  `SymplecticGeometry.modelDel_gaussian`: its model `∂` at `z` is its value times
+  `gaussianConnectionForm z`.
 * `SymplecticGeometry.exists_jetNormAt_modelDbar_peakFunction_le`,
   `SymplecticGeometry.exists_jetNormAt_modelDbar_peakFunction_mul_le`: the **model `∂̄` bounds**,
   `jetNormAt ℝ r (modelDbar (peakFunction k)) z ≤ C * k ^ (-1 / 2) * (1 + ‖z‖) ^ N *
@@ -466,6 +473,80 @@ theorem modelDbar_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : Differ
     modelDbar (fun y ↦ f y * g y) z = f z • modelDbar g z + g z • flatDbar f z := by
   simp only [modelDbar_def, flatDbar_def, modelDbarWith_mul hf hg]
 
+/-! ### The model `∂` -/
+
+/-- The **model `∂`** of a complex function `f` on `StdSpace ι` at `z`: Tau Ceti's
+complex-linear part `TauCeti.complexLinearPart` of the model connection
+`SymplecticGeometry.modelConnection f z`, for `J₀ = stdComplexStructure ι` and multiplication by
+`i` on `ℂ`. It is the `(1,0)` counterpart of the model `∂̄` `SymplecticGeometry.modelDbar`. -/
+noncomputable def modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) : StdSpace ι →L[ℝ] ℂ :=
+  LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+    (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+    (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ))
+
+theorem modelDel_def (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel f z =
+      LinearMap.toContinuousLinearMap (complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ)) :=
+  (rfl)
+
+/-- As a real-linear map, the model `∂` of `f` at `z` is Tau Ceti's complex-linear part
+`TauCeti.complexLinearPart` of the model connection of `f` at `z`, for `J₀` and multiplication
+by `i`. -/
+theorem coe_modelDel (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    (modelDel f z : StdSpace ι →ₗ[ℝ] ℂ) =
+      complexLinearPart (stdComplexStructure ι).toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (modelConnection f z : StdSpace ι →ₗ[ℝ] ℂ) := by
+  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap]
+
+theorem modelDel_apply (f : StdSpace ι → ℂ) (z v : StdSpace ι) :
+    modelDel f z v = (2⁻¹ : ℝ) •
+      (modelConnection f z v - Complex.I * modelConnection f z (stdComplexStructure ι v)) := by
+  rw [modelDel_def, LinearMap.coe_toContinuousLinearMap', complexLinearPart_apply]
+  simp [AlmostComplexStructure.ofComplexModule_apply]
+
+/-- The model connection of `f` at `z` is the sum of its model `∂` and its model `∂̄`. -/
+theorem modelDel_add_modelDbar (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel f z + modelDbar f z = modelConnection f z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [ContinuousLinearMap.toLinearMap_add, coe_modelDel, modelDbar_def, modelDbarWith_def,
+    complexAntilinearPartContinuousLinearMap_apply, LinearMap.coe_toContinuousLinearMap,
+    LinearMap.coe_toContinuousLinearMap, complexLinearPart_add_complexAntilinearPart]
+
+/-- The model `∂` commutes with complex scalars. -/
+@[simp]
+theorem modelDel_smul (c : ℂ) (f : StdSpace ι → ℂ) (z : StdSpace ι) :
+    modelDel (c • f) z = c • modelDel f z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_modelDel, ContinuousLinearMap.toLinearMap_smul, coe_modelDel, modelConnection_smul,
+    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul]
+
+/-- The model `∂` is additive on functions differentiable at `z`. -/
+theorem modelDel_add {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) : modelDel (f + g) z = modelDel f z + modelDel g z := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_modelDel, modelConnection_add hf hg, ContinuousLinearMap.toLinearMap_add,
+    complexLinearPart_add, ContinuousLinearMap.toLinearMap_add, coe_modelDel, coe_modelDel]
+
+@[simp]
+theorem modelDel_zero (z : StdSpace ι) : modelDel (0 : StdSpace ι → ℂ) z = 0 := by
+  apply ContinuousLinearMap.coe_injective
+  rw [coe_modelDel, modelConnection_zero, ContinuousLinearMap.toLinearMap_zero,
+    complexLinearPart_zero]
+
+/-- The **Leibniz rule** for the model `∂`: for `f` and `g` differentiable at `z`, the model
+`∂` of `f * g` at `z` is `f z` times the model `∂` of `g` plus `g z` times the flat `∂` of
+`f`. -/
+theorem modelDel_mul {f g : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
+    (hg : DifferentiableAt ℝ g z) :
+    modelDel (fun y ↦ f y * g y) z = f z • modelDel g z + g z • flatDel f z := by
+  apply ContinuousLinearMap.coe_injective
+  simp only [coe_modelDel, modelConnection_mul hf hg, ContinuousLinearMap.toLinearMap_add,
+    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_add, complexLinearPart_complex_smul,
+    coe_flatDel]
+
 /-- The derivative of the Gaussian `exp (-‖z‖ ^ 2 / 4)`, as a complex function. -/
 private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
     fderiv ℝ (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z v =
@@ -568,6 +649,16 @@ theorem modelConnection_gaussian (z : StdSpace ι) :
     gaussianConnectionForm_apply, Complex.real_smul, Complex.real_smul]
   push_cast
   ring
+
+/-- **The model `∂` of the Gaussian**: at `z`, the model `∂` of `G = exp (-‖·‖ ^ 2 / 4)` is
+`G z` times the connection form `gaussianConnectionForm z`, which is complex linear for `J₀`. -/
+theorem modelDel_gaussian (z : StdSpace ι) :
+    modelDel (fun y : StdSpace ι ↦ (Real.exp (-‖y‖ ^ 2 / 4) : ℂ)) z =
+      (Real.exp (-‖z‖ ^ 2 / 4) : ℂ) • gaussianConnectionForm z := by
+  apply ContinuousLinearMap.coe_injective
+  simp only [coe_modelDel, modelConnection_gaussian, ← Complex.coe_smul,
+    ContinuousLinearMap.toLinearMap_smul, complexLinearPart_complex_smul,
+    complexLinearPart_gaussianConnectionForm]
 
 /-- The model `∂̄` of `z_j` times `f` is `z_j` times the model `∂̄` of `f`. -/
 theorem modelDbar_coord_mul {f : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
