@@ -19,6 +19,7 @@ import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Darboux charts of the Fubini–Study form
@@ -268,13 +269,8 @@ private theorem eval₂_fubiniStudyForm_mfderiv_darbouxChart_symm (j : Fin (n + 
   have hD : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin n)) 𝓘(ℝ, Fin (n + 1) → ℂ) (darbouxLift j) ζ :=
     TauCeti.Manifold.mdifferentiableAt_subtype_val_comp_iff.1
       (hasFDerivAt_darbouxLift j hζ).hasMFDerivAt.mdifferentiableAt
-  have hM := (contMDiff_mkNonzero ℂ n 1 (darbouxLift j ζ)).mdifferentiableAt one_ne_zero
-  have hψ : mfderiv 𝓘(ℝ, StdSpace (Fin n)) 𝓘(ℝ, Fin n → ℂ) (fubiniStudyDarbouxChart n j).symm ζ =
-      (mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) 𝓘(ℝ, Fin n → ℂ) (mkNonzero ℂ n) (darbouxLift j ζ)).comp
-        (mfderiv 𝓘(ℝ, StdSpace (Fin n)) 𝓘(ℝ, Fin (n + 1) → ℂ) (darbouxLift j) ζ) :=
-    (hM.hasMFDerivAt.comp ζ hD.hasMFDerivAt).congr_of_eventuallyEq_abuse hE |>.mfderiv
-  rw [hE.self_of_nhds, hψ, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
-    Function.comp_apply, eval₂_fubiniStudyForm_mfderiv_mkNonzero, fubiniStudyLift_apply,
+  rw [← SmoothForm.eval₂_mpullback_mfderiv_of_comp_eventuallyEq (contMDiff_mkNonzero ℂ n ∞) _ hD
+      hE.symm, mpullback_mkNonzero_fubiniStudyForm, fubiniStudyLift_apply,
     mfderiv_darbouxLift j hζ, mfderiv_darbouxLift j hζ]
   have hz : ∑ i, ‖(darbouxLift j ζ : Fin (n + 1) → ℂ) i‖ ^ 2 = 1 := by
     rw [← re_star_dotProduct_self, coe_darbouxLift, Fin.star_insertNth,
