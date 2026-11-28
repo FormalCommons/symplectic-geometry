@@ -12,7 +12,6 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.Spec
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Complex.ExponentialBounds
 import SymplecticGeometry.Analysis.Calculus.Deriv.CompMul
-import SymplecticGeometry.Analysis.SpecialFunctions.Log.Bounds
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition.Deriv
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
@@ -71,8 +70,9 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
 
 * `SymplecticGeometry.sqrtAddLeaf L δ ℓ`: the cutoff leaf with `b = δ / 8 + ℓ` and
   `c = 64 δ² + ℓ²`. It is `√(64 r² - 64 δ²) + δ / 8 + ℓ` up to `2 δ`
-  (`SymplecticGeometry.sqrtAddLeaf_of_le`; for `δ = 1` it is `8 √(r² - 1) + 1 / 8 + ℓ` up to `2`,
-  `SymplecticGeometry.sqrtAddLeaf_one_of_le`) and the standard shape `√(64 r² + ℓ²)` from
+  (`SymplecticGeometry.sqrtAddLeaf_of_le`), that is `8 √(r² - δ²) + δ / 8 + ℓ`
+  (`SymplecticGeometry.sqrtAddLeaf_eq_eight_mul_sqrt_add_of_le`; for `δ = 1`,
+  `SymplecticGeometry.sqrtAddLeaf_one_of_le`), and the standard shape `√(64 r² + ℓ²)` from
   `(2 + L) δ` on (`SymplecticGeometry.sqrtAddLeaf_of_ge`); the leaves for `δ` are those for
   `δ = 1` rescaled (`SymplecticGeometry.sqrtAddLeaf_eq_mul_sqrtAddLeaf_one`).
 * `SymplecticGeometry.exists_isConvexShapeAt_sqrtAddLeaf`: for `L` large enough, every leaf with
@@ -123,7 +123,7 @@ Both `SymplecticGeometry.sqrtAddLeaf` below and `SymplecticGeometry.sqrtSubLeaf`
   Where the two differ by at most the width, again below `2`, the comparison forces
   `√(r² - 1)` to be at least a fixed multiple of the width, so that the width times the sum of
   the two slopes, which are at most `8 r / √(r² - 1)` and `√2 r / √(r² - 1)`
-  (`Real.one_div_sqrt_log_le`), is at most `2 r`, and
+  (`SymplecticGeometry.deriv_struweShape_le_sqrt_two_mul_div`), is at most `2 r`, and
   `SymplecticGeometry.isConvexShapeAt_smoothedMax` applies. `IsConvexShapeAt.rescale` passes
   to `δ`.
 * For `0 ≤ L` and `0 < δ` the family is smooth in `(ℓ, r)` at every point with `δ < r`
@@ -524,12 +524,17 @@ theorem sqrtAddLeaf_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : 
     sqrtAddLeaf L δ ℓ r = √(64 * r ^ 2 - 64 * δ ^ 2) + (δ / 8 + ℓ) := by
   rw [sqrtAddLeaf_eq_cutoffLeaf, cutoffLeaf_of_le hL hδ hr]
 
+/-- Up to `2 δ`, the leaf `ℓ` is `8 √(r² - δ²) + (δ / 8 + ℓ)`. -/
+theorem sqrtAddLeaf_eq_eight_mul_sqrt_add_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ)
+    (hr : r ≤ 2 * δ) : sqrtAddLeaf L δ ℓ r = 8 * √(r ^ 2 - δ ^ 2) + (δ / 8 + ℓ) := by
+  rw [sqrtAddLeaf_of_le hL hδ hr,
+    show 64 * r ^ 2 - 64 * δ ^ 2 = 8 ^ 2 * (r ^ 2 - δ ^ 2) by ring, sqrt_sq_mul,
+    abs_of_pos (by norm_num)]
+
 /-- For `δ = 1` and `0 ≤ L`, up to `2` the leaf `ℓ` is `8 √(r² - 1) + (1 / 8 + ℓ)`. -/
 theorem sqrtAddLeaf_one_of_le {L ℓ r : ℝ} (hL : 0 ≤ L) (hr : r ≤ 2) :
     sqrtAddLeaf L 1 ℓ r = 8 * √(r ^ 2 - 1) + (1 / 8 + ℓ) := by
-  rw [sqrtAddLeaf_of_le hL zero_le_one (by linarith),
-    show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_sq_mul,
-    abs_of_pos (by norm_num)]
+  rw [sqrtAddLeaf_eq_eight_mul_sqrt_add_of_le hL zero_le_one (by linarith), one_pow]
 
 /-- From `(2 + L) δ` on, the leaf `ℓ` is the standard shape `√(64 r² + ℓ²)`. -/
 theorem sqrtAddLeaf_of_ge {L ℓ r : ℝ} (hL : 0 < L) (hδ : 0 < δ) (hr : (2 + L) * δ ≤ r) :
@@ -639,12 +644,16 @@ theorem continuous_sqrtAddLeaf (L δ ℓ : ℝ) : Continuous (sqrtAddLeaf L δ �
   exact continuous_cutoffLeaf _ _ _ _
 
 /-- Between `δ` and `2 δ`, the slope of each leaf is that of the bottom leaf,
-`64 r / √(64 r² - 64 δ²)`. -/
+`8 r / √(r² - δ²)`. -/
 theorem deriv_sqrtAddLeaf_of_lt {L ℓ r : ℝ} (hL : 0 ≤ L) (hδ : 0 ≤ δ) (hr : δ < r)
     (hr₂ : r < 2 * δ) :
-    deriv (sqrtAddLeaf L δ ℓ) r = 64 * r / √(64 * r ^ 2 - 64 * δ ^ 2) := by
-  rw [sqrtAddLeaf_eq_cutoffLeaf]
-  exact deriv_cutoffLeaf_of_lt hL hδ hr hr₂
+    deriv (sqrtAddLeaf L δ ℓ) r = 8 * r / √(r ^ 2 - δ ^ 2) := by
+  have hw : 0 < √(r ^ 2 - δ ^ 2) := sqrt_pos.2 (by nlinarith)
+  rw [sqrtAddLeaf_eq_cutoffLeaf, deriv_cutoffLeaf_of_lt hL hδ hr hr₂,
+    show 64 * r ^ 2 - 64 * δ ^ 2 = 8 ^ 2 * (r ^ 2 - δ ^ 2) by ring, sqrt_sq_mul,
+    abs_of_pos (by norm_num)]
+  field_simp
+  ring
 
 /-- For `0 ≤ δ`, at each `r > δ`, the leaves `ℓ ≥ 0` are strictly increasing in `ℓ`: both
 terms of `sqrtAddLeaf` are nondecreasing in `ℓ ≥ 0`, the first strictly where the cutoff is
@@ -906,16 +915,10 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
   have hr₂ := hr₂ h₁
   set w := √(r ^ 2 - 1)
   have hw₀ : 0 < w := sqrt_pos.2 (by nlinarith)
-  have h8 : √(64 * r ^ 2 - 64 * 1 ^ 2) = 8 * w := by
-    rw [show 64 * r ^ 2 - 64 * 1 ^ 2 = 8 ^ 2 * (r ^ 2 - 1) by ring, sqrt_sq_mul,
-      abs_of_pos (by norm_num)]
   have hdA : deriv A r = 8 * r / w := by
-    rw [deriv_sqrtAddLeaf_of_lt hL zero_le_one hr (by linarith), h8]
-    field_simp
-    norm_num
+    rw [deriv_sqrtAddLeaf_of_lt hL zero_le_one hr (by linarith), one_pow]
   have hdT : deriv T r ≤ √2 * r / w := by
-    rw [deriv_struweShape one_pos le_rfl _ hr, div_one]
-    exact one_div_sqrt_log_le hr
+    simpa only [one_pow] using deriv_struweShape_le_sqrt_two_mul_div one_pos le_rfl _ hr
   -- The upper bound of `A r - T r` gives `8 w ≥ 199 η`.
   have hw : 199 * η ≤ 8 * w := by
     have h := (sqrtAddLeaf_sub_struweShape_mem_Icc hL ℓ ⟨hr.le, hr₂.le⟩).2

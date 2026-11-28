@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.CutoffLeaf
 
 import Mathlib.Analysis.Complex.ExponentialBounds
-import SymplecticGeometry.Analysis.SpecialFunctions.Log.Bounds
 import SymplecticGeometry.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Geometry.Manifold.Complex.JConvex.Surround.ConvexShape.SmoothedMax
 import TauCeti.Analysis.Real.Sqrt
@@ -49,8 +48,8 @@ a shape `G` and `r ↦ struweLineShape δ r + t`; it is `G` or the raised shape 
   from there on; that gives the conditions of `isConvexShapeAt_struweLineShape_add`. Where the two
   pieces are within `η`, below `2 δ` the raised shape is at least `65 δ / 8` and `G` is
   `δ / 8 + ℓ + 8 w`, `w = √(r² - δ²)`, so `w ≥ δ / 40`, against slopes `8 r / w` and
-  `√2 r / w` (`deriv_struweLineShape_of_lt`, `one_div_sqrt_log_le`); from `2 δ` on the slopes are
-  at most `11` and `2`.
+  `√2 r / w` (`deriv_struweLineShape_of_lt`, `deriv_struweShape_le_sqrt_two_mul_div`); from
+  `2 δ` on the slopes are at most `11` and `2`.
 * `SymplecticGeometry.isConvexShapeAt_bridgeLeaf_sqrt`: for the standard leaf
   `G r = √(64 r² + ℓ²)`, `0 < η ≤ δ / 200` and `3 ℓ + 30 δ ≤ S δ + t`, the bridge leaf is an
   `i`-convex shape at every `r > δ`. Where the raised shape is used it is at least `30 δ`, and there
@@ -384,14 +383,11 @@ theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
       contDiffAt_const
   set w := √(r ^ 2 - δ ^ 2)
   have hw₀ : 0 < w := sqrt_pos.2 (by nlinarith)
-  have h8w : √(64 * r ^ 2 - 64 * δ ^ 2) = 8 * w := by
-    rw [show 64 * r ^ 2 - 64 * δ ^ 2 = 8 ^ 2 * (r ^ 2 - δ ^ 2) by ring, sqrt_sq_mul,
-      abs_of_pos (by norm_num)]
   -- The leaf `A = sqrtAddLeaf L δ ℓ` is at least `8 w`, and `δ / 8 + ℓ + 8 w` up to `2 δ`; from
   -- `2 δ` on, `8 w ≥ 8 r - 5 δ / 2`.
   have hA8 := eight_mul_sqrt_le_sqrtAddLeaf L hδ.le (by linarith : 0 ≤ ℓ) r
-  have hA₂ : r ≤ 2 * δ → sqrtAddLeaf L δ ℓ r = 8 * w + (δ / 8 + ℓ) := fun h ↦ by
-    rw [sqrtAddLeaf_of_le (by linarith) hδ.le h, h8w]
+  have hA₂ : r ≤ 2 * δ → sqrtAddLeaf L δ ℓ r = 8 * w + (δ / 8 + ℓ) :=
+    sqrtAddLeaf_eq_eight_mul_sqrt_add_of_le (by linarith) hδ.le
   have hw₂ : 2 * δ ≤ r → 8 * r - 5 * δ / 2 ≤ 8 * w := fun h ↦ by
     have : r - 5 * δ / 16 ≤ w := le_sqrt_of_sq_le (by nlinarith)
     linarith
@@ -435,18 +431,12 @@ theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
     obtain ⟨h₁, -⟩ := abs_le.1 h
     rcases lt_or_ge r (2 * δ) with h2 | h2
     · -- Below `2 δ`, the slopes are at most `8 r / w` and `√2 r / w`, and `w ≥ δ / 40`.
-      have hdA : deriv (sqrtAddLeaf L δ ℓ) r = 8 * r / w := by
-        rw [deriv_sqrtAddLeaf_of_lt (by linarith) hδ.le hr h2, h8w]
-        field_simp
-        norm_num
-      have hu : √((r / δ) ^ 2 - 1) = w / δ := by
-        rw [show (r / δ) ^ 2 - 1 = (r ^ 2 - δ ^ 2) / δ ^ 2 by field_simp,
-          sqrt_div' _ (sq_nonneg δ), sqrt_sq hδ.le]
+      have hdA : deriv (sqrtAddLeaf L δ ℓ) r = 8 * r / w :=
+        deriv_sqrtAddLeaf_of_lt (by linarith) hδ.le hr h2
       have hdP : deriv (fun x ↦ struweLineShape δ x + t) r ≤ √2 * r / w := by
-        rw [deriv_add_const, deriv_struweLineShape_of_lt hδ hr (by linarith)]
-        refine (one_div_sqrt_log_le ((one_lt_div hδ).2 hr)).trans_eq ?_
-        rw [hu]
-        field_simp
+        rw [deriv_add_const, deriv_struweLineShape_of_lt hδ hr (by linarith),
+          ← deriv_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0 hr]
+        exact deriv_struweShape_le_sqrt_two_mul_div hδ (by norm_num) 0 hr
       -- `P r ≥ S δ + t ≥ 65 δ / 8`, so `A r ≥ P r - δ / 200` gives `w ≥ δ / 40`.
       have hSr := (strictMonoOn_struweShape hδ (by norm_num : (1 : ℝ) ≤ 4) 0).monotoneOn
         self_mem_Ici (mem_Ici.2 hr.le) hr.le
