@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.NormS
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Algebra.MvPolynomial.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.NormSq
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Induced.BalancedProduct
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Slice
 public import TauCeti.Topology.Algebra.ConstMulAction
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.NestedOpens
@@ -41,13 +42,14 @@ takes `σ_x` to `ω_{[1, 0]}` (such as the one of
 `N`.
 
 The proof corrects an equivariant map
-(`SymplecticGeometry.LocalModelData.exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt`).
+(`LocalModelData.exists_mpullback_eq_balancedProductInducedForm_of_isLocalDiffeomorphAt`).
 Let `Ψ₀ : Y → M` be `G`-equivariant with `Ψ₀ [1, 0] = x`, a local diffeomorphism at `[1, 0]`,
 whose differential at `[1, 0]` takes `σ_x` to `ω_{[1, 0]}`. By equivariance it is a local
 diffeomorphism at every `[g, 0]` (`SymplecticGeometry.isLocalDiffeomorphAt_smul_iff`), and it pulls
 `σ` back to `ω` at every `[g, 0]`
-(`SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_descendedForm`), where `ω` is
-nondegenerate (`SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_zero`).
+(`SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_balancedProductInducedForm`),
+where `ω` is nondegenerate
+(`SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_zero`).
 The zero section `G ⧸ H → Y` is a smooth embedding with invariant image
 (`TauCeti.BalancedProduct.isSmoothEmbedding_zeroSectionRightTranslation`), and `Y` is Hausdorff
 (Mathlib's instance `t2Space_quotient_mulAction_of_properSMul`, with Tau Ceti's `properSMul_prod`)
@@ -83,20 +85,21 @@ in `𝔤`. The map `s (w, p) = [exp w, p]` from `𝔠 × (A × V)` to `Y` is a l
 `0` (`SymplecticGeometry.LocalModelData.isLocalDiffeomorphAt_mk_mulInvariantExp_submodule`), and so
 is `Ψ` after it, with value `x` at `0`. On `Ψ (s (w, p))` the moment map is `μ_Y [exp w, p]`,
 whose norm square is `B^∨ (ν p) (ν p)`
-(`SymplecticGeometry.LocalModelData.dualForm_descendedMomentMap_mk`), a polynomial function of
-`p` (`SymplecticGeometry.LocalModelData.dualForm_covector_mem_polynomialFunctions`). A local
+(`SymplecticGeometry.LocalModelData.dualForm_balancedProductInducedMomentMap_mk`), a
+polynomial function of `p`
+(`SymplecticGeometry.LocalModelData.dualForm_covector_mem_polynomialFunctions`). A local
 inverse of `Ψ ∘ s`, followed by a linear isomorphism onto a Euclidean space, is the chart.
 
 ## Main results
 
-* `SymplecticGeometry.LocalModelData.exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt`:
+* `LocalModelData.exists_mpullback_eq_balancedProductInducedForm_of_isLocalDiffeomorphAt`:
   the Moser correction of an equivariant map `Ψ₀` as above.
-* `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_mpullback_eq_descendedForm`: the
-  equivariant local diffeomorphism `Ψ` from a neighbourhood of the zero section of the local
+* `LocalModelData.exists_isLocalDiffeomorph_mpullback_eq_balancedProductInducedForm`:
+  the equivariant local diffeomorphism `Ψ` from a neighbourhood of the zero section of the local
   model to `M` that pulls `σ` back to the descended form.
-* `SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
+* `LocalModelData.exists_isLocalDiffeomorph_apply_eq_balancedProductInducedMomentMap`:
   the same map, which moreover carries the moment map of `σ` to that of the local model.
-* `SymplecticGeometry.LocalModelData.exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap`:
+* `LocalModelData.exists_ofPoint_isLocalDiffeomorph_apply_eq_balancedProductInducedMomentMap`:
   the local normal form at a point `x` of a Hamiltonian `G`-manifold, for the local model
   `SymplecticGeometry.LocalModelData.ofPoint` at `x`.
 * `SymplecticGeometry.exists_partialDiffeomorph_momentNormSq_eq_eval`: around every point, a
@@ -155,7 +158,7 @@ diffeomorphism at `[1, 0]`, whose differential `dΨ₀` at `[1, 0]` satisfies
 containing every point `[g, 0]` and a smooth map `Ψ : N → M`, `G`-equivariant, with
 `Ψ [g, 0] = g • x`, a local diffeomorphism at every point of `N`, that pulls `σ` back to the
 restriction of `ω` to `N`. -/
-theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
+theorem exists_mpullback_eq_balancedProductInducedForm_of_isLocalDiffeomorphAt :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
@@ -247,7 +250,7 @@ theorem exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt :
         induction q using QuotientGroup.induction_on with
         | H g =>
           rw [hf]
-          exact D.mpullback_apply_mk_zero_eq_descendedForm hσ hΨ₀G hΨ1
+          exact D.mpullback_apply_mk_zero_eq_balancedProductInducedForm hσ hΨ₀G hΨ1
             (hΨ₀d.contMDiffAt.mdifferentiableAt (by simp)) hT' g)
   refine ⟨N, Ψ, hΨ, fun g ↦ hfN ⟨g, hf g⟩, hNG, hΨG, fun g h ↦ ?_, hΨd, hΨσ⟩
   calc Ψ ⟨_, h⟩ = Ψ ⟨f g, hfN ⟨g, rfl⟩⟩ := congrArg Ψ (Subtype.ext (hf g).symm)
@@ -262,7 +265,7 @@ with `σ_x (T u, T v) = ω_{[1, 0]} (u, v)`, which intertwines the differential 
 `ξ ∈ 𝔤`. Then there are a `G`-invariant open set `N` of `Y` containing every point `[g, 0]` of
 the zero section and a smooth map `Ψ : N → M`, `G`-equivariant, with `Ψ [g, 0] = g • x`, a local
 diffeomorphism, that pulls `σ` back to the restriction of `ω` to `N`. -/
-theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
+theorem exists_isLocalDiffeomorph_mpullback_eq_balancedProductInducedForm :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
@@ -311,7 +314,7 @@ theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
   have := BalancedProduct.isManifold_rightTranslation (K := stabilizer G x) (Z := A × V)
     (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
   obtain ⟨Z, Ψ₀, -, hZ0, -, -, hΨ₀G, hΨ₀0, hΨ₀d, hΨ₀T⟩ := D.exists_isLocalDiffeomorphAt T hTk hTξ
-  refine D.exists_mpullback_eq_descendedForm_of_isLocalDiffeomorphAt hσc hσ
+  refine D.exists_mpullback_eq_balancedProductInducedForm_of_isLocalDiffeomorphAt hσc hσ
     hΨ₀G ?_ ?_ (fun u v ↦ ?_)
   · rw [Prod.mk_zero_zero, hΨ₀0, one_smul]
   · rw [Prod.mk_zero_zero]
@@ -320,12 +323,12 @@ theorem exists_isLocalDiffeomorph_mpullback_eq_descendedForm :
     exact hTσ u v
 
 /-- **The local normal form near an orbit, with the moment map.** In the setting of
-`SymplecticGeometry.LocalModelData.exists_isLocalDiffeomorph_mpullback_eq_descendedForm`, let
-moreover `μ : M → 𝔤*` be a coadjoint-equivariant moment map of `σ` whose value at `x` is the
+`LocalModelData.exists_isLocalDiffeomorph_mpullback_eq_balancedProductInducedForm`,
+let moreover `μ : M → 𝔤*` be a coadjoint-equivariant moment map of `σ` whose value at `x` is the
 covector `D.τ` of the local model. Then `N` and `Ψ` can be chosen with all the properties given
 there and moreover `μ (Ψ y) = μ_Y y` for every `y ∈ N`, where `μ_Y` is the moment map
 `TauCeti.CotangentBundle.balancedProductInducedMomentMap` of the local model. -/
-theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
+theorem exists_isLocalDiffeomorph_apply_eq_balancedProductInducedMomentMap :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
     letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) (A × V) I
@@ -378,7 +381,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
   have := BalancedProduct.contMDiffSMul_rightTranslation (K := stabilizer G x) (Z := A × V)
     (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)
   obtain ⟨N, Ψ, hΨ, hN0, hNG, hΨG, hΨ0, hΨd, hΨσ⟩ :=
-    D.exists_isLocalDiffeomorph_mpullback_eq_descendedForm hσc hσ T hTσ hTk hTξ
+    D.exists_isLocalDiffeomorph_mpullback_eq_balancedProductInducedForm hσc hσ T hTσ hTk hTξ
   -- On `N`, with the restricted action, `μ ∘ Ψ` and `μ_Y ∘ val` are moment maps of one form.
   let : MulAction G N := Opens.mulActionOfForallSMulMem hNG
   have hcN := Opens.coe_smul_mulActionOfForallSMulMem hNG
@@ -396,7 +399,7 @@ theorem exists_isLocalDiffeomorph_apply_eq_descendedMomentMap :
     (h₁.toIsMomentMap.isClopen_setOfPred_eq h₂.toIsMomentMap).isOpen⟩
   have hVG (g : G) (y : N) (hy : y ∈ V) : g • y ∈ V := by
     simp only [V, Opens.mem_mk, Set.mem_ofPred_eq] at hy ⊢
-    rw [hΨG', hμ.apply_smul, hcN, D.balancedProductInducedMomentMap_smul, hy]
+    rw [hΨG', hμ.apply_smul, hcN, balancedProductInducedMomentMap_smul D.covectorCLM_smul, hy]
   let N' := Opens.imageVal V
   have hN'N : N' ≤ N := Opens.imageVal_le V
   refine ⟨N', Ψ ∘ Opens.inclusion hN'N, hΨ.comp (contMDiff_inclusion hN'N),
@@ -433,8 +436,8 @@ descended form `ω`, there are a `G`-invariant open set `N` of `Y` containing ev
 `Ψ [g, 0] = g • x`, a local diffeomorphism, with `Ψ^* σ = ω` on `N`, and with `μ (Ψ y) = μ_Y y`
 for every `y ∈ N`, where `μ_Y` is the moment map
 `TauCeti.CotangentBundle.balancedProductInducedMomentMap` of the local model. -/
-theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ.IsClosed)
-    (hσ : σ.IsNondegenerate)
+theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_balancedProductInducedMomentMap
+    (hσc : σ.IsClosed) (hσ : σ.IsNondegenerate)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
     (hμ : σ.IsEquivariantMomentMap μ) (x : M) :
@@ -506,7 +509,7 @@ theorem exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap (hσc : σ
   intro D
   obtain ⟨T, hTσ, hTk, hTξ⟩ :=
     exists_linearEquiv_tangentSpace_ofPoint hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA
-  exact D.exists_isLocalDiffeomorph_apply_eq_descendedMomentMap hσc hσG hμ
+  exact D.exists_isLocalDiffeomorph_apply_eq_balancedProductInducedMomentMap hσc hσG hμ
     (ofPoint_τ hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA) T hTσ hTk hTξ
 
 end LocalModelData
@@ -545,7 +548,7 @@ theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
     (lieAnnihilator ℝ (GroupLieAlgebra I G) (μ x)).toSubmodule -
     Module.finrank ℝ ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule))
   obtain ⟨𝔪, 𝔮, h𝔪, h𝔪', h𝔮, eV, eA, h⟩ :=
-    exists_ofPoint_isLocalDiffeomorph_apply_eq_descendedMomentMap hσc hσ hσG hμ x
+    exists_ofPoint_isLocalDiffeomorph_apply_eq_balancedProductInducedMomentMap hσc hσ hσG hμ x
   set D := ofPoint hσ (fun g _ ↦ hσG g) hμ d h𝔪 h𝔪' h𝔮 eV eA
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
@@ -606,7 +609,7 @@ theorem exists_partialDiffeomorph_momentNormSq_eq_eval (hσc : σ.IsClosed)
   rw [he_apply]
   conv_lhs => rw [← hy']
   rw [momentNormSq_toDual_symm_eq_dualForm, hΨμ, hrsy, hs_def,
-    D.dualForm_descendedMomentMap_mk hB hBG]
+    D.dualForm_balancedProductInducedMomentMap_mk hB hBG]
   have hb : ((EuclideanSpace.basisFun _ ℝ).repr (L (e₀ y))).ofLp = (L (e₀ y)).ofLp :=
     funext (EuclideanSpace.basisFun_repr _ ℝ _)
   simpa [hb] using (hP (L (e₀ y))).symm

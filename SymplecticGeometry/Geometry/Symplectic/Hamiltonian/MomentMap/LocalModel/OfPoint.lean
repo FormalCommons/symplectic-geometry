@@ -443,7 +443,7 @@ theorem exists_linearEquiv_tangentSpace_ofPoint :
     obtain ⟨y₂, rfl⟩ := D.linearModelEquiv.surjective v
     simp only [LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply]
     refine (hσ.symplecticFormAt_apply x _ _).symm.trans ((he.apply _ _).trans ?_)
-    rw [eval₂_descendedForm_linearModelEquiv]
+    rw [eval₂_balancedProductInducedForm_linearModelEquiv]
     obtain ⟨⟨m₁, f₁⟩, q₁, b₁⟩ := y₁
     obtain ⟨⟨m₂, f₂⟩, q₂, b₂⟩ := y₂
     simp only [hψ, SymplecticForm.prod_apply]

@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Induced.BalancedProduct
 
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Induced.BalancedProduct
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
@@ -24,8 +25,11 @@ three hypotheses: `ν` is `K`-equivariant
 `K`-invariant (`SymplecticGeometry.LocalModelData.mpullback_smul_mpullback_snd_constSmooth`), and
 the restriction of `ν` to the Lie algebra of `K` is a moment map of the action of `K` on
 `(A × V, pr_V^* σ)`. This file proves the last one, and states the facts about the descended form
-that are specific to the local model or to the projection `(g, p) ↦ [g, p]` from `G × (A × V)`,
-rather than from `K.RightTranslation × (A × V)` as in Tau Ceti.
+that are specific to the local model. Its pullback along `(g, p) ↦ [g, p]` from `G × (A × V)`
+is `D.form`: this is the case of the local model of
+`TauCeti.CotangentBundle.mpullback_mk_balancedProductInducedForm`, in
+`SymplecticGeometry/Geometry/Symplectic/Cotangent/Bundle/Induced/BalancedProduct.lean`, read
+through `SymplecticGeometry.LocalModelData.form_eq_inducedForm`.
 
 The moment map property is the moment identity of the slice: for `ξ` in the Lie algebra of `K`,
 with image `ξ' ∈ 𝔥`, the fundamental vector field at `(η, v)` is `(a, ρ ξ' v)`, and
@@ -118,9 +122,7 @@ theorem isMomentMap_mpullback_snd_constSmooth :
 /-- **The vertical space at `(1, 0, 0)`.** A tangent vector at `(1, 0, 0)` lies in the kernel of
 the differential of the projection `(g, p) ↦ [g, p]` onto `G ×_K (A × V)` exactly when it is
 `(ξ, 0, 0)` for some `ξ ∈ 𝔥`: at `p = 0` the infinitesimal action of `K` on `A × V` vanishes, and
-the images in `𝔤` of the Lie algebra of `K` fill `𝔥`. By
-`SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`, this is also the
-kernel of `D.form` at `(1, 0, 0)`. -/
+the images in `𝔤` of the Lie algebra of `K` fill `𝔥`. -/
 theorem mem_ker_mfderiv_mk_one_zero_iff [I.Boundaryless]
     (u : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))) :
     letI := D.fiberDistribMulAction
@@ -150,7 +152,6 @@ variable [I.Boundaryless]
 /-- The descended form of the local model, Tau Ceti's
 `TauCeti.CotangentBundle.balancedProductInducedForm`, pulls back to `D.form` along the projection
 `(g, p) ↦ [g, p]` from `G × (A × V)` onto `G ×_K (A × V)`. -/
-@[simp]
 theorem mpullback_mk_balancedProductInducedForm :
     letI := D.fiberDistribMulAction
     haveI := D.contMDiffSMul_fiberDistribMulAction
@@ -169,19 +170,8 @@ theorem mpullback_mk_balancedProductInducedForm :
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  intro _
-  have hq := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := K) (Z := A × V)
-    (I := I) (IZ := 𝓘(ℝ, A × V)) (F := F)).contMDiff
-  have hT : ContMDiff (I.prod 𝓘(ℝ, A × V)) (I.prod 𝓘(ℝ, A × V)) ∞
-      (Prod.map K.toRightTranslation (id : A × V → A × V)) :=
-    (Subgroup.RightTranslation.contMDiff_toRightTranslation ∞).prodMap contMDiff_id
-  -- The projection from `G × (A × V)` is Tau Ceti's quotient map after `K.toRightTranslation`.
-  refine (SmoothForm.mpullback_mpullback _ _ hT hq _).symm.trans ?_
-  rw [mpullback_quotientMk_balancedProductInducedForm,
-    SmoothForm.mpullback_mpullback_of_comp_eq hT
-      ((Subgroup.RightTranslation.contMDiff_toRightTranslation_symm ∞).prodMap contMDiff_id)
-      contMDiff_id contMDiff_id (funext fun p ↦ Prod.ext (Equiv.symm_apply_apply _ _) rfl),
-    SmoothForm.mpullback_id, LinearMap.id_apply, LinearMap.id_apply, form_eq_inducedForm]
+  intro hπ
+  rw [TauCeti.CotangentBundle.mpullback_mk_balancedProductInducedForm hπ, form_eq_inducedForm]
 
 /-- **The descended form of the local model on images of tangent vectors.** On the images under
 the differential of the projection `π : G × (A × V) → G ×_K (A × V)`, Tau Ceti's
@@ -209,9 +199,8 @@ theorem eval₂_balancedProductInducedForm_mfderiv_mk (x : G × (A × V))
   let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
   have := BalancedProduct.isManifold_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  have hπ := (BalancedProduct.isSubmersion_mk_toRightTranslation (K := K) (Z := A × V) (I := I)
-    (IZ := 𝓘(ℝ, A × V)) (F := F)).contMDiff
-  rw [← SmoothForm.eval₂_mpullback _ hπ, D.mpullback_mk_balancedProductInducedForm hπ]
+  exact (TauCeti.CotangentBundle.eval₂_balancedProductInducedForm_mfderiv_mk x u w).trans
+    (by rw [form_eq_inducedForm])
 
 end Descended
 
