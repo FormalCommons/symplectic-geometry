@@ -28,7 +28,7 @@ These are the hypotheses that
 disc, besides the choice of a simplex. Near `0` the lift is the inclusion of
 the model piece, so the facts on the normal classes and on the orientation come from
 `Blowup.divisorNormalEquiv_normalClassL_of_lift_eventuallyEq_curveLift_smul` and
-`Blowup.orientation_map_eq_divisorNormalOrientation_mk`.
+`Blowup.orientation_map_eq_divisorNormalOrientation`.
 
 ## Main definitions
 
@@ -228,24 +228,22 @@ theorem exists_orientation_map_eq_divisorNormalOrientation_lineDisc (hv : v ≠ 
         ∀ w, (Blowup.divisorRealEmbedding hN.blowupChart).isImmersion.normalClassL
           (Projectivization.mk ℂ v hv) hn (A w) = m w := by
   -- The line `ℓ = [v]` as the image of `z ↦ z • v`.
-  let L : ℂ ≃ₗ[ℂ] Projectivization.Tautological ℂ (Fin (n + 1) → ℂ) (Projectivization.mk ℂ v hv) :=
-    (LinearEquiv.toSpanNonzeroSingleton ℂ _ v hv).trans
-      (LinearEquiv.ofEq _ _ (Projectivization.submodule_mk v hv).symm)
+  let L := Projectivization.toTautological (𝕜 := ℂ) hv (Projectivization.submodule_mk v hv)
   let m : EuclideanSpace ℝ (Fin 2) ≃L[ℝ]
       (Blowup.divisorRealEmbedding hN.blowupChart).isImmersion.NormalSpace
         (Projectivization.mk ℂ v hv) hn :=
     (Complex.orthonormalBasisOneI.repr.symm.toContinuousLinearEquiv.trans
       (L.restrictScalars ℝ).toContinuousLinearEquiv).trans
       (Blowup.divisorNormalEquiv hN.blowupChart (Projectivization.mk ℂ v hv)).symm
-  have hm : ∀ w, (Blowup.divisorNormalEquiv hN.blowupChart _ (m w) : Fin (n + 1) → ℂ) =
-      Complex.orthonormalBasisOneI.repr.symm w • v := fun w ↦ by
-    simp only [m, L, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply,
+  have hm : ∀ w, Blowup.divisorNormalEquiv hN.blowupChart _ (m w) =
+      L (Complex.orthonormalBasisOneI.repr.symm w) := fun w ↦ by
+    simp only [m, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply,
       LinearEquiv.coe_toContinuousLinearEquiv', LinearEquiv.restrictScalars_apply,
-      LinearIsometryEquiv.coe_toContinuousLinearEquiv, LinearEquiv.trans_apply,
-      LinearEquiv.coe_ofEq_apply, LinearEquiv.toSpanNonzeroSingleton_apply]
-  refine ⟨m, Blowup.orientation_map_eq_divisorNormalOrientation_mk _ hv m hm, fun A hA w ↦ ?_⟩
+      LinearIsometryEquiv.coe_toContinuousLinearEquiv]
+  refine ⟨m, Blowup.orientation_map_eq_divisorNormalOrientation _ L m hm, fun A hA w ↦ ?_⟩
   refine (Blowup.divisorNormalEquiv hN.blowupChart _).injective (Subtype.ext ?_)
-  rw [hψ.divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc hv hA, hm]
+  rw [hψ.divisorNormalEquiv_normalClassL_of_hasMFDerivAt_lineDisc hv hA, hm,
+    Projectivization.coe_toTautological_apply]
 
 end IsNormalizedBallEmbedding
 

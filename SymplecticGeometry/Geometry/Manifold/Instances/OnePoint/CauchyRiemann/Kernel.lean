@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.LocalForm
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
@@ -309,6 +310,14 @@ theorem eq_of_mem_twistOneKernel_of_eq_zero {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (
     (hs₀ : s ≠ 0) {x y : OnePoint ℂ} (hx : s x = 0) (hy : s y = 0) : x = y :=
   (existsUnique_eq_zero_of_mem_twistOneKernel hJ hi hs hs₀).unique hx hy
 
+/-- **A nonzero kernel element on `𝒪(1)` vanishes nowhere else.** Let a two-form `σ` on the
+sphere tame both `J` and the standard structure `i`, and let `s ≠ 0` be a smooth section of
+`𝒪(1)` with `D_J s = 0`. If `s x = 0`, then `s y ≠ 0` for every `y ≠ x`. -/
+theorem apply_ne_zero_of_mem_twistOneKernel {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J)
+    (hs₀ : s ≠ 0) {x y : OnePoint ℂ} (hx : s x = 0) (hy : y ≠ x) : s y ≠ 0 :=
+  fun h ↦ hy (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hs hs₀ h hx)
+
 /-- **The zero of a nonzero kernel element on `𝒪(1)` is simple.** Let a two-form
 `σ` on the sphere tame both `J` and the standard structure `i`, and let `s ≠ 0` be a smooth
 section of `𝒪(1)` with `D_J s = 0`. At a zero `z` of `s`, the linearization of `s`
@@ -381,17 +390,12 @@ theorem isPseudoholomorphicAt_div_of_mem_twistOneKernel {s t : OnePoint ℂ → 
   have htx := ht₁.mdifferentiableAt (x := x) (by simp)
   have hu := OnePoint.mdifferentiableAt_div_twistCore 1 hsx htx hx
   -- Near `x`, `s` is the quotient times `t`.
-  -- `t` does not vanish near `x`, since its coordinate in the frame at `x` does not.
-  have hct := ((twistCore (𝕜 := ℂ) 1).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
-    (by simp) |>.1 htx
-  simp only [OnePoint.twistCore_localTriv_apply] at hct
-  have hct0 : OnePoint.twistTransition 1 x x x * t x ≠ 0 := by
-    rwa [OnePoint.twistTransition_self, one_mul]
   let t' : Π p, (twistCore (𝕜 := ℂ) 1).Fiber p := t
   have hst : ∀ᶠ p in 𝓝 x, ((fun p ↦ s p / t p) • t') p = s p := by
-    filter_upwards [hct.continuousAt.eventually_ne hct0] with p hp
+    filter_upwards [VectorBundle.eventually_ne_zero ℝ (b := id)
+      (E := (twistCore (𝕜 := ℂ) 1).Fiber) (s := t) htx.continuousAt hx] with p hp
     -- The fibres of `𝒪(1)` are `ℂ`, with its multiplication as scalar action.
-    exact div_mul_cancel₀ (s p) (right_ne_zero_of_mul hp)
+    exact div_mul_cancel₀ (s p) hp
   have hD := isRealCauchyRiemannOperator_twistOneDelBar J
   rw [← (hD.apply_smul_eq_zero_iff_isPseudoholomorphicAt (isComplexLinearOperator_twistOneDelBar J)
     htx hx (congrFun ht₂ x) hu), hD.apply_eq_of_eventuallyEq hsx hst, congrFun hs₂ x,
@@ -585,7 +589,7 @@ theorem exists_smul_eq_of_mem_twistOneKernel (hJ : σ.Tames J) (hi : σ.Tames �
     ∃ c : ℂ, c • s = t := by
   -- At a second point `y`, the section `s` does not vanish; match `t` there.
   obtain ⟨y, hyx⟩ : ∃ y : OnePoint ℂ, y ≠ x := exists_ne x
-  have hsy : s y ≠ 0 := fun h ↦ hyx (eq_of_mem_twistOneKernel_of_eq_zero hJ hi hs hs₀ h hsx)
+  have hsy : s y ≠ 0 := apply_ne_zero_of_mem_twistOneKernel hJ hi hs hs₀ hsx hyx
   refine ⟨t y / s y, ?_⟩
   by_contra hne
   have hu : t - (t y / s y) • s ∈ twistOneKernel J := sub_mem ht (Submodule.smul_mem _ _ hs)
