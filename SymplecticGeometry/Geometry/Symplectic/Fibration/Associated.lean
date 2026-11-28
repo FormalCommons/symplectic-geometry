@@ -85,8 +85,8 @@ do not include. The expression in terms of the curvature (`weinsteinForm_apply`)
 moment map condition and its infinitesimal equivariance, `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`, which
 Tau Ceti derives from equivariance
 (`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.momentCocycle_eq_zero`).
-The norm on `𝔤` is the scoped one of
-`SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
+The connection form takes its values in the model space `EG` of `G`, which is `𝔤` by definition,
+and the moment map is paired with it through `momentMapCLM`, with values in `EG →L[ℝ] ℝ`.
 
 The associated form is Tau Ceti's descent `TauCeti.SmoothForm.descendedForm` of Weinstein's form
 along the quotient map, a surjective submersion
@@ -107,7 +107,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
-open scoped Manifold ContDiff GroupLieAlgebra
+open scoped Manifold ContDiff
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
@@ -126,7 +126,8 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 /-! ### The pairing of the moment map with the connection form -/
 
 /-- A map `μ : F → 𝔤*` with smooth components, as a smooth map to the continuous dual
-`𝔤 →L[ℝ] ℝ`: the Lie algebra is finite-dimensional, so every linear form on it is continuous. -/
+`EG →L[ℝ] ℝ` of the model space `EG`, which is `𝔤` by definition: it is finite-dimensional, so
+every linear form on it is continuous. -/
 def momentMapCLM (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) :
     C^∞⟮IF, F; 𝓘(ℝ, EG →L[ℝ] ℝ), EG →L[ℝ] ℝ⟯ where
@@ -144,7 +145,7 @@ variable [IsManifold IF ∞ F] [LieGroup IG ∞ G] [ContMDiffFiberBundle ∞ G P
 /-- The **pairing** `⟨μ, A⟩` of a map `μ : F → 𝔤*` with smooth components and a `𝔤`-valued
 one-form `A` on the total space of `P`: the real one-form on `P × F` whose value at `(x, v)` on a
 tangent vector `(a, b)` is `μ(v)(A_x a)` (`momentPairing_apply`). It is the paired wedge, along
-the evaluation of `𝔤 →L[ℝ] ℝ` on `𝔤`, of the zero-form `(x, v) ↦ μ(v)` with the pull-back of `A`
+the evaluation of `EG →L[ℝ] ℝ` on `EG`, of the zero-form `(x, v) ↦ μ(v)` with the pull-back of `A`
 along the first projection. -/
 def momentPairing (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)

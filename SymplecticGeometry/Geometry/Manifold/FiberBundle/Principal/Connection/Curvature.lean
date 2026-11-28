@@ -61,7 +61,7 @@ public section
 noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField
-open scoped Manifold ContDiff GroupLieAlgebra
+open scoped Manifold ContDiff
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 

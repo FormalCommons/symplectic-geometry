@@ -26,7 +26,11 @@ versions pinned when this file was written (Tau Ceti `c9d170eed5a8`).
   `[FiniteDimensional ℝ EG]`, `[IG.Boundaryless]` and `[LieGroup IG ∞ G]`.
   Its Lie algebra is Mathlib's `𝔤 := GroupLieAlgebra IG G`, with Mathlib's
   bracket (that of left-invariant fields), and the adjoint action is Tau
-  Ceti's `TauCeti.Lie.adjointContinuousLinearMap g : 𝔤 →L[ℝ] 𝔤`.
+  Ceti's `TauCeti.Lie.adjointContinuousLinearMap g : 𝔤 →L[ℝ] 𝔤`. Forms
+  with values in `𝔤` take their values in the model space `EG`, which is
+  `𝔤` by definition and carries the norm, as Tau Ceti's connection forms
+  do; there the adjoint action is `GroupLieAlgebra.adjointL IG g` and the
+  bracket `GroupLieAlgebra.bracketL IG G`, both `: EG →L[ℝ] …`.
 - **The bundle.** $P$ is a smooth principal `G`-bundle in Tau Ceti's form,
   with the instances of the merged
   `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean`:
@@ -67,7 +71,7 @@ versions pinned when this file was written (Tau Ceti `c9d170eed5a8`).
 two more.
 
 - **Forms with values in $\mathfrak g$.** They are Tau Ceti's
-  vector-valued forms, `SmoothForm I M 𝔤 k`, with no basis of
+  vector-valued forms, `SmoothForm I M EG k`, with no basis of
   $\mathfrak g$. Tau Ceti's forms take any normed space of values, and
   every operation the part needs exists for them: the pull-back
   `SmoothForm.mpullback`, the exterior derivative `mextDerivₗ`, a change
@@ -78,9 +82,10 @@ two more.
   invariant formula for $d$ of a one-form, `SmoothForm.mextDeriv_apply_one`
   (`DifferentialForm/VectorField.lean`). The equivariance of a connection
   form is then the equation of forms
-  `mpullback (op g • ·) A = mapCoeff (adjointContinuousLinearMap g⁻¹) A`.
+  `mpullback (op g • ·) A = mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A`.
 - **The bracket $[A\wedge A]$.** It is
-  `SmoothForm.wedgeWith (TauCeti.lieL ℝ 𝔤 𝔤) A A`, where Tau Ceti's
+  `SmoothForm.wedgeWith (GroupLieAlgebra.bracketL IG G) A A`, Tau Ceti's
+  `TauCeti.lieL ℝ 𝔤 𝔤` read on `EG`, where Tau Ceti's
   `TauCeti.lieL 𝕜 L M : L →L[𝕜] M →L[𝕜] M`
   (`Topology/Algebra/Lie/Bracket.lean`, with `@[simp] lieL_apply`) is the
   action of a finite-dimensional Lie algebra on a Lie module as a
@@ -140,7 +145,8 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
   structure), `Existence.lean` and `Curvature.lean`,
   so that three issues do not write one file. The comparison of curvatures
   with the circle case is in `Connection/Circle.lean`.
-- The curvature is Tau Ceti's `TauCeti.gaugeCurvature (TauCeti.lieL ℝ 𝔤 𝔤) A`,
+- The curvature is Tau Ceti's
+  `TauCeti.gaugeCurvature (GroupLieAlgebra.bracketL IG G) A`,
   defined for every $\mathfrak g$-valued one-form: it needs no proof that
   $A$ is a connection form.
   The table of shared definitions is corrected.
@@ -184,11 +190,11 @@ This file names it as a form.
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean`
 
-`A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) 𝔤 1`.
+`A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) EG 1`.
 
 - `structure IsConnectionForm (A) : Prop` with fields
   `mpullback_op_smul (g : G) : SmoothForm.mpullback (fun x ↦ op g • x) _ A =
-  SmoothForm.mapCoeff (Lie.adjointContinuousLinearMap g⁻¹) A` and
+  SmoothForm.mapCoeff (GroupLieAlgebra.adjointL IG g⁻¹) A` and
   `apply_rightFundamentalVectorField (x) (ξ) :
   A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ`; the page's
   $A_p(p\xi)=\xi$ and $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$.
@@ -238,8 +244,8 @@ This file names it as a form.
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean`
 
-- The curvature is Tau Ceti's `gaugeCurvature (TauCeti.lieL ℝ 𝔤 𝔤) A`,
-  `mextDerivₗ _ 1 A + (2 : ℝ)⁻¹ • SmoothForm.wedgeWith (lieL ℝ 𝔤 𝔤) A A`;
+- The curvature is Tau Ceti's `gaugeCurvature (GroupLieAlgebra.bracketL IG G) A`,
+  `mextDerivₗ _ 1 A + (2 : ℝ)⁻¹ • SmoothForm.wedgeWith (GroupLieAlgebra.bracketL IG G) A A`;
   its value on two vectors is Tau Ceti's `gaugeCurvature_val`.
 - `IsConnectionForm.mpullback_op_smul_gaugeCurvature`: the curvature is
   equivariant, by naturality of $d$ and of the wedge.
@@ -327,7 +333,7 @@ pulled back to `ManifoldTotalSpace G P × F` along `Prod.fst` and
 - `momentPairing μ hμs A : SmoothForm _ (ManifoldTotalSpace G P × F) ℝ 1`,
   the one-form $\langle\mu,A\rangle$, for
   `hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ (fun x ↦ μ x ξ)`: the paired wedge,
-  along evaluation `(𝔤 →L[ℝ] ℝ) →L[ℝ] 𝔤 →L[ℝ] ℝ`, of the zero-form
+  along evaluation `(EG →L[ℝ] ℝ) →L[ℝ] EG →L[ℝ] ℝ`, of the zero-form
   `SmoothForm.ofFunction` of $\mu$ (made continuous linear in finite
   dimension) and the pull-back of $A$. With `momentPairing_apply`.
 - `weinsteinForm σ μ hμs A := mpullback Prod.snd σ +
