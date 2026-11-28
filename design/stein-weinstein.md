@@ -306,7 +306,7 @@ with `IsWeinsteinStructure.mextDeriv_interior` ($d(\iota_X\omega)=\omega$,
 from Tau Ceti's `isLiouvilleVectorField_iff_mextDeriv_interior_eq`),
 `IsWeinsteinStructure.comp` (`h ∘ f`), `IsWeinsteinStructure.pullback`
 (along a diffeomorphism), and the example of `ℂⁿ` with the radial field
-and $|z|^2$, from Tau Ceti's `Liouville/Radial/`.
+and $|z|^2$, Liouville by `SymplecticForm.isLiouvilleVectorField_constSmooth`.
 
 A Weinstein domain is a compact manifold with boundary over the
 half-space, as a strong filling is in *Liouville structures*:
