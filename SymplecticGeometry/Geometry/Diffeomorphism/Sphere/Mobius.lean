@@ -132,7 +132,7 @@ noncomputable def mobiusSubgroup : Subgroup (TauCeti.Diff 𝓘(ℝ, ℂ) (OnePoi
   mul_mem' {φ ψ} hφ hψ := by
     simp only [Set.mem_ofPred_eq, pullback_mul] at hφ hψ ⊢
     rw [hφ, hψ]
-  inv_mem' {φ} hφ := (pullback_symm_eq_iff φ).2 hφ
+  inv_mem' {φ} hφ := (pullback_inv_eq_iff φ).2 hφ
 
 /-- A diffeomorphism of the sphere lies in `mobiusSubgroup` exactly when it pulls the almost
 complex structure of the Riemann sphere back to itself. -/
