@@ -21,8 +21,8 @@ symplectic form `Im ⟪·, ·⟫_ℂ ⊕ Im ⟪·, ·⟫_ℂ`, a vector field `Y
 `(x + i y, w) ↦ (Y x + i (y - DY(x)ᵀ y), w / 2)`,
 where the transpose is the adjoint for the Euclidean inner product of `ℝᵏ`. The core
 `range (modelDisc k m)` is the copy `{(x, 0)}` of `ℝᵏ`, and the lift extends `Y` from the core to
-a Liouville field of the model. This file proves the first properties of the lift; its zeros and
-linearization near a compact subset of the core, and the gradient-like property, come later.
+a Liouville field of the model. This file proves the first properties of the lift, its zeros near
+the core and its derivative on the core; the gradient-like property comes later.
 
 ## Main results
 
@@ -48,6 +48,17 @@ linearization near a compact subset of the core, and the gradient-like property,
   those of `Y` (`SymplecticGeometry.isotropicLiftField_modelDisc_eq_zero_iff`).
 * `SymplecticGeometry.isotropicLiftField_neg_id_eq_modelHandleField`: for `Y = -id` the lift is
   the standard handle field `SymplecticGeometry.modelHandleField k m`.
+* `SymplecticGeometry.exists_isOpen_image_modelDisc_subset_forall_isotropicLiftField_eq_zero`:
+  for `Y` of class `C¹` and a set `K ⊆ ℝᵏ` such that `I - DY(x)ᵀ` is injective at each zero `x`
+  of `Y` in `K`, the zeros of the lift on an open neighbourhood of `ι₀ '' K` all lie on the core,
+  hence are the points `ι₀ x` with `Y x = 0`: the neighbourhood is the set of `(x + i y, w)` with
+  `Y x ≠ 0` or `I - DY(x)ᵀ` invertible, an open condition, and a zero there has `y = 0`.
+  Compactness of `K` is not needed. The book's hypothesis, a form `P` with `P(y, y - DY(x)ᵀ y)`
+  positive definite, implies the injectivity.
+* `SymplecticGeometry.fderiv_isotropicLiftField_modelDisc`: for `Y` of class `C²` at `x`, the
+  derivative of the lift at `ι₀ x` is `DY(x) ⊕ (I - DY(x)ᵀ) ⊕ ½ I` in the real coordinates
+  `(x, y, w)`, since the term in `D²Y` vanishes at `y = 0`; pointwise, this is
+  `SymplecticGeometry.fderiv_isotropicLiftField_modelDisc_apply`.
 
 In the book the lift is `p ∂_p + z ∂_z / 2 + X_H` on `T^*ℝᵏ × ℂᵐ`, with `H = ⟨p, Y(q)⟩`. Tau
 Ceti's `TauCeti.cotangentLiouvilleField` and Hamiltonian fields live on cotangent models whose
@@ -266,6 +277,84 @@ theorem isotropicLiftField_neg_id_eq_modelHandleField :
   rw [isotropicLiftField_apply, hD, modelHandleField_apply_fst_apply]
   simp [ContinuousLinearMap.adjoint_id]
   ring
+
+/-! ### Zeros and derivative near the core -/
+
+/-- **The zeros of the Liouville lift near the core.** Let `Y` be `C¹` on `ℝᵏ`, and `K ⊆ ℝᵏ` a set
+such that `I - DY(x)ᵀ` is injective at every zero `x` of `Y` in `K`. Then some open set `U`
+containing `ι₀ '' K` has no zero of the lift off the core: each zero of the lift in `U` is `ι₀ x`
+for a zero `x` of `Y`. -/
+theorem exists_isOpen_image_modelDisc_subset_forall_isotropicLiftField_eq_zero
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} (hY : ContDiff ℝ 1 Y)
+    {K : Set (EuclideanSpace ℝ (Fin k))}
+    (hK : ∀ x ∈ K, Y x = 0 →
+      Function.Injective (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin k)) -
+        (fderiv ℝ Y x).adjoint)) :
+    ∃ U, IsOpen U ∧ modelDisc k m '' K ⊆ U ∧
+      ∀ p ∈ U, isotropicLiftField m Y p = 0 → ∃ x, Y x = 0 ∧ p = modelDisc k m x := by
+  set e := complexEuclideanEquivRealProd (Fin k)
+  -- Off the zeros of `Y`, and where `I - DY(x)ᵀ` is invertible.
+  set V := {x | Y x ≠ 0} ∪
+    {x | IsUnit (ContinuousLinearMap.id ℝ _ - (fderiv ℝ Y x).adjoint)}
+  have hV : IsOpen V := (isOpen_ne_fun hY.continuous continuous_const).union
+    (Units.isOpen.preimage (continuous_const.sub
+      (ContinuousLinearMap.adjoint.continuous.comp (hY.continuous_fderiv one_ne_zero))))
+  have hπ (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+      modelDiscProj k m p = (e p.1).1 := by
+    ext j
+    simp [e]
+  refine ⟨modelDiscProj k m ⁻¹' V, hV.preimage (modelDiscProj k m).continuous, ?_, ?_⟩
+  · rintro _ ⟨x, hx, rfl⟩
+    rw [mem_preimage, leftInverse_modelDiscProj x]
+    by_cases h : Y x = 0
+    · exact Or.inr (ContinuousLinearMap.isUnit_iff_bijective.mpr
+        ⟨hK x hx h, LinearMap.injective_iff_surjective.mp (hK x hx h)⟩)
+    · exact Or.inl h
+  · intro p hp h0
+    have h1 := complexEuclideanEquivRealProd_isotropicLiftField_fst Y p
+    rw [h0, Prod.fst_zero, map_zero, eq_comm, Prod.mk_eq_zero] at h1
+    have h2 : p.2 = 0 := by
+      have := isotropicLiftField_apply_snd Y p
+      rwa [h0, Prod.snd_zero, eq_comm, smul_eq_zero, or_iff_right (by norm_num)] at this
+    rw [mem_preimage, hπ] at hp
+    have hu := hp.resolve_left (not_not.mpr h1.1)
+    have hy : (e p.1).2 = 0 := ContinuousLinearMap.isUnit_iff_bijective.mp hu |>.1 <| by
+      simpa using h1.2
+    refine ⟨(e p.1).1, h1.1, Prod.ext (e.injective ?_) (by simp [h2])⟩
+    rw [show e (modelDisc k m (e p.1).1).1 = ((e p.1).1, 0) by ext j <;> simp [e], ← hy]
+
+/-- **The derivative of the Liouville lift on the core.** At `ι₀ x`, for `Y` of class `C²` at
+`x`, the derivative of the lift sends `(ξ + i η, ζ)` to `(DY(x) ξ + i (η - DY(x)ᵀ η), ζ / 2)`. -/
+theorem fderiv_isotropicLiftField_modelDisc_apply
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} {x : EuclideanSpace ℝ (Fin k)}
+    (hY : ContDiffAt ℝ 2 Y x) (u : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x) u =
+      ((complexEuclideanEquivRealProd (Fin k)).symm
+          (fderiv ℝ Y x (complexEuclideanEquivRealProd (Fin k) u.1).1,
+            (complexEuclideanEquivRealProd (Fin k) u.1).2 -
+              (fderiv ℝ Y x).adjoint (complexEuclideanEquivRealProd (Fin k) u.1).2),
+        (2⁻¹ : ℝ) • u.2) := by
+  have hx : complexEuclideanEquivRealProd (Fin k) (modelDisc k m x).1 = (x, 0) := by
+    ext j <;> simp
+  rw [fderiv_isotropicLiftField_apply _ (by rwa [hx]), hx]
+  simp
+
+/-- **The derivative of the Liouville lift on the core is block diagonal**: at `ι₀ x`, for `Y` of
+class `C²` at `x`, in the real coordinates `(x, y, w)` of `ℂᵏ × ℂᵐ` it is
+`DY(x) ⊕ (I - DY(x)ᵀ) ⊕ ½ I`. -/
+theorem fderiv_isotropicLiftField_modelDisc
+    {Y : EuclideanSpace ℝ (Fin k) → EuclideanSpace ℝ (Fin k)} {x : EuclideanSpace ℝ (Fin k)}
+    (hY : ContDiffAt ℝ 2 Y x) :
+    fderiv ℝ (isotropicLiftField m Y) (modelDisc k m x) =
+      ((complexEuclideanEquivRealProd (Fin k)).prodCongr
+          (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))).symm.toContinuousLinearMap ∘L
+        (((fderiv ℝ Y x).prodMap (ContinuousLinearMap.id ℝ _ - (fderiv ℝ Y x).adjoint)).prodMap
+          ((2⁻¹ : ℝ) • ContinuousLinearMap.id ℝ _)) ∘L
+        ((complexEuclideanEquivRealProd (Fin k)).prodCongr
+          (ContinuousLinearEquiv.refl ℝ (EuclideanSpace ℂ (Fin m)))).toContinuousLinearMap := by
+  refine ContinuousLinearMap.ext fun u ↦ ?_
+  rw [fderiv_isotropicLiftField_modelDisc_apply hY]
+  simp [Prod.map]
 
 end SymplecticGeometry
 
