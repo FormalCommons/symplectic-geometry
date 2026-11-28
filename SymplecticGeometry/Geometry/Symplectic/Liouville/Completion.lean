@@ -645,8 +645,7 @@ theorem contMDiff_completionField :
   by_cases hz : ∃ q ∈ Ioi (-h.collarWidth) ×ˢ univ, h.completionEnd q = z
   · obtain ⟨q, hq, rfl⟩ := hz
     exact (h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).contMDiffAt_of_eventually_mfderiv_apply_eq
-      (by simp) (Manifold.contMDiff_prodVectorField (contMDiff_constVectorField 1)
-        (Bundle.contMDiff_zeroSection ℝ (TangentSpace (𝓡 n))) q)
+      (by simp) (Manifold.contMDiff_prodVectorField_constVectorField_zero 1 q)
       (Filter.eventually_of_mem ((isOpen_Ioi.prod isOpen_univ).mem_nhds hq) fun r hr ↦
         h.mfderiv_completionEnd_apply hr)
   · obtain ⟨p, hp, rfl⟩ := (h.exists_completionEnd_or_toCompletion _).resolve_left hz
@@ -761,8 +760,7 @@ theorem mlieDerivForm_completionField_completionEnd {q : ℝ × (𝓡∂ (n + 1)
   rw [← mextDerivₗ_apply] at hL
   exact ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).mlieDerivForm_apply_eq_iff
     (h.eventually_mpullback_completionEnd_completionForm hq)
-    (Manifold.contMDiff_prodVectorField (contMDiff_constVectorField 1)
-      (Bundle.contMDiff_zeroSection ℝ (TangentSpace (𝓡 n))) q)
+    (Manifold.contMDiff_prodVectorField_constVectorField_zero 1 q)
     ((h.contMDiff_completionField _).of_le (by simp)) (h.eventually_mfderiv_completionEnd_apply hq)
     (congrFun ((SmoothForm.isClosed_def _).1 h.isSymplectic_completionForm.isClosed) _)).2
     (by rw [h.mpullback_completionEnd_completionForm q hq]; exact hL)

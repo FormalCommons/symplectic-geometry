@@ -471,17 +471,14 @@ theorem contDiffOn_bridgeLeaf {n : ℕ∞} (hδ : 0 < δ) (η : ℝ) {G : ℝ �
 
 /-- **The first bridge stage.** Let `δ > 0`, `ℓ ∈ [7 δ, 15 δ / 2]` and `t ≥ 65 δ / 8 - S δ`,
 where `S = struweShape δ 4 0`. Then the bridge leaf of width `δ / 200` of `sqrtAddLeaf L δ ℓ` and
-the Struwe/line shape raised by `t` is an `i`-convex shape at every `r > δ`, once `L ≥ 1` is large
-compared with bounds `A` of `smoothTransition'`, `B` of `smoothTransition''` and `M` of
-`x smoothTransition'' x`. -/
-theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hM : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ M)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + M) ≤ L) (hδ : 0 < δ)
+the Struwe/line shape raised by `t` is an `i`-convex shape at every `r > δ` when `L` is a
+cutoff scale. -/
+theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {L ℓ t r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ)
     (hℓ : ℓ ∈ Icc (7 * δ) (15 * δ / 2)) (ht : 65 * δ / 8 - struweShape δ 4 0 δ ≤ t)
     (hr : δ < r) : IsConvexShapeAt (bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ) t) r := by
   obtain ⟨hℓ₇, hℓ₁₅⟩ := hℓ
+  have hL₁ := hL.one_le
   have hr₀ : 0 < r := hδ.trans hr
   have hη : (0 : ℝ) < δ / 200 := by positivity
   have hAc : ContDiffAt ℝ 2 (sqrtAddLeaf L δ ℓ) r :=
@@ -502,7 +499,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
   rw [show bridgeLeaf δ (δ / 200) (sqrtAddLeaf L δ ℓ) t = _ from
     funext (bridgeLeaf_def δ (δ / 200) _ t)]
   refine isConvexShapeAt_smoothedMax_of_imp hAc hPc hη
-    (fun _ ↦ isConvexShapeAt_sqrtAddLeaf hA hB hM hL₁ hL hδ ⟨by linarith, hℓ₁₅⟩ hr)
+    (fun _ ↦ isConvexShapeAt_sqrtAddLeaf hL hδ ⟨by linarith, hℓ₁₅⟩ hr)
     (fun h ↦ ?_) (fun h ↦ ?_)
   · -- Where the raised Struwe/line shape is used, it is high enough to be an `i`-convex shape.
     have hs₀ : 0 ≤ √(log (r / δ)) := sqrt_nonneg _
@@ -558,7 +555,7 @@ theorem isConvexShapeAt_bridgeLeaf_sqrtAddLeaf {A B M L ℓ t r : ℝ}
           nlinarith
         _ = 2 * r := by field_simp
     · -- From `2 δ` on, the slopes are at most `11` and `2`.
-      have hdA := deriv_sqrtAddLeaf_le hA hB hM hL₁ hL hδ ⟨by linarith, hℓ₁₅⟩ h2
+      have hdA := deriv_sqrtAddLeaf_le hL hδ ⟨by linarith, hℓ₁₅⟩ h2
       have hdP : deriv (fun x ↦ struweLineShape δ x + t) r ≤ 2 := by
         rw [deriv_add_const]
         exact deriv_struweLineShape_le hδ h2
@@ -969,18 +966,14 @@ theorem bridgeFamily_two_mul_eqOn (L : ℝ) (hδ : 0 < δ) {ℓ₀ M : ℝ} (h�
     (bridgeWidth_le δ M).trans (by linarith)⟩ le_rfl hFℓ hFs hr
 
 /-- **The leaves of the bridge family are `i`-convex shapes.** Let `δ > 0`, `24 δ ≤ ℓ₀`,
-`ℓ₁ = 2 ℓ₀` and `M ≥ 8`, let `L ≥ 1` be large compared with bounds `A` of `smoothTransition'`,
-`B` of `smoothTransition''` and `N` of `x smoothTransition'' x`, and let every `F ℓ`,
+`ℓ₁ = 2 ℓ₀` and `M ≥ 8`, let `L` be a cutoff scale, and let every `F ℓ`,
 `ℓ ∈ [ℓ₀, ℓ₁]`, be `C²` on `(δ, ∞)` and an `i`-convex shape at every `r > δ`, a constant plus
 `struweShape δ 4 0` on `(δ, 9 δ / 2]`, at least `ℓ` on `(δ, ∞)`, the standard leaf
 `r ↦ √(64 r² + ℓ²)` from `ℓ / 4` on, and of slope at most `M` in absolute value on
 `[3 δ, ℓ / 4]`. Then for `ℓ ∈ [7 δ, ℓ₁]` the leaf `ℓ` of the bridge family is an `i`-convex
 shape at every `r > δ`. -/
-theorem isConvexShapeAt_bridgeFamily {A B N L ℓ₀ M ℓ r : ℝ}
-    (hA : ∀ x, |deriv smoothTransition x| ≤ A)
-    (hB : ∀ x, |deriv (deriv smoothTransition) x| ≤ B)
-    (hN : ∀ x, |x * deriv (deriv smoothTransition) x| ≤ N)
-    (hL₁ : 1 ≤ L) (hL : 1024 * (A + 2 * B + N) ≤ L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
+theorem isConvexShapeAt_bridgeFamily {L ℓ₀ M ℓ r : ℝ}
+    (hL : IsCutoffScale L) (hδ : 0 < δ) (hℓ₀ : 24 * δ ≤ ℓ₀)
     (hM : 8 ≤ M) {F : ℝ → ℝ → ℝ}
     (hFc : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ∀ r, δ < r → IsConvexShapeAt (F ℓ) r)
     (hF2 : ∀ ℓ ∈ Icc ℓ₀ (2 * ℓ₀), ContDiffOn ℝ 2 (F ℓ) (Ioi δ))
@@ -991,12 +984,13 @@ theorem isConvexShapeAt_bridgeFamily {A B N L ℓ₀ M ℓ r : ℝ}
     (hℓ : ℓ ∈ Icc (7 * δ) (2 * ℓ₀)) (hr : δ < r) :
     IsConvexShapeAt (bridgeFamily L δ ℓ₀ M F ℓ) r := by
   obtain ⟨hℓ₇, hℓ₁⟩ := hℓ
+  have hL₁ := hL.one_le
   have hη₀ := bridgeWidth_pos hδ (by linarith : (0 : ℝ) ≤ M)
   have hη₁ := bridgeWidth_le δ M
   rcases le_or_gt ℓ (15 * δ / 2) with h15 | h15
   · -- The first stage, raised at least to `t₀`.
     rw [bridgeFamily_of_le h15]
-    refine isConvexShapeAt_bridgeLeaf_sqrtAddLeaf hA hB hN hL₁ hL hδ ⟨hℓ₇, h15⟩ ?_ hr
+    refine isConvexShapeAt_bridgeLeaf_sqrtAddLeaf hL hδ ⟨hℓ₇, h15⟩ ?_ hr
     have : 65 * δ / 8 - struweShape δ 4 0 δ ≤ bridgeHeight L δ ℓ₀ :=
       sub_struweShape_le_bridgeHeight (by linarith) hδ.le (by linarith)
     nlinarith [smoothTransition.nonneg ((ℓ - 7 * δ) / (δ / 2))]

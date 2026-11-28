@@ -230,7 +230,7 @@ theorem IsWeinsteinStructure.stableSet_eq_singleton_of_manifoldMorseIndex_eq_zer
   have hS : A.stableSubspace = ⊥ := Submodule.finrank_eq_zero.1 <|
     (hW.isGradientLike.finrank_stableSubspace_eq_manifoldMorseIndex hp hXp rfl).trans h0
   have hfix (t : ℝ) : hW.flow t p = p :=
-    hW.flow_apply_of_mvfderiv_eq_zero (mem_criticalPoints.1 hp.mem_criticalPoints) t
+    hW.flow_apply_of_mem_criticalPoints hp.mem_criticalPoints t
   obtain ⟨D⟩ := hW.exists_localStableDisc hp rfl
   obtain ⟨U, hU, ε, hε, hcov⟩ := D.exists_stableSet_inter_subset_image_ball
   have hV : U ∩ {y | f p - ε < f y} ∈ 𝓝 p := inter_mem hU <|
@@ -501,7 +501,7 @@ theorem exists_le_flow_apply_notMem_of_isCompact {p x : M} {K : Set M} (hK : IsC
   obtain ⟨y₀, hy₀, hmin⟩ := hB.exists_isMinOn ⟨_, h T le_rfl, le_rfl⟩ hcont.continuousOn
   have hpos (y : M) (hy : y ∈ B) : 0 < mvfderiv 𝓘(ℝ, E) f y (X y) := by
     refine hW.isGradientLike.mvfderiv_apply_pos fun h0 ↦
-      hW.notMem_criticalPoints_of_mem_stableSet (hKs hy.1) ?_ (mem_criticalPoints.2 h0)
+      hW.notMem_criticalPoints_of_mem_stableSet (hKs hy.1) ?_ h0
     rintro rfl
     exact (lt_irrefl _ (hbp.trans_le' hy.2))
   have hc := hpos y₀ hy₀

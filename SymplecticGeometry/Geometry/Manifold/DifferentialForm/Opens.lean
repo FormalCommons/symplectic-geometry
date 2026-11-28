@@ -70,6 +70,10 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
   `ι_Z γ` need not be smooth on all of `M`. For a smooth form `γ`, this restriction is the smooth
   form `TauCeti.SmoothForm.restrictInterior γ Z hZ`.
+* At a point of `U`, the restriction of a two-form takes the values of the form itself
+  (`TauCeti.SmoothForm.eval₂_mpullback_subtypeVal`, and
+  `TauCeti.SmoothForm.eval₂_mpullback_subtypeVal_tangentSpaceOpenEquiv_symm` for vectors of `M`
+  carried to `U` by `Manifold.tangentSpaceOpenEquiv`).
 * A smooth map `ψ` between open subsets that pulls the restriction of a two-form `σ'` back to the
   restriction of a two-form `σ` preserves the forms on tangent vectors at each point
   (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtypeVal_eq`). The same holds for a smooth
@@ -444,6 +448,27 @@ section TwoForm
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
 
+/-- At a point `x` of an open set `U`, the restriction of a two-form `σ` to `U` evaluates on two
+tangent vectors as `σ` does at `x`, the tangent spaces of `U` and of `M` at `x` being the same
+model space. -/
+theorem SmoothForm.eval₂_mpullback_subtypeVal {U : Opens M} (σ : SmoothForm I M F 2) (x : U)
+    (v w : TangentSpace I x) :
+    SmoothBundleForm.eval₂ (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) x
+      v w = SmoothBundleForm.eval₂ σ (x : M) v w := by
+  simp only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val_apply]
+
+/-- At a point `x` of an open set `U`, the restriction of a two-form `σ` to `U` evaluates on the
+tangent vectors of `U` that `Manifold.tangentSpaceOpenEquiv` sends to `v` and `w` as `σ` does at
+`x` on `v` and `w`. -/
+theorem SmoothForm.eval₂_mpullback_subtypeVal_tangentSpaceOpenEquiv_symm {U : Opens M}
+    (σ : SmoothForm I M F 2) (x : U) (v w : TangentSpace I (x : M)) :
+    SmoothBundleForm.eval₂ (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ) x
+      ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm v)
+      ((Manifold.tangentSpaceOpenEquiv (I := I) x).symm w) =
+      SmoothBundleForm.eval₂ σ (x : M) v w := by
+  rw [SmoothForm.eval₂_mpullback_subtypeVal, Manifold.tangentSpaceOpenEquiv_symm_apply,
+    Manifold.tangentSpaceOpenEquiv_symm_apply]
+
 /-- Let `ψ : U → M'` be a smooth map from an open subset of `M` that pulls a two-form `σ'` on `M'`
 back to the restriction of a two-form `σ` on `M`. Then at each point `x` of `U`, `σ'` at `ψ x`
 takes the same values on `dψ a` and `dψ b` as `σ` at `x` on `a` and `b`. -/
@@ -454,7 +479,7 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtypeVal {U : 
     SmoothBundleForm.eval₂ σ' (ψ x) (mfderiv I I' ψ x a) (mfderiv I I' ψ x b) =
       SmoothBundleForm.eval₂ σ (x : M) a b := by
   have := congrArg (fun s ↦ SmoothBundleForm.eval₂ s x a b) h
-  simpa only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val_apply] using this
+  rwa [SmoothForm.eval₂_mpullback_subtypeVal, SmoothForm.eval₂_mpullback] at this
 
 /-- Let `ψ : U → V` be a smooth map between open subsets of `M` and `M'` that pulls the restriction
 of a two-form `σ'` on `M'` back to the restriction of a two-form `σ` on `M`. Then at each point
