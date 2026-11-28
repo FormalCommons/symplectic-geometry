@@ -15,6 +15,7 @@ import TauCeti.LinearAlgebra.Matrix.OfReal
 import TauCeti.LinearAlgebra.Matrix.OrthogonalGroup.Unitary
 import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Fibration
 import SymplecticGeometry.Topology.Homotopy.Path
+import SymplecticGeometry.Topology.Algebra.Matrix.UnitaryGroup
 
 /-!
 # The Maslov index of loops of Lagrangian subspaces: classification and uniqueness
@@ -125,8 +126,10 @@ theorem maslovIndex_eq_iff_homotopic {Λ : ℒ ι} {γ γ' : Path Λ Λ} :
   have hφ : Continuous φ := TauCeti.continuous_orthogonalComplexMatrix
   let ε : Path (φ ⟨O, hO⟩) (φ ⟨O', hO'⟩) :=
     ((TauCeti.Matrix.joined_orthogonalGroup_iff_det_eq.2 hdet).somePath).map hφ
-  have hε₀ : φ ⟨O, hO⟩ = U⁻¹ * V := Subtype.ext <| by rw [← hOW]; ext; simp [φ]
-  have hε₁ : φ ⟨O', hO'⟩ = U⁻¹ * V' := Subtype.ext <| by rw [← hOW']; ext; simp [φ]
+  have hε₀ : φ ⟨O, hO⟩ = U⁻¹ * V := Subtype.ext <| by
+    rw [← hOW, TauCeti.coe_orthogonalComplexMatrix]
+  have hε₁ : φ ⟨O', hO'⟩ = U⁻¹ * V' := Subtype.ext <| by
+    rw [← hOW', TauCeti.coe_orthogonalComplexMatrix]
   -- Correct `δ` on the right by `(U⁻¹ V)⁻¹ ε`; it now ends at `V'` and still lifts `γ`.
   let δ₂ : Path U V' := (δ.mul (ε.map (continuous_const_mul (U⁻¹ * V)⁻¹))).cast
     (by rw [hε₀, inv_mul_cancel, mul_one])

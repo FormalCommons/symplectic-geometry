@@ -32,11 +32,13 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff_exists`: `U` lies in it iff `U` is the complex image
   of a real orthogonal matrix.
 * `Matrix.UnitaryGroup.mem_realSubgroup_iff`: `U` lies in it iff its entries are real.
+* `TauCeti.coe_orthogonalComplexMatrix`: Tau Ceti's embedding `O(n) →* U(n)` sends `O` to the
+  complex matrix `O.map (↑)` with the same entries.
+* `Matrix.UnitaryGroup.realSubgroup_eq_range`: it is the range of Tau Ceti's embedding
+  `TauCeti.orthogonalComplexMatrix`.
 * `Matrix.UnitaryGroup.orthogonalComplexMatrix_mem_realSubgroup`: the image of a real
-  orthogonal matrix under Tau Ceti's `TauCeti.orthogonalComplexMatrix` lies in it.
+  orthogonal matrix under `TauCeti.orthogonalComplexMatrix` lies in it.
 * `Matrix.UnitaryGroup.isClosed_realSubgroup`: it is closed.
-* `TauCeti.continuous_orthogonalComplexMatrix`: Tau Ceti's embedding of `O(n)` in `U(n)` is
-  continuous.
 * `Matrix.UnitaryGroup.map_re_conjTranspose_mul_self`: `Re (Uᴴ U) = 1` for a unitary `U`.
 
 ## References
@@ -47,6 +49,14 @@ through Mathlib's `unitarySubgroupUnitsEquiv`.
 public section
 
 open Matrix
+
+/-- Tau Ceti's embedding `O(n) →* U(n)` sends a real orthogonal matrix to the complex matrix with
+the same entries. -/
+@[simp]
+theorem TauCeti.coe_orthogonalComplexMatrix {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (g : orthogonalGroup ι ℝ) :
+    (TauCeti.orthogonalComplexMatrix g : Matrix ι ι ℂ) = (g : Matrix ι ι ℝ).map (↑) := by
+  ext; simp
 
 namespace Matrix.UnitaryGroup
 
@@ -104,11 +114,24 @@ theorem mem_realSubgroup_iff {U : unitaryGroup ι ℂ} :
     rw [mem_realSubgroup_iff_transpose_mul_self_eq_one, ← hconj, ← star_eq_conjTranspose]
     exact Unitary.star_mul_self_of_mem U.prop
 
+variable (ι) in
+/-- The real points of the unitary group are the range of Tau Ceti's embedding
+`TauCeti.orthogonalComplexMatrix : O(n) →* U(n)`. -/
+theorem realSubgroup_eq_range :
+    realSubgroup ι = (TauCeti.orthogonalComplexMatrix (n := ι)).range := by
+  ext U
+  rw [mem_realSubgroup_iff_exists, MonoidHom.mem_range]
+  constructor
+  · rintro ⟨O, hO, hOU⟩
+    exact ⟨⟨O, hO⟩, Subtype.ext <| by rw [TauCeti.coe_orthogonalComplexMatrix, ← hOU]⟩
+  · rintro ⟨O, rfl⟩
+    exact ⟨O, O.property, (TauCeti.coe_orthogonalComplexMatrix O).symm⟩
+
 /-- The complex image `TauCeti.orthogonalComplexMatrix O` of a real orthogonal matrix `O` is a
 real point of the unitary group. -/
 theorem orthogonalComplexMatrix_mem_realSubgroup (O : orthogonalGroup ι ℝ) :
     TauCeti.orthogonalComplexMatrix O ∈ realSubgroup ι :=
-  mem_realSubgroup_iff_exists.mpr ⟨O, O.property, by ext; simp⟩
+  realSubgroup_eq_range ι ▸ ⟨O, rfl⟩
 
 variable (ι) in
 /-- The real points of the unitary group form a closed subset. -/
@@ -127,13 +150,5 @@ theorem map_re_conjTranspose_mul_self (U : unitaryGroup ι ℂ) :
     Matrix.map_one _ Complex.zero_re Complex.one_re]
 
 end Matrix.UnitaryGroup
-
-/-- Tau Ceti's embedding `TauCeti.orthogonalComplexMatrix : O(n) →* U(n)` is continuous for the
-subspace topologies. -/
-theorem TauCeti.continuous_orthogonalComplexMatrix {ι : Type*} [Fintype ι] [DecidableEq ι] :
-    Continuous (TauCeti.orthogonalComplexMatrix (n := ι)) :=
-  continuous_induced_rng.2 <| continuous_matrix fun i j ↦ by
-    simpa only [Function.comp_def, TauCeti.orthogonalComplexMatrix_apply] using
-      Complex.continuous_ofReal.comp (continuous_subtypeVal.matrix_elem i j)
 
 end
