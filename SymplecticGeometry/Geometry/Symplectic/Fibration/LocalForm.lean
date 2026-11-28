@@ -256,11 +256,11 @@ theorem eq_verticalForm_add_sum [FiniteDimensional ℝ EB] [Fintype ι] [LinearO
   funext z
   refine ContinuousAlternatingMap.ext_fin_two fun v₁ v₂ ↦ ?_
   -- The components along `F` of tangent vectors of `EB × F`, as tangent vectors of `F`.
-  have h₂ : (fun k ↦ (![v₁, v₂] k).2) = (![v₁.2, v₂.2] : Fin 2 → TangentSpace IF z.2) := by
-    funext k; fin_cases k <;> rfl
+  have h₂ : (fun k ↦ (![v₁, v₂] k).2) = (![v₁.2, v₂.2] : Fin 2 → TangentSpace IF z.2) :=
+    (FinVec.etaExpand_eq _).symm
   have h₁ : ∀ v : TangentSpace (𝓘(ℝ, EB).prod IF) z,
-      (fun k ↦ (![v] k).2) = (![v.2] : Fin 1 → TangentSpace IF z.2) := fun v ↦ by
-    funext k; fin_cases k; rfl
+      (fun k ↦ (![v] k).2) = (![v.2] : Fin 1 → TangentSpace IF z.2) := fun _ ↦
+    (FinVec.etaExpand_eq _).symm
   simp only [Pi.add_apply, ContinuousAlternatingMap.add_apply, Finset.sum_apply,
     ContinuousAlternatingMap.sum_apply, Pi.smul_apply', ContinuousAlternatingMap.smul_apply,
     mpullback_wedge, wedge_apply_one_one, verticalForm_apply, h₁, h₂,
