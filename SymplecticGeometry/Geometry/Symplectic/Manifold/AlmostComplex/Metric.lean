@@ -285,11 +285,7 @@ two-vector `TauCeti.AlmostComplexStructure.kahlerForm`. -/
 theorem val_eq_alternatingFormEquiv_kahlerForm (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v))
     (x : M) :
     σ.val x =
-      (letI : FiniteDimensional ℝ (TangentSpace I x) :=
-        VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
-       alternatingFormEquiv (TangentSpace I x) 2 (J.almostComplexStructureAt x).kahlerForm) := by
-  let _ : FiniteDimensional ℝ (TangentSpace I x) :=
-    VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
+      alternatingFormEquiv (TangentSpace I x) 2 (J.almostComplexStructureAt x).kahlerForm := by
   rw [AlmostComplexStructure.kahlerForm_eq_of_inner_eq
       (F := (alternatingFormEquiv _ 2).symm (σ.val x))
       fun u v ↦ by rw [inner_alternatingFormEquiv_symm_ιMulti, hJ, SmoothBundleForm.eval₂_apply,
