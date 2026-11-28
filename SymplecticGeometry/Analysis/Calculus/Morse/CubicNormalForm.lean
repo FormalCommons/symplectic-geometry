@@ -33,6 +33,8 @@ the conditions on the function of one variable that it splits off.
 
 ## Main results
 
+* `ContDiff.exists_contDiff_eq_pow_three_mul`: a `C^(n+3)` function with a zero of order at
+  least `3` at `0` is `y ^ 3 * k y` with `k` of class `C^n`.
 * `ContDiffOn.exists_openPartialHomeomorph_eq_pow_three_div_three`: the normal form
   `g = φ ^ 3 / 3`.
 
@@ -47,6 +49,31 @@ public section
 open Filter Topology
 open scoped ContDiff
 
+/-- **Factoring out a cubic zero.** A `C^(n+3)` function `g : ℝ → ℝ` that vanishes at `0` together
+with its first two derivatives is `y ^ 3 * k y` for a `C^n` function `k`, and `k 0` is the third
+derivative of `g` at `0` divided by `6`. -/
+theorem ContDiff.exists_contDiff_eq_pow_three_mul {n : ℕ∞} {g : ℝ → ℝ}
+    (hg : ContDiff ℝ (n + 3 : ℕ∞) g) (h0 : g 0 = 0) (h1 : fderiv ℝ g 0 = 0)
+    (h2 : fderiv ℝ (fderiv ℝ g) 0 1 = 0) :
+    ∃ k : ℝ → ℝ, ContDiff ℝ n k ∧ (∀ y, g y = y ^ 3 * k y) ∧
+      k 0 = fderiv ℝ (fderiv ℝ (fderiv ℝ g)) 0 1 1 1 / 6 := by
+  have h2' : fderiv ℝ (fderiv ℝ g) 0 = 0 := by ext1; simpa using h2
+  have hg2 : ContDiff ℝ ((2 : ℕ) + 1) g := hg.of_le (by simp; norm_num)
+  -- The Taylor expansion of `g` of order `2` at `0` is its remainder term `y ^ 3 * k y`.
+  set R := TauCeti.taylorRemainderFactor 2 g 0
+  refine ⟨fun y ↦ R y (fun _ ↦ 1),
+    (ContinuousMultilinearMap.apply ℝ (fun _ : Fin 3 ↦ ℝ) ℝ fun _ ↦ 1).contDiff.comp
+      (ContDiff.contDiff_taylorRemainderFactor (k := n) (n := 2) hg 0), fun y ↦ ?_, ?_⟩
+  · have hR : R y (fun _ ↦ y) = y ^ 3 * R y (fun _ ↦ 1) := by
+      simpa using R y |>.map_smul_univ (fun _ ↦ y) (fun _ ↦ (1 : ℝ))
+    rw [ContDiff.eq_sum_add_taylorRemainderFactor_apply (n := 2) hg2 0 y, Finset.sum_range_succ,
+      Finset.sum_range_succ, Finset.sum_range_one, iteratedFDeriv_zero_apply,
+      iteratedFDeriv_one_apply, iteratedFDeriv_two_apply, sub_zero, hR]
+    simp [h0, h1, h2']
+  · simp only [R, TauCeti.taylorRemainderFactor_self]
+    rw [smul_apply, TauCeti.iteratedFDeriv_three_apply, smul_eq_mul, div_eq_inv_mul]
+    exact congrArg (· * _) (by norm_num [Nat.factorial])
+
 /-- **Normal form of a cubic critical point in one variable.** Let `g : ℝ → ℝ` be of class
 `C^(n+3)` on a neighbourhood of `0`, with `n ≠ 0`, such that `g 0 = 0`, its first and second
 derivatives vanish at `0`, and its third derivative at `0` does not. Then there is a local
@@ -59,31 +86,14 @@ theorem ContDiffOn.exists_openPartialHomeomorph_eq_pow_three_div_three {n : ℕ�
     ∃ φ : OpenPartialHomeomorph ℝ ℝ, 0 ∈ φ.source ∧ φ.source ⊆ s ∧ φ 0 = 0 ∧
       ContDiffOn ℝ n φ φ.source ∧ ContDiffOn ℝ n φ.symm φ.target ∧
       ∀ y ∈ φ.source, g y = φ y ^ 3 / 3 := by
-  -- A globally `C^(n+3)` function `g₁` equal to `g` near `0`.
+  -- A globally `C^(n+3)` function `g₁` equal to `g` near `0`, and its factorization.
   obtain ⟨g₁, hg₁, -, hg₁g⟩ := hg.exists_contDiff_eventuallyEq_of_finiteDimensional hs
   have hD1 := hg₁g.fderiv (𝕜 := ℝ)
   have hD2 := hD1.fderiv (𝕜 := ℝ)
-  have h1' : fderiv ℝ g₁ 0 = 0 := by rw [hD1.eq_of_nhds, h1]
-  have h2' : fderiv ℝ (fderiv ℝ g₁) 0 = 0 := by
-    rw [hD2.eq_of_nhds]; ext1; simpa using h2
-  -- Its Taylor expansion of order `2` at `0` is the remainder term `y ^ 3 * k y`.
-  set R := TauCeti.taylorRemainderFactor 2 g₁ 0
-  set k : ℝ → ℝ := fun y ↦ R y (fun _ ↦ 1)
-  have hgk : ∀ y, g₁ y = y ^ 3 * k y := by
-    intro y
-    have hT := ContDiff.eq_sum_add_taylorRemainderFactor_apply (n := 2)
-      (hg₁.of_le (by simp; norm_num)) 0 y
-    have hR : R y (fun _ ↦ y) = y ^ 3 * k y := by
-      simpa [k] using R y |>.map_smul_univ (fun _ ↦ y) (fun _ ↦ (1 : ℝ))
-    rw [hT, Finset.sum_range_succ, Finset.sum_range_succ, Finset.sum_range_one,
-      iteratedFDeriv_zero_apply, iteratedFDeriv_one_apply, iteratedFDeriv_two_apply, sub_zero, hR]
-    simp [hg₁g.eq_of_nhds, h0, h1', h2']
-  have hk : ContDiff ℝ n k :=
-    (ContinuousMultilinearMap.apply ℝ (fun _ : Fin 3 ↦ ℝ) ℝ fun _ ↦ 1).contDiff.comp
-      (ContDiff.contDiff_taylorRemainderFactor (k := n) (n := 2) (hg₁.of_le (by simp; norm_num)) 0)
-  have hk0 : k 0 ≠ 0 := by
-    simpa [k, R, TauCeti.iteratedFDeriv_three_apply, hD2.fderiv.eq_of_nhds,
-      Nat.factorial_ne_zero] using h3
+  obtain ⟨k, hk, hgk, hk0⟩ := hg₁.exists_contDiff_eq_pow_three_mul
+    (by rw [hg₁g.eq_of_nhds, h0]) (by rw [hD1.eq_of_nhds, h1]) (by rw [hD2.eq_of_nhds, h2])
+  replace hk0 : k 0 ≠ 0 := by
+    rw [hk0, hD2.fderiv.eq_of_nhds]; exact div_ne_zero h3 (by norm_num)
   -- The sign `σ` of `k 0`, and `a = 3 σ k`, positive near `0`.
   obtain ⟨σ, hσσ, hσk⟩ : ∃ σ : ℝ, σ * σ = 1 ∧ 0 < σ * k 0 := by
     rcases hk0.lt_or_gt with h | h
