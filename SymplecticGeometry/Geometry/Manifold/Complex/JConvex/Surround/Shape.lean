@@ -322,6 +322,13 @@ theorem shape_snd_nonneg (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (
   rw [shape_snd]
   positivity
 
+/-- On the core the shape coordinates are `s = |x|²` and `t = 0`:
+`shape (ι₀ x) = (‖x‖², 0)`. -/
+@[simp]
+theorem shape_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
+    shape (modelDisc k m x) = (‖x‖ ^ 2, 0) := by
+  ext <;> simp [EuclideanSpace.real_norm_sq_eq]
+
 /-- The two shape coordinates add up to the sum of the squared norms of the two factors:
 `s + t = ‖z‖² + ‖w‖²` at `p = (z, w)`. -/
 theorem shape_fst_add_shape_snd (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
@@ -843,12 +850,9 @@ theorem iInter_setOfPred_shape_le_eq :
       · simp [h2]
   · rintro ⟨x, hx, rfl⟩ γ hγ
     rw [mem_closedBall, dist_zero_right] at hx
-    have hx2 : ∑ j, x j ^ 2 ≤ 1 := by
-      have := pow_le_one₀ (n := 2) (norm_nonneg x) hx
-      simpa [EuclideanSpace.norm_sq_eq] using this
     refine ⟨by simpa using sq_nonneg (γ : ℝ), ?_⟩
-    simp only [shape_fst, modelDisc_apply_fst_apply, Complex.ofReal_re]
-    nlinarith [hγ.1]
+    simp only [shape_modelDisc]
+    nlinarith [hγ.1, norm_nonneg x]
 
 end Handle
 
@@ -880,7 +884,7 @@ theorem modelHandle_zero_apply (a b : ℝ)
 @[simp]
 theorem modelHandle_modelDisc (a b : ℝ) (x : EuclideanSpace ℝ (Fin k)) :
     modelHandle k m a b (modelDisc k m x) = -(a * ‖x‖ ^ 2) := by
-  simp [modelHandle_def, EuclideanSpace.real_norm_sq_eq]
+  simp [modelHandle_def]
 
 /-- The model handle function is smooth. -/
 @[fun_prop]
@@ -1199,7 +1203,7 @@ theorem exists_pos_mul_max_norm_le_re_leviForm_modelLevel (R : ℝ) :
 /-- On the model disc, the model level is `φ₀ (ι₀ x) = 1 - |x|²`. -/
 theorem modelLevel_modelDisc (x : EuclideanSpace ℝ (Fin k)) :
     modelLevel k m (modelDisc k m x) = 1 - ‖x‖ ^ 2 := by
-  simp [modelLevel_def, EuclideanSpace.real_norm_sq_eq]
+  simp [modelLevel_def]
 
 open scoped InnerProductSpace in
 /-- The differential of the model level `φ₀ = 1 - s + 2 t` at `p = (x + i y, w)` is
