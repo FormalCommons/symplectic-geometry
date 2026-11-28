@@ -39,23 +39,25 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   weight at least `1 / 2` (`SymplecticGeometry.deriv_smoothedMax_pos_left`,
   `SymplecticGeometry.deriv_smoothedMax_pos_right`). It is positive: on `[b, c)` because
   `q' > 0` there, and `χ` is the larger only away from `b` (by the gap `χ b < M + q b`), where
-  `λ' > 0`; on `[c, ℓ₁]` because there `χ ℓ > M + q ℓ` and `λ' > 0`. For small `δ` the members
-  are `i`-convex shapes by
-  `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, applied to a globally smooth
-  family that agrees with `χ` near the rectangle
-  (`ContDiffOn.exists_contDiff_eventuallyEq_nhdsSet`). The family is `M + q ℓ` near
-  `ℓ = b` and `χ` near `ℓ = ℓ₁`, and at each point it is the smoothed maximum of `M + q ℓ` and a
-  member of `χ`, which bounds its value and its first two `r`-derivatives by theirs.
+  `λ' > 0`; on `[c, ℓ₁]` because there `χ ℓ > M + q ℓ` and `λ' > 0`. The family is `M + q ℓ`
+  near `ℓ = b` and `χ` near `ℓ = ℓ₁`, and at each point it is the smoothed maximum of `M + q ℓ`
+  and a member of `χ`, which bounds its value and its first two `r`-derivatives by theirs. All of
+  this holds without a convexity criterion, and is stated as
+  `SymplecticGeometry.exists_smoothedMax_family`. For small `δ` the members are `i`-convex shapes
+  by `SymplecticGeometry.exists_forall_isConvexShapeAt_smoothedMax`, applied to the pairs
+  `(M + q ℓ, χ' ℓ')` with `ℓ, ℓ' ∈ [b, ℓ₁]`, `χ'` a globally smooth family that agrees with `χ`
+  near the rectangle (`ContDiffOn.exists_contDiff_eventuallyEq_nhdsSet`).
 * `SymplecticGeometry.exists_comp_add_shapeFamily`: the piece next to the end `ℓ₀` of the
   parameter interval `[ℓ₀, a]`. It is `T ℓ r = χ (λ ℓ) r + q ℓ`, where `q` is smooth,
   nondecreasing, `0` near `ℓ₀` and with `q' > 0` on `[a₁, a]`, and `λ` is a smooth monotone map
   that is the identity up to a point of `(ℓ₀, a₁)`, equal to `a` from a point `a'' ∈ (a₁, a)`
   on, and with positive derivative below `a''`
-  (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`). The members are shapes
-  by `SymplecticGeometry.IsConvexShapeAt.add_const`, since `q ≥ 0` on `[ℓ₀, ∞)`; the
-  `ℓ`-derivative `∂χ/∂ℓ (λ ℓ) · λ' ℓ + q' ℓ` is positive, by its first term below `a''` and by
-  its second on `[a'', a]`. The family is `χ` near `ℓ = ℓ₀` and `χ a + q ℓ` near `ℓ = a`, where
-  it meets the family of `SymplecticGeometry.exists_monotone_shapeChain`.
+  (`Real.exists_contDiff_monotone_eqOn_id_Iic_eqOn_const_Ici`). The `ℓ`-derivative
+  `∂χ/∂ℓ (λ ℓ) · λ' ℓ + q' ℓ` is positive, by its first term below `a''` and by its second on
+  `[a'', a]`. The family is `χ` near `ℓ = ℓ₀` and `χ a + q ℓ` near `ℓ = a`, where it meets the
+  family of `SymplecticGeometry.exists_monotone_shapeChain`; these facts, which do not involve
+  a convexity criterion, are `SymplecticGeometry.exists_comp_add_family`. The members are shapes
+  by `SymplecticGeometry.IsConvexShapeAt.add_const`, since `q ≥ 0` on `[ℓ₀, ∞)`.
 * `SymplecticGeometry.exists_blend_shapeFamily`: the blend with `χ` near the end `r₂` of the
   `r`-interval. On a band `[ℓ₀, ℓ₁] × [r₃, r₂]` where `χ` is a smooth family of shapes with
   `∂χ/∂ℓ > 0`, a cutoff `ρ` in `r`, `1` up to `r₃` and `0` near `r₂`
@@ -64,7 +66,8 @@ only weakly increasing in `ℓ` (`SymplecticGeometry.exists_monotone_shapeChain`
   `ψ₀` of shapes with `∂ψ₀/∂ℓ > 0` that is `τ`-close to `χ` on the band, in value and first
   `r`-derivative and from below in second `r`-derivative, gives the family
   `ρ r * ψ₀ ℓ r + (1 - ρ r) * χ ℓ r`. Its members are shapes by the one-sided blend lemma of
-  `ConvexShape/Basic.lean`, and its `ℓ`-derivative is a convex combination of `∂ψ₀/∂ℓ` and `∂χ/∂ℓ`.
+  `ConvexShape/Basic.lean`, its `ℓ`-derivative is a convex combination of `∂ψ₀/∂ℓ` and `∂χ/∂ℓ`,
+  and it is smooth below `r₃` and where `χ` is (`SymplecticGeometry.contDiffOn_blend`).
 * `SymplecticGeometry.abs_sub_lt_of_eventuallyEq_add_const` and
   `SymplecticGeometry.abs_sub_lt_of_max_le_of_le_max`: a function that is locally `g + c`, or
   that is bounded as a smoothed maximum of `M + c` and `g` is, is close to `h` in the sense
