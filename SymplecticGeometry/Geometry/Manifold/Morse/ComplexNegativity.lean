@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Topology
 public import TauCeti.Geometry.Manifold.Morse.Hessian
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Jet
+import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Topology.Compactness.Compact
 import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
@@ -116,24 +118,12 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
   subst hzx
   set x := (extChartAt I a).symm z
   have hz : (z : E) ∈ (extChartAt I a).target := z.property
-  have hxs : x ∈ (chartAt H a).source := by
-    rw [← extChartAt_source (I := I)]; exact (extChartAt I a).map_target hz
+  have hxs : x ∈ (chartAt H a).source := extChartAt_symm_mem_chart_source hz
   have hzx : (chartAt H a).extend I x = z := by
     rw [← extChartAt.eq_1]; exact (extChartAt I a).right_inv hz
-  have hopen := isOpen_extChartAt_target (I := I) a
   have he : chartAt H a ∈ IsManifold.maximalAtlas I 2 M :=
     IsManifold.maximalAtlas_subset_of_le ENat.LEInfty.out (IsManifold.chart_mem_maximalAtlas a)
-  have hcrit : x ∈ criticalPoints I g ↔ chartIteratedFDeriv g a 1 ENat.LEInfty.out z = 0 := by
-    rw [mem_criticalPoints, mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero
-      (IsManifold.maximalAtlas_subset_of_le (by norm_num) he) hxs, hzx,
-      chartIteratedFDeriv_self_target_apply, iteratedFDerivWithin_of_isOpen 1 hopen hz,
-      ← norm_eq_zero, ← norm_eq_zero (a := iteratedFDeriv _ _ _ _), norm_iteratedFDeriv_one,
-      ← extChartAt.eq_1]
-  have hD2 (w₁ w₂ : E) : chartIteratedFDeriv g a 2 ENat.LEInfty.out z ![w₁, w₂] =
-      fderiv ℝ (fderiv ℝ (g ∘ (extChartAt I a).symm)) z w₁ w₂ := by
-    rw [chartIteratedFDeriv_self_target_apply, iteratedFDerivWithin_of_isOpen 2 hopen hz,
-      iteratedFDeriv_two_apply]
-    simp
+  have hcrit := extChartAt_symm_mem_criticalPoints_iff ENat.LEInfty.out g a z
   have hhess : x ∈ criticalPoints I g →
       ((∀ v : TangentSpace I x, v ≠ 0 →
         criticalHessian I g x v v + criticalHessian I g x (J x v) (J x v) < 0) ↔
@@ -145,8 +135,9 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
     have hHess (v w : TangentSpace I x) :
         criticalHessian I g x v w = chartIteratedFDeriv g a 2 ENat.LEInfty.out z ![T v, T w] := by
       rw [criticalHessian_apply_eq_of_mem_maximalAtlas he hxs
-        ((g.contMDiff.of_le ENat.LEInfty.out).contMDiffAt) (mem_criticalPoints.mp hx), hzx, hD2,
-        ← hT, ContinuousLinearEquiv.coe_coe, ← extChartAt.eq_1]
+        ((g.contMDiff.of_le ENat.LEInfty.out).contMDiffAt) (mem_criticalPoints.mp hx), hzx,
+        chartIteratedFDeriv_two_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
+        Matrix.cons_val_fin_one, ← hT, ContinuousLinearEquiv.coe_coe, ← extChartAt.eq_1]
     have hJT (v : TangentSpace I x) : T (J x v) = J.inChart a z (T v) := by
       have hT' (u : TangentSpace I x) : T u = mfderiv I 𝓘(ℝ, E) (extChartAt I a) x u := by
         rw [← extChartAt.eq_1] at hT
@@ -159,11 +150,8 @@ private theorem mem_negJets_iff (J : SmoothAlmostComplexStructure I M) (g : C^�
     simp only [hHess, hJT]
     refine ⟨fun h w hw ↦ ?_, fun h v hv ↦ h (T v) (by simpa using hv)⟩
     simpa using h (T.symm w) (by simpa using hw)
-  simp only [NegJets, mem_ofPred_eq, ne_eq, hcrit]
-  by_cases h0 : chartIteratedFDeriv g a 1 ENat.LEInfty.out z = 0
-  · simp only [h0, not_true_eq_false, false_or, true_implies]
-    exact (hhess (hcrit.mpr h0)).symm
-  · exact iff_of_true (Or.inl h0) fun h ↦ absurd h h0
+  simp only [NegJets, mem_ofPred_eq, ne_eq, ← imp_iff_not_or, ← hcrit]
+  exact imp_congr_right fun hx ↦ (hhess hx).symm
 
 variable [FiniteDimensional ℝ E] [T2Space M]
 
