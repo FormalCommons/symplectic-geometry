@@ -54,7 +54,10 @@ as a topological group, and deformation retracts it onto the rotations.
   the sphere has `φ^* i = i` exactly when it is `mobiusHom g` for some `g`.
 * `SymplecticGeometry.mobiusSubgroup_eq_range`: so `mobiusSubgroup` is the range of `mobiusHom`.
 * `SymplecticGeometry.mobiusSubgroup_le_diffPlus`: Möbius transformations preserve the
-  orientation.
+  orientation, and `SymplecticGeometry.complexStructureMap_inclusion_mul`: left multiplication by
+  a Möbius transformation does not change the pull-back `φ^* i` of an element `φ` of `diffPlus`.
+  In particular a Möbius transformation pulls `i` back to `i`
+  (`SymplecticGeometry.complexStructureMap_inclusion`).
 * `SymplecticGeometry.continuous_mobiusHom` and `SymplecticGeometry.isEmbedding_mobiusHom`:
   `mobiusHom` is a topological embedding.
 * `SymplecticGeometry.rotationSubgroup_le_mobiusSubgroup`: rotations are Möbius transformations.
@@ -172,6 +175,23 @@ theorem mobiusSubgroup_eq_range : mobiusSubgroup = mobiusHom.range := by
 theorem mobiusSubgroup_le_diffPlus : mobiusSubgroup ≤ diffPlus := fun φ hφ ↦ by
   rw [mem_diffPlus_iff_tames_pullback, mem_mobiusSubgroup_iff.1 hφ]
   exact OnePoint.compatible_fubiniStudyForm.tames
+
+/-- Left multiplication by a Möbius transformation does not change `complexStructureMap`:
+`(g φ)^* i = φ^* i`. -/
+@[simp]
+theorem complexStructureMap_inclusion_mul (g : mobiusSubgroup) (φ : diffPlus) :
+    complexStructureMap (Subgroup.inclusion mobiusSubgroup_le_diffPlus g * φ) =
+      complexStructureMap φ := by
+  refine Subtype.ext ?_
+  rw [complexStructureMap_mul, coe_complexStructureMap, coe_complexStructureMap,
+    Subgroup.coe_inclusion, mem_mobiusSubgroup_iff.1 g.property]
+
+/-- A Möbius transformation, seen in `diffPlus`, pulls `i` back to `i`. -/
+@[simp]
+theorem complexStructureMap_inclusion (g : mobiusSubgroup) :
+    complexStructureMap (Subgroup.inclusion mobiusSubgroup_le_diffPlus g) =
+      tameOfComplexManifold := by
+  simpa using complexStructureMap_inclusion_mul g 1
 
 /-! ### The topology of the Möbius group -/
 
