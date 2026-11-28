@@ -107,8 +107,7 @@ torus, moved to the model `EuclideanSpace ℝ (Fin 4)`, are disjoint framed symp
 `π₁(F × T²)` modulo the normal closure of their images, which `graphTorusQuotientMulEquiv`
 identifies with `G`.
 The normal closures in `F × T²` and in its copy on the model correspond
-(`FundamentalGroup.normalClosure_basepointChangeSubgroup_range_eq_of_eq_comp`,
-`Subgroup.normalClosure_iUnion_congr`).
+(`SymplecticGeometry.ProdTorusOnModel.map_normalClosure_basepointChangeSubgroup_graphTorus`).
 
 ## Main definitions
 
@@ -136,6 +135,9 @@ The normal closures in `F × T²` and in its copy on the model correspond
   `ProdTorusOnModel I M p L` pull its form back to `ω_T`.
 * `SymplecticGeometry.ProdTorusOnModel.disjoint_range_graphTorus_iff`: they are disjoint exactly
   when the graph tori in `M × T` are.
+* `SymplecticGeometry.ProdTorusOnModel.map_normalClosure_basepointChangeSubgroup_graphTorus`: the
+  isomorphism of `π₁` that `ProdTorusOnModel.diffeomorph` induces carries the normal closure of
+  the images of the graph tori in `M × T` onto that of the embedded tori.
 * `SymplecticGeometry.exists_fundamentalGroup_mulEquiv`: a group with a finite presentation is
   isomorphic to `π₁` of a compact, connected, symplectic four-manifold without boundary.
 
