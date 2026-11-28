@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
-import SymplecticGeometry.Topology.FiberBundle.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Comp
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.WithSeminorms
 
@@ -22,9 +22,10 @@ spaces: a family of sections is continuous for Tau Ceti's `ContMDiffSection.fram
 any frame system, as soon as the family of maps of total spaces is continuous for the weak Whitney
 topology (`ContMDiffSection.continuous_frameTopology_of_continuous_totalSpaceMap`).
 
-By `ContMDiffSection.frameTopology_le_of_cover`, the topology of the covering frames of
-`Hom(V, W)` induced by the frames `trivializationAt` of `V` and of `W` is finer than that of any
-frame system, so it suffices to prove continuity for those frames. In such a frame, the coefficient
+By `ContMDiffSection.trivializationAtFrameTopology_le`, the frame topology of the preferred
+trivializations of `Hom(V, W)`, which are induced by the frames `trivializationAt` of `V` and of
+`W`, is finer than that of any frame system, so it suffices to prove continuity for those
+frames. In such a frame, the coefficient
 of `A` at `y`, evaluated on a basis vector `b j` of the fibre model of `V`, is the fibre
 coordinate in `W` of the image of the point of `V` over `y` with coordinate `b j`. It is thus a
 fixed `C^n` map composed with the map of total spaces and with a fixed `C^n` section of `V`, and
@@ -117,26 +118,23 @@ theorem continuous_frameTopology_of_continuous_totalSpaceMap [CompleteSpace 𝕜
     (hA : Continuous fun p ↦ (A p).totalSpaceMap) :
     letI := frameTopology (I := I) (n := n) e U hU
     Continuous A := by
-  let e' : M → Trivialization (F₁ →L[𝕜] F₂) (π (F₁ →L[𝕜] F₂) (fun x ↦ V x →L[𝕜] W x)) :=
-    fun x₀ ↦ (trivializationAt F₁ V x₀).continuousLinearMap (RingHom.id 𝕜)
-      (trivializationAt F₂ W x₀)
-  let U' : M → Opens M := fun x₀ ↦ (e' x₀).baseSetOpens
-  have hU' : ∀ x₀, (U' x₀ : Set M) ⊆ (e' x₀).baseSet := fun x₀ ↦
-    (e' x₀).coe_baseSetOpens.subset
-  have hcover' : ∀ x, ∃ x₀, x ∈ U' x₀ := fun x ↦
-    ⟨x, Bundle.Trivialization.mem_baseSetOpens_iff.2
-      ⟨FiberBundle.mem_baseSet_trivializationAt F₁ V x,
-        FiberBundle.mem_baseSet_trivializationAt F₂ W x⟩⟩
-  refine @Continuous.comp _ _ _ _ (frameTopology (I := I) (n := n) e' U' hU')
+  refine @Continuous.comp _ _ _ _
+    (trivializationAtFrameTopology I (F₁ →L[𝕜] F₂) (fun x ↦ V x →L[𝕜] W x) n)
     (frameTopology (I := I) (n := n) e U hU) _ _
-    (continuous_id_of_le (frameTopology_le_of_cover e' U' hU' hcover' e U hU)) ?_
-  refine (continuous_frameTopology_iff_frameCoordinates e' U' hU').mpr fun x₀ ↦ ?_
+    (continuous_id_of_le (trivializationAtFrameTopology_le e U hU)) ?_
+  refine continuous_trivializationAtFrameTopology_iff.mpr fun x₀ ↦ ?_
   let b := Module.finBasis 𝕜 F₁
   let tV := trivializationAt F₁ V x₀
   let tW := trivializationAt F₂ W x₀
-  have hy : ∀ y : U' x₀, (y : M) ∈ tV.baseSet ∩ tW.baseSet := fun y ↦ hU' x₀ y.property
+  -- The frame domain: the base set of the trivialization at `x₀` of `Hom(V, W)`, which is the
+  -- one induced by `tV` and `tW` (`hom_trivializationAt`).
+  let U' := (trivializationAt (F₁ →L[𝕜] F₂) (fun x ↦ V x →L[𝕜] W x) x₀).baseSetOpens
+  have hU' : (U' : Set M) ⊆ (tV.continuousLinearMap (RingHom.id 𝕜) tW).baseSet := by
+    rw [← hom_trivializationAt]
+    exact (trivializationAt _ _ x₀).coe_baseSetOpens.subset
+  have hy : ∀ y : U', (y : M) ∈ tV.baseSet ∩ tW.baseSet := fun y ↦ hU' y.property
   -- The point of `V` over `y` with coordinate `b j`, as a `C^n` map on the frame domain.
-  let σ : Fin (Module.finrank 𝕜 F₁) → C^n⟮I, U' x₀; I.prod 𝓘(𝕜, F₁), TotalSpace F₁ V⟯ :=
+  let σ : Fin (Module.finrank 𝕜 F₁) → C^n⟮I, U'; I.prod 𝓘(𝕜, F₁), TotalSpace F₁ V⟯ :=
     fun j ↦ ⟨fun y ↦ tV.toOpenPartialHomeomorph.symm ((y : M), b j),
       tV.contMDiffOn_symm.comp_contMDiff (contMDiff_subtypeVal.prodMk contMDiff_const)
         fun y ↦ tV.mem_target.mpr (hy y).1⟩
@@ -166,7 +164,11 @@ theorem continuous_frameTopology_of_continuous_totalSpaceMap [CompleteSpace 𝕜
   conv_rhs => rw [← b.sum_repr w, map_sum]
   refine Finset.sum_congr rfl fun j _ ↦ ?_
   rw [map_smul]
-  rw [Bundle.Trivialization.frameCoordinates_continuousLinearMap_apply tV tW (hU' x₀) (A p) y]
+  -- The frame coordinates in the goal are taken in `trivializationAt` of `Hom(V, W)`, which is
+  -- the trivialization induced by `tV` and `tW` by `hom_trivializationAt`, a `rfl` lemma.
+  rw [show (trivializationAt (F₁ →L[𝕜] F₂) (fun x ↦ V x →L[𝕜] W x) x₀).frameCoordinates
+      (trivializationAt _ _ x₀).coe_baseSetOpens.subset (A p) y (b j) = _ from
+    Bundle.Trivialization.frameCoordinates_continuousLinearMap_apply tV tW hU' (A p) y (b j)]
   rw [ContMDiffMap.comp_apply, ContMDiffMap.comp_apply]
   simp only [L, g, ContMDiffMap.coeFn_mk, ContMDiffMap.coe_codRestrict_apply,
     ContMDiffMap.comp_apply, hσ, totalSpaceMap_apply]

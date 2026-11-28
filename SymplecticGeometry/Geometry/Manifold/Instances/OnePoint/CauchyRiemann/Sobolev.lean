@@ -288,15 +288,9 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
     let _ := SmoothAlmostComplexStructure.frameTopology e U hU
     Continuous fun J ↦ twistOneDelBarSobolev J k := by
   let _ := SmoothAlmostComplexStructure.frameTopology e U hU
-  -- The preferred trivializations of the endomorphism bundle of the `𝒪(1)`-valued one-forms give
-  -- frames that cover the sphere.
-  let e' := trivializationAt ((ℂ →L[ℝ] ℂ) →L[ℝ] ℂ →L[ℝ] ℂ)
-    (fun x : OnePoint ℂ ↦
-      (TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x) →L[ℝ]
-        TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] VectorBundleCore.Fiber (twistCore (𝕜 := ℂ) 1) x)
-  let U' (x : OnePoint ℂ) := (e' x).baseSetOpens
-  have hU' : ∀ x, (U' x : Set (OnePoint ℂ)) ⊆ (e' x).baseSet := fun x ↦
-    (e' x).coe_baseSetOpens.subset
+  -- The `(0,1)`-projections are continuous into the frame topology of the preferred
+  -- trivializations of the endomorphism bundle of the `𝒪(1)`-valued one-forms, whose base sets
+  -- cover the sphere; the inclusions of those base sets fix the frame system.
   have hΦ : Continuous fun J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ) ↦
       SobolevSection.bundleMapL (twistCoreAtlas 1).tangentHom
         (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet
@@ -305,9 +299,10 @@ theorem continuous_twistOneDelBarSobolev (hcover : ∀ x, ∃ i, x ∈ U i) (k :
       SobolevSection.tendsto_bundleMapL_of_tendsto
         (FiberBundle.exists_mem_baseSetOpens_trivializationAt _ _)
         (@Continuous.tendsto _ _ (SmoothAlmostComplexStructure.frameTopology e U hU)
-          (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) e' U' hU') _
-          (SmoothAlmostComplexStructure.continuous_zeroOnePartSection e U hU hcover e' U'
-            hU') J₀)
+          (ContMDiffSection.frameTopology (I := 𝓘(ℝ, ℂ)) (n := ∞) _ _ _) _
+          (SmoothAlmostComplexStructure.continuous_zeroOnePartSection (F := ℂ)
+            (V := (twistCore (𝕜 := ℂ) 1).Fiber) e U hU hcover _ _
+            fun x ↦ (trivializationAt _ _ x).coe_baseSetOpens.subset) J₀)
   rw [funext (twistOneDelBarSobolev_def · k)]
   refine continuous_const.clm_comp ((hΦ.congr fun J ↦ ?_).clm_comp continuous_const)
   exact SobolevSection.bundleMapL_congr _ _ (funext J.zeroOnePartSection_apply)
