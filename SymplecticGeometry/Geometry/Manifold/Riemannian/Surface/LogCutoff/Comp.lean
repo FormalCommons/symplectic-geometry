@@ -25,11 +25,11 @@ Let `ψ = TauCeti.logCutoffProfile ε δ` with `0 < 4ε ≤ δ`, `Λ = log (δ /
   (`TauCeti.exists_mul_norm_fderiv_fderiv_logCutoffProfile_comp_le`).
 
 Both follow from the chain rule (`SymplecticGeometry.norm_fderiv_scalar_comp` and
-`SymplecticGeometry.norm_fderiv_fderiv_scalar_comp_le`) and the bounds `‖ψ'(r)‖ ≤ c₀ / (r Λ)`
-(`TauCeti.norm_deriv_logCutoffProfile_le`, from Tau Ceti's `TauCeti.deriv_logCutoffProfile_le`)
-and `|ψ''(r)| ≤ c₁ / (r ^ 2 Λ)` (`TauCeti.exists_abs_iteratedDeriv_two_logCutoffProfile_le`),
-for `r ≥ 0`: the factors `√(ρ p)` and `ρ p` on the left cancel the powers of `r = ρ p` in these
-bounds. At points with `ρ p ≤ 0` the left sides are zero or negative.
+`SymplecticGeometry.norm_fderiv_fderiv_scalar_comp_le`) and the bounds `r ψ'(r) ≤ c₀ / Λ`
+(`TauCeti.mul_deriv_logCutoffProfile_le`) and `|r ^ 2 ψ''(r)| ≤ c₁ / Λ`
+(`TauCeti.exists_abs_sq_mul_deriv_deriv_logCutoffProfile_le`): with `r = ρ p`, the factors
+`√(ρ p)` and `ρ p` on the left supply the powers of `r` in these bounds. At points with
+`ρ p ≤ 0` the left sides are zero or negative.
 
 The library interpolates between two strictly plurisubharmonic functions near a totally real
 submanifold with the cutoff `1 - ψ ∘ ρ`, for Proposition 3.26 of [CieliebakEliashberg2012], with
@@ -74,17 +74,16 @@ theorem sqrt_mul_norm_fderiv_logCutoffProfile_comp_le (hε : 0 < ε) (h4 : 4 * �
     exact div_nonneg (mul_nonneg logCutoffConst_pos.le hA0) hΛ.le
   have hg : DifferentiableAt ℝ (logCutoffProfile ε δ) (ρ p) :=
     ((contDiff_logCutoffProfile (by linarith)).differentiable (by simp)) _
-  have h1 := norm_deriv_logCutoffProfile_le hε h4 hpos.le
+  have hd := deriv_logCutoffProfile_nonneg (δ := δ) hε (by linarith) (ρ p)
   calc √(ρ p) * ‖fderiv ℝ (logCutoffProfile ε δ ∘ ρ) p‖
-      ≤ √(ρ p) * (logCutoffConst / (ρ p * Real.log (δ / ε)) * (A * √(ρ p))) := by
-        rw [SymplecticGeometry.norm_fderiv_scalar_comp hg hρ]
+      ≤ √(ρ p) * (deriv (logCutoffProfile ε δ) (ρ p) * (A * √(ρ p))) := by
+        rw [SymplecticGeometry.norm_fderiv_scalar_comp hg hρ, Real.norm_of_nonneg hd]
         gcongr
-        exact (norm_nonneg _).trans h1
-    _ = ρ p * (logCutoffConst / (ρ p * Real.log (δ / ε))) * A := by
-        linear_combination (logCutoffConst / (ρ p * Real.log (δ / ε)) * A) *
-          Real.mul_self_sqrt hpos.le
-    _ = logCutoffConst / Real.log (δ / ε) * A := by
-        rw [← mul_div_assoc, mul_div_mul_left _ _ hpos.ne']
+    _ = ρ p * deriv (logCutoffProfile ε δ) (ρ p) * A := by
+        linear_combination (deriv (logCutoffProfile ε δ) (ρ p) * A) * Real.mul_self_sqrt hpos.le
+    _ ≤ logCutoffConst / Real.log (δ / ε) * A := by
+        gcongr
+        exact mul_deriv_logCutoffProfile_le hε h4 (ρ p)
     _ = logCutoffConst * A / Real.log (δ / ε) := by ring
 
 /-- **The second derivative of a logarithmic cutoff composed with a function.** There is an
@@ -98,7 +97,7 @@ theorem exists_mul_norm_fderiv_fderiv_logCutoffProfile_comp_le :
       ‖fderiv ℝ ρ p‖ ≤ A * √(ρ p) → ‖fderiv ℝ (fderiv ℝ ρ) p‖ ≤ A →
       ρ p * ‖fderiv ℝ (fderiv ℝ (logCutoffProfile ε δ ∘ ρ)) p‖ ≤
         c * (A + A ^ 2) / Real.log (δ / ε) := by
-  obtain ⟨c₁, hc₁⟩ := exists_abs_iteratedDeriv_two_logCutoffProfile_le
+  obtain ⟨c₁, hc₁⟩ := exists_abs_sq_mul_deriv_deriv_logCutoffProfile_le
   refine ⟨logCutoffConst + |c₁|, fun {F} _ _ {ε δ A ρ p} hε h4 hρ hA hA' ↦ ?_⟩
   have hΛ : 0 < Real.log (δ / ε) := Real.log_pos ((one_lt_div hε).2 (by linarith))
   have hA0 : 0 ≤ A := (norm_nonneg (fderiv ℝ (fderiv ℝ ρ) p)).trans hA'
@@ -107,26 +106,25 @@ theorem exists_mul_norm_fderiv_fderiv_logCutoffProfile_comp_le :
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg h0 (by positivity)) (by positivity)
   have hg : ContDiffAt ℝ 2 (logCutoffProfile ε δ) (ρ p) :=
     (contDiff_logCutoffProfile (by linarith)).contDiffAt.of_le (by simp)
-  have h1 := norm_deriv_logCutoffProfile_le hε h4 hpos.le
-  have h2 : ‖iteratedDeriv 2 (logCutoffProfile ε δ) (ρ p)‖ ≤
-      |c₁| / (ρ p ^ 2 * Real.log (δ / ε)) := by
-    rw [Real.norm_eq_abs]
-    exact (hc₁ hε h4 _).trans (by gcongr; exact le_abs_self _)
+  have hd := deriv_logCutoffProfile_nonneg (δ := δ) hε (by linarith) (ρ p)
   have hD : ‖fderiv ℝ ρ p‖ ^ 2 ≤ A ^ 2 * ρ p := by
     rw [← Real.sq_sqrt hpos.le, ← mul_pow]
     gcongr
   calc ρ p * ‖fderiv ℝ (fderiv ℝ (logCutoffProfile ε δ ∘ ρ)) p‖
-      ≤ ρ p * (|c₁| / (ρ p ^ 2 * Real.log (δ / ε)) * (A ^ 2 * ρ p) +
-          logCutoffConst / (ρ p * Real.log (δ / ε)) * A) := by
+      ≤ ρ p * (|deriv (deriv (logCutoffProfile ε δ)) (ρ p)| * (A ^ 2 * ρ p) +
+          deriv (logCutoffProfile ε δ) (ρ p) * A) := by
         gcongr
         refine (SymplecticGeometry.norm_fderiv_fderiv_scalar_comp_le hg hρ).trans ?_
+        rw [iteratedDeriv_succ, iteratedDeriv_one, Real.norm_eq_abs, Real.norm_of_nonneg hd]
         gcongr
-        exact (norm_nonneg _).trans h1
-    _ = ρ p ^ 2 * (|c₁| / (ρ p ^ 2 * Real.log (δ / ε))) * A ^ 2 +
-          ρ p * (logCutoffConst / (ρ p * Real.log (δ / ε))) * A := by ring
-    _ = |c₁| / Real.log (δ / ε) * A ^ 2 + logCutoffConst / Real.log (δ / ε) * A := by
-        rw [← mul_div_assoc, ← mul_div_assoc, mul_div_mul_left _ _ (pow_pos hpos 2).ne',
-          mul_div_mul_left _ _ hpos.ne']
+    _ = |ρ p ^ 2 * deriv (deriv (logCutoffProfile ε δ)) (ρ p)| * A ^ 2 +
+          ρ p * deriv (logCutoffProfile ε δ) (ρ p) * A := by
+        rw [abs_mul, abs_of_pos (pow_pos hpos 2)]
+        ring
+    _ ≤ |c₁| / Real.log (δ / ε) * A ^ 2 + logCutoffConst / Real.log (δ / ε) * A := by
+        gcongr
+        · exact (hc₁ hε h4 _).trans (by gcongr; exact le_abs_self _)
+        · exact mul_deriv_logCutoffProfile_le hε h4 (ρ p)
     _ ≤ (logCutoffConst + |c₁|) * (A + A ^ 2) / Real.log (δ / ε) := by
         rw [div_mul_eq_mul_div, div_mul_eq_mul_div, ← add_div]
         gcongr
