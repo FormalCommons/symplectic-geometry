@@ -25,6 +25,9 @@ with `∂χ/∂ℓ > 0`. Its leaves `{(s, t) = (χ ℓ r ², r ²)}` in the quad
   `(χ ℓ r ², r ²)` and smooth there, with `∂φ/∂s < 0` and `∂φ/∂t > 0`, such that the Levi form
   of `φ ∘ shape` is positive on the nonzero complex tangencies of its levels at every point over
   the swept region.
+* `SymplecticGeometry.exists_contDiffAt_familyLevel`: the part of it that needs no convexity,
+  only `0 < r`, `0 < χ ℓ r` and `∂χ/∂ℓ > 0`: the value `-ℓ`, the smoothness and the
+  differential of `φ`. The form over `R` in `ShapeFoliation/OverR.lean` uses it.
 
 The map `(ℓ, r) ↦ (χ ℓ r ², r ²)` has an invertible differential, triangular with diagonal
 `2 χ ∂χ/∂ℓ` and `2 r`, so by the inverse function theorem
@@ -74,21 +77,27 @@ private theorem strictMonoOn_shapeFamily
     fun ℓ hℓ ↦ Set.mk_mem_prod hℓ hr
   simpa [Function.comp_def] using h
 
+/-- The positivity of `r` and of `χ ℓ r` that the criterion gives. -/
+private theorem forall_pos_of_isConvexShapeAt
+    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r) :
+    ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < r ∧ 0 < χ ℓ r :=
+  fun ℓ hℓ r hr ↦ ⟨(hconv ℓ hℓ r hr).pos, (hconv ℓ hℓ r hr).pos_value⟩
+
 /-- The leaf map is injective on the product of intervals. -/
 private theorem injOn_leafPoint
     (hχ : ContDiffOn ℝ 1 (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
-    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
+    (hpos : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < r ∧ 0 < χ ℓ r)
     (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ) :
     InjOn (leafPoint χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂) := by
   rintro ⟨ℓ, r⟩ ⟨hℓ, hr⟩ ⟨ℓ', r'⟩ ⟨hℓ', hr'⟩ h
   simp only [leafPoint_def, Prod.mk.injEq] at h
   have hrr : r = r' := by
-    have h0 := (hconv ℓ hℓ r hr).pos
-    have h1 := (hconv ℓ' hℓ' r' hr').pos
+    have h0 := (hpos ℓ hℓ r hr).1
+    have h1 := (hpos ℓ' hℓ' r' hr').1
     nlinarith [h.2]
   subst hrr
-  have h0 := (hconv ℓ hℓ r hr).pos_value
-  have h1 := (hconv ℓ' hℓ' r hr').pos_value
+  have h0 := (hpos ℓ hℓ r hr).2
+  have h1 := (hpos ℓ' hℓ' r hr').2
   have hχχ : χ ℓ r = χ ℓ' r := by nlinarith [h.1]
   exact Prod.ext ((strictMonoOn_shapeFamily hχ hmono hr).injOn hℓ hℓ' hχχ) rfl
 
@@ -100,13 +109,13 @@ private def shapeLevelFun (χ : ℝ → ℝ → ℝ) (ℓ₀ ℓ₁ r₁ r₂ : 
 
 private theorem shapeLevelFun_leafPoint
     (hχ : ContDiffOn ℝ 1 (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
-    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
+    (hpos : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < r ∧ 0 < χ ℓ r)
     (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ)
     {x : ℝ × ℝ} (hx : x ∈ Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂) :
     shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ (leafPoint χ x) = -x.1 := by
   have h : ∃ y ∈ Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂, leafPoint χ y = leafPoint χ x := ⟨x, hx, rfl⟩
   rw [shapeLevelFun, dite_eq_left_of_eq_true (eq_true h),
-    injOn_leafPoint hχ hconv hmono h.choose_spec.1 hx h.choose_spec.2]
+    injOn_leafPoint hχ hpos hmono h.choose_spec.1 hx h.choose_spec.2]
 
 /-- At `x = (ℓ, r)` with `χ ℓ r`, `r` and `∂χ/∂ℓ` nonzero, the leaf map
 `(ℓ, r) ↦ (χ ℓ r ², r ²)` has the invertible differential
@@ -174,7 +183,7 @@ differential `(a, b) ↦ -(a / (2 χ) - b ∂χ/∂r / (2 r)) / ∂χ/∂ℓ`: n
 first component of a local inverse of the leaf map. -/
 private theorem contDiffAt_shapeLevelFun
     (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
-    (hconv : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, IsConvexShapeAt (χ ℓ) r)
+    (hpos : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < r ∧ 0 < χ ℓ r)
     (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ)
     {x : ℝ × ℝ} (hx : x ∈ Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂) :
     ContDiffAt ℝ ∞ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂) (leafPoint χ x) ∧
@@ -185,10 +194,10 @@ private theorem contDiffAt_shapeLevelFun
   have hχ1 : ContDiffOn ℝ 1 (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂) :=
     hχ.of_le (by simp)
   have hχx : ContDiffAt ℝ ∞ (Function.uncurry χ) x := hχ.contDiffAt (hD.mem_nhds hx)
-  have hconvx := hconv x.1 hx.1 x.2 hx.2
+  have hposx := hpos x.1 hx.1 x.2 hx.2
   have hA := hmono x.1 hx.1 x.2 hx.2
   obtain ⟨e, hΦ, he⟩ := hasFDerivAt_leafPoint (hχx.differentiableAt (by simp))
-    hconvx.pos_value.ne' hconvx.pos.ne' hA.ne'
+    hposx.2.ne' hposx.1.ne' hA.ne'
   have hcΦ : ContDiffAt ℝ ∞ (leafPoint χ) x := by
     have hleaf : leafPoint χ = fun y ↦ (Function.uncurry χ y ^ 2, y.2 ^ 2) := by
       funext y
@@ -200,7 +209,7 @@ private theorem contDiffAt_shapeLevelFun
       fun q ↦ -(hs.localInverse (leafPoint χ) e x q).1 := by
     filter_upwards [hs.eventually_right_inverse, hs.localInverse_tendsto (hD.mem_nhds hx)]
       with q hq₁ hq₂
-    have h := shapeLevelFun_leafPoint hχ1 hconv hmono hq₂
+    have h := shapeLevelFun_leafPoint hχ1 hpos hmono hq₂
     rwa [hq₁] at h
   refine ⟨(contDiffAt_fst.comp _ (hcΦ.to_localInverse hΦ (by simp))).neg.congr_of_eventuallyEq
     heq, fun a b ↦ ?_⟩
@@ -209,6 +218,28 @@ private theorem contDiffAt_shapeLevelFun
   rw [hd.fderiv, neg_apply, ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_fst',
     ContinuousLinearEquiv.coe_coe, he]
   field_simp
+
+/-- **The level function of a family of curves.** Let `χ : ℝ → ℝ → ℝ` be smooth in `(ℓ, r)` on
+`Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂`, with `0 < r`, `0 < χ ℓ r` and `∂χ/∂ℓ > 0` there. Then there is
+`φ : ℝ × ℝ → ℝ` such that at each point `q = (χ ℓ r ², r ²)` of the swept region, `φ q = -ℓ`,
+`φ` is smooth at `q`, and its differential there is
+`(a, b) ↦ -(a / (2 χ ℓ r) - b ∂χ/∂r / (2 r)) / ∂χ/∂ℓ`. No convexity is assumed: this is the
+part of `exists_contDiff_shapeLevel` that the inverse function theorem gives, shared with its
+form over `R`. -/
+theorem exists_contDiffAt_familyLevel
+    (hχ : ContDiffOn ℝ ∞ (Function.uncurry χ) (Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂))
+    (hpos : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < r ∧ 0 < χ ℓ r)
+    (hmono : ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂, 0 < deriv (fun ℓ' ↦ χ ℓ' r) ℓ) :
+    ∃ φ : ℝ × ℝ → ℝ, ∀ ℓ ∈ Ioo ℓ₀ ℓ₁, ∀ r ∈ Ioo r₁ r₂,
+      φ (χ ℓ r ^ 2, r ^ 2) = -ℓ ∧ ContDiffAt ℝ ∞ φ (χ ℓ r ^ 2, r ^ 2) ∧
+      ∀ a b : ℝ, fderiv ℝ φ (χ ℓ r ^ 2, r ^ 2) (a, b) =
+        -(a / (2 * χ ℓ r) - b * deriv (χ ℓ) r / (2 * r)) / deriv (fun ℓ' ↦ χ ℓ' r) ℓ := by
+  refine ⟨shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂, fun ℓ hℓ r hr ↦ ?_⟩
+  have hx : (ℓ, r) ∈ Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂ := ⟨hℓ, hr⟩
+  obtain ⟨hH, hdH⟩ := contDiffAt_shapeLevelFun hχ hpos hmono hx
+  have hval := shapeLevelFun_leafPoint (hχ.of_le (by simp)) hpos hmono hx
+  rw [leafPoint_def] at hH hdH hval
+  exact ⟨hval, hH, hdH⟩
 
 /-- Each member `χ ℓ` of a smooth family is smooth at each `r` of the product of intervals. -/
 private theorem contDiffAt_shapeFamily
@@ -227,7 +258,8 @@ private theorem fderiv_shapeLevelFun_comp_shape
     {p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)} (hp : shape p = (χ ℓ r ^ 2, r ^ 2)) :
     fderiv ℝ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p =
       (1 / deriv (fun ℓ' ↦ χ ℓ' r) ℓ) • fderiv ℝ (shapeGraph (χ ℓ) ∘ shape) p := by
-  obtain ⟨hH, hdH⟩ := contDiffAt_shapeLevelFun hχ hconv hmono (x := (ℓ, r)) ⟨hℓ, hr⟩
+  obtain ⟨hH, hdH⟩ := contDiffAt_shapeLevelFun hχ (forall_pos_of_isConvexShapeAt hconv) hmono
+    (x := (ℓ, r)) ⟨hℓ, hr⟩
   rw [leafPoint_def] at hH hdH
   have hconvx := hconv ℓ hℓ r hr
   have hA := hmono ℓ hℓ r hr
@@ -264,7 +296,7 @@ private theorem eventually_shapeLevelFun_shape_eq
     ext
     · rw [hy0, Real.sq_sqrt (shape_fst_nonneg y)]
     · rw [Real.sq_sqrt (shape_snd_nonneg y)]
-  rw [hy', shapeLevelFun_leafPoint hχ hconv hmono ⟨hℓ, hy⟩]
+  rw [hy', shapeLevelFun_leafPoint hχ (forall_pos_of_isConvexShapeAt hconv) hmono ⟨hℓ, hy⟩]
 
 /-- At a point `p` over the leaf `ℓ`, the Levi form of `H ∘ shape`, for the level function `H`,
 has positive real part on the nonzero complex tangent vectors of its level through `p`: there `dH`
@@ -281,7 +313,8 @@ private theorem re_leviForm_shapeLevelFun_comp_shape_pos
     (hv₂ : fderiv ℝ (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p (I • v) = 0) :
     0 < (leviForm (shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂ ∘ shape) p v v).re := by
   set H := shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂
-  obtain ⟨hH, -⟩ := contDiffAt_shapeLevelFun hχ hconv hmono (x := (ℓ, r)) ⟨hℓ, hr⟩
+  obtain ⟨hH, -⟩ := contDiffAt_shapeLevelFun hχ (forall_pos_of_isConvexShapeAt hconv) hmono
+    (x := (ℓ, r)) ⟨hℓ, hr⟩
   rw [leafPoint_def] at hH
   have hconvx := hconv ℓ hℓ r hr
   have hr0 := hconvx.pos
@@ -350,8 +383,8 @@ theorem exists_contDiff_shapeLevel
     hχ.of_le (by simp)
   refine ⟨shapeLevelFun χ ℓ₀ ℓ₁ r₁ r₂, fun ℓ hℓ r hr ↦ ?_⟩
   have hx : (ℓ, r) ∈ Ioo ℓ₀ ℓ₁ ×ˢ Ioo r₁ r₂ := ⟨hℓ, hr⟩
-  obtain ⟨hH, hdH⟩ := contDiffAt_shapeLevelFun hχ hconv hmono hx
-  have hval := shapeLevelFun_leafPoint hχ1 hconv hmono hx
+  obtain ⟨hH, hdH⟩ := contDiffAt_shapeLevelFun hχ (forall_pos_of_isConvexShapeAt hconv) hmono hx
+  have hval := shapeLevelFun_leafPoint hχ1 (forall_pos_of_isConvexShapeAt hconv) hmono hx
   rw [leafPoint_def] at hH hdH hval
   have hconvx := hconv ℓ hℓ r hr
   have hr0 := hconvx.pos
