@@ -707,14 +707,6 @@ theorem apply_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
     (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh hγc, ← hγc, comp_apply]
 
 /-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
-`γ` a `C^(n+1)` curve in `B`. Parallel transport along `γ` from `s` to `t` maps the fibre over
-`γ s` into the fibre over `γ t`. -/
-theorem parallelTransport_mem_preimage (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
-    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P}
-    (hx : f x = γ s) (t : ℝ) : hD.parallelTransport γ s t x ∈ f ⁻¹' {γ t} :=
-  mem_singleton_iff.2 (hD.apply_parallelTransport hn hf hfp hγ hx t)
-
-/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
 `γ` a `C^(n+1)` curve in `B`. On the fibre over `γ s`, parallel transport along `γ` from `s` to
 `t` followed by parallel transport from `t` to `u` is parallel transport from `s` to `u`. -/
 theorem parallelTransport_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
@@ -746,8 +738,8 @@ theorem bijOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
     (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) (s t : ℝ) :
     BijOn (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) (f ⁻¹' {γ t}) :=
   (hD.invOn_parallelTransport hn hf hfp hγ s t).bijOn
-    (fun _ hx ↦ hD.parallelTransport_mem_preimage hn hf hfp hγ hx t)
-    (fun _ hy ↦ hD.parallelTransport_mem_preimage hn hf hfp hγ hy s)
+    (fun _ hx ↦ hD.apply_parallelTransport hn hf hfp hγ hx t)
+    (fun _ hy ↦ hD.apply_parallelTransport hn hf hfp hγ hy s)
 
 /-- **Independence of the parametrization.** Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on
 a proper `C^(n+1)` map `f : P → B`, `γ` a `C^(n+1)` curve in `B` and `φ : ℝ → ℝ` a `C²` map.

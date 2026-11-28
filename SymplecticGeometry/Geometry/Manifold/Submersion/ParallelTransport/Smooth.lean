@@ -305,7 +305,7 @@ theorem exists_diffeomorph_eqOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff
   -- The relation is transitive: compose the diffeomorphisms, and transport.
   have htrans : IsTrans ℝ R := ⟨fun a b c ⟨Ψ₁, h₁⟩ ⟨Ψ₂, h₂⟩ ↦ ⟨Ψ₁.trans Ψ₂, fun x hx ↦ by
     rw [Diffeomorph.coe_trans, comp_apply, h₁ hx,
-      h₂ (hD.parallelTransport_mem_preimage hn hf hfp hγ hx b),
+      h₂ (hD.apply_parallelTransport hn hf hfp hγ hx b),
       hD.parallelTransport_parallelTransport hn hf hfp hγ hx]⟩⟩
   -- It holds between two times of an interval that `γ` maps into the base set of one
   -- trivialization.
@@ -362,7 +362,7 @@ theorem exists_contMDiff_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff 
     ⟨U₁ ∩ U₂, inter_mem hU₁ hU₂, fun p ↦ Ψ₂ (p.1, Ψ₁ p), hΨ₂.comp (contMDiff_fst.prodMk hΨ₁),
       fun a ha x hx ↦ by
         simp only [h₁ a ha.1 hx,
-          h₂ a ha.2 (hD.parallelTransport_mem_preimage hn hf hfp (hΓc a) hx v),
+          h₂ a ha.2 (hD.apply_parallelTransport hn hf hfp (hΓc a) hx v),
           hD.parallelTransport_parallelTransport hn hf hfp (hΓc a) hx]⟩⟩
   -- It holds between two times of an interval that the curve at `a₀` maps into the base set of
   -- one trivialization.
