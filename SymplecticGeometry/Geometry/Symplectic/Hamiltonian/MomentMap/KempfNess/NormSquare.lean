@@ -44,10 +44,10 @@ action of `G` on `M` by fundamental vector fields, `J` is an almost complex stru
 the metric is `g(u, w) = σ(u, J w)`. For symmetric `B`, `SymplecticGeometry.mgradient_momentNormSq`
 computes the gradient of `f`.
 
-The gradient is computed from the derivative of the norm square of the moment map `-μ`
-(`TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_momentNormSq`, which is unchanged by the sign), twice
-that of the component `y ↦ μ y (μ♯ x)`, and the gradient `-J X_ξ` of the component `y ↦ μ y ξ`
-(`SymplecticGeometry.mgradient_moment_apply`), taken at `ξ = μ♯ x`. No `Ad`-invariance of `B`
+The gradient is Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.mgradient_momentNormSq` for the
+moment map `-μ`, whose norm square is that of `μ` (`SymplecticGeometry.momentNormSq_neg'`), with
+the endomorphism `J x`, which represents `σ` through the metric
+(`TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq`). No `Ad`-invariance of `B`
 and no nondegeneracy of `σ` are used. With the norm square normalized as `½ ‖μ‖²` instead, the
 gradient is `-J X_{μ♯ x}(x)`.
 
@@ -247,13 +247,13 @@ theorem mgradient_momentNormSq
     (x : M) :
     Manifold.mgradient I' (momentNormSq μ (B.toDual hB).symm) x =
       (-2 : ℝ) • J x (fundamentalVectorField I' (momentSharp B hB μ x) x) := by
-  have hd := hμ.mvfderiv_momentNormSq (K := (B.toDual hB).symm)
-    (fun _ _ ↦ hBs.apply_toDual_symm_comm hB _ _) x
-  simp only [momentNormSq_neg', map_neg, LinearMap.neg_apply, neg_neg, LinearEquiv.coe_coe] at hd
-  rw [neg_smul, ← smul_neg, ← mgradient_moment_apply hμ hg]
-  refine ext_inner_right ℝ fun v ↦ ?_
-  rw [Manifold.inner_mgradient, hd, real_inner_smul_left, Manifold.inner_mgradient, smul_apply,
-    smul_eq_mul, momentSharp_def]
+  have h := hμ.mgradient_momentNormSq (K := (B.toDual hB).symm)
+    (fun _ _ ↦ hBs.apply_toDual_symm_comm hB _ _) (J.toEndomorphism x).toLinearMap
+    (J.inner_apply_left_of_inner_eq hg x)
+  rw [momentNormSq_neg'] at h
+  rw [h, InfinitesimalAction.fundamental_apply, map_neg, fundamentalVectorField_neg,
+    momentSharp_def]
+  simp
 
 end Gradient
 

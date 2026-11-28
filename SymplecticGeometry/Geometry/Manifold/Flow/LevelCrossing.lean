@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Flow.HittingTime
 public import TauCeti.Geometry.Manifold.Flow.Complete
 import TauCeti.Geometry.Manifold.Flow.ReturnDerivative
 import TauCeti.Geometry.Manifold.IntegralCurve.GlobalFlow
+import SymplecticGeometry.Geometry.Manifold.IntegralCurve.Monotone
 
 /-!
 # Smoothness of the level-crossing time of a complete flow
@@ -34,6 +35,13 @@ is the line through `v x`: it contains `v x` by `TauCeti.mfderiv_flowTransition_
 and nothing else, by `TauCeti.mfderiv_flowTransition_apply` and the injectivity of the derivative
 of the time-`T` map (`TauCeti.injective_mfderiv_flowOf`).
 
+When the field crosses the level upwards (`0 < dg (v)` on it), each orbit meets the level at most
+once (`IsMIntegralCurve.subsingleton_setOfPred_apply_eq_of_mvfderiv_pos`), and the points whose
+orbits meet it form an open set: just before and just after its crossing an orbit lies on either
+side of the level, so the nearby orbits do too, and they cross it in between by the intermediate
+value theorem. For a `C^n` function `g`, the crossing time and the crossing point of such a level
+are then `C^n` on that open set.
+
 ## Main results
 
 * `TauCeti.levelCrossingTime_eventuallyEq_flowHittingTime`: near a point whose orbit crosses the
@@ -44,6 +52,12 @@ of the time-`T` map (`TauCeti.injective_mfderiv_flowOf`).
   time is `C^n` where the crossing is transverse.
 * `TauCeti.contMDiffAt_flow_levelCrossingTime`, `TauCeti.contMDiffOn_flow_levelCrossingTime`: so
   is the map that flows each point to the point where its orbit crosses the level.
+* `TauCeti.isOpen_setOf_exists_flow_apply_eq`: the points whose orbits meet a level crossed
+  upwards form an open set.
+* `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`,
+  `TauCeti.contMDiffOn_levelCrossingTime_of_mvfderiv_pos` and
+  `TauCeti.contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos`: for a `C^n` function, the crossing
+  time and the crossing point of a level crossed upwards are `C^n` on that open set.
 
 ## References
 
@@ -62,6 +76,29 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpa
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [T2Space M] [IsManifold I 1 M] [BoundarylessManifold I M]
   {v : (x : M) → TangentSpace I x} {Φ : Flow ℝ M} {g : M → ℝ} {c : ℝ} {x : M}
+
+omit [CompleteSpace E] [T2Space M] [IsManifold I 1 M] [BoundarylessManifold I M] in
+/-- **Orbits that cross an upward level form an open set.** Let the orbits of the flow `Φ` be
+integral curves of `v`, and let `g` be continuous, and differentiable with `dg (v) > 0` at each
+point of the level `{g = c}`. Then the set of points whose orbits meet that level is open. -/
+theorem isOpen_setOf_exists_flow_apply_eq (hΦ : ∀ x, IsMIntegralCurve (fun t ↦ Φ t x) v)
+    (hg : Continuous g)
+    (hgv : ∀ x, g x = c → MDifferentiableAt I 𝓘(ℝ) g x ∧ 0 < mvfderiv I g x (v x)) :
+    IsOpen {x | ∃ t, g (Φ t x) = c} := by
+  refine isOpen_iff_mem_nhds.2 fun x ⟨t, ht⟩ ↦ ?_
+  have hcont (s : ℝ) : Continuous fun y ↦ g (Φ s y) :=
+    hg.comp (Φ.continuous continuous_const continuous_id)
+  have horb (y : M) : Continuous fun s ↦ g (Φ s y) :=
+    hg.comp (Φ.continuous continuous_id continuous_const)
+  -- The orbit of `x` is below the level just before `t` and above it just after, and so are the
+  -- orbits of the nearby points, which then cross the level in between.
+  have hlo := (hΦ x).apply_lt_of_apply_le (f := g) (horb x) (fun _ ↦ hgv _) ht.le (sub_one_lt t)
+  have hhi := (hΦ x).lt_apply_of_le_apply (f := g) (horb x) (fun _ ↦ hgv _) ht.ge (lt_add_one t)
+  filter_upwards [(hcont (t - 1)).continuousAt.eventually (gt_mem_nhds hlo),
+    (hcont (t + 1)).continuousAt.eventually (lt_mem_nhds hhi)] with y hy₁ hy₂
+  obtain ⟨s, -, hs⟩ := intermediate_value_Icc (by linarith : t - 1 ≤ t + 1)
+    (horb y).continuousOn ⟨hy₁.le, hy₂.le⟩
+  exact ⟨s, hs⟩
 
 /-- **The crossing time is a hitting time.** Let `v` be a complete `C¹` field with flow `Φ`, and
 let the orbits through a neighbourhood of `x` meet the level `{g = c}` at most once. If the orbit
@@ -192,5 +229,47 @@ theorem contMDiffOn_flow_levelCrossingTime {U : Set M} (hU : IsOpen U)
   (contMDiffAt_flow_levelCrossingTime hn hv hcomplete hΦ
     (eventually_of_mem (hU.mem_nhds hxU) huniq) (hx x hxU) (hg x hxU)
     (hgv x hxU)).contMDiffWithinAt
+
+/-- **The crossing time of an upward level is `C^n`.** Let `v` be a complete `C^n` field
+(`1 ≤ n`) with flow `Φ`, and let `g` be `C^n` with `dg (v) > 0` at each point of the level
+`{g = c}`. If the orbit of `x` meets the level, then the crossing time
+`Flow.levelCrossingTime Φ g c` is `C^n` at `x`. -/
+theorem contMDiffAt_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ) n g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) (hx : ∃ t, g (Φ t x) = c) :
+    ContMDiffAt I 𝓘(ℝ) n (Flow.levelCrossingTime Φ g c) x := by
+  have hn' : ((1 : ℕ∞) : WithTop ℕ∞) ≤ n := by exact_mod_cast hn
+  have hcurve (y : M) : IsMIntegralCurve (fun t ↦ Φ t y) v := by
+    have h := isMIntegralCurve_globalFlow (hv.of_le hn') hcomplete y
+    rwa [← flowOf_eq_globalFlow (hv.of_le hn') hcomplete, hΦ] at h
+  have hgv' (y : M) (hy : g y = c) : MDifferentiableAt I 𝓘(ℝ) g y ∧ 0 < mvfderiv I g y (v y) :=
+    ⟨(hg y).mdifferentiableAt (zero_lt_one.trans_le hn').ne', hgv y hy⟩
+  exact contMDiffAt_levelCrossingTime hn hv hcomplete hΦ
+    (eventually_of_mem ((isOpen_setOf_exists_flow_apply_eq hcurve hg.continuous hgv').mem_nhds hx)
+      fun y _ ↦ (hcurve y).subsingleton_setOfPred_apply_eq_of_mvfderiv_pos (f := g)
+        (hg.continuous.comp (hcurve y).continuous) fun _ ↦ hgv' _)
+    hx (hg _) (hgv _ (Flow.apply_flow_levelCrossingTime hx)).ne'
+
+/-- **The crossing time of an upward level is `C^n` where the level is met.** Under the
+hypotheses of `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`, the crossing time
+`Flow.levelCrossingTime Φ g c` is `C^n` on the set of points whose orbits meet the level
+`{g = c}`, which is open by `TauCeti.isOpen_setOf_exists_flow_apply_eq`. -/
+theorem contMDiffOn_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ) n g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) :
+    ContMDiffOn I 𝓘(ℝ) n (Flow.levelCrossingTime Φ g c) {x | ∃ t, g (Φ t x) = c} := fun _ hx ↦
+  (contMDiffAt_levelCrossingTime_of_mvfderiv_pos hn hv hcomplete hΦ hg hgv hx).contMDiffWithinAt
+
+/-- **The crossing point of an upward level is `C^n` where the level is met.** Under the
+hypotheses of `TauCeti.contMDiffAt_levelCrossingTime_of_mvfderiv_pos`, the map
+`y ↦ Φ (Flow.levelCrossingTime Φ g c y) y`, which follows each orbit to the level `{g = c}`, is
+`C^n` on the set of points whose orbits meet the level. -/
+theorem contMDiffOn_flow_levelCrossingTime_of_mvfderiv_pos (hg : ContMDiff I 𝓘(ℝ) n g)
+    (hgv : ∀ y, g y = c → 0 < mvfderiv I g y (v y)) :
+    ContMDiffOn I I n (fun y ↦ Φ (Flow.levelCrossingTime Φ g c y) y)
+      {x | ∃ t, g (Φ t x) = c} := fun x hx ↦ by
+  have h := contMDiffAt_flowOf_comp hn hv
+    (contMDiffAt_levelCrossingTime_of_mvfderiv_pos hn hv hcomplete hΦ hg hgv hx) contMDiffAt_id
+    (hcomplete.mem_flowDomain _ x)
+  rw [hΦ] at h
+  exact h.contMDiffWithinAt
 
 end TauCeti

@@ -33,26 +33,26 @@ isomorphically onto the tangent space of the base, as that of `P` at `x` is.
 
 ## Main definitions
 
-* `SymplecticGeometry.IsConnectionForm.associatedHorizontal`: the horizontal space at a point of
-  the associated bundle induced by a connection form.
+* `TauCeti.PrincipalBundle.IsConnectionForm.associatedHorizontal`: the horizontal space at a
+  point of the associated bundle induced by a connection form.
 
 ## Main results
 
-* `SymplecticGeometry.IsConnectionForm.associatedHorizontal_eq`: the horizontal space at `[x, v]`
-  is the image of `ker A_x` under the derivative of `x' ↦ [x', v]`, for every representative
-  `(x, v)`.
-* `SymplecticGeometry.IsConnectionForm.mem_associatedHorizontal_iff`: the membership criterion.
-* `SymplecticGeometry.IsConnectionForm.isCompl_associatedHorizontal`: the induced horizontal space
-  is a complement of the vertical space of the associated bundle.
-* `SymplecticGeometry.IsConnectionForm.isEhresmannConnection_associatedHorizontal`: the induced
+* `TauCeti.PrincipalBundle.IsConnectionForm.associatedHorizontal_eq`: the horizontal space at
+  `[x, v]` is the image of `ker A_x` under the derivative of `x' ↦ [x', v]`, for every
+  representative `(x, v)`.
+* `TauCeti.PrincipalBundle.IsConnectionForm.mem_associatedHorizontal_iff`: the membership criterion.
+* `TauCeti.PrincipalBundle.IsConnectionForm.isCompl_associatedHorizontal`: the induced horizontal
+  space is a complement of the vertical space of the associated bundle.
+* `TauCeti.PrincipalBundle.IsConnectionForm.isEhresmannConnection_associatedHorizontal`: the induced
   horizontal spaces are a smooth Ehresmann connection (Tau Ceti's `TauCeti.IsEhresmannConnection`)
   on the projection of the associated bundle, for finite-dimensional base, group and fibre
   without boundary.
-* `SymplecticGeometry.IsConnectionForm.isEhresmannConnectionHom_chartedMk`: the map
+* `TauCeti.PrincipalBundle.IsConnectionForm.isEhresmannConnectionHom_chartedMk`: the map
   `x' ↦ [x', v]`, over the identity of the base, is a morphism of Ehresmann connections
   (Tau Ceti's `TauCeti.IsEhresmannConnectionHom`) from `ker A` to the induced horizontal spaces.
-* `SymplecticGeometry.IsConnectionForm.mfderiv_chartedMk_horizontalLift`: the horizontal lift of a
-  tangent vector of the base at `[x, v]` is the image under the derivative of `x' ↦ [x', v]` of
+* `TauCeti.PrincipalBundle.IsConnectionForm.mfderiv_chartedMk_horizontalLift`: the horizontal lift
+  of a tangent vector of the base at `[x, v]` is the image under the derivative of `x' ↦ [x', v]` of
   its horizontal lift at `x` for the connection on `P`.
 
 ## Implementation notes
@@ -97,7 +97,9 @@ noncomputable section
 open Bundle Manifold MulOpposite TauCeti TauCeti.AssociatedBundle
 open scoped Manifold ContDiff
 
-namespace SymplecticGeometry
+namespace TauCeti.PrincipalBundle
+
+open SymplecticGeometry
 
 variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
@@ -323,6 +325,6 @@ theorem mfderiv_chartedMk_horizontalLift [FiniteDimensional ℝ EB] [IB.Boundary
 
 end IsConnectionForm
 
-end SymplecticGeometry
+end TauCeti.PrincipalBundle
 
 end
