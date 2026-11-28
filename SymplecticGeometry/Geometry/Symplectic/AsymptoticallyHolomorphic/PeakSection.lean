@@ -159,13 +159,13 @@ theorem affinePeakSection_smul (k : ℕ) (x : M) (c : ℂ) (w : EuclideanSpace �
   simp only [affinePeakSection_def, PiLp.smul_apply, smul_eq_mul, mul_smul, smul_add,
     Finset.smul_sum]
 
-
 /-- The affine combination of peak sections as a sum over `Option ι`: the coefficient `w none`
 multiplies the peak section and `w (some j)` the peak section times the `j`-th coordinate. -/
 theorem affinePeakSection_eq_sum (k : ℕ) (x : M) (w : EuclideanSpace ℂ (Option ι)) :
     D.affinePeakSection k x w =
       ∑ j : Option ι, w j • j.elim (D.peakSection k x) (D.peakSection_mul k x) := by
   simp [affinePeakSection_def, Fintype.sum_option]
+
 /-- For `k₀ ≤ k`, the reading of `D.affinePeakSection k x w` in the chart at `x` is
 `(w₀ + Σ_j w_j z_j)` times the cut-off Gaussian on the ball of radius `ρ₀ * √k`, for
 `z_j = (complexToRealEuclidean ι).symm z j`. -/
@@ -356,7 +356,8 @@ theorem exists_jetNorm_affinePeakSection_le [T2Space M] [I.Boundaryless]
     · obtain ⟨C, N, c, hc, h⟩ := D.exists_jetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
       exact ⟨C, N, c, hc, h.mono fun k h p ↦ by simpa using h p.1 p.2⟩
   obtain ⟨C, -, N, c, hc, h⟩ := Real.exists_forall_le_one_add_pow_mul_exp_neg_mul_sq
-    (fun k (p : M × M) ↦ rescaledDist_nonneg I k p.1 p.2) (fun _ ↦ zero_le_one) hb
+    (w := fun _ _ ↦ 1) (fun k (p : M × M) ↦ rescaledDist_nonneg I k p.1 p.2)
+    (fun _ _ ↦ zero_le_one) hb
   refine ⟨C * Fintype.card (Option ι), N, c, hc, ?_⟩
   filter_upwards [h, D.eventually_contDiffAt_reading_and_dbarReading_peakSection hρ₀,
     D.eventually_contDiffAt_reading_and_dbarReading_peakSection_mul hρ₀] with k h h₀ h₁ x y w
@@ -406,7 +407,8 @@ theorem exists_dbarJetNorm_affinePeakSection_le [T2Space M] [I.Boundaryless]
     · obtain ⟨C, N, c, hc, h⟩ := D.exists_dbarJetNorm_peakSection_mul_le hg hJ hα hρ₀ r j
       exact ⟨C, N, c, hc, h.mono fun k h p ↦ by simpa using h p.1 p.2⟩
   obtain ⟨C, -, N, c, hc, h⟩ := Real.exists_forall_le_one_add_pow_mul_exp_neg_mul_sq
-    (fun k (p : M × M) ↦ rescaledDist_nonneg I k p.1 p.2) (fun _ ↦ by positivity) hb
+    (w := fun _ (k : ℕ) ↦ (k : ℝ) ^ (-1 / 2 : ℝ))
+    (fun k (p : M × M) ↦ rescaledDist_nonneg I k p.1 p.2) (fun _ _ ↦ by positivity) hb
   refine ⟨C * Fintype.card (Option ι), N, c, hc, ?_⟩
   filter_upwards [h, D.eventually_contDiffAt_reading_and_dbarReading_peakSection hρ₀,
     D.eventually_contDiffAt_reading_and_dbarReading_peakSection_mul hρ₀] with k h h₀ h₁ x y w

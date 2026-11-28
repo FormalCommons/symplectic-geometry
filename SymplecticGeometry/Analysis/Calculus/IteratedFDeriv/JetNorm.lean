@@ -189,18 +189,10 @@ theorem jetNormAt_add_le {r : ℕ} {f g : E → F} {z : E} (hf : ContDiffAt 𝕜
 `z`. -/
 theorem jetNormAt_sum_le {κ : Type*} {r : ℕ} {t : Finset κ} {f : κ → E → F} {z : E}
     (hf : ∀ i ∈ t, ContDiffAt 𝕜 r (f i) z) :
-    jetNormAt 𝕜 r (∑ i ∈ t, f i) z ≤ ∑ i ∈ t, jetNormAt 𝕜 r (f i) z := by
-  classical
-  induction t using Finset.induction_on with
-  | empty => simp
-  | insert a t ha ih =>
-    have hf' : ∀ i ∈ t, ContDiffAt 𝕜 r (f i) z := fun i hi ↦ hf i (Finset.mem_insert_of_mem hi)
-    have hsum : ContDiffAt 𝕜 r (∑ i ∈ t, f i) z := by
-      rw [Finset.sum_fn]
-      exact ContDiffAt.sum hf'
-    rw [Finset.sum_insert ha, Finset.sum_insert ha]
-    exact (jetNormAt_add_le (hf a (Finset.mem_insert_self a t)) hsum).trans
-      (add_le_add_right (ih hf') _)
+    jetNormAt 𝕜 r (∑ i ∈ t, f i) z ≤ ∑ i ∈ t, jetNormAt 𝕜 r (f i) z :=
+  Finset.le_sum_of_subadditive_on_pred (fun g : E → F ↦ jetNormAt 𝕜 r g z)
+    (fun g : E → F ↦ ContDiffAt 𝕜 r g z) (jetNormAt_zero_fun r z).le
+    (fun _ _ hf hg ↦ jetNormAt_add_le hf hg) (fun _ _ hf hg ↦ hf.add hg) f hf
 
 /-- The `(r + 1)`-jet norm of `f` at `z` is the norm of `f z` plus the `r`-jet norm of
 `fderiv 𝕜 f` at `z`. -/

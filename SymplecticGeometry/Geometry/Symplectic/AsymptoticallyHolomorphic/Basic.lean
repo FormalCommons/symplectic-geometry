@@ -563,37 +563,21 @@ theorem dbarJetNorm_add_le {k r : ℕ} {s t : Π y, PowerBundle P k y} {x : M}
   rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_add_eventuallyEq hs ht)]
   exact jetNormAt_add_le hs' ht'
 
-/-- The `∂̄` reading of a finite sum of sections whose readings are differentiable near `z₀` is,
-as a germ at `z₀`, the sum of their `∂̄` readings. -/
-theorem dbarReading_sum_eventuallyEq {κ : Type*} {k : ℕ} {x : M} {t : Finset κ}
-    {s : κ → Π y, PowerBundle P k y} {z₀ : StdSpace ι}
-    (hs : ∀ i ∈ t, ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x (s i)) z) :
-    D.dbarReading k x (∑ i ∈ t, s i) =ᶠ[𝓝 z₀] ∑ i ∈ t, D.dbarReading k x (s i) := by
-  classical
-  induction t using Finset.induction_on with
-  | empty =>
-    simp only [Finset.sum_empty]
-    exact .of_forall fun z ↦ D.dbarReading_zero k x z
-  | insert a t ha ih =>
-    have hs' := fun i hi ↦ hs i (Finset.mem_insert_of_mem hi)
-    have hsum : ∀ᶠ z in 𝓝 z₀, DifferentiableAt ℝ (D.reading k x (∑ i ∈ t, s i)) z := by
-      filter_upwards [(Filter.eventually_all_finset t).2 hs'] with z hz
-      rw [reading_sum, Finset.sum_fn]
-      exact DifferentiableAt.fun_sum hz
-    rw [Finset.sum_insert ha, Finset.sum_insert ha]
-    filter_upwards [D.dbarReading_add_eventuallyEq (hs a (Finset.mem_insert_self a t)) hsum,
-      ih hs'] with z hz hz'
-    rw [hz, Pi.add_apply, hz', Pi.add_apply]
-
 /-- The **triangle inequality for jet norms of `∂̄`** over a finite sum of sections whose
 readings are differentiable near `0` and whose `∂̄` readings are `C^r` at `0`. -/
 theorem dbarJetNorm_sum_le {κ : Type*} {k r : ℕ} {x : M} {t : Finset κ}
     {s : κ → Π y, PowerBundle P k y}
     (hs : ∀ i ∈ t, ∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x (s i)) z)
     (hs' : ∀ i ∈ t, ContDiffAt ℝ r (D.dbarReading k x (s i)) 0) :
-    D.dbarJetNorm k r (∑ i ∈ t, s i) x ≤ ∑ i ∈ t, D.dbarJetNorm k r (s i) x := by
-  rw [dbarJetNorm_def, jetNormAt_congr_of_eventuallyEq r (D.dbarReading_sum_eventuallyEq hs)]
-  exact jetNormAt_sum_le hs'
+    D.dbarJetNorm k r (∑ i ∈ t, s i) x ≤ ∑ i ∈ t, D.dbarJetNorm k r (s i) x :=
+  Finset.le_sum_of_subadditive_on_pred (fun u ↦ D.dbarJetNorm k r u x)
+    (fun u ↦ (∀ᶠ z in 𝓝 0, DifferentiableAt ℝ (D.reading k x u) z) ∧
+      ContDiffAt ℝ r (D.dbarReading k x u) 0)
+    (D.dbarJetNorm_zero_fun k r x).le (fun _ _ hu hv ↦ D.dbarJetNorm_add_le hu.1 hv.1 hu.2 hv.2)
+    (fun _ _ hu hv ↦ ⟨(hu.1.and hv.1).mono fun _ hz ↦ by
+        rw [reading_add]; exact hz.1.add hz.2,
+      (hu.2.add hv.2).congr_of_eventuallyEq (D.dbarReading_add_eventuallyEq hu.1 hv.1)⟩)
+    s fun i hi ↦ ⟨hs i hi, hs' i hi⟩
 
 /-! ### Smoothness and germs of the readings -/
 
