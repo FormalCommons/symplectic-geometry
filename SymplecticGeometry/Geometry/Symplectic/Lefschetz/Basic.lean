@@ -423,7 +423,7 @@ theorem manifoldMorseIndex_comp [I.Boundaryless]
     simp only [OpenPartialHomeomorph.extend_coe_symm, modelWithCornersSelf_coe_symm,
       CompTriple.comp_eq, coe_affineOpenPartialHomeomorph_symm,
       affineOpenPartialHomeomorph_extend_apply] at this
-    exact fun h0 ↦ hdμ (mem_criticalPoints_iff_mfderiv_eq_zero.1 (mem_criticalPoints.2 (this.2 h0)))
+    exact fun h0 ↦ hdμ (mvfderiv_eq_zero_iff.1 (this.2 h0))
   have hκ : HasFDerivAt (fun t ↦ a + L t) (L : ℂ →L[ℝ] Fin 1 → ℂ) 0 :=
     L.hasFDerivAt.const_add a
   have hμe' : ContDiffAt ℝ 2 (μ ∘ (affineChart i).symm) (a + L 0) := by simpa using hμe
