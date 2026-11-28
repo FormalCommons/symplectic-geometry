@@ -588,8 +588,6 @@ complexification:
 
 - `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
   on $\Lambda^k V$ is minus the derivation of `A` on forms.
-- `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`: Tau Ceti's
-  `wedgeCovector u` is `alternatizeUncurryFin` of `(innerSL ℝ u).smulRight`.
 
 ### `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`
 
@@ -613,7 +611,7 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
   The symbol of $d^*$ with Tau Ceti's sign is
   $\delta_u=\pm\star\varepsilon_u\star=-\iota_u$
   (Tau Ceti's `Orientation.neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar`
-  with `TauCeti.wedgeCovector_eq_alternatizeUncurryFin`), so
+  with `TauCeti.alternatizeUncurryFin_innerSL_smulRight`), so
   this is
   $L\delta_u-\delta_u L=-(\mathcal J\varepsilon_u-\varepsilon_u\mathcal J)$,
   the constant-coefficient Kähler identity. It is proved from the Leibniz

@@ -140,7 +140,7 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
   have key :=
     (o.orientationAt (ψ.symm y)).neg_one_pow_smul_formHodgeStar_wedgeCovector_formHodgeStar
       (A u) (hkl.trans this.out.symm) (hlk.trans this.out.symm) (a.compContinuousLinearMap P)
-  rw [wedgeCovector_eq_alternatizeUncurryFin, curryLeftFlipL_apply_apply] at key
+  rw [← alternatizeUncurryFin_innerSL_smulRight, curryLeftFlipL_apply_apply] at key
   rw [hS, hS, alternatizeUncurryFin_compContinuousLinearMap, hinner, formHodgeStarCLM_apply,
     formHodgeStarCLM_apply]
   have hcurry : ((a.compContinuousLinearMap P).curryLeft (A u)).compContinuousLinearMap A =
