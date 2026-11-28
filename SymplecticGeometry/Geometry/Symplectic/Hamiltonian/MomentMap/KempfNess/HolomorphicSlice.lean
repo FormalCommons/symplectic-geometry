@@ -819,10 +819,11 @@ variable {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpac
   [T2Space G]
 
 omit [FiniteDimensional ℝ E'] in
-/-- **The slice map is smooth.** For a complexification `C` of `G` acting on `M`, a linearizing
-chart `e` at `x` and a subspace `K` of the Lie algebra `E` of `G`, the slice map
-`(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on `K × K × S`, where `S` is the complex
-orbit normal space at `x`, is smooth where `v` lies in the target of `e`. -/
+/-- **The slice map is smooth.** For a complexification `C` of `G` whose group `Gc` acts smoothly
+on `M`, a linearizing chart `e` at `x` and a subspace `K` of the model space `E` of the Lie
+algebra of `G`, the slice map `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on `K × K × S`,
+where `S` is the complex orbit normal space at `x`, is smooth where `v` lies in the target of
+`e`. -/
 theorem contMDiffOn_expI_mul_smul_chart_symm (C : LieComplexification I G IC Gc)
     (J : SmoothAlmostComplexStructure I' M) {x : M} (e : LinearizingChart G I' x)
     (K : Submodule ℝ E) :
@@ -850,7 +851,7 @@ theorem contMDiffOn_expI_mul_smul_chart_symm (C : LieComplexification I G IC Gc)
   exact (ha.mul hb).contMDiffOn.smul hσ
 
 /-- **The derivative of the slice map at `0`.** For a complexified action of `Gc`, a linearizing
-chart `e` at `x` and a subspace `K` of the Lie algebra `E` of `G`, the slice map
+chart `e` at `x` and a subspace `K` of the model space `E` of the Lie algebra of `G`, the slice map
 `(α, β, v) ↦ C.expI α * C.toHom (exp β) • e.symm v` on `K × K × S`, where `S` is the complex
 orbit normal space at `x`, has derivative `(α, β, v) ↦ J x (X_α x) + X_β x + v` at `0`
 (`SymplecticGeometry.complexOrbitSliceMap`): the derivative of `(α, β) ↦ C.expI α * C.toHom (exp β)`
