@@ -77,6 +77,8 @@ requires.
   path whose ends are closed in the class of `α₀`, with `P₀ = {0, 1}`.
 * `SymplecticGeometry.exists_continuousMap_homotopy_closed`: the continuous version, over a
   compact Hausdorff space.
+* `SymplecticGeometry.exists_continuousMap_homotopy_closed_of_ends`: the continuous version for
+  a path whose ends are closed in the class of `α₀`, with `P₀ = {0, 1}`.
 
 ## References
 
@@ -606,6 +608,53 @@ theorem exists_continuousMap_homotopy_closed
     fun l ↦ by simpa only [infiniteConcat_one] using hε l⟩
   rw [infiniteConcat_zero, hΦ₀, hseq₀]
   rfl
+
+/-- **The relative h-principle for a continuous path of nondegenerate forms with closed ends.**
+Let `M` be a manifold without boundary none of whose connected components is compact, give the
+smooth two-forms on its tangent bundle the frame topology of a covering frame system, and let
+`τ` be a continuous path of nondegenerate two-forms whose ends are closed with `τ 0 - α₀` and
+`τ 1 - α₀` exact. Then there is a continuous family `H` over `[0, 1] × [0, 1]` of nondegenerate
+two-forms with `H (t, 0) = τ t` such that
+
+* `H (t, u)` is closed and `H (t, u) - α₀` is exact for `t = 0` and `t = 1`;
+* `H (t, 1)` is closed and `H (t, 1) - α₀` is exact for every `t`.
+
+This is `SymplecticGeometry.exists_continuousMap_homotopy_closed` for `P₀ = {0, 1}`, with the
+segment `s ↦ τ 0 + s • (τ 1 - τ 0)` as the family `α`. -/
+theorem exists_continuousMap_homotopy_closed_of_ends
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) (hcover : ∀ x, ∃ j, x ∈ W j) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+    ∀ (τ : C(unitInterval,
+        {σ : Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) // σ.IsNondegenerate}))
+      {α₀ : SmoothTwoForm I M},
+      mextDerivₗ I 2 (Bundle.ContMDiffTwoForm.tangentEquiv (τ 0).val) = 0 →
+      mextDerivₗ I 2 (Bundle.ContMDiffTwoForm.tangentEquiv (τ 1).val) = 0 →
+      Bundle.ContMDiffTwoForm.tangentEquiv (τ 0).val - α₀ ∈ exactForms I M 2 →
+      Bundle.ContMDiffTwoForm.tangentEquiv (τ 1).val - α₀ ∈ exactForms I M 2 →
+      ∃ H : C(unitInterval × unitInterval,
+          {σ : Bundle.ContMDiffTwoForm I ⊤ E (TangentSpace I (M := M)) // σ.IsNondegenerate}),
+        (∀ t, H (t, 0) = τ t) ∧
+        (∀ t ∈ ({0, 1} : Set unitInterval), ∀ u,
+          mextDerivₗ I 2 (Bundle.ContMDiffTwoForm.tangentEquiv (H (t, u)).val) = 0 ∧
+          Bundle.ContMDiffTwoForm.tangentEquiv (H (t, u)).val - α₀ ∈ exactForms I M 2) ∧
+        ∀ t, mextDerivₗ I 2 (Bundle.ContMDiffTwoForm.tangentEquiv (H (t, 1)).val) = 0 ∧
+          Bundle.ContMDiffTwoForm.tangentEquiv (H (t, 1)).val - α₀ ∈ exactForms I M 2 := by
+  intro τ α₀ h₀ h₁ h₀α h₁α
+  let _ := ContMDiffSection.frameTopology (I := I) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  let _ := ContMDiffSection.continuousSMul_frameTopology (𝕜 := ℝ) (I := I)
+    (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) fr W hW
+  set ω₀ := Bundle.ContMDiffTwoForm.tangentEquiv (τ 0).val
+  set ω₁ := Bundle.ContMDiffTwoForm.tangentEquiv (τ 1).val
+  refine exists_continuousMap_homotopy_closed fr W hW hM hcover (Set.toFinite _).isClosed τ
+    (α := fun t : unitInterval ↦ ω₀ + (t : ℝ) • (ω₁ - ω₀)) ?_ (fun t ↦ ?_) (fun t ↦ ?_) ?_
+  · simp only [map_add, map_smul, map_sub, LinearEquiv.symm_apply_apply, ω₀, ω₁]
+    fun_prop
+  · simp [h₀, h₁]
+  · convert add_mem h₀α (Submodule.smul_mem _ (t : ℝ) (sub_mem h₁α h₀α)) using 1
+    module
+  · rintro t (rfl | rfl) <;> simp [ω₀, ω₁]
 
 end Continuous
 

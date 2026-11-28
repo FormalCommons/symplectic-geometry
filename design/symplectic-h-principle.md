@@ -1970,7 +1970,7 @@ theorem SmoothTwoForm.IsNondegenerate.exists_homotopy_isSymplectic
       (∀ t, (σ t).IsNondegenerate) ∧ (σ 1).IsSymplectic ∧ σ 1 - α ∈ exactForms I M 2
 
 theorem SmoothTwoForm.IsSymplectic.exists_isSmoothFamily_isSymplectic_of_homotopy
-    (hM : …) (hα : α ∈ closedForms I M 2) {ω₀ ω₁ : SmoothTwoForm I M}
+    (hM : …) {α : SmoothTwoForm I M} {ω₀ ω₁ : SmoothTwoForm I M}
     (h₀ : ω₀.IsSymplectic) (h₁ : ω₁.IsSymplectic)
     (h₀α : ω₀ - α ∈ exactForms I M 2) (h₁α : ω₁ - α ∈ exactForms I M 2)
     {τ : unitInterval → SmoothTwoForm I M} (hτ : IsSmoothFamily (𝓡∂ 1) τ)
