@@ -58,6 +58,9 @@ and `TangentBundle.mem_chart_source_iff`.
   injective derivative, composed with the inverse chart, has injective differential.
 * `ContinuousAt.extChartAt_tangentMap_extChartAt_symm`: the tangent map of a map continuous at a
   point, read in the charts of the tangent bundles.
+* `ContinuousAt.fderivWithin_extChartAt_comp_extChartAt_symm_eq_trivializationAt`: the derivative
+  of a map in the base charts at `x` and `y`, at any point of their sources, is its differential
+  read in the tangent trivializations at `x` and `y`.
 * `TangentBundle.extChartAt_target`, `tangentMap_extChartAt_symm_mem_extChartAt_source_iff`: the
   target of a tangent-bundle chart is the product of the base chart target with the fibre, and
   the tangent map of `f` meets the source of a tangent-bundle chart where `f` meets the base one.
@@ -175,6 +178,30 @@ theorem ContinuousAt.extChartAt_tangentMap_extChartAt_symm {f : M → M'}
   -- `ContinuousLinearMap.comp_apply`; it is the nested application by definition.
   exact congrArg _ (congrArg _
     (TauCeti.tangentCoordChange_tangentCoordChange (mem_extChartAt_source y) hx u).symm)
+
+/-- **A differential read in tangent trivializations.** Let `f : M → M'` be continuous at `z`,
+with `z` in the base set of the tangent trivialization at `x` and `f z` in that at `y`. Then the
+derivative of `extChartAt I' y ∘ f ∘ (extChartAt I x).symm`, taken within the target of the chart
+at `x` at the chart image of `z`, is `mfderiv I I' f z` read in these two trivializations. Where
+`f` is not differentiable at `z`, both sides are zero. -/
+theorem ContinuousAt.fderivWithin_extChartAt_comp_extChartAt_symm_eq_trivializationAt
+    {f : M → M'} {x z : M} {y : M'} (hc : ContinuousAt f z)
+    (hz : z ∈ (trivializationAt E (TangentSpace I) x).baseSet)
+    (hfz : f z ∈ (trivializationAt E' (TangentSpace I') y).baseSet) :
+    fderivWithin 𝕜 (extChartAt I' y ∘ f ∘ (extChartAt I x).symm) (extChartAt I x).target
+        (extChartAt I x z) =
+      ((trivializationAt E' (TangentSpace I') y).continuousLinearMapAt 𝕜 (f z)).comp
+        ((mfderiv I I' f z).comp ((trivializationAt E (TangentSpace I) x).symmL 𝕜 z)) := by
+  rw [TangentBundle.trivializationAt_baseSet] at hz hfz
+  have hz' : z ∈ (extChartAt I x).source := by rwa [extChartAt_source]
+  rw [fderivWithin_congr_set (extChartAt_target_eventuallyEqSet_of_mem
+      ((extChartAt I x).map_source hz')),
+    hc.fderivWithin_extChartAt_comp_extChartAt_symm hz' (by rwa [extChartAt_source]),
+    TangentBundle.symmL_trivializationAt_eq_core hz,
+    TangentBundle.continuousLinearMapAt_trivializationAt_eq_core hfz]
+  -- `tangentCoordChange I x y` is an abbreviation for this coordinate change of
+  -- `tangentBundleCore`, which Mathlib states with no lemma.
+  rfl
 
 /-- The target of the chart of the tangent bundle at `p` is the product of the target of the base
 chart at `p.proj` with the whole fibre. -/

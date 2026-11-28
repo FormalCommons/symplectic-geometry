@@ -35,8 +35,8 @@ them.
   `s` is again a smooth pointwise orthonormal family. This is the step of the induction that
   builds unitary frames. The lemma and its proof are adapted from the append step of Tau Ceti's
   proof of `Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_finrank_lt`
-  (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean`); the norm `‖u‖`
-  is made smooth by `ContMDiff.norm_bundle`.
+  (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/LineSplitting.lean`); the map `u / ‖u‖`
+  is made smooth by `ContMDiff.inv_norm_smul_bundle`.
 * `Bundle.ContMDiffRiemannianMetric.exists_unitary_trivialization_of_orthonormal`: a smooth
   family `s` that is a unitary basis of every fibre over an open set `U` gives, for any complex
   basis `b` of the model fibre, a trivialization over `U` in the smooth maximal atlas whose map on
@@ -120,12 +120,14 @@ theorem contMDiff_and_orthonormal_vecCons_of_mem_orthogonalSpanFamily
         Matrix.vecCons (fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) • u x) s i x⟩ : TotalSpace F V))) ∧
       ∀ x, Orthonormal ℂ fun i ↦ Matrix.vecCons (fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) • u x) s i x := by
   let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
-  have hc : ContMDiff IB 𝓘(ℝ, ℂ) n fun x ↦ ((‖u x‖⁻¹ : ℝ) : ℂ) :=
-    Complex.ofRealCLM.contMDiff.comp
-      ((hu.norm_bundle hu₀).inv₀ fun x ↦ norm_ne_zero_iff.2 (hu₀ x))
   refine ⟨fun i ↦ ?_, fun x ↦ ?_⟩
   · induction i using Fin.cases with
-    | zero => simpa using hc.smul_totalSpace hu
+    | zero =>
+      refine (hu.inv_norm_smul_bundle hu₀).congr fun x ↦ ?_
+      rw [Matrix.cons_val_zero, RCLike.real_smul_eq_coe_smul (K := ℂ)]
+      -- The two sides differ only in how scalar multiplication by `ℂ` is found: through the
+      -- bundle's `Module ℂ`, or through `g.complexInnerProductSpace hI`, which keeps it.
+      rfl
     | succ i => simpa using hs i
   · have horth (i : Fin k) : ⟪s i x, ((‖u x‖⁻¹ : ℝ) : ℂ) • u x⟫_ℂ = 0 := by
       rw [inner_smul_right, (g.mem_orthogonalSpanFamily_iff hI s).mp (huW x) i, mul_zero]
@@ -234,17 +236,10 @@ theorem contMDiffWithinAt_gramSchmidtNormed (g : ContMDiffRiemannianMetric IB n 
   let : SymplecticGeometry.Bundle.ContMDiffHermitianMetric IB n F V := ⟨g, hI⟩
   have hg := g.contMDiffWithinAt_gramSchmidt hI j hv (hli.mono Iio_subset_Iic_self)
   have h0 : gramSchmidt ℂ (fun i ↦ v i x) j ≠ 0 := gramSchmidt_ne_zero_coe j hli
-  have hc : ContMDiffWithinAt IM 𝓘(ℝ, ℂ) n
-      (fun m ↦ ((‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ : ℝ) : ℂ)) s x :=
-    Complex.ofRealCLM.contMDiff.contMDiffAt.comp_contMDiffWithinAt x
-      ((hg.norm_bundle h0).inv₀ (norm_ne_zero_iff.2 h0))
   have heq (m : M) : gramSchmidtNormed ℂ (fun i ↦ v i m) j =
-      ((‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ : ℝ) : ℂ) • gramSchmidt ℂ (fun i ↦ v i m) j := by
-    rw [gramSchmidtNormed, Complex.ofReal_inv]
-    -- As in `contMDiffWithinAt_gramSchmidt`, the two sides differ only in the path to
-    -- `Module ℂ`.
-    rfl
-  refine (hc.smul_totalSpace hg).congr (fun m _ ↦ ?_) ?_ <;>
+      ‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ • gramSchmidt ℂ (fun i ↦ v i m) j := by
+    rw [gramSchmidtNormed, RCLike.real_smul_eq_coe_smul (K := ℂ), RCLike.ofReal_inv]
+  refine (hg.inv_norm_smul_bundle h0).congr (fun m _ ↦ ?_) ?_ <;>
     exact congrArg (TotalSpace.mk (b _)) (heq _)
 
 /-- For a smooth Hermitian metric `(g, hI)`, normalized Gram–Schmidt with respect to the

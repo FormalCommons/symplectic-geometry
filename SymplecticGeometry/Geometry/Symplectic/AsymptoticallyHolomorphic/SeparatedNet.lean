@@ -181,12 +181,8 @@ theorem exists_forall_card_le_of_le_rescaledEDist [CompactSpace M] [T2Space M]
   have hεB : ball (0 : StdSpace ι) (ε * √k₁) ⊆ ball 0 (4 * ε * √k₁) :=
     ball_subset_ball (by gcongr; linarith)
   set U : M → Set M := fun x ↦ (D.chart k₁ x).symm '' ball 0 (ε * √k₁)
-  have hU (x : M) : U x ∈ nhds x := by
-    refine IsOpen.mem_nhds ?_ ⟨0, mem_ball_self (by positivity), D.chart_symm_zero hk₁ x⟩
-    have h := (D.chart k₁ x).symm.toOpenPartialHomeomorph.isOpen_image_of_subset_source
-      (isOpen_ball (x := (0 : StdSpace ι)) (ε := ε * √k₁)) <|
-        hεB.trans ((ball_subset_ball (by gcongr)).trans (D.ball_subset_target hk₁ x))
-    simpa [U] using h
+  have hU (x : M) : U x ∈ nhds x :=
+    D.image_symm_ball_mem_nhds hk₁ x (by positivity) (by gcongr; linarith)
   obtain ⟨t, ht⟩ := CompactSpace.elim_nhds_subcover U hU
   obtain ⟨a, ha, ha_def⟩ : ∃ a, 0 ≤ a ∧ a = 2 * √3 * (√(3 / 2) * ε) / r₀ :=
     ⟨_, by positivity, rfl⟩

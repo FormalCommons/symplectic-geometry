@@ -99,7 +99,7 @@ private theorem isBasis_trivializingOpens : Opens.IsBasis (trivializingOpens (F 
     ⟨U ⊓ (trivializationAt F E x).baseSetOpens,
       ⟨trivializationAt F E x, inferInstance,
         inter_subset_right.trans (trivializationAt F E x).coe_baseSetOpens.subset⟩,
-      ⟨hx, Trivialization.mem_baseSetOpens_iff.2 (mem_baseSet_trivializationAt F E x)⟩, inf_le_left⟩
+      ⟨hx, FiberBundle.mem_baseSetOpens_trivializationAt F E x⟩, inf_le_left⟩
 
 omit [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℝ F E] in
 private theorem inf_mem_trivializingOpens {U V : Opens B}

@@ -9,7 +9,7 @@ public import TauCeti.Algebra.Lie.Unitary
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.Subgroup.Differential
 public import TauCeti.Geometry.Lie.Subgroup.Unitary.Basic
-import SymplecticGeometry.Geometry.Lie.Exponential.Units
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 import TauCeti.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 

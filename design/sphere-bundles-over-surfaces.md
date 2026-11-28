@@ -8,15 +8,17 @@ McDuff–Salamon [McDuffSalamon2017], §6.2: Lemma 6.2.3 and Exercise 6.2.4
 for the first, Theorem 6.2.5 with Exercises 6.2.6, 6.2.8 and 6.2.9 for the
 second. The input from differential topology is Smale's theorem
 [Smale1959], from part 46. The handle induction follows Milnor's *Morse
-theory* (1963), §3, and the de Rham Leray–Hirsch theorem is read off the
-singular one, as in Hatcher, *Algebraic Topology*, Theorem 4D.1, and
-Bott–Tu [BottTu1982], §14.
+theory* (1963), §3. The de Rham Leray–Hirsch theorem is read off the
+singular one, Hatcher, *Algebraic Topology*, Theorem 4D.1, through the de
+Rham theorem. Bott–Tu [BottTu1982], Theorem 5.11, prove the de Rham form
+directly, by a Mayer–Vietoris induction over a good cover; that proof is
+not followed here.
 
 All names below are in the namespace `SymplecticGeometry` unless they are
 written with another one. Paths of new files are under `SymplecticGeometry/`.
 Tau Ceti paths are relative to `.lake/packages/TauCeti/TauCeti/`. Every
 merged declaration named below was checked against the library and Tau
-Ceti `c9d170eed5a8`; names from parts 46, 48 and 50 are those of their
+Ceti `0aaa80fd07b7`; names from parts 46, 48 and 50 are those of their
 design files (`design/sphere-diffeomorphisms.md`,
 `design/symplectic-fibrations.md`) or of `DESIGN.md`.
 
@@ -42,7 +44,7 @@ design files (`design/sphere-diffeomorphisms.md`,
   written out where it is used, with no definition, since it has no API of
   its own beyond `Diffeomorph.trans` and `Diffeomorph.symm`.
 - **The product** is `Prod.fst : S × OnePoint ℂ → S`, with the atlas
-  `productAtlas S` whose every chart is the identity trivialization.
+  `productAtlas S (OnePoint ℂ)` whose every chart is the identity trivialization.
 - **Circle bundles.** A principal circle bundle over `S` is, as in the
   `example` of `Geometry/Manifold/FiberBundle/Principal/Connection/Circle.lean`,
   the unitary frame bundle `Fiber ℂ F V ℂ` of a Hermitian line bundle `V`.
@@ -232,36 +234,114 @@ notes of the reviews of #2280 and #2445.
    $\mu_+>\mu_->0$ is reached by choosing $\lambda$ and $K$. This answers
    the note of the review of #2280: the form reuses part 50, which becomes
    a dependency of `RuledSurface.lean` (see *Departures*).
-9. **The flat model of Exercise 6.2.9** is built without universal covers.
-   For a surface of positive genus, Tau Ceti's
-   `TauCeti.circlePeriodHom_surjective` gives smooth maps
-   $u,v\colon S\to U(1)$ whose period homomorphisms reduce mod 2 to classes
-   $a,b\in H^1(S;\mathbb Z/2)$ with $a\cup b\neq0$, from two integral classes
-   whose cup product is one on $[S]$. They exist in positive genus by
-   Tau Ceti's Poincaré duality for compact oriented manifolds
-   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`),
-   over `ℤ` or over `ZMod 2`, whichever form it has. The real
-   lines $\ell_u(x)=\mathbb R\sqrt{u(x)}\subset\mathbb C$ are flat line
-   bundles, and the unit sphere bundle of $\ell_u\oplus\ell_v\oplus\ell_{uv}$
-   is an $S^2$-bundle with locally constant transition functions in the
-   Klein four-group of half-turns $\mathrm{diag}(\pm1,\pm1,\pm1)$, the
-   commuting half-turns of Exercise 6.2.8. Read on `OnePoint ℂ` by
-   `roundSphereDiffeomorph` of part 46, they are $z\mapsto\pm z$ and
-   $z\mapsto\pm1/z$. The round area form descends to a closed form
-   $\Theta_\rho$ restricting to the fibre forms, and
-   $s\,\pi^*\omega_S+t\,\Theta_\rho$ is symplectic and compatible for all
-   $s,t>0$, since the flat horizontal spaces are $\Theta_\rho$-null. Its
-   coefficients are $\mu_\pm=s'\pm t'$ for positive multiples $s',t'$ of
-   $s,t$, by Decision 7 (with $\Theta_\rho\wedge\Theta_\rho=0$ and
-   $\int_F\pi^*\omega_S=0$), which covers $\mu_+>|\mu_-|$. Nontriviality
-   is Decision 5 for a section of the sphere bundle: Tau Ceti's
-   `TauCeti.exists_contMDiffSection_forall_ne_zero_of_finrank_lt`
-   (`VectorBundle/Section/Generic.lean`; real rank three over a surface)
-   gives a nowhere-zero section of $\ell_u\oplus\ell_v\oplus\ell_{uv}$,
-   and its normalization is one. Its vertical bundle is the orthogonal
-   complement, whose first Chern number is $\langle a\cup b,[S]\rangle$
-   mod 2. This is the largest computation of the part, and the one to
-   check first.
+9. **The flat model of Exercise 6.2.9 is pulled back from the torus.**
+   McDuff–Salamon work the exercise out on the torus. Here the torus case
+   is built and computed in coordinates, and the flat model over `S` is its
+   pull-back along a map `f : S → T²` of degree ±1, which carries the
+   computation over. No universal cover is used, and no class mod 2.
+   - *The torus.* `ClosedConnectedOrientedSurface.torus` is `Circle × Circle`
+     with Tau Ceti's `TauCeti.torusChartedSpace`, smooth by
+     `TauCeti.isManifold_prodEuclideanChartedSpace`, oriented by
+     `TauCeti.Manifold.Orientation.ofTopForm` of the wedge of the pull-backs
+     of `TauCeti.circleAngularForm` along the two projections. Write
+     $z_1=e^{2\pi ix}$, $z_2=e^{2\pi iy}$.
+   - *A map of degree ±1.* For `0 < TauCeti.surfaceGenus S` there are smooth
+     $u,v\colon S\to$ `Circle` such that $f=(u,v)$ has degree ±1. Since
+     the rational $H_1(S)$ is not zero and $H_1(S;\mathbb Z)$ is finitely
+     generated, some homomorphism $\beta\colon H_1(S;\mathbb Z)\to\mathbb Z$
+     is onto (the issue compares rational and integral $H_1$ by universal
+     coefficients, from Tau Ceti if it has the comparison); take $x$ with $\beta(x)=1$, and read $\beta$ as a class of
+     $H^1(S;\mathbb Z)$ by `TopCat.singularKroneckerEquivOne`. Integral
+     Poincaré duality,
+     `TauCeti.HomologicalOrientation.exists_forall_singularCupPairing_eq_singularKronecker`,
+     gives $\alpha$ with $\langle\alpha\smile\beta,[S]_{\mathbb Z}\rangle=1$.
+     `TauCeti.circlePeriodHom_surjective` gives $u$ and $v$ whose periods
+     are $\alpha$ and $\beta$, and a lemma of the issue identifies these
+     classes with $u^*\theta$ and $v^*\theta$, for $\theta$ the integral
+     angular class of `Circle` (Tau Ceti's `AddCircle.angularClass`, read on
+     `Circle`, with
+     `AddCircle.homologyPeriodHom_timeForm_eq_singularKronecker_angularClass_mul`).
+     Then
+     `TauCeti.HomologicalOrientation.singularCupPairing_singularCohomologyMap_fundamentalClassOver_eq_degree_smul`,
+     over `ℤ` and for the classes $\mathrm{pr}_1^*\theta$ and
+     $\mathrm{pr}_2^*\theta$ of the torus, gives
+     $\deg f\cdot\langle\mathrm{pr}_1^*\theta\smile\mathrm{pr}_2^*\theta,[T^2]_{\mathbb Z}\rangle=1$,
+     so $\deg f=\pm1$, with no computation on the torus.
+     `TauCeti.Manifold.Orientation.degree_toHomologicalOrientation_eq_degree`
+     turns this into the smooth degree of `symplecticChernNumber_pullback`.
+   - *The flat bundle over the torus.* It is built from Tau Ceti's
+     bundles associated with a covering, not from line bundles. Let
+     $p\colon T^2\to T^2$ be $(w_1,w_2)\mapsto(w_1^2,w_2^2)$, the square
+     map of the group `Circle × Circle`. Its kernel
+     $K=\{\pm1\}\times\{\pm1\}$ is finite, so $p$ is a quotient covering
+     map for $K$, by
+     `Topology.IsQuotientMap.isQuotientCoveringMap_of_isDiscrete_ker_monoidHom`
+     as in the proof of Mathlib's `Circle.isQuotientCoveringMap_npow`, and
+     it is a local diffeomorphism. Let
+     $\rho\colon K\to\mathrm{GL}(\mathbb R^3)$ be
+     $\rho(\varepsilon_1,\varepsilon_2)=\mathrm{diag}(\varepsilon_1,\varepsilon_2,\varepsilon_1\varepsilon_2)$:
+     the Klein four-group of commuting half-turns of Exercise 6.2.8, in
+     $\mathrm{SO}(3)$. Put $E$ = `hp.associatedCore ρ`
+     (`Topology/Covering/AssociatedBundle.lean`), with fibre
+     `EuclideanSpace ℝ (Fin 3)`; it is smooth by
+     `IsQuotientCoveringMap.isContMDiff_associatedCore`. Its transitions
+     are the values of $\rho$, which are orthogonal and locally constant,
+     so the Euclidean inner product of the fibre is a smooth fibre metric:
+     neither Mathlib nor Tau Ceti has this, and the issue proves Mathlib's
+     `IsContMDiffRiemannianBundle` for `associatedCore` of any
+     representation by isometries, reading the metric in a chart, where it
+     is constant. This is
+     the metric that `TauCeti.sphereBundleChartedSpace` needs; a Whitney
+     sum of line bundles would not serve, since Mathlib's fibres of `×ᵇ`
+     carry the sup norm. The unit sphere bundle of $E$ is
+     `TauCeti.sphereBundle`, charted by `TauCeti.sphereBundleChartedSpace`
+     and smooth by `TauCeti.isManifold_sphereBundle`; read on `OnePoint ℂ`
+     by `roundSphereDiffeomorph` of part 46, the half-turns are
+     $z\mapsto\pm z$ and $z\mapsto\pm1/z$, so it is an oriented
+     $S^2$-bundle. The flat model over `S` is the unit sphere bundle of
+     $f^*E$.
+   - *Two sections.* By `IsQuotientCoveringMap.associatedSectionEquiv` a
+     section of $E$ is a $\rho$-equivariant function on the cover, and by
+     `IsQuotientCoveringMap.contMDiff_section_associatedCore_iff` it is
+     smooth when that function is. Take
+     $s(w)=(\operatorname{Im}w_1,\operatorname{Im}w_2,\operatorname{Re}w_1w_2)$
+     and $t(w)=(\operatorname{Re}w_1,\operatorname{Re}w_2,0)$, which are
+     equivariant. With $w_1=e^{i\pi x}$, $w_2=e^{i\pi y}$, so that
+     $z_1=w_1^2$ and $z_2=w_2^2$, they are
+     $s=(\sin\pi x,\sin\pi y,\cos\pi(x+y))$ and
+     $t=(\cos\pi x,\cos\pi y,0)$. Then $s$ vanishes nowhere: where its
+     first two coordinates vanish, $x$ and $y$ are integers and the third
+     is $\pm1$. The metric is the Euclidean one, fixed once, so the
+     normalization $\hat s=s/|s|$ carries no choice.
+   - *Nontriviality.* The vertical bundle along $\hat s$ is
+     $\hat s^\perp\subset E$, with the complex structure
+     $w\mapsto\hat s\times w$; the cross product is defined because the
+     transitions lie in $\mathrm{SO}(3)$, and it is computed upstairs on
+     the equivariant functions. The projection of $t$ to
+     $\hat s^\perp$ vanishes where $s\times t=0$, and
+     $s\times t=(-\cos\pi(x+y)\cos\pi y,\ \cos\pi(x+y)\cos\pi x,\ \sin\pi(x-y))$.
+     So its zeros are $(z_1,z_2)=(i,i),(-1,-1),(-i,-i)$, and at each of
+     them the derivative of $s\times t$ has rank two (at $(\pm i,\pm i)$ it
+     is spanned by $dx+dy$ and $dx-dy$, at $(-1,-1)$ its first two
+     coordinates are $-\pi\,dy$ and $\pi\,dx$). By
+     `chernNumber_eq_sum_sign_of_transverse` the first Chern number of
+     $\hat s^\perp$ is a sum of three signs, so it is odd; no sign has to
+     be computed. Along $f^*\hat s$ the vertical bundle of the flat model
+     over `S` is $f^*(\hat s^\perp)$, whose number is $\deg f$ times that
+     one (`chernNumber_pullback_eq_degree_mul`), hence odd. So the flat
+     model is not the product (`verticalChernNumber_modEq_of_diffeomorph`,
+     `even_verticalChernNumber_prod`), and by the classification it is
+     isomorphic to `ruledSurface S`.
+   - *The form.* The transitions are isometries, so the round area form of
+     the fibres descends to a closed form $\Theta_\rho$ on the sphere
+     bundle of $E$, and its pull-back to the flat model over `S` restricts
+     to the fibre forms. Then $\kappa\,\pi^*\omega_S+\tau\,\Theta_\rho$ is
+     symplectic and compatible for all $\kappa,\tau>0$, since the flat
+     horizontal spaces are $\Theta_\rho$-null. Its coefficients are
+     $\mu_\pm=\kappa'\pm\tau'$ for positive multiples $\kappa',\tau'$ of
+     $\kappa,\tau$, by Decision 7 (with
+     $\Theta_\rho\wedge\Theta_\rho=0$ and $\int_F\pi^*\omega_S=0$), which
+     covers $\mu_+>|\mu_-|$.
 10. **The corollary `IsOrientedCompatible.exists_hasStructureGroup_restrictsTo`
     of part 48 is not used**, which settles the note of the review of
     #2445. Part 1 of the second milestone needs only the fields of
@@ -272,17 +352,17 @@ notes of the reviews of #2280 and #2445.
 
 ## Departures from `DESIGN.md`
 
-`DESIGN.md` is corrected in the same pull request, in one place: in part
-56, *Builds on* and the build-order row gain part 50,
-*Principal connections*, only for `Fibration/Associated.lean`, which
-`RuledSurface.lean` uses (Decision 8), and they name the files of part 46
-before `Smale.lean` that `diffPlus`, `mobiusSubgroup` and
-`mobiusSubgroup_le_diffPlus` come from. Part 50 is at level 0, so part 56
-stays at level 2. Of part 48 the part uses `MapFiber.lean`,
-`StructureGroup.lean` and `Basic.lean`, which `DESIGN.md` already allows.
-The new blocker of the building issue is proposed in an issue. In bringing
-the singular Leray–Hirsch theorem to de Rham classes, the part now follows
-`DESIGN.md`.
+`DESIGN.md` is corrected in two places. In part 56, *Builds on* and the
+build-order row gain part 50, *Principal connections*, only for
+`Fibration/Associated.lean`, which `RuledSurface.lean` uses (Decision 8),
+and they name the files of part 46 before `Smale.lean` that `diffPlus`,
+`mobiusSubgroup` and `mobiusSubgroup_le_diffPlus` come from. Part 50 is at
+level 0, so part 56 stays at level 2. Of part 48 the part uses
+`MapFiber.lean`, `StructureGroup.lean` and `Basic.lean`, which `DESIGN.md`
+already allows. The new blocker of the building issue is proposed in an
+issue. And part 56's *The design file decides* no longer lists how the
+singular Leray–Hirsch theorem is brought to de Rham classes, which
+Decision 7 settles.
 
 ## Files
 
@@ -304,7 +384,7 @@ About 450 lines; the issue may split the openness lemma off.
 
 ### `Geometry/Manifold/FiberBundle/SphereBundle/Basic.lean`
 
-- `productAtlas S`, with `isContMDiff_productAtlas` and
+- `productAtlas S (OnePoint ℂ)`, with `isContMDiff_productAtlas` and
   `hasStructureGroup_productAtlas` (every coordinate change is `1`).
 - `OnePoint.circleAction`: the action of `Circle` on `OnePoint ℂ` by
   Möbius rotations, jointly smooth, by elements of `mobiusSubgroup`, and
@@ -382,6 +462,38 @@ About 500 lines.
 
 The bridge is one issue.
 
+### `Geometry/Manifold/Degree/Torus.lean`
+
+- `ClosedConnectedOrientedSurface.torus`: `Circle × Circle` as a closed
+  connected oriented surface (Decision 9).
+- `ClosedConnectedOrientedSurface.exists_contMDiff_torus_natAbs_degree_eq_one`:
+  for `0 < TauCeti.surfaceGenus S`, a smooth `f : S → torus` with
+  `(degree S.o torus.o f).natAbs = 1`, from integral Poincaré duality
+  (Decision 9), with the lemma that reads the class pulled back from the
+  angular class of `Circle` as the period homomorphism of the map.
+
+### `Geometry/Manifold/VectorBundle/Riemannian/AssociatedBundle.lean`
+
+- For `hp : IsQuotientCoveringMap p G` and a representation `ρ` of `G` by
+  isometries of a real inner product space `F`, the fibres of
+  `hp.associatedCore ρ` with the inner product of `F`, and
+  `IsContMDiffRiemannianBundle` for them (Decision 9). The statements are
+  about Tau Ceti's notions, in the namespace `IsQuotientCoveringMap`; this
+  file has nothing of sphere bundles.
+
+### `Geometry/Manifold/FiberBundle/SphereBundle/Flat.lean`
+
+- `flatSphereBundle`: the unit sphere bundle of `hp.associatedCore ρ`
+  over the torus, for the square map `p` and the representation `ρ` of
+  Decision 9, its atlas with fibre `OnePoint ℂ` and its structure group in
+  `diffPlus`, and its pull-back along a smooth map to the torus.
+- `odd_verticalChernNumber_flatSphereBundle`: the number of the vertical
+  bundle along $\hat s$ is odd, by the three transverse zeros of
+  Decision 9, and so is that of its pull-back along a map of degree ±1.
+- `nonempty_diffeomorph_flatSphereBundle_ruledSurface`: for `f` as in
+  `Degree/Torus.lean`, the pull-back is isomorphic over `S` to
+  `ruledSurface S`.
+
 ### `Geometry/Symplectic/RuledSurface.lean`
 
 - `ruledCoefficients S` (Decision 6), `ruledCoefficients_injective`,
@@ -400,23 +512,22 @@ The bridge is one issue.
   `ruledSurface S` has class `a`, then $|\mu_-|<\mu_+$.
 - Part 2, `exists_isOrientedCompatible_of_lt_of_pos` (Decision 8).
 - Part 3, `exists_isOrientedCompatible_of_abs_lt` for
-  `0 < surfaceGenus S` (Decision 9), transported to `ruledSurface S` along
-  the isomorphism of the classification. That isomorphism can be taken to
-  preserve the fibre orientations: if it does not, compose it with complex
+  `0 < surfaceGenus S` (Decision 9), on the pull-back of `flatSphereBundle`,
+  transported to `ruledSurface S` along the isomorphism of `Flat.lean`.
+  That isomorphism can be taken to preserve the fibre orientations: if it does not, compose it with complex
   conjugation on the fibres of the flat model, which commutes with the
   half-turns. The classes are compared through $\int_F a$ and
   $\int a\wedge a$, which the isomorphism preserves. They determine
   $\mu_\pm$: $\mu_+-\mu_-=\int_F a>0$ and
   $\mu_++\mu_-=\int a\wedge a/\int_F a$. So no section of the flat model
   has to be integrated over.
-- The milestone, `isOrientedCompatible_ruledSurface`: the three parts
-  together. Its docstring ends with "Milestone: *Symplectic classes on the
+- The milestone, `ruledCoefficients_abs_lt_and_exists_isOrientedCompatible`:
+  the three parts together. Its docstring ends with "Milestone: *Symplectic classes on the
   nontrivial 2-sphere bundle over a surface*."
 
 The orientation `oF` of `OnePoint ℂ` is `TauCeti.complexManifoldOrientation`.
-About 800 lines; the flat model goes to a file
-`Geometry/Symplectic/RuledSurface/Flat.lean` if it is longer than the
-estimate, and `RuledSurface.lean` becomes `RuledSurface/Basic.lean`.
+The flat model itself is in `SphereBundle/Flat.lean`; this file has its
+form. Over issues 9, 10 and 13.
 
 ## What the part uses
 
@@ -425,8 +536,7 @@ estimate, and `RuledSurface.lean` becomes `RuledSurface/Basic.lean`.
   `pathConnectedSpace_roundDiffPlus` and
   `roundDiffPlusFundamentalGroupMulEquiv`, carried to `OnePoint ℂ` along
   `map_diffPlus_diffCongr`.
-- Part 48: `TauCeti.MapFiber.Atlas.IsContMDiff`, `HasStructureGroup`,
-  `CoordChangeMem`, the bridge `mapFiberAtlas` with
+- Part 48: `HasStructureGroup`, `CoordChangeMem`, the bridge `mapFiberAtlas` with
   `hasStructureGroup_mapFiberAtlas`, `RestrictsTo` and
   `IsOrientedCompatible`.
 - Part 50: Weinstein's form on $P\times_{S^1}S^2$
@@ -437,14 +547,28 @@ estimate, and `RuledSurface.lean` becomes `RuledSurface/Basic.lean`.
   `clutchingLineBundle`, `chernNumber_eq_sum_degree_clutching`,
   `unitFrame`, and `chernNumber_eq_integral_curvature_and_exists`.
 - Tau Ceti's de Rham theorem
-  (`SmoothSingular/DeRham/Equiv.lean`) and the library's singular
-  Leray–Hirsch theorem (`AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`).
-- Tau Ceti: Morse functions and sublevel deformations
-  (`Geometry/Manifold/Morse/`), Ehresmann connections, associated bundles,
-  de Rham cohomology (Mayer–Vietoris, homotopy invariance, spheres, top
-  degree), smooth approximation, circle-valued maps with prescribed
-  periods, and nowhere-zero sections of real bundles of rank above the
-  dimension.
+  (`SmoothSingular/DeRham/Equiv.lean`), Tau Ceti's singular Leray–Hirsch
+  theorem for finite covers
+  (`AlgebraicTopology/Cohomology/LerayHirsch/FiniteCover.lean`) and the
+  library's (`AlgebraicTopology/Cohomology/LerayHirsch/Bundle.lean`); for
+  the fibre, Tau Ceti's homology of finite CW types
+  (`AlgebraicTopology/Cellular/EulerCharacteristic/FiniteCWType.lean`,
+  `Topology/CWComplex/Classical/ComplexProjective.lean`) and
+  `Geometry/Manifold/Instances/OnePoint/Projectivization.lean`.
+- Tau Ceti: `TauCeti.MapFiber.Atlas.IsContMDiff`
+  (`Geometry/Manifold/FiberBundle/MapFiber.lean`), Morse functions and
+  sublevel deformations (`Geometry/Manifold/Morse/`), Ehresmann
+  connections, associated bundles, de Rham cohomology (homotopy
+  invariance, spheres, top degree), smooth approximation, circle-valued
+  maps with prescribed periods; and for the flat model the bundles
+  associated with a covering (`Topology/Covering/AssociatedBundle.lean`,
+  `Geometry/Manifold/Quotient/AssociatedBundle.lean`), sphere bundles
+  (`Geometry/Manifold/VectorBundle/Riemannian/Sphere.lean`), the torus
+  charts and orientations, mapping degrees (`Geometry/Manifold/Degree/`),
+  integral Poincaré duality
+  (`AlgebraicTopology/Cohomology/CompactSupport/Duality/`) and angular
+  classes of circles. From Mathlib, the covering criterion
+  `Topology.IsQuotientMap.isQuotientCoveringMap_of_isDiscrete_ker_monoidHom`.
 
 ## Building issues
 
@@ -464,15 +588,17 @@ issue `n` of `design/symplectic-fibrations.md`; "P50" is the issue of
 | 5 | Clutching loops and the finite-disc line bundle | `Clutching.lean` | 4 | 300 |
 | 6 | Parity of Euler numbers and the vertical invariant | `Classification.lean` | 2; P46-8 | 300 |
 | 7 | The classification | `Classification.lean` | 5, 6 | 200 |
-| 8 | De Rham Leray–Hirsch for $S^2$-bundles | `DeRham/SphereBundle.lean` | P48-2; P46-1 | 450 |
+| 8 | De Rham Leray–Hirsch for $S^2$-bundles | `DeRham/SphereBundle.lean` | P48-2; P46-1 | 350 |
 | 9 | $H^2(X_B)$, the coefficients and part 1 | `RuledSurface.lean` | 7, 8; P48-3; P50 | 350 |
 | 10 | Part 2: Weinstein's form | `RuledSurface.lean` | 9 | 250 |
-| 11 | The flat model and part 3; the milestone | `RuledSurface.lean` | 9 | 450 |
+| 11 | A map of degree ±1 onto the torus | `Degree/Torus.lean` | — | 250 |
+| 12 | The flat model over the torus and its nontriviality | `Riemannian/AssociatedBundle.lean`, `SphereBundle/Flat.lean` | 7, 11 | 450 |
+| 13 | Part 3 on the flat model; the milestone | `RuledSurface.lean` | 10, 12 | 300 |
 
-Issue 1 can start at once, and issue 8 once P48-2 and P46-1 are merged.
-Issues 2 to 7, and so 9 to 11, wait for part 46 up to its
+Issues 1 and 11 can start at once, and issue 8 once P48-2 and P46-1 are
+merged. Issues 2 to 7, and so 9, 10, 12 and 13, wait for part 46 up to its
 `Trivialization.lean` (P46-7), and issue 4 for Smale's theorem (P46-9). The
-milestones are proved in issues 7 and 11.
+milestones are proved in issues 7 and 13.
 
 ## References
 
