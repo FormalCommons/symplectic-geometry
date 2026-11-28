@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Basic
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.PeakFunction
 import TauCeti.Analysis.SpecialFunctions.Pow.Real
+import SymplecticGeometry.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartChange
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
@@ -383,12 +384,9 @@ theorem exists_forall_norm_reading_div_peakFunction_le (hρ₀ : 0 < ρ₀) (B :
   refine ⟨hqC, (norm_le_jetNormAt 1 q z).trans hqJ,
     (norm_fderiv_le_jetNormAt le_rfl q z).trans hqJ,
     (norm_le_jetNormAt 1 _ z).trans hdJ, fun b ↦ ?_⟩
-  rw [fderiv_clm_apply hdD (differentiableAt_const b), fderiv_const_apply,
-    ContinuousLinearMap.comp_zero, zero_add]
-  calc ‖(fderiv ℝ (flatDbar q) z).flip b‖ ≤ ‖(fderiv ℝ (flatDbar q) z).flip‖ * ‖b‖ :=
-        ContinuousLinearMap.le_opNorm _ b
+  calc ‖fderiv ℝ (fun y ↦ flatDbar q y b) z‖ ≤ ‖fderiv ℝ (flatDbar q) z‖ * ‖b‖ :=
+        norm_fderiv_clm_apply_const_le hdD b
     _ ≤ 2 * C₂ * B * t * ‖b‖ := by
-        rw [ContinuousLinearMap.opNorm_flip]
         gcongr
         exact (norm_fderiv_le_jetNormAt le_rfl _ z).trans hdJ
 
