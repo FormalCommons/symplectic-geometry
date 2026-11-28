@@ -57,7 +57,7 @@ At a zero, `D s(x)` is the intrinsic linearization of `s` for every covariant de
 (`CovariantDerivative.apply_eq_sectionLinearization`), so no result asks `D` to be complex
 linear or metric. Each norm on a fibre `L_x` is Hermitian, since `L_x` is a normed complex line,
 but the norms need not vary smoothly or even continuously with `x`. The pointwise
-statements are `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_lt`,
+statements are `TauCeti.AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt`,
 `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt` and
 `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_complexAntilinearPart_lt`, applied on
 `(T_x M, σ_x, J_x, g_J)`; the tangent space of the zero set at `x` is the kernel of the
@@ -152,9 +152,8 @@ theorem isTransverse_of_norm_dbar_lt (hc : σ.Compatible J) (hL : ∀ x, finrank
   intro x hx
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
   rw [← D.apply_eq_sectionLinearization (hs x hx) hx]
-  exact SymplecticForm.surjective_of_norm_complexAntilinearPart_lt
-    («ω» := hc.tames.isNondegenerate.symplecticFormAt x) (J := J.almostComplexStructureAt x)
-    (fun v w ↦ by simp [hc.inner_eq_eval₂ x v w]) (hL x) (hdom x hx)
+  exact AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt
+    (J := J.almostComplexStructureAt x) (hL x) (hdom x hx)
 
 /-- **Zero sets of sections with dominant holomorphic derivative are symplectic.** Let `σ` be
 compatible with `J`, let the fibres of `L` be complex lines, and let `D` be a covariant derivative

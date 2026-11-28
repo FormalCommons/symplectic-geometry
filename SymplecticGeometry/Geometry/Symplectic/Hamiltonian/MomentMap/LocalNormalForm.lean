@@ -49,7 +49,7 @@ diffeomorphism at every `[g, 0]` (`SymplecticGeometry.isLocalDiffeomorphAt_smul_
 `σ` back to `ω` at every `[g, 0]`
 (`SymplecticGeometry.LocalModelData.mpullback_apply_mk_zero_eq_balancedProductInducedForm`),
 where `ω` is nondegenerate
-(`SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_descendedForm_mk_zero`).
+(`SymplecticGeometry.LocalModelData.nondegenerate_bilinFormAt_balancedProductInducedForm_mk_zero`).
 The zero section `G ⧸ H → Y` is a smooth embedding with invariant image
 (`TauCeti.BalancedProduct.isSmoothEmbedding_zeroSectionRightTranslation`), and `Y` is Hausdorff
 (Mathlib's instance `t2Space_quotient_mulAction_of_properSMul`, with Tau Ceti's `properSMul_prod`)
@@ -245,7 +245,7 @@ theorem exists_mpullback_eq_balancedProductInducedForm_of_isLocalDiffeomorphAt :
         | H g => rw [hf, ← hmk]; exact (isLocalDiffeomorphAt_smul_iff hΨ₀G g).2 hΨ₀d)
       (fun q ↦ by
         induction q using QuotientGroup.induction_on with
-        | H g => rw [hf]; exact D.nondegenerate_bilinFormAt_descendedForm_mk_zero g)
+        | H g => rw [hf]; exact D.nondegenerate_bilinFormAt_balancedProductInducedForm_mk_zero g)
       (fun q ↦ by
         induction q using QuotientGroup.induction_on with
         | H g =>
