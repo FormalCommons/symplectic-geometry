@@ -162,7 +162,17 @@ Each entry has this form:
   item (v) of the milestone `IsNormalizedBallEmbedding.normalizedBlowupForm_spec`
   (both in `Geometry/Symplectic/Blowup/Normalized/Class.lean`), states the
   class as $\pi_M^*[\omega]+\pi\lambda^2 e$ for `Blowup.exceptionalClass`,
-  which is the page's statement for the Poincaré dual $-e$.
+  which is the page's statement for the Poincaré dual $-e$. The first Chern
+  class part of *Ball embeddings give symplectic forms on the blowup* does
+  not change: `exists_symplectic_class_firstChernClass`
+  (`Geometry/Symplectic/Blowup/BallEmbedding.lean`) states it as
+  $\pi_M^*c_1(\omega)-n\,e$, the book's formula, since in Tau Ceti's integral
+  convention $e$ restricts on $Z$ to the first Chern class of its normal
+  bundle (both are minus the hyperplane class, by
+  `Blowup.exceptionalClass_restrict_divisor` and
+  `Blowup.firstChernClass_normalComplexStructure_divisorRealEmbedding`). The
+  sign appears only when integral classes are compared with de Rham
+  integration.
 - **Issue:** #8166.
 
 ### The parametric h-principle on open manifolds is a weak equivalence
