@@ -16,7 +16,6 @@ import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Normalization
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ChernWeil
 import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Topology.ComplexProjectiveSpace.RealCohomology
