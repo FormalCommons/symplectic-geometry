@@ -115,17 +115,10 @@ theorem mdifferentiableAt_div_twistCore (k : ℤ) {s t : OnePoint ℂ → ℂ} {
   have hct := ((twistCore (𝕜 := ℂ) k).localTriv x).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) t
     hxx |>.1 ht
   simp only [twistCore_localTriv_apply] at hcs hct
-  have hct0 : twistTransition k x x x * t x ≠ 0 := by
-    rwa [twistTransition_self, one_mul]
-  have hinv : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ)
-      (fun p ↦ (twistTransition k p x p * t p)⁻¹) x :=
-    (differentiableAt_inv (𝕜 := ℝ) hct0).comp_mdifferentiableAt
-      (f := fun p ↦ twistTransition k p x p * t p) hct
   -- Near `x` the quotient is the quotient of the coordinates.
-  refine (hcs.mul hinv).congr_of_eventuallyEq ?_
+  refine (hcs.div hct (by rwa [twistTransition_self, one_mul])).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
-  rw [Pi.mul_apply, ← div_eq_mul_inv, mul_div_mul_left _ _
-    (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)]
+  exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
 
 open scoped TauCeti.ComplexManifold in
 /-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section
