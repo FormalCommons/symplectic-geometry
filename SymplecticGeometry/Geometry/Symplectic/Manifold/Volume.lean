@@ -8,13 +8,15 @@ module
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Orientation.PositiveForm
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
+import SymplecticGeometry.Geometry.Symplectic.Orientation
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
 import TauCeti.Geometry.Symplectic.Manifold.Surface
 
 /-!
-# The symplectic orientation: negated forms, surfaces, and symplectomorphisms
+# The symplectic orientation: negated forms, surfaces, families, and symplectomorphisms
 
 Let `σ` be a fiberwise nondegenerate smooth two-form on a manifold modelled on a real vector space
 of dimension `2 * n`. Then `-σ` is nondegenerate too, and its volume form `(-σ)ⁿ / n!` is
@@ -26,6 +28,11 @@ On a surface (`n = 1`) the volume form `σ¹ / 1!` is `σ` itself (Tau Ceti's
 two-form `σ` is the orientation `TauCeti.Manifold.Orientation.ofTopForm` on which
 `σ` is positive. For the volume form of the unit sphere of an oriented three-dimensional space,
 this is the outward-normal orientation.
+
+Along a smooth family `τ t` of nondegenerate two-forms over a preconnected parameter manifold,
+the symplectic orientation does not change. At each point `x` the tangent symplectic forms of
+the `τ t` form a continuous family of linear symplectic forms, so the library's
+`TauCeti.SymplecticForm.orientation_eq_of_preconnectedSpace` applies pointwise.
 
 Finally, every diffeomorphism that preserves `σ` preserves its symplectic orientation, so a
 fibre bundle atlas whose coordinate changes are symplectic is oriented for it.
@@ -49,6 +56,9 @@ fibre bundle atlas whose coordinate changes are symplectic is oriented for it.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_iff_isPositive`,
   `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_iff_isPositive`: on a surface, an
   orientation is the symplectic orientation of `σ` exactly when `σ` is positive for it.
+* `TauCeti.SmoothTwoForm.orientation_eq_of_isSmoothFamily`,
+  `TauCeti.SmoothTwoForm.volumeOrientation_eq_of_isSmoothFamily`: along a smooth family of
+  nondegenerate two-forms over a preconnected manifold, the symplectic orientation is constant.
 * `TauCeti.SmoothForm.diffeomorphStabilizer_le_orientationPreservingSubgroup`: a diffeomorphism
   preserving `σ` preserves the symplectic orientation of `σ`, from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.isOrientationPreservingAt_orientation` and
@@ -153,6 +163,35 @@ theorem IsNondegenerate.orientation_eq_of_isPositive (h : σ.IsNondegenerate)
     (hE : finrank ℝ E = 2) {o : Manifold.Orientation I M (Fin 2)} (ho : o.IsPositive σ.val) :
     h.orientation hE = o :=
   (h.orientation_eq_iff_isPositive hE).2 ho
+
+section Family
+
+variable {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
+  [PreconnectedSpace N] {τ : N → SmoothTwoForm I M} {k : ℕ}
+
+/-- **The symplectic orientation is constant along a smooth family.** If `τ` is a smooth family
+of fiberwise nondegenerate two-forms on `M`, indexed by a preconnected manifold `N`, then all the
+forms `τ t` have the same symplectic orientation `IsNondegenerate.orientation`. -/
+theorem orientation_eq_of_isSmoothFamily (hτ : SymplecticGeometry.IsSmoothFamily J τ)
+    (h : ∀ t, (τ t).IsNondegenerate) (hk : finrank ℝ E = k) (s t : N) :
+    (h s).orientation hk = (h t).orientation hk :=
+  Manifold.Orientation.ext fun x ↦ by
+    simp only [IsNondegenerate.orientationAt_orientation]
+    refine SymplecticForm.orientation_eq_of_preconnectedSpace
+      («ω» := fun t ↦ (h t).symplecticFormAt x) (fun v w ↦ ?_) hk s t
+    simpa [IsNondegenerate.symplecticFormAt_apply] using
+      (hτ.contMDiff_apply x ![v, w]).continuous
+
+/-- The symplectic orientation `IsNondegenerate.volumeOrientation` is constant along a smooth
+family of fiberwise nondegenerate two-forms on `M` indexed by a preconnected manifold `N`. -/
+theorem volumeOrientation_eq_of_isSmoothFamily (hτ : SymplecticGeometry.IsSmoothFamily J τ)
+    (h : ∀ t, (τ t).IsNondegenerate) {n : ℕ} (hn : finrank ℝ E = 2 * n) (s t : N) :
+    (h s).volumeOrientation hn = (h t).volumeOrientation hn := by
+  rw [(h s).volumeOrientation_eq_orientation, (h t).volumeOrientation_eq_orientation,
+    orientation_eq_of_isSmoothFamily hτ h hn s t]
+
+end Family
 
 end SmoothTwoForm
 
