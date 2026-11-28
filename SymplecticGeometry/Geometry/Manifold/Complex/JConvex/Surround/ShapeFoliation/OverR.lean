@@ -72,7 +72,8 @@ With these pieces the file proves the theorem itself:
   the same properties and `∂ψ/∂ℓ < 0` everywhere, equal to `ρ` near that part of the boundary.
   The proof follows that of `SymplecticGeometry.exists_shapeFoliation` step by step, and shares
   its steps that do not involve a criterion: the open set, band and strips of
-  `SymplecticGeometry.exists_isOpen_band_strips_subset_of_mem_nhdsSet`, the point near `ℓ₁` of
+  `SymplecticGeometry.exists_isOpen_band_strips_subset_of_mem_nhdsSet`, the gap of
+  `IsCompact.exists_pos_add_le_of_continuousOn` applied to `-ρ`, the point near `ℓ₁` of
   `IsCompact.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn`, and the gluing
   `SymplecticGeometry.exists_contDiff_forall_eventuallyEq_of_eventuallyEq_Icc`. The pieces are
   the one next to `ℓ₀`, the weakly decreasing chain
@@ -426,13 +427,10 @@ theorem exists_shapeFoliation_overR {ρ : ℝ → ℝ → ℝ} {ℓ₀ ℓ₁ R�
     fun x hx ↦ (hc x hx).pos_value
   -- The gap `g` between the members over `[a, b]` and `ρ ℓ₁`.
   obtain ⟨g, hg, hgap⟩ : ∃ g > 0, ∀ ℓ ∈ Icc a b, ∀ R ∈ Icc R₁ R₂, ρ ℓ₁ R + g ≤ ρ ℓ R := by
-    have hcf : ContinuousOn (fun x : ℝ × ℝ ↦ ρ x.1 x.2 - ρ ℓ₁ x.2) (Icc a b ×ˢ Icc R₁ R₂) := by
-      refine ContinuousOn.sub (hρcont.mono fun x hx ↦ ⟨hMQ hx.1, hx.2⟩) ?_
-      exact hρcont.comp (continuous_const.prodMk continuous_snd).continuousOn
-        fun x hx ↦ ⟨right_mem_Icc.2 hℓ.le, hx.2⟩
-    obtain ⟨g, hg, hgK⟩ := (isCompact_Icc.prod isCompact_Icc).exists_forall_le' hcf
-      fun x hx ↦ sub_pos.2 (htop x.1 ⟨(hMQ hx.1).1, by linarith [hx.1.2]⟩ x.2 hx.2)
-    exact ⟨g, hg, fun ℓ hℓ' R hR' ↦ by linarith [hgK (ℓ, R) ⟨hℓ', hR'⟩]⟩
+    obtain ⟨g, hg, H⟩ : ∃ g > 0, ∀ ℓ ∈ Icc ℓ₀ b, ∀ R ∈ Icc R₁ R₂, -ρ ℓ R + g ≤ -ρ ℓ₁ R :=
+      isCompact_Icc.exists_pos_add_le_of_continuousOn hρcont.neg hbℓ.le
+        fun ℓ hℓ' R hR' ↦ neg_lt_neg (htop ℓ ⟨hℓ'.1, hℓ'.2.trans_lt hbℓ⟩ R hR')
+    exact ⟨g, hg, fun ℓ hℓ' R hR' ↦ by linarith [H ℓ ⟨(hMQ hℓ').1, hℓ'.2⟩ R hR']⟩
   -- The point `c ∈ (b, ℓ₁)` from which on the members are within `g / 4` of `ρ ℓ₁`.
   obtain ⟨c, ⟨hbc, hcℓ⟩, hc'⟩ := isCompact_Icc.exists_mem_Ioo_forall_abs_sub_lt_of_continuousOn
     hρcont (by positivity : 0 < g / 4) (by linarith) hbℓ
