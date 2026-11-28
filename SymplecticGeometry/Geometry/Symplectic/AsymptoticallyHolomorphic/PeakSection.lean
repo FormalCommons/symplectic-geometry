@@ -79,6 +79,9 @@ latter, and that peak sections at any sequence of centres are asymptotically hol
   `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_peakSection_mul`: peak
   sections at a sequence of centres are asymptotically holomorphic.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_peakSection_estimates`: all of these together.
+* `SymplecticGeometry.RescaledUnitaryCharts.isAsymptoticallyHolomorphic_sum_affinePeakSection`:
+  sums of `affinePeakSection` over sets of centres with the counting bound above, with bounded
+  coefficients, are asymptotically holomorphic.
 
 ## References
 
@@ -679,6 +682,29 @@ theorem exists_peakSection_estimates [T2Space M] [I.Boundaryless]
       ⟨C₁, N₁, c₁, hc₁, h₁.mono fun _ h p ↦ h p.1 p.2⟩
       ⟨C₂, N₂, c₂, hc₂, h₂.mono fun _ h p ↦ h p.1 p.2⟩
     exact ⟨C, N, c, hc, h.mono fun _ h x y ↦ h (x, y)⟩
+
+/-- **Sums of peak sections are asymptotically holomorphic.** Let `M` be Hausdorff and
+boundaryless, with a metric whose inner product is `⟪u, w⟫ = σ(u, J w)`. For finite sets `S k`
+of centres with at most `C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from any
+point, and coefficients `w k x` of norm at most `δ` on `S k`, both for large `k`, the sequence of
+sections
+`Σ_{x ∈ S k} D.affinePeakSection k x (w k x)` is asymptotically holomorphic. -/
+theorem isAsymptoticallyHolomorphic_sum_affinePeakSection [T2Space M] [I.Boundaryless]
+    (hg : ∀ (x : M) (u w : TangentSpace I x), inner ℝ u w = σ.eval₂ x u (J x w))
+    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {C₀ δ : ℝ} {m : ℕ}
+    (S : ℕ → Finset M) (w : ℕ → M → EuclideanSpace ℂ (Option ι)) (hδ : 0 ≤ δ)
+    (hS : ∀ᶠ k in Filter.atTop, ∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
+      (((S k).filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m)
+    (hw : ∀ᶠ k in Filter.atTop, ∀ x ∈ S k, ‖w k x‖ ≤ δ) :
+    D.IsAsymptoticallyHolomorphic fun k ↦ ∑ x ∈ S k, D.affinePeakSection k x (w k x) := by
+  refine (D.isAsymptoticallyHolomorphic_def _).2
+    ⟨(D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀).mono
+      fun k h x ↦ h (S k) (w k) x, fun r ↦ ?_⟩
+  obtain ⟨C, _, -, hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m r
+  refine ⟨C * δ, ?_⟩
+  filter_upwards [hsum, hS, hw] with k hk hSk hwk x
+  obtain ⟨h1, h2, -⟩ := hk x (S k) (hSk x) δ (w k) hδ hwk
+  exact ⟨h1, h2⟩
 
 end RiemannianEDist
 

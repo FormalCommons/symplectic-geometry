@@ -16,13 +16,14 @@ import SymplecticGeometry.Analysis.SpecialFunctions.Gaussian.Basic
 import SymplecticGeometry.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-!
-# Global uniform transversality: the local correction and one colour
+# Global uniform transversality
 
 Let `D` be rescaled unitary charts of radius `ρ₀ > 0` for `(σ, J)` and a connection form `α`, and
 let `M` carry the metric `σ(·, J ·)`. This file corrects a section `s` of `PowerBundle P k` on
 one ball, of radius one in the chart centred at `x`, so that it becomes transverse there in the
 quantitative sense of `SymplecticGeometry.IsUniformlyTransverse`, and then corrects a section at
-all centres of one colour of a separated set at once.
+all centres of one colour of a separated set at once. Iterating over the colours of a separated
+net, it proves that asymptotically holomorphic sections that are uniformly transverse exist.
 
 The correction is an affine combination of peak sections,
 `D.affinePeakSection k x w = w₀ • peakSection k x + Σ_j w_j • peakSection_mul k x j` for
@@ -48,6 +49,9 @@ Gaussian (`RescaledUnitaryCharts.reading_affinePeakSection`).
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_jetNorm_sum_erase_affinePeakSection_le`: near
   a centre `x` of such a set `T`, the peak sections at the other centres of `T` have jet norm
   `O(δ * exp (-c * R ^ 2))`.
+* `SymplecticGeometry.RescaledUnitaryCharts.exists_isUniformlyTransverse`: on a compact,
+  Hausdorff, preconnected and boundaryless `M`, there are an asymptotically holomorphic sequence
+  `s` of sections and `η > 0` such that `s` is uniformly transverse with constant `η`.
 
 The proof of the local correction divides the reading of `s` by the cut-off Gaussian, which meets
 the hypotheses of the local transversality estimate
@@ -66,10 +70,28 @@ other centres are at rescaled distance at least `R - 2` and form a Gaussian tail
 Both effects on the transversality quantity are bounded by
 `abs_transversalityQuantity_add_sub_le_jetNorm`.
 
+For the milestone, `exists_separated_chart_cover_coloring` gives, for each large `k`, a finite
+set `S` of centres whose closed unit chart balls cover `M`, with polynomial counting, and for
+every `R ≥ 1` a colouring with at most `C * R ^ m` colours in which centres of one colour are at
+rescaled distance at least `R`. Starting from the zero section, colour `j` is corrected by
+`exists_correction_of_separated` with coefficients of size `δ_j = b_j / A`, where `A = 2 C₁ + 2`
+and `b_{j+1} = δ_j / log (1 / δ_j) ^ p / 8`. Then `b_{j+1} ≤ b_j - C₁ δ_j` keeps the bound on the
+centres already treated, and on the new ones it is enough that
+`8 C₂ exp (-c₂ R²) log (1 / δ_j) ^ p ≤ 1` for every colour `j`. The logarithms
+`u_j = log (1 / b_j)` satisfy `u_{j+1} = u_j + log (8 A) + p log (u_j + log A)`, so
+`Real.exists_le_mul_mul_log_of_le_add_log` bounds `log (1 / δ_j)` by a polynomial in `R` for
+`j < C * R ^ m`, and the Gaussian factor beats it for a large `R`, chosen before `k`. Every
+partial sum is a sum of `affinePeakSection` over a subset of `S` with coefficients of norm at
+most `1`, so `exists_jetNorm_sum_affinePeakSection_le` gives the bounds on its jets that the
+correction needs, uniformly in the colour, and
+`isAsymptoticallyHolomorphic_sum_affinePeakSection` shows that the final sections are
+asymptotically holomorphic.
+
 ## References
 
 * [D. Auroux, *A remark about Donaldson's construction of symplectic submanifolds*][Auroux2002],
   Theorem 1 and the proof of Proposition 2
+* [D. Auroux, *Symplectic 4-manifolds as branched coverings of ℂℙ²*][Auroux2000], Proposition 3
 * [S. K. Donaldson, *Symplectic submanifolds and almost-complex geometry*][Donaldson1996]
 -/
 
@@ -524,28 +546,6 @@ private theorem exists_iteration_constants (p m : ℕ) {δ₀ C₁ C₂ c₂ : �
 section Iteration
 
 variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-
-/-- **Sums of peak sections are asymptotically holomorphic.** Let `M` be Hausdorff and
-boundaryless, with the metric `σ(·, J ·)`. For finite sets `S k` of centres with at most
-`C₀ * (1 + ρ) ^ m` points at rescaled distance at most `ρ` from any point, and coefficients
-`w k x` of norm at most `δ` on `S k`, both for large `k`, the sequence of sections
-`Σ_{x ∈ S k} D.affinePeakSection k x (w k x)` is asymptotically holomorphic. -/
-theorem isAsymptoticallyHolomorphic_sum_affinePeakSection [T2Space M] [I.Boundaryless]
-    (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
-    (hJ : σ.Compatible J) (hα : IsCircleConnectionForm α) (hρ₀ : 0 < ρ₀) {C₀ δ : ℝ} {m : ℕ}
-    (S : ℕ → Finset M) (w : ℕ → M → EuclideanSpace ℂ (Option ι)) (hδ : 0 ≤ δ)
-    (hS : ∀ᶠ k in Filter.atTop, ∀ (y : M) (ρ : ℝ), 0 ≤ ρ →
-      (((S k).filter fun x ↦ rescaledDist I k x y ≤ ρ).card : ℝ) ≤ C₀ * (1 + ρ) ^ m)
-    (hw : ∀ᶠ k in Filter.atTop, ∀ x ∈ S k, ‖w k x‖ ≤ δ) :
-    D.IsAsymptoticallyHolomorphic fun k ↦ ∑ x ∈ S k, D.affinePeakSection k x (w k x) := by
-  refine (D.isAsymptoticallyHolomorphic_def _).2
-    ⟨(D.eventually_contDiffAt_reading_and_dbarReading_sum_affinePeakSection hρ₀).mono
-      fun k h x ↦ h (S k) (w k) x, fun r ↦ ?_⟩
-  obtain ⟨C, _, -, hsum⟩ := D.exists_jetNorm_sum_affinePeakSection_le hg hJ hα hρ₀ C₀ m r
-  refine ⟨C * δ, ?_⟩
-  filter_upwards [hsum, hS, hw] with k hk hSk hwk x
-  obtain ⟨h1, h2, -⟩ := hk x (S k) (hSk x) δ (w k) hδ hwk
-  exact ⟨h1, h2⟩
 
 /-- The iteration over the colours `c : M → Fin N` of a finite set `S` of centres, for one `k`:
 colour `j` is corrected with coefficients of size `δ j`, by `hcorr`, which is the conclusion of
