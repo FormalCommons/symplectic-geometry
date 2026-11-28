@@ -142,17 +142,17 @@ theorem isTransverse_of_norm_dbar_lt [g : RiemannianBundle (fun x : M ↦ Tangen
     (hs : ∀ x, s x = 0 →
       MDifferentiableAt I (I.prod 𝓘(ℝ, F)) (fun x ↦ TotalSpace.mk' F x (s x)) x)
     (hdom : ∀ x, s x = 0 →
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖) :
     ∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x) := by
   intro x hx
+  have hd := hdom x hx
+  rw [← J.toContinuousLinearMap_almostComplexStructureAt] at hd
   rw [← D.apply_eq_sectionLinearization (hs x hx) hx]
   exact AlmostComplexStructure.surjective_of_norm_complexAntilinearPart_lt
-    (J := J.almostComplexStructureAt x) (hL x) (hdom x hx)
+    (J := J.almostComplexStructureAt x) (hL x) hd
 
 /-- **Zero sets of sections with dominant holomorphic derivative are symplectic.** Let `σ` be
 compatible with `J`, let the fibres of `L` be complex lines, and let `D` be a covariant derivative
@@ -167,11 +167,9 @@ theorem isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt [I.Boundaryless
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     letI := transverseZeroSetChartedSpace (by simp) hs
@@ -192,9 +190,11 @@ theorem isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt [I.Boundaryless
     (isTransverse_of_norm_dbar_lt (g := hc.riemannianBundle)
       hL D (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE z
   rw [← D.apply_eq_sectionLinearization ((hs z).mdifferentiableAt (by simp)) z.property] at hrange
+  have hd := hdom z z.property
+  rw [← J.toContinuousLinearMap_almostComplexStructureAt] at hd
   have hk := SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt
     («ω» := hc.tames.isNondegenerate.symplecticFormAt z) (J := J.almostComplexStructureAt z)
-    (fun v w ↦ by simp [hc.inner_riemannianBundle z v w]) (hL z) (hdom z z.property)
+    (fun v w ↦ by simp [hc.inner_riemannianBundle z v w]) (hL z) hd
   rw [SmoothEmbedding.coe_ofTransverseSection]
   exact hrange ▸ hk
 
@@ -219,11 +219,9 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
     letI := transverseZeroSetChartedSpace (by simp) hs
@@ -275,6 +273,7 @@ theorem normalOrientation_zeroSet_eq_normalOrientationOfSection_of_norm_dbar_lt 
   have hz0 : s (f z) = 0 := SmoothEmbedding.ofTransverseSection_apply_eq_zero hm hs hT hE z
   let := hc.riemannianBundle
   have hd := hdom (f z) hz0
+  rw [← J.toContinuousLinearMap_almostComplexStructureAt] at hd
   rw [D.apply_eq_sectionLinearization ((hs (f z)).mdifferentiableAt (by simp)) hz0] at hd
   have hg : ∀ v w, hc.tames.isNondegenerate.symplecticFormAt (f z) v
       (J.almostComplexStructureAt (f z) w) = ⟪v, w⟫_ℝ := fun v w ↦ by
@@ -339,11 +338,9 @@ theorem dualClass_zeroSet_of_norm_dbar_lt (hc : σ.Compatible J) (hF : finrank �
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {k : ℕ} (hk : finrank ℝ E' = 2 * k) :
     letI := transverseZeroSetChartedSpace (by simp) hs
@@ -421,11 +418,9 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt [CompactS
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) {j : ℕ}
     (hk : finrank ℝ E' = 2 * (j + 1)) :
@@ -487,11 +482,9 @@ theorem singularCap_complexEulerClass_fundamentalClass_of_norm_dbar_lt_of_finran
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) (hk : finrank ℝ E' = 0) :
     letI := transverseZeroSetChartedSpace (by simp) hs
@@ -571,11 +564,9 @@ theorem dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt [CompactSpace M]
     (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
     (hdom : ∀ x, s x = 0 →
       letI := hc.riemannianBundle
-      ‖complexAntilinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+      ‖complexAntilinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖ <
-        ‖complexLinearPartContinuousLinearMap
-          (LinearMap.toContinuousLinearMap (J.almostComplexStructureAt x).toLinearMap)
+        ‖complexLinearPartContinuousLinearMap (J.toEndomorphism x)
           (Complex.smulIEquiv (L x) : L x →L[ℝ] L x) (D s x)‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     (∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x)) ∧

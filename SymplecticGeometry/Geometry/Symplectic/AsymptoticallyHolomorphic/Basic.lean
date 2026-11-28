@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.P
 public import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.JetNorm
 public import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.Power.Connection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.OneZeroPart
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Geometry.Symplectic.AsymptoticallyHolomorphic.ChartTransition

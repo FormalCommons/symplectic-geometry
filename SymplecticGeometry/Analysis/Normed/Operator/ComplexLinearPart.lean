@@ -9,9 +9,7 @@ public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.InnerProductSpace.Basic
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
-public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
-public import TauCeti.Topology.Algebra.Module.ComplexSmulI
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import Mathlib.Topology.Instances.RealVectorSpace
 import SymplecticGeometry.Analysis.InnerProductSpace.Basic
@@ -54,9 +52,6 @@ structure and no finite dimension, `TauCeti.complexLinearPartContinuousLinearMap
 real-linear operators `F ↦ ½ (F ∓ J' ∘L F ∘L J)` on the continuous real-linear maps. They add up
 to the identity
 (`TauCeti.complexLinearPartContinuousLinearMap_add_complexAntilinearPartContinuousLinearMap`).
-For multiplication by `i` on a complex space, given to them as Tau Ceti's `Complex.smulIEquiv`,
-`Complex.coe_smulIEquiv_eq_ofComplexModule` identifies it with the endomorphism of
-`TauCeti.AlmostComplexStructure.ofComplexModule`, the form that Tau Ceti's algebraic API uses.
 For fields of endomorphisms and of operators that are `C^n` at a point, the
 field of their complex-antilinear parts is `C^n` there
 (`ContDiffAt.complexAntilinearPartContinuousLinearMap`). Changing the endomorphism of the source
@@ -253,16 +248,6 @@ theorem ContDiffOn.complexAntilinearPart_apply (hf : ContDiffOn ℝ n f s) (v : 
     ((hf.clm_apply contDiffOn_const).const_smul Complex.I)).const_smul _
 
 /-! ### The algebraic complex-linear and complex-antilinear parts as continuous operators -/
-
-/-- As a real-linear map, multiplication by `i` as a continuous real-linear equivalence,
-`Complex.smulIEquiv X`, is the endomorphism of Tau Ceti's almost complex structure
-`TauCeti.AlmostComplexStructure.ofComplexModule X`. -/
-theorem Complex.coe_smulIEquiv_eq_ofComplexModule (X : Type*) [AddCommGroup X]
-    [TopologicalSpace X] [Module ℝ X] [Module ℂ X] [IsScalarTower ℝ ℂ X] [ContinuousConstSMul ℂ X] :
-    ((Complex.smulIEquiv X : X →L[ℝ] X) : X →ₗ[ℝ] X) =
-      (TauCeti.AlmostComplexStructure.ofComplexModule X).toLinearMap := by
-  ext x
-  simp [TauCeti.AlmostComplexStructure.ofComplexModule_apply]
 
 namespace TauCeti
 

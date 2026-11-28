@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
 public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.AlmostComplex
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Geometry.Symplectic.Orientation
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Analysis.Normed.Module.FiniteDimension

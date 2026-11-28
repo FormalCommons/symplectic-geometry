@@ -10,6 +10,7 @@ public import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace

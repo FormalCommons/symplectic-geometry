@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 public import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart.Basic
+import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 
 /-!
