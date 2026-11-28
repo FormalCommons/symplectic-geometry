@@ -257,9 +257,8 @@ theorem _root_.TauCeti.RoughForm.IsVerticallyClosedOn.mpullback [IsManifold IM 2
   intro x hx η₁ hη₁ η₂ hη₂ v
   rw [← mpullback_mextDeriv_at (hΨ x hx) (hτ x hx), mpullback_apply]
   have h3 : (fun i ↦ mfderiv IM' IM Ψ x (![η₁, η₂, v] i)) =
-      ![mfderiv IM' IM Ψ x η₁, mfderiv IM' IM Ψ x η₂, mfderiv IM' IM Ψ x v] := by
-    funext i
-    fin_cases i <;> rfl
+      ![mfderiv IM' IM Ψ x η₁, mfderiv IM' IM Ψ x η₂, mfderiv IM' IM Ψ x v] :=
+    (FinVec.etaExpand_eq _).symm
   rw [h3]
   exact h _ (mem_image_of_mem Ψ hx) _ (hker x hx η₁ hη₁) _ (hker x hx η₂ hη₂) _
 

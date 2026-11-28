@@ -655,22 +655,6 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   [ChartedSpace HM M] [IsManifold IM ∞ M]
   {proj : M → B} {A : MapFiber.Atlas F proj}
 
-omit [IB.Boundaryless] [IsManifold IF ∞ F] [IsManifold IM ∞ M] in
-/-- For a chart `e = A.trivAt b'` of a `C^n` atlas and the extended chart `φ` of `B` at `b₀`, the
-map `q ↦ e⁻¹ (φ⁻¹ q.1, q.2)` is `C^n` over the patch of the points `x` of the target of `φ` with
-`φ⁻¹ x` in the base set of `e`. -/
-theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_symm_extChartAt_symm {n : ℕ∞ω}
-    [IsManifold IB n B] (hA : A.IsContMDiff n IB IF IM) (b' b₀ : B) :
-    ContMDiffOn (𝓘(ℝ, EB).prod IF) IM n
-      (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
-        ((extChartAt IB b₀).symm q.1, q.2))
-      (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
-        univ) := by
-  refine (hA.contMDiffOn_trivAt_symm b').comp
-    (((contMDiffOn_extChartAt_symm b₀).comp contMDiffOn_fst ?_).prodMk contMDiffOn_snd) ?_
-  · exact fun _ hq ↦ hq.1.1
-  · exact fun _ hq ↦ (A.trivAt b').mem_target.2 hq.1.2
-
 /-- For a smooth atlas, a chart `e = A.trivAt b'` and the extended chart `φ` of `B` at `b₀`, the
 pull-back of a smooth two-form `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` is a smooth section over the
 patch of the points `x` of the target of `φ` with `φ⁻¹ x` in the base set of `e`. -/
@@ -683,12 +667,8 @@ theorem MapFiber.Atlas.IsContMDiff.contMDiffOn_mpullback_symm_extChartAt_symm
             ((extChartAt IB b₀).symm q.1, q.2)) τ.val z))
       (((extChartAt IB b₀).target ∩ (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ
         univ) := by
-  have hW := ((continuousOn_extChartAt_symm b₀).isOpen_inter_preimage
-    (isOpen_extChartAt_target (I := IB) b₀) (A.trivAt b').open_baseSet).prod
-    (isOpen_univ (X := F))
   exact fun z hz ↦ ((SmoothForm.contMDiff τ _).mpullback_form
-    ((hA.contMDiffOn_symm_extChartAt_symm b' b₀).contMDiffAt (hW.mem_nhds hz))
-    (by simp)).contMDiffWithinAt
+    (hA.contMDiffAt_symm_extChartAt_symm hz.1) (by simp)).contMDiffWithinAt
 
 /-- For a `C^n` atlas `A`, `n ≠ 0`, along which `τ` restricts to `σ`, a chart `e = A.trivAt b'`
 and the extended chart `φ` of `B` at `b₀`, the pull-back of `τ` by `ψ q = e⁻¹ (φ⁻¹ q.1, q.2)` has
@@ -702,11 +682,7 @@ theorem MapFiber.Atlas.RestrictsTo.fiberComponent_mpullback_symm_extChartAt_symm
       (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
         ((extChartAt IB b₀).symm q.1, q.2)) τ.val) x = σ.val := by
   funext y
-  have hW := ((continuousOn_extChartAt_symm b₀).isOpen_inter_preimage
-    (isOpen_extChartAt_target (I := IB) b₀) (A.trivAt b').open_baseSet).prod
-    (isOpen_univ (X := F))
-  have hψ := ((hA.contMDiffOn_symm_extChartAt_symm b' b₀).contMDiffAt
-    (hW.mem_nhds (mk_mem_prod hx (mem_univ y)))).mdifferentiableAt hn
+  have hψ := (hA.contMDiffAt_symm_extChartAt_symm (q := (x, y)) hx).mdifferentiableAt hn
   have hincl : (fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
       ((extChartAt IB b₀).symm q.1, q.2)) ∘ Prod.mk x = (A.trivAt b').fiberInclusionMap hx.2 := by
     rw [Bundle.Trivialization.coe_fiberInclusionMap]
@@ -729,14 +705,14 @@ theorem SmoothTwoForm.IsVerticallyClosed.isVerticallyClosedOn_mpullback_symm_ext
         univ) := by
   set ψ := fun q : EB × F ↦ (A.trivAt b').toOpenPartialHomeomorph.symm
     ((extChartAt IB b₀).symm q.1, q.2)
-  have hW := ((continuousOn_extChartAt_symm b₀).isOpen_inter_preimage
-    (isOpen_extChartAt_target (I := IB) b₀) (A.trivAt b').open_baseSet).prod
-    (isOpen_univ (X := F))
+  have hW :=
+    ((A.trivAt b').isOpen_extChartAt_target_inter_symm_preimage_baseSet (IB := IB) b₀).prod
+      (isOpen_univ (X := F))
   have hn0 : n ≠ 0 := (lt_of_lt_of_le (by simp) hn).ne'
   have hψ (q) (hq : q ∈ ((extChartAt IB b₀).target ∩
       (extChartAt IB b₀).symm ⁻¹' (A.trivAt b').baseSet) ×ˢ (univ : Set F)) :
       ContMDiffAt (𝓘(ℝ, EB).prod IF) IM n ψ q :=
-    (hA.contMDiffOn_symm_extChartAt_symm b' b₀).contMDiffAt (hW.mem_nhds hq)
+    hA.contMDiffAt_symm_extChartAt_symm hq.1
   refine RoughForm.IsVerticallyClosedOn.mpullback
     ((SmoothTwoForm.isVerticallyClosedOn_univ_iff.2 h).mono (subset_univ _))
     (fun q hq ↦ (hψ q hq).of_le hn) (fun q _ ↦ (SmoothForm.contMDiff τ _).of_le (by simp))
