@@ -78,13 +78,18 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   `SymplecticGeometry.fderiv_shapeGraph_comp_shape_apply` gives the differential of
   `shapeGraph χ ∘ shape`. Over a point `(χ r ², r ²)` of the curve, `shapeGraph χ` vanishes
   (`SymplecticGeometry.shapeGraph_sq_sq`) and that differential does not
-  (`SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero`).
+  (`SymplecticGeometry.fderiv_shapeGraph_comp_shape_ne_zero`). A function that is constant along
+  the curve near such a point is constant near it on the zeros of `shapeGraph χ`
+  (`SymplecticGeometry.eventually_eq_of_shapeGraph_eq_zero`).
 * `SymplecticGeometry.IsConvexShapeAt.re_leviForm_pos`: if `χ` is `C²` at `r` and
   `IsConvexShapeAt χ r`, then at every `p` with `shape p = (χ r ², r ²)` the Levi form of
   `shapeGraph χ ∘ shape` is positive on the nonzero complex tangencies of its level set.
 * Near the cylinder `r = δ` the shapes have vertical tangents and are graphs `r = ρ(R)` over `R`.
   `SymplecticGeometry.shapeGraphOverR ρ` is the function `(s, t) ↦ √t - ρ (√s)`, which has the
-  sign of `shapeGraph χ` when `ρ` is the inverse of an increasing `χ`.
+  sign of `shapeGraph χ` when `ρ` is the inverse of an increasing `χ`, and is minus
+  `shapeGraph ρ` with the coordinates exchanged
+  (`SymplecticGeometry.shapeGraphOverR_eq_neg_shapeGraph_swap`), from which its smoothness, its
+  differential and its zeros follow.
   `SymplecticGeometry.IsConvexShapeOverRAt ρ R` asks that the real part of the Levi form of
   `shapeGraphOverR ρ ∘ shape`, as `re_leviForm_comp_shape_apply_self` writes it on a complex
   tangency, be positive under the two Cauchy–Schwarz bounds on `|σ|²`. `isConvexShapeOverRAt_iff`
@@ -95,7 +100,9 @@ Eliashberg describe the hypersurfaces of their model handle by curves `R = χ(r)
   theorem, at `R > 0`. As for `shapeGraph χ`, at a point `(R ², ρ R ²)` of the curve
   `shapeGraphOverR ρ` vanishes (`SymplecticGeometry.shapeGraphOverR_sq_sq`) and the differential
   of `shapeGraphOverR ρ ∘ shape` does not
-  (`SymplecticGeometry.fderiv_shapeGraphOverR_comp_shape_ne_zero`), even where `ρ' = 0`.
+  (`SymplecticGeometry.fderiv_shapeGraphOverR_comp_shape_ne_zero`), even where `ρ' = 0`, and
+  `SymplecticGeometry.eventually_eq_of_shapeGraphOverR_eq_zero` is the form over `R` of the
+  statement on levels.
 * The criterion over `R` has the same stability as `IsConvexShapeAt`, with the inequalities of
   `isConvexShapeOverRAt_iff`: it depends only on the germ
   (`SymplecticGeometry.IsConvexShapeOverRAt.congr_of_eventuallyEq`), survives `ρ - c` for
@@ -577,6 +584,24 @@ theorem fderiv_shapeGraph_comp_shape_apply
 theorem shapeGraph_sq_sq (hR : 0 ≤ χ r) (hr : 0 ≤ r) : shapeGraph χ (χ r ^ 2, r ^ 2) = 0 := by
   rw [shapeGraph_def, Real.sqrt_sq hr, Real.sqrt_sq hR, sub_self]
 
+open Filter in
+/-- **The level of `φ` through a point of a shape contains the shape nearby.** Let `0 < r` and
+`0 < f r`, and let `φ : ℝ × ℝ → ℝ` take the value `c₀` at the points `(f r' ², r' ²)` for `r'`
+near `r`. Then, near `(f r ², r ²)`, `φ` takes the value `c₀` wherever `shapeGraph f` vanishes. -/
+theorem eventually_eq_of_shapeGraph_eq_zero {f : ℝ → ℝ} {φ : ℝ × ℝ → ℝ} {r c₀ : ℝ} (hr : 0 < r)
+    (hf : 0 < f r) (hval : ∀ᶠ r' in 𝓝 r, φ (f r' ^ 2, r' ^ 2) = c₀) :
+    ∀ᶠ z in 𝓝 (f r ^ 2, r ^ 2), shapeGraph f z = 0 → φ z = c₀ := by
+  have hsqrt : Tendsto (fun z : ℝ × ℝ ↦ √z.2) (𝓝 (f r ^ 2, r ^ 2)) (𝓝 r) := by
+    have h := (Real.continuous_sqrt.comp continuous_snd).tendsto (f r ^ 2, r ^ 2)
+    rwa [Function.comp_apply, Real.sqrt_sq hr.le] at h
+  have h1 : ∀ᶠ z in 𝓝 (f r ^ 2, r ^ 2), 0 < z.1 :=
+    (continuous_fst.tendsto _).eventually (lt_mem_nhds (by positivity))
+  have h2 : ∀ᶠ z in 𝓝 (f r ^ 2, r ^ 2), 0 < z.2 :=
+    (continuous_snd.tendsto _).eventually (lt_mem_nhds (by positivity))
+  filter_upwards [hsqrt.eventually hval, h1, h2] with z hz hz₁ hz₂ hz₀
+  rw [shapeGraph_def, sub_eq_zero] at hz₀
+  rwa [hz₀, Real.sq_sqrt hz₁.le, Real.sq_sqrt hz₂.le] at hz
+
 /-- The differential of `shapeGraph χ ∘ shape` at a point `p` over the point `(χ r ², r ²)` of the
 curve of the shape, for `χ r > 0`, `r > 0` and `χ` differentiable at `r`:
 `v ↦ -ds_p v / (2 χ r) + dt_p v χ'(r) / (2 r)`. -/
@@ -697,6 +722,11 @@ def shapeGraphOverR (ρ : ℝ → ℝ) (q : ℝ × ℝ) : ℝ :=
 theorem shapeGraphOverR_def (ρ : ℝ → ℝ) (q : ℝ × ℝ) : shapeGraphOverR ρ q = √q.2 - ρ (√q.1) :=
   (rfl)
 
+/-- `shapeGraphOverR ρ` is minus `shapeGraph ρ` with the two coordinates exchanged. -/
+theorem shapeGraphOverR_eq_neg_shapeGraph_swap (ρ : ℝ → ℝ) (q : ℝ × ℝ) :
+    shapeGraphOverR ρ q = -shapeGraph ρ q.swap := by
+  rw [shapeGraphOverR_def, shapeGraph_def, Prod.fst_swap, Prod.snd_swap, neg_sub]
+
 /-- `shapeGraphOverR ρ` is a separated sum of the functions `s ↦ -ρ (√s)` and `t ↦ √t`. -/
 theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
     shapeGraphOverR ρ = (-(ρ ∘ fun s ↦ √s)) ∘ Prod.fst + (fun t ↦ √t) ∘ Prod.snd := by
@@ -707,9 +737,11 @@ theorem shapeGraphOverR_eq_comp_fst_add_comp_snd (ρ : ℝ → ℝ) :
 theorem contDiffAt_shapeGraphOverR {ρ : ℝ → ℝ} {n : WithTop ℕ∞} {s t : ℝ}
     (hρ : ContDiffAt ℝ n ρ (√s)) (hs : 0 < s) (ht : 0 < t) :
     ContDiffAt ℝ n (shapeGraphOverR ρ) (s, t) := by
-  rw [shapeGraphOverR_eq_comp_fst_add_comp_snd]
-  exact ((hρ.comp s (Real.contDiffAt_sqrt hs.ne')).neg.comp (s, t) contDiffAt_fst).add
-    ((Real.contDiffAt_sqrt ht.ne').comp (s, t) contDiffAt_snd)
+  have h : shapeGraphOverR ρ = fun q ↦ -shapeGraph ρ q.swap :=
+    funext (shapeGraphOverR_eq_neg_shapeGraph_swap ρ)
+  rw [h]
+  exact ((contDiffAt_shapeGraph hρ ht hs).comp (f := Prod.swap) (s, t)
+    (contDiff_snd.prodMk contDiff_fst).contDiffAt).neg
 
 /-- The differential of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0`:
 `(a, b) ↦ -a ρ'(√s) / (2 √s) + b / (2 √t)`. -/
@@ -717,14 +749,14 @@ theorem fderiv_shapeGraphOverR_apply {ρ : ℝ → ℝ} {s t : ℝ} (hρ : Diffe
     (hs : 0 < s) (ht : 0 < t) (a b : ℝ) :
     fderiv ℝ (shapeGraphOverR ρ) (s, t) (a, b) =
       -a * deriv ρ (√s) / (2 * √s) + b / (2 * √t) := by
-  have hf : HasDerivAt (-(ρ ∘ fun s ↦ √s)) (-(deriv ρ (√s) * (1 / (2 * √s)))) s :=
-    (hρ.hasDerivAt.comp s (Real.hasDerivAt_sqrt hs.ne')).neg
-  have hg : HasDerivAt (fun t ↦ √t) (1 / (2 * √t)) t := Real.hasDerivAt_sqrt ht.ne'
-  rw [shapeGraphOverR_eq_comp_fst_add_comp_snd,
-    fderiv_comp_fst_add_comp_snd hf.differentiableAt hg.differentiableAt,
-    hf.hasFDerivAt.fderiv, hg.hasFDerivAt.fderiv]
-  simp only [ContinuousLinearMap.coprod_apply, ContinuousLinearMap.toSpanSingleton_apply,
-    smul_eq_mul]
+  have h : shapeGraphOverR ρ = -(shapeGraph ρ ∘ ContinuousLinearEquiv.prodComm ℝ ℝ ℝ) :=
+    funext fun q ↦ by
+      rw [shapeGraphOverR_eq_neg_shapeGraph_swap, Pi.neg_apply, Function.comp_apply,
+        ContinuousLinearEquiv.prodComm_apply]
+  rw [h, fderiv_neg, ContinuousLinearEquiv.comp_right_fderiv, neg_apply,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearEquiv.prodComm_apply, ContinuousLinearEquiv.prodComm_apply, Prod.swap_prod_mk,
+    Prod.swap_prod_mk, fderiv_shapeGraph_apply hρ ht hs]
   ring
 
 /-- The second derivative of `shapeGraphOverR ρ` at `(s, t)` with `s, t > 0` is diagonal:
@@ -771,8 +803,24 @@ theorem fderiv_shapeGraphOverR_comp_shape_apply {ρ : ℝ → ℝ}
 `R ≥ 0` and `ρ R ≥ 0`. -/
 theorem shapeGraphOverR_sq_sq {ρ : ℝ → ℝ} {R : ℝ} (hR : 0 ≤ R) (hr : 0 ≤ ρ R) :
     shapeGraphOverR ρ (R ^ 2, ρ R ^ 2) = 0 := by
-  rw [shapeGraphOverR_def, Real.sqrt_sq hR, Real.sqrt_sq hr, sub_self]
+  rw [shapeGraphOverR_eq_neg_shapeGraph_swap, Prod.swap_prod_mk, shapeGraph_sq_sq hr hR,
+    neg_zero]
 
+open Filter in
+/-- **The level of `φ` through a point of a curve over `R` contains the curve nearby.** Let
+`0 < R` and `0 < ρ R`, and let `φ : ℝ × ℝ → ℝ` take the value `c₀` at the points
+`(R' ², ρ R' ²)` for `R'` near `R`. Then, near `(R ², ρ R ²)`, `φ` takes the value `c₀`
+wherever `shapeGraphOverR ρ` vanishes. -/
+theorem eventually_eq_of_shapeGraphOverR_eq_zero {ρ : ℝ → ℝ} {φ : ℝ × ℝ → ℝ} {R c₀ : ℝ}
+    (hR : 0 < R) (hr : 0 < ρ R) (hval : ∀ᶠ R' in 𝓝 R, φ (R' ^ 2, ρ R' ^ 2) = c₀) :
+    ∀ᶠ z in 𝓝 (R ^ 2, ρ R ^ 2), shapeGraphOverR ρ z = 0 → φ z = c₀ := by
+  have h := eventually_eq_of_shapeGraph_eq_zero (φ := fun z ↦ φ z.swap) hR hr
+    (by simpa only [Prod.swap_prod_mk] using hval)
+  have hswap : Tendsto Prod.swap (𝓝 (R ^ 2, ρ R ^ 2)) (𝓝 (ρ R ^ 2, R ^ 2)) := by
+    simpa only [Prod.swap_prod_mk] using continuous_swap.tendsto (R ^ 2, ρ R ^ 2)
+  filter_upwards [hswap.eventually h] with z hz hz₀
+  rw [shapeGraphOverR_eq_neg_shapeGraph_swap, neg_eq_zero] at hz₀
+  simpa only [Prod.swap_swap] using hz hz₀
 /-- The differential of `shapeGraphOverR ρ ∘ shape` at a point `p` over the point `(R ², ρ R ²)`
 of the curve `r = ρ (R)`, for `R > 0`, `ρ R > 0` and `ρ` differentiable at `R`:
 `v ↦ -ds_p v ρ'(R) / (2 R) + dt_p v / (2 ρ R)`. -/
