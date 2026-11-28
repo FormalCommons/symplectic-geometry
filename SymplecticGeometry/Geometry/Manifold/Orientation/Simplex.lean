@@ -47,7 +47,7 @@ For `p = 2` no affine map does this when `b ≤ 2a`: a triangle in the ball of r
 inradius at most `b / 2`. So `g` is Mathlib's diffeomorphism `OpenPartialHomeomorph.univBall 0 b`
 of `ℝᵖ` onto that ball, after a homothety that blows a ball inside `interior Δᵖ` up past the
 compact preimage of the closed ball of radius `a`; it preserves orientation everywhere
-(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos`). Read in `ℂ` through
+(`OpenPartialHomeomorph.isOrientationPreservingAt_univBall`). Read in `ℂ` through
 `Complex.orthonormalBasisOneI.repr.symm`, it gives a smooth `2`-simplex of `ℂ`, positively
 oriented for the complex orientation, whose faces avoid the closed disc of radius `a`
 (`TauCeti.Manifold.Orientation.exists_smoothSimplex_complex_closedBall_subset_image`).
@@ -150,7 +150,7 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex_ball {p : �
   refine ⟨F ∘ A, OpenPartialHomeomorph.contDiff_univBall.comp
       ((contDiff_id.sub contDiff_const).const_smul c),
     (F.isOpenEmbedding hFs).comp (by simpa using isOpenEmbedding_add_smul_sub hc.ne' 0 p₀),
-    fun y ↦ (OpenPartialHomeomorph.isOrientationPreservingAt_univBall_of_pos hb _ (A y)).comp
+    fun y ↦ (OpenPartialHomeomorph.isOrientationPreservingAt_univBall hb _ (A y)).comp
       (by simpa using isOrientationPreservingAt_add_smul_sub _ hc 0 p₀ y), ?_, ?_⟩
   · intro w hw
     have hz : F.symm w ∈ ball (0 : EuclideanSpace ℝ (Fin p)) R := hKR ⟨w, hw, rfl⟩
