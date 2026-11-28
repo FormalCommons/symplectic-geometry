@@ -23,11 +23,13 @@ coefficients and orders `k' j < M`. This file proves interior regularity for the
 `P T a + ∑ b, Q a b (T b) = F a`,
 
 whose principal part is `P` times the identity:
+`Distribution.IsLocallySobolevAt.of_ellipticSystem` says that if `P` is elliptic at `x` and every
+`F a` is `H^s` near `x`, then every `T a` is `H^(s + M)` near `x`.
 
-* `Distribution.IsLocallySobolevAt.of_ellipticSystem`: if `P` is elliptic at `x` and every `F a`
-  is `H^s` near `x`, then every `T a` is `H^(s + M)` near `x`;
-* `Distribution.singularSupport_eq_empty_of_ellipticSystem`: if `P` is elliptic at every point of
-  `Ω` and every `F a` is smooth on `Ω`, then every `T a` is smooth on `Ω`.
+That every `T a` is smooth on `Ω` when `P` is elliptic on `Ω` and every `F a` is smooth there
+is not stated here: it follows from Tau Ceti's microlocal regularity for square systems,
+`waveFrontSet_subset_iUnion_waveFrontSet_sum_sum_smul_smulLeftCLM_iteratedLineDerivOp_union`,
+since the principal symbol matrix of the system is the principal symbol of `P` times the identity.
 
 The hypothesis `k' j < M` is needed: for `M = 0`, `P = 1` and `Q a a = -1`, every `F a` is zero
 whatever `T` is.
@@ -43,8 +45,7 @@ terms are `H^(r + 1 - M)` near `x`
 
 * `Distribution.singularSupport_eq_empty_of_forall_isLocallySobolevAt`: a distribution that is,
   near every point, `M` orders more regular than a family of smooth distributions is smooth.
-* `Distribution.IsLocallySobolevAt.of_ellipticSystem`,
-  `Distribution.singularSupport_eq_empty_of_ellipticSystem`.
+* `Distribution.IsLocallySobolevAt.of_ellipticSystem`.
 
 ## References
 
@@ -146,22 +147,6 @@ theorem IsLocallySobolevAt.of_ellipticSystem (hg : ∀ i, ContDiff ℝ ∞ (g i)
       exact le_min (min_le_left _ _) (min_le_min (by linarith) (by linarith))
   refine (key ⌈s + M - r₀⌉₊ a).mono (le_min le_rfl ?_)
   linarith [Nat.le_ceil (s + M - r₀)]
-
-/-- **Smoothness of solutions of elliptic systems with a scalar principal part.** Let
-`P = ∑ i ∈ t, c i g i ∂^(m i)` have smooth real coefficients and orders `k i ≤ M`, and be elliptic
-at every point of `Ω`. Let `Q a b = ∑ j ∈ t', c' a b j h a b j ∂^(m' j)` have smooth real
-coefficients and orders `k' j < M`. If every `P T a + ∑ b, Q a b (T b)` is smooth on `Ω`, then
-every `T a` is smooth on `Ω`. -/
-theorem singularSupport_eq_empty_of_ellipticSystem (hg : ∀ i, ContDiff ℝ ∞ (g i))
-    (hh : ∀ a b j, ContDiff ℝ ∞ (h a b j)) {M : ℕ} (hk : ∀ i ∈ t, k i ≤ M)
-    (hk' : ∀ j ∈ t', k' j < M) {T : ι → 𝓓'(Ω, ℂ)}
-    (hσ : ∀ x ∈ Ω, ∀ ξ, ξ ≠ 0 → constCoeffPrincipalSymbol t (fun i ↦ c i * g i x) m M ξ ≠ 0)
-    (hPT : ∀ a, singularSupport
-      (∑ i ∈ t, c i • Distribution.smulLeftCLM (hg i) (∂^{m i} (T a)) +
-        ∑ b, ∑ j ∈ t', c' a b j • Distribution.smulLeftCLM (hh a b j) (∂^{m' j} (T b))) = ∅)
-    (a : ι) : (T a).singularSupport = ∅ :=
-  singularSupport_eq_empty_of_forall_isLocallySobolevAt hPT fun x hx _ hs ↦
-    IsLocallySobolevAt.of_ellipticSystem hg hh hk hk' (hσ x hx) hs a
 
 end Distribution
 
