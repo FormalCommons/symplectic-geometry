@@ -72,8 +72,9 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
   `TauCeti.SmoothForm.bilinFormAt_sub`.
 * `TauCeti.SmoothForm.bilinFormAt_mpullback`: the bilinear form of `f^* β` at `x` is that of `β`
   at `f x` composed with `d_x f` on both sides.
-* `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
-  `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
+* `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_smul`,
+  `TauCeti.SmoothForm.funSMulₗ_const`, `TauCeti.SmoothForm.funSMulₗ_one`,
+  `TauCeti.SmoothForm.mpullback_funSMulₗ`.
 * `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
 * `TauCeti.SmoothForm.mdifferentiableAt_apply_one`: a smooth one-form on a vector field
   differentiable at `x` is differentiable at `x`.
@@ -214,6 +215,14 @@ theorem funSMulₗ_add (f g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M F k) :
     funSMulₗ (f + g) φ = funSMulₗ f φ + funSMulₗ g φ := by
   ext1
   simp [add_smul]
+
+/-- Multiplication of smooth forms by smooth functions commutes with scalar multiples of the
+function. -/
+@[simp]
+theorem funSMulₗ_smul (c : ℝ) (f : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M F k) :
+    funSMulₗ (c • f) φ = c • funSMulₗ f φ := by
+  ext1
+  simp [mul_smul]
 
 /-- Multiplying a smooth form by the zero function gives the zero form. -/
 @[simp]
