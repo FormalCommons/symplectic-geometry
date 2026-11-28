@@ -14,6 +14,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial.Basic
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 import Mathlib.Analysis.Complex.OperatorNorm
+import SymplecticGeometry.LinearAlgebra.Complex.DominantLinearPart
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Equiv
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Radial
 import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.Gaussian
@@ -51,8 +52,8 @@ The power `k ^ (1 / 6)` is the real power `(k : ℝ) ^ (1 / 6 : ℝ)`.
 * `SymplecticGeometry.gaussianConnectionForm`: the form `v ↦ -(⟪z, v⟫ + i ω₀(z, v)) / 2`, which
   is the model connection of the Gaussian `exp (-‖z‖ ^ 2 / 4)` at `z` divided by its value
   (`SymplecticGeometry.modelConnection_gaussian`). It is complex linear for `J₀`
-  (`SymplecticGeometry.complexLinearPart_gaussianConnectionForm`) and has operator norm at most
-  `‖z‖` (`SymplecticGeometry.norm_gaussianConnectionForm_le`).
+  (`SymplecticGeometry.isComplexLinear_gaussianConnectionForm`) and has operator norm at most
+  `‖z‖ / 2` (`SymplecticGeometry.norm_gaussianConnectionForm_le`).
 
 ## Main results
 
@@ -708,11 +709,8 @@ private theorem fderiv_gaussian_apply (z v : StdSpace ι) :
 theorem modelDbar_gaussian :
     modelDbar (fun z : StdSpace ι ↦ (Real.exp (-‖z‖ ^ 2 / 4) : ℂ)) = 0 := by
   ext z v
-  have h : inner ℝ z (stdComplexStructure ι v) = -inner ℝ (stdComplexStructure ι z) v := by
-    rw [← inner_stdComplexStructure_stdComplexStructure z, AlmostComplexStructure.apply_apply,
-      inner_neg_right]
   rw [modelDbar_apply, flatDbar_apply, fderiv_gaussian_apply, fderiv_gaussian_apply,
-    stdForm_apply_eq_inner, h]
+    stdForm_apply_eq_inner, inner_stdComplexStructure_right]
   simp only [Complex.real_smul, zero_apply, Pi.zero_apply]
   push_cast
   ring
@@ -746,15 +744,20 @@ theorem gaussianConnectionForm_apply (z v : StdSpace ι) :
 theorem gaussianConnectionForm_apply_stdComplexStructure (z v : StdSpace ι) :
     gaussianConnectionForm z (stdComplexStructure ι v) =
       Complex.I * gaussianConnectionForm z v := by
-  have h : inner ℝ z (stdComplexStructure ι v) = -inner ℝ (stdComplexStructure ι z) v := by
-    rw [← inner_stdComplexStructure_stdComplexStructure z, AlmostComplexStructure.apply_apply,
-      inner_neg_right]
   rw [gaussianConnectionForm_apply, gaussianConnectionForm_apply, stdForm_apply_eq_inner,
-    stdForm_apply_eq_inner, h, inner_stdComplexStructure_stdComplexStructure]
+    stdForm_apply_eq_inner, inner_stdComplexStructure_right,
+    inner_stdComplexStructure_stdComplexStructure]
   push_cast
-  ring_nf
-  rw [Complex.I_sq]
-  ring
+  linear_combination (2⁻¹ * (inner ℝ (stdComplexStructure ι z) v : ℂ)) * Complex.I_sq
+
+/-- The connection form of the Gaussian is complex linear for `J₀` and multiplication by `i`. -/
+theorem isComplexLinear_gaussianConnectionForm (z : StdSpace ι) :
+    IsComplexLinear (stdComplexStructure ι).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) :=
+  isComplexLinear_of_apply fun v ↦ by
+    simp [gaussianConnectionForm_apply_stdComplexStructure,
+      AlmostComplexStructure.ofComplexModule_apply]
 
 /-- The connection form of the Gaussian is its own complex-linear part, for `J₀` and
 multiplication by `i`. -/
@@ -763,26 +766,20 @@ theorem complexLinearPart_gaussianConnectionForm (z : StdSpace ι) :
     complexLinearPart (stdComplexStructure ι).toLinearMap
         (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
         (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) =
-      (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) := by
-  ext v
-  simp only [complexLinearPart_apply, ContinuousLinearMap.coe_coe,
-    AlmostComplexStructure.ofComplexModule_apply,
-    gaussianConnectionForm_apply_stdComplexStructure, Complex.real_smul]
-  push_cast
-  linear_combination (-2⁻¹ * gaussianConnectionForm z v) * Complex.I_sq
+      (gaussianConnectionForm z : StdSpace ι →ₗ[ℝ] ℂ) :=
+  (isComplexLinear_gaussianConnectionForm z).complexLinearPart_eq
+    (AlmostComplexStructure.ofComplexModule ℂ).square_neg
 
-/-- The operator norm of the connection form of the Gaussian at `z` is at most `‖z‖`. -/
-theorem norm_gaussianConnectionForm_le (z : StdSpace ι) : ‖gaussianConnectionForm z‖ ≤ ‖z‖ := by
-  refine ContinuousLinearMap.opNorm_le_bound _ (norm_nonneg z) fun v ↦ ?_
-  rw [gaussianConnectionForm_apply, norm_mul, norm_neg, norm_inv, Complex.norm_ofNat]
-  have h1 : ‖((inner ℝ z v : ℝ) : ℂ)‖ ≤ ‖z‖ * ‖v‖ := by
-    rw [Complex.norm_real, Real.norm_eq_abs]
-    exact abs_real_inner_le_norm z v
-  have h2 : ‖Complex.I * ((stdForm ι z v : ℝ) : ℂ)‖ ≤ ‖z‖ * ‖v‖ := by
-    rw [norm_mul, Complex.norm_I, one_mul, Complex.norm_real, Real.norm_eq_abs]
-    exact abs_stdForm_apply_le z v
-  have := norm_add_le ((inner ℝ z v : ℝ) : ℂ) (Complex.I * ((stdForm ι z v : ℝ) : ℂ))
-  nlinarith
+/-- The operator norm of the connection form of the Gaussian at `z` is at most `‖z‖ / 2`. -/
+theorem norm_gaussianConnectionForm_le (z : StdSpace ι) :
+    ‖gaussianConnectionForm z‖ ≤ ‖z‖ / 2 := by
+  have h := AlmostComplexStructure.norm_le_of_re_apply_eq_inner (J := stdComplexStructure ι)
+    inner_stdComplexStructure_stdComplexStructure (A := gaussianConnectionForm z)
+    (a := -(2⁻¹ : ℝ) • z) (fun v ↦ by simp [gaussianConnectionForm_apply, inner_smul_left])
+    (fun v ↦ by
+      rw [map_smul, inner_smul_left, ← stdForm_apply_eq_inner]
+      simp [gaussianConnectionForm_apply])
+  rwa [norm_smul, norm_neg, norm_inv, Real.norm_ofNat, inv_mul_eq_div] at h
 
 /-- **The model connection of the Gaussian**: at `z`, the model connection of
 `G = exp (-‖·‖ ^ 2 / 4)` is `G z` times the connection form `gaussianConnectionForm z`. -/
@@ -794,7 +791,6 @@ theorem modelConnection_gaussian (z : StdSpace ι) :
     gaussianConnectionForm_apply, Complex.real_smul, Complex.real_smul]
   push_cast
   ring
-
 
 /-- The model `∂̄` of `z_j` times `f` is `z_j` times the model `∂̄` of `f`. -/
 theorem modelDbar_coord_mul {f : StdSpace ι → ℂ} {z : StdSpace ι} (hf : DifferentiableAt ℝ f z)
