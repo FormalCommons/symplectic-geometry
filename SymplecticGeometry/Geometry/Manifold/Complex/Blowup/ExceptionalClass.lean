@@ -252,7 +252,13 @@ variable [T2Space M] [SecondCountableTopology M]
 /-- **The exceptional class** `e ∈ H²(Blowup c; ℤ)` of the blowup: the dual class
 `TauCeti.SmoothEmbedding.dualClass` of the exceptional divisor `divisorRealEmbedding c`, for the
 orientation `divisorNormalOrientation c` of its normal bundle carried from the complex orientation
-of the tautological line. Its coefficients are `ULift ℤ`. -/
+of the tautological line. Its coefficients are `ULift ℤ`.
+
+It is minus the Poincaré dual of the exceptional divisor in McDuff–Salamon's convention: with real
+coefficients its relative class pairs to `-1` with a disc that crosses the divisor once,
+transversally, with the orientation `divisorNormalOrientation c` in the normal direction
+(`TauCeti.SmoothEmbedding.singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`).
+-/
 def exceptionalClass :
     (TopCat.of (Blowup c)).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 :=

@@ -432,7 +432,12 @@ pull-back, along any linear trivialization at `b`, of the generator of the model
 `o b` read in that trivialization
 (`TauCeti.VectorBundleOrientation.singularCohomologyMap_fiberThomPairMap_canonicalThomClass`).
 This property determines it (`TauCeti.VectorBundleOrientation.eq_canonicalThomClass_iff`). In
-positive rank it is `TauCeti.VectorBundleOrientation.thomClass`. -/
+positive rank it is `TauCeti.VectorBundleOrientation.thomClass`.
+
+In rank two its sign is the opposite of the usual geometric one: on a fibre read in `ℝ²` through
+a trivialization that carries `o b` to the standard orientation, it pairs to `-1` with a
+positively oriented smooth `2`-simplex around `0`
+(`TauCeti.SmoothSimplex.singularKronecker_localCohomologyClass_relClass`). -/
 def canonicalThomClass :
     (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{w} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{w} ℤ)) r :=

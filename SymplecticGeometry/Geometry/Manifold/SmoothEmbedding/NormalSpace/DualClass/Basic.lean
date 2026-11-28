@@ -422,7 +422,12 @@ variable [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology 
 /-- **The relative dual class of a normally oriented submanifold.** For a smooth embedding
 `f : Z → X` with closed range and an orientation `o` of its normal bundle, of rank `r`, the class
 `relDualClassOf f hn hdim hf u ∈ Hʳ(X, X ∖ f(Z); ℤ)` of the canonical Thom class
-`u = o.canonicalThomClass hr`, with coefficients `ULift ℤ`. -/
+`u = o.canonicalThomClass hr`, with coefficients `ULift ℤ`.
+
+In rank two this is minus the Poincaré dual in McDuff–Salamon's convention: its real image
+`realRelDualClass` (`realRelDualClass_eq_singularCohomologyRealImage`) pairs to `-1` with a disc
+that meets `f(Z)` once, transversally at `f x`, and whose orientation, read in the normal space,
+is `o x` (`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`). -/
 def relDualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
@@ -558,7 +563,12 @@ theorem relDualClass_eq_of_relDualClassOf
 with closed range and an orientation `o` of its normal bundle, of rank `r`, the class
 `dualClassOf f hn hdim hf u ∈ Hʳ(X; ℤ)` of the canonical Thom class `u = o.canonicalThomClass hr`,
 with coefficients `ULift ℤ`: the image of `relDualClass f hn hdim hf o hr` in absolute
-cohomology. -/
+cohomology.
+
+In rank two this is minus the Poincaré dual in McDuff–Salamon's convention, as `relDualClass`
+is: with real coefficients the relative class pairs to `-1` with a disc that meets `f(Z)` once,
+transversally at `f x`, and whose orientation, read in the normal space, is `o x`
+(`singularKronecker_realRelDualClass_relClass_of_hasFDerivAt_of_eq_comp`). -/
 def dualClass (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ∞ω) ≠ 0)
     (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) (hf : IsClosed (range f))
     (o : letI := f.normalSpaceFiberBundle hn hdim
