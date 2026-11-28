@@ -109,18 +109,17 @@ theorem mfderiv_diffeomorphProjectivization_unitaryAction (X : unitaryLieAlgebra
   have hy' : WithLp.toLp 2 (y : Fin (n + 1) → ℂ) ≠ 0 := (WithLp.toLp_eq_zero _).not.2 hy
   set r := ‖WithLp.toLp 2 (y : Fin (n + 1) → ℂ)‖
   have hc : (r : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 (norm_ne_zero_iff.2 hy')
-  -- The unit vector `y / ‖y‖` of `EuclideanSpace ℂ (Fin (n + 1))`.
+  -- The unit vector `y / ‖y‖` of `EuclideanSpace ℂ (Fin (n + 1))`, as Tau Ceti's
+  -- `homeomorphProjectivization_symm_mk_eq_mk_inv_norm_smul` writes it.
   let u : sphere (0 : EuclideanSpace ℂ (Fin (n + 1))) 1 :=
     ⟨(r⁻¹ : ℂ) • WithLp.toLp 2 (y : Fin (n + 1) → ℂ),
-      mem_sphere_zero_iff_norm.2 (by simpa [r] using norm_smul_inv_norm (𝕜 := ℂ) hy')⟩
+      mem_sphere_zero_iff_norm.2 (norm_smul_inv_norm hy')⟩
   have hu : WithLp.ofLp (u : EuclideanSpace ℂ (Fin (n + 1))) =
       (r⁻¹ : ℂ) • (y : Fin (n + 1) → ℂ) := by
     simp [u]
   have hp : (diffeomorphProjectivization n).symm (mkNonzero ℂ n y) = mk n u := by
-    rw [coe_diffeomorphProjectivization_symm, Homeomorph.symm_apply_eq,
-      ← coe_diffeomorphProjectivization, diffeomorphProjectivization_mk, mkNonzero_apply,
-      mk_eq_mk_iff']
-    exact ⟨(r : ℂ), by rw [hu, smul_smul, mul_inv_cancel₀ hc, one_smul]⟩
+    rw [coe_diffeomorphProjectivization_symm, mkNonzero_apply,
+      homeomorphProjectivization_symm_mk_eq_mk_inv_norm_smul]
   rw [hp, mfderiv_diffeomorphProjectivization_unitaryAction_mk, mfderiv_mkNonzero_apply, hu,
     mulVec_smul, mfderivMk_smul_smul hy (inv_ne_zero hc)]
 

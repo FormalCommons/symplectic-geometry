@@ -36,13 +36,13 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   (`contMDiff_mkNonzero_self`). Its derivative at `v`, over `𝕜` and over `ℝ` alike, is Tau
   Ceti's derivative `Projectivization.mfderivMk v` of the projection `w ↦ [w]`
   (`mfderiv_mkNonzero_self`, `mfderiv_mkNonzero`, with their `_apply` forms). Since `[c • w] = [w]`,
-  `mfderivMk (c • v) (c • w) = mfderivMk v w` for `c ≠ 0` (`mfderivMk_smul_smul`). By Tau Ceti's
-  `Projectivization.surjective_mfderivMk` and `Projectivization.ker_mfderivMk`, `mkNonzero` is
-  regular at every point (`isRegularPoint_mkNonzero`), so a submersion (`isSubmersion_mkNonzero`),
-  and the kernel of its real derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`). Its
-  fibre over `[v]` is the punctured line of the nonzero multiples of `v`
-  (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ` and `n = 1` it is the pencil `[z₀ : z₁]` on
-  `ℂ² ∖ 0`.
+  `mfderivMk (c • v) (c • w) = mfderivMk v w` for `v ≠ 0` and `c ≠ 0` (`mfderivMk_smul_smul`).
+  By Tau Ceti's `Projectivization.surjective_mfderivMk` and `Projectivization.ker_mfderivMk`,
+  `mkNonzero` is regular at every point (`isRegularPoint_mkNonzero`), so a submersion
+  (`isSubmersion_mkNonzero`), and the kernel of its real derivative at `v` is the line `𝕜 ∙ v`
+  (`ker_mfderiv_mkNonzero`). Its fibre over `[v]` is the punctured line of the nonzero multiples
+  of `v` (`preimage_mkNonzero_singleton_mk`). For `𝕜 = ℂ` and `n = 1` it is the pencil
+  `[z₀ : z₁]` on `ℂ² ∖ 0`.
 * `Projectivization.affineLift 𝕜 j` is the section `w ↦ Fin.insertNth j 1 w` of `mkNonzero` over
   the affine chart of `j`: `mkNonzero 𝕜 n ∘ affineLift 𝕜 j = (affineChart j).symm`
   (`mkNonzero_comp_affineLift`). It is holomorphic over `𝕜` (`contMDiff_affineLift_self`), smooth
