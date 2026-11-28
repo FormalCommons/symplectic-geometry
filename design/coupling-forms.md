@@ -267,7 +267,8 @@ About 500 lines.
   Hamiltonian exactly
   when, in every symplectic chart over a coordinate patch,
   every $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive on `F`, at
-  every `x` (the page's 2 ⇔ 3).
+  every `x` (`MapFiber.Atlas.HasExactMixedCurl`, of the one-forms
+  `MapFiber.Atlas.mixedCurl`; the page's 2 ⇔ 3).
 - `hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature` (2 ⇒ 1): for a
   symplectic connection with `π` proper, take a connection two-form `τ` for
   it (`IsSymplectic.exists_restrictsTo_isVerticallyClosed`). In
@@ -297,7 +298,8 @@ About 500 lines.
   Hamiltonian.
 - The equivalence, `hasHamiltonianDiscHolonomy_tfae`: for `[CompactSpace M]`,
   `[ConnectedSpace F]` and a symplectic connection, `List.TFAE` of
-  `HasHamiltonianDiscHolonomy`, `HasHamiltonianCurvature` and the local
+  `HasHamiltonianDiscHolonomy`, `HasHamiltonianCurvature` and
+  `MapFiber.Atlas.HasExactMixedCurl`, the local
   condition of `hasHamiltonianCurvature_iff_local`. Its docstring ends with
   "Milestone: *Curvature identity for symplectic connections*."
 
