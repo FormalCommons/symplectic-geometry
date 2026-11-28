@@ -36,11 +36,13 @@ being a Thom class, is needed; the degree must be the rank `r`, the degree in wh
 Ceti's uniqueness by fibre restrictions holds.
 
 The local-degree lemma (`singularCohomologyMap_slice_eq_of_hasFDerivAt`) compares the normal
-slice of a normalized tube `Φ` at `x` with any map `g` from a neighbourhood `B` of `0` in `P`
-into `X` which sends only `0` into `f(Z)`, sends it to `f x`, and whose derivative at `0`,
-followed by the quotient onto the normal space, is the inverse of the preferred trivialization `e`
-at `x`. Both pull classes of `(X, X ∖ f(Z))` back in the same way, in every degree, once the
-slice is read on `B` through `e`. On a small enough open `O ⊆ B` (restriction to which is
+slice of a normalized tube `Φ` at `x` with any map `g` from a neighbourhood `B` of `0` in a real
+normed space `Q` into `X` which sends only `0` into `f(Z)`, sends it to `f x`, and whose
+derivative at `0`, followed by the quotient onto the normal space, is a given linear isomorphism
+`m : Q ≃ ν_x`. Both pull classes of `(X, X ∖ f(Z))` back in the same way, in every degree, once
+the slice is read on `B` through `m`. Precomposing with a linear isomorphism reduces this to the
+case `Q = P` with `m` the inverse of the preferred trivialization `e` at `x`. There, on a small
+enough open `O ⊆ B` (restriction to which is
 injective by excision, `TopPair.injective_singularCohomologyMap_ofSubsetMap_inclusion`), `g`
 lifts through `Φ` to a map into the Thom pair whose base points stay in a contractible
 neighbourhood of `x`. Since `Φ` is normalized, the coordinate of that lift in `e` has derivative
@@ -51,10 +53,7 @@ the lift pulls classes back as the restriction to the fibre over `x`, carried to
 along `e` and pulled back along the inclusion of `O`. This follows the
 linearization argument of Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`, which
-compares a map with its derivative on a small ball around a zero. Precomposing with a linear
-isomorphism gives the same comparison for a map on any space `Q` whose derivative at `0` is read
-through a linear isomorphism `m : Q ≃ ν_x` instead of `e`
-(`singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`).
+compares a map with its derivative on a small ball around a zero.
 
 For `u` in the degree `r` of the rank, with coefficients `R, M : ModuleCat k` and `R` projective
 over `k`, the class does not depend on the normalized tube. For two normalized tubes `Φ`
@@ -118,10 +117,9 @@ is the pull-back along `φ` of the dual class of `f` with `o` (`relDualClass_tra
   tube, a class of degree `r` restricts to the image of `u` exactly when its slices are the fibre
   restrictions of `u`.
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt`: the local-degree
-  lemma: a map with the derivative of a normal slice at `0` pulls classes back as the slice does.
-* `TauCeti.SmoothEmbedding.singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv`: the same for
-  a map on any space `Q` whose derivative at `0`, followed by the quotient onto the normal space,
-  is a given linear isomorphism `m : Q ≃ ν_x`; the slice is then read through `m`.
+  lemma: a map on a space `Q` whose derivative at `0`, followed by the quotient onto the normal
+  space, is a linear isomorphism `m : Q ≃ ν_x` pulls classes back as the normal slice read
+  through `m` does.
 * `TauCeti.SmoothEmbedding.singularCohomologyMap_normalSlice_eq_of_isNormalizedTube`: the normal
   slices of two normalized tubes at a point pull classes back alike.
 * `TauCeti.SmoothEmbedding.relDualClassOf_eq_of_isNormalizedTube`,
@@ -395,15 +393,11 @@ private theorem singularCohomologyMap_slice_eq_of_isOpen {f : SmoothEmbedding I 
   -- The derivative `ContinuousLinearMap.id ℝ P`, restricted to `O`, is the inclusion of `O`.
   rfl
 
-/-- **The local-degree lemma.** Let `Φ` be a normalized tube of `f`, `x : Z`, and `e` the preferred
-trivialization of the normal bundle at `x`. Let `B ⊆ P` be a neighbourhood of `0` and `g : P → X`
-a map continuous on `B`, with `g 0 = f x`, sending no other point of `B` into `f(Z)`, and
-differentiable at `0` with a derivative `A` such that the normal class of each `A w` is the vector
-of the fibre over `x` with coordinate `w` in `e`. Then `g`, as a map of pairs
-`(B, B ∖ {0}) ⟶ (X, X ∖ f(Z))`, pulls every class back as the normal slice of `Φ` at `x` does,
-after `w ↦ e.symm x w`: the inclusion `(B, B ∖ {0}) ⟶ (P, P ∖ {0})` followed by the pair
-isomorphism `(P, P ∖ {0}) ≅ (ν_x, ν_x ∖ {0})` of the inverse of `e` on the fibre over `x`. -/
-theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J ∞ Z X}
+/-- The local-degree lemma read through the preferred trivialization `e` of the normal bundle at
+`x`, a step of `singularCohomologyMap_slice_eq_of_hasFDerivAt`: the map `g` is on `P`, and the
+normal class of each `A w` is the vector of the fibre over `x` with coordinate `w` in `e`. -/
+private theorem singularCohomologyMap_slice_eq_of_hasFDerivAt_trivializationAt
+    {f : SmoothEmbedding I J ∞ Z X}
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
@@ -480,7 +474,7 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J �
   · congr 1
     exact TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ _ rfl
 
-/-- **The local-degree lemma through any linear isomorphism.** Let `Φ` be a normalized tube of
+/-- **The local-degree lemma.** Let `Φ` be a normalized tube of
 `f`, `x : Z`, and `m : Q ≃ ν_x` a linear isomorphism from a real normed space `Q`. Let `B ⊆ Q` be
 a neighbourhood of `0` and `g : Q → X` a map continuous on `B`, with `g 0 = f x`, sending no other
 point of `B` into `f(Z)`, and differentiable at `0` with a derivative `A` such that the normal
@@ -488,9 +482,8 @@ class of each `A w` is `m w`. Then `g`, as a map of pairs `(B, B ∖ {0}) ⟶ (X
 every class back as the normal slice of `Φ` at `x` does after `m`: the inclusion
 `(B, B ∖ {0}) ⟶ (Q, Q ∖ {0})` followed by the pair isomorphism of `m`.
 
-This is `singularCohomologyMap_slice_eq_of_hasFDerivAt` for the map `g ∘ m⁻¹ ∘ e⁻¹` on `P`, `e`
-the preferred trivialization at `x`. -/
-theorem singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv {f : SmoothEmbedding I J ∞ Z X}
+The proof reads `g` on `P` as `g ∘ m⁻¹ ∘ e⁻¹`, `e` the preferred trivialization at `x`. -/
+theorem singularCohomologyMap_slice_eq_of_hasFDerivAt {f : SmoothEmbedding I J ∞ Z X}
     {hn : (∞ : ℕ∞ω) ≠ 0} {hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E}
     {W : TopologicalSpace.Opens X}
     {Φ : letI := f.normalSpaceFiberBundle hn hdim
@@ -534,7 +527,8 @@ theorem singularCohomologyMap_slice_eq_of_hasFDerivAt_of_equiv {f : SmoothEmbedd
     rw [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, hA]
     simp only [L, ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.apply_symm_apply]
     rw [← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
-  have h := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x hB' hgB' hg0' hgf' hg' hA' c
+  have h := singularCohomologyMap_slice_eq_of_hasFDerivAt_trivializationAt hΦ x hB' hgB' hg0' hgf'
+    hg' hA' c
   -- The map of pairs `(B, B ∖ {0}) ⟶ (L⁻¹ B, L⁻¹ B ∖ {0})`, `w ↦ L⁻¹ w`.
   let φ := TopPair.ofSubsetMap (X := TopCat.of B) (Y := TopCat.of (L ⁻¹' B))
     (TopCat.ofHom ⟨fun w ↦ ⟨L.symm w, by simp [w.property]⟩, by fun_prop⟩)
@@ -596,12 +590,10 @@ theorem singularCohomologyMap_normalSlice_eq_of_isNormalizedTube {f : SmoothEmbe
   set ℓ := e.continuousLinearEquivAt ℝ x hx
   -- The map `w ↦ Φ'(x, ℓ⁻¹ w)` has the derivative that the local-degree lemma asks for.
   obtain ⟨hgc, hg0, hgf, A, hg, hA⟩ := hΦ'.exists_hasMFDerivAt_apply_mk x ℓ.symm
-  have hA' (w : P) : f.isImmersion.normalClassL x hn (A w) = e.symmL ℝ x w := by
-    rw [hA, ← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
-  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc.continuousOn
-    hg0 (fun w _ ↦ hgf w) hg hA' c
-  have h2 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ' x Filter.univ_mem hgc.continuousOn
-    hg0 (fun w _ ↦ hgf w) hg hA' c
+  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x ℓ.symm Filter.univ_mem
+    hgc.continuousOn hg0 (fun w _ ↦ hgf w) hg hA c
+  have h2 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ' x ℓ.symm Filter.univ_mem
+    hgc.continuousOn hg0 (fun w _ ↦ hgf w) hg hA c
   -- Both sides are read through the same isomorphism `(univ, univ ∖ {0}) ≅ (ν_x, ν_x ∖ 0)`.
   exact TopPair.injective_singularCohomologyMap_ofSubsetMap_subtypeVal_univ_comp R k M (0 : P)
     ℓ.symm.complZeroPairIso n (h2.symm.trans h1)
@@ -884,11 +876,11 @@ theorem singularCohomologyMap_normalSlice_transDiffeomorph {f : SmoothEmbedding 
     rw [Manifold.IsImmersion.normalClassL_apply (hf := (f.transDiffeomorph φ.symm).isImmersion)]
     exact (Manifold.IsImmersion.normalClassL_apply _ _ _ _).trans h.symm
   set A := (mfderiv J J φ (g' 0)).comp (A' : P →L[ℝ] TangentSpace J (g' 0))
-  have hA (w : P) : f.isImmersion.normalClassL x hn (A w) = e.symmL ℝ x w := by
+  have hA (w : P) : f.isImmersion.normalClassL x hn (A w) = m w := by
     refine (hdφ _ hg0' (A' w)).trans ?_
-    rw [hA', ← e.symm_continuousLinearEquivAt_eq' hx, ContinuousLinearEquiv.coe_coe]
-    simp [ψ, m]
-  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x Filter.univ_mem hgc hg0 hgf
+    rw [hA']
+    simp [ψ]
+  have h1 := singularCohomologyMap_slice_eq_of_hasFDerivAt hΦ x m Filter.univ_mem hgc hg0 hgf
     (hφ.comp 0 hg') hA c
   -- Read on `(univ, univ ∖ {0})` through `ψ = ℓ⁻¹ ∘ m`, the normal slice of `Φ'` followed by `φ`
   -- is `g`.
