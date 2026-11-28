@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 
 import SymplecticGeometry.Algebra.Order.Ring.Basic
+import SymplecticGeometry.Analysis.Complex.LeviForm.Basic
 import SymplecticGeometry.Analysis.Complex.LeviForm.Prod
 import SymplecticGeometry.Analysis.InnerProductSpace.Euclidean.ComplexExtension
 import SymplecticGeometry.Geometry.Manifold.Complex.LeviForm
@@ -105,10 +106,16 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
 ## The model handle function and the model level
 
 * `SymplecticGeometry.modelHandle k m a b`: the model handle function `b t - a s`, which is
-  smooth (`SymplecticGeometry.contDiff_modelHandle`). For `0 < b`
+  smooth (`SymplecticGeometry.contDiff_modelHandle`). Its Levi form is
+  `(b - a) ⟪v₁, w₁⟫ / 2 + b ⟪v₂, w₂⟫` at every point
+  (`SymplecticGeometry.leviForm_modelHandle_apply`, from the Levi forms of `s` and `t`), with
+  real part `(b - a) |v₁|² / 2 + b |v₂|²` on `(v, v)`
+  (`SymplecticGeometry.re_leviForm_modelHandle_apply_self`). For `0 < b`
   and `a < b` it is strictly plurisubharmonic everywhere
-  (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelHandle`, by the criterion with
-  `f' + g' = b - a` and `g' = b`). For `0 < a` and `0 < b`, the real splitting
+  (`SymplecticGeometry.isStrictlyPlurisubharmonicAt_modelHandle`, by the criterion with
+  `f' + g' = b - a` and `g' = b`, and its manifold form
+  `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelHandle`). For `0 < a` and
+  `0 < b`, the real splitting
   `SymplecticGeometry.modelHandleSplitting`, `(x + i y, w) ↦ (√a x, √b (y, w))`, built from Tau
   Ceti's `TauCeti.complexEuclideanEquivRealProd`, carries it to Tau Ceti's quadratic model
   `(u, v) ↦ -‖u‖² + ‖v‖²` on `ℝᵏ × (ℝᵏ × ℂᵐ)` (`SymplecticGeometry.modelHandle_eq_comp`). The
@@ -125,10 +132,12 @@ The sets `{t ≤ γ², s ≤ (1 + γ)²}` are the handles of width `γ` around `
   (`SymplecticGeometry.fderiv_modelHandle_apply`), of norm at most `(2 |a| + 4 |b|) ‖p‖`
   (`SymplecticGeometry.norm_fderiv_modelHandle_le`).
 * `SymplecticGeometry.modelLevel k m`: the model level `φ₀ = 1 - s + 2 t`, which is `1` plus the
-  model handle function with `a = 1` and `b = 2` (`SymplecticGeometry.modelLevel_eq`). It is
-  strictly plurisubharmonic everywhere
-  (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelLevel`, by the criterion with
-  `f' + g' = 1` and `g' = 2`). Its only critical point is `0`
+  model handle function with `a = 1` and `b = 2` (`SymplecticGeometry.modelLevel_eq`), from which
+  its smoothness, its differential, its Levi form and its strict plurisubharmonicity follow,
+  since adding a constant changes neither the differential nor the Levi form
+  (`TauCeti.leviForm_const_add`). It is strictly plurisubharmonic everywhere
+  (`SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_modelLevel`). Its only critical
+  point is `0`
   (`SymplecticGeometry.criticalPoints_modelLevel`), where it takes the value `1`
   (`SymplecticGeometry.modelLevel_zero`), so its zero level is a J-convex level
   (`SymplecticGeometry.isJConvexLevel_modelLevel`).
@@ -856,6 +865,13 @@ theorem modelHandle_def (a b : ℝ) (p : EuclideanSpace ℂ (Fin k) × Euclidean
     modelHandle k m a b p = b * (shape p).2 - a * (shape p).1 :=
   (rfl)
 
+/-- On the core the model handle function is `-a |x|²`: `modelHandle k m a b (ι₀ x) = -(a ‖x‖²)`.
+-/
+@[simp]
+theorem modelHandle_modelDisc (a b : ℝ) (x : EuclideanSpace ℝ (Fin k)) :
+    modelHandle k m a b (modelDisc k m x) = -(a * ‖x‖ ^ 2) := by
+  simp [modelHandle_def, EuclideanSpace.real_norm_sq_eq]
+
 /-- The model handle function is smooth. -/
 @[fun_prop]
 theorem contDiff_modelHandle {n : WithTop ℕ∞} (a b : ℝ) :
@@ -933,13 +949,41 @@ theorem norm_fderiv_modelHandle_le (a b : ℝ)
         · exact h₁.trans hpv₁
     _ = (2 * |a| + 4 * |b|) * ‖p‖ * ‖v‖ := by ring
 
+open scoped InnerProductSpace in
+/-- The Levi form of the model handle function `b t - a s` on `ℂᵏ × ℂᵐ` is
+`(b - a) ⟪v₁, w₁⟫ / 2 + b ⟪v₂, w₂⟫`, at every point. -/
+theorem leviForm_modelHandle_apply (a b : ℝ)
+    (p v w : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    leviForm (modelHandle k m a b) p v w =
+      ((b - a : ℝ) : ℂ) * ⟪v.1, w.1⟫_ℂ / 2 + (b : ℂ) * ⟪v.2, w.2⟫_ℂ := by
+  have he : modelHandle k m a b = b • (fun q ↦ (shape q).2) - a • fun q ↦ (shape q).1 := by
+    funext q
+    rw [modelHandle_def, Pi.sub_apply, Pi.smul_apply, Pi.smul_apply, smul_eq_mul, smul_eq_mul]
+  have hs : ContDiffAt ℝ 2 (a • fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (shape q).1) p := contDiff_shape.fst.contDiffAt.const_smul a
+  have ht : ContDiffAt ℝ 2 (b • fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
+      (shape q).2) p := contDiff_shape.snd.contDiffAt.const_smul b
+  rw [he, leviForm_sub ht hs, leviForm_smul, leviForm_smul]
+  simp only [LinearMap.sub_apply, LinearMap.smul_apply, smul_eq_mul, leviForm_shape_fst_apply,
+    leviForm_shape_snd_apply]
+  push_cast
+  ring
+
+/-- The real part of the Levi form of the model handle function `b t - a s` on `v = (v₁, v₂)` is
+`(b - a) |v₁|² / 2 + b |v₂|²`, at every point. -/
+theorem re_leviForm_modelHandle_apply_self (a b : ℝ)
+    (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    (leviForm (modelHandle k m a b) p v v).re = (b - a) * ‖v.1‖ ^ 2 / 2 + b * ‖v.2‖ ^ 2 := by
+  rw [leviForm_modelHandle_apply, Complex.add_re, Complex.div_ofNat_re, Complex.re_ofReal_mul,
+    Complex.re_ofReal_mul, ← RCLike.re_to_complex, ← RCLike.re_to_complex, inner_self_eq_norm_sq,
+    inner_self_eq_norm_sq]
+
 /-- For `0 < b` and `a < b`, the model handle function `b t - a s` is strictly plurisubharmonic
-at every point of `ℂᵏ × ℂᵐ`. -/
-theorem isManifoldStrictlyPlurisubharmonicAt_modelHandle {a b : ℝ} (hb : 0 < b) (hab : a < b)
+at every point of `ℂᵏ × ℂᵐ`, as a function on a complex vector space. -/
+theorem isStrictlyPlurisubharmonicAt_modelHandle {a b : ℝ} (hb : 0 < b) (hab : a < b)
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
-    IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
-      (modelHandle k m a b) p := by
-  have h := isManifoldStrictlyPlurisubharmonicAt_shape (f := fun s ↦ -a * s)
+    IsStrictlyPlurisubharmonicAt (modelHandle k m a b) p := by
+  have h := isStrictlyPlurisubharmonicAt_shape (f := fun s ↦ -a * s)
     (g := fun t ↦ b * t) (p := p) (by fun_prop) (by fun_prop)
     (by simp [iteratedDeriv_succ]; linarith) (fun _ ↦ by simp [iteratedDeriv_succ]; linarith)
   have he : modelHandle k m a b = fun q ↦ -a * (shape q).1 + b * (shape q).2 := by
@@ -947,6 +991,15 @@ theorem isManifoldStrictlyPlurisubharmonicAt_modelHandle {a b : ℝ} (hb : 0 < b
     rw [modelHandle_def]
     ring
   rwa [he]
+
+/-- For `0 < b` and `a < b`, the model handle function `b t - a s` is strictly plurisubharmonic
+at every point of `ℂᵏ × ℂᵐ`. -/
+theorem isManifoldStrictlyPlurisubharmonicAt_modelHandle {a b : ℝ} (hb : 0 < b) (hab : a < b)
+    (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
+    IsManifoldStrictlyPlurisubharmonicAt (EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m))
+      (modelHandle k m a b) p :=
+  isManifoldStrictlyPlurisubharmonicAt_iff_isStrictlyPlurisubharmonicAt.2 <|
+    isStrictlyPlurisubharmonicAt_modelHandle hb hab p
 
 /-- The real splitting `(x + i y, w) ↦ (√a x, √b (y, w))` of `ℂᵏ × ℂᵐ` as `ℝᵏ × (ℝᵏ × ℂᵐ)`, the
 second factor with its `L²` norm, for `0 < a` and `0 < b`. It carries the model handle function
@@ -1062,10 +1115,9 @@ complex vector space. -/
 theorem isStrictlyPlurisubharmonicAt_modelLevel
     (p : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     IsStrictlyPlurisubharmonicAt (modelLevel k m) p := by
-  have h := isStrictlyPlurisubharmonicAt_shape (f := fun s ↦ 1 - s)
-    (g := fun t ↦ 2 * t) (p := p) (by fun_prop) (by fun_prop)
-    (by simp [iteratedDeriv_succ]) (fun _ ↦ by simp [iteratedDeriv_succ])
-  simpa only [funext modelLevel_def] using h
+  rw [isStrictlyPlurisubharmonicAt_iff, modelLevel_eq, leviForm_const_add,
+    ← isStrictlyPlurisubharmonicAt_iff]
+  exact isStrictlyPlurisubharmonicAt_modelHandle two_pos one_lt_two p
 
 /-- The model level is strictly plurisubharmonic at every point of `ℂᵏ × ℂᵐ`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_modelLevel
@@ -1104,27 +1156,8 @@ theorem isJConvexLevel_modelLevel :
 theorem re_leviForm_modelLevel_apply_self
     (p v : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m)) :
     (leviForm (modelLevel k m) p v v).re = ‖v.1‖ ^ 2 / 2 + 2 * ‖v.2‖ ^ 2 := by
-  have h : modelLevel k m = (fun _ ↦ (1 : ℝ)) +
-      (-(fun q ↦ (shape q).1) + (2 : ℝ) • fun q ↦ (shape q).2) := by
-    funext q
-    simp only [modelLevel_def, Pi.add_apply, Pi.neg_apply, Pi.smul_apply, smul_eq_mul]
-    ring
-  have h₁ : ContDiffAt ℝ 2 (fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
-      (shape q).1) p := contDiff_shape.fst.contDiffAt
-  have h₂ : ContDiffAt ℝ 2 (fun q : EuclideanSpace ℂ (Fin k) × EuclideanSpace ℂ (Fin m) ↦
-      (shape q).2) p := contDiff_shape.snd.contDiffAt
-  have h₃ : ContDiffAt ℝ 2 (-(fun q ↦ (shape q).1) + (2 : ℝ) • fun q ↦ (shape q).2) p :=
-    h₁.neg.add (h₂.const_smul (2 : ℝ))
-  rw [h, leviForm_add contDiffAt_const h₃, leviForm_add (f := -(fun q ↦ (shape q).1))
-    (g := (2 : ℝ) • fun q ↦ (shape q).2) h₁.neg (h₂.const_smul (2 : ℝ)),
-    leviForm_const, leviForm_neg, leviForm_smul]
-  have hs : (leviForm (fun q ↦ (shape q).1) p v v).re = ‖v.1‖ ^ 2 / 2 := by
-    rw [leviForm_shape_fst_apply, Complex.div_ofNat_re, ← RCLike.re_to_complex,
-      inner_self_eq_norm_sq]
-  simp only [LinearMap.add_apply, LinearMap.neg_apply, LinearMap.smul_apply,
-    zero_add, Complex.add_re, Complex.neg_re, smul_eq_mul,
-    Complex.re_ofReal_mul, hs, re_leviForm_shape_snd_apply_self]
-  ring
+  rw [modelLevel_eq, leviForm_const_add, re_leviForm_modelHandle_apply_self]
+  norm_num
 
 /-- **The margin of the model level on bounded sets.** For every `R` there is `c > 0` such that
 at every point `p` with `‖p‖ ≤ R`, the real part of the Levi form of the model level is at
