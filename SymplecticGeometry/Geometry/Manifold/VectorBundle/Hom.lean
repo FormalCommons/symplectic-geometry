@@ -17,8 +17,8 @@ import TauCeti.Geometry.Manifold.VectorBundle.LocalFrame
 Let `Φ x : V₁ x ≃L V₂ x` be fibrewise equivalences of vector bundles whose map of total spaces is
 `C^n`, with `V₁` of finite rank. Then the fibrewise inverses `(Φ x)⁻¹` form a `C^n` section of the
 bundle of continuous linear maps `V₂ x →L V₁ x` (`contMDiff_hom_bundle_symm`). The forward maps
-`Φ x` form a `C^n` section by Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff`, and inversion
-preserves smoothness by Tau Ceti's `ContMDiff.clm_bundle_inverse`. As in
+`Φ x` form a `C^n` section by Tau Ceti's `TauCeti.contMDiff_hom_bundle_iff`, and so do their
+inverses by Tau Ceti's `ContMDiff.clm_bundle_equiv_symm`. As in
 `TauCeti.contMDiff_bundle_symm`, only the source bundle `V₁` needs finite rank.
 
 A map `g` out of the total space of the trivial bundle with fibre `W` over `M` is `C^n` (at a
@@ -84,9 +84,8 @@ theorem contMDiff_hom_bundle_symm (Φ : ∀ x, V₁ x ≃L[𝕜] V₂ x)
       (fun x ↦ TotalSpace.mk' (F₂ →L[𝕜] F₁) (E := fun x ↦ V₂ x →L[𝕜] V₁ x) x
         ((Φ x).symm : V₂ x →L[𝕜] V₁ x)) := by
   have := FiniteDimensional.completeSpace 𝕜 F₁
-  simpa only [ContinuousLinearMap.inverse_equiv] using
-    ((TauCeti.contMDiff_hom_bundle_iff fun x ↦ (Φ x : V₁ x →L[𝕜] V₂ x)).2 hΦ).clm_bundle_inverse
-      fun _ ↦ ContinuousLinearMap.isInvertible_equiv
+  exact ((TauCeti.contMDiff_hom_bundle_iff fun x ↦ (Φ x : V₁ x →L[𝕜] V₂ x)).2
+    hΦ).clm_bundle_equiv_symm
 
 end SymplecticGeometry
 

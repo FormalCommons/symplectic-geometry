@@ -596,8 +596,7 @@ theorem exists_eLpNormWkp_coord_smul_le
   have hcl := A.closure_image_subset_target i
   -- `χ` read in the chart vanishes on the chart image off the compact set `K`.
   set K : Set ℂ := A.chart i '' tsupport χ
-  have hK : IsCompact K := (isClosed_tsupport χ).isCompact.image_of_continuousOn
-    ((A.chart i).continuousOn.mono (hχi.trans (A.dom_subset_chart_source i)))
+  have hK : IsCompact K := A.isCompact_chart_image_of_isClosed (isClosed_tsupport χ) hχi
   have hKW : K ⊆ A.image i := fun y hy ↦ A.mem_image.2 (image_mono hχi hy)
   set χ' : ℂ → ℂ := fun y ↦ (χ ((A.chart i).symm y) : ℂ)
   have hχ' : ContDiffOn ℝ ∞ χ' (A.chart i).target :=
