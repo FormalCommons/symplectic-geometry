@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
+public import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Topology.Connected.Basic
 
 /-!
@@ -143,5 +145,86 @@ theorem IsComplexifiedAction.image_polar_isotropy_prod_ambientConnectedComponent
   refine congrArg (C.polar '' ·) ?_
   exact ((connectedComponentIn_prod _ (MulAction.stabilizer G x : Set G) _ 1).trans
     (congrArg (· ×ˢ connectedComponentIn (MulAction.stabilizer G x : Set G) 1) h𝔥)).symm
+section StabilizerPolar
+
+open Lie
+
+attribute [local instance] ContMDiffMul.boundarylessManifold
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [T2Space G] [IsTopologicalGroup G]
+  [IsTopologicalGroup Gc] [I.Boundaryless] [IC.Boundaryless] [T2Space M]
+  [BoundarylessManifold I' M]
+
+/-- **The polar decomposition of the identity component of the stabilizer of a zero of the moment
+map.** In the setting of `IsComplexifiedAction.mem_stabilizer_iff_of_moment_eq_zero`, let `H₀` and
+`Gc₀` be the identity components of the stabilizers of `x` in `G` and in `Gc`, each with the Lie
+group structure of a closed subgroup (`TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`), modelled
+on its Lie algebra. Then `C.polar` restricts to a diffeomorphism from the product of the Lie
+algebra `E₀` of `H₀` and `H₀` onto `Gc₀`, sending `(ξ, u)` to `C.expI ξ * C.toHom u`, where `ξ` is
+read in the Lie algebra of `G` through the differential at `1` of the inclusion `H₀ → G`
+(`IsComplexifiedAction.coe_stabilizerPolar_apply`). -/
+noncomputable def IsComplexifiedAction.stabilizerPolar (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x : M} (hx : μ x = 0) :
+    let H₀ := (MulAction.stabilizer G x).ambientConnectedComponentOfOne
+    let Gc₀ := (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne
+    let E₀ := (lieSubalgebraOfSubgroup (I := I) H₀).toSubmodule
+    let EC₀ := (lieSubalgebraOfSubgroup (I := IC) Gc₀).toSubmodule
+    let _ := (EmbeddedLieSubgroupData.ofIsClosed (I := I)
+      (isClosed_ambientConnectedComponentOfOne_stabilizer I I' (G := G) x)).chartedSpace
+    let _ := (EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+      (isClosed_ambientConnectedComponentOfOne_stabilizer IC I' (G := Gc) x)).chartedSpace
+    (E₀ × H₀) ≃ₘ⟮𝓘(ℝ, E₀).prod 𝓘(ℝ, E₀), 𝓘(ℝ, EC₀)⟯ Gc₀ :=
+  let dH := EmbeddedLieSubgroupData.ofIsClosed (I := I)
+    (isClosed_ambientConnectedComponentOfOne_stabilizer I I' (G := G) x)
+  let dK := EmbeddedLieSubgroupData.ofIsClosed (I := IC)
+    (isClosed_ambientConnectedComponentOfOne_stabilizer IC I' (G := Gc) x)
+  let _ := dH.chartedSpace
+  let _ := dK.chartedSpace
+  haveI := dH.lieGroup
+  haveI := dK.lieGroup
+  let e := dH.groupLieAlgebraEquivIsotropy (I' := I')
+  let ι := (MulAction.stabilizer G x).ambientConnectedComponentOfOne.subtype.groupLieAlgebraMap
+    𝓘(ℝ, (lieSubalgebraOfSubgroup (I := I)
+      (MulAction.stabilizer G x).ambientConnectedComponentOfOne).toSubmodule) I
+  have himg := h.image_polar_isotropy_prod_ambientConnectedComponentOfOne hμ hg hx
+  have hmem (g : (MulAction.stabilizer Gc x).ambientConnectedComponentOfOne) :
+      C.polar.symm g ∈
+        (((InfinitesimalAction.fundamental I G I' M).isotropy x : Set (GroupLieAlgebra I G)) ×ˢ
+          ((MulAction.stabilizer G x).ambientConnectedComponentOfOne : Set G) : Set (E × G)) := by
+    have hg₀ := g.2
+    rw [← SetLike.mem_coe, ← himg] at hg₀
+    obtain ⟨p, hp, hpg⟩ := hg₀
+    rw [← hpg, C.polar.symm_apply_apply]
+    exact hp
+  { toFun p := ⟨C.polar ((e p.1 : GroupLieAlgebra I G), p.2), by
+      rw [← SetLike.mem_coe, ← himg]
+      exact Set.mem_image_of_mem _ ⟨(e p.1).2, p.2.2⟩⟩
+    invFun g := (e.symm ⟨(C.polar.symm g).1, (hmem g).1⟩, ⟨(C.polar.symm g).2, (hmem g).2⟩)
+    left_inv p := by
+      refine Prod.ext ((LinearEquiv.symm_apply_eq e).2 (Subtype.ext ?_)) (Subtype.ext ?_) <;>
+        simp only [Diffeomorph.symm_apply_apply]
+    right_inv g := by
+      exact Subtype.ext (by simp only [LinearEquiv.apply_symm_apply, Prod.mk.eta, Diffeomorph.apply_symm_apply])
+    contMDiff_toFun := by
+      refine dK.isSmoothEmbedding_subtypeVal.contMDiff_iff_comp.2 ?_
+      refine (C.polar.contMDiff.comp ((ι.contMDiff.comp contMDiff_fst).prodMk
+        (dH.contMDiff_subtypeVal.comp contMDiff_snd))).congr fun p ↦ ?_
+      exact congrArg (fun v ↦ C.polar (v, (p.2 : G)))
+        (dH.coe_groupLieAlgebraEquivIsotropy (I' := I') p.1)
+    contMDiff_invFun := by
+      -- A linear left inverse of `ι` reads off the first component.
+      obtain ⟨L, hL⟩ := ι.toLinearMap.exists_leftInverse_of_injective
+        (LinearMap.ker_eq_bot.2 dH.injective_groupLieAlgebraMap_subtype)
+      refine ContMDiff.prodMk ?_ ?_
+      · refine (L.toContinuousLinearMap.contMDiff.comp (contMDiff_fst.comp
+          (C.polar.symm.contMDiff.comp dK.contMDiff_subtypeVal))).congr fun g ↦ ?_
+        exact (LinearMap.congr_fun hL _).symm.trans (congrArg L
+          (dH.groupLieAlgebraMap_subtype_groupLieAlgebraEquivIsotropy_symm (I' := I')
+            ⟨_, (hmem g).1⟩))
+      · refine dH.isSmoothEmbedding_subtypeVal.contMDiff_iff_comp.2 ?_
+        exact contMDiff_snd.comp (C.polar.symm.contMDiff.comp dK.contMDiff_subtypeVal) }
+
+end StabilizerPolar
 
 end SymplecticGeometry
