@@ -31,8 +31,6 @@ degree `k`:
 * `OnePoint.contMDiffAt_div_twistCore`: the same for sections that are `C^n` at a point, by the
   same reading in coordinates, adapted to `C^n` from the differentiability step of Tau Ceti's
   `TauCeti.IsRealCauchyRiemannOperator.exists_mdifferentiableOn_eq_smul`;
-* `OnePoint.eventually_ne_zero_twistCore`: a section of `𝒪(k)` that is continuous and nonzero at
-  a point is nonzero near it;
 * `OnePoint.twistCore_localTriv_symmL_apply`: over the chart at `y`, the real frame of the
   trivialization at `y` is multiplication by a transition function;
 * `OnePoint.twistCore_localTriv_symmL_smul`: that frame commutes with complex scalars;
@@ -148,24 +146,6 @@ theorem contMDiffAt_div_twistCore (k : ℤ) {n : ℕ∞ω} {s t : OnePoint ℂ �
   refine (hdiv.contMDiffAt.comp x (hcs.prodMk_space hct)).congr_of_eventuallyEq ?_
   filter_upwards [(chartAt ℂ x).open_source.eventually_mem (mem_chart_source ℂ x)] with p hp
   exact (mul_div_mul_left _ _ (twistTransition_ne_zero k (mem_chart_source ℂ p) hp)).symm
-
-/-- A section of `𝒪(k)` that is continuous at `x`, as a map into the total space, and does not
-vanish at `x`, does not vanish near `x`. -/
-theorem eventually_ne_zero_twistCore (k : ℤ) {t : OnePoint ℂ → ℂ} {x : OnePoint ℂ}
-    (ht : ContinuousAt
-      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) x)
-    (hx : t x ≠ 0) : ∀ᶠ p in 𝓝 x, t p ≠ 0 := by
-  -- The coordinate of `t` in the trivialization at `x` is continuous at `x`.
-  set e := (twistCore (𝕜 := ℂ) k).localTriv x
-  have hmem : TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) x (t x) ∈ e.source := by
-    simp [e, e.mem_source]
-  have hc : ContinuousAt (fun p ↦ (e ⟨p, t p⟩).2) x :=
-    continuous_snd.continuousAt.comp
-      ((e.continuousOn.continuousAt (e.open_source.mem_nhds hmem)).comp (x := x)
-        (f := fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (t p)) ht)
-  simp only [e, twistCore_localTriv_apply] at hc
-  filter_upwards [hc.eventually_ne (by rwa [twistTransition_self, one_mul])] with p hp
-  exact right_ne_zero_of_mul hp
 
 open scoped TauCeti.ComplexManifold in
 /-- Let `α` be a `C^n` one-form on the Riemann sphere with values in `𝒪(k)`, `σ` a `C^n` section
