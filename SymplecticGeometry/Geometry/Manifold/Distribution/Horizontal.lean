@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
+import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
 /-!
 # Horizontality is a local property
@@ -19,6 +20,13 @@ of `s` (`TauCeti.IsHorizontalMap.piecewise`, whose proof follows that of Mathlib
 `ContMDiff.piecewise`). This is how curves glued from horizontal pieces are seen to be horizontal.
 The file also notes that a constant map is horizontal (`TauCeti.isHorizontalMap_const`), since
 its tangent maps vanish.
+
+For a map `f` on a normed space and a curve `g` with derivative `w` at `t`, the derivative
+`df_{g t} w` is the velocity at `t` of the curve `f ∘ g` (Tau Ceti's
+`MDifferentiableAt.curveVelocity_comp_mfderiv`). So it lies in `D (f (g t))` as soon as `f ∘ g`
+is horizontal (`TauCeti.IsHorizontalMap.mfderiv_apply_mem_of_hasDerivAt`); no differentiability
+of `f` is needed, since its derivative is zero where `f` is not differentiable. For the line
+`r ↦ z + r • w` this gives `TauCeti.IsHorizontalMap.mfderiv_apply_mem_of_line`.
 -/
 
 public section
@@ -66,6 +74,34 @@ theorem IsHorizontalMap.piecewise {g : N → M} {s : Set N} [DecidablePred (· �
   · refine ⟨g, hg, ?_⟩
     filter_upwards [isClosed_closure.isOpen_compl.mem_nhds hy'] with z hz
     exact Set.piecewise_eq_of_notMem _ _ _ fun hzs ↦ hz (subset_closure hzs)
+
+section Line
+
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace 𝕜 V]
+
+/-- If `f ∘ g` is horizontal for `D`, where `f` is a map on a normed space and `g` a curve with
+derivative `w` at `t`, then the derivative of `f` at `g t` in the direction `w` lies in
+`D (f (g t))`. -/
+theorem IsHorizontalMap.mfderiv_apply_mem_of_hasDerivAt {f : V → M} {g : 𝕜 → V} {t : 𝕜}
+    {w : V} (hf : IsHorizontalMap 𝓘(𝕜, 𝕜) D (f ∘ g)) (hg : HasDerivAt g w t) :
+    mfderiv 𝓘(𝕜, V) I f (g t) w ∈ D (f (g t)) := by
+  by_cases hd : MDifferentiableAt 𝓘(𝕜, V) I f (g t)
+  · rw [← hd.curveVelocity_comp_mfderiv hg, Manifold.curveVelocity_apply]
+    exact hf.mfderiv_mem t (1 : 𝕜)
+  · rw [mfderiv_zero_of_not_mdifferentiableAt hd]
+    exact (D _).zero_mem
+
+/-- If the line `r ↦ f (z + r • w)` of a map `f` on a normed space is horizontal for `D`, then
+the derivative of `f` at `z` in the direction `w` lies in `D (f z)`. -/
+theorem IsHorizontalMap.mfderiv_apply_mem_of_line {f : V → M} {z w : V}
+    (hf : IsHorizontalMap 𝓘(𝕜, 𝕜) D fun r : 𝕜 ↦ f (z + r • w)) :
+    mfderiv 𝓘(𝕜, V) I f z w ∈ D (f z) := by
+  have hg : HasDerivAt (fun r : 𝕜 ↦ z + r • w) w 0 := by
+    simpa using ((hasDerivAt_id (0 : 𝕜)).smul_const w).const_add z
+  have h0 : z + (0 : 𝕜) • w = z := by simp
+  exact h0 ▸ hf.mfderiv_apply_mem_of_hasDerivAt (g := fun r : 𝕜 ↦ z + r • w) hg
+
+end Line
 
 end TauCeti
 
