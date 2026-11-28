@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
@@ -13,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Measure
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
 import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
+import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import TauCeti.Geometry.Manifold.Measure.Atlas
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -33,8 +35,11 @@ compactly supported function `f`:
 symplectic volume form of `TauCeti.integralTopForm_smul_eq_integral_measure`, and holds in every
 dimension, including dimension `0`. With `f = 1`, on a compact manifold it says that the integral
 of `σⁿ / n!` is the Liouville measure of the whole manifold
-(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm`); with Tau Ceti's
-`TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, it shows that the
+(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm`). So on a compact surface,
+two nondegenerate closed two-forms with the same de Rham class and the same symplectic orientation
+have the same total Liouville measure (`TauCeti.SmoothTwoForm.liouvilleMeasure_univ_eq_of_mk_eq`).
+With Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.isOpenPosMeasure_liouvilleMeasure`, the
+case `f = 1` shows that the
 symplectic volume of a nonempty compact manifold is positive
 (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm_pos`).
 
@@ -47,9 +52,7 @@ subset of the source onto a set of the same Liouville measure
 `∫ f dλ_σ = ∫_{Φ.source} f ∘ Φ dλ_τ` for every `f` vanishing outside the target
 (`TauCeti.SmoothTwoForm.IsSymplecticMapOn.integral_liouvilleMeasure`). The manifolds `N` and `M`
 may be modelled on different spaces of the same dimension; the proof restricts `Φ` to its open
-source and applies `MeasurableEmbedding.map_liouvilleMeasure` there. In the same way a
-symplectomorphism carries one Liouville measure to the other
-(`TauCeti.SmoothTwoForm.IsSymplectomorphism.map_liouvilleMeasure`). On the standard
+source and applies `MeasurableEmbedding.map_liouvilleMeasure` there. On the standard
 space `StdSpace ι` with the constant form `ω₀ = stdForm ι`, the Liouville measure is Lebesgue
 measure (`SymplecticGeometry.liouvilleMeasure_constSmooth_stdForm`), so a symplectic chart from
 `StdSpace (Fin n)` turns a Liouville integral into a Lebesgue integral over the chart's source
@@ -123,6 +126,24 @@ theorem IsNondegenerate.integralTopForm_volumeForm [CompactSpace M] (h : σ.IsNo
   simpa only [one_smul, integral_const, smul_eq_mul, mul_one] using
     h.integralTopForm_smul_volumeForm (n := n) (f := fun _ ↦ (1 : ℝ)) continuous_const
       (HasCompactSupport.of_compactSpace _)
+
+/-- **Cohomologous nondegenerate forms on a surface have the same area.** On a compact
+boundaryless Hausdorff manifold of dimension `2`, two fiberwise nondegenerate closed two-forms
+`σ` and `τ` with the same de Rham class and the same symplectic orientation give the whole
+manifold the same Liouville measure. -/
+theorem liouvilleMeasure_univ_eq_of_mk_eq [BoundarylessManifold I M] [T2Space M]
+    [CompactSpace M] [hk : Fact (finrank ℝ E = 2 * 1)] {τ : SmoothTwoForm I M}
+    (hσ : σ.IsNondegenerate) (hτ : τ.IsNondegenerate) (hσc : σ ∈ closedForms I M 2)
+    (hτc : τ ∈ closedForms I M 2) (ho : hσ.volumeOrientation hk.out = hτ.volumeOrientation hk.out)
+    (h : deRhamCohomology.mk I 2 ⟨σ, hσc⟩ = deRhamCohomology.mk I 2 ⟨τ, hτc⟩) :
+    σ.liouvilleMeasure 1 Set.univ = τ.liouvilleMeasure 1 Set.univ := by
+  have harea := congrArg (deRhamCohomology.integral (hσ.volumeOrientation hk.out)) h
+  rw [deRhamCohomology.integral_mk, deRhamCohomology.integral_mk] at harea
+  have e₁ := hσ.integralTopForm_volumeForm (n := 1)
+  have e₂ := hτ.integralTopForm_volumeForm (n := 1)
+  rw [volumeForm_one] at e₁ e₂
+  rw [e₁, ho, e₂] at harea
+  exact (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 harea
 
 /-! ### Null sets in charts -/
 
@@ -232,28 +253,6 @@ theorem IsSymplecticMapOn.integral_liouvilleMeasure {F : Type*} [NormedAddCommGr
   simp only [domRestrict_apply]
 
 end PartialDiffeomorph
-
-/-! ### Symplectomorphisms -/
-
-section Symplectomorphism
-
-variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [Fact (finrank ℝ E' = 2 * n)] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
-  [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N] [MeasurableSpace N] [BorelSpace N]
-  [LindelofSpace N] {τ : SmoothTwoForm J N} {φ : M ≃ₘ⟮I, J⟯ N}
-
-/-- **Symplectomorphisms preserve the Liouville measure.** A diffeomorphism `φ : M → N` that is a
-symplectomorphism from `σ` to `τ` carries the Liouville measure of `σ` to that of `τ`. The two
-manifolds may be modelled on different spaces of the same dimension `2 * n`. -/
-theorem IsSymplectomorphism.map_liouvilleMeasure (hφ : σ.IsSymplectomorphism τ φ) :
-    (σ.liouvilleMeasure n).map φ = τ.liouvilleMeasure n := by
-  have h : mpullback I J φ τ.val = σ.val := by
-    rw [← SmoothForm.coe_mpullback φ φ.contMDiff, isSymplectomorphism_iff_mpullback_eq.1 hφ]
-  have hm : MeasurableEmbedding φ := by simpa using φ.toHomeomorph.measurableEmbedding
-  rw [hm.map_liouvilleMeasure (φ.contMDiff.mdifferentiable (by simp)) h,
-    ← φ.coe_toEquiv, φ.toEquiv.range_eq_univ, Measure.restrict_univ]
-
-end Symplectomorphism
 
 section Volume
 

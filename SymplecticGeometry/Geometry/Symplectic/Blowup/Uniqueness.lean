@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Blowup.Normalized.Class
 import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
-import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import TauCeti.Geometry.Manifold.SmoothSingular.DeRham.Equiv
 
 /-!
@@ -51,13 +50,12 @@ For `n = 0` this argument does not apply, and the total area decides instead. Th
 for the default profiles too, as they do not depend on the profile, so by the de Rham theorem
 (`TauCeti.bijective_deRhamHom`) the default forms have the same de Rham class. Both forms carry
 the same symplectic orientation `o`, which is constant along the path above
-(`TauCeti.SmoothTwoForm.volumeOrientation_eq_of_isSmoothFamily`). On the compact blowup,
-integrating a class against `o` is well defined (`TauCeti.deRhamCohomology.integral_mk`), and the
-integral of each form is its total Liouville measure
-(`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_volumeForm`). That measure is the area of
-`σ` minus the volume of `B(lᵢ)`
-(`IsNormalizedBallEmbedding.liouvilleMeasure_normalizedBlowupForm_add`), finite on compact `M`,
-and the volume `π lᵢ²` of the disc determines `lᵢ > 0`.
+(`TauCeti.SmoothTwoForm.volumeOrientation_eq_of_isSmoothFamily`). On the compact blowup, two such
+forms have the same total Liouville measure
+(`TauCeti.SmoothTwoForm.liouvilleMeasure_univ_eq_of_mk_eq`, which integrates the class against
+`o`). That measure is the area of `σ` minus the volume of `B(lᵢ)`
+(`SymplecticGeometry.IsNormalizedBallEmbedding.liouvilleMeasure_normalizedBlowupForm_add`),
+finite on compact `M`, and the volume `π lᵢ²` of the disc determines `lᵢ > 0`.
 
 ## References
 
@@ -211,17 +209,8 @@ theorem deRhamHom_normalizedBlowupForm_eq_iff_of_compactSpace [SecondCountableTo
     revert hω₁ hω₂
     rw [← hτ0, ← hτ1]
     exact fun _ _ ↦ this
-  -- On the compact blowup, integrating against this orientation gives the total area, which
-  -- therefore agrees for the two forms.
-  have harea := congrArg (deRhamCohomology.integral (hω₁.volumeOrientation hk)) hmk
-  rw [deRhamCohomology.integral_mk, deRhamCohomology.integral_mk] at harea
-  have e₁ := hω₁.integralTopForm_volumeForm (n := 1)
-  have e₂ := hω₂.integralTopForm_volumeForm (n := 1)
-  rw [SmoothTwoForm.volumeForm_one] at e₁ e₂
-  rw [e₁, ho, e₂] at harea
-  have hA : (hψ₁.normalizedBlowupForm).liouvilleMeasure 1 univ =
-      (hψ₂.normalizedBlowupForm).liouvilleMeasure 1 univ :=
-    (ENNReal.toReal_eq_toReal_iff' (measure_ne_top _ _) (measure_ne_top _ _)).1 harea
+  -- On the compact blowup, the two forms therefore have the same total area.
+  have hA := SmoothTwoForm.liouvilleMeasure_univ_eq_of_mk_eq hω₁ hω₂ _ _ ho hmk
   -- Each area is that of `σ` minus the volume of the ball `B(lᵢ)`, which is `lᵢ²` times that of
   -- the unit ball.
   have hV := (hψ₁.liouvilleMeasure_normalizedBlowupForm_add (m := 1) hb₁).trans
