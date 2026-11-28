@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath.Basic
 import Mathlib.Analysis.Calculus.FDeriv.Pow
+import SymplecticGeometry.Geometry.Manifold.Morse.Bott.Chart.Hessian
 
 /-!
 # The first three derivatives of a birth–death normal form
@@ -18,6 +19,9 @@ and third derivatives at every point and reads off the data at the origin that c
 birth–death critical point: the differential vanishes, the Hessian is the diagonal form
 `Σᵢ wᵢ (L v)ᵢ (L w)ᵢ`, whose kernel is the line spanned by `e = L⁻¹ (Pi.single i₀ 1)`, and the third
 derivative takes the value `2` on `(e, e, e)`.
+
+The quadratic part of the second derivative is that of the Morse–Bott chart,
+`TauCeti.MorseBottChart.fderiv_fderiv_quadratic_apply`; the cubic term adds the rest.
 
 ## Main declarations
 
@@ -50,47 +54,35 @@ namespace BirthDeathChart
 
 variable (φ : BirthDeathChart E f x)
 
-variable (φ : BirthDeathChart E f x)
-
-/-- The `i`-th coordinate of a birth–death chart, as a continuous linear functional. -/
-private noncomputable def coordFun (i : Fin (Module.finrank ℝ E)) : E →L[ℝ] ℝ :=
-  (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin (Module.finrank ℝ E) ↦ ℝ) i).comp
-    (φ.toMorseBottChart.coordL : E →L[ℝ] (Fin (Module.finrank ℝ E) → ℝ))
-
-private theorem coordFun_apply (i : Fin (Module.finrank ℝ E)) (v : E) :
-    φ.coordFun i v = φ.toMorseBottChart.coord v i := by
-  simp [coordFun]
-
-/-- The constant part of the second derivative of the normal form. -/
-private noncomputable def hessConst : E →L[ℝ] E →L[ℝ] ℝ :=
-  ∑ i, φ.toMorseBottChart.weight i • (φ.coordFun i).smulRight (φ.coordFun i)
-
 /-- The third derivative of the normal form. -/
 private noncomputable def cubicForm : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ :=
-  ((2 : ℝ) • φ.coordFun φ.cubicIndex).smulRight
-    ((φ.coordFun φ.cubicIndex).smulRight (φ.coordFun φ.cubicIndex))
+  ((2 : ℝ) • φ.toMorseBottChart.coordFun φ.cubicIndex).smulRight
+    ((φ.toMorseBottChart.coordFun φ.cubicIndex).smulRight
+      (φ.toMorseBottChart.coordFun φ.cubicIndex))
 
 private theorem fderiv_normalForm_eq :
-    fderiv ℝ φ.normalForm = fun z ↦ ∑ i, (φ.toMorseBottChart.weight i * φ.coordFun i z) •
-      φ.coordFun i + (φ.coordFun φ.cubicIndex z ^ 2) • φ.coordFun φ.cubicIndex := by
+    fderiv ℝ φ.normalForm = fun z ↦ fderiv ℝ φ.toMorseBottChart.quadratic z +
+      (φ.toMorseBottChart.coordFun φ.cubicIndex z ^ 2) •
+        φ.toMorseBottChart.coordFun φ.cubicIndex := by
   ext z v
-  simp [fderiv_normalForm_apply, coordFun_apply, mul_assoc]
+  simp [fderiv_normalForm_apply, MorseBottChart.fderiv_quadratic_apply]
 
 private theorem hasFDerivAt_fderiv_normalForm (z : E) :
-    HasFDerivAt (fderiv ℝ φ.normalForm) (φ.hessConst + φ.cubicForm z) z := by
+    HasFDerivAt (fderiv ℝ φ.normalForm)
+      ((∑ i, φ.toMorseBottChart.weight i •
+        (φ.toMorseBottChart.coordFun i).smulRight (φ.toMorseBottChart.coordFun i)) +
+          φ.cubicForm z) z := by
   rw [fderiv_normalForm_eq]
-  have h₁ := HasFDerivAt.fun_sum (u := Finset.univ) fun i _ ↦
-    (((φ.coordFun i).hasFDerivAt (x := z)).const_mul (φ.toMorseBottChart.weight i)).smul_const
-      (φ.coordFun i)
-  have hc : HasFDerivAt (φ.coordFun φ.cubicIndex) (φ.coordFun φ.cubicIndex) z :=
-    (φ.coordFun φ.cubicIndex).hasFDerivAt
-  have h₂ := (hc.pow 2).smul_const (φ.coordFun φ.cubicIndex)
-  convert h₁.add h₂ using 1
+  have hc := (φ.toMorseBottChart.coordFun φ.cubicIndex).hasFDerivAt (x := z)
+  convert (φ.toMorseBottChart.hasFDerivAt_fderiv_quadratic z).add
+    ((hc.pow 2).smul_const (φ.toMorseBottChart.coordFun φ.cubicIndex)) using 2
   ext v w
-  simp [hessConst, cubicForm, mul_assoc]
+  simp [cubicForm, mul_assoc]
 
 private theorem fderiv_fderiv_normalForm_eq :
-    fderiv ℝ (fderiv ℝ φ.normalForm) = fun z ↦ φ.hessConst + φ.cubicForm z :=
+    fderiv ℝ (fderiv ℝ φ.normalForm) = fun z ↦ (∑ i, φ.toMorseBottChart.weight i •
+      (φ.toMorseBottChart.coordFun i).smulRight (φ.toMorseBottChart.coordFun i)) +
+        φ.cubicForm z :=
   funext fun z ↦ (φ.hasFDerivAt_fderiv_normalForm z).fderiv
 
 /-- The second derivative of the normal form of a birth–death chart:
@@ -100,8 +92,10 @@ theorem fderiv_fderiv_normalForm_apply (z v w : E) :
       φ.toMorseBottChart.coord v i * φ.toMorseBottChart.coord w i +
         2 * φ.toMorseBottChart.coord z φ.cubicIndex * φ.toMorseBottChart.coord v φ.cubicIndex *
           φ.toMorseBottChart.coord w φ.cubicIndex := by
-  rw [fderiv_fderiv_normalForm_eq]
-  simp [hessConst, cubicForm, coordFun_apply, mul_assoc]
+  rw [fderiv_fderiv_normalForm_eq, add_apply, add_apply,
+    ← (φ.toMorseBottChart.hasFDerivAt_fderiv_quadratic z).fderiv,
+    MorseBottChart.fderiv_fderiv_quadratic_apply]
+  simp [cubicForm, mul_assoc]
 
 /-- The third derivative of the normal form of a birth–death chart is the same at every point:
 `(u, v, w) ↦ 2 (L u)_{i₀} (L v)_{i₀} (L w)_{i₀}`. -/
@@ -111,11 +105,13 @@ theorem fderiv_fderiv_fderiv_normalForm_apply (z u v w : E) :
         φ.toMorseBottChart.coord w φ.cubicIndex := by
   -- The implicit arguments are given: elaborating with them left to unification fails on the
   -- instances of the space of bilinear maps.
-  have h : fderiv ℝ (fun z ↦ φ.hessConst + φ.cubicForm z) z = φ.cubicForm :=
+  have h : fderiv ℝ (fun z ↦ (∑ i, φ.toMorseBottChart.weight i •
+      (φ.toMorseBottChart.coordFun i).smulRight (φ.toMorseBottChart.coordFun i)) +
+        φ.cubicForm z) z = φ.cubicForm :=
     (fderiv_const_add (𝕜 := ℝ) (F := E →L[ℝ] E →L[ℝ] ℝ) (f := ⇑φ.cubicForm) (x := z)
-      φ.hessConst).trans (ContinuousLinearMap.fderiv (F := E →L[ℝ] E →L[ℝ] ℝ) φ.cubicForm)
+      _).trans (ContinuousLinearMap.fderiv (F := E →L[ℝ] E →L[ℝ] ℝ) φ.cubicForm)
   rw [fderiv_fderiv_normalForm_eq, h]
-  simp [cubicForm, coordFun_apply, mul_assoc]
+  simp [cubicForm, mul_assoc]
 
 /-- The differential of the normal form of a birth–death chart vanishes at the origin. -/
 @[simp]
