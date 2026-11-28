@@ -35,7 +35,7 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   smooth of every order (`contMDiff_mkNonzero`), holomorphic over `𝕜` itself
   (`contMDiff_mkNonzero_self`). Its derivative at `v`, over `𝕜` and over `ℝ` alike, is Tau
   Ceti's derivative `Projectivization.mfderivMk v` of the projection `w ↦ [w]`
-  (`mfderiv_mkNonzero_self_apply`, `mfderiv_mkNonzero_apply`). By Tau Ceti's
+  (`mfderiv_mkNonzero_self`, `mfderiv_mkNonzero`, with their `_apply` forms). By Tau Ceti's
   `Projectivization.surjective_mfderivMk` and `Projectivization.ker_mfderivMk`, `mkNonzero` is
   regular at every point (`isRegularPoint_mkNonzero`), so a submersion (`isSubmersion_mkNonzero`),
   and the kernel of its real derivative at `v` is the line `𝕜 ∙ v` (`ker_mfderiv_mkNonzero`). Its
@@ -147,6 +147,13 @@ theorem mfderiv_mkNonzero_self_apply (v : TauCeti.puncturedSpace (Fin (n + 1) �
   exact (DFunLike.congr_fun h w).trans
     (congrArg (mfderivMk (v : Fin (n + 1) → 𝕜)) (TauCeti.Manifold.mfderiv_subtype_val_apply v w))
 
+/-- Over `𝕜` itself, the derivative of `mkNonzero` at `v` is Tau Ceti's derivative
+`Projectivization.mfderivMk v` of the projection `w ↦ [w]`, as a continuous linear map. -/
+theorem mfderiv_mkNonzero_self (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
+    mfderiv 𝓘(𝕜, Fin (n + 1) → 𝕜) 𝓘(𝕜, Fin n → 𝕜) (mkNonzero 𝕜 n) v =
+      mfderivMk (v : Fin (n + 1) → 𝕜) :=
+  ContinuousLinearMap.ext (mfderiv_mkNonzero_self_apply v)
+
 variable [NormedAlgebra ℝ 𝕜]
 
 variable (𝕜 n) in
@@ -178,6 +185,14 @@ theorem mfderiv_mkNonzero_apply (v : TauCeti.puncturedSpace (Fin (n + 1) → �
     one_ne_zero).mfderiv_modelWithCornersSelf_restrictScalars_apply ℝ w).trans
     (mfderiv_mkNonzero_self_apply v w)
 
+/-- For the underlying real manifold structures, the derivative of `mkNonzero` at `v` is Tau
+Ceti's derivative `Projectivization.mfderivMk v` of the projection `w ↦ [w]`, with its scalars
+restricted to `ℝ`. -/
+theorem mfderiv_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
+    mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v =
+      (mfderivMk (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ :=
+  ContinuousLinearMap.ext (mfderiv_mkNonzero_apply v)
+
 /-- Every nonzero vector `v` is a regular point of the projection `mkNonzero` for the underlying
 real manifold structures: its real derivative at `v` is surjective. -/
 theorem isRegularPoint_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
@@ -201,25 +216,22 @@ subspace. -/
 theorem ker_mfderiv_mkNonzero (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) :
     LinearMap.ker (mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v).toLinearMap =
       (𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ := by
-  -- The tangent space at `v` is the model space `Fin (n + 1) → 𝕜`, in which the line lives.
-  refine Submodule.ext fun (w : Fin (n + 1) → 𝕜) ↦ ?_
-  have hv := TauCeti.mem_puncturedSpace.1 v.property
-  exact LinearMap.mem_ker.trans <| (Eq.congr_left (mfderiv_mkNonzero_apply v w)).trans <|
-    (LinearMap.mem_ker (f := ((mfderivMk (v : Fin (n + 1) → 𝕜) :
-      (Fin (n + 1) → 𝕜) →ₗ[𝕜] Fin n → 𝕜)))).symm.trans <|
-      (SetLike.ext_iff.1 (ker_mfderivMk hv) w).trans (Submodule.restrictScalars_mem ℝ _ _).symm
+  rw [mfderiv_mkNonzero, ← ker_mfderivMk (TauCeti.mem_puncturedSpace.1 v.property),
+    ContinuousLinearMap.coe_restrictScalars]
+  -- `rw [LinearMap.ker_restrictScalars]` fails, as the tangent spaces at `v` and `[v]` are not
+  -- syntactically the model spaces; the lemma still closes the goal up to that identification.
+  exact LinearMap.ker_restrictScalars ℝ
+    (mfderivMk (v : Fin (n + 1) → 𝕜) : (Fin (n + 1) → 𝕜) →ₗ[𝕜] Fin n → 𝕜)
 
 /-- The real derivative of `mkNonzero` at `v` vanishes on the line `𝕜 ∙ v`, along which
 `mkNonzero` is constant. -/
 theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) → 𝕜)) (c : 𝕜) :
     mfderiv 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) (mkNonzero 𝕜 n) v
       (c • (v : Fin (n + 1) → 𝕜)) = 0 := by
-  have h : c • (v : Fin (n + 1) → 𝕜) ∈
-      LinearMap.ker (mfderivMk (v : Fin (n + 1) → 𝕜) : (Fin (n + 1) → 𝕜) →ₗ[𝕜] Fin n → 𝕜) := by
-    rw [ker_mfderivMk (TauCeti.mem_puncturedSpace.1 v.property)]
-    exact Submodule.mem_span_singleton.2 ⟨c, rfl⟩
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at h
-  exact (mfderiv_mkNonzero_apply v _).trans h
+  have h : c • (v : Fin (n + 1) → 𝕜) ∈ (𝕜 ∙ (v : Fin (n + 1) → 𝕜)).restrictScalars ℝ :=
+    Submodule.mem_span_singleton.2 ⟨c, rfl⟩
+  rw [← ker_mfderiv_mkNonzero] at h
+  exact LinearMap.mem_ker.1 h
 
 end MkNonzero
 
