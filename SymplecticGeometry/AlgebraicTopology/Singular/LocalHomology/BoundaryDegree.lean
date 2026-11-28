@@ -213,7 +213,7 @@ theorem boundaryDegree_eq_of_localHomologyMap {G : C(X, ℂ)} (hG : G ⁻¹' {0}
     -- The subspace of `TopPair.ofSubset` is the subtype only after unfolding the pair.
     erw [ConcreteCategory.comp_apply]
     refine (Circle.coe_radialProjection_apply _).trans ?_
-    erw [TopPair.ofSubsetMap_snd_apply]
+    rw [TopPair.ofSubsetMap_snd_apply]
     exact (hu z).symm
   -- Naturality of the connecting morphism for `G : (X, ∂X) ⟶ (ℂ, ℂ ∖ {0})`.
   have hnat : P.reducedSingularHomologyδ R 1 ≫ H'.map (TopCat.ofHom u) =

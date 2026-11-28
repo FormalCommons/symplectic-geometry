@@ -34,7 +34,7 @@ Gaussian (`RescaledUnitaryCharts.reading_affinePeakSection`).
   for all large `k`, every centre `x` and every section `s` whose reading is `C²` on the ball of
   radius `11 / 10` with `2`-jet norm at most `B` and with `∂̄` reading of `1`-jet norm at most
   `B * k ^ (-1 / 2)`, some `w` with `‖w‖ ≤ δ` makes `t = s - D.affinePeakSection k x w` satisfy
-  `ε / 4 ≤ max ‖t y‖ ((2π k)^(-1/2) ‖∂ t(y)‖)` at every point `y` of the image of the closed unit
+  `ε / 4 ≤ transversalityQuantity J α k t y` at every point `y` of the image of the closed unit
   ball. The constants are chosen in the order that the iteration over colours needs: `δ` first,
   then `k`, uniformly in `x` and `s`.
 * `SymplecticGeometry.RescaledUnitaryCharts.exists_correction_of_separated`: one step of the
@@ -52,7 +52,7 @@ the hypotheses of the local transversality estimate
 (`exists_forall_norm_reading_div_peakFunction_le`); the estimate
 `SymplecticGeometry.exists_norm_le_max_ge_of_flatDbar_le` gives `w`; the reading of the corrected
 section is then the corrected quotient times the Gaussian near the closed unit ball, and
-`eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian` carries the lower bound back to
+`eventually_div_four_le_transversalityQuantity_of_mul_gaussian` carries the lower bound back to
 the section.
 
 For one colour, the changes of chart of `ChartChange.lean` turn the global bounds on `s` into the
@@ -154,9 +154,9 @@ such that, for `0 < δ < δ₀` and `ε = δ / log (1 / δ) ^ p`, the following 
 `x` is, at each point of the ball of radius `11 / 10`, `C²` with `2`-jet norm at most `B`, and
 whose `∂̄` reading has `1`-jet norm at most `B * k ^ (-1 / 2)` there. Some `w ∈ ℂⁿ⁺¹` with
 `‖w‖ ≤ δ` makes the corrected section `t = s - D.affinePeakSection k x w` satisfy
-`ε / 4 ≤ max ‖t y‖ ((2π k)^(-1/2) ‖∂ t(y)‖)` at `y = (D.chart k x).symm z` for every `z` of the
-closed unit ball, where `∂ t(y)` is the `(1,0)`-part `J.oneZeroPart` of `D_k t` at `y`, with its
-operator norm. -/
+`ε / 4 ≤ transversalityQuantity J α k t y` at `y = (D.chart k x).symm z` for every `z` of the
+closed unit ball. The transversality quantity is `max ‖t y‖ ((2π k)^(-1/2) ‖∂ t(y)‖)`, where
+`∂ t(y)` is the `(1,0)`-part `J.oneZeroPart` of `D_k t` at `y`, with its operator norm. -/
 theorem exists_local_correction [I.Boundaryless] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     [∀ y, Nonempty (P y)]
     (hg : ∀ (y : M) (v w : TangentSpace I y), inner ℝ v w = σ.eval₂ y v (J y w))
@@ -168,9 +168,8 @@ theorem exists_local_correction [I.Boundaryless] [RiemannianBundle (fun x : M �
           jetNormAt ℝ 1 (D.dbarReading k x s) z ≤ B * (k : ℝ) ^ (-1 / 2 : ℝ)) →
         ∃ w : EuclideanSpace ℂ (Option ι), ‖w‖ ≤ δ ∧ ∀ z ∈ closedBall (0 : StdSpace ι) 1,
           δ / Real.log (1 / δ) ^ p / 4 ≤
-            max ‖(s - D.affinePeakSection k x w) ((D.chart k x).symm z)‖
-              ((2 * Real.pi * k) ^ (-1 / 2 : ℝ) * ‖J.oneZeroPart
-                (powerConnection α k (s - D.affinePeakSection k x w) ((D.chart k x).symm z))‖) := by
+            transversalityQuantity J α k (s - D.affinePeakSection k x w)
+              ((D.chart k x).symm z) := by
   obtain ⟨A, hA, C, hC⟩ := D.exists_forall_norm_reading_div_peakFunction_le hρ₀ B
   obtain ⟨p, hp, δ₀, hδ₀, H⟩ := exists_norm_le_max_ge_of_flatDbar_le (ι := ι) hA
   refine ⟨p, hp, min δ₀ (1 / 2), lt_min hδ₀ (by norm_num), fun δ hδ hδδ₀ ↦ ?_⟩
@@ -188,7 +187,7 @@ theorem exists_local_correction [I.Boundaryless] [RiemannianBundle (fun x : M �
   have hρ : ∀ᶠ k : ℕ in Filter.atTop, (1 : ℝ) < ρ₀ * √k :=
     ((Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop).const_mul_atTop
       hρ₀).eventually_gt_atTop 1
-  filter_upwards [hC, hCk, D.eventually_div_four_le_max_of_reading_eventuallyEq_mul_gaussian hg
+  filter_upwards [hC, hCk, D.eventually_div_four_le_transversalityQuantity_of_mul_gaussian hg
     hα hρ₀ ε (2 * A + 1 + 2 * Fintype.card ι), Filter.eventually_ge_atTop k₀, h6, hρ]
     with k hCk' hck hDk hk hk6 hkρ x s hs
   have hq := hCk' x s hs

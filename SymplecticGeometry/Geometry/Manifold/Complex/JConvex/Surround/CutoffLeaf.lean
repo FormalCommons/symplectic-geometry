@@ -625,13 +625,12 @@ theorem contDiffOn_uncurry_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) :
     (contDiffAt_const.add (contDiffAt_fst.pow 2)) contDiffAt_snd
     (cutoffLeaf_radicand_pos L hrδ (by nlinarith)).ne').contDiffWithinAt
 
-/-- Each leaf `sqrtAddLeaf L δ ℓ` is smooth where `δ < r`, for `0 ≤ δ`. -/
-theorem contDiffOn_sqrtAddLeaf (L : ℝ) (hδ : 0 ≤ δ) (ℓ : ℝ) :
-    ContDiffOn ℝ ∞ (sqrtAddLeaf L δ ℓ) (Ioi δ) := by
-  have h := (contDiffOn_uncurry_sqrtAddLeaf L hδ).comp
-    (contDiff_const.prodMk contDiff_id).contDiffOn
-    (fun r hr ↦ ⟨mem_univ ℓ, hr⟩ : MapsTo (fun r ↦ (ℓ, r)) (Ioi δ) (univ ×ˢ Ioi δ))
-  exact h.congr fun r _ ↦ by simp
+/-- Each leaf `sqrtAddLeaf L δ ℓ` is `Cⁿ` where `δ < r`, for `0 ≤ δ`. -/
+theorem contDiffOn_sqrtAddLeaf {n : ℕ∞} (L : ℝ) (hδ : 0 ≤ δ) (ℓ : ℝ) :
+    ContDiffOn ℝ n (sqrtAddLeaf L δ ℓ) (Ioi δ) := fun r hr ↦
+  (((contDiffOn_uncurry_sqrtAddLeaf L hδ).contDiffAt
+    (prod_mem_nhds univ_mem (Ioi_mem_nhds hr))).uncurry_left.of_le
+      (by exact_mod_cast le_top)).contDiffWithinAt
 
 /-- The slope of every leaf tends to `+∞` at `δ`, where the leaves meet the cylinder. -/
 theorem tendsto_deriv_sqrtAddLeaf {L : ℝ} (hL : 0 ≤ L) (hδ : 0 < δ) (ℓ : ℝ) :
@@ -883,8 +882,7 @@ private theorem isConvexShapeAt_struweSwitchLeaf_one {L ℓ r : ℝ} (hL : 0 ≤
   set η := (ℓ - 6) / 200 with hη
   have hη₀ : 0 < η := by rw [hη]; linarith
   have hAc : ContDiffAt ℝ 2 A r :=
-    ((contDiffOn_sqrtAddLeaf L zero_le_one ℓ).contDiffAt (Ioi_mem_nhds hr)).of_le
-      (by simp)
+    (contDiffOn_sqrtAddLeaf L zero_le_one ℓ).contDiffAt (Ioi_mem_nhds hr)
   have hTc : ContDiffAt ℝ 2 T r :=
     ((contDiffOn_struweShape one_pos le_rfl _).contDiffAt (Ioi_mem_nhds hr)).of_le
       (by simp)
