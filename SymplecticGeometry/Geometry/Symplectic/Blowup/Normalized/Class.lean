@@ -623,11 +623,11 @@ theorem deRhamHom_normalizedBlowupForm [SecondCountableTopology M] [SigmaCompact
   rw [← key, add_sub_cancel]
 
 /-- **The symplectic form of the almost complex blowup** (McDuff–Salamon, Theorem 7.1.21). Let
-`(M, σ, J)` be normalized at `p₀` by `ψ₀` (`hN`), with `σ` symplectic and `M` Hausdorff and
-σ-compact, and let `ψ` be a normalized ball embedding of radius `r`, weight `l` and width `ε`
-(`hψ`), with lift `ψ̃ = hψ.ballLiftPartialDiffeomorph` and `L(a) = closedNbhd n a`. The form
-`ω̃_{ψ,l,ε} = hψ.normalizedBlowupForm` of the blowup `Blowup hN.blowupChart`, for the profile
-`blowupProfile l ε`, is symplectic, and it is the only two-form that `ψ̃` pulls back to
+`(M, σ, J)` be normalized at `p₀` by `ψ₀` (`hN`), with `σ` symplectic and `M` Hausdorff, second
+countable and σ-compact, and let `ψ` be a normalized ball embedding of radius `r`, weight `l` and
+width `ε` (`hψ`), with lift `ψ̃ = hψ.ballLiftPartialDiffeomorph` and `L(a) = closedNbhd n a`. The
+form `ω̃_{ψ,l,ε} = hψ.normalizedBlowupForm` of the blowup `Blowup hN.blowupChart`, for the
+profile `blowupProfile l ε`, is symplectic, and it is the only two-form that `ψ̃` pulls back to
 `ω̃_{l,ε} = profileForm n l ε` on `openNbhd n r` and that is `π^* σ` off `ψ̃ '' L(l + ε)`.
 Moreover:
 * (i) `ψ̃` pulls it back to `ω̃_l = blowupForm n l` on `L(ε)`;
