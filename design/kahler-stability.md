@@ -831,7 +831,9 @@ its derivative: `dρ (C.cplx Z) = Complex.I • dρ Z`.
   `Projectivization.mapDiffeomorph` at the linear equivalence `ρ g`), with the
   library's `fubiniStudyForm n` and `ofComplexManifold`; the invariance of
   both under `G` (`mpullback_unitary_fubiniStudyForm`); and
-  `isComplexifiedAction_projectivization`. The fundamental vector field of
+  `isComplexifiedAction_projectivization`, stated for any smooth linear
+  action whose action on `V` is a complexified action for multiplication by
+  `Complex.I`, which for `ρ` is the condition on `dρ`. The fundamental vector field of
   `ξ` at `[y]` is the image of `dρ ξ • y` under the differential of the
   projection, which identifies it with the generator of Tau Ceti's
   `TauCeti.ComplexProjectiveSpace.unitaryAction` at `dρ ξ`, an

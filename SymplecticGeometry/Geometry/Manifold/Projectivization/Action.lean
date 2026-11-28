@@ -29,6 +29,9 @@ generators.
   `(g, x) ↦ g • x` is `C^r` on `G × ℙ 𝕜 V`. Near `x₀` the action is `(g, x) ↦ [g • L x]`, for the
   homogeneous coordinates `L` of the identity that Tau Ceti's
   `Projectivization.exists_contMDiffAt_eventually_eq_mk` gives.
+* `Projectivization.instContMDiffConstSMulReal`: each `g` acts by a real-`C^r` map, with no
+  assumption on how the action depends on `g`, by Tau Ceti's
+  `Projectivization.instContMDiffConstSMul` over `𝕜`.
 * `Projectivization.fundamentalVectorField_mk`: the fundamental vector field of `ξ` at `[y]` is
   the image under the differential of `mkNonzero` at `y` of the fundamental vector field of `ξ`
   for the linear action at `y`, by the chain rule along the factorization of the orbit map of
@@ -98,6 +101,14 @@ instance instContMDiffSMul [ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → 𝕜) r G 
     rw [id] at hpx
     conv_lhs => rw [hpx]
     exact smul_mk p.1 hp
+
+/-- A group acting `𝕜`-linearly on `𝕜ⁿ⁺¹` acts on `ℙ 𝕜 (Fin (n + 1) → 𝕜)` by maps that are `C^r`
+for the underlying real manifold structure, since they are `C^r` over `𝕜`
+(`Projectivization.instContMDiffConstSMul`). -/
+instance instContMDiffConstSMulReal :
+    ContMDiffConstSMul 𝓘(ℝ, Fin n → 𝕜) r G (ℙ 𝕜 (Fin (n + 1) → 𝕜)) where
+  contMDiff_const_smul g :=
+    ContMDiff.restrictScalars' (h := contMDiff_const_smul (I := 𝓘(𝕜, Fin n → 𝕜)) (n := r) g) ℝ
 
 /-- **Fundamental vector fields of a linear action on projective space.** If a group acts
 `𝕜`-linearly on `𝕜ⁿ⁺¹` and the orbit map of `y ≠ 0` is differentiable at `1`, the fundamental
