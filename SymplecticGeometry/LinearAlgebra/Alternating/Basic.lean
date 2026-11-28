@@ -145,13 +145,11 @@ theorem eq_zero_of_forall_prod_fin_three (f : (M₁ × M₂) [⋀^Fin 3]→ₗ[R
     (hff : ∀ (w₁ w₂ : M₂) (v : M₁ × M₂), f ![(0, w₁), (0, w₂), v] = 0)
     (hbbf : ∀ (a b : M₁) (w : M₂), f ![(a, 0), (b, 0), (0, w)] = 0)
     (hbbb : ∀ a b c : M₁, f ![(a, 0), (b, 0), (c, 0)] = 0) : f = 0 := by
-  have add₀ (x x' y z : M₁ × M₂) : f ![x + x', y, z] = f ![x, y, z] + f ![x', y, z] := by
-    simpa using f.toMultilinearMap.cons_add ![y, z] x x'
   have add₁ (x y y' z : M₁ × M₂) : f ![x, y + y', z] = f ![x, y, z] + f ![x, y', z] := by
-    rw [f.map_vecCons_rotate x (y + y') z, add₀, ← f.map_vecCons_rotate x y z,
+    rw [f.map_vecCons_rotate x (y + y') z, f.map_vecCons_add, ← f.map_vecCons_rotate x y z,
       ← f.map_vecCons_rotate x y' z]
   have add₂ (x y z z' : M₁ × M₂) : f ![x, y, z + z'] = f ![x, y, z] + f ![x, y, z'] := by
-    rw [← f.map_vecCons_rotate (z + z') x y, add₀, f.map_vecCons_rotate z x y,
+    rw [← f.map_vecCons_rotate (z + z') x y, f.map_vecCons_add, f.map_vecCons_rotate z x y,
       f.map_vecCons_rotate z' x y]
   have swap (x y z : M₁ × M₂) : f ![x, z, y] = -f ![x, y, z] := by
     have h : ![x, z, y] = ![x, y, z] ∘ Equiv.swap 1 2 := by
@@ -162,7 +160,7 @@ theorem eq_zero_of_forall_prod_fin_three (f : (M₁ × M₂) [⋀^Fin 3]→ₗ[R
   ext v
   obtain ⟨x, y, z, rfl⟩ : ∃ x y z, v = ![x, y, z] :=
     ⟨v 0, v 1, v 2, funext fun i ↦ by fin_cases i <;> rfl⟩
-  rw [split x, split y, split z, add₀, add₁, add₁, add₂, add₂, add₂, add₂]
+  rw [split x, split y, split z, f.map_vecCons_add, add₁, add₁, add₂, add₂, add₂, add₂]
   simp only [hff, hbbf, hbbb, zero_apply]
   rw [swap (x.1, 0) (z.1, 0) (0, y.2), hbbf, f.map_vecCons_rotate (x.1, 0), hff,
     f.map_vecCons_rotate (0, x.2), hbbf, swap (0, x.2) (0, z.2) (y.1, 0), hff]

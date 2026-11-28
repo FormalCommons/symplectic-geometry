@@ -241,6 +241,14 @@ theorem apply_vecCons_prod_eq_sum (bs : Module.Basis ι R M₁) (T : (M₁ × M�
   rw [hsplit, hbase, hbs (0, w₁) u₂, hbs (0, w₂) u₁, Finset.sum_sub_distrib]
   abel
 
+end Prod
+
+section ProdFinThree
+
+variable {R M₁ M₂ N : Type*} [Semiring R] [AddCommMonoid M₁] [Module R M₁] [TopologicalSpace M₁]
+  [AddCommMonoid M₂] [Module R M₂] [TopologicalSpace M₂] [AddCommGroup N] [Module R N]
+  [TopologicalSpace N]
+
 /-- A continuous alternating map `T` of three vectors of a product `M₁ × M₂` is zero when it
 vanishes on the triples of three kinds: those whose first two members lie in `M₂` (written
 `(0, w)`), those whose first two members lie in `M₁` (written `(a, 0)`) and whose third lies in
@@ -252,7 +260,7 @@ theorem eq_zero_of_forall_prod_fin_three (T : (M₁ × M₂) [⋀^Fin 3]→L[R] 
   toAlternatingMap_injective <|
     T.toAlternatingMap.eq_zero_of_forall_prod_fin_three hff hbbf hbbb
 
-end Prod
+end ProdFinThree
 
 end ContinuousAlternatingMap
 
