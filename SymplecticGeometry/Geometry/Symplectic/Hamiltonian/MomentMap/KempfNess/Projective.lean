@@ -5,12 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Function
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Action
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ComplexProjectiveSpace
+import SymplecticGeometry.Geometry.Manifold.GroupAction.LogNorm
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Pseudoholomorphic
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
+import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 
 /-!
 # Complexified linear actions on complex projective space
@@ -55,6 +57,19 @@ is invariant under the elements that act by unitary matrices, and `J` under ever
   sign convention of the stability theory. It is not derived again: it is the restriction of
   `SymplecticGeometry.isEquivariantMomentMap_neg_unitaryProjectivizationMoment` along `φ`, by
   Tau Ceti's `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.comp_monoidHom`.
+* `SymplecticGeometry.kempfNessFunction_projectivization_mk`: under both hypotheses, the
+  Kempf–Ness function of `[v]` for `projectivizationMoment I φ` is
+  `g ↦ (log ‖g⁻¹ • v‖² - log ‖v‖²) / 4`. By
+  `SymplecticGeometry.eq_kempfNessFunction_of_mfderiv_eq`, for the metric `σ(·, J ·)` of the
+  compatible pair (`SymplecticGeometry.compatible_fubiniStudyForm` and Tau Ceti's
+  `TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂`), it is enough to compare differentials.
+  That of the right side is `SymplecticGeometry.mfderiv_log_norm_sq_inv_smul_apply`. The
+  generator of `Z` at `w` is `A w + i B w`
+  (`SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_eq_re_add_im`), with `A` and
+  `B` the skew-Hermitian matrices of `dφ (C.re Z)` and `dφ (C.im Z)`. Since `re ⟪w, A w⟫ = 0`
+  (`TauCeti.re_inner_toLp_coe_unitaryLieAlgebra_mulVec`), only `Im ⟪w, B w⟫` is left, which
+  `SymplecticGeometry.projectivizationMoment_mk_apply` reads as the moment of `[w]` along
+  `C.im Z`.
 
 ## References
 
@@ -70,6 +85,20 @@ public section
 
 open Matrix TauCeti Projectivization SmoothAlmostComplexStructure
 open scoped Manifold ContDiff LinearAlgebra.Projectivization
+
+/-- A skew-Hermitian matrix `X` moves every vector `w` orthogonally to it for the real part of the
+Hermitian inner product of `EuclideanSpace ℂ ι`: `re ⟪w, X w⟫ = 0`. -/
+theorem TauCeti.re_inner_toLp_coe_unitaryLieAlgebra_mulVec {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (X : unitaryLieAlgebra ι) (w : ι → ℂ) :
+    (inner ℂ (WithLp.toLp 2 w) (WithLp.toLp 2 ((X : Matrix ι ι ℂ) *ᵥ w))).re = 0 := by
+  have h : inner ℂ (WithLp.toLp 2 w) (WithLp.toLp 2 ((X : Matrix ι ι ℂ) *ᵥ w)) =
+      -starRingEnd ℂ (inner ℂ (WithLp.toLp 2 w) (WithLp.toLp 2 ((X : Matrix ι ι ℂ) *ᵥ w))) := by
+    rw [inner_conj_symm, EuclideanSpace.inner_toLp_toLp, EuclideanSpace.inner_toLp_toLp,
+      star_mulVec, conjTranspose_coe_unitaryLieAlgebra, vecMul_neg, dotProduct_neg, _root_.neg_neg,
+      dotProduct_comm w, ← dotProduct_mulVec, dotProduct_comm]
+  have := congrArg Complex.re h
+  rw [Complex.neg_re, Complex.conj_re] at this
+  linarith
 
 namespace SymplecticGeometry
 
@@ -189,6 +218,95 @@ theorem isComplexifiedAction_projectivization {C : LieComplexification I G IC Gc
       rw [hX, hX, h.fundamentalVectorField_cplx]
       exact (congrArg _ (ofComplexManifold_apply _ _)).trans
         ((mfderiv_mkNonzero_I_smul _ _).trans (by rw [mkNonzero_apply]))
+
+section KempfNessFunction
+
+open TauCeti.Lie
+open scoped Matrix.Norms.Operator TauCeti.Lie.MatrixUnitary InnerProductSpace
+
+variable [FiniteDimensional ℝ E] [ConnectedSpace G]
+
+/-- **The Kempf–Ness function on `ℂPⁿ`.** In the setting of
+`isComplexifiedAction_projectivization`, let `G` act on `ℂⁿ⁺¹` through a homomorphism
+`φ : G →* U(n + 1)` that is differentiable at the identity. For `v ≠ 0`, the Kempf–Ness function
+of `[v]` for the moment map `projectivizationMoment I φ` is
+`g ↦ (log ‖g⁻¹ • v‖² - log ‖v‖²) / 4`, for the Hermitian norm of
+`EuclideanSpace ℂ (Fin (n + 1))`. -/
+theorem kempfNessFunction_projectivization_mk {C : LieComplexification I G IC Gc}
+    (h : IsComplexifiedAction C (ofComplexManifold (Fin (n + 1) → ℂ) (Fin (n + 1) → ℂ)))
+    (φ : G →* unitarySubgroup (GL (Fin (n + 1)) ℂ))
+    (hφ : MDifferentiableAt I 𝓘(ℝ, 𝔨[Fin (n + 1)]) (⇑φ) 1)
+    (hsmul : ∀ (g : G) (v : Fin (n + 1) → ℂ), g • v = φ g • v)
+    {v : Fin (n + 1) → ℂ} (hv : v ≠ 0) (g : Gc) :
+    kempfNessFunction C (projectivizationMoment I φ) (mk ℂ v hv) g =
+      1 / 4 * (Real.log (‖WithLp.toLp 2 (g⁻¹ • v)‖ ^ 2) - Real.log (‖WithLp.toLp 2 v‖ ^ 2)) := by
+  -- The action of `G` on `ℂⁿ⁺¹` is that of `Gc` along `C.toHom`, so it is smooth.
+  have : ContMDiffSMul I 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ G (Fin (n + 1) → ℂ) := ⟨by
+    have hG : (fun p : G × (Fin (n + 1) → ℂ) ↦ p.1 • p.2) = fun p ↦ C.toHom p.1 • p.2 :=
+      funext fun p ↦ (h.toHom_smul p.1 p.2).symm
+    rw [hG]
+    exact contMDiff_smul.comp (C.toHom.contMDiff_toFun.prodMap contMDiff_id)⟩
+  let : Bundle.RiemannianBundle fun x : ℙ ℂ (Fin (n + 1) → ℂ) ↦ TangentSpace 𝓘(ℝ, Fin n → ℂ) x :=
+    ⟨compatible_fubiniStudyForm.metric.toRiemannianMetric⟩
+  let T : (Fin (n + 1) → ℂ) →L[ℝ] EuclideanSpace ℂ (Fin (n + 1)) :=
+    ((PiLp.continuousLinearEquiv 2 ℝ fun _ : Fin (n + 1) ↦ ℂ).symm :
+      (Fin (n + 1) → ℂ) →L[ℝ] EuclideanSpace ℂ (Fin (n + 1)))
+  have hT (w : Fin (n + 1) → ℂ) : T w = WithLp.toLp 2 w := rfl
+  have hTi : Function.Injective T := (PiLp.continuousLinearEquiv 2 ℝ _).symm.injective
+  have hf := eq_kempfNessFunction_of_mfderiv_eq C (projectivizationMoment I φ) (mk ℂ v hv)
+    (isComplexifiedAction_projectivization h)
+    (isEquivariantMomentMap_neg_projectivizationMoment φ hφ hsmul)
+    compatible_fubiniStudyForm.inner_eq_eval₂
+    (f := fun g ↦ 1 / 4 * (Real.log (‖T (g⁻¹ • v)‖ ^ 2) - Real.log (‖T v‖ ^ 2)))
+    ?_ ?_ (by simp)
+  · simpa [hT] using (congrFun hf g).symm
+  · exact (contMDiff_const.mul ((contMDiff_log_norm_sq_inv_smul (n := ∞) ℂ hTi hv).sub
+      contMDiff_const)).mdifferentiable (by simp)
+  · intro x ĝ
+    have hL := (contMDiff_log_norm_sq_inv_smul (I := IC) ℂ hTi hv (n := ∞)).mdifferentiableAt
+      (x := x) (by simp)
+    have hA : HasFDerivAt (fun t : ℝ ↦ 1 / 4 * (t - Real.log (‖T v‖ ^ 2)))
+        ((1 / 4 : ℝ) • ContinuousLinearMap.id ℝ ℝ) (Real.log (‖T (x⁻¹ • v)‖ ^ 2)) :=
+      ((hasFDerivAt_id _).sub_const _).const_mul _
+    rw [show (fun g : Gc ↦ 1 / 4 * (Real.log (‖T (g⁻¹ • v)‖ ^ 2) - Real.log (‖T v‖ ^ 2))) =
+        (fun t : ℝ ↦ 1 / 4 * (t - Real.log (‖T v‖ ^ 2))) ∘
+          fun g : Gc ↦ Real.log (‖T (g⁻¹ • v)‖ ^ 2) from rfl,
+      mfderiv_comp_apply x hA.differentiableAt.mdifferentiableAt hL, mfderiv_eq_fderiv,
+      hA.fderiv]
+    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+      NormedSpace.fromTangentSpace_symm_apply, NormedSpace.fromTangentSpace_apply,
+      FunLike.coe_smul, ContinuousLinearMap.coe_id']
+    rw [mfderiv_log_norm_sq_inv_smul_apply (𝕜 := ℂ) hTi hv x ĝ, smul_mk,
+      projectivizationMoment_mk_apply]
+    generalize x⁻¹ • v = w
+    have hX (ξ : GroupLieAlgebra I G) : fundamentalVectorField 𝓘(ℝ, Fin (n + 1) → ℂ) ξ w =
+        (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) ξ) :
+          Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ w := by
+      rw [← fundamentalVectorField_unitarySubgroup,
+        φ.fundamentalVectorField_groupLieAlgebraMap hφ hsmul]
+    suffices key : ∀ Z : GroupLieAlgebra IC Gc,
+        1 / 4 * (-2 * RCLike.re
+          ⟪T w, T (fundamentalVectorField 𝓘(ℝ, Fin (n + 1) → ℂ) Z w)⟫_ℂ / ‖T w‖ ^ 2) =
+        (⟪WithLp.toLp 2 w, WithLp.toLp 2
+          ((matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) (C.im Z)) :
+            Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ w)⟫_ℂ).im / (2 * ‖WithLp.toLp 2 w‖ ^ 2) from
+      key _
+    intro Z
+    have e : (fundamentalVectorField 𝓘(ℝ, Fin (n + 1) → ℂ) Z w : Fin (n + 1) → ℂ) =
+        (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) (C.re Z)) :
+          Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ w + Complex.I •
+        (matrixUnitaryLieAlgebraEquiv (φ.groupLieAlgebraMap I 𝓘(ℝ, 𝔨[Fin (n + 1)]) (C.im Z)) :
+          Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ) *ᵥ w := by
+      rw [h.fundamentalVectorField_eq_re_add_im]
+      exact congrArg₂ (· + ·) (hX _) ((ofComplexManifold_apply _ _).trans (congrArg _ (hX _)))
+    rw [e]
+    simp only [hT, WithLp.toLp_add, WithLp.toLp_smul, inner_add_right, inner_smul_right,
+      RCLike.re_to_complex, Complex.add_re, Complex.mul_re, Complex.I_re, Complex.I_im,
+      TauCeti.re_inner_toLp_coe_unitaryLieAlgebra_mulVec]
+    field_simp
+    ring
+
+end KempfNessFunction
 
 end SymplecticGeometry
 
