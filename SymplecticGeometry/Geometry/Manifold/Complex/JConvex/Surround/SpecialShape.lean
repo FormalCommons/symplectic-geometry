@@ -38,7 +38,11 @@ Explicit `i`-convex shapes (`SymplecticGeometry.IsConvexShapeAt`) from Cieliebak
   smooth on `(δ, ∞)` and continuous and strictly increasing on `[δ, ∞)`
   (`SymplecticGeometry.contDiffOn_struweShape`, `SymplecticGeometry.continuousOn_struweShape`,
   `SymplecticGeometry.strictMonoOn_struweShape`), and smooth jointly in its value at `K δ` and
-  in `r` (`SymplecticGeometry.contDiffOn_uncurry_struweShape`). For `δ ≠ 0` it is the shape of
+  in `r` (`SymplecticGeometry.contDiffOn_uncurry_struweShape`). A function that agrees with
+  Struwe's shape on `(δ, u)` has slope tending to `+∞` at `δ`
+  (`SymplecticGeometry.tendsto_deriv_of_eqOn_struweShape`), and one that is continuous on
+  `(δ, ∞)` and agrees with it on `[δ, u)` is continuous on `[δ, ∞)`
+  (`SymplecticGeometry.continuousOn_Ici_of_eqOn_struweShape`). For `δ ≠ 0` it is the shape of
   width `1` rescaled by `δ` (`SymplecticGeometry.struweShape_eq_mul_struweShape_one`). The shape
   of width `1` rises by at most `√2 * √(r ^ 2 - 1)` from `1` to `r ≥ 1`
   (`SymplecticGeometry.struweShape_sub_struweShape_one_mem_Icc`).
@@ -313,6 +317,28 @@ theorem continuousOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :
   refine (h r ⟨hr, hrb.le⟩).mono_of_mem_nhdsWithin ?_
   rw [← Ici_inter_Iic]
   exact inter_mem_nhdsWithin _ (Iic_mem_nhds hrb)
+
+/-- A function that is continuous on `(δ, ∞)` and equal to a Struwe shape on `[δ, u)`, for some
+`u > δ`, is continuous on `[δ, ∞)`. -/
+theorem continuousOn_Ici_of_eqOn_struweShape (hδ : 0 < δ) {c u : ℝ} (hK : 1 ≤ K)
+    {f : ℝ → ℝ} (hf : ContinuousOn f (Ioi δ)) (hu : δ < u)
+    (h : EqOn f (struweShape δ K c) (Ico δ u)) : ContinuousOn f (Ici δ) := by
+  intro x hx
+  rcases (mem_Ici.1 hx).eq_or_lt with hx | hx
+  · rw [← hx]
+    exact (continuousOn_struweShape hδ hK c δ self_mem_Ici).congr_of_eventuallyEq
+      (eventuallyEq_of_mem (Ico_mem_nhdsGE hu) h) (h ⟨le_rfl, hu⟩)
+  · exact (hf.continuousAt (Ioi_mem_nhds hx)).continuousWithinAt
+
+/-- The slope of a function that is equal to a Struwe shape on `(δ, u)`, for some `u > δ`,
+tends to `+∞` at `δ`. -/
+theorem tendsto_deriv_of_eqOn_struweShape (hδ : 0 < δ) {c u : ℝ} (hK : 1 ≤ K) {f : ℝ → ℝ}
+    (hu : δ < u) (h : EqOn f (struweShape δ K c) (Ioo δ u)) :
+    Tendsto (deriv f) (𝓝[>] δ) atTop := by
+  refine (tendsto_deriv_struweShape hδ hK c).congr' ?_
+  filter_upwards [Ioo_mem_nhdsGT hu] with r hr
+  refine (EventuallyEq.deriv_eq ?_).symm
+  filter_upwards [Ioo_mem_nhds hr.1 hr.2] with x hx using h hx
 
 /-- Struwe's shape is strictly increasing on `[δ, ∞)`. -/
 theorem strictMonoOn_struweShape (hδ : 0 < δ) (hK : 1 ≤ K) (c : ℝ) :

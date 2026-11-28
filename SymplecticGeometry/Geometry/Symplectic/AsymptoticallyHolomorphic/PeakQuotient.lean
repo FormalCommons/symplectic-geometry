@@ -429,7 +429,7 @@ theorem IsAsymptoticallyHolomorphic.exists_forall_norm_reading_div_peakFunction_
         ∀ b, ‖fderiv ℝ
             (fun y ↦ flatDbar (fun y ↦ D.reading k x (s k) y / peakFunction k y) y b) z‖ ≤
           C * (k : ℝ) ^ (-1 / 2 : ℝ) * ‖b‖ := by
-  obtain ⟨B, hB⟩ := IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le D hg hJ hα hρ₀ hs
+  obtain ⟨B, -, hB⟩ := IsAsymptoticallyHolomorphic.exists_forall_jetNormAt_le D hg hJ hα hρ₀ hs
     (11 / 10) 2
   obtain ⟨A, hA, C, hC⟩ := D.exists_forall_norm_reading_div_peakFunction_le hρ₀ B
   refine ⟨A, hA, C, ?_⟩
